@@ -64,9 +64,24 @@ fi
 add_violation() {
   local file="$1" level="$2" msg="$3"
   # Escape pra JSON simples (sem dependência de jq).
+  #
+  # `sys.stdin.buffer.read().decode('utf-8', 'replace')` e NÃO `sys.stdin.read()`:
+  # o stdin do python usa o encoding do console (cp1252 no Windows), mas os bytes
+  # que chegam aqui são UTF-8 (path + mensagem, e a mensagem interpola valores
+  # lidos do arquivo). Medido em 2026-09-15, no arquivo real, com os dois regimes:
+  #   - Windows PADRÃO (cp1252 + surrogateescape): NÃO estoura — corrompe calado.
+  #     TODA mensagem saía mojibake no violations.json, porque as próprias
+  #     mensagens têm `ó`/`§`/`—`/`á`: "campo obrigatÃ³rio ausente",
+  #     "(ADR 0130 Â§6 â€” prova MCP-first)". Valor com U+2010 vira lone surrogate
+  #     (`\udc90`), que os parsers toleram — ou seja, ninguém percebe.
+  #   - PYTHONIOENCODING setado a codec estrito: UnicodeDecodeError; como estas
+  #     duas linhas NÃO têm `|| true`, aí sim o `set -e` aborta antes de escrever.
+  # É o mesmo idioma já usado no cálculo de topic_len mais abaixo. `ensure_ascii`
+  # (default do json.dumps) mantém a SAÍDA em ASCII puro — o stdout não precisa
+  # de guarda, só o stdin.
   local esc_file esc_msg
-  esc_file="$(printf '%s' "$file" | "$PYTHON_BIN" -c 'import json,sys; print(json.dumps(sys.stdin.read()))')"
-  esc_msg="$(printf '%s' "$msg" | "$PYTHON_BIN" -c 'import json,sys; print(json.dumps(sys.stdin.read()))')"
+  esc_file="$(printf '%s' "$file" | "$PYTHON_BIN" -c 'import json,sys; print(json.dumps(sys.stdin.buffer.read().decode("utf-8","replace")))')"
+  esc_msg="$(printf '%s' "$msg" | "$PYTHON_BIN" -c 'import json,sys; print(json.dumps(sys.stdin.buffer.read().decode("utf-8","replace")))')"
   VIOLATIONS+=("{\"file\":${esc_file},\"level\":\"${level}\",\"error\":${esc_msg}}")
   if [[ "$level" == "error" ]]; then
     echo "::error file=${file}::${msg}" >&2
@@ -83,38 +98,89 @@ has_allowlist() {
 
 # Extrai frontmatter YAML (entre --- e ---) usando python3 + PyYAML se houver,
 # senão fallback grep simples.
+#
+# CONTRATO DE SAÍDA — os três desfechos são DISTINTOS de propósito:
+#   0 = leu o arquivo e o campo EXISTE      → valor no stdout
+#   1 = leu o arquivo e o campo NÃO existe  → stdout vazio (ausência genuína)
+#   3 = NÃO conseguiu ler                   → razão em stderr (arquivo/YAML/python)
+#
+# Até 2026-09-15 os três colapsavam em "stdout vazio" e o `2>/dev/null || true`
+# apagava o rc — logo "não consegui medir" era indistinguível de "o campo não
+# está lá", que é o vício catalogado no §5 (instrumento que afirma sobre o que
+# não conseguiu medir). Sintoma medido no Windows, onde o stdout do python é
+# cp1252: um `→`/`≥`/`↔` no valor estourava UnicodeEncodeError, o traceback ia
+# pro /dev/null, o `|| true` zerava o rc e o campo PRESENTE era acusado de
+# "campo obrigatório ausente". 1ª ocorrência 2026-07-29 (registrada como chip e
+# adiada por two-strikes), 2ª em 2026-09-15 — daí o conserto.
+#
+# Por isso a escrita sai por `sys.stdout.buffer` em UTF-8 explícito, e não por
+# `print()`, que depende do locale do console. `buffer` funciona em todo Python 3
+# e não depende de env var, que o chamador pode sobrescrever ou remover.
 extract_frontmatter_field() {
   local file="$1" field="$2"
-  "$PYTHON_BIN" - "$file" "$field" <<'PY' 2>/dev/null || true
+  "$PYTHON_BIN" - "$file" "$field" <<'PY'
 import sys, re
+
+
+def out(s):
+    # UTF-8 explícito: `print()` usaria o encoding do console (cp1252 no Windows).
+    sys.stdout.buffer.write(str(s).encode('utf-8') + b'\n')
+    sys.stdout.buffer.flush()
+
+
+def nao_consegui_ler(motivo):
+    sys.stderr.buffer.write(('extract_frontmatter_field: ' + motivo + '\n').encode('utf-8'))
+    sys.exit(3)
+
+
 path, field = sys.argv[1], sys.argv[2]
 try:
     raw = open(path, encoding='utf-8').read()
-except Exception:
-    sys.exit(0)
+except Exception as e:
+    nao_consegui_ler('nao abriu %s (%s: %s)' % (path, type(e).__name__, e))
 m = re.match(r'^---\s*\n(.*?)\n---\s*\n', raw, re.DOTALL)
 if not m:
-    sys.exit(0)
+    sys.exit(1)
 fm = m.group(1)
 try:
     import yaml
-    data = yaml.safe_load(fm) or {}
-    val = data.get(field)
-    if val is None:
-        sys.exit(0)
-    if isinstance(val, (list, dict)):
-        import json
-        print(json.dumps(val))
-    else:
-        print(val)
 except ImportError:
     # Fallback: regex linha-simples key: value (sem suporte a list/dict aninhados).
     for line in fm.splitlines():
         m2 = re.match(rf'^{re.escape(field)}\s*:\s*(.*)$', line)
         if m2:
-            print(m2.group(1).strip().strip('"').strip("'"))
-            break
+            out(m2.group(1).strip().strip('"').strip("'"))
+            sys.exit(0)
+    sys.exit(1)
+try:
+    data = yaml.safe_load(fm) or {}
+except Exception as e:
+    nao_consegui_ler('YAML invalido em %s (%s: %s)' % (path, type(e).__name__, e))
+if not isinstance(data, dict):
+    nao_consegui_ler('frontmatter de %s nao e um mapa YAML (veio %s)' % (path, type(data).__name__))
+val = data.get(field)
+if val is None:
+    sys.exit(1)
+if isinstance(val, (list, dict)):
+    import json
+    out(json.dumps(val))
+else:
+    out(val)
 PY
+}
+
+# Wrapper que entrega os dois lados do contrato sem matar o `set -e` do chamador.
+# Define FM_VALUE (valor lido) e FM_RC (0 existe · 1 ausente · 3 não-consegui-ler).
+# Retorna sempre 0 — quem decide é o chamador, lendo FM_RC.
+fm_field() {
+  FM_RC=0
+  FM_VALUE="$(extract_frontmatter_field "$1" "$2")" || FM_RC=$?
+}
+
+# Reporta o desfecho que ANTES virava falso "campo ausente". Mantido separado da
+# mensagem de ausência de propósito: são fatos diferentes sobre o mundo.
+add_read_failure() {
+  add_violation "$1" "error" "falha ao LER o frontmatter pro campo '${2}' — NÃO é ausência: o extractor não conseguiu medir (razão no stderr acima)"
 }
 
 has_frontmatter() {
@@ -180,13 +246,20 @@ validate_spec() {
 
   # 2. Campos obrigatórios.
   for field in module last_updated version owner; do
-    local val
-    val="$(extract_frontmatter_field "$file" "$field")"
-    if [[ -z "$val" ]]; then
+    fm_field "$file" "$field"
+    if (( FM_RC >= 2 )); then
+      add_read_failure "$file" "$field"
+      continue
+    fi
+    if [[ -z "$FM_VALUE" ]]; then
       # Tenta variante 'owners' (lista, schema legacy ONDA 5 S1).
       if [[ "$field" == "owner" ]]; then
-        val="$(extract_frontmatter_field "$file" "owners")"
-        if [[ -n "$val" ]]; then
+        fm_field "$file" "owners"
+        if (( FM_RC >= 2 )); then
+          add_read_failure "$file" "owners"
+          continue
+        fi
+        if [[ -n "$FM_VALUE" ]]; then
           continue
         fi
       fi
@@ -194,25 +267,29 @@ validate_spec() {
     fi
   done
 
+  # Os 3 checks de formato abaixo releem campos que o laço acima já cobriu: se a
+  # leitura falhou, o add_read_failure já saiu de lá e aqui FM_VALUE vem vazio, que
+  # o guard `[[ -n ... ]]` pula — sem acusar formato de um valor que não foi lido.
+
   # 3. module deve ser PascalCase (ou _PascalCase pra pseudo-módulos cross-cutting).
   # Wagner 2026-05-25: aceita prefixo `_` opcional pra módulos pseudo-cross-cutting
   # do tipo _DesignSystem (não é nWidart Modules/ — é cross-cutting design system).
   local module
-  module="$(extract_frontmatter_field "$file" "module")"
+  fm_field "$file" "module"; module="$FM_VALUE"
   if [[ -n "$module" ]] && ! [[ "$module" =~ ^_?[A-Z][a-zA-Z0-9]+$ ]]; then
     add_violation "$file" "error" "SPEC module '${module}' não é PascalCase válido (ex: Jana, NfeBrasil, RecurringBilling, _DesignSystem)"
   fi
 
   # 4. last_updated YYYY-MM-DD.
   local lu
-  lu="$(extract_frontmatter_field "$file" "last_updated")"
+  fm_field "$file" "last_updated"; lu="$FM_VALUE"
   if [[ -n "$lu" ]] && ! [[ "$lu" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
     add_violation "$file" "error" "SPEC last_updated '${lu}' fora do formato YYYY-MM-DD"
   fi
 
   # 5. version pattern (vN.N.N ou N.N.N — schema ONDA 5 S1 aceita ambos).
   local v
-  v="$(extract_frontmatter_field "$file" "version")"
+  fm_field "$file" "version"; v="$FM_VALUE"
   if [[ -n "$v" ]] && ! [[ "$v" =~ ^v?[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
     add_violation "$file" "error" "SPEC version '${v}' fora do formato vN.N.N ou N.N.N"
   fi
@@ -251,15 +328,19 @@ validate_session() {
 
   # 2. Frontmatter (opcional pra legacy, mas se presente valida).
   if has_frontmatter "$file"; then
-    local date_v topic
-    date_v="$(extract_frontmatter_field "$file" "date")"
-    topic="$(extract_frontmatter_field "$file" "topic")"
-    if [[ -z "$date_v" ]]; then
+    local date_v topic date_rc topic_rc
+    fm_field "$file" "date";  date_v="$FM_VALUE"; date_rc=$FM_RC
+    fm_field "$file" "topic"; topic="$FM_VALUE";  topic_rc=$FM_RC
+    if (( date_rc >= 2 )); then
+      add_read_failure "$file" "date"
+    elif [[ -z "$date_v" ]]; then
       add_violation "$file" "error" "Session frontmatter campo 'date' obrigatório ausente"
     elif ! [[ "$date_v" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
       add_violation "$file" "error" "Session date '${date_v}' fora do formato YYYY-MM-DD"
     fi
-    if [[ -z "$topic" ]]; then
+    if (( topic_rc >= 2 )); then
+      add_read_failure "$file" "topic"
+    elif [[ -z "$topic" ]]; then
       add_violation "$file" "error" "Session frontmatter campo 'topic' obrigatório ausente"
     else
       # Alinha com session.schema.json (topic minLength 5 / maxLength 250) — o CI
@@ -303,9 +384,10 @@ validate_handoff() {
   # 2. Frontmatter (opcional pra legacy mas se presente valida date/slug/tldr).
   if has_frontmatter "$file"; then
     for field in date slug tldr; do
-      local val
-      val="$(extract_frontmatter_field "$file" "$field")"
-      if [[ -z "$val" ]]; then
+      fm_field "$file" "$field"
+      if (( FM_RC >= 2 )); then
+        add_read_failure "$file" "$field"
+      elif [[ -z "$FM_VALUE" ]]; then
         add_violation "$file" "error" "Handoff frontmatter campo '${field}' obrigatório ausente"
       fi
     done
