@@ -21,7 +21,7 @@ related_adrs: [ui/0114, 0093]
 > **Persona alvo:** Eliana [E] — financeiro escritório / Wagner [W] — dono. Desktop ≥1024px. Decisão de caixa em <30s.
 > **Refs:**
 > - Blade legacy: ❌ **n/a** — greenfield (não existe equivalente)
-> - Canon Cockpit: [`prototipo-ui/prototipos/financeiro-fluxo/page.tsx`](../../../prototipo-ui/prototipos/financeiro-fluxo/page.tsx) — F1 aprovado [W] Cowork 2026-05-09
+> - Canon Cockpit: `prototipo-ui/prototipos/financeiro-fluxo/page.tsx` _(removido em 2026-09-11, PR #7224)_ — F1 aprovado [W] Cowork 2026-05-09
 > - Charter: a criar em `resources/js/Pages/Financeiro/Fluxo/Index.charter.md` (F3)
 > - ADRs: [ui/0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md), [0093 multi-tenant Tier 0](../../decisions/0093-multi-tenant-isolation-tier-0.md)
 

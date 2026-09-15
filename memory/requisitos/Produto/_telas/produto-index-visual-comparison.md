@@ -21,7 +21,7 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/
 > **Persona:** Larissa (ROTA LIVRE biz=4), 1280px
 > **Refs:**
 > - Blade legacy: `resources/views/product/index.blade.php` (DataTables jQuery + Yajra server-side)
-> - Canon Cowork: [`produto-cockpit/produto-cockpit-page.jsx`](../../../prototipo-ui/prototipos/produto-cockpit/produto-cockpit-page.jsx)
+> - Canon Cowork: `produto-cockpit/produto-cockpit-page.jsx` _(removido em 2026-09-11, PR #7224)_
 > - Page MWART: `resources/js/Pages/Produto/Index.tsx`
 > - RUNBOOK: [`RUNBOOK-produto-index.md`](RUNBOOK-produto-index.md)
 > - ADR 0149 screen-pattern reuse (este é o blueprint pra Show/Edit/Create/SellingPrices)

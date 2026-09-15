@@ -19,7 +19,7 @@ related_adrs: [ui/0114, 0093]
 > **Persona alvo:** Eliana [E] — financeiro escritório. Desktop ≥1024px.
 > **Refs:**
 > - Tela atual em prod: [`resources/js/Pages/Financeiro/Boletos/Index.tsx`](../../../resources/js/Pages/Financeiro/Boletos/Index.tsx) (Inertia, 175 linhas, sem charter)
-> - Canon Cockpit: [`prototipo-ui/prototipos/boletos/cowork-app.jsx`](../../../prototipo-ui/prototipos/boletos/cowork-app.jsx) — F1 export Claude Design 2026-05-14
+> - Canon Cockpit: `prototipo-ui/prototipos/boletos/cowork-app.jsx` _(removido em 2026-09-11, PR #7224)_ — F1 export Claude Design 2026-05-14
 > - ADRs: [ui/0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md), [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
 
 ## Resumo executivo

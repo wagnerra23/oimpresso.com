@@ -54,7 +54,7 @@ approval_artifact: "Screenshot Brave colado pelo Wagner — 'resultado esperado'
 > **Tipo de tela:** list+detail (Cockpit V2 ADR 0110) — refino de página live, NÃO migração nova.
 > **Persona alvo:** Larissa (ROTA LIVRE biz=4, vestuário Termas do Gravatal/SC, monitor 1280px, ~5-15 vendas/dia) + Wagner (WR2 biz=1, dev+admin).
 > **Refs:**
-> - Visual-source canônico: [`prototipo-ui/prototipos/sells-index/`](../../../prototipo-ui/prototipos/sells-index/) (handoff Claude Design `Kf6GHQu6fkwlh0vnL30Oog`, sessão chat10 2026-05-16)
+> - Visual-source canônico: `prototipo-ui/prototipos/sells-index/` _(removido em 2026-09-11, PR #7224)_ (handoff Claude Design `Kf6GHQu6fkwlh0vnL30Oog`, sessão chat10 2026-05-16)
 > - Page atual: [`resources/js/Pages/Sells/Index.tsx`](../../../resources/js/Pages/Sells/Index.tsx) (1326 LOC, status `live` desde 2026-05-08, PR #261)
 > - Charter atual: [`Index.charter.md`](../../../resources/js/Pages/Sells/Index.charter.md)
 > - Endpoint: `GET /sells-list-json` ([`SellController::inertiaList`](../../../app/Http/Controllers/SellController.php:892))
@@ -370,7 +370,7 @@ Total estimado: **6-7h** (recalibrado fator 10x [ADR 0106](../../decisions/0106-
 
 ## Como aprovar
 
-1. Abra [`prototipo-ui/prototipos/sells-index/Oimpresso ERP - Chat.html`](../../../prototipo-ui/prototipos/sells-index/Oimpresso ERP - Chat.html) em Chrome/Edge local
+1. Abra `prototipo-ui/prototipos/sells-index/Oimpresso ERP - Chat.html` _(removido em 2026-09-11, PR #7224)_ em Chrome/Edge local
 2. Clique na sidebar esquerda em **$ Vendas**
 3. Observe na tabela: coluna Pagamento tem pílulas coloridas (alguns rosa `-12d`, alguns âmbar `4d`, alguns verde `8d`)
 4. KPI "A receber" mostra breakdown abaixo (ex: `1 estourado · 2 atrasando`)
