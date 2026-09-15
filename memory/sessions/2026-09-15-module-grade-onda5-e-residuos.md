@@ -20,6 +20,14 @@ outcomes:
 > ([`2026-09-15-1941`](../handoffs/2026-09-15-1941-module-grade-onda5-e-os-residuos.md)) registra o
 > ESTADO. Aqui: o que cada PR fez, os numeros medidos, e onde a medicao derrubou uma afirmacao minha.
 
+## TL;DR
+
+Fechei a Onda 5/5 da ADR 0399 (aposentar a rubrica `module-grade`) em 4 PRs e os 9 residuos que a
+varredura final revelou — **13 PRs mergeados em 2h40, zero delecao**: a rubrica morreu, o registro
+de como ela funcionava ficou. Os 3 residuos maiores renderam **mais** que o reportado, sempre pela
+mesma causa — afirmei a partir do grep sem abrir o arquivo. Duas razoes minhas para NAO fazer
+trabalho cairam sob medicao, e uma delas era uma recusa que [W] teve de reverter pedindo 2×.
+
 ## Os 13 PRs
 
 | PR | O que fez | Numero que importa |
