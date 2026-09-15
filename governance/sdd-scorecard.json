@@ -28,15 +28,15 @@
         "by_state": {
           "sem_campo": 146,
           "placeholder": 1,
-          "pendente": 439,
+          "pendente": 438,
           "parcial": 118,
-          "anchored_ok": 339,
+          "anchored_ok": 340,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
         "fields_total": 903,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 819,
+        "fields_grammar_ok": 818,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
