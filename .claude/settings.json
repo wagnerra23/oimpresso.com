@@ -135,6 +135,10 @@
           },
           {
             "type": "command",
+            "command": "node .claude/hooks/whats-active-troca-de-alvo.mjs"
+          },
+          {
+            "type": "command",
             "command": "node .claude/hooks/preflight-new-capability.mjs"
           },
           {

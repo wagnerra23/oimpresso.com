@@ -204,16 +204,16 @@
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 1,
-      "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
+      "value": 0,
+      "unit": "portas atrás dos eventos (>7d vs doc OU código mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
-      "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)",
+      "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs UNIÃO(data-git do doc não-gerado mais novo, data-git do código do módulo) — determinístico, ADR 0291 D-D",
       "detail": {
         "portas": 80,
         "carimbadas": 14,
         "sem_carimbo": 66,
-        "stale": 1,
+        "stale": 0,
         "oldest_distilled_at": "2026-09-06",
         "datadas_por_codigo": 14
       },

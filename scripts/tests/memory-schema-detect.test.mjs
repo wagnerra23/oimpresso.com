@@ -36,11 +36,13 @@ const ok = (cond, msg) => {
   if (!cond) falhas++;
 };
 
-// PYTHONIOENCODING: o validador imprime o valor do frontmatter via python. No runner
-// Linux o stdout já é UTF-8; no Windows é cp1252 e uma seta no tldr explode com
-// UnicodeEncodeError, virando um falso "campo ausente". Igualar aqui faz o teste medir
-// o MESMO comportamento nas duas plataformas (§5 2026-08-07).
-const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
+// O ambiente vai CRU de propósito. De 2026-09-10 a 2026-09-15 esta linha forçava
+// `PYTHONIOENCODING: 'utf-8'` porque o validador imprimia o valor do frontmatter com
+// `print()`, e no Windows (stdout cp1252) uma seta no tldr explodia — o teste ficava
+// verde contornando o defeito em vez de medi-lo. O defeito foi consertado no script
+// (escrita por `sys.stdout.buffer`), então a muleta saiu e a PERNA 4 abaixo passou a
+// forçar cp1252 para provar o conserto nas duas plataformas.
+const env = { ...process.env };
 const git = (cwd, ...argv) => spawnSync('git', argv, { cwd, encoding: 'utf8', env });
 
 /**
@@ -128,6 +130,29 @@ function sandbox() {
       + '# x\n\n## TL;DR\nok\n',
   );
 
+  // Handoff BOM cujo tldr tem chars FORA do cp1252 (→ ≥ ↔). Fixture da PERNA 4: com o
+  // `print(val)` antigo o extractor estourava e o campo PRESENTE virava "ausente".
+  writeFileSync(
+    join(dir, 'memory/handoffs/2026-01-02-1100-fora-do-cp1252.md'),
+    fm('date: "2026-01-02"\nslug: "fora-do-cp1252"\ntldr: "E1→E6 concluído — recall ≥ 80% e ida↔volta ok"')
+      + '# x\n\n## TL;DR\nok\n\n## Estado MCP no momento do fechamento\ncycles-active: nada\n',
+  );
+  // CONTROLE NEGATIVO da PERNA 4: tldr GENUINAMENTE ausente. Sem esta fixture, um fix
+  // que simplesmente desligasse a checagem deixaria a de cima verde.
+  writeFileSync(
+    join(dir, 'memory/handoffs/2026-01-02-1200-sem-tldr.md'),
+    fm('date: "2026-01-02"\nslug: "sem-tldr"')
+      + '# x\n\n## TL;DR\nok\n\n## Estado MCP no momento do fechamento\ncycles-active: nada\n',
+  );
+  // Frontmatter ilegível (flow sequence não fechada → ParserError no PyYAML). "Não
+  // consegui ler" é um fato DIFERENTE de "o campo não está lá", e a acusação tem de dizer
+  // qual dos dois é. Precisa de PyYAML instalado; o fallback regex não parseia YAML.
+  writeFileSync(
+    join(dir, 'memory/handoffs/2026-01-02-1300-yaml-quebrado.md'),
+    '---\ndate: "2026-01-02"\nslug: "yaml-quebrado"\ntldr: [1, 2\n---\n'
+      + '# x\n\n## TL;DR\nok\n\n## Estado MCP no momento do fechamento\ncycles-active: nada\n',
+  );
+
   writeFileSync(
     join(dir, 'memory/sessions/2026-01-02-session-boa.md'),
     fm('date: "2026-01-02"\ntopic: "Fixture boa do bite-test"') + '# Boa\n\n## TL;DR\nok\n',
@@ -160,7 +185,7 @@ try {
   }
 
   console.log('PERNA 1 — a deteccao enxerga pasta plana (o pathspec vem do workflow)');
-  for (const [pasta, filtro, esperado] of [['handoffs', 'A', 3], ['sessions', 'AM', 2]]) {
+  for (const [pasta, filtro, esperado] of [['handoffs', 'A', 6], ['sessions', 'AM', 2]]) {
     const spec = pathspecDoWorkflow(pasta);
     const achados = git(dir, 'diff', '--name-only', `--diff-filter=${filtro}`, BASE, HEAD, '--', spec)
       .stdout.split('\n').filter(Boolean);
@@ -219,6 +244,34 @@ try {
     ok(diffQuebrado.rc !== 0,
       `${pasta}: diff FALHA -> rc=${diffQuebrado.rc} (VERMELHO, nao mais verde-com-lista-vazia)`);
   }
+
+  // PERNA 4 — o extractor nao colapsa "nao consegui ler" em "o campo nao esta la".
+  //
+  // Forcar cp1252 reproduz o console do Windows em QUALQUER plataforma: no runner Linux
+  // o stdout do python ja e UTF-8, entao a fixture passaria sem provar nada — verde num
+  // contexto de execucao nao e veredito quando o comportamento DEPENDE do contexto
+  // (§5 2026-08-07). Medido por mutacao em 2026-09-15: com o `print(val)` antigo, o
+  // 1o assert cai (exit 1, acusando falso "campo 'tldr' obrigatorio ausente").
+  console.log('PERNA 4 — o extractor le o valor e separa ausencia de falha-de-leitura');
+  const rodaCp1252 = (tipo, arquivo) => spawnSync('bash', [VALIDADOR, tipo, arquivo], {
+    cwd: dir,
+    encoding: 'utf8',
+    env: { ...env, PYTHONIOENCODING: 'cp1252', VIOLATIONS_JSON: join(dir, 'v.json') },
+  });
+
+  const hForaCp = rodaCp1252('handoff', 'memory/handoffs/2026-01-02-1100-fora-do-cp1252.md');
+  ok(hForaCp.status === 0,
+    `tldr com char fora do cp1252 e LIDO (exit ${hForaCp.status}) — antes virava falso "campo ausente"`);
+
+  // CONTROLE NEGATIVO: o conserto nao pode ter DESLIGADO a checagem de ausencia.
+  const hSemTldr = rodaCp1252('handoff', 'memory/handoffs/2026-01-02-1200-sem-tldr.md');
+  ok(hSemTldr.status === 1 && /campo 'tldr' obrigat/.test(hSemTldr.stderr),
+    `tldr GENUINAMENTE ausente segue reprovando (exit ${hSemTldr.status})`);
+
+  // A acusacao tem de nomear qual dos dois fatos ocorreu — e NAO pode dizer "ausente".
+  const hYaml = rodaCp1252('handoff', 'memory/handoffs/2026-01-02-1300-yaml-quebrado.md');
+  ok(hYaml.status === 1 && /falha ao LER o frontmatter/.test(hYaml.stderr) && !/ ausente/.test(hYaml.stderr),
+    `YAML ilegivel acusa falha de LEITURA, nao ausencia (exit ${hYaml.status})`);
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }

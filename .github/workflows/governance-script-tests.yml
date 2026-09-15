@@ -502,6 +502,9 @@ jobs:
       - name: Modulo-preflight-warning PORTE .mjs (FASE 1 pre-flight Tier 0 · logica + E2E · roda em Linux)
         if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/modulo-preflight-warning.test.mjs
+      - name: Whats-active troca-de-alvo (braco mecanico da session-start-check · ADR 0119 · logica + CLI de fora)
+        if: always() && steps.setup.outcome == 'success'
+        run: node .claude/hooks/whats-active-troca-de-alvo.test.mjs
       - name: Lote 3 SessionStart+preflight REGISTRADO como node (correcao != invocacao · US-GOV-052)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-portlote3-sessionstart-registration.test.mjs

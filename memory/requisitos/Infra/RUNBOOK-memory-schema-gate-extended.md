@@ -160,6 +160,14 @@ Fix: adicionar seção com snapshot das tools MCP (cycles-active/my-work/session
 Causa: `python3` não no PATH no Windows.
 Fix: script detecta `python3`/`python`/`py` automaticamente. Se nenhum, instalar Python 3.x ou usar WSL.
 
+### "falha ao LER o frontmatter pro campo 'X' — NÃO é ausência"
+Causa: o extractor não conseguiu **medir** o campo — arquivo ilegível, YAML inválido (ex: `tldr: [1, 2` sem fechar), ou frontmatter que não é um mapa. A razão vem no stderr da linha acima.
+Fix: consertar o YAML. **Não** é o mesmo que "campo obrigatório ausente" — essa mensagem diz que o campo não está lá; esta diz que ninguém conseguiu olhar. Os dois eram indistinguíveis até 2026-09-15, quando o extractor passou a separá-los por exit code (0 existe · 1 ausente · 3 não-consegui-ler).
+
+### Falso "campo obrigatório ausente" num campo que existe (Windows, até 2026-09-15)
+Causa (histórica): o extractor imprimia o valor com `print()`, que usa o encoding do console — cp1252 no Windows. Valor com `→`/`≥`/`↔` estourava `UnicodeEncodeError`, o `2>/dev/null || true` engolia o crash e o campo PRESENTE era acusado de ausente. Medido no corpus: atingia 167 dos 456 handoffs com frontmatter (36,6%) e 79 dos 559 session (14,1%).
+Fix: corrigido no script (escrita por `sys.stdout.buffer` em UTF-8 explícito). Se reaparecer, o bite-test que cobre isso é a PERNA 4 de `scripts/tests/memory-schema-detect.test.mjs`, que força `PYTHONIOENCODING=cp1252` pra reproduzir o Windows em qualquer plataforma.
+
 ## Sugestões evolução (futuro)
 
 - **Validar links internos quebrados** via `markdown-link-check` (links pra `memory/decisions/NNNN-slug.md` que não existem)
@@ -173,13 +181,13 @@ Fix: script detecta `python3`/`python`/`py` automaticamente. Se nenhum, instalar
 | Data | Quem | O que mudou |
 |---|---|---|
 | 2026-05-15 | W+C | Criação D6 #4 audit `memoria-senior` |
+| 2026-09-15 | C | Extractor deixou de colapsar "não consegui ler" em "campo ausente" (exit 0/1/3 + escrita por `sys.stdout.buffer`). Zerou o falso "campo obrigatório ausente" no Windows — 39 FPs numa amostra de 79 arquivos reais, 0 erro legítimo perdido. +2 entradas de Troubleshooting; ponteiro morto do `-extended.yml` atualizado. |
 
 ## Referências
 
 - [ADR 0130 — Handoff append-only + MCP-first](../../decisions/0130-handoff-append-only-mcp-first.md)
 - [ADR 0094 — Constituição v2](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)
-- [Workflow original `memory-schema-gate.yml`](../../../.github/workflows/memory-schema-gate.yml) — valida frontmatter via AJV
-- [Workflow extended `memory-schema-gate-extended.yml`](../../../.github/workflows/memory-schema-gate-extended.yml) — este RUNBOOK
+- [Workflow `memory-schema-gate.yml`](../../../.github/workflows/memory-schema-gate.yml) — frontmatter via AJV **e** os sub-checks do corpo deste RUNBOOK. O `memory-schema-gate-extended.yml` que esta linha apontava até 2026-09-15 não existe mais: foi fundido aqui pela ADR 0314 F2, e o ponteiro ficou morto para trás.
 - [Script `validate-memory-schema.sh`](../../../.github/scripts/validate-memory-schema.sh)
 - Templates:
   - [`_TEMPLATE_SPEC.md`](../_TEMPLATE_SPEC.md)
