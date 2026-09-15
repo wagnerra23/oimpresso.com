@@ -36,6 +36,28 @@
  * reprovava `node -e '…' > /tmp/out.txt`, que é legítimo. Sem FP baixo, não
  * entra — a lápide do guard sintático já matou 4 dessa família.
  *
+ * ── RE-MEDIDO 2026-09-15 — O P3 TINHA OS DOIS DEFEITOS AO MESMO TEMPO ──────
+ * Mesma disciplina do P4 e do P5, no 3º padrão. Corpus: 1.730 transcripts,
+ * 150.015 comandos.
+ *   (a) FALSO-NEGATIVO — a perna `echo` do `ehMencao` era larga aqui também, e
+ *       desligava o P3 sempre que houvesse um `echo` antes na linha. Medido:
+ *       78 comandos passavam batidos, dos quais **65 execução REAL**. O idioma
+ *       `echo "=== titulo ==="; git grep --hidden …` é o padrão do repo.
+ *   (b) FALSO-POSITIVO — o regex é ganancioso (`git grep` + `[^\n]*` + a flag),
+ *       então acusava a flag de um `rg` adiante na MESMA linha — uso CERTO, já
+ *       que quem varre dotfile no working tree é o ripgrep. Medido: 1 dos 30
+ *       disparos de hoje, e 13 dos 78 que (a) traria.
+ * Escopo: perna estrita do `echo` (como o P5) + `hiddenDeOutroComando` exigindo
+ * que a flag esteja no MESMO segmento de shell do `git grep`. Ambos
+ * determinísticos — posição no comando, nunca intenção do autor.
+ *   ANTES 30 disparos (1 FP)  ·  DEPOIS 92 (0 FP)
+ *   → 63 falso-negativos fechados · 1 falso-positivo eliminado
+ *
+ * ── PLACAR ATUAL DOS 4 (mesmo corpus, com o P5 injetado jqExiste:false) ─────
+ *   P2 3 (0,002%) · P3 92 (0,061%) · P4 3 (0,002%) · P5 39 (0,026%)
+ *   TOTAL 137 = 0,091% — 1 bloqueio a cada ~1.095 comandos, praticamente o
+ *   mesmo teto de 2026-08-21 (0,100%), com muito mais defeito real coberto.
+ *
  * ⚠️ O "0,080%" do P4 acima é FATO DATADO e fica — mas ele mediu o EIXO ERRADO.
  * Aqueles 52 foram classificados em **execução × menção**, nunca em **defeito ×
  * uso correto**. Re-medido no eixo certo em 2026-09-15 (1.730 transcripts):
@@ -146,6 +168,10 @@ export const PADROES = [
     nome: 'git grep --hidden',
     // `--hidden` é flag do RIPGREP. O git grep sai rc=129 e NÃO lista nada.
     re: /git\s+grep\b[^\n]*--hidden\b/,
+    // O regex acima é ganancioso de propósito (casa a linha), então precisa de uma
+    // 2ª perna: a flag tem de estar no MESMO segmento de shell do `git grep`.
+    // Sem ela, `git grep -l "x" | rg --hidden "y"` — uso CERTO — era acusado.
+    exceto: (cmd) => hiddenDeOutroComando(cmd),
     porque:
       '`--hidden` não existe no `git grep` (é do ripgrep). O comando sai com erro e lista ZERO — ' +
       'e um `wc -l` depois conta a mensagem de erro como "0 ocorrências".',
@@ -251,6 +277,40 @@ export function dentroDeCodigoInline(cmd, re) {
   const depoisDaAbertura = antes.slice(flag.index + flag[0].length - 1);
   const n = (depoisDaAbertura.match(new RegExp(aspa, 'g')) || []).length;
   return n % 2 === 1;
+}
+
+/**
+ * O `--hidden` que o regex do P3 casou pertence ao MESMO `git grep` — ou é de
+ * outro comando adiante na linha?
+ *
+ * ── POR QUE (medido 2026-09-15, 1.730 transcripts / ~149k comandos) ─────────
+ * O regex do P3 é ganancioso por construção (`git grep` + `[^\n]*` + a flag),
+ * então casa a linha inteira e acusa quando a flag é de um `rg` adiante — que
+ * é justamente o uso CERTO (quem varre dotfile no working tree é o ripgrep).
+ * Medido: 1 de 29 disparos de hoje, e 13 dos 78 que a perna estrita traria.
+ *
+ * Segmenta o comando por separador de shell FORA de aspas (`;` `&&` `||` `|`
+ * e newline) e pergunta se ALGUM segmento tem `git grep` E a flag juntos.
+ * Determinístico — é posição no comando, não intenção do autor.
+ *
+ * @param {string} cmd
+ * @returns {boolean} true = a flag é de OUTRO comando (abster)
+ */
+export function hiddenDeOutroComando(cmd) {
+  const segs = [];
+  let cur = '', q = null;
+  for (let i = 0; i < cmd.length; i++) {
+    const c = cmd[i];
+    if (q) { cur += c; if (c === q && cmd[i - 1] !== '\\') q = null; continue; }
+    if (c === '"' || c === "'") { q = c; cur += c; continue; }
+    if (c === ';' || c === '\n') { segs.push(cur); cur = ''; continue; }
+    if ((c === '&' || c === '|') && cmd[i + 1] === c) { segs.push(cur); cur = ''; i++; continue; }
+    if (c === '|') { segs.push(cur); cur = ''; continue; }
+    cur += c;
+  }
+  segs.push(cur);
+  const temGitGrepComFlag = segs.some((s) => /\bgit\s+grep\b/.test(s) && /--hidden\b/.test(s));
+  return !temGitGrepComFlag;          // nenhum segmento junta os dois → não é o defeito
 }
 
 /**
@@ -373,7 +433,7 @@ export function ehMencao(cmd, re, id) {
   // P5: exige que o match esteja DENTRO das aspas do echo. `echo "$s" | jq -r .`
   //     tem o pipe FORA, logo é EXECUÇÃO — e era o falso-negativo que deixava o
   //     vigia de CI mudo (LC-13, 2 ocorrências em ~5h no dia 2026-09-15).
-  const pernaEcho = id === 'P5'
+  const pernaEcho = (id === 'P5' || id === 'P3')
     ? dentroDeAspasDeEcho(antes)
     : /\b(echo|printf)\b[^\n]*$/.test(antes);
   return pernaEcho
@@ -422,6 +482,21 @@ const FIXTURES = [
   ['git grep --hidden -n "foo" -- .', true],
   ['rg --hidden -n "foo"', false],
   ['git grep -n "foo" -- .', false],
+  // ── P3: OS DOIS DEFEITOS MEDIDOS EM 2026-09-15 ────────────────────────────
+  // (a) FALSO-NEGATIVO — a perna `echo` do `ehMencao` era larga e desligava o P3
+  // sempre que houvesse um `echo` antes na linha. Medido: 65 execuções REAIS
+  // passavam batidas, e o idioma abaixo (cabeçalho + comando) é o padrão do repo.
+  ['echo "=== quem cita X ==="; git grep --hidden -l "X" -- .', true],
+  ['echo "titulo" && git grep -rn --hidden -e "Y" -- .', true],
+  // (b) FALSO-POSITIVO — o regex é ganancioso (`git grep` + [^\n]* + a flag), então
+  // casava a flag de um `rg` adiante na MESMA linha. Medido: 14 casos, e o `rg`
+  // com a flag está CERTO — quem varre dotfile no working tree é ele.
+  ['git grep -l "foo"; rg --hidden "bar"', false],
+  ['git grep -n "a" && rg --hidden -n "b"', false],
+  ['git grep -n "a" | rg --hidden "b"', false],
+  ['echo "=== total (repo inteiro, rg --hidden) ==="; git grep -c "z" -- .', false],
+  // …e o controle do controle: a flag NO git grep continua mordendo mesmo com pipe
+  ['git grep --hidden "a" | wc -l', true],
   ['grep -E "foo\\|bar" a.txt', true],
   ['grep -E "foo|bar" a.txt', false],
   ['grep -F "foo|bar" a.txt', false],
