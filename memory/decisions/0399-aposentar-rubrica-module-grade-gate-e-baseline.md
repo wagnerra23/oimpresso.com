@@ -74,13 +74,44 @@ Decisão de [W] em 2026-09-15, textual: *"aposentar essa merda, isso só me inco
 Aposentar a rubrica `module-grade` e toda a maquinaria que existia para alimentá-la ou para
 consumi-la como régua. A poda sai em ondas, cada uma deixando a árvore verde:
 
-| Onda | Escopo |
-|---|---|
-| **1 (esta)** | o gate de CI, o baseline e os leitores que dependiam dele |
-| 2 | superfície de produto: `ModuleGradeController`, rotas, topnav, as 2 Pages e seus artefatos por-tela |
-| 3 | motor: `ModuleGradeService`, `ModuleGradeCommand`, `ModuleGradeSnapshotCommand` e os 12 arquivos de teste |
-| 4 | dado: tabela `mcp_module_grades_history`, o cron `module:grade-snapshot` (06:05 BRT) e o health-check que vigia o frescor dele — migration destrutiva em PR próprio, porque neste pipeline o merge **é** o ato de dropar em produção |
-| 5 | canon: skills `avaliar-modulo` / `module-grades-gate`, RUNBOOKs e referências |
+| Onda | Escopo | Estado (2026-09-15) |
+|---|---|---|
+| **1 (esta)** | o gate de CI, o baseline e os leitores que dependiam dele | OK #7282 |
+| 2 | superfície de produto: `ModuleGradeController`, rotas, topnav, as 2 Pages e seus artefatos por-tela | OK #7283 |
+| 3 | motor: `ModuleGradeService`, `ModuleGradeCommand`, `ModuleGradeSnapshotCommand` e os 12 arquivos de teste | re-escopada — ver nota |
+| 4 | dado: tabela `mcp_module_grades_history`, o cron `module:grade-snapshot` (06:05 BRT) e o health-check que vigia o frescor dele — migration destrutiva em PR próprio, porque neste pipeline o merge **é** o ato de dropar em produção | OK #7298 (4a) + #7304 (4b) |
+| 5 | canon: skills `avaliar-modulo` / `module-grades-gate`, RUNBOOKs e referências | OK #7309 · #7311 · #7313 · este |
+
+> **Nota de execução, 2026-09-15 — a tabela acima é o PLANO; a Onda 3 foi re-escopada.**
+> O plano punha o motor inteiro na 3. Na prática: a **Onda 3** ([#7288](https://github.com/wagnerra23/oimpresso.com/pull/7288))
+> levou só o CLI `ModuleGradeCommand` + o alias `composer module-grades-check`, e o motor
+> (`ModuleGradeService`, `ModuleGradeSnapshotCommand`, os testes, o schedule das 06:05 e o check do
+> `governance:health`) foi para a **Onda 4a** ([#7298](https://github.com/wagnerra23/oimpresso.com/pull/7298)),
+> junto com o dado. O motivo é topologia, não gosto: o Snapshot era o **único consumidor de produção**
+> do Service, e o health-check vigiava a tabela que só o cron alimentava — cortar no ponto planejado
+> deixaria as peças órfãs ou mentindo por um PR inteiro. A **4b**
+> ([#7304](https://github.com/wagnerra23/oimpresso.com/pull/7304)) ficou só com a migration
+> destrutiva, em PR próprio, como a linha 4 exigia.
+>
+> **A obra está fechada.** O que sobrevive de propósito, e não é pendência: os **~115 docblocks**
+> `D1..D9` em código (fato datado — §Consequências 5); o par `governance-module-grades-gap.md` +
+> `.map.json`, preservado por decisão [W] com lápide; e as **3 labels** do GitHub
+> (`module-grades-allowed-regression` · `module-grades-new-module-allowed` · `bucket-change-approved`),
+> que **153/155** PRs históricos distintos carregam — são registro, e removê-las é decisão [W] em
+> separado.
+>
+> **Resíduos de código medidos na varredura final e NÃO tocados** (cada um custa PR próprio, nenhum
+> é Tier 0): `routes/web.php:1268` redireciona 301 para a rota que a Onda 2 transformou em 404; a
+> chave `module_grades_days` sobreviveu em `config/governance.php:117` — a 4a a removeu de dois
+> lugares e havia um terceiro, e `GovernanceWave18SaturateTest` ainda a exige; `phpstan-baseline.neon`
+> tem 2 ignores órfãos do Controller, **inertes** porque `phpstan.neon.dist:103` traz
+> `reportUnmatchedIgnoredErrors: false` (gate verde no main, run #34995843006); e
+> `governance/prod-flags.json`, `route-hits.json` e `doc-id-index.json` ainda listam as telas, mas
+> são derivados cujo conserto é rodar o gerador dono. Sete `BRIEFING.md` de outros módulos mandam
+> *"recomputar com `php artisan module:grade X`"*: **não foram tocados de propósito** — mexer nos
+> sete é o big-bang que o §5 2026-07-12 proíbe, e a data-git deles alimenta o `distiller_freshness`,
+> então tocá-los sem re-destilar pioraria o gate. Corrigem-se forward-only, quando cada módulo for
+> tocado por trabalho real.
 
 ## Consequências
 

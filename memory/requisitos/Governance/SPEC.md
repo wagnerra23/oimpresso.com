@@ -157,7 +157,9 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
 
 ### Área Tracking 90d (backlog)
 
-#### US-GOV-009 · Cron daily snapshot histórico 90d ❌ BACKLOG
+#### US-GOV-009 · Cron daily snapshot histórico 90d ⚰️ CANCELADA (ADR 0399)
+
+> **Cancelada em 2026-09-15, não entregue.** Tudo que ela entregaria foi deletado pela [ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md): o comando `module:grade --all --snapshot` (Onda 4a), a tabela `mcp_module_grades_history` (Onda 4b, dropada em produção com 960 linhas medidas antes) e a tela que mostraria o sparkline (Onda 2). Ironia registrada: entre 2026-08-08 e 2026-09-14 o cron **existiu e rodou** — foi o que produziu as 960 linhas —, mas a US nunca saiu de backlog porque o gráfico e a linha temporal do DoD nunca foram feitos. Não reabrir: a Fase B da ADR 0153 morreu com a rubrica.
 - **Schedule:** `app/Console/Kernel.php` daily 06:00 BRT (alinhado com `jana:health-check`)
 - **Comando:** `php artisan module:grade --all --snapshot`
 - **Tabela:** `mcp_module_grades_history (module, score, dim1..dim5, snapshot_at)` (cross-tenant)
@@ -239,15 +241,15 @@ Roles Spatie criadas com suffix `#{biz}` quando `roles.business_id` NOT NULL (Ul
 **Sintoma:** `opentelemetry-auto-laravel` instalado via composer mas extension **não carrega no Herd dev** — warning explícito na 1ª linha de `module:grade`:
 > Warning: The opentelemetry extension must be loaded in order to autoload the OpenTelemetry Laravel auto-instrumentation in vendor/open-telemetry/opentelemetry-auto-laravel/_register.php on line 13
 
-**Impacto:** D9.b Observability afetada em **TODOS os 36 módulos** do projeto. Eleva média projeto +2-3pp com 0.5h IA-pair.
+**Impacto:** ~~D9.b Observability afetada em TODOS os 36 módulos. Eleva média projeto +2-3pp~~ — ⚰️ **o ROI declarado evaporou em 2026-09-15**: D9.b era dimensão da rubrica `module-grade`, aposentada pela [ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md), e não existe mais "média do projeto" para elevar. **O trabalho em si pode continuar valendo por outro motivo** — OTel carregado em dev é observabilidade real (ADR 0208), não pontuação —, mas aí é [W] quem decide a prioridade, com sinal novo (ADR 0105). Esta US não é mais "o ROI maior do projeto".
 
 **Acceptance:**
 - [ ] Adicionar `extension=opentelemetry` no php.ini do Herd Windows
 - [ ] Verificar `php -m | grep opentelemetry` retorna OK
-- [ ] Re-rodar `php artisan module:grade --all` — sem warning
+- [x] ~~Re-rodar `php artisan module:grade --all` — sem warning~~ — critério **insatisfazível**: o comando foi deletado (ADR 0399, Onda 3). Se a US for retomada, o verificador é outro (rodar qualquer artisan e conferir stderr limpo)
 - [ ] Documentar no `memory/reference/herd-setup.md`
 
-**ROI:** MAIOR do projeto inteiro (0.5h IA-pair → +2-3pp média 36 módulos)
+**ROI:** ~~MAIOR do projeto inteiro (+2-3pp média 36 módulos)~~ — a métrica que o sustentava não existe mais (ADR 0399). Requalificar antes de priorizar.
 **Refs:** Compras/AUDIT-SENIOR-2026-05-25.md (Surpresa Estratégica)
 
 ### US-GOV-012 · Investigar ScopedScorecardEvaluator não captura SATURATION markers Jana (gap 25pp grade real)
