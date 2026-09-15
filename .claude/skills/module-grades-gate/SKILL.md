@@ -39,7 +39,7 @@ enabled: false
 >
 > As **labels continuam existindo no GitHub** (`module-grades-allowed-regression`,
 > `module-grades-new-module-allowed`), porque **153** PRs históricos distintos as carregam (medido com `--paginate`, deduplicado: a soma dos `total_count` dava 157 e superestimava, porque há PRs com as duas) — mas **nenhum gate
-> as lê**: aplicá-las hoje não destrava nada. Removê-las é decisão [W].
+> as lê**: aplicá-las hoje não destrava nada. **Decisão [W] 2026-09-15: FICAM** — são registro de 155 PRs mergeados, e não custam nada paradas.
 >
 > Fica como registro de como a catraca operava e por que caiu (4 rebaselines v3.5.1→v3.5.4, piso
 > acima do que o CI alcançava). O `enabled: false` acima marca a skill como **dormente no índice
