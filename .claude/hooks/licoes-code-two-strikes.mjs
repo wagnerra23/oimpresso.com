@@ -74,6 +74,24 @@ export function semGate(g) {
   return false;
 }
 
+/** CONTADOR DERIVADO (2026-09-15) — `Ocorrências` = `base:<N>` congelada + 1 por `- **rec**`.
+ *  POR QUÊ: o número escrito à mão é uma LINHA ÚNICA que toda sessão edita ao registrar,
+ *  então duas sessões no mesmo dia conflitam SEMPRE (medido: 2 conflitos em ~20min no
+ *  #7294, com colisão de numeração 156→157→158). Derivado, registrar = ADICIONAR uma
+ *  linha `- **rec**` e não tocar em nenhuma existente ⇒ o merge do git resolve sozinho.
+ *  NÃO é o S1 cortado (`Ocorrências == nº-recibos`, igualdade estrita — ver nota adiante):
+ *  aquele DESCARTAVA o legado (medido hoje: 20 das 32 LCs divergiriam, LC-11 cairia de 15
+ *  para 1); a `base` PRESERVA por construção — `base = campo_atual − nº de rec`, logo
+ *  `base + rec` reproduz o número de hoje em 32/32, com zero base negativa.
+ *  COMPAT: LC sem `base:` continua lendo o inteiro escrito — nenhuma LC precisa migrar. */
+const RE_BASE = /^\s*-\s*\*\*Ocorr[^:]*:\*\*\s*base:(\d+)/i;
+const RE_REC = /^\s*-\s*\*\*rec\*\*/;
+
+function finalizarLicao(cur) {
+  if (cur && cur.base !== null) cur.ocorr = cur.base + cur.recs;
+  return cur;
+}
+
 /** parser PURO do markdown → lista de {id, titulo, ocorr, gate}. */
 export function parseLicoes(text) {
   const licoes = [];
@@ -81,18 +99,21 @@ export function parseLicoes(text) {
   for (const ln of String(text || '').split('\n')) {
     const h = /^##\s+(LC-\S+)\s*[-—]?\s*(.*)$/.exec(ln);
     if (h) {
-      if (cur) licoes.push(cur);
-      cur = { id: h[1], titulo: h[2].trim(), ocorr: 0, gate: '', corpo: '' };
+      if (cur) licoes.push(finalizarLicao(cur));
+      cur = { id: h[1], titulo: h[2].trim(), ocorr: 0, base: null, recs: 0, gate: '', corpo: '' };
       continue;
     }
     if (!cur) continue;
     cur.corpo += ln + '\n';
+    if (RE_REC.test(ln)) cur.recs++;
+    const bs = RE_BASE.exec(ln);
+    if (bs) { cur.base = parseInt(bs[1], 10); continue; }
     const oc = /\*\*Ocorr.*?(\d+)/.exec(ln);
     const gt = /\*\*Gate.*?:\s*(.+?)\s*$/.exec(ln);
     if (oc) cur.ocorr = parseInt(oc[1], 10);
     else if (gt) cur.gate = gt[1].replace(/\*\*/g, '').trim();
   }
-  if (cur) licoes.push(cur);
+  if (cur) licoes.push(finalizarLicao(cur));
   return licoes;
 }
 
@@ -128,7 +149,8 @@ export function formatBanner(alarme, watch, th) {
       ? '  ACAO: NAO proponha gate novo aqui - a forma obvia ja foi medida e reprovada (ver corpo da LC).'
       : '  ACAO: proponha o gate/hook/baseline que mata essa classe - MEDINDO o FP antes (§5).');
     out.push('  QUEM FAZ: consertou um erro dessa classe? o ledger e SEU - escreva a lapide §5 e');
-    out.push('            incremente Ocorrencias (header do LICOES_CODE.md). [W] decide so o que e');
+    out.push('            ADICIONE uma linha `- **rec**` na LC (o contador e DERIVADO: base + rec;');
+    out.push('            NAO edite o numero - foi o que fazia 2 sessoes conflitarem). [W] decide so o que e');
     out.push('            soberania: apagar alarme, promover gate a required, podar capacidade.');
     out.push("  (Quando criar o gate, troque 'Gate: none' pelo nome dele em LICOES_CODE.md - o alarme some.)");
   }
