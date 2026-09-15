@@ -252,6 +252,24 @@ check('resumo traz o comando que o reproduz (número nunca sem comando ao lado)'
   /node scripts\/governance\/design-code-map-check\.mjs --check/.test(resumo));
 check('resumo decompõe o linha-only em acionável × precisa-ancorar', /fila acionável/.test(resumo) && /ancorar o `\.tsx` primeiro/.test(resumo));
 
+// PONTO CEGO (2026-09-14): partes TODAS com `prototipo.arquivo: n/a` zeravam a lista de fontes e
+// o bloco de staleness nem rodava — map ficava stale pra sempre, invisível. O gap declara a fonte
+// no frontmatter `prototipo:`; o checker passa a cair nela. Medido no corpus: 1 caso real
+// (Essentials/tipos.map.json). Controle POSITIVO (morde) + NEGATIVO (não inventa fonte).
+writeFileSync(join(reqDir, 'index-gap.md'), `---\nprototipo: prototipo-ui/cowork/Wagner/fixture-page.jsx\nmap_json: index.map.json\n---\n\n# gap\n`);
+writeMap({
+  prototipo_sha: 'sha256:0000000000ff', gap_fonte: 'memory/requisitos/Fixture/index-gap.md', // salvo DESATUALIZADO de propósito
+  partes: [{ id: 'header', prototipo: { arquivo: 'n/a', linhas: 'n/a' }, vivo: { arquivo: 'resources/js/Pages/Fixture/Index.tsx', linhas: '1-5' }, status: 'paridade', acao: 'no-op' }],
+});
+const cego = runCheck(['--check', '--strict']);
+check('BITE ponto cego: todas as partes n/a + sha stale → acha a fonte no frontmatter do gap e acusa STALE',
+  cego.status === 1 && /STALE/.test(cego.stdout));
+// controle negativo: sem fonte resolvível NENHUMA, não inventa — declara que não mediu
+writeFileSync(join(reqDir, 'index-gap.md'), `---\nprototipo: prototipo-ui/cowork/Wagner/NAO-EXISTE-xyz.jsx\nmap_json: index.map.json\n---\n\n# gap\n`);
+const semFonte = runCheck(['--check']);
+check('controle negativo: fonte irresolvível → WARN "NÃO MEDIDA", nunca silêncio nem STALE inventado',
+  /NÃO MEDIDA/.test(semFonte.stdout) && !/STALE/.test(semFonte.stdout));
+
 rmSync(root, { recursive: true, force: true });
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — design-code-map-check morde (âncora quebrada, sha stale por CONTEÚDO ou legado git, schema, data-contract declarado que sumiu) e libera certo (íntegro, TODO pendente, linha-only, commit sem mudança de conteúdo).');
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — design-code-map-check morde (âncora quebrada, sha stale por CONTEÚDO ou legado git, schema, data-contract declarado que sumiu, partes n/a com fonte no gap) e libera certo (íntegro, TODO pendente, linha-only, commit sem mudança de conteúdo).');
 process.exit(fails ? 1 : 0);
