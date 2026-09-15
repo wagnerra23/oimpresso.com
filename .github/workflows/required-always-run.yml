@@ -51,3 +51,33 @@ jobs:
 
       - name: Auditar contexts required
         run: node scripts/governance/required-always-run.mjs
+
+  # 5º eixo, em job SEPARADO e ADVISORY de propósito (ADR 0275: gate nasce advisory).
+  # Fora do job `lint` porque aquele É REQUIRED: um eixo novo ali poderia travar o
+  # merge do repo no primeiro falso-positivo — exatamente o dano que este eixo existe
+  # pra evitar. Promoção a required é flip [W], com bite-log (ADR 0336 DR-2).
+  #
+  # `fetch-depth: 0` é obrigatório: o eixo compara a árvore do PR contra a BASE, e o
+  # checkout raso padrão não tem `origin/main` pra ler. Sem isso o script sai 2
+  # (NÃO MEDIDO) e diz que não mediu — nunca verde silencioso.
+  rename:
+    name: Required rename — PRs abertos sobrevivem à promoção (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # O `|| true` aqui NÃO é o `|| true` proibido pela §5 2026-08-11 (aquele engole o
+      # erro do comando que DECIDE o gate). Este engole só o refresh do ref: quem decide
+      # é o script na linha seguinte, e ele distingue os dois casos — se `origin/main`
+      # não existir, sai **2 (NÃO MEDIDO)** dizendo que nada foi verificado, nunca 0.
+      # Sem o `|| true`, uma falha de rede transitória viraria vermelho de gate.
+      - name: Rename/promoção de context required
+        run: |
+          git fetch --no-tags --quiet origin main || true
+          node scripts/governance/required-always-run.mjs --check-rename --base=origin/main

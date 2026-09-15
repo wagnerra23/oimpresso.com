@@ -62,6 +62,25 @@
 // default `[opened, synchronize, reopened]`. Balde perigoso (não-required hoje): 69
 // workflows / 79 jobs, ~17× o balde do eixo `if:` — mesmo desenho preventivo, risco maior.
 //
+// ── 5º eixo: o RENAME — e é o único que precisa de DUAS árvores ─────────────
+// Os 4 acima medem UMA árvore ("todo required nasce em todo PR?"). Este mede a base e
+// o head e pergunta outra coisa: "os PRs JÁ ABERTOS satisfazem o required que este PR
+// cria ou renomeia?". A proteção avalia o head SHA de CADA PR aberto, e o workflow que
+// produz o check vem do head DAQUELE PR — renomear o job aqui não renomeia lá.
+//
+// INCIDENTE (2026-09-15): o #7286 promoveu `handoff integrity` a required E tirou o
+// `advisory · ` do `name:` no MESMO commit. 11 dos 12 PRs abertos deixaram de emitir o
+// context exigido; o merge do repo travou. Os 4 eixos saíram VERDES e estavam CERTOS.
+// Precedente idêntico: #5318 (2026-08-05) travou o repo por 2 DIAS.
+// A prescrição do conserto já existia EM PROSA no próprio `required-checks-baseline.json`
+// (*"`gh pr update-branch` nos PRs abertos"*) e não foi cumprida — escrito+lembrado
+// apodrece (ADR 0256). Esta perna é ela derivada.
+//
+// FP MEDIDO ANTES DE ARMAR (60 commits de `main`, 2026-09-15): 60 medidos · 0 pulados ·
+// **1 acusa (1,7%)** — e o único é `23f498439`, o commit do incidente. Zero
+// falso-positivo; o verdadeiro positivo capturado. Nasce ADVISORY (ADR 0275), em job
+// separado do `lint` (que é required) pra não travar o repo pelo gate que evita travas.
+//
 // Parsing TEXTUAL de propósito (sem js-yaml): o `governance-script-tests.yml` não
 // instala deps, e um lint que só roda onde há `npm ci` é um lint que não roda.
 //
@@ -69,10 +88,14 @@
 //   node scripts/governance/required-always-run.mjs            # relatório (exit 0/1)
 //   node scripts/governance/required-always-run.mjs --json
 //   node scripts/governance/required-always-run.mjs --selftest # fixtures herméticas
+//   node scripts/governance/required-always-run.mjs --check-rename [--base=<ref>]
+//                                                   # 5º eixo (default: origin/main)
 //
 // Exit: 0 = todo required nasce em todo PR e re-nasce em todo push
 //       1 = há required filtrado, sem gatilho, com `if:` falso em PR, ou sem
 //           `synchronize` no `types:` — todos deadlock latente
+//       (no `--check-rename`: 0 = nenhum required novo/renomeado · 1 = há, e os PRs
+//        abertos ficarão órfãos · 2 = NÃO MEDIDO, base inalcançável — nunca 0)
 
 import { readFileSync, readdirSync, existsSync, mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -318,6 +341,73 @@ export function ifsDeJob(srcCru) {
   return out;
 }
 
+/**
+ * 5º eixo — o context required que MUDA DE NOME (ou nasce) NESTE PR.
+ *
+ * Os 4 eixos acima medem UMA árvore e respondem *"todo required nasce em todo PR?"*.
+ * Este mede DUAS e responde outra pergunta: *"os PRs JÁ ABERTOS conseguem satisfazer
+ * o required que este PR cria ou renomeia?"*.
+ *
+ * POR QUE OS 4 EIXOS SAEM VERDES NO CASO DELE (e estão certos): a branch protection
+ * avalia o **head SHA de cada PR aberto**, e o workflow que produz o check vem do head
+ * DAQUELE PR — não do main. Renomear o job aqui não renomeia lá. O PR aberto segue
+ * emitindo o nome VELHO, a proteção exige o NOVO, e ele fica `BLOCKED` com 0 falhas e
+ * 0 pendentes: a assinatura do §5 2026-08-08.
+ *
+ * INCIDENTE QUE FECHA (2026-09-15, medido nesta sessão): o #7286 promoveu
+ * `handoff integrity` a required E tirou o `advisory · ` do `name:` do job no MESMO
+ * commit. 11 dos 12 PRs abertos passaram a não emitir o context exigido. O lint dos 4
+ * eixos saiu VERDE — no main o nome casa com o job. A prescrição do conserto já existia,
+ * EM PROSA, dentro do próprio `required-checks-baseline.json` (*"`gh pr update-branch`
+ * nos PRs abertos"*) e não foi cumprida. Escrito+lembrado apodrece ([ADR 0256]); esta
+ * perna é ela derivada. Precedente idêntico: #5318 (2026-08-05) travou o merge do repo
+ * por 2 DIAS pela mesma porta.
+ *
+ * PURA de propósito — recebe conjuntos, não toca disco nem git. O selftest exercita a
+ * regra hermeticamente; a leitura das duas árvores fica isolada em `emitidosNaRef`.
+ */
+export function orfaosDeRename({ requiredHead = [], emitidosBase, emitidosHead }) {
+  const base = emitidosBase instanceof Set ? emitidosBase : new Set(emitidosBase || []);
+  const head = emitidosHead instanceof Set ? emitidosHead : new Set(emitidosHead || []);
+  const orfaos = [];
+  for (const ctx of requiredHead) {
+    // Só acusa o que ESTE PR passa a emitir. Se o head também não emite, o defeito é
+    // outro (context sem job) e quem fala dele é `naoResolvidos`, como AVISO — acusar
+    // aqui seria dar dois vereditos para a mesma causa.
+    if (head.has(ctx) && !base.has(ctx)) orfaos.push(ctx);
+  }
+  return orfaos;
+}
+
+/**
+ * Contexts emitidos por TODOS os workflows de uma ref. Casca não-pura, isolada.
+ *
+ * Devolve `null` — nunca um Set vazio — quando não consegue ler a ref. A diferença é o
+ * gate inteiro: vazio faria TODO context required parecer "novo" e o lint acusaria 45
+ * órfãos falsos. "Não consegui medir" não é um estado do objeto medido (§5 2026-07-29).
+ */
+function emitidosNaRef(ref) {
+  // `execFileSync` e NÃO shell: no Git Bash/MSYS o revspec `<ref>:<path>` é mangleado
+  // quando o path começa com ponto (`.github/…`), o `git show` devolve VAZIO e o falso
+  // "a base não tinha este workflow" vira falso-positivo em massa (§5 2026-08-23).
+  // Sem shell, sem mangling — medido nesta sessão antes de escrever esta função.
+  const git = (args) => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  let lista;
+  try {
+    lista = git(['ls-tree', '--name-only', `${ref}:.github/workflows`])
+      .split('\n').map((s) => s.trim()).filter((n) => /\.ya?ml$/.test(n));
+  } catch {
+    return null;
+  }
+  const out = new Set();
+  for (const f of lista) {
+    let src;
+    try { src = git(['show', `${ref}:.github/workflows/${f}`]); } catch { continue; }
+    for (const c of contextsDoWorkflow(src)) out.add(c.context);
+  }
+  return out;
+}
+
 function auditar(root = ROOT) {
   const baseP = join(root, 'governance', 'required-checks-baseline.json');
   // O baseline guarda o required em DUAS chaves — `classic_protection` (branch protection
@@ -549,6 +639,50 @@ function selftest() {
     writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), semSyncW.replace(/\n/g, '\r\n'));
     ok(auditar(dir).semSync.length === 1, 'CRLF: `types:` sem synchronize em \\r\\n é acusado igual');
     writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), semPaths);
+
+    // ── 5º EIXO: rename/promoção — o que os 4 acima NÃO veem ─────────────────
+    // Função pura primeiro (barata), CLI depois (o que prova o pipeline).
+    const S = (a) => new Set(a);
+    ok(orfaosDeRename({ requiredHead: ['N'], emitidosBase: S(['V']), emitidosHead: S(['N']) }).length === 1,
+      'MORDE: required que o head emite e a base NÃO → órfão');
+    ok(orfaosDeRename({ requiredHead: ['N'], emitidosBase: S(['N']), emitidosHead: S(['N']) }).length === 0,
+      'LIBERA: context emitido nos dois lados não é órfão');
+    ok(orfaosDeRename({ requiredHead: ['X'], emitidosBase: S([]), emitidosHead: S([]) }).length === 0,
+      'controle negativo: context que o HEAD também não emite não é deste eixo (é AVISO do outro)');
+
+    // E2E num repo git REAL de 2 commits. Assert sobre helper puro exportado NÃO prova
+    // contrato de pipeline (§5 2026-07-30): um mutante que calcule certo e ignore o
+    // resultado deixaria os 3 asserts acima VERDES. Só o CLI de fora o mata.
+    const gdir = mkdtempSync(join(tmpdir(), 'rar-git-'));
+    try {
+      const g = (args) => execFileSync('git', args, { cwd: gdir, stdio: 'ignore' });
+      mkdirSync(join(gdir, '.github', 'workflows'), { recursive: true });
+      mkdirSync(join(gdir, 'governance'), { recursive: true });
+      const wf = (nome) => `name: X\n\non:\n  pull_request:\n\njobs:\n  a:\n    name: ${nome}\n`;
+      const bl = (ctx) => JSON.stringify({ classic_protection: { contexts: [ctx] } });
+      // commit 1 — nome VELHO, baseline coerente com ele
+      writeFileSync(join(gdir, '.github', 'workflows', 'w.yml'), wf('gate (advisory · x)'));
+      writeFileSync(join(gdir, 'governance', 'required-checks-baseline.json'), bl('gate (advisory · x)'));
+      g(['init', '-q']); g(['config', 'user.email', 't@t']); g(['config', 'user.name', 't']);
+      g(['add', '-A']); g(['commit', '-qm', 'base']);
+      const baseSha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: gdir, encoding: 'utf8' }).trim();
+      const rodarRename = (base) => {
+        try {
+          execFileSync(process.execPath, [fileURLToPath(import.meta.url), '--check-rename', `--base=${base}`], { cwd: gdir, stdio: 'ignore' });
+          return 0;
+        } catch (e) { return e.status ?? 1; }
+      };
+      ok(rodarRename(baseSha) === 0, 'LIBERA E2E (CLI): árvore igual à base → exit 0');
+      // commit 2 (não commitado — é o que o PR PROPÕE): promoção que RENOMEIA o job.
+      // É o #7286 em miniatura: o baseline passa a exigir um nome que a base não emitia.
+      writeFileSync(join(gdir, '.github', 'workflows', 'w.yml'), wf('gate (x)'));
+      writeFileSync(join(gdir, 'governance', 'required-checks-baseline.json'), bl('gate (x)'));
+      ok(rodarRename(baseSha) === 1, 'BITE E2E (CLI): promoção que renomeia o job → exit 1');
+      // Fail-open é o modo de falha caro aqui: base ilegível devolvendo Set vazio faria
+      // TODO required parecer novo. Tem que ser 2 (NÃO MEDIDO), nunca 0 e nunca 1.
+      ok(rodarRename('ref-que-nao-existe-em-lugar-nenhum') === 2,
+        'NÃO MEDIDO (CLI): base inalcançável → exit 2, nunca 0 (não colapsa em "sem órfãos")');
+    } finally { rmSync(gdir, { recursive: true, force: true }); }
   } finally { rmSync(dir, { recursive: true, force: true }); }
 
   console.log(falhas ? `\n✗ ${falhas} falha(s)` : '\n✅ required-always-run: acusa filtrado, libera always-run, avisa o não-resolvido.');
@@ -565,8 +699,9 @@ const ehMain = process.argv[1] && fileURLToPath(import.meta.url) === process.arg
 // o script mediu o cwd errado e saiu 0 — um verde que provava nada. É a mesma classe
 // do hook que aceitava `--selftest` sem ter selftest. Instrumento que aceita input
 // que não entende produz resultado que ninguém pode auditar.
-const CONHECIDAS = new Set(['--selftest', '--json']);
-const desconhecidas = process.argv.slice(2).filter((a) => a.startsWith('-') && !CONHECIDAS.has(a));
+const CONHECIDAS = new Set(['--selftest', '--json', '--check-rename']);
+const ehBase = (a) => /^--base=.+$/.test(a);       // `--base=<ref>` carrega valor
+const desconhecidas = process.argv.slice(2).filter((a) => a.startsWith('-') && !CONHECIDAS.has(a) && !ehBase(a));
 
 if (!ehMain) { /* importado como módulo: só exporta */ }
 else if (desconhecidas.length) {
@@ -574,7 +709,62 @@ else if (desconhecidas.length) {
   process.exit(2);
 }
 else if (process.argv.includes('--selftest')) selftest();
+else if (process.argv.includes('--check-rename')) checkRename();
 else main();
+
+/**
+ * Modo do 5º eixo. Compara os contexts EMITIDOS na base × no head.
+ *
+ * Exit: 0 = nenhum required novo/renomeado · 1 = há (PRs abertos ficarão órfãos)
+ *       2 = NÃO MEDIDO (base inalcançável) — nunca confundido com 0.
+ */
+function checkRename() {
+  const arg = process.argv.find(ehBase);
+  const baseRef = arg ? arg.slice('--base='.length) : 'origin/main';
+
+  const emitidosBase = emitidosNaRef(baseRef);
+  if (emitidosBase === null) {
+    console.log(`\n  ⚠️  NÃO MEDIDO — não consegui ler \`${baseRef}:.github/workflows\`.`);
+    console.log(`     Num clone raso ou sem o remote: \`git fetch origin main\` antes.`);
+    console.log(`     NADA foi verificado — isto NÃO é "sem órfãos".\n`);
+    process.exit(2);
+  }
+
+  const bl = JSON.parse(readFileSync(join(ROOT, 'governance', 'required-checks-baseline.json'), 'utf8'));
+  const requiredHead = [...new Set([
+    ...(bl.classic_protection?.contexts || []),
+    ...(bl.rulesets?.contexts || []),
+  ])];
+  const dir = join(ROOT, '.github', 'workflows');
+  const emitidosHead = new Set();
+  for (const f of readdirSync(dir).filter((x) => /\.ya?ml$/.test(x))) {
+    for (const c of contextsDoWorkflow(readFileSync(join(dir, f), 'utf8'))) emitidosHead.add(c.context);
+  }
+
+  const orfaos = orfaosDeRename({ requiredHead, emitidosBase, emitidosHead });
+
+  if (process.argv.includes('--json')) {
+    console.log(JSON.stringify({ baseRef, required: requiredHead.length, emitidosBase: emitidosBase.size, emitidosHead: emitidosHead.size, orfaos }, null, 2));
+    process.exit(orfaos.length ? 1 : 0);
+  }
+
+  console.log(`\n  RENAME/PROMOÇÃO vs \`${baseRef}\` — ${requiredHead.length} required · ${emitidosBase.size} contexts emitidos na base · ${emitidosHead.size} no head · ${orfaos.length} órfão(s)\n`);
+  if (!orfaos.length) {
+    console.log('  ✅ nenhum required passa a ser emitido com nome novo — PRs abertos seguem satisfazendo a proteção.\n');
+    process.exit(0);
+  }
+  for (const c of orfaos) console.log(`  ❌ ${c}`);
+  console.log(`\n  Este PR faz a árvore emitir ${orfaos.length === 1 ? 'esse context' : 'esses contexts'} required com um nome que a`);
+  console.log(`  base NÃO emitia. Todo PR já aberto tem o workflow ANTIGO no seu head, logo vai seguir`);
+  console.log(`  emitindo o nome velho: o required exigido nunca nasce e o PR fica \`BLOCKED\` com 0`);
+  console.log(`  falhas e 0 pendentes (§5 2026-08-08 · #5318 travou o repo 2 dias · #7286 travou 11 PRs).`);
+  console.log(`  CONSERTO — depois de mergear, no MESMO trabalho:`);
+  console.log(`     gh pr list --state open --json number --jq '.[].number' | xargs -n1 gh pr update-branch`);
+  console.log(`  PR em conflito não aceita \`update-branch\`: ele destrava quando o dono resolver o`);
+  console.log(`  conflito (o merge do main traz o workflow novo junto). Receita completa em`);
+  console.log(`  memory/requisitos/Infra/RUNBOOK-branch-protection.md §Promoção de check a required.\n`);
+  process.exit(1);
+}
 
 function main() {
 const r = auditar();
