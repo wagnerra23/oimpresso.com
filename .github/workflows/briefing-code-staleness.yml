@@ -152,6 +152,24 @@ jobs:
       # acionada pelo agente/ZELADOR; CI só informa o alcance do PR.
       - name: self-test ciclo documental (recibo + impacto)
         run: node scripts/governance/documentation-loop.test.mjs
+      # Base VIVA: `pull_request.base.sha` é o tip de main de QUANDO O EVENTO NASCEU, e o
+      # checkout é o MERGE REF — o mapa de impacto vinha inflado com o que entrou em main no
+      # meio. Num merge ref o que o PR muda é HEAD^1..HEAD: o 1º pai É o tip de main que o
+      # merge usou, imune a main andar. Idioma do visual-regression (#6009); §5 2026-09-15.
+      - name: Base viva do diff (merge ref → HEAD^1)
+        id: diffbase
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          if [ "$(git rev-list --count --no-walk --merges HEAD)" = "1" ]; then
+            sha="$(git rev-parse HEAD^1)"
+            echo "merge ref detectado — base = HEAD^1 ($sha)"
+          else
+            sha="${{ github.event.pull_request.base.sha }}"
+            echo "HEAD não é merge commit — base = pull_request.base.sha ($sha)"
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
       - name: mapa base→head dos módulos e documentos afetados (advisory)
         if: github.event_name == 'pull_request'
-        run: node scripts/governance/documentation-loop.mjs --impact-ref "${{ github.event.pull_request.base.sha }}" --head-ref HEAD --json
+        run: node scripts/governance/documentation-loop.mjs --impact-ref "${{ steps.diffbase.outputs.sha }}" --head-ref HEAD --json

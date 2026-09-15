@@ -120,6 +120,55 @@ const notYet = (direction, target, source) => ({
   baseline_rule: '1ª medição real da fonte, nunca do plano (anti-stale)',
 });
 
+// ── não-medição NÃO é estado do objeto medido (§5 proibicoes 2026-07-29) ────────
+// As 3 metricas de TRANSPORTE ÓRFÃO (floor, coverage, ragas) leem arquivos que NÃO são
+// versionados: eles só existem depois que o job materializa a órfã (`git fetch origin
+// governance/nightly-floor`). Num checkout que nao fez isso, `measure*()` devolve
+// not_yet_measured — correto como veredito DA LEITURA, e falso como veredito DA METRICA.
+//
+// O dano mede-se no artefato, não no ratchet: o modo default reescreve
+// governance/sdd-scorecard.json e TROCA o fato medido por uma afirmacao falsa. Medido em
+// 2026-09-15, num checkout sem as orfas: full_suite_pass_rate measured/291 → null e
+// ragas_real_uptime measured/63.6 → null (14 inserções, 57 deleções), levando junto
+// floor_files_hash + os 3 runs + computed_at, e gravando no campo `source` a frase
+// "ainda não publicado pelo write-side CT100 — falta o transporte" sobre um transporte que
+// PUBLICOU. O vetor não é teórico: o próprio CI pede a ação que causa o dano
+// (.github/workflows/sdd-scorecard.yml — "rode 'node ...sdd-scorecard.mjs' e commite o
+// resultado"), e quem obedece num checkout local commita a mentira.
+//
+// Aqui a leitura falha preserva o FATO anterior e declara, no próprio registro, que ESTA
+// execução não leu a fonte e por quê. O status vira `carried_over` — e não `measured` —
+// de propósito: o ratchet trata tudo que não é 'measured' pelo caminho P14 fail-closed
+// (métrica ARMADA cuja fonte sumiu = RED, exit 1), entao o comportamento do gate fica
+// IDÊNTICO ao de hoje, sem tocar em ratchet(). Preservar o valor sem preservar o alarme
+// seria trocar um fail-open por outro.
+export function preservarSeNaoLido(atual, anterior) {
+  if (atual.status === 'measured') return atual;          // leu: manda a medicao de agora
+  // Preserva também a partir de um carried_over anterior: sem isso a 1ª rodada local salva o
+  // fato e a 2ª o destrói de novo — o dano ficaria só adiado, que não é conserto. Carregar
+  // indefinidamente é seguro porque o status NUNCA volta a 'measured': o registro continua
+  // dizendo que ninguém leu a fonte, e o ratchet continua no caminho P14.
+  const temFato = anterior && typeof anterior.value === 'number'
+    && (anterior.status === 'measured' || anterior.status === 'carried_over');
+  if (!temFato) return atual;                              // nada a preservar
+  const { stream: _ignorado, read_failure: _antigo, ...fato } = anterior; // recarimbados abaixo
+  return {
+    ...fato,
+    status: 'carried_over',
+    carried_since: anterior.carried_since ?? 'medição anterior deste arquivo',
+    read_failure: atual.source,                            // POR QUE não li nesta execução
+    carried_note: 'valor preservado da medição anterior deste arquivo — ESTA execução não leu a fonte '
+      + '(órfã não materializada no checkout). O ratchet segue tratando como não-medida (P14 fail-closed). '
+      + 'Materialize a órfã e rode de novo pra medir de verdade.',
+  };
+}
+
+// Leitura tolerante do próprio artefato: fonte do fato a preservar. Ausente/ilegível → {},
+// e aí preservarSeNaoLido devolve o notYet de hoje (comportamento inalterado no 1º run).
+function metricasAnteriores(caminho = OUT) {
+  try { return JSON.parse(readFileSync(caminho, 'utf8')).metrics ?? {}; } catch { return {}; }
+}
+
 // ── stream de cada métrica (a "cola" que une SDD + memória num só scorecard) ──
 // SA=spec-anchor · FV=full-suite/verificação · KL=knowledge/ghost · GT=garantia ·
 // MEM=memória-unificada (read-path do ADR 0270) como stream de 1ª classe.
@@ -478,6 +527,8 @@ function buildScorecard() {
   const kd = measureKnowledgeDrift();
   const an = measureAnchors();
   const q = measureQuarantine();
+  // fato já publicado neste arquivo — só é consultado quando a leitura da fonte falha
+  const anteriores = metricasAnteriores();
   const sc = {
     _meta: {
       scorecard: 'SDD — sistema spec-anchored + verificação agêntica (plano 2026-06-12 §2)',
@@ -499,14 +550,14 @@ function buildScorecard() {
         source: 'scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)',
         detail: an,
       },
-      full_suite_pass_rate: measureFullSuiteFloor(),
+      full_suite_pass_rate: preservarSeNaoLido(measureFullSuiteFloor(), anteriores.full_suite_pass_rate),
       n_quarantine: {
         status: 'measured', value: q.files, unit: 'arquivos de teste',
         direction: 'down', target: 0,
         source: 'convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (este script)',
         detail: { quarantined_files: q.files },
       },
-      coverage_pct: measureCoverage(),
+      coverage_pct: preservarSeNaoLido(measureCoverage(), anteriores.coverage_pct),
       sqlite_corruptors: measureSqliteCorruptors(),
       ghost_count: {
         status: 'measured', value: kd.ghost_count, unit: 'nomes distintos',
@@ -522,7 +573,7 @@ function buildScorecard() {
       },
       recall_eval_violations: notYet('down', 0,
         'golden set recall (KL-C2) — depende do alias map das 13 colisões ADR'),
-      ragas_real_uptime: measureRagasRealUptime(),
+      ragas_real_uptime: preservarSeNaoLido(measureRagasRealUptime(), anteriores.ragas_real_uptime),
       distiller_freshness: measureDistillerFreshness(),
       // ADR 0270 D-5 — nº de docs abertos pra saber o estado atual de um módulo (meta 1).
       // Fonte viva: knowledge-drift.mjs --json .[].hops → mediana (mesma medição do

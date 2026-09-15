@@ -251,8 +251,16 @@ jobs:
       - name: Forward-only — o teste do arquivo tocado roda em lane de PR? (ADVISORY)
         if: github.event_name == 'pull_request'
         run: |
-          git fetch --no-tags --depth=50 origin "${{ github.event.pull_request.base.sha }}" 2>/dev/null || true
-          node scripts/governance/test-lane-coverage.mjs --diff "${{ github.event.pull_request.base.sha }}" || true
+          # Base VIVA: num merge ref, o que o PR muda é HEAD^1..HEAD — o 1º pai É o tip de main
+          # que o merge usou, e ele JÁ ESTÁ no checkout (dispensa o fetch). `base.sha` é o tip de
+          # quando o evento nasceu e arrasta o que entrou em main no meio. §5 2026-09-15.
+          if [ "$(git rev-list --count --no-walk --merges HEAD)" = "1" ]; then
+            BASE="$(git rev-parse HEAD^1)"
+          else
+            BASE="${{ github.event.pull_request.base.sha }}"
+            git fetch --no-tags --depth=50 origin "$BASE" 2>/dev/null || true
+          fi
+          node scripts/governance/test-lane-coverage.mjs --diff "$BASE" || true
       # Blinda a MATEMÁTICA (pearson/spearman) do outcome-probe do funcao-scorecard — o "número
       # real" (r=0.26) da proposta 2026-07-21-funcao-scorecard-validacao-por-outcome sustenta-se
       # nessas funções; um pearson bugado seria LC-08 (medir errado). Prova contra valores conhecidos

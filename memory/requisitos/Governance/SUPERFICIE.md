@@ -14,7 +14,7 @@ module: Governance
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 151 arquivos em 15 papéis.
+**Total mapeado:** 152 arquivos em 15 papéis.
 
 ## Controllers — 9
 
@@ -106,13 +106,14 @@ module: Governance
 
 - [GovernanceServiceProvider.php](../../../Modules/Governance/Providers/GovernanceServiceProvider.php)
 
-## Migrations (schema) — 5
+## Migrations (schema) — 6
 
 - [2026_05_16_120000_create_mcp_module_grades_history_table.php](../../../Modules/Governance/Database/Migrations/2026_05_16_120000_create_mcp_module_grades_history_table.php)
 - [2026_05_17_000001_create_mcp_scorecard_runs_table.php](../../../Modules/Governance/Database/Migrations/2026_05_17_000001_create_mcp_scorecard_runs_table.php)
 - [2026_05_17_000002_create_mcp_observability_spans_table.php](../../../Modules/Governance/Database/Migrations/2026_05_17_000002_create_mcp_observability_spans_table.php)
 - [2026_05_17_000003_create_mcp_governance_initiatives_table.php](../../../Modules/Governance/Database/Migrations/2026_05_17_000003_create_mcp_governance_initiatives_table.php)
 - [2026_06_12_100000_create_mcp_sdd_scorecard_history_table.php](../../../Modules/Governance/Database/Migrations/2026_06_12_100000_create_mcp_sdd_scorecard_history_table.php)
+- [2026_09_15_160000_drop_mcp_module_grades_history_table.php](../../../Modules/Governance/Database/Migrations/2026_09_15_160000_drop_mcp_module_grades_history_table.php)
 
 ## Config — 2
 
