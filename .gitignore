@@ -47,7 +47,13 @@ npm-debug.log
 /.env.example
 /.phpunit.cache
 /.phpunit.result.cache
-/.claude/settings.local.json
+# O token MCP mora aqui. O ignore era por CAMINHO EXATO, entao QUALQUER copia
+# com sufixo (.bak, .off, .TOKEN-ANTIGO.off) era commitavel — e a rotacao de
+# token de 2026-09-15 produziu exatamente um arquivo desses. ADR 0057 §10:
+# "Token raw: nunca em git, log, screenshot, transcript, slack history".
+/.claude/settings.local.json*
+# O template versionado e a excecao: nao carrega segredo, carrega ${ENV}.
+!/.claude/settings.local.json.example
 /.claude/worktrees/
 /.claude/*.diff
 /.claude/.last-skills-sync
