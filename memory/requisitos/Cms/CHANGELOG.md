@@ -1,7 +1,7 @@
 # CHANGELOG — Modules/Cms
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
-Versionamento alinhado a Wave governance ([ModuleGradeService](../../../Modules/Governance/Services/ModuleGradeService.php) D3.d).
+Versionamento alinhado a Wave governance (`ModuleGradeService` D3.d — arquivo deletado em 2026-09-15, ADR 0399).
 
 ## [Não publicado]
 

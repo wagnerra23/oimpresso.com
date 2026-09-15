@@ -28,7 +28,7 @@ review_triggers:
 
 ## Contexto
 
-Audit Pest registration read-only (Wave 2, sessão 2026-05-16) identificou **três vetores de fragilidade** na heurística D2 implementada em [`Modules/Governance/Services/ModuleGradeService.php`](../../Modules/Governance/Services/ModuleGradeService.php) (linhas 290-367) — método `dim2PestCoverage()`:
+Audit Pest registration read-only (Wave 2, sessão 2026-05-16) identificou **três vetores de fragilidade** na heurística D2 implementada em `Modules/Governance/Services/ModuleGradeService.php` (linhas 290-367 — arquivo deletado em 2026-09-15, ADR 0399) — método `dim2PestCoverage()`:
 
 ### Vetor 1 — D2.c substring match (linha 346)
 
@@ -225,7 +225,7 @@ Default fase 1 = `both`. Default final (Fase 3+) = `hardened`.
 - [ADR 0070 — Jira-style task management](0070-jira-style-task-management-current-md-removed.md) (tasks follow-up via MCP)
 
 **Código atual referenciado:**
-- [`Modules/Governance/Services/ModuleGradeService.php`](../../Modules/Governance/Services/ModuleGradeService.php) linhas 290-367 (método `dim2PestCoverage`)
+- `Modules/Governance/Services/ModuleGradeService.php` — arquivo deletado em 2026-09-15, ADR 0399 — linhas 290-367 (método `dim2PestCoverage`)
 - [`phpunit.xml`](../../phpunit.xml) (testsuite Feature linhas 16-53)
 
 **Achado origem:**

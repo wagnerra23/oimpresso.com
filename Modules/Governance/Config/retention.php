@@ -5,8 +5,8 @@ declare(strict_types=1);
 /**
  * D7 LGPD — Retenção de dados Governance.
  *
- * Wave 18 saturate (88 → 100). Tabelas Governance (audit log, module grades
- * history, action gate violations) seguem retenção declarada aqui.
+ * Wave 18 saturate (88 → 100). Tabelas Governance (audit log, action gate
+ * violations) seguem retenção declarada aqui.
  *
  * Tier 0 IRREVOGÁVEL ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)):
  *   - Audit log é APPEND-ONLY (trigger MySQL ADR 0084) — retenção via
@@ -32,16 +32,6 @@ return [
     | por business_id (cross-tenant Tier 0).
     */
     'audit_log_days' => env('GOVERNANCE_RETENTION_AUDIT_DAYS', 1825), // 5 anos
-
-    /*
-    |--------------------------------------------------------------------------
-    | Module grades history (mcp_module_grades_history)
-    |--------------------------------------------------------------------------
-    |
-    | Sparkline 7d na UI Show + cron daily 06:05 BRT snapshot. Retenção 90d
-    | suficiente pra trending; rollup mensal pra histórico longo (futuro).
-    */
-    'module_grades_days' => env('GOVERNANCE_RETENTION_MODULE_GRADES_DAYS', 90),
 
     /*
     |--------------------------------------------------------------------------

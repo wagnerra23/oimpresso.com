@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 
 uses(Tests\TestCase::class);
@@ -16,14 +15,15 @@ uses(Tests\TestCase::class);
  * Este teste cobre ÂNGULOS COMPLEMENTARES ao CrossTenantPolicyTest.php (Wave G):
  *
  *   CrossTenantPolicyTest cobre: rotas existem, gates bloqueiam anônimo, schema sem
- *   business_id, queries cross-tenant retornam mesma count, /module-grades gate.
+ *   business_id, queries cross-tenant retornam mesma count.
  *
  *   MultiTenantGovernanceTest cobre (este arquivo — ângulos COMPLEMENTARES):
  *     1. mcp_governance_rules é tabela GLOBAL (cross-tenant intencional by design)
  *     2. mcp_audit_log mantém business_id como METADATA (não como filtro de scope)
- *     3. Rota /governance/module-grades aplica MESMO middleware stack em biz=1 vs biz=99 vs biz=10
- *     4. User sem permission `superadmin`/`governance.dashboard.view` é bloqueado em QUALQUER biz
- *     5. ModuleGradeService coleta nota cross-tenant — não filtra por business_id
+ *     3. User sem permission `superadmin`/`governance.dashboard.view` é bloqueado em QUALQUER biz
+ *
+ * Os cenários 3 e 5 originais cobriam a rota /governance/module-grades e o
+ * ModuleGradeService; saíram com a rubrica module-grade (ADR 0399, ondas 2 e 4).
  *
  * SQLite guard obrigatório (ADR 0101 — biz=1 Wagner WR2, NUNCA biz=4 ROTA LIVRE).
  * Reusa setup de schema mcp_* (idem CrossTenantPolicyTest) — mas cenários NOVOS.
@@ -32,7 +32,6 @@ uses(Tests\TestCase::class);
  *   - ADR 0086 (Governance MVP UI)
  *   - ADR 0093 (Multi-tenant Tier 0 — Governance é exceção transversal Art. 6+8)
  *   - ADR 0101 (Tests biz=1 Wagner — NUNCA biz=4 cliente)
- *   - ADR 0153 (Module Grade rubrica — coleta cross-tenant)
  *   - Constituição Art. 6 (Identity Mesh) · Art. 8 (Policy Gating) · Art. 9 (Auditoria)
  */
 beforeEach(function () {
@@ -145,38 +144,6 @@ it('Multi-tenant: queries em mcp_audit_log não filtram por business_id (Wagner-
 });
 
 // ------------------------------------------------------------------
-// Cenário 3: rota /governance/module-grades aplica MESMO gate em 3 bizs
-// ------------------------------------------------------------------
-
-it('Multi-tenant: rota /governance/module-grades aplica mesmo gate em biz=1 vs biz=99 vs biz=10', function () {
-    // Validar que a rota tem middleware stack canônico (auth) — independente do biz
-    $route = Route::getRoutes()->getByName('governance.module-grades.index');
-    expect($route)->not->toBeNull('Rota governance.module-grades.index deveria existir');
-
-    $middlewares = $route->gatherMiddleware();
-
-    // Hit a rota com 3 sessions DIFERENTES — todas devem ter o MESMO comportamento
-    session(['user.business_id' => BIZ_WAGNER_MT]);
-    $statusBiz1 = $this->get('/governance/module-grades')->status();
-
-    session(['user.business_id' => BIZ_FICTICIO_MT]);
-    $statusBiz99 = $this->get('/governance/module-grades')->status();
-
-    session(['user.business_id' => BIZ_FICTICIO_EXTRA_MT]);
-    $statusBiz10 = $this->get('/governance/module-grades')->status();
-
-    // Status DEVE ser idêntico (mesmo gate, independente de biz)
-    expect($statusBiz1)->toBe($statusBiz99,
-        "Gate deveria ser idêntico biz=1 ({$statusBiz1}) vs biz=99 ({$statusBiz99})");
-    expect($statusBiz99)->toBe($statusBiz10,
-        "Gate deveria ser idêntico biz=99 ({$statusBiz99}) vs biz=10 ({$statusBiz10})");
-
-    // E todos DEVEM ser bloqueio (não 200) — sem permission
-    expect($statusBiz1)->toBeIn([301, 302, 401, 403, 404, 500],
-        'Sem auth+permission, nenhum biz acessa /governance/module-grades');
-});
-
-// ------------------------------------------------------------------
 // Cenário 4: user sem permission é bloqueado em QUALQUER biz
 // ------------------------------------------------------------------
 
@@ -186,7 +153,6 @@ it('Multi-tenant: user sem permission `governance.dashboard.view` é bloqueado e
 
     $endpoints = [
         '/governance',
-        '/governance/module-grades',
     ];
 
     $bizs = [BIZ_WAGNER_MT, BIZ_FICTICIO_MT, BIZ_FICTICIO_EXTRA_MT];
@@ -202,49 +168,4 @@ it('Multi-tenant: user sem permission `governance.dashboard.view` é bloqueado e
                 "Endpoint {$endpoint} biz={$biz} deveria bloquear sem permission, recebeu {$status}");
         }
     }
-});
-
-// ------------------------------------------------------------------
-// Cenário 5: ModuleGradeService coleta nota cross-tenant (ADR 0153)
-// ------------------------------------------------------------------
-
-it('Multi-tenant: ModuleGradeService coleta nota cross-tenant — não filtra por business_id', function () {
-    // Rubrica module-grade-v1 (ADR 0153) avalia código do REPOSITÓRIO (Modules/<X>/)
-    // — NÃO depende de business_id. Validar via classe Service existir + ser
-    // resolvable sem session de biz.
-
-    $serviceClass = '\\Modules\\Governance\\Services\\ModuleGradeService';
-
-    // Service existe (Wave anterior criou)
-    expect(class_exists($serviceClass))->toBeTrue(
-        'ModuleGradeService deveria existir (ADR 0153 — rubrica module-grade-v1)'
-    );
-
-    // Service NÃO recebe business_id no constructor (cross-tenant by design)
-    $reflection = new \ReflectionClass($serviceClass);
-    $constructor = $reflection->getConstructor();
-
-    if ($constructor !== null) {
-        $params = $constructor->getParameters();
-        $hasBusinessIdParam = collect($params)->contains(
-            fn ($p) => stripos($p->getName(), 'business') !== false
-        );
-
-        expect($hasBusinessIdParam)->toBeFalse(
-            'ModuleGradeService NÃO deveria receber business_id — coleta cross-tenant by design (ADR 0153)'
-        );
-    }
-
-    // Trocar session de biz NÃO afeta a coleta (rubrica avalia código do repo, não dados de tenant)
-    session(['user.business_id' => BIZ_WAGNER_MT]);
-    $serviceAsWagner = app($serviceClass);
-    expect($serviceAsWagner)->toBeInstanceOf($serviceClass);
-
-    session(['user.business_id' => BIZ_FICTICIO_MT]);
-    $serviceAsFicticio = app($serviceClass);
-    expect($serviceAsFicticio)->toBeInstanceOf($serviceClass);
-
-    session(['user.business_id' => BIZ_FICTICIO_EXTRA_MT]);
-    $serviceAsExtra = app($serviceClass);
-    expect($serviceAsExtra)->toBeInstanceOf($serviceClass);
 });
