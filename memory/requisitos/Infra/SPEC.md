@@ -1072,3 +1072,190 @@ canônico fica no Git; a fila MCP acompanha a execução; e a visão humana é p
 > **O gate da D0 tem 3 partes** (`plano ligado ao MCP; inventários --check; baseline documental registrada`) e a **primeira segue travada** pela mesma credencial ausente — por isso a onda permanece `em execução` no plano, e não `fechada`.
 
 **Refs:** [PLANO-MESTRE § Trilha D](../_Governanca/programa-ondas/PLANO-MESTRE.md) · [GUIA-DO-SISTEMA § B6.2](../../GUIA-DO-SISTEMA.md)
+
+### US-INFRA-049 · Exportar OIMPRESSO_MCP_TOKEN no ambiente (felipe)
+
+**Implementado em:** _pendente_ — passo manual de cada dev na própria máquina; fecha quando
+`claude mcp list` mostrar `oimpresso: ... - ✓ Connected` para felipe
+
+> owner: felipe · priority: p0 · estimate: 0.25h · status: todo · type: story
+> blocked_by: —
+
+**Por quê.** O cliente Claude Code 2.1.257 parou de ler o token do `.claude/settings.local.json`
+— o bloco `mcpServers` de lá é ignorado por ele (medido 2026-09-15: uma entrada de teste posta
+ali não apareceu em `claude mcp list`). Quem conecta o cliente é o `.mcp.json`, que expande
+`${OIMPRESSO_MCP_TOKEN}` **a partir do ambiente** — já corrigido no main pelo PR #7366.
+
+⚠️ **O sintoma fica mascarado:** sem a variável, as tools `mcp__oimpresso__*` somem da sessão,
+mas o **brief continua chegando** (o hook `brief-fetch-curl.mjs` bate por `curl`, sem passar pelo
+cliente MCP). Brief funcionando **não** é sinal de que o MCP está de pé.
+
+**O passo (uma vez só, ~2 min).** Windows, PowerShell:
+
+```powershell
+[Environment]::SetEnvironmentVariable('OIMPRESSO_MCP_TOKEN','<seu-token-SEM-o-Bearer>','User')
+```
+
+Linux/macOS, no `~/.bashrc` ou `~/.zshrc`:
+
+```bash
+export OIMPRESSO_MCP_TOKEN='<seu-token-SEM-o-Bearer>'
+```
+
+Depois **feche e reabra a sessão** — a config MCP é lida no *start*, não recarrega em sessão viva.
+
+**Acceptance criteria:**
+- [ ] `claude mcp list` devolve `oimpresso: https://mcp.oimpresso.com/api/mcp (HTTP) - ✓ Connected`;
+- [ ] as tools `mcp__oimpresso__*` aparecem na sessão (ex.: `brief-fetch` chamável como tool, não só pelo hook).
+
+**Onde pegar o token.** É o MESMO que já está no seu `.claude/settings.local.json`, **sem** o
+prefixo `Bearer `. Não commitar, não colar em chat/PR. Aquele arquivo **continua necessário**:
+é o cofre que `brief-fetch-curl.mjs`, `cc-watcher/index.js` e `fluxo-sistema.mjs` leem.
+
+**Pegadinha que causou isso.** `claude mcp list` é o único lugar que mostra erro de config:
+entrada malformada sai como `Skipped` e o servidor **some da sessão inteira** — nem `failed`,
+nem `pending`. Silêncio ali é indistinguível de "nunca foi configurado".
+
+**Refs:** PR #7366 (o fix) · PR #7369 (`MEMORY_TEAM_ONBOARDING.md` passo E + skill
+`oimpresso-team-onboarding` Modo D) · [ADR 0056](../../decisions/0056-mcp-fonte-unica-memoria-copiloto-claude-code.md).
+
+
+### US-INFRA-050 · Exportar OIMPRESSO_MCP_TOKEN no ambiente (maiara)
+
+**Implementado em:** _pendente_ — passo manual de cada dev na própria máquina; fecha quando
+`claude mcp list` mostrar `oimpresso: ... - ✓ Connected` para maiara
+
+> owner: maiara · priority: p0 · estimate: 0.25h · status: todo · type: story
+> blocked_by: —
+
+**Por quê.** O cliente Claude Code 2.1.257 parou de ler o token do `.claude/settings.local.json`
+— o bloco `mcpServers` de lá é ignorado por ele (medido 2026-09-15: uma entrada de teste posta
+ali não apareceu em `claude mcp list`). Quem conecta o cliente é o `.mcp.json`, que expande
+`${OIMPRESSO_MCP_TOKEN}` **a partir do ambiente** — já corrigido no main pelo PR #7366.
+
+⚠️ **O sintoma fica mascarado:** sem a variável, as tools `mcp__oimpresso__*` somem da sessão,
+mas o **brief continua chegando** (o hook `brief-fetch-curl.mjs` bate por `curl`, sem passar pelo
+cliente MCP). Brief funcionando **não** é sinal de que o MCP está de pé.
+
+**O passo (uma vez só, ~2 min).** Windows, PowerShell:
+
+```powershell
+[Environment]::SetEnvironmentVariable('OIMPRESSO_MCP_TOKEN','<seu-token-SEM-o-Bearer>','User')
+```
+
+Linux/macOS, no `~/.bashrc` ou `~/.zshrc`:
+
+```bash
+export OIMPRESSO_MCP_TOKEN='<seu-token-SEM-o-Bearer>'
+```
+
+Depois **feche e reabra a sessão** — a config MCP é lida no *start*, não recarrega em sessão viva.
+
+**Acceptance criteria:**
+- [ ] `claude mcp list` devolve `oimpresso: https://mcp.oimpresso.com/api/mcp (HTTP) - ✓ Connected`;
+- [ ] as tools `mcp__oimpresso__*` aparecem na sessão (ex.: `brief-fetch` chamável como tool, não só pelo hook).
+
+**Onde pegar o token.** É o MESMO que já está no seu `.claude/settings.local.json`, **sem** o
+prefixo `Bearer `. Não commitar, não colar em chat/PR. Aquele arquivo **continua necessário**:
+é o cofre que `brief-fetch-curl.mjs`, `cc-watcher/index.js` e `fluxo-sistema.mjs` leem.
+
+**Pegadinha que causou isso.** `claude mcp list` é o único lugar que mostra erro de config:
+entrada malformada sai como `Skipped` e o servidor **some da sessão inteira** — nem `failed`,
+nem `pending`. Silêncio ali é indistinguível de "nunca foi configurado".
+
+**Refs:** PR #7366 (o fix) · PR #7369 (`MEMORY_TEAM_ONBOARDING.md` passo E + skill
+`oimpresso-team-onboarding` Modo D) · [ADR 0056](../../decisions/0056-mcp-fonte-unica-memoria-copiloto-claude-code.md).
+
+
+### US-INFRA-051 · Exportar OIMPRESSO_MCP_TOKEN no ambiente (luiz)
+
+**Implementado em:** _pendente_ — passo manual de cada dev na própria máquina; fecha quando
+`claude mcp list` mostrar `oimpresso: ... - ✓ Connected` para luiz
+
+> owner: luiz · priority: p0 · estimate: 0.25h · status: todo · type: story
+> blocked_by: —
+
+**Por quê.** O cliente Claude Code 2.1.257 parou de ler o token do `.claude/settings.local.json`
+— o bloco `mcpServers` de lá é ignorado por ele (medido 2026-09-15: uma entrada de teste posta
+ali não apareceu em `claude mcp list`). Quem conecta o cliente é o `.mcp.json`, que expande
+`${OIMPRESSO_MCP_TOKEN}` **a partir do ambiente** — já corrigido no main pelo PR #7366.
+
+⚠️ **O sintoma fica mascarado:** sem a variável, as tools `mcp__oimpresso__*` somem da sessão,
+mas o **brief continua chegando** (o hook `brief-fetch-curl.mjs` bate por `curl`, sem passar pelo
+cliente MCP). Brief funcionando **não** é sinal de que o MCP está de pé.
+
+**O passo (uma vez só, ~2 min).** Windows, PowerShell:
+
+```powershell
+[Environment]::SetEnvironmentVariable('OIMPRESSO_MCP_TOKEN','<seu-token-SEM-o-Bearer>','User')
+```
+
+Linux/macOS, no `~/.bashrc` ou `~/.zshrc`:
+
+```bash
+export OIMPRESSO_MCP_TOKEN='<seu-token-SEM-o-Bearer>'
+```
+
+Depois **feche e reabra a sessão** — a config MCP é lida no *start*, não recarrega em sessão viva.
+
+**Acceptance criteria:**
+- [ ] `claude mcp list` devolve `oimpresso: https://mcp.oimpresso.com/api/mcp (HTTP) - ✓ Connected`;
+- [ ] as tools `mcp__oimpresso__*` aparecem na sessão (ex.: `brief-fetch` chamável como tool, não só pelo hook).
+
+**Onde pegar o token.** É o MESMO que já está no seu `.claude/settings.local.json`, **sem** o
+prefixo `Bearer `. Não commitar, não colar em chat/PR. Aquele arquivo **continua necessário**:
+é o cofre que `brief-fetch-curl.mjs`, `cc-watcher/index.js` e `fluxo-sistema.mjs` leem.
+
+**Pegadinha que causou isso.** `claude mcp list` é o único lugar que mostra erro de config:
+entrada malformada sai como `Skipped` e o servidor **some da sessão inteira** — nem `failed`,
+nem `pending`. Silêncio ali é indistinguível de "nunca foi configurado".
+
+**Refs:** PR #7366 (o fix) · PR #7369 (`MEMORY_TEAM_ONBOARDING.md` passo E + skill
+`oimpresso-team-onboarding` Modo D) · [ADR 0056](../../decisions/0056-mcp-fonte-unica-memoria-copiloto-claude-code.md).
+
+
+### US-INFRA-052 · Exportar OIMPRESSO_MCP_TOKEN no ambiente (eliana)
+
+**Implementado em:** _pendente_ — passo manual de cada dev na própria máquina; fecha quando
+`claude mcp list` mostrar `oimpresso: ... - ✓ Connected` para eliana
+
+> owner: eliana · priority: p0 · estimate: 0.25h · status: todo · type: story
+> blocked_by: —
+
+**Por quê.** O cliente Claude Code 2.1.257 parou de ler o token do `.claude/settings.local.json`
+— o bloco `mcpServers` de lá é ignorado por ele (medido 2026-09-15: uma entrada de teste posta
+ali não apareceu em `claude mcp list`). Quem conecta o cliente é o `.mcp.json`, que expande
+`${OIMPRESSO_MCP_TOKEN}` **a partir do ambiente** — já corrigido no main pelo PR #7366.
+
+⚠️ **O sintoma fica mascarado:** sem a variável, as tools `mcp__oimpresso__*` somem da sessão,
+mas o **brief continua chegando** (o hook `brief-fetch-curl.mjs` bate por `curl`, sem passar pelo
+cliente MCP). Brief funcionando **não** é sinal de que o MCP está de pé.
+
+**O passo (uma vez só, ~2 min).** Windows, PowerShell:
+
+```powershell
+[Environment]::SetEnvironmentVariable('OIMPRESSO_MCP_TOKEN','<seu-token-SEM-o-Bearer>','User')
+```
+
+Linux/macOS, no `~/.bashrc` ou `~/.zshrc`:
+
+```bash
+export OIMPRESSO_MCP_TOKEN='<seu-token-SEM-o-Bearer>'
+```
+
+Depois **feche e reabra a sessão** — a config MCP é lida no *start*, não recarrega em sessão viva.
+
+**Acceptance criteria:**
+- [ ] `claude mcp list` devolve `oimpresso: https://mcp.oimpresso.com/api/mcp (HTTP) - ✓ Connected`;
+- [ ] as tools `mcp__oimpresso__*` aparecem na sessão (ex.: `brief-fetch` chamável como tool, não só pelo hook).
+
+**Onde pegar o token.** É o MESMO que já está no seu `.claude/settings.local.json`, **sem** o
+prefixo `Bearer `. Não commitar, não colar em chat/PR. Aquele arquivo **continua necessário**:
+é o cofre que `brief-fetch-curl.mjs`, `cc-watcher/index.js` e `fluxo-sistema.mjs` leem.
+
+**Pegadinha que causou isso.** `claude mcp list` é o único lugar que mostra erro de config:
+entrada malformada sai como `Skipped` e o servidor **some da sessão inteira** — nem `failed`,
+nem `pending`. Silêncio ali é indistinguível de "nunca foi configurado".
+
+**Refs:** PR #7366 (o fix) · PR #7369 (`MEMORY_TEAM_ONBOARDING.md` passo E + skill
+`oimpresso-team-onboarding` Modo D) · [ADR 0056](../../decisions/0056-mcp-fonte-unica-memoria-copiloto-claude-code.md).
