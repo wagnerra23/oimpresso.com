@@ -1,5 +1,9 @@
 #!/usr/bin/env node
-// block-test-fora-ct100.mjs — PreToolUse:Bash|PowerShell (PORTE cross-plataforma do .ps1).
+// block-test-fora-ct100.mjs — PreToolUse (PORTE cross-plataforma do .ps1).
+// Em QUE tools ele roda é do `.claude/settings.json` — restatear o matcher aqui
+// apodrece na primeira mudança (LC-10). Ele lê `tool_input.command`, chave comum a
+// Bash, PowerShell e Monitor; o Monitor entrou em 2026-09-15, e o bite-test com
+// payload de Monitor confirma: suíte local → exit 2, comando benigno → exit 0.
 //
 // Enforcement do feedback Wagner 2026-06-01 (testes/PHPStan rodam no CT 100, NUNCA na
 // máquina local / Hostinger): bloqueia execução de Pest / PHPStan / PHPUnit /
