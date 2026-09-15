@@ -2111,7 +2111,43 @@ pull do CT 100 não tenha um commit manual no servidor. O `McpTasksOrphansComman
 sintoma pelo ângulo oposto (*"a US existe no DB mas não no SPEC"*), o que sugere dessincronia já
 conhecida — esta US documenta a outra ponta: **nem no DB, nem no SPEC, e mesmo assim `✅`**.
 
-**Caminhos possíveis** (não decididos — quem pegar escolhe):
+**CAMINHO ESCOLHIDO — (3) na forma forte: parar de escrever no servidor E parar de afirmar durabilidade.**
+Decisão [CL] 2026-09-15, delegada por [W] (*"escolhe o caminho"*). A tool passa a **não escrever**
+no checkout do servidor e devolve o markdown pro chamador colar no git — igual ao ramo `$written=false`,
+que já é honesto.
+
+**A (1) está FORA por conflito com canon, não por custo.** Gravar a US nova em `mcp_tasks` **inverteria
+a [ADR 0144](../../decisions/0144-tasks-db-canonico-spec-template.md)**, que divide o domínio:
+DB é canon de **estado vivo** (`status`/`owner`/`sprint`/`priority`) e o **SPEC é fonte da descrição,
+do título e do estado inicial de US novas** — está escrito no próprio `tasks-update`, que é DB-only
+de propósito. Pior: fabricaria **órfãs por design**, que é exatamente o que o
+`McpTasksOrphansCommand` existe pra triar. O docblock dele registra o incidente **US-RB-052
+(2026-06-20)**: US que vive só no DB é invisível a quem lê o SPEC, e se o ID for reusado *"o webhook
+sync casa por task_id e UPDATE-a a órfã, sobrescrevendo title/description **em silêncio**"*.
+
+**A (2) está fora por superfície.** Exigiria credencial de **push** dentro do container e o servidor
+gerando commits — risco de segurança novo pra resolver, na raíz, um problema de *mensagem* e de
+*lugar de escrita*.
+
+**Por que a (3) forte, e não só a mensagem:** a escrita no checkout do servidor não é apenas inútil,
+é **lixo garantido** — o deploy apaga (medido: SPEC de 89.531 → 82.068 bytes entre duas leituras).
+Parar de escrever remove o drift na origem; só consertar a frase deixaria a tool sujando um checkout
+de produção a cada chamada.
+
+**Resíduo declarado (não resolvido por esta decisão):** sem a escrita, duas chamadas simultâneas
+recebem o **mesmo ID**. ⚠️ Isso **não é regressão** — a "reserva" de hoje é ilusória, porque o pull
+apaga o arquivo que reservava. O `gerarProximoIdCanonical` já faz `max(DB, SPEC)` + guarda de
+colisão; se a concorrência virar problema real, a saída é reservar **no DB** (uma linha de alocação,
+não a US inteira) — e aí é ADR própria, não esta US.
+
+**Precedente vivo:** foi o caminho executado à mão nesta sessão — as `US-INFRA-049..052` nasceram
+assim (markdown → SPEC no git → webhook) e estão em main.
+
+**Escopo da implementação** (não feita aqui — mexe em produção com 11 arquivos de teste cobrindo):
+`TaskCrudService::createInner()` para de escrever e devolve `written: false` sempre;
+`TasksCreateTool` colapsa os dois ramos na mensagem honesta. Pest no CT 100 (proibição Tier 0).
+
+~~**Caminhos possíveis** (não decididos — quem pegar escolhe):~~ *(mantidos abaixo como registro do que foi pesado)*
 
 1. a tool não escrever em arquivo: gravar em `mcp_tasks` e devolver o markdown pro chamador commitar;
 2. a tool escrever **e** commitar+pushar sozinha, via branch + PR automático (git segue canônico, sem drift no servidor);
