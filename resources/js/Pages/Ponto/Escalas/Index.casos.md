@@ -24,6 +24,8 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 |----|-------------|------|--------|-------|--------|
 | UC-ESCIDX-01 | A lista não traz escala de outro empregador | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `EscalaIndexContratoTest` | ✅ verde na lane |
 | UC-ESCIDX-02 | Cada escala informa quantos turnos tem | must | charter §Goals + CLT Art. 58 | `EscalaIndexContratoTest` | ✅ verde na lane |
+| UC-ESCIDX-03 | "Remover" só aparece sem vínculo; com vínculo, o motivo com a contagem | must | `D-ESC-DESTROY` ([W] 2026-09-14) + charter §Non-Goals | `ponto-escalas-remover-vinculo.test.tsx` | 🧪 teste cita o UC, sem veredito |
+| UC-ESCIDX-04 | O servidor recusa remover escala em uso — o botão é conveniência, a rota é pública | must | `D-ESC-DESTROY` + CLT Art. 58/59 (jornada esperada) | `EscalaRemocaoContratoTest` | 🧪 teste cita o UC, sem veredito |
 
 **[BACKLOG]** (pergunta aberta ao [W], ou contrato numa fonte só — não vira UC sem teste):
 
@@ -77,6 +79,32 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   **Crédito:** a imprecisão foi apontada por sessão paralela (`claude/ponto-casos-config-escalas`)
   e verificada aqui no model antes de a correção entrar.
 - **Status: 🧪 verde no CT 100, sem veredito de lane.**
+
+---
+
+## UC-ESCIDX-03 · "Remover" só aparece sem vínculo; com vínculo, o motivo com a contagem · `must`
+
+- **Persona:** gestor limpando escalas que sobraram de um regime antigo. Ele não tem como saber de
+  cabeça quem ainda usa cada uma — se a tela oferecer "Remover" e o servidor recusar depois, ele
+  descobre por tentativa e erro, uma escala por vez.
+- **Aceite:** Dada uma escala **sem** colaborador vinculado · Então a linha oferece **"Remover"**.
+  Dada uma escala **com** N vinculados · Então **não** há "Remover" na linha, e no lugar dela leio
+  **"Em uso por N colaborador(es)"**, concordando em número.
+- **Teste:** [`tests/js/ponto-escalas-remover-vinculo.test.tsx`](../../../../../tests/js/ponto-escalas-remover-vinculo.test.tsx) — `UC-ESCIDX-03`.
+- **Contrato:** `D-ESC-DESTROY` em
+  [`ponto-telas.jsx`](../../../../../prototipo-ui/cowork/Wagner/ponto-telas.jsx) — *"entra na UI, mas
+  INDISPONÍVEL com vínculo … com o motivo escrito"* — ratificado por [W] em **2026-09-14**
+  (*"é liberado ser igual ao protótipo"*), respondendo o §Non-Goals do charter, que até então
+  **perguntava** se a UI devia expor a ação. Eixo FORMA ⇒ protótipo soberano ([ADR UI-0029](../../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
+- **Por que o motivo é TEXTO e não tooltip:** botão desabilitado não recebe foco, então o Tooltip do
+  DS ficaria inalcançável por teclado — o gestor que navega sem mouse não leria o motivo nenhum.
+- **Regressão que defende — as DUAS pontas:** o caso cobra que o botão **desapareça** com vínculo
+  **e** que **apareça** sem vínculo. Só a primeira metade passaria num `return null` da célula
+  inteira, e aí a feature simplesmente não existe. Um 4º caso renderiza duas escalas (uma livre,
+  uma em uso) e exige **exatamente um** "Remover" — controle contra aplicar a condição fora do
+  `map`. Bite-test por mutação: condição sempre-falsa → 3 failed · sempre-verdadeira → 2 failed ·
+  plural cravado → 1 failed · restaurado → 4 passed.
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**
 
 ---
 
