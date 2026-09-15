@@ -10,7 +10,7 @@ kind: decision
 decided_by: [W]
 decided_at: "2026-09-15"
 accepted_at: "2026-09-15"
-accepted_via: "Wagner [W] textual 2026-09-15: "promova a requerido" (sessão oimpresso-erp-lista), decidindo a promoção deste gate a required. OVERRIDE SOBERANO com a DR-2 da 0336 DISPENSADA e o zero de mordidas registrado no corpo desta ADR e na entrada de promocoes do baseline — molde das 0346/0348/0373. Nasce aceito (e não proposto) porque a decisão É de [W] e já foi dada: o agente não propôs, executou. Flip do vivo na branch protection = ato [W] separado (0275 §5 / R10)."
+accepted_via: 'Wagner [W] textual 2026-09-15: ''promova a requerido'' (sessão oimpresso-erp-lista), decidindo a promoção deste gate a required. OVERRIDE SOBERANO com a DR-2 da 0336 DISPENSADA e o zero de mordidas registrado no corpo desta ADR e na entrada de promocoes do baseline — molde das 0346/0348/0373. Nasce aceito (e não proposto) porque a decisão É de [W] e já foi dada: o agente não propôs, executou. Flip do vivo na branch protection = ato [W] separado (0275 §5 / R10).'
 module: governance
 quarter: 2026-Q3
 tags: [governance, gates, ci, required, advisory, handoff, promocao, override-soberano]

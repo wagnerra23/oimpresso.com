@@ -7,7 +7,7 @@
 ## Resumo
 - **405** arquivos · **390** números únicos · máx **0400**
 - **ADRs ATIVOS (lifecycle ativo): 359** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 355 · superseded 25 · proposto 12 · deprecated 11 · rascunho 1 · recusado 1
+- Por status: aceito 356 · superseded 25 · deprecated 11 · proposto 11 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 359 · substituido 25 · arquivado 21
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -442,4 +442,4 @@ _(nenhuma)_
 | 0397 | aceito | ativo | decision | Protótipo mínimo por dono, máquinas fora do artefato e Design System direto |
 | 0398 | aceito | ativo | decision | O espelho Cowork recebe a árvore da conta, documentação incluída (emenda à 0397  |
 | 0399 | aceito | ativo | decision | Aposentar a rubrica module-grade, seu gate de CI e seu baseline |
-| 0400 | proposto | ativo | decision | Emenda à 0314 — `handoff integrity` vira required por decisão soberana [W], com  |
+| 0400 | aceito | ativo | decision | Emenda à 0314 — `handoff integrity` vira required por decisão soberana [W], com  |
