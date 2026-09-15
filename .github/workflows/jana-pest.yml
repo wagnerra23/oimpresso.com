@@ -260,6 +260,7 @@ jobs:
             Modules/Jana/Tests/Feature/TaskRegistry/SyncMemoryWebhookTasksTest.php \
             Modules/Jana/Tests/Feature/TaskRegistry/TaskParserServiceTest.php \
             Modules/Jana/Tests/Feature/TaskRegistry/SyncGuardaColetaVaziaTest.php \
+            Modules/Jana/Tests/Feature/TaskRegistry/TasksCreateNaoEscreveNoServidorTest.php \
             Modules/Jana/Tests/Feature/Telemetry/LangfuseClientTest.php \
             Modules/Jana/Tests/Feature/ProPreviewPermissaoTest.php \
             Modules/Jana/Tests/Feature/Http/MemoriaPermissaoTest.php \
