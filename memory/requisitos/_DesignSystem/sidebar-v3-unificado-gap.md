@@ -3,7 +3,7 @@ id: requisitos-design-system-sidebar-v3-unificado-gap
 tipo: gap-spec
 tela: Shell / Sidebar (AppShellV2)
 prototipo: TODO
-prototipo_nota: "2026-09-06 [C]: o campo era `prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html` — apagado em 2026-06-23 (commit 9da73296d3, consolidação SSOT em prototipo-ui/cowork/). Não há sucessor no espelho: fonte viva é o DS em git (prototipo-ui/design-system). Âncora do lado protótipo fica TODO por desenho; o lado vivo é ancorado por grep real, arquivo a arquivo (AppShellV2 / Sidebar.tsx / shared.ts / cockpit.css)."  # removido em 2026-06-23, 9da73296d34
+prototipo_nota: "2026-09-06 [C]: o campo era `prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html` — apagado em 2026-06-23 (commit 9da73296d3, consolidação SSOT em prototipo-ui/cowork/). Não há sucessor no espelho: fonte viva é o DS em git (prototipo-ui/design-system). Âncora do lado protótipo fica TODO por desenho; o lado vivo é ancorado por grep real, arquivo a arquivo (AppShellV2 / Sidebar.tsx / shared.ts / cockpit.css)."
 tela_viva:
   - resources/js/Layouts/AppShellV2.tsx
   - resources/js/Components/cockpit/Sidebar.tsx
