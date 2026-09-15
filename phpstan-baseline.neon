@@ -6082,36 +6082,6 @@ parameters:
 			path: Modules/Governance/Services/DriftAlertService.php
 
 		-
-			message: '#^Method Modules\\Governance\\Services\\ModuleGradeService\:\:gradeAllModules\(\) should return Illuminate\\Support\\Collection\<int, array\> but returns Illuminate\\Support\\Collection\<int, array\{module\: string, score\: int, bucket\: string, color\: string, dimensions\: array, gaps\: array, evolve_tasks\: array, evaluated_at\: string\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: Modules/Governance/Services/ModuleGradeService.php
-
-		-
-			message: '#^Offset ''architecture''\|''client_real''\|''documentation''\|''lgpd''\|''multi_tenant''\|''observability''\|''performance''\|''pest_coverage''\|''security'' on array\{multi_tenant\: 25, pest_coverage\: 17, documentation\: 12, architecture\: 17, client_real\: 12, performance\: 10, lgpd\: 10, security\: 8, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: Modules/Governance/Services/ModuleGradeService.php
-
-		-
-			message: '#^Offset ''meta_bucket'' does not exist on array\{module\: string, bucket\: string, score_total\: int, core\: array, bucket_dimensions\: array, paired_violations\: array, evaluated_at\: string\}\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: Modules/Governance/Services/ModuleGradeService.php
-
-		-
-			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: Modules/Governance/Services/ModuleGradeService.php
-
-		-
-			message: '#^Offset 1 on array\{list\<string\>, list\<non\-empty\-string\>\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 2
-			path: Modules/Governance/Services/ModuleGradeService.php
-
-		-
 			message: '#^Method Modules\\Governance\\Services\\PolicyToggleService\:\:groupByCategory\(\) should return Illuminate\\Support\\Collection\<int, array\{category\: string, rules\: Illuminate\\Support\\Collection\<int, array\>\}\> but returns Illuminate\\Support\\Collection\<int, array\{category\: \(int\|string\), rules\: Illuminate\\Support\\Collection\<int, array\{id\: mixed, rule_key\: mixed, name\: mixed, description\: mixed, enabled\: bool, version\: mixed, triggered_count\: mixed, created_by\: mixed, \.\.\.\}\>\}\>\.$#'
 			identifier: return.type
 			count: 1

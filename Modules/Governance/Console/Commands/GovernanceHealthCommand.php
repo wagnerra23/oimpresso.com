@@ -13,16 +13,19 @@ use Illuminate\Support\Facades\Schema;
 /**
  * D9 Observabilidade — Health check operacional do módulo Governance (Wave 18).
  *
- * Roda 06:35 BRT (após charter:health 06:30 BRT). Verifica 4 sinais essenciais:
+ * Roda 06:35 BRT (após charter:health 06:30 BRT). Verifica 3 sinais essenciais:
  *
  *   1. mcp_governance_rules tem ao menos 1 row enabled (sem policies = sem enforcement)
  *   2. mcp_audit_log recebeu entries últimas 24h (audit log silencioso = trigger broken?)
- *   3. mcp_module_grades_history snapshot recente (<48h) — cron daily snapshot vivo
- *   4. config('governance.actiongate_mode') NOT 'off' em prod (sem gate = sem proteção)
+ *   3. config('governance.actiongate_mode') NOT 'off' em prod (sem gate = sem proteção)
+ *
+ * O 4º sinal era o frescor de mcp_module_grades_history; saiu com a rubrica
+ * module-grade (ADR 0399 Onda 4) — sem o cron que a alimentava, ele passaria a
+ * acusar "zero snapshots" para sempre.
  *
  * Diferença vs charter:health:
  *   - charter:health audita PAGE CHARTERS (Modules/<X>/resources/js/Pages/*.charter.md)
- *   - governance:health audita CORE GOVERNANCE INFRA (audit log + policies + grades + ActionGate)
+ *   - governance:health audita CORE GOVERNANCE INFRA (audit log + policies + ActionGate)
  *
  * NOTA: NÃO usa `--verbose` (Symfony reserved — vide .claude/rules/commands.md).
  *
@@ -44,7 +47,7 @@ class GovernanceHealthCommand extends Command
                             {--notify : Loga ALERT no governance channel se algo falhou}
                             {--detail : Mostra linha por check (humano-friendly)}';
 
-    protected $description = 'Health-check diário Governance core infra (policies + audit + grades + ActionGate)';
+    protected $description = 'Health-check diário Governance core infra (policies + audit + ActionGate)';
 
     public function handle(): int
     {
@@ -63,7 +66,6 @@ class GovernanceHealthCommand extends Command
         $checks = [
             'policies_enabled'        => $this->checkPoliciesEnabled(),
             'audit_log_alive_24h'     => $this->checkAuditLogAlive24h(),
-            'module_grades_snapshot'  => $this->checkModuleGradesSnapshotRecent(),
             'actiongate_mode_active'  => $this->checkActionGateModeActive(),
         ];
 
@@ -130,30 +132,6 @@ class GovernanceHealthCommand extends Command
         }
 
         return ['ok' => true, 'msg' => "{$count} entries 24h"];
-    }
-
-    /**
-     * @return array{ok: bool, msg: string}
-     */
-    private function checkModuleGradesSnapshotRecent(): array
-    {
-        if (! Schema::hasTable('mcp_module_grades_history')) {
-            // Migration ainda não aplicada (CI / dev fresh) = OK fail-open.
-            return ['ok' => true, 'msg' => 'tabela mcp_module_grades_history ausente (skip)'];
-        }
-
-        $latest = DB::table('mcp_module_grades_history')
-            ->orderByDesc('snapshot_at')
-            ->value('snapshot_at');
-
-        if (! $latest) {
-            return ['ok' => false, 'msg' => 'zero snapshots em mcp_module_grades_history'];
-        }
-
-        $ageHours = now()->diffInHours($latest);
-        return $ageHours <= 48
-            ? ['ok' => true,  'msg' => "último snapshot {$ageHours}h atrás"]
-            : ['ok' => false, 'msg' => "último snapshot {$ageHours}h atrás (>48h = cron parado?)"];
     }
 
     /**
