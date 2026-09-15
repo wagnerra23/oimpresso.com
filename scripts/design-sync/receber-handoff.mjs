@@ -40,9 +40,12 @@
  *   node scripts/design-sync/receber-handoff.mjs --zip <arquivo.zip>              # mede + valida
  *   node scripts/design-sync/receber-handoff.mjs --zip <arquivo.zip> --apply      # + promove
  *   node scripts/design-sync/receber-handoff.mjs --zip <arquivo.zip> --out <dir>  # guarda a árvore
+ *   node scripts/design-sync/receber-handoff.mjs --zip <arquivo.zip> --conta w    # declara a origem
+ *                                                                                 # (exigido quando o
+ *                                                                                 # PASSO 0 da indeterminado)
  *   node scripts/design-sync/receber-handoff.mjs --selftest
  *
- * Exit: 0 = ok · 1 = insumo/validação reprovou · 2 = erro de uso.
+ * Exit: 0 = ok · 1 = insumo/validação reprovou (inclui PASSO 0 não liberado) · 2 = erro de uso.
  */
 import { readFileSync, existsSync, mkdtempSync, mkdirSync, writeFileSync, readdirSync } from 'node:fs';
 import { join, dirname, relative, resolve } from 'node:path';
@@ -53,6 +56,9 @@ import { fileURLToPath } from 'node:url';
 import { extrairZip } from './zip-reader.mjs';
 import { roleForPath, validateManifest } from './bundle-contract.mjs';
 import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
+// PASSO 0 do painel. O dono da pergunta "de quem e este handoff" e o protocolo.config:
+// importo a funcao dele em vez de reimplementar (LC-19 — maquina paralela ao dono).
+import { deQuemEhOHandoff, CONTAS, PROJETOS } from '../design/protocolo.config.mjs';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(AQUI, '..', '..');
@@ -103,6 +109,81 @@ export function listarRelativos(raiz, listar = readdirSync) {
     }
   }
   return saida.sort();
+}
+
+/** PASSO 0 — DE QUEM É, decidido pra ESTE destino de escrita.
+ *
+ *  POR QUE ISTO EXISTE (medido 2026-09-14): o painel manda rodar `--de-quem` ANTES de qualquer
+ *  importação e diz "fail-closed: só `vinculada` libera". Mas a rota ZIP **não chamava o passo**
+ *  — `grep -niE "de-quem|procedencia"` neste arquivo devolvia ZERO. Então o passo obrigatório
+ *  era obrigatório só pra quem importava à mão.
+ *
+ *  E o buraco não era cosmético: o `espelho()` abaixo escreve em `prototipo-ui/cowork/Wagner`
+ *  HARDCODED. Um handoff exportado de outra conta entrava por aqui e pousava no espelho do
+ *  Wagner — que é exatamente o "espelho ganha arquivo órfão" que o `--de-quem` foi escrito pra
+ *  impedir. A conta do [F] tem `espelhada: false` e projeto nenhum em PROJETOS: não há espelho
+ *  pra receber, logo não há importação possível por esta rota.
+ *
+ *  O 3º VEREDITO É INALCANÇÁVEL DE OUTRO JEITO, e é por isso que `--conta` existe: o
+ *  `deQuemEhOHandoff` procura o UUID do projeto num PATH, e o zip do Cowork nomeia a raiz pelo
+ *  SLUG (`oimpresso-erp-conunica-o-visual`), nunca pelo id. Medido no handoff 19: o id do projeto
+ *  de telas aparece **0 vezes** em 816 arquivos; só o id do DS, e só dentro do cache `_ds/` — que
+ *  é justamente o caso que o `deQuemEhOHandoff` exclui de propósito, e está certo em excluir
+ *  (cache do DS diz o que o material CONSOME, não de quem ele é). Consequência: TODO zip do
+ *  projeto de telas cai em `indeterminado`, por construção. Sem uma saída declarada, o passo
+ *  barraria 100% da rota que [W] pediu em 2026-09-10 ("exportar uma única vez").
+ *
+ *  A saída NÃO é inferência. Não deduzo do slug (nome não é id — e decidir por nome é a família
+ *  de guard que o §5 das proibições já enterrou várias vezes) nem da sobreposição com o espelho
+ *  (o próprio `deQuemEhOHandoff` declara a camada 2 "fraca por construção": export delta dá
+ *  sobreposição ~0 sendo legítimo). A saída é o humano DECLARAR a conta, que é literalmente o que
+ *  o painel prescreve pra este veredito: "resolva perguntando a quem exportou". A sobreposição
+ *  entra no relatório como CORROBORAÇÃO pro olho humano, nunca como veredito.
+ *
+ *  Puro de propósito: o `--selftest` exercita ESTA função, a mesma que o pipeline chama — não uma
+ *  cópia paralela (§5 2026-08-14: selftest que roda cópia fica verde enquanto o pipeline regride).
+ *
+ *  @returns {{ok: boolean, conta: string|null, motivo: string, exigeDeclaracao: boolean}}
+ */
+export function decidirDono(dono, contaDeclarada, contas = CONTAS, projetos = PROJETOS) {
+  const contasComEspelho = Object.values(projetos).filter((p) => p.espelho).map((p) => p.conta);
+  const aceita = [...new Set(contasComEspelho)];
+
+  if (dono.veredito === 'vinculada') {
+    return { ok: true, conta: dono.conta, motivo: dono.porque, exigeDeclaracao: false };
+  }
+
+  if (dono.veredito === 'nao-vinculada') {
+    // Sem escape: o painel manda registrar a conta em CONTAS + PROJETOS primeiro. `--conta` aqui
+    // carimbaria material de origem desconhecida com uma conta conhecida — o oposto do passo.
+    return {
+      ok: false, conta: null, exigeDeclaracao: false,
+      motivo: `${dono.porque} — registre a conta em CONTAS + PROJETOS (com a chave espelho) antes de importar; --conta NAO vale aqui`,
+    };
+  }
+
+  // indeterminado — o único veredito que uma declaração resolve.
+  if (!contaDeclarada) {
+    return {
+      ok: false, conta: null, exigeDeclaracao: true,
+      motivo: `${dono.porque} — declare a conta de origem com --conta <${aceita.join('|')}>`,
+    };
+  }
+  if (!contas[contaDeclarada]) {
+    return { ok: false, conta: null, exigeDeclaracao: true, motivo: `conta "${contaDeclarada}" nao esta em CONTAS` };
+  }
+  if (!aceita.includes(contaDeclarada)) {
+    const c = contas[contaDeclarada];
+    return {
+      ok: false, conta: null, exigeDeclaracao: true,
+      motivo: `conta "${contaDeclarada}" (${c.dono}) nao tem espelho no repo — esta rota escreve em `
+        + `prototipo-ui/cowork/Wagner, entao importar aqui criaria arquivo orfao no espelho de outro dono`,
+    };
+  }
+  return {
+    ok: true, conta: contaDeclarada, exigeDeclaracao: true,
+    motivo: `declarado --conta ${contaDeclarada} (${contas[contaDeclarada].dono}); o material so embutia o cache do DS`,
+  };
 }
 
 /**
@@ -199,6 +280,34 @@ function principal() {
   const raiz = acharRaiz(destino);
   if (!raiz) morre(`nao achei ${ENTRY} na arvore extraida - este ZIP nao e um handoff do Cowork`);
   console.log(`                   raiz do projeto: ${relative(destino, raiz) || '.'}`);
+
+  // 0. DE QUEM E — PASSO 0 do painel, fail-closed ANTES de medir ou escrever qualquer byte.
+  //    Fica DEPOIS do [1] no numero porque a arvore precisa existir pra ser classificada, mas e o
+  //    primeiro PORTAO: nada abaixo roda se ele nao liberar.
+  const relDaRaiz = listarRelativos(raiz);
+  const dono = deQuemEhOHandoff(relDaRaiz);
+  const decisao = decidirDono(dono, arg('--conta'));
+  console.log(`\n  [0] DE QUEM      ${dono.veredito}${decisao.conta ? ` - conta ${decisao.conta}` : ''}`);
+  console.log(`                   ${decisao.motivo}`);
+  // Corroboracao pro olho humano — quantos paths do zip JA existem em cada espelho registrado.
+  // NAO e veredito, e o motivo esta no proprio deQuemEhOHandoff: a camada 2 e "fraca por
+  // construcao" (um export DELTA traz so arquivo novo e da sobreposicao ~0 sendo legitimo).
+  //
+  // ⚠️ NAO uso o `dono.placar` aqui, e a razao e medida: ele casa PREFIXO DE PATH
+  // (`x.startsWith('cowork/Wagner/')`), e os paths de um zip sao relativos a raiz do projeto
+  // (`app.jsx`), nunca prefixados pelo espelho. Na 1a versao desta linha eu passei o placar
+  // direto e ela NUNCA imprimia: `casam` era 0 em todos os projetos, sempre. Linha que nao pode
+  // disparar e pior que linha ausente, porque parece cobertura.
+  for (const [chave, p] of Object.entries(PROJETOS)) {
+    if (!p.espelho) continue;
+    const base = join(REPO, ...p.espelho.replace(/[/]$/, '').split('/'));
+    const batem = relDaRaiz.filter((rel) => existsSync(join(base, ...rel.split('/')))).length;
+    if (batem > 0) {
+      const pct = ((batem / relDaRaiz.length) * 100).toFixed(1);
+      console.log(`                   corrobora: ${batem}/${relDaRaiz.length} (${pct}%) path(s) do zip ja existem no espelho de ${chave}`);
+    }
+  }
+  if (!decisao.ok) morre(`PASSO 0 nao liberou: ${decisao.motivo}`);
 
   const naArvore = (rel) => {
     const p = join(raiz, ...rel.split('/'));
