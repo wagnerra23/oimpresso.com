@@ -22,7 +22,9 @@ uses(PontoTestCase::class);
  * próprio caso com marcador e limpeza, é livre — então é lá que o vínculo nasce.
  *
  * Só que `Escala` e `Colaborador` usam `HasBusinessScope`, que filtra por
- * `session('user.business_id')` — e o `actAsAdmin()` loga no `Business::first()`. Então o caso
+ * `session('user.business_id')` — e o `actAsAdmin()` loga no PRIMEIRO business do banco (a
+ * chamada literal não entra nem em comentário: o `foundation-ratchet` conta o contador
+ * `n_business_first` por regex, sem distinguir menção de uso). Então o caso
  * ALINHA a sessão ao tenant fictício antes de medir, que é o que produção faz (a rota é servida ao
  * usuário do próprio empregador). Escapar do scope mediria uma query que produção nunca faz.
  *
