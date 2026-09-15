@@ -533,6 +533,12 @@ class OfficeimpressoImporterService
             $status = $this->mapFinStatus((string) ($row['TIPO'] ?? ''));
             $parcela = (int) ($row['PARCELA'] ?? 1);
             $valor = (float) ($row['VALOR'] ?? 0);
+            // Invariante de Titulo (docblock Modules/Financeiro/Models/Titulo.php):
+            //   quitado ⇒ valor_aberto = 0 · aberto ⇒ valor_aberto = valor_total.
+            // Derivado do MESMO $status pra os dois não poderem divergir. Antes
+            // gravava $valor incondicional: título pago nascia devendo tudo, e
+            // valor_aberto alimenta Dashboard/ContaReceber/DRE/FluxoCaixa.
+            $valorAberto = $status === 'quitado' ? 0.0 : $valor;
             $emissao = $this->dateOnly($row['EMISSAO'] ?? null) ?: now()->format('Y-m-d');
             $vencto = $this->dateOnly($row['VENCTO'] ?? null) ?: $emissao;
             $competenciaFonte = $row['DT_COMPETENCIA'] ?? $row['EMISSAO'] ?? null;
@@ -570,7 +576,7 @@ class OfficeimpressoImporterService
                 'cliente_id' => $clienteId,
                 'cliente_descricao' => (string) ($row['RAZAOSOCIAL'] ?? $row['FANTASIA'] ?? ''),
                 'valor_total' => $valor,
-                'valor_aberto' => $valor,
+                'valor_aberto' => $valorAberto,
                 'moeda' => 'BRL',
                 'emissao' => $emissao,
                 'vencimento' => $vencto,
@@ -878,6 +884,40 @@ class OfficeimpressoImporterService
                 'CODCONTA' => 3,
                 'PESSOA_RESPONSAVEL_CODIGO' => '595',
                 'DT_COMPETENCIA' => '2026-02-25',
+                'FANTASIA' => 'ARACON',
+                'EMAIL' => '',
+            ],
+            // Título JÁ PAGO (TIPO=RECEBIDA + DATAPAGTO) — cobre o ramo
+            // status=quitado, que nenhum mock exercitava. Sem ele o defeito
+            // "quitado nasce com valor_aberto cheio" passava por qualquer teste.
+            [
+                'CODIGO' => 99979,
+                'CODPEDIDO' => '48198-1',
+                'CODEMPRESA' => '1',
+                'RAZAOSOCIAL' => 'TRANSPORTADORA ARACON LTDA',
+                'DOCUMENTO' => '48198 1/1',
+                'NOTAFISCAL' => '',
+                'HISTORICO' => 'Mensalidade contrato 48198 (quitada)',
+                'EMISSAO' => '2026-03-05 09:12:00',
+                'VENCTO' => '2026-04-02 09:12:00',
+                'DATAPAGTO' => '2026-04-01 15:30:00',
+                'VALOR' => 420.00,
+                'JUROS' => 0,
+                'DESCONTO' => 0,
+                'CODPLANOCONTAS' => '1.1.01',
+                'CODTIPOPAGTO' => 35,
+                'TIPOPAGTO' => 'BOLETO',
+                'CODCONDICAOPAGTO' => 35,
+                'CONDICAOPAGTO' => 'BOLETO',
+                'CONTATOS' => 'ADEMAR',
+                'PARCELA' => 1,
+                'CODUSUARIO' => 13,
+                'TIPO' => 'RECEBIDA',
+                'STATUS' => 'ATIVO',
+                'BOLETO_NOSSO_NR' => '',
+                'CODCONTA' => 3,
+                'PESSOA_RESPONSAVEL_CODIGO' => '595',
+                'DT_COMPETENCIA' => '2026-03-05',
                 'FANTASIA' => 'ARACON',
                 'EMAIL' => '',
             ],

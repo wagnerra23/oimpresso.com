@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\Officeimpresso\Services\FirebirdImporter\FirebirdConnector;
 use Modules\Officeimpresso\Services\FirebirdImporter\OfficeimpressoImporterService;
 
@@ -134,6 +136,70 @@ describe('W28-4 — OfficeimpressoImporterService', function () {
         expect($stats['read'])->toBe(2);
         expect($stats['migrated'])->toBe(2);
         expect($stats['skipped'])->toBe(0);
+    });
+});
+
+describe('GUARD valor — invariante status × valor_aberto no import Financeiro', function () {
+
+    /**
+     * Invariante de Titulo (docblock Modules/Financeiro/Models/Titulo.php):
+     *   aberto ⇒ valor_aberto = valor_total · quitado ⇒ valor_aberto = 0
+     *
+     * O INSERT cru de insertFinanceiro() contorna o Model (DB::table, de propósito —
+     * evita 1 linha de activity_log por título na escala do importer), então NENHUMA
+     * defesa do Eloquent segura este invariante: só este teste segura.
+     *
+     * Regressão que ele mata: `valor_aberto => $valor` incondicional gravava título
+     * pago devendo o valor inteiro. valor_aberto alimenta Dashboard, ContaReceber,
+     * DRE e FluxoCaixa do Financeiro — o erro inflaria contas a receber.
+     * Tenant 98 (ADR 0358), nunca biz=4.
+     */
+    it('título PAGO nasce com valor_aberto = 0 e título EM ABERTO com valor cheio', function () {
+        if (DB::connection()->getDriverName() !== 'mysql' || ! Schema::hasTable('fin_titulos')) {
+            $this->markTestSkipped(
+                'Schema Financeiro MySQL ausente. Seed canônico: .github/actions/pest-mysql-setup '
+                . '(CI) · scripts/tests/ct100-fullsuite.sh (CT 100).'
+            );
+        }
+
+        $biz = (int) $this->seededTenant()->id;
+        $fixtures = ['48196 1/1', '48197 1/1', '48198 1/1']; // DOCUMENTO dos mockFinanceiros()
+
+        $limpar = fn () => DB::table('fin_titulos')
+            ->where('business_id', $biz)->whereIn('numero', $fixtures)->delete();
+
+        $limpar(); // idempotência: no CT 100 a base persiste entre runs
+
+        try {
+            $service = new OfficeimpressoImporterService(
+                new FirebirdConnector(':mock:', forceMock: true)
+            );
+            $stats = $service->importFinanceiros(businessId: $biz, dryRun: false);
+            expect($stats['read'])->toBe(3);
+
+            $linhas = DB::table('fin_titulos')
+                ->where('business_id', $biz)->whereIn('numero', $fixtures)->get();
+
+            // PROVA DE EXECUÇÃO, não formalidade: insertFinanceiro() engole exceção
+            // (try/catch + Log::warning) e importFinanceiros() incrementa `migrated`
+            // ANTES de saber se gravou — logo `migrated` NÃO prova persistência.
+            // Sem contar as linhas, "0 violações" seria indistinguível de "0 linhas".
+            expect($linhas)->toHaveCount(3);
+
+            $pago = $linhas->firstWhere('numero', '48198 1/1');
+            expect($pago->status)->toBe('quitado');            // o ramo foi mesmo tomado
+            expect((float) $pago->valor_total)->toBe(420.0);
+            expect((float) $pago->valor_aberto)->toBe(0.0);    // ← o defeito
+
+            foreach (['48196 1/1', '48197 1/1'] as $numero) {
+                $emAberto = $linhas->firstWhere('numero', $numero);
+                expect($emAberto->status)->toBe('aberto');
+                expect((float) $emAberto->valor_aberto)->toBe((float) $emAberto->valor_total);
+                expect((float) $emAberto->valor_aberto)->toBe(350.0);
+            }
+        } finally {
+            $limpar();
+        }
     });
 });
 
