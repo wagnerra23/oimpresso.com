@@ -16,6 +16,16 @@ outcomes:
 > Session log do trabalho. O **estado** de fechamento está no handoff
 > [`2026-09-15-1841-ledger-dono-da-proibicao-divida-08-31.md`](../handoffs/2026-09-15-1841-ledger-dono-da-proibicao-divida-08-31.md) — não duplicar.
 
+## TL;DR
+
+Três PRs de ledger mergeados. O `ciclo-adversary`, rodado **antes** de escrever, deu **REJECT**:
+o incremento que eu ia declarar já era da lápide-mãe, e ele achou um 2º precedente que eu não
+tinha varrido — contra o **mesmo arquivo**. O que sobreviveu foi outro eixo: o gatilho da §5
+dispara em **LER**, e esta é a 1ª instância em que o ato é **POSICIONAR**. Paguei também a
+dívida do recibo pendurado de **08-31** (medido: 67 de 68 ocorrências têm lápide na própria
+data ⇒ era dívida real, não typo) e registrei o **`Monitor` mudo** por `jq` ausente, que
+cometi 4h50 depois de o canon estar no `main`. Fecho: `--reconcile` **120/120 · 0 pendurados**.
+
 ## O trabalho, na ordem
 
 **1. Registrar a reincidência de LC-08 do [#7314](https://github.com/wagnerra23/oimpresso.com/pull/7314)** — mover um `.gitignore` para o lugar que o `cowork-ssot-guard` proíbe (R2), por ter consultado o dono do inventário e não o da proibição.
