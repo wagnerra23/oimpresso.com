@@ -338,8 +338,26 @@ jobs:
           # O `git fetch` saiu junto: com o SHA nao ha o que buscar por nome. O
           # endurecimento de 2026-08-11 segue intacto — SHA invalido faz o `git diff` sair
           # rc!=0 e o `bash -e` mata o step (nao existe `|| true` aqui).
+          #
+          # 2026-09-15 (emenda ao bloco acima) — a BASE deixa de ser `base.sha` e passa a ser
+          # HEAD^1. O parágrafo acima diz que o THREE-DOT protege por usar merge-base. Ele
+          # protege quando `HEAD` é o head do PR; aqui `HEAD` é o MERGE REF (nenhum dos 5
+          # checkouts deste arquivo declara `ref:`). Num merge ref `base.sha` É ANCESTRAL de
+          # HEAD, então merge-base(base.sha, HEAD) == base.sha e o three-dot DEGENERA em
+          # two-dot. MEDIDO no merge ref real do #7281: os conjuntos de three-dot e two-dot
+          # saem com o MESMO md5, e a lista tem 30 arquivos onde HEAD^1 tem 4 — 26 de
+          # terceiros. Foi assim que o `Append-only canon` reprovou o #7281 por 7 ADRs que ele
+          # não tocou (§5 2026-09-15, eixo BASE-DE-PR).
+          #
+          # HEAD^1 mantém tudo que o bloco acima conquistou: não é NOME de branch (não some
+          # quando o PR-pai mergeia) e não precisa de fetch — o objeto já está no checkout.
+          # O `else` preserva a base congelada para quando o checkout não for merge ref.
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE="${{ github.event.pull_request.base.sha }}"
+            if [ "$(git rev-list --count --no-walk --merges HEAD)" = "1" ]; then
+              BASE="$(git rev-parse HEAD^1)"
+            else
+              BASE="${{ github.event.pull_request.base.sha }}"
+            fi
             CHANGED=$(git diff --name-only --diff-filter=AM "$BASE...HEAD")
           else
             CHANGED=$(git diff --name-only --diff-filter=AM HEAD~1...HEAD)
@@ -450,7 +468,15 @@ jobs:
           # rc=0 com a lista vazia — "diff quebrado" e "nada a validar" ficavam
           # indistinguiveis. Tirar o `|| true` cru NAO servia: o `grep` sai 1 quando
           # nao casa nada, entao o caso mais comum (0 arquivos) virava VERMELHO.
-          FILES="$(git diff --name-only --diff-filter=AM "${BASE}" "${HEAD}" -- ':(glob)memory/requisitos/**/SPEC.md')"
+          # 2026-09-15 — TWO-DOT vira THREE-DOT. `BASE` e `HEAD` vêm os dois do payload, então
+          # o merge ref não entra aqui; mas o two-dot compara duas ÁRVORES, e quando a branch
+          # não contém o `base.sha` (o caso normal: o PR não mergeou main depois do evento) ele
+          # lista também o que main ganhou e a branch não tem. MEDIDO com base/head reais:
+          # two-dot 27 arquivos × three-dot 6 — 21 de outro PR. E há um modo FAIL-OPEN: quando
+          # o `base.sha` já contém o conteúdo do PR, o two-dot devolve 0 e o job valida NADA
+          # (medido: 0 × 6). O three-dot usa merge-base e devolve só o que o PR mudou — é o que
+          # o comentário do job `validate` já defendia. §5 2026-09-15, eixo BASE-DE-PR.
+          FILES="$(git diff --name-only --diff-filter=AM "${BASE}...${HEAD}" -- ':(glob)memory/requisitos/**/SPEC.md')"
           echo "files<<EOF" >> "$GITHUB_OUTPUT"
           echo "$FILES" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
@@ -545,7 +571,8 @@ jobs:
           # rc=0 com a lista vazia — "diff quebrado" e "nada a validar" ficavam
           # indistinguiveis. Tirar o `|| true` cru NAO servia: o `grep` sai 1 quando
           # nao casa nada, entao o caso mais comum (0 arquivos) virava VERMELHO.
-          RAW="$(git diff --name-only --diff-filter=AM "${BASE}" "${HEAD}" -- ':(glob)memory/sessions/**/*.md')"
+          # 2026-09-15 — TWO-DOT vira THREE-DOT; razão medida no job de SPEC.md acima.
+          RAW="$(git diff --name-only --diff-filter=AM "${BASE}...${HEAD}" -- ':(glob)memory/sessions/**/*.md')"
           # grep sem match e' legitimo (nenhum casou) — o `|| true` fica SO aqui.
           FILES="$(printf '%s\n' "$RAW" \
             | grep -v '_TEMPLATE' \
@@ -637,7 +664,8 @@ jobs:
           # rc=0 com a lista vazia — "diff quebrado" e "nada a validar" ficavam
           # indistinguiveis. Tirar o `|| true` cru NAO servia: o `grep` sai 1 quando
           # nao casa nada, entao o caso mais comum (0 arquivos) virava VERMELHO.
-          RAW="$(git diff --name-only --diff-filter=A "${BASE}" "${HEAD}" -- ':(glob)memory/handoffs/**/*.md')"
+          # 2026-09-15 — TWO-DOT vira THREE-DOT; razão medida no job de SPEC.md acima.
+          RAW="$(git diff --name-only --diff-filter=A "${BASE}...${HEAD}" -- ':(glob)memory/handoffs/**/*.md')"
           # grep sem match e' legitimo (nenhum casou) — o `|| true` fica SO aqui.
           FILES="$(printf '%s\n' "$RAW" \
             | grep -v '_TEMPLATE' \
