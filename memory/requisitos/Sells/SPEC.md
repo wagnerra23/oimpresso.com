@@ -1278,7 +1278,7 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 **Contrato de não-regressão (o que esta US promete NÃO fazer):** enquanto `status != done`, nenhum PR desta US pode tocar `resources/js/Pages/Sells/Create.tsx`, `app/Http/Controllers/SellPosController.php` nem componentes que a tela viva consome. Quebrar isso é quebrar o motivo de a tela existir.
 
 - Charter: [`CreateV3.charter.md`](../../../resources/js/Pages/Sells/CreateV3.charter.md) · casos: [`CreateV3.casos.md`](../../../resources/js/Pages/Sells/CreateV3.casos.md) · RUNBOOK: [RUNBOOK-create-v3.md](RUNBOOK-create-v3.md)
-- Âncora de design: `prototipo-ui/design-oimpresso/04-modulos/vendas/sells-create.jsx` _(nunca versionado no repo — artefato externo do Cowork)_
+- Âncora de design: `prototipo-ui/design-oimpresso/04-modulos/vendas/sells-create.jsx` _(alvo não resolve no repo — proveniência não determinada)_
 - Landado em [#5356](https://github.com/wagnerra23/oimpresso.com/pull/5356) — [L] não mergeia sozinho ([F] ou [W] aprova).
 
 ---

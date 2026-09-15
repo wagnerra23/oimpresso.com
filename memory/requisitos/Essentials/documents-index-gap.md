@@ -11,8 +11,8 @@ gerado_em: 2026-09-06
 > **Fase 1 = PARIDADE.** `essenciais-page.jsx:1-3` declara o porte reverso do blade do main.
 > Região: `Arquivos({ modo })` (`:338-400`) — **um só componente serve Documentos e Memorandos**,
 > exatamente como o vivo, que alterna por aba (`Documents/Index.tsx:78`, `tab: 'documents' | 'memos'`).
-> Contratos do intake: `documentos.contract.json` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/contrato/documentos.contract.json`, removido do git em 2026-09-11 · #7224 · ADR 0397)
-> e `memorandos.contract.json` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/contrato/memorandos.contract.json`, removido do git em 2026-09-11 · #7224 · ADR 0397).
+> Contratos do intake: `documentos.contract.json` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/contrato/documentos.contract.json`)
+> e `memorandos.contract.json` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/contrato/memorandos.contract.json`).
 > ⚠️ **Versionamento de documento está fora de escopo por decisão pendente de [W]**
 > (`LEIA-ME.md` §"Decisões pendentes" item 2: *"hoje é media única; versionar pede tabela de versões
 > e regra de quem substitui"*) — não entra como gap aqui.

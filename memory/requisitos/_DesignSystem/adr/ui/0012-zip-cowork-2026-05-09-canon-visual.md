@@ -13,7 +13,7 @@ id: requisitos-design-system-adr-ui-0012-zip-cowork-2026-05-09-canon-visual
 - **Data**: 2026-05-09
 - **Decisores**: Wagner, Claude
 - **Categoria**: ui · estruturante
-- **Refs**: [UI Kit Cowork 2026-05-09](../../ui_kits/cowork-2026-05-09/README.md), [_DS UI-0010 — precedente](0010-zip-cowork-2026-04-27-canon-visual.md), [_DS UI-0008](0008-cockpit-layout-mae-do-erp.md), [_DS UI-0009](0009-cockpit-sidebar-light-padrao.md), [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) _(nunca versionado no repo — artefato externo do Cowork; medido no histórico completo: 0 commits)_
+- **Refs**: [UI Kit Cowork 2026-05-09](../../ui_kits/cowork-2026-05-09/README.md), [_DS UI-0010 — precedente](0010-zip-cowork-2026-04-27-canon-visual.md), [_DS UI-0008](0008-cockpit-layout-mae-do-erp.md), [_DS UI-0009](0009-cockpit-sidebar-light-padrao.md), [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) _(removido em 2026-05-20, 2f6892d06ca)_
 - **Substitui parcialmente**: [_DS UI-0010 — Zip Cowork 2026-04-27](0010-zip-cowork-2026-04-27-canon-visual.md) onde overlap (mesmo arquivo, versão nova vence)
 - **Convive com**: [_DS UI-0009](0009-cockpit-sidebar-light-padrao.md), [_DS UI-0011](0011-sidebar-single-pane-cascata-user-menu.md) — decisões posteriores ao snapshot sobrevivem (ver §3)
 

@@ -8,9 +8,9 @@ id: requisitos-design-system-adr-ui-0032-alvo-de-toque-erp-denso-1280
 - **Data**: 2026-09-05
 - **Decisores**: [W] (decide — é postura de conformidade e história de toque do produto), Claude Code (medição)
 - **Categoria**: ui · fundações · acessibilidade
-- **Fecha a pergunta aberta em**: `REPAIR-ONDAS-2026-09-04` (`prototipo-ui/cowork/Wagner/cowork-inbox/REPAIR-ONDAS-2026-09-04.md`, removido do git em 2026-09-11 · #7224 · ADR 0397)
+- **Fecha a pergunta aberta em**: `REPAIR-ONDAS-2026-09-04` (`prototipo-ui/cowork/Wagner/cowork-inbox/REPAIR-ONDAS-2026-09-04.md`)
   (linha A7 e item 6 do resíduo) · `handoff-crm/PEDIDO-CODE` (`prototipo-ui/design-docs/handoff-crm/PEDIDO-CODE.md`, removido do git em 2026-09-11 · #7224 · ADR 0397) _(removido em 2026-09-11, 4f51a9ec781)_
-  (linha A7 e item 6) · `COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO` (`prototipo-ui/cowork/Wagner/cowork-inbox/COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md`, removido do git em 2026-09-11 · #7224 · ADR 0397)
+  (linha A7 e item 6) · `COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO` (`prototipo-ui/cowork/Wagner/cowork-inbox/COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md`)
   (lista de decisões [W])
 - **Refs**: [UI-0013](0013-constituicao-ui-v2-camadas.md) (Constituição UI v2 — camada Fundações) ·
   [PRE-MERGE-UI](../../PRE-MERGE-UI.md) · [ADR 0109](../../../../decisions/0109-claude-design-plugin-integrado-processo-mwart.md) e
@@ -139,7 +139,7 @@ espaçamento absorve 96–97% dos "abaixo de 24", e o resíduo é um punhado de 
 - **Forja**: **não existe medição**, nem aqui nem em lugar nenhum. Três documentos afirmam que a
   pergunta está *"aberta também na Forja"* — `handoff-crm/PEDIDO-CODE` (`prototipo-ui/design-docs/handoff-crm/PEDIDO-CODE.md`, removido do git em 2026-09-11 · #7224 · ADR 0397) (linha 213), _(removido em 2026-09-11, 4f51a9ec781)_
   [CODE_NOTES.md](../../../../../CODE_NOTES.md) (linha 150) e
-  `REPAIR-ONDAS` (`prototipo-ui/cowork/Wagner/cowork-inbox/REPAIR-ONDAS-2026-09-04.md`, removido do git em 2026-09-11 · #7224 · ADR 0397) (linha 283) —
+  `REPAIR-ONDAS` (`prototipo-ui/cowork/Wagner/cowork-inbox/REPAIR-ONDAS-2026-09-04.md`) (linha 283) —
   e **nenhum deles mede a Forja**. Varredura contada de `alvo de toque` no repo inteiro (`git grep`,
   todos os tipos de arquivo): **18 arquivos**; destes, 5 citam "forja", e ao abrir os 5 nenhum traz
   medição — 3 são a mesma frase propagada de um para o outro, e 2 são o rótulo do Tweak *"Alvo de

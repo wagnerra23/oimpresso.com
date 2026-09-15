@@ -174,7 +174,7 @@ Playwright `locator.screenshot()` por zona ancorada + `mask` nas regiões com `s
 
 **Ação (sem mudar código de produção):**
 1. **Não** mexer em `Index.tsx` — ele obedece ao charter (card-grid é canon, `❌ Tabela` é anti-padrão declarado).
-2. **Corrigir o protótipo de referência**: o blueprint da tela LITE é `ui_kits/cowork-2026-05-09/prod-page.jsx` (6.5 KB grid-first, citado no charter `Refs`), **não** o `produto-app.jsx` denso. Apontar a comparação para o protótipo certo, ou marcar `divergence_from_blueprint` se o protótipo grid não for mantido. _(nunca versionado no repo — artefato externo do Cowork)_
+2. **Corrigir o protótipo de referência**: o blueprint da tela LITE é `ui_kits/cowork-2026-05-09/prod-page.jsx` (6.5 KB grid-first, citado no charter `Refs`), **não** o `produto-app.jsx` denso. Apontar a comparação para o protótipo certo, ou marcar `divergence_from_blueprint` se o protótipo grid não for mantido. _(removido em 2026-05-20, 2f6892d06ca)_
 3. Fonte-da-verdade desta tela = **charter** (spec-anchored). Produção é implementação conforme. Protótipo é a view que ficou stale/trocada — re-sync ou aposentar.
 
 ---

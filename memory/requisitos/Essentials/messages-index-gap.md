@@ -10,7 +10,7 @@ gerado_em: 2026-09-06
 
 > **Fase 1 = PARIDADE.** `essenciais-page.jsx:1-3` declara o porte reverso do blade
 > (`messages/{index,message_div,recent_messages}.blade.php`). Região: `Mensagens` (`:565-622`).
-> Contrato: `mensagens.contract.json` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/contrato/mensagens.contract.json`, removido do git em 2026-09-11 · #7224 · ADR 0397)
+> Contrato: `mensagens.contract.json` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/contrato/mensagens.contract.json`)
 > (3 seções: `cabecalho-filtro` · `mural` · `compositor`).
 > O charter do vivo declara `related_prototype: n/a (mural de chat bespoke … não segue um dos 5
 > Padrões de Tela)` — a âncora desta tela vem do `bundle_source: essenciais-page.jsx`, e as duas coisas

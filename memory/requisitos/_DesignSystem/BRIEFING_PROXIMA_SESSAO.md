@@ -57,7 +57,7 @@ related_adrs: [0235, 0249]
 - `Modules/Officeimpresso/Http/Controllers/DataController.php` — menu real Officeimpresso
 - `app/Services/LegacyMenuAdapter.php` — como o menu é montado
 
-### UI Kit interativo (`ui_kits/cockpit/index.html`) _(nunca versionado no repo — artefato externo do Cowork)_
+### UI Kit interativo (`ui_kits/cockpit/index.html`) _(alvo não resolve no repo — proveniência não determinada)_
 ✅ Sidebar dark 260px com company picker no topo
 ✅ Toggle Chat↔Menu
 ✅ Menu **real** do sistema (ordem dos DataControllers):

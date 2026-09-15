@@ -154,7 +154,7 @@ it('uses localStorage prefix oimpresso.orcamento.*')
 
 ## Refs
 
-- Material visual: `ui_kits/cowork-2026-05-09/orc-page.jsx` (6.3 KB) + `data-orc-prod.jsx` _(nunca versionado no repo — artefato externo do Cowork)_
+- Material visual: `ui_kits/cowork-2026-05-09/orc-page.jsx` (6.3 KB) + `data-orc-prod.jsx` _(removido em 2026-05-20, 2f6892d06ca)_
 - Canon visual: [ADR ui/0012](../../../../memory/requisitos/_DesignSystem/adr/ui/0012-zip-cowork-2026-05-09-canon-visual.md)
 - [ADR 0110 — Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - [ADR 0093 — Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)

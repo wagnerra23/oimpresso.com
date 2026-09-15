@@ -25,7 +25,7 @@ related_adrs: [ui/0002, ui/0003, ui/0114, 0093]
 > **Refs:**
 > - Blade legacy: ❌ **n/a** — tela nasce greenfield (4 telas separadas em legacy: contas-receber, contas-pagar, recebidas, pagas)
 > - Canon Cockpit principal: protótipo Cowork "Visao Unificada" 2026-05-09 — KPIs + tabela + drawer + CmdK
-> - Canon Cockpit secundário: [`tasks.jsx`](../_DesignSystem/ui_kits/cowork-2026-04-27/tasks.jsx) — inbox padrão (J/K nav + 1-clique baixa) _(nunca versionado no repo — artefato externo do Cowork)_
+> - Canon Cockpit secundário: [`tasks.jsx`](../_DesignSystem/ui_kits/cowork-2026-04-27/tasks.jsx) — inbox padrão (J/K nav + 1-clique baixa) _(removido em 2026-05-20, 799af73a3a7)_
 > - Charter: [`Index.charter.md`](../../../resources/js/Pages/Financeiro/Unificado/Index.charter.md)
 > - ADRs: [ui/0002 plano original](adr/ui/0002-dashboard-unificado-4-estados.md), [ui/0003 amendment](adr/ui/0003-amendment-0002-visao-unificada-cockpit-v2.md)
 

@@ -11,8 +11,8 @@ gerado_em: 2026-09-06
 > **Fase 1 = PARIDADE, não wishlist.** `essenciais-page.jsx:1-3` declara: *"Importado do blade do
 > main: Modules/Essentials/Resources/views/*"* — **porte reverso**, logo o protótipo é retrato do
 > vivo. Região: `Tarefas` (`:33-231`).
-> Contrato do intake: `cowork-inbox/essenciais/contrato/tarefas.contract.json` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/contrato/tarefas.contract.json`, removido do git em 2026-09-11 · #7224 · ADR 0397)
-> (6 seções · 9 colunas · copy literal). Charter: `Tarefas.charter.md` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/Tarefas.charter.md`, removido do git em 2026-09-11 · #7224 · ADR 0397).
+> Contrato do intake: `cowork-inbox/essenciais/contrato/tarefas.contract.json` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/contrato/tarefas.contract.json`)
+> (6 seções · 9 colunas · copy literal). Charter: `Tarefas.charter.md` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/Tarefas.charter.md`).
 > ⚠️ O charter do intake declara **3 itens fora de escopo esperando [W]** (vínculo tarefa ↔ OS/cliente ·
 > versionamento de documento · canal de notificação) — este gap **não os reabre**.
 

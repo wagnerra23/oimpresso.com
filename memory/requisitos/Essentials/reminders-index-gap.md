@@ -10,9 +10,9 @@ gerado_em: 2026-09-06
 
 > **Fase 1 = PARIDADE.** `essenciais-page.jsx:1-3` declara o porte reverso do blade
 > (`reminder/{index,create,show}.blade.php`). Região: `Lembretes` (`:444-537`).
-> Contrato: `lembretes.contract.json` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/contrato/lembretes.contract.json`, removido do git em 2026-09-11 · #7224 · ADR 0397)
+> Contrato: `lembretes.contract.json` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/contrato/lembretes.contract.json`)
 > (5 seções: `toolbar-mes` · `grade-mes` · `legenda` · `drawer` · `form`).
-> Charter: `Lembretes.charter.md` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/Lembretes.charter.md`, removido do git em 2026-09-11 · #7224 · ADR 0397) —
+> Charter: `Lembretes.charter.md` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/Lembretes.charter.md`) —
 > objetivo declarado: *"um calendário que mostra junto o que a equipe marcou e o que os outros
 > módulos cobram"*.
 > ⚠️ Esta é a tela com a **maior divergência estrutural** das 11 medidas: o protótipo é calendário,
