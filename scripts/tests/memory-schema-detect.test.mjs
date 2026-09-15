@@ -272,6 +272,54 @@ try {
   const hYaml = rodaCp1252('handoff', 'memory/handoffs/2026-01-02-1300-yaml-quebrado.md');
   ok(hYaml.status === 1 && /falha ao LER o frontmatter/.test(hYaml.stderr) && !/ ausente/.test(hYaml.stderr),
     `YAML ilegivel acusa falha de LEITURA, nao ausencia (exit ${hYaml.status})`);
+
+  // PERNA 5 — o RODAPE nao afirma ter validado o que nem existe.
+  //
+  // Ate 2026-09-15 o `[[ ! -f ]]` saia do laco sem contar em nada, e como o rodape
+  // faz `TOTAL - SKIPPED`, um path inexistente entrava na conta de VALIDADOS. Medido
+  // no dia: 50 paths com CR de CRLF renderam `Arquivos validados: 50 (skipados: 0)
+  // — erros: 0`, e a comparacao que dependia daquele numero mediu o nada.
+  // Os 3 baldes SOMAM o total; o assert confere a conta, nao so a palavra.
+  console.log('PERNA 5 — o rodape conta o inexistente em vez de chama-lo de validado');
+  const fantasma = roda('handoff', 'memory/handoffs/2026-01-02-0000-nao-existe-mesmo.md');
+  ok(fantasma.status === 1,
+    `arquivo inexistente REPROVA (exit ${fantasma.status}) — antes saia 0, indistinguivel de "nada regrediu"`);
+  ok(/Arquivos validados: 0 de 1 \(pulados: 0 · inexistentes: 1\)/.test(fantasma.stderr),
+    'o rodape declara 0 validados e 1 inexistente (validados + pulados + inexistentes = total)');
+  ok(/arquivo n[aã]o existe/.test(fantasma.stderr) && /::error/.test(fantasma.stderr),
+    'a acusacao sai como ERRO anotado, nao como um [SKIP] de aparencia benigna');
+
+  // CONTROLE NEGATIVO da PERNA 5: arquivo que EXISTE e passa segue com rodape de 1 validado.
+  const vivo = roda('handoff', 'memory/handoffs/2026-01-02-0930-handoff-bom.md');
+  ok(vivo.status === 0 && /Arquivos validados: 1 de 1 \(pulados: 0 · inexistentes: 0\)/.test(vivo.stderr),
+    `handoff existente segue contando como 1 validado (exit ${vivo.status})`);
+
+  // PERNA 6 — tipo invalido nao sai VERDE, nem quando vem sem arquivos.
+  //
+  // Ate 2026-09-15 a validacao do TYPE morava so dentro do laco de arquivos, entao
+  // tipo invalido SEM arquivos nunca chegava nela: caia no "[OK] nada a validar" e
+  // saia exit 0. `validate-memory-schema.sh --selftest` devolvia VERDE sem ter medido
+  // nada — quem digitasse isso achando que rodou um selftest levava um verde de graca.
+  console.log('PERNA 6 — tipo invalido reprova na ENTRADA, mesmo sem arquivos');
+  const semArgs = (...argv) => spawnSync('bash', [VALIDADOR, ...argv], {
+    cwd: dir, encoding: 'utf8', env: { ...env, VIOLATIONS_JSON: join(dir, 'v.json') },
+  });
+
+  const self = semArgs('--selftest');
+  ok(self.status === 2, `--selftest reprova (exit ${self.status}) — antes saia 0 com "[OK] nada a validar"`);
+  ok(/memory-schema-detect\.test\.mjs/.test(self.stderr),
+    'a mensagem aponta o bite-test REAL em vez de fingir ter um proprio');
+
+  const tipoTorto = semArgs('sessionn');
+  ok(tipoTorto.status === 2 && /type inv/.test(tipoTorto.stderr),
+    `typo de tipo reprova sem arquivos (exit ${tipoTorto.status})`);
+
+  // CONTROLE NEGATIVO — este e o caso que o CI DEPENDE: tipo VALIDO e zero arquivos
+  // segue VERDE (skip-as-pass). Sem este assert, "reprovar tipo invalido" poderia ter
+  // sido implementado reprovando tambem o caminho legitimo.
+  const vazioOk = semArgs('handoff');
+  ok(vazioOk.status === 0 && /nenhum arquivo passado/.test(vazioOk.stderr),
+    `tipo VALIDO com 0 arquivos segue verde (exit ${vazioOk.status}) — skip-as-pass do CI intacto`);
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }
