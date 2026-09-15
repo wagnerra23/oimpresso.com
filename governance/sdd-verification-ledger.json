@@ -1978,6 +1978,25 @@
       "evidencia": "memory/sessions/2026-09-15-refutacao-gt-g5-lote-7335-r3.md (rodada aprovada); anteriores: memory/sessions/2026-09-15-refutacao-gt-g5-lote-7335-r1.md, memory/sessions/2026-09-15-refutacao-gt-g5-lote-7335-r2.md",
       "trajetoria": "3 rodadas: 40,98% (r1, 84/205) → 6,34% (r2, 13/205) → 1,48% (r3, 4/270)",
       "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
+    },
+    {
+      "pr": 7367,
+      "lote_id": "gt-g5-lote-7367",
+      "data": "2026-09-15",
+      "tipo": "anchors",
+      "gerador": "Claude Opus 5 (Anthropic) — move o comentário YAML inline (`campo: valor  # removido em <data>, <sha>`) para LINHA PRÓPRIA acima do campo, em 11 docs de memory/requisitos. Motivo medido: o `#` inline é YAML válido (js-yaml lê limpo), mas os leitores line-based do repo não strippam comentário — `scripts/design/ancora.mjs::chaveAninhada` (L166-176) devolvia o comentário colado no valor do canon_reference/blueprint_cowork/visual_source_html. Reproduzido antes de mexer. Antes→depois com o consumidor real: origin/main = 25 campos lidos com 18 sujos; esta branch = 25 lidos, 0 sujos (mesma contagem, nenhum campo perdido). Teste de identidade: 17 valores idênticos; o 18º (prototipo_nota do sidebar) diverge por MELHORIA (sem o comentário atrás, desasparValor remove a aspa final) — gray-matter lê 422 chars idênticos nos dois lados. Dois casos com aspas foram tratados à mão e NÃO são o mesmo caso: em boletos-visual-comparison as aspas são internas e fecham antes do # (era comentário → movido); em sidebar-v3-unificado-gap o prototipo_nota já declara 'apagado em 2026-06-23 (commit 9da73296d3)' dentro do valor (redundante → removido). Não toquei o leitor de propósito: o docblock da chaveAninhada declara que charter-blueprint-pointers::pointersOf e reconcile-triplet::fmScalar duplicam a lógica, que nenhum é export, e que unificar é PR próprio.",
+      "refutador": "claude-fable-5-1 (Anthropic) — subagente do workflow .claude/workflows/refutador-gt-g5.js em contexto próprio, zero contexto do gerador e das rodadas anteriores (instruído a não abrir as evidências prévias); uma instância NOVA por rodada, r1–r1",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 82,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-09-15-refutacao-gt-g5-lote-7367-r1.md (rodada aprovada)",
+      "trajetoria": "1 rodada: 0,00% (r1, 0/82)",
+      "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
     }
   ]
 }
