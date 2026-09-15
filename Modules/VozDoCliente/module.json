@@ -14,8 +14,8 @@
     },
     "governance": {
         "bucket": "functional_horizontal",
-        "bucket_assigned_at": "2026-07-28",
-        "bucket_assigned_by": "[C] PROPOSTO — pendente ratificação [W] via label bucket-change-approved",
-        "bucket_justificativa": "Canal de voz do cliente é útil em qualquer empresa BR com ERP, independente de vertical (gráfica, vestuário, oficina). Add-on vendável — default false no pacote."
+        "bucket_assigned_at": "2026-09-15",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Canal de voz do cliente é útil em qualquer empresa BR com ERP, independente de vertical (gráfica, vestuário, oficina). Add-on vendável — default false no pacote. Proposto por [C] em 2026-07-28 e ratificado por [W] em 2026-09-15: o caminho original (label bucket-change-approved + gate de CI) morreu com a ADR 0399, que aposentou a rubrica module-grade — os buckets sobreviveram, o gate que os vigiava não. Ratificação direta, sem label."
     }
 }

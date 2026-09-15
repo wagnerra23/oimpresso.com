@@ -76,7 +76,7 @@ O domínio nasceu no núcleo herdado do UltimatePOS e recebeu requisitos de pari
 
 - Telas, charters e rollout: consulte [UI-CATALOG.md](UI-CATALOG.md) e confirme cada tela com `npm run screen:files -- Produto/<Tela>`, implementado por [screen-coverage-map.mjs](../../../scripts/qa/screen-coverage-map.mjs). O catálogo é artefato gerado; divergência com o código deve ser corrigida no gerador ou regenerada, não copiada para cá.
 - Casos e cobertura: os contratos ficam ao lado das Pages em [resources/js/Pages/Produto](../../../resources/js/Pages/Produto/) e os testes em [tests/Feature/Produto](../../../tests/Feature/Produto/). A catraca/CI é a fonte do que está efetivamente coberto.
-- Nota e comparativos: execute `php artisan module:grade Produto` ou `php artisan module:grade-v4 Produto`; [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) e [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) guardam a análise, não o estado operacional deste BRIEFING.
+- Nota: não existe mais — a rubrica `module-grade` foi APOSENTADA em 2026-09-15 ([ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md)) — **não existe mais nota de módulo, nem comando que a calcule** (o `module:grade-v4` já tinha saído em 2026-07-26). Comparativos seguem em [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) e [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md), que guardam a análise, não o estado operacional deste BRIEFING.
 - Backlog vivo: [SPEC.md](SPEC.md) é o contrato de US; estado de execução pertence ao board/MCP. Não inferir `todo`, `review`, `done`, `draft` ou `live` a partir deste arquivo.
 
 **Recibo:** superfície revarrida em 2026-07-20 sobre `origin/main@58447832` via `git`, `rg`, `npm run screen:files`, histórico de PRs e handoffs recentes.

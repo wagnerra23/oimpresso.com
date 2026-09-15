@@ -6,12 +6,12 @@ type: visual-comparison
 module: Inventory
 status: approved
 date: 2026-05-15
-canon_reference: prototipo-ui/prototipos/produto-cockpit/produto-cockpit-page.jsx  # removido em 2026-09-11, PR #7224
+canon_reference: prototipo-ui/prototipos/produto-cockpit/produto-cockpit-page.jsx  # removido em 2026-05-20, 1070e3759b7
 blade_source: resources/views/product/edit.blade.php
 inertia_target: resources/js/Pages/Produto/Edit.tsx
 approved_by: pending_wagner_screenshot_approval
 pattern_reuse: true
-blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/  # removido em 2026-09-11, PR #7224
+blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/  # removido em 2026-05-20, 1070e3759b7
 ---
 
 # Comparativo visual — Editar produto (`/products/{id}/edit`)

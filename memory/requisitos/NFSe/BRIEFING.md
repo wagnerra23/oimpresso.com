@@ -1,13 +1,21 @@
 ---
 id: requisitos-nfse-briefing
 module: NFSe
-status: homologação SN-NFSe federal + cutover fiscal por-business habilitado (biz=164 Martinho — #2147); cert A1 pendente Wagner
+status: piloto
+status_nota: "homologação SN-NFSe federal + cutover fiscal por-business habilitado (biz=164 Martinho — #2147); cert A1 pendente Wagner"
 piloto: oimpresso biz=1 (Wagner, Tubarão-SC) homologação + biz=164 (Martinho OficinaAuto) cutover por-business
 last_review: 2026-08-01
-owner: eliana
+updated_at: "2026-08-01"
+owner: E
 parent_adr: ARQ-0001
-related_adrs: [0093, 0101, 0121, 0153, 0155, 0156]
-nota_stale: "número de module-grade abaixo é HISTÓRICO (2026-05-16). Fonte viva: php artisan module:grade NFSe --detail (CT 100) — não restatear à mão (LC-08)"
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0101-sistema-charter-capterra-governanca-escopo
+  - 0121-oimpresso-modular-especializado-por-vertical
+  - 0153-module-grade-rubrica-v1
+  - 0155-module-grade-v3-sub-dimensoes-gate-ci
+  - 0156-module-grade-v3-errata-otel-helper-na-justified
+nota_stale: "número de module-grade abaixo é HISTÓRICO (2026-05-16) e assim FICA: a rubrica foi aposentada em 2026-09-15 (ADR 0399) e não há fonte viva que o substitua. Não restatear à mão (LC-08)"
 na_justified: [D5]
 ---
 
@@ -42,7 +50,7 @@ Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (
 
 ### Score module-grade
 
-> ⚠️ **Números abaixo são HISTÓRICO datado (2026-05-16), não o estado atual.** Fonte viva da nota = `php artisan module:grade NFSe --detail` (roda no CT 100, baseline em `governance/module-grades-baseline.json`). Não restatear o número à mão (LC-08 · lápide 2026-07-17 "não repetir número que outro sistema sabe melhor").
+> ⚠️ **Números abaixo são HISTÓRICO datado (2026-05-16), não o estado atual.** Não há mais fonte viva: a rubrica `module-grade` foi APOSENTADA em 2026-09-15 ([ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md)) — **não existe mais nota de módulo, nem comando que a calcule**, e o baseline `governance/module-grades-baseline.json` foi deletado. O número fica como história datada; para o estado atual do módulo, leia este BRIEFING e `node scripts/governance/requisitos-status.mjs NFSe`.
 
 | Versão (datada) | Score | Observação |
 |---|---|---|

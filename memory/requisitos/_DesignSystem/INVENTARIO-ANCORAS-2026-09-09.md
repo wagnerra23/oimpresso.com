@@ -127,7 +127,7 @@ O fix de 2026-08-28 registrado no próprio arquivo (L476-482) tratou o caso `rel
 Os 4 charters de Estoque declaram, em `mwart_pattern_reuse.blueprint_cowork`:
 
 ```
-prototipo-ui/prototipos/inventario-migracao/visual-source.html _(removido em 2026-09-11, PR #7224)_
+prototipo-ui/prototipos/inventario-migracao/visual-source.html _(removido em 2026-09-11, 4f51a9ec781)_
 ```
 
 Esse arquivo existe, tem 30 KB, e é **um relatório técnico de migração de código**:

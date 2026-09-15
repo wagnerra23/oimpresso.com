@@ -843,7 +843,7 @@ Sheet lateral em `/financeiro/boletos` pra emitir N boletos de uma vez a partir 
 - Error handling parcial: se 1 falha, mostra `{ok: [...], failed: [...]}` e abre só os ok
 - Pest GUARD: cross-tenant + idempotência + bulk transaction
 
-**Refs:** F3 PR #845, `memory/requisitos/Financeiro/boletos-visual-comparison.md` §Q2, `prototipo-ui/prototipos/boletos/cowork-app.jsx` (removido em 2026-09-11, PR #7224) §SheetEmitirBoleto
+**Refs:** F3 PR #845, `memory/requisitos/Financeiro/boletos-visual-comparison.md` §Q2, `prototipo-ui/prototipos/boletos/cowork-app.jsx` (removido em 2026-05-20, 1070e3759b7) §SheetEmitirBoleto
 **Estimate:** 6h (IA-pair fator 10x)
 
 ### US-FIN-018 · Boletos — Sheet Remessa/Retorno CNAB upload + processing

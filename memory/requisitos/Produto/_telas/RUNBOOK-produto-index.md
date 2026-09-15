@@ -16,7 +16,7 @@ date: 2026-05-15
 > **Estado origem:** Blade legacy `view('product.index')` via [ProductController@index](../../../app/Http/Controllers/ProductController.php#L63) — DataTables jQuery + Yajra server-side processing
 > **Estado alvo:** `Pages/Produto/Index.tsx` (Inertia v3 + React 19 + AppShellV2 + Cowork blueprint)
 > **Persona alvo:** Larissa (ROTA LIVRE biz=4) — loja vestuário Gravatal/SC monitor 1280px. Estende-se a verticais ComunicacaoVisual + OficinaAuto.
-> **Blueprint Cowork:** `prototipo-ui/prototipos/produto-cockpit/` (removido em 2026-09-11, PR #7224); o charter de Produto/Index declara `related_prototype: n/a (herda PT-01 Lista)`. — pattern visual canon (sidebar 200 + header sticky + filter tabs + KPI strip + lista + drawer).
+> **Blueprint Cowork:** `prototipo-ui/prototipos/produto-cockpit/` (removido em 2026-05-20, 1070e3759b7); o charter de Produto/Index declara `related_prototype: n/a (herda PT-01 Lista)`. — pattern visual canon (sidebar 200 + header sticky + filter tabs + KPI strip + lista + drawer).
 
 ## 1. Estado final esperado
 
@@ -131,7 +131,7 @@ Feature flag default OFF até validar em canary biz=1 7 dias. Cliente real biz=4
 
 ## 7. Refs
 
-- Blueprint visual: `prototipo-ui/prototipos/produto-cockpit/produto-cockpit-page.jsx` (removido em 2026-09-11, PR #7224)
+- Blueprint visual: `prototipo-ui/prototipos/produto-cockpit/produto-cockpit-page.jsx` (removido em 2026-05-20, 1070e3759b7)
 - Charter: [`resources/js/Pages/Produto/Index.charter.md`](../../../resources/js/Pages/Produto/Index.charter.md)
 - Visual comparison: [`produto-index-visual-comparison.md`](produto-index-visual-comparison.md)
 - ADR 0149 screen-pattern reuse

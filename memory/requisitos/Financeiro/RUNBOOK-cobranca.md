@@ -132,5 +132,5 @@ Mantém ADR 0094 Constituição v2 §5 SoC visual:
 - ADR 0144 PaymentGateway extração ([decisions/0144](../../decisions/0144-paymentgateway-extracao-camada-cobranca.md))
 - ADR 0170 PaymentGateway Onda 4 ([decisions/0170](../../decisions/0170-paymentgateway-module-extraction.md))
 - Handoff F2 Cowork ([COWORK_HANDOFF.paymentgateway-ui.md](../../../COWORK_HANDOFF.paymentgateway-ui.md))
-- F1.5 critique `prototipo-ui/prototipos/payment-gateway-ui/critiques/REPORT.md` (removido em 2026-09-11, PR #7224)
+- F1.5 critique `prototipo-ui/prototipos/payment-gateway-ui/critiques/REPORT.md` (removido em 2026-05-20, 1070e3759b7)
 - LICOES F3 Financeiro rejeitado ([LICOES_F3_FINANCEIRO_REJEITADO.md](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md))

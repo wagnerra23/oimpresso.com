@@ -16,7 +16,7 @@ adr_pattern_reuse: 0149
 
 ## Blueprint Cowork base
 
-`Vendas Cockpit.html` (removido em 2026-09-11, PR #7224 — era em `prototipo-ui/prototipos/vendas-cockpit/`) + `visual-source-fsm-v1.html` — pattern detail view com:
+`Vendas Cockpit.html` (removido em 2026-05-20, 1070e3759b7 — era em `prototipo-ui/prototipos/vendas-cockpit/`) + `visual-source-fsm-v1.html` — pattern detail view com:
 - Cabeçalho dense `bg-card border-border rounded-lg` + nº da venda em h1 24px
 - 4 KPI cards grandes (Total / Pago / Falta / Status pgto)
 - Tabela de linhas zebra-strip leve + tipografia tabular-nums em valores

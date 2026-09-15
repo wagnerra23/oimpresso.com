@@ -6,8 +6,8 @@ type: visual-comparison
 module: OficinaAuto
 status: revised
 date: 2026-05-13
-canon_reference_v1: prototipo-ui/prototipos/producao-oficina/F1.html  # removido em 2026-09-11, PR #7224
-canon_reference_v2: prototipo-ui/prototipos/producao-oficina/visual-source.html  # removido em 2026-09-11, PR #7224
+canon_reference_v1: prototipo-ui/prototipos/producao-oficina/F1.html  # removido em 2026-05-20, 1070e3759b7
+canon_reference_v2: prototipo-ui/prototipos/producao-oficina/visual-source.html  # removido em 2026-05-20, 1070e3759b7
 blade_source: N/A (módulo novo, sem Blade legacy)
 inertia_target: resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx
 revisions:
@@ -30,8 +30,8 @@ revisions:
 > Vinculá-lo declararia como fonte de design vigente um documento que ensina o domínio proibido
 > — o vetor exato da lápide §5 2026-06-09.
 
-> Referência canônica visual V1: `prototipo-ui/prototipos/producao-oficina/F1.html` _(removido em 2026-09-11, PR #7224)_ (Cowork APROVADO simples)
-> Referência canônica visual V2: `prototipo-ui/prototipos/producao-oficina/visual-source.html` _(removido em 2026-09-11, PR #7224)_ (1213 linhas — RICA, fonte canon V2)
+> Referência canônica visual V1: `prototipo-ui/prototipos/producao-oficina/F1.html` _(removido em 2026-05-20, 1070e3759b7)_ (Cowork APROVADO simples)
+> Referência canônica visual V2: `prototipo-ui/prototipos/producao-oficina/visual-source.html` _(removido em 2026-05-20, 1070e3759b7)_ (1213 linhas — RICA, fonte canon V2)
 > Adaptação: 5 colunas Kanban estado caçambas (workflow Martinho), drawer próprio `CacambaProducaoSheet` (NÃO reusa ServiceOrderSheet — embute `ServiceOrderFsmActionPanel`).
 > Demo: Wagner reunião Martinho **2026-05-13 10h** — quer mostrar layout BONITO Kanban estado-da-arte.
 
