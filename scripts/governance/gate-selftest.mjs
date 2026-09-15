@@ -64,6 +64,18 @@ const copiarLibGovernanca = (sb) => {
   if (existsSync(src)) cpSync(src, join(sb, 'scripts', 'governance', 'lib'), { recursive: true });
 };
 
+// Deps IRMÃS do sdd-scorecard que não vivem em `lib/` — mesma razão do helper acima, e o
+// mesmo modo de falha: sem elas o script copiado morre com ERR_MODULE_NOT_FOUND e os 8
+// casos scorecard reprovam por MOTIVO ERRADO (ambiente, não regra). Foi o que aconteceu em
+// 2026-09-15, quando o distiller_freshness passou a medir MAX(doc, código) e importou o
+// `nsDoModulo` do module-surface — que por sua vez importa scripts/qa/page-path.mjs.
+// Num lugar só de propósito: dep nova do scorecard entra aqui, não em 3 sandboxes.
+const copiarDepsIrmasDoScorecard = (sb) => {
+  mkdirSync(join(sb, 'scripts', 'qa'), { recursive: true });
+  cpSync(join(ROOT, 'scripts', 'governance', 'module-surface.mjs'), join(sb, 'scripts', 'governance', 'module-surface.mjs'));
+  cpSync(join(ROOT, 'scripts', 'qa', 'page-path.mjs'), join(sb, 'scripts', 'qa', 'page-path.mjs'));
+};
+
 // casos-results-collect --new-reds-vs resolve o manifesto por cwd → sandbox temp, igual aos
 // irmãos. Carrega a dep scripts/lib/uc-regex.mjs (import module-relative do coletor).
 //
@@ -97,6 +109,7 @@ function runScorecard(kind) {
     cpSync(join(FIX, 'sdd-scorecard', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
     copiarLibGovernanca(sb);
+    copiarDepsIrmasDoScorecard(sb);
     cpSync(script('sdd-scorecard', 'scripts/governance/sdd-scorecard.mjs'), join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'));
     cpSync(join(ROOT, 'scripts', 'governance', 'knowledge-drift.mjs'), join(sb, 'scripts', 'governance', 'knowledge-drift.mjs'));
     // sdd-scorecard agora delega anchor_coverage a anchor-lint.mjs (ledger §A · ADR 0273 §2) — copia essa dep tb.
@@ -116,6 +129,7 @@ function runScorecardFloor(fixture) {
       cpSync(join(FIX, fixture, kind), sb, { recursive: true });
       mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
     copiarLibGovernanca(sb);
+      copiarDepsIrmasDoScorecard(sb);
       cpSync(script('sdd-scorecard', 'scripts/governance/sdd-scorecard.mjs'), join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'));
       cpSync(join(ROOT, 'scripts', 'governance', 'knowledge-drift.mjs'), join(sb, 'scripts', 'governance', 'knowledge-drift.mjs'));
       cpSync(join(ROOT, 'scripts', 'governance', 'anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
@@ -140,6 +154,7 @@ function runScorecardCorruptors(kind) {
     if (existsSync(corruptorTxt)) renameSync(corruptorTxt, join(sb, 'tests', 'Feature', 'CorruptorDemoTest.php'));
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
     copiarLibGovernanca(sb);
+    copiarDepsIrmasDoScorecard(sb);
     mkdirSync(join(sb, 'scripts', 'audit'), { recursive: true });
     cpSync(script('sdd-scorecard', 'scripts/governance/sdd-scorecard.mjs'), join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'));
     cpSync(join(ROOT, 'scripts', 'governance', 'knowledge-drift.mjs'), join(sb, 'scripts', 'governance', 'knowledge-drift.mjs'));
