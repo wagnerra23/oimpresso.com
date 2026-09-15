@@ -38,5 +38,5 @@ gerado_em: 2026-09-06
 - `grep -nc 'config_json' resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx` → 0   (anti-pattern :72 respeitado)
 - `grep -nEc 'SubNav|PageHeaderNav|href="/recurring-billing"' resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx` → 0   (sem tab-strip nem Voltar)
 - `grep -nEc '<CmdPalette|Sparkline' resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx` → 0   (sem palette/sparkline nesta Page)
-- `ls prototipo-ui/prototipos/recurring/` → No such file or directory   (path do comentário `Index.tsx:4` não existe)
+- `ls prototipo-ui/prototipos/recurring/` → No such file or directory   (path do comentário `Index.tsx:4` não existe) _(removido em 2026-05-20, 1070e3759b7)_
 - `grep -nEc 'zinc|violet' prototipo-ui/cowork/Wagner/cobranca-recorrente-page.css` → 0 · `grep -nc 'var(--accent)' …page.css` → 10   (linguagem do protótipo)
