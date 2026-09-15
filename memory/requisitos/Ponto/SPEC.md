@@ -317,3 +317,32 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - **⚠️ AFDT está deprecated regulatoriamente** (Portaria 671/2021 substituiu por AEJ). US-PONTO-006 atualizada 2026-05-25 — AFDT removido, AFD legacy mantido pra REP-A, AEJ canon vira US-PONTO-009 nova.
 - **LGPD** Art. 7o II (cumprimento obrigacao legal — base legal pra tratamento de dado de jornada)
 - **CF/88** Art. 7o XVI (adicional 50% HE)
+
+---
+
+### US-PONTO-015 · Fechamento de competência — as restrições existem, a tela e o domínio não
+
+> owner: — · priority: p2 · estimate: — · status: todo · type: story
+> blocked_by: decisão [W] sobre o comportamento (ver "O que falta" abaixo)
+
+**Implementado em:** _pendente_ — não existe tabela, entity, service, controller nem rota de fechamento. Medido em `origin/main` 2026-09-14: zero migration com `fechamento|competenc|consolid`, e os 7 arquivos do módulo que citam "competência" usam a palavra como **período** (banco de horas, relatórios), não como entidade.
+
+- **Por que esta US existe agora:** o handoff 19 do Cowork ([#7272](https://github.com/wagnerra23/oimpresso.com/pull/7272)) trouxe `ponto-fechamento.jsx` com **três decisões [W] datadas de 2026-09-14** escritas dentro do próprio design. As decisões são reais e são dele; a tela e o domínio que elas restringem **não existem**. Registrá-las aqui é o que impede que a próxima sessão as reinvente ao contrário — ou pior, que construa a tela sem elas.
+- **Estas são RESTRIÇÕES, não especificação.** Elas dizem o que o fechamento **não** faz. Nenhuma delas diz o que ele **faz** com o dado, e inventar isso seria pior que deixar em branco.
+
+**Restrições ratificadas por [W] (2026-09-14) — não inferidas:**
+
+| id | Restrição | Consequência de desenho |
+|---|---|---|
+| **D1** | **"Reabrir" NÃO existe na v1** — reabrir competência tem consequência | sem ação de reabertura na UI nem na rota; correção pós-fechamento precisa de outro caminho, e qual é ele é decisão aberta |
+| **D2** | Consolidar registra **nome + data**, **sem assinatura digital** | não prometer validade jurídica de assinatura; o registro é de autoria administrativa |
+| **D4** | O fechamento **não** gera arquivo fiscal — a geração vive em **Relatórios** | nenhum export AFD/AEJ nesta tela; ela consolida, não emite |
+
+- **O que falta, e só [W] responde:** o que "fechar" faz com as marcações da competência (bloqueia edição? marca estado? gera snapshot de apuração?); se fechar é por colaborador ou por empregador; qual permissão; e o que acontece com intercorrência que chega depois de fechado. Sem isso não há US implementável — há restrição registrada.
+- **Fonte:** `prototipo-ui/cowork/Wagner/ponto-fechamento.jsx` (âncora de design da tela quando ela nascer) + `ponto-mobile.jsx`, que carrega a 4ª decisão do mesmo ciclo (**D3** — recusar grava anulação `ORIGEM_ANULACAO` e não altera a marcação). **D3 já está implementada** no backend (`Marcacao::ORIGEM_ANULACAO` + `anular()` + `AnularMarcacaoRequest`, e os serviços de apuração excluem os registros de anulação — 14 arquivos), então ela documenta comportamento correto existente, não trabalho pendente.
+
+**Acceptance:**
+- [ ] [W] responder "O que falta" acima — sem isso a US não sai de `todo`
+- [ ] tela nascer pelo fluxo MWART (`criar-tela.mjs`), com `related_prototype` apontando pra `ponto-fechamento.jsx`
+- [ ] D1, D2 e D4 entrarem como **Non-Goals do charter** (viram Pest GUARD) — não como prosa solta
+- [ ] append-only preservado: fechar competência **não** altera marcação (a mesma lei que D3 já respeita — Portaria MTP 671/2021)
