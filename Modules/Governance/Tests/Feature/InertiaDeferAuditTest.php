@@ -16,7 +16,8 @@ uses(Tests\TestCase::class);
  *
  * Ref: memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md
  *      memory/proibicoes.md §"Sempre fazer" item Inertia::defer DEFAULT
- *      Modules/Governance/Http/Controllers/ModuleGradeController.php (exemplo canônico)
+ *      Modules/Governance/Http/Controllers/DashboardController.php (exemplo canônico —
+ *      o ModuleGradeController era o exemplo até ser aposentado pela ADR 0399, 2026-09-15)
  *
  * Estratégia: grep no source dos Controllers — se chamam Inertia::render(),
  * DEVEM ter `Inertia::defer(` no método index() OU justificar via comentário.
@@ -40,7 +41,6 @@ dataset('controllers_inertia_render', [
     'AuditController'         => ['AuditController'],
     'DriftAlertsController'   => ['DriftAlertsController'],
     'PoliciesController'      => ['PoliciesController'],
-    'ModuleGradeController'   => ['ModuleGradeController'],
 ]);
 
 it('controller usa Inertia::defer em pelo menos uma prop', function (string $name) {
@@ -58,7 +58,7 @@ it('controller tem pelo menos um método privado buildXxxPayload', function (str
 
     expect($source)->toMatch(
         '/private function build[A-Z][A-Za-z]*Payload\s*\(/',
-        "{$name} deveria ter pelo menos um método `private function buildXxxPayload(...)` pra encapsular a lógica diferida (skill inertia-defer-default). Convenção canônica do ModuleGradeController."
+        "{$name} deveria ter pelo menos um método `private function buildXxxPayload(...)` pra encapsular a lógica diferida (skill inertia-defer-default). Convenção canônica dos controllers deste registry."
     );
 })->with('controllers_inertia_render');
 
@@ -94,11 +94,9 @@ it('AuditController defere entries + kpis mas mantém filters eager (UI state)',
     }
 });
 
-it('ModuleGradeController permanece exemplo canônico (não regrediu)', function () {
-    $source = readGovernanceController('ModuleGradeController');
-
-    // Sentinel — se alguém "simplificar" voltando ao eager, o test pega.
-    expect($source)
-        ->toContain('Inertia::defer(fn () => $this->buildAllGradesPayload())', 'grades defer canônico')
-        ->toContain('Inertia::defer(fn () => $this->buildKpisPayload())', 'kpis defer canônico');
-});
+// O sentinela do ModuleGradeController saiu com a ADR 0399 (2026-09-15) — o controller foi
+// deletado. Os testes PARAMETRIZADOS acima seguem cobrindo os 4 controllers restantes
+// (Inertia::defer presente + buildXxxPayload + filters eager), que é o contrato de verdade;
+// o sentinela só fixava as DUAS props específicas daquela tela. NÃO repontei o assert pra
+// outro controller: isso inventaria um contrato que ninguém pediu, e errar o nome do método
+// daria um vermelho sem dono.

@@ -57,8 +57,6 @@ describe('Governance — gate can: armado por rota', function () {
             'governance.policies.toggle'     => 'can:governance.policies.edit',
             'governance.audit.index'         => 'can:governance.audit.view',
             'governance.drift.index'         => 'can:governance.dashboard.view',
-            'governance.module-grades.index' => 'can:governance.dashboard.view',
-            'governance.module-grades.show'  => 'can:governance.dashboard.view',
             'governance.ds-rollout.index'    => 'can:governance.dashboard.view',
         ];
 
@@ -82,8 +80,7 @@ describe('Governance — gate can: armado por rota', function () {
 
         $usadas = collect([
             'governance.policies.index', 'governance.policies.toggle', 'governance.audit.index',
-            'governance.drift.index', 'governance.module-grades.index',
-            'governance.module-grades.show', 'governance.ds-rollout.index',
+            'governance.drift.index', 'governance.ds-rollout.index',
         ])
             ->flatMap(fn (string $n) => govMiddlewareDaRota($n))
             ->filter(fn (string $m) => str_starts_with($m, 'can:governance.'))
