@@ -93,7 +93,7 @@ import { readdir } from 'node:fs/promises';
 import { join, resolve, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { raizesDePages } from '../qa/page-path.mjs';
-import { shaAtualPara, shaIndeterminado, shaBate } from '../../scripts/design/gerar-map.mjs';
+import { shaAtualPara, shaIndeterminado, shaBate, resolverArquivosPrototipo } from '../../scripts/design/gerar-map.mjs';
 import { frontmatterBlock, fmVal } from '../../scripts/design/gerar-contrato.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -232,6 +232,27 @@ export function verificarMapa(mapa, { root = ROOT } = {}) {
   // canônico — pega re-export sem commit, imune a commit que toca path sem mudar conteúdo);
   // legado = git-sha (maps antigos seguem verificados no formato em que nasceram, sem punição
   // retroativa). shaAtualPara roteia (fonte única em gerar-map.mjs).
+  // PONTO CEGO FECHADO (2026-09-14): quando TODAS as partes declaram `prototipo.arquivo: n/a`,
+  // `arquivosPrototipoReais` fica vazio e o bloco abaixo NÃO rodava — um map com `prototipo_sha`
+  // salvo ficava stale PARA SEMPRE sem gate nenhum perceber, bastando declarar n/a do lado
+  // protótipo. Medido no corpus: 65 maps com sha real, 64 medidos, 1 CEGO
+  // (Essentials/tipos.map.json, 7 partes, salvo sha256:1b1cc5c4264f) — e o gap dele DECLARA a
+  // fonte no frontmatter (`prototipo: prototipo-ui/cowork/Wagner/hrm-page.jsx`). Então a fonte
+  // existe: o que faltava era o checker cair nela. Mesmo resolvedor do gerador
+  // (resolverArquivosPrototipo), pra não abrir 2ª convenção de path.
+  if (!arquivosPrototipoReais.size && !shaIndeterminado(mapa.prototipo_sha) && mapa.gap_fonte) {
+    try {
+      const fmProto = fmVal(frontmatterBlock(readFileSync(join(root, mapa.gap_fonte), 'utf8')), 'prototipo');
+      for (const rel of resolverArquivosPrototipo(fmProto)) {
+        if (existsSync(join(root, rel))) arquivosPrototipoReais.add(rel);
+      }
+    } catch { /* gap ilegível — cai no warn abaixo, nunca em silêncio */ }
+  }
+  // "não consegui medir" NÃO é "está tudo bem" (§5 2026-07-29): sha salvo e nenhuma fonte
+  // resolvível vira WARN explícito, em vez de pular calado.
+  if (!shaIndeterminado(mapa.prototipo_sha) && !arquivosPrototipoReais.size) {
+    warn.push(`prototipo_sha='${mapa.prototipo_sha}' salvo, mas NENHUMA fonte de protótipo é resolvível (todas as partes com placeholder e o frontmatter 'prototipo:' do gap não resolveu) — staleness NÃO MEDIDA para este map`);
+  }
   if (!shaIndeterminado(mapa.prototipo_sha) && arquivosPrototipoReais.size) {
     const atual = shaAtualPara(mapa.prototipo_sha, [...arquivosPrototipoReais], root);
     if (shaIndeterminado(atual)) {
