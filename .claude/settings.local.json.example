@@ -1,9 +1,12 @@
 {
   "_comment": "MEM-CC-team-1 (ADR 0056) — Template per-dev. Copie pra .claude/settings.local.json e cole seu token MCP pessoal (gerado via /copiloto/admin/team). Este arquivo é gitignored.",
   "_setup": "Ver MEMORY_TEAM_ONBOARDING.md",
+  "_o_token_vai_em_DOIS_lugares": "Medido em 2026-09-15 (cliente 2.1.257): o bloco mcpServers abaixo NÃO alimenta o cliente MCP — uma entrada de teste colocada aqui não apareceu em `claude mcp list`. Ele segue necessário porque é o cofre que .claude/hooks/brief-fetch-curl.mjs, scripts/cc-watcher/index.js e scripts/governance/fluxo-sistema.mjs leem pra pegar o Authorization. Quem alimenta o cliente MCP é o .mcp.json, que expande ${OIMPRESSO_MCP_TOKEN} a partir do AMBIENTE.",
+  "_passo_2_variavel_de_ambiente": "Sem esta variável o cliente cai em OAuth e o servidor responde 419. Windows (PowerShell, uma vez só): [Environment]::SetEnvironmentVariable('OIMPRESSO_MCP_TOKEN','<seu-token-SEM-o-Bearer>','User') e reabra a sessão. Linux/macOS: exporte no perfil do shell. Medido no mesmo dia: um bloco `env` DENTRO deste arquivo NÃO serve — `claude mcp list` acusou 'Missing environment variables: OIMPRESSO_MCP_TOKEN'.",
   "mcpServers": {
     "oimpresso": {
       "url": "https://mcp.oimpresso.com/api/mcp",
+      "type": "http",
       "headers": {
         "Authorization": "Bearer mcp_COLE_SEU_TOKEN_AQUI"
       }
