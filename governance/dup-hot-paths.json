@@ -1,11 +1,15 @@
 {
   "_meta": "Hot-paths da trava anti-duplicação L3 (proposta anti-duplicacao-work-claim-gate). 2 PRs abertos tocando o MESMO arquivo (path exato) sob um destes prefixos = provável duplicação de trabalho entre sessões paralelas → exige `Dedup-ack:` no corpo. `exclude` = arquivos compartilhados-por-natureza que QUASE TODO PR toca (não são sinal de dup). Calibrar a cada 7 PRs barrados (cláusula ZELADOR).",
+  "_calibracao_2026_09_15": "Acrescentados os 3 ÍNDICES DERIVADOS abaixo (entradas de path EXATO, não prefixo de pasta). Medido por janela de sobreposição real em 250 PRs / 7d: memory/reference/MAQUINAS-INVENTARIO.md = 3 pares (#7353×#7351, #7253×#7247, #7173×#7161 — sempre o MESMO arquivo, e o primeiro virou merge no-op), _HOOKS-INDEX.md = 1 (#7350×#7347), _SKILLS-INDEX.md = 1 (#7313×#7311). Total 5 pares, todos duplicação REAL de trabalho — contra os 15 pares que `.github/workflows/` já gera sendo hot. NÃO entrou memory/LICOES_CODE.md: 16 pares, mas ali a colisão é o desenho append-only funcionando (várias sessões somam recibos), não duplicação. Origem: o dup-detector rodou no #7353 às 19:53 com o #7351 ainda ABERTO — tinha o dado e passou, porque memory/reference/ não era hot.",
   "hot": [
     "scripts/governance/",
     ".github/workflows/",
     "memory/decisions/",
     "Modules/Governance/Services/",
-    "governance/"
+    "governance/",
+    "memory/reference/MAQUINAS-INVENTARIO.md",
+    ".claude/hooks/_HOOKS-INDEX.md",
+    ".claude/skills/_SKILLS-INDEX.md"
   ],
   "exclude": [
     "scripts/governance/gates-registry.json",
