@@ -9,7 +9,7 @@ target_pages:
   - resources/js/Pages/Jana/Chat.tsx
   - resources/js/Pages/Jana/Index.tsx
 target_charter: resources/js/Pages/Jana/Chat.charter.md
-visual_source: prototipo-ui/_cowork-export-2026-05-15/app.jsx (Header function L247-336) (removido em 2026-05-20, 1070e3759b7)
+visual_source: prototipo-ui/_cowork-export-2026-05-15/app.jsx (Header function L247-336) _(removido em 2026-05-20, 1070e3759b7)_
 visual_source_companion: prototipo-ui/_cowork-export-2026-05-15/data.jsx (MENU + GROUP_META)
 related_adrs: [0094, 0104, 0107, 0110, 0114]
 date: 2026-05-18

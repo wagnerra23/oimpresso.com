@@ -2,7 +2,7 @@
 session: 2026-05-26 — bundle Cowork KB-9.75 "Comunicação Visual" delta vs main pós PR #1638
 page: /sells (Index + Create + Show + Edit + drawer SaleSheet)
 component: resources/js/Pages/Sells/{Index,Create,Show,Edit}.tsx + _components/*
-visual_source: prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/vendas-flow.jsx + vendas-{ai,curation,output,shortcuts,tweaks}.jsx + vendas-page.jsx (removido em 2026-06-23, 8bd2b479db4)
+visual_source: prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/vendas-flow.jsx + vendas-{ai,curation,output,shortcuts,tweaks}.jsx + vendas-page.jsx _(removido em 2026-06-23, 8bd2b479db4)_
 canon_method: Cowork KB-9.75 bundle 2026-05-26 (PR #1638 aplicou prototipo-ui/; PR #1639 snapshot completo)
 related_adrs: [0093, 0094, 0104, 0107, 0114, 0143, 0149, 0178, 0192]
 charter_impact: Sells/Index.charter.md v5 → v6 candidato (NextAction + Emit modals + bulk emit) · Show.charter.md wave1-draft → live candidato · Edit.charter.md wave1-draft mantém
@@ -115,7 +115,7 @@ Esforço total estimado P0 + P1: ~30-40h codáveis com IA-pair (~3-4 dias úteis
 
 **Não rodado nesta sessão.** Próximos passos pra abrir F2:
 
-1. Wagner abre `prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/Oimpresso ERP - Chat.html` em browser local (Tailwind CDN + UMD React + Babel — funciona standalone) _(removido em 2026-06-23, 8bd2b479db4)_
+1. Wagner abre `prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/Oimpresso ERP - Chat.html` em browser local (Tailwind CDN + UMD React + Babel — funciona standalone) _(alvo não resolve no repo — proveniência não determinada)_
 2. Aprovar SCREENSHOT da feature alvo do próximo PR (P0 #6 Faturar≠Pagar OR #5 Validações OR #1 NextActionPanel)
 3. Decidir gap #13 (Topbar tabs Insights Jana) — sim/não pra deixar parking lot
 4. SYNC_LOG em `memory/reference/prototipo-ui/SYNC_LOG.md` registra a aprovação (ADR 0114)

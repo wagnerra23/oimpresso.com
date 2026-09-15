@@ -2,7 +2,7 @@
 id: requisitos-sells-sells-prototipo-vs-prod-2026-05-26-comparativo-visual
 session: 2026-05-26 smoke pós-stack 18 PRs KB-9.75 mergeados em prod
 page: /vendas (prototipo Cowork) vs /sells (prod oimpresso.com Hostinger)
-component: resources/js/Pages/Sells/Index.tsx + prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/vendas-page.jsx (removido em 2026-06-23, 8bd2b479db4)
+component: resources/js/Pages/Sells/Index.tsx + prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/vendas-page.jsx _(removido em 2026-06-23, 8bd2b479db4)_
 visual_source: 2 screenshots browser MCP capturados 2026-05-26 17:25 UTC
 canon_method: avaliação manual 15 dimensões · escala 0-10 cada · paridade ponderada
 related_adrs: [0093, 0094, 0104, 0107, 0114, 0143, 0149, 0178, 0192]

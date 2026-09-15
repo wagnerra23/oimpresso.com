@@ -8,7 +8,7 @@ status: approved
 approved_by: wagner
 approved_at: "2026-06-03"
 date: 2026-06-03
-canon_reference: prototipo-ui/cowork/Wagner/legado/ds-v6/gabarito-vendas.html (removido em 2026-09-11, d86c977a8dd)
+canon_reference: prototipo-ui/cowork/Wagner/legado/ds-v6/gabarito-vendas.html _(removido em 2026-09-11, d86c977a8dd)_
 blade_source: resources/views/sell/index.blade.php (legacy fallback)
 inertia_target: resources/js/Pages/Sells/Index.tsx
 related_adrs:

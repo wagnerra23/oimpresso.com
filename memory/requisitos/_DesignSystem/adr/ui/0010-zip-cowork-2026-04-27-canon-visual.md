@@ -13,7 +13,7 @@ id: requisitos-design-system-adr-ui-0010-zip-cowork-2026-04-27-canon-visual
 - **Data**: 2026-05-05
 - **Decisores**: Wagner, Claude
 - **Categoria**: ui · estruturante
-- **Refs**: [UI Kit Cowork 2026-04-27](../../ui_kits/cowork-2026-04-27/README.md), [ADR raiz 0039](../../../../decisions/0039-ui-chat-cockpit-padrao.md), [UI-0008](0008-cockpit-layout-mae-do-erp.md), [UI-0009](0009-cockpit-sidebar-light-padrao.md), [ADR 0011 raiz](../../../../decisions/0011-alinhamento-padrao-jana.md) _(removido em 2026-05-20, 799af73a3a7)_
+- **Refs**: [UI Kit Cowork 2026-04-27](../../ui_kits/cowork-2026-04-27/README.md), [ADR raiz 0039](../../../../decisions/0039-ui-chat-cockpit-padrao.md), [UI-0008](0008-cockpit-layout-mae-do-erp.md), [UI-0009](0009-cockpit-sidebar-light-padrao.md), [ADR 0011 raiz](../../../../decisions/0011-alinhamento-padrao-jana.md) _(removido em 2026-05-20, 1070e3759b7)_
 - **Substitui parcialmente**: [UI-0006 — Padrão tela operacional](0006-padrao-tela-operacional.md) (template Jana-like) onde houver conflito visual com `os-page.jsx`
 - **Convive com**: [UI-0009](0009-cockpit-sidebar-light-padrao.md) — sidebar light sobrevive (decisão Wagner explícita 2026-05-05; ver §Conflitos resolvidos)
 

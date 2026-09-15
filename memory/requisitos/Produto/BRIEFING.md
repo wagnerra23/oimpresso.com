@@ -131,7 +131,7 @@ O backlog completo e seus critérios estão em [SPEC.md](SPEC.md). As frentes re
 
 ### G · Design e protótipos
 
-- [PROTOTIPO-preco-especial.md](PROTOTIPO-preco-especial.md) · [produto-preco-especial](../../../prototipo-ui/cowork/Felipe/produto-preco-especial/) · `produtos-page.jsx` (`prototipo-ui/cowork/Wagner/produtos-page.jsx`, removido do git em 2026-09-11 · #7224 · ADR 0397) · [protótipo Produto Unificado](../../../prototipo-ui/cowork/prototipo-ui-patch/prototipos/produto/) · [produtos-gap.md](produtos-gap.md). _(removido em 2026-08-31, 539efa2a8aa)_
+- [PROTOTIPO-preco-especial.md](PROTOTIPO-preco-especial.md) · [produto-preco-especial](../../../prototipo-ui/cowork/Felipe/produto-preco-especial/) · `produtos-page.jsx` (`prototipo-ui/cowork/Wagner/produtos-page.jsx`, removido do git em 2026-09-11 · #7224 · ADR 0397) · [protótipo Produto Unificado](../../../prototipo-ui/cowork/prototipo-ui-patch/prototipos/produto/) · [produtos-gap.md](produtos-gap.md). _(alvo não resolve no repo — proveniência não determinada)_
 
 ### H · Decisões e histórico
 

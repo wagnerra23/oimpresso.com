@@ -7,7 +7,7 @@ module: Financeiro
 status: pending_wagner_decisions
 date: 2026-05-14
 # canon_reference: o path abaixo foi removido em 2026-05-20, 1070e3759b7
-canon_reference: prototipo-ui/prototipos/boletos/cowork-app.jsx (Cowork F1 export 2026-05-14, "Boleto e Contas Inter") (removido em 2026-05-20, 1070e3759b7)
+canon_reference: prototipo-ui/prototipos/boletos/cowork-app.jsx (Cowork F1 export 2026-05-14, "Boleto e Contas Inter") _(removido em 2026-05-20, 1070e3759b7)_
 inertia_target_atual: resources/js/Pages/Financeiro/Boletos/Index.tsx (já em prod, 175 linhas)
 controller_atual: Modules/Financeiro/Http/Controllers/BoletoController.php (já em prod, 71 linhas — refator mínimo)
 stories: US-BOL-XXX (a criar)
