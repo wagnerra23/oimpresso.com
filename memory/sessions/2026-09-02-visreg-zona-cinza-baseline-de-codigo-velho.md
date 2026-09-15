@@ -1,8 +1,8 @@
 ---
 tipo: session
-data: "2026-09-02"
-titulo: "Zona cinza do visual-regression: a baseline de main era foto de código velho"
-autor: "[C]"
+date: "2026-09-02"
+topic: "Zona cinza do visual-regression: a baseline de main era foto de código velho"
+authors: [C]
 modulo: Governance
 tags: [visual-regression, baseline, gate, ci, medicao]
 ---
