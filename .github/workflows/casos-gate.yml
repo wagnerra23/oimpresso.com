@@ -72,7 +72,17 @@ jobs:
             echo "baseline ausente no main (bootstrap) — skip"
             exit 0
           fi
-          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          # Base VIVA. `pull_request.base.sha` é o tip de main de QUANDO O EVENTO NASCEU, e o
+          # checkout é o MERGE REF — então o range trazia junto os commits que entraram em main
+          # no meio. Aqui isso era PERMISSIVO e desarmava esta catraca: um `BASELINE-GROW:` de
+          # OUTRO PR caía no range e dava exit 0, pulando o shrink-check inteiro. Num merge ref o
+          # que o PR muda é HEAD^1..HEAD — o 1º pai É o tip de main que o merge usou, imune a main
+          # andar. Idioma do visual-regression (#6009); §5 2026-09-15, eixo BASE-DE-PR.
+          if [ "$(git rev-list --count --no-walk --merges HEAD)" = "1" ]; then
+            BASE_SHA="$(git rev-parse HEAD^1)"
+          else
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          fi
           # Trailer ancorado em início de linha (não em prosa) em ALGUM commit do range que
           # toca o baseline — mesma forma do BASELINE-ABSORB do baseline-tamper-guard.
           GROW_COMMITS=$(git log "$BASE_SHA"..HEAD --format=%H -- scripts/casos-coverage-baseline.json)
