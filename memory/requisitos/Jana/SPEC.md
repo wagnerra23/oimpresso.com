@@ -2070,7 +2070,7 @@ Escopo:
 
 ### US-COPI-149 · `tasks-create` afirma sucesso e o dado morre no próximo deploy (o ramo `$written=true` é volátil)
 
-> owner: — · priority: p1 · status: todo · type: story
+> owner: — · priority: p1 · status: done · type: story
 > blocked_by: —
 
 **Implementado em:** [`Modules/Jana/Services/TaskRegistry/TaskCrudService.php`](../../../Modules/Jana/Services/TaskRegistry/TaskCrudService.php) · [`Modules/Jana/Mcp/Tools/TasksCreateTool.php`](../../../Modules/Jana/Mcp/Tools/TasksCreateTool.php) · verificado@0764943036c (2026-09-15) — o `createCanonical()` não escreve mais no SPEC (`written` sempre `false`) e a tool colapsou os 2 ramos numa mensagem que não afirma durabilidade
