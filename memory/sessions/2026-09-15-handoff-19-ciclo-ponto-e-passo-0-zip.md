@@ -1,7 +1,7 @@
 ---
 date: "2026-09-15"
 hour: "12:20 BRT"
-duration: "~7h (atravessa 14→15/09)"
+duration: "7h"
 topic: "Importar o handoff 19 do Cowork, aplicar o ciclo Ponto no produto e ligar o PASSO 0 na rota ZIP"
 authors: [W, C]
 outcomes:
@@ -16,6 +16,8 @@ related_adrs: ["0390-espelho-cowork-build-only", "0374-emenda-0315-espelho-cowor
 ---
 
 # Sessão 2026-09-15 — handoff 19: ciclo Ponto no produto + PASSO 0 na rota ZIP
+
+> Janela real: começou em **2026-09-14** (import do handoff) e fechou em **15/09**. O `duration` do frontmatter tem `pattern` fixo (`^[0-9]+(\.[0-9]+)?h$`), então a travessia de data mora aqui, em prosa — não no campo.
 
 ## TL;DR
 
@@ -60,6 +62,8 @@ O worktree estava **47 commits atrás** de `origin/main`, e isso importou: nos 4
 - **Validei um gate rodando o modo errado:** `sdd-scorecard --check` sai 0; o CI roda `--ratchet`. Modo diferente é gate diferente (§5 2026-07-28).
 - **Prova citada errada:** listei `reuse --check 0` como recibo no commit do #7277 — `--check` não é flag daquele script, ele imprimiu o *uso* e saiu 0. Errata no corpo do PR, com o comando certo (`--gate`).
 - **Três consertos de gate que eram meus:** cor crua `text-amber-600` → token `text-warning`; `<div flex>` → `<Inline>`; e o `foundation-ratchet` subindo porque meu **docblock** citava `Business::first()` em prosa (o contador não distingue menção de uso).
+- **E errei de novo no fechamento, na classe que eu estava registrando:** gravei `duration: "~7h (atravessa 14→15/09)"` aqui mesmo, e o `session.schema.json` tem `pattern` (`^[0-9]+(\.[0-9]+)?h$`). Minha checagem cobriu `required` + tipos + `additionalProperties` e **pulou `pattern`** — LC-22 nº 4, 8 dias depois da lápide de 2026-09-07 que diz para rodar o consumidor **estrito na dimensão mexida**. A 2ª tentativa foi pior: usei o `ajv` do repo (6.15.0, draft-07) contra schema `2020-12`.
+- **A medição que valeu mais que o conserto:** o backstop local desta classe **existe** — `.claude/hooks/memory-schema-guard.mjs`, PreToolUse `deny` sobre `memory/**`, nascido do incidente #4798 — e devolveu **exit 0 com zero saída** no meu frontmatter. Com as deps que o CI instala, o MESMO hook emite `deny` nomeando o campo. As 3 deps não estão no `package.json`, logo a mudez é permanente. A lápide de 09-07 concluiu *"o buraco foi de ordem de execução local"*; era **gate mudo**, e disciplina e mudez dão o mesmo sintoma.
 
 ## Próximos passos (não-bloqueante)
 
