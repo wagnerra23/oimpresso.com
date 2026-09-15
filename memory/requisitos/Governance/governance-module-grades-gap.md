@@ -8,6 +8,27 @@ gerado_em: 2026-09-06
 
 # GAP-SPEC — governance/ModuleGrades/Index
 
+> ## ⚰️ A TELA QUE ISTO ANALISA NÃO EXISTE MAIS — [ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md), 2026-09-15
+>
+> `resources/js/Pages/governance/ModuleGrades/Index.tsx` foi **deletada na Onda 2** junto com a
+> rubrica `module-grade`. Todas as âncoras do lado VIVO abaixo (`Index.tsx:NNN`) apontam para um
+> arquivo que saiu de `origin/main`; nada aqui é acionável, e o botão "Limpar" construído em
+> 2026-09-09 morreu com a tela.
+>
+> **Este arquivo FICA por decisão explícita de [W]** (2026-09-15, textual: *"se apagar perde todo
+> o serviço que o desing faz"*): ele é o registro da **análise** gap design×código, e apagá-lo
+> perderia a análise, não a tela. O `BRIEFING.md` do Governance já declara o mesmo — os dois não
+> se contradizem.
+>
+> **Consequência medida, declarada e NÃO silenciada:** `design-code-map-check.mjs --check --strict`
+> acusa **13 problemas** no `governance-module-grades.map.json` ao lado (1 `mapping.target` + 12
+> `vivo.arquivo não existe`). O step é advisory (`continue-on-error: true` em
+> `design-memory-gate.yml:569`), logo não bloqueia merge. Nenhum campo foi inventado no `.map.json`
+> para suprimir isso: o script não conhece marcador de aposentadoria, e declará-lo faria o
+> artefato anunciar um comportamento que o código não tem. Se o ruído incomodar, o caminho é
+> estender o dono do check — decisão de [W], não conserto silencioso aqui.
+
+
 > Protótipo = porte REVERSO do vivo (governance-page.jsx:1-3 "Espelha as telas vivas"; governance-telas.jsx:3 "Espelha … ModuleGradeController (rubrica module-grade-v3, ADR 0155)"; retrato de ~2026-08-23). Fase 1 = PARIDADE. Charter: `resources/js/Pages/governance/ModuleGrades/Index.charter.md` (Non-Goals respeitados, nunca reabertos).
 
 **Veredito:** VIVO-À-FRENTE com 1 item a decidir — o vivo tem a aba "Catálogo & Sinais", drill-down por linha, links no banner do gate e o rodapé da rubrica, nada disso no retrato; o retrato acrescenta só um botão "Limpar" no vazio de filtro.

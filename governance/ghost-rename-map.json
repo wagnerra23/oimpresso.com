@@ -10,7 +10,7 @@
       "evidence": [
         "decisao [W] 2026-07-30 (ProjectMgmt->Forja renomear)",
         "padrao ADR 0088 memory/decisions/0088-module-rename-php-only.md (rename PHP-only, fachada legacy)",
-        "governance/module-grades-baseline.json chave renames.ProjectMgmt"
+        "governance/module-grades-baseline.json chave renames.ProjectMgmt (arquivo DELETADO em 2026-09-15 pela ADR 0399 — a evidencia e HISTORICA: a chave existia e o rename e real; as outras 2 evidencias seguem verificaveis)"
       ]
     },
     "Copiloto": {

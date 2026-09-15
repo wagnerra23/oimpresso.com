@@ -1,4 +1,42 @@
+---
+id: requisitos-governance-runbook-module-grades
+slug: runbook-module-grades
+title: "RUNBOOK — tela /governance/module-grades (Index + Show)"
+type: runbook
+authority: canonical
+lifecycle: arquivado
+status: arquivado
+module: Governance
+tela: governance/ModuleGrades
+owner: W
+last_updated: 2026-09-15
+last_validated: "2026-05-16"
+related_adrs:
+  - 0399-aposentar-rubrica-module-grade-gate-e-baseline
+  - 0153-module-grade-rubrica-v1
+  - 0155-module-grade-v3-sub-dimensoes-gate-ci
+charter_adr: 0399
+pii: false
+---
+
 # RUNBOOK — `/governance/module-grades` (Index + Show)
+
+> ## ⚰️ APOSENTADO em 2026-09-15 — [ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md)
+>
+> **Este RUNBOOK descreve uma tela que NÃO EXISTE MAIS.** A rubrica `module-grade`
+> (ADRs 0153→0159) foi superseded pela ADR 0399. Verificado em `origin/main` em 2026-09-15:
+> `resources/js/Pages/governance/ModuleGrades/` (Index + Show), o `ModuleGradeController` e as
+> rotas saíram na **Onda 2**; o `ModuleGradeCommand` na **Onda 3**; o `ModuleGradeService`, o
+> `ModuleGradeSnapshotCommand`, o cron e o health-check na **Onda 4a**; a tabela
+> `mcp_module_grades_history` na **Onda 4b**.
+>
+> **Não execute nada daqui.** Todo o §Critério de aceite abaixo aponta para máquinas que já não
+> rodam — `php artisan module:grade --all` não é mais um comando, e as duas rotas devolvem 404.
+>
+> Ele fica por uma razão, e ela não é operacional: é o registro de qual era a intenção da tela
+> (Mission/Goals/Non-Goals/Anti-hooks) e de como ela foi construída. Apagá-lo perderia esse
+> registro sem fechar nada — o que incomodava era o gate, não este arquivo.
+
 
 > **Tela canônica greenfield** Inertia React. Dashboard de notas dos 34 Modules (ADR 0153 rubrica `module-grade-v1`).
 > NÃO é migração MWART Blade→Inertia (não existe Blade legacy desta tela). Override implícito por ser greenfield.
