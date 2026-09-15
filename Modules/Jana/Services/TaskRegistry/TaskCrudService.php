@@ -489,19 +489,26 @@ class TaskCrudService
             $block .= "\n{$desc}\n";
         }
 
+        // US-COPI-149: a US nova NASCE no git, nunca no checkout do servidor.
+        //
+        // A ADR 0144 põe o SPEC como fonte de US nova (o DB é canon de estado
+        // vivo — status/owner/sprint/priority). Escrever aqui produzia LIXO: o
+        // arquivo vive num checkout que o deploy reseta, e o `git add` que a
+        // mensagem instruía teria de rodar NO SERVIDOR, que é proibição Tier 0.
+        //
+        // Medido em 2026-09-15: 5 US criadas assim foram apagadas pelo pull
+        // seguinte (SPEC de 89.531 para 82.068 bytes entre duas leituras) — e a
+        // resposta dizia "criada e adicionada" nas cinco.
+        //
+        // O chamador recebe o markdown e commita no repo canônico; o webhook
+        // sincroniza. Mesmo contrato do createAdHoc() logo abaixo.
         $written = false;
-        try {
-            file_put_contents($specPath, $block, FILE_APPEND | LOCK_EX);
-            $written = true;
-        } catch (\Throwable) {
-            // shared hosting pode negar escrita
-        }
 
         McpTaskEvent::log(
             taskId: $taskId,
             eventType: 'created',
             author: $data['author'] ?? 'system',
-            note: "Criada via tasks-create canonical (written={$written})",
+            note: 'Criada via tasks-create canonical (markdown devolvido ao chamador; nao escrito no servidor - US-COPI-149)',
         );
 
         return [
