@@ -2,13 +2,13 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **927 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **928 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
-| [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
+| [`Jana`](#jana) | 84 | 2 | 0 | 0 | 82 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
 | [`Sells`](#sells) | 57 | 0 | 0 | 0 | 57 |
 | [`Governance`](#governance) | 47 | 0 | 0 | 3 | 44 |
@@ -77,6 +77,7 @@
 - **US-COPI-139** — Badalo do ratio negócio÷governança no brief-fetch (o alarme existe e nunca dispara) _(`p1`)_
 - **US-COPI-143** — Deprecar o `jana:drift-sentinel` tautológico (o "alarme de drift" mede gt-vs-gt, não a Jana) _(`p1`)_
 - **US-COPI-145** — Desbloquear modelo frontier no chat da Jana: ANTHROPIC_API_KEY em prod OU acesso gpt-4o no projeto OpenAI _(`p1` · @wagner)_
+- **US-COPI-149** — `tasks-create` afirma sucesso e o dado morre no próximo deploy (o ramo `$written=true` é volátil) _(`p1`)_
 - **US-COPI-146** — Migrar Jana/Dashboard pro padrão PT-04 (sair do bundle CSS paralelo .sells-cowork) _(`p2`)_
 - **US-COPI-147** — Higiene de schema da camada de IA — 2 resíduos reais, 4 falsos positivos e 1 promessa que não pode virar trigger _(`p2`)_
 - **US-COPI-148** — Fundir as telas da Jana numa tela única `/ia` com abas Painel | Conversa | Memória _(`p2` · @wagner)_
