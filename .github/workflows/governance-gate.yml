@@ -47,7 +47,16 @@ jobs:
         id: detect
         run: |
           set -euo pipefail
-          base_sha="${{ github.event.pull_request.base.sha }}"
+          # Base VIVA, não a congelada do payload. `github.event.pull_request.base.sha` é o
+          # tip de main no instante em que o evento nasceu; o checkout de `pull_request` é o
+          # MERGE REF (head + main VIVO). Quando outro PR entra em main entre o evento e a
+          # run, o 3-dot contra a base congelada credita ao autor os arquivos DESSE outro PR
+          # (caso real: #7281 acusado de editar 7 ADRs que nunca tocou — o #7282 as havia
+          # supersedido sob label). É a lápide §5 2026-08-07 dentro do próprio gate required.
+          # `git fetch origin main` SEM --depth: o checkout já é fetch-depth: 0 e --depth num
+          # repo completo TRUNCA a história (§5 2026-08-11). Padrão do governance-gate-umbrella.
+          git fetch origin main --quiet
+          base_sha="$(git merge-base origin/main HEAD)"
 
           # Lista A/M/D/R por arquivo entre base_sha e HEAD (3-dot = mudanças do PR).
           git diff --name-status "$base_sha"...HEAD > /tmp/diff.txt
@@ -75,6 +84,9 @@ jobs:
           grep -E '^D[0-9]*\s+memory/decisions/[0-9]{4}-.*\.md$' /tmp/diff.txt > /tmp/adr_deleted.txt || true
 
           {
+            # Os steps seguintes consomem ESTA base (um fetch só por job, e todos os
+            # steps medem contra a mesma referência).
+            echo "base_sha=$base_sha"
             echo "adr_mod_count=$(wc -l < /tmp/adr_mod.txt)"
             echo "adr_renamed_count=$(wc -l < /tmp/adr_renamed.txt)"
             echo "handoff_mod_count=$(wc -l < /tmp/handoff_mod.txt)"
@@ -105,12 +117,13 @@ jobs:
             echo "Label 'adr-metadata-normalization' ausente — append-only normal."
             exit 0
           fi
-          base_sha="${{ github.event.pull_request.base.sha }}"
+          # Mesma base VIVA que o step `detect` mediu (ver comentário lá).
+          base_sha="${{ steps.detect.outputs.base_sha }}"
           ok=1
           while IFS= read -r line; do
             file=$(echo "$line" | sed -E 's/^M[[:space:]]+//')
             [ -z "$file" ] && continue
-            bad=$(git diff "$base_sha"...HEAD -- "$file" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' | grep -vE '^[+-](status|lifecycle|kind|authority|superseded_by|supersedes|supersedes_partially):' | grep -vE "^[+-][[:space:]]*-[[:space:]]*['\"]?[0-9]{3,4}" || true)
+            bad=$(git diff "$base_sha"...HEAD -- "$file"| grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' | grep -vE '^[+-](status|lifecycle|kind|authority|superseded_by|supersedes|supersedes_partially):' | grep -vE "^[+-][[:space:]]*-[[:space:]]*['\"]?[0-9]{3,4}" || true)
             if [ -n "$bad" ]; then
               echo "::warning::$file muda fora de status/lifecycle/kind/authority/superseded_by/supersedes/supersedes_partially — exceção NÃO aplica a esta PR."
               ok=0
@@ -137,7 +150,8 @@ jobs:
             echo "Label 'adr-legacy-schema-migration' ausente — exceção 0297 não aplica."
             exit 0
           fi
-          base_sha="${{ github.event.pull_request.base.sha }}"
+          # Mesma base VIVA que o step `detect` mediu (ver comentário lá).
+          base_sha="${{ steps.detect.outputs.base_sha }}"
           # Corpo = tudo após o 2º fence '---' do frontmatter (preserva '---' do corpo).
           # Se a base NÃO tem frontmatter (1ª linha ≠ '---' — ADR legacy sem bloco YAML
           # algum), o corpo é o ARQUIVO INTEIRO. Sem este ramo o awk contava os '---' do
@@ -330,7 +344,11 @@ jobs:
         id: detect
         run: |
           set -euo pipefail
-          base_sha="${{ github.event.pull_request.base.sha }}"
+          # Base VIVA, não a congelada do payload — ver comentário longo no job
+          # block-adr-edits. Sem isso, Controller que OUTRO PR mergeou em main entre o
+          # evento e a run entra na lista de "Controllers novos" deste PR.
+          git fetch origin main --quiet
+          base_sha="$(git merge-base origin/main HEAD)"
 
           # Status A = adicionado (novo arquivo)
           mapfile -t novos < <(
@@ -466,10 +484,12 @@ jobs:
           fetch-depth: 0
 
       - name: Run pii-scan.sh nos arquivos do PR
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
+          # Base VIVA, não a congelada do payload — ver comentário longo no job
+          # block-adr-edits. Sai do `env:` porque expressão de workflow não roda git.
+          git fetch origin main --quiet
+          BASE_SHA="$(git merge-base origin/main HEAD)"
           chmod +x .github/scripts/pii-scan.sh
           # Lista arquivos AM (Added|Modified) do PR — exclui deletados
           #
@@ -518,10 +538,12 @@ jobs:
           fetch-depth: 0
 
       - name: Run merge-marker-scan.sh nos arquivos do PR
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
+          # Base VIVA, não a congelada do payload — ver comentário longo no job
+          # block-adr-edits. Sai do `env:` porque expressão de workflow não roda git.
+          git fetch origin main --quiet
+          BASE_SHA="$(git merge-base origin/main HEAD)"
           chmod +x .github/scripts/merge-marker-scan.sh
           # Lista arquivos AM (Added|Modified) do PR — exclui deletados + binários.
           mapfile -t arquivos < <(
