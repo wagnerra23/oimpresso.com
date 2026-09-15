@@ -36,6 +36,14 @@
  * reprovava `node -e '…' > /tmp/out.txt`, que é legítimo. Sem FP baixo, não
  * entra — a lápide do guard sintático já matou 4 dessa família.
  *
+ * ⚠️ O "0,080%" do P4 acima é FATO DATADO e fica — mas ele mediu o EIXO ERRADO.
+ * Aqueles 52 foram classificados em **execução × menção**, nunca em **defeito ×
+ * uso correto**. Re-medido no eixo certo em 2026-09-15 (1.730 transcripts):
+ * dos 132 que ele mordia, **ZERO eram o defeito** — 100% de FP, o mesmo número
+ * do `toHaveKey` (§5 2026-07-26). Escopado por `pipeLiteralDeliberado`:
+ * **132 → 2**. A lição vale além do P4: *medir FP é medir contra o DEFEITO que
+ * o gate afirma pegar, não contra a forma sintática que ele casa.*
+ *
  * P5 (`jq` local) medido em 2026-09-05: 1.379 transcripts, 116.254 comandos.
  * Medido com o PREDICADO REAL (`achaPadrao`), não com um regex parecido — a 1ª
  * medição usou um regex aproximado e deu 36; o hook de verdade dá 19, porque os
@@ -150,6 +158,11 @@ export const PADROES = [
     // Em ERE a alternância é `|` PURO. `\|` casa um pipe LITERAL — e o padrão
     // inteiro deixa de casar, devolvendo 0 sem erro nenhum.
     re: /\bgrep\s+-[a-zA-Z]*E[a-zA-Z]*\s+(['"])(?:(?!\1)[^\n])*\\\|/,
+    // Abstenção MEDIDA (2026-09-15): sem ela o P4 acusava 100% uso correto —
+    // tabela markdown (`^\|`), `||` de YAML e barra literal (`\\|`). Ver
+    // `pipeLiteralDeliberado`, que separa os três por contagem de barras e
+    // posição — determinístico, não julgamento de intenção.
+    exceto: (cmd) => pipeLiteralDeliberado(cmd),
     porque:
       'Em `grep -E` (ERE) a alternância é `|` PURO. O `\\|` casa um pipe LITERAL, o padrão para de ' +
       'casar e o comando devolve 0 linhas — sem erro, sem aviso.',
@@ -238,6 +251,85 @@ export function dentroDeCodigoInline(cmd, re) {
   const depoisDaAbertura = antes.slice(flag.index + flag[0].length - 1);
   const n = (depoisDaAbertura.match(new RegExp(aspa, 'g')) || []).length;
   return n % 2 === 1;
+}
+
+/**
+ * A barra-pipe deste `grep -E` é pipe LITERAL DELIBERADO — e não alternância
+ * escapada por engano?
+ *
+ * ── POR QUE ISTO EXISTE (medido 2026-09-15, corpus 1.730 transcripts) ───────
+ * O P4 nasceu em 2026-08-21 com FP medido "193 brutos → 52 após o filtro". Só
+ * que o eixo medido era **execução × menção**, nunca **defeito × uso correto**.
+ * Re-medido no eixo certo: dos 132 comandos que ele morde, 134 padrões
+ * distintos / 140 ocorrências, **ZERO são o defeito** — 100% de FP, o mesmo
+ * número do `toHaveKey` (§5 2026-07-26). A distribuição:
+ *   122 (87,1%) pipe literal de tabela markdown / diff / YAML (`^\|`, `\| 0 \|`)
+ *    10 ( 7,1%) o mesmo padrão usa alternância PURA ao lado → autor sabe a diferença
+ *     6 ( 4,3%) `\\|` = barra LITERAL + alternância pura — o regex não contava paridade
+ *     2 ( 1,4%) inspecionados à mão: célula de tabela e um pipe citado em texto
+ *
+ * O defeito é REAL e continua valendo a trava: em 2026-08-23 um
+ * `grep -cE "quarantine\|QUAR"` devolveu 0 e virou afirmação FALSA ao [W]
+ * (LICOES_CODE §LC-08). Ele só não aparece aqui porque veio de VARIÁVEL de
+ * shell — e essa extensão foi medida e reprovada (93,7% FP, §5 2026-08-23).
+ *
+ * EFEITO MEDIDO do escopo, no mesmo corpus: **132 → 2 disparos** (130 calados).
+ * ⚠️ Os 2 residuais ficam DECLARADOS, não caçados — ambos são ` \| ` com espaço
+ * dos dois lados (uma célula de tabela e um `x.mjs | tail` citado como texto).
+ * Um 4º sinal ("espaço dos dois lados") zeraria, e foi DESCARTADO de propósito:
+ * cada sinal a mais é superfície de falso-NEGATIVO, e perseguir cobertura → 100%
+ * é o anti-padrão da §5 2026-07-17. Custo do residual: reescrever com `[|]`.
+ *
+ * ⚠️ CONSEQUÊNCIA HONESTA: com este escopo o P4 fica **quase silencioso no
+ * corpus medido**. Isso é o esperado — um gate cujo alvo não ocorreu não é
+ * carimbo, desde que ele CONSIGA ficar vermelho. O selftest prova que consegue:
+ * as fixtures `quarantine\|QUAR` e `ERROR\|WARN\|FATAL` mordem.
+ *
+ * Os três sinais são DETERMINÍSTICOS (contagem de barras e posição), não
+ * julgamento de intenção — por isso não caem na família do guard sintático.
+ *
+ * @param {string} cmd
+ * @returns {boolean} true = abster (todo `\|` do comando é deliberado)
+ */
+export function pipeLiteralDeliberado(cmd) {
+  const BS = '\\';
+  const reGrep = /\bgrep\s+-[a-zA-Z]*E[a-zA-Z]*\s+(['"])((?:(?!\1)[^\n])*)\1/g;
+  let m;
+  let viuAlvo = false;
+  while ((m = reGrep.exec(cmd)) !== null) {
+    const pat = m[2];
+    if (!pat.includes(BS + '|')) continue;       // este padrão não tem o alvo
+    viuAlvo = true;
+    // 1) separa o pipe REALMENTE escapado (`\|`) da barra literal (`\\|`)
+    const escapes = [];
+    for (let i = 0; i < pat.length - 1; i++) {
+      if (pat[i] !== BS || pat[i + 1] !== '|') continue;
+      let k = i - 1, n = 0;
+      while (k >= 0 && pat[k] === BS) { n++; k--; }
+      if (n % 2 === 0) escapes.push(i);          // ímpar = a barra já estava escapada
+    }
+    if (!escapes.length) continue;               // só barra LITERAL → deliberado
+    // 2) o mesmo padrão usa alternância PURA? então a barra foi escolha consciente
+    let temPuro = false;
+    for (let i = 0; i < pat.length; i++) {
+      if (pat[i] !== '|') continue;
+      let k = i - 1, n = 0;
+      while (k >= 0 && pat[k] === BS) { n++; k--; }
+      if (n % 2 === 0) { temPuro = true; break; }
+    }
+    // 3) algum escape está ancorado (`^…\|`, `\|$`), na borda, ou é `\|\|`?
+    let ancorado = false;
+    for (const i of escapes) {
+      const antes = pat.slice(0, i);
+      const depois = pat.slice(i + 2);
+      if (antes === '' || depois === '') { ancorado = true; break; }
+      if (/\^[^|]{0,12}$/.test(antes)) { ancorado = true; break; }
+      if (/^\s*\$/.test(depois)) { ancorado = true; break; }
+      if (depois.startsWith(BS + '|') || antes.endsWith(BS + '|')) { ancorado = true; break; }
+    }
+    if (!ancorado && !temPuro) return false;     // alternância escapada → MORDE
+  }
+  return viuAlvo;                                // nenhum padrão suspeito sobrou
 }
 
 /**
@@ -333,6 +425,21 @@ const FIXTURES = [
   ['grep -E "foo\\|bar" a.txt', true],
   ['grep -E "foo|bar" a.txt', false],
   ['grep -F "foo|bar" a.txt', false],
+  // ── FP ESTRUTURAL DO P4 (medido 2026-09-15: era 100% dos disparos) ─────────
+  // Todos estes USAM a barra-pipe de propósito e FUNCIONAM. A fixture original
+  // não tinha nenhum, então o selftest ficava verde enquanto o gate acusava
+  // exclusivamente uso correto — 134 padrões distintos, zero defeito.
+  ['grep -nE "^\\|" TEAM.md', false],                        // tabela markdown
+  ['grep -cE "^\\| *[0-9]+ *\\|" relatorio.md', false],      // célula de tabela
+  ['grep -E "^[+-]\\|" <<< "$diff"', false],                 // tabela dentro de diff
+  ['grep -E "\\|\\| *true" ci.yml', false],                  // `||` de shell/YAML
+  ['grep -E "Modules\\\\|modules" x.php', false],            // barra LITERAL + alternância pura
+  ['grep -E "^\\| *#?(1|2|3) |ABERTO" x.md', false],         // usa alternância pura ao lado
+  // …e o defeito REAL continua mordendo. Este é o caso do ledger (LICOES_CODE
+  // §LC-08, 2026-08-23): queria "quarantine OU QUAR", recebeu o literal, contou
+  // 0 e virou afirmação falsa ao [W].
+  ['grep -cE "quarantine\\|QUAR" q.list', true],
+  ['grep -E "ERROR\\|WARN\\|FATAL" app.log', true],
   ['git fetch origin main 2>&1 | head -20', false],
   [`node -e 's.replace(a, "x $\` y")'`, true],
   ['node -e "s.replace(a, () => novo)"', false],
