@@ -26,9 +26,10 @@
 
 import { readdirSync, readFileSync, existsSync, writeFileSync, realpathSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { join } from 'node:path';
+import { join, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isShallowHistory, gitLastDate } from './lib/git-history.mjs';
+import { nsDoModulo } from './module-surface.mjs';
 
 const ROOT = process.cwd();
 const OUT = join(ROOT, 'governance', 'sdd-scorecard.json');
@@ -313,7 +314,29 @@ export function measureRagasRealUptime(trendPath = join(ROOT, 'governance', 'rag
 // (honesto — distiller nunca rodou; gate Wagner/CT100). ≥1 carimbada → measured: value =
 // nº de portas carimbadas atrás do doc mais novo por > staleDays. Portas SEM carimbo
 // entram só no detail (cobertura pendente), NÃO como stale (rollout não-punitivo, espelha
-// front_door 62%→100%). `reqDir`/`newestDocDate` injetáveis pra teste sem git/FS real.
+// front_door 62%→100%). `reqDir`/`newestDocDate`/`newestCodeDate` injetáveis pra teste sem
+// git/FS real.
+//
+// DUAS FONTES DO EVENTO, unidas por OU (2026-09-15): a porta está atrás se o DOC não-gerado
+// mais novo do módulo passou de `staleDays`, OU se o CÓDIGO dele passou (`Modules/<Mod>` +
+// os namespaces de `Pages` que o módulo reivindica).
+//
+// Por que SOMAR e não TROCAR — medido, e a troca foi REFUTADA: os dois eixos são cegos em
+// lugares DIFERENTES, e os flips apontam pra lados OPOSTOS. A fonte do doc exclui
+// `authority: generated` — necessário, senão o `Jana/ARCHITECTURE.md`, regenerado pelo
+// system-map, marcava a porta como stale a CADA regeneração (falso-stale que avermelhava um
+// required, PR #5298) — e essa mesma exclusão esconde um stale REAL quando o único doc novo
+// do módulo é justamente o gerado. A fonte do código não tem essa cegueira, mas tem a sua:
+// sozinha perderia a Fiscal, cujo evento foi a reescrita de um VEREDITO em
+// `fiscal-config-gap.md` (de "Decidir." pra "FECHADO em 2026-09-04") — conhecimento novo que
+// mora SÓ no doc. Medido 2026-09-15 (repo não-shallow, 14 portas carimbadas de 80):
+// doc→{Fiscal}, código→{Jana}, união→{Fiscal, Jana}. Proposta:
+// memory/decisions/proposals/2026-09-15-distiller-freshness-fonte-do-evento.md.
+//
+// A exclusão `authority: generated` fica INTACTA — incluir doc gerado ressuscita o #5298. A
+// união NÃO o ressuscita, e isso foi medido: o commit que regenera o painel toca SÓ docs,
+// zero arquivos sob `Modules/Jana` ou `Pages/Jana`; a fonte do doc é cega a ele por carimbo,
+// a do código por construção.
 const STALE_DAYS_DISTILLER = 7;
 const DISTILLED_AT_RE = /^distilled_at:\s*["']?(\d{4}-\d{2}-\d{2})/m;
 
@@ -372,6 +395,33 @@ function gitNewestModuleDocDate(modDir) {
   return newest;
 }
 
+/**
+ * Data-git (committer %cs) do CÓDIGO do módulo: `Modules/<Mod>` + os namespaces de
+ * `Pages` que ele reivindica. É a SEGUNDA fonte do evento, somada à do doc — ver o
+ * docblock de `measureDistillerFreshness`.
+ *
+ * O mapa módulo→namespace vem de `nsDoModulo` (module-surface.mjs), NÃO reimplementado
+ * aqui: `AssetManagement`→`Patrimonio`, `Whatsapp`→`Atendimento` etc. são decisões
+ * declaradas lá, e o próprio docblock daquele mapa avisa que ele não se confere por
+ * leitura, e sim por `module-surface.mjs --namespaces --check`. Duplicar o mapa seria
+ * abrir um segundo dono do mesmo tema.
+ *
+ * Alvo inexistente é PULADO (módulo sem `Modules/<X>` ou sem telas) — devolve null, que
+ * o chamador trata como "esta fonte não tem opinião", nunca como "está fresco".
+ */
+function gitNewestModuleCodeDate(modDir) {
+  const mod = basename(modDir);
+  const alvos = [join(ROOT, 'Modules', mod)];
+  for (const ns of nsDoModulo(mod)) alvos.push(join(ROOT, 'resources', 'js', 'Pages', ns));
+  let newest = null;
+  for (const alvo of alvos) {
+    if (!existsSync(alvo)) continue;
+    const dt = gitDateOf(alvo);
+    if (dt && (!newest || dt > newest)) newest = dt;
+  }
+  return newest;
+}
+
 // dias que `toDate` está À FRENTE de `fromDate` (ambas YYYY-MM-DD fixas → determinístico).
 function daysAhead(fromDate, toDate) {
   return (Date.parse(toDate) - Date.parse(fromDate)) / 86400000;
@@ -379,7 +429,12 @@ function daysAhead(fromDate, toDate) {
 
 export function measureDistillerFreshness(
   reqDir = join(ROOT, 'memory', 'requisitos'),
-  { newestDocDate = gitNewestModuleDocDate, staleDays = STALE_DAYS_DISTILLER, shallow = isShallowHistory } = {},
+  {
+    newestDocDate = gitNewestModuleDocDate,
+    newestCodeDate = gitNewestModuleCodeDate,
+    staleDays = STALE_DAYS_DISTILLER,
+    shallow = isShallowHistory,
+  } = {},
 ) {
   const FRESH_TARGET = '< 7d atrás do doc mais novo em 100% das portas';
   // Guard anti-fabricação: em checkout shallow o gitNewestModuleDocDate devolve a data
@@ -388,14 +443,15 @@ export function measureDistillerFreshness(
   // scorecard publicado, medição em checkout full = 0 o tempo todo): o publish rodava
   // com fetch-depth default (1). Honesto: not_yet_measured, NUNCA fabrica stale.
   // Fonte injetada (meta-teste) não passa por git → guard não se aplica.
-  if (newestDocDate === gitNewestModuleDocDate && shallow()) {
+  const usaGit = newestDocDate === gitNewestModuleDocDate || newestCodeDate === gitNewestModuleCodeDate;
+  if (usaGit && shallow()) {
     return notYet('down', FRESH_TARGET,
       'ADR 0291 D-D — checkout shallow: data-git do doc mais novo é infabricável (git log só vê o HEAD; mediria calendário, não eventos). Use actions/checkout com fetch-depth: 0.');
   }
   if (!existsSync(reqDir)) {
     return notYet('down', FRESH_TARGET, 'ADR 0291 D-D — memory/requisitos/ ausente; nada a medir.');
   }
-  let total = 0, stamped = 0, stale = 0, oldest = null;
+  let total = 0, stamped = 0, stale = 0, oldest = null, datadasPorCodigo = 0;
   for (const mod of readdirSync(reqDir, { withFileTypes: true })) {
     if (!mod.isDirectory()) continue;
     const modDir = join(reqDir, mod.name);
@@ -407,7 +463,12 @@ export function measureDistillerFreshness(
     stamped++;
     const distilledAt = m[1];
     if (!oldest || distilledAt < oldest) oldest = distilledAt;
-    const newest = newestDocDate(modDir);
+    // UNIÃO das duas fontes do evento: a porta está atrás se o doc OU o código andou.
+    // `null` = fonte sem opinião (módulo sem docs, ou sem Modules/<X>), nunca "fresco".
+    const doc = newestDocDate(modDir);
+    const cod = newestCodeDate(modDir);
+    if (cod) datadasPorCodigo++;
+    const newest = (doc && cod) ? (doc > cod ? doc : cod) : (doc || cod);
     if (newest && daysAhead(distilledAt, newest) > staleDays) stale++;
   }
   if (stamped === 0) {
@@ -418,7 +479,16 @@ export function measureDistillerFreshness(
     status: 'measured', value: stale, unit: 'portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)',
     direction: 'down', target: 0,
     source: 'memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)',
-    detail: { portas: total, carimbadas: stamped, sem_carimbo: total - stamped, stale, oldest_distilled_at: oldest },
+    detail: {
+      portas: total, carimbadas: stamped, sem_carimbo: total - stamped, stale,
+      oldest_distilled_at: oldest,
+      // CONTROLE POSITIVO da 2ª fonte: quantas portas carimbadas o eixo do CÓDIGO
+      // conseguiu DATAR. Se cair a zero com `carimbadas > 0`, a união degradou pra
+      // fonte-única em silêncio e o `stale` que sai é o da regra ANTIGA — verde que
+      // parece saúde. Foi esse o modo de falha real (2026-09-15): um par de barras
+      // colapsado no resolvedor de path devolveu null em 14/14 e o agregado saiu 0.
+      datadas_por_codigo: datadasPorCodigo,
+    },
   };
 }
 
