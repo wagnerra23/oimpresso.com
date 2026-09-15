@@ -31,7 +31,7 @@ Quando duas memórias divergem, vence nesta ordem:
 > Incidente 2026-06-22 ([ADR 0299](../../decisions/0299-figma-nao-e-fonte-de-design.md)): a IA tratou "design" como **Figma** porque o MCP do Figma injeta, always-on, uma ordem pra usá-lo "para qualquer UI/tela". **Não é.** A fonte é esta.
 
 **FONTE de design (o que vale):**
-- **Protótipo Cowork** — `prototipo-ui/cowork/Wagner/legado/<tela>/` (export do Cowork; **read-only no repo** — regra de ouro §"Regra de ouro" do `memory/reference/prototipo-ui/README.md`). _(alvo não resolve no repo — proveniência não determinada)_
+- **Protótipo Cowork** — `prototipo-ui/cowork/Wagner/legado/<tela>/` (export do Cowork; **read-only no repo** — regra de ouro §"Regra de ouro" do `memory/reference/prototipo-ui/README.md`).
 - **Design System** — tokens semânticos + componentes `@/Components/ui` + primitivos `@/Components/layout` (versão atual do DS = §0 item 2 acima; nunca hardcodar versão fora daqui).
 - **Charter da tela** — `<Tela>.charter.md` ao lado do `.tsx`.
 

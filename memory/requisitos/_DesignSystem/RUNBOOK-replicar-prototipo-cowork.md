@@ -20,13 +20,13 @@ caso_real: PRs #735→#740 — Kanban Producao Oficina Caçambas pré-Martinho
 
 # RUNBOOK — Replicar protótipo Cowork pra Inertia React
 
-> Receita reproduzível pra transformar `prototipo-ui/cowork/Wagner/legado/<tela>/visual-source.html` (Cowork canon) em página Inertia React funcional + bonita + auditada. _(alvo não resolve no repo — proveniência não determinada)_
+> Receita reproduzível pra transformar `prototipo-ui/cowork/Wagner/legado/<tela>/visual-source.html` (Cowork canon) em página Inertia React funcional + bonita + auditada.
 >
 > **Caso real validado:** Wagner pediu 2026-05-13 madrugada (5h antes reunião Martinho 10h) — "use skill" + "as informações e o modelo são muito superiores" + "pode fazer drag drop". Resultado: 6 PRs (#735→#740) com Kanban Caçambas pixel-perfect canon Cowork. Esta receita documenta o caminho.
 
 ## Pré-requisitos
 
-- [ ] Protótipo Cowork existe em `prototipo-ui/cowork/Wagner/legado/<tela>/visual-source.html` (E opcionalmente `F1.html` simplificado + `cowork-app.jsx`) _(alvo não resolve no repo — proveniência não determinada)_
+- [ ] Protótipo Cowork existe em `prototipo-ui/cowork/Wagner/legado/<tela>/visual-source.html` (E opcionalmente `F1.html` simplificado + `cowork-app.jsx`)
 - [ ] Vertical alvo definida (Vestuario/ComunicacaoVisual/OficinaAuto/etc) — ler `memory/reference_dominios_verticais_oimpresso.md`
 - [ ] Módulo destino existe (8 peças canônicas via skill `criar-modulo`) com topnav + DataController + InstallController
 - [ ] Endpoint backend disponível (Controller + Inertia render) ou capacidade de criar 1 controller novo
@@ -91,7 +91,7 @@ no estoque     em campo        recolhimento     oficina          prazo crítico 
 ### Sub-passo 1: Read FULL visual-source.html
 
 ```bash
-wc -l prototipo-ui/cowork/Wagner/legado/<tela>/visual-source.html _(alvo não resolve no repo — proveniência não determinada)_
+wc -l prototipo-ui/cowork/Wagner/legado/<tela>/visual-source.html
 # Esperar 800-1500 linhas. Read em 2-3 chunks de 400 linhas.
 ```
 

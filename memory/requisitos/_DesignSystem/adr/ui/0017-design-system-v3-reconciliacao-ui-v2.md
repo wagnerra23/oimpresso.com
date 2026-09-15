@@ -56,7 +56,7 @@ DS v3 é o **artefato** que a materializa:
 
 | Camada UI v2 | Artefato DS v3 |
 |---|---|
-| 1 · Fundações (tokens) | `prototipo-ui/tokens.css` | _(removido em 2026-09-11, 878e6069d1a)_
+| 1 · Fundações (tokens) | `prototipo-ui/tokens.css`  _(removido em 2026-09-11, 878e6069d1a)_ |
 | 2 · Shell | `.pageheader`, `.moduletopnav`, `.sb-*` (sidebar canon real) |
 | 3 · Padrão de Tela | PT-01..PT-08 + biblioteca de ~45 componentes |
 | 4 · Módulo | permanece React/Inertia por módulo (não muda) |

@@ -263,6 +263,42 @@ const tsxTabela = [
   check('(e2) 2a raiz NAO entra no --strict (advisory)', st.status === 0, `status=${st.status}`);
 }
 
+// -- (e3) notacao generica <x>/abreviada e destino DECLARADO ---------------------
+// Por que existe: a r3 do GT-G5 no #7377 refutou 16 anotacoes. 7 delas eram do gate nao
+// saber ler duas notacoes que o repo ja usava: segmento-template (`<tela>`, `<modulo>`),
+// path abreviado com reticencias, e a frase que declara o DESTINO ("renomeada pra X") --
+// que e mais informativa que um tombstone, e estava sendo tratada como ausencia.
+// As 4 pernas: morde o morto MUDO e libera as 3 notacoes. Mutacao provada: revertendo
+// ehPlaceholder/declaraMorte, requisitos_total_orfaos vai de 1 para 4.
+{
+  const root = mkdtempSync(join(tmpdir(), 'reqnot-'));
+  mkdirSync(join(root, 'resources', 'js', 'Pages'), { recursive: true });
+  mkdirSync(join(root, 'memory', 'requisitos', 'Demo'), { recursive: true });
+  const RET = String.fromCharCode(8230);
+  writeFileSync(join(root, 'memory', 'requisitos', 'Demo', 'RUNBOOK-notacao.md'), [
+    '---', 'tela: Demo/Notacao', '---', '',
+    '# RUNBOOK', '',
+    '- template:  `prototipo-ui/cowork/Wagner/legado/<tela>/visual-source.html`',
+    '- abreviado: `prototipo-ui/cowork/_ds/office-impresso-design-system-019dd02f' + RET + '/`',
+    '- renomeado: aponta `ui_kits/cowork-2026-04-27/` que foi renomeada pra',
+    '  `_BACKUP-NAO-USAR-cowork-2026-04-27/`.',
+    '- morto:     `prototipo-ui/prototipos/so-esse/page.jsx`',
+    '',
+  ].join(String.fromCharCode(10)));
+  const r = spawnSync('node', [POINTERS, '--json'], { cwd: root, encoding: 'utf8' });
+  let j = null;
+  try { j = JSON.parse(r.stdout); } catch { /* */ }
+  const det = JSON.stringify((j && j.requisitos_detalhe) || []);
+  check('(e3) BITE — o unico path morto MUDO e cobrado',
+    j && j.requisitos_total_orfaos === 1 && det.includes('so-esse'), String(j && j.requisitos_total_orfaos) + ' ' + det);
+  check('(e3) segmento-template <tela> nao e caminho (controle negativo)',
+    j && !det.includes('<tela>'), det);
+  check('(e3) path abreviado com reticencias nao e caminho (controle negativo)',
+    j && !det.includes('019dd02f'), det);
+  check('(e3) "renomeada pra" declara o destino e sai da cobranca (controle negativo)',
+    j && !det.includes('cowork-2026-04-27'), det);
+}
+
 // ── (f) bundle_source/visual_source como perna da cadeia de protótipo ─────────
 // Por que este grupo existe (2026-09-09): o gate resolvia o protótipo por
 // blueprint_cowork → cowork-map → Refs, e NÃO conhecia `bundle_source` — o campo que o

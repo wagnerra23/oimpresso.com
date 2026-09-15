@@ -58,7 +58,7 @@ Lista UI-0010 §2 evolui pra cobrir telas novas:
 | `sidebar.jsx` | **Sidebar dual Chat/Menu** | já portado |
 | `linked-apps.jsx` | **Coluna direita Apps Vinculados** | já portado |
 | `tweaks-panel.jsx` | **Vibe/Densidade/Accent** | já portado |
-| **`vendas-page.jsx` + `vendas-extras.jsx`** ⭐ NOVO | **Sells/Create + Sells/Index** | P0 — pino F1 em [`sells-create/`](../../../../../prototipo-ui/prototipos/sells-create/) | _(removido em 2026-05-20, 1070e3759b7)_
+| **`vendas-page.jsx` + `vendas-extras.jsx`** ⭐ NOVO | **Sells/Create + Sells/Index** | P0 — pino F1 em [`sells-create/`](../../../../../prototipo-ui/prototipos/sells-create/)  _(removido em 2026-05-20, 1070e3759b7)_ |
 | **`clientes-page.jsx`** ⭐ NOVO | **Cliente/Index** | P2 — sem charter ainda |
 | **`producao-page.jsx`** ⭐ NOVO | **Repair/ProducaoOficina** | já em prod (referência refator visual) |
 | **`produto-app.jsx` + `produto-data.jsx`** ⭐ NOVO | **Produto/Unificado** (Catálogo) | P2 — controller candidato existe (não copiar literal) |

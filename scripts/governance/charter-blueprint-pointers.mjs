@@ -139,6 +139,9 @@ const REQ = join(ROOT, 'memory/requisitos');
  */
 function ehPlaceholder(p) {
   const S = String.fromCharCode(47), D = String.fromCharCode(46);  // / e . sem literal (LC-26)
+  const RET = String.fromCharCode(8230);  // U+2026 '...' de path abreviado
+  // segmento-template (<tela>, <modulo>) e path abreviado nao sao ponteiros: sao notacao.
+  if (/<[^<>]+>/.test(p) || p.includes(RET)) return true;
   return p.includes('YYYY-MM-DD') || p.includes(S + D + D + D + S) || p.endsWith(S + D + D + D);
 }
 
@@ -149,7 +152,7 @@ function declaraMorte(linha) {
   // "nao resolve no repo — proveniencia nao determinada": o doc declara que o ponteiro nao
   // resolve E que a origem NAO foi medida. E a forma honesta quando a medicao nao fecha:
   // melhor do que inventar data (foi o ERRO 2 que a r1 do GT-G5 pegou neste mesmo lote).
-  return /removido em|PATH APAGADO|apagado em|nunca versionado|o resolve no repo|N\u00c3O EXISTE|NAO EXISTE|Corrigido 20/i.test(linha);
+  return /removido em|PATH APAGADO|apagado em|nunca versionado|o resolve no repo|N\u00c3O EXISTE|NAO EXISTE|renomead[ao] (pra|para)|Corrigido 20/i.test(linha);
 }
 
 function requisitosDocs() {

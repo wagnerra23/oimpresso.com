@@ -11,7 +11,7 @@ canon_method: KB-9.75 (chat10 — 2026-05-16)
 canon_score: 9.75/10 (cópia integral em 1 PR — substitui slice em 4 refinos)
 inertia_target: resources/js/Pages/Sells/Index.tsx
 # visual_source_html: o path abaixo foi removido em 2026-05-19, 7810bf5cb40
-visual_source_html: prototipo-ui/prototipos/sells-index/Oimpresso ERP - Chat.html _(alvo não resolve no repo — proveniência não determinada)_
+visual_source_html: prototipo-ui/prototipos/sells-index/Oimpresso ERP - Chat.html _(removido em 2026-05-19, 7810bf5cb40)_
 related_adrs: [0104, 0107, 0109, 0110, 0114, 0141, 0143, 0093]
 approved_by: wagner
 approved_at: 2026-05-17
@@ -371,7 +371,7 @@ Total estimado: **6-7h** (recalibrado fator 10x [ADR 0106](../../decisions/0106-
 
 ## Como aprovar
 
-1. Abra `prototipo-ui/prototipos/sells-index/Oimpresso ERP - Chat.html` _(alvo não resolve no repo — proveniência não determinada)_ em Chrome/Edge local
+1. Abra `prototipo-ui/prototipos/sells-index/Oimpresso ERP - Chat.html` _(removido em 2026-05-19, 7810bf5cb40)_ em Chrome/Edge local
 2. Clique na sidebar esquerda em **$ Vendas**
 3. Observe na tabela: coluna Pagamento tem pílulas coloridas (alguns rosa `-12d`, alguns âmbar `4d`, alguns verde `8d`)
 4. KPI "A receber" mostra breakdown abaixo (ex: `1 estourado · 2 atrasando`)

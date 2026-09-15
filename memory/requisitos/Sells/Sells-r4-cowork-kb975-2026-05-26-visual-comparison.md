@@ -115,7 +115,7 @@ Esforço total estimado P0 + P1: ~30-40h codáveis com IA-pair (~3-4 dias úteis
 
 **Não rodado nesta sessão.** Próximos passos pra abrir F2:
 
-1. Wagner abre `prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/Oimpresso ERP - Chat.html` em browser local (Tailwind CDN + UMD React + Babel — funciona standalone) _(alvo não resolve no repo — proveniência não determinada)_
+1. Wagner abre `prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/Oimpresso ERP - Chat.html` em browser local (Tailwind CDN + UMD React + Babel — funciona standalone) _(removido em 2026-06-23, 8bd2b479db4)_
 2. Aprovar SCREENSHOT da feature alvo do próximo PR (P0 #6 Faturar≠Pagar OR #5 Validações OR #1 NextActionPanel)
 3. Decidir gap #13 (Topbar tabs Insights Jana) — sim/não pra deixar parking lot
 4. SYNC_LOG em `memory/reference/prototipo-ui/SYNC_LOG.md` registra a aprovação (ADR 0114)
