@@ -50,8 +50,7 @@ Lê tudo em ordem fixa:
    - `Grep "<X>"` em `app/Console/Kernel.php` + `routes/console.php` (schedule)
    - `Grep "<X>"` em `bootstrap/providers.php` + `config/app.php` (registrado)
 
-4. **module-grade-v3 atual** (se disponível via `Bash` artisan):
-   - Tenta `php artisan module:grade <X> --json` — se falhar, anota e segue
+4. ~~**module-grade-v3 atual**~~ — ⚰️ **pular este passo**: a rubrica foi aposentada ([ADR 0399](../../memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md), 2026-09-15) e `php artisan module:grade` não existe mais. Sinal de maturidade equivalente hoje: `memory/requisitos/<X>/BRIEFING.md` + `node scripts/governance/module-surface.mjs`
    - Pega nota total + scores D1-D9
 
 5. **Atividade recente git:**
@@ -66,7 +65,7 @@ Módulo: <X>
 SCOPE vs BRIEFING: <consistente | conflitante: ...>
 Code stats: <N> Controllers, <M> Services, <P> Entities, <Q> Migrations, <R> Tests
 Git activity 90d: <N> commits
-module-grade-v3: <nota>/100 (D1=?, D4=?, D9=?)
+module-grade-v3: n/a — rubrica aposentada (ADR 0399)
 Cross-refs externos: <N> em SCOPE.md, <M> em código, <P> em ADRs, <Q> em skills/hooks/rules
 ```
 
@@ -89,7 +88,7 @@ Para cada **feature funcional** (Controller endpoint, Service, Job, Command, Ent
 | Audit log entries | `Modules/Governance` (audit dashboard Fase 5) ou `mcp_audit_log` |
 | Token mgmt | `Modules/TeamMcp` |
 | FULLTEXT search | `mcp_memory_documents` (MCP server canon via webhook git) |
-| Validation/coverage reports | `Modules/Governance` (Module Grades + Capterra) |
+| Validation/coverage reports | `Modules/Governance` (Capterra — a tela Module Grades saiu na ADR 0399) |
 | Cliente legacy import | `Modules/Crm` (CRM unificado) ou `Modules/Officeimpresso` (se ainda vivo) |
 | Webhook receiver | `Modules/Connector` (canônico integração externa) |
 | File storage | `Modules/Arquivos` |
