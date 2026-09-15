@@ -343,7 +343,7 @@
 - **US-GOV-006** — Module Grade Dashboard `/governance/module-grades` ✅ DONE
 - **US-GOV-007** — Module Grade Drill-down + botão Evoluir ✅ DONE
 - **US-GOV-008** — CLI `php artisan module:grade` (machine-readable JSON) ✅ DONE
-- **US-GOV-009** — Cron daily snapshot histórico 90d ❌ BACKLOG
+- **US-GOV-009** — Cron daily snapshot histórico 90d ⚰️ CANCELADA (ADR 0399)
 - **US-GOV-010** — Integração ADS Brain B disparar agents auto ❌ BACKLOG
 
 ## Infra
