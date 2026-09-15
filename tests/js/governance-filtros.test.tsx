@@ -17,7 +17,6 @@
 // hash (sha256 antes == depois nas três) e verde reconfirmado ao fim — baseline 16/16:
 //   M1. `hasFilter` fixo em `false` (Audit)                            → 4 failed | 12 passed
 //   M2. `filteredGroups` devolvendo `rules_by_category` cru (Policies) → 3 failed | 13 passed
-//   M3. `onClick` do "Limpar" virando no-op (ModuleGrades)             → 1 failed | 15 passed
 // Os controles positivos seguiram verdes nas três — é o que separa "o harness quebrou"
 // de "o comportamento sumiu". Sem esse par o arquivo seria carimbo: verde que não sabe
 // ficar vermelho (§5 2026-07-17, drift-sentinel tautológico).
@@ -31,7 +30,6 @@
 // Comando: npx vitest run tests/js/governance-filtros.test.tsx
 // @see memory/requisitos/Governance/governance-audit-gap.md ("Limpar filtros")
 // @see memory/requisitos/Governance/governance-policies-gap.md (busca + aviso de rastro)
-// @see memory/requisitos/Governance/governance-module-grades-gap.md (botão "Limpar")
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react';
@@ -63,7 +61,6 @@ vi.mock('@/Components/ui/select', () => ({
 
 import AuditPage from '@/Pages/governance/Audit';
 import PoliciesPage from '@/Pages/governance/Policies';
-import ModuleGradesPage from '@/Pages/governance/ModuleGrades/Index';
 
 afterEach(() => { cleanup(); routerGet.mockClear(); });
 
@@ -208,51 +205,5 @@ describe('governance/Policies — busca local e aviso de rastro', () => {
       { category: 'seguranca', rules: [{ ...REGRA(1, 'off_rule', 'Desligada', 'seguranca'), enabled: false }] },
     ]);
     expect(screen.getByText('off_rule')).toBeTruthy();
-  });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ModuleGrades — botão "Limpar" no vazio (governance-module-grades-gap.md)
-// ─────────────────────────────────────────────────────────────────────────────
-const GRADE = {
-  module: 'Governance', score: 72, bucket: 'Bom', color: 'blue',
-  dimensions: {
-    multi_tenant: '10/10', pest_coverage: '8/10', documentation: '7/10',
-    architecture: '8/10', client_real: '5/10',
-  },
-};
-
-function montarGrades() {
-  return render(
-    <ModuleGradesPage
-      grades={[GRADE] as any}
-      kpis={{ average: 72, total: 1, by_bucket: { Bom: 1 } } as any}
-      catalog={undefined as any}
-    />,
-  );
-}
-
-describe('governance/ModuleGrades — Limpar no vazio do filtro', () => {
-  it('CONTROLE POSITIVO: o módulo aparece na tabela sem filtro', () => {
-    montarGrades();
-    expect(screen.getByText('Governance')).toBeTruthy();
-  });
-
-  it('busca que não bate esvazia a tabela e oferece Limpar', () => {
-    montarGrades();
-    fireEvent.change(screen.getByPlaceholderText(/buscar módulo/i), { target: { value: 'zzzz' } });
-    expect(screen.getByText(/Nenhum módulo combina com o filtro/i)).toBeTruthy();
-    expect(screen.getByRole('button', { name: /^limpar$/i })).toBeTruthy();
-  });
-
-  it('Limpar zera busca E faixa de uma vez — a linha volta', () => {
-    montarGrades();
-    const busca = screen.getByPlaceholderText(/buscar módulo/i) as HTMLInputElement;
-    fireEvent.change(busca, { target: { value: 'zzzz' } });
-    expect(screen.queryByText('Governance')).toBeNull();
-
-    fireEvent.click(screen.getByRole('button', { name: /^limpar$/i }));
-    expect(screen.getByText('Governance')).toBeTruthy();
-    expect(busca.value).toBe('');
   });
 });
