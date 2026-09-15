@@ -1117,7 +1117,7 @@ entrada malformada sai como `Skipped` e o servidor **some da sessão inteira** �
 nem `pending`. Silêncio ali é indistinguível de "nunca foi configurado".
 
 **Refs:** PR #7366 (o fix) · PR #7369 (`MEMORY_TEAM_ONBOARDING.md` passo E + skill
-`oimpresso-team-onboarding` Modo D) · [ADR 0056](../../decisions/0056-mcp-server-governanca-como-produto.md).
+`oimpresso-team-onboarding` Modo D) · [ADR 0056](../../decisions/0056-mcp-fonte-unica-memoria-copiloto-claude-code.md).
 
 
 ### US-INFRA-050 · Exportar OIMPRESSO_MCP_TOKEN no ambiente (maiara)
@@ -1164,7 +1164,7 @@ entrada malformada sai como `Skipped` e o servidor **some da sessão inteira** �
 nem `pending`. Silêncio ali é indistinguível de "nunca foi configurado".
 
 **Refs:** PR #7366 (o fix) · PR #7369 (`MEMORY_TEAM_ONBOARDING.md` passo E + skill
-`oimpresso-team-onboarding` Modo D) · [ADR 0056](../../decisions/0056-mcp-server-governanca-como-produto.md).
+`oimpresso-team-onboarding` Modo D) · [ADR 0056](../../decisions/0056-mcp-fonte-unica-memoria-copiloto-claude-code.md).
 
 
 ### US-INFRA-051 · Exportar OIMPRESSO_MCP_TOKEN no ambiente (luiz)
@@ -1211,7 +1211,7 @@ entrada malformada sai como `Skipped` e o servidor **some da sessão inteira** �
 nem `pending`. Silêncio ali é indistinguível de "nunca foi configurado".
 
 **Refs:** PR #7366 (o fix) · PR #7369 (`MEMORY_TEAM_ONBOARDING.md` passo E + skill
-`oimpresso-team-onboarding` Modo D) · [ADR 0056](../../decisions/0056-mcp-server-governanca-como-produto.md).
+`oimpresso-team-onboarding` Modo D) · [ADR 0056](../../decisions/0056-mcp-fonte-unica-memoria-copiloto-claude-code.md).
 
 
 ### US-INFRA-052 · Exportar OIMPRESSO_MCP_TOKEN no ambiente (eliana)
@@ -1258,4 +1258,4 @@ entrada malformada sai como `Skipped` e o servidor **some da sessão inteira** �
 nem `pending`. Silêncio ali é indistinguível de "nunca foi configurado".
 
 **Refs:** PR #7366 (o fix) · PR #7369 (`MEMORY_TEAM_ONBOARDING.md` passo E + skill
-`oimpresso-team-onboarding` Modo D) · [ADR 0056](../../decisions/0056-mcp-server-governanca-como-produto.md).
+`oimpresso-team-onboarding` Modo D) · [ADR 0056](../../decisions/0056-mcp-fonte-unica-memoria-copiloto-claude-code.md).
