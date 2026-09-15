@@ -49,6 +49,39 @@ check('CONTROLE POSITIVO: token com forma valida (mesmo prefixo, sem a marca) se
   readAuthHeader(JSON.stringify({ mcpServers: { oimpresso: { headers: { Authorization: FIXTURE_OK } } } })) === FIXTURE_OK);
 check('readAuthHeader rejeita JSON inválido (sem throw)', readAuthHeader('{lixo') === null);
 
+// ── EXPANSÃO DE ENV VAR (2026-09-15) — o token sai do arquivo ────────────────
+// Motivo: o segredo ficava EM CLARO no settings.local.json. A env var já existia na
+// máquina (o .mcp.json depende de OIMPRESSO_MCP_TOKEN pro cliente), então o arquivo
+// passa a poder REFERENCIÁ-LA em vez de guardar o valor.
+const mkAuth = (v) => JSON.stringify({ mcpServers: { oimpresso: { headers: { Authorization: v } } } });
+const REF = 'Bearer ${OIMPRESSO_MCP_TOKEN}';
+const VAL = 'mcp_fixture-de-teste-nao-e-um-token';
+check('EXPANDE a referência ${OIMPRESSO_MCP_TOKEN} quando a env existe',
+  readAuthHeader(mkAuth(REF), { OIMPRESSO_MCP_TOKEN: VAL }) === `Bearer ${VAL}`);
+// FAIL-CLOSED: sem a env, NÃO pode devolver a referência crua — o hook faria HTTP
+// autenticado com o texto `${OIMPRESSO_MCP_TOKEN}` e trocaria "token ausente" por um
+// 401 opaco. É a mesma classe do placeholder acima (LC-11: medir FORMA, não VALIDADE).
+check('SEM a env, rejeita (não vaza a referência crua como se fosse token)',
+  readAuthHeader(mkAuth(REF), {}) === null);
+check('env VAZIA rejeita', readAuthHeader(mkAuth(REF), { OIMPRESSO_MCP_TOKEN: '' }) === null);
+check('env com valor de forma inválida rejeita (sem prefixo mcp_)',
+  readAuthHeader(mkAuth(REF), { OIMPRESSO_MCP_TOKEN: 'abc' }) === null);
+check('env com o PLACEHOLDER dentro rejeita',
+  readAuthHeader(mkAuth(REF), { OIMPRESSO_MCP_TOKEN: 'mcp_COLE_SEU_TOKEN_AQUI' }) === null);
+// CONTROLE: o valor da env vai SEM "Bearer" (é o que o .example manda colar) —
+// se alguém colar COM, não pode virar "Bearer Bearer mcp_…"
+check('env que já traz "Bearer " é rejeitada (evita Bearer duplicado)',
+  readAuthHeader(mkAuth(REF), { OIMPRESSO_MCP_TOKEN: 'Bearer ' + VAL }) === null);
+// COMPAT — o caminho literal de hoje NÃO pode regredir: quem tem o token no arquivo
+// continua funcionando sem tocar em nada.
+check('COMPAT: literal continua aceito mesmo com env presente',
+  readAuthHeader(mkAuth(FIXTURE_OK), { OIMPRESSO_MCP_TOKEN: 'mcp_outro-valor-qualquer' }) === FIXTURE_OK);
+check('COMPAT: literal continua aceito sem env nenhuma',
+  readAuthHeader(mkAuth(FIXTURE_OK), {}) === FIXTURE_OK);
+// referência a OUTRA variável também expande (não é hard-code de nome)
+check('expande qualquer ${VAR}, não só a canônica',
+  readAuthHeader(mkAuth('Bearer ${MEU_TOKEN_ALT}'), { MEU_TOKEN_ALT: VAL }) === `Bearer ${VAL}`);
+
 // ── buildBody ──
 const body = JSON.parse(buildBody());
 check('buildBody: JSON-RPC tools/call brief-fetch', body.method === 'tools/call' && body.params.name === 'brief-fetch');
