@@ -88,12 +88,12 @@
   {
     "id": "dtc-visreg-pixel-only",
     "dimensao": "design-to-code",
-    "titulo": "visual-regression seria pixel-only",
-    "veredito": "JA_EXISTE_TOTAL",
-    "nota": 8.5,
-    "evidencia": "RE-MEDIDO — fraqueza segue falsa. gates-registry.json tem stub de 2 campos sem descrever camadas estruturais (VisregThreshold double-threshold + PixelBaselineTest pre-checks + ConformanceProbesTest G2/G3/G4 + canario anti-verde-vazio). Nota mantida (nao subida): avanco real esta em eixo que a fraqueza nao nomeia.",
-    "degrau": "indexar camadas no gates-registry (ponteiro, nao copia)",
-    "data": "2026-08-08",
+    "titulo": "Cobertura de VRT enforcing é núcleo-6+telas afetadas contra 372 Pages — desenho defensável por custo, com ui-impact.mjs fail-closed (tela afetada sem contrato BLOQUEIA PR); mas a taxa de cobertura visual não é publicada com identidade própria (funde-se com E2E)",
+    "veredito": "PARCIAL",
+    "nota": 7,
+    "evidencia": "visreg-screens.json: 16 telas com baseline declarado. ui-impact.mjs fail-closed real (bloqueia PR se tela afetada não tem contrato visreg), bite-test wired (--selftest em governance-script-tests.yml). visual-regression está na lista required (required-checks-baseline.json). Resíduo: taxa fundida com E2E em screen-coverage-map.mjs (ver dtc-cobertura-vrt-taxa-nao-publicada).",
+    "degrau": "separar a taxa visreg da taxa E2E no aggregates",
+    "data": "2026-08-14",
     "existia_invisivel": true,
     "onde_indexar": "estender gates-registry.json entrada visual-regression.yml com campo descrevendo as camadas (ponteiro, nunca copia) + registrar em prototipo-ui/RUNBOOK-fidelidade-fingerprint.md a fronteira CI x manual (ADR 0290).",
     "indexado": true
@@ -101,12 +101,12 @@
   {
     "id": "dtc-tokens-dtcg",
     "dimensao": "design-to-code",
-    "titulo": "Tokens fora do DTCG / sem Style Dictionary",
+    "titulo": "Tokens fora do DTCG / sem cinturão de CI — refutado: dtcg-equivalence.mjs prova 296 tokens DTCG-CSS iguais (rodado, rc=0), ds-token-version.mjs faz semver+changelog e MORDE no CI (exit sobrevive ao ||), ds-token-diff.mjs é o motor reusado por drift+push",
     "veredito": "JA_EXISTE_TOTAL",
-    "nota": 7,
-    "evidencia": "*.tokens.json DTCG + Style Dictionary ^4.4 + dtcg-equivalence.mjs; gap = linter WCAG/dedup",
-    "degrau": "linter contraste WCAG + dedup",
-    "data": "2026-07-18",
+    "nota": 8,
+    "evidencia": "dtcg-equivalence.mjs rodado ao vivo: 296 provados iguais, 0 divergências, 0 pulados, rc=0, com bite-test 8/8 (controle positivo e negativo). ds-token-version.mjs + ds-token-version.yml fazem o exit code sobreviver ao ||, bite-test 9/9 cobrindo MAJOR/MINOR/no-bump. version.json NÃO está stale: --check ao vivo deu rc=0 v1.0.0 em dia (296 tokens).",
+    "degrau": "nenhum — já fechado; só falta indexar design-gate-bites.mjs DR-2 com promote_by 2026-09-05",
+    "data": "2026-08-14",
     "existia_invisivel": true,
     "onde_indexar": "mapa: pipeline DTCG real",
     "indexado": true
@@ -125,12 +125,12 @@
   {
     "id": "dtc-taxa-reuso",
     "dimensao": "design-to-code",
-    "titulo": "Sem taxa de reuso de componente",
+    "titulo": "SEM métrica de adoção/reuso do DS — refutado: existe sob vocabulário diferente (progressPct em ds-ledger.mjs, cobertura por módulo em ds-report.mjs, particionamento CANON/CONSUMER/INDEPENDENTE em component-registry-check --roles, gate de duplicata nova em reuse-index.mjs --gate); mas ZERO invocador automático/cron das duas métricas-título, e ds-ledger.json está com generatedAt de 2026-06 (stale há semanas)",
     "veredito": "PARCIAL",
-    "nota": 7.5,
-    "evidencia": "ds-ledger censo per-tela + ds-report + component-registry-check --roles; gap = ratio positivo",
-    "degrau": "estender ds-ledger",
-    "data": "2026-07-18",
+    "nota": 6,
+    "evidencia": "REFUTA a ausência: ds-ledger.mjs progressPct=9 (screens:35,done:3); ds-report.mjs por módulo (DS_ADOCAO_INDICE.md, fila 3/10); component-registry-check.mjs --roles particiona CANON/CONSUMER/INDEPENDENTE (design-memory-gate.yml); reuse-index.mjs --gate falha duplicata nova (reuse-gate.yml); DsRolloutController.php consome e renderiza tela governance/DsRollout. CONFIRMA resíduo: AUTOMATIONS.md tem 0 menções a ds-report ou ds-ledger; nenhum schedule os roda; ds-ledger.json generatedAt=2026-06 (stale).",
+    "degrau": "agendar refresh periódico de ds-ledger.json/ds-report.mjs (cron ou pre-commit) — hoje é manual e apodrece",
+    "data": "2026-08-14",
     "existia_invisivel": false
   },
   {
@@ -740,5 +740,82 @@
     "degrau": null,
     "data": "2026-08-11",
     "existia_invisivel": false
+  },
+  {
+    "id": "dtc-storybook-componente",
+    "titulo": "SEM teste visual em nível de componente — não existe Storybook nem .stories.* no repo (0 arquivos, medido hoje). Todo o VRT é por TELA, não por componente; mas já existe teste por componente em CI sob outra forma (status-badge-fidelity-gate, pageheader-tabs-fidelity-gate, fin-hero-gate, a11y-axe-gate), e um showcase órfão de gate (_Showcase/Components.tsx, 505 linhas, roteado, mas fora de VRT/conformance tests).",
+    "veredito": "PARCIAL",
+    "nota": 5,
+    "evidencia": "Storybook: 0 arquivos confirmado. Mas existe equivalente disperso: 5 fidelity-gates por componente/padrão isolado em CI (status-badge, pageheader-tabs, fin-hero, financeiro-subnav, a11y-primitives via axe) + component-registry.json (40 entries, advisory) + showcase Pages/_Showcase/Components.tsx roteado porém whitelisted-fora de CockpitPatternConformanceTest/CockpitTypographyConformanceTest e ausente de visreg-screens.json (16 telas).",
+    "degrau": "cobrir _Showcase/Components.tsx com visreg (adicionar a visreg-screens.json) e/ou promover como Storybook-like formal",
+    "data": "2026-08-14",
+    "existia_invisivel": true,
+    "onde_indexar": "cruzar com dtc-visreg-pixel-only; considerar registrar _Showcase como alvo de cobertura visual"
+  },
+  {
+    "id": "dtc-bridge-map-json",
+    "titulo": "Cobertura do bridge persistente <tela>.map.json é residual (3 arquivos), mas existe pipeline completo de 3 papéis (gerar-map.mjs / design-code-map-check.mjs / consumir-map.mjs) com bite-test 21 asserts e cobertura declarada em 2 denominadores",
+    "veredito": "PARCIAL",
+    "nota": 7,
+    "evidencia": "Pipeline real e rodando: prototipo-ui/gerar-map.mjs gera, scripts/governance/design-code-map-check.mjs verifica (cobertura 3/15 telas com gap.md, 3/209 charters — ambos publicados no --check --strict), prototipo-ui/consumir-map.mjs decide (exit 3=STALE aborta Fase 4). Bite-test com 21 asserts pareados (design-code-map-check.test.mjs) rodando SEM continue-on-error no CI. FP de git-sha corrigido via sha256 contentHash (ADR 0324).",
+    "degrau": "ampliar cobertura de 3 para mais telas com gap.md; a máquina já suporta",
+    "data": "2026-08-14",
+    "existia_invisivel": true,
+    "onde_indexar": "já indexado via design-memory-gate.yml; sem novo índice necessário"
+  },
+  {
+    "id": "dtc-registry-snippet",
+    "titulo": "Registry sem campo snippet e sem servidor MCP de design — mas o mapeamento bloco→componente é servido em tempo de edição via regras ESLint ds/*, que é o chokepoint real, required no CI",
+    "veredito": "PARCIAL",
+    "nota": 7,
+    "evidencia": "Confirmado: component-registry.json (40 entries) não tem campo snippet; nenhum servidor MCP de design em .mcp.json. Mas REFUTADA a claim 'agente que edita tela não recebe nada': eslint.config.js tem 14 regras ds/*, 7 delas citando import path literal (Components/...) na mensagem — chokepoint real via ESLint gate (required no CI, contexto na união de 45 required de required-checks-baseline.json). Bite-test rodado com fixture positiva/negativa confirmando disparo.",
+    "degrau": "adicionar campo snippet ao registry só se adoção justificar (medir antes, licao 2026-08-12)",
+    "data": "2026-08-14",
+    "existia_invisivel": true,
+    "onde_indexar": "eslint.config.js ds/* já é o chokepoint; não criar campo novo sem medir adoção"
+  },
+  {
+    "id": "dtc-cowork-mirror-roundtrip",
+    "titulo": "--compare e --live-only do cowork-mirror-freshness sem invocador de máquina (CI/cron) — mas a rotina roda (ledger datado até 2026-08-13), tem SLA vigiado (--sla, rc=1 hoje por PARCIAL) e o remédio de automação total está formalmente barrado pela ADR 0324 (plataforma não expõe webhook/token headless)",
+    "veredito": "PARCIAL",
+    "nota": 6,
+    "evidencia": "cowork-mirror-freshness.mjs roda e é logado em .cowork-freshness-ledger.json (append-only, última entrada 2026-08-13). --sla rodado ao vivo: rc=1, 'última rodada PARCIAL — 20 sync, 0 stale, 98 unchecked, mediu 23/121'. ADR 0324 D3 (aceito, decided_by W) documenta que webhook/cron-com-secret são impossíveis hoje porque a plataforma não expõe service-account/token headless — re-propor só quando a plataforma mudar.",
+    "degrau": "nenhum — barrado por decisão W registrada (ADR 0324); resta rodar manualmente dentro do SLA",
+    "data": "2026-08-14",
+    "existia_invisivel": true,
+    "onde_indexar": "ADR 0324 já é o registro; não criar mecanismo novo"
+  },
+  {
+    "id": "dtc-gates-registry-stub-visreg",
+    "titulo": "Entrada de visual-regression.yml no gates-registry.json é stub {nome,classe} de 2 campos — mas isso é a NORMA (73/123 workflows são só esses 2 campos) e o mecanismo real (double-threshold 3 bandas, zona cinza com label humano, cross-browser, matriz de estados) vive fora do registry, no required-checks-baseline + VisregThreshold.php",
+    "veredito": "JA_EXISTE_TOTAL",
+    "nota": 9,
+    "evidencia": "gates-registry.json:532-535 é {nome,classe} mesmo — mas é padrão (73/123). O gate real: required-checks-baseline.json inclui visual-regression; VisregThreshold.php tem double-threshold (tau_baixo 0.001/tau_alto 0.02) com zona cinza bloqueando merge até label visreg-gray-approved; VisregGrayApprovalTest.php prova a decisão (bite-test); cross-browser Firefox+WebKit; matriz de 6 estados isolados enforcing sem continue-on-error.",
+    "degrau": "nenhum — enriquecer o registry com descrição de camadas seria campo sem adoção/consumidor",
+    "data": "2026-08-14",
+    "existia_invisivel": true,
+    "onde_indexar": "já coberto; não criar campo novo no registry"
+  },
+  {
+    "id": "dtc-fidelidade-tolerancia-eixo",
+    "titulo": "Fidelidade sem tolerância declarada por eixo em tabela — mas as bandas numéricas por eixo já existem inline e comentadas (style-fingerprint.mjs, design-diff.mjs); falta DeltaE CIEDE2000 (0 hits confirmados) e cor no fingerprint ainda é igualdade de string, não numérica",
+    "veredito": "PARCIAL",
+    "nota": 5,
+    "evidencia": "Bandas por eixo existem inline: linhas 0.01, xnorm/ynorm 0.04 (4%, comentado ruído sub-pixel vs mudança de lugar), opacity 0.02, TOL_PX=1.5px absoluto (style-fingerprint.mjs); fontPx +-2px e hue/lightness (design-diff.mjs, só papéis title/primary). CONFIRMADO ausente: DeltaE CIEDE2000 (0 hits em código); cor/bgEfetivo/borderColor/boxShadow comparados por String()!==String(), não numericamente.",
+    "degrau": "declarar as bandas numa tabela única (não novo mecanismo, só documentação) + considerar DeltaE se FP justificar",
+    "data": "2026-08-14",
+    "existia_invisivel": true,
+    "onde_indexar": "style-fingerprint.mjs:84 já tem comentário auto-declarado das tolerâncias; consolidar ali"
+  },
+  {
+    "id": "dtc-cobertura-vrt-taxa-nao-publicada",
+    "titulo": "Cobertura de VRT (visual-regression) é medida por tela (screen-coverage-map.mjs computa hasVisregContract) mas a taxa fica DOBRADA sob o rótulo E2E em vez de ter coluna própria — screen-coverage-baseline.json não tem chave visreg",
+    "veredito": "PARCIAL",
+    "nota": 4,
+    "evidencia": "visreg-screens.json tem 16 telas com baseline declarado, todas fail-closed via ui-impact.mjs (tela afetada sem contrato visreg BLOQUEIA PR). screen-coverage-map.mjs:525 usa 'e2e.length>0 || hasVisregContract' — funde os dois sinais debaixo do rótulo E2E. screen-coverage-baseline.json aggregates só tem charter/e2e/a11y/scorecard, sem chave visreg própria. Run vivo: 'E2E (Pest Browser): 18/206 (8.7%)' confla E2E-Pest real + contrato visreg.",
+    "degrau": "adicionar chave visreg própria ao aggregates de screen-coverage-map.mjs (separar do E2E)",
+    "data": "2026-08-14",
+    "existia_invisivel": true,
+    "onde_indexar": "scripts/qa/screen-coverage-map.mjs — estender agg, não criar dono novo"
   }
 ]

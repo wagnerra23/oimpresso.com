@@ -313,15 +313,17 @@
   },
   {
     "id": "dtc-proveniencia-design-contrato",
-    "titulo": "Proveniência de design COMPUTADA do contrato (ancora.mjs::resolveAncora) com gate required contra âncora-fantasma (anchor-content-check)",
+    "titulo": "Proveniência de design como gate REQUIRED de merge — \"Ancora de design nao-shell (F2/F6 required)\" consta em governance/required-checks-baseline.json (verificado hoje, junto de \"visual-regression\"): a tela declara sua fonte (related_prototype no charter) e anchor-content-check prova que a âncora tem CONTEÚDO, não shell/fantasma. Pareado com design-coverage.mjs (censo de quem declara) e block-figma-without-optin/block-design-sync-without-optin (fail-closed contra fonte não-canônica).",
     "dimensao": "design-to-code",
-    "refutador": "ACIMA_CONFIRMADO",
-    "peer": "Ninguém no eixo exato; vizinhos não cobrem (Figma Code Connect, Chromatic/Storybook Connect, zeroheight, SLSA/in-toto, design.md lint)",
-    "data_veredito": "2026-07-26",
-    "ttl_dias": 30,
+    "refutador": "EMPATADO",
+    "peer": "Figma Code Connect CI (doc oficial + design system Cauldron/Deque, issue #2376) — dry-run de validação da fonte de design declarada reprovando o check antes do merge; Danger.js/GitLab — enforcement fail-closed de link obrigatório em PR como prática canônica; Storybook \"Testing in CI\" + FDIC Design System (#66) — artefato de design como hard gate bloqueante de merge.",
+    "data_veredito": "2026-08-14",
+    "ttl_dias": 90,
     "limite": "ausência-de-par em busca dirigida, não prova exaustiva",
     "integracao_removida_em": "2026-07-26",
-    "integracao_removida_por": "reguas-ledger-check V2 — o workflow filtra veredito!=ACIMA_CONFIRMADO ANTES da fase Integracao (linha 507); este veredito nao pode ter sido produzido pelo codigo"
+    "integracao_removida_por": "reguas-ledger-check V2 — o workflow filtra veredito!=ACIMA_CONFIRMADO ANTES da fase Integracao (linha 507); este veredito nao pode ter sido produzido pelo codigo",
+    "integracao": "DIFERENCIAL_SISTEMA",
+    "incremento": "Fecha a proveniência de design nas DUAS pontas contra um autor-agente: no merge (required check que não só exige a declaração `related_prototype`, mas prova que a âncora tem CONTEÚDO — mata o shell/fantasma que satisfaria um link-check) e no momento da AUTORIA (hooks PreToolUse fail-closed que impedem o agente de ler Figma/DesignSync sem opt-in explícito), com censo (`design-coverage`) medindo quem ainda não declara — de modo que \"o agente inventou a tela a partir de screenshot/código\" deixa de ser um caminho possível, e não apenas um caminho não-documentado."
   },
   {
     "id": "mem-negativa-ligada-catraca",
@@ -543,6 +545,28 @@
     "peer": "giacomo/agents-lint (github.com/giacomo/agents-lint) — lint de staleness sobre AGENTS.md + CLAUDE.md + memory files, com gate de CI; crag (`crag audit` / `crag hook install --drift-gate`) — detecção de AGENTS.md stale vs doc-fonte mais novo + bloqueio de commit; guia yurukusa gist d36197848911f025add142abefcde685 Patterns 3 e 5 — hook SessionStart de warn-on-drift e drift-watch em cron/CI. Categoria estruturalmente superior (torna drift impossível): agent-kit, amtiYo/agents, GowayLee/agent-sync, agentlink, Plexus.",
     "integracao": "REFUTADO_TB",
     "data_veredito": "2026-08-11",
+    "ttl_dias": 90
+  },
+  {
+    "id": "dtc-gate-selftest-mordida-promocao",
+    "titulo": "Gate de design que prova que MORDE, com promoção condicionada a mordida medida — gate-selftest.mjs (required, cada catraca prova bite em fixture ruim e release em boa), design-gate-bites.mjs (bite-log DR-2a) e a política ADR 0336 de só promover advisory→required com mordida provada; o próprio baseline registra a exceção soberana quando o bite-log formal não foi coletado.",
+    "dimensao": "design-to-code",
+    "refutador": "EMPATADO",
+    "peer": "Kyverno (Audit→Enforce por PolicyReport medido) e OPA/Gatekeeper (dryrun) para a política de promoção por mordida medida; stylelint + jest-preset-stylelint, design-lint (bylapidist/DTIF) e ds-lint para prova accept/reject na camada de design; arXiv 2026 \"Beyond Pixel Diffs\" (mutadores controlados de HTML para medir detecção de VRT) para o bite-test de baseline visual — este último é pesquisa, não produto. Chromatic/Percy/Applitools seguem sem testar o testador.",
+    "integracao": "REFUTADO_TB",
+    "incremento": "nenhum além da identidade/contexto — a única \"cola\" que sobra depois de parear as peças é \"isso roda no design-to-code do oimpresso, sobre o nosso corpus de telas\", e domínio/contexto é identidade, não capacidade",
+    "data_veredito": "2026-08-14",
+    "ttl_dias": 90
+  },
+  {
+    "id": "dtc-component-registry-gap-contrato",
+    "titulo": "Ausência representável num bridge design→código AUTORADO POR AGENTE — component-registry.json (40 entradas: 37 mapped, 3 gap; campos bloco_prototipo/componente_react/import_path/exports/props/variant_map) com regra dura \"toda entrada mapped bate com arquivo real lido; bloco sem equivalente entra como gap (não fabricar)\", e o limite de cobertura declarado e ASSERTADO no selftest do criar-tela.mjs (3/8 dos componentes emitidos têm entrada).",
+    "dimensao": "design-to-code",
+    "refutador": "REFUTADO",
+    "peer": "Figma Code Connect + Dev Mode MCP server com a agent skill oficial figma-code-connect-components (get_code_connect_suggestions retorna os não-mapeados explicitamente; figma connect parse/publish valida que o import/export existe) — par principal. Secundários: Astryx (Meta) — manifesto JSON machine-readable por componente para agentes; Builder.io Visual Copilot/CLI — mapeamento com estado mapeado/não-mapeado e mapping functions determinísticas.",
+    "integracao": "DIFERENCIAL_SISTEMA",
+    "incremento": "O registry não termina em relatório: as entradas `gap` são consumidas pelo MESMO gerador (`criar-tela.mjs`) que carimba o trio da tela (charter + casos + e2e), então um bloco de protótipo sem equivalente vira obrigação de contrato de tela escrita no vocabulário do domínio do ERP e policiada por gates required (`casos-gate` G-2/G-7, `dominio-gate` contra dicionário canônico, `ancora.mjs` pra proveniência) — ou seja, a lacuna de design vira condição de merge no produto receptor, não sugestão que o agente pode ignorar.",
+    "data_veredito": "2026-08-14",
     "ttl_dias": 90
   }
 ]
