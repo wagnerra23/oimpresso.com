@@ -1,5 +1,8 @@
 ---
 id: requisitos-cms-briefing
+module: Cms
+status: parcial
+updated_at: "2026-05-17"
 ---
 
 # BRIEFING — Modules/Cms
