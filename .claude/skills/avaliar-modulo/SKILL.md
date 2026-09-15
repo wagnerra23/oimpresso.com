@@ -1,7 +1,7 @@
 ---
 name: avaliar-modulo
 mission: "Substituir avaliação subjetiva de maturidade de Modules/<X>/ por nota objetiva 0-100 ponderada pela rubrica oficial module-grade-v3 (9 dimensões, ADR 0155)."
-description: ATIVAR quando user pedir "nota do módulo X", "avaliar Modules/X", "/avaliar-modulo X", "qual a nota de Y", "module grade de Z", "qual o bucket de W", "qual modulo está crítico?", "média do projeto", "ranking dos módulos", OU mencionar rubrica `module-grade-v3` (ou ADR 0155, 0154, 0153). Roda `php artisan module:grade {nome} --detail --evolve` (ou `--all` quando agregado) e formata output. Mostra nota total /100 normalizada (raw /118) + 9 dimensões (D1-D9 incl Performance, LGPD, Security, Observability) + top gaps + batch tasks sugeridas. NÃO cria tasks sem aprovação humana — apenas formata batch markdown pra Wagner aprovar/editar/colab via `tasks-create` MCP.
+description: ⚰️ APOSENTADA (ADR 0399, 2026-09-15) — NÃO ATIVAR: `php artisan module:grade` não existe mais; para estado de módulo use o BRIEFING, `module-surface.mjs` ou o agente `capterra-senior`. Descrição histórica: ATIVAR quando user pedir "nota do módulo X", "avaliar Modules/X", "/avaliar-modulo X", "qual a nota de Y", "module grade de Z", "qual o bucket de W", "qual modulo está crítico?", "média do projeto", "ranking dos módulos", OU mencionar rubrica `module-grade-v3` (ou ADR 0155, 0154, 0153). Roda `php artisan module:grade {nome} --detail --evolve` (ou `--all` quando agregado) e formata output. Mostra nota total /100 normalizada (raw /118) + 9 dimensões (D1-D9 incl Performance, LGPD, Security, Observability) + top gaps + batch tasks sugeridas. NÃO cria tasks sem aprovação humana — apenas formata batch markdown pra Wagner aprovar/editar/colab via `tasks-create` MCP.
 type: process-skill
 status: active
 version: 2.0.0
@@ -28,9 +28,27 @@ triggers_on:
 related_adrs: [0155, 0154, 0153, 0093, 0101, 0094, 0105]
 related_skills: [comparativo-do-modulo, module-completeness-audit, module-grades-gate, brief-update]
 tier: B
+enabled: false
 ---
 
 # avaliar-modulo — rubrica `module-grade-v3` (ADR 0155)
+
+> ## ⚰️ APOSENTADA em 2026-09-15 — [ADR 0399](../../../memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md)
+>
+> **Não existe mais como pedir a nota de um módulo.** Esta skill é 100% rubrica `module-grade`:
+> todos os seus 3 casos de uso chamam `php artisan module:grade`, comando deletado na **Onda 3**;
+> o `ModuleGradeService` que o alimentava saiu na **Onda 4a**, e a tela `/governance/module-grades`
+> que ela cita, na **Onda 2**. Conferido antes de aposentar: ela não faz nada além disso.
+>
+> **Se a pergunta for "como está o módulo X", os donos vivos são outros:**
+> `memory/requisitos/<X>/BRIEFING.md` (verdade destilada), `node scripts/governance/module-surface.mjs`
+> (superfície e dívida Blade), `governance/sdd-scorecard.json` (scorecard SDD, ADR 0275) e o agente
+> `capterra-senior` (benchmark de módulo contra o mercado, com nota — mas com pesquisa fresca, não
+> com a rubrica morta).
+>
+> Nenhuma nota histórica sobrevive: a tabela `mcp_module_grades_history` (960 linhas, 32 módulos ×
+> 30 dias) foi dropada na **Onda 4b**. O `enabled: false` acima marca a skill como **dormente no
+> índice gerado** — não confie nisso como desligamento: a razão para não ativá-la está nesta lápide.
 
 > **Lineage:** v3 (ADR 0155) supersedes parcial v2 (ADR 0154 — N/A justificado) + v1 (ADR 0153 — 5 dimensões base). Atual: **9 dimensões D1-D9**, peso raw total 118, **score final normalizado /100** (`raw × 100 / 118`).
 
