@@ -213,6 +213,44 @@ const tsxTabela = [
   check('(e) total_orfaos = 0', parsed2 && parsed2.total_orfaos === 0, JSON.stringify(parsed2 && parsed2.total_orfaos));
 }
 
+
+// ── (e2) 2a raiz: memory/requisitos — orfao MUDO conta, orfao DATADO nao ──────
+// Por que este caso existe: o #7335 pagou A MAO 61 docs de requisitos que apontavam pro
+// `prototipo-ui/prototipos` morto ha meses. O gate nao via, porque so olhava charters.
+// Aqui o bite-test prova as DUAS pernas: morde o mudo E LIBERA o que ja declara a morte
+// (registro datado nao e divida — se essa perna quebrar, o gate passa a punir quem
+// documentou direito, que e o falso-positivo de 29% medido antes de ligar).
+{
+  const root = mkdtempSync(join(tmpdir(), 'reqptr-'));
+  mkdirSync(join(root, 'resources', 'js', 'Pages'), { recursive: true });
+  mkdirSync(join(root, 'memory', 'requisitos', 'Demo'), { recursive: true });
+  mkdirSync(join(root, 'prototipo-ui', 'cowork', 'Wagner'), { recursive: true });
+  writeFileSync(join(root, 'prototipo-ui', 'cowork', 'Wagner', 'vivo-page.jsx'), '<div/>');
+  writeFileSync(join(root, 'memory', 'requisitos', 'Demo', 'RUNBOOK-demo.md'), [
+    '---', 'tela: Demo/Index', '---', '',
+    '# RUNBOOK', '',
+    '- vivo:   `prototipo-ui/cowork/Wagner/vivo-page.jsx`',
+    '- mudo:   `prototipo-ui/prototipos/fantasma/page.jsx`',
+    '- datado: `prototipo-ui/prototipos/outro/page.jsx` (removido em 2026-05-20, 1070e3759b7)',
+    '',
+  ].join('\n'));
+  const r = spawnSync('node', [POINTERS, '--json'], { cwd: root, encoding: 'utf8' });
+  let j = null;
+  try { j = JSON.parse(r.stdout); } catch { /* */ }
+  check('(e2) morde o orfao MUDO de memory/requisitos',
+    j && j.requisitos_total_orfaos === 1, JSON.stringify(j && j.requisitos_total_orfaos));
+  check('(e2) o orfao DATADO nao e cobrado (controle negativo)',
+    j && JSON.stringify(j.requisitos_detalhe || []).includes('fantasma')
+      && !JSON.stringify(j.requisitos_detalhe || []).includes('outro/page.jsx'),
+    JSON.stringify(j && j.requisitos_detalhe));
+  check('(e2) o ponteiro VIVO nao e cobrado',
+    j && !JSON.stringify(j.requisitos_detalhe || []).includes('vivo-page.jsx'),
+    JSON.stringify(j && j.requisitos_detalhe));
+  // a 2a raiz e ADVISORY: nao pode mudar o veredito do --strict (que e dos charters)
+  const st = spawnSync('node', [POINTERS, '--strict'], { cwd: root, encoding: 'utf8' });
+  check('(e2) 2a raiz NAO entra no --strict (advisory)', st.status === 0, `status=${st.status}`);
+}
+
 // ── (f) bundle_source/visual_source como perna da cadeia de protótipo ─────────
 // Por que este grupo existe (2026-09-09): o gate resolvia o protótipo por
 // blueprint_cowork → cowork-map → Refs, e NÃO conhecia `bundle_source` — o campo que o
