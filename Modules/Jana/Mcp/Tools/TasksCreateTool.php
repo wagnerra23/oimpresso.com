@@ -14,9 +14,8 @@ use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 /**
  * TaskRegistry Fase 1 (US-TR-005) — Tool tasks-create.
  *
- * Gera nova US-* no SPEC.md do módulo e registra evento.
- * Se o servidor não tiver permissão de escrita, retorna o markdown
- * pra o usuário colar manualmente.
+ * Gera o BLOCO markdown de uma US-* nova e registra o evento. NÃO escreve em
+ * arquivo: quem materializa a US é o chamador, commitando no git (US-COPI-149).
  *
  * O próximo webhook (após git push) sincroniza a nova task pro DB.
  */
@@ -28,7 +27,7 @@ class TasksCreateTool extends Tool
 
     protected string $title = 'Criar nova task (US-*) no SPEC.md';
 
-    protected string $description = 'Cria uma nova US-* no SPEC.md do módulo especificado. O ID é gerado automaticamente (US-{MODULE}-{NNN}). Se o servidor tiver acesso de escrita, o arquivo é atualizado on-the-spot; senão retorna o markdown pra colar manualmente. O próximo git push + webhook sincroniza pro DB.';
+    protected string $description = 'Gera o bloco markdown de uma US-* nova e reserva o ID (US-{MODULE}-{NNN}). NÃO escreve no SPEC: você cola o bloco no seu repo, commita e pusha — o webhook sincroniza pro DB. A US só existe depois do commit.';
 
     public function schema(JsonSchema $schema): array
     {
@@ -92,21 +91,21 @@ class TasksCreateTool extends Tool
         }
 
         $taskId   = $result['task_id'];
-        $written  = $result['written'];
         $specPath = $result['spec_path'];
         $markdown = $result['markdown'];
 
-        if ($written) {
-            $out  = "✅ **{$taskId}** criada e adicionada em `{$specPath}`.\n\n";
-            $out .= "Faça `git add {$specPath} && git commit -m 'feat: {$taskId}'` e o webhook sincronizará pro DB.\n\n";
-            $out .= "**Bloco gerado:**\n```markdown{$markdown}```";
-        } else {
-            $out  = "⚠️ **{$taskId}** gerada, mas não foi possível escrever no arquivo (permissão).\n\n";
-            $out .= "Copie o bloco abaixo e adicione manualmente em `{$specPath}`:\n\n";
+        // US-COPI-149: um ramo só, e ele NÃO afirma durabilidade. A US existe
+        // quando o chamador commita — não quando esta tool responde. O ramo
+        // antigo dizia "criada e adicionada" e mandava rodar `git add` num path
+        // do SERVIDOR, que o deploy apaga e onde ninguém pode commitar.
+        $out = "📋 **{$taskId}** gerada — **ela ainda NÃO existe** até você commitar.\n\n";
+        if ($markdown !== null && $specPath !== null) {
+            $out .= "Cole o bloco abaixo em `{$specPath}` **no seu repo**, commite e pushe — o webhook sincroniza pro DB.\n\n";
             $out .= "```markdown{$markdown}```\n\n";
-            $out .= "_Após o commit+push, o webhook sincronizará pro DB automaticamente._";
+            $out .= "_O ID já está reservado contra colisão (max(DB, SPEC)). Nada foi escrito no servidor: o SPEC é a fonte de US nova (ADR 0144), e escrita no checkout de lá é apagada pelo próximo deploy (US-COPI-149)._";
+        } else {
+            $out .= "_Task ad-hoc (projeto sem módulo canônico): não há bloco de SPEC — ela vive no DB._";
         }
-
         return Response::text($out);
     }
 }
