@@ -97,8 +97,10 @@ consumi-la como régua. A poda sai em ondas, cada uma deixando a árvore verde:
 > `D1..D9` em código (fato datado — §Consequências 5); o par `governance-module-grades-gap.md` +
 > `.map.json`, preservado por decisão [W] com lápide; e as **3 labels** do GitHub
 > (`module-grades-allowed-regression` · `module-grades-new-module-allowed` · `bucket-change-approved`),
-> que **153/155** PRs históricos distintos carregam — são registro, e removê-las é decisão [W] em
-> separado.
+> que **153/155** PRs históricos distintos carregam — são registro. **Decisão [W] em 2026-09-15:
+> MANTER as três.** Não são lixo: apagá-las removeria o rótulo de 155 PRs mergeados, e nenhum
+> gate as lê mais, então o custo de mantê-las é zero. Quem reabrir isso precisa enfrentar o mesmo
+> número.
 >
 > **Resíduos de código medidos na varredura final e NÃO tocados** (cada um custa PR próprio, nenhum
 > é Tier 0): `routes/web.php:1268` redireciona 301 para a rota que a Onda 2 transformou em 404; a
