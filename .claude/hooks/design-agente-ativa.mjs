@@ -80,7 +80,7 @@ if (process.argv.includes('--selftest')) {
     ['merge aprovado', false], ['aprovo f1.5', false], ['Sua decisão, gate F1.5 ok', false],
     ['São erros e precisam ser corrigidos', false], ['Pode fazer', false],
     ['não podemudar em silencio', false],
-    // ⚠️ CONHECIDO e aceito: typo grudado não dispara — o `` antes de `abr` não casa em
+    // ⚠️ CONHECIDO e aceito: typo grudado não dispara — o `\b` antes de `abr` não casa em
     // "podeabrir". Tirar a fronteira faria "sabre"/"cabrito" dispararem; o FP não compensa.
     ['podeabrir o prototipo atulizado dajana', false],
     ['confere o layout do drawer', true],

@@ -79,7 +79,7 @@ describe('UC-JPAIN-20 — a moldura e o rótulo vêm da âncora', () => {
     // `rounded-lg` aqui reproduziria exatamente o r12 que a medição acusou como defeito.
     const { card } = renderCard();
     expect(card.className).toContain('rounded-[var(--radius,8px)]');
-    expect(card.className).not.toMatch(/rounded-(?:lg|xl|md|sm|full)/);
+    expect(card.className).not.toMatch(/\brounded-(?:lg|xl|md|sm|full)\b/);
   });
 
   it('o padding é 12/14/14 e o gap 3px — não o p-4 do PT-04', () => {
