@@ -75,6 +75,9 @@ jobs:
       - name: Read-side do floor — meta-teste (hard · ADR 0279 PR-1 · US-GOV-023)
         run: node scripts/governance/sdd-floor-read.test.mjs
 
+      - name: Preservação do fato quando a leitura falha — meta-teste (hard · §5 2026-07-29)
+        run: node scripts/governance/sdd-carried-over.test.mjs
+
       - name: Read-side do ragas_real_uptime — meta-teste (hard · ADR 0318 · transporte 0279)
         run: node scripts/governance/sdd-ragas-read.test.mjs
 
