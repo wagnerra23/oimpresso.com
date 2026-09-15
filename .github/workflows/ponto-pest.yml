@@ -312,6 +312,7 @@ jobs:
             Modules/Ponto/Tests/Feature/ColaboradorContratoTest.php \
             Modules/Ponto/Tests/Feature/ConfiguracaoContratoTest.php \
             Modules/Ponto/Tests/Feature/EscalaIndexContratoTest.php \
+            Modules/Ponto/Tests/Feature/EscalaRemocaoContratoTest.php \
             Modules/Ponto/Tests/Feature/WelcomeContratoTest.php \
             Modules/Ponto/Tests/Feature/CustomerJourneyTest.php \
             Modules/Ponto/Tests/Feature/DashboardDeferredContractTest.php \

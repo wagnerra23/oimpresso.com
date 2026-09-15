@@ -97,4 +97,32 @@ class Escala extends Model
     {
         return $this->hasMany(Colaborador::class, 'escala_atual_id');
     }
+
+    /**
+     * Quantos colaboradores ainda usam esta escala.
+     *
+     * Existe como METODO, e nao inline no controller, por uma razao de teste: o controller roda
+     * sob `HasBusinessScope` + sessao, o que amarra qualquer caso ao tenant do usuario logado. A
+     * decisao em si nao depende de sessao nenhuma, e por isso ela mora aqui — onde da pra exercitar
+     * num tenant ficticio, que e o que a doutrina de teste permite (proibicoes §5 2026-08-24:
+     * fixture no tenant REAL e do seed, no ficticio e livre).
+     */
+    public function vinculosAtivos(): int
+    {
+        return $this->colaboradores()->count();
+    }
+
+    /**
+     * D-ESC-DESTROY ([W] 2026-09-14): remover e permitido SO sem vinculo.
+     *
+     * Apagar escala em uso deixa `ponto_colaborador_config.escala_atual_id` apontando pra linha
+     * morta — e a coluna NAO tem FK (migration 2026_04_18_000001, `unsigned()->nullable()` sem
+     * `foreign()`), entao o banco nao segura nada. Escala e o que define a jornada ESPERADA na
+     * apuracao: sem ela o calculo de HE e intrajornada perde a referencia (CLT Art. 58/59).
+     * Integridade de dado com efeito em folha, nao UX.
+     */
+    public function podeSerRemovida(): bool
+    {
+        return $this->vinculosAtivos() === 0;
+    }
 }
