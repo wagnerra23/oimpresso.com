@@ -60,7 +60,7 @@ exige Wagner desempatar explicitamente** (matriz governance UI-0013: Wagner é
 ## Tabela de gaps por PARTE
 
 > ⚠️ **Errata datada 2026-09-08 — as linhas #6/#7/#11 falam de um protótipo que já não é a fonte.**
-> Elas medem contra `prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html`, apagado em _(removido em 2026-06-23, 9da73296d34)_
+> Elas medem contra `prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html`, apagado em
 > 2026-06-23 (ver `prototipo_nota` no frontmatter). A fonte de hoje é `prototipo-ui/cowork/Wagner/data.jsx`
 > — e ele **não** "congelou nos 5 originais": tem os **mesmos 8 grupos do vivo, na mesma ordem**, mais
 > um 9º (`PLATAFORMA`). O veredito "NÃO regredir 8→5" continua certo pelo motivo certo, mas a

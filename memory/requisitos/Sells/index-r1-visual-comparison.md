@@ -360,7 +360,7 @@ Total estimado: **6-7h** (recalibrado fator 10x [ADR 0106](../../decisions/0106-
 
 | Data | Quem | Fase | Notas |
 |---|---|---|---|
-| 2026-05-17 | [CL] Claude Code | F0 | Bundle copiado em `prototipo-ui/prototipos/sells-index/` (2.8MB, 96 arquivos) | _(removido em 2026-05-20, 1070e3759b7)_
+| 2026-05-17 | [CL] Claude Code | F0 | Bundle copiado em `prototipo-ui/prototipos/sells-index/` (2.8MB, 96 arquivos) _(removido em 2026-05-20, 1070e3759b7)_ |
 | 2026-05-17 | [CL] Claude Code | F1 draft | Este documento — 15 dimensões + plug-points |
 | 2026-05-17 | [W2] Wagner | F1 approval | **APROVADO** via screenshot Brave colado no chat — "resultado esperado". Pivote pra cópia integral (não slice). |
 | 2026-05-17 | [CL] Claude Code | F2-F5 | Cópia integral implementada — backend (10 fields) + Index.tsx rewrite (~1100 LOC) + CSS scoped (7331 LOC) + 11 Pest novos + 9 legacy skipped com razão canon. |

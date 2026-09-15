@@ -21,8 +21,8 @@ veredito: CONFORME
 
 ### ⚠️ Ponteiros de protótipo órfãos (apontam pro vácuo)
 
-- `prototipo-ui/prototipos/produto-cockpit (frontmatter:blueprint_cowork)` _(removido em 2026-05-20, 1070e3759b7)_
-- `prototipo-ui/prototipos/produto (cowork-map:produto)` _(removido em 2026-05-20, 1070e3759b7)_
+- `prototipo-ui/prototipos/produto-cockpit (frontmatter:blueprint_cowork)`
+- `prototipo-ui/prototipos/produto (cowork-map:produto)`
 - `ui_kits/cowork-2026-05-09/prod-page.jsx (charter:Refs)`
 
 ## Matriz (6 slots PT-01)

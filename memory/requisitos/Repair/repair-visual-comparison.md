@@ -9,7 +9,7 @@ id: requisitos-repair-repair-visual-comparison
 
 ## Pattern Reuse
 
-Blueprint canônico: **`prototipo-ui/cowork/Wagner/repair-page.jsx`** (OsDetailPanel adaptado).
+Blueprint canônico: **`prototipo-ui/cowork/Wagner/os-page.jsx`** (OsDetailPanel adaptado).
 
 | Aspecto | Blueprint | Repair/Show |
 |---|---|---|
