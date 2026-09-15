@@ -233,14 +233,13 @@
     },
     "drift_alarms": {
       "status": "measured",
-      "value": 2,
+      "value": 1,
       "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
         "reds": [
-          "required SUMIU do vivo: \"PageHeader · ratchet (header antigo só decresce)\" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)",
           "required SUMIU do vivo: \"handoff integrity (órfão/ref-morta só sobe = vermelho)\" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)"
         ],
         "warns": 0,
