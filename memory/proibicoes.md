@@ -262,6 +262,28 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 > **Por que existe:** o método de design ([`memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md`](../memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md) §5) tem um registro de "tentei, reprovou, não repete". O mundo de **código** não tinha equivalente — então uma sessão futura **re-propõe ideia morta** e regride na prática. Este é o §5 do código (Opção B: sistema separado do design, mesmo princípio). **Antes de propor abordagem técnica, conferir aqui; se bater, eu mesmo barro e cito a entrada.**
 >
 > Estrutura de cada entrada (igual ao §5): **o que foi tentado · por que caiu · o limite (a variante parecida também é proibida)**. Append-only — nada sai daqui sem ADR explícito.
+>
+> ## Lápide NOVA não escreve `nº N` (2026-09-15 — forward-only)
+> Feche a lápide com **`Ocorrência da **LC-NN**.`** — a **classe**, sem número. Nunca
+> `Ocorrência **LC-NN nº 158**`.
+>
+> **Por quê, medido em 2026-09-15:** o número **restateia o que o ledger sabe melhor**, e o
+> ledger passou a derivá-lo ([`LICOES_CODE.md`](LICOES_CODE.md): `base:<N>` + 1 por `- **rec**`,
+> [PR #7316](https://github.com/wagnerra23/oimpresso.com/pull/7316)) — é literalmente a lápide
+> §5 2026-07-17 (*"doc canônico restatear número que outro sistema sabe melhor"*), **mesma
+> família**. Some a isso que ele é **escolhido à mão no instante da escrita**: duas sessões
+> registrando no mesmo dia escolhem o mesmo N e só um merge manual separa (aconteceu no ledger
+> hoje, 156→157→158). E **nenhuma máquina o lê** — varri os 1506 arquivos versionados de
+> `.claude/`, `scripts/`, `memory/decisions/` e `memory/reference/`: **zero** o parseiam,
+> **zero** instruem escrevê-lo. Ele nasceu por imitação.
+>
+> **Como referenciar uma lápide** (a convenção que o §5 já usa e que não colide): **data +
+> apelido** — *"§5 2026-07-17, drift-sentinel"*. É o cabeçalho `### <data> — <título>`, estável
+> e único; o vínculo lápide↔recibo do ledger já é feito **por data** pelo `--reconcile`, não
+> pelo número.
+>
+> **As lápides antigas ficam como estão** (append-only Tier 0): 17 auto-declarações + 1 citação
+> legítima em 2026-09-15. Isto vale para lápide NOVA — não é backfill (§5 2026-07-12).
 
 > ⚠️ **Esta seção é DERIVADA — não edite aqui.** A fonte é
 > [`memory/licoes-rejeitadas.md`](licoes-rejeitadas.md) (append-only Tier 0), que carrega cada
