@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use IlluminateSupportFacadesFile;
-use ModulesJanaServicesTaskRegistryTaskCrudService;
+use Illuminate\Support\Facades\File;
+use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 
-uses(TestsTestCase::class);
+uses(Tests\TestCase::class);
 
 /**
  * US-COPI-149 — GUARD: `tasks-create` NAO escreve no checkout do servidor.
@@ -70,7 +70,7 @@ test("create() ainda DEVOLVE o markdown e o id — a capacidade nao regrediu", f
         "author" => "pest",
     ]);
 
-    expect($r["task_id"])->toMatch("/^US-[A-Z0-9]+-d+$/",
+    expect($r["task_id"])->toMatch("/^US-[A-Z0-9]+-\d+$/",
         "o id precisa continuar sendo gerado — sem ele o chamador nao tem o que colar");
     expect($r["markdown"])->not->toBeNull("sem markdown o chamador fica sem o bloco pra commitar");
     expect($r["markdown"])->toContain($r["task_id"]);
