@@ -1,7 +1,7 @@
 ---
 date: "2026-09-15"
 hour: "12:20 BRT"
-duration: "~7h (atravessa 14→15/09)"
+duration: "7h"
 topic: "Importar o handoff 19 do Cowork, aplicar o ciclo Ponto no produto e ligar o PASSO 0 na rota ZIP"
 authors: [W, C]
 outcomes:
@@ -16,6 +16,8 @@ related_adrs: ["0390-espelho-cowork-build-only", "0374-emenda-0315-espelho-cowor
 ---
 
 # Sessão 2026-09-15 — handoff 19: ciclo Ponto no produto + PASSO 0 na rota ZIP
+
+> Janela real: começou em **2026-09-14** (import do handoff) e fechou em **15/09**. O `duration` do frontmatter tem `pattern` fixo (`^[0-9]+(\.[0-9]+)?h$`), então a travessia de data mora aqui, em prosa — não no campo.
 
 ## TL;DR
 
