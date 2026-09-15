@@ -272,6 +272,27 @@ try {
   const hYaml = rodaCp1252('handoff', 'memory/handoffs/2026-01-02-1300-yaml-quebrado.md');
   ok(hYaml.status === 1 && /falha ao LER o frontmatter/.test(hYaml.stderr) && !/ ausente/.test(hYaml.stderr),
     `YAML ilegivel acusa falha de LEITURA, nao ausencia (exit ${hYaml.status})`);
+
+  // PERNA 5 — o RODAPE nao afirma ter validado o que nem existe.
+  //
+  // Ate 2026-09-15 o `[[ ! -f ]]` saia do laco sem contar em nada, e como o rodape
+  // faz `TOTAL - SKIPPED`, um path inexistente entrava na conta de VALIDADOS. Medido
+  // no dia: 50 paths com CR de CRLF renderam `Arquivos validados: 50 (skipados: 0)
+  // — erros: 0`, e a comparacao que dependia daquele numero mediu o nada.
+  // Os 3 baldes SOMAM o total; o assert confere a conta, nao so a palavra.
+  console.log('PERNA 5 — o rodape conta o inexistente em vez de chama-lo de validado');
+  const fantasma = roda('handoff', 'memory/handoffs/2026-01-02-0000-nao-existe-mesmo.md');
+  ok(fantasma.status === 1,
+    `arquivo inexistente REPROVA (exit ${fantasma.status}) — antes saia 0, indistinguivel de "nada regrediu"`);
+  ok(/Arquivos validados: 0 de 1 \(pulados: 0 · inexistentes: 1\)/.test(fantasma.stderr),
+    'o rodape declara 0 validados e 1 inexistente (validados + pulados + inexistentes = total)');
+  ok(/arquivo n[aã]o existe/.test(fantasma.stderr) && /::error/.test(fantasma.stderr),
+    'a acusacao sai como ERRO anotado, nao como um [SKIP] de aparencia benigna');
+
+  // CONTROLE NEGATIVO da PERNA 5: arquivo que EXISTE e passa segue com rodape de 1 validado.
+  const vivo = roda('handoff', 'memory/handoffs/2026-01-02-0930-handoff-bom.md');
+  ok(vivo.status === 0 && /Arquivos validados: 1 de 1 \(pulados: 0 · inexistentes: 0\)/.test(vivo.stderr),
+    `handoff existente segue contando como 1 validado (exit ${vivo.status})`);
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }

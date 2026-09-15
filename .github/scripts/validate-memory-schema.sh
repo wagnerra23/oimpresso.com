@@ -17,7 +17,8 @@
 #
 # Exit:
 #   0 = sem violations
-#   1 = violations encontradas (lista em stderr, JSON em $VIOLATIONS_JSON)
+#   1 = violations encontradas (lista em stderr, JSON em $VIOLATIONS_JSON) — inclui
+#       "arquivo não existe", que desde 2026-09-15 é violação e não pulo silencioso
 #   2 = erro de uso (type/args inválidos)
 #
 # Override: arquivo pode conter linha `<!-- schema-allowlist: <razão> -->` pra
@@ -43,6 +44,12 @@ VIOLATIONS_JSON="${VIOLATIONS_JSON:-violations.json}"
 VIOLATIONS=()
 FAILED=0
 SKIPPED=0
+# MISSING é contado SEPARADO de SKIPPED de propósito: "pulei porque é template" e
+# "não consegui nem abrir" são fatos diferentes sobre o mundo. Até 2026-09-15 o
+# arquivo inexistente saía do laço sem contar em nada, e o rodapé — que faz
+# `TOTAL - SKIPPED` — afirmava tê-lo VALIDADO. Medido no dia: 50 paths tortos (CR
+# de CRLF numa lista) renderam `Arquivos validados: 50 (skipados: 0) — erros: 0`.
+MISSING=0
 
 # Detecta binário Python (GHA Linux runner tem python3; Windows local tem python).
 PYTHON_BIN=""
@@ -412,7 +419,15 @@ validate_handoff() {
 # Loop arquivos.
 for FILE in "$@"; do
   if [[ ! -f "$FILE" ]]; then
-    echo "[SKIP] arquivo não existe: $FILE" >&2
+    # ERRO, não `[SKIP]`: o validador não mediu NADA sobre este path, e quem pediu
+    # pra validá-lo merece saber alto. A invocação é que está errada — path torto,
+    # CR de CRLF na lista, glob que não casou, arquivo renomeado depois do diff.
+    # Risco de falso-positivo em CI medido em 2026-09-15: os 3 jobs usam
+    # `--diff-filter=AM`/`=A` (nunca deletados) e ZERO arquivo sob `memory/` tem
+    # espaço no nome (controle positivo: 3951 têm hífen), então o `xargs` não parte
+    # path nenhum — em CI este caminho não deveria ocorrer, e se ocorrer é defeito.
+    MISSING=$((MISSING + 1))
+    add_violation "$FILE" "error" "arquivo não existe — o validador não mediu NADA sobre ele; isto NÃO é 'pulado', é invocação errada (path torto, CR de CRLF na lista, glob que não casou)"
     continue
   fi
 
@@ -458,7 +473,9 @@ done
 } > "$VIOLATIONS_JSON"
 
 TOTAL=$#
-echo "Arquivos validados: $((TOTAL - SKIPPED)) (skipados: ${SKIPPED}) — erros: ${FAILED}" >&2
+# Os três baldes SOMAM o total de propósito: validados + pulados + inexistentes = $#.
+# Quem ler qualquer um deles consegue conferir a conta sem abrir o log inteiro.
+echo "Arquivos validados: $((TOTAL - SKIPPED - MISSING)) de ${TOTAL} (pulados: ${SKIPPED} · inexistentes: ${MISSING}) — erros: ${FAILED}" >&2
 echo "NOTA: este script cobre filename + seções do corpo + campos mínimos. O JSON Schema COMPLETO (maxLength, enums, patterns de prs/us/related_adrs) é aplicado pelo Ajv no CI (memory-schema-gate.yml, job 'Validate frontmatter against schema') — 'erros: 0' aqui NÃO garante ajv verde." >&2
 
 if [[ "$FAILED" -gt 0 ]]; then
