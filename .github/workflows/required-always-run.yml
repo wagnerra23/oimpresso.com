@@ -52,16 +52,18 @@ jobs:
       - name: Auditar contexts required
         run: node scripts/governance/required-always-run.mjs
 
-  # 5º eixo, em job SEPARADO e ADVISORY de propósito (ADR 0275: gate nasce advisory).
-  # Fora do job `lint` porque aquele É REQUIRED: um eixo novo ali poderia travar o
-  # merge do repo no primeiro falso-positivo — exatamente o dano que este eixo existe
-  # pra evitar. Promoção a required é flip [W], com bite-log (ADR 0336 DR-2).
+  # 5º eixo, em job SEPARADO do `lint`. Nasceu advisory (ADR 0275) e foi promovido a
+  # required em 2026-09-15 por flip [W] — a justificativa, com os desvios declarados,
+  # está em `_meta.promocoes` do governance/required-checks-baseline.json (dono único
+  # de "o que é required"; este comentário aponta, não restateia — LC-10).
+  # Segue em job separado porque um eixo novo dentro do `lint` misturaria dois
+  # vereditos num check só.
   #
   # `fetch-depth: 0` é obrigatório: o eixo compara a árvore do PR contra a BASE, e o
   # checkout raso padrão não tem `origin/main` pra ler. Sem isso o script sai 2
   # (NÃO MEDIDO) e diz que não mediu — nunca verde silencioso.
   rename:
-    name: Required rename — PRs abertos sobrevivem à promoção (advisory)
+    name: Required rename — PRs abertos sobrevivem à promoção
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
