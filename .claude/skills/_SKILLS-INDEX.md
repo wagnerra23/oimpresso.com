@@ -37,7 +37,7 @@
 | feedback-capture | B | — | sim | ATIVAR quando Wagner colar feedback de cliente real OU disser "Daniela reclamou X", "Larissa pediu Y", "Kamila falou … |
 | feedback-dashboard | B | — | sim | ATIVAR quando Wagner pedir "/feedback-dashboard", "mostra feedback", "como está o feedback", "que feedback tem aberto… |
 | funcao-scorecard | B | — | sim | ATIVAR quando [W] pedir "o que você acha dessas funções", "concorda com essa função?", "avalie as funções do <arquivo… |
-| governance-pr-summary | B | — | sim | Use ANTES de `gh pr create` em qualquer branch que toque Modules/<X>/. Lê módulos afetados via `git diff --name-only … |
+| governance-pr-summary | B | — | sim | Use ANTES de `gh pr create` em qualquer branch que toque Modules/<X>/. ⚠️ PARCIALMENTE APOSENTADA (ADR 0399, 2026-09-… |
 | hostinger-dns-autonomy | A | — | sim | BLOQUEADOR Tier A — ATIVAR antes de pedir Wagner pra criar/editar DNS record, qualquer ação Hostinger painel/UI, OU s… |
 | incident-done-checklist | A | — | sim | BLOQUEADOR — ATIVAR antes de declarar "incident fechado" / "está pronto" / "feature funcionando" / encerrar sessão de… |
 | inertia-defer-default | B | — | sim | Use SEMPRE antes de Edit em qualquer Controller que chama `Inertia::render(...)` no oimpresso (qualquer `Modules/<X>/… |

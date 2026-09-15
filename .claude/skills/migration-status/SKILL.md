@@ -21,7 +21,7 @@ related_adrs:
   - 0171-oficinaauto-ativacao-piloto-martinho-faseada  # piloto Martinho
 related_skills:
   - comparativo-do-modulo                  # pattern análogo: FICHA × SPEC × código
-  - avaliar-modulo                         # rubrica module-grade-v3 (paralelo)
+  # - avaliar-modulo                       # ⚰️ APOSENTADA (ADR 0399, 2026-09-15) — rubrica module-grade deletada
   - officeimpresso-financial-snapshot      # probe Firebird per cliente
   - officeimpresso-source-analysis         # leitura Controllers .pas Delphi
 triggers_on:
@@ -90,7 +90,7 @@ Triggers explícitos:
 ## Quando NÃO ativar
 
 - Wagner pergunta gap de mercado vs concorrentes → skill **`comparativo-do-modulo`**
-- Wagner pergunta nota agregada do módulo → skill **`avaliar-modulo`** (`module-grade-v3`)
+- ~~Wagner pergunta nota agregada do módulo → skill `avaliar-modulo`~~ — ⚰️ a rubrica `module-grade` foi aposentada ([ADR 0399](../../../memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md)); **não existe mais nota de módulo**. Estado do módulo hoje: `memory/requisitos/<X>/BRIEFING.md`
 - Wagner pede probe Firebird de cliente específico → skill **`officeimpresso-financial-snapshot`**
 - Wagner pede leitura de Controller Delphi `.pas` → skill **`officeimpresso-source-analysis`**
 
@@ -195,7 +195,7 @@ Cita explicitamente quem bloqueia o quê + por que (US, ADR feature-wish, sinal 
 
 - Volume Firebird = ServidorWR2 Wagner. Cliente real (ex: Martinho biz=164) pode ter ordem de grandeza diferente
 - `tasks-list status:done` pode mostrar 0% mesmo com código vivo (drift SPEC vs MCP)
-- % composta usa heurística de pesos — se Wagner quer rubrica oficial, usar skill `avaliar-modulo` (module-grade-v3)
+- % composta usa heurística de pesos — **não há mais rubrica oficial para desempatar** (a `avaliar-modulo` foi aposentada pela ADR 0399); a heurística daqui é o número que existe
 - Snapshot só de prod biz=Wagner (biz=1). Pra cliente específico, sugerir `officeimpresso-financial-snapshot`
 
 **Próxima ação ROI-ordenada:**
@@ -247,7 +247,7 @@ Cita explicitamente quem bloqueia o quê + por que (US, ADR feature-wish, sinal 
 ## Limitações conhecidas
 
 - **Sem acesso prod**: snapshot de cliente real exige skill `officeimpresso-financial-snapshot` em runtime (chave do cliente + SCP query Python). Skill `migration-status` lê só schema canônico + estimates ServidorWR2.
-- **Pesos da composição são heurística**: pra rubrica oficial governada, usar `avaliar-modulo` (module-grade-v3 — ADR 0155).
+- **Pesos da composição são heurística**: não há rubrica oficial para substituí-la — a `avaliar-modulo` (module-grade v3) foi aposentada pela ADR 0399 em 2026-09-15.
 - **Cobertura mapping Delphi**: depende de `MAPEAMENTO-DELPHI-LARAVEL.md` estar atualizado. Felipe owna esse doc. Quando estiver stale, skill avisa "TODO refresh mapping".
 
 ## Casos de uso
