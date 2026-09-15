@@ -38,6 +38,7 @@
   --neg-soft: oklch(0.36 0.12 25);
   --warn: oklch(0.82 0.16 75);
   --warn-soft: oklch(0.37 0.11 70);
+  --bubble-me: oklch(0.55 0.15 295);
   --bubble-them: oklch(0.32 0.008 282);
   --thread-bg-from: oklch(0.24 0.008 282 / 0.35);
   --thread-bg-to: oklch(0.24 0.008 282 / 0.20);
