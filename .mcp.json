@@ -5,6 +5,9 @@
   "mcpServers": {
     "oimpresso": {
       "url": "https://mcp.oimpresso.com/api/mcp",
+      "type": "http",
+      "headers": { "Authorization": "Bearer ${OIMPRESSO_MCP_TOKEN}" },
+      "_pegadinha_type": "2026-09-15: entrada com \"url\" e SEM \"type\" foi PULADA pelo cliente 2.1.257 — saiu como `Skipped` e o servidor nao aparecia nem como `failed` na sessao (some da lista inteira); o aviso so existia rodando `claude mcp list`. Nao remover o \"type\".",
       "_note": "Chame brief-fetch PRIMEIRO (ADR 0091). NÃO enumerar as tools aqui: esta linha drifou nos dois sentidos — em 2026-09-02 citava 4 famílias inexistentes (projects-*, epics-*, dashboard-burndown, dashboard-velocity) e omitia ~25 reais, o próprio brief-fetch incluso. Oráculo da lista = tools/list do servidor (44 tools em 2026-09-02) ou Modules/Jana/Mcp/OimpressoMcpServer.php. ATENÇÃO: tools/list é PAGINADO de 15 em 15 (nextCursor) — ler 1 página e concluir \"faltam tools\" é armadilha já medida, ver memory/requisitos/Infra/RUNBOOK-acesso-ct100.md seção Pegadinhas 7. Token via .claude/settings.local.json"
     },
     "laravel-boost": {

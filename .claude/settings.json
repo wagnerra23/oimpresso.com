@@ -356,5 +356,9 @@
         ]
       }
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "oimpresso",
+    "laravel-boost"
+  ]
 }
