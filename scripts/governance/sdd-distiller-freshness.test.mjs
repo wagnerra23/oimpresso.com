@@ -34,11 +34,14 @@ function makeReq(spec) {
 }
 /** newestDocDate injetado a partir de um mapa por nome de módulo. */
 const newestFrom = (map) => (modDir) => map[basename(modDir)] ?? null;
+/** newestCodeDate injetado (2ª fonte do evento). `nada` = fonte sem opinião em toda porta. */
+const codeFrom = (map) => (modDir) => map[basename(modDir)] ?? null;
+const nada = () => null;
 
 // ── A: zero carimbadas → notYet ─────────────────────────────────────────────
 let dir = makeReq({ SemCarimbo: {}, Outra: {} });
 try {
-  const r = measureDistillerFreshness(dir, { newestDocDate: newestFrom({}) });
+  const r = measureDistillerFreshness(dir, { newestDocDate: newestFrom({}), newestCodeDate: nada });
   ok(r.status === 'not_yet_measured', 'zero portas carimbadas → not_yet_measured');
   ok(r.value === null, 'sem carimbo → value null (não mente 0)');
 } finally { rmSync(dir, { recursive: true, force: true }); }
@@ -53,6 +56,7 @@ dir = makeReq({
 try {
   const r = measureDistillerFreshness(dir, {
     newestDocDate: newestFrom({ Fresca: '2026-06-16', Atrasada: '2026-06-18' }),
+    newestCodeDate: nada,
   });
   ok(r.status === 'measured', '≥1 carimbada → measured');
   ok(r.value === 1, 'value === 1 (só a Atrasada está >7d atrás do doc mais novo)');
@@ -67,7 +71,7 @@ try {
 // ── C isolado: fresca dentro de 7d não conta ────────────────────────────────
 dir = makeReq({ Fresca: { distilledAt: '2026-06-15' } });
 try {
-  const r = measureDistillerFreshness(dir, { newestDocDate: newestFrom({ Fresca: '2026-06-20' }) });
+  const r = measureDistillerFreshness(dir, { newestDocDate: newestFrom({ Fresca: '2026-06-20' }), newestCodeDate: nada });
   ok(r.status === 'measured' && r.value === 0, 'porta carimbada e fresca (5d) → value 0');
 } finally { rmSync(dir, { recursive: true, force: true }); }
 
@@ -80,8 +84,17 @@ try {
   const r2 = measureDistillerFreshness(dir, {
     shallow: () => true,
     newestDocDate: newestFrom({ CarimbadaVelha: '2026-05-02' }),
+    newestCodeDate: nada,
   });
   ok(r2.status === 'measured' && r2.value === 0, 'fonte injetada ignora o guard de shallow (determinístico)');
+  // O guard tem que valer pras DUAS fontes: deixar a do CÓDIGO no default git num checkout
+  // shallow mediria calendário, não evento — mesmo com a do doc injetada.
+  const r3 = measureDistillerFreshness(dir, {
+    shallow: () => true,
+    newestDocDate: newestFrom({ CarimbadaVelha: '2026-05-02' }),
+  });
+  ok(r3.status === 'not_yet_measured',
+    'shallow + fonte do CÓDIGO no default git → not_yet_measured (guard cobre as 2 fontes)');
 } finally { rmSync(dir, { recursive: true, force: true }); }
 
 // ── E: reqDir ausente → notYet ──────────────────────────────────────────────
@@ -109,6 +122,75 @@ ok(!isDocGerado('x.md', ler('# sem frontmatter\n')),
   'doc sem frontmatter → CONTA como conhecimento (controle negativo)');
 ok(!isDocGerado('x.md', () => { throw new Error('EACCES'); }),
   'ilegível → false: na dúvida o doc CONTA (erra pro lado de acusar stale, não de esconder)');
+
+// ── H: UNIÃO das 2 fontes do evento — doc OU código (2026-09-15) ──────────────
+// Os dois eixos são cegos em lugares DIFERENTES e os flips vão pra lados OPOSTOS, então a
+// regra SOMA em vez de trocar. Casos reais que deram origem a isto (medidos 2026-09-15):
+//   Jana   — doc fresco (5d; o único doc novo era `authority: generated`, excluído)
+//            + código atrás (9d)   → só a fonte do CÓDIGO vê;
+//   Fiscal — doc atrás (8d, reescrita de VEREDITO num gap) + código fresco (5d)
+//                                  → só a fonte do DOC vê.
+dir = makeReq({
+  SoCodigoVe: { distilledAt: '2026-09-06' },   // padrão Jana
+  SoDocVe: { distilledAt: '2026-09-06' },      // padrão Fiscal
+  NenhumVe: { distilledAt: '2026-09-06' },     // controle NEGATIVO: os dois frescos
+});
+try {
+  const r = measureDistillerFreshness(dir, {
+    newestDocDate: newestFrom({ SoCodigoVe: '2026-09-11', SoDocVe: '2026-09-14', NenhumVe: '2026-09-11' }),
+    newestCodeDate: codeFrom({ SoCodigoVe: '2026-09-15', SoDocVe: '2026-09-11', NenhumVe: '2026-09-11' }),
+  });
+  ok(r.value === 2, 'união pega as DUAS portas (uma por cada eixo) — value 2, não 1');
+  ok(r.detail.carimbadas === 3, 'a 3ª porta segue no denominador (não sumiu por ser fresca)');
+} finally { rmSync(dir, { recursive: true, force: true }); }
+
+// Cada eixo ISOLADO, pra provar que nenhum dos dois carrega o outro nas costas.
+dir = makeReq({ So: { distilledAt: '2026-09-06' } });
+try {
+  const soDoc = measureDistillerFreshness(dir, {
+    newestDocDate: newestFrom({ So: '2026-09-14' }), newestCodeDate: nada,
+  });
+  ok(soDoc.value === 1, 'eixo DOC sozinho acusa (padrão Fiscal: 8d)');
+  const soCod = measureDistillerFreshness(dir, {
+    newestDocDate: nada, newestCodeDate: codeFrom({ So: '2026-09-15' }),
+  });
+  ok(soCod.value === 1, 'eixo CÓDIGO sozinho acusa (padrão Jana: 9d)');
+  const nenhum = measureDistillerFreshness(dir, {
+    newestDocDate: newestFrom({ So: '2026-09-11' }), newestCodeDate: codeFrom({ So: '2026-09-11' }),
+  });
+  ok(nenhum.value === 0, 'controle NEGATIVO: os dois dentro de 7d → não acusa');
+  // `null` é "esta fonte não tem opinião", JAMAIS "está fresco" — se null silenciasse o
+  // outro eixo, módulo sem `Modules/<X>` (Cliente, Sells) ficaria imune à regra.
+  const docNull = measureDistillerFreshness(dir, {
+    newestDocDate: nada, newestCodeDate: codeFrom({ So: '2026-09-15' }),
+  });
+  ok(docNull.value === 1, 'doc sem opinião (null) NÃO anula o eixo do código');
+  const codNull = measureDistillerFreshness(dir, {
+    newestDocDate: newestFrom({ So: '2026-09-14' }), newestCodeDate: nada,
+  });
+  ok(codNull.value === 1, 'código sem opinião (null) NÃO anula o eixo do doc');
+} finally { rmSync(dir, { recursive: true, force: true }); }
+
+// ── I: CONTROLE POSITIVO — detail.datadas_por_codigo ───────────────────────
+// O modo de falha REAL desta mudança (2026-09-15): um par de barras invertidas colapsou no
+// transporte da escrita, o resolvedor de path devolveu null em 14/14 portas, a união
+// degradou pra fonte-única em silêncio e o agregado saiu `stale=0` — que parecia SAÚDE.
+// `datadas_por_codigo: 0` com `carimbadas > 0` é ausência de MEDIÇÃO, não frescura — e o
+// campo torna isso visível no JSON commitado, onde o diff denuncia.
+dir = makeReq({ A: { distilledAt: '2026-09-06' }, B: { distilledAt: '2026-09-06' } });
+try {
+  const dois = measureDistillerFreshness(dir, {
+    newestDocDate: nada, newestCodeDate: codeFrom({ A: '2026-09-07', B: '2026-09-07' }),
+  });
+  ok(dois.detail.datadas_por_codigo === 2, 'datou as 2 portas → datadas_por_codigo = 2');
+  const muda = measureDistillerFreshness(dir, { newestDocDate: nada, newestCodeDate: nada });
+  ok(muda.detail.datadas_por_codigo === 0 && muda.detail.carimbadas === 2,
+    'fonte do código MUDA → datadas_por_codigo 0 com carimbadas 2 (a mudez fica visível)');
+  const parcial = measureDistillerFreshness(dir, {
+    newestDocDate: nada, newestCodeDate: codeFrom({ A: '2026-09-07' }),
+  });
+  ok(parcial.detail.datadas_por_codigo === 1, 'mudez PARCIAL também aparece (1 de 2)');
+} finally { rmSync(dir, { recursive: true, force: true }); }
 
 console.log(fails === 0 ? '\n  distiller_freshness read-side (ADR 0291 D-D): OK\n' : `\n  distiller_freshness: ${fails} FALHA(S)\n`);
 process.exit(fails === 0 ? 0 : 1);

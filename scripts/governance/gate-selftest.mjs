@@ -64,6 +64,27 @@ const copiarLibGovernanca = (sb) => {
   if (existsSync(src)) cpSync(src, join(sb, 'scripts', 'governance', 'lib'), { recursive: true });
 };
 
+// Deps de IMPORT do sdd-scorecard que não moram em lib/ — o sandbox resolve import por
+// caminho relativo ao SCRIPT, então o que não for copiado vira ERR_MODULE_NOT_FOUND e o
+// runner sai 1 com stack em vez do veredito. Mesmo motivo pelo qual knowledge-drift.mjs e
+// anchor-lint.mjs já são copiados um a um logo abaixo.
+//
+// `module-surface.mjs` entrou em 2026-09-15: o distiller_freshness passou a medir também a
+// data-git do CÓDIGO e reusa o `nsDoModulo` de lá (módulo→namespace de Pages) em vez de
+// reimplementar o mapa. Ele arrasta `scripts/qa/page-path.mjs`, que só usa builtins — a
+// cadeia para aí.
+const copiarDepsScorecard = (sb) => {
+  for (const [de, para] of [
+    [['scripts', 'governance', 'module-surface.mjs'], ['scripts', 'governance', 'module-surface.mjs']],
+    [['scripts', 'qa', 'page-path.mjs'], ['scripts', 'qa', 'page-path.mjs']],
+  ]) {
+    const src = join(ROOT, ...de);
+    if (!existsSync(src)) continue;
+    mkdirSync(join(sb, ...para.slice(0, -1)), { recursive: true });
+    cpSync(src, join(sb, ...para));
+  }
+};
+
 // casos-results-collect --new-reds-vs resolve o manifesto por cwd → sandbox temp, igual aos
 // irmãos. Carrega a dep scripts/lib/uc-regex.mjs (import module-relative do coletor).
 //
@@ -97,6 +118,7 @@ function runScorecard(kind) {
     cpSync(join(FIX, 'sdd-scorecard', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
     copiarLibGovernanca(sb);
+    copiarDepsScorecard(sb);
     cpSync(script('sdd-scorecard', 'scripts/governance/sdd-scorecard.mjs'), join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'));
     cpSync(join(ROOT, 'scripts', 'governance', 'knowledge-drift.mjs'), join(sb, 'scripts', 'governance', 'knowledge-drift.mjs'));
     // sdd-scorecard agora delega anchor_coverage a anchor-lint.mjs (ledger §A · ADR 0273 §2) — copia essa dep tb.
@@ -116,7 +138,8 @@ function runScorecardFloor(fixture) {
       cpSync(join(FIX, fixture, kind), sb, { recursive: true });
       mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
     copiarLibGovernanca(sb);
-      cpSync(script('sdd-scorecard', 'scripts/governance/sdd-scorecard.mjs'), join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'));
+      copiarDepsScorecard(sb);
+    cpSync(script('sdd-scorecard', 'scripts/governance/sdd-scorecard.mjs'), join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'));
       cpSync(join(ROOT, 'scripts', 'governance', 'knowledge-drift.mjs'), join(sb, 'scripts', 'governance', 'knowledge-drift.mjs'));
       cpSync(join(ROOT, 'scripts', 'governance', 'anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
       return runNode(join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'), ['--ratchet'], sb);
@@ -141,6 +164,7 @@ function runScorecardCorruptors(kind) {
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
     copiarLibGovernanca(sb);
     mkdirSync(join(sb, 'scripts', 'audit'), { recursive: true });
+    copiarDepsScorecard(sb);
     cpSync(script('sdd-scorecard', 'scripts/governance/sdd-scorecard.mjs'), join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'));
     cpSync(join(ROOT, 'scripts', 'governance', 'knowledge-drift.mjs'), join(sb, 'scripts', 'governance', 'knowledge-drift.mjs'));
     cpSync(join(ROOT, 'scripts', 'governance', 'anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
