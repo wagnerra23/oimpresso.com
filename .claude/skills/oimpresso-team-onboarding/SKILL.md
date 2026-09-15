@@ -32,6 +32,10 @@ test -f CLAUDE.md && grep -l "oimpresso ERP" CLAUDE.md
 test -f .mcp.json && cat .mcp.json
 # 3. Tem .claude/settings.local.json com token?
 test -f .claude/settings.local.json && grep -c "Bearer mcp_" .claude/settings.local.json
+# 4. A variável de ambiente existe? (é ELA que conecta o cliente — medido 2026-09-15)
+test -n "$OIMPRESSO_MCP_TOKEN" && echo "env OK" || echo "env AUSENTE -> Modo D"
+# 5. O que o cliente REALMENTE enxerga (único lugar que mostra erro de config):
+claude mcp list
 ```
 
 Decida o caminho:
@@ -43,6 +47,7 @@ Decida o caminho:
 | `.claude/settings.local.json` ausente | **Modo A: dev novo** (gera template) |
 | `settings.local.json` tem `COLE_SEU_TOKEN` | Dev preencheu errado — **Modo B: pegar token** |
 | `settings.local.json` tem token mas MCP não responde | **Modo C: validar/debugar** |
+| `claude mcp list` diz `Skipped` ou `Missing environment variables` | **Modo D: variável de ambiente** |
 
 ## 2. Modo A — Dev novo (primeira vez)
 
@@ -132,6 +137,37 @@ curl -fsS https://mcp.oimpresso.com/api/mcp/health/auth \
 ```
 
 Reporta o que falhou + sugere fix.
+
+## 4-bis. Modo D — variável de ambiente ausente
+
+Medido em **2026-09-15** (cliente **2.1.257**): o bloco `mcpServers` do `settings.local.json`
+**não alimenta o cliente MCP**. Uma entrada de teste posta lá não apareceu em `claude mcp list`.
+Quem conecta o cliente é o `.mcp.json`, que expande `${OIMPRESSO_MCP_TOKEN}` **do ambiente**.
+
+O `settings.local.json` continua necessário — é o cofre que `brief-fetch-curl.mjs`,
+`cc-watcher/index.js` e `fluxo-sistema.mjs` leem. Ele não é morto; é morto só para o cliente.
+
+⚠️ **Por que ninguém percebe:** o brief continua chegando (o hook bate por `curl`, sem passar
+pelo cliente MCP). O sintoma é só a ausência das tools `mcp__oimpresso__*`.
+
+Diga ao dev:
+
+```
+Seu token está certo, mas falta uma variável de ambiente. Uma vez só:
+
+Windows (PowerShell):
+  [Environment]::SetEnvironmentVariable('OIMPRESSO_MCP_TOKEN','<token-SEM-o-Bearer>','User')
+
+Linux/macOS (no ~/.bashrc ou ~/.zshrc):
+  export OIMPRESSO_MCP_TOKEN='<token-SEM-o-Bearer>'
+
+Depois FECHE e reabra a sessão — a config MCP é lida no start.
+Confira com: claude mcp list   ->   oimpresso: ... - ✔ Connected
+```
+
+O token é o mesmo do `settings.local.json`, **sem** o prefixo `Bearer `.
+
+---
 
 ## 5. Modo Wagner — adicionar dev novo ao time
 
