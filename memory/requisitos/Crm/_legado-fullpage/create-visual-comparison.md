@@ -18,7 +18,7 @@ related_adrs: [0093, 0094, 0104, 0107, 0110, 0149]
 
 > **Tipo de tela:** formulário single-page de cadastro (Identificação · Contato · Endereço · Financeiro + Bloco Fiscal BR)
 > **Persona:** Larissa @ ROTA LIVRE (biz=4 vestuário, monitor 1280×1024, não-técnica). Pressa balcão.
-> **Referência:** `prototipo-ui/prototipos/clientes/cowork-app.jsx` + HANDOFF Claude Design
+> **Referência:** `prototipo-ui/cowork/Wagner/clientes-page.jsx` + HANDOFF Claude Design
 
 ## Contexto
 

@@ -6,7 +6,7 @@ type: visual-comparison
 module: Sells
 status: approved
 date: 2026-05-17
-canon_reference: prototipo-ui/prototipos/sells-index/vendas-page.jsx
+canon_reference: prototipo-ui/cowork/Wagner/vendas-page.jsx
 canon_method: KB-9.75 (chat10 — 2026-05-16)
 canon_score: 9.75/10 (cópia integral em 1 PR — substitui slice em 4 refinos)
 inertia_target: resources/js/Pages/Sells/Index.tsx
