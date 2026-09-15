@@ -131,6 +131,17 @@ const BS = String.fromCharCode(92);  // barra invertida sem literal (colapsa no 
 const REQ = join(ROOT, 'memory/requisitos');
 
 /** A linha que carrega o ponteiro ja declara que ele morreu? Entao e registro, nao divida. */
+/**
+ * Placeholder NAO e ponteiro: `cowork-YYYY-MM-DD/` e `prototipo-ui/.../` sao notacao
+ * generica que a prosa usa pra falar de um formato, nao caminho que um dia resolveu.
+ * Anota-los com data de remocao seria carimbar o que nunca foi arquivo — falso-positivo
+ * do extrator, nao divida do doc. (Medido: os 2 unicos casos no corpus, ambos em ADR UI.)
+ */
+function ehPlaceholder(p) {
+  const S = String.fromCharCode(47), D = String.fromCharCode(46);  // / e . sem literal (LC-26)
+  return p.includes('YYYY-MM-DD') || p.includes(S + D + D + D + S) || p.endsWith(S + D + D + D);
+}
+
 function declaraMorte(linha) {
   // "nunca versionado": o alvo NUNCA existiu no git (artefato externo do Cowork — zip, pasta
   // local). MEDIDO no historico completo, repo nao-raso: 0 commits tocaram esses paths. E
@@ -160,6 +171,7 @@ function auditRequisitos() {
     const orphans = [];
     for (const p of ptrs) {
       const alvo = resolvePtr(join(abs, '..'), p.path);
+      if (ehPlaceholder(p.path)) continue;        // notacao generica, nao caminho
       if (!isOrphan(alvo, p.path)) continue;
       const linha = linhas.find((l) => l.includes(p.path)) || '';
       if (declaraMorte(linha)) continue;

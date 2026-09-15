@@ -8,7 +8,7 @@ id: requisitos-design-system-adr-ui-0011-sidebar-single-pane-cascata-user-menu
 - **Data**: 2026-05-05
 - **Decisores**: Wagner, Claude
 - **Categoria**: ui · estruturante
-- **Refs**: [UI-0008](0008-cockpit-layout-mae-do-erp.md), [UI-0009](0009-cockpit-sidebar-light-padrao.md), [UI-0010](0010-zip-cowork-2026-04-27-canon-visual.md), [UI Kit Cowork sidebar.jsx](../../ui_kits/cowork-2026-04-27/sidebar.jsx)
+- **Refs**: [UI-0008](0008-cockpit-layout-mae-do-erp.md), [UI-0009](0009-cockpit-sidebar-light-padrao.md), [UI-0010](0010-zip-cowork-2026-04-27-canon-visual.md), [UI Kit Cowork sidebar.jsx](../../ui_kits/cowork-2026-04-27/sidebar.jsx) _(nunca versionado no repo — artefato externo do Cowork; medido no histórico completo: 0 commits)_
 - **Substitui parcialmente**: [UI-0008 §"Componentes obrigatórios do Cockpit · Sidebar"](0008-cockpit-layout-mae-do-erp.md) — trecho "SidebarTabs (toggle Chat ↔ Menu)" e "SidebarChat" foram REMOVIDOS
 
 ## Contexto
