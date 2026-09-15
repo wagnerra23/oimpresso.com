@@ -15,28 +15,28 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 85.8,
+      "value": 85.9,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 85.8,
+        "coverage_pct": 85.9,
         "specs_total": 53,
-        "us_total": 1038,
-        "anchor_coverage_pct": 85.8,
+        "us_total": 1042,
+        "anchor_coverage_pct": 85.9,
         "by_state": {
           "sem_campo": 146,
           "placeholder": 1,
-          "pendente": 434,
+          "pendente": 438,
           "parcial": 118,
           "anchored_ok": 339,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 898,
+        "fields_total": 902,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 814,
+        "fields_grammar_ok": 818,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -254,10 +254,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 70,
+        "entries_aprovadas": 71,
         "max_error_rate_pct": 1.98,
-        "last_pr": 7335,
-        "last_lote": "gt-g5-lote-7335"
+        "last_pr": 7367,
+        "last_lote": "gt-g5-lote-7367"
       },
       "stream": "GT"
     }
