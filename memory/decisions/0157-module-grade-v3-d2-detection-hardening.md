@@ -3,9 +3,9 @@ slug: 0157-module-grade-v3-d2-detection-hardening
 number: 157
 title: "module-grade-v3 — endurecimento D2 detection (parser XML + verificação subpastas Pest)"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 decided_by: [W]
 decided_at: "2026-05-16"
 accepted_at: 2026-05-16
@@ -15,7 +15,7 @@ quarter: 2026-Q2
 tags: [governance, rubrica, d2-pest-coverage, hardening, anti-gaming]
 supersedes: []
 supersedes_partially: [0155-module-grade-v3-sub-dimensoes-gate-ci]
-superseded_by: []
+superseded_by: ['0399-aposentar-rubrica-module-grade-gate-e-baseline']
 related: [0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified, 0154-module-grade-v2-na-justificado, 0153-module-grade-rubrica-v1, 0094-constituicao-v2-7-camadas-8-principios, 0070-jira-style-task-management-current-md-removed, 0093-multi-tenant-isolation-tier-0, 0101-tests-business-id-1-nunca-cliente]
 pii: false
 review_triggers:
@@ -28,7 +28,7 @@ review_triggers:
 
 ## Contexto
 
-Audit Pest registration read-only (Wave 2, sessão 2026-05-16) identificou **três vetores de fragilidade** na heurística D2 implementada em [`Modules/Governance/Services/ModuleGradeService.php`](../../Modules/Governance/Services/ModuleGradeService.php) (linhas 290-367) — método `dim2PestCoverage()`:
+Audit Pest registration read-only (Wave 2, sessão 2026-05-16) identificou **três vetores de fragilidade** na heurística D2 implementada em `Modules/Governance/Services/ModuleGradeService.php` (linhas 290-367 — arquivo deletado em 2026-09-15, ADR 0399) — método `dim2PestCoverage()`:
 
 ### Vetor 1 — D2.c substring match (linha 346)
 
@@ -225,7 +225,7 @@ Default fase 1 = `both`. Default final (Fase 3+) = `hardened`.
 - [ADR 0070 — Jira-style task management](0070-jira-style-task-management-current-md-removed.md) (tasks follow-up via MCP)
 
 **Código atual referenciado:**
-- [`Modules/Governance/Services/ModuleGradeService.php`](../../Modules/Governance/Services/ModuleGradeService.php) linhas 290-367 (método `dim2PestCoverage`)
+- `Modules/Governance/Services/ModuleGradeService.php` — arquivo deletado em 2026-09-15, ADR 0399 — linhas 290-367 (método `dim2PestCoverage`)
 - [`phpunit.xml`](../../phpunit.xml) (testsuite Feature linhas 16-53)
 
 **Achado origem:**

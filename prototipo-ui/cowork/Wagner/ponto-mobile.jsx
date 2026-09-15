@@ -1,7 +1,9 @@
 // ponto-mobile.jsx — Onda 4: o REP-P do bolso (Portaria MTP 671/2021 reconhece registrador
 // eletrônico por programa). Espelha o contrato real de Modules/Ponto/Http/Controllers/Api/
 // MobileMarcacaoController + MobileMarcacaoService: tipos ENTRADA/SAIDA/ALMOCO_INICIO/ALMOCO_FIM,
-// selfie obrigatória (só o SHA-256 é guardado — base64 nunca persiste, LGPD), accuracy GPS ≤ 500m,
+// SEM biometria (ADR 0383, aceita/ativa, ratificada [W] 2026-08-28 · PR #6393 −111/+51): o ponto
+// interno não coleta, não trafega e não deriva dado biométrico — dado sensível, LGPD Art. 5º II +
+// Art. 11 (a citação do Art. 9º que circulava no projeto está errada). Anti-fraude = GPS ≤ 500m,
 // drift de relógio ≤ 30s, geofence que NÃO bloqueia (marca revisão humana), device_uuid,
 // resposta com NSR + hash truncado. Persona: Técnico Repair, alvos ≥ 44px.
 // Expõe window.PontoMobile.
@@ -16,7 +18,7 @@ const TIPOS = [
   { id: "ALMOCO_FIM", label: "Retorno almoço", hint: "volta do intervalo" },
   { id: "SAIDA", label: "Saída", hint: "fim da jornada" },
 ];
-const LIMITES = { accuracy_max: 500, drift_max: 30, selfie_min_kb: 100, geofence_raio: 1000 };
+const LIMITES = { accuracy_max: 500, drift_max: 30, geofence_raio: 1000 }; // selfie_min_kb REMOVIDO — era o SELFIE_MIN_BYTES que a ADR 0383 deletou
 
 // Colaborador logado no app: o técnico externo (marcação em obra é o caso difícil).
 const EU = 6;
@@ -35,7 +37,6 @@ const hashFake = (seed) => {
 // ═════════════ Tela 1: bater ponto ═════════════
 function BaterPonto({ estadoGps, marcacoes, onMarcar, avisar }) {
   const D = P();
-  const [selfie, setSelfie] = useState(false);
   const [tipo, setTipo] = useState(() => {
     const n = marcacoes.length;
     return TIPOS[Math.min(n, 3)].id;
@@ -51,7 +52,7 @@ function BaterPonto({ estadoGps, marcacoes, onMarcar, avisar }) {
     ? "GPS com precisão de " + estadoGps.accuracy + "m (limite " + LIMITES.accuracy_max + "m) — aguarde sinal melhor."
     : Math.abs(estadoGps.drift) > LIMITES.drift_max
       ? "Relógio do aparelho fora de sincronia (" + estadoGps.drift + "s) — ajuste a hora automática."
-      : !selfie ? "Tire a selfie para registrar." : null;
+      : null;
 
   return (
     <div className="ptm-screen">
@@ -69,13 +70,7 @@ function BaterPonto({ estadoGps, marcacoes, onMarcar, avisar }) {
         </div>
       </div>
 
-      <button className={"ptm-selfie" + (selfie ? " feita" : "")} onClick={() => setSelfie((v) => !v)}>
-        <span className="ptm-selfie-ic">{selfie ? "✓" : "▢"}</span>
-        <span>
-          <b>{selfie ? "Selfie capturada" : "Tirar selfie"}</b>
-          <small>{selfie ? "guardamos só o código da imagem, nunca a foto" : "obrigatória — mín. " + LIMITES.selfie_min_kb + " KB"}</small>
-        </span>
-      </button>
+
 
       <div className="ptm-tipos" data-contract="repp-tipos">
         {TIPOS.map((t) => (
@@ -86,7 +81,7 @@ function BaterPonto({ estadoGps, marcacoes, onMarcar, avisar }) {
       </div>
 
       <button className="ptm-cta" disabled={!!bloqueio} title={bloqueio || ""}
-        onClick={() => { onMarcar(tipo); setSelfie(false); }}>
+        onClick={() => onMarcar(tipo)}>
         Bater ponto — {TIPOS.find((t) => t.id === tipo).label}
       </button>
       {bloqueio && <p className="ptm-bloqueio">{bloqueio}</p>}
@@ -181,7 +176,7 @@ function ValidacaoMobile({ pendentes, onDecidir }) {
         Fora do geofence a marcação <b>não é recusada</b> — ela entra e fica sinalizada para revisão humana (é o que o serviço faz hoje). Recusar automaticamente puniria o técnico que trabalha na rua.
       </Nota>
       <Card contrato="repp-fila-validacao" icon="shield" titulo="Marcações mobile a validar" sub={"(" + pendentes.filter((p) => p.estado === "PENDENTE").length + " pendentes · últimos 7 dias)"}>
-        <Tabela cols={[{ l: "Quando" }, { l: "Colaborador" }, { l: "Tipo" }, { l: "Local" }, { l: "GPS" }, { l: "Selfie (hash)" }, { l: "Estado" }, { l: "Ação", num: true, w: "168px" }]}>
+        <Tabela cols={[{ l: "Quando" }, { l: "Colaborador" }, { l: "Tipo" }, { l: "Local" }, { l: "GPS" }, { l: "Hash da marcação" }, { l: "Estado" }, { l: "Ação", num: true, w: "168px" }]}>
           {pendentes.length === 0 && <Vazio icon="check" colSpan={8}>Nenhuma marcação mobile aguardando validação.</Vazio>}
           {pendentes.map((m) => (
             <tr key={m.id}>
@@ -196,7 +191,8 @@ function ValidacaoMobile({ pendentes, onDecidir }) {
                 {m.estado === "PENDENTE"
                   ? <span style={{ display: "inline-flex", gap: 6 }}>
                       <window.PtBtn primary onClick={() => onDecidir(m.id, "VALIDADA")}>Validar</window.PtBtn>
-                      <window.PtBtn danger onClick={() => onDecidir(m.id, "RECUSADA")}>Recusar</window.PtBtn>
+                      <window.PtBtn danger title="Recusar NÃO apaga: grava marcação de anulação (ORIGEM_ANULACAO) apontando a original — append-only, Portaria 671/2021"
+                        onClick={() => onDecidir(m.id, "RECUSADA")}>Recusar</window.PtBtn>
                     </span>
                   : <span className="pt-dim">—</span>}
               </td>
@@ -258,7 +254,8 @@ function Mobile({ avisar, rows, setRows }) {
   return (
     <>
       <Nota contrato="repp-nota-regras" tom="info" titulo="REP-P — o aparelho do colaborador">
-        Mesma regra do balcão: a marcação nasce imutável, com NSR e hash. O que muda é o contexto — <b>selfie</b> (guardamos só o hash), <b>GPS</b> com precisão máxima de {LIMITES.accuracy_max}m, <b>relógio</b> do aparelho conferido contra o servidor ({LIMITES.drift_max}s) e <b>geofence</b> que sinaliza em vez de recusar.
+        <b>Validar/Recusar não altera a marcação:</b> recusar grava um lançamento novo de <b>anulação</b> (<span className="mono">ORIGEM_ANULACAO</span>) apontando a original — o registro nasce imutável (D3 [W] 2026-09-14).{" "}
+        Mesma regra do balcão: a marcação nasce imutável, com NSR e hash. O que muda é o contexto — <b>GPS</b> com precisão máxima de {LIMITES.accuracy_max}m, <b>relógio</b> do aparelho conferido contra o servidor ({LIMITES.drift_max}s) e <b>geofence</b> que sinaliza em vez de recusar.
       </Nota>
 
       <div className="ptm-wrap">

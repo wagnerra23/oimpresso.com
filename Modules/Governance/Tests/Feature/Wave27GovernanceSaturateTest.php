@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\File;
 use Modules\Governance\Console\Commands\GovernanceHealthCommand;
 use Modules\Governance\Console\Commands\ScorecardSnapshotCommand;
 use Modules\Governance\Http\Controllers\DashboardController;
-use Modules\Governance\Http\Controllers\ModuleGradeController;
 use Modules\Governance\Services\ScopedScorecardEvaluator;
 use Symfony\Component\Yaml\Yaml;
 use Tests\TestCase;
@@ -19,7 +18,6 @@ use Tests\TestCase;
  * Cobre delta W27:
  *   - D7 shim `config/retention.governance.php` espelha Modules/Governance/Config/retention.php
  *   - D9 OTel span ATIVO em GovernanceHealthCommand + ScopedScorecardEvaluator
- *   - D6 Inertia::defer CONFIRMADO em ModuleGradeController + DashboardController eager paths
  *   - C3 BRIEFING W27 entry + ADRs 0160+0161 referenciadas
  *   - C5 buckets _INDEX.md atualizado W27 deltas
  *   - CHANGELOG entry W27 presente
@@ -52,14 +50,13 @@ it('shim retention.governance retorna mesma estrutura do Module config', functio
 
     expect($shim)->toBeArray();
     expect($shim)->toHaveKey('audit_log_days');
-    expect($shim)->toHaveKey('module_grades_days');
     expect($shim)->toHaveKey('action_gate_violations_days');
     expect($shim)->toHaveKey('charter_metrics_days');
     expect($shim)->toHaveKey('pii_redaction_enabled');
 
     // Valores DEVEM bater (shim apenas re-exporta).
     expect($shim['audit_log_days'])->toBe($module['audit_log_days']);
-    expect($shim['module_grades_days'])->toBe($module['module_grades_days']);
+    expect($shim['charter_metrics_days'])->toBe($module['charter_metrics_days']);
 });
 
 it('shim retention.governance segue pattern dos shims ads + whatsapp', function () {
@@ -85,7 +82,7 @@ it('GovernanceHealthCommand fonte cita OtelHelper::span pra observability', func
     expect($content)->toContain("'governance.health.run'");
 });
 
-it('GovernanceHealthCommand --detail roda 4 checks sem crashar (otel zero-cost)', function () {
+it('GovernanceHealthCommand --detail roda 3 checks sem crashar (otel zero-cost)', function () {
     config()->set('otel.enabled', false); // zero-cost path no-op
 
     $exitCode = Artisan::call('governance:health', ['--detail' => true]);
@@ -94,10 +91,9 @@ it('GovernanceHealthCommand --detail roda 4 checks sem crashar (otel zero-cost)'
     expect($exitCode)->toBeIn([0, 1]);
 
     $output = Artisan::output();
-    // Saída --detail deve listar todos os 4 checks canon.
+    // Saída --detail deve listar todos os 3 checks canon.
     expect($output)->toContain('policies_enabled');
     expect($output)->toContain('audit_log_alive_24h');
-    expect($output)->toContain('module_grades_snapshot');
     expect($output)->toContain('actiongate_mode_active');
 });
 
@@ -128,26 +124,6 @@ it('ScopedScorecardEvaluator evaluateScorecard executa zero-cost com otel desabi
     expect($result['score_total'])->toBeInt();
     expect($result['score_total'])->toBeGreaterThanOrEqual(0);
     expect($result['score_total'])->toBeLessThanOrEqual(100);
-});
-
-// ---------------------------------------------------------------------------
-// D6 Performance — Inertia::defer em Controllers (confirma RUNBOOK)
-// ---------------------------------------------------------------------------
-
-it('ModuleGradeController index aplica Inertia::defer em grades + kpis', function () {
-    $path = base_path('Modules/Governance/Http/Controllers/ModuleGradeController.php');
-    $content = file_get_contents($path);
-
-    // Garantia da regra RUNBOOK-inertia-defer-pattern: props caras DEVEM ser defer.
-    expect($content)->toMatch('/Inertia::defer\(fn \(\) => \$this->buildAllGradesPayload/');
-    expect($content)->toMatch('/Inertia::defer\(fn \(\) => \$this->buildKpisPayload/');
-});
-
-it('ModuleGradeController show aplica Inertia::defer em history (sparkline 7d)', function () {
-    $path = base_path('Modules/Governance/Http/Controllers/ModuleGradeController.php');
-    $content = file_get_contents($path);
-
-    expect($content)->toMatch('/Inertia::defer\(fn \(\) => \$this->buildHistoryPayload/');
 });
 
 // ---------------------------------------------------------------------------

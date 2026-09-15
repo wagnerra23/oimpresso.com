@@ -701,7 +701,7 @@ function Sidebar({ company, onCompany, activeRoute, onSelectRoute, mode = "expan
         onClick={() => onModeChange?.(nextMode)}
         title={toggleTitle}
         aria-label={toggleTitle}>
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
           {rail ?
           <path d="m9 6 6 6-6 6" /> :
           <path d="m15 6-6 6 6 6" />}

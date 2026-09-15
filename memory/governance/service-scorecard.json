@@ -1,25 +1,26 @@
 {
   "$generator": "scripts/governance/service-scorecard.mjs",
-  "$doc": "Scorecard de sinais-vivos por serviço, AGREGADO das fontes derivadas (catalog.json + module-grades-baseline.json + vital-signs.json + BRIEFING git-mtime). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/service-scorecard.mjs --write",
-  "$advisory": "Advisory de nascença (ADR 0314/0275) — NÃO é gate required. AGREGADOR, não régua: a nota é do module-grade (ADR 0155); os checks de maturidade medem presença/conexão de catálogo (Backstage/Cortex), não correção.",
+  "$doc": "Scorecard de sinais-vivos por serviço, AGREGADO das fontes derivadas (catalog.json + vital-signs.json + BRIEFING git-mtime). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/service-scorecard.mjs --write",
+  "$advisory": "Advisory de nascença (ADR 0314/0275) — NÃO é gate required. AGREGADOR, não régua: a nota do module-grade foi APOSENTADA (ADR 0399 — rubrica ADR 0155 encerrada), logo o sinal `graded` sai do denominador; os checks de maturidade medem presença/conexão de catálogo (Backstage/Cortex), não correção.",
   "generated_from": {
     "catalog": {
       "path": "memory/governance/catalog.json",
       "stats": 35
     },
     "grades": {
-      "path": "governance/module-grades-baseline.json",
-      "baseline": "v3.6.6",
-      "rubric": "0155"
+      "path": null,
+      "aposentada": "ADR 0399",
+      "baseline": null,
+      "rubric": null
     },
     "vital_signs": {
       "path": "memory/governance/vital-signs.json",
-      "generated_at": "2026-09-13"
+      "generated_at": "2026-09-15"
     }
   },
   "stats": {
     "services": 39,
-    "with_grade": 32,
+    "with_grade": 0,
     "unmatched_screen_dirs": [],
     "orphan_screen_ns": [
       "Backup",
@@ -94,7 +95,8 @@
         {
           "key": "graded",
           "ok": false,
-          "rot": "nota module-grade presente"
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -132,8 +134,8 @@
       ],
       "maturity": {
         "passed": 3,
-        "applicable": 6,
-        "ratio": 0.5,
+        "applicable": 5,
+        "ratio": 0.6,
         "level": "bronze"
       }
     },
@@ -190,7 +192,8 @@
         {
           "key": "graded",
           "ok": false,
-          "rot": "nota module-grade presente"
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -228,8 +231,8 @@
       ],
       "maturity": {
         "passed": 3,
-        "applicable": 6,
-        "ratio": 0.5,
+        "applicable": 5,
+        "ratio": 0.6,
         "level": "bronze"
       }
     },
@@ -242,11 +245,7 @@
       "scope": "memory/requisitos/Arquivos/SCOPE.md",
       "purpose": "Backbone de arquivos do ERP — toda entidade que anexa binário adota o trait HasArquivos e ganha storage multi-tenant, dedupe sha256, signed URL e soft-delete. Não tem tela própria: a UI é do módulo dono. Carrega junto o aparato LGPD do acervo (exportação Art. 18, retenção, audit log de acesso, cofre criptografado com re-encrypt por rotação de chave) e o CuradorEngine de classificação.",
       "signals": {
-        "grade": {
-          "value": 83,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Arquivos",
@@ -297,8 +296,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -332,9 +332,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -347,11 +347,7 @@
       "scope": "memory/requisitos/AssetManagement/SCOPE.md",
       "purpose": "Patrimônio da empresa: cadastro de ativos físicos, alocação e devolução a colaboradores, manutenção e garantia — bem de uso interno, nunca item vendável de estoque.",
       "signals": {
-        "grade": {
-          "value": 82,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Patrimonio",
@@ -402,8 +398,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -437,9 +434,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -452,11 +449,7 @@
       "scope": "memory/requisitos/Auditoria/SCOPE.md",
       "purpose": "Quem mudou este registro, o quê e quando? — lê e investiga a trilha por-registro (activity_log) com isolamento multi-tenant e guarda o registry do que a lei não deixa desfazer. A reversão está codificada (RevertService) porém desligada do caminho HTTP: POST /{id}/revert responde 501.",
       "signals": {
-        "grade": {
-          "value": 81,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Auditoria",
@@ -469,7 +462,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 4,
@@ -507,8 +500,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -542,9 +536,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -570,7 +564,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 0,
@@ -609,7 +603,8 @@
         {
           "key": "graded",
           "ok": false,
-          "rot": "nota module-grade presente"
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -644,8 +639,8 @@
       ],
       "maturity": {
         "passed": 5,
-        "applicable": 9,
-        "ratio": 0.56,
+        "applicable": 8,
+        "ratio": 0.63,
         "level": "bronze"
       }
     },
@@ -658,11 +653,7 @@
       "scope": "memory/requisitos/Cms/SCOPE.md",
       "purpose": "Site institucional público do próprio oimpresso — home, páginas, blog e contato — servido em Inertia na raiz do domínio. Single-tenant por natureza (não tem business_id) e edição superadmin-only. O formulário de contato é o canal de lead comercial: notifica o e-mail configurado e registra com PII redactada.",
       "signals": {
-        "grade": {
-          "value": 76,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": false,
           "ns": "Cms",
@@ -683,7 +674,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-09-15",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -705,8 +696,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -743,8 +735,8 @@
         }
       ],
       "maturity": {
-        "passed": 6,
-        "applicable": 6,
+        "passed": 5,
+        "applicable": 5,
         "ratio": 1,
         "level": "ouro"
       }
@@ -758,11 +750,7 @@
       "scope": "memory/requisitos/Compras/SCOPE.md",
       "purpose": "Cockpit de leitura de compras (/compras): lista, KPIs e drawer de detalhe sobre transactions type=purchase. Complementa — não substitui — o CRUD /purchases do core, pra onde delega criar, editar e excluir.",
       "signals": {
-        "grade": {
-          "value": 73,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Compras",
@@ -775,7 +763,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 3,
@@ -791,7 +779,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-16",
+          "last_commit": "2026-09-15",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -813,8 +801,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -848,9 +837,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -863,11 +852,7 @@
       "scope": "memory/requisitos/ComunicacaoVisual/SCOPE.md",
       "purpose": "Vertical gráfica rápida BR (CNAE 1813-0/01), em construção sem piloto: hoje entrega cálculo de orçamento por m2 server-authoritative e apontamento de produção. PCP/FSM, materiais e integração fiscal existem como schema e contrato, não como fluxo navegável.",
       "signals": {
-        "grade": {
-          "value": 80,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "ComunicacaoVisual",
@@ -880,7 +865,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 2,
@@ -918,8 +903,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -953,9 +939,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -968,11 +954,7 @@
       "scope": "memory/requisitos/Connector/SCOPE.md",
       "purpose": "Porta REST externa única do oimpresso (Passport auth:api, contrato congelado): expõe o núcleo do ERP a consumidores de fora — app POS móvel e integrações — e sustenta o handshake de licenciamento, registro e versão dos clientes Delphi WR Comercial em migração.",
       "signals": {
-        "grade": {
-          "value": 86,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": false,
           "ns": "Connector",
@@ -1015,8 +997,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -1053,8 +1036,8 @@
         }
       ],
       "maturity": {
-        "passed": 6,
-        "applicable": 6,
+        "passed": 5,
+        "applicable": 5,
         "ratio": 1,
         "level": "ouro"
       }
@@ -1068,11 +1051,7 @@
       "scope": "memory/requisitos/ConsultaOs/SCOPE.md",
       "purpose": "Casca de portal público de consulta de OS — backend completo (rota sem auth, anti-enumeration, auditoria LGPD, throttle, OTel, Repository trocável) rodando sobre dataset FAKE de 4 OS. Não lê banco: existe para validar UX e segurança antes de US-CONSULTA-001 ligar a query real.",
       "signals": {
-        "grade": {
-          "value": 79,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "ConsultaOs",
@@ -1085,7 +1064,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 3,
@@ -1123,8 +1102,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -1158,9 +1138,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -1173,11 +1153,7 @@
       "scope": "memory/requisitos/Crm/SCOPE.md",
       "purpose": "Pipeline pré-venda herdado do UltimatePOS (leads, follow-ups, campanhas, propostas, call logs) — EM DEPRECAÇÃO por ADR 0301. Hospeda ainda, por acidente histórico, os endpoints JSON do drawer de Cliente (/cliente/*) e o portal do contato (/contact/*), cujo dono real é o ContactController do core.",
       "signals": {
-        "grade": {
-          "value": 87,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": false,
           "ns": "Crm",
@@ -1220,8 +1196,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -1258,8 +1235,8 @@
         }
       ],
       "maturity": {
-        "passed": 6,
-        "applicable": 6,
+        "passed": 5,
+        "applicable": 5,
         "ratio": 1,
         "level": "ouro"
       }
@@ -1273,11 +1250,7 @@
       "scope": "memory/requisitos/Essentials/SCOPE.md",
       "purpose": "Infraestrutura interna compartilhada herdada do UltimatePOS: HRM sob /hrm/* (folgas, presença, folha, turnos, feriados, metas) e produtividade sob /essentials/* (tarefas, lembretes, mensagens, documentos, base de conhecimento). Não é vertical vendável; é fundação consumida por todos os business.",
       "signals": {
-        "grade": {
-          "value": 86,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Essentials",
@@ -1290,7 +1263,7 @@
           "charter_pct": 100,
           "casos_pct": 19,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 0,
@@ -1328,8 +1301,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -1363,9 +1337,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -1378,11 +1352,7 @@
       "scope": "memory/requisitos/Financeiro/SCOPE.md",
       "purpose": "Razão financeira do negócio — espelha vendas, compras e caixa do core em títulos (fin_titulos) e opera o ciclo do dinheiro sobre eles: contas a pagar e receber, baixa, conciliação bancária OFX, fluxo de caixa, DRE BR e portal read-only do contador externo.",
       "signals": {
-        "grade": {
-          "value": 82,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Financeiro",
@@ -1395,7 +1365,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 3,
@@ -1433,8 +1403,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -1468,9 +1439,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -1483,11 +1454,7 @@
       "scope": "memory/requisitos/Fiscal/SCOPE.md",
       "purpose": "Cara única (UI e sidebar) do domínio fiscal: agrega leitura de NfeBrasil e NFSe, delega toda ação SEFAZ aos Services deles, e é dono próprio do gerador SPED EFD-ICMS/IPI.",
       "signals": {
-        "grade": {
-          "value": 74,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Fiscal",
@@ -1500,7 +1467,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 4,
@@ -1538,8 +1505,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -1573,9 +1541,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -1588,11 +1556,7 @@
       "scope": "memory/requisitos/Forja/SCOPE.md",
       "purpose": "Cockpit de trabalho do time interno (Kanban, Backlog, Roadmap, My Work, Inbox, Triage, Burndown) e host da infraestrutura MCP da plataforma: identidade e emissão de token (mcp_actors), endpoints /api/mcp e /api/cc, Daily Brief, loop de handoff Cowork-Code, hub Equipe e Admin do MCP.",
       "signals": {
-        "grade": {
-          "value": 85,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Forja + team-mcp",
@@ -1605,7 +1569,7 @@
           "charter_pct": 100,
           "casos_pct": 56,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 4,
@@ -1643,8 +1607,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -1678,9 +1643,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -1693,24 +1658,20 @@
       "scope": "memory/requisitos/Governance/SCOPE.md",
       "purpose": "A regra está sendo cumprida? — mede e mostra o cumprimento (drift de escopo/deploy/índice, nota de módulo, scorecard SDD, policies, trilha de tool MCP) e injeta o veredito no Daily Brief. Quem bloqueia merge é o CI em scripts/governance/, não este módulo.",
       "signals": {
-        "grade": {
-          "value": 88,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "governance",
           "via": "direto",
-          "telas": 9,
-          "com_scorecard": 9,
-          "nota_media": 78,
+          "telas": 7,
+          "com_scorecard": 7,
+          "nota_media": 77,
           "nota_min": 73,
           "pior_tela": "governance/Audit",
           "charter_pct": 100,
-          "casos_pct": 11,
+          "casos_pct": 29,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 5,
@@ -1720,13 +1681,13 @@
           "owns_legacy_views": 0,
           "consumes_tables": 6,
           "governed_by_adr": 5,
-          "components": 12,
+          "components": 11,
           "dangling_edges": 0,
           "connected": true
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-09-07",
+          "last_commit": "2026-09-15",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1748,8 +1709,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -1783,9 +1745,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -1798,11 +1760,7 @@
       "scope": "memory/requisitos/Jana/SCOPE.md",
       "purpose": "Chat IA do business servido em /ia — conversa com memória, metas, períodos, alertas, custos LLM e qualidade RAG. FRONTEIRA EM EXECUÇÃO (ADR 0366 §D-C item 4, autorizada por [W] em 2026-08-13): a plataforma MCP do time sai deste módulo para Modules/Forja. Onda 1 FEITA em 2026-08-13 — as 61 migrations mcp_* mudaram de casa e com elas o dono DERIVADO do schema. Ainda AQUI, e são as próximas ondas: 30 entidades Entities/Mcp/, o servidor JSON-RPC + 40 tools em Mcp/, 5 services em Services/Mcp/, 10 comandos Console/Commands/Mcp*, o McpAuthMiddleware e 44 testes.",
       "signals": {
-        "grade": {
-          "value": 76,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Jana",
@@ -1815,7 +1773,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 7,
@@ -1853,8 +1811,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -1888,9 +1847,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -1903,11 +1862,7 @@
       "scope": "memory/requisitos/KB/SCOPE.md",
       "purpose": "Onde está escrito? — indexa, classifica e serve o conhecimento consultável da empresa (o canônico vindo do git, artigos e trilhas editáveis, e a estrutura extraída do próprio código) e responde pergunta em linguagem natural sobre ele via RAG.",
       "signals": {
-        "grade": {
-          "value": 77,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "kb",
@@ -1920,7 +1875,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 7,
@@ -1958,8 +1913,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -1993,9 +1949,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -2008,11 +1964,7 @@
       "scope": "memory/requisitos/Manufacturing/SCOPE.md",
       "purpose": "Receita/BOM e ordem de produção: transforma insumos em produto acabado (transactions.type=production_purchase), calculando custo unitário com perda e baixando estoque dos ingredientes.",
       "signals": {
-        "grade": {
-          "value": 80,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Manufacturing",
@@ -2025,7 +1977,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 3,
@@ -2063,8 +2015,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -2098,9 +2051,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -2113,11 +2066,7 @@
       "scope": "memory/requisitos/NfeBrasil/SCOPE.md",
       "purpose": "Motor headless de comunicação com a SEFAZ: emite NF-e/NFC-e/NFS-e, guarda e opera o certificado A1, aplica eventos (cancelamento, CC-e, inutilização, manifestação DF-e) e calcula tributos. Não tem tela própria no sidebar — a UI é do Modules/Fiscal.",
       "signals": {
-        "grade": {
-          "value": 79,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "NfeBrasil",
@@ -2130,7 +2079,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 3,
@@ -2168,8 +2117,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -2203,9 +2153,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -2218,11 +2168,7 @@
       "scope": "memory/requisitos/NFSe/SCOPE.md",
       "purpose": "Emissão, consulta e cancelamento de NFS-e pelo Sistema Nacional (sefin.nfse.gov.br) com certificado A1 e ambiente por business. Dono do schema nfse_emissoes em produção; serve as telas /nfse e é consumido pela tela de venda e pelo cockpit Fiscal.",
       "signals": {
-        "grade": {
-          "value": 82,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Nfse",
@@ -2235,7 +2181,7 @@
           "charter_pct": 100,
           "casos_pct": 0,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 3,
@@ -2273,8 +2219,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -2308,9 +2255,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -2323,11 +2270,7 @@
       "scope": "memory/requisitos/Officeimpresso/SCOPE.md",
       "purpose": "Licenciamento, bloqueio e auditoria das máquinas do Office Impresso desktop (Delphi) — CRUD de licenças e logs, credenciais OAuth Passport e API de acesso do desktop, delegáveis ao suporte por permissão. Inclui o importador Firebird do WR Comercial legado.",
       "signals": {
-        "grade": {
-          "value": 85,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Officeimpresso",
@@ -2378,8 +2321,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -2413,9 +2357,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -2428,11 +2372,7 @@
       "scope": "memory/requisitos/OficinaAuto/SCOPE.md",
       "purpose": "Vertical de oficina de REPARO de veículo (CNAE 4520-0/01) — OS própria (service_orders) com FSM canônica, vistoria DVI, aprovação pública do cliente por WhatsApp e PIN, e faturamento automático em Transaction (os_ref SO-). Schema veículo+placa, distinto do Repair genérico (serial_no+device).",
       "signals": {
-        "grade": {
-          "value": 80,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "OficinaAuto",
@@ -2445,7 +2385,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 72
+          "idade_max_dias": 74
         },
         "graph": {
           "depends_on": 3,
@@ -2483,8 +2423,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -2518,9 +2459,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -2533,11 +2474,7 @@
       "scope": "memory/requisitos/PaymentGateway/SCOPE.md",
       "purpose": "Camada técnica de cobrança BR — drivers de API bancária (Inter, C6, Asaas, Pagar.me, Sicoob, Pix Automático BCB) e 11 drivers CNAB, webhooks assinados e cofre de credenciais, atrás do PaymentGatewayContract. Consumida hoje por Financeiro, Sell (core) e Superadmin.",
       "signals": {
-        "grade": {
-          "value": 63,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Settings",
@@ -2550,7 +2487,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 72
+          "idade_max_dias": 74
         },
         "graph": {
           "depends_on": 5,
@@ -2588,8 +2525,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -2623,9 +2561,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -2638,11 +2576,7 @@
       "scope": "memory/requisitos/Ponto/SCOPE.md",
       "purpose": "Ponto eletrônico CLT sob Portaria MTP 671/2021 — marcação append-only imutável (trigger MySQL mais override no Model; correção só por anulação) com NSR sequencial por REP e importação de AFD. Sobre isso: apuração de jornada, banco de horas, intercorrências com aprovação e espelho. Multi-tenant Tier 0.",
       "signals": {
-        "grade": {
-          "value": 76,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Ponto",
@@ -2655,7 +2589,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 4,
@@ -2671,7 +2605,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-09-05",
+          "last_commit": "2026-09-15",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2693,8 +2627,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -2728,9 +2663,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -2743,11 +2678,7 @@
       "scope": "memory/requisitos/ProductCatalogue/SCOPE.md",
       "purpose": "Vitrine pública read-only de produto por business e location, acessível sem login via URL ou QR code — zero entidade própria, zero escrita, subordinada ao hub Vendas.",
       "signals": {
-        "grade": {
-          "value": 78,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": false,
           "ns": "ProductCatalogue",
@@ -2790,8 +2721,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -2828,8 +2760,8 @@
         }
       ],
       "maturity": {
-        "passed": 6,
-        "applicable": 6,
+        "passed": 5,
+        "applicable": 5,
         "ratio": 1,
         "level": "ouro"
       }
@@ -2856,7 +2788,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 0,
@@ -2895,7 +2827,8 @@
         {
           "key": "graded",
           "ok": false,
-          "rot": "nota module-grade presente"
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -2930,8 +2863,8 @@
       ],
       "maturity": {
         "passed": 5,
-        "applicable": 9,
-        "ratio": 0.56,
+        "applicable": 8,
+        "ratio": 0.63,
         "level": "bronze"
       }
     },
@@ -2988,7 +2921,8 @@
         {
           "key": "graded",
           "ok": false,
-          "rot": "nota module-grade presente"
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -3026,8 +2960,8 @@
       ],
       "maturity": {
         "passed": 2,
-        "applicable": 6,
-        "ratio": 0.33,
+        "applicable": 5,
+        "ratio": 0.4,
         "level": "bronze"
       }
     },
@@ -3040,11 +2974,7 @@
       "scope": "memory/requisitos/RecurringBilling/SCOPE.md",
       "purpose": "Assinaturas, planos e faturas recorrentes (schema rb_*) com pilha própria de boleto e PIX (Inter, C6, Asaas) e webhooks. Gera faturas por schedule diário em live; a régua de dunning é declarativa e a cobrança automática (ChargeAttempt) ainda não é criada por código de produção.",
       "signals": {
-        "grade": {
-          "value": 82,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "RecurringBilling",
@@ -3057,7 +2987,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 3,
@@ -3095,8 +3025,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -3130,9 +3061,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -3145,11 +3076,7 @@
       "scope": "memory/requisitos/Repair/SCOPE.md",
       "purpose": "Ciclo de vida da ordem de serviço (recepção, diagnóstico, execução, entrega) sobre transactions.sub_type=repair e job_sheets, com FSM, Kanban de produção e faturamento derivado. Infraestrutura de OS compartilhada entre verticais.",
       "signals": {
-        "grade": {
-          "value": 83,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Repair",
@@ -3162,7 +3089,7 @@
           "charter_pct": 100,
           "casos_pct": 93,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 3,
@@ -3200,8 +3127,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -3235,9 +3163,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -3263,7 +3191,7 @@
           "charter_pct": 100,
           "casos_pct": 56,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 0,
@@ -3302,7 +3230,8 @@
         {
           "key": "graded",
           "ok": false,
-          "rot": "nota module-grade presente"
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -3337,8 +3266,8 @@
       ],
       "maturity": {
         "passed": 5,
-        "applicable": 9,
-        "ratio": 0.56,
+        "applicable": 8,
+        "ratio": 0.63,
         "level": "bronze"
       }
     },
@@ -3351,11 +3280,7 @@
       "scope": "memory/requisitos/Spreadsheet/SCOPE.md",
       "purpose": "Planilhas Luckysheet dentro do ERP — CRUD, pastas e compartilhamento com usuário, papel ou tarefa do próprio business. Módulo legado UltimatePOS vendido por assinatura, em manutenção bug-fix only.",
       "signals": {
-        "grade": {
-          "value": 80,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": false,
           "ns": "Spreadsheet",
@@ -3398,8 +3323,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -3436,8 +3362,8 @@
         }
       ],
       "maturity": {
-        "passed": 6,
-        "applicable": 6,
+        "passed": 5,
+        "applicable": 5,
         "ratio": 1,
         "level": "ouro"
       }
@@ -3495,7 +3421,8 @@
         {
           "key": "graded",
           "ok": false,
-          "rot": "nota module-grade presente"
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -3533,8 +3460,8 @@
       ],
       "maturity": {
         "passed": 3,
-        "applicable": 6,
-        "ratio": 0.5,
+        "applicable": 5,
+        "ratio": 0.6,
         "level": "bronze"
       }
     },
@@ -3547,11 +3474,7 @@
       "scope": "memory/requisitos/Superadmin/SCOPE.md",
       "purpose": "Console do operador da plataforma (superadmin-only, cross-tenant por desenho). Vende e administra o produto — pacotes, assinaturas e checkout — e administra os tenants e o acesso: criar, desativar e destruir business, resetar senha, e a vista Usuário 360 com roles, permissões efetivas, tokens, sessões e lockouts. É o único módulo que fura o business_id global scope legitimamente.",
       "signals": {
-        "grade": {
-          "value": 78,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "superadmin",
@@ -3602,8 +3525,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -3637,9 +3561,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -3652,11 +3576,7 @@
       "scope": "memory/requisitos/Vestuario/SCOPE.md",
       "purpose": "Vertical lojas de vestuário e moda BR (CNAE 4781-4/00): capacidades que o núcleo não tem por serem específicas do ramo — etiqueta TAG térmica (ZPL e PDF, tamanho x cor x coleção) e devolução/troca CDC com crédito-ficha — mais os settings por business do vertical.",
       "signals": {
-        "grade": {
-          "value": 83,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Vestuario",
@@ -3669,7 +3589,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 3,
@@ -3707,8 +3627,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -3742,9 +3663,9 @@
         }
       ],
       "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
+        "passed": 7,
+        "applicable": 8,
+        "ratio": 0.88,
         "level": "prata"
       }
     },
@@ -3757,11 +3678,7 @@
       "scope": "memory/requisitos/VozDoCliente/SCOPE.md",
       "purpose": "Recebe e guarda o relato de quem opera o ERP, dentro do login: texto literal (nunca reescrito), a URL da tela onde a dor aconteceu, severidade auto-declarada e autor, deduplicado por texto e escopado ao business. Hoje entrega só isso — a caixa é leitura sem ação de triagem, o roteamento por módulo não está ligado, e ainda não existe chamador do endpoint de gravação no frontend.",
       "signals": {
-        "grade": {
-          "value": 50,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": false,
           "ns": "VozDoCliente",
@@ -3804,8 +3721,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -3842,9 +3760,9 @@
         }
       ],
       "maturity": {
-        "passed": 5,
-        "applicable": 6,
-        "ratio": 0.83,
+        "passed": 4,
+        "applicable": 5,
+        "ratio": 0.8,
         "level": "prata"
       }
     },
@@ -3857,11 +3775,7 @@
       "scope": "memory/requisitos/Whatsapp/SCOPE.md",
       "purpose": "Plataforma de atendimento do oimpresso (/atendimento/*): caixa unificada, canais, filas, macros, CSAT, métricas, IA de apoio na thread e voz do cliente. Canal implementado hoje = WhatsApp (Meta Cloud default; baileys/evolution/whatsapp-web.js proibidos, ADR 0202); Instagram, Messenger, Email e Mercado Livre são tipos declarados sem driver.",
       "signals": {
-        "grade": {
-          "value": 80,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": true,
           "ns": "Whatsapp + Atendimento",
@@ -3874,7 +3788,7 @@
           "charter_pct": 100,
           "casos_pct": 18,
           "stale": true,
-          "idade_max_dias": 70
+          "idade_max_dias": 72
         },
         "graph": {
           "depends_on": 6,
@@ -3912,8 +3826,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -3947,9 +3862,9 @@
         }
       ],
       "maturity": {
-        "passed": 7,
-        "applicable": 9,
-        "ratio": 0.78,
+        "passed": 6,
+        "applicable": 8,
+        "ratio": 0.75,
         "level": "prata"
       }
     },
@@ -3962,11 +3877,7 @@
       "scope": "memory/requisitos/Woocommerce/SCOPE.md",
       "purpose": "Canal de venda WooCommerce: espelha o catálogo do oimpresso na loja WordPress (produtos, variações, categorias, tax rates, mídia) e converte pedido recebido por webhook em venda (transaction) no núcleo. Subordinado ao hub Vendas; não é loja nem gateway.",
       "signals": {
-        "grade": {
-          "value": 87,
-          "ruler": "0155",
-          "baseline": "v3.6.6"
-        },
+        "grade": null,
         "screens": {
           "matched": false,
           "ns": "Woocommerce",
@@ -4009,8 +3920,9 @@
         },
         {
           "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
         },
         {
           "key": "briefing_present",
@@ -4047,8 +3959,8 @@
         }
       ],
       "maturity": {
-        "passed": 6,
-        "applicable": 6,
+        "passed": 5,
+        "applicable": 5,
         "ratio": 1,
         "level": "ouro"
       }

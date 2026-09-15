@@ -19,6 +19,7 @@ import { Input } from '@/Components/ui/input';
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import PageFilters from '@/Components/shared/PageFilters';
 import EmptyState from '@/Components/shared/EmptyState';
+import { redigirDigitos } from '@/Lib/format-br';
 
 interface C {
   id: number;
@@ -120,7 +121,7 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
                     <tr>
                       <th className="text-left p-3 font-medium">Matrícula</th>
                       <th className="text-left p-3 font-medium">Nome</th>
-                      <th className="text-left p-3 font-medium">CPF</th>
+                      <th className="text-left p-3 font-medium">CPF / PIS</th>
                       <th className="text-left p-3 font-medium">Escala</th>
                       <th className="text-center p-3 font-medium">Ponto</th>
                       <th className="text-center p-3 font-medium">BH</th>
@@ -135,7 +136,21 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
                           <div className="font-medium">{c.nome}</div>
                           {c.email && <div className="text-[10px] text-muted-foreground">{c.email}</div>}
                         </td>
-                        <td className="p-3 text-xs font-mono">{c.cpf ?? '—'}</td>
+                        {/* D-COLAB-CPF ([W] 2026-09-14, "é liberado ser igual ao protótipo"): lista é
+                            tela de varredura, então minimização de dado é o default (LGPD). CPF e PIS
+                            inteiros só no form de edição (Edit.tsx). A forma — últimos 3 dígitos — vem
+                            de `prototipo-ui/cowork/Wagner/ponto-telas.jsx`, soberano no eixo FORMA
+                            (ADR UI-0029). NÃO é controle de acesso: esse é permissão, e segue sendo. */}
+                        <td className="p-3 text-xs font-mono">
+                          <div>{redigirDigitos(c.cpf)}</div>
+                          {c.pis ? (
+                            <div className="text-[10px] text-muted-foreground">PIS {redigirDigitos(c.pis)}</div>
+                          ) : (
+                            /* PIS ausente é ACIONÁVEL, não cosmético: o AFD da Portaria 671/2021 é
+                               chaveado por PIS, então colaborador sem PIS não importa marcação. */
+                            <div className="text-[10px] text-warning">PIS não cadastrado</div>
+                          )}
+                        </td>
                         <td className="p-3 text-xs">{c.escala ?? '—'}</td>
                         <td className="p-3 text-center">
                           {c.controla_ponto ? (

@@ -123,11 +123,18 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
 - **DoD extra:** uso em rotas via `actiongate:L1`/`actiongate:L2`/`actiongate:L3` (Trust Tier obrigatório).
 - **Status:** done modo warn. Migração warn→strict após 4 semanas calibração (ADR 0086).
 
-### Área Module Grades (ADR 0153 — entregue PR #948)
+### Área Module Grades (ADR 0153 — entregue PR #948) · ⚰️ CAPACIDADE APOSENTADA 2026-09-15
+
+> **A rubrica module-grade foi aposentada pela [ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md).**
+> As três US abaixo seguem marcadas DONE porque **foram** entregues (PR #948, 2026-05-16) — isso é
+> fato datado e não se reescreve. O que mudou é que a capacidade saiu: as telas, o controller, as
+> rotas e o item de menu foram deletados; o gate de CI e o baseline, antes; o CLI `module:grade` e
+> seu alias `composer module-grades-check`, na Onda 3. Os ponteiros de `source` abaixo apontavam
+> pra arquivos que já não existem e foram des-linkados.
 
 #### US-GOV-006 · Module Grade Dashboard `/governance/module-grades` ✅ DONE
 - **Rota:** `GET /governance/module-grades`
-- **Controller:** `ModuleGradeController@index` ([source](../../../Modules/Governance/Http/Controllers/ModuleGradeController.php))
+- **Controller:** `ModuleGradeController@index` (DELETADO 2026-09-15 — ADR 0399)
 - **Page Inertia:** `resources/js/Pages/governance/ModuleGrades/Index.tsx` + charter ao lado
 - **Como** Wagner **quero** ver tabela ordenada com nota 0-100 + bucket de cor pra cada um dos 34 Modules **para** ver maturidade do projeto inteiro em 5s.
 - **DoD extra:** filtro por bucket (chips), busca por nome, KPI agregado (média projeto + distribuição buckets), `Inertia::defer` em `gradeAllModules()` (I/O filesystem 1-2s × 34 módulos), cache 5min server-side.
@@ -135,15 +142,15 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
 
 #### US-GOV-007 · Module Grade Drill-down + botão Evoluir ✅ DONE
 - **Rota:** `GET /governance/module-grades/{name}` (regex `[A-Za-z0-9_-]+`)
-- **Controller:** `ModuleGradeController@show`
+- **Controller:** `ModuleGradeController@show` (DELETADO 2026-09-15 — ADR 0399)
 - **Page Inertia:** `resources/js/Pages/governance/ModuleGrades/Show.tsx` + charter
 - **Como** Wagner **quero** clicar num módulo e ver **5 cards dimensões** (D1-D5) com breakdown sub-itens + lista top gaps ordenada **para** entender ONDE está o gap.
 - **DoD extra:** botão **"Evoluir"** primário abre drawer com batch tasks-create sugeridas (MVP A: copy-as-markdown; Fase B: integração MCP direta `tasks-create`).
 - **Status:** done (PR #948 mergeado 2026-05-16).
 
 #### US-GOV-008 · CLI `php artisan module:grade` (machine-readable JSON) ✅ DONE
-- **Command:** `Modules/Governance/Console/Commands/ModuleGradeCommand.php`
-- **Service:** `Modules/Governance/Services/ModuleGradeService.php` — método `gradeModule(string $name): ModuleGrade` retorna value object com nota total + breakdown 5 dimensões + lista gaps.
+- **Command:** `ModuleGradeCommand` (DELETADO 2026-09-15 — ADR 0399; o alias `composer module-grades-check` saiu junto)
+- **Service:** `ModuleGradeService` — método `gradeModule(string $name): ModuleGrade` retorna value object com nota total + breakdown 5 dimensões + lista gaps. Ainda EXISTE: sai na Onda 4, junto do `ModuleGradeSnapshotCommand`, que o injeta pra alimentar o cron 06:05.
 - **Como** Claude Code (Tier B skill `avaliar-modulo`) **quero** rodar `php artisan module:grade <name> --detail --json` **para** parsear output e formatar em chat sem screen-scrape.
 - **DoD extra:** flag `--all` agrega todos módulos; `--json` saída machine-readable; `--evolve` gera batch tasks markdown.
 - **Status:** done (PR #948 mergeado 2026-05-16).

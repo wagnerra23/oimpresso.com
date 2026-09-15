@@ -26,7 +26,6 @@ if (file_exists($moduleConfig)) {
 // Fallback fail-safe se Modules/Governance ainda não está publicado (CI fresh / dev).
 return [
     'audit_log_days'                  => env('GOVERNANCE_RETENTION_AUDIT_DAYS', 1825),
-    'module_grades_days'              => env('GOVERNANCE_RETENTION_MODULE_GRADES_DAYS', 90),
     'action_gate_violations_days'     => env('GOVERNANCE_RETENTION_VIOLATIONS_DAYS', 365),
     'charter_metrics_days'            => env('GOVERNANCE_RETENTION_CHARTER_METRICS_DAYS', 180),
     'pii_redaction_enabled'           => env('GOVERNANCE_PII_REDACTION', true),

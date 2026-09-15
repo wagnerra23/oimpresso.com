@@ -55,6 +55,12 @@ const ESCALAS = [
     turnos: [
       { dia_semana: "Escala 12x36", entrada: "07:00", saida_almoco: "12:00", retorno_almoco: "13:00", saida: "19:00" },
     ] },
+  // Escala cadastrada e ainda SEM colaborador vinculado — é o caso que a trava do D-ESC-DESTROY
+  // ([W] 2026-09-14) libera: sem vínculo, remover é permitido. Sem ela o fluxo do Modal nunca roda.
+  { id: 5, codigo: "EST-30", nome: "Estágio 30h", tipo: "FIXA", carga_diaria_minutos: 360, carga_semanal_minutos: 1800, permite_banco_horas: false,
+    turnos: [
+      { dia_semana: "Segunda a sexta", entrada: "13:00", saida_almoco: "—", retorno_almoco: "—", saida: "19:00" },
+    ] },
 ];
 
 // ── Colaboradores (ponto_colaborador_config + user do HRM) ──

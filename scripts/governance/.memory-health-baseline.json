@@ -81,7 +81,6 @@
     "mcp-drift-sentinel.yml",
     "memory-health.yml",
     "memory-schema-gate.yml",
-    "module-grades-gate.yml",
     "modules-pest.yml",
     "multi-tenant-gate.yml",
     "mutation-gate.yml",

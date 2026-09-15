@@ -14,9 +14,9 @@ module: Governance
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 171 arquivos em 15 papéis.
+**Total mapeado:** 151 arquivos em 15 papéis.
 
-## Controllers — 10
+## Controllers — 9
 
 - [AuditController.php](../../../Modules/Governance/Http/Controllers/AuditController.php)
 - [CustosController.php](../../../Modules/Governance/Http/Controllers/CustosController.php)
@@ -25,7 +25,6 @@ module: Governance
 - [DriftAlertsController.php](../../../Modules/Governance/Http/Controllers/DriftAlertsController.php)
 - [DsRolloutController.php](../../../Modules/Governance/Http/Controllers/DsRolloutController.php)
 - [InstallController.php](../../../Modules/Governance/Http/Controllers/InstallController.php)
-- [ModuleGradeController.php](../../../Modules/Governance/Http/Controllers/ModuleGradeController.php)
 - [PoliciesController.php](../../../Modules/Governance/Http/Controllers/PoliciesController.php)
 - [QualidadeIaController.php](../../../Modules/Governance/Http/Controllers/QualidadeIaController.php)
 
@@ -40,7 +39,7 @@ module: Governance
 
 - [ActionGate.php](../../../Modules/Governance/Http/Middleware/ActionGate.php)
 
-## Services — 37
+## Services — 36
 
 - [AdrPendenteBriefLineService.php](../../../Modules/Governance/Services/AdrPendenteBriefLineService.php)
 - [AdrReviewBriefLineService.php](../../../Modules/Governance/Services/AdrReviewBriefLineService.php)
@@ -68,7 +67,6 @@ module: Governance
 - [ExposicaoTier0BriefLineService.php](../../../Modules/Governance/Services/ExposicaoTier0BriefLineService.php)
 - [GovernanceRulesService.php](../../../Modules/Governance/Services/GovernanceRulesService.php)
 - [InitiativeService.php](../../../Modules/Governance/Services/InitiativeService.php)
-- [ModuleGradeService.php](../../../Modules/Governance/Services/ModuleGradeService.php)
 - [ObraParadaBriefLineService.php](../../../Modules/Governance/Services/ObraParadaBriefLineService.php)
 - [ObservabilitySnapshotService.php](../../../Modules/Governance/Services/ObservabilitySnapshotService.php)
 - [ParidadeBladeBriefLineService.php](../../../Modules/Governance/Services/ParidadeBladeBriefLineService.php)
@@ -84,7 +82,7 @@ module: Governance
 
 - [Initiative.php](../../../Modules/Governance/Entities/Initiative.php)
 
-## Console / Commands — 19
+## Console / Commands — 17
 
 - [AdrReviewFlushCommand.php](../../../Modules/Governance/Console/Commands/AdrReviewFlushCommand.php)
 - [BladeMigrationSentinelCommand.php](../../../Modules/Governance/Console/Commands/BladeMigrationSentinelCommand.php)
@@ -96,8 +94,6 @@ module: Governance
 - [GovernancaScorecardCommand.php](../../../Modules/Governance/Console/Commands/GovernancaScorecardCommand.php)
 - [GovernanceAuditCommand.php](../../../Modules/Governance/Console/Commands/GovernanceAuditCommand.php)
 - [GovernanceHealthCommand.php](../../../Modules/Governance/Console/Commands/GovernanceHealthCommand.php)
-- [ModuleGradeCommand.php](../../../Modules/Governance/Console/Commands/ModuleGradeCommand.php)
-- [ModuleGradeSnapshotCommand.php](../../../Modules/Governance/Console/Commands/ModuleGradeSnapshotCommand.php)
 - [ObservabilityAggregateCommand.php](../../../Modules/Governance/Console/Commands/ObservabilityAggregateCommand.php)
 - [RecordRagasEvalAlertCommand.php](../../../Modules/Governance/Console/Commands/RecordRagasEvalAlertCommand.php)
 - [RecordStagingFreshnessAlertCommand.php](../../../Modules/Governance/Console/Commands/RecordStagingFreshnessAlertCommand.php)
@@ -123,15 +119,13 @@ module: Governance
 - [config.php](../../../Modules/Governance/Config/config.php)
 - [retention.php](../../../Modules/Governance/Config/retention.php)
 
-## Telas (Inertia/React) — 9
+## Telas (Inertia/React) — 7
 
 - [Audit.tsx](../../../resources/js/Pages/governance/Audit.tsx)
 - [Custos.tsx](../../../resources/js/Pages/governance/Custos.tsx)
 - [Dashboard.tsx](../../../resources/js/Pages/governance/Dashboard.tsx)
 - [DriftAlerts.tsx](../../../resources/js/Pages/governance/DriftAlerts.tsx)
 - [DsRollout.tsx](../../../resources/js/Pages/governance/DsRollout.tsx)
-- [Index.tsx](../../../resources/js/Pages/governance/ModuleGrades/Index.tsx)
-- [Show.tsx](../../../resources/js/Pages/governance/ModuleGrades/Show.tsx)
 - [Policies.tsx](../../../resources/js/Pages/governance/Policies.tsx)
 - [QualidadeIa.tsx](../../../resources/js/Pages/governance/QualidadeIa.tsx)
 
@@ -139,15 +133,13 @@ module: Governance
 
 - [GovernancaSubNav.tsx](../../../resources/js/Pages/governance/_shared/GovernancaSubNav.tsx)
 
-## Charters (lei da tela) — 9
+## Charters (lei da tela) — 7
 
 - [Audit.charter.md](../../../resources/js/Pages/governance/Audit.charter.md)
 - [Custos.charter.md](../../../resources/js/Pages/governance/Custos.charter.md)
 - [Dashboard.charter.md](../../../resources/js/Pages/governance/Dashboard.charter.md)
 - [DriftAlerts.charter.md](../../../resources/js/Pages/governance/DriftAlerts.charter.md)
 - [DsRollout.charter.md](../../../resources/js/Pages/governance/DsRollout.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/governance/ModuleGrades/Index.charter.md)
-- [Show.charter.md](../../../resources/js/Pages/governance/ModuleGrades/Show.charter.md)
 - [Policies.charter.md](../../../resources/js/Pages/governance/Policies.charter.md)
 - [QualidadeIa.charter.md](../../../resources/js/Pages/governance/QualidadeIa.charter.md)
 
@@ -156,10 +148,10 @@ module: Governance
 - [DsRollout.casos.md](../../../resources/js/Pages/governance/DsRollout.casos.md)
 - [Policies.casos.md](../../../resources/js/Pages/governance/Policies.casos.md)
 
-## Testes (Pest) — 60
+## Testes (Pest) — 48
 
 - 1 em [Modules/Governance/Tests/](../../../Modules/Governance/Tests)
-- 57 em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature)
+- 45 em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature)
 - 2 em [Modules/Governance/Tests/Unit/](../../../Modules/Governance/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 

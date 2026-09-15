@@ -22,14 +22,16 @@ charter_version: 1
 ---
 
 ## Mission
-O gestor localiza colaboradores para configurar seus parâmetros de ponto. A tela lista quem está cadastrado no HRM com matrícula, CPF, escala e flags de ponto/banco de horas, com busca por matrícula/nome/CPF e atalho para editar a configuração de cada um.
+O gestor localiza colaboradores para configurar seus parâmetros de ponto. A tela lista quem está cadastrado no HRM com matrícula, CPF, escala e flags de ponto/banco de horas, com busca por matrícula/nome/CPF e atalho para editar a configuração de cada um. A **exibição** do documento é redigida (minimização, LGPD); a **busca** segue aceitando o CPF inteiro digitado — são coisas diferentes, e confundi-las quebraria `UC-COLIDX-01`.
 
 ---
 
 ## Goals — Features (faz)
 - Lista paginada (25/pág) de colaboradores.
 - Busca com debounce (350ms) por matrícula, nome ou CPF (partial reload).
-- Colunas: matrícula, nome/email, CPF, escala, flags "Ponto" e "BH".
+- Colunas: matrícula, nome/email, **CPF / PIS redigidos** (3 últimos dígitos — `D-COLAB-CPF`,
+  [W] 2026-09-14; inteiros só na tela Edit), escala, flags "Ponto" e "BH". PIS ausente aparece como
+  **"PIS não cadastrado"**, não como vazio: o AFD da Portaria 671/2021 é chaveado por PIS.
 - Atalho "Config" pro editar (`/ponto/colaboradores/{id}/editar`).
 - Empty states distintos para "sem cadastro" e "busca sem resultado".
 
@@ -40,6 +42,7 @@ O gestor localiza colaboradores para configurar seus parâmetros de ponto. A tel
 - ❌ Não edita inline — edição é na tela Edit.
 - ❌ Não lista colaborador de outro business — escopado por `business_id` (Tier 0 multi-tenant).
 - ❌ Não exporta CPF/PIS em massa — PII de colaborador (LGPD).
+- ❌ Não exibe CPF/PIS inteiros na lista — redigidos nos 3 últimos dígitos; inteiros só na tela Edit (`D-COLAB-CPF`, [W] 2026-09-14; defendido por `UC-COLIDX-03`).
 
 ---
 
@@ -63,4 +66,15 @@ O gestor localiza colaboradores para configurar seus parâmetros de ponto. A tel
 ## Pendências antes de `status: live`
 - [ ] Wagner aprova Non-Goals + Anti-hooks
 - [ ] Smoke visual 1280/1440 (screenshot)
-- [ ] Confirmar mascaramento de CPF na coluna (LGPD)
+- [x] Confirmar mascaramento de CPF na coluna (LGPD) — **[W] 2026-09-14 respondeu: mascarar, "é
+      liberado ser igual ao protótipo"**. A forma vem do `D-COLAB-CPF` em
+      [`ponto-telas.jsx`](../../../../../prototipo-ui/cowork/Wagner/ponto-telas.jsx): a lista mostra
+      só os **3 últimos dígitos** de CPF e de PIS; inteiros **apenas no form de edição**, porque
+      lista é tela de varredura e minimização de dado é o default. Supersede a posição de
+      **2026-08-21** (*"pode deixar os dados sim é um ERP"*), que segue verdadeira como fato daquela
+      data e sobre o **espelho** — não sobre esta coluna. Cadeia FORMA: protótipo soberano
+      ([ADR UI-0029](../../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
+      ⚠️ Ainda **não aplicado** no `.tsx` (hoje `Index.tsx` renderiza o CPF inteiro): o produto só
+      muda pelo fluxo de aplicação com `map.json` por tela, e `maskCPF` de
+      [`Lib/br-mask.ts`](../../../../../resources/js/Lib/br-mask.ts) **formata, não redige** — medido,
+      o front não tem helper de redação hoje.

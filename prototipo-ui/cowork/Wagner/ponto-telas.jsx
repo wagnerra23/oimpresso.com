@@ -19,7 +19,7 @@ function Aprovacoes({ avisar, onVerIntercorrencia, rows, setRows }) {
   const [motivoLote, setMotivoLote] = useState("");
 
   const lista = rows.filter((i) => (!estado || i.estado === estado) && (!tipo || i.tipo === tipo));
-  const pg = usePagina(lista.length, 15);
+  const pg = usePagina(lista.length, 20); // 20/pág = contrato do charter Aprovacoes/Index (Goals)
   const pagina = pg.fatia(lista);
   const selecionaveis = pagina.filter((i) => i.estado === "PENDENTE").map((i) => i.id);
   const todasMarcadas = selecionaveis.length > 0 && selecionaveis.every((id) => marcadas.includes(id));
@@ -32,9 +32,10 @@ function Aprovacoes({ avisar, onVerIntercorrencia, rows, setRows }) {
   };
   const decidir = (id, ok) => {
     if (!ok) {
-      const motivo = window.prompt("Motivo da rejeição:");
-      if (!motivo) return;
-      setRows((rs) => rs.map((r) => r.id === id ? { ...r, estado: "REJEITADA", motivo_rejeicao: motivo, aprovador: "Wagner Ramos", aprovado_em: "20/08/2026 09:12" } : r));
+      const motivo = window.prompt("Motivo da rejeição (mínimo 5 caracteres):");
+      if (motivo === null) return;
+      if (motivo.trim().length < 5) { avisar("O motivo da rejeição precisa de pelo menos 5 caracteres — o solicitante recebe este texto.", "warn"); return; }
+      setRows((rs) => rs.map((r) => r.id === id ? { ...r, estado: "REJEITADA", motivo_rejeicao: motivo.trim(), aprovador: "Wagner Ramos", aprovado_em: "20/08/2026 09:12" } : r));
       avisar("Intercorrência rejeitada — o solicitante recebe o motivo.", "warn");
       return;
     }
@@ -58,7 +59,7 @@ function Aprovacoes({ avisar, onVerIntercorrencia, rows, setRows }) {
         <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{lista.filter((i) => i.estado === "PENDENTE").length} pendentes no filtro · selecione para decidir em lote</span>
       </window.PtBarra>
 
-      <Card icon="check" titulo="Fila de aprovações" sub={"(" + lista.length + (lista.length === 1 ? " item" : " itens") + ")"}>
+      <Card contrato="aprovacoes-fila-de-aprovacoes" icon="check" titulo="Fila de aprovações" sub={"(" + lista.length + (lista.length === 1 ? " item" : " itens") + ")"}>
         <Tabela cols={[{ l: <input type="checkbox" checked={todasMarcadas} disabled={selecionaveis.length === 0} title="Selecionar os pendentes desta página"
             onChange={(e) => setMarcadas(e.target.checked ? [...new Set([...marcadas, ...selecionaveis])] : marcadas.filter((id) => !selecionaveis.includes(id)))} />, w: "34px" },
           { l: "Colaborador" }, { l: "Tipo" }, { l: "Data / intervalo" }, { l: "Estado" }, { l: "Prioridade" }, { l: "Ação", num: true, w: "196px" }]}>
@@ -169,7 +170,7 @@ function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
   const D = P();
   const { Card, Tabela, Vazio, PillIntercorrencia, PillPrioridade, Nota, usePagina, Pager, Ic } = U();
   const ds = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
-  const pg = usePagina(rows.length, 15);
+  const pg = usePagina(rows.length, 25); // 25/pág = contrato do charter Intercorrencias/Index (Goals)
   const [nova, setNova] = useState(false);
   const [editando, setEditando] = useState(null);
   const sel = rows.find((r) => r.id === foco) || null;
@@ -248,12 +249,12 @@ function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
       </window.PtBarra>
 
       {(nova || editando) &&
-        <Card icon="plus" titulo={editando ? "Editar rascunho " + (editando.codigo || editando.id.slice(0, 8)) : "Nova intercorrência"}>
+        <Card contrato="intercorrencias-card" icon="plus" titulo={editando ? "Editar rascunho " + (editando.codigo || editando.id.slice(0, 8)) : "Nova intercorrência"}>
           <FormIntercorrencia registro={editando} onSalvar={salvar} onCancelar={() => { setNova(false); setEditando(null); }} />
         </Card>}
 
-      <Card icon="alert" titulo="Intercorrências" sub={"(" + rows.length + (rows.length === 1 ? " item" : " itens") + ")"}>
-        <Tabela cols={[{ l: "Código", w: "128px" }, { l: "Colaborador" }, { l: "Tipo" }, { l: "Data" }, { l: "Estado" }, { l: "Prioridade" }, { l: "Ação", num: true, w: "170px" }]}>
+      <Card contrato="intercorrencias-intercorrencias" icon="alert" titulo="Intercorrências" sub={"(" + rows.length + (rows.length === 1 ? " item" : " itens") + ")"}>
+        <Tabela cols={[{ l: "Código", w: "128px" }, { l: "Colaborador" }, { l: "Tipo" }, { l: "Data" }, { l: "Estado" }, { l: "Prioridade" }, { l: "Ação", num: true, w: "88px" }]}>
           {rows.length === 0 && <Vazio colSpan={7}>Nenhuma intercorrência registrada ainda.</Vazio>}
           {pg.fatia(rows).map((i) => {
             const c = D.colab(i.colaborador_config_id);
@@ -266,13 +267,9 @@ function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
                 <td><PillIntercorrencia estado={i.estado} /></td>
                 <td><PillPrioridade p={i.prioridade} /></td>
                 <td className="num" onClick={(e) => e.stopPropagation()}>
-                  <span style={{ display: "inline-flex", gap: 6 }}>
-                    <window.PtBtn  onClick={() => onFoco(i.id)}>Ver</window.PtBtn>
-                    {i.estado === "RASCUNHO" && <>
-                      <window.PtBtn  onClick={() => setEditando(i)}>Editar</window.PtBtn>
-                      <window.PtBtn primary onClick={() => mudarEstado(i.id, "PENDENTE", "Submetida para aprovação.", "ok")}>Submeter</window.PtBtn>
-                    </>}
-                  </span>
+                  {/* D-INTERC-ACOES ([W] 2026-09-14): Non-Goal RATIFICADO — a lista não edita nem submete.
+                      Editar/Submeter vivem no detalhe (Show), que é a rota própria (D-PONTO-DETALHE). */}
+                  <window.PtBtn  onClick={() => onFoco(i.id)}>Ver</window.PtBtn>
                 </td>
               </tr>
             );
@@ -294,7 +291,7 @@ function BancoHoras({ avisar }) {
   const [sel, setSel] = useState(null);
   const [minutos, setMinutos] = useState("");
   const [obs, setObs] = useState("");
-  const pg = usePagina(saldos.length, 15);
+  const pg = usePagina(saldos.length, 30); // 30/pág = contrato do charter BancoHoras/Index (Goals)
 
   const totais = useMemo(() => ({
     credito: saldos.filter((s) => s.saldo_minutos > 0).reduce((a, s) => a + s.saldo_minutos, 0),
@@ -310,7 +307,8 @@ function BancoHoras({ avisar }) {
     const tomSaldo = s.saldo_minutos > 0 ? "ok" : s.saldo_minutos < 0 ? "neg" : "";
     const registrar = () => {
       const m = parseInt(minutos, 10);
-      if (!m || !obs.trim()) { avisar("Minutos e observação são obrigatórios no ajuste manual.", "warn"); return; }
+      if (!m) { avisar("Informe os minutos do ajuste (negativo para débito).", "warn"); return; }
+      if (obs.trim().length < 5) { avisar("A observação do ajuste precisa de pelo menos 5 caracteres — ela é auditada.", "warn"); return; }
       setMovs((o) => ({ ...o, [sel]: [{ created_at: "20/08/2026 09:24", data_referencia: "20/08/2026", origem: "AJUSTE_MANUAL", minutos: m, observacao: obs.trim() }, ...(o[sel] || [])] }));
       setSaldos((ss) => ss.map((x) => x.colaborador_config_id === sel ? { ...x, saldo_minutos: x.saldo_minutos + m, updated_at: "20/08/2026 09:24" } : x));
       setMinutos(""); setObs("");
@@ -330,7 +328,7 @@ function BancoHoras({ avisar }) {
               <Kpi label="Teto do acordo" valor={D.CONFIG.banco_horas.saldo_maximo_horas + "h"} ln={"piso " + D.CONFIG.banco_horas.saldo_minimo_horas + "h"} />
               <Kpi label="Prazo de compensação" valor={D.CONFIG.banco_horas.prazo_compensacao_meses + " meses"} ln="acordo individual" />
             </div>
-            <Card icon="list" titulo="Histórico de movimentos" sub={"(" + lista.length + " lançamentos)"}>
+            <Card contrato="bancohoras-historico-de-movimentos" icon="list" titulo="Histórico de movimentos" sub={"(" + lista.length + " lançamentos)"}>
               <Tabela cols={[{ l: "Data" }, { l: "Referência" }, { l: "Origem" }, { l: "Minutos", num: true }, { l: "Observação" }]}>
                 {lista.length === 0 && <Vazio colSpan={5}>Nenhuma movimentação registrada.</Vazio>}
                 {lista.map((m, i) => (
@@ -345,7 +343,7 @@ function BancoHoras({ avisar }) {
               </Tabela>
             </Card>
           </div>
-          <Card icon="settings" titulo="Ajuste manual" sub="— registra lançamento no ledger (imutável)">
+          <Card contrato="bancohoras-ajuste-manual" icon="settings" titulo="Ajuste manual" sub="— registra lançamento no ledger (imutável)">
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <window.PtCampo label={"Minutos"} req help={<>Ex.: 60 (crédito 1h), −30 (débito 30 min).</>} type="number" value={minutos} onChange={(e) => setMinutos(e.target.value)} placeholder="Use negativo para débito" />
               <window.PtTexto label={"Observação"} req maxLength={500} value={obs} onChange={(e) => setObs(e.target.value)} placeholder="Motivo do ajuste (obrigatório)…" />
@@ -367,10 +365,10 @@ function BancoHoras({ avisar }) {
         <Kpi label="Colaboradores no banco" valor={saldos.length} ln="com escala que permite acúmulo" />
         <Kpi label="Multiplicadores" valor={D.CONFIG.banco_horas.multiplicador_credito + "x / " + D.CONFIG.banco_horas.multiplicador_debito + "x"} ln="crédito / débito" />
       </div>
-      <Card icon="coins" titulo="Saldos por colaborador" sub={"(" + saldos.length + " registros)"}>
+      <Card contrato="bancohoras-saldos-por-colaborador" icon="coins" titulo="Saldos por colaborador" sub={"(" + saldos.length + " registros)"}>
         <Tabela cols={[{ l: "Colaborador" }, { l: "Matrícula" }, { l: "Escala" }, { l: "Saldo", num: true }, { l: "Última movimentação" }, { l: "Ação", num: true, w: "108px" }]}>
           {saldos.length === 0 && <Vazio colSpan={6}>Nenhum saldo registrado ainda.</Vazio>}
-          {pg.fatia(saldos).map((s) => {
+          {pg.fatia([...saldos].sort((x, y) => y.saldo_minutos - x.saldo_minutos)).map((s) => {
             const c = D.colab(s.colaborador_config_id);
             return (
               <tr key={s.colaborador_config_id} className="hit" onClick={() => setSel(s.colaborador_config_id)}>
@@ -397,7 +395,8 @@ function Escalas({ avisar }) {
   const { Card, Tabela, Vazio, Pill, PillSimNao, Nota, usePagina, Pager, Ic } = U();
   const [rows, setRows] = useState(D.ESCALAS);
   const [form, setForm] = useState(null); // {escala|null}
-  const pg = usePagina(rows.length, 15);
+  const [remover, setRemover] = useState(null); // escala pendente de confirmação (Modal do DS, não window.confirm)
+  const pg = usePagina(rows.length, 20); // 20/pág = contrato do charter Escalas/Index (Goals)
 
   const salvar = (f) => {
     if (f.id) { setRows((rs) => rs.map((r) => r.id === f.id ? { ...r, ...f } : r)); avisar("Escala atualizada.", "ok"); }
@@ -414,7 +413,7 @@ function Escalas({ avisar }) {
         
         <window.PtBtn primary onClick={() => setForm({ escala: null })}><Ic name="plus" />Nova escala</window.PtBtn>
       </window.PtBarra>
-      <Card icon="calendar" titulo="Escalas cadastradas" sub={"(" + rows.length + " no business)"}>
+      <Card contrato="escalas-escalas-cadastradas" icon="calendar" titulo="Escalas cadastradas" sub={"(" + rows.length + " no business)"}>
         <Tabela cols={[{ l: "Código", w: "110px" }, { l: "Nome" }, { l: "Tipo" }, { l: "Carga diária", num: true }, { l: "Carga semanal", num: true }, { l: "Turnos", num: true }, { l: "Banco de horas" }, { l: "Ação", num: true, w: "150px" }]}>
           {rows.length === 0 && <Vazio icon="calendar" colSpan={8}>Nenhuma escala cadastrada.</Vazio>}
           {pg.fatia(rows).map((e) => (
@@ -429,7 +428,19 @@ function Escalas({ avisar }) {
               <td className="num">
                 <span style={{ display: "inline-flex", gap: 6 }}>
                   <window.PtBtn  onClick={() => setForm({ escala: e })}>Editar</window.PtBtn>
-                  <window.PtBtn danger onClick={() => { if (window.confirm("Remover esta escala? Colaboradores vinculados perderão a referência.")) { setRows((rs) => rs.filter((r) => r.id !== e.id)); avisar("Escala removida.", "warn"); } }}>Remover</window.PtBtn>
+                  {/* D-ESC-DESTROY ([W] 2026-09-14): entra na UI, mas INDISPONÍVEL com vínculo —
+                      perder referência de escala é perder histórico de jornada, e a CLT cobra. */}
+                  {(() => {
+                    const n = D.COLABORADORES.filter((c) => c.escala_atual_id === e.id).length;
+                    // O motivo é TEXTO NA CÉLULA, não tooltip: botão `disabled` não emite hover nem
+                    // recebe foco, então o Tooltip do DS seria inalcançável ([W]: "com o motivo escrito").
+                    return n > 0
+                      ? <span className="pt-dim" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          <window.PtBtn danger disabled>Remover</window.PtBtn>
+                          <small>{n === 1 ? "1 colaborador vinculado" : n + " colaboradores vinculados"} — desvincule antes</small>
+                        </span>
+                      : <window.PtBtn danger onClick={() => setRemover(e)}>Remover</window.PtBtn>;
+                  })()}
                 </span>
               </td>
             </tr>
@@ -438,6 +449,21 @@ function Escalas({ avisar }) {
         <Pager p={pg} rotulo="escalas" />
       </Card>
       <Nota tom="info">A gestão detalhada de turnos por dia da semana (entrada, saída para almoço, retorno, saída) é leitura aqui e edição em fase posterior — igual ao Blade de origem.</Nota>
+      {remover && (() => {
+        const ds = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
+        const M = ds.Modal;
+        const confirmar = () => { setRows((rs) => rs.filter((r) => r.id !== remover.id)); avisar("Escala removida.", "warn"); setRemover(null); };
+        if (!M) return null;
+        // A API do Modal do DS é { open, onClose, title, children, footer, width } — o rodapé vem
+        // em `footer`. tone/confirmLabel/onConfirm NÃO existem e eram ignorados em silêncio.
+        return <M open onClose={() => setRemover(null)} title={"Remover " + remover.nome + "?"} width={460}
+          footer={<>
+            <window.PtBtn onClick={() => setRemover(null)}>Cancelar</window.PtBtn>
+            <window.PtBtn danger onClick={confirmar}>Remover escala</window.PtBtn>
+          </>}>
+          A escala sai da lista e o histórico de jornada dos meses fechados deixa de ter referência de padrão. Não há colaborador vinculado a ela agora.
+        </M>;
+      })()}
     </>
   );
 }
@@ -454,7 +480,7 @@ function EscalaForm({ escala, onSalvar, onCancelar }) {
     <>
       <div className="pt-sub"><Voltar onClick={onCancelar}>Voltar às escalas</Voltar>
         <div><h2>{escala ? "Editar escala" : "Nova escala"}</h2><span className="pt-sub-sub">{escala ? escala.nome : "cadastro de jornada padrão do business"}</span></div></div>
-      <Card icon="calendar" titulo={escala ? escala.nome : "Dados da escala"}>
+      <Card contrato="escalaform-card" icon="calendar" titulo={escala ? escala.nome : "Dados da escala"}>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div className="pt-cols">
             <window.PtCampo label={"Nome"} req wide maxLength={120} value={f.nome} onChange={set("nome")} />
@@ -497,6 +523,8 @@ function Colaboradores({ avisar, onVerEspelho }) {
   const [edit, setEdit] = useState(null);
 
   const busca = q.trim().toLowerCase();
+  // Mantém só os 3 últimos dígitos visíveis (LGPD — D-COLAB-CPF).
+  const mascara = (v) => { const d = String(v || "").replace(/\D/g, ""); return d ? "•".repeat(Math.max(0, d.length - 3)) + d.slice(-3) : "—"; };
   const [escala, setEscala] = useState("");
   const [status, setStatus] = useState("ativos");
   const lista = rows.filter((c) => {
@@ -508,7 +536,7 @@ function Colaboradores({ avisar, onVerEspelho }) {
     if (status === "sem-pis" && c.pis) return false;
     return true;
   });
-  const pg = usePagina(lista.length, 15);
+  const pg = usePagina(lista.length, 25); // 25/pág = contrato do charter Colaboradores/Index (Goals)
   const ultimoPonto = (id) => {
     const dias = D.dias(D.MES, id).filter((d) => d.marcacoes.length);
     const d = dias[dias.length - 1];
@@ -542,7 +570,7 @@ function Colaboradores({ avisar, onVerEspelho }) {
         
         <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{lista.length} de {rows.length} colaboradores</span>
       </window.PtBarra>
-      <Card icon="database" titulo="Colaboradores" sub={"(" + lista.length + " encontrados)"}>
+      <Card contrato="colaboradores-colaboradores" icon="database" titulo="Colaboradores" sub={"(" + lista.length + " encontrados)"}>
         <Tabela cols={[{ l: "Matrícula", w: "92px" }, { l: "Nome" }, { l: "CPF / PIS" }, { l: "Escala" }, { l: "Último ponto" }, { l: "Saldo BH", num: true }, { l: "Controla ponto" }, { l: "Banco de horas" }, { l: "Ação", num: true, w: "180px" }]}>
           {lista.length === 0 && <Vazio icon="search" colSpan={9}>{busca ? <>Nenhum colaborador encontrado para “{q}”.</> : "Nenhum colaborador com esse filtro."}</Vazio>}
           {pg.fatia(lista).map((c) => {
@@ -552,7 +580,9 @@ function Colaboradores({ avisar, onVerEspelho }) {
             <tr key={c.id} className={c.desligamento ? "folga" : ""}>
               <td className="mono">{c.matricula || "—"}</td>
               <td><b>{c.nome}</b><small>{c.email || "sem e-mail"} · {c.cargo}</small></td>
-              <td className="mono">{c.cpf || "—"}<small>{c.pis ? "PIS " + c.pis : <span className="pt-warnt">PIS não cadastrado</span>}</small></td>
+              {/* D-COLAB-CPF ([W] 2026-09-14): lista é tela de varredura — minimização de dado é o default (LGPD).
+                  CPF/PIS inteiros só no form de edição. */}
+              <td className="mono">{mascara(c.cpf)}<small>{c.pis ? "PIS " + mascara(c.pis) : <span className="pt-warnt">PIS não cadastrado</span>}</small></td>
               <td>{c.escala_atual_id ? <Pill tom="info">{D.escala(c.escala_atual_id).nome}</Pill> : <span className="pt-dim">—</span>}</td>
               <td className="mono">{up || <span className="pt-dim">—</span>}</td>
               <td className="num">{bh == null ? <span className="pt-dim">—</span> : <span className={bh > 0 ? "pt-pos" : bh < 0 ? "pt-neg" : "pt-dim"}>{D.fmtMin(bh)}</span>}</td>
@@ -588,7 +618,7 @@ function ColaboradorForm({ colaborador, onSalvar, onCancelar }) {
       <div className="pt-sub"><Voltar onClick={onCancelar}>Voltar aos colaboradores</Voltar>
         <div><h2>{c.nome}</h2><span className="pt-sub-sub">{c.cargo} · matrícula {c.matricula || "—"}</span></div></div>
       <div className="pt-cols-2">
-        <Card icon="settings" titulo="Configuração de ponto">
+        <Card contrato="colaboradorform-configuracao-de-ponto" icon="settings" titulo="Configuração de ponto">
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div className="pt-cols">
               <window.PtCampo label={"Matrícula"} maxLength={30} value={f.matricula} onChange={set("matricula")} />
@@ -613,7 +643,7 @@ function ColaboradorForm({ colaborador, onSalvar, onCancelar }) {
             </div>
           </div>
         </Card>
-        <Card icon="database" titulo="Dados do HRM">
+        <Card contrato="colaboradorform-dados-do-hrm" icon="database" titulo="Dados do HRM">
           <div className="pt-ficha" style={{ gridTemplateColumns: "1fr" }}>
             <div>
               <p><b>Nome:</b> {c.nome}</p>
@@ -639,7 +669,7 @@ function Importacoes({ avisar }) {
   const [sel, setSel] = useState(null);
   const [nova, setNova] = useState(false);
   const [tipo, setTipo] = useState("AFD");
-  const pg = usePagina(rows.length, 15);
+  const pg = usePagina(rows.length, 20); // 20/pág = contrato do charter Importacoes/Index (Goals)
   const fmtBytes = (b) => b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(1) + " KB" : (b / 1048576).toFixed(1) + " MB";
 
   if (sel) {
@@ -655,7 +685,7 @@ function Importacoes({ avisar }) {
         </div>
         <div className="pt-cols-2">
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <Card icon="receipt" titulo="Dados do arquivo">
+            <Card contrato="importacoes-dados-do-arquivo" icon="receipt" titulo="Dados do arquivo">
               <div className="pt-ficha">
                 <div>
                   <p><b>ID:</b> <span className="mono">#{imp.id}</span></p>
@@ -676,9 +706,9 @@ function Importacoes({ avisar }) {
                 <div className="pt-hash">{imp.hash_arquivo}</div>
               </div>
             </Card>
-            {imp.log && <Card icon="list" titulo="Diagnóstico do processamento"><pre className="pt-log">{imp.log}</pre></Card>}
+            {imp.log && <Card contrato="importacoes-diagnostico-do-processamento" icon="list" titulo="Diagnóstico do processamento"><pre className="pt-log">{imp.log}</pre></Card>}
             {imp.erros_amostra.length > 0 &&
-              <Card icon="alert" titulo="Amostra de erros" sub={"(" + imp.erros_amostra.length + " primeiros)"}>
+              <Card contrato="importacoes-amostra-de-erros" icon="alert" titulo="Amostra de erros" sub={"(" + imp.erros_amostra.length + " primeiros)"}>
                 <Tabela cols={[{ l: "Linha", w: "80px" }, { l: "NSR", w: "96px" }, { l: "Tipo", w: "60px" }, { l: "Mensagem" }]}>
                   {imp.erros_amostra.map((e, i) => (
                     <tr key={i}><td className="mono">{e.linha}</td><td className="mono">{e.nsr}</td><td className="mono">{e.tipo}</td><td><small style={{ color: "var(--text-dim)" }}>{e.erro}</small></td></tr>
@@ -686,7 +716,7 @@ function Importacoes({ avisar }) {
                 </Tabela>
               </Card>}
           </div>
-          <Card icon="chart" titulo="Resumo do processamento">
+          <Card contrato="importacoes-resumo-do-processamento" icon="chart" titulo="Resumo do processamento">
             <div className="pt-kpis" style={{ gridTemplateColumns: "1fr 1fr" }}>
               <Kpi label="Linhas totais" valor={imp.linhas_total.toLocaleString("pt-BR")} />
               <Kpi label="Processadas" valor={imp.linhas_processadas.toLocaleString("pt-BR")} />
@@ -716,7 +746,7 @@ function Importacoes({ avisar }) {
       </window.PtBarra>
 
       {nova &&
-        <Card icon="download" titulo="Upload do arquivo" sub="— Portaria MTP 671/2021">
+        <Card contrato="importacoes-upload-do-arquivo" icon="download" titulo="Upload do arquivo" sub="— Portaria MTP 671/2021">
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div className="pt-cols">
               <window.PtEscolha label={"Tipo de arquivo"} req value={tipo} onChange={(e) => setTipo(e.target.value)}>
@@ -741,7 +771,7 @@ function Importacoes({ avisar }) {
           </div>
         </Card>}
 
-      <Card icon="download" titulo="Histórico de importações" sub={"(" + rows.length + " arquivos)"}>
+      <Card contrato="importacoes-historico-de-importacoes" icon="download" titulo="Histórico de importações" sub={"(" + rows.length + " arquivos)"}>
         <Tabela cols={[{ l: "ID", w: "62px" }, { l: "Arquivo" }, { l: "Tipo", w: "70px" }, { l: "Tamanho", num: true }, { l: "Estado" }, { l: "Linhas", num: true }, { l: "Usuário" }, { l: "Importado em" }, { l: "Ação", num: true, w: "94px" }]}>
           {rows.length === 0 && <Vazio colSpan={9}>Nenhuma importação AFD realizada ainda.</Vazio>}
           {pg.fatia(rows).map((imp) => (
@@ -791,7 +821,7 @@ function Relatorios({ avisar }) {
       </Nota>
 
       {alvo &&
-        <Card icon="settings" titulo={"Gerar: " + alvo.titulo} sub={alvo.descricao}>
+        <Card contrato="relatorios-gerar" icon="settings" titulo={"Gerar: " + alvo.titulo} sub={alvo.descricao}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div className="pt-cols">
               <window.PtEscolha label={"Competência"} req value={f.mes} onChange={set("mes")}>
@@ -830,7 +860,7 @@ function Relatorios({ avisar }) {
       </div>
 
       {fila.length > 0 &&
-        <Card icon="list" titulo="Pedidos desta sessão" sub={"(" + fila.length + ")"}>
+        <Card contrato="relatorios-pedidos-desta-sessao" icon="list" titulo="Pedidos desta sessão" sub={"(" + fila.length + ")"}>
           <Tabela cols={[{ l: "Relatório" }, { l: "Competência" }, { l: "Escopo" }, { l: "Formato", w: "80px" }, { l: "Estado", w: "150px" }]}>
             {fila.map((q) => (
               <tr key={q.id}>
@@ -863,14 +893,14 @@ function Configuracoes({ avisar }) {
   const set = (k) => (e) => setF((o) => ({ ...o, [k]: e.target.value }));
 
   if (tela === "reps") {
-    const erro = f.identificador.length !== 17 ? "O identificador tem exatamente 17 caracteres (AAAAMMDDHHMMSSNNN)."
+    const erro = f.identificador.length !== 17 ? "O identificador tem exatamente 17 caracteres: CNPJ (14 dígitos) + sequencial do dispositivo (3 dígitos) — Portaria MTP 671/2021 Anexo I."
       : !f.descricao.trim() ? "A descrição é obrigatória." : null;
     return (
       <>
         <div className="pt-sub"><Voltar onClick={() => setTela("config")}>Voltar às configurações</Voltar>
           <div><h2>Dispositivos REP</h2><span className="pt-sub-sub">Registrador Eletrônico de Ponto · {reps.length} cadastrados</span></div></div>
         <div className="pt-cols-2">
-          <Card icon="list" titulo="REPs cadastrados" sub={"(" + reps.length + ")"}>
+          <Card contrato="configuracoes-reps-cadastrados" icon="list" titulo="REPs cadastrados" sub={"(" + reps.length + ")"}>
             <Tabela cols={[{ l: "Tipo", w: "84px" }, { l: "Identificador" }, { l: "Descrição" }, { l: "Local" }, { l: "CNPJ" }]}>
               {reps.length === 0 && <Vazio colSpan={5}>Nenhum REP cadastrado ainda.</Vazio>}
               {reps.map((r) => (
@@ -884,14 +914,14 @@ function Configuracoes({ avisar }) {
               ))}
             </Tabela>
           </Card>
-          <Card icon="plus" titulo="Cadastrar novo REP">
+          <Card contrato="configuracoes-cadastrar-novo-rep" icon="plus" titulo="Cadastrar novo REP">
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <window.PtEscolha label={"Tipo"} req value={f.tipo} onChange={set("tipo")}>
                   <option value="REP_P">REP-P (Programa/mobile)</option>
                   <option value="REP_C">REP-C (Convencional)</option>
                   <option value="REP_A">REP-A (Alternativo)</option>
                 </window.PtEscolha>
-              <window.PtCampo label={"Identificador (17 caracteres)"} req help={<>Formato conforme Portaria 671/2021 Anexo I. {f.identificador.length}/17</>} maxLength={17} value={f.identificador} onChange={set("identificador")} placeholder="AAAAMMDDHHMMSSNNN" />
+              <window.PtCampo label={"Identificador (17 caracteres)"} req help={<>CNPJ (14) + sequencial (3), conforme Portaria MTP 671/2021 Anexo I. {f.identificador.length}/17</>} maxLength={17} value={f.identificador} onChange={set("identificador")} placeholder="00000000000191001" />
               <window.PtCampo label={"Descrição"} req maxLength={120} value={f.descricao} onChange={set("descricao")} />
               <window.PtCampo label={"Local"} maxLength={120} value={f.local} onChange={set("local")} placeholder="Ex.: Recepção matriz" />
               <window.PtCampo label={"CNPJ"} maxLength={14} value={f.cnpj} onChange={set("cnpj")} placeholder="Somente números (14 dígitos)" />
@@ -910,10 +940,10 @@ function Configuracoes({ avisar }) {
   return (
     <>
       <Nota tom="warn" titulo="Somente leitura">
-        Estas configurações vêm de <b>Modules/Ponto/Config/config.php</b>. A edição pela UI não está implementada — para alterar, edite o arquivo e rode <span className="mono">php artisan config:clear</span>. Para os dispositivos, use o <window.PtBtn  style={{ padding: "1px 7px", minHeight: 0 }} onClick={() => setTela("reps")}>cadastro de REPs</window.PtBtn>.
+        Estas configurações vêm de <b>config/pontowr2.php</b>, lido pelo controller via <span className="mono">config('pontowr2')</span>. A edição pela UI não está implementada — para alterar, edite o arquivo e rode <span className="mono">php artisan config:clear</span>. Para os dispositivos, use o <window.PtBtn  style={{ padding: "1px 7px", minHeight: 0 }} onClick={() => setTela("reps")}>cadastro de REPs</window.PtBtn>.
       </Nota>
       <div className="pt-cols">
-        <Card icon="shield" titulo="Regras CLT / Reforma Trabalhista">
+        <Card contrato="configuracoes-regras-clt-reforma-trabalhista" icon="shield" titulo="Regras CLT / Reforma Trabalhista">
           <Dl>
             <Li t="Tolerância por marcação" lei="Art. 58 §1º CLT">{c.clt.tolerancia_minutos_por_marcacao} min</Li>
             <Li t="Tolerância máxima diária" lei="Art. 58 §1º CLT">{c.clt.tolerancia_maxima_diaria_minutos} min</Li>
@@ -926,7 +956,7 @@ function Configuracoes({ avisar }) {
             <Li t="Adicional DSR" lei="Lei 605/49">{c.clt.adicional_dsr_percentual}%</Li>
           </Dl>
         </Card>
-        <Card icon="coins" titulo="Banco de Horas">
+        <Card contrato="configuracoes-banco-de-horas" icon="coins" titulo="Banco de Horas">
           <Dl>
             <Li t="Habilitado"><PillSimNao v={c.banco_horas.habilitado} /></Li>
             <Li t="Prazo de compensação" lei="Reforma Trabalhista — acordo individual">{c.banco_horas.prazo_compensacao_meses} meses</Li>
@@ -937,7 +967,7 @@ function Configuracoes({ avisar }) {
             <Li t="Converter HE em BH automaticamente"><PillSimNao v={c.banco_horas.converter_he_em_bh_default} /></Li>
           </Dl>
         </Card>
-        <Card icon="clock" titulo="REP e imutabilidade de marcações">
+        <Card contrato="configuracoes-rep-e-imutabilidade-de-marcacoes" icon="clock" titulo="REP e imutabilidade de marcações">
           <Dl>
             <Li t="Tipos de REP permitidos">{c.rep.tipos_permitidos.map((t) => <Pill key={t} tom="info" mono>{t.replace("_", "-")}</Pill>)}</Li>
             <Li t="Verificar sequência NSR">{c.rep.nsr_verificar_sequencia ? "Sim" : "Não"}</Li>
@@ -952,7 +982,7 @@ function Configuracoes({ avisar }) {
             <window.PtBtn  onClick={() => setTela("reps")}><Ic name="list" />Gerenciar REPs cadastrados</window.PtBtn>
           </div>
         </Card>
-        <Card icon="download" titulo="AFD / Importação · eSocial">
+        <Card contrato="configuracoes-afd-importacao-esocial" icon="download" titulo="AFD / Importação · eSocial">
           <Dl>
             <Li t="Encoding"><span className="mono">{c.afd.encoding}</span></Li>
             <Li t="Tamanho máximo">{c.afd.max_filesize_mb} MB</Li>
@@ -963,7 +993,7 @@ function Configuracoes({ avisar }) {
             <Li t="tpAmb">{c.esocial.tp_amb}</Li>
           </Dl>
         </Card>
-        <Card icon="sparkles" titulo="IA do Ponto" sub="— flags do config, nascem desligadas">
+        <Card contrato="configuracoes-ia-do-ponto" icon="sparkles" titulo="IA do Ponto" sub="— flags do config, nascem desligadas">
           <Dl>
             <Li t="Master switch"><PillSimNao v={c.ai.enabled} sim="Ligado" nao="Desligado" /></Li>
             <Li t="Classificação de intercorrência"><PillSimNao v={c.ai.classificacao_intercorrencia} sim="Ligado" nao="Desligado" /></Li>

@@ -362,8 +362,13 @@ export const FASES = [
       '#   O live-only aqui MATA a rotina separada que so a sessao logada rodava (auth interativa, ADR 0315)',
       '#   e por isso vencia: o ZIP tem o projeto inteiro, entao a lista sai da arvore de graca ([W] 2026-09-10',
       '#   "ali esta o bundle inteiro"). O medidor continua sendo o `cowork-mirror-freshness`.',
+      '#   PASSO 0 EMBUTIDO desde 2026-09-14: a rota ZIP chama o --de-quem sozinha e ABORTA se ele nao',
+      '#   liberar. `indeterminado` e o veredito NORMAL de um zip de telas (o id do projeto nao aparece em',
+      '#   path nenhum — so o cache _ds/), e a saida dele e DECLARAR a conta. Conta sem espelho no repo NAO',
+      '#   importa por aqui: o destino de escrita e cowork/Wagner, logo material de outro dono viraria orfao.',
       'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip>            # mede + valida',
       'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --apply    # + promove',
+      'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --conta w  # exigido se o PASSO 0 der indeterminado',
       'selftest: node scripts/design-sync/receber-handoff.test.mjs',
       '# [ROTA PRINCIPAL] bundle v2 — snapshot inicial; depois delta por manifesto anterior',
       '# ⚠ A EMISSAO DESTE BUNDLE NAO TEM DONO NEM AUTOMACAO (medido 2026-08-31, contado):',
@@ -506,14 +511,18 @@ function conferirFonteUnicaExecutavel() {
     const safeRoot = REPO_ROOT.replaceAll('\\', '/');
     const tracked = execFileSync('git', [
       '-c', `safe.directory=${safeRoot}`,
-      'ls-files', '-z', '--', 'prototipo-ui/cowork/Wagner/_ds/**',
+      // Os DOIS destinos: o atual (pós-#7224) e o LEGADO pré-#7224, que worktree stale
+      // ainda materializa rodando o hook antigo (medido 2026-09-15: 10 arquivos).
+      'ls-files', '-z', '--',
+      'prototipo-ui/cowork/Wagner/_ds/**',
+      'prototipo-ui/cowork/_ds/**',
     ], { cwd: REPO_ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
       .split('\0').filter(Boolean);
     for (const rel of tracked) {
       problemas.push(`${rel} está rastreado; cowork/_ds é cópia paralela proibida do design-system`);
     }
   } catch {
-    problemas.push('não foi possível provar via git que prototipo-ui/cowork/Wagner/_ds não está rastreado');
+    problemas.push('não foi possível provar via git que os _ds/ de prototipo-ui/cowork (atual e legado) não estão rastreados');
   }
 
   return problemas;

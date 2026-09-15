@@ -45,6 +45,43 @@ test('route() de tela sem entrada no map → tudo extra', function () {
     expect($r['extras'])->toBe(['x.jsx']);
 });
 
+/**
+ * Destino-dir preserva o CAMINHO, não só o nome (ADR 0398 D1 — a árvore da conta é preservada).
+ *
+ * Até 2026-09-13 o destino era `$dest . basename($f)`, e isso ACHATAVA: medido no pacote de
+ * 2026-09-11, os 338 `.md` cabem em 267 basenames — 20 nomes colidem (`Index.casos.md` 19×,
+ * `Index.charter.md` 17×, `00-INDICE.md` 13×), então 71 arquivos se sobrescreveriam em silêncio
+ * e o plano emitido estaria errado por construção. Sem sobrescrita visível: o último a ser
+ * roteado vence e nenhuma linha do relatório denuncia a perda.
+ */
+test('route() com destino-dir PRESERVA o caminho relativo (não achata em basename)', function () {
+    $r = DesignIngestPlanner::route(ingestMap(), ['cowork-inbox/ancora/playbook/00-INDICE.css'], 'vendas');
+
+    expect($r['routed'][0]['to'])
+        ->toBe('prototipo-ui/cowork/Wagner/legado/vendas/cowork-inbox/ancora/playbook/00-INDICE.css');
+});
+
+test('route() com destino-dir: dois aninhados de mesmo basename NÃO colidem', function () {
+    $r = DesignIngestPlanner::route(ingestMap(), ['a/x.css', 'b/x.css'], 'vendas');
+
+    $destinos = array_column($r['routed'], 'to');
+    expect($destinos)->toHaveCount(2);
+    expect(array_unique($destinos))->toHaveCount(2);
+});
+
+// CONTROLE — sem ele, um route() que devolvesse o caminho cru passaria nos dois acima e
+// quebraria o caso dominante: o build FLAT do Cowork, onde `$f === basename($f)`.
+test('CONTROLE: arquivo da raiz do pacote continua pousando igual (build flat intacto)', function () {
+    $r = DesignIngestPlanner::route(ingestMap(), ['app.css'], 'vendas');
+    expect($r['routed'][0]['to'])->toBe('prototipo-ui/cowork/Wagner/legado/vendas/app.css');
+});
+
+// CONTROLE — destino-ARQUIVO (não termina em `/`) segue ignorando o caminho de origem.
+test('CONTROLE: destino-arquivo continua fixo, o caminho de origem não vaza', function () {
+    $r = DesignIngestPlanner::route(ingestMap(), ['sub/dir/qualquer-page.jsx'], 'vendas');
+    expect($r['routed'][0]['to'])->toBe('prototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx');
+});
+
 test('parseDiff() classifica add/mod/del', function () {
     $out = "A\tprototipo-ui/cowork/Wagner/legado/vendas/novo.jsx\nM\tprototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx\nD\tprototipo-ui/cowork/Wagner/legado/vendas/velho.css\n";
     $d = DesignIngestPlanner::parseDiff($out);

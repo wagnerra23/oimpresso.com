@@ -11,11 +11,22 @@ use Modules\Jana\Services\Memoria\DesignIngestPlanner;
  * PR-2b da estação de ingestão de design ([plano] vectorized-badger · ADR 0270).
  *
  * `design:ingest-zip --zip=<x.zip> --tela=vendas` (prepare-only): descompacta SEMPRE
- * no mesmo lugar (`prototipo-ui/_incoming/<tela>/`, gitignored) → roteia contra o
+ * no mesmo lugar (`storage/app/design-incoming/<tela>/`, gitignored) → roteia contra o
  * `cowork-map.json` (DesignIngestPlanner) → diff por conteúdo (sha) vs a tela commitada
  * → escreve os entregáveis em `_prepared/`: PLANO-MUDANCAS-<tela>.md + a memória de
  * sessão da ingestão. NADA é aplicado: a aplicação real (`prototipos/<tela>/`) é gate
  * Wagner/CT100 (ADR 0291 D-E). Raiz configurável (`jana.dossie_root`) p/ fixtures.
+ *
+ * POR QUE O STAGING NÃO FICA EM `prototipo-ui/` (mudado em 2026-09-14 — não reverter sem ler):
+ * a raiz de `prototipo-ui/` é contrato. A R1 do `scripts/governance/cowork-ssot-guard.mjs`
+ * aceita ali somente `cowork/` e `design-system/`, e decide por `readdirSync` — o DISCO, não o
+ * índice do git. O destino antigo (`prototipo-ui/_incoming/<tela>/`) era gitignored, então o CI
+ * nunca via o conflito: o checkout não traz a pasta. Mas na máquina de quem rodava este comando
+ * a pasta nascia e o guard passava a reprovar — inclusive pelo painel do protocolo, que o roda
+ * localmente (`scripts/design/protocolo.config.mjs`). Ou seja: a ferramenta oficial de ingestão
+ * criava o estado que o guard oficial de topologia proíbe. O guard está certo (staging não é
+ * espelho); o caminho é que estava errado. `storage/app/` é o scratch canônico do Laravel e já
+ * cai no `/storage/` do .gitignore.
  */
 class DesignIngestZipCommand extends Command
 {
@@ -42,7 +53,7 @@ class DesignIngestZipCommand extends Command
         }
 
         $root = rtrim((string) config('jana.dossie_root', base_path()), '/\\');
-        $incomingDir = "{$root}/prototipo-ui/_incoming/{$tela}";
+        $incomingDir = "{$root}/storage/app/design-incoming/{$tela}";
         $committedDir = "{$root}/prototipo-ui/cowork/Wagner/legado/{$tela}";
         $preparedDir = "{$incomingDir}/_prepared";
 

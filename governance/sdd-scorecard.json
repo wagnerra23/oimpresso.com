@@ -23,20 +23,20 @@
       "detail": {
         "coverage_pct": 85.8,
         "specs_total": 53,
-        "us_total": 1037,
+        "us_total": 1038,
         "anchor_coverage_pct": 85.8,
         "by_state": {
           "sem_campo": 146,
           "placeholder": 1,
-          "pendente": 433,
+          "pendente": 434,
           "parcial": 118,
           "anchored_ok": 339,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 897,
+        "fields_total": 898,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 813,
+        "fields_grammar_ok": 814,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -74,34 +74,34 @@
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "a50d6f101e582f14",
+        "floor_files_hash": "9bddd90ce4ce66a2",
         "runs": [
           {
-            "sha": "10b57ca0",
-            "ts": "20260911-020001",
-            "failed": 465,
-            "errors": 397,
-            "skipped": 2250,
-            "all_shards_measured": true
-          },
-          {
-            "sha": "d86c977a",
-            "ts": "20260912-020001",
-            "failed": 453,
-            "errors": 378,
-            "skipped": 2253,
-            "all_shards_measured": true
-          },
-          {
-            "sha": null,
+            "sha": "26e372a8",
             "ts": "20260913-020001",
             "failed": 463,
             "errors": 369,
             "skipped": 2257,
             "all_shards_measured": true
+          },
+          {
+            "sha": "c17cf41a",
+            "ts": "20260914-020001",
+            "failed": 473,
+            "errors": 368,
+            "skipped": 2251,
+            "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260915-020001",
+            "failed": 473,
+            "errors": 370,
+            "skipped": 2226,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260913-020001",
+        "computed_at": "20260915-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -204,7 +204,7 @@
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 0,
+      "value": 1,
       "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -213,8 +213,8 @@
         "portas": 80,
         "carimbadas": 14,
         "sem_carimbo": 66,
-        "stale": 0,
-        "oldest_distilled_at": "2026-09-05"
+        "stale": 1,
+        "oldest_distilled_at": "2026-09-06"
       },
       "stream": "MEM"
     },
@@ -233,14 +233,15 @@
     },
     "drift_alarms": {
       "status": "measured",
-      "value": 1,
+      "value": 2,
       "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
         "reds": [
-          "required SUMIU do vivo: \"PageHeader · ratchet (header antigo só decresce)\" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)"
+          "required SUMIU do vivo: \"PageHeader · ratchet (header antigo só decresce)\" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)",
+          "required SUMIU do vivo: \"handoff integrity (órfão/ref-morta só sobe = vermelho)\" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)"
         ],
         "warns": 0,
         "verdict": "red"
@@ -249,16 +250,16 @@
     },
     "backfill_error_rate": {
       "status": "measured",
-      "value": 1.82,
+      "value": 1.98,
       "unit": "% (MAX error_rate das entries aprovadas — conservador: 1 lote ruim estoura <2%)",
       "direction": "down",
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 67,
-        "max_error_rate_pct": 1.82,
-        "last_pr": 6932,
-        "last_lote": "distill-governance-briefing-2026-09-06"
+        "entries_aprovadas": 69,
+        "max_error_rate_pct": 1.98,
+        "last_pr": 7262,
+        "last_lote": "gt-g5-lote-7262"
       },
       "stream": "GT"
     }

@@ -447,10 +447,6 @@
       "nome": "Memory schema gate (ONDA 5 S1 · FUNDIDO ADR 0314 F2: matrix AJV/frontmatter + sub-checks do corpo via validate-memory-schema.sh, ex-memory-schema-gate-extended D6 #4)",
       "classe": "gate"
     },
-    "module-grades-gate.yml": {
-      "nome": "Module Grades Gate (anti-regressão)",
-      "classe": "gate"
-    },
     "module-surface.yml": {
       "nome": "Module surface — guarda o índice GERADO de arquivos por módulo (memory/requisitos/<Mod>/SUPERFICIE.md) contra a árvore: self-test HARD + `--all --check` (drift real; obrigatório para módulos vivos, Classes B e _Geral). Fecha a raiz do apodrecimento da Superfície de código (dor estado-da-arte 2026-07-21, Gap 2): a lista de arquivos por contexto é DERIVADA, não escrita. + job `Mapa módulo↔Pages == renders reais` (`--namespaces --check`), nascido advisory em 2026-08-12: DERIVA o mapa módulo↔namespace dos `Inertia::render`/`inertia` reais e acusa namespace de dono único ausente do `PAGES_NS`. Fecha o ponto cego do `--all --check`, que é estrutural — quando o mapa não declara o namespace, gerado e commitado erram JUNTOS e o drift sai verde (medido: `Whatsapp → Atendimento`, 26 telas fora do inventário do módulo com o gate exit 0). Namespace multi-dono exige DECISÃO DECLARADA em `MULTI_DONO_DECIDIDO` (module-surface.mjs), no padrão do `ALLOWED_DIRS` do components-tree-guard: multi-dono é permitido e caro de propósito — sem entrada com motivo, o `--check` falha (bite-test: remover a entrada de `ads` → exit 1; devolver → exit 0). O script NÃO escolhe dono — escolher no olho é a família de guard que o §5 já matou 4×; ele só exige que a decisão exista e esteja escrita, e quem decide é [W]. Quais contexts são required: `governance/required-checks-baseline.json`.",
       "classe": "gate",

@@ -112,7 +112,8 @@ const PASSOS = [
   { id: "checagem", label: "Pré-checagem" },
   { id: "consolidado", label: "Consolidar apuração" },
   { id: "fechado", label: "Fechar competência" },
-  { id: "arquivos", label: "Gerar AFD / AEJ" },
+  // D4 ([W] 2026-09-14): fora do escopo do fechamento — o arquivo fiscal sai por Relatórios.
+  { id: "arquivos", label: "AFD / AEJ — em Relatórios" },
 ];
 
 function Fechamento({ mes, setMes, avisar, onVerColaborador, onIr, intercorrencias }) {
@@ -167,27 +168,29 @@ function Fechamento({ mes, setMes, avisar, onVerColaborador, onIr, intercorrenci
         
         {estado === "aberto" && <>
           {graves.length > 0 &&
-            <window.PtBtn  title="Consolida registrando os bloqueios como exceção assinada"
+            <window.PtBtn  title="Consolida registrando os bloqueios aceitos, com o seu nome e a data (não há assinatura digital — D2 [W] 2026-09-14)"
               onClick={() => {
                 const n = graves.reduce((s, b) => s + b.n, 0);
-                if (!window.confirm("Consolidar " + comp.extenso + " COM " + n + " exceções?\n\nOs bloqueios ficam registrados no fechamento com o seu nome — caminho para quando o mês precisa fechar e a pendência será tratada depois.")) return;
+                if (!window.confirm("Consolidar " + comp.extenso + " aceitando " + n + " bloqueios?\n\nEles ficam registrados no fechamento com o seu nome e a data. NÃO há assinatura digital — caminho para quando o mês precisa fechar e a pendência será tratada depois.")) return;
                 setExcecoes(n);
-                mudar("consolidado", "Consolidada com " + n + " exceções registradas — constam no fechamento.", "warn");
-              }}>Consolidar com exceções</window.PtBtn>}
+                mudar("consolidado", "Consolidada aceitando " + n + " bloqueios — ficam registrados no fechamento com nome e data.", "warn");
+              }}>Consolidar aceitando os bloqueios</window.PtBtn>}
           <window.PtBtn primary disabled={graves.length > 0}
-            title={graves.length ? "Resolva os bloqueios graves — ou consolide com exceções" : "Consolida a apuração do mês"}
+            title={graves.length ? "Resolva os bloqueios graves — ou consolide aceitando-os" : "Consolida a apuração do mês"}
             onClick={() => { setExcecoes(0); mudar("consolidado", "Apuração consolidada — dias passam a CONSOLIDADO e o espelho vira base do fechamento.", "ok"); }}>
             <Ic name="check" />Consolidar apuração
           </window.PtBtn>
         </>}
         {estado === "consolidado" && <>
-          <window.PtBtn  onClick={() => mudar("aberto", "Consolidação revertida — a competência volta a aceitar ajuste.", "warn")}>Reabrir</window.PtBtn>
+          {/* D1 ([W] 2026-09-14): "Reabrir" NÃO existe na v1 — reabrir competência tem consequência em
+              fiscalização. Depois de consolidada, correção entra por anulação com trilha de auditoria. */}
           <window.PtBtn primary onClick={() => { if (window.confirm("Fechar " + D.comp(mes).extenso + "? Depois disso a marcação só muda por anulação com trilha de auditoria.")) mudar("fechado", "Competência fechada — edição travada, só anulação com auditoria.", "ok"); }}>
             <Ic name="lock" />Fechar competência
           </window.PtBtn>
         </>}
         {estado === "fechado" &&
-          <window.PtBtn  onClick={() => onIr("relatorios")}><Ic name="download" />Gerar AFD / AEJ</window.PtBtn>}
+          <window.PtBtn  title="O fechamento não gera arquivo fiscal (D4 [W] 2026-09-14) — a geração vive em Relatórios"
+            onClick={() => onIr("relatorios")}><Ic name="download" />Ir para Relatórios</window.PtBtn>}
       </window.PtBarra>
 
       <div className="pt-passos" data-contract="fechamento-passos">
@@ -200,8 +203,9 @@ function Fechamento({ mes, setMes, avisar, onVerColaborador, onIr, intercorrenci
       </div>
 
       {estado === "consolidado" && excecoes > 0 &&
-        <Nota tom="warn" titulo={excecoes + " exceções registradas na consolidação"}>
-          Assinadas por Wagner Ramos em 20/08/2026 — os bloqueios seguem listados abaixo e precisam ser tratados antes do próximo fechamento.
+        <Nota tom="warn" titulo={excecoes + (excecoes === 1 ? " bloqueio aceito na consolidação" : " bloqueios aceitos na consolidação")}>
+          Registrados com o nome de Wagner Ramos e a data 20/08/2026 — <b>sem assinatura digital</b> (D2 [W] 2026-09-14).
+          Seguem listados abaixo e precisam ser tratados antes do próximo fechamento.
         </Nota>}
       {estado === "fechado" &&
         <Nota tom="ok" titulo={"Competência " + comp.extenso + " fechada"}>

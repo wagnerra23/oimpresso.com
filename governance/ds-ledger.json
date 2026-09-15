@@ -101,7 +101,7 @@
     },
     {
       "screen": "governance",
-      "note": "10 arquivo(s)",
+      "note": "8 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -422,8 +422,8 @@
   "progressPct": 37,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "26e372a84",
-  "generatedAt": "2026-09-13T13:52:19.595Z",
+  "measuredAgainstSha": "89a6faf4d",
+  "generatedAt": "2026-09-15T14:25:37.217Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

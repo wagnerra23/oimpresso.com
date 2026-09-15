@@ -372,25 +372,9 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->environments(['live']);
 
-        // ADR 0153/0155 — Module Grades snapshot diário pra sparkline 7d.
-        // Persiste 1 row/módulo em mcp_module_grades_history (~34 módulos × 1KB).
-        // Pareado com jana:health-check (06:00) — ambos rodam após brief regenerar.
-        // 06:05 BRT pra evitar disputa DB com health-check. Cross-tenant intencional
-        // (Governance Art. 6 — observabilidade cross-business — pareado mcp_* tables).
-        $schedule->command('module:grade-snapshot')
-            ->dailyAt('06:05')
-            ->timezone('America/Sao_Paulo')
-            ->withoutOverlapping()
-            ->environments(['live'])
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule module:grade-snapshot FALHOU — sparkline 7d defasada'
-                );
-            });
-
         // Wave 24 Agent A (2026-05-16) — Scorecard snapshot bucket-scoped + drift detection.
         // Persiste 1 row/módulo/dia em mcp_scorecard_runs + alerta drifts >=5pts em mcp_alertas.
-        // 07:00 BRT (55min após module:grade-snapshot) — usa scorecards YAML curated
+        // 07:00 BRT — usa scorecards YAML curated
         // (memory/governance/scorecards/<slug>.yaml + buckets/<bucket>.yaml).
         // Paired enforcement (cap 50%) canônico Wave 24. Cross-tenant intencional.
         $schedule->command('governance:scorecard-snapshot --alert')
@@ -486,8 +470,8 @@ class Kernel extends ConsoleKernel
         // Wave 26 Agent 3 (2026-05-17, ADR 0162) — Rollup diário OTel spans.
         // Pega spans crus em mcp_observability_spans, computa p50/p95/p99 + error rate
         // por par (module, span_name) e popula mcp_observability_aggregates_daily.
-        // 02:00 BRT — janela conservadora ANTES de jana:health-check (06:00) e
-        // module:grade-snapshot (06:05) que consomem o aggregate via D9.b.
+        // 02:00 BRT — janela conservadora ANTES de jana:health-check (06:00),
+        // que consome o aggregate.
         $schedule->command('observability:aggregate-daily')
             ->dailyAt('02:00')
             ->timezone('America/Sao_Paulo')
