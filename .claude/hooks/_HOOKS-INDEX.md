@@ -57,8 +57,8 @@
 | PreToolUse | `mcp__.*figma.*/mcp__.*__(use_figma/get_design_context/get_f…` | block-figma-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `DesignSync` | block-design-sync-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `Skill` | block-skill-design-sync-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
-| PreToolUse | `Bash/PowerShell` | block-test-fora-ct100.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
-| PreToolUse | `Bash/PowerShell` | block-sonda-que-mente.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
+| PreToolUse | `Bash/PowerShell/Monitor` | block-test-fora-ct100.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
+| PreToolUse | `Bash/PowerShell/Monitor` | block-sonda-que-mente.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PreToolUse | `Glob/Grep/Bash` | block-instrumento-sem-porta-viva.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PreToolUse | `Artifact` | vista-publicada-padrao.mjs | node | ferramenta (pré-uso do matcher) | — |
 | PreToolUse | `Write` | doc-fora-do-rag.mjs | node | geração (pré-Write/Edit) | — |

@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 // @ts-check
 /**
- * block-sonda-que-mente.mjs — PreToolUse (Bash|PowerShell), BLOQUEIA (exit 2).
+ * block-sonda-que-mente.mjs — PreToolUse, BLOQUEIA (exit 2).
+ *
+ * Em QUE tools ele roda é do `.claude/settings.json` (o matcher é dono dele, e
+ * restateá-lo aqui apodrece na primeira mudança — LC-10). Ele lê o comando de
+ * `tool_input.command`, chave que Bash, PowerShell e Monitor compartilham; o
+ * Monitor entrou em 2026-09-15 depois de medido — a sonda em `settings.local.json`
+ * mostrou `tool_name=Monitor` com `tool_input_keys=[description,timeout_ms,command]`,
+ * e o `PreToolUse` de fato é consultado nele (controle positivo: Glob no mesmo log).
  *
  * POR QUE EXISTE ([W] 2026-08-21, textual): "esses erros de protocolo escolhas
  * maquinas erros repetidos, arrume e bloqueie. para não errar novamente não
@@ -29,6 +36,14 @@
  * reprovava `node -e '…' > /tmp/out.txt`, que é legítimo. Sem FP baixo, não
  * entra — a lápide do guard sintático já matou 4 dessa família.
  *
+ * ⚠️ O "0,080%" do P4 acima é FATO DATADO e fica — mas ele mediu o EIXO ERRADO.
+ * Aqueles 52 foram classificados em **execução × menção**, nunca em **defeito ×
+ * uso correto**. Re-medido no eixo certo em 2026-09-15 (1.730 transcripts):
+ * dos 132 que ele mordia, **ZERO eram o defeito** — 100% de FP, o mesmo número
+ * do `toHaveKey` (§5 2026-07-26). Escopado por `pipeLiteralDeliberado`:
+ * **132 → 2**. A lição vale além do P4: *medir FP é medir contra o DEFEITO que
+ * o gate afirma pegar, não contra a forma sintática que ele casa.*
+ *
  * P5 (`jq` local) medido em 2026-09-05: 1.379 transcripts, 116.254 comandos.
  * Medido com o PREDICADO REAL (`achaPadrao`), não com um regex parecido — a 1ª
  * medição usou um regex aproximado e deu 36; o hook de verdade dá 19, porque os
@@ -41,6 +56,28 @@
  * ⚠️ Os 2 FP residuais ficam DECLARADOS, não escondidos: (a) `git grep "…| *jq "`
  * procurando pelo próprio padrão, (b) menção em código com escape aninhado. Custo
  * de cada um: reescrever o comando ou usar o escape. 1 a cada ~58 mil comandos.
+ *
+ * ── RE-MEDIDO 2026-09-15, DEPOIS DO CONSERTO DO PONTO CEGO DO `echo` ────────
+ * A medição de 09-05 acima estava certa no que contou e CEGA no que faltava: a
+ * perna `echo` do `ehMencao` desligava o P5 na forma MAIS comum de usar jq no
+ * shell. Medido na família: 3 falso-negativos de 6, entre eles o comando exato do
+ * vigia que causou as 2 ocorrências da LC-13 em ~5h no dia 09-15 — `echo "$s" | jq`.
+ * Corpus novo: 1.730 transcripts, 148.956 comandos.
+ *   ANTES 23 disparos  ·  DEPOIS 39  (0,026% — ainda ABAIXO do P4 aceito, 0,088%)
+ *   delta +17: 13 execução real de `jq` (o alvo) · 4 sonda-de-existência
+ *   perda  −1: some o FP residual (a) declarado acima — `git grep "…| *jq "`
+ * Dos 39: 25 são `gh …| jq` (a forma que fez o vigia emudecer) · 5 sonda-de-
+ * existência (`command -v jq && jq --version || echo AUSENTE`) · 9 outros, dos
+ * quais 8 inspecionados são execução real. FP declarado: 5 de 39 (12,8% dos
+ * disparos), ~1 a cada 30 mil comandos.
+ * ⚠️ NÃO se abstém nas 5 sondas de propósito: `command -v jq` como escape implícito
+ * seria uma 2ª porta não-documentada ao lado do OIMPRESSO_SONDA_OVERRIDE, e a
+ * resposta que elas buscam este hook já dá (`jqExisteLocalmente`, exportada).
+ *
+ * ⚠️ O conserto é ESCOPADO ao P5, e a razão é medida: aplicá-lo a TODOS os padrões
+ * leva 184 → 535 disparos, porque desmascara um FP estrutural do P4 (`echo "=== x
+ * ==="; grep -nE "^\|" TEAM.md` — pipe LITERAL de tabela markdown, que está certo).
+ * Ver `dentroDeAspasDeEcho`.
  *
  * ── POR QUE O P5 NÃO É O GUARD SINTÁTICO QUE A LÁPIDE PROIBIU ───────────────
  * A lápide §5 2026-08-11 diz "NÃO virar gate", e o motivo dela é textual: os 9
@@ -121,6 +158,11 @@ export const PADROES = [
     // Em ERE a alternância é `|` PURO. `\|` casa um pipe LITERAL — e o padrão
     // inteiro deixa de casar, devolvendo 0 sem erro nenhum.
     re: /\bgrep\s+-[a-zA-Z]*E[a-zA-Z]*\s+(['"])(?:(?!\1)[^\n])*\\\|/,
+    // Abstenção MEDIDA (2026-09-15): sem ela o P4 acusava 100% uso correto —
+    // tabela markdown (`^\|`), `||` de YAML e barra literal (`\\|`). Ver
+    // `pipeLiteralDeliberado`, que separa os três por contagem de barras e
+    // posição — determinístico, não julgamento de intenção.
+    exceto: (cmd) => pipeLiteralDeliberado(cmd),
     porque:
       'Em `grep -E` (ERE) a alternância é `|` PURO. O `\\|` casa um pipe LITERAL, o padrão para de ' +
       'casar e o comando devolve 0 linhas — sem erro, sem aviso.',
@@ -211,12 +253,130 @@ export function dentroDeCodigoInline(cmd, re) {
   return n % 2 === 1;
 }
 
-/** @param {string} cmd @param {RegExp} re */
-export function ehMencao(cmd, re) {
+/**
+ * A barra-pipe deste `grep -E` é pipe LITERAL DELIBERADO — e não alternância
+ * escapada por engano?
+ *
+ * ── POR QUE ISTO EXISTE (medido 2026-09-15, corpus 1.730 transcripts) ───────
+ * O P4 nasceu em 2026-08-21 com FP medido "193 brutos → 52 após o filtro". Só
+ * que o eixo medido era **execução × menção**, nunca **defeito × uso correto**.
+ * Re-medido no eixo certo: dos 132 comandos que ele morde, 134 padrões
+ * distintos / 140 ocorrências, **ZERO são o defeito** — 100% de FP, o mesmo
+ * número do `toHaveKey` (§5 2026-07-26). A distribuição:
+ *   122 (87,1%) pipe literal de tabela markdown / diff / YAML (`^\|`, `\| 0 \|`)
+ *    10 ( 7,1%) o mesmo padrão usa alternância PURA ao lado → autor sabe a diferença
+ *     6 ( 4,3%) `\\|` = barra LITERAL + alternância pura — o regex não contava paridade
+ *     2 ( 1,4%) inspecionados à mão: célula de tabela e um pipe citado em texto
+ *
+ * O defeito é REAL e continua valendo a trava: em 2026-08-23 um
+ * `grep -cE "quarantine\|QUAR"` devolveu 0 e virou afirmação FALSA ao [W]
+ * (LICOES_CODE §LC-08). Ele só não aparece aqui porque veio de VARIÁVEL de
+ * shell — e essa extensão foi medida e reprovada (93,7% FP, §5 2026-08-23).
+ *
+ * EFEITO MEDIDO do escopo, no mesmo corpus: **132 → 2 disparos** (130 calados).
+ * ⚠️ Os 2 residuais ficam DECLARADOS, não caçados — ambos são ` \| ` com espaço
+ * dos dois lados (uma célula de tabela e um `x.mjs | tail` citado como texto).
+ * Um 4º sinal ("espaço dos dois lados") zeraria, e foi DESCARTADO de propósito:
+ * cada sinal a mais é superfície de falso-NEGATIVO, e perseguir cobertura → 100%
+ * é o anti-padrão da §5 2026-07-17. Custo do residual: reescrever com `[|]`.
+ *
+ * ⚠️ CONSEQUÊNCIA HONESTA: com este escopo o P4 fica **quase silencioso no
+ * corpus medido**. Isso é o esperado — um gate cujo alvo não ocorreu não é
+ * carimbo, desde que ele CONSIGA ficar vermelho. O selftest prova que consegue:
+ * as fixtures `quarantine\|QUAR` e `ERROR\|WARN\|FATAL` mordem.
+ *
+ * Os três sinais são DETERMINÍSTICOS (contagem de barras e posição), não
+ * julgamento de intenção — por isso não caem na família do guard sintático.
+ *
+ * @param {string} cmd
+ * @returns {boolean} true = abster (todo `\|` do comando é deliberado)
+ */
+export function pipeLiteralDeliberado(cmd) {
+  const BS = '\\';
+  const reGrep = /\bgrep\s+-[a-zA-Z]*E[a-zA-Z]*\s+(['"])((?:(?!\1)[^\n])*)\1/g;
+  let m;
+  let viuAlvo = false;
+  while ((m = reGrep.exec(cmd)) !== null) {
+    const pat = m[2];
+    if (!pat.includes(BS + '|')) continue;       // este padrão não tem o alvo
+    viuAlvo = true;
+    // 1) separa o pipe REALMENTE escapado (`\|`) da barra literal (`\\|`)
+    const escapes = [];
+    for (let i = 0; i < pat.length - 1; i++) {
+      if (pat[i] !== BS || pat[i + 1] !== '|') continue;
+      let k = i - 1, n = 0;
+      while (k >= 0 && pat[k] === BS) { n++; k--; }
+      if (n % 2 === 0) escapes.push(i);          // ímpar = a barra já estava escapada
+    }
+    if (!escapes.length) continue;               // só barra LITERAL → deliberado
+    // 2) o mesmo padrão usa alternância PURA? então a barra foi escolha consciente
+    let temPuro = false;
+    for (let i = 0; i < pat.length; i++) {
+      if (pat[i] !== '|') continue;
+      let k = i - 1, n = 0;
+      while (k >= 0 && pat[k] === BS) { n++; k--; }
+      if (n % 2 === 0) { temPuro = true; break; }
+    }
+    // 3) algum escape está ancorado (`^…\|`, `\|$`), na borda, ou é `\|\|`?
+    let ancorado = false;
+    for (const i of escapes) {
+      const antes = pat.slice(0, i);
+      const depois = pat.slice(i + 2);
+      if (antes === '' || depois === '') { ancorado = true; break; }
+      if (/\^[^|]{0,12}$/.test(antes)) { ancorado = true; break; }
+      if (/^\s*\$/.test(depois)) { ancorado = true; break; }
+      if (depois.startsWith(BS + '|') || antes.endsWith(BS + '|')) { ancorado = true; break; }
+    }
+    if (!ancorado && !temPuro) return false;     // alternância escapada → MORDE
+  }
+  return viuAlvo;                                // nenhum padrão suspeito sobrou
+}
+
+/**
+ * O trecho casado está DENTRO das aspas abertas pelo `echo`/`printf` mais próximo?
+ *
+ * Só o P5 usa isto, e a razão é medida (corpus 2026-09-15, 1.730 transcripts /
+ * 148.956 comandos): trocar a perna `echo` do `ehMencao` por esta em TODOS os
+ * padrões levaria 184 -> 535 disparos, porque desmascara um FP estrutural do P4
+ * — `echo "=== titulo ==="; grep -nE "^\|" TEAM.md`, em que o `\|` é pipe LITERAL
+ * de tabela markdown e está CERTO. Escopado ao P5: 23 -> 39 disparos.
+ *
+ * A âncora é o ÚLTIMO `echo`/`printf` antes do match (o mais próximo é quem
+ * possui o texto). A primeira ocorrência dá resultado idêntico no corpus inteiro
+ * — medido, 17 delta / 1 perda nas duas —, mas o último é o defensável.
+ *
+ * @param {string} antes trecho do comando anterior ao match
+ */
+function dentroDeAspasDeEcho(antes) {
+  const re = /\b(?:echo|printf)\b[^\n]*?(["'])/g;
+  let a = null, m;
+  while ((m = re.exec(antes)) !== null) a = m;   // fica com a ÚLTIMA ocorrência
+  if (!a) return false;
+  const aspa = a[1];
+  // mesma contagem de paridade do `dentroDeCodigoInline`: ímpar = aspa ainda aberta
+  const depoisDaAbertura = antes.slice(a.index + a[0].length - 1);
+  const n = (depoisDaAbertura.match(new RegExp(aspa, 'g')) || []).length;
+  return n % 2 === 1;
+}
+
+/**
+ * @param {string} cmd @param {RegExp} re
+ * @param {string} [id] id do padrão. Só o P5 usa a perna `echo` ESTRITA (paridade
+ *   de aspas); os demais mantêm a perna larga — ver `dentroDeAspasDeEcho`.
+ */
+export function ehMencao(cmd, re, id) {
   const m = cmd.match(re);
   if (!m || m.index === undefined) return false;
   const antes = cmd.slice(0, m.index);
-  return /\b(echo|printf)\b[^\n]*$/.test(antes)
+  // P3/P4/P2: basta um `echo`/`printf` antes na linha. Larga de propósito — sem
+  // ela o hook seria ruído (FP 79,6% e 73,1%, medidos).
+  // P5: exige que o match esteja DENTRO das aspas do echo. `echo "$s" | jq -r .`
+  //     tem o pipe FORA, logo é EXECUÇÃO — e era o falso-negativo que deixava o
+  //     vigia de CI mudo (LC-13, 2 ocorrências em ~5h no dia 2026-09-15).
+  const pernaEcho = id === 'P5'
+    ? dentroDeAspasDeEcho(antes)
+    : /\b(echo|printf)\b[^\n]*$/.test(antes);
+  return pernaEcho
     || /<<\s*['"]?\w+['"]?[\s\S]*$/.test(antes)
     || /\s(-m|--body|--body-file|--title)\s+["'][^"']*$/.test(antes);
 }
@@ -230,7 +390,7 @@ export function achaPadrao(cmd, amb = {}) {
   if (typeof cmd !== 'string' || !cmd) return null;
   for (const p of PADROES) {
     if (!p.re.test(cmd)) continue;
-    if (ehMencao(cmd, p.re)) continue;
+    if (ehMencao(cmd, p.re, p.id)) continue;
     if (p.exceto && p.exceto(cmd)) continue;
     // P5 só faz sentido onde o binário falta: se `jq` está instalado, o comando
     // roda e não mente — a trava se desliga sozinha em vez de virar ruído.
@@ -265,6 +425,21 @@ const FIXTURES = [
   ['grep -E "foo\\|bar" a.txt', true],
   ['grep -E "foo|bar" a.txt', false],
   ['grep -F "foo|bar" a.txt', false],
+  // ── FP ESTRUTURAL DO P4 (medido 2026-09-15: era 100% dos disparos) ─────────
+  // Todos estes USAM a barra-pipe de propósito e FUNCIONAM. A fixture original
+  // não tinha nenhum, então o selftest ficava verde enquanto o gate acusava
+  // exclusivamente uso correto — 134 padrões distintos, zero defeito.
+  ['grep -nE "^\\|" TEAM.md', false],                        // tabela markdown
+  ['grep -cE "^\\| *[0-9]+ *\\|" relatorio.md', false],      // célula de tabela
+  ['grep -E "^[+-]\\|" <<< "$diff"', false],                 // tabela dentro de diff
+  ['grep -E "\\|\\| *true" ci.yml', false],                  // `||` de shell/YAML
+  ['grep -E "Modules\\\\|modules" x.php', false],            // barra LITERAL + alternância pura
+  ['grep -E "^\\| *#?(1|2|3) |ABERTO" x.md', false],         // usa alternância pura ao lado
+  // …e o defeito REAL continua mordendo. Este é o caso do ledger (LICOES_CODE
+  // §LC-08, 2026-08-23): queria "quarantine OU QUAR", recebeu o literal, contou
+  // 0 e virou afirmação falsa ao [W].
+  ['grep -cE "quarantine\\|QUAR" q.list', true],
+  ['grep -E "ERROR\\|WARN\\|FATAL" app.log', true],
   ['git fetch origin main 2>&1 | head -20', false],
   [`node -e 's.replace(a, "x $\` y")'`, true],
   ['node -e "s.replace(a, () => novo)"', false],
@@ -297,6 +472,20 @@ const FIXTURES = [
   // CONTROLE do controle: a abstenção de código inline NÃO pode desarmar o P2,
   // cujo alvo (.replace com $ especial) vive justamente dentro de `node -e`
   [`node -e 'x.replace(a, "y $\` z")'`, true],
+
+  // ── PONTO CEGO DO `echo` (corrigido 2026-09-15) ────────────────────────────
+  // A fixture original não tinha NENHUM caso com `echo` ANTES de um `jq`
+  // executado, então o selftest ficava verde enquanto o hook deixava passar a
+  // forma mais comum de usar jq no shell. Estes 3 eram FALSO-NEGATIVO até o
+  // conserto do `ehMencao`; o 3º é, literalmente, o comando da 2ª ocorrência da
+  // LC-13 em 2026-09-15 (monitor de CI mudo por jq ausente).
+  [`echo "$s" | jq -r .a`, true],
+  [`printf %s $x | jq .`, true],
+  [`s=$(cmd || echo '[]'); echo "$s" | jq -r .`, true],
+  // …e o CONTROLE NEGATIVO que impede a correção de virar ruído: aqui o `jq` está
+  // DENTRO das aspas do próprio echo (pipe inclusive), logo ninguém o executa.
+  [`echo "cat x.json | jq ."`, false],
+  [`echo 'gh pr checks 1 --json name | jq -r .[]'`, false],
 ];
 
 async function readStdin() {
