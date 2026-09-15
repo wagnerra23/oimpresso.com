@@ -310,6 +310,7 @@ function selftest() {
 const promptEscopo = (n, arquivosEvid) => `Você é um agente MECÂNICO do workflow refutador-gt-g5 (só mede, não julga). Working dir = raiz do repo oimpresso. Rode na ordem e devolva o JSON no schema.
 
 1. \`git fetch origin main --quiet\`; \`git rev-parse --is-shallow-repository\`; \`git rev-parse HEAD\`; \`git rev-parse ${n.base}\`; \`git merge-base ${n.base} HEAD\`.
+1b. \`gh pr view ${n.pr} --json headRefOid --jq .headRefOid\` → pr_head_sha (o head que o PR REALMENTE aponta). Se o comando falhar, devolva string vazia — o workflow decide.
 2. \`git diff --name-status ${n.base}...HEAD -- memory/requisitos\` → lista COMPLETA (sem head, sem paginação) de {status, path}. Também \`git diff --name-only ${n.base}...HEAD\` fora de memory/requisitos → só a contagem + até 30 paths.
 3. \`date +%F\` → data de hoje (YYYY-MM-DD).
 4. ${arquivosEvid ? `RESUME: liste \`memory/sessions/*-refutacao-gt-g5-lote-${n.pr}-r*.md\` (git ls-files + ls). Para CADA arquivo devolva {arquivo, rodada (o N do sufixo -rN), cauda: o RECIBO extraído por máquina — rode EXATAMENTE \`node scripts/governance/refutacao-recibo.mjs <arquivo>\` e devolva o stdout literal (é o último bloco \`\`\`json da evidência com o array \`refutados\` removido — ele pode ter centenas de linhas e um \`tail -n 40\` não alcança \`itens_verificados\`, que é o que o parse precisa)}. NÃO interprete o conteúdo, NÃO resuma — o recibo cru é o que o workflow parseia.` : `Confira se JÁ existe alguma evidência \`memory/sessions/*-refutacao-gt-g5-lote-${n.pr}-r*.md\` (ls). Se existir, devolva a lista em evidencias_existentes com rodada e cauda (tail -n 40) — o workflow vai PARAR e pedir resume.`}
@@ -317,9 +318,9 @@ const promptEscopo = (n, arquivosEvid) => `Você é um agente MECÂNICO do workf
 
 const ESCOPO_SCHEMA = {
   type: 'object', additionalProperties: false,
-  required: ['data', 'head_sha', 'base_sha', 'merge_base', 'raso', 'arquivos', 'fora_requisitos_count', 'evidencias_existentes'],
+  required: ['data', 'head_sha', 'pr_head_sha', 'base_sha', 'merge_base', 'raso', 'arquivos', 'fora_requisitos_count', 'evidencias_existentes'],
   properties: {
-    data: { type: 'string' }, head_sha: { type: 'string' }, base_sha: { type: 'string' }, merge_base: { type: 'string' }, raso: { type: 'boolean' },
+    data: { type: 'string' }, head_sha: { type: 'string' }, pr_head_sha: { type: 'string' }, base_sha: { type: 'string' }, merge_base: { type: 'string' }, raso: { type: 'boolean' },
     arquivos: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['status', 'path'], properties: { status: { type: 'string' }, path: { type: 'string' } } } },
     fora_requisitos_count: { type: 'integer' },
     fora_requisitos_paths: { type: 'array', items: { type: 'string' } },
@@ -410,6 +411,19 @@ async function fluxo() {
   const esc = await agent(promptEscopo(n, n.resume), { label: `escopo:pr${n.pr}`, phase: 'Escopo', schema: ESCOPO_SCHEMA, model: 'sonnet', effort: 'low', agentType: 'general-purpose' })
   if (!esc) { log('agente de escopo não devolveu nada — abortando sem gastar refutador'); return { ok: false, erros: ['escopo nulo'] } }
   log(`lote PR #${n.pr}: ${esc.arquivos.length} arquivo(s) em memory/requisitos · HEAD ${esc.head_sha.slice(0, 10)} · ${n.base} ${esc.base_sha.slice(0, 10)} · raso=${esc.raso} · data ${esc.data}`)
+  // FAIL-CLOSED: o checkout precisa SER o do PR. O escopo mede `<base>...HEAD` e o refutador lê os
+  // arquivos do working tree — se o cwd está noutro branch (sessão em worktree, o padrão aqui), os
+  // DOIS leem a árvore errada e o lote some. Medido em 2026-09-14 no PR #7262: rodando de um worktree
+  // cujo HEAD era outro branch, o escopo devolveu 1 arquivo de 64 e o workflow retornou ok:true
+  // ("não é lote") sem que um refutador sequer subisse — aprovação em falso, silenciosa.
+  // `gh` ausente NÃO vira veredito: declara que não mediu (§5 2026-07-29), nunca "está tudo bem".
+  const prHead = String(esc.pr_head_sha || '').trim()
+  if (!prHead) {
+    log(`⚠️ NÃO MEDIDO: o head real do PR #${n.pr} não pôde ser lido (gh indisponível?). A checagem de checkout NÃO foi feita — se o cwd não for o branch do PR, este run mede a árvore errada.`)
+  } else if (prHead !== esc.head_sha) {
+    log(`checkout ERRADO: o PR #${n.pr} aponta para ${prHead.slice(0, 10)} mas o working tree está em ${esc.head_sha.slice(0, 10)}. O escopo e o refutador leriam a árvore errada — ABORTANDO antes de gastar refutador. Rode o workflow de um checkout do branch do PR.`)
+    return { ok: false, erros: ['checkout não é o branch do PR'], pr_head_sha: prHead, head_sha: esc.head_sha }
+  }
   if (esc.fora_requisitos_count) log(`fora de memory/requisitos: ${esc.fora_requisitos_count} arquivo(s) (o gate só conta memory/requisitos)`)
   if (!ehLote(esc.arquivos.length) && !n.forcar) {
     log(`não é PR-de-lote (${esc.arquivos.length} ≤ ${THRESHOLD_LOTE}) — o ledger-check nem dispara; o loop (~330–400k tokens/rodada) não compensa. args.forcar=true pra rodar mesmo assim.`)
