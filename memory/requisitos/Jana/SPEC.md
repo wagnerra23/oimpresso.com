@@ -2073,8 +2073,9 @@ Escopo:
 > owner: — · priority: p1 · status: todo · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — bug aberto; ancora em código quando a tool parar de afirmar
-durabilidade que não tem, com teste citando esta US.
+**Implementado em:** [`Modules/Jana/Services/TaskRegistry/TaskCrudService.php`](../../../Modules/Jana/Services/TaskRegistry/TaskCrudService.php) · [`Modules/Jana/Mcp/Tools/TasksCreateTool.php`](../../../Modules/Jana/Mcp/Tools/TasksCreateTool.php) · verificado@0764943036c (2026-09-15) — o `createCanonical()` não escreve mais no SPEC (`written` sempre `false`) e a tool colapsou os 2 ramos numa mensagem que não afirma durabilidade
+
+**Testado em:** [`Modules/Jana/Tests/Feature/TaskRegistry/TasksCreateNaoEscreveNoServidorTest.php`](../../../Modules/Jana/Tests/Feature/TaskRegistry/TasksCreateNaoEscreveNoServidorTest.php) — 2 casos, medindo EFEITO (compara o arquivo antes/depois), não presença de string. ⚠️ Executados de fato: `PASS … ✓ create() NAO altera o SPEC do servidor (US-COPI-149) 0.18s` na run [35035889635](https://github.com/wagnerra23/oimpresso.com/actions/runs/35035889635) (suíte: 901 passed, 3291 assertions). O arquivo precisou ser adicionado à lista de alvos do `jana-pest.yml` — estar no `phpunit.xml` não bastava (§5 2026-08-02)
 
 **Origem:** sessão 2026-09-15. Ao avisar o time do passo do token ([PR #7369](https://github.com/wagnerra23/oimpresso.com/pull/7369)),
 usei `tasks-create` para abrir 4 tasks — uma por dev. A tool respondeu
