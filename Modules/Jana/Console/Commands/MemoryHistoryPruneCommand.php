@@ -32,7 +32,7 @@ use Illuminate\Support\Facades\Log;
  * nem venda). A janela temporal era o buraco; agora o teto é só por --keep.
  *
  * Tabela de SISTEMA (sem business_id) — cross-tenant intencional, igual
- * mcp_audit_log / mcp_module_grades_history (ADR 0093 escopo plataforma).
+ * mcp_audit_log (ADR 0093 escopo plataforma).
  *
  * Driver-agnóstico (MySQL/MariaDB prod + SQLite CI): usa subquery correlacionada,
  * sem window function. Skip gracioso se a tabela não existir.
