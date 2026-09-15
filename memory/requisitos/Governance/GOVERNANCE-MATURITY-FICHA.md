@@ -20,6 +20,22 @@ proximo_review: pós-Wave 24 (AI-driven V2 baseline READ-ONLY) — esperado +5pp
 
 # GOVERNANCE-MATURITY-FICHA — Modules/Governance (self-audit reflexivo)
 
+> ## ⚠️ RETRATO DATADO de 2026-05-16 — a rubrica `module-grade` foi APOSENTADA em 2026-09-15
+>
+> [ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md) aposentou a
+> rubrica (ADRs 0153→0159, todas `superseded`), seu gate de CI, seu baseline, as 2 telas
+> `/governance/module-grades`, os comandos `module:grade` / `module:grade-snapshot` e a tabela
+> `mcp_module_grades_history`.
+>
+> **Nada abaixo foi reescrito, de propósito.** Esta FICHA é um benchmark **datado** contra 4 IDPs
+> (Port · OpsLevel · Cortex · Backstage) e cada afirmação era verdadeira em 2026-05-16 — apagar ou
+> reescrever o retrato seria falsificar a data, não corrigir o documento. Leia toda menção a
+> `ModuleGradeService`, `/governance/module-grades`, `module:grade` e "rubrica interna" como
+> **passado**: existiam quando a ficha foi gerada, não existem hoje.
+>
+> A única parte que era **instrução** — e não retrato — foi corrigida: ver §10.
+
+
 > **Variante MATURITY** do template CAPTERRA-FICHA pro bucket **cross_cutting_infra** (definido Wave 19 — buckets canônicos).
 > **Reflexividade declarada**: Modules/Governance avalia Modules/Governance. Honestidade > otimismo (BRIEFING §8). Cada nota cruza com player externo independente pra evitar self-grading inflado.
 > **Disclaimer Wagner-friendly**: este doc não substitui ADR 0153 rubrica `module-grade-v1` (que é interno, 5 dims × 0-20). Aqui é benchmark **externo** contra IDPs líderes mundo.
@@ -171,6 +187,8 @@ Total: **~18h IA-pair** → score externo **74 → ~84/100** (alcança paridade 
 
 ## 10. Próxima revisão
 
-**Pós-Wave 24** (esperado +5pp Auto-detection accuracy + Score-as-code YAML + AI-suggest READ-ONLY). Quando próxima `module:grade --all --snapshot` rodar, atualizar tabela seção 3 com nota observada e checar se gap vs OpsLevel fechou pra <3pp.
+~~**Pós-Wave 24** (esperado +5pp Auto-detection accuracy + Score-as-code YAML + AI-suggest READ-ONLY). Quando próxima `module:grade --all --snapshot` rodar, atualizar tabela seção 3 com nota observada e checar se gap vs OpsLevel fechou pra <3pp.~~
+
+⚰️ **Sem próxima revisão por este caminho — 2026-09-15.** O gatilho acima era o comando `module:grade --all --snapshot`, deletado pela [ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md) (Onda 4a), e a Wave 24 (score-as-code YAML + AI-suggest) nunca saiu — morreu com a rubrica. Um benchmark novo do Governance contra IDPs é trabalho novo, com sinal próprio ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)); não é a continuação desta ficha.
 
 **Mantenedor:** Claude (auto via subagent Wave NN) + Wagner (review).
