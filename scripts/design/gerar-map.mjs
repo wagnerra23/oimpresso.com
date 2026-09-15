@@ -183,6 +183,19 @@ export function gerar(gapPath, { root = REPO, hoje = null } = {}) {
       vivo: { arquivo: arquivoVivo || 'TODO', linhas: 'TODO', ancora: false },
       status: 'pendente-mapeamento',
       acao: (p.acao || '').replace(/\*\*/g, '').trim(),
+      // `_acionavel` é DERIVADO da coluna Ação do gap (não do `acao` do map, que o --atualizar
+      // PRESERVA) — e por isso um gap stale reintroduz o valor velho a cada regeneração. Foi o
+      // caso do #7262: o gap do fiscal-config afirmava "0 ocorrências em 573 linhas" onde havia
+      // 4 em 900, o campo virava `true` e o map ficava com `acao: "FECHADO…"` ao lado de
+      // `_acionavel: true`. Conserto é sempre no gap, nunca aqui.
+      //
+      // ⚠️ CONSUMIDOR ZERO (medido 2026-09-14, contado): fora dos próprios `.map.json`, `_acionavel`
+      // aparece em 2 arquivos do Jana — que são `heuristica_acionavel`, HOMÔNIMO sem relação — e no
+      // resto só neste gerador + seus testes + prosa de ledger/sessão. Nem o
+      // `design-code-map-check.mjs` nem o `consumir-map.mjs` o leem: ele é PRODUZIDO e nunca
+      // consumido por máquina. Registrado aqui porque o campo já custou uma rodada inteira de
+      // refutação GT-G5 (~550k tokens) discutindo um valor que nenhum gate usa. Se for virar
+      // contrato, precisa de leitor; se for decoração, a decisão de remover é [W].
       _acionavel: ehAcionavel(p.acao),
     };
   });
