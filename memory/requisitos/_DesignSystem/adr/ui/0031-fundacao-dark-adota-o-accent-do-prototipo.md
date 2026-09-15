@@ -22,7 +22,7 @@ id: requisitos-design-system-adr-ui-0031-fundacao-dark-adota-o-accent-do-prototi
 
 ## Contexto
 
-O protótipo Cowork (`prototipo-ui/cowork/styles.css`, bloco `[data-theme="dark"]{…}` marcado **"VIDA 06-11 [W]"**)
+O protótipo Cowork (`prototipo-ui/cowork/Wagner/styles.css`, bloco `[data-theme="dark"]{…}` marcado **"VIDA 06-11 [W]"**)
 pinta a família accent do escuro em `oklch(0.70 …)`. A fundação de produção seguia em **0,55** — o mesmo valor do
 claro, porque no DTCG os tokens eram `dark_absent` (*"não é redefinido no dark — herda light"*).
 
@@ -172,7 +172,7 @@ e misturá-las aqui quebraria "1 PR = 1 intent". **Fica nomeado, como a UI-0021 
   (0,55 / 0,62 claros · 0,70 / 0,76 escuros) e segue barrando o azul 220 e o 0,58 0,12 off-canon. O gate A3
   (cruza inline × DTCG) passou a **cobrar** `--accent` e `--accent-2`, que antes ele ignorava por serem
   `dark_absent` — a cobertura dele cresceu de graça com esta mudança.
-- **Espelho do DS reconciliado.** `scripts/design-sync/mirror-snapshot/colors_and_type.css` é derivado do git
+- **Espelho do DS reconciliado.** `prototipo-ui/design-system/colors_and_type.css` é derivado do git
   (*"copied verbatim from that generated output"*), então ficou atrás e foi regerado: `ds-token-diff` no escopo
   `cockpit-dark` saiu de **diverge:4** para **diverge:0**. Os 3 tokens novos entraram à mão porque o
   `ds-mirror-build.mjs` só reconcilia valor — acrescentar token ele delega ao humano, de propósito.

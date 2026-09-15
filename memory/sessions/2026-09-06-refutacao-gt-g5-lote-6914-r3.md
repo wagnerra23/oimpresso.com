@@ -11,6 +11,8 @@ outcomes:
 
 # Refutação GT-G5 · rodada r3 · lote PR #6914
 
+## Contexto
+
 **Base:** `origin/main` = `5baadae60806d5ed9674a8d2ee9cecaa3f1825a1` · **HEAD:** `ee1b37824a0dde0b14ab3e163fe4ea7b0df8cb35` · `git rev-list --left-right --count origin/main...HEAD` = `0 9` (HEAD é descendente direto; merge-base = origin/main) · **repo raso:** `false` · **sessão fresca:** sim — instância nova, zero contexto do gerador; NÃO abri `memory/sessions/*refutacao*` (os r1/r2/base deste mesmo PR aparecem no diff e ficaram fechados) nem `memory/handoffs/` de hoje; NÃO li corpo de PR/commit. Refutador: Fable 5.1 (tier máximo).
 
 Regra de medição: os arquivos-fonte citados (`prototipo-ui/cowork/*.jsx`, `resources/js/Pages/**/*.tsx`, charters, scripts) são **idênticos** entre HEAD e origin/main (`git diff --name-status origin/main HEAD -- resources prototipo-ui` = vazio; o diff do PR toca só `memory/` e 3 JSONs de estado em `scripts/`). Logo ler o working tree = ler origin/main para eles. Existência de path por `git ls-tree origin/main -- <path>`; controle negativo `path/inexistente/controle-negativo.md` → `MISSING` (e o link relativo intra-lote `stock-adjustment-index-gap.md` → `MISSING` em origin/main, esperado: é arquivo `A` do próprio lote).

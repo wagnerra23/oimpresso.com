@@ -101,7 +101,7 @@
     },
     {
       "screen": "governance",
-      "note": "10 arquivo(s)",
+      "note": "8 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -135,6 +135,17 @@
     {
       "screen": "Officeimpresso",
       "note": "3 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Patrimonio",
+      "note": "6 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -190,17 +201,6 @@
     {
       "screen": "Suporte",
       "note": "2 arquivo(s)",
-      "cells": {
-        "tokens": "yes",
-        "primitivos": "yes",
-        "probe": "na",
-        "dark": "na",
-        "approved": "no"
-      }
-    },
-    {
-      "screen": "Tarefas",
-      "note": "1 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -422,8 +422,8 @@
   "progressPct": 37,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "ad607e183",
-  "generatedAt": "2026-09-08T13:49:33.569Z",
+  "measuredAgainstSha": "89a6faf4d",
+  "generatedAt": "2026-09-15T14:25:37.217Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

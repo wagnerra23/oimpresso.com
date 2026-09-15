@@ -22,7 +22,7 @@ id: requisitos-admin-index-visual-comparison
 
 **Status:** baseline-only · **Data:** 2026-05-10 · **ADR:** [0122](../../decisions/0122-admin-center-ct100.md)
 
-> ⚠️ **Não há prototipo Cowork prévio aprovado** pra essa página. Admin Center é greenfield Wagner-only — não passou pelo loop normal Cowork ↔ Claude Code formalizado em [`prototipo-ui/PROTOCOL.md`](../../../prototipo-ui/PROTOCOL.md). Visual-comparison aqui é **baseline pra futuro**, não comparativo retroativo.
+> ⚠️ **Não há prototipo Cowork prévio aprovado** pra essa página. Admin Center é greenfield Wagner-only — não passou pelo loop normal Cowork ↔ Claude Code formalizado em [`memory/reference/prototipo-ui/PROTOCOL.md`](../../../memory/reference/prototipo-ui/PROTOCOL.md). Visual-comparison aqui é **baseline pra futuro**, não comparativo retroativo.
 
 ---
 

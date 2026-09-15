@@ -78,7 +78,7 @@ Aplica a TODA Onda. Skip de qualquer fase = violação PROTOCOLO ([ADR 0168](../
 
 ### F3 — CSS scoped
 
-- [ ] Identificar classes novas necessárias (`.vd-*`, `.os-*`, etc) lidas verbatim de `prototipo-ui/prototipos/<modulo>/styles.css`
+- [ ] Identificar classes novas necessárias (`.vd-*`, `.os-*`, etc) lidas verbatim de `prototipo-ui/cowork/Wagner/legado/<modulo>/styles.css`
 - [ ] **Onda Visual Base**: copiar `styles.css` verbatim → `resources/css/<modulo>-cowork.css` + scope script
 - [ ] **Onda Refino**: extrair só as classes do refino → adicionar ao final de `<modulo>-cowork.css` OU criar `<modulo>-cowork-<refino>.css` import em `inertia.css`
 - [ ] Globais conflitantes (`body`/`html`/`.app`) desativados
@@ -205,7 +205,7 @@ Estimar Onda em **tempo codável** (do prototype JSX) e **tempo humano-limitado*
 
 ## Pattern reusável pra outros módulos
 
-Aplicável a TODO módulo com prototype Cowork em `prototipo-ui/prototipos/<modulo>/`:
+Aplicável a TODO módulo com prototype Cowork em `prototipo-ui/cowork/Wagner/legado/<modulo>/`:
 
 | Módulo | Prototype existe? | Status migração |
 |---|---|---|
@@ -290,8 +290,8 @@ Ver `memory/requisitos/_DesignSystem/PR-TEMPLATE-onda-cowork.md` (a criar se hou
 - [PROTOCOLO-WAGNER-SEMPRE.md](../../reference/PROTOCOLO-WAGNER-SEMPRE.md)
 - [feedback-design-literal-copy-quando-aprovado.md](../../reference/feedback-design-literal-copy-quando-aprovado.md)
 - [feedback-modulo-mexeu-registra-sempre.md](../../reference/feedback-modulo-mexeu-registra-sempre.md)
-- [prototipo-ui/PROTOCOL.md](../../../prototipo-ui/PROTOCOL.md)
-- [prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
+- [memory/reference/prototipo-ui/PROTOCOL.md](../../../memory/reference/prototipo-ui/PROTOCOL.md)
+- [memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
 - Skill [`cowork-prototype-replication`](../../../.claude/skills/cowork-prototype-replication/SKILL.md)
 - Skill [`mwart-comparative`](../../../.claude/skills/mwart-comparative/SKILL.md) Tier A V4
 - Skill [`wagner-protocol-enforce`](../../../.claude/skills/wagner-protocol-enforce/SKILL.md) Tier A always-on

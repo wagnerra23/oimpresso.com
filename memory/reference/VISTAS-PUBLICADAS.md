@@ -214,7 +214,7 @@ Dono em git: `US-INFRA-002` (Client Signal) · [`memory/dominio/`](../dominio/) 
 
 ## Tema: auditoria do processo (enforcement)
 
-Dono em git: [`proibicoes.md §5`](../proibicoes.md) · [`LICOES_CODE.md`](../LICOES_CODE.md) · [`prototipo-ui/PROCESSO_MEMORIA_CC.md`](../../prototipo-ui/PROCESSO_MEMORIA_CC.md)
+Dono em git: [`proibicoes.md §5`](../proibicoes.md) · [`LICOES_CODE.md`](../LICOES_CODE.md) · [`memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md`](../../memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md)
 
 | Data | Vista |
 |---|---|

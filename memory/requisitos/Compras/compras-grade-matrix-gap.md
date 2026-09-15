@@ -1,7 +1,7 @@
 ---
 id: requisitos-compras-compras-grade-matrix-gap
 tela: GradeMatrixInput (bloco "Adicionar item à compra" — NÃO é tela completa)
-prototipo: prototipo-ui/cowork/compras-grade-matrix.jsx # ponteiro corrigido 2026-08-24 — ver "Atualização" no corpo
+prototipo: prototipo-ui/cowork/Wagner/compras-grade-matrix.jsx # ponteiro corrigido 2026-08-24 — ver "Atualização" no corpo
 tela_viva: resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx # caller e backend por parte no .map.json
 tela_viva_alvo_no_prompt: resources/js/Pages/Compras/Index.tsx
 tela_viva_real_equivalente: resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx # path corrigido 2026-08-24 — o de Pages/Compras/components/ não existe no HEAD, e o componente deixou de ser órfão (ver Atualização abaixo)

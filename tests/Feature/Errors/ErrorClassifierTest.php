@@ -11,7 +11,7 @@ declare(strict_types=1);
  *  - operatorMessage nunca vaza trace
  *  - só o S0 interrompe humano
  *
- * @see prototipo-ui/handoffs/erros-fase1-classificacao.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-fase1-classificacao.md
  */
 
 use App\Support\Errors\Audience;

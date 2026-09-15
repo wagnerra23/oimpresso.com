@@ -278,7 +278,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 //   - memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md §Wave F
 //   - resources/js/Pages/Cliente/_drawer/AuditoriaTab.tsx
 //   - Modules/Crm/Http/Controllers/ClienteAuditoriaController.php
-//   - prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md §6
+//   - prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md §6
 Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
     ->prefix('cliente')
     ->name('cliente.')

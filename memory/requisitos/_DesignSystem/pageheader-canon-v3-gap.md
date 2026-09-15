@@ -127,7 +127,7 @@ trabalho de "aplicar protótipo", é evolução de fundação governada.
 
 ## Tabela de partes (derivada 2026-09-06 — veredito da prosa × código medido)
 
-> Escrita por [C] em 2026-09-06. Regra: cada Ação cita o veredito da prosa acima (§1 Risco/Governança · §2 Ordem · §3) **e** o estado do código medido hoje com `arquivo:linha`. "**Decidir.**" só onde a prosa registra gap aberto que exige decisão; "Nada — <veredito>" onde a prosa fecha (já é canon · não aplicar · backlog) ou onde o código fechou o gap DEPOIS da prosa (2026-06-23). Em conflito prosa × código, o código medido vence e a linha diz isso. Lado protótipo = `TODO` (expurgado — ver `prototipo_nota`). Consumida por `prototipo-ui/gerar-map.mjs` → `pageheader-canon-v3.map.json`.
+> Escrita por [C] em 2026-09-06. Regra: cada Ação cita o veredito da prosa acima (§1 Risco/Governança · §2 Ordem · §3) **e** o estado do código medido hoje com `arquivo:linha`. "**Decidir.**" só onde a prosa registra gap aberto que exige decisão; "Nada — <veredito>" onde a prosa fecha (já é canon · não aplicar · backlog) ou onde o código fechou o gap DEPOIS da prosa (2026-06-23). Em conflito prosa × código, o código medido vence e a linha diz isso. Lado protótipo = `TODO` (expurgado — ver `prototipo_nota`). Consumida por `scripts/design/gerar-map.mjs` → `pageheader-canon-v3.map.json`.
 
 | Parte | Estado no vivo (medido 2026-09-06) | Ação |
 |---|---|---|

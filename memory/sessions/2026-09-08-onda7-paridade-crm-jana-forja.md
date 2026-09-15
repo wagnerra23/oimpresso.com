@@ -13,7 +13,7 @@ outcomes:
 
 # O lote que subiu o contador, e as seis vezes que quase subiu o número errado
 
-## O pedido
+## Contexto — o pedido
 
 Onda 7 do programa-ondas (paridade protótipo↔produção), escopo **Crm + Jana + Forja**, com
 sessões irmãs em Sells, Financeiro, Fiscal, Compras/Estoque e Repair/OficinaAuto. O método é o

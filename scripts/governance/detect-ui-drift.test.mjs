@@ -43,7 +43,7 @@ check('(b) +divergence_from_blueprint razão real → CLEARED',
 const anchored = classifyTela({
     charterDiff: [
       '-related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)',
-      '+related_prototype: prototipo-ui/cowork/vendas-page.jsx',
+      '+related_prototype: prototipo-ui/cowork/Wagner/vendas-page.jsx',
     ].join('\n'),
     telaTokens: TOK,
   });
@@ -127,8 +127,8 @@ check('(l) SYNC_LOG citando o namespace limpa a tela do modulo → CLEARED',
 check('isNoneReason("none") = true', isNoneReason('none') === true);
 check('isNoneReason("n/a (herda PT-01)") = true', isNoneReason('n/a (herda PT-01)') === true);
 check('isNoneReason("cliente pediu X") = false', isNoneReason('cliente pediu X') === false);
-check('isRealPrototype("prototipo-ui/cowork/vendas-page.jsx") = true',
-  isRealPrototype('prototipo-ui/cowork/vendas-page.jsx') === true);
+check('isRealPrototype("prototipo-ui/cowork/Wagner/vendas-page.jsx") = true',
+  isRealPrototype('prototipo-ui/cowork/Wagner/vendas-page.jsx') === true);
 check('isRealPrototype("n/a (herda PT-01)") = false', isRealPrototype('n/a (herda PT-01)') === false);
 
 console.log('');

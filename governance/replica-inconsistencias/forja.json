@@ -801,7 +801,7 @@
       "id": "PALETA:resources/css/cowork-forja-bundle.css",
       "regra": "PALETA",
       "nome": "família de tokens de cor com prefixo próprio (>=4)",
-      "dono": "prototipo-ui/ds-guard.mjs",
+      "dono": "scripts/design/ds-guard.mjs",
       "arquivo": "resources/css/cowork-forja-bundle.css",
       "contagem": 1,
       "exemplo": "--dev-*(4)",
@@ -811,11 +811,11 @@
       "aberta_em": "2026-09-02"
     },
     {
-      "id": "R1:prototipo-ui/cowork/forja-aprova.jsx",
+      "id": "R1:prototipo-ui/cowork/Wagner/forja-aprova.jsx",
       "regra": "R1",
       "nome": "cor crua em Page/CSS",
       "dono": "UiLintCommand.php R1 · conformance-gate",
-      "arquivo": "prototipo-ui/cowork/forja-aprova.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/forja-aprova.jsx",
       "contagem": 3,
       "exemplo": "oklch(0.55 0.13 ${hue}) · oklch(0.58 0.18 25)",
       "origem": "prototipo",
@@ -824,11 +824,11 @@
       "aberta_em": "2026-09-03"
     },
     {
-      "id": "R3:prototipo-ui/cowork/forja-aprova.jsx",
+      "id": "R3:prototipo-ui/cowork/Wagner/forja-aprova.jsx",
       "regra": "R3",
       "nome": "glifo/emoji em UI de produto",
       "dono": "UiLintCommand.php R3",
-      "arquivo": "prototipo-ui/cowork/forja-aprova.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/forja-aprova.jsx",
       "contagem": 4,
       "exemplo": "→ ✓",
       "origem": "prototipo",
@@ -837,11 +837,11 @@
       "aberta_em": "2026-09-03"
     },
     {
-      "id": "R1:prototipo-ui/cowork/forja-data.jsx",
+      "id": "R1:prototipo-ui/cowork/Wagner/forja-data.jsx",
       "regra": "R1",
       "nome": "cor crua em Page/CSS",
       "dono": "UiLintCommand.php R1 · conformance-gate",
-      "arquivo": "prototipo-ui/cowork/forja-data.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/forja-data.jsx",
       "contagem": 19,
       "exemplo": "oklch(0.57 0.16 25) · oklch(0.55 0.15 295)",
       "origem": "prototipo",
@@ -850,11 +850,11 @@
       "aberta_em": "2026-09-03"
     },
     {
-      "id": "R3:prototipo-ui/cowork/forja-data.jsx",
+      "id": "R3:prototipo-ui/cowork/Wagner/forja-data.jsx",
       "regra": "R3",
       "nome": "glifo/emoji em UI de produto",
       "dono": "UiLintCommand.php R3",
-      "arquivo": "prototipo-ui/cowork/forja-data.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/forja-data.jsx",
       "contagem": 26,
       "exemplo": "→ ✓ 🔴 ↔ ⇧",
       "origem": "prototipo",
@@ -863,11 +863,11 @@
       "aberta_em": "2026-09-03"
     },
     {
-      "id": "R3:prototipo-ui/cowork/forja-integra.jsx",
+      "id": "R3:prototipo-ui/cowork/Wagner/forja-integra.jsx",
       "regra": "R3",
       "nome": "glifo/emoji em UI de produto",
       "dono": "UiLintCommand.php R3",
-      "arquivo": "prototipo-ui/cowork/forja-integra.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/forja-integra.jsx",
       "contagem": 5,
       "exemplo": "↔ ✓ →",
       "origem": "prototipo",
@@ -876,11 +876,11 @@
       "aberta_em": "2026-09-03"
     },
     {
-      "id": "R1:prototipo-ui/cowork/forja-mcp.jsx",
+      "id": "R1:prototipo-ui/cowork/Wagner/forja-mcp.jsx",
       "regra": "R1",
       "nome": "cor crua em Page/CSS",
       "dono": "UiLintCommand.php R1 · conformance-gate",
-      "arquivo": "prototipo-ui/cowork/forja-mcp.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/forja-mcp.jsx",
       "contagem": 1,
       "exemplo": "oklch(0.58 0.21 25)",
       "origem": "prototipo",
@@ -889,11 +889,11 @@
       "aberta_em": "2026-09-03"
     },
     {
-      "id": "R3:prototipo-ui/cowork/forja-mcp.jsx",
+      "id": "R3:prototipo-ui/cowork/Wagner/forja-mcp.jsx",
       "regra": "R3",
       "nome": "glifo/emoji em UI de produto",
       "dono": "UiLintCommand.php R3",
-      "arquivo": "prototipo-ui/cowork/forja-mcp.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/forja-mcp.jsx",
       "contagem": 24,
       "exemplo": "✦ → ⚿ ⚠ ↗ ✓",
       "origem": "prototipo",
@@ -902,11 +902,11 @@
       "aberta_em": "2026-09-03"
     },
     {
-      "id": "FLEX-CRU:prototipo-ui/cowork/forja-mcp.jsx",
+      "id": "FLEX-CRU:prototipo-ui/cowork/Wagner/forja-mcp.jsx",
       "regra": "FLEX-CRU",
       "nome": "flex/grid cru em className (sem Stack/Inline/Grid)",
       "dono": "layout-primitives-guard.mjs",
-      "arquivo": "prototipo-ui/cowork/forja-mcp.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/forja-mcp.jsx",
       "contagem": 1,
       "exemplo": "",
       "origem": "prototipo",
@@ -915,11 +915,11 @@
       "aberta_em": "2026-09-03"
     },
     {
-      "id": "R1:prototipo-ui/cowork/forja-page.jsx",
+      "id": "R1:prototipo-ui/cowork/Wagner/forja-page.jsx",
       "regra": "R1",
       "nome": "cor crua em Page/CSS",
       "dono": "UiLintCommand.php R1 · conformance-gate",
-      "arquivo": "prototipo-ui/cowork/forja-page.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/forja-page.jsx",
       "contagem": 12,
       "exemplo": "#fff · #fff",
       "origem": "prototipo",
@@ -928,11 +928,11 @@
       "aberta_em": "2026-09-03"
     },
     {
-      "id": "R3:prototipo-ui/cowork/forja-page.jsx",
+      "id": "R3:prototipo-ui/cowork/Wagner/forja-page.jsx",
       "regra": "R3",
       "nome": "glifo/emoji em UI de produto",
       "dono": "UiLintCommand.php R3",
-      "arquivo": "prototipo-ui/cowork/forja-page.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/forja-page.jsx",
       "contagem": 46,
       "exemplo": "→ ↓ ✓ ⚠ ▲ ↵",
       "origem": "prototipo",
@@ -941,11 +941,11 @@
       "aberta_em": "2026-09-03"
     },
     {
-      "id": "FLEX-CRU:prototipo-ui/cowork/forja-page.jsx",
+      "id": "FLEX-CRU:prototipo-ui/cowork/Wagner/forja-page.jsx",
       "regra": "FLEX-CRU",
       "nome": "flex/grid cru em className (sem Stack/Inline/Grid)",
       "dono": "layout-primitives-guard.mjs",
-      "arquivo": "prototipo-ui/cowork/forja-page.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/forja-page.jsx",
       "contagem": 1,
       "exemplo": "",
       "origem": "prototipo",
@@ -954,11 +954,11 @@
       "aberta_em": "2026-09-03"
     },
     {
-      "id": "R1:prototipo-ui/cowork/forja-tarefas.jsx",
+      "id": "R1:prototipo-ui/cowork/Wagner/forja-tarefas.jsx",
       "regra": "R1",
       "nome": "cor crua em Page/CSS",
       "dono": "UiLintCommand.php R1 · conformance-gate",
-      "arquivo": "prototipo-ui/cowork/forja-tarefas.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/forja-tarefas.jsx",
       "contagem": 3,
       "exemplo": "oklch(0.6 0.14 \" + st.hue + \") · oklch(0.6 0.18 \" + ({ P0: 25, P1: 60, P2: 295, P3: 250 }[t.priority])",
       "origem": "prototipo",
@@ -967,11 +967,11 @@
       "aberta_em": "2026-09-03"
     },
     {
-      "id": "R3:prototipo-ui/cowork/forja-tarefas.jsx",
+      "id": "R3:prototipo-ui/cowork/Wagner/forja-tarefas.jsx",
       "regra": "R3",
       "nome": "glifo/emoji em UI de produto",
       "dono": "UiLintCommand.php R3",
-      "arquivo": "prototipo-ui/cowork/forja-tarefas.jsx",
+      "arquivo": "prototipo-ui/cowork/Wagner/forja-tarefas.jsx",
       "contagem": 9,
       "exemplo": "→ ↵ ⇧",
       "origem": "prototipo",

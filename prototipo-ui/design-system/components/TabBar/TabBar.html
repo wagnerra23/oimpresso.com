@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="TabBar" subtitle="Sub-abas de módulo — o &lt;nav&gt; é o contrato (sem wrapper)" viewport="760x310" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>TabBar</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="stylesheet" href="../../cockpit_domains.css">
+<style> body { margin: 0; } </style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div class="cockpit" style="padding:18px;background:var(--bg)"><div id="root"></div></div>
+<script type="text/javascript">
+  const { TabBar } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  function App() {
+    const [active, setActive] = React.useState('clientes');
+    const tabs = [
+      { key: 'todos', label: 'Todos', count: 32 },
+      { key: 'clientes', label: 'Clientes', count: 15 },
+      { key: 'fornecedores', label: 'Fornecedores', count: 7 },
+      { key: 'funcionarios', label: 'Funcionários', count: 7 },
+      { key: 'representantes', label: 'Representantes', count: 3 },
+    ];
+    const lbl = (s) => h('div', { style: { font: '600 10px/1 var(--font-mono)', letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--text-mute)', margin: '0 0 8px' } }, s);
+    return h('div', { style: { display: 'grid', gap: 18 } },
+      h('div', null, lbl('md · padrão'),
+        h(TabBar, { tabs, active, onChange: setActive, 'data-contract': 'pt-01/slot-2', ariaLabel: 'Sub-navegação de Clientes' })),
+      h('div', null, lbl('size sm · pad 10'),
+        h(TabBar, { tabs: tabs.slice(0, 4), active, onChange: setActive, size: 'sm', pad: 10 })),
+      h('div', null, lbl('off'),
+        h(TabBar, { tabs: tabs.slice(0, 4), active, size: 'sm', off: true })),
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 ---
 id: requisitos-governance-audit-gap
 tela: governance/Audit (/governance/audit)
-prototipo: prototipo-ui/cowork/governance-page.jsx + governance-telas.jsx
+prototipo: prototipo-ui/cowork/Wagner/governance-page.jsx + governance-telas.jsx
 tela_viva: resources/js/Pages/governance/Audit.tsx
 gerado_em: 2026-09-06
 ---
@@ -11,6 +11,10 @@ gerado_em: 2026-09-06
 > Protótipo = porte REVERSO do vivo (governance-page.jsx:1-3 "Espelha as telas vivas"; governance-telas.jsx:1-3 "Espelha AuditController (mcp_audit_log, teto de 200, 4 filtros)"; retrato de ~2026-08-23). Fase 1 = PARIDADE. Charter: `resources/js/Pages/governance/Audit.charter.md` (Non-Goals respeitados, nunca reabertos).
 
 **Veredito:** PARIDADE com 2 itens a decidir — o retrato acrescenta "Limpar filtros" e a contagem do período além do teto; filtros, KPIs, tabela, vazio e rodapé são o vivo.
+
+> **Decidido em 2026-09-09** (os dois itens, por escrito, como o gap pedia):
+> - **"Limpar filtros" — CONSTRUÍDO.** `Audit.tsx` ganhou `hasFilter` + `clearFilters` (o reset volta ao default `'24h'` do `AuditController.php:33`, não a "sem período") e o vazio passou a explicar a combinação. Front puro, zero fonte nova. Travado por `tests/js/governance-filtros.test.tsx` (mordida provada: mutar `hasFilter` para `false` deixa 4 casos vermelhos).
+> - **Contagem do período além do teto — NÃO construído nesta leva.** Não é rejeição de mérito: exige `count()` extra no `AuditController` e campo novo no payload — é backend, fora do intent deste PR (front dos GAP-SPEC). Segue como item aberto.
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|

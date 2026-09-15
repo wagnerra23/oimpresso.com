@@ -6,7 +6,7 @@ description: |
   <example>
   Context: Wagner anexou no chat um bundle Cowork (HTML/jsx) + 2 screenshots e disse "implementa Cobrança Recorrente, é nota 9,75".
   user: "Implement: uploads/Oimpresso ERP Conunicação Visual. Ultimotopo/Oimpresso ERP - Chat.html — o Cobrança recorrente"
-  assistant: "Spawn cowork-to-inertia — vai extrair o bundle Cowork, identificar `recurring-page.jsx` IIFE + `recurring-data.jsx` mock + `recurring-icons.jsx`, copiar canon pra `prototipo-ui/prototipos/recurring/`, criar Preview server (`python -m http.server 5550`), navegar via Chrome MCP, validar pixel-perfect contra screenshots, gerar `Index-visual-comparison.md` com 8 ondas planejadas, então onda-a-onda com PR ≤300 ln cada."
+  assistant: "Spawn cowork-to-inertia — vai extrair o bundle Cowork, identificar `recurring-page.jsx` IIFE + `recurring-data.jsx` mock + `recurring-icons.jsx`, copiar canon pra `prototipo-ui/cowork/Wagner/legado/recurring/`, criar Preview server (`python -m http.server 5550`), navegar via Chrome MCP, validar pixel-perfect contra screenshots, gerar `Index-visual-comparison.md` com 8 ondas planejadas, então onda-a-onda com PR ≤300 ln cada."
   </example>
 
   <example>
@@ -43,7 +43,7 @@ Se em algum momento você perceber que está prestes a violar um desses 3 princ�
 
 ## As 7 fases do protocolo (ordem obrigatória, sem pular)
 
-Detalhe completo em [`prototipo-ui/PROTOCOL-F3-COWORK-CODE.md`](../../prototipo-ui/PROTOCOL-F3-COWORK-CODE.md). Resumo:
+Detalhe completo em [`memory/reference/prototipo-ui/PROTOCOL-F3-COWORK-CODE.md`](../../prototipo-ui/PROTOCOL-F3-COWORK-CODE.md). Resumo:
 
 ### F0 — RECEIVE
 
@@ -60,10 +60,10 @@ Auto-detect formato:
 
 - **IIFE .jsx exposing `window.XxxPage`** (padrão Cockpit V2) → fonte completa, vai pra F1.5
 - **HTML standalone com inline CSS** → fonte parcial, precisa extrair tokens
-- **Só screenshots** → STOP, pergunta Wagner se há .jsx ou se você deve inferir do padrão Cowork (`prototipo-ui/CLAUDE_DESIGN_BRIEFING.md`)
+- **Só screenshots** → STOP, pergunta Wagner se há .jsx ou se você deve inferir do padrão Cowork (`memory/reference/prototipo-ui/CLAUDE_DESIGN_BRIEFING.md`)
 - **Strategy doc tipo Diagnóstico KB-9.75** → NÃO é mockup pra copiar, é roadmap; você lê pra contexto + busca o .jsx real referenciado
 
-Copia fonte canônica pra `prototipo-ui/prototipos/<tela>/` (padrão ADR 0114).
+Copia fonte canônica pra `prototipo-ui/cowork/Wagner/legado/<tela>/` (padrão ADR 0114).
 
 ### F1.5 — RENDER + VALIDATE (GATE OBRIGATÓRIO)
 
@@ -81,7 +81,7 @@ Copia fonte canônica pra `prototipo-ui/prototipos/<tela>/` (padrão ADR 0114).
 
 Escreve `memory/requisitos/<Modulo>/Index-visual-comparison.md` com:
 
-- Link pro visual canon em `prototipo-ui/prototipos/<tela>/`
+- Link pro visual canon em `prototipo-ui/cowork/Wagner/legado/<tela>/`
 - Decomposição cirúrgica em 15 dimensões (layout, paleta, tipografia, espaçamento, componentes, estados, atalhos, a11y, responsivo, performance/defer, multi-tenant, copy PT-BR, audit, charter, telemetria)
 - **Schema gap** — tabela "existe hoje vs precisa criar" com migrations necessárias enumeradas
 - **Cross-module deps** — link a `Modules/<Outro>`, FK soft vs hard, fallback graceful se módulo não tem o endpoint

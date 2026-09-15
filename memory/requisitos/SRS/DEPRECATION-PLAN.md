@@ -148,7 +148,7 @@ Wagner promover [`memory/decisions/proposals/deprecate-srs.md`](../../decisions/
 | SCOPE vs BRIEFING | **CONFLITANTE** — SCOPE 2026-05-05 prevê repurpose (`srs_entries` table + trigger MySQL append-only) que NUNCA aconteceu; BRIEFING 2026-05-16 (11 dias depois) admite "substituído na prática pelo MCP server canon. Não investir." `transition_plan.migration_phase: 3.7` declarado, mas Entities ainda `Doc*` (não renomeadas), tabelas ainda `docs_*` (não `srs_entries`). |
 | Code stats | 8 Controllers · 6 Services · 7 Entities (`DocSource/Page/Evidence/Requirement/Link/ChatMessage/ValidationRun`) · 8 Migrations (`docs_*` legacy) · 9 Console Commands (signature `memcofre:*` legacy) · 10 Tests Pest (incluindo Wave 23/25/26/27/28 saturação) |
 | Git activity 90d | 16 commits — picos Waves 11/12/16/17/18/23/24/25/26/27/28 (saturation tests). Funcionalmente parado desde Wave 12 (12/maio/2026: HasBusinessScope + LogsActivity). **Atividade alta é de governance/Pest, não feature** — confirma zumbi. |
-| module-grade-v3 atual | 100/118 raw → **Bom** bucket (24/30 18/20 10/15 9/20 15/15 6/10 6/10 6/8 6/7). D1 (24/30 — explained: 3 tabelas repo-wide intencional) e D4 (9/20 — arquitetura/SoC zumbi cofre↔SRS detectado corretamente). Baseline em [governance/module-grades-baseline.json](../../../governance/module-grades-baseline.json) linha 40 = `"SRS": 58`. |
+| module-grade-v3 atual | 100/118 raw → **Bom** bucket (24/30 18/20 10/15 9/20 15/15 6/10 6/10 6/8 6/7). D1 (24/30 — explained: 3 tabelas repo-wide intencional) e D4 (9/20 — arquitetura/SoC zumbi cofre↔SRS detectado corretamente). Baseline em `governance/module-grades-baseline.json` (APOSENTADO 2026-09-15 — ADR 0399) linha 40 = `"SRS": 58`. |
 | Cross-refs externos | **SCOPE.md mencionando SRS:** 5 (TeamMcp/KB/Brief/Arquivos/SRS próprio). **Código PHP citando `Modules\SRS` ou `memcofre`:** 40+ (Module SRS interno · `tests/Feature/Memory/*` ·  `app/Services/ModuleRequirementsGenerator.php` · `app/Console/Commands/MemSyncStatusCommand.php` (wrapper sobre `memcofre:sync-memories --dry`) · `app/Console/Commands/GenerateModuleRequirementsCommand.php` · `app/Console/Kernel.php` (schedule daily 23:00) · `KbController.php` (cita `/memcofre/memoria` legacy em docblock) · `prototipo-ui/_cowork-export-*/...` (5 controllers prototipo só citam, não dependem)). **Skills/agents/rules:** 5 (`deprecar-modulo`, `sidebar-menu-arch`, `migrar-modulo`, `meta-skill-roi-erp-autonomo`, `cockpit-runbook` EXAMPLES). **ADRs:** 20+ (0080 charter mãe, 0088 rename PHP-only, 0092 tabela rename copiloto→jana, 0121 modular vertical, 0123 Arquivos, 0148-149 Cascade, 0153-160 module-grade Waves, e proposals/drafts). **CI:** zero workflows com SRS-specific (apenas governance-gate.yml genérico). **Governance:** `governance/buckets/_INDEX.md` (bucket `functional_horizontal`), `governance/module-grades-baseline.json` (entry SRS 58 + renames MemCofre→SRS). |
 
 ### Detalhes inventário código
@@ -521,7 +521,7 @@ ADR 0080 (Trust Tiers operacional audit findings) declarou SRS como L1 charter. 
 - [ADR 0093 Multi-tenant Tier 0](0093-multi-tenant-isolation-tier-0.md) — IRREVOGÁVEL
 - [ADR 0094 Constituição v2](0094-constituicao-v2-7-camadas-8-principios.md) — SoC brutal §5
 - [ADR 0123 Modules/Arquivos backbone](0123-modules-arquivos-backbone.md) — DMS canon (alternativa pra storage)
-- [governance/module-grades-baseline.json](../../governance/module-grades-baseline.json) — baseline entry `SRS: 58`
+- `governance/module-grades-baseline.json` (APOSENTADO 2026-09-15 — ADR 0399) — baseline entry `SRS: 58`
 - [app/Console/Kernel.php §34-46](../../app/Console/Kernel.php) — schedule `memcofre:sync-memories` daily 23:00 (R3)
 ```
 
@@ -564,7 +564,7 @@ ADR 0080 (Trust Tiers operacional audit findings) declarou SRS como L1 charter. 
 ### Configs/runbooks referenciados
 - [app/Console/Kernel.php §34-46](../../../app/Console/Kernel.php) — schedule `memcofre:sync-memories`
 - `Modules/SRS/Config/retention.php` — janelas LGPD (arquivo REMOVIDO na E5; sem link, o alvo não existe mais)
-- [governance/module-grades-baseline.json linha 40](../../../governance/module-grades-baseline.json) — `"SRS": 58`
+- `governance/module-grades-baseline.json` linha 40 (APOSENTADO 2026-09-15 — ADR 0399) — `"SRS": 58`
 - [governance/buckets/_INDEX.md](../../../governance/buckets/_INDEX.md) — bucket `functional_horizontal`
 - [memory/requisitos/Infra/RUNBOOK-acesso-ct100.md](../Infra/RUNBOOK-acesso-ct100.md) (ref — SSH CT 100 pra rodar mysqldump E3)
 - [memory/governance/TRUST-TIERS.md](../../governance/TRUST-TIERS.md) (ref — L1 charter SRS legacy)

@@ -118,7 +118,6 @@ class GovernancaScorecardCommand extends Command
                 'graduation_ratio_medio' => $ratioMedio,
                 'health_checks_count'    => $this->healthChecksCount(),
                 'baselines_presentes'    => [
-                    'module_grades' => file_exists(base_path('governance/module-grades-baseline.json')),
                     'screen_grades' => file_exists(base_path('memory/governance/scorecards/screen-grades-baseline-2026-05-30.json')),
                 ],
             ],

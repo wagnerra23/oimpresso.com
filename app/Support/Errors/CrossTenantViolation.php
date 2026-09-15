@@ -14,7 +14,7 @@ use Throwable;
  * CrossTenantViolation como **S0** — é o "S0 silencioso" do Mapa: o operador
  * só vê uma negação genérica, mas o construtor é alertado na hora.
  *
- * @see prototipo-ui/handoffs/erros-fase1-classificacao.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-fase1-classificacao.md
  * @see ADR 0093 (Multi-tenant Tier 0)
  */
 interface CrossTenantViolation extends Throwable

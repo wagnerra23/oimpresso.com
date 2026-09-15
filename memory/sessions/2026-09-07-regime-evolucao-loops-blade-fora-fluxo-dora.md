@@ -13,7 +13,9 @@ related_adrs: ["0391-regime-de-evolucao-por-loops-blade-fora"]
 
 # Sessão 2026-09-07 — como o sistema evolui com o tempo, em quais áreas, e como medir
 
-**TL;DR:** [W] perguntou como o sistema evolui e onde isso vale. A resposta medida mostrou 6 loops universais e 6 por área com cobertura desigual, e Blade fora de todo loop de tela. [W] decidiu Blade fora (morre na migração) e pediu plano com toda etapa válida por teste. Entrou o programa medido (10 etapas, detect por comportamento), a ADR 0391 e um medidor de fluxo DORA + Flow do sistema inteiro. Três PRs mergeados.
+## TL;DR
+
+[W] perguntou como o sistema evolui e onde isso vale. A resposta medida mostrou 6 loops universais e 6 por área com cobertura desigual, e Blade fora de todo loop de tela. [W] decidiu Blade fora (morre na migração) e pediu plano com toda etapa válida por teste. Entrou o programa medido (10 etapas, detect por comportamento), a ADR 0391 e um medidor de fluxo DORA + Flow do sistema inteiro. Três PRs mergeados.
 
 ## Sequência
 

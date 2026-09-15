@@ -26,7 +26,7 @@ on:
       - 'resources/js/Pages/**/*.charter.md'
       - 'Modules/*/Resources/js/Pages/**/*.charter.md'
       - 'Modules/*/resources/js/Pages/**/*.charter.md'
-      - 'prototipo-ui/SYNC_LOG.md'
+      - 'memory/reference/prototipo-ui/SYNC_LOG.md'
       - 'scripts/governance/detect-ui-drift.mjs'
       - 'scripts/governance/detect-ui-drift.test.mjs'
       - '.github/workflows/detect-ui-drift.yml'

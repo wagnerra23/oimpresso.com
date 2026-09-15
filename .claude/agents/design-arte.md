@@ -62,7 +62,7 @@ Leia o alvo (tela/módulo passado pelo Wagner):
 - `resources/js/Pages/{Modulo}/**.tsx` (Inertia)
 - `resources/views/{modulo}/**.blade.php` (legacy)
 - `resources/js/Components/shared/` (componentes reusáveis)
-- `prototipo-ui/prototipos/{modulo}/` (Cowork — visual-source.html se houver)
+- `prototipo-ui/cowork/Wagner/legado/{modulo}/` (Cowork — visual-source.html se houver)
 - Charter `*.charter.md` ao lado da Page
 - RUNBOOK em `memory/requisitos/{Modulo}/RUNBOOK-*.md`
 

@@ -1,0 +1,38 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="KpiFilterCard" subtitle="Clickable KPI filter tile — Clientes/CRM strip" viewport="900x120" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>KpiFilterCard</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+  body { padding: 16px; }
+  .strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/javascript">
+  const { KpiFilterCard } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  function App() {
+    const [sel, setSel] = React.useState('ativos');
+    const cards = [
+      ['ativos','Clientes ativos','com OS aberta','👥','primary','13'],
+      ['vips','VIPs','prioridade total','⭐','amber','5'],
+      ['saldo','Com saldo','inadimplência','⚠️','rose','3'],
+      ['sem90','Sem compra 90d','risco churn','🕗','emerald','2'],
+      ['novos','Novos este mês','desde dia 1','✚','violet','2'],
+    ];
+    return h('div', { className: 'strip' },
+      cards.map(([k,lbl,sub,ic,tone,v]) =>
+        h(KpiFilterCard, { key: k, label: lbl, value: v, sub, icon: ic, tone,
+          selected: sel === k, onClick: () => setSel(sel === k ? null : k) })));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>

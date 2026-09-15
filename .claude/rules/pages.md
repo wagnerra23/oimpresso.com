@@ -84,7 +84,7 @@ Skill `mwart-comparative V4` orquestra Claude Design plugin Anthropic (design-cr
 
 ## Anti-padrões F3 catalogados
 
-Antes de Edit/Write em `<Tela>.tsx` ler [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — 6 meta-anti-padrões + 15 técnicos catalogados sessão 2026-05-09 batch Financeiro rejeitado.
+Antes de Edit/Write em `<Tela>.tsx` ler [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — 6 meta-anti-padrões + 15 técnicos catalogados sessão 2026-05-09 batch Financeiro rejeitado.
 
 ## Skills relacionadas
 

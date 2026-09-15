@@ -16,7 +16,7 @@ class EscalaController extends Controller
     {
         $businessId = session('business.id') ?? $request->user()->business_id;
         $paginated = Escala::where('business_id', $businessId)
-            ->withCount('turnos')
+            ->withCount(['turnos', 'colaboradores'])
             ->paginate(20)
             ->withQueryString();
 
@@ -29,6 +29,9 @@ class EscalaController extends Controller
             'carga_semanal_minutos' => (int) $e->carga_semanal_minutos,
             'permite_banco_horas'   => (bool) $e->permite_banco_horas,
             'turnos_count'          => (int) $e->turnos_count,
+            // D-ESC-DESTROY ([W] 2026-09-14): a UI mostra "Remover", mas INDISPONIVEL com
+            // vinculo — e a tela so sabe disso se o contador vier junto.
+            'colaboradores_count'   => (int) $e->colaboradores_count,
         ]);
 
         return Inertia::render('Ponto/Escalas/Index', ['escalas' => $paginated]);
@@ -113,9 +116,32 @@ class EscalaController extends Controller
         return back()->with('success', 'Escala atualizada.');
     }
 
+    /**
+     * D-ESC-DESTROY ([W] 2026-09-14): remover e permitido SO sem vinculo.
+     *
+     * Antes disto o metodo apagava sem condicao nenhuma. Apagar escala em uso deixa
+     * `colaboradores.escala_atual_id` apontando pra linha morta, e escala e o que define a jornada
+     * ESPERADA na apuracao — sem ela o calculo de HE/intrajornada perde a referencia. Nao e
+     * cosmetico nem UX: e integridade de dado com efeito em folha (CLT Art. 58/59).
+     *
+     * A trava vive AQUI, no servidor, e nao so no botao: o botao desabilitado da tela e
+     * conveniencia: a rota e POST/DELETE direto e nao tem como confiar no cliente.
+     */
     public function destroy(int $id): RedirectResponse
     {
-        Escala::findOrFail($id)->delete();
+        $escala = Escala::findOrFail($id);
+        $vinculados = $escala->vinculosAtivos();
+
+        if (! $escala->podeSerRemovida()) {
+            return redirect()->route('ponto.escalas.index')->with(
+                'error',
+                $vinculados === 1
+                    ? 'Escala nao removida: 1 colaborador ainda esta vinculado a ela. Troque a escala dele antes.'
+                    : "Escala nao removida: {$vinculados} colaboradores ainda estao vinculados a ela. Troque a escala deles antes."
+            );
+        }
+
+        $escala->delete();
         return redirect()->route('ponto.escalas.index')->with('success', 'Escala removida.');
     }
 }

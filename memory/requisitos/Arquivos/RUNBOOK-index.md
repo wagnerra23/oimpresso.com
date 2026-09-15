@@ -406,7 +406,7 @@ cofre só ampliou o vocabulário de `tab` com um valor.
 - Casos: [`Index.casos.md`](../../../resources/js/Pages/Arquivos/Index.casos.md)
 - SPEC: [`SPEC.md`](SPEC.md) US-ARQ-013
 - ADRs: [0123](../../decisions/0123-modules-arquivos-backbone.md) · [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · [0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md) · [0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)
-- Protótipo: `prototipo-ui/cowork/arquivos-page.jsx`
+- Protótipo: `prototipo-ui/cowork/Wagner/arquivos-page.jsx`
 - Defer: [`RUNBOOK-inertia-defer-pattern.md`](../_DesignSystem/RUNBOOK-inertia-defer-pattern.md)
 - Cofre — os comandos que AGEM sobre o que a vista aponta (ela só mostra):
   `arquivos:health-check` (os 5 sinais de integridade, incluindo os que a tela não cobre —

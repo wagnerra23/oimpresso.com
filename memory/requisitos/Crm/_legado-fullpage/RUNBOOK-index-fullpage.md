@@ -4,7 +4,7 @@ module: Cliente
 tela: Cliente/Index
 owner: W
 status: ativo
-last_validated: 2026-05-21
+last_validated: "2026-05-21"
 preconditions:
   - "Usuário autenticado com permission `customer.view` ou `customer.view_own` (Spatie UPOS canon)"
   - "business_id válido na sessão (multi-tenant Tier 0 ativo — ADR 0093)"

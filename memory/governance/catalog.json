@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 711,
-    "edges": 991,
+    "nodes": 714,
+    "edges": 1008,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 111,
-      "component": 385,
+      "adr": 115,
+      "component": 384,
       "api": 74
     },
     "by_edge_type": {
@@ -42,13 +42,13 @@
       "providesApi": 78,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 385,
+      "hasComponent": 384,
       "dependsOn": 116,
       "delegatesTo": 108,
       "migratesTo": 1,
-      "supersedes": 15,
+      "supersedes": 24,
       "supersedesPartially": 51,
-      "supersededBy": 19
+      "supersededBy": 28
     },
     "dangling": 0
   },
@@ -818,6 +818,13 @@
       "exists": true
     },
     {
+      "id": "adr:0387",
+      "type": "adr",
+      "num": "0387",
+      "slug": "0387-github-md-diario-cowork-aceito-e-tratado",
+      "exists": true
+    },
+    {
       "id": "adr:0390",
       "type": "adr",
       "num": "0390",
@@ -829,6 +836,27 @@
       "type": "adr",
       "num": "0392",
       "slug": "0392-fronteira-governance-audiencia-enforcement-na-concessao",
+      "exists": true
+    },
+    {
+      "id": "adr:0396",
+      "type": "adr",
+      "num": "0396",
+      "slug": "0396-prototipo-fonte-unica-build-sem-canon-sombra",
+      "exists": true
+    },
+    {
+      "id": "adr:0397",
+      "type": "adr",
+      "num": "0397",
+      "slug": "0397-prototipo-minimo-por-dono-e-ds-direto",
+      "exists": true
+    },
+    {
+      "id": "adr:0399",
+      "type": "adr",
+      "num": "0399",
+      "slug": "0399-aposentar-rubrica-module-grade-gate-e-baseline",
       "exists": true
     },
     {
@@ -2758,13 +2786,6 @@
       "desc": "install/uninstall hooks (ADR 0024)"
     },
     {
-      "id": "component:Governance/ModuleGradeController",
-      "type": "component",
-      "module": "Governance",
-      "name": "ModuleGradeController",
-      "desc": "/governance/module-grades Index ranking 34 módulos + Show drill-down 9 dimensões v3 + dossier markdown (ADR 0155 + Charter Goal 9 2026-05-17)"
-    },
-    {
       "id": "component:Governance/PoliciesController",
       "type": "component",
       "module": "Governance",
@@ -2776,7 +2797,7 @@
       "type": "component",
       "module": "Governance",
       "name": "QualidadeIaController",
-      "desc": "/governance/qualidade-ia trend das métricas de RAG/memória (MEM-MET-4, ADR 0050; recebido do Modules/Jana em 2026-08-05 — decisão [W]: eval é gate de conformidade, medido contra piso igual module-grades e drift)"
+      "desc": "/governance/qualidade-ia trend das métricas de RAG/memória (MEM-MET-4, ADR 0050; recebido do Modules/Jana em 2026-08-05 — decisão [W]: eval é gate de conformidade, medido contra piso igual ao drift — e igual ao module-grade, que era o outro exemplo até ser aposentado em 2026-09-15 pela ADR 0399)"
     },
     {
       "id": "component:Governance/Services/PolicyEngine",
@@ -5990,10 +6011,28 @@
       "source": "superseded_by"
     },
     {
+      "from": "adr:0153",
+      "to": "adr:0399",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0154",
+      "to": "adr:0399",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
       "from": "adr:0154",
       "to": "adr:0153",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0155",
+      "to": "adr:0399",
+      "type": "supersededBy",
+      "source": "superseded_by"
     },
     {
       "from": "adr:0155",
@@ -6009,9 +6048,21 @@
     },
     {
       "from": "adr:0156",
+      "to": "adr:0399",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0156",
       "to": "adr:0155",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0157",
+      "to": "adr:0399",
+      "type": "supersededBy",
+      "source": "superseded_by"
     },
     {
       "from": "adr:0157",
@@ -6021,9 +6072,21 @@
     },
     {
       "from": "adr:0158",
+      "to": "adr:0399",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0158",
       "to": "adr:0155",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0159",
+      "to": "adr:0399",
+      "type": "supersededBy",
+      "source": "superseded_by"
     },
     {
       "from": "adr:0159",
@@ -6266,6 +6329,12 @@
       "source": "supersedes_partially"
     },
     {
+      "from": "adr:0387",
+      "to": "adr:0396",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
       "from": "adr:0390",
       "to": "adr:0384",
       "type": "supersedesPartially",
@@ -6276,6 +6345,66 @@
       "to": "adr:0366",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0396",
+      "to": "adr:0397",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0396",
+      "to": "adr:0387",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0397",
+      "to": "adr:0396",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0399",
+      "to": "adr:0153",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0399",
+      "to": "adr:0154",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0399",
+      "to": "adr:0155",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0399",
+      "to": "adr:0156",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0399",
+      "to": "adr:0157",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0399",
+      "to": "adr:0158",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0399",
+      "to": "adr:0159",
+      "type": "supersedes",
+      "source": "supersedes"
     },
     {
       "from": "module:Arquivos",
@@ -8859,12 +8988,6 @@
     {
       "from": "module:Governance",
       "to": "component:Governance/InstallController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Governance",
-      "to": "component:Governance/ModuleGradeController",
       "type": "hasComponent",
       "source": "contains"
     },

@@ -28,7 +28,7 @@ amended-by: []
 
 Em 2026-05-21 mergeamos a **Wave Final paridade Cliente/Show** (PRs #1298-1307, formalizada por [ADR 0177](0177-mwart-excecao-cliente-show-wave-paralela.md)) que entregou `resources/js/Pages/Cliente/Show.tsx` como página full-page com 8 sub-tabs operacionais sob `Pages/Cliente/_show/`: `LedgerTab`, `SalesTab`, `PaymentsTab`, `DocumentsTab`, `ActivitiesTab`, `PessoasContatoTab`, `SubscriptionsTab`, `RewardPointsTab`. A wave fechou a paridade funcional 40%→85% vs Blade legacy e justificou um `/mwart-override` no gate visual regression. O paradigma vigente é: clicar num cliente em `/cliente` carrega `/cliente/{id}` que renderiza `Show.tsx`.
 
-Em paralelo, o protótipo Cowork em `prototipo-ui/prototipos/clientes/` (HTML + 13 .jsx, score KB-9.75 9,4/10 — Refinos #1 + #2 + #3) propõe paradigma diferente: **drawer lateral 760px** abrindo a partir de `Index.tsx`, com **8 tabs cadastrais** (Identificação · Contato · Endereço · Comercial · Classificação · OSs · IA · Auditoria). O `HANDOFF_CLIENTES.md` (381 linhas) detalha schema BR completo, 4 endpoints IA, 6 dropdowns de filtro, FrescorPill, avatar HSL determinístico, Spatie ActivityLog reuso.
+Em paralelo, o protótipo Cowork em `prototipo-ui/cowork/Wagner/legado/clientes/` (HTML + 13 .jsx, score KB-9.75 9,4/10 — Refinos #1 + #2 + #3) propõe paradigma diferente: **drawer lateral 760px** abrindo a partir de `Index.tsx`, com **8 tabs cadastrais** (Identificação · Contato · Endereço · Comercial · Classificação · OSs · IA · Auditoria). O `HANDOFF_CLIENTES.md` (381 linhas) detalha schema BR completo, 4 endpoints IA, 6 dropdowns de filtro, FrescorPill, avatar HSL determinístico, Spatie ActivityLog reuso.
 
 O Charter atual `Pages/Cliente/Show.charter.md` v2 lista 4 das tabs novas (Atividades, Pessoas, Assinaturas, Reward Points) como **Non-Goals explícitos** — bandeira amarela: a Wave Final 2026-05-21 invadiu os Non-Goals da própria carta sem atualizá-la. O Charter `Pages/Cliente/Index.charter.md` está em `status: draft` desde 2026-05-09, esperando essa decisão de paradigma.
 
@@ -123,7 +123,7 @@ Substituir página full-page `Show.tsx` por **drawer lateral 760px** abrindo a p
 
 ## Critério de aceitação
 
-- Screenshot drawer aberto em prod (`MWART_CLIENTE_INDEX=true` biz=1) com **8 tabs renderizando**, salvo em `prototipo-ui/SYNC_LOG.md` ([R1] smoke real).
+- Screenshot drawer aberto em prod (`MWART_CLIENTE_INDEX=true` biz=1) com **8 tabs renderizando**, salvo em `memory/reference/prototipo-ui/SYNC_LOG.md` ([R1] smoke real).
 - Pest cobertura — 6 arquivos test mínimos:
   - `ClienteIndexDrawer760CharterTest` (11 GUARDs charter v3 + Non-Goal violations + cross-tenant)
   - `ClienteDrawerCadastroAutosaveTest` (5 tabs autosave on blur + mod 11 + multi-tenant)
@@ -139,7 +139,7 @@ Substituir página full-page `Show.tsx` por **drawer lateral 760px** abrindo a p
 
 ## Referências
 
-- Protótipo Cowork: `prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md` (381 linhas — schema BR + 4 endpoints IA + checklist)
+- Protótipo Cowork: `prototipo-ui/cowork/Wagner/legado/clientes/HANDOFF_CLIENTES.md` (381 linhas — schema BR + 4 endpoints IA + checklist)
 - Dossiê wagner-understand: `memory/sessions/2026-05-21-understand-cliente-drawer-760px-opcao-A.md`
 - [ADR 0093](0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 IRREVOGÁVEL
 - [ADR 0094](0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
@@ -150,7 +150,7 @@ Substituir página full-page `Show.tsx` por **drawer lateral 760px** abrindo a p
 - [ADR 0149](0149-mwart-screen-pattern-reuse-cowork.md) — Pattern reuse blueprint Cowork
 - [ADR 0167](0167-errata-0130-handoff.md) — Errata handoff
 - [ADR 0177](0177-mwart-excecao-cliente-show-wave-paralela.md) — MWART exceção Cliente/Show Wave paralela (esta ADR supersede o paradigma que 0177 entregou)
-- `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` — pré-flight obrigatório Wave C-F
+- `memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` — pré-flight obrigatório Wave C-F
 - `memory/requisitos/Crm/SPEC.md` (US-CRM-068 drawer 760 + US-CRM-069 listagem turbinada — Wagner criar)
 
 ## Histórico

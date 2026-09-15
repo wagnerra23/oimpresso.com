@@ -2,7 +2,7 @@
 // scripts/governance/fiscal-debitos-derive.mjs
 // =====================================================================================
 // DERIVA os "Débitos conhecidos desta tela" (Onda 5 do protótipo Cowork · bloco
-// `.fx-debitos` de `prototipo-ui/cowork/fiscal-{page,subpages}.jsx`) a partir da ÚNICA
+// `.fx-debitos` de `prototipo-ui/cowork/Wagner/fiscal-{page,subpages}.jsx`) a partir da ÚNICA
 // fonte que os declara com âncora: os bullets `[BACKLOG]` dos sete
 // `resources/js/Pages/Fiscal/<Tela>.casos.md`.
 //

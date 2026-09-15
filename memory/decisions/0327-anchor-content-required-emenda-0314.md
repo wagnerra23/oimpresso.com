@@ -25,7 +25,7 @@ related:
 
 ## Contexto
 
-A revisão adversarial (2026-07-08, [RUNBOOK-fidelidade-fingerprint](../../prototipo-ui/RUNBOOK-fidelidade-fingerprint.md) §Furos) achou o **F2/F6**: **zero** da máquina de fidelidade de design é **required em CI**. Especificamente `anchor-content-check.mjs` — o sentinela que abre o arquivo da âncora e classifica `MISSING / SHELL / NO-MODULE / OK` — rodava **advisory** (`continue-on-error`, dentro do `design-memory-gate.yml`). Uma âncora podre (`related_prototype` = shell do app OU arquivo sumido) **mergeava verde**.
+A revisão adversarial (2026-07-08, [RUNBOOK-fidelidade-fingerprint](../../memory/reference/prototipo-ui/RUNBOOK-fidelidade-fingerprint.md) §Furos) achou o **F2/F6**: **zero** da máquina de fidelidade de design é **required em CI**. Especificamente `anchor-content-check.mjs` — o sentinela que abre o arquivo da âncora e classifica `MISSING / SHELL / NO-MODULE / OK` — rodava **advisory** (`continue-on-error`, dentro do `design-memory-gate.yml`). Uma âncora podre (`related_prototype` = shell do app OU arquivo sumido) **mergeava verde**.
 
 **Reincidência dura:** a âncora podre do Financeiro/Unificado (`→ oimpresso.com.html` shell) foi pega pelo Wagner em **2026-07-06**, o charter foi corrigido, e o **mesmo erro voltou em 2026-07-08** (o agente comparou de novo contra o shell). Um gate advisory **provou** não prevenir a reincidência. *"Presença ≠ correção"* (L-24): o selftest prova que a **máquina** está sã, nunca que o **merge** é limpo.
 

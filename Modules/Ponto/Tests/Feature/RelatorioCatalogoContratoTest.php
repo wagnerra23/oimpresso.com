@@ -144,6 +144,7 @@ function relCriarColaborador(int $businessId, int $userBusinessId): Colaborador
     $user = User::factory()->create([
         'business_id' => $userBusinessId,
         'user_type'   => 'user',
+        'username'    => strtolower(RELIDX_MARCADOR) . '-' . uniqid(),
     ]);
 
     $colab = new Colaborador();

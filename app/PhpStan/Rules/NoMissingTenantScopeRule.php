@@ -16,7 +16,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 /**
  * PHPStan custom rule — NoMissingTenantScopeRule (ADR 0208 custom rule #1, US-INFRA-017).
  *
- * Codifica T-AP-2 + T-AP-8 do `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`
+ * Codifica T-AP-2 + T-AP-8 do `memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`
  * (multi-tenant scope ausente — Tier 0 IRREVOGÁVEL ADR 0093).
  *
  * Detecta em métodos de Controllers em `Modules/`:

@@ -13,6 +13,8 @@ escopo_excluido: "folha com encargos (INSS/IRRF/FGTS/13o/ferias) — outro agent
 
 # Como integrar `Modules/Ponto` x `Modules/Essentials` (HRM)
 
+## Contexto
+
 > **As decisoes [W] de hoje sao dadas.** Este doc nao as reabre — mapeia onde cada uma
 > encosta no codigo, o que ela quebra, e em que ordem executar.
 >

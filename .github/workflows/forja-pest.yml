@@ -49,7 +49,7 @@ on:
       # O PipelineParidadeTest le a FONTE DE DESIGN. Sem este path, mudar o
       # prototipo em main nao dispara a lane e o gate fica mudo justamente
       # quando a fonte muda — que e o unico momento em que ele importa.
-      - 'prototipo-ui/cowork/**'
+      - 'prototipo-ui/cowork/Wagner/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/forja-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -90,10 +90,10 @@ jobs:
               # 2026-08-21 — a linha da fonte de design estava SÓ no `paths:` do push.
               # O comentário de lá diz "sem este path o gate fica mudo justamente quando
               # a fonte muda" — mas o bloco que decide o skip-as-pass no PR é ESTE.
-              # Efeito medido: PR que tocasse só `prototipo-ui/cowork/**` concluía VERDE
+              # Efeito medido: PR que tocasse só `prototipo-ui/cowork/Wagner/**` concluía VERDE
               # sem rodar o PipelineParidadeTest, que está no run-set da lane e lê essa
               # fonte. Mesmo defeito das lanes Jana e Estoque na mesma leva.
-              - 'prototipo-ui/cowork/**'
+              - 'prototipo-ui/cowork/Wagner/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/forja-pest.yml'
               - '.github/actions/pest-mysql-setup/**'

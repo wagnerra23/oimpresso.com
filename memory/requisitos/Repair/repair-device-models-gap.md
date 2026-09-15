@@ -1,14 +1,14 @@
 ---
 id: requisitos-repair-repair-device-models-gap
 tela: Repair/DeviceModels/Index (/repair/device-models)
-prototipo: prototipo-ui/cowork/repair-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/repair-page.jsx
 tela_viva: resources/js/Pages/Repair/DeviceModels/Index.tsx
 gerado_em: 2026-09-06
 ---
 
 # GAP-SPEC — Repair/DeviceModels/Index
 
-> Fase 1 do protocolo (`prototipo-ui/PROTOCOL.md`) em modo **PARIDADE**. `repair-page.jsx` é porte REVERSO dos blades (cabeçalho l.1-2; §5 2026-08-28); a aba comparada é `Modelos` (repair-page.jsx:336-366, origem `device_model/index.blade.php`). Estado no vivo medido em 2026-09-06 sobre `origin/main` `80bc4ef8b9`, com `grep -n`. Lidos antes: `Index.charter.md` (Goals l.35, Non-Goals l.42-45) e `Index.casos.md` (UC-DMIDX-01..06). Dado mock do protótipo não é gap.
+> Fase 1 do protocolo (`memory/reference/prototipo-ui/PROTOCOL.md`) em modo **PARIDADE**. `repair-page.jsx` é porte REVERSO dos blades (cabeçalho l.1-2; §5 2026-08-28); a aba comparada é `Modelos` (repair-page.jsx:336-366, origem `device_model/index.blade.php`). Estado no vivo medido em 2026-09-06 sobre `origin/main` `80bc4ef8b9`, com `grep -n`. Lidos antes: `Index.charter.md` (Goals l.35, Non-Goals l.42-45) e `Index.casos.md` (UC-DMIDX-01..06). Dado mock do protótipo não é gap.
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|

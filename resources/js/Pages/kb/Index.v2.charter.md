@@ -21,9 +21,9 @@ related_adrs:
   - 0093-multi-tenant-isolation-tier-0
 related_briefing: ../../../memory/requisitos/KB/BRIEFING.md
 related_schema: ../../../memory/requisitos/KB/SCHEMA-DB-V1.md
-related_prototype: prototipo-ui/cowork/kb-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/kb-page.jsx
 mwart_pattern_reuse:
-  blueprint_cowork: prototipo-ui/cowork/kb-page.jsx
+  blueprint_cowork: prototipo-ui/cowork/Wagner/kb-page.jsx
   blueprint_screenshot_approval: pendente (gate F1.5)
   derived_screens: [Index.v2]
   divergence_from_blueprint: "tri-pane sidebar+lista+leitor (port direto JSX→TSX)"
@@ -423,7 +423,7 @@ it('abre em 1280px sem scroll horizontal')                        // visual/manu
 
 ## 10. Refs
 
-- Blueprint Cowork: `prototipo-ui/cowork/kb-page.jsx`
+- Blueprint Cowork: `prototipo-ui/cowork/Wagner/kb-page.jsx`
 - Casos (contrato executável): [`Index.v2.casos.md`](Index.v2.casos.md)
 - V3 atual (docs canônicos, dado real): [`Index.charter.md`](Index.charter.md)
 - Switcher de empresa (NOVO-A): `resources/js/Components/cockpit/Sidebar.tsx` (`CompanyPicker`, ~L342)

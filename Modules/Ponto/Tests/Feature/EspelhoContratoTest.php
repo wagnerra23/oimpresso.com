@@ -84,6 +84,7 @@ function espelhoNovoUser(int $businessId): User
     return User::factory()->create([
         'business_id' => $businessId,
         'user_type'   => 'user',
+        'username'    => strtolower(ESPELHO_MARCADOR) . '-' . uniqid(),
     ]);
 }
 

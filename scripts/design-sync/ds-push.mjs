@@ -19,10 +19,10 @@
 // Uso:
 //   node scripts/design-sync/ds-push.mjs [--tokens <dir>] [--scaffold <colors_and_type.css>]
 //        [--out <dir>] [--write]
-//   default scaffold = scripts/design-sync/mirror-snapshot/colors_and_type.css (último espelho)
+//   default scaffold = prototipo-ui/design-system/colors_and_type.css (último espelho)
 //   default tokens   = resources/css/tokens
 //   default out      = scripts/design-sync/.push-bundle  (gitignored)
-//   --write          = também refresca o mirror-snapshot commitado (colors_and_type + cockpit_domains)
+//   --write          = atualiza o design-system canônico (colors_and_type + cockpit_domains)
 //                      — o snapshot do sentinela ds-mirror-drift (passo 5 do runbook).
 //
 // Sai != 0 se a validação der VALOR > 0 (o scaffold/tokens divergiram — NÃO empurre;
@@ -44,11 +44,11 @@ const flag = (name, def) => {
 const has = (name) => args.includes(name);
 
 const tokensDir = resolve(flag('--tokens', join(REPO, 'resources', 'css', 'tokens')));
-const scaffold = resolve(flag('--scaffold', join(HERE, 'mirror-snapshot', 'colors_and_type.css')));
+const scaffold = resolve(flag('--scaffold', join(REPO, 'prototipo-ui', 'design-system', 'colors_and_type.css')));
 const outDir = resolve(flag('--out', join(HERE, '.push-bundle')));
 const doWrite = has('--write');
 
-const MIRROR = join(HERE, 'mirror-snapshot');
+const MIRROR = join(REPO, 'prototipo-ui', 'design-system');
 const PROJECT_ID = '019dd02f-d2d0-7ba6-a57f-24b3ddd073ac';
 
 function node(script, scriptArgs) {
@@ -57,7 +57,7 @@ function node(script, scriptArgs) {
 
 // Pré-checks legíveis (falha cedo com mensagem, não stack trace).
 if (!existsSync(scaffold)) {
-  console.error(`ds-push: scaffold ausente — ${scaffold}\n  (o mirror-snapshot ainda não foi semeado; rode o runbook design-sync-push.md passo 5, ou passe --scaffold).`);
+  console.error(`ds-push: scaffold ausente — ${scaffold}\n  (o design-system canônico ainda não foi semeado; rode o runbook design-sync-push.md passo 5, ou passe --scaffold).`);
   process.exit(1);
 }
 for (const f of ['_generated-inertia-theme.css', '_generated-cockpit-light.css']) {
@@ -70,7 +70,7 @@ for (const f of ['_generated-inertia-theme.css', '_generated-cockpit-light.css']
 console.log('═══ ds-push (git → espelho) ═══\n');
 console.log(`tokens   : ${tokensDir}`);
 console.log(`scaffold : ${scaffold}`);
-console.log(`out      : ${outDir}${doWrite ? '  (+ refresca mirror-snapshot)' : '  (dry — sem --write)'}\n`);
+console.log(`out      : ${outDir}${doWrite ? '  (+ atualiza design-system)' : '  (dry — sem --write)'}\n`);
 
 // PASSO 1 — montar colors_and_type.css (scaffold + valores do git, via ds-mirror-build).
 const builtCT = node('ds-mirror-build.mjs', [scaffold, tokensDir]);
@@ -106,7 +106,7 @@ console.log(`✓ validado   divergências de VALOR: 0  (bundle == git canon)\n`)
 if (doWrite) {
   copyFileSync(outCT, join(MIRROR, 'colors_and_type.css'));
   copyFileSync(outDOM, join(MIRROR, 'cockpit_domains.css'));
-  console.log('✓ refrescado scripts/design-sync/mirror-snapshot/{colors_and_type,cockpit_domains}.css');
+  console.log('✓ refrescado prototipo-ui/design-system/{colors_and_type,cockpit_domains}.css');
   console.log('  → commite o snapshot + rode: node scripts/governance/ds-mirror-drift.mjs --update-baseline\n');
 }
 

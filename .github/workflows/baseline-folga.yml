@@ -1,0 +1,109 @@
+name: Baseline folga — trava o ganho (auto-aperto)
+
+# Fecha a metade órfã do drift de baseline.
+#
+# `baseline-tamper-guard.yml` barra AFROUXAR (dívida nova entrando escondida no baseline —
+# Gap 2 do blueprint SDD, ADR 0256/0258). Ninguém cuidava da direção oposta: quando o mundo
+# MELHORA e o baseline fica mais frouxo que a realidade, o gate imprime "considere re-gravar"
+# e delega a memória humana — "escrito+lembrado apodrece" (ADR 0256) na forma mais pura.
+#
+# Medido em 2026-09-09: 4 de 16 gates sondados estavam frouxos. E o achado que justifica
+# automatizar em vez de lembrar: 3 dos 4 estavam MISTO — obedecer a mensagem deles
+# ("rode --write-baseline pra travar o ganho") teria travado o ganho E GRANDFATHERADO
+# DÍVIDA NOVA junto, que é exatamente o vetor do tamper-guard. A mensagem do gate anuncia
+# o ganho e cala o afrouxamento embutido; só medir o artefato separa os dois.
+#
+# Por que pode rodar sozinho: apertar nunca mascara regressão — só torna o gate MAIS estrito.
+# O script recusa AFROUXARIA e MISTO por construção (bite-test no --selftest).
+# Por que NÃO commita no main: R10 — merge é do [W]. Ele abre PR com o diff pronto.
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'   # segunda, 06:17 UTC (~03:17 BRT) — fora do pico de CI
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: baseline-folga
+  cancel-in-progress: false
+
+jobs:
+  aperta:
+    name: Mede folga e abre PR se houver ganho a travar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # os regeneradores leem história (deadlink varre o repo)
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install deps
+        run: npm ci --no-audit --no-fund
+
+      # Gate mudo é pior que gate ausente: se o próprio medidor não morde, o verde é falso.
+      - name: Selftest do medidor (bite-test)
+        run: node scripts/governance/baseline-folga.mjs --selftest
+
+      - name: Mede a folga (não escreve)
+        id: medir
+        continue-on-error: true   # rc=1 (há folga) e rc=2 (não medido) são DADOS, não falha do step
+        run: |
+          node scripts/governance/baseline-folga.mjs --check | tee folga.txt
+          echo "rc=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Aplica só o aperto puro
+        run: node scripts/governance/baseline-folga.mjs --apply | tee -a folga.txt
+
+      - name: Abre PR se algum baseline apertou
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "Nenhum baseline apertou — nada a fazer."
+            exit 0
+          fi
+
+          BR="chore/baseline-folga-$(date -u +%Y%m%d)"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BR"
+          git add -u
+
+          # Sem trailer BASELINE-GROW de propósito: ele governa CRESCER. Aqui só encolhe.
+          # Sem heredoc de propósito: heredoc dentro de `run: |` já quebrou este YAML uma vez
+          # (LC-26 — o corpo cai fora do bloco). `-m` repetido não tem essa aresta.
+          git commit \
+            -m "chore(governance): trava o ganho — aperta baseline que ficou frouxo [bot]" \
+            -m "Gerado por baseline-folga.mjs --apply (workflow baseline-folga.yml)." \
+            -m "So entram baselines cuja regeneracao APERTA de ponta a ponta: teto que baixa e item que sai. Qualquer AFROUXARIA ou MISTO foi REVERTIDO pelo proprio script e NAO esta neste PR — apertar num eixo e afrouxar noutro e o vetor que o baseline-tamper-guard existe pra barrar." \
+            -m "Direcao medida no ARTEFATO regravado, nunca na mensagem do gate."
+
+          {
+            echo 'Auto-aperto semanal de baseline. **Só encolhe** — nunca grandfathera nada.'
+            echo
+            echo 'O `baseline-tamper-guard` cuida da direção AFROUXAR; este PR é a direção oposta,'
+            echo 'que até 2026-09-09 dependia de alguém lembrar de rodar `--write-baseline`.'
+            echo
+            echo '<details><summary>Medição completa</summary>'
+            echo
+            echo '```'
+            cat folga.txt
+            echo '```'
+            echo '</details>'
+            echo
+            echo 'Merge é decisão [W] (R10). Se algum aperto não fizer sentido, feche o PR —'
+            echo 'ele nasce de novo na semana seguinte com a medição atualizada.'
+          } > pr-body.md
+
+          git push -u origin "$BR"
+          gh pr create \
+            --title "chore(governance): trava o ganho — aperta baseline que ficou frouxo [bot]" \
+            --body-file pr-body.md \
+            --label governance

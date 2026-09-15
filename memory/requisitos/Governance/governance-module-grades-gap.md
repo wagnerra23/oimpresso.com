@@ -1,7 +1,7 @@
 ---
 id: requisitos-governance-module-grades-gap
 tela: governance/ModuleGrades/Index (/governance/module-grades)
-prototipo: prototipo-ui/cowork/governance-page.jsx + governance-telas.jsx
+prototipo: prototipo-ui/cowork/Wagner/governance-page.jsx + governance-telas.jsx
 tela_viva: resources/js/Pages/governance/ModuleGrades/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -11,6 +11,8 @@ gerado_em: 2026-09-06
 > Protótipo = porte REVERSO do vivo (governance-page.jsx:1-3 "Espelha as telas vivas"; governance-telas.jsx:3 "Espelha … ModuleGradeController (rubrica module-grade-v3, ADR 0155)"; retrato de ~2026-08-23). Fase 1 = PARIDADE. Charter: `resources/js/Pages/governance/ModuleGrades/Index.charter.md` (Non-Goals respeitados, nunca reabertos).
 
 **Veredito:** VIVO-À-FRENTE com 1 item a decidir — o vivo tem a aba "Catálogo & Sinais", drill-down por linha, links no banner do gate e o rodapé da rubrica, nada disso no retrato; o retrato acrescenta só um botão "Limpar" no vazio de filtro.
+
+> **Decidido em 2026-09-09 — botão "Limpar" CONSTRUÍDO.** O vazio de filtro (`Index.tsx`) passou a explicar a saída e zera bucket + busca num clique, como o retrato desenha (`governance-telas.jsx:277`). Front puro: só `setFilterBucket('Todos')` + `setSearch('')`, nenhum estado novo e nenhum `localStorage` — o anti-hook "❌ NÃO armazenar localStorage filter" segue intacto. Travado por `tests/js/governance-filtros.test.tsx` (mutar o `onClick` para no-op deixa 1 caso vermelho).
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
@@ -31,6 +33,6 @@ gerado_em: 2026-09-06
 - `grep -nEi 'Limpar|limpar|reset' resources/js/Pages/governance/ModuleGrades/Index.tsx` → 0
 - `grep -nEi 'avaliad|sem D6|abaixo' resources/js/Pages/governance/ModuleGrades/Index.tsx` → 0
 - `grep -nEi 'não avaliad|travess' resources/js/Pages/governance/ModuleGrades/Index.tsx` → 0
-- `sed -n 224,320p prototipo-ui/cowork/governance-telas.jsx ／ grep -cEi 'Catálogo|catalogo|Catalog'` → 0 (ausência no mockup, sustenta "vivo à frente" da aba Catálogo)
-- `sed -n 224,320p prototipo-ui/cowork/governance-telas.jsx ／ grep -cEi 'ADR 0153|pesos|0154'` → 0 (ausência no mockup — rodapé da rubrica)
-- `sed -n 279,306p prototipo-ui/cowork/governance-telas.jsx ／ grep -cEi 'href|Link|onClick'` → 0 (ausência no mockup — drill-down por linha)
+- `sed -n 224,320p prototipo-ui/cowork/Wagner/governance-telas.jsx ／ grep -cEi 'Catálogo|catalogo|Catalog'` → 0 (ausência no mockup, sustenta "vivo à frente" da aba Catálogo)
+- `sed -n 224,320p prototipo-ui/cowork/Wagner/governance-telas.jsx ／ grep -cEi 'ADR 0153|pesos|0154'` → 0 (ausência no mockup — rodapé da rubrica)
+- `sed -n 279,306p prototipo-ui/cowork/Wagner/governance-telas.jsx ／ grep -cEi 'href|Link|onClick'` → 0 (ausência no mockup — drill-down por linha)

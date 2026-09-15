@@ -1,7 +1,7 @@
 /**
  * Domínio de comissão — onda 5 do preview `/sells/create-v3` (CU-SELL-09).
  *
- * Porte de `prototipo-ui/cowork/venda-v3/sells-comissao.jsx`. A fonte abre com a
+ * Porte de `prototipo-ui/cowork/Felipe/venda-v3/sells-comissao.jsx`. A fonte abre com a
  * justificativa de por que isto não é um campo "Comissionista", e ela vale citar:
  * quem VENDEU, quem TROUXE o cliente e quem EXECUTOU raramente são a mesma pessoa,
  * e cada um tem regra própria.

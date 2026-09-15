@@ -1,7 +1,7 @@
 // Wave C-FE — máscaras BR (CPF/CNPJ/tel/CEP) pro drawer 760 do Cliente.
 //
 // Refs: ADR 0179 (drawer 760) · Charter Index.charter.md v3 · HANDOFF_CLIENTES.md §2
-// Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-icons.jsx (BRMask)
+// Cowork blueprint: prototipo-ui/cowork/Wagner/legado/clientes/clientes-icons.jsx (BRMask)
 //
 // IMPORTANTE: estas funções NÃO validam — só formatam visualmente (progressivo).
 // Validação mod 11 + email/CEP vivem em `@/Lib/br-validate.ts` e backend

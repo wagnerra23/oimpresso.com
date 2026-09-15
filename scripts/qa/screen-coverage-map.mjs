@@ -25,16 +25,27 @@
  *
  * Saídas:
  *   - stdout: resumo por módulo + agregados (read-only, sem efeito colateral)
- *   - --json: escreve memory/governance/screen-coverage-baseline.json (o que a CATRACA lê)
+ *   - --emit-snapshot <arquivo>: grava o snapshot desta árvore (uso interno do --check)
  *
- * É o Passo 0 da sobrevivência (ADR proposto screen-qa-specialist-sustentavel):
- * a catraca de cobertura compara o estado de um PR contra este baseline e
- * BLOQUEIA se qualquer agregado regredir (telas cobertas só sobem).
+ * A CATRACA NÃO LÊ ARQUIVO DE BASELINE (mudou em 2026-09-09, decisão [W]: "não é mais para
+ * usar baseline / sempre apodrece"). O lado de referência é COMPUTADO de `origin/main` em
+ * runtime, pelo MESMO código que mede o PR — espelha o `screen-grades-ratchet.mjs` ("Nota de
+ * tela não desce vs origin/main"), que já é o dono desse padrão neste eixo.
+ *
+ * POR QUE O BASELINE MORREU (medido, não opinado): o arquivo commitado dizia 216 telas
+ * enquanto `origin/main` tinha 223 — 22 telas e um módulo inteiro (`Patrimonio`) invisíveis,
+ * porque subir o piso dependia de alguém LEMBRAR de regenerar. Pior que o número velho é o
+ * efeito: tela fora do baseline podia perder charter/e2e/scorecard sem a catraca ver. E o
+ * alvo se move — o número medido em 2026-09-09 de manhã (222) já era 223 à tarde. É a lei
+ * do ADR 0256 na forma mais curta: derivado sobrevive, escrito+lembrado apodrece.
+ *
+ * O PREDICADO É DELTA, NUNCA ABSOLUTO (lápide §5 2026-08-24): a catraca compara CONJUNTOS de
+ * telas por eixo, e a contagem virou REPORT. Comparar contagem reprovaria toda remoção
+ * legítima de tela — 617 no histórico, 144 em 90 dias (~1,6/dia).
  *
  * Uso:
  *   node scripts/qa/screen-coverage-map.mjs                    # mapa agregado (todas as telas)
- *   node scripts/qa/screen-coverage-map.mjs --json             # + grava baseline
- *   node scripts/qa/screen-coverage-map.mjs --check            # falha (exit 1) se regrediu vs baseline
+ *   node scripts/qa/screen-coverage-map.mjs --check            # falha (exit 1) se regrediu vs origin/main
  *   node scripts/qa/screen-coverage-map.mjs --screen Mod/Tela  # TODOS os arquivos de UMA tela + linkagem
  *                                                              #   (resolver: trio+scorecard+e2e+UC↔teste+
  *                                                              #    RUNBOOK/visual-comparison/proto-baseline com
@@ -43,8 +54,11 @@
  *                                                              #     regra importada de scripts/lib/charter-signal.mjs)
  */
 
-import { readFileSync, readdirSync, statSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, writeFileSync, existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { join, relative, sep, basename } from 'node:path';
+import { tmpdir } from 'node:os';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { isAuxiliaryPagePath, isPageScreenPath, raizesDePages, pageNamespacePath } from './page-path.mjs';
 import { ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
@@ -53,6 +67,11 @@ import { ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
 // (promove draft com sinal) consomem. Importada, nunca reimplementada: 3 cópias
 // da mesma regra é a doença que `uc-regex.mjs` já documenta (4 drifts).
 import { frontmatterDe, campo, sinalDe, carregarFontes, temPlaceholderAberto } from '../lib/charter-signal.mjs';
+// Regra "o item sumiu: foi REMOÇÃO legítima ou FUGA da catraca?" — importada do dono, nunca
+// reimplementada. O `screen-grades-ratchet.mjs` já a mediu no corpus (258 deleções, 0 FP) e o
+// selftest dele a exercita. Copiar seria a 2ª cópia da mesma regra, que é a doença que o
+// `uc-regex.mjs` documenta com 4 drifts.
+import { classificarDelecoes } from '../lib/delecao-legitima.mjs';
 
 const ROOT = process.cwd();
 const PAGES_DIR = join(ROOT, 'resources', 'js', 'Pages');
@@ -61,7 +80,12 @@ const VISREG_MANIFEST = join(BROWSER_DIR, 'visreg-screens.json');
 const VISREG_STATES_MANIFEST = join(BROWSER_DIR, 'visreg-states.json');
 const SCORECARD_DIR = join(ROOT, 'memory', 'governance', 'scorecards', 'screens');
 const REQ_DIR = join(ROOT, 'memory', 'requisitos'); // onde vivem RUNBOOK/visual-comparison/proto-baseline (nome drifta)
-const BASELINE = join(ROOT, 'memory', 'governance', 'screen-coverage-baseline.json');
+// Ref de referência da catraca (default origin/main). Configurável pra teste local — mesma
+// convenção do screen-grades-ratchet.mjs.
+const BASE_REF = process.env.SCREEN_COVERAGE_BASE_REF || 'origin/main';
+/** Regex das raízes onde uma Page pode morar. MESMA de page-path.mjs (RAIZ_PAGES). */
+const RAIZ_PAGES_RE = /^((?:Modules\/[^/]+\/)?[Rr]esources\/js\/Pages)\//;
+
 
 const flags = new Set(process.argv.slice(2));
 
@@ -261,15 +285,6 @@ export const EIXOS_PUBLICADOS = ['charter', 'e2e', 'a11y', 'scorecard', 'visreg'
  */
 export const EIXOS_NA_CATRACA = ['charter', 'e2e', 'a11y', 'scorecard'];
 
-export function coverageRegressions(current, previous, currentCovered = {}, previousCovered = {}) {
-  const decode = (value) => new Set((value ?? '').split('|').filter(Boolean));
-
-  return EIXOS_NA_CATRACA.filter((key) => {
-    if (current[key] < previous[key]) return true;
-    const now = decode(currentCovered[key]);
-    return [...decode(previousCovered[key])].some((screen) => !now.has(screen));
-  });
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // RESOLVER POR-TELA (--screen <Mod/Tela>) — "achar TODOS os arquivos da tela"
@@ -564,54 +579,67 @@ if (flags.has('--selftest')) {
   assert.equal(isAuxiliaryScreenPath('Compras/components/Drawer.tsx'), true);
   assert.equal(isAuxiliaryScreenPath('Cliente/_drawer/AuditoriaTab.tsx'), true);
   assert.equal(isAuxiliaryScreenPath('Compras/Index.tsx'), false);
-  assert.deepEqual(
-    coverageRegressions(
-      { charter: 10, e2e: 1, a11y: 1, scorecard: 10 },
-      { charter: 10, e2e: 2, a11y: 1, scorecard: 10 },
-    ),
-    ['e2e'],
+  // --- CATRACA: o predicado é DELTA POR TELA, nunca contagem absoluta -------------
+  // Espelha o desenho do screen-grades-ratchet: o lado de referência é origin/main COMPUTADO,
+  // e a pergunta é "alguma tela VIVA perdeu cobertura?" — não "o número caiu?".
+  const snapDe = (screens, covered) => ({ screens, covered_screens: covered, aggregates: {} });
+  const vazio = { charter: '', e2e: '', a11y: '', scorecard: '' };
+
+  // MORDE: tela viva que perdeu o charter é fuga.
+  let v = regressoesDeCobertura(
+    snapDe(['A.tsx', 'B.tsx'], { ...vazio, charter: 'A.tsx' }),
+    snapDe(['A.tsx', 'B.tsx'], { ...vazio, charter: 'A.tsx|B.tsx' }),
   );
-  assert.deepEqual(
-    coverageRegressions(
-      { charter: 10, e2e: 2, a11y: 1, scorecard: 10 },
-      { charter: 10, e2e: 2, a11y: 1, scorecard: 10 },
-      { e2e: 'B.tsx|C.tsx' },
-      { e2e: 'A.tsx|B.tsx' },
-    ),
-    ['e2e'],
+  assert.deepEqual(v.fugas, [{ eixo: 'charter', screen: 'B.tsx' }]);
+
+  // CONTROLE-NEGATIVO 1 (o que torna esta catraca usável): a MESMA perda de cobertura, mas com
+  // a TELA saindo junto, é remoção legítima. Sem este braço o gate reprovaria toda remoção de
+  // tela — 617 no histórico, 144 em 90 dias. É a lápide §5 2026-08-24 (predicado absoluto).
+  v = regressoesDeCobertura(
+    snapDe(['A.tsx'], { ...vazio, charter: 'A.tsx' }),
+    snapDe(['A.tsx', 'B.tsx'], { ...vazio, charter: 'A.tsx|B.tsx' }),
   );
+  assert.deepEqual(v.fugas, []);
+  assert.equal(v.removidas, 1);
+
+  // CONTROLE-NEGATIVO 2: tela NOVA coberta não é regressão (a catraca só olha o que sumiu).
+  v = regressoesDeCobertura(
+    snapDe(['A.tsx', 'B.tsx'], { ...vazio, charter: 'A.tsx|B.tsx' }),
+    snapDe(['A.tsx'], { ...vazio, charter: 'A.tsx' }),
+  );
+  assert.deepEqual(v.fugas, []);
+
   // --- eixo VISREG: publicado, mas FORA da catraca (advisory por construção) --------
-  // A fronteira publicação × catraca é o ponto do eixo novo. Se alguém acrescentar 'visreg'
-  // a EIXOS_NA_CATRACA, estes três controles caem juntos — e a promoção deixa de ser
-  // acidente de publicar número pra virar decisão explícita ([W], ADR 0314/0336).
+  // A fronteira publicação × catraca. Se alguém acrescentar 'visreg' a EIXOS_NA_CATRACA, estes
+  // controles caem juntos — e a promoção deixa de ser acidente de publicar número pra virar
+  // decisão explícita ([W], ADR 0314/0336).
   assert.ok(EIXOS_PUBLICADOS.includes('visreg'));
   assert.ok(EIXOS_PUBLICADOS.includes('visreg_states'));
-  // CONTROLE-NEGATIVO 1: visreg despencando de 16 → 0 NÃO reprova o PR (o gate é required).
-  assert.deepEqual(
-    coverageRegressions(
-      { charter: 10, e2e: 2, a11y: 1, scorecard: 10, visreg: 0, visreg_states: 0 },
-      { charter: 10, e2e: 2, a11y: 1, scorecard: 10, visreg: 16, visreg_states: 6 },
-    ),
-    [],
-  );
-  // CONTROLE-NEGATIVO 2: idem pela via das telas nomeadas (o outro braço do coverageRegressions).
-  assert.deepEqual(
-    coverageRegressions(
-      { charter: 10, e2e: 2, a11y: 1, scorecard: 10 },
-      { charter: 10, e2e: 2, a11y: 1, scorecard: 10 },
-      { visreg: '' },
-      { visreg: 'Sells/Index.tsx' },
-    ),
-    [],
-  );
-  // MORDE: a catraca continua reprovando os 4 eixos de sempre — o eixo novo não a afrouxou.
   assert.deepEqual(EIXOS_NA_CATRACA, ['charter', 'e2e', 'a11y', 'scorecard']);
+  // CONTROLE-NEGATIVO 3: visreg despencando de 16 telas → 0 NÃO reprova (o gate é required).
+  v = regressoesDeCobertura(
+    snapDe(['A.tsx'], { ...vazio, visreg: '' }),
+    snapDe(['A.tsx'], { ...vazio, visreg: 'A.tsx' }),
+  );
+  assert.deepEqual(v.fugas, []);
+
+  // --- pathspecs da base: DERIVADOS da ref, e cobrem a tela que mora no MÓDULO ------
+  // Se isto voltasse a olhar só `resources/js/Pages`, as 80 telas de módulo sumiriam da base e
+  // a catraca ficaria cega justamente onde o page-path.mjs avisa que ela fica (LC-11).
   assert.deepEqual(
-    coverageRegressions(
-      { charter: 10, e2e: 1, a11y: 1, scorecard: 10, visreg: 99 },
-      { charter: 10, e2e: 2, a11y: 1, scorecard: 10, visreg: 0 },
-    ),
-    ['e2e'],
+    pathspecsParaBase([
+      'resources/js/Pages/Sells/Index.tsx',
+      'Modules/Cms/Resources/js/Pages/Site/Blogs.tsx',
+      'tests/Browser/Foo.php',
+      'memory/governance/scorecards/screens/x.yaml',
+      'app/Models/Naovai.php',
+    ]),
+    [
+      'Modules/Cms/Resources/js/Pages',
+      'memory/governance/scorecards/screens',
+      'resources/js/Pages',
+      'tests/Browser',
+    ],
   );
 
   // --- telasComEstadosIsolados: resolve pelo `charter:` declarado, nunca pela chave ---
@@ -746,6 +774,83 @@ if (flags.has('--selftest')) {
   assert.deepEqual(ucsFromCasos('## UC-DSR-08b acesso\n## UC-DSR-09 outro\n'), ['UC-DSR-08B', 'UC-DSR-09']);
   // Prefixo hifenado longo (UC-FORJA-01/UC-KBV2-01) — a razão de a lib existir (4 regex drifados).
   assert.deepEqual(ucsFromCasos('## UC-KBV2-01 x\n## UC-FORJA-01 y\n'), ['UC-KBV2-01', 'UC-FORJA-01']);
+  // ── BITE E2E — o pipeline, contra um git de verdade ──────────────────────────────
+  // Assert sobre helper puro NÃO prova o pipeline (§5 2026-07-30): o predicado pode estar certo
+  // e a MATERIALIZAÇÃO da base errada — foi exatamente o erro cometido ao desenhar isto (extraí
+  // sem `Modules/` e li 186 telas onde havia 223). Aqui o `--check` roda de fora, como no CI.
+  {
+    const { mkdtempSync: mkdt, writeFileSync: wf, mkdirSync, rmSync: rm, copyFileSync } = await import('node:fs');
+    const { tmpdir: td } = await import('node:os');
+    const { execFileSync: X } = await import('node:child_process');
+    const fx = mkdt(join(td(), 'screen-coverage-bite-'));
+    const G = (args) => X('git', args, { cwd: fx, stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' });
+    const check = () => {
+      try {
+        X(process.execPath, [fileURLToPath(import.meta.url), '--check'],
+          { cwd: fx, env: { ...process.env, SCREEN_COVERAGE_BASE_REF: 'main' }, stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' });
+        return 0;
+      } catch (e) { return e.status ?? -1; }
+    };
+    try {
+      mkdirSync(join(fx, 'resources/js/Pages/Mod'), { recursive: true });
+      mkdirSync(join(fx, 'tests/Browser'), { recursive: true });
+      mkdirSync(join(fx, 'memory/governance/scorecards/screens'), { recursive: true });
+      // Manifestos REAIS (o mapa os parseia; fixture inventado esconderia drift de formato).
+      for (const m of ['visreg-screens.json', 'visreg-states.json']) {
+        copyFileSync(join(BROWSER_DIR, m), join(fx, 'tests/Browser', m));
+      }
+      for (const t of ['A', 'B']) {
+        wf(join(fx, `resources/js/Pages/Mod/${t}.tsx`), 'export default function X() { return null; }\n');
+        wf(join(fx, `resources/js/Pages/Mod/${t}.charter.md`), '---\nstatus: draft\n---\n');
+      }
+      G(['init', '-q', '-b', 'main']); G(['config', 'user.email', 'b@b']); G(['config', 'user.name', 'b']);
+      G(['add', '-A']); G(['commit', '-qm', 'base']);
+
+      assert.equal(check(), 0, 'E2E CN: árvore intacta → exit 0');
+
+      // MORDE: a tela CONTINUA VIVA e perdeu o charter.
+      rm(join(fx, 'resources/js/Pages/Mod/B.charter.md'));
+      assert.equal(check(), 1, 'E2E BITE: tela viva perdeu charter → exit 1');
+
+      // CN: a tela saiu inteira — remoção legítima, o agregado cai e o gate CALA.
+      rm(join(fx, 'resources/js/Pages/Mod/B.tsx'));
+      assert.equal(check(), 0, 'E2E CN: tela removida junto → exit 0 (remoção legítima)');
+
+      // CEGO ≠ VERDE: ref de base inexistente sai 2, nunca 0 (LC-13 / §5 2026-07-29).
+      const cego = (() => {
+        try {
+          X(process.execPath, [fileURLToPath(import.meta.url), '--check'],
+            { cwd: fx, env: { ...process.env, SCREEN_COVERAGE_BASE_REF: 'refs/heads/nao-existe' }, stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' });
+          return 0;
+        } catch (e) { return e.status ?? -1; }
+      })();
+      assert.equal(cego, 2, 'E2E: base ilegível → exit 2 (cego), nunca 0');
+      // DÍVIDA HERDADA × PRÓPRIA — o par que justifica comparar com o MERGE-BASE.
+      // Sem o primeiro, o gate cobra do autor o charter que `main` ganhou depois do fork.
+      // Sem o SEGUNDO, "consertar" o primeiro seria indistinguível de afrouxar o gate.
+      // Os bites acima mexeram só no working tree — devolve a árvore ao commit antes de
+      // montar o cenário de branch atrasada (fixture isolado; `.` aqui é o tmp, não o repo).
+      G(['checkout', '--', '.']);
+      G(['checkout', '-qb', 'atrasada']);
+      wf(join(fx, 'doc.md'), 'trabalho que nao toca tela\n');
+      G(['add', '-A']); G(['commit', '-qm', 'branch nao toca tela']);
+      G(['checkout', '-q', 'main']);
+      wf(join(fx, 'resources/js/Pages/Mod/C.tsx'), 'export default function X() { return null; }\n');
+      wf(join(fx, 'resources/js/Pages/Mod/C.charter.md'), '---\nstatus: draft\n---\n');
+      G(['add', '-A']); G(['commit', '-qm', 'main avanca com tela nova']);
+      G(['checkout', '-q', 'atrasada']);
+      assert.equal(check(), 0, 'E2E CN: branch atrasada que não tocou tela → exit 0 (dívida HERDADA não é do autor)');
+
+      rm(join(fx, 'resources/js/Pages/Mod/A.charter.md'));
+      G(['add', '-A']); G(['commit', '-qm', 'branch tira charter de A']);
+      assert.equal(check(), 1, 'E2E BITE: branch atrasada COM dívida própria → exit 1 (merge-base não é escape)');
+
+      console.log('  ✓ bite E2E: morde a fuga, cala a remoção legítima, separa dívida herdada da própria, e acusa cegueira');
+    } finally {
+      try { rm(fx, { recursive: true, force: true }); } catch { /* tmp órfão não falha o selftest */ }
+    }
+  }
+
   console.log('screen-coverage selftest: aliases Inertia + resolver por-tela (classifyArtifact/screenSlug/ucsFromCasos) + eixo visreg fora da catraca passaram');
   process.exit(0);
 }
@@ -860,30 +965,209 @@ for (const [m, s] of mods) {
 }
 
 // --- Baseline / catraca ---
+// ─────────────────────────────────────────────────────────────────────────────
+// CATRACA — o lado de referência é COMPUTADO de origin/main, não lido de arquivo
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** git com argv explícito (sem shell): imune a aspas, espaço e ao mangling do MSYS. */
+function git(args, extra = {}) {
+  return execFileSync('git', args, {
+    encoding: 'utf8', cwd: ROOT, maxBuffer: 256 * 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'], ...extra,
+  });
+}
+
+/**
+ * Pathspecs a materializar, DERIVADOS da ref — nunca adivinhados.
+ *
+ * Medido em 2026-09-09: passar `Modules/<glob>/Resources/js/Pages` às cegas não casou nada e o
+ * `git checkout` ABORTOU A EXTRAÇÃO INTEIRA (0 arquivos), com o rc escondido por um pipe.
+ * Derivar da própria ref cobre módulo novo de graça e nunca pede um path que não existe.
+ */
+export function pathspecsParaBase(pathsDaRef) {
+  const specs = new Set();
+  for (const p of pathsDaRef) {
+    const m = p.match(RAIZ_PAGES_RE);
+    if (m) specs.add(m[1]);
+  }
+  for (const dir of ['tests/Browser', 'memory/governance/scorecards/screens']) {
+    if (pathsDaRef.some((p) => p.startsWith(dir + '/'))) specs.add(dir);
+  }
+  return [...specs].sort();
+}
+
+/**
+ * Computa o snapshot de `BASE_REF` materializando SÓ o que o mapa agregado lê.
+ *
+ * Medido: o mapa agregado toca 3 famílias (raízes de Pages · tests/Browser · scorecards);
+ * `REQ_DIR` e `charter-signal` são exclusivos do modo `--screen`. Materializar custa ~0,6s.
+ *
+ * `git --work-tree=<tmp> checkout` com `GIT_INDEX_FILE` isolado, de propósito:
+ *   - NÃO usa `git worktree add` — cuja remoção no Windows já esvaziou `vendor/` e
+ *     `node_modules/` reais 2× (proibicoes §Ambiente);
+ *   - NÃO usa `git archive | tar` — pipe e `tar` não são garantidos no shell que o Node
+ *     abre no Windows (§5 2026-08-11: instrumento cuja dependência não existe);
+ *   - o index isolado impede que a extração toque o índice do repo de verdade.
+ *
+ * Devolve `{ ok, snapshot, motivo }`. NUNCA lança e nunca devolve snapshot vazio como se
+ * fosse "main não tem cobertura" — não-medição não pode virar estado do objeto medido.
+ */
+/**
+ * Ponto de comparação: o MERGE-BASE entre BASE_REF e HEAD — não o tip de BASE_REF.
+ *
+ * A diferença é DÍVIDA PRÓPRIA × HERDADA, e foi medida: numa branch atrasada que não tocou
+ * tela NENHUMA, comparar com o tip acusa a tela que ganhou charter em `main` DEPOIS do fork —
+ * o gate cobrando do autor o trabalho de terceiro. É a lápide §5 2026-08-24, e o
+ * `casos-coverage-guard` já adotou a mesma separação ("não pode reprovar por isso").
+ *
+ * No CI nada afrouxa: `pull_request` faz checkout do merge ref, então HEAD já contém `main` e
+ * o merge-base É o tip. O ganho é local — e é também parar de DEPENDER desse detalhe do
+ * checkout, que este repo já catalogou como armadilha (§5 2026-09-02, merge ref × ref cru).
+ */
+function refDeComparacao() {
+  try {
+    const mb = git(['merge-base', BASE_REF, 'HEAD']).trim();
+    if (mb) return mb;
+  } catch { /* repo recém-init, HEAD órfão ou sem ancestral comum → cai no tip */ }
+  return BASE_REF;
+}
+
+function snapshotDaBase() {
+  let tmp = null;
+  const REF = refDeComparacao();
+  try {
+    let paths;
+    try {
+      paths = git(['ls-tree', '-r', REF, '--name-only']).split('\n').map((l) => l.trim()).filter(Boolean);
+    } catch (e) {
+      return { ok: false, motivo: `não consegui ler ${BASE_REF} (git ls-tree falhou: ${String(e.message).split('\n')[0]})` };
+    }
+    const specs = pathspecsParaBase(paths);
+    if (!specs.length) return { ok: false, motivo: `${BASE_REF} não tem nenhuma raiz de Pages — ref errada?` };
+
+    tmp = mkdtempSync(join(tmpdir(), 'screen-coverage-base-'));
+    git(['--work-tree=' + tmp, 'checkout', REF, '--', ...specs], {
+      env: { ...process.env, GIT_INDEX_FILE: tmp + '.index' },
+    });
+
+    // CONTROLE POSITIVO: a extração trouxe o mesmo número de telas que a ref declara?
+    // Sem isto, um pathspec que falhasse em silêncio faria a base parecer menor e a catraca
+    // acusaria regressão que não existe — ou, pior, calaria. Foi exatamente o erro cometido
+    // ao desenhar isto (extraí sem `Modules/` e li 186 onde havia 223).
+    const esperado = paths.filter((p) => RAIZ_PAGES_RE.test(p) && p.endsWith('.tsx')).length;
+    const obtido = walk(tmp, (f) => f.endsWith('.tsx'))
+      .map((f) => relative(tmp, f).split(sep).join('/'))
+      .filter((f) => RAIZ_PAGES_RE.test(f)).length;
+    if (obtido !== esperado) {
+      return { ok: false, motivo: `extração incompleta de ${BASE_REF}: ${obtido} .tsx de Pages, esperados ${esperado}` };
+    }
+
+    const destino = join(tmp, '.screen-coverage-snapshot.json');
+    execFileSync(process.execPath, [fileURLToPath(import.meta.url), '--emit-snapshot', destino], {
+      cwd: tmp, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024,
+    });
+    const snapBase = JSON.parse(readFileSync(destino, 'utf8'));
+    // Base com ZERO telas NÃO é "main não tinha cobertura" — é sinal de que a raiz de Pages
+    // mudou de lugar (ou a materialização quebrou), e nesse estado a catraca calaria em massa.
+    // Medido no harness de casos-limite. Gate mudo é pior que gate ausente (CLAUDE.md §5).
+    if ((snapBase.screens?.length ?? 0) === 0) {
+      return { ok: false, motivo: `${BASE_REF} não devolveu tela nenhuma — a raiz de Pages mudou de lugar?` };
+    }
+    return { ok: true, snapshot: snapBase };
+  } catch (e) {
+    return { ok: false, motivo: String(e && e.message ? e.message : e).split('\n')[0] };
+  } finally {
+    if (tmp) { try { rmSync(tmp, { recursive: true, force: true }); } catch { /* tmp órfão não é motivo de falhar o gate */ } }
+  }
+}
+
+/**
+ * Veredito da catraca: por eixo, que telas COBERTAS em `base` deixaram de estar cobertas no PR.
+ *
+ * A pergunta NÃO é "o número caiu?" — é "alguma tela VIVA perdeu cobertura?". A diferença é a
+ * remoção legítima: apagar uma tela derruba os agregados sem regredir nada, e no corpus isso
+ * acontece ~1,6× por dia (617 deleções de Page no histórico, 144 em 90 dias). Um predicado
+ * absoluto reprovaria todas (§5 2026-08-24).
+ *
+ * A separação legítimo × fuga vem de `classificarDelecoes` (screen-grades-ratchet), o dono da
+ * regra — aqui a chave já É o path da tela, então `pathDe` é a identidade e `tsxVivo` pergunta
+ * ao universo do próprio snapshot, nunca ao filesystem por path adivinhado.
+ */
+export function regressoesDeCobertura(atual, base) {
+  const decode = (v) => (v ?? '').split('|').filter(Boolean);
+  const universoPr = new Set(atual.screens ?? []);
+  const out = { fugas: [], removidas: 0, porEixo: {} };
+  for (const eixo of EIXOS_NA_CATRACA) {
+    const r = classificarDelecoes({
+      naBase: decode(base.covered_screens?.[eixo]),
+      noPr: decode(atual.covered_screens?.[eixo]),
+      pathDe: (screen) => screen,
+      tsxVivo: (screen) => universoPr.has(screen),
+    });
+    out.porEixo[eixo] = r;
+    out.removidas += r.legitimas;
+    for (const f of r.fuga) out.fugas.push({ eixo, screen: f.file });
+  }
+  return out;
+}
+
 const snapshot = {
-  generated_note: 'baseline da catraca de cobertura — NÃO editar à mão',
+  generated_note: 'snapshot DERIVADO da árvore — a catraca compara PR × origin/main em runtime',
+  // Universo de telas (não só as cobertas). É ele que decide REMOÇÃO LEGÍTIMA no --check.
+  // Precisa vir daqui e não de um existsSync: `screen` já passou por `pageNamespacePath`, que
+  // remove QUALQUER raiz de Pages (núcleo OU módulo) — perguntar `existsSync(PAGES_DIR+screen)`
+  // ficaria cego para as 80 telas que hoje moram em `Modules/<X>/Resources/js/Pages`, e gate
+  // cego não acusa nada: sai VERDE sem ter medido (page-path.mjs L58-60, LC-11).
+  screens: rows.map((r) => r.screen).sort(),
   aggregates: agg,
   covered_screens: coveredScreens,
   by_module: byModule,
 };
 
-if (flags.has('--json')) {
-  writeFileSync(BASELINE, JSON.stringify(snapshot, null, 2) + '\n');
-  console.log(`\n✓ baseline gravado em ${relative(ROOT, BASELINE)}`);
+// `--emit-snapshot <arquivo>`: grava o snapshot desta árvore e sai. É como o `--check` obtém o
+// lado de `origin/main` — rodando ESTE MESMO ARQUIVO com o cwd na árvore materializada. Duas
+// árvores, um algoritmo: se cada lado usasse a sua própria versão do código, mudar o algoritmo
+// mudaria o veredito (§5 2026-07-26 — compare em condições idênticas ou não compare).
+const emitIdx = process.argv.indexOf('--emit-snapshot');
+if (emitIdx !== -1) {
+  const destino = process.argv[emitIdx + 1];
+  if (!destino) { console.error('uso: --emit-snapshot <arquivo>'); process.exit(2); }
+  writeFileSync(destino, JSON.stringify(snapshot, null, 2) + '\n');
+  process.exit(0);
 }
 
 if (flags.has('--check')) {
-  if (!existsSync(BASELINE)) {
-    console.error('\n✗ baseline ausente — rode com --json primeiro.');
+  const base = snapshotDaBase();
+  // GUARD DE CEGUEIRA: "não consegui medir" NUNCA vira um estado do objeto medido (§5
+  // 2026-07-29). Sem o lado de referência o check sai 2 — nunca 0 silencioso, que é o
+  // formato de `0 failed` numa suíte que não rodou (LC-13).
+  if (!base.ok) {
+    console.error(`\n✗ CATRACA CEGA: não consegui computar a cobertura de ${BASE_REF}.`);
+    console.error(`   motivo: ${base.motivo}`);
+    console.error('   no CI isto costuma ser fetch-depth: 0 ausente no actions/checkout.');
     process.exit(2);
   }
-  const previousSnapshot = JSON.parse(readFileSync(BASELINE, 'utf8'));
-  const prev = previousSnapshot.aggregates;
-  const regress = coverageRegressions(agg, prev, coveredScreens, previousSnapshot.covered_screens);
-  if (regress.length) {
-    console.error(`\n✗ CATRACA: cobertura regrediu em ${regress.join(', ')} (vs baseline). PR bloqueado.`);
-    for (const k of regress) console.error(`   ${k}: ${prev[k]} → ${agg[k]}`);
+
+  const veredito = regressoesDeCobertura(snapshot, base.snapshot);
+
+  // A CONTAGEM É REPORT, NUNCA VEREDITO (§5 2026-08-24 + 2026-07-17). Ela desce legitimamente
+  // quando uma tela é removida; quem decide é o conjunto, logo o número só informa.
+  console.log(`\n--- Cobertura: ${BASE_REF} → PR (informativo; o veredito é por tela) ---`);
+  for (const eixo of EIXOS_NA_CATRACA) {
+    const de = base.snapshot.aggregates[eixo];
+    const para = snapshot.aggregates[eixo];
+    const seta = para === de ? '=' : para > de ? '↑' : '↓';
+    console.log(`  ${eixo.padEnd(10)} ${String(de).padStart(4)} → ${String(para).padStart(4)}  ${seta}`);
+  }
+  if (veredito.removidas) {
+    console.log(`  (${veredito.removidas} entrada(s) sumiram junto com a própria tela — remoção legítima, não conta)`);
+  }
+
+  if (veredito.fugas.length) {
+    console.error(`\n✗ CATRACA: ${veredito.fugas.length} tela(s) perderam cobertura vs ${BASE_REF}. PR bloqueado.`);
+    for (const f of veredito.fugas) console.error(`   ${f.eixo.padEnd(10)} ${f.screen}  (a tela continua viva — só a cobertura sumiu)`);
+    console.error('\n   Se a remoção for intencional, remova a TELA; se não, restaure o artefato que sumiu.');
     process.exit(1);
   }
-  console.log('\n✓ CATRACA: nenhuma regressão de cobertura.');
+  console.log(`\n✓ CATRACA: nenhuma tela viva perdeu cobertura vs ${BASE_REF}.`);
 }

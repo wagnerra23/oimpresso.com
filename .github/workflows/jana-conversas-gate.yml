@@ -1,7 +1,7 @@
 name: Jana Conversas Gate — histórico do chat (filtro real + J/K + ⌘⇧H + aria-live)
 
 # Fatia C da fusão da Jana (pacote JANA-FUSAO-2026-08-06; fonte
-# prototipo-ui/cowork/jana-merge.jsx §JmConversa). A lógica de filtro e teclado
+# prototipo-ui/cowork/Wagner/jana-merge.jsx §JmConversa). A lógica de filtro e teclado
 # vive no ConvSidePanel de resources/js/Pages/Jana/Chat.tsx, exportado como named
 # export justamente pra ser montável em jsdom sem AppShellV2/Inertia/assistant-ui.
 #

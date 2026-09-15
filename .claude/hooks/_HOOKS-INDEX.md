@@ -12,7 +12,7 @@
 - **57** wirings em `settings.json` (5 eventos) · **51** arquivos de hook distintos wired
 - **51** arquivos de hook no disco (+43 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
-- Gates CI no baseline: **44** classic + **1** ruleset → ponto-de-corte merge
+- Gates CI no baseline: **46** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
 | Evento | Matcher | Hook | Runtime | Ponto-de-corte | Sinal de bloqueio (heurística) |
@@ -82,7 +82,7 @@ Nenhum.
 Nenhum.
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
-Contexts `classic_protection` (44):
+Contexts `classic_protection` (46):
 - ADR (memory/decisions/*.md)
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
@@ -101,11 +101,13 @@ Contexts `classic_protection` (44):
 - ESLint · ratchet vs baseline
 - Frontend / Vite build
 - gate selftest (as catracas mordem · GT-G6)
+- handoff integrity (órfão/ref-morta só sobe = vermelho)
 - Layout primitives · ratchet
 - Modulo backend com BRIEFING (cobertura)
 - No hardcode business_id (Tier 0)
 - No-mock-in-prod · ratchet
 - Nota de tela não desce vs origin/main
+- PageHeader · ratchet (header antigo só decresce)
 - PHP / Pest (Compras · MySQL)
 - PHP / Pest (Estoque · MySQL)
 - PHP / Pest (Financeiro · MySQL)

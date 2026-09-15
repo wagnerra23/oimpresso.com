@@ -1,0 +1,51 @@
+<!doctype html>
+<!-- @dsCard group="Colors" name="Colors — Semantic Tokens (light/dark)" subtitle="–bg / –fg / –card / –primary, both modes" viewport="700x200" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Semantic tokens</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 18px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .panel { border-radius: var(--radius-xl); border: 1px solid var(--border); padding: 12px; }
+  .panel.dark { background: hsl(222.2 84% 4.9%); border-color: hsl(217.2 32.6% 17.5%); color: hsl(210 40% 98%); }
+  h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; margin-bottom:8px; opacity: .7; }
+  .panel.dark h4 { color: hsl(215 20% 65%); }
+  .row { display:grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .tok { display:flex; align-items:center; gap:6px; font-size: 10px; font-family: var(--font-mono); }
+  .chip { width: 16px; height: 16px; border-radius: 4px; border: 1px solid rgba(0,0,0,.1); flex-shrink: 0; }
+  .panel.dark .chip { border-color: rgba(255,255,255,.15); }
+</style>
+</head>
+<body>
+  <div class="pair">
+    <div class="panel">
+      <h4>Light</h4>
+      <div class="row">
+        <span class="tok"><span class="chip" style="background:hsl(0 0% 100%)"></span>--bg</span>
+        <span class="tok"><span class="chip" style="background:hsl(222.2 84% 4.9%)"></span>--fg</span>
+        <span class="tok"><span class="chip" style="background:hsl(0 0% 100%)"></span>--card</span>
+        <span class="tok"><span class="chip" style="background:oklch(0.55 0.15 295)"></span>--primary</span>
+        <span class="tok"><span class="chip" style="background:hsl(210 40% 96.1%)"></span>--secondary</span>
+        <span class="tok"><span class="chip" style="background:hsl(210 40% 96.1%)"></span>--muted</span>
+        <span class="tok"><span class="chip" style="background:hsl(214.3 31.8% 91.4%)"></span>--border</span>
+        <span class="tok"><span class="chip" style="background:hsl(0 84.2% 60.2%)"></span>--destructive</span>
+      </div>
+    </div>
+    <div class="panel dark">
+      <h4>Dark</h4>
+      <div class="row">
+        <span class="tok"><span class="chip" style="background:hsl(222.2 84% 4.9%)"></span>--bg</span>
+        <span class="tok"><span class="chip" style="background:hsl(210 40% 98%)"></span>--fg</span>
+        <span class="tok"><span class="chip" style="background:hsl(222.2 47.4% 11.2%)"></span>--card</span>
+        <span class="tok"><span class="chip" style="background:oklch(0.62 0.15 295)"></span>--primary</span>
+        <span class="tok"><span class="chip" style="background:hsl(217.2 32.6% 17.5%)"></span>--secondary</span>
+        <span class="tok"><span class="chip" style="background:hsl(217.2 32.6% 17.5%)"></span>--muted</span>
+        <span class="tok"><span class="chip" style="background:hsl(217.2 32.6% 17.5%)"></span>--border</span>
+        <span class="tok"><span class="chip" style="background:hsl(0 62.8% 30.6%)"></span>--destructive</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

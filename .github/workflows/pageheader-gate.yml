@@ -7,24 +7,20 @@ name: PageHeader migration guard (F4 · congela header antigo)
 #
 # Comando manual local: npm run pageheader:guard
 
+# ── ALWAYS-RUN desde 2026-09-09 (PR do flip a required) ───────────────────────
+# O `paths:` saiu dos DOIS gatilhos e o `synchronize` entrou no `types:` porque
+# required que não NASCE trava o repo — `BLOCKED` com 0 falhas e 0 pendentes,
+# a assinatura dos incidentes de 2026-07-02 e 2026-08-05→08. Sem `paths:` o check
+# nasce em todo PR; com `synchronize` ele RE-nasce a cada push, senão um PR que
+# abre vermelho fica vermelho para sempre. Invariante vigiada por
+# `scripts/governance/required-always-run.mjs`. Ver RUNBOOK-branch-protection.md
+# §Promoção de check a required.
 on:
   push:
     branches: [main, 6.7-react]
-    paths:
-      - 'resources/js/**'
-      - 'config/pageheader-shared-baseline.json'
-      - 'scripts/pageheader-migration-guard.mjs'
-      - 'package.json'
-      - '.github/workflows/pageheader-gate.yml'
   workflow_dispatch:
   pull_request:
-    types: [opened, reopened, ready_for_review]
-    paths:
-      - 'resources/js/**'
-      - 'config/pageheader-shared-baseline.json'
-      - 'scripts/pageheader-migration-guard.mjs'
-      - 'package.json'
-      - '.github/workflows/pageheader-gate.yml'
+    types: [opened, reopened, ready_for_review, synchronize]
 
 concurrency:
   group: pageheader-gate-${{ github.ref }}

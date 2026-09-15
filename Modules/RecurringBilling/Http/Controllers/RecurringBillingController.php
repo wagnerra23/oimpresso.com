@@ -26,7 +26,7 @@ use Modules\RecurringBilling\Repositories\SubscriptionRepository;
  * Controller principal — Page Cobrança Recorrente (Inertia React).
  *
  * Refs: charter resources/js/Pages/RecurringBilling/Index.charter.md
- * Visual canon: prototipo-ui/prototipos/recurring/recurring-page.jsx
+ * Visual canon: prototipo-ui/cowork/Wagner/legado/recurring/recurring-page.jsx
  * Skill `inertia-defer-default` Tier B: props caras via Inertia::defer.
  *
  * Onda 3 v9,75: store/cancel/pause/resume + SubscriptionPolicy + AuditLog

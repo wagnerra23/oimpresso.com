@@ -6,7 +6,7 @@
 //
 // Grade comercial da plataforma. Responde: "o que estamos vendendo?".
 // Charter: ./Index.charter.md · Casos: ./Index.casos.md
-// Âncora de design: prototipo-ui/cowork/superadmin-page.jsx → ViewPacotes() (L1176)
+// Âncora de design: prototipo-ui/cowork/Wagner/superadmin-page.jsx → ViewPacotes() (L1176)
 // RUNBOOK: memory/requisitos/Superadmin/RUNBOOK-pacotes.md
 //
 // Cards e não tabela, como o F1 desenha: um pacote tem 4 limites, 3 flags de visibilidade, uma

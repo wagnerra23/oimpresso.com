@@ -1,8 +1,8 @@
 // JanaKpiCard — RÉPLICA do `.jc-kpi` da âncora, sob ADR 0388 ("réplica primeiro").
 //
-// Âncora: `node prototipo-ui/ancora.mjs Jana/Index` -> `prototipo-ui/cowork/jana-merge.jsx`
+// Âncora: `node scripts/design/ancora.mjs Jana/Index` -> `prototipo-ui/cowork/Wagner/jana-merge.jsx`
 // §`data.kpis.map` -> `KPICard` (markup em `chat-jana.jsx`, estilo em `chat-jana.css`
-// §`── KPIs ──`). Re-localize com `grep -n "jc-kpi" prototipo-ui/cowork/chat-jana.css`.
+// §`── KPIs ──`). Re-localize com `grep -n "jc-kpi" prototipo-ui/cowork/Wagner/chat-jana.css`.
 //
 // POR QUE UM COMPONENTE NOVO, e não um ajuste no `KpiCard` shared: o shared serve 37
 // telas com a anatomia PT-04 (caixa de ícone 36×36, r12, p16, label sans). A anatomia da

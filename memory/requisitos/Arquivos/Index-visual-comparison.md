@@ -10,8 +10,8 @@ last_validated: "2026-08-25"
 
 # Comparacao design x producao — `Arquivos/Index`
 
-> **Ancora computada, nao escolhida no olho** (`node prototipo-ui/ancora.mjs Arquivos/Index`):
-> `prototipo-ui/cowork/arquivos-page.jsx` (579 linhas), declarada em `related_prototype` do
+> **Ancora computada, nao escolhida no olho** (`node scripts/design/ancora.mjs Arquivos/Index`):
+> `prototipo-ui/cowork/Wagner/arquivos-page.jsx` (579 linhas), declarada em `related_prototype` do
 > [`Index.charter.md`](../../../resources/js/Pages/Arquivos/Index.charter.md).
 >
 > Primeiro registro desta tela. Medido em **2026-08-25**, apos o [W] mandar o screenshot do
@@ -275,7 +275,7 @@ A triagem separa defeito de escopo, porque a máquina não conhece o charter —
 
 | Item medido | Classificação |
 |---|---|
-| col2 e col5: pílula **sem `dot`** | **Defeito real, e não é desta tela.** AP7 ([PRE-MERGE-UI](../_DesignSystem/PRE-MERGE-UI.md):69) exige *"dot + texto colorido"*; `Badge`/`StatusBadge` do repo não implementam dot (0 ocorrências). Raio medido: **66 telas**. **Nenhum gate mede AP7** — o único script que o cita (`prototipo-ui/audit/backlog.mjs`) não é invocado por workflow nenhum. Decisão [W]. |
+| col2 e col5: pílula **sem `dot`** | **Defeito real, e não é desta tela.** AP7 ([PRE-MERGE-UI](../_DesignSystem/PRE-MERGE-UI.md):69) exige *"dot + texto colorido"*; `Badge`/`StatusBadge` do repo não implementam dot (0 ocorrências). Raio medido: **66 telas**. **Nenhum gate mede AP7** — o único script que o cita (`scripts/design/audit/backlog.mjs`) não é invocado por workflow nenhum. Decisão [W]. |
 | col2: sub-linha sem `mono` | Divergência de forma, local. Decisão. |
 | col0 sem `mono` | **NÃO é defeito** — é o refino A6 aplicado de propósito (`<code>` slug → `CONTEXTO_PT`). Prod à frente; o protótipo é que está atrás. |
 | col6 herda cor / 0 blocos | **NÃO é defeito** — leitura pura da onda 1; ações são onda 2+. |
@@ -309,7 +309,7 @@ applied` → `exit 0`; `--minimum tested` → `exit 1`.
 
 ## Refs
 
-- Ancora: `prototipo-ui/cowork/arquivos-page.jsx`
+- Ancora: `prototipo-ui/cowork/Wagner/arquivos-page.jsx`
 - Charter: [`Index.charter.md`](../../../resources/js/Pages/Arquivos/Index.charter.md)
 - RUNBOOK: [`RUNBOOK-index.md`](RUNBOOK-index.md)
 - Protocolo: [PROTOCOLO-COMPARACAO-RUNTIME](../_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md)

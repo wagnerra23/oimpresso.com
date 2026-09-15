@@ -22,8 +22,8 @@ function ingestMap(): array
             'vendas' => [
                 'module' => 'Sells',
                 'routes' => [
-                    ['glob' => '*-page.jsx', 'to' => 'prototipo-ui/prototipos/vendas/vendas-page.jsx'],
-                    ['glob' => '*.css', 'to' => 'prototipo-ui/prototipos/vendas/'], // destino-dir → preserva nome
+                    ['glob' => '*-page.jsx', 'to' => 'prototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx'],
+                    ['glob' => '*.css', 'to' => 'prototipo-ui/cowork/Wagner/legado/vendas/'], // destino-dir → preserva nome
                 ],
             ],
         ],
@@ -34,8 +34,8 @@ test('route() roteia pelo glob e separa extras', function () {
     $r = DesignIngestPlanner::route(ingestMap(), ['vendas-page.jsx', 'app.css', 'lixo.txt'], 'vendas');
 
     expect($r['routed'])->toHaveCount(2);
-    expect($r['routed'][0])->toBe(['from' => 'vendas-page.jsx', 'to' => 'prototipo-ui/prototipos/vendas/vendas-page.jsx']);
-    expect($r['routed'][1])->toBe(['from' => 'app.css', 'to' => 'prototipo-ui/prototipos/vendas/app.css']);
+    expect($r['routed'][0])->toBe(['from' => 'vendas-page.jsx', 'to' => 'prototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx']);
+    expect($r['routed'][1])->toBe(['from' => 'app.css', 'to' => 'prototipo-ui/cowork/Wagner/legado/vendas/app.css']);
     expect($r['extras'])->toBe(['lixo.txt']);
 });
 
@@ -45,12 +45,49 @@ test('route() de tela sem entrada no map → tudo extra', function () {
     expect($r['extras'])->toBe(['x.jsx']);
 });
 
+/**
+ * Destino-dir preserva o CAMINHO, não só o nome (ADR 0398 D1 — a árvore da conta é preservada).
+ *
+ * Até 2026-09-13 o destino era `$dest . basename($f)`, e isso ACHATAVA: medido no pacote de
+ * 2026-09-11, os 338 `.md` cabem em 267 basenames — 20 nomes colidem (`Index.casos.md` 19×,
+ * `Index.charter.md` 17×, `00-INDICE.md` 13×), então 71 arquivos se sobrescreveriam em silêncio
+ * e o plano emitido estaria errado por construção. Sem sobrescrita visível: o último a ser
+ * roteado vence e nenhuma linha do relatório denuncia a perda.
+ */
+test('route() com destino-dir PRESERVA o caminho relativo (não achata em basename)', function () {
+    $r = DesignIngestPlanner::route(ingestMap(), ['cowork-inbox/ancora/playbook/00-INDICE.css'], 'vendas');
+
+    expect($r['routed'][0]['to'])
+        ->toBe('prototipo-ui/cowork/Wagner/legado/vendas/cowork-inbox/ancora/playbook/00-INDICE.css');
+});
+
+test('route() com destino-dir: dois aninhados de mesmo basename NÃO colidem', function () {
+    $r = DesignIngestPlanner::route(ingestMap(), ['a/x.css', 'b/x.css'], 'vendas');
+
+    $destinos = array_column($r['routed'], 'to');
+    expect($destinos)->toHaveCount(2);
+    expect(array_unique($destinos))->toHaveCount(2);
+});
+
+// CONTROLE — sem ele, um route() que devolvesse o caminho cru passaria nos dois acima e
+// quebraria o caso dominante: o build FLAT do Cowork, onde `$f === basename($f)`.
+test('CONTROLE: arquivo da raiz do pacote continua pousando igual (build flat intacto)', function () {
+    $r = DesignIngestPlanner::route(ingestMap(), ['app.css'], 'vendas');
+    expect($r['routed'][0]['to'])->toBe('prototipo-ui/cowork/Wagner/legado/vendas/app.css');
+});
+
+// CONTROLE — destino-ARQUIVO (não termina em `/`) segue ignorando o caminho de origem.
+test('CONTROLE: destino-arquivo continua fixo, o caminho de origem não vaza', function () {
+    $r = DesignIngestPlanner::route(ingestMap(), ['sub/dir/qualquer-page.jsx'], 'vendas');
+    expect($r['routed'][0]['to'])->toBe('prototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx');
+});
+
 test('parseDiff() classifica add/mod/del', function () {
-    $out = "A\tprototipo-ui/prototipos/vendas/novo.jsx\nM\tprototipo-ui/prototipos/vendas/vendas-page.jsx\nD\tprototipo-ui/prototipos/vendas/velho.css\n";
+    $out = "A\tprototipo-ui/cowork/Wagner/legado/vendas/novo.jsx\nM\tprototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx\nD\tprototipo-ui/cowork/Wagner/legado/vendas/velho.css\n";
     $d = DesignIngestPlanner::parseDiff($out);
-    expect($d['added'])->toBe(['prototipo-ui/prototipos/vendas/novo.jsx']);
-    expect($d['modified'])->toBe(['prototipo-ui/prototipos/vendas/vendas-page.jsx']);
-    expect($d['removed'])->toBe(['prototipo-ui/prototipos/vendas/velho.css']);
+    expect($d['added'])->toBe(['prototipo-ui/cowork/Wagner/legado/vendas/novo.jsx']);
+    expect($d['modified'])->toBe(['prototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx']);
+    expect($d['removed'])->toBe(['prototipo-ui/cowork/Wagner/legado/vendas/velho.css']);
 });
 
 test('parseDiff() vazio → listas vazias', function () {
@@ -60,15 +97,15 @@ test('parseDiff() vazio → listas vazias', function () {
 
 test('renderPlano() destaca PROPOSTA + tabela + extras + roteamento', function () {
     $routing = DesignIngestPlanner::route(ingestMap(), ['vendas-page.jsx', 'lixo.txt'], 'vendas');
-    $diff = DesignIngestPlanner::parseDiff("M\tprototipo-ui/prototipos/vendas/vendas-page.jsx\n");
+    $diff = DesignIngestPlanner::parseDiff("M\tprototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx\n");
     $plano = DesignIngestPlanner::renderPlano('vendas', $routing, $diff);
 
     expect($plano)
         ->toContain('# PLANO-MUDANCAS — vendas')
         ->toContain('STATUS: PROPOSTA — nada aplicado')
-        ->toContain('| `prototipo-ui/prototipos/vendas/vendas-page.jsx` | mod |')
+        ->toContain('| `prototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx` | mod |')
         ->toContain('⚠️ `lixo.txt` — **fora do cowork-map**')
-        ->toContain('`vendas-page.jsx` → `prototipo-ui/prototipos/vendas/vendas-page.jsx`');
+        ->toContain('`vendas-page.jsx` → `prototipo-ui/cowork/Wagner/legado/vendas/vendas-page.jsx`');
 });
 
 test('renderSession() tem frontmatter de sessão + contagens', function () {
@@ -86,8 +123,8 @@ test('renderSession() tem frontmatter de sessão + contagens', function () {
 
 test('classifyExtras() separa "de outra tela conhecida" de "desconhecido"', function () {
     $map = ['screens' => [
-        'caixa-unificada' => ['routes' => [['glob' => 'inbox-*.jsx', 'to' => 'prototipo-ui/prototipos/caixa-unificada/']]],
-        'vendas' => ['routes' => [['glob' => 'vendas-*.jsx', 'to' => 'prototipo-ui/prototipos/vendas/']]],
+        'caixa-unificada' => ['routes' => [['glob' => 'inbox-*.jsx', 'to' => 'prototipo-ui/cowork/Wagner/legado/caixa-unificada/']]],
+        'vendas' => ['routes' => [['glob' => 'vendas-*.jsx', 'to' => 'prototipo-ui/cowork/Wagner/legado/vendas/']]],
     ]];
     // extras de --tela=caixa-unificada: vendas-page.jsx casa OUTRA tela (vendas); lixo.txt não casa nada
     $r = DesignIngestPlanner::classifyExtras($map, ['oimpresso-x/project/vendas-page.jsx', 'lixo.txt'], 'caixa-unificada');

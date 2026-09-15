@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- @dsCard group="Type" name="Type — Body, Mono & Tabular" subtitle="Eyebrow uppercase, mono codes, tabular nums" viewport="700x280" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Type — body, mono, tabular</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 18px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .block { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px; background: var(--card); }
+  h4 { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--fg-2); margin-bottom: 8px; }
+  .body-sample { font-size: 14px; color: var(--fg); line-height: 1.55; }
+  .muted { color: var(--fg-2); }
+  .eyebrow { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--primary); font-weight: 600; }
+  .kpi { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--fg-2); font-weight: 500; }
+  .kpiv { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--fg); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  td { padding: 4px 0; font-variant-numeric: tabular-nums; }
+  td.right { text-align: right; }
+  code { font-family: var(--font-mono); font-size: 12px; background: var(--surface-3); padding: 2px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="block">
+      <h4>Body sample</h4>
+      <p class="eyebrow">TUDO NUM LUGAR</p>
+      <p class="body-sample" style="margin: 6px 0 0;">Pare de pular entre 5 sistemas pra fechar o mês. <span class="muted">Do orçamento à entrega — o oimpresso integra a operação.</span></p>
+    </div>
+    <div class="block">
+      <h4>Tabular numerics</h4>
+      <table>
+        <tr><td class="kpi">Vendas hoje</td><td class="right kpiv">R$ 12.480</td></tr>
+        <tr><td class="kpi">A receber</td><td class="right kpiv">R$ 84.210</td></tr>
+        <tr><td class="kpi">Marcações</td><td class="right kpiv">08:42</td></tr>
+        <tr><td class="kpi">REP-P</td><td class="right" style="font-family: var(--font-mono); font-size: 12px;">REP-P-014</td></tr>
+      </table>
+    </div>
+    <div class="block" style="grid-column: span 2;">
+      <h4>Mono · code · domain idioms</h4>
+      <p class="body-sample">Marcação registrada às <code>08:42:13</code> via <code>REP-P</code> — <code>Art. 66 CLT</code>. Próximo intervalo libera às <code>12:00</code>.</p>
+    </div>
+  </div>
+</body>
+</html>

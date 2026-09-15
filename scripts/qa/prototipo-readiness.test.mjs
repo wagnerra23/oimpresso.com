@@ -11,11 +11,11 @@ let fails = 0;
 const check = (n, c, extra = '') => { console.log(`${c ? '[OK]' : '[FAIL]'} ${n}${c ? '' : '  → ' + extra}`); if (!c) fails++; };
 
 // 1. relatedPrototype lê o campo do frontmatter.
-check('lê related_prototype com caminho', relatedPrototype('---\nrelated_prototype: prototipo-ui/cowork/x.jsx\n---') === 'prototipo-ui/cowork/x.jsx');
+check('lê related_prototype com caminho', relatedPrototype('---\nrelated_prototype: prototipo-ui/cowork/Wagner/x.jsx\n---') === 'prototipo-ui/cowork/Wagner/x.jsx');
 check('sem campo → null', relatedPrototype('---\ncharter: X\n---') === null);
 
 // 2. temPrototipoReal distingue alvo de aplicação de "n/a".
-check('caminho .jsx → real', temPrototipoReal('prototipo-ui/cowork/compras-page.jsx') === true);
+check('caminho .jsx → real', temPrototipoReal('prototipo-ui/cowork/Wagner/compras-page.jsx') === true);
 check('.html handoff → real', temPrototipoReal('design-handoff "Prova Viva.html" (Cowork chat46)') === true);
 check('n/a explícito → NÃO real', temPrototipoReal('n/a (sem protótipo Cowork — nasceu no DS)') === false);
 check('MIS-ANCHOR → NÃO real', temPrototipoReal('removido related_prototype: oficina.jsx — MIS-ANCHOR') === false);
@@ -54,13 +54,13 @@ try {
   const casos = '## UC-REG-01 preserva comportamento\n';
 
   put('resources/js/Pages/Core/Index.tsx', 'export default function Index() {}\n');
-  put('resources/js/Pages/Core/Index.charter.md', charter('resources/js/Pages/Core/Index.tsx', 'prototipo-ui/cowork/core-page.jsx'));
+  put('resources/js/Pages/Core/Index.charter.md', charter('resources/js/Pages/Core/Index.tsx', 'prototipo-ui/cowork/Wagner/core-page.jsx'));
   put('resources/js/Pages/Core/Index.casos.md', casos);
   put('Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx', 'export default function Index() {}\n');
-  put('Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.charter.md', charter('Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx', 'prototipo-ui/cowork/superadmin-page.jsx'));
+  put('Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.charter.md', charter('Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx', 'prototipo-ui/cowork/Wagner/superadmin-page.jsx'));
   put('Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.casos.md', casos);
   put('Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx', 'export default function Index() {}\n');
-  put('Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.charter.md', charter('Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx', 'prototipo-ui/cowork/officeimpresso-page.jsx'));
+  put('Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.charter.md', charter('Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx', 'prototipo-ui/cowork/Wagner/officeimpresso-page.jsx'));
   put('Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.casos.md', casos);
 
   put('memory/governance/scorecards/screens/core-index.yaml', 'score: 90\n');

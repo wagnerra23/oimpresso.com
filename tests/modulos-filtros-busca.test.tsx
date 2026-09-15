@@ -2,7 +2,7 @@
 //
 // Por que jsdom: filtrar e buscar são 100% client-side (useMemo sobre a prop `modules`).
 // O Pest prova o payload; não prova a interseção dos filtros nem o debounce. E o contrato
-// de tela (prototipo-ui/contrato/modulos.contract.json) trava a COPY dos dois blocos —
+// de tela (governance/design/contracts/modulos.contract.json) trava a COPY dos dois blocos —
 // não o comportamento. Este arquivo é a perna que faltava.
 //
 // Estes dois UC estavam como [BACKLOG] no casos.md justamente por não terem teste que os

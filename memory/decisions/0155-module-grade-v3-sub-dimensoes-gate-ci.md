@@ -3,9 +3,9 @@ slug: 0155-module-grade-v3-sub-dimensoes-gate-ci
 number: 155
 title: "module-grade-v3 — 4 sub-dimensões novas (Performance/LGPD/Security/Observability) + reweight + gate CI anti-regressão"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 decided_by: [W]
 decided_at: "2026-05-16"
 accepted_at: 2026-05-16
@@ -15,7 +15,7 @@ quarter: 2026-Q2
 tags: [governance, qualidade, audit, dashboard, dim-9-pesos-100-normalizado, gate-ci, anti-regressao, performance, lgpd, security, observability]
 supersedes: []
 supersedes_partially: [0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado]
-superseded_by: []
+superseded_by: ['0399-aposentar-rubrica-module-grade-gate-e-baseline']
 related: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0101-tests-business-id-1-nunca-cliente, 0105-cliente-como-sinal-guiar-sem-mandar, 0143-fsm-pipeline-live-prod-marco-2026-05-12, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado]
 pii: false
 review_triggers:

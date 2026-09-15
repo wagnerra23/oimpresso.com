@@ -4,8 +4,15 @@ casos: HRM · licenças · /hrm/leave
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-05"
+last_run: "2026-09-11"
 ---
+
+> ℹ️ **`last_run` 2026-09-05 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
+> o path do protótipo (`prototipo-ui/cowork/…` → `prototipo-ui/cowork/Wagner/…`, topologia por dono da ADR 0397).
+> Zero JSX estrutural, zero handler, zero prop, zero copy alterada (verificado: `git diff origin/main...HEAD -- resources/js/Pages/Essentials/Licencas/Index.tsx`
+> só tem linhas iniciadas por `//`, `*` ou `{/*`). **Nenhum UC desta tela foi reexecutado nem revalidado**; o bump é o que o campo
+> significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run — mesmo tratamento do #6913.
 
 # Casos de uso — /hrm/leave · Licenças (HRM)
 

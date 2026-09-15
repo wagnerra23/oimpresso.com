@@ -112,6 +112,18 @@ on:
     paths:
       - 'tests/Feature/Estoque/**'
       - 'tests/Feature/Produto/**'
+      # 2026-09-09 — +`tests/Feature/Stock/**` (8 arquivos: Wave2Stock{Adjustment,Transfer}
+      # {Index,Create}{Baseline,Inertia}Test). Estavam ÓRFÃOS — medido pelo dono do
+      # inventário, `test-lane-coverage.mjs`, que os listava em `arquivos_orfaos`. Por isso
+      # 8 consts apontando `memory/requisitos/Inventory/` (dir que só tem BRIEFING+SPEC)
+      # nunca ficaram vermelhas, e 3 asserts seguiram travando a forma que o #7079 trocou.
+      # Junto vão os arquivos SOB TESTE das 4 telas (§5 2026-08-02: sem eles no trigger,
+      # mexer na tela não dispara o teste dela — gate mudo com cara de cobertura).
+      - 'tests/Feature/Stock/**'
+      - 'app/Http/Controllers/StockAdjustmentController.php'
+      - 'app/Http/Controllers/StockTransferController.php'
+      - 'resources/js/Pages/StockAdjustment/**'
+      - 'resources/js/Pages/StockTransfer/**'
       - 'tests/Support/EstoqueFixture.php'
       - 'tests/Support/EstoqueProduto.php'
       - 'app/Utils/ProductUtil.php'
@@ -165,6 +177,14 @@ jobs:
             est:
               - 'tests/Feature/Estoque/**'
               - 'tests/Feature/Produto/**'
+              # 2026-09-09 — `tests/Feature/Stock/**` + os arquivos SOB TESTE das 4 telas.
+              # Mesma dupla do bloco `paths:` do trigger, e pela mesma razão: entram JUNTO,
+              # nunca depois (é o 4º eixo da divergência que os comentários acima catalogam).
+              - 'tests/Feature/Stock/**'
+              - 'app/Http/Controllers/StockAdjustmentController.php'
+              - 'app/Http/Controllers/StockTransferController.php'
+              - 'resources/js/Pages/StockAdjustment/**'
+              - 'resources/js/Pages/StockTransfer/**'
               - 'tests/Support/EstoqueFixture.php'
               - 'tests/Support/EstoqueProduto.php'
               - 'app/Http/Controllers/ProductController.php'
@@ -240,7 +260,7 @@ jobs:
           done < /tmp/quar.txt
           [ "$RC" -eq 0 ] || { echo "Limpe $QUAR_FILE — arquivo removido continua listado."; exit 1; }
 
-          find tests/Feature/Estoque tests/Feature/Produto -name '*Test.php' | sort > /tmp/all.txt
+          find tests/Feature/Estoque tests/Feature/Produto tests/Feature/Stock -name '*Test.php' | sort > /tmp/all.txt
           comm -23 /tmp/all.txt /tmp/quar.txt > /tmp/run.txt
 
           # Visibilidade obrigatória: quarentena silenciosa vira cobertura fingida.

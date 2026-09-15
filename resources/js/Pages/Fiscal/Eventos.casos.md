@@ -145,7 +145,7 @@ related_us: [US-FISCAL-007]
 
 ## Divergência protótipo × produção — EPEC vs Inutilização (resolvida a favor do vivo)
 
-O protótipo Cowork ([`fiscal-subpages.jsx:33`](../../../../prototipo-ui/cowork/fiscal-subpages.jsx)) oferece um chip **"Inutilização (102)"** onde a tela viva tem **EPEC**. Medido nesta onda, o **vivo está certo** — e a razão é estrutural, não de preferência:
+O protótipo Cowork ([`fiscal-subpages.jsx:33`](../../../../prototipo-ui/cowork/Wagner/fiscal-subpages.jsx)) oferece um chip **"Inutilização (102)"** onde a tela viva tem **EPEC**. Medido nesta onda, o **vivo está certo** — e a razão é estrutural, não de preferência:
 
 | Evidência | O que diz |
 |---|---|
@@ -168,7 +168,7 @@ O protótipo Cowork ([`fiscal-subpages.jsx:33`](../../../../prototipo-ui/cowork/
 e cada item carrega a âncora (`Arquivo.casos.md:linha`) de onde saiu.
 
 - **O que defende:** que a lista seja **derivada**, não escrita. O protótipo Cowork
-  ([`fiscal-subpages.jsx:9-25`](../../../../prototipo-ui/cowork/fiscal-subpages.jsx)) desenha este
+  ([`fiscal-subpages.jsx:9-25`](../../../../prototipo-ui/cowork/Wagner/fiscal-subpages.jsx)) desenha este
   bloco a partir de uma constante à mão (`FX_DEBITOS`), e ela **já mente**: afirma *"Gate
   fiscal.nfe.view sem teste — nenhum teste o exercita"*, frase que ficou falsa em 2026-09-01,
   quando [`Nfe.casos.md:298`](Nfe.casos.md) foi corrigido e o bullet **tachado**. Copiar aquela

@@ -15,6 +15,8 @@ outcomes:
 
 # Seis perguntas, seis PRs — o que cada uma custou de verdade
 
+## Contexto
+
 > Continuação de [2026-09-05-integridade-prototipo-producao-sha-dupla.md](2026-09-05-integridade-prototipo-producao-sha-dupla.md). [W] leu as 6 perguntas e disse *"pode resolver todas autorizado"* + *"use o computador se necessário"*. Cada item virou PR próprio (1 intent), todos sobre `origin/main` fresco; o Q2 empilha sobre o Q3 porque a projeção depende do detector novo.
 
 ## O que foi medido antes de mexer (por item)

@@ -12,7 +12,7 @@ namespace App\Support\Errors;
  *
  * Fonte da régua: Mapa de Severidade do Oimpresso (rascunho [W]).
  *
- * @see prototipo-ui/handoffs/erros-fase1-classificacao.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-fase1-classificacao.md
  */
 enum Severity: string
 {

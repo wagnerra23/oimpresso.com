@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- @dsCard group="Print-craft" name="PresenterMode" subtitle="Modo apresentação / impressão — palco escuro, folhas A4, print embutido" viewport="820x480" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>PresenterMode</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>body{margin:0}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div class="cockpit" style="padding:18px;background:var(--bg)"><div id="root"></div></div>
+<script type="text/javascript">
+
+  const { PresenterMode, Button, ProofFrame } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  function Folha(i) {
+    return h('div', { style: { padding: '18mm 16mm', font: '400 11pt/1.5 var(--font-sans)', color: '#111' } },
+      h('header', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderBottom: '1.5pt solid #111', paddingBottom: 8 } },
+        h('b', { style: { font: '700 15pt/1 var(--font-sans)' } }, 'Ordem de Serviço #4821'),
+        h('span', { style: { font: '400 9pt/1 var(--font-mono)' } }, 'folha ' + (i + 1) + '/2')),
+      h('p', { style: { marginTop: 14 } }, 'Cliente: Acme Comércio Ltda · Entrega: 14/03 · Responsável: Marina Prado'),
+      h('table', { style: { width: '100%', borderCollapse: 'collapse', marginTop: 10, font: '400 10pt/1.4 var(--font-sans)' } },
+        h('tbody', null, ['Banner 3×2 m — lona 440 g','Acabamento: ilhós a cada 50 cm','Aplicação: fachada'].map((t, k) =>
+          h('tr', { key: k }, h('td', { style: { borderBottom: '0.5pt solid #bbb', padding: '6px 0' } }, t))))));
+  }
+  function Demo() {
+    const [open, setOpen] = React.useState(false);
+    return h('div', null,
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 12 } },
+        h(Button, { onClick: () => setOpen(true) }, 'Abrir modo apresentação'),
+        h('span', { style: { font: '400 12px var(--font-sans)', color: 'var(--text-mute)' } }, '← → folhas · + − zoom · P imprimir · Esc sair')),
+      h(PresenterMode, { open, onClose: () => setOpen(false), title: 'OS #4821 — Acme Comércio Ltda', subtitle: 'Folha de prova · 2 páginas · A4', pages: 2, zoom: 0.55, onPrint: () => {} }, Folha));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+
+</script>
+</body>
+</html>

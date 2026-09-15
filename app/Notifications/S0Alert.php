@@ -19,7 +19,7 @@ use Illuminate\Notifications\Notification;
  * (sem channel), pra funcionar com qualquer webhook Slack-compatible / push /
  * WhatsApp de 1 pessoa (`config('errors.s0_channel')`).
  *
- * @see prototipo-ui/handoffs/erros-fase1-classificacao.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-fase1-classificacao.md
  */
 class S0Alert extends Notification
 {

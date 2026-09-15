@@ -16,7 +16,7 @@ declare(strict_types=1);
  * quebrava em cron (user_id NOT NULL) e corrompia enum em silêncio; a trilha por-erro
  * é do error_groups. Ver o comentário no lugar onde o writeAuditLog existia.
  *
- * @see prototipo-ui/handoffs/erros-fase1-classificacao.md
+ * @see prototipo-ui/cowork/Wagner/handoffs/erros-fase1-classificacao.md
  */
 
 use App\Exceptions\Handler;

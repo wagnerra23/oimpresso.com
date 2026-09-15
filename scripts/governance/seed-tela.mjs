@@ -74,7 +74,7 @@ L.push(`- status: ${status}${permissao ? ` · permissão: \`${permissao}\`` : ''
 L.push('');
 L.push('## Regras (Tier 0 — irrevogáveis)');
 L.push('- **Multi-tenant** `business_id` global scope (ADR 0093) — nunca vazar entre tenants.');
-L.push('- **Estrutura SSOT:** `cowork/` = build-only; memória = canon (memory/ + MCP). Contrato: `prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md`.');
+L.push('- **Estrutura SSOT:** `cowork/` = build-only; memória = canon (memory/ + MCP). Contrato: `memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md`.');
 L.push('- **Não inventar:** caminho/feature/dado incerto = `_pendente_`/pergunta (LICOES_F3).');
 if (relatedAdrsRaw) L.push(`- **ADRs da tela:** ${relatedAdrsRaw}`);
 L.push('');

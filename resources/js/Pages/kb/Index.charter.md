@@ -20,7 +20,7 @@ related_adrs:
 related_briefing: ../../../memory/requisitos/KB/BRIEFING.md
 related_schema: ../../../memory/requisitos/KB/SCHEMA-DB-V1.md
 related_capterra: ../../../memory/requisitos/KB/CAPTERRA-FICHA.md
-related_prototype: prototipo-ui/cowork/kb-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/kb-page.jsx
 ---
 
 # Charter — `resources/js/Pages/kb/Index.tsx`
@@ -78,7 +78,7 @@ Larissa usa a MESMA tela a partir da ONDA 6 (mudando seed/permissions), com trou
 
 ## Anti-padrões / Proibições visuais (tokens canon)
 
-Conforme [`prototipo-ui/CLAUDE_DESIGN_BRIEFING.md`](../../../../prototipo-ui/CLAUDE_DESIGN_BRIEFING.md) §4:
+Conforme [`memory/reference/prototipo-ui/CLAUDE_DESIGN_BRIEFING.md`](../../../../memory/reference/prototipo-ui/CLAUDE_DESIGN_BRIEFING.md) §4:
 
 - ❌ `rounded-xl+` (Larissa balcão) — usar `rounded-md` máximo, `rounded-sm` preferido
 - ❌ Cores fora dos tokens OKLCH (`--accent`, `--bg`, `--surface`, hue 240 PROJETOS pra KB)

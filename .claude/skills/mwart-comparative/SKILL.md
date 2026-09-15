@@ -1,9 +1,9 @@
 ---
 name: mwart-comparative
-description: Use SEMPRE antes de codar Page Inertia em migração MWART (Blade→React) no oimpresso. Skill Tier B auto-trigger V4 que ORQUESTRA o Claude Design plugin Anthropic (design:design-critique + design:design-handoff + design:design-system + design:ux-copy + design:accessibility-review + design:research-synthesis) **e** o loop Cowork ↔ Claude Code formalizado em `prototipo-ui/` (ADR 0114). Gera artefato OBRIGATÓRIO `memory/requisitos/<Mod>/<tela>-visual-comparison.md` com 15 dimensões + framework Anthropic completo + sincroniza com `prototipo-ui/SYNC_LOG.md`. Gate visual do draft = CI (PR UI Judge + visual-regression — ADR 0241 emenda 0107; ratificado ADR 0282), NÃO aprovação síncrona de screenshot; travas objetivas mantidas (critique ≥80 + WCAG AA; <70 escala revisão dedicada); merge de `.tsx` segue humano-no-loop (ADR 0283) e F5 CUTOVER segue humano (ADR 0104). Ativa quando user pede "migrar tela X pra MWART", "comparativo visual", "/mwart-comparative <tela>", OU em qualquer Edit/Write em Page Inertia que não tenha visual-comparison.md ao lado.
+description: Use SEMPRE antes de codar Page Inertia em migração MWART (Blade→React) no oimpresso. Skill Tier B auto-trigger V4 que ORQUESTRA o Claude Design plugin Anthropic (design:design-critique + design:design-handoff + design:design-system + design:ux-copy + design:accessibility-review + design:research-synthesis) **e** o loop Cowork ↔ Claude Code formalizado em `prototipo-ui/` (ADR 0114). Gera artefato OBRIGATÓRIO `memory/requisitos/<Mod>/<tela>-visual-comparison.md` com 15 dimensões + framework Anthropic completo + sincroniza com `memory/reference/prototipo-ui/SYNC_LOG.md`. Gate visual do draft = CI (PR UI Judge + visual-regression — ADR 0241 emenda 0107; ratificado ADR 0282), NÃO aprovação síncrona de screenshot; travas objetivas mantidas (critique ≥80 + WCAG AA; <70 escala revisão dedicada); merge de `.tsx` segue humano-no-loop (ADR 0283) e F5 CUTOVER segue humano (ADR 0104). Ativa quando user pede "migrar tela X pra MWART", "comparativo visual", "/mwart-comparative <tela>", OU em qualquer Edit/Write em Page Inertia que não tenha visual-comparison.md ao lado.
 tier: B
 auto_trigger: path
-resumo: gate visual F1.5 + loop Cowork ↔ Code (V4, [`prototipo-ui/PROTOCOL.md`](prototipo-ui/PROTOCOL.md)). Orquestra Claude Design plugin (design-critique + design-system + design-handoff + ux-copy + accessibility-review + research-synthesis). 15 dimensões + gate visual via CI ([ADR 0241](memory/decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md) emenda 0107; Protocolo v2 [ADR 0282](memory/decisions/0282-protocolo-v2-colapso-ratificacao.md)); merge de `.tsx` segue humano ([ADR 0283](memory/decisions/0283-handoff-loop-zero-paste.md)) — [ADR 0114](memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) + [ADR 0107](memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) + [ADR 0109](memory/decisions/0109-claude-design-plugin-integrado-processo-mwart.md)
+resumo: gate visual F1.5 + loop Cowork ↔ Code (V4, [`memory/reference/prototipo-ui/PROTOCOL.md`](memory/reference/prototipo-ui/PROTOCOL.md)). Orquestra Claude Design plugin (design-critique + design-system + design-handoff + ux-copy + accessibility-review + research-synthesis). 15 dimensões + gate visual via CI ([ADR 0241](memory/decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md) emenda 0107; Protocolo v2 [ADR 0282](memory/decisions/0282-protocolo-v2-colapso-ratificacao.md)); merge de `.tsx` segue humano ([ADR 0283](memory/decisions/0283-handoff-loop-zero-paste.md)) — [ADR 0114](memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) + [ADR 0107](memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) + [ADR 0109](memory/decisions/0109-claude-design-plugin-integrado-processo-mwart.md)
 status: active
 version: 4.1
 authority: canonical
@@ -52,7 +52,7 @@ Esta skill **codifica o que estava na cabeça do Wagner** como artefato + gate. 
 
 ```
 ═══ F0 SINCRONIZAR LOOP ═════════════════════════════════════════════════
-0. Ler prototipo-ui/HANDOFF.md → identificar tela em qual fase
+0. Ler memory/reference/prototipo-ui/HANDOFF.md → identificar tela em qual fase
    - Se já há protótipo Cowork em prototipos/<tela>/page.tsx, consumir como
      fonte de verdade visual no passo 5
    - Se não há protótipo, este é fluxo MWART direto (sem Cowork)
@@ -164,11 +164,11 @@ Esta skill **codifica o que estava na cabeça do Wagner** como artefato + gate. 
     automático em mudanças >threshold.
 
 ═══ F5 SYNC LOOP ════════════════════════════════════════════════════════
-25. Append em prototipo-ui/SYNC_LOG.md uma linha registrando o evento:
+25. Append em memory/reference/prototipo-ui/SYNC_LOG.md uma linha registrando o evento:
     `YYYY-MM-DD HH:MM [CL] PR #NNN merged <tela> score=NN`
     (Necessário pra métrica `design_loop_stuck` em jana:health-check.)
 
-26. Atualizar prototipo-ui/HANDOFF.md (sobrescrever):
+26. Atualizar memory/reference/prototipo-ui/HANDOFF.md (sobrescrever):
     - Remover tela da seção "Em voo agora"
     - Mover próxima tela da TELAS_REVIEW_QUEUE.md pra "Em voo agora"
 ```
@@ -258,9 +258,9 @@ Sem `/mwart-override`, gates de processo não cedem. Iniciante (`[L]`), esposa (
 - [ADR 0109 — Claude Design plugin integrado](../../memory/decisions/0109-claude-design-plugin-integrado-processo-mwart.md) — emendada por 0114
 - [ADR 0107 — Emendation 0104 visual gate F3](../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) — documento mãe original
 - [ADR 0104 — Processo MWART canônico](../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) — emendado
-- [prototipo-ui/PROTOCOL.md](../../prototipo-ui/PROTOCOL.md) — protocolo formal do loop (V4)
-- [prototipo-ui/HANDOFF.md](../../prototipo-ui/HANDOFF.md) — estado vivo (Passo 0 lê este)
-- [prototipo-ui/SYNC_LOG.md](../../prototipo-ui/SYNC_LOG.md) — timeline (Passo 25 escreve aqui)
+- [memory/reference/prototipo-ui/PROTOCOL.md](../../prototipo-ui/PROTOCOL.md) — protocolo formal do loop (V4)
+- [memory/reference/prototipo-ui/HANDOFF.md](../../prototipo-ui/HANDOFF.md) — estado vivo (Passo 0 lê este)
+- [memory/reference/prototipo-ui/SYNC_LOG.md](../../prototipo-ui/SYNC_LOG.md) — timeline (Passo 25 escreve aqui)
 - [TEMPLATE.md](TEMPLATE.md) — template completo `<tela>-visual-comparison.md`
 - [Canon `os-page.jsx`](../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/os-page.jsx) — referência list+detail
 - [Skill `cockpit-runbook`](../cockpit-runbook/SKILL.md) — F1 RUNBOOK + F3 audit

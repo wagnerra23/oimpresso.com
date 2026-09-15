@@ -1,7 +1,7 @@
 ---
 id: requisitos-dashboard-home-index-gap
 tela: Home/Index (/dashboard-legacy)
-prototipo: prototipo-ui/cowork/dash-legacy-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/dash-legacy-page.jsx
 tela_viva: resources/js/Pages/Home/Index.tsx
 gerado_em: 2026-09-06
 comparacao: memory/requisitos/Dashboard/Index-visual-comparison.md

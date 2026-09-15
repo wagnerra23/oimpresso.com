@@ -15,7 +15,7 @@
 - **Controller:** `{{CONTROLLER_PATH}}@{{ACTION}}`
 - **Rota legada:** `GET {{ROUTE_URI}}` (name: `{{ROUTE_NAME}}`)
 - **Export PDF Blade:** `{{BLADE_PATH_PDF}}` (se aplicável)
-- **Mockup Cowork:** `prototipo-ui/prototipos/{{MODULE_KEBAB}}/visual-source.html`
+- **Mockup Cowork:** `prototipo-ui/cowork/Wagner/legado/{{MODULE_KEBAB}}/visual-source.html`
 - **Pages destino:** `resources/js/Pages/{{MODULE}}/Relatorios/{{TELA}}.tsx`
 
 ## 2. Snapshot paridade

@@ -14,7 +14,7 @@ related_adrs: [104, 110, 149, 93]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/vendas-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/vendas-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG pendente verificar Wagner (ADR 0149)"
   derived_screens: [Subscriptions]
   divergence_from_blueprint: "Cols extras (intervalo + próxima fatura + toggle start/stop por linha)."

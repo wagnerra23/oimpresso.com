@@ -1,7 +1,7 @@
 ---
 id: requisitos-governance-drift-alerts-gap
 tela: governance/DriftAlerts (/governance/drift)
-prototipo: prototipo-ui/cowork/governance-page.jsx + governance-telas.jsx
+prototipo: prototipo-ui/cowork/Wagner/governance-page.jsx + governance-telas.jsx
 tela_viva: resources/js/Pages/governance/DriftAlerts.tsx
 gerado_em: 2026-09-06
 ---
@@ -11,6 +11,8 @@ gerado_em: 2026-09-06
 > Protótipo = porte REVERSO do vivo (governance-page.jsx:1-3 "Espelha as telas vivas"; governance-telas.jsx:2-3 "Espelha … DriftAlertsController (scan de SCOPE.md × filesystem)"; retrato de ~2026-08-23). Fase 1 = PARIDADE. Charter: `resources/js/Pages/governance/DriftAlerts.charter.md` (Non-Goals respeitados, nunca reabertos).
 
 **Veredito:** VIVO-À-FRENTE com 1 item a decidir — o vivo tem links de remediação e lista de alertas persistidos que o retrato não desenha; o retrato acrescenta só a nota de "escopo ilegível" (YAML).
+
+> **Decidido em 2026-09-09 — nota "Escopo ilegível" NÃO construída nesta leva.** Não é rejeição de mérito: o item é legítimo (hoje o `DriftAlertService.php:154` só loga o parse falho, e um módulo com SCOPE.md inválido some da comparação em silêncio). Mas construir exige **expor o erro no payload** — é backend, fora do intent deste PR, que fecha só os itens de front dos GAP-SPEC. Segue como item aberto, com a razão registrada em vez de esquecida.
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
@@ -29,4 +31,4 @@ gerado_em: 2026-09-06
 - `grep -nEi 'Deferred|defer' resources/js/Pages/governance/DriftAlerts.tsx` → 0
 - `grep -nEi 'yaml|ilegível|parse' resources/js/Pages/governance/DriftAlerts.tsx` → 0
 - `grep -nEi 'Suprimir|ignorar|snooze' resources/js/Pages/governance/DriftAlerts.tsx` → 0
-- `sed -n 159,223p prototipo-ui/cowork/governance-telas.jsx ／ grep -cEi 'Abrir|github|href'` → 0 (ausência no mockup, sustenta o "vivo à frente" dos links)
+- `sed -n 159,223p prototipo-ui/cowork/Wagner/governance-telas.jsx ／ grep -cEi 'Abrir|github|href'` → 0 (ausência no mockup, sustenta o "vivo à frente" dos links)

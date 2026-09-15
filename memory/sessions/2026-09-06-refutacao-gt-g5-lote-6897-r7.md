@@ -11,6 +11,8 @@ outcomes:
 
 # Refutação GT-G5 — rodada 7 · PR #6897 (`claude/q6-gap-md-tabela-e-11-mapas`)
 
+## Contexto
+
 > Protocolo: [PROTOCOLO-REFUTADOR-BACKFILL.md](../requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md) §2, §3, §4.
 > Sessão fresca, zero contexto do gerador; os `*refutacao*` de rodadas anteriores no branch **não foram abertos** (refutação do zero).
 > Base medida: `HEAD ee09283d10` × `origin/main 26ac293f46` (fetch feito na sessão; `git rev-parse --is-shallow-repository = false`).

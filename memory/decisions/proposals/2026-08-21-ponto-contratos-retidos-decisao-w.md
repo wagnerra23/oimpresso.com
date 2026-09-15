@@ -32,7 +32,7 @@ PRs #6113/#6114/#6115 acabaram de eliminar.
 
 | Peça | Estado |
 |---|---|
-| Fonte de design | ✅ `prototipo-ui/cowork/ponto-fechamento.jsx` (258 ln) e `ponto-mobile.jsx` |
+| Fonte de design | ✅ `prototipo-ui/cowork/Wagner/ponto-fechamento.jsx` (258 ln) e `ponto-mobile.jsx` |
 | Âncoras declaradas | ✅ `fechamento-pre-checagem` · `fechamento-totais` · `repp-fila-validacao` · `repp-nota-regras` |
 | Regras de negócio | ✅ o protótipo traz `REGRAS` e `PASSOS` explícitos |
 

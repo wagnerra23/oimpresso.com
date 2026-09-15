@@ -14,7 +14,7 @@
 - **Blade legacy:** `{{BLADE_PATH}}`
 - **Controller atual:** `{{CONTROLLER_PATH}}@{{ACTION}}`
 - **Rota legada:** `{{ROUTE_METHOD}} {{ROUTE_URI}}` (name: `{{ROUTE_NAME}}`)
-- **Mockup Cowork:** `prototipo-ui/prototipos/{{MODULE_KEBAB}}/visual-source.html`
+- **Mockup Cowork:** `prototipo-ui/cowork/Wagner/legado/{{MODULE_KEBAB}}/visual-source.html`
 - **Pages destino:** `resources/js/Pages/{{MODULE}}/{{TELA}}/Index.tsx`
 
 ## 2. Snapshot paridade (do `mwart-inventory/{{MODULE_KEBAB}}/{{TELA_KEBAB}}.snapshot.md`)

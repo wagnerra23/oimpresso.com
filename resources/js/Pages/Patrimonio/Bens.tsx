@@ -5,7 +5,7 @@
 //         0180 (sidebar v3 · ghosts), 0253 (primitivos de layout)
 //   runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
 //   charter: ./Bens.charter.md · casos: ./Bens.casos.md
-//   fonte visual: prototipo-ui/cowork/patrimonio-page.jsx (aba `bens`, :355) — ALVO, não
+//   fonte visual: prototipo-ui/cowork/Wagner/patrimonio-page.jsx (aba `bens`, :355) — ALVO, não
 //                 decisão de produto (`06-ui-bloqueada.md`)
 //
 // PRIMEIRA tela Inertia do módulo. Ela funda `_shared/` — as outras 6 herdam.
@@ -92,6 +92,8 @@ interface FiltrosAtivos {
 }
 
 interface Props {
+  /** Deferida (contador da aba). Ausente no primeiro paint -- o pill so aparece depois. */
+  abas_contadores?: Record<string, number> | null;
   /** Deferida — ausente no primeiro paint, por isso opcional. */
   bens?: Paginator<Bem>;
   filtros: FiltrosAtivos;
@@ -510,7 +512,7 @@ function EsqueletoTabela() {
   );
 }
 
-export default function Bens({ bens, filtros, opcoes, permissoes }: Props) {
+export default function Bens({ abas_contadores, bens, filtros, opcoes, permissoes }: Props) {
   // Distingue "não há bem nenhum" de "não há bem PARA ESTE RECORTE" — são dois vazios
   // diferentes, e oferecer "cadastre o primeiro bem" a quem só filtrou demais é ruído.
   const temFiltroAtivo = Boolean(
@@ -524,55 +526,66 @@ export default function Bens({ bens, filtros, opcoes, permissoes }: Props) {
   return (
     <AppShellV2>
       <Stack gap={4}>
-        <PageHeader
-          title="Bens"
-          subtitle="O patrimônio da empresa: o que a casa tem, onde está e com quem"
-          actions={
-            permissoes.criar ? (
-              <Button size="sm" asChild>
-                <a href="/asset/assets/create">Novo ativo</a>
-              </Button>
-            ) : undefined
-          }
-        />
+        {/* As âncoras `data-contract` são a ponte Cowork-CSS ↔ Tailwind do gate
+            `contrato-de-tela.mjs` (ADR 0286) — mesmo padrão do Painel (`Index.tsx:168`).
+            Quem as consome: `governance/design/contracts/patrimonio-bens.contract.json`. */}
+        <div data-contract="cabecalho">
+          <PageHeader
+            title="Bens"
+            subtitle="O patrimônio da empresa: o que a casa tem, onde está e com quem"
+            actions={
+              permissoes.criar ? (
+                <Button size="sm" asChild>
+                  <a href="/asset/assets/create">Novo ativo</a>
+                </Button>
+              ) : undefined
+            }
+          />
+        </div>
 
         {/* `hidePrimary`: o primary do menu ("Novo ativo") já está no header acima —
             repeti-lo na barra de abas daria dois botões idênticos lado a lado. */}
-        <PatrimonioSubNav active="assets" hidePrimary />
+        <div data-contract="subnav">
+          <PatrimonioSubNav active="assets" hidePrimary badges={abas_contadores ?? undefined} />
+        </div>
 
-        <BarraDeFiltros filtros={filtros} opcoes={opcoes} />
+        <div data-contract="filtros">
+          <BarraDeFiltros filtros={filtros} opcoes={opcoes} />
+        </div>
 
-        <Deferred data="bens" fallback={<EsqueletoTabela />}>
-          {bens && bens.data.length === 0 && !temFiltroAtivo ? (
-            <EmptyState
-              icon="boxes"
-              title="Nenhum bem cadastrado ainda"
-              description="O patrimônio começa pelo que já está na casa. Cadastre um bem e ele passa a aparecer aqui com valor, garantia e alocação."
-              action={
-                permissoes.criar ? (
-                  <Button asChild>
-                    <a href="/asset/assets/create">Cadastrar o primeiro bem</a>
-                  </Button>
-                ) : undefined
-              }
-            />
-          ) : bens ? (
-            <DataTable<Bem>
-              columns={colunas(permissoes)}
-              data={bens.data}
-              pagination={bens}
-              endpoint="/asset/assets"
-              caption="Bens do patrimônio"
-              filters={limpar(filtros)}
-              initialSearch={filtros.q ?? ''}
-              searchPlaceholder="Buscar bem, código, modelo, série..."
-              emptyMessage="Nenhum bem para esses filtros — tente limpar a busca ou trocar o recorte."
-              rowKey={(b) => b.id}
-              rowState={(b): EstadoDaLinha | undefined => (b.em_manutencao > 0 ? 'urgent' : undefined)}
-              minTableWidth={1280}
-            />
-          ) : null}
-        </Deferred>
+        <div data-contract="tabela">
+          <Deferred data="bens" fallback={<EsqueletoTabela />}>
+            {bens && bens.data.length === 0 && !temFiltroAtivo ? (
+              <EmptyState
+                icon="boxes"
+                title="Nenhum bem cadastrado ainda"
+                description="O patrimônio começa pelo que já está na casa. Cadastre um bem e ele passa a aparecer aqui com valor, garantia e alocação."
+                action={
+                  permissoes.criar ? (
+                    <Button asChild>
+                      <a href="/asset/assets/create">Cadastrar o primeiro bem</a>
+                    </Button>
+                  ) : undefined
+                }
+              />
+            ) : bens ? (
+              <DataTable<Bem>
+                columns={colunas(permissoes)}
+                data={bens.data}
+                pagination={bens}
+                endpoint="/asset/assets"
+                caption="Bens do patrimônio"
+                filters={limpar(filtros)}
+                initialSearch={filtros.q ?? ''}
+                searchPlaceholder="Buscar bem, código, modelo, série..."
+                emptyMessage="Nenhum bem para esses filtros — tente limpar a busca ou trocar o recorte."
+                rowKey={(b) => b.id}
+                rowState={(b): EstadoDaLinha | undefined => (b.em_manutencao > 0 ? 'urgent' : undefined)}
+                minTableWidth={1280}
+              />
+            ) : null}
+          </Deferred>
+        </div>
       </Stack>
     </AppShellV2>
   );

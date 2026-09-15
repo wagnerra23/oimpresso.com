@@ -14,8 +14,8 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import {
   parseTitle, normScope, isDS, reconcileReverts, groupByArea,
-  crossCheck, dayList, inBrtRange, markDeployed,
-  evalShippedHealth, parseShippedMeta, pickLiveLogs, FRESH_DAYS, SHIPPED_DIR,
+  crossCheck, dayList, inBrtRange, markDeployed, naBordaDePagina, leituraSuspeita, recoletaSuficiente, consolidaAlvo, contaDoDia,
+  evalShippedHealth, parseShippedMeta, pickLiveLogs, FRESH_DAYS, SHIPPED_DIR, PAGE_SIZE,
 } from './shipped-log-generate.mjs';
 
 const tests = [];
@@ -221,6 +221,100 @@ t('E2E --check: fixture BOA (parcial de hoje) → exit 0', () => {
 });
 t('E2E --check: registro vazio (dir existe, 0 log) → exit ≠ 0, não fica mudo', () => {
   assert.notEqual(checkEmFixture({}), 0);
+});
+
+// ── naBordaDePagina (G10 — truncação silenciosa na 2ª página) ──
+// O caso REAL de 2026-09-05: 106 itens vinham em 2 páginas; sob pressão o `gh pr list`
+// devolvia 100 (só a 1ª) com rc=0. 100 é múltiplo de PAGE_SIZE → dia entra na re-coleta.
+t('naBordaDePagina: 100 (o valor truncado observado) → suspeito', () => {
+  assert.equal(naBordaDePagina(100), true);
+});
+t('naBordaDePagina: 200/300 (páginas cheias) → suspeito', () => {
+  assert.equal(naBordaDePagina(200), true);
+  assert.equal(naBordaDePagina(300), true);
+});
+// controle negativo — o que NÃO pode virar re-coleta (senão a 2ª passada roda em todo dia)
+t('naBordaDePagina: 106 (o valor CERTO do dia real) → não suspeito', () => {
+  assert.equal(naBordaDePagina(106), false);
+});
+t('naBordaDePagina: 0 (dia sem merge) → não suspeito, não paga chamada extra', () => {
+  assert.equal(naBordaDePagina(0), false);
+});
+t('naBordaDePagina: 34/99 (dia de 1 página só) → não suspeito', () => {
+  assert.equal(naBordaDePagina(34), false);
+  assert.equal(naBordaDePagina(99), false);
+});
+t('PAGE_SIZE é 100 — a página onde a truncação corta', () => {
+  assert.equal(PAGE_SIZE, 100);
+});
+
+// leituraSuspeita — as DUAS formas de truncação silenciosa observadas (ambas com rc=0)
+t('leituraSuspeita: 0 (resposta vazia) → suspeito — perde o dia INTEIRO', () => {
+  assert.equal(leituraSuspeita(0), true);
+  // o buraco que naBordaDePagina sozinha não via:
+  assert.equal(naBordaDePagina(0), false);
+});
+t('leituraSuspeita: 100 (página perdida) → suspeito', () => {
+  assert.equal(leituraSuspeita(100), true);
+});
+t('leituraSuspeita: 64 e 113 (leituras íntegras) → não suspeito', () => {
+  assert.equal(leituraSuspeita(64), false);
+  assert.equal(leituraSuspeita(113), false);
+});
+
+// consolidaAlvo — o oráculo do dia também devolve 0 com rc=0 (medido: 2 de 25)
+t('consolidaAlvo: alvo>0 na 1ª → confia, não paga 2ª leitura', () => {
+  assert.equal(consolidaAlvo(101, null), 101);
+});
+t('consolidaAlvo: 1ª zerada e 2ª traz o valor → usa o valor (o caso do alvo corrompido)', () => {
+  assert.equal(consolidaAlvo(0, 101), 101);
+});
+t('consolidaAlvo: zero confirmado nas duas → 0 (dia realmente vazio)', () => {
+  assert.equal(consolidaAlvo(0, 0), 0);
+});
+t('consolidaAlvo: 1ª zerada e 2ª falhou (null) → null, não finge zero', () => {
+  assert.equal(consolidaAlvo(0, null), null);
+});
+t('consolidaAlvo: 1ª falhou → cai na 2ª, e null se as duas falharem', () => {
+  assert.equal(consolidaAlvo(null, 64), 64);
+  assert.equal(consolidaAlvo(null, null), null);
+});
+
+// recoletaSuficiente — quando a re-coleta do dia pode parar
+t('recoletaSuficiente: alvo>0 e coletado alcançou → para', () => {
+  assert.equal(recoletaSuficiente({ alvo: 64, coletado: 64, leitura: 64, tentativas: 1 }), true);
+});
+t('recoletaSuficiente: alvo>0 e coletado aquém → continua (o caso do dia perdido)', () => {
+  assert.equal(recoletaSuficiente({ alvo: 64, coletado: 0, leitura: 0, tentativas: 1 }), false);
+});
+t('recoletaSuficiente: alvo 0 na 1ª tentativa → NÃO aceita (domingo × falha são iguais aqui)', () => {
+  assert.equal(recoletaSuficiente({ alvo: 0, coletado: 0, leitura: 0, tentativas: 1 }), false);
+});
+t('recoletaSuficiente: alvo 0 confirmado na 2ª → aceita (dia realmente vazio)', () => {
+  assert.equal(recoletaSuficiente({ alvo: 0, coletado: 0, leitura: 0, tentativas: 2 }), true);
+});
+t('recoletaSuficiente: sem oráculo (null) → aceita só leitura não-suspeita', () => {
+  assert.equal(recoletaSuficiente({ alvo: null, coletado: 0, leitura: 0, tentativas: 1 }), false);
+  assert.equal(recoletaSuficiente({ alvo: null, coletado: 64, leitura: 64, tentativas: 1 }), true);
+  assert.equal(recoletaSuficiente({ alvo: null, coletado: 100, leitura: 100, tentativas: 1 }), false);
+});
+
+// contaDoDia — critério de parada da re-coleta (alvo conhecido, não tentativa-e-torcida)
+const prDia = (n, iso) => ({ number: n, mergedAt: iso });
+t('contaDoDia: conta só o dia UTC pedido', () => {
+  const prs = [prDia(1, '2026-09-05T02:26:11Z'), prDia(2, '2026-09-05T23:59:59Z'), prDia(3, '2026-09-06T00:00:01Z')];
+  assert.equal(contaDoDia(prs, '2026-09-05'), 2);
+  assert.equal(contaDoDia(prs, '2026-09-06'), 1);
+});
+t('contaDoDia: dia sem PR → 0 (não trava a re-coleta com alvo 0)', () => {
+  assert.equal(contaDoDia([prDia(1, '2026-09-05T10:00:00Z')], '2026-09-07'), 0);
+});
+t('contaDoDia: mergedAt ausente não explode nem conta', () => {
+  assert.equal(contaDoDia([{ number: 9 }, prDia(1, '2026-09-05T10:00:00Z')], '2026-09-05'), 1);
+});
+t('contaDoDia aceita iterator (a coleta passa seen.values())', () => {
+  const m = new Map([[1, prDia(1, '2026-09-05T10:00:00Z')], [2, prDia(2, '2026-09-05T11:00:00Z')]]);
+  assert.equal(contaDoDia(m.values(), '2026-09-05'), 2);
 });
 
 // ── runner ──

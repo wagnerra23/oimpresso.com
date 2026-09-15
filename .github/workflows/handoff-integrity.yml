@@ -1,36 +1,33 @@
-name: Handoff Integrity (advisory · fila ↔ prompts)
+name: Handoff Integrity (fila ↔ prompts)
 
 # Catraca de Integridade do Handoff — PROCESSO_MEMORIA_CC.md §16 · IT8.
-# A fila (prototipo-ui/COWORK_NOTES.md, ACIMA da linha d'água) e os prompts duráveis
-# (prototipo-ui/PROMPT_PARA_CODE_*.md) têm que casar. Falha em NOVO órfão (prompt criado sem
+# A fila (memory/reference/prototipo-ui/COWORK_NOTES.md, ACIMA da linha d'água) e os prompts duráveis
+# (memory/reference/prototipo-ui/PROMPT_PARA_CODE_*.md) têm que casar. Falha em NOVO órfão (prompt criado sem
 # citação → tarefa invisível) ou NOVA ref morta (citação pra prompt inexistente → [CL] erra o PR).
 # Baseline (config/handoff-integrity-baseline.json) congela a dívida atual; abaixo da linha = ignorado.
 #
-# ADVISORY de nascença (gates novos nunca nascem required — ADR 0271/0275): não está no branch
-# protection, nunca bloqueia merge. Promoção a required = decisão [W]. Node puro, sem deps/DB/rede.
+# Nasceu ADVISORY em 2026-06-16 (gates novos nunca nascem required — ADR 0271/0275) e foi
+# PROMOVIDO A REQUIRED em 2026-09-15 por decisão [W] (ADR 0400, emenda à 0314; flip da branch
+# protection = ato [W], ADR 0275 §5 / R10). Quem quiser saber o enforcement VIGENTE lê o dono:
+# governance/required-checks-baseline.json — este arquivo não o restateia (§5 2026-07-16 · LC-10).
+# Sendo required, dispara em TODO PR: sem `paths:` no pull_request e com `synchronize` no
+# `types:`, senão o context não nasce e trava o repo (required-always-run.mjs, 4 eixos).
+# Node puro, sem deps/DB/rede.
 # Comando manual: npm run handoff:check  ·  auto-teste (controle-negativo): npm run handoff:selftest
 
 on:
   push:
     branches: [main]
     paths:
-      - 'prototipo-ui/COWORK_NOTES.md'
-      - 'prototipo-ui/PROMPT_PARA_CODE_*.md'
+      - 'memory/reference/prototipo-ui/COWORK_NOTES.md'
+      - 'memory/reference/prototipo-ui/PROMPT_PARA_CODE_*.md'
       - 'config/handoff-integrity-baseline.json'
       - 'scripts/handoff-integrity-guard.mjs'
       - 'scripts/handoff-integrity-guard.test.mjs'
       - 'package.json'
       - '.github/workflows/handoff-integrity.yml'
   pull_request:
-    types: [opened, reopened, ready_for_review]
-    paths:
-      - 'prototipo-ui/COWORK_NOTES.md'
-      - 'prototipo-ui/PROMPT_PARA_CODE_*.md'
-      - 'config/handoff-integrity-baseline.json'
-      - 'scripts/handoff-integrity-guard.mjs'
-      - 'scripts/handoff-integrity-guard.test.mjs'
-      - 'package.json'
-      - '.github/workflows/handoff-integrity.yml'
+    types: [opened, reopened, ready_for_review, synchronize]
   workflow_dispatch:
 
 concurrency:
@@ -42,7 +39,7 @@ permissions:
 
 jobs:
   handoff:
-    name: handoff integrity (advisory · órfão/ref-morta só sobe = vermelho)
+    name: handoff integrity (órfão/ref-morta só sobe = vermelho)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -317,7 +317,9 @@ function StockAdjustmentCreate({
                   )}
                 </div>
                 <div className="space-y-1 text-[13px] pt-2 border-t border-stone-200">
-                  <div className="flex justify-between"><span className="text-stone-500">Total ajustado</span><span className="tabular-nums">{brl(totalFinal)}</span></div>
+                  {/* Rótulo do protótipo (`estoque-forms.jsx`, fecho do FormAjuste) — o
+                      número e o cálculo seguem intactos; só a palavra muda. */}
+                  <div className="flex justify-between"><span className="text-stone-500">Valor ajustado</span><span className="tabular-nums">{brl(totalFinal)}</span></div>
                   <div className="flex justify-between"><span className="text-stone-500">Recuperado</span><span className="tabular-nums text-success-fg">- {brl(form.data.total_amount_recovered)}</span></div>
                   <div className="flex justify-between pt-2 mt-1 border-t border-stone-100">
                     <span className="font-semibold">Perda líquida</span>

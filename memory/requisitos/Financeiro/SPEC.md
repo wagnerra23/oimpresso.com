@@ -1830,7 +1830,7 @@ Refs: ROADMAP-SDD (sweep do mês) · handoff 2026-06-21-1250
 
 **Retro-US (reconciliação código-sem-US, 2026-07-01):** tela F1 entregue no PACOTE-FINANCEIRO-F2 PR-2 e **aprovada [W] 2026-06-10**, mas nunca registrada no SPEC — o `charter-us-lint` (no-new-lie) expôs a tela como órfã quando o charter foi tocado pra declarar `related_prototype`. Esta US registra o entregue; não é escopo novo.
 
-**Entregue (F1):** responder "quanto de imposto vou recolher e quando vence?" numa tela só — estimativa a recolher + calendário de obrigações. Persona: Eliana [E] (financeiro); secundária Larissa (dona). Origem: protótipo Cowork `TelaImpostos` (`prototipo-ui/cowork/financeiro-telas-extras.jsx`); Censo Fiscal 2026-06-09 validou que "impostos a recolher + calendário" não existia em nenhum módulo.
+**Entregue (F1):** responder "quanto de imposto vou recolher e quando vence?" numa tela só — estimativa a recolher + calendário de obrigações. Persona: Eliana [E] (financeiro); secundária Larissa (dona). Origem: protótipo Cowork `TelaImpostos` (`prototipo-ui/cowork/Wagner/financeiro-telas-extras.jsx`); Censo Fiscal 2026-06-09 validou que "impostos a recolher + calendário" não existia em nenhum módulo.
 
 **Aceite:** (retro — o que a tela entregue faz)
 - [x] Tela `/financeiro/impostos` renderiza estimativa de impostos a recolher + calendário de obrigações (aprovado [W] 2026-06-10).

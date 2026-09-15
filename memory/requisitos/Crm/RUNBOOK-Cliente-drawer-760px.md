@@ -39,7 +39,7 @@ Antes de Edit/Write em `Modules/Crm/` ou `resources/js/Pages/Cliente/`:
 - [ ] Ler [Charter Index v3](../../../resources/js/Pages/Cliente/Index.charter.md) (113 linhas — Mission/Goals/Non-Goals/Anti-hooks)
 - [ ] Ler [visual-comparison](cliente-drawer-760-visual-comparison.md) (310 linhas — 15 dimensões + gate F1.5)
 - [ ] Ler [`prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md`](../../../prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md) (381 linhas — schema BR + 4 endpoints IA + checklist KB-9.75 9,4/10)
-- [ ] Ler [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) (6 meta-anti-padrões + 15 técnicos — Wave Financeiro rejeitada 2026-05-09)
+- [ ] Ler [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) (6 meta-anti-padrões + 15 técnicos — Wave Financeiro rejeitada 2026-05-09)
 - [ ] Skill `multi-tenant-patterns` Tier A ativa (ADR 0093 IRREVOGÁVEL — `business_id` global scope obrigatório em 10 endpoints novos)
 - [ ] Skill `mwart-process` Tier A ativa (5 fases obrigatórias — PLAN → BACKEND BASELINE → FRONTEND INCREMENTAL → QA → CUTOVER)
 - [ ] Worktree confirmado: `D:/oimpresso.com/.claude/worktrees/frosty-greider-83ab2f` (lição R8 — PR #1032 quase perdeu 4h por path errado)
@@ -172,7 +172,7 @@ Critério aceitação. Entregáveis:
 - [ ] Deploy SSH Hostinger `composer install --no-dev=false && composer dump-autoload --no-scripts && php artisan migrate --force`
 - [ ] `npm run build:inertia` local + commit `public/build-inertia/` (NÃO `npm run build` — config errado)
 - [ ] Feature flag `MWART_CLIENTE_INDEX=true` ativada biz=1 primeiro (canary)
-- [ ] Brave smoke prod biz=1 — `https://oimpresso.com/cliente` carrega → clica linha → drawer abre → troca **cada uma das 8 tabs** (Identificação · Contato · Endereço · Comercial · Classificação · OSs · IA · Auditoria) → screenshot salvo em `prototipo-ui/SYNC_LOG.md` (R1 PROTOCOLO)
+- [ ] Brave smoke prod biz=1 — `https://oimpresso.com/cliente` carrega → clica linha → drawer abre → troca **cada uma das 8 tabs** (Identificação · Contato · Endereço · Comercial · Classificação · OSs · IA · Auditoria) → screenshot salvo em `memory/reference/prototipo-ui/SYNC_LOG.md` (R1 PROTOCOLO)
 - [ ] `curl -sv` canônicos (skill `smoke-prod-evidence`) — ver §10
 - [ ] `php artisan jana:health-check` verde (5 checks SQL: multi_tenant_isolation, brief_uptime_24h, custo_brain_b_24h, pii_leak_in_assistant_responses, profile_distiller_drift)
 - [ ] Pós 48h verde biz=1 → ativar biz=4 Larissa ROTA LIVRE
@@ -372,7 +372,7 @@ composer dump-autoload --no-scripts                 # se mexeu psr-4
 npm run build:inertia                               # NÃO npm run build
 ```
 
-**Brave smoke MCP** — `mcp__Claude_in_Chrome__navigate` + `mcp__Claude_in_Chrome__find` cada uma das 8 tabs + `mcp__Claude_in_Chrome__get_page_text` screenshot salvo em `prototipo-ui/SYNC_LOG.md`.
+**Brave smoke MCP** — `mcp__Claude_in_Chrome__navigate` + `mcp__Claude_in_Chrome__find` cada uma das 8 tabs + `mcp__Claude_in_Chrome__get_page_text` screenshot salvo em `memory/reference/prototipo-ui/SYNC_LOG.md`.
 
 ## 11. Refs
 
@@ -381,8 +381,8 @@ npm run build:inertia                               # NÃO npm run build
 - [visual-comparison drawer 760](cliente-drawer-760-visual-comparison.md) — 15 dimensões + gate F1.5 (310 linhas)
 - [Dossiê wagner-understand](../../sessions/2026-05-21-understand-cliente-drawer-760px-opcao-A.md) — decodificação completa opção A
 - [HANDOFF_CLIENTES.md](../../../prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md) — spec protótipo KB-9.75 9,4/10 (381 linhas — schema BR + 4 endpoints IA + checklist)
-- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight Wave C-F (6 meta-anti-padrões + 15 técnicos)
-- [PROTOCOL.md Cowork loop](../../../prototipo-ui/PROTOCOL.md) — loop formalizado ADR 0114
+- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight Wave C-F (6 meta-anti-padrões + 15 técnicos)
+- [PROTOCOL.md Cowork loop](../../../memory/reference/prototipo-ui/PROTOCOL.md) — loop formalizado ADR 0114
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — multi-tenant Tier 0 IRREVOGÁVEL
 - [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
 - [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) — processo MWART 5 fases

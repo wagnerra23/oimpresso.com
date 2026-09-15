@@ -1,0 +1,27 @@
+<!doctype html>
+<!-- @dsCard group="Spacing" name="Spacing — Shadows" subtitle="xs → 2xl, plus primary-tinted CTA shadow" viewport="700x180" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Shadows</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 28px 18px; background: hsl(210 40% 98%); }
+  .row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+  .cell { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .box { width: 70px; height: 70px; background: white; border: 1px solid var(--border); border-radius: 12px; }
+  .lbl { font-size: 11px; font-weight: 600; }
+  .meta { font-size: 9px; font-family: var(--font-mono); color: var(--fg-2); text-align:center; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="cell"><div class="box" style="box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);"></div><span class="lbl">xs</span><span class="meta">Input</span></div>
+    <div class="cell"><div class="box" style="box-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1);"></div><span class="lbl">sm</span><span class="meta">Card resting</span></div>
+    <div class="cell"><div class="box" style="box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1);"></div><span class="lbl">md</span><span class="meta">Popover</span></div>
+    <div class="cell"><div class="box" style="box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);"></div><span class="lbl">lg</span><span class="meta">card hover</span></div>
+    <div class="cell"><div class="box" style="box-shadow: 0 20px 25px -5px rgb(0 0 0 / .1), 0 8px 10px -6px rgb(0 0 0 / .1);"></div><span class="lbl">xl</span><span class="meta">Dialog</span></div>
+    <div class="cell"><div class="box" style="box-shadow: 0 25px 50px -12px oklch(0.55 0.15 295 / 0.10); border-color: oklch(0.55 0.15 295);"></div><span class="lbl">2xl + tinted</span><span class="meta">highlighted tier</span></div>
+  </div>
+</body>
+</html>

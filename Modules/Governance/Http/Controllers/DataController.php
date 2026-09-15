@@ -126,7 +126,6 @@ class DataController extends Controller
                         ['key' => 'policies',      'label' => 'Policies',        'href' => '/governance/policies'],
                         ['key' => 'audit',         'label' => 'Audit log',       'href' => '/governance/audit'],
                         ['key' => 'drift',         'label' => 'Drift alerts',    'href' => '/governance/drift'],
-                        ['key' => 'module-grades', 'label' => 'Module Grades',   'href' => '/governance/module-grades'],
                         ['key' => 'ds-rollout',    'label' => 'DS Rollout',      'href' => '/governance/ds-rollout'],
                         // Recebidas do Modules/Jana em 2026-08-05 (ADR 0366 §D-B).
                         // Com estas duas a lista vai a 8 e o GovernancaSubNav usa

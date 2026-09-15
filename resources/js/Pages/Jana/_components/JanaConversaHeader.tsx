@@ -1,4 +1,4 @@
-// Cabeçalho da thread ativa — porte 1:1 de `prototipo-ui/cowork/jana-merge.jsx`
+// Cabeçalho da thread ativa — porte 1:1 de `prototipo-ui/cowork/Wagner/jana-merge.jsx`
 // §`JmConversa` (`.jm-conv-h`, medido no espelho): título 13px/600 + `só sua` em
 // mono 10.5px + pílula `arquivada` quando for o caso.
 //

@@ -11,6 +11,8 @@ outcomes:
 
 # Refutação GT-G5 · rodada r2 · lote do PR #6914
 
+## Contexto
+
 **Refutador:** instância nova, sessão fresca (worktree `claude/quizzical-hugle-38b479`), tier Fable 5.1. Sem contexto do gerador nem das rodadas anteriores.
 **Base medida:** `origin/main` = `7bff2ca69d` no início; durante a rodada uma sessão paralela deu `fetch` + merge no mesmo worktree (`HEAD f43aa38e5b → 8a204f59c6` às 16:06:22, `origin/main → 5baadae608`). Conferido: `git diff --stat 7bff2ca69d origin/main -- <todas as fontes citadas>` = **vazio** e `git diff --stat f43aa38e5b HEAD -- memory/requisitos` = **vazio** — as medições valem para os dois pares de refs.
 **Repo raso:** `true` no início (`git rev-parse --is-shallow-repository`), `false` depois do merge externo. Nenhuma data de `git log` foi usada como recibo.

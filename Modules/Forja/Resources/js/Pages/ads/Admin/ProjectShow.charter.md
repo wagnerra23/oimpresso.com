@@ -3,7 +3,7 @@ id: resources-js-pages-ads-admin-project-show-charter
 page: /ads/admin/projects/{id}
 component: Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.tsx
 related_us: [US-ADS-004]
-related_prototype: n/a (detalhe bespoke — banda de KPIs + decomposição em <ol>; sem FsmActionPanel/<dl>/Timeline, assinatura PT-03 ausente)
+related_prototype: n/a (detalhe bespoke — banda de KPIs + decomposição em <ol>; sem FsmActionPanel/<dl>/Timeline, logo sem a assinatura do padrão de Detalhe)
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

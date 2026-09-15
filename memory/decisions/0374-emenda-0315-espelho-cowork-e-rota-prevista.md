@@ -1,7 +1,7 @@
 ---
 slug: 0374-emenda-0315-espelho-cowork-e-rota-prevista
 number: 374
-title: "Emenda à 0315 — espelhar o projeto Cowork para `prototipo-ui/cowork/` é a rota PREVISTA (o 'nunca o inverso' vale só para o Design System)"
+title: "Emenda à 0315 — espelhar o projeto Cowork para `prototipo-ui/cowork/Wagner/` é a rota PREVISTA (o 'nunca o inverso' vale só para o Design System)"
 type: adr
 status: aceito
 authority: canonical
@@ -34,11 +34,11 @@ Lida ao pé da letra, ela proíbe trazer qualquer arquivo do claude.ai/design pa
 Mas o repo tem, **mergeado e em uso**, uma ferramenta cujo propósito declarado é exatamente
 esse movimento — [`scripts/governance/cowork-mirror-freshness.mjs`](../../scripts/governance/cowork-mirror-freshness.mjs), cabeçalho:
 
-> *"compara cada arquivo-âncora do espelho `prototipo-ui/cowork/` com o design VIVO no Cowork
+> *"compara cada arquivo-âncora do espelho `prototipo-ui/cowork/Wagner/` com o design VIVO no Cowork
 > (projeto 019dcfd3, lido via `DesignSync.get_file` — método de LEITURA, livre por ADR 0315
 > Eixo B). Divergiu = o espelho ficou atrás do vivo → **RE-EXPORTAR**."*
 
-E ~260 arquivos de `prototipo-ui/cowork/` já chegaram por esse caminho. **O texto e a prática
+E ~260 arquivos de `prototipo-ui/cowork/Wagner/` já chegaram por esse caminho. **O texto e a prática
 estão em contradição há meses**, e ninguém reconciliou.
 
 ## O incidente que forçou a decisão (2026-08-11)
@@ -62,13 +62,13 @@ Protótipo que existe apenas no `claude.ai/design` de **uma** máquina não é f
 **A 0315 §82 proíbe `claude.ai/design` virar a FONTE DO DESIGN SYSTEM** — um segundo armazém de
 tokens e componentes competindo com o DS em git, que é o risco real que a [ADR 0239](0239-governanca-design-system-git-ssot-regressao-ia.md) endereça.
 
-**Ela NÃO proíbe espelhar o projeto Cowork** para `prototipo-ui/cowork/`. Isso é a rota
+**Ela NÃO proíbe espelhar o projeto Cowork** para `prototipo-ui/cowork/Wagner/`. Isso é a rota
 **prevista**, já mecanizada, e continua sendo:
 
 | eixo | direção | status |
 |---|---|---|
 | Design System (tokens, componentes) | git **→** claude.ai/design | vitrine derivada — a 0315 segue valendo |
-| Projeto Cowork (protótipos de tela) | Cowork **→** `prototipo-ui/cowork/` | **rota prevista** (`--export-from`) |
+| Projeto Cowork (protótipos de tela) | Cowork **→** `prototipo-ui/cowork/Wagner/` | **rota prevista** (`--export-from`) |
 | Qualquer escrita para claude.ai/design | git **→** lá | **gated** por opt-in (0315 inalterada) |
 
 O que muda é **só a redação**: onde a 0315 diz "nunca o inverso", leia-se *"nunca o inverso **para
@@ -76,7 +76,7 @@ o Design System**"*. O espelho de protótipo sempre foi outra coisa.
 
 ## Consequências
 
-- `prototipo-ui/cowork/` é **espelho de leitura** do projeto Cowork, versionado para que o time
+- `prototipo-ui/cowork/Wagner/` é **espelho de leitura** do projeto Cowork, versionado para que o time
   trabalhe só com o git. Não é fonte de tokens nem de componentes — esses seguem no DS em git.
 - O export é por **`cowork-mirror-freshness.mjs --export-from <dir>`**, que escreve o
   `raw.content` do `get_file`. Transcrever à mão é proibido (§5 2026-08-11).

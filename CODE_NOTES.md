@@ -10,10 +10,10 @@
 (emenda §10/§10.7, [#6860](https://github.com/wagnerra23/oimpresso.com/pull/6860)). Os dois achados
 **não são de tamanho de alvo** — apareceram enquanto se media, e não têm dono no Code.
 
-**Por que não consertei:** os dois vivem do lado design. `prototipo-ui/cowork/` é **espelho read-only**
+**Por que não consertei:** os dois vivem do lado design. `prototipo-ui/cowork/Wagner/` é **espelho read-only**
 ([ADR 0374](memory/decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md); §5 2026-08-13 e
-2026-08-14 proíbem remendo à mão) e `prototipo-ui/cowork/_ds/` é **gitignored**
-(`prototipo-ui/cowork/.gitignore:26`), cache derivado de `scripts/design-sync/mirror-snapshot/`.
+2026-08-14 proíbem remendo à mão) e `prototipo-ui/cowork/Wagner/_ds/` é **gitignored**
+(`prototipo-ui/cowork/Wagner/.gitignore:26`), cache derivado de `prototipo-ui/design-system/`.
 Conserto no espelho evapora no próximo `--export-from`. Vai daqui como pedido, não como patch.
 
 ---
@@ -22,7 +22,7 @@ Conserto no espelho evapora no próximo `--export-from`. Vai daqui como pedido, 
 
 A rota `inbox` serve **só o error boundary**: *"Cannot access 'filteredConvs' before initialization"*.
 
-**Causa, confirmada no fonte:** `prototipo-ui/cowork/inbox-page.jsx:365` passa `filteredConvs` num
+**Causa, confirmada no fonte:** `prototipo-ui/cowork/Wagner/inbox-page.jsx:365` passa `filteredConvs` num
 array `deps` — que é avaliado na hora — enquanto o `const filteredConvs = useMemo(...)` só é declarado
 na **linha 370**. *Temporal dead zone*.
 
@@ -199,7 +199,7 @@ exige SQL em réplica) e 2 (auditar o consumidor Delphi da API Connector).
 - **Não criei `resources/js/Pages/Crm/`** — é o pedido retirado.
 - **Não executei E1–E6.** Cada etapa tem gate [W] explícito no plano; medir é meu, decidir não é.
 - **Não regenerei o bundle** — `gerar-payload-partes.mjs` roda do lado que tem os arquivos em disco (Cowork).
-- **Não toquei `prototipo-ui/cowork/`** (espelho read-only) nem os `.jsx` do build (são do lado design).
+- **Não toquei `prototipo-ui/cowork/Wagner/`** (espelho read-only) nem os `.jsx` do build (são do lado design).
 
 ### Fila de decisão que volta para [W] (o RESÍDUO do pacote, sem tradução minha)
 

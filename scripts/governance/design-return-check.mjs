@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Verifica o retorno Code -> Design definido em prototipo-ui/PROTOCOL.md §10.2.
+// Verifica o retorno Code -> Design definido em memory/reference/prototipo-ui/PROTOCOL.md §10.2.
 // O workflow pós-merge roda em modo advisory; --check existe para fixtures/catracas e
 // para uma futura promoção explícita, sem criar enforcement novo por acidente.
 
@@ -8,9 +8,9 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 export const RETURN_CHANNELS = Object.freeze([
-  'prototipo-ui/DS_ADOCAO_INDICE.md',
-  'prototipo-ui/SYNC_LOG.md',
-  'prototipo-ui/HANDOFF.md',
+  'memory/reference/prototipo-ui/DS_ADOCAO_INDICE.md',
+  'memory/reference/prototipo-ui/SYNC_LOG.md',
+  'memory/reference/prototipo-ui/HANDOFF.md',
 ]);
 
 export const UI_PATTERNS = Object.freeze([
@@ -37,7 +37,7 @@ export function evaluateDesignReturn(input) {
   const changed = normalizeChangedPaths(input);
   const affected = changed.filter((path) =>
     UI_PATTERNS.some((pattern) => pattern.test(path))
-      || path.startsWith('prototipo-ui/cowork/'));
+      || path.startsWith('prototipo-ui/cowork/Wagner/'));
   const missing = affected.length
     ? RETURN_CHANNELS.filter((channel) => !changed.includes(channel))
     : [];
@@ -146,9 +146,9 @@ export function main(args = process.argv.slice(2), env = process.env) {
     const base = valueAfter(args, '--base') || 'HEAD~1';
     const head = valueAfter(args, '--head') || 'HEAD';
     try {
-      const index = readFileSync('prototipo-ui/DS_ADOCAO_INDICE.md', 'utf8');
-      const handoff = readFileSync('prototipo-ui/HANDOFF.md', 'utf8');
-      const syncDiff = execFileSync('git', ['diff', '--unified=0', base, head, '--', 'prototipo-ui/SYNC_LOG.md'], { encoding: 'utf8' });
+      const index = readFileSync('memory/reference/prototipo-ui/DS_ADOCAO_INDICE.md', 'utf8');
+      const handoff = readFileSync('memory/reference/prototipo-ui/HANDOFF.md', 'utf8');
+      const syncDiff = execFileSync('git', ['diff', '--unified=0', base, head, '--', 'memory/reference/prototipo-ui/SYNC_LOG.md'], { encoding: 'utf8' });
       result.issues = validateReturnDocuments({ index, syncDiff, handoff });
       result.complete = result.issues.length === 0;
     } catch (error) {

@@ -5,22 +5,21 @@
 //   stories: US-ESSE-001
 //   rules: R-ESSE-001
 //   adrs: ui/0001
-//   tests: Modules/Essentials/Tests/Feature/TodoIndexTest
+//   tests: Modules/Essentials/Tests/Feature/TodoTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router, useForm } from '@inertiajs/react';
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { Skeleton } from '@/Components/ui/skeleton';
 import {
   ArrowRight,
   ClipboardList,
-  Filter,
   Flag,
   Inbox,
   Pencil,
   Plus,
-  RefreshCw,
+  Search,
   Trash2,
 } from 'lucide-react';
 import {
@@ -44,6 +43,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/Components/ui/dialog';
+import { Inline } from '@/Components/layout';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import {
@@ -81,6 +81,8 @@ interface Option { value: string; label: string; }
 interface UserOption { id: number; label: string; }
 
 interface Filters {
+  q: string | null;
+  ordem: string | null;
   status: string | null;
   priority: string | null;
   user_id: number | null;
@@ -124,13 +126,15 @@ export default function TodoIndex({
   const users = assignableUsers ?? [];
   const [deleteTarget, setDeleteTarget] = useState<TodoRow | null>(null);
   const [statusTarget, setStatusTarget] = useState<TodoRow | null>(null);
+  const [busca, setBusca] = useState(filtros.q ?? '');
+  const campoBusca = useRef<HTMLInputElement>(null);
 
   const statusForm = useForm({
     only_status: true as boolean,
     status: '' as string,
   });
 
-  const setFilter = (key: keyof Filters, value: string | number | null) => {
+  const setFilter = useCallback((key: keyof Filters, value: string | number | null) => {
     // D-14: partial reload — só re-busca o que muda com filtro. `assignableUsers`
     // é defer por business no controller: fora do only:, nem roda a query.
     router.get(
@@ -146,9 +150,33 @@ export default function TodoIndex({
         only: ['todos', 'filtros'],
       }
     );
-  };
+  }, [filtros]);
+
+  // A busca do protótipo vai ao SERVIDOR: a lista é paginada (25/pág), então
+  // filtrar só a página carregada mostraria "nada encontrado" com resultado na 2.
+  useEffect(() => {
+    if (busca === (filtros.q ?? '')) return;
+    const t = setTimeout(() => setFilter('q', busca || null), 350);
+    return () => clearTimeout(t);
+  }, [busca, filtros.q, setFilter]);
+
+  // Atalhos do protótipo (`/` busca, `n` novo). Não disparam com foco num campo.
+  useEffect(() => {
+    const emCampo = (alvo: EventTarget | null) => {
+      const el = alvo as HTMLElement | null;
+      return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (emCampo(e.target) || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === '/') { e.preventDefault(); campoBusca.current?.focus(); }
+      if (e.key === 'n' && can.add) { e.preventDefault(); router.visit('/essentials/todo/create'); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [can.add]);
 
   const clearFilters = () => {
+    setBusca('');
     // D-14: partial reload — só re-busca o que muda com filtro.
     router.get('/essentials/todo', {}, { preserveScroll: true, only: ['todos', 'filtros'] });
   };
@@ -183,7 +211,12 @@ export default function TodoIndex({
     });
   };
 
+  // `atrasada` do protótipo (essenciais-extras.jsx:14): sem prazo ou concluída, nunca atrasa.
+  const estaAtrasada = (t: TodoRow) =>
+    t.status !== 'completed' && !!t.end_date && new Date(t.end_date.replace(' ', 'T')) < new Date();
+
   const activeFilters =
+    !!filtros.q ||
     !!filtros.status ||
     !!filtros.priority ||
     !!filtros.user_id ||
@@ -208,81 +241,123 @@ export default function TodoIndex({
           {can.add && (
             <Button asChild>
               <Link href="/essentials/todo/create">
-                <Plus size={14} className="mr-1.5" /> Nova tarefa
+                <Plus size={14} className="mr-1.5" /> Adicionar
               </Link>
             </Button>
           )}
         </header>
 
+        {/* ── toolbar (contrato: `toolbar`) — o protótipo põe busca, recortes e a ação
+             numa linha só (hrm-toolbar, essenciais-page.jsx:165-181); o card de filtros
+             em grid que estava aqui não existe no protótipo. ── */}
         <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
-              <Filter size={14} />
-              <span>Filtros</span>
-              {activeFilters && (
-                <Button variant="ghost" size="sm" className="h-7 px-2 ml-auto" onClick={clearFilters}>
-                  <RefreshCw size={12} className="mr-1" /> Limpar
-                </Button>
-              )}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-              <Select
-                value={filtros.status ?? 'ALL'}
-                onValueChange={(v) => setFilter('status', v)}
-              >
-                <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+          <CardContent className="py-3" data-contract="toolbar">
+            <Inline gap={2} align="center" wrap>
+              <div className="relative min-w-56 flex-1">
+                <Search size={14} aria-hidden="true" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  ref={campoBusca}
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  placeholder="Buscar tarefa ou ID"
+                  aria-label="Buscar tarefa ou ID"
+                  className="pl-8"
+                />
+              </div>
+
+              <Select value={filtros.status ?? 'ALL'} onValueChange={(v) => setFilter('status', v)}>
+                <SelectTrigger className="w-44" aria-label="Situação"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">Todos os status</SelectItem>
+                  <SelectItem value="ALL">Situação: todas</SelectItem>
                   {statuses.map((s) => (
                     <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Select
-                value={filtros.priority ?? 'ALL'}
-                onValueChange={(v) => setFilter('priority', v)}
-              >
-                <SelectTrigger><SelectValue placeholder="Prioridade" /></SelectTrigger>
+
+              <Select value={filtros.priority ?? 'ALL'} onValueChange={(v) => setFilter('priority', v)}>
+                <SelectTrigger className="w-44" aria-label="Prioridade"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">Todas as prioridades</SelectItem>
-                  {priorities.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                  <SelectItem value="ALL">Prioridade: todas</SelectItem>
+                  {priorities.map((pr) => (
+                    <SelectItem key={pr.value} value={pr.value}>{pr.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Esconder é conveniência: quem recorta de verdade é o controller. */}
               {can.assign && users.length > 0 && (
                 <Select
                   value={filtros.user_id ? String(filtros.user_id) : 'ALL'}
                   onValueChange={(v) => setFilter('user_id', v === 'ALL' ? null : Number(v))}
                 >
-                  <SelectTrigger><SelectValue placeholder="Atribuído a" /></SelectTrigger>
+                  <SelectTrigger className="w-48" aria-label="Atribuído a"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ALL">Todos os usuários</SelectItem>
+                    <SelectItem value="ALL">Atribuído a: todos</SelectItem>
                     {users.map((u) => (
                       <SelectItem key={u.id} value={String(u.id)}>{u.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               )}
-              <div className="space-y-1">
-                <Label htmlFor="start_date" className="text-xs text-muted-foreground">De</Label>
-                <Input
-                  id="start_date"
-                  type="date"
-                  value={filtros.start_date ?? ''}
-                  onChange={(e) => setFilter('start_date', e.target.value || null)}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="end_date" className="text-xs text-muted-foreground">Até</Label>
-                <Input
-                  id="end_date"
-                  type="date"
-                  value={filtros.end_date ?? ''}
-                  onChange={(e) => setFilter('end_date', e.target.value || null)}
-                />
-              </div>
-            </div>
+
+              <span className="ml-auto hidden items-center gap-2 text-xs text-muted-foreground lg:inline-flex">
+                <kbd className="rounded border border-border px-1.5 py-0.5">/</kbd> buscar
+                {can.add && (<><kbd className="rounded border border-border px-1.5 py-0.5">n</kbd> novo</>)}
+              </span>
+            </Inline>
+          </CardContent>
+        </Card>
+
+        {/* ── 2ª toolbar (contrato: `filtros-periodo`) — essenciais-page.jsx:182-196 ── */}
+        <Card>
+          <CardContent className="py-3" data-contract="filtros-periodo">
+            <Inline gap={2} align="center" wrap>
+              <span className="text-xs text-muted-foreground">Período de início</span>
+              <Input
+                type="date"
+                className="w-40"
+                value={filtros.start_date ?? ''}
+                aria-label="De"
+                onChange={(e) => setFilter('start_date', e.target.value || null)}
+              />
+              <span className="text-xs text-muted-foreground">até</span>
+              <Input
+                type="date"
+                className="w-40"
+                value={filtros.end_date ?? ''}
+                aria-label="Até"
+                onChange={(e) => setFilter('end_date', e.target.value || null)}
+              />
+              {(filtros.start_date || filtros.end_date) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.get('/essentials/todo',
+                    { ...filtros, start_date: undefined, end_date: undefined },
+                    { preserveScroll: true, replace: true, only: ['todos', 'filtros'] })}
+                >
+                  Limpar período
+                </Button>
+              )}
+
+              <Select
+                value={filtros.ordem ?? 'recentes'}
+                onValueChange={(v) => setFilter('ordem', v === 'recentes' ? null : v)}
+              >
+                <SelectTrigger className="ml-auto w-52" aria-label="Ordenar por"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recentes">Mais recentes</SelectItem>
+                  <SelectItem value="prazo">Prazo mais próximo</SelectItem>
+                  <SelectItem value="prioridade">Prioridade</SelectItem>
+                  <SelectItem value="horas">Maior esforço</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {activeFilters && (
+                <Button variant="ghost" size="sm" onClick={clearFilters}>Limpar tudo</Button>
+              )}
+            </Inline>
           </CardContent>
         </Card>
 
@@ -290,19 +365,40 @@ export default function TodoIndex({
         <Card>
           <CardContent className="p-0">
             {rows.length === 0 ? (
-              <div className="p-12 text-center text-muted-foreground">
-                <Inbox size={32} className="mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Nenhuma tarefa com esses filtros.</p>
+              // Dois estados, não um: o protótipo distingue "primeira vez" de "filtro sem
+              // resultado" (essenciais-page.jsx:200-207). O vivo mostrava a frase de filtro
+              // mesmo em lista que nunca teve tarefa.
+              <div className="p-12 text-center" data-contract="vazio">
+                <Inbox size={32} aria-hidden="true" className="mx-auto mb-2 opacity-50" />
+                <p className="text-sm font-medium">
+                  {activeFilters ? 'Nada com esses filtros' : 'Nenhuma tarefa por aqui'}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {activeFilters
+                    ? 'Combinação de responsável, prioridade, situação e período sem resultado. Limpe um filtro pra ver mais.'
+                    : 'A lista de afazeres é do escritório inteiro: quem atribui usa a permissão essentials.assign_todos; quem só executa vê as suas. Crie a primeira em Adicionar.'}
+                </p>
+                {activeFilters ? (
+                  <Button variant="outline" size="sm" className="mt-4" onClick={clearFilters}>
+                    Limpar busca e filtros
+                  </Button>
+                ) : can.add ? (
+                  <Button size="sm" className="mt-4" asChild>
+                    <Link href="/essentials/todo/create">
+                      <Plus size={14} className="mr-1.5" /> Adicionar
+                    </Link>
+                  </Button>
+                ) : null}
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" data-contract="tabela">
                 <table className="w-full text-sm">
                   <thead className="border-b border-border bg-muted/30 text-xs text-muted-foreground">
                     <tr>
                       <th className="text-left p-3 font-medium">Criado em</th>
-                      <th className="text-left p-3 font-medium">Código</th>
+                      <th className="text-left p-3 font-medium">ID da tarefa</th>
                       <th className="text-left p-3 font-medium">Tarefa</th>
-                      <th className="text-left p-3 font-medium">Status</th>
+                      <th className="text-left p-3 font-medium">Situação</th>
                       <th className="text-left p-3 font-medium">Prioridade</th>
                       <th className="text-left p-3 font-medium">Início</th>
                       <th className="text-left p-3 font-medium">Fim</th>
@@ -334,6 +430,9 @@ export default function TodoIndex({
                           ) : (
                             <span className="text-muted-foreground text-xs">—</span>
                           )}
+                          {estaAtrasada(t) && (
+                            <Badge variant="destructive" className="ml-1.5 text-[10px]">Atrasada</Badge>
+                          )}
                         </td>
                         <td className="p-3">
                           {t.priority ? (
@@ -345,7 +444,9 @@ export default function TodoIndex({
                           )}
                         </td>
                         <td className="p-3 text-xs">{t.date ?? '—'}</td>
-                        <td className="p-3 text-xs">{t.end_date ?? '—'}</td>
+                        <td className={`p-3 text-xs ${estaAtrasada(t) ? 'font-medium text-destructive' : ''}`}>
+                          {t.end_date ?? '—'}
+                        </td>
                         <td className="p-3 text-xs text-right tabular-nums">{t.estimated_hours ?? '—'}</td>
                         <td className="p-3 text-xs">{t.assigned_by ?? '—'}</td>
                         <td className="p-3 text-xs">

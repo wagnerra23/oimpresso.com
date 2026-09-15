@@ -2,12 +2,17 @@
 //   tela: /governance/policies
 //   adrs: 0079 Art. 8 (Policy Gating), 0086 (Fase 5 MVP)
 
-import React, { useState, type ReactNode } from 'react'
+import React, { useMemo, useState, type ReactNode } from 'react'
 import { router } from '@inertiajs/react'
 import { toast } from 'sonner'
+import { TriangleAlert } from 'lucide-react'
 import AppShellV2 from '@/Layouts/AppShellV2'
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
+import { Button } from '@/Components/ui/button'
+import { Inline } from '@/Components/layout'
 import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
+import { Input } from '@/Components/ui/input'
 import { Switch } from '@/Components/ui/switch'
 import PageHeader from '@/Components/shared/PageHeader'
 import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav'
@@ -46,8 +51,26 @@ const Policies: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
   // estado otimista por rule id: { [id]: enabled } sobrepõe o valor vindo das props
   const [overrides, setOverrides] = useState<Record<number, boolean>>({})
   const [pendingId, setPendingId] = useState<number | null>(null)
+  const [search, setSearch] = useState('')
 
   const isEnabled = (rule: Rule) => overrides[rule.id] ?? rule.enabled
+
+  // Busca local sobre o catálogo já carregado — não re-consulta o backend.
+  // Anti-hook do charter ("NÃO esconder rules disabled"): sem termo digitado a lista
+  // volta inteira, ativas e desligadas; o filtro é ação explícita do operador.
+  const filteredGroups = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return rules_by_category
+
+    return rules_by_category
+      .map((group) => ({
+        ...group,
+        rules: group.rules.filter((r) =>
+          `${r.rule_key} ${r.name} ${r.description} ${group.category}`.toLowerCase().includes(q),
+        ),
+      }))
+      .filter((group) => group.rules.length > 0)
+  }, [rules_by_category, search])
 
   const toggle = (id: number, current: boolean) => {
     const next = !current
@@ -81,13 +104,66 @@ const Policies: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
         <KpiCard icon="folder" tone="info"     label="Categorias"      value={kpis.categories.toString()} />
       </KpiGrid>
 
+      {/*
+        Aviso de rastro ausente — o anti-hook do charter ("Toggle sem registrar histórico…
+        sem isso, audit fica cego") descreve o estado ATUAL do vivo: `mcp_governance_rule_history`
+        não tem migration (Fase 5+1, TODO em PoliciesController.php:19 e PolicyToggleService.php:17).
+        Quando a tabela existir, este bloco sai junto.
+      */}
+      {rules_by_category.length > 0 && (
+        <Alert>
+          <TriangleAlert className="h-4 w-4 text-warning" />
+          <AlertTitle>Alternar não deixa rastro</AlertTitle>
+          <AlertDescription>
+            A tabela de histórico de regras ainda não existe. Enquanto for assim, ligar ou desligar
+            uma política muda o enforcement em runtime e a auditoria fica cega justamente para essa
+            mudança — quem alterna precisa saber disso na hora, não depois.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {rules_by_category.length > 0 && (
+        <Card>
+          <CardContent className="py-3">
+            <Inline gap={3} align="center" wrap>
+              <Input
+                type="search"
+                placeholder="Buscar por chave, nome ou categoria…"
+                aria-label="Buscar política"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="max-w-xs"
+              />
+              <span className="text-xs text-muted-foreground">
+                Desligadas continuam na lista — são elas que você precisa achar para reativar.
+              </span>
+            </Inline>
+          </CardContent>
+        </Card>
+      )}
+
       {rules_by_category.length === 0 ? (
         <EmptyState icon="info" title="Sem rules ainda" description="Quando o decision flow ADS criar rules, elas aparecem aqui pra Wagner habilitar/desabilitar." />
+      ) : filteredGroups.length === 0 ? (
+        <EmptyState
+          icon="search-x"
+          variant="search"
+          title="Nenhuma política bate com essa busca"
+          description="Limpe o campo para ver o catálogo inteiro — ativas primeiro, depois por categoria e chave."
+          action={<Button size="sm" onClick={() => setSearch('')}>Limpar busca</Button>}
+        />
       ) : (
-        rules_by_category.map((group) => (
+        filteredGroups.map((group) => (
           <Card key={group.category}>
             <CardContent className="p-4">
-              <h3 className="text-lg font-semibold mb-3 capitalize">{group.category}</h3>
+              <Inline asChild gap={2} align="center">
+                <h3 className="text-lg font-semibold mb-3 capitalize">
+                  {group.category}
+                  <span className="font-mono text-xs font-normal text-muted-foreground">
+                    {group.rules.length}
+                  </span>
+                </h3>
+              </Inline>
               <ul className="space-y-2">
                 {group.rules.map((rule) => (
                   <li key={rule.id} className="flex items-start gap-3 text-sm border-b border-border pb-2 last:border-0">

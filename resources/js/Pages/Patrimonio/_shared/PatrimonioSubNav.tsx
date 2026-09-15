@@ -14,13 +14,17 @@
 //
 // ─── O que isso significa na prática: são 6 abas, não 7 ──────────────────────────
 //
-// O protótipo (`prototipo-ui/cowork/patrimonio-page.jsx:835`) declara SETE abas; o menu
+// O protótipo (`prototipo-ui/cowork/Wagner/patrimonio-page.jsx:835`) declara SETE abas; o menu
 // vivo declara SEIS ghosts, e as listas não coincidem:
 //
-//   menu vivo  · Painel · Ativos · Alocações · Devoluções · Manutenção · Configurações
-//   protótipo  · Painel · Bens   · Alocações · Manutenções · Garantias · Auditoria · Configurações
+//   menu vivo  · Painel · Bens · Alocações · Devoluções · Manutenções · Configurações
+//   protótipo  · Painel · Bens · Alocações · Manutenções · Garantias · Auditoria · Configurações
 //
-// A diferença não é descuido de um dos lados — é escopo em aberto:
+// Os RÓTULOS convergiram em 2026-09-09 por decisão [W]: a aba dizia "Ativos"/"Manutenção"
+// enquanto o `PageHeader` da MESMA tela dizia "Bens"/"Manutenções". Trocado no dono ÚNICO
+// (`DataController`), não aqui — este arquivo continua sem saber o nome de aba nenhuma.
+//
+// O que RESTA divergindo não é descuido de um dos lados — é escopo em aberto:
 //   • **Devoluções** existe como rota real (`/asset/revocation`, `Route::resource`) e o
 //     protótipo a trata como estado dentro de Alocações. A rota manda.
 //   • **Garantias** e **Auditoria** são decisões de produto ABERTAS do [W] — itens 4 e 5
@@ -57,6 +61,23 @@ export interface PatrimonioSubNavProps {
   active: string;
   /** Ações da tela que vão pro overflow `⋯ Mais`. */
   extraOverflowItems?: PageHeaderOverflowItem[];
+  /**
+   * Contadores por `key` de ghost — o pill numérico do `PageHeaderTabs`.
+   *
+   * NÃO fere a regra do arquivo. A LISTA continua vindo inteira do `shell.menu`: isto
+   * só ENRIQUECE, por chave, o que já foi derivado. Some a aba do menu (permissão,
+   * assinatura, rename de rota) e o contador some com ela — não há como um número
+   * sobreviver à aba que ele conta, que é o que um segundo dono permitiria.
+   *
+   * Por que vem da TELA e não do `DataController`: o menu é montado pelo middleware
+   * `AdminSidebarMenu` em 1598 das 1905 rotas do app (medido 2026-09-09), das quais só
+   * 40 são `asset/` — pôr a query ali cobraria 1558 rotas de outros módulos por um
+   * número que só estas cinco telas mostram, e sem poder deferir. Pela tela é o padrão
+   * canônico (`ContactController:523`, `tab_counts` via `Inertia::defer`).
+   *
+   * Chave ausente ou `undefined` = aba sem pill, que é o default de 4 das 6.
+   */
+  badges?: Record<string, number | undefined>;
   /** Omite o primary (a tela renderiza o dela à direita). */
   hidePrimary?: boolean;
 }
@@ -68,6 +89,7 @@ export default function PatrimonioSubNav({
   active,
   extraOverflowItems,
   hidePrimary,
+  badges,
 }: PatrimonioSubNavProps) {
   // O shape da shared prop, declarado aqui em vez de `as any`: o `shell.menu` e LAZY
   // (`HandleInertiaRequests`), entao tudo e opcional — quem consome tem de sobreviver a
@@ -81,10 +103,22 @@ export default function PatrimonioSubNav({
   // continua utilizável — só perde a navegação entre abas.
   if (!item?.ghosts?.length) return null;
 
+  // Enriquece por CHAVE, preservando ordem e conteúdo do menu. `badge` só entra quando a
+  // tela mandou um número pra AQUELA chave; as demais abas seguem byte-idênticas ao que o
+  // backend declarou. Sem `badges`, o objeto do menu passa intacto.
+  const ghosts = badges
+    ? item.ghosts.map((g) => {
+        // Extraído pra variável em vez de indexar duas vezes: em acesso indexado repetido
+        // o TS não carrega o estreitamento do `!= null` para o segundo uso.
+        const n = badges[g.key];
+        return n != null ? { ...g, badge: n } : g;
+      })
+    : item.ghosts;
+
   return (
     <PageHeaderTabs
       primary={hidePrimary ? undefined : item.primary}
-      ghosts={item.ghosts}
+      ghosts={ghosts}
       activeGhostKey={active}
       group="operar"
       maxVisible={6}

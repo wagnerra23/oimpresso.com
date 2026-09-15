@@ -63,7 +63,7 @@ descrevendo o header de `/financeiro/cobranca` (PR #1453 corrigiu border magenta
 teria que realmente acertar o padrão. esquece os detalhes que deixa lindo."
 
 Resposta foi escrever spec v3 inicial (cobertura 17 dimensões, 30 seções) + protótipo HTML standalone + diagrama SVG
-em `prototipo-ui/prototipos/pageheader-canon-v3/`. Wagner validou o método ("entregar protótipo antes de codar"),
+em `prototipo-ui/cowork/Wagner/legado/pageheader-canon-v3/`. Wagner validou o método ("entregar protótipo antes de codar"),
 mas rejeitou todas 5 variantes do botão "Filtros avançados" propostas. Pedido: comparar com o REAL.
 
 Inspeção do real (cowork-canon-financeiro-bundle.css medido ao vivo em
@@ -191,5 +191,5 @@ Resumo da spec:
 - [ADR 0187](0187-constituicao-ui-v2-ponteiro-canon.md) — Constituição UI v2 ponteiro canon
 - [memory/requisitos/_DesignSystem/templates/PageHeader-canon-v3-1.md](../requisitos/_DesignSystem/templates/PageHeader-canon-v3-1.md) — SPEC completa do template
 - [memory/requisitos/_DesignSystem/templates/PageHeader-LEARNINGS.md](../requisitos/_DesignSystem/templates/PageHeader-LEARNINGS.md) — diário evolutivo (sessão 2026-05-24 + futuras)
-- [prototipo-ui/prototipos/pageheader-canon-v3/](../../prototipo-ui/prototipos/pageheader-canon-v3/) — bundle de protótipos visuais (SPEC inicial v3 + 3-familias + b-v2-roxo-kpis)
+- [prototipo-ui/cowork/Wagner/legado/pageheader-canon-v3/](../../prototipo-ui/cowork/Wagner/legado/pageheader-canon-v3/) — bundle de protótipos visuais (SPEC inicial v3 + 3-familias + b-v2-roxo-kpis)
 - PRs desta sessão: [#1453](https://github.com/wagnerra23/oimpresso.com/pull/1453) (border magenta fix) · [#1454](https://github.com/wagnerra23/oimpresso.com/pull/1454) (primary ciano cadastro) · [#1455](https://github.com/wagnerra23/oimpresso.com/pull/1455) (tabs inline)

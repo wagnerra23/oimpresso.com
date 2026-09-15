@@ -14,6 +14,8 @@ outcomes:
 
 # Os 6 que sobraram do #6897 — cada um pela porta que tinha
 
+## Contexto
+
 > Continuação de [2026-09-06-seis-perguntas-design-sync-resolvidas.md](2026-09-06-seis-perguntas-design-sync-resolvidas.md) §Pós-merge. O lote #6897 encolheu de 11 para 5 telas porque estes 6 gap.md não tinham como ganhar map honesto pela porta que existia. Aqui cada um recebe a porta certa ou a declaração honesta de que não terá map — nunca o esqueleto.
 
 ## O que foi medido antes de mexer

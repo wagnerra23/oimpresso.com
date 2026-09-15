@@ -1,7 +1,7 @@
 ---
 id: requisitos-financeiro-unificado-gap
 tela: Financeiro/Unificado (/financeiro/unificado)
-prototipo: prototipo-ui/cowork/financeiro-page.jsx + financeiro-ops.jsx (NOVO) @ 4e3aacfc0f (import 2026-07-01; delta vs 09a0f9f7ef = 913 inserções)
+prototipo: prototipo-ui/cowork/Wagner/financeiro-page.jsx + financeiro-ops.jsx (NOVO) @ 4e3aacfc0f (import 2026-07-01; delta vs 09a0f9f7ef = 913 inserções)
 tela_viva: resources/js/Pages/Financeiro/Unificado/Index.tsx (2784 ln) + _components/ (25 arquivos)
 paridade_atual: ~96%
 gerado_em: 2026-07-01

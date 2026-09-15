@@ -1,6 +1,6 @@
 // Abas de grade + drawer de detalhe do painel "Visão geral" (US-DASH-005).
 //
-// Âncora de design: prototipo-ui/cowork/dash-legacy-page.jsx — seção `TabBar` +
+// Âncora de design: prototipo-ui/cowork/Wagner/dash-legacy-page.jsx — seção `TabBar` +
 // `DataTablePro` + `Drawer`. O protótipo desenha 9 abas; o Blade legado tem 8
 // (medido em resources/views/home/index.blade.php, 2026-08-27), e quem decide
 // quais aparecem é o backend: `abas` já chega filtrada por permissão e setting.

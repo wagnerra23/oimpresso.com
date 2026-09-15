@@ -14,6 +14,8 @@ outcomes:
 
 # Refutação GT-G5 — lote PR #6926 (`claude/gap-essentials-8-telas`)
 
+## Contexto
+
 > Protocolo: [`PROTOCOLO-REFUTADOR-BACKFILL.md`](../requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md) §2/§3/§4.
 > Base medida: `origin/main` = `c1292448ee` · merge-base do branch = `ad376ed239` (main está 10 commits à frente; nenhum deles toca `prototipo-ui/cowork/`, `resources/js/Pages/Essentials/`, `cowork-inbox/{essenciais,hrm}` nem `prototipo-ui/contrato/` — `git diff --stat ad376ed239 origin/main -- <paths>` vazio) · HEAD do lote = `58e21c116f` · repo **não** raso (`git rev-parse --is-shallow-repository` = false).
 > Refutador: Claude (Fable 5.1) em sessão fresca, worktree `heuristic-bose-8ee418`, sem contexto do gerador. ⚠️ O worktree estava com o HEAD **no próprio commit do lote**; os 12 arquivos "vivo"/"protótipo" foram exportados de `origin/main` via `MSYS_NO_PATHCONV=1 git show origin/main:<path>` para o scratchpad e conferidos por `git hash-object` = `git rev-parse origin/main:<path>` (12/12 idênticos ao disco — o branch não toca nenhum deles, diff vazio).

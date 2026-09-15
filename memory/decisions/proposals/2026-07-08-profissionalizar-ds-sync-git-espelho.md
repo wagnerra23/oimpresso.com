@@ -13,7 +13,7 @@ O **canvas dark** do shell operacional (`.cockpit --bg`, o que pinta telas como 
 | Cópia | Store | `--bg` dark | Perfil |
 |---|---|---|---|
 | **Prod/git (SSOT)** | `resources/css/tokens/semantic.tokens.json` → `cockpit.surface.bg.$extensions.com.oimpresso.dark` | `oklch(0.165 0.008 282)` | **escuro** (L 0.165), **violeta** (hue 282), quase neutro |
-| **Snapshot ds-v6 (jun/congelado)** | `prototipo-ui/cowork/ds-v6` | `oklch(0.205 0.008 282)` | violeta, um degrau mais claro |
+| **Snapshot ds-v6 (jun/congelado)** | `prototipo-ui/cowork/Wagner/ds-v6` | `oklch(0.205 0.008 282)` | violeta, um degrau mais claro |
 | **Espelho claude.ai/design** | projeto `019dd02f-…` → `colors_and_type.css` (`.cockpit[data-theme=dark] --bg`) | `oklch(0.26 0.006 240)` | **mais claro** (L 0.26), **azul-frio** (hue 240) |
 
 O que o Wagner enxerga em `/contacts` (prod) vs o design que aprovou é uma diferença de **dois eixos**:

@@ -7,6 +7,8 @@ prs: [6914]
 
 # Refutação GT-G5 · lote PR #6914
 
+## Contexto
+
 > Protocolo: `memory/requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md` §2–§4. Sessão fresca (worktree `quizzical-hugle-38b479`, branch `claude/gap-map-estoque-mfg-oficina-oi`, HEAD `1ef4855a1d`, `origin/main` `4fbab283a7`, merge-base `80bc4ef8b9` — main está 5 commits à frente e **nenhum** toca os 10 arquivos-âncora: blobs HEAD ≡ main, conferido por `git rev-parse HEAD:<p>` × `origin/main:<p>`). Clone completo (`--is-shallow-repository` = false). Único `*refutacao*` aberto: o exemplo r9 do #6897, para calibrar formato. Refutador: Fable 5.1 (tier acima de opus). Tipo `anchors`, amostra 100%.
 
 ## Checklist §3

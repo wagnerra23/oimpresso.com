@@ -9,7 +9,7 @@ related_adrs: [93, 94, 101, 104, 107, 110]
 tier: A
 charter_version: 1
 sidebar_group: fin (FINANCEIRO)
-related_prototype: n/a (herda PT-02 Form/Drawer; segue o Padrao de Tela)
+related_prototype: n/a (herda PT-02 Form/Drawer; segue o Padrao de Tela)  # 2026-09-09 [C]: idem `Create.charter.md` ao lado (mesma medição, mesma aba placeholder, mesmo porte reverso). ⚠️ PT-02 sem template renderizado — decisão [W] em §5.7. medido 2026-09-09 pelas 3 pernas (repo inteiro com --hidden, projeto Cowork por ID via DesignSync.list_files, espelho). Ver memory/requisitos/_DesignSystem/INVENTARIO-ANCORAS-2026-09-09.md §5.3 + §5.7.
 related_us: [US-RB-001]
 ---
 

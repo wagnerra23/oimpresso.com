@@ -1004,42 +1004,40 @@ function checkStaleReview() {
   }
 }
 
-// ── Check X: cobertura de auditoria (módulo Tier-0 / nota-baixa sem doc de audit) ──
+// ── Check X: cobertura de auditoria (módulo Tier-0 sem doc de audit) ──
 // Responde mecanicamente "isso está auditado?" a cada PR. Determinístico, zero-FP por
 // construção (o doc de auditoria existe no dir do módulo ou não). Um módulo QUALIFICA
-// pra auditoria profunda se é Tier-0 (toca dinheiro/estoque/fiscal/tenant) OU tem nota
-// module-grade < FLOOR. Se qualifica e NÃO tem nenhum `AUDIT*.md`/`AUDITORIA*.md` no
-// seu dir de requisitos → 🟡 gap de cobertura. Advisory (nasce advisory — ADR 0271/0275).
-// Fonte-de-verdade: governance/module-grades-baseline.json (a mesma do module-grades-gate).
-// Ref: memory/requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md (Onda 2/3) · ADR 0155 · ADR 0258.
+// pra auditoria profunda se é Tier-0 (toca dinheiro/estoque/fiscal/tenant). Se qualifica
+// e NÃO tem nenhum `AUDIT*.md`/`AUDITORIA*.md` no seu dir de requisitos → 🟡 gap de
+// cobertura. Advisory (nasce advisory — ADR 0271/0275).
+// ⚠️ A perna "nota module-grade < 70" SAIU em 2026-09-15: a ADR 0399 aposentou a rubrica e
+// deletou `governance/module-grades-baseline.json`, que era a fonte dela. O conjunto Tier-0
+// abaixo é hardcoded e NUNCA dependeu da rubrica, então o check mantém a metade que importa
+// em vez de sumir junto. A perda é DECLARADA, não silenciosa: ele deixou de enxergar
+// "módulo não-Tier-0 com nota baixa sem auditoria" — se isso voltar a importar, o gatilho
+// tem de ser outro sinal, não a nota morta.
+// Ref: memory/requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md (Onda 2/3) · ADR 0258 · ADR 0399.
 const AUDIT_TIER0 = new Set(['Compras', 'PaymentGateway', 'Financeiro', 'Fiscal', 'NfeBrasil', 'RecurringBilling']);
-const AUDIT_GRADE_FLOOR = 70;
 function checkAuditCoverage() {
-  const gradesFile = 'governance/module-grades-baseline.json';
-  if (!exists(gradesFile)) return; // sem fonte-de-verdade → não inventa (temp-dir safe)
-  let grades;
-  try { grades = JSON.parse(read(gradesFile)).modules || {}; } catch { return; }
   // Aceita audit no topo (`AUDIT*.md`/`AUDITORIA*.md`) OU numa subpasta `audits/` com
   // qualquer `.md` (o padrão real do repo: NfeBrasil/RecurringBilling têm audits/YYYY-MM-DD.md).
   const hasAuditDoc = (mod) => {
     const dir = `memory/requisitos/${mod}`;
-    if (!exists(dir)) return false;
     const hits = listFiles(dir, (rel) =>
       rel.endsWith('.md') && (/\/audits\//i.test(rel) || /\/audit[^/]*\.md$/i.test(rel)));
     return hits.length > 0;
   };
   const gaps = [];
-  for (const [mod, grade] of Object.entries(grades)) {
-    if (typeof grade !== 'number') continue;
-    const tier0 = AUDIT_TIER0.has(mod);
-    const low = grade < AUDIT_GRADE_FLOOR;
-    if (!tier0 && !low) continue; // não qualifica pra auditoria profunda
+  for (const mod of AUDIT_TIER0) {
+    // Módulo sem dir de requisitos neste checkout → não medido, não acusado (temp-dir safe:
+    // medir idade/ausência do que não declara fonte seria inventar o número, §5 2026-07-29).
+    if (!exists(`memory/requisitos/${mod}`)) continue;
     if (hasAuditDoc(mod)) continue; // já tem lente
-    gaps.push(`${mod} (nota ${grade}${tier0 ? ' · Tier-0' : ''}) — sem AUDIT*.md em memory/requisitos/${mod}/`);
+    gaps.push(`${mod} (Tier-0) — sem AUDIT*.md em memory/requisitos/${mod}/`);
   }
   if (gaps.length) {
     warns.push({ check: 'X', kind: 'audit-coverage-gap', count: gaps.length, sample: gaps.slice(0, 12),
-      msg: `${gaps.length} módulo(s) que QUALIFICAM pra auditoria profunda (Tier-0 OU nota < ${AUDIT_GRADE_FLOOR}) sem NENHUM doc de auditoria no dir. Cobrir via PLANO-APROFUNDAMENTO-AVALIACOES.md (Onda 2/3). 🟡 sentinela — não bloqueia.` });
+      msg: `${gaps.length} módulo(s) Tier-0 sem NENHUM doc de auditoria no dir. Cobrir via PLANO-APROFUNDAMENTO-AVALIACOES.md (Onda 2/3). 🟡 sentinela — não bloqueia.` });
   }
 }
 

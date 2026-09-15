@@ -14,6 +14,8 @@ outcomes:
 
 # Refutação GT-G5 — rodada 2 — lote PR #6926 (`claude/gap-essentials-8-telas`)
 
+## Contexto
+
 > Protocolo: [`PROTOCOLO-REFUTADOR-BACKFILL.md`](../requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md) §2/§3/§4.
 > Rodada 1: [`2026-09-06-refutacao-gt-g5-lote-6926.md`](2026-09-06-refutacao-gt-g5-lote-6926.md) (reprovado, 2,81%, 15 erros / 534). Lida inteira antes de qualquer medição.
 > Base medida: `origin/main` = `7bff2ca69d` · merge-base = `ad376ed239` · HEAD do lote = `534b2f4714` (2 commits: `58e21c116f` lote + `534b2f4714` fix) · `main` está **13** commits à frente (era 10 na r1) · repo **raso** (`git rev-parse --is-shallow-repository` = true — nenhuma data de `git log` usada como recibo, §5 2026-07-24).

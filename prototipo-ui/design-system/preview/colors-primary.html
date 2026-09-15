@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- @dsCard group="Colors" name="Colors — Primary & Neutrals" subtitle="Roxo (purple) primary + slate scale — DS v6" viewport="700x220" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Colors — Primary & neutrals</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 20px; }
+  .row { display: grid; grid-template-columns: repeat(11, 1fr); gap: 6px; margin-bottom: 14px; }
+  .swatch { aspect-ratio: 1 / 1; border-radius: 8px; border: 1px solid var(--border); display:flex; flex-direction:column; justify-content:flex-end; padding: 6px; font-size: 9px; line-height: 1.2; color: var(--fg-1); font-variant-numeric: tabular-nums; }
+  .dark-text { color: var(--fg); }
+  .light-text { color: var(--primary-fg); }
+  .label { font-weight: 600; }
+  .hex { opacity: .8; font-size: 8px; font-family: var(--font-mono); }
+  .group { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .group span { font-size:11px; font-weight:600; color: var(--fg-1); }
+  .group em { font-size: 10px; color: var(--fg-2); font-style:normal; }
+</style>
+</head>
+<body>
+  <div class="group"><span>Primary — roxo (purple) · hue 295</span><em>buttons, links, active nav, focus ring · accent default ADR 0190</em></div>
+  <div class="row">
+    <div class="swatch" style="background:oklch(0.97 0.02 295); color: var(--fg);"><span class="label">50</span><span class="hex">.97 .02</span></div>
+    <div class="swatch" style="background:oklch(0.95 0.04 295); color: var(--fg);"><span class="label">100★soft</span><span class="hex">.95 .04</span></div>
+    <div class="swatch" style="background:oklch(0.88 0.07 295); color: var(--fg);"><span class="label">200</span><span class="hex">.88 .07</span></div>
+    <div class="swatch" style="background:oklch(0.78 0.11 295); color: var(--fg);"><span class="label">300</span><span class="hex">.78 .11</span></div>
+    <div class="swatch light-text" style="background:oklch(0.62 0.15 295);"><span class="label">400★dark</span><span class="hex">.62 .15</span></div>
+    <div class="swatch light-text" style="background:oklch(0.55 0.15 295); outline: 2px solid var(--fg-1); outline-offset:2px;"><span class="label">500★</span><span class="hex">.55 .15</span></div>
+    <div class="swatch light-text" style="background:oklch(0.48 0.15 295);"><span class="label">600</span><span class="hex">.48 .15</span></div>
+    <div class="swatch light-text" style="background:oklch(0.42 0.15 295);"><span class="label">700</span><span class="hex">.42 .15</span></div>
+    <div class="swatch light-text" style="background:oklch(0.36 0.13 295);"><span class="label">800</span><span class="hex">.36 .13</span></div>
+    <div class="swatch light-text" style="background:oklch(0.28 0.10 295);"><span class="label">900</span><span class="hex">.28 .10</span></div>
+    <div class="swatch light-text" style="background:oklch(0.20 0.06 295);"><span class="label">950</span><span class="hex">.20 .06</span></div>
+  </div>
+
+  <div class="group"><span>Slate (neutral) — base color</span><em>backgrounds, borders, text, all chrome</em></div>
+  <div class="row">
+    <div class="swatch" style="background:hsl(210 40% 98%);"><span class="label">50</span><span class="hex">210 40 98</span></div>
+    <div class="swatch" style="background:hsl(210 40% 96.1%);"><span class="label">100</span><span class="hex">210 40 96</span></div>
+    <div class="swatch" style="background:hsl(214.3 31.8% 91.4%);"><span class="label">200</span><span class="hex">214 31 91</span></div>
+    <div class="swatch" style="background:hsl(213 27% 84%);"><span class="label">300</span><span class="hex">213 27 84</span></div>
+    <div class="swatch" style="background:hsl(215 20% 65%); color: var(--fg);"><span class="label">400</span><span class="hex">215 20 65</span></div>
+    <div class="swatch light-text" style="background:hsl(215.4 16.3% 46.9%);"><span class="label">500</span><span class="hex">215 16 46</span></div>
+    <div class="swatch light-text" style="background:hsl(215.3 19.3% 34.5%);"><span class="label">600</span><span class="hex">215 19 34</span></div>
+    <div class="swatch light-text" style="background:hsl(217.2 32.6% 17.5%);"><span class="label">700</span><span class="hex">217 32 17</span></div>
+    <div class="swatch light-text" style="background:hsl(222.2 47.4% 11.2%);"><span class="label">800</span><span class="hex">222 47 11</span></div>
+    <div class="swatch light-text" style="background:hsl(222.2 84% 4.9%);"><span class="label">900★</span><span class="hex">222 84 04</span></div>
+    <div class="swatch light-text" style="background:hsl(222 90% 2%);"><span class="label">950</span><span class="hex">222 90 02</span></div>
+  </div>
+</body>
+</html>

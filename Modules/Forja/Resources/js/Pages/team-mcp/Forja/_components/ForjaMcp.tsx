@@ -4,7 +4,7 @@
 //   tela: /forja/mcp
 //   module: Forja
 //   adrs: 0388 (réplica primeiro) · 0283 (loop de handoff) · 0081 (token raw nunca exposto) · UI-0013
-//   fonte visual: prototipo-ui/cowork/forja-mcp.jsx `function ForjaMCPView`
+//   fonte visual: prototipo-ui/cowork/Wagner/forja-mcp.jsx `function ForjaMCPView`
 //   paridade: memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md
 //
 // ORDEM DO PROTÓTIPO, que é o contrato de layout desta onda:
@@ -46,7 +46,7 @@ interface Tool {
   nota: string;
 }
 
-// VERBATIM de prototipo-ui/cowork/forja-data.jsx `FORJA_MCP_TOOLS`.
+// VERBATIM de prototipo-ui/cowork/Wagner/forja-data.jsx `FORJA_MCP_TOOLS`.
 const TOOLS: Tool[] = [
   { tool: 'backlog.read', acao: 'ler issues / filtros', perm: 'ok', nota: 'leitura livre' },
   { tool: 'changelog.read', acao: 'o que shippou', perm: 'ok', nota: 'leitura livre' },

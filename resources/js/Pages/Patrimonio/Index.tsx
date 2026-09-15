@@ -1,6 +1,6 @@
 // Patrimonio/Index — Painel do Patrimônio (PT-04 Dashboard · UI-0013).
 //   rota:    GET /asset/dashboard  →  AssetController::dashboard()
-//   fonte:   prototipo-ui/cowork/patrimonio-page.jsx  aba "Painel" (painelData :149)
+//   fonte:   prototipo-ui/cowork/Wagner/patrimonio-page.jsx  aba "Painel" (painelData :149)
 //   runbook: memory/requisitos/AssetManagement/RUNBOOK-patrimonio-index.md
 //   adrs:    0394 (endereço Pages/Patrimonio/**) · 0104 (MWART) · 0093 (multi-tenant)
 //
@@ -8,15 +8,20 @@
 // nunca é calculada, e a regra é decisão [W] em aberto) e custo de manutenção (a tabela
 // não tem coluna de valor). Ver RUNBOOK §3 — não invente fórmula pra preenchê-los.
 import * as React from 'react';
-import { Deferred } from '@inertiajs/react';
+import { Deferred, router } from '@inertiajs/react';
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { useBusiness, usePageProps } from '@/Hooks/usePageProps';
+import { PageHeader } from '@/Components/PageHeader';
+import { Icon } from '@/Components/Icon';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Card, CardContent } from '@/Components/ui/card';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
 // ADR 0253 — layout é COMPOSIÇÃO destes primitivos, nunca `<div className="flex gap-2">` solto.
-import { Inline, Grid } from '@/Components/layout';
+import { Inline, Grid, Stack } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
 
 interface Kpis {
@@ -41,6 +46,8 @@ interface Manutencao {
 interface MeusBens { alocado: number; porCategoria: Array<{ categoria: string; quantidade: number }> }
 
 interface Props {
+  /** Deferida (contador da aba). Ausente no primeiro paint -- o pill so aparece depois. */
+  abas_contadores?: Record<string, number> | null;
   is_admin: boolean;
   pode: { ver: boolean; criar: boolean };
   apurado_em: string;
@@ -85,14 +92,32 @@ function Esqueleto({ linhas = 3 }: { linhas?: number }) {
   );
 }
 
-function Painel({ titulo, descricao, children }: { titulo: string; descricao: string; children: React.ReactNode }) {
+/** `selo` espelha o `a.pill` do `AnaliseCard` do protótipo (`chat-jana.jsx:329`): no header do
+ *  card, título+descrição à esquerda e o selo à direita. Opcional porque no protótipo também é —
+ *  das três análises do Patrimônio, só a de categoria define `pill` (`patrimonio-page.jsx:176`). */
+function Painel({
+  titulo,
+  descricao,
+  selo,
+  children,
+}: {
+  titulo: string;
+  descricao: string;
+  selo?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <Card>
       <CardContent className="space-y-3 p-4">
-        <div>
-          <h2 className="text-sm font-semibold text-foreground">{titulo}</h2>
-          <p className="text-xs text-muted-foreground">{descricao}</p>
-        </div>
+        <Inline align="start" justify="between" gap={2}>
+          {/* `min-w-0` não é enfeite: sem ele o flex não encolhe abaixo do min-content e o
+              título longo vaza pra fora do card (§5 2026-08-24). */}
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-foreground">{titulo}</h2>
+            <p className="text-xs text-muted-foreground">{descricao}</p>
+          </div>
+          {selo ? <div className="shrink-0">{selo}</div> : null}
+        </Inline>
         {children}
       </CardContent>
     </Card>
@@ -114,23 +139,244 @@ function Barra({ rotulo, pct, valor, cor = 'bg-primary' }: { rotulo: string; pct
   );
 }
 
-export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, garantia, manutencoes, meusBens }: Props) {
+/** Linha do "O que fazer primeiro" — espelha o `AcaoRow` do protótipo
+ *  (`chat-jana.jsx:403`, consumido por `MP.Acoes`): ícone · (título + sub) · CTA à direita. */
+function Acao({
+  titulo,
+  sub,
+  icone,
+  cta,
+  href,
+}: {
+  titulo: string;
+  sub: string;
+  icone: string;
+  cta: string;
+  href: string;
+}) {
+  return (
+    <Card>
+      <CardContent className="p-3">
+        <Inline gap={3} align="center" justify="between">
+          <Inline gap={3} align="center" className="min-w-0">
+            <span
+              aria-hidden
+              className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"
+            >
+              <Icon name={icone} size={16} strokeWidth={1.8} />
+            </span>
+            {/* `min-w-0` não é enfeite: sem ele o flex não encolhe abaixo do min-content e o
+                título longo vaza pra fora do card (§5 2026-08-24). */}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-foreground">{titulo}</p>
+              <p className="truncate text-xs text-muted-foreground">{sub}</p>
+            </div>
+          </Inline>
+          <Button variant="outline" size="sm" asChild className="shrink-0">
+            <a href={href}>{cta}</a>
+          </Button>
+        </Inline>
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
+ * Eyebrow de contexto — o `contexto` do `MP.Header` (`modulo-padrao.jsx:18`), que o
+ * `CliPageHead` renderiza como `<p>` IRMÃO ACIMA do header quando `contextoWrap` é pedido
+ * (`cli-pagehead.jsx:89`), e o Patrimônio pede (`modulo-padrao.jsx:32`). É irmão porque o
+ * slot `context` do DS é `nowrap`+`ellipsis` e ENGOLIA a contagem operacional — o docblock
+ * do `CliPageHead` mede a perda ("14 folhas · 11 pendentes" sumindo) e conclui que a
+ * contagem é conteúdo de domínio, não decoração. O `PageHeader` canon daqui não tem slot
+ * nenhum pra isso, então a mesma solução: irmão, não override do canon.
+ *
+ * Tokens do protótipo (`cli-pagehead.jsx:90-92`) traduzidos pro vocabulário do repo:
+ * mono 11px/500, uppercase, tracking .04em, cor dim, `text-wrap: pretty`.
+ *
+ * `-mb-5` compensa o `pt-6` (24px) do `PageHeader` canon, como o `-11px` do protótipo
+ * compensa os 14px do `<header>` do DS: sem isso o eyebrow fica a 24px do título, contra
+ * os ~3px que o legado tinha (`chat-jana.css:45`).
+ */
+function LinhaDeContexto({ partes }: { partes: Array<string | null | undefined> }) {
+  // O filtro é do protótipo, não conveniência: `contexto.filter(c => c != null && c !== '')`
+  // (`cli-pagehead.jsx:79`). Pedaço ausente SAI do join em vez de virar separador órfão —
+  // é o que sustenta a contagem de bens chegar depois (prop deferida) sem quebrar a linha.
+  const linha = partes.filter((p): p is string => p != null && p !== '').join(' · ');
+  if (!linha) return null;
+
+  return (
+    <p className="-mb-5 font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground [text-wrap:pretty]">
+      {linha}
+    </p>
+  );
+}
+
+/**
+ * Pílula de frescor — o `atualizadoAs` + `onRefresh` do `MP.Header`. Vai como PRIMEIRO item
+ * de `actions`, e a posição não é escolha minha: o `CliPageHead` monta `{frescor}{acoes}`
+ * (`:159`) depois de medir que pô-la no slot `freshness` do DS roubava largura do título
+ * permanentemente (`:30-37` — o h1 de `repair` truncava em 218×173).
+ *
+ * Clicável porque o protótipo passa `onRefresh` (`patrimonio-page.jsx:822`), e aqui existe
+ * o equivalente honesto: `router.reload()` refaz o request, e o `apurado_em` é
+ * `now()->toIso8601String()` no controller (`AssetController:643`) — a hora do selo muda
+ * porque a apuração aconteceu de verdade, não porque um `setState` a reescreveu.
+ * A copy do título é a literal do protótipo (`modulo-padrao.jsx:34` `refreshTitle`).
+ */
+function PilulaFrescor({ hora }: { hora: string }) {
+  return (
+    <button
+      type="button"
+      onClick={() => router.reload()}
+      title="Reapurar agora"
+      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+    >
+      <span aria-hidden className="size-1.5 rounded-full bg-success" />
+      Atualizado {hora}
+    </button>
+  );
+}
+
+export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpis, porCategoria, garantia, manutencoes, meusBens }: Props) {
   const apurado = new Date(apurado_em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  // Só HH:MM no selo do header — é o formato do protótipo (`patrimonio-page.jsx:822`,
+  // `toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})`). O carimbo COMPLETO
+  // segue no "Resumo de hoje": o protótipo tem os dois (`MP.Resumo quando=` :215), e um
+  // não substitui o outro.
+  const apuradoHora = new Date(apurado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+  // Nome da empresa: MESMA fonte que o AppShellV2 usa na sidebar (`shell.cockpit.businessNome`,
+  // uma query em `App\Business`), com o `business.name` do shared prop — que vem da SESSÃO — só
+  // de fallback. A ordem NÃO é preferência: `Produto/Unificado/Index.tsx:235` já tinha medido
+  // que o da sessão chega VAZIO em ambiente de teste, e a primeira baseline visual desta tela
+  // PROVOU o mesmo aqui — o eyebrow saiu como `0 BENS`, sem o negócio, enquanto a sidebar do
+  // MESMO render mostrava o nome. Idioma copiado de lá, não reinventado.
+  // Sem default: imprimir 'Oimpresso' afirmaria um tenant que não é o do usuário (ADR 0093).
+  // Os DOIS hooks são chamados incondicionalmente — `a ?? b` não avalia `b` quando `a` tem
+  // valor, e hook em avaliação condicional quebra as Rules of Hooks.
+  const shell = usePageProps().shell as ({ cockpit?: { businessNome?: string } } | undefined);
+  const nomeDoShell = shell?.cockpit?.businessNome ?? null;
+  const nomeDaSessao = useBusiness()?.name ?? null;
+  const negocio = nomeDoShell ?? nomeDaSessao;
+
+  // Selo da análise de categoria — o `pill` do protótipo (`patrimonio-page.jsx:176`):
+  // percentual da categoria que concentra a maior fatia do patrimônio.
+  //
+  // A dominante é derivada AQUI, por maior valor, e não lida como `porCategoria[0]`: hoje o
+  // `painelPorCategoria` ordena por valor desc (`AssetController::painelPorCategoria`
+  // `orderByDesc('valor')`), mas um selo que AFIRMA "a maior fatia" não pode depender de o
+  // servidor manter a ordenação. Com o reduce, o selo e a primeira barra concordam por
+  // construção enquanto a ordem existir, e o selo segue correto se ela mudar.
+  const catDominante = porCategoria?.length
+    ? porCategoria.reduce((maior, c) => (c.valor > maior.valor ? c : maior))
+    : null;
+
+  // Denominador = `kpis.bruto`, o MESMO que a `Barra` deste card usa. Os dois agregados são a
+  // mesma expressão sobre o mesmo tenant (`SUM(quantity * unit_price)` em `painelKpis` e em
+  // `painelPorCategoria`, este agrupado por categoria via `leftJoin` — que não descarta bem sem
+  // categoria nem duplica linha, porque `category_id` referencia a PK). Somam igual; derivar um
+  // segundo total aqui só criaria dois números discordando na mesma tela.
+  //
+  // Sem `kpis` (prop deferida, chega depois) não há selo: `0%` afirmaria concentração nenhuma,
+  // que não é o que se sabe — é o mesmo critério do `—` dos números sem fonte.
+  const seloCategoria =
+    catDominante && kpis?.bruto
+      ? `${Math.round((catDominante.valor / kpis.bruto) * 100)}% em ${catDominante.categoria.toLowerCase()}`
+      : null;
 
   return (
     <AppShellV2 title="Patrimônio">
       <div className="mx-auto max-w-7xl space-y-4 p-6">
         <div data-contract="cabecalho">
+          {/* O `contexto` do protótipo tem TRÊS pedaços — `["OFFICEIMPRESSO", locais, "N bens"]`
+              (`patrimonio-page.jsx:820`). Descem DOIS, e a ausência do terceiro é medida, não
+              esquecimento: `permitted_locations()` existe no backend (o índice de Bens o usa,
+              `AssetController:349`) mas NÃO chega a esta página — 0 ocorrências de local/locais
+              em todo o `share()` do `HandleInertiaRequests` (medido: `grep -ic` sobre :46-205).
+              E buscá-lo seria pior que omiti-lo: os KPIs deste painel filtram só `business_id`
+              (`painelKpis:653`), então escrever "TODOS OS LOCAIS" afirmaria um escopo de
+              permissão que a tela não aplica, e escrever os locais restritos do usuário MENTIRIA
+              sobre a abrangência de números que somam o business inteiro. É a mesma recusa que
+              esta tela já fez 3× (chip `Auditoria`, `?garantia=`, subtítulo do drill).
+              Reabrir isso é fechar a R4 do contrato Cowork nos KPIs primeiro — decisão [W].
+
+              A contagem de bens vem de prop DEFERIDA: no 1º paint `kpis` é `undefined`, o pedaço
+              sai do join (o `filter` que o protótipo já tem) e a linha nasce com o negócio só. */}
+          <LinhaDeContexto partes={[negocio, kpis ? `${kpis.totalBens} bens` : null]} />
+          {/* Canon v3.8 (ADR 0189/0190). O ícone entra por `leading` — o slot existe no canon
+              justamente porque o PT-04 R6 descreve o header como "ícone · título · descrição"
+              (`PageHeader.tsx:49`), e a Jana PERDEU o dot da área ao migrar sem ele. Idioma
+              copiado da irmã de PT-04 `Home/Index.tsx:252`, não inventado aqui. */}
           <PageHeader
+            leading={
+              <span
+                aria-hidden
+                className="mr-2 inline-flex translate-y-[1px] align-middle text-muted-foreground"
+              >
+                {/* `database` NÃO é escolha minha: é o `glyph` que o contrato de tela do
+                    Cowork declara pra esta seção (`contrato/patrimonio.contract.json`,
+                    seção `header`, `copy.glyph`). O `boxes` que estava aqui era herança do
+                    header antigo, e sobreviveu à migração porque eu portei o ícone sem
+                    conferir a especificação — que nunca tinha descido pro repo. */}
+                <Icon name="database" size={18} strokeWidth={1.8} />
+              </span>
+            }
             title="Patrimônio"
-            description="O que a empresa tem, quanto vale e quem está com o quê."
-            icon="boxes"
+            subtitle="O que a empresa tem, quanto vale e quem está com o quê."
+            /* Os TRÊS elementos que o contrato de tela do Cowork declara pra seção `header`
+               (`contrato/patrimonio.contract.json` → `elementos`), na ordem dele:
+                 · busca    placeholder literal do contrato → `/asset/assets?q=`. O índice de
+                            Bens LÊ `q` (`AssetController:271` e `:385`): a busca navega.
+                 · alocar   `Button variant=ghost`, perm `allocate`.
+                 · novo     `Button variant=primary`, perm `create` → `/asset/assets/create`,
+                            a mesma rota que `Bens.tsx` já usa.
+
+               DESVIO DECLARADO no destino do `alocar` — o contrato fixa copy, variante e
+               permissão, não a rota. O destino óbvio (`/asset/allocation/create`) NÃO serve:
+               `AssetAllocationController::create()` só responde dentro de
+               `if (request()->ajax())` e cai em `null` fora dele (`:307-323`), ou seja,
+               devolve página em branco — é o mesmo achado que `Alocacoes.tsx` já registra.
+               Aponta então pra LISTA de alocações, que navega de verdade. O formulário chega
+               com o `D-FORMS` ([W]); até lá o botão leva ao lugar certo sem prometer o form. */
+            actions={
+              <Inline gap={2} align="center">
+                {/* PRIMEIRO item de `actions` — ordem do `CliPageHead:159` (`{frescor}{acoes}`),
+                    não preferência minha. Antes da busca e dos dois botões. */}
+                <PilulaFrescor hora={apuradoHora} />
+                <form method="GET" action="/asset/assets" role="search">
+                  <Input
+                    type="search"
+                    name="q"
+                    aria-label="Buscar bem, código ou número de série"
+                    placeholder="Buscar bem, código, série..."
+                    className="h-8 w-56"
+                  />
+                </form>
+                <Button variant="ghost" size="sm" asChild>
+                  <a href="/asset/allocation">Alocar recurso</a>
+                </Button>
+                {pode.criar ? (
+                  <Button size="sm" asChild>
+                    <a href="/asset/assets/create">Adicionar recurso</a>
+                  </Button>
+                ) : null}
+              </Inline>
+            }
+            /* `-mx-6` NÃO é enfeite, e remover reintroduz o defeito: o canon tem `px-6`
+               PRÓPRIO no div interno e este container já é `p-6`, então os dois SOMAM. O
+               header ANTIGO não tinha padding horizontal nenhum, e por isso alinhava sem
+               ajuste — a migração, sozinha, empurrou o título 24px pra dentro. MEDIDO no
+               render real (getBoundingClientRect), não no olho: sem isto o h1 nasce em 48px
+               contra 24px dos KPIs; com isto, delta 0 em 1280 E em 1600, sem scroll
+               horizontal, e a linha divisora fica full-width — que é o que o canon flat
+               v3.8 desenha. */
+            className="-mx-6"
           />
         </div>
 
         {/* Linha própria full-width, como no protótipo (e como a Unificada, ADR 0313). */}
         <div data-contract="subnav" className="border-b border-border pb-1">
-          <PatrimonioSubNav active="dashboard" />
+          <PatrimonioSubNav active="dashboard" badges={abas_contadores ?? undefined} />
         </div>
 
         {/* Resumo de hoje. A 2ª frase do protótipo cita equipamentos e um custo por peça
@@ -138,8 +384,16 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
         <div data-contract="resumo">
           <Card>
             <CardContent className="space-y-1 p-4">
+              {/* O ícone abre o bloco como no protótipo (`modulo-padrao.jsx:52`, `MP.Resumo`:
+                  `<JcIcon name="calendar"/> <b>{titulo}</b>`). É o mesmo idioma que as duas
+                  seções abaixo já usam nesta tela — ícone mudo à esquerda do título. */}
               <Inline align="baseline" justify="between" gap={2}>
-                <h2 className="text-sm font-semibold text-foreground">Resumo de hoje</h2>
+                <Inline align="center" gap={2}>
+                  <span aria-hidden className="inline-flex text-muted-foreground">
+                    <Icon name="calendar" size={15} strokeWidth={1.8} />
+                  </span>
+                  <h2 className="text-sm font-semibold text-foreground">Resumo de hoje</h2>
+                </Inline>
                 <span className="text-xs tabular-nums text-muted-foreground">{apurado}</span>
               </Inline>
               <Deferred data="kpis" fallback={<Esqueleto linhas={2} />}>
@@ -162,6 +416,34 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
                   </p>
                 )}
               </Deferred>
+
+              {/* Chips do protótipo (`patrimonio-page.jsx:224-229`), atrás do mesmo separador
+                  que ele desenha (`modulo-padrao.jsx:58` `jc-brief-sep`). São TRÊS, não quatro:
+                  o 4º do protótipo é `Auditoria`, e o charter declara em Non-Goals que a rota
+                  NÃO existe (`D-AUDITORIA`) — renderizá-lo seria a afordância falsa que a tela
+                  de Bens já recusou ao derivar as abas do menu. Os três aqui navegam de fato;
+                  as rotas estão em `Routes/web.php:13-22`.
+                  `Garantia crítica` leva à lista de Bens sem pré-filtro: o filtro por garantia
+                  do protótipo não existe no índice (`AssetController` lê `q`, `location_id`,
+                  `category_id`, `purchase_type`, `is_allocatable` — não garantia). Levar ao
+                  lugar certo sem filtrar é honesto; inventar `?garantia=` seria um parâmetro
+                  que o backend ignora em silêncio. */}
+              {is_admin ? (
+                <>
+                  <div className="mt-3 border-t border-border" />
+                  <Inline gap={2} align="center" className="flex-wrap pt-3">
+                    <Button variant="outline" size="sm" asChild>
+                      <a href="/asset/assets">Garantia crítica</a>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href="/asset/asset-maintenance">Em manutenção</a>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href="/asset/allocation">Alocados</a>
+                    </Button>
+                  </Inline>
+                </>
+              ) : null}
             </CardContent>
           </Card>
         </div>
@@ -210,8 +492,38 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
 
         {/* ── 3 blocos de análise ──────────────────────────────────────────────────── */}
         {is_admin && (
-          <Grid data-contract="analises" cols={3} gap={4}>
-            <Painel titulo="Patrimônio por categoria" descricao="valor unitário × quantidade, por categoria">
+          <Stack gap={3}>
+            {/* Cabeçalho de seção do protótipo (`patrimonio-page.jsx:231` · `MP.Secao`, que
+                renderiza `<h2 class="jc-h2">` com ícone + título). O SUBTÍTULO dele — "clique
+                num card pra ver de onde vem o número" — NÃO desce: ele promete o drill
+                (`MP.Drill`, `:234`), e a produção não tem essa tela. Copy que promete
+                interação inexistente é afordância falsa em forma de texto. */}
+            <Inline gap={2} align="center">
+              <span aria-hidden className="inline-flex text-muted-foreground">
+                <Icon name="chart-bar" size={15} strokeWidth={1.8} />
+              </span>
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Análises do módulo
+              </h2>
+            </Inline>
+            <Grid data-contract="analises" cols={3} gap={4}>
+            {/* `uppercase tracking-wide` no selo porque o `.jc-pill` do protótipo é
+                `text-transform: uppercase` + `letter-spacing: .06em` (`chat-jana.css:78`), e
+                `.warn` usa o par `--warn-soft`/`--warn` — o mesmo que `variant="warning"`
+                resolve aqui. Mesmo idioma que o `JanaCockpit` já usa pra portar pill deste
+                bundle. O `toLowerCase()` do texto fica: é o que o protótipo faz também
+                (`patrimonio-page.jsx:176`), e o caixa-alta é do CSS, não do dado. */}
+            <Painel
+              titulo="Patrimônio por categoria"
+              descricao="valor unitário × quantidade, por categoria"
+              selo={
+                seloCategoria ? (
+                  <Badge variant="warning" className="uppercase tracking-wide">
+                    {seloCategoria}
+                  </Badge>
+                ) : undefined
+              }
+            >
               <Deferred data="porCategoria" fallback={<Esqueleto />}>
                 {porCategoria?.length ? (
                   <div className="space-y-2.5">
@@ -295,7 +607,64 @@ export default function Index({ is_admin, pode, apurado_em, kpis, porCategoria, 
                 )}
               </Deferred>
             </Painel>
-          </Grid>
+            </Grid>
+
+            {/* ── O QUE FAZER PRIMEIRO (protótipo `:233` + `MP.Acoes` `:111`) ──────────
+                A AFORDÂNCIA desce; a COPY do protótipo NÃO. Lá o texto nomeia um equipamento
+                específico e crava o custo da peça em reais — é cenário do mock (e citar o
+                valor aqui reprovaria no `brl-scan`, com razão: número em real não entra no
+                git). O `Index-visual-comparison.md` já fixou o precedente ao recusar a
+                2ª frase do Resumo pelo mesmo motivo: prosa de protótipo que cita número
+                específico é dado de mock até prova em contrário. Aqui cada linha é derivada
+                dos MESMOS agregados que os KPIs usam.
+                As três rotas existem (`Routes/web.php:13-22`) — é o que separa este bloco
+                do chip `Auditoria`, que ficou de fora. */}
+            <Stack gap={3} data-contract="acoes">
+              <Inline gap={2} align="center">
+                <span aria-hidden className="inline-flex text-muted-foreground">
+                  <Icon name="lightbulb" size={15} strokeWidth={1.8} />
+                </span>
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  O que fazer primeiro
+                </h2>
+              </Inline>
+              <Deferred data="kpis" fallback={<Esqueleto linhas={3} />}>
+                {kpis ? (
+                  <Stack gap={2}>
+                    <Acao
+                      titulo={
+                        kpis.garantiaCritica > 0
+                          ? `${kpis.garantiaCritica} ${kpis.garantiaCritica === 1 ? 'bem' : 'bens'} sem cobertura de garantia`
+                          : 'Nenhum bem com garantia vencida ou vencendo'
+                      }
+                      sub={
+                        kpis.garantiaCritica > 0
+                          ? 'Sem contrato, cada conserto sai integral do caixa.'
+                          : 'Tudo coberto nos próximos 30 dias.'
+                      }
+                      icone="shield"
+                      cta="Ver bens"
+                      href="/asset/assets"
+                    />
+                    <Acao
+                      titulo={`${manutencoes?.length ?? 0} ${(manutencoes?.length ?? 0) === 1 ? 'manutenção' : 'manutenções'} em aberto`}
+                      sub="O que está fora de operação não aparece como disponível pra alocar."
+                      icone="wrench"
+                      cta="Ver manutenções"
+                      href="/asset/asset-maintenance"
+                    />
+                    <Acao
+                      titulo={`${qtd(Math.max(0, kpis.alocaveis - kpis.alocados))} unidades alocáveis paradas`}
+                      sub="Equipamento sem alocação não tem responsável registrado."
+                      icone="target"
+                      cta="Ver alocações"
+                      href="/asset/allocation"
+                    />
+                  </Stack>
+                ) : null}
+              </Deferred>
+            </Stack>
+          </Stack>
         )}
 
         {/* Ramo não-admin: o painel Blade já mostrava "seus bens" — capacidade preservada. */}

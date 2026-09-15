@@ -1,0 +1,1227 @@
+// app.jsx — orquestra rotas Chat / Tarefas / Módulo legado
+const { useState: useStateA, useEffect: useEffectA } = React;
+
+// Error boundary por rota — um erro numa tela não derruba o app inteiro.
+// key={route} reseta o boundary ao trocar de rota (uma tela consertada se recupera).
+class RouteErrorBoundary extends React.Component {
+  constructor(props) {super(props);this.state = { err: null, esperando: false };this._t0 = Date.now();}
+  static getDerivedStateFromError(err) {return { err, esperando: true };}
+  componentDidCatch(err, info) {
+    // Os módulos entram em segundo plano. Enquanto a janela de carga não fecha, a falha
+    // "componente indefinido" é só uma tela que ainda não chegou: tenta de novo em vez de acusar erro.
+    const indefinido = /Element type is invalid/.test(String(err && err.message));
+    // Espera enquanto a fila de módulos não fechou (+3 tentativas de folga depois dela).
+    this._pos = (this._pos || 0) + 1;
+    const janela = Date.now() - this._t0 < 180000 && (!window.__oiLazyDone || this._pos <= 3);
+    if (janela && indefinido) {
+      this._timer = setTimeout(() => this.setState({ err: null, esperando: false }), 500);
+      return;
+    }
+    this.setState({ esperando: false });
+    console.error("Route crash:", err, info);
+  }
+  componentWillUnmount() {clearTimeout(this._timer);}
+  render() {
+    if (this.state.esperando) {
+      return (
+        <div className="rota-carregando">
+          <span className="rota-carregando-b" />
+          <span>Carregando módulo…</span>
+        </div>);
+
+    }
+    if (this.state.err) {
+      return (
+        <div style={{ padding: "48px 32px", maxWidth: "60ch" }}>
+          <div style={{ fontSize: "var(--fs-6,18px)", fontWeight: 600, color: "var(--text)", marginBottom: 8 }}>Esta tela encontrou um erro.</div>
+          <div style={{ fontSize: "var(--fs-3,12.5px)", color: "var(--text-dim)", fontFamily: "var(--mono, monospace)" }}>{String(this.state.err && this.state.err.message || this.state.err)}</div>
+        </div>);
+
+    }
+    return this.props.children;
+  }
+}
+
+// Camada intermediária: garante que a falha de um módulo ainda não carregado seja
+// atribuída a ELA (e capturada pelo boundary acima), não ao próprio boundary.
+// Guard: enquanto o global do módulo não existir, `content` é um elemento cujo `type`
+// é undefined. Renderizar isso lança "Element type is invalid" DENTRO do dispatch do
+// tick do carregador — e o throw escapando do listener matava a fila de módulos inteira
+// (tudo abaixo nunca era definido). Aqui devolvemos o placeholder em vez de estourar.
+function RouteSlot({ children }) {
+  if (!children) return null;
+  var t = children.type;
+  var pronto = typeof t === "function" || typeof t === "string" || t && typeof t === "object";
+  if (React.isValidElement(children) && !pronto) {
+    return (
+      <div className="rota-carregando">
+        <span className="rota-carregando-b" />
+        <span>Carregando módulo…</span>
+      </div>);
+  }
+  return children;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Nota: módulos antigos (Financeiro, Boletos, Compras, Oficina Auto)
+// foram migrados de HTMLs standalone para páginas React nativas dentro
+// deste shell (financeiro-app.jsx, boleto-contas-app.jsx, compras-page.jsx,
+// oficina-page.jsx). Não usamos mais iframes — ROUTE_HTML/IframeView removidos.
+// ─────────────────────────────────────────────────────────────────
+
+// UI-0011 (2026-09-10): ChatPage e ConvTabsBar removidos — zero call sites; a rota "chat" renderiza
+// window.JanaPage. Saíram junto com SidebarTabs/SidebarChat/ConvRow (sidebar.jsx) e o estado morto
+// tab/activeConvId. Thread/LinkedAppsPanel vivem em outro arquivo — não são deste prefixo.
+
+// Stub para módulos do menu — em produção, abre Inertia page do módulo
+// MIGRATION_INFO — auditoria dos 36 módulos do repo wagnerra23/oimpresso.com@main
+// Fonte canônica em AUDITORIA_MODULOS.md. fase 1=Inventário ✅, 2=Adapter menu, 3=Reescrita React, 4=Decommission.
+const MIGRATION_INFO = {
+  // ─────── OFFICEIMPRESSO ───────
+  os: { phase: 2, status: "next", blade: "Modules/Officeimpresso/Resources/views/os/", routes: ["/os", "/os/create", "/os/{id}"], priority: "Piloto", desc: "Núcleo do ERP. Listagem + form + detalhe da Ordem de Serviço.", actions: ["Nova OS", "Listar abertas", "Fila de produção"] },
+  clientes: { phase: 3, status: "queue", blade: "Modules/Officeimpresso/Resources/views/clientes/", routes: ["/clientes"], priority: "Alta freq.", desc: "CRUD de clientes + histórico de compras + contatos.", actions: ["Novo cliente", "Importar", "Aniversariantes"] },
+  produtos: { phase: 3, status: "queue", blade: "Modules/Officeimpresso/Resources/views/produtos/", routes: ["/produtos"], priority: "Alta freq.", desc: "Catálogo de produtos com preço, insumos e especificações técnicas.", actions: ["Novo produto", "Tabela de preço", "Insumos"] },
+  orcamentos: { phase: 3, status: "queue", blade: "Modules/Officeimpresso/Resources/views/orcamentos/", routes: ["/orcamentos"], priority: "Alta freq.", desc: "Geração de orçamentos a partir do catálogo + envio por e-mail/WhatsApp.", actions: ["Novo orçamento", "Aprovados", "A vencer"] },
+  vendas: { phase: 3, status: "queue", blade: "Modules/Officeimpresso/Resources/views/vendas/", routes: ["/vendas"], priority: "Alta freq.", desc: "Pedidos confirmados, faturamento e nota fiscal. Inclui Sells/Create P0.", actions: ["Hoje", "Mês", "Por cliente"] },
+  cv: { phase: 1, status: "queue", blade: "Modules/ComunicacaoVisual/Resources/views/", routes: ["/cv"], priority: "Núcleo", desc: "Módulo Comunicação Visual: banners, lonas, adesivos, fachadas. Especialização do catálogo Officeimpresso.", actions: ["Novo job CV", "Templates", "Histórico"] },
+  catalogue: { phase: 1, status: "later", blade: "Modules/ProductCatalogue/Resources/views/", routes: ["/catalogue"], priority: "Suporte", desc: "Catálogo umbrella reusável entre módulos. Especificações técnicas de insumos e produtos.", actions: ["Famílias", "Insumos", "SKUs"] },
+  portalos: { phase: 1, status: "later", blade: "Modules/ConsultaOs/Resources/views/", routes: ["/portal/consulta"], priority: "Externo", desc: "Portal cliente-facing para acompanhar status de OS sem login no ERP.", actions: ["Buscar OS", "Histórico cliente", "Configurar"] },
+
+  // ─────── COMERCIAL ───────
+  crm: { phase: 1, status: "later", blade: "Modules/Crm/Resources/views/", routes: ["/crm"], priority: "Comercial", desc: "Funil de leads, oportunidades, follow-ups. Integra com Tarefas (TaskProvider crm_ligar).", actions: ["Leads", "Oportunidades", "Funil"] },
+  ads: { phase: 1, status: "later", blade: "Modules/ADS/Resources/views/", routes: ["/ads"], priority: "Marketing", desc: "Gestão de campanhas pagas: Google Ads, Meta. UTMs + atribuição a leads.", actions: ["Campanhas", "ROAS", "UTMs"] },
+  grow: { phase: 1, status: "later", blade: "Modules/Grow/Resources/views/", routes: ["/grow"], priority: "Marketing", desc: "Growth & marketing orgânico: e-mail, automações, nutrição de leads.", actions: ["Automações", "E-mails", "Segmentos"] },
+  inbox: { phase: 1, status: "partial", blade: "Modules/Inbox/Resources/views/", routes: ["/inbox"], priority: "Comercial", desc: "Caixa unificada (omnichannel): WhatsApp Baileys ativo; Meta Cloud, Z-API, Instagram DM, Messenger, Email IMAP e Mercado Livre em homologação. Lista + thread + contexto ERP (OS, saldo, LTV) + broadcast cross-canal.", actions: ["Conversas", "Templates", "Broadcast", "Canais"] },
+  equipe: { phase: 1, status: "partial", blade: "Modules/Equipe/Resources/views/", routes: ["/equipe"], priority: "Comercial", desc: "Comunicação interna: canais (#producao, #financeiro, #vendas, #motoboy, #geral) + DMs entre operadores. Distinto da Caixa unificada — não mistura SLA cliente com recado de colega.", actions: ["Canais", "DMs", "Equipe"] },
+
+  // ─────── PRODUÇÃO ───────
+  fila: { phase: 4, status: "later", blade: "Modules/Officeimpresso/Resources/views/producao/fila/", routes: ["/fila"], priority: "Operacional", desc: "Fila de impressão por equipamento — sequenciamento e prioridade.", actions: ["Roland 540", "HP Latex", "Plotter recorte"] },
+  acabamento: { phase: 4, status: "later", blade: "Modules/Officeimpresso/Resources/views/producao/acabamento/", routes: ["/acabamento"], priority: "Operacional", desc: "Pós-impressão: corte, laminação, aplicação.", actions: ["Pendentes", "Concluídos hoje"] },
+  expedicao: { phase: 4, status: "later", blade: "Modules/Officeimpresso/Resources/views/producao/expedicao/", routes: ["/expedicao"], priority: "Operacional", desc: "Embalagem, romaneio e entrega.", actions: ["A entregar", "Roteirizar", "Concluídas"] },
+  manufacturing: { phase: 1, status: "later", blade: "Modules/Manufacturing/Resources/views/", routes: ["/manufacturing"], priority: "Industrial", desc: "Produção industrial UltimatePOS: BOM, ordens de fabricação, custo.", actions: ["BOM", "Ordens", "Custo"] },
+  iproduction: { phase: 1, status: "later", blade: "Modules/IProduction/Resources/views/", routes: ["/iproduction"], priority: "Industrial", desc: "Variante extendida de produção. Complementa Manufacturing.", actions: ["Receitas", "Lotes"] },
+  brief: { phase: 1, status: "later", blade: "Modules/Brief/Resources/views/", routes: ["/brief"], priority: "Pré-produção", desc: "Briefings de design: questionário, aprovação de layout, anexos por OS.", actions: ["Novo brief", "Pendentes", "Templates"] },
+
+  // ─────── VERTICAIS ───────
+  repair: { phase: 1, status: "later", blade: "Modules/Repair/Resources/views/", routes: ["/repair"], priority: "Vertical", desc: "Assistência técnica (eletrônicos). Módulo UltimatePOS de referência canônica (ADR 0011).", actions: ["Nova OS Repair", "Em andamento", "Concluídas"] },
+  oficinaauto: { phase: 1, status: "later", blade: "Modules/OficinaAuto/Resources/views/", routes: ["/oficina"], priority: "Vertical", desc: "Vertical oficina automotiva: OS de manutenção veicular, peças, mão-de-obra.", actions: ["Nova OS", "Veículos", "Catálogo peças"] },
+  vestuario: { phase: 1, status: "later", blade: "Modules/Vestuario/Resources/views/", routes: ["/vestuario"], priority: "Vertical", desc: "Vertical confecção: grades por tamanho/cor, estampas, peças.", actions: ["Pedidos", "Grades", "Estampas"] },
+
+  // ─────── PESSOAS ───────
+  ponto: { phase: 4, status: "partial", blade: "Modules/Ponto/Resources/views/", routes: ["/ponto", "/ponto/espelho"], priority: "Núcleo RH", desc: "Ponto WR2 — Portaria MTP 671/2021. Bater ponto, espelho do mês, justificativas. Parcialmente React.", actions: ["Bater ponto", "Meu espelho", "Justificar"] },
+  equipes: { phase: 5, status: "later", blade: "Modules/Officeimpresso/Resources/views/equipes/", routes: ["/equipes"], priority: "Baixa freq.", desc: "Times, escalas e responsáveis por etapas de produção.", actions: ["Times", "Escala da semana"] },
+
+  // ─────── FINANCEIRO ───────
+  financeiro: { phase: 1, status: "done", blade: "—", routes: ["/financeiro"], priority: "Concluído", desc: "Já migrado para React. Contas a pagar/receber, fluxo de caixa, conciliação Inter.", actions: ["Contas a pagar", "Contas a receber", "Fluxo"] },
+  relatorios: { phase: 5, status: "later", blade: "Modules/Officeimpresso/Resources/views/relatorios/", routes: ["/relatorios"], priority: "Baixa freq.", desc: "BI: vendas por período, margem, produtividade.", actions: ["Vendas", "Margem", "Produtividade"] },
+  nfse: { phase: 1, status: "partial", blade: "Modules/NFSe/Resources/views/", routes: ["/nfse"], priority: "Fiscal", desc: "Nota Fiscal de Serviço Eletrônica — emissão, RPS, lote, prefeituras.", actions: ["Emitir", "Lote", "Histórico"] },
+  nfe: { phase: 1, status: "partial", blade: "Modules/NfeBrasil/Resources/views/", routes: ["/nfe"], priority: "Fiscal", desc: "NF-e Brasil (produto): emissão, transmissão SEFAZ, DANFE.", actions: ["Emitir", "Inutilizar", "DANFE"] },
+  accounting: { phase: 1, status: "later", blade: "Modules/Accounting/Resources/views/", routes: ["/accounting"], priority: "Contábil", desc: "Plano de contas, lançamentos, balancete. Integra com Financeiro.", actions: ["Plano", "Balancete", "DRE"] },
+  recurring: { phase: 1, status: "later", blade: "Modules/RecurringBilling/Resources/views/", routes: ["/recurring"], priority: "Financeiro", desc: "Cobrança recorrente: planos, assinaturas, geração automática de boletos.", actions: ["Planos", "Assinantes", "Ciclos"] },
+
+  // ─────── PROJETOS & GESTÃO ───────
+  projects: { phase: 1, status: "later", blade: "Modules/ProjectMgmt/Resources/views/", routes: ["/projects"], priority: "Gestão", desc: "Gestão de projetos: tarefas, milestones, timesheet, gantt. Cliente-facing opcional.", actions: ["Projetos", "Tarefas", "Timesheet"] },
+  assets: { phase: 1, status: "later", blade: "Modules/AssetManagement/Resources/views/", routes: ["/assets"], priority: "Gestão", desc: "Patrimônio: equipamentos (Roland, HP Latex, Plotter), manutenção, depreciação.", actions: ["Inventário", "Manutenção", "Depreciação"] },
+  auditoria: { phase: 1, status: "later", blade: "Modules/Auditoria/Resources/views/", routes: ["/auditoria"], priority: "Compliance", desc: "Trilha de auditoria: quem alterou o quê e quando. LGPD + controles internos.", actions: ["Logs", "Filtros", "Exportar"] },
+  governance: { phase: 1, status: "later", blade: "Modules/Governance/Resources/views/", routes: ["/governance"], priority: "Compliance", desc: "Políticas, controles, indicadores de governança corporativa.", actions: ["Políticas", "Indicadores", "Aprovações"] },
+  kb: { phase: 1, status: "done", blade: "—", routes: ["/kb"], priority: "Conhecimento", desc: "Base de conhecimento interna em React: SOPs, tutoriais, troubleshooting de equipamentos, command palette ⌘K, decision tree.", actions: ["Artigos", "Categorias", "Buscar"] },
+  spreadsheet: { phase: 1, status: "later", blade: "Modules/Spreadsheet/Resources/views/", routes: ["/spreadsheet"], priority: "Suporte", desc: "Planilhas internas para cálculos ad-hoc e imports/exports tabulares.", actions: ["Nova planilha", "Templates", "Imports"] },
+
+  // ─────── OUTROS ───────
+  memcofre: { phase: 1, status: "done", blade: "—", routes: ["/memcofre"], priority: "Concluído", desc: "Já migrado para React. Cofre de senhas e credenciais (memória cofre).", actions: ["Senhas", "Cartões", "Notas"] },
+  copiloto: { phase: 1, status: "done", blade: "—", routes: ["/copiloto"], priority: "Em iteração", desc: "Assistente IA — React + Inertia. Hoje em DRY_RUN; roadmap Vizra ADK + Meilisearch (ADRs 0035/0036).", actions: ["Nova conversa", "Histórico", "LGPD memória"] },
+  site: { phase: 1, status: "done", blade: "—", routes: ["/site"], priority: "Concluído", desc: "Já migrado para React. CMS do site institucional (Modules/Cms).", actions: ["Páginas", "Posts", "Mídia"] },
+  arquivos: { phase: 5, status: "later", blade: "Modules/Arquivos/Resources/views/", routes: ["/arquivos"], priority: "Baixa freq.", desc: "Drive interno por OS, cliente e projeto.", actions: ["Recentes", "Compartilhados", "Lixeira"] },
+
+  // ─────── INTEGRAÇÕES ───────
+  connector: { phase: 1, status: "later", blade: "Modules/Connector/Resources/views/", routes: ["/connector"], priority: "Integração", desc: "Connector UltimatePOS: integrações via API, webhooks, importers.", actions: ["Tokens API", "Webhooks", "Importers"] },
+  woocommerce: { phase: 1, status: "later", blade: "Modules/Woocommerce/Resources/views/", routes: ["/woocommerce"], priority: "Integração", desc: "Sincronização WooCommerce: produtos, estoque, pedidos.", actions: ["Sync produtos", "Pedidos", "Logs"] },
+  teammcp: { phase: 1, status: "later", blade: "Modules/TeamMcp/Resources/views/", routes: ["/team-mcp"], priority: "Experimental", desc: "Team MCP: expor o ERP via Model Context Protocol para agentes (Claude Desktop, Cursor). Ver ADR 0035.", actions: ["Tokens MCP", "Recursos", "Logs"] },
+  srs: { phase: 1, status: "later", blade: "Modules/SRS/Resources/views/", routes: ["/srs"], priority: "Interno", desc: "SRS — Software Requirement Specifications. Documentação interna de requisitos.", actions: ["Specs", "Versões"] },
+
+  // ─────── CONFIGURAÇÕES ───────
+  prefs: { phase: 5, status: "later", blade: "Modules/Essentials/Resources/views/prefs/", routes: ["/prefs"], priority: "Config.", desc: "Preferências do usuário e da empresa.", actions: ["Pessoais", "Empresa", "Notificações"] },
+  users: { phase: 5, status: "later", blade: "Modules/Essentials/Resources/views/users/", routes: ["/usuarios"], priority: "Config.", desc: "Usuários, papéis e permissões.", actions: ["Usuários", "Papéis", "Permissões"] },
+  admin: { phase: 1, status: "later", blade: "Modules/Admin/Resources/views/", routes: ["/admin"], priority: "Config.", desc: "Admin core do UltimatePOS: configurações de business, planos, módulos ativos.", actions: ["Business", "Módulos", "Planos"] },
+  superadmin: { phase: 1, status: "later", blade: "Modules/Superadmin/Resources/views/", routes: ["/superadmin"], priority: "Suporte", desc: "Superadmin UltimatePOS: multi-business, suporte cross-tenant.", actions: ["Tenants", "Suporte", "Logs"] },
+  jana: { phase: 1, status: "later", blade: "Modules/Jana/Resources/views/", routes: ["/jana"], priority: "Referência", desc: "Módulo de referência canônica do projeto (ADR 0011). Imitar a estrutura ao criar/ajustar módulos.", actions: ["Ver código", "Padrões"] }
+};
+
+const PHASE_LABEL = {
+  done: { label: "Migrado", cls: "ok" },
+  partial: { label: "Parcial", cls: "partial" },
+  next: { label: "Próximo", cls: "next" },
+  queue: { label: "Fila", cls: "queue" },
+  later: { label: "Backlog", cls: "muted" }
+};
+
+function ModuleStub({ routeId }) {
+  const flat = MOCK.MENU_FLAT;
+  const item = flat.find((i) => i.id === routeId);
+  const Icon = item ? I[item.icon] : I.folder;
+  const info = MIGRATION_INFO[routeId] || { phase: 5, status: "later", blade: "—", routes: ["/" + routeId], priority: "—", desc: "Tela legada do ERP. Será migrada conforme o roadmap MWART.", actions: [] };
+  const phase = PHASE_LABEL[info.status];
+
+  return (
+    <div className="mod-stub">
+      <div className="mod-stub-hero">
+        <div className="mod-stub-hero-l">
+          <div className="mod-stub-ico"><Icon size={28} /></div>
+          <div>
+            <div className="mod-stub-eyebrow">
+              <span>Módulo</span>
+              <span className="bc-sep">·</span>
+              <span>Fase {info.phase}</span>
+              <span className="bc-sep">·</span>
+              <span>{info.priority}</span>
+            </div>
+            <h1>{item?.label || routeId}</h1>
+            <p>{info.desc}</p>
+          </div>
+        </div>
+        <div className="mod-stub-hero-r">
+          <span className={`mod-stub-status ${phase.cls}`}>
+            <span className="dot" />{phase.label}
+          </span>
+        </div>
+      </div>
+
+      <div className="mod-stub-grid">
+        <section className="mod-stub-card">
+          <h3>Ações típicas</h3>
+          {info.actions.length > 0 ?
+          <div className="mod-stub-actions">
+              {info.actions.map((a, i) =>
+            <button key={i} className={"mod-stub-action" + (i === 0 ? " primary" : "")}>
+                  {i === 0 && <I.plus size={12} />}
+                  {a}
+                </button>
+            )}
+            </div> :
+          <p className="mod-stub-empty">Sem ações definidas ainda.</p>}
+        </section>
+
+        <section className="mod-stub-card">
+          <h3>Stack atual</h3>
+          <dl className="mod-stub-dl">
+            <dt>Front</dt>
+            <dd>{info.status === "done" ? "React 19 + Inertia" : info.status === "partial" ? "Misto (Blade + React)" : "Blade legado"}</dd>
+            <dt>Backend</dt>
+            <dd>Laravel 13.6 + nWidart</dd>
+            <dt>Rotas</dt>
+            <dd className="mono">{info.routes.join(" · ")}</dd>
+            <dt>Origem Blade</dt>
+            <dd className="mono small">{info.blade}</dd>
+          </dl>
+        </section>
+
+        <section className="mod-stub-card span">
+          <h3>Roadmap MWART</h3>
+          <ol className="mod-stub-roadmap">
+            <li className={info.phase >= 1 ? "done" : ""}>
+              <span className="step">1</span>
+              <div><b>Inventário</b><small>Mapear views Blade, rotas e modelos</small></div>
+            </li>
+            <li className={info.phase >= 2 ? info.status === "next" ? "current" : "done" : ""}>
+              <span className="step">2</span>
+              <div><b>Adapter de menu</b><small>LegacyMenuAdapter expõe item via shell.menu</small></div>
+            </li>
+            <li className={info.status === "done" ? "done" : info.status === "partial" ? "current" : ""}>
+              <span className="step">3</span>
+              <div><b>Reescrita React</b><small>Inertia page + componentes shared</small></div>
+            </li>
+            <li className={info.status === "done" ? "done" : ""}>
+              <span className="step">4</span>
+              <div><b>Decommission</b><small>Flip do flag inertia: true e remoção do Blade</small></div>
+            </li>
+          </ol>
+        </section>
+      </div>
+
+      <div className="mod-stub-foot">
+        <span className="mod-stub-tag"><span className="t-mute">rota:</span> <span className="mono">/{routeId}</span></span>
+        <span className="mod-stub-foot-spacer" />
+        <button className="mod-stub-link">Ver no Blade atual ↗</button>
+        <button className="mod-stub-link">Ver issue de migração ↗</button>
+      </div>
+    </div>);
+
+}
+
+function Header({ company, route, onSelectRoute, prodType, onProdType, chatTab, onChatTab, chatTabs }) {
+  const flat = MOCK.MENU_FLAT;
+  const item = flat.find((i) => i.id === route);
+  const groupKey = item?.group && item.group !== "__user__" ? item.group : null;
+  const group = groupKey ? MOCK.MENU.find((g) => g.group === groupKey) : null;
+  const meta = groupKey ? (MOCK.GROUP_META || {})[groupKey] : null;
+  const hue = meta?.hue ?? 220;
+  // Ghosts: telas subordinadas ao hub (Vendas/Financeiro/Cobrança) — no PageHeader, não no sidebar
+  const hubItem = group ? group.items.find((it) => it.id === route || (it.ghosts || []).some((g) => g.id === route)) : null;
+  const ghosts = hubItem?.ghosts || [];
+
+  // Quando dentro de área: mostra label da área à esquerda + pílulas das sub-telas
+  // Quando solta (chat/tarefas/roadmap): mostra só o nome da rota
+  const areaLabel = meta ? meta.label : item?.label || "Chat";
+
+  // Topnav contextual: na página Produtos vira filtro de tipo (Todos/Produto/Serviço/Composição)
+  const isProdutos = route === "produtos";
+  const isChat = route === "chat";
+  const PROD_TYPES = [
+  { key: "all", label: "Todos", color: "oklch(0.55 0.02 250)" },
+  { key: "produto", label: "Produto", color: "oklch(0.42 0.10 250)" },
+  { key: "servico", label: "Serviço", color: "oklch(0.48 0.13 220)" },
+  { key: "composicao", label: "Composição", color: "oklch(0.48 0.13 145)" }];
+
+  // Abas de área da Jana (fusão 2026-08: Painel absorve /ia/dashboard e mata /ia/cockpit).
+  // Ícones lucide-like do JcIcon — sem emoji no app (proibição visual).
+  const CHAT_TABS = chatTabs || [];
+
+
+  // Rotas de módulo (hubs/ghosts) usam o PageHeaderNav abaixo do título — não o topbar global.
+  // O topbar contextual agora só serve à Jana (chat). Em Produtos as abas de tipo
+  // foram movidas pra DENTRO da página, abaixo do page header ([W] 2026-06-22).
+  // Fusão Jana (2026-08): as abas da Jana foram pra DENTRO da página, no ModuleTopNav
+  // abaixo do page header — igual às outras telas. O topbar contextual global ficou sem uso.
+  if (isChat || true) return null;
+
+  return (
+    <header className="topbar topbar--ctx">
+      {isProdutos ?
+      <nav className="topbar-tabs" aria-label="Filtro de tipo">
+          {PROD_TYPES.map((t) => {
+          const active = (prodType || "all") === t.key;
+          return (
+            <button key={t.key}
+            className={"topbar-tab topbar-tab--type" + (active ? " active" : "")}
+            onClick={() => onProdType?.(t.key)}
+            style={active ? { borderBottomColor: t.color, color: t.color } : null}>
+                {t.key !== "all" && <span className="topbar-tab-dot" style={{ background: t.color }} />}
+                <span>{t.label}</span>
+              </button>);
+
+        })}
+        </nav> :
+      isChat ?
+      <nav className="topbar-tabs" aria-label="Modo do Jana">
+          {CHAT_TABS.map((t) => {
+          const active = (chatTab || "dashboard") === t.key;
+          return (
+            <button key={t.key}
+            className={"topbar-tab topbar-tab--chat" + (active ? " active" : "")}
+            onClick={() => onChatTab?.(t.key)}
+            style={active ? { borderBottomColor: "var(--accent)", color: "var(--accent)" } : null}>
+                {window.JcIcon && <window.JcIcon name={t.icon} className="topbar-tab-ic" />}
+                <span>{t.label}</span>
+              </button>);
+
+        })}
+        </nav> :
+      group ?
+      <nav className="topbar-tabs" aria-label={areaLabel}>
+          {group.items.map((it) => {
+          const Icon = I[it.icon];
+          const isActive = route === it.id || (it.ghosts || []).some((g) => g.id === route);
+          return (
+            <button key={it.id}
+            className={"topbar-tab" + (isActive ? " active" : "")}
+            onClick={() => onSelectRoute(it.id)}
+            style={isActive ? { borderBottomColor: `oklch(0.55 0.14 ${hue})`, color: `oklch(0.42 0.10 ${hue})` } : null}>
+                {Icon && <Icon size={12} />}
+                <span>{it.label}</span>
+              </button>);
+
+        })}
+          {ghosts.length > 0 && <span aria-hidden="true" style={{ alignSelf: "center", color: "var(--text-mute)", opacity: 0.5, padding: "0 2px" }}>·</span>}
+          <GhostTabs ghosts={ghosts} route={route} go={onSelectRoute}
+          onBorder={`oklch(0.55 0.14 ${hue})`} onColor={`oklch(0.42 0.10 ${hue})`}
+          hubLabel={hubItem?.label} />
+        </nav> :
+
+      <div className="topbar-tabs topbar-tabs-empty" />
+      }
+    </header>);
+
+}
+
+// PageHeaderNav — barra de sub-navegação ENXUTA (só abas do hub + ghosts),
+// renderizada ABAIXO do título de cada módulo. Sem nome de área, sem busca, sem sino.
+function PageHeaderNav({ route }) {
+  const group = MOCK.MENU.find((g) => (g.items || []).some((it) => it.id === route || (it.ghosts || []).some((gh) => gh.id === route)));
+  if (!group) return null;
+  const meta = (MOCK.GROUP_META || {})[group.group];
+  const hue = meta?.hue ?? 220;
+  const hubItem = (group.items || []).find((it) => it.id === route || (it.ghosts || []).some((g) => g.id === route));
+  const ghosts = hubItem && hubItem.ghosts || [];
+  const go = (id) => window.__selectRoute && window.__selectRoute(id);
+  const onColor = "var(--accent)",onBorder = "var(--accent)";
+  // FINANÇAS — barra UNIFICADA do vivo (ADR 0313): a mesma em toda tela do Financeiro,
+  // 8 abas visíveis + ⋯ com os destinos legacy. Substitui o acoplamento "ghosts da entry ativa".
+  if (group.group === "FINANÇAS" && (MOCK.FIN_SUBNAV || []).length) {
+    return (
+      <nav className="ph-nav ph-nav--fin" aria-label="Financeiro">
+        {MOCK.FIN_SUBNAV.map((t) => {
+          const Icon = I[t.icon];
+          const isActive = route === t.id;
+          return (
+            <button key={t.id} className={"topbar-tab" + (isActive ? " active" : "")}
+            onClick={() => go(t.id)}
+            style={isActive ? { borderBottomColor: onBorder, color: onColor } : null}>
+              {Icon && <Icon size={12} />}<span>{t.label}</span>
+            </button>);
+
+        })}
+        <FinNavOverflow go={go} />
+      </nav>);
+
+  }
+  return (
+    <nav className="ph-nav" aria-label={meta?.label || group.group}>
+      {group.items.map((it) => {
+        const Icon = I[it.icon];
+        const isActive = route === it.id || (it.ghosts || []).some((g) => g.id === route);
+        return (
+          <button key={it.id} className={"topbar-tab" + (isActive ? " active" : "")}
+          onClick={() => go(it.id)}
+          style={isActive ? { borderBottomColor: onBorder, color: onColor } : null}>
+            {Icon && <Icon size={12} />}<span>{it.label}</span>
+          </button>);
+
+      })}
+      {ghosts.length > 0 && <span className="ph-nav-sep" aria-hidden="true">·</span>}
+      <GhostTabs ghosts={ghosts} route={route} go={go} onBorder={onBorder} onColor={onColor} />
+    </nav>);
+
+}
+window.PageHeaderNav = PageHeaderNav;
+
+// Teto canon: 5 ghosts visíveis, o resto vai pro ⋯ (Vendas tem 18, Financeiro 11).
+// A tela ativa é sempre promovida pra faixa visível — nunca escondida atrás do ⋯.
+function GhostTabs({ ghosts, route, go, onBorder, onColor, hubLabel }) {
+  const [open, setOpen] = useStateA(false);
+  const [pos, setPos] = useStateA(null);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const h = (e) => {if (!ref.current || !ref.current.contains(e.target)) setOpen(false);};
+    const esc = (e) => {if (e.key === "Escape") setOpen(false);};
+    document.addEventListener("mousedown", h);
+    document.addEventListener("keydown", esc);
+    return () => {document.removeEventListener("mousedown", h);document.removeEventListener("keydown", esc);};
+  }, [open]);
+  if (!ghosts.length) return null;
+  const TETO = 5;
+  let visiveis = ghosts.slice(0, TETO), extras = ghosts.slice(TETO);
+  const iAtivo = extras.findIndex((g) => g.id === route);
+  if (iAtivo >= 0) {visiveis = visiveis.slice(0, TETO - 1).concat(extras[iAtivo]);extras = ghosts.slice(TETO - 1).filter((g) => g.id !== route);}
+  const tab = (g) => {
+    const Icon = I[g.icon];
+    const isActive = route === g.id;
+    return (
+      <button key={g.id} className={"topbar-tab topbar-tab--ghost" + (isActive ? " active" : "")}
+      onClick={() => go(g.id)} title={hubLabel ? `${hubLabel} · ${g.label}` : undefined}
+      style={{ opacity: isActive ? 1 : 0.66, ...(isActive ? { borderBottomColor: onBorder, color: onColor } : {}) }}>
+        {Icon && <Icon size={12} />}<span>{g.label}</span>
+      </button>);
+  };
+  return (
+    <div className="ph-nav-of" ref={ref}>
+      {visiveis.map(tab)}
+      {extras.length > 0 &&
+      <button className={"topbar-tab topbar-tab--ghost" + (open ? " active" : "")}
+      aria-haspopup="menu" aria-expanded={open} aria-label={`Mais ${extras.length} telas`}
+      onClick={(e) => {const r = e.currentTarget.getBoundingClientRect();setPos({ top: r.bottom + 4, left: r.left });setOpen(!open);}}>
+        <span>⋯</span><span className="ph-nav-of-n">{extras.length}</span>
+      </button>}
+      {open && pos &&
+      <div className="ph-nav-of-menu" role="menu" style={{ top: pos.top, left: pos.left }}>
+        {extras.map((g) => {
+          const Icon = I[g.icon];
+          return (
+            <button key={g.id} role="menuitem" className="ph-nav-of-i" onClick={() => {setOpen(false);go(g.id);}}>
+              {Icon && <Icon size={13} />}<span>{g.label}</span>
+            </button>);
+        })}
+      </div>}
+    </div>);
+}
+
+// ⋯ do FIN_SUBNAV — destinos legacy do vivo (nada se perde). Sem rota no Cowork = item
+// inerte que declara o caminho do vivo, em vez de fingir uma tela que não existe aqui.
+function FinNavOverflow({ go }) {
+  const [open, setOpen] = useStateA(false);
+  const [pos, setPos] = useStateA(null);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const btn = ref.current && ref.current.querySelector("button");
+    if (btn) {const r = btn.getBoundingClientRect();setPos({ top: r.bottom + 4, right: Math.max(8, window.innerWidth - r.right) });}
+    const onDoc = (e) => {if (ref.current && !ref.current.contains(e.target)) setOpen(false);};
+    const onKey = (e) => {if (e.key === "Escape") setOpen(false);};
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {document.removeEventListener("mousedown", onDoc);document.removeEventListener("keydown", onKey);};
+  }, [open]);
+  const items = MOCK.FIN_SUBNAV_OVERFLOW || [];
+  if (!items.length) return null;
+  return (
+    <div className="ph-nav-more" ref={ref}>
+      <button className={"topbar-tab" + (open ? " active" : "")} onClick={() => setOpen((o) => !o)}
+      aria-haspopup="menu" aria-expanded={open} title="Mais destinos do Financeiro">⋯</button>
+      {open &&
+      <div className="ph-nav-more-menu" role="menu" style={pos ? { top: pos.top, right: pos.right } : null}>
+          {items.map((it) =>
+        <button key={it.label} role="menuitem" className="ph-nav-more-item"
+        disabled={!it.route} title={it.path}
+        onClick={() => {setOpen(false);if (it.route) go(it.route);}}>
+              <span>{it.label}</span><code>{it.path}</code>
+            </button>
+        )}
+        </div>
+      }
+    </div>);
+
+}
+
+function App() {
+  const [company, setCompany] = useStateA(() => {
+    try {
+      const id = localStorage.getItem("oimpresso.company");
+      return MOCK.COMPANIES.find((c) => c.id === id) || MOCK.COMPANIES[0];
+    } catch (e) {return MOCK.COMPANIES[0];}
+  });
+  const [tick, setTick] = useStateA(0);
+  // O loader dispara um tick a cada 6 dos ~190 módulos: sem coalescer, isso re-renderiza
+  // o App inteiro ~30x durante o boot — é a "piscada" que [W] viu. Agora os ticks são
+  // agrupados numa janela de 300ms (1 re-render por janela) e o "done" pinta na hora.
+  React.useEffect(() => {
+    if (window.__oiLazyDone) return;
+    let timer = null;
+    const bump = () => {timer = null;setTick((n) => n + 1);};
+    const h = (e) => {
+      if (e && e.type === "oi:lazy-done") {
+        if (timer) {clearTimeout(timer);timer = null;}
+        setTick((n) => n + 1);
+        return;
+      }
+      if (!timer) timer = setTimeout(bump, 300);
+    };
+    document.addEventListener("oi:lazy-tick", h);
+    document.addEventListener("oi:lazy-done", h);
+    return () => {if (timer) clearTimeout(timer);document.removeEventListener("oi:lazy-tick", h);document.removeEventListener("oi:lazy-done", h);};
+  }, []);
+  const [route, setRoute] = useStateA(() => {
+    try {return localStorage.getItem("oimpresso.route") || "chat";}
+    catch (e) {return "chat";}
+  });
+  const [showLaravel, setShowLaravel] = useStateA(false);
+  const [linkedCollapsed, setLinkedCollapsed] = useStateA(() => {
+    try {return localStorage.getItem("oimpresso.linked.collapsed") === "1";} catch (e) {return false;}
+  });
+  // Filtro de tipo de produto — controlado pelo topnav contextual
+  const [prodType, setProdType] = useStateA(() => {
+    try {return localStorage.getItem("oimpresso.prod.type") || "all";} catch (e) {return "all";}
+  });
+  useEffectA(() => {
+    try {localStorage.setItem("oimpresso.prod.type", prodType);} catch (e) {}
+  }, [prodType]);
+  // Tab do Chat (Dashboard | Analista IA)
+  const [chatTab, setChatTab] = useStateA(() => {
+    // Fusão das telas Jana: valores legados (dashboard/ia) migram pras abas novas.
+    // Chave própria (prefixo oimpresso.jana.* do charter) — antes colidia com o
+    // filtro de conversas da sidebar, que grava em oimpresso.chat.tab.
+    const LEGACY = { dashboard: "painel", ia: "conversa" };
+    try {
+      const v = localStorage.getItem("oimpresso.jana.tab") || "painel";
+      return LEGACY[v] || v;
+    } catch (e) {return "painel";}
+  });
+  useEffectA(() => {
+    try {localStorage.setItem("oimpresso.jana.tab", chatTab);} catch (e) {}
+  }, [chatTab]);
+  useEffectA(() => {
+    try {localStorage.setItem("oimpresso.linked.collapsed", linkedCollapsed ? "1" : "0");} catch (e) {}
+  }, [linkedCollapsed]);
+
+  // ─── ⌘K: paleta de destinos (ADR 0180 — power-user pula direto) ───
+  const [cmdOpen, setCmdOpen] = useStateA(false);
+  window.__openCmdK = () => setCmdOpen(true);
+  useEffectA(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) {
+        e.preventDefault();
+        setCmdOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // ─── Sidebar: modo expanded | rail | hidden ───
+  // Paridade com AppShellV2 (ADR UI-0030), 2026-09-10. Dois consertos:
+  // (1) o limiar é 1280 INCLUSIVE — `AUTO_RAIL_MAX_W = 1280` / `AUTO_RAIL_MQ = "(max-width: 1280px)"`
+  //     em Components/cockpit/shared.ts. Usávamos `innerWidth < 1280`, então a 1280px exatos (o monitor
+  //     do [W]) o vivo nascia em rail e o protótipo expandido — um pixel de drift que já contaminou
+  //     uma comparação.
+  // (2) só a ESCOLHA MANUAL persiste. Antes um useEffect gravava TODO valor de sbMode, inclusive o
+  //     automático: uma chave "rail" de um run a 1279px sobrevivia e mantinha o shell em rail a 1728px
+  //     (medido no espelho em 2026-09-02). Agora quem grava é escolherModo(), e enquanto não houver
+  //     escolha o modo segue a largura ao vivo.
+  const SB_MODE_KEY = "oimpresso.sidebar.mode";
+  const AUTO_RAIL_MQ = "(max-width: 1280px)";
+  const modoSalvo = () => {
+    try {
+      const v = localStorage.getItem(SB_MODE_KEY);
+      return v === "rail" || v === "hidden" || v === "expanded" ? v : null;
+    } catch (e) {return null;}
+  };
+  const [sbMode, setSbMode] = useStateA(() => {
+    const v = modoSalvo();
+    if (v) return v;
+    return typeof window !== "undefined" && window.matchMedia(AUTO_RAIL_MQ).matches ? "rail" : "expanded";
+  });
+  // Escolha do usuário: só ela grava. hidden nunca é automático.
+  // O ref existe por causa do listener de teclado: o useEffect do ⌘\ tem deps [] e captura o
+  // PRIMEIRO escolherModo. Resolver o updater contra `sbMode` direto o congelaria em "expanded",
+  // e o toggle viraria mão única (⌘\ ia pra rail e nunca voltava) — regressão pega na verificação
+  // de 2026-09-10. O código antigo era imune porque usava o updater do próprio React; o ref repõe
+  // essa imunidade sem gravar em fase de render (que duplicaria em StrictMode).
+  const sbModeRef = React.useRef(sbMode);
+  sbModeRef.current = sbMode;
+  const escolherModo = (v) => {
+    const proximo = typeof v === "function" ? v(sbModeRef.current) : v;
+    setSbMode(proximo);
+    try {localStorage.setItem(SB_MODE_KEY, proximo);} catch (e) {}
+  };
+  // Sem escolha persistida, o modo acompanha a largura ao vivo (plugar/desplugar monitor).
+  useEffectA(() => {
+    const mq = window.matchMedia(AUTO_RAIL_MQ);
+    const h = () => {if (!modoSalvo()) setSbMode(mq.matches ? "rail" : "expanded");};
+    mq.addEventListener("change", h);
+    return () => mq.removeEventListener("change", h);
+  }, []);
+
+  // ─── Mobile: sidebar vira menu flutuante (off-canvas) ───
+  // [W] 2026-06-17: "tem como esse menu no celular ficar flutuante? o layout
+  // da página deveria ser para celular tbm". Em ≤768px a sidebar sai do grid e
+  // desliza por cima do conteúdo (que ocupa a largura toda).
+  const [isMobile, setIsMobile] = useStateA(() => typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches);
+  const [mobileMenuOpen, setMobileMenuOpen] = useStateA(false);
+  useEffectA(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const h = () => setIsMobile(mq.matches);
+    mq.addEventListener("change", h);
+    return () => mq.removeEventListener("change", h);
+  }, []);
+  // Fecha o menu ao trocar de rota (navegou → some o drawer)
+  // Guardado: sem o `if`, toda troca de rota fazia um setState no commit e a tela
+  // renderizava 2x (medido: CliListPage 2 chamadas por navegação).
+  useEffectA(() => {if (mobileMenuOpen) setMobileMenuOpen(false);}, [route]);
+  // Trava o scroll do body enquanto o drawer mobile está aberto
+  useEffectA(() => {
+    if (isMobile && mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+      return () => {document.body.style.overflow = "";};
+    }
+  }, [isMobile, mobileMenuOpen]);
+
+  // Atalhos: ⌘\ alterna expanded↔rail, ⌘⇧\ oculta
+  useEffectA(() => {
+    const onKey = (e) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+      if (e.key === "\\") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          escolherModo((m) => m === "hidden" ? "expanded" : "hidden");
+        } else {
+          escolherModo((m) => m === "rail" ? "expanded" : "rail");
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffectA(() => {localStorage.setItem("oimpresso.company", company.id);}, [company]);
+  useEffectA(() => {localStorage.setItem("oimpresso.route", route);}, [route]);
+
+  // exposto p/ sidebar
+  window.__company = company;
+  window.__route = route;
+
+  // ─── Tweaks expressivos ───
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "vibe": "workspace",
+    "theme": "dark",
+    "density": 50,
+    "accentHue": 295,
+    "showLaravel": false,
+    "janaMetas": "seção",
+    "janaPapel": "superadmin",
+    "janaEstado": "dados",
+    "bkpDestino": "local",
+    "bkpEstado": "dados",
+    "bkpPermissao": "total",
+    "prodDensidade": "confortável",
+    "prodEstado": "dados",
+    "prodPapel": "administrador",
+    "patDensidade": "confortável",
+    "repDensidade": "confortável",
+    "repEstado": "dados",
+    "repPapel": "administrador",
+    "patEstado": "dados",
+    "patToque": "mouse",
+    "toque": "mouse",
+    "patPapel": "gestor",
+    "estDensidade": "confortável",
+    "estPapel": "gestor",
+    "estLote": true,
+    "cvEstado": "dados",
+    "cvPapel": "balcao",
+    "cvDensidade": "confortável",
+    "cvToque": "mouse",
+    "cvPcp": true,
+    "cvSalvar": true,
+    "vozEstado": "dados",
+    "vozPapel": "produto",
+    "vozDensidade": "confortável",
+    "supEstado": "dados",
+    "supPapel": "agente",
+    "supDensidade": "confortável",
+    "vstEstado": "dados",
+    "vstPapel": "operador",
+    "vstDensidade": "confortável",
+    "vstToque": "mouse",
+    "vstPrevia": true,
+    "vstHardBlock": false,
+    "arqEstado": "dados",
+    "arqPapel": "gestor",
+    "arqDensidade": "confortável",
+    "arqToque": "mouse",
+    "arqCasa": "sistema",
+    "cqrEstado": "dados",
+    "cqrDensidade": "confortável",
+    "cqrPapel": "gerente",
+    "cqrLogo": true,
+    "sbPapel": "wagner (admin)",
+    "sbGhosts": true
+  } /*EDITMODE-END*/;
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+  // Aplica vibe no <html> + variáveis CSS
+  useEffectA(() => {
+    const root = document.documentElement;
+    root.dataset.vibe = tweaks.vibe;
+
+    // Tema claro/escuro — ativa o bloco [data-theme="dark"] do ds-v5/tokens.css
+    // (existia mas nunca era ligado). Dark = padrão do projeto (W 2026-06-03);
+    // claro segue disponível pelo toggle → sem regressão. Roxo canon intacto.
+    root.dataset.theme = tweaks.theme;
+
+    // ONDA 2 · alvo de toque como estado do SHELL, não prop por módulo. O CSS transversal
+    // já dá >=44px em "pointer: coarse" (tablet/celular de verdade); este atributo deixa
+    // [W] ver o mesmo no desktop, e vale pra Oficina/Produção/Repair/Ponto de uma vez —
+    // sem plumbing em 4 páginas nem paleta paralela.
+    root.dataset.toque = tweaks.toque;
+
+    // Density: 0 = skim (28px row), 50 = normal (32), 100 = briefing (40)
+    const rowH = 26 + tweaks.density / 100 * 16;
+    root.style.setProperty("--row-h", `${rowH}px`);
+    root.style.setProperty("--card-pad", `${8 + tweaks.density / 100 * 8}px`);
+    root.style.setProperty("--card-gap", `${tweaks.density / 100 * 4}px`);
+    root.dataset.density = tweaks.density < 30 ? "skim" : tweaks.density > 70 ? "briefing" : "normal";
+
+    // HUE-ONLY (fix 2026-06-12 · verifier): só rotaciona o HUE; a luminância do accent/-soft
+    // é DONA DO TEMA via tokens.css (oklch(... var(--accent-h))). Antes fixava o valor CLARO
+    // inline e o inline vencia o [data-theme=dark] → --accent-soft claro-no-claro (ilegível)
+    // em TODA tela dark (ex: pm-row.sel · pt-row.primary). Agora robusto a qualquer troca de tema.
+    const h = tweaks.accentHue;
+    root.style.setProperty("--accent-h", `${h}`);
+    root.style.setProperty("--bubble-me", `oklch(0.55 0.15 ${h})`);
+  }, [tweaks.vibe, tweaks.theme, tweaks.density, tweaks.accentHue, tweaks.toque]);
+
+  useEffectA(() => {setShowLaravel(tweaks.showLaravel);}, [tweaks.showLaravel]);
+
+  const handleSelectRoute = (r) => {
+    setRoute(r);
+    // persiste última rota visitada por área (pra "lean sidebar → goToGroup" funcionar)
+    const fi = MOCK.MENU_FLAT.find((i) => i.id === r);
+    if (fi?.group && fi.group !== "__user__") {
+      try {localStorage.setItem(`oimpresso.group.${fi.group}.route`, r);} catch (e) {}
+    }
+  };
+  window.__go = handleSelectRoute;
+  window.__selectRoute = handleSelectRoute;
+  // Ponte pro rodapé da sidebar: tema e atmosfera JÁ moram nos tweaks (Vibe →
+  // Tema/Atmosfera), que escrevem data-theme/data-vibe no <html>. O menu do
+  // usuário dirige ESSE estado — não um paralelo (senão dois donos, um eixo).
+  window.__setTweak = setTweak;
+  window.__tweaks = tweaks;
+
+  // Permite componentes filhos (ex: telas PG) navegarem cross-tela via
+  // window.PgGotoRoute('payment-gateways'). Ver pg-shell-adapters.jsx.
+  useEffectA(() => {
+    const onGoto = (e) => {if (e.detail) handleSelectRoute(e.detail);};
+    window.addEventListener('pg:goto-route', onGoto);
+    return () => window.removeEventListener('pg:goto-route', onGoto);
+  }, []);
+
+  // Abas de área da Jana — Metas como seção do Painel (canon) ou aba própria (tweak).
+  const janaTab = tweaks.janaMetas !== "aba" && chatTab === "metas" ? "painel" : chatTab;
+
+  let content;
+  if (route === "chat") content = <window.JanaPage company={company} tab={janaTab} metasMode={tweaks.janaMetas === "aba" ? "aba" : "secao"} estado={tweaks.janaEstado} papel={tweaks.janaPapel} onGoTab={setChatTab} />;else
+  if (route === "tarefas") content = <window.TasksPage />;else
+  if (route === "dash-legacy") content = <window.DashLegacyPage />;else
+  if (route === "perfil") content = <window.PerfilPage />;else
+  if (route === "usuarios") content = <window.UsuariosPage />;else
+  if (route === "funcoes") content = <window.FuncoesPage />;else
+  if (route === "comissionados") content = <window.ComissionadosPage />;else
+  if (route === "comissoes") content = <window.ComissoesPage />;else
+  if (route === "prefs") content = <window.PrefsPage />;else
+  if (route === "notificacoes") content = <window.NotificacoesPage />;else
+  if (route === "backup") content = <window.BackupPage destino={tweaks.bkpDestino} estado={tweaks.bkpEstado} permissao={tweaks.bkpPermissao} />;else
+  if (route === "modulos") content = <window.ModulosPage />;else
+  if (route === "os") content = <window.OsListPage />;else
+  if (route === "clientes") content = <window.CliListPage />;else
+  if (route === "cli-import") content = <window.ClienteImportPage />;else
+  if (route === "cli-novo") content = <window.ClienteFormPage modo="novo" />;else
+  if (route === "cli-editar") content = <window.ClienteFormPage modo="editar" />;else
+  if (route === "cli-extrato") content = <window.ClienteExtratoPage clientId={window.__CLI_EXTRATO_ID} />;else
+  if (route === "cli-mapa") content = <window.ClienteMapaPage />;else
+  if (route === "cli-grupos") content = <window.ClienteGruposPage />;else
+  if (route === "orcamentos") content = <window.OrcListPage />;else
+  if (route === "produtos") content = <window.ProdListPage typeFilter={prodType} onTypeFilter={setProdType} estado={tweaks.prodEstado} dense={tweaks.prodDensidade === "compacto"} papel={tweaks.prodPapel} />;else
+  if (route.startsWith("prod-")) {
+    const PROD_VIEW = { "prod-lista": "lista", "prod-novo": "form", "prod-estoque": "estoque", "prod-historico": "historico", "prod-precos": "precos", "prod-massa": "massa", "prod-analises": "analises", "prod-etiquetas": "etiquetas", "prod-atualizar-preco": "atualizar-preco", "prod-importar": "importar-produtos", "prod-importar-estoque": "importar-estoque", "prod-cadastros": "cadastros" };
+    content = <window.ProdutoBladePage view={PROD_VIEW[route] || "lista"} estado={tweaks.prodEstado} dense={tweaks.prodDensidade === "compacto"} papel={tweaks.prodPapel} />;
+  }else
+  if (route === "vendas") content = <window.VendasModule />;else
+  if (route === "venda-todas") content = <window.VendaTodasPage />;else
+  if (route === "venda-pdv") content = <window.VendaBladePage view="pdv" />;else
+  if (route === "venda-nova") content = <window.VendaBladePage view="nova" status="final" />;else
+  if (route === "venda-nova-rascunho") content = <window.VendaBladePage view="nova" status="draft" />;else
+  if (route === "venda-nova-cotacao") content = <window.VendaBladePage view="nova" status="quotation" />;else
+  if (route === "venda-devolucoes") content = <window.VendasModule initialSub="devolucoes" />;else
+  if (route.startsWith("venda-")) {
+    // Blades do menu Vendas que ainda não existiam no Cockpit (venda-blade.jsx)
+    const VENDA_VIEW = { "venda-pos": "pos", "venda-rascunhos": "rascunhos", "venda-cotacoes": "cotacoes", "venda-remessas": "remessas", "venda-descontos": "descontos", "venda-assinaturas": "assinaturas", "venda-importar": "importar", "venda-pedidos": "pedidos", "venda-caixa": "caixa", "venda-devolver": "devolver" };
+    content = <window.VendaBladePage view={VENDA_VIEW[route] || "pos"} />;
+  }else
+  if (route === "manufacturing") content = <window.ManufacturingPage />;else
+  if (route === "mfg-producao") content = <window.ManufacturingPage initialView="producao" />;else
+  if (route === "mfg-relatorio") content = <window.ManufacturingPage initialView="relatorio" />;else
+  if (route === "mfg-config") content = <window.ManufacturingPage initialView="config" />;else
+  if (route === "fila" || route === "acabamento" || route === "expedicao") content = <window.ProducaoPage />;else
+  if (route === "financeiro") content = <window.FinanceiroPage initialTela="unified" />;else
+  if (route === "fin-fluxo") content = <window.FinanceiroPage initialTela="fluxo" />;else
+  if (route === "fin-concil") content = <window.FinanceiroPage initialTela="concil" />;else
+  if (route === "fin-dre") content = <window.FinanceiroPage initialTela="dre" />;else
+  if (route === "fin-pcontas") content = <window.FinanceiroPage initialTela="pcontas" />;else
+  if (route === "fin-impostos") content = <window.FinanceiroPage initialTela="impostos" />;else
+  if (route === "boletos") content = <window.BoletosPage />;else
+  if (route === "cobranca") content = <window.CobrancaPage />;else
+  if (route === "payment-gateways") content = <window.PaymentGatewaysPage />;else
+  if (route === "sells-pg-preview") content = <window.SellsCobrancaPreviewPage />;else
+  if (route === "compras") content = <window.ComprasPage />;else
+  if (route === "cmp-grade") content = <window.ComprasGradeMatrixPage />;else
+  if (typeof route === "string" && route.indexOf("cmp-") === 0) content = <window.ComprasExtrasPage view={route} />;else
+  if (typeof route === "string" && ["fin-receber", "fin-pagar", "fin-despesas", "fin-categorias", "fin-bancos", "fin-extrato"].indexOf(route) >= 0) content = <window.FinanceiroLegadoPage view={route} />;else
+  if (route === "woocommerce") content = <window.WooCommercePage />;else
+  if (route === "cfg-mesas" || route === "cfg-atendentes") content = <window.RestauranteExtrasPage view={route} />;else
+  if (route === "estoque" || (typeof route === "string" && route.indexOf("est-") === 0)) content = <window.EstoquePage view={route} papel={tweaks.estPapel} dense={tweaks.estDensidade === "compacto"} lote={tweaks.estLote} />;else
+  if (route === "assets" || (typeof route === "string" && route.indexOf("pat-") === 0)) content = <window.PatrimonioPage view={route} dense={tweaks.patDensidade === "compacto"} estado={tweaks.patEstado} toque={tweaks.patToque} papel={tweaks.patPapel} />;else
+  if (route === "repair" || (typeof route === "string" && route.indexOf("rep-") === 0)) content = <window.RepairPage view={route} dense={tweaks.repDensidade === "compacto"} estado={tweaks.repEstado} papel={tweaks.repPapel} />;else
+  // D-PONTO-DETALHE ([W] 2026-09-14): rota própria. Prefixo `pt-` no shell, como pat-/rep-/hrm- já fazem.
+  if (route === "ponto" || (typeof route === "string" && route.indexOf("pt-") === 0)) content = <window.PontoPage view={route} />;else
+  if (route === "hrm" || (typeof route === "string" && route.indexOf("hrm-") === 0)) content = <window.HrmPage view={route} />;else
+  if (route === "essenciais" || (typeof route === "string" && route.indexOf("ess-") === 0)) content = <window.EssenciaisPage view={route} />;else
+  if (typeof route === "string" && route.indexOf("cfg-") === 0) content = <window.ConfiguracoesPage view={route} />;else
+  if (route === "oficinaauto") content = <window.OficinaPage />;else
+  if (route === "oficina-os") content = <window.OficinaOSPage />;else
+  if (route === "crm-ficha") content = <window.CrmFicha />;else
+  if (route === "crm-portal" && window.CrmPortalPage) content = <window.CrmPortalPage />;else
+  if ((route === "crm" || route.indexOf("crm-") === 0) && window.CrmBladePage) {
+    // Módulo Crm do legado (crm::layouts.nav) traduzido em crm-blade.jsx.
+    const CRM_VIEW = { "crm": "painel", "crm-painel": "painel", "crm-leads": "leads", "crm-followups": "acompanhamentos", "crm-campanhas": "campanhas", "crm-logins": "logins", "crm-comissoes": "comissoes", "crm-chamadas": "chamadas", "crm-relatorios": "relatorios", "crm-modelo": "modelo", "crm-propostas": "propostas", "crm-marketplace": "marketplace", "crm-pedidos": "pedidos", "crm-taxonomias": "taxonomias", "crm-config": "config" };
+    content = CRM_VIEW[route] ? <window.CrmBladePage view={CRM_VIEW[route]} /> : <ModuleStub routeId={route} />;
+  }else
+  if (route === "inbox") content = <window.InboxPage />;else
+  if (route === "equipe") content = <window.EquipePage />;else
+  if (route === "kb") content = <window.KBPage />;else
+  if (route === "documentacao") content = <window.DocumentacaoPage />;else
+  if (route === "planilhas") content = <window.PlanilhasPage view="lista" />;else
+  if (route === "planilha-nova") content = <window.PlanilhasPage view="nova" />;else
+  if (route === "programa-doc") content = <window.ProgramaDocPage />;else
+  if (route === "site") content = <window.CmsPage view="paginas" />;else
+  if (route === "cms-blog") content = <window.CmsPage view="blog" />;else
+  if (route === "cms-depoimentos") content = <window.CmsPage view="depoimentos" />;else
+  if (route === "cms-detalhes") content = <window.CmsPage view="site" />;else
+  if (route === "cms-leads") content = <window.CmsPage view="leads" />;else
+  if (route === "cms-modulo") content = <window.CmsPage view="modulo" />;else
+  if (route === "governance") content = <window.GovernancePage view="painel" />;else
+  if (route === "gov-politicas") content = <window.GovernancePage view="politicas" />;else
+  if (route === "gov-auditoria") content = <window.GovernancePage view="auditoria" />;else
+  if (route === "gov-drift") content = <window.GovernancePage view="drift" />;else
+  if (route === "gov-notas") content = <window.GovernancePage view="notas" />;else
+  if (route === "connector") content = <window.ConnectorPage view="clients" />;else
+  if (route === "conn-docs") content = <window.ConnectorPage view="docs" />;else
+  if (route === "conn-saude") content = <window.ConnectorPage view="saude" />;else
+  if (route === "conn-modulo") content = <window.ConnectorPage view="modulo" />;else
+  if (route === "projects" || route === "teammcp") content = <window.ForjaPage />;
+  else if (route === "superadmin") content = <window.SuperadminPage view="visao" />;else
+  if (route === "sa-negocios") content = <window.SuperadminPage view="negocios" />;else
+  if (route === "sa-assinaturas") content = <window.SuperadminPage view="assinaturas" />;else
+  if (route === "sa-pacotes") content = <window.SuperadminPage view="pacotes" />;else
+  if (route === "sa-comunicador") content = <window.SuperadminPage view="comunicador" />;else
+  if (route === "sa-config") content = <window.SuperadminPage view="config" />;
+  // Office Impresso (licenciamento desktop Delphi) — espelha topnav.php do módulo
+  else if (route === "officeimpresso") content = <window.OfficeimpressoPage view="empresas" />;else
+  if (route === "oi-licencas") content = <window.OfficeimpressoPage view="licencas" />;else
+  if (route === "oi-clientes") content = <window.OfficeimpressoPage view="clientes" />;else
+  if (route === "oi-importar") content = <window.OfficeimpressoPage view="importar" />;else
+  if (route === "oi-log") content = <window.OfficeimpressoPage view="log" />;
+  // Cobrança Recorrente (F1) — sub-nav espelha git RecurringBilling (Assinaturas/Planos/Faturas/Configurações)
+  else if (route === "recurring") content = <window.CobrancaRecorrentePage view="assinaturas" />;else
+  if (route === "rb-assinaturas") content = <window.CobrancaRecorrentePage view="assinaturas" />;else
+  if (route === "rb-planos") content = <window.CobrancaRecorrentePage view="planos" />;else
+  if (route === "rb-faturas") content = <window.CobrancaRecorrentePage view="faturas" />;else
+  if (route === "rb-config") content = <window.CobrancaRecorrentePage view="config" />;else
+  if (route === "fiscal") content = <window.FiscalPage view="notas" />;else
+  if (route === "fiscal-nfe" || route === "nfe") content = <window.FiscalPage view="nfe" />;else
+  if (route === "fiscal-nfse" || route === "nfse") content = <window.FiscalPage view="nfse" />;else
+  if (route === "fiscal-eventos") content = <window.FiscalPage view="eventos" />;else
+  if (route === "fiscal-dfe") content = <window.FiscalPage view="dfe" />;else
+  if (route === "fiscal-config") content = <window.FiscalPage view="config" />;else
+  if (route === "fiscal-sped") content = <window.FiscalPage view="sped" />;else
+  if (route === "cv") content = <window.ComunicacaoVisualPage estado={tweaks.cvEstado} papel={tweaks.cvPapel} dense={tweaks.cvDensidade === "compacto"} toque={tweaks.cvToque} pcp={tweaks.cvPcp} salvar={tweaks.cvSalvar} />;else
+  if (route === "arquivos" || (typeof route === "string" && route.indexOf("arq-") === 0)) content = <window.ArquivosPage view={{ "arquivos": "acervo", "arq-retencao": "retencao", "arq-cofre": "cofre", "arq-trilha": "trilha" }[route]} estado={tweaks.arqEstado} papel={tweaks.arqPapel} dense={tweaks.arqDensidade === "compacto"} toque={tweaks.arqToque} casa={tweaks.arqCasa} />;else
+  if (route === "voz") content = <window.VozDoClientePage estado={tweaks.vozEstado} papel={tweaks.vozPapel} dense={tweaks.vozDensidade === "compacto"} />;else
+  if (route === "suporte") content = <window.SuportePage view="empresas" estado={tweaks.supEstado} papel={tweaks.supPapel} dense={tweaks.supDensidade === "compacto"} />;else
+  if (route === "suporte-visao") content = <window.SuportePage view="visao" estado={tweaks.supEstado} papel={tweaks.supPapel} dense={tweaks.supDensidade === "compacto"} />;else
+  if (route === "vestuario" || route === "vest-etiquetas") content = <window.VestuarioPage estado={tweaks.vstEstado} papel={tweaks.vstPapel} dense={tweaks.vstDensidade === "compacto"} toque={tweaks.vstToque} previa={tweaks.vstPrevia} hardBlock={tweaks.vstHardBlock} />;else
+  if (route === "catalogo-qr") content = <window.CatalogoQrPage estado={tweaks.cqrEstado} papel={tweaks.cqrPapel} dense={tweaks.cqrDensidade === "compacto"} logoCadastrado={tweaks.cqrLogo} />;else
+  if (route === "relatorios") content = <window.RelatoriosPage />;else
+  if (typeof route === "string" && route.indexOf("rel-") === 0) content = <window.RelatoriosPage grupo={{ "rel-financeiro": "Financeiro", "rel-comercial": "Comercial", "rel-estoque": "Estoque", "rel-fiscal": "Fiscal" }[route]} />;else
+  if ([
+  "inbox", "equipe",
+  "catalogue", "brief", "manufacturing", "ads",
+  "portalos", "auditoria"].
+  includes(route)) content = <window.MockupPage route={route} />;else
+  content = <ModuleStub routeId={route} />;
+
+  return (
+    <div className={"app app--sb-" + (isMobile ? "expanded" : sbMode) + (isMobile ? " app--mobile" : "") + (isMobile && mobileMenuOpen ? " app--mob-open" : "")}>
+      {(isMobile || sbMode !== "hidden") &&
+      <Sidebar
+        company={company} onCompany={setCompany}
+        activeRoute={route} onSelectRoute={handleSelectRoute}
+        mode={isMobile ? "expanded" : sbMode} onModeChange={escolherModo}
+        papel={tweaks.sbPapel} showGhosts={tweaks.sbGhosts} />
+      }
+      {!isMobile && sbMode === "hidden" &&
+      <window.SidebarReopenHandle onOpen={() => escolherModo("expanded")} />
+      }
+      {isMobile &&
+      <button
+        className="sb-mobile-toggle"
+        onClick={() => setMobileMenuOpen((v) => !v)}
+        aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+        aria-expanded={mobileMenuOpen}>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+            {mobileMenuOpen ?
+          <path d="M18 6 6 18M6 6l12 12" /> :
+          <path d="M3 12h18M3 6h18M3 18h18" />}
+          </svg>
+        </button>
+      }
+      {isMobile && mobileMenuOpen &&
+      <div className="sb-mobile-backdrop" onClick={() => setMobileMenuOpen(false)} />
+      }
+      <main className="main">
+        <Header company={company} route={route} onSelectRoute={handleSelectRoute}
+        prodType={prodType} onProdType={setProdType}
+        chatTab={janaTab} onChatTab={setChatTab} />
+        <div className="main-body"><RouteErrorBoundary key={route + ":" + tick}><RouteSlot>{content}</RouteSlot></RouteErrorBoundary></div>
+      </main>
+      {showLaravel && <LaravelPanel onClose={() => setShowLaravel(false)} />}
+      {window.CommandPalette &&
+      <window.CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)}
+        onSelect={handleSelectRoute} papel={tweaks.sbPapel} />
+      }
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Vibe" />
+        <TweakRadio
+          label="Tema"
+          value={tweaks.theme}
+          options={["dark", "light"]}
+          onChange={(v) => setTweak("theme", v)} />
+        <TweakRadio
+          label="Atmosfera"
+          value={tweaks.vibe}
+          options={["workspace", "daylight", "focus"]}
+          onChange={(v) => setTweak("vibe", v)} />
+
+        <TweakSection label="Densidade" />
+        <TweakSlider
+          label="Skim ↔ Briefing"
+          value={tweaks.density}
+          min={0} max={100} step={5}
+          unit="%"
+          onChange={(v) => setTweak("density", v)} />
+
+        <TweakSection label="Cor" />
+        <TweakSlider
+          label="Tom do accent"
+          value={tweaks.accentHue}
+          min={0} max={360} step={10}
+          unit="°"
+          onChange={(v) => setTweak("accentHue", v)} />
+
+        <TweakSection label="Jana" />
+        <TweakRadio
+          label="Metas (ex-/ia/dashboard)"
+          value={tweaks.janaMetas}
+          options={["seção", "aba"]}
+          onChange={(v) => setTweak("janaMetas", v)} />
+
+        <TweakRadio
+          label="Estado dos dados"
+          value={tweaks.janaEstado}
+          options={["dados", "vazio", "erro"]}
+          onChange={(v) => setTweak("janaEstado", v)} />
+
+        <TweakRadio
+          label="Papel de quem entrou"
+          value={tweaks.janaPapel}
+          options={["funcionaria", "dona", "superadmin"]}
+          onChange={(v) => setTweak("janaPapel", v)} />
+
+        {(route === "produtos" || route.startsWith("prod-")) && <>
+          <TweakSection label="Produtos" />
+          <TweakRadio
+            label="Densidade da tela"
+            value={tweaks.prodDensidade}
+            options={["confortável", "compacto"]}
+            onChange={(v) => setTweak("prodDensidade", v)} />
+          <TweakRadio
+            label="Estado dos dados"
+            value={tweaks.prodEstado}
+            options={["dados", "vazio", "carregando", "erro"]}
+            onChange={(v) => setTweak("prodEstado", v)} />
+          <TweakSelect
+            label="Papel simulado"
+            value={tweaks.prodPapel}
+            options={["administrador", "gerente", "balcao", "sem-acesso"]}
+            onChange={(v) => setTweak("prodPapel", v)} />
+        </>}
+
+        {(route === "repair" || route.indexOf("rep-") === 0) && <>
+          <TweakSection label="Assistência técnica" />
+          <TweakRadio
+            label="Densidade da tela"
+            value={tweaks.repDensidade}
+            options={["confortável", "compacto"]}
+            onChange={(v) => setTweak("repDensidade", v)} />
+          <TweakRadio
+            label="Estado dos dados"
+            value={tweaks.repEstado}
+            options={["dados", "vazio", "carregando", "erro"]}
+            onChange={(v) => setTweak("repEstado", v)} />
+          <TweakSelect
+            label="Papel simulado"
+            value={tweaks.repPapel}
+            options={["administrador", "tecnico", "balcao"]}
+            onChange={(v) => setTweak("repPapel", v)} />
+        </>}
+
+        {(route === "assets" || route.indexOf("pat-") === 0) && <>
+          <TweakSection label="Patrimônio" />
+          <TweakRadio
+            label="Densidade da tela"
+            value={tweaks.patDensidade}
+            options={["confortável", "compacto"]}
+            onChange={(v) => setTweak("patDensidade", v)} />
+          <TweakRadio
+            label="Estado dos dados"
+            value={tweaks.patEstado}
+            options={["dados", "vazio", "carregando", "erro"]}
+            onChange={(v) => setTweak("patEstado", v)} />
+          <TweakRadio
+            label="Alvo de toque"
+            value={tweaks.patToque}
+            options={["mouse", "tablet"]}
+            onChange={(v) => setTweak("patToque", v)} />
+          <TweakSelect
+            label="Papel simulado"
+            value={tweaks.patPapel}
+            options={["gestor", "operador", "financeiro"]}
+            onChange={(v) => setTweak("patPapel", v)} />
+        </>}
+
+        {route === "cv" && <>
+          <TweakSection label="Comunicação Visual" />
+          <TweakRadio label="Densidade da tela" value={tweaks.cvDensidade}
+            options={["confortável", "compacto"]} onChange={(v) => setTweak("cvDensidade", v)} />
+          <TweakRadio label="Estado dos dados" value={tweaks.cvEstado}
+            options={["dados", "vazio", "carregando", "erro"]} onChange={(v) => setTweak("cvEstado", v)} />
+          <TweakRadio label="Alvo de toque" value={tweaks.cvToque}
+            options={["mouse", "tablet"]} onChange={(v) => setTweak("cvToque", v)} />
+          <TweakSelect label="Papel simulado" value={tweaks.cvPapel}
+            options={["balcao", "gerente", "consulta", "sem-acesso"]} onChange={(v) => setTweak("cvPapel", v)} />
+          <TweakToggle label="PCP na tela" value={tweaks.cvPcp} onChange={(v) => setTweak("cvPcp", v)} />
+          <TweakToggle label="Salvar orçamento + PDF" value={tweaks.cvSalvar} onChange={(v) => setTweak("cvSalvar", v)} />
+        </>}
+
+        {(route === "arquivos" || route.indexOf("arq-") === 0) && <>
+          <TweakSection label="Arquivos (DMS)" />
+          <TweakRadio label="Densidade da tela" value={tweaks.arqDensidade}
+            options={["confortável", "compacto"]} onChange={(v) => setTweak("arqDensidade", v)} />
+          <TweakRadio label="Estado dos dados" value={tweaks.arqEstado}
+            options={["dados", "vazio", "carregando", "erro"]} onChange={(v) => setTweak("arqEstado", v)} />
+          <TweakRadio label="Alvo de toque" value={tweaks.arqToque}
+            options={["mouse", "tablet"]} onChange={(v) => setTweak("arqToque", v)} />
+          <TweakSelect label="Papel simulado" value={tweaks.arqPapel}
+            options={["gestor", "leitura", "sem-acesso"]} onChange={(v) => setTweak("arqPapel", v)} />
+          <TweakRadio label="Onde mora" value={tweaks.arqCasa}
+            options={["sistema", "admin-center"]} onChange={(v) => setTweak("arqCasa", v)} />
+        </>}
+
+        {route === "voz" && <>
+          <TweakSection label="Voz do Cliente" />
+          <TweakRadio label="Densidade da tela" value={tweaks.vozDensidade}
+            options={["confortável", "compacto"]} onChange={(v) => setTweak("vozDensidade", v)} />
+          <TweakRadio label="Estado dos dados" value={tweaks.vozEstado}
+            options={["dados", "vazio", "carregando", "erro"]} onChange={(v) => setTweak("vozEstado", v)} />
+          <TweakSelect label="Papel simulado" value={tweaks.vozPapel}
+            options={["produto", "leitura", "sem-acesso"]} onChange={(v) => setTweak("vozPapel", v)} />
+        </>}
+
+        {(route === "suporte" || route === "suporte-visao") && <>
+          <TweakSection label="Modo Suporte" />
+          <TweakRadio label="Densidade da tela" value={tweaks.supDensidade}
+            options={["confortável", "compacto"]} onChange={(v) => setTweak("supDensidade", v)} />
+          <TweakRadio label="Estado dos dados" value={tweaks.supEstado}
+            options={["dados", "vazio", "carregando", "erro"]} onChange={(v) => setTweak("supEstado", v)} />
+          <TweakSelect label="Papel simulado" value={tweaks.supPapel}
+            options={["agente", "sem-acesso"]} onChange={(v) => setTweak("supPapel", v)} />
+        </>}
+
+        {(route === "vestuario" || route === "vest-etiquetas") && <>
+          <TweakSection label="Vestuário · etiquetas" />
+          <TweakRadio label="Densidade da tela" value={tweaks.vstDensidade}
+            options={["confortável", "compacto"]} onChange={(v) => setTweak("vstDensidade", v)} />
+          <TweakRadio label="Estado dos dados" value={tweaks.vstEstado}
+            options={["dados", "vazio", "carregando", "erro"]} onChange={(v) => setTweak("vstEstado", v)} />
+          <TweakRadio label="Alvo de toque" value={tweaks.vstToque}
+            options={["mouse", "tablet"]} onChange={(v) => setTweak("vstToque", v)} />
+          <TweakSelect label="Papel simulado" value={tweaks.vstPapel}
+            options={["operador", "gerente", "sem-acesso"]} onChange={(v) => setTweak("vstPapel", v)} />
+          <TweakToggle label="Prévia da etiqueta (D-2)" value={tweaks.vstPrevia} onChange={(v) => setTweak("vstPrevia", v)} />
+          <TweakToggle label="Hard-block de permissão (D-1)" value={tweaks.vstHardBlock} onChange={(v) => setTweak("vstHardBlock", v)} />
+        </>}
+
+        {route === "catalogo-qr" && <>
+          <TweakSection label="Catálogo QR" />
+          <TweakRadio label="Densidade da tela" value={tweaks.cqrDensidade}
+            options={["confortável", "compacto"]} onChange={(v) => setTweak("cqrDensidade", v)} />
+          <TweakRadio label="Estado dos dados" value={tweaks.cqrEstado}
+            options={["dados", "vazio", "carregando", "erro"]} onChange={(v) => setTweak("cqrEstado", v)} />
+          <TweakSelect label="Papel simulado" value={tweaks.cqrPapel}
+            options={["gerente", "sem-acesso"]} onChange={(v) => setTweak("cqrPapel", v)} />
+          <TweakToggle label="Negócio tem logo" value={tweaks.cqrLogo} onChange={(v) => setTweak("cqrLogo", v)} />
+        </>}
+
+        {(route === "estoque" || route.indexOf("est-") === 0) && <>
+          <TweakSection label="Estoque" />
+          <TweakRadio
+            label="Densidade da tela"
+            value={tweaks.estDensidade}
+            options={["confortável", "compacto"]}
+            onChange={(v) => setTweak("estDensidade", v)} />
+          <TweakSelect
+            label="Papel simulado"
+            value={tweaks.estPapel}
+            options={["gestor", "deposito", "balcao", "financeiro"]}
+            onChange={(v) => setTweak("estPapel", v)} />
+          <TweakToggle
+            label="Lote e validade"
+            value={tweaks.estLote}
+            onChange={(v) => setTweak("estLote", v)} />
+        </>}
+
+        {route === "backup" && <>
+          <TweakSection label="Backup" />
+          <TweakRadio
+            label="Destino"
+            value={tweaks.bkpDestino}
+            options={["local", "s3"]}
+            onChange={(v) => setTweak("bkpDestino", v)} />
+          <TweakRadio
+            label="Estado"
+            value={tweaks.bkpEstado}
+            options={["dados", "vazio", "erro", "demo"]}
+            onChange={(v) => setTweak("bkpEstado", v)} />
+          <TweakRadio
+            label="Permissão"
+            value={tweaks.bkpPermissao}
+            options={["total", "leitura"]}
+            onChange={(v) => setTweak("bkpPermissao", v)} />
+        </>}
+
+        <TweakSection label="Sistema" />
+        <TweakRadio
+          label="Alvo de toque"
+          value={tweaks.toque}
+          options={["mouse", "tablet"]}
+          onChange={(v) => setTweak("toque", v)} />
+
+        <TweakSection label="Sidebar" />
+        <TweakSelect
+          label="Papel simulado"
+          value={tweaks.sbPapel}
+          options={Object.keys(window.MOCK.SIDEBAR_PAPEIS || { "wagner (admin)": null })}
+          onChange={(v) => setTweak("sbPapel", v)} />
+        <TweakToggle
+          label="Ghosts no sidebar"
+          value={tweaks.sbGhosts}
+          onChange={(v) => setTweak("sbGhosts", v)} />
+        <TweakToggle
+          label="Painel Laravel"
+          value={tweaks.showLaravel}
+          onChange={(v) => setTweak("showLaravel", v)} />
+      </TweaksPanel>
+    </div>);
+
+}
+
+// Rota lazy que ainda não chegou: `React.createElement(window.XPage)` com XPage `undefined`
+// derruba o React ANTES do RouteSlot enxergar o elemento — era 1 erro de console em todo
+// load (pior na rota restaurada do localStorage, ex. `fin-concil`). Aqui todo global usado
+// como TIPO de elemento dentro de App ganha um par get/set: enquanto o chunk não executa,
+// devolve o placeholder do carregador; quando executa, o valor real entra pelo setter.
+// Deriva os nomes do próprio App compilado → rota nova está coberta sem manutenção.
+(function () {
+  function RotaCarregando() {
+    return (
+      <div className="rota-carregando">
+        <span className="rota-carregando-b" />
+        <span>Carregando módulo…</span>
+      </div>);
+  }
+  var achados = String(App).match(/createElement\(\s*window\.(\w+)/g) || [];
+  achados.forEach(function (m) {
+    var nome = m.replace(/[\s\S]*window\./, "");
+    if (window[nome] !== undefined) return;
+    var real;
+    try {
+      Object.defineProperty(window, nome, {
+        configurable: true,
+        get: function () { return real || RotaCarregando; },
+        set: function (v) { real = v; },
+      });
+    } catch (e) {}
+  });
+})();
+
+ReactDOM.createRoot(document.getElementById("app")).render(<App />);

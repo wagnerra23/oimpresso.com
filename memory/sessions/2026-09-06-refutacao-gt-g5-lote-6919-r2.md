@@ -11,6 +11,8 @@ outcomes:
 
 # Refutação GT-G5 · rodada r2 · lote PR #6919
 
+## Contexto
+
 - **Base:** `origin/main` = `7bff2ca69d85b22c54a22f3722a6c53b0519049c` · **HEAD:** `6e1fc82085b65cd52c2deb794f7f57ab36f19124`
 - **Repo raso:** `git rev-parse --is-shallow-repository` = `true` → nenhuma data de `git log` usada como recibo (o hook `block-instrumento-sem-porta-viva` barrou a única tentativa, corretamente); datas de commit vieram da API do GitHub (`gh api repos/.../commits/<sha>`).
 - **Sessão fresca:** sim — instância nova, sem contexto do gerador nem das rodadas anteriores. `memory/sessions/*refutacao*` (inclusive a r1, que está no diff do PR) e `memory/handoffs/` de hoje **não foram abertos**. Corpo do PR / commit message **não** foram lidos como evidência.

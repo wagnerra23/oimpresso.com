@@ -2,7 +2,7 @@
 page: /sells/create
 component: resources/js/Pages/Sells/Create.tsx
 related_visual_comparison: memory/requisitos/Sells/sells-create-visual-comparison.md
-related_prototype: prototipo-ui/cowork/vendas-create-page.jsx (ancora medida em 2026-09-07 — mesmo Canon ADR 0110 do charter e mesma mecanica de pills + scroll-spy. E FONTE de design, NAO autorizacao de mudanca — a tela viva e a do cliente ROTA LIVRE biz=4 e toca VALOR e ESTOQUE)
+related_prototype: prototipo-ui/cowork/Wagner/vendas-create-page.jsx (ancora medida em 2026-09-07 — mesmo Canon ADR 0110 do charter e mesma mecanica de pills + scroll-spy. E FONTE de design, NAO autorizacao de mudanca — a tela viva e a do cliente ROTA LIVRE biz=4 e toca VALOR e ESTOQUE)
 owner: wagner
 status: live
 last_validated: "2026-06-02"
@@ -98,7 +98,7 @@ Cadastrar venda completa (cliente + produtos + pagamento + frete + impostos) num
 ## UCs cobertos (PRECISA TER · rastreável · §10.4 [CC])
 
 > Cada item vem de um Caso de Uso ("A tela precisa:") amarrado a um GUARD Pest `uc-<id>`
-> (`tests/Feature/Guards/UcGuardsTest.php`) via [`prototipo-ui/audit/uc-registry.json`](../../../../prototipo-ui/audit/uc-registry.json).
+> (`tests/Feature/Guards/UcGuardsTest.php`) via [`scripts/design/audit/uc-registry.json`](../../../../scripts/design/audit/uc-registry.json).
 > ✅ = elemento presente + travado (some o elemento = build vermelho). 🟡 = gap conhecido (acende no `protocol_freshness`, advisory).
 
 - ✅ **UC-V01** (`uc-v01`) — busca rápida de cliente/produto, tabela de preços automática, condições (prazo/pagamento/endereço), rascunho × pedido confirmado.

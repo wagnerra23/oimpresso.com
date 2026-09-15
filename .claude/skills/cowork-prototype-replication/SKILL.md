@@ -1,6 +1,6 @@
 ---
 name: cowork-prototype-replication
-description: ATIVAR quando user pedir "fazer layout estado-da-arte", "replicar protótipo Cowork", "espelhar visual-source.html", "transformar prototipo-ui/* em Inertia React", "usar layout do cockpit pra módulo X", OU em Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` quando existe `prototipo-ui/prototipos/<tela>/visual-source.html` ou `F1.html` correspondente. Carrega processo canônico de 7 fases (F0 sync + F1 mapping vocabulário vertical + F2 mapping CSS Cowork→Tailwind + F3 component hierarchy + F4 useMemo/useCallback + F5 Pest + F6 deploy + F7 smoke INTERATIVO) — RUNBOOK detalhado em [memory/requisitos/_DesignSystem/RUNBOOK-replicar-prototipo-cowork.md](../../memory/requisitos/_DesignSystem/RUNBOOK-replicar-prototipo-cowork.md). Caso real validado: Kanban Producao Oficina Caçambas 2026-05-13 (PRs #735→#740 madrugada pré-Martinho 10h).
+description: ATIVAR quando user pedir "fazer layout estado-da-arte", "replicar protótipo Cowork", "espelhar visual-source.html", "transformar prototipo-ui/* em Inertia React", "usar layout do cockpit pra módulo X", OU em Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` quando existe `prototipo-ui/cowork/Wagner/legado/<tela>/visual-source.html` ou `F1.html` correspondente. Carrega processo canônico de 7 fases (F0 sync + F1 mapping vocabulário vertical + F2 mapping CSS Cowork→Tailwind + F3 component hierarchy + F4 useMemo/useCallback + F5 Pest + F6 deploy + F7 smoke INTERATIVO) — RUNBOOK detalhado em [memory/requisitos/_DesignSystem/RUNBOOK-replicar-prototipo-cowork.md](../../memory/requisitos/_DesignSystem/RUNBOOK-replicar-prototipo-cowork.md). Caso real validado: Kanban Producao Oficina Caçambas 2026-05-13 (PRs #735→#740 madrugada pré-Martinho 10h).
 trigger_intensity: B
 tier: B
 ---
@@ -8,15 +8,15 @@ tier: B
 # Skill `cowork-prototype-replication` — replicar protótipo Cowork pra Inertia React (Tier B)
 
 > **Caso real validado em 2026-05-13 madrugada (5h antes reunião Wagner × Martinho 10h):**
-> Replicação 1:1 do `prototipo-ui/prototipos/producao-oficina/visual-source.html` (1213L canon Cowork) pro Kanban `/oficina-auto/producao-oficina` em Inertia React. **6 PRs em 5h** (Kanban V1 → MercosulPlate → Rich V2 → Pixel-perfect V3 → Drag-drop FSM → package-lock). Esta skill codifica o processo aprendido.
+> Replicação 1:1 do `prototipo-ui/cowork/Wagner/legado/producao-oficina/visual-source.html` (1213L canon Cowork) pro Kanban `/oficina-auto/producao-oficina` em Inertia React. **6 PRs em 5h** (Kanban V1 → MercosulPlate → Rich V2 → Pixel-perfect V3 → Drag-drop FSM → package-lock). Esta skill codifica o processo aprendido.
 
 ## Quando ativar
 
 | Gatilho | Ação imediata |
 |---|---|
 | User pede "fazer layout estado-da-arte" / "replicar protótipo Cowork" / "espelhar visual-source.html pra X" | Carregar RUNBOOK + propor 7 fases |
-| Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` SEM ler `prototipo-ui/prototipos/<tela>/visual-source.html` correspondente quando ele existe | Bloquear + ler protótipo PRIMEIRO |
-| User cola screenshot de tela "estado-da-arte" + pede "fazer assim" | Procurar protótipo Cowork correspondente em `prototipo-ui/prototipos/` |
+| Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` SEM ler `prototipo-ui/cowork/Wagner/legado/<tela>/visual-source.html` correspondente quando ele existe | Bloquear + ler protótipo PRIMEIRO |
+| User cola screenshot de tela "estado-da-arte" + pede "fazer assim" | Procurar protótipo Cowork correspondente em `prototipo-ui/cowork/Wagner/legado/` |
 
 ## Skills relacionadas
 
@@ -39,9 +39,9 @@ F0 SYNC LOOP (5min)
       gateada (0315). Fluxo escopado: get_file(âncora do charter via ancora.mjs) → persistir no
       staging fixo → detectar-telas.mjs. Orquestração multi-tela + transporte completo (pull vs
       ZIP fallback): skill `aplicar-prototipo` Fase −1.
-   SSOT vivo hoje = prototipo-ui/cowork/<tela>-page.jsx (o prototipos/<tela>/*.html é legado).
-   Read prototipo-ui/HANDOFF.md + identificar protótipo alvo
-   Glob prototipo-ui/cowork/<tela>-page.jsx  (fallback legado: prototipos/<tela>/{F1.html,visual-source.html,cowork-app.jsx})
+   SSOT vivo hoje = prototipo-ui/cowork/Wagner/<tela>-page.jsx (o prototipos/<tela>/*.html é legado).
+   Read memory/reference/prototipo-ui/HANDOFF.md + identificar protótipo alvo
+   Glob prototipo-ui/cowork/Wagner/<tela>-page.jsx  (fallback legado: prototipos/<tela>/{F1.html,visual-source.html,cowork-app.jsx})
 
 F1 MAPPING VOCABULÁRIO VERTICAL (10min) ⭐ CRÍTICO
    Ler memory/reference_dominios_verticais_oimpresso.md
@@ -52,7 +52,7 @@ F1 MAPPING VOCABULÁRIO VERTICAL (10min) ⭐ CRÍTICO
    ❌ NUNCA confundir m³ (caçamba) com m² (gráfica) — destrói credibilidade
 
 F2 MAPPING CSS COWORK → TAILWIND (10min)
-   Read prototipo-ui/prototipos/<tela>/visual-source.html FULL
+   Read prototipo-ui/cowork/Wagner/legado/<tela>/visual-source.html FULL
    Extrair classes CSS canônicas: .ofc-plate, .prod-col-*, .ofc-veh-row,
                                     .ofc-symptom, .ofc-eta-row, .ofc-mech-av
    Tabela equivalência:
@@ -101,7 +101,7 @@ F7 SMOKE INTERATIVO (10min) ⭐ CRÍTICO (lição PR #717)
 
 ## 12 elementos visuais canônicos do Cowork
 
-Quando replicar Kanban/Lista/Detail estilo `prototipo-ui/prototipos/producao-oficina/visual-source.html`:
+Quando replicar Kanban/Lista/Detail estilo `prototipo-ui/cowork/Wagner/legado/producao-oficina/visual-source.html`:
 
 1. **Borda topo colorida por coluna** (`.prod-col-{slate,blue,rose,violet,emerald}` → `border-t-2 border-{color}-400`)
 2. **Filter bar sticky** com pills capacidade/categoria + search input + KPI inline direita

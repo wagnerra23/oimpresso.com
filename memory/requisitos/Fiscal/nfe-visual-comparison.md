@@ -129,13 +129,13 @@ adr: 0107
 
 | eixo | resultado |
 |---|---|
-| comando | `node prototipo-ui/design-diff-lote.mjs --tela Fiscal/Nfe --base-url https://staging.oimpresso.com` |
+| comando | `node scripts/design/design-diff-lote.mjs --tela Fiscal/Nfe --base-url https://staging.oimpresso.com` |
 | veredito | **NÃO MEDI** (`rc=2`) — portão D0 recusou: identidade da view não provada |
 | lado design | ✅ **renderizou** — 6/6 copies do contrato D0 presentes no render do espelho |
 | lado prod | ❌ **não renderizou a tela** — o staging devolveu `RouteNotFoundException: Route [jana.acoes.index] not defined` (`Modules/Jana/Http/Controllers/DataController.php:295`) |
 | causa | **deploy defasado do staging**, não divergência de fidelidade: a rota EXISTE no main (`Modules/Jana/Http/routes.php:157`). Quebra é geral — 4/4 telas de 3 módulos distintos (`/fiscal`, `/fiscal/nfe`, `/sells`, `/cliente`) devolvem a mesma exceção, porque o `MenuBuilder` do AppShell a consome |
 | espelho (lado design) | fresco: bundle `2026-09-07T21:00Z` · `--preview-ds` COMPLETO · `ds-mirror-drift` 0 nos 4 temas · a âncora bate **sha256** com o manifesto do bundle |
 
-⚠️ **Ao reabrir:** o D0 desta tela tem contrato (`prototipo-ui/contrato/`), então a medição
+⚠️ **Ao reabrir:** o D0 desta tela tem contrato (`governance/design/contracts/`), então a medição
 volta a valer assim que o lado prod renderizar. Alinhar o tema com `--tema` — nesta rodada o
 espelho veio `dark` e o alvo `light`, e comparar temas diferentes fabrica divergência falsa.

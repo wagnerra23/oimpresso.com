@@ -25,9 +25,9 @@ prs: ["este (registry + ADR + 4 máquinas)"]
 O sistema tinha **8 componentes de "barra de abas de topo" divergentes** (a fita horizontal `Unificado · Pagar · Receber · ⋯` abaixo do título). Cada um hand-rolou o mesmo papel de um jeito ligeiramente diferente. Dois sintomas concretos:
 
 1. **Radius errado** — alguém pôs `rounded-md` numa aba; o protótipo (`.cli-moduletopnav-tab`) é RETO (`border-radius: 0`, underline reto). Wagner pegou **no olho**.
-2. **Dark quebrado** — cores/bordas hardcoded em `style={{}}` **inline** no TSX (ex: `borderBottomColor: 'oklch(0.93 0.004 90)'` — um tom claro). Isso **não é pego por nenhum gate**: o `prototipo-ui/cowork/conformance-gate.mjs` (cor-crua) e o stylelint `color-no-hex` só olham arquivos **`.css`**, nunca `style` inline de JSX/TSX; e as regras `ds/*` de className ([ADR 0338](../0338-ds-lint-eixo-valor-token-fecha-por-forma.md)) não olham o objeto `style`. Sombras (`box-shadow`) não tinham gate nenhum. Resultado: hardcode de tom claro num inline **quebra o modo escuro sem nenhum alarme**.
+2. **Dark quebrado** — cores/bordas hardcoded em `style={{}}` **inline** no TSX (ex: `borderBottomColor: 'oklch(0.93 0.004 90)'` — um tom claro). Isso **não é pego por nenhum gate**: o `prototipo-ui/cowork/Wagner/conformance-gate.mjs` (cor-crua) e o stylelint `color-no-hex` só olham arquivos **`.css`**, nunca `style` inline de JSX/TSX; e as regras `ds/*` de className ([ADR 0338](../0338-ds-lint-eixo-valor-token-fecha-por-forma.md)) não olham o objeto `style`. Sombras (`box-shadow`) não tinham gate nenhum. Resultado: hardcode de tom claro num inline **quebra o modo escuro sem nenhum alarme**.
 
-Consolidou-se num único componente — `resources/js/Components/shared/PageHeaderTabs.tsx`, fiel ao protótipo `prototipo-ui/cowork/clientes-page.css` `.cli-moduletopnav`. Mas **consolidar os casos não fecha a CAUSA**: a próxima feature hand-rola a 9ª barra e reintroduz o mesmo bug. A CAUSA é a **ausência de um padrão de criação de componentes por papel** + a **ausência de máquina** que veja cor inline.
+Consolidou-se num único componente — `resources/js/Components/shared/PageHeaderTabs.tsx`, fiel ao protótipo `prototipo-ui/cowork/Wagner/clientes-page.css` `.cli-moduletopnav`. Mas **consolidar os casos não fecha a CAUSA**: a próxima feature hand-rola a 9ª barra e reintroduz o mesmo bug. A CAUSA é a **ausência de um padrão de criação de componentes por papel** + a **ausência de máquina** que veja cor inline.
 
 Este é o mesmo diagnóstico do [ADR 0338](../0338-ds-lint-eixo-valor-token-fecha-por-forma.md) ("virar máquina quando 'sempre vai faltar isso'") e da [proposta árvore-componentes-canônica](2026-06-11-arvore-componentes-canonica.md) — esta proposta **estende** essa linhagem pro eixo "1 papel = 1 componente", não abre governança paralela.
 
@@ -35,7 +35,7 @@ Este é o mesmo diagnóstico do [ADR 0338](../0338-ds-lint-eixo-valor-token-fech
 
 ### D-1 · 1 componente de tab-nav canônico
 
-O papel **"barra de abas de topo"** canoniza em **`PageHeaderTabs`** (`@/Components/shared`), consumido via o `*SubNav` do módulo (`FinanceiroSubNav`/`JanaSubNav`/`PontoSubNav`), que resolve ghosts + active a partir do `shell.menu`. Anti-pattern (não se escreve mais): `ModuleTopNav` · `PageHeaderModuleNav` · `FiscalModuleTopNav` · `role="tablist"` hand-rolado na tela. Registrado em `prototipo-ui/REGISTRY_DS_COMPONENTES.md` §"Navegação de página".
+O papel **"barra de abas de topo"** canoniza em **`PageHeaderTabs`** (`@/Components/shared`), consumido via o `*SubNav` do módulo (`FinanceiroSubNav`/`JanaSubNav`/`PontoSubNav`), que resolve ghosts + active a partir do `shell.menu`. Anti-pattern (não se escreve mais): `ModuleTopNav` · `PageHeaderModuleNav` · `FiscalModuleTopNav` · `role="tablist"` hand-rolado na tela. Registrado em `memory/reference/prototipo-ui/REGISTRY_DS_COMPONENTES.md` §"Navegação de página".
 
 > **Errata [W] 2026-07-15** — `SubNav` (`@/Components/shared/SubNav`) **saiu** da lista anti-pattern acima. Revisão DS constatou que é **papel DISTINTO** (sub-navegação contextual in-page: `value`/`onChange`, sem `shell.menu`/`href`), não um hand-roll do tab-nav. Registrado como papel próprio (`sub-navegacao-contextual`) no REGISTRY §"Sub-navegação contextual" e em `ROLE_SIGNATURES`. O detector `--roles` deixou de marcá-lo como drift (era falso-positivo por proximidade de nome).
 
@@ -82,5 +82,5 @@ Máquinas (b) e (c) entram no **mesmo ratchet** do 0209 (`config/eslint-baseline
 - [ADR 0209](../0209-eslint-9-flat-config.md) — ratchet ESLint 9 (baseline que absorve (b)/(c))
 - [ADR 0258](../0258-processo-adr-estado-arte-indice-gerado-supersede-atomico.md) — todo ✅ tem que ter sido visto falhar (controle-negativo de (a) e (d))
 - [proposta árvore-componentes-canônica](2026-06-11-arvore-componentes-canonica.md) — linhagem "camada UI vira pasta/enforcement"
-- `prototipo-ui/REGISTRY_DS_COMPONENTES.md` §"Navegação de página" · `prototipo-ui/REGRAS_DS_LINT.md`
-- `prototipo-ui/cowork/clientes-page.css` §Slot 2 `.cli-moduletopnav` — a fonte de fidelidade
+- `memory/reference/prototipo-ui/REGISTRY_DS_COMPONENTES.md` §"Navegação de página" · `memory/reference/prototipo-ui/REGRAS_DS_LINT.md`
+- `prototipo-ui/cowork/Wagner/clientes-page.css` §Slot 2 `.cli-moduletopnav` — a fonte de fidelidade

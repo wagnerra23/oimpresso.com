@@ -15,7 +15,7 @@ use Modules\Jana\Services\AlertaService;
  * "STUB spec-ready" saiu em 2026-09-02: o `index()` virou a lista consolidada que
  * o Blade antigo dizia não existir. A CONTA é do `AlertaService::calcular()` — a
  * mesma que dispara a `MetaDesvioNotification` —, e a tela só filtra e formata.
- * Âncora: `prototipo-ui/cowork/jana-telas-novas.jsx` §`JmAlertas`.
+ * Âncora: `prototipo-ui/cowork/Wagner/jana-telas-novas.jsx` §`JmAlertas`.
  */
 class AlertasController extends Controller
 {

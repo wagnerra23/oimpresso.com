@@ -35,7 +35,7 @@ authors: [wagner, sonnet, claude-code]
 
 ## Contexto
 
-A constituição (ADR 0094 · ADR UI-0013 · `prototipo-ui/PROTOCOL.md` · `prototipo-ui/CLAUDE_DESIGN_BRIEFING.md`)
+A constituição (ADR 0094 · ADR UI-0013 · `memory/reference/prototipo-ui/PROTOCOL.md` · `memory/reference/prototipo-ui/CLAUDE_DESIGN_BRIEFING.md`)
 é a **perspectiva que define como tudo no diretório deve ser** — ela é *upstream* do índice e da IA,
 que são **derivados** dela. Por isso uma mudança constitucional não é editar um arquivo: é
 **reindexar o ecossistema inteiro** sob nova lente.

@@ -1,0 +1,83 @@
+/* assinatura-atualizar-page.css — Atualizar cobranca de assinatura. Cockpit V2.
+   Token-driven (claro/escuro pelo host). Prefixo .as- pra nao colidir.
+   So tokens do DS canon. Cor crua e proibida (conformance-gate = LEI). */
+
+.as{ display:flex; flex-direction:column; min-height:100%; background:var(--bg); }
+
+.as-head{ padding:16px 24px 12px; }
+.as-h1{ font-size:20px; font-weight:600; color:var(--fg); letter-spacing:-.01em; margin:0; }
+.as-sub{ font-size:12.5px; color:var(--fg-3); margin-top:3px; max-width:80ch; line-height:1.5; }
+
+.as-body{ padding:4px 24px 22px; display:flex; flex-direction:column; gap:14px; }
+
+.as-card{ border:1px solid var(--border); border-radius:var(--radius-lg);
+  background:var(--card); overflow:hidden; }
+.as-card-h{ padding:11px 16px; border-bottom:1px solid var(--border); }
+.as-card-t{ font-size:13px; font-weight:600; color:var(--fg); }
+.as-card-s{ font-size:11.5px; color:var(--fg-3); margin-top:2px; }
+.as-card-b{ padding:14px 16px; }
+
+/* tabela de assinaturas ativas */
+.as-wrap{ overflow-x:auto; }
+.as-tb{ width:100%; border-collapse:collapse; font-size:12.5px; min-width:720px; }
+.as-tb th{ text-align:left; font-weight:500; font-size:11px; color:var(--fg-3);
+  letter-spacing:.04em; text-transform:uppercase; padding:9px 12px;
+  border-bottom:1px solid var(--border); white-space:nowrap; }
+.as-tb td{ padding:9px 12px; border-bottom:1px solid var(--border); color:var(--fg-2); }
+.as-tb tr:last-child td{ border-bottom:0; }
+.as-tb tr[data-sel="true"] td{ background:var(--accent-soft); }
+.as-tb tbody tr{ cursor:pointer; }
+.as-tb tbody tr:hover td{ background:var(--muted); }
+.as-num{ text-align:right; font-variant-numeric:tabular-nums; }
+.as-plano{ color:var(--fg); font-weight:500; }
+
+.as-chip{ display:inline-flex; align-items:center; height:20px; padding:0 8px;
+  border:1px solid var(--border); border-radius:999px; background:var(--muted);
+  font-size:10.5px; font-weight:600; color:var(--fg-2); }
+.as-chip-on{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+
+/* form (so aparece com selecao — charter §UX targets) */
+.as-fg{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px 14px; }
+@media (max-width:760px){ .as-fg{ grid-template-columns:1fr; } }
+.as-f{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+.as-lb{ font-size:11.5px; font-weight:500; color:var(--fg-2); }
+.as-in{ height:32px; padding:0 10px; border:1px solid var(--border);
+  border-radius:var(--radius); background:var(--card); color:var(--fg);
+  font:inherit; font-size:12.5px; width:100%; }
+.as-in:focus{ outline:2px solid var(--accent); outline-offset:-1px; }
+.as-in[data-mudou="true"]{ border-color:var(--accent); }
+.as-hint{ font-size:11px; color:var(--fg-3); }
+.as-err{ font-size:11px; color:var(--accent); font-weight:500; }
+.as-money{ font-variant-numeric:tabular-nums; text-align:right; font-weight:600; }
+
+/* preview de impacto — o coracao do charter */
+.as-diff{ margin-top:14px; border:1px solid var(--accent); border-radius:var(--radius);
+  background:var(--accent-soft); overflow:hidden; }
+.as-diff-h{ padding:9px 12px; border-bottom:1px solid var(--border);
+  font-size:11.5px; font-weight:600; color:var(--fg); }
+.as-diff-b{ padding:4px 12px 10px; }
+.as-diff-l{ display:flex; align-items:center; gap:8px; padding:7px 0; font-size:12.5px;
+  border-bottom:1px solid var(--border); }
+.as-diff-l:last-child{ border-bottom:0; }
+.as-diff-k{ min-width:150px; color:var(--fg-3); }
+.as-de{ color:var(--fg-3); text-decoration:line-through; font-variant-numeric:tabular-nums; }
+.as-seta{ color:var(--fg-3); }
+.as-para{ color:var(--fg); font-weight:600; font-variant-numeric:tabular-nums; }
+
+/* estado sem diff — explica por que o botao esta travado */
+.as-nodiff{ margin-top:14px; padding:10px 12px; border:1px solid var(--border);
+  border-radius:var(--radius-sm); background:var(--muted);
+  font-size:12px; color:var(--fg-3); }
+
+.as-vazio{ padding:30px 16px; text-align:center; }
+.as-vazio-t{ font-size:13px; font-weight:600; color:var(--fg); }
+.as-vazio-s{ font-size:12px; color:var(--fg-3); margin-top:4px; max-width:48ch;
+  margin-left:auto; margin-right:auto; line-height:1.5; }
+
+.as-acts{ display:flex; justify-content:flex-end; gap:8px; padding:12px 16px;
+  border-top:1px solid var(--border); background:var(--muted); }
+.as-btn{ display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 12px;
+  border:1px solid var(--border); border-radius:var(--radius); background:var(--card);
+  font-size:12.5px; font-weight:500; color:var(--fg); cursor:pointer; }
+.as-btn-p{ background:var(--accent); border-color:var(--accent); color:var(--accent-fg); }
+.as-btn[disabled]{ opacity:.5; cursor:not-allowed; }

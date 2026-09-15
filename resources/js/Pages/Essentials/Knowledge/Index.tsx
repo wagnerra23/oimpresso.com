@@ -7,7 +7,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router } from '@inertiajs/react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { Skeleton } from '@/Components/ui/skeleton';
 import {
@@ -19,6 +19,7 @@ import {
   FileText,
   FolderOpen,
   Plus,
+  Search,
   Trash2,
 } from 'lucide-react';
 import {
@@ -32,7 +33,9 @@ import {
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
+import { Inline } from '@/Components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
 
 interface Article {
   id: number;
@@ -63,12 +66,57 @@ interface Props {
 }
 
 export default function KnowledgeIndex({ books }: Props) {
-  const bookList = books ?? [];
+  const bookList = useMemo(() => books ?? [], [books]);
   const [openSections, setOpenSections] = useState<Record<number, boolean>>({});
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; title: string } | null>(null);
+  const [busca, setBusca] = useState('');
+  const campoBusca = useRef<HTMLInputElement>(null);
 
   const toggleSection = (id: number) =>
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  // Busca do protótipo (`Buscar na base · /`, essenciais-extras.jsx:144). Client-side
+  // porque a árvore inteira já chega no payload — nada de ida ao banco.
+  // O `casa()` de lá compara título + conteúdo; aqui o conteúdo é HTML, então tiramos
+  // as tags antes, senão buscar "li" casaria com todo <li> do texto.
+  const termo = busca.trim().toLowerCase();
+
+  // Filtra seção e artigo, como o protótipo. Diferença deliberada: lá as categorias
+  // ficam TODAS visíveis (a árvore é um aside estreito); aqui cada livro é um CARD numa
+  // grade — deixar 20 cards vazios na tela seria pior que não ter busca. Some o livro
+  // que não casa e não tem filho casando.
+  const livrosFiltrados = useMemo(() => {
+    if (!termo) return bookList;
+    const casa = (titulo: string, conteudo?: string | null) =>
+      (titulo + ' ' + (conteudo ?? '').replace(/<[^>]*>/g, ' ')).toLowerCase().includes(termo);
+    return bookList
+      .map((book) => {
+        const secoes = book.children
+          .map((sec) => ({
+            ...sec,
+            children: sec.children.filter((a) => casa(a.title)),
+          }))
+          .filter((sec) => casa(sec.title, sec.content) || sec.children.length > 0);
+        const livroCasa = casa(book.title, book.content);
+        return livroCasa && secoes.length === 0 ? book : { ...book, children: secoes };
+      })
+      .filter((book) => casa(book.title, book.content) || book.children.length > 0);
+  }, [bookList, termo]);
+
+  // A busca só serve se o resultado estiver aberto: com termo, abre as seções que casaram.
+  const secoesAbertas = (id: number) => (termo ? true : openSections[id] ?? false);
+
+  // `/` foca a busca (atalho do protótipo). Não dispara com foco num campo.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (!el || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === '/') { e.preventDefault(); campoBusca.current?.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const confirmDelete = () => {
     if (!deleteTarget) return;
@@ -101,8 +149,43 @@ export default function KnowledgeIndex({ books }: Props) {
           </Button>
         </header>
 
+        {/* ── busca (charter do intake: é a 1ª seção da tela) ── */}
+        <Card>
+          <CardContent className="py-3" data-contract="busca">
+            <Inline gap={2} align="center" wrap>
+              <div className="relative min-w-56 flex-1">
+                <Search size={14} aria-hidden="true" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  ref={campoBusca}
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  placeholder="Buscar na base"
+                  aria-label="Buscar na base de conhecimento"
+                  className="pl-8"
+                />
+              </div>
+              <span className="ml-auto hidden items-center gap-2 text-xs text-muted-foreground lg:inline-flex">
+                <kbd className="rounded border border-border px-1.5 py-0.5">/</kbd> buscar
+              </span>
+            </Inline>
+          </CardContent>
+        </Card>
+
         <Deferred data="books" fallback={<Skeleton className="h-64 w-full" />}>
-        {bookList.length === 0 ? (
+        {termo && livrosFiltrados.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center" data-contract="vazio">
+              <Search size={32} aria-hidden="true" className="mx-auto mb-2 opacity-50 text-muted-foreground" />
+              <p className="text-sm font-medium">Nada encontrado na base</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Nenhum livro, seção ou artigo com “{busca.trim()}”. Tente outra palavra.
+              </p>
+              <Button variant="outline" size="sm" className="mt-4" onClick={() => setBusca('')}>
+                Limpar busca
+              </Button>
+            </CardContent>
+          </Card>
+        ) : bookList.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <BookOpen size={32} className="mx-auto mb-2 opacity-50 text-muted-foreground" />
@@ -118,7 +201,7 @@ export default function KnowledgeIndex({ books }: Props) {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {bookList.map((book) => (
+            {livrosFiltrados.map((book) => (
               <Card key={book.id} className="flex flex-col">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center justify-between gap-2">
@@ -159,7 +242,7 @@ export default function KnowledgeIndex({ books }: Props) {
                   ) : (
                     <ul className="space-y-1">
                       {book.children.map((section) => {
-                        const isOpen = openSections[section.id] ?? false;
+                        const isOpen = secoesAbertas(section.id);
                         return (
                           <li key={section.id} className="border border-border rounded">
                             <div className="flex items-center justify-between gap-1 p-2">

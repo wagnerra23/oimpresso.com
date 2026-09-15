@@ -6,7 +6,7 @@
 //
 // Visão geral da plataforma. Responde uma pergunta: "está crescendo ou vazando?".
 // Charter: ./Index.charter.md (draft) · Casos: ./Index.casos.md
-// Âncora de design: prototipo-ui/cowork/superadmin-page.jsx → ViewVisao() (L599-757)
+// Âncora de design: prototipo-ui/cowork/Wagner/superadmin-page.jsx → ViewVisao() (L599-757)
 // RUNBOOK: memory/requisitos/Superadmin/RUNBOOK-dashboard.md
 //
 // Os blocos MRR, funil trial→pago, churn e receita por pacote NÃO estão aqui de propósito:

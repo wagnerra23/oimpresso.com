@@ -6,9 +6,11 @@ declare(strict_types=1);
  * Pest 4 Browser — E2E DE RENDER da tela `Manufacturing/Recipes` (Fabricação · Receitas).
  *
  * ── O BURACO QUE ISTO FECHA (medido, não suposto) ─────────────────────────────
- * `memory/governance/screen-coverage-baseline.json` (gravado 2026-08-31) registra
+ * `memory/governance/screen-coverage-baseline.json` (gravado 2026-08-31) registrava
  * `Manufacturing: {total:1, charter:1, scorecard:1, e2e:0, a11y:0, visreg:0}` — e nem
- * conta a tela nova, que entrou em 2026-09-02 (#6546). O contrato dela vive no servidor
+ * contava a tela nova, que entrou em 2026-09-02 (#6546). Esse baseline foi REMOVIDO em
+ * 2026-09-09 (o apodrecimento que esta nota exibe era o motivo); hoje o número sai de
+ * `node scripts/qa/screen-coverage-map.mjs`. O contrato dela vive no servidor
  * (`Wave29RecipeInertiaTest`) e NADA exercita a tela RENDERIZADA. Este arquivo cobre só
  * esse eixo — não duplica assert de contrato nenhum.
  *
@@ -250,7 +252,7 @@ it('UC-RECIPE-01 · render — a tela monta autenticada com os 4 KPIs e a grade'
     $page = mfgAbrirTela($w, $h);
 
     // §4.2 do handoff — os 4 KPIs. Os rótulos são copy do contrato de tela
-    // (`prototipo-ui/contrato/manufacturing-recipes.contract.json`), não invenção do teste.
+    // (`governance/design/contracts/manufacturing-recipes.contract.json`), não invenção do teste.
     $page->assertSee('Custo médio / unidade')
         ->assertSee('Margem abaixo de 45%')
         ->assertSee('Desperdício ≥ 8%')

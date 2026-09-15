@@ -57,7 +57,7 @@ Provado por sonda stdin na entrega (PR #4265): `no-raw-palette-color` casa `bg-s
 ## Referências
 
 - [ADR 0209](0209-eslint-9-flat-config.md) — ratchet ESLint 9 flat-config (base emendada)
-- `prototipo-ui/REGRAS_DS_LINT.md §1` — spec das regras + seção "por que FORMA > enumeração"
+- `memory/reference/prototipo-ui/REGRAS_DS_LINT.md §1` — spec das regras + seção "por que FORMA > enumeração"
 - `eslint.config.js` — bloco DS guard (`ds/no-raw-palette-color`, `ds/no-os-btn`)
 - `memory/proibicoes.md` (2026-06-30) — âncora-guard: adivinhar por nome/lista é incompleto por construção (mesma classe de erro)
 - PR #4265 — implementação + baseline regravado

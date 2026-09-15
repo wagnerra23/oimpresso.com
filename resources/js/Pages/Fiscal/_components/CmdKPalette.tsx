@@ -64,13 +64,15 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'cockpit', label: 'Cockpit fiscal',  url: '/fiscal',         icon: <ShieldAlert size={14} aria-hidden="true"/> },
+  // Mesmos rótulos e mesma ordem do `FX_PAGES` (que segue o protótipo — ADR UI-0029).
+  // A paleta é outra porta pras mesmas telas: divergir aqui daria dois nomes pra uma coisa só.
+  { id: 'cockpit', label: 'Notas fiscais',   url: '/fiscal',         icon: <ShieldAlert size={14} aria-hidden="true"/> },
   { id: 'nfe',     label: 'NF-e · NFC-e',    url: '/fiscal/nfe',     icon: <Receipt size={14} aria-hidden="true"/> },
   { id: 'nfse',    label: 'NFS-e',           url: '/fiscal/nfse',    icon: <FileText size={14} aria-hidden="true"/> },
+  { id: 'eventos', label: 'Eventos',         url: '/fiscal/eventos', icon: <RefreshCw size={14} aria-hidden="true"/> },
   { id: 'dfe',     label: 'Manifesto DF-e',  url: '/fiscal/dfe',     icon: <ShieldAlert size={14} aria-hidden="true"/> },
-  { id: 'eventos', label: 'Eventos timeline',url: '/fiscal/eventos', icon: <RefreshCw size={14} aria-hidden="true"/> },
-  { id: 'config',  label: 'Certif. & Cfg.',  url: '/fiscal/config',  icon: <Shield size={14} aria-hidden="true"/> },
-  { id: 'sped',    label: 'SPED & Livros',   url: '/fiscal/sped',    icon: <Archive size={14} aria-hidden="true"/> },
+  { id: 'config',  label: 'Certificado',     url: '/fiscal/config',  icon: <Shield size={14} aria-hidden="true"/> },
+  { id: 'sped',    label: 'SPED e livros',   url: '/fiscal/sped',    icon: <Archive size={14} aria-hidden="true"/> },
 ];
 
 function brl(v: number): string {

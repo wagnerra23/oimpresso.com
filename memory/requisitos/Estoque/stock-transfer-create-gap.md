@@ -1,7 +1,7 @@
 ---
 id: requisitos-estoque-stock-transfer-create-gap
 tela: StockTransfer/Create (/stock-transfers/create)
-prototipo: prototipo-ui/cowork/estoque-page.jsx + estoque-forms.jsx
+prototipo: prototipo-ui/cowork/Wagner/estoque-page.jsx + estoque-forms.jsx
 tela_viva: resources/js/Pages/StockTransfer/Create.tsx
 gerado_em: 2026-09-06
 ---

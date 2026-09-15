@@ -316,7 +316,7 @@ it('UC-DMIDX-06: modelo de outro tenant não aparece na listagem (Tier 0 · ADR 
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UC-DMIDX-07 / 08 — o que a FORMA do protótipo passou a exigir do payload.
-// Origem: prototipo-ui/cowork/repair-page.jsx região `Modelos` (L338-369), que mostra
+// Origem: prototipo-ui/cowork/Wagner/repair-page.jsx região `Modelos` (L338-369), que mostra
 // o checklist em chips e a coluna "Folhas". Ver §3.5 do
 // memory/requisitos/Repair/6telas-index-visual-comparison.md.
 // ─────────────────────────────────────────────────────────────────────────────

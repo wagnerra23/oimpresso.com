@@ -1,6 +1,6 @@
 ---
 name: comparar-design-prod
-description: BLOQUEADOR de eyeball — ATIVAR SEMPRE que a tarefa envolver COMPARAR design/protótipo com tela em produção ou declarar que estão iguais. Gatilhos "compare o design com a tela", "confira a tela contra o protótipo", "o que mudou no protótipo", "iguale os dois", "está igual ao design?", "as diferenças que o design encontrou", "aplicou certo?", "ficou igual?", "veja se o protocolo funcionou", OU antes de EU declarar "igual/aplicado/fiel ao design" sobre qualquer tela. Carrega o PROTOCOLO-COMPARACAO-RUNTIME (D1–D8) + o mecanismo `prototipo-ui/design-diff.mjs` — comparação é MEDIDA (computed style, mesma sonda nos dois lados), NUNCA no olho. Origem strike 2 (LICOES_CODE LC-06, 2026-07-07)- o agente eyeballou 2x e o Wagner pegou com o canário do alinhamento.
+description: BLOQUEADOR de eyeball — ATIVAR SEMPRE que a tarefa envolver COMPARAR design/protótipo com tela em produção ou declarar que estão iguais. Gatilhos "compare o design com a tela", "confira a tela contra o protótipo", "o que mudou no protótipo", "iguale os dois", "está igual ao design?", "as diferenças que o design encontrou", "aplicou certo?", "ficou igual?", "veja se o protocolo funcionou", OU antes de EU declarar "igual/aplicado/fiel ao design" sobre qualquer tela. Carrega o PROTOCOLO-COMPARACAO-RUNTIME (D1–D8) + o mecanismo `scripts/design/design-diff.mjs` — comparação é MEDIDA (computed style, mesma sonda nos dois lados), NUNCA no olho. Origem strike 2 (LICOES_CODE LC-06, 2026-07-07)- o agente eyeballou 2x e o Wagner pegou com o canário do alinhamento.
 tier: B
 ---
 
@@ -34,7 +34,7 @@ tier: B
    (aconteceu em 2026-08-11).
 
 1b. **Baixar é por MÁQUINA, NUNCA transcrever — e há DUAS rotas, com hierarquia.**
-   A hierarquia canônica vive em [`prototipo-ui/protocolo.config.mjs`](../../../prototipo-ui/protocolo.config.mjs)
+   A hierarquia canônica vive em [`scripts/design/protocolo.config.mjs`](../../../scripts/design/protocolo.config.mjs)
    (fase `-1`); esta skill **aponta**, não restateia:
    - **[PRINCIPAL] sincronizar o espelho (muitos arquivos)** → `aplicar-payload.mjs`. Peça o
      payload em **partes <=256 KiB**, `DesignSync.get_file` de cada (parte >48 KB volta
@@ -54,7 +54,7 @@ tier: B
 2. **Mesmo tema nos dois lados.** O tema é o que o Wagner usa (hoje: dark). Comparar light×dark
    invalida D6 inteira.
 2b. **D0 · IDENTIDADE DA VIEW — antes de qualquer dimensão.**
-   `node prototipo-ui/design-diff.mjs --compare prod.json design.json --contrato prototipo-ui/contrato/<tela>.contract.json`
+   `node scripts/design/design-diff.mjs --compare prod.json design.json --contrato governance/design/contracts/<tela>.contract.json`
    O `ancora.mjs` responde QUAL ARQUIVO é a âncora, **nunca QUAL VIEW dentro dele** — e medido em
    2026-08-28 **38 telas compartilham âncora** (`ponto-telas.jsx` sozinho serve 17; `jana-merge.jsx`, 3).
    O shell do Cowork carrega os protótipos JUNTOS, então "abrir a âncora" não diz em que tela você está.
@@ -63,7 +63,7 @@ tier: B
    O veredito é **relacional**: copy de shell (header, selo de plano) aparece em toda view, então o que
    denuncia é a ASSIMETRIA entre os lados — no caso real que originou isto, `3 × 1`.
 
-3. **Mesma sonda, medida:** `node prototipo-ui/design-diff.mjs --probe` → injetar a sonda IGUAL
+3. **Mesma sonda, medida:** `node scripts/design/design-diff.mjs --probe` → injetar a sonda IGUAL
    nos dois renders via Chrome MCP (`window.__DD_ROLES` mapeia os seletores por papel: `.fin-stat`
    na prod × `.os-stat` no design) → salvar os 2 JSON → `--compare prod.json design.json --check`.
 4. **Dimensões não-mecanizadas** (D1 rede/partial-reload · D3 ícones · D5 footer/somatórios):
@@ -77,7 +77,7 @@ tier: B
 ## Proibições desta skill
 
 - ⛔ Declarar "igual/aplicado/fiel" a partir de screenshot — print não distingue center×left.
-- ⛔ Comparar contra `prototipo-ui/cowork/` sem provar `SYNC` naquele arquivo.
+- ⛔ Comparar contra `prototipo-ui/cowork/Wagner/` sem provar `SYNC` naquele arquivo.
 - ⛔ **Ler `--compare` verde como "o espelho está completo".** Ele mede o que ESTÁ lá; o que
   nunca desceu é invisível por construção (o universo vem do `readdir` do espelho). Use o
   `--live-only`. Régua cujo universo vem do lado que você controla mede a sua diligência,
@@ -105,4 +105,4 @@ tier: B
 - Hook camada 2: `.claude/hooks/design-compare-protocol.mjs` (UserPromptSubmit — lembra este fluxo
   se a skill não disparar).
 - `LICOES_CODE.md` LC-06 (classe `visual-compare-eyeball`, two-strikes) · ADR 0299 (`/design-diff`
-  previsto → `prototipo-ui/design-diff.mjs`) · `PROTOCOLO-COMPARACAO-RUNTIME.md` (as 8 dimensões).
+  previsto → `scripts/design/design-diff.mjs`) · `PROTOCOLO-COMPARACAO-RUNTIME.md` (as 8 dimensões).

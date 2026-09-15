@@ -4,7 +4,7 @@ component: resources/js/Pages/Manufacturing/Settings.tsx
 owner: wagner
 status: draft
 parent_module: Manufacturing
-related_prototype: prototipo-ui/cowork/manufacturing-producao.jsx
+related_prototype: prototipo-ui/cowork/Wagner/manufacturing-producao.jsx
 related_us: [US-MANU-003]
 runbook: memory/requisitos/Manufacturing/RUNBOOK-settings.md
 casos: resources/js/Pages/Manufacturing/Settings.casos.md
@@ -22,7 +22,7 @@ charter_version: 1
 
 > Terceira onda da família Fabricação (handoff **"PROTÓTIPO OFICIAL - FABRICAÇÃO V1"** §4.7),
 > ordem de custo crescente decidida por [M] 2026-09-02. Fonte visual:
-> `prototipo-ui/cowork/manufacturing-producao.jsx::MfgConfig`.
+> `prototipo-ui/cowork/Wagner/manufacturing-producao.jsx::MfgConfig`.
 >
 > **Primeira tela da família que escreve** — e escreve no endpoint que JÁ EXISTIA
 > (`SettingsController@store`, sem uma linha alterada). Rota aditiva, `/manufacturing/settings`

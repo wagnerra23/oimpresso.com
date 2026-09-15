@@ -7,7 +7,7 @@
 // `fiscal-page.jsx` — NÃO nomes do Lucide. Sem tradução, a tela não teria o que
 // desenhar: `audit` e `shield` não existem no pacote.
 //
-// A correspondência sai do DESENHO de cada glifo no `prototipo-ui/cowork/icons.jsx`,
+// A correspondência sai do DESENHO de cada glifo no `prototipo-ui/cowork/Wagner/icons.jsx`,
 // não do palpite pelo nome:
 //   - `shield`  (icons.jsx:25) = escudo + traço de confirmação  → ShieldCheck
 //   - `receipt` (icons.jsx:67) = recibo serrilhado com linhas   → Receipt

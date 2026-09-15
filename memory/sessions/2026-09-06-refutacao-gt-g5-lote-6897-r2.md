@@ -11,6 +11,8 @@ outcomes:
 
 # Refutação GT-G5 · rodada 2 · PR #6897 (branch `claude/q6-gap-md-tabela-e-11-mapas`)
 
+## Contexto
+
 > Protocolo: [`PROTOCOLO-REFUTADOR-BACKFILL.md`](../requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md) §2 · §3 · §4.
 > Sessão fresca, sem leitura de `memory/sessions/*refutacao*` (o arquivo da r1 foi visto só no `ls` para não colidir nome; **não foi aberto**).
 > Base medida: `origin/main` = `26ac293f46` · HEAD = `bd178f93b7` · `git rev-list --count HEAD..origin/main` = **0** (branch já contém o main) · `git rev-parse --is-shallow-repository` = **false** (datas de `git log` valem).

@@ -3,7 +3,7 @@ id: resources-js-pages-produto-selling-prices-charter
 page: /products/add-selling-prices/{id}
 component: resources/js/Pages/Produto/SellingPrices.tsx
 page_id: produto-tabela-preco
-related_prototype: prototipo-ui/cowork/produto-preco-especial/produto-preco-especial.html
+related_prototype: prototipo-ui/cowork/Felipe/produto-preco-especial/produto-preco-especial.html
 owner: wagner
 status: draft
 last_validated: "2026-07-16"
@@ -15,7 +15,7 @@ related_visual_comparison: memory/requisitos/Produto/_telas/produto-selling-pric
 tier: A
 charter_version: 3
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [SellingPrices]
   divergence_from_blueprint: "matriz variation × price_group é tabela densa específica — não é list cockpit padrão; mantém AppShellV2 + tokens + header pattern; diverge no conteúdo central. ADR 0149 §'Casos que NÃO se qualificam — bulk-edit datatable'"
@@ -59,7 +59,7 @@ criada fora daqui; esta tela só a seleciona e precifica. Um produto tem **N tab
 > **exceção**. **(2) Preço definido por produto** — **sem %**; o cliente digita o valor do produto
 > **naquela tabela**; a célula digitada **é o preço**, não um desvio; célula não digitada usa o
 > **preço base**. Decidido por [F] 2026-07-16 sob o critério *"a melhor usabilidade ganha — o legado
-> Delphi não entra"*. Protótipo navegável: [`prototipo-ui/cowork/produto-preco-especial/`](../../../../prototipo-ui/cowork/produto-preco-especial/produto-preco-especial.html).
+> Delphi não entra"*. Protótipo navegável: [`prototipo-ui/cowork/Felipe/produto-preco-especial/`](../../../../prototipo-ui/cowork/Felipe/produto-preco-especial/produto-preco-especial.html).
 >
 > ⚠️ **A v3 dizia só "a lista É uma regra" — meia-verdade, corrigida na v3** (4º corte de [F]:
 > *"nem sempre o cliente define o valor do produto na tabela por porcentagem, muitas vezes ele

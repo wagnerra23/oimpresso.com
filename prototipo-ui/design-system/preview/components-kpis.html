@@ -1,0 +1,54 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Components — KPI Cards" subtitle="Tone variants: success / warning / danger / info" viewport="700x180" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>KPI cards</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { padding: 16px; }
+  .grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi { border: 1px solid var(--border); border-radius: var(--radius-xl); background: white; padding: 14px; display:flex; flex-direction:column; gap: 8px; }
+  .kpi.ok { border-color: hsl(160 84% 39% / .20); background: hsl(160 84% 39% / .05); }
+  .kpi.wn { border-color: hsl(32 95% 44% / .20); background: hsl(32 95% 44% / .05); }
+  .kpi.dn { border-color: hsl(0 72% 51% / .20); background: hsl(0 72% 51% / .05); }
+  .kpi.in { border-color: oklch(0.58 0.13 244 / .20); background: oklch(0.58 0.13 244 / .05); }
+  .head { display:flex; align-items:center; justify-content:space-between; gap: 6px; }
+  .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--fg-2); font-weight: 500; }
+  .ico { width: 32px; height: 32px; border-radius: 8px; display:flex; align-items:center; justify-content:center; font-size: 14px; }
+  .ico.ok { background: hsl(160 84% 39% / .12); color: hsl(161 94% 30%); }
+  .ico.wn { background: hsl(32 95% 44% / .12); color: hsl(32 95% 44%); }
+  .ico.dn { background: hsl(0 72% 51% / .12); color: hsl(0 72% 51%); }
+  .ico.in { background: oklch(0.58 0.13 244 / .12); color: oklch(0.58 0.13 244); }
+  .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .delta { display:inline-flex; align-items:center; gap:2px; font-size:11px; font-weight: 500; }
+  .delta.up { color: hsl(161 94% 30%); }
+  .delta.dn { color: var(--destructive); }
+  .desc { font-size: 11px; color: var(--fg-2); }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="kpi ok">
+      <div class="head"><span class="lbl">Presentes</span><div class="ico ok">●</div></div>
+      <div><span class="v">42</span> <span class="delta up">↗ +3</span></div>
+      <span class="desc">de 48 colaboradores</span>
+    </div>
+    <div class="kpi wn">
+      <div class="head"><span class="lbl">Atrasados</span><div class="ico wn">⏱</div></div>
+      <div><span class="v">5</span> <span class="delta up" style="color: var(--destructive);">↗ +2</span></div>
+      <span class="desc">passou do horário</span>
+    </div>
+    <div class="kpi dn">
+      <div class="head"><span class="lbl">A vencer hoje</span><div class="ico dn">!</div></div>
+      <div><span class="v">R$ 9.840</span></div>
+      <span class="desc">7 boletos · clique para abrir</span>
+    </div>
+    <div class="kpi in">
+      <div class="head"><span class="lbl">Banco horas</span><div class="ico in">∑</div></div>
+      <div><span class="v">+12:30</span> <span class="delta up">↗ +1:15</span></div>
+      <span class="desc">média da equipe</span>
+    </div>
+  </div>
+</body>
+</html>

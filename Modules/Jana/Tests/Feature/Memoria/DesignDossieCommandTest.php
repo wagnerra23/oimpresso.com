@@ -102,10 +102,10 @@ test('pasta do protótipo vem do cowork-map (decisoes achado por chave, não nom
     dossieSeed('prototipo-ui/cowork-map.json', json_encode([
         'screens' => ['vendas' => ['module' => 'Sells', 'page_id' => 'sells-index', 'routes' => []]],
     ]));
-    dossieSeed('prototipo-ui/prototipos/vendas/decisoes.md', "# decisoes vendas\n- adotado X");
+    dossieSeed('prototipo-ui/cowork/Wagner/legado/vendas/decisoes.md', "# decisoes vendas\n- adotado X");
 
     $out = dossieRun('Sells', 'Index');
 
     // tela=Index, mas o protótipo é prototipos/vendas/ — resolvido via cowork-map
-    expect($out)->toContain('prototipo-ui/prototipos/vendas/decisoes.md');
+    expect($out)->toContain('prototipo-ui/cowork/Wagner/legado/vendas/decisoes.md');
 });

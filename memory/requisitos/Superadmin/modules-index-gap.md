@@ -1,7 +1,7 @@
 ---
 id: requisitos-superadmin-modules-index-gap
 tela: Pages/Modules/Index (/modulos)
-prototipo: prototipo-ui/cowork/modulos-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/modulos-page.jsx
 tela_viva: resources/js/Pages/Modules/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -9,8 +9,8 @@ gerado_em: 2026-09-06
 <!-- DUAS convencoes de nome valem aqui, e as duas foram medidas em 2026-09-06.
 
      1) BASENAME. Tem que ser o slug do <Mod/Tela> + "-gap.md" — e assim que
-        prototipo-ui/gerar-contrato.mjs::escolherGap resolve <Mod/Tela> -> gap/map. Com outro
-        nome, `node prototipo-ui/consumir-map.mjs <Mod/Tela>` sai rc=1 "map nao encontrado"
+        scripts/design/gerar-contrato.mjs::escolherGap resolve <Mod/Tela> -> gap/map. Com outro
+        nome, `node scripts/design/consumir-map.mjs <Mod/Tela>` sai rc=1 "map nao encontrado"
         mesmo com o arquivo no disco, e a Fase 4 fica inalcancavel pela forma canonica.
 
      2) PREFIXO `Pages/` nas mencoes a esta tela. O diretorio de telas Inertia se chama
@@ -22,7 +22,7 @@ gerado_em: 2026-09-06
 # GAP-SPEC — Pages/Modules/Index
 
 > **Três donos já falam desta tela, e esta tabela não os contradiz.** (a) O
-> [`modulos.contract.json`](../../../prototipo-ui/contrato/modulos.contract.json) trava a copy e a
+> [`modulos.contract.json`](../../../governance/design/contracts/modulos.contract.json) trava a copy e a
 > ordem de cinco seções e **declara por escrito** as duas que recortou, com razão — não as reabro
 > como novidade, só as ancoro. (b) O charter (v2, 2026-08-19) tem quatro decisões [W], **três
 > abertas** — D1 (versão do módulo), D3 (drawer PT-02) e D4 (instalação dentro do request) — e uma

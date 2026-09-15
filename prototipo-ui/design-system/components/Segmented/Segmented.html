@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Segmented" subtitle="Controle segmentado — visão, período, densidade" viewport="660x300" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Segmented</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>body{margin:0}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div class="cockpit" style="padding:18px;background:var(--bg)"><div id="root"></div></div>
+<script type="text/javascript">
+
+  const { Segmented } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  const ic = (d) => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }, h('path', { d }));
+  function Demo() {
+    const [visao, setVisao] = React.useState('lista');
+    const [per, setPer] = React.useState('30d');
+    const [dens, setDens] = React.useState('c');
+    const row = (label, node) => h('div', { style: { display: 'flex', alignItems: 'center', gap: 14 } },
+      h('span', { style: { width: 92, font: '600 10px/1 var(--font-sans)', textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-mute)' } }, label), node);
+    return h('div', { style: { display: 'grid', gap: 16 } },
+      row('Visão', h(Segmented, { value: visao, onChange: setVisao, options: [
+        { value: 'lista', label: 'Lista', icon: ic('M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'), count: 43 },
+        { value: 'board', label: 'Board', icon: ic('M4 4h6v16H4zM14 4h6v9h-6z') },
+        { value: 'mapa', label: 'Mapa', icon: ic('m9 4 6 2 6-2v14l-6 2-6-2-6 2V6z'), disabled: true } ] })),
+      row('Período', h(Segmented, { size: 'sm', value: per, onChange: setPer, options: [
+        { value: '7d', label: '7 d' }, { value: '30d', label: '30 d' }, { value: '90d', label: '90 d' }, { value: 'ano', label: 'Ano' } ] })),
+      row('Densidade', h(Segmented, { iconOnly: true, value: dens, onChange: setDens, options: [
+        { value: 'c', label: 'Compacta', icon: ic('M3 5h18M3 9h18M3 13h18M3 17h18') },
+        { value: 'r', label: 'Relaxada', icon: ic('M3 6h18M3 12h18M3 18h18') } ] })),
+      row('Largura total', h('div', { style: { flex: 1 } }, h(Segmented, { full: true, value: visao, onChange: setVisao, options: [
+        { value: 'lista', label: 'Lista' }, { value: 'board', label: 'Board' }, { value: 'mapa', label: 'Mapa' } ] }))));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+
+</script>
+</body>
+</html>

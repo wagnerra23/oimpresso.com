@@ -1,6 +1,6 @@
 {
   "_nota": "Divida HERDADA de pele paralela. So encolhe. Ver docblock de cowork-pele-paralela.mjs.",
-  "dir": "prototipo-ui/cowork",
+  "dir": "prototipo-ui/cowork/Wagner",
   "chaves": [
     "R1:clientes-page.jsx",
     "R1:compras-extras.jsx",

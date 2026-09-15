@@ -9,7 +9,7 @@
 // abas usavam `.fj-int-tabs` com <button> — a versão ANTERIOR do próprio protótipo —
 // em vez do `window.CliTabs`. A premissa registrada aqui ("o TabBar do DS do Cowork
 // não existe no repo") estava desatualizada: ele existe, versionado, no snapshot do
-// DS em `scripts/design-sync/mirror-snapshot/_ds_bundle.js`. Portado em
+// DS em `prototipo-ui/design-system/_ds_bundle.js`. Portado em
 // {@link ./ForjaTabBar.tsx}, que carrega a medição e o desvio de ARIA declarado.
 //
 // Nota de higiene: `.fj-int-tabs` continua no bundle (`cowork-forja-bundle.css`)

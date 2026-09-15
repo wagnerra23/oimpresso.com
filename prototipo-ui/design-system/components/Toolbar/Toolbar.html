@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Toolbar" subtitle="Barra de ferramentas — busca, ações, densidade, divisores" viewport="900x280" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Toolbar</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>body{margin:0}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div class="cockpit" style="padding:18px;background:var(--bg)"><div id="root"></div></div>
+<script type="text/javascript">
+
+  const NS = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const { Toolbar, ToolbarButton, ToolbarSearch, ToolbarDivider, Kebab } = NS;
+  const h = React.createElement;
+  const ic = (d) => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }, h('path', { d }));
+  function Demo() {
+    const [q, setQ] = React.useState('');
+    const [dense, setDense] = React.useState(true);
+    return h('div', { style: { display: 'grid', gap: 16 } },
+      h('div', { style: { border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' } },
+        h(Toolbar, {
+          left: h(React.Fragment, null,
+            h(ToolbarSearch, { value: q, onChange: setQ, placeholder: 'Buscar OS, cliente…', kbd: '/' }),
+            h(ToolbarDivider),
+            h(ToolbarButton, { icon: ic('M4 6h16M7 12h10M10 18h4') }, 'Filtros'),
+            h(ToolbarButton, { icon: ic('M12 5v14M5 12h14') }, 'Nova OS')),
+          right: h(React.Fragment, null,
+            h(ToolbarButton, { active: dense, onClick: () => setDense(!dense), icon: ic('M3 6h18M3 12h18M3 18h18') }, 'Densa'),
+            h(ToolbarButton, { icon: ic('M12 3v12m0 0 4-4m-4 4-4-4M4 19h16') }, 'Exportar'),
+            h(ToolbarDivider),
+            Kebab ? h(Kebab, { items: [{ id: 'a', label: 'Colunas…' }, { id: 'b', label: 'Salvar visão' }] }) : null),
+        }),
+        h('div', { style: { padding: 20, background: 'var(--bg)', color: 'var(--text-mute)', font: '400 12.5px var(--font-sans)' } }, 'conteúdo da lista')),
+      h('div', { style: { border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' } },
+        h(Toolbar, { dense: true, tone: 'muted',
+          left: h(React.Fragment, null,
+            h(ToolbarButton, { iconOnly: true, title: 'Desfazer', icon: ic('M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3') }),
+            h(ToolbarButton, { iconOnly: true, title: 'Refazer', icon: ic('m15 14 5-5-5-5M20 9H9a5 5 0 0 0 0 10h3') }),
+            h(ToolbarDivider),
+            h(ToolbarButton, { active: true, icon: ic('M6 4v8a6 6 0 0 0 12 0V4M5 20h14') }, 'Negrito')),
+          right: h(ToolbarButton, { tone: 'danger', icon: ic('M4 7h16M9 7V5h6v2m-8 0 1 13h8l1-13') }, 'Excluir') })));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+
+</script>
+</body>
+</html>

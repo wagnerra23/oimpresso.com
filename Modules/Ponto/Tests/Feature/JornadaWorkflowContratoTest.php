@@ -103,6 +103,7 @@ function jornadaNovoUser(int $businessId): User
     return User::factory()->create([
         'business_id' => $businessId,
         'user_type'   => 'user',
+        'username'    => strtolower(JORNADA_MARCADOR) . '-' . uniqid(),
     ]);
 }
 

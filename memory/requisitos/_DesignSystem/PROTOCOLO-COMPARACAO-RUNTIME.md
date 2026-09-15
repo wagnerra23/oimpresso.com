@@ -20,7 +20,7 @@ related: [SCREEN-GRADE-METODO.md, framework-15-dimensoes.md]
 
 ## Os 2 erros de raiz do v1 (que este protocolo conserta)
 
-1. **FONTE ERRADA.** O v1 comparou prod contra o **espelho do repo** (`prototipo-ui/cowork/<arq>`),
+1. **FONTE ERRADA.** O v1 comparou prod contra o **espelho do repo** (`prototipo-ui/cowork/Wagner/<arq>`),
    que **pode estar velho** (o mesmo drift que o `cowork-mirror-freshness` existe pra pegar — [ADR 0324](../../decisions/proposals/0324-frescor-espelho-cowork-dispatch-sla-limite-plataforma.md)).
    A fonte da comparação é o **Cowork VIVO** (projeto `019dcfd3`, via `DesignSync.get_file` ou render),
    **nunca** o espelho estático sem antes provar `SYNC`. **Regra dura:** antes de comparar, rodar
@@ -45,7 +45,7 @@ related: [SCREEN-GRADE-METODO.md, framework-15-dimensoes.md]
 full-reload. Comportamento **antes** de pixel.
 🆕 **D8 é o buraco que o strike 2 (07/07) expôs** — alinhamento não era dimensão nenhuma. `<button>` centraliza por default do UA; se o CSS não reseta, o KPI centraliza sem ninguém pedir.
 
-## Mecanização — `prototipo-ui/design-diff.mjs` (a defesa do strike 2, LC-06)
+## Mecanização — `scripts/design/design-diff.mjs` (a defesa do strike 2, LC-06)
 
 > **Por que (Wagner 2026-07-07):** este protocolo em prosa não impediu o agente de comparar
 > no olho — repetiu a classe de erro. Pela regra two-strikes (`LICOES_CODE` LC-06), strike 2
@@ -75,7 +75,7 @@ full-reload. Comportamento **antes** de pixel.
 1. **Abrir os DOIS** — prod (Chrome logado) + o Cowork vivo (mesma tela, mesmo tema — o tema é
    escolha do Wagner; comparar no MESMO tema).
 2. **Rodar a MESMA sonda D1–D8** nos dois → JSON estruturado por dimensão. Para D2/D4/D6/D8, use
-   a sonda de `node prototipo-ui/design-diff.mjs --probe` (idêntica nos dois lados) → `--compare`
+   a sonda de `node scripts/design/design-diff.mjs --probe` (idêntica nos dois lados) → `--compare`
    dá o veredito MEDIDO. **Nunca** conclua "igual" por screenshot — o print não distingue center×left.
 3. **D1 sempre**: clicar 1 filtro em prod, `read_network_requests`, classificar (partial vs full).
    Ler `aplicar()`/controller pra confirmar `only:` + `defer`.

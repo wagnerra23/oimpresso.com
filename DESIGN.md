@@ -32,7 +32,7 @@
 
 ## 2. Workflow padrão de design (Wagner usa hoje)
 
-**Loop formalizado** em [`prototipo-ui/PROTOCOL.md`](prototipo-ui/PROTOCOL.md) ([ADR 0114](memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)) — 6 papéis + 7 fases (F0 brief → F1 design → F1.5 critique → F2 screenshot Wagner → F3 code → F3.5 a11y → F4 merge) com gates ratchet automatizados.
+**Loop formalizado** em [`memory/reference/prototipo-ui/PROTOCOL.md`](memory/reference/prototipo-ui/PROTOCOL.md) ([ADR 0114](memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)) — 6 papéis + 7 fases (F0 brief → F1 design → F1.5 critique → F2 screenshot Wagner → F3 code → F3.5 a11y → F4 merge) com gates ratchet automatizados.
 
 ```
 F0 BRIEF       [W]   pedido em COWORK_NOTES.md
@@ -86,7 +86,7 @@ Wagner é o aprovador final em divergências de padrão. Cliente (WR2 Sistemas /
 
 ## 6. Antes de codificar qualquer tela
 
-1. **Leia a voz visual** [`MANUAL-IDENTIDADE.md`](memory/requisitos/_DesignSystem/MANUAL-IDENTIDADE.md) ("Clareza Confiante") + o SSOT [`INDEX-DESIGN-MEMORIAS.md`](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md). Layout = composição de primitivos [`@/Components/layout`](resources/js/Components/layout/index.ts) ([ADR 0253](memory/decisions/0253-primitivos-layout.md)). _(O antigo "UI Kit `ui_kits/cowork-2026-04-27/`" foi renomeado pra `_BACKUP-NAO-USAR-` e **REMOVIDO em 2026-08-28** — a fonte de design é `prototipo-ui/cowork/`, origem única.)_
+1. **Leia a voz visual** [`MANUAL-IDENTIDADE.md`](memory/requisitos/_DesignSystem/MANUAL-IDENTIDADE.md) ("Clareza Confiante") + o SSOT [`INDEX-DESIGN-MEMORIAS.md`](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md). Layout = composição de primitivos [`@/Components/layout`](resources/js/Components/layout/index.ts) ([ADR 0253](memory/decisions/0253-primitivos-layout.md)). _(O antigo "UI Kit `ui_kits/cowork-2026-04-27/`" foi renomeado pra `_BACKUP-NAO-USAR-` e **REMOVIDO em 2026-08-28** — a fonte de design é `prototipo-ui/cowork/Wagner/`, origem única.)_
 2. **Canon visual vivo:** [UI-0018](memory/requisitos/_DesignSystem/adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md) (supersede o zip-cowork UI-0010/0012).
 3. **Leia [ADR 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md)** — define layout-mãe "Chat Cockpit" 3-colunas, dual-tab Chat/Menu, painel direito de Apps Vinculados, atalhos J/K/E/A, Tweaks (vibe/densidade/accentHue).
 4. **Leia o session log mais recente em `memory/sessions/`** — pode ter ajuste de design não refletido no ADR ainda.
@@ -131,9 +131,11 @@ Toda tela React do ERP **nasce dentro do `AppShellV2`** (3 colunas), com:
 - **Coluna principal (1fr)** = sua tela.
 - **Coluna direita (320px) "Apps Vinculados"** — *opcional*. Se sua tela tem contexto vinculado (uma OS em foco, um cliente, uma marcação), **você é obrigado a entregar o painel direito** com os blocos relevantes. Se não tem, a coluna some.
 
-Para tela em modo **master/detail** (lista + viewer), use o padrão de `Pages/Tarefas/Index.tsx`:
+Para tela em modo **master/detail** (lista + viewer):
 - Lista à esquerda da coluna principal (ex.: 360px), viewer à direita (1fr).
 - Atalhos **J/K** (navegar), **E** (concluir/confirmar), **A** (adiar/voltar) ligados via `useEffect` + listener global escopado à página.
+
+> A referência desta seção era `Pages/Tarefas/Index.tsx`, **removida em 2026-09-09** — era stub com mock vazio, aposentado pela lápide de 2026-06-15 ([`memory/requisitos/Tarefas/BRIEFING.md`](memory/requisitos/Tarefas/BRIEFING.md)). O exemplo vivo mais próximo é [`Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx`](Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx) — mesma gramática de lista densa + atalhos J/K, com a ressalva de que **o detalhe abre em drawer 560px, não em viewer lado a lado**. Quem precisar do viewer lado a lado desenha a partir do protótipo Cowork, não copiando outra tela.
 
 Para tela em modo **CRUD clássico** (cadastro, listagem, edição), siga padrão Jana: `PageHeader` + `PageFilters` + `DataTable` + drawer/modal de edição.
 
@@ -174,21 +176,22 @@ Cada bloco do painel direito é um componente em `resources/js/Components/Linked
 
 **Regra:** cada bloco é colapsável (estado em `localStorage` por chave `oimpresso.linked.<bloco>.collapsed`), mostra um resumo enxuto e UMA ação primária. Se a tela não tem dado para um bloco, ele simplesmente não renderiza.
 
-## 11. TaskProvider (quando criar tela de inbox)
+## 11. Inbox de tarefas cross-módulo — ⚰️ planejada, nunca construída
 
-Se a tela nova é uma inbox de pendências do módulo, **NÃO crie tela própria**. Em vez disso, registre um `TaskProvider`:
+Esta seção descrevia uma arquitetura de inbox unificada (interface `TaskProvider` com `origin()/color()/for()/viewerComponent()`, agregada por um registry, com viewers em `resources/js/Components/Viewers/`). Ela foi **planejada** — [ADR 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md) Fase 4, [UI-0008](memory/requisitos/_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md), [UI-0011](memory/requisitos/_DesignSystem/adr/ui/0011-sidebar-single-pane-cascata-user-menu.md) — e **nunca implementada**. Medido em 2026-09-09: `viewerComponent()` tem zero ocorrências em `app/`, `Modules/` e `resources/`; `resources/js/Components/Viewers/` tem zero arquivos no repo; e a tela `/tarefas` que faria a agregação era um stub com `MOCK_TASKS: Task[] = []`, aposentada pela lápide de 2026-06-15 ([`memory/requisitos/Tarefas/BRIEFING.md`](memory/requisitos/Tarefas/BRIEFING.md)).
 
-```php
-// Modules/<Mod>/Tasks/<Slug>Task.php
-class <Slug>Task implements TaskProvider {
-  public function origin(): string { return 'OS'|'CRM'|'FIN'|'PNT'|'MFG'; }
-  public function color(): string  { return 'amber'|'blue'|'emerald'|'violet'|'orange'; }
-  public function for(User $u): Collection { /* o que esse usuário precisa fazer */ }
-  public function viewerComponent(): string { return '<NomeDoComponenteReact>'; }
-}
-```
+⚠️ **O texto anterior era instrução ativa para travar:** mandava *"NÃO crie tela própria — registre um `TaskProvider`"*. Quem obedecesse não conseguia nem criar a tela (proibida) nem registrar o provider (interface inexistente). O desenho do contrato continua registrado na ADR 0039, que é a dona dele — não se repete aqui.
 
-E entregue o componente viewer em `resources/js/Components/Viewers/<NomeDoComponenteReact>.tsx`. A tela `Pages/Tarefas/Index.tsx` agrega via `TaskRegistry` e renderiza o viewer correto.
+⚠️ **Não confundir com o `TaskRegistry` que EXISTE:** `Modules/Jana/Services/TaskRegistry/` (5 services + 13 testes) é o registry do sistema de tasks do MCP ([ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md) — governança de desenvolvimento). Nome igual, propósito outro; ele não agrega tarefas de negócio nem conhece `viewerComponent()`.
+
+**Onde as tarefas vivem hoje:**
+
+| Tarefas de… | Tela viva | Backend |
+|---|---|---|
+| **cliente** | `Pages/Essentials/Todo/{Index,Create,Edit,Show}` | `ToDoController` · `Route::resource('todo')` |
+| **time (MCP)** | `/team-mcp/tasks` | `Modules/Forja` · `TasksAdminController` |
+
+Reabrir a inbox unificada exige ADR nova — esta seção não é caminho aberto.
 
 ## 12. Persistência de estado de UI
 
@@ -385,6 +388,6 @@ Tests automatizados:
 
 > **2026-08-02 — correção de fato errado (§7 item 9 + §15).** O item 9 ensinava *"sidebar light por padrão"* citando UI-0009/UI-0014: estava **dois saltos atrás** do canon (UI-0019 → **UI-0023** dark-fixo preto, `accepted` 2026-07-16) e era instrução ativa pra regressão. §15 dizia que o `visual-regression` era "INFRA-ONLY" quando o job já é **required**. Só fatos foram corrigidos — o papel do documento (porta × manual técnico) segue como estava, é decisão de [W]. ⚠️ **A data abaixo estava errada**: dizia 2026-05-25, mas o arquivo foi tocado em 2026-07-30 (`git log -1 -- DESIGN.md`).
 >
-> **Última atualização:** 2026-05-25 — patch §2/§7/§9/§15 refletindo evolução pós-2026-05-08: ADR UI-0013 Constituição UI v2 (4 camadas — mãe atual em §7) · ADR 0190 primary roxo universal 295 (§9) · ADR 0114 prototipo-ui/PROTOCOL.md loop formalizado (§2) · ADR 0180/0182/0189 PageHeader canon v3 (§7) · pr-ui-judge.yml ligado (§15 gates CI) · PRE-MERGE-UI.md link canônico (§15). Fecha US-_DESIGNSYSTEM-001 (era redundante — este arquivo já existia).
+> **Última atualização:** 2026-05-25 — patch §2/§7/§9/§15 refletindo evolução pós-2026-05-08: ADR UI-0013 Constituição UI v2 (4 camadas — mãe atual em §7) · ADR 0190 primary roxo universal 295 (§9) · ADR 0114 memory/reference/prototipo-ui/PROTOCOL.md loop formalizado (§2) · ADR 0180/0182/0189 PageHeader canon v3 (§7) · pr-ui-judge.yml ligado (§15 gates CI) · PRE-MERGE-UI.md link canônico (§15). Fecha US-_DESIGNSYSTEM-001 (era redundante — este arquivo já existia).
 > **2026-05-08:** §16 adicionada (Cockpit Pattern V2 ADR 0110 consolidado consultivo). Pages canon vivas: Sells/Index, Sells/Create, SaleSheet, governance/Dashboard, Forja/Board/Index.
 > **Próxima revisão sugerida:** quando US-_DESIGNSYSTEM-002 (`/dev/components` Inertia) e US-INFRA-012 (visual-regression strict mode) fecharem.

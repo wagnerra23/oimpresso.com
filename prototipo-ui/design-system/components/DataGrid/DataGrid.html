@@ -1,0 +1,45 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="DataGrid" subtitle="Grade densa com paginação embutida — header fixo, ordenação, seleção" viewport="900x420" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>DataGrid</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>body{margin:0}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div class="cockpit" style="padding:18px;background:var(--bg)"><div id="root"></div></div>
+<script type="text/javascript">
+
+  const { DataGrid, StatusBadge } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  const columns = [
+    { key: 'os', label: 'OS', mono: true, width: '76px', sortable: true },
+    { key: 'cli', label: 'Cliente', sortable: true },
+    { key: 'item', label: 'Item' },
+    { key: 'pag', label: 'Pagamento', width: '116px' },
+    { key: 'valor', label: 'Valor', align: 'right', mono: true, width: '104px', sortable: true, sortValue: (r) => r.cells._v },
+  ];
+  const nomes = ['Acme Comércio','TechPro Sistemas','Padaria Estrela','Studio Vega','Escola Aurora','Bar do Nando','Clínica Sol','Auto Center RS'];
+  const itens = ['Banner 3×2m','Adesivos 200un','Cardápios A4','Placas PS 2mm','Faixa 4×1m','Cartões 1000un'];
+  const pagos = ['paid','pending','partial','overdue'];
+  const rows = Array.from({ length: 43 }, (_, i) => {
+    const v = 180 + ((i * 137) % 2400);
+    return { id: 4821 - i, state: i === 0 ? 'urgent' : i === 9 ? 'archived' : undefined, cells: {
+      os: '#' + (4821 - i),
+      cli: { primary: nomes[i % nomes.length], sub: 'PJ · Porto Alegre' },
+      item: itens[i % itens.length],
+      pag: h(StatusBadge, { kind: 'payment', value: pagos[i % 4] }),
+      valor: 'R$ ' + v.toLocaleString('pt-BR'), _v: v } };
+  });
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h('div', { style: { border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' } },
+      h(DataGrid, { columns, rows, pageSize: 8, selectable: true, maxHeight: 280, totalLabel: 'OS', defaultSort: { key: 'os', dir: 'desc' }, onRowClick: () => {} }))
+  );
+
+</script>
+</body>
+</html>

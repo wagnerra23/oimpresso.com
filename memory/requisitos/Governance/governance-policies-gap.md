@@ -1,7 +1,7 @@
 ---
 id: requisitos-governance-policies-gap
 tela: governance/Policies (/governance/policies)
-prototipo: prototipo-ui/cowork/governance-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/governance-page.jsx
 tela_viva: resources/js/Pages/governance/Policies.tsx
 gerado_em: 2026-09-06
 ---
@@ -11,6 +11,12 @@ gerado_em: 2026-09-06
 > Protótipo = porte REVERSO do vivo (governance-page.jsx:1-3 "Espelha as telas vivas"; retrato de ~2026-08-23). Fase 1 = PARIDADE. Charter: `resources/js/Pages/governance/Policies.charter.md` (Non-Goals respeitados, nunca reabertos).
 
 **Veredito:** PARIDADE com 2 itens a decidir — o retrato acrescenta ao vivo uma busca local e um aviso de "toggle sem histórico"; tudo o mais é o vivo, ou o vivo à frente.
+
+> **Decidido em 2026-09-09** (os dois itens CONSTRUÍDOS — front puro, zero fonte nova):
+> - **Busca local.** `Policies.tsx` filtra `rule_key`/`name`/`description`/`category` em memória sobre o catálogo já carregado, com vazio `no-results` + "Limpar busca". O anti-hook do charter ("❌ Esconder rules disabled") fica respeitado por construção: sem termo digitado a lista volta inteira — o filtro é ação explícita, e o hint na toolbar diz isso.
+> - **Aviso "Alternar não deixa rastro".** A afirmação foi **verificada antes de virar UI**: `mcp_governance_rule_history` tem ZERO migration no repo (só o TODO em `PoliciesController.php:19` e `PolicyToggleService.php:17`). O aviso torna visível ao operador o anti-hook que o charter já registrava ("❌ Toggle sem registrar histórico — sem isso, audit fica cego"). O bloco sai junto no dia em que a tabela existir (comentário no código diz isso).
+>
+> Travados por `tests/js/governance-filtros.test.tsx` — o e2e existente **não alcança** estes casos: `e2e/governance-policies.spec.ts` declara que nenhum seeder popula `mcp_governance_rules`, então a tela cai no `EmptyState` e os casos usam `test.skip`.
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|

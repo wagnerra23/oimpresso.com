@@ -17,7 +17,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 /**
  * PHPStan custom rule — NoNopMutationControllerRule (ADR 0208 custom rule #3, US-INFRA-019).
  *
- * Codifica T-AP-13 do `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`:
+ * Codifica T-AP-13 do `memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`:
  *
  *   "Mutações NO-OP — agente externo gera Controller::aceitar() / desfazer() /
  *    confirmar() / etc retornando APENAS `return back()` sem nenhuma mutação,

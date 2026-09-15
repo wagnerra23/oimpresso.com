@@ -107,7 +107,10 @@ export default function FxShell({
         </div>
       </header>
 
-      <nav className="fx-subnav" aria-label="Páginas do módulo Fiscal">
+      {/* `data-contract` ancora a subnav no Contrato de Tela (ADR 0286). Antes de 2026-09-09
+          o FxShell não tinha âncora nenhuma, então os 7 rótulos — a copy que [W] pegou
+          divergindo do protótipo — não estavam sob catraca nenhuma. */}
+      <nav className="fx-subnav" aria-label="Páginas do módulo Fiscal" data-contract="fiscal-subnav">
         {FX_PAGES.map(p => {
           const active = route === p.id;
           const disabled = p.url === '#';

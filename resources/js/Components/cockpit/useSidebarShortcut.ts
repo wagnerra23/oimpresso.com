@@ -14,7 +14,7 @@ import { useEffect } from 'react';
 import type { ShellMenuItem } from './shared';
 
 /** Janela pra digitar a letra seguinte depois do `G`. Espelha o protótipo
- *  Cowork (`prototipo-ui/cowork/sidebar.jsx` — "arma no G, janela de 1.5s"). */
+ *  Cowork (`prototipo-ui/cowork/Wagner/sidebar.jsx` — "arma no G, janela de 1.5s"). */
 export const JANELA_SEQUENCIA_MS = 1500;
 
 export interface IndiceAtalhos {

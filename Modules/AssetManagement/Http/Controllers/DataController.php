@@ -111,8 +111,18 @@ class DataController extends Controller
                 // ADR 0180 Fase 4 Wave E — AssetManagement é ghost virtual de
                 // Estoque no grupo canon `operar` v3. Sem `shortcut` (acoplado em
                 // Estoque); `primary` = "Novo ativo" (criação via AssetController
-                // create); `ghosts` = Painel + Ativos + Alocações + Manutenção
-                // + Configurações (sub-views gestão de patrimônio).
+                // create); `ghosts` = Painel + Bens + Alocações + Devoluções +
+                // Manutenções + Configurações (sub-views gestão de patrimônio).
+                //
+                // RÓTULOS: "Bens" e "Manutenções" por decisão [W] de 2026-09-09, que
+                // resolveu a divergência registrada no RUNBOOK §6 e na `_saida-07.md §0`.
+                // Até então a aba dizia "Ativos"/"Manutenção" enquanto o `PageHeader` da
+                // MESMA tela dizia "Bens"/"Manutenções" (`Bens.tsx:528`,
+                // `Manutencoes.tsx:438`) — três vocabulários visíveis em dez linhas.
+                // Aqui é o dono ÚNICO do rótulo: o `PatrimonioSubNav` DERIVA daí.
+                // ⚠️ O `pt/lang.php` segue interno-inconsistente ("ativo/ativos" em 20
+                // valores, "recurso" em 9, "Bens" em 1) e o módulo ainda se chama
+                // "Gestão de ativos" na sidebar — unificar isso é escopo próprio, não feito.
                 $menu->url(
                             action([\Modules\AssetManagement\Http\Controllers\AssetController::class, 'dashboard']),
                             __('assetmanagement::lang.asset_management'),
@@ -127,10 +137,10 @@ class DataController extends Controller
                                 ],
                                 'ghosts'  => [
                                     ['key' => 'dashboard',         'label' => 'Painel',         'href' => '/asset/dashboard'],
-                                    ['key' => 'assets',            'label' => 'Ativos',         'href' => '/asset/assets'],
+                                    ['key' => 'assets',            'label' => 'Bens',           'href' => '/asset/assets'],
                                     ['key' => 'allocation',        'label' => 'Alocações',      'href' => '/asset/allocation'],
                                     ['key' => 'revocation',        'label' => 'Devoluções',     'href' => '/asset/revocation'],
-                                    ['key' => 'asset-maintenance', 'label' => 'Manutenção',     'href' => '/asset/asset-maintenance'],
+                                    ['key' => 'asset-maintenance', 'label' => 'Manutenções',    'href' => '/asset/asset-maintenance'],
                                     ['key' => 'settings',          'label' => 'Configurações',  'href' => '/asset/settings'],
                                 ],
                             ]

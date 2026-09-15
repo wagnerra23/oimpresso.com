@@ -80,7 +80,7 @@ Tela única-fonte-da-verdade sobre 1 OS — mecânico/atendente acompanha estado
 
 ## UCs cobertos (PRECISA TER · rastreável · §10.4 [CC])
 
-> Casos de Uso ("A tela precisa:") amarrados a GUARD Pest `uc-<id>` via [`prototipo-ui/audit/uc-registry.json`](../../../../../prototipo-ui/audit/uc-registry.json).
+> Casos de Uso ("A tela precisa:") amarrados a GUARD Pest `uc-<id>` via [`scripts/design/audit/uc-registry.json`](../../../../../scripts/design/audit/uc-registry.json).
 > ✅ presente+travado (some o elemento = build vermelho) · 🟡 gap (acende no `protocol_freshness`, advisory).
 
 - ✅ **UC-03** (`uc-03`) — vistoria digital (DVI) por item com foto + mapeamento achado→item de orçamento (`DviBudgetSection`).

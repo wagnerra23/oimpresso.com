@@ -1,8 +1,8 @@
 // JanaAcaoModal — confirmação HITL das ações sugeridas do Painel (/ia).
 //
-// Âncora de design: prototipo-ui/cowork/jana-merge.jsx §`JmAcaoModal` — âncora de
-// SÍMBOLO, nunca de linha (`grep -n "JmAcaoModal" prototipo-ui/cowork/jana-merge.jsx`;
-// resolva a âncora com `node prototipo-ui/ancora.mjs Jana/Index`, não no olho).
+// Âncora de design: prototipo-ui/cowork/Wagner/jana-merge.jsx §`JmAcaoModal` — âncora de
+// SÍMBOLO, nunca de linha (`grep -n "JmAcaoModal" prototipo-ui/cowork/Wagner/jana-merge.jsx`;
+// resolva a âncora com `node scripts/design/ancora.mjs Jana/Index`, não no olho).
 //
 // ⚠️ DIVERGÊNCIA DELIBERADA vs o protótipo, e é o ponto do componente — a mesma
 // que o `JanaDrillDrawer` já registra no eixo da FONTE, agora no eixo da PRÉVIA:

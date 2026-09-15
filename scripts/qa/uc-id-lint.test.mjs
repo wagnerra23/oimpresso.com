@@ -134,6 +134,31 @@ try {
   const limpo = rodar('--check');
   check('CLI: --check LIBERA (exit 0) quando tudo casa', limpo.status === 0, `status=${limpo.status}\n${limpo.stdout}`);
 
+  // B.3-bis · o ESPELHO de design não é corpus de contrato (ADR 0398). Um `.casos.md` sob
+  //   `prototipo-ui/` é PROPOSTA da conta Cowork — cobrar formato de UC-id nele é contar dívida
+  //   de terceiro como nossa, e quem pode consertá-la não trabalha neste repo. Sem este filtro,
+  //   importar o pacote (49 `.casos.md` medidos em 2026-09-13) avermelhava o gate sozinho.
+  //   O CONTROLE do par está logo abaixo: o MESMO conteúdo em `Pages/` volta a morder.
+  put('prototipo-ui/cowork/Wagner/cowork-inbox/programa-doc/Programa.casos.md', '## UC-PROGDOC-03 · proposta do Cowork\n');
+  git('add', '-A');
+  git('commit', '-qm', 'espelho');
+  const comEspelho = rodar('--check');
+  check('CLI: id inválido DENTRO do espelho de design não morde (não é contrato nosso)',
+    comEspelho.status === 0, `status=${comEspelho.status}\n${comEspelho.stdout}`);
+  check('CLI: e o relatório não lista o arquivo do espelho',
+    !/prototipo-ui/.test(rodar().stdout), rodar().stdout.slice(0, 300));
+
+  // CONTROLE NEGATIVO do filtro: sem ele o assert acima passaria por um lint que aceita tudo.
+  put('resources/js/Pages/Programa/Programa.casos.md', '## UC-PROGDOC-03 · o MESMO id, agora em contrato nosso\n');
+  git('add', '-A');
+  git('commit', '-qm', 'mesmo id fora do espelho');
+  check('CONTROLE: o MESMO id fora do espelho MORDE (o filtro é por lugar, não por id)',
+    rodar('--check').status === 1, rodar('--check').stdout.slice(0, 300));
+  rmSync(join(raiz, 'resources/js/Pages/Programa/Programa.casos.md'));
+  rmSync(join(raiz, 'prototipo-ui'), { recursive: true, force: true });
+  git('add', '-A');
+  git('commit', '-qm', 'limpa fixture do espelho');
+
   // B.4 · baseline grandfathera o legado e o --check para de morder (no-new-lie).
   put('resources/js/Pages/Ruim/Tela.casos.md', '## UC-PTPAINEL-01 · ruim\n');
   git('add', '-A');

@@ -15,7 +15,7 @@ lifecycle: active
 
 # Auditoria skills atuais — pós-Constituição (v2)
 
-> ⚠️ **Reconciliação v2 (2026-07-15):** menções abaixo a *"`mwart-comparative` aguarda Wagner aprovar SCREENSHOT síncrono / é o gate visual"* refletem o loop **v1** — **superadas** pela v2 ([ADR 0241](../../decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md) + [ADR 0282](../../decisions/0282-protocolo-v2-colapso-ratificacao.md)): o gate visual é **CI** (visual-regression + PR UI Judge), **não** aprovação síncrona. O agente Code **é** o designer-agente com acesso completo ao design ([PROTOCOL §0.1](../../../prototipo-ui/PROTOCOL.md)). Texto v1 preservado como histórico (append-only).
+> ⚠️ **Reconciliação v2 (2026-07-15):** menções abaixo a *"`mwart-comparative` aguarda Wagner aprovar SCREENSHOT síncrono / é o gate visual"* refletem o loop **v1** — **superadas** pela v2 ([ADR 0241](../../decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md) + [ADR 0282](../../decisions/0282-protocolo-v2-colapso-ratificacao.md)): o gate visual é **CI** (visual-regression + PR UI Judge), **não** aprovação síncrona. O agente Code **é** o designer-agente com acesso completo ao design ([PROTOCOL §0.1](../../../memory/reference/prototipo-ui/PROTOCOL.md)). Texto v1 preservado como histórico (append-only).
 
 > **v2 — 2026-05-09** corrige drift detectado pela skill [`audit-constituicao`](../../../.claude/skills/audit-constituicao/SKILL.md) (recém-criada, primeira execução do audit 6-dimensional). Doc original (v1, 2026-05-06) parou no momento do PR Constituição v2 e não acompanhou as 9 skills criadas depois + 3 renames + drift triplo Tier A.
 >
@@ -103,7 +103,7 @@ lifecycle: active
 | Campo | Valor |
 |---|---|
 | **Decisão** | TIER A — gate visual F1.5 + F3 + Cowork loop |
-| **Mecanismo** | Bloqueia Edit em Page Inertia se `*-visual-comparison.md` ausente; sincroniza `prototipo-ui/SYNC_LOG.md`; orquestra plugin `design:*` Anthropic (6 sub-skills) |
+| **Mecanismo** | Bloqueia Edit em Page Inertia se `*-visual-comparison.md` ausente; sincroniza `memory/reference/prototipo-ui/SYNC_LOG.md`; orquestra plugin `design:*` Anthropic (6 sub-skills) |
 | **Why Tier A** | Restaura loop "design supervisionado" da era Repair S2.5 com qualidade estado-da-arte. Wagner aprova SCREENSHOT, não tabela |
 | **ADRs** | [0114 prototipo-ui Cowork loop formalizado](../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) (mãe direta) · [0107 emendation 0104 visual comparison gate F3](../decisions/0107-emendation-0104-visual-comparison-gate-f3.md) · [0109 Claude Design plugin integrado processo MWART](../decisions/0109-claude-design-plugin-integrado-processo-mwart.md) |
 | **Status** | live (criada após v1) |

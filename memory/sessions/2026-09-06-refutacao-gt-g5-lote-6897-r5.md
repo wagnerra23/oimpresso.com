@@ -11,6 +11,8 @@ outcomes:
 
 # Refutação GT-G5 — lote PR #6897 · rodada r5
 
+## Contexto
+
 > Refutador em sessão fresca (worktree `compras-migration-complete-15fd56`, branch `claude/q6-gap-md-tabela-e-11-mapas`, `origin/main` = `26ac293f46`). Modelo: Fable 5.1. Nenhum arquivo `memory/sessions/*refutacao*` foi aberto (os 4 do branch existem no diff global, mas não foram lidos). Tudo medido contra `origin/main` por `git ls-tree` / `git show`, não contra o texto do PR.
 
 ## Checklist §3

@@ -1,6 +1,6 @@
 ---
 tela: Cliente/Index (/contacts)
-prototipo: prototipo-ui/cowork/clientes-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/clientes-page.jsx
 tela_viva: resources/js/Pages/Cliente/Index.tsx
 id: requisitos-cliente-clientes-gap
 ---
@@ -18,7 +18,7 @@ id: requisitos-cliente-clientes-gap
 > `MOCKUP-STALE` / *"a tela viva supera o mockup em todas as partes estruturais"* é, portanto,
 > **registro datado de 2026-06-30 medido por rota inválida** — não é base para decidir hoje.
 >
-> Some-se: o espelho canônico (`prototipo-ui/cowork/`) recebeu em **2026-08-13** (#5743) um
+> Some-se: o espelho canônico (`prototipo-ui/cowork/Wagner/`) recebeu em **2026-08-13** (#5743) um
 > `clientes-page.jsx` que **dobrou de tamanho** (`+1075/−133`), mais 8 arquivos de Cliente
 > inéditos. Qualquer comparação anterior a essa data comparou com menos da metade da fonte.
 >

@@ -140,7 +140,7 @@ const GROUP_ICON_MAP: Record<string, LucideIcon> = {
   estoque:   Package,       // caixas/inventory
   pessoas:   Users,         // RH
   sistema:   Settings,      // configurações
-  // `folder` do GROUP_META do design (prototipo-ui/cowork/data.jsx).
+  // `folder` do GROUP_META do design (prototipo-ui/cowork/Wagner/data.jsx).
   plataforma: Folder,
   mais:      Hash,          // fallback
 };
@@ -278,7 +278,7 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     key: 'plataforma',
     label: 'PLATAFORMA',
     // [W] 2026-09-08: "no sidebar pode colocar a Forja na PLATAFORMA, como está
-    // no protótipo". A fonte é `prototipo-ui/cowork/data.jsx` — grupo
+    // no protótipo". A fonte é `prototipo-ui/cowork/Wagner/data.jsx` — grupo
     // `PLATAFORMA` ("era MAIS"), ÚLTIMO, fechado por default, `hue: null`
     // (neutro), ícone `folder`, com Tarefas · Equipe · Governança · Forja.
     // Conferido contra o Cowork VIVO por ID em 2026-09-08 (DesignSync.get_file
@@ -474,22 +474,28 @@ export function CompanyPicker({
         className="sb-cp-btn"
         type="button"
         onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`Empresa: ${nome}. Trocar de empresa`}
       >
-        <span className="avatar" style={{ background: grad }}>
+        <span className="avatar" style={{ background: grad }} aria-hidden="true">
           {iniciais}
         </span>
         <span className="name">{nome}</span>
         <ChevronDown size={14} />
       </button>
       {open && (
-        <div className="sb-dd">
+        <div className="sb-dd" role="menu">
           <div className="sb-dd-h">EMPRESAS</div>
           {businesses.length === 0 && (
             <div className="sb-dd-empty">Nenhuma empresa disponível</div>
           )}
           {businesses.map((b) => (
-            <div
+            <button
               key={b.id}
+              type="button"
+              role="menuitemradio"
+              aria-checked={b.ativa}
               className={`sb-dd-i ${b.ativa ? 'active' : ''}`}
               onClick={() => {
                 if (b.ativa) {
@@ -501,15 +507,41 @@ export function CompanyPicker({
                 setOpen(false);
               }}
             >
-              <span className="avatar-sm" style={{ background: gradientFor(b.id) }}>
+              <span
+                className="avatar-sm"
+                style={{ background: gradientFor(b.id) }}
+                aria-hidden="true"
+              >
                 {b.iniciais}
               </span>
               <span className="name">{b.nome}</span>
               {b.ativa && <Check size={14} className="check" />}
-            </div>
+            </button>
           ))}
           <div className="sb-dd-sep" />
-          <div className="sb-dd-foot">+ Adicionar empresa</div>
+          {/* Sem handler este item MENTIA: `role="menuitem"` anuncia algo
+              acionável e o clique não fazia nada (medido no main em 2026-09-13).
+              O destino existe — Superadmin › Negócios (`/superadmin/business`,
+              com `create`) — mas QUEM pode abri-lo é decidido pelo middleware
+              `superadmin`, que compara o `username` contra
+              `config('constants.administrator_usernames')`. Essa regra não chega
+              ao front: `props.auth.can` traz só as 5 chaves do Ponto, e
+              `superadminItems` filtra LABELS de outros módulos (Módulos, Backup,
+              CMS, …), cada um com permissão própria — nenhum é esta. Sem sinal
+              confiável, navegar daria 403 pra maioria; o item então declara-se
+              desabilitado COM o motivo, em vez de prometer.
+              `aria-disabled` e não `disabled` nativo: menuitem desabilitado segue
+              focável no padrão ARIA, e o `disabled` do HTML suprimiria o `title`
+              — que é justamente o motivo. */}
+          <button
+            type="button"
+            role="menuitem"
+            className="sb-dd-foot"
+            aria-disabled="true"
+            title="Criar empresa é ação de superadmin, em Superadmin › Negócios"
+          >
+            + Adicionar empresa
+          </button>
         </div>
       )}
     </div>
@@ -524,7 +556,7 @@ export function CompanyPicker({
 // ── SidebarMenuItem (recursivo p/ children) ─────────────────────────────
 
 // Slot da direita do item: dica do atalho `G X`, visível só no hover/foco da
-// linha. Espelha `ItemEnd` do protótipo (`prototipo-ui/cowork/sidebar.jsx:31`),
+// linha. Espelha `ItemEnd` do protótipo (`prototipo-ui/cowork/Wagner/sidebar.jsx:31`),
 // que reserva UMA célula de grid pro slot — assim nada empurra o label.
 // O contador de telas do protótipo (`.sb-ghost-count`) NÃO vem junto: ghost no
 // sidebar contraria a ADR 0180 (ghosts vivem no PageHeader), então por ora o
@@ -540,7 +572,7 @@ function ItemEnd({ atalho, telas }: { atalho?: string; telas?: number }) {
 }
 
 /** Teto de ghosts exibidos sob o item ativo — espelha `GHOST_TETO` do
- *  protótipo (`prototipo-ui/cowork/sidebar.jsx`). O excedente vira "⋯ mais N". */
+ *  protótipo (`prototipo-ui/cowork/Wagner/sidebar.jsx`). O excedente vira "⋯ mais N". */
 const GHOST_TETO = 5;
 
 /** Rota ativa: o backend não propaga `active` pro React (o `LegacyMenuAdapter`
@@ -701,7 +733,7 @@ function SidebarShortcuts({
   // Sequência canon TOPO: IA → Visão geral → Atendimento.
   //
   // [W] 2026-09-08: a Forja SAIU daqui e virou item do grupo PLATAFORMA. O
-  // design (`prototipo-ui/cowork/data.jsx`) declara três shortcuts de topo —
+  // design (`prototipo-ui/cowork/Wagner/data.jsx`) declara três shortcuts de topo —
   // `chat` (IA) · `dash-legacy` (Visão geral) · `inbox` (Atendimento) — e põe a
   // Forja em PLATAFORMA. Manter os dois seria a mesma tela em duas portas do
   // mesmo menu, que a Constituição UI v2 (ADR UI-0013) proíbe.
@@ -721,7 +753,7 @@ function SidebarShortcuts({
         </a>
       )}
       {/* Visão geral — SEGUNDA, entre IA e os demais. Não é gosto: o design
-          (`prototipo-ui/cowork/data.jsx`, bloco "Shortcuts de topo") declara a
+          (`prototipo-ui/cowork/Wagner/data.jsx`, bloco "Shortcuts de topo") declara a
           ordem `chat` (IA) → `dash-legacy` (Visão geral) → `inbox`
           (Atendimento). A 1ª versão desta entry ficou ACIMA de tudo, o que
           diverge do contrato medido. `aria-current="page"` espelha o
@@ -1465,7 +1497,6 @@ function ThemeSubpanel() {
 
 export function SidebarFooter({
   nome,
-  nomeCurto,
   email,
   cargo,
   iniciais,
@@ -1475,7 +1506,6 @@ export function SidebarFooter({
   onVibe,
 }: {
   nome: string;
-  nomeCurto: string;
   email: string;
   cargo: string;
   iniciais: string;
@@ -1493,7 +1523,7 @@ export function SidebarFooter({
   // 2026-05-07: Vibes (Modo de trabalho) também migrou pro user dropdown
   // (recomendação P2 #7 auditoria) — antes só ficava no Tweaks FAB.
   return (
-    <div className="sb-user-wrap">
+    <div className="sb-user-wrap" data-contract="sb-rodape">
       {/* User dropdown — agora inclui Superadmin entre Meu perfil e Disponível */}
       <div className="sb-user" style={{ position: 'relative' }}>
         <SidebarUserMenu
@@ -1511,15 +1541,50 @@ export function SidebarFooter({
           className="sb-user-btn"
           type="button"
           onClick={() => setOpenUser((v) => !v)}
+          aria-haspopup="menu"
+          aria-expanded={openUser}
         >
-          <span className="avatar">{iniciais}</span>
+          <span className="avatar" aria-hidden="true">
+            {iniciais}
+          </span>
           <div className="who">
-            <b>{nomeCurto}</b>
+            {/* nome por extenso — o protótipo mostra "Wagner Rocha" (2026-09-11).
+                `nomeCurto` existia pro rodapé de 26px, que empilhava nome e cargo
+                na mesma linha; com o `.who` em coluna o nome inteiro cabe. */}
+            <b>{nome}</b>
             <small>{cargo}</small>
           </div>
           <ChevronUp size={12} />
         </button>
       </div>
     </div>
+  );
+}
+/**
+ * Alça flutuante de reabrir — só existe no modo `hidden`, quando a `<aside>`
+ * inteira sai do DOM. Portada de `prototipo-ui/cowork/Wagner/sidebar.jsx`
+ * (`SidebarReopenHandle`), não do bundle do Financeiro.
+ *
+ * É um `<button>` com nome acessível, e não um `<div>`: sem ela o único caminho
+ * de volta seria o atalho ⌘⇧\ — e quem escondeu a sidebar pelo mouse não
+ * necessariamente sabe o atalho. Ela é `position: fixed`, logo NÃO é grid item:
+ * quem tira a coluna do grid é `.cockpit[data-sidebar="hidden"]` no `cockpit.css`.
+ *
+ * O `title` sai daqui como expressão JS (`{'...'}`), não como atributo literal:
+ * em JSX um atributo `title="(⌘⇧\\)"` é texto HTML e chega ao DOM com as DUAS
+ * barras — foi o que medi no próprio protótipo em 2026-09-11 (`title` renderizado
+ * como `⌘⇧\\`). Aqui a barra é uma só, como no `.sb-collapse-handle` do shell.
+ */
+export function SidebarReopenHandle({ onOpen }: { onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      className="sb-reopen-handle"
+      onClick={onOpen}
+      title={'Mostrar sidebar (⌘⇧\\)'}
+      aria-label="Mostrar sidebar"
+    >
+      <ChevronRight size={12} strokeWidth={2.2} />
+    </button>
   );
 }

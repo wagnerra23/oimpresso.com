@@ -50,8 +50,6 @@ adrs_referenciadas:
 
 capacidades:
   - "ActionGate runtime + PiiRedactor"
-  - "Module Grades v3 (12 dimensões)"
-  - "module:grade-snapshot daily 06:00 BRT"
   - "Drift detection (filesystem vs snapshot canon)"
   - "Charter audit (12 charters Inertia)"
   - "Policies CRUD + audit"

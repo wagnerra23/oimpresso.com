@@ -18,7 +18,7 @@ applied_in:
 # PT-03 · Detalhe — padrão canônico de tela-Show (1 registro)
 
 > **Camada 3 · Padrão de Tela.** Herda das [Fundações](../README.md) + [Shell](../README.md) e nunca contradiz. Módulo configura os slots, **não** muda a estrutura.
-> **Golden code-first** no espírito da [GOLDEN-REFERENCE](../../../../prototipo-ui/GOLDEN-REFERENCE.md): cada regra cita **linha real**. Em dúvida, pergunta ([UI-0013 regra-mestre](../adr/ui/0013-constituicao-ui-v2-camadas.md)) — não inventa.
+> **Golden code-first** no espírito da [GOLDEN-REFERENCE](../../../../memory/reference/prototipo-ui/GOLDEN-REFERENCE.md): cada regra cita **linha real**. Em dúvida, pergunta ([UI-0013 regra-mestre](../adr/ui/0013-constituicao-ui-v2-camadas.md)) — não inventa.
 
 ## Quando aplicar
 
@@ -124,7 +124,7 @@ Entre as 4 candidatas, **`Sells/Show.tsx`** é o golden do arquétipo Detalhe. *
 
 - **ADR-mãe:** [UI-0013 Constituição UI v2](../adr/ui/0013-constituicao-ui-v2-camadas.md)
 - **Golden code:** [Sells/Show.tsx](../../../../resources/js/Pages/Sells/Show.tsx) + charter [Sells/Show.charter.md](../../../../resources/js/Pages/Sells/Show.charter.md)
-- **Form golden (irmão):** [GOLDEN-REFERENCE.md](../../../../prototipo-ui/GOLDEN-REFERENCE.md) (Sells/Create)
+- **Form golden (irmão):** [GOLDEN-REFERENCE.md](../../../../memory/reference/prototipo-ui/GOLDEN-REFERENCE.md) (Sells/Create)
 - **Lista (irmão):** [PT-01-Lista.md](PT-01-Lista.md)
 - **Cockpit Pattern V2:** [ADR 0110](../../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md) · **Pattern reuse:** [ADR 0149](../../../decisions/0149-mwart-screen-pattern-reuse-cowork.md)
 - **FSM (ações contextuais):** [ADR 0143](../../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)

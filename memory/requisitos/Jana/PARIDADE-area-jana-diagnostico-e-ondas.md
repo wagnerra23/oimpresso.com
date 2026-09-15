@@ -1,7 +1,7 @@
 # Área Jana — paridade protótipo × produção: diagnóstico medido e ondas de correção
 
 - **Data da medição:** 2026-08-18 · **base:** `origin/main` `4177c033a`
-- **Âncora:** `prototipo-ui/cowork/jana-merge.jsx` (§`JanaHeader` vive em `chat-jana.jsx`) — servido em `localhost:5577` via `launch.json` → `cowork-jana-2`; `window.JmMemoria` resolve `function`, e o `sha256` do arquivo bate com `origin/main` (`057bd8ae…`) nos 3 worktrees conferidos
+- **Âncora:** `prototipo-ui/cowork/Wagner/jana-merge.jsx` (§`JanaHeader` vive em `chat-jana.jsx`) — servido em `localhost:5577` via `launch.json` → `cowork-jana-2`; `window.JmMemoria` resolve `function`, e o `sha256` do arquivo bate com `origin/main` (`057bd8ae…`) nos 3 worktrees conferidos
 - **Origem:** [W] abriu o protótipo e apontou, um a um: *"não copiou as actions dos botões"* · *"botão configurar, plano pro"* · *"os drawer das metas faltou muita coisa"* · *"não copiou o esqueleton"*. Os quatro se confirmaram.
 
 > **Limite deste documento.** Tudo abaixo é **estrutural** (leitura de código + runtime do protótipo). Não mede fidelidade visual: isso exige `cowork-mirror-freshness --compare --check` = SYNC + sonda `design-diff --probe` nos dois renders, e **nenhum dos dois rodou**.
@@ -112,7 +112,7 @@ Ele tem npm script (`contrato:omission`) e tem teste (`contrato-de-tela.test.mjs
 
 ### 7.2 — O contrato do Painel é curto demais
 
-`prototipo-ui/contrato/jana-painel.contract.json` declara **5 seções**: `painel-cta-conversar` · `painel-metas-header` · `painel-metas-vazio` · `painel-meta-apurando` · `painel-meta-sem-historico`. Nenhuma é header, actions ou drawer.
+`governance/design/contracts/jana-painel.contract.json` declara **5 seções**: `painel-cta-conversar` · `painel-metas-header` · `painel-metas-vazio` · `painel-meta-apurando` · `painel-meta-sem-historico`. Nenhuma é header, actions ou drawer.
 
 O contrato é uma **allowlist do que se quer travar**. Mesmo rodando — e ele **roda**, o CI itera `git ls-files '*.contract.json'` —, não morderia nada do §6.
 
@@ -120,7 +120,7 @@ O contrato é uma **allowlist do que se quer travar**. Mesmo rodando — e ele *
 
 ### 7.3 — Três das quatro telas não têm contrato
 
-`prototipo-ui/contrato/` tem 5 arquivos; descontando `EXEMPLO`, `schema` e um `.intent.json`, sobram **2 contratos reais** (caixa-unificada e jana-painel). Chat, Memória e Pro: nenhum.
+`governance/design/contracts/` tem 5 arquivos; descontando `EXEMPLO`, `schema` e um `.intent.json`, sobram **2 contratos reais** (caixa-unificada e jana-painel). Chat, Memória e Pro: nenhum.
 
 ### Por que isso não é "criar um gate novo"
 
@@ -132,7 +132,7 @@ As três correções **estendem o dono do tema** (`contrato-de-tela`). Gate novo
 
 Medido em 2026-08-18, com o protótipo servido em `localhost:5577`:
 
-**`window.OfficeImpressoPontoWR2DesignSystem_019dd0` → `false`.** O Design System **não carrega**. São **10 arquivos** que o host pede e que **nunca desceram** para `prototipo-ui/cowork/` — e os 10 **existem no Cowork**:
+**`window.OfficeImpressoPontoWR2DesignSystem_019dd0` → `false`.** O Design System **não carrega**. São **10 arquivos** que o host pede e que **nunca desceram** para `prototipo-ui/cowork/Wagner/` — e os 10 **existem no Cowork**:
 
 | faltando | quantos |
 |---|---|
@@ -170,7 +170,7 @@ Executar a onda E foi tentado nesta sessão. Resultado, item a item:
 
 | arquivo | caminho | estado |
 |---|---|---|
-| `colors_and_type.css` | **já está no repo** — `scripts/design-sync/mirror-snapshot/` | ✅ copiável, zero download |
+| `colors_and_type.css` | **já está no repo** — `prototipo-ui/design-system/` | ✅ copiável, zero download |
 | `cockpit_domains.css` | idem (e ainda é **regenerável** por `scripts/design-sync/ds-domains-companion.mjs` a partir do SSOT `resources/css/tokens/`) | ✅ |
 | `ibm-plex-sans-{400,500,600,700}.woff2` | **já estão no repo** — `mirror-snapshot/assets/fonts/` | ✅ 4 de 7 |
 | `ibm-plex-mono-{400,500,600}.woff2` | não estão no repo · são **binários** | ❌ o `--export-from` só escreve **texto** |
@@ -202,14 +202,14 @@ Cobrança de [W] (2026-08-18): *"o diretório permitido tem que ser sempre o mes
 
 | # | caminho | estado |
 |---|---|---|
-| 1 | `scripts/design-sync/mirror-snapshot/` | **versionado** — `colors_and_type.css` · `cockpit_domains.css` · 4 fontes sans. Existe pro sentinela `ds-mirror-drift` comparar (o CI não tem login claude.ai) |
+| 1 | `prototipo-ui/design-system/` | **versionado** — `colors_and_type.css` · `cockpit_domains.css` · 4 fontes sans. Existe pro sentinela `ds-mirror-drift` comparar (o CI não tem login claude.ai) |
 | 2 | `prototipo-ui/cowork/_ds/office-impresso-design-system-019dd02f…/` | **onde o host pede** (`<link>`/`<script>` do `oimpresso.com.html`) — **vazio** |
 | 3 | `prototipo-ui/design-system/` | onde `--export-from --ds` escreveria — **0 arquivos no git**, ninguém consome |
 | 4 | `.claude/launch.json` → `.claude/worktrees/<nome>/prototipo-ui/cowork` | **efêmero e gitignored** — 3 das 5 entradas apontam pra worktrees de sessões que podem já não existir |
 
 **A consequência é exatamente a que [W] previu:** o conteúdo **está versionado** em (1) e **nunca foi ligado** a (2). O snapshot do DS existe no git há tempo, e o protótipo local nunca o enxergou — foi por isso que o `DS_carregado: false` passou despercebido.
 
-O **default** do `--export-from` (prefixo `cowork`) escreve em `prototipo-ui/cowork/` + o path do Cowork, o que resolve para (2) — **está correto**. É o `--ds` que aponta pra (3), órfão.
+O **default** do `--export-from` (prefixo `cowork`) escreve em `prototipo-ui/cowork/Wagner/` + o path do Cowork, o que resolve para (2) — **está correto**. É o `--ds` que aponta pra (3), órfão.
 
 **Regra que falta escrever (decisão [W]):** um destino único e versionado pro DS do espelho, com os outros apontando pra ele — e o `launch.json` deixando de carregar path de worktree efêmero. Enquanto houver 4 locais, "está no git" e "o protótipo enxerga" continuam sendo perguntas diferentes.
 
@@ -219,7 +219,7 @@ O **default** do `--export-from` (prefixo `cowork`) escreve em `prototipo-ui/cow
 > preservado como registro do que era verdade quando foi medido; o que muda é o **estado**.
 
 O [PR #5915](https://github.com/wagnerra23/oimpresso.com/pull/5915) (`fix(design-sync): restaurar
-runtime completo dos drawers`) versionou o que faltava em `scripts/design-sync/mirror-snapshot/`:
+runtime completo dos drawers`) versionou o que faltava em `prototipo-ui/design-system/`:
 **`_ds_bundle.js` (289.864 bytes)** + as **3 fontes mono** — os dois itens que o §7.4 dava como
 `❌ IMPOSSÍVEL hoje` e `❌ binário`. O caminho **não** foi ampliar o `get_file`: foi trocar o
 transporte, que é a saída **(b)** das três que o §7.4 listou como decisão [W].
@@ -259,7 +259,7 @@ Medido em 2026-08-18 pelo caminho canônico — `DesignSync.get_file` → `--sna
 DIVERGE  jana-merge.jsx  (a265b6e68567)
 ```
 
-| | espelho `prototipo-ui/cowork/` | Cowork vivo |
+| | espelho `prototipo-ui/cowork/Wagner/` | Cowork vivo |
 |---|---|---|
 | `jana-merge.jsx` | **943 linhas** | **1.117 linhas** (`truncated: false`) |
 | símbolos exportados | 8 | **10** — ganha `JmPropostas` · `JmThreadItem` |
@@ -313,7 +313,7 @@ a lápide de 2026-08-11 proíbe (foi ela que produziu o `STALE` daquele dia). Ex
 > permitido 2% de desvio"*. Este é o primeiro `--compare` medido da área Jana — o cabeçalho
 > deste documento registrava, até aqui, que *"nenhum dos dois rodou"*. **Um dos dois rodou.**
 
-**Método** — o dono do tema (`prototipo-ui/design-diff.mjs`), com a **mesma sonda** injetada nos
+**Método** — o dono do tema (`scripts/design/design-diff.mjs`), com a **mesma sonda** injetada nos
 dois lados, nunca no olho:
 
 | lado | onde | como |
@@ -405,7 +405,7 @@ backlog**. Re-medido em runtime nesta data (`/ia`, `biz=1`, dark, `getComputedSt
 Duas confirmações que o §7.6 não tinha:
 
 1. **O protótipo comparado é âncora BANIDA.** O lado "design" do `--compare` é o
-   `.jc-header` de `prototipo-ui/cowork/chat-jana.jsx:220` (+ `chat-jana.css:24`) — e a
+   `.jc-header` de `prototipo-ui/cowork/Wagner/chat-jana.jsx:220` (+ `chat-jana.css:24`) — e a
    lápide **§5 2026-08-10** (com a emenda de **08-11**) proíbe `chat-jana.jsx` como âncora
    de design de qualquer tela da Jana. Os 3px são contra uma régua que o canon já rejeitou.
 2. **A âncora citada no §7.6 está errada** (ponteiro podre, decisão válida). Aquela linha

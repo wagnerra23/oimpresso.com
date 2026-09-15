@@ -106,6 +106,7 @@ function bhimpNovoUser(int $businessId): User
     return User::factory()->create([
         'business_id' => $businessId,
         'user_type'   => 'user',
+        'username'    => strtolower(BHIMP_MARCADOR) . '-' . uniqid(),
     ]);
 }
 

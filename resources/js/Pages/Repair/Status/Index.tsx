@@ -1,6 +1,6 @@
 // @memcofre tela=/repair/status module=Repair
 // Sprint 2.5 / MWART-0002 — port da tela de Status (Repair) Blade → Inertia/React.
-// FORMA portada de prototipo-ui/cowork/repair-page.jsx, região `Status` (L304-337) +
+// FORMA portada de prototipo-ui/cowork/Wagner/repair-page.jsx, região `Status` (L304-337) +
 // repair-page.css (.rep-status-row / .rep-st) — ADR UI-0029, protótipo soberano na forma.
 // Plano: memory/requisitos/Repair/RUNBOOK-repair-status.md
 // Diff medido: memory/requisitos/Repair/6telas-index-visual-comparison.md §3.4

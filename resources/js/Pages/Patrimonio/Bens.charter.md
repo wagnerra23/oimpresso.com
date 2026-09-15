@@ -6,7 +6,7 @@ status: draft
 parent_module: AssetManagement
 related_us: [US-ASSET-001, US-ASSET-W05]
 related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo-mwart-canonico-unico-caminho, 0093-multi-tenant-isolation-tier-0, 0180-sidebar-v3-5-grupos-ghosts-header]
-related_prototype: prototipo-ui/cowork/patrimonio-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
 tier: B
 charter_version: 1
@@ -136,7 +136,7 @@ cópia por ramo, e a próxima correção pousaria em só uma delas.
 
 - RUNBOOK: [`memory/requisitos/AssetManagement/RUNBOOK-bens.md`](../../../../memory/requisitos/AssetManagement/RUNBOOK-bens.md)
 - Casos: [`./Bens.casos.md`](./Bens.casos.md)
-- Fonte visual: `prototipo-ui/cowork/patrimonio-page.jsx` (aba `bens`, `:355`) — **alvo**, não
+- Fonte visual: `prototipo-ui/cowork/Wagner/patrimonio-page.jsx` (aba `bens`, `:355`) — **alvo**, não
   decisão de produto
 - Playbook: `prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/06-ui-bloqueada.md`
 - [PT-01 Lista](../../../../memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md)

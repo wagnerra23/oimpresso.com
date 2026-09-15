@@ -100,7 +100,7 @@ const mainBody = document.querySelector('.cockpit .main-body');
 
 ## R2 — Cópia literal quando design aprovado (não slice)
 
-**Quando:** Wagner aprovou screenshot/visual do prototype Cowork (`prototipo-ui/prototipos/<modulo>/`), mesmo informalmente ("isso aí é o resultado esperado", "copia isso", screenshot colado no chat sem objeção).
+**Quando:** Wagner aprovou screenshot/visual do prototype Cowork (`prototipo-ui/cowork/Wagner/legado/<modulo>/`), mesmo informalmente ("isso aí é o resultado esperado", "copia isso", screenshot colado no chat sem objeção).
 
 **O que fazer (Claude executa):**
 
@@ -202,7 +202,7 @@ const mainBody = document.querySelector('.cockpit .main-body');
 
 1. **Charter check** ([skill `charter-first`](../../.claude/skills/charter-first/SKILL.md) Tier A always-on): se `<Tela>.charter.md` existe ao lado, **ler ANTES** de tocar `.tsx`. Mission/Goals/Non-Goals/UX targets/Anti-hooks.
 2. **MWART F1.5 visual-comparison.md** obrigatório se migração Blade→Inertia ([ADR 0104](../decisions/0104-processo-mwart-canonico-unico-caminho.md) + [ADR 0107](../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)).
-3. **Cowork prototype** se aplicável: confere `prototipo-ui/prototipos/<modulo>/` ([ADR 0114](../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)).
+3. **Cowork prototype** se aplicável: confere `prototipo-ui/cowork/Wagner/legado/<modulo>/` ([ADR 0114](../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)).
 4. **Inertia::defer DEFAULT** em props caras (skill `inertia-defer-default` Tier B).
 5. Pós-merge: skill `tela-smoke-pos-merge` Tier B + `brief-update` Tier B disparam.
 

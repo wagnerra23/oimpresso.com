@@ -109,7 +109,7 @@ ecossistema Laravel-Inertia são abundantes.
 
 - Screenshot final será gerado pós-merge em ambiente local (Wagner + Maiara revisam visual)
 - Esta análise documenta benchmarks 2026 + 15 dimensões pra contextualizar a decisão
-- Aprovação visual via `prototipo-ui/PROTOCOL.md` loop Cowork ↔ Claude Code (ADR 0114)
+- Aprovação visual via `memory/reference/prototipo-ui/PROTOCOL.md` loop Cowork ↔ Claude Code (ADR 0114)
 
 ## Referências
 

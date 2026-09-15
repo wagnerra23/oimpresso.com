@@ -575,7 +575,7 @@ P('> detector casou `git commit` escrito na prosa que explica a coluna `Escreve?
 P('>');
 P('> 2 eixos MEDIDOS E REJEITADOS, com o número (pra não se tentar de novo). Corpus da medição de');
 P('> FP: `scripts/**` inteiro, **310** arquivos `.mjs/.js/.cjs` — maior que as linhas desta tabela,');
-P('> que exclui `.test.` e cobre só os diretórios listados. `git commit|push|checkout` deu **41,7%');
+P('> que exclui `.test.` e `node_modules/`. `git commit|push|checkout` deu **41,7%');
 P('> de FP** (12 hits, 5 só em prosa) · `--write|--apply` deu **5,9%** (68 hits, 4 em prosa) e é');
 P('> conceitualmente errado além disso, porque flag é *capacidade*, não escrita · o eixo adotado');
 P('> (`fs`) deu **0,6%** (160 hits, 1 em prosa).');
@@ -600,9 +600,37 @@ P('> (este arquivo, `_HOOKS-INDEX`, `_SKILLS-INDEX`, `AUTOMATIONS`, `PAINEL-SIST
 P('> ser listado por outro inventário não é estar documentado. `(só sessão/handoff · N)` = existe');
 P('> rastro histórico, mas **nenhum doc vivo** governa a máquina. `—` = nenhum doc a cita.');
 P('');
-dumpScripts('scripts/governance', '5.1 `scripts/governance/`');
-dumpScripts('scripts/tests', '5.2 `scripts/tests/`');
-dumpScripts('scripts', '5.3 `scripts/` (raiz)');
+// A lista de diretórios é DERIVADA da árvore, nunca escrita à mão (ADR 0256:
+// derivado sobrevive, escrito+lembrado apodrece). Até 2026-09-13 eram TRÊS chamadas
+// fixas — governance, tests e a raiz — enquanto o cabeçalho deste arquivo prometia
+// `scripts/**` e “TODAS as máquinas”. O resultado medido naquele dia: 165 de 248
+// máquinas catalogadas, e 16 diretórios invisíveis. `scripts/design/` (23 máquinas:
+// ds-guard, ancora, design-diff, style-fingerprint…) caiu justamente nesse vão —
+// nasceu em 2026-09-11 pelo #7224, vindo de `prototipo-ui/`, que também nunca fora
+// coberto. Consultar o inventário sobre elas devolvia “não existe” para 23 máquinas
+// que existem, que é a claim-de-ausência-da-fonte-errada da §5 2026-07-28.
+const dirsComMaquina = (dir, acc = new Set(), depth = 0, maxDepth = 6) => {
+  if (!existsSync(join(ROOT, dir)) || depth > maxDepth) return acc;
+  for (const e of readdirSync(join(ROOT, dir))) {
+    // `node_modules` é dependência VENDORIZADA, não máquina deste repo: os 6 arquivos
+    // sob scripts/cc-watcher/node_modules/ (chokidar, readdirp) estão versionados e
+    // entrariam sem este corte — linhas que ninguém aqui escreveu nem mantém.
+    if (e === 'node_modules') continue;
+    const rel = `${dir}/${e}`;
+    let st; try { st = statSync(join(ROOT, rel)); } catch { continue; }
+    if (st.isDirectory()) dirsComMaquina(rel, acc, depth + 1, maxDepth);
+    else if (/\.(mjs|js|cjs)$/.test(e) && !e.includes('.test.')) acc.add(dir);
+  }
+  return acc;
+};
+// Raiz primeiro (é o pai), subdiretórios em ordem alfabética — determinismo, não gosto:
+// a ordem não pode depender da ordem de leitura do filesystem.
+const SCRIPT_DIRS = [...dirsComMaquina('scripts')].sort((a, b) =>
+  (a === 'scripts' ? -1 : b === 'scripts' ? 1 : a.localeCompare(b)));
+SCRIPT_DIRS.forEach((d, i) => {
+  const rotulo = d === 'scripts' ? '`scripts/` (raiz)' : `\`${d}/\``;
+  dumpScripts(d, `5.${i + 1} ${rotulo}`);
+});
 
 // ===== 6. BASELINES / JSON de estado (deriva _meta quando existe) =====
 const jsonDirs = ['governance', 'config', 'scripts'];

@@ -1712,7 +1712,7 @@
       "pii_scan": true,
       "pii_hits": 0,
       "veredito": "reprovado",
-      "evidencia": "Rodada 3. Denominador subiu pra 118 claims (r1=82, r2=81) porque o refutador decompôs as 2 entries do ledger como objetos de teste. Taxa caiu 11,1% → 3,39%. Os 4: E1 — o conserto do strike do PRE-MERGE-UI restaurou a palavra 'ainda' mas com **negrito FABRICADO dentro das aspas**, e o `~~` englobava também uma oração NOVA e verdadeira ('a UI-0009 caiu em 2026-08-28'), apresentando fato vigente como texto riscado. E2 — a errata do frontmatter do BRIEFING_PROXIMA_SESSAO dizia 'canon LIGHT (UI-0009/0014)', mas o original DAQUELE arquivo só cita UI-0014; era o boilerplate do arquivo-irmão colado onde a frase é falsa — MESMA classe do E1 da r1, segunda ocorrência. E3 — a lápide citava o FORA_DESTA_CONTA como 'NUNCA vai conter'; o arquivo diz 'o espelho `prototipo-ui/cowork/` NUNCA vai contê-las'. E4 — a ADR 0029 citava proibicoes.md como 'junto com business_id'; o verbatim de [W] é 'Regra basica junto com Business_id acho que não porderia ser diferente' (2026-05-18, typo do autor preservado). Todos os 4 consertados.",
+      "evidencia": "Rodada 3. Denominador subiu pra 118 claims (r1=82, r2=81) porque o refutador decompôs as 2 entries do ledger como objetos de teste. Taxa caiu 11,1% → 3,39%. Os 4: E1 — o conserto do strike do PRE-MERGE-UI restaurou a palavra 'ainda' mas com **negrito FABRICADO dentro das aspas**, e o `~~` englobava também uma oração NOVA e verdadeira ('a UI-0009 caiu em 2026-08-28'), apresentando fato vigente como texto riscado. E2 — a errata do frontmatter do BRIEFING_PROXIMA_SESSAO dizia 'canon LIGHT (UI-0009/0014)', mas o original DAQUELE arquivo só cita UI-0014; era o boilerplate do arquivo-irmão colado onde a frase é falsa — MESMA classe do E1 da r1, segunda ocorrência. E3 — a lápide citava o FORA_DESTA_CONTA como 'NUNCA vai conter'; o arquivo diz 'o espelho `prototipo-ui/cowork/Wagner/` NUNCA vai contê-las'. E4 — a ADR 0029 citava proibicoes.md como 'junto com business_id'; o verbatim de [W] é 'Regra basica junto com Business_id acho que não porderia ser diferente' (2026-05-18, typo do autor preservado). Todos os 4 consertados.",
       "nota": "ERRATA DA ENTRY r2 (append-only — corrijo aqui, não lá): a r2 descreveu o detector de acento como 'n≥95'. **É FALSO** — o parâmetro do código era MIN_N=5, MIN_R=0.90. O refutador flagrou a contradição e não pôde arbitrar porque o detector não está commitado como script. E ele foi além, com razão: mediu 'promovê' 16 contra 'promove' 165 — razão 0,09, muito abaixo do limiar — logo NENHUMA parametrização pegaria 'promove-los', que foi um dos defeitos que motivaram o detector. O próprio output do detector já imprimia 'promove-los->MISS' no controle positivo; a entry r2 omitiu isso ao creditá-lo. Ponto cego declarado, não consertado. O detector é ferramenta de sessão, não gate — não foi commitado de propósito: máquina nova exige FP medido antes de instalar e PR de intent próprio (LC-19). DEFESA NOVA desta rodada, contra a classe que reincide em 3 de 3: verificador MECÂNICO de citação — toda aspa e todo `~~strike~~` das linhas '+' tem que existir literalmente em algum arquivo do repo (árvore + as 36 versões de origin/main), normalizando só ênfase markdown e espaço. Corpus 15.760 arquivos / 166 MB, controle positivo e negativo. Pós-conserto: **0 citações não-localizadas**. Teria pego E1/E3/E4 desta rodada e E2/E3/E4 da r1. Limite honesto: NÃO pega paráfrase (o E2 desta rodada não é aspa) nem citação correta atribuída ao arquivo errado. Confirmado pelo refutador rodando: 42→24 (por `via`: 176 related_prototype + 18 bundle_source + 24 null — o '31' da sonda solta está morto), o 8º hub é `oficina-page.jsx` (migrado de HTML, não é porte reverso, logo '5 dos 8' fecha), as 7 citações de cabeçalho byte-contidas, 0/279 charters citando o backup deletado, e o detector PRÓPRIO dele achou 0 defeitos reais de acento — o conserto da r2 está limpo nesse eixo. Zero discordância das rodadas 1 e 2."
     },
     {
@@ -1921,6 +1921,44 @@
       "evidencia": "memory/sessions/2026-09-06-refutacao-gt-g5-distill-12-portas.md (§Lote E — Governance, r3 = rodada aprovada; r1/r2 em §Rodada r9)",
       "trajetoria": "TRÊS rodadas: 59,1% (r1, 13/22 — saída bruta da LLM com 3 eventos de proveniência) → 18,4% (r2, 9/49 — erros do gerador: PRs #5443/#5444 trocados, #5308 vs #5311, #6928 atribuído sem tocar o módulo, recibo de grep citado em forma diferente da rodada) → 1,8% (r3, 1/55, aprovado; o refutado era o nome da rota do dashboard legado, herdado da porta anterior). Porta incluída porque o #6907 a deixou stale enquanto a sessão rodava (main 12→13).",
       "marcador_absorcao": "n/a — mesmo PR do lote acima; aperta o floor."
+    },
+    {
+      "pr": 7224,
+      "lote_id": "gt-g5-lote-7224",
+      "data": "2026-09-13",
+      "tipo": "anchors",
+      "gerador": "Codex (OpenAI, externo) — autorou o lote do PR #7224 direto no repo principal (codex/prototipo-ssot-cleanup); após a r1 reprovar, o lote foi consertado por máquina de linha por claude-opus-5 (Anthropic) no commit 8d11ad661b (sessão pr-7224-review)",
+      "refutador": "claude-opus-5 (Anthropic) — subagente do workflow .claude/workflows/refutador-gt-g5.js em contexto próprio, zero contexto do gerador e das rodadas anteriores (instruído a não abrir as evidências prévias); uma instância NOVA por rodada, r1–r2",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 1112,
+      "erros_confirmados": 22,
+      "error_rate_pct": 1.98,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-09-13-refutacao-gt-g5-lote-7224-r2.md (rodada aprovada); anteriores: memory/sessions/2026-09-11-refutacao-gt-g5-lote-7224-r1.md",
+      "trajetoria": "2 rodadas: 13,63% (r1, 189/1387) → 1,98% (r2, 22/1112)",
+      "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
+    },
+    {
+      "pr": 7262,
+      "lote_id": "gt-g5-lote-7262",
+      "data": "2026-09-14",
+      "tipo": "anchors",
+      "gerador": "claude-opus-5 (Anthropic) — sessão que autorou o lote (refresh mecânico via gerar-map.mjs --atualizar); após a r2 refutar 1 item, o gap stale do fiscal-config foi corrigido na raiz no commit 3566909fa8",
+      "refutador": "claude-opus-5 (Anthropic) — subagente do workflow .claude/workflows/refutador-gt-g5.js em contexto próprio, zero contexto do gerador e das rodadas anteriores (instruído a não abrir as evidências prévias); uma instância NOVA por rodada, r1–r2",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 329,
+      "erros_confirmados": 1,
+      "error_rate_pct": 0.3,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-09-14-refutacao-gt-g5-lote-7262-r2.md (rodada aprovada); anteriores: memory/sessions/2026-09-14-refutacao-gt-g5-lote-7262-r1.md",
+      "trajetoria": "2 rodadas: 0,00% (r1, 0/7375) → 0,30% (r2, 1/329)",
+      "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
     }
   ]
 }

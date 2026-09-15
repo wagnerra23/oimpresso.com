@@ -1,7 +1,7 @@
 // DebitosConhecidos.tsx — "Débitos conhecidos desta tela"
 //
 // Port da Onda 5 do protótipo Cowork (`FsDebitos` / `.fx-debitos` em
-// `prototipo-ui/cowork/fiscal-subpages.jsx:9-25`, e `FxDebitosPage` em `fiscal-page.jsx:69`):
+// `prototipo-ui/cowork/Wagner/fiscal-subpages.jsx:9-25`, e `FxDebitosPage` em `fiscal-page.jsx:69`):
 // a tela declara a própria dívida em vez de fingir completude.
 //
 // A LISTA NÃO É ESCRITA AQUI. Ela é derivada dos bullets `[BACKLOG]` dos sete

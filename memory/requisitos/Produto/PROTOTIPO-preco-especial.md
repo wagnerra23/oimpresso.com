@@ -166,7 +166,7 @@ Não é screenshot de intenção — o comportamento foi medido no DOM:
 `file://` é bloqueado no browser da sessão — servir por HTTP:
 
 ```bash
-cd prototipo-ui/cowork/produto-preco-especial
+cd prototipo-ui/cowork/Felipe/produto-preco-especial
 python -m http.server 8899
 # → http://localhost:8899/produto-preco-especial.html
 ```

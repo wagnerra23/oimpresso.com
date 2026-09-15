@@ -1,7 +1,7 @@
 /**
  * ParcelasDrawer — onda 3 do preview `/sells/create-v3` (CU-SELL-09).
  *
- * Porte de `prototipo-ui/cowork/venda-v3/sells-parcelas.jsx`. O domínio — e todo o
+ * Porte de `prototipo-ui/cowork/Felipe/venda-v3/sells-parcelas.jsx`. O domínio — e todo o
  * cálculo — mora em `parcelas-dominio.ts`, provado em `tests/js/parcelas-dominio.test.ts`.
  *
  * ⚠️ TIER 0 — VALOR. Esta onda divide DINHEIRO, diferente da onda 2 (que só derivava

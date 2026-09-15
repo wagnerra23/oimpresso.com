@@ -13,6 +13,8 @@ related_adrs: ["0093-multi-tenant-isolation-tier-0", "0105-cliente-como-sinal-gu
 
 # Estado da arte — folha de pagamento BR com encargos
 
+## Contexto
+
 > **Pedido:** [W] decidiu em 2026-09-05 (D2 do `PEDIDO-CL-hrm.md`) que a folha do `Modules/Essentials`
 > deixa de ser gerencial e passa a ser completa, com encargos. **A decisao nao esta em discussao aqui** —
 > este documento diz o que ela custa e como se faz certo.

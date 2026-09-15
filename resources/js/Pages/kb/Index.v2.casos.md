@@ -5,8 +5,15 @@ irmaos: Index.v2.charter.md (lei · v4) · Index.charter.md (V3 atual, coexiste)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
 status_tela: viva-dado-real (roteada /kb/v2 + /sops via KbController@indexV2; serve kb_nodes reais; leitor do corpo ligado em 2026-07-29 via GET /kb/nodes/{slug} — JOIN mcp_memory_documents, read-only)
-last_run: "2026-08-25"
+last_run: "2026-09-11"
 ---
+
+> ℹ️ **`last_run` 2026-08-25 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.v2.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
+> o path do protótipo (`prototipo-ui/cowork/…` → `prototipo-ui/cowork/Wagner/…`, topologia por dono da ADR 0397).
+> Zero JSX estrutural, zero handler, zero prop, zero copy alterada (verificado: `git diff origin/main...HEAD -- resources/js/Pages/kb/Index.v2.tsx`
+> só tem linhas iniciadas por `//`, `*` ou `{/*`). **Nenhum UC desta tela foi reexecutado nem revalidado**; o bump é o que o campo
+> significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run — mesmo tratamento do #6913.
 
 # Casos de uso — /kb/v2 (KB Unificado tri-pane · DADO REAL)
 

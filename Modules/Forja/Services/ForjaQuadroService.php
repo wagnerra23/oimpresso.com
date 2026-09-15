@@ -33,7 +33,7 @@ class ForjaQuadroService
         ['key' => 'F3',   'label' => 'F3 Code'],
         ['key' => 'F3.5', 'label' => 'F3.5 A11y'],
         // F4 Merge — decisão [W] 2026-08-11, fechando a DIVERGENCIA_DECLARADA do
-        // PipelineParidadeTest. A fonte de design (`prototipo-ui/cowork/forja-data.jsx`)
+        // PipelineParidadeTest. A fonte de design (`prototipo-ui/cowork/Wagner/forja-data.jsx`)
         // sempre teve F4 com `owner: W2`, e os charters de Trabalho/Aprovações já
         // diziam "F0→F4 é constituição" — o backend é que parava em F3.5. Merge é
         // ESTADO DE TRABALHO com dono humano, não arquivo: por isso é coluna.

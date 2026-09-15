@@ -1,12 +1,15 @@
 name: Screen Coverage Gate (catraca de cobertura)
 
-# Catraca de cobertura de QA-de-tela (ADR 0249, anel 2). Bloqueia merge se a
-# cobertura agregada (charter / E2E / a11y / scorecard) cair vs o baseline
-# commitado memory/governance/screen-coverage-baseline.json.
-# Leve (Node puro). Telas cobertas só sobem.
+# Catraca de cobertura de QA-de-tela (ADR 0249, anel 2): acusa tela VIVA que perdeu
+# charter / E2E / a11y / scorecard. Leve (Node puro).
 #
-# Pra subir o piso conscientemente: rode `node scripts/qa/screen-coverage-map.mjs --json`
-# e commite o baseline atualizado junto.
+# NÃO existe mais baseline commitado (2026-09-09, decisão [W]: "não é mais para usar
+# baseline / sempre apodrece"). O lado de referência é COMPUTADO de origin/main a cada
+# run, pelo mesmo código que mede o PR — espelha o `screen-grades-ratchet.mjs`. Não há
+# nada pra regenerar, e por isso nada pra ficar velho.
+#
+# Remoção de tela NÃO é regressão: o predicado é por tela, não por contagem.
+# (Quem é required mora em governance/required-checks-baseline.json — aqui não se afirma.)
 
 on:
   # Sem filtro de paths: um check que virar required precisa publicar resultado
@@ -25,7 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # fetch-depth: 0 é PRÉ-REQUISITO, não zelo: sem a história o `git ls-tree origin/main`
+      # falha e o check sai 2 (cego). Mesmo requisito do screen-grades-ratchet.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:

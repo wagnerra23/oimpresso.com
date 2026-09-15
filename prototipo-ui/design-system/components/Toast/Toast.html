@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Toast" subtitle="Fleeting confirmation — dark pill + tones" viewport="620x200" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Toast</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style> body { padding: 18px; } .col { display:flex; flex-direction:column; gap: 12px; align-items: flex-start; } </style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/javascript">
+  const { Toast } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h('div', { className: 'col' },
+      h(Toast, { tone: 'ok', icon: '✓' }, 'Orçamento aprovado'),
+      h(Toast, null, h(React.Fragment, null, 'OS movida pra produção'), ),
+      h(Toast, { kbd: '⌘Z' }, 'Cliente arquivado'),
+      h(Toast, { tone: 'warn', icon: '⚠' }, 'Título vence hoje'),
+      h(Toast, { tone: 'danger', icon: '✕' }, 'Falha ao emitir NF-e'),
+    )
+  );
+</script>
+</body>
+</html>

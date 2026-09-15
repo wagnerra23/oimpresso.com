@@ -11,6 +11,8 @@ outcomes:
 
 # Refutação GT-G5 — lote #6919 · rodada r3
 
+## Contexto
+
 **Base** `origin/main` = `5baadae608` · **HEAD** = `78c368142b` · `git rev-parse --is-shallow-repository` = **false** (datas de `git log` valem como recibo) · sessão **fresca** (instância nova, zero contexto do gerador; nenhum `memory/sessions/*refutacao*` nem `memory/handoffs/` de hoje foi aberto; corpo do PR/commit não foi lido).
 
 **Mandato:** provar que o lote está errado. Default = refutado quando a evidência não fecha.

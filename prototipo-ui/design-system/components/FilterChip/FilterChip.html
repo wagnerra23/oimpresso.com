@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="FilterChip" subtitle="Active, removable filters" viewport="620x120" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>FilterChip</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style> body { padding: 18px; } .row { display:flex; gap: 8px; flex-wrap: wrap; align-items: center; } </style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/javascript">
+  const { FilterChip } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h('div', { className: 'row' },
+      h(FilterChip, { label: 'Status', value: 'Aberta', onRemove: () => {} }),
+      h(FilterChip, { label: 'UF', value: 'SP', onRemove: () => {} }),
+      h(FilterChip, { label: 'Tipo', value: 'PJ', onRemove: () => {} }),
+      h(FilterChip, { label: 'Atrasadas', onRemove: () => {} }),
+      h(FilterChip, { label: 'Sem compra há', value: '90 dias', onRemove: () => {} }),
+    )
+  );
+</script>
+</body>
+</html>

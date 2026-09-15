@@ -1,7 +1,7 @@
 ---
 id: requisitos-recurring-billing-cobranca-recorrente-planos-gap
 tela: RecurringBilling/Planos/Index (/recurring-billing/planos)
-prototipo: prototipo-ui/cowork/cobranca-recorrente-page.jsx
+prototipo: prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx
 tela_viva: resources/js/Pages/RecurringBilling/Planos/Index.tsx
 gerado_em: 2026-09-06
 ---
@@ -10,7 +10,7 @@ gerado_em: 2026-09-06
 
 > No protótipo esta aba é um placeholder honesto (cobranca-recorrente-page.jsx:332-342, :370) que se declara atrás do vivo ("Espelha /recurring-billing/planos do git"). Tela-mãe: `cobranca-recorrente-gap.md` (veredito MOCKUP-STALE). Charter: `resources/js/Pages/RecurringBilling/Planos/Index.charter.md` (Non-Goals respeitados, nunca reabertos).
 >
-> Base medida: `origin/main` 80bc4ef8b9 · âncora resolvida por `node prototipo-ui/ancora.mjs RecurringBilling/Planos/Index --staging prototipo-ui/cowork` → `âncora ✓ [-page.jsx (bundle · bundle_source)] cobranca-recorrente-page.jsx`. O `desc` do placeholder (:370) cita: CRUD (nome, ciclo, valor, tipo fiscal, dias de trial) · distribuição por ciclo · drawer lateral pra criar/editar. Cada capacidade foi conferida no `.tsx` abaixo.
+> Base medida: `origin/main` 80bc4ef8b9 · âncora resolvida por `node scripts/design/ancora.mjs RecurringBilling/Planos/Index --staging prototipo-ui/cowork` → `âncora ✓ [-page.jsx (bundle · bundle_source)] cobranca-recorrente-page.jsx`. O `desc` do placeholder (:370) cita: CRUD (nome, ciclo, valor, tipo fiscal, dias de trial) · distribuição por ciclo · drawer lateral pra criar/editar. Cada capacidade foi conferida no `.tsx` abaixo.
 
 **Veredito:** VIVO-À-FRENTE — 0 itens a decidir; as 3 capacidades citadas no placeholder existem no vivo (CRUD em páginas dedicadas por decisão do charter, distribuição por ciclo em `CicloDistribuicao`), e o vivo tem 8 partes além do que o placeholder descreve.
 
@@ -39,4 +39,4 @@ gerado_em: 2026-09-06
 - `grep -nEic 'onToggle|toggleAtivo|patch\(' resources/js/Pages/RecurringBilling/Planos/Index.tsx` → 0   (sem toggle ativo inline)
 - `grep -nEc 'SubNav|PageHeaderNav|subnav' resources/js/Pages/RecurringBilling/Planos/Index.tsx` → 0   (sem tab-strip nesta Page)
 - `grep -nc 'trial' resources/js/Pages/RecurringBilling/Planos/Index.tsx` → 1 (só o tipo :50) · `grep -nc 'trial_days' …/Planos/Create.tsx` → 5 · `…/Planos/Edit.tsx` → 5   (trial vive no form, não na tabela)
-- `grep -nEc 'zinc|violet' prototipo-ui/cowork/cobranca-recorrente-page.css` → 0 · `grep -nc 'var(--accent)' …page.css` → 10   (linguagem do protótipo)
+- `grep -nEc 'zinc|violet' prototipo-ui/cowork/Wagner/cobranca-recorrente-page.css` → 0 · `grep -nc 'var(--accent)' …page.css` → 10   (linguagem do protótipo)

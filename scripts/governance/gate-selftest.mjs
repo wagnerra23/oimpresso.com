@@ -809,7 +809,7 @@ const CATRACAS = [
     id: 'detectar-telas',
     run: (kind) => {
       const fx = join(FIX, 'detectar-telas', kind);
-      return runNode(script('detectar-telas', 'prototipo-ui/detectar-telas.mjs'),
+      return runNode(script('detectar-telas', 'scripts/design/detectar-telas.mjs'),
         ['--staging', join(fx, 'staging'), '--repo', join(fx, 'repo')], ROOT);
     },
     expect: { good: /0 telas órfãs/, bad: /GATE FALHOU/ },
@@ -821,7 +821,7 @@ const CATRACAS = [
     // ("IDÊNTICO ao baseline"); bad = MESMO baseline mas staging com 1 arquivo ALTERADO → exit 1
     // ("MUDOU"). Prova que o gate LIBERA o igual (não dispara consumo à toa) e MORDE a mudança.
     id: 'handoff-changed',
-    run: (kind) => runNode(script('handoff-changed', 'prototipo-ui/handoff-changed.mjs'),
+    run: (kind) => runNode(script('handoff-changed', 'scripts/design/handoff-changed.mjs'),
       ['--staging', join(FIX, 'handoff-changed', kind), '--baseline', join(FIX, 'handoff-changed', 'baseline.json')], ROOT),
     expect: { good: /IDÊNTICO ao baseline/, bad: /MUDOU/ },
   },

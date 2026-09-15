@@ -1,0 +1,45 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="KpiCard" subtitle="Hero plate + sparkline + tinted tones — Vendas/Financeiro" viewport="760x320" -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>KpiCard</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+  body { padding: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .grid + .grid { margin-top: 12px; }
+  .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--fg-2); margin: 6px 0; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/javascript">
+  const { KpiCard } = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
+  const h = React.createElement;
+  const s1 = [12,14,13,18,17,22,21,26,24,30];
+  const s2 = [40,38,42,39,44,43,48,46,52,55];
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    h(React.Fragment, null,
+      h('div', { className: 'lbl' }, 'Hero (placa escura · venda/financeiro)'),
+      h('div', { className: 'grid' },
+        h(KpiCard, { hero: true, label: 'Faturamento hoje', value: 'R$ 12.480', delta: 12, deltaLabel: 'vs ontem', spark: s1 }),
+        h(KpiCard, { hero: true, label: 'A receber', value: 'R$ 84.210', description: '17 boletos em aberto', spark: s2 }),
+        h(KpiCard, { hero: true, label: 'Ticket médio', value: 'R$ 318', unit: '/venda', delta: -3, deltaLabel: 'vs semana', spark: [9,8,8,7,7,6,6,5,5,4] }),
+        h(KpiCard, { hero: true, label: 'Margem', value: '38', unit: '%', delta: 2, spark: [30,31,33,32,34,35,36,37,38,38] }),
+      ),
+      h('div', { className: 'lbl' }, 'Tinted tones (operacional · produção)'),
+      h('div', { className: 'grid' },
+        h(KpiCard, { tone: 'success', label: 'OS concluídas', value: '34', delta: 6, deltaLabel: 'vs semana', description: 'de 50 no mês' }),
+        h(KpiCard, { tone: 'warning', label: 'Em acabamento', value: '2', deltaLabel: 'fila de expedição' }),
+        h(KpiCard, { tone: 'danger', label: 'Títulos vencidos', value: '3', description: 'R$ 8,4 mil em atraso' }),
+        h(KpiCard, { tone: 'info', label: 'NF-e hoje', value: '27', description: 'todas autorizadas' }),
+      ),
+    )
+  );
+</script>
+</body>
+</html>

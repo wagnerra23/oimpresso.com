@@ -1,7 +1,7 @@
 /**
  * Domínio das colunas do grid — onda 6 do preview `/sells/create-v3`.
  *
- * Porte de `prototipo-ui/cowork/venda-v3/sells-colunas.jsx`. Escolher e reordenar as
+ * Porte de `prototipo-ui/cowork/Felipe/venda-v3/sells-colunas.jsx`. Escolher e reordenar as
  * colunas do grid de itens, incluindo as fiscais.
  *
  * ⚠️ Nenhum cálculo de valor aqui — só quais colunas aparecem e em que ordem.
@@ -46,7 +46,7 @@ export const GRUPOS: { k: GrupoDeColuna; label: string }[] = [
  * fim da conta, não o meio. Ficou latente enquanto o grid renderizava seis colunas
  * literais e ignorava a preferência; apareceu como regressão de pixel (2,63% em
  * `Sells/CreateV3`) assim que a preferência passou a mandar. A âncora de design põe o
- * total por último (`prototipo-ui/cowork/venda-v3/sells-colunas.jsx`), e a tela também
+ * total por último (`prototipo-ui/cowork/Felipe/venda-v3/sells-colunas.jsx`), e a tela também
  * punha antes desta onda. `fixa`/`padrao` seguem marcadas no próprio item — o papel de
  * cada coluna não depende de onde ela está na lista.
  */

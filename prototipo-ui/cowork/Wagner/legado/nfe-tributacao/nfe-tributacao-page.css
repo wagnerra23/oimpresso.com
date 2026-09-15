@@ -1,0 +1,216 @@
+/* nfe-tributacao-page.css — Tributação NF-e Brasil (hub + 3 formulários). Cockpit V2.
+   Token-driven (claro/escuro pelo toggle do host). Prefixo .tb- pra não colidir.
+   Só tokens do DS canon: --bg --muted --card --border --fg --fg-2 --fg-3
+   --accent --accent-fg --accent-soft --radius --radius-lg --radius-sm --shadow-pop.
+   Cor crua é proibida (conformance-gate = LEI). */
+
+.tb{ display:flex; flex-direction:column; min-height:100%; background:var(--bg); }
+
+/* ── Cabeçalho de seção ── */
+.tb-sec{ padding:18px 24px 0; }
+.tb-sec-h{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.tb-sec-t{ font-size:14px; font-weight:600; color:var(--fg); letter-spacing:.01em; }
+.tb-sec-d{ font-size:12px; color:var(--fg-2); }
+.tb-sec-count{
+  font-size:10px; font-weight:600; letter-spacing:.03em;
+  padding:1px 7px; border-radius:999px;
+  background:var(--muted); color:var(--fg-3);
+}
+
+/* ── Card genérico ── */
+.tb-card{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); overflow:hidden;
+}
+.tb-card-h{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:12px 14px; border-bottom:1px solid var(--border);
+}
+.tb-card-t{ font-size:13px; font-weight:600; color:var(--fg); }
+.tb-card-b{ padding:12px 14px; }
+
+/* ── Linha rótulo/valor ── */
+.tb-row{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:6px 0; border-bottom:1px dashed var(--border);
+}
+.tb-row:last-child{ border-bottom:0; }
+.tb-row-l{ font-size:12px; color:var(--fg-2); }
+.tb-row-v{ font-size:12px; font-weight:600; color:var(--fg); }
+.tb-row-v.num{ font-variant-numeric:tabular-nums; }
+
+/* ── Chips ── */
+.tb-chip{
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:10px; font-weight:600; letter-spacing:.02em;
+  padding:2px 8px; border-radius:999px;
+  background:var(--accent-soft); color:var(--accent);
+}
+.tb-chip.mute{ background:var(--muted); color:var(--fg-3); }
+
+/* ── Grade de templates setoriais ── */
+.tb-tpl-grid{
+  display:grid; gap:12px;
+  grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+}
+.tb-tpl{
+  display:flex; flex-direction:column; gap:8px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:13px 14px;
+}
+.tb-tpl-t{
+  font-size:13px; font-weight:600; color:var(--fg);
+  line-height:1.3; min-width:0; overflow-wrap:anywhere;
+}
+.tb-tpl-d{ font-size:11.5px; color:var(--fg-2); line-height:1.45; flex:1 1 auto; }
+.tb-tpl-chips{ display:flex; gap:6px; flex-wrap:wrap; }
+.tb-tpl-foot{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+
+/* ── Toolbar ── */
+.tb-toolbar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+.tb-search{
+  display:flex; align-items:center; gap:7px;
+  flex:1 1 220px; min-width:0; max-width:340px;
+  padding:0 10px; height:32px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius); color:var(--fg-3);
+}
+.tb-search input{
+  flex:1 1 auto; min-width:0;
+  background:transparent; border:0; outline:0;
+  font-size:12.5px; color:var(--fg);
+}
+
+/* ── Tabela densa de regras ── */
+.tb-tbl-wrap{
+  overflow-x:auto; border:1px solid var(--border);
+  border-radius:var(--radius-lg); background:var(--card);
+}
+.tb-tbl{ width:100%; border-collapse:collapse; font-size:12px; }
+.tb-tbl th{
+  text-align:left; font-size:10.5px; font-weight:600; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--fg-3);
+  padding:9px 10px; border-bottom:1px solid var(--border);
+  background:var(--muted); white-space:nowrap;
+}
+.tb-tbl td{
+  padding:8px 10px; border-bottom:1px solid var(--border);
+  color:var(--fg); white-space:nowrap;
+}
+.tb-tbl tbody tr:last-child td{ border-bottom:0; }
+.tb-tbl tbody tr:hover td{ background:var(--muted); }
+.tb-tbl .num{ font-variant-numeric:tabular-nums; text-align:right; }
+.tb-ncm{ font-family:ui-monospace, IBM Plex Mono, monospace; font-size:11.5px; letter-spacing:-.01em; }
+.tb-uf{ display:inline-flex; align-items:center; gap:4px; color:var(--fg-2); }
+
+/* ── Ações de linha ── */
+.tb-acts{ display:flex; gap:4px; justify-content:flex-end; }
+.tb-ico{
+  display:inline-grid; place-items:center;
+  width:26px; height:26px; border-radius:var(--radius-sm);
+  border:1px solid transparent; background:transparent;
+  color:var(--fg-3); cursor:pointer;
+}
+.tb-ico:hover{ background:var(--muted); color:var(--fg); border-color:var(--border); }
+
+/* ── Botões ── */
+.tb-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  height:32px; padding:0 12px; border-radius:var(--radius);
+  font-size:12.5px; font-weight:600; cursor:pointer;
+  background:var(--card); color:var(--fg); border:1px solid var(--border);
+}
+.tb-btn:hover{ background:var(--muted); }
+.tb-btn.primary{ background:var(--accent); color:var(--accent-fg); border-color:var(--accent); }
+.tb-btn.primary:hover{ filter:brightness(1.06); }
+.tb-btn.sm{ height:28px; padding:0 10px; font-size:12px; }
+
+/* ── Switch (gate auto-emissão) ── */
+.tb-gate{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:13px 14px;
+}
+.tb-gate-txt{ min-width:0; }
+.tb-gate-t{ font-size:13px; font-weight:600; color:var(--fg); }
+.tb-gate-d{ font-size:11.5px; color:var(--fg-2); margin-top:2px; line-height:1.45; }
+.tb-sw{
+  flex:0 0 auto; width:40px; height:22px; border-radius:999px; cursor:pointer;
+  background:var(--muted); border:1px solid var(--border); position:relative;
+  transition:background .15s ease;
+}
+.tb-sw[data-on=true]{ background:var(--accent); border-color:var(--accent); }
+.tb-sw[data-disabled=true]{ opacity:.5; cursor:not-allowed; }
+.tb-sw i{
+  position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:999px;
+  background:var(--card); transition:transform .15s ease;
+}
+.tb-sw[data-on=true] i{ transform:translateX(18px); }
+
+/* ── Formulário (PT-02) ── */
+.tb-form{ display:flex; flex-direction:column; gap:14px; max-width:860px; }
+.tb-fs{ display:grid; gap:12px; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); }
+.tb-f{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+.tb-f-l{ display:flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; color:var(--fg-2); }
+.tb-f-req{ color:var(--accent); }
+.tb-f input, .tb-f select{
+  height:32px; padding:0 9px; min-width:0;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius); font-size:12.5px; color:var(--fg); outline:0;
+}
+.tb-f input:focus, .tb-f select:focus{ border-color:var(--accent); }
+.tb-f-hint{ font-size:10.5px; color:var(--fg-3); line-height:1.4; }
+.tb-f-err{ font-size:10.5px; color:var(--accent); font-weight:600; }
+.tb-suffix{ position:relative; display:flex; align-items:center; }
+.tb-suffix input{ flex:1 1 auto; padding-right:30px; text-align:right; font-variant-numeric:tabular-nums; }
+.tb-suffix span{ position:absolute; right:9px; font-size:11px; color:var(--fg-3); pointer-events:none; }
+
+/* ── Aviso / nota de lei ── */
+.tb-note{
+  display:flex; gap:9px; align-items:flex-start;
+  background:var(--muted); border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:var(--radius); padding:10px 12px;
+  font-size:11.5px; color:var(--fg-2); line-height:1.5;
+}
+.tb-note b{ color:var(--fg); font-weight:600; }
+
+/* ── Rodapé de formulário ── */
+.tb-foot{
+  display:flex; align-items:center; justify-content:flex-end; gap:8px;
+  padding-top:12px; border-top:1px solid var(--border);
+}
+.tb-foot .spacer{ margin-right:auto; }
+
+/* ── Import CSV ── */
+.tb-drop{
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:28px 20px; text-align:center;
+  background:var(--card); border:1.5px dashed var(--border);
+  border-radius:var(--radius-lg); color:var(--fg-2);
+}
+.tb-drop-t{ font-size:13px; font-weight:600; color:var(--fg); }
+.tb-drop-d{ font-size:11.5px; line-height:1.5; max-width:460px; }
+.tb-cols{ display:flex; gap:5px; flex-wrap:wrap; justify-content:center; margin-top:2px; }
+.tb-col-tag{
+  font-family:ui-monospace, IBM Plex Mono, monospace;
+  font-size:10.5px; padding:2px 7px; border-radius:var(--radius-sm);
+  background:var(--muted); color:var(--fg-3); border:1px solid var(--border);
+}
+.tb-stat{ display:flex; gap:10px; flex-wrap:wrap; }
+.tb-stat-i{
+  flex:1 1 120px; background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:11px 13px;
+}
+.tb-stat-n{ font-size:20px; font-weight:600; color:var(--fg); font-variant-numeric:tabular-nums; line-height:1.1; }
+.tb-stat-l{ font-size:11px; color:var(--fg-2); margin-top:3px; }
+.tb-err-l{ font-size:11.5px; color:var(--fg-2); }
+.tb-err-l b{ color:var(--fg); }
+
+/* ── Vazio ── */
+.tb-empty{
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:34px 20px; text-align:center; color:var(--fg-3);
+}
+.tb-empty-t{ font-size:13px; font-weight:600; color:var(--fg-2); }
+.tb-empty-d{ font-size:11.5px; max-width:380px; line-height:1.5; }

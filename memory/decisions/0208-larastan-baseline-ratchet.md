@@ -28,7 +28,7 @@ review_triggers:
 
 ## Contexto
 
-Sessão Larissa 2026-05-28 entregou 4 PRs corretivos (R7 race scanner, R8 type drift, R9 fallback silencioso, R10 audit perdido) — todos preveníveis, todos cabendo em anti-padrões JÁ catalogados em [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) (15 técnicos + 6 meta).
+Sessão Larissa 2026-05-28 entregou 4 PRs corretivos (R7 race scanner, R8 type drift, R9 fallback silencioso, R10 audit perdido) — todos preveníveis, todos cabendo em anti-padrões JÁ catalogados em [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) (15 técnicos + 6 meta).
 
 Dossier estado-da-arte 2026 ([`memory/sessions/2026-05-28-arte-prevencao-bugs-mwart-larissa.md`](../sessions/2026-05-28-arte-prevencao-bugs-mwart-larissa.md)) confirmou: o oimpresso tem o **catálogo de anti-padrões mais maduro** que o agent viu em codebase deste porte, mas **opera 100% no nível "doc que humano/IA lê"** — falta a camada de **enforcement passivo por AST analyzer** que Stripe/Shopify/Linear usam.
 
@@ -112,7 +112,7 @@ Alternativas avaliadas:
 
 - ADR 0094 — Constituição v2 §princípio 7 (transparência) + §princípio 5 (SoC brutal)
 - ADR 0095 — Skills tiers convenção interna (Tier 0 enforcement)
-- [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — 15 anti-padrões técnicos catalogados
+- [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — 15 anti-padrões técnicos catalogados
 - [`memory/sessions/2026-05-28-arte-prevencao-bugs-mwart-larissa.md`](../sessions/2026-05-28-arte-prevencao-bugs-mwart-larissa.md) — Frente 5 do dossier
 - [Tomas Votruba — Custom PHPStan rules Symfony](https://tomasvotruba.com/blog/custom-phpstan-rules-to-improve-every-symfony-project)
 - [LTSCommerce — Project-level PHPStan rules](https://ltscommerce.dev/articles/phpstan-project-level-rules.html)

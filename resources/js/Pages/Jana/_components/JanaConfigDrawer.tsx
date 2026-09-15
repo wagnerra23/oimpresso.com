@@ -1,9 +1,9 @@
 // JanaConfigDrawer — "Configurar a Jana" no Painel (/ia).
 //
-// Âncora de design: `prototipo-ui/cowork/jana-merge.jsx` §`JmConfigDrawer` —
+// Âncora de design: `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmConfigDrawer` —
 // âncora de SÍMBOLO, nunca linha (ref de linha apodrece no 1º refactor, §5
 // 2026-07-26). Re-localize com:
-//   grep -n "JmConfigDrawer" prototipo-ui/cowork/jana-merge.jsx
+//   grep -n "JmConfigDrawer" prototipo-ui/cowork/Wagner/jana-merge.jsx
 //
 // ── DIVERGÊNCIA DELIBERADA vs o protótipo, e é o ponto do componente ─────────
 // O protótipo entrega 4 promessas que o servidor NÃO cumpre hoje. Portá-las

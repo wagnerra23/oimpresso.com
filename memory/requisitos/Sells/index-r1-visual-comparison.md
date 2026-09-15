@@ -59,7 +59,7 @@ approval_artifact: "Screenshot Brave colado pelo Wagner — 'resultado esperado'
 > - Charter atual: [`Index.charter.md`](../../../resources/js/Pages/Sells/Index.charter.md)
 > - Endpoint: `GET /sells-list-json` ([`SellController::inertiaList`](../../../app/Http/Controllers/SellController.php:892))
 > - SPEC: [`SPEC.md`](SPEC.md) US-SELL-008..028
-> - Cowork PROTOCOL: [`prototipo-ui/PROTOCOL.md`](../../../prototipo-ui/PROTOCOL.md)
+> - Cowork PROTOCOL: [`memory/reference/prototipo-ui/PROTOCOL.md`](../../../memory/reference/prototipo-ui/PROTOCOL.md)
 > - ADR 0141 migracao-blade-react (skill orquestradora)
 
 ## Escopo deste documento

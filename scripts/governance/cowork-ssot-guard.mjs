@@ -1,53 +1,40 @@
 #!/usr/bin/env node
-// cowork-ssot-guard.mjs — MÁQUINA de fonte única do protótipo de design.
-// Garante que `prototipo-ui/cowork/` é a ÚNICA fonte de design (BUILD-ONLY) e que
-// não existe protótipo/dupla-fonte fora dela. Encaixado em design-memory-gate.yml
-// (sem workflow novo — respeita o teto anti-proliferação, ADR 0298).
-// Origem: ADR-proposta 2026-06-23-prototipo-ssot-unico-com-historico.
+// cowork-ssot-guard.mjs — trava a organização física do protótipo de design.
 //
-// ⚠️ LIMITE REAL (medido 2026-08-13 — a frase acima promete mais do que o código faz):
-// as 3 regras varrem SÓ dentro de `prototipo-ui/`. Dupla-fonte FORA dali passa verde.
-// Achados no dia, com o guard verde: 13 duplicatas `.jsx/.css` na raiz de `prototipo-ui/`
-// (7 DEFASADAS vs o espelho — o `oficina-page.jsx` da raiz tinha 26KB a menos que o vivo)
-// e 11 arquivos de design em `resources/js/Pages/Financeiro/_cowork-bundle/`.
-// POR QUE NÃO VIROU R4 — o FP foi medido ANTES e reprovou: a regra sintática óbvia
-// ("arquivo de design fora do espelho com homônimo dentro") dá 24 hits, dos quais ~5 são
-// falso-positivo por construção (fixtures de teste PRECISAM da cópia: `prototipo-ui/fixtures/`,
-// `tests/governance-fixtures/`) e 19 são cópias DECLARADAS e intencionais (`_BACKUP-NAO-USAR-…`,
-// `_cowork-bundle/` com README explicando, allowlist do R3). Distinguir "duplicata acidental"
-// de "cópia declarada" não é decidível pelo path — é a família das 4 lápides de guard sintático
-// do §5 (allowlist-de-pasta 06-30 · `@scope` 07-09 · vocabulário 130 FP 07-16 · `toHaveKey` 07-26).
-// Fechar isso exige um critério que leia INTENÇÃO (README/marcador declarado), não nome de pasta.
-// Falha (exit 1) se:
-//   R1  qualquer .md dentro de cowork/        (knowledge = canon: memory/ + prototipo-ui root, não aqui)
-//   R2  bundle datado prototipo-ui/cowork-*/  (SSOT é UM cowork/, sem datados = sem 2ª fonte)
-//   R3  prototipo-ui/prototipos/<dir> fora do allowlist transitório OU da lista histórica
-//   R4  .html na RAIZ de cowork/ que não seja o host oimpresso.com.html (host único — pedido
-//       do lado design 2026-09-01; nasceu limpo: a 2ª cópia da raiz [Prova Viva] foi movida
-//       pra prototipos/ no mesmo PR que criou a regra, então dívida herdada = 0 por medição)
+// Estrutura aceita:
+//   prototipo-ui/
+//     cowork/{Wagner,Felipe}/   fontes de tela, separadas pela conta de origem
+//     design-system/            espelho canônico do DS
+//
+// Máquinas ficam em scripts/design/, contratos/alvos em governance/design/, testes em
+// tests/Design/ e documentação CANON em memory/reference/prototipo-ui/. O Git guarda histórico;
+// nenhuma segunda cópia física é aceita.
+//
+// ── R3 · por que o `.md` deixou de ser proibido aqui (decisão [W] 2026-09-13) ──────────────
+// `cowork/<dono>/` é ESPELHO da conta Cowork daquele dono — e espelho que muda a forma do
+// original não é espelho. A redação anterior admitia `.md` só em `handoffs/<nome>.md` (flat),
+// e o efeito medido foi: dos 816 arquivos do pacote Cowork de 2026-09-11, **400 pousavam e 416
+// eram descartados — 337 deles `.md`**, ou seja a camada inteira de documentação do pacote.
+// Pior: o projeto Cowork NÃO TEM `handoffs/` (medido: raiz tem `cowork-inbox/`, `contrato/`,
+// `sync/`, `prototipos/`…), então o destino flat era um formato que só existia deste lado.
+// Consequência prática: o `cowork-inbox/` — o canal por onde o Cowork manda ordem de serviço —
+// chegava pela metade, e o programa de playbooks ficou sem endereço no repo.
+//
+// A regra que sobra é a que protege algo real: `.md` vive DENTRO de um dono (`cowork/<dono>/`),
+// nunca solto em `cowork/`. Forma interna é a do Cowork, não a nossa. O que impede o espelho de
+// virar depósito continua sendo R1 (raiz), R2 (donos) e R4 (zero duplicata de bytes) — e a R4
+// é justamente quem recusa a duplicata que o próprio pacote traz (medido 2026-09-13: 10 pares
+// idênticos entre `cowork-inbox/sidebar/playbook/` e `entrega-sidebar-code/playbook/`).
+// Emenda à ADR 0397 D3 registrada em memory/decisions/.
 //
 // Uso: node scripts/governance/cowork-ssot-guard.mjs [--json]
-import { readdirSync, existsSync } from 'node:fs';
+import { readdirSync, existsSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 
 const ROOT = process.cwd();
 const COWORK = 'prototipo-ui/cowork';
-
-// Telas cujo design AINDA não existe no export → só sobrevive o recorte antigo.
-// O DESIGN deve exportá-las pro cowork/ (ver FRESCOR). Migrou → REMOVER daqui (meta: allowlist = 0).
-// 'perfil' = baseline da Fase 0 do protocolo aplicar-prototipo (2026-06-24, handoff ComVis);
-// transitório como os outros — sai daqui quando o design exportar pro cowork/.
-const PROTOTIPOS_ALLOWLIST = new Set(['compras-grade-matrix', 'inventario-migracao', 'perfil']);
-
-// NATUREZA DIFERENTE do allowlist acima (que é transitório, meta = 0): estes são ÂNCORAS
-// HISTÓRICAS — protótipo cuja cópia upstream foi APOSENTADA por decisão [W], mas que um
-// charter vivo ainda declara em `related_prototype`. Não têm prazo pra sair: saem daqui
-// só quando o charter deixar de ancorar neles. Misturá-los no transitório apodreceria a
-// meta "allowlist = 0".
-// 'financeiro-prova-viva' — âncora do ProvaViva.charter.md; upstream apagado por [W]
-// 2026-09-01 (a cópia da raiz do espelho moveu pra cá no mesmo PR — fidelidade provada
-// por hash idêntico entre o espelho de 06/23 e o download do vivo na véspera da deleção).
-const PROTOTIPOS_HISTORICOS = new Set(['financeiro-prova-viva']);
+const DONOS = new Set(['Wagner', 'Felipe']);
 
 const errors = [];
 
@@ -63,52 +50,65 @@ function walk(dir) {
   return out;
 }
 
-// R1 — zero .md em cowork/ (build-only)
-for (const f of walk(COWORK)) {
-  if (f.toLowerCase().endsWith('.md')) errors.push(`R1 .md em cowork/ (mova pro canon — memory/ ou prototipo-ui root): ${f}`);
-}
-
-// R2 — sem bundles datados cowork-*
+// R1 — a raiz do protótipo contém somente as duas áreas autorizadas.
 const pu = join(ROOT, 'prototipo-ui');
 if (existsSync(pu)) {
   for (const e of readdirSync(pu, { withFileTypes: true })) {
-    if (e.isDirectory() && /^cowork-/.test(e.name)) errors.push(`R2 bundle datado proibido (SSOT é cowork/): prototipo-ui/${e.name}`);
-  }
-}
-
-// R3 — prototipos/ só allowlist transitório OU âncora histórica declarada
-const proto = join(ROOT, 'prototipo-ui/prototipos');
-if (existsSync(proto)) {
-  for (const e of readdirSync(proto, { withFileTypes: true })) {
-    if (e.isDirectory() && !PROTOTIPOS_ALLOWLIST.has(e.name) && !PROTOTIPOS_HISTORICOS.has(e.name)) {
-      errors.push(`R3 protótipo fora do cowork/ (mova o build pro cowork/): prototipo-ui/prototipos/${e.name}`);
+    if (!e.isDirectory() || !['cowork', 'design-system'].includes(e.name)) {
+      errors.push(`R1 item proibido na raiz de prototipo-ui/: prototipo-ui/${e.name}`);
     }
   }
 }
 
-// R4 — host único na RAIZ do espelho: o único .html de raiz é o próprio host.
-// Subdiretórios ficam FORA da regra de propósito (venda-v3/index.html é de OUTRA conta —
-// FORA_DESTA_CONTA no protocolo.config — e ds-v6/produto-preco-especial são gabaritos
-// declarados). O exportPlan pousa qualquer não-.md do vivo em cowork/<path>, então um
-// .html novo de raiz É notícia, nunca herança (raiz medida limpa em 2026-09-01).
+// R2 — cowork/ contém somente os dois donos e nenhum arquivo solto.
 const coworkAbs = join(ROOT, COWORK);
 if (existsSync(coworkAbs)) {
   for (const e of readdirSync(coworkAbs, { withFileTypes: true })) {
-    if (e.isFile() && e.name.toLowerCase().endsWith('.html') && e.name !== 'oimpresso.com.html') {
-      errors.push(`R4 segundo .html na raiz do espelho (host único é oimpresso.com.html; protótipo standalone aposentado vai pra prototipos/ com decisão [W]): ${COWORK}/${e.name}`);
+    if (!e.isDirectory() || !DONOS.has(e.name)) {
+      errors.push(`R2 item proibido em cowork/ (donos aceitos: Wagner, Felipe): ${COWORK}/${e.name}`);
     }
   }
 }
 
+// R3 — `.md` vive DENTRO de um dono; a forma interna é a do Cowork (ver cabeçalho).
+// Não é exportada de propósito: este arquivo EXECUTA no import (walk + process.exit no fim),
+// então `import { violaR3 }` rodaria o guard inteiro e mataria o processo do teste. O bite-test
+// exercita o CLI de fora, com fixture por cwd — é o que prova o pipeline, não o satélite.
+function violaR3(caminhoRelativo) {
+  if (typeof caminhoRelativo !== 'string') return false;
+  const f = caminhoRelativo.split('\\').join('/');
+  if (!f.toLowerCase().endsWith('.md')) return false;
+  return !/^prototipo-ui\/cowork\/(Wagner|Felipe)\/.+\.md$/i.test(f);
+}
+for (const f of walk(COWORK)) {
+  if (violaR3(f)) errors.push(`R3 documentação fora de cowork/<dono>/: ${f}`);
+}
+
+// R4 — zero conteúdo duplicado em disco dentro de prototipo-ui/, inclusive caches ignorados.
+// O Git já preserva o histórico. Uma segunda cópia física no working tree cria dois donos,
+// âncoras ambíguas e importações que parecem mover arquivos. A comparação é pelos bytes.
+const byHash = new Map();
+for (const rel of walk('prototipo-ui')) {
+  const hash = createHash('sha256').update(readFileSync(join(ROOT, rel))).digest('hex');
+  const paths = byHash.get(hash) || [];
+  paths.push(rel);
+  byHash.set(hash, paths);
+}
+for (const paths of byHash.values()) {
+  if (paths.length > 1) errors.push(`R4 conteúdo duplicado (mantenha um único dono): ${paths.join(' = ')}`);
+}
+
 if (process.argv.includes('--json')) {
-  console.log(JSON.stringify({ ok: errors.length === 0, errors, allowlist: [...PROTOTIPOS_ALLOWLIST] }, null, 2));
+  console.log(JSON.stringify({
+    ok: errors.length === 0,
+    errors,
+    donos: [...DONOS],
+  }, null, 2));
 } else if (errors.length) {
   console.error(`✗ cowork-ssot-guard: ${errors.length} violação(ões) de fonte única:`);
   for (const e of errors) console.error('  - ' + e);
-  console.error('\nRegra: prototipo-ui/cowork/ = ÚNICA fonte de design (BUILD-ONLY). Conhecimento = canon (memory/ + prototipo-ui root).');
-  console.error('ADR: memory/decisions/proposals/2026-06-23-prototipo-ssot-unico-com-historico.md');
-  if (PROTOTIPOS_ALLOWLIST.size) console.error(`Allowlist transitório (design deve exportar pro cowork/): ${[...PROTOTIPOS_ALLOWLIST].join(', ')}`);
+  console.error('\nRegra: prototipo-ui/ só contém cowork/{Wagner,Felipe}/ e design-system/; histórico vive no Git.');
 } else {
-  console.log('✓ cowork-ssot-guard: fonte única OK (cowork/ build-only · sem bundles datados · prototipos só allowlist/histórico · host único na raiz).');
+  console.log('✓ cowork-ssot-guard: estrutura mínima e fonte única OK (Wagner + Felipe + design-system).');
 }
 process.exit(errors.length ? 1 : 0);

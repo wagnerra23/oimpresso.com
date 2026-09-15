@@ -1,7 +1,7 @@
 /**
  * ConsultaCliente — o modal de 880px do passo 1, extra do preview `/sells/create-v3`.
  *
- * Porte de `prototipo-ui/cowork/venda-v3/sells-create.jsx:515` (consulta) e `:544`
+ * Porte de `prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx:515` (consulta) e `:544`
  * (cadastro mínimo). O domínio mora em `cliente-consulta-dominio.ts`.
  *
  * ⚠️ POR QUE O "NOVO CADASTRO" VEIO JUNTO, E NÃO FICOU DE FORA

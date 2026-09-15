@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-jana-acoes-casos
 casos: Jana Ações · fila HITL · prévia e recibo do servidor · aba da área · /ia/acoes
-irmaos: Acoes.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-acoes.md (runbook) · prototipo-ui/contrato/jana-acoes.contract.json (contrato visual)
+irmaos: Acoes.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-acoes.md (runbook) · governance/design/contracts/jana-acoes.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
 last_run: "2026-09-02"
@@ -12,7 +12,7 @@ last_run: "2026-09-02"
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (Pest escrito, aguarda run verde) · ⬜ não verificado · ❌ quebrou.
 
 > Derivados do `Acoes.charter.md`, do `jana-acoes.contract.json` e da âncora
-> (`node prototipo-ui/ancora.mjs Jana/Acoes` → `jana-telas-novas.jsx` §`JmAcoesFila`) — **não** do
+> (`node scripts/design/ancora.mjs Jana/Acoes` → `jana-telas-novas.jsx` §`JmAcoesFila`) — **não** do
 > `Acoes.tsx` (§5 2026-06-05). O que a âncora diz sobre FORMA vale; os números dela são do Martinho.
 
 ## UC-ACAO-00 — A aba existe na barra da área (4ª) e leva a `/ia/acoes`

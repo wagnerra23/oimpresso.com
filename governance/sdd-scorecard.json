@@ -15,28 +15,28 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 86.1,
+      "value": 85.8,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 86.1,
+        "coverage_pct": 85.8,
         "specs_total": 53,
-        "us_total": 1031,
-        "anchor_coverage_pct": 86.1,
+        "us_total": 1038,
+        "anchor_coverage_pct": 85.8,
         "by_state": {
-          "sem_campo": 142,
+          "sem_campo": 146,
           "placeholder": 1,
-          "pendente": 433,
+          "pendente": 434,
           "parcial": 118,
-          "anchored_ok": 337,
+          "anchored_ok": 339,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 895,
+        "fields_total": 898,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 813,
+        "fields_grammar_ok": 814,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -46,7 +46,7 @@
         "req_sem_lane_total": 37,
         "behavior_known": false,
         "servido_total": 27,
-        "nao_servido_total": 70,
+        "nao_servido_total": 72,
         "servido_ledger": true,
         "anchor_stale_on": false,
         "anchor_stale_total": null,
@@ -68,40 +68,40 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 296,
+      "value": 291,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "02a27717a15795b4",
+        "floor_files_hash": "9bddd90ce4ce66a2",
         "runs": [
           {
-            "sha": "f5f50123",
-            "ts": "20260906-020001",
-            "failed": 466,
-            "errors": 407,
-            "skipped": 2263,
+            "sha": "26e372a8",
+            "ts": "20260913-020001",
+            "failed": 463,
+            "errors": 369,
+            "skipped": 2257,
             "all_shards_measured": true
           },
           {
-            "sha": "d3f8a347",
-            "ts": "20260907-020002",
-            "failed": 462,
-            "errors": 406,
-            "skipped": 2282,
+            "sha": "c17cf41a",
+            "ts": "20260914-020001",
+            "failed": 473,
+            "errors": 368,
+            "skipped": 2251,
             "all_shards_measured": true
           },
           {
             "sha": null,
-            "ts": "20260908-020001",
-            "failed": 444,
-            "errors": 405,
-            "skipped": 2298,
+            "ts": "20260915-020001",
+            "failed": 473,
+            "errors": 370,
+            "skipped": 2226,
             "all_shards_measured": true
           }
         ],
-        "computed_at": "20260908-020001",
+        "computed_at": "20260915-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -119,34 +119,12 @@
       "stream": "FV"
     },
     "coverage_pct": {
-      "status": "measured",
-      "value": 21.5,
-      "unit": "%",
+      "status": "not_yet_measured",
+      "value": null,
       "direction": "up",
       "target": "só sobe (catraca C2)",
-      "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
-      "detail": {
-        "covered": 50863,
-        "total": 237106,
-        "runs": [
-          {
-            "sha": "c1eb45d3",
-            "ts": "20260826-020001",
-            "coverage_pct": 21.6,
-            "covered": 51127,
-            "total": 236854
-          },
-          {
-            "sha": "42b8ea44",
-            "ts": "20260827-020001",
-            "coverage_pct": 21.5,
-            "covered": 50863,
-            "total": 237106
-          }
-        ],
-        "computed_at": "20260827-020001",
-        "measured_of": 2
-      },
+      "source": "governance/nightly-coverage.json sem coverage_pct numérico (schema nightly-coverage/v1) — fallback honesto.",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "FV"
     },
     "sqlite_corruptors": {
@@ -204,29 +182,29 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 60,
+      "value": 63.6,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 10,
-        "weeks_valid": 6,
+        "weeks_expected": 11,
+        "weeks_valid": 7,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-09-06",
+        "last_week": "2026-09-13",
         "latest": {
-          "gate_status": "fail",
+          "gate_status": "pass",
           "n_evaluated": 51,
-          "faithfulness_avg": 0.6086,
-          "relevancy_avg": 0.7157,
-          "context_recall_avg": 0.2993
+          "faithfulness_avg": 0.8845,
+          "relevancy_avg": 0.9529,
+          "context_recall_avg": 0.5729
         }
       },
       "stream": "MEM"
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 0,
+      "value": 1,
       "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -235,8 +213,8 @@
         "portas": 80,
         "carimbadas": 14,
         "sem_carimbo": 66,
-        "stale": 0,
-        "oldest_distilled_at": "2026-09-05"
+        "stale": 1,
+        "oldest_distilled_at": "2026-09-06"
       },
       "stream": "MEM"
     },
@@ -255,30 +233,33 @@
     },
     "drift_alarms": {
       "status": "measured",
-      "value": 0,
+      "value": 2,
       "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
-        "reds": [],
+        "reds": [
+          "required SUMIU do vivo: \"PageHeader · ratchet (header antigo só decresce)\" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)",
+          "required SUMIU do vivo: \"handoff integrity (órfão/ref-morta só sobe = vermelho)\" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)"
+        ],
         "warns": 0,
-        "verdict": "green"
+        "verdict": "red"
       },
       "stream": "GT"
     },
     "backfill_error_rate": {
       "status": "measured",
-      "value": 1.82,
+      "value": 1.98,
       "unit": "% (MAX error_rate das entries aprovadas — conservador: 1 lote ruim estoura <2%)",
       "direction": "down",
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 67,
-        "max_error_rate_pct": 1.82,
-        "last_pr": 6932,
-        "last_lote": "distill-governance-briefing-2026-09-06"
+        "entries_aprovadas": 69,
+        "max_error_rate_pct": 1.98,
+        "last_pr": 7262,
+        "last_lote": "gt-g5-lote-7262"
       },
       "stream": "GT"
     }

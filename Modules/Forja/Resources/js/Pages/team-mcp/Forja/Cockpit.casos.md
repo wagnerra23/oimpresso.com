@@ -63,7 +63,7 @@ Existe por um defeito **real**: em 2026-08-06 o Roadmap (Gantt) foi registrado s
 ## UC-FORJA-15 — Saúde projeta o loop com dado real, e o sparkline só existe onde há série
 Status: 🧪 (a rota entra no dataset de `UC-FORJA-01`/`UC-FORJA-05`, que provam render + GET-only. A perna própria deste UC — "cada número vem de uma fonte real e o card sem histórico não desenha linha" — é **prosa verificável por leitura do serviço**, ainda sem Pest dedicado; por isso 🧪 e não ✅. O ✅ vem do manifesto derivado do JUnit, nunca escrito à mão.)
 
-`/forja/saude` renderiza a view `saude` do protótipo (`prototipo-ui/cowork/forja-page.jsx`, `SaudeView`) com o markup e as classes do protótipo (`fj-saude`, `fj-metric`, `fj-spark`, `fj-wip`, `fj-flux-*`, `fj-age`, `fj-gate-health`), conforme [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) — réplica primeiro. O dado é REAL, via `ForjaSaudeService`, que **reusa** `ScorecardBuilderService` (o mesmo do `/team-mcp/scorecard`), `ForjaQuadroService` e `ForjaChangelogService` em vez de refazer as consultas.
+`/forja/saude` renderiza a view `saude` do protótipo (`prototipo-ui/cowork/Wagner/forja-page.jsx`, `SaudeView`) com o markup e as classes do protótipo (`fj-saude`, `fj-metric`, `fj-spark`, `fj-wip`, `fj-flux-*`, `fj-age`, `fj-gate-health`), conforme [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) — réplica primeiro. O dado é REAL, via `ForjaSaudeService`, que **reusa** `ScorecardBuilderService` (o mesmo do `/team-mcp/scorecard`), `ForjaQuadroService` e `ForjaChangelogService` em vez de refazer as consultas.
 
 A regra dura, e é o que separa este UC de "tem 4 cards bonitos": **o sparkline só é desenhado onde a série É a história da própria métrica.** Chamadas MCP, Movimentações e Devs ativos têm série diária real (`mcp_audit_log.ts`, `mcp_task_events.occurred_at`); "Checks verdes" **não tem histórico persistido em tabela nenhuma**, então o serviço manda `serie: null` e o componente **não renderiza o `<svg>`**. Desenhar ali uma linha derivada de outra grandeza seria rotular como histórico uma coisa que não é — a classe de erro do §5 2026-07-16.
 
@@ -76,7 +76,7 @@ A regra dura, e é o que separa este UC de "tem 4 cards bonitos": **o sparkline 
 
 ### Alvo medido (§3.7 do pacote de export) × produção — 2026-09-03
 
-> **Fonte do alvo, declarada:** o pacote mediu o build de 2026-09-03 (`forja-saude.jsx`, 1 arquivo por tela). **Esse build não desceu** — `git ls-files prototipo-ui/cowork/ | grep forja` devolve **7** arquivos, e `forja-saude.jsx` não está entre eles; o `--sla` do espelho reporta **157 arquivos que existem só no vivo**. O alvo estrutural abaixo vem do §3.7 do pacote; a conferência de CSS foi feita contra o que o espelho TEM: o monolito `forja-page.jsx` (2026-09-01, `SaudeView` na L628) + `forja-page.css` (2026-09-03). A regeneração do bundle está pedida na [#6671](https://github.com/wagnerra23/oimpresso.com/pull/6671).
+> **Fonte do alvo, declarada:** o pacote mediu o build de 2026-09-03 (`forja-saude.jsx`, 1 arquivo por tela). **Esse build não desceu** — `git ls-files prototipo-ui/cowork/Wagner/ | grep forja` devolve **7** arquivos, e `forja-saude.jsx` não está entre eles; o `--sla` do espelho reporta **157 arquivos que existem só no vivo**. O alvo estrutural abaixo vem do §3.7 do pacote; a conferência de CSS foi feita contra o que o espelho TEM: o monolito `forja-page.jsx` (2026-09-01, `SaudeView` na L628) + `forja-page.css` (2026-09-03). A regeneração do bundle está pedida na [#6671](https://github.com/wagnerra23/oimpresso.com/pull/6671).
 
 | elemento do alvo | §3.7 | produção | veredito |
 |---|---:|---:|---|
@@ -94,13 +94,13 @@ A regra dura, e é o que separa este UC de "tem 4 cards bonitos": **o sparkline 
 
 ### Tipografia e gap — o que o §7 do pacote deixou aberto, agora MEDIDO
 
-O pacote declara: *"Aprovações, Saúde, MCP, Changelog, Integrador: medi a estrutura; **não** medi tipografia/gap por seção"*. Medido aqui, por comparação determinística de regra CSS entre `prototipo-ui/cowork/forja-page.css` e `resources/css/cowork-forja-bundle.css`, nos 61 seletores `fj-*` desta view:
+O pacote declara: *"Aprovações, Saúde, MCP, Changelog, Integrador: medi a estrutura; **não** medi tipografia/gap por seção"*. Medido aqui, por comparação determinística de regra CSS entre `prototipo-ui/cowork/Wagner/forja-page.css` e `resources/css/cowork-forja-bundle.css`, nos 61 seletores `fj-*` desta view:
 
 ```
 IDENTICO=52  DIVERGE=9  SO_PROTO=0  SO_PROD=0
 ```
 
-As **9** divergências são todas da MESMA família e **nenhuma muda o valor computado**: o protótipo escreve o token da escala (`var(--fs-1)`, `var(--fs-8)`…) e o bundle escreve o literal. Os dois lados definem a MESMA escala — `prototipo-ui/cowork/ds-v6/tokens.css` e `resources/css/tokens/_generated-foundations-light.css` batem em **9 de 9** valores (`--fs-1:10.5px` · `--fs-2:11.5px` · `--fs-3:12.5px` · `--fs-7:22px` · `--fs-8:28px`). Afetados: `.fj-metric-val` (28px), `.fj-metric-foot`, `.fj-gate`, `.fj-gate-fase`, `.fj-mcp-intro` (+ `code`), `.fj-flux-stat` (`b` e `span`), `.fj-rule-tx b`.
+As **9** divergências são todas da MESMA família e **nenhuma muda o valor computado**: o protótipo escreve o token da escala (`var(--fs-1)`, `var(--fs-8)`…) e o bundle escreve o literal. Os dois lados definem a MESMA escala — `prototipo-ui/cowork/Wagner/legado/ds-v6/tokens.css` e `resources/css/tokens/_generated-foundations-light.css` batem em **9 de 9** valores (`--fs-1:10.5px` · `--fs-2:11.5px` · `--fs-3:12.5px` · `--fs-7:22px` · `--fs-8:28px`). Afetados: `.fj-metric-val` (28px), `.fj-metric-foot`, `.fj-gate`, `.fj-gate-fase`, `.fj-mcp-intro` (+ `code`), `.fj-flux-stat` (`b` e `span`), `.fj-rule-tx b`.
 
 **Veredito: tipografia e gap são idênticos em VALOR; a divergência é de FORMA (token × literal).** Não foi corrigida aqui por três motivos somados: o bundle é da Onda 1 (`NÃO TOCAR` nesta onda), a regra da onda é **zero CSS novo**, e o ganho visual é **nulo por medição**. Fica como dívida de conformidade de DS — o caminho da [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md), que manda conformidade virar lista, não veto.
 
@@ -129,14 +129,14 @@ Status: ⬜ (smoke pós-merge — depende do seeder rodar; sem DB no worktree)
 **Pronto quando:** as 3 linhas aparecem com ID mono · badge de tipo colorido (Tela=roxo·Bug=âmbar·Refino=azul) · título · tag de módulo · selo `[CC]` · botão roxo Analisar; aba mostra badge 3.
 
 > **Desfecho da Onda 11 (Triagem) — 2026-09-03: a tela FICA como está, e o motivo é medido.**
-> A onda pedia replicar `prototipo-ui/cowork/forja-triagem.jsx` aqui. **Não foi replicada, e não foi
+> A onda pedia replicar `prototipo-ui/cowork/Wagner/forja-triagem.jsx` aqui. **Não foi replicada, e não foi
 > absorvida** — as duas premissas do pedido caíram na medição, e [W] decidiu fechar declarando.
 >
 > 1. **A fonte não monta a view.** `FjTriagemView` existe como arquivo e global no build do
 >    protótipo, mas **nenhum ponto de render do shell o monta** (§8 do pacote de export +
 >    `github.md` do Cowork). Replicar uma view órfã seria copiar um alvo que o app do espelho não
 >    renderiza — logo não mensurável por `design-diff --probe`, que é como esta área prova
->    fidelidade. Some-se que `forja-triagem.jsx` **ainda não desceu** para `prototipo-ui/cowork/`
+>    fidelidade. Some-se que `forja-triagem.jsx` **ainda não desceu** para `prototipo-ui/cowork/Wagner/`
 >    (é um dos que o espelho não conhece; regeneração pedida no [#6671](https://github.com/wagnerra23/oimpresso.com/pull/6671)).
 > 2. **Aprovações não contém a Triagem — os filtros são diferentes.** Triagem projeta
 >    `McpTask::scopeTriage()` = `owner IS NULL OR priority IS NULL OR status='backlog'`;
@@ -210,7 +210,7 @@ Valores-alvo **medidos** no protótipo servido (dark · 1440 · espelho provado 
 
 ## UC-FORJA-16 — Changelog desenha o feed do protótipo (dot + corpo), com selo e módulo de coluna REAL
 Status: 🧪 (4 testes de `ForjaChangelogServiceTest` **citam este UC no título** — shape completo, `flags` filtrado, `modules` da coluna, `date_label` dd/mm. Segue 🧪 e não ✅ porque o ✅ vem do manifesto `scripts/casos-test-results.json`, derivado do JUnit do CI pelo `casos-results-publish` — não se escreve à mão.)
-PARIDADE §11 Onda 9 ([ADR 0388](../../../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)): a linha do changelog deixa de ser uma tabela achatada de **5 colunas** (dot · id · título · ator · data) e passa a ser a do `ChangelogFeed` de `prototipo-ui/cowork/forja-page.jsx` — **2** colunas (`.fj-feed-dot` + `.fj-feed-body`), com o corpo em topo (`.fj-feed-ref` · `.fj-flag-*` · `.fj-feed-when`), resumo (`.fj-feed-resumo`) e meta (`.fj-role` + `.fj-mod sm`). Zero CSS novo — as classes vieram no bundle da Onda 1. `ForjaChangelogService` passa a servir `flags`, `modules` e `date_label`: `flags` é a interseção das `tags` reais do doc com as **duas** que o protótipo estiliza (`tier-0`, `breaking`); `modules` sai da coluna `module` (a string literal `'null'` do frontmatter legado conta como ausência); `date_label` é a MESMA data de `date`, em `dd/mm`.
+PARIDADE §11 Onda 9 ([ADR 0388](../../../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)): a linha do changelog deixa de ser uma tabela achatada de **5 colunas** (dot · id · título · ator · data) e passa a ser a do `ChangelogFeed` de `prototipo-ui/cowork/Wagner/forja-page.jsx` — **2** colunas (`.fj-feed-dot` + `.fj-feed-body`), com o corpo em topo (`.fj-feed-ref` · `.fj-flag-*` · `.fj-feed-when`), resumo (`.fj-feed-resumo`) e meta (`.fj-role` + `.fj-mod sm`). Zero CSS novo — as classes vieram no bundle da Onda 1. `ForjaChangelogService` passa a servir `flags`, `modules` e `date_label`: `flags` é a interseção das `tags` reais do doc com as **duas** que o protótipo estiliza (`tier-0`, `breaking`); `modules` sai da coluna `module` (a string literal `'null'` do frontmatter legado conta como ausência); `date_label` é a MESMA data de `date`, em `dd/mm`.
 **Pronto quando:** `/forja/changelog` renderiza `.fj-feed-item` com dot + corpo; tag real fora do par renderizável **não** vira selo sem cor; doc sem `module` não desenha chip; e `date` continua ISO (é ele que ordena e vai pro `title` do `.fj-feed-when`).
 
 ## UC-FORJA-17 — Sessão sem resumo herda o 1º prompt — acaba a parede "Sessão Claude Code"

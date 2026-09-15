@@ -1,0 +1,195 @@
+name: AssetManagement · Pest (MySQL)
+
+# Lane do PATRIMONIO (Modules/AssetManagement): bens, alocacoes, manutencoes e as duas
+# defesas Tier 0 do modulo (CrossTenantAssetTest, MultiTenantIsolationTest).
+#
+# POR QUE existe. Medido em 2026-09-09 no run 34397856951, job "Pest AssetManagement"
+# (conclusion=success), que e a lane `modules-pest.yml`:
+#
+#   WARN Modules\AssetManagement\Tests\Feature\BensContratoTest
+#     - it UC-BENS-03: a busca recorta no servidor ... -> SQLite-incompativel
+#     - it UC-BENS-01: o espelho — o adversario ve o bem DELE ... -> SQLite-incompativel
+#     - it UC-BENS-01: a listagem nao devolve bem de outro business (Tier 0) -> SQLite-incompativel
+#     - it UC-BENS-02: a rota /asset/assets devolve Inertia com Patrimonio/Bens -> SQLite-incompativel
+#   Tests: 40 skipped, 58 passed (136 assertions)
+#
+# A `modules-pest.yml` roda `DB_CONNECTION: sqlite` `:memory:` e NAO roda `migrate` (o
+# proprio cabecalho dela declara: migrations do UltimatePOS sao MySQL-only). Logo 11 dos 16
+# arquivos de `Modules/AssetManagement/Tests/Feature/` abrem com a guarda
+# `if (driver === 'sqlite') markTestSkipped(...)` — contados um a um, nao estimados. Eles
+# RODAM e PULAM, e skip sai exit 0: a lane fica VERDE sem ter provado nada (LC-13;
+# sec.5 2026-08-02 "registro nao e execucao").
+#
+# O cabecalho da `modules-pest.yml` registra que AssetManagement entrou na matrix em
+# 2026-09-04 porque os 9 arquivos de entao eram "falsa cobertura". Aquilo resolveu METADE:
+# os testes sairam de "nao rodam" para "rodam e pulam" — visiveis, ainda mudos. Esta lane
+# fecha a outra metade. E o mesmo desenho de duas etapas que o Manufacturing percorreu um
+# dia antes (`manufacturing-pest.yml`, 2026-09-03), e este arquivo e copia estrutural dele.
+#
+# CONSEQUENCIA QUE ISTO PAGA: `resources/js/Pages/Patrimonio/Bens.casos.md` declara
+# UC-BENS-01/02/03 com `Status: 🧪` apoiados num run MANUAL de CT 100 de 2026-09-08
+# (seed 1788886934). Recibo de uma execucao a mao nao se re-verifica sozinho — nada no CI
+# os exercita. Depois desta lane, exercita.
+#
+# NAO E LANE PARALELA A NADA — area sem dono, medido em 2026-09-10 (origin/main):
+#   · 20 workflows usam `.github/actions/pest-mysql-setup`; NENHUM nomeia AssetManagement.
+#   · `git grep -l AssetManagement -- .github/` devolve 2 arquivos: `modules-pest.yml`
+#     (sqlite) e `patrimonio-painel-gate.yml` (vitest/JS — outro runtime, defende o render
+#     do Painel via UC-PAT-*, nao o backend).
+#   · ERRATA de um vizinho, registrada porque induz ao erro quem for medir depois: o
+#     cabecalho do `patrimonio-painel-gate.yml` afirma que "`verticais-pest.yml` casa
+#     `Modules/AssetManagement`". Nao casa — conferido nos tres lugares onde poderia
+#     (`paths`, `filters` do paths-filter e a allowlist de arquivos do step `Run Pest`):
+#     zero ocorrencia nos tres.
+#
+# ZERO mudanca no seed compartilhado e no phpunit.xml — foi medido, nao evitado por
+# cautela. As pre-condicoes do `BensContratoTest` ja estao TODAS satisfeitas pela action:
+#   · `assets` e `asset_maintenances` existem no baseline `database/schema/mysql-schema.sql`
+#     (linhas 674 e 603). As 8 colunas que o fixture insere — business_id, name, asset_code,
+#     quantity, unit_price, is_allocatable, purchase_type, created_by — conferidas uma a uma
+#     contra o CREATE TABLE, incluindo as duas FKs (business_id->business, created_by->users).
+#   · biz=98 (`seededTenant`) vem do seed da action.
+#   · biz=99 (`seededSupportClientTenant`) NAO precisa do seed: o helper em
+#     `tests/Support/WithSeededTenant.php:109` cria o tenant sozinho, idempotente, resolvendo
+#     o FK circular business.owner_id <-> users.business_id. 42 arquivos do repo ja dependem
+#     desse comportamento.
+#   · `asset.view` e `access_all_locations` sao criadas pelo proprio teste (firstOrCreate) —
+#     nao dependem do bloco de permissions do seed.
+# Tocar a action seria mexer no que 16 lanes compartilham sem nenhum ganho: por isso nao toco.
+#
+# DESCOBERTA, nao allowlist: nenhum destes 16 arquivos tem execucao conhecida sob MySQL,
+# entao escolher a dedo quais entram seria adivinhar. A lane roda o diretorio inteiro e o que
+# ficar vermelho E o achado — foi para isso que ela nasceu. Ela nasce ADVISORY por isso.
+# Ja ha um vermelho ESPERADO e nomeado: o cabecalho da `modules-pest.yml` registra que
+# `Config/retention.php`, `AssetManagementHealthCommand`, `UpdateAssetMaintenanceRequest` e
+# `LgpdComplianceTest` foram escritos contra `am_assets`/`am_maintenance_logs`, tabelas que
+# migration nenhuma do repo cria (as reais sao `assets`/`asset_maintenances`). Esses quatro
+# assertam sobre o ARRAY de config, nao sobre o banco, entao nao mudam de comportamento com o
+# driver — mas o drift de nome continua sendo divida do modulo, e nao e esta lane que a paga.
+#
+# O CODIGO SOB TESTE esta no gatilho, nao so os testes. Sem isso, mexer no controller nao
+# dispararia a lane dele — gate mudo com cara de cobertura.
+#
+# Medido antes de escrever (o seed sobrevive a suite): `RefreshDatabase`/`migrate:fresh` nos
+# 16 arquivos: ZERO. O `BensContratoTest` limpa os proprios fixtures em `try/finally` por
+# prefixo (`BENS-CTR-%`, `bens_contrato_%`). Em CI o banco e descartavel por run; no CT 100,
+# onde a base PERSISTE, isso nao e detalhe — e o proprio teste registra ter aprendido isso
+# na marra em 2026-09-08.
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno via dorny/paths-filter:
+  # se nada do modulo mudou, pula o pesado e conclui verde (mesmo padrao de
+  # manufacturing-pest/acessos-pest — required-ready sem deadlock).
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/AssetManagement/**'
+      - 'resources/js/Pages/Patrimonio/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/assetmanagement-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: assetmanagement-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (AssetManagement · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do AssetManagement (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            assetmanagement:
+              - 'Modules/AssetManagement/**'
+              - 'resources/js/Pages/Patrimonio/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/assetmanagement-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do AssetManagement mudou)
+        if: steps.changes.outputs.assetmanagement == 'false'
+        run: echo "✅ Sem mudanças no AssetManagement — skip-as-pass."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
+        if: steps.changes.outputs.assetmanagement == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (root view sem build do front)
+        # O UC-BENS-02 usa `assertInertia`, que lê o `data-page` da ROOT VIEW — ou seja, a
+        # Blade renderiza de verdade e chama o helper do Vite. Sem manifest, o caso morre no
+        # render antes de chegar no assert, e o vermelho seria da lane, não do produto.
+        if: steps.changes.outputs.assetmanagement == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (AssetManagement · MySQL) — DESCOBERTA, não allowlist
+        if: steps.changes.outputs.assetmanagement == 'true'
+        # phpunit.xml aponta DB_CONNECTION=sqlite :memory: (sem force="true"), então a env
+        # daqui vence e a suíte roda no MySQL real semeado pela action (ela é a dona dos tenants).
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-assetmanagement-junit.xml \
+            Modules/AssetManagement/Tests/
+
+      # A régua honesta desta lane é `assertions`, NÃO "0 failed". Foi um verde por
+      # não-execução que criou esta lane: se o sumário mostrar casos com 0 assertions, a lane
+      # NÃO mediu — leia isso antes de comemorar verde (LC-13).
+      - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-assetmanagement-junit.xml --out test-results/pest-assetmanagement-junit-summary.json || true
+
+      - name: Upload sumário JUnit (pest-assetmanagement-junit-summary)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-assetmanagement-junit-summary
+          path: test-results/pest-assetmanagement-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload JUnit (AssetManagement · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.assetmanagement == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-assetmanagement-junit
+          path: test-results/pest-assetmanagement-junit.xml
+          retention-days: 14

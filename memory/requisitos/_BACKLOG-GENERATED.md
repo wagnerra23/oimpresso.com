@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **924 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **927 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -31,11 +31,11 @@
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
+| [`Ponto`](#ponto) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
-| [`Ponto`](#ponto) | 14 | 0 | 0 | 0 | 14 |
+| [`Essentials`](#essentials) | 14 | 0 | 0 | 0 | 14 |
 | [`Mwart`](#mwart) | 13 | 0 | 0 | 0 | 13 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
-| [`Essentials`](#essentials) | 12 | 0 | 0 | 0 | 12 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
 | [`Superadmin`](#superadmin) | 11 | 0 | 0 | 0 | 11 |
@@ -939,6 +939,27 @@
 - **US-AP-014** — Cupom fiscal SAT (SP) — **P2**
 - **US-AP-015** — E-commerce mini-loja (catálogo digital + pedido online) — **P2**
 
+## Ponto
+
+
+### todo
+
+- **US-PONTO-014** — Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; 27 de 38 testes fora da allowlist) _(`p0`)_
+- **US-PONTO-015** — Fechamento de competência — as restrições existem, a tela e o domínio não _(`p2`)_
+- **US-PONTO-001** — Relogio web pra registrar entrada/saida (REP-P)
+- **US-PONTO-002** — Marcacao via REP-A (importacao AFD)
+- **US-PONTO-003** — Workflow de intercorrencia (atestado/abono/falta)
+- **US-PONTO-004** — Banco de horas com saldo + creditos/debitos
+- **US-PONTO-005** — Apuracao automatica de jornada (Art. 66 + 71 CLT)
+- **US-PONTO-006** — Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO)
+- **US-PONTO-007** — Multi-tenant isolation (Tier 0 IRREVOGAVEL)
+- **US-PONTO-008** — Imutabilidade append-only (Portaria 671/2021)
+- **US-PONTO-009** — Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
+- **US-PONTO-010** — Comprovante PDF QR Code (Anexo I §5.5 Portaria 671)
+- **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
+- **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
+- **US-PONTO-013** — Consertar as duas telas que nao persistem
+
 ## Comissao
 
 
@@ -959,25 +980,25 @@
 - **US-COMM-013** — Mobile self-service vendedor — **P2**
 - **US-COMM-014** — Migração legacy `users.cmmsn_percent` + `transactions.commission_agent` — **P3**
 
-## Ponto
+## Essentials
 
 
 ### todo
 
-- **US-PONTO-014** — Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; 27 de 38 testes fora da allowlist) _(`p0`)_
-- **US-PONTO-001** — Relogio web pra registrar entrada/saida (REP-P)
-- **US-PONTO-002** — Marcacao via REP-A (importacao AFD)
-- **US-PONTO-003** — Workflow de intercorrencia (atestado/abono/falta)
-- **US-PONTO-004** — Banco de horas com saldo + creditos/debitos
-- **US-PONTO-005** — Apuracao automatica de jornada (Art. 66 + 71 CLT)
-- **US-PONTO-006** — Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO)
-- **US-PONTO-007** — Multi-tenant isolation (Tier 0 IRREVOGAVEL)
-- **US-PONTO-008** — Imutabilidade append-only (Portaria 671/2021)
-- **US-PONTO-009** — Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
-- **US-PONTO-010** — Comprovante PDF QR Code (Anexo I §5.5 Portaria 671)
-- **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
-- **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
-- **US-PONTO-013** — Consertar as duas telas que nao persistem
+- **US-ESS-001** — Listar tarefas (Todo) por business
+- **US-ESS-002** — Criar tarefa Todo
+- **US-ESS-003** — Editar tarefa (status/priority)
+- **US-ESS-004** — Deletar tarefa
+- **US-ESS-005** — Solicitação de Leave (ausência)
+- **US-ESS-006** — Aprovar/Rejeitar Leave
+- **US-ESS-007** — Compartilhar documentos via DocumentShare
+- **US-ESS-008** — Calendário Reminder
+- **US-ESS-009** — Module install/uninstall por business
+- **US-ESS-010** — Isolamento multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
+- **US-ESS-011** — Metas de venda por colaborador (tela Inertia)
+- **US-ESS-012** — Mural de mensagens internas por localidade
+- **US-ESS-013** — Base de conhecimento interna com busca
+- **US-ESSE-001** — [TODO — título]
 
 ## Mwart
 
@@ -1016,24 +1037,6 @@
 - **US-PG-007** — Expor URL pública HTTPS do webhook Inter (deploy/proxy CT100)
 - **US-PG-008** — Linkage cobranca_id no webhook genérico + re-resolve do órfão
 - **US-PG-009** — Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa)
-
-## Essentials
-
-
-### todo
-
-- **US-ESS-001** — Listar tarefas (Todo) por business
-- **US-ESS-002** — Criar tarefa Todo
-- **US-ESS-003** — Editar tarefa (status/priority)
-- **US-ESS-004** — Deletar tarefa
-- **US-ESS-005** — Solicitação de Leave (ausência)
-- **US-ESS-006** — Aprovar/Rejeitar Leave
-- **US-ESS-007** — Compartilhar documentos via DocumentShare
-- **US-ESS-008** — Calendário Reminder
-- **US-ESS-009** — Module install/uninstall por business
-- **US-ESS-010** — Isolamento multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
-- **US-ESS-011** — Metas de venda por colaborador (tela Inertia)
-- **US-ESSE-001** — [TODO — título]
 
 ## NFSe
 

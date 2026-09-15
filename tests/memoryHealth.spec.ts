@@ -272,12 +272,9 @@ describe('memory-health — Check V: links internos quebrados (canon front-facin
   });
 });
 
-describe('memory-health — Check X: cobertura de auditoria (Tier-0/nota-baixa sem AUDIT, físico)', () => {
-  const grades = (mods: Record<string, number>) =>
-    write('governance/module-grades-baseline.json', JSON.stringify({ modules: mods }, null, 2));
+describe('memory-health — Check X: cobertura de auditoria (Tier-0 sem AUDIT, físico)', () => {
 
   it('SENSIBILIDADE: módulo Tier-0 sem AUDIT*.md → 🟡 audit-coverage-gap', () => {
-    grades({ PaymentGateway: 60 });
     mkdirSync(join(tmp, 'memory/requisitos/PaymentGateway'), { recursive: true });
     write('memory/requisitos/PaymentGateway/SPEC.md', '# spec\n');
     const out = run();
@@ -285,30 +282,20 @@ describe('memory-health — Check X: cobertura de auditoria (Tier-0/nota-baixa s
     expect(out).toMatch(/PaymentGateway/);
   });
 
-  it('SENSIBILIDADE: módulo com nota < FLOOR sem AUDIT → 🟡 audit-coverage-gap', () => {
-    grades({ Cms: 55 }); // não-Tier0, mas nota baixa
-    write('memory/requisitos/Cms/SPEC.md', '# spec\n');
-    const out = run();
-    expect(out).toMatch(/audit-coverage-gap/);
-    expect(out).toMatch(/Cms/);
-  });
-
   it('ESPECIFICIDADE: módulo Tier-0 COM AUDIT*.md → sem gap', () => {
-    grades({ Compras: 58 });
     write('memory/requisitos/Compras/AUDITORIA-COMPRAS-2026-05-21.md', '# audit\n');
     const out = run();
     expect(out).not.toMatch(/audit-coverage-gap/);
   });
 
-  it('ESPECIFICIDADE: módulo saudável não-Tier0 (nota >= FLOOR) → não qualifica', () => {
-    grades({ Repair: 83 });
+  it('ESPECIFICIDADE: módulo não-Tier-0 sem AUDIT → não qualifica', () => {
     write('memory/requisitos/Repair/SPEC.md', '# spec\n');
     const out = run();
     expect(out).not.toMatch(/audit-coverage-gap/);
   });
 
-  it('ESPECIFICIDADE: sem fonte-de-verdade (baseline ausente) → check silencioso', () => {
-    // nenhum module-grades-baseline.json escrito
+  it('ESPECIFICIDADE: Tier-0 sem dir de requisitos → não medido, não acusado', () => {
+    // nenhum dir de requisitos escrito — o check PULA em vez de inventar gap (§5 2026-07-29)
     const out = run();
     expect(out).not.toMatch(/audit-coverage-gap/);
   });

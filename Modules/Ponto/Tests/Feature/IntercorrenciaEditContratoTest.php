@@ -91,6 +91,7 @@ function intEditCriarColaborador(int $businessId, int $userBusinessId): Colabora
     $user = User::factory()->create([
         'business_id' => $userBusinessId,
         'user_type'   => 'user',
+        'username'    => strtolower(INTEDIT_MARCADOR) . '-' . uniqid(),
     ]);
 
     $colab = new Colaborador();

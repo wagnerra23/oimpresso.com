@@ -2,7 +2,7 @@
 id: resources-js-pages-fiscal-nfse-charter
 page: /fiscal/nfse
 component: resources/js/Pages/Fiscal/Nfse.tsx
-related_prototype: prototipo-ui/cowork/fiscal-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/fiscal-page.jsx
 related_visual_comparison: memory/requisitos/Fiscal/fiscal-nfse-visual-comparison.md
 bundle_source: fiscal-page.jsx
 page_id: fiscal-nfse
@@ -13,7 +13,7 @@ created: 2026-05-20
 owner: wagner
 related_us: [US-FISCAL-005]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0358-doutrina-de-teste-tenant-98-supersede-0101, 0104-processo-mwart-canonico-unico-caminho]
-prototypes: [prototipo-ui/cowork/fiscal-page.jsx]
+prototypes: [prototipo-ui/cowork/Wagner/fiscal-page.jsx]
 ---
 
 # Charter — `Fiscal/Nfse`

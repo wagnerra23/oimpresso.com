@@ -92,7 +92,7 @@ Lição: **RUNBOOK formaliza a transparência de gaps** desde Onda 1 — evita O
 - ✅ Wagner enxerga próximas Ondas sem precisar perguntar "o que tá faltando?"
 - ✅ Time MCP (Felipe/Maiara/Eliana/Luiz) tem playbook único pra Ondas Cowork — não precisa improvisar
 - ✅ Estimate fator 10x ADR 0106 aplicado por tipo de Onda (planejamento de cycle mais preciso)
-- ✅ 14 módulos com prototype Cowork em `prototipo-ui/prototipos/` têm trilha clara de migração
+- ✅ 14 módulos com prototype Cowork em `prototipo-ui/cowork/Wagner/legado/` têm trilha clara de migração
 - ✅ Cross-session continuity preservada (skill Tier A recarrega PROTOCOLO + RUNBOOK linkado)
 
 **Negativas / Trade-offs:**

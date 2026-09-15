@@ -150,7 +150,7 @@ Números vivem no dono, não aqui ([proibicoes §5](../../proibicoes.md) 2026-07
 
 - **Shell:** `AppShellV2` com breadcrumb único `Compras` (`Compras/Index.tsx`, `ComprasIndex.layout`).
 - **Bundle:** `resources/css/cowork-compras-bundle.css`, aplicado **INTEIRO** na 1ª vez (Tier 0 — [proibicoes §Design System](../../proibicoes.md)). Escopo por wrapper `.compras-root`, não por `@scope`.
-- **Protótipo âncora:** `prototipo-ui/cowork/compras-page.jsx` (declarado em `related_prototype` do charter). O `proto-baseline` da tela está **ausente** — `npm run screen:files -- Compras/Index` acusa `proto-baseline ✗`.
+- **Protótipo âncora:** `prototipo-ui/cowork/Wagner/compras-page.jsx` (declarado em `related_prototype` do charter). O `proto-baseline` da tela está **ausente** — `npm run screen:files -- Compras/Index` acusa `proto-baseline ✗`.
 - **Padrão de tela:** cockpit lista+detalhe (drawer lateral sobre grid), família do [PT-01 Lista](../_DesignSystem/padroes-tela/PT-01-Lista.md).
 - **`ux_targets` (do charter, §UX targets):** first-paint ≤800ms · 0 erro JS no console · KPI legível em ≤5s · 25 linhas sem scroll horizontal em 1280px · drawer abre ≤200ms.
 

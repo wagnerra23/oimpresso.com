@@ -51,7 +51,7 @@ const WORKLIST = [
   'Admin', 'Whatsapp', 'Settings', 'Financeiro', 'Cliente',
 ];
 
-const INDICE_PATH = resolve(process.cwd(), 'prototipo-ui/DS_ADOCAO_INDICE.md');
+const INDICE_PATH = resolve(process.cwd(), 'memory/reference/prototipo-ui/DS_ADOCAO_INDICE.md');
 const MARK_START = '<!-- ds:worklist:start (auto · npm run ds:report -- --write) -->';
 const MARK_END = '<!-- ds:worklist:end -->';
 
@@ -161,7 +161,7 @@ function writeIndice(md) {
     txt = txt.replace(/(^#[^\n]*\n)/, `$1\n${md}\n`);
   }
   writeFileSync(INDICE_PATH, txt);
-  console.log('checklist escrito em prototipo-ui/DS_ADOCAO_INDICE.md');
+  console.log('checklist escrito em memory/reference/prototipo-ui/DS_ADOCAO_INDICE.md');
 }
 
 function printReport({ total, byRule, byModule }) {

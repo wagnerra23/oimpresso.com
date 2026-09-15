@@ -7,7 +7,7 @@ status: draft
 last_validated: "2026-09-02"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
-related_prototype: prototipo-ui/cowork/jana-telas-novas.jsx
+related_prototype: prototipo-ui/cowork/Wagner/jana-telas-novas.jsx
 related_adrs: [52, 93, 94, 104, 180, 182]
 related_charters:
   - resources/js/Pages/Jana/Index.charter.md
@@ -59,7 +59,7 @@ projeção**, por quanto e desde quando, e abre a meta.
 - `status` novo|lido lê a `MetaDesvioNotification` do usuário logado (`read_at`) — hoje só
   chega ao payload; a coluna "Chegou por" diz **in-app**, o único canal que `via()` declara.
 - Empty state e nota de rodapé com **copy literal** da âncora (`EmptyState variant="done"` ·
-  `jtn-nota`), pinadas em `prototipo-ui/contrato/jana-alertas.contract.json`.
+  `jtn-nota`), pinadas em `governance/design/contracts/jana-alertas.contract.json`.
 
 ## Non-Goals
 

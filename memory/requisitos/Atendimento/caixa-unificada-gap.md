@@ -1,7 +1,7 @@
 ---
 id: requisitos-atendimento-caixa-unificada-gap
 tela: /atendimento/caixa-unificada
-prototipo: prototipo-ui/cowork/inbox-page.jsx + inbox-page.css + inbox-cur.jsx + inbox-ai.jsx + inbox-extras.jsx # path corrigido 2026-07-10 — espelho consolidado em cowork/ (visual_source do charter); lista = arquivos ancorados pelo map.json
+prototipo: prototipo-ui/cowork/Wagner/inbox-page.jsx + inbox-page.css + inbox-cur.jsx + inbox-ai.jsx + inbox-extras.jsx # path corrigido 2026-07-10 — espelho consolidado em cowork/ (visual_source do charter); lista = arquivos ancorados pelo map.json
 tela_viva: Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx (+ _components ComposerV4/ConversationListV4/ConversationThreadV4/ContextSidebarV4/ChannelsDrawer/QueuesSheet/BroadcastSheet/ChannelHealthBanner/ReconnectModal/...)
 paridade_atual: "100%+ (tela viva ULTRAPASSOU o protótipo)"
 gerado_em: "2026-06-23"
@@ -53,7 +53,7 @@ A única ação real possível é 1 catch-up cosmético, e ainda assim opcional:
 
 1. **(Opcional · P · só-visual)** Avaliar portar `linkifyMessage` (cross-refs `#os4821`/`#q-vendas`/`#c1`/`#a3` clicáveis no corpo da bubble) pra `ConversationThreadV4`. **Antes de codar**, validar utilidade real (ROTA LIVRE/Larissa usa refs em msg?) — pode ser low-signal (ADR 0105 cliente-como-sinal). Se entrar: respeitar a LEI "não repintar" (zero mudança de cor/layout; só transforma `#xxx` em botão). Reusar handlers que já existem (mover-fila, abrir-conv).
 2. **Inverter o fluxo (recomendado):** o trabalho de verdade é o da LEI 2026-06-18 — **EXTRAIR o DS desta Caixa (o "ouro") pras OUTRAS telas**, com prova `diff de computed-style = 0` aqui. Isso é escopo da skill `aplicar-prototipo` em OUTRAS telas, não nesta.
-3. **Re-sincronizar o protótipo (higiene de memória):** `inbox-page.jsx` ainda traz `TODO US-WA-301..307` que já foram **ENTREGUES** no vivo (charter §1–§5). O protótipo está stale como fonte. Sugestão: marcar o protótipo como "absorvido/atrás do vivo" no `prototipo-ui/SYNC_LOG.md` pra ninguém tratá-lo como fonte por engano.
+3. **Re-sincronizar o protótipo (higiene de memória):** `inbox-page.jsx` ainda traz `TODO US-WA-301..307` que já foram **ENTREGUES** no vivo (charter §1–§5). O protótipo está stale como fonte. Sugestão: marcar o protótipo como "absorvido/atrás do vivo" no `memory/reference/prototipo-ui/SYNC_LOG.md` pra ninguém tratá-lo como fonte por engano.
 
 ---
 

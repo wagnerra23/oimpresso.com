@@ -2,7 +2,7 @@
 id: resources-js-pages-backup-index-charter
 page: /backup
 component: resources/js/Pages/Backup/Index.tsx
-related_prototype: prototipo-ui/cowork/backup-page.jsx
+related_prototype: prototipo-ui/cowork/Wagner/backup-page.jsx
 related_runbook: memory/requisitos/Backup/RUNBOOK-index.md
 parent_module: Backup
 owner: wagner
@@ -83,7 +83,7 @@ Sem drawer: um zip não tem detalhe além do que a linha mostra. Sem filtro/busc
 ## Contrato visual
 
 > Copy literal + ordem das seções. Verificado em CI por
-> `node scripts/contrato-de-tela.mjs --contract prototipo-ui/contrato/backup.contract.json`.
+> `node scripts/contrato-de-tela.mjs --contract governance/design/contracts/backup.contract.json`.
 > Mudar qualquer string abaixo **quebra o gate de propósito** — copy de tela é decisão, não detalhe.
 
 Ordem das âncoras `data-contract`, de cima pra baixo:

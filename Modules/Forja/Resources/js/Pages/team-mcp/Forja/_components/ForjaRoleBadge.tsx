@@ -2,7 +2,7 @@
 //
 // @memcofre
 //   module: Forja — peça compartilhada da réplica (PARIDADE §11 Onda 8)
-//   fonte: prototipo-ui/cowork/forja-page.jsx `function RoleBadge` + forja-data.jsx `FORJA_ACTORS`
+//   fonte: prototipo-ui/cowork/Wagner/forja-page.jsx `function RoleBadge` + forja-data.jsx `FORJA_ACTORS`
 //   adrs: 0388 (réplica primeiro) · UI-0013
 //
 // POR QUE NASCE AGORA: a view `mcp` do protótipo usa o selo em DOIS lugares (tokens
@@ -29,7 +29,7 @@ interface Actor {
   desc: string;
 }
 
-// VERBATIM de prototipo-ui/cowork/forja-data.jsx `FORJA_ACTORS` (espelho provado
+// VERBATIM de prototipo-ui/cowork/Wagner/forja-data.jsx `FORJA_ACTORS` (espelho provado
 // SYNC contra o Cowork vivo em 2026-09-02, sha e4339537969d do forja-page.jsx).
 const ACTORS: Record<ForjaRole, Actor> = {
   W: { name: 'Wagner', kind: 'human', color: 'oklch(0.57 0.16 25)', desc: 'Decide · aprova screenshot e merge' },

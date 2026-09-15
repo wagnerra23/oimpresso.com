@@ -13,7 +13,7 @@ related_visual_comparison: memory/requisitos/Produto/_telas/produto-stock-histor
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [StockHistory]
   divergence_from_blueprint: "timeline movimento por variação tem filtros location/variation próprios + Hero KPIs específicos (entrada/saída 30d) — pattern cronológico distinto de list cockpit. Mantém AppShellV2 + tokens + header pattern; diverge no conteúdo central"
