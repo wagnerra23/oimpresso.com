@@ -43,11 +43,24 @@
 > **Motivo medido:** o número escrito à mão era uma LINHA ÚNICA que toda sessão editava ao
 > registrar, então duas sessões no mesmo dia conflitavam **sempre** — no [#7294](https://github.com/wagnerra23/oimpresso.com/pull/7294)
 > foram 2 conflitos em ~20min, com a numeração colidindo 156→157→158. Derivado, registrar é
-> **adicionar** uma linha e não tocar em nenhuma existente: o merge do git resolve sozinho.
+> **adicionar** uma linha e não tocar em nenhuma existente.
+> **O ganho, medido — e não é "acaba o conflito":** duas sessões apendando no mesmo ponto do
+> bloco ainda conflitam. O que acaba é o pior caso: o status quo **mergeava limpo com número
+> errado** (ambas incrementam 158→159 quando o certo era 160 — foi exatamente a colisão que
+> motivou isto), e o derivado torna o silencioso-errado **impossível**, convertendo-o num
+> conflito cuja resolução correta é mecânica (manter as duas linhas).
 > **Não é o S1 cortado** (`Ocorrências == nº-recibos`, igualdade estrita — ver `licoes-code-two-strikes.mjs`):
-> aquele descartava o legado — medido em 2026-09-15, **20 das 32** LCs divergiriam e a LC-11
-> cairia de 15 para 1. A `base` **preserva por construção** (`base = campo_anterior − nº de rec`),
-> e a migração das 32 mudou **zero** números. LC sem `base:` continua lendo o inteiro escrito.
+> aquele descartava o legado — medido em 2026-09-15, **20 das 32** LCs divergiriam contando
+> **linhas `- **rec**`** (LC-11 cairia de 15 para 1), e **23 das 32** sob a régua do extrator de
+> recibos do hook (LC-11 15 vs 14): a régua muda o número, a conclusão sobrevive nas duas.
+> A `base` **preserva por construção** (`base = campo_anterior − nº de rec`), e a migração das
+> 32 mudou **zero** números. LC sem `base:` continua lendo o inteiro escrito.
+>
+> **Resíduo declarado — o `nº N` dentro das lápides do §5 continua escrito à mão** e pode
+> colidir. Não é risco futuro: medido em 2026-09-15, **`LC-13 nº 19` já aparece 2×** em
+> `licoes-rejeitadas.md` (18 números escritos, 17 distintos). O derivado **diminui** o resíduo
+> — o próximo número passa a ser mecanicamente derivável (`base + nº de rec + 1`) — mas não o
+> elimina, porque quem escreve a lápide ainda digita o número.
 >
 > **Convenção do campo `Gate` (ADR 0344):** cobertura só-**advisory** (nudge/warn que não bloqueia)
 > conta como *sem defesa mecânica* — declare `Gate: advisory — <hooks>` e a classe **segue

@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { parseLicoes, classificar, semGate, threshold, formatBanner, gateJaReprovado,
+import { parseLicoes, classificar, semGate, threshold, formatBanner, gateJaReprovado, malformadas, formatMalformadas,
   parseTombstones, ledgerCitacoesSecao5, computeFrontier, reconcile, formatReconcile } from './licoes-code-two-strikes.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'licoes-code-two-strikes.mjs');
@@ -70,9 +70,33 @@ const MD_MAIS_UM = MD_DERIVADO.replace('  - **rec** (segundo)', '  - **rec** (se
 check('BITE: +1 linha `- **rec**` => contador +1, campo intacto',
   parseLicoes(MD_MAIS_UM).find((l) => l.id === 'LC-70').ocorr === 6
   && MD_MAIS_UM.includes('- **Ocorrências:** base:3 +'));
-// CONTROLE NEGATIVO: base malformada nao e' lida como base (cai no legado)
+// CONTROLE NEGATIVO benigno: `base: 3` sem recibo nenhum cai no legado (inteiro escrito).
 check('CONTROLE NEGATIVO: `base: 3` com espaco nao casa => usa inteiro legado',
   parseLicoes('# L\n## LC-73 - x\n- **Ocorrências:** 7   base: 3\n- **Gate:** none\n')[0].ocorr === 7);
+// ARRANJO PERIGOSO (achado do ciclo-adversary 2026-09-15): `base:` com UM ESPACO **e recibos
+// presentes**. Cai no legado, o 1o inteiro da linha vira o contador e os recibos somem EM
+// SILENCIO — medido no LC-08 real: 158 -> 1, 157 recibos descartados. O controle negativo
+// anterior nao pegava porque tinha ZERO recibos (§5 2026-08-14: fixture cobrindo 1 de 2
+// variacoes). A invariante `base==null && recs>0` tem zero-FP (0 das 32 LCs a violam).
+const MD_PERIGOSO = `# Licoes
+## LC-74 - base com espaco E recibos (o modo que some calado)
+- **Ocorrências:** base: 5 + 1 por «rec» abaixo
+  - **rec** (um)
+  - **rec** (dois)
+- **Gate:** none
+`;
+const licP = parseLicoes(MD_PERIGOSO)[0];
+check('PERIGOSO: `base: 5` com espaco + 2 rec NAO e lido como base', licP.base === null && licP.recs === 2);
+check('PERIGOSO: o mecanismo ACUSA em vez de devolver 5 calado', malformadas([licP]).length === 1);
+check('PERIGOSO: o aviso nomeia a LC, os recibos e o formato certo',
+  /LC-74/.test(formatMalformadas(malformadas([licP])))
+  && /2 linha\(s\)/.test(formatMalformadas(malformadas([licP])))
+  && /sem espaço depois dos dois-pontos/.test(formatMalformadas(malformadas([licP]))));
+// CONTROLE NEGATIVO do proprio aviso: arranjo SAO nao acusa
+check('CONTROLE NEGATIVO: LC bem-formada NAO vira malformada', malformadas(parseLicoes(MD_DERIVADO)).length === 0);
+check('CONTROLE NEGATIVO: LC legada (sem base, sem rec) NAO vira malformada',
+  malformadas(parseLicoes('# L\n## LC-75 - x\n- **Ocorrências:** 9\n- **Gate:** none\n')).length === 0);
+check('formatMalformadas vazio quando nada', formatMalformadas([]) === '');
 
 // ── QUEM FAZ + gate ja reprovado (2026-07-26) ───────────────────────────────────
 // CONTRATO: o banner e' a UNICA instrucao que o agente recebe sobre o ledger. Antes
