@@ -1249,13 +1249,27 @@ Route::middleware(['auth', 'SetSessionData', 'language', 'timezone', 'AdminSideb
 |   /memcofre/chat            -> /ia                             Jana\ChatController@index
 |   /memcofre/memoria         -> /ia/memoria                     KB\MemoriaController@index
 |   /memcofre/inbox|ingest    -> /kb                             KB\KbController@index
-|   /memcofre/modulos/{x}     -> /governance/module-grades/{x}   Governance\ModuleGradeController
+|   /memcofre/modulos/{x}     -> (removido 2026-09-15 — ver abaixo)
 |   /memcofre                 -> /governance                     ⚠️ que por sua vez faz 302 -> /ia
 |                                                                (Governance/routes.php:31, desde 2026-05-22 —
 |                                                                 o dashboard vive em /governance/dashboard)
 |
 | `/memcofre/install*` e `/srs/install*` NÃO ganham 301: instalar/desinstalar
 | um módulo que não existe mais não tem destino equivalente.
+|
+| `/memcofre/modulos/{x}` tinha 301 e PERDEU em 2026-09-15, pelo mesmo critério:
+| a [ADR 0399](memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md)
+| aposentou a rubrica `module-grade` e a Onda 2 deletou `ModuleGradeController` e as
+| 2 Pages, então o destino virou 404. O 301 continuava respondendo e mandava o
+| usuário para um 404 — medido em produção antes do fix:
+|
+|   GET /memcofre/modulos/Crm          -> 301 -> /governance/module-grades/Crm -> 404
+|
+| Não ganhou destino novo porque não existe equivalente: a tela mostrava a NOTA de
+| um módulo, e não há mais nota. Mandar para `/governance` ou `/ia` seria levar a
+| lugar nenhum com aparência de acerto. Agora responde 404 direto, igual ao
+| `/memcofre/install*` (medido: 404 em produção) — o mesmo "404 por decisão" que o
+| parágrafo seguinte já declarava.
 |
 | Não há catch-all `/memcofre/*` — cada rota é declarada explicitamente, e o
 | que não está aqui (ex.: `/memcofre/install*`) passa a 404 por decisão.
@@ -1264,7 +1278,4 @@ Route::redirect('/memcofre/memoria', '/ia/memoria', 301);
 Route::redirect('/memcofre/chat', '/ia', 301);
 Route::redirect('/memcofre/inbox', '/kb', 301);
 Route::redirect('/memcofre/ingest', '/kb', 301);
-Route::get('/memcofre/modulos/{module}', function (string $module) {
-    return redirect('/governance/module-grades/' . $module, 301);
-})->where('module', '[A-Za-z][A-Za-z0-9_-]*');
 Route::redirect('/memcofre', '/governance', 301);
