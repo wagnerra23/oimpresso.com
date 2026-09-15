@@ -68,7 +68,7 @@ Regra dura desta seção: **nenhuma peça isolada é re-inflada.** Cada item aba
 
 ### 2.1 O único ACIMA-DE-CATEGORIA: âncora de design computada do contrato, com gate required contra âncora-fantasma
 
-`prototipo-ui/ancora.mjs::resolveAncora` resolve a fonte visual de uma tela a partir do `related_prototype` do charter; `anchor-content-check` (required desde a emenda ADR 0327 à 0314) **reprova o PR quando a âncora resolvida é shell, placeholder ou vazia**.
+`scripts/design/ancora.mjs::resolveAncora` resolve a fonte visual de uma tela a partir do `related_prototype` do charter; `anchor-content-check` (required desde a emenda ADR 0327 à 0314) **reprova o PR quando a âncora resolvida é shell, placeholder ou vazia**.
 
 A busca achou o oposto no líder: o **issue #337 do Figma Code Connect ("Add a validation for non-existent node-id") está ABERTO**, e o texto descreve o buraco com todas as letras — nó removido no Figma, link stale no código, `publish` **sucede mesmo assim**. Chromatic/Storybook Connect linka story↔frame e falha por formato de URL, nunca por substância. O `design.md lint` do Google pega broken reference **dentro** da spec, não a aresta tela→artefato, e não é required de merge.
 

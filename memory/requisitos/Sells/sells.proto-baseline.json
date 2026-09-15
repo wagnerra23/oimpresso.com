@@ -1,5 +1,5 @@
 {
- "_doc": "PROTO-BASELINE — fingerprint do PROTÓTIPO renderizado (a INTENÇÃO de design), matriz viewport×tema. Gerado LOCALMENTE por prototipo-ui/render-proto-baseline.mjs --gerar (render em CI = REJEITADO, ADR 0290); o CI só verifica este JSON commitado (--check hermético). prototipo_sha invalida quando o protótipo re-exportar (padrão do map.json). Compare prod×este via --extract + style-fingerprint --compare --tela (trava de âncora ADR 0326). Direção NÃO é uniforme: o compare reporta, humano decide (PROD_A_FRENTE nunca regride).",
+ "_doc": "PROTO-BASELINE — fingerprint do PROTÓTIPO renderizado (a INTENÇÃO de design), matriz viewport×tema. Gerado LOCALMENTE por scripts/design/render-proto-baseline.mjs --gerar (render em CI = REJEITADO, ADR 0290); o CI só verifica este JSON commitado (--check hermético). prototipo_sha invalida quando o protótipo re-exportar (padrão do map.json). Compare prod×este via --extract + style-fingerprint --compare --tela (trava de âncora ADR 0326). Direção NÃO é uniforme: o compare reporta, humano decide (PROD_A_FRENTE nunca regride).",
  "version": 1,
  "tela": "Sells/Index",
  "charter": "resources/js/Pages/Sells/Index.charter.md",

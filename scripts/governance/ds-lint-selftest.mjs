@@ -34,7 +34,7 @@ import {
   criarAlvos,
   lerRegistry,
   alvo as alvoCanon,
-} from '../../prototipo-ui/ds-lint-alvos.mjs';
+} from '../../scripts/design/ds-lint-alvos.mjs';
 
 // As 13 regras ds/* que o bloco `no-restricted-syntax` do eslint.config.js
 // canoniza. Se adicionar/remover uma regra ds/ lá, atualize aqui + o fixture.

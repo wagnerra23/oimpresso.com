@@ -126,7 +126,7 @@ const nudge = runCheck(['--check', '--strict']);
 check('âncora presente mas não-declarada → WARN nudge (declare e trave), exit 0', nudge.status === 0 && /não declara vivo\.ancora/.test(nudge.stdout));
 
 // ── SHA POR CONTEÚDO (PR-C, ADR 0324): formato sha256: roteado pro contentHash ────
-const { computeProtoHash } = await import('../../prototipo-ui/gerar-map.mjs');
+const { computeProtoHash } = await import('../../scripts/design/gerar-map.mjs');
 // sha FRESCO por conteúdo — a partir daqui o conteúdo do protótipo muda dentro do próprio teste,
 // então reusar o git-sha antigo faria os casos seguintes falharem por STALE (staleness é outro
 // eixo; os casos abaixo testam ÂNCORA). Recalcular por chamada isola um eixo do outro.

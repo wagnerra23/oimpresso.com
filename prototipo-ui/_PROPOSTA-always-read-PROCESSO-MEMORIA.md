@@ -13,7 +13,7 @@
 No `CLAUDE.md` raiz, seção **"## Como trabalhar (protocolo de sessão)"**, logo após o passo 4 (UI), inserir:
 
 ```markdown
-4b. **Antes de tocar design-memory** (`prototipo-ui/**` · charters · `*.casos.md` · build visual): ler [`prototipo-ui/PROCESSO_MEMORIA_CC.md`](prototipo-ui/PROCESSO_MEMORIA_CC.md) (raiz do método anti-regressão — §5 REGRESSÕES PROIBIDAS + NÚCLEO 13 invariantes) + [`memory/LICOES_CC.md`](memory/LICOES_CC.md) (L-01..L-25). No fim da build, rodar `node prototipo-ui/ds-guard.mjs <arquivos tocados>` (§8) e, ao formalizar, `node prototipo-ui/integrity-check.mjs` (§15). _REGRESSÃO É INACEITÁVEL._
+4b. **Antes de tocar design-memory** (`prototipo-ui/**` · charters · `*.casos.md` · build visual): ler [`prototipo-ui/PROCESSO_MEMORIA_CC.md`](prototipo-ui/PROCESSO_MEMORIA_CC.md) (raiz do método anti-regressão — §5 REGRESSÕES PROIBIDAS + NÚCLEO 13 invariantes) + [`memory/LICOES_CC.md`](memory/LICOES_CC.md) (L-01..L-25). No fim da build, rodar `node scripts/design/ds-guard.mjs <arquivos tocados>` (§8) e, ao formalizar, `node scripts/design/integrity-check.mjs` (§15). _REGRESSÃO É INACEITÁVEL._
 ```
 
 ## Opção B — bullet na seção "Onde NÃO inventar (Tier 0)" (paralelo ao F3)

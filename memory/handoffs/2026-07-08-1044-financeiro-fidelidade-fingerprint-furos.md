@@ -44,7 +44,7 @@ borderColor  56/57  ⚠ SISTEMÁTICO
 ## Artefatos gerados
 - **Código:** `Pages/Financeiro/Unificado/{Index.tsx,_components/FinPeriodBar.tsx}` + `Index.casos.md` (bump last_run G-6).
 - **Tokens:** `semantic.tokens.json` primary.dark 0.7 + `_generated-inertia-dark.css`.
-- **Mecanismo:** `prototipo-ui/style-fingerprint.mjs` (furos 1/2/6 + resumoCampos; selftest 18/18).
+- **Mecanismo:** `scripts/design/style-fingerprint.mjs` (furos 1/2/6 + resumoCampos; selftest 18/18).
 - **Canon:** ADR UI-0021.
 
 ## Persistência
@@ -62,5 +62,5 @@ borderColor  56/57  ⚠ SISTEMÁTICO
 
 ## Pointers detalhados
 - ADR: [`memory/requisitos/_DesignSystem/adr/ui/0021-primary-dark-clareado-0190.md`](../requisitos/_DesignSystem/adr/ui/0021-primary-dark-clareado-0190.md).
-- Mecanismo: [`prototipo-ui/style-fingerprint.mjs`](../../prototipo-ui/style-fingerprint.mjs) header (MATCHING v2, furos 1/2/6).
+- Mecanismo: [`scripts/design/style-fingerprint.mjs`](../../scripts/design/style-fingerprint.mjs) header (MATCHING v2, furos 1/2/6).
 - Handoff anterior: [2026-07-07 17:46](2026-07-07-1746-financeiro-fidelidade-dark-mecanismos-comparacao.md) (dark WARM UI-0020 + fingerprint v1).

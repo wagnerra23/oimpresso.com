@@ -290,7 +290,7 @@ Do handoff estão prontos e são os blocos de montagem das telas de produto:
 - **Print-craft (comunicação visual):** `Dimension` (cota técnica L×A — "3.000 mm"), `RegistrationMark` (mira de registro — glyph do sistema), `ProofFrame` (folha de prova com crop marks), `ProofStrip` (tira de controle CMYK/densidade). Uso natural nos itens/preview de material por m² e no cabeçalho de seções de produção.
 - **Oficina:** `PlacaVeiculo` (placa Mercosul) + `TagChip` por categoria/hue — casam com a aplicação por veículo e o "Picker Mecânica".
 
-**Gates de qualidade visual:** PRE-MERGE-UI (4 camadas) + `node prototipo-ui/ds-guard.mjs <arquivos>` + `node prototipo-ui/integrity-check.mjs` ao formalizar + comparação visual aprovada por screenshot (gate F3).
+**Gates de qualidade visual:** PRE-MERGE-UI (4 camadas) + `node scripts/design/ds-guard.mjs <arquivos>` + `node scripts/design/integrity-check.mjs` ao formalizar + comparação visual aprovada por screenshot (gate F3).
 
 ### 4.2 Padrão do tri-campo Custo · Margem · Valor + progressive disclosure da Formação de Preço
 

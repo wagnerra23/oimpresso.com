@@ -35,13 +35,13 @@
 // resolvido (quando determinístico) com `linhas: "TODO"` — nunca um número inventado.
 //
 // Uso:
-//   node prototipo-ui/gerar-map.mjs <gap.md|Mod/Tela>              # emite o esqueleto JSON (stdout)
-//   node prototipo-ui/gerar-map.mjs <gap.md|Mod/Tela> --atualizar  # re-gera PRESERVANDO o
+//   node scripts/design/gerar-map.mjs <gap.md|Mod/Tela>              # emite o esqueleto JSON (stdout)
+//   node scripts/design/gerar-map.mjs <gap.md|Mod/Tela> --atualizar  # re-gera PRESERVANDO o
 //       preenchimento humano do <tela>.map.json existente (linhas/vivo/status/acao por id) e
 //       atualizando prototipo_sha — é o caminho do "aborta se sha mudou → REGENERA" da Fase 4
 //       sem perder o trabalho de âncora já feito. Partes que saíram do gap.md são removidas
 //       (com aviso em stderr); partes novas nascem TODO.
-//   node prototipo-ui/gerar-map.mjs --selftest                     # fixture hermético
+//   node scripts/design/gerar-map.mjs --selftest                     # fixture hermético
 //
 // Verificação (anchors existem? sha ficou stale? % telas mapeadas?) NÃO é deste script — é do
 // scripts/governance/design-code-map-check.mjs (mesma separação gerar-contrato × contrato-de-tela).
@@ -177,7 +177,7 @@ export function gerar(gapPath, { root = REPO, hoje = null } = {}) {
 
   const mapa = {
     version: '1',
-    _doc: 'ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract="<id>" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.',
+    _doc: 'ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract="<id>" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.',
     tela,
     gap_fonte: relPosix(root, gapPath),
     prototipo_sha,
@@ -289,7 +289,7 @@ if (invokedDirectly) {
   if (argv.includes('--selftest')) selftest();
   else {
     const gapArg = argv.find((a) => !a.startsWith('--'));
-    if (!gapArg) { console.error('uso: node prototipo-ui/gerar-map.mjs <gap.md|Mod/Tela> [--atualizar] | --selftest'); process.exit(2); }
+    if (!gapArg) { console.error('uso: node scripts/design/gerar-map.mjs <gap.md|Mod/Tela> [--atualizar] | --selftest'); process.exit(2); }
     const gapPath = resolveGap(gapArg);
     if (!gapPath) { console.error(`gap.md não encontrado pra: ${gapArg}`); process.exit(1); }
     let g = gerar(gapPath, { hoje: new Date().toISOString().slice(0, 10) });

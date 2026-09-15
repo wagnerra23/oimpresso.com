@@ -39,7 +39,7 @@ A trava confere um **CLAIM** (a âncora é assada do argumento, não do DOM); o 
 - Fingerprint selftest 18→40. Required checks main 23→24.
 
 ## Lições catalogadas
-- **Repeti a âncora podre** (07-06→07-08) — escolhi a âncora no olho em vez de `node prototipo-ui/ancora.mjs <Mod/Tela>`. Fix mecânico: a trava + o gate required.
+- **Repeti a âncora podre** (07-06→07-08) — escolhi a âncora no olho em vez de `node scripts/design/ancora.mjs <Mod/Tela>`. Fix mecânico: a trava + o gate required.
 - **O teste-do-processo pegou um bug real** (F5 extração poluída) — "verifique se funciona" ≠ rodar o selftest; é exercitar contra dado real.
 - **Outage do classificador de ferramentas** (opus-4-8) no fim bloqueou Bash/PowerShell/browser/MCP por igual (só leitura de arquivo passou) — intermitente; empurrei o handoff numa janela.
 

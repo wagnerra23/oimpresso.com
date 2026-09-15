@@ -29,9 +29,9 @@
 // `scripts/governance/component-registry-check.mjs` (advisory). Aqui só se CONSOME.
 //
 // USO:
-//   import { alvo, variantes } from './prototipo-ui/ds-lint-alvos.mjs';   // eslint.config.js
-//   node prototipo-ui/ds-lint-alvos.mjs                                   # relatório de cobertura
-//   node prototipo-ui/ds-lint-alvos.mjs --json                            # idem, máquina-legível
+//   import { alvo, variantes } from './scripts/design/ds-lint-alvos.mjs';   // eslint.config.js
+//   node scripts/design/ds-lint-alvos.mjs                                   # relatório de cobertura
+//   node scripts/design/ds-lint-alvos.mjs --json                            # idem, máquina-legível
 
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -212,7 +212,7 @@ export function cobertura() {
 }
 
 // ── CLI (relatório) ────────────────────────────────────────────────────────────
-// Só roda quando invocado direto (`node prototipo-ui/ds-lint-alvos.mjs`); importado pelo
+// Só roda quando invocado direto (`node scripts/design/ds-lint-alvos.mjs`); importado pelo
 // eslint.config.js fica silencioso.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const c = cobertura();

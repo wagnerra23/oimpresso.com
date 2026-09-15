@@ -12,9 +12,9 @@
 .PARAMETER Accept  Depois de revisar, ACEITA o snapshot atual como novo baseline (--update).
 
 .EXAMPLE
-  pwsh prototipo-ui/check-handoff.ps1 -Zip "C:\Users\wagne\Downloads\handoff.zip"
+  pwsh scripts/design/check-handoff.ps1 -Zip "C:\Users\wagne\Downloads\handoff.zip"
 .EXAMPLE
-  pwsh prototipo-ui/check-handoff.ps1 -Zip "...\handoff.zip" -Accept
+  pwsh scripts/design/check-handoff.ps1 -Zip "...\handoff.zip" -Accept
 #>
 param(
   [Parameter(Mandatory = $true)][string]$Zip,

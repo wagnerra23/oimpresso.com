@@ -15,7 +15,7 @@ Adicionar ao bloco `rules` do override `files: ['resources/js/**/*.{ts,tsx}']`. 
 >
 > Regra de **eixo de valor** (cor/radius/jargão) **não tem componente alvo** e mantém mensagem própria — isso é declarado, não escondido. O mesmo vale pros alvos que o registry **não conhece** (`SafeSelectItem`, `PageHeaderTabs`/`SubNav`, `StatusBadge`): a ausência está **declarada** em `ALVO_POR_REGRA`, e **não** foi fabricada entrada de registry pra fechar o número (o `_doc` do registry proíbe: bloco sem componente entra como `status: gap`).
 >
-> **Cobertura (medida, não escrita aqui):** `node prototipo-ui/ds-lint-alvos.mjs`
+> **Cobertura (medida, não escrita aqui):** `node scripts/design/ds-lint-alvos.mjs`
 > O número fica **pinado no selftest** (`scripts/governance/ds-lint-selftest.mjs`), que também prova a derivação: a mensagem que o ESLint realmente emitiu tem que conter `<Componente> (import_path)` como está hoje no registry, e um registry sem a entrada faz `alvo()` **lançar** em vez de cair em texto fixo.
 >
 > **Fonte viva do texto das mensagens = `eslint.config.js`.** O bloco abaixo preserva a spec como foi entregue (registro datado) — não é o texto atual.
@@ -175,4 +175,4 @@ Promover componente = entregar o **tripé**: impl em `@/Components/ui` + regra `
 | `ds/no-handrolled-form-section` | `rounded-lg border p-4\|p-5` | FormSection |
 | `ds/icons` (opt) | import direto `lucide-react` | icon-registry |
 
-> A coluna **Use** acima é prosa de leitura humana. Quais dessas regras têm o alvo **derivado do registry** (e quais não, com a razão) sai da máquina: `node prototipo-ui/ds-lint-alvos.mjs`. Não repetir o número aqui — apodrece ([ADR 0256](../memory/decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)).
+> A coluna **Use** acima é prosa de leitura humana. Quais dessas regras têm o alvo **derivado do registry** (e quais não, com a razão) sai da máquina: `node scripts/design/ds-lint-alvos.mjs`. Não repetir o número aqui — apodrece ([ADR 0256](../memory/decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)).

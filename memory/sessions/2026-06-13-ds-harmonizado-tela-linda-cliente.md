@@ -215,7 +215,7 @@ aprova. A regra canon do projeto é essa: **Wagner aprova SCREENSHOT, não tabel
   `--color-page`. **Nenhuma tela é tocada.**
 - Gerar utilities Tailwind v4 automaticamente (`bg-success-soft`,
   `text-info-fg`, etc).
-- Rodar `node prototipo-ui/ds-guard.mjs` + `ds-report.mjs` (baseline cor crua = 0
+- Rodar `node scripts/design/ds-guard.mjs` + `ds-report.mjs` (baseline cor crua = 0
   preservada) e `php artisan jana:health-check`.
 - **Sem screenshot ainda** — DS isolado não muda nenhuma tela visualmente
   (tokens novos, ninguém consome). Risco ZERO de regressão visual neste passo.

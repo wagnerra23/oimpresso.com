@@ -3,13 +3,13 @@
 // Fonte ÚNICA de `read`/`frontmatter`/`walk` para ancora.mjs + detectar-telas.mjs.
 // Eram CÓPIAS divergentes nos dois arquivos (o `walk` tinha skip-sets diferentes:
 // detectar-telas pulava `_BACKUP-NAO-USAR`, ancora NÃO). Dívida confessada em
-// ancora.mjs ("extrair frontmatter/walk pra prototipo-ui/_lib-charter.mjs").
+// ancora.mjs ("extrair frontmatter/walk pra scripts/design/_lib-charter.mjs").
 // Reduzir superfície ANTES de somar catraca (anti-bifurcação: 1 fato = 1 lugar).
 //
 // NÃO é importado de propósito por:
 //   • .claude/hooks/block-ancora-no-olho.mjs — self-contained por design (ATAQUE 1:
 //     import quebrado = fail-OPEN; o hook tem leitura de charter própria inline, fail-closed).
-//   • prototipo-ui/detectar-telas.test.mjs — as cópias de frontmatter/walk lá são
+//   • scripts/design/detectar-telas.test.mjs — as cópias de frontmatter/walk lá são
 //     DELIBERADAS (cross-check independente; importar a lib mataria a independência).
 
 import { readFile, readdir } from 'node:fs/promises';

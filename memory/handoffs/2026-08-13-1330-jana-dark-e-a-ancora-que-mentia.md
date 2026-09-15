@@ -55,7 +55,7 @@ data do arquivo, porque o checkout é raso.
 ## Próximos passos pra retomar
 
 ```bash
-node prototipo-ui/ancora.mjs Jana/Index    # agora acusa os 6 símbolos fantasma
+node scripts/design/ancora.mjs Jana/Index    # agora acusa os 6 símbolos fantasma
 ```
 
 ## Lições catalogadas
@@ -86,4 +86,4 @@ pulo quando me sinto confiante. O gatilho é a certeza, não a ignorância.
 
 - Session log: [`memory/sessions/2026-08-13-jana-dark-ancora-defeituosa.md`](../sessions/2026-08-13-jana-dark-ancora-defeituosa.md)
 - Charter: [`resources/js/Pages/Jana/Index.charter.md`](../../resources/js/Pages/Jana/Index.charter.md) v5
-- Âncora: `node prototipo-ui/ancora.mjs Jana/Index`
+- Âncora: `node scripts/design/ancora.mjs Jana/Index`

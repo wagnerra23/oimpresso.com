@@ -110,7 +110,7 @@ Precisando de variação de um componente existente, **nasce cópia local** em `
 
 > _pendente [W]/[L]_ — copy literal e ordem dos blocos. Enquanto vazio, a âncora de design abaixo é a referência.
 
-**Âncora de design:** [`prototipo-ui/cowork/venda-v3/sells-create.jsx`](../../../../prototipo-ui/cowork/venda-v3/sells-create.jsx) — cockpit "Venda — Guia de Produção", do handoff `design_handoff_cadastro_venda` (projeto de design Oimpresso `019e2365`, 2026-08-06). Declarada em `related_prototype`, então `node prototipo-ui/ancora.mjs Sells/CreateV3` a resolve. Contexto do bundle: [`prototipo-ui/FONTE-DESIGN-venda-v3.md`](../../../../prototipo-ui/FONTE-DESIGN-venda-v3.md) — o doc mora no root porque `cowork/` é **build-only** e não aceita `.md` (regra R1 do `cowork-ssot-guard`).
+**Âncora de design:** [`prototipo-ui/cowork/venda-v3/sells-create.jsx`](../../../../prototipo-ui/cowork/venda-v3/sells-create.jsx) — cockpit "Venda — Guia de Produção", do handoff `design_handoff_cadastro_venda` (projeto de design Oimpresso `019e2365`, 2026-08-06). Declarada em `related_prototype`, então `node scripts/design/ancora.mjs Sells/CreateV3` a resolve. Contexto do bundle: [`prototipo-ui/FONTE-DESIGN-venda-v3.md`](../../../../prototipo-ui/FONTE-DESIGN-venda-v3.md) — o doc mora no root porque `cowork/` é **build-only** e não aceita `.md` (regra R1 do `cowork-ssot-guard`).
 
 > ⚠️ **Errata 2026-08-10 — esta linha apontava pro vazio, e o registro fica.**
 > A redação anterior declarava a âncora em `prototipo-ui/design-oimpresso/04-modulos/vendas/sells-create.jsx`

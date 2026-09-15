@@ -26,7 +26,7 @@
 // ruído-de-dado). Ver RUNBOOK-fidelidade-fingerprint.md §Cobertura.
 //
 // USO:
-//   node prototipo-ui/render-proto-baseline.mjs --gerar Financeiro/Unificado
+//   node scripts/design/render-proto-baseline.mjs --gerar Financeiro/Unificado
 //        [--staging <dir>] [--porta 8799] [--viewports 1280,1440] [--themes light,dark]
 //        [--route <id>] [--out <path.json>]
 //     · --gerar RECUSA (exit 3) se o id de rota não existir no roteador do app.jsx — rota
@@ -34,9 +34,9 @@
 //       nasceria com o DOM ERRADO passando por íntegro (dogfood 2026-07-17). A recusa lista os
 //       ids válidos. Atenção: `rotaDoAnchor` deriva a rota do NOME do arquivo (forja-page.jsx →
 //       "forja") e isso NEM SEMPRE é o id real ("projects") — quando divergir, passe --route.
-//   node prototipo-ui/render-proto-baseline.mjs --check [arquivo.json ...]   # sem args: varre tudo
-//   node prototipo-ui/render-proto-baseline.mjs --extract <baseline.json> <1280|dark> [--out proto.json]
-//   node prototipo-ui/render-proto-baseline.mjs --selftest                   # hermético, morde/libera
+//   node scripts/design/render-proto-baseline.mjs --check [arquivo.json ...]   # sem args: varre tudo
+//   node scripts/design/render-proto-baseline.mjs --extract <baseline.json> <1280|dark> [--out proto.json]
+//   node scripts/design/render-proto-baseline.mjs --selftest                   # hermético, morde/libera
 //
 // Reusa (1 fato = 1 lugar): resolveAncora (ancora.mjs) · SNIPPET (style-fingerprint.mjs, a MESMA
 // string do --snippet) · computeGitSha (gerar-map.mjs) · acharBundleRoot (importar-bundle.mjs) ·
@@ -113,7 +113,7 @@ export function destinoBaseline(telaViva, repoRoot = REPO) {
 
 export function montarBaseline({ tela, charter, ancora, prototipo_sha, shell, celulas }) {
   return {
-    _doc: 'PROTO-BASELINE — fingerprint do PROTÓTIPO renderizado (a INTENÇÃO de design), matriz viewport×tema. Gerado LOCALMENTE por prototipo-ui/render-proto-baseline.mjs --gerar (render em CI = REJEITADO, ADR 0290); o CI só verifica este JSON commitado (--check hermético). prototipo_sha invalida quando o protótipo re-exportar (padrão do map.json). Compare prod×este via --extract + style-fingerprint --compare --tela (trava de âncora ADR 0326). Direção NÃO é uniforme: o compare reporta, humano decide (PROD_A_FRENTE nunca regride).',
+    _doc: 'PROTO-BASELINE — fingerprint do PROTÓTIPO renderizado (a INTENÇÃO de design), matriz viewport×tema. Gerado LOCALMENTE por scripts/design/render-proto-baseline.mjs --gerar (render em CI = REJEITADO, ADR 0290); o CI só verifica este JSON commitado (--check hermético). prototipo_sha invalida quando o protótipo re-exportar (padrão do map.json). Compare prod×este via --extract + style-fingerprint --compare --tela (trava de âncora ADR 0326). Direção NÃO é uniforme: o compare reporta, humano decide (PROD_A_FRENTE nunca regride).',
     version: VERSION,
     tela,
     charter,
@@ -424,8 +424,8 @@ async function cmdGerar(args) {
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, JSON.stringify(baseline, null, 1) + '\n', 'utf8'); // sem BOM (node utf8 puro)
   console.error(`✓ baseline gravado: ${relative(REPO, out).replace(/\\/g, '/')} · sha=${prototipo_sha} · ${Object.keys(celulas).length} células`);
-  console.error(`  compare com a prod: node prototipo-ui/render-proto-baseline.mjs --extract "${relative(REPO, out).replace(/\\/g, '/')}" "1280|dark" --out proto.json`);
-  console.error(`                      node prototipo-ui/style-fingerprint.mjs --compare proto.json prod.json --tela ${tela}`);
+  console.error(`  compare com a prod: node scripts/design/render-proto-baseline.mjs --extract "${relative(REPO, out).replace(/\\/g, '/')}" "1280|dark" --out proto.json`);
+  console.error(`                      node scripts/design/style-fingerprint.mjs --compare proto.json prod.json --tela ${tela}`);
   console.error('  ⚠ direção NÃO é uniforme: o compare reporta, humano decide (PROD_A_FRENTE nunca regride).');
 }
 
@@ -473,9 +473,9 @@ function cmdNudge(args) {
     let tela = '<Mod/Tela>';
     try { tela = JSON.parse(readFileSync(join(REPO, b), 'utf8')).tela || tela; } catch {}
     console.log(`\n  · **${tela}** — baseline \`${b}\``);
-    console.log(`      node prototipo-ui/render-proto-baseline.mjs --extract "${b}" "1280|dark" --out proto.json`);
-    console.log(`      node prototipo-ui/style-fingerprint.mjs --snippet ${tela}   # colar na tela viva (MESMO tema) → prod.json`);
-    console.log(`      node prototipo-ui/style-fingerprint.mjs --compare proto.json prod.json --tela ${tela}`);
+    console.log(`      node scripts/design/render-proto-baseline.mjs --extract "${b}" "1280|dark" --out proto.json`);
+    console.log(`      node scripts/design/style-fingerprint.mjs --snippet ${tela}   # colar na tela viva (MESMO tema) → prod.json`);
+    console.log(`      node scripts/design/style-fingerprint.mjs --compare proto.json prod.json --tela ${tela}`);
   }
   console.log('\n  ⚠ direção NÃO é uniforme: o compare REPORTA, humano DECIDE (PROD_A_FRENTE nunca regride).');
 }
@@ -489,7 +489,7 @@ function cmdExtract(args) {
   const out = args.out ? resolve(args.out) : null;
   if (out) {
     writeFileSync(out, JSON.stringify(fp, null, 1) + '\n', 'utf8');
-    console.error(`✓ célula ${cell} → ${out} (âncora assada: ${fp.ancora}). Agora: node prototipo-ui/style-fingerprint.mjs --compare ${out} prod.json --tela <Mod/Tela>`);
+    console.error(`✓ célula ${cell} → ${out} (âncora assada: ${fp.ancora}). Agora: node scripts/design/style-fingerprint.mjs --compare ${out} prod.json --tela <Mod/Tela>`);
   } else console.log(JSON.stringify(fp, null, 1));
 }
 

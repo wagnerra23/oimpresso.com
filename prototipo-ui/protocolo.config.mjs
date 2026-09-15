@@ -14,9 +14,9 @@
 // cowork-mirror-freshness · resolveAncora do ancora). Só CONSOLIDA o que estava espalhado.
 //
 // USO:
-//   node prototipo-ui/protocolo.config.mjs            # imprime o painel (IDs, paths, fases)
-//   node prototipo-ui/protocolo.config.mjs --json     # idem, JSON
-//   node prototipo-ui/protocolo.config.mjs --selftest # trava se ID/path/script sumir (CI)
+//   node scripts/design/protocolo.config.mjs            # imprime o painel (IDs, paths, fases)
+//   node scripts/design/protocolo.config.mjs --json     # idem, JSON
+//   node scripts/design/protocolo.config.mjs --selftest # trava se ID/path/script sumir (CI)
 //
 // IMPORT (scripts + o próprio agente):
 //   import { COWORK_PROJECT_ID, STAGING_DIR, FASES } from './protocolo.config.mjs'
@@ -86,7 +86,7 @@ export const PREFLIGHT_GATES = [
   'node scripts/casos-coverage-guard.mjs',
   'npm run lint:baseline:check',
   'node_modules/.bin/tsc --noEmit',
-  'node prototipo-ui/ds-guard.mjs <arquivos-tocados>',
+  'node scripts/design/ds-guard.mjs <arquivos-tocados>',
   'node scripts/governance/cowork-ssot-guard.mjs',
 ];
 
@@ -110,27 +110,27 @@ export const FASES = [
       'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=<âncora>)                  # pull direto, agente logado (ADR 0325)',
       'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir-jsons>     # escreve o raw.content no espelho (ADR 0374 — transcrever à mão é PROIBIDO)',
       'node scripts/governance/cowork-mirror-freshness.mjs --snapshot-from <dir> --emit-snapshot <s>  # MEDIR sem consertar (antes do export)',
-    ], selftest: 'node prototipo-ui/handoff-changed.mjs --selftest' },
+    ], selftest: 'node scripts/design/handoff-changed.mjs --selftest' },
   { fase: '0/0.5', nome: 'Detectar + manifesto', comandos: [
-      'node prototipo-ui/detectar-telas.mjs --staging <dir> --json --strict',
-    ], selftest: 'node prototipo-ui/detectar-telas.mjs --selftest' },
+      'node scripts/design/detectar-telas.mjs --staging <dir> --json --strict',
+    ], selftest: 'node scripts/design/detectar-telas.mjs --selftest' },
   { fase: '1', nome: 'Mapear / comparar', comandos: [
-      'node prototipo-ui/ancora.mjs <Mod/Tela>',
-      'node prototipo-ui/style-fingerprint.mjs --compare proto.json prod.json --tela <Mod/Tela>',
-      'node prototipo-ui/design-diff.mjs --compare prod.json design.json --check',
-      'node prototipo-ui/gerar-map.mjs <gap.md>   # esqueleto do <tela>.map.json (ponte design↔código persistente)',
-    ], selftest: 'node prototipo-ui/style-fingerprint.mjs --selftest' },
+      'node scripts/design/ancora.mjs <Mod/Tela>',
+      'node scripts/design/style-fingerprint.mjs --compare proto.json prod.json --tela <Mod/Tela>',
+      'node scripts/design/design-diff.mjs --compare prod.json design.json --check',
+      'node scripts/design/gerar-map.mjs <gap.md>   # esqueleto do <tela>.map.json (ponte design↔código persistente)',
+    ], selftest: 'node scripts/design/style-fingerprint.mjs --selftest' },
   { fase: '3/4', nome: 'Registrar + aplicar região', comandos: [
-      'node prototipo-ui/consumir-map.mjs <Mod/Tela>   # portão de frescor (aborta se o protótipo re-exportou) + plano de leitura: a sessão abre SÓ os ranges do map',
-      'node prototipo-ui/gerar-contrato.mjs <gap.md>',
+      'node scripts/design/consumir-map.mjs <Mod/Tela>   # portão de frescor (aborta se o protótipo re-exportou) + plano de leitura: a sessão abre SÓ os ranges do map',
+      'node scripts/design/gerar-contrato.mjs <gap.md>',
       'node scripts/contrato-de-tela.mjs --contract <c.json> --contract-alvo <Pages/...>',
-      'node prototipo-ui/recortar-regiao.mjs --contract <c.json> --bboxes <b.json> --png <shot.png> --out <dir>',
-    ], selftest: 'node prototipo-ui/gerar-contrato.mjs --selftest' },
+      'node scripts/design/recortar-regiao.mjs --contract <c.json> --bboxes <b.json> --png <shot.png> --out <dir>',
+    ], selftest: 'node scripts/design/gerar-contrato.mjs --selftest' },
   { fase: '4-preflight', nome: 'Gates antes do PR', comandos: PREFLIGHT_GATES },
   { fase: '5', nome: 'Fechar o loop', comandos: [
       'node scripts/governance/anchor-lint.mjs --check memory/requisitos/<Mod>/SPEC.md',
       'node scripts/governance/design-code-map-check.mjs --check --strict   # % telas mapeadas + invalida map.json com sha stale',
-    ], selftest: 'node prototipo-ui/integrity-check.mjs' },
+    ], selftest: 'node scripts/design/integrity-check.mjs' },
 ];
 
 // ── selftest hermético (trava drift — vai pro design-memory-gate no CI) ─────────
