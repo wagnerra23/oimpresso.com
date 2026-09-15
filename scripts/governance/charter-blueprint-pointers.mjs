@@ -146,7 +146,10 @@ function declaraMorte(linha) {
   // "nunca versionado": o alvo NUNCA existiu no git (artefato externo do Cowork — zip, pasta
   // local). MEDIDO no historico completo, repo nao-raso: 0 commits tocaram esses paths. E
   // declaracao do mesmo tipo — o doc diz por que o ponteiro nao resolve — entao sai da cobranca.
-  return /removido em|PATH APAGADO|apagado em|nunca versionado|N\u00c3O EXISTE|NAO EXISTE|Corrigido 20/i.test(linha);
+  // "nao resolve no repo — proveniencia nao determinada": o doc declara que o ponteiro nao
+  // resolve E que a origem NAO foi medida. E a forma honesta quando a medicao nao fecha:
+  // melhor do que inventar data (foi o ERRO 2 que a r1 do GT-G5 pegou neste mesmo lote).
+  return /removido em|PATH APAGADO|apagado em|nunca versionado|o resolve no repo|N\u00c3O EXISTE|NAO EXISTE|Corrigido 20/i.test(linha);
 }
 
 function requisitosDocs() {
