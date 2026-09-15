@@ -34,6 +34,7 @@ on:
       - 'governance/nightly-floor.json'        # floor publicado pelo write-side CT100 (ADR 0279)
       - 'governance/nightly-coverage.json'     # coverage publicado pelo write-side CT100 (SDD P07 · ADR 0275)
       - 'scripts/governance/sdd-floor-read.test.mjs'
+      - 'scripts/governance/sdd-carried-over.test.mjs'
       - 'scripts/governance/sdd-coverage-read.test.mjs'
       - 'scripts/governance/sdd-ragas-read.test.mjs'
       - 'scripts/tests/floor-compute.mjs'
@@ -88,6 +89,9 @@ jobs:
 
       - name: Read-side do floor — meta-teste (hard · ADR 0279 PR-1 · US-GOV-023)
         run: node scripts/governance/sdd-floor-read.test.mjs
+
+      - name: Preservação do fato quando a leitura falha — meta-teste (hard · §5 2026-07-29)
+        run: node scripts/governance/sdd-carried-over.test.mjs
 
       - name: Write-side do floor — meta-teste do compute (hard · ADR 0279 PR-2)
         run: node scripts/tests/floor-compute.test.mjs
