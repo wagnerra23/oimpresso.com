@@ -169,4 +169,4 @@ mandar `false`: preserva o contrato sem tocar no `store()`.
 - Casos: [`resources/js/Pages/Patrimonio/Configuracoes.casos.md`](../../../resources/js/Pages/Patrimonio/Configuracoes.casos.md)
 - Tela irmã que fundou o padrão: [`RUNBOOK-bens.md`](RUNBOOK-bens.md)
 - Fonte visual: `prototipo-ui/cowork/Wagner/patrimonio-page.jsx` (aba `config`, `:589`) — **alvo**, não decisão de produto
-- Playbook: `prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/11-configuracoes.md`
+- Playbook: `prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/11-configuracoes.md`

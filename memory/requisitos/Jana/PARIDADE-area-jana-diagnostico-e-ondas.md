@@ -203,7 +203,7 @@ Cobrança de [W] (2026-08-18): *"o diretório permitido tem que ser sempre o mes
 | # | caminho | estado |
 |---|---|---|
 | 1 | `prototipo-ui/design-system/` | **versionado** — `colors_and_type.css` · `cockpit_domains.css` · 4 fontes sans. Existe pro sentinela `ds-mirror-drift` comparar (o CI não tem login claude.ai) |
-| 2 | `prototipo-ui/cowork/_ds/office-impresso-design-system-019dd02f…/` | **onde o host pede** (`<link>`/`<script>` do `oimpresso.com.html`) — **vazio** |
+| 2 | `prototipo-ui/cowork/_ds/office-impresso-design-system-019dd02f…/` | **onde o host pede** (`<link>`/`<script>` do `oimpresso.com.html`) — **vazio** | _(removido em 2026-09-15, 2bed3bbb214)_
 | 3 | `prototipo-ui/design-system/` | onde `--export-from --ds` escreveria — **0 arquivos no git**, ninguém consome |
 | 4 | `.claude/launch.json` → `.claude/worktrees/<nome>/prototipo-ui/cowork` | **efêmero e gitignored** — 3 das 5 entradas apontam pra worktrees de sessões que podem já não existir |
 
@@ -228,7 +228,7 @@ E o **destino instável** (4 locais para o mesmo conteúdo) fechou junto: o
 `cowork-mirror-freshness --preview-ds` materializa o snapshot versionado **no slug que o host
 pede**, derivando o id do próprio shell em vez de hardcode — é o elo (1) → (2) que a tabela dos
 4 locais dizia nunca ter sido ligado. O `README.md` do `mirror-snapshot/` agora declara
-`prototipo-ui/cowork/_ds/` como **cache derivado, gitignored**, encerrando a ambiguidade.
+`prototipo-ui/cowork/_ds/` como **cache derivado, gitignored**, encerrando a ambiguidade. _(removido em 2026-09-15, 2bed3bbb214)_
 
 **Recibos (dois oráculos independentes, nesta ordem):**
 
@@ -725,7 +725,7 @@ estado que o código abandonou há ~7 semanas.
    O #3981 afirma ter portado *"13 verbatim do espelho aprovado: bg/bg-2/surface/border/border-2/**text/text-dim/text-mute** + sb-*"*.
    O diff mostra que os 3 de texto foram para valores **byte-idênticos aos pré-UI-0020**
    (`0.94/0.72/0.58 · 90`), não para 240. E o padrão resultante — superfícies 240 + textos 90 — é
-   exatamente o que o [`prototipo-ui/Design System v4.html:1771-1779`](../../../prototipo-ui/Design%20System%20v4.html)
+   exatamente o que o [`prototipo-ui/Design System v4.html:1771-1779`](../../../prototipo-ui/Design%20System%20v4.html) _(removido em 2026-09-11, 878e6069d1a)_
    tem no bloco `[data-theme="dark"]`. Fato medido; **não afirmo intenção**. Os `sb-text*` nunca
    passaram por 282 em nenhum commit — nasceram 90 e continuam 90.
 

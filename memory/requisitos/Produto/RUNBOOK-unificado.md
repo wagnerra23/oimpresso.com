@@ -29,7 +29,7 @@ related_adrs:
 >
 > ⚠️ Não é RUNBOOK de migração Blade→React: **não existe Blade equivalente** desta tela. O
 > `/products` (lista) é que tem par Blade. Aqui a origem é o protótipo Cowork
-> `prototipo-ui/cowork/prototipo-ui-patch/prototipos/produto/produto-app.jsx`, declarado no
+> `prototipo-ui/cowork/prototipo-ui-patch/prototipos/produto/produto-app.jsx`, declarado no _(removido em 2026-08-31, 539efa2a8aa)_
 > `related_prototype` do charter.
 
 ## 1. O que a tela é

@@ -232,6 +232,7 @@ const tsxTabela = [
     '- vivo:   `prototipo-ui/cowork/Wagner/vivo-page.jsx`',
     '- mudo:   `prototipo-ui/prototipos/fantasma/page.jsx`',
     '- datado: `prototipo-ui/prototipos/outro/page.jsx` (removido em 2026-05-20, 1070e3759b7)',
+    '- externo: `ui_kits/cowork-2026-04-27/x.jsx` _(nunca versionado no repo — artefato externo do Cowork)_',
     '',
   ].join('\n'));
   const r = spawnSync('node', [POINTERS, '--json'], { cwd: root, encoding: 'utf8' });
@@ -245,6 +246,9 @@ const tsxTabela = [
     JSON.stringify(j && j.requisitos_detalhe));
   check('(e2) o ponteiro VIVO nao e cobrado',
     j && !JSON.stringify(j.requisitos_detalhe || []).includes('vivo-page.jsx'),
+    JSON.stringify(j && j.requisitos_detalhe));
+  check('(e2) o "nunca versionado" tambem nao e cobrado',
+    j && !JSON.stringify(j.requisitos_detalhe || []).includes('cowork-2026-04-27'),
     JSON.stringify(j && j.requisitos_detalhe));
   // a 2a raiz e ADVISORY: nao pode mudar o veredito do --strict (que e dos charters)
   const st = spawnSync('node', [POINTERS, '--strict'], { cwd: root, encoding: 'utf8' });

@@ -132,7 +132,10 @@ const REQ = join(ROOT, 'memory/requisitos');
 
 /** A linha que carrega o ponteiro ja declara que ele morreu? Entao e registro, nao divida. */
 function declaraMorte(linha) {
-  return /removido em|PATH APAGADO|apagado em|N\u00c3O EXISTE|NAO EXISTE|Corrigido 20/i.test(linha);
+  // "nunca versionado": o alvo NUNCA existiu no git (artefato externo do Cowork — zip, pasta
+  // local). MEDIDO no historico completo, repo nao-raso: 0 commits tocaram esses paths. E
+  // declaracao do mesmo tipo — o doc diz por que o ponteiro nao resolve — entao sai da cobranca.
+  return /removido em|PATH APAGADO|apagado em|nunca versionado|N\u00c3O EXISTE|NAO EXISTE|Corrigido 20/i.test(linha);
 }
 
 function requisitosDocs() {

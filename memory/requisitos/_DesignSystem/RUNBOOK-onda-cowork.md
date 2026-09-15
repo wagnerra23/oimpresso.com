@@ -78,7 +78,7 @@ Aplica a TODA Onda. Skip de qualquer fase = violação PROTOCOLO ([ADR 0168](../
 
 ### F3 — CSS scoped
 
-- [ ] Identificar classes novas necessárias (`.vd-*`, `.os-*`, etc) lidas verbatim de `prototipo-ui/cowork/Wagner/legado/<modulo>/styles.css`
+- [ ] Identificar classes novas necessárias (`.vd-*`, `.os-*`, etc) lidas verbatim de `prototipo-ui/cowork/Wagner/legado/<modulo>/styles.css` _(removido em 2026-09-15, 2bed3bbb214)_
 - [ ] **Onda Visual Base**: copiar `styles.css` verbatim → `resources/css/<modulo>-cowork.css` + scope script
 - [ ] **Onda Refino**: extrair só as classes do refino → adicionar ao final de `<modulo>-cowork.css` OU criar `<modulo>-cowork-<refino>.css` import em `inertia.css`
 - [ ] Globais conflitantes (`body`/`html`/`.app`) desativados
@@ -205,7 +205,7 @@ Estimar Onda em **tempo codável** (do prototype JSX) e **tempo humano-limitado*
 
 ## Pattern reusável pra outros módulos
 
-Aplicável a TODO módulo com prototype Cowork em `prototipo-ui/cowork/Wagner/legado/<modulo>/`:
+Aplicável a TODO módulo com prototype Cowork em `prototipo-ui/cowork/Wagner/legado/<modulo>/`: _(removido em 2026-09-15, 2bed3bbb214)_
 
 | Módulo | Prototype existe? | Status migração |
 |---|---|---|

@@ -27,7 +27,7 @@ gerado_em: 2026-09-06
 > como novidade, só as ancoro. (b) O charter (v2, 2026-08-19) tem quatro decisões [W], **três
 > abertas** — D1 (versão do módulo), D3 (drawer PT-02) e D4 (instalação dentro do request) — e uma
 > fechada, D2 (RBAC unificado em `manage_modules`, decidido em 2026-08-19). (c) O intake do design vive
-> em [`cowork-inbox/modulos/`](../../../prototipo-ui/design-docs/cowork-inbox/modulos/) e é **pedido**
+> em [`cowork-inbox/modulos/`](../../../prototipo-ui/design-docs/cowork-inbox/modulos/) e é **pedido** _(removido em 2026-09-11, 4f51a9ec781)_
 > (7 PRs), não fonte visual — nada dele entra aqui como gap.
 >
 > **Non-Goals do charter, que NÃO viram gap:** habilitar módulo por negócio, aplicar `business_id`

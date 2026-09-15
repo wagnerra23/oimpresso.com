@@ -7,14 +7,14 @@ module: Inventory
 status: approved
 date: 2026-05-15
 # canon_reference: o path abaixo foi removido em 2026-05-20, 1070e3759b7
-canon_reference: prototipo-ui/prototipos/produto-cockpit/produto-cockpit-page.jsx
+canon_reference: prototipo-ui/prototipos/produto-cockpit/produto-cockpit-page.jsx (removido em 2026-05-20, 1070e3759b7)
 blade_source: resources/views/product/index.blade.php
 inertia_target: resources/js/Pages/Produto/Index.tsx
 approved_by: pending_wagner_screenshot_approval
 generated_retroactively: false
 pattern_reuse: true
 # blueprint_cowork: o path abaixo foi removido em 2026-05-20, 1070e3759b7
-blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/
+blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ (removido em 2026-05-20, 1070e3759b7)
 ---
 
 # Comparativo visual — Lista de produtos (`/products`)

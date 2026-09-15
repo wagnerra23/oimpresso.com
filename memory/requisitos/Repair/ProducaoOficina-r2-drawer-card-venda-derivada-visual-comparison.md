@@ -4,7 +4,7 @@ tela: /repair/producao-oficina (drawer · adição cirúrgica)
 componente: resources/js/Pages/Repair/ProducaoOficina/Index.tsx (JobDrawer)
 onda: Onda 5 — Integração Vendas × Oficina (A1 KB-9.75)
 status: aprovado-cowork — mapeamento direto F1 protótipo
-fonte_cowork: prototipo-ui/oficina-page.jsx (linhas 392-458) + prototipo-ui/oficina-page.css (linhas 465-598)
+fonte_cowork: prototipo-ui/oficina-page.jsx (linhas 392-458) + prototipo-ui/oficina-page.css (linhas 465-598) (removido em 2026-08-13, 56059e784c4)
 adr: 0192 (auto-faturar OS→Venda) · 0121 §P8 (vocabulário shared) · 0093 (multi-tenant Tier 0)
 data: 2026-05-25
 worker: B (sub-agent paralelo)
@@ -26,7 +26,7 @@ worker: B (sub-agent paralelo)
 
 ## Mapeamento Cowork → Inertia React
 
-### Fonte Cowork (`prototipo-ui/oficina-page.jsx` linhas 392-458)
+### Fonte Cowork (`prototipo-ui/oficina-page.jsx` linhas 392-458) _(removido em 2026-08-13, 56059e784c4)_
 
 Drawer body do `oficina-page.jsx` tem `{showVendaCard && (...)}` que renderiza `.ofc-venda-card` com:
 
