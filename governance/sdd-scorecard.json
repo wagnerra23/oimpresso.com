@@ -204,7 +204,7 @@
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 0,
+      "value": 8,
       "unit": "portas atrás dos eventos (>7d vs doc OU código mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -213,7 +213,7 @@
         "portas": 80,
         "carimbadas": 14,
         "sem_carimbo": 66,
-        "stale": 0,
+        "stale": 8,
         "oldest_distilled_at": "2026-09-06",
         "datadas_por_codigo": 14
       },
@@ -254,10 +254,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 69,
+        "entries_aprovadas": 70,
         "max_error_rate_pct": 1.98,
-        "last_pr": 7262,
-        "last_lote": "gt-g5-lote-7262"
+        "last_pr": 7335,
+        "last_lote": "gt-g5-lote-7335"
       },
       "stream": "GT"
     }
