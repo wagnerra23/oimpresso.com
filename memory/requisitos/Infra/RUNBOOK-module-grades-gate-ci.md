@@ -4,9 +4,9 @@ slug: runbook-module-grades-gate-ci
 title: "RUNBOOK — Module Grades Gate CI (anti-regressão module-grade v3)"
 type: runbook
 authority: canonical
-lifecycle: ativo
+lifecycle: arquivado
 owner: W
-last_updated: 2026-05-16
+last_updated: 2026-09-15
 last_validated: "2026-05-16"
 related_workflow: .github/workflows/module-grades-gate.yml
 related_baseline: governance/module-grades-baseline.json
@@ -25,7 +25,22 @@ pii: false
 
 # RUNBOOK — Module Grades Gate CI
 
-Workflow [`.github/workflows/module-grades-gate.yml`](../../../.github/workflows/module-grades-gate.yml) é o **gate anti-regressão da rubrica `module-grade-v3`** ([ADR 0155](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md)). Bloqueia merge em DOIS cenários (Wave 2 endurecimento 2026-05-16):
+> ## ⚰️ APOSENTADO em 2026-09-15 — [ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md)
+>
+> **Este RUNBOOK documenta um gate que NÃO EXISTE MAIS.** O workflow
+> `.github/workflows/module-grades-gate.yml` e o `governance/module-grades-baseline.json`
+> foram **deletados**; a rubrica `module-grade` (ADRs 0153→0159) foi superseded pela ADR 0399.
+>
+> **Não execute nada daqui.** Os procedimentos abaixo (atualizar baseline, aplicar label de
+> override, re-rodar o gate) apontam para máquinas que já não rodam — seguir qualquer um deles
+> é trabalho perdido, no melhor caso.
+>
+> Ele fica por duas razões, nenhuma delas operacional: (1) é o registro de como a catraca
+> funcionava e por que ela caiu (4 rebaselines v3.5.1→v3.5.4 por piso acima do que o CI
+> alcançava); (2) `memory/requisitos/Infra/SPEC.md` e 2 handoffs append-only linkam para cá,
+> e apagá-lo criaria links mortos novos em vez de fechar os antigos.
+
+Workflow `.github/workflows/module-grades-gate.yml` (DELETADO 2026-09-15) é o **gate anti-regressão da rubrica `module-grade-v3`** ([ADR 0155](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md)). Bloqueia merge em DOIS cenários (Wave 2 endurecimento 2026-05-16):
 
 1. **Regressão** — nota de QUALQUER módulo diminuiu vs `governance/module-grades-baseline.json`
 2. **Módulo novo sem aprovação** — entry presente no current ausente na baseline e sem label de aprovação Wagner
@@ -42,7 +57,7 @@ Time MCP entra em breve. Hook local pode ser pulado (`--no-verify`); CI é a **f
 
 ## §2. Quando dispara
 
-Workflow é triggado em pull_request com `types: [opened, synchronize, reopened, labeled, unlabeled]` ([`.github/workflows/module-grades-gate.yml`](../../../.github/workflows/module-grades-gate.yml) linha 14-15). Triggers `labeled`/`unlabeled` permitem re-rodar o gate **sem novo push** após aplicar/remover label de override.
+Workflow é triggado em pull_request com `types: [opened, synchronize, reopened, labeled, unlabeled]` (`.github/workflows/module-grades-gate.yml` (DELETADO 2026-09-15) linha 14-15). Triggers `labeled`/`unlabeled` permitem re-rodar o gate **sem novo push** após aplicar/remover label de override.
 
 `timeout-minutes: 10` (linha 24) — composer install + `php artisan module:grade --all` em ~3-4min típico.
 
@@ -331,8 +346,8 @@ Wagner monitora periodicamente (sem dashboard formal ainda — futuro Fase 5 [AD
 
 **Workflow + artefatos:**
 
-- [`.github/workflows/module-grades-gate.yml`](../../../.github/workflows/module-grades-gate.yml) — workflow CI (~311 linhas, Wave 2 LIVE)
-- [`governance/module-grades-baseline.json`](../../../governance/module-grades-baseline.json) — baseline canônica v3.1
+- `.github/workflows/module-grades-gate.yml` (DELETADO 2026-09-15) — workflow CI (~311 linhas, Wave 2 LIVE)
+- `governance/module-grades-baseline.json` (DELETADO 2026-09-15) — baseline canônica v3.1
 - [`Modules/Governance/Services/ModuleGradeService.php`](../../../Modules/Governance/Services/ModuleGradeService.php) — engine de avaliação
 - [`Modules/Governance/Console/Commands/ModuleGradeCommand.php`](../../../Modules/Governance/Console/Commands/ModuleGradeCommand.php) — command CLI
 

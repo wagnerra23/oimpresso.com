@@ -49,7 +49,7 @@ owner: W
 
 | Régua | Nota | O que mede | Fonte |
 |---|:-:|---|---|
-| **module-grade v3** | **viva — não copiada** | governança/higiene (Tier 0, Pest, doc, sec, LGPD, obs) | dono = [`governance/module-grades-baseline.json`](../../../governance/module-grades-baseline.json) · o gate `module-grades-gate` reporta em todo PR |
+| **module-grade v3** | **viva — não copiada** | governança/higiene (Tier 0, Pest, doc, sec, LGPD, obs) | era `governance/module-grades-baseline.json` (APOSENTADO 2026-09-15 — [ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md)) · rubrica e gate APOSENTADOS em 2026-09-15 (ADR 0399); a linha fica como registro do que se media |
 | **CAPTERRA design** | **67** _(medido 2026-07-03)_ | UX/UI do protótipo Cowork F1 | [CAPTERRA-DESIGN-FICHA.md](CAPTERRA-DESIGN-FICHA.md) |
 | **CAPTERRA capacidade** | **34** _(medido 2026-07-03)_ | features/automação/fiscal/recebimento vs líderes | [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) |
 
