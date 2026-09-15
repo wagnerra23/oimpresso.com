@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-14**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-15**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -25,8 +25,8 @@ lente: [construir]
 | Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-08-25 |
 | AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-07-23 |
 | Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-09-11 |
-| Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-07-23 |
-| Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-08-16 |
+| Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-09-15 |
+| Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-09-15 |
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-08-12 |
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-08-03 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-08-12 |
@@ -35,7 +35,7 @@ lente: [construir]
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-09-07 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-09-07 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-12 |
-| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-07 |
+| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-15 |
 | Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-07 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-09-04 |
@@ -44,7 +44,7 @@ lente: [construir]
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-09-07 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-09-07 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-05 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-15 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-09-07 |
@@ -80,7 +80,7 @@ lente: [construir]
 
 > Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
 
-### Bloqueiam merge — 46 required (enforcement: everyone)
+### Bloqueiam merge — 47 required (enforcement: everyone)
 > Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
 
 - ADR (memory/decisions/*.md)
@@ -101,6 +101,7 @@ lente: [construir]
 - ESLint · ratchet vs baseline
 - Frontend / Vite build
 - gate selftest (as catracas mordem · GT-G6)
+- handoff integrity (órfão/ref-morta só sobe = vermelho)
 - Layout primitives · ratchet
 - Modulo backend com BRIEFING (cobertura)
 - No hardcode business_id (Tier 0)
@@ -130,13 +131,13 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 144 workflows por classe
+### Censo — 143 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 109 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 108 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 24 | agent-cost-per-pr, agent-pr-outcomes, baseline-folga, briefing-code-staleness, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -145,13 +146,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **403** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 359 · superseded: 18 · deprecated: 13 · proposto: 11 · rascunho: 1 · recusado: 1.
+- **405** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 356 · superseded: 25 · deprecated: 11 · proposto: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 185 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 191 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -339,6 +340,12 @@ lente: [construir]
 - ~~2026-09-08 — Teste de tela Inertia que monta uma requisicao que o BROWSER NUNCA ENVIA (verde no CI, skeleton eterno em prod) — e a mutacao nao pega, porque muta o CODIGO, nao a SONDA~~
 - ~~2026-09-08 — Absolver um artefato citando uma atribuição `[W] <data>` que estava na sentença VIZINHA (a frase nasceu falsa, e eu publiquei a absolvição EM CÓDIGO)~~
 - ~~2026-09-09 — Promover `blueprint_cowork` e `canon_reference` a ÂNCORA de design (as 2 chaves que a cadeia "ignora")~~
+- ~~2026-09-15 — EMENDA da lápide 2026-08-20 (sondar o git com a mudança não-commitada): o eixo ESPELHADO — reverter o WORKING TREE pra testar a autoria de um valor que vem do GIT~~
+- ~~2026-09-15 — Watchdog cujo eixo de ENTREGA mede um campo CONGELADO POR DOUTRINA (60d declarados × 15d de toque real) — e a re-cura pelo CT 100 é o modo de falha que o próprio artefato documenta 4×~~
+- ~~2026-09-15 — EMENDA da lápide 2026-09-07 (LC-22, "rodei dois consumidores e nenhum era estrito"): o backstop LOCAL que deveria ter pegado é um hook `deny`-by-default que **falha aberto em TODA invocação** — as 3 deps dele nunca entraram no `package.json`~~
+- ~~2026-09-15 — EMENDA da lápide 2026-08-11 (`jq` ausente faz o silêncio virar "nada a reportar"): o VIGIA que eu armei era mudo, e o hook que pega isso não cobre o tool `Monitor`~~
+- ~~2026-09-15 — EMENDA da lápide 2026-08-07 (snapshot congelado × tip vivo): o eixo **BASE-DE-PR** — `pull_request.base.sha` contra um checkout que é MERGE REF, dentro de um gate **required**~~
+- ~~2026-09-15 — Concluir que 3 arquivos do cache tinham CONTEÚDO ÚNICO porque o NOME não existia no versionado (eram o mesmo arquivo com quatro nomes)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -349,14 +356,14 @@ lente: [construir]
 
 ## Rastro
 
-- **520** handoffs · **734** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **521** handoffs · **737** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-15-handoff-19-ciclo-ponto-e-passo-0-zip`
+  - `2026-09-14-refutacao-gt-g5-lote-7262-r2`
+  - `2026-09-14-refutacao-gt-g5-lote-7262-r1`
   - `2026-09-13-sidebar-adicionar-empresa-thread03`
   - `2026-09-13-refutacao-gt-g5-lote-7224-r2`
   - `2026-09-13-ponto-thread03-a11y-ja-feita`
-  - `2026-09-13-governanca-03a-casos-policies`
-  - `2026-09-13-fiscal-e2e-rede-thread01`
-  - `2026-09-13-ds-atomos-02-kpicard-filter`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-14 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-15 · deriva das fontes canônicas, não as substitui._
