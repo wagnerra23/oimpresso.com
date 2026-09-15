@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 715,
-    "edges": 1009,
+    "nodes": 714,
+    "edges": 1008,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 115,
-      "component": 385,
+      "component": 384,
       "api": 74
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 78,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 385,
+      "hasComponent": 384,
       "dependsOn": 116,
       "delegatesTo": 108,
       "migratesTo": 1,
@@ -2786,13 +2786,6 @@
       "desc": "install/uninstall hooks (ADR 0024)"
     },
     {
-      "id": "component:Governance/ModuleGradeController",
-      "type": "component",
-      "module": "Governance",
-      "name": "ModuleGradeController",
-      "desc": "/governance/module-grades Index ranking 34 módulos + Show drill-down 9 dimensões v3 + dossier markdown (ADR 0155 + Charter Goal 9 2026-05-17)"
-    },
-    {
       "id": "component:Governance/PoliciesController",
       "type": "component",
       "module": "Governance",
@@ -2804,7 +2797,7 @@
       "type": "component",
       "module": "Governance",
       "name": "QualidadeIaController",
-      "desc": "/governance/qualidade-ia trend das métricas de RAG/memória (MEM-MET-4, ADR 0050; recebido do Modules/Jana em 2026-08-05 — decisão [W]: eval é gate de conformidade, medido contra piso igual module-grades e drift)"
+      "desc": "/governance/qualidade-ia trend das métricas de RAG/memória (MEM-MET-4, ADR 0050; recebido do Modules/Jana em 2026-08-05 — decisão [W]: eval é gate de conformidade, medido contra piso igual ao drift — e igual ao module-grade, que era o outro exemplo até ser aposentado em 2026-09-15 pela ADR 0399)"
     },
     {
       "id": "component:Governance/Services/PolicyEngine",
@@ -8995,12 +8988,6 @@
     {
       "from": "module:Governance",
       "to": "component:Governance/InstallController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Governance",
-      "to": "component:Governance/ModuleGradeController",
       "type": "hasComponent",
       "source": "contains"
     },
