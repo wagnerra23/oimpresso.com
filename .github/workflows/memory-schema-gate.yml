@@ -99,7 +99,35 @@ jobs:
       - name: Install PyYAML
         run: pip install --quiet pyyaml
       - name: Install deps do validador
-        run: npm install --no-save ajv@^8.17.1 ajv-formats@^3.0.1 gray-matter@^4.0.3 glob@^11.0.0
+        # RETRY (2026-09-15): 9 lanes deste workflow morreram AQUI em 30 dias por falha
+        # de rede do registry npm — 8x ECONNRESET + 1x E502 — em 6 lanes distintas, 4
+        # delas eram required em 2026-09-15 (ADR/SPEC/Charter/Topico) — quem e required
+        # e governance/required-checks-baseline.json, nao este comentario (LC-10).
+        # Todas passaram em re-run SEM mudanca de codigo: e flake de rede, nao defeito
+        # de diff. O custo era vermelho falso num gate que bloqueia merge, e quem paga e
+        # o autor do PR, investigando um erro que nao e dele.
+        #
+        # Loop bash e o idioma do repo (deploy.yml:229, quick-sync.yml:87,
+        # force-clean-rebuild-trigger.yml:98). `nick-fields/retry` NAO existe aqui
+        # (0 ocorrencias, medido) e nao se introduz action de terceiro por isto.
+        #
+        # `npm ci` + `cache: npm` (idioma de 10 workflows) foi MEDIDO e descartado:
+        # ajv-cli e glob nao estao no package.json (so ajv/ajv-formats/gray-matter,
+        # desde #7284), entao exigiria declarar dep de CI no projeto inteiro; e num
+        # cache miss o `ci` completo tem MAIS superficie de rede, nao menos.
+        #
+        # `$PKGS` sem aspas e intencional (word splitting = N argumentos). Sob o shell
+        # do step (`bash -e`), o lado esquerdo de `&&` nao dispara o -e: a falha cai no
+        # retry em vez de abortar. Falha nas 3 tentativas AINDA REPROVA (nao vira carimbo).
+        run: |
+          PKGS="ajv@^8.17.1 ajv-formats@^3.0.1 gray-matter@^4.0.3 glob@^11.0.0"
+          for tentativa in 1 2 3; do
+            npm install --no-save $PKGS && exit 0
+            echo "::warning::npm install falhou (tentativa $tentativa/3) — nova tentativa em $((tentativa * 10))s"
+            sleep $((tentativa * 10))
+          done
+          echo "::error::npm install falhou nas 3 tentativas — nao e flake de rede transitorio"
+          exit 1
       - name: Selftest (fixture ruim = o frontmatter exato que passou no #4798)
         run: node scripts/memory-schemas/validate.mjs --selftest
       # Estes dois têm `--selftest` embutido e MORAM AQUI, não no governance-script-tests:
@@ -201,13 +229,35 @@ jobs:
           node-version: 20
 
       - name: Install AJV CLI (validation only — sem deps custos do remark)
+        # RETRY (2026-09-15): 9 lanes deste workflow morreram AQUI em 30 dias por falha
+        # de rede do registry npm — 8x ECONNRESET + 1x E502 — em 6 lanes distintas, 4
+        # delas eram required em 2026-09-15 (ADR/SPEC/Charter/Topico) — quem e required
+        # e governance/required-checks-baseline.json, nao este comentario (LC-10).
+        # Todas passaram em re-run SEM mudanca de codigo: e flake de rede, nao defeito
+        # de diff. O custo era vermelho falso num gate que bloqueia merge, e quem paga e
+        # o autor do PR, investigando um erro que nao e dele.
+        #
+        # Loop bash e o idioma do repo (deploy.yml:229, quick-sync.yml:87,
+        # force-clean-rebuild-trigger.yml:98). `nick-fields/retry` NAO existe aqui
+        # (0 ocorrencias, medido) e nao se introduz action de terceiro por isto.
+        #
+        # `npm ci` + `cache: npm` (idioma de 10 workflows) foi MEDIDO e descartado:
+        # ajv-cli e glob nao estao no package.json (so ajv/ajv-formats/gray-matter,
+        # desde #7284), entao exigiria declarar dep de CI no projeto inteiro; e num
+        # cache miss o `ci` completo tem MAIS superficie de rede, nao menos.
+        #
+        # `$PKGS` sem aspas e intencional (word splitting = N argumentos). Sob o shell
+        # do step (`bash -e`), o lado esquerdo de `&&` nao dispara o -e: a falha cai no
+        # retry em vez de abortar. Falha nas 3 tentativas AINDA REPROVA (nao vira carimbo).
         run: |
-          npm install --no-save \
-            ajv@^8.17.1 \
-            ajv-cli@^5.0.0 \
-            ajv-formats@^3.0.1 \
-            gray-matter@^4.0.3 \
-            glob@^11.0.0
+          PKGS="ajv@^8.17.1 ajv-cli@^5.0.0 ajv-formats@^3.0.1 gray-matter@^4.0.3 glob@^11.0.0"
+          for tentativa in 1 2 3; do
+            npm install --no-save $PKGS && exit 0
+            echo "::warning::npm install falhou (tentativa $tentativa/3) — nova tentativa em $((tentativa * 10))s"
+            sleep $((tentativa * 10))
+          done
+          echo "::error::npm install falhou nas 3 tentativas — nao e flake de rede transitorio"
+          exit 1
 
       - name: Compute strict mode flag
         id: strict
