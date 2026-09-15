@@ -20,12 +20,11 @@ uses(Tests\TestCase::class);
  *
  * Tier 0 IRREVOGÁVEL — Pest local biz=99 (ADR 0101 nunca cliente real).
  */
-it('cenario 1: Config/retention.php declara 4 categorias de retencao', function () {
+it('cenario 1: Config/retention.php declara 3 categorias de retencao', function () {
     $retention = require base_path('Modules/Governance/Config/retention.php');
 
     expect($retention)
         ->toHaveKey('audit_log_days')
-        ->toHaveKey('module_grades_days')
         ->toHaveKey('action_gate_violations_days')
         ->toHaveKey('charter_metrics_days')
         ->toHaveKey('pii_redaction_enabled');
@@ -37,7 +36,7 @@ it('cenario 1: Config/retention.php declara 4 categorias de retencao', function 
 it('cenario 2: config governance carrega retention + pii_redaction defaults', function () {
     expect(config('governance.pii_redaction_enabled'))->not->toBeNull();
     expect(config('governance.retention.audit_log_days'))->toBeInt()->toBeGreaterThan(0);
-    expect(config('governance.retention.module_grades_days'))->toBeInt()->toBeGreaterThan(0);
+    // `module_grades_days` saiu das 3 declarações em 2026-09-15 (ADR 0399) — não reintroduzir.
 });
 
 it('cenario 3: FilterAuditRequest valida period whitelist', function () {

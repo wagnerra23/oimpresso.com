@@ -114,7 +114,6 @@ return [
     */
     'retention' => [
         'audit_log_days'              => env('GOVERNANCE_RETENTION_AUDIT_DAYS', 1825),
-        'module_grades_days'          => env('GOVERNANCE_RETENTION_MODULE_GRADES_DAYS', 90),
         'action_gate_violations_days' => env('GOVERNANCE_RETENTION_VIOLATIONS_DAYS', 365),
         'charter_metrics_days'        => env('GOVERNANCE_RETENTION_CHARTER_METRICS_DAYS', 180),
     ],
