@@ -133,12 +133,6 @@
         "governance/DriftAlerts": [
             "1"
         ],
-        "governance/ModuleGrades/Index": [
-            "1"
-        ],
-        "governance/ModuleGrades/Show": [
-            "1"
-        ],
         "governance/Policies": [
             "1"
         ]
