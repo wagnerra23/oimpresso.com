@@ -209,4 +209,4 @@ npm run build
 - [ADR 0141 — skill migracao-blade-react](../../decisions/0141-skill-migracao-blade-react.md)
 - [runbook-LIST.template.md](../../../.claude/skills/migracao-blade-react/runbook-LIST.template.md)
 - [Snapshot paridade](../../mwart-inventory/purchase/index.snapshot.md)
-- [Cowork visual source](../../../prototipo-ui/cowork/Wagner/compras-page.jsx)
+- [Cowork visual source](../../../../prototipo-ui/cowork/Wagner/compras-page.jsx)
