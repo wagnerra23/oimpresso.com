@@ -70,11 +70,22 @@ function rodaPipeline(cwd, pasta, base, head) {
   return { rc: r.status, out: (r.stdout || '').trim() };
 }
 
-/** Lê do YAML o pathspec que o job realmente usa — a fonte é o workflow, não esta cópia. */
+/**
+ * Lê do YAML o pathspec que o job realmente usa — a fonte é o workflow, não esta cópia.
+ *
+ * 2026-09-15 — o regex passou a exigir THREE-DOT (`"${BASE}...${HEAD}"`). Antes casava
+ * o two-dot (`"${BASE}" "${HEAD}"`), que era a forma do workflow e é a DOENÇA: two-dot
+ * compara duas árvores, então quando a branch não contém o `base.sha` a lista traz o que
+ * main ganhou e a branch não tem (medido: 27 arquivos contra 6), e quando o `base.sha` já
+ * contém o conteúdo do PR ela vem VAZIA e o job valida nada (0 contra 6). Exigir a forma
+ * nova aqui é o que impede a regressão: reverter o workflow pro two-dot faz este teste
+ * estourar, do mesmo jeito que reverter o `:(glob)` pro pathspec cru já fazia.
+ * §5 2026-09-15, eixo BASE-DE-PR.
+ */
 function pathspecDoWorkflow(pasta) {
   const yml = readFileSync(WORKFLOW, 'utf8');
   const re = new RegExp(
-    `git diff --name-only --diff-filter=A[M]? "\\$\\{BASE\\}" "\\$\\{HEAD\\}" -- '([^']*memory/${pasta}[^']*)'`,
+    `git diff --name-only --diff-filter=A[M]? "\\$\\{BASE\\}\\.\\.\\.\\$\\{HEAD\\}" -- '([^']*memory/${pasta}[^']*)'`,
   );
   const m = yml.match(re);
   if (!m) throw new Error(`nao achei o pathspec de memory/${pasta} em ${WORKFLOW}`);
@@ -134,6 +145,20 @@ function sandbox() {
 
 const { dir, BASE, HEAD } = sandbox();
 try {
+  // CONTROLE NEGATIVO do eixo BASE — roda ANTES da perna 1 de propósito. O
+  // `pathspecDoWorkflow` também estoura se o workflow voltar ao two-dot, mas com a
+  // mensagem "nao achei o pathspec", que acusa o lugar errado e manda o leitor procurar
+  // `:(glob)` (verificado por mutação: revertendo 1 site, o throw vinha primeiro e este
+  // assert nunca era alcançado). Aqui ele nomeia a regressão de verdade, e o throw
+  // continua como rede de segurança. §5 2026-09-15, eixo BASE-DE-PR.
+  console.log('PERNA 0 — a base do diff nao voltou ao two-dot');
+  {
+    const yml = readFileSync(WORKFLOW, 'utf8');
+    const twoDot = (yml.match(/"\$\{BASE\}" "\$\{HEAD\}"/g) || []).length;
+    ok(twoDot === 0,
+      `nenhum job usa two-dot "\${BASE}" "\${HEAD}" (achou ${twoDot}) — two-dot lista o que main ganhou e a branch nao tem, e vem VAZIO quando a base ja contem o PR`);
+  }
+
   console.log('PERNA 1 — a deteccao enxerga pasta plana (o pathspec vem do workflow)');
   for (const [pasta, filtro, esperado] of [['handoffs', 'A', 3], ['sessions', 'AM', 2]]) {
     const spec = pathspecDoWorkflow(pasta);
