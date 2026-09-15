@@ -3,12 +3,14 @@ slug: 0400-handoff-integrity-required-emenda-0314
 number: 400
 title: "Emenda à 0314 — `handoff integrity` vira required por decisão soberana [W], com a DR-2 da 0336 dispensada e o zero de mordidas registrado"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
 decided_by: [W]
 decided_at: "2026-09-15"
+accepted_at: "2026-09-15"
+accepted_via: "Wagner [W] textual 2026-09-15: "promova a requerido" (sessão oimpresso-erp-lista), decidindo a promoção deste gate a required. OVERRIDE SOBERANO com a DR-2 da 0336 DISPENSADA e o zero de mordidas registrado no corpo desta ADR e na entrada de promocoes do baseline — molde das 0346/0348/0373. Nasce aceito (e não proposto) porque a decisão É de [W] e já foi dada: o agente não propôs, executou. Flip do vivo na branch protection = ato [W] separado (0275 §5 / R10)."
 module: governance
 quarter: 2026-Q3
 tags: [governance, gates, ci, required, advisory, handoff, promocao, override-soberano]
@@ -136,5 +138,11 @@ Regenerado neste PR: `Contexts classic_protection (45)` para `(46)`, com
 
 ## Ratificação
 
-Merge deste PR por [W] = ratificação (flip `proposto` para `aceito` em PR de metadata próprio, com
-a label `adr-metadata-normalization`, receita em [memory/decisions/README.md](README.md)).
+Esta ADR **nasce `aceito`** — não há flip de metadata pendente. A decisão é de [W] e foi dada
+antes do trabalho começar (*"promova a requerido"*); o agente executou, não propôs. É o molde da
+[0336](0336-gates-design-promocao-por-mordida-provada-emenda-0314.md), cujo `accepted_via` também
+cita a palavra de [W], e difere da [0395](0395-pageheader-ratchet-required-emenda-0314.md), que
+nasceu `proposto` porque ali o agente propunha e aguardava.
+
+O aceite cobre **a política** desta emenda. O **flip do vivo** na branch protection é ato [W]
+separado (0275 §5 / R10) e acontece depois do merge.
