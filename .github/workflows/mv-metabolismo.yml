@@ -94,8 +94,9 @@ jobs:
       - name: Service scorecard — agrega sinais-vivos por serviço (depois do vital-signs fresco)
         if: steps.pendente.outputs.aberto == '0'
         run: |
-          # Advisory (ADR 0314): agrega grade+telas+grafo+briefing por serviço a partir das fontes
-          # JÁ derivadas (catalog.json + module-grades-baseline.json + vital-signs.json recém-gerado).
+          # Advisory (ADR 0314): agrega telas+grafo+briefing por serviço a partir das fontes JÁ
+          # derivadas (catalog.json + vital-signs.json recém-gerado). O sinal de nota saiu com a
+          # aposentadoria da rubrica module-grade (ADR 0399, 2026-09-15).
           # Regenera após o vital-signs pra refletir os sinais de tela desta noite. Segue a mesma
           # cadência de commit (só entra no auto-PR do batch = merge do Wagner).
           node scripts/governance/service-scorecard.mjs --write
