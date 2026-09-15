@@ -130,6 +130,8 @@ Os 4 charters de Estoque declaram, em `mwart_pattern_reuse.blueprint_cowork`:
 prototipo-ui/prototipos/inventario-migracao/visual-source.html
 ```
 
+> ⚠️ Nota POSTERIOR a este inventário: o arquivo citado acima foi removido em **2026-09-11** (`4f51a9ec781`), dois dias depois desta medição. O parágrafo seguinte ("Esse arquivo existe, tem 30 KB") descreve corretamente o que era verdade em 2026-09-09 e fica como está — o bloco acima preserva o literal que os 4 charters de Estoque declaravam.
+
 Esse arquivo existe, tem 30 KB, e é **um relatório técnico de migração de código**:
 
 ```

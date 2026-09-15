@@ -138,7 +138,7 @@ Append-only. Cada PR mergeado que toca `Modules/KB/` deve adicionar 1 linha na e
 ## ONDA 1 — 2026-05-15 (skeleton inicial)
 
 - Skeleton 12 entities + 12 migrations + 6 controllers + permissions.
-- Charter `Pages/kb/Index.charter.md` + Sync Cowork v5 commitado em `prototipo-ui/prototipos/kb/`.
+- Charter `Pages/kb/Index.charter.md` + Sync Cowork v5 commitado em `prototipo-ui/prototipos/kb/`. _(removido em 2026-05-20, 1070e3759b7)_
 
 ---
 

@@ -180,6 +180,10 @@
           },
           {
             "type": "command",
+            "command": "node .claude/hooks/maquinas-inventario-no-commit.mjs"
+          },
+          {
+            "type": "command",
             "command": "node .claude/hooks/pii-redactor.mjs"
           },
           {
@@ -356,5 +360,9 @@
         ]
       }
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "oimpresso",
+    "laravel-boost"
+  ]
 }
