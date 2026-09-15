@@ -7,7 +7,7 @@
 Arco do dia guiado pelo dossiê **"Grade das réguas · IA OS oimpresso vs acima-do-mercado"** (2026-07-09, 9 fraquezas medidas contra a empresa/método que põe a barra + ordem de ataque). Pedidos [W]: "pesquize os mapas antigos" → "o que conflita com Code Connect?" → "escolha e faça" (A+B) → "pode seguir" (×3) → "continue" → "abra sessões novas" → "vai" (fechar).
 
 **6 PRs MERGED (linha principal):**
-1. **#4020** — mecanismo `<tela>.map.json` (gerador `prototipo-ui/gerar-map.mjs` + verificador `scripts/governance/design-code-map-check.mjs`, advisory) — fecha o gap #1 do estado-da-arte 2026-06-22 (ponte design↔código ~30%, era só prosa no RUNBOOK).
+1. **#4020** — mecanismo `<tela>.map.json` (gerador `scripts/design/gerar-map.mjs` + verificador `scripts/governance/design-code-map-check.mjs`, advisory) — fecha o gap #1 do estado-da-arte 2026-06-22 (ponte design↔código ~30%, era só prosa no RUNBOOK).
 2. **#4021** — **deconflito escrito dos 3 eixos de mapa** (resposta à pergunta [W] "o que conflita com Code Connect?"): `component-registry.json` = **o Code Connect real** (componente↔código, âncora estável) · `cowork-map.json` = roteamento de arquivo · `<tela>.map.json` = anchor-map por REGIÃO (parente do anchor-lint, NÃO Code Connect).
 3. **#4022** — âncora estável `data-contract` no lado vivo do `<tela>.map.json` (fecha o furo real: range-de-linha apodrece em silêncio no refactor da tela — o oposto do que Code Connect resolve; agora o id bate com o do contrato-de-tela).
 4. **#4023** — loga o §11 Benchmark desta sessão → **destrava o IT5 stale (38d)** que deixava o advisory `governance script tests` vermelho em TODO PR (o IT5 aprendeu staleness no #4018 de hoje mais cedo).

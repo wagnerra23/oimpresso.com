@@ -21,8 +21,8 @@
 //     Decisão Opção A (Wagner 2026-07-01) supersede o espelho per-tela. Desligar: `--no-sync-cowork`.
 //
 // Uso:
-//   node prototipo-ui/importar-bundle.mjs "<zip>" [--dir <staging-fixo>] [--no-detect] [--no-sync-cowork]
-//   node prototipo-ui/importar-bundle.mjs --selftest
+//   node scripts/design/importar-bundle.mjs "<zip>" [--dir <staging-fixo>] [--no-detect] [--no-sync-cowork]
+//   node scripts/design/importar-bundle.mjs --selftest
 //
 // Exit: 0 = importado e verificado | 1 = falha de integridade (staging antigo PRESERVADO) | 2 = uso
 // Windows-only (bundles Cowork + ?v=hash): a extração delega ao PowerShell/.NET.
@@ -201,7 +201,7 @@ if (invokedDirectly) {
   if (has('--selftest')) selftest();
   else {
     const zip = argv.find((a) => !a.startsWith('--') && argv[argv.indexOf(a) - 1] !== '--dir');
-    if (!zip) { console.error('uso: node prototipo-ui/importar-bundle.mjs "<zip>" [--dir <staging>] [--no-detect] [--no-sync-cowork]'); process.exit(2); }
+    if (!zip) { console.error('uso: node scripts/design/importar-bundle.mjs "<zip>" [--dir <staging>] [--no-detect] [--no-sync-cowork]'); process.exit(2); }
     process.exit(importar(resolve(zip), resolve(val('--dir') || DESTINO_PADRAO), { detect: !has('--no-detect'), syncCowork: !has('--no-sync-cowork') }));
   }
 }

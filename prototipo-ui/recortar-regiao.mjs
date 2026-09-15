@@ -16,9 +16,9 @@
 // explícito. NUNCA recorta a tela inteira em silêncio (esse silêncio é o "meio-feito").
 //
 // Uso:
-//   node prototipo-ui/recortar-regiao.mjs --contract <c.json> --bboxes <b.json> --png <full.png> --out <dir>
+//   node scripts/design/recortar-regiao.mjs --contract <c.json> --bboxes <b.json> --png <full.png> --out <dir>
 //      bboxes = { "<regiao_id>": { "x":N,"y":N,"w":N,"h":N }, ... }  (o agente coleta do browser)
-//   node prototipo-ui/recortar-regiao.mjs --selftest
+//   node scripts/design/recortar-regiao.mjs --selftest
 //
 // Exit: 0 = todas as regiões recortadas | 1 = alguma AUSENTE (ancore antes) | 2 = uso
 

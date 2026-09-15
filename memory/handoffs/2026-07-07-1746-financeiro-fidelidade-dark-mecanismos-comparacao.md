@@ -35,7 +35,7 @@ Wagner pediu "testar se o protocolo `aplicar-prototipo` é bão" usando o Financ
 ## Artefatos gerados
 - **Código Financeiro:** `Index.tsx` + `_components/{FinBaixaSheet,TituloCreateSheet,FinAnexosPanel}.tsx` (fila + dark).
 - **Tokens:** `semantic.tokens.json` (37 dark) + gerados `_generated-{inertia,cockpit}-dark.css` + `PALETA.html`.
-- **Mecanismos:** `prototipo-ui/style-fingerprint.mjs` (~230 ln, selftest 7/7); `.github/workflows/visual-regression.yml` (modo UPDATE).
+- **Mecanismos:** `scripts/design/style-fingerprint.mjs` (~230 ln, selftest 7/7); `.github/workflows/visual-regression.yml` (modo UPDATE).
 - **Docs canon:** ADR UI-0019, ADR UI-0020, `financeiro-unificado-visual-comparison.md` (Round 2026-07-07 + fila 1-10 ✅), RUNBOOK-aplicar-prototipo Fase 1 (regras 5/6/7 + mecanismo fingerprint), charter Unificado v18.
 
 ## Persistência
@@ -44,7 +44,7 @@ Wagner pediu "testar se o protocolo `aplicar-prototipo` é bão" usando o Financ
 - **BRIEFING:** Financeiro tocado — `brief-update` aplicável na retomada.
 
 ## Próximos passos pra retomar
-`/continuar` → depois: (1) confirmar chunk cumulativo no ar (grep manifest no servidor); (2) mergear #3935; (3) rodar `node prototipo-ui/style-fingerprint.mjs --snippet` nos 2 lados (falta descobrir navegação do protótipo localhost:8765 → view Financeiro).
+`/continuar` → depois: (1) confirmar chunk cumulativo no ar (grep manifest no servidor); (2) mergear #3935; (3) rodar `node scripts/design/style-fingerprint.mjs --snippet` nos 2 lados (falta descobrir navegação do protótipo localhost:8765 → view Financeiro).
 
 ## Lições catalogadas
 - **Sonda por amostragem tem viés do que o agente lembra de medir** — 3 lacunas escaparam no mesmo dia (dark não sondado, geometria/botão-3-linhas, componente nu). Resposta mecânica: `style-fingerprint` (vetor completo, 2 temas). O olho do Wagner foi a 2ª linha de defesa porque a 1ª não existia.

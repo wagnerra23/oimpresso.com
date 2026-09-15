@@ -32,11 +32,11 @@
  *    o tool NÃO substitui o protocolo, MECANIZA a parte medível dele. §"não-goals".)
  *
  * Uso:
- *   node prototipo-ui/design-diff.mjs --probe                       # imprime a sonda pra injetar
- *   node prototipo-ui/design-diff.mjs --compare prod.json design.json          # relatório
- *   node prototipo-ui/design-diff.mjs --compare prod.json design.json --check  # exit 1 se DIVERGE(bug)
- *   node prototipo-ui/design-diff.mjs --compare prod.json design.json --json   # saída JSON
- *   node prototipo-ui/design-diff.mjs --selftest                    # fixture hermético (reproduz 07/07)
+ *   node scripts/design/design-diff.mjs --probe                       # imprime a sonda pra injetar
+ *   node scripts/design/design-diff.mjs --compare prod.json design.json          # relatório
+ *   node scripts/design/design-diff.mjs --compare prod.json design.json --check  # exit 1 se DIVERGE(bug)
+ *   node scripts/design/design-diff.mjs --compare prod.json design.json --json   # saída JSON
+ *   node scripts/design/design-diff.mjs --selftest                    # fixture hermético (reproduz 07/07)
  */
 
 import { readFileSync } from 'node:fs';

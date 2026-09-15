@@ -18,7 +18,7 @@
 // perceptual SSIM pra ícones/sparklines sem âncora — fica FORA: puxa dep de imagem → exige ADR).
 //
 // MODOS:
-//   node prototipo-ui/fingerprint-harness.mjs --proto <url> --prod <url> [--viewports 375,1280,1440]
+//   node scripts/design/fingerprint-harness.mjs --proto <url> --prod <url> [--viewports 375,1280,1440]
 //        [--themes light,dark] [--out dir] [--user U --pass P] [--sel-proto CSS] [--sel-prod CSS]
 //        [--estados] [--root CSS]
 //     → captura a matriz nos 2 lados, compara célula-a-célula, imprime relatório + verdito por
@@ -26,7 +26,7 @@
 //       DIVERGE/triagem em qualquer célula. NÃO substitui o olho do Wagner — acha as diferenças.
 //       `--estados` (opt-in, mais lento) captura hover/focus/active por elemento interativo;
 //       `--root <CSS>` escopa a captura à REGIÃO da tela (mata o ruído de shell/sidebar — RUNBOOK).
-//   node prototipo-ui/fingerprint-harness.mjs --selftest
+//   node scripts/design/fingerprint-harness.mjs --selftest
 //     → prova a ORQUESTRAÇÃO (matriz + pareamento por célula + agregação + regressão viewport/
 //       tema-específica) com capturas fixas injetadas, SEM browser (a cola Playwright espelha o
 //       smoke.mjs comprovado). O selftest do comparador em si vive em style-fingerprint.mjs.

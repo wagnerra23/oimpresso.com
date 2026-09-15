@@ -12,14 +12,14 @@
 // DOIS temas, e diffa os vetores. Wagner decide gosto; a máquina acha as diferenças.
 //
 // MODOS:
-//   node prototipo-ui/style-fingerprint.mjs --snippet
+//   node scripts/design/style-fingerprint.mjs --snippet
 //       → imprime o snippet JS auto-contido pra rodar em QUALQUER página renderizada
 //         (console do browser, extensão MCP, playwright evaluate). Saída: JSON fingerprint.
 //         Rodar 1x por tema (a página deve estar no tema desejado; passar o nome no arg).
-//   node prototipo-ui/style-fingerprint.mjs --compare proto.json prod.json [--json]
+//   node scripts/design/style-fingerprint.mjs --compare proto.json prod.json [--json]
 //       → casa elementos por (texto normalizado + tag) E divisórias por inventário, e
 //         compara campo a campo. Vereditos: IDENTICO · DIVERGE(campos) · SO_PROTO · SO_PROD.
-//   node prototipo-ui/style-fingerprint.mjs --selftest
+//   node scripts/design/style-fingerprint.mjs --selftest
 //       → fixtures herméticas inline com divergências PLANTADAS (2-linhas, cor, radius,
 //         só-de-um-lado, glifo de header, divisória recolorida) — prova pelos DOIS lados (L-31).
 //

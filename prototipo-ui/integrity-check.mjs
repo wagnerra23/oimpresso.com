@@ -22,7 +22,7 @@
 // memory/requisitos/{OficinaAuto,Orcamento}/_arquivo/. Charter novo em Pages sem
 // .tsx irmao => exit 1 (lei sem tela viva nao entra mais).
 //
-// Uso: node prototipo-ui/integrity-check.mjs
+// Uso: node scripts/design/integrity-check.mjs
 
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';

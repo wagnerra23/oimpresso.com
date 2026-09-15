@@ -13,7 +13,7 @@ on:
     paths:
       - 'resources/js/Pages/**/*.charter.md'
       - 'resources/js/Pages/**/*.tsx'
-      - 'prototipo-ui/ancora.mjs'
+      - 'scripts/design/ancora.mjs'
       - 'memory/governance/design-coverage-baseline.json'
   workflow_dispatch:
 

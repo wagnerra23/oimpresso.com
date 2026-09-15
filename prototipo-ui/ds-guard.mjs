@@ -18,9 +18,9 @@
 // proposito — o processo proibe "melhorar de passagem" (regra de corte §10).
 //
 // Uso:
-//   node prototipo-ui/ds-guard.mjs <arquivo.css|arquivo.html> [...]   # arquivos tocados (BLOQUEIA)
-//   node prototipo-ui/ds-guard.mjs --changed [base]                   # git diff --name-only vs base (default: HEAD)
-//   node prototipo-ui/ds-guard.mjs --all                              # relatorio de divida (NAO bloqueia)
+//   node scripts/design/ds-guard.mjs <arquivo.css|arquivo.html> [...]   # arquivos tocados (BLOQUEIA)
+//   node scripts/design/ds-guard.mjs --changed [base]                   # git diff --name-only vs base (default: HEAD)
+//   node scripts/design/ds-guard.mjs --all                              # relatorio de divida (NAO bloqueia)
 //
 // Exit code: 0 = limpo / relatorio · 1 = BLOQUEIA (>=1 falha em modo arquivos)
 
@@ -106,7 +106,7 @@ if (argv[0] === '--changed') {
 }
 
 if (!files.length) {
-  log('uso: node prototipo-ui/ds-guard.mjs <arquivos tocados> | --changed [base] | --all');
+  log('uso: node scripts/design/ds-guard.mjs <arquivos tocados> | --changed [base] | --all');
   process.exit(0);
 }
 

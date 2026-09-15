@@ -132,7 +132,7 @@ grep -i "Pages/Jana/Cockpit" public/build-inertia/manifest.json
 
 ## 4. Tokens CSS
 
-Tokens shadcn semânticos (`text-primary`, `text-muted-foreground`, `border-border`, `bg-card`) + utilities Tailwind — conferidos no trecho de render (nav de tabs usa `border-primary text-primary` no ativo). Container central `max-w-[1280px] mx-auto` (cabe no monitor 1280px da Larissa). ⚠️ Auditoria token-a-token das 1022 linhas **não refeita em 2026-07** — em caso de dúvida, rodar `node prototipo-ui/ds-guard.mjs resources/js/Pages/Jana/Cockpit.tsx`.
+Tokens shadcn semânticos (`text-primary`, `text-muted-foreground`, `border-border`, `bg-card`) + utilities Tailwind — conferidos no trecho de render (nav de tabs usa `border-primary text-primary` no ativo). Container central `max-w-[1280px] mx-auto` (cabe no monitor 1280px da Larissa). ⚠️ Auditoria token-a-token das 1022 linhas **não refeita em 2026-07** — em caso de dúvida, rodar `node scripts/design/ds-guard.mjs resources/js/Pages/Jana/Cockpit.tsx`.
 
 ## 5. Estados visuais
 
