@@ -1,0 +1,42 @@
+# prototipo-ui/cowork/ = espelho da camada de DESIGN do export Cowork (SSOT única).
+# Regra "só fontes" (ADR-proposta 2026-06-23-prototipo-ssot-unico-com-historico):
+# versiona jsx/tsx/ts/js/css/html/md/json/php/sql; imagens e binários ficam FORA
+# (diff de design limpo + repo leve). Screenshots vivem no Cowork, não aqui.
+#
+# POR QUE aqui na raiz de cowork/ e NÃO dentro de cada dono: a regra é do ESPELHO, não de
+# quem exporta — vale igual pra `Wagner/`, `Felipe/` e qualquer dono futuro, que passa a
+# nascer coberto sem ninguém lembrar de copiar 26 linhas. O #7224 ("separar fontes por dono")
+# moveu este arquivo pra `Wagner/` junto com o resto do conteúdo dele, e o escopo encolheu de
+# `cowork/**` pra `cowork/Wagner/**` — medido em 2026-09-15: `Felipe/x.png`, `Felipe/assets/`,
+# `Felipe/_ds/` e `Felipe/screenshots/` passavam livres, enquanto os mesmos paths sob `Wagner/`
+# eram ignorados. Voltar pra cá cobre os dois com UMA fonte (o próprio #7224 tinha por lema
+# "consolidar fonte única e remover duplicatas"), e foi medido que NÃO ignora nada que hoje
+# esteja versionado: 0 dos 677 arquivos sob `cowork/` casa com qualquer regra daqui.
+#
+# ⚠️ Referências históricas a `cowork/Wagner/.gitignore:26` (CODE_NOTES, LICOES_CODE,
+# licoes-rejeitadas, ADR UI-0029) ficam INTACTAS — são fato datado, e eram verdade na data.
+# A regra `_ds/` que elas citam é a mesma, e está aqui; `git log --follow` acha o histórico.
+# (Não se cita número de linha: ele apodrece no primeiro comentario novo — este cabeçalho
+# acabou de empurrar `_ds/` da linha 26 pra 40 enquanto era escrito.)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.ico
+*.thumbnail
+*.bak
+*.zip
+*.mp4
+*.mov
+
+# dirs de arquivo/scratch do bundle — NÃO são design-source (Wagner 2026-07-01 "pode apagar").
+# O importar-bundle.mjs já os exclui do sync (/XD); isto é defesa se algo pousar manual.
+_arquivo/
+_BACKUP-NAO-USAR/
+scraps/
+screenshots/
+uploads/
+assets/
+benchmark/
+_ds/
