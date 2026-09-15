@@ -71,7 +71,21 @@ function readTokenFromSettings() {
     try {
       const raw = JSON.parse(fs.readFileSync(p, 'utf-8'));
       const auth = raw?.mcpServers?.oimpresso?.headers?.Authorization;
-      if (auth?.startsWith('Bearer ')) {
+      if (typeof auth !== 'string') continue;
+      // O arquivo pode REFERENCIAR o ambiente em vez de guardar o segredo
+      // (`Bearer ${OIMPRESSO_MCP_TOKEN}`) — mesma forma que o `readAuthHeader` do
+      // `.claude/hooks/brief-fetch-curl.mjs` aceita desde 2026-09-15. Sem esta
+      // expansão, o `slice(7)` devolveria o TEXTO `${OIMPRESSO_MCP_TOKEN}` como se
+      // fosse o token e a chamada viraria um 401 opaco.
+      const ref = /^Bearer \$\{([A-Za-z_][A-Za-z0-9_]*)\}$/.exec(auth);
+      if (ref) {
+        const v = process.env[ref[1]];
+        // fail-closed: env ausente/vazia/forma errada → segue procurando, nunca
+        // devolve a referência crua.
+        if (typeof v === 'string' && v.startsWith('mcp_') && !v.includes('COLE_SEU')) return v;
+        continue;
+      }
+      if (auth.startsWith('Bearer ')) {
         return auth.slice(7);
       }
     } catch {}

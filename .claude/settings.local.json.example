@@ -3,12 +3,13 @@
   "_setup": "Ver MEMORY_TEAM_ONBOARDING.md",
   "_o_token_vai_em_DOIS_lugares": "Medido em 2026-09-15 (cliente 2.1.257): o bloco mcpServers abaixo NÃO alimenta o cliente MCP — uma entrada de teste colocada aqui não apareceu em `claude mcp list`. Ele segue necessário porque é o cofre que .claude/hooks/brief-fetch-curl.mjs, scripts/cc-watcher/index.js e scripts/governance/fluxo-sistema.mjs leem pra pegar o Authorization. Quem alimenta o cliente MCP é o .mcp.json, que expande ${OIMPRESSO_MCP_TOKEN} a partir do AMBIENTE.",
   "_passo_2_variavel_de_ambiente": "Sem esta variável o cliente cai em OAuth e o servidor responde 419. Windows (PowerShell, uma vez só): [Environment]::SetEnvironmentVariable('OIMPRESSO_MCP_TOKEN','<seu-token-SEM-o-Bearer>','User') e reabra a sessão. Linux/macOS: exporte no perfil do shell. Medido no mesmo dia: um bloco `env` DENTRO deste arquivo NÃO serve — `claude mcp list` acusou 'Missing environment variables: OIMPRESSO_MCP_TOKEN'.",
+  "_RECOMENDADO_token_fora_do_arquivo": "Desde 2026-09-15 o Authorization aceita DUAS formas: o literal `Bearer mcp_...` (como sempre, nada regride) e a REFERÊNCIA `Bearer ${OIMPRESSO_MCP_TOKEN}`, expandida do AMBIENTE pelos três leitores (brief-fetch-curl.mjs, cc-watcher/index.js, fluxo-sistema.mjs — este último via o mesmo readAuthHeader). Prefira a referência: feito o passo 2, o token passa a viver em UM lugar só (o ambiente) e este arquivo deixa de guardar segredo — não há o que vazar ao abri-lo. É a MESMA sintaxe que o .mcp.json já usa. ⚠️ Ordem importa: sete a variável ANTES de trocar, senão os leitores ficam sem token (eles são fail-closed de propósito — referência sem env vira `null`, nunca um 401 opaco).",
   "mcpServers": {
     "oimpresso": {
       "url": "https://mcp.oimpresso.com/api/mcp",
       "type": "http",
       "headers": {
-        "Authorization": "Bearer mcp_COLE_SEU_TOKEN_AQUI"
+        "Authorization": "Bearer ${OIMPRESSO_MCP_TOKEN}"
       }
     }
   }

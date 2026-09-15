@@ -110,12 +110,46 @@ export function restoreFromVault(opts = {}) {
 }
 
 // ── token: lê Authorization e valida prefixo. NUNCA devolve o valor em mensagem. ──
-export function readAuthHeader(settingsText) {
+/**
+ * Aceita DUAS formas no `Authorization`:
+ *   1. literal   — `Bearer mcp_…`            (como sempre foi; nada regride)
+ *   2. referência — `Bearer ${OIMPRESSO_MCP_TOKEN}`  → expandida do AMBIENTE
+ *
+ * ── POR QUE A FORMA 2 (2026-09-15, a pedido de [W]) ─────────────────────────
+ * O segredo ficava EM CLARO no `settings.local.json`. O arquivo é gitignored e o
+ * token nunca tocou o git (medido: `git grep` rc=1 e `git log --all -S` vazio em
+ * 22.469 commits, ambos com controle positivo), mas basta abrir o arquivo numa
+ * sessão para o valor entrar no transcript — foi o que aconteceu.
+ * A variável **já existia** na máquina: o `.mcp.json` expande
+ * `${OIMPRESSO_MCP_TOKEN}` para alimentar o cliente MCP. O que faltava era o
+ * COFRE (este leitor, que `brief-fetch-curl`, `cc-watcher` e `fluxo-sistema` usam)
+ * aceitar a mesma referência — aí o token vive em UM lugar só, o ambiente.
+ *
+ * ⚠️ FAIL-CLOSED na expansão, e o motivo é a lição que este arquivo já carrega:
+ * sem a env, devolver a referência crua faria HTTP autenticado com o texto
+ * `${OIMPRESSO_MCP_TOKEN}` e trocaria o diagnóstico honesto ("token ausente") por
+ * um 401 opaco — a mesma classe do placeholder `COLE_SEU` abaixo (LC-11: o guard
+ * media a FORMA, não a VALIDADE). Env ausente, vazia, sem prefixo `mcp_`, com a
+ * marca do placeholder, ou já contendo `Bearer ` → devolve `null`.
+ *
+ * @param {string} settingsText
+ * @param {Record<string,string|undefined>} [env] injetável pelo teste — em produção
+ *   é o ambiente do processo. Sem isto, a fixture mediria a máquina do runner.
+ */
+export function readAuthHeader(settingsText, env = process.env) {
   try {
     const s = JSON.parse(settingsText);
     const h = s && s.mcpServers && s.mcpServers.oimpresso && s.mcpServers.oimpresso.headers
       && s.mcpServers.oimpresso.headers.Authorization;
-    if (typeof h !== 'string' || !h.startsWith('Bearer mcp_')) return null;
+    if (typeof h !== 'string') return null;
+    const ref = /^Bearer \$\{([A-Za-z_][A-Za-z0-9_]*)\}$/.exec(h);
+    if (ref) {
+      const v = env && env[ref[1]];
+      if (typeof v !== 'string' || !v.startsWith('mcp_')) return null;   // ausente/vazia/forma errada/com "Bearer "
+      if (v.includes('COLE_SEU')) return null;                            // placeholder colado na env
+      return `Bearer ${v}`;
+    }
+    if (!h.startsWith('Bearer mcp_')) return null;
     // O PLACEHOLDER do .example ("Bearer mcp_COLE_SEU_TOKEN_AQUI") satisfaz o prefixo.
     // Sem esta linha, um settings.local.json recem-copiado do template passa por
     // "tem token" e o hook faz chamada autenticada com o placeholder: troca o
