@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **928 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **932 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -11,8 +11,8 @@
 | [`Jana`](#jana) | 84 | 2 | 0 | 0 | 82 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
 | [`Sells`](#sells) | 57 | 0 | 0 | 0 | 57 |
+| [`Infra`](#infra) | 50 | 0 | 0 | 0 | 50 |
 | [`Governance`](#governance) | 47 | 0 | 0 | 3 | 44 |
-| [`Infra`](#infra) | 46 | 0 | 0 | 0 | 46 |
 | [`Financeiro`](#financeiro) | 45 | 0 | 0 | 0 | 45 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
 | [`NfeBrasil`](#nfebrasil) | 26 | 0 | 0 | 6 | 20 |
@@ -291,6 +291,62 @@
 - **US-SELL-062** — Listar vendas recorrentes e pausar/retomar (`/sells/subscriptions`)
 - **US-SELL-063** — Caixa do dia por forma de pagamento e por origem (`/vendas/caixa`)
 
+## Infra
+
+
+### todo
+
+- **US-INFRA-001** — GrowthBook self-hosted (feature flag system)
+- **US-INFRA-002** — Client Signal — entidade + canal estruturado
+- **US-INFRA-003** — APM full-stack — captura "lento aqui" automaticamente
+- **US-INFRA-004** — Detecção automática de desvio (cron diário)
+- **US-INFRA-005** — S5 ADS adiantado (Risk + Confidence + Policy core)
+- **US-INFRA-006** — Tool MCP `whats-active` — agregar sessões doing + paths tocados (Tier 1 ADR 0119)
+- **US-INFRA-007** — Skill Tier A `session-start-check` — alertar paths overlapping (ADR 0119)
+- **US-INFRA-008** — Feature Flag Control (2 canais: Artisan/MCP)
+- **US-INFRA-009** — Artisan command `feature:activate` via GrowthBook API ⚠️ **SUPERSEDED por US-INFRA-008**
+- **US-INFRA-011** — Rotacionar senha MySQL Hostinger u906587222_oimpresso - exposicao sessao 2026-05-20
+- **US-INFRA-012** — Resolver migration order legacy pra visual-regression.yml sair de INFRA-ONLY (ADR 0108)
+- **US-INFRA-013** — Implementar contract-test-gate GH Action (ADR 0207)
+- **US-INFRA-014** — Install Larastan + phpstan.neon.dist nível 5 baseline
+- **US-INFRA-015** — Workflow phpstan-gate.yml — CI ratchet contra baseline
+- **US-INFRA-016** — LogContextMiddleware global — business_id/user_id/request_id em todo log
+- **US-INFRA-017** — PHPStan custom rule NoMissingTenantScope (T-AP-2 Tier 0)
+- **US-INFRA-018** — PHPStan custom rule NoInventedModel (T-AP-1)
+- **US-INFRA-019** — PHPStan custom rule NoNopMutationController (T-AP-13)
+- **US-INFRA-020** — PHPStan custom rule NoSilentFallbackRule (R9 raiz)
+- **US-INFRA-021** — Catalogar AP-18 "Fallback default sem Log::warning" no LICOES_F3
+- **US-INFRA-022** — Install Laravel Wayfinder + Vite plugin + watch types
+- **US-INFRA-023** — Zod schemas em endpoints JSON não-Inertia
+- **US-INFRA-024** — PHPStan custom rule NoUntypedInertiaProps (R8 gate final)
+- **US-INFRA-025** — Catalogar AP-17 "Inertia props não tipadas" no LICOES_F3
+- **US-INFRA-026** — Convenção markdown TASK[owner](Px) em audits
+- **US-INFRA-027** — Hook audit-creates-tasks.ps1 (PostToolUse Write)
+- **US-INFRA-028** — Skill audit-to-backlog Tier B
+- **US-INFRA-029** — Workflow CI audit-orphan-check.yml — warning PR órfãos
+- **US-INFRA-030** — health-check audits_with_orphan_findings — auditoria periódica
+- **US-INFRA-031** — Resolver colisões de const/function globais em tests/Feature (bloqueia suíte Pest completa)
+- **US-INFRA-032** — Triar 11 hardcodes $businessId === N flagados pelo NoHardcodeBusinessIdInModulesTest (guard Tier 0 agora ativo)
+- **US-INFRA-033** — Suíte Pest no staging falha em massa por testes fazerem Schema::create/dropIfExists cru em tabelas compartilhadas (vs clone MySQL)
+- **US-INFRA-035** — Item 7 ADR 0271 — fusão 4 gates de cor → 1 (executar ≥2026-06-18)
+- **US-INFRA-036** — CSS hex drift fase 2 — tokenizar 61 valores hex crus restantes
+- **US-INFRA-037** — Roadmap redução de CSS manual (~28k → ~20k linhas)
+- **US-INFRA-038** — SDD: promover os 3 steps de continue-on-error a required (gate-required)
+- **US-INFRA-039** — SDD KL E2/E3 — aplicar os 27 renames classe A
+- **US-INFRA-040** — SDD — burn-down dos 237 corruptores SQLite
+- **US-INFRA-041** — Backup/DR de banco no deploy — mysqldump + cópia off-host + restore testado
+- **US-INFRA-042** — Rotacionar segredos do repo público (MEILI_MASTER_KEY + token DNS Hostinger + 12 do incidente)
+- **US-INFRA-043** — Sentinela tasks:unassigned — flag US todo sem cycle/owner (fecha furo do roadmap)
+- **US-INFRA-044** — Wire mcp:tasks:sync no CI (push de SPEC) — fecha drift SPEC↔DB
+- **US-INFRA-045** — Pipeline task→roadmap furada: cycle/epic não resolvem sem project: no SPEC + sem tool de atribuição
+- **US-INFRA-046** — ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
+- **US-INFRA-047** — Voz do Cliente — do sinal gravado ao loop fechado
+- **US-INFRA-048** — Ativar a documentação técnica e operacional ponta a ponta
+- **US-INFRA-049** — Exportar OIMPRESSO_MCP_TOKEN no ambiente (felipe)
+- **US-INFRA-050** — Exportar OIMPRESSO_MCP_TOKEN no ambiente (maiara)
+- **US-INFRA-051** — Exportar OIMPRESSO_MCP_TOKEN no ambiente (luiz)
+- **US-INFRA-052** — Exportar OIMPRESSO_MCP_TOKEN no ambiente (eliana)
+
 ## Governance
 
 
@@ -346,58 +402,6 @@
 - **US-GOV-008** — CLI `php artisan module:grade` (machine-readable JSON) ✅ DONE
 - **US-GOV-009** — Cron daily snapshot histórico 90d ⚰️ CANCELADA (ADR 0399)
 - **US-GOV-010** — Integração ADS Brain B disparar agents auto ❌ BACKLOG
-
-## Infra
-
-
-### todo
-
-- **US-INFRA-001** — GrowthBook self-hosted (feature flag system)
-- **US-INFRA-002** — Client Signal — entidade + canal estruturado
-- **US-INFRA-003** — APM full-stack — captura "lento aqui" automaticamente
-- **US-INFRA-004** — Detecção automática de desvio (cron diário)
-- **US-INFRA-005** — S5 ADS adiantado (Risk + Confidence + Policy core)
-- **US-INFRA-006** — Tool MCP `whats-active` — agregar sessões doing + paths tocados (Tier 1 ADR 0119)
-- **US-INFRA-007** — Skill Tier A `session-start-check` — alertar paths overlapping (ADR 0119)
-- **US-INFRA-008** — Feature Flag Control (2 canais: Artisan/MCP)
-- **US-INFRA-009** — Artisan command `feature:activate` via GrowthBook API ⚠️ **SUPERSEDED por US-INFRA-008**
-- **US-INFRA-011** — Rotacionar senha MySQL Hostinger u906587222_oimpresso - exposicao sessao 2026-05-20
-- **US-INFRA-012** — Resolver migration order legacy pra visual-regression.yml sair de INFRA-ONLY (ADR 0108)
-- **US-INFRA-013** — Implementar contract-test-gate GH Action (ADR 0207)
-- **US-INFRA-014** — Install Larastan + phpstan.neon.dist nível 5 baseline
-- **US-INFRA-015** — Workflow phpstan-gate.yml — CI ratchet contra baseline
-- **US-INFRA-016** — LogContextMiddleware global — business_id/user_id/request_id em todo log
-- **US-INFRA-017** — PHPStan custom rule NoMissingTenantScope (T-AP-2 Tier 0)
-- **US-INFRA-018** — PHPStan custom rule NoInventedModel (T-AP-1)
-- **US-INFRA-019** — PHPStan custom rule NoNopMutationController (T-AP-13)
-- **US-INFRA-020** — PHPStan custom rule NoSilentFallbackRule (R9 raiz)
-- **US-INFRA-021** — Catalogar AP-18 "Fallback default sem Log::warning" no LICOES_F3
-- **US-INFRA-022** — Install Laravel Wayfinder + Vite plugin + watch types
-- **US-INFRA-023** — Zod schemas em endpoints JSON não-Inertia
-- **US-INFRA-024** — PHPStan custom rule NoUntypedInertiaProps (R8 gate final)
-- **US-INFRA-025** — Catalogar AP-17 "Inertia props não tipadas" no LICOES_F3
-- **US-INFRA-026** — Convenção markdown TASK[owner](Px) em audits
-- **US-INFRA-027** — Hook audit-creates-tasks.ps1 (PostToolUse Write)
-- **US-INFRA-028** — Skill audit-to-backlog Tier B
-- **US-INFRA-029** — Workflow CI audit-orphan-check.yml — warning PR órfãos
-- **US-INFRA-030** — health-check audits_with_orphan_findings — auditoria periódica
-- **US-INFRA-031** — Resolver colisões de const/function globais em tests/Feature (bloqueia suíte Pest completa)
-- **US-INFRA-032** — Triar 11 hardcodes $businessId === N flagados pelo NoHardcodeBusinessIdInModulesTest (guard Tier 0 agora ativo)
-- **US-INFRA-033** — Suíte Pest no staging falha em massa por testes fazerem Schema::create/dropIfExists cru em tabelas compartilhadas (vs clone MySQL)
-- **US-INFRA-035** — Item 7 ADR 0271 — fusão 4 gates de cor → 1 (executar ≥2026-06-18)
-- **US-INFRA-036** — CSS hex drift fase 2 — tokenizar 61 valores hex crus restantes
-- **US-INFRA-037** — Roadmap redução de CSS manual (~28k → ~20k linhas)
-- **US-INFRA-038** — SDD: promover os 3 steps de continue-on-error a required (gate-required)
-- **US-INFRA-039** — SDD KL E2/E3 — aplicar os 27 renames classe A
-- **US-INFRA-040** — SDD — burn-down dos 237 corruptores SQLite
-- **US-INFRA-041** — Backup/DR de banco no deploy — mysqldump + cópia off-host + restore testado
-- **US-INFRA-042** — Rotacionar segredos do repo público (MEILI_MASTER_KEY + token DNS Hostinger + 12 do incidente)
-- **US-INFRA-043** — Sentinela tasks:unassigned — flag US todo sem cycle/owner (fecha furo do roadmap)
-- **US-INFRA-044** — Wire mcp:tasks:sync no CI (push de SPEC) — fecha drift SPEC↔DB
-- **US-INFRA-045** — Pipeline task→roadmap furada: cycle/epic não resolvem sem project: no SPEC + sem tool de atribuição
-- **US-INFRA-046** — ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
-- **US-INFRA-047** — Voz do Cliente — do sinal gravado ao loop fechado
-- **US-INFRA-048** — Ativar a documentação técnica e operacional ponta a ponta
 
 ## Financeiro
 

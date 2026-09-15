@@ -18,6 +18,12 @@ on:
       - 'resources/js/Pages/**/*.tsx'
       - 'resources/js/Pages/**/*.charter.md'
       - 'prototipo-ui/**'
+      # 2a raiz do charter-blueprint-pointers (2026-09-15): os docs de requisitos tambem
+      # declaram ponteiro de prototipo, e era exatamente ali que 61 apontavam pro vacuo sem
+      # alarme (#7335). Sem este path no trigger, mexer num RUNBOOK nao re-roda a lane que o
+      # audita — gate mudo com cara de cobertura (§5 2026-08-02, a mesma licao do comentario
+      # abaixo). E advisory: o step roda sem --strict, entao reporta e nao bloqueia.
+      - 'memory/requisitos/**/*.md'
       - 'governance/design/cowork-map.json'
       - 'scripts/governance/reconcile-triplet.mjs'
       # o self-test é o 1º step do job: sem ele no trigger, mudar SÓ o teste não re-roda a

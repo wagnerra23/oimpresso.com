@@ -505,6 +505,9 @@ jobs:
       - name: Whats-active troca-de-alvo (braco mecanico da session-start-check · ADR 0119 · logica + CLI de fora)
         if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/whats-active-troca-de-alvo.test.mjs
+      - name: Maquinas-inventario no commit (INVOCADOR do --write · morde com drift, silencia se fresco)
+        if: always() && steps.setup.outcome == 'success'
+        run: node .claude/hooks/maquinas-inventario-no-commit.test.mjs
       - name: Lote 3 SessionStart+preflight REGISTRADO como node (correcao != invocacao · US-GOV-052)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-portlote3-sessionstart-registration.test.mjs
