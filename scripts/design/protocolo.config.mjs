@@ -511,14 +511,18 @@ function conferirFonteUnicaExecutavel() {
     const safeRoot = REPO_ROOT.replaceAll('\\', '/');
     const tracked = execFileSync('git', [
       '-c', `safe.directory=${safeRoot}`,
-      'ls-files', '-z', '--', 'prototipo-ui/cowork/Wagner/_ds/**',
+      // Os DOIS destinos: o atual (pós-#7224) e o LEGADO pré-#7224, que worktree stale
+      // ainda materializa rodando o hook antigo (medido 2026-09-15: 10 arquivos).
+      'ls-files', '-z', '--',
+      'prototipo-ui/cowork/Wagner/_ds/**',
+      'prototipo-ui/cowork/_ds/**',
     ], { cwd: REPO_ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
       .split('\0').filter(Boolean);
     for (const rel of tracked) {
       problemas.push(`${rel} está rastreado; cowork/_ds é cópia paralela proibida do design-system`);
     }
   } catch {
-    problemas.push('não foi possível provar via git que prototipo-ui/cowork/Wagner/_ds não está rastreado');
+    problemas.push('não foi possível provar via git que os _ds/ de prototipo-ui/cowork (atual e legado) não estão rastreados');
   }
 
   return problemas;

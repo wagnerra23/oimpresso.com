@@ -134,3 +134,8 @@ scripts/design-sync/.push-bundle/
 # Downloads de artifact do visual-regression (gh run download) — nunca versionar.
 # 2026-09-04: 90 arquivos / 16,7 MB entraram por um `git add -A` no PR #6726.
 visreg-art/
+
+# Cache _ds/ no path LEGADO (pré-#7224): o #7224 moveu shell/cache/.gitignore pra cowork/Wagner/,
+# e a regra do espelho passou a cobrir só o path novo — medido 2026-09-15, worktree stale rodando o
+# hook antigo materializou 10 arquivos / 12.423 linhas aqui, visíveis como `??` num branch de main.
+prototipo-ui/cowork/_ds/
