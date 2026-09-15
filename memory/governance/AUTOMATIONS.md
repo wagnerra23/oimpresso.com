@@ -6,7 +6,7 @@ type: governance-spec
 authority: canonical
 lifecycle: ativo
 maintained_by: wagner
-last_updated: 2026-09-14
+last_updated: 2026-09-15
 related: [automation-registry-mcp, 0076, 0079, 0080]
 pii: false
 ---
@@ -132,7 +132,6 @@ Tipo ADR 0234: `cron`. Todos os schedules são ambientes `live` salvo indicaçã
 | `copiloto:sintese-semanal` | sextas `18:00` | Síntese semanal automática: commits + arquivos memory/ + diffs da semana. Haiku 4.5. ~R$ [redacted Tier 0]/execução. MemoriaAutonoma Fase 1. |
 | `jana:health-check --notify` | `dailyAt('06:00')` BRT | Health check diário Jana + Constituição v2 — contagem/lista viva no próprio comando (`Modules/Jana/Console/Commands/HealthCheckCommand.php`, `$description` se auto-reporta os duros). Não fixar número aqui (apodrece · LC-08). Tier-0 ex.: multi_tenant_isolation, pii_leak_in_assistant_responses, profile_distiller_drift. |
 | `sells:smoke-daily --notify` | `dailyAt('06:30')` BRT | 5 sinais smoke Sells/Index Cowork: schema, multi-tenant biz=1/4, Vite manifest, CSS scoped, SellController shape. US-SELL-COWORK-R6-SMOKE. |
-| `module:grade-snapshot` | `dailyAt('06:05')` BRT | Snapshot diário de module grades (sparkline 7d). 1 row/módulo em `mcp_module_grades_history`. ADR 0153/0155. |
 | `governance:scorecard-snapshot --alert` | `dailyAt('07:00')` BRT | Scorecard snapshot bucket-scoped + drift detection. 1 row/módulo/dia em `mcp_scorecard_runs`. Alerta drifts >=5pts em `mcp_alertas`. Wave 24. |
 | `governance:initiative-sync` | `dailyAt('08:00')` BRT | Sync Initiatives ↔ scorecards (Cortex-style): abre breach, fecha recuperadas, expira deadlines. Wave 28. |
 | `governance:blade-migration-sentinel` | `weeklyOn(0, '07:45')` BRT | Cobra a rota Blade→React (ADR 0277 peça 3/3). Compara o censo com `governance/blade-migration-baseline.json`; em `regressao`/`estagnado` escala task `HITL-BLADE-MIGRACAO` (`blocked`/`wagner`) via `HitlEscalationService` — canal que o brief lê, **não** o `onFailure`. ⚠️ No cron do Hostinger o `node` não é alcançável (PATH `/usr/local/bin:/usr/bin`; nvm fora), então o veredito real é `cego`: cobra estagnação (sai do baseline, sem node) e declara que a regressão ficou sem conferir — esse eixo tem dono no `--ratchet` do `governance-gate` (advisory, todo PR). `cego` sai `exit 0` ⇒ **invisível** (janela: ~5 corridas, até o 1º `estagnado` ≈ 13/09). Correção de raiz = node no cron (decisão [W]). |

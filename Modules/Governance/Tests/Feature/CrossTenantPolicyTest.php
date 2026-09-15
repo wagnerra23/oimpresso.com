@@ -24,13 +24,15 @@ uses(Tests\TestCase::class);
  *   3. user normal biz=99 (fictício) também bloqueado — mesmo cross-tenant
  *   4. tabelas mcp_* NÃO devem ter coluna business_id (cross-tenant by design)
  *   5. queries em mcp_memory_documents NÃO aplicam scope de business (cross-tenant)
- *   6. ModuleGrade endpoint /governance/module-grades aplica mesmo gate
+ *
+ * O cenário 6 cobria o endpoint /governance/module-grades; saiu com a rubrica
+ * module-grade (ADR 0399 — a rota e o controller foram deletados na Onda 2).
  *
  * SQLite guard obrigatório (rotas precisam middleware UltimatePOS → MySQL).
  * biz=1 (Wagner WR2) NUNCA biz=4 (ROTA LIVRE cliente Larissa) — ADR 0101.
  *
  * Refs: ADR 0086 (Governance MVP UI), ADR 0093 (Multi-tenant Tier 0 — Governance
- * é exceção transversal), ADR 0101 (Tests biz=1), ADR 0153 (Module Grade rubrica),
+ * é exceção transversal), ADR 0101 (Tests biz=1),
  * Constituição Art. 6 (Identity Mesh) + Art. 8 (Policy Gating) + Art. 9 (Auditoria).
  */
 beforeEach(function () {
@@ -213,48 +215,4 @@ it('cenario 5: queries em mcp_memory_documents retornam mesma count cross-tenant
     expect($countBizFicticio)->toBe(3, 'biz=99 deveria ver MESMAS 3 ADRs (cross-tenant)');
     expect($countBizWagner)->toBe($countBizFicticio,
         'ADRs canon devem retornar mesma count em qualquer biz (Art. 6+8 cross-tenant)');
-});
-
-// ------------------------------------------------------------------
-// Cenário 6: ModuleGrade endpoint /governance/module-grades aplica mesmo gate
-// ------------------------------------------------------------------
-
-it('cenario 6a: /governance/module-grades exige auth (bloqueia anonimo)', function () {
-    // Sem session, sem auth
-    $response = $this->get('/governance/module-grades');
-
-    expect($response->status())->toBeIn([301, 302, 401, 403, 404, 500],
-        "Endpoint module-grades deveria exigir auth, recebeu {$response->status()}");
-    expect($response->status())->not->toBe(200);
-});
-
-it('cenario 6b: /governance/module-grades bloqueia user biz=1 sem permission', function () {
-    session(['user.business_id' => BIZ_WAGNER_GOV]);
-
-    $response = $this->get('/governance/module-grades');
-
-    expect($response->status())->toBeIn([301, 302, 401, 403, 404, 500],
-        "Module grades em biz=1 sem permission deveria bloquear, recebeu {$response->status()}");
-});
-
-it('cenario 6c: /governance/module-grades bloqueia user biz=99 sem permission (cross-tenant)', function () {
-    session(['user.business_id' => BIZ_FICTICIO_GOV]);
-
-    $response = $this->get('/governance/module-grades');
-
-    expect($response->status())->toBeIn([301, 302, 401, 403, 404, 500],
-        "Module grades em biz=99 sem permission deveria bloquear igual biz=1, recebeu {$response->status()}");
-});
-
-it('cenario 6d: rota /governance/module-grades tem middleware auth', function () {
-    $route = Route::getRoutes()->getByName('governance.module-grades.index');
-    expect($route)->not->toBeNull('Rota governance.module-grades.index deveria existir');
-
-    $middlewares = $route->gatherMiddleware();
-    $hasAuthLike = collect($middlewares)->contains(
-        fn ($m) => is_string($m) && stripos($m, 'auth') !== false
-    );
-    expect($hasAuthLike)->toBeTrue(
-        'Rota module-grades.index deveria ter middleware auth (got: ' . json_encode($middlewares) . ')'
-    );
 });

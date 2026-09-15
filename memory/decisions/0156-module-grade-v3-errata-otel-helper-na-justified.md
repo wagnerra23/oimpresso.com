@@ -36,7 +36,7 @@ ADR 0155 §"D9 Observability" linha tabela D9.a especifica:
 
 > `grep "OpenTelemetry" Modules/<X>/Services/**/*.php` OU `grep "otel_span" Modules/<X>/**/*.php` OU `grep "Tracer::" Modules/<X>/**/*.php` — pelo menos 1 span manual instrumentado
 
-Implementação atual em [`Modules/Governance/Services/ModuleGradeService.php`](../../Modules/Governance/Services/ModuleGradeService.php) linha 902:
+Implementação atual em `Modules/Governance/Services/ModuleGradeService.php` linha 902 — arquivo deletado em 2026-09-15, ADR 0399:
 
 ```php
 if (preg_match('/\b(OpenTelemetry|otel_span|Tracer|StartSpan|tracer\(\))/i', $content)) {
@@ -199,7 +199,7 @@ Casos detalhados:
 
 **Código canônico:**
 - [`app/Util/OtelHelper.php`](../../app/Util/OtelHelper.php) — facade zero-cost (linhas 17-81)
-- [`Modules/Governance/Services/ModuleGradeService.php`](../../Modules/Governance/Services/ModuleGradeService.php) — método `dim9Observability` (linha 892+) + `loadNaJustified` (linha 1247+)
+- `Modules/Governance/Services/ModuleGradeService.php` — arquivo deletado em 2026-09-15, ADR 0399 — método `dim9Observability` (linha 892+) + `loadNaJustified` (linha 1247+)
 
 **Proibições relevantes:**
 - [memory/proibicoes.md](../proibicoes.md) §"Memória/governança" — ADRs CANON append-only (motivo desta errata existir como ADR nova, não edit de 0155)
