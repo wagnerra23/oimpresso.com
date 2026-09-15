@@ -29,7 +29,7 @@ Cockpit de trabalho do **time interno oimpresso** (Wagner + Felipe + Maiara + El
 ## Estado atual
 
 - **Superfície de código:** 180 arquivos em 14 papéis — 23 Controllers, 26 Services, 23 FormRequests, 9 telas React, 8 comandos artisan, 51 arquivos Pest. Fonte viva (regenerável): [`SUPERFICIE.md`](SUPERFICIE.md) via `node scripts/governance/module-surface.mjs Forja --check`.
-- **Nota do módulo:** não fixar aqui (o `32/100` das portas antigas está stale). Rode `php artisan module:grade Forja --detail`.
+- **Nota do módulo:** não existe mais, e o `32/100` das portas antigas segue stale e datado — a rubrica `module-grade` foi APOSENTADA em 2026-09-15 ([ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md)) — **não existe mais nota de módulo, nem comando que a calcule**. Não fixar número aqui nem procurar substituto: o estado do módulo é este BRIEFING + `node scripts/governance/requisitos-status.mjs Forja`.
 - **Consolidação 2026-07-30/31 (ancorada em SCOPE + commits):**
   - MCP endpoints vindos da Jana — `Mcp/{Health,SyncMemoryWebhook}Controller`, `/api/mcp/*` inalteradas (PR #5101).
   - Daily Brief (ex-`Modules/Brief`, ADR 0091) — `BriefFetchController` + `BriefGeneratorService`/`BriefValidator` + `mcp:generate-brief` + `Mcp/Tools/BriefFetchTool` (PR #5098).
