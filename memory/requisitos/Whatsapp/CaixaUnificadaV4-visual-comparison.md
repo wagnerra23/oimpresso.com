@@ -240,7 +240,7 @@ Todo em PT-BR. ✅
 - [ADR 0135 — Omnichannel inbox arquitetura](../../decisions/0135-omnichannel-inbox-arquitetura.md)
 - [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
 - [PROTOCOL.md](../../../memory/reference/prototipo-ui/PROTOCOL.md)
-- [prototipo-ui/cowork/Wagner/inbox-page.jsx](../../../prototipo-ui/cowork/Wagner/inbox-page.jsx) — fonte visual canônica (802 LOC)
+- [prototipo-ui/cowork/Wagner/inbox-page.jsx](../../../prototipo-ui/cowork/Wagner/inbox-page.jsx) — fonte visual canônica (1487 LOC, medido em origin/main 2026-09-15)
 - [RUNBOOK-inertia-defer-pattern.md](../_DesignSystem/RUNBOOK-inertia-defer-pattern.md)
 
 ---

@@ -1959,6 +1959,25 @@
       "evidencia": "memory/sessions/2026-09-14-refutacao-gt-g5-lote-7262-r2.md (rodada aprovada); anteriores: memory/sessions/2026-09-14-refutacao-gt-g5-lote-7262-r1.md",
       "trajetoria": "2 rodadas: 0,00% (r1, 0/7375) → 0,30% (r2, 1/329)",
       "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
+    },
+    {
+      "pr": 7335,
+      "lote_id": "gt-g5-lote-7335",
+      "data": "2026-09-15",
+      "tipo": "anchors",
+      "gerador": "Claude Opus 5 (Anthropic) — r3 após conserto dos 13 achados da r2 (6,34%). GRUPO A (8, Repair): o blueprint apontava cowork/Wagner/repair-page.jsx, que se declara 'importado dos blades' = PORTE REVERSO (§5 2026-08-28 proíbe como âncora). Corrigido para cowork/Wagner/os-page.jsx, que se declara 'Listagem + Detalhe de Ordens de Serviço' e é o que os charters JobSheet/{Create,Edit,Index,Show} e Repair/Show declaram em blueprint_cowork. Meu erro foi ler o charter de Repair/Index (bundle_source) em vez do charter de cada tela. GRUPO B (5): nota dentro de fenced code-block que era citação literal de charter (retirada, e explicitado que o inventário é datado de 09-09 e o arquivo morreu em 09-11, então o parágrafo 'existe, 30 KB' está correto para a data); prosa partida no sidebar-gap (nota removida, a data já estava na linha seguinte); duas notas que caíram após o pipe final virando célula fora da grade (movidas para dentro da última célula, tabelas reconferidas); e produto-index-setor-matrix, que é derivado de reconcile-triplet.mjs e não se corrige à mão (anotações removidas). Também inclui merge de origin/main (traz o #7353, que regerou o índice de máquinas).",
+      "refutador": "claude-fable-5-1 (Anthropic) — subagente do workflow .claude/workflows/refutador-gt-g5.js em contexto próprio, zero contexto do gerador e das rodadas anteriores (instruído a não abrir as evidências prévias); uma instância NOVA por rodada, r1–r3",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 270,
+      "erros_confirmados": 4,
+      "error_rate_pct": 1.48,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-09-15-refutacao-gt-g5-lote-7335-r3.md (rodada aprovada); anteriores: memory/sessions/2026-09-15-refutacao-gt-g5-lote-7335-r1.md, memory/sessions/2026-09-15-refutacao-gt-g5-lote-7335-r2.md",
+      "trajetoria": "3 rodadas: 40,98% (r1, 84/205) → 6,34% (r2, 13/205) → 1,48% (r3, 4/270)",
+      "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
     }
   ]
 }
