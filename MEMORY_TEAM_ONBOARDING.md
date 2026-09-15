@@ -140,6 +140,40 @@ git status .claude/settings.local.json
 
 ⚠️ **NUNCA commit esse arquivo.** Tem token de acesso pessoal.
 
+### E. Exportar `OIMPRESSO_MCP_TOKEN` no ambiente ⚠️ OBRIGATÓRIO
+
+Medido em **2026-09-15** (cliente Claude Code **2.1.257**): o bloco `mcpServers` do passo C
+**não alimenta o cliente MCP** — uma entrada de teste colocada lá não apareceu em
+`claude mcp list`. Ele continua necessário (é o cofre que os hooks do projeto leem: o
+`brief-fetch-curl.mjs`, o `cc-watcher` e o `fluxo-sistema.mjs`), mas quem conecta o
+cliente é o `.mcp.json`, que expande `${OIMPRESSO_MCP_TOKEN}` **a partir do ambiente**.
+
+Sem essa variável o cliente cai em OAuth e o servidor responde `419 CSRF token mismatch`.
+
+**Windows** (PowerShell, uma vez só):
+```powershell
+[Environment]::SetEnvironmentVariable('OIMPRESSO_MCP_TOKEN','<seu-token-SEM-o-Bearer>','User')
+```
+
+**Linux/macOS** — no seu `~/.bashrc` / `~/.zshrc`:
+```bash
+export OIMPRESSO_MCP_TOKEN='<seu-token-SEM-o-Bearer>'
+```
+
+Depois **reabra a sessão**: a config MCP é lida no *start*, não recarrega em sessão viva.
+
+Um bloco `env` dentro do `settings.local.json` **não** serve — foi testado no mesmo dia e
+o cliente acusou `Missing environment variables: OIMPRESSO_MCP_TOKEN`.
+
+### Como saber que funcionou
+```bash
+claude mcp list
+# oimpresso: https://mcp.oimpresso.com/api/mcp (HTTP) - ✔ Connected
+```
+⚠️ `claude mcp list` é o único lugar que mostra erro de config. Uma entrada malformada sai
+como `Skipped` e o servidor **some da sessão inteira** — nem `failed`, nem `pending`.
+Silêncio ali é indistinguível de "nunca foi configurado".
+
 ---
 
 ## Passo 3 — Abre Claude Code
@@ -151,7 +185,8 @@ claude
 
 Na 1ª abertura, Claude Code:
 1. Lê `.mcp.json` do repo (config oficial dos servidores)
-2. Lê `.claude/settings.local.json` (seu token pessoal)
+2. Expande `${OIMPRESSO_MCP_TOKEN}` do **ambiente** no header do `.mcp.json` — o
+   `settings.local.json` alimenta os hooks do projeto, **não** o cliente MCP (medido 2026-09-15)
 3. Aprova o servidor "oimpresso" (1×)
 4. Carrega skills auto-ativáveis: `multi-tenant-patterns`, `publication-policy`, `oimpresso-team-onboarding`
 

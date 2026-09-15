@@ -36,6 +36,50 @@
  * reprovava `node -e '…' > /tmp/out.txt`, que é legítimo. Sem FP baixo, não
  * entra — a lápide do guard sintático já matou 4 dessa família.
  *
+ * ── RE-MEDIDO 2026-09-15 — O P3 TINHA OS DOIS DEFEITOS AO MESMO TEMPO ──────
+ * Mesma disciplina do P4 e do P5, no 3º padrão. Corpus: 1.730 transcripts,
+ * 150.015 comandos.
+ *   (a) FALSO-NEGATIVO — a perna `echo` do `ehMencao` era larga aqui também, e
+ *       desligava o P3 sempre que houvesse um `echo` antes na linha. Medido:
+ *       78 comandos passavam batidos, dos quais **65 execução REAL**. O idioma
+ *       `echo "=== titulo ==="; git grep --hidden …` é o padrão do repo.
+ *   (b) FALSO-POSITIVO — o regex é ganancioso (`git grep` + `[^\n]*` + a flag),
+ *       então acusava a flag de um `rg` adiante na MESMA linha — uso CERTO, já
+ *       que quem varre dotfile no working tree é o ripgrep. Medido: 1 dos 30
+ *       disparos de hoje, e 13 dos 78 que (a) traria.
+ *   (c) PROSA CITADA — a 1ª versão deste escopo rastreava aspas para não PARTIR
+ *       segmentos, mas nunca perguntava se os tokens estavam DENTRO delas, e
+ *       tratava texto citado como código. Quebrava os DOIS lados: bloqueava
+ *       `git grep -n x; echo "… sem --hidden vs git grep …"` (prosa) e LIBERAVA
+ *       `echo "=== git grep de X ==="; git grep --hidden …` (defeito real, porque
+ *       o match caía na prosa). A fixture da 1ª versão ficava a UMA PALAVRA de
+ *       falhar. Achado pelo `ciclo-adversary`; reproduzido no CLI antes de aceitar.
+ *   (d) HEREDOC FECHADO — a perna genérica só via `<<LABEL` antes do match, sem
+ *       checar fechamento: comando real DEPOIS de um heredoc fechado era isentado.
+ *
+ * Escopo: perna estrita do `echo` (como o P5) + `despirAspas` antes de segmentar e
+ * de resolver o índice + `hiddenDeOutroComando` exigindo a flag no MESMO segmento
+ * de shell + `dentroDeHeredocAberto`. Todos determinísticos — posição no comando,
+ * nunca intenção do autor.
+ *   ANTES 31 disparos (6 não-defeito)  ·  DEPOIS 91 (0 não-defeito · 0 FN)
+ *
+ * ⚠️ MEDIDO POR CAMINHO INDEPENDENTE, e isso é o ponto: a 1ª medição aferiu o FP
+ * com `hiddenDeOutroComando` — a PRÓPRIA função que filtra — e por isso reportou
+ * "0 FP" enquanto 4 não-defeitos passavam. O número acima vem de um classificador
+ * que não compartilha código com o hook (tokeniza respeitando aspas e corta corpo
+ * de heredoc, 8/8 nos próprios controles): 91 disparos, 91 confirmados defeito,
+ * zero falso-positivo, zero falso-negativo. Medir o filtro com o filtro é tautologia.
+ *
+ * ── PLACAR ATUAL DOS 4 — com o denominador DECLARADO ────────────────────────
+ * O matcher deste hook é `Bash|PowerShell|Monitor` (settings.json), então há dois
+ * denominadores legítimos e eles contam histórias diferentes:
+ *   Bash+PowerShell  150.257 cmds → P2 3 · P3 91 · P4 3 · P5 39 = 136 (0,091%)
+ *   Monitor              353 cmds → P5 95 = 26,9% (o vigia de CI é onde o `jq`
+ *                                   mora; são TP, é a superfície do defeito)
+ *   SUPERFÍCIE REAL  150.610 cmds → 231 = 0,153% — 1 bloqueio a cada ~652
+ * O "0,100%" de 2026-08-21 era só-Bash/PS e não conhecia o Monitor; comparar com
+ * os 0,153% seria comparar denominadores diferentes.
+ *
  * ⚠️ O "0,080%" do P4 acima é FATO DATADO e fica — mas ele mediu o EIXO ERRADO.
  * Aqueles 52 foram classificados em **execução × menção**, nunca em **defeito ×
  * uso correto**. Re-medido no eixo certo em 2026-09-15 (1.730 transcripts):
@@ -146,6 +190,10 @@ export const PADROES = [
     nome: 'git grep --hidden',
     // `--hidden` é flag do RIPGREP. O git grep sai rc=129 e NÃO lista nada.
     re: /git\s+grep\b[^\n]*--hidden\b/,
+    // O regex acima é ganancioso de propósito (casa a linha), então precisa de uma
+    // 2ª perna: a flag tem de estar no MESMO segmento de shell do `git grep`.
+    // Sem ela, `git grep -l "x" | rg --hidden "y"` — uso CERTO — era acusado.
+    exceto: (cmd) => hiddenDeOutroComando(cmd),
     porque:
       '`--hidden` não existe no `git grep` (é do ripgrep). O comando sai com erro e lista ZERO — ' +
       'e um `wc -l` depois conta a mensagem de erro como "0 ocorrências".',
@@ -251,6 +299,71 @@ export function dentroDeCodigoInline(cmd, re) {
   const depoisDaAbertura = antes.slice(flag.index + flag[0].length - 1);
   const n = (depoisDaAbertura.match(new RegExp(aspa, 'g')) || []).length;
   return n % 2 === 1;
+}
+
+/**
+ * O `--hidden` que o regex do P3 casou pertence ao MESMO `git grep` — ou é de
+ * outro comando adiante na linha?
+ *
+ * ── POR QUE (medido 2026-09-15, 1.730 transcripts / ~149k comandos) ─────────
+ * O regex do P3 é ganancioso por construção (`git grep` + `[^\n]*` + a flag),
+ * então casa a linha inteira e acusa quando a flag é de um `rg` adiante — que
+ * é justamente o uso CERTO (quem varre dotfile no working tree é o ripgrep).
+ * Medido: 1 de 29 disparos de hoje, e 13 dos 78 que a perna estrita traria.
+ *
+ * Segmenta o comando por separador de shell FORA de aspas (`;` `&&` `||` `|`
+ * e newline) e pergunta se ALGUM segmento tem `git grep` E a flag juntos.
+ * Determinístico — é posição no comando, não intenção do autor.
+ *
+ * @param {string} cmd
+ * @returns {boolean} true = a flag é de OUTRO comando (abster)
+ */
+/**
+ * Apaga o CONTEÚDO entre aspas, preservando as aspas e o COMPRIMENTO.
+ *
+ * ⚠️ Só serve a padrão cujo alvo é COMANDO (o P3). Para P2 e P4 o alvo vive
+ * DENTRO das aspas (`grep -E "foo\|bar"`, `.replace(a, "x $&")`) — despir mataria
+ * os dois. Aplicar isto no `ehMencao` geral desligaria metade do hook.
+ *
+ * O comprimento é preservado de propósito: o índice do match no texto despido
+ * tem de continuar válido no original.
+ *
+ * @param {string} cmd
+ */
+export function despirAspas(cmd) {
+  const out = cmd.split('');
+  let q = null;
+  for (let i = 0; i < cmd.length; i++) {
+    const c = cmd[i];
+    if (q) {
+      if (c === q && cmd[i - 1] !== '\\') { q = null; continue; }  // aspa de fecho: mantém
+      out[i] = ' ';                                                 // conteúdo: apaga
+      continue;
+    }
+    if (c === '"' || c === "'") { q = c; continue; }                // aspa de abertura: mantém
+  }
+  return out.join('');
+}
+
+export function hiddenDeOutroComando(cmdOriginal) {
+  // Prosa citada NÃO é código: sem despir, `echo "… sem --hidden vs git grep …"`
+  // fazia um segmento inteiro de texto parecer um `git grep` com a flag. Achado do
+  // `ciclo-adversary` (2026-09-15) contra a 1ª versão desta função, reproduzido no CLI.
+  const cmd = despirAspas(cmdOriginal);
+  const segs = [];
+  let cur = '', q = null;
+  for (let i = 0; i < cmd.length; i++) {
+    const c = cmd[i];
+    if (q) { cur += c; if (c === q && cmd[i - 1] !== '\\') q = null; continue; }
+    if (c === '"' || c === "'") { q = c; cur += c; continue; }
+    if (c === ';' || c === '\n') { segs.push(cur); cur = ''; continue; }
+    if ((c === '&' || c === '|') && cmd[i + 1] === c) { segs.push(cur); cur = ''; i++; continue; }
+    if (c === '|') { segs.push(cur); cur = ''; continue; }
+    cur += c;
+  }
+  segs.push(cur);
+  const temGitGrepComFlag = segs.some((s) => /\bgit\s+grep\b/.test(s) && /--hidden\b/.test(s));
+  return !temGitGrepComFlag;          // nenhum segmento junta os dois → não é o defeito
 }
 
 /**
@@ -360,11 +473,50 @@ function dentroDeAspasDeEcho(antes) {
 }
 
 /**
+ * O trecho está dentro de um heredoc que AINDA NÃO FECHOU?
+ *
+ * A perna genérica do `ehMencao` testa só `<<LABEL` antes do match, sem checar o
+ * fechamento — então um `cat > x.sql <<'SQL' … SQL` seguido de comando REAL isentava
+ * o comando. Medido: 1 caso no corpus (`git grep --hidden` depois do heredoc fechar).
+ * Usado só pelo P3, para não mudar o raio dos outros padrões.
+ *
+ * @param {string} antes
+ */
+function dentroDeHeredocAberto(antes) {
+  const re = /<<\s*['"]?(\w+)['"]?/g;
+  let m, aberto = false;
+  while ((m = re.exec(antes)) !== null) {
+    const resto = antes.slice(m.index + m[0].length);
+    aberto = !new RegExp('^\\s*' + m[1] + '\\s*$', 'm').test(resto);
+  }
+  return aberto;                                   // vale o ÚLTIMO heredoc visto
+}
+
+/**
  * @param {string} cmd @param {RegExp} re
  * @param {string} [id] id do padrão. Só o P5 usa a perna `echo` ESTRITA (paridade
  *   de aspas); os demais mantêm a perna larga — ver `dentroDeAspasDeEcho`.
  */
 export function ehMencao(cmd, re, id) {
+  // P3: o alvo dele é COMANDO, então o match tem de ser resolvido no texto DESPIDO —
+  // senão ele cai na PROSA (`echo "=== git grep de X ==="; git grep --hidden …`), o
+  // `antes` fica vazio, e o hook conclui "menção" num defeito REAL. Medido no CLI.
+  // Se o padrão SOME ao despir, ele só existia dentro de aspas → menção de verdade.
+  // ⚠️ NÃO vale pros outros: o alvo do P2/P4 VIVE dentro das aspas — despir os mata.
+  if (id === 'P3') {
+    const despido = despirAspas(cmd);
+    const mD = despido.match(re);
+    if (!mD || mD.index === undefined) return true;      // padrão 100% em prosa
+    const antesD = despido.slice(0, mD.index);
+    // ⚠️ heredoc se testa no ORIGINAL: o despir apaga o rótulo (`<<'EOF'` → `<<'   '`)
+    // e o `\w+` deixa de casar. Medido — sem isto, corpo de commit/PR que CITA a flag
+    // (inclusive o desta própria mudança) passava a ser bloqueado. O índice vale nos
+    // dois textos porque `despirAspas` preserva o comprimento.
+    const antesOriginal = cmd.slice(0, mD.index);
+    return dentroDeAspasDeEcho(antesD)
+      || dentroDeHeredocAberto(antesOriginal)
+      || /\s(-m|--body|--body-file|--title)\s+["'][^"']*$/.test(antesOriginal);
+  }
   const m = cmd.match(re);
   if (!m || m.index === undefined) return false;
   const antes = cmd.slice(0, m.index);
@@ -373,7 +525,7 @@ export function ehMencao(cmd, re, id) {
   // P5: exige que o match esteja DENTRO das aspas do echo. `echo "$s" | jq -r .`
   //     tem o pipe FORA, logo é EXECUÇÃO — e era o falso-negativo que deixava o
   //     vigia de CI mudo (LC-13, 2 ocorrências em ~5h no dia 2026-09-15).
-  const pernaEcho = id === 'P5'
+  const pernaEcho = (id === 'P5' || id === 'P3')
     ? dentroDeAspasDeEcho(antes)
     : /\b(echo|printf)\b[^\n]*$/.test(antes);
   return pernaEcho
@@ -422,6 +574,37 @@ const FIXTURES = [
   ['git grep --hidden -n "foo" -- .', true],
   ['rg --hidden -n "foo"', false],
   ['git grep -n "foo" -- .', false],
+  // ── P3: OS DOIS DEFEITOS MEDIDOS EM 2026-09-15 ────────────────────────────
+  // (a) FALSO-NEGATIVO — a perna `echo` do `ehMencao` era larga e desligava o P3
+  // sempre que houvesse um `echo` antes na linha. Medido: 65 execuções REAIS
+  // passavam batidas, e o idioma abaixo (cabeçalho + comando) é o padrão do repo.
+  ['echo "=== quem cita X ==="; git grep --hidden -l "X" -- .', true],
+  ['echo "titulo" && git grep -rn --hidden -e "Y" -- .', true],
+  // (b) FALSO-POSITIVO — o regex é ganancioso (`git grep` + [^\n]* + a flag), então
+  // casava a flag de um `rg` adiante na MESMA linha. Medido: 14 casos, e o `rg`
+  // com a flag está CERTO — quem varre dotfile no working tree é ele.
+  ['git grep -l "foo"; rg --hidden "bar"', false],
+  ['git grep -n "a" && rg --hidden -n "b"', false],
+  ['git grep -n "a" | rg --hidden "b"', false],
+  ['echo "=== total (repo inteiro, rg --hidden) ==="; git grep -c "z" -- .', false],
+  // …e o controle do controle: a flag NO git grep continua mordendo mesmo com pipe
+  ['git grep --hidden "a" | wc -l', true],
+  // (c) PROSA CITADA — achado do `ciclo-adversary` sobre a 1ª versão deste escopo,
+  // reproduzido no CLI real. A 1ª versão rastreava aspas para não PARTIR segmentos,
+  // mas nunca perguntava se os tokens estavam DENTRO delas: texto citado virava
+  // código. Os dois lados quebravam, e a fixture acima ficava a UMA PALAVRA de falhar.
+  //   FN: o match do regex caía no `git grep` da PROSA, e o `ehMencao` dizia "menção"
+  ['echo "=== git grep de X ==="; git grep --hidden -l "X" -- .', true],
+  ['echo "=== busca git grep admin ===" && git grep -n --hidden "admin" -- .', true],
+  //   FP: o `git grep` REAL (sem a flag) vem antes, e a prosa que NOMEIA a flag vem
+  //   depois — o regex ganancioso costura os dois. Caso real do corpus.
+  ['git grep -n "design-coverage" -- .; echo "=== contagem: sem --hidden vs git grep ==="', false],
+  ['git grep -c "y" -- . && echo "=== 2o oraculo: rg --hidden sobre ls-files ==="', false],
+  // (d) HEREDOC — o corpo de um `<<EOF` ABERTO é texto (corpo de commit/PR citando a
+  // flag; inclusive o desta mudança). Mas se ele FECHOU, o que vem depois é comando:
+  // era o último falso-negativo do corpus, achado pelo medidor independente.
+  ['cat > x.sql <<\'SQL\'\nSELECT 1;\nSQL\ngit grep -rn --hidden -c "x" -- .', true],
+  ['git commit -F - <<\'EOF\'\nfix: o git grep --hidden nao existe\nEOF', false],
   ['grep -E "foo\\|bar" a.txt', true],
   ['grep -E "foo|bar" a.txt', false],
   ['grep -F "foo|bar" a.txt', false],

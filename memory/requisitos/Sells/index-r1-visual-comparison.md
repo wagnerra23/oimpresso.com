@@ -10,7 +10,8 @@ canon_reference: prototipo-ui/cowork/Wagner/vendas-page.jsx
 canon_method: KB-9.75 (chat10 — 2026-05-16)
 canon_score: 9.75/10 (cópia integral em 1 PR — substitui slice em 4 refinos)
 inertia_target: resources/js/Pages/Sells/Index.tsx
-visual_source_html: prototipo-ui/prototipos/sells-index/Oimpresso ERP - Chat.html  # removido em 2026-05-19, 7810bf5cb40
+# visual_source_html: o path abaixo foi removido em 2026-05-19, 7810bf5cb40
+visual_source_html: prototipo-ui/prototipos/sells-index/Oimpresso ERP - Chat.html
 related_adrs: [0104, 0107, 0109, 0110, 0114, 0141, 0143, 0093]
 approved_by: wagner
 approved_at: 2026-05-17
