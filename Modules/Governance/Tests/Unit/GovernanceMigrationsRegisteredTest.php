@@ -54,8 +54,12 @@ it('mantem no path as migrations das tabelas que os crons de governanca escrevem
     // Cada tabela abaixo é destino de escrita de um schedule `['live']` do Kernel.
     // Sem a migration no path, o cron morre com SQLSTATE[42S02] — que é exatamente
     // o que aconteceu com `mcp_module_grades_history` por ~3 meses.
+    // `mcp_module_grades_history` saiu desta lista em 2026-09-15 (ADR 0399): o
+    // schedule `module:grade-snapshot` que a escrevia foi removido na Onda 4a e a
+    // tabela foi dropada na 4b. A migration de CRIAÇÃO segue no path (é história),
+    // então o assert passaria por acidente — e estaria afirmando que um cron
+    // inexistente escreve nela.
     $tabelas = [
-        'mcp_module_grades_history',  // module:grade-snapshot        06:05 BRT
         'mcp_scorecard_runs',         // governance:scorecard-snapshot 07:00 BRT
         'mcp_observability_spans',    // governance:observability-aggregate
         'mcp_governance_initiatives', // governance:initiative-sync    08:00 BRT

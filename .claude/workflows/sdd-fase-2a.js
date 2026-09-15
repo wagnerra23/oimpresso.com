@@ -53,7 +53,7 @@ CONTEÚDO: (1) protection-drift.mjs: via gh api repos/{owner}/{repo}/branches/ma
     key: 'gt-g7',
     prompt: `FRENTE GT-G7 — histórico do scorecard: snapshot diário em DB + check no jana:health-check.
 ÁREA EXCLUSIVA: app/Console/Commands/SddScorecardSnapshotCommand.php (novo) + database/migrations/*_create_mcp_sdd_scorecard_history_table.php (nova) + app/Console/Kernel.php (SÓ a linha do schedule 06:55 BRT) + o Command do health-check (adicionar check verificacao_sdd) + tests/Feature/Console correspondentes.
-LEIA ANTES: o padrão de ModuleGradeSnapshotCommand + migration de mcp_module_grades_history (precedente exato: tabela de governança GLOBAL sem business_id — replique o comentário justificando a exceção Tier 0) + .claude/rules/migrations.md + como checks são adicionados no health-check (jana:health-check, 5 checks SQL existentes).
+LEIA ANTES: o padrão de ScorecardSnapshotCommand + migration de mcp_scorecard_runs (precedente exato: tabela de governança GLOBAL sem business_id — replique o comentário justificando a exceção Tier 0; o precedente anterior era o ModuleGradeSnapshotCommand + mcp_module_grades_history, removidos em 2026-09-15 pela ADR 0399) + .claude/rules/migrations.md + como checks são adicionados no health-check (jana:health-check, 5 checks SQL existentes).
 CONTEÚDO: comando lê governance/sdd-scorecard.json e persiste 1 row/dia (10 métricas + composta + generated_at; idempotente por data — re-run no mesmo dia atualiza, não duplica); schedule 06:55 BRT; check verificacao_sdd no health-check: vermelho se último snapshot >48h OU alguma métrica armada regrediu vs snapshot anterior (ALERT em storage/logs). DoD: Pest local passando (migration up/down + comando idempotente + check) — colar output do run.`,
   },
   {
