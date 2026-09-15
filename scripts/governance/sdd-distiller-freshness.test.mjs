@@ -11,7 +11,7 @@
 //      fonte injetada ignora o guard  (incidente 2026-07-08→12: publish shallow publicou 6)
 // `newestDocDate` é injetado (mapa) → sem git/FS real, determinístico.
 // Uso: node scripts/governance/sdd-distiller-freshness.test.mjs
-import { measureDistillerFreshness, isDocGerado } from './sdd-scorecard.mjs';
+import { measureDistillerFreshness, isDocGerado, gitNewestModuleEventDate } from './sdd-scorecard.mjs';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, basename } from 'node:path';
@@ -109,6 +109,28 @@ ok(!isDocGerado('x.md', ler('# sem frontmatter\n')),
   'doc sem frontmatter → CONTA como conhecimento (controle negativo)');
 ok(!isDocGerado('x.md', () => { throw new Error('EACCES'); }),
   'ilegível → false: na dúvida o doc CONTA (erra pro lado de acusar stale, não de esconder)');
+
+// ── G: a fonte do evento é o MAX(doc, código) — ADR 0291 D-D + [W] 2026-09-15 ──────
+// O lado DOC exclui `authority: generated`, e o Jana/ARCHITECTURE.md é DERIVADO do
+// código: excluí-lo apagava o único sinal de que o código andou. Medido nas 14 portas
+// com carimbo, trocando só a fonte na MESMA função: DOC acusava 1 (Fiscal) e CÓDIGO
+// acusava 1 (Jana) — mesmo total, PORTA DIFERENTE. Cada fonte é cega no que a outra vê,
+// então a régua é o MAX. Estes asserts existem pra que REMOVER o MAX fique VERMELHO:
+// sem eles, a próxima sessão "simplifica" de volta pra uma fonte e nada reclama.
+// Fontes injetadas → determinístico, sem git.
+const evento = (doc, cod) => gitNewestModuleEventDate('/fake/Jana', { docDate: () => doc, codeDate: () => cod });
+ok(evento('2026-09-11', '2026-09-15') === '2026-09-15',
+  'MORDE: código mais novo que o doc → vence o código (era o ponto cego da Jana)');
+ok(evento('2026-09-14', '2026-09-11') === '2026-09-14',
+  'MORDE: doc mais novo que o código → vence o doc (o caso Fiscal não se perde)');
+ok(evento('2026-09-14', null) === '2026-09-14',
+  'módulo sem código no checkout → cai no doc (controle negativo, não zera a porta)');
+ok(evento(null, '2026-09-15') === '2026-09-15',
+  'módulo sem doc datável → cai no código (controle negativo)');
+ok(evento(null, null) === null,
+  'nenhuma fonte datou → null, e o chamador trata como nao-medido (nunca fabrica stale)');
+ok(evento('2026-09-15', '2026-09-15') === '2026-09-15',
+  'empate → devolve a data (sem NaN, sem undefined)');
 
 console.log(fails === 0 ? '\n  distiller_freshness read-side (ADR 0291 D-D): OK\n' : `\n  distiller_freshness: ${fails} FALHA(S)\n`);
 process.exit(fails === 0 ? 0 : 1);

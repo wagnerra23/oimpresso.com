@@ -26,9 +26,15 @@
 
 import { readdirSync, readFileSync, existsSync, writeFileSync, realpathSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { join } from 'node:path';
+import { join, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isShallowHistory, gitLastDate } from './lib/git-history.mjs';
+// nsDoModulo: a FUNÇÃO do dono do mapa nome-do-módulo -> namespace(s) Inertia (o nome
+// difere do namespace em 10 casos, e o valor pode ser string OU array). Importo a função,
+// não o mapa: normalizar aqui seria copiar a lógica dele — e a 1ª versão disto quebrou
+// com TypeError justamente por assumir array. Import livre de efeito colateral
+// (module-surface.mjs tem guarda de main).
+import { nsDoModulo } from './module-surface.mjs';
 
 const ROOT = process.cwd();
 const OUT = join(ROOT, 'governance', 'sdd-scorecard.json');
@@ -343,7 +349,23 @@ export function isDocGerado(caminho, ler = readFileSync) {
 
 // Data-git (committer %cs) do doc .md mais novo do módulo, EXCETO a própria BRIEFING.
 // Só é chamada pras portas carimbadas → barato no rollout (poucas portas têm carimbo).
-function gitNewestModuleDocDate(modDir) {
+/**
+ * Data-git do CÓDIGO do módulo: a raiz `Modules/<Mod>/` mais as raízes de Pages dos
+ * namespaces Inertia que ele declara (dono: `module-surface.mjs::nsDoModulo`).
+ * null quando o módulo não tem código no checkout — aí o MAX cai só no doc.
+ */
+function gitNewestModuleCodeDate(mod) {
+  let newest = null;
+  for (const rel of [join('Modules', mod), ...nsDoModulo(mod).map((ns) => join('resources', 'js', 'Pages', ns))]) {
+    if (!existsSync(join(ROOT, rel))) continue;
+    const dt = gitDateOf(rel);
+    if (dt && (!newest || dt > newest)) newest = dt;
+  }
+  return newest;
+}
+
+/** Metade DOC do evento: data-git do doc NÃO-GERADO mais novo do módulo. */
+function gitNewestModuleDocOnlyDate(modDir) {
   let newest = null;
   const briefing = join(modDir, 'BRIEFING.md');
   const walk = (d) => {
@@ -372,6 +394,34 @@ function gitNewestModuleDocDate(modDir) {
   return newest;
 }
 
+/**
+ * Data do EVENTO mais novo do módulo = MAX(doc não-gerado, código).
+ *
+ * POR QUE AS DUAS FONTES (medido 2026-09-15; [W] autorizou o MAX): a régua só olhava
+ * DOC, e o lado doc exclui `authority: generated`. A exclusão nasceu porque o
+ * `Jana/ARCHITECTURE.md` regenerado marcava a porta como stale sem conhecimento novo
+ * (falso-stale que avermelhava um required, PR #5298) — mas esse arquivo é DERIVADO do
+ * código, e excluí-lo apagou o único sinal de que o código andou. Medição das 14 portas
+ * com carimbo, na MESMA função, trocando só a fonte: DOC acusa 1 (FISCAL — doc 09-14,
+ * código 09-11) e CÓDIGO acusa 1 (JANA — código 09-15, doc 09-11). Mesmo total, PORTA
+ * DIFERENTE: cada fonte é cega no que a outra vê. Trocar doc->código não fechava o ponto
+ * cego, MUDAVA de lugar. O MAX fecha os dois e preserva a defesa original — o lado doc
+ * segue excluindo gerado, então regenerar índice continua não marcando stale.
+ *
+ * As duas fontes são INJETÁVEIS de propósito: o MAX é a regra, e regra sem mordida é
+ * promessa (LC-15). O bite-test em `sdd-distiller-freshness.test.mjs` exercita os 3
+ * ramos (código ganha · doc ganha · um dos dois ausente) sem tocar git.
+ */
+export function gitNewestModuleEventDate(
+  modDir,
+  { docDate = gitNewestModuleDocOnlyDate, codeDate = gitNewestModuleCodeDate } = {},
+) {
+  const doc = docDate(modDir);
+  const codigo = codeDate(basename(modDir));
+  if (doc && codigo) return doc > codigo ? doc : codigo;
+  return doc || codigo || null;
+}
+
 // dias que `toDate` está À FRENTE de `fromDate` (ambas YYYY-MM-DD fixas → determinístico).
 function daysAhead(fromDate, toDate) {
   return (Date.parse(toDate) - Date.parse(fromDate)) / 86400000;
@@ -379,16 +429,16 @@ function daysAhead(fromDate, toDate) {
 
 export function measureDistillerFreshness(
   reqDir = join(ROOT, 'memory', 'requisitos'),
-  { newestDocDate = gitNewestModuleDocDate, staleDays = STALE_DAYS_DISTILLER, shallow = isShallowHistory } = {},
+  { newestDocDate = gitNewestModuleEventDate, staleDays = STALE_DAYS_DISTILLER, shallow = isShallowHistory } = {},
 ) {
-  const FRESH_TARGET = '< 7d atrás do doc mais novo em 100% das portas';
-  // Guard anti-fabricação: em checkout shallow o gitNewestModuleDocDate devolve a data
+  const FRESH_TARGET = '< 7d atrás do evento mais novo (doc OU código) em 100% das portas';
+  // Guard anti-fabricação: em checkout shallow o gitNewestModuleEventDate devolve a data
   // do HEAD pra todo módulo → portas carimbadas >7d atrás viram "stale" só pelo passar
   // do calendário, sem doc novo nenhum. Foi o drift real 2026-07-08→12 (0→5→9→7→6 no
   // scorecard publicado, medição em checkout full = 0 o tempo todo): o publish rodava
   // com fetch-depth default (1). Honesto: not_yet_measured, NUNCA fabrica stale.
   // Fonte injetada (meta-teste) não passa por git → guard não se aplica.
-  if (newestDocDate === gitNewestModuleDocDate && shallow()) {
+  if (newestDocDate === gitNewestModuleEventDate && shallow()) {
     return notYet('down', FRESH_TARGET,
       'ADR 0291 D-D — checkout shallow: data-git do doc mais novo é infabricável (git log só vê o HEAD; mediria calendário, não eventos). Use actions/checkout com fetch-depth: 0.');
   }
@@ -415,9 +465,9 @@ export function measureDistillerFreshness(
       'ADR 0291 D-D — nenhuma porta tem distilled_at ainda (distiller-módulo-verdade não rodou em prod; gate Wagner/CT100). Vira measured no 1º carimbo, como o floor do 0279.');
   }
   return {
-    status: 'measured', value: stale, unit: 'portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)',
+    status: 'measured', value: stale, unit: 'portas atrás dos eventos (>7d vs doc OU código mais novo · ADR 0291 D-D)',
     direction: 'down', target: 0,
-    source: 'memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)',
+    source: 'memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs MAX(data-git do doc não-gerado mais novo, data-git do código do módulo) — determinístico, ADR 0291 D-D',
     detail: { portas: total, carimbadas: stamped, sem_carimbo: total - stamped, stale, oldest_distilled_at: oldest },
   };
 }
