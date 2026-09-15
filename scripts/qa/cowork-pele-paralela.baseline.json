@@ -2,19 +2,7 @@
   "_nota": "Divida HERDADA de pele paralela. So encolhe. Ver docblock de cowork-pele-paralela.mjs.",
   "dir": "prototipo-ui/cowork/Wagner",
   "chaves": [
-    "R1:clientes-page.jsx",
-    "R1:compras-extras.jsx",
-    "R1:crm-blade-forms.jsx",
-    "R1:crm-blade.jsx",
-    "R1:crm-portal.jsx",
-    "R1:financeiro-legado.jsx",
-    "R1:fiscal-page.jsx",
-    "R1:integra-extras.jsx",
-    "R1:jana-merge.jsx",
     "R1:modulo-padrao.jsx",
-    "R1:os-page.jsx",
-    "R1:venda-blade-caixa.jsx",
-    "R1:venda-blade.jsx",
     "R2:cd",
     "R2:cf",
     "R2:cli",
@@ -38,7 +26,6 @@
     "R3:PBUI",
     "R3:PontoUI",
     "R4:PG_CobrancaPage",
-    "R4:SD",
     "R4:__PBFiltro",
     "R4:__vendaDevolverAlvo"
   ]
