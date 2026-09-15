@@ -181,7 +181,7 @@ Casos detalhados:
 
 **Smoke test manual:**
 
-> Flags reais do command (ver [`ModuleGradeCommand.php`](../../Modules/Governance/Console/Commands/ModuleGradeCommand.php) linhas 28-33): `--all`, `--json`, `--detail`, `--evolve`. NÃO existe `--version` — Service v3 é o engine atual unificado (back-compat absorvida via `na_justified` + `na_justified_v3`).
+> Flags reais do command (ver `ModuleGradeCommand.php` linhas 28-33 — arquivo deletado em 2026-09-15, ADR 0399): `--all`, `--json`, `--detail`, `--evolve`. NÃO existe `--version` — Service v3 é o engine atual unificado (back-compat absorvida via `na_justified` + `na_justified_v3`).
 
 1. Rodar `php artisan module:grade Sells --detail` — confirmar D9.a detecta `OtelHelper::spanBiz` em `Modules/Sells/Services/ExecuteStageActionService.php` (FSM canon)
 2. Rodar `php artisan module:grade Governance --detail` — confirmar `na_justified` legacy continua funcionando se ainda existir
