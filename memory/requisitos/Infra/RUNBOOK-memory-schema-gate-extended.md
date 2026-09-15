@@ -119,7 +119,7 @@ bash .github/scripts/validate-memory-schema.sh spec memory/requisitos/Jana/SPEC.
 Exit code:
 - `0` = sem erros (warnings podem aparecer)
 - `1` = erros bloqueantes (corrija antes do push) — **inclui path que não existe**, desde 2026-09-15
-- `2` = erro de uso (type inválido)
+- `2` = erro de uso (type inválido) — validado **na entrada** desde 2026-09-15, então tipo torto reprova mesmo **sem arquivos**; antes caía no "[OK] nada a validar" e saía `0`
 
 Rodapé (desde 2026-09-15): `Arquivos validados: N de T (pulados: S · inexistentes: M) — erros: E`, com **N + S + M = T** — dá pra conferir a conta sem abrir o log inteiro.
 
@@ -162,6 +162,10 @@ Fix: adicionar seção com snapshot das tools MCP (cycles-active/my-work/session
 Causa: você passou um path que não está no disco — path torto, **CR de CRLF** numa lista gerada no Windows (`open(p,'w')` sem `newline=''`), glob que não casou, ou arquivo renomeado depois do `git diff`.
 Fix: consertar a **invocação**, não o arquivo. Até 2026-09-15 isto saía como `[SKIP]` de aparência benigna e o rodapé ainda contava o path como **validado** — 50 paths com CR renderam `Arquivos validados: 50 (skipados: 0) — erros: 0` com `exit 0`. Agora é violação (`exit 1`) e o rodapé separa os três baldes: **validados + pulados + inexistentes = total**.
 
+### "'--selftest' não é um modo deste script"
+Causa: você chamou `validate-memory-schema.sh --selftest` (ou `--help`, ou um tipo com typo). Ele **não tem** modo próprio de selftest, de propósito — duplicaria o dono do tema.
+Fix: o bite-test dele é **`node scripts/tests/memory-schema-detect.test.mjs`**, que o CI roda no job `selftest` do `memory-schema-gate.yml`. Até 2026-09-15 esse comando saía **`exit 0`** com `[OK] nada a validar` — verde de graça para quem achava ter rodado um selftest.
+
 ### Python missing local
 Causa: `python3` não no PATH no Windows.
 Fix: script detecta `python3`/`python`/`py` automaticamente. Se nenhum, instalar Python 3.x ou usar WSL.
@@ -188,6 +192,7 @@ Fix: corrigido no script (escrita por `sys.stdout.buffer` em UTF-8 explícito). 
 |---|---|---|
 | 2026-05-15 | W+C | Criação D6 #4 audit `memoria-senior` |
 | 2026-09-15 | C | Extractor deixou de colapsar "não consegui ler" em "campo ausente" (exit 0/1/3 + escrita por `sys.stdout.buffer`). Zerou o falso "campo obrigatório ausente" no Windows — 39 FPs numa amostra de 79 arquivos reais, 0 erro legítimo perdido. +2 entradas de Troubleshooting; ponteiro morto do `-extended.yml` atualizado. |
+| 2026-09-15 | C | TYPE validado **na entrada**: tipo inválido sem arquivos parou de sair `exit 0`. `--selftest` devolvia verde sem medir nada; agora reprova com `exit 2` e aponta o bite-test real (`memory-schema-detect.test.mjs`). O `case` dentro do laço virou guarda de invariante. |
 | 2026-09-15 | C | Rodapé parou de contar arquivo INEXISTENTE como validado (`50 (skipados: 0) — erros: 0` com `exit 0` → `0 de 50 (pulados: 0 · inexistentes: 50) — erros: 50` com `exit 1`). Path ausente virou violação, não `[SKIP]`. Mordida provada por mutação: 4 asserts da PERNA 5 caem contra o blob anterior. |
 
 ## Referências

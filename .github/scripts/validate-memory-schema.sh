@@ -35,6 +35,28 @@ if [[ -z "${TYPE}" ]]; then
   exit 2
 fi
 
+# O TYPE é validado AQUI, ANTES do `$# -eq 0` logo abaixo. Até 2026-09-15 a checagem
+# morava só dentro do laço de arquivos, então tipo inválido SEM arquivos nunca chegava
+# nela: caía no "[OK] nada a validar" e saía VERDE. Na prática
+# `validate-memory-schema.sh --selftest` devolvia exit 0 sem ter medido coisa nenhuma
+# — quem digitasse isso achando que rodou um selftest levava um verde de graça. Mesma
+# doença do rodapé (afirmar sobre o que não se mediu), na porta de entrada.
+case "$TYPE" in
+  spec|session|handoff) ;;
+  -*)
+    echo "ERRO '${TYPE}' não é um modo deste script — ele só valida ARQUIVO." >&2
+    echo "     Uso: $0 <spec|session|handoff> <file...>" >&2
+    echo "     Procurando o bite-test? É 'node scripts/tests/memory-schema-detect.test.mjs'" >&2
+    echo "     (job 'selftest' do .github/workflows/memory-schema-gate.yml). Este script não tem --selftest próprio," >&2
+    echo "     de propósito: duplicaria o dono do tema." >&2
+    exit 2
+    ;;
+  *)
+    echo "ERRO type inválido: '${TYPE}' (esperado spec|session|handoff)" >&2
+    exit 2
+    ;;
+esac
+
 if [[ "$#" -eq 0 ]]; then
   echo "[OK] nenhum arquivo passado (type=${TYPE}) — nada a validar." >&2
   exit 0
@@ -450,7 +472,10 @@ for FILE in "$@"; do
     session) validate_session "$FILE" ;;
     handoff) validate_handoff "$FILE" ;;
     *)
-      echo "ERRO type inválido: '$TYPE' (esperado spec|session|handoff)" >&2
+      # INALCANÇÁVEL por construção desde 2026-09-15 — o TYPE é validado na entrada.
+      # Fica como guarda de invariante: se alguém mexer lá em cima e o inválido passar,
+      # o laço morre alto em vez de validar nada calado.
+      echo "ERRO INTERNO: type '$TYPE' escapou da validação de entrada" >&2
       exit 2
       ;;
   esac
