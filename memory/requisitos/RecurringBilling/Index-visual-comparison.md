@@ -130,7 +130,7 @@ Existe hoje (✓): `rb_plans`, `rb_subscriptions`, `rb_invoices`, `rb_charge_att
 - ✅ Estrutura DOM mapeada: header, 4 KPIs, 3-col body, drawer com 6 cards
 - ✅ Schema gap enumerado: 3 tables + 12 cols
 - ✅ Cross-module dependências identificadas: link Repair OS (soft FK), Jana panel (fallback graceful), reenviar NFe (endpoint já existe em `POST /nfe/emissoes/{id}/reenviar-email`)
-- ✅ Visual canon `recurring-page.jsx` 1.637ln + `recurring-data.jsx` 220ln + `recurring-icons.jsx` 38ln salvos em `prototipo-ui/prototipos/recurring/`
+- ✅ Visual canon `recurring-page.jsx` 1.637ln + `recurring-data.jsx` 220ln + `recurring-icons.jsx` 38ln salvos em `prototipo-ui/prototipos/recurring/` _(removido em 2026-09-11, PR #7224)_
 
 **Próximo:** Onda 1 — migration aditiva + 3 models.
 

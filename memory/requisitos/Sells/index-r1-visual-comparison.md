@@ -10,7 +10,7 @@ canon_reference: prototipo-ui/cowork/Wagner/vendas-page.jsx
 canon_method: KB-9.75 (chat10 — 2026-05-16)
 canon_score: 9.75/10 (cópia integral em 1 PR — substitui slice em 4 refinos)
 inertia_target: resources/js/Pages/Sells/Index.tsx
-visual_source_html: prototipo-ui/prototipos/sells-index/Oimpresso ERP - Chat.html
+visual_source_html: prototipo-ui/prototipos/sells-index/Oimpresso ERP - Chat.html  # removido em 2026-09-11, PR #7224
 related_adrs: [0104, 0107, 0109, 0110, 0114, 0141, 0143, 0093]
 approved_by: wagner
 approved_at: 2026-05-17
@@ -360,7 +360,7 @@ Total estimado: **6-7h** (recalibrado fator 10x [ADR 0106](../../decisions/0106-
 
 | Data | Quem | Fase | Notas |
 |---|---|---|---|
-| 2026-05-17 | [CL] Claude Code | F0 | Bundle copiado em `prototipo-ui/prototipos/sells-index/` (2.8MB, 96 arquivos) |
+| 2026-05-17 | [CL] Claude Code | F0 | Bundle copiado em `prototipo-ui/prototipos/sells-index/` (2.8MB, 96 arquivos) | _(removido em 2026-09-11, PR #7224)_
 | 2026-05-17 | [CL] Claude Code | F1 draft | Este documento — 15 dimensões + plug-points |
 | 2026-05-17 | [W2] Wagner | F1 approval | **APROVADO** via screenshot Brave colado no chat — "resultado esperado". Pivote pra cópia integral (não slice). |
 | 2026-05-17 | [CL] Claude Code | F2-F5 | Cópia integral implementada — backend (10 fields) + Index.tsx rewrite (~1100 LOC) + CSS scoped (7331 LOC) + 11 Pest novos + 9 legacy skipped com razão canon. |

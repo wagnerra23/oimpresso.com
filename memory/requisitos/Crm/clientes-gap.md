@@ -28,7 +28,7 @@ governanca:
 >
 > Medido hoje, com commit e número:
 >
-> - `prototipo-ui/prototipos/clientes/` (a chave `prototipo:` acima) tem **0 arquivos versionados**.
+> - `prototipo-ui/prototipos/clientes/` (a chave `prototipo:` acima) tem **0 arquivos versionados**. _(removido em 2026-09-11, PR #7224)_
 >   Foi apagado em **2026-06-23** por `e8b49f4b63` — *"protótipo Cowork = 1 SSOT com histórico
 >   (prototipo-ui/cowork/Wagner/) + apaga recortes"*, no MESMO dia em que este gap foi escrito.
 > - O sucessor no espelho, `prototipo-ui/cowork/Wagner/clientes-page.jsx` (o que a charter declara em

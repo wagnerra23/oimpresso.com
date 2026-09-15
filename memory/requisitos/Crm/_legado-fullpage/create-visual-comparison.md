@@ -139,7 +139,7 @@ Larissa monitor 1280×1024 — bloco BR cabe sem scroll horizontal. 4 seções c
 
 ## Refs
 
-- HANDOFF: `prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md`
+- HANDOFF: `prototipo-ui/prototipos/clientes/HANDOFF_CLIENTES.md` _(removido em 2026-09-11, PR #7224)_
 - ADR 0107 (gate F1.5 visual-comparison)
 - ADR 0110 (Cockpit V2)
 - ADR 0149 (pattern reuse Crm)

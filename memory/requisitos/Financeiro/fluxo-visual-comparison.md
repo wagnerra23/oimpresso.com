@@ -6,7 +6,7 @@ type: visual-comparison
 module: Financeiro
 status: pending_wagner_decisions
 date: 2026-05-14
-canon_reference: prototipo-ui/prototipos/financeiro-fluxo/page.tsx (Cowork F1 aprovado [W] 2026-05-09)
+canon_reference: prototipo-ui/prototipos/financeiro-fluxo/page.tsx (Cowork F1 aprovado [W] 2026-05-09)  # removido em 2026-09-11, PR #7224
 blade_source: n/a (greenfield — não existe tela equivalente em legacy)
 inertia_target: resources/js/Pages/Financeiro/Fluxo/Index.tsx
 service_new: Modules/Financeiro/Services/FluxoCaixaService::projetar(businessId, dias=35)

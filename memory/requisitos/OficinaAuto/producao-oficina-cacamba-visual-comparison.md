@@ -6,8 +6,8 @@ type: visual-comparison
 module: OficinaAuto
 status: revised
 date: 2026-05-13
-canon_reference_v1: prototipo-ui/prototipos/producao-oficina/F1.html
-canon_reference_v2: prototipo-ui/prototipos/producao-oficina/visual-source.html
+canon_reference_v1: prototipo-ui/prototipos/producao-oficina/F1.html  # removido em 2026-09-11, PR #7224
+canon_reference_v2: prototipo-ui/prototipos/producao-oficina/visual-source.html  # removido em 2026-09-11, PR #7224
 blade_source: N/A (módulo novo, sem Blade legacy)
 inertia_target: resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx
 revisions:

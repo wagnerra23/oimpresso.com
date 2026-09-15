@@ -11,7 +11,7 @@ id: requisitos-repair-jobsheet-visual-comparison
 ## Pattern Reuse declarado
 
 Blueprint canônico: **`prototipo-ui/cowork/Wagner/repair-page.jsx`** (listagem + detalhe OS Cowork).
-Blueprint complementar: **`prototipo-ui/prototipos/producao-oficina/F1.html`** (Kanban produção — não usado nestas 5 telas).
+Blueprint complementar: **`prototipo-ui/prototipos/producao-oficina/F1.html`** (Kanban produção — não usado nestas 5 telas). _(removido em 2026-09-11, PR #7224)_
 
 | Tela | Blueprint reuse | Divergência |
 |---|---|---|
