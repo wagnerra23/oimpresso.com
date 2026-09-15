@@ -89,12 +89,12 @@
   },
   {
     "id": "conhecimento-barra-merge",
-    "titulo": "Conhecimento-de-processo acoplado ao merge-gate (required)",
+    "titulo": "A memória do agente é ARTEFATO DE PULL REQUEST com schema validado e append-only ENFORÇADO por check required de merge — 4 famílias (ADR, Charter, SPEC, Tópico) + `Append-only canon` + `Governance Gate (índice + memory-health + meta-teste)` dentro dos 43 contexts required medidos hoje em `governance/required-checks-baseline.json`.",
     "dimensao": "memoria-conhecimento",
     "refutador": "EMPATADO",
-    "peer": "Dosu freshness error-budget + Swimm enterprise",
+    "peer": "adrkit (github.com/mbeacom/adrkit) — decision memory git-native para planos autorados por agente: schema tipado, `adr lint`, GitHub Action @adrkit/ci, MCP server, e \"every machine write opens a PR\". Falta-lhe append-only enforçado, famílias além de ADR, metagate e produção. Complementos parciais: Letta Context Repositories (git versionado por commit + worktree por subagente, sem validação/gate); IETF draft-infantado-agent-memory-architecture-00 / PAMSPEC (Memory Objects tipados e versionados + Event Ledger append-only + estados de Validation — spec, sem CI e sem produção); ADR Guard (GitHub Action que falha PR quando path vigiado muda sem ADR — presence-gate, sem append-only); prática ADR consolidada de imutabilidade-por-supersessão (norma cultural, não check bloqueante).",
     "integracao": "DIFERENCIAL_SISTEMA",
-    "data_veredito": "2026-07-18",
+    "data_veredito": "2026-08-11",
     "ttl_dias": 90,
     "journal": "#21/#48"
   },
@@ -425,12 +425,12 @@
   },
   {
     "id": "mem-lapide-recheck-frescor",
-    "titulo": "Frescor da própria memória negativa: lapide-recheck.mjs re-resolve âncoras concretas citadas por uma lápide, marca revisar se sumiram, sem apagar (§5 append-only)",
+    "titulo": "`lapide-recheck.mjs` — re-verificação de FRESCOR DO REGISTRO DE REJEIÇÃO: resolve, contra o repo vivo, as âncoras que cada lápide §5 citou pra matar uma ideia (script, workflow, arquivo, 'defesa que agora existe') e marca `revisar` quando elas driftaram.",
     "dimensao": "memoria-conhecimento",
-    "refutador": "EMPATADO",
-    "peer": "EMSE/Springer outdated-doc-references · skill Documentation Freshness · fitness functions for decisions-as-code · STALE benchmark arXiv 2605.06527 · SSGM arXiv 2603.11768",
+    "refutador": "REFUTADO",
+    "peer": "Swimm (auto-sync + GitHub App): resolve âncoras de doc contra o código vivo a cada PR, marca stale, comenta pedindo revisão e escala para humano quando não reconcilia sozinho — mesma capacidade, corpus mais largo, em produção comercial. Complementado no eixo memória por STALE (arXiv 2605.06527, trilha \"Premise Resistance\") e pela literatura de eviction/revalidação de memória que moldou decisão.",
     "integracao": "DIFERENCIAL_SISTEMA",
-    "data_veredito": "2026-07-26",
+    "data_veredito": "2026-08-11",
     "ttl_dias": 90
   },
   {
@@ -524,5 +524,25 @@
     "data_veredito": "2026-07-26",
     "ttl_dias": 90,
     "limite": "lista de conhecimento prévio, não verificada por busca nesta sessão"
+  },
+  {
+    "id": "lei-subtracao-fact-anchor",
+    "titulo": "Lei de subtração: documento canônico NÃO restateia fato que outro sistema sabe melhor — ou aponta pro dono, ou carrega o RECIBO (query + resultado + data + qual sistema foi medido); se a data incomodar, re-rode em vez de editar o número. Com `fact-anchor` (Check T, dentro de job required) provando contradição contra manifesto versionado.",
+    "dimensao": "memoria-conhecimento",
+    "refutador": "REFUTADO",
+    "peer": "DITA / OASIS (conref, conkeyref, keyref — single-sourcing; ecossistema Heretto, Paligo, RWS Tridion Docs, Adobe FrameMaker, oXygen); Evidence.dev (BI as code — número = query SQL renderizada); Quarto / R Markdown / Jupyter Book / nbdev (literate programming + reproducible publishing, número regenerado e datado no render); Antora/AsciiDoc attributes, Sphinx substitutions, Mintlify e Docusaurus variables (versão puxada do manifesto em vez de restateada); Swimm e Dosu (drift/auto-sync e ttl_days — eixo já concedido pela própria claim); Vale/markdownlint + checks docs-as-code contra package.json/OpenAPI.",
+    "integracao": "DIFERENCIAL_SISTEMA",
+    "data_veredito": "2026-08-11",
+    "ttl_dias": 90
+  },
+  {
+    "id": "agents-md-staleness",
+    "titulo": "`agents-md-staleness.mjs` — sentinela do 5º eixo: AGENTS.md × CLAUDE.md ∪ @imports, porque Codex/Cursor e agentes que só leem markdown puro NÃO expandem `@` e recebem o resumo como corpus inteiro.",
+    "dimensao": "memoria-conhecimento",
+    "refutador": "REFUTADO",
+    "peer": "giacomo/agents-lint (github.com/giacomo/agents-lint) — lint de staleness sobre AGENTS.md + CLAUDE.md + memory files, com gate de CI; crag (`crag audit` / `crag hook install --drift-gate`) — detecção de AGENTS.md stale vs doc-fonte mais novo + bloqueio de commit; guia yurukusa gist d36197848911f025add142abefcde685 Patterns 3 e 5 — hook SessionStart de warn-on-drift e drift-watch em cron/CI. Categoria estruturalmente superior (torna drift impossível): agent-kit, amtiYo/agents, GowayLee/agent-sync, agentlink, Plexus.",
+    "integracao": "REFUTADO_TB",
+    "data_veredito": "2026-08-11",
+    "ttl_dias": 90
   }
 ]

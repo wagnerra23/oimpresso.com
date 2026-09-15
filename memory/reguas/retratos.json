@@ -1,5 +1,64 @@
 [
   {
+    "data": "2026-08-11",
+    "modo": "full-parcial",
+    "regra_nota": "media-deterministica-v1",
+    "notas": {
+      "memoria-conhecimento": 7.1
+    },
+    "proveniencia_notas": {
+      "memoria-conhecimento": "medida por fraqueza (8 verificações, média determinística 1 decimal)"
+    },
+    "placar": {
+      "claims": 4,
+      "acima_confirmadas": 0,
+      "empatadas": 1,
+      "refutadas": 3,
+      "diferencial_sistema": 3,
+      "refutado_tb": 1
+    },
+    "cobertura": {
+      "completo": true,
+      "motivo_parcial": null,
+      "etapas": {
+        "pesquisar": "1/1",
+        "refutar": "4/4",
+        "integracao": "4/4",
+        "verificar": "8/8"
+      },
+      "dimensoes_alvo": [
+        "memoria-conhecimento"
+      ],
+      "dimensoes_sem_nota": [],
+      "eixos_medidos": [
+        "construir-e-governar"
+      ],
+      "eixos_nao_medidos": [
+        "rodar-e-observar",
+        "servir-o-negocio"
+      ],
+      "cap_agentes_por_fase": 24,
+      "assinatura": "full|1d|pesquisar:1/1,refutar:4/4,integracao:4/4,verificar:8/8",
+      "selecao": "dimensoes",
+      "fraquezas_levantadas": 8,
+      "claims_levantadas": 4,
+      "canario_refuter": {
+        "total": 2,
+        "medidos": 2,
+        "derrubados": 2,
+        "goodhart": 0,
+        "goodhart_ids": [],
+        "goodhart_ok": true
+      }
+    },
+    "integ_hist": {
+      "vereditos_acumulados": 108,
+      "refutado_tb_acumulado": 2,
+      "runs": 10
+    },
+    "links": []
+  },
+  {
     "data": "2026-08-08",
     "modo": "delta",
     "base_sha": "353487e48ec",
