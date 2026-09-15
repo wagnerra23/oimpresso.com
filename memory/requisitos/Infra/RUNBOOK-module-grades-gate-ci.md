@@ -348,8 +348,8 @@ Wagner monitora periodicamente (sem dashboard formal ainda — futuro Fase 5 [AD
 
 - `.github/workflows/module-grades-gate.yml` (DELETADO 2026-09-15) — workflow CI (~311 linhas, Wave 2 LIVE)
 - `governance/module-grades-baseline.json` (DELETADO 2026-09-15) — baseline canônica v3.1
-- [`Modules/Governance/Services/ModuleGradeService.php`](../../../Modules/Governance/Services/ModuleGradeService.php) — engine de avaliação
-- [`Modules/Governance/Console/Commands/ModuleGradeCommand.php`](../../../Modules/Governance/Console/Commands/ModuleGradeCommand.php) — command CLI
+- [`Modules/Governance/Services/ModuleGradeService.php`](../../../Modules/Governance/Services/ModuleGradeService.php) — engine de avaliação (ainda existe; sai na Onda 4 com o `ModuleGradeSnapshotCommand`, que o injeta)
+- `Modules/Governance/Console/Commands/ModuleGradeCommand.php` (DELETADO 2026-09-15) — command CLI `module:grade`
 
 **ADRs canônicas:**
 
