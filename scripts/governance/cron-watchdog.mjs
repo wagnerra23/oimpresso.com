@@ -36,6 +36,8 @@
  * varredura contada de escritores (php/mjs/js em Modules/·scripts/·app/·.claude/)
  * achou ZERO que escrevam `memory/governance/scorecards/*.yaml` — os dois crons são
  * LEITORES (o de 07:00 grava `mcp_scorecard_runs`; o de 06:05, `mcp_module_grades_history`).
+ * ⚠️ O de 06:05 (`module:grade-snapshot`) foi REMOVIDO em 2026-09-15 com a rubrica
+ * module-grade (ADR 0399); o parágrafo acima descreve o que era verdade em 2026-07-26.
  * Os YAMLs são INPUT curado à mão; `last_grade_at` é carimbo de curadoria humana.
  * Ver o cabeçalho de `memory/governance/scorecards/_template.yaml` (dono da regra).
  *
