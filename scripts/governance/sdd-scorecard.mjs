@@ -312,7 +312,7 @@ export function measureRagasRealUptime(trendPath = join(ROOT, 'governance', 'rag
 //
 // Anti-stale (espelha measureFullSuiteFloor): ZERO portas carimbadas → not_yet_measured
 // (honesto — distiller nunca rodou; gate Wagner/CT100). ≥1 carimbada → measured: value =
-// nº de portas carimbadas atrás do doc mais novo por > staleDays. Portas SEM carimbo
+// nº de portas carimbadas atrás do EVENTO mais novo (doc OU código) por > staleDays. Portas SEM carimbo
 // entram só no detail (cobertura pendente), NÃO como stale (rollout não-punitivo, espelha
 // front_door 62%→100%). `reqDir`/`newestDocDate`/`newestCodeDate` injetáveis pra teste sem
 // git/FS real.
@@ -436,7 +436,7 @@ export function measureDistillerFreshness(
     shallow = isShallowHistory,
   } = {},
 ) {
-  const FRESH_TARGET = '< 7d atrás do doc mais novo em 100% das portas';
+  const FRESH_TARGET = '< 7d atrás do evento mais novo (doc OU código) em 100% das portas';
   // Guard anti-fabricação: em checkout shallow o gitNewestModuleDocDate devolve a data
   // do HEAD pra todo módulo → portas carimbadas >7d atrás viram "stale" só pelo passar
   // do calendário, sem doc novo nenhum. Foi o drift real 2026-07-08→12 (0→5→9→7→6 no
@@ -446,7 +446,7 @@ export function measureDistillerFreshness(
   const usaGit = newestDocDate === gitNewestModuleDocDate || newestCodeDate === gitNewestModuleCodeDate;
   if (usaGit && shallow()) {
     return notYet('down', FRESH_TARGET,
-      'ADR 0291 D-D — checkout shallow: data-git do doc mais novo é infabricável (git log só vê o HEAD; mediria calendário, não eventos). Use actions/checkout com fetch-depth: 0.');
+      'ADR 0291 D-D — checkout shallow: a data-git do evento mais novo (doc E código) é infabricável (git log só vê o HEAD; mediria calendário, não eventos). Use actions/checkout com fetch-depth: 0.');
   }
   if (!existsSync(reqDir)) {
     return notYet('down', FRESH_TARGET, 'ADR 0291 D-D — memory/requisitos/ ausente; nada a medir.');
@@ -476,9 +476,9 @@ export function measureDistillerFreshness(
       'ADR 0291 D-D — nenhuma porta tem distilled_at ainda (distiller-módulo-verdade não rodou em prod; gate Wagner/CT100). Vira measured no 1º carimbo, como o floor do 0279.');
   }
   return {
-    status: 'measured', value: stale, unit: 'portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)',
+    status: 'measured', value: stale, unit: 'portas atrás dos eventos (>7d vs doc OU código mais novo · ADR 0291 D-D)',
     direction: 'down', target: 0,
-    source: 'memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)',
+    source: 'memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs UNIÃO(data-git do doc não-gerado mais novo, data-git do código do módulo) — determinístico, ADR 0291 D-D',
     detail: {
       portas: total, carimbadas: stamped, sem_carimbo: total - stamped, stale,
       oldest_distilled_at: oldest,
