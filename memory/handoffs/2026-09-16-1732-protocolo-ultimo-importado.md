@@ -1,5 +1,6 @@
 ---
 date: "2026-09-16"
+time: "17:32 UTC"
 slug: protocolo-ultimo-importado
 tldr: "W determinou que o último importado prevalece; restauração local cancelada e atribuição de perda 18→20 retratada"
 prs: []
@@ -16,4 +17,6 @@ Decisão expressa do dono registrada na ADR 0404: última importação válida e
 
 Nenhuma restauração foi aplicada no espelho. A nota de errata existente retratou a atribuição de perda entre exports 18 e 20 após leitura dos ZIPs originais, mantendo a análise anterior como histórico identificado. Recibos históricos da conta não foram reescritos.
 
-MCP do projeto indisponível nesta sessão; nenhum estado vivo foi inventado. Alterações ficaram locais, sem push ou merge. Detalhe no [session log](../sessions/2026-09-16-session-protocolo-ultimo-importado.md).
+## Estado MCP no momento do fechamento
+
+MCP do projeto indisponível nesta sessão; nenhum estado vivo foi inventado. O PR #7439 foi publicado a pedido de [W], com merge automático condicionado aos checks. Detalhe no [session log](../sessions/2026-09-16-session-protocolo-ultimo-importado.md).

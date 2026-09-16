@@ -1,8 +1,8 @@
 ---
 date: "2026-09-16"
 topic: "Precedência do último importado e retração da atribuição de perda ao bundle 20"
-authors: [Codex]
-prs: []
+authors: [C]
+prs: [7439]
 outcomes:
   - "ADR 0404 registrou a decisão expressa de W: último importado válido prevalece"
   - "Restauração dos índices antigos cancelada antes de editar o espelho"
@@ -12,6 +12,10 @@ related_adrs:
 ---
 
 # Protocolo do último importado
+
+## TL;DR
+
+Último importado válido prevalece; espelho intacto. PR #7439 publicado após autorização de merge. Checks iniciais apontaram formato dos registros e projeções derivadas desatualizadas; corrigidos sem mudar a fonte importada.
 
 Após a autorização inicial para restaurar conteúdo, [W] delimitou: “o que vale sempre deve ser o ultimo importado esse deve ser o protocolo”. A instrução mais recente substituiu a restauração. Nenhum arquivo do espelho foi editado.
 
