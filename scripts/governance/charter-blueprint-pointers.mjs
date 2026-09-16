@@ -310,6 +310,7 @@ function auditMudouDeCasa(docs) {
   const vivos = blobsVivosEmMain();
   if (!vivos.size) return [];            // sem indice nao ha medicao — NAO afirmar verde (LC-33)
   const achados = [];
+  const naoResolvidos = [];   // LC-33: nao-medicao contada, nunca silenciada
   const raiz = ROOT.split(BS).join(SL_C1) + SL_C1;
   for (const bruto of docs) {
     const rel = bruto.startsWith(raiz) ? bruto.slice(raiz.length) : bruto;
@@ -322,8 +323,14 @@ function auditMudouDeCasa(docs) {
       for (const ptr of pointersOf2(linha)) {
         const bases = [ptr, dir + SL_C1 + ptr, 'memory/requisitos/_DesignSystem/' + ptr, 'memory/reference/' + ptr];
         let obj = '';
+        // LC-33: `<sha>^:<path>` nao resolver NAO e 'nada a reportar' — e uma de duas coisas,
+        // e o codigo antigo colapsava as duas num `continue` mudo (29 de 98 tombstones passavam
+        // por aqui): (1) o sha citado nao tem aquele path -> indicio de tombstone falso;
+        // (2) o path foi mal extraido da linha. Nao da pra separar as duas sem julgar a prosa,
+        // entao NAO acusamos — mas CONTAMOS, pra que o zero de acusacoes nunca se confunda com
+        // 'tudo medido'. O contador sai no json como `nao_resolvidos`.
         for (const b of bases) { obj = sh(`git rev-parse "${t[2]}^:${b}"`); if (obj.length === 40) { break; } obj = ''; }
-        if (!obj) continue;
+        if (!obj) { naoResolvidos.push({ doc: rel, linha: i + 1, sha: t[2], ponteiro: ptr }); continue; }
         const filhos = blobsDe(obj);
         if (!filhos.length) break;
         const sobrev = filhos.filter((h) => vivos.has(h));
@@ -336,7 +343,7 @@ function auditMudouDeCasa(docs) {
       }
     });
   }
-  return achados;
+  return { achados, naoResolvidos };
 }
 
 /** ponteiros CRUS da linha (o `pointersOf` do arquivo le doc inteiro e resolve; aqui e por linha). */
@@ -364,7 +371,7 @@ const shaMiss = shaAdvisory();
 const req = auditRequisitos();   // 2a raiz: memory/requisitos (advisory, report-only)
 const todosC1 = process.argv.includes('--todos');
 const docsC1 = todosC1 ? requisitosDocs() : docsDoDiffC1();
-const mudouDeCasa = docsC1 === null ? null : auditMudouDeCasa(docsC1);   // C1: advisory
+const c1 = docsC1 === null ? null : auditMudouDeCasa(docsC1);   // C1: advisory
 
 if (json) {
   console.log(JSON.stringify({
@@ -377,8 +384,12 @@ if (json) {
     requisitos_docs_com_orfao: req.perDoc.length,
     requisitos_total_orfaos: req.totalOrphans,
     requisitos_detalhe: req.perDoc,
-    mudou_de_casa_medido: mudouDeCasa !== null,
-    mudou_de_casa: mudouDeCasa || [],
+    mudou_de_casa_medido: c1 !== null,
+    mudou_de_casa: c1 ? c1.achados : [],
+    // LC-33: nao-medicao VISIVEL. UNIDADE: pares (linha x ponteiro), nao linhas distintas —
+    // dizer a unidade junto do numero e o conserto do defeito (F) deste mesmo arquivo.
+    mudou_de_casa_nao_resolvidos: c1 ? c1.naoResolvidos.length : null,
+    mudou_de_casa_nao_resolvidos_linhas: c1 ? new Set(c1.naoResolvidos.map((x) => x.doc + ':' + x.linha)).size : null,
   }, null, 2));
 } else {
   console.log('charter-blueprint-pointers — auditoria de ponteiros de protótipo/blueprint dos charters\n');
