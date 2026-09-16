@@ -33,6 +33,10 @@
 //     desduplica é o lado Cowork; aqui o import falha e diz qual par.
 //     O sync usa `/PURGE` (tira órfão de
 //     rename — o SSOT é ESPELHO do último handoff, não união). git é a rede (diff/deleção visível).
+//     ⚠️ O `/PURGE` só é legítimo porque ESTA rota recebe a ÁRVORE COMPLETA da conta: aqui a
+//     ausência de um arquivo É informação da origem. Em lote PARCIAL/delta ela é silêncio, e
+//     podar apagaria o que a conta nunca disse que saiu — por isso o `aplicar-payload` não apaga
+//     naquele modo. As duas frases não se contradizem: o que muda é o ESCOPO (ADR 0406 D2).
 //     Decisão Opção A (Wagner 2026-07-01) supersede o espelho per-tela. Desligar: `--no-sync-cowork`.
 //
 // Uso:
