@@ -71,9 +71,42 @@ _ds/office-impresso-.../assets/fonts/ibm-plex-sans-700.woff2
 ```
 
 Medido nos dois lados: o `colors_and_type.css` **do pacote** e o **do espelho** referenciam, os dois,
-só `ibm-plex-sans-400.woff2`. Ninguém aponta para 500/600/700 — logo elas ficam fora do fechamento
-do `entry`, e o gerador está certo em excluí-las. Corroboração: elas já constavam da lista `live-only`
-do ledger de frescor em **2026-09-14**, antes deste ciclo. Não é regressão nem achado novo.
+só o arquivo `ibm-plex-sans-400.woff2`. Logo as outras três ficam fora do fechamento do `entry`, e o
+gerador está certo em excluí-las. Corroboração: elas já constavam da lista `live-only` do ledger de
+frescor em **2026-09-14**, antes deste ciclo. Não é regressão nem achado novo.
+
+⚠️ **Precisão, porque a frase acima abrevia de um jeito que engana** (medido em 2026-09-16 com hashes
+próprios, depois que a sessão irmã `mystifying-bouman-58cf5b` trouxe o recibo): não é que os pesos
+500/600/700 *não sejam declarados* — eles **são**, e os quatro `@font-face` apontam para o **mesmo
+arquivo**:
+
+```
+@font-face { font-family: 'IBM Plex Sans'; font-weight: 400; src: url('assets/fonts/ibm-plex-sans-400.woff2') }
+@font-face { font-family: 'IBM Plex Sans'; font-weight: 500; src: url('assets/fonts/ibm-plex-sans-400.woff2') }
+@font-face { font-family: 'IBM Plex Sans'; font-weight: 600; src: url('assets/fonts/ibm-plex-sans-400.woff2') }
+@font-face { font-family: 'IBM Plex Sans'; font-weight: 700; src: url('assets/fonts/ibm-plex-sans-400.woff2') }
+```
+
+E os três `woff2` extras **são byte-idênticos** ao `-400` — quatro nomes, um arquivo só:
+
+```
+ZIP   ibm-plex-sans-400  e2291e842cf5af16
+ZIP   ibm-plex-sans-500  e2291e842cf5af16
+ZIP   ibm-plex-sans-600  e2291e842cf5af16
+ZIP   ibm-plex-sans-700  e2291e842cf5af16
+CANON ibm-plex-sans-400  e2291e842cf5af16
+controle positivo — CANON ibm-plex-mono-400  08949f728dc52d52   (difere, a sonda discrimina)
+```
+
+`prototipo-ui/design-system/assets/fonts/` tem **4 arquivos** (mono 400/500/600 + sans-400); o `-400`
+é o único sans real. A consolidação foi o **#7224**: o CSS do cache antigo apontava `-500/-600/-700`,
+o canônico reaponta os três para o `-400` e as duplicatas saíram. **Excluir as três não perde byte
+nenhum** — e a redação importa porque a versão abreviada se lê como *"o Design System perdeu os pesos
+500/600/700"*, o que é falso.
+
+**Consequência de tipografia, que é decisão de [W] e não defeito de transporte:** com um sans só,
+negrito e semibold saem por *synthetic bolding* do browser, não de fontes desenhadas. Não muda nada
+do que foi medido aqui; fica registrado porque ninguém mais tem esse fato escrito.
 
 Isto identifica, com precisão, o ponto onde a réplica auditada do §1 divergiu do motor: o `files` do
 gerador é o **fechamento a partir do `entry`**, não a árvore filtrada por papel. Quem enumera por papel
