@@ -4989,5 +4989,21 @@
       "venda-v3/sells-telas.jsx",
       "venda-v3/sells-ui.jsx"
     ]
+  },
+  {
+    "date": "2026-09-16T19:03:44.654Z",
+    "kind": "live-only",
+    "liveOnly": 8,
+    "denom": 820,
+    "liveOnlyList": [
+      ".gitignore",
+      ".thumbnail",
+      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_adherence.oxlintrc.json",
+      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_manifest.json",
+      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-500.woff2",
+      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-600.woff2",
+      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-700.woff2",
+      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/styles.css"
+    ]
   }
 ]
