@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Modules\Forja\Console\Commands\BriefHealthCommand;
 use Modules\Forja\Console\Commands\RotateTokenCommand;
 use Modules\Forja\Console\Commands\HandoffIngestCommand;
+use Modules\Forja\Console\Commands\CcSecretSweepCommand;
 use Modules\Forja\Console\Commands\ForjaHealthCommand;
 use Modules\Forja\Console\Commands\HandoffStaleAlertCommand;
 use Modules\Forja\Console\Commands\GenerateBriefCommand;
@@ -54,6 +55,10 @@ class ForjaServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 ForjaHealthCommand::class,
+                // Varredura/redacao de credencial no corpus de transcripts
+                // (paga a divida do UPDATE direto em prod de 2026-09-16 - regra
+                // Tier 0 mexeu-registra). Dry-run por padrao.
+                CcSecretSweepCommand::class,
                 // Ex-Modules/Brief (ADR 0091) — absorvido em 2026-07-30. Os dois
                 // primeiros têm schedule em live (app/Console/Kernel.php):
                 // brief:generate 6x/dia e skills:tier-review trimestral. A

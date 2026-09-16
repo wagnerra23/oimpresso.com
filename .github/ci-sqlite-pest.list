@@ -544,3 +544,4 @@ Modules/Manufacturing/Tests/Feature/Wave29RecipeInertiaTest.php
 # arquivo ja existia e NAO estava nesta lane: estava so no phpunit.xml, que a lane
 # nao usa (ela roda a lista via mapfile). DB-less (Http::fake + Log::spy), sqlite-safe.
 tests/Feature/Ragas/RagasJudgeServiceTest.php
+Modules/Forja/Tests/Feature/CcSecretSweepTest.php

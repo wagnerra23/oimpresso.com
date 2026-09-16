@@ -155,3 +155,26 @@ test('parseMessage redige input de tool_use ANTES do corte de 1000', () => {
   assert.equal(msg.content_text.includes(HEX64), false, 'token sobreviveu no input da tool');
   assert.equal(msg.content_text.includes(HEX64.slice(0, 24)), false, 'prefixo sobreviveu ao corte');
 });
+
+// ── PARIDADE COM O LADO SERVIDOR ────────────────────────────────────────────
+// Os MESMOS vetores que o PHP roda em Modules/Forja/Tests/Feature/
+// CcSecretSweepTest.php. Runtimes diferentes obrigam duas implementacoes; a
+// duplicacao so e segura enquanto os dois lados concordarem nestes vetores.
+test('PARIDADE: os vetores compartilhados valem identicos aqui e no PHP', async () => {
+  const fs = await import('node:fs');
+  const url = new URL('../../tests/fixtures/credential-shapes-vectors.json', import.meta.url);
+  const { vetores } = JSON.parse(fs.readFileSync(url, 'utf8'));
+  assert.ok(vetores.length > 0, 'fixture vazio');
+
+  for (const v of vetores) {
+    const { text, hits } = redactText(v.entrada);
+    assert.deepEqual(hits, v.shapes, `vetor divergiu: ${v.nome}`);
+
+    if (Object.keys(v.shapes).length === 0) {
+      assert.equal(text, v.entrada, `nao deveria ter mudado: ${v.nome}`);
+      continue;
+    }
+    if (v.sumir) assert.equal(text.includes(v.sumir), false, `o valor sobreviveu: ${v.nome}`);
+    if (v.manter) assert.ok(text.includes(v.manter), `o rotulo sumiu: ${v.nome}`);
+  }
+});
