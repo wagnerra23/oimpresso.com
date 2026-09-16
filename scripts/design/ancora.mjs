@@ -48,7 +48,13 @@ export { frontmatter }; // re-exporta pra preservar a API pública de ancora.mjs
 // extrai 1º path de repo (.tsx) de um texto livre
 export function repoTsx(text) {
   if (!text) return null;
-  const m = text.match(/resources\/js\/Pages\/[\w./-]+\.tsx/);
+  // A raiz de Pages tem DUAS formas neste repo, e o dono da regra e `scripts/qa/page-path.mjs`
+  // (RAIZ_PAGES): o nucleo em `resources/js/Pages/` e o modulo nWidart em
+  // `Modules/<X>/Resources/js/Pages/` — com **R maiusculo**. O padrao anterior so casava a
+  // forma minuscula, entao `component: Modules/Forja/Resources/js/Pages/.../Cockpit.tsx`
+  // (declarado CERTO no charter) devolvia null e a tela viva sumia. Medido em 2026-09-16:
+  // 37 telas de modulo caiam nesse buraco. Forma alinhada ao RAIZ_PAGES do dono.
+  const m = text.match(/(?:Modules\/[^/]+\/)?[Rr]esources\/js\/Pages\/[\w./-]+\.tsx/);
   return m ? m[0] : null;
 }
 // extrai 1º mockup -page.jsx citado (NUNCA um audit/critique png)
@@ -1073,6 +1079,14 @@ async function selftest() {
   t('ph-financeiro2.png (visual aprovado) NÃO casa lista-negra', ehAncoraIlegitima('ph-financeiro2.png') === false);
   t('mockupJsx pega -page.jsx', mockupJsx('component: financeiro-page.jsx (window.X)') === 'financeiro-page.jsx');
   t('repoTsx pega o .tsx', repoTsx('resources/js/Pages/Financeiro/Unificado/Index.tsx ok') === 'resources/js/Pages/Financeiro/Unificado/Index.tsx');
+  // BITE (2026-09-16): a raiz de Pages tem DUAS formas e o `Resources` do modulo e MAIUSCULO.
+  // Antes deste assert o padrao so casava a minuscula, e as 37 telas de modulo perdiam a tela
+  // viva mesmo com `component:` declarado CERTO no charter. Mordida provada por mutacao:
+  // revertido o regex a forma antiga, este caso cai.
+  t('repoTsx pega o .tsx de MODULO (Resources maiusculo)',
+    repoTsx('component: Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.tsx')
+      === 'Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.tsx');
+  t('repoTsx CONTROLE NEGATIVO: .tsx fora de Pages nao casa', repoTsx('app/Models/User.tsx') === null);
   // resolve real contra os charters do repo (tela conhecida)
   const r = await resolveAncora('/financeiro/unificado');
   t('resolve /financeiro/unificado acha charter', r.ok === true && /Unificado/.test(r.charter || ''));

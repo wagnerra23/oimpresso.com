@@ -184,7 +184,9 @@ export function resolveDirModulo(mod, repoRoot = REPO) {
 // O DIR sai do resolveDirModulo (canônico > derivado) pra não criar `team-mcp/` ao lado de `TeamMcp/`.
 export function destinoBaseline(telaViva, repoRoot = REPO) {
   const norm = String(telaViva || '').replace(/\\/g, '/');
-  const m = norm.match(/resources\/js\/Pages\/([^/]+)\/(.+)\.tsx$/);
+  // Mesma correcao do `repoTsx` (ancora.mjs) e mesma causa: a raiz de Pages tem duas formas,
+  // e o `Resources` do modulo e MAIUSCULO. Dono da regra: scripts/qa/page-path.mjs::RAIZ_PAGES.
+  const m = norm.match(/(?:Modules\/[^/]+\/)?[Rr]esources\/js\/Pages\/([^/]+)\/(.+)\.tsx$/);
   if (!m) return null;
   const mod = m[1];
   const partes = m[2].split('/').filter((p) => p.toLowerCase() !== 'index');
@@ -785,6 +787,22 @@ async function selftest() {
 
   // integração: o SNIPPET importado é a fonte única (mesmo vetor do style-fingerprint)
   t('SNIPPET é a fonte única (window.__ANCORA__ presente no vetor)', typeof SNIPPET === 'string' && SNIPPET.includes('__ANCORA__'));
+
+  // -- BITE do destino de tela de MODULO (2026-09-16) ----------------------------
+  // `destinoBaseline` so casava `resources/js/Pages/` minusculo; o modulo nWidart usa
+  // `Modules/<X>/Resources/js/Pages/` com R MAIUSCULO, entao o --gerar morria com
+  // "nao sei derivar o destino" e exigia --out a mao. Controle positivo (nucleo) junto,
+  // pra provar que a sonda discrimina.
+  {
+    const dMod = destinoBaseline('Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.tsx', REPO);
+    t('BITE destino: tela de MODULO resolve sozinha',
+      !!dMod && dMod.split(sep).join('/').endsWith('memory/requisitos/TeamMcp/forja-cockpit.proto-baseline.json'));
+    const dNuc = destinoBaseline('resources/js/Pages/Sells/Index.tsx', REPO);
+    t('controle: tela do NUCLEO segue resolvendo',
+      !!dNuc && dNuc.split(sep).join('/').endsWith('memory/requisitos/Sells/sells.proto-baseline.json'));
+    t('CONTROLE NEGATIVO: .tsx fora de Pages nao vira destino',
+      destinoBaseline('app/Models/User.tsx', REPO) === null);
+  }
 
   // -- BITE do alias `_ds/` (ADR 0401 E2) ---------------------------------------
   // Exercita o SERVIDOR DE FORA (socket real), nao a funcao pura: assert sobre helper
