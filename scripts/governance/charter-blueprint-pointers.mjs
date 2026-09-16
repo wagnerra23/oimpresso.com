@@ -380,10 +380,26 @@ function auditMudouDeCasa(docs) {
   // pega. Pior, batia no caso COMUM — PR que nao toca memory/requisitos deixa `docs` vazio.
   // O modo TEXTO nao usava `c1` e por isso o CI passava: gate verde num modo, quebrado no
   // outro (§5 2026-07-28, agora no eixo MODO do mesmo script).
-  const vazio = { achados: [], naoResolvidos: [] };
-  if (!docs.length) return vazio;
+  // ⚠️ OS DOIS EARLY-RETURNS SAO CASOS DIFERENTES, e devolver a mesma coisa nos dois foi
+  // defeito meu ao consertar o crash do #7409 (ali eu so olhava a FORMA, e a forma e mesmo
+  // igual). Quem separa nao e o tipo — e o SIGNIFICADO:
+  //   docs vazio  -> MEDI, o universo e que nao tinha nada. `medido: true` com 0 achados esta
+  //                  CORRETO: nenhum doc do diff toca memory/requisitos.
+  //   vivos vazio -> NAO MEDI. `blobsVivosEmMain` e `sh('git ls-tree -r origin/main')`, e
+  //                  `sh()` engole stderr: se a ref nao existe no checkout (fetch parcial,
+  //                  fetch-depth curto, runner que nao buscou a base) o Map sai vazio e o
+  //                  gate nao tem contra o que comparar. Devolver `vazio` fazia o chamador
+  //                  (`c1 !== null`) reportar `medido: true` e o texto imprimir `✓ nenhum.` —
+  //                  verde indistinguivel de saude, tendo percorrido ZERO. E o fail-open da
+  //                  §5 2026-07-29 e da 2026-08-11 (`git fetch --depth` + `|| true` deixando
+  //                  4 required verdes sem validar nada), agravado pelo predicado `>=1`: os
+  //                  8 achados reais virariam silencio verde em vez de ruido.
+  // `null` e o idioma que o `docsDoDiffC1` logo acima ja usa pra "nao-medicao", e o chamador
+  // ja o suporta em 4 pontos (`c1 !== null`, os dois `c1 ? ... : null`, e o `c1 === null` do
+  // modo texto). Achado pela sessao irma, reproduzido aqui antes de aceitar.
+  if (!docs.length) return { achados: [], naoResolvidos: [] };
   const vivos = blobsVivosEmMain();
-  if (!vivos.size) return vazio;         // sem indice nao ha medicao — NAO afirmar verde (LC-33)
+  if (!vivos.size) return null;          // sem indice nao ha medicao — NAO afirmar verde (LC-33)
   const achados = [];
   const naoResolvidos = [];   // LC-33: nao-medicao contada, nunca silenciada
   const raiz = ROOT.split(BS).join(SL_C1) + SL_C1;
