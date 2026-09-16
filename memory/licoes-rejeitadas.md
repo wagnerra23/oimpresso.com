@@ -2045,3 +2045,36 @@
 - **⚠️ ERRATA DO MEU PROPRIO RASCUNHO, e e o achado que mais importa:** eu ia registrar que **prevencao nenhuma e possivel**, porque *"este arquivo novo e uma sonda?"* nao e decidivel — sonda e arquivo legitimo sao indistinguiveis por path, nome ou conteudo. A premissa e verdadeira e a conclusao e **espantalho**: aquele nao e o predicado que previne. O predicado decidivel e *"o derivado esta consistente com a arvore NO INSTANTE do commit?"* — e ele **ja esta implementado**, no hook do #7365: `PreToolUse · Bash · git commit` -> filtra path coberto -> roda `--check` -> se drift, `--write` + `git add -- <indice>`. No cenario deste incidente (sonda apagada, depois commit) ele acharia o drift, regeneraria **sem** o fantasma e estagiaria: o fantasma nao chegaria ao CI. Nao mordeu aqui porque a wiring nasce no proprio #7365 e o harness le o `settings.json` no inicio da sessao. Declarar impossibilidade e a §5 2026-09-01 — produz silencio, nao vermelho.
 
 - **Evidencia:** gate vermelho no run `35022469608` (#7365, head `a8bc06948`), steps 9 e 12 do `governance-script-tests` · `grep -c _sonda-temp` no indice commitado = **1**, sonda em disco = **0** · pos-conserto: `--check` rc **1 -> 0**, bite-test do gerador **4/4**, sonda no indice **1 -> 0**, controle positivo do hook novo ainda listado (**1**). **Quem pegou foi o `maquinas-inventario --check` PRE-EXISTENTE** no CI (advisory, `governance-script-tests.yml:90`), nao o hook novo — e "maquina fantasma no indice" e um dos 4 asserts do bite-test daquele gerador. Fechamento submetido ao `ciclo-adversary` antes de virar canon: veredito **REJECT**, e ele derrubou as duas pecas centrais do rascunho — o campo `Gate:` que o `semGate()` do proprio hook do ledger leria como "TEM gate" (silenciando a classe na 2a ocorrencia, em arquivo append-only) e o espantalho acima. Ocorrência da **LC-34**.
+
+### 2026-09-16 — Bite-test do consumidor rodado contra OUTRO CHECKOUT do mesmo repo: "a migracao esta errada" era o hook velho do repo principal
+
+- **O que foi tentado:** antes de migrar 52 `settings.local.json` de `Bearer <literal>` para
+  `Bearer ${OIMPRESSO_MCP_TOKEN}`, montei o conteudo migrado em memoria e passei pelo
+  `readAuthHeader` de producao — o bite-test certo, na ordem certa, antes de escrever. Deu
+  **null nos quatro casos**, inclusive com a env presente.
+- **Por que caiu:** o `import` apontava para `D:/oimpresso.com/.claude/hooks/` (repo principal)
+  enquanto o `grep` que eu lia era do worktree. O principal estava em
+  `codex/prototipo-ssot-cleanup`, **161 commits atras**, sem a linha de expansao que o
+  [#7383](https://github.com/wagnerra23/oimpresso.com/pull/7383) tinha mergeado horas antes. Os
+  9 asserts do proprio hook afirmam que a expansao funciona — e funcionavam, no arquivo certo.
+  A conclusao a um passo de publicar era *"o formato novo nao e lido"*.
+- **O limite (variante tambem proibida):** quando a afirmacao e sobre **o que um consumidor
+  FAZ**, o caminho **importado/executado** e o caminho **lido/greppado** tem que ser a mesma
+  string — imprima o path **resolvido**, nunca o relativo, e confira que sao um so. Vale pra
+  `import`/`require`, `node <script>`, `php -l`, `bash <script>` e pra todo `git -C <dir>`:
+  num repo com worktrees, o mesmo path relativo existe em dezenas de arvores e **so uma** e a
+  que voce esta lendo. Corolario estrutural, e e o que torna isto caro: **cada worktree carrega
+  a propria copia de `.claude/`, congelada no commit de criacao** — logo *"mergeado em `main`"*
+  **nao** implica *"disponivel para a sessao"*. Medido no dia: **1 de 52** locais com
+  `settings.local.json` tinha o hook capaz de expandir `${ENV}`; aplicar teria quebrado o
+  `brief-fetch` em 51.
+- **⚠️ NAO virar gate:** o predicado — *"o path que voce importou e o mesmo que voce leu?"* —
+  exige saber o que o agente **leu**, que nao esta em lugar nenhum inspecionavel. E a forma
+  sintatica (acusar `import` de path absoluto fora do cwd) reprovaria o uso legitimo, que aqui
+  era o caso: importar do principal **era** o certo depois de o principal ir pra `main`. E a
+  familia de guard sintatico que este §5 ja enterrou 8x. O que pegou foi **dois numeros nao
+  baterem** + abrir a funcao em vez de deduzir.
+- **Evidencia:** `cmp -s` dos dois arquivos -> DIFEREM · `grep -n 'const ref = '` -> worktree
+  linha 145, principal **sem a linha** · apos mover o principal pra `main` fresco, o mesmo
+  bite-test no mesmo arquivo: `COM env -> TOKEN CERTO, expandido da env` e fail-closed nos tres
+  caminhos ruins. Ocorrencia da **LC-08**.

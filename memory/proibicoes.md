@@ -1351,6 +1351,26 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ ERRATA DO MEU PROPRIO RASCUNHO, e e o achado que mais importa:** eu ia registrar que **prevencao nenhuma e possivel**, porque *"este arquivo novo e uma sonda?"* nao e decidivel — sonda e arquivo legitimo sao indistinguiveis por path, nome ou conteudo. A premissa e verdadeira e a conclusao e **espantalho**: aquele nao e o predicado que previne. O predicado decidivel e *"o derivado esta consistente com a arvore NO INSTANTE do commit?"* — e ele **ja esta implementado**, no hook do #7365: `PreToolUse · Bash · git commit` -> filtra path coberto -> roda `--check` -> se drift, `--write` + `git add -- <indice>`. No cenario deste incidente (sonda apagada, depois commit) ele acharia o drift, regeneraria **sem** o fantasma e estagiaria: o fantasma nao chegaria ao CI. Nao mordeu aqui porque a wiring nasce no proprio #7365 e o harness le o `settings.json` no inicio da sessao. Declarar impossibilidade e a §5 2026-09-01 — produz silencio, nao vermelho.
 
+### 2026-09-16 — Bite-test do consumidor rodado contra OUTRO CHECKOUT do mesmo repo: "a migracao esta errada" era o hook velho do repo principal
+
+- **O limite (variante tambem proibida):** quando a afirmacao e sobre **o que um consumidor
+  FAZ**, o caminho **importado/executado** e o caminho **lido/greppado** tem que ser a mesma
+  string — imprima o path **resolvido**, nunca o relativo, e confira que sao um so. Vale pra
+  `import`/`require`, `node <script>`, `php -l`, `bash <script>` e pra todo `git -C <dir>`:
+  num repo com worktrees, o mesmo path relativo existe em dezenas de arvores e **so uma** e a
+  que voce esta lendo. Corolario estrutural, e e o que torna isto caro: **cada worktree carrega
+  a propria copia de `.claude/`, congelada no commit de criacao** — logo *"mergeado em `main`"*
+  **nao** implica *"disponivel para a sessao"*. Medido no dia: **1 de 52** locais com
+  `settings.local.json` tinha o hook capaz de expandir `${ENV}`; aplicar teria quebrado o
+  `brief-fetch` em 51.
+
+- **⚠️ NAO virar gate:** o predicado — *"o path que voce importou e o mesmo que voce leu?"* —
+  exige saber o que o agente **leu**, que nao esta em lugar nenhum inspecionavel. E a forma
+  sintatica (acusar `import` de path absoluto fora do cwd) reprovaria o uso legitimo, que aqui
+  era o caso: importar do principal **era** o certo depois de o principal ir pra `main`. E a
+  familia de guard sintatico que este §5 ja enterrou 8x. O que pegou foi **dois numeros nao
+  baterem** + abrir a funcao em vez de deduzir.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
