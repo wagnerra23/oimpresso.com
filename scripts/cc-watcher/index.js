@@ -19,6 +19,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import readline from 'node:readline';
+import { pathToFileURL } from 'node:url';
+import { redactText, redactPayload, totalHits } from './redact.mjs';
 
 // ──────────────────────────────────────────────────────────────────────
 // Config
@@ -34,11 +36,6 @@ const STATE_FILE = process.env.STATE_FILE || path.join(os.homedir(), '.claude', 
 const BATCH_SIZE = 200;
 const SKIP_TYPES = new Set(['queue-operation', 'attachment']); // ignoradas
 const MIN_CONTENT_LEN = 2; // ignora msgs vazias
-
-if (!MCP_TOKEN) {
-  console.error('❌ MCP_TOKEN ausente. Defina via env ou em .claude/settings.local.json');
-  process.exit(1);
-}
 
 const args = process.argv.slice(2);
 const MODE = args.includes('--watch') ? 'watch' : 'once';
@@ -156,7 +153,7 @@ async function readJsonl(filePath) {
 // ──────────────────────────────────────────────────────────────────────
 // Parse 1 row JSONL → message shape esperado pelo backend
 // ──────────────────────────────────────────────────────────────────────
-function parseMessage(row) {
+export function parseMessage(row) {
   const msg = {
     uuid: row.uuid,
     parent_uuid: row.parentUuid || null,
@@ -176,7 +173,7 @@ function parseMessage(row) {
 
   // Extrai texto do content (varia muito)
   if (typeof row.message?.content === 'string') {
-    msg.content_text = row.message.content;
+    msg.content_text = redactText(row.message.content).text;
   } else if (Array.isArray(row.message?.content)) {
     const parts = [];
     for (const c of row.message.content) {
@@ -184,7 +181,8 @@ function parseMessage(row) {
       if (c.type === 'tool_use') {
         msg.type = 'tool_use';
         msg.tool_name = c.name;
-        parts.push(`[tool: ${c.name}] ${JSON.stringify(c.input).slice(0, 1000)}`);
+        // redige ANTES do corte de 1000: mesma razao anti-straddle do corte de 50k
+        parts.push(`[tool: ${c.name}] ${redactText(JSON.stringify(c.input)).text.slice(0, 1000)}`);
       }
       if (c.type === 'tool_result') {
         msg.type = 'tool_result';
@@ -196,7 +194,9 @@ function parseMessage(row) {
         }
       }
     }
-    msg.content_text = parts.join('\n').slice(0, 50000);
+    // Redige ANTES de truncar: um segredo que atravessasse o corte de 50k
+    // sobreviveria partido ao meio, sem casar padrao nenhum dos dois lados.
+    msg.content_text = redactText(parts.join('\n')).text.slice(0, 50000);
   }
 
   // Skipa se sem conteúdo útil
@@ -215,8 +215,22 @@ function parseMessage(row) {
 // ──────────────────────────────────────────────────────────────────────
 // POST batch pra /api/cc/ingest
 // ──────────────────────────────────────────────────────────────────────
-async function postBatch(session, messages) {
-  const payload = { session, messages };
+export async function postBatch(session, messages) {
+  // -- FRONTEIRA DE INGEST (ADR 0057 §10 . LC-35) --------------------
+  // Daqui pra frente o conteudo sai da maquina e vira `mcp_cc_messages`, legivel
+  // pelo time via `cc-search`. Este e o UNICO ponto do watcher que faz `fetch` --
+  // redigir aqui cobre tambem `session` (project_path, git_branch) e qualquer
+  // campo que venha a ser adicionado ao payload depois, sem ninguem lembrar.
+  // Redige o objeto ja desserializado, nunca o JSON serializado: nao ha como
+  // corromper a sintaxe.
+  const redHits = {};
+  const payload = redactPayload({ session, messages }, redHits);
+  const redN = totalHits(redHits);
+  if (redN > 0) {
+    // loga SO a contagem por tipo -- jamais o valor (seria reintroduzir o vetor)
+    const resumo = Object.entries(redHits).map(([k, v]) => k + '=' + v).join(' ');
+    console.log('\n  [redacao] ' + redN + ' segredo(s) redigido(s): ' + resumo);
+  }
   const res = await fetch(MCP_URL, {
     method: 'POST',
     headers: {
@@ -357,20 +371,29 @@ async function watch() {
 }
 
 // ──────────────────────────────────────────────────────────────────────
-// Run
+// Run -- guardado por entry-point (pathToFileURL: cross-plataforma, backslash
+// do Windows nao quebra). Sem esta guarda, `import` deste arquivo pelo teste
+// dispararia o daemon; e o bite-test PRECISA importar pra exercitar o
+// `postBatch` REAL -- assert sobre helper puro exportado nao prova o contrato
+// do pipeline (memory/proibicoes.md §5 2026-07-30).
 // ──────────────────────────────────────────────────────────────────────
-console.log(`🚀 oimpresso-cc-watcher v0.1`);
-console.log(`   MCP_URL: ${MCP_URL}`);
-console.log(`   PROJECT_GLOB: ${PROJECT_GLOB}`);
-console.log(`   MODE: ${MODE}`);
-console.log(`   STATE: ${STATE_FILE}`);
-console.log('');
-
-try {
-  if (MODE === 'watch') await watch();
-  else await ingestOnce();
-} catch (e) {
-  console.error('\n💥 Erro fatal:', e.message);
-  console.error(e.stack);
-  process.exit(1);
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  if (!MCP_TOKEN) {
+    console.error('[erro] MCP_TOKEN ausente. Defina via env ou em .claude/settings.local.json');
+    process.exit(1);
+  }
+  console.log('oimpresso-cc-watcher v0.2 (com redacao de segredo no ingest)');
+  console.log('   MCP_URL: ' + MCP_URL);
+  console.log('   PROJECT_GLOB: ' + PROJECT_GLOB);
+  console.log('   MODE: ' + MODE);
+  console.log('   STATE: ' + STATE_FILE);
+  console.log('');
+  try {
+    if (MODE === 'watch') await watch();
+    else await ingestOnce();
+  } catch (e) {
+    console.error('\n[fatal] ' + e.message);
+    console.error(e.stack);
+    process.exit(1);
+  }
 }
