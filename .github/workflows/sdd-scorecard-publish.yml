@@ -133,6 +133,42 @@ jobs:
             { echo "### Floor desta medição: ${FLOOR}"; } >> "$GITHUB_STEP_SUMMARY"
           fi
 
+      # CORRIDA DO TRACKING REF (medida 2026-09-16 — 3 falhas em ~348 runs desde o auto-PR de 30/jun):
+      # o checkout deste job usa fetch-depth:0, logo traz `+refs/heads/*:refs/remotes/origin/*` —
+      # inclusive a branch efêmera de baixo, quando o PR do run ANTERIOR ainda está aberto. O job leva
+      # ~3min; nesse meio-tempo aquele PR entra por auto-merge e o GitHub apaga a branch (o repo tem
+      # delete_branch_on_merge:true, então `--delete-branch` não é a única via). O fetch dirigido do
+      # peter-evans falha então com "couldn't find remote ref" — e fetch que FALHA não remove o
+      # remote-tracking ref que ficou para trás. O push dele é `--force-with-lease` sem valor explícito,
+      # cujo lease é justamente esse ref: promete ao remoto um commit que o remoto já não tem
+      # → `! [rejected] chore/sdd-scorecard-floor (stale info)`, e o floor não aterrissa naquela noite.
+      #
+      # Correlação medida em 4 runs, 4 de 4 — tracking ref criado pelo checkout <=> stale info no push:
+      #   falhas  2026-08-05 (PR #5317 mergeou 71s antes) · 2026-08-21 (#6075, 49s) · 2026-09-16 (#7428, 80s)
+      #   controle negativo  attempt 2 do run 35111504674: branch fora do ar havia 2h, nenhum tracking ref,
+      #   MESMO caminho "does not exist yet" no log → push OK e PR #7436 criado.
+      #
+      # Apagar o ref aqui é seguro porque o peter-evans@v7 REFETCHA a branch ~150ms antes do push
+      # (`git fetch --force --depth=11 origin <br>:<tracking>`, visto no log dos 4 runs), então:
+      #   branch viva  → o fetch DELE recria o ref com o valor atual → lease real, e o dedup do PR aberto
+      #                  segue intacto (provado no run 29064505646, que fez "Updated pull request #4056");
+      #   branch morta → o fetch falha e agora não sobra mentira → lease vazio ("espere ausente") → push cria.
+      # Descartados por medição: branch por run (sufixo com o run_id) duplicaria PR em 34 dos 348 runs,
+      # porque o dedup do peter-evans é load-bearing aqui; e parar de deletar a branch não funciona, porque
+      # quem apaga é o repo (delete_branch_on_merge:true), não este YAML.
+      - name: Limpa tracking ref residual da branch efêmera (fecha a corrida do stale info)
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          # ⚠️ Tem que ser o MESMO nome do `branch:` do passo seguinte — renomeou lá, renomeie aqui.
+          REF=refs/remotes/origin/chore/sdd-scorecard-floor
+          if git show-ref --verify --quiet "$REF"; then
+            echo "tracking ref PRESENTE ($(git rev-parse --short "$REF")) — este run estava na janela da corrida; removendo."
+          else
+            echo "tracking ref ausente — run fora da janela; nada a limpar."
+          fi
+          # update-ref -d é idempotente (rc=0 com o ref ausente) — nada de `|| true` mascarando erro real.
+          git update-ref -d "$REF"
+
       # Auto-PR (NÃO push direto): main exige PR + required checks. O PAT dispara o CI;
       # GITHUB_TOKEN não dispararia → PR preso. add-paths garante que SÓ o scorecard entra
       # (nightly-floor.json materializado é gitignored, mas add-paths é defesa explícita).
