@@ -1351,25 +1351,43 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ ERRATA DO MEU PROPRIO RASCUNHO, e e o achado que mais importa:** eu ia registrar que **prevencao nenhuma e possivel**, porque *"este arquivo novo e uma sonda?"* nao e decidivel — sonda e arquivo legitimo sao indistinguiveis por path, nome ou conteudo. A premissa e verdadeira e a conclusao e **espantalho**: aquele nao e o predicado que previne. O predicado decidivel e *"o derivado esta consistente com a arvore NO INSTANTE do commit?"* — e ele **ja esta implementado**, no hook do #7365: `PreToolUse · Bash · git commit` -> filtra path coberto -> roda `--check` -> se drift, `--write` + `git add -- <indice>`. No cenario deste incidente (sonda apagada, depois commit) ele acharia o drift, regeneraria **sem** o fantasma e estagiaria: o fantasma nao chegaria ao CI. Nao mordeu aqui porque a wiring nasce no proprio #7365 e o harness le o `settings.json` no inicio da sessao. Declarar impossibilidade e a §5 2026-09-01 — produz silencio, nao vermelho.
 
-### 2026-09-16 — Bite-test do consumidor rodado contra OUTRO CHECKOUT do mesmo repo: "a migracao esta errada" era o hook velho do repo principal
+### 2026-09-16 — Bite-test do consumidor rodado contra OUTRO CHECKOUT do mesmo repo: "a migracao esta errada" era o hook velho do checkout principal
 
 - **O limite (variante tambem proibida):** quando a afirmacao e sobre **o que um consumidor
   FAZ**, o caminho **importado/executado** e o caminho **lido/greppado** tem que ser a mesma
   string — imprima o path **resolvido**, nunca o relativo, e confira que sao um so. Vale pra
   `import`/`require`, `node <script>`, `php -l`, `bash <script>` e pra todo `git -C <dir>`:
   num repo com worktrees, o mesmo path relativo existe em dezenas de arvores e **so uma** e a
-  que voce esta lendo. Corolario estrutural, e e o que torna isto caro: **cada worktree carrega
-  a propria copia de `.claude/`, congelada no commit de criacao** — logo *"mergeado em `main`"*
-  **nao** implica *"disponivel para a sessao"*. Medido no dia: **1 de 52** locais com
-  `settings.local.json` tinha o hook capaz de expandir `${ENV}`; aplicar teria quebrado o
-  `brief-fetch` em 51.
+  que voce esta lendo.
 
-- **⚠️ NAO virar gate:** o predicado — *"o path que voce importou e o mesmo que voce leu?"* —
-  exige saber o que o agente **leu**, que nao esta em lugar nenhum inspecionavel. E a forma
-  sintatica (acusar `import` de path absoluto fora do cwd) reprovaria o uso legitimo, que aqui
-  era o caso: importar do principal **era** o certo depois de o principal ir pra `main`. E a
-  familia de guard sintatico que este §5 ja enterrou 8x. O que pegou foi **dois numeros nao
-  baterem** + abrir a funcao em vez de deduzir.
+- **⚠️ A 1a redacao desta lapide afirmava um COROLARIO FALSO — fica registrado, nao apagado.**
+  Eu escrevi que *"cada worktree carrega a propria copia de `.claude/`, congelada no commit de
+  criacao, logo mergeado em `main` nao implica disponivel para a sessao"*. **Refutado pelo
+  `ciclo-adversary` e confirmado por medicao minha:** `.claude/hooks/**` e **trackeado**, logo
+  segue a branch como qualquer arquivo, e worktree criado de `origin/main` carrega o hook novo
+  **por construcao**. O fenomeno real e **staleness de branch comum**, que ja tem dono — **LC-20**
+  e §5 2026-07-28 (*"`git ls-files` lista o indice da branch daquele worktree"*) — e a causa
+  concreta aqui foi o **checkout principal parado em branch divergente**, nao worktree nenhum.
+  Como estava, a lapide instruia a proxima sessao a desconfiar do que e seguro (worktree novo) e
+  a **nao** desconfiar do que causou o erro. O unico artefato de fato por-diretorio e o
+  `settings.local.json`, **gitignored**, que por isso nunca propaga de merge — o oposto de
+  "congelado na criacao".
+
+- **⚠️ Sobre virar gate — a 1a redacao fechou a porta com ESPANTALHO, e isso tambem fica
+  registrado.** Ela alegava que o predicado *"o path que voce importou e o mesmo que voce leu?"*
+  e indecidivel e que seria guard sintatico. **As duas pernas caem.** O predicado honesto nao e
+  *"o que voce leu"*, e *"o path absoluto que este comando referencia resolve para arquivo
+  DIFERENTE do mesmo path relativo sob o cwd?"* — computavel so do texto do comando, e medido
+  pelo adversario sobre **151.261** comandos do corpus: **7** ocorrencias, com controle positivo
+  e negativo. E a forma nao e sintatica: e **duas pernas com medicao** (2a perna = `cmp` dos dois
+  arquivos, mordendo so se divergirem), que e exatamente o que o campo `Gate:` da LC-08 descreve
+  como *"FP = 0 por construcao"* (P4/P5) **em contraste** com a familia sintatica. Invocar aquela
+  familia aqui era usar lapide morta contra caso que nao e dela — e e o **mesmo movimento** que a
+  lapide imediatamente anterior (2026-09-15, `_sonda-temp`) ja tinha corrigido em errata propria.
+  **Isto NAO e dizer que deve armar.** As razoes honestas disponiveis, e que a 1a redacao nao
+  usou: populacao de **7 em 151.261**, [ADR 0344](decisions/0344-two-strikes-cobre-processo.md)
+  (1a ocorrencia do vetor "outro checkout", nao chegou a prod) e o custo de duas leituras de
+  disco por comando num `PreToolUse`. Armar e decisao do [W].
 
 ## Sempre fazer
 
