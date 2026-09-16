@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-15**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-16**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -33,21 +33,21 @@ lente: [construir]
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-09-07 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-05 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-09-07 |
-| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-09-07 |
-| Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-12 |
+| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-09-15 |
+| Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-09-15 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-15 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-07 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-15 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
-| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-09-04 |
+| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-09-15 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-09-07 |
-| NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-08-16 |
+| NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-09-15 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
-| OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-09-07 |
+| OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-09-15 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-09-07 |
 | Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-15 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
-| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-09-07 |
+| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-09-15 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-08-01 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-08-11 |
 | Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **11/13** métricas medidas · floor full-suite = **291**.
+- Scorecard: **11/13** métricas medidas · floor full-suite = **284**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -146,13 +146,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **405** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 356 · superseded: 25 · deprecated: 11 · proposto: 11 · rascunho: 1 · recusado: 1.
+- **408** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 357 · superseded: 25 · proposto: 13 · deprecated: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 191 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 201 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -346,6 +346,16 @@ lente: [construir]
 - ~~2026-09-15 — EMENDA da lápide 2026-08-11 (`jq` ausente faz o silêncio virar "nada a reportar"): o VIGIA que eu armei era mudo, e o hook que pega isso não cobre o tool `Monitor`~~
 - ~~2026-09-15 — EMENDA da lápide 2026-08-07 (snapshot congelado × tip vivo): o eixo **BASE-DE-PR** — `pull_request.base.sha` contra um checkout que é MERGE REF, dentro de um gate **required**~~
 - ~~2026-09-15 — Concluir que 3 arquivos do cache tinham CONTEÚDO ÚNICO porque o NOME não existia no versionado (eram o mesmo arquivo com quatro nomes)~~
+- ~~2026-09-15 — `mergeable_state: unknown` lido como "o GitHub está computando" sem olhar o `state` ao lado (2ª VEZ do mesmo sub-caso — a regra já estava escrita no ledger desde 08-11)~~
+- ~~2026-09-15 — EMENDA da lápide 2026-08-08 (promover required renomeando o job): o par candidato foi ARMADO — 5º eixo do `required-always-run`, FP 0 em 60 commits~~
+- ~~2026-09-15 — EMENDA da lápide 2026-08-13 (dono do INVENTÁRIO × dono da PROIBIÇÃO): o gatilho da mãe dispara em LER — esta é a 3ª instância da classe, a 2ª contra o MESMO arquivo, e a 1ª em que o ato é POSICIONAR~~
+- ~~2026-08-31 — Resumir uma ADR pelo PRIMEIRO item que cita o símbolo, quando dois itens vizinhos o tratam com vereditos OPOSTOS (lápide escrita retroativamente em 2026-09-15)~~
+- ~~2026-09-15 — EMENDA da lápide 2026-07-29 (colapsar "não consegui medir" num estado do objeto): o eixo ESPELHADO — colapsou em ACUSAÇÃO, não em verde; e a MULETA que o escondeu morava no teste que o pegaria~~
+- ~~2026-09-15 — O derivado fotografou uma SONDA que eu mesmo criei dentro da area que o gerador varre~~
+- ~~2026-09-16 — Bite-test do consumidor rodado contra OUTRO CHECKOUT do mesmo repo: "a migracao esta errada" era o hook velho do checkout principal~~
+- ~~2026-09-16 — Gate que verifica a VERACIDADE da claim de história (sha removeu? data bate? “nunca versionado” é verdade?) — MEDIDO: 100% de falso-positivo em 2 dos 3 eixos~~
+- ~~2026-09-16 — Detectar o token MCP no transcript por `mcp_` + qualquer coisa (MEDIDO: 10.959 hits, ~99,97% de falso-positivo — casa NOME DE TOOL)~~
+- ~~2026-09-16 — Estender o denominador de tela para incluir `Modules/*/Resources/js/Pages` (MEDIDO: ele JÁ inclui — a ADR nasceu de `grep` na SAÍDA de um relatório que agrupa por NOME)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -356,14 +366,14 @@ lente: [construir]
 
 ## Rastro
 
-- **521** handoffs · **737** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **534** handoffs · **752** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
-  - `2026-09-15-handoff-19-ciclo-ponto-e-passo-0-zip`
-  - `2026-09-14-refutacao-gt-g5-lote-7262-r2`
-  - `2026-09-14-refutacao-gt-g5-lote-7262-r1`
-  - `2026-09-13-sidebar-adicionar-empresa-thread03`
-  - `2026-09-13-refutacao-gt-g5-lote-7224-r2`
-  - `2026-09-13-ponto-thread03-a11y-ja-feita`
+  - `2026-09-16-poda-worktrees-e-token-fora-do-disco`
+  - `2026-09-16-gt-g5-duas-familias-gate-e-lapide`
+  - `2026-09-15-validador-schema-tres-portas`
+  - `2026-09-15-refutacao-gt-g5-lote-7377-r4`
+  - `2026-09-15-refutacao-gt-g5-lote-7377-r3`
+  - `2026-09-15-refutacao-gt-g5-lote-7377-r2`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-15 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-16 · deriva das fontes canônicas, não as substitui._
