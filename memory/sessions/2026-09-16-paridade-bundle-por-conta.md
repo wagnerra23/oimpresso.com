@@ -40,3 +40,7 @@ A primeira aplicação real encontrou 23 colisões com Felipe. Foi revertida ape
 Testes de transação, aplicador e guard passaram. Cobriram inclusão/alteração/remoção, snapshot inicial, delta regenerado, rollback, escopo autenticado, bloqueio de parcial após tree, duplicatas internas/DS e estados independentes das contas. Integridade estrutural passou; sem PHP/PHPStan local. Alteração preexistente de `.claude/launch.json` preservada. MCP do projeto indisponível.
 
 Felipe tem opção explícita `--owner Felipe` no consumidor v2, com state próprio; nenhum export novo de Felipe foi fornecido. Não se afirmou paridade da conta com uma origem não auditada. Restam publicação/CI/merge das alterações locais.
+
+## Publicação autorizada
+
+Após pedido de merge, PR #7445 publicado. A primeira execução do lint visual confundiu 15 cópias de charters no espelho com Pages de produção. O scanner foi limitado pelo classificador canônico `screenSourceFromCharter`, com testes positivos para Pages raiz/módulo e negativos para cópias nas duas contas. A fonte importada não foi alterada para satisfazer o lint.
