@@ -2045,3 +2045,66 @@
 - **⚠️ ERRATA DO MEU PROPRIO RASCUNHO, e e o achado que mais importa:** eu ia registrar que **prevencao nenhuma e possivel**, porque *"este arquivo novo e uma sonda?"* nao e decidivel — sonda e arquivo legitimo sao indistinguiveis por path, nome ou conteudo. A premissa e verdadeira e a conclusao e **espantalho**: aquele nao e o predicado que previne. O predicado decidivel e *"o derivado esta consistente com a arvore NO INSTANTE do commit?"* — e ele **ja esta implementado**, no hook do #7365: `PreToolUse · Bash · git commit` -> filtra path coberto -> roda `--check` -> se drift, `--write` + `git add -- <indice>`. No cenario deste incidente (sonda apagada, depois commit) ele acharia o drift, regeneraria **sem** o fantasma e estagiaria: o fantasma nao chegaria ao CI. Nao mordeu aqui porque a wiring nasce no proprio #7365 e o harness le o `settings.json` no inicio da sessao. Declarar impossibilidade e a §5 2026-09-01 — produz silencio, nao vermelho.
 
 - **Evidencia:** gate vermelho no run `35022469608` (#7365, head `a8bc06948`), steps 9 e 12 do `governance-script-tests` · `grep -c _sonda-temp` no indice commitado = **1**, sonda em disco = **0** · pos-conserto: `--check` rc **1 -> 0**, bite-test do gerador **4/4**, sonda no indice **1 -> 0**, controle positivo do hook novo ainda listado (**1**). **Quem pegou foi o `maquinas-inventario --check` PRE-EXISTENTE** no CI (advisory, `governance-script-tests.yml:90`), nao o hook novo — e "maquina fantasma no indice" e um dos 4 asserts do bite-test daquele gerador. Fechamento submetido ao `ciclo-adversary` antes de virar canon: veredito **REJECT**, e ele derrubou as duas pecas centrais do rascunho — o campo `Gate:` que o `semGate()` do proprio hook do ledger leria como "TEM gate" (silenciando a classe na 2a ocorrencia, em arquivo append-only) e o espantalho acima. Ocorrência da **LC-34**.
+
+### 2026-09-16 — Bite-test do consumidor rodado contra OUTRO CHECKOUT do mesmo repo: "a migracao esta errada" era o hook velho do checkout principal
+
+- **O que foi tentado:** antes de migrar 52 `settings.local.json` de `Bearer <literal>` para
+  `Bearer ${OIMPRESSO_MCP_TOKEN}`, montei o conteudo migrado em memoria e passei pelo
+  `readAuthHeader` de producao — o bite-test certo, na ordem certa, antes de escrever. Deu
+  **null nos quatro casos**, inclusive com a env presente.
+- **Por que caiu:** o `import` apontava para `D:/oimpresso.com/.claude/hooks/` (checkout
+  PRINCIPAL) enquanto o `grep` cuja saida eu lia era do worktree. O principal estava em
+  `codex/prototipo-ssot-cleanup`, **13 commits a frente e 162 atras** de `origin/main` (`git rev-list --left-right --count 4dcd5d5ff17...62741257a64` -> `13  162`; SHAs porque `origin/main` anda) —
+  **divergencia, nao atraso** — sem a linha de expansao que o
+  [#7383](https://github.com/wagnerra23/oimpresso.com/pull/7383) tinha mergeado horas antes. Os
+  9 asserts do proprio hook afirmam que a expansao funciona — e funcionavam, no arquivo certo.
+  A conclusao a um passo de publicar era *"o formato novo nao e lido"*.
+- **O limite (variante tambem proibida):** quando a afirmacao e sobre **o que um consumidor
+  FAZ**, o caminho **importado/executado** e o caminho **lido/greppado** tem que ser a mesma
+  string — imprima o path **resolvido**, nunca o relativo, e confira que sao um so. Vale pra
+  `import`/`require`, `node <script>`, `php -l`, `bash <script>` e pra todo `git -C <dir>`:
+  num repo com worktrees, o mesmo path relativo existe em dezenas de arvores e **so uma** e a
+  que voce esta lendo.
+- **⚠️ A 1a redacao desta lapide afirmava um COROLARIO FALSO — fica registrado, nao apagado.**
+  Eu escrevi que *"cada worktree carrega a propria copia de `.claude/`, congelada no commit de
+  criacao, logo mergeado em `main` nao implica disponivel para a sessao"*. **Refutado pelo
+  `ciclo-adversary` e confirmado por medicao minha:** `.claude/hooks/**` e **trackeado**, logo
+  segue a branch como qualquer arquivo, e worktree criado de `origin/main` **que ja contenha
+  o commit** carrega o hook novo por construcao — e a pre-condicao nao e decorativa, porque
+  `origin/main` e ref **local**, so tao fresca quanto o ultimo `fetch`. O fenomeno real e **staleness de branch comum**, que ja tem dono — **LC-20**
+  e §5 2026-07-28 (*"`git ls-files` lista o indice da branch daquele worktree"*) — e a causa
+  concreta aqui foi o **checkout principal parado em branch divergente**, nao worktree nenhum.
+  Como estava, a lapide instruia a proxima sessao a desconfiar do que e seguro (worktree novo) e
+  a **nao** desconfiar do que causou o erro. O unico artefato de fato por-diretorio e o
+  `settings.local.json`, **gitignored**, que por isso nunca propaga de merge — o oposto de
+  "congelado na criacao".
+- **⚠️ Sobre virar gate — a 1a redacao fechou a porta com ESPANTALHO, e isso tambem fica
+  registrado.** Ela alegava que o predicado *"o path que voce importou e o mesmo que voce leu?"*
+  e indecidivel e que seria guard sintatico. **As duas pernas caem.** O predicado honesto nao e
+  *"o que voce leu"*, e *"o path absoluto que este comando referencia resolve para arquivo
+  DIFERENTE do mesmo path relativo sob o cwd?"* — computavel so do texto do comando, e medido
+  **pelo `ciclo-adversary`, nao por mim** sobre **151.261** comandos do corpus: **7** ocorrencias, com
+  controle positivo e negativo. ⚠️ O denominador eu re-medi e bate — ⚠️ e a minha re-medicao do denominador
+  saiu com a UNIDADE errada na 1a tentativa: `grep -c` conta **linhas**, nao blocos, e uma linha jsonl com
+  tool-calls paralelas carrega varias. Medido em 2026-09-16 12:10Z sobre `~/.claude/projects`:
+  `find -name '*.jsonl' -exec grep -c '"name":"Bash"' {} + | soma` = **150.749 LINHAS** ·
+  `... -exec grep -o ... | wc -l` = **151.047 BLOCOS** (delta 298) · universo **1.775** `.jsonl`, dos quais
+  **1.631** com >=1 hit. Os tres sao VIVOS e drifam dentro da propria sessao — cite sempre comando + unidade
+  + hora, que e a §5 2026-08-13 corolario (c)); **o numerador 7 eu NAO re-verifiquei e a lapide nao carrega o
+  comando que o reproduz** — entao ele vale como medicao do adversario, nunca como recibo meu. A regra
+  que isto quase violou e a §5 2026-07-28: numero so entra em canon com o comando ao lado. E a forma nao e sintatica: e **duas pernas com medicao** (2a perna = `cmp` dos dois
+  arquivos, mordendo so se divergirem), que e exatamente o que o campo `Gate:` da LC-08 descreve
+  como *"FP = 0 por construcao"* (P4/P5) **em contraste** com a familia sintatica. Invocar aquela
+  familia aqui era usar lapide morta contra caso que nao e dela — e e o **mesmo movimento** que a
+  lapide imediatamente anterior (2026-09-15, `_sonda-temp`) ja tinha corrigido em errata propria.
+  **Isto NAO e dizer que deve armar.** As razoes honestas disponiveis, e que a 1a redacao nao
+  usou: populacao de **7 em 151.261**, [ADR 0344](decisions/0344-two-strikes-cobre-processo.md)
+  (1a ocorrencia do vetor "outro checkout", nao chegou a prod) e o custo de duas leituras de
+  disco por comando num `PreToolUse`. Armar e decisao do [W].
+- **Evidencia:** `cmp -s` dos dois arquivos -> DIFEREM · `grep -n 'const ref = '` -> worktree
+  linha 145, principal **sem a linha** · apos mover o principal pra `main` fresco, o mesmo
+  bite-test no mesmo arquivo: `COM env -> TOKEN CERTO, expandido da env` e fail-closed nos tres
+  caminhos ruins · refutacao do corolario: `git worktree add --detach <tmp> origin/main` seguido
+  de `grep -c 'const ref = /\^Bearer'` = **1** (worktree novo JA tem o hook novo) ·
+  `git rev-list --left-right --count 4dcd5d5ff17...62741257a64` = **13  162**. Reincidencia da
+  sub-classe registrada como `rec` n+19 da **LC-08**.
