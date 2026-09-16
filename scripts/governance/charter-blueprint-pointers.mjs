@@ -239,8 +239,26 @@ function shaAdvisory() {
  *
  *  ADVISORY e forward-only (ADR 0275): varre so os docs do diff vs origin/main. `--todos`
  *  varre o corpus inteiro (custa ~2min: e um `git rev-parse` por ponteiro).
- *  ⚠️ O limiar de fracao (tree) e 0.5 e foi escolhido SEM corpus que o calibre — os dois casos
- *  reais medidos dao 320/323 e 320/454. Promover a required exige calibrar isso primeiro. */
+ *
+ *  ── LIMIAR CALIBRADO 2026-09-16 (era o residuo #1 do #7392: "escolhido SEM corpus") ───
+ *  Distribuicao das duas classes no corpus inteiro (92 amostras, repo NAO-raso):
+ *    POSITIVOS (mudou de casa, 8) — os que o #7392 corrigiu, medidos no PAI d233e401098:
+ *      1.000 (x3, blob unico) · 0.991 (x4, 320/323) · 0.705 (1, 320/454)  -> MINIMO 0.705
+ *    NEGATIVOS (remocao real, 84) — arvore de hoje, `--todos`:
+ *      76 em [0.0,0.1) · 0.188 · 0.188 · 0.202 (x3) · 0.267 · 0.400 · 0.455 -> MAXIMO 0.455
+ *    VAO entre as classes: (0.455, 0.705), largura 0.25, ZERO amostras dentro.
+ *    0.5 cai no vao e separa as 92 com 0 erro. Qualquer valor em (0.455,0.705) faria igual;
+ *    0.5 nao e otimo (o centro do vao, ~0.58, teria margem simetrica) mas e VALIDO, e trocar
+ *    por trocar seria churn sem ganho medido.
+ *  ⚠️ LIMITES HONESTOS da calibracao, que continuam valendo pra promocao a required:
+ *    (a) so 3 valores POSITIVOS distintos (1.000 / 0.991 / 0.705) e 4 dos 8 sao o MESMO
+ *        ponteiro (`cowork-inbox`) — diversidade baixa, entao o vao pode ser artefato da
+ *        amostra, nao do fenomeno;
+ *    (b) a margem e assimetrica: 0.045 do maior negativo, 0.205 do menor positivo. Um caso
+ *        legitimo em [0.5,0.6) seria classificado errado e ninguem saberia;
+ *    (c) medido tambem COM piso de 200B aplicado DENTRO de tree: distribuicao IDENTICA
+ *        (76/2/4/0/2). A assimetria de `blobsDe` — o piso so vale quando o objeto e blob,
+ *        nao para os blobs de um tree — existe no codigo mas e INOCUA neste corpus. */
 const SL_C1 = String.fromCharCode(47);   // '/' sem literal
 const TOMB_SHA = /_[(][^)]*removido em ([0-9-]+), ([0-9a-f]{7,40})[^)]*[)]_/;
 /** A linha ja declara PRA ONDE o conteudo foi? Entao esta correta — nao e acusacao.
