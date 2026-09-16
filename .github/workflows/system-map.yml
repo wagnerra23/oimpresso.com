@@ -11,6 +11,26 @@ name: System Map (matriz gerada · advisory)
 #     Auto-PR (não push direto): main rejeita push do bot (GH013) — padrão de
 #     sdd-scorecard-publish.yml. COWORK_BOT_PAT + auto-merge; branch chore/ efêmera.
 
+# CADENCIA — por que este workflow NAO leva o passo "limpa tracking ref residual" que o
+# sdd-scorecard-publish.yml ganhou em 2026-09-16 (PR #7438). A pre-condicao estrutural E a
+# mesma aqui (branch fixa + fetch-depth:0 + delete-branch, no mesmo job), mas a corrida do
+# `stale info` exige que uma run COMECE antes do merge do PR anterior e EMPURRE depois dele
+# — e o merge leva ~7-11min, logo a janela so abre com runs separadas por minutos.
+#
+# Medido em 2026-09-16 sobre a historia inteira (nao e estimativa):
+#   system-map             69 runs EMPURRAM (de 1201 — o job `refresh` tem `if` != pull_request)
+#                          gap mediano 1438,9 min · 1/68 gaps < 15min -> 0 janelas, 0 falhas
+#   sdd-scorecard-publish  358 runs · gap mediano 99,9 min (p10 8,9) · 51/357 gaps < 15min
+#                          -> 6 janelas, 3 viraram falha (2026-08-05, 08-21, 09-16)
+#
+# REABRIR a decisao se alguem acrescentar gatilho `push` aqui, ou baixar o cron pra
+# sub-horario: a cadencia cai pro regime do scorecard e a janela passa a abrir.
+#
+# Reproduzir (cruzar o run_started_at/updated_at com created/merged dos PRs da branch chore/):
+#   gh api --paginate "repos/<owner>/<repo>/actions/workflows/<este>.yml/runs?per_page=100" --jq '.workflow_runs[] | "\(.run_started_at) \(.updated_at) \(.event)"'
+# Ressalva da medicao: `run_attempt`>1 reescreve `run_started_at`, entao a contagem subconta
+# run re-executada (1 aqui) — nao move o zero acima.
+
 on:
   pull_request:
     types: [opened, reopened, ready_for_review]
