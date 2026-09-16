@@ -7,7 +7,8 @@ prs: [7388, 7389]
 decided_by: [W]
 related_adrs: [0057-tela-team-admin-regras-governanca-tokens-mcp]
 next_steps:
-  - "Decidir se o `cc-watcher` desligado + autostart `.off` é definitivo (vira ADR/lápide) ou contenção temporária até ele ganhar redação (vira task com o conserto nomeado)"
+  - "[W] decidiu em 2026-09-16 — o `cc-watcher` parado com autostart `.off` é CONTENÇÃO TEMPORÁRIA, não estado final. O conserto nomeado é redação na FRONTEIRA DE INGEST (`cc-watcher` para `/api/cc/ingest`), que é o chokepoint que a própria LC-35 já apontou como o único onde a defesa faz sentido e onde existe corpus real pra medir FP. Enquanto essa redação não existir, o daemon não volta"
+  - "Criar a task MCP dessa redação — NÃO pôde ser criada nesta sessão porque os tools MCP estão indisponíveis (ver §Estado MCP no momento do fechamento); fica como primeira ação de quem abrir sessão nova"
   - "Decidir os pares de token 10 vs 30 (Wagner) e 11 vs 21 (Maiara) — o uso indica clientes concorrentes, não sucessão; revogar o antigo derruba máquina viva"
   - "25 `settings.local.json` seguem com o token literal, em worktrees que rodam hooks anteriores ao #7383 — some conforme esses worktrees fecharem, não precisa de ação"
   - "`verificacao-assessoes-abertas-fe87a0` não removeu (Permission denied, handle preso) e `mystifying-bouman-58cf5b` ficou de fora por estado ambíguo — ambos são resíduo, não risco"
