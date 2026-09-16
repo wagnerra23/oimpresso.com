@@ -9,7 +9,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { matchDestructive, normalizeCmd, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete } from './block-destructive.mjs';
+import { matchDestructive, normalizeCmd, statements, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete } from './block-destructive.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'block-destructive.mjs');
 let fails = 0;
@@ -113,6 +113,62 @@ check('consomeTopoPorPosicao: pop com entry = false', consomeTopoPorPosicao('git
 
 // E2E: o aviso NÃO bloqueia — esta é a diferença pro resto do hook
 check('E2E: git stash pop → exit 0 (ADVISORY, jamais bloqueia)', runHook(j('git stash pop')) === 0);
+
+// ── FP cross-statement: o `.*` não pode atravessar comando (fix 2026-09-16) ─────
+// Os 4 payloads do incidente, medidos 2×2 alimentando o hook por stdin. As duas
+// NEGATIVAS isolam a causa (nenhuma metade dispara sozinha, só a combinação) e o
+// CONTROLE POSITIVO prova que a categoria não afrouxou.
+const PUSH_BENIGNO = 'git push -q origin HEAD:refs/heads/main';
+const FETCH_FORCE = 'git fetch --force --depth=11 origin eph:refs/remotes/origin/eph';
+
+check('BITE cross-stmt: push benigno + \\n + fetch --force → NÃO bloqueia (era o FP)',
+  matchDestructive(PUSH_BENIGNO + '\n' + FETCH_FORCE) === null);
+check('CN cross-stmt: só o fetch --force → não bloqueia',
+  matchDestructive(FETCH_FORCE) === null);
+check('CN cross-stmt: só o push benigno → não bloqueia',
+  matchDestructive(PUSH_BENIGNO) === null);
+check('CONTROLE +: force real segue BLOQUEADO (categoria não afrouxou)',
+  matchDestructive('git push --force origin main')?.key === 'git-force-push');
+// E2E pelo wrapper (stdin→exit), que é como o harness de fato invoca
+check('E2E cross-stmt: combo benigno → exit 0',
+  runHook(j(PUSH_BENIGNO + '\n' + FETCH_FORCE)) === 0);
+check('E2E cross-stmt: force real → exit 2',
+  runHook(j('git push --force origin main')) === 2);
+
+// o que NÃO pode escapar pelo fatiamento — cada um é uma porta de afrouxamento
+check('ANTI-FOLGA: --force-with-lease depois do remote (MESMO statement) bloqueia',
+  matchDestructive('git push origin main --force-with-lease')?.key === 'git-force-push');
+check('ANTI-FOLGA: force push depois de && (statement próprio) bloqueia',
+  matchDestructive('echo oi && git push --force origin main')?.key === 'git-force-push');
+check('ANTI-FOLGA: force push depois de | bloqueia',
+  matchDestructive('cat x | git push -f origin main')?.key === 'git-force-push');
+check('ANTI-FOLGA: continuação de linha `\\`+nl é UM comando, não dois',
+  matchDestructive('git push origin main \\\n  --force')?.key === 'git-force-push');
+check('ANTI-FOLGA: force push na 2ª linha de bloco multi-linha bloqueia',
+  matchDestructive('cd /repo\ngit push --force origin main')?.key === 'git-force-push');
+check('ANTI-FOLGA: prosa com --force no MESMO statement segue bloqueando (não é o escopo do fix)',
+  matchDestructive('git push origin main # usei --force ontem')?.key === 'git-force-push');
+
+// composer: aqui o `.*` mora em lookahead NEGATIVO, então atravessar AFROUXAVA
+check('BITE composer: update + \\n + outro cmd com --lock → BLOQUEIA (buraco fechado)',
+  matchDestructive('composer update\nnpm ci --lock')?.key === 'composer-update-sem-lock');
+check('BITE composer: update && echo "--lock" → BLOQUEIA',
+  matchDestructive('composer update && echo "use --lock"')?.key === 'composer-update-sem-lock');
+check('CN composer: --lock no MESMO statement segue liberado (ADR 0063 caminho certo)',
+  matchDestructive('composer update --lock') === null);
+
+// as 7 categorias restantes NÃO foram fatiadas — comportamento byte a byte igual
+check('INTACTA: rm -rf no meio de pipeline segue bloqueando', matchDestructive('cd x; rm -rf Modules/')?.key === 'rm-rf-perigoso');
+check('INTACTA: whitelist rm sem prefixo segue passando', matchDestructive('rm -rf node_modules') === null);
+check('INTACTA: rm whitelisted COM prefixo cd segue bloqueado (FP conhecido, NÃO afrouxado aqui)',
+  matchDestructive('cd /repo && rm -rf node_modules')?.key === 'rm-rf-perigoso');
+check('INTACTA: reset --hard origin/ segue bloqueando', matchDestructive('git reset --hard origin/main')?.key === 'git-reset-hard-origin');
+check('INTACTA: DROP TABLE segue bloqueando', matchDestructive('mysql -e "DROP TABLE t"')?.key === 'sql-drop-table');
+
+// o fatiador, isolado
+check('statements: fatia em \\n ; && || |', statements('a\nb; c && d || e | f').length === 6);
+check('statements: junta continuação `\\`+nl antes de fatiar', statements('git push \\\n --force').length === 1);
+check('statements: descarta vazios de && / ||', statements('a && b').join('|') === 'a|b');
 
 // ── AVISO push --delete não-literal (advisory) — LC-12 3ª ocorrência 2026-09-06 ──
 // BITE: o comando exato do incidente (loop sobre ls-remote com glob → variável no --delete)

@@ -40,6 +40,48 @@ export function normalizeCmd(cmd) {
   return String(cmd || '').replace(/\s+/g, ' ').trim();
 }
 
+// ── FATIAMENTO EM STATEMENTS (fix 2026-09-16 — FP medido da git-force-push) ───
+//
+// O DEFEITO: `normalizeCmd` colapsa \s+ (INCLUSIVE \n) num espaço só, então um
+// bloco multi-linha vira UMA string. Padrão com `.*` passa a atravessar comandos
+// sem relação: um `git push` benigno + um `--force` de OUTRO statement (ou de
+// prosa dentro de heredoc de PR body) casavam e bloqueavam.
+//
+// MEDIDO no corpus real (1.786 .jsonl · 153.345 blocos tool_use Bash/PowerShell,
+// nunca prosa — em 2026-09-16, reproduzível pelo script do PR):
+//   git-force-push .......... 216 bloqueios hoje · 210 per-statement · 6 FP
+//     └ os 6 lidos INTEIROS, um a um: `--force` vinha de prosa em heredoc
+//       (`migrate --force`, `git fetch --force`) ou de statement irmão
+//       (`git worktree remove --force`). ZERO force push genuíno entre eles.
+//   falso-negativo .......... 0 (nenhum comando passa a escapar)
+//   split agressivo × conservador ... resultado IDÊNTICO (a escolha não é load-bearing)
+//
+// Por que \n é fatiado ANTES de normalizar: depois de `normalizeCmd` ele já não
+// existe, e era justamente o separador do incidente que abriu este fix.
+//
+// Continuação de linha (`\` no fim) é JUNTADA primeiro — senão `git push \<nl>
+// --force` seria fatiado ao meio e viraria falso-NEGATIVO (o lado perigoso).
+// Medido: 82 comandos do corpus têm continuação + `git push`; juntar muda o
+// veredito em 0 deles — mas a semântica correta protege a forma, não a amostra.
+
+/** junta continuação de linha: `\` + newline é UM comando, não dois. */
+function juntaContinuacoes(cmd) {
+  return String(cmd || '').replace(/\\\r?\n/g, ' ');
+}
+
+/**
+ * Fatia o comando nos separadores de shell e normaliza CADA pedaço.
+ * `[;&|]` cobre `;` `&` `&&` `|` `||` (os vazios do meio de `&&`/`||` caem no filter)
+ * e é o MESMO conjunto que o regex da rm-rf já trata como fronteira (`[\s;&|]`).
+ * @returns {string[]} statements normalizados, sem vazios
+ */
+export function statements(cmd) {
+  return juntaContinuacoes(cmd)
+    .split(/\r?\n|[;&|]/)
+    .map(normalizeCmd)
+    .filter(Boolean);
+}
+
 /** whitelist rm -rf: caches/artefatos de build reconstruíveis (âncora: comentário US-COPI-085). */
 const RM_WHITELIST = [
   /^rm -rf \/tmp\//i,
@@ -65,6 +107,10 @@ const PADROES = [
   {
     key: 'git-force-push',
     regex: /git\s+push\s+(--force\b|-f\b|.*\s--force(-with-lease)?\b)/i,
+    // `.*` ganancioso: SÓ avaliado dentro de um statement (ver §FATIAMENTO).
+    // A categoria NÃO afrouxa: `git push origin main --force-with-lease` (flag
+    // depois do remote, MESMO statement) segue bloqueado — o selftest asserta.
+    porStatement: true,
     razao: 'force push sobrescreve histórico remoto — risco de perder commits do time',
     sugestao: 'rebase local + push normal, OU usar --force-with-lease com confirmação explícita do Wagner',
   },
@@ -102,6 +148,11 @@ const PADROES = [
   {
     key: 'composer-update-sem-lock',
     regex: /(?<!#\s)composer\s+update(?!\s+--lock\b)(?!.*\s--lock\b)/i,
+    // Aqui o `.*` mora num lookahead NEGATIVO, então atravessar statement
+    // afrouxava: um `--lock` de qualquer comando posterior SUPRIMIA o bloqueio
+    // (medido — `composer update && echo "use --lock"` saía rc=0). Per-statement
+    // FECHA esse buraco: é aperto, não folga. Ocorrências no corpus: 0 (latente).
+    porStatement: true,
     razao: 'composer update sem --lock causa drift do composer.lock (ADR 0063)',
     sugestao: 'composer update --lock (atualiza só o lock sem instalar) OU composer require pacote:versao',
   },
@@ -113,12 +164,31 @@ const PADROES = [
   },
 ];
 
-/** veredito único: {key, razao, sugestao} da primeira categoria que casar, ou null. */
+/**
+ * Veredito único: {key, razao, sugestao} da primeira categoria que casar, ou null.
+ *
+ * Duas escalas de avaliação, e a assimetria é DELIBERADA:
+ *  · `porStatement: true` → testa cada statement isolado (só as 2 regex com `.*`).
+ *  · default              → testa o comando inteiro normalizado, BYTE A BYTE como antes.
+ *
+ * As outras 7 categorias ficam intactas porque foram MEDIDAS e não sofrem do
+ * atravessamento (delta 0 no corpus: reset-hard, DROP, DELETE s/ WHERE, DELETE
+ * WHERE 1, TRUNCATE, migrate:fresh — nenhuma tem `.*`).
+ *
+ * ⚠️ A rm-rf tem um FP VIZINHO, medido (19 casos) e NÃO tratado aqui de propósito:
+ * a RM_WHITELIST é ancorada em `^` do comando inteiro, então `cd x && rm -rf
+ * node_modules` bloqueia enquanto `rm -rf node_modules` passa. Não é o defeito do
+ * `.*` (o regex da rm não tem `.*`) e consertá-lo AFROUXA a categoria — 19 comandos
+ * hoje bloqueados passariam. Afrouxar Tier-0 é decisão do [W], não efeito colateral
+ * de um fix de FP. Se um dia for decidido, é UMA linha: `porStatement: true` nela.
+ */
 export function matchDestructive(cmd) {
   const cmdNorm = normalizeCmd(cmd);
   if (!cmdNorm) return null;
+  const stmts = statements(cmd);
   for (const p of PADROES) {
-    if (!p.regex.test(cmdNorm)) continue;
+    const alvos = p.porStatement ? stmts : [cmdNorm];
+    if (!alvos.some((a) => p.regex.test(a))) continue;
     if (p.key === 'rm-rf-perigoso' && RM_WHITELIST.some((w) => w.test(cmdNorm))) continue;
     return p;
   }
