@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 714,
-    "edges": 1008,
+    "nodes": 715,
+    "edges": 1009,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 115,
+      "adr": 116,
       "component": 384,
       "api": 74
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 108,
       "migratesTo": 1,
       "supersedes": 24,
-      "supersedesPartially": 51,
+      "supersedesPartially": 52,
       "supersededBy": 28
     },
     "dangling": 0
@@ -857,6 +857,13 @@
       "type": "adr",
       "num": "0399",
       "slug": "0399-aposentar-rubrica-module-grade-gate-e-baseline",
+      "exists": true
+    },
+    {
+      "id": "adr:0401",
+      "type": "adr",
+      "num": "0401",
+      "slug": "0401-resolucao-ds-bound-no-servidor-de-preview",
       "exists": true
     },
     {
@@ -6405,6 +6412,12 @@
       "to": "adr:0159",
       "type": "supersedes",
       "source": "supersedes"
+    },
+    {
+      "from": "adr:0401",
+      "to": "adr:0397",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
     },
     {
       "from": "module:Arquivos",
