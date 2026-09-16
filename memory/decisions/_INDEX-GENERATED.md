@@ -7,7 +7,7 @@
 ## Resumo
 - **411** arquivos · **396** números únicos · máx **0406**
 - **ADRs ATIVOS (lifecycle ativo): 365** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 360 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
+- Por status: aceito 361 · superseded 25 · proposto 12 · deprecated 11 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 365 · substituido 25 · arquivado 21
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -421,7 +421,7 @@ _(nenhuma)_
 | 0376 | aceito | ativo | decision | §5 vira DERIVADO — o limite fica no contexto, a arqueologia sai para memory/lico |
 | 0377 | aceito | ativo | decision | Emenda à 0094 — append-only de ADR canon admite exceção por label `adr-body-edit |
 | 0378 | aceito | ativo | decision | Execução do item 4 da 0366 — a plataforma MCP sai da Jana para a Forja em ondas, |
-| 0379 | proposto | ativo | decision | Bundle Design vira transação com manifesto, delta, staging e inventário de aplic |
+| 0379 | aceito | ativo | decision | Bundle Design vira transação com manifesto, delta, staging e inventário de aplic |
 | 0380 | aceito | ativo | errata | Errata 0292/0291 D-D — `distiller_freshness` no health-check vira ADVISORY (o al |
 | 0381 | proposto | ativo | decision | Sub-decisão da 0088 — a chave de assinatura do módulo Jana passa a ser `jana_mod |
 | 0382 | aceito | ativo | decision | A trava de sinal não se aplica a trabalho dirigido por [W] (emenda 0105) |
