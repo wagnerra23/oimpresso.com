@@ -3,7 +3,7 @@ slug: 0379-bundle-design-transacao-manifesto-delta-staging
 number: 379
 title: "Bundle Design vira transação com manifesto, delta, staging e inventário de aplicação"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
