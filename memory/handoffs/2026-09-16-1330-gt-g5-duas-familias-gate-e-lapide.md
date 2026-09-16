@@ -17,6 +17,21 @@ next_steps:
 
 # GT-G5: duas familias, desfechos opostos
 
+## TL;DR
+
+Duas familias de erro, um predicado que decide o destino de cada uma:
+
+| familia | predicado | resultado |
+|---|---|---|
+| removido x **mudou de casa** | resolve por LOOKUP (hash de blob) | **0 FP em 91** -> gate (#7392) |
+| **claim de historia** sem `git log` | precisa ler INTENCAO | **100% FP** -> lapide (#7397) |
+
+O lote (#7377) fechou por **decisao [W] com bypass de required**, nao por
+aprovacao — a curva INVERTEU nas 3 ultimas rodadas. O gate que mergeei nasceu com
+**4 defeitos meus**, achados pela sessao irma e pelo adversario dela. A lapide
+precisou de emenda no mesmo dia. E o checklist MCP-first **nao pode ser rodado**
+(tools indisponiveis) — rode antes de assumir estado.
+
 ## Estado MCP no momento do fechamento
 
 ⚠️ **Os tools MCP estavam INDISPONIVEIS nesta sessao** — o `brief-fetch` do

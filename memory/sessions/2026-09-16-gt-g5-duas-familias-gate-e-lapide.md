@@ -14,6 +14,25 @@ outcomes:
 
 # Duas familias, um gate, uma lapide — e o gate precisou de quatro consertos
 
+## TL;DR
+
+As duas familias que o refutador GT-G5 isolou em 5 rodadas tiveram desfechos
+**opostos**, e a diferenca esta no PREDICADO, nao no tema:
+
+| familia | predicado | resultado |
+|---|---|---|
+| removido x **mudou de casa** | resolve por LOOKUP (igualdade de hash de blob) | **0 FP em 91** -> virou gate (#7392) |
+| **claim de historia** sem `git log` | precisa ler INTENCAO (a qual alvo a frase se refere) | **100% FP** -> virou lapide (#7397) |
+
+O lote de 112 orfaos mudos (#7377) fechou por **decisao [W] com bypass de
+required**, nao por aprovacao: a curva de erro INVERTEU nas tres ultimas rodadas
+(`2,50 -> 2,79 -> 3,23%`) porque o conserto introduz erro a uma taxa comparavel a
+que remove. O gate que eu mergeei nasceu com **4 defeitos meus** (35% do corpus
+invisivel, dispensa por vocabulario, um 3o FP criado pelo proprio conserto, e 117
+nao-medicoes descartadas em silencio), achados pela sessao irma e pelo
+`ciclo-adversary` dela. E a lapide precisou de **emenda no mesmo dia**, porque
+afirmava mais do que a medicao sustentava.
+
 A sessao comecou pagando os **112 ponteiros orfaos mudos** que a 2a raiz do
 `charter-blueprint-pointers` passou a enxergar, e terminou com as duas familias
 de erro que o refutador GT-G5 isolou em 5 rodadas tendo desfechos **opostos**:
