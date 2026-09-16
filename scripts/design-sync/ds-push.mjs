@@ -107,7 +107,12 @@ if (doWrite) {
   copyFileSync(outCT, join(MIRROR, 'colors_and_type.css'));
   copyFileSync(outDOM, join(MIRROR, 'cockpit_domains.css'));
   console.log('✓ refrescado prototipo-ui/design-system/{colors_and_type,cockpit_domains}.css');
-  console.log('  → commite o snapshot + rode: node scripts/governance/ds-mirror-drift.mjs --update-baseline\n');
+  console.log('  ⚠ so rode --write DEPOIS de provar o upload: a foto antes da prova zera o');
+  console.log('    sentinela sem o espelho ter mudado (alarme mudo, divergencia intacta).');
+  console.log('  → confira com: node scripts/governance/ds-mirror-drift.mjs   (espera drift 0)');
+  console.log('    NAO rode --update-baseline pra fechar: apos um push correto o drift cai');
+  console.log('    sozinho. Regravar o baseline e ato de [W] ao ACEITAR um piso novo.');
+  console.log('  → commite o snapshot.\n');
 }
 
 // Manifesto do passo interativo (o upload que este script NÃO faz por não ter login claude.ai).
@@ -117,5 +122,6 @@ console.log(`           writes=[colors_and_type.css, cockpit_domains.css]`);
 console.log(`DesignSync write_files    planId=<do finalize_plan> \\`);
 console.log(`           files=[{path:colors_and_type.css, localPath:colors_and_type.css},`);
 console.log(`                  {path:cockpit_domains.css,  localPath:cockpit_domains.css}]`);
-console.log('\nApós empurrar: atualize o commit-fonte no README do espelho (proveniência) e');
+console.log('\nApós empurrar: atualize o commit-fonte em prototipo-ui/design-system/github.md');
+console.log('(§Last sync — e ALI que a proveniência vive; o README do DS diz isso na linha 54) e');
 console.log('confirme o loop com  node scripts/design-sync/ds-token-diff.mjs <colors vivo> resources/css/tokens --companion <domains vivo>  → VALOR:0.');
