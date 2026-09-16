@@ -46,14 +46,15 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname, normalize, sep } from 'node:path';
 import { payloadDependencyGraph, normalizePayloadPath } from './payload-dependency-graph.mjs';
 import { destinoDoBundle } from '../governance/cowork-mirror-freshness.mjs';
-import { BUNDLE_SCHEMA, sha256 } from './bundle-contract.mjs';
+import { BUNDLE_SCHEMA, BUILD_SOURCE_RE, sha256 } from './bundle-contract.mjs';
 import { applyBundleTransaction, applyLegacySnapshotTransaction, pathsForOwner } from './bundle-transaction.mjs';
 
 const ROOT = process.cwd();
 const DESTINO = 'prototipo-ui/cowork/Wagner';
-// `md` entra em 2026-09-13 (decisão [W]): o pacote Cowork pousa com a árvore dele, `.md` incluído.
-// Ver o cabeçalho do importar-bundle.mjs pra medição (337 de 816 arquivos eram descartados).
-const BUILD_SOURCE_RE = /\.(?:jsx?|tsx?|mjs|cjs|css|html|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot|md)$/i;
+// A lista vem do `bundle-contract.mjs` (fonte única, importada acima). Até 2026-09-16 havia aqui
+// uma CÓPIA sem `json` e sem `php`, e ela só governa este caminho — o bundle v2 sai antes do laço
+// (`process.exit(0)` logo abaixo). Efeito medido no dia: 42 arquivos do espelho (25 contratos de
+// tela + 17 PHP de playbook) eram aceitos pelo v2 e pelo ZIP, e aqui derrubavam o LOTE INTEIRO.
 const args = process.argv.slice(2);
 const ownerIndex = args.indexOf('--owner');
 const owner = ownerIndex < 0 ? 'Wagner' : args[ownerIndex + 1];

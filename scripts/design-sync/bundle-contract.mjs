@@ -11,8 +11,37 @@ import { normalizePayloadPath } from './payload-dependency-graph.mjs';
 
 export const MANIFEST_SCHEMA = 'oimpresso-design-manifest/2';
 export const BUNDLE_SCHEMA = 'oimpresso-design-bundle/2';
-// `md` entra em 2026-09-13 (decisão [W]) — par do mesmo padrão em aplicar-payload.mjs:54.
-const BUILD_SOURCE_RE = /\.(?:jsx?|tsx?|mjs|cjs|css|html|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot|md|json|php)$/i;
+/**
+ * FONTE ÚNICA de "que extensão é conteúdo do espelho Cowork".
+ *
+ * Por que aqui: até 2026-09-16 a mesma regra vivia em TRÊS cópias que já tinham drifado —
+ * este contrato (com `json`/`php`), o `aplicar-payload.mjs` (sem os dois) e o `ESPELHO_EXTS`
+ * do `importar-bundle.mjs` (sem imagem nem fonte). Medido no dia, contra o espelho versionado
+ * (719 arquivos) e o manifesto ativo (695 fora de `_ds/`): **42 arquivos divergiam** —
+ * 25 `.json` (os `contrato/*.contract.json`, que o gate `contrato-de-tela` e o
+ * `visual-regression` consomem) e 17 `.php` (o corpo dos playbooks do `cowork-inbox/`).
+ * Aceitos por duas rotas, recusados pela terceira — e no modo legado a recusa derruba o
+ * LOTE INTEIRO, não só o arquivo. Unificado pela UNIÃO por decisão [W] (2026-09-16):
+ * ninguém deixa de entrar, 42 param de ser recusados pela rota que os recusava.
+ *
+ * A lista é a fonte; a regex DERIVA dela. Sincronizar duas cópias à mão é o padrão que criou
+ * este caso (§5 2026-08-02: consertar uma e a outra seguir errada).
+ *
+ * ⚠️ Isto NÃO governa `_ds/**` (é `preview-cache`, decidido por prefixo logo abaixo) nem o
+ * `exportPlan` do `cowork-mirror-freshness` — aquele é um 4º dono, com `RE_BUILD_SOURCE`
+ * próprio (sem `md`/`json`/`php`) e bite-test pinando decisão [W] de 2026-09-11. Igualá-lo
+ * exige resolver a precedência entre aquela decisão e a 0398 D2 (2026-09-13); é do [W].
+ *
+ * `md` entrou em 2026-09-13 (decisão [W], ADR 0398 D2).
+ */
+export const ESPELHO_EXTENSOES = Object.freeze([
+  'js', 'jsx', 'ts', 'tsx', 'mjs', 'cjs',
+  'css', 'html', 'svg',
+  'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'ico',
+  'woff', 'woff2', 'ttf', 'otf', 'eot',
+  'md', 'json', 'php',
+]);
+export const BUILD_SOURCE_RE = new RegExp(String.raw`\.(?:${ESPELHO_EXTENSOES.join('|')})$`, 'i');
 
 export function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
