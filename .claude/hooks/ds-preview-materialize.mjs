@@ -1,18 +1,27 @@
 #!/usr/bin/env node
-// Hook SessionStart — compatibilidade para detectar shells antigos que ainda referenciam `_ds/`.
+// Hook SessionStart — reporta quantas refs `_ds/` o shell do espelho carrega.
 //
 // **Cross-platform** (Node.js — Windows desktop / Linux CI / macOS).
 //
 // ─────────────────────────────────────────────────
-// O shell ativo de Wagner referencia `../../design-system/` diretamente. Materializar `_ds/`
-// recriaria a duplicata física removida em 2026-09-11; por isso este hook não escreve mais.
-// ─────────────────────────────────────────────────
+// `_ds/<slug>/` é o DS BOUND do Claude Design, e é o estado CANÔNICO — não legado. A decisão
+// está escrita no próprio shell VIVO, assinada: "DS VIVO: os tokens de IDENTIDADE vêm DIRETO do
+// design system bound. Linkado, NÃO copiado → nunca mais apodrece com o tempo ([W] 2026-07-10)".
 //
-// Se um shell antigo ainda contiver `_ds/`, o hook avisa para corrigir a referência na origem.
+// FATO DATADO, porque a linha anterior deste bloco afirmava o contrário em tempo presente
+// (LC-10): entre 2026-09-11 (#7224) e 2026-09-14 (#7261) o espelho carregou um shell reescrito
+// À MÃO para `../../design-system/`. O #7261 reverteu — editar `prototipo-ui/cowork/**` é
+// ilegítimo por construção (espelho de leitura, ADR 0374), e o próximo import desfaz. Medido em
+// 2026-09-16: o shell tem 3 refs `_ds/` e ZERO `../../design-system/`.
+//
+// Por que este hook NÃO materializa cache: a duplicata física viola a D5 da ADR 0397 — medido,
+// `cowork-ssot-guard` sai rc=1 com 8 violações (R2 + R4) no instante em que o `_ds/` existe.
+// Resolver essas refs no preview local é trabalho do SERVIDOR de preview, não deste hook.
+// ─────────────────────────────────────────────────
 //
 //   Escape valve: env `OIMPRESSO_DS_PREVIEW_OFF=1` → exit 0 imediato e silencioso.
 //
-// Refs: scripts/design/protocolo.config.mjs · ADR 0374 (espelho read-only).
+// Refs: scripts/design/protocolo.config.mjs · ADR 0374 (espelho read-only) · ADR 0397 D4/D5.
 
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
@@ -53,7 +62,9 @@ export function main(cwd = process.cwd()) {
   try { html = readFileSync(shell, 'utf8'); } catch { return 0; }
   const refs = refsDoShell(html);
   if (refs.length === 0) return 0;
-  console.log(`[ds-preview-materialize] shell legado referencia ${refs.length} arquivo(s) em _ds/. Corrija para ../../design-system/; cache paralelo não será criado.`);
+  // NÃO instrua reescrever o espelho: a mensagem anterior mandava "Corrija para
+  // ../../design-system/", que é exatamente o remendo do #7224 que o #7261 reverteu.
+  console.log(`[ds-preview-materialize] shell referencia ${refs.length} arquivo(s) do DS bound em _ds/ — estado canônico ([W] 2026-07-10, "linkado, NÃO copiado"). NÃO reescreva o espelho. Cache paralelo não será criado: duplicata física viola a D5 (cowork-ssot-guard R2/R4).`);
   return 0; // SessionStart nunca bloqueia
 }
 

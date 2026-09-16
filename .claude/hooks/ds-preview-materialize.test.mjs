@@ -1,11 +1,18 @@
 #!/usr/bin/env node
 // Teste do hook ds-preview-materialize.mjs.
 //
-// CONTRATO ATUAL (desde o #7224, 2026-09-11): o hook NÃO materializa mais nada. O shell ativo
-// referencia `../../design-system/` direto, e recriar `_ds/` reintroduziria a duplicata física
-// que aquele PR removeu — o próprio docblock do hook diz isso. Ele virou detector de
-// compatibilidade: avisa quando um shell ANTIGO ainda referencia `_ds/`, e cala quando não há
-// o que avisar.
+// CONTRATO: o hook NÃO materializa cache (a duplicata física viola a D5 da ADR 0397 — medido,
+// `cowork-ssot-guard` rc=1 / 8 violações). Ele REPORTA quantas refs `_ds/` o shell carrega.
+//
+// ⚠️ ERRATA 2026-09-16 — este cabeçalho afirmava, em presente, que "o shell ativo referencia
+// `../../design-system/` direto" e que "hoje ele tem ZERO [refs `_ds/`], então o caso 'avisa'
+// jamais seria exercido aqui". As duas frases eram FALSAS quando escritas e continuam falsas:
+// medido, o shell tem 3 refs `_ds/` e zero `../../design-system/`. Elas descreviam a janela de
+// 3 dias entre o #7224 (2026-09-11, que reescreveu o shell do espelho À MÃO) e o #7261
+// (2026-09-14, que reverteu por ser edição ilegítima em espelho de leitura — ADR 0374).
+// `_ds/<slug>/` é o DS BOUND do Claude Design e é o estado CANÔNICO, por decisão [W] assinada
+// no shell vivo ("linkado, NÃO copiado", 2026-07-10). Por isso as fixtures foram RENOMEADAS:
+// o que se chamava `HTML_LEGADO` é o canônico, e o que se chamava `HTML_ATUAL` é o remendo.
 //
 // POR QUE O BITE RODA POR FIXTURE, e não contra o checkout real (a lição que produziu este
 // arquivo): até 2026-09-14 o bloco ponta-a-ponta era guardado por `existsSync` de 3 paths que o
@@ -15,8 +22,8 @@
 // Medido no mesmo dia: reapontar os paths para os vivos NÃO salvava o bloco — ele dava
 // `[FAIL] 0 arquivos, stdout sem "reposto"` e depois crashava com ENOENT, porque testava um
 // comportamento que o hook perdeu. Fixture remove as duas fragilidades de uma vez: é
-// determinística e não depende de o shell vivo ter refs `_ds/` — hoje ele tem ZERO, então o
-// caso "avisa" jamais seria exercido aqui.
+// determinística e não depende do que o shell vivo carrega hoje — os DOIS casos (com e sem
+// refs `_ds/`) ficam exercidos, independentemente de qual deles o checkout real apresenta.
 //
 // Rodar: node .claude/hooks/ds-preview-materialize.test.mjs   (exit 0 = passa)
 
@@ -46,8 +53,10 @@ const d = precisaMaterializar(refs, (p) => !p.endsWith('_ds_bundle.js'));
 check('precisa: falta 1 → true e lista o que falta', d.precisa === true && d.faltam.length === 1 && d.faltam[0].endsWith('_ds_bundle.js'));
 
 // ── BITE ponta a ponta: exercita o CLI de fora (subprocesso), em worktree de mentira ──
-const HTML_LEGADO = '<link rel="stylesheet" href="_ds/id-x/colors_and_type.css"/>\n<script src="_ds/id-x/_ds_bundle.js?v=1"></script>';
-const HTML_ATUAL = '<link rel="stylesheet" href="../../design-system/colors_and_type.css"/>\n<script src="../../design-system/_ds_bundle.js"></script>';
+// CANÔNICO = com `_ds/` (DS bound, o que o Cowork emite e o shell vivo tem).
+// REMENDO_7224 = com `../../design-system/`, a reescrita à mão que o #7261 reverteu.
+const HTML_CANONICO = '<link rel="stylesheet" href="_ds/id-x/colors_and_type.css"/>\n<script src="_ds/id-x/_ds_bundle.js?v=1"></script>';
+const HTML_REMENDO_7224 = '<link rel="stylesheet" href="../../design-system/colors_and_type.css"/>\n<script src="../../design-system/_ds_bundle.js"></script>';
 
 /** Worktree de mentira com um shell no path pedido. Devolve a raiz (o chamador remove). */
 function fixture(shellRel, conteudo) {
@@ -64,42 +73,42 @@ const criouDs = (raiz) => {
   catch { return false; }
 };
 
-// 1. shell ANTIGO (ainda com `_ds/`) → avisa, e NÃO recria a duplicata.
+// 1. shell CANÔNICO (com `_ds/`, DS bound) → reporta, e NÃO recria a duplicata.
 {
-  const raiz = fixture(SHELL_REL, HTML_LEGADO);
+  const raiz = fixture(SHELL_REL, HTML_CANONICO);
   try {
     const r = rodar(raiz);
-    check(`BITE: shell legado com _ds/ → avisa (exit ${r.status}, stdout cita o hook e _ds/)`,
+    check(`BITE: shell canonico com _ds/ → avisa (exit ${r.status}, stdout cita o hook e _ds/)`,
       r.status === 0 && r.stdout.includes('[ds-preview-materialize]') && r.stdout.includes('_ds/'));
     check('BITE: contrato negativo do #7224 — o hook NÃO recria a duplicata física `_ds/`', criouDs(raiz) === false);
   } finally { rmSync(raiz, { recursive: true, force: true }); }
 }
 
-// 2. shell ATUAL (referencia ../../design-system/) → silêncio. Controle negativo do caso 1:
-//    sem ele, um hook que avisasse sempre passaria no caso 1 e no mesmo assert.
+// 2. shell do REMENDO #7224 (referencia ../../design-system/) → silêncio. Controle negativo do
+//    caso 1: sem ele, um hook que reportasse sempre passaria no caso 1 e no mesmo assert.
 {
-  const raiz = fixture(SHELL_REL, HTML_ATUAL);
+  const raiz = fixture(SHELL_REL, HTML_REMENDO_7224);
   try {
     const r = rodar(raiz);
-    check(`BITE: shell atual (zero refs _ds/) → silêncio (exit ${r.status}, stdout vazio)`, r.status === 0 && r.stdout.trim() === '');
+    check(`BITE: shell do remendo #7224 (zero refs _ds/) → silêncio (exit ${r.status}, stdout vazio)`, r.status === 0 && r.stdout.trim() === '');
   } finally { rmSync(raiz, { recursive: true, force: true }); }
 }
 
 // 3. escape valve — anunciada no docblock do hook, então testada (LC-15: saída anunciada e não
 //    honrada é promessa que apodrece calada).
 {
-  const raiz = fixture(SHELL_REL, HTML_LEGADO);
+  const raiz = fixture(SHELL_REL, HTML_CANONICO);
   try {
     const r = rodar(raiz, { OIMPRESSO_DS_PREVIEW_OFF: '1' });
-    check('escape OIMPRESSO_DS_PREVIEW_OFF=1 → silêncio mesmo com shell legado', r.status === 0 && r.stdout.trim() === '');
+    check('escape OIMPRESSO_DS_PREVIEW_OFF=1 → silêncio mesmo com shell canônico', r.status === 0 && r.stdout.trim() === '');
   } finally { rmSync(raiz, { recursive: true, force: true }); }
 }
 
-// 4. pina o PATH que o hook lê. Um shell legado no lugar pré-#7224 tem que ser ignorado — se
+// 4. pina o PATH que o hook lê. Um shell canonico no lugar pré-#7224 tem que ser ignorado — se
 //    alguém reverter `SHELL_REL` para `cowork/oimpresso.com.html`, este caso cai. É o assert
 //    que teria pego o hardcode que quebrou este arquivo.
 {
-  const raiz = fixture(join('prototipo-ui', 'cowork', 'oimpresso.com.html'), HTML_LEGADO);
+  const raiz = fixture(join('prototipo-ui', 'cowork', 'oimpresso.com.html'), HTML_CANONICO);
   try {
     const r = rodar(raiz);
     check('BITE: shell no path pré-#7224 não é lido — o hook lê SHELL_REL (cowork/Wagner/)', r.status === 0 && r.stdout.trim() === '');
