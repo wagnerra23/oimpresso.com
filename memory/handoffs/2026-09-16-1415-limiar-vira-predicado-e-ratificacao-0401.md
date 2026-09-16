@@ -3,7 +3,7 @@ date: "2026-09-16"
 time: "14:15 UTC"
 slug: limiar-vira-predicado-e-ratificacao-0401
 tldr: "O limiar de fracao do C1 nao era um numero mal escolhido — era a metrica errada, e minha primeira calibracao 'provando' que 0.5 servia foi TAUTOLOGICA. Trocado por predicado `>=1` com FP 0 medido. No caminho achei 2 defeitos em main que nenhum gate via — um crash no `--json` e o C1 nunca sair no modo TEXTO que o CI roda — e ratifiquei a ADR 0401, que bloqueava 6 PRs de tres sessoes."
-prs: [7399, 7406, 7409, 7413]
+prs: [7399, 7406, 7409, 7413, 7424]
 decided_by: [W]
 related_adrs: [0257-adr-status-lifecycle-kind-modelo-canonico, 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes, 0344-two-strikes-cobre-processo]
 next_steps:
@@ -61,6 +61,23 @@ Junto foi o **piso de 200B dentro do tree** ([W] pediu os dois). Medido: nao mud
 
 E o achado que fecha o circulo: **o C1 nunca saiu no modo TEXTO**, que e o que a lane roda. O audit achava e nao contava a ninguem. Com `>=1` seriam 8 achados reais invisiveis.
 
+### 5. O fix do crash tinha um fail-open dentro (#7424)
+
+A sessao irma achou, mediu e **nao mexeu no arquivo** (§5 2026-09-05) — avisou. Reproduzi antes de aceitar.
+
+Defeito MEU, do #7409. Ao consertar o crash olhei so a FORMA do retorno e nao o SIGNIFICADO, que difere nos dois early-returns:
+
+| early-return | significado | `medido: true` estava |
+|---|---|---|
+| `!docs.length` | **medi**, o universo e que estava vazio | correto |
+| `!vivos.size` | **nao medi** — sem indice nao ha com o que comparar | mentira |
+
+Devolver o mesmo objeto nos dois fazia o texto imprimir `✓ nenhum.` tendo percorrido ZERO. Nao e hipotetico: `blobsVivosEmMain` e `sh('git ls-tree -r origin/main')` e o `sh()` engole stderr — ref ausente (fetch parcial, depth curto) da Map vazio e check verde. Com o predicado `>=1` do #7413 o custo subiu: os 8 achados reais virariam silencio verde.
+
+Fix: `return null`, o idioma que o `docsDoDiffC1` ja usava. Bite-test `(e6)` com fixture SEM `refs/remotes/origin/main` + `--todos` — a unica combinacao que chega ao `!vivos.size` (sem `--todos` cairia antes no `!base`, dando `medido:false` pelo motivo errado).
+
+⚠️ **DIVIDA MINHA, nao paga:** agora ha DOIS caminhos de `null` e os dois imprimem a MESMA mensagem (`sem base pra comparar`), que so descreve um deles — no outro a base existe, falta o indice, e os dois se consertam diferente. O campo `mudou_de_casa_nao_medido_motivo` que a sessao irma tinha proposto no #7426 resolvia isso; o PR foi fechado em favor do meu e o campo se perdeu. Fica como follow-up para o proximo toque no arquivo.
+
 ## Os 8 achados que passam a aparecer
 
 Forward-only — so quando alguem tocar o doc:
@@ -100,5 +117,6 @@ Fallback usado, com o que ele de fato responde:
 | [#7399](https://github.com/wagnerra23/oimpresso.com/pull/7399) | calibracao + errata da conclusao tautologica | 13:26:51Z |
 | [#7409](https://github.com/wagnerra23/oimpresso.com/pull/7409) | crash do `--json` + re-medicao | 13:45:26Z |
 | [#7413](https://github.com/wagnerra23/oimpresso.com/pull/7413) | predicado `>=1` + piso em tree + C1 no texto | 14:12:25Z |
+| [#7424](https://github.com/wagnerra23/oimpresso.com/pull/7424) | fail-open do `!vivos.size` (achado da sessao irma) | 14:42:01Z |
 
 Coordenacao com a sessao irma (`claude/c1-destino-e-sufixo`) por mensagem direta o tempo todo — ela assumiu a 2a familia do GT-G5 a pedido da [W] e eu parei naquele eixo na hora (§5 2026-09-05, dono-e-sessao-viva). Passei a ela o que ja tinha medido para nao refazer, e avisei quando o #7413 mexeu em funcoes dela.
