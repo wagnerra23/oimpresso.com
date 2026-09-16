@@ -46,6 +46,11 @@ on:
     branches: [main]
     paths:
       - 'Modules/Forja/**'
+      # O CcSecretSweepTest le o vocabulario de shapes de credencial daqui.
+      # Sem este path, afrouxar o regex do mcp_token (o que a lapide de
+      # 2026-09-16 no §5 proibe) nao dispara a lane e o gate fica mudo
+      # justamente na mudanca que ele existe pra pegar.
+      - 'app/Support/Privacy/**'
       # O PipelineParidadeTest le a FONTE DE DESIGN. Sem este path, mudar o
       # prototipo em main nao dispara a lane e o gate fica mudo justamente
       # quando a fonte muda — que e o unico momento em que ele importa.
@@ -87,6 +92,7 @@ jobs:
           filters: |
             tmcp:
               - 'Modules/Forja/**'
+              - 'app/Support/Privacy/**'
               # 2026-08-21 — a linha da fonte de design estava SÓ no `paths:` do push.
               # O comentário de lá diz "sem este path o gate fica mudo justamente quando
               # a fonte muda" — mas o bloco que decide o skip-as-pass no PR é ESTE.

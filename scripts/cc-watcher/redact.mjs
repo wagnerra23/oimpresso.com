@@ -40,6 +40,12 @@
 // PLACEHOLDER  : herdado do allowlist de `.gitleaks.toml`, que já é tunado contra
 //                os falso-positivos DESTE repo.
 //
+// Paridade com o lado servidor: os mesmos shapes vivem em PHP,
+// app/Support/Privacy/CredentialShapes.php (comando cc:secret-sweep, que limpa o
+// que ja foi ingerido). Runtimes diferentes obrigam duas implementacoes; a
+// duplicacao so e segura porque os DOIS lados rodam os vetores de
+// tests/Fixtures/credential-shapes-vectors.json.
+//
 // Selftest: node scripts/cc-watcher/redact.test.mjs
 
 /** Marcadores de valor fake/template — NÃO redigir (vocabulário do .gitleaks.toml). */
