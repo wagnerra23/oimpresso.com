@@ -41,6 +41,7 @@
         "bundleId": { "$ref": "#/$defs/sha256" },
         "baseBundleId": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
         "mode": { "enum": ["snapshot", "delta"] },
+        "mirrorScope": { "const": "tree", "description": "Árvore completa da conta; autoriza retirar sobras do espelho, nunca do DS canônico." },
         "source": { "type": "string", "minLength": 1 },
         "entry": { "$ref": "#/$defs/path" },
         "generatedAt": { "type": "string", "format": "date-time" },

@@ -1444,6 +1444,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ O que teria pego, e eu não rodei:** `git log HEAD..origin/main -- .github/workflows/sdd-scorecard-publish.yml` — o **sujeito acusado**. Eu rodei o equivalente no **instrumento** (`*cron-watchdog*`), que é outro arquivo e nunca ia responder. E, decisivo: quando escrevi, o #7438 estava **aberto**, não mergeado — logo nem o probe de estado mergeado bastaria; faltou o de **PR aberto sobre o mesmo tema** (§5 2026-09-05, dono-é-sessão-viva). O `whats-active` rodou duas vezes e saiu limpo nas duas: ele mede Edit/Write por sessão, não PR aberto por tema.
 
+### 2026-09-16 — EMENDA da lápide 2026-08-25 (um argumento, duas perguntas): consertei o predicado de um instrumento alinhando-o ao dono de OUTRA pergunta — os falso-positivos caíram 327 → 38 e os 38 seguiam FALSOS
+
+- **O limite (variante também proibida).** Quando um instrumento reporta falso-positivo, a primeira pergunta é **QUAL PERGUNTA ele está respondendo** — não *"qual filtro seria melhor"*. Trocar de predicado, por mais canônico que o novo dono seja, **não conserta conflação de pergunta**; e importar o dono da pergunta errada é pior que a lista duplicada, porque o erro passa a vir com pedigree. Vale pra todo universo derivado: manifesto, denominador de cobertura, corpus de gate, `noEspelho`, allowlist. **O diagnóstico barato, e é o que esta emenda tem de próprio:** conserto que **reduz** falso-positivo sem **zerar** é sinal de que o predicado é do **TIPO** errado, não do **limiar** errado — se depois do fix ainda sobra um resíduo da mesma natureza, pare e releia a pergunta em vez de apertar o filtro. O que fecha é **separar os universos com nome** (aqui `universo: 'frescor' | 'conteudo'`, um por pergunta, mesma função), nunca eleger um filtro vencedor.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

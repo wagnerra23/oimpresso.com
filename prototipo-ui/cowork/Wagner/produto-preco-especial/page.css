@@ -1,0 +1,410 @@
+/* page.css — aba "Preço especial" do cadastro de produto (F1 protótipo).
+   Modelo regra+exceção: a lista de preço é um % sobre o preço base; a grade mostra o
+   preço EFETIVO calculado; digitar numa célula cria exceção.
+
+   DS-GUARD §8: cor vem do DS canônico (tokens.css) — SEM paleta bespoke `--pe-*`.
+   O único token local é `--accent` no escopo da tela (permitido: `.<tela>-scope{--accent}`).
+
+   ⚠️ `tokens.css` entra por <link> no HTML (antes deste arquivo), NÃO por @import daqui:
+   o @import relativo quebra conforme a raiz de onde o protótipo é servido. */
+
+* { box-sizing: border-box; }
+
+/* ⚠️ DEFESA GERAL — `display:` vindo de CLASSE vence o `[hidden]` do user-agent (especificidade),
+   e aí `elemento.hidden = true` NÃO esconde nada. Pegou 2 vezes aqui em 2026-07-16: o §Modelo de
+   grade (`.pe-axes{display:flex}`) e a caixa de regra (`.pe-rule{display:flex}`) ficavam visíveis
+   na aba Base. Esta linha vale pra qualquer elemento da tela — não precisa lembrar caso a caso. */
+[hidden] { display: none !important; }
+
+.pe {
+  /* único override permitido pelo §8: accent no escopo da tela */
+  --accent: oklch(0.48 0.11 155);
+  --accent-soft: oklch(0.95 0.03 155);
+
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  color: var(--text);
+  background: var(--surface);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- header da aba ---- */
+.pe-head {
+  padding: 16px 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.pe-tabs { display: flex; gap: 2px; }
+.pe-tab {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--text-dim);
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  cursor: pointer;
+  background: none;
+  font-family: inherit;
+}
+.pe-tab[aria-selected="true"] {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+  font-weight: 600;
+  margin-bottom: -1px;
+}
+
+/* ---- corpo ---- */
+.pe-body { padding: 20px; overflow: auto; flex: 1; }
+.pe-section + .pe-section { margin-top: 28px; }
+.pe-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.pe-h2 { font-size: 14px; font-weight: 600; margin: 0; }
+.pe-hint { font-size: 12px; color: var(--text-mute); margin: 2px 0 0; }
+
+/* ---- eixos: modelo de grade + valores (variation_templates → values) ---- */
+.pe-axes { display: flex; gap: 12px; margin-bottom: 10px; }
+/* (o `[hidden]{display:none!important}` no topo cobre este e todos os outros) */
+.pe-axis {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+}
+.pe-axis-tpl {
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.pe-values { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; min-height: 26px; }
+/* chip = valor do modelo. Marcar ≠ todos — é o "não gerar o que não existe". */
+.pe-chip {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  border-radius: 12px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-mute);
+  text-decoration: line-through;
+}
+.pe-chip.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ---- seletor de lista (1 lista por vez) ---- */
+.pe-lists { display: flex; gap: 6px; margin-bottom: 14px; }
+.pe-list-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  font-size: 13px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--text-dim);
+  font-family: inherit;
+}
+.pe-list-btn[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.pe-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+}
+/* Base é a FONTE, não uma lista irmã — o separador diz isso sem precisar de texto */
+.pe-sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border);
+  margin: 0 4px;
+}
+.pe-list-btn.is-base[aria-pressed="true"] {
+  background: var(--surface);
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+.pe-base-note {
+  padding: 10px 14px;
+  border-left: 3px solid var(--text-dim);
+  background: var(--bg-2);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+}
+.pe-base-note b { color: var(--text); }
+
+/* ---- a regra-mãe ---- */
+.pe-rule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  margin-bottom: 6px;
+}
+.pe-rule label { font-size: 13px; font-weight: 600; }
+.pe-rule select,
+.pe-rule input[type="text"] {
+  height: 32px;
+  padding: 0 8px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-family: inherit;
+  color: var(--text);
+}
+.pe-rule input[type="text"] { width: 84px; text-align: right; font-variant-numeric: tabular-nums; }
+.pe-rule-result { margin-left: auto; font-size: 13px; color: var(--text-dim); }
+.pe-rule-result b { font-variant-numeric: tabular-nums; color: var(--text); }
+.pe-rule-note { font-size: 12px; color: var(--text-mute); margin: 0 0 14px; }
+
+/* ---- matriz ---- */
+.pe-matrix-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+.pe-matrix { border-collapse: collapse; width: 100%; font-size: 13px; }
+.pe-matrix th,
+.pe-matrix td { border: 1px solid var(--border-2); padding: 0; text-align: center; }
+.pe-matrix thead th {
+  background: var(--bg-2);
+  font-weight: 600;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.pe-matrix tbody th {
+  background: var(--bg-2);
+  font-weight: 600;
+  padding: 8px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+.pe-cell { position: relative; }
+.pe-cell input {
+  width: 100%;
+  height: 38px;
+  border: 0;
+  background: none;
+  text-align: right;
+  padding: 0 10px;
+  font-size: 13px;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  /* herdado da regra: presente mas discreto */
+  color: var(--text-mute);
+  font-style: italic;
+}
+.pe-cell input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  background: var(--surface);
+}
+/* BASE = dado real (não herdado): sem itálico, cor cheia */
+.pe-cell.is-base-cell input {
+  color: var(--text);
+  font-style: normal;
+}
+/* na exceção, mostra de onde ela desviou — base ≠ lista */
+.pe-cell-sub {
+  position: absolute;
+  left: 6px;
+  bottom: 2px;
+  font-size: 9px;
+  color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+/* EXCEÇÃO (tabela com regra %) = fugiu da regra → tarja de aviso, é um desvio */
+.pe-cell.is-override input {
+  color: var(--text);
+  font-weight: 600;
+  font-style: normal;
+  background: var(--warn-bg);
+}
+.pe-cell.is-override::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--warn-fg);
+}
+/* PREÇO PRÓPRIO (tabela manual) = é o ponto da tabela, não um desvio → neutro, sem alarme */
+.pe-cell.is-set input {
+  color: var(--text);
+  font-weight: 600;
+  font-style: normal;
+}
+.pe-revert {
+  position: absolute;
+  right: 2px; top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--warn-fg);
+  padding: 2px 4px;
+  display: none;
+  line-height: 1;
+}
+/* o ↺ só é RENDERIZADO quando a célula tem valor próprio (regra ou manual) — o JS decide */
+.pe-cell.is-override .pe-revert,
+.pe-cell.is-set .pe-revert { display: block; }
+/* célula que não existe */
+.pe-cell.is-off { background: var(--bg-2); opacity: 0.7; }
+.pe-cell.is-off input { visibility: hidden; }
+.pe-off-tag {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text-mute);
+}
+
+/* ---- legenda + rodapé ---- */
+.pe-legend { display: flex; gap: 18px; margin-top: 10px; font-size: 12px; color: var(--text-mute); }
+.pe-legend span { display: flex; align-items: center; gap: 6px; }
+.pe-swatch { width: 11px; height: 11px; border-radius: 2px; border: 1px solid var(--border); }
+.pe-swatch.inherit { background: var(--surface); }
+.pe-swatch.set { background: var(--surface); border-color: var(--text-dim); }
+.pe-swatch.override { background: var(--warn-bg); border-color: var(--warn-fg); }
+.pe-swatch.off { background: var(--bg-2); }
+.pe-link {
+  background: none;
+  border: 0;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: underline;
+  padding: 0;
+  font-family: inherit;
+}
+
+/* ---- faixas de quantidade (linha esparsa DENTRO da tabela) ---- */
+.pe-faixas { margin-top: 18px; }
+.pe-h3 { font-size: 13px; font-weight: 600; margin: 0; }
+.pe-faixa-grid { border-collapse: collapse; width: 100%; font-size: 13px; }
+.pe-faixa-grid td {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-2);
+  vertical-align: middle;
+}
+.pe-faixa-grid tr.pe-faixa-aviso td { border-bottom: 0; padding-top: 0; }
+.pe-faixa-lbl { color: var(--text-mute); font-size: 12px; }
+.pe-faixa-qtd, .pe-faixa-val {
+  height: 30px;
+  padding: 0 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  width: 90px;
+}
+/* preço abaixo do custo — o ÚNICO aviso da tela */
+.pe-faixa-val.is-perda {
+  border-color: var(--danger-fg);
+  background: var(--danger-bg);
+  color: var(--danger-fg);
+  font-weight: 600;
+}
+/* TETO da faixa — DERIVADO do piso da seguinte, nunca digitado.
+   Guardar só o piso torna buraco e sobreposição impossíveis; exibir "de X até Y" é o que
+   o operador pensa (corte de [F] 2026-07-16). Por isso é texto, não input. */
+.pe-faixa-ate {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+/* a faixa 0 (1 até o 1º piso) = preço normal — fecha a régua mental, não é editável */
+.pe-faixa-zero td { color: var(--text-mute); font-size: 12px; }
+.pe-faixa-acao { text-align: right; }
+.pe-faixa-del {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 6px;
+  opacity: 0.55;
+}
+.pe-faixa-del:hover { opacity: 1; }
+.pe-alerta {
+  font-size: 12px;
+  color: var(--danger-fg);
+  background: var(--danger-bg);
+  border-left: 3px solid var(--danger-fg);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 6px 10px;
+  margin: 2px 0 6px;
+}
+/* célula com preço abaixo do custo (base, tabela ou exceção) */
+.pe-cell.is-perda input {
+  background: var(--danger-bg);
+  color: var(--danger-fg);
+}
+
+/* ---- preview de geração (o que ninguém tem) ---- */
+.pe-preview {
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--radius);
+  padding: 14px;
+  font-size: 13px;
+}
+.pe-preview h3 { margin: 0 0 6px; font-size: 13px; font-weight: 600; }
+.pe-preview p { margin: 0 0 10px; color: var(--text-dim); }
+.pe-preview b { font-variant-numeric: tabular-nums; }
+.pe-btn {
+  height: 32px;
+  padding: 0 14px;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-fg);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+}
+.pe-btn.ghost { background: none; color: var(--accent); }
+
+/* ---- estado vazio (sem eixo escolhido) ---- */
+.pe-simple {
+  padding: 28px;
+  text-align: center;
+  color: var(--text-mute);
+  font-size: 13px;
+}

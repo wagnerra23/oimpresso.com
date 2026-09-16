@@ -1,0 +1,27 @@
+/* ==========================================================================
+   CAMADA 1 · FUNDAÇÕES — correções de componente do DS (ADR 0322)
+   --------------------------------------------------------------------------
+   Defeitos medidos no bundle do design system que nenhuma tela consegue
+   evitar compondo "do jeito certo". Cada regra abaixo tem número medido.
+   Enquanto a ADR 0322 não for decidida, estas correções vivem aqui — uma vez
+   aplicadas na origem, este arquivo deixa de existir.
+   ========================================================================== */
+
+/* --- 1 · Rótulo de campo em `--text-mute` reprova AA -----------------------
+   `--text-mute` sobre `--surface` = 3,23:1 · sobre `--bg-2` = 2,91:1
+   (mínimo 4,5:1 — 10,5px 600 não é texto grande). `--text-dim` mede 5,4–6:1.
+   Três componentes usam o mesmo token no papel de rótulo:               */
+main label > span[style*="--text-mute"] { color: var(--text-dim) !important; }
+[role="dialog"] h4[style*="--text-mute"] { color: var(--text-dim) !important; }
+[role="dialog"] button[aria-label="Fechar"] { color: var(--text-dim) !important; }
+
+/* --- 2 · Botão do DS não herda cor ----------------------------------------
+   `<button>` sem `color` explícito cai no default do agente (texto azul de
+   link em alguns temas). Herdar do contexto mantém o tom da superfície. */
+main button,
+[role="dialog"] button { color: inherit; }
+
+/* --- 3 · Breadcrumb do DS no tema escuro ---------------------------------
+   O componente resolve cor em escopo que a página não alcança; herdar do
+   header (que segue o tema) é o único caminho sem tocar no bundle. */
+.cockpit[data-theme="dark"] main > header nav * { color: inherit; }

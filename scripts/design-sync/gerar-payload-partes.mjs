@@ -23,12 +23,14 @@
  *   node scripts/design-sync/gerar-payload-partes.mjs --root <dir-do-vivo> --out sync
  *   ... [--previous sync-anterior/bundle.manifest.json]
  *       [--entry oimpresso.com.html] [--cap 262144] [--chunk-bytes 131072]
+ *       [--full-tree] — inclui playbooks/contratos da conta e autoriza poda de sobras.
  *
  * Do outro lado:
  *   node scripts/design-sync/aplicar-payload.mjs sync/payload.part*.json --require-complete-shell
  */
-import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync, unlinkSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync, unlinkSync, readdirSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { classificarParaSync } from '../design/importar-bundle.mjs';
 import { payloadDependencyGraph, normalizePayloadPath } from './payload-dependency-graph.mjs';
 import {
   BUNDLE_SCHEMA, changesDigest, createManifest, manifestDigest, sha256, validateManifest,
@@ -48,6 +50,7 @@ const CAP = Number(opt('--cap', '262144'));
 const PISO = Number(opt('--piso', '61440'));
 const CHUNK_BYTES = Number(opt('--chunk-bytes', '131072'));
 const PREVIOUS = opt('--previous', null);
+const FULL_TREE = args.includes('--full-tree');
 const EXCLUDES = args.reduce((acc, a, i) => (a === '--exclude' && args[i + 1] ? [...acc, args[i + 1]] : acc), []);
 
 if (!existsSync(join(ROOT, ENTRY))) {
@@ -115,6 +118,21 @@ if (PREVIOUS) {
   catch (error) { console.error(`✗ manifesto anterior inválido: ${error.message}`); process.exit(2); }
 }
 
+// A recepção do ZIP inclui também playbooks/contratos não alcançáveis pelo shell.
+// sync/ é o transporte gerado, não fonte; nunca realimentar o payload com ele próprio.
+if (FULL_TREE) {
+  function carregarArvore(dir, prefix = '') {
+    for (const item of readdirSync(dir, { withFileTypes: true })) {
+      const rel = prefix ? `${prefix}/${item.name}` : item.name;
+      if (item.name === '.git' || rel === 'sync' || resolve(dir, item.name) === resolve(OUT)) continue;
+      if (item.isSymbolicLink()) throw new Error(`link simbólico recusado na árvore: ${rel}`);
+      if (item.isDirectory()) {
+        if (classificarParaSync(`${rel}/probe.md`).acao === 'copia') carregarArvore(join(dir, item.name), rel);
+      } else if (item.isFile() && item.name !== '.gitignore' && classificarParaSync(rel).acao === 'copia') carregar(rel);
+    }
+  }
+  carregarArvore(ROOT);
+}
 const sourceFiles = [...lidos]
   .map(([path, buffer]) => ({ path: normalizePayloadPath(path), buffer }))
   .sort((a, b) => a.path.localeCompare(b.path));
@@ -126,6 +144,7 @@ const manifest = createManifest({
   missing,
   previous,
   generatedAt,
+  ...(FULL_TREE ? { mirrorScope: 'tree' } : {}),
 });
 
 const changed = new Set([...manifest.changes.added, ...manifest.changes.modified]);

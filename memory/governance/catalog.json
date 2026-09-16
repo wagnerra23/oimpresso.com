@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 719,
-    "edges": 1011,
+    "nodes": 720,
+    "edges": 1012,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 120,
+      "adr": 121,
       "component": 384,
       "api": 74
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 108,
       "migratesTo": 1,
       "supersedes": 24,
-      "supersedesPartially": 54,
+      "supersedesPartially": 55,
       "supersededBy": 28
     },
     "dangling": 0
@@ -892,6 +892,13 @@
       "type": "adr",
       "num": "0404",
       "slug": "0404-ultimo-importado-e-autoridade-do-espelho",
+      "exists": true
+    },
+    {
+      "id": "adr:0405",
+      "type": "adr",
+      "num": "0405",
+      "slug": "0405-espelhos-cowork-independentes-por-conta",
       "exists": true
     },
     {
@@ -6455,6 +6462,12 @@
     },
     {
       "from": "adr:0404",
+      "to": "adr:0398",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0405",
       "to": "adr:0398",
       "type": "supersedesPartially",
       "source": "supersedes_partially"

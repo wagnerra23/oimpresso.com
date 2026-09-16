@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **409** arquivos · **394** números únicos · máx **0404**
-- **ADRs ATIVOS (lifecycle ativo): 363** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 358 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 363 · substituido 25 · arquivado 21
+- **410** arquivos · **395** números únicos · máx **0405**
+- **ADRs ATIVOS (lifecycle ativo): 364** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 359 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 364 · substituido 25 · arquivado 21
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (409)
+## Todas as ADRs (410)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -447,3 +447,4 @@ _(nenhuma)_
 | 0402 | proposto | ativo | decision | Denominador de tela inclui as Pages de modulo (Modules/*/Resources/js/Pages) |
 | 0403 | proposto | ativo | decision | Errata a 0402 - o denominador de tela JA inclui as Pages de modulo |
 | 0404 | aceito | ativo | decision | Último importado é a autoridade do espelho Cowork |
+| 0405 | aceito | ativo | decision | Espelhos Cowork independentes por conta, unicidade dentro de cada dono |

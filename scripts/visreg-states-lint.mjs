@@ -30,6 +30,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = (() => { const i = process.argv.indexOf('--root'); return i >= 0 ? resolve(process.argv[i + 1]) : resolve(HERE, '..'); })();
 const MANIFEST_REL = 'tests/Browser/visreg-states.json';
 const log = (...a) => console.log(...a);
+const isProductionCharter = (rel) => screenSourceFromCharter(rel) !== null;
 
 function git(args) {
   try { return execSync(`git ${args}`, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); }
@@ -153,6 +154,9 @@ function lint() {
   const allCharters = (git('ls-files -- "*.charter.md"') || '')
     .split('\n')
     .filter(Boolean)
+    // Espelhos Cowork podem conter cópias de charters: não são Pages de produção.
+    // Usa o dono existente do vocabulário, sem regex paralela de caminhos.
+    .filter(isProductionCharter)
     .filter((rel) => existsSync(resolve(ROOT, rel)));
   for (const rel of allCharters) {
     if (manifestCharters.has(rel)) continue;
@@ -192,6 +196,16 @@ function selftest() {
     ['charter que nao e Page', 'package.json', 'Compras', true],
   ];
   let fail = 0;
+  for (const [path, expected] of [
+    ['resources/js/Pages/Ponto/Index.charter.md', true],
+    ['Modules/Ponto/Resources/js/Pages/Index.charter.md', true],
+    ['prototipo-ui/cowork/Wagner/resources/js/Pages/Ponto/Index.charter.md', false],
+    ['prototipo-ui/cowork/Felipe/resources/js/Pages/Ponto/Index.charter.md', false],
+  ]) {
+    const ok = isProductionCharter(path) === expected;
+    log(`${ok ? '✓' : '✗'} selftest: escopo de charter ${path}`);
+    if (!ok) fail++;
+  }
   for (const [nome, cs, ms, espera] of cases) {
     const got = diffScreen('teste', cs, ms, V).length > 0;
     const ok = got === espera;
