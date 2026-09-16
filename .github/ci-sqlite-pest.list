@@ -545,3 +545,4 @@ Modules/Manufacturing/Tests/Feature/Wave29RecipeInertiaTest.php
 # nao usa (ela roda a lista via mapfile). DB-less (Http::fake + Log::spy), sqlite-safe.
 tests/Feature/Ragas/RagasJudgeServiceTest.php
 Modules/Forja/Tests/Feature/CcSecretSweepTest.php
+Modules/Forja/Tests/Feature/CredentialShapesTest.php
