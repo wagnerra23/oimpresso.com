@@ -1422,6 +1422,14 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ NÃO virar gate:** a defesa desta lápide não é máquina nova — é o **controle negativo** que já está no bite-test (`CONTROLE: nome de tool MCP NAO e redigido`, em `scripts/cc-watcher/redact.test.mjs`), e ele foi provado por mutação: afrouxado o padrão de volta à forma ingênua, ele cai. Um gate genérico de "padrão de segredo frouxo" seria guard sintático sobre regex — a família com 8 lápides medidas neste mesmo §5.
 
+### 2026-09-16 — Estender o denominador de tela para incluir `Modules/*/Resources/js/Pages` (MEDIDO: ele JÁ inclui — a ADR nasceu de `grep` na SAÍDA de um relatório que agrupa por NOME)
+
+- **O limite (variante também proibida):** não concluir **ausência no denominador** a partir de **ausência de um path na saída formatada** de um relatório — vale para `screen-coverage`, `casos:report`, `module-surface`, `migracao:report` e qualquer porta viva cujo output seja agregado por nome, módulo ou namespace. Saída é **apresentação**; denominador é **dado**. A pergunta *"X está no universo?"* se responde **rodando a função que monta o universo** (aqui `raizesDePages` + `isPageScreenPath`, a fonte única que os consumidores importam), nunca grepando o relatório dela. Corolário caro, e é o que torna esta lápide distinta das irmãs de LC-08: quando o relatório **lista nomes** (`Forja`, `kb`, `Cms`), conferir se esses nomes **existem no universo que você supõe ser o único** — aqui nenhuma dessas pastas existe em `resources/js/Pages/` (0 telas cada), e isso sozinho refutava a tese.
+
+- **⚠️ Agravante, e é o que dói:** havia **dois** sinais contrários e os dois foram lidos como confirmação. O segundo estava num comentário de teste do próprio `screen-coverage-map.mjs` — *"Se isto voltasse a olhar só `resources/js/Pages`, as 80 telas de módulo sumiriam da base"* — que foi **lido e citado na mesma sessão**, e tratado como se falasse de **contagem** quando afirmava **cobertura**. O "80" chegou a ser "corrigido" para 37 num PR, reforçando a leitura errada.
+
+- **⚠️ NÃO virar gate:** o predicado — *"esta conclusão veio da saída formatada ou do dado?"* — é **semântico por construção** ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)), e a forma sintática (acusar `grep -c` sobre output de script de governança) reprovaria o uso legítimo, que é a maioria — é a família de guard sintático que este §5 já enterrou 8×. O gate óbvio de LC-08 está, além disso, **medido e reprovado**. A defesa é a regra positiva acima: rodar a função do dono.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
