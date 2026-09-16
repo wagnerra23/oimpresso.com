@@ -195,6 +195,36 @@ check('mesmo número → mesmo veredito (independe de --check)',
     // --all inclui subdirs por path relativo (v1 sumia com homônimos no --all)
     const all = buildManifest(dir, { all: true });
     check('--all enumera por path relativo (2 homônimos presentes)', all.filter((m) => m.cowork.endsWith('x-page.jsx')).length === 2);
+
+    // ── DOIS UNIVERSOS: frescor (o que dá pra comparar) × conteúdo (o que o espelho TEM) ──
+    // Medido 2026-09-16: `cowork-inbox/**` (378 arquivos, 87% .md) ficava FORA do manifesto
+    // inteiro, e o `liveOnly` — cuja pergunta é CONTINÊNCIA — acusava 327 paths versionados
+    // como "existe no vivo e NUNCA desceu". O bite abaixo exercita a CONSEQUÊNCIA, não a flag.
+    mkdirSync(join(cowork, 'cowork-inbox', 'mod', 'playbook'), { recursive: true });
+    writeFileSync(join(cowork, 'cowork-inbox', 'mod', 'playbook', '00-INDICE.md'), '# indice\n');
+    writeFileSync(join(cowork, 'cowork-inbox', 'mod', 'x.contract.json'), '{"a":1}\n');
+    const REL_MD = 'cowork-inbox/mod/playbook/00-INDICE.md';
+    const REL_JSON = 'cowork-inbox/mod/x.contract.json';
+    const temNo = (man, rel) => man.some((m) => m.cowork === rel);
+
+    const uFrescor = buildManifest(dir, { all: true, universo: 'frescor' });
+    const uConteudo = buildManifest(dir, { all: true, universo: 'conteudo' });
+    // CONTROLE: o default NÃO mudou — quem mede frescor continua vendo só material de build.
+    check('CONTROLE universo: default == frescor (assinatura idêntica)',
+      JSON.stringify(uFrescor.map((m) => m.cowork).sort()) === JSON.stringify(all.map((m) => m.cowork).sort()));
+    check('CONTROLE universo=frescor: .md e .json do pedido ficam FORA (o que se compara é build)',
+      !temNo(uFrescor, REL_MD) && !temNo(uFrescor, REL_JSON));
+    check('universo=conteudo: .md E .json entram (o espelho CONTÉM os dois)',
+      temNo(uConteudo, REL_MD) && temNo(uConteudo, REL_JSON));
+
+    // A CONSEQUÊNCIA, que é o defeito que isto conserta: `liveOnly` é continência.
+    const vivo = [REL_MD, REL_JSON, 'a/x-page.jsx'];
+    check('MORDE: com universo=frescor o liveOnly acusa arquivo VERSIONADO como nunca-desceu',
+      liveOnlyDetalhado(vivo, uFrescor).ignorados.concat(liveOnlyDetalhado(vivo, uFrescor).faltando.map((p) => ({ path: p })))
+        .some((i) => i.path === REL_MD));
+    check('SOLTA: com universo=conteudo ele NÃO acusa nenhum dos dois (nem faltando, nem ignorado)',
+      !liveOnlyDetalhado(vivo, uConteudo).faltando.includes(REL_MD)
+      && !liveOnlyDetalhado(vivo, uConteudo).ignorados.some((i) => i.path === REL_MD || i.path === REL_JSON));
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
