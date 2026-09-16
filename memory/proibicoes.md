@@ -1380,10 +1380,13 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
   *"o que voce leu"*, e *"o path absoluto que este comando referencia resolve para arquivo
   DIFERENTE do mesmo path relativo sob o cwd?"* — computavel so do texto do comando, e medido
   **pelo `ciclo-adversary`, nao por mim** sobre **151.261** comandos do corpus: **7** ocorrencias, com
-  controle positivo e negativo. ⚠️ O denominador eu re-medi e bate (`grep -c '"name":"Bash"'` sobre os transcripts de
-  `~/.claude/projects` deu **150.830** blocos em **1.772** arquivos, delta 0,3% do denominador dele —
-  ⚠️ numero VIVO: o corpus cresce durante a propria sessao, e uma 2a leitura ja deu 150.927/1773,
-  entao cite-o com o comando e a hora, nunca como constante); **o numerador 7 eu NAO re-verifiquei e a lapide nao carrega o
+  controle positivo e negativo. ⚠️ O denominador eu re-medi e bate — ⚠️ e a minha re-medicao do denominador
+  saiu com a UNIDADE errada na 1a tentativa: `grep -c` conta **linhas**, nao blocos, e uma linha jsonl com
+  tool-calls paralelas carrega varias. Medido em 2026-09-16 12:10Z sobre `~/.claude/projects`:
+  `find -name '*.jsonl' -exec grep -c '"name":"Bash"' {} + | soma` = **150.749 LINHAS** ·
+  `... -exec grep -o ... | wc -l` = **151.047 BLOCOS** (delta 298) · universo **1.775** `.jsonl`, dos quais
+  **1.631** com >=1 hit. Os tres sao VIVOS e drifam dentro da propria sessao — cite sempre comando + unidade
+  + hora, que e a §5 2026-08-13 corolario (c)); **o numerador 7 eu NAO re-verifiquei e a lapide nao carrega o
   comando que o reproduz** — entao ele vale como medicao do adversario, nunca como recibo meu. A regra
   que isto quase violou e a §5 2026-07-28: numero so entra em canon com o comando ao lado. E a forma nao e sintatica: e **duas pernas com medicao** (2a perna = `cmp` dos dois
   arquivos, mordendo so se divergirem), que e exatamente o que o campo `Gate:` da LC-08 descreve
