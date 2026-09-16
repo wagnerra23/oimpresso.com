@@ -1259,3 +1259,44 @@ nem `pending`. Silêncio ali é indistinguível de "nunca foi configurado".
 
 **Refs:** PR #7366 (o fix) · PR #7369 (`MEMORY_TEAM_ONBOARDING.md` passo E + skill
 `oimpresso-team-onboarding` Modo D) · [ADR 0056](../../decisions/0056-mcp-fonte-unica-memoria-copiloto-claude-code.md).
+
+### US-INFRA-053 · Token MCP novo (luiz) — o #22 foi revogado em 16/09
+
+**Implementado em:** _pendente_ — fecha quando `claude mcp list` mostrar
+`oimpresso: ... - ✓ Connected` para luiz
+
+> owner: luiz · priority: p0 · estimate: 0.25h · status: todo · type: story
+> blocked_by: —
+
+**O que aconteceu.** O token **#22** (`DXT — Luiz`, gerado 20/05) foi **revogado em
+2026-09-16 11:02:49** por determinação [W] — `revoked_at` + `revoked_by=1` + soft-delete, via
+`McpTokenIssuer::revoke`. A medição que embasou: parado há 20 dias, **940** chamadas no
+`mcp_audit_log` **todas até 2026-08-27 15:11**.
+
+⚠️ **Isto bloqueia a US-INFRA-051 e corrige uma premissa dela.** Lá está escrito que *"o token
+é o MESMO que já está no seu `.claude/settings.local.json`"* — **para você isso deixou de valer**.
+Aquele valor está morto e devolve 401; exportar ele não resolve nada.
+
+**Sintoma que você vai ver**, os dois juntos no SessionStart:
+
+- banner `[brief-fetch hook] FALLBACK ATIVADO — motivo: token Authorization ausente/inválido`
+- as tools `mcp__oimpresso__*` ausentes da sessão
+
+**Passos.**
+
+- [ ] **Emitir token NOVO.** Não dá pra `teammcp:token:rotate` o #22: ele está soft-deleted e o `revoke()` usa `find()`, que devolve `false` nesse estado. É emissão nova — `/copiloto/admin/team`, ou `php artisan mcp:token:gerar --user=569 --name="DXT — Luiz (16/09/2026)"`. ⚠️ O flag é **`--user=<ID>`**, não `--user-email` (esse comando nunca existiu — ver Refs)
+- [ ] **Colar no cofre dos hooks**: `.claude/settings.local.json` → `mcpServers.oimpresso.headers.Authorization = "Bearer <token>"`. Esse arquivo **continua necessário** — é o que `brief-fetch-curl.mjs`, `cc-watcher/index.js` e `fluxo-sistema.mjs` leem
+- [ ] **Exportar no ambiente** — é a **US-INFRA-051**, que só fica executável depois deste passo
+- [ ] ⚠️ **Não colar o raw em chat, PR ou commit.** Foi exatamente esse vetor que gerou a **LC-35** (um `cat` supérfluo imprimiu o token do [W] num transcript, 2026-09-15)
+
+**Aceite.**
+
+- [ ] `claude mcp list` mostra `oimpresso: ... - ✓ Connected`
+- [ ] o banner de fallback do `brief-fetch` para de aparecer
+- [ ] `brief-fetch` chamável como **tool** (`mcp__oimpresso__*`), não só pelo hook
+
+**Refs:** [`memory/_INDEX-SECRETS.md`](../../_INDEX-SECRETS.md) (linha do token MCP — histórico de
+rotação e revogação) · US-INFRA-051 (o passo seguinte) · PR #7388 (token novo nasce com 180 dias
+de validade) · o comando `copiloto:mcp:gerar-token` citado no `MEMORY_TEAM_ONBOARDING.md` **nunca
+existiu** — nasceu de um checklist não-feito da [ADR 0055](../../decisions/0055-self-host-team-plan-equivalente-anthropic.md);
+corrigido no mesmo PR desta US.
