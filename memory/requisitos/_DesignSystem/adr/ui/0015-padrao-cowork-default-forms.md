@@ -15,7 +15,7 @@ id: requisitos-design-system-adr-ui-0015-padrao-cowork-default-forms
 
 Até 2026-05-26 o oimpresso usava o `<Input>` / `<SelectTrigger>` / `<Textarea>` / `<Label>` shadcn canônico em ~120 telas Inertia. Visual padrão shadcn: `bg-transparent`, `text-sm`, ring opaco, label preto principal.
 
-O protótipo Cowork (`prototipo-ui/prototipos/clientes/clientes.css`) — referência visual do design system desde UI-0010 — tinha pattern distinto que o time preferia: bg sólido `--surface`, text 13px, label dim cinza, ring suave `--accent-soft`, radio pill com `--accent-soft`. Wagner reportou pós-PR #1695 (telefones/emails Cliente):
+O protótipo Cowork (`prototipo-ui/prototipos/clientes/clientes.css`) — referência visual do design system desde UI-0010 — tinha pattern distinto que o time preferia: bg sólido `--surface`, text 13px, label dim cinza, ring suave `--accent-soft`, radio pill com `--accent-soft`. Wagner reportou pós-PR #1695 (telefones/emails Cliente): _(removido em 2026-06-23, 9da73296d34)_
 
 > "as tonalidades fazem diferença. incrivel pouca coisa faz mesmo muito diferença. quero o padrão"
 
@@ -59,7 +59,7 @@ Definidos em `:root` (light) + `.dark` (override dark mode), namespaced `--cw-*`
 }
 ```
 
-Valores `oklch()` IDÊNTICOS ao Cowork canon (`prototipo-ui/prototipos/clientes/cockpit.css`).
+Valores `oklch()` IDÊNTICOS ao Cowork canon (`prototipo-ui/prototipos/clientes/cockpit.css`). _(removido em 2026-06-23, 9da73296d34)_
 
 ### Dark mode
 

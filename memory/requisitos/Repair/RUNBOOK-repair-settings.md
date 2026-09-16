@@ -24,7 +24,7 @@ related_adrs:
 # RUNBOOK MWART — Repair/Settings (configurações da folha de OS + etiqueta)
 
 > **Tela:** `/repair/repair-settings` · **Componente alvo:** `resources/js/Pages/Repair/Settings/Index.tsx` (a criar)
-> **Origem:** Onda 1 do pacote de export do Repair — `prototipo-ui/design-docs/cowork-inbox/REPAIR-ONDAS-2026-09-04.md`, aterrissado no PR #6773 (link omitido de propósito: o arquivo só entra no `main` quando aquele PR mergear) · **Data:** 2026-09-04
+> **Origem:** Onda 1 do pacote de export do Repair — `prototipo-ui/cowork/Wagner/cowork-inbox/REPAIR-ONDAS-2026-09-04.md`, aterrissado no PR #6773 (link omitido de propósito: o arquivo só entra no `main` quando aquele PR mergear) · **Data:** 2026-09-04
 > **Refs:** [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · ADR ARQ-0002 local (portal público — **fora** desta onda)
 
 Tudo abaixo foi medido contra `origin/main` no tip `dea7d2c4ef` (2026-09-04 18:08 -0300). O que não foi medido está declarado como tal.

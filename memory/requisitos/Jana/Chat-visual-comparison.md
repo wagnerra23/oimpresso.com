@@ -162,7 +162,7 @@ Conferindo contra [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO
 
 - [Chat.charter.md (LIVE v1)](../../../resources/js/Pages/Jana/Chat.charter.md)
 - [RUNBOOK-chat.md](RUNBOOK-chat.md)
-- [Cowork chat.jsx (visual source)](../_DesignSystem/ui_kits/cowork-2026-05-09/chat.jsx)
+- [Cowork chat.jsx (visual source)](../_DesignSystem/ui_kits/cowork-2026-05-09/chat.jsx) _(removido em 2026-05-20, 4fad2f11f60)_
 - [ADR 0107 — visual gate F1.5](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)
 - [ADR 0114 — loop Cowork formalizado](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
 - [ADR 0110 — Cockpit Pattern V2](../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md)

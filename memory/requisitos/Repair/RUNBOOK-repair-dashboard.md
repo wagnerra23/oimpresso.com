@@ -11,7 +11,7 @@ related_adrs: [0104-processo-mwart-canonico-unico-caminho, 0093-multi-tenant-iso
 # RUNBOOK MWART — Repair/Dashboard/Index
 
 > **Tela:** `/repair/dashboard` · **Componente:** `resources/js/Pages/Repair/Dashboard/Index.tsx`
-> **Fonte de design:** `prototipo-ui/cowork/repair-page.jsx` região `Painel` (L45-103)
+> **Fonte de design:** `prototipo-ui/cowork/Wagner/repair-page.jsx` região `Painel` (L45-103)
 > **Diff medido:** [6telas-index-visual-comparison.md §3.2](6telas-index-visual-comparison.md)
 > **Refs:** [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · [ADR UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
 

@@ -165,4 +165,4 @@ Pest correspondente: `Modules/AssetManagement/Tests/Feature/SmokeRoutesTest.php`
 - [ADR 0180 — sidebar v3, ghosts no header](../../decisions/0180-sidebar-v3-5-grupos-ghosts-header.md)
 - [PT-01 Lista](../_DesignSystem/padroes-tela/PT-01-Lista.md)
 - Fonte visual: `prototipo-ui/cowork/Wagner/patrimonio-page.jsx` (aba `bens` em `:355`) — **alvo, não decisão de produto**
-- Playbook: `prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/06-ui-bloqueada.md`
+- Playbook: `prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/06-ui-bloqueada.md`

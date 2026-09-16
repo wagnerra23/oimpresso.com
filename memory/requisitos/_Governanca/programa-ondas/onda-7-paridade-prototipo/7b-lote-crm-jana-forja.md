@@ -27,7 +27,7 @@ Porta viva única: `node scripts/qa/design-coverage.mjs` (rodada nas duas pontas
 **Denominador declarado** (§5 2026-07-27): os 84 são o universo do próprio script. A varredura
 completa do repo devolve 87 arquivos casando `visual-comparison`; os 3 a mais **não são
 inventário** — uma ADR (`0107-…`), um script (`visual-comparison-staleness.mjs`) e uma cópia-patch
-sob `prototipo-ui/design-docs/`. Conferido antes de citar o número, não presumido.
+sob `prototipo-ui/design-docs/`. Conferido antes de citar o número, não presumido. _(removido em 2026-09-11, 4f51a9ec781)_
 
 ## Os 17 órfãos do lote, e a QUAL tela cada um pertence
 

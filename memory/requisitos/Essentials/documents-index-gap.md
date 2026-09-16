@@ -11,14 +11,14 @@ gerado_em: 2026-09-06
 > **Fase 1 = PARIDADE.** `essenciais-page.jsx:1-3` declara o porte reverso do blade do main.
 > Região: `Arquivos({ modo })` (`:338-400`) — **um só componente serve Documentos e Memorandos**,
 > exatamente como o vivo, que alterna por aba (`Documents/Index.tsx:78`, `tab: 'documents' | 'memos'`).
-> Contratos do intake: `documentos.contract.json` (`prototipo-ui/design-docs/cowork-inbox/essenciais/contrato/documentos.contract.json`, removido do git em 2026-09-11 · #7224 · ADR 0397)
-> e `memorandos.contract.json` (`prototipo-ui/design-docs/cowork-inbox/essenciais/contrato/memorandos.contract.json`, removido do git em 2026-09-11 · #7224 · ADR 0397).
+> Contratos do intake: `documentos.contract.json` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/contrato/documentos.contract.json`)
+> e `memorandos.contract.json` (`prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/contrato/memorandos.contract.json`).
 > ⚠️ **Versionamento de documento está fora de escopo por decisão pendente de [W]**
 > (`LEIA-ME.md` §"Decisões pendentes" item 2: *"hoje é media única; versionar pede tabela de versões
 > e regra de quem substitui"*) — não entra como gap aqui.
 
 > ⚠️ **O contrato citado ainda NÃO é gate ativo.** Ele vive em
-> `prototipo-ui/design-docs/cowork-inbox/essenciais/contrato/`, **não** em `governance/design/contracts/`
+> `prototipo-ui/design-docs/cowork-inbox/essenciais/contrato/`, **não** em `governance/design/contracts/` _(removido em 2026-09-11, 4f51a9ec781)_
 > (medido com o critério do próprio gate — `git ls-files "governance/design/contracts/*.contract.json"` sem o EXEMPLO, como `scripts/contrato-de-tela.mjs` faz: **28** contratos ativos, que incluem `essentials-tipos`, `essentials-licencas` e
 > `essentials-metas` — nenhum dos 5 dos essenciais). Ele é **proposta de contrato**: descreve a
 > copy literal pretendida e serve de âncora para esta comparação, mas **não trava merge hoje**.

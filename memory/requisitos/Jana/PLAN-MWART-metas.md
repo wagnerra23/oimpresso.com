@@ -127,7 +127,7 @@ Quando F2 abrir, escopo proposto:
 
 ### F1.5 — VISUAL GATE ([ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)) — **BLOQUEADOR DE F3**
 
-Antes de F3 (Frontend), Wagner aprova screenshots em `prototipo-ui/jana-metas/`:
+Antes de F3 (Frontend), Wagner aprova screenshots em `prototipo-ui/jana-metas/`: _(alvo não resolve no repo — proveniência não determinada)_
 
 - `01-index-list.png` — lista de metas (table com farol lateral, similar a Dashboard cards)
 - `02-create-form.png` — form de nova meta (4 campos + selects)

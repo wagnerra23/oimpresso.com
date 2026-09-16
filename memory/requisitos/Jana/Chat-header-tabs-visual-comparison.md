@@ -9,7 +9,7 @@ target_pages:
   - resources/js/Pages/Jana/Chat.tsx
   - resources/js/Pages/Jana/Index.tsx
 target_charter: resources/js/Pages/Jana/Chat.charter.md
-visual_source: prototipo-ui/_cowork-export-2026-05-15/app.jsx (Header function L247-336)
+visual_source: prototipo-ui/_cowork-export-2026-05-15/app.jsx (Header function L247-336) _(removido em 2026-05-20, 1070e3759b7)_
 visual_source_companion: prototipo-ui/_cowork-export-2026-05-15/data.jsx (MENU + GROUP_META)
 related_adrs: [0094, 0104, 0107, 0110, 0114]
 date: 2026-05-18
@@ -35,7 +35,7 @@ Aplicar **header sticky** acima do conteúdo da área `/jana` espelhando `app.js
 
 ## Comparáveis canônicos
 
-- **`prototipo-ui/_cowork-export-2026-05-15/app.jsx` Header function L247-336** — fonte canônica (Wagner já validou o protótipo Cockpit)
+- **`prototipo-ui/_cowork-export-2026-05-15/app.jsx` Header function L247-336** — fonte canônica (Wagner já validou o protótipo Cockpit) _(removido em 2026-05-20, 1070e3759b7)_
 - **Linear "view header"** — referência pra padrão sticky + tabs + actions
 - **Stripe Dashboard "section nav"** — referência pra hierarquia visual (label área + tabs subordinadas)
 
@@ -153,7 +153,7 @@ it('does not show search/bell buttons (charter Non-Goal)')
 
 - [Chat.charter.md](../../../resources/js/Pages/Jana/Chat.charter.md) — Goals + Non-Goals
 - [Dashboard.charter.md](../../../resources/js/Pages/Jana/Index.charter.md)
-- [prototipo-ui/_cowork-export-2026-05-15/app.jsx#L247-336](../../../prototipo-ui/_cowork-export-2026-05-15/app.jsx) — Header function canon
+- [prototipo-ui/_cowork-export-2026-05-15/app.jsx#L247-336](../../../prototipo-ui/_cowork-export-2026-05-15/app.jsx) — Header function canon _(removido em 2026-05-20, 1070e3759b7)_
 - [ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)
 - [ADR 0110](../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - [ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)

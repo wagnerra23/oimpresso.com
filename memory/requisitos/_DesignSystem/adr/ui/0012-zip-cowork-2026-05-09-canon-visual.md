@@ -13,7 +13,7 @@ id: requisitos-design-system-adr-ui-0012-zip-cowork-2026-05-09-canon-visual
 - **Data**: 2026-05-09
 - **Decisores**: Wagner, Claude
 - **Categoria**: ui · estruturante
-- **Refs**: [UI Kit Cowork 2026-05-09](../../ui_kits/cowork-2026-05-09/README.md), [_DS UI-0010 — precedente](0010-zip-cowork-2026-04-27-canon-visual.md), [_DS UI-0008](0008-cockpit-layout-mae-do-erp.md), [_DS UI-0009](0009-cockpit-sidebar-light-padrao.md), [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
+- **Refs**: [UI Kit Cowork 2026-05-09](../../ui_kits/cowork-2026-05-09/README.md), [_DS UI-0010 — precedente](0010-zip-cowork-2026-04-27-canon-visual.md), [_DS UI-0008](0008-cockpit-layout-mae-do-erp.md), [_DS UI-0009](0009-cockpit-sidebar-light-padrao.md), [`memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) _(removido em 2026-05-20, 4fad2f11f60)_
 - **Substitui parcialmente**: [_DS UI-0010 — Zip Cowork 2026-04-27](0010-zip-cowork-2026-04-27-canon-visual.md) onde overlap (mesmo arquivo, versão nova vence)
 - **Convive com**: [_DS UI-0009](0009-cockpit-sidebar-light-padrao.md), [_DS UI-0011](0011-sidebar-single-pane-cascata-user-menu.md) — decisões posteriores ao snapshot sobrevivem (ver §3)
 
@@ -35,7 +35,7 @@ Em 2026-05-09 Wagner exportou novo zip do projeto Anthropic Cowork "Oimpresso ER
 
 A mesma sessão Cowork também produziu o batch F3 Financeiro (`prototipo-ui-patch/Modules/Financeiro/Http/Controllers/*.php` + `.tsx`) que foi **rejeitado pré-merge** ([`LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md), [PR #365](https://github.com/wagnerra23/oimpresso.com/pull/365)) por 21 anti-padrões (Models inventados, tenant scope ausente, middleware fantasma, etc).
 
-**Esta ADR só formaliza os assets visuais** (.jsx referência + HTML + CSS + screenshots). Os controllers e .tsx do batch F3 ficam fora — pinos visuais já estão em [`prototipo-ui/prototipos/financeiro-*/`](../../../../../prototipo-ui/prototipos/) ([PR #366](https://github.com/wagnerra23/oimpresso.com/pull/366)).
+**Esta ADR só formaliza os assets visuais** (.jsx referência + HTML + CSS + screenshots). Os controllers e .tsx do batch F3 ficam fora — pinos visuais já estão em [`prototipo-ui/prototipos/financeiro-*/`](../../../../../prototipo-ui/prototipos/) ([PR #366](https://github.com/wagnerra23/oimpresso.com/pull/366)). _(removido em 2026-09-11, 4f51a9ec781)_
 
 ## Decisão
 
@@ -58,7 +58,7 @@ Lista UI-0010 §2 evolui pra cobrir telas novas:
 | `sidebar.jsx` | **Sidebar dual Chat/Menu** | já portado |
 | `linked-apps.jsx` | **Coluna direita Apps Vinculados** | já portado |
 | `tweaks-panel.jsx` | **Vibe/Densidade/Accent** | já portado |
-| **`vendas-page.jsx` + `vendas-extras.jsx`** ⭐ NOVO | **Sells/Create + Sells/Index** | P0 — pino F1 em [`sells-create/`](../../../../../prototipo-ui/prototipos/sells-create/) |
+| **`vendas-page.jsx` + `vendas-extras.jsx`** ⭐ NOVO | **Sells/Create + Sells/Index** | P0 — pino F1 em [`sells-create/`](../../../../../prototipo-ui/prototipos/sells-create/)  _(removido em 2026-05-20, 1070e3759b7)_ |
 | **`clientes-page.jsx`** ⭐ NOVO | **Cliente/Index** | P2 — sem charter ainda |
 | **`producao-page.jsx`** ⭐ NOVO | **Repair/ProducaoOficina** | já em prod (referência refator visual) |
 | **`produto-app.jsx` + `produto-data.jsx`** ⭐ NOVO | **Produto/Unificado** (Catálogo) | P2 — controller candidato existe (não copiar literal) |
@@ -85,12 +85,12 @@ Decisões POSTERIORES ao snapshot 2026-05-09 sobrevivem (zip NÃO sobrescreve):
 Telas-alvo ranqueadas por prioridade da fila ([`TELAS_REVIEW_QUEUE.md`](../../../../../memory/reference/prototipo-ui/TELAS_REVIEW_QUEUE.md)):
 
 **P0:**
-1. **Sells/Create** + **Sells/Index** — `vendas-page.jsx` + `vendas-extras.jsx` referência. Pino F1 em [`sells-create/`](../../../../../prototipo-ui/prototipos/sells-create/) (deste PR). Wagner abre F0 em `COWORK_NOTES.md`.
+1. **Sells/Create** + **Sells/Index** — `vendas-page.jsx` + `vendas-extras.jsx` referência. Pino F1 em [`sells-create/`](../../../../../prototipo-ui/prototipos/sells-create/) (deste PR). Wagner abre F0 em `COWORK_NOTES.md`. _(removido em 2026-05-20, 1070e3759b7)_
 
 **P1 (charter existente):**
 2. **Repair/{Dashboard,JobSheet,Status}** — `producao-page.jsx` referência (`Repair/ProducaoOficina` já mergeado por loop)
 3. **Financeiro/{ContasBancarias,Extrato}** — charters existem
-4. **Financeiro/{Fluxo,PlanoContas,DRE,Conciliacao}** — pinos F1 em `prototipo-ui/prototipos/financeiro-*/`. Bloqueados em backend (ver READMEs).
+4. **Financeiro/{Fluxo,PlanoContas,DRE,Conciliacao}** — pinos F1 em `prototipo-ui/prototipos/financeiro-*/`. Bloqueados em backend (ver READMEs). _(removido em 2026-05-20, 1070e3759b7)_
 
 **P2:**
 5. **Cliente/Index** — `clientes-page.jsx` referência. Sem charter — criar antes.

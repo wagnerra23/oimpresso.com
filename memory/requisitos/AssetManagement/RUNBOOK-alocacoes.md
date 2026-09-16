@@ -168,5 +168,5 @@ sub-navegação.
 - Casos: [`resources/js/Pages/Patrimonio/Alocacoes.casos.md`](../../../resources/js/Pages/Patrimonio/Alocacoes.casos.md)
 - Irmã que fundou o `_shared`: [`RUNBOOK-bens.md`](RUNBOOK-bens.md)
 - Fonte visual: `prototipo-ui/cowork/Wagner/patrimonio-page.jsx` (aba `alocacoes`, `:409`) — **alvo**, não decisão de produto
-- Playbook: `prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/06-ui-bloqueada.md`
+- Playbook: `prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/06-ui-bloqueada.md`
 - [PT-01 Lista](../_DesignSystem/padroes-tela/PT-01-Lista.md)

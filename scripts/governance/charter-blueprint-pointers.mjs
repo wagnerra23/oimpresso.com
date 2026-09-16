@@ -131,8 +131,28 @@ const BS = String.fromCharCode(92);  // barra invertida sem literal (colapsa no 
 const REQ = join(ROOT, 'memory/requisitos');
 
 /** A linha que carrega o ponteiro ja declara que ele morreu? Entao e registro, nao divida. */
+/**
+ * Placeholder NAO e ponteiro: `cowork-YYYY-MM-DD/` e `prototipo-ui/.../` sao notacao
+ * generica que a prosa usa pra falar de um formato, nao caminho que um dia resolveu.
+ * Anota-los com data de remocao seria carimbar o que nunca foi arquivo — falso-positivo
+ * do extrator, nao divida do doc. (Medido: os 2 unicos casos no corpus, ambos em ADR UI.)
+ */
+function ehPlaceholder(p) {
+  const S = String.fromCharCode(47), D = String.fromCharCode(46);  // / e . sem literal (LC-26)
+  const RET = String.fromCharCode(8230);  // U+2026 '...' de path abreviado
+  // segmento-template (<tela>, <modulo>) e path abreviado nao sao ponteiros: sao notacao.
+  if (/<[^<>]+>/.test(p) || p.includes(RET)) return true;
+  return p.includes('YYYY-MM-DD') || p.includes(S + D + D + D + S) || p.endsWith(S + D + D + D);
+}
+
 function declaraMorte(linha) {
-  return /removido em|PATH APAGADO|apagado em|N\u00c3O EXISTE|NAO EXISTE|Corrigido 20/i.test(linha);
+  // "nunca versionado": o alvo NUNCA existiu no git (artefato externo do Cowork — zip, pasta
+  // local). MEDIDO no historico completo, repo nao-raso: 0 commits tocaram esses paths. E
+  // declaracao do mesmo tipo — o doc diz por que o ponteiro nao resolve — entao sai da cobranca.
+  // "nao resolve no repo — proveniencia nao determinada": o doc declara que o ponteiro nao
+  // resolve E que a origem NAO foi medida. E a forma honesta quando a medicao nao fecha:
+  // melhor do que inventar data (foi o ERRO 2 que a r1 do GT-G5 pegou neste mesmo lote).
+  return /removido em|PATH APAGADO|apagado em|nunca versionado|o resolve no repo|N\u00c3O EXISTE|NAO EXISTE|renomead[ao] (pra|para)|Corrigido 20/i.test(linha);
 }
 
 function requisitosDocs() {
@@ -157,6 +177,7 @@ function auditRequisitos() {
     const orphans = [];
     for (const p of ptrs) {
       const alvo = resolvePtr(join(abs, '..'), p.path);
+      if (ehPlaceholder(p.path)) continue;        // notacao generica, nao caminho
       if (!isOrphan(alvo, p.path)) continue;
       const linha = linhas.find((l) => l.includes(p.path)) || '';
       if (declaraMorte(linha)) continue;

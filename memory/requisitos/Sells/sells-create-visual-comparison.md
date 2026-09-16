@@ -20,7 +20,7 @@ generated_retroactively: true
 > **Persona alvo:** Larissa (ROTA LIVRE biz=4), monitor 1280px, ~5 vendas/dia
 > **Refs:**
 > - Blade legacy: [`resources/views/sell/create.blade.php`](../../../resources/views/sell/create.blade.php) (996 LOC, jQuery + Bootstrap panels + Form::)
-> - Canon Cockpit list+detail: [`os-page.jsx`](../_DesignSystem/ui_kits/cowork-2026-04-27/os-page.jsx) (1021 LOC)
+> - Canon Cockpit list+detail: [`os-page.jsx`](../_DesignSystem/ui_kits/cowork-2026-04-27/os-page.jsx) (1021 LOC) _(removido em 2026-05-20, 1070e3759b7)_
 > - Page MWART atual: [`resources/js/Pages/Sells/Create.tsx`](../../../resources/js/Pages/Sells/Create.tsx)
 > - RUNBOOK: [`RUNBOOK-create.md`](RUNBOOK-create.md)
 > - SPEC: [`SPEC.md` US-SELL-001..009](SPEC.md)
