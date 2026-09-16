@@ -3,7 +3,7 @@ slug: 0401-resolucao-ds-bound-no-servidor-de-preview
 number: 401
 title: "Resolucao do DS bound no servidor de preview - emenda parcial a 0397 D4"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
