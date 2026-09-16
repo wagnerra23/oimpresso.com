@@ -83,7 +83,7 @@ tabela de negócio nenhuma, então não há query a escopar (ADR 0093 satisfeito
 - Faixa de aviso permanente no topo: quem abrir por engano sabe em 1 segundo que não é produção.
 - Botão "Finalizar venda" **desabilitado** por construção.
 
-**Âncora de design:** `prototipo-ui/design-oimpresso/04-modulos/vendas/sells-create.jsx` _(alvo não resolve no repo — proveniência não determinada)_
+**Âncora de design:** `prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx` _(repontado 2026-09-15 — a âncora anterior `prototipo-ui/design-oimpresso/04-modulos/vendas/sells-create.jsx` nunca versionado no repo; dono: `resources/js/Pages/Sells/CreateV3.charter.md`)_
 (cockpit "Venda — Guia de Produção", importado do projeto de design Oimpresso `019e2365` em 2026-08-06).
 Roda local em `http://localhost:5570` via a config `cockpit-vendas` do `.claude/launch.json`.
 

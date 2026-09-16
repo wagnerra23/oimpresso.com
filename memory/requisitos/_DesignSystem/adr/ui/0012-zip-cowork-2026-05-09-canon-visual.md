@@ -35,7 +35,7 @@ Em 2026-05-09 Wagner exportou novo zip do projeto Anthropic Cowork "Oimpresso ER
 
 A mesma sessão Cowork também produziu o batch F3 Financeiro (`prototipo-ui-patch/Modules/Financeiro/Http/Controllers/*.php` + `.tsx`) que foi **rejeitado pré-merge** ([`LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md), [PR #365](https://github.com/wagnerra23/oimpresso.com/pull/365)) por 21 anti-padrões (Models inventados, tenant scope ausente, middleware fantasma, etc).
 
-**Esta ADR só formaliza os assets visuais** (.jsx referência + HTML + CSS + screenshots). Os controllers e .tsx do batch F3 ficam fora — pinos visuais já estão em [`prototipo-ui/prototipos/financeiro-*/`](../../../../../prototipo-ui/prototipos/) ([PR #366](https://github.com/wagnerra23/oimpresso.com/pull/366)). _(alvo não resolve no repo — proveniência não determinada)_
+**Esta ADR só formaliza os assets visuais** (.jsx referência + HTML + CSS + screenshots). Os controllers e .tsx do batch F3 ficam fora — pinos visuais já estão em [`prototipo-ui/prototipos/financeiro-*/`](../../../../../prototipo-ui/prototipos/) ([PR #366](https://github.com/wagnerra23/oimpresso.com/pull/366)). _(removido em 2026-09-11, 4f51a9ec781)_
 
 ## Decisão
 
@@ -90,7 +90,7 @@ Telas-alvo ranqueadas por prioridade da fila ([`TELAS_REVIEW_QUEUE.md`](../../..
 **P1 (charter existente):**
 2. **Repair/{Dashboard,JobSheet,Status}** — `producao-page.jsx` referência (`Repair/ProducaoOficina` já mergeado por loop)
 3. **Financeiro/{ContasBancarias,Extrato}** — charters existem
-4. **Financeiro/{Fluxo,PlanoContas,DRE,Conciliacao}** — pinos F1 em `prototipo-ui/prototipos/financeiro-*/`. Bloqueados em backend (ver READMEs). _(alvo não resolve no repo — proveniência não determinada)_
+4. **Financeiro/{Fluxo,PlanoContas,DRE,Conciliacao}** — pinos F1 em `prototipo-ui/prototipos/financeiro-*/`. Bloqueados em backend (ver READMEs). _(removido em 2026-05-20, 1070e3759b7)_
 
 **P2:**
 5. **Cliente/Index** — `clientes-page.jsx` referência. Sem charter — criar antes.

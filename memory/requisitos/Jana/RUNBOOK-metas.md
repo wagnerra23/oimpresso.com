@@ -383,7 +383,7 @@ trabalho dirigido por [W] ([ADR 0382](../../decisions/0382-remove-trava-de-sinal
 | **B1** sem fonte de design | ✅ caiu | [#6379](https://github.com/wagnerra23/oimpresso.com/pull/6379) | `jana-metas.jsx` **24.187 B** e `jana-metas.css` **3.087 B** em `prototipo-ui/cowork/Wagner/` (medido no disco, em `origin/main`) |
 
 O #6379 trouxe junto `jana-telas-novas.{jsx,css}` (35.454 B / 4.004 B) e os 3 pedidos de
-27/08 para `prototipo-ui/design-docs/cowork-inbox/` — inclusive o `JANA-ERRATA-CAMADA-ESQUECIDA`, _(removido em 2026-09-11, 4f51a9ec781)_
+27/08 para `prototipo-ui/design-docs/cowork-inbox/` — inclusive o `JANA-ERRATA-CAMADA-ESQUECIDA`; hoje em `prototipo-ui/cowork/Wagner/cowork-inbox/JANA-ERRATA-CAMADA-ESQUECIDA-2026-08-27.md` _(o path antigo `prototipo-ui/design-docs/cowork-inbox/` foi removido em 2026-09-11, 4f51a9ec781)_
 que é a intake desta migração.
 
 ⇒ **O trabalho está DESBLOQUEADO.** A PR-1 do §9.4 ("trazer o `jana-metas`") **já está feita** —
