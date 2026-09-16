@@ -1448,6 +1448,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida).** Quando um instrumento reporta falso-positivo, a primeira pergunta é **QUAL PERGUNTA ele está respondendo** — não *"qual filtro seria melhor"*. Trocar de predicado, por mais canônico que o novo dono seja, **não conserta conflação de pergunta**; e importar o dono da pergunta errada é pior que a lista duplicada, porque o erro passa a vir com pedigree. Vale pra todo universo derivado: manifesto, denominador de cobertura, corpus de gate, `noEspelho`, allowlist. **O diagnóstico barato, e é o que esta emenda tem de próprio:** conserto que **reduz** falso-positivo sem **zerar** é sinal de que o predicado é do **TIPO** errado, não do **limiar** errado — se depois do fix ainda sobra um resíduo da mesma natureza, pare e releia a pergunta em vez de apertar o filtro. O que fecha é **separar os universos com nome** (aqui `universo: 'frescor' | 'conteudo'`, um por pergunta, mesma função), nunca eleger um filtro vencedor.
 
+### 2026-09-16 — Ler `rc=1` de `node <arquivo-que-não-existe>` como MORDIDA do mutante: a rodada de mutação inteira não provou nada, e os 3 vermelhos eram *file not found*
+
+- **O limite (variante também proibida).** Rodada de mutação só vira prova com **controle positivo ANTES dos mutantes**: rodar o teste íntegro e ver `rc=0` **pela via exata** que os mutantes vão usar. Sem isso, "o mutante matou N asserts" é indistinguível de "o comando nem iniciou", e a diferença é justamente a que a prova existe para estabelecer. Vale para todo bite-test por subprocesso, `--selftest` por CLI, e comparação antes×depois que invoque binário: **antes de interpretar o resultado, prove que o instrumento roda**. Corolário de shell que teria bastado: variável que guarda caminho de arquivo não se concatena com sufixo (`"$H.test.mjs"`) — o path do teste é seu próprio valor.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
