@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **932 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **933 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -11,7 +11,7 @@
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
 | [`Sells`](#sells) | 57 | 0 | 0 | 0 | 57 |
-| [`Infra`](#infra) | 50 | 0 | 0 | 0 | 50 |
+| [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Governance`](#governance) | 47 | 0 | 0 | 3 | 44 |
 | [`Financeiro`](#financeiro) | 45 | 0 | 0 | 0 | 45 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
@@ -345,6 +345,7 @@
 - **US-INFRA-050** — Exportar OIMPRESSO_MCP_TOKEN no ambiente (maiara)
 - **US-INFRA-051** — Exportar OIMPRESSO_MCP_TOKEN no ambiente (luiz)
 - **US-INFRA-052** — Exportar OIMPRESSO_MCP_TOKEN no ambiente (eliana)
+- **US-INFRA-053** — Token MCP novo (luiz) — o #22 foi revogado em 16/09
 
 ## Governance
 

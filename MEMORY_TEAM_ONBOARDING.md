@@ -85,13 +85,14 @@ node scripts/generate-dxt.js --all
 ```bash
 ssh hostinger
 cd ~/domains/oimpresso.com/public_html
-php artisan copiloto:mcp:gerar-token --user-email=felipe@oimpresso.com.br
+php artisan mcp:token:gerar --user=<ID> --name="DXT — Felipe"
 ```
 
 Ambos modos:
 - Token raw mostrado **1 vez só** (depois apenas hash fica no DB)
-- Token vive até revogar manualmente
-- Sem TTL automático
+- Token **nasce com 180 dias** de validade (PR #7388) — `--sem-validade` só pra
+  integração sem dono humano
+- Some do ar também se revogado manualmente (`McpTokenIssuer::revoke`)
 
 ### Entregar token via canal seguro
 
