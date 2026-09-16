@@ -2084,8 +2084,10 @@
   *"o que voce leu"*, e *"o path absoluto que este comando referencia resolve para arquivo
   DIFERENTE do mesmo path relativo sob o cwd?"* — computavel so do texto do comando, e medido
   **pelo `ciclo-adversary`, nao por mim** sobre **151.261** comandos do corpus: **7** ocorrencias, com
-  controle positivo e negativo. ⚠️ O denominador eu re-medi e bate (**150.830** blocos `"name":"Bash"`
-  em 1.772 transcripts, delta 0,3%); **o numerador 7 eu NAO re-verifiquei e a lapide nao carrega o
+  controle positivo e negativo. ⚠️ O denominador eu re-medi e bate (`grep -c '"name":"Bash"'` sobre os transcripts de
+  `~/.claude/projects` deu **150.830** blocos em **1.772** arquivos, delta 0,3% do denominador dele —
+  ⚠️ numero VIVO: o corpus cresce durante a propria sessao, e uma 2a leitura ja deu 150.927/1773,
+  entao cite-o com o comando e a hora, nunca como constante); **o numerador 7 eu NAO re-verifiquei e a lapide nao carrega o
   comando que o reproduz** — entao ele vale como medicao do adversario, nunca como recibo meu. A regra
   que isto quase violou e a §5 2026-07-28: numero so entra em canon com o comando ao lado. E a forma nao e sintatica: e **duas pernas com medicao** (2a perna = `cmp` dos dois
   arquivos, mordendo so se divergirem), que e exatamente o que o campo `Gate:` da LC-08 descreve
