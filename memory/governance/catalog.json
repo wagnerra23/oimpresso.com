@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 715,
-    "edges": 1009,
+    "nodes": 717,
+    "edges": 1010,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 116,
+      "adr": 118,
       "component": 384,
       "api": 74
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 108,
       "migratesTo": 1,
       "supersedes": 24,
-      "supersedesPartially": 52,
+      "supersedesPartially": 53,
       "supersededBy": 28
     },
     "dangling": 0
@@ -864,6 +864,20 @@
       "type": "adr",
       "num": "0401",
       "slug": "0401-resolucao-ds-bound-no-servidor-de-preview",
+      "exists": true
+    },
+    {
+      "id": "adr:0402",
+      "type": "adr",
+      "num": "0402",
+      "slug": "0402-denominador-de-tela-inclui-pages-de-modulo",
+      "exists": true
+    },
+    {
+      "id": "adr:0403",
+      "type": "adr",
+      "num": "0403",
+      "slug": "0403-errata-0402-denominador-ja-inclui-pages-de-modulo",
       "exists": true
     },
     {
@@ -6416,6 +6430,12 @@
     {
       "from": "adr:0401",
       "to": "adr:0397",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0403",
+      "to": "adr:0402",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },

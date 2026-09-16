@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **407** arquivos · **392** números únicos · máx **0402**
-- **ADRs ATIVOS (lifecycle ativo): 361** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 357 · superseded 25 · proposto 12 · deprecated 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 361 · substituido 25 · arquivado 21
+- **408** arquivos · **393** números únicos · máx **0403**
+- **ADRs ATIVOS (lifecycle ativo): 362** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 357 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 362 · substituido 25 · arquivado 21
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (407)
+## Todas as ADRs (408)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -445,3 +445,4 @@ _(nenhuma)_
 | 0400 | aceito | ativo | decision | Emenda à 0314 — `handoff integrity` vira required por decisão soberana [W], com  |
 | 0401 | aceito | ativo | decision | Resolucao do DS bound no servidor de preview - emenda parcial a 0397 D4 |
 | 0402 | proposto | ativo | decision | Denominador de tela inclui as Pages de modulo (Modules/*/Resources/js/Pages) |
+| 0403 | proposto | ativo | decision | Errata a 0402 - o denominador de tela JA inclui as Pages de modulo |
