@@ -77,7 +77,25 @@ console.log('=== R3 · o .md do Cowork pousa com a árvore dele (decisão [W] 20
   check('CONTROLE: e o .md dele também não passa na R3', soR3(r).length === 1, r.errors.join(' | '));
 }
 
-console.log('\n=== R4 · duplicata de bytes NÃO foi afrouxada junto ===');
+console.log('\n=== R4 · unicidade por dono, contas independentes e DS canônico ===');
+{
+  const r = rodar({
+    'prototipo-ui/cowork/Wagner/page.jsx': 'mesma fonte\n',
+    'prototipo-ui/cowork/Felipe/page.jsx': 'mesma fonte\n',
+  });
+  check('RELEASE: bytes iguais em contas diferentes são permitidos', r.code === 0, r.errors.join(' | '));
+  const ds = rodar({
+    'prototipo-ui/cowork/Wagner/tokens.css': 'mesmo DS\n',
+    'prototipo-ui/design-system/tokens.css': 'mesmo DS\n',
+  });
+  check('BITE: namespace de conta não permite duplicar DS canônico', ds.errors.some((e) => e.startsWith('R4')));
+  const internal = rodar({
+    'prototipo-ui/cowork/Wagner/a.md': 'mesmo\n',
+    'prototipo-ui/cowork/Wagner/b.md': 'mesmo\n',
+    'prototipo-ui/cowork/Felipe/a.md': 'mesmo\n',
+  });
+  check('BITE: outra conta não encobre duplicata interna', internal.errors.some((e) => e.startsWith('R4')));
+}
 {
   // Medido em 2026-09-13 no pacote real: `cowork-inbox/sidebar/playbook/` e
   // `entrega-sidebar-code/playbook/` trazem 10 pares byte-idênticos. Duplicata na FONTE não

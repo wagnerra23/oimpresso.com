@@ -47,7 +47,7 @@ import { join, dirname, normalize, sep } from 'node:path';
 import { payloadDependencyGraph, normalizePayloadPath } from './payload-dependency-graph.mjs';
 import { destinoDoBundle } from '../governance/cowork-mirror-freshness.mjs';
 import { BUNDLE_SCHEMA, sha256 } from './bundle-contract.mjs';
-import { applyBundleTransaction, applyLegacySnapshotTransaction } from './bundle-transaction.mjs';
+import { applyBundleTransaction, applyLegacySnapshotTransaction, pathsForOwner } from './bundle-transaction.mjs';
 
 const ROOT = process.cwd();
 const DESTINO = 'prototipo-ui/cowork/Wagner';
@@ -55,7 +55,13 @@ const DESTINO = 'prototipo-ui/cowork/Wagner';
 // Ver o cabeçalho do importar-bundle.mjs pra medição (337 de 816 arquivos eram descartados).
 const BUILD_SOURCE_RE = /\.(?:jsx?|tsx?|mjs|cjs|css|html|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot|md)$/i;
 const args = process.argv.slice(2);
-const arquivos = args.filter((a) => !a.startsWith('--'));
+const ownerIndex = args.indexOf('--owner');
+const owner = ownerIndex < 0 ? 'Wagner' : args[ownerIndex + 1];
+if (ownerIndex >= 0 && !['Wagner', 'Felipe'].includes(owner)) { console.error('✗ --owner exige Wagner ou Felipe'); process.exit(2); }
+let paths;
+try { paths = pathsForOwner(owner); }
+catch (error) { console.error(error.message); process.exit(2); }
+const arquivos = args.filter((a, i) => !a.startsWith('--') && (ownerIndex < 0 || i !== ownerIndex + 1));
 const dry = args.includes('--dry');
 const requireCompleteShell = args.includes('--require-complete-shell');
 
@@ -140,13 +146,13 @@ if (v2.length) {
     process.exit(2);
   }
   try {
-    const result = await applyBundleTransaction({ root: ROOT, parts: v2, dry });
+    const result = await applyBundleTransaction({ root: ROOT, parts: v2, dry, paths });
     const summary = result.report.summary;
     console.log(`\n  ✓ BUNDLE v2 ${dry ? 'VALIDADO (dry-run)' : 'PROMOVIDO ATOMICAMENTE'}`);
     console.log(`  id: ${result.manifest.bundleId} · modo ${result.manifest.mode} · ${result.manifest.totals.files} arquivo(s)`);
     console.log(`  transporte: ${summary.transportChanges} mudança(s) · telas: ${summary.screens} · pendentes: ${summary.pending || 0} · bloqueadas: ${summary.blocked || 0}`);
-    console.log(`  estado: scripts/design-sync/state/active-bundle.json`);
-    console.log(`  lista operacional: scripts/design-sync/state/application-report.json\n`);
+    console.log(`  estado: ${paths.state}/active-bundle.json`);
+    console.log(`  lista operacional: ${paths.state}/application-report.json\n`);
     process.exit(0);
   } catch (error) {
     console.error(`\n✗ BUNDLE v2 RECUSADO: ${error.message}`);
@@ -154,6 +160,7 @@ if (v2.length) {
     process.exit(1);
   }
 }
+if (owner !== 'Wagner') { console.error('✗ --owner Felipe exige bundle v2; payload parcial legado não prova isolamento'); process.exit(2); }
 // O envelope pode declarar a convenção do digest (`hash`). O `flatMap` achata os lotes e
 // perderia essa procedência, então guardo por REFERÊNCIA do objeto — sem copiar conteúdo.
 const hashDeclarado = new WeakMap();

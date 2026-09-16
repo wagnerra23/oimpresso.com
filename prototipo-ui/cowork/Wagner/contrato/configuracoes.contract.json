@@ -1,0 +1,197 @@
+{
+  "$schema": "prototipo-ui/contrato/contrato-tela.schema.json",
+  "id": "configuracoes",
+  "titulo": "Configurações",
+  "modulo": "Core (UltimatePOS) + Restaurant + Superadmin",
+  "rota": "cfg-empresa",
+  "rotas": ["cfg-empresa", "cfg-locais", "cfg-fatura", "cfg-barras", "cfg-impressoras", "cfg-impostos", "cfg-modificadores", "cfg-servicos", "cfg-pacote"],
+  "build": [
+    "configuracoes-page.jsx",
+    "configuracoes-cadastros.jsx",
+    "configuracoes-fatura.jsx",
+    "configuracoes-page.css"
+  ],
+  "charter": "resources/js/Pages/Configuracoes/Configuracoes.charter.md",
+  "blade": [
+    "business/settings.blade.php + business/partials/settings_*.blade.php (16)",
+    "business_location/{index,create,edit}.blade.php",
+    "invoice_scheme/{index,create}.blade.php",
+    "invoice_layout/create.blade.php",
+    "barcode/{index,create}.blade.php",
+    "printer/{index,create}.blade.php",
+    "tax_rate/index.blade.php + tax_group/create.blade.php",
+    "restaurant/modifier_sets/{index,create}.blade.php",
+    "types_of_service/{index,create}.blade.php"
+  ],
+  "adr": ["0286 Contrato de Tela", "0190 primary roxo", "0239 DS git SSOT", "0235 tokens"],
+  "raiz": ".cfg-page",
+  "screenLabel": "Configurações · <tela>",
+  "secoes": [
+    {
+      "id": "header",
+      "seletor": ".cfg-page .os-page-h",
+      "obrigatoria": true,
+      "copy": { "titulo": "Configurações", "sub": "<tela> — o grupo “Configurações” do menu antigo, tela por tela" },
+      "elementos": [
+        { "id": "papel", "seletor": ".hrm-sim select:first-child", "opcoes": ["Administrador (Wagner)", "Gerente", "Balcão (Larissa)"], "nota": "afordância de protótipo, não vai pro F3" },
+        { "id": "pacote", "seletor": ".hrm-sim select:last-child", "opcoes": ["Pacote Essencial", "Pacote Profissional"] },
+        { "id": "escopo", "seletor": ".hrm-scope", "copy": "rota do legado da tela ativa" },
+        { "id": "prefs", "copy": "Preferências", "componente": "Button variant=ghost" }
+      ]
+    },
+    {
+      "id": "abas",
+      "seletor": ".cfg-page .hrm-tabs",
+      "obrigatoria": true,
+      "copy": [
+        "Configuração da empresa",
+        "Locais comerciais",
+        "Configurações da fatura",
+        "Código de barras",
+        "Modelos de notificação",
+        "Impressoras de recibos",
+        "Taxas de imposto",
+        "Modificadores",
+        "Tipos de serviço",
+        "Assinatura de pacote"
+      ],
+      "ordem": "literal do menu Blade (AdminLTE) — não reordenar por afinidade",
+      "regra": "aba sem permissão fica visível e apagada (.cfg-tab-off), nunca removida"
+    },
+    {
+      "id": "empresa",
+      "seletor": ".cfg-page .cfg-body",
+      "obrigatoria": true,
+      "rail": [
+        "Negócio", "Impostos", "Produtos", "Contatos",
+        "Vendas", "Venda no PDV", "Compras", "Pagamento",
+        "Painel", "Sistema", "Prefixos",
+        "E-mail", "SMS", "Pontos de fidelidade", "Módulos", "Rótulos personalizados"
+      ],
+      "salvar": { "copy": "Atualizar configurações", "regra": "um botão pro formulário inteiro (POST /business/update); trocar de aba não perde digitação" },
+      "campos": {
+        "negocio": ["Nome do negócio", "Data de início", "Margem de lucro padrão (%)", "Moeda", "Posição do símbolo", "Fuso horário", "Mês que abre o exercício", "Método de custo", "Dias para editar uma transação", "Formato de data", "Formato de hora", "Casas decimais do valor", "Casas decimais da quantidade", "Logo do negócio", "Nome do código 1", "Código 1", "Nome do código 2", "Código 2", "Permitir exportar listas"],
+        "prefixos": 17,
+        "pdvSwitches": 18,
+        "rotulos": { "pagamento": 7, "contato": 10, "produto": 20, "local": 4, "usuario": 4, "compra": 4, "freteCompra": 5, "venda": 4, "freteVenda": 5, "servico": 6 },
+        "sms": { "cabecalhos": 3, "parametros": 10 }
+      }
+    },
+    { "id": "locais", "seletor": ".cfg-page .hrm-tabela, .cfg-page .os-table",
+      "componente": "DataTablePro",
+      "colunas": ["Nome", "ID do local", "Ponto de referência", "Cidade", "CEP", "UF", "Tabela de preço", "Numeração", "Layout na venda", "Ações"],
+      "acoesLinha": [
+        { "id": "editar", "copy": "Editar", "perm": "business_settings.access" },
+        { "id": "recibo", "copy": "Recibo", "perm": "business_settings.access + can_access_this_location" },
+        { "id": "ativar", "copy": "Ativar | Desativar", "perm": "business_settings.access", "regra": "não existe excluir — destroy() vazio" }
+      ],
+      "drawer": {
+        "componente": "Drawer",
+        "secoes": ["Identificação", "Endereço", "Contato", "Documento e preço", "Formas de pagamento"],
+        "identificacao": ["Nome", "ID do local", "Razão social", "Nome fantasia", "CNPJ", "Inscrição estadual", "Inscrição municipal"],
+        "formasPagamento": { "seletor": ".cfg-pagtos", "colunas": ["Forma de pagamento", "Aceita", "Conta padrão"], "campo": "default_payment_accounts" }
+      },
+      "lote": { "componente": "BulkBar", "acoes": ["Exportar seleção"], "regra": "excluir NÃO entra em lote" },
+      "recibo": { "blade": "location_settings/index.blade.php", "campos": ["Imprimir recibo ao faturar", "Tipo de impressão", "Impressora de recibo", "Layout da fatura", "Esquema de numeração"], "regra": "APP_ENV=demo força receipt_printer_type=browser" }
+    },
+    {
+      "id": "fatura",
+      "seletor": ".cfg-page .hrm-seg",
+      "copy": ["Esquemas de numeração", "Layouts da fatura"],
+      "esquemas": { "colunas": ["Nome", "Prefixo", "Tipo de número", "Número inicial", "Emitidas", "Dígitos", "Ações"] },
+      "layouts": { "componente": "Card", "acoes": ["Abrir editor", "Excluir"], "regra": "layout padrão não pode ser excluído" },
+      "editor": {
+        "seletor": ".cfg-lay",
+        "rail": ["Identificação", "Cabeçalho", "Títulos do documento", "Negócio e vendedor", "Cliente", "Endereço e contato", "Tabela de itens", "Detalhes do produto", "Totais e pagamento", "QR code", "Nota de crédito", "Rodapé"],
+        "prova": { "seletor": ".cfg-prova", "componente": "ProofFrame + RegistrationMark", "regra": "a folha reflete cada campo na hora; nunca prévia estática" },
+        "somenteLeitura": "sem fatura.update o editor abre com aviso e salvar desligado"
+      }
+    },
+    { "id": "barras", "colunas": ["Nome da configuração", "Descrição", "Papel", "Ações"], "unidade": "milímetro na UI, polegada no blade" },
+    { "id": "impressoras", "colunas": ["Nome", "Tipo de conexão", "Perfil", "Caracteres/linha", "Endereço IP", "Porta", "Caminho", "Ações"], "acoes": ["Testar", "Editar", "Excluir"] },
+    { "id": "impostos", "tabelas": [
+      { "titulo": "Taxas de imposto", "colunas": ["Nome", "Alíquota (%)", "Ações"] },
+      { "titulo": "Grupos de imposto", "colunas": ["Nome", "Alíquota (%)", "Impostos do grupo", "Ações"] }
+    ], "aviso": "não substitui o cálculo fiscal (NF-e Brasil)" },
+    { "id": "modificadores", "colunas": ["Conjunto", "Modificadores", "Produtos", "Ações"], "plano": "Profissional" },
+    { "id": "servicos", "colunas": ["Nome", "Descrição", "Taxa de embalagem", "Ações"] },
+    { "id": "pacote", "cards": ["Pacote ativo", "Trocar de pacote"], "colunas": ["Pacote", "Início", "Validade", "Valor", "Forma", "Situação"], "perm": "pacote.view" }
+  ],
+  "estados": {
+    "dados": { "descricao": "operação normal" },
+    "carregando": { "componente": "Skeleton", "descricao": "skeleton de linhas enquanto a lista não volta" },
+    "vazio": { "componente": "EmptyState variant=first", "regra": "diz pra que serve a tela e oferece o primeiro cadastro" },
+    "sem-resultado": { "componente": "EmptyState variant=no-results", "copy": "Nada com esse termo", "acao": "Limpar busca" },
+    "sem-permissao": { "componente": "EmptyState variant=no-perm", "copy": "Acesso restrito", "regra": "diz a permissão que falta e a quem pedir" },
+    "bloqueado-plano": { "componente": "Alert tone=warn", "copy": "Não está no seu pacote", "acao": "Ver pacotes" }
+  },
+  "permissoes": {
+    "_fonte": "nomes literais lidos no main 2026-08-22 (tree 6a8e45998ee5)",
+    "business_settings.access": ["Configuração da empresa", "Locais comerciais", "Recibo do local (+ can_access_this_location)"],
+    "invoice_settings.access": ["Esquemas de numeração", "Layouts da fatura — sem separar ver × editar"],
+    "barcode_settings.access": ["Código de barras"],
+    "access_printers": ["Impressoras de recibos"],
+    "tax_rate.view|create|update|delete": ["Taxas e grupos de imposto"],
+    "product.create": ["Modificadores — não há permissão própria"],
+    "access_types_of_service": ["Tipos de serviço"],
+    "nao_conferido": ["/subscription (módulo Superadmin)"],
+    "papeis_simulados": {
+      "admin": "todas",
+      "gerente": ["access_printers", "barcode_settings.access", "access_types_of_service", "product.create", "tax_rate.view", "tax_rate.create", "tax_rate.update"],
+      "balcao": ["access_printers", "access_types_of_service"]
+    }
+  },
+  "planos": {
+    "Essencial": { "locais": 1, "usuarios": 3, "modificadores": false, "integracoes": false },
+    "Profissional": { "locais": 5, "usuarios": 15, "modificadores": true, "integracoes": true }
+  },
+  "regras": [
+    { "id": "R1", "texto": "As 16 abas da empresa são um formulário só; trocar de aba não perde digitação." },
+    { "id": "R2", "texto": "Prefixo e esquema não renumeram documento emitido." },
+    { "id": "R3", "texto": "Taxa daqui alimenta preço e total do documento; NF-e é do módulo fiscal." },
+    { "id": "R4", "texto": "Local tem CNPJ/IE/IM próprios e emite com o próprio cadastro." },
+    { "id": "R5", "texto": "Forma de pagamento e conta padrão são por local (default_payment_accounts)." },
+    { "id": "R6", "texto": "business_settings.access cobre empresa E locais — o legado não tem granularidade (achado)." },
+    { "id": "R7", "texto": "Cota de local vem de ModuleUtil::isSubscribed + isQuotaAvailable('locations'), não de constante de tela." },
+    { "id": "R8", "texto": "Rótulo personalizado vazio não aparece em tela nenhuma." },
+    { "id": "R9", "texto": "Confirmação de exclusão explica que documento passado não muda." },
+    { "id": "R10", "texto": "Medida de etiqueta em mm na UI; polegada é detalhe de persistência." },
+    { "id": "R11", "texto": "Local não se exclui (destroy() vazio) — só ativar/desativar." },
+    { "id": "R12", "texto": "invoice_scheme_id e invoice_layout_id são NOT NULL + FK: obrigatórios no formulário do local." },
+    { "id": "R13", "texto": "Criar local cria a permissão location.<id>." },
+    { "id": "R14", "texto": "ID do local é único no negócio (checkLocationId)." },
+    { "id": "R15", "texto": "Taxa em grupo não pode ser excluída; editar alíquota recalcula os grupos (updateGroupTaxAmount)." }
+  ],
+  "a11y": {
+    "focoPreso": ["Drawer e Modal do DS"],
+    "erroFormulario": ".cfg-erro[role=alert] no topo do drawer",
+    "live": "Toast do DS em role=status aria-live=polite",
+    "tabelaPagamentos": "aria-label por checkbox e por select (Aceitar <forma> · Conta padrão de <forma>)",
+    "travado": "disabled + texto de ajuda explicando o papel, nunca só opacidade",
+    "alvoToqueMin": 44
+  },
+  "proibicoes": [
+    "cor crua fora dos tokens (exceção: a folha de prova é papel branco — tinta em preto/cinza + cor de destaque)",
+    "inglês em UI cliente-facing",
+    "emoji",
+    "modal full-screen para detalhe",
+    "rounded-xl+",
+    "arquivo .html novo por tela"
+  ],
+  "decisoesPendentes": [
+    "SMS: manter os 10 pares do legado ou fixar gateway homologado no Brasil",
+    "Rótulos: manter 20 campos de produto ou cortar pra 8 com migração",
+    "Cor de destaque do layout: hex livre (legado) vs. travar nos tokens da marca",
+    "ZATCA QR: remover da UI brasileira ou esconder atrás de país",
+    "Layout da fatura vs. PT-07 (folha de prova da OS): dois desenhos ou um motor de impressão",
+    "Granularidade: criar business_location.* e separar ver × editar em invoice_settings (mudança de backend)",
+    "Bugs pro F3: store() de tipos de serviço sem json_encode em location_price_group; sem FormRequest; product.create como acesso de modificador",
+    "Permissão de /subscription não conferida no main"
+  ],
+  "ds": {
+    "bundle": "_ds/office-impresso-design-system-…/_ds_bundle.js",
+    "namespace": "window.OfficeImpressoPontoWR2DesignSystem_019dd0",
+    "componentes": ["DataTablePro", "Drawer", "DrawerSection", "Modal", "Input", "Select", "Textarea", "Switch", "Alert", "Toast", "EmptyState", "Skeleton", "Pagination", "BulkBar", "ProofFrame", "RegistrationMark"],
+    "regra": "Chrome de tabela, formulário, overlay e feedback vêm do bundle (via HrmUI/AcessosDS). CSS local só layout de área, namespace .cfg-."
+  }
+}
