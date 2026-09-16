@@ -339,9 +339,16 @@ function docsDoDiffC1() {
 }
 
 function auditMudouDeCasa(docs) {
-  if (!docs.length) return [];
+  // ⚠️ os dois early-returns devolvem a MESMA FORMA do return final ({achados, naoResolvidos}).
+  // Devolver `[]` aqui crashava o `--json` com "Cannot read properties of undefined": o
+  // chamador faz `c1.naoResolvidos.length`, e `[]` e truthy, entao o guard `c1 !== null` nao
+  // pega. Pior, batia no caso COMUM — PR que nao toca memory/requisitos deixa `docs` vazio.
+  // O modo TEXTO nao usava `c1` e por isso o CI passava: gate verde num modo, quebrado no
+  // outro (§5 2026-07-28, agora no eixo MODO do mesmo script).
+  const vazio = { achados: [], naoResolvidos: [] };
+  if (!docs.length) return vazio;
   const vivos = blobsVivosEmMain();
-  if (!vivos.size) return [];            // sem indice nao ha medicao — NAO afirmar verde (LC-33)
+  if (!vivos.size) return vazio;            // sem indice nao ha medicao — NAO afirmar verde (LC-33)
   const achados = [];
   const naoResolvidos = [];   // LC-33: nao-medicao contada, nunca silenciada
   const raiz = ROOT.split(BS).join(SL_C1) + SL_C1;

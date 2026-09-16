@@ -465,6 +465,23 @@ const tsxTabela = [
     ac.length === 1, JSON.stringify(ac));
   check('(e4-c) DISPENSA e por DESTINO, nao por vocabulario (foi movido para tambem sai)',
     ac.length === 1, JSON.stringify(ac));
+
+  // (e4-d) O MODO QUE O BITE NAO EXERCITAVA. Os asserts acima passam `--todos`, e com ele
+  // `requisitosDocs()` nunca volta vazio — o ramo `!docs.length` ficava sem cobertura. Sem
+  // `--todos` o universo vem de `docsDoDiffC1()`, que aqui e VAZIO (origin/main == HEAD), e
+  // era ai que o `return []` (em vez de {achados, naoResolvidos}) explodia o `--json` com
+  // "Cannot read properties of undefined". Caso COMUM em producao: todo PR que nao toca
+  // memory/requisitos. O modo TEXTO nao le `c1`, entao o CI passava verde — gate sao num
+  // modo e quebrado no outro (§5 2026-07-28, eixo MODO). Mordida provada por mutacao:
+  // revertendo os early-returns para `[]`, este assert cai e os (e4) acima seguem verdes.
+  const rSemTodos = spawnSync('node', [POINTERS, '--json'], { cwd: root, encoding: 'utf8' });
+  let jSemTodos = null;
+  try { jSemTodos = JSON.parse(rSemTodos.stdout); } catch { /* */ }
+  check('(e4-d) BITE — `--json` sem `--todos` (universo vazio) nao crasha e devolve a forma',
+    rSemTodos.status === 0 && jSemTodos !== null
+      && Array.isArray(jSemTodos.mudou_de_casa)
+      && jSemTodos.mudou_de_casa_nao_resolvidos === 0,
+    `exit=${rSemTodos.status} stderr=${(rSemTodos.stderr || '').split(String.fromCharCode(10))[0]}`);
 }
 
 console.log('');
