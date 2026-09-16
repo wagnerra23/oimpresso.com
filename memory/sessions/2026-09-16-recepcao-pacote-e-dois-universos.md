@@ -37,7 +37,9 @@ controle positivo .. grep -c function = 22 (a sonda lê o arquivo)
 
 O D1 foi consertado em **2026-09-08, o mesmo dia da errata** — e o docblock do fix achou um **segundo defeito** que a errata não viu: o `|| subscription` anulava o gate inteiro, então o `&&` nunca se manifestou em produção e consertar só ele teria sido inerte. A errata subestimava: dizia *"bloqueia o técnico"*, era *"o gate não existia"*.
 
-A nota virou uma devolutiva com seção **"⛔ não restaure isto"**. Canal: `CODE_NOTES.*` em `memory/reference/prototipo-ui/` (10 precedentes, mesmo assunto). Quase escrevi em `handoffs/` — errado: aquilo é **intake de ordem de serviço** (ADR 0283/0285, push em `main` → HMAC → `handoff-submit` → pending), e escrever lá injetaria uma OS falsa.
+A nota virou uma devolutiva com seção **"⛔ não restaure isto"**.
+
+⚠️ **E o pedido de restauração que ela fazia CAIU no mesmo dia** — [ADR 0404](../decisions/0404-ultimo-importado-e-autoridade-do-espelho.md) (#7439), *"o que vale sempre deve ser o último importado"*, com `supersedes_partially: [0398]`. A auditoria leu os **ZIPs originais 16–20** em vez de tomar o espelho como substituto do export anterior: o índice do Patrimônio tem **9.533 B nos cinco**, o do Sidebar **26.514 B nos cinco**, e 18→19→20 teve **zero arquivo modificado ou removido**. Os 510 cortes que eu medi comparavam o Git **enriquecido pela restauração/fusão documentada na própria ADR 0398** com o importado — não dois exports da conta. Meu *"um único commit, logo nunca editado deste lado"* era verdadeiro no nível do COMMIT e enganoso no nível do CONTEÚDO, porque o enriquecimento aconteceu **dentro** daquele import. O que sobrevive do CODE_NOTES: o §2 (o D1 já estava consertado) e os 8 paths inexistentes — a tratar **na origem**, nunca no espelho. Canal: `CODE_NOTES.*` em `memory/reference/prototipo-ui/` (10 precedentes, mesmo assunto). Quase escrevi em `handoffs/` — errado: aquilo é **intake de ordem de serviço** (ADR 0283/0285, push em `main` → HMAC → `handoff-submit` → pending), e escrever lá injetaria uma OS falsa.
 
 ## 4 · O achado do dia: o espelho tem dois universos
 
@@ -55,7 +57,7 @@ Nenhuma das três defesas que funcionaram foi revisão de código:
 - **327 → 38 que não zerava** — o resíduo que não some é a assinatura de predicado do tipo errado, não do limiar errado. Virou lápide §5 (emenda da 2026-08-25).
 - **o `assert` da âncora** — barrou uma reescrita de PR body onde eu havia escrito o emoji como par de surrogate. Aí a segunda metade da lição cobrou: o script abria o destino com `io.open(p,'w')`, e o **ledger foi truncado a 0 bytes** (518.610 → 0) antes do encode falhar. Recuperado por `git checkout HEAD --`, zero perda, refeito com `encode` antes do `open`.
 
-Ledger: 3 `- **rec**` (LC-08 ×2 → 94, LC-26 ×1 → 15) + a lápide na fonte, com o derivado regerado (`sec5-derive --check` verde, 200 limites).
+Ledger: **4** `- **rec**` (LC-08 ×3 → 96, LC-26 ×1 → 15) + a lápide na fonte, com o derivado regerado (`sec5-derive --check` verde, **201** limites — 200 meus + 1 do #7440, resolvido append-only). A 3ª rec da LC-08 é a refutação do §3: a ADR 0404 nomeou que meu delta comparava o Git enriquecido contra o importado.
 
 ## 6 · Erro de método que vale mais que os três
 

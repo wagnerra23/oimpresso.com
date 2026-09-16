@@ -129,6 +129,7 @@ Um item existe em UM lugar autoritativo por vez:
 ### TESTE-03 · Conflito de dois escritores ([W] edita Cowork × snapshot velho no git)
 - **o que testei:** [W] vota no Register no Cowork enquanto existe cópia no repo.
 - **resultado:** resolvido pela regra **Cowork-autoritativo / repo é snapshot read-only**. Ninguém edita os dois lados.
+- **Protocolo explicitado por [W] em 2026-09-16:** a **última importação válida e aceita prevalece**, mesmo que o Git anterior seja mais extenso. Não fundir nem restaurar versões antigas no espelho; corrigir a origem e importar novamente. Histórico serve para comparação. Gates e escopo de delta permanecem obrigatórios — [ADR 0404](../../decisions/0404-ultimo-importado-e-autoridade-do-espelho.md).
 - **nota:** **9/10** (simples e robusto; só falha se alguém editar direto no repo — proibido por convenção).
 
 ### TESTE-05 · 1ª passada REAL do ciclo (D-01 rodado Avaliar→Testar em produção)

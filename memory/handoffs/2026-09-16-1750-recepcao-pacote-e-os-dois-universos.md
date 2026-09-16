@@ -8,7 +8,7 @@ decided_by: [W]
 related_adrs: [0398-espelho-cowork-recebe-a-arvore-da-conta, 0390-bundle-design-build-only, 0374-emenda-0315-espelho-cowork-e-rota-prevista]
 next_steps:
   - "Decisão (a) pendente de [W]: o exportPlan recusa .md (decisão [W] 11/09, pinada em teste) enquanto a ADR 0398 D2 (13/09) diz que .md é conteúdo do espelho — a 0398 não menciona aquele mecanismo. Reconciliar libera relaxar o galho .md do liveOnlyDetalhado."
-  - "Upstream no Cowork (CODE_NOTES de hoje): restaurar o conteúdo perdido dos 17, NÃO verbatim (o achado D1 morreu em 08/09); corrigir os 8 paths que não existem em árvore nenhuma; dizer o que causou a perda."
+  - "⚠️ RETIRADO pela ADR 0404 (aceita no mesmo dia, #7439): o pedido de restaurar os 17 CAIU. A auditoria leu os ZIPs 16–20 e refutou a atribuição de perda — os índices tinham o MESMO tamanho nos cinco exports, e os 510 cortes comparavam o Git ENRIQUECIDO pelo #7256 com o importado, não dois exports da conta. O que vale é o último importado; não restaurar nem fundir. Seguem válidos do CODE_NOTES: os 8 paths inexistentes (tratar na ORIGEM, nunca no espelho) e o §2, que o D1 já estava consertado."
   - "D-RECEPCAO-FALHA e D-QUEM-REGENERA seguem abertas de direito — o receber-handoff já responde as duas de fato (falha fechada; nunca commita pacote). Ratificar fecha sem código."
 ---
 
@@ -28,7 +28,7 @@ next_steps:
 
 Os 281 do pacote × os 278 do gerador eram **5 arquivos, todos `_ds/**`** — 3 `woff2` que o grafo não alcança (a sessão irmã provou depois que são **byte-idênticos** ao `-400`, quatro nomes um arquivo) e 2 resolvidos por regra, espelho vencendo.
 
-[W] então mandou trazer os **36 de `cowork-inbox/`**. Eu havia levantado que 9 dos 17 divergentes tinham o espelho à frente; ao medir descobri que os 17 têm **um commit só** — foram importados, nunca editados aqui —, o que inverte o argumento: a [ADR 0398 D1](../decisions/0398-espelho-cowork-recebe-a-arvore-da-conta.md) manda espelhar. Desceram os 36, com as 510 linhas substituídas registradas no corpo do PR e recuperáveis em `ba8e812d687`.
+[W] então mandou trazer os **36 de `cowork-inbox/`**. Eu havia levantado que 9 dos 17 divergentes tinham o espelho à frente; ao medir descobri que os 17 têm **um commit só** — foram importados, nunca editados aqui —, o que inverte o argumento: a [ADR 0398 D1](../decisions/0398-espelho-cowork-recebe-a-arvore-da-conta.md) manda espelhar. Desceram os 36, com as 510 linhas substituídas registradas no corpo do PR e recuperáveis em `ba8e812d687`. ⚠️ **A LEITURA que eu dei a esse número foi refutada no mesmo dia** ([ADR 0404](../decisions/0404-ultimo-importado-e-autoridade-do-espelho.md), #7439): eu o atribuí a *"a conta perdeu conteúdo entre os exports 18 e 20"*, e a auditoria leu os **ZIPs 16–20** — o índice do Patrimônio tem **9.533 B em todos os cinco**, e 18→19→20 teve **zero arquivo modificado ou removido**. O delta comparava o Git **enriquecido pela restauração/fusão do próprio #7256** com o importado. Tomei o espelho como proxy do export anterior tendo os ZIPs no disco — e eu mesmo os havia listado no primeiro comando da sessão.
 
 Investigar **por que os 19 novos eram invisíveis** virou o achado do dia. O `liveOnly` classificava **327** paths versionados de `cowork-inbox/` como *"existe no vivo e NUNCA desceu"*, porque o universo do manifesto filtrava por extensão de build e a subárvore inteira (378 arquivos, 87% `.md`) ficava fora. Conserto: **dois universos com nome** — `frescor` (o que pode ser comparado) e `conteudo` (o que o espelho tem), um por pergunta. Falso-ausentes → **0**.
 
@@ -38,9 +38,9 @@ Investigar **por que os 19 novos eram invisíveis** virou o achado do dia. O `li
 |---|---|---|
 | Recibos `_saida-01` + `_saida-02` + pedido + patch de índice | `prototipo-ui/cowork/Wagner/cowork-inbox/recepcao-pacote/playbook/` | 5 arquivos, +363 ln |
 | Os 36 do `cowork-inbox` (19 novos + 17 espelhados) | `prototipo-ui/cowork/Wagner/cowork-inbox/` | 36 arquivos, +1855/−542 |
-| Devolutiva ao Cowork | `memory/reference/prototipo-ui/CODE_NOTES.errata-patrimonio-perdida-no-handoff-20-2026-09-16.md` | +145 ln |
+| Devolutiva ao Cowork — **§5 RETIRADO pela ADR 0404**, §6 é a errata | `memory/reference/prototipo-ui/CODE_NOTES.errata-patrimonio-perdida-no-handoff-20-2026-09-16.md` | +145 ln |
 | Os dois universos + bite-test de 5 asserts | `scripts/governance/cowork-mirror-freshness{,.test}.mjs` | +68/−10 |
-| Lápide §5 + 3 recs no ledger | `memory/licoes-rejeitadas.md` · `memory/LICOES_CODE.md` | LC-08 → 94 · LC-26 → 15 |
+| Lápide §5 + 3 recs no ledger | `memory/licoes-rejeitadas.md` · `memory/LICOES_CODE.md` | LC-08 → 96 · LC-26 → 15 |
 
 ## Persistência
 
@@ -58,7 +58,7 @@ Os 3 itens abertos estão no `next_steps` do frontmatter — o primeiro (a decis
 
 ## Lições catalogadas
 
-Três `- **rec**` no ledger, e as duas piores são de formato, não de técnica:
+Quatro `- **rec**` no ledger, e as duas piores são de formato, não de técnica:
 
 1. **LC-08** — recomendei ao [W] remover um galho alegando premissa vencida; o `exportPlan` **ainda recusa `.md`** hoje, e [W] respondeu *"merge"* em cima da minha premissa falsa. Só não virou código porque sondei antes do primeiro `Edit`.
 2. **LC-08** — li a errata `[CL]` do espelho como edição local e publiquei isso em PR body. O que me pegou foi **um contador**: copiei 21 arquivos onde esperava 19.

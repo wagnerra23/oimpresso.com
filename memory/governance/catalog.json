@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 717,
-    "edges": 1010,
+    "nodes": 719,
+    "edges": 1011,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 118,
+      "adr": 120,
       "component": 384,
       "api": 74
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 108,
       "migratesTo": 1,
       "supersedes": 24,
-      "supersedesPartially": 53,
+      "supersedesPartially": 54,
       "supersededBy": 28
     },
     "dangling": 0
@@ -853,6 +853,13 @@
       "exists": true
     },
     {
+      "id": "adr:0398",
+      "type": "adr",
+      "num": "0398",
+      "slug": "0398-espelho-cowork-recebe-a-arvore-da-conta",
+      "exists": true
+    },
+    {
       "id": "adr:0399",
       "type": "adr",
       "num": "0399",
@@ -878,6 +885,13 @@
       "type": "adr",
       "num": "0403",
       "slug": "0403-errata-0402-denominador-ja-inclui-pages-de-modulo",
+      "exists": true
+    },
+    {
+      "id": "adr:0404",
+      "type": "adr",
+      "num": "0404",
+      "slug": "0404-ultimo-importado-e-autoridade-do-espelho",
       "exists": true
     },
     {
@@ -6436,6 +6450,12 @@
     {
       "from": "adr:0403",
       "to": "adr:0402",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0404",
+      "to": "adr:0398",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },
