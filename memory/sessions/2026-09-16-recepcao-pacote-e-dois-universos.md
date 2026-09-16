@@ -57,7 +57,7 @@ Nenhuma das três defesas que funcionaram foi revisão de código:
 - **327 → 38 que não zerava** — o resíduo que não some é a assinatura de predicado do tipo errado, não do limiar errado. Virou lápide §5 (emenda da 2026-08-25).
 - **o `assert` da âncora** — barrou uma reescrita de PR body onde eu havia escrito o emoji como par de surrogate. Aí a segunda metade da lição cobrou: o script abria o destino com `io.open(p,'w')`, e o **ledger foi truncado a 0 bytes** (518.610 → 0) antes do encode falhar. Recuperado por `git checkout HEAD --`, zero perda, refeito com `encode` antes do `open`.
 
-Ledger: **4** `- **rec**` (LC-08 ×3 → 96, LC-26 ×1 → 15) + a lápide na fonte, com o derivado regerado (`sec5-derive --check` verde, **201** limites — 200 meus + 1 do #7440, resolvido append-only). A 3ª rec da LC-08 é a refutação do §3: a ADR 0404 nomeou que meu delta comparava o Git enriquecido contra o importado.
+Ledger: **4** `- **rec**` — **+3 na LC-08 e +1 na LC-26**, que é o delta meu; o TOTAL é derivado e **não vai escrito aqui**, porque ele driftou 3× durante este próprio fechamento (sessões irmãs apendando em paralelo). Leia no `licoes-code-two-strikes --check`. Mais a lápide na fonte, com o derivado regerado (`sec5-derive --check` verde, **201** limites — 200 meus + 1 do #7440, resolvido append-only). A 3ª rec da LC-08 é a refutação do §3: a ADR 0404 nomeou que meu delta comparava o Git enriquecido contra o importado.
 
 ## 6 · Erro de método que vale mais que os três
 

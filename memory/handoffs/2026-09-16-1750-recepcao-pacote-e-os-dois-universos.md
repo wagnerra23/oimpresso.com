@@ -40,7 +40,7 @@ Investigar **por que os 19 novos eram invisíveis** virou o achado do dia. O `li
 | Os 36 do `cowork-inbox` (19 novos + 17 espelhados) | `prototipo-ui/cowork/Wagner/cowork-inbox/` | 36 arquivos, +1855/−542 |
 | Devolutiva ao Cowork — **§5 RETIRADO pela ADR 0404**, §6 é a errata | `memory/reference/prototipo-ui/CODE_NOTES.errata-patrimonio-perdida-no-handoff-20-2026-09-16.md` | +145 ln |
 | Os dois universos + bite-test de 5 asserts | `scripts/governance/cowork-mirror-freshness{,.test}.mjs` | +68/−10 |
-| Lápide §5 + 3 recs no ledger | `memory/licoes-rejeitadas.md` · `memory/LICOES_CODE.md` | LC-08 → 96 · LC-26 → 15 |
+| Lápide §5 + 3 recs no ledger | `memory/licoes-rejeitadas.md` · `memory/LICOES_CODE.md` | +3 recs na LC-08, +1 na LC-26 (o TOTAL é derivado — leia no `licoes-code-two-strikes --check`, não aqui: ele driftou 3× durante este próprio fechamento) |
 
 ## Persistência
 
