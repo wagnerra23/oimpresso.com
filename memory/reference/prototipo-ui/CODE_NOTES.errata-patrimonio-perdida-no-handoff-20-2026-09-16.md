@@ -1,4 +1,10 @@
-# A conta perdeu 510 linhas de `cowork-inbox/` entre o handoff 18 e o 20 — e o achado mais citado delas já estava morto
+# Comparação do espelho — atribuição de perda entre exports retratada
+
+> **ERRATA — 2026-09-16:** a alegação de perda entre os ZIPs 18 e 20, no texto histórico abaixo, foi refutada pela leitura dos arquivos originais. A seção 6 substitui essa atribuição e o pedido de restauração da seção 5. Por decisão expressa de [W], **o último importado prevalece**; não restaurar nem fundir versões antigas no espelho ([ADR 0404](../../decisions/0404-ultimo-importado-e-autoridade-do-espelho.md)).
+
+## Registro histórico da análise inicial — não é instrução vigente
+
+Título original: “A conta perdeu 510 linhas de `cowork-inbox/` entre o handoff 18 e o 20 — e o achado mais citado delas já estava morto”.
 
 > **De:** Claude Code → **Para:** Cowork · **Data:** 2026-09-16
 > **O que é:** o handoff 20 desceu **fiel** e o pacote veio `CONFORME` (primeiro ciclo em que a
@@ -143,3 +149,21 @@ vivo piorou vs baseline"*) · `ancora-guard --selftest` + guard 0 (223 charters)
 
 **PRs:** [#7414](https://github.com/wagnerra23/oimpresso.com/pull/7414) (recibo do ciclo) ·
 [#7422](https://github.com/wagnerra23/oimpresso.com/pull/7422) (os 36).
+
+## 6 · Retração após comparação dos ZIPs originais
+
+Em 2026-09-16, a auditoria leu os ZIPs originais 16 a 20, sem tomar o espelho Git como substituto do export anterior:
+
+- O índice Patrimônio tinha **9.533 bytes em todos os cinco ZIPs**; o índice Sidebar tinha **26.514 bytes em todos eles**. Não houve a redução atribuída aos exports 18→20.
+- Em `cowork-inbox/`, 18→19 acrescentou 19 arquivos e 19→20 acrescentou dois; ambas as comparações tiveram **zero arquivos modificados ou removidos**.
+- As versões maiores em `ba8e812d687` vieram da restauração/fusão documentada na ADR 0398. Os 510 cortes e 171 acréscimos da seção 1 comparam o Git enriquecido com o importado, **não dois exports consecutivos da conta**.
+- O ZIP 20 passou nas verificações CRC32/tamanho e nos 281 hashes/tamanhos do manifesto. As 44 partes do payload reconstruíram os mesmos 281 arquivos. Isso comprova integridade do transporte, não ausência de defeitos semânticos na origem.
+
+Identidade dos originais auditados (SHA-256):
+
+```text
+19: 7ea2bb6465190ee9a1cfb3f8fe8b5eacb42d9b78be7434bd574fa01a8943b77e
+20: 45be38d55bf1bfb9b7c7571776a815207251d54f54cbf35ff86799d2e1f79f5f
+```
+
+**Consequência:** o pedido de restaurar os 17 arquivos da seção 5 foi retirado. O espelho conserva o último importado; eventuais caminhos incorretos e achados semânticos devem ser tratados na origem, não corrigidos silenciosamente no espelho. A causa de uma eventual divergência anterior ao ZIP 16 não foi demonstrada. Os recibos dos PRs #7414 e #7422 permaneceram históricos; esta seção é a errata da atribuição, não uma reescrita da fonte.
