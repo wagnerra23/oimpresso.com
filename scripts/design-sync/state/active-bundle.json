@@ -65,8 +65,8 @@
     },
     {
       "path": "app.jsx",
-      "bytes": 75264,
-      "sha256": "e108dd46204f31f8445f525d63baafd064ca221d0dfb11a3ed4c44587ab48edf",
+      "bytes": 76913,
+      "sha256": "2dd39050e9a6f969e0b40b507a7fba4ab64f9d3fed8509bba0c26820cd05c721",
       "role": "cowork-source"
     },
     {
@@ -2560,6 +2560,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "ds-tokens-git.css",
+      "bytes": 4638,
+      "sha256": "f97c2b6220637f01d2c5084e64fa640daa297e04c9ff6672c79a312ab483217e",
+      "role": "cowork-source"
+    },
+    {
       "path": "ds-v6/gabarito-vendas.html",
       "bytes": 24849,
       "sha256": "fbe684e36d7ace611f04438243561a1c3b76d0766c461ef0f2faf2e63f3d0ae6",
@@ -2903,8 +2909,8 @@
     },
     {
       "path": "github.md",
-      "bytes": 84685,
-      "sha256": "bc2c96522fae51a5a8a1312799d797100a25aaca991a76d7df979509b73e1372",
+      "bytes": 91203,
+      "sha256": "653926e85c9e4afc1f445f55617e74957965545c86513c39f88b3cad062039e0",
       "role": "cowork-source"
     },
     {
@@ -3091,6 +3097,30 @@
       "path": "inbox-page.jsx",
       "bytes": 87828,
       "sha256": "10ab0b18e34509192a30575e994a8474e5caf32e80a4428de586cee6b2534163",
+      "role": "cowork-source"
+    },
+    {
+      "path": "inbox-photo-c1.png",
+      "bytes": 38823,
+      "sha256": "44a3d0bb07289b7c5d7c64acfbf9469642c3aac44944b161861ae34fd0e8c2bf",
+      "role": "cowork-source"
+    },
+    {
+      "path": "inbox-photo-c2.png",
+      "bytes": 38495,
+      "sha256": "db38a6fc4ae7a0d575ac135b9c5fed529d737914632e39e219b30487c5b679a3",
+      "role": "cowork-source"
+    },
+    {
+      "path": "inbox-photo-c3.png",
+      "bytes": 36602,
+      "sha256": "52805ffd8b60073e74f91a4ea7b433f9c53d6c97f07a0b4a8790ae11b38c20e8",
+      "role": "cowork-source"
+    },
+    {
+      "path": "inbox-photo-c4.png",
+      "bytes": 38458,
+      "sha256": "ad7ae3b0ec2f12cca4868b51315dd6c4af76fb5d775f34550c4283d3c826fc26",
       "role": "cowork-source"
     },
     {
@@ -3377,8 +3407,8 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 34758,
-      "sha256": "450f420df704f3a4fc9c8119048755d285adba8179a28c5b8770cdf2763a0019",
+      "bytes": 35008,
+      "sha256": "d11280911c8724ab4dd77ec7d2d59f2f211bfa29db3fb5ec5388070ec5867fa0",
       "role": "cowork-source"
     },
     {
@@ -4230,24 +4260,28 @@
   ],
   "missing": [],
   "mirrorScope": "tree",
-  "bundleId": "826e4cd06163f577af46fc06d1b00ad406ff0271f3023310e69c202422b11680",
-  "baseBundleId": "6270479598680fc21409b6d6703b7dc62b0b41bf356108e2055ba2d572aba006",
+  "bundleId": "42e229f9ac6bd334f202a10eb136f213e13a6d0a0c773e4b1ddb7c1fdad3ed15",
+  "baseBundleId": "826e4cd06163f577af46fc06d1b00ad406ff0271f3023310e69c202422b11680",
   "mode": "delta",
-  "generatedAt": "2026-09-16T19:03:45.121Z",
+  "generatedAt": "2026-09-16T20:36:01.885Z",
   "totals": {
-    "files": 704,
-    "bytes": 10388829
+    "files": 709,
+    "bytes": 10554262
   },
   "changes": {
     "added": [
-      "cowork-inbox/ancora/playbook/_PATCH-INDICE-2026-09-16.md",
-      "cowork-inbox/ancora/playbook/07-cruzar-report-trio-contrato.md"
+      "ds-tokens-git.css",
+      "inbox-photo-c1.png",
+      "inbox-photo-c2.png",
+      "inbox-photo-c3.png",
+      "inbox-photo-c4.png"
     ],
     "modified": [
-      "cowork-inbox/recepcao-pacote/playbook/02-pacote-2026-09-16-regerado.md",
-      "github.md"
+      "app.jsx",
+      "github.md",
+      "oimpresso.com.html"
     ],
     "deleted": [],
-    "unchanged": 700
+    "unchanged": 701
   }
 }
