@@ -65,6 +65,22 @@ O `sync/` deste projeto está congelado em **2026-09-07** enquanto o build andou
         { "tipo": "execucao", "cmd": "caso de sanidade: tocar 1 byte em um arquivo do projeto e rodar de novo", "exige": "o contador de divergentes sobe em 1 — sonda que nao reage a mudanca conhecida nao e sonda" },
         { "tipo": "execucao", "cmd": "caso de sanidade inverso: rodar com projeto e manifesto em paridade", "exige": "exit 0 e zero divergentes — senao o detector marca tudo" }
       ]
+    },
+    {
+      "id": "02",
+      "titulo": "Pacote v2 regerado (2026-09-16): aplicar snapshot c8a0709 e descartar o lote de 07/09",
+      "dono": "CL",
+      "arquivo": "02-pacote-2026-09-16-regerado.md",
+      "prefixo": ["sync", "prototipo-ui/cowork/Wagner", "prototipo-ui/design-system", "scripts/design-sync/state"],
+      "nao_toca": ["resources/js/**", "memory/**", "governance/**"],
+      "depende_threads": [],
+      "depende_decisoes": [],
+      "nota_provas": "prova e EXECUCAO do applier com exit code, nao 'o arquivo existe'",
+      "provas": [
+        { "tipo": "execucao", "cmd": "node scripts/design-sync/aplicar-payload.mjs sync/payload.part*.json --dry --require-complete-shell", "recibo": "_saida-02.md", "exige": "BUNDLE v2 VALIDADO · id c8a070942fa6cfb79615cc482dcf63155b9d08a455c7d7cec521af32a268c768 · modo snapshot · 281 arquivo(s)" },
+        { "tipo": "execucao", "cmd": "node scripts/design-sync/aplicar-payload.mjs sync/payload.part*.json --require-complete-shell", "exige": "PROMOVIDO ATOMICAMENTE e state/active-bundle.json com bundleId c8a0709..." },
+        { "tipo": "execucao", "cmd": "caso de sanidade: rodar o dry-run com UMA parte de fora", "exige": "recusa por 'lote incompleto' - validador que aceita 43 de 44 nao e validador" }
+      ]
     }
   ]
 }
@@ -73,6 +89,18 @@ O `sync/` deste projeto está congelado em **2026-09-07** enquanto o build andou
 | # | thread | prefixo | veredito |
 |---|---|---|---|
 | **01** | recepção confere e falha ao divergir | `scripts/design-sync` · `.github/workflows` | **CABE** · depende de 2 decisões de [W] |
+| **02** | aplicar o pacote regerado de 16/09 | `sync` · `prototipo-ui/**` | **CABE** · sem decisão pendente |
+
+## Estado (linhas datadas — append-only)
+
+Medido pelo lado **Design** (o que o pacote declara de si):
+
+- **2026-09-16 · pacote REGERADO**: snapshot `c8a0709…` · 281 arquivos · 7.416.482 B · 286 chunks · **44 partes** · `missing: []` · auto-auditoria 0 erro.
+- **2026-09-16 · lote de 07/09 CONDENADO e apagado daquele lado**: 31 de 43 partes acima do cap (maior 308.280 B) + manifesto `snapshot` com `baseBundleId` + `changes` incoerente ⇒ era inaplicável, não "defasado".
+
+Medido pelo lado **Code** (o que a rota canônica do repositório respondeu — recibo em [`_saida-02.md`](_saida-02.md)):
+
+- **2026-09-16 · pacote CONFORME, e nada a promover**: o `receber-handoff.mjs` validou o `sync/` do pacote (`[2] CONFORME` — o de 07/09 saiu `FORA-DO-CONTRATO`), e o gerador canônico regerou **278** arquivos com `bundleId` **idêntico ao bundle ativo**, delta `+0 ~0 -0 =278`. O espelho já estava no estado-alvo. A diferença 281→278 são 3 `woff2` sem referência no grafo; ver o recibo.
 
 ## O que este pacote NÃO resolve (bloco 7)
 - **Não regenera o `sync/` de hoje.** Continua defasado (07/09) até alguém rodar o gerador com os arquivos em disco. Esta thread evita o **próximo** congelamento; não desfaz o atual.
