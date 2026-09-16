@@ -103,6 +103,7 @@ import { spawnSync } from 'node:child_process';
 import { join, resolve, dirname, basename, extname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { frontmatter } from './_lib-charter.mjs';
+import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));            // prototipo-ui/
 const ROOT = resolve(HERE, '../..');
@@ -474,9 +475,18 @@ export function servirEspelho(dir = COWORK_DIR, porta = 0) {
   const raizDs = resolve(ROOT, 'prototipo-ui/design-system');
   const srv = createServer((req, res) => {
     const p = decodeURIComponent(String(req.url || '/').split('?')[0]);
-    const ds = p === '/design-system' || p.startsWith('/design-system/');
-    const base = ds ? raizDs : raiz;
-    const relativo = ds ? p.slice('/design-system'.length) : (p === '/' ? '/' + SHELL_HTML : p);
+    // ADR 0401 E2: o shell referencia `_ds/<slug>/X` (DS bound). O prefixo
+    // `/design-system/` era a forma do shell reescrito pelo #7224, revertido pelo #7261 —
+    // fica aceito por compatibilidade. A regra de caminho e do `dsRuntimeRelPath`.
+    let dsRel = null;
+    if (p.startsWith('/_ds/')) {
+      try { dsRel = dsRuntimeRelPath(p.slice(1)); } catch { dsRel = null; }
+      if (dsRel === null) { res.writeHead(404); res.end('404'); return; }
+    } else if (p === '/design-system' || p.startsWith('/design-system/')) {
+      dsRel = p.slice('/design-system'.length).replace(/^\//, '');
+    }
+    const base = dsRel !== null ? raizDs : raiz;
+    const relativo = dsRel !== null ? '/' + dsRel : (p === '/' ? '/' + SHELL_HTML : p);
     const abs = resolve(base, '.' + relativo);
     if (!abs.startsWith(base) || !existsSync(abs) || !statSync(abs).isFile()) { res.writeHead(404); res.end('404'); return; }
     res.writeHead(200, { 'content-type': MIME[extname(abs).toLowerCase()] || 'application/octet-stream', 'cache-control': 'no-store' });

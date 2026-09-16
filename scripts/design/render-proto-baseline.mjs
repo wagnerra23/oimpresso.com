@@ -16,13 +16,12 @@
 // FRONTEIRA ADR 0290 (render-diff EM CI foi REJEITADO — passa verde quando os DOIS lados quebram):
 //   · --gerar   = render LOCAL/dispatch logado, SÓ local. RECUSA sob CI (exit 4).
 //   · --check   = HERMÉTICO (schema + âncora re-resolvida + freshness por sha) — é O QUE roda em
-//                 CI (design-memory-gate, advisory). Zero browser, zero rede. NÃO é read-only:
-//                 pra conferir o `render_sha256` ele tenta repor o cache `_ds/` (GITIGNORED,
-//                 logo ausente no checkout do CI). Até o #7224 (2026-09-11) a fonte era o
-//                 mirror-snapshot versionado e o hook de SessionStart fazia a mesma escrita;
-//                 desde então o shell referencia `../../design-system/` direto, não tem `_ds/`,
-//                 e nenhum dos dois repõe. Não dando pra medir — e hoje não dá — o veredito é
-//                 NÃO MEDIDO (aviso), NUNCA "baseline STALE".
+//                 CI (design-memory-gate, advisory). Zero browser, zero rede, e desde a
+//                 ADR 0401 também ZERO ESCRITA: ele não repõe mais cache `_ds/` nenhum.
+//                 O `superficieRender` lê o DS do canônico (`prototipo-ui/design-system/`) e
+//                 o injeta na superfície sob `_ds/<slug>/`, que é como o servidor de preview
+//                 resolve em runtime. Não dando pra medir, o veredito é NÃO MEDIDO (aviso),
+//                 NUNCA "baseline STALE".
 //   · --extract = tira 1 célula do baseline como proto.json → o --compare EXISTENTE
 //                 (style-fingerprint.mjs --compare proto.json prod.json --tela <Mod/Tela>) roda
 //                 prod×proto-baseline com a trava fail-closed de sempre.
@@ -49,14 +48,14 @@
 // string do --snippet) · computeGitSha (gerar-map.mjs) · acharBundleRoot (importar-bundle.mjs) ·
 // MIRROR_DIR (protocolo.config.mjs) · chaveCelula (fingerprint-harness.mjs).
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync, mkdtempSync, unlinkSync, rmdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync, mkdtempSync, unlinkSync, rmdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
 import { join, resolve, dirname, extname, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { payloadDependencyGraph } from '../design-sync/payload-dependency-graph.mjs';
-import { previewDsPlan, materializePreviewDs } from '../governance/cowork-mirror-freshness.mjs';
+import { previewDsPlan, dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
 
 import { resolveAncora } from './ancora.mjs';
 import { SNIPPET, rotulosDistintivos, overlapConteudo } from './style-fingerprint.mjs';
@@ -66,7 +65,7 @@ import { SNIPPET, rotulosDistintivos, overlapConteudo } from './style-fingerprin
 // mudou. `shaBate` aceita o abreviado como prefixo (contrato de abreviação do próprio git).
 import { computeGitSha, shaBate } from './gerar-map.mjs';
 import { acharBundleRoot } from './importar-bundle.mjs';
-import { MIRROR_DIR, normalize, contentHash } from './protocolo.config.mjs';
+import { MIRROR_DIR, DS_MIRROR_DIR, normalize, contentHash } from './protocolo.config.mjs';
 import { chaveCelula } from './fingerprint-harness.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
@@ -77,6 +76,13 @@ export const VERSION = 1;
 // Git-sha de um único JSX não muda quando só uma dependência ou o working tree muda.
 export function superficieRender(root, repoRoot = REPO) {
   const html = readFileSync(join(root, 'oimpresso.com.html'), 'utf8');
+  // ADR 0401 E2/E3: `_ds/<slug>/` e o DS BOUND — ele NAO vive no espelho e NAO e
+  // materializado (a duplicata fisica viola a D5 da 0397: `cowork-ssot-guard` rc=1).
+  // Ele entra na superficie LIDO DO DS CANONICO, que e exatamente como o servidor de
+  // preview o resolve em runtime. Assim o `payloadDependencyGraph` fica INTACTO — ele
+  // segue exigindo os `_ds/**`, que e o que protege o `bundle-transaction` (required
+  // `handoff integrity`); quem passou a fornece-los e este bloco, nao um cache em disco.
+  const dsInjetados = [];
   if (html.includes('_ds/')) {
     const plano = previewDsPlan(html, repoRoot);
     if (plano.erro) throw Error(plano.erro);
@@ -88,9 +94,14 @@ export function superficieRender(root, repoRoot = REPO) {
     // (--selftest, --check e --nudge) com SyntaxError. A divergência fonte×runtime
     // deixou de ser um estado possível; o que segue vivo é a checagem do CACHE do preview.
     for (const a of plano.arquivos) {
-      const cache = join(root, '_ds', plano.id, a.nome);
-      if (!a.temNoRepo || !existsSync(cache) || !readFileSync(cache).equals(readFileSync(a.de)))
-        throw Error(`cache DS ausente ou antigo: ${a.nome}; rode --preview-ds antes de comparar`);
+      if (!a.temNoRepo)
+        throw Error(`DS canonico nao tem ${a.nome} (esperado em prototipo-ui/design-system/)`);
+      const bytes = readFileSync(a.de);
+      dsInjetados.push({
+        path: `_ds/${plano.id}/${a.nome}`,
+        content: /\.(html|jsx?|tsx?|mjs|css|json)$/i.test(a.nome) ? bytes.toString('utf8') : null,
+        hash: createHash('sha256').update(bytes).digest('hex'),
+      });
     }
   }
   const files = [];
@@ -107,6 +118,7 @@ export function superficieRender(root, repoRoot = REPO) {
     }
   }
   visitar(root);
+  for (const f of dsInjetados) files.push(f);
   const graph = payloadDependencyGraph(files);
   if (!graph.complete) throw Error(`grafo do preview incompleto: ${graph.missing.join(', ')}; referências inseguras: ${graph.unsafe.length}`);
   const byPath = new Map(files.map(f => [f.path, f.hash]));
@@ -381,8 +393,19 @@ function servirEstatico(root, porta) {
   const srv = createServer((req, res) => {
     try {
       const urlPath = decodeURIComponent(String(req.url || '/').split('?')[0]);
-      let alvo = resolve(root, '.' + urlPath.replace(/\/+$/, '') || '.');
-      if (!alvo.startsWith(resolve(root))) { res.writeHead(403); res.end(); return; }
+      // ADR 0401 E2: `_ds/<slug>/X` e o DS BOUND — resolve no DS canonico, sem copia
+      // fisica. A regra de caminho tem dono unico (`dsRuntimeRelPath`); aqui so roteamos.
+      let base = resolve(root);
+      let rel = urlPath;
+      if (urlPath.startsWith('/_ds/')) {
+        let dsRel = null;
+        try { dsRel = dsRuntimeRelPath(urlPath.slice(1)); } catch { dsRel = null; }
+        if (dsRel === null) { res.writeHead(404); res.end('404'); return; }
+        base = resolve(DS_MIRROR_DIR);
+        rel = '/' + dsRel;
+      }
+      let alvo = resolve(base, '.' + rel.replace(/\/+$/, '') || '.');
+      if (!alvo.startsWith(base)) { res.writeHead(403); res.end(); return; }
       if (existsSync(alvo) && statSync(alvo).isDirectory()) alvo = join(alvo, 'oimpresso.com.html');
       if (!existsSync(alvo)) { res.writeHead(404); res.end('404'); return; }
       res.writeHead(200, { 'Content-Type': MIME[extname(alvo).toLowerCase()] || 'application/octet-stream' });
@@ -443,9 +466,8 @@ async function cmdGerar(args) {
     console.error(`⛔ shell oimpresso.com.html não achado sob ${staging} (raiz detectada: ${root}) — bundle incompleto?`);
     process.exit(2);
   }
-  if (resolve(root) === resolve(MIRROR_DIR)) {
-    materializePreviewDs(previewDsPlan(readFileSync(join(root, 'oimpresso.com.html'), 'utf8'), REPO));
-  }
+  // ADR 0401 E3: nao materializa mais. O `superficieRender` le o DS do canonico e o
+  // servidor de preview resolve `_ds/<slug>/` por alias — nenhuma copia fisica.
   const renderHashAntes = superficieRender(root);
   // identidade staging×repo da âncora (fail-closed): o sha declara o proto do REPO; o render
   // serve o STAGING — driftou = baseline mentiroso. Procura o arquivo da âncora no bundle.
@@ -519,18 +541,19 @@ async function cmdCheck(args) {
   const files = args._.length ? args._.map((f) => resolve(f)) : acharBaselines(join(REPO, 'memory', 'requisitos'));
   if (!files.length) { console.log('✓ nenhum *.proto-baseline.json no repo — nada a verificar (0 baselines não é drift).'); process.exit(0); }
   let totalDrift = 0, totalWarn = 0;
-  // Mede o grafo UMA vez, chamando o materializador do `_ds/` (produtor offline — não usa
-  // DesignSync nem rede — que escreve só nesse cache gitignored).
-  // Fato datado: em 2026-09-10, worktree fresco repunha 10 artefatos a partir do então
-  // mirror-snapshot versionado e o preview saía completo. Desde o #7224 (2026-09-11) o shell
-  // referencia `../../design-system/` direto e não contém `_ds/`; medido 2026-09-14,
-  // `previewDsPlan` devolve erro ("esperava 1 design system no shell, achei 0") e esta chamada
-  // LANÇA — o catch abaixo degrada pra `erroSuperficie`, o caminho previsto na linha seguinte.
-  // O hook de SessionStart `ds-preview-materialize` também deixou de repor no mesmo PR.
-  // Falhou? o veredito por baseline vira NÃO MEDIDO, nunca STALE.
+  // Mede o grafo UMA vez. Offline: não usa DesignSync, não usa rede e — desde a ADR 0401 —
+  // não ESCREVE (o `superficieRender` lê o DS do canônico em vez de exigir cache em disco).
+  //
+  // ⚠️ ERRATA 2026-09-16: este bloco afirmava, em presente, que "desde o #7224 o shell
+  // referencia `../../design-system/` direto e não contém `_ds/`". Era verdade por 90
+  // SEGUNDOS — o #7260 escreveu a frase às 08:55:01 de 2026-09-14 e o #7261 a tornou falsa
+  // às 08:56:31, ao reverter o remendo do espelho. Medido em 2026-09-16: `previewDsPlan`
+  // NÃO devolve erro; devolve id válido e 7 arquivos. (LC-10: artefato afirmando o próprio
+  // estado em tempo presente.)
+  //
+  // Falhou a medição? o veredito por baseline vira NÃO MEDIDO, nunca STALE.
   let superficieAtual = null, erroSuperficie = null;
   try {
-    materializePreviewDs(previewDsPlan(readFileSync(join(MIRROR_DIR, 'oimpresso.com.html'), 'utf8'), REPO));
     superficieAtual = superficieRender(MIRROR_DIR);
   } catch (e) { erroSuperficie = e.message; }
   for (const f of files) {
@@ -597,7 +620,7 @@ async function cmdExtract(args) {
 }
 
 // ── selftest hermético (morde E libera — L-31) ─────────────────────────────────
-function selftest() {
+async function selftest() {
   let fails = 0;
   const t = (label, cond) => { const ok = !!cond; if (!ok) fails++; console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label}`); };
 
@@ -763,6 +786,50 @@ function selftest() {
   // integração: o SNIPPET importado é a fonte única (mesmo vetor do style-fingerprint)
   t('SNIPPET é a fonte única (window.__ANCORA__ presente no vetor)', typeof SNIPPET === 'string' && SNIPPET.includes('__ANCORA__'));
 
+  // -- BITE do alias `_ds/` (ADR 0401 E2) ---------------------------------------
+  // Exercita o SERVIDOR DE FORA (socket real), nao a funcao pura: assert sobre helper
+  // exportado nao prova contrato de pipeline. O DS canonico e o do repo — se ele faltar,
+  // este bloco FALHA, que e o veredito certo (o preview depende dele).
+  {
+    const fxDs = mkdtempSync(join(tmpdir(), 'preview-ds-alias-'));
+    const SLUG = 'office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac';
+    let srv = null;
+    try {
+      writeFileSync(join(fxDs, 'oimpresso.com.html'), '<html></html>');
+      const esperado = readFileSync(join(DS_MIRROR_DIR, 'colors_and_type.css'));
+      srv = await servirEstatico(fxDs, 0);
+      const porta = srv.address().port;
+      // `agent: false` = SEM keep-alive. Com o `fetch` (undici) a conexao sobrevive ao
+      // `close()` e o `process.exit` do fim do selftest pega o handle ainda fechando: o
+      // libuv aborta no Windows (UV_HANDLE_CLOSING) com exit 127 DEPOIS de imprimir
+      // "SELFTEST OK" — verde na tela, rc errado. Aqui a causa e removida, nao mitigada.
+      const get = (u) => new Promise((ok, ko) => {
+        const req = httpRequest({ host: '127.0.0.1', port: porta, path: u, agent: false }, (res) => {
+          const chunks = [];
+          res.on('data', (c) => chunks.push(c));
+          res.on('end', () => ok({ status: res.statusCode, bytes: Buffer.concat(chunks) }));
+        });
+        req.on('error', ko);
+        req.end();
+      });
+      const alvo = await get('/_ds/' + SLUG + '/colors_and_type.css');
+      t('BITE alias: _ds/<slug>/X serve os BYTES do DS canonico', alvo.status === 200 && alvo.bytes.equals(esperado));
+      const trav = await get('/_ds/' + SLUG + '/../../fora.css');
+      t('BITE alias: traversal em _ds/ nao escapa (nao e 200)', trav.status !== 200);
+      const foraDoContrato = await get('/_ds/' + SLUG + '/qualquer.txt');
+      t('BITE alias: arquivo fora do contrato de runtime do DS = 404', foraDoContrato.status === 404);
+      const normal = await get('/oimpresso.com.html');
+      t('controle: path SEM _ds/ segue servindo do root do espelho', normal.status === 200);
+    } finally {
+      // `closeAllConnections` ANTES do close: o `fetch` deixa keep-alive vivo e, sem
+      // derrubar, o `process.exit` do fim do selftest pega o handle ainda fechando e o
+      // libuv aborta no Windows (`UV_HANDLE_CLOSING`, exit 127) DEPOIS de imprimir
+      // "SELFTEST OK" — verde na tela, rc errado. Mesmo idioma do `servirEspelho`.
+      if (srv) await new Promise((r) => { srv.closeAllConnections?.(); srv.close(() => r(null)); });
+      rmSync(fxDs, { recursive: true, force: true });
+    }
+  }
+
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — baseline morde (stale/âncora/vazio) e libera (íntegro); fronteira 0290 respeitada.');
   process.exit(fails ? 1 : 0);
 }
@@ -785,7 +852,7 @@ function parseArgs(argv) {
 const ehEntrypoint = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (ehEntrypoint) {
   const args = parseArgs(process.argv.slice(2));
-  if (args.modo === 'selftest') selftest();
+  if (args.modo === 'selftest') await selftest();
   else if (args.modo === 'gerar') await cmdGerar(args);
   else if (args.modo === 'check') await cmdCheck(args);
   else if (args.modo === 'extract') await cmdExtract(args);
