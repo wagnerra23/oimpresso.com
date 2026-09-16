@@ -157,18 +157,51 @@ check('BITE composer: update && echo "--lock" → BLOQUEIA',
 check('CN composer: --lock no MESMO statement segue liberado (ADR 0063 caminho certo)',
   matchDestructive('composer update --lock') === null);
 
-// as 7 categorias restantes NÃO foram fatiadas — comportamento byte a byte igual
+// as 5 categorias não-fatiadas — comportamento byte a byte igual
 check('INTACTA: rm -rf no meio de pipeline segue bloqueando', matchDestructive('cd x; rm -rf Modules/')?.key === 'rm-rf-perigoso');
 check('INTACTA: whitelist rm sem prefixo segue passando', matchDestructive('rm -rf node_modules') === null);
-check('INTACTA: rm whitelisted COM prefixo cd segue bloqueado (FP conhecido, NÃO afrouxado aqui)',
-  matchDestructive('cd /repo && rm -rf node_modules')?.key === 'rm-rf-perigoso');
 check('INTACTA: reset --hard origin/ segue bloqueando', matchDestructive('git reset --hard origin/main')?.key === 'git-reset-hard-origin');
 check('INTACTA: DROP TABLE segue bloqueando', matchDestructive('mysql -e "DROP TABLE t"')?.key === 'sql-drop-table');
 
-// o fatiador, isolado
-check('statements: fatia em \\n ; && || |', statements('a\nb; c && d || e | f').length === 6);
+// o fatiador, isolado. `|` e `&` SOZINHOS não separam (medido: fatiar neles
+// isolava `rm -rf` de dentro de um padrão de grep e fabricava bloqueio).
+check('statements: fatia em \\n ; && ||', statements('a\nb; c && d || e').length === 5);
+check('statements: `|` sozinho NÃO separa (é alternação em "a|rm -rf|b")', statements('grep -E "x|y"').length === 1);
+check('statements: `&` sozinho NÃO separa (é o `2>&1`)', statements('cmd 2>&1').length === 1);
 check('statements: junta continuação `\\`+nl antes de fatiar', statements('git push \\\n --force').length === 1);
 check('statements: descarta vazios de && / ||', statements('a && b').join('|') === 'a|b');
+
+// ── WHITELIST rm por STATEMENT (afrouxamento autorizado por [W] 2026-09-16) ────
+// A isenção passa a valer pro statement que a ganhou, não pro comando inteiro.
+check('BITE rm: whitelist sobrevive a um `cd` antes (era o FP dos 19)',
+  matchDestructive('cd /repo && rm -rf node_modules') === null);
+check('BITE rm: idem com `;`', matchDestructive('cd /repo; rm -rf /tmp/scratch') === null);
+check('BITE rm: idem em bloco multi-linha', matchDestructive('cd /repo\nrm -rf public/build-inertia') === null);
+// Prosa: a isenção depende de o statement COMEÇAR no rm. Um separador antes cria
+// a fronteira (foi o que destravou o commit do PR anterior); sem ele, segue
+// bloqueando — a prosa no meio do statement é FP pré-existente, fora deste fix.
+check('BITE rm: prosa cujo rm vira início de statement (após `&&`) não bloqueia',
+  matchDestructive('git commit -F - <<EOF\nex: `cd x && rm -rf node_modules` bloqueia hoje\nEOF') === null);
+check('CN rm: prosa com o rm no MEIO da frase segue bloqueando (FP pré-existente, não é o escopo)',
+  matchDestructive('git commit -F - <<EOF\ntexto citando rm -rf node_modules aqui\nEOF')?.key === 'rm-rf-perigoso');
+
+// CONTROLES NEGATIVOS — o que a isenção por statement NÃO pode liberar
+check('CN rm: alvo FORA da whitelist segue bloqueado, mesmo depois de um cd',
+  matchDestructive('cd /repo && rm -rf src/')?.key === 'rm-rf-perigoso');
+check('CN rm: FECHA falso-negativo — 1º rm whitelisted não cobre o 2º perigoso',
+  matchDestructive('rm -rf /tmp/a && rm -rf src/')?.key === 'rm-rf-perigoso');
+check('CN rm: idem com o perigoso em outra linha',
+  matchDestructive('rm -rf node_modules\nrm -rf /etc')?.key === 'rm-rf-perigoso');
+check('CN rm: whitelist exige o rm no INÍCIO do statement (sudo não é isento)',
+  matchDestructive('sudo rm -rf vendor')?.key === 'rm-rf-perigoso');
+check('CN rm: statement terminando nas flags (xargs) segue bloqueando — sem `$` viraria falso-NEGATIVO',
+  matchDestructive('xargs -a lista.txt rm -rf')?.key === 'rm-rf-perigoso');
+check('CN rm: `xargs ... rm -f` no fim do statement segue bloqueando (comportamento de hoje preservado)',
+  matchDestructive('cd /x\nxargs -a /tmp/l.txt -r rm -f\necho fim')?.key === 'rm-rf-perigoso');
+check('CN rm: `rm -rf` dentro de padrão de grep NÃO bloqueia (o `|` é alternação)',
+  matchDestructive('git show HEAD:x.mjs | grep -nE "design|rm -rf|wipe" | head -5') === null);
+check('E2E rm: cd + whitelist → exit 0', runHook(j('cd /repo && rm -rf node_modules')) === 0);
+check('E2E rm: cd + alvo fora da whitelist → exit 2', runHook(j('cd /repo && rm -rf src/')) === 2);
 
 // ── AVISO push --delete não-literal (advisory) — LC-12 3ª ocorrência 2026-09-06 ──
 // BITE: o comando exato do incidente (loop sobre ls-remote com glob → variável no --delete)

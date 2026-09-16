@@ -71,16 +71,50 @@ function juntaContinuacoes(cmd) {
 
 /**
  * Fatia o comando nos separadores de shell e normaliza CADA pedaço.
- * `[;&|]` cobre `;` `&` `&&` `|` `||` (os vazios do meio de `&&`/`||` caem no filter)
- * e é o MESMO conjunto que o regex da rm-rf já trata como fronteira (`[\s;&|]`).
+ *
+ * Separadores: `\n` `;` `&&` `||`. O `|` e o `&` SOZINHOS ficam de fora **por
+ * medição** (2026-09-16): eles são ambíguos fora do contexto de shell — `2>&1`
+ * tem `&`, e `grep -E "a|rm -rf|b"` tem `|` como ALTERNAÇÃO dentro de aspas.
+ * Fatiar neles isola `rm -rf` de um padrão de grep e fabrica bloqueio: era o
+ * único falso-positivo novo da leva de rm, num comando read-only de sonda.
+ * Pra `git-force-push` os dois modos deram resultado IDÊNTICO (216→210), então
+ * o conservador não custa nada e não fragmenta o que não é statement.
+ *
  * @returns {string[]} statements normalizados, sem vazios
  */
 export function statements(cmd) {
   return juntaContinuacoes(cmd)
-    .split(/\r?\n|[;&|]/)
+    .split(/\r?\n|;|&&|\|\|/)
     .map(normalizeCmd)
     .filter(Boolean);
 }
+
+// ── WHITELIST rm: por STATEMENT, não pelo comando inteiro ([W] 2026-09-16) ────
+//
+// O `^` destes padrões ancorava no comando INTEIRO normalizado, então um `cd`
+// antes do rm derrubava a whitelist: `rm -rf node_modules` passava e o MESMO
+// comando depois de `cd x &&` bloqueava — enquanto rodar os dois em chamadas
+// separadas sempre funcionou. A proteção era acidental, não real.
+//
+// MEDIDO no corpus (153.4k blocos tool_use Bash/PowerShell, 2026-09-16):
+//   19 destravados — TODOS lidos: `/tmp/*` (14), `public/build-inertia` (2),
+//   `node_modules` (2) e 1 prosa de PR body. Zero alvo fora da whitelist.
+//   0 novos bloqueios.
+//
+// ⚠️ Isto AFROUXA um guardrail Tier-0 e foi decisão explícita do [W] — não é
+// efeito colateral. O que passa a ser permitido é exatamente o que a whitelist
+// já permitia da cwd; muda só o poder existir um `cd` (ou qualquer comando)
+// antes. Alvo FORA da whitelist segue bloqueado em qualquer posição.
+//
+// Efeito colateral BOM: por statement, cada rm é julgado sozinho, então
+// `rm -rf /tmp/a && rm -rf src/` bloqueia — antes o 1º comando whitelistava o
+// blob inteiro e o 2º passava (falso-negativo; 0 ocorrências medidas).
+//
+// ⚠️ Buraco PRÉ-EXISTENTE que isto NÃO fecha (reportado, fora do escopo): a
+// whitelist olha o início do statement, então `rm -rf node_modules /etc` é
+// whitelisted pelo 1º argumento. Fechar exige validar TODOS os argumentos, o
+// que é outra decisão (bloquearia `rm -rf /tmp/a /tmp/b`, hoje legítimo).
+// Ocorrências no corpus: 0 reais (o único match é prosa de PR body).
 
 /** whitelist rm -rf: caches/artefatos de build reconstruíveis (âncora: comentário US-COPI-085). */
 const RM_WHITELIST = [
@@ -100,7 +134,14 @@ const RM_WHITELIST = [
 const PADROES = [
   {
     key: 'rm-rf-perigoso',
-    regex: /(^|[\s;&|])rm\s+-[rRf]+\s+/i,
+    // `(\s|$)` em vez de `\s+`: isolado, um statement pode TERMINAR nas flags —
+    // `xargs -a lista.txt rm -rf` é rm recursivo com os alvos vindos do arquivo.
+    // No blob isso casava por acidente (o espaço vinha do comando SEGUINTE); sem
+    // o `$`, fatiar trocaria um falso-positivo por um falso-NEGATIVO. Delta da
+    // mudança de regex sozinha, medido no blob: 0.
+    regex: /(^|[\s;&|])rm\s+-[rRf]+(\s|$)/i,
+    // Whitelist aplicada AO STATEMENT, não ao comando inteiro (ver RM_WHITELIST).
+    porStatement: true,
     razao: 'rm -rf pode apagar trabalho não commitado / config / dados de prod',
     sugestao: 'use rm com path específico, ou whitelist: /tmp/, node_modules, vendor, storage/framework/{views,cache}, public/build*',
   },
@@ -175,21 +216,20 @@ const PADROES = [
  * atravessamento (delta 0 no corpus: reset-hard, DROP, DELETE s/ WHERE, DELETE
  * WHERE 1, TRUNCATE, migrate:fresh — nenhuma tem `.*`).
  *
- * ⚠️ A rm-rf tem um FP VIZINHO, medido (19 casos) e NÃO tratado aqui de propósito:
- * a RM_WHITELIST é ancorada em `^` do comando inteiro, então `cd x && rm -rf
- * node_modules` bloqueia enquanto `rm -rf node_modules` passa. Não é o defeito do
- * `.*` (o regex da rm não tem `.*`) e consertá-lo AFROUXA a categoria — 19 comandos
- * hoje bloqueados passariam. Afrouxar Tier-0 é decisão do [W], não efeito colateral
- * de um fix de FP. Se um dia for decidido, é UMA linha: `porStatement: true` nela.
+ * A rm-rf entrou no per-statement por decisão do [W] (2026-09-16) — ver o bloco
+ * §WHITELIST rm. Ali a escala importa DUAS vezes: o padrão E a whitelist são
+ * julgados no MESMO statement, senão a isenção de um `rm` cobriria outro.
  */
 export function matchDestructive(cmd) {
   const cmdNorm = normalizeCmd(cmd);
   if (!cmdNorm) return null;
   const stmts = statements(cmd);
+  const isento = (p, alvo) => p.key === 'rm-rf-perigoso' && RM_WHITELIST.some((w) => w.test(alvo));
   for (const p of PADROES) {
+    // a isenção acompanha a escala: por statement ela vale só pro statement que
+    // a ganhou; no blob (comportamento legado das demais) vale pro comando todo.
     const alvos = p.porStatement ? stmts : [cmdNorm];
-    if (!alvos.some((a) => p.regex.test(a))) continue;
-    if (p.key === 'rm-rf-perigoso' && RM_WHITELIST.some((w) => w.test(cmdNorm))) continue;
+    if (!alvos.some((a) => p.regex.test(a) && !isento(p, a))) continue;
     return p;
   }
   return null;
