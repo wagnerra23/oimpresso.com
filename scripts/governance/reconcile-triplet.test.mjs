@@ -484,6 +484,70 @@ const tsxTabela = [
     `exit=${rSemTodos.status} stderr=${(rSemTodos.stderr || '').split(String.fromCharCode(10))[0]}`);
 }
 
+// -- (e5) C1: o predicado e >=1, nao fracao; e o piso de 200B vale DENTRO do tree ---------
+// Por que existe: o fixture (e4) usa ponteiros de ARQUIVO, entao `blobsDe` devolve 1 blob e a
+// fracao e sempre 1.0 — com ele, `>=1` e `fracao>=0.5` sao indistinguiveis. Este usa TREE, que
+// e onde as duas regras divergem:
+//   dir-baixo/  3 arquivos >=200B -> 1 movido, 2 apagados = 1/3 = 0.33
+//               fracao>=0.5 NAO acusaria; >=1 acusa. (era o falso-negativo medido: 8 de 8)
+//   dir-piso/   1 arquivo >=200B apagado + 1 arquivo <200B movido
+//               sem piso-em-tree o trivial sobrevive e ACUSA sozinho; com piso, 0 sobreviventes.
+// Os destinos ficam FORA da linha do tombstone de proposito, senao `jaDeclaraDestino` dispensa.
+{
+  const root = mkdtempSync(join(tmpdir(), 'c1pred-'));
+  const git = (...a) => spawnSync('git', a, { cwd: root, encoding: 'utf8' });
+  git('init', '-q', '-b', 'main', '.');
+  git('config', 'user.email', 't@t'); git('config', 'user.name', 't');
+  mkdirSync(join(root, 'prototipo-ui', 'dir-baixo'), { recursive: true });
+  mkdirSync(join(root, 'prototipo-ui', 'dir-piso'), { recursive: true });
+  mkdirSync(join(root, 'memory', 'requisitos', 'Demo'), { recursive: true });
+  mkdirSync(join(root, 'resources', 'js', 'Pages'), { recursive: true });
+  for (const n of ['a', 'b', 'c']) {
+    writeFileSync(join(root, 'prototipo-ui', 'dir-baixo', n + '.json'), n.repeat(400));
+  }
+  writeFileSync(join(root, 'prototipo-ui', 'dir-piso', 'grande.json'), 'G'.repeat(400));
+  writeFileSync(join(root, 'prototipo-ui', 'dir-piso', 'trivial.json'), 'T');   // < 200B
+  git('add', '-A'); git('commit', '-qm', 'c1');
+
+  mkdirSync(join(root, 'guardado'), { recursive: true });
+  git('mv', 'prototipo-ui/dir-baixo/a.json', 'guardado/a.json');      // 1 de 3 sobrevive
+  git('rm', '-q', 'prototipo-ui/dir-baixo/b.json');
+  git('rm', '-q', 'prototipo-ui/dir-baixo/c.json');
+  git('mv', 'prototipo-ui/dir-piso/trivial.json', 'guardado/trivial.json');  // so o trivial
+  git('rm', '-q', 'prototipo-ui/dir-piso/grande.json');
+  git('commit', '-qm', 'c2');
+  const sha = git('rev-parse', '--short', 'HEAD').stdout.trim();
+
+  writeFileSync(join(root, 'memory', 'requisitos', 'Demo', 'RUNBOOK-pred.md'), [
+    '---', 'tela: Demo/Pred', '---', '',
+    '- baixo: `prototipo-ui/dir-baixo` _(removido em 2026-01-01, ' + sha + ')_',
+    '- piso:  `prototipo-ui/dir-piso` _(removido em 2026-01-01, ' + sha + ')_',
+    '',
+  ].join(String.fromCharCode(10)));
+  git('add', '-A'); git('commit', '-qm', 'c3');
+  git('update-ref', 'refs/remotes/origin/main', 'HEAD');
+
+  const r = spawnSync('node', [POINTERS, '--json', '--todos'], { cwd: root, encoding: 'utf8' });
+  let j = null;
+  try { j = JSON.parse(r.stdout); } catch { /* */ }
+  const ac = (j && j.mudou_de_casa) || [];
+  const baixo = ac.find((a) => a.ponteiro.includes('dir-baixo'));
+  const piso = ac.find((a) => a.ponteiro.includes('dir-piso'));
+
+  check('(e5) BITE — >=1 acusa onde a FRACAO (1/3 = 0.33) nao acusaria',
+    !!baixo && baixo.sobrevivem === 1 && baixo.total === 3, JSON.stringify(baixo || ac));
+  check('(e5) o achado CARREGA a dispersao (o numero sozinho viraria veredito)',
+    !!baixo && typeof baixo.destino_concentracao === 'number' && baixo.destino_dirs >= 1,
+    JSON.stringify(baixo || {}));
+  check('(e5-b) CONTROLE NEGATIVO — piso de 200B DENTRO do tree: blob trivial nao acusa',
+    piso === undefined, JSON.stringify(piso || 'ausente, como esperado'));
+
+  const rTxt = spawnSync('node', [POINTERS, '--todos'], { cwd: root, encoding: 'utf8' });
+  check('(e5-c) o C1 sai no modo TEXTO — e o modo que a lane do CI roda',
+    rTxt.status === 0 && /C1 \(advisory\)/.test(rTxt.stdout) && /dir-baixo/.test(rTxt.stdout),
+    `exit=${rTxt.status}`);
+}
+
 console.log('');
 if (fails) { console.error(`✗ ${fails} asserção(ões) falharam.`); process.exit(1); }
 console.log('✓ reconcile-triplet.test.mjs: todas as asserções passaram.');

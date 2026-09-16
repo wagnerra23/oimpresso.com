@@ -287,14 +287,24 @@ function shaAdvisory() {
  *  (drift-sentinel): quando a distribuicao nao discrimina, o baseline nao e o problema,
  *  o MEDIDOR e. A objecao veio da sessao irma e a medicao confirmou.
  *
- *  ⚠️ NAO CORRIGIDO AQUI, de proposito: trocar a fracao pelo predicado ">=1 sobrevive" e
- *  linha EXECUTAVEL e muda VEREDITO, entao sai em PR proprio (este e so a medicao).
- *  O #7402, que era o bloqueio pra isso, ja esta em main. Enquanto a troca nao vem, o 0.5 segue —
- *  ele erra pra o lado CONSERVADOR (nao acusa), entao o custo de esperar e silencio, nao
- *  ruido. Junto com a troca vai o piso de 200B, que hoje `blobsDe` aplica quando o objeto
- *  e blob mas NAO aos blobs de dentro de um tree: com fracao isso era inocuo (distribuicao
- *  identica, 75/2/4/0/2), com o predicado ">=1" um unico blob trivial que colide passa a
- *  decidir o veredito. */
+ *  TROCADO EM 2026-09-16: o predicado agora e `sobrevivem >= 1`, sem fracao nenhuma, e o
+ *  achado carrega `sobrevivem/total` + `destino_dirs` + `destino_concentracao`. Em vez de
+ *  escolher outro numero redondo, o gate REPORTA a proporcao e quem le decide a redacao —
+ *  "movido", "parcialmente movido" ou "removido" mesmo. IMPACTO MEDIDO antes de armar:
+ *      acusa por fracao >= 0.5 ... 0 de 83
+ *      acusa por >=1 ............. 8 de 83
+ *  e os 8 sao VERDADEIROS (FP = 0): em todos o conteudo esta vivo sob `prototipo-ui/cowork/
+ *  Wagner`, com concentracao de 13% a 100%. Essa faixa e a prova de que reportar a dispersao
+ *  importa — 4/10 num dir so e 15/33 espalhado por 8 dirs sao achados muito diferentes.
+ *
+ *  O piso de 200B passou a valer TAMBEM dentro de tree (ver `blobsDe`). Medido: nao muda
+ *  nada hoje (83 medidos e 8 acusados com e sem ele; `sem blob` = 0). Entra como
+ *  consequencia do predicado — com fracao, 1 blob vazio em 96 nao movia a agulha; com
+ *  `>=1` um unico blob trivial que colida por conteudo DECIDE a acusacao sozinho.
+ *
+ *  E o C1 passou a sair no modo TEXTO. Ate aqui ele so existia no `--json`, e a lane do CI
+ *  roda o texto: o audit achava e nao contava a ninguem. Com `>=1` seriam 8 achados reais
+ *  invisiveis (§5 2026-08-02, gate mudo com cara de cobertura). */
 const SL_C1 = String.fromCharCode(47);   // '/' sem literal
 const TOMB_SHA = /_[(][^)]*removido em ([0-9-]+), ([0-9a-f]{7,40})[^)]*[)]_/;
 /** A linha ja aponta PRA ONDE o conteudo foi? Entao esta correta — nao e acusacao.
@@ -315,7 +325,8 @@ function jaDeclaraDestino(linha, destinos) {
   }
   return false;
 }
-const LIMIAR_MUDOU_DE_CASA = 0.5;
+// (o `LIMIAR_MUDOU_DE_CASA = 0.5` morreu aqui em 2026-09-16 — o predicado virou `>=1` e a
+//  constante ficaria orfa. Medicao que o enterrou no bloco §LIMIAR do topo.)
 
 function sh(cmd) {
   try { return execSync(cmd, { encoding: 'utf8', maxBuffer: 1e9, stdio: ['ignore', 'pipe', 'ignore'] }).trim(); }
@@ -338,9 +349,19 @@ function blobsDe(obj) {
   const tipo = sh(`git cat-file -t ${obj}`);
   if (tipo === 'blob') return Number(sh(`git cat-file -s ${obj}`) || 0) >= 200 ? [obj] : [];
   if (tipo !== 'tree') return [];
-  return sh(`git ls-tree -r ${obj}`).split(String.fromCharCode(10))
-    .map((x) => { const m = x.match(/^[0-9]+ blob ([0-9a-f]+)/); return m ? m[1] : null; })
-    .filter(Boolean);
+  // O piso de 200B vale TAMBEM para os blobs de dentro do tree — a razao declarada dele
+  // ("blob trivial COLIDE por conteudo") nao muda por o objeto ser tree. Ate o predicado
+  // ser `>=1` a assimetria era inocua (com fracao, 1 blob vazio em 96 nao move a agulha);
+  // agora um unico `.gitkeep` que colida DECIDE a acusacao sozinho.
+  // MEDIDO no corpus de hoje: aplicar o piso aqui nao muda nada (83 medidos e 8 acusados
+  // com e sem ele, `sem blob` = 0) — nenhum tree medido tem blob < 200B. Entra como
+  // consequencia da troca de predicado, nao como conserto de defeito observado.
+  const out = [];
+  for (const x of sh(`git ls-tree -r -l ${obj}`).split(String.fromCharCode(10))) {
+    const m = x.match(/^[0-9]+ blob ([0-9a-f]+)\s+([0-9-]+)/);
+    if (m && Number(m[2]) >= 200) out.push(m[1]);
+  }
+  return out;
 }
 
 /** docs de requisitos tocados pelo PR (forward-only, ADR 0275). Sem base, devolve vazio —
@@ -390,8 +411,29 @@ function auditMudouDeCasa(docs) {
         const sobrev = filhos.filter((h) => vivos.has(h));
         const sobrevivem = sobrev.length;
         if (jaDeclaraDestino(linha, sobrev.slice(0, 5).map((h) => vivos.get(h)))) break;   // ja aponta o destino
-        if (sobrevivem / filhos.length >= LIMIAR_MUDOU_DE_CASA) {
-          achados.push({ doc: rel, linha: i + 1, ponteiro: ptr, sha: t[2], sobrevivem, total: filhos.length });
+        // PREDICADO: >=1 blob sobrevivente, NAO uma fracao. A fracao media QUANTO do tree
+        // sobreviveu; a pergunta e SE existe conteudo vivo em outro path — coisas diferentes,
+        // e um dir com 4 de 10 movidos e 6 apagados da 0.4 com os 4 tendo mudado de casa
+        // de verdade. Em vez de escolher outro numero redondo, o achado CARREGA a proporcao
+        // e a dispersao dos destinos, e quem le decide se reescreve como "movido" ou
+        // "parcialmente movido". Ver o bloco §LIMIAR no topo pra medicao que enterrou o 0.5.
+        if (sobrevivem >= 1) {
+          const destinos = new Set();
+          for (const h of sobrev) { const p = vivos.get(h); if (p) destinos.add(p); }
+          const porDir = {};
+          for (const p of destinos) {
+            const d = p.split(SL_C1).slice(0, -1).join(SL_C1);
+            porDir[d] = (porDir[d] || 0) + 1;
+          }
+          const top = Object.entries(porDir).sort((a, b) => b[1] - a[1])[0] || ['', 0];
+          achados.push({
+            doc: rel, linha: i + 1, ponteiro: ptr, sha: t[2], sobrevivem, total: filhos.length,
+            // sem estes 3 o numero vira veredito: 15/33 espalhado por 8 dirs e 4/10 num dir so
+            // sao achados MUITO diferentes, e so o autor sabe qual redacao cabe.
+            destino_dominante: top[0],
+            destino_dirs: Object.keys(porDir).length,
+            destino_concentracao: destinos.size ? Number((top[1] / destinos.size).toFixed(2)) : 0,
+          });
         }
         break;
       }
@@ -467,6 +509,30 @@ if (json) {
     for (const o of d.orphans) console.log(`        ✗ ${o.path}   [${o.src}]`);
   }
   if (!req.perDoc.length) console.log("     ✓ nenhum orfao mudo em memory/requisitos.");
+
+  // ⚠️ ate 2026-09-16 este bloco NAO EXISTIA: o C1 so saia no `--json`, e a lane do CI roda
+  // o modo TEXTO. O audit rodava, achava, e nao contava a ninguem — gate mudo no unico modo
+  // que o CI executa (§5 2026-08-02 "gate mudo com cara de cobertura"). Com o predicado em
+  // `>=1` o silencio ficaria pior: 8 achados reais no corpus de hoje, zero visiveis.
+  if (c1 === null) {
+    console.log(`\n— C1 removido x MUDOU DE CASA: NAO MEDIDO (sem base pra comparar — nao e 'nada a reportar')`);
+  } else {
+    console.log(`\n— C1 (advisory): tombstone cujo conteudo VIVE em outro path = ${c1.achados.length}`);
+    console.log('  (>=1 blob sobrevivente. A proporcao e a dispersao vao no achado: quem le decide');
+    console.log('   se a redacao certa e "movido", "parcialmente movido" ou "removido" mesmo.)');
+    for (const a of c1.achados) {
+      const pct = (a.destino_concentracao * 100).toFixed(0);
+      console.log(`     ⚠ ${a.doc}:${a.linha}`);
+      console.log(`        ${a.ponteiro}  @${a.sha}`);
+      console.log(`        ${a.sobrevivem}/${a.total} blobs vivos · ${a.destino_dirs} dir(s) · ${pct}% em ${a.destino_dominante}`);
+    }
+    if (!c1.achados.length) console.log('     ✓ nenhum.');
+    if (c1.naoResolvidos.length) {
+      const linhas = new Set(c1.naoResolvidos.map((x) => x.doc + ':' + x.linha)).size;
+      console.log(`  ⓘ NAO-MEDIDOS: ${c1.naoResolvidos.length} par(es) linha×ponteiro em ${linhas} linha(s) —`);
+      console.log(`     o \`<sha>^:<path>\` nao resolveu. "0 acusacoes" com nao-medidos != "tudo medido" (LC-33).`);
+    }
+  }
 }
 
 if (strict && r.totalOrphans > 0) process.exit(1);
