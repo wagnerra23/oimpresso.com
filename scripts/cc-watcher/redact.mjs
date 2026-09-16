@@ -44,7 +44,7 @@
 // app/Support/Privacy/CredentialShapes.php (comando cc:secret-sweep, que limpa o
 // que ja foi ingerido). Runtimes diferentes obrigam duas implementacoes; a
 // duplicacao so e segura porque os DOIS lados rodam os vetores de
-// tests/Fixtures/credential-shapes-vectors.json.
+// tests/fixtures/credential-shapes-vectors.json.
 //
 // Selftest: node scripts/cc-watcher/redact.test.mjs
 
