@@ -230,10 +230,16 @@ export function classificar({ zipHash, repoHash, manifestoHash }) {
 /**
  * O conteúdo que o ZIP traz pra este arquivo JÁ ESTEVE no espelho e foi substituído?
  *
- * Esta é a única pergunta de direção que É decidível — e ela vem do git, não de inferência:
- * se o blob do zip bate com uma versão ANTERIOR do arquivo versionado, o ZIP está ATRÁS.
- * Sem isto, importar um handoff antigo reverte o espelho em silêncio, e o dry-run aprova
- * (é um delta legítimo — só que pro lado errado). Era o furo da receita manual.
+ * O git responde uma coisa só: aquele conteúdo JÁ ESTEVE versionado neste caminho. Sem isto,
+ * importar um handoff antigo reverte o espelho em silêncio, e o dry-run aprova (é um delta
+ * legítimo — só que pro lado errado). Era o furo da receita manual.
+ *
+ * ⚠️ O QUE ISTO NÃO DECIDE (ADR 0404/0406 D3): o mesmo sinal sai de DUAS causas opostas —
+ * (a) o ZIP é um export velho (replay), e aí não se aplica; (b) o espelho foi ENRIQUECIDO ou
+ * editado deste lado depois do import, e aí o ZIP é o estado real da conta e PREVALECE. Foi o
+ * caso do #7256, onde a fusão da ADR 0398 deixou o espelho maior que a origem. O desempate não
+ * é o git — é a IDENTIDADE do pacote (bundleId/sequência/estado-base) contra o estado
+ * ativo. Pacote posterior ao ativo ⇒ leia "alguém escreveu no espelho", não "o ZIP é velho".
  *
  * `execFileSync` sem shell: o `<ref>:<path>` não passa por MSYS, então não sofre o mangling
  * de path do Git Bash (§5 2026-08-23).
@@ -373,7 +379,11 @@ function principal() {
   if (regressoes.length) {
     console.log(`\n  [3b] REGRESSAO   ${regressoes.length} arquivo(s) do zip JA ESTIVERAM no espelho e foram substituidos:`);
     for (const r of regressoes) console.log(`                   ${r.rel}  (versao do zip = a de ${r.commit})`);
-    console.log(`                   => este ZIP esta ATRAS do espelho. Aplicar REVERTE esses arquivos.`);
+    console.log(`                   => DUAS leituras possiveis, e o git nao separa as duas (ADR 0406 D3):`);
+    console.log(`                      (a) este ZIP e um export VELHO  -> aplicar reverte; nao aplique.`);
+    console.log(`                      (b) o espelho foi EDITADO aqui  -> o ZIP e o estado real da conta e PREVALECE.`);
+    console.log(`                      Desempate = identidade do pacote x estado ativo em scripts/design-sync/state/,`);
+    console.log(`                      nunca o historico do repo. Pacote posterior ao ativo => caso (b).`);
   }
 
   // 3c. LIVE-ONLY: o que existe no export e NUNCA desceu pro espelho.
@@ -441,8 +451,17 @@ function principal() {
     return;
   }
   if (regressoes.length && !tem('--permitir-regressao')) {
-    morre(`recuso promover: ${regressoes.length} arquivo(s) voltariam a uma versao anterior (ver [3b]).\n`
-      + `    Se for deliberado, repita com --permitir-regressao.`);
+    // A recusa e fail-closed de proposito (o caso (a) do [3b] reverte o espelho em silencio),
+    // mas o VEREDITO nao esta decidido aqui: o git nao separa "ZIP velho" de "espelho editado
+    // deste lado". No caso (b) o ZIP e o estado real da conta e PREVALECE (ADR 0404/0406 D3) —
+    // ai a flag NAO e "aceitar uma regressao", e sim aplicar o protocolo. O nome dela ficou do
+    // tempo em que so o caso (a) era previsto.
+    morre(`recuso promover sem decisao: ${regressoes.length} arquivo(s) ficariam com um conteudo que JA ESTEVE`
+      + ` versionado (ver [3b]).\n`
+      + `    Confira a identidade do pacote contra scripts/design-sync/state/ ANTES de decidir:\n`
+      + `      · pacote ANTERIOR ao estado ativo  -> caso (a), ZIP velho: nao aplique.\n`
+      + `      · pacote POSTERIOR ao estado ativo -> caso (b), espelho editado aqui: o pacote prevalece\n`
+      + `        (ADR 0404) — repita com --permitir-regressao, que neste caso e o caminho CERTO.`);
   }
   const a = roda('scripts/design-sync/aplicar-payload.mjs', [...partes, '--require-complete-shell']);
   if (!a.ok) { console.error(a.out); morre('o aplicador falhou na promocao (transacao atomica: nada mudou)'); }

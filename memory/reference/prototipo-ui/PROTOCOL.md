@@ -348,6 +348,17 @@ contrato, conteúdo duplicado ou extensão fora do contrato recusam o lote intei
 promoção. A importação não edita âncoras; a antiga árvore `design-docs/` foi removida
 ([ADR 0396](../../../memory/decisions/0396-prototipo-fonte-unica-build-sem-canon-sombra.md)).
 
+> **Emenda ([ADR 0398](../../../memory/decisions/0398-espelho-cowork-recebe-a-arvore-da-conta.md) D2, 2026-09-13 · precedência em [0404](../../../memory/decisions/0404-ultimo-importado-e-autoridade-do-espelho.md)/[0406](../../../memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md)).**
+> O parágrafo acima descreve o contrato **antes** de 13/09 e a palavra "Documento" nele
+> caducou: `.md` **é conteúdo do espelho** desde a 0398 D2 — medido nesta árvore,
+> `roleForPath('cowork-inbox/x.md')` devolve `cowork-source`, não recusa. O que segue recusando
+> o lote é o dono alheio (`_ds/**` e o DS canônico), conteúdo duplicado, escopo fora do destino
+> e falha de integridade — recusa por **regra**, nunca por o arquivo ter ficado menor
+> ([0406](../../../memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md) D4).
+> ⚠️ **Resíduo declarado, não consertado:** as três rotas de import ainda carregam listas de
+> extensão diferentes (`bundle-contract.mjs:15` · `aplicar-payload.mjs:56` ·
+> `importar-bundle.mjs:98`), então "o que é conteúdo do espelho" ainda depende da rota.
+
 `_ds` permanece **cache derivado do preview**, não estado nem histórico. A base do próximo delta,
 o relatório do que mudou e as provas de aplicação ficam fora dele, em `scripts/design-sync/state/`.
 

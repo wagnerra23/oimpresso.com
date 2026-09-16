@@ -130,6 +130,7 @@ Um item existe em UM lugar autoritativo por vez:
 - **o que testei:** [W] vota no Register no Cowork enquanto existe cópia no repo.
 - **resultado:** resolvido pela regra **Cowork-autoritativo / repo é snapshot read-only**. Ninguém edita os dois lados.
 - **Protocolo explicitado por [W] em 2026-09-16:** a **última importação válida e aceita prevalece**, mesmo que o Git anterior seja mais extenso. Não fundir nem restaurar versões antigas no espelho; corrigir a origem e importar novamente. Histórico serve para comparação. Gates e escopo de delta permanecem obrigatórios — [ADR 0404](../../decisions/0404-ultimo-importado-e-autoridade-do-espelho.md).
+- ⚠️ **Dois eixos, duas respostas — não confundir** ([ADR 0406](../../decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md)). Este "Cowork-autoritativo / repo é snapshot read-only" fala do **conteúdo da conta** dentro de `prototipo-ui/cowork/<dono>/`: ali o pacote vence os bytes, e o que a §14 (emenda Onda A, mais abaixo) chama de *"divergiu do git → o git vence"* **não se aplica** — aquela frase é sobre **canon e lei** (ADR, DS, token, decisão), onde o git é soberano e o Cowork é cache. Um eixo trata de bytes importados; o outro, de autoridade normativa. Ler a frase do eixo errado é o que faz alguém "restaurar do git" um arquivo que a conta acabou de mandar.
 - **nota:** **9/10** (simples e robusto; só falha se alguém editar direto no repo — proibido por convenção).
 
 ### TESTE-05 · 1ª passada REAL do ciclo (D-01 rodado Avaliar→Testar em produção)

@@ -364,7 +364,12 @@ for (const f of preparados) {
     //   os 6 syncs legítimos → líquido 0 · +16 · +41 · +70 · 0 · +3   (nenhum perdeu)
     //   o regressivo         → 787→618 = −169
     // Um teto de proporção (`ln < la*0.75`) NÃO discrimina: 618/787 = 78% e deixaria passar.
-    const flag = perda > 20 ? '  ⚠️ PERDE ' + perda + ' LINHAS — confira se o espelho não está À FRENTE do vivo' : '';
+    // ⚠️ O QUE FAZER COM ESTE AVISO mudou com a ADR 0404 ([W] 2026-09-16): perder linhas NÃO é
+    // motivo pra não aplicar nem pra reconciliar à mão. O espelho não tem autor legítimo deste
+    // lado, então "o espelho está à frente" significa uma de duas coisas, e as duas terminam no
+    // MESMO ato — aplicar: ou a conta reduziu o arquivo (e isso é achado pra origem), ou alguém
+    // escreveu aqui (proibido, e o conteúdo morre agora). Ver ADR 0406 D1/D4.
+    const flag = perda > 20 ? '  ⚠️ PERDE ' + perda + ' LINHAS — achado pra origem (ADR 0404: aplica mesmo assim; não reconciliar aqui)' : '';
     const metrica = binary ? `${conteudo.length.toLocaleString('pt-BR')} bytes binários` : `${conteudo.length.toLocaleString('pt-BR')} bytes · linhas ${la}→${ln}`;
     console.log(`  ${nota.padEnd(11)} ${rel}  (${metrica} · ${calc.slice(0, 12)})${flag}`);
   }
@@ -387,8 +392,13 @@ if (digest.comparados) {
     console.log(`  ✓ digest bate em ${ok}/${digest.comparados} — convenção "${digest.convencao}" reproduzível daqui.`);
   }
 }
-// Órfãos são RELATO, não poda: o apply não apaga, e o que sobra no espelho fora deste lote
-// pode ser legítimo (bundles, origem externa). Podar é decisão [W].
-console.log(`\n  ℹ️  apply não apaga — arquivos do espelho fora deste lote seguem lá (relato, não poda).`);
+// Órfãos são RELATO, não poda — e o ESCOPO é o que autoriza isso (ADR 0406 D2). Este caminho é
+// o do lote PARCIAL/legado: ele não declara a árvore, logo a ausência de um arquivo aqui é
+// SILÊNCIO, não informação da origem — podar por silêncio apagaria o que a conta nunca disse
+// que saiu. Quem poda é o modo árvore completa (`mirrorScope: tree` no bundle-transaction, ou
+// o `/PURGE` da rota ZIP), onde a ausência É informação. Ou seja: "o apply não apaga" vale
+// PARA ESTE MODO, não é a regra do espelho.
+console.log(`\n  ℹ️  lote PARCIAL: não apaga — o que está fora dele segue no espelho como RESÍDUO NÃO MEDIDO,`);
+console.log(`     não como conferido. Poda só no modo árvore completa (ADR 0406 D2).`);
 console.log('');
 process.exit(0);
