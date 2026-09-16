@@ -7,10 +7,11 @@
  * já feitos; o cache `_ds` é apenas um dos destinos derivados, nunca o estado do protocolo.
  */
 import {
-  cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync,
+  cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync, readdirSync, rmdirSync,
 } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { payloadDependencyGraph, normalizePayloadPath } from './payload-dependency-graph.mjs';
 import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
 import {
@@ -25,6 +26,13 @@ export const DEFAULT_PATHS = {
   runtime: 'prototipo-ui/design-system',
   state: 'scripts/design-sync/state',
 };
+
+export function pathsForOwner(owner = 'Wagner') {
+  if (!['Wagner', 'Felipe'].includes(owner)) throw new Error(`dono de bundle inválido: ${owner}`);
+  return owner === 'Wagner' ? { ...DEFAULT_PATHS } : {
+    ...DEFAULT_PATHS, cowork: 'prototipo-ui/cowork/Felipe', state: 'scripts/design-sync/state/Felipe',
+  };
+}
 
 /**
  * Onde o smoke foi renderizado (ADR 0390, emenda ao D-6 da 0384). `producao` = oimpresso.com
@@ -331,6 +339,23 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
 }
 
 function writeAndVerifyTarget({ root, staged, manifest, buffers, previous }) {
+  // Só uma árvore completa autoriza poda de arquivos nunca gerenciados pelo manifesto.
+  // Manifestos antigos/de shell não provam ausência de playbooks da conta.
+  if (manifest.mirrorScope === 'tree') {
+    const allowed = new Set(manifest.files.filter((file) => file.role !== 'preview-cache').map((file) => file.path));
+    function prune(dir, prefix = '') {
+      for (const item of readdirSync(dir, { withFileTypes: true })) {
+        const rel = prefix ? `${prefix}/${item.name}` : item.name;
+        const abs = resolveInside(staged.cowork, rel);
+        if (item.isSymbolicLink()) throw new Error(`link simbólico recusado no espelho: ${rel}`);
+        if (item.isDirectory()) {
+          prune(abs, rel);
+          if (readdirSync(abs).length === 0) rmdirSync(abs);
+        } else if (item.name !== '.gitignore' && !allowed.has(rel)) rmSync(abs, { force: true });
+      }
+    }
+    prune(staged.cowork);
+  }
   const effectiveDeleted = new Set(manifest.changes.deleted);
   if (manifest.mode === 'snapshot' && previous) {
     const targetPaths = new Set(manifest.files.map((file) => file.path));
@@ -377,6 +402,15 @@ export async function applyBundleTransaction({ root = process.cwd(), parts, dry 
   const stages = makeStages(absRoot, paths, id);
   try {
     const graph = writeAndVerifyTarget({ root: absRoot, staged: stages.staged, manifest, buffers, previous });
+    if (manifest.mirrorScope === 'tree') {
+      try {
+        execFileSync(process.execPath, [fileURLToPath(new URL('../governance/cowork-ssot-guard.mjs', import.meta.url)),
+          '--cowork-stage', stages.staged.cowork, '--runtime-stage', stages.staged.runtime, '--owner', basename(paths.cowork)],
+        { cwd: absRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (error) {
+        throw new Error(`árvore recusada antes da promoção pelo gate de fonte única: ${error.stderr || error.message}`);
+      }
+    }
     const currentReportPath = resolveInside(absRoot, join(paths.state, 'application-report.json'));
     const previousReport = existsSync(currentReportPath) ? JSON.parse(readFileSync(currentReportPath, 'utf8')) : null;
     const applicationLedger = readApplicationLedger(absRoot, paths);

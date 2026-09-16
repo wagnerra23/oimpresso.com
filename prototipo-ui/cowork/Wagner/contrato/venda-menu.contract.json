@@ -1,0 +1,48 @@
+{
+  "schema": "contrato-de-tela/1",
+  "page": "venda-*",
+  "source": "prototipo-ui/cowork/venda-menu/",
+  "gerado": "2026-08-22",
+  "secoes": [
+    {
+      "id": "venda-filtros",
+      "copy": "Filtros",
+      "estados": [
+        "expandido",
+        "recolhido"
+      ]
+    },
+    {
+      "id": "venda-toolbar",
+      "copy": [
+        "Confortável",
+        "Compacto"
+      ]
+    },
+    {
+      "id": "venda-rodape",
+      "copy": null
+    },
+    {
+      "id": "venda-abas",
+      "copy": [
+        "Lista de POS",
+        "Rascunhos",
+        "Cotações",
+        "Remessas",
+        "Descontos",
+        "Assinaturas",
+        "Pedido de venda",
+        "Caixa registradora",
+        "Importação de vendas"
+      ]
+    }
+  ],
+  "proibicoes": [
+    "não refazer Sells/Index, Show, Edit, Drafts, Quotations, Subscriptions, Caixa — são Inertia vivos",
+    "não inventar permissão: só sell.view|create|delete, direct_sell.access, access_shipping, access_sell_return, discount.access, so.view_*",
+    "não oferecer criação de assinatura avulsa (nasce de venda recorrente)",
+    "não prometer exclusão em massa de desconto (o legado só desativa)",
+    "não usar EmptyState do DS sem prop icon (a placa fica vazia)"
+  ]
+}

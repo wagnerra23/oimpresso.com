@@ -12,7 +12,7 @@ import { normalizePayloadPath } from './payload-dependency-graph.mjs';
 export const MANIFEST_SCHEMA = 'oimpresso-design-manifest/2';
 export const BUNDLE_SCHEMA = 'oimpresso-design-bundle/2';
 // `md` entra em 2026-09-13 (decisão [W]) — par do mesmo padrão em aplicar-payload.mjs:54.
-const BUILD_SOURCE_RE = /\.(?:jsx?|tsx?|mjs|cjs|css|html|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot|md)$/i;
+const BUILD_SOURCE_RE = /\.(?:jsx?|tsx?|mjs|cjs|css|html|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot|md|json|php)$/i;
 
 export function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
@@ -71,7 +71,8 @@ export function diffManifests(previous, currentFiles) {
   return { added, modified, deleted, unchanged };
 }
 
-export function createManifest({ source, entry = 'oimpresso.com.html', files, missing = [], previous = null, generatedAt = new Date().toISOString() }) {
+export function createManifest({ source, entry = 'oimpresso.com.html', files, missing = [], previous = null, generatedAt = new Date().toISOString(), mirrorScope = null }) {
+  if (mirrorScope !== null && mirrorScope !== 'tree') throw new Error(`escopo de espelho inválido: ${mirrorScope}`);
   const list = normalizedFiles(files);
   const cleanMissing = [...new Set(missing.map(normalizePayloadPath))].sort();
   if (previous) validateManifest(previous);
@@ -82,6 +83,7 @@ export function createManifest({ source, entry = 'oimpresso.com.html', files, mi
     entry: normalizePayloadPath(entry),
     files: list,
     missing: cleanMissing,
+    ...(mirrorScope ? { mirrorScope } : {}),
   };
   const bundleId = sha256(stableJson(identity));
   return {
@@ -105,6 +107,7 @@ export function createManifest({ source, entry = 'oimpresso.com.html', files, mi
 
 export function validateManifest(manifest) {
   if (!manifest || manifest.schema !== MANIFEST_SCHEMA) throw new Error(`schema de manifesto inválido: ${manifest?.schema || 'ausente'}`);
+  if (manifest.mirrorScope !== undefined && manifest.mirrorScope !== 'tree') throw new Error(`escopo de espelho inválido: ${manifest.mirrorScope}`);
   const files = normalizedFiles(manifest.files || []);
   const expectedIdentity = {
     schema: MANIFEST_SCHEMA,
@@ -112,6 +115,7 @@ export function validateManifest(manifest) {
     entry: normalizePayloadPath(manifest.entry),
     files,
     missing: [...new Set((manifest.missing || []).map(normalizePayloadPath))].sort(),
+    ...(manifest.mirrorScope ? { mirrorScope: manifest.mirrorScope } : {}),
   };
   const expectedId = sha256(stableJson(expectedIdentity));
   if (manifest.bundleId !== expectedId) throw new Error(`bundleId divergente: declarado ${manifest.bundleId || '?'} · calculado ${expectedId}`);
@@ -172,6 +176,9 @@ export function validateBundleParts(parts, previous = null) {
   if (manifest.mode === 'delta') {
     if (!previous) throw new Error(`delta exige estado-base ${manifest.baseBundleId}, mas nenhum estado ativo existe`);
     const validatedPrevious = validateManifest(previous);
+    if (validatedPrevious.mirrorScope === 'tree' && manifest.mirrorScope !== 'tree') {
+      throw new Error('árvore completa ativa exige novo manifesto de árvore completa; regenere com --full-tree');
+    }
     if (validatedPrevious.bundleId !== manifest.baseBundleId) throw new Error(`base divergente: ativo ${validatedPrevious.bundleId} · delta exige ${manifest.baseBundleId}`);
     const expectedChanges = diffManifests(validatedPrevious, manifest.files);
     for (const key of ['added', 'modified', 'deleted']) {

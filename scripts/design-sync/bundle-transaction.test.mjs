@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import {
   BUNDLE_SCHEMA, changesDigest, createManifest, manifestDigest, sha256,
 } from './bundle-contract.mjs';
-import { applyBundleTransaction, avaliarBaseParaRecibo } from './bundle-transaction.mjs';
+import { applyBundleTransaction, avaliarBaseParaRecibo, pathsForOwner } from './bundle-transaction.mjs';
 
 const STATUS = fileURLToPath(new URL('./status.mjs', import.meta.url));
 
@@ -67,11 +67,12 @@ function sourceSnapshot(label = 'v1') {
   ]);
 }
 
-function manifestFor(buffers, previous = null) {
+function manifestFor(buffers, previous = null, mirrorScope = null) {
   return createManifest({
     source: 'cowork:fixture',
     files: [...buffers].map(([path, buffer]) => ({ path, bytes: buffer.length, sha256: sha256(buffer) })),
     previous,
+    mirrorScope,
     generatedAt: previous ? '2026-08-23T12:00:00.000Z' : '2026-08-23T11:00:00.000Z',
   });
 }
@@ -385,6 +386,73 @@ console.log('\n=== delta baixa só mudanças, remove owned e preserva unchanged 
 }
 
 console.log('\n=== fail-closed: partes, base, hash, path e dry-run ===');
+{
+  console.log('\n=== árvore completa: poda de sobras, inclusão, dry-run e rollback ===');
+  const root = sandbox();
+  const before = sourceSnapshot('v1');
+  const m1 = manifestFor(before);
+  await applyBundleTransaction({ root, parts: partsFor(m1, before) });
+  put(root, 'prototipo-ui/cowork/Wagner/velho/sub/sobra.md', 'arquivo nunca gerenciado\n');
+  put(root, 'prototipo-ui/cowork/Wagner/.gitignore', 'regra local\n');
+  put(root, 'prototipo-ui/design-system/canon-sentinela.css', 'não tocar no DS\n');
+  const after = sourceSnapshot('v2');
+  after.delete('removido.js');
+  after.set('cowork-inbox/novo.md', Buffer.from('playbook novo\n'));
+  const m2 = manifestFor(after, m1, 'tree');
+  const parts = partsFor(m2, after);
+  const sobra = join(root, 'prototipo-ui/cowork/Wagner/velho/sub/sobra.md');
+  await applyBundleTransaction({ root, parts, dry: true });
+  check('árvore dry-run não apaga sobra real', existsSync(sobra));
+  await rejects('árvore rollback após swap mantém import anterior',
+    () => applyBundleTransaction({ root, parts, failAfterSwap: 2 }), /falha injetada/);
+  check('árvore rollback restaura arquivo não gerenciado', existsSync(sobra));
+  await applyBundleTransaction({ root, parts });
+  check('árvore completa remove sobra fora do manifesto e diretório vazio', !existsSync(join(root, 'prototipo-ui/cowork/Wagner/velho')));
+  check('árvore completa remove arquivo gerenciado ausente', !existsSync(join(root, 'prototipo-ui/cowork/Wagner/removido.js')));
+  check('árvore completa inclui playbook novo', existsSync(join(root, 'prototipo-ui/cowork/Wagner/cowork-inbox/novo.md')));
+  check('árvore completa atualiza conteúdo', readFileSync(join(root, 'prototipo-ui/cowork/Wagner/styles.css'), 'utf8').includes('v2'));
+  check('poda não alcança DS canônico', readFileSync(join(root, 'prototipo-ui/design-system/canon-sentinela.css'), 'utf8') === 'não tocar no DS\n');
+  check('poda preserva guarda local .gitignore', existsSync(join(root, 'prototipo-ui/cowork/Wagner/.gitignore')));
+  const m3 = manifestFor(after, m2, 'tree');
+  await applyBundleTransaction({ root, parts: partsFor(m3, after) });
+  check('reimportação regenerada de árvore é idempotente', !existsSync(sobra));
+  const partial = manifestFor(sourceSnapshot('v3'), m3);
+  await rejects('delta parcial não pode apagar playbooks depois de árvore completa',
+    () => applyBundleTransaction({ root, parts: partsFor(partial, sourceSnapshot('v3')) }), /exige novo manifesto de árvore completa/);
+  const forged = structuredClone(m1);
+  forged.mirrorScope = 'tree';
+  await rejects('escopo de poda não pode ser acrescentado sem mudar identidade',
+    () => applyBundleTransaction({ root: sandbox(), parts: partsFor(forged, before) }), /bundleId divergente/);
+}
+{
+  const producer = mkdtempSync(join(tmpdir(), 'design-tree-producer-'));
+  for (const [path, buffer] of sourceSnapshot()) put(producer, path, buffer);
+  put(producer, 'cowork-inbox/novo.md', 'playbook não alcançável pelo shell\n');
+  put(producer, 'cowork-inbox/contrato.json', '{"fixture":"json"}\n');
+  put(producer, 'sync/nao-realimentar.md', 'transporte velho\n');
+  const out = join(producer, 'sync');
+  execFileSync(process.execPath, [fileURLToPath(new URL('./gerar-payload-partes.mjs', import.meta.url)),
+    '--root', producer, '--out', out, '--full-tree', '--piso', '0'], { encoding: 'utf8' });
+  const manifest = JSON.parse(readFileSync(join(out, 'bundle.manifest.json'), 'utf8'));
+  check('gerador de árvore declara escopo autenticado', manifest.mirrorScope === 'tree');
+  check('gerador inclui playbook e contrato fora do shell', ['cowork-inbox/novo.md', 'cowork-inbox/contrato.json'].every((path) => manifest.files.some((file) => file.path === path)));
+  check('gerador não realimenta sync', !manifest.files.some((file) => file.path.startsWith('sync/')));
+  const root = sandbox();
+  put(root, 'prototipo-ui/cowork/Wagner/sobra-primeiro-import.md', 'sobra\n');
+  const parts = readdirSync(out).filter((name) => /^payload\.part.*\.json$/.test(name)).map((name) => JSON.parse(readFileSync(join(out, name), 'utf8')));
+  await applyBundleTransaction({ root, parts });
+  check('primeiro snapshot de árvore limpa sobra e importa JSON', !existsSync(join(root, 'prototipo-ui/cowork/Wagner/sobra-primeiro-import.md')) && existsSync(join(root, 'prototipo-ui/cowork/Wagner/cowork-inbox/contrato.json')));
+  const collision = sandbox();
+  put(collision, 'prototipo-ui/cowork/Felipe/fonte.md', 'playbook não alcançável pelo shell\n');
+  put(collision, 'prototipo-ui/cowork/Wagner/antes.md', 'espelho anterior\n');
+  await applyBundleTransaction({ root: collision, parts });
+  check('bytes iguais entre contas são aceitos sem apagar Felipe', readFileSync(join(collision, 'prototipo-ui/cowork/Felipe/fonte.md'), 'utf8') === 'playbook não alcançável pelo shell\n');
+  const wagnerState = readFileSync(join(collision, 'scripts/design-sync/state/active-bundle.json'));
+  const felipeManifest = manifestFor(sourceSnapshot(), null, 'tree');
+  await applyBundleTransaction({ root: collision, parts: partsFor(felipeManifest, sourceSnapshot()), paths: pathsForOwner('Felipe') });
+  check('Felipe tem seu bundle ativo e não altera o estado de Wagner', existsSync(join(collision, 'scripts/design-sync/state/Felipe/active-bundle.json')) && readFileSync(join(collision, 'scripts/design-sync/state/active-bundle.json')).equals(wagnerState));
+  check('importar Felipe não apaga os playbooks de Wagner', existsSync(join(collision, 'prototipo-ui/cowork/Wagner/cowork-inbox/novo.md')));
+}
 {
   const root = sandbox();
   const buffers = sourceSnapshot();
