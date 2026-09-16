@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **931 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **932 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -24,10 +24,10 @@
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
 | [`Pcp`](#pcp) | 20 | 0 | 0 | 0 | 20 |
+| [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
 | [`Compras`](#compras) | 18 | 0 | 0 | 0 | 17 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 18 | 0 | 0 | 0 | 18 |
-| [`Forja`](#forja) | 18 | 0 | 1 | 0 | 7 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
@@ -771,6 +771,37 @@
 - **US-PCP-019** — Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
 - **US-PCP-020** — Documentação RUNBOOK + Charter páginas — **P0**
 
+## Forja
+
+
+### review
+
+- **US-TR-309** — Triage — lista de tasks órfãs _(`p1` · @wagner)_
+
+### todo
+
+- **US-TR-308** — Chips de ADRs/SPECs relacionados (memory-linked) _(`p2` · @wagner)_
+- **US-TR-304** — Inbox — lista de não-lidas
+- **US-TR-305** — Inbox — marcar lido (individual + todas)
+- **US-TR-306** — Inbox — deep-link pra task/DetailSheet
+- **US-TR-307** — Operador não-técnico usa sem treino
+- **US-TR-310** — Triage — atribuir owner + prioridade inline
+- **US-TR-311** — Triage — mover cycle/epic
+
+### proposto
+
+- **US-FORJA-001** — Triagem em lote na tela Triage _(`p0` · @[W])_
+- **US-FORJA-002** — Política de expurgo (usar o `cancelled` que já existe) _(`p0` · @[W])_
+- **US-FORJA-005** — Rito de cycle — reativar ou aposentar (decisão [W], 0h de código) _(`p0` · @[W])_
+- **US-FORJA-009** — Pôr os testes da Forja numa lane de CI (41+ nunca executam) _(`p0` · @[W])_
+- **US-FORJA-010** — Mesa de Aprovações — a superfície do funil de admissão _(`p0` · @[W])_
+- **US-FORJA-011** — Redação de segredo na fronteira de ingest (`/api/cc/ingest`) — o daemon não volta sem ela _(`p0` · @[W])_
+- **US-FORJA-003** — Estender `mcp:tasks:unassigned` (idade + delta semanal) _(`p1` · @[W])_
+- **US-FORJA-004** — Ligar a superfície do alarme de `review` parado (o detector já existe) _(`p1` · @[W])_
+- **US-FORJA-006** — Sobreposição cockpit `/forja` × telas nativas (decisão [W] + código) _(`p1` · @[W])_
+- **US-FORJA-008** — Requisitos da Forja no formato atual — **oportunístico** _(`p1` · @[W])_
+- **US-FORJA-007** — WIP por pessoa vs máximo declarado _(`p2` · @[W])_
+
 ## Vestuario
 
 
@@ -846,36 +877,6 @@
 - **US-COMVIS-016** — CT-e/MDF-e pra entrega — **P3**
 - **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
 - **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
-
-## Forja
-
-
-### review
-
-- **US-TR-309** — Triage — lista de tasks órfãs _(`p1` · @wagner)_
-
-### todo
-
-- **US-TR-308** — Chips de ADRs/SPECs relacionados (memory-linked) _(`p2` · @wagner)_
-- **US-TR-304** — Inbox — lista de não-lidas
-- **US-TR-305** — Inbox — marcar lido (individual + todas)
-- **US-TR-306** — Inbox — deep-link pra task/DetailSheet
-- **US-TR-307** — Operador não-técnico usa sem treino
-- **US-TR-310** — Triage — atribuir owner + prioridade inline
-- **US-TR-311** — Triage — mover cycle/epic
-
-### proposto
-
-- **US-FORJA-001** — Triagem em lote na tela Triage _(`p0` · @[W])_
-- **US-FORJA-002** — Política de expurgo (usar o `cancelled` que já existe) _(`p0` · @[W])_
-- **US-FORJA-005** — Rito de cycle — reativar ou aposentar (decisão [W], 0h de código) _(`p0` · @[W])_
-- **US-FORJA-009** — Pôr os testes da Forja numa lane de CI (41+ nunca executam) _(`p0` · @[W])_
-- **US-FORJA-010** — Mesa de Aprovações — a superfície do funil de admissão _(`p0` · @[W])_
-- **US-FORJA-003** — Estender `mcp:tasks:unassigned` (idade + delta semanal) _(`p1` · @[W])_
-- **US-FORJA-004** — Ligar a superfície do alarme de `review` parado (o detector já existe) _(`p1` · @[W])_
-- **US-FORJA-006** — Sobreposição cockpit `/forja` × telas nativas (decisão [W] + código) _(`p1` · @[W])_
-- **US-FORJA-008** — Requisitos da Forja no formato atual — **oportunístico** _(`p1` · @[W])_
-- **US-FORJA-007** — WIP por pessoa vs máximo declarado _(`p2` · @[W])_
 
 ## Officeimpresso
 
