@@ -19,7 +19,7 @@ gerado_em: 2026-09-06
 > de bundle — e proíbe promover `bundle_source` a `related_prototype` em leva.
 
 > ⚠️ **O contrato citado ainda NÃO é gate ativo.** Ele vive em
-> `prototipo-ui/design-docs/cowork-inbox/essenciais/contrato/`, **não** em `governance/design/contracts/` _(removido em 2026-09-11, 4f51a9ec781)_
+> `prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/contrato/`, **não** em `governance/design/contracts/` _(o contrato VIVE — só mudou de casa: o path antigo `design-docs/cowork-inbox/` foi removido em 2026-09-11, 4f51a9ec781, e a árvore atual nasceu em 2026-09-14, ba8e812d687; blob idêntico)_
 > (medido com o critério do próprio gate — `git ls-files "governance/design/contracts/*.contract.json"` sem o EXEMPLO, como `scripts/contrato-de-tela.mjs` faz: **28** contratos ativos, que incluem `essentials-tipos`, `essentials-licencas` e
 > `essentials-metas` — nenhum dos 5 dos essenciais). Ele é **proposta de contrato**: descreve a
 > copy literal pretendida e serve de âncora para esta comparação, mas **não trava merge hoje**.
