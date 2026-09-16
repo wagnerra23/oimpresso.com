@@ -24,6 +24,7 @@
  */
 import { readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { execSync } from 'node:child_process';
 
 const ROOT = process.cwd();
 const PAGES = join(ROOT, 'resources/js/Pages');
@@ -218,12 +219,130 @@ function shaAdvisory() {
   return missing;
 }
 
+
+/** Advisory C1 — "removido" x "MUDOU DE CASA".
+ *  Tombstone `_(removido em <data>, <sha>)_` cujo CONTEUDO sobrevive em origin/main sob OUTRO
+ *  path: dizer "removido" ali induz o leitor a erro (o alvo nao sumiu, trocou de endereco) e
+ *  ainda blinda a linha contra cobranca futura, porque declaraMorte() a considera resolvida.
+ *
+ *  O predicado e DETERMINISTICO, nao sintatico: resolve `<sha>^:<path>` e procura o blob (ou
+ *  os blobs do tree) no indice de origin/main. Nao e heuristica de similaridade — e igualdade
+ *  de hash. Por isso escapa da familia de guard sintatico que o §5 ja enterrou 8x.
+ *
+ *  Prior art: o git faz deteccao de rename por similaridade (`diff -M`, `log --follow`). Aqui
+ *  o caso e mais estreito e mais barato — o blob sobrevive IDENTICO, entao basta lookup.
+ *
+ *  MEDIDO 2026-09-16 (FP antes de armar, regra "LIGUE A MAQUINA" item 4):
+ *    origin/main ..... 91 tombstones -> 75 remocao real, 4 mudou-de-casa, 0 falso-positivo
+ *    24a3f7f772e ..... 96 tombstones -> 75 remocao real, 8 mudou-de-casa
+ *    Os 4 gaps Essentials que o GT-G5 r5 achou A MAO estao entre os 8 — a sonda morde.
+ *
+ *  ADVISORY e forward-only (ADR 0275): varre so os docs do diff vs origin/main. `--todos`
+ *  varre o corpus inteiro (custa ~2min: e um `git rev-parse` por ponteiro).
+ *  ⚠️ O limiar de fracao (tree) e 0.5 e foi escolhido SEM corpus que o calibre — os dois casos
+ *  reais medidos dao 320/323 e 320/454. Promover a required exige calibrar isso primeiro. */
+const SL_C1 = String.fromCharCode(47);   // '/' sem literal
+const TOMB_SHA = /_[(][^)]*removido em ([0-9-]+), ([0-9a-f]{7,40})[^)]*[)]_/;
+/** A linha ja declara PRA ONDE o conteudo foi? Entao esta correta — nao e acusacao.
+ *  Exceçao EXPLICITA e testada (e4-b), nao escape acidental por regex que deixa de casar. */
+function declaraMudancaDeCasa(linha) {
+  return /CONTE[UÚ]DO vive em|conte[uú]do vive em|vive(m)? (hoje )?em [`]/.test(linha);
+}
+const LIMIAR_MUDOU_DE_CASA = 0.5;
+
+function sh(cmd) {
+  try { return execSync(cmd, { encoding: 'utf8', maxBuffer: 1e9, stdio: ['ignore', 'pipe', 'ignore'] }).trim(); }
+  catch { return ''; }
+}
+
+function blobsVivosEmMain() {
+  const vivos = new Set();
+  for (const l of sh('git ls-tree -r origin/main').split(String.fromCharCode(10))) {
+    const m = l.match(/^[0-9]+ blob ([0-9a-f]+)/);
+    if (m) vivos.add(m[1]);
+  }
+  return vivos;
+}
+
+/** blobs sob um objeto: o proprio, se blob com tamanho relevante; os filhos, se tree.
+ *  O piso de 200B existe porque blob trivial (vazio, .gitkeep, 1 linha) COLIDE por conteudo
+ *  e produziria acusacao sem significado. */
+function blobsDe(obj) {
+  const tipo = sh(`git cat-file -t ${obj}`);
+  if (tipo === 'blob') return Number(sh(`git cat-file -s ${obj}`) || 0) >= 200 ? [obj] : [];
+  if (tipo !== 'tree') return [];
+  return sh(`git ls-tree -r ${obj}`).split(String.fromCharCode(10))
+    .map((x) => { const m = x.match(/^[0-9]+ blob ([0-9a-f]+)/); return m ? m[1] : null; })
+    .filter(Boolean);
+}
+
+/** docs de requisitos tocados pelo PR (forward-only, ADR 0275). Sem base, devolve vazio —
+ *  e NAO-MEDICAO, nao 'nada a reportar' (LC-33): o CLI diz isso em voz alta. */
+function docsDoDiffC1() {
+  const base = sh('git merge-base origin/main HEAD');
+  if (!base) return null;
+  return sh(`git diff --name-only ${base}...HEAD -- memory/requisitos`)
+    .split(String.fromCharCode(10)).map((x) => x.trim()).filter((x) => x.endsWith('.md'));
+}
+
+function auditMudouDeCasa(docs) {
+  if (!docs.length) return [];
+  const vivos = blobsVivosEmMain();
+  if (!vivos.size) return [];            // sem indice nao ha medicao — NAO afirmar verde (LC-33)
+  const achados = [];
+  const raiz = ROOT.split(BS).join(SL_C1) + SL_C1;
+  for (const bruto of docs) {
+    const rel = bruto.startsWith(raiz) ? bruto.slice(raiz.length) : bruto;
+    let linhas;
+    try { linhas = readFileSync(join(ROOT, rel), 'utf8').split(String.fromCharCode(10)); } catch { continue; }
+    const dir = rel.split(SL_C1).slice(0, -1).join(SL_C1);
+    linhas.forEach((linha, i) => {
+      const t = linha.match(TOMB_SHA);
+      if (!t) return;
+      if (declaraMudancaDeCasa(linha)) return;   // ja corrigida: declara o destino
+      for (const ptr of pointersOf2(linha)) {
+        const bases = [ptr, dir + SL_C1 + ptr, 'memory/requisitos/_DesignSystem/' + ptr, 'memory/reference/' + ptr];
+        let obj = '';
+        for (const b of bases) { obj = sh(`git rev-parse "${t[2]}^:${b}"`); if (obj.length === 40) { break; } obj = ''; }
+        if (!obj) continue;
+        const filhos = blobsDe(obj);
+        if (!filhos.length) break;
+        const sobrevivem = filhos.filter((h) => vivos.has(h)).length;
+        if (sobrevivem / filhos.length >= LIMIAR_MUDOU_DE_CASA) {
+          achados.push({ doc: rel, linha: i + 1, ponteiro: ptr, sha: t[2], sobrevivem, total: filhos.length });
+        }
+        break;
+      }
+    });
+  }
+  return achados;
+}
+
+/** ponteiros CRUS da linha (o `pointersOf` do arquivo le doc inteiro e resolve; aqui e por linha). */
+function pointersOf2(linha) {
+  const BQ = String.fromCharCode(96);
+  const PRE = /(prototipo-ui|memory|resources|ui_kits|app|Modules|scripts|governance|public|tests|database)[/]/g;
+  const out = new Set();
+  let m;
+  while ((m = PRE.exec(linha))) {        // LOCAL de proposito: /g no escopo do modulo vaza lastIndex
+    const r = linha.slice(m.index).split(BQ)[0].split(')')[0].split(']')[0].trim();
+    for (const tk of [r]) {
+      const c = decodeURIComponent(tk.replace(/[.,;:)]+$/, '')).replace(/[/]+$/, '');
+      if (c.includes(SL_C1) && !ehPlaceholder(c)) out.add(c);
+    }
+  }
+  return out;
+}
+
 // ── CLI ──────────────────────────────────────────────────────────────────────
 const json = process.argv.includes('--json');
 const strict = process.argv.includes('--strict');
 const r = audit();
 const shaMiss = shaAdvisory();
 const req = auditRequisitos();   // 2a raiz: memory/requisitos (advisory, report-only)
+const todosC1 = process.argv.includes('--todos');
+const docsC1 = todosC1 ? requisitosDocs() : docsDoDiffC1();
+const mudouDeCasa = docsC1 === null ? null : auditMudouDeCasa(docsC1);   // C1: advisory
 
 if (json) {
   console.log(JSON.stringify({
@@ -236,6 +355,8 @@ if (json) {
     requisitos_docs_com_orfao: req.perDoc.length,
     requisitos_total_orfaos: req.totalOrphans,
     requisitos_detalhe: req.perDoc,
+    mudou_de_casa_medido: mudouDeCasa !== null,
+    mudou_de_casa: mudouDeCasa || [],
   }, null, 2));
 } else {
   console.log('charter-blueprint-pointers — auditoria de ponteiros de protótipo/blueprint dos charters\n');

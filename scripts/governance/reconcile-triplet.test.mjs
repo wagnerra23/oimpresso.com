@@ -416,6 +416,54 @@ const tsxTabela = [
   }
 }
 
+// -- (e4) C1: removido x MUDOU DE CASA -----------------------------------------
+// Por que existe: a familia que MAIS reincidiu nas 5 rodadas do GT-G5 no #7377 foi carimbar
+// remocao onde o conteudo so trocou de endereco — os 4 gaps Essentials afirmavam que um
+// contrato fora removido enquanto ele vive em main com blob IDENTICO. O predicado e
+// DETERMINISTICO (igualdade de hash), nao heuristica: por isso escapa da familia de guard
+// sintatico que o §5 ja enterrou 8x. Fixture com repo git PROPRIO — nao depende de sha do
+// repo real, que o GC pode levar: c1 cria os 2 arquivos, c2 MOVE um e APAGA o outro, c3
+// escreve o doc com os 2 tombstones apontando o MESMO sha. So o movido pode ser acusado.
+{
+  const root = mkdtempSync(join(tmpdir(), 'c1casa-'));
+  const git = (...a) => spawnSync('git', a, { cwd: root, encoding: 'utf8' });
+  git('init', '-q', '-b', 'main', '.');
+  git('config', 'user.email', 't@t'); git('config', 'user.name', 't');
+  mkdirSync(join(root, 'prototipo-ui', 'velho'), { recursive: true });
+  mkdirSync(join(root, 'memory', 'requisitos', 'Demo'), { recursive: true });
+  mkdirSync(join(root, 'resources', 'js', 'Pages'), { recursive: true });
+  writeFileSync(join(root, 'prototipo-ui', 'velho', 'arq.json'), 'x'.repeat(400));
+  writeFileSync(join(root, 'prototipo-ui', 'velho', 'morre.json'), 'y'.repeat(400));
+  git('add', '-A'); git('commit', '-qm', 'c1');
+  mkdirSync(join(root, 'prototipo-ui', 'novo'), { recursive: true });
+  git('mv', 'prototipo-ui/velho/arq.json', 'prototipo-ui/novo/arq.json');
+  git('rm', '-q', 'prototipo-ui/velho/morre.json');
+  git('commit', '-qm', 'c2');
+  const sha = git('rev-parse', '--short', 'HEAD').stdout.trim();
+  writeFileSync(join(root, 'memory', 'requisitos', 'Demo', 'RUNBOOK-casa.md'), [
+    '---', 'tela: Demo/Casa', '---', '',
+    '- mudou:  `prototipo-ui/velho/arq.json` _(removido em 2026-01-01, ' + sha + ')_',
+    '- morreu: `prototipo-ui/velho/morre.json` _(removido em 2026-01-01, ' + sha + ')_',
+    '- curada: `prototipo-ui/velho/arq.json` _(path removido em 2026-01-01, ' + sha + '; o CONTEÚDO vive em `prototipo-ui/novo/arq.json`)_',
+    '',
+  ].join(String.fromCharCode(10)));
+  git('add', '-A'); git('commit', '-qm', 'c3');
+  git('update-ref', 'refs/remotes/origin/main', 'HEAD');
+
+  const r = spawnSync('node', [POINTERS, '--json', '--todos'], { cwd: root, encoding: 'utf8' });
+  let j = null;
+  try { j = JSON.parse(r.stdout); } catch { /* */ }
+  const ac = (j && j.mudou_de_casa) || [];
+  check('(e4) BITE — acusa o tombstone cujo conteudo MUDOU DE CASA',
+    ac.length === 1 && ac[0].ponteiro.includes('arq.json'), JSON.stringify(ac));
+  check('(e4) CONTROLE NEGATIVO — remocao real NAO e acusada',
+    !ac.some((c) => c.ponteiro.includes('morre')), JSON.stringify(ac));
+  check('(e4) declara que MEDIU — nao-medicao nunca vira nada a reportar',
+    j && j.mudou_de_casa_medido === true, String(j && j.mudou_de_casa_medido));
+  check('(e4-b) EXCECAO — linha que declara o destino nao e acusada de novo',
+    ac.length === 1, JSON.stringify(ac));
+}
+
 console.log('');
 if (fails) { console.error(`✗ ${fails} asserção(ões) falharam.`); process.exit(1); }
 console.log('✓ reconcile-triplet.test.mjs: todas as asserções passaram.');
