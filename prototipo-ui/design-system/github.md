@@ -6,17 +6,33 @@ path: (repo inteiro — foco em resources/css, resources/js, memory/, prototipo-
 
 ## Last sync
 
-date: 2026-08-31T20:40:00Z
-tree: 84b62eb785e8 (hash de árvore lido pelas ferramentas — não é commit sha)
+date: 2026-09-16T22:50:00Z
+commit: 5c55e4f96f1 (sha real do merge do PR #7456 — nao e tree hash)
 
 ### Updated in this project
+
+- **`colors_and_type.css` — push git->espelho dos 8 tokens que estavam divergentes.** O git avancou 2x
+  (v1.2.0 em 02/09, v1.3.0 em 08/09) e o espelho ficou no valor pre-conserto; o `ds-mirror-drift`
+  acusava 8 vs baseline 0 em 15 runs seguidas, todas `success` por ser advisory. Valores agora iguais
+  ao canon: `--color-success-foreground` e `--color-warning-foreground` (light e dark) em
+  `oklch(0.20 0.02 h)`; `--accent-soft`/`--pos`/`--neg`/`--warn` do `.cockpit[data-theme="dark"]`.
+  Efeito visivel: pilulas de status ganham tinta escura sobre chip solido (conserto de contraste do
+  `StatusBadge`). Medicao de a11y anterior a esta data foi feita contra tokens velhos.
+- **3 `@font-face` corrigidas de carona.** Os pesos 500/600/700 do IBM Plex Sans apontavam para
+  `ibm-plex-sans-400.woff2` na copia do repo. O scaffold do push foi o arquivo do handoff 22 (leitura
+  do vivo), entao o vivo manteve os pesos certos e o repo recebeu o conserto.
+- `cockpit_domains.css` reescrito sem diferenca de conteudo (write do mesmo par).
+- Verificacao: `ds-push` VALOR:0 vs canon · `write_files` written:2 · releitura com 8 de 8 valores
+  presentes · `ds-mirror-drift` drift 0 baseline 0 nos 4 escopos.
+
+## Sync history
+
+### 2026-08-31T20:40:00Z · tree 84b62eb785e8
 
 - **Reset dos documentos.** `HANDOFF.md` reescrito do zero contra `84b62eb785e8`: só o vigente, mapa separando 3 pares medidos de 40+ herdados, §5 "Não verificado" explícita. `README.md` limpo da arqueologia (errata de paths, `AppShell.tsx`, `shared/ponto/`, `ModuleTopNav`, `inertia.css` como SSOT). Versões antigas em `arquivo/`.
 - `TabBar` — o `<nav>` virou o contrato: `...rest`, `className` somado, `ariaLabel`, `pad`, `size`, `off`, `icon`, `inset`. Wrapper removido dos 3 templates que usavam o padrão PT-01.
 - `PageHeader` — `leading` (alinhado ao slot homônimo do canon, não caixa), `context`, `freshness`/`freshnessRel` reusando `StatusBadge kind="frescor"`.
 - `HANDOFF-2026-08-31-tabbar-pageheader.md` novo — handoff da rodada, com auditoria do `main` (linha medida) e bloco de COWORK_NOTES.
-
-## Sync history
 
 ### 2026-08-24T20:10:00Z · tree 29a59c1ce1d3
 
