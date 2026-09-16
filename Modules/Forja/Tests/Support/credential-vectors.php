@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Helpers dos vetores de credencial, compartilhados pelos dois testes.
  *
  * ── POR QUE ARQUIVO PRÓPRIO, E NÃO UM HELPER DENTRO DE UM DOS TESTES ─────────
- * `CcSecretSweepTest` (era-sqlite) e `CredentialShapesTest` (roda em qualquer
+ * `CcSecretSweepTest` (toca banco) e `CredentialShapesTest` (roda em qualquer
  * banco) estão em LANES DIFERENTES: a lane sqlite executa só os arquivos da
  * allowlist `.github/ci-sqlite-pest.list`. Se o helper morasse no arquivo puro,
  * a lane sqlite carregaria só o outro e quebraria com "undefined function".

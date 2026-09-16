@@ -14,62 +14,86 @@ require_once __DIR__.'/../Support/credential-vectors.php';
  * Comportamento de BANCO do `cc:secret-sweep`: dry-run, `--apply`, idempotência,
  * blob comprimido e `--fail-on-find`.
  *
- * ── ERA-SQLITE (por que se auto-pula fora do sqlite) ─────────────────────────
- * Monta `mcp_cc_messages`/`mcp_cc_blobs` sintéticas — o esquema real tem FK de
- * `user_id` pra `users`, que não interessa ao que este teste prova. Mas o
- * `Schema::drop` rodando contra o MySQL PERSISTENTE do CT 100/CI destruiria as
- * tabelas de verdade para as runs seguintes: o `sqlite-test-corruptors` marca
- * isso como corruptor, e está CERTO (medido no #7418, `sqlite_corruptors 0 → 1`).
- * Guard no `beforeEach`, idioma do vizinho `CcIngestPersistsFieldsTest`
- * (US-GOV-021).
+ * ── POR QUE NÃO DROPA E NÃO PULA ─────────────────────────────────────────────
+ * As duas saídas óbvias custavam caro, e cada uma numa catraca ARMADA que só
+ * pode DESCER (ADR 0275 §3):
  *
- * ⚠️ Skip conta como pass. Para este arquivo não virar cobertura falsa (LC-13),
- * ele está em `.github/ci-sqlite-pest.list` — a lane sqlite o executa de fato.
- * A parte que roda em QUALQUER banco (vocabulário + registro no Artisan) vive em
- * `CredentialShapesTest`, que não tem guard e roda na lane MySQL.
+ *   · `Schema::drop` no `beforeEach` destruiria as tabelas REAIS no MySQL
+ *     persistente do CT 100/CI, quebrando as runs seguintes — é o que o
+ *     `sqlite-test-corruptors` marca, e marcou: `sqlite_corruptors 0 → 1`.
+ *   · `markTestSkipped` fora do sqlite (o idioma do vizinho
+ *     `CcIngestPersistsFieldsTest`) evita aquilo, mas skip conta como
+ *     quarentena: `n_quarantine 252 → 253`.
+ *
+ * Criar-se-não-existe resolve os dois: no MySQL as tabelas já estão migradas e
+ * nenhum DDL roda; no sqlite `:memory:` elas nascem aqui. Efeito colateral bom —
+ * o teste roda nas DUAS lanes (MySQL `forja-pest` e sqlite `PHP / Pest (Unit)`),
+ * em vez de existir só numa.
+ *
+ * A parte que não toca banco (vocabulário + registro no Artisan) vive em
+ * `CredentialShapesTest`.
  */
 beforeEach(function () {
-    if (config('database.default') !== 'sqlite') {
-        $this->markTestSkipped('era-sqlite: tabelas sintéticas mcp_cc_* só rodam no sqlite (US-GOV-021)');
+    if (! Schema::hasTable('mcp_cc_messages')) {
+        Schema::create('mcp_cc_messages', function ($t) {
+            $t->bigIncrements('id');
+            $t->unsignedBigInteger('session_id');
+            $t->string('msg_uuid', 36)->unique();
+            $t->unsignedInteger('user_id')->nullable();
+            $t->unsignedInteger('business_id')->nullable();
+            $t->string('msg_type', 20);
+            $t->mediumText('content_text')->nullable();
+            $t->json('content_json')->nullable();
+            $t->timestamp('ts')->nullable();
+            $t->timestamps();
+        });
     }
 
-    foreach (['mcp_cc_messages', 'mcp_cc_blobs'] as $tbl) {
-        if (Schema::hasTable($tbl)) {
-            Schema::drop($tbl);
-        }
+    if (! Schema::hasTable('mcp_cc_blobs')) {
+        Schema::create('mcp_cc_blobs', function ($t) {
+            $t->bigIncrements('id');
+            $t->string('hash_sha256', 64)->index();
+            $t->string('blob_type', 30)->nullable();
+            $t->string('mime_type', 100)->nullable();
+            $t->unsignedBigInteger('size_original_bytes')->default(0);
+            $t->unsignedBigInteger('size_compressed_bytes')->default(0);
+            $t->binary('compressed_data')->nullable();
+            $t->unsignedInteger('refs_count')->default(1);
+            $t->timestamps();
+        });
     }
-
-    Schema::create('mcp_cc_messages', function ($t) {
-        $t->bigIncrements('id');
-        $t->unsignedBigInteger('session_id');
-        $t->string('msg_uuid', 36)->unique();
-        $t->unsignedInteger('user_id')->nullable();
-        $t->unsignedInteger('business_id')->nullable();
-        $t->string('msg_type', 20);
-        $t->mediumText('content_text')->nullable();
-        $t->json('content_json')->nullable();
-        $t->timestamp('ts')->nullable();
-        $t->timestamps();
-    });
-
-    Schema::create('mcp_cc_blobs', function ($t) {
-        $t->bigIncrements('id');
-        $t->string('hash_sha256', 64)->index();
-        $t->string('blob_type', 30)->nullable();
-        $t->string('mime_type', 100)->nullable();
-        $t->unsignedBigInteger('size_original_bytes')->default(0);
-        $t->unsignedBigInteger('size_compressed_bytes')->default(0);
-        $t->binary('compressed_data')->nullable();
-        $t->unsignedInteger('refs_count')->default(1);
-        $t->timestamps();
-    });
 });
+
+/**
+ * Some só com o que ESTE teste inseriu — nunca `truncate`, que apagaria dado
+ * real no MySQL persistente. O prefixo `sweep-` do `msg_uuid` é a âncora.
+ */
+afterEach(function () {
+    DB::table('mcp_cc_messages')->where('msg_uuid', 'like', 'sweep-%')->delete();
+    DB::table('mcp_cc_blobs')->where('blob_type', 'sweep-test')->delete();
+});
+
+/**
+ * O schema REAL tem `user_id` NOT NULL com FK pra `users`; o sintético do sqlite
+ * aceita `null`. Resolver pelo banco cobre os dois sem ramificar por driver.
+ */
+function userIdParaSweep(): ?int
+{
+    if (! Schema::hasTable('users')) {
+        return null;
+    }
+
+    $id = DB::table('users')->orderBy('id')->value('id');
+
+    return $id === null ? null : (int) $id;
+}
 
 function inserirMensagemSweep(string $texto): int
 {
     return (int) DB::table('mcp_cc_messages')->insertGetId([
         'session_id' => 1,
         'msg_uuid' => 'sweep-'.bin2hex(random_bytes(8)),
+        'user_id' => userIdParaSweep(),
         // ADR 0358: tenant fictício 98 — nunca biz=4 (cliente) em teste.
         'business_id' => 98,
         'msg_type' => 'tool_result',
@@ -117,7 +141,7 @@ it('redige BLOB, que vive comprimido, e mantem os quatro campos coerentes', func
 
     $id = (int) DB::table('mcp_cc_blobs')->insertGetId([
         'hash_sha256' => hash('sha256', $conteudo),
-        'blob_type' => 'stdout',
+        'blob_type' => 'sweep-test',
         'size_original_bytes' => strlen($conteudo),
         'size_compressed_bytes' => strlen((string) $comprimido),
         'compressed_data' => $comprimido,
@@ -140,11 +164,13 @@ it('redige BLOB, que vive comprimido, e mantem os quatro campos coerentes', func
 });
 
 it('--fail-on-find devolve exit 1 com credencial e 0 depois de limpo', function () {
-    inserirMensagemSweep(valorSinteticoDe('aws_akia'));
+    $id = inserirMensagemSweep(valorSinteticoDe('aws_akia'));
 
     expect(Artisan::call('cc:secret-sweep', ['--fail-on-find' => true]))->toBe(1);
 
     Artisan::call('cc:secret-sweep', ['--apply' => true]);
 
+    expect(DB::table('mcp_cc_messages')->where('id', $id)->value('content_text'))
+        ->toContain('[REDACTED:aws_akia]');
     expect(Artisan::call('cc:secret-sweep', ['--fail-on-find' => true]))->toBe(0);
 });

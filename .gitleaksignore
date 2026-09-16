@@ -55,3 +55,26 @@ d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/Qualidade
 8480e6d6025f9142247968135037f792b37d51a7:prototipo-ui/cowork/officeimpresso-page.jsx:generic-api-key:763
 8480e6d6025f9142247968135037f792b37d51a7:prototipo-ui/cowork/officeimpresso-page.jsx:generic-api-key:764
 8480e6d6025f9142247968135037f792b37d51a7:prototipo-ui/cowork/officeimpresso-page.jsx:generic-api-key:765
+
+# 2026-09-16 — CcSecretSweepTest.php, linhas 155 e 184 do commit 48512677dd2
+# (PR #7418). FALSO POSITIVO: valores SINTETICOS que eu inventei pra exercitar o
+# redator de credencial. Nunca foram credencial real; nada a rotacionar.
+#
+# JA CORRIGIDO NA FONTE: os literais sairam do teste no commit e5ae3646d6d e
+# passaram a vir de tests/fixtures/, que o allowlist de path do .gitleaks.toml
+# cobre. O arquivo de hoje nao tem mais nenhum.
+#
+# ENTAO POR QUE O FINGERPRINT AINDA E NECESSARIO: a action escaneia os COMMITS
+# do PR (linhas ADICIONADAS), nao a arvore final — esta escrito no proprio
+# workflow, governance-gate-umbrella.yml linha 158. A linha foi adicionada no
+# 48512677dd2 e continua no historico do PR; so force-push a limparia, e isso
+# nao se faz em branch de PR.
+#
+# ERRO MEU, REGISTRADO: respondi ao revisor que NAO adicionaria estes
+# fingerprints, alegando que (a) cegariam o scanner e (b) fingerprint por commit
+# e instavel. Os dois argumentos caem neste caso: o fingerprint e ancorado em
+# commit+arquivo+regra+LINHA, entao cega exatamente uma ocorrencia historica e
+# nao o caminho; e o commit e imutavel no historico deste PR, que e justamente a
+# condicao que a licao de 2026-08-05 exige. Corrigi a resposta nas threads.
+48512677dd2720679b7c7d9ce97aeb06a99ed578:Modules/Forja/Tests/Feature/CcSecretSweepTest.php:aws-access-token:155
+48512677dd2720679b7c7d9ce97aeb06a99ed578:Modules/Forja/Tests/Feature/CcSecretSweepTest.php:aws-access-token:184

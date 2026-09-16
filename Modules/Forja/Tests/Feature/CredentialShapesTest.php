@@ -12,7 +12,7 @@ uses(Tests\TestCase::class);
  *
  * ── POR QUE SEPARADO DO `CcSecretSweepTest` ──────────────────────────────────
  * Aquele monta tabelas sintéticas e por isso se auto-pula fora do sqlite (idioma
- * `era-sqlite` do vizinho `CcIngestPersistsFieldsTest`, US-GOV-021) — senão o
+ * do vizinho `CcIngestPersistsFieldsTest`, US-GOV-021) — senão o
  * `Schema::drop` rodaria contra o MySQL PERSISTENTE do CT 100/CI e o
  * `sqlite-test-corruptors` o classifica como corruptor, corretamente.
  *
