@@ -238,7 +238,7 @@ export function classificar({ zipHash, repoHash, manifestoHash }) {
  * (a) o ZIP é um export velho (replay), e aí não se aplica; (b) o espelho foi ENRIQUECIDO ou
  * editado deste lado depois do import, e aí o ZIP é o estado real da conta e PREVALECE. Foi o
  * caso do #7256, onde a fusão da ADR 0398 deixou o espelho maior que a origem. O desempate não
- * é o git — é a IDENTIDADE do pacote (bundleId/sequência/estado-base, ADR 0379) contra o estado
+ * é o git — é a IDENTIDADE do pacote (bundleId/sequência/estado-base) contra o estado
  * ativo. Pacote posterior ao ativo ⇒ leia "alguém escreveu no espelho", não "o ZIP é velho".
  *
  * `execFileSync` sem shell: o `<ref>:<path>` não passa por MSYS, então não sofre o mangling
