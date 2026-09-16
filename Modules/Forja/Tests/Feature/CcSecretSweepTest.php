@@ -87,6 +87,26 @@ function vetoresDeCredencial(): array
     return $json['vetores'];
 }
 
+/**
+ * Valor sintético do vetor que exercita `$shape`.
+ *
+ * Os valores vivem SÓ no fixture, nunca inline aqui: `tests/fixtures/` está no
+ * allowlist do `.gitleaks.toml`, este arquivo não (ele é `*Test.php`, e o
+ * allowlist cobre `*.test.php`). Um `AKIA...` literal aqui reprovava o
+ * `Secret scan` — medido no #7418. Bônus: o fixture vira fonte única dos
+ * valores, então PHP e JS exercitam exatamente os mesmos.
+ */
+function valorSinteticoDe(string $shape): string
+{
+    foreach (vetoresDeCredencial() as $v) {
+        if (isset($v['shapes'][$shape], $v['sumir'])) {
+            return $v['sumir'];
+        }
+    }
+
+    throw new RuntimeException("fixture sem vetor com 'sumir' para o shape {$shape}");
+}
+
 it('MORDE e NAO morde exatamente como o fixture manda (paridade com redact.mjs)', function () {
     $vetores = vetoresDeCredencial();
     expect($vetores)->not->toBeEmpty();
@@ -122,7 +142,7 @@ it('o comando esta REGISTRADO no Artisan (disco nao e registro)', function () {
 });
 
 it('dry-run NAO escreve, --apply escreve preservando o rotulo, e a 2a passada e idempotente', function () {
-    $segredo = 'Zx9Kq2Lm7Pw4Rt8Nv3Bh6Yd1';
+    $segredo = valorSinteticoDe('assign_generic');
     $original = 'DB_USERNAME=staging DB_PASSWORD='.$segredo.' APP_ENV=staging';
     $id = inserirMensagem($original);
 
@@ -152,7 +172,7 @@ it('CONTROLE: mensagem benigna passa intacta pelo --apply', function () {
 });
 
 it('redige BLOB, que vive comprimido, e mantem os quatro campos coerentes', function () {
-    $segredo = 'AKIAZ7Q2M4N8P1R5T3V6';
+    $segredo = valorSinteticoDe('aws_akia');
     $conteudo = 'log do deploy: usando '.$segredo.' no cluster';
     $comprimido = zlib_encode($conteudo, ZLIB_ENCODING_DEFLATE, 6);
 
@@ -181,7 +201,7 @@ it('redige BLOB, que vive comprimido, e mantem os quatro campos coerentes', func
 });
 
 it('--fail-on-find devolve exit 1 com credencial e 0 depois de limpo', function () {
-    inserirMensagem('AKIAZ7Q2M4N8P1R5T3V6');
+    inserirMensagem(valorSinteticoDe('aws_akia'));
 
     expect(Artisan::call('cc:secret-sweep', ['--fail-on-find' => true]))->toBe(1);
 
