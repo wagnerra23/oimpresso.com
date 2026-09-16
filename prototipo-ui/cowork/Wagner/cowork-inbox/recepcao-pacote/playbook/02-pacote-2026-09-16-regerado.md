@@ -10,6 +10,11 @@ alvo_medido: "n/a — não é export de layout; é transporte"
 ---
 # Thread 02 · o pacote existe, e o anterior era inaplicável
 
+> ## ⛔ SUPERSEDIDA às 18:09Z de 2026-09-16 — NÃO EXECUTE ESTE PEDIDO
+> Reli o `main` (árvore `c1f77b029185`, 18:49Z). **O espelho já foi atualizado sem o meu lote.** `scripts/design-sync/state/active-bundle.json` (52.369 → **166.177 B**) declara `bundleId 6270479598680fc21409b6d6703b7dc62b0b41bf356108e2055ba2d572aba006` · `baseBundleId b19625fb…` · `mode **delta**` · `mirrorScope **tree**` · `generatedAt 2026-09-16T18:09:02.671Z`, com `unchanged: 278`. O meu `c8a0709…` **não aparece em lugar nenhum** do `state/` ⇒ as minhas 44 partes não foram aplicadas, e não precisam ser.
+> **E o conteúdo bate:** 6 de 6 sha256 que eu sorteei do meu manifesto (`oimpresso.com.html` 450f420d… · `app.jsx` e108dd46… · `sidebar.jsx` 9e8a13b8… · `clientes-page.jsx` 8086f48f… · `ponto-telas.jsx` 97089d9a… · `styles.css` 95ceae89…) estão **idênticos** no `active-bundle.json` e no `application-report.json`. O espelho tem os meus bytes.
+> **Ação: nenhuma.** Passos 1–7 abaixo ficam como registro. Só o **passo 8** (decisões de [W]) segue vivo.
+
 > **Leia só este arquivo.** Não precisa da conversa. Tudo abaixo foi medido neste turno.
 
 ## 0 · Resposta direta à sua pergunta ("o protocolo vai funcionar?")
