@@ -2054,7 +2054,7 @@
   **null nos quatro casos**, inclusive com a env presente.
 - **Por que caiu:** o `import` apontava para `D:/oimpresso.com/.claude/hooks/` (checkout
   PRINCIPAL) enquanto o `grep` cuja saida eu lia era do worktree. O principal estava em
-  `codex/prototipo-ssot-cleanup`, **13 commits a frente e 162 atras** de `origin/main` —
+  `codex/prototipo-ssot-cleanup`, **13 commits a frente e 162 atras** de `origin/main` (`git rev-list --left-right --count 4dcd5d5ff17...62741257a64` -> `13  162`; SHAs porque `origin/main` anda) —
   **divergencia, nao atraso** — sem a linha de expansao que o
   [#7383](https://github.com/wagnerra23/oimpresso.com/pull/7383) tinha mergeado horas antes. Os
   9 asserts do proprio hook afirmam que a expansao funciona — e funcionavam, no arquivo certo.
@@ -2069,8 +2069,9 @@
   Eu escrevi que *"cada worktree carrega a propria copia de `.claude/`, congelada no commit de
   criacao, logo mergeado em `main` nao implica disponivel para a sessao"*. **Refutado pelo
   `ciclo-adversary` e confirmado por medicao minha:** `.claude/hooks/**` e **trackeado**, logo
-  segue a branch como qualquer arquivo, e worktree criado de `origin/main` carrega o hook novo
-  **por construcao**. O fenomeno real e **staleness de branch comum**, que ja tem dono — **LC-20**
+  segue a branch como qualquer arquivo, e worktree criado de `origin/main` **que ja contenha
+  o commit** carrega o hook novo por construcao — e a pre-condicao nao e decorativa, porque
+  `origin/main` e ref **local**, so tao fresca quanto o ultimo `fetch`. O fenomeno real e **staleness de branch comum**, que ja tem dono — **LC-20**
   e §5 2026-07-28 (*"`git ls-files` lista o indice da branch daquele worktree"*) — e a causa
   concreta aqui foi o **checkout principal parado em branch divergente**, nao worktree nenhum.
   Como estava, a lapide instruia a proxima sessao a desconfiar do que e seguro (worktree novo) e
@@ -2082,8 +2083,11 @@
   e indecidivel e que seria guard sintatico. **As duas pernas caem.** O predicado honesto nao e
   *"o que voce leu"*, e *"o path absoluto que este comando referencia resolve para arquivo
   DIFERENTE do mesmo path relativo sob o cwd?"* — computavel so do texto do comando, e medido
-  pelo adversario sobre **151.261** comandos do corpus: **7** ocorrencias, com controle positivo
-  e negativo. E a forma nao e sintatica: e **duas pernas com medicao** (2a perna = `cmp` dos dois
+  **pelo `ciclo-adversary`, nao por mim** sobre **151.261** comandos do corpus: **7** ocorrencias, com
+  controle positivo e negativo. ⚠️ O denominador eu re-medi e bate (**150.830** blocos `"name":"Bash"`
+  em 1.772 transcripts, delta 0,3%); **o numerador 7 eu NAO re-verifiquei e a lapide nao carrega o
+  comando que o reproduz** — entao ele vale como medicao do adversario, nunca como recibo meu. A regra
+  que isto quase violou e a §5 2026-07-28: numero so entra em canon com o comando ao lado. E a forma nao e sintatica: e **duas pernas com medicao** (2a perna = `cmp` dos dois
   arquivos, mordendo so se divergirem), que e exatamente o que o campo `Gate:` da LC-08 descreve
   como *"FP = 0 por construcao"* (P4/P5) **em contraste** com a familia sintatica. Invocar aquela
   familia aqui era usar lapide morta contra caso que nao e dela — e e o **mesmo movimento** que a
