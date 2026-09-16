@@ -1398,6 +1398,12 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
   (1a ocorrencia do vetor "outro checkout", nao chegou a prod) e o custo de duas leituras de
   disco por comando num `PreToolUse`. Armar e decisao do [W].
 
+### 2026-09-16 — Detectar o token MCP no transcript por `mcp_` + qualquer coisa (MEDIDO: 10.959 hits, ~99,97% de falso-positivo — casa NOME DE TOOL)
+
+- **O limite (variante também proibida):** não afrouxar o padrão `mcp_token` — nem para `{16,}`, nem trocando `[0-9a-f]` por `[A-Za-z0-9]`, nem removendo o `` final — **sem re-rodar a medição**. Vale a generalização: quando o prefixo de um segredo é também prefixo de um **identificador público do mesmo ecossistema** (nome de tool, de rota, de evento, de tabela), o prefixo sozinho **não** é predicado — o que discrimina é o resto da forma (charset e comprimento exatos), e ele se lê **no gerador**, nunca na lembrança. Corolário barato: antes de armar detector de segredo, rode-o no corpus e **olhe a distribuição** — 10.959 hits não é "o detector é sensível", é "o detector mede outra coisa" (§5 2026-07-17, drift-sentinel).
+
+- **⚠️ NÃO virar gate:** a defesa desta lápide não é máquina nova — é o **controle negativo** que já está no bite-test (`CONTROLE: nome de tool MCP NAO e redigido`, em `scripts/cc-watcher/redact.test.mjs`), e ele foi provado por mutação: afrouxado o padrão de volta à forma ingênua, ele cai. Um gate genérico de "padrão de segredo frouxo" seria guard sintático sobre regex — a família com 8 lápides medidas neste mesmo §5.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
