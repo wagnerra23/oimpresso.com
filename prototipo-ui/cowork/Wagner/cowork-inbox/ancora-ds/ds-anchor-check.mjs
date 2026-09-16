@@ -10,7 +10,7 @@
 //
 // Ninguém pergunta se o conteúdo daquele protótipo está CONFORME ao DS. E a tela de produção
 // é DERIVADA dele — o charter de Arquivos diz isso com essas palavras ("derivada do protótipo
-// prototipo-ui/cowork/Wagner/arquivos-page.jsx") e o `Index.tsx` repete no comentário do `TOM_ACAO`
+// prototipo-ui/cowork/arquivos-page.jsx") e o `Index.tsx` repete no comentário do `TOM_ACAO`
 // ("espelha o mapa ACAO do protótipo").
 //
 // Resultado medido em 2026-08-25, no módulo Arquivos:
