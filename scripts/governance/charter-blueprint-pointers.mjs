@@ -232,11 +232,18 @@ function shaAdvisory() {
  *  Prior art: o git faz deteccao de rename por similaridade (`diff -M`, `log --follow`). Aqui
  *  o caso e mais estreito e mais barato — o blob sobrevive IDENTICO, entao basta lookup.
  *
- *  MEDIDO 2026-09-16 (FP antes de armar, regra "LIGUE A MAQUINA" item 4):
- *    origin/main ..... 91 tombstones -> 75 remocao real, 4 mudou-de-casa, 0 falso-positivo
- *    24a3f7f772e ..... 96 tombstones -> 75 remocao real, 8 mudou-de-casa
- *    Os 4 gaps Essentials que o GT-G5 r5 achou A MAO estao entre os 8 — a sonda morde.
+ *  MEDIDO — e cada numero vem do PROPRIO gate, com o comando ao lado (§5 2026-07-17):
+ *    `node scripts/governance/charter-blueprint-pointers.mjs --json --todos`
+ *    2026-09-16, origin/main: 98 tombstones no corpus -> 0 acusacoes (as achadas foram pagas).
+ *    A prova de que MORDE nao e um ref (que envelhece) e sim o bite-test (e4), deterministico.
  *
+ *  ERRATA 2026-09-16 (a redacao anterior deste bloco misturava TRES medicoes como se fossem
+ *  uma, e os numeros nao fechavam): ela dizia `91 tombstones -> 75 remocao real, 4 mudou-de-casa`
+ *  enquanto o corpo do merge 59d54112e2d dizia `6` — 75+4=79 e 75+6=81, nenhum fecha com 91.
+ *  Origem da divergencia, reconstruida: o `4` veio de uma SONDA ad-hoc de investigacao (outras
+ *  bases de resolucao), o `6` veio do gate, o `75` da sonda (o gate nao classifica 'remocao
+ *  real' — ele so acusa), e o `91` de um regex que o gate ja nao usa (hoje conta 98). Achado
+ *  pela sessao irma que calibrou o limiar; o defeito e a §5 2026-07-17 na minha propria mao.
  *  ADVISORY e forward-only (ADR 0275): varre so os docs do diff vs origin/main. `--todos`
  *  varre o corpus inteiro (custa ~2min: e um `git rev-parse` por ponteiro).
  *
@@ -276,10 +283,23 @@ function shaAdvisory() {
  *  decidir o veredito. */
 const SL_C1 = String.fromCharCode(47);   // '/' sem literal
 const TOMB_SHA = /_[(][^)]*removido em ([0-9-]+), ([0-9a-f]{7,40})[^)]*[)]_/;
-/** A linha ja declara PRA ONDE o conteudo foi? Entao esta correta — nao e acusacao.
- *  Exceçao EXPLICITA e testada (e4-b), nao escape acidental por regex que deixa de casar. */
-function declaraMudancaDeCasa(linha) {
-  return /CONTE[UÚ]DO vive em|conte[uú]do vive em|vive(m)? (hoje )?em [`]/.test(linha);
+/** A linha ja aponta PRA ONDE o conteudo foi? Entao esta correta — nao e acusacao.
+ *  DETERMINISTICO: compara com o PATH VIVO do blob, nao com vocabulario. A 1a versao casava
+ *  "conteudo vive em" e deixava passar "foi movido para"/"renomeado para" — FP MEDIDO em
+ *  OficinaAuto/oficina-os-nova-prototipo-visual-comparison.md:105, que declara o destino CERTO
+ *  e seria acusada. Vocabulario cresce a cada verbo novo; o path do destino nao.
+ *  (Achado da sessao irma que calibra o limiar — re-medido aqui antes de aceitar.) */
+function jaDeclaraDestino(linha, destinos) {
+  for (const dst of destinos) {
+    if (!dst) continue;
+    // o doc costuma citar o destino num nivel mais ALTO que o blob: sobe a arvore ate 3
+    // segmentos (abaixo disso vira 'prototipo-ui/' e dispensaria qualquer coisa).
+    const seg = dst.split(SL_C1);
+    for (let n = seg.length; n >= 3; n--) {
+      if (linha.includes(seg.slice(0, n).join(SL_C1))) return true;
+    }
+  }
+  return false;
 }
 const LIMIAR_MUDOU_DE_CASA = 0.5;
 
@@ -289,10 +309,10 @@ function sh(cmd) {
 }
 
 function blobsVivosEmMain() {
-  const vivos = new Set();
+  const vivos = new Map();   // blob -> 1o path vivo (alimenta a dispensa por destino)
   for (const l of sh('git ls-tree -r origin/main').split(String.fromCharCode(10))) {
-    const m = l.match(/^[0-9]+ blob ([0-9a-f]+)/);
-    if (m) vivos.add(m[1]);
+    const m = l.match(/^[0-9]+ blob ([0-9a-f]+)	(.+)$/);
+    if (m && !vivos.has(m[1])) vivos.set(m[1], m[2]);
   }
   return vivos;
 }
@@ -323,6 +343,7 @@ function auditMudouDeCasa(docs) {
   const vivos = blobsVivosEmMain();
   if (!vivos.size) return [];            // sem indice nao ha medicao — NAO afirmar verde (LC-33)
   const achados = [];
+  const naoResolvidos = [];   // LC-33: nao-medicao contada, nunca silenciada
   const raiz = ROOT.split(BS).join(SL_C1) + SL_C1;
   for (const bruto of docs) {
     const rel = bruto.startsWith(raiz) ? bruto.slice(raiz.length) : bruto;
@@ -332,15 +353,22 @@ function auditMudouDeCasa(docs) {
     linhas.forEach((linha, i) => {
       const t = linha.match(TOMB_SHA);
       if (!t) return;
-      if (declaraMudancaDeCasa(linha)) return;   // ja corrigida: declara o destino
       for (const ptr of pointersOf2(linha)) {
         const bases = [ptr, dir + SL_C1 + ptr, 'memory/requisitos/_DesignSystem/' + ptr, 'memory/reference/' + ptr];
         let obj = '';
+        // LC-33: `<sha>^:<path>` nao resolver NAO e 'nada a reportar' — e uma de duas coisas,
+        // e o codigo antigo colapsava as duas num `continue` mudo (29 de 98 tombstones passavam
+        // por aqui): (1) o sha citado nao tem aquele path -> indicio de tombstone falso;
+        // (2) o path foi mal extraido da linha. Nao da pra separar as duas sem julgar a prosa,
+        // entao NAO acusamos — mas CONTAMOS, pra que o zero de acusacoes nunca se confunda com
+        // 'tudo medido'. O contador sai no json como `nao_resolvidos`.
         for (const b of bases) { obj = sh(`git rev-parse "${t[2]}^:${b}"`); if (obj.length === 40) { break; } obj = ''; }
-        if (!obj) continue;
+        if (!obj) { naoResolvidos.push({ doc: rel, linha: i + 1, sha: t[2], ponteiro: ptr }); continue; }
         const filhos = blobsDe(obj);
         if (!filhos.length) break;
-        const sobrevivem = filhos.filter((h) => vivos.has(h)).length;
+        const sobrev = filhos.filter((h) => vivos.has(h));
+        const sobrevivem = sobrev.length;
+        if (jaDeclaraDestino(linha, sobrev.slice(0, 5).map((h) => vivos.get(h)))) break;   // ja aponta o destino
         if (sobrevivem / filhos.length >= LIMIAR_MUDOU_DE_CASA) {
           achados.push({ doc: rel, linha: i + 1, ponteiro: ptr, sha: t[2], sobrevivem, total: filhos.length });
         }
@@ -348,7 +376,7 @@ function auditMudouDeCasa(docs) {
       }
     });
   }
-  return achados;
+  return { achados, naoResolvidos };
 }
 
 /** ponteiros CRUS da linha (o `pointersOf` do arquivo le doc inteiro e resolve; aqui e por linha). */
@@ -359,8 +387,9 @@ function pointersOf2(linha) {
   let m;
   while ((m = PRE.exec(linha))) {        // LOCAL de proposito: /g no escopo do modulo vaza lastIndex
     const r = linha.slice(m.index).split(BQ)[0].split(')')[0].split(']')[0].trim();
-    for (const tk of [r]) {
-      const c = decodeURIComponent(tk.replace(/[.,;:)]+$/, '')).replace(/[/]+$/, '');
+    const toks = r.split(/[ 	]+/);   // corta no ESPACO: sem isto path sem backtick leva a prosa junto
+    for (let k = toks.length; k >= 1; k--) {
+      const c = decodeURIComponent(toks.slice(0, k).join(' ').replace(/[.,;:)]+$/, '')).replace(/[/]+$/, '');
       if (c.includes(SL_C1) && !ehPlaceholder(c)) out.add(c);
     }
   }
@@ -375,7 +404,7 @@ const shaMiss = shaAdvisory();
 const req = auditRequisitos();   // 2a raiz: memory/requisitos (advisory, report-only)
 const todosC1 = process.argv.includes('--todos');
 const docsC1 = todosC1 ? requisitosDocs() : docsDoDiffC1();
-const mudouDeCasa = docsC1 === null ? null : auditMudouDeCasa(docsC1);   // C1: advisory
+const c1 = docsC1 === null ? null : auditMudouDeCasa(docsC1);   // C1: advisory
 
 if (json) {
   console.log(JSON.stringify({
@@ -388,8 +417,12 @@ if (json) {
     requisitos_docs_com_orfao: req.perDoc.length,
     requisitos_total_orfaos: req.totalOrphans,
     requisitos_detalhe: req.perDoc,
-    mudou_de_casa_medido: mudouDeCasa !== null,
-    mudou_de_casa: mudouDeCasa || [],
+    mudou_de_casa_medido: c1 !== null,
+    mudou_de_casa: c1 ? c1.achados : [],
+    // LC-33: nao-medicao VISIVEL. UNIDADE: pares (linha x ponteiro), nao linhas distintas —
+    // dizer a unidade junto do numero e o conserto do defeito (F) deste mesmo arquivo.
+    mudou_de_casa_nao_resolvidos: c1 ? c1.naoResolvidos.length : null,
+    mudou_de_casa_nao_resolvidos_linhas: c1 ? new Set(c1.naoResolvidos.map((x) => x.doc + ':' + x.linha)).size : null,
   }, null, 2));
 } else {
   console.log('charter-blueprint-pointers — auditoria de ponteiros de protótipo/blueprint dos charters\n');
