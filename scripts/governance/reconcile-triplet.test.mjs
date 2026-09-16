@@ -548,6 +548,64 @@ const tsxTabela = [
     `exit=${rTxt.status}`);
 }
 
+
+// -- (e6) C1: NAO-MEDICAO nao pode sair como VERDE ------------------------------------------
+// Por que existe: `if (!vivos.size)` devolvia o MESMO objeto do caso benigno, e o chamador
+// decide por `c1 !== null` — entao "nao consegui ler o indice de blobs" saia como
+// `medido: true` + `C1 (advisory) ... = 0`, INDISTINGUIVEL de medicao real (LC-33), enquanto o
+// comentario daquela linha prometia o contrario (LC-15). Isso morde de verdade no CI: o indice
+// e `git ls-tree -r origin/main`, e `sh()` engole stderr — sem a ref no checkout (fetch
+// parcial, clone raso) o gate afirmava verde tendo medido zero (familia da §5 2026-08-11).
+//
+// O fixture NAO muta o script: poe `origin/main` num commit de ARVORE VAZIA, que e o unico
+// jeito de ter `docs` NAO-vazio (o merge-base resolve e o diff traz o doc) e `vivos` VAZIO
+// (ls-tree de arvore vazia nao devolve blob) ao mesmo tempo. Mutar `origin/main` inteiro no
+// arquivo cai no OUTRO early-return (`!base`) e da um falso "medido=false" que nao prova nada.
+{
+  const mk = (comBlob) => {
+    const root = mkdtempSync(join(tmpdir(), 'c1nm-'));
+    const git = (...a) => spawnSync('git', a, { cwd: root, encoding: 'utf8' });
+    git('init', '-q', '-b', 'main', '.');
+    git('config', 'user.email', 't@t'); git('config', 'user.name', 't');
+    if (comBlob) {
+      mkdirSync(join(root, 'prototipo-ui'), { recursive: true });
+      writeFileSync(join(root, 'prototipo-ui', 'vivo.json'), 'V'.repeat(400));
+      git('add', '-A'); git('commit', '-qm', 'base com blob');
+    } else {
+      git('commit', '-q', '--allow-empty', '-m', 'base de arvore vazia');
+    }
+    git('update-ref', 'refs/remotes/origin/main', 'HEAD');
+    mkdirSync(join(root, 'memory', 'requisitos', 'Demo'), { recursive: true });
+    writeFileSync(join(root, 'memory', 'requisitos', 'Demo', 'RUNBOOK-nm.md'), [
+      '---', 'tela: Demo/NaoMedido', '---', '',
+      '- alvo: `prototipo-ui/sumiu` _(removido em 2026-01-01, deadbeef)_',
+      '',
+    ].join(String.fromCharCode(10)));
+    git('add', '-A'); git('commit', '-qm', 'doc com tombstone');
+    return root;
+  };
+
+  const rNM = spawnSync('node', [POINTERS, '--json', '--todos'], { cwd: mk(false), encoding: 'utf8' });
+  let jNM = null; try { jNM = JSON.parse(rNM.stdout); } catch { /* */ }
+  check('(e6) BITE — indice de blobs vazio NAO pode sair como medido',
+    !!jNM && jNM.mudou_de_casa_medido === false,
+    'medido=' + (jNM && jNM.mudou_de_casa_medido));
+  check('(e6-b) e diz POR QUE nao mediu (motivo acionavel, nao so o booleano)',
+    !!jNM && /indice de blobs/.test(String(jNM.mudou_de_casa_nao_medido_motivo)),
+    JSON.stringify(jNM && jNM.mudou_de_casa_nao_medido_motivo));
+
+  const rTxt = spawnSync('node', [POINTERS, '--todos'], { cwd: mk(false), encoding: 'utf8' });
+  check('(e6-c) o modo TEXTO (o da lane) diz NAO MEDIDO e NAO finge contagem',
+    /C1 removido x MUDOU DE CASA: NAO MEDIDO/.test(rTxt.stdout) && !/C1 \(advisory\)/.test(rTxt.stdout),
+    'exit=' + rTxt.status);
+
+  const rOK = spawnSync('node', [POINTERS, '--json', '--todos'], { cwd: mk(true), encoding: 'utf8' });
+  let jOK = null; try { jOK = JSON.parse(rOK.stdout); } catch { /* */ }
+  check('(e6-d) CONTROLE NEGATIVO — com indice presente ele volta a MEDIR',
+    !!jOK && jOK.mudou_de_casa_medido === true && jOK.mudou_de_casa_nao_medido_motivo === null,
+    'medido=' + (jOK && jOK.mudou_de_casa_medido));
+}
+
 console.log('');
 if (fails) { console.error(`✗ ${fails} asserção(ões) falharam.`); process.exit(1); }
 console.log('✓ reconcile-triplet.test.mjs: todas as asserções passaram.');

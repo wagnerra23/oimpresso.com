@@ -373,6 +373,8 @@ function docsDoDiffC1() {
     .split(String.fromCharCode(10)).map((x) => x.trim()).filter((x) => x.endsWith('.md'));
 }
 
+let c1NaoMedidoMotivo = '';
+
 function auditMudouDeCasa(docs) {
   // ⚠️ os dois early-returns devolvem a MESMA FORMA do return final ({achados, naoResolvidos}).
   // Devolver `[]` aqui crashava o `--json` com "Cannot read properties of undefined": o
@@ -383,7 +385,14 @@ function auditMudouDeCasa(docs) {
   const vazio = { achados: [], naoResolvidos: [] };
   if (!docs.length) return vazio;
   const vivos = blobsVivosEmMain();
-  if (!vivos.size) return vazio;         // sem indice nao ha medicao — NAO afirmar verde (LC-33)
+  if (!vivos.size) {
+    // NAO MEDI: o indice de blobs veio vazio (`git ls-tree -r origin/main` sem saida
+    // — ref ausente no checkout, fetch parcial, clone raso). Devolver `vazio` aqui
+    // fazia `medido: true` e o texto imprimir `nenhum orfao mudo`, INDISTINGUIVEL de medicao
+    // real — o oposto do que este proprio comentario prometia (LC-33 + LC-15).
+    c1NaoMedidoMotivo = 'indice de blobs de origin/main vazio — a ref existe neste checkout?';
+    return null;
+  }         // sem indice nao ha medicao — NAO afirmar verde (LC-33)
   const achados = [];
   const naoResolvidos = [];   // LC-33: nao-medicao contada, nunca silenciada
   const raiz = ROOT.split(BS).join(SL_C1) + SL_C1;
@@ -481,6 +490,7 @@ if (json) {
     requisitos_total_orfaos: req.totalOrphans,
     requisitos_detalhe: req.perDoc,
     mudou_de_casa_medido: c1 !== null,
+    mudou_de_casa_nao_medido_motivo: c1 === null ? (c1NaoMedidoMotivo || 'sem base pra comparar') : null,
     mudou_de_casa: c1 ? c1.achados : [],
     // LC-33: nao-medicao VISIVEL. UNIDADE: pares (linha x ponteiro), nao linhas distintas —
     // dizer a unidade junto do numero e o conserto do defeito (F) deste mesmo arquivo.
@@ -515,7 +525,8 @@ if (json) {
   // que o CI executa (§5 2026-08-02 "gate mudo com cara de cobertura"). Com o predicado em
   // `>=1` o silencio ficaria pior: 8 achados reais no corpus de hoje, zero visiveis.
   if (c1 === null) {
-    console.log(`\n— C1 removido x MUDOU DE CASA: NAO MEDIDO (sem base pra comparar — nao e 'nada a reportar')`);
+    console.log(`\n— C1 removido x MUDOU DE CASA: NAO MEDIDO (${c1NaoMedidoMotivo || 'sem base pra comparar'})`);
+    console.log(`  (nao e 'nada a reportar' — e ausencia de medicao)`);
   } else {
     console.log(`\n— C1 (advisory): tombstone cujo conteudo VIVE em outro path = ${c1.achados.length}`);
     console.log('  (>=1 blob sobrevivente. A proporcao e a dispersao vao no achado: quem le decide');
