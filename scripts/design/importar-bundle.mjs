@@ -51,6 +51,8 @@ import { existsSync, rmSync, renameSync, mkdtempSync, writeFileSync, readdirSync
 import { join, resolve, dirname, basename } from 'node:path';
 import { tmpdir, homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+// Fonte única de "que extensão é conteúdo do espelho" — o dono é o contrato de transporte.
+import { ESPELHO_EXTENSOES } from '../design-sync/bundle-contract.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DESTINO_PADRAO = join(homedir(), 'Downloads', '_cowork-handoff-staging');
@@ -99,7 +101,17 @@ Write-Output ("ENTRIES=" + $ent); Write-Output ("EXTRACTED=" + $ok)`;
 //    FONTE ÚNICA das três listas que o sync usa. Antes elas viviam DUPLICADAS: os patterns aqui
 //    e `$keep` hardcoded dentro do heredoc PowerShell — duas verdades pra uma regra, que é como
 //    drift nasce. Agora o heredoc INTERPOLA daqui (§"não duplicar a regra em JS e em PS").
-export const ESPELHO_EXTS = ['.jsx', '.tsx', '.ts', '.js', '.mjs', '.css', '.html', '.json', '.php', '.md'];
+//
+//    ── 2026-09-16: a fonte única subiu um nível (decisão [W]) ──────────────────────────────
+//    Esta lista era a TERCEIRA cópia da regra "que extensão é conteúdo do espelho" — e a mais
+//    restritiva: sem `.cjs` e sem NENHUMA imagem ou fonte, enquanto as outras duas rotas as
+//    aceitavam. Agora ela DERIVA de `ESPELHO_EXTENSOES` do `bundle-contract.mjs`, que é o dono
+//    do contrato de transporte. Efeito medido no dia da unificação: no espelho versionado e no
+//    manifesto ativo a população de imagem/fonte fora de `_ds/` é ZERO, então nada muda hoje —
+//    o que some é o risco latente de o mesmo `.png` pousar por uma rota e ser descartado em
+//    silêncio pela outra. O array segue sendo `.ext` (com ponto) porque `$keep`/`$pats` do
+//    heredoc PowerShell dependem dessa forma.
+export const ESPELHO_EXTS = ESPELHO_EXTENSOES.map((e) => `.${e}`);
 const ESPELHO_PATS = ESPELHO_EXTS.map((e) => `*${e}`);
 
 //    Dirs de arquivo/scratch que NÃO são design-source (mesmo SKIP_DIRS do _lib-charter + os que

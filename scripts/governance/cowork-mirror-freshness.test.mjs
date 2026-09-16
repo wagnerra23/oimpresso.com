@@ -433,16 +433,37 @@ check('mesmo número → mesmo veredito (independe de --check)',
   check('exportPlan: conteúdo duplicado recusa a exportação direta inteira',
     /conteúdo duplicado de a\/origem\.jsx/.test(duplicataRecusada), duplicataRecusada);
 
-  // ── .md recusado no destino Cowork (2026-09-11, decisão [W]) ───────────────
+  // ── .md no destino Cowork — REESCRITO em 2026-09-16 (decisão [W]) ──────────
+  //
+  // Este caso afirmava ".md recusa o lote Cowork inteiro", pinando a decisão [W] de 2026-09-11
+  // (build-only no export avulso). Em 2026-09-13 a ADR 0398 D2 decidiu que `.md` É conteúdo do
+  // espelho, e emendou os três mecanismos que nomeou — o `exportPlan` era o quarto e ficou para
+  // trás. [W] resolveu a precedência a favor da 0398 em 2026-09-16 ("toque sim resolva"), e a
+  // lista de extensão daqui passou a derivar do `bundle-contract`. O teste é REESCRITO, nunca
+  // desabilitado: o que ele pina agora é o par — `.md` da conta DESCE, canon de tela NÃO.
   {
     const lote = [
       { path: 'cowork-inbox/SUPERADMIN-F1.md', content: '# f1\n' },
       { path: 'superadmin-page.jsx', content: 'const x=1;\n' },
     ];
+    const plano = exportPlan(lote);
+    check('SOLTA: .md da conta desce pelo export (ADR 0398 D2 alcança o 4º mecanismo)',
+      plano.length === 2 && plano.some((p) => p.relPath === 'prototipo-ui/cowork/Wagner/cowork-inbox/SUPERADMIN-F1.md'),
+      JSON.stringify(plano.map((p) => p.relPath)));
+    // CONTROLE NEGATIVO — o que a unificação NÃO podia afrouxar: canon de tela segue recusando o
+    // lote inteiro (regra de DONO, não de extensão; ver o docblock do RE_CANON_DE_TELA).
     let recusado = '';
-    try { exportPlan(lote); } catch (e) { recusado = String(e.message); }
-    check('BITE build-only: .md recusa o lote Cowork inteiro',
-      /nada foi escrito/.test(recusado) && /SUPERADMIN-F1\.md/.test(recusado), recusado);
+    try { exportPlan([{ path: 'x/Index.charter.md', content: '# c\n' }]); } catch (e) { recusado = String(e.message); }
+    check('MORDE: charter.md (canon de tela) ainda recusa o lote inteiro',
+      /nada foi escrito/.test(recusado) && /Index\.charter\.md/.test(recusado), recusado);
+    let recusadoJson = '';
+    try { exportPlan([{ path: 'contrato/a.contract.json', content: '{}\n' }]); } catch (e) { recusadoJson = String(e.message); }
+    check('MORDE: contract.json (canon de tela) ainda recusa, mesmo com json na lista agora',
+      /nada foi escrito/.test(recusadoJson) && /a\.contract\.json/.test(recusadoJson), recusadoJson);
+    // CONTROLE: extensão fora do contrato segue recusando — a união não virou "aceita tudo".
+    let recusadoTxt = '';
+    try { exportPlan([{ path: 'notas.txt', content: 'a\n' }]); } catch (e) { recusadoTxt = String(e.message); }
+    check('MORDE: extensão fora da lista (.txt) segue recusada', /nada foi escrito/.test(recusadoTxt), recusadoTxt);
     // Design System usa outra raiz e preserva seu contrato próprio.
     check('CONTROLE: .md legítimo do Design System segue no prefixo DS',
       exportPlan([{ path: 'x.md', content: 'a\n' }], { prefixo: 'prototipo-ui/design-system/' })[0]

@@ -84,6 +84,7 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { join, dirname, resolve } from 'node:path';
 import { anchorRelPath } from './anchor-content-check.mjs'; // fonte única: como extrair o path do related_prototype
+import { BUILD_SOURCE_RE } from '../design-sync/bundle-contract.mjs'; // fonte única: que extensão é conteúdo do espelho
 
 const ROOT = process.cwd();
 
@@ -324,7 +325,23 @@ export function liveOnlyDetalhado(livePaths, manifest, { exts = null, jaEmRuntim
  * gerou um destino, e o destino engoliu artefato que não era dele.
  */
 const RE_CANON_DE_TELA = /\.(charter\.md|casos\.md|contract\.json)$/i;
-const RE_BUILD_SOURCE = /\.(?:jsx?|tsx?|mjs|cjs|css|html|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot)$/i;
+/**
+ * A LISTA DE EXTENSÃO vem da fonte única do contrato de transporte (decisão [W] 2026-09-16).
+ *
+ * Era a 4ª cópia da mesma regra, e a mais restritiva — sem `md`, `json` nem `php`. Ela ficou
+ * para trás quando a [ADR 0398](../../memory/decisions/0398-espelho-cowork-recebe-a-arvore-da-conta.md)
+ * D2 (2026-09-13) decidiu que `.md` É conteúdo do espelho: a 0398 emendou os três mecanismos
+ * que nomeou e não alcançou este, o que deixava a mesma pergunta com respostas diferentes
+ * conforme a porta. Efeito prático da correção: o export avulso passa a conseguir descer um
+ * `cowork-inbox/<pasta>/00-INDICE.md`, que as outras rotas já traziam.
+ *
+ * ⚠️ O que NÃO mudou, e é outra regra: a recusa de CANON DE TELA acima. Ela não é lista de
+ * extensão — é política de dono (charter/casos/contract nascem em `resources/js/Pages/` via
+ * `criar-tela.mjs`), com a medição do canon-sombra no docblock dela. Ela segue mordendo, e
+ * medido em 2026-09-16 ela casa 146 dos 721 arquivos do espelho (54 charter · 68 casos ·
+ * 24 contract) — então lote de export que os inclua continua recusado inteiro, de propósito.
+ */
+const RE_BUILD_SOURCE = BUILD_SOURCE_RE;
 
 /** Devolutiva da recusa — derivado, regenerado a cada export. Canal Code → design. */
 export const DEVOLUTIVA_REL = 'memory/reference/prototipo-ui/CODE_NOTES.recusados-canon.md';
