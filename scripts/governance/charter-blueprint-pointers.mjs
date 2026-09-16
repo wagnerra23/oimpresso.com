@@ -239,8 +239,41 @@ function shaAdvisory() {
  *
  *  ADVISORY e forward-only (ADR 0275): varre so os docs do diff vs origin/main. `--todos`
  *  varre o corpus inteiro (custa ~2min: e um `git rev-parse` por ponteiro).
- *  ⚠️ O limiar de fracao (tree) e 0.5 e foi escolhido SEM corpus que o calibre — os dois casos
- *  reais medidos dao 320/323 e 320/454. Promover a required exige calibrar isso primeiro. */
+ *
+ *  ── O LIMIAR DE FRACAO E A CONSTRUCAO ERRADA — MEDIDO 2026-09-16 ───────────────
+ *  Era o residuo #1 do #7392 ("0.5 escolhido SEM corpus que o calibre"). Calibrado, e o
+ *  resultado NAO foi "0.5 esta bom": foi que a FRACAO nao mede o que este audit pergunta.
+ *
+ *  A fracao mede QUANTO do tree sobreviveu. A pergunta e SE existe conteudo em outro path.
+ *  Um diretorio com 4 de 10 arquivos movidos e 6 apagados da 0.4 — e os 4 mudaram de casa
+ *  de verdade. Medido, com a concentracao dos destinos ao lado:
+ *      f=0.188 (18/96)  -> 94% dos destinos num so dir   MUDOU DE CASA, coerente
+ *      f=0.400 (4/10)   -> 100% num so dir               MUDOU DE CASA, coerente
+ *      f=0.705 (320/454)-> 15%, espalhado por 49 dirs
+ *      f=0.991 (320/323)-> 15%, os MESMOS 49 dirs (um path e subdir do outro; muda o
+ *                          denominador, nao o fenomeno)
+ *  Ou seja: 0.5 REPROVA dois casos coerentes e APROVA dois espalhados. Nao ha vale.
+ *
+ *  A separacao real esta em ZERO x NAO-ZERO, nao em 0.5. No corpus inteiro (84 medidos):
+ *      76 com ZERO blob sobrevivente ..... remocao real INDISCUTIVEL
+ *       8 com >=1 blob sobrevivente ...... ha conteudo vivo em outro path
+ *      limiar 0.5 acusa .................. 0 desses 8   (falso-negativo 8 de 8)
+ *
+ *  ERRATA do meu proprio metodo, registrada e nao apagada: a 1a calibracao (commit
+ *  anterior desta branch) concluiu "0.5 separa as 92 com 0 erro" achando um vao em
+ *  (0.455, 0.705). Era TAUTOLOGICO — rotulei os 84 como "negativos" PORQUE sao o que o
+ *  gate nao acusa, e usei isso pra validar o gate. E a lapide §5 2026-07-17
+ *  (drift-sentinel): quando a distribuicao nao discrimina, o baseline nao e o problema,
+ *  o MEDIDOR e. A objecao veio da sessao irma e a medicao confirmou.
+ *
+ *  ⚠️ NAO CORRIGIDO AQUI, de proposito: trocar a fracao pelo predicado ">=1 sobrevive" e
+ *  linha EXECUTAVEL, e este arquivo esta sendo editado em paralelo (fix do extrator +
+ *  `jaDeclaraDestino`). Sai em PR proprio, depois daquele. Enquanto isso o 0.5 segue —
+ *  ele erra pra o lado CONSERVADOR (nao acusa), entao o custo de esperar e silencio, nao
+ *  ruido. Junto com a troca vai o piso de 200B, que hoje `blobsDe` aplica quando o objeto
+ *  e blob mas NAO aos blobs de dentro de um tree: com fracao isso era inocuo (distribuicao
+ *  identica, 76/2/4/0/2), com o predicado ">=1" um unico blob trivial que colide passa a
+ *  decidir o veredito. */
 const SL_C1 = String.fromCharCode(47);   // '/' sem literal
 const TOMB_SHA = /_[(][^)]*removido em ([0-9-]+), ([0-9a-f]{7,40})[^)]*[)]_/;
 /** A linha ja declara PRA ONDE o conteudo foi? Entao esta correta — nao e acusacao.
