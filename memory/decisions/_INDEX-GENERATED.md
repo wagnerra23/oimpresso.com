@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **405** arquivos · **390** números únicos · máx **0400**
-- **ADRs ATIVOS (lifecycle ativo): 359** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 356 · superseded 25 · deprecated 11 · proposto 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 359 · substituido 25 · arquivado 21
+- **406** arquivos · **391** números únicos · máx **0401**
+- **ADRs ATIVOS (lifecycle ativo): 360** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 356 · superseded 25 · proposto 12 · deprecated 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 360 · substituido 25 · arquivado 21
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (405)
+## Todas as ADRs (406)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -443,3 +443,4 @@ _(nenhuma)_
 | 0398 | aceito | ativo | decision | O espelho Cowork recebe a árvore da conta, documentação incluída (emenda à 0397  |
 | 0399 | aceito | ativo | decision | Aposentar a rubrica module-grade, seu gate de CI e seu baseline |
 | 0400 | aceito | ativo | decision | Emenda à 0314 — `handoff integrity` vira required por decisão soberana [W], com  |
+| 0401 | proposto | ativo | decision | Resolucao do DS bound no servidor de preview - emenda parcial a 0397 D4 |

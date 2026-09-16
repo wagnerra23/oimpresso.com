@@ -350,6 +350,16 @@ promoção. A importação não edita âncoras; a antiga árvore `design-docs/` 
 
 `_ds` permanece **cache derivado do preview**, não estado nem histórico. A base do próximo delta,
 o relatório do que mudou e as provas de aplicação ficam fora dele, em `scripts/design-sync/state/`.
+
+> **Emenda ([ADR 0401](../../../memory/decisions/0401-resolucao-ds-bound-no-servidor-de-preview.md), 2026-09-16).**
+> `_ds` deixou de ser **materializado** em disco: a duplicata física sob `prototipo-ui/cowork/**`
+> viola a D5 da [ADR 0397](../../../memory/decisions/0397-prototipo-minimo-por-dono-e-ds-direto.md)
+> — medido, o `cowork-ssot-guard` sai `rc=1` com 8 violações (R2/R4) no instante em que o cache
+> existe. O prefixo `_ds/<slug>/` continua no shell, por ser a forma canônica do **DS bound** do
+> Claude Design (decisão [W] assinada no shell vivo: *"linkado, NÃO copiado"*, 2026-07-10), e quem
+> o resolve é o **servidor de preview**, mapeando para `prototipo-ui/design-system/`. Em resumo:
+> `_ds` segue sendo *derivado e não-fonte* — o que mudou é que ele é resolvido em runtime em vez
+> de copiado para o disco.
 Comandos e destinos executáveis continuam tendo [`protocolo.config.mjs`](../../../scripts/design/protocolo.config.mjs)
 como fonte única.
 
