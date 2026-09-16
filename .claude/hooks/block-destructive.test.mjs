@@ -241,6 +241,33 @@ check('alvosRmRf: null quando não é rm -rf', alvosRmRf('ls -la') === null);
 check('E2E multi-arg: `rm -rf node_modules /etc` → exit 2', runHook(j('rm -rf node_modules /etc')) === 2);
 check('E2E multi-arg: `rm -rf /tmp/a /tmp/b` → exit 0', runHook(j('rm -rf /tmp/a /tmp/b')) === 0);
 
+// ── TRAVESSIA: o `..` não pode levar pra fora do alvo isento ([W] 2026-09-16) ──
+check('BITE travessia: `node_modules/../../etc` sai do prefixo → BLOQUEIA',
+  matchDestructive('rm -rf node_modules/../../etc')?.key === 'rm-rf-perigoso');
+check('BITE travessia: `/tmp/../etc` sai do prefixo absoluto → BLOQUEIA',
+  matchDestructive('rm -rf /tmp/../etc')?.key === 'rm-rf-perigoso');
+check('BITE travessia: `node_modules/..` vira "." → BLOQUEIA',
+  matchDestructive('rm -rf node_modules/..')?.key === 'rm-rf-perigoso');
+check('BITE travessia: `/tmp/../..` vira "/" → BLOQUEIA',
+  matchDestructive('rm -rf /tmp/../..')?.key === 'rm-rf-perigoso');
+check('BITE travessia: escapa em UM alvo de vários → BLOQUEIA',
+  matchDestructive('rm -rf /tmp/a vendor/../../etc')?.key === 'rm-rf-perigoso');
+
+// CONTROLES NEGATIVOS — travessia BENIGNA e barra final não podem quebrar
+check('CN travessia: `vendor/../vendor` volta pro isento → silêncio',
+  matchDestructive('rm -rf vendor/../vendor') === null);
+check('CN travessia: `/tmp/a/../b` continua em /tmp → silêncio',
+  matchDestructive('rm -rf /tmp/a/../b') === null);
+check('CN travessia: barra FINAL sobrevive à normalização (era o risco do fix)',
+  matchDestructive('rm -rf storage/framework/views/') === null);
+check('CN travessia: `/tmp/` sozinho segue isento', matchDestructive('rm -rf /tmp/') === null);
+check('CN travessia: alvo sem `..` não muda de veredito', matchDestructive('rm -rf node_modules') === null);
+check('ANTI-FOLGA travessia: `./node_modules` NÃO vira isento (normalizar sozinho afrouxaria)',
+  matchDestructive('rm -rf ./node_modules')?.key === 'rm-rf-perigoso');
+check('E2E travessia: `rm -rf node_modules/../../etc` → exit 2',
+  runHook(j('rm -rf node_modules/../../etc')) === 2);
+check('E2E travessia: `rm -rf /tmp/a/../b` → exit 0', runHook(j('rm -rf /tmp/a/../b')) === 0);
+
 // ── AVISO push --delete não-literal (advisory) — LC-12 3ª ocorrência 2026-09-06 ──
 // BITE: o comando exato do incidente (loop sobre ls-remote com glob → variável no --delete)
 check('BITE push-delete: nome em variável → avisa',

@@ -33,6 +33,7 @@
 // Exit: 0 = continua | 2 = bloqueia (stderr vira a razão pro Claude).
 
 import { spawnSync } from 'node:child_process';
+import { posix as caminhoPosix } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 /** normaliza espaços múltiplos pra regex consistente (fidelidade ao .ps1). */
@@ -132,8 +133,27 @@ export function statements(cmd) {
 //     FP em temp-dir dinâmico. Fora de prefixo whitelisted, `$X` já bloqueia
 //     por não casar alvo nenhum — a proteção vem de graça.
 //
-// ⚠️ Segue ABERTO (reportado, fora do escopo): travessia dentro do alvo isento —
-// `rm -rf node_modules/../../etc` casa `^node_modules\b`. Ocorrências medidas: 0.
+// ── TRAVESSIA: o alvo tem que casar ANTES **E DEPOIS** de normalizar ─────────
+//
+// `rm -rf node_modules/../../etc` casava `^node_modules\b` e escapava do alvo
+// isento — o prefixo dizia "reconstruível" e o `..` levava pra fora. Fechado
+// exigindo que o alvo case a whitelist nas DUAS formas.
+//
+// Por que "antes E depois", e não só "depois": normalizar e casar sozinho
+// AFROUXARIA (`./node_modules` → `node_modules` viraria isento, e hoje bloqueia).
+// Com a conjunção, o fix só pode SUBTRAIR isenção — é aperto por construção, e a
+// medição confirma (AFROUXOU=0, que aqui é teorema, não sorte).
+//
+// MEDIDO no corpus (153.7k blocos tool_use Bash/PowerShell, 2026-09-16):
+//   774 → 774 bloqueios · AFROUXOU 0 · NOVOS 0 (zero alvos com `..` hoje)
+//   equivalência: 217 alvos distintos, 217 sem `..`, **0** mudam de veredito —
+//   é o que prova que a barra final sobrevive (`storage/framework/views/`
+//   normalizado SEM a barra não casaria a entrada dela).
+//
+// `path.posix.normalize` é a stdlib: não se escreve normalizador de path à mão
+// (conferido caso a caso contra uma versão própria — 12/12 idênticos).
+// POSIX de propósito: o hook governa Bash, onde `\` é escape, não separador.
+// Alvo com `\`: 0 no corpus. Vetor declarado, não coberto.
 
 /** whitelist rm -rf: ALVOS reconstruíveis por build (âncora: comentário US-COPI-085). */
 const RM_WHITELIST_ALVOS = [
@@ -168,11 +188,15 @@ export function alvosRmRf(stmt) {
   return alvos;
 }
 
+/** o alvo é reconstruível — e continua sendo depois de resolver `..`? (ver §TRAVESSIA) */
+const alvoIsento = (a) => RM_WHITELIST_ALVOS.some((w) => w.test(a))
+  && RM_WHITELIST_ALVOS.some((w) => w.test(caminhoPosix.normalize(a)));
+
 /** o statement é um `rm -rf` cujos alvos são TODOS reconstruíveis? */
 function rmIsento(stmt) {
   const alvos = alvosRmRf(stmt);
   if (!alvos || alvos.length === 0) return false;  // sem alvo ≠ isento (`xargs … rm -rf`)
-  return alvos.every((a) => RM_WHITELIST_ALVOS.some((w) => w.test(a)));
+  return alvos.every(alvoIsento);
 }
 
 /** categorias proibidas — ordem determinística (primeiro match dá a mensagem). */
