@@ -548,6 +548,58 @@ const tsxTabela = [
     `exit=${rTxt.status}`);
 }
 
+// -- (e6) C1: sem indice de origin/main, NAO MEDI != nao ha nada ------------------------
+// Por que existe: `blobsVivosEmMain` e `sh('git ls-tree -r origin/main')` e o `sh()` engole
+// stderr. Se a ref nao existe no checkout (fetch parcial, fetch-depth curto, runner que nao
+// buscou a base) o Map sai VAZIO — e ate 2026-09-16 o early-return devolvia `{achados:[],
+// naoResolvidos:[]}`, que faz o chamador (`c1 !== null`) reportar `medido: true` e o texto
+// imprimir `✓ nenhum.`. Verde indistinguivel de saude tendo percorrido ZERO (§5 2026-07-29 ·
+// 2026-08-11). Com o predicado `>=1` o custo subiu: achados reais viram silencio verde.
+//
+// A COMBINACAO importa e foi a unica que expoe o caso: `docs` NAO-vazio + `vivos` vazio.
+// Por isso o fixture NAO cria `refs/remotes/origin/main` e roda com `--todos` — assim o
+// universo vem de `requisitosDocs()` (que nao depende da ref) e o fluxo chega ao
+// `!vivos.size` de fato. Sem `--todos` cairia antes no `if (!base) return null` do
+// `docsDoDiffC1`, dando um `medido:false` por OUTRO motivo — um verde enganoso.
+{
+  const root = mkdtempSync(join(tmpdir(), 'c1semidx-'));
+  const git = (...a) => spawnSync('git', a, { cwd: root, encoding: 'utf8' });
+  git('init', '-q', '-b', 'main', '.');
+  git('config', 'user.email', 't@t'); git('config', 'user.name', 't');
+  mkdirSync(join(root, 'prototipo-ui', 'velho'), { recursive: true });
+  mkdirSync(join(root, 'memory', 'requisitos', 'Demo'), { recursive: true });
+  mkdirSync(join(root, 'resources', 'js', 'Pages'), { recursive: true });
+  writeFileSync(join(root, 'prototipo-ui', 'velho', 'arq.json'), 'z'.repeat(400));
+  git('add', '-A'); git('commit', '-qm', 'c1');
+  mkdirSync(join(root, 'guardado'), { recursive: true });
+  git('mv', 'prototipo-ui/velho/arq.json', 'guardado/arq.json');
+  git('commit', '-qm', 'c2');
+  const sha = git('rev-parse', '--short', 'HEAD').stdout.trim();
+  writeFileSync(join(root, 'memory', 'requisitos', 'Demo', 'RUNBOOK-idx.md'), [
+    '---', 'tela: Demo/Idx', '---', '',
+    '- x: `prototipo-ui/velho/arq.json` _(removido em 2026-01-01, ' + sha + ')_',
+    '',
+  ].join(String.fromCharCode(10)));
+  git('add', '-A'); git('commit', '-qm', 'c3');
+  // DE PROPOSITO: nenhum `update-ref refs/remotes/origin/main` aqui.
+
+  const r = spawnSync('node', [POINTERS, '--json', '--todos'], { cwd: root, encoding: 'utf8' });
+  let j = null;
+  try { j = JSON.parse(r.stdout); } catch { /* */ }
+  check('(e6) BITE — sem indice de origin/main, `medido` e FALSE (nao "medi e nao achei")',
+    j !== null && j.mudou_de_casa_medido === false,
+    `medido=${j && j.mudou_de_casa_medido} exit=${r.status}`);
+  check('(e6) os contadores viram null, nao 0 — 0 afirmaria uma contagem que nao houve',
+    j !== null && j.mudou_de_casa_nao_resolvidos === null,
+    String(j && j.mudou_de_casa_nao_resolvidos));
+
+  const rTxt = spawnSync('node', [POINTERS, '--todos'], { cwd: root, encoding: 'utf8' });
+  check('(e6-b) o texto diz NAO MEDIDO e NAO imprime o check verde `✓ nenhum`',
+    rTxt.status === 0 && /NAO MEDIDO/.test(rTxt.stdout)
+      && !/C1 \(advisory\)/.test(rTxt.stdout),
+    `exit=${rTxt.status}`);
+}
+
 console.log('');
 if (fails) { console.error(`✗ ${fails} asserção(ões) falharam.`); process.exit(1); }
 console.log('✓ reconcile-triplet.test.mjs: todas as asserções passaram.');
