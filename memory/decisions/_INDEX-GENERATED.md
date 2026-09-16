@@ -7,7 +7,7 @@
 ## Resumo
 - **407** arquivos · **392** números únicos · máx **0402**
 - **ADRs ATIVOS (lifecycle ativo): 361** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 356 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
+- Por status: aceito 357 · superseded 25 · proposto 12 · deprecated 11 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 361 · substituido 25 · arquivado 21
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -443,5 +443,5 @@ _(nenhuma)_
 | 0398 | aceito | ativo | decision | O espelho Cowork recebe a árvore da conta, documentação incluída (emenda à 0397  |
 | 0399 | aceito | ativo | decision | Aposentar a rubrica module-grade, seu gate de CI e seu baseline |
 | 0400 | aceito | ativo | decision | Emenda à 0314 — `handoff integrity` vira required por decisão soberana [W], com  |
-| 0401 | proposto | ativo | decision | Resolucao do DS bound no servidor de preview - emenda parcial a 0397 D4 |
+| 0401 | aceito | ativo | decision | Resolucao do DS bound no servidor de preview - emenda parcial a 0397 D4 |
 | 0402 | proposto | ativo | decision | Denominador de tela inclui as Pages de modulo (Modules/*/Resources/js/Pages) |
