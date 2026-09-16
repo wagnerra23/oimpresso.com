@@ -3,6 +3,12 @@
 > Sessão `sleepy-pike-8779ac`. 3 PRs mergeados ([#7414](https://github.com/wagnerra23/oimpresso.com/pull/7414), [#7422](https://github.com/wagnerra23/oimpresso.com/pull/7422), [#7437](https://github.com/wagnerra23/oimpresso.com/pull/7437)).
 > Estado pro próximo turno: [handoff 17:50](../handoffs/2026-09-16-1750-recepcao-pacote-e-os-dois-universos.md).
 
+## TL;DR
+
+O pacote v2 do handoff 20 veio **`CONFORME`** e **não havia nada a promover** — o `bundleId` regerado era idêntico ao ativo desde 14/09, delta `+0 ~0 -0 =278`, então não rodei `--apply`. Os **36 do `cowork-inbox`** desceram por decisão [W], e investigar *por que* eles eram invisíveis achou o defeito do dia: o espelho tem **duas perguntas** e o `liveOnly` usava o universo da errada, acusando **327** arquivos versionados como *"nunca desceu"* — `frescor` × `conteudo` agora são universos com nome, falso-ausentes → **0** ([#7437](https://github.com/wagnerra23/oimpresso.com/pull/7437)).
+
+⚠️ E a minha atribuição central caiu no mesmo dia: a [ADR 0404](../decisions/0404-ultimo-importado-e-autoridade-do-espelho.md) refutou o *"a conta perdeu 510 linhas entre os handoffs 18 e 20"* — eu tomei o espelho como proxy do export anterior tendo os ZIPs em disco. Próximo passo é a **decisão (a)** de [W]: reconciliar o `exportPlan` (recusa `.md`) com a ADR 0398 D2.
+
 ## 1 · O pedido trazia a receita manual; o repo tinha máquina
 
 [W] entregou o ZIP do handoff 20 com uma lista de 8 tarefas: limpar o lote velho, receber 45 arquivos, `aplicar-payload --dry`, aplicar. Antes de executar, procurei o dono do tema e achei o **`receber-handoff.mjs`**, criado em 2026-09-10 por decisão [W] no dia (*"o objetivo é eu exportar uma única vez, sem depender de uma receita manual em cada importação"*). Ele contém os passos 1–4 da lista e acrescenta quatro que a manual não tem: auditoria do `sync/` que veio, classificação por 3 pontos, **guarda de regressão** e reconciliação do `_ds/` pelo dono.
