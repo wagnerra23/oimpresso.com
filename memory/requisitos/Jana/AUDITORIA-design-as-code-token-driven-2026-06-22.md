@@ -125,5 +125,5 @@ O oimpresso **não precisa trocar de paradigma** — ele já está no paradigma 
 
 ---
 
-> **Fontes (8 WebSearch + 1 WebFetch):** W3C DTCG, Style Dictionary, Tokens Studio, Terrazzo, design-extract, Tailwind v4 (Mavik), Storybook/Chromatic, Figma Code Connect, Penpot MCP, Claude Design (Anthropic/VentureBeat). Inventário: `prototipo-ui/tokens.css`, `ds-guard.mjs`, `integrity-check.mjs`, `CODE_DESIGN_CONTRACT.md`, `REGISTRY_DS_COMPONENTES.md`, `ds-v6/REUSE_MAPPING.md`, `cowork-map.json`, `scripts/design-identity-grade.mjs`, `scripts/governance/gates-registry.json`.
+> **Fontes (8 WebSearch + 1 WebFetch):** W3C DTCG, Style Dictionary, Tokens Studio, Terrazzo, design-extract, Tailwind v4 (Mavik), Storybook/Chromatic, Figma Code Connect, Penpot MCP, Claude Design (Anthropic/VentureBeat). Inventário: `prototipo-ui/tokens.css`, `ds-guard.mjs`, `integrity-check.mjs`, `CODE_DESIGN_CONTRACT.md`, `REGISTRY_DS_COMPONENTES.md`, `ds-v6/REUSE_MAPPING.md`, `cowork-map.json`, `scripts/design-identity-grade.mjs`, `scripts/governance/gates-registry.json`. _(removido em 2026-09-11, 878e6069d1a)_
 > **ADRs tocados:** 0239 (git-SSOT DS), 0235/0249 (DS v6 roxo), 0254 (grade determinístico), 0209 (ratchet), 0093 (multi-tenant Tier 0 — tokens globais sem PII, ok).

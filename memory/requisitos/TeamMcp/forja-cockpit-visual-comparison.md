@@ -1252,7 +1252,7 @@ As duas últimas linhas do cabeçalho são condicionais ao eixo Pipeline nos **d
   `.fj-onda-chip`, `.fj-kcol-count` (`10.5`/`11.5px` literais × `var(--fs-1)`/`var(--fs-2)`) e
   `.fj-kc-title` (`12.5px` × `var(--fs-3)`). **Os tokens valem o mesmo nos dois lados** e isso foi
   medido, não suposto: `--fs-1: 10.5px` · `--fs-2: 11.5px` · `--fs-3: 12.5px`, idênticos em
-  `prototipo-ui/cowork/Wagner/legado/ds-v6/tokens.css` `:105-107` e em
+  `prototipo-ui/cowork/Wagner/legado/ds-v6/tokens.css` `:105-107` e em _(removido em 2026-09-11, d86c977a8dd)_
   `resources/css/tokens/_generated-foundations-light.css` `:7-9`. Zero divergência de pixel. É a
   **mesma classe** que a Onda 10 catalogou ("6 font-size literais… MESMO px; dona é a Onda 1") —
   não é achado novo, e a dona continua sendo a Onda 1.

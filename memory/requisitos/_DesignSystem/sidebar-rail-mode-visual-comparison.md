@@ -11,7 +11,7 @@ morreu_porque: "Hue-map por grupo obsoleto e divergente de 2 outros docs; a VERD
 # Sidebar — rail mode + cores por grupo (visual-comparison)
 
 **Tela:** Layout global `AppShellV2` (sidebar global do ERP)
-**Fonte canônica visual:** `prototipo-ui/_cowork-export-2026-05-15/sidebar.jsx` + `styles.css` (linhas 5039-5350) + `data.jsx` (`GROUP_META`)
+**Fonte canônica visual:** `prototipo-ui/_cowork-export-2026-05-15/sidebar.jsx` + `styles.css` (linhas 5039-5350) + `data.jsx` (`GROUP_META`) _(removido em 2026-05-20, 1070e3759b7)_
 **Gate F1.5 MWART:** [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) + [ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
 **Aprovação screenshot Wagner:** AskUserQuestion 2026-05-16 — "Escopo completo (recomendado)"
 **Skip design-critique:** Wagner aprovou (protótipo veio do loop Cowork formal, já sancionado)

@@ -4,7 +4,7 @@ id: requisitos-repair-decisao-w-portal-publico-2026-09-04
 
 # Decisão [W] · Portal público de consulta de status (Repair)
 
-> **Gate da Onda 2** do export do Repair (`prototipo-ui/design-docs/cowork-inbox/REPAIR-ONDAS-2026-09-04.md` §RESÍDUO item 1).
+> **Gate da Onda 2** do export do Repair (`prototipo-ui/cowork/Wagner/cowork-inbox/REPAIR-ONDAS-2026-09-04.md` §RESÍDUO item 1).
 > Tudo abaixo foi medido em 2026-09-04 contra `origin/main` no tip `d6457184ea` e contra o **MySQL de produção** (`u906587222_oimpresso`), a partir do CT 100. O que não foi medido está declarado como tal (§7).
 
 ## A pergunta (uma só)

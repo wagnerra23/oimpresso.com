@@ -834,7 +834,7 @@ node scripts/governance/cowork-mirror-freshness.mjs --compare --check    # o esp
    > **9** avulsos (`.gitignore`, `.thumbnail`, `AssinaturaAtualizar.tsx`, 4 `.mjs`/`.json` de
    > ferramenta, 1 `.napkin`).
    >
-   > Os **13 `.md`** desceram para `prototipo-ui/design-docs/cowork-inbox/` — pelo
+   > Os **13 `.md`** desceram para `prototipo-ui/design-docs/cowork-inbox/` — pelo _(removido em 2026-09-11, 4f51a9ec781)_
    > [#7141](https://github.com/wagnerra23/oimpresso.com/pull/7141), de uma sessão paralela do
    > mesmo dia, e **em paralelo** por esta rodada. As duas transcrições independentes saíram
    > **byte a byte idênticas nos 13** (sha256 conferido arquivo a arquivo), o que corrobora a

@@ -7,14 +7,14 @@ module: Inventory
 status: approved
 date: 2026-05-15
 # canon_reference: o path abaixo foi removido em 2026-05-20, 1070e3759b7
-canon_reference: prototipo-ui/prototipos/produto-cockpit/produto-cockpit-page.jsx
+canon_reference: prototipo-ui/prototipos/produto-cockpit/produto-cockpit-page.jsx _(removido em 2026-05-20, 1070e3759b7)_
 blade_source: resources/views/product/bulk-edit.blade.php
 inertia_target: resources/js/Pages/Produto/BulkEdit.tsx
 approved_by: pending_wagner_screenshot_approval
 pattern_reuse: true
 divergence: "datatable multi-row edit — pattern distinto Index Cockpit"
 # blueprint_cowork: o path abaixo foi removido em 2026-05-20, 1070e3759b7
-blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/
+blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05-20, 1070e3759b7)_
 ---
 
 # Comparativo visual — Edição em massa (`/products/mass-edit`)

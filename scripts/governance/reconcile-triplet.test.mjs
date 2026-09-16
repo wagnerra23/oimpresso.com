@@ -232,6 +232,9 @@ const tsxTabela = [
     '- vivo:   `prototipo-ui/cowork/Wagner/vivo-page.jsx`',
     '- mudo:   `prototipo-ui/prototipos/fantasma/page.jsx`',
     '- datado: `prototipo-ui/prototipos/outro/page.jsx` (removido em 2026-05-20, 1070e3759b7)',
+    '- externo: `ui_kits/cowork-2026-04-27/x.jsx` _(nunca versionado no repo — artefato externo do Cowork)_',
+    '- placeholder: `ui_kits/cowork-YYYY-MM-DD/` (notacao generica, nao caminho)',
+    '- indeterminado: `prototipo-ui/sumido/x.jsx` _(alvo não resolve no repo — proveniência não determinada)_',
     '',
   ].join('\n'));
   const r = spawnSync('node', [POINTERS, '--json'], { cwd: root, encoding: 'utf8' });
@@ -246,9 +249,54 @@ const tsxTabela = [
   check('(e2) o ponteiro VIVO nao e cobrado',
     j && !JSON.stringify(j.requisitos_detalhe || []).includes('vivo-page.jsx'),
     JSON.stringify(j && j.requisitos_detalhe));
+  check('(e2) o "nunca versionado" tambem nao e cobrado',
+    j && !JSON.stringify(j.requisitos_detalhe || []).includes('cowork-2026-04-27'),
+    JSON.stringify(j && j.requisitos_detalhe));
+  check('(e2) placeholder (YYYY-MM-DD) nao e tratado como caminho',
+    j && !JSON.stringify(j.requisitos_detalhe || []).includes('YYYY-MM-DD'),
+    JSON.stringify(j && j.requisitos_detalhe));
+  check('(e2) "proveniencia nao determinada" tambem nao e cobrado',
+    j && !JSON.stringify(j.requisitos_detalhe || []).includes('sumido'),
+    JSON.stringify(j && j.requisitos_detalhe));
   // a 2a raiz e ADVISORY: nao pode mudar o veredito do --strict (que e dos charters)
   const st = spawnSync('node', [POINTERS, '--strict'], { cwd: root, encoding: 'utf8' });
   check('(e2) 2a raiz NAO entra no --strict (advisory)', st.status === 0, `status=${st.status}`);
+}
+
+// -- (e3) notacao generica <x>/abreviada e destino DECLARADO ---------------------
+// Por que existe: a r3 do GT-G5 no #7377 refutou 16 anotacoes. 7 delas eram do gate nao
+// saber ler duas notacoes que o repo ja usava: segmento-template (`<tela>`, `<modulo>`),
+// path abreviado com reticencias, e a frase que declara o DESTINO ("renomeada pra X") --
+// que e mais informativa que um tombstone, e estava sendo tratada como ausencia.
+// As 4 pernas: morde o morto MUDO e libera as 3 notacoes. Mutacao provada: revertendo
+// ehPlaceholder/declaraMorte, requisitos_total_orfaos vai de 1 para 4.
+{
+  const root = mkdtempSync(join(tmpdir(), 'reqnot-'));
+  mkdirSync(join(root, 'resources', 'js', 'Pages'), { recursive: true });
+  mkdirSync(join(root, 'memory', 'requisitos', 'Demo'), { recursive: true });
+  const RET = String.fromCharCode(8230);
+  writeFileSync(join(root, 'memory', 'requisitos', 'Demo', 'RUNBOOK-notacao.md'), [
+    '---', 'tela: Demo/Notacao', '---', '',
+    '# RUNBOOK', '',
+    '- template:  `prototipo-ui/cowork/Wagner/legado/<tela>/visual-source.html`',
+    '- abreviado: `prototipo-ui/cowork/_ds/office-impresso-design-system-019dd02f' + RET + '/`',
+    '- renomeado: aponta `ui_kits/cowork-2026-04-27/` que foi renomeada pra',
+    '  `_BACKUP-NAO-USAR-cowork-2026-04-27/`.',
+    '- morto:     `prototipo-ui/prototipos/so-esse/page.jsx`',
+    '',
+  ].join(String.fromCharCode(10)));
+  const r = spawnSync('node', [POINTERS, '--json'], { cwd: root, encoding: 'utf8' });
+  let j = null;
+  try { j = JSON.parse(r.stdout); } catch { /* */ }
+  const det = JSON.stringify((j && j.requisitos_detalhe) || []);
+  check('(e3) BITE — o unico path morto MUDO e cobrado',
+    j && j.requisitos_total_orfaos === 1 && det.includes('so-esse'), String(j && j.requisitos_total_orfaos) + ' ' + det);
+  check('(e3) segmento-template <tela> nao e caminho (controle negativo)',
+    j && !det.includes('<tela>'), det);
+  check('(e3) path abreviado com reticencias nao e caminho (controle negativo)',
+    j && !det.includes('019dd02f'), det);
+  check('(e3) "renomeada pra" declara o destino e sai da cobranca (controle negativo)',
+    j && !det.includes('cowork-2026-04-27'), det);
 }
 
 // ── (f) bundle_source/visual_source como perna da cadeia de protótipo ─────────
