@@ -1067,7 +1067,7 @@ export function absentLocal(shellHtml, root = ROOT) {
 /** Enumera os arquivos-âncora do espelho, keyed por PATH RELATIVO COMPLETO (nunca basename)
  *  + as DEPS DE RENDER do shell (LC-07). `kind`: 'ancora' (tem tela de charter) | 'dep'.
  *  Mesmo conjunto de âncoras que o anchor-content-check enxerga (reusa anchorRelPath). */
-export function buildManifest(root = ROOT, { all = false, shellHtml = null } = {}) {
+export function buildManifest(root = ROOT, { all = false, shellHtml = null, universo = 'frescor' } = {}) {
   const PAGES = join(root, 'resources', 'js', 'Pages');
   const COWORK = join(root, 'prototipo-ui', 'cowork', 'Wagner');
   const seen = new Map(); // relPath → { cowork, repoPath, repoHash, telas }
@@ -1093,7 +1093,7 @@ export function buildManifest(root = ROOT, { all = false, shellHtml = null } = {
   };
 
   if (all) {
-    walkRel(COWORK).forEach((rel) => add(rel, []));
+    walkRel(COWORK, COWORK, [], universo).forEach((rel) => add(rel, []));
   }
   for (const charter of walkCharters(PAGES)) {
     const t = readFileSync(charter, 'utf8');
@@ -1163,15 +1163,39 @@ function walkCharters(dir, acc = []) {
 }
 
 /** Anda o espelho devolvendo PATHS RELATIVOS (v1 devolvia basenames — arquivos homônimos em
- *  subdirs sumiam do --all; v2 preserva a identidade). */
-function walkRel(base, dir = base, acc = []) {
+ *  subdirs sumiam do --all; v2 preserva a identidade).
+ *
+ *  ⚠️ O ESPELHO TEM DOIS UNIVERSOS, e confundi-los foi um defeito medido (2026-09-16):
+ *
+ *    `universo: 'frescor'` (default) — O QUE PODE SER COMPARADO com o vivo. Filtra por
+ *      extensão de build porque o `--compare` casa hash arquivo-a-arquivo contra o que o
+ *      `get_file`/bundle traz; `.php`/`.json` de pedido não têm contraparte a comparar.
+ *      (`css|js` entraram em 2026-07-07, LC-07: o `--all` era cego pra folha de estilo, o
+ *      vetor exato do drift de design.)
+ *
+ *    `universo: 'conteudo'` — O QUE O ESPELHO CONTÉM, sem filtro. É o universo do `liveOnly`,
+ *      cuja pergunta é de CONTINÊNCIA (*"isto já desceu?"*), não de frescor.
+ *
+ *  Por que a distinção é defeito e não preciosismo, contado no espelho de 675 arquivos: com o
+ *  filtro de frescor o manifesto tem **290** entradas e **0** de `cowork-inbox/` — uma
+ *  subárvore de **378** arquivos (87% `.md`). Para ela o `liveOnly` não distinguia PRESENTE de
+ *  AUSENTE: classificava **327** paths como *"existe no vivo e NUNCA desceu"* quando estavam
+ *  versionados ali, a um `existsSync` de distância. Com `'conteudo'` isso vai a **0**.
+ *
+ *  ⚠️ Alinhar o filtro de frescor ao `roleForPath` do `bundle-contract` foi TENTADO primeiro e
+ *  MEDIDO: leva o manifesto a 633 (336 de `cowork-inbox/`) e derruba os falso-ausentes de 327
+ *  para **38** — mas os 38 seguem no disco, logo continuam falsos, só em menor número. O
+ *  predicado do contrato responde *"isto é material de bundle?"*, que é a pergunta do frescor;
+ *  continência é `existsSync`. Trocar de filtro não conserta conflação de pergunta.
+ */
+function walkRel(base, dir = base, acc = [], universo = 'frescor') {
   if (!existsSync(dir)) return acc;
   for (const e of readdirSync(dir)) {
     const f = join(dir, e);
-    if (statSync(f).isDirectory()) walkRel(base, f, acc);
-    // css|js incluídos em 2026-07-07 (LC-07): o --all era cego pra folha de estilo — o
-    // vetor exato do drift de design (tokens/accent vivem em .css, runtime em app.jsx).
-    else if (/\.(jsx|html|css|js)$/i.test(e)) acc.push(f.slice(base.length + 1).split('\\').join('/'));
+    if (statSync(f).isDirectory()) walkRel(base, f, acc, universo);
+    else if (universo === 'conteudo' || /\.(jsx|html|css|js)$/i.test(e)) {
+      acc.push(f.slice(base.length + 1).split('\\').join('/'));
+    }
   }
   return acc;
 }
@@ -1740,7 +1764,10 @@ function main() {
     // e usá-lo aqui acusaria como "novo no vivo" todo arquivo do espelho fora do shell.
     // Medido: com o manifesto do shell dava dezenas de FP (`prototipo-ui-patch/**`); com o
     // completo dá 10, o mesmo número do `--live-only`, que é o dono desta pergunta.
-    const novos = liveOnly([...vivos], buildManifest(ROOT, { all: true, shellHtml: lerShellHtml() }));
+    // `universo: 'conteudo'` — a pergunta aqui é CONTINÊNCIA ("isto já desceu?"), não frescor.
+    // Com o filtro de frescor, `cowork-inbox/**` ficava fora do manifesto inteiro e este
+    // detector acusava como "novo no vivo" arquivo versionado (medido: 327 → 0). Ver walkRel.
+    const novos = liveOnly([...vivos], buildManifest(ROOT, { all: true, shellHtml: lerShellHtml(), universo: 'conteudo' }));
     const telaNova = novos.filter((p) => /-page\.(jsx|css)$/.test(p) || /^[^/]+-(page|merge)\.jsx$/.test(p));
 
     console.log(`\n  LISTA DE DOWNLOAD — manifesto do shell × vivo × ledger\n`);
@@ -1776,7 +1803,8 @@ function main() {
     }
     const raw = JSON.parse(readFileSync(lp, 'utf8'));
     const paths = Array.isArray(raw) ? raw : (raw.paths || []);
-    const manifest = buildManifest(ROOT, { all: true, shellHtml: lerShellHtml() });
+    // `universo: 'conteudo'`: idem ao `--check-novos` acima — continência, não frescor (walkRel).
+    const manifest = buildManifest(ROOT, { all: true, shellHtml: lerShellHtml(), universo: 'conteudo' });
     const faltando = liveOnly(paths, manifest, { jaEmRuntime: buildRuntimeSet(ROOT) });
     // Classifica pra o humano decidir sem ler 25 linhas iguais. NÃO é filtro — tudo é
     // listado; filtro escondido aqui recriaria o ponto cego que este modo existe pra abrir.
