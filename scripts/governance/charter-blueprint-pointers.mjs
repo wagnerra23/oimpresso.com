@@ -261,10 +261,24 @@ function shaAdvisory() {
  *                          denominador, nao o fenomeno)
  *  Ou seja: 0.5 REPROVA dois casos coerentes e APROVA dois espalhados. Nao ha vale.
  *
- *  A separacao real esta em ZERO x NAO-ZERO, nao em 0.5. No corpus inteiro (84 medidos):
- *      76 com ZERO blob sobrevivente ..... remocao real INDISCUTIVEL
- *       8 com >=1 blob sobrevivente ...... ha conteudo vivo em outro path
- *      limiar 0.5 acusa .................. 0 desses 8   (falso-negativo 8 de 8)
+ *  A separacao real esta em ZERO x NAO-ZERO, nao em 0.5. RE-MEDIDO com o extrator
+ *  CORRIGIDO do #7402 (antes o `pointersOf2` engolia a prosa do tombstone e perdia 35%
+ *  dos casos em silencio). Corpus: 1292 docs de `memory/requisitos`, 98 tombstones:
+ *       7 dispensados .... a linha ja aponta o destino (`jaDeclaraDestino`)
+ *      83 MEDIDOS ........ 75 com ZERO blob sobrevivente (remocao real INDISCUTIVEL)
+ *                           8 com >=1 (ha conteudo vivo em outro path)
+ *       8 SEM MEDICAO .... nenhum ponteiro da linha resolveu em `<sha>^` (LC-33: contadas,
+ *                          nao silenciadas — saem no json como `nao_resolvidos`, 117 pares
+ *                          em 35 linhas; nas outras 27 algum outro ponteiro resolveu)
+ *      limiar 0.5 acusa ... 0 dos 8   (falso-negativo 8 de 8)
+ *  Distribuicao: 75 · 2 · 4 · 0 · 2 · [zero de 0.5 a 1.0]. O limiar esta ACIMA de toda a
+ *  populacao viva — nao ha nada pra ele separar.
+ *
+ *  ⚠️ O denominador ANTERIOR desta nota (84 medidos / 76 zero) estava inflado por erro MEU:
+ *  eu varria `memory/requisitos` MAIS os `.charter.md` sob `resources/js/Pages`, e o `--todos`
+ *  do gate varre SO `requisitosDocs()`. Medir num universo maior que o do consumidor e a
+ *  §5 2026-07-27 (denominador inventado). A conclusao NAO muda com a correcao — muda o
+ *  numero, e o numero errado era meu.
  *
  *  ERRATA do meu proprio metodo, registrada e nao apagada: a 1a calibracao (commit
  *  anterior desta branch) concluiu "0.5 separa as 92 com 0 erro" achando um vao em
@@ -274,12 +288,12 @@ function shaAdvisory() {
  *  o MEDIDOR e. A objecao veio da sessao irma e a medicao confirmou.
  *
  *  ⚠️ NAO CORRIGIDO AQUI, de proposito: trocar a fracao pelo predicado ">=1 sobrevive" e
- *  linha EXECUTAVEL, e este arquivo esta sendo editado em paralelo (fix do extrator +
- *  `jaDeclaraDestino`). Sai em PR proprio, depois daquele. Enquanto isso o 0.5 segue —
+ *  linha EXECUTAVEL e muda VEREDITO, entao sai em PR proprio (este e so a medicao).
+ *  O #7402, que era o bloqueio pra isso, ja esta em main. Enquanto a troca nao vem, o 0.5 segue —
  *  ele erra pra o lado CONSERVADOR (nao acusa), entao o custo de esperar e silencio, nao
  *  ruido. Junto com a troca vai o piso de 200B, que hoje `blobsDe` aplica quando o objeto
  *  e blob mas NAO aos blobs de dentro de um tree: com fracao isso era inocuo (distribuicao
- *  identica, 76/2/4/0/2), com o predicado ">=1" um unico blob trivial que colide passa a
+ *  identica, 75/2/4/0/2), com o predicado ">=1" um unico blob trivial que colide passa a
  *  decidir o veredito. */
 const SL_C1 = String.fromCharCode(47);   // '/' sem literal
 const TOMB_SHA = /_[(][^)]*removido em ([0-9-]+), ([0-9a-f]{7,40})[^)]*[)]_/;
@@ -339,9 +353,16 @@ function docsDoDiffC1() {
 }
 
 function auditMudouDeCasa(docs) {
-  if (!docs.length) return [];
+  // ⚠️ os dois early-returns devolvem a MESMA FORMA do return final ({achados, naoResolvidos}).
+  // Devolver `[]` aqui crashava o `--json` com "Cannot read properties of undefined": o
+  // chamador faz `c1.naoResolvidos.length`, e `[]` e truthy, entao o guard `c1 !== null` nao
+  // pega. Pior, batia no caso COMUM — PR que nao toca memory/requisitos deixa `docs` vazio.
+  // O modo TEXTO nao usava `c1` e por isso o CI passava: gate verde num modo, quebrado no
+  // outro (§5 2026-07-28, agora no eixo MODO do mesmo script).
+  const vazio = { achados: [], naoResolvidos: [] };
+  if (!docs.length) return vazio;
   const vivos = blobsVivosEmMain();
-  if (!vivos.size) return [];            // sem indice nao ha medicao — NAO afirmar verde (LC-33)
+  if (!vivos.size) return vazio;         // sem indice nao ha medicao — NAO afirmar verde (LC-33)
   const achados = [];
   const naoResolvidos = [];   // LC-33: nao-medicao contada, nunca silenciada
   const raiz = ROOT.split(BS).join(SL_C1) + SL_C1;
