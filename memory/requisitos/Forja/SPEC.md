@@ -497,6 +497,48 @@ ADR 0368 §3 aposentou. Reconciliar exige migration de procedure + `ProcedureDri
 
 **Implementado em:** _pendente_
 
+#### US-FORJA-011 · Redação de segredo na fronteira de ingest (`/api/cc/ingest`) — o daemon não volta sem ela
+
+> owner: [W] · priority: p0 · estimate: _pendente_ · status: proposto · type: feature
+> blocked_by: —
+
+O `cc-watcher` empurra o transcript de cada sessão pra `POST /api/cc/ingest`, que persiste em
+`mcp_cc_messages` — legível pelo time. Em 2026-09-15 um `cat` supérfluo imprimiu o **token MCP
+pessoal do [W]** num transcript (**LC-35** em [`LICOES_CODE.md`](../../LICOES_CODE.md)). Medido no
+dia: o ingest estava parado e o `.jsonl` do incidente **ainda não tinha sido lido** — não vazou
+*por sorte de um daemon travado*. Hoje o daemon está desligado com autostart `.off`, e [W] decidiu
+em 2026-09-16 que isso é **contenção temporária, não estado final**.
+
+⚠️ **A ordem importa, e é o argumento mais forte desta US:** o `.jsonl` do incidente continua no
+backlog do watcher. Religar o daemon **antes** da redação existir não é neutro — é ingerir
+exatamente o segredo que a contenção evitou.
+
+**O que está medido hoje** (2026-09-16):
+
+| | estado |
+|---|---|
+| payload → `upsertMessage()` → `McpCcMessage::create([...])` | **sem redação nenhuma** |
+| `PiiRedactor` no mesmo controller ([`CcIngestController.php`](../../../Modules/Forja/Http/Controllers/Mcp/CcIngestController.php) `:133-144`, `:173-176`) | só em `$e->getMessage()` **antes de logar** — não toca o dado persistido |
+| [`PiiRedactor::PATTERNS`](../../../app/Support/Privacy/PiiRedactor.php) (`:45`) | CNPJ · CPF · EMAIL · telefone — **nenhum shape de credencial** |
+
+**O predicado é SHAPE de segredo na saída — nunca nome de arquivo.** A forma tentadora (*acusar
+`cat` de arquivo cujo nome sugere credencial*) está **reprovada**: é guard sintático por nome, a
+família com 8 lápides medidas em [`proibicoes.md`](../../proibicoes.md) §5, e puniria `.env.example`,
+template e config sem segredo.
+
+- [ ] Estender o **`PiiRedactor`** com shapes de credencial — é o dono da redação e **já está importado neste controller**; redactor novo em paralelo é **LC-19**
+- [ ] Reaproveitar os shapes que [`.gitleaks.toml`](../../../.gitleaks.toml) já define pro caminho git, em vez de inventar regex — mesma pergunta, outro chokepoint
+- [ ] Aplicar no caminho do **dado** (`upsertMessage`), não só no do log
+- [ ] **Medir o FP no corpus real ANTES de armar** (`mcp_cc_messages`, transcripts já ingeridos) e publicar o número — máquina nova sem FP medido é a regra 4 de "LIGUE A MÁQUINA" ([`proibicoes.md`](../../proibicoes.md) §Sempre fazer)
+- [ ] Decidir **onde** redigir e registrar o porquê: no `cc-watcher` (não transmite, mas é per-dev e burlável) ou no controller (não-burlável, mas o segredo chega na rede) — ou os dois
+- [ ] Pest medindo **EFEITO**: payload com shape de credencial entra → a linha em `mcp_cc_messages` sai redigida; e **controle negativo** — payload benigno passa intacto
+- [ ] Varrer o `mcp_cc_messages` existente antes de religar — o *"não vazou"* é datado (2026-09-15), não propriedade
+- [ ] **Armar é decisão [W]** — esta US entrega o mecanismo medido e o número, não o flip
+
+**Não-objetivo:** cobrir PII BR, que o `PiiRedactor` já faz. O eixo aqui é **credencial**.
+
+**Implementado em:** _pendente_
+
 ---
 
 ## Onda 2 — Triage + Inbox (US-TR-301..308 · SPEC-UI-FASE7)

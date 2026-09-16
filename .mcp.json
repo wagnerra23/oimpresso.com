@@ -12,7 +12,10 @@
     },
     "laravel-boost": {
       "command": "C:/Users/wagne/.config/herd/bin/php84/php.exe",
-      "args": ["artisan", "boost:mcp"],
+      "args": ["${BOOST_ARTISAN:-artisan}", "boost:mcp"],
+      "_pegadinha_cwd": "2026-09-16: o caminho do artisan era RELATIVO e resolvia contra o cwd do servidor = o WORKTREE da sessao. Worktree nao tem vendor/ (gitignored, .gitignore:15), entao artisan:18 (require __DIR__/vendor/autoload.php) dava fatal e o processo morria antes de falar JSON-RPC -> o cliente reportava CONNECTION_CLOSED. Medido no dia: 0 de 39 worktrees tinham vendor/, e o repo principal handshakeava limpo. NAO era require-dev (o principal instalou dev: vendor/phpunit presente). ${CLAUDE_PROJECT_DIR} NAO resolve na expansao do .mcp.json aqui: a sonda devolveu \"Missing environment variables: CLAUDE_PROJECT_DIR\" (controle positivo: o aviso de OIMPRESSO_MCP_TOKEN saiu junto), e com o default obrigatorio :-. ele vira \".\" = o mesmo worktree sem vendor.",
+      "_boost_artisan": "Defina BOOST_ARTISAN com o caminho ABSOLUTO do artisan do SEU checkout (ex Windows: setx BOOST_ARTISAN \"D:/oimpresso.com/artisan\") para o Boost subir em sessao de worktree. Sem a variavel cai no \"artisan\" relativo, que funciona no checkout principal e falha em worktree - o comportamento anterior, preservado de proposito para nao quebrar quem nao define. Medido 2026-09-16 nos dois sentidos: sem a var -> CONNECTION_CLOSED; com a var -> Connected.",
+      "_custo_do_absoluto": "2026-09-16: apontando o BOOST_ARTISAN para OUTRO checkout que nao o da sessao, o Boost responde sobre AQUELE checkout - nao so o codigo (list-routes, model:show) mas tambem o .env/banco (database-query, database-schema) e o storage/logs (last-error, read-log-entries). Introspeccao de framework e inocua; rota/model/dado da sua branch, nao.",
       "_note": "Boost local — tools de framework (Laravel route:list, model:show, etc). Cada dev ajusta o path do php conforme seu OS/Herd."
     }
   }
