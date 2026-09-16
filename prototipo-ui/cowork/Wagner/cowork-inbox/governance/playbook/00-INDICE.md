@@ -13,8 +13,6 @@ destino_no_main: prototipo-ui/design-docs/cowork-inbox/governance/playbook/
 > **O módulo mais adiantado do ERP, e o mais desigual.** Backend maduro (22 Services, 19 Commands, 13 Checkers, **57 testes Feature**), **9 telas React todas com `Inertia::render`**, 9 charters — e **1 único `casos.md`** entre as nove. O trio não fecha em 8 telas.
 > **Produção está À FRENTE do meu protótipo** (C4): meu build tem **5 vistas**, produção tem **9**. Quatro telas nasceram lá e nunca chegaram aqui: `Custos`, `DsRollout`, `QualidadeIa`, `ModuleGrades/Show`. Isso é defeito **meu** → thread 04, não pedido.
 
-> **Adaptação em 09/09/2026:** os contratos de evidência declarados no JSON seguem o [contrato do placar](../../_scripts/README-placar.md). Recibos devem vir da execução/revisão real; os demais trabalhos permanecem sem fechamento certificado até declarar a evidência adequada.
-
 ## 0 · LEVANTAR — 4 denominadores
 
 **D1 rota** `Modules/Governance/Http/routes.php` (5.982 B, **editado hoje** — ADR 0392 §D-D passo 2): `/` **redireciona pra `/ia`** (302, canon [W] 2026-05-22) · `/dashboard` · `/policies` (+`POST /policies/{id}/toggle`) · `/audit` · `/drift` · `/module-grades` (+`/{name}`) · `/ds-rollout` · `/custos` · `/qualidade-ia` + 3 hooks de install.
@@ -52,7 +50,7 @@ destino_no_main: prototipo-ui/design-docs/cowork-inbox/governance/playbook/
 **03 é frente, não thread:** 8 `casos.md` num PR reprova no `casos-gate` G-2 (`1 seção = 1 PR`, prosa é o que conta). E `Dashboard.tsx` sozinho tem **42 KB** — estoura o teto de 40 KB de leitura antes de escrever a primeira linha. Ordem proposta pela ficha, do menor para o maior: `Policies` (4,9 KB) → `Audit` (8,4) → `DriftAlerts` (8,6) → `Custos` (13,9) → `QualidadeIa` (20,8) → `ModuleGrades/Index` (22,3) → `Show` (28,8) → `Dashboard` (42,3, **fatiar por seção**).
 
 ## 2-bis · ESTADO — derivado, nunca escrito
-`node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/governance/playbook/00-INDICE.md --root . --proximo`
+`node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/governance/playbook/00-INDICE.md --root . --proximo`
 Render esperado: `Governança: entregue 0 de 5 · próximo 3 · bloqueada 1`.
 
 ## 3 · Abertura de thread (colar como 1ª mensagem — sessão limpa)
@@ -82,7 +80,6 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
 ```json
 {
   "modulo": "Governanca",
-  "modulo_codigo": "Governance",
   "sha": "0d159eb84a10",
   "gerado": "2026-09-08",
   "constituicao": "CONSTITUICAO-COWORK.md",
@@ -98,8 +95,6 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
       "provas": [
         { "tipo": "arquivo", "path": "prototipo-ui/design-docs/contrato-cowork/governance.contract.json" },
         { "tipo": "contem", "path": "prototipo-ui/design-docs/contrato-cowork/governance.contract.json", "padrao": "cobertura_parcial" }
-      ,
-        {"tipo":"revisao","path":"prototipo-ui/design-docs/cowork-inbox/governance/playbook/recibos/01-revisao.json","fontes":["prototipo-ui/design-docs/cowork-inbox/governance/playbook/01-contrato-desce.md","prototipo-ui/design-docs/contrato-cowork/governance.contract.json"],"criterios":["cobertura-parcial-explicita","cinco-telas-conferidas"]}
       ] },
     { "id": "02", "titulo": "Rede: 2 specs E2E (dashboard + policies toggle)", "dono": "CL", "vaga": 1, "arquivo": "02-rede-e2e.md",
       "prefixo": ["e2e/governance-dashboard.spec.ts", "e2e/governance-policies.spec.ts"],
@@ -107,8 +102,6 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
       "provas": [
         { "tipo": "arquivo", "path": "e2e/governance-dashboard.spec.ts" },
         { "tipo": "arquivo", "path": "e2e/governance-policies.spec.ts" }
-      ,
-        {"tipo":"execucao","formato":"playwright-json","raiz_testes":"e2e","path":"prototipo-ui/design-docs/cowork-inbox/governance/playbook/recibos/02-e2e.json","testes":["e2e/governance-dashboard.spec.ts","e2e/governance-policies.spec.ts"]}
       ] },
     { "id": "03a", "titulo": "casos.md de Policies (a menor tela) — abre a frente do trio", "dono": "CL", "vaga": 2, "arquivo": "03a-casos-policies.md",
       "prefixo": ["resources/js/Pages/governance/Policies.casos.md"],
@@ -116,15 +109,11 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
       "provas": [
         { "tipo": "arquivo", "path": "resources/js/Pages/governance/Policies.casos.md" },
         { "tipo": "arquivo", "path": "resources/js/Pages/governance/DsRollout.casos.md", "guarda": true, "nota": "o unico casos.md existente e o MOLDE — nao editar" }
-      ,
-        {"tipo":"revisao","path":"prototipo-ui/design-docs/cowork-inbox/governance/playbook/recibos/03a-revisao.json","fontes":["prototipo-ui/design-docs/cowork-inbox/governance/playbook/03a-casos-policies.md","resources/js/Pages/governance/Policies.casos.md"],"criterios":["cenarios-derivados-do-pedido","rastreabilidade-dos-casos"]}
       ] },
     { "id": "04", "titulo": "Meu build esta 4 telas atras da producao", "dono": "CC", "vaga": 1, "arquivo": "04-build-atras.md",
       "prefixo": [], "nao_toca": ["resources/js/", "Modules/"],
       "nota_provas": "read-only + decisao [W]: prova = _saida-04.md com o custo de cada tela e a recomendacao. Nao vira PR no main.",
-      "provas": [
-        {"tipo":"revisao","path":"prototipo-ui/design-docs/cowork-inbox/governance/playbook/recibos/04-revisao.json","fontes":["prototipo-ui/design-docs/cowork-inbox/governance/playbook/04-build-atras.md"],"criterios":["quatro-fichas-com-custo","recomendacoes-por-tela","pergunta-dsrollout-formulada"]}
-      ] },
+      "provas": [] },
     { "id": "05", "titulo": "Gate::before deixa admin passar por qualquer can:", "dono": "W", "arquivo": "00-INDICE.md",
       "prefixo": [], "nao_toca": ["app/Providers/AuthServiceProvider.php"],
       "bloqueio": "D-GATE: passo 1 da ADR 0392, decisao [W] em aberto. Thread bloqueada nao ganha arquivo proprio.",

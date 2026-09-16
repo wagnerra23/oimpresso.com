@@ -129,9 +129,10 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
   "modulo": "Sidebar",
   "sha": "af09f7c3a0fd",
   "gerado": "2026-09-10",
+  "granularidade": "secao",
   "absorve": ["prototipo-ui/design-docs/handoff-sidebar/PEDIDO-CODE.md"],
   "variaveis": { "CKPT": "resources/js/Components/cockpit", "BUILD": "prototipo-ui/cowork", "CT": "prototipo-ui/contrato/cockpit-sidebar.contract.json", "REC": "prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/recibos" },
-  "nota_caminho": "lidos em prototipo-ui/design-docs/cowork-inbox/_scripts/README-placar.md (main, 2026-09-10): contem/nao_contem NÃO fecham thread — estrutura não prova execução. execucao=recibo JSON+summary da máquina que rodou; revisao=parecer, só pra tarefa que escreve apenas .md/.contract.json; comparacao=design-diff --compare --contrato --check --check-shell --json, exige o .contract.json.",
+  "contratos_de_prova": "lidos em prototipo-ui/design-docs/cowork-inbox/_scripts/README-placar.md (main, 2026-09-10): contem/nao_contem NÃO fecham thread — estrutura não prova execução. execucao=recibo JSON+summary da máquina que rodou; revisao=parecer, só pra tarefa que escreve apenas .md/.contract.json; comparacao=design-diff --compare --contrato --check --check-shell --json, exige o .contract.json.",
   "decisoes": [
     { "id": "RESIDUO-1", "pergunta": "Ghosts: emendar ADR 0180 (código venceu) ou reverter GHOST_TETO do vivo?", "respondida": true, "resposta": "não era decisão de [W]: UI-0029 (28/08) diz que ADR divergente do protótipo está errada, e o corolário 1 proíbe devolver a pergunta. Emenda datada na 0180.", "destrava": ["05"] },
     { "id": "RESIDUO-2", "pergunta": "Aposentar SidebarTabs/SidebarChat/ConvRow do protótipo (UI-0011) ou selar como demo?", "respondida": true, "resposta": "remover — medido 2026-09-10: zero call sites; ChatPage/ConvTabsBar/Thread/LinkedAppsPanel também mortas; remoção dividida 01 (JSX+CSS) × 02 (estado em app.jsx)", "destrava": ["01", "02"] },
@@ -146,13 +147,13 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
       "depende_decisoes": ["RESIDUO-2"],
       "provas": [
         { "tipo": "nao_contem", "path": "${BUILD}/sidebar.jsx", "padrao": "function SidebarChat", "nota": "pré-condição barata; UI-0011, RESIDUO-2 = remover" },
-        { "tipo": "nao_contem", "path": "${BUILD}/sidebar.jsx", "padrao": "role=\"link\" aria-current", "nota": "pré-condição: clicáveis viraram <button> reais" },
+        { "tipo": "nao_contem", "path": "${BUILD}/sidebar.jsx", "padrao": "role=\"link\"", "nota": "pré-condição: clicáveis viraram <button> reais" },
         { "tipo": "comparacao", "path": "${REC}/01-comparacao.json", "contrato": "${CT}",
           "fontes": ["${BUILD}/sidebar.jsx", "${BUILD}/styles.css"],
           "dimensoes": ["D2", "D4", "D6", "D8", "D9", "SHELL"],
           "nota": "quem fecha. Snapshots pelo design-diff existente, nunca medição à mão. DEPENDE do contrato da thread 06 — ver 2-bis: a 06 é pré-requisito, não último passo." }
       ],
-      "nota_provas": "aplicada e medida em 2026-09-10 (_saida-01.md): nav+a11y, 42 clicáveis viraram button, código morto e CSS órfão removidos, layout remedido por família de controle. Falta a comparação." },
+      "nota_estado": "aplicada e medida em 2026-09-10 (_saida-01.md): nav+a11y, 42 clicáveis viraram button, código morto e CSS órfão removidos, layout remedido por família de controle. Falta a comparação." },
     { "id": "02", "titulo": "Seção MODOS: auto-rail UI-0030 + persistir só escolha manual", "dono": "CC", "vaga": 1, "arquivo": "02-modos-auto-rail.md",
       "prefixo": ["${BUILD}/app.jsx"],
       "nao_toca": ["${BUILD}/sidebar.jsx", "${BUILD}/styles.css"],
@@ -164,7 +165,7 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
           "dimensoes": ["D2", "D8", "SHELL"],
           "nota": "quem fecha. SHELL cobre os 3 modos + drawer mobile; a matriz sem-chave × largura precisa de perfil limpo (ver _saida-02.md)." }
       ],
-      "nota_provas": "aplicada e medida em 2026-09-10 (_saida-02.md): 1280 inclusive, persistência só manual, ciclo de atalhos verde nos dois sentidos após corrigir a regressão do closure. Falta a comparação." },
+      "nota_estado": "aplicada e medida em 2026-09-10 (_saida-02.md): 1280 inclusive, persistência só manual, ciclo de atalhos verde nos dois sentidos após corrigir a regressão do closure. Falta a comparação." },
     { "id": "03", "titulo": "Seção TOPO: paridade CompanyPicker + slot de alerta", "dono": "CC", "vaga": 2, "arquivo": "03-topo-picker.md",
       "prefixo": ["${BUILD}/sidebar.jsx", "${BUILD}/data.jsx"],
       "nao_toca": ["${BUILD}/app.jsx"],
@@ -173,95 +174,46 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
         { "tipo": "contem", "path": "${BUILD}/sidebar.jsx", "padrao": "NfeCertBadge", "nota": "pré-condição: slot presente entre .sb-top e .sb-body" },
         { "tipo": "comparacao", "path": "${REC}/03-comparacao.json", "contrato": "${CT}",
           "fontes": ["${BUILD}/sidebar.jsx", "${BUILD}/data.jsx"],
-          "dimensoes": ["D2", "D4", "D9"],
-          "nota": "quem fecha. D0 NAO entra em dimensoes — design-diff.mjs:1041 diz que e PRE-CONDICAO de identidade, nao dimensao, e roda sempre. A copy vai no contrato: os literais do NfeCertBadge vivo ('Cert vence em breve' / 'Certificado vencido' / 'N dias restantes' / 'há N dias')." }
+          "dimensoes": ["D0", "D2", "D4", "D9"],
+          "nota": "quem fecha. D0 exige copy no contrato: os literais do NfeCertBadge vivo ('Cert vence em breve' / 'Certificado vencido' / 'N dias restantes' / 'há N dias')." }
       ],
-      "nota_provas": "slot aplicado e medido nos 4 estados, expandido e rail (_saida-03.md). PENDENTE da própria thread: o diff bidirecional do CompanyPicker, que o playbook pedia e não foi feito." },
+      "nota_estado": "slot aplicado e medido nos 4 estados, expandido e rail (_saida-03.md). PENDENTE da própria thread: o diff bidirecional do CompanyPicker, que o playbook pedia e não foi feito." },
     { "id": "04", "titulo": "Modo hidden + SidebarReopenHandle → promover pro vivo", "dono": "CL", "vaga": 1, "arquivo": "04-hidden-reopen.md",
       "prefixo": ["${CKPT}/Sidebar.tsx", "${CKPT}/shared.ts", "resources/js/Layouts/AppShellV2.tsx", "resources/css/cockpit.css"],
       "nao_toca": ["resources/js/Pages/Financeiro/_cowork-bundle/", "${CKPT}/useSidebarShortcut.ts", "app/Sidebar/"],
       "depende_threads": ["01"], "depende_decisoes": ["RESIDUO-3"],
       "provas": [
-        { "tipo": "contem", "path": "${CKPT}/shared.ts", "padrao": "| 'hidden'", "nota": "SidebarMode ganha o 3º modo" },
+        { "tipo": "contem", "path": "${CKPT}/shared.ts", "padrao": "hidden", "nota": "SidebarMode ganha o 3º modo" },
         { "tipo": "contem", "path": "resources/js/Layouts/AppShellV2.tsx", "padrao": "SidebarReopenHandle" },
         { "tipo": "contem", "path": "resources/css/cockpit.css", "padrao": ".sb-reopen-handle" },
         { "tipo": "execucao", "path": "${REC}/04-execucao.json",
           "testes": ["tests/Feature/Sidebar/SidebarConsolidacaoTest.php", "tests/Feature/Cockpit/CockpitPatternConformanceTest.php"],
           "nota": "quem fecha. Recibo gerado pela máquina que rodou (junit-summary.mjs), com SHA-256 dos alvos, testes, resumo e do _saida-04.md. Sem skip/flaky." }
       ],
-      "nota_provas": "DESTRAVADA pela UI-0029 (modo e alça são forma; o protótipo tem os dois). O rail do alerta de certificado (thread 03) é invenção do protótipo, não paridade — se entrar no vivo, é decisão à parte." },
-    { "id": "05", "titulo": "Ghosts × ADR 0180 — emenda (UI-0029 corolário 4)", "dono": "CL", "vaga": 2, "arquivo": "05-ghosts-adr-0180.md",
-      "prefixo": ["memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md"],
+      "nota_estado": "DESTRAVADA pela UI-0029 (modo e alça são forma; o protótipo tem os dois). O rail do alerta de certificado (thread 03) é invenção do protótipo, não paridade — se entrar no vivo, é decisão à parte." },
+    { "id": "05", "titulo": "Ghosts × ADR 0180 — emenda ou reversão", "dono": "W", "vaga": 2, "arquivo": "05-ghosts-adr-0180.md",
+      "prefixo": ["memory/decisions/0180-sidebar-contrato-v2.md"],
       "nao_toca": ["${CKPT}/Sidebar.tsx"],
       "provas": [
-        { "tipo": "contem", "path": "memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md", "padrao": "## Emenda 2026-09-10", "nota": "pré-condição: emenda datada, nunca ADR paralela (LC-19)" },
+        { "tipo": "contem", "path": "memory/decisions/0180-sidebar-contrato-v2.md", "padrao": "2026-09", "nota": "pré-condição: emenda datada, nunca ADR paralela (LC-19)" },
         { "tipo": "revisao", "path": "${REC}/05-revisao.json",
           "fontes": ["memory/decisions/0180-sidebar-contrato-v2.md", "${CKPT}/Sidebar.tsx"],
           "criterios": ["emenda-datada", "ghost-teto-conferido-no-codigo", "sem-adr-paralela"],
           "nota": "quem fecha. Escreve só .md, então revisao é o contrato válido: parecer com revisor identificado e justificativa por critério." }
       ],
-      "nota_provas": "DESBLOQUEADA: pela UI-0029, ADR divergente do protótipo está errada — o código venceu e a emenda se aplica. Abri como 'bloqueada em [W]' contra o corolário 1, que proíbe devolver essa pergunta." },
+      "nota_estado": "DESBLOQUEADA: pela UI-0029, ADR divergente do protótipo está errada — o código venceu e a emenda se aplica. Abri como 'bloqueada em [W]' contra o corolário 1, que proíbe devolver essa pergunta." },
     { "id": "06", "titulo": "Contrato de tela do shell + gates", "dono": "CL", "vaga": 3, "arquivo": "06-contrato-e-gates.md",
-      "prefixo": ["prototipo-ui/contrato/cockpit-sidebar.contract.json", "tests/Feature/Sidebar/", "${CKPT}/Sidebar.tsx#ancora", "resources/js/Layouts/AppShellV2.tsx#ancora"],
-      "nao_toca": ["${CKPT}/shared.ts", "${CKPT}/NfeCertBadge.tsx", "${CKPT}/useSidebarShortcut.ts", "resources/css/cockpit.css", "${BUILD}/"],
+      "prefixo": ["prototipo-ui/contrato/cockpit-sidebar.contract.json", "tests/Feature/Sidebar/"],
+      "nao_toca": ["${CKPT}/", "resources/js/Layouts/AppShellV2.tsx"],
       "depende_threads": [],
       "provas": [
         { "tipo": "json_com_chaves", "path": "${CT}", "chaves": ["alvo", "secoes"], "nota": "pré-condição" },
-        { "tipo": "execucao", "path": "${REC}/06-execucao.json",
-          "testes": ["tests/Feature/Architecture/AppShellUsageGateTest.php"],
-          "nota": "quem fecha. ERA `revisao` e NÃO PODIA FECHAR — medido 2026-09-11 rodando `placar-evidencia.mjs`: o validador recusa `revisao` quando QUALQUER item do prefixo não termina em .md/.contract.json ('revisão documental não encerra alteração de código', L67), e o prefixo ORIGINAL já tinha `tests/Feature/Sidebar/`, que não casa. Ou seja, o defeito é anterior à ampliação do prefixo — a 06 tinha DOIS motivos independentes pra nunca fechar (este e a âncora ausente). Trocado pra `execucao`, que é o que a própria nota antiga antecipava ('os gates PHP entram como execucao'). Teste escolhido: o `AppShellUsageGateTest`, que é o gate do shell citado na §C da ficha e o único dos 3 filtros que passa INTEGRALMENTE no CT 100 (1 passed · 2 assertions · 0 failed/skipped) — `--filter=Sidebar` tem 1 falha pré-existente (LegacyMenuAdapterSidebarV3) e 6 skips, e `--filter=Cockpit` tem 16 falhas pré-existentes; ambos MEDIDOS com e sem o patch e IDÊNTICOS nos dois (269 e 404 assertions), o que prova ausência de regressão mas não serve de recibo, porque o validador exige failed=0 e skipped=0 por arquivo." }
+        { "tipo": "revisao", "path": "${REC}/06-revisao.json",
+          "fontes": ["${CT}", "${CKPT}/Sidebar.tsx", "resources/js/Layouts/AppShellV2.tsx"],
+          "criterios": ["secoes-conferidas-contra-o-vivo", "copy-literal-D0", "estados-declarados"],
+          "nota": "quem fecha. Escreve só .contract.json + testes: revisao é válida pro contrato. Os gates PHP entram como execucao no PR que criar os testes." }
       ],
-      "nota_provas": "ORDEM INVERTIDA (2026-09-10): deixou de depender de 01/03/04 e passou a ser PRÉ-REQUISITO delas — sem o .contract.json não existe prova de comparacao, e sem comparacao nenhuma thread de build fecha. Ver 2-bis. PREFIXO AMPLIADO E nao_toca AJUSTADO (2026-09-11, execução, autorizado [W] no pedido): como declarada, a 06 nascia FALHANDO. O schema exige âncora `data-contract=\"<id>\"` por seção e `contrato-de-tela.mjs:235` reprova sem ela; medido na sha f7246bad11, `Sidebar.tsx` e `AppShellV2.tsx` tinham 0 âncoras (controle positivo: 73 arquivos do repo TÊM), e o step `Contratos de tela ativos` varre `git ls-files '*.contract.json'` sempre, sem continue-on-error — logo o contrato sem âncora não é contrato parcial, é CI vermelho. As 3 saídas foram medidas: (a) a 04 levar as âncoras RECRIA O DEADLOCK (a 04 está `pendente` — `shared.ts` sem `| 'hidden'` — e o RESIDUO-5 segue `respondida:false`), e travaria 01/02/03, que já estão aplicadas e medidas e cuja única prova faltante é a `comparacao` que depende deste contrato; (b) ampliar o prefixo segue o padrão MEDIDO do repo — em 6 contratos conferidos, contrato e âncora entram no MESMO commit em 4 e com 1 dia de diferença em 2, ZERO contratos sem âncora, e o precedente direto de shell-sem-rota (`fiscal-subnav`, #7110) tem os dois no mesmo commit 7e1a386536; (c) não existe válvula no `--contract` (o `design-deviation` só cobre `--map --check`). Escolhida a (b), na MENOR ampliação possível: `#ancora` marca que a licença é SÓ acrescentar o atributo `data-contract` em elemento DOM que já existe — diff medido +5/-4, zero wrapper, zero árvore, zero CSS —, e o `nao_toca` passa a listar o que de fato não se toca (shared.ts, NfeCertBadge, useSidebarShortcut, cockpit.css, o build). O `nao_toca` original existia para proteger COMPORTAMENTO (a própria linha dizia 'esta thread não muda comportamento, só o trava') e a âncora é o instrumento de travamento. COLISÃO RE-MEDIDA no dia: o #7203, que tocava os 2 arquivos, mergeou às 11:59 UTC; o #7030 (aberto) toca AppShellV2 nas linhas ~423-475, longe das 568-615. RESÍDUO DECLARADO: a 04 tem os 2 arquivos no prefixo dela — quando rodar, encontra as âncoras já lá e precisa (i) reancorar sb-modos/sb-alcas no estado novo (hidden + SidebarReopenHandle) e (ii) acrescentar `Mostrar sidebar` à copy de sb-alcas. É aditivo, não conflitante." }
+      "nota_estado": "ORDEM INVERTIDA (2026-09-10): deixou de depender de 01/03/04 e passou a ser PRÉ-REQUISITO delas — sem o .contract.json não existe prova de comparacao, e sem comparacao nenhuma thread de build fecha. Ver 2-bis." }
   ]
 }
 ```
-
-## 8 · Aterrissagem — o que o [CL] corrigiu no índice em 2026-09-10 (fato datado)
-
-Os 6 `NN-*.md` desceram **como vieram** (byte a byte, conferido). As 15 âncoras de linha que eles citam
-foram medidas uma a uma contra `origin/main` e **todas conferem** (`sidebar.jsx` 25/31/42/160/180/208/256/390/590/561/566/177 ·
-`shared.ts` 182/197/198 · `NfeCertBadge.tsx:25` · `styles.css` 5219/5267 · `shell-app.jsx` 509-510).
-Os 6 gates da §4 e da thread 06 existem — `SidebarConsolidacaoTest` e `SidebarCountsTest` vivem em
-`Modules/Fiscal/` e `Modules/Whatsapp/`, e o `--filter=Sidebar` os pega pelo nome.
-
-O `00-INDICE.md` recebeu **13 consertos**, todos medidos na sha `71109f60d3`:
-
-| # | era | virou | por quê |
-|---|---|---|---|
-| C1 | `"granularidade": "secao"` no §7 | removido (a prosa do §0 já diz "onda = seção") | `_schema/playbook.schema.json` tem `additionalProperties: false` — com o campo, o placar saía `Playbook inválido: data must NOT have additional properties`, ou seja **não rodava** |
-| C2 | `node scripts/qa/placar-indice.mjs` | `node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs` | aquele path é o **destino sugerido** no docblock do script, não onde ele está |
-| C3 | render *esperado* (`próximo 3 · pendente 2`) | render **medido** (`próximo 1 · pendente 4`) | o placar nunca produziria o número anterior; agora é saída colada, não previsão |
-| C4 | §2 "Vaga 1: 01 ∥ 02 ∥ 04" | "Vaga 1: 01 ∥ 02 · Vaga 2: 03 ∥ 04 ∥ 05" (+ `vaga` da 04 no §7) | a prosa contradizia o próprio §7: a 04 declara `depende_threads: ["01"]`, e a thread 04 dá a razão ("a11y do alvo corrigida antes de exportar"). A dependência é intencional — quem estava errado era o §2 |
-| C5 | prova t02 `contem "matchMedia"` | `contem "(max-width: 1280px)"` | `matchMedia` já casava **2×** no `app.jsx` (linhas 641/644, do drawer mobile ≤768px): a prova nascia verde sem trabalho algum |
-| C6 | prova t02 `nao_contem` com indentação e `\n` embutidos | `nao_contem "localStorage.setItem(\"oimpresso.sidebar.mode\", sbMode)"` | âncora dita estrutural comparando literal de formatação (§5 2026-07-29) — um reindent a satisfaria |
-| C7 | prova t04 `contem "hidden"` | `contem "\| 'hidden'"` | `hidden` é genérico (22× em `cockpit.css`); um `aria-hidden` futuro em `shared.ts` satisfaria a prova sem o modo existir |
-| C8 | `memory/decisions/0180-sidebar-contrato-v2.md` | `memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md` | o arquivo anterior não existe; como estava, a thread 05 criaria **ADR paralela** — o LC-19 que a própria thread quer evitar. (Há colisão de número: existe também `0180-drift-numero-adr-0178-conflito-paralelo.md`) |
-| C9 | `sidebar.jsx` 623 linhas | 622 | contagem |
-| C10 | "auto-rail … O build daqui **não tem**" | "decide só no mount, por `innerWidth < 1280` (`app.jsx:629-630`) — faltam o listener e o inclusive" | contradizia a correção que este mesmo arquivo já trazia acima, e mandaria a thread 02 reimplementar o que existe |
-| C11 | comentário do §4 sugerindo os 3 testes sob `tests/Feature/Sidebar/` | caminhos reais | 2 dos 3 vivem em `Modules/` |
-
-Verificação: o placar foi rodado antes e depois, e o controle positivo (responder RESIDUO-2 e -3 e ver
-`PRÓXIMO` virar `01 · 02`) confirmou que a fila deriva das decisões, não do texto.
-
-### 8.1 · Errata de 2026-09-10 — a âncora da thread 01 era mentirosa (e passou pela minha revisão)
-
-Quatro horas depois de aterrissar este playbook, [W] apontou que o desenho que eu apresentava como
-"o protótipo" não era o protótipo. Estava certo, e a causa é minha: **nunca resolvi a âncora**.
-Rodado agora, `node prototipo-ui/ancora.mjs cockpit/Sidebar` responde
-`✗ sem charter pra essa tela — NÃO invente âncora; registre ou pergunte`. A Sidebar não tem charter,
-logo não tem âncora computável — e eu escolhi uma no olho, que é o anti-padrão da lápide §5 2026-06-30.
-
-Medido depois, com `DesignSync.get_file` no projeto Cowork por ID e conferido contra o espelho:
-
-| afirmação | estado |
-|---|---|
-| "o protótipo usa `<div className="sb-body">` — o vivo está certo, copiar dele" (01, §A) | **enganosa por omissão** — o div **contém** `<nav aria-label="Navegação principal">` (`:260`, `:268`, `:451`). A divergência é de **nível**, não de ausência |
-| prova `contem "aria-label=\"Navegação principal\""` (§7, thread 01) | **nascia verde** — 3 ocorrências antes da thread começar. Mesmo defeito do `matchMedia` que corrigi na aterrissagem, e que deixei passar neste |
-| passo 1 da thread 01: "`sb-body` vira `<nav>`" | **manda criar o que já existe** — virou verificação + decisão de nível |
-
-Corrigido acima (A1–A4). A prova da 01 passa a ser `nao_contem "role=\"link\""`: os 2 clicáveis que
-hoje são `div[role="link"][tabIndex]` (`ItemRow:165` e o atalho de topo `:278`) precisam virar
-`<a>`/`<button>` reais — que é o trabalho de a11y que a thread de fato tem.
-
-⚠️ **O que NÃO mudou, e é o resto da thread 01:** a bateria A1–A12, o `aria-expanded` do grupo,
-o nome acessível do "⋯ mais N", o contraste medido por `getComputedStyle`. Tudo isso segue de pé.

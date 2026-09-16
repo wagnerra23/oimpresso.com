@@ -59,7 +59,7 @@ regra: este índice é PEDIDO (threads a executar), não inventário. Ninguém e
 
 ## 2-bis · ESTADO — derivado, nunca escrito
 
-> `node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/compras/playbook/00-INDICE.md --root . --proximo`
+> `node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/compras/playbook/00-INDICE.md --root . --proximo`
 > `_saida-NN.md` presente **e** provas verdes = `feito`; sem `_saida` = não feito mesmo com PR mergeado; `bloqueada` é fila de [W], não do Code.
 
 Render esperado contra 9101f86af501: `Compras: entregue 0 de 5 · próximo 2 · pendente 0 · bloqueada 3` — **PRÓXIMO: 01 · 02.**
@@ -114,7 +114,6 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
 ```json
 {
   "modulo": "Compras",
-  "modulo_codigo": "Compras",
   "sha": "9101f86af501",
   "gerado": "2026-09-08",
   "absorve": ["prototipo-ui/COLAR-NO-CODE-compras-ondas.md"],
