@@ -393,6 +393,15 @@ jobs:
       - name: Block-mwart-violation PORTE .mjs (ADR 0104 F1 · logica + E2E · roda em Linux)
         if: always() && steps.setup.outcome == 'success'
         run: node .claude/hooks/block-mwart-violation.test.mjs
+      # Redacao de segredo na FRONTEIRA DE INGEST do cc-watcher (ADR 0057 §10 · LC-35).
+      # Registrado POR NOME porque este workflow nao usa glob (lapide 2026-08-02).
+      # O teste exercita o `postBatch` REAL com `fetch` stubado -- assert sobre helper
+      # puro nao provaria o pipeline (§5 2026-07-30). Mordida provada por mutacao:
+      # redacao desligada => 6 de 10 falham; padrao mcp_ afrouxado para a forma ingenua
+      # => o controle-negativo do nome-de-tool falha.
+      - name: cc-watcher redacao de segredo no ingest (morde + controle negativo + chokepoint real)
+        if: always() && steps.setup.outcome == 'success'
+        run: node --test scripts/cc-watcher/redact.test.mjs
       - name: Block-automem + block-mwart REGISTRADOS como node (correcao != invocacao)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-automem-mwart-registration.test.mjs

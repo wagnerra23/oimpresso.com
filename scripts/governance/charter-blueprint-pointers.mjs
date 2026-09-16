@@ -232,21 +232,74 @@ function shaAdvisory() {
  *  Prior art: o git faz deteccao de rename por similaridade (`diff -M`, `log --follow`). Aqui
  *  o caso e mais estreito e mais barato — o blob sobrevive IDENTICO, entao basta lookup.
  *
- *  MEDIDO 2026-09-16 (FP antes de armar, regra "LIGUE A MAQUINA" item 4):
- *    origin/main ..... 91 tombstones -> 75 remocao real, 4 mudou-de-casa, 0 falso-positivo
- *    24a3f7f772e ..... 96 tombstones -> 75 remocao real, 8 mudou-de-casa
- *    Os 4 gaps Essentials que o GT-G5 r5 achou A MAO estao entre os 8 — a sonda morde.
+ *  MEDIDO — e cada numero vem do PROPRIO gate, com o comando ao lado (§5 2026-07-17):
+ *    `node scripts/governance/charter-blueprint-pointers.mjs --json --todos`
+ *    2026-09-16, origin/main: 98 tombstones no corpus -> 0 acusacoes (as achadas foram pagas).
+ *    A prova de que MORDE nao e um ref (que envelhece) e sim o bite-test (e4), deterministico.
  *
+ *  ERRATA 2026-09-16 (a redacao anterior deste bloco misturava TRES medicoes como se fossem
+ *  uma, e os numeros nao fechavam): ela dizia `91 tombstones -> 75 remocao real, 4 mudou-de-casa`
+ *  enquanto o corpo do merge 59d54112e2d dizia `6` — 75+4=79 e 75+6=81, nenhum fecha com 91.
+ *  Origem da divergencia, reconstruida: o `4` veio de uma SONDA ad-hoc de investigacao (outras
+ *  bases de resolucao), o `6` veio do gate, o `75` da sonda (o gate nao classifica 'remocao
+ *  real' — ele so acusa), e o `91` de um regex que o gate ja nao usa (hoje conta 98). Achado
+ *  pela sessao irma que calibrou o limiar; o defeito e a §5 2026-07-17 na minha propria mao.
  *  ADVISORY e forward-only (ADR 0275): varre so os docs do diff vs origin/main. `--todos`
  *  varre o corpus inteiro (custa ~2min: e um `git rev-parse` por ponteiro).
- *  ⚠️ O limiar de fracao (tree) e 0.5 e foi escolhido SEM corpus que o calibre — os dois casos
- *  reais medidos dao 320/323 e 320/454. Promover a required exige calibrar isso primeiro. */
+ *
+ *  ── O LIMIAR DE FRACAO E A CONSTRUCAO ERRADA — MEDIDO 2026-09-16 ───────────────
+ *  Era o residuo #1 do #7392 ("0.5 escolhido SEM corpus que o calibre"). Calibrado, e o
+ *  resultado NAO foi "0.5 esta bom": foi que a FRACAO nao mede o que este audit pergunta.
+ *
+ *  A fracao mede QUANTO do tree sobreviveu. A pergunta e SE existe conteudo em outro path.
+ *  Um diretorio com 4 de 10 arquivos movidos e 6 apagados da 0.4 — e os 4 mudaram de casa
+ *  de verdade. Medido, com a concentracao dos destinos ao lado:
+ *      f=0.188 (18/96)  -> 94% dos destinos num so dir   MUDOU DE CASA, coerente
+ *      f=0.400 (4/10)   -> 100% num so dir               MUDOU DE CASA, coerente
+ *      f=0.705 (320/454)-> 15%, espalhado por 49 dirs
+ *      f=0.991 (320/323)-> 15%, os MESMOS 49 dirs (um path e subdir do outro; muda o
+ *                          denominador, nao o fenomeno)
+ *  Ou seja: 0.5 REPROVA dois casos coerentes e APROVA dois espalhados. Nao ha vale.
+ *
+ *  A separacao real esta em ZERO x NAO-ZERO, nao em 0.5. No corpus inteiro (84 medidos):
+ *      76 com ZERO blob sobrevivente ..... remocao real INDISCUTIVEL
+ *       8 com >=1 blob sobrevivente ...... ha conteudo vivo em outro path
+ *      limiar 0.5 acusa .................. 0 desses 8   (falso-negativo 8 de 8)
+ *
+ *  ERRATA do meu proprio metodo, registrada e nao apagada: a 1a calibracao (commit
+ *  anterior desta branch) concluiu "0.5 separa as 92 com 0 erro" achando um vao em
+ *  (0.455, 0.705). Era TAUTOLOGICO — rotulei os 84 como "negativos" PORQUE sao o que o
+ *  gate nao acusa, e usei isso pra validar o gate. E a lapide §5 2026-07-17
+ *  (drift-sentinel): quando a distribuicao nao discrimina, o baseline nao e o problema,
+ *  o MEDIDOR e. A objecao veio da sessao irma e a medicao confirmou.
+ *
+ *  ⚠️ NAO CORRIGIDO AQUI, de proposito: trocar a fracao pelo predicado ">=1 sobrevive" e
+ *  linha EXECUTAVEL, e este arquivo esta sendo editado em paralelo (fix do extrator +
+ *  `jaDeclaraDestino`). Sai em PR proprio, depois daquele. Enquanto isso o 0.5 segue —
+ *  ele erra pra o lado CONSERVADOR (nao acusa), entao o custo de esperar e silencio, nao
+ *  ruido. Junto com a troca vai o piso de 200B, que hoje `blobsDe` aplica quando o objeto
+ *  e blob mas NAO aos blobs de dentro de um tree: com fracao isso era inocuo (distribuicao
+ *  identica, 76/2/4/0/2), com o predicado ">=1" um unico blob trivial que colide passa a
+ *  decidir o veredito. */
 const SL_C1 = String.fromCharCode(47);   // '/' sem literal
 const TOMB_SHA = /_[(][^)]*removido em ([0-9-]+), ([0-9a-f]{7,40})[^)]*[)]_/;
-/** A linha ja declara PRA ONDE o conteudo foi? Entao esta correta — nao e acusacao.
- *  Exceçao EXPLICITA e testada (e4-b), nao escape acidental por regex que deixa de casar. */
-function declaraMudancaDeCasa(linha) {
-  return /CONTE[UÚ]DO vive em|conte[uú]do vive em|vive(m)? (hoje )?em [`]/.test(linha);
+/** A linha ja aponta PRA ONDE o conteudo foi? Entao esta correta — nao e acusacao.
+ *  DETERMINISTICO: compara com o PATH VIVO do blob, nao com vocabulario. A 1a versao casava
+ *  "conteudo vive em" e deixava passar "foi movido para"/"renomeado para" — FP MEDIDO em
+ *  OficinaAuto/oficina-os-nova-prototipo-visual-comparison.md:105, que declara o destino CERTO
+ *  e seria acusada. Vocabulario cresce a cada verbo novo; o path do destino nao.
+ *  (Achado da sessao irma que calibra o limiar — re-medido aqui antes de aceitar.) */
+function jaDeclaraDestino(linha, destinos) {
+  for (const dst of destinos) {
+    if (!dst) continue;
+    // o doc costuma citar o destino num nivel mais ALTO que o blob: sobe a arvore ate 3
+    // segmentos (abaixo disso vira 'prototipo-ui/' e dispensaria qualquer coisa).
+    const seg = dst.split(SL_C1);
+    for (let n = seg.length; n >= 3; n--) {
+      if (linha.includes(seg.slice(0, n).join(SL_C1))) return true;
+    }
+  }
+  return false;
 }
 const LIMIAR_MUDOU_DE_CASA = 0.5;
 
@@ -256,10 +309,10 @@ function sh(cmd) {
 }
 
 function blobsVivosEmMain() {
-  const vivos = new Set();
+  const vivos = new Map();   // blob -> 1o path vivo (alimenta a dispensa por destino)
   for (const l of sh('git ls-tree -r origin/main').split(String.fromCharCode(10))) {
-    const m = l.match(/^[0-9]+ blob ([0-9a-f]+)/);
-    if (m) vivos.add(m[1]);
+    const m = l.match(/^[0-9]+ blob ([0-9a-f]+)	(.+)$/);
+    if (m && !vivos.has(m[1])) vivos.set(m[1], m[2]);
   }
   return vivos;
 }
@@ -290,6 +343,7 @@ function auditMudouDeCasa(docs) {
   const vivos = blobsVivosEmMain();
   if (!vivos.size) return [];            // sem indice nao ha medicao — NAO afirmar verde (LC-33)
   const achados = [];
+  const naoResolvidos = [];   // LC-33: nao-medicao contada, nunca silenciada
   const raiz = ROOT.split(BS).join(SL_C1) + SL_C1;
   for (const bruto of docs) {
     const rel = bruto.startsWith(raiz) ? bruto.slice(raiz.length) : bruto;
@@ -299,15 +353,22 @@ function auditMudouDeCasa(docs) {
     linhas.forEach((linha, i) => {
       const t = linha.match(TOMB_SHA);
       if (!t) return;
-      if (declaraMudancaDeCasa(linha)) return;   // ja corrigida: declara o destino
       for (const ptr of pointersOf2(linha)) {
         const bases = [ptr, dir + SL_C1 + ptr, 'memory/requisitos/_DesignSystem/' + ptr, 'memory/reference/' + ptr];
         let obj = '';
+        // LC-33: `<sha>^:<path>` nao resolver NAO e 'nada a reportar' — e uma de duas coisas,
+        // e o codigo antigo colapsava as duas num `continue` mudo (29 de 98 tombstones passavam
+        // por aqui): (1) o sha citado nao tem aquele path -> indicio de tombstone falso;
+        // (2) o path foi mal extraido da linha. Nao da pra separar as duas sem julgar a prosa,
+        // entao NAO acusamos — mas CONTAMOS, pra que o zero de acusacoes nunca se confunda com
+        // 'tudo medido'. O contador sai no json como `nao_resolvidos`.
         for (const b of bases) { obj = sh(`git rev-parse "${t[2]}^:${b}"`); if (obj.length === 40) { break; } obj = ''; }
-        if (!obj) continue;
+        if (!obj) { naoResolvidos.push({ doc: rel, linha: i + 1, sha: t[2], ponteiro: ptr }); continue; }
         const filhos = blobsDe(obj);
         if (!filhos.length) break;
-        const sobrevivem = filhos.filter((h) => vivos.has(h)).length;
+        const sobrev = filhos.filter((h) => vivos.has(h));
+        const sobrevivem = sobrev.length;
+        if (jaDeclaraDestino(linha, sobrev.slice(0, 5).map((h) => vivos.get(h)))) break;   // ja aponta o destino
         if (sobrevivem / filhos.length >= LIMIAR_MUDOU_DE_CASA) {
           achados.push({ doc: rel, linha: i + 1, ponteiro: ptr, sha: t[2], sobrevivem, total: filhos.length });
         }
@@ -315,7 +376,7 @@ function auditMudouDeCasa(docs) {
       }
     });
   }
-  return achados;
+  return { achados, naoResolvidos };
 }
 
 /** ponteiros CRUS da linha (o `pointersOf` do arquivo le doc inteiro e resolve; aqui e por linha). */
@@ -326,8 +387,9 @@ function pointersOf2(linha) {
   let m;
   while ((m = PRE.exec(linha))) {        // LOCAL de proposito: /g no escopo do modulo vaza lastIndex
     const r = linha.slice(m.index).split(BQ)[0].split(')')[0].split(']')[0].trim();
-    for (const tk of [r]) {
-      const c = decodeURIComponent(tk.replace(/[.,;:)]+$/, '')).replace(/[/]+$/, '');
+    const toks = r.split(/[ 	]+/);   // corta no ESPACO: sem isto path sem backtick leva a prosa junto
+    for (let k = toks.length; k >= 1; k--) {
+      const c = decodeURIComponent(toks.slice(0, k).join(' ').replace(/[.,;:)]+$/, '')).replace(/[/]+$/, '');
       if (c.includes(SL_C1) && !ehPlaceholder(c)) out.add(c);
     }
   }
@@ -342,7 +404,7 @@ const shaMiss = shaAdvisory();
 const req = auditRequisitos();   // 2a raiz: memory/requisitos (advisory, report-only)
 const todosC1 = process.argv.includes('--todos');
 const docsC1 = todosC1 ? requisitosDocs() : docsDoDiffC1();
-const mudouDeCasa = docsC1 === null ? null : auditMudouDeCasa(docsC1);   // C1: advisory
+const c1 = docsC1 === null ? null : auditMudouDeCasa(docsC1);   // C1: advisory
 
 if (json) {
   console.log(JSON.stringify({
@@ -355,8 +417,12 @@ if (json) {
     requisitos_docs_com_orfao: req.perDoc.length,
     requisitos_total_orfaos: req.totalOrphans,
     requisitos_detalhe: req.perDoc,
-    mudou_de_casa_medido: mudouDeCasa !== null,
-    mudou_de_casa: mudouDeCasa || [],
+    mudou_de_casa_medido: c1 !== null,
+    mudou_de_casa: c1 ? c1.achados : [],
+    // LC-33: nao-medicao VISIVEL. UNIDADE: pares (linha x ponteiro), nao linhas distintas —
+    // dizer a unidade junto do numero e o conserto do defeito (F) deste mesmo arquivo.
+    mudou_de_casa_nao_resolvidos: c1 ? c1.naoResolvidos.length : null,
+    mudou_de_casa_nao_resolvidos_linhas: c1 ? new Set(c1.naoResolvidos.map((x) => x.doc + ':' + x.linha)).size : null,
   }, null, 2));
 } else {
   console.log('charter-blueprint-pointers — auditoria de ponteiros de protótipo/blueprint dos charters\n');

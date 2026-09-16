@@ -445,6 +445,7 @@ const tsxTabela = [
     '- mudou:  `prototipo-ui/velho/arq.json` _(removido em 2026-01-01, ' + sha + ')_',
     '- morreu: `prototipo-ui/velho/morre.json` _(removido em 2026-01-01, ' + sha + ')_',
     '- curada: `prototipo-ui/velho/arq.json` _(path removido em 2026-01-01, ' + sha + '; o CONTEÚDO vive em `prototipo-ui/novo/arq.json`)_',
+    '- movida: `prototipo-ui/velho/arq.json` _(path removido em 2026-01-01, ' + sha + '; foi movido para `prototipo-ui/novo/arq.json`)_',
     '',
   ].join(String.fromCharCode(10)));
   git('add', '-A'); git('commit', '-qm', 'c3');
@@ -461,6 +462,8 @@ const tsxTabela = [
   check('(e4) declara que MEDIU — nao-medicao nunca vira nada a reportar',
     j && j.mudou_de_casa_medido === true, String(j && j.mudou_de_casa_medido));
   check('(e4-b) EXCECAO — linha que declara o destino nao e acusada de novo',
+    ac.length === 1, JSON.stringify(ac));
+  check('(e4-c) DISPENSA e por DESTINO, nao por vocabulario (foi movido para tambem sai)',
     ac.length === 1, JSON.stringify(ac));
 }
 
