@@ -600,6 +600,73 @@ const tsxTabela = [
     `exit=${rTxt.status}`);
 }
 
+
+// -- (e7) C1: os DOIS caminhos de nao-medicao sao DISTINGUIVEIS -----------------------------
+// Por que existe: o `(e6)` prova que `medido` vira false quando o C1 nao roda. Mas `false`
+// sozinho nao diz QUAL porta fechou, e elas se consertam diferente: `!base` = nao achei a base
+// do diff; `!vivos.size` = nao achei a ref `origin/main` no checkout. Ate aqui a mensagem era
+// `sem base pra comparar` nos DOIS, o que e falso em um deles — doc que descreve so metade do
+// mecanismo convida a consertar o lado errado (§5 2026-09-04).
+//
+// O fixture e UM so, sem `refs/remotes/origin/main`: a FLAG escolhe o caminho, porque
+// `docsC1 = todosC1 ? requisitosDocs() : docsDoDiffC1()`. Com `--todos` o merge-base nao e
+// consultado e o fluxo chega ao indice vazio; sem ela, para antes. Se um dia essa linha mudar,
+// estes dois asserts divergem e denunciam.
+{
+  const root = mkdtempSync(join(tmpdir(), 'c1mot-'));
+  const git = (...a) => spawnSync('git', a, { cwd: root, encoding: 'utf8' });
+  git('init', '-q', '-b', 'main', '.');
+  git('config', 'user.email', 't@t'); git('config', 'user.name', 't');
+  mkdirSync(join(root, 'memory', 'requisitos', 'Demo'), { recursive: true });
+  writeFileSync(join(root, 'memory', 'requisitos', 'Demo', 'RUNBOOK-mot.md'), [
+    '---', 'tela: Demo/Motivo', '---', '',
+    '- alvo: `prototipo-ui/sumiu` _(removido em 2026-01-01, deadbeef)_',
+    '',
+  ].join(String.fromCharCode(10)));
+  git('add', '-A'); git('commit', '-qm', 'doc com tombstone');   // sem origin/main de proposito
+
+  const jsonDe = (args) => {
+    const r = spawnSync('node', [POINTERS, ...args], { cwd: root, encoding: 'utf8' });
+    try { return JSON.parse(r.stdout); } catch { return null; }
+  };
+  const jBlob = jsonDe(['--json', '--todos']);   // chega ao !vivos.size
+  const jBase = jsonDe(['--json']);              // para no !base
+
+  check('(e7) BITE — sem indice, o motivo aponta a REF, nao a base do diff',
+    !!jBlob && jBlob.mudou_de_casa_medido === false && /indice de blobs/.test(String(jBlob.mudou_de_casa_nao_medido_motivo)),
+    JSON.stringify(jBlob && jBlob.mudou_de_casa_nao_medido_motivo));
+  check('(e7-b) BITE — sem base de diff, o motivo aponta a BASE, nao o indice',
+    !!jBase && jBase.mudou_de_casa_medido === false && /sem base de diff/.test(String(jBase.mudou_de_casa_nao_medido_motivo)),
+    JSON.stringify(jBase && jBase.mudou_de_casa_nao_medido_motivo));
+  check('(e7-c) os dois motivos DIFEREM (se colapsarem, o campo vira decoracao)',
+    !!jBlob && !!jBase && jBlob.mudou_de_casa_nao_medido_motivo !== jBase.mudou_de_casa_nao_medido_motivo,
+    'blob=' + (jBlob && jBlob.mudou_de_casa_nao_medido_motivo) + ' | base=' + (jBase && jBase.mudou_de_casa_nao_medido_motivo));
+
+  const rTxt = spawnSync('node', [POINTERS, '--todos'], { cwd: root, encoding: 'utf8' });
+  check('(e7-d) o modo TEXTO carrega o motivo (e o modo que a lane roda)',
+    /NAO MEDIDO \(indice de blobs/.test(rTxt.stdout), 'exit=' + rTxt.status);
+
+  // CONTROLE NEGATIVO hermetico: repo COM a ref e COM blob -> mede, e o motivo tem que ser
+  // `null`. Sem isto, um fix que setasse motivo sempre passaria nos 4 asserts acima.
+  const ok = mkdtempSync(join(tmpdir(), 'c1mot-ok-'));
+  const gitOk = (...a) => spawnSync('git', a, { cwd: ok, encoding: 'utf8' });
+  gitOk('init', '-q', '-b', 'main', '.');
+  gitOk('config', 'user.email', 't@t'); gitOk('config', 'user.name', 't');
+  mkdirSync(join(ok, 'prototipo-ui'), { recursive: true });
+  writeFileSync(join(ok, 'prototipo-ui', 'vivo.json'), 'V'.repeat(400));
+  mkdirSync(join(ok, 'memory', 'requisitos', 'Demo'), { recursive: true });
+  writeFileSync(join(ok, 'memory', 'requisitos', 'Demo', 'RUNBOOK-ok.md'), [
+    '---', 'tela: Demo/Ok', '---', '', '- sem tombstone aqui', '',
+  ].join(String.fromCharCode(10)));
+  gitOk('add', '-A'); gitOk('commit', '-qm', 'base');
+  gitOk('update-ref', 'refs/remotes/origin/main', 'HEAD');
+  const rOk = spawnSync('node', [POINTERS, '--json', '--todos'], { cwd: ok, encoding: 'utf8' });
+  let jOk = null; try { jOk = JSON.parse(rOk.stdout); } catch { /* */ }
+  check('(e7-e) CONTROLE NEGATIVO — quando MEDE, o motivo e null (nao string vazia)',
+    !!jOk && jOk.mudou_de_casa_medido === true && jOk.mudou_de_casa_nao_medido_motivo === null,
+    'medido=' + (jOk && jOk.mudou_de_casa_medido) + ' motivo=' + JSON.stringify(jOk && jOk.mudou_de_casa_nao_medido_motivo));
+}
+
 console.log('');
 if (fails) { console.error(`✗ ${fails} asserção(ões) falharam.`); process.exit(1); }
 console.log('✓ reconcile-triplet.test.mjs: todas as asserções passaram.');
