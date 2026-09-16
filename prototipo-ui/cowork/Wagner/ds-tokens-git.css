@@ -1,0 +1,66 @@
+/* ds-tokens-git.css — A/B de TOKENS: o que este protótipo mostra HOJE × o que o git tem.
+   Ativado por html[data-ds-tokens="git"] (tweak "Tokens"). Valores copiados de
+   resources/css/tokens/CHANGELOG.md (v1.2.0 02/09 + v1.3.0 08/09) @c1f77b029185.
+
+   ⚠️ RETIFICADO 2026-09-16 (verifier). A 1ª versão declarava 14 deltas lendo só o
+   `colors_and_type.css` do DS — e ERRAVA o "antes", porque não viu que o `styles.css`
+   redeclara os mesmos tokens no escuro (bloco VIDA 06-11, :6387-6396) com os valores
+   que o git DEPOIS adotou. O "antes" válido é o COMPUTADO no runtime, não o lido numa folha.
+
+   Mecânica real: o bloco dark do DS (`.cockpit[data-theme="dark"]`, 0,2,0) vence o do
+   `styles.css` (`[data-theme="dark"]`, 0,1,0) SÓ nos tokens que ele declara — e é exatamente
+   ali que o drift aparece. Onde o DS não declara, o `styles.css` manda e já está no valor do git.
+
+   JÁ IGUAIS hoje — 6 no-ops, NÃO entram neste arquivo (togglar não muda nada):
+     --accent oklch(0.70 0.15 h) · --accent-2 0.76 0.15 h · --accent-fg oklch(0.14 0.02 295)
+     --pos-soft 0.34 0.11 150 · --neg-soft 0.36 0.12 25 · --warn-soft 0.37 0.11 70
+   Ou seja: a "inversão da tinta do primário" que eu anunciei como a maior mudança do lote
+   NÃO existe neste protótipo — o `styles.css` já tinha a tinta escura. Na produção, que lê
+   o token do DS, ela existe.
+
+   Restam 8 deltas observáveis: 4 no cockpit-dark + 4 nos -foreground de status. */
+
+/* v1.2.0 · cockpit-dark — os 4 que o DS declara e por isso ainda divergem.
+   `var(--accent-h,295)` preserva o tweak "Tom do accent" (o literal 295 o desligava). */
+html.cockpit[data-ds-tokens="git"][data-theme="dark"]{
+  --accent-soft: oklch(0.33 0.09 var(--accent-h, 295)); /* computado hoje 0.32 0.06 295 */
+  --pos: oklch(0.76 0.18 150); /* computado hoje 0.74 0.14 150 */
+  --neg: oklch(0.74 0.19 25); /* computado hoje 0.72 0.16 25 */
+  --warn: oklch(0.82 0.16 75); /* computado hoje 0.80 0.13 75 */
+}
+
+/* v1.3.0 · tinta de success/warning — o conserto de contraste do StatusBadge.
+   O git muda `-foreground`; o espelho duplica o valor em `-fg`, então os dois entram juntos
+   (senão o componente do DS não muda de tinta e o A/B mentiria). Zero uso no meu CSS:
+   quem consome é o StatusBadge do _ds_bundle. */
+html[data-ds-tokens="git"]{
+  --color-success-foreground: oklch(0.20 0.02 162); /* light: 0.51 0.12 162 */
+  --color-success-fg: oklch(0.20 0.02 162);
+  --color-warning-foreground: oklch(0.20 0.02 75); /* light: 0.55 0.12 75 */
+  --color-warning-fg: oklch(0.20 0.02 75);
+}
+html[data-ds-tokens="git"][data-theme="dark"],html[data-ds-tokens="git"] .dark{
+  --color-success-foreground: oklch(0.20 0.02 162); /* dark: 0.78 0.11 162 */
+  --color-success-fg: oklch(0.20 0.02 162);
+  --color-warning-foreground: oklch(0.20 0.02 75); /* dark: 0.80 0.10 75 */
+  --color-warning-fg: oklch(0.20 0.02 75);
+}
+
+/* Amostra do painel — os 8 deltas lado a lado, porque ΔL ≤0.02 numa tela cheia é invisível.
+   CAUSA-RAIZ do 3º defeito: `--accent-soft` é superfície CLARA no light (L 0.95) e ESCURA no
+   dark (L 0.32), logo NENHUMA tinta única serve dentro do swatch — trocar o valor da cor só
+   move o problema de tema. Conserto estrutural: o swatch não tem mais texto dentro; o rótulo
+   virou legenda FORA dele, na tinta do painel. Contraste do rótulo deixa de depender do token. */
+.dstk-amostra{display:flex;flex-direction:column;gap:6px;margin:6px 0 2px}
+.dstk-row{display:flex;gap:6px}
+.dstk-cell{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:3px}
+.dstk-cell i{font:500 9px/1 var(--font-mono);font-style:normal;letter-spacing:.02em;color:rgba(41,38,27,.62);text-align:center}
+.dstk-sw{height:30px;border-radius:6px;border:1px solid rgba(41,38,27,.22)}
+.dstk-sw.pos{background:var(--pos)}.dstk-sw.neg{background:var(--neg)}.dstk-sw.warn{background:var(--warn)}.dstk-sw.soft{background:var(--accent-soft)}
+.dstk-chip{flex:1 1 0;min-width:0;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:4px;font:600 10px/1 var(--font-sans)}
+.dstk-chip.ok{background:var(--color-success);color:var(--color-success-fg)}
+.dstk-chip.wr{background:var(--color-warning);color:var(--color-warning-fg)}
+.dstk-nota{font:400 10px/1.35 var(--font-mono);color:rgba(41,38,27,.62);margin:0}
+/* ⚠️ O painel de Tweaks é chrome CLARO FIXO (`.twk-panel{background:rgba(250,249,247,.78);color:#29261b}`
+   no tweaks-panel.jsx). Token do cockpit aqui = tinta de tema escuro em fundo claro:
+   `--text-mute` (L 0.58) em 10px dava ≈4:1, reprova. Tinta e borda saem do próprio painel. */

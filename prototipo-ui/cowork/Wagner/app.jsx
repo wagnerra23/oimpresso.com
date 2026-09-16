@@ -651,6 +651,7 @@ function App() {
 
   // ─── Tweaks expressivos ───
   const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "dsTokens": "atual",
     "vibe": "workspace",
     "theme": "dark",
     "density": 50,
@@ -713,6 +714,11 @@ function App() {
     const root = document.documentElement;
     root.dataset.vibe = tweaks.vibe;
 
+    // A/B de TOKENS (ds-tokens-git.css): "atual" = o espelho como está · "git" = os 14 valores
+    // de v1.2.0 (02/09) + v1.3.0 (08/09) que o git já tem e o espelho não recebeu. É só pra
+    // DECIDIR VENDO — a escrita no espelho é do [CL] e exige a palavra de [W] (ADR 0315).
+    root.dataset.dsTokens = tweaks.dsTokens;
+
     // Tema claro/escuro — ativa o bloco [data-theme="dark"] do ds-v5/tokens.css
     // (existia mas nunca era ligado). Dark = padrão do projeto (W 2026-06-03);
     // claro segue disponível pelo toggle → sem regressão. Roxo canon intacto.
@@ -738,7 +744,7 @@ function App() {
     const h = tweaks.accentHue;
     root.style.setProperty("--accent-h", `${h}`);
     root.style.setProperty("--bubble-me", `oklch(0.55 0.15 ${h})`);
-  }, [tweaks.vibe, tweaks.theme, tweaks.density, tweaks.accentHue, tweaks.toque]);
+  }, [tweaks.vibe, tweaks.theme, tweaks.density, tweaks.accentHue, tweaks.toque, tweaks.dsTokens]);
 
   useEffectA(() => {setShowLaravel(tweaks.showLaravel);}, [tweaks.showLaravel]);
 
@@ -977,6 +983,26 @@ function App() {
           min={0} max={360} step={10}
           unit="°"
           onChange={(v) => setTweak("accentHue", v)} />
+        <TweakRadio
+          label="Tokens (espelho × git)"
+          value={tweaks.dsTokens}
+          options={["atual", "git"]}
+          onChange={(v) => setTweak("dsTokens", v)} />
+        {/* Amostra dos 8 deltas REAIS (retificado: 6 dos 14 do CHANGELOG já estão aplicados
+            via styles.css :6387). ΔL ≤0.02 não se vê numa tela cheia — aqui se vê. */}
+        <div className="dstk-amostra">
+          <div className="dstk-row">
+            <span className="dstk-cell"><span className="dstk-sw pos" aria-hidden="true"></span><i>pos</i></span>
+            <span className="dstk-cell"><span className="dstk-sw neg" aria-hidden="true"></span><i>neg</i></span>
+            <span className="dstk-cell"><span className="dstk-sw warn" aria-hidden="true"></span><i>warn</i></span>
+            <span className="dstk-cell"><span className="dstk-sw soft" aria-hidden="true"></span><i>a-soft</i></span>
+          </div>
+          <div className="dstk-row">
+            <span className="dstk-chip ok">Pago</span>
+            <span className="dstk-chip wr">Atrasado</span>
+          </div>
+          <p className="dstk-nota">8 deltas. Em “atual” as pílulas estão ILEGÍVEIS — é o bug que a v1.3.0 conserta, não defeito da amostra.</p>
+        </div>
 
         <TweakSection label="Jana" />
         <TweakRadio
