@@ -9,7 +9,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { matchDestructive, normalizeCmd, statements, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete } from './block-destructive.mjs';
+import { matchDestructive, normalizeCmd, statements, alvosRmRf, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete } from './block-destructive.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'block-destructive.mjs');
 let fails = 0;
@@ -177,12 +177,12 @@ check('BITE rm: whitelist sobrevive a um `cd` antes (era o FP dos 19)',
   matchDestructive('cd /repo && rm -rf node_modules') === null);
 check('BITE rm: idem com `;`', matchDestructive('cd /repo; rm -rf /tmp/scratch') === null);
 check('BITE rm: idem em bloco multi-linha', matchDestructive('cd /repo\nrm -rf public/build-inertia') === null);
-// Prosa: a isenção depende de o statement COMEÇAR no rm. Um separador antes cria
-// a fronteira (foi o que destravou o commit do PR anterior); sem ele, segue
-// bloqueando — a prosa no meio do statement é FP pré-existente, fora deste fix.
-check('BITE rm: prosa cujo rm vira início de statement (após `&&`) não bloqueia',
-  matchDestructive('git commit -F - <<EOF\nex: `cd x && rm -rf node_modules` bloqueia hoje\nEOF') === null);
-check('CN rm: prosa com o rm no MEIO da frase segue bloqueando (FP pré-existente, não é o escopo)',
+// Prosa: com a isenção por ALVO, a frase que continua depois do path vira "alvo"
+// e não casa a whitelist → bloqueia. É FP conhecido e ACEITO (medido: 1 em 153k,
+// e era prosa minha). O caminho é passar a mensagem por ARQUIVO, não afrouxar.
+check('CN rm: prosa multi-palavra citando um rm whitelisted BLOQUEIA (FP aceito do multi-arg)',
+  matchDestructive('git commit -F - <<EOF\nex: `cd x && rm -rf node_modules` bloqueia hoje\nEOF')?.key === 'rm-rf-perigoso');
+check('CN rm: prosa com o rm no MEIO da frase segue bloqueando (FP pré-existente)',
   matchDestructive('git commit -F - <<EOF\ntexto citando rm -rf node_modules aqui\nEOF')?.key === 'rm-rf-perigoso');
 
 // CONTROLES NEGATIVOS — o que a isenção por statement NÃO pode liberar
@@ -202,6 +202,44 @@ check('CN rm: `rm -rf` dentro de padrão de grep NÃO bloqueia (o `|` é alterna
   matchDestructive('git show HEAD:x.mjs | grep -nE "design|rm -rf|wipe" | head -5') === null);
 check('E2E rm: cd + whitelist → exit 0', runHook(j('cd /repo && rm -rf node_modules')) === 0);
 check('E2E rm: cd + alvo fora da whitelist → exit 2', runHook(j('cd /repo && rm -rf src/')) === 2);
+
+// ── MULTI-ARG: a isenção vale por ALVO, não pelo 1º ([W] 2026-09-16) ──────────
+check('BITE multi-arg: 1º alvo isento NÃO cobre o 2º (era o buraco)',
+  matchDestructive('rm -rf node_modules /etc')?.key === 'rm-rf-perigoso');
+check('BITE multi-arg: idem com o perigoso no meio',
+  matchDestructive('rm -rf /tmp/a /etc /tmp/b')?.key === 'rm-rf-perigoso');
+check('BITE multi-arg: idem depois de um cd',
+  matchDestructive('cd /repo && rm -rf vendor ../../etc')?.key === 'rm-rf-perigoso');
+
+// CONTROLES NEGATIVOS — multi-arg LEGÍTIMO não pode passar a bloquear
+check('CN multi-arg: todos os alvos isentos → silêncio',
+  matchDestructive('rm -rf /tmp/base-h1 /tmp/cur-h0') === null);
+check('CN multi-arg: mistura de famílias da whitelist → silêncio',
+  matchDestructive('rm -rf node_modules dist/ coverage/') === null);
+check('CN multi-arg: redirecionamento NÃO é alvo (`2>/dev/null`)',
+  matchDestructive('rm -rf /tmp/wt-oi 2>/dev/null') === null);
+check('CN multi-arg: pipe encerra os alvos (`| tail` não é alvo)',
+  matchDestructive('rm -rf /tmp/x 2>&1 | tail -10') === null);
+check('CN multi-arg: aspas envolventes não quebram o casamento',
+  matchDestructive('rm -rf "/tmp/dir com espaco"') === null);
+
+// as duas decisões que a medição sustenta (mexer nelas exige re-medir)
+check('DECISÃO: flags `-rf` LITERAL — `rm -f /tmp/x` segue BLOQUEANDO (como hoje)',
+  matchDestructive('rm -f /tmp/x')?.key === 'rm-rf-perigoso');
+check('DECISÃO: `$var` dentro de prefixo isento segue isento (temp-dir dinâmico)',
+  matchDestructive('rm -rf /tmp/$SESSION') === null);
+check('CN: `$var` FORA de prefixo isento bloqueia (proteção vem de graça)',
+  matchDestructive('rm -rf $ALVO')?.key === 'rm-rf-perigoso');
+check('CN: `rm -rf` sem alvo nenhum NÃO é isento (vacuidade seria buraco)',
+  matchDestructive('cd /x\nrm -rf\necho fim')?.key === 'rm-rf-perigoso');
+
+// o extrator, isolado
+check('alvosRmRf: extrai os 2 alvos', JSON.stringify(alvosRmRf('rm -rf a b')) === '["a","b"]');
+check('alvosRmRf: para no pipe', JSON.stringify(alvosRmRf('rm -rf a | tail -1')) === '["a"]');
+check('alvosRmRf: ignora redirecionamento', JSON.stringify(alvosRmRf('rm -rf a 2>/dev/null')) === '["a"]');
+check('alvosRmRf: null quando não é rm -rf', alvosRmRf('ls -la') === null);
+check('E2E multi-arg: `rm -rf node_modules /etc` → exit 2', runHook(j('rm -rf node_modules /etc')) === 2);
+check('E2E multi-arg: `rm -rf /tmp/a /tmp/b` → exit 0', runHook(j('rm -rf /tmp/a /tmp/b')) === 0);
 
 // ── AVISO push --delete não-literal (advisory) — LC-12 3ª ocorrência 2026-09-06 ──
 // BITE: o comando exato do incidente (loop sobre ls-remote com glob → variável no --delete)

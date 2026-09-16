@@ -110,25 +110,70 @@ export function statements(cmd) {
 // `rm -rf /tmp/a && rm -rf src/` bloqueia — antes o 1º comando whitelistava o
 // blob inteiro e o 2º passava (falso-negativo; 0 ocorrências medidas).
 //
-// ⚠️ Buraco PRÉ-EXISTENTE que isto NÃO fecha (reportado, fora do escopo): a
-// whitelist olha o início do statement, então `rm -rf node_modules /etc` é
-// whitelisted pelo 1º argumento. Fechar exige validar TODOS os argumentos, o
-// que é outra decisão (bloquearia `rm -rf /tmp/a /tmp/b`, hoje legítimo).
-// Ocorrências no corpus: 0 reais (o único match é prosa de PR body).
+// ── MULTI-ARG: a isenção vale por ALVO, não pelo 1º ([W] 2026-09-16) ─────────
+//
+// A forma anterior casava o INÍCIO do statement, então o 1º argumento isentava a
+// linha inteira: `rm -rf node_modules /etc` passava, e o `/etc` ia junto. Agora a
+// whitelist descreve o que sempre quis descrever — o **alvo** — e TODO alvo tem
+// que casar. É APERTO: nada que bloqueia hoje deixa de bloquear.
+//
+// MEDIDO no corpus (153.5k blocos tool_use Bash/PowerShell, 2026-09-16):
+//   771 → 772 bloqueios · AFROUXOU **0** · NOVOS **1**
+//   O 1 novo é PROSA de PR body (`...&& rm -rf node_modules` bloqueia) que NÃO é o`):
+//   depois do `&&` sobra um statement cujos "alvos" são as palavras da frase.
+//   FP conhecido e aceito — o caminho é passar a mensagem por arquivo
+//   (`git commit -F` / `gh pr create --body-file`), não afrouxar o guard.
+//
+// ⚠️ Duas decisões que a medição sustenta, e que NÃO se refazem sem re-medir:
+//   · flags `-rf` LITERAL (não `-[rRf]+`): aceitar `-f` sozinho isentaria
+//     `rm -f /tmp/x`, que hoje BLOQUEIA — seriam 43 comandos afrouxados.
+//   · alvo NÃO-VERIFICÁVEL (`$var`, glob) dentro de prefixo whitelisted
+//     (`rm -rf /tmp/$X`) segue ISENTO: bloqueá-lo mede **0** no corpus e criaria
+//     FP em temp-dir dinâmico. Fora de prefixo whitelisted, `$X` já bloqueia
+//     por não casar alvo nenhum — a proteção vem de graça.
+//
+// ⚠️ Segue ABERTO (reportado, fora do escopo): travessia dentro do alvo isento —
+// `rm -rf node_modules/../../etc` casa `^node_modules\b`. Ocorrências medidas: 0.
 
-/** whitelist rm -rf: caches/artefatos de build reconstruíveis (âncora: comentário US-COPI-085). */
-const RM_WHITELIST = [
-  /^rm -rf \/tmp\//i,
-  /^rm -rf ~\/\.cache\//i,
-  /^rm -rf node_modules\b/i,
-  /^rm -rf vendor\b/i,
-  /^rm -rf storage\/framework\/(views|cache|sessions)\//i,
-  /^rm -rf bootstrap\/cache\//i,
-  /^rm -rf public\/build/i,
-  /^rm -rf \.next\//i,
-  /^rm -rf dist\//i,
-  /^rm -rf coverage\//i,
+/** whitelist rm -rf: ALVOS reconstruíveis por build (âncora: comentário US-COPI-085). */
+const RM_WHITELIST_ALVOS = [
+  /^\/tmp\//i,
+  /^~\/\.cache\//i,
+  /^node_modules\b/i,
+  /^vendor\b/i,
+  /^storage\/framework\/(views|cache|sessions)\//i,
+  /^bootstrap\/cache\//i,
+  /^public\/build/i,
+  /^\.next\//i,
+  /^dist\//i,
+  /^coverage\//i,
 ];
+
+/**
+ * Alvos de um statement `rm -rf ...` — PARA no 1º operador de shell, senão
+ * `rm -rf /tmp/x 2>&1 | tail -10` contaria `|` e `tail` como alvos (medido).
+ * @returns {string[]|null} null = o statement não é um `rm -rf`
+ */
+export function alvosRmRf(stmt) {
+  const m = /^rm\s+-rf(\s+|$)/i.exec(String(stmt || ''));
+  if (!m) return null;
+  const toks = String(stmt).slice(m[0].length).match(/"[^"]*"|'[^']*'|\S+/g) || [];
+  const alvos = [];
+  for (let t of toks) {
+    if (/^(\||&|;|\d*>|<|>>)/.test(t)) break;   // operador de shell → acabou o rm
+    if (/^-/.test(t)) continue;                  // outra flag
+    t = t.replace(/^["']|["']$/g, '');           // aspas envolventes
+    if (t) alvos.push(t);
+  }
+  return alvos;
+}
+
+/** o statement é um `rm -rf` cujos alvos são TODOS reconstruíveis? */
+function rmIsento(stmt) {
+  const alvos = alvosRmRf(stmt);
+  if (!alvos || alvos.length === 0) return false;  // sem alvo ≠ isento (`xargs … rm -rf`)
+  return alvos.every((a) => RM_WHITELIST_ALVOS.some((w) => w.test(a)));
+}
 
 /** categorias proibidas — ordem determinística (primeiro match dá a mensagem). */
 const PADROES = [
@@ -140,7 +185,7 @@ const PADROES = [
     // o `$`, fatiar trocaria um falso-positivo por um falso-NEGATIVO. Delta da
     // mudança de regex sozinha, medido no blob: 0.
     regex: /(^|[\s;&|])rm\s+-[rRf]+(\s|$)/i,
-    // Whitelist aplicada AO STATEMENT, não ao comando inteiro (ver RM_WHITELIST).
+    // Isenção por STATEMENT e por ALVO — ver §MULTI-ARG / RM_WHITELIST_ALVOS.
     porStatement: true,
     razao: 'rm -rf pode apagar trabalho não commitado / config / dados de prod',
     sugestao: 'use rm com path específico, ou whitelist: /tmp/, node_modules, vendor, storage/framework/{views,cache}, public/build*',
@@ -224,7 +269,7 @@ export function matchDestructive(cmd) {
   const cmdNorm = normalizeCmd(cmd);
   if (!cmdNorm) return null;
   const stmts = statements(cmd);
-  const isento = (p, alvo) => p.key === 'rm-rf-perigoso' && RM_WHITELIST.some((w) => w.test(alvo));
+  const isento = (p, alvo) => p.key === 'rm-rf-perigoso' && rmIsento(alvo);
   for (const p of PADROES) {
     // a isenção acompanha a escala: por statement ela vale só pro statement que
     // a ganhou; no blob (comportamento legado das demais) vale pro comando todo.
