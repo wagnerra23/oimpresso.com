@@ -55,6 +55,47 @@ export const BASE_INBOX = 'prototipo-ui/cowork/Wagner/cowork-inbox';
 export const pathSeguro = (p) => typeof p === 'string' && p.length > 0
   && !/^[\\/]/.test(p) && !/^[A-Za-z]:/.test(p) && !p.split('/').includes('..');
 
+// ── ENDEREÇOS QUE A ADR 0397 APOSENTOU (#7224, 2026-09-11) ─────────────────────────────
+// Os playbooks chegaram ao repo em 14-16/09 pelo import da árvore da conta (#7256, #7422,
+// #7445) carregando `prova.path` do mundo PRÉ-0397. Medido 2026-09-17 nos 12 índices vivos:
+// 13 paths distintos apontam pra endereços que aquela ADR removeu — e o placar respondia
+// "arquivo ausente" para todos. Isso NÃO é "a thread não entregou": é o instrumento
+// perguntando no endereço errado e colapsando não-medição em ACUSAÇÃO (LC-33, a direção
+// que este mesmo docblock diz combater). O caso puro é `Fiscal/03`, cujo `_saida-03.md`
+// EXISTE — só que em `cowork/Wagner/cowork-inbox/`, não no `design-docs/` que a prova cita.
+//
+// Cada regra abaixo é ESTRUTURAL — sai de um item da decisão, não de palpite. A D6 proíbe
+// "heurística de basename para trocar dono, subdiretório ou âncora", e nenhuma delas o faz:
+// são prefixos que a D1 declara inadmissíveis, com sucessor único fixado pela própria ADR.
+// O que NÃO tem sucessor estrutural não é adivinhado — vira NÃO MEDIDA (abaixo).
+export const ENDERECOS_APOSENTADOS = [
+  // D3 — máquinas de inspeção/importação/comparação vivem em `scripts/design/`.
+  { re: /^prototipo-ui\/([^/]+\.mjs)$/, para: 'scripts/design/$1', regra: 'ADR 0397 D3 (máquinas)' },
+  // D3 — contratos, alvos e mapas máquina-legíveis vivem em `governance/design/`.
+  { re: /^prototipo-ui\/contrato\//, para: 'governance/design/contracts/', regra: 'ADR 0397 D3 (contratos)' },
+  // D2 — a procedência é parte do endereço: material Wagner vive sob `cowork/Wagner/`.
+  //      D1 não admite arquivo solto em `cowork/`, então sobrar ali é sempre pré-0397.
+  { re: /^prototipo-ui\/cowork\/(?!Wagner\/|Felipe\/)/, para: 'prototipo-ui/cowork/Wagner/', regra: 'ADR 0397 D2 (dono no endereço)' },
+  // D5 — `design-docs/` não é cemitério válido; a árvore `cowork-inbox/` migrou inteira.
+  { re: /^prototipo-ui\/design-docs\/cowork-inbox\//, para: 'prototipo-ui/cowork/Wagner/cowork-inbox/', regra: 'ADR 0397 D5 (cowork-inbox)' },
+];
+
+// D5 aposentou `design-docs/` INTEIRO, mas só o `cowork-inbox/` tem sucessor fixado pela ADR.
+// Para o resto não se inventa destino: medido 2026-09-17, `design-docs/contrato-cowork/
+// governance.contract.json` (blob 144d03c5) NÃO é o `cowork-inbox/governance/
+// governance.contract.json` de hoje (blob 156ff30a) — bytes diferentes. Casá-los pelo
+// basename seria exatamente a heurística que a D6 proíbe. Sem sucessor ⇒ NÃO MEDIDA.
+export const APOSENTADO_SEM_SUCESSOR = /^prototipo-ui\/(design-docs|_arquivo)\//;
+
+/** Aplica os endereços da ADR 0397. Devolve `{ path, migrado?, semSucessor? }`. */
+export function migrarEndereco(p) {
+  for (const r of ENDERECOS_APOSENTADOS) {
+    if (r.re.test(p)) return { path: p.replace(r.re, r.para), migrado: { de: p, regra: r.regra } };
+  }
+  if (APOSENTADO_SEM_SUCESSOR.test(p)) return { path: p, semSucessor: true };
+  return { path: p };
+}
+
 export function descobrirIndices(root) {
   const base = join(root, ...BASE_INBOX.split('/'));
   if (!existsSync(base)) return [];
@@ -74,7 +115,10 @@ export function resolverPath(p, variaveis = {}) {
     return String(v).replace(/\/$/, '');
   });
   if (!indefinida && !pathSeguro(out)) throw new NaoMedi(`path resolvido fora do repositório: ${out}`);
-  return { path: out, indefinida };
+  if (indefinida) return { path: out, indefinida };
+  // Endereço pré-0397 é medido no endereço NOVO — e o relato DIZ que migrou, senão a dívida
+  // de dado da fonte (que é do Cowork, não nossa) some de vista e nunca é corrigida.
+  return { ...migrarEndereco(out), indefinida: false };
 }
 
 export function avaliarProva(prova, ctx) {
@@ -86,12 +130,26 @@ export function avaliarProva(prova, ctx) {
     const alts = (prova.paths || []).map((p) => resolverPath(p, ctx.variaveis));
     if (!alts.length) return { ok: false, path: '', motivo: 'um_de sem "paths"' };
     if (alts.some((a) => a.indefinida)) return { ok: false, indefinida: true, path: alts[0].path, motivo: 'variável não decidida' };
+    const migs = alts.filter((a) => a.migrado).map((a) => a.migrado);
     const achado = alts.find((a) => ctx.existe(a.path));
-    return { ok: !!achado, path: achado ? achado.path : alts[0].path, motivo: achado ? '' : `nenhum de ${alts.map((a) => a.path).join(' | ')}` };
+    return { ok: !!achado, path: achado ? achado.path : alts[0].path, migrado: migs[0] || undefined,
+      motivo: achado ? '' : `nenhum de ${alts.map((a) => a.path).join(' | ')}` };
   }
-  const { path, indefinida } = resolverPath(prova.path ?? '', ctx.variaveis);
+  const { path, indefinida, migrado, semSucessor } = resolverPath(prova.path ?? '', ctx.variaveis);
   if (indefinida) return { ok: false, indefinida: true, path, motivo: 'variável não decidida' };
+  // Endereço que a ADR 0397 aposentou SEM sucessor fixado por ela: não dá pra medir e não se
+  // inventa destino. Sai NÃO MEDIDA — nunca "ausente", que acusaria a thread pelo dado podre.
+  if (semSucessor) {
+    return { ok: false, naoMedida: true, path, migrado,
+      motivo: 'endereço aposentado pela ADR 0397 D5 e sem sucessor fixado — corrigir a prova na fonte (Cowork)' };
+  }
   const existe = ctx.existe(path);
+  // `migrado` acompanha o veredito de todos os ramos: a prova é medida no endereço NOVO, e
+  // quem lê o relato precisa saber que a FONTE ainda cita o velho (senão a dívida fica muda).
+  return { ...avaliarNoEndereco(tipo, prova, ctx, path, existe), migrado };
+}
+
+function avaliarNoEndereco(tipo, prova, ctx, path, existe) {
   switch (tipo) {
     case 'arquivo': return { ok: existe, path, motivo: existe ? '' : 'arquivo ausente' };
     case 'ausente': return { ok: !existe, path, motivo: existe ? 'arquivo ainda existe' : '' };
@@ -167,6 +225,7 @@ export function avaliarIndice(indice, ctx) {
       estado: t.bloqueio ? 'bloqueada' : (saida ? 'em curso' : 'pendente'),
       provas, decisPend, depende_threads: t.depende_threads || [],
       naoMedidas: naoMedidas.length, executavel: false,
+      migrados: provas.filter((p) => p.migrado).length,
       // fail-closed: prova não medida impede `feito` — e o motivo aparece em `ausentes`.
       pronto: saida && !falhas.length && !naoMedidas.length,
       ausentes: [...falhas, ...naoMedidas].map((p) => `${p.path} (${p.motivo})`),
@@ -205,6 +264,7 @@ export function avaliarIndice(indice, ctx) {
     modulo: indice.modulo || '(sem módulo)', sha: indice.sha || null,
     total: linhas.length, feito: cont.feito, cont, linhas, motivo,
     naoMedidas: linhas.reduce((n, l) => n + l.naoMedidas, 0),
+    migrados: linhas.reduce((n, l) => n + l.migrados, 0),
     indecidiveis: linhas.filter((l) => l.indecidivel).length,
     // `fecha` do módulo: entregue, bloqueada (decisão declarada) ou indecidível (sem
     // instrumento) — o resto é dívida medida, e é só por ela que o --check morde.
@@ -246,6 +306,7 @@ export function agregarIndices(root, alvos, { thread = null } = {}) {
       m.total = m.linhas.length;
       m.feito = m.linhas.filter((l) => l.estado === 'feito').length;
       m.naoMedidas = m.linhas.reduce((n, l) => n + l.naoMedidas, 0);
+      m.migrados = m.linhas.reduce((n, l) => n + l.migrados, 0);
       m.indecidiveis = m.linhas.filter((l) => l.indecidivel).length;
       m.fecha = m.linhas.every((l) => l.estado === 'feito' || l.estado === 'bloqueada' || l.indecidivel);
       m.falhas = m.linhas.filter((l) => l.estado !== 'feito' && l.estado !== 'bloqueada').map((l) => `${l.id} ${l.titulo} — ${m.motivo(l)}`);
@@ -259,6 +320,7 @@ export function agregarIndices(root, alvos, { thread = null } = {}) {
     modulos, somaFeito, somaTotal,
     cobertura: somaTotal ? Math.round((somaFeito / somaTotal) * 1000) / 10 : 0,
     naoMedidas: modulos.reduce((n, m) => n + m.naoMedidas, 0),
+    migrados: modulos.reduce((n, m) => n + m.migrados, 0),
     proximos: modulos.flatMap((m) => m.linhas.filter((l) => l.executavel).map((l) => ({ modulo: m.modulo, ...l }))),
     indecidiveis: modulos.reduce((n, m) => n + m.indecidiveis, 0),
     // Cada módulo já decide o próprio `fecha` (entregue · bloqueada · indecidível).
@@ -291,6 +353,9 @@ export function emitirMdIndice(r) {
   if (r.naoMedidas) {
     L.push('', `**⚠️ Não medidas:** ${r.naoMedidas} prova(s) de recibo — o avaliador saiu do repo com a ADR 0397. Thread com prova não medida NÃO conta como entregue, e o \`--check\` não morde por ela.`);
   }
+  if (r.migrados) {
+    L.push('', `**📍 Fonte desatualizada:** ${r.migrados} prova(s) citam endereços que a ADR 0397 (#7224) aposentou — foram medidas no endereço NOVO, e por isso o veredito acima é honesto. A correção pertence à FONTE (playbook do Cowork): \`prototipo-ui/cowork/Wagner/**\` é espelho de leitura (ADR 0374) e o import sincroniza com \`/PURGE\`, então editar aqui seria desfeito no próximo pacote.`);
+  }
   L.push('', '<sub>Estado é DERIVADO das provas + `_saida-NN.md` (Lei 2) — ninguém escreve estado. Detalhe completo: `npm run placar:lista`.</sub>');
   return L.join('\n');
 }
@@ -308,6 +373,7 @@ export function emitirTextoIndice(r, { proximo = false } = {}) {
   }
   console.log(`cobertura cumulativa: ${r.somaFeito} de ${r.somaTotal} (${r.cobertura}%)`);
   if (r.naoMedidas) console.log(`nao medidas: ${r.naoMedidas} prova(s) de recibo (avaliador fora do repo — ADR 0397); nao mordem o --check`);
+  if (r.migrados) console.log(`fonte desatualizada: ${r.migrados} prova(s) citam endereco pre-ADR 0397; medidas no endereco NOVO — corrigir na fonte (Cowork), nao no espelho`);
   if (proximo) {
     console.log(r.proximos.length
       ? `PRÓXIMO: ${r.proximos.map((p) => `${p.modulo}/${p.id} ${p.titulo} [${p.dono}]`).join(' · ')}`
