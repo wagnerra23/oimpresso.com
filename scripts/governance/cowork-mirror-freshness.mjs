@@ -82,7 +82,7 @@
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { join, dirname, resolve } from 'node:path';
+import { join, dirname, resolve, relative } from 'node:path';
 import { anchorRelPath } from './anchor-content-check.mjs'; // fonte única: como extrair o path do related_prototype
 import { BUILD_SOURCE_RE } from '../design-sync/bundle-contract.mjs'; // fonte única: que extensão é conteúdo do espelho
 
@@ -1282,6 +1282,32 @@ export function nasceSemMedicao(adicionados, manifest, vivos = null) {
 // O `_ds/` continua gitignored: isto é build de preview, não versionamento.
 //
 // Não é detector — é ação determinística (copiar), então não tem FP a medir.
+// Resolve uma referência relativa (url()/@import/href) contra uma base, devolvendo o path
+// normalizado dentro do espelho ou `null` quando a referência é insegura: traversal que
+// escapa da raiz, caminho absoluto, drive-letter do Windows, NUL ou percent-encoding quebrado.
+//
+// EXTRAÍDA de `previewDsPlan` em 2026-09-17 sem alterar uma linha do corpo — era um closure
+// ali dentro, e o `--css-refs` precisa da MESMA regra. Copiá-la seria a LC-19 (duas cópias
+// da mesma regra divergindo no primeiro conserto, §5 2026-08-02). Os asserts de traversal que
+// já existem no `.test.mjs` (`id inseguro`, `referência insegura no shell`) seguem exercitando
+// este corpo pelo caminho do `previewDsPlan` — mudou o endereço, não o comportamento.
+export function resolveRefSegura(valor, base = '') {
+  let decodificado;
+  try { decodificado = decodeURIComponent(String(valor)); } catch { return null; }
+  const limpo = decodificado.replaceAll('\\', '/').split(/[?#]/)[0].replace(/^\.\//, '');
+  if (!limpo || limpo.includes('\0') || /^(?:[a-z]:|\/)/i.test(limpo)) return null;
+  const partes = `${base ? `${base}/` : ''}${limpo}`.split('/');
+  const normalizadas = [];
+  for (const parte of partes) {
+    if (!parte || parte === '.') continue;
+    if (parte === '..') {
+      if (!normalizadas.length) return null;
+      normalizadas.pop();
+    } else normalizadas.push(parte);
+  }
+  return normalizadas.join('/') || null;
+}
+
 export function previewDsPlan(shellHtml, root = ROOT) {
   if (!shellHtml) return { erro: 'sem shell — não dá pra derivar o id do design system', arquivos: [] };
   // o id sai dos próprios <link>/<script> do shell
@@ -1291,22 +1317,7 @@ export function previewDsPlan(shellHtml, root = ROOT) {
   if (!/^[a-z0-9][a-z0-9._-]*$/i.test(id) || id === '.' || id === '..') {
     return { erro: `id inseguro do design system no shell: "${id}"`, arquivos: [] };
   }
-  const seguro = (valor, base = '') => {
-    let decodificado;
-    try { decodificado = decodeURIComponent(String(valor)); } catch { return null; }
-    const limpo = decodificado.replaceAll('\\', '/').split(/[?#]/)[0].replace(/^\.\//, '');
-    if (!limpo || limpo.includes('\0') || /^(?:[a-z]:|\/)/i.test(limpo)) return null;
-    const partes = `${base ? `${base}/` : ''}${limpo}`.split('/');
-    const normalizadas = [];
-    for (const parte of partes) {
-      if (!parte || parte === '.') continue;
-      if (parte === '..') {
-        if (!normalizadas.length) return null;
-        normalizadas.pop();
-      } else normalizadas.push(parte);
-    }
-    return normalizadas.join('/') || null;
-  };
+  const seguro = resolveRefSegura;
   const refsShell = [...new Set([...String(shellHtml).matchAll(/_ds\/[^/"]+\/([^"?]+)/g)].map((m) => m[1]))];
   const querUsar = refsShell.map((ref) => seguro(ref));
   const inseguraShell = refsShell.find((_, index) => !querUsar[index]);
@@ -1359,6 +1370,67 @@ export function previewDsPlan(shellHtml, root = ROOT) {
       temNoRepo: existsSync(join(origem, f)),
     })),
   };
+}
+
+// ── REFS-CHECK — todo `url()`/`@import` do CSS do espelho aponta pra arquivo que existe? ──
+//
+// POR QUE EXISTE (incidente de 2026-09-17, medido): o `colors_and_type.css` do espelho declarava
+// `@font-face` para os pesos 500/600/700 do IBM Plex Sans apontando pra `assets/fonts/
+// ibm-plex-sans-{500,600,700}.woff2` — arquivos que o #7224 tinha removido do espelho. Resultado:
+// três 404 silenciosos, a tipografia caindo pro fallback do sistema, e NENHUM gate vendo. O
+// `ds-mirror-drift` não podia ver: ele compara VALOR DE TOKEN (`--color-*`) entre git e espelho,
+// nos 4 escopos, e `src: url(...)` não é token — ele deu `0 vs baseline 0` o tempo todo, e estava
+// certo sobre o que mede. Quem via era o `--preview-ds`, cujo `previewDsPlan` já fazia grafo
+// recursivo de `@import` + fonte por `url()` (o comentário da 2ª camada, de 2026-08-14, nomeia
+// exatamente estes "7 `@font-face` com status error"). Só que o `--preview-ds` foi aposentado
+// quando o shell passou a ler `prototipo-ui/design-system/` direto, e a verificação foi junto:
+// a função continua viva e testada, mas nenhum caminho de CLI a exercita mais sobre o espelho.
+//
+// Este eixo é essa verificação SEM a dependência que morreu — não parte do shell nem do `_ds/`,
+// parte dos próprios `.css` do espelho. Reusa `resolveRefSegura` (a mesma regra de traversal do
+// `previewDsPlan`) em vez de reimplementá-la.
+//
+// FP MEDIDO ANTES DE ARMAR (regra "LIGUE A MÁQUINA" #4 · §5 tem 8 lápides de guard sintático que
+// reprovava o legítimo): no espelho de 2026-09-17, 8 arquivos `.css`, 7 refs relativas, **0
+// mortas** — e as 7 são exatamente as `url('assets/fonts/…woff2')` que o incidente atingiu.
+// Zero falso-positivo por construção: o predicado é `existsSync` sobre path resolvido, não
+// heurística de nome. `data:`, `http(s):`, protocol-relative e âncora ficam fora — não são
+// arquivo do espelho.
+//
+// NASCE ADVISORY (ADR 0275): sem `--enforce` sempre sai 0 e só reporta. Promover é flip de [W].
+export function cssRefsMortas(root = ROOT) {
+  const base = join(root, 'prototipo-ui', 'design-system');
+  if (!existsSync(base)) return { medido: false, motivo: `espelho ausente: ${base}`, mortas: [], refs: 0, arquivos: 0 };
+  const cssRel = [];
+  const anda = (dir) => {
+    for (const entrada of readdirSync(dir, { withFileTypes: true })) {
+      const abs = join(dir, entrada.name);
+      if (entrada.isDirectory()) anda(abs);
+      else if (/\.css$/i.test(entrada.name)) cssRel.push(relative(base, abs).replaceAll('\\', '/'));
+    }
+  };
+  anda(base);
+  const mortas = [];
+  let refs = 0;
+  for (const arquivo of cssRel.sort()) {
+    const css = String(readFileSync(join(base, arquivo), 'utf8'));
+    const achadas = [
+      ...[...css.matchAll(/url\(\s*['"]?([^)'"]+?)['"]?\s*\)/g)].map((m) => m[1]),
+      ...[...css.matchAll(/@import\s+(?:url\(\s*)?['"]([^'"]+)['"]\s*\)?/g)].map((m) => m[1]),
+    ];
+    for (const bruta of achadas) {
+      const ref = String(bruta).trim();
+      // Fora do espelho por natureza — não são arquivo daqui, não há o que conferir.
+      if (!ref || /^(data:|https?:|\/\/|#)/i.test(ref)) continue;
+      refs++;
+      const alvo = resolveRefSegura(ref, dirname(arquivo).replaceAll('\\', '/').replace(/^\.$/, ''));
+      // `null` = referência insegura (traversal/absoluto). Ela também não resolve pra arquivo
+      // do espelho, então conta como morta — com o motivo separado, pra não confundir diagnóstico.
+      if (!alvo) { mortas.push({ arquivo, ref, motivo: 'insegura' }); continue; }
+      if (!existsSync(join(base, alvo))) mortas.push({ arquivo, ref, motivo: 'ausente', alvo });
+    }
+  }
+  return { medido: true, mortas, refs, arquivos: cssRel.length };
 }
 
 // Materializa como TROCA DE DIRETÓRIO, não como sequência de writes no cache vivo.
@@ -2061,6 +2133,35 @@ function main() {
     if (r.mexidoDepois.length) console.log('\n  Conteúdo do espelho mudou sem prova de que bate com o vivo. Rode o ciclo e re-verifique,\n  ou reverta o commit se foi remendo à mão (o espelho é build-only — não tem autor local legítimo).');
     if (argv.includes('--check') && r.mexidoDepois.length) process.exit(1);
     console.log('');
+    return;
+  }
+
+  // --css-refs: todo `url()`/`@import` do CSS do espelho resolve pra arquivo que existe?
+  // Herda o papel que morreu junto com o `--preview-ds` (ver docblock de `cssRefsMortas`).
+  // Advisory por default; `--enforce` sai 1 no drift real e 2 quando NÃO CONSEGUIU MEDIR —
+  // não-medição nunca sai com o código de defeito (§5 2026-07-29).
+  if (argv.includes('--css-refs')) {
+    const r = cssRefsMortas();
+    const enforce = argv.includes('--enforce');
+    if (!r.medido) {
+      console.error(`✗ REFS-CHECK NÃO MEDIU — ${r.motivo}`);
+      process.exit(enforce ? 2 : 0);
+    }
+    console.log(`\n  REFS-CHECK — referências de arquivo nos CSS do espelho\n`);
+    console.log(`  ${r.arquivos} arquivo(s) .css · ${r.refs} referência(s) relativa(s) conferida(s)`);
+    console.log(`  (data:, http(s):, protocol-relative e âncora ficam fora — não são arquivo do espelho)\n`);
+    for (const m of r.mortas) {
+      const detalhe = m.motivo === 'insegura' ? 'referência INSEGURA (traversal/absoluto)' : `não existe: ${m.alvo}`;
+      console.log(`  ✗ ${m.arquivo}  ->  ${m.ref}   ${detalhe}`);
+    }
+    if (!r.mortas.length) {
+      console.log('  ✓ nenhuma referência morta.\n');
+      return;
+    }
+    console.log(`\n  ${r.mortas.length} referência(s) MORTA(S) — o browser dá 404 silencioso e cai no fallback.`);
+    console.log('  Conserto: traga o arquivo da origem, ou reaponte o CSS. Não some o 404: ele não aparece em teste nenhum.\n');
+    if (enforce) process.exit(1);
+    console.log('  (advisory: exit 0 — promover a bloqueante é decisão [W])');
     return;
   }
 
