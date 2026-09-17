@@ -6,10 +6,23 @@ path: (repo inteiro — foco em resources/css, resources/js, memory/, prototipo-
 
 ## Last sync
 
-date: 2026-09-16T22:50:00Z
-commit: 5c55e4f96f1 (sha real do merge do PR #7456 — nao e tree hash)
+date: 2026-09-17
+commit: (nao registrado — o PR #7463 acabou de subir CI; sha do merge desconhecido aqui)
 
 ### Updated in this project
+
+- **`github.md` do repo alinhado ao vivo — PR #7463, 28 insercoes / 0 delecoes.** O arquivo no repo
+  tinha a errata do lado de la mas nao a secao deste lado; vivo e espelho divergiam. Com o #7462 ja
+  mergeado nao havia mais risco de conflito, e o hash do arquivo commitado bate exatamente com o do
+  vivo: `c8fc2d89946e8697`. Saiu de uma branch nova criada de `origin/main` — a anterior ficou
+  `atras=2 frente=1` porque o #7462 foi merge squash, logo o commit local nao e o do `main`.
+- **Correcao de medicao (sonda do baseline).** A segunda sonda usou `.files.length` e devolveu
+  `undefined` — `files` e objeto, nao array. Remedido: **251 entradas**, que confirma o numero dito
+  antes; a sonda, nao o numero, estava errada.
+- **`ibm-plex-sans-{500,600,700}.woff2` revertidos no PR #7462**, mantendo os 8 tokens. Ver ERRATA
+  abaixo — os tres pesos nao existem de verdade em nenhum dos lados.
+
+### Sync anterior · 2026-09-16T22:50:00Z · commit 5c55e4f96f1 (merge do PR #7456)
 
 - **`colors_and_type.css` — push git->espelho dos 8 tokens que estavam divergentes.** O git avancou 2x
   (v1.2.0 em 02/09, v1.3.0 em 08/09) e o espelho ficou no valor pre-conserto; o `ds-mirror-drift`
@@ -50,11 +63,15 @@ Detalhe completo, com as medições: [`CODE_NOTES-2026-09-17-import-recusado-r4.
   deixa o espelho fiel (251/251) **e** reprova o gate — as duas coisas não fecham juntas. A
   desduplicação é daqui: uma cópia única de `support.js`/`ds-base.js` num lugar comum resolve, e
   os `.dc.html` passam a apontar pra ela.
+  - **Status 2026-09-17:** confirmado como trabalho **deste lado** (Cowork); o pedido esta neste
+    projeto com as medicoes. Enquanto nao for feito, **todo handoff novo do DS bate na mesma R4**.
 - **Sobre os pesos 500/600/700** — a ERRATA acima (do lado do repo) e esta medição (do lado daqui)
   são a mesma história vista das duas pontas: no repo os 3 `.woff2` **não existem**; aqui eles
   existem mas são **cópias byte-idênticas do 400** (mesmo sha256, 45.712 B). Some os dois e o DS
   não tem esses pesos em lugar nenhum. O conserto de verdade é baixar os `.woff2` reais dos três
   pesos; enquanto isso não acontece, apontar os três ao 400 é feio e honesto.
+  - **Status 2026-09-17:** os `.woff2` reais dos três pesos também são trabalho deste lado, e
+    seguem pendentes. O repo já foi revertido (#7462) ao estado honesto.
 - **6 ponteiros podres**: a documentação daqui descreve a árvore do repo anterior ao #7224
   (`prototipo-ui/COWORK_NOTES.md`, `prototipo-ui/ds-guard.mjs`, `prototipo-ui/integrity-check.mjs`,
   `prototipo-ui/cowork/venda-v3/…`, `prototipo-ui/LICOES_F3_…`, `prototipo-ui/cowork/ds-v6`) —
