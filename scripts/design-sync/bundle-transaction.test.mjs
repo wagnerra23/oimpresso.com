@@ -2,7 +2,7 @@
 // @ts-check
 /** Bite/release do transporte v2: sequência, delta, SHA, staging, rollback e plano modular. */
 import {
-  existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync,
+  existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync, rmSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -568,5 +568,47 @@ console.log('\n=== --check-lifecycle: a catraca do escopo novo morde pelo CLI de
   check('FP LC-20: branch editar o alvo NÃO é base envelhecida (critério é main à frente, não "difere")', r3.atrasados.length === 0, JSON.stringify(r3));
 }
 
-console.log(failures ? `\n✗ ${failures} falha(s)` : '\n✓ bundle v2: delta + staging + rollback + módulos + catraca lifecycle provados');
+// ── DELETE de _ds/ NÃO atravessa pro Design System (incidente 2026-09-17) ─────────
+// O pacote de telas 25 removeu o cache `_ds/` do projeto dele — legítimo DAQUELE lado — e a
+// transação traduziu isso em apagar 10 arquivos do DS canônico aqui, incluindo
+// `colors_and_type.css` e as 4 `ibm-plex-sans-*.woff2`. O passo [4] do receber-handoff já
+// protegia a ESCRITA por dono; faltava o DELETE. Provado nos dois sentidos abaixo.
+{
+  const root = sandbox();
+  const antes = sourceSnapshot('v1');
+  const m1 = manifestFor(antes);
+  await applyBundleTransaction({ root, parts: partsFor(m1, antes) });
+  const alvoDs = join(root, 'prototipo-ui/design-system/colors_and_type.css');
+  const alvoTela = join(root, 'prototipo-ui/cowork/Wagner/removido.js');
+  check('SETUP: o _ds/ pousou no runtime e a tela no espelho',
+    existsSync(alvoDs) && existsSync(alvoTela));
+
+  // delta que apaga OS DOIS: um path `preview-cache` e um path de tela comum. O shell perde a ref
+  // ao `_ds/` junto — é o caso REAL do pacote 25, onde o host passou a resolver a base em runtime
+  // (`__OI_DS_BASE__`); sem isso o grafo acusaria `missing` e a transação recusaria antes do ponto
+  // que este teste quer exercer.
+  const depois = new Map(antes);
+  depois.set('oimpresso.com.html', Buffer.from([
+    '<link rel="stylesheet" href="styles.css">',
+    '<script src="financeiro-page.jsx"></script>',
+    '<script src="superadmin-page.jsx"></script>',
+    '<script src="officeimpresso-page.jsx"></script>',
+  ].join('\n')));
+  depois.delete('_ds/ds-live/colors_and_type.css');
+  depois.delete('removido.js');
+  const m2 = manifestFor(depois, m1);
+  check('SETUP: o manifesto de fato pede as 2 remoções',
+    m2.changes.deleted.includes('_ds/ds-live/colors_and_type.css') && m2.changes.deleted.includes('removido.js'),
+    JSON.stringify(m2.changes.deleted));
+  await applyBundleTransaction({ root, parts: partsFor(m2, depois) });
+
+  check('MORDE: remoção de _ds/ é IGNORADA — o Design System sobrevive ao export de telas',
+    existsSync(alvoDs));
+  // CONTROLE NEGATIVO: sem ele, uma transação que parasse de apagar QUALQUER coisa passaria.
+  check('CONTROLE: remoção de path de TELA continua efetivada (não virou "não apaga nada")',
+    !existsSync(alvoTela));
+  rmSync(root, { recursive: true, force: true });
+}
+
+console.log(failures ? `\n✗ ${failures} falha(s)` : '\n✓ bundle v2: delta + staging + rollback + módulos + catraca lifecycle + dono do _ds no delete provados');
 process.exit(failures ? 1 : 0);

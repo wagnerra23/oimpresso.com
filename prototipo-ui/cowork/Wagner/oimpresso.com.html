@@ -10,11 +10,15 @@
 <!-- DS VIVO: os tokens de IDENTIDADE (neutros, radius, status, tipo) vêm DIRETO do design system bound.
      Linkado, NÃO copiado → nunca mais apodrece com o tempo ([W] 2026-07-10). O <html class="cockpit">
      acima faz o app inteiro herdar a paleta operacional do DS (.cockpit). -->
-<link rel="stylesheet" href="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css"/>
+<!-- Base do DS resolvida em RUNTIME, não por caminho fixo: aqui os arquivos moram em `_ds/…`; no
+     espelho do git o applier roteia `_ds/**` → `prototipo-ui/design-system/` (aplicar-payload.mjs:180,
+     e o caso 9 do teste afirma que `_ds/` NÃO pousa sob o dono) e NADA lá reescreve href — logo a
+     indireção é daqui. document.write mantém a ORDEM de cascata e o `defer` do parser. -->
+<script>window.__OI_DS_BASE__=location.pathname.indexOf('/prototipo-ui/cowork/')>-1?'../../design-system/':'_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/';document.write('<link rel="stylesheet" href="'+window.__OI_DS_BASE__+'colors_and_type.css"/>')</script>
 <link rel="stylesheet" href="styles.css?v=ph25s"/>
 <!-- DS VIVO · camada de DOMÍNIO (origins/stage/sla/canal/kpi/kind/vip) — companion do git (#4097),
      canon verbatim. Carrega DEPOIS do ds-v6 pra vencer os literais antigos; aposenta o ds-v6. -->
-<link rel="stylesheet" href="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/cockpit_domains.css"/>
+<script>document.write('<link rel="stylesheet" href="'+window.__OI_DS_BASE__+'cockpit_domains.css"/>')</script>
 <!-- A/B de tokens (tweak "Tokens"): espelho de hoje × os 14 valores que o git já tem (v1.2.0+v1.3.0).
      Inerte com data-ds-tokens="atual"; não é paleta nova, é o CHANGELOG copiado. -->
 <link rel="stylesheet" href="ds-tokens-git.css?v=ab1"/>
@@ -124,7 +128,14 @@
 <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.js"></script>
 <!-- DS v6 componentes compilados (bundle) — window.OfficeImpressoPontoWR2DesignSystem_019dd0.
      Plain JS após React UMD; inline-style + tokens .cockpit (zero CSS global novo). -->
-<script defer src="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js"></script>
+<script>document.write('<script defer src="'+window.__OI_DS_BASE__+'_ds_bundle.js"><\/script>')</script>
+<!-- Fotos de perfil do Inbox ([W]: "puxa a foto mesmo"): DECLARADAS aqui de propósito. Citadas só
+     dentro de string no inbox-page.jsx, elas ficavam fora do fechamento do `entry` e só desciam por
+     --full-tree, como binário não-roteável. `preload as=image` é href no host ⇒ entra no fechamento. -->
+<link rel="preload" as="image" href="inbox-photo-c1.png"/>
+<link rel="preload" as="image" href="inbox-photo-c2.png"/>
+<link rel="preload" as="image" href="inbox-photo-c3.png"/>
+<link rel="preload" as="image" href="inbox-photo-c4.png"/>
 </head>
 <body>
 <div id="app"></div>

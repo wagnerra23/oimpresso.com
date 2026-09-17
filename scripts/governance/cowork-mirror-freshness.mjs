@@ -1032,6 +1032,15 @@ export function parseShellDeps(html) {
   for (const m of String(html).matchAll(/(?:src|href)="([^"]+)"/g)) {
     let p = m[1].split(/[?#]/)[0].trim();
     if (!p || /^(https?:)?\/\//i.test(p) || p.startsWith('data:')) continue;
+    // REF MONTADA EM RUNTIME não é path (medido 2026-09-17, pacote 25). O host passou a fazer
+    // `document.write('<link href="'+window.__OI_DS_BASE__+'colors_and_type.css"/>')`, e o regex
+    // acima captura o MIOLO da expressão JS — `'+window.__OI_DS_BASE__+'colors_and_type.css` —
+    // como se fosse arquivo. O `ABSENT-LOCAL` então acusava 3 deps FALTANDO que não existem como
+    // path nenhum: gate vermelho permanente por FP.
+    // Aspas, crase, `+` e `${` não ocorrem em path do espelho. FP medido no shell real: 274 deps
+    // → 3 descartadas (as 3 expressões) e 271 mantidas, das quais 271 EXISTEM no espelho — zero
+    // falso-negativo. Quem decide a base em runtime é o browser, e nenhuma sonda estática sabe.
+    if (/['"`+]/.test(p) || p.includes('${')) continue;
     if (!/\.(jsx|css|js)$/i.test(p)) continue;
     p = p.replace(/^\.\//, '').split('\\').join('/');
     if (!seen.has(p)) { seen.add(p); out.push(p); }

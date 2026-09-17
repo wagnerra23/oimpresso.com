@@ -361,6 +361,27 @@ function writeAndVerifyTarget({ root, staged, manifest, buffers, previous }) {
     const targetPaths = new Set(manifest.files.map((file) => file.path));
     for (const file of previous.files) if (!targetPaths.has(file.path)) effectiveDeleted.add(file.path);
   }
+  // ⛔ DELETE de `preview-cache` NÃO atravessa pro Design System (incidente 2026-09-17).
+  //
+  // `targetForLogical` mapeia `_ds/<id>/x` → `prototipo-ui/design-system/x` (dsRuntimeRelPath).
+  // Isso está certo pra ESCRITA de conteúdo, e o `receber-handoff` passo [4] já garante que o
+  // repo VENCE ali (o `_ds/` do zip é sobrescrito pelo autoritativo do espelho, dono = projeto
+  // DS #7096). Mas o DELETE não tinha essa proteção: o pacote de telas 25 removeu o cache `_ds/`
+  // do projeto dele — decisão legítima DAQUELE lado — e a transação traduziu isso em apagar 10
+  // arquivos do DS canônico aqui, incluindo `colors_and_type.css` (a fonte dos tokens) e as 4
+  // `ibm-plex-sans-{400,500,600,700}.woff2` que custaram três pacotes pra chegar distintas.
+  //
+  // A regra é a mesma dos dois lados e vale por DONO, não por direção: quem manda no
+  // `design-system/` é o projeto DS. Um export de TELAS nunca o escreve nem o apaga.
+  const deletesRecusados = [];
+  for (const path of [...effectiveDeleted]) {
+    if (roleForPath(path) !== 'preview-cache') continue;
+    effectiveDeleted.delete(path);
+    deletesRecusados.push(path);
+  }
+  if (deletesRecusados.length) {
+    console.log(`  ⬜ ${deletesRecusados.length} remoção(ões) de _ds/ IGNORADA(S) — dono é o projeto Design System (#7096), não este export.`);
+  }
   for (const path of effectiveDeleted) {
     const target = targetForLogical(path, staged);
     const abs = resolveInside(target.root, target.rel);
