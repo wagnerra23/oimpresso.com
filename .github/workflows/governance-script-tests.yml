@@ -194,6 +194,19 @@ jobs:
       - name: uc-lane-coverage · UC NOVO citando teste que lane nenhuma roda (no-new-lie)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/qa/uc-lane-coverage.mjs --check --baseline governance/uc-lane-baseline.json
+      # -- a11y-alvo (PR-A4 do plano COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO) -----------
+      # A MEDICAO nao roda aqui, e e de proposito: `--medir` abre browser e a ADR 0290
+      # recusa render de prototipo em CI (o guard e o proprio `renderPermitido()` do
+      # render-proto-baseline, que le CI/GITHUB_ACTIONS). O que roda e a parte HERMETICA:
+      # a logica do ratchet e o corte GATE x REPORT, que sao puros. Sem isto, um refactor
+      # poderia inverter o ratchet (deixar SUBIR) e nenhuma lane notaria.
+      #
+      # O bite-test com browser (`npm run a11y:alvo:selftest`, 16 checks) roda LOCAL — ele
+      # prova a mordida de ponta a ponta: +1 violacao vermelho, -1 verde, DOM vazio = NAO
+      # MEDI, e um axe cego ou insano vira NAO MEDI em vez de "0 violacoes".
+      - name: a11y-alvo selftest puro (ratchet so-desce + corte GATE x REPORT)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/qa/a11y-alvo.mjs --selftest
       - name: Grupo de memoria por modulo (case-trap Pages/kb x requisitos/KB + token no nome do arquivo)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/module-group-resolve.test.mjs
