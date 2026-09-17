@@ -391,6 +391,8 @@ const MIME = {
   '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp',
   '.woff': 'font/woff', '.woff2': 'font/woff2', '.ico': 'image/x-icon',
 };
+// exportado desde 2026-09-17: o `secao-check` (PR-A3) precisa servir o MESMO espelho, com a
+// MESMA rota `/_ds/`. Reimplementar lá seria LC-19 — e a regra de caminho tem dono único.
 export function servirEstatico(root, porta) {
   const srv = createServer((req, res) => {
     try {
