@@ -2183,10 +2183,21 @@ function main() {
     } else {
       const refsDs = parseShellDeps(htmlAtual).filter((p) => p.startsWith('_ds/'));
       const refsDiretas = parseShellDeps(htmlAtual).filter((p) => p.startsWith('design-system/'));
+      // ESTÁTICO × TEXTUAL: `parseShellDeps` só enxerga `href=`/`src=` literais. Um shell que monta
+      // a URL em runtime (`document.write('<link href="'+BASE+'x.css">')`) devolve 0 nas duas
+      // contagens — e 0/0 lido como "não há ref ao DS" é o instrumento MUDO, não o shell limpo.
+      // Medido 2026-09-17 no pacote 24, que passou a resolver a base por ambiente: estático 0/0,
+      // textual 4/2. Então reporto os DOIS e digo qual é qual.
+      const txtDs = (htmlAtual.match(/_ds\//g) || []).length;
+      const txtDiretas = (htmlAtual.match(/design-system\//g) || []).length;
       console.log(`  medido agora em ${relative(ROOT, shellPath) || shellPath}:`);
-      console.log(`    refs a _ds/           ${refsDs.length}`);
-      console.log(`    refs a design-system/ ${refsDiretas.length}`);
+      console.log(`    refs a _ds/           ${refsDs.length}  (estáticas)   · ${txtDs} ocorrência(s) no texto`);
+      console.log(`    refs a design-system/ ${refsDiretas.length}  (estáticas)   · ${txtDiretas} ocorrência(s) no texto`);
       for (const r of refsDs) console.log(`      · ${r}`);
+      if (!refsDs.length && !refsDiretas.length && (txtDs || txtDiretas)) {
+        console.log(`\n  ⬜ Nenhuma ref ESTÁTICA, mas o texto cita o DS — o shell resolve a base em runtime.`);
+        console.log(`     Esta sonda lê href/src literais; ela NÃO decide qual base o browser usa.`);
+      }
       if (refsDs.length) {
         console.log(`\n  ⬜ Enquanto houver ref a _ds/, o preview LOCAL do espelho não carrega o DS:`);
         console.log(`     esses paths são ignorados por design (.gitignore) e não existem aqui.`);
