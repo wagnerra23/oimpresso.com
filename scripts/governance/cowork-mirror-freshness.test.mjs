@@ -44,6 +44,8 @@ import {
   absentLocal,
   previewDsPlan,
   materializePreviewDs,
+  cssRefsMortas,
+  resolveRefSegura,
   nasceSemMedicao,
   refsParaDeletado,
   orfaosNaAdicao,
@@ -1519,5 +1521,81 @@ if (false) {
     rSync.find((r) => r.cowork === 'orfao.jsx').veredito === 'UNCHECKED');
 }
 
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local que MORDE + refs-da-poda + fluxo e2e)');
+// ── REFS-CHECK — o eixo que herdou o papel morto junto com o `--preview-ds` ──────────────
+// O incidente de 2026-09-17: `@font-face` apontando pros pesos 500/600/700 que o #7224 tinha
+// removido do espelho ⇒ três 404 silenciosos, tipografia no fallback, zero gate vendo.
+// Estes asserts existem pra que ele NÃO volte a passar despercebido.
+{
+  const raiz = mkdtempSync(join(tmpdir(), 'refs-check-'));
+  const ds = join(raiz, 'prototipo-ui', 'design-system');
+  const fontes = join(ds, 'assets', 'fonts');
+  mkdirSync(fontes, { recursive: true });
+  writeFileSync(join(fontes, 'existe.woff2'), 'bytes');
+
+  // BOM: aponta pro arquivo que existe, e as refs que NÃO são arquivo do espelho ficam fora.
+  writeFileSync(join(ds, 'bom.css'), [
+    "@font-face { src: url('assets/fonts/existe.woff2') format('woff2'); }",
+    "/* controle negativo — nenhuma destas é arquivo do espelho: */",
+    "a { background: url(data:image/png;base64,AAA); }",
+    "b { background: url('https://cdn.exemplo/x.png'); }",
+    "c { background: url(//cdn.exemplo/y.png); }",
+    "d { fill: url(#gradiente); }",
+  ].join('\n'));
+  const bom = cssRefsMortas(raiz);
+  check('refs-check 1/8: fixture BOA não acusa nada', bom.medido && bom.mortas.length === 0, JSON.stringify(bom.mortas));
+  check('refs-check 2/8: CONTROLE — data:/http(s):/protocol-relative/âncora não entram na contagem',
+    bom.refs === 1, `contou ${bom.refs}, esperava 1`);
+
+  // RUIM: exatamente o incidente — o CSS declara a fonte, o arquivo não está no espelho.
+  writeFileSync(join(ds, 'ruim.css'), "@font-face { font-weight: 500; src: url('assets/fonts/sumiu-no-refactor.woff2') format('woff2'); }");
+  const ruim = cssRefsMortas(raiz);
+  const ausente = ruim.mortas.find((m) => m.ref.includes('sumiu-no-refactor'));
+  check('refs-check 3/8: BITE — CSS aponta pra fonte que não existe ⇒ acusa', !!ausente);
+  check('refs-check 4/8: e diz o motivo certo (ausente, não "insegura")', ausente?.motivo === 'ausente');
+
+  // Traversal não vira leitura fora do espelho — cai como insegura, com motivo próprio.
+  writeFileSync(join(ds, 'traversal.css'), "a { background: url('../../../../etc/passwd'); }");
+  const trav = cssRefsMortas(raiz);
+  check('refs-check 5/8: traversal é recusado e SEPARADO de "ausente"',
+    trav.mortas.some((m) => m.motivo === 'insegura'));
+
+  // `@import` conta como referência (foi a 8ª ref do espelho real — o url() sozinho perdia).
+  writeFileSync(join(ds, 'imp.css'), '@import "./nao-existe.css";');
+  check('refs-check 6/8: @import também é conferido, não só url()',
+    cssRefsMortas(raiz).mortas.some((m) => m.ref === './nao-existe.css'));
+
+  // BITE DO CHOKEPOINT: o CLI de fora, não a função (§5 2026-07-30 — assert em satélite
+  // fica verde enquanto o pipeline regride).
+  //
+  // ⚠️ ÁRVORE PRÓPRIA, e o motivo é uma lição paga: a 1ª versão deste assert rodava o CLI na
+  // `raiz` acima, que já tinha o `traversal.css`. Provado por mutação (desligar o `existsSync`
+  // de `cssRefsMortas`): os asserts 3/4/6 caíam e ESTE ficava VERDE — porque a árvore ainda
+  // continha uma ref `insegura`, então `--enforce` saía 1 de qualquer jeito. Passava pela
+  // razão errada. §5 2026-09-05: o caso tem que ser discriminante por construção, senão o
+  // valor esperado coincide com o que a mutação produz. Aqui a árvore tem UM defeito só —
+  // a fonte ausente — e um controle positivo ao lado.
+  const script = join(dirname(fileURLToPath(import.meta.url)), 'cowork-mirror-freshness.mjs');
+  const rodaCli = (cwd) => {
+    try { execFileSync(process.execPath, [script, '--css-refs', '--enforce'], { cwd, stdio: 'pipe' }); return 0; }
+    catch (e) { return e.status; }
+  };
+
+  const soAusente = mkdtempSync(join(tmpdir(), 'refs-bite-'));
+  const dsA = join(soAusente, 'prototipo-ui', 'design-system');
+  mkdirSync(join(dsA, 'assets', 'fonts'), { recursive: true });
+  writeFileSync(join(dsA, 'a.css'), "@font-face { src: url('assets/fonts/sumiu.woff2'); }");
+  check('refs-check 7/8: BITE do CLI — árvore com SÓ a fonte ausente ⇒ --enforce sai 1',
+    rodaCli(soAusente) === 1, `rc=${rodaCli(soAusente)}`);
+
+  // CONTROLE POSITIVO: mesma árvore, agora com o arquivo no lugar ⇒ o CLI tem que liberar.
+  // Sem isto, um CLI que saísse 1 SEMPRE passaria no assert de cima.
+  writeFileSync(join(dsA, 'assets', 'fonts', 'sumiu.woff2'), 'bytes');
+  check('refs-check 8/8: CONTROLE — com o arquivo presente, o mesmo CLI sai 0',
+    rodaCli(soAusente) === 0, `rc=${rodaCli(soAusente)}`);
+
+  rmSync(soAusente, { recursive: true, force: true });
+  rmSync(raiz, { recursive: true, force: true });
+}
+
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local que MORDE + refs-da-poda + refs-check que MORDE + fluxo e2e)');
 process.exit(fails ? 1 : 0);

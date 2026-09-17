@@ -517,6 +517,20 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/governance/cowork-mirror-freshness.mjs --absent-local
+      # Irmão do absent-local, uma indireção abaixo: o `absent-local` lê o que o SHELL declara
+      # (link/script); este lê o que os CSS do espelho pedem POR DENTRO (`url()` e `@import`).
+      # O incidente de 2026-09-17 morava exatamente nesse vão — `@font-face` dos pesos 500/600/700
+      # apontando pra .woff2 que o #7224 removera: três 404 silenciosos, tipografia no fallback,
+      # e nenhum gate vendo. O `ds-mirror-drift` não podia ver (compara valor de token, e deu
+      # 0/0 o tempo todo, corretamente); quem via era o `--preview-ds`, aposentado quando o shell
+      # passou a ler o espelho direto — a função sobreviveu, o caminho de CLI não.
+      # Estado ao ligar: 8 CSS, 8 refs relativas, 0 mortas. FP 0 por construção (existsSync sobre
+      # path resolvido, não heurística de nome). Bite provado por mutação: desligar o existsSync
+      # derruba 4 asserts, incluindo o do CLI. Advisory de nascença (ADR 0275).
+      - name: cowork css-refs (todo url()/@import do CSS do espelho existe? · advisory)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/cowork-mirror-freshness.mjs --css-refs
       - name: importar-bundle selftest (import atômico · verifica antes de trocar)
         if: always()
         continue-on-error: true
