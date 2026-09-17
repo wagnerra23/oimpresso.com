@@ -1755,6 +1755,16 @@ function selftest() {
   // nao conforme o caso. Renomear o ledger versionado do repo deixaria a arvore
   // suja se o processo morresse entre o rename e o restore.
   //
+  // PRE-CONDICAO DO METODO, e nao e opcional: os modulos copiados so podem importar
+  // BUILTINS. Copiar pra tmpdir muda o CONTEXTO DE RESOLUCAO DE MODULO junto com o
+  // ROOT -- este worktree nao tem `node_modules` (o Node sobe ate o repo principal),
+  // e de FORA da arvore essa subida nao acontece. Medido: builtin-only em tmpdir roda;
+  // `import '@playwright/test'` la da ERR_MODULE_NOT_FOUND enquanto o MESMO import
+  // roda de dentro da arvore -- a causa e o local, nao o pacote faltando. Quem copiar
+  // este padrao pra um modulo com qualquer import de PACOTE cai, e cai com mensagem
+  // que parece defeito do teste. Conferido aqui: o style-fingerprint so importa node:*.
+  // (limite trazido pela sessao do PR-A2, que bateu nele de frente no mesmo dia.)
+  //
   // ORDEM: controle POSITIVO primeiro. Assertar so "o caminho ruim falha" e
   // compativel com o teste nunca ter rodado.
   const sandbox = mkdtempSync(join(tmpdir(), 'dd-frescor-'));
