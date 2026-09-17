@@ -51,7 +51,7 @@ import { readFileSync, existsSync, mkdtempSync, mkdirSync, writeFileSync, readdi
 import { join, dirname, relative, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { extrairZip } from './zip-reader.mjs';
 import { roleForPath, validateManifest } from './bundle-contract.mjs';
@@ -558,7 +558,21 @@ function principal() {
   const a = roda('scripts/design-sync/aplicar-payload.mjs', [...partes, '--require-complete-shell']);
   if (!a.ok) { console.error(a.out); morre('o aplicador falhou na promocao (transacao atomica: nada mudou)'); }
   console.log(`\n  [7] APLICAR      PROMOVIDO ATOMICAMENTE`);
-  console.log(`${a.out.split('\n').filter((l) => /id:|transporte:/.test(l)).join('\n')}\n`);
+  console.log(`${a.out.split('\n').filter((l) => /id:|transporte:/.test(l)).join('\n')}`);
+
+  // 8. REGISTRAR A RODADA — sem isto o `--sla` segue lendo a ÚLTIMA rodada de `--compare`, que
+  //    pode ser de semanas atrás, e reporta um denominador CONGELADO. Medido 2026-09-17: o
+  //    espelho estava provado 701/701 pelo bundle e o `--sla` dizia "271 sync · 2 unchecked ·
+  //    mediu 271/273" — números de 11/09, quando o manifesto tinha 273 paths. O `--compare-bundle
+  //    --ledger` existia e ninguém o invocava; máquina que existe e ninguém chama é bug, não
+  //    neutralidade (CLAUDE.md §LIGUE A MÁQUINA, item 2). A entrada é datada com o `generatedAt`
+  //    do bundle, nunca com a hora da leitura — quem garante isso é o próprio `--ledger`, que
+  //    RECUSA bundle sem `generatedAt` em vez de inventar frescor.
+  const reg = roda('scripts/governance/cowork-mirror-freshness.mjs', ['--compare-bundle', '--ledger']);
+  const linha = (reg.out.match(/✓ sync:.*/) || [''])[0].trim();
+  console.log(`\n  [8] REGISTRAR    ${reg.ok ? linha || 'rodada registrada' : 'FALHOU - o --sla vai seguir lendo a rodada anterior'}`);
+  if (!reg.ok) console.log(`                   ${reg.out.split('\n').filter(Boolean).slice(-1)[0] || ''}`);
+  else console.log(`                   ledger de frescor atualizado - commite scripts/governance/.cowork-freshness-ledger.json\n`);
 }
 
 // Só executa quando chamado DIRETO: o `.test.mjs` importa `acharRaiz`/`auditarPacote`/
@@ -566,8 +580,18 @@ function principal() {
 const chamadoDireto = process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('receber-handoff.mjs');
 if (chamadoDireto) {
   if (tem('--selftest')) {
-    const { selftest } = await import('./receber-handoff.test.mjs');
-    await selftest();
+    // SUBPROCESSO, não `await import()`. O ciclo é real: este módulo importava o `.test.mjs`, que
+    // importa `acharRaiz`/`classificar`/… daqui — e com TOP-LEVEL await isso é DEADLOCK ESM: o
+    // teste espera este módulo terminar de avaliar, este módulo espera o teste carregar. O Node
+    // não trava, desiste: "Detected unsettled top-level await", exit 13, ZERO asserts rodados.
+    // Medido 2026-09-17 no checkout principal, em outra branch e sem nenhuma mudança: mesmo 13 —
+    // ou seja, o `--selftest` anunciado no docblock nunca rodou por esta porta (LC-15: mecanismo
+    // anuncia saída que não implementa). Invocado direto (`node receber-handoff.test.mjs`) o
+    // ciclo não existe, e por isso a suíte sempre esteve verde — o defeito era só desta entrada.
+    const r = spawnSync(process.execPath, [join(AQUI, 'receber-handoff.test.mjs')], { stdio: 'inherit' });
+    // Sem `status` houve falha de EXECUÇÃO (spawn não saiu). Sair 1 nesse caso é o certo: exit 0
+    // por não-execução é o `0 failed` de suíte que não rodou (LC-13) — o que este fix veio matar.
+    process.exit(typeof r.status === 'number' ? r.status : 1);
   } else {
     principal();
   }

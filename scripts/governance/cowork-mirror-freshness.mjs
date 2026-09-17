@@ -2168,7 +2168,32 @@ function main() {
   // --preview-ds: repõe o `_ds/` do espelho a partir do mirror-snapshot versionado.
   // Sem isso o protótipo abre COM os tokens de status vazios (medido 2026-08-13).
   if (argv.includes('--preview-ds')) {
-    console.log('PREVIEW-DS aposentado: o shell lê prototipo-ui/design-system/ diretamente; nenhum cache _ds/ será criado.');
+    // APOSENTADO em 2026-09-11 (#7224) — fato datado, não afirmação em presente.
+    //
+    // A redação anterior dizia "o shell lê prototipo-ui/design-system/ diretamente". Isso era a
+    // INTENÇÃO do #7224, não o estado: medido 2026-09-17, o shell do espelho ainda referencia
+    // `_ds/<id>/…` nos 3 arquivos do DS. Artefato não declara comportamento em tempo presente —
+    // ele reporta o NÚMERO e deixa a leitura com quem mede (LC-10). Então aqui eu conto as refs
+    // em vez de afirmar o que o shell faz.
+    const shellPath = (() => { const i = argv.indexOf('--shell'); return i !== -1 ? argv[i + 1] : defaultShellPath(); })();
+    const htmlAtual = shellPath && existsSync(shellPath) ? readFileSync(shellPath, 'utf8') : null;
+    console.log('\n  PREVIEW-DS aposentado em 2026-09-11 (#7224): nenhum cache _ds/ é criado por aqui.\n');
+    if (htmlAtual === null) {
+      console.log(`  ⬜ shell não encontrado (${shellPath || 'sem path'}) — não medi as referências ao DS.`);
+    } else {
+      const refsDs = parseShellDeps(htmlAtual).filter((p) => p.startsWith('_ds/'));
+      const refsDiretas = parseShellDeps(htmlAtual).filter((p) => p.startsWith('design-system/'));
+      console.log(`  medido agora em ${relative(ROOT, shellPath) || shellPath}:`);
+      console.log(`    refs a _ds/           ${refsDs.length}`);
+      console.log(`    refs a design-system/ ${refsDiretas.length}`);
+      for (const r of refsDs) console.log(`      · ${r}`);
+      if (refsDs.length) {
+        console.log(`\n  ⬜ Enquanto houver ref a _ds/, o preview LOCAL do espelho não carrega o DS:`);
+        console.log(`     esses paths são ignorados por design (.gitignore) e não existem aqui.`);
+        console.log(`     Quem reescreve o shell é o lado Cowork — não há conserto deste lado.`);
+      }
+    }
+    console.log('');
     return;
     const shellIdx0 = argv.indexOf('--shell');
     const sp = shellIdx0 !== -1 ? argv[shellIdx0 + 1] : defaultShellPath();
