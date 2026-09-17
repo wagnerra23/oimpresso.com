@@ -1,0 +1,43 @@
+{
+  "_nota": "Ratchet do a11y-alvo (PR-A4). So DESCE. Gerado por scripts/qa/a11y-alvo.mjs --baseline-write.",
+  "lados": {
+    "proto:projects": {
+      "medido_em": "2026-09-17",
+      "url": "http://127.0.0.1:<efemera>/oimpresso.com.html",
+      "viewport": 1280,
+      "nos": 769,
+      "total_gate": 11,
+      "total_report": 72,
+      "por_sonda": {
+        "AXE-minor": {
+          "gate": 1,
+          "report": 0
+        },
+        "AXE-moderate": {
+          "gate": 1,
+          "report": 0
+        },
+        "AXE-serious": {
+          "gate": 1,
+          "report": 0
+        },
+        "S1-clicavel-sem-papel": {
+          "gate": 7,
+          "report": 0
+        },
+        "S2-svg-anonimo": {
+          "gate": 0,
+          "report": 2
+        },
+        "S3-sem-aria-live": {
+          "gate": 1,
+          "report": 0
+        },
+        "S6-contraste": {
+          "gate": 0,
+          "report": 70
+        }
+      }
+    }
+  }
+}

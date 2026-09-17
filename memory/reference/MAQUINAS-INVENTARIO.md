@@ -706,10 +706,13 @@ lifecycle: ativo
 | `critica.mjs` | ci, script | 🔴 disco | test | (só sessão/handoff · 3) | passe crítico do pr-critic (a parte AGENTE; o roteamento é coleta.mjs). |
 | `precisao.mjs` | ci, script | 🔴 disco | test | — | MEDIDOR DE PRECISÃO DO PRÓPRIO pr-critic (fecha o loop). |
 
-### 5.16 `scripts/qa/` — 14
+### 5.16 `scripts/qa/` — 17
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
+| `a11y-alvo.mjs` | ci, npm, script | 🔴 disco | — | — | PR-A4 do plano COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO: axe-core + as sondas que |
+| `a11y-contraste.mjs` | script | 🟢 só lê | — | — | PR-A2 do plano COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO: cálculo derivado |
+| `a11y-sondas.mjs` | script | 🟢 só lê | — | — | PR-A4: as sondas de a11y que o axe-core NAO faz, como codigo de PAGINA. |
 | `cowork-pele-paralela.mjs` | ci, npm, script | 🔴 disco | — | `memory/reference/prototipo-ui/CODE_NOTES.md` +2 | MAQUINA contra PELE PARALELA no espelho de design. |
 | `design-coverage.mjs` | agente, ci, npm, script | 🔴 disco | bite-log + test | `memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md` +19 | mapa de cobertura de DESIGN por tela + catraca (só sobe). |
 | `exposicao-tier0.mjs` | ci, npm, script | 🔴 disco | — | `memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md` +10 | Sentinela de cadência (Onda 0c · pilar CADÊNCIA da ADR 0256). |
@@ -756,6 +759,7 @@ lifecycle: ativo
 
 | Arquivo | Leitor | Documento | `_meta` / propósito |
 |---|---|---|---|
+| `governance/a11y-alvo-baseline.json` | script | — | (baseline/estado) |
 | `governance/adr-alias-map.json` | agente, ci, script | `memory/08-handoff.md` +4 | (baseline/estado) |
 | `governance/adr-collisions-baseline.json` | script | — | Colisões de número de ADR — catraca anti-bifurcação (só encolhe). O detector já existia (adr-index-generate.mjs lista as colisões desde sempre); este … |
 | `governance/adr-tombstones.json` | ci, script | `memory/licoes-rejeitadas.md` +2 | (baseline/estado) |
@@ -805,4 +809,4 @@ lifecycle: ativo
 | `scripts/perf-static-baseline.json` | script | `memory/governance/AUDITORIA-PERFORMANCE-2026-07.md` +2 | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
 | `scripts/reuse-duplicates-baseline.json` | agente, ci, script | `memory/decisions/0272-arvore-componentes-canonica.md` +2 | (baseline/estado) |
 
-> Total baselines JSON em governance/+config/+scripts: 48 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
+> Total baselines JSON em governance/+config/+scripts: 49 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
