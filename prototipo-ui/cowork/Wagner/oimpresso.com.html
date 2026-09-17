@@ -10,10 +10,11 @@
 <!-- DS VIVO: os tokens de IDENTIDADE (neutros, radius, status, tipo) vêm DIRETO do design system bound.
      Linkado, NÃO copiado → nunca mais apodrece com o tempo ([W] 2026-07-10). O <html class="cockpit">
      acima faz o app inteiro herdar a paleta operacional do DS (.cockpit). -->
-<!-- Base do DS resolvida em RUNTIME, não por caminho fixo: aqui os arquivos moram em `_ds/…`; no
-     espelho do git o applier roteia `_ds/**` → `prototipo-ui/design-system/` (aplicar-payload.mjs:180,
-     e o caso 9 do teste afirma que `_ds/` NÃO pousa sob o dono) e NADA lá reescreve href — logo a
-     indireção é daqui. document.write mantém a ORDEM de cascata e o `defer` do parser. -->
+<!-- Base do DS resolvida em RUNTIME. As refs a `_ds/` NÃO podem ser literais: `href`/`src` literal
+     entra no fechamento do pacote (payload-dependency-graph) e faz o import do PROTÓTIPO escrever
+     em prototipo-ui/design-system/ — cujo dono é o projeto DS (#7096), não este transporte. Foi o
+     que apagou 10 arquivos do DS (as 4 fontes inclusive). [CL] 2026-09-17 armou a recusa do lote
+     por ref literal; o freshness não perde nada (rowsDoBundle já tira `_ds/**` do denominador). -->
 <script>window.__OI_DS_BASE__=location.pathname.indexOf('/prototipo-ui/cowork/')>-1?'../../design-system/':'_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/';document.write('<link rel="stylesheet" href="'+window.__OI_DS_BASE__+'colors_and_type.css"/>')</script>
 <link rel="stylesheet" href="styles.css?v=ph25s"/>
 <!-- DS VIVO · camada de DOMÍNIO (origins/stage/sla/canal/kpi/kind/vip) — companion do git (#4097),
