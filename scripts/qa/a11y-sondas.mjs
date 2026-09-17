@@ -8,10 +8,11 @@
 // fora do conjunto default). Estas sondas cobrem esse vao — o axe roda AO LADO, nao no lugar.
 //
 // ── DIVISAO DE TRABALHO (o calculo de cor NAO mora aqui) ───────────────────────────────────
-// A sonda COLHE no browser (cor, fundo efetivo, tamanho, retangulo) e o Node CALCULA via
-// `a11y-contraste.mjs`, que tem a sanidade abortiva do PR-A2. Fazer a conta dentro da pagina
-// deixaria o numero fora do alcance do caso de sanidade — que e exatamente por onde o 2,62 de
-// 2026-09-03 entrou.
+// A sonda COLHE no browser (cor, CADEIA de fundo, tamanho, retangulo) e o Node CALCULA via
+// `scripts/design-sync/alvo.mjs` (PR-A2), que tem a sanidade abortiva. Fazer a conta dentro da
+// pagina deixaria o numero fora do alcance do caso de sanidade — que e exatamente por onde o
+// 2,62 de 2026-09-03 entrou. A cadeia (e nao o fundo ja resolvido) e o que permite ao dono
+// RECUSAR com motivo quando nenhum ancestral e opaco, em vez de compor um numero plausivel.
 //
 // Sem regex escapada de proposito: par de barra invertida colapsa no transporte da escrita e
 // grava byte de controle no arquivo (LC-26, emenda 2026-09-09).
@@ -136,12 +137,15 @@ export const SONDAS_SOURCE = `(() => {
   }
 
   // ── S6 · COLHE o par de cores (o calculo e no Node, sob a sanidade do A2) ────────────────
-  const fundoEfetivo = (el) => {
-    for (let p = el; p; p = p.parentElement) {
+  const cadeiaDeFundo = (el) => {
+    const cadeia = [];
+    for (let p = el; p && cadeia.length < 12; p = p.parentElement) {
       const bg = getComputedStyle(p).backgroundColor;
-      if (bg && bg !== 'transparent' && bg.indexOf('rgba(0, 0, 0, 0)') !== 0) return bg;
+      if (!bg || bg === 'transparent' || bg.indexOf('rgba(0, 0, 0, 0)') === 0) continue;
+      cadeia.push({ bg, de: seletor(p) });
+      if (bg.indexOf('rgba(') !== 0) break;   // opaco: a cadeia fecha aqui (sem regex: ver topo)
     }
-    return getComputedStyle(document.body).backgroundColor || 'rgb(255, 255, 255)';
+    return cadeia;
   };
   const pares = [];
   for (const el of todos) {
@@ -149,7 +153,7 @@ export const SONDAS_SOURCE = `(() => {
     if (!temTextoProprio) continue;
     const cs = getComputedStyle(el);
     pares.push({
-      seletor: seletor(el), texto: corte(el), cor: cs.color, fundo: fundoEfetivo(el),
+      seletor: seletor(el), texto: corte(el), cor: cs.color, cadeia: cadeiaDeFundo(el),
       px: parseFloat(cs.fontSize) || 16, peso: parseInt(cs.fontWeight, 10) || 400,
     });
   }

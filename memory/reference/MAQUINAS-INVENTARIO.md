@@ -708,12 +708,11 @@ lifecycle: ativo
 | `critica.mjs` | ci, script | 🔴 disco | test | (só sessão/handoff · 3) | passe crítico do pr-critic (a parte AGENTE; o roteamento é coleta.mjs). |
 | `precisao.mjs` | ci, script | 🔴 disco | test | — | MEDIDOR DE PRECISÃO DO PRÓPRIO pr-critic (fecha o loop). |
 
-### 5.16 `scripts/qa/` — 18
+### 5.16 `scripts/qa/` — 17
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
-| `a11y-alvo.mjs` | ci, npm, script | 🔴 disco | — | — | PR-A4 do plano COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO: axe-core + as sondas que |
-| `a11y-contraste.mjs` | script | 🟢 só lê | — | — | PR-A2 do plano COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO: cálculo derivado |
+| `a11y-alvo.mjs` | ci, npm | 🔴 disco | — | — | PR-A4 do plano COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO: axe-core + as sondas que |
 | `a11y-sondas.mjs` | script | 🟢 só lê | — | — | PR-A4: as sondas de a11y que o axe-core NAO faz, como codigo de PAGINA. |
 | `cowork-pele-paralela.mjs` | ci, npm, script | 🔴 disco | — | `memory/reference/prototipo-ui/CODE_NOTES.md` +2 | MAQUINA contra PELE PARALELA no espelho de design. |
 | `design-coverage.mjs` | agente, ci, npm, script | 🔴 disco | bite-log + test | `memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md` +19 | mapa de cobertura de DESIGN por tela + catraca (só sobe). |

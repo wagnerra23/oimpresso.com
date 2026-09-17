@@ -7,7 +7,7 @@
       "viewport": 1280,
       "nos": 769,
       "total_gate": 11,
-      "total_report": 72,
+      "total_report": 57,
       "por_sonda": {
         "AXE-minor": {
           "gate": 1,
@@ -35,7 +35,7 @@
         },
         "S6-contraste": {
           "gate": 0,
-          "report": 70
+          "report": 55
         }
       }
     }
