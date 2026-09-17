@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-16**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-17**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -146,13 +146,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **408** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 357 · superseded: 25 · proposto: 13 · deprecated: 11 · rascunho: 1 · recusado: 1.
+- **411** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 361 · superseded: 25 · proposto: 12 · deprecated: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 201 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 205 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -356,6 +356,10 @@ lente: [construir]
 - ~~2026-09-16 — Gate que verifica a VERACIDADE da claim de história (sha removeu? data bate? “nunca versionado” é verdade?) — MEDIDO: 100% de falso-positivo em 2 dos 3 eixos~~
 - ~~2026-09-16 — Detectar o token MCP no transcript por `mcp_` + qualquer coisa (MEDIDO: 10.959 hits, ~99,97% de falso-positivo — casa NOME DE TOOL)~~
 - ~~2026-09-16 — Estender o denominador de tela para incluir `Modules/*/Resources/js/Pages` (MEDIDO: ele JÁ inclui — a ADR nasceu de `grep` na SAÍDA de um relatório que agrupa por NOME)~~
+- ~~2026-09-16 — Chamar de "alarme que se aprende a ignorar" um advisory VERDADEIRO que eu não tinha lido (e o "4 de 4 PRs" era 7, também não medido)~~
+- ~~2026-09-16 — EMENDA da lápide 2026-08-25 (um argumento, duas perguntas): consertei o predicado de um instrumento alinhando-o ao dono de OUTRA pergunta — os falso-positivos caíram 327 → 38 e os 38 seguiam FALSOS~~
+- ~~2026-09-16 — Ler `rc=1` de `node <arquivo-que-não-existe>` como MORDIDA do mutante: a rodada de mutação inteira não provou nada, e os 3 vermelhos eram *file not found*~~
+- ~~2026-09-17 — EMENDA da lápide 2026-08-14 (`--enforce` no `ds-mirror-drift`): o pré-requisito dela FOI satisfeito, e a decisão [W] segue NÃO LIGAR — por razão nova, estrutural e medida~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -366,14 +370,14 @@ lente: [construir]
 
 ## Rastro
 
-- **534** handoffs · **752** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **540** handoffs · **757** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-16-token-pares-revogacao`
+  - `2026-09-16-session-protocolo-ultimo-importado`
+  - `2026-09-16-recepcao-pacote-e-dois-universos`
   - `2026-09-16-poda-worktrees-e-token-fora-do-disco`
+  - `2026-09-16-paridade-bundle-por-conta`
   - `2026-09-16-gt-g5-duas-familias-gate-e-lapide`
-  - `2026-09-15-validador-schema-tres-portas`
-  - `2026-09-15-refutacao-gt-g5-lote-7377-r4`
-  - `2026-09-15-refutacao-gt-g5-lote-7377-r3`
-  - `2026-09-15-refutacao-gt-g5-lote-7377-r2`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-16 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-17 · deriva das fontes canônicas, não as substitui._
