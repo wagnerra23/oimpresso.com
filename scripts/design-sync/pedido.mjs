@@ -187,6 +187,9 @@ export function montar({ tela, secao, onda, alvo, secoes, ancora, spec, hoje, sh
   p('  1 contagem e ORDEM batem com o alvo acima');
   p('  2 cada comportamento com o teste que o prova');
   p('  3 node scripts/design/design-diff.mjs --compare <prod.json> <design.json> --check → 0 DIVERGE(bug) neste seletor');
+  p('    ⚠️ o --check fala em 3 códigos: 0 igual · 1 divergiu · 2 NÃO MEDI. O 2 NÃO é divergência —');
+  p('       é o design vindo de espelho cuja fidelidade não está provada. Feche a rodada primeiro:');
+  p('       node scripts/governance/cowork-mirror-freshness.mjs --ledger');
   p('  4 screenshot prod autenticado · dark · 1280px');
   p(`  5 ${(ancora.charter || '').replace(/\.charter\.md$/, '.casos.md')} com ≥1 UC da seção citado por teste — MESMO PR`);
   p(`  6 PLACAR no corpo do PR: "entregue X de Y · ausentes <nome> por <motivo>"  ${placarComo()}`);
@@ -200,6 +203,15 @@ export function montar({ tela, secao, onda, alvo, secoes, ancora, spec, hoje, sh
   p('```');
   return L.join('\n') + '\n';
 }
+
+// Por que o item 3 gasta 3 linhas com exit code: quem executa a onda toma o `exit 2` do guarda
+// de frescor e lê como "o gate quebrou" ou, pior, como "divergiu" — e aí conserta a tela em vez
+// de fechar a rodada do espelho. Deliberadamente NÃO se restateia aqui a CONDIÇÃO do guarda
+// (medida 2026-09-17 em `design-diff.mjs:1267` — só morde com design de espelho local; prod×prod
+// segue livre): a condição é do dono e pode mudar, e restatear comportamento alheio apodrece
+// (§5 2026-07-17). O que o pedido carrega é o vocabulário 0/1/2, que é convenção do repo inteiro,
+// + o comando do dono da rodada. Chegou por aviso de sessão irmã e foi MEDIDO antes de propagar
+// (§5 2026-07-26: correção de peer é hipótese a testar, não patch a aplicar).
 
 /** O item 6 depende do PR-A6 (`scripts/qa/placar.mjs`) — derivado, nunca afirmado de cor. */
 function placarComo(raiz = ROOT) {
