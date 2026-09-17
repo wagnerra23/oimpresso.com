@@ -36,6 +36,34 @@ commit: 5c55e4f96f1 (sha real do merge do PR #7456 — nao e tree hash)
 - Verificacao: `ds-push` VALOR:0 vs canon · `write_files` written:2 · releitura com 8 de 8 valores
   presentes · `ds-mirror-drift` drift 0 baseline 0 nos 4 escopos.
 
+## Achados do Code — pendentes neste projeto
+
+### 2026-09-17 · o handoff de hoje não pôde ser importado
+
+Detalhe completo, com as medições: [`CODE_NOTES-2026-09-17-import-recusado-r4.md`](CODE_NOTES-2026-09-17-import-recusado-r4.md).
+
+- **Delta do pacote = 2 arquivos**, e os dois são os pushes do Code de ontem (#7456, #7457) voltando
+  de carona. Nenhum trabalho de design novo entrou neste ZIP — se houve ciclo depois do push, vale
+  reexportar.
+- **Import recusado por R4** (zero duplicata de bytes): 7× `ds-base.js`, 6× `support.js`,
+  4× `ibm-plex-sans-*.woff2` e 2× `Norte - Fluxo do Caminhão.html`, todos byte-idênticos. Aplicar
+  deixa o espelho fiel (251/251) **e** reprova o gate — as duas coisas não fecham juntas. A
+  desduplicação é daqui: uma cópia única de `support.js`/`ds-base.js` num lugar comum resolve, e
+  os `.dc.html` passam a apontar pra ela.
+- **Sobre os pesos 500/600/700** — a ERRATA acima (do lado do repo) e esta medição (do lado daqui)
+  são a mesma história vista das duas pontas: no repo os 3 `.woff2` **não existem**; aqui eles
+  existem mas são **cópias byte-idênticas do 400** (mesmo sha256, 45.712 B). Some os dois e o DS
+  não tem esses pesos em lugar nenhum. O conserto de verdade é baixar os `.woff2` reais dos três
+  pesos; enquanto isso não acontece, apontar os três ao 400 é feio e honesto.
+- **6 ponteiros podres**: a documentação daqui descreve a árvore do repo anterior ao #7224
+  (`prototipo-ui/COWORK_NOTES.md`, `prototipo-ui/ds-guard.mjs`, `prototipo-ui/integrity-check.mjs`,
+  `prototipo-ui/cowork/venda-v3/…`, `prototipo-ui/LICOES_F3_…`, `prototipo-ui/cowork/ds-v6`) —
+  6 de 6 não existem mais no `main`. Os vivos (`SKILL.md`, `HANDOFF.md`, `ColumnManager.jsx`) são
+  os que importam: eles instruem quem for trabalhar agora.
+
+Nada foi promovido no repo: o espelho segue como estava e os gates passam.
+
+
 ## Sync history
 
 ### 2026-08-31T20:40:00Z · tree 84b62eb785e8
