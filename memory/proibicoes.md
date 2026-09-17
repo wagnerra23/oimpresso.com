@@ -1454,7 +1454,7 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 ### 2026-09-17 — EMENDA da lápide 2026-08-14 (`--enforce` no `ds-mirror-drift`): o pré-requisito dela FOI satisfeito, e a decisão [W] segue NÃO LIGAR — por razão nova, estrutural e medida
 
-- **O limite (variante também proibida):** não ligar `--enforce` no `ds-mirror-drift` — nem no CI, nem no array do bite-log, nem *"só pra coletar DR-2"* — **enquanto o gate medir a FOTO (`prototipo-ui/design-system/colors_and_type.css`) e não puder medir o VIVO**. E não usar como argumento de reabertura que *"o pré-requisito do exit code já foi cumprido"*: foi, está medido acima, e **não é suficiente**. Também proibido tratar a assimetria como bug do script — ele mede a foto **por construção correta**, porque o CI não tem login; o docblock dele já explica isso desde 2026-07-09.
+- **O limite (variante também proibida) — emenda da lápide 2026-08-14, mesma família (enforcement de gate não-Tier-0 sem mordida provada), e ecoa §5 2026-07-01 (`foundation-ratchet`) e 2026-07-17 (`component-registry-check`):** não ligar `--enforce` no `ds-mirror-drift` — nem no CI, nem no array do bite-log, nem *"só pra coletar DR-2"* — **enquanto o gate medir a FOTO (`prototipo-ui/design-system/colors_and_type.css`) e não puder medir o VIVO**. E não usar como argumento de reabertura que *"o pré-requisito do exit code já foi cumprido"*: foi, está medido acima, e **não é suficiente**. Também proibido tratar a assimetria como bug do script — ele mede a foto **por construção correta**, porque o CI não tem login; o docblock dele já explica isso desde 2026-07-09.
 
 ## Sempre fazer
 
