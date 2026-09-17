@@ -96,10 +96,10 @@
  *   node scripts/design/design-diff.mjs --selftest                    # fixture hermético (reproduz 07/07)
  */
 
-import { readFileSync, existsSync, writeFileSync, rmSync } from 'node:fs';
+import { readFileSync, existsSync, writeFileSync, rmSync, mkdirSync, copyFileSync, mkdtempSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TOLERANCIAS, diffCampo } from './style-fingerprint.mjs';
 
@@ -1739,6 +1739,70 @@ function selftest() {
     ['BITE CLI: a listagem mostra o que foi declarado e por quê', /silenciou/.test(String(rDeclarada.stdout))],
   );
   for (const p of [fBoa, fRuim, fDecl, fSemMotivo]) { try { rmSync(p, { force: true }); } catch { /* best-effort */ } }
+
+  // -- BITE-TEST DO GUARDA DE FRESCOR (CLI de fora, sandbox por copia) ---------
+  // POR QUE ESTE BLOCO EXISTE, e por que o BITE CLI acima NAO o cobria: aquele usa
+  // URL https DE PROPOSITO (esta escrito no comentario dele), e o guarda de
+  // proveniencia so morde espelho LOCAL. Resultado: ninguem percorria a linha do
+  // guarda, e ela ficou 6 dias (nascida no #7224) com `resolve` fora do import,
+  // crashando com ReferenceError no caminho VERDE -- 0 divergencias -- e saindo
+  // exit 1, indistinguivel de "divergiu". A mensagem `NAO MEDI` existia 6x no
+  // fonte e saia 0x na execucao: mecanismo anunciando saida que nao implementa.
+  //
+  // SANDBOX POR COPIA, sem tocar o ledger real: o ROOT do guarda e derivado de
+  // `import.meta.url`, entao copiar os 2 modulos (este e o style-fingerprint, que
+  // so importa builtins) pra um tmpdir MOVE O ROOT junto, e ali o ledger existe ou
+  // nao conforme o caso. Renomear o ledger versionado do repo deixaria a arvore
+  // suja se o processo morresse entre o rename e o restore.
+  //
+  // PRE-CONDICAO DO METODO, e nao e opcional: os modulos copiados so podem importar
+  // BUILTINS. Copiar pra tmpdir muda o CONTEXTO DE RESOLUCAO DE MODULO junto com o
+  // ROOT -- este worktree nao tem `node_modules` (o Node sobe ate o repo principal),
+  // e de FORA da arvore essa subida nao acontece. Medido: builtin-only em tmpdir roda;
+  // `import '@playwright/test'` la da ERR_MODULE_NOT_FOUND enquanto o MESMO import
+  // roda de dentro da arvore -- a causa e o local, nao o pacote faltando. Quem copiar
+  // este padrao pra um modulo com qualquer import de PACOTE cai, e cai com mensagem
+  // que parece defeito do teste. Conferido aqui: o style-fingerprint so importa node:*.
+  // (limite trazido pela sessao do PR-A2, que bateu nele de frente no mesmo dia.)
+  //
+  // ORDEM: controle POSITIVO primeiro. Assertar so "o caminho ruim falha" e
+  // compativel com o teste nunca ter rodado.
+  const sandbox = mkdtempSync(join(tmpdir(), 'dd-frescor-'));
+  const sbDesign = join(sandbox, 'scripts', 'design');
+  const sbLedger = join(sandbox, LEDGER_FRESCOR_REL);
+  mkdirSync(sbDesign, { recursive: true });
+  mkdirSync(dirname(sbLedger), { recursive: true });
+  copyFileSync(EU, join(sbDesign, 'design-diff.mjs'));
+  copyFileSync(join(dirname(EU), 'style-fingerprint.mjs'), join(sbDesign, 'style-fingerprint.mjs'));
+  const snapLocal = join(sandbox, 'local.json');
+  const snapRemoto = join(sandbox, 'remoto.json');
+  const vazio = { kpi: { count: 0, items: [] }, title: null, primary: null, filterRows: null, contratos: null, celulas: null, tabela: null, shell: null };
+  writeFileSync(snapLocal, JSON.stringify({ url: 'http://localhost:5631/prototipo-ui/cowork/Wagner/oimpresso.com.html', theme: 'dark', assinatura: 'x', roles: vazio }));
+  writeFileSync(snapRemoto, JSON.stringify({ url: 'https://oimpresso.com/x', theme: 'dark', assinatura: 'x', roles: vazio }));
+  // comparar um snapshot CONSIGO MESMO da 0 divergencias -- e e so por ai que se
+  // alcanca o guarda (a saida por bug acontece antes).
+  const cliSb = (a, b) => spawnSync(process.execPath, [join(sbDesign, 'design-diff.mjs'), '--compare', a, b, '--check'], { encoding: 'utf8' });
+  const porLedger = (conteudo) => { if (conteudo === null) { try { rmSync(sbLedger, { force: true }); } catch { /* best-effort */ } } else { writeFileSync(sbLedger, conteudo); } return cliSb(snapLocal, snapLocal); };
+  const rCompleta = porLedger(JSON.stringify([{ date: '2026-09-17T00:00:00Z', files: 705, unchecked: 0, stale: 0 }]));
+  const rAusente = porLedger(null);
+  const rParcial = porLedger(JSON.stringify([{ date: '2026-09-17T00:00:00Z', files: 705, unchecked: 704, stale: 0 }]));
+  const rRemoto = (() => { try { rmSync(sbLedger, { force: true }); } catch { /* best-effort */ } return cliSb(snapRemoto, snapRemoto); })();
+  const semCrash = (r) => !/ReferenceError|is not defined/.test(String(r.stderr));
+  checks.push(
+    // (a) CONTROLE POSITIVO -- o integro passa. E o assert que a regressao derruba.
+    ['BITE CLI frescor: CONTROLE POSITIVO -- design local + 0 divergencias + rodada completa -> exit 0', rCompleta.status === 0],
+    ['BITE CLI frescor: e o caminho verde NAO crasha (o defeito de #7224 era exatamente aqui)', semCrash(rCompleta)],
+    // (b) MUTANTES -- o guarda fala, e fala a MENSAGEM, nao so o codigo: exit 1 por
+    //     "divergiu" e exit 1 por crash sao indistinguiveis pelo rc.
+    ['BITE CLI frescor: ledger AUSENTE -> exit 2 (nao-medi), nunca 0', rAusente.status === 2],
+    ['BITE CLI frescor: e a MENSAGEM chega a quem le', /NÃO MEDI/.test(String(rAusente.stderr))],
+    ['BITE CLI frescor: ledger PARCIAL -> exit 2 com motivo especifico', rParcial.status === 2 && /PARCIAL/.test(String(rParcial.stderr))],
+    // (c) CONTROLE NEGATIVO -- zero FP: prod x prod nao depende do espelho e segue
+    //     livre mesmo sem ledger nenhum.
+    ['BITE CLI frescor: CONTROLE -- design REMOTO sem ledger NAO e barrado (zero FP)', rRemoto.status === 0 && semCrash(rRemoto)],
+  );
+  try { rmSync(sandbox, { recursive: true, force: true }); } catch { /* best-effort */ }
+
 
 
   let ok = true;

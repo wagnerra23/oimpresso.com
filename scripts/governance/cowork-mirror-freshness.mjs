@@ -59,6 +59,8 @@
  *   node scripts/governance/cowork-mirror-freshness.mjs --sla               # headless: rotina rodou ≤14d? última limpa? + eixo NOVO desqualifica a leitura?
  *   node scripts/governance/cowork-mirror-freshness.mjs --live-only <lista.json> --ledger  # + registra a medição
  *   node scripts/governance/cowork-mirror-freshness.mjs --sla-live-only     # headless: live-only foi MEDIDO ≤7d? cresceu?
+ *   node scripts/governance/cowork-mirror-freshness.mjs --compare-bundle              # espelho do Wagner × bundle promovido dele
+ *   node scripts/governance/cowork-mirror-freshness.mjs --compare-bundle --owner Felipe --check  # o espelho da OUTRA conta (estados separados, ADR 0405)
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs        # a poda deste PR quebrou o grafo do espelho? (exit 1 = sim)
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --range <a>..<b>
  *   node scripts/governance/cowork-mirror-freshness.mjs --check-refs --deleted-from <lista.txt>   # fixture/manual
@@ -85,6 +87,7 @@ import { execFileSync } from 'node:child_process';
 import { join, dirname, resolve, relative } from 'node:path';
 import { anchorRelPath } from './anchor-content-check.mjs'; // fonte única: como extrair o path do related_prototype
 import { BUILD_SOURCE_RE } from '../design-sync/bundle-contract.mjs'; // fonte única: que extensão é conteúdo do espelho
+import { pathsForOwner } from '../design-sync/bundle-transaction.mjs'; // fonte única: onde cada CONTA pousa
 
 const ROOT = process.cwd();
 
@@ -649,10 +652,10 @@ export function dsRuntimeRelPath(path) {
 // A perna também era CÓDIGO MORTO: o `aplicar-payload` recusava `.md` antes de chegar aqui, e
 // a R3 do `cowork-ssot-guard` reprovava `.md` aninhado em `handoffs/` — ou seja, ela roteava
 // pra um destino que o guard proibia. Tirar a perna unifica a árvore e mata a contradição.
-export function destinoDoBundle(rel) {
+export function destinoDoBundle(rel, owner = 'Wagner') {
   const p = String(rel || '').split(String.fromCharCode(92)).join('/').replace(/^\.\//, '');
   if (p.startsWith('_ds/')) return { destinoBase: 'prototipo-ui/design-system', destinoPath: dsRuntimeRelPath(p) };
-  return { destinoBase: 'prototipo-ui/cowork/Wagner', destinoPath: p };
+  return { destinoBase: pathsForOwner(owner).cowork, destinoPath: p };
 }
 
 /** sha256 do buffer CRU — a mesma conta que o `gerar-payload-partes` faz do lado do vivo.
@@ -678,9 +681,14 @@ export function rawHash(buf) {
  *  a entrada de ledger é datada com o `generatedAt` do BUNDLE, não com `Date.now()`:
  *  carimbar a hora da leitura faria o SLA acreditar num frescor que ninguém mediu.
  */
-export function rowsDoBundle(bundle, manifest, lerArquivo) {
+export function rowsDoBundle(bundle, manifest, lerArquivo, owner = 'Wagner') {
   const rows = [];
   const cobertos = new Set();
+  // O espelho tem DOIS donos (Wagner/Felipe) e `pathsForOwner` é o único que sabe onde cada
+  // conta pousa. Até 2026-09-17 esta base era o literal `.../Wagner`: lote do Felipe pousava
+  // em `.../Felipe/`, TODO arquivo era lido do path errado e o veredito saía STALE pra tudo
+  // (medido: sync 0 · stale 2 num lote de 2). Falso-vermelho é pior que alarme ausente.
+  const coworkBase = pathsForOwner(owner).cowork;
   // PR-A9 — com `transforms`, o que POUSA não é o que VIAJOU: a ref do DS é convertida na
   // aterrissagem. O `sha256` do manifesto descreve o PAYLOAD (pré-transform); o que está no disco
   // é o pós. Comparar contra o `sha256` marcaria o host STALE em 100% dos ciclos — e aí este
@@ -688,11 +696,11 @@ export function rowsDoBundle(bundle, manifest, lerArquivo) {
   // Por isso o gerador declara `shaDepois` por arquivo tocado: é contra ele que se compara.
   const shaPosTransform = new Map((bundle?.transforms || []).map((t) => [t.path, t.shaDepois]));
   for (const f of (bundle?.files || [])) {
-    const { destinoBase, destinoPath } = destinoDoBundle(f.path);
-    // O universo do freshness é o espelho (`prototipo-ui/cowork/Wagner/`). `_ds/**` e `.md` pousam
-    // em outros destinos e NÃO entram no denominador — contá-los inflaria a cobertura com
+    const { destinoBase, destinoPath } = destinoDoBundle(f.path, owner);
+    // O universo do freshness é o espelho DO DONO (`prototipo-ui/cowork/<owner>/`). `_ds/**` pousa
+    // em outro destino e NÃO entra no denominador — contá-los inflaria a cobertura com
     // arquivos que o --compare nunca mediu (§5 2026-07-27: denominador é o executável).
-    if (destinoBase !== 'prototipo-ui/cowork/Wagner') continue;
+    if (destinoBase !== coworkBase) continue;
     cobertos.add(destinoPath);
     const buf = lerArquivo(destinoBase + '/' + destinoPath);
     rows.push({
@@ -1119,9 +1127,11 @@ export function absentLocal(shellHtml, root = ROOT) {
 /** Enumera os arquivos-âncora do espelho, keyed por PATH RELATIVO COMPLETO (nunca basename)
  *  + as DEPS DE RENDER do shell (LC-07). `kind`: 'ancora' (tem tela de charter) | 'dep'.
  *  Mesmo conjunto de âncoras que o anchor-content-check enxerga (reusa anchorRelPath). */
-export function buildManifest(root = ROOT, { all = false, shellHtml = null, universo = 'frescor' } = {}) {
+export function buildManifest(root = ROOT, { all = false, shellHtml = null, universo = 'frescor', owner = 'Wagner' } = {}) {
   const PAGES = join(root, 'resources', 'js', 'Pages');
-  const COWORK = join(root, 'prototipo-ui', 'cowork', 'Wagner');
+  // A raiz do espelho é a do DONO: manifesto do Felipe lido da árvore do Wagner devolveria
+  // UNCHECKED pra arquivos de OUTRA conta — denominador de outro universo (§5 2026-07-27).
+  const COWORK = join(root, ...pathsForOwner(owner).cowork.split('/'));
   const seen = new Map(); // relPath → { cowork, repoPath, repoHash, telas }
 
   const add = (relPath, telas) => {
@@ -1185,13 +1195,13 @@ export function buildManifest(root = ROOT, { all = false, shellHtml = null, univ
  *  o regex de `parseShellDeps` simplesmente não casa nada e o manifesto sai sem deps, calado.
  *  Mordeu em 2026-08-13 (bite-test do nasce-sem-medição acusou um arquivo que ESTAVA no shell)
  *  e estava latente no `--manifest`, onde o `all:true` mascarava o efeito. */
-export function lerShellHtml(root = ROOT) {
-  const p = defaultShellPath(root);
+export function lerShellHtml(root = ROOT, owner = 'Wagner') {
+  const p = defaultShellPath(root, owner);
   return p && existsSync(p) ? readFileSync(p, 'utf8') : null;
 }
 
-export function defaultShellPath(root = ROOT) {
-  const noRepo = join(root, 'prototipo-ui', 'cowork', 'Wagner', 'oimpresso.com.html');
+export function defaultShellPath(root = ROOT, owner = 'Wagner') {
+  const noRepo = join(root, ...pathsForOwner(owner).cowork.split('/'), 'oimpresso.com.html');
   if (existsSync(noRepo)) return noRepo;
   // Sem fallback pro `~/Downloads/_cowork-handoff-staging` ([W] 2026-08-13: "não existe mais
   // zip, é direto o protocolo"). O staging era o caminho do BUNDLE, e ele morreu duas vezes:
@@ -1957,7 +1967,8 @@ function main() {
     return;
   }
 
-  // --compare-bundle [<manifest.json>] [--check] [--ledger]: veredito a partir do BUNDLE v2
+  // --compare-bundle [<manifest.json>] [--owner <Wagner|Felipe>] [--check] [--ledger]: veredito
+  // a partir do BUNDLE v2
   // já promovido, em vez de N chamadas `DesignSync.get_file`.
   //
   // POR QUE EXISTE (2026-09-08, [W] "estende o freshness pro bundle"): a rota PRINCIPAL de
@@ -1974,21 +1985,33 @@ function main() {
   if (argv.includes('--compare-bundle')) {
     const bi = argv.indexOf('--compare-bundle');
     const alt = argv[bi + 1] && !argv[bi + 1].startsWith('--') ? argv[bi + 1] : null;
+    // --owner <Wagner|Felipe>: QUAL espelho medir. Sem isto o modo lia o disco do Wagner
+    // para qualquer lote, e o do Felipe nunca teve medição de frescor nenhuma.
+    // `pathsForOwner` é o dono da regra e já recusa dono inválido — fail-closed de graça.
+    const oi = argv.indexOf('--owner');
+    const owner = oi === -1 ? 'Wagner' : argv[oi + 1];
+    let ownerPaths;
+    try { ownerPaths = pathsForOwner(owner); }
+    catch (e) { console.error(`✗ --compare-bundle: ${e.message}`); process.exit(2); }
+    // Cada conta tem seu PRÓPRIO estado (ADR 0405 §"Wagner conserva state/, Felipe recebe
+    // state/Felipe/"): ler o active-bundle do Wagner para medir
+    // o espelho do Felipe compararia um espelho contra o bundle de outra conta.
+    const bundleRel = `${ownerPaths.state}/active-bundle.json`;
     const bundle = alt
       ? (existsSync(alt) ? JSON.parse(readFileSync(alt, 'utf8')) : null)
-      : lerBundlePromovido();
+      : lerBundlePromovido(ROOT, bundleRel);
     // FAIL-CLOSED: sem bundle não há liveHash, logo não há veredito — nunca verde por ausência.
     if (!bundle || !Array.isArray(bundle.files) || bundle.files.length === 0) {
-      console.error('✗ --compare-bundle: bundle promovido ausente ou ilegível (scripts/design-sync/state/active-bundle.json). Rode aplicar-payload antes.');
+      console.error(`✗ --compare-bundle: bundle promovido ausente ou ilegível (${bundleRel}). Rode aplicar-payload --owner ${owner} antes.`);
       process.exit(2);
     }
-    const manifestB = buildManifest(ROOT, { all: false, shellHtml: lerShellHtml() });
+    const manifestB = buildManifest(ROOT, { all: false, shellHtml: lerShellHtml(ROOT, owner), owner });
     const ler = (relPath) => { const p = join(ROOT, relPath); return existsSync(p) ? readFileSync(p) : null; };
-    const rows = rowsDoBundle(bundle, manifestB, ler);
+    const rows = rowsDoBundle(bundle, manifestB, ler, owner);
     const conta = (v) => rows.filter((r) => r.veredito === v).length;
     const nSync = conta('SYNC'), nStale = conta('STALE'), nUnch = conta('UNCHECKED');
     const dataBundle = bundle.generatedAt || null;
-    console.log(`\n  COMPARE-BUNDLE — espelho × bundle ${String(bundle.bundleId || '').slice(0, 16)} (emitido ${dataBundle || '?'})\n`);
+    console.log(`\n  COMPARE-BUNDLE — espelho de ${owner} × bundle ${String(bundle.bundleId || '').slice(0, 16)} (emitido ${dataBundle || '?'})\n`);
     console.log(`  ✓ sync: ${nSync} · ⛔ stale: ${nStale} · ⬜ unchecked: ${nUnch}  (de ${rows.length})`);
     for (const r of rows.filter((x) => x.veredito === 'STALE')) console.log(`     ⛔ STALE  ${r.cowork}`);
     // O superlativo só fala do MEDIDO, e o denominador anda junto (LC-13 · §5 2026-08-13).
