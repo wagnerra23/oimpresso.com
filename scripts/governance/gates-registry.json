@@ -803,6 +803,14 @@
       "promote_by": "2026-10-01",
       "anchor": "PR-A6 do plano COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md (pedido [W] 2026-09-03 — automatizar MAPA → ALVO → EXPORT → PR → PLACAR). Sinal de custo declarado no plano: \"esquecer o placar e gratis, e e o que faz a omissao sumir\" — secao que nao foi entregue desaparecia do relato em vez de ser cobrada com motivo. Estende o PR-A1 (scripts/design-sync/alvo.mjs), nao abre dono novo.",
       "promote_by_razao": "FP medido ANTES de ligar, no corpus real (2026-09-17): 1 alvo · 9 secoes · 0 acusacoes. Populacao pequena demais pra required (ADR 0336 exige mordida provada em >=2 PRs distintos). O prazo forca a decisao em vez de advisory eterno (ADR 0298)."
+    },
+    "placar-de-lista.yml": {
+      "nome": "placar-de-lista (advisory) — PR-A8 do protocolo de export: o placar da LISTA. O A6 responde 'esta TELA foi entregue?'; este responde 'o Code terminou a LISTA inteira?' por modulo, lendo as threads do bloco json embutido em prototipo-ui/cowork/Wagner/cowork-inbox/<mod>/playbook/00-INDICE.md. O estado de cada thread e DERIVADO das provas + do _saida-NN.md (Lei 2 — ninguem escreve estado) e sai como 'entregue X de Y · ausentes <thread> por <arquivo/motivo>' + 'PROXIMO:'. Mesmo dono de codigo do A6 (scripts/qa/placar.mjs, flag --indice); workflow separado porque o GATILHO e outro (playbook vs governance/design/targets), e juntar faria um PR de playbook ser julgado pelo placar de tela.",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-11-01",
+      "anchor": "PR-A8 do plano COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md (pedido [W] 2026-09-05, 'SINCRONIZAR <Mod>', §12 do protocolo). Sinal de custo declarado no plano: 'hoje o placar e por tela; o Code terminou a lista inteira? nao tem maquina'. A logica veio do git (4f51a9ec781^) — a ponte que o plano manda ler no main foi removida pela ADR 0397 (#7224), que proibe o endereco dela (D1 arvore minima · D3 maquina fora do prototipo · D5 design-docs nao e cemiterio). Recibo: memory/reference/prototipo-ui/CODE_NOTES.errata-pr-a8-fonte-removida-pela-0397-2026-09-17.md",
+      "promote_by_razao": "FP medido ANTES de ligar, no corpus real (2026-09-17): 12 modulos · 61 threads · 0 fechando. Por isso o job NAO roda --check: nasceria vermelho nos 12 e ficaria, que e o gate-de-teatro invertido (§5 2026-07-28, o caso do mcp:tasks:unassigned com FAIL>=5 e 31 tasks). A causa do 0 e do CORPUS e foi medida — so 4 de 61 threads tem _saida, porque os playbooks sao planos em andamento. O medidor discrimina: o bite-test tem controle positivo onde uma thread CHEGA a feito, e apagar uma prova a derruba (aceite T5). Quando valer ligar o veredito, o predicado tem de ser DELTA (o PR piorou o placar?), nunca absoluto — lapide §5 2026-08-24."
     }
   }
 }

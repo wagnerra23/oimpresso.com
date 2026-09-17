@@ -109,9 +109,14 @@ ok(/não fecha/i.test(md.out), 'MODO --md: o comentário DIZ que não fecha — 
 ok(/entregue 3 de 3/.test(cli(['--dir', sao, '--md']).out), 'CONTROLE POSITIVO --md: o número MUDA com o corpus (o md não é carimbo)');
 ok(JSON.parse(cli(['--dir', sao, '--json']).out).somaEntregue === 3, 'MODO --json: expõe o par pra máquina');
 
-/* ── 11. --indice: contrato do PR-A8 pinado (LC-15 — não anunciar o que não honra) ───── */
-r = cli(['--dir', sao, '--indice']);
-ok(r.rc === 2 && /A8/.test(r.err), '--indice sai 2 dizendo que é o PR-A8 e NÃO está implementado');
+/* ── 11. --indice: o PR-A8 pluga aqui, e o eixo de TELA não muda por causa dele ──────── */
+// Até 2026-09-17 este caso pinava "--indice sai 2 (não implementado)" — LC-15, não anunciar o
+// que não se honra. O A8 foi implementado (scripts/qa/placar-indice.mjs) e o contrato virou
+// outro: `--indice` sem playbook algum sai 2 (NÃO MEDI), nunca verde vazio. Os casos do eixo
+// de lista vivem em placar-indice.test.mjs — aqui fica só a fronteira entre os dois eixos.
+r = cli(['--dir', sao, '--indice', 'nao/existe/00-INDICE.md', '--root', TMP]);
+ok(r.rc === 2, '--indice com playbook inexistente → 2 (NÃO MEDI), nunca "0 de 0 = 100%"');
+ok(/entregue 3 de 3/.test(cli(['--dir', sao]).out), 'FRONTEIRA: o eixo de TELA segue medindo o alvo, intacto');
 
 /* ── 12. RETRABALHO: fixture git real — seção entregue que volta a ausente ───────────── */
 const repo = join(TMP, 'repo');
