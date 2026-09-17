@@ -45,15 +45,20 @@
 // Exit: 0 fecha · 1 não fecha · 2 NÃO CONSEGUI MEDIR (alvo ilegível/ausente).
 // O 2 é separado: "não medi" nunca pode se passar por "está são" (§5 2026-07-29).
 //
-// ── ONDE O PR-A8 PLUGA ──────────────────────────────────────────────────────────────────
-// O A8 estende ESTE script com `--indice` (placar da LISTA, por playbook de módulo), reusando
-// `agregar()` e `emitirMd()`. `--indice` hoje sai 2 com mensagem explícita de não-implementado
-// — anunciar saída que o código não honra é LC-15, e o placar.test.mjs pina esse contrato.
+// ── O PR-A8 (`--indice`) — IMPLEMENTADO em 2026-09-17 ───────────────────────────────────
+// `--indice` é o placar da LISTA: mede um MÓDULO (threads de um playbook) em vez de uma tela.
+// A flag mora aqui, como o A8 pede; a lógica em `scripts/qa/placar-indice.mjs`, que é o
+// destino que a própria ponte original sugeria — mantém este arquivo legível e o diff honesto.
+// Ele NÃO reusa `agregar()`/`emitirMd()`: aquelas leem `*.alvo.json` (seções de uma tela) e
+// o índice é outra forma (threads + provas + `_saida`). Reusa a DOUTRINA — par entregue/alvo,
+// enum fechado, exit 0/1/2, "não medi" separado de "falhou". Forçar a mesma função sobre duas
+// formas diferentes seria acoplar por semelhança de nome, não por contrato.
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, resolve, join, basename, relative, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { agregarIndices, descobrirIndices, emitirMdIndice, emitirTextoIndice } from './placar-indice.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
@@ -227,9 +232,22 @@ function emitirTexto(r) {
 
 /* ── CLI ────────────────────────────────────────────────────────────────────────────────── */
 function main() {
-  if (flag('--indice')) {
-    console.error('--indice é o PR-A8 (placar da LISTA, por playbook de módulo) e NÃO está implementado neste script. Ver COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md §PR-A8.');
-    return 2;
+  // PR-A8 — placar da LISTA. `--indice <00-INDICE.md>` para um módulo, `--todos` para somar,
+  // `--thread NN` recorta uma thread (é o que o `/onda --thread` do A7 consome).
+  if (flag('--indice') || flag('--todos')) {
+    const raiz = resolve(val('--root', ROOT));
+    const um = val('--indice');
+    const r = agregarIndices(raiz, um ? [um.split('\\').join('/')] : descobrirIndices(raiz), { thread: val('--thread') });
+    if (flag('--json')) console.log(JSON.stringify(r, null, 2));
+    else if (flag('--md')) console.log(emitirMdIndice(r));
+    else emitirTextoIndice(r, { proximo: flag('--proximo') });
+    // Só o que FALHOU morde. Não-medição é reportada e NÃO reprova — acusar o inocente por
+    // falta de instrumento é LC-33 (§5 2026-09-03), e o eixo já sai fail-closed no `feito`.
+    if (flag('--check') && !r.fecha) {
+      console.error(`\nplacar da lista NÃO fecha: ${r.somaFeito} de ${r.somaTotal} thread(s) entregues.`);
+      return 1;
+    }
+    return 0;
   }
 
   const r = agregar(val('--dir', DIR_PADRAO), { tela: val('--tela'), render: val('--render') });
@@ -250,5 +268,8 @@ function main() {
 // ainda saía "24/24 ok". É o mesmo trap que alvo.mjs documenta sobre o design-diff (CLI-only).
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try { process.exit(main()); }
-  catch (e) { const nm = e instanceof NaoMedi; console.error(`${nm ? 'NÃO MEDI' : 'FALHOU'}: ${e.message}`); process.exit(nm ? 2 : 1); }
+  // `e.naoMedi` é o contrato com placar-indice.mjs, que tem a própria classe NaoMedi:
+  // `instanceof` não cruza módulos, e sem isto um "não medi" do A8 sairia 1 (= "não fecha"),
+  // que é exatamente colapsar não-medição num estado do objeto (§5 2026-07-29).
+  catch (e) { const nm = e instanceof NaoMedi || e?.naoMedi === true; console.error(`${nm ? 'NÃO MEDI' : 'FALHOU'}: ${e.message}`); process.exit(nm ? 2 : 1); }
 }

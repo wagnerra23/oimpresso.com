@@ -1,5 +1,5 @@
 ---
-description: Abre UMA onda de export Cowork→Code em sessão limpa (§2-quater do PROTOCOLO). Gera o pedido derivado da seção (4 blocos + read-order) com `scripts/design-sync/pedido.mjs` e manda ler o read-order ANTES de qualquer Edit. Uso `/onda <Mod/Tela> <secao> [n.s]`.
+description: Abre UMA onda de export Cowork→Code em sessão limpa (§2-quater do PROTOCOLO). Gera o pedido derivado da seção (4 blocos + read-order) com `scripts/design-sync/pedido.mjs` e manda ler o read-order ANTES de qualquer Edit. Uso `/onda <Mod/Tela> <secao> [n.s]` para SEÇÃO de tela, ou `/onda <Modulo> --thread <NN>` para THREAD de playbook (PR-A8).
 ---
 
 # /onda — uma onda = uma sessão LIMPA, e ela nasce lida
@@ -42,3 +42,34 @@ O pedido já nomeia o que **não** tocar. Uma seção, um PR, ≤300 linhas. Se 
 Os 9 itens do bloco D são o DoD, e o item 6 (**placar**) vai no corpo do PR: `entregue X de Y · ausentes <nome> por <motivo>`. Sem placar, omitir é grátis — que é exatamente o que faz a omissão sumir.
 
 > **Fidelidade não se declara:** `design-diff --compare --check` nos dois renders (T7). Screenshot é ilustração, não prova (LC-06).
+
+---
+
+## Modo THREAD — `/onda <Modulo> --thread <NN>` (PR-A8)
+
+Nem toda onda é seção de tela. Quando o trabalho é uma **thread de playbook** (`SINCRONIZAR <Mod>`), o que abre a sessão é o `NN-*.md` da thread, não o pedido de seção. Mesmo princípio do §2-quater: a sessão **nasce lida**.
+
+```bash
+# 1. O estado da thread — DERIVADO do repo (provas + _saida), ninguém escreve
+node scripts/qa/placar.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/$1/playbook/00-INDICE.md --thread $NN --proximo
+
+# 2. Os 2 arquivos que a sessão abre ANTES de qualquer Edit
+#    (o NN-*.md é o pedido; o 00-INDICE.md é o contrato — prefixo, nao_toca, deps, decisões)
+ls prototipo-ui/cowork/Wagner/cowork-inbox/$1/playbook/$NN-*.md
+```
+
+**Leia o estado antes de executar** — ele diz se a thread sequer é sua para pegar:
+
+| estado | significa | o que fazer |
+|---|---|---|
+| `proximo` | deps feitas, decisões respondidas, nenhuma variável nula | é esta. Execute |
+| `pendente` | falta prova, `_saida`, decisão ou dependência | o placar **nomeia** o que falta. Resolva ou escolha outra |
+| `em curso` | já tem `_saida-NN.md` | **retomar/validar**, não recomeçar — outra sessão passou por aqui |
+| `bloqueada` | `bloqueio` declarado no índice | decisão [W]. Não desbloqueie sozinho |
+| `feito` | provas verdes + `_saida` + deps feitas | nada a fazer |
+
+**As Leis que o modo thread não afrouxa:** 1 thread = 1 prefixo (Lei 1) · estado só em `_saida` (Lei 2) · 1 PR por thread (Lei 3) · o `nao_toca` do índice é o bloco B "não inventar" (Lei 4).
+
+**O recibo é o `_saida-NN.md`** — sem ele a thread **não** conta como entregue, mesmo com o PR mergeado. Isso não é burocracia: é a Lei 2 por construção, e o placar a aplica sem pedir licença.
+
+> **`--thread NN` recorta o RELATO, não a avaliação.** O placar avalia o índice inteiro e só então filtra — o estado de uma thread depende das dependências dela, e recortar antes faria `feito` mentir.

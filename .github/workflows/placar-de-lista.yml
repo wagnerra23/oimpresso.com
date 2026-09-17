@@ -1,0 +1,98 @@
+name: Placar da lista (advisory)
+
+# PR-A8 do protocolo de export — o placar da LISTA. O PR-A6 responde "esta TELA foi entregue?";
+# este responde "o Code terminou a LISTA inteira?" por módulo: as threads de cada playbook em
+# prototipo-ui/cowork/Wagner/cowork-inbox/<mod>/playbook/00-INDICE.md, com o estado DERIVADO
+# das provas + do `_saida-NN.md` (Lei 2 — ninguém escreve estado).
+#
+# ── POR QUE UM WORKFLOW SEPARADO, E NÃO UM STEP NO placar-de-tela.yml ────────────────────
+# O dono do CÓDIGO é o mesmo (scripts/qa/placar.mjs, flag --indice) — isto não abre régua
+# paralela. O que é diferente é o GATILHO: o A6 dispara em governance/design/targets/**, este
+# em cowork-inbox/**/playbook/00-INDICE.md, e os dois conjuntos não se cruzam. Juntar faria um
+# PR que só mexe em playbook ser julgado pelo placar de TELA (que roda contra todos os alvos),
+# e vice-versa — acoplar dois vereditos que não têm relação de causa.
+#
+# ── POR QUE ESTE JOB **NÃO** RODA `--check` (e isso está medido, não é omissão) ──────────
+# FP medido no corpus real em 2026-09-17, antes de ligar: **12 módulos · 61 threads · 0
+# fechando**. Com `--check`, este job nasceria vermelho nos 12 e ficaria — e vermelho que não
+# pode ficar verde é o gate-de-teatro invertido: ruído que se aprende a ignorar (§5 2026-07-28,
+# o caso do `mcp:tasks:unassigned` com FAIL>=5 e 31 tasks).
+# A causa do 0 é do CORPUS, não do medidor, e foi medida: só **4 de 61** threads têm `_saida`
+# — os playbooks são planos em andamento, e a Lei 2 manda refletir isso. O controle positivo
+# que separa "honesto" de "cego" está no bite-test: lá uma thread CHEGA a `feito`, e apagar
+# uma prova a derruba (aceite T5 do plano).
+# O `--check` EXISTE, morde e é testado — só não é ligado aqui contra um corpus que ele
+# reprovaria inteiro. Quando valer ligar, o predicado certo é DELTA (o PR piorou o placar?),
+# nunca absoluto — é a lápide §5 2026-08-24, que já custou 9 dias de auto-merge travado.
+#
+# ── ADVISORY de nascença ─────────────────────────────────────────────────────────────────
+# ADR 0275 (nasce advisory, forward-only) + ADR 0314 (required = só Tier-0). Promoção é flip
+# [W] com mordida provada (ADR 0336) — e aqui ela passa antes pelo predicado de delta.
+
+on:
+  pull_request:
+    # `synchronize` entra pelo mesmo motivo do A6: o placar reporta o head SHA, e placar do 1º
+    # commit num PR de N commits é retrato de outra árvore. Gatilho é path-scoped, custo baixo.
+    types: [opened, reopened, ready_for_review, synchronize]
+    branches: [main]
+    paths:
+      - 'prototipo-ui/cowork/Wagner/cowork-inbox/**/playbook/**'
+      - 'scripts/qa/placar-indice.mjs'
+      - 'scripts/qa/placar-indice.test.mjs'
+      - 'scripts/qa/placar.mjs'
+      - '.github/workflows/placar-de-lista.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: placar-de-lista-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  placar-lista:
+    name: placar-de-lista (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Prova que o eixo MORDE (prova removida derruba o placar nomeando a thread · `_saida`
+      # ausente reprova · integridade do grafo) e SOLTA o legítimo, ANTES de rodar contra a
+      # árvore viva. Sem isto, verde não distingue "nada a acusar" de "parou de acusar" — e
+      # o teste irmão já passou por não-execução uma vez (LC-13, 2026-09-17).
+      # Mordida provada por MUTAÇÃO em 2026-09-17: ignorar a Lei 2, tratar prova não-medida
+      # como ok, e desligar a detecção de ciclo — os três derrubam a suíte.
+      - name: Bite-test (48 casos — bite + release + não-medi + controles)
+        run: node scripts/qa/placar-indice.test.mjs
+
+      - name: Computar o placar da lista (markdown do comentário)
+        id: md
+        run: |
+          # Sem máscara de erro: em modo relatório o script só sai ≠0 em NÃO MEDI (índice
+          # ilegível, sem bloco json, grafo quebrado), e isso TEM de derrubar o passo —
+          # "não medi" nunca pode virar comentário vazio (§5 2026-07-29).
+          node scripts/qa/placar.mjs --todos --md > placar-lista.md
+          cat placar-lista.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comentar o placar no PR (sticky)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('placar-lista.md', 'utf8');
+            // Marca PRÓPRIA — o A6 usa `<!-- placar-de-tela -->`. Compartilhar a marca faria
+            // um eixo sobrescrever o comentário do outro.
+            const MARCA = '<!-- placar-de-indice -->';
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const antigos = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+            const meu = antigos.find((c) => c.body && c.body.includes(MARCA));
+            if (meu) await github.rest.issues.updateComment({ owner, repo, comment_id: meu.id, body });
+            else await github.rest.issues.createComment({ owner, repo, issue_number, body });
