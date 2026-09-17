@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 144 (47 contexts required)
+## 1. Workflows / Gates de CI — 145 (47 contexts required)
 
 > `Invocador` = gatilho `on:` do YAML · `Documento` = doc canônico de maior precedência que o cita.
 > **Evidência não é derivável aqui** (medido: 0 de 123): o `gate-selftest` prova que o SCRIPT morde,
@@ -136,6 +136,7 @@ lifecycle: ativo
 | `patrimonio-painel-gate.yml` | pr+push+manual | `memory/requisitos/AssetManagement/RUNBOOK-patrimonio-index.md` | Patrimonio Painel — header (selo de frescor + linha de contexto) e numeros sem fonte |
 | `phpstan-baseline-regen.yml` | manual | — | PHPStan baseline regen (manual) |
 | `phpstan-gate.yml` | pr+push | `memory/decisions/0208-larastan-baseline-ratchet.md` +10 | PHPStan / Larastan (ADR 0208) |
+| `placar-de-tela.yml` | pr+manual | — | placar-de-tela (advisory) — PR-A6 do protocolo de export: computa o par entregue/alvo de cada tela com governance/design/targets/<tela>.alvo.json e comenta no PR (entregu… |
 | `plan-health-gate.yml` | pr+manual | `memory/requisitos/Brief/BRIEFING.md` +1 | Plan Health Gate (advisory · planos órfãos/podres · sentinela plan-health.mjs --check · ADR 0294 Onda 1) |
 | `ponto-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +14 | Ponto · Pest (MySQL) |
 | `pr-critic-precisao.yml` | cron+manual | — | pr-critic precisão (advisory · mede a PRÓPRIA precisão do pr-critic · taxa-de-ação dos achados: o humano mexeu no arquivo apontado depois do comentário? + first-pass + po… |
@@ -705,7 +706,7 @@ lifecycle: ativo
 | `critica.mjs` | ci, script | 🔴 disco | test | (só sessão/handoff · 3) | passe crítico do pr-critic (a parte AGENTE; o roteamento é coleta.mjs). |
 | `precisao.mjs` | ci, script | 🔴 disco | test | — | MEDIDOR DE PRECISÃO DO PRÓPRIO pr-critic (fecha o loop). |
 
-### 5.16 `scripts/qa/` — 14
+### 5.16 `scripts/qa/` — 15
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -714,6 +715,7 @@ lifecycle: ativo
 | `exposicao-tier0.mjs` | ci, npm, script | 🔴 disco | — | `memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md` +10 | Sentinela de cadência (Onda 0c · pilar CADÊNCIA da ADR 0256). |
 | `mv-metabolismo.mjs` | ci, script | 🔴 disco | test | `memory/requisitos/_Governanca/roadmap/_ROADMAP.md` +17 | o batimento do Módulo Vivo (MV2 · stream MV do roadmap SDD). |
 | `page-path.mjs` | agente, ci, script | 🟢 só lê | test | `memory/decisions/0403-errata-0402-denominador-ja-inclui-pages-de-modulo.md` +16 | localizados em resources/js/Pages/**. |
+| `placar.mjs` | ci, npm | 🟢 só lê | test | — | PR-A6 do protocolo de export: o PLACAR de entrega de uma tela vira MEDIDA |
 | `prototipo-readiness.mjs` | ci | 🔴 disco | test | `memory/requisitos/_Governanca/roadmap/_ROADMAP.md` +7 | "quais telas de protótipo posso aplicar SEM me preocupar?" |
 | `screen-coverage-map.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +72 | mapa de cobertura de QA por tela + baseline da catraca. |
 | `screen-grade-report.mjs` | npm | 🟢 só lê | test | `memory/requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md` +7 | a FOTO LADO A LADO: UX × comportamento por tela. |

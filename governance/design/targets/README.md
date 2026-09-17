@@ -101,6 +101,37 @@ Bite-test verde 6/6 em 2026-09-03 e 9/9 em 2026-09-06 (`--selftest --browser`, c
 3 novos provam `--aguardar-sumir` (esqueleto de 700 ms · controle negativo que nunca sai → NÃO MEDI)
 e `--quieto-ms` (carga em 2 fases, 300 e 900 ms → mede o estado final).
 
+## `_ausentes`: onde se declara POR QUE uma seção não foi entregue (PR-A6)
+
+O placar (`scripts/qa/placar.mjs`) cobra, de toda seção que não está no lado medido, um **motivo
+declarado**. O motivo mora no `<tela>.secoes.json` — o arquivo de **entrada**, escrito à mão — na
+chave `_ausentes`, e **não** no `<tela>.alvo.json`:
+
+```jsonc
+{
+  "_": "…nota de proveniência…",
+  "_ausentes": {
+    "metas": { "motivo": "sem endpoint",      "nota": "GET /ia/metas não existe ainda" },
+    "kpis":  { "motivo": "decisão [W]",        "nota": "2026-09-17 — fora do recorte" }
+  },
+  "header": { "seletor": ".jc-page > div:first-child > header" }
+}
+```
+
+Enum fechado (motivo fora dele é reprovação, nunca tolerância): **`sem endpoint`** ·
+**`campo inexistente`** · **`decisão [W]`**.
+
+**Por que aqui e não no `alvo.json`** — o plano do PR-A6 dizia `ausentes:` no alvo. Medido em
+2026-09-17: [`alvo.mjs:201`](../../../scripts/design-sync/alvo.mjs) reemite `ausentes: []` em
+**toda** medida, então declaração escrita ali é apagada no próximo `--alvo` — e este README já
+diz, acima, que o alvo "não se edita à mão". A chave `_ausentes` fica no input porque o prefixo
+`_` é justamente o que a sonda ignora por construção (`ALVO_PROBE_SOURCE`: `if (id.startsWith('_'))`).
+O placar **reprova em voz alta** se achar `ausentes` preenchido no alvo, pro trap virar mensagem.
+
+O placar reprova por **conteúdo**, não por presença de comentário no PR: ausência sem motivo ·
+motivo fora do enum · motivo apontando pra seção já entregue (ponteiro podre) · id que não é seção.
+Bite-test: `npm run placar:test` (27 casos, com controles negativos).
+
 ## Alvos exportados
 
 | tela | slug | seções | como reproduzir |
