@@ -338,6 +338,55 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
   };
 }
 
+/** PR-A9 — confere o Design System que o pacote DECLARA precisar.
+ *
+ *  POR QUE EXISTE ([W] 2026-09-17): a escrita do `_ds/**` ficou barrada (o dono do
+ *  `design-system/` e o projeto DS, #7096). Isso e certo, mas deixou o DS fora da escrita **e**
+ *  fora da medicao — o import conseguia dizer "aplicado" com o DS ausente ou defasado. Aqui o
+ *  prototipo declara contra QUE DS foi medido, e a aplicacao confere. Declara, nunca escreve.
+ *
+ *  TRES desfechos, e so UM bloqueia — porque so um e decidivel:
+ *    ausente      -> RECUSA. O prototipo nao renderiza como foi medido. Fail-closed.
+ *    divergente   -> RELATA. O espelho e o DONO e pode estar A FRENTE (foi o caso das fontes
+ *                    consertadas aqui e velhas no pacote). sha256 NAO diz direcao — o docblock do
+ *                    `cowork-mirror-freshness` ja declara isso —, entao recusar afirmaria o que
+ *                    nao se mediu.
+ *    igual        -> silencio.
+ *
+ *  Sem `dsRequires` (pacote legado) o veredito e `NAO MEDIDO`, jamais "sem divergencia": "nao
+ *  procurei" nunca compartilha linha com "nao achei" (LC-13).
+ *
+ *  PURA: recebe o leitor, nao toca fs. */
+export function conferirDsRequires(dsRequires, lerDoEspelho) {
+  if (!dsRequires) return { medido: false, ausentes: [], divergentes: [], iguais: 0, total: 0 };
+  const ausentes = [];
+  const divergentes = [];
+  let iguais = 0;
+  for (const item of dsRequires.arquivos || []) {
+    const buffer = lerDoEspelho(item.path);
+    if (buffer == null) { ausentes.push({ ...item }); continue; }
+    const atual = sha256(buffer);
+    if (atual === item.sha256) iguais += 1;
+    else divergentes.push({ path: item.path, esperado: item.sha256, noEspelho: atual });
+  }
+  return { medido: true, slug: dsRequires.slug, ausentes, divergentes, iguais,
+    total: (dsRequires.arquivos || []).length };
+}
+
+/** Linha(s) de veredito do A9 — separada da conferencia pra ser testavel sem fs nem console. */
+export function vereditoDsRequires(r) {
+  if (!r.medido) return ['  ⬜ DS-REQUIRES: NAO MEDIDO — o pacote nao declara `dsRequires` (legado). Isto NAO e "sem divergencia".'];
+  const linhas = [`  DS-REQUIRES (${r.slug}): ${r.iguais} de ${r.total} conferem`];
+  for (const d of r.divergentes) {
+    linhas.push(`     ⬜ DIVERGE  ${d.path}  esperado ${d.esperado.slice(0, 12)} · espelho ${d.noEspelho.slice(0, 12)}`);
+  }
+  if (r.divergentes.length) {
+    linhas.push('     (RELATO, nao recusa: o espelho e o DONO do DS e pode estar A FRENTE; sha nao diz direcao)');
+  }
+  for (const a of r.ausentes) linhas.push(`     ⛔ AUSENTE  ${a.path}  sha exigido ${a.sha256.slice(0, 12)}`);
+  return linhas;
+}
+
 function writeAndVerifyTarget({ root, staged, manifest, buffers, previous, permiteEscreverDs = false }) {
   // Só uma árvore completa autoriza poda de arquivos nunca gerenciados pelo manifesto.
   // Manifestos antigos/de shell não provam ausência de playbooks da conta.
@@ -451,6 +500,20 @@ export async function applyBundleTransaction({ root = process.cwd(), parts, dry 
   const stages = makeStages(absRoot, paths, id);
   try {
     const graph = writeAndVerifyTarget({ root: absRoot, staged: stages.staged, manifest, buffers, previous, permiteEscreverDs });
+
+    // PR-A9 — ANTES do swap (fail-closed): o DS declarado existe no espelho?
+    // Lemos o `design-system/` REAL, nao o staging: ele nao e escrito por esta rota, entao o
+    // staging so teria a copia. Ausencia RECUSA; divergencia RELATA (o espelho pode estar a frente).
+    const dsCheck = conferirDsRequires(manifest.dsRequires, (rel) => {
+      const abs = resolveInside(resolveInside(absRoot, paths.runtime), rel);
+      return existsSync(abs) ? readFileSync(abs) : null;
+    });
+    for (const linha of vereditoDsRequires(dsCheck)) console.log(linha);
+    if (dsCheck.ausentes.length) {
+      throw new Error(`DS exigido ausente no espelho (${dsCheck.ausentes.length}): `
+        + dsCheck.ausentes.map((a) => `${a.path} (sha ${a.sha256.slice(0, 12)})`).join(', ')
+        + ' — o dono do design-system/ e o projeto DS (#7096); rode o export dele antes.');
+    }
     if (manifest.mirrorScope === 'tree') {
       try {
         execFileSync(process.execPath, [fileURLToPath(new URL('../governance/cowork-ssot-guard.mjs', import.meta.url)),

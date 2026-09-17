@@ -136,6 +136,53 @@ if (FULL_TREE) {
 const sourceFiles = [...lidos]
   .map(([path, buffer]) => ({ path: normalizePayloadPath(path), buffer }))
   .sort((a, b) => a.path.localeCompare(b.path));
+// ── PR-A9: dsRequires — DECLARA o Design System de que este pacote depende ────────────────
+// Nenhum byte de `_ds/**` entra no lote (o dono do `design-system/` e o projeto DS, #7096 — e o
+// `bundle-transaction` recusa a escrita). O que viaja e o CONTRATO: path + sha256 do que o
+// prototipo carregou quando foi medido. Lemos do `_ds/` do root, que este script JA percorre —
+// muda o DESTINO do dado, nao a leitura.
+//
+// Por que 3 de runtime + as fontes: sao o que o shell (ou o CSS) de fato carrega. `@font-face`
+// aponta pra `assets/fonts/*`, entao um DS com o CSS certo e a fonte faltando renderiza errado
+// sem ninguem ver — foi a classe do fake-bold de 500/600/700.
+const DS_RUNTIME = ['_ds_bundle.js', 'colors_and_type.css', 'cockpit_domains.css'];
+function montarDsRequires() {
+  // ⚠️ LE DO DISCO, nao de `lidos` (medido 2026-09-17, e corrige a premissa do plano A9, que dizia
+  // "o gerador ja le o _ds/ do root"). Ele NAO le: no `--full-tree` o `classificarParaSync`
+  // classifica `_ds/**` como `ruido-dir`, e no modo grafo os `_ds/` so entravam quando o SHELL os
+  // referenciava por path literal — exatamente o que passou a ser recusado. Com o host correto
+  // (`__OI_DS_BASE__`), `lidos` nunca teria o `_ds/`, e o contrato sairia vazio em silencio.
+  const raizDs = join(ROOT, '_ds');
+  if (!existsSync(raizDs)) return null;                  // pacote sem `_ds/` -> nada a declarar
+  const dsPaths = [];
+  (function varrer(dir, prefix) {
+    for (const item of readdirSync(dir, { withFileTypes: true })) {
+      const rel = `${prefix}/${item.name}`;
+      if (item.isSymbolicLink()) continue;
+      if (item.isDirectory()) varrer(join(dir, item.name), rel);
+      else if (item.isFile()) dsPaths.push(rel);
+    }
+  }(raizDs, '_ds'));
+  if (!dsPaths.length) return null;
+  const slugs = new Set(dsPaths.map((rel) => rel.split('/')[1]).filter(Boolean));
+  if (slugs.size !== 1) {
+    // 2 design systems no mesmo pacote e ambiguidade, nao escolha silenciosa (mesma regra do
+    // `previewDsPlan`, que ja erra explicito nesse caso).
+    throw new Error(`dsRequires: ${slugs.size} design systems no pacote (${[...slugs].join(', ')}) — ambiguo`);
+  }
+  const slug = [...slugs][0];
+  const querido = (rel) => {
+    const dentro = rel.slice(`_ds/${slug}/`.length);
+    return DS_RUNTIME.includes(dentro) || /^assets\/fonts\//.test(dentro);
+  };
+  const arquivos = dsPaths.filter(querido).map((rel) => ({
+    path: rel.slice(`_ds/${slug}/`.length),
+    sha256: sha256(readFileSync(join(ROOT, ...rel.split('/')))),
+  }));
+  return arquivos.length ? { slug, arquivos } : null;
+}
+const dsRequires = montarDsRequires();
+
 const generatedAt = new Date().toISOString();
 const manifest = createManifest({
   source: `cowork:${ENTRY}`,
@@ -145,6 +192,7 @@ const manifest = createManifest({
   previous,
   generatedAt,
   ...(FULL_TREE ? { mirrorScope: 'tree' } : {}),
+  ...(dsRequires ? { dsRequires } : {}),
 });
 
 const changed = new Set([...manifest.changes.added, ...manifest.changes.modified]);

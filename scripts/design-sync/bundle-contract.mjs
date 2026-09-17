@@ -100,7 +100,19 @@ export function diffManifests(previous, currentFiles) {
   return { added, modified, deleted, unchanged };
 }
 
-export function createManifest({ source, entry = 'oimpresso.com.html', files, missing = [], previous = null, generatedAt = new Date().toISOString(), mirrorScope = null }) {
+/** Normaliza o contrato de DS: paths POSIX, sha minusculo, ordem estavel (o `bundleId` e hash
+ *  de JSON estavel — ordem instavel geraria id diferente pro mesmo conteudo). */
+export function normalizeDsRequires(dsRequires) {
+  if (!dsRequires || typeof dsRequires !== 'object') throw new Error('dsRequires invalido');
+  const slug = String(dsRequires.slug || '').trim();
+  if (!slug) throw new Error('dsRequires.slug vazio');
+  const arquivos = (dsRequires.arquivos || [])
+    .map((item) => ({ path: normalizePayloadPath(item.path), sha256: String(item.sha256).toLowerCase() }))
+    .sort((a, b) => a.path.localeCompare(b.path));
+  return { slug, arquivos };
+}
+
+export function createManifest({ source, entry = 'oimpresso.com.html', files, missing = [], previous = null, generatedAt = new Date().toISOString(), mirrorScope = null, dsRequires = null }) {
   if (mirrorScope !== null && mirrorScope !== 'tree') throw new Error(`escopo de espelho inválido: ${mirrorScope}`);
   const list = normalizedFiles(files);
   const cleanMissing = [...new Set(missing.map(normalizePayloadPath))].sort();
@@ -113,6 +125,10 @@ export function createManifest({ source, entry = 'oimpresso.com.html', files, mi
     files: list,
     missing: cleanMissing,
     ...(mirrorScope ? { mirrorScope } : {}),
+    // PR-A9: entra na IDENTIDADE de proposito. O pacote foi medido contra AQUELE DS; trocar o DS
+    // exigido e outro pacote, e o `bundleId` tem que dizer isso. Ausente = pacote legado, que
+    // segue valido e vira "NAO MEDIDO" na aplicacao (nunca "sem divergencia" — LC-13).
+    ...(dsRequires ? { dsRequires: normalizeDsRequires(dsRequires) } : {}),
   };
   const bundleId = sha256(stableJson(identity));
   return {
@@ -145,6 +161,11 @@ export function validateManifest(manifest) {
     files,
     missing: [...new Set((manifest.missing || []).map(normalizePayloadPath))].sort(),
     ...(manifest.mirrorScope ? { mirrorScope: manifest.mirrorScope } : {}),
+    // PR-A9: o contrato de DS faz parte da IDENTIDADE — o `createManifest` o inclui, e a
+    // recomputação aqui TEM que incluir também, senão todo pacote com `dsRequires` é recusado
+    // por "bundleId divergente" (medido 2026-09-17, foi o que aconteceu na 1ª versão: LC-22 —
+    // mudar artefato que a máquina lê sem rodar a máquina com a mudança aplicada).
+    ...(manifest.dsRequires ? { dsRequires: normalizeDsRequires(manifest.dsRequires) } : {}),
   };
   const expectedId = sha256(stableJson(expectedIdentity));
   if (manifest.bundleId !== expectedId) throw new Error(`bundleId divergente: declarado ${manifest.bundleId || '?'} · calculado ${expectedId}`);

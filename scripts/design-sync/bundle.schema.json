@@ -33,6 +33,27 @@
       },
       "additionalProperties": false
     },
+    "dsRequires": {
+      "$comment": "PR-A9 — dependência de Design System DECLARADA pelo pacote e VERIFICADA na aplicação. Nenhum byte de _ds/** entra no lote: o dono do design-system/ é o projeto DS (#7096). O que viaja é o CONTRATO (path + sha256) do DS contra o qual o protótipo foi medido. Opcional: pacote sem o campo é legado e vira NÃO MEDIDO, nunca 'sem divergência'.",
+      "type": "object",
+      "required": ["slug", "arquivos"],
+      "additionalProperties": false,
+      "properties": {
+        "slug": { "type": "string", "minLength": 1 },
+        "arquivos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "sha256"],
+            "additionalProperties": false,
+            "properties": {
+              "path": { "$ref": "#/$defs/path" },
+              "sha256": { "$ref": "#/$defs/sha256" }
+            }
+          }
+        }
+      }
+    },
     "manifest": {
       "type": "object",
       "required": ["schema", "bundleId", "baseBundleId", "mode", "source", "entry", "generatedAt", "files", "missing", "changes", "totals"],
@@ -42,6 +63,7 @@
         "baseBundleId": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
         "mode": { "enum": ["snapshot", "delta"] },
         "mirrorScope": { "const": "tree", "description": "Árvore completa da conta; autoriza retirar sobras do espelho, nunca do DS canônico." },
+        "dsRequires": { "$ref": "#/$defs/dsRequires" },
         "source": { "type": "string", "minLength": 1 },
         "entry": { "$ref": "#/$defs/path" },
         "generatedAt": { "type": "string", "format": "date-time" },
