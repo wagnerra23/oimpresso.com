@@ -6,8 +6,30 @@ path: (repo inteiro — foco em resources/css, resources/js, memory/, prototipo-
 
 ## Last sync
 
-date: 2026-09-17
-commit: (nao registrado — o PR #7463 acabou de subir CI; sha do merge desconhecido aqui)
+date: 2026-09-17T12:39:00Z
+commit: be67e5c4defc245290fbe6940c77dacb807b5133 (merge do PR #7465 — pacote 4 importado)
+
+### Confirmado no main (2026-09-17T12:39Z)
+
+O push entrou: 37 arquivos, 8 commits. Conferido item por item contra o que foi feito aqui:
+
+- **Fontes** — os 4 `.woff2` do Sans estao no repo com os bytes e os sha256 exatos deste lado:
+  400 `63020` `ba711a3085ff…`, 500 `66740` `5660f8a658f8…`, 600 `67060` `f78048030eab…`,
+  700 `63012` `fa7130d854a6…`. O `-400` aparece como `[modified]` (subset velho → build completo),
+  os outros 3 como `[added]`. §3 fechada nos dois lados.
+- **R4** — os dois `[renamed]` batem: `templates/atendimento/{ds-base,support}.js` →
+  `templates/_shared/`. Nenhuma das outras 11 copias existe no baseline novo, e
+  `templates/oficina-auto/support.js` (`fab925b9a2ec…`) + `support.js` da raiz (`acb671965eac…`)
+  seguem lá — os dois legitimos, como previsto. §2 fechada.
+- **§4** — `SKILL.md`, `HANDOFF.md`, `HANDOFF-2026-08-31-…` e `ColumnManager.jsx` modificados.
+- **Baseline** — `config/ds-handoff-baseline.json` aceito (251 → 240); portao idempotente.
+- `uploads/Norte - Fluxo do Caminhao.html` nao consta mais no baseline; `Norte/` e a canonica. ✅
+
+Restam abertos: o sha do merge (a preencher) e o **sentinela cego a `@font-face`** (secao propria
+abaixo) — nada mais.
+
+### Sync anterior · 2026-09-17
+commit: 59dfd33a92a967e5afe3c6e3ed0f37daaa18e37c (merge do PR #7463 — `github.md` alinhado ao vivo)
 
 ### Updated in this project
 
@@ -114,7 +136,77 @@ Os 4 `.woff2` do Sans agora são arquivos distintos, vindos de `IBM/plex@78cd422
   (mono-400/500/600 + sans-400) e o `-400` de lá é o subset velho. Com isso, as §2 e §3 do
   `CODE_NOTES-2026-09-17` estão fechadas deste lado — vale reexportar o handoff e rodar
   `handoff-changed --update` se o import fechar.
-- **6 ponteiros podres**: a documentação daqui descreve a árvore do repo anterior ao #7224
+
+### 2026-09-17 · Ponteiros podres (§4 do CODE_NOTES) — vivos corrigidos
+
+Substituíção literal caminho-velho → caminho-do-`main`, só nos documentos que instruem quem
+trabalha agora. Medido por ocorrência:
+
+| arquivo vivo | trocas |
+| --- | --- |
+| `SKILL.md` | `COWORK_NOTES.md` ×1 |
+| `HANDOFF.md` | `COWORK_NOTES.md` ×2 · `ds-guard.mjs` ×1 |
+| `HANDOFF-2026-08-31-tabbar-pageheader.md` | `COWORK_NOTES.md` ×1 · `ds-guard.mjs` ×1 |
+| `components/ColumnManager/ColumnManager.jsx` (docblock) | `cowork/venda-v3/` → `cowork/Felipe/venda-v3/` ×1 |
+
+Destinos usados: `memory/reference/prototipo-ui/COWORK_NOTES.md`, `scripts/design/ds-guard.mjs`,
+`prototipo-ui/cowork/Felipe/venda-v3/`.
+
+- `integrity-check.mjs`, `LICOES_F3_…` e `cowork/ds-v6` **só aparecem em `arquivo/`** — registro
+  datado, deixado como está de propósito (como o próprio `CODE_NOTES` autoriza). Se quiser também
+  esses, é uma linha a mais.
+- O trecho do `_ds_bundle.js` carrega o docblock do `ColumnManager` — recompila sozinho, não foi
+  editado à mão.
+- Grep de confirmação: nenhum dos 6 padrões sobra fora de `arquivo/` e dos próprios documentos de
+  registro (`CODE_NOTES…`, este `github.md`).
+
+### Fechado · sentinela cego a `@font-face` — via `--css-refs`, não via `ds-mirror-drift`
+
+Aberto por um achado do Code em 2026-09-17 e **fechado no mesmo dia no PR #7466**
+(`f07df7e4e49ffb2b029bb87c361d258800a0b5ad`) — mas não pelo caminho que eu supus:
+
+- O `ds-mirror-drift` **continua medindo só valor de token**, e está certo assim. Estendê-lo era a
+  hipótese errada.
+- Quem enxergava esse caso era o **`--preview-ds`**: o `previewDsPlan` já fazia grafo de `@import` +
+  fonte por `url()` (o comentário de 14/08 cita os "7 `@font-face` com status error"). Quando o
+  shell passou a ler o espelho direto, o `--preview-ds` foi aposentado e a verificação foi junto —
+  a função sobreviveu, o caminho de CLI não. Mesma causa raiz do código morto da linha 2143.
+- O eixo novo **`--css-refs`** faz a checagem partindo dos CSS em vez do shell. Estado no `main`:
+  **8 CSS, 8 refs, 0 mortas**, advisory.
+- **Efeito deste lado:** um CSS daqui apontando pra arquivo inexistente passa a acusar no CI —
+  exatamente o buraco que deixou o descompasso das fontes viver semanas sem alarme.
+
+### Aberto · reexport pendente: a §4 não desceu
+
+As correções de ponteiro estão no vivo mas **não estão no `main`** — o pacote 4 foi montado antes
+delas. Medido pelo Code no `main` de 2026-09-17: **7 ocorrências vivas em 4 arquivos** (+ o bundle,
+derivado):
+
+| ponteiro | arquivos vivos |
+| --- | --- |
+| `prototipo-ui/COWORK_NOTES.md` | `SKILL.md`, `HANDOFF.md`, `HANDOFF-2026-08-31-tabbar-pageheader.md` |
+| `prototipo-ui/ds-guard.mjs` | `HANDOFF.md`, `HANDOFF-2026-08-31-tabbar-pageheader.md` |
+| `prototipo-ui/cowork/venda-v3` | `components/ColumnManager/ColumnManager.jsx`, `_ds_bundle.js` (recompila) |
+
+São exatamente os 4 arquivos corrigidos aqui — a correção existe, só não chegou lá. A rota é o
+**ZIP**: `get_file` seria transcrição (proibida pela ADR 0374) e o conjunto inclui o `_ds_bundle.js`
+de 348 KB, acima do teto de 256 KiB do transporte avulso. Com R4 zerada e baseline em 240, o import
+deve fechar sozinho.
+
+### Aberto · código morto em `--preview-ds` (achado do Code, 2026-09-17)
+
+`return` na linha 2143 e **~51 linhas inalcançáveis** depois — quem lê o script acha que aquele
+trecho roda. Remover é outro intent: exige decidir antes se a materialização ainda serve a alguém.
+Registrado, não feito.
+
+### Aberto · dívida de ledger LC-08 (lado Code)
+
+Uma contagem inflada chegou a este lado e virou registro. Pela regra do projeto o registro da
+ocorrência é dever de quem a produziu (lado Code), em intent separado — não foi feito junto com o
+pacote 4 pra não misturar intents. **Consequência aqui:** quando vier, identificar qual número
+deste `github.md` é o inflado e corrigir o texto.
+- **6 ponteiros podres** — **corrigidos nos vivos em 2026-09-17**, mas **ainda não no `main`** (ver
+  "reexport pendente" acima). A documentação daqui descrevia a árvore do repo anterior ao #7224
   (`prototipo-ui/COWORK_NOTES.md`, `prototipo-ui/ds-guard.mjs`, `prototipo-ui/integrity-check.mjs`,
   `prototipo-ui/cowork/venda-v3/…`, `prototipo-ui/LICOES_F3_…`, `prototipo-ui/cowork/ds-v6`) —
   6 de 6 não existem mais no `main`. Os vivos (`SKILL.md`, `HANDOFF.md`, `ColumnManager.jsx`) são
