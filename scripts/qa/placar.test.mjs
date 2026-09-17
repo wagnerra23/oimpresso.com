@@ -138,6 +138,25 @@ try {
     'CONTROLE: reabertura é entregue→ausente, e ausente→entregue NÃO conta');
 } catch (e) { ok(false, `fixture git do retrabalho falhou: ${e.message.slice(0, 160)}`); }
 
+// ── a nota de forma DERIVA do disco, nao afirma (LC-10) ────────────────────────────────
+// A frase hardcoded "que ainda nao existe" nasceu verdadeira e virou FALSA no mesmo dia em
+// que o secao-check entrou (2026-09-17 20:46Z, #7488), seguindo a ser postada em todo PR.
+// Os DOIS ramos sao exercitados: sem os dois, um `return` fixo passaria no teste.
+try {
+  const { notaDeForma } = await import('./placar.mjs?t=' + Date.now());
+  const comA3 = join(TMP, 'raiz-com-a3'); mkdirSync(join(comA3, 'scripts', 'qa'), { recursive: true });
+  writeFileSync(join(comA3, 'scripts', 'qa', 'secao-check.mjs'), '// existe');
+  const semA3 = join(TMP, 'raiz-sem-a3'); mkdirSync(join(semA3, 'scripts', 'qa'), { recursive: true });
+  const nComA3 = notaDeForma(comA3), nSemA3 = notaDeForma(semA3);
+  ok(!/ainda não existe/.test(nComA3) && /design-memory-gate/.test(nComA3),
+    `DERIVA (com secao-check no disco): nao diz "ainda nao existe" (${nComA3.slice(-70)})`);
+  ok(/ainda não existe nesta árvore/.test(nSemA3),
+    'DERIVA (sem secao-check no disco): volta a dizer que nao existe');
+  ok(nComA3 !== nSemA3, 'CONTROLE: os dois ramos DIFEREM — se fossem iguais, a derivacao seria decorativa');
+  ok([nComA3, nSemA3].every((n) => /não afirma fidelidade de forma/.test(n)),
+    'DURAVEL: o recorte ("nao afirma forma") e afirmado nos DOIS ramos — so a existencia deriva');
+} catch (e) { ok(false, `nota de forma: ${e.message.slice(0, 160)}`); }
+
 rmSync(TMP, { recursive: true, force: true });
 console.log(`\n${fails ? `${fails} FALHA(S)` : 'todos os casos passaram'}`);
 process.exit(fails ? 1 : 0);
