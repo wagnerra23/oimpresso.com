@@ -1466,6 +1466,12 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - Ocorrência da **LC-36**.
 
+### 2026-09-17 — `gh pr edit --body-file /tmp/<nome-genérico>`: o `gh` leu o arquivo de OUTRA sessão e sobrescreveu o corpo do meu PR — reportando sucesso
+
+- **O limite (variante também proibida) — mesma raiz da [LC-12](LICOES_CODE.md) (agir sobre estado GLOBAL presumindo que é seu) e mesma família de §5 2026-08-21 (`/tmp` divergente entre Bash e runtime nativo de Windows), com vetor novo: o consumo não destrói, ele LÊ.** Arquivo que alimenta comando de escrita externa (`gh pr edit|create --body-file`, `gh api --input`, `--body-file` de qualquer CLI, `git commit -F`) nasce com **caminho absoluto no diretório de scratch DA SESSÃO** — nunca `/tmp/<nome-genérico>`, nunca nome que outra sessão escolheria. E o corolário que vale para além do path, porque é o que teria pego este caso em qualquer variante: **`rc=0` de comando que LÊ um arquivo não prova que ele leu O SEU arquivo** — a verificação é reler o RESULTADO (aqui: `gh pr view --json body`), nunca o exit code. O mesmo vale para `--input`, `--file`, `-F` e redirecionamento: o sucesso reportado é sobre *ter lido algo*, não sobre *ter lido o que você escreveu*.
+
+- **⚠️ NÃO armado, e o par candidato fica com o comando de medição.** O predicado é **determinístico** (`--body-file`/`--input`/`-F` cujo argumento resolve sob `/tmp` ou não é absoluto) e o dono a **estender** seria o [`block-sonda-que-mente`](../.claude/hooks/block-sonda-que-mente.mjs), que já tem a forma de **duas pernas** (P4/P5) — nunca hook novo, que seria [LC-19](LICOES_CODE.md) dentro da correção. Não se arma aqui porque **o FP não foi medido** (regra "LIGUE A MÁQUINA" item 4) e `--body-file` com path **relativo do repo** é uso legítimo e comum; acusar todos reprovaria o correto, que é a família de guard sintático com 8 lápides medidas neste §5. Medir antes: contar, no corpus de transcripts, `--body-file|--input|-F` cujo argumento comece por `/tmp` — separando os que escrevem em artefato público (PR, issue, gist) dos que não.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
