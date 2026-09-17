@@ -254,6 +254,24 @@ check('mesmo número → mesmo veredito (independe de --check)',
   check('./ normalizado', deps.includes('financeiro-page.jsx') && !deps.some((d) => d.startsWith('./')));
   check('png/anchor/data: ficam fora (só build jsx/css/js)', !deps.some((d) => /png|#top|^data:/.test(d)));
 
+  // REF MONTADA EM RUNTIME não é path (pacote 25, 2026-09-17). O host faz
+  // `document.write('<link href="'+window.__OI_DS_BASE__+'colors_and_type.css"/>')` e o regex
+  // captura o MIOLO da expressão como se fosse arquivo — o ABSENT-LOCAL acusava 3 deps faltando
+  // que não existem como path nenhum. FP medido no shell real: 274 deps → 3 descartadas, 271
+  // mantidas e TODAS existentes no espelho (zero falso-negativo).
+  const DINAMICO = `<script>document.write('<link href="'+window.__OI_DS_BASE__+'colors_and_type.css"/>')</script>`
+    + `<script>document.write('<script src="' + B + 'x.js"><\\/script>')</script>`
+    + '<link rel="stylesheet" href="styles.css">';
+  const dd = parseShellDeps(DINAMICO);
+  check('MORDE: ref montada em runtime não vira path fantasma',
+    !dd.some((d) => d.includes('+') || d.includes("'") || d.includes('"')), JSON.stringify(dd));
+  // CONTROLE NEGATIVO: sem ele, um filtro que descartasse TUDO passaria no assert de cima.
+  check('CONTROLE: a ref estática do mesmo shell continua entrando',
+    dd.includes('styles.css'), JSON.stringify(dd));
+  check('CONTROLE: `${}` de template literal também não vira path',
+    !parseShellDeps('<link href="${base}a.css"><link href="b.css">').some((d) => d.includes('${'))
+      && parseShellDeps('<link href="${base}a.css"><link href="b.css">').includes('b.css'));
+
   const dir = mkdtempSync(join(tmpdir(), 'mirror-deps-'));
   try {
     const pages = join(dir, 'resources', 'js', 'Pages');

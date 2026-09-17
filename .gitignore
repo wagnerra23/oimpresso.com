@@ -161,6 +161,22 @@ visreg-art/
 # passavam livres). Referências a `cowork/Wagner/.gitignore:26` em CODE_NOTES/LICOES_CODE/
 # licoes-rejeitadas/ADR UI-0029 são fato datado e ficam intactas.
 prototipo-ui/cowork/**/*.png
+# EXCEÇÃO NOMEADA — [W] autorizou 2026-09-17. NÃO é afrouxamento da regra acima: são 4 arquivos
+# com nome fixo (~152 KB), e nada mais sob `cowork/` passa a casar.
+#
+# POR QUÊ: o `inbox-page.jsx` declara as 4 fotos como dado de contato (`photo:` nas L166/176/185/193,
+# desde o #7224 em 11/09) e o host do pacote 24/25 passou a dar `<link rel="preload" as="image">`
+# nas quatro (L135-138). São dependência DE RENDER declarada pela origem, não depósito de imagem —
+# que é o que a regra de 23/06 (#3259) veio impedir. Com elas ausentes, o `payloadDependencyGraph`
+# emite `BLOQUEADO: missing (4)` e o consumidor RECUSA o lote inteiro: o pacote de telas não entra.
+#
+# Medido antes de pedir a exceção: com ela, `DELTA: +4 ~2 -10 =699` e dry-run VALIDADO (exit 0).
+# Sem ela não há saída — a origem declarou por escrito que as fotos devem existir, então não haverá
+# conserto do lado Cowork (ver CODE_NOTES.handoff-24-recusado-por-grafo-inbox-photo-2026-09-17.md).
+!prototipo-ui/cowork/Wagner/inbox-photo-c1.png
+!prototipo-ui/cowork/Wagner/inbox-photo-c2.png
+!prototipo-ui/cowork/Wagner/inbox-photo-c3.png
+!prototipo-ui/cowork/Wagner/inbox-photo-c4.png
 prototipo-ui/cowork/**/*.jpg
 prototipo-ui/cowork/**/*.jpeg
 prototipo-ui/cowork/**/*.gif
