@@ -11,6 +11,12 @@
     }
   },
   "workflows": {
+    "cowork-bundle.yml": {
+      "nome": "cowork-bundle (pacote do espelho · artifact) — PR-A5 do plano COLAR-NO-CODE. Gera as PARTES do bundle v2 a partir de prototipo-ui/cowork/Wagner e as publica como artifact (14d). NAO commita: o manifesto seria byte-equivalente ao state/active-bundle.json ja versionado (medido 2026-09-17: mesmo bundleId, 705 arquivos, 0 diferencas) e o lote pesa 14 MB. Existe porque gerar-payload-partes exige os arquivos EM DISCO e nao roda do lado Cowork (ADR 0374) — o runner tem disco.",
+      "classe": "automacao",
+      "terminal": "automacao",
+      "anchor": "memory/reference/prototipo-ui/PROTOCOL.md"
+    },
     "deadlink-gate.yml": {
       "nome": "deadlink-gate (ratchet · integridade referencial) — catraca de integridade referencial doc↔doc: links markdown internos mortos no corpo VIVO (memory/** menos história append-only + *.md da raiz). Ratchet POR ARQUIVO vs governance/deadlink-baseline.json (dívida grandfathered; reprova só quem PIORA). Case-sensitive sempre (paridade Linux). Require-safe (sem paths-filter, roda em todo PR). GENERALIZA o Check V do memory-health (warn num subconjunto front-facing) pro corpus vivo inteiro com mordida — Check V segue como sentinela do subconjunto; este é a catraca do todo.",
       "classe": "gate",
