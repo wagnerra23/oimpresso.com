@@ -51,9 +51,12 @@ function sandbox() {
 
 function sourceSnapshot(label = 'v1') {
   return new Map([
+    // ⚠️ O shell NÃO referencia `_ds/**` por path literal (mudou em 2026-09-17, decisão [W]:
+    // "importação do protótipo não era para alterar o design system"). O host real resolve a base
+    // em runtime (`__OI_DS_BASE__`), como o pacote 25 faz. Ref literal a `_ds/` agora é RECUSADA
+    // pelo grafo — há bite-test próprio pra isso no fim do arquivo.
     ['oimpresso.com.html', Buffer.from([
       '<link rel="stylesheet" href="styles.css">',
-      '<link rel="stylesheet" href="_ds/ds-live/colors_and_type.css">',
       '<script src="financeiro-page.jsx"></script>',
       '<script src="superadmin-page.jsx"></script>',
       '<script src="officeimpresso-page.jsx"></script>',
@@ -133,8 +136,12 @@ console.log('\n=== snapshot completo + roteamento + plano modular ===');
   const manifest = manifestFor(buffers);
   const result = await applyBundleTransaction({ root, parts: partsFor(manifest, buffers, 2) });
   check('snapshot promove o espelho', readFileSync(join(root, 'prototipo-ui/cowork/Wagner/styles.css'), 'utf8').includes('v1'));
-  check('_ds pousa apenas no runtime derivado',
-    existsSync(join(root, 'prototipo-ui/design-system/colors_and_type.css')) &&
+  // ⚠️ CONTRATO MUDOU em 2026-09-17 ([W]: "importação do protótipo não era para alterar o design
+  // system"). Antes o `_ds/` pousava em `prototipo-ui/design-system/` — no-op quando os bytes
+  // batiam, SOBRESCRITA quando não batiam. Agora o export de telas não escreve o DS em lugar
+  // nenhum: quem manda ali é o projeto DS (#7096), pela rota `--export-from --ds`.
+  check('_ds NÃO pousa — nem no espelho, nem no Design System (dono é o projeto DS)',
+    !existsSync(join(root, 'prototipo-ui/design-system/colors_and_type.css')) &&
     !existsSync(join(root, 'prototipo-ui/cowork/Wagner/_ds')));
   check('estado ativo registra o bundle exato', JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/active-bundle.json'), 'utf8')).bundleId === manifest.bundleId);
   const report = result.report;
@@ -580,7 +587,10 @@ console.log('\n=== --check-lifecycle: a catraca do escopo novo morde pelo CLI de
   await applyBundleTransaction({ root, parts: partsFor(m1, antes) });
   const alvoDs = join(root, 'prototipo-ui/design-system/colors_and_type.css');
   const alvoTela = join(root, 'prototipo-ui/cowork/Wagner/removido.js');
-  check('SETUP: o _ds/ pousou no runtime e a tela no espelho',
+  // O DS é populado pela rota do PROJETO DS (`--export-from --ds`), não por este transporte —
+  // por isso escrevo o arquivo à mão aqui em vez de esperar que o apply o crie.
+  put(root, 'prototipo-ui/design-system/colors_and_type.css', ':root{--ds:posto-pela-rota-ds}\n');
+  check('SETUP: o DS existe (posto por OUTRA rota) e a tela pousou pelo export',
     existsSync(alvoDs) && existsSync(alvoTela));
 
   // delta que apaga OS DOIS: um path `preview-cache` e um path de tela comum. O shell perde a ref
@@ -608,6 +618,36 @@ console.log('\n=== --check-lifecycle: a catraca do escopo novo morde pelo CLI de
   check('CONTROLE: remoção de path de TELA continua efetivada (não virou "não apaga nada")',
     !existsSync(alvoTela));
   rmSync(root, { recursive: true, force: true });
+}
+
+// ── host que depende de `_ds/` por path LITERAL é RECUSADO ───────────────────────
+// Consequência desejada da regra acima, e o sinal que faltava: se o shell referencia o cache do
+// DS por path fixo, o lote não entra — porque entrar exigiria escrever no `design-system/`, que
+// este transporte não pode. O caminho certo é o host resolver a base em runtime
+// (`__OI_DS_BASE__`), como o pacote 25 faz. Foi o pacote 26 que regrediu isso e forçou a escrita.
+{
+  const root = sandbox();
+  const comRefLiteral = sourceSnapshot('v1');
+  comRefLiteral.set('oimpresso.com.html', Buffer.from([
+    '<link rel="stylesheet" href="styles.css">',
+    '<link rel="stylesheet" href="_ds/ds-live/colors_and_type.css">',
+    '<script src="financeiro-page.jsx"></script>',
+    '<script src="superadmin-page.jsx"></script>',
+    '<script src="officeimpresso-page.jsx"></script>',
+  ].join('\n')));
+  await rejects('MORDE: host com ref LITERAL a _ds/ é recusado (entrar exigiria escrever no DS)',
+    () => applyBundleTransaction({ root, parts: partsFor(manifestFor(comRefLiteral), comRefLiteral) }),
+    /grafo do estado-alvo incompleto/);
+  rmSync(root, { recursive: true, force: true });
+
+  // CONTROLE NEGATIVO: o MESMO lote, com o host resolvendo a base em runtime, ENTRA.
+  // Sem ele, uma transação que recusasse tudo passaria no assert de cima.
+  const root2 = sandbox();
+  const comRuntime = sourceSnapshot('v1');
+  await applyBundleTransaction({ root: root2, parts: partsFor(manifestFor(comRuntime), comRuntime) });
+  check('CONTROLE: o mesmo lote com host sem ref literal ENTRA (não virou "recusa tudo")',
+    existsSync(join(root2, 'prototipo-ui/cowork/Wagner/styles.css')));
+  rmSync(root2, { recursive: true, force: true });
 }
 
 console.log(failures ? `\n✗ ${failures} falha(s)` : '\n✓ bundle v2: delta + staging + rollback + módulos + catraca lifecycle + dono do _ds no delete provados');
