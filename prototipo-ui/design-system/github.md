@@ -21,6 +21,17 @@ commit: 5c55e4f96f1 (sha real do merge do PR #7456 — nao e tree hash)
 - **3 `@font-face` corrigidas de carona.** Os pesos 500/600/700 do IBM Plex Sans apontavam para
   `ibm-plex-sans-400.woff2` na copia do repo. O scaffold do push foi o arquivo do handoff 22 (leitura
   do vivo), entao o vivo manteve os pesos certos e o repo recebeu o conserto.
+  - ⚠️ **ERRATA 2026-09-17 — esta bullet e FALSA e fica registrada, nao apagada.** Nao houve conserto:
+    (a) no espelho do repo os arquivos `ibm-plex-sans-{500,600,700}.woff2` **nao existem** —
+    `git ls-files assets/fonts/` devolve 4 (mono-400/500/600 + sans-400), so isso; logo as 3 linhas
+    que eu escrevi apontam pra arquivos AUSENTES e o preview servido deste diretorio (ADR 0401 E2)
+    perde a fonte e cai no fallback do `font-family`. (b) No Cowork os 3 arquivos existem, mas sao
+    **copias byte-identicas do 400** (mesmo sha256, 45.712 B) — medido pela sessao irma no PR #7461
+    ao recusar o handoff DS por R4. Ou seja: o DS nao tem esses pesos, e **3 pesos caindo no arquivo
+    400 era a forma CORRETA**, feia e funcional. Revertido no PR #7462, que mantem os 8 tokens.
+    Os 3 arquivos NAO foram trazidos de proposito: seriam duplicata que o R4 proibe — a
+    desduplicacao e da origem, ja pedida no #7461. Causa do erro: reconheci o padrao
+    `peso 500 -> arquivo 400` como bug e nao conferi se o alvo existia.
 - `cockpit_domains.css` reescrito sem diferenca de conteudo (write do mesmo par).
 - Verificacao: `ds-push` VALOR:0 vs canon · `write_files` written:2 · releitura com 8 de 8 valores
   presentes · `ds-mirror-drift` drift 0 baseline 0 nos 4 escopos.
