@@ -1,0 +1,104 @@
+# PR-A5 do plano COLAR-NO-CODE — o pacote do espelho deixa de depender de mão.
+#
+# POR QUE EXISTE (plano, pedido [W] 2026-09-03): `gerar-payload-partes.mjs` exige os arquivos
+# EM DISCO, e por isso não roda do lado Cowork (ADR 0374) — o runner tem disco. Sem isto, o
+# pacote só nasce quando alguém o gera à mão, e o sintoma é o `sync/` congelado por ciclos.
+#
+# ── ⚠️ DUAS DIVERGÊNCIAS DO PLANO, MEDIDAS EM 2026-09-17 ──────────────────────────────────
+#
+# 1. O plano manda COMMITAR `sync/`. NÃO commitamos, por dois números:
+#    · O manifesto gerado do espelho é **byte-equivalente ao `state/active-bundle.json`** que já
+#      está versionado — medido: mesmo `bundleId` (6788f679…), 705 arquivos, 0 diferenças nos
+#      dois sentidos. Versioná-lo de novo é duplicar dono (LC-19), e o próprio plano abre com
+#      "nenhum dono novo".
+#    · O lote completo pesa **14 MB em 60 arquivos** (snapshot de 705). Commitar isso a cada push
+#      no espelho infla o repo sem consumidor: varrido o repo, NENHUM `.mjs`/`.yml` lê
+#      `sync/bundle.manifest.json` — só docs do Cowork. E o `receber-handoff` **regenera** o
+#      bundle a cada import (passo [5]), então o `sync/` do pacote já é auditado e ignorado.
+#    O que o lado Cowork não consegue produzir são as PARTES; elas saem como **artifact**.
+#
+# 2. O plano diz `--root prototipo-ui/cowork`. O shell (`oimpresso.com.html`) vive em
+#    `cowork/Wagner/`, e `cowork/` tem DUAS contas (Wagner + Felipe), cada uma com seu estado
+#    (`state/` e `state/Felipe/`). Root errado geraria um pacote de duas contas misturadas.
+#
+# NÃO COMMITA NADA — logo não há loop de push, e nada entra no espelho por esta porta.
+
+name: cowork-bundle
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'prototipo-ui/cowork/Wagner/**'
+  workflow_dispatch:
+    inputs:
+      full_tree:
+        description: 'snapshot completo (ignora o bundle ativo como base)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cowork-bundle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gerar:
+    name: pacote do espelho (artifact · advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: gerar o pacote
+        id: gerar
+        run: |
+          set -euo pipefail
+          OUT="${RUNNER_TEMP}/sync"
+          BASE="scripts/design-sync/state/active-bundle.json"
+          ARGS=(--root prototipo-ui/cowork/Wagner --out "$OUT")
+          # Delta contra o bundle ATIVO quando ele existe: é o mesmo `--previous` que o
+          # `receber-handoff` usa, então o pacote daqui fala a mesma língua do import.
+          if [ "${{ inputs.full_tree }}" = "true" ] || [ ! -f "$BASE" ]; then
+            ARGS+=(--full-tree)
+          else
+            ARGS+=(--previous "$BASE" --full-tree)
+          fi
+          node scripts/design-sync/gerar-payload-partes.mjs "${ARGS[@]}" | tee "${RUNNER_TEMP}/gerar.log"
+          echo "out=$OUT" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: conferir contra o bundle ativo (drift do espelho)
+        run: |
+          set -euo pipefail
+          OUT="${RUNNER_TEMP}/sync"
+          # Se o manifesto gerado do espelho difere do bundle ATIVO, alguém mexeu no espelho sem
+          # passar pelo import. Isso é RELATO, não falha: mexer no espelho por outra rota é
+          # legítimo (o `--export-from --ds` faz isso), e o dono do veredito é o
+          # `--compare-bundle --check`, que já roda em outro lugar. Aqui só se diz o número.
+          node -e '
+            const fs = require("fs");
+            const g = JSON.parse(fs.readFileSync(process.argv[1] + "/bundle.manifest.json", "utf8"));
+            const base = "scripts/design-sync/state/active-bundle.json";
+            if (!fs.existsSync(base)) { console.log("⬜ sem bundle ativo — nada a comparar"); process.exit(0); }
+            const a = JSON.parse(fs.readFileSync(base, "utf8"));
+            const igual = g.bundleId === a.bundleId;
+            console.log(`gerado ${g.bundleId.slice(0,16)} · ${g.files.length} arquivos`);
+            console.log(`ativo  ${a.bundleId.slice(0,16)} · ${a.files.length} arquivos`);
+            console.log(igual
+              ? "✓ o espelho bate com o bundle ativo"
+              : "⬜ DIVERGE — o espelho mudou fora do import; veredito é do --compare-bundle --check");
+          ' "$OUT" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: publicar as partes
+        uses: actions/upload-artifact@v4
+        with:
+          name: cowork-bundle-${{ github.sha }}
+          path: ${{ runner.temp }}/sync
+          retention-days: 14
+          if-no-files-found: error
