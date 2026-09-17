@@ -26,7 +26,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { lerZip, extrairZip, crc32, nomeSeguro } from './zip-reader.mjs';
 import { createManifest } from './bundle-contract.mjs';
-import { acharRaiz, auditarPacote, classificar, listarRelativos, decidirDono } from './receber-handoff.mjs';
+import { acharRaiz, auditarPacote, classificar, listarRelativos, decidirDono, ignoradosPeloRepo, pathNoEspelho } from './receber-handoff.mjs';
 
 let falhas = 0;
 const ok = (cond, nome) => {
@@ -181,6 +181,33 @@ export function selftest() {
   ok(decidirDono(naoVin, 'w', contasT, projsT).motivo.includes('--conta NAO vale aqui'), 'MORDE: e diz por que nao cede');
   // CONTROLE NEGATIVO do par: se decidirDono virasse "nao pra tudo", os 5 SOLTA caem juntos.
   ok(decidirDono(vinc, 'outra', contasT, projsT).ok === true, 'SOLTA: vinculada ignora --conta irrelevante (nao virou nao-pra-tudo)');
+
+  // -- ignoradosPeloRepo (o que o .gitignore proibe NAO entra no manifesto) --------
+  // Injetor FAKE de proposito: acoplar ao .gitignore real faria o caso mudar de veredito quando
+  // alguem editasse a regra — quebraria por DADO, nao por bug (mesmo criterio do registro acima).
+  const soPng = (paths) => paths.filter((p) => p.endsWith('.png'));
+
+  ok(pathNoEspelho('inbox-photo-c1.png') === 'prototipo-ui/cowork/Wagner/inbox-photo-c1.png',
+    'MAPA: path de tela pousa no espelho do Wagner');
+  ok(pathNoEspelho('_ds/x/colors_and_type.css', 'preview-cache').startsWith('prototipo-ui/design-system/'),
+    'MAPA: preview-cache pousa no design-system (dsRuntimeRelPath)');
+
+  const ign = ignoradosPeloRepo(['inbox-photo-c1.png', 'inbox-page.jsx', 'app.jsx'], soPng);
+  ok(ign.has('inbox-photo-c1.png'), 'MORDE: png que o .gitignore exclui sai do export');
+  // CONTROLE NEGATIVO: se o filtro virasse "tudo fora", os dois abaixo caem junto.
+  ok(!ign.has('inbox-page.jsx') && !ign.has('app.jsx'), 'SOLTA: fonte .jsx continua no export');
+  ok(ignoradosPeloRepo(['app.jsx', 'styles.css'], soPng).size === 0, 'SOLTA: export sem ignorado devolve vazio');
+  // `_ds/**` tem dono proprio (passo [4], projeto DS) — nunca entra neste filtro, mesmo gitignored.
+  ok(ignoradosPeloRepo(['_ds/x/assets/fonts/a.woff2'], () => ['qualquer-coisa']).size === 0,
+    'SOLTA: preview-cache fica fora do filtro (dono e o projeto DS)');
+  // Path fora do contrato build-only faz `roleForPath` LANCAR — nao pode derrubar o import.
+  ok(ignoradosPeloRepo(['.gitignore', '.thumbnail'], soPng).size === 0,
+    'SOLTA: path fora do contrato build-only nao lanca (o gerador ja o descarta)');
+  // O injetor que EXPLODE tem que propagar: "0 ignorados" silencioso seria gate mudo (LC-33).
+  let propagou = false;
+  try { ignoradosPeloRepo(['app.jsx'], () => { throw new Error('git sumiu'); }); }
+  catch { propagou = true; }
+  ok(propagou, 'MORDE: falha do check-ignore propaga (nao vira "0 ignorados")');
 
   console.log(`\n  ${falhas === 0 ? 'OK' : 'FALHAS: ' + falhas}\n`);
   if (falhas) process.exit(1);

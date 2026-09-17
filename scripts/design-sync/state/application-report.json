@@ -1,15 +1,15 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-16T20:36:06.103Z",
+  "generatedAt": "2026-09-17T14:35:29.567Z",
   "bundle": {
-    "id": "42e229f9ac6bd334f202a10eb136f213e13a6d0a0c773e4b1ddb7c1fdad3ed15",
-    "baseId": "826e4cd06163f577af46fc06d1b00ad406ff0271f3023310e69c202422b11680",
+    "id": "615462e08f864cc10cdd05d04843c14a5772d5acd181145a275824da44ccb768",
+    "baseId": "42e229f9ac6bd334f202a10eb136f213e13a6d0a0c773e4b1ddb7c1fdad3ed15",
     "mode": "delta",
     "source": "cowork:oimpresso.com.html",
     "transportComplete": true
   },
   "summary": {
-    "transportChanges": 8,
+    "transportChanges": 17,
     "screens": 162,
     "tested": 0,
     "smoked": 0,
@@ -22,59 +22,122 @@
   },
   "transportChanges": [
     {
+      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js",
+      "change": "modified",
+      "bytes": 348179,
+      "sha256": "a8cec9a6ea1685302fa87c21aab13987129759e940cd97af21af361a75635761",
+      "role": "preview-cache"
+    },
+    {
+      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-400.woff2",
+      "change": "modified",
+      "bytes": 63020,
+      "sha256": "ba711a3085ff9f27440b6b9c4550cfc47c97bf36591d5da958b975bb3add8c1a",
+      "role": "preview-cache"
+    },
+    {
+      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-500.woff2",
+      "change": "added",
+      "bytes": 66740,
+      "sha256": "5660f8a658f8bb50dbc005232f885eadffd2bc1c235c4f6fbb63469d1f9cde6d",
+      "role": "preview-cache"
+    },
+    {
+      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-600.woff2",
+      "change": "added",
+      "bytes": 67060,
+      "sha256": "f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205",
+      "role": "preview-cache"
+    },
+    {
+      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-700.woff2",
+      "change": "added",
+      "bytes": 63012,
+      "sha256": "fa7130d854a660b39a7fc9e6e0f2dc23dba5f1346e2adea3e1fe37b6d884133d",
+      "role": "preview-cache"
+    },
+    {
+      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css",
+      "change": "modified",
+      "bytes": 19917,
+      "sha256": "11a6648f85539eb644160998d3ae87a2dd4a8ceffa2e07b7bc09c4f6f72e5369",
+      "role": "preview-cache"
+    },
+    {
       "path": "app.jsx",
       "change": "modified",
-      "bytes": 76913,
-      "sha256": "2dd39050e9a6f969e0b40b507a7fba4ab64f9d3fed8509bba0c26820cd05c721",
+      "bytes": 77095,
+      "sha256": "f6cfc1a834c1c53467e441803d155f0baff15c06eb97278de24e87358a208d92",
+      "role": "cowork-source"
+    },
+    {
+      "path": "COLAR-NO-CODE-ACERTOS-E-LICOES.md",
+      "change": "modified",
+      "bytes": 17918,
+      "sha256": "23dbfa3a6a7aa18ce7405dcc71bf34fa52465e48c9e285dfd6b36cfe6c9d6d0a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ERRATA-CL-fontface-nao-havia-conserto-2026-09-17.md",
+      "change": "added",
+      "bytes": 4367,
+      "sha256": "62747eca8f0c3ec80acb0fe43b3de03919b82caaa39253d86abe805a893a14d6",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/PEDIDO-DS-export-do-projeto-DS-2026-09-17.md",
+      "change": "added",
+      "bytes": 5415,
+      "sha256": "b6d2f8b40d3448dcfedb1eacfb6d479b85b9fedd8d3028e0bd768008802b9fe0",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/PEDIDO-DS-tokens-fg-e-manifest-2026-09-17.md",
+      "change": "added",
+      "bytes": 7578,
+      "sha256": "effc0d74546326e87c70d2de15ef8f7de4085de78f765b7fcf4e81d6b4a720bf",
       "role": "cowork-source"
     },
     {
       "path": "ds-tokens-git.css",
-      "change": "added",
-      "bytes": 4638,
-      "sha256": "f97c2b6220637f01d2c5084e64fa640daa297e04c9ff6672c79a312ab483217e",
+      "change": "modified",
+      "bytes": 5883,
+      "sha256": "7d32fd05e6c2358dbf7e959860e196d3e0faf787e32addf938e94da196f9f844",
       "role": "cowork-source"
     },
     {
       "path": "github.md",
       "change": "modified",
-      "bytes": 91203,
-      "sha256": "653926e85c9e4afc1f445f55617e74957965545c86513c39f88b3cad062039e0",
+      "bytes": 106250,
+      "sha256": "d905d7adf847788ce50689b5f875afec870d72fdd4ce0ecf6da4f821c4aa5093",
       "role": "cowork-source"
     },
     {
       "path": "inbox-photo-c1.png",
-      "change": "added",
+      "change": "deleted",
       "bytes": 38823,
       "sha256": "44a3d0bb07289b7c5d7c64acfbf9469642c3aac44944b161861ae34fd0e8c2bf",
       "role": "cowork-source"
     },
     {
       "path": "inbox-photo-c2.png",
-      "change": "added",
+      "change": "deleted",
       "bytes": 38495,
       "sha256": "db38a6fc4ae7a0d575ac135b9c5fed529d737914632e39e219b30487c5b679a3",
       "role": "cowork-source"
     },
     {
       "path": "inbox-photo-c3.png",
-      "change": "added",
+      "change": "deleted",
       "bytes": 36602,
       "sha256": "52805ffd8b60073e74f91a4ea7b433f9c53d6c97f07a0b4a8790ae11b38c20e8",
       "role": "cowork-source"
     },
     {
       "path": "inbox-photo-c4.png",
-      "change": "added",
+      "change": "deleted",
       "bytes": 38458,
       "sha256": "ad7ae3b0ec2f12cca4868b51315dd6c4af76fb5d775f34550c4283d3c826fc26",
-      "role": "cowork-source"
-    },
-    {
-      "path": "oimpresso.com.html",
-      "change": "modified",
-      "bytes": 35008,
-      "sha256": "d11280911c8724ab4dd77ec7d2d59f2f211bfa29db3fb5ec5388070ec5867fa0",
       "role": "cowork-source"
     }
   ],
@@ -2520,7 +2583,7 @@
     {
       "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js",
       "bytes": 348179,
-      "sha256": "c793dde365807e96fbf20b5f9b2f7a5d47977261c82809114b22504b5e991765",
+      "sha256": "a8cec9a6ea1685302fa87c21aab13987129759e940cd97af21af361a75635761",
       "role": "preview-cache"
     },
     {
@@ -2543,8 +2606,26 @@
     },
     {
       "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-400.woff2",
-      "bytes": 45712,
-      "sha256": "e2291e842cf5af167122a22881a740c7f2dda7716f1e8cd76680264f4a859470",
+      "bytes": 63020,
+      "sha256": "ba711a3085ff9f27440b6b9c4550cfc47c97bf36591d5da958b975bb3add8c1a",
+      "role": "preview-cache"
+    },
+    {
+      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-500.woff2",
+      "bytes": 66740,
+      "sha256": "5660f8a658f8bb50dbc005232f885eadffd2bc1c235c4f6fbb63469d1f9cde6d",
+      "role": "preview-cache"
+    },
+    {
+      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-600.woff2",
+      "bytes": 67060,
+      "sha256": "f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205",
+      "role": "preview-cache"
+    },
+    {
+      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-700.woff2",
+      "bytes": 63012,
+      "sha256": "fa7130d854a660b39a7fc9e6e0f2dc23dba5f1346e2adea3e1fe37b6d884133d",
       "role": "preview-cache"
     },
     {
@@ -2556,7 +2637,7 @@
     {
       "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css",
       "bytes": 19917,
-      "sha256": "d7ca67bd692a92deb21461f5f5889e092e183791d051e1e0ffdb27a47cf7dfc0",
+      "sha256": "11a6648f85539eb644160998d3ae87a2dd4a8ceffa2e07b7bc09c4f6f72e5369",
       "role": "preview-cache"
     },
     {
@@ -2579,8 +2660,8 @@
     },
     {
       "path": "app.jsx",
-      "bytes": 76913,
-      "sha256": "2dd39050e9a6f969e0b40b507a7fba4ab64f9d3fed8509bba0c26820cd05c721",
+      "bytes": 77095,
+      "sha256": "f6cfc1a834c1c53467e441803d155f0baff15c06eb97278de24e87358a208d92",
       "role": "cowork-source"
     },
     {
@@ -2777,8 +2858,8 @@
     },
     {
       "path": "COLAR-NO-CODE-ACERTOS-E-LICOES.md",
-      "bytes": 12784,
-      "sha256": "5ce51cb944339aaf234db97e5852dfac38194e49ee46344a9a0e29144dc76c9f",
+      "bytes": 17918,
+      "sha256": "23dbfa3a6a7aa18ce7405dcc71bf34fa52465e48c9e285dfd6b36cfe6c9d6d0a",
       "role": "cowork-source"
     },
     {
@@ -3433,6 +3514,12 @@
       "path": "cowork-inbox/ds-atomos/playbook/06-widget-nivel-titulo.md",
       "bytes": 3243,
       "sha256": "1c320d9b8e1f3134c0341b6f328b795820d7acb6a7e215eb050f390b88b56680",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ERRATA-CL-fontface-nao-havia-conserto-2026-09-17.md",
+      "bytes": 4367,
+      "sha256": "62747eca8f0c3ec80acb0fe43b3de03919b82caaa39253d86abe805a893a14d6",
       "role": "cowork-source"
     },
     {
@@ -4294,9 +4381,21 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/PEDIDO-DS-export-do-projeto-DS-2026-09-17.md",
+      "bytes": 5415,
+      "sha256": "b6d2f8b40d3448dcfedb1eacfb6d479b85b9fedd8d3028e0bd768008802b9fe0",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/PEDIDO-DS-TABBAR-SCROLLBAR-2026-08-26.md",
       "bytes": 3572,
       "sha256": "5a47c3942bb313ba84eab28b50b97d4b1434a4a08ad5b0bca7b299fd8e80060e",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/PEDIDO-DS-tokens-fg-e-manifest-2026-09-17.md",
+      "bytes": 7578,
+      "sha256": "effc0d74546326e87c70d2de15ef8f7de4085de78f765b7fcf4e81d6b4a720bf",
       "role": "cowork-source"
     },
     {
@@ -5075,8 +5174,8 @@
     },
     {
       "path": "ds-tokens-git.css",
-      "bytes": 4638,
-      "sha256": "f97c2b6220637f01d2c5084e64fa640daa297e04c9ff6672c79a312ab483217e",
+      "bytes": 5883,
+      "sha256": "7d32fd05e6c2358dbf7e959860e196d3e0faf787e32addf938e94da196f9f844",
       "role": "cowork-source"
     },
     {
@@ -5423,8 +5522,8 @@
     },
     {
       "path": "github.md",
-      "bytes": 91203,
-      "sha256": "653926e85c9e4afc1f445f55617e74957965545c86513c39f88b3cad062039e0",
+      "bytes": 106250,
+      "sha256": "d905d7adf847788ce50689b5f875afec870d72fdd4ce0ecf6da4f821c4aa5093",
       "role": "cowork-source"
     },
     {
@@ -5611,30 +5710,6 @@
       "path": "inbox-page.jsx",
       "bytes": 87828,
       "sha256": "10ab0b18e34509192a30575e994a8474e5caf32e80a4428de586cee6b2534163",
-      "role": "cowork-source"
-    },
-    {
-      "path": "inbox-photo-c1.png",
-      "bytes": 38823,
-      "sha256": "44a3d0bb07289b7c5d7c64acfbf9469642c3aac44944b161861ae34fd0e8c2bf",
-      "role": "cowork-source"
-    },
-    {
-      "path": "inbox-photo-c2.png",
-      "bytes": 38495,
-      "sha256": "db38a6fc4ae7a0d575ac135b9c5fed529d737914632e39e219b30487c5b679a3",
-      "role": "cowork-source"
-    },
-    {
-      "path": "inbox-photo-c3.png",
-      "bytes": 36602,
-      "sha256": "52805ffd8b60073e74f91a4ea7b433f9c53d6c97f07a0b4a8790ae11b38c20e8",
-      "role": "cowork-source"
-    },
-    {
-      "path": "inbox-photo-c4.png",
-      "bytes": 38458,
-      "sha256": "ad7ae3b0ec2f12cca4868b51315dd6c4af76fb5d775f34550c4283d3c826fc26",
       "role": "cowork-source"
     },
     {

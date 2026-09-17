@@ -8,6 +8,36 @@
 
 ---
 
+## Ciclo 2026-09-17 · Auditoria do pacote `sync/` — íntegro, STALE e **superseded** (sem leitura do `main` neste turno)
+
+**O que rodou:** [W] pediu conferir a exportação para o Code. Remontei as **44 partes** do `sync/` (281 arquivos, 7.416.482 B), conferi sha256 de **todo** pedaço e de **todo** arquivo remontado, cruzei com o disco e com as declarações do host. Fatos sobre o `main`: **nenhum** — não li o repo neste turno; o que sei dele vem do `github.md` (ciclos de 16–17/09).
+
+### ✅ O que estava certo (não refazer · não re-perguntar)
+| # | acerto, medido neste turno | onde | consequência prática |
+|---|---|---|---|
+| A1 | **Integridade do pacote é perfeita:** sequência 1..44, `bundleId`/`generatedAt` iguais em todas as partes, `index/count/offset` coerentes em **286 pedaços**, sha256 de **286/286** pedaços e **281/281** arquivos remontados batendo, soma de bytes = `totals.bytes` exata | `sync/bundle.manifest.json` + `payload.part01…44.json` | o defeito do pacote **não** é transporte. Não gastar ciclo caçando truncagem (família 24/08) |
+| A2 | **Classe do lote limpa:** 0 arquivo de máquina (`_schema/ _scripts/ scripts/ .github/`), 0 derivado, 0 `.md`, 0 arquivo do lote fora do host, 0 arquivo declarado 2×, 0 dupe `?v=` | idem | o gate de inclusão do §6-bis passaria. O que reprova é **frescor**, não classe |
+| A3 | **A decisão do [CL] de 16/09 (18:09Z) de aplicar o bundle `--full-tree` sem o meu lote estava certa** — o meu `c8a0709…` é snapshot do fechamento do host (281 arquivos, 0 `.md`, 0 subpasta); o vivo é **702 arquivos** com `mirrorScope: tree` | `state/active-bundle.json` (via `github.md` de 16/09) | **não pedir aplicação do `sync/`**. O caminho canônico deste projeto é `--full-tree` |
+
+### ❌ O que eu errei — e a lição com regra colada
+**Erro 1 · Auditei um artefato morto e apresentei o resultado como estado da exportação.** O `sync/` está **superseded desde 16/09 18:09Z** (registrado no próprio `github.md`: *"o meu `c8a0709…` não aparece em nenhum arquivo do `state/`"*, pedido marcado ⛔ SUPERSEDIDA). Os 3 "bugs" que relatei — `ds-tokens-git.css` ausente do lote, host `+250 B` e `app.jsx` `+1.831 B` STALE — são **verdadeiros e irrelevantes**: descrevem um pacote que ninguém vai aplicar.
+→ **Lição (proposta):** *antes de auditar um pacote, provar que ele é o ativo.* A pergunta 0 é "este `bundleId` aparece no `state/` do `main`?" — sem isso, a auditoria mede um fóssil com rigor de laudo.
+
+**Erro 2 · Recomendei o comando errado.** Escrevi `--previous sync/bundle.manifest.json`; o gerador mudou em 16/09 (13.082 → 14.239 B) e o caminho deste projeto é **`--full-tree`** (varre a árvore, inclui `cowork-inbox/`, estampa `mirrorScope: tree`) — o que o `github.md` do ciclo anterior já dizia, na linha que eu mesmo escrevi.
+→ **Lição (proposta):** *comando de ponte se copia do recibo do último ciclo, nunca da memória do método.* Flag de gerador é estado, não doutrina.
+
+**Erro 3 · Afirmei que os 4 `.woff2` idênticos furam o R4 e fazem o applier recusar o lote.** Falso: o papel deles é **`preview-cache`**, que o contrato do bundle **exclui** do R4 — e isso está escrito no `github.md` de 17/09, por mim. O fato que sobrevive é o **render**: `ibm-plex-sans-400/500/600/700.woff2` = 45.712 B, sha `e2291e84…` nos quatro ⇒ o `@font-face` declara 4 pesos e serve **um**; 500/600/700 são sintetizados. Não é gate, é tipografia — e **não é executável por mim** (escrita no projeto DS `019dd02f` é de [W]/[CL]).
+→ **Lição (proposta):** *antes de dizer que um arquivo fura um gate, ler o papel dele no manifesto.* `role` é parte do predicado; citar a regra sem o `role` é citar meia regra.
+
+**Erro 4 · Pendência minha que eu quase executei sem medir.** O `github.md` de hoje registra: *"depois do refresh do binding, remeço os 8 e removo o `ds-tokens-git.css` + o tweak `dsTokens`"*. Medi o `_ds/…/colors_and_type.css` **agora**: `--accent-soft 0.32 0.06 295` · `--pos 0.74 0.14 150` · `--neg 0.72 0.16 25` · `--warn 0.80 0.13 75` · `-foreground` 0.51/0.78 ⇒ **os 8 seguem velhos, o refresh não pousou, o A/B continua necessário**. Removê-lo hoje apagaria a única forma de [W] decidir vendo.
+→ **Lição (proposta):** *pendência condicionada se abre medindo a condição*, não a data. "Depois do refresh" é predicado, não prazo.
+
+### 🔁 Reincidência — o que este ciclo prova sobre o método
+**4º caso do mesmo padrão em 4 dias: eu meço com rigor e erro o ESTATUTO do que medi.** 14/09 `prototipo-ui/contrato/` (caminho que só existia em pacote espelhado) · 16/09 `styles.css:6387` (folha certa, override não visto) · 17/09 `-fg` (token certo, consumidor não procurado) · hoje o `sync/` (bytes certos, pacote morto).
+→ **Consequência de método:** o passo 0 do §13.7 ("RELER a árvore no turno") ganha um irmão obrigatório — **"provar o ESTATUTO do objeto antes de medi-lo"**: é o ativo? tem dono? quem o aplica? Rigor sobre objeto sem estatuto produz laudo perfeito de coisa irrelevante — e consome o ciclo de [W].
+
+---
+
 ## Ciclo 2026-09-14 · Transporte (zip), âncora do Ponto e o `<main>` que era MEU (árvores `73182439581f` → `420b061817e0` → `32af4af112a4`)
 
 ### ✅ O que a produção já acertou (não refazer · não re-perguntar · não regredir)

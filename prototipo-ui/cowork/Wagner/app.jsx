@@ -1000,8 +1000,10 @@ function App() {
           <div className="dstk-row">
             <span className="dstk-chip ok">Pago</span>
             <span className="dstk-chip wr">Atrasado</span>
+            <span className="dstk-chip okt">Pago</span>
+            <span className="dstk-chip wrt">Atrasado</span>
           </div>
-          <p className="dstk-nota">8 deltas. Em “atual” as pílulas estão ILEGÍVEIS — é o bug que a v1.3.0 conserta, não defeito da amostra.</p>
+          <p className="dstk-nota">8 deltas. Pílulas 1-2 = fundo sólido + `-foreground` (o que a v1.3.0 conserta). Pílulas 3-4 = tintado + `-fg`, par separado por design (ADR UI-0033) — não muda, é o controle.</p>
         </div>
 
         <TweakSection label="Jana" />

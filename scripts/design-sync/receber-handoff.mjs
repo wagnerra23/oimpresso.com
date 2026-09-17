@@ -47,7 +47,7 @@
  *
  * Exit: 0 = ok · 1 = insumo/validação reprovou (inclui PASSO 0 não liberado) · 2 = erro de uso.
  */
-import { readFileSync, existsSync, mkdtempSync, mkdirSync, writeFileSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, mkdtempSync, mkdirSync, writeFileSync, readdirSync, rmSync } from 'node:fs';
 import { join, dirname, relative, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
@@ -109,6 +109,68 @@ export function listarRelativos(raiz, listar = readdirSync) {
     }
   }
   return saida.sort();
+}
+
+/** Path do repo onde um path LÓGICO do bundle pousaria. Mesma regra de `espelho()` no passo [3]
+ *  e de `targetForLogical` na transação — extraída daqui pra poder ser testada sem fs. */
+export function pathNoEspelho(rel, papel = roleForPath(rel)) {
+  if (papel === 'preview-cache') return `prototipo-ui/design-system/${dsRuntimeRelPath(rel)}`;
+  const base = papel === 'design-doc'
+    ? 'prototipo-ui/cowork/Wagner/handoffs'
+    : 'prototipo-ui/cowork/Wagner';
+  return `${base}/${rel}`;
+}
+
+/** Paths do export que o `.gitignore` do REPO exclui — logo NÃO PODEM existir no espelho.
+ *
+ *  POR QUE EXISTE (medido 2026-09-17): o `.gitignore` raiz ganhou `prototipo-ui/cowork/**\/*.png`
+ *  em 15/09 (#7314, "só fontes no espelho"). O gerador continuou declarando os 4
+ *  `inbox-photo-c*.png` no manifesto; a promoção os escrevia no disco (`writeFileSync` não
+ *  consulta `.gitignore`) e o git nunca os versionava. Em qualquer checkout limpo eles somem —
+ *  e aí `bundle-transaction` exige o estado-alvo completo e RECUSA o lote inteiro
+ *  ("estado-alvo ausente no staging: inbox-photo-c1.png"), enquanto `--compare-bundle` os
+ *  reporta STALE pra sempre. Duas máquinas vermelhas por um estado que o repo proíbe.
+ *
+ *  O filtro é `git check-ignore` — a REGRA JÁ ESCRITA do repo — exatamente como o `ABSENT-LOCAL`
+ *  do `cowork-mirror-freshness` já faz ("⬜ ignorados por design"), e não uma denylist de nome
+ *  inventada aqui (família banida: allowlist-de-pasta · guard `@scope`).
+ *
+ *  `preview-cache` (`_ds/**`) fica FORA deste filtro de propósito: ele é gitignored também, mas
+ *  já tem dono e tratamento próprios (passo [4], projeto DS #7096) e o gerador já o exclui.
+ *
+ *  FP medido no bundle ativo (709 arquivos): 11 gitignored = 7 `_ds/**` (excluídos por role) +
+ *  os 4 PNGs. Zero colateral.
+ *
+ *  ⚠️ Isto NÃO traz os arquivos de volta — declara honestamente que eles não descem. Se o desejo
+ *  for versioná-los, o caminho é mudar o `.gitignore` (decisão [W], reabre o #7314).
+ */
+export function ignoradosPeloRepo(rels, checkIgnore = checkIgnoreGit) {
+  const candidatos = rels.filter((rel) => {
+    // `roleForPath` LANÇA pro que está fora do contrato build-only (`.gitignore`, `.thumbnail`,
+    // screenshots…). Esses o gerador já descarta, então não chegam ao manifesto e não é comigo.
+    let papel;
+    try { papel = roleForPath(rel); } catch { return false; }
+    return papel !== 'preview-cache';
+  });
+  if (!candidatos.length) return new Set();
+  const porPath = new Map(candidatos.map((rel) => [pathNoEspelho(rel), rel]));
+  const ignorados = checkIgnore([...porPath.keys()]);
+  return new Set(ignorados.map((p) => porPath.get(p)).filter(Boolean));
+}
+
+/** Injetor default: `git check-ignore --stdin`. Sai 1 quando NADA casa — isso é resposta, não
+ *  falha (§5 2026-07-31: vazio de comando que pode falhar ≠ ausência). Qualquer outro rc é erro
+ *  de execução e propaga, pra não virar "0 ignorados" silencioso. */
+function checkIgnoreGit(paths) {
+  try {
+    const out = execFileSync('git', ['check-ignore', '--stdin'], {
+      cwd: REPO, input: paths.join('\n'), encoding: 'utf8',
+    });
+    return out.split('\n').map((s) => s.trim()).filter(Boolean);
+  } catch (e) {
+    if (e.status === 1) return [];            // nenhum path ignorado
+    throw new Error(`git check-ignore falhou (rc=${e.status}): ${e.stderr || e.message}`);
+  }
 }
 
 /** PASSO 0 — DE QUEM É, decidido pra ESTE destino de escrita.
@@ -416,18 +478,48 @@ function principal() {
   else if (aplicar) console.log(`                   registrado no ledger de frescor`);
 
   // 4. RECONCILIAR O DS (regra, não inferência)
+  //
+  // ⚠️ O DENOMINADOR É A ÁRVORE, não o bundle ativo (corrigido 2026-09-17). Iterando
+  // `ativo.files`, todo `_ds/**` que está no ZIP e AINDA NÃO no bundle escapava da regra — e o
+  // gerador o declarava logo abaixo com o conteúdo velho do ZIP. Medido no pacote 23: as fontes
+  // `ibm-plex-sans-{500,600,700}` do `_ds/` eram live-only (nunca entraram no bundle), vinham as
+  // três com 45.712 B (cópias byte-idênticas do 400 subset) e pousariam — via `dsRuntimeRelPath`
+  // — SOBRE as 4 fontes distintas que o #7465 importou hoje, derrubando o lote no
+  // `cowork-ssot-guard` R4 (500=600=700). Quem manda no `_ds/` é o projeto DS (#7096), e isso
+  // vale pra todo path do papel, esteja ele no bundle ativo ou não.
   let reconciliados = 0;
-  for (const f of ativo.files) {
-    if (roleForPath(f.path) !== 'preview-cache') continue;
-    const autoritativo = espelho(f.path);
-    const naZip = naArvore(f.path);
+  const previewCacheDaArvore = listarRelativos(raiz).filter((rel) => {
+    // Dois donos podem recusar o path, e os dois vazam exceção: `roleForPath` (fora do contrato
+    // build-only) e `dsRuntimeRelPath` (`_ds/**` que não é bundle/CSS/asset — ex. um `README.md`).
+    // Sem destino de runtime não há autoritativo pra comparar, e o gerador também não o declara.
+    try { return roleForPath(rel) === 'preview-cache' && Boolean(dsRuntimeRelPath(rel)); }
+    catch { return false; }
+  });
+  for (const rel of previewCacheDaArvore) {
+    const autoritativo = espelho(rel);
+    const naZip = naArvore(rel);
     if (autoritativo === null || naZip === null || sha(autoritativo) === sha(naZip)) continue;
-    writeFileSync(join(raiz, ...f.path.split('/')), autoritativo);
+    writeFileSync(join(raiz, ...rel.split('/')), autoritativo);
     reconciliados++;
-    console.log(`\n  [4] DS           ${f.path}`);
+    console.log(`\n  [4] DS           ${rel}`);
     console.log(`                   zip ${naZip.length} B -> espelho ${autoritativo.length} B (dono = projeto Design System, #7096)`);
   }
   if (!reconciliados) console.log(`\n  [4] DS           nada a reconciliar - o _ds/ do zip ja bate com o espelho`);
+
+  // 4b. IGNORADOS PELO REPO — some da ÁRVORE antes de gerar, pra o manifesto não declarar
+  //     estado-alvo que o `.gitignore` proíbe (ver `ignoradosPeloRepo`). A árvore é o tmpdir
+  //     efêmero da extração, não o espelho: nada do repo é tocado aqui.
+  const ignorados = ignoradosPeloRepo(listarRelativos(raiz));
+  if (ignorados.size) {
+    console.log(`\n  [4b] IGNORADOS   ${ignorados.size} arquivo(s) fora por .gitignore do repo - nao podem existir no espelho`);
+    for (const rel of [...ignorados].sort()) {
+      rmSync(join(raiz, ...rel.split('/')), { force: true });
+      console.log(`                   ${rel}  -> ${pathNoEspelho(rel)}`);
+    }
+    console.log(`                   nao e perda: o espelho ja nao os tinha. Versiona-los reabre o #7224/#7314 ([W]).`);
+  } else {
+    console.log(`\n  [4b] IGNORADOS   nada - todo path do export pode existir no espelho`);
+  }
 
   // 5. REGERAR pelo gerador CANÔNICO
   const outSync = join(destino, '_sync-regerado');
