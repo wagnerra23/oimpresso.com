@@ -1,0 +1,106 @@
+name: Placar de tela (advisory)
+
+# PR-A6 do protocolo de export — o placar de entrega de cada tela com `alvo.json` vira
+# comentário no PR: `entregue X de Y · ausentes <classe> por <motivo>`, mais as 3 métricas
+# derivadas (cobertura cumulativa · reincidência por motivo · retrabalho por seção reaberta).
+#
+# ── O GATE NÃO É O COMENTÁRIO EXISTIR (LC-11) ────────────────────────────────────────────
+# O plano escreve "o comentário é o gate". Se isso virasse um grep por "existe comentário",
+# seria presence-gate: um comentário vazio passaria verde. Aqui o veredito é o EXIT CODE do
+# `placar.mjs --check`, que reprova pelo CONTEÚDO — ausência sem motivo declarado, motivo fora
+# do enum, declaração podre/órfã, declaração no arquivo que a máquina reescreve. O comentário
+# é a SAÍDA desse cálculo.
+# O "esquecer o placar é grátis" que o plano quer matar morre por construção: quem posta é o
+# runner, não a pessoa. E o passo de postagem NÃO tem máscara de erro — falha em comentar
+# derruba o job (fail-closed), então "PR sem placar" fica visível em vez de sumir.
+#
+# ── ADVISORY de nascença ─────────────────────────────────────────────────────────────────
+# ADR 0275 (nasce advisory, forward-only) + ADR 0314 (required = só Tier-0). Promoção a
+# required é flip [W] com mordida provada (ADR 0336). FP medido ANTES de ligar, no corpus
+# real (2026-09-17): 1 alvo · 9 seções · **0 acusações**. População pequena, e é por isso
+# que não nasce required — o `promote_by` do gates-registry força a decisão em vez de
+# advisory eterno.
+#
+# ── ESCOPO ───────────────────────────────────────────────────────────────────────────────
+# Roda só quando o PR toca alvo/declaração/placar. PR que não mexe em tela com `alvo.json`
+# não tem placar a dar — inventar um seria número sem denominador.
+
+on:
+  pull_request:
+    # `synchronize` entra de propósito: o placar reporta o head SHA, e placar do 1º commit
+    # num PR de N commits é retrato de outra árvore. Custo baixo — o gatilho é path-scoped.
+    types: [opened, reopened, ready_for_review, synchronize]
+    branches: [main]
+    paths:
+      - 'governance/design/targets/**'
+      - 'scripts/qa/placar.mjs'
+      - 'scripts/qa/placar.test.mjs'
+      - 'scripts/design-sync/alvo.mjs'
+      - '.github/workflows/placar-de-tela.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: placar-de-tela-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  placar:
+    name: placar-de-tela (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # O eixo RETRABALHO lê o histórico do próprio alvo.json. Em clone raso o script
+          # diz "não medi" (§5 2026-07-24) — que é honesto, mas deixa a 3ª métrica muda.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Prova que a catraca MORDE (ausência sem motivo · motivo fora do enum · declaração
+      # podre/órfã/volátil · retrabalho) e SOLTA o legítimo, ANTES de rodar contra a árvore
+      # viva. Sem isto, verde não distingue "nada a acusar" de "o classificador parou de
+      # acusar" — e o próprio teste já passou por não-execução uma vez (LC-13, 2026-09-17).
+      - name: Bite-test (27 casos — bite + release + não-medi + controles)
+        run: node scripts/qa/placar.test.mjs
+
+      - name: Computar o placar (markdown do comentário)
+        id: md
+        run: |
+          # Sem máscara de erro: modo relatório só sai ≠0 em NÃO MEDI (alvo ilegível/ausente),
+          # e isso TEM de derrubar o passo — "não medi" nunca pode virar comentário vazio.
+          node scripts/qa/placar.mjs --md > placar.md
+          cat placar.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comentar o placar no PR (sticky)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('placar.md', 'utf8');
+            const MARCA = '<!-- placar-de-tela -->';
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            // Atualiza o comentário anterior em vez de empilhar um por push.
+            const antigos = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+            const meu = antigos.find((c) => c.body && c.body.includes(MARCA));
+            if (meu) await github.rest.issues.updateComment({ owner, repo, comment_id: meu.id, body });
+            else await github.rest.issues.createComment({ owner, repo, issue_number, body });
+
+      # O veredito. Roda DEPOIS do comentário pra que o PR receba o placar mesmo quando ele
+      # não fecha — o autor precisa ver O QUE falta, não só que ficou vermelho.
+      # O `||` só enfeita o erro com a receita e RE-LEVANTA o exit; engolir o status seria o
+      # gate mudo (§Sempre fazer #5 das proibições).
+      - name: Veredito — o placar fecha?
+        run: |
+          node scripts/qa/placar.mjs --check || {
+            echo "::error title=Placar de tela::O placar nao fecha. Toda secao ausente precisa de motivo declarado em \"_ausentes\" do governance/design/targets/<tela>.secoes.json (enum: 'sem endpoint' | 'campo inexistente' | 'decisao [W]'). Declaracao no <tela>.alvo.json NAO vale: alvo.mjs reescreve esse campo a cada medida."
+            exit 1
+          }
+          echo "✅ placar fecha — toda ausencia tem motivo declarado."
