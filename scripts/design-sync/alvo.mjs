@@ -57,7 +57,7 @@
 
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 // Parse de cor tem DONO: `parseCor` (sRGB/hex/oklch/oklab → OKLab, Björn Ottosson) em
@@ -507,6 +507,14 @@ async function main() {
   return 2;
 }
 
-main()
-  .then((rc) => process.exit(rc))
-  .catch((e) => { console.error(`${e.naoMedi ? 'NÃO MEDI' : 'FALHOU'}: ${e.message}`); process.exit(e.naoMedi ? 2 : 1); });
+// Guard de entrypoint: sem ele, `import` deste arquivo RODA o CLI e mata o processo do chamador
+// (medido em 2026-09-17: importar imprimia o texto de uso e saía com exit 2, antes de qualquer
+// linha do importador). Era por isso que o cálculo de cor do PR-A2 tinha sido reimplementado em
+// scripts/qa/a11y-contraste.mjs — o dono existia e não dava pra consumir. É o mesmo guard que
+// design-diff.mjs e render-proto-baseline.mjs já têm; o CLI segue idêntico.
+const ehEntrypoint = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (ehEntrypoint) {
+  main()
+    .then((rc) => process.exit(rc))
+    .catch((e) => { console.error(`${e.naoMedi ? 'NÃO MEDI' : 'FALHOU'}: ${e.message}`); process.exit(e.naoMedi ? 2 : 1); });
+}
