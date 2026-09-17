@@ -875,6 +875,26 @@ check('mesmo número → mesmo veredito (independe de --check)',
   check('BITE preview-ds: comando aposentado não materializa cache mesmo com fonte ausente',
     code === 0 && /aposentado/.test(out) && !existsSync(join(mirror, '_ds')), out);
 
+  // MEDE, não AFIRMA (2026-09-17). A redação anterior dizia "o shell lê prototipo-ui/design-system/
+  // diretamente" — era a INTENÇÃO do #7224, e o shell vivo continuava apontando pro `_ds/`.
+  // Artefato não declara comportamento em presente; reporta o número (LC-10). Este shell tem 2
+  // refs a `_ds/` e 0 a `design-system/`, então é isso que a saída tem que dizer.
+  check('preview-ds REPORTA o número de refs ao _ds/ em vez de afirmar o que o shell faz',
+    /refs a _ds\/\s+2/.test(out) && /refs a design-system\/\s+0/.test(out), out);
+  check('preview-ds NÃO afirma que o shell lê design-system/ diretamente',
+    !/lê prototipo-ui\/design-system\/ diretamente/.test(out), out);
+
+  // CONTROLE NEGATIVO: shell que de fato aponta pro DS direto tem que reportar 0 em `_ds/`.
+  // Sem ele, uma saída que imprimisse "2" fixo passaria no assert de cima.
+  writeFileSync(join(mirror, 'oimpresso.com.html'), '<link href="design-system/colors_and_type.css">');
+  let direto = '';
+  try { direto = execFileSync(process.execPath, [cli, '--preview-ds'], { cwd: tmp, encoding: 'utf8' }); }
+  catch (e) { direto = (e.stdout || '') + (e.stderr || ''); }
+  check('CONTROLE preview-ds: shell sem _ds/ reporta 0 (o número acompanha o shell)',
+    /refs a _ds\/\s+0/.test(direto) && /refs a design-system\/\s+1/.test(direto), direto);
+  writeFileSync(join(mirror, 'oimpresso.com.html'),
+    '<script src="_ds/ds-teste/_ds_bundle.js"></script><link href="_ds/ds-teste/colors_and_type.css">');
+
   writeFileSync(join(snap, '_ds_bundle.js'), 'const MENU = [{');
   let invalidoOut = '', invalidoCode = 0;
   try { invalidoOut = execFileSync(process.execPath, [cli, '--preview-ds'], { cwd: tmp, encoding: 'utf8' }); }
