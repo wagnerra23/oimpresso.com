@@ -892,6 +892,24 @@ check('mesmo número → mesmo veredito (independe de --check)',
   catch (e) { direto = (e.stdout || '') + (e.stderr || ''); }
   check('CONTROLE preview-ds: shell sem _ds/ reporta 0 (o número acompanha o shell)',
     /refs a _ds\/\s+0/.test(direto) && /refs a design-system\/\s+1/.test(direto), direto);
+
+  // SHELL DINÂMICO (medido no pacote 24, 2026-09-17): o Cowork passou a montar a URL do DS em
+  // runtime. `parseShellDeps` só vê href/src literais, então devolve 0/0 — e 0/0 lido como "não
+  // há ref ao DS" é o instrumento MUDO. Ele tem que reportar a contagem TEXTUAL e dizer que não
+  // decide qual base o browser usa.
+  writeFileSync(join(mirror, 'oimpresso.com.html'),
+    `<script>window.B=location.pathname.indexOf('/x/')>-1?'design-system/':'_ds/dd/';`
+    + `document.write('<link href="'+window.B+'colors_and_type.css">')</script>`);
+  let dinamico = '';
+  try { dinamico = execFileSync(process.execPath, [cli, '--preview-ds'], { cwd: tmp, encoding: 'utf8' }); }
+  catch (e) { dinamico = (e.stdout || '') + (e.stderr || ''); }
+  check('preview-ds NÃO fica mudo com shell que resolve a base em runtime',
+    /refs a _ds\/\s+0\b/.test(dinamico) && /1 ocorrência\(s\) no texto/.test(dinamico)
+      && /resolve a base em runtime/.test(dinamico), dinamico);
+  check('preview-ds admite que a sonda não decide qual base o browser usa',
+    /NÃO decide qual base/.test(dinamico), dinamico);
+  writeFileSync(join(mirror, 'oimpresso.com.html'),
+    '<script src="_ds/ds-teste/_ds_bundle.js"></script><link href="_ds/ds-teste/colors_and_type.css">');
   writeFileSync(join(mirror, 'oimpresso.com.html'),
     '<script src="_ds/ds-teste/_ds_bundle.js"></script><link href="_ds/ds-teste/colors_and_type.css">');
 
