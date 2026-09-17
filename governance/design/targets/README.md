@@ -8,6 +8,43 @@ nós · filhos · ordem das classes · computed style · truncamento · retângu
 e reprovar nomeando o ausente. Não é documentação e não se edita à mão — se o número está
 errado, re-rode o comando.
 
+## O gate que consome isto: `scripts/qa/secao-check.mjs`
+
+```bash
+npm run secao:check -- --todos --servir-espelho     # o modo do CI
+npm run secao:check -- --tela jana--index --url <url do render>
+npm run secao:selftest
+```
+
+Roda **todas** as seções do alvo, sempre — não só a da onda em curso. É o T6 do protocolo:
+regressão de seção vizinha reprova no CI em vez de aparecer em review.
+
+**O que bloqueia, e por que só isso.** Medido em 2026-09-17, espelho servido × o
+`jana--index.alvo.json` medido em 2026-09-07: **14 campos divergiram** — `base.assinatura` e
+`nos_totais` (2) e `rect.w/h` (12) — e **zero** em estrutura de seção. A causa foi o espelho ter
+sido reimportado (o shell perdeu a sidebar, o conteúdo passou de 972 para 1176 px). Um predicado
+"tudo igual" nasceria **vermelho herdado** numa árvore limpa: 100% de falso-positivo,
+PR-independente — a lápide [§5 2026-08-24](../../../memory/proibicoes.md) (predicado absoluto em
+vez de delta). Então:
+
+| campo | papel | bloqueia? |
+|---|---|---|
+| `ausente` · `nos` · `filhos` · `ordemClasses` · `estilo` · `truncado` | é o **slot** — o que a seção tem de ter | **sim** |
+| `rect` (geometria) · `base`/`nos_totais` (página) | consequência de viewport/shell | não — sai como informativo, nunca calado |
+
+**Exit:** `0` conforme · `1` regrediu (nomeia o slot) · `2` **não medi**. O 2 é separado de
+propósito: falha de browser/rota/render não acusa o PR — colapsar os dois seria falso-positivo
+por não-medição.
+
+**Verde aqui não é "está igual ao design"** (T7). T7 exige a fonte provada fresca
+(`cowork-mirror-freshness --compare <snap>`, que depende de `DesignSync.get_file` — auth
+interativa, [ADR 0315](../../../memory/decisions/0315-design-sync-claude-design-vs-cowork-charter.md),
+e **não roda em CI**) mais `design-diff --compare` nos dois renders. Este gate responde uma
+pergunta só: *o render ainda tem os slots que o alvo declara?*
+
+**Editar o alvo é a forma de burlar o check** — some o slot do alvo, some a cobrança. Por isso
+`governance/design/targets/**` está no gatilho da lane: mexer aqui dispara o comparador.
+
 ## Por que NÃO fica em `governance/design/contracts/`
 
 Aquela pasta tem outro dono e outro vocabulário:

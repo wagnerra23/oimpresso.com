@@ -25,6 +25,9 @@
 //                                      **stdout only, NUNCA grava** (mapa é comando, ADR 0256).
 //   --alvo <url> --tela <slug> --secoes <arq.json>
 //                                      Mede e grava governance/design/targets/<slug>.alvo.json.
+//   --saida <arq>                      (com --alvo) grava AQUI em vez do destino canônico. É o que o
+//                                      `secao-check` (PR-A3) usa pra medir um render sem
+//                                      re-baselinar o alvo versionado.
 //   --injetar-falha <seletor>          (com --alvo) remove o último filho direto antes de medir.
 //                                      É o aceite falsificável T5: o JSON TEM de mudar.
 //   --aguardar-sumir <seletor>         (com --mapa ou --alvo) só mede DEPOIS que o seletor sair do
@@ -288,19 +291,22 @@ async function main() {
 
   if (flag('--alvo')) {
     const url = val('--alvo'), tela = val('--tela'), arq = val('--secoes');
-    if (!url || !tela || !arq) { console.error('uso: --alvo <url> --tela <slug> --secoes <arq.json> [--injetar-falha <sel>] [--aguardar-sumir <sel>]'); return 2; }
+    if (!url || !tela || !arq) { console.error('uso: --alvo <url> --tela <slug> --secoes <arq.json> [--injetar-falha <sel>] [--aguardar-sumir <sel>] [--saida <arq>]'); return 2; }
     if (!existsSync(arq)) { console.error(`--secoes: arquivo não encontrado: ${arq}`); return 2; }
     const secoes = JSON.parse(readFileSync(arq, 'utf8'));
     const medido = await medirAlvo({ url, tela, secoes, injetar: val('--injetar-falha'), sumir: val('--aguardar-sumir'), quietoMs: Number(val('--quieto-ms', 400)) });
-    mkdirSync(DIR_ALVOS, { recursive: true });
-    const destino = join(DIR_ALVOS, `${tela.replace(/[^a-z0-9-]/gi, '-').toLowerCase()}.alvo.json`);
+    // --saida: grava FORA do destino canônico. Existe pro `secao-check` (PR-A3) medir um render
+    // sem sobrescrever o alvo versionado — medir não pode ter o efeito colateral de re-baselinar.
+    const saida = val('--saida');
+    const destino = saida ? resolve(saida) : join(DIR_ALVOS, `${tela.replace(/[^a-z0-9-]/gi, '-').toLowerCase()}.alvo.json`);
+    mkdirSync(dirname(destino), { recursive: true });
     writeFileSync(destino, serializar(medido));
     console.log(`alvo gravado: ${destino.replace(ROOT, '.')}`);
     console.log(`  seções medidas: ${Object.keys(medido.secoes).length} · ausentes no DOM: ${Object.values(medido.secoes).filter((s) => s.ausente).length}`);
     return 0;
   }
 
-  console.error('uso: --mapa <url> [--aguardar-sumir <sel>] [--quieto-ms <n>] | --alvo <url> --tela <slug> --secoes <arq.json> [--aguardar-sumir <sel>] [--quieto-ms <n>] | --selftest [--browser]');
+  console.error('uso: --mapa <url> [--aguardar-sumir <sel>] [--quieto-ms <n>] | --alvo <url> --tela <slug> --secoes <arq.json> [--aguardar-sumir <sel>] [--quieto-ms <n>] [--saida <arq>] | --selftest [--browser]');
   return 2;
 }
 
