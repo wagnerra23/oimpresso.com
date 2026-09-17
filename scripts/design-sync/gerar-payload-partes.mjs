@@ -29,7 +29,7 @@
  *   node scripts/design-sync/aplicar-payload.mjs sync/payload.part*.json --require-complete-shell
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync, unlinkSync, readdirSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, resolve, basename } from 'node:path';
 import { classificarParaSync } from '../design/importar-bundle.mjs';
 import { payloadDependencyGraph, normalizePayloadPath } from './payload-dependency-graph.mjs';
 import {
@@ -145,7 +145,10 @@ const sourceFiles = [...lidos]
 // Por que 3 de runtime + as fontes: sao o que o shell (ou o CSS) de fato carrega. `@font-face`
 // aponta pra `assets/fonts/*`, entao um DS com o CSS certo e a fonte faltando renderiza errado
 // sem ninguem ver — foi a classe do fake-bold de 500/600/700.
-const DS_RUNTIME = ['_ds_bundle.js', 'colors_and_type.css', 'cockpit_domains.css'];
+// Espelha a whitelist do `dsRuntimeRelPath` (dono da regra). `styles.css` entrou em 2026-09-17:
+// ele carrega os COMPONENTES do DS e o host do Felipe depende dele — sem ele o contrato sai
+// incompleto e o render quebra sem ninguem ver.
+const DS_RUNTIME = ['_ds_bundle.js', 'colors_and_type.css', 'cockpit_domains.css', 'styles.css'];
 function montarDsRequires() {
   // ⚠️ LE DO DISCO, nao de `lidos` (medido 2026-09-17, e corrige a premissa do plano A9, que dizia
   // "o gerador ja le o _ds/ do root"). Ele NAO le: no `--full-tree` o `classificarParaSync`
@@ -164,35 +167,117 @@ function montarDsRequires() {
     }
   }(raizDs, '_ds'));
   if (!dsPaths.length) return null;
-  const slugs = new Set(dsPaths.map((rel) => rel.split('/')[1]).filter(Boolean));
-  if (slugs.size !== 1) {
-    // 2 design systems no mesmo pacote e ambiguidade, nao escolha silenciosa (mesma regra do
-    // `previewDsPlan`, que ja erra explicito nesse caso).
-    throw new Error(`dsRequires: ${slugs.size} design systems no pacote (${[...slugs].join(', ')}) — ambiguo`);
+
+  // DUAS FORMAS de bind, e as duas sao legitimas (PR-A9, medido 2026-09-17):
+  //   COM slug   `_ds/<slug>/colors_and_type.css`   — o bind do Wagner carimba o projeto DS
+  //   SEM slug   `_ds/colors_and_type.css`          — o do Felipe nao. `slug: null` e a forma
+  //                                                    legitima do outro dono, nao erro.
+  // Detecto pela ARVORE, nao por configuracao: se existe arquivo de runtime na RAIZ do `_ds/`,
+  // o bind e sem slug. Nao adivinho pelo nome do diretorio.
+  const relativoAoDs = (rel) => rel.slice('_ds/'.length);
+  const ehRuntime = (dentro) => DS_RUNTIME.includes(dentro) || /^assets\//.test(dentro);
+  const naRaiz = dsPaths.filter((rel) => ehRuntime(relativoAoDs(rel)));
+
+  let slug = null;
+  let dentroDe = relativoAoDs;
+  if (!naRaiz.length) {
+    const slugs = new Set(dsPaths.map((rel) => rel.split('/')[1]).filter(Boolean));
+    if (slugs.size !== 1) {
+      // 2 design systems no mesmo pacote e ambiguidade, nao escolha silenciosa (mesma regra do
+      // `previewDsPlan`, que ja erra explicito nesse caso).
+      throw new Error(`dsRequires: ${slugs.size} design systems no pacote (${[...slugs].join(', ')}) — ambiguo`);
+    }
+    slug = [...slugs][0];
+    dentroDe = (rel) => rel.slice(`_ds/${slug}/`.length);
   }
-  const slug = [...slugs][0];
-  const querido = (rel) => {
-    const dentro = rel.slice(`_ds/${slug}/`.length);
-    return DS_RUNTIME.includes(dentro) || /^assets\/fonts\//.test(dentro);
-  };
-  const arquivos = dsPaths.filter(querido).map((rel) => ({
-    path: rel.slice(`_ds/${slug}/`.length),
-    sha256: sha256(readFileSync(join(ROOT, ...rel.split('/')))),
-  }));
-  return arquivos.length ? { slug, arquivos } : null;
+
+  const arquivos = dsPaths
+    .filter((rel) => ehRuntime(dentroDe(rel)))
+    .map((rel) => ({
+      path: dentroDe(rel),
+      sha256: sha256(readFileSync(join(ROOT, ...rel.split('/')))),
+    }));
+  // `owner` vem DECLARADO (`--owner`), nao inferido do path. A 1a versao usava
+  // `basename(ROOT)` e saiu `owner: "project"` no fluxo real — o ROOT e a arvore EXTRAIDA do
+  // ZIP (`…/oimpresso-erp-conunica-o-visual/project`), nao `cowork/<dono>`. Inferir dono de
+  // path de tmpdir e adivinhar. Fail-closed: se ha `_ds/` e ninguem declarou, para e diz como.
+  const owner = String(opt('--owner', '') || '').trim();
+  if (!owner) {
+    throw new Error('dsRequires: o pacote tem `_ds/` mas ninguem declarou o dono — '
+      + 'passe `--owner <Wagner|Felipe>` (quem chama sabe a conta; o path da arvore nao diz).');
+  }
+  return arquivos.length ? { owner, slug, arquivos } : null;
 }
 const dsRequires = montarDsRequires();
+
+// ── PR-A9 · `transforms` — a ref do DS e CONVERTIDA na aterrissagem ───────────────────────
+// Decisao [W] 2026-09-17: "cada um fica com seu `_ds` proprio; quando for aplicar no Code, faz
+// a conversao". O host referencia `_ds/<slug>?/x` (o bind do projeto de design); no repo o DS
+// vive em `prototipo-ui/design-system/`. Quem converte e a APLICACAO, e a regra viaja declarada.
+//
+// ⚠️ POR QUE O SHA POS-TRANSFORMACAO E OBRIGATORIO (§D do pedido): converter muda o conteudo que
+// pousa, e DUAS maquinas exigem que o arquivo do espelho seja byte-identico ao declarado — o
+// applier (bytes/sha do payload) e o `--compare-bundle` (rawHash(disco) x sha do manifesto), que
+// e o UNICO sinal que pega remendo a mao no espelho. Conversao nao declarada ⇒ host STALE em
+// 100% dos ciclos e esse alarme morre. Com `shaDepois`, o bytes-check segue valendo no PAYLOAD
+// (pre-transform) e o frescor compara contra o pos-transform.
+const DS_DESTINO = '../../design-system/';
+function montarTransforms() {
+  if (!dsRequires) return null;
+  // Escape do slug montado por `split/join`, não por regex de escape: o literal
+  // `/[.*+?^${}()|[\]\\]/g` tem 2 pares de barra invertida e colapsa no transporte de escrita
+  // (LC-26 — foi o que quebrou este arquivo na 1ª tentativa). O slug do DS é
+  // `office-impresso-design-system-<uuid>`: só letras, dígitos e hífen. Nenhum é metacaractere,
+  // então basta recusar o que fugir disso — explícito e sem barra nenhuma.
+  if (dsRequires.slug && !/^[A-Za-z0-9-]+$/.test(dsRequires.slug)) {
+    throw new Error(`transforms: slug com caractere inesperado (${dsRequires.slug}) — recuso montar regex`);
+  }
+  // ⚠️ CASA A REF, NAO A OCORRENCIA. A 1a versao trocava `_ds/<slug>/` em qualquer lugar do
+  // texto — e isso DESTROI o mecanismo do proprio design. Medido no host do Wagner (pacote 27):
+  //   ANTES   ? '../../design-system/' : '_ds/office-impresso-…/'
+  //   DEPOIS  ? '../../design-system/' : '../../design-system/'
+  // O fallback do ternario existe PRA O COWORK, onde `../../design-system/` nao existe; converte-lo
+  // quebra o preview de la. O §C do pedido e explicito: "NAO TOCAR ... o host do Wagner".
+  // Entao a regra casa so `href="_ds/…"` / `src="_ds/…"` — que e o que o GRAFO cobra e o que o
+  // browser resolve como arquivo. String dentro de JS nao e ref; e codigo do dono.
+  const corpo = dsRequires.slug ? `_ds/${dsRequires.slug}/` : '_ds/';
+  const alvoRe = new RegExp(`((?:href|src)=")${corpo}`, "g");  // `/` não precisa escape em RegExp por string
+  const saida = [];
+  for (const file of sourceFiles) {
+    if (!/\.(html|jsx|js|css)$/i.test(file.path)) continue;
+    const antes = file.buffer.toString('utf8');
+    if (!alvoRe.test(antes)) { alvoRe.lastIndex = 0; continue; }
+    alvoRe.lastIndex = 0;
+    const depois = antes.replace(alvoRe, `$1${DS_DESTINO}`);
+    saida.push({
+      path: file.path,
+      regra: 'ds-ref',
+      de: dsRequires.slug ? `_ds/${dsRequires.slug}/` : '_ds/',
+      para: DS_DESTINO,
+      shaDepois: sha256(Buffer.from(depois, 'utf8')),
+    });
+  }
+  return saida.length ? saida : null;
+}
+const transforms = montarTransforms();
+
 
 const generatedAt = new Date().toISOString();
 const manifest = createManifest({
   source: `cowork:${ENTRY}`,
   entry: ENTRY,
   files: sourceFiles.map((file) => ({ path: file.path, bytes: file.buffer.length, sha256: sha256(file.buffer) })),
-  missing,
+  // PR-A9: com a conversao DECLARADA, os `_ds/**` deixam de ser dependencia do estado-alvo — a
+  // ref passa a apontar pra `../../design-system/`, FORA do bundle (mesmo estatuto de uma CDN
+  // externa, que o grafo ja ignora). Mante-los em `missing` faria o gerador emitir `BLOQUEADO`
+  // por uma ausencia que a propria regra resolve, e o lote do Felipe nunca pousaria.
+  // ⚠️ So sai o que a conversao cobre: sem `transforms`, `missing` fica INTACTO.
+  missing: transforms ? missing.filter((rel) => !rel.startsWith('_ds/')) : missing,
   previous,
   generatedAt,
   ...(FULL_TREE ? { mirrorScope: 'tree' } : {}),
   ...(dsRequires ? { dsRequires } : {}),
+  ...(transforms ? { transforms } : {}),
 });
 
 const changed = new Set([...manifest.changes.added, ...manifest.changes.modified]);
@@ -331,8 +416,10 @@ if (PISO > CAP) console.log(`\n  AVISO: piso ${PISO} > cap ${CAP}; padding de tr
 const pequenas = tamanhosEscritos.filter(([, bytes]) => PISO > 0 && bytes < PISO);
 if (pequenas.length) console.log(`  AVISO: ${pequenas.length} parte(s) abaixo do piso de persistência.`);
 if (excluidos.size) console.log(`  excluídos por --exclude: ${[...excluidos].join(', ')}`);
-if (missing.length) {
-  console.log(`  BLOQUEADO: missing (${missing.length}): ${missing.join(', ')}`);
+if (manifest.missing.length) {
+  // Usa o `missing` DO MANIFESTO, não a variável crua: com `transforms` os `_ds/**` saem do
+  // estado-alvo, e imprimir a lista velha anunciaria um bloqueio que já não existe.
+  console.log(`  BLOQUEADO: missing (${manifest.missing.length}): ${manifest.missing.join(', ')}`);
   console.log('  O consumidor recusará o lote inteiro; o manifesto foi emitido para diagnóstico.');
 } else console.log('  missing: [] — o grafo do shell fecha.');
 console.log(`\n  aplicar:\n    node scripts/design-sync/aplicar-payload.mjs ${OUT}/payload.part*.json --require-complete-shell\n`);

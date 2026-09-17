@@ -523,7 +523,11 @@ function principal() {
 
   // 5. REGERAR pelo gerador CANÔNICO
   const outSync = join(destino, '_sync-regerado');
-  const g = roda('scripts/design-sync/gerar-payload-partes.mjs', ['--root', raiz, '--out', outSync, '--previous', ATIVO, '--full-tree']);
+  // `--owner` vem da conta que o PASSO 0 liberou — quem chama sabe de quem e o lote; o path da
+  // arvore extraida (tmpdir) nao diz. Sem isto o gerador sai `owner: "project"` (medido).
+  const donoDoLote = decisao.conta === 'felipe' ? 'Felipe' : 'Wagner';
+  const g = roda('scripts/design-sync/gerar-payload-partes.mjs',
+    ['--root', raiz, '--out', outSync, '--previous', ATIVO, '--full-tree', '--owner', donoDoLote]);
   if (!g.ok) { console.error(g.out); morre('o gerador canonico falhou'); }
   console.log(`\n  [5] REGERAR      ${((g.out.match(/BUNDLE v2: \w+/) || [''])[0] || '').trim()}`);
   console.log(`                   ${((g.out.match(/DELTA:.*/) || [''])[0] || '').trim()}`);

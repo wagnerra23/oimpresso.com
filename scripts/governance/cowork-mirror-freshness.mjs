@@ -602,16 +602,36 @@ export function artifactHash(content, binary = Buffer.isBuffer(content)) {
  *  O get_file pode devolver `_ds/<slug>/...`; o shell já escolhe o slug no destino,
  *  portanto persistir esse prefixo de novo criaria `_ds/<slug>/_ds/<slug>/...`.
  *  Template/componente-fonte não entra neste destino: usa `--ds`, não `--ds-runtime`. */
+const DS_RUNTIME_RE = /^(?:_ds_bundle\.js|colors_and_type\.css|cockpit_domains\.css|styles\.css|assets\/)/;
+
 export function dsRuntimeRelPath(path) {
   const p = String(path || '').replace(/\\/g, '/').replace(/^\.\//, '');
-  const semSlug = p.replace(/^_ds\/[^/]+\//, '');
-  if (!semSlug || semSlug.startsWith('/') || semSlug.split('/').includes('..')) {
-    throw new Error(`ds-runtime: caminho inseguro "${path}"`);
-  }
-  if (!/^(?:_ds_bundle\.js|colors_and_type\.css|cockpit_domains\.css|assets\/)/.test(semSlug)) {
-    throw new Error(`ds-runtime: "${path}" não é bundle/CSS/asset de runtime; use --ds para fonte/template`);
-  }
-  return semSlug;
+  const inseguro = (rel) => !rel || rel.startsWith('/') || rel.split('/').includes('..');
+  // DUAS FORMAS de bind, e as duas são legítimas (medido 2026-09-17, PR-A9):
+  //   Wagner  `_ds/<slug>/colors_and_type.css`   — o bind carimba o slug do projeto DS
+  //   Felipe  `_ds/colors_and_type.css`          — bind sem slug; `Felipe/venda-v3/index.html`
+  //                                                 carrega assim nas linhas 38, 39 e 64
+  // Antes só a 1ª resolvia: o regex exige DUAS barras, então o caminho sem slug não casava,
+  // caía na whitelist com o prefixo `_ds/` intacto e dava `throw`. `slug: null` é forma
+  // legítima do outro dono, não erro.
+  //
+  // ORDEM: tenta COM slug primeiro (preserva o comportamento de quem já funcionava) e cai pra
+  // SEM slug — mas cada tentativa só vale se o resultado BATER a whitelist. Isso não é detalhe:
+  //   `_ds/assets/fonts/a.woff2`        com-slug daria `fonts/a.woff2` (não bate) ⇒ cai pro
+  //                                     sem-slug e resolve `assets/fonts/a.woff2`. Correto.
+  //   `_ds/assets/colors_and_type.css`  AMBÍGUO de verdade: as duas leituras batem
+  //                                     (`colors_and_type.css` × `assets/colors_and_type.css`).
+  //                                     Com-slug vence, por regra declarada — nunca por acaso.
+  // Os dois casos estão no teste do dono; sem eles a ordem viraria detalhe de implementação.
+  const comSlug = p.replace(/^_ds\/[^/]+\//, '');
+  if (comSlug !== p && !inseguro(comSlug) && DS_RUNTIME_RE.test(comSlug)) return comSlug;
+
+  const semSlug = p.replace(/^_ds\//, '');
+  if (semSlug !== p && !inseguro(semSlug) && DS_RUNTIME_RE.test(semSlug)) return semSlug;
+
+  const candidato = comSlug !== p ? comSlug : semSlug;
+  if (inseguro(candidato)) throw new Error(`ds-runtime: caminho inseguro "${path}"`);
+  throw new Error(`ds-runtime: "${path}" não é bundle/CSS/asset de runtime; use --ds para fonte/template`);
 }
 
 // ── ROTEAMENTO DO BUNDLE — fonte ÚNICA da regra "onde cada path do bundle pousa" ──────
@@ -661,6 +681,12 @@ export function rawHash(buf) {
 export function rowsDoBundle(bundle, manifest, lerArquivo) {
   const rows = [];
   const cobertos = new Set();
+  // PR-A9 — com `transforms`, o que POUSA não é o que VIAJOU: a ref do DS é convertida na
+  // aterrissagem. O `sha256` do manifesto descreve o PAYLOAD (pré-transform); o que está no disco
+  // é o pós. Comparar contra o `sha256` marcaria o host STALE em 100% dos ciclos — e aí este
+  // alarme, que é o ÚNICO que pega remendo à mão no espelho, morreria de ruído.
+  // Por isso o gerador declara `shaDepois` por arquivo tocado: é contra ele que se compara.
+  const shaPosTransform = new Map((bundle?.transforms || []).map((t) => [t.path, t.shaDepois]));
   for (const f of (bundle?.files || [])) {
     const { destinoBase, destinoPath } = destinoDoBundle(f.path);
     // O universo do freshness é o espelho (`prototipo-ui/cowork/Wagner/`). `_ds/**` e `.md` pousam
@@ -673,7 +699,7 @@ export function rowsDoBundle(bundle, manifest, lerArquivo) {
       cowork: destinoPath,
       repoHash: buf == null ? null : rawHash(buf),
       // FAIL-CLOSED: arquivo do bundle que sumiu do espelho não é SYNC nem silêncio.
-      veredito: buf == null ? 'STALE' : classifyMirror({ repoHash: rawHash(buf), liveHash: f.sha256 }),
+      veredito: buf == null ? 'STALE' : classifyMirror({ repoHash: rawHash(buf), liveHash: shaPosTransform.get(f.path) || f.sha256 }),
     });
   }
   // O que o espelho tem e o bundle NÃO cobriu segue UNCHECKED — nunca vira SYNC por omissão

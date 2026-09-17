@@ -104,15 +104,39 @@ export function diffManifests(previous, currentFiles) {
  *  de JSON estavel — ordem instavel geraria id diferente pro mesmo conteudo). */
 export function normalizeDsRequires(dsRequires) {
   if (!dsRequires || typeof dsRequires !== 'object') throw new Error('dsRequires invalido');
-  const slug = String(dsRequires.slug || '').trim();
-  if (!slug) throw new Error('dsRequires.slug vazio');
+  const owner = String(dsRequires.owner || '').trim();
+  if (!owner) throw new Error('dsRequires.owner vazio');
+  // ⚠️ `slug` e OPCIONAL, e `null` e a forma LEGITIMA do Felipe — nao erro. Medido 2026-09-17:
+  // `Felipe/venda-v3/index.html:38,39,64` carrega `_ds/colors_and_type.css` (sem slug), enquanto
+  // o bind do Wagner carimba `_ds/<slug>/…`. Exigir slug reprovaria um dono inteiro.
+  const slug = dsRequires.slug == null || String(dsRequires.slug).trim() === ''
+    ? null
+    : String(dsRequires.slug).trim();
   const arquivos = (dsRequires.arquivos || [])
     .map((item) => ({ path: normalizePayloadPath(item.path), sha256: String(item.sha256).toLowerCase() }))
     .sort((a, b) => a.path.localeCompare(b.path));
-  return { slug, arquivos };
+  return { owner, slug, arquivos };
 }
 
-export function createManifest({ source, entry = 'oimpresso.com.html', files, missing = [], previous = null, generatedAt = new Date().toISOString(), mirrorScope = null, dsRequires = null }) {
+/** Normaliza `transforms`: paths POSIX, sha minusculo, ordem estavel por path. */
+export function normalizeTransforms(transforms) {
+  if (!Array.isArray(transforms)) throw new Error('transforms: esperado array');
+  return transforms
+    .map((t) => {
+      if (!t || typeof t.path !== 'string' || !t.path) throw new Error('transforms[].path invalido');
+      if (t.regra !== 'ds-ref') throw new Error(`transforms[].regra desconhecida: ${t.regra}`);
+      if (typeof t.de !== 'string' || !t.de || typeof t.para !== 'string' || !t.para) {
+        throw new Error(`transforms[] de/para invalido: ${t.path}`);
+      }
+      if (!/^[a-f0-9]{64}$/.test(String(t.shaDepois || ''))) {
+        throw new Error(`transforms[].shaDepois invalido: ${t.path}`);
+      }
+      return { path: normalizePayloadPath(t.path), regra: t.regra, de: t.de, para: t.para, shaDepois: String(t.shaDepois).toLowerCase() };
+    })
+    .sort((a, b) => a.path.localeCompare(b.path));
+}
+
+export function createManifest({ source, entry = 'oimpresso.com.html', files, missing = [], previous = null, generatedAt = new Date().toISOString(), mirrorScope = null, dsRequires = null, transforms = null }) {
   if (mirrorScope !== null && mirrorScope !== 'tree') throw new Error(`escopo de espelho inválido: ${mirrorScope}`);
   const list = normalizedFiles(files);
   const cleanMissing = [...new Set(missing.map(normalizePayloadPath))].sort();
@@ -125,10 +149,6 @@ export function createManifest({ source, entry = 'oimpresso.com.html', files, mi
     files: list,
     missing: cleanMissing,
     ...(mirrorScope ? { mirrorScope } : {}),
-    // PR-A9: entra na IDENTIDADE de proposito. O pacote foi medido contra AQUELE DS; trocar o DS
-    // exigido e outro pacote, e o `bundleId` tem que dizer isso. Ausente = pacote legado, que
-    // segue valido e vira "NAO MEDIDO" na aplicacao (nunca "sem divergencia" — LC-13).
-    ...(dsRequires ? { dsRequires: normalizeDsRequires(dsRequires) } : {}),
   };
   const bundleId = sha256(stableJson(identity));
   return {
@@ -137,6 +157,19 @@ export function createManifest({ source, entry = 'oimpresso.com.html', files, mi
     baseBundleId: previous?.bundleId || null,
     mode: previous ? 'delta' : 'snapshot',
     generatedAt,
+    // PR-A9 — FORA da identidade, por decisao [W] (§D do pedido de 2026-09-17).
+    // Classificacao: identidade = O QUE POUSA; `dsRequires` = PRE-CONDICAO de aterrissagem.
+    // Metadado, ao lado de `mode`/`totals`/`changes`, com shape-check no `validateManifest`.
+    // ⚠️ O motivo TECNICO citado no pedido ("quebra a cadeia de delta e forca snapshot dos 702")
+    // foi MEDIDO e nao se sustenta: com o campo na identidade o pacote 27 real deu `mode=delta`,
+    // `baseBundleId == ativo.bundleId`, delta de 0 arquivos. A cadeia usa o `baseBundleId`
+    // DECLARADO, e o ativo nao muda. O que sustenta a decisao e a CLASSIFICACAO, nao aquele
+    // efeito — e classificacao e do dono.
+    ...(dsRequires ? { dsRequires: normalizeDsRequires(dsRequires) } : {}),
+    // `transforms` — a REGRA de aterrissagem, tambem fora da identidade (mesma classificacao).
+    // Cada item carrega `shaDepois`: o sha do arquivo DEPOIS da conversao, que e contra o que o
+    // `--compare-bundle` compara. Sem ele o host ficaria STALE em 100% dos ciclos (§D).
+    ...(transforms ? { transforms: normalizeTransforms(transforms) } : {}),
     totals: {
       files: list.length,
       bytes: list.reduce((sum, file) => sum + file.bytes, 0),
@@ -161,14 +194,24 @@ export function validateManifest(manifest) {
     files,
     missing: [...new Set((manifest.missing || []).map(normalizePayloadPath))].sort(),
     ...(manifest.mirrorScope ? { mirrorScope: manifest.mirrorScope } : {}),
-    // PR-A9: o contrato de DS faz parte da IDENTIDADE — o `createManifest` o inclui, e a
-    // recomputação aqui TEM que incluir também, senão todo pacote com `dsRequires` é recusado
-    // por "bundleId divergente" (medido 2026-09-17, foi o que aconteceu na 1ª versão: LC-22 —
-    // mudar artefato que a máquina lê sem rodar a máquina com a mudança aplicada).
-    ...(manifest.dsRequires ? { dsRequires: normalizeDsRequires(manifest.dsRequires) } : {}),
   };
   const expectedId = sha256(stableJson(expectedIdentity));
   if (manifest.bundleId !== expectedId) throw new Error(`bundleId divergente: declarado ${manifest.bundleId || '?'} · calculado ${expectedId}`);
+  // PR-A9 — `dsRequires` fica FORA da identidade (decisão [W], §D), então NÃO entra no hash acima.
+  // Mas ficar fora não é ficar SEM checagem: shape-check aqui. Sem isto, campo malformado só
+  // apareceria lá na frente, na aplicação — e o pedido é explícito em não relaxar o validador
+  // para campo desconhecido (porta do drift silencioso).
+  if (manifest.dsRequires !== undefined && manifest.dsRequires !== null) {
+    const d = manifest.dsRequires;
+    if (typeof d !== 'object' || Array.isArray(d)) throw new Error('dsRequires: esperado objeto');
+    if (!String(d.owner || '').trim()) throw new Error('dsRequires.owner vazio');
+    if (d.slug !== null && d.slug !== undefined && !String(d.slug).trim()) throw new Error('dsRequires.slug vazio (use null para bind sem slug)');
+    if (!Array.isArray(d.arquivos)) throw new Error('dsRequires.arquivos: esperado array');
+    for (const item of d.arquivos) {
+      if (!item || typeof item.path !== 'string' || !item.path) throw new Error('dsRequires.arquivos[].path invalido');
+      if (!/^[a-f0-9]{64}$/.test(String(item.sha256 || ''))) throw new Error(`dsRequires.arquivos[].sha256 invalido: ${item.path}`);
+    }
+  }
   if (!['snapshot', 'delta'].includes(manifest.mode)) throw new Error(`modo inválido: ${manifest.mode}`);
   if (manifest.mode === 'snapshot' && manifest.baseBundleId) throw new Error('snapshot não pode declarar baseBundleId');
   if (manifest.mode === 'delta' && !/^[a-f0-9]{64}$/.test(String(manifest.baseBundleId || ''))) throw new Error('delta sem baseBundleId válido');

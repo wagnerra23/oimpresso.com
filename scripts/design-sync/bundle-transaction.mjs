@@ -369,14 +369,17 @@ export function conferirDsRequires(dsRequires, lerDoEspelho) {
     if (atual === item.sha256) iguais += 1;
     else divergentes.push({ path: item.path, esperado: item.sha256, noEspelho: atual });
   }
-  return { medido: true, slug: dsRequires.slug, ausentes, divergentes, iguais,
+  return { medido: true, owner: dsRequires.owner, slug: dsRequires.slug, ausentes, divergentes, iguais,
     total: (dsRequires.arquivos || []).length };
 }
 
 /** Linha(s) de veredito do A9 — separada da conferencia pra ser testavel sem fs nem console. */
 export function vereditoDsRequires(r) {
   if (!r.medido) return ['  ⬜ DS-REQUIRES: NAO MEDIDO — o pacote nao declara `dsRequires` (legado). Isto NAO e "sem divergencia".'];
-  const linhas = [`  DS-REQUIRES (${r.slug}): ${r.iguais} de ${r.total} conferem`];
+  // Identifica pelo DONO sempre, e pelo slug só quando existe — `slug: null` é a forma legítima
+  // do bind sem slug, e imprimir "(null)" faz o veredito parecer defeito.
+  const quem = r.slug ? `${r.owner || '?'} · ${r.slug}` : `${r.owner || '?'} · bind sem slug`;
+  const linhas = [`  DS-REQUIRES (${quem}): ${r.iguais} de ${r.total} conferem`];
   for (const d of r.divergentes) {
     linhas.push(`     ⬜ DIVERGE  ${d.path}  esperado ${d.esperado.slice(0, 12)} · espelho ${d.noEspelho.slice(0, 12)}`);
   }
@@ -452,13 +455,44 @@ function writeAndVerifyTarget({ root, staged, manifest, buffers, previous, permi
   // A rota legítima do DS não passa por aqui: é `cowork-mirror-freshness --export-from --ds`,
   // que escreve em `design-system/` pelo seu próprio `exportPlan`. Medido: o único consumidor de
   // `applyBundleTransaction` é o `aplicar-payload.mjs` (rota de telas) + os testes.
+  // PR-A9 — CONVERSAO na aterrissagem ([W] 2026-09-17: "quando for aplicar no Code, faz a
+  // conversao"). O host referencia o `_ds/` do bind de cada projeto; aqui o DS vive em
+  // `prototipo-ui/design-system/`. A regra viaja DECLARADA em `manifest.transforms` e cada item
+  // traz `shaDepois` — o sha do conteudo JA convertido, que e contra o que o estado-alvo e o
+  // `--compare-bundle` conferem. Sem declarar, o host ficaria STALE em 100% dos ciclos.
+  const transformPorPath = new Map((manifest.transforms || []).map((t) => [t.path, t]));
+  const aplicarTransform = (path, buffer) => {
+    const t = transformPorPath.get(path);
+    if (!t) return buffer;
+    return Buffer.from(buffer.toString('utf8').split(t.de).join(t.para), 'utf8');
+  };
+
   const escritasRecusadas = [];
   for (const [path, buffer] of buffers) {
     if (!permiteEscreverDs && roleForPath(path) === 'preview-cache') { escritasRecusadas.push(path); continue; }
     const target = targetForLogical(path, staged);
     const abs = resolveInside(target.root, target.rel);
     mkdirSync(dirname(abs), { recursive: true });
-    writeFileSync(abs, buffer);
+    writeFileSync(abs, aplicarTransform(path, buffer));
+  }
+  // Converter só o que veio nos BUFFERS não basta: num delta, o arquivo INALTERADO não viaja —
+  // ele já está no staging, vindo do espelho, e lá ainda está pré-conversão. Sem este passo o
+  // estado-alvo diverge de `shaDepois` e o lote é recusado (medido 2026-09-17 no pacote 27, onde
+  // o delta era 0 e o host não viajava). Aplicar de novo num arquivo já convertido é no-op: o
+  // `de` não existe mais no conteúdo.
+  let convertidosDoStaging = 0;
+  for (const [path] of transformPorPath) {
+    if (buffers.has(path)) continue;
+    const target = targetForLogical(path, staged);
+    const abs = resolveInside(target.root, target.rel);
+    if (!existsSync(abs)) continue;
+    const atual = readFileSync(abs);
+    const convertido = aplicarTransform(path, atual);
+    if (!convertido.equals(atual)) { writeFileSync(abs, convertido); convertidosDoStaging += 1; }
+  }
+  if (transformPorPath.size) {
+    console.log(`  ⬜ ${transformPorPath.size} arquivo(s) com ref do DS CONVERTIDA na aterrissagem`
+      + ` (${transformPorPath.size - convertidosDoStaging} do payload · ${convertidosDoStaging} do espelho) — regra declarada no manifesto.`);
   }
   if (escritasRecusadas.length) {
     console.log(`  ⬜ ${escritasRecusadas.length} escrita(s) de _ds/ IGNORADA(S) — dono é o projeto Design System (#7096), não este export de telas.`);
@@ -477,14 +511,22 @@ function writeAndVerifyTarget({ root, staged, manifest, buffers, previous, permi
     const abs = resolveInside(target.root, target.rel);
     if (!existsSync(abs)) throw new Error(`estado-alvo ausente no staging: ${file.path}`);
     const buffer = readFileSync(abs);
-    if (buffer.length !== file.bytes || sha256(buffer) !== file.sha256) throw new Error(`estado-alvo diverge no staging: ${file.path}`);
+    // Com transform, o alvo e o sha POS-conversao; o `bytes`/`sha256` do manifesto descreve o
+    // PAYLOAD (pre-transform) e segue conferido nos chunks, antes daqui.
+    const t = transformPorPath.get(file.path);
+    const shaEsperado = t ? t.shaDepois : file.sha256;
+    const bytesConferem = t ? true : buffer.length === file.bytes;
+    if (!bytesConferem || sha256(buffer) !== shaEsperado) throw new Error(`estado-alvo diverge no staging: ${file.path}`);
     graphFiles.push({ path: file.path, binary: BINARY.test(file.path), content: BINARY.test(file.path) ? null : buffer.toString('utf8') });
   }
   for (const path of effectiveDeleted) {
     const target = targetForLogical(path, staged);
     if (existsSync(resolveInside(target.root, target.rel))) throw new Error(`remoção não efetivada no staging: ${path}`);
   }
-  const graph = payloadDependencyGraph(graphFiles, { entry: manifest.entry });
+  // Os destinos declarados em `transforms` são EXTERNOS ao espelho por desenho (o DS tem dono
+  // próprio). Sem declará-los, o grafo lê `../../design-system/…` como traversal e recusa.
+  const prefixosExternos = [...new Set((manifest.transforms || []).map((t) => t.para))];
+  const graph = payloadDependencyGraph(graphFiles, { entry: manifest.entry, prefixosExternos });
   if (!graph.entryPresent) throw new Error(`entry ausente no estado-alvo: ${manifest.entry}`);
   if (graph.missing.length) throw new Error(`grafo do estado-alvo incompleto: ${graph.missing.join(', ')}`);
   if (graph.unsafe.length) throw new Error(`referência insegura no estado-alvo: ${graph.unsafe.map((item) => `${item.from}→${item.ref}`).join(', ')}`);

@@ -9,6 +9,7 @@
 import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
+import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -513,6 +514,53 @@ check('mesmo número → mesmo veredito (independe de --check)',
     artifactHash(bin.content, true) === artifactHash(bytes, true));
   check('ds-runtime: remove o slug _ds e mantém o path relativo consumido pelo preview',
     dsRuntimeRelPath('_ds/office-impresso-019dd0/assets/fonts/x.woff2') === 'assets/fonts/x.woff2');
+  // PR-A9 — as DUAS formas de bind. Wagner carimba o slug; Felipe não (medido 2026-09-17:
+  // `Felipe/venda-v3/index.html:38,39,64` carrega `_ds/colors_and_type.css`, `_ds/styles.css`,
+  // `_ds/_ds_bundle.js`). Antes disto o caminho sem slug LANÇAVA: o regex exige duas barras.
+  check('A9: bind SEM slug resolve (a forma do Felipe, que antes lançava)',
+    dsRuntimeRelPath('_ds/colors_and_type.css') === 'colors_and_type.css'
+    && dsRuntimeRelPath('_ds/_ds_bundle.js') === '_ds_bundle.js');
+  // `styles.css` carrega os COMPONENTES do DS e o host do Felipe depende dele — estava fora da
+  // whitelist, então lançava com slug e sem slug.
+  check('A9: styles.css entra na whitelist (com e sem slug)',
+    dsRuntimeRelPath('_ds/styles.css') === 'styles.css'
+    && dsRuntimeRelPath('_ds/slug-x/styles.css') === 'styles.css');
+  // A ordem das tentativas vira CONTRATO aqui, senão é acaso de implementação.
+  check('A9: com-slug só vence quando o resultado bate a whitelist',
+    // com-slug daria `fonts/a.woff2` (não bate) ⇒ cai pro sem-slug
+    dsRuntimeRelPath('_ds/assets/fonts/a.woff2') === 'assets/fonts/a.woff2');
+  check('A9: no caso AMBÍGUO (ambos batem) com-slug vence, por regra declarada',
+    dsRuntimeRelPath('_ds/assets/colors_and_type.css') === 'colors_and_type.css');
+  // CONTROLE NEGATIVO: a whitelist não virou "aceita tudo" — extensão fora segue lançando nas
+  // duas formas. Sem isto, um `return semSlug` sem guarda passaria nos asserts acima.
+  let semSlugForaDaWhitelist = '';
+  try { dsRuntimeRelPath('_ds/qualquer.txt'); } catch (e) { semSlugForaDaWhitelist = String(e.message); }
+  check('CONTROLE A9: path sem slug FORA da whitelist segue lançando',
+    /use --ds/.test(semSlugForaDaWhitelist), semSlugForaDaWhitelist);
+
+  // PR-A9 §F.6 — FRESCOR POS-TRANSFORM. Com `transforms`, o que POUSA nao e o que VIAJOU: a ref
+  // do DS e convertida na aterrissagem. Comparar contra o `sha256` do manifesto (pre-transform)
+  // marcaria o host STALE em 100% dos ciclos — e ai este alarme, que e o UNICO que pega remendo
+  // a mao no espelho (caso de 13/08, 4 dias sem ninguem ver), morreria de ruido.
+  {
+    const shaDe = (t) => createHash('sha256').update(t).digest('hex');
+    const pre = '<link href="_ds/slug/colors_and_type.css">';
+    const pos = '<link href="../../design-system/colors_and_type.css">';
+    const comT = {
+      files: [{ path: 'oimpresso.com.html', bytes: pre.length, sha256: shaDe(pre), role: 'cowork-source' }],
+      transforms: [{ path: 'oimpresso.com.html', regra: 'ds-ref', de: '_ds/slug/', para: '../../design-system/', shaDepois: shaDe(pos) }],
+    };
+    const manDs = [{ cowork: 'oimpresso.com.html', repoPath: 'prototipo-ui/cowork/Wagner/oimpresso.com.html' }];
+    const lerTxt = (txt) => (caminho) => (caminho.endsWith('oimpresso.com.html') ? Buffer.from(txt) : null);
+    check('A9 §F.6a: com transform, disco POS-transform e SYNC (nao STALE por construcao)',
+      rowsDoBundle(comT, manDs, lerTxt(pos))[0].veredito === 'SYNC');
+    check('A9 §F.6b: remendo a mao no host SEGUE virando STALE (o alarme sobrevive)',
+      rowsDoBundle(comT, manDs, lerTxt(pos + '<!--x-->'))[0].veredito === 'STALE');
+    // CONTROLE: sem `transforms` nada muda — compara contra o sha do manifesto, como sempre.
+    check('CONTROLE A9: sem transforms o contrato antigo fica intacto',
+      rowsDoBundle({ files: comT.files }, manDs, lerTxt(pre))[0].veredito === 'SYNC');
+  }
+
   let templateNoRuntime = '';
   try { dsRuntimeRelPath('templates/pt-05-dashboard/Pt05Dashboard.dc.html'); }
   catch (e) { templateNoRuntime = String(e.message); }
