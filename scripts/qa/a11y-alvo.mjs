@@ -140,8 +140,19 @@ async function abrir(url, { rota = null, viewport = 1280 } = {}) {
   // mecanica do render-proto-baseline; localStorage nao existe em file://, dai servir por http).
   if (rota) await ctx.addInitScript((r) => { try { localStorage.setItem('oimpresso.route', r); } catch { /* file:// nao tem storage: a rota cai no default do app */ } }, rota);
   const page = await ctx.newPage();
+  // RECURSO QUE NAO CHEGOU (achado de sessao irma, 2026-09-17, confirmado aqui por medicao):
+  // com o CSS em 404 o DOM tem o MESMO numero de nos, mas `cursor:pointer` some e a violacao
+  // S1 desaparece — o ratchet registraria um GANHO falso. E os criterios de PRESENCA nao
+  // discriminam: no 404 `link.sheet` continua NAO-NULO (igual ao caso bom), e `link.disabled`
+  // = true da o OPOSTO (sheet nulo), entao testar com `disabled` da falso conforto. Em file://
+  // o `cssRules` e barrado por origem opaca nos DOIS casos. O unico oraculo que serve nos dois
+  // esquemas e a RESPOSTA DE REDE — por isso escutamos aqui, e nao no DOM.
+  const recursosFalhos = [];
+  const interessa = (t) => t === 'stylesheet' || t === 'script' || t === 'font';
+  page.on('response', (r) => { if (r.status() >= 400 && interessa(r.request().resourceType())) recursosFalhos.push(`${r.status()} ${r.request().resourceType()} ${r.url().slice(-70)}`); });
+  page.on('requestfailed', (r) => { if (interessa(r.resourceType())) recursosFalhos.push(`FALHOU ${r.resourceType()} ${r.url().slice(-70)}`); });
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-  return { browser, page };
+  return { browser, page, recursosFalhos };
 }
 
 // Nunca medir durante o lazy-load: duas leituras iguais do nº de nos (§5 2026-08-24).
@@ -203,8 +214,8 @@ async function rodarAxe(page) {
   });
 }
 
-export async function medir({ url, rota, lado, minNos = 150, viewport = 1280 }) {
-  const { browser, page } = await abrir(url, { rota, viewport });
+export async function medir({ url, rota, lado, minNos = 150, viewport = 1280, ignorarRede = false }) {
+  const { browser, page, recursosFalhos } = await abrir(url, { rota, viewport });
   try {
     const nos = await esperarEstavel(page);
     // GUARD DE SANIDADE — o que a ADR 0290 ensina: DOM vazio (CDN 429, login, erro de boot) daria
@@ -213,12 +224,20 @@ export async function medir({ url, rota, lado, minNos = 150, viewport = 1280 }) 
       throw naoMedi(`render insuficiente: ${nos} nos (< ${minNos}). Provavel CDN/boot falho — ` +
         `"0 violacoes" aqui seria ausencia de medicao, nao ausencia de defeito.`);
     }
+    // GUARD DE REDE: CSS/JS que nao chegou falsifica a medicao inteira (cursor, cor, layout).
+    // Isto e o cenario que a ADR 0290 nomeia (CDN 429) chegando por outra porta que nao o DOM vazio.
+    if (!ignorarRede && recursosFalhos.length) {
+      const lista = recursosFalhos.slice(0, 5).map((r) => '  - ' + r).join('\n');
+      throw naoMedi(`${recursosFalhos.length} recurso(s) de estilo/script nao chegaram — a medicao `
+        + `seria de uma pagina SEM CSS, onde as violacoes SOMEM em vez de aparecer:\n${lista}`);
+    }
     const bruto = await page.evaluate(SONDAS_SOURCE);
     const axe = await rodarAxe(page);
     const controle = await conferirAxe(page);   // so aqui o "axe achou N" vira veredito
     const achados = [...bruto.achados, ...bruto.alvos, ...violacoesDeContraste(bruto.pares), ...axe];
     return { lado, url, rota: rota || null, viewport: Number(viewport), nos, medido_em: new Date().toISOString().slice(0, 10),
-      pares_de_cor_medidos: bruto.pares.length, ...controle, ...resumir(achados), achados };
+      pares_de_cor_medidos: bruto.pares.length, recursos_falhos: recursosFalhos.length,
+      ...controle, ...resumir(achados), achados };
   } finally { await browser.close(); }
 }
 
@@ -240,6 +259,17 @@ const FIXTURE_BOA = `<!doctype html><meta charset="utf-8"><title>a11y boa</title
 </main><script>window.__oiLazyDone=true;</script></body></html>`;
 // UMA violacao a mais que a boa, e so uma: o DIV clicavel sem papel. E o degrau do ratchet.
 const FIXTURE_RUIM = FIXTURE_BOA.replace('<h1>Relatorio</h1>', '<h1>Relatorio</h1><div class="cx">Abrir</div>');
+
+// Fixture do GUARD DE REDE. O <link> aponta pra um arquivo que EXISTE (g-ok.css, escrito na hora)
+// ou pra um que NAO existe — e a diferenca entre os dois e o que o guard tem de enxergar.
+// NAO use `link.disabled = true` pra simular a ausencia: medido em 2026-09-17, no `disabled` o
+// `sheet` vira NULO, enquanto no 404 real ele continua NAO-NULO. Testar com `disabled` faz um
+// criterio fraco parecer que funciona (achado de sessao irma, confirmado aqui lado a lado).
+const FIXTURE_CSS = '.cx{cursor:pointer}';
+const paginaComCss = (href) => `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>rede</title>`
+  + `<link rel="stylesheet" href="${href}"></head><body><main><h1>X</h1>`
+  + `<div class="cx">clicavel sem papel</div><div>a</div><div>b</div>`
+  + `</main><script>window.__oiLazyDone=true;</script></body></html>`;
 
 async function selftest(comBrowser) {
   const checks = [];
@@ -301,6 +331,24 @@ async function selftest(comBrowser) {
       try { await conferirAxe(pg); r2 = 'passou'; } catch (e) { r2 = e.naoMedi ? 'naoMedi' : 'falhou'; }
       ok('CONTROLE DO AXE: axe que acusa ate o par BOM vira NAO MEDI', r2 === 'naoMedi', `rc=${r2}`);
     } finally { await br.close(); }
+
+    // GUARD DE REDE: CSS que nao chegou falsifica TUDO (o cursor some, e com ele a violacao).
+    writeFileSync(join(tmpdir(), 'a11y-g-ok.css'), FIXTURE_CSS);
+    const comCss = escrever('rede-ok', paginaComCss('a11y-g-ok.css'));
+    const semCss = escrever('rede-404', paginaComCss('a11y-NAO-EXISTE.css'));
+    let okMediu = null, falhouMediu = null;
+    try { const m = await medir({ url: comCss, lado: 'fixture', minNos: 3 }); okMediu = m.total_gate; } catch { okMediu = 'erro'; }
+    try { await medir({ url: semCss, lado: 'fixture', minNos: 3 }); falhouMediu = 'mediu'; }
+    catch (e) { falhouMediu = e.naoMedi ? 'naoMedi' : 'falhou'; }
+    ok('GUARD DE REDE: CSS em 404 vira NAO MEDI (senao a violacao SOME e vira ganho falso)', falhouMediu === 'naoMedi', `rc=${falhouMediu}`);
+    ok('CONTROLE NEGATIVO: com o CSS presente ele MEDE (o guard nao reprova o caso bom)',
+      typeof okMediu === 'number' && okMediu > 0, `gate=${okMediu}`);
+    // E a prova de que o guard de NOS sozinho nao daria conta: os dois DOMs tem o mesmo tamanho.
+    const semGuarda = await medir({ url: semCss, lado: 'fixture', minNos: 3, ignorarRede: true });
+    const comGuarda = await medir({ url: comCss, lado: 'fixture', minNos: 3 });
+    ok('o guard de NOS sozinho seria CEGO aqui (mesmo nº de nos, violacao a menos)',
+      semGuarda.nos === comGuarda.nos && semGuarda.total_gate < comGuarda.total_gate,
+      `nos ${semGuarda.nos}=${comGuarda.nos} · gate ${semGuarda.total_gate}<${comGuarda.total_gate}`);
   }
 
   for (const c of checks) console.log(`${c.ok ? 'ok  ' : 'X   '}${c.nome}${c.det ? ' — ' + c.det : ''}`);
