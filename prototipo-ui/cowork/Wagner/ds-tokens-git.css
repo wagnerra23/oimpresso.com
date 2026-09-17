@@ -29,21 +29,22 @@ html.cockpit[data-ds-tokens="git"][data-theme="dark"]{
   --warn: oklch(0.82 0.16 75); /* computado hoje 0.80 0.13 75 */
 }
 
-/* v1.3.0 · tinta de success/warning — o conserto de contraste do StatusBadge.
-   O git muda `-foreground`; o espelho duplica o valor em `-fg`, então os dois entram juntos
-   (senão o componente do DS não muda de tinta e o A/B mentiria). Zero uso no meu CSS:
-   quem consome é o StatusBadge do _ds_bundle. */
+/* v1.3.0 · tinta de success/warning SOBRE FUNDO SÓLIDO — o conserto de contraste.
+   ⚠️ RETRATAÇÃO 2026-09-17: a versão anterior também sobrescrevia `--color-success-fg` /
+   `--color-warning-fg` "porque o espelho duplicava o valor". ERRADO, e [CL] refutou com o git:
+   os dois tokens são SEPARADOS POR DESIGN (ADR UI-0033), cada um para o seu fundo —
+     `-foreground` (0.20, tinta escura)  → par de `bg-success` SÓLIDO   (shared/StatusBadge.tsx, ~30 usos)
+     `-fg`        (0.51 light / 0.78 dark) → par de `bg-success-soft` TINTADO (ui/badge.tsx:26,28)
+   `semantic.tokens.json:37,43` declara os dois com valores distintos e o git canon mantém
+   `-fg` em 0.51/0.78. Sobrescrever `-fg` para 0.20 punha tinta escura sobre `success-soft`
+   (0.27 no dark) = ILEGÍVEL — eu ia introduzir a regressão que dizia estar medindo. */
 html[data-ds-tokens="git"]{
   --color-success-foreground: oklch(0.20 0.02 162); /* light: 0.51 0.12 162 */
-  --color-success-fg: oklch(0.20 0.02 162);
   --color-warning-foreground: oklch(0.20 0.02 75); /* light: 0.55 0.12 75 */
-  --color-warning-fg: oklch(0.20 0.02 75);
 }
 html[data-ds-tokens="git"][data-theme="dark"],html[data-ds-tokens="git"] .dark{
   --color-success-foreground: oklch(0.20 0.02 162); /* dark: 0.78 0.11 162 */
-  --color-success-fg: oklch(0.20 0.02 162);
   --color-warning-foreground: oklch(0.20 0.02 75); /* dark: 0.80 0.10 75 */
-  --color-warning-fg: oklch(0.20 0.02 75);
 }
 
 /* Amostra do painel — os 8 deltas lado a lado, porque ΔL ≤0.02 numa tela cheia é invisível.
@@ -54,13 +55,21 @@ html[data-ds-tokens="git"][data-theme="dark"],html[data-ds-tokens="git"] .dark{
 .dstk-amostra{display:flex;flex-direction:column;gap:6px;margin:6px 0 2px}
 .dstk-row{display:flex;gap:6px}
 .dstk-cell{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:3px}
-.dstk-cell i{font:500 9px/1 var(--font-mono);font-style:normal;letter-spacing:.02em;color:rgba(41,38,27,.62);text-align:center}
+.dstk-cell i{font:500 9px/1 var(--font-mono);font-style:normal;letter-spacing:.02em;color:#29261b;text-align:center}
 .dstk-sw{height:30px;border-radius:6px;border:1px solid rgba(41,38,27,.22)}
 .dstk-sw.pos{background:var(--pos)}.dstk-sw.neg{background:var(--neg)}.dstk-sw.warn{background:var(--warn)}.dstk-sw.soft{background:var(--accent-soft)}
 .dstk-chip{flex:1 1 0;min-width:0;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:4px;font:600 10px/1 var(--font-sans)}
-.dstk-chip.ok{background:var(--color-success);color:var(--color-success-fg)}
-.dstk-chip.wr{background:var(--color-warning);color:var(--color-warning-fg)}
-.dstk-nota{font:400 10px/1.35 var(--font-mono);color:rgba(41,38,27,.62);margin:0}
+/* Par CANÔNICO: fundo sólido + `-foreground`. É este que a v1.3.0 conserta. */
+.dstk-chip.ok{background:var(--color-success);color:var(--color-success-foreground)}
+.dstk-chip.wr{background:var(--color-warning);color:var(--color-warning-foreground)}
+/* Par TINTADO: `-soft` + `-fg` (ui/badge.tsx). NÃO muda no lote — fica de controle. */
+.dstk-chip.okt{background:var(--color-success-soft);color:var(--color-success-fg);border:1px solid color-mix(in oklch,var(--color-success) 20%,transparent)}
+.dstk-chip.wrt{background:var(--color-warning-soft);color:var(--color-warning-fg);border:1px solid color-mix(in oklch,var(--color-warning) 20%,transparent)}
+.dstk-nota{font:400 10px/1.35 var(--font-mono);color:rgba(41,38,27,.85);margin:0}
+/* ⚠️ Tinta SEM alpha nos rótulos de 9px e alpha ≥.85 na nota. 3ª iteração do mesmo ponto:
+   `--text-mute` media ~4:1 (tema escuro em chrome claro) e o substituto `.62` ficou PIOR
+   (3,61:1 contra o fundo efetivo do painel; ~3,9:1 mesmo sobre branco puro). Texto miúdo
+   não paga alpha — `#29261b` cheio mede 9,23:1. O `.22` da borda do swatch pode ficar: é borda. */
 /* ⚠️ O painel de Tweaks é chrome CLARO FIXO (`.twk-panel{background:rgba(250,249,247,.78);color:#29261b}`
    no tweaks-panel.jsx). Token do cockpit aqui = tinta de tema escuro em fundo claro:
    `--text-mute` (L 0.58) em 10px dava ≈4:1, reprova. Tinta e borda saem do próprio painel. */
