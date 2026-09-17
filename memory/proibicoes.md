@@ -1462,7 +1462,7 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 ### 2026-09-17 — O mesmo literal `/tmp/...` resolve para DIRETÓRIOS DIFERENTES no Bash (MSYS) e no Python/Node (Windows) — reincidência da §5 2026-08-21, agora medindo a mordida de um teste
 
-- **O limite (variante também proibida):** não usar `mktemp -d`, `/tmp/...` nem qualquer raiz POSIX como local de handoff entre Bash e Python/Node/PHP nativos de Windows — em sandbox de teste, fixture, sonda ou payload. E não ler `exit 0` de um comando cujo insumo você não confirmou: ele pode estar medindo o vazio.
+- **O limite (variante também proibida) — mesma família da §5 2026-08-21 (`/tmp` no Bash × no Node), que ecoa a de 2026-08-07 (literal `D:/x`) e a de 2026-07-26 (ESM×CJS): compare/execute em condições idênticas ou não compare.** Não usar `mktemp -d`, `/tmp/...` nem qualquer raiz POSIX como local de handoff entre Bash e Python/Node/PHP nativos de Windows — em sandbox de teste, fixture, sonda ou payload. E não ler `exit 0` de um comando cujo insumo você não confirmou: ele pode estar medindo o vazio.
 
 - Ocorrência da **LC-36**.
 
