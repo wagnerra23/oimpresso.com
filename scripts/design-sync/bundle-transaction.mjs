@@ -338,7 +338,7 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
   };
 }
 
-function writeAndVerifyTarget({ root, staged, manifest, buffers, previous }) {
+function writeAndVerifyTarget({ root, staged, manifest, buffers, previous, permiteEscreverDs = false }) {
   // Só uma árvore completa autoriza poda de arquivos nunca gerenciados pelo manifesto.
   // Manifestos antigos/de shell não provam ausência de playbooks da conta.
   if (manifest.mirrorScope === 'tree') {
@@ -375,7 +375,7 @@ function writeAndVerifyTarget({ root, staged, manifest, buffers, previous }) {
   // `design-system/` é o projeto DS. Um export de TELAS nunca o escreve nem o apaga.
   const deletesRecusados = [];
   for (const path of [...effectiveDeleted]) {
-    if (roleForPath(path) !== 'preview-cache') continue;
+    if (permiteEscreverDs || roleForPath(path) !== 'preview-cache') continue;
     effectiveDeleted.delete(path);
     deletesRecusados.push(path);
   }
@@ -405,7 +405,7 @@ function writeAndVerifyTarget({ root, staged, manifest, buffers, previous }) {
   // `applyBundleTransaction` é o `aplicar-payload.mjs` (rota de telas) + os testes.
   const escritasRecusadas = [];
   for (const [path, buffer] of buffers) {
-    if (roleForPath(path) === 'preview-cache') { escritasRecusadas.push(path); continue; }
+    if (!permiteEscreverDs && roleForPath(path) === 'preview-cache') { escritasRecusadas.push(path); continue; }
     const target = targetForLogical(path, staged);
     const abs = resolveInside(target.root, target.rel);
     mkdirSync(dirname(abs), { recursive: true });
@@ -423,7 +423,7 @@ function writeAndVerifyTarget({ root, staged, manifest, buffers, previous }) {
     // abaixo acusa `missing` e o lote é recusado. Esse é o sinal certo, não um bug: um host que
     // depende do cache do DS não desce pela rota de telas — ele precisa resolver a base em
     // runtime (`__OI_DS_BASE__`), como o pacote 25 faz.
-    if (roleForPath(file.path) === 'preview-cache') continue;
+    if (!permiteEscreverDs && roleForPath(file.path) === 'preview-cache') continue;
     const target = targetForLogical(file.path, staged);
     const abs = resolveInside(target.root, target.rel);
     if (!existsSync(abs)) throw new Error(`estado-alvo ausente no staging: ${file.path}`);
@@ -443,14 +443,14 @@ function writeAndVerifyTarget({ root, staged, manifest, buffers, previous }) {
   return graph;
 }
 
-export async function applyBundleTransaction({ root = process.cwd(), parts, dry = false, paths = DEFAULT_PATHS, failAfterSwap = 0 }) {
+export async function applyBundleTransaction({ root = process.cwd(), parts, dry = false, paths = DEFAULT_PATHS, failAfterSwap = 0, permiteEscreverDs = false }) {
   const absRoot = resolve(root);
   const previous = readState(absRoot, paths);
   const { manifest, buffers } = validateBundleParts(parts, previous);
   const id = `${manifest.bundleId.slice(0, 12)}-${process.pid}-${Date.now()}`;
   const stages = makeStages(absRoot, paths, id);
   try {
-    const graph = writeAndVerifyTarget({ root: absRoot, staged: stages.staged, manifest, buffers, previous });
+    const graph = writeAndVerifyTarget({ root: absRoot, staged: stages.staged, manifest, buffers, previous, permiteEscreverDs });
     if (manifest.mirrorScope === 'tree') {
       try {
         execFileSync(process.execPath, [fileURLToPath(new URL('../governance/cowork-ssot-guard.mjs', import.meta.url)),
@@ -720,5 +720,9 @@ export async function applyLegacySnapshotTransaction({ root = process.cwd(), pre
     dry,
     paths,
     failAfterSwap,
+    // Rota LEGADA de lote completo: e por ela que o projeto DS entrega o `_ds/**` (payload com
+    // `source: design-system`). Quem chama aqui declarou a intencao; o bloqueio existe pra rota
+    // v2 de TELAS, que e a que o `receber-handoff --zip` usa.
+    permiteEscreverDs: true,
   });
 }

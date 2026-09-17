@@ -648,6 +648,26 @@ console.log('\n=== --check-lifecycle: a catraca do escopo novo morde pelo CLI de
   check('CONTROLE: o mesmo lote com host sem ref literal ENTRA (não virou "recusa tudo")',
     existsSync(join(root2, 'prototipo-ui/cowork/Wagner/styles.css')));
   rmSync(root2, { recursive: true, force: true });
+
+  // CONTROLE do FLAG: a rota LEGADA (`applyLegacySnapshotTransaction`, por onde o projeto DS
+  // entrega o `_ds/**` com payload declarado) passa `permiteEscreverDs: true` e SEGUE escrevendo.
+  // Sem este assert, o bloqueio mataria a única rota legítima de entrega do DS — foi o que
+  // aconteceu na 1ª versão deste conserto, e só o `aplicar-payload.test.mjs` pegou.
+  const root3 = sandbox();
+  const comDs = sourceSnapshot('v1');
+  comDs.set('oimpresso.com.html', Buffer.from([
+    '<link rel="stylesheet" href="styles.css">',
+    '<link rel="stylesheet" href="_ds/ds-live/colors_and_type.css">',
+    '<script src="financeiro-page.jsx"></script>',
+    '<script src="superadmin-page.jsx"></script>',
+    '<script src="officeimpresso-page.jsx"></script>',
+  ].join('\n')));
+  await applyBundleTransaction({
+    root: root3, parts: partsFor(manifestFor(comDs), comDs), permiteEscreverDs: true,
+  });
+  check('CONTROLE do FLAG: rota que DECLARA entrega de DS segue escrevendo o _ds/',
+    existsSync(join(root3, 'prototipo-ui/design-system/colors_and_type.css')));
+  rmSync(root3, { recursive: true, force: true });
 }
 
 console.log(failures ? `\n✗ ${failures} falha(s)` : '\n✓ bundle v2: delta + staging + rollback + módulos + catraca lifecycle + dono do _ds no delete provados');

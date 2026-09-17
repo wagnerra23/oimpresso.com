@@ -2885,8 +2885,8 @@
     },
     {
       "path": "github.md",
-      "bytes": 108654,
-      "sha256": "01bfd31913d2ce29e1a0272d1d199eed60013483dc8643aafba7130b34d02e64",
+      "bytes": 113467,
+      "sha256": "4c0ded1bbb7072acce6045e0103bd133e66d5d3562cdd1b9ef8bc438ceefd4aa",
       "role": "cowork-source"
     },
     {
@@ -3383,8 +3383,8 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 36106,
-      "sha256": "4e2614fde6f844135cfbadcf50467dc7ca00a14f1af69671f03fdf8b45fcff1a",
+      "bytes": 36205,
+      "sha256": "e9bd8c184c49bb47579fc307167d21b0181c6cd15e3f66b3c89909a5f3d1ce7f",
       "role": "cowork-source"
     },
     {
@@ -4236,37 +4236,21 @@
   ],
   "missing": [],
   "mirrorScope": "tree",
-  "bundleId": "1949443e50ff13031730a8e7fd6f527cca001a4f2e63ba99e4a57b05baff6571",
-  "baseBundleId": "615462e08f864cc10cdd05d04843c14a5772d5acd181145a275824da44ccb768",
+  "bundleId": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3",
+  "baseBundleId": "1949443e50ff13031730a8e7fd6f527cca001a4f2e63ba99e4a57b05baff6571",
   "mode": "delta",
-  "generatedAt": "2026-09-17T17:21:12.593Z",
+  "generatedAt": "2026-09-17T17:41:09.437Z",
   "totals": {
     "files": 705,
-    "bytes": 10132003
+    "bytes": 10136915
   },
   "changes": {
-    "added": [
-      "inbox-photo-c1.png",
-      "inbox-photo-c2.png",
-      "inbox-photo-c3.png",
-      "inbox-photo-c4.png"
-    ],
+    "added": [],
     "modified": [
       "github.md",
       "oimpresso.com.html"
     ],
-    "deleted": [
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-mono-400.woff2",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-mono-500.woff2",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-mono-600.woff2",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-400.woff2",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-500.woff2",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-600.woff2",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-700.woff2",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/cockpit_domains.css",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css"
-    ],
-    "unchanged": 699
+    "deleted": [],
+    "unchanged": 703
   }
 }

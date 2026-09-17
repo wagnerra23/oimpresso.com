@@ -1,15 +1,15 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-17T17:21:16.919Z",
+  "generatedAt": "2026-09-17T17:41:13.239Z",
   "bundle": {
-    "id": "1949443e50ff13031730a8e7fd6f527cca001a4f2e63ba99e4a57b05baff6571",
-    "baseId": "615462e08f864cc10cdd05d04843c14a5772d5acd181145a275824da44ccb768",
+    "id": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3",
+    "baseId": "1949443e50ff13031730a8e7fd6f527cca001a4f2e63ba99e4a57b05baff6571",
     "mode": "delta",
     "source": "cowork:oimpresso.com.html",
     "transportComplete": true
   },
   "summary": {
-    "transportChanges": 16,
+    "transportChanges": 2,
     "screens": 162,
     "tested": 0,
     "smoked": 0,
@@ -22,115 +22,17 @@
   },
   "transportChanges": [
     {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js",
-      "change": "deleted",
-      "bytes": 348179,
-      "sha256": "a8cec9a6ea1685302fa87c21aab13987129759e940cd97af21af361a75635761",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-mono-400.woff2",
-      "change": "deleted",
-      "bytes": 14708,
-      "sha256": "08949f728dc52d528e69b1667d15c89a5686a4ee9a296ff90983985f99c380f7",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-mono-500.woff2",
-      "change": "deleted",
-      "bytes": 14888,
-      "sha256": "01d285447409c8a588692162439a038b8cbd7871309ee20267b0d2d91c6e8e22",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-mono-600.woff2",
-      "change": "deleted",
-      "bytes": 15620,
-      "sha256": "0d1f0b8d0722224e32e9f28261bdc86c79115be73444ae5eceb73976a1bcdf83",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-400.woff2",
-      "change": "deleted",
-      "bytes": 63020,
-      "sha256": "ba711a3085ff9f27440b6b9c4550cfc47c97bf36591d5da958b975bb3add8c1a",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-500.woff2",
-      "change": "deleted",
-      "bytes": 66740,
-      "sha256": "5660f8a658f8bb50dbc005232f885eadffd2bc1c235c4f6fbb63469d1f9cde6d",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-600.woff2",
-      "change": "deleted",
-      "bytes": 67060,
-      "sha256": "f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/assets/fonts/ibm-plex-sans-700.woff2",
-      "change": "deleted",
-      "bytes": 63012,
-      "sha256": "fa7130d854a660b39a7fc9e6e0f2dc23dba5f1346e2adea3e1fe37b6d884133d",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/cockpit_domains.css",
-      "change": "deleted",
-      "bytes": 5705,
-      "sha256": "77046b89f2bad6c22acd8140357a76587d0bb9e84c403edc1423afcc374b4fa4",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css",
-      "change": "deleted",
-      "bytes": 19917,
-      "sha256": "11a6648f85539eb644160998d3ae87a2dd4a8ceffa2e07b7bc09c4f6f72e5369",
-      "role": "preview-cache"
-    },
-    {
       "path": "github.md",
       "change": "modified",
-      "bytes": 108654,
-      "sha256": "01bfd31913d2ce29e1a0272d1d199eed60013483dc8643aafba7130b34d02e64",
-      "role": "cowork-source"
-    },
-    {
-      "path": "inbox-photo-c1.png",
-      "change": "added",
-      "bytes": 38823,
-      "sha256": "44a3d0bb07289b7c5d7c64acfbf9469642c3aac44944b161861ae34fd0e8c2bf",
-      "role": "cowork-source"
-    },
-    {
-      "path": "inbox-photo-c2.png",
-      "change": "added",
-      "bytes": 38495,
-      "sha256": "db38a6fc4ae7a0d575ac135b9c5fed529d737914632e39e219b30487c5b679a3",
-      "role": "cowork-source"
-    },
-    {
-      "path": "inbox-photo-c3.png",
-      "change": "added",
-      "bytes": 36602,
-      "sha256": "52805ffd8b60073e74f91a4ea7b433f9c53d6c97f07a0b4a8790ae11b38c20e8",
-      "role": "cowork-source"
-    },
-    {
-      "path": "inbox-photo-c4.png",
-      "change": "added",
-      "bytes": 38458,
-      "sha256": "ad7ae3b0ec2f12cca4868b51315dd6c4af76fb5d775f34550c4283d3c826fc26",
+      "bytes": 113467,
+      "sha256": "4c0ded1bbb7072acce6045e0103bd133e66d5d3562cdd1b9ef8bc438ceefd4aa",
       "role": "cowork-source"
     },
     {
       "path": "oimpresso.com.html",
       "change": "modified",
-      "bytes": 36106,
-      "sha256": "4e2614fde6f844135cfbadcf50467dc7ca00a14f1af69671f03fdf8b45fcff1a",
+      "bytes": 36205,
+      "sha256": "e9bd8c184c49bb47579fc307167d21b0181c6cd15e3f66b3c89909a5f3d1ce7f",
       "role": "cowork-source"
     }
   ],
@@ -5455,8 +5357,8 @@
     },
     {
       "path": "github.md",
-      "bytes": 108654,
-      "sha256": "01bfd31913d2ce29e1a0272d1d199eed60013483dc8643aafba7130b34d02e64",
+      "bytes": 113467,
+      "sha256": "4c0ded1bbb7072acce6045e0103bd133e66d5d3562cdd1b9ef8bc438ceefd4aa",
       "role": "cowork-source"
     },
     {
@@ -5953,8 +5855,8 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 36106,
-      "sha256": "4e2614fde6f844135cfbadcf50467dc7ca00a14f1af69671f03fdf8b45fcff1a",
+      "bytes": 36205,
+      "sha256": "e9bd8c184c49bb47579fc307167d21b0181c6cd15e3f66b3c89909a5f3d1ce7f",
       "role": "cowork-source"
     },
     {
