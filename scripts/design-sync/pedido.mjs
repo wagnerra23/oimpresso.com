@@ -32,12 +32,12 @@
 // muda artefato que a máquina lê sem RODAR a máquina com a mudança aplicada).
 //
 // ── DEPENDÊNCIA DECLARADA: o PR-A6 (placar) ─────────────────────────────────────────────
-// O item 6 do bloco D é o PLACAR, e o dono dele seria `scripts/qa/placar.mjs` (PR-A6), que
-// **não existe nesta árvore** — medido por `existsSync` a cada geração, nunca afirmado de cor
-// (LC-10: artefato não declara o próprio enforcement em presente). Enquanto não existir, o
-// pedido diz "à MÃO" e nomeia o A6; quando existir, passa a imprimir o comando sozinho. Este
-// arquivo NÃO implementa placar: seria máquina paralela ao dono (LC-19). O PR-A8 estende os
-// dois — `placar.mjs --indice` e o `--thread NN` deste comando.
+// O item 6 do bloco D é o PLACAR, e o dono dele é `scripts/qa/placar.mjs` (PR-A6). Este
+// arquivo NÃO o implementa: seria máquina paralela ao dono (LC-19). Se ele existe na árvore
+// é `existsSync` quem responde, A CADA GERAÇÃO (`placarComo()`) — e de propósito nenhuma
+// linha aqui afirma esse estado em presente, porque afirmação de estado apodrece no primeiro
+// merge (LC-10). Ausente ⇒ o pedido diz "à MÃO" e nomeia o A6; presente ⇒ imprime o comando,
+// sem ninguém editar nada. O PR-A8 estende os dois — `placar --indice` e `--thread NN` aqui.
 //
 // Uso:
 //   node scripts/design-sync/pedido.mjs --tela <Mod/Tela> --secao <id> [--onda <n.s>] [--out <arq.md>]
