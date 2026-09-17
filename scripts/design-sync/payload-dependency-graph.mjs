@@ -107,7 +107,7 @@ function resolveRef(from, raw, available) {
  * Fecha o grafo a partir de `entry`. `files` aceita `{path, content, binary?}`; binários são
  * folhas. Um arquivo presente mas inalcançável é relatado, não usado para maquiar dependência.
  */
-export function payloadDependencyGraph(files, { entry = 'oimpresso.com.html' } = {}) {
+export function payloadDependencyGraph(files, { entry = 'oimpresso.com.html', prefixosExternos = [] } = {}) {
   const byPath = new Map();
   const duplicates = [];
   for (const file of files || []) {
@@ -129,6 +129,13 @@ export function payloadDependencyGraph(files, { entry = 'oimpresso.com.html' } =
     if (file.binary || typeof file.content !== 'string') continue;
 
     for (const raw of rawDependencyRefs(from, file.content)) {
+      // PR-A9 — prefixo EXTERNO DECLARADO. O `transforms` converte a ref do DS pra
+      // `../../design-system/…`, que sai do root do espelho: sem isto o grafo a marca `unsafe`
+      // (traversal) e recusa o lote — medido 2026-09-17 no lote do Felipe. Não é traversal: é o
+      // DS, que vive FORA do espelho por desenho (dono = projeto DS #7096) e cujo path relativo é
+      // exatamente esse — o mesmo que o host do pacote 25 já monta em runtime.
+      // ⚠️ Só vale pro que o CHAMADOR declara. Sem `prefixosExternos`, `..` segue recusado.
+      if (prefixosExternos.some((pre) => raw.startsWith(pre))) { external.push({ from, ref: raw }); continue; }
       const resolved = resolveRef(from, raw, available);
       if (resolved.external) { external.push({ from, ref: resolved.raw }); continue; }
       if (resolved.unsafe) { unsafe.push({ from, ref: resolved.raw }); continue; }

@@ -446,7 +446,7 @@ console.log('\n=== fail-closed: partes, base, hash, path e dry-run ===');
   put(producer, 'sync/nao-realimentar.md', 'transporte velho\n');
   const out = join(producer, 'sync');
   execFileSync(process.execPath, [fileURLToPath(new URL('./gerar-payload-partes.mjs', import.meta.url)),
-    '--root', producer, '--out', out, '--full-tree', '--piso', '0'], { encoding: 'utf8' });
+    '--root', producer, '--out', out, '--full-tree', '--piso', '0', '--owner', 'Wagner'], { encoding: 'utf8' });
   const manifest = JSON.parse(readFileSync(join(out, 'bundle.manifest.json'), 'utf8'));
   check('gerador de árvore declara escopo autenticado', manifest.mirrorScope === 'tree');
   check('gerador inclui playbook e contrato fora do shell', ['cowork-inbox/novo.md', 'cowork-inbox/contrato.json'].every((path) => manifest.files.some((file) => file.path === path)));
