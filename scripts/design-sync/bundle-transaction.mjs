@@ -387,15 +387,43 @@ function writeAndVerifyTarget({ root, staged, manifest, buffers, previous }) {
     const abs = resolveInside(target.root, target.rel);
     if (existsSync(abs)) rmSync(abs, { force: true });
   }
+  // ⛔ ESCRITA de `preview-cache` NÃO atravessa pro Design System ([W] 2026-09-17, textual:
+  //    "importação do protótipo não era para alterar o design system").
+  //
+  // Simétrico ao bloco de DELETE acima, e pela MESMA razão: o dono do `design-system/` é o
+  // projeto DS (#7096), e um export de TELAS não o escreve nem o apaga. Antes disto, todo import
+  // de telas escrevia os `_ds/**` em `prototipo-ui/design-system/` via `dsRuntimeRelPath` —
+  // no-op silencioso quando os bytes batiam, sobrescrita quando não batiam.
+  //
+  // ⚠️ O CRITÉRIO É DONO, NÃO CONTEÚDO. No pacote 26 eu medi "8 de 8 bytes idênticos" e liberei;
+  // o [W] apontou que a pergunta é outra. "Os bytes batem" só descreve ESTE pacote — o arquivo
+  // do `_ds/` que ainda não existisse no DS entraria direto, porque o passo [4] do
+  // `receber-handoff` não tem autoritativo pra reconciliar (`espelho() === null → continue`).
+  //
+  // A rota legítima do DS não passa por aqui: é `cowork-mirror-freshness --export-from --ds`,
+  // que escreve em `design-system/` pelo seu próprio `exportPlan`. Medido: o único consumidor de
+  // `applyBundleTransaction` é o `aplicar-payload.mjs` (rota de telas) + os testes.
+  const escritasRecusadas = [];
   for (const [path, buffer] of buffers) {
+    if (roleForPath(path) === 'preview-cache') { escritasRecusadas.push(path); continue; }
     const target = targetForLogical(path, staged);
     const abs = resolveInside(target.root, target.rel);
     mkdirSync(dirname(abs), { recursive: true });
     writeFileSync(abs, buffer);
   }
+  if (escritasRecusadas.length) {
+    console.log(`  ⬜ ${escritasRecusadas.length} escrita(s) de _ds/ IGNORADA(S) — dono é o projeto Design System (#7096), não este export de telas.`);
+  }
 
   const graphFiles = [];
   for (const file of manifest.files) {
+    // `preview-cache` não é escrito por este transporte (ver bloco acima), então também não
+    // entra no estado-alvo que se confere aqui — cobrá-lo seria exigir o que acabamos de
+    // recusar. Consequência DESEJADA: se o shell referenciar `_ds/**` por path LITERAL, o grafo
+    // abaixo acusa `missing` e o lote é recusado. Esse é o sinal certo, não um bug: um host que
+    // depende do cache do DS não desce pela rota de telas — ele precisa resolver a base em
+    // runtime (`__OI_DS_BASE__`), como o pacote 25 faz.
+    if (roleForPath(file.path) === 'preview-cache') continue;
     const target = targetForLogical(file.path, staged);
     const abs = resolveInside(target.root, target.rel);
     if (!existsSync(abs)) throw new Error(`estado-alvo ausente no staging: ${file.path}`);
