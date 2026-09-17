@@ -137,6 +137,8 @@
     "alvo:medir": "node scripts/design-sync/alvo.mjs --alvo",
     "alvo:selftest": "node scripts/design-sync/alvo.mjs --selftest",
     "alvo:selftest:browser": "node scripts/design-sync/alvo.mjs --selftest --browser",
+    "pedido:gerar": "node scripts/design-sync/pedido.mjs",
+    "pedido:selftest": "node scripts/design-sync/pedido.mjs --selftest",
     "telas:detect": "node scripts/design/detectar-telas.mjs",
     "telas:selftest": "node scripts/design/detectar-telas.mjs --selftest",
     "smoke:veredito": "node scripts/smoke-veredito-ledger.mjs",
