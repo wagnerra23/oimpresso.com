@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import {
   BUNDLE_SCHEMA, changesDigest, createManifest, manifestDigest, sha256,
 } from './bundle-contract.mjs';
-import { applyBundleTransaction, avaliarBaseParaRecibo, pathsForOwner } from './bundle-transaction.mjs';
+import { applyBundleTransaction, avaliarBaseParaRecibo, pathsForOwner, conferirDsRequires, vereditoDsRequires } from './bundle-transaction.mjs';
 
 const STATUS = fileURLToPath(new URL('./status.mjs', import.meta.url));
 
@@ -26,6 +26,8 @@ function put(root, path, content) {
   mkdirSync(join(abs, '..'), { recursive: true });
   writeFileSync(abs, content);
 }
+
+const DS_MARCADOR = ':root{--ds:posto-pela-rota-do-projeto-DS}\n';
 
 function charter(target, source) {
   return `---\ncomponent: ${target}\nbundle_source: ${source}\n---\n# fixture\n`;
@@ -46,6 +48,11 @@ function sandbox() {
   put(root, 'Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.charter.md', charter(targets[2], 'superadmin-page.jsx'));
   put(root, 'Modules/Officeimpresso/Resources/js/Pages/officeimpresso/Logs/Index.charter.md', charter(targets[3], 'officeimpresso-page.jsx'));
   put(root, 'Modules/Officeimpresso/Resources/js/Pages/officeimpresso/Logs/Timeline.charter.md', charter(targets[4], 'officeimpresso-page.jsx'));
+  // O DS existe no repo, posto pela rota do PROJETO DS (`--export-from --ds`) — nunca por este
+  // transporte. O marcador permite asserir o que importa: que o export de telas NÃO o sobrescreve.
+  // (PR-A9 também exige que ele exista: pacote que declara `dsRequires` e não acha o arquivo é
+  // recusado, e é o comportamento desejado.)
+  put(root, 'prototipo-ui/design-system/colors_and_type.css', DS_MARCADOR);
   return root;
 }
 
@@ -140,8 +147,8 @@ console.log('\n=== snapshot completo + roteamento + plano modular ===');
   // system"). Antes o `_ds/` pousava em `prototipo-ui/design-system/` — no-op quando os bytes
   // batiam, SOBRESCRITA quando não batiam. Agora o export de telas não escreve o DS em lugar
   // nenhum: quem manda ali é o projeto DS (#7096), pela rota `--export-from --ds`.
-  check('_ds NÃO pousa — nem no espelho, nem no Design System (dono é o projeto DS)',
-    !existsSync(join(root, 'prototipo-ui/design-system/colors_and_type.css')) &&
+  check('_ds NÃO pousa — o DS do repo NÃO é sobrescrito pelo export de telas',
+    readFileSync(join(root, 'prototipo-ui/design-system/colors_and_type.css'), 'utf8') === DS_MARCADOR &&
     !existsSync(join(root, 'prototipo-ui/cowork/Wagner/_ds')));
   check('estado ativo registra o bundle exato', JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/active-bundle.json'), 'utf8')).bundleId === manifest.bundleId);
   const report = result.report;
@@ -670,5 +677,59 @@ console.log('\n=== --check-lifecycle: a catraca do escopo novo morde pelo CLI de
   rmSync(root3, { recursive: true, force: true });
 }
 
-console.log(failures ? `\n✗ ${failures} falha(s)` : '\n✓ bundle v2: delta + staging + rollback + módulos + catraca lifecycle + dono do _ds no delete provados');
+// ── PR-A9: dsRequires — DS declarado e VERIFICADO (nunca escrito) ────────────────
+// Os 5 aceites do plano, na ordem dele. A conferência é pura (recebe o leitor), então os 4
+// primeiros rodam sem fs; o 5º (T5) é sobre a contagem nomear o arquivo.
+{
+  const contrato = {
+    slug: 'ds-live',
+    arquivos: [
+      { path: '_ds_bundle.js', sha256: sha256(Buffer.from('bundle\n')) },
+      { path: 'colors_and_type.css', sha256: sha256(Buffer.from('tokens\n')) },
+      { path: 'assets/fonts/sans-400.woff2', sha256: sha256(Buffer.from('fonte\n')) },
+    ],
+  };
+  const espelhoCompleto = (rel) => ({
+    '_ds_bundle.js': Buffer.from('bundle\n'),
+    'colors_and_type.css': Buffer.from('tokens\n'),
+    'assets/fonts/sans-400.woff2': Buffer.from('fonte\n'),
+  })[rel] ?? null;
+
+  // 2. CONTROLE POSITIVO primeiro — sem ele, "recusa sempre" passaria no bite 1.
+  const ok = conferirDsRequires(contrato, espelhoCompleto);
+  check('A9 CONTROLE: DS completo ⇒ 3 de 3 conferem, 0 ausente, 0 divergente',
+    ok.medido === true && ok.iguais === 3 && ok.ausentes.length === 0 && ok.divergentes.length === 0,
+    JSON.stringify(ok));
+
+  // 1. BITE ausência ⇒ o lote tem que ser recusado (aqui: lista o ausente nomeando path+sha).
+  const semBundle = conferirDsRequires(contrato, (rel) => (rel === '_ds_bundle.js' ? null : espelhoCompleto(rel)));
+  check('A9 BITE ausência: arquivo do DS faltando é ACUSADO com path e sha exigido',
+    semBundle.ausentes.length === 1 && semBundle.ausentes[0].path === '_ds_bundle.js'
+      && vereditoDsRequires(semBundle).join('\n').includes('⛔ AUSENTE  _ds_bundle.js'),
+    JSON.stringify(semBundle));
+
+  // 3. BITE divergência ⇒ RELATA e NÃO recusa (o espelho é o dono e pode estar à frente).
+  const mutado = conferirDsRequires(contrato, (rel) => (rel === 'colors_and_type.css' ? Buffer.from('tokens-novos\n') : espelhoCompleto(rel)));
+  const textoDiv = vereditoDsRequires(mutado).join('\n');
+  check('A9 BITE divergência: RELATA, não acusa ausência, e diz que o espelho pode estar à frente',
+    mutado.divergentes.length === 1 && mutado.ausentes.length === 0
+      && /DIVERGE\s+colors_and_type\.css/.test(textoDiv) && /A FRENTE/.test(textoDiv),
+    textoDiv);
+
+  // 4. BITE `dsRequires` ausente (pacote legado) ⇒ NÃO MEDIDO, nunca "sem divergência" (LC-13).
+  const legado = conferirDsRequires(null, espelhoCompleto);
+  const textoLegado = vereditoDsRequires(legado).join('\n');
+  check('A9 BITE legado: sem dsRequires o veredito é NAO MEDIDO (não "sem divergência")',
+    legado.medido === false && /NAO MEDIDO/.test(textoLegado) && !/sem divergência/i.test(textoLegado),
+    textoLegado);
+
+  // 5. T5 — remover uma entrada faz a contagem cair NOMEANDO o arquivo que saiu.
+  const menosUm = { ...contrato, arquivos: contrato.arquivos.filter((a) => a.path !== 'colors_and_type.css') };
+  const r5 = conferirDsRequires(menosUm, espelhoCompleto);
+  check('A9 T5: remover 1 entrada do contrato derruba o total de 3 para 2',
+    ok.total === 3 && r5.total === 2 && !vereditoDsRequires(r5).join('\n').includes('colors_and_type.css'),
+    `${ok.total} -> ${r5.total}`);
+}
+
+console.log(failures ? `\n✗ ${failures} falha(s)` : '\n✓ bundle v2: delta + staging + rollback + módulos + catraca lifecycle + dono do _ds (delete/escrita) + dsRequires provados');
 process.exit(failures ? 1 : 0);
