@@ -1803,12 +1803,134 @@ function selftest() {
   );
   try { rmSync(sandbox, { recursive: true, force: true }); } catch { /* best-effort */ }
 
+  // -- CANARIO DA SONDA -------------------------------------------------------
+  // O canario existe pra separar "tudo verde" de "eu nao estou medindo nada".
+  // Um canario que ele proprio nao morde seria a versao recursiva do problema,
+  // entao aqui tem CONTROLE POSITIVO primeiro e, so depois, os dois modos.
+  const snapCom = (roles) => ({ url: 'http://localhost:1/x', theme: 'dark', assinatura: 'x', roles });
+  const rolesBase = { kpi: { count: 0, items: [] }, title: null, primary: null, filterRows: null, contratos: null, celulas: null, tabela: null, shell: null };
+  const canBom = canarioDaSonda(snapCom({ ...rolesBase, title: { fontPx: 22, weight: '700', color: 'rgb(1,1,1)' } }));
+  const canVazio = canarioDaSonda(snapCom({ ...rolesBase }));
+  const canKpi = canarioDaSonda(snapCom({ ...rolesBase, kpi: { count: 1, items: [{ label: 'x', textAlign: 'left', alignItems: 'start', textColor: 'rgb(1,1,1)', smallAlign: null, valueFontPx: 18 }] } }));
+  // CONTROLE do proprio canario: o campo que o comparador NAO le nao pode ser eleito
+  // alvo -- senao o canario acusaria cegueira onde nao ha (medido 2026-09-17).
+  const canSoValueFont = canarioDaSonda(snapCom({ ...rolesBase, kpi: { count: 1, items: [{ label: 'x', textAlign: '', alignItems: 'start', textColor: 'rgb(1,1,1)', smallAlign: null, valueFontPx: 18 }] } }));
+  // comparador CEGO simulado por injecao -- e o unico jeito de exercitar F3 sem
+  // quebrar o comparador de verdade.
+  const canCego = canarioDaSonda(snapCom({ ...rolesBase, title: { fontPx: 22, weight: '700', color: 'rgb(1,1,1)' } }), () => ({ bugs: 0 }));
+  const fCanBom = tmpJson(snapCom({ ...rolesBase, title: { fontPx: 22, weight: '700', color: 'rgb(1,1,1)' } }));
+  const fCanVazio = tmpJson(snapCom({ ...rolesBase }));
+  const rCanBom = cli(['--canario', fCanBom]);
+  const rCanVazio = cli(['--canario', fCanVazio]);
+  checks.push(
+    // (a) CONTROLE POSITIVO -- regua sa passa, e diz QUAL campo usou
+    ['canario: CONTROLE POSITIVO -- snapshot medido -> ok, com bug acusado', canBom.ok === true && canBom.bugs > 0],
+    ['canario: nomeia o campo que mutou (veredito mudo nao serve a ninguem)', canBom.campo === 'title.fontPx'],
+    // (b) o delta sai da BANDA declarada, nunca de numero escolhido a mao --
+    //     senao afrouxar a tolerancia um dia vira falso-negativo silencioso
+    ['canario: delta DERIVADO de TOLERANCIAS.tituloPx (nao hardcode)', canBom.campo === 'title.fontPx' && canBom.para - canBom.de === TOLERANCIAS.tituloPx.valor + 10],
+    // (c) F2 -- a sonda rodou e nao mediu nada
+    ['canario: F2 sonda sem campo medido -> codigo 2 (nao-medi), nunca 0', canVazio.ok === false && canVazio.codigo === 2],
+    ['canario: F2 diz o que conferir (os roles), nao so que falhou', /__DD_ROLES/.test(canVazio.motivo)],
+    // (d) F3 -- comparador cego, simulado por injecao
+    ['canario: F3 comparador que nao acusa -> codigo 1, com o alvo no motivo', canCego.ok === false && canCego.codigo === 1 && /NAO acusou/.test(canCego.motivo)],
+    // (e) fallback -- tela sem titulo semantico ainda tem canario
+    ['canario: cai no ALINHAMENTO do KPI quando nao ha titulo (campo que a D8 le)', canKpi.ok === true && canKpi.campo === 'kpi.items[0].textAlign'],
+    ['canario: CONTROLE -- campo que o comparador nao le NAO vira alvo (seria FP)', canSoValueFont.codigo === 2],
+    // (f) BITE CLI de fora -- assert em funcao exportada nao prova o pipeline
+    ['BITE CLI canario: snapshot medido -> exit 0', rCanBom.status === 0],
+    ['BITE CLI canario: snapshot vazio -> exit 2 e a mensagem chega', rCanVazio.status === 2 && /F2/.test(String(rCanVazio.stdout))],
+  );
+  for (const f of [fCanBom, fCanVazio]) { try { rmSync(f, { force: true }); } catch { /* best-effort */ } }
+
 
 
   let ok = true;
   for (const [label, pass] of checks) { console.log(`  [${pass ? 'PASS' : 'FAIL'}] ${label}`); if (!pass) ok = false; }
   console.log(ok ? '\nSELFTEST OK — mede o que o olho perdeu em 07/07 (D8 align + D2 overflow + D6 dark), enumera o SHELL que máquina nenhuma media, e recusa veredito de fonte não provada.' : '\nSELFTEST FALHOU');
   process.exit(ok ? 0 : 1);
+}
+
+/* --- CANARIO DA SONDA -------------------------------------------------------
+ * "Tudo verde" e indistinguivel de "eu nao estou medindo nada". Este comando
+ * separa os dois, e existe porque a separacao custava um SEGUNDO SERVIDOR: pra
+ * provar que a regua morde, a sessao subia um render propositalmente quebrado.
+ * Caro e desnecessario -- a diferenca conhecida pode ser INJETADA no snapshot.
+ *
+ * COBRE DOIS MODOS DE FALHA, e os dois ja aconteceram aqui:
+ *   F2 a sonda RODOU e nao mediu nada (roles que nao casam o DOM). O snapshot sai
+ *      com os campos nulos, o comparador diz SEM-DADO em tudo e o veredito e
+ *      exit 0 -- verde que so prova que os dois lados estao igualmente vazios.
+ *   F3 o comparador ficou CEGO a diferenca real (banda larga demais, campo que
+ *      deixou de ser lido, dimensao que parou de ser emitida).
+ *
+ * NAO cobre F1 (o comparador quebrado no caminho verde, o defeito de #7224): ali
+ * o esperado do canario JA e exit 1, e o crash se esconde dentro. Quem cobre F1 e
+ * o --selftest, que nomeia os asserts que caem. Os dois sao complementares e e por
+ * isso que a receita tem dois comandos, nao um.
+ *
+ * O DELTA sai da banda declarada (TOLERANCIAS), nunca de um numero escolhido a mao:
+ * se a banda de titulo for afrouxada um dia, o canario continua garantindo
+ * divergencia em vez de virar falso-negativo silencioso.
+ *
+ * `cmp` e injetavel SO pro selftest conseguir simular um comparador cego; em
+ * producao e sempre o `compare` deste modulo.
+ */
+export function canarioDaSonda(snap, cmp = compare) {
+  const roles = (snap && snap.roles) || {};
+  const banda = (TOLERANCIAS.tituloPx && TOLERANCIAS.tituloPx.valor) || 1;
+  const delta = banda + 10;
+  // Ordem de preferencia: o titulo e o campo que TODA tela tem. O valor do KPI e o
+  // fallback pra tela sem titulo semantico.
+  // Cada candidato traz o PROPRIO mutador, porque o alvo nem sempre e numero -- e
+  // porque o campo tem de ser um que o comparador REALMENTE compare. Medido em
+  // 2026-09-17: mutar `kpi.items[0].valueFontPx` de 18 pra 29 NAO produz divergencia
+  // nenhuma (o comparador nao le esse campo), entao ele seria um canario que acusa
+  // cegueira onde nao ha -- falso-positivo por construcao. O alinhamento do KPI, ao
+  // contrario, cai na D8 -- e e o canario historico: foi center x left que o [W]
+  // pegou no olho em 07/07, quando a comparacao era por screenshot.
+  const candidatos = [
+    { nome: 'title.fontPx', derivaDaBanda: true,
+      ler: (r) => (r.title || {}).fontPx,
+      vale: (v) => typeof v === 'number',
+      mutar: (v) => v + delta,
+      escrever: (r, v) => { r.title.fontPx = v; } },
+    { nome: 'kpi.items[0].textAlign', derivaDaBanda: false,
+      ler: (r) => (((r.kpi || {}).items || [])[0] || {}).textAlign,
+      vale: (v) => typeof v === 'string' && v.length > 0,
+      mutar: (v) => (v === 'center' ? 'left' : 'center'),
+      escrever: (r, v) => { r.kpi.items[0].textAlign = v; } },
+  ];
+  const alvo = candidatos.find((c) => c.vale(c.ler(roles)));
+  if (!alvo) {
+    return { ok: false, codigo: 2, campo: null,
+      motivo: 'F2 -- a sonda nao mediu NENHUM dos campos que servem de canario (' + candidatos.map((c) => c.nome).join(' nem ') + ').'
+        + ' O snapshot nao serve de base: confira os seletores de window.__DD_ROLES contra o DOM real.' };
+  }
+  const de = alvo.ler(roles);
+  const para = alvo.mutar(de);
+  const mutado = JSON.parse(JSON.stringify(snap));
+  alvo.escrever(mutado.roles, para);
+  const r = cmp(snap, mutado);
+  if (!r || !(r.bugs > 0)) {
+    return { ok: false, codigo: 1, campo: alvo.nome, de, para, bugs: (r && r.bugs) || 0,
+      motivo: 'F3 -- mutei ' + alvo.nome + ' de ' + de + ' para ' + para + ' e o comparador NAO acusou.'
+        + ' A regua esta cega: qualquer "0 divergencias" medido com ela nao vale.' };
+  }
+  return { ok: true, codigo: 0, campo: alvo.nome, de, para, bugs: r.bugs,
+    motivo: 'a regua morde: ' + alvo.nome + ' ' + de + ' -> ' + para + ' foi acusado (' + r.bugs + ' bug(s)).' };
+}
+
+function runCanario(argv) {
+  const caminho = argv[argv.indexOf('--canario') + 1];
+  if (!caminho || caminho.startsWith('--')) { console.error('uso: --canario <snapshot.json>'); process.exit(2); }
+  let snap;
+  try { snap = JSON.parse(readFileSync(caminho, 'utf8')); }
+  catch (e) { console.error('  CANARIO: nao consegui ler ' + caminho + ' (' + e.message + ')'); process.exit(2); }
+  const r = canarioDaSonda(snap);
+  console.log('\n  CANARIO DA SONDA -- ' + caminho);
+  console.log((r.ok ? '  OK -- ' : '  FALHOU -- ') + r.motivo + '\n');
+  process.exit(r.codigo);
 }
 
 const argv = process.argv.slice(2);
@@ -1823,5 +1945,6 @@ else if (argv.includes('--shell-roles')) {
     console.log('window.__SB_ROLES = ' + JSON.stringify(SB_ROLES_SUGERIDO[lado], null, 2) + ';');
   }
 }
+else if (argv.includes('--canario')) runCanario(argv);
 else if (argv.includes('--compare')) runCompare(argv);
-else { console.error('uso: --probe | --shell-roles | --compare <prod.json> <design.json> [--check|--check-shell|--json|--declarado <f.json>] | --selftest'); process.exit(2); }
+else { console.error('uso: --probe | --shell-roles | --compare <prod.json> <design.json> [--check|--check-shell|--json|--declarado <f.json>] | --canario <snap.json> | --selftest'); process.exit(2); }

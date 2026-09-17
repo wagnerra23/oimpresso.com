@@ -1,0 +1,60 @@
+name: "Onda de export Cowork→Code (uma seção)"
+description: "Abre UMA onda do protocolo de export. O corpo é o pedido GERADO por scripts/design-sync/pedido.mjs — não escrito à mão (PR-A7)."
+title: "[onda] "
+labels: ["cowork-onda"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Uma onda = uma sessão limpa** (`COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md` §2-quater).
+        Quem executa esta onda não viu conversa nenhuma — então o pedido colado abaixo tem de
+        ser **auto-suficiente**. Ele não se escreve à mão: sai do comando, com alvo medido,
+        âncora computada, dado real e DoD. Na sessão, `/onda <Mod/Tela> <secao>` faz o mesmo.
+  - type: input
+    id: tela
+    attributes:
+      label: "Tela"
+      description: "Mod/Tela — o mesmo que o gerador recebe em --tela."
+      placeholder: "Jana/Index"
+    validations:
+      required: true
+  - type: input
+    id: secao
+    attributes:
+      label: "Seção"
+      description: "Um id do secoes.json. Liste com: node scripts/design-sync/pedido.mjs --tela <Mod/Tela> --secoes"
+      placeholder: "metas"
+    validations:
+      required: true
+  - type: textarea
+    id: pedido
+    attributes:
+      label: "Pedido gerado (cole a saída INTEIRA)"
+      description: |
+        `node scripts/design-sync/pedido.mjs --tela <Mod/Tela> --secao <secao> --onda <n.s>`
+        Exit 1 = REPROVADO (bloco vazio / ponteiro podre): conserte o que ele nomeia, não cole assim mesmo.
+        Exit 2 = NÃO MEDI (falta o alvo): rode `npm run alvo:medir` antes.
+      render: markdown
+    validations:
+      required: true
+  - type: checkboxes
+    id: teste-do-estranho
+    attributes:
+      label: "Teste do estranho (§2-quater)"
+      description: "Se alguém precisar perguntar qualquer uma destas, a falha é do pedido — não de quem executa."
+      options:
+        - label: "O pedido responde **alvo** (número e ordem) sem consultar nada fora dele"
+          required: true
+        - label: "Responde **âncora** — o que ler e o que reusar"
+          required: true
+        - label: "Responde **dado** — Service/coluna real por slot, ou o motivo da ausência"
+          required: true
+        - label: "Responde **aceite** — como se prova, e quando PARAR"
+          required: true
+  - type: textarea
+    id: decisoes
+    attributes:
+      label: "⛔ Decisões [W] pendentes (se houver)"
+      description: "O que esta onda NÃO decide sozinha: alocação no sidebar, capacidade nova, token novo do DS, merge do .tsx (ADR 0283)."
+    validations:
+      required: false
