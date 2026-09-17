@@ -1452,6 +1452,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida).** Rodada de mutação só vira prova com **controle positivo ANTES dos mutantes**: rodar o teste íntegro e ver `rc=0` **pela via exata** que os mutantes vão usar. Sem isso, "o mutante matou N asserts" é indistinguível de "o comando nem iniciou", e a diferença é justamente a que a prova existe para estabelecer. Vale para todo bite-test por subprocesso, `--selftest` por CLI, e comparação antes×depois que invoque binário: **antes de interpretar o resultado, prove que o instrumento roda**. Corolário de shell que teria bastado: variável que guarda caminho de arquivo não se concatena com sufixo (`"$H.test.mjs"`) — o path do teste é seu próprio valor.
 
+### 2026-09-17 — EMENDA da lápide 2026-08-14 (`--enforce` no `ds-mirror-drift`): o pré-requisito dela FOI satisfeito, e a decisão [W] segue NÃO LIGAR — por razão nova, estrutural e medida
+
+- **O limite (variante também proibida):** não ligar `--enforce` no `ds-mirror-drift` — nem no CI, nem no array do bite-log, nem *"só pra coletar DR-2"* — **enquanto o gate medir a FOTO (`prototipo-ui/design-system/colors_and_type.css`) e não puder medir o VIVO**. E não usar como argumento de reabertura que *"o pré-requisito do exit code já foi cumprido"*: foi, está medido acima, e **não é suficiente**. Também proibido tratar a assimetria como bug do script — ele mede a foto **por construção correta**, porque o CI não tem login; o docblock dele já explica isso desde 2026-07-09.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
