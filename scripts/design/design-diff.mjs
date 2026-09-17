@@ -99,7 +99,7 @@
 import { readFileSync, existsSync, writeFileSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TOLERANCIAS, diffCampo } from './style-fingerprint.mjs';
 
