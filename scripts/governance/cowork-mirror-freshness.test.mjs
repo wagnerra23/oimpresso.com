@@ -1701,5 +1701,115 @@ if (false) {
   rmSync(raiz, { recursive: true, force: true });
 }
 
+// ── O ESPELHO TEM DOIS DONOS — e o --compare-bundle era cego para o do Felipe ────────────
+// Medido 2026-09-17: `rowsDoBundle` fixava a base em `prototipo-ui/cowork/Wagner`. Lote
+// aplicado com `--owner Felipe` pousa em `prototipo-ui/cowork/Felipe/`, então TODO arquivo
+// era lido do path errado e o veredito saía STALE para tudo (sync 0 · stale 2 num lote de 2).
+// Falso-vermelho é pior que alarme ausente: o do Felipe simplesmente não tinha medição.
+// Estes asserts existem para que o alarme MORDA nos dois donos — e continue mordendo no
+// Wagner, que é o controle de não-regressão (sem ele, um "aceita tudo" passaria).
+{
+  const H = (s) => rawHash(Buffer.from(s));
+  const bundle2 = { files: [{ path: 'app.jsx', sha256: H('conteudo') }] };
+  const leitorDe = (base, conteudo) => (p) => (p === base + '/app.jsx' ? Buffer.from(conteudo) : null);
+  // 'AUSENTE' em vez de crashar: um mutante que descarta a row TEM que produzir VEREDITO
+  // de contrato, nunca TypeError — exceção aborta a suíte e os asserts seguintes nem rodam,
+  // e aí 'a mordida' vira contagem de falha, não prova (§5 2026-09-05).
+  const vere = (rows) => (rows.find((r) => r.cowork === 'app.jsx') || {}).veredito || 'AUSENTE';
+
+  // CONTROLE DE NÃO-REGRESSÃO — o default segue Wagner, byte por byte igual ao de antes.
+  check('dono 1/9: CONTROLE — sem `owner`, o destino segue sendo o do Wagner',
+    destinoDoBundle('app.jsx').destinoBase === 'prototipo-ui/cowork/Wagner');
+  check('dono 2/9: CONTROLE — sem `owner`, lote íntegro do Wagner segue SYNC',
+    vere(rowsDoBundle(bundle2, [], leitorDe('prototipo-ui/cowork/Wagner', 'conteudo'))) === 'SYNC');
+
+  // O CONSERTO — o mesmo lote, aplicado na conta do Felipe, é medido no disco DELE.
+  check('dono 3/9: `owner: Felipe` roteia para o espelho do Felipe',
+    destinoDoBundle('app.jsx', 'Felipe').destinoBase === 'prototipo-ui/cowork/Felipe');
+  check('dono 4/9: lote do Felipe aplicado e íntegro ⇒ SYNC (era STALE: lia o path do Wagner)',
+    vere(rowsDoBundle(bundle2, [], leitorDe('prototipo-ui/cowork/Felipe', 'conteudo'), 'Felipe')) === 'SYNC');
+
+  // BITE nos DOIS donos — o alarme que pega remendo à mão não pode existir só para um.
+  check('dono 5/9: BITE — espelho do Felipe remendado à mão ⇒ STALE',
+    vere(rowsDoBundle(bundle2, [], leitorDe('prototipo-ui/cowork/Felipe', 'remendado a mao'), 'Felipe')) === 'STALE');
+  check('dono 6/9: BITE — arquivo ausente no espelho do Felipe ⇒ STALE (fail-closed preservado)',
+    vere(rowsDoBundle(bundle2, [], () => null, 'Felipe')) === 'STALE');
+
+  // ISOLAMENTO — medir a conta errada continua reprovando. Um conserto que "aceitasse tudo"
+  // passaria nos asserts 4 e 5 e cairia aqui: o veredito TEM que depender do dono.
+  check('dono 7/9: ISOLAMENTO — espelho do Felipe medido como Wagner ⇒ STALE (era este o bug)',
+    vere(rowsDoBundle(bundle2, [], leitorDe('prototipo-ui/cowork/Felipe', 'conteudo'))) === 'STALE');
+  check('dono 8/9: ISOLAMENTO — espelho do Wagner medido como Felipe ⇒ STALE',
+    vere(rowsDoBundle(bundle2, [], leitorDe('prototipo-ui/cowork/Wagner', 'conteudo'), 'Felipe')) === 'STALE');
+
+  // FAIL-CLOSED no dono: quem herda a regra herda a recusa do `pathsForOwner`.
+  let recusou = false;
+  try { destinoDoBundle('app.jsx', 'Larissa'); } catch { recusou = true; }
+  check('dono 9/9: dono inválido é RECUSADO, não silenciosamente tratado como Wagner', recusou);
+}
+
+// ── BITE DO CLI — o chokepoint, não o helper ────────────────────────────────────────────
+// Assert sobre função exportada não prova o pipeline (§5 2026-07-30): o `--compare-bundle`
+// também escolhe o `active-bundle.json`, o manifesto e o shell, e os três eram do Wagner.
+// Este bloco exercita o CLI DE FORA, numa árvore que só tem a conta do Felipe.
+{
+  const tmp = mkdtempSync(join(tmpdir(), 'bundle-owner-'));
+  const espelhoF = join(tmp, 'prototipo-ui', 'cowork', 'Felipe');
+  const stateF = join(tmp, 'scripts', 'design-sync', 'state', 'Felipe');
+  mkdirSync(espelhoF, { recursive: true });
+  mkdirSync(stateF, { recursive: true });
+
+  const corpo = 'export const A = 1;';
+  writeFileSync(join(espelhoF, 'app.jsx'), corpo);
+  writeFileSync(join(stateF, 'active-bundle.json'), JSON.stringify({
+    bundleId: 'b-felipe', generatedAt: '2026-09-17T00:00:00Z',
+    files: [{ path: 'app.jsx', sha256: rawHash(Buffer.from(corpo)) }],
+  }));
+
+  const cliOwner = fileURLToPath(new URL('./cowork-mirror-freshness.mjs', import.meta.url));
+  const rodar = (args) => {
+    try { return { code: 0, out: execFileSync(process.execPath, [cliOwner, ...args], { cwd: tmp, encoding: 'utf8' }) }; }
+    catch (e) { return { code: e.status ?? -1, out: (e.stdout || '') + (e.stderr || '') }; }
+  };
+
+  const ok = rodar(['--compare-bundle', '--owner', 'Felipe', '--check']);
+  check('cli-dono 1/6: CLI com --owner Felipe acha o bundle DELE e libera o espelho íntegro',
+    ok.code === 0 && /sync: 1/.test(ok.out), `rc=${ok.code} out=${ok.out.slice(0, 220)}`);
+  check('cli-dono 2/6: e o relatório diz de QUAL dono está falando',
+    /espelho de Felipe/.test(ok.out), ok.out.slice(0, 160));
+
+  // BITE: remendo à mão no espelho do Felipe tem que derrubar o --check.
+  writeFileSync(join(espelhoF, 'app.jsx'), 'export const A = 2; // remendo a mao');
+  const mordeu = rodar(['--compare-bundle', '--owner', 'Felipe', '--check']);
+  check('cli-dono 3/6: BITE — remendo à mão no espelho do Felipe derruba o --check',
+    mordeu.code === 1 && /stale: 1/.test(mordeu.out), `rc=${mordeu.code} out=${mordeu.out.slice(0, 220)}`);
+
+  // CONTROLE POSITIVO: repor o conteúdo faz o MESMO CLI liberar de novo.
+  writeFileSync(join(espelhoF, 'app.jsx'), corpo);
+  check('cli-dono 4/6: CONTROLE — reposto o conteúdo, o mesmo CLI sai 0',
+    rodar(['--compare-bundle', '--owner', 'Felipe', '--check']).code === 0);
+
+  // Nesta árvore não existe conta Wagner: o default NÃO pode herdar o bundle do Felipe.
+  const semWagner = rodar(['--compare-bundle', '--check']);
+  check('cli-dono 5/6: sem --owner, o CLI não enxerga o bundle do Felipe (estados são separados)',
+    semWagner.code === 2 && semWagner.out.includes('Felipe') === false,
+    `rc=${semWagner.code} out=${semWagner.out.slice(0, 220)}`);
+
+  // O denominador tambem e do DONO: manifesto e shell. O que o espelho do Felipe TEM e o
+  // bundle NAO cobre precisa sair como UNCHECKED (LC-13: nunca SYNC por omissao) -- e isso so
+  // acontece se `buildManifest` varrer a arvore DELE e `defaultShellPath` achar o shell DELE.
+  // Sao 3 valores distintos por construcao (2 / 1 / 0), entao nenhum mutante acerta por sorte:
+  //   integro                       -> shell + dep do Felipe no manifesto  => unchecked: 2
+  //   buildManifest fixado em Wagner-> arvore vazia                        => unchecked: 0
+  //   defaultShellPath em Wagner    -> shell nao lido, dep nao entra       => unchecked: 1
+  writeFileSync(join(espelhoF, 'oimpresso.com.html'), '<script src="dep.jsx"></script>');
+  writeFileSync(join(espelhoF, 'dep.jsx'), 'export const D = 1;');
+  const comDenom = rodar(['--compare-bundle', '--owner', 'Felipe']);
+  check('cli-dono 6/6: o denominador vem da arvore E do shell DO DONO (unchecked: 2)',
+    /unchecked: 2/.test(comDenom.out), comDenom.out.slice(0, 260));
+
+  rmSync(tmp, { recursive: true, force: true });
+}
+
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local que MORDE + refs-da-poda + refs-check que MORDE + fluxo e2e)');
 process.exit(fails ? 1 : 0);
