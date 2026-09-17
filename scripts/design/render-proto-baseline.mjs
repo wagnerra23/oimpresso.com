@@ -391,7 +391,7 @@ const MIME = {
   '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp',
   '.woff': 'font/woff', '.woff2': 'font/woff2', '.ico': 'image/x-icon',
 };
-function servirEstatico(root, porta) {
+export function servirEstatico(root, porta) {
   const srv = createServer((req, res) => {
     try {
       const urlPath = decodeURIComponent(String(req.url || '/').split('?')[0]);
