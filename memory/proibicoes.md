@@ -1456,6 +1456,16 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida) — emenda da lápide 2026-08-14, mesma família (enforcement de gate não-Tier-0 sem mordida provada), e ecoa §5 2026-07-01 (`foundation-ratchet`) e 2026-07-17 (`component-registry-check`):** não ligar `--enforce` no `ds-mirror-drift` — nem no CI, nem no array do bite-log, nem *"só pra coletar DR-2"* — **enquanto o gate medir a FOTO (`prototipo-ui/design-system/colors_and_type.css`) e não puder medir o VIVO**. E não usar como argumento de reabertura que *"o pré-requisito do exit code já foi cumprido"*: foi, está medido acima, e **não é suficiente**. Também proibido tratar a assimetria como bug do script — ele mede a foto **por construção correta**, porque o CI não tem login; o docblock dele já explica isso desde 2026-07-09.
 
+### 2026-09-17 — Dois oráculos de rede no browser: `read_network_requests` devolveu VAZIO e eu publiquei "nenhuma fonte foi pedida" (a Performance API mostrava as 7)
+
+- **O limite (variante também proibida):** vazio de ferramenta de observação do browser **não é ausência do evento** — e o controle positivo tem de exercitar **a mesma classe** do alvo, não só provar que a ferramenta respira. Antes de publicar ausência de request, cruzar com um **segundo oráculo**: `performance.getEntriesByType('resource')` (vê subrecurso de CSS) e o **log do servidor**, que é o único que não depende do browser. Vale igual pra request de dentro de `@font-face`, `@import`, `image-set()`, worker e `fetch` disparado por script injetado.
+
+### 2026-09-17 — O mesmo literal `/tmp/...` resolve para DIRETÓRIOS DIFERENTES no Bash (MSYS) e no Python/Node (Windows) — reincidência da §5 2026-08-21, agora medindo a mordida de um teste
+
+- **O limite (variante também proibida) — mesma família da §5 2026-08-21 (`/tmp` no Bash × no Node), que ecoa a de 2026-08-07 (literal `D:/x`) e a de 2026-07-26 (ESM×CJS): compare/execute em condições idênticas ou não compare.** Não usar `mktemp -d`, `/tmp/...` nem qualquer raiz POSIX como local de handoff entre Bash e Python/Node/PHP nativos de Windows — em sandbox de teste, fixture, sonda ou payload. E não ler `exit 0` de um comando cujo insumo você não confirmou: ele pode estar medindo o vazio.
+
+- Ocorrência da **LC-36**.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
