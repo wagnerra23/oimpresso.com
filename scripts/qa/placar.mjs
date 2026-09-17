@@ -22,9 +22,16 @@
 // `ausentes` não-vazio no alvo.json vira REPROVAÇÃO explícita, pro trap virar mensagem.
 //
 // ── O QUE ELE **NÃO** MEDE (escopo, pra verde não mentir) ────────────────────────────────
-// FORMA (filhos · ordem das classes · tokens resolvidos) é do PR-A3 (`secao-check`), que
-// ainda NÃO existe. Aqui "entregue" = a seção EXISTE no lado medido. Verde deste placar não
-// diz que a forma confere — diz que a seção não sumiu e que toda ausência tem motivo.
+// FORMA (filhos · ordem das classes · tokens resolvidos) NÃO é deste placar — é do
+// `secao-check` (PR-A3). Aqui "entregue" = a seção EXISTE no lado medido. Verde deste placar
+// não diz que a forma confere — diz que a seção não sumiu e que toda ausência tem motivo.
+// Esse recorte é permanente e não depende de quem já entrou na árvore.
+//
+// O rodapé emitido DERIVA a existência do `secao-check` (existsSync), em vez de afirmá-la:
+// a frase "que ainda não existe" era verdadeira quando isto nasceu e virou FALSA no mesmo dia
+// (2026-09-17 20:46Z, #7488), seguindo a ser postada em todo PR — LC-10, artefato afirmando
+// em tempo presente um estado que outro sistema sabe melhor. O idioma vem do irmão que já
+// acertava: `scripts/design-sync/pedido.mjs` deriva a existência do placar do mesmo jeito.
 //
 // ── AS 3 MÉTRICAS, derivadas (nenhuma máquina nova) ─────────────────────────────────────
 //   cobertura cumulativa  Σ entregue ÷ Σ alvo, sobre todos os alvos
@@ -205,6 +212,20 @@ const linhaTela = (t) => {
   return `**${t.tela}** · entregue ${t.entregue.length} de ${t.alvoTotal}${aus}`;
 };
 
+/**
+ * A nota de escopo do rodapé. A PARTE DURÁVEL — "forma não é deste placar" — é afirmada sempre;
+ * só a existência do `secao-check` é DERIVADA do disco. Assim a frase não pode envelhecer: quem
+ * entrar depois muda o disco, não este arquivo.
+ * @param {string} [root] raiz do repo (parametrizável pro bite-test medir os DOIS ramos)
+ */
+export function notaDeForma(root = ROOT) {
+  const tem = existsSync(join(root, 'scripts', 'qa', 'secao-check.mjs'));
+  const onde = tem
+    ? 'que roda na lane `design-memory-gate`'
+    : 'que ainda não existe nesta árvore';
+  return `Forma (filhos · ordem · tokens) não é deste placar — é do \`secao-check\` (PR-A3), ${onde}. Verde aqui não afirma fidelidade de forma.`;
+}
+
 export function emitirMd(r) {
   const L = ['<!-- placar-de-tela -->', '## Placar de tela — PR-A6', ''];
   for (const t of r.telas) L.push(`- ${linhaTela(t)}  <sub>fonte: ${t.fonte}</sub>`);
@@ -220,7 +241,7 @@ export function emitirMd(r) {
     for (const p of r.problemas) L.push(`- \`${p.slug}\` — ${p.msg}`);
     L.push('', `Cada ausência precisa de motivo em \`_ausentes\` do \`<tela>.secoes.json\`: ${MOTIVOS.map((m) => '`' + m + '`').join(' · ')}.`);
   }
-  L.push('', '<sub>Forma (filhos · ordem · tokens) é do PR-A3 `secao-check`, que ainda não existe — verde aqui não afirma fidelidade de forma.</sub>');
+  L.push('', `<sub>${notaDeForma()}</sub>`);
   return L.join('\n');
 }
 
