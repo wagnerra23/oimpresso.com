@@ -190,6 +190,10 @@ export function montar({ tela, secao, onda, alvo, secoes, ancora, spec, hoje, sh
   p('    ⚠️ o --check fala em 3 códigos: 0 igual · 1 divergiu · 2 NÃO MEDI. O 2 NÃO é divergência —');
   p('       é o design vindo de espelho cuja fidelidade não está provada. Feche a rodada primeiro:');
   p('       node scripts/governance/cowork-mirror-freshness.mjs --ledger');
+  p('    ⚠️ e o "0" só vale se a régua estiver MEDINDO. São DOIS comandos, não um:');
+  p('       design-diff.mjs --canario <snap.json>   # 0 a régua morde · 1 comparador cego · 2 sonda não mediu nada');
+  p('       design-diff.mjs --selftest              # o canário NÃO cobre comparador quebrado no caminho verde');
+  p('       Nem um nem outro prova que se mediu a TELA CERTA — isso é o D0, e tem mecanismo próprio.');
   p('  4 screenshot prod autenticado · dark · 1280px');
   p(`  5 ${(ancora.charter || '').replace(/\.charter\.md$/, '.casos.md')} com ≥1 UC da seção citado por teste — MESMO PR`);
   p(`  6 PLACAR no corpo do PR: "entregue X de Y · ausentes <nome> por <motivo>"  ${placarComo()}`);
@@ -212,6 +216,15 @@ export function montar({ tela, secao, onda, alvo, secoes, ancora, spec, hoje, sh
 // (§5 2026-07-17). O que o pedido carrega é o vocabulário 0/1/2, que é convenção do repo inteiro,
 // + o comando do dono da rodada. Chegou por aviso de sessão irmã e foi MEDIDO antes de propagar
 // (§5 2026-07-26: correção de peer é hipótese a testar, não patch a aplicar).
+//
+// A 2ª nota (canário + selftest) fecha o buraco que a 1ª deixava aberto: mesmo com o frescor
+// provado, `0 DIVERGE` continua indistinguível de "a sonda rodou e não mediu nada" — que é o
+// `0 failed` de suíte que não rodou (LC-13) no eixo da comparação visual. Medido em 2026-09-17
+// no `main` (`design-diff.mjs::canarioDaSonda` + `runCanario`): os 3 códigos conferem. E os DOIS
+// comandos entram porque o docblock do dono é explícito — o canário NÃO cobre "comparador
+// quebrado no caminho verde" (o defeito do #7224), quem cobre é o `--selftest`; citar só um
+// ensinaria meia-verdade. O limite (canário valida a RÉGUA, nunca a identidade da view) também
+// é do dono, e sem ele um `0` viraria licença pra confiar que se mediu a tela certa.
 
 /** O item 6 depende do PR-A6 (`scripts/qa/placar.mjs`) — derivado, nunca afirmado de cor. */
 function placarComo(raiz = ROOT) {
