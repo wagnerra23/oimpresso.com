@@ -97,6 +97,12 @@ on:
       - 'scripts/governance/cowork-mirror-freshness.mjs'
       - 'scripts/governance/cowork-mirror-freshness.test.mjs'
       - 'scripts/design-sync/alvo.mjs'
+      # secao-check (PR-A3) e seus DOIS insumos. O arquivo SOB TESTE entra no gatilho, senao
+      # mexer no comparador nao dispara o comparador (§5 2026-08-02 · "gate mudo com cara de
+      # cobertura"); e o alvo/secoes versionado entra porque editar o ALVO e exatamente a
+      # forma de burlar o check — some o slot do alvo, some a cobranca.
+      - 'scripts/qa/secao-check.mjs'
+      - 'governance/design/targets/**'
       - 'scripts/design-sync/recibos-ci.mjs'
       # ds-guard: o arquivo SOB TESTE precisa estar no gatilho, senao mexer no guard nao
       # dispara o guard (§5 2026-08-02 · "gate mudo com cara de cobertura"). Ele JA rodava
@@ -700,3 +706,69 @@ jobs:
       - name: design-gate-bites tally (advisory · placar DR-2 no summary)
         continue-on-error: true
         run: node scripts/governance/design-gate-bites.mjs --tally | tee -a "$GITHUB_STEP_SUMMARY"
+
+  # ── secao-check (PR-A3 do protocolo de export · T2 contagem · T3 ordem/tokens · T6 vizinhanca) ──
+  # O ALVO versionado (governance/design/targets/<slug>.alvo.json, produzido pelo PR-A1
+  # scripts/design-sync/alvo.mjs) deixa de ser retrato e vira GATE: o render do espelho tem de
+  # continuar tendo os slots que o alvo declara, e o check reprova NOMEANDO o ausente. T6 sai de
+  # graca e e o ponto: roda TODAS as secoes do alvo, nao so a da onda em curso.
+  #
+  # O predicado, o FP medido antes de ligar e o que este gate NAO afirma (T7) estao no docblock de
+  # scripts/qa/secao-check.mjs — dono do numero. Aqui nao se restateia (§5 2026-07-17).
+  secao-check:
+    name: secao-check — alvo x render do espelho (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # HARD: a maquina que COMPARA nao pode mentir. O self-test carrega os 2 controles que
+      # tornam o verde falsificavel — (a) identico NAO acusa, sem o qual um comparador que
+      # "reprova sempre" passaria no resto; (b) so rect/base mudando NAO bloqueia, que e a
+      # medicao de FP acima virando assert.
+      - name: secao-check self-test (10 asserts · 2 controles)
+        run: node scripts/qa/secao-check.mjs --selftest
+
+      # mesmo idioma do ajv no job `prove`: dependencia pontual, sem npm ci da arvore toda.
+      - name: Playwright (dep + chromium)
+        run: |
+          npm install --no-save @playwright/test@^1.49.0
+          npx playwright install --with-deps chromium
+
+      # advisory (ADR 0275: gate nasce advisory e forward-only; promocao a required e flip [W]
+      # com mordida provada, ADR 0336). `continue-on-error` significa NAO BLOQUEIA O MERGE —
+      # nunca "nao pode ficar vermelho" (§5 2026-07-09). `set -o pipefail`: sem ele o rc vem do
+      # tee e o node falha calado (scripts/governance/workflow-pipe-rc.test.mjs cobra o padrao).
+      - name: Alvo x render do espelho (advisory)
+        id: secao
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          node scripts/qa/secao-check.mjs --todos --servir-espelho | tee /tmp/secao-check.txt
+          echo "rc=0" >> "$GITHUB_OUTPUT"
+
+      - name: Job summary (conforme / regrediu / NAO MEDI)
+        if: always()
+        run: |
+          {
+            echo '## secao-check — o ALVO versionado contra o render do espelho'
+            echo ''
+            if [ "${{ steps.secao.outputs.rc }}" = "0" ]; then
+              echo 'Veredito: **conforme** — todo slot declarado no alvo segue no render.'
+            else
+              echo 'Veredito: **regrediu OU nao medi** — leia a saida: `REGREDIU` nomeia o slot que'
+              echo 'sumiu; `NAO MEDI` e falha de medicao (browser/rota/render) e NAO acusa o PR.'
+              echo 'Os dois sao distintos de proposito — colapsa-los seria falso-positivo por'
+              echo 'nao-medicao (§5 2026-07-29).'
+            fi
+            echo ''
+            echo 'Verde aqui NAO afirma "esta igual ao design" (T7 — ver cabecalho do job).'
+            echo 'Este texto nao declara se o check bloqueia merge — o dono dessa resposta'
+            echo 'e governance/required-checks-baseline.json.'
+            echo ''
+            echo '```'
+            cat /tmp/secao-check.txt 2>/dev/null || echo '(sem saida — o passo anterior nem rodou)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

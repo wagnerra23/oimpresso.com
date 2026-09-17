@@ -137,6 +137,8 @@
     "alvo:medir": "node scripts/design-sync/alvo.mjs --alvo",
     "alvo:selftest": "node scripts/design-sync/alvo.mjs --selftest",
     "alvo:selftest:browser": "node scripts/design-sync/alvo.mjs --selftest --browser",
+    "secao:check": "node scripts/qa/secao-check.mjs",
+    "secao:selftest": "node scripts/qa/secao-check.mjs --selftest",
     "pedido:gerar": "node scripts/design-sync/pedido.mjs",
     "pedido:selftest": "node scripts/design-sync/pedido.mjs --selftest",
     "placar": "node scripts/qa/placar.mjs",
