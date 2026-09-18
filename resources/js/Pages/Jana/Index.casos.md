@@ -1162,3 +1162,163 @@ inerte no runtime (classe LC-30). Quem prova runtime é o **UC-JPAIN-22**, que l
 verdade. O par existe justamente porque Pest não monta React.
 
 **Teste:** `Modules/Jana/Tests/Feature/PainelContratoTest.php` · mesma lane.
+
+## UC-JPAIN-24 — quem assina as sugestões é a JANA, não quem está olhando a tela
+Status: 🧪 (`npx vitest run tests/janaAcoesAutoria.spec.tsx` → **7 passed** jsdom local, 2026-09-18, com mordida provada por mutação; vira ✅ quando o manifesto `casos-results` aterrissar — o G-7 lê o manifesto commitado, não esta linha)
+
+**Fonte:** âncora `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmPainel` —
+`AÇÕES QUE {data.person.name.toUpperCase()} SUGERE`, e `data.person` é
+`{ name: "Jana", role: "Analista IA" }` (âncora de SÍMBOLO; re-localize com
+`grep -n "person:" prototipo-ui/cowork/Wagner/chat-jana.jsx`). Precedência de FORMA:
+protótipo > teste > casos > charter > SPEC ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
+
+**O defeito, e por que não é copy.** Até 2026-09-18 o título interpolava `firstNameUpper`,
+derivado de `userName` (`IndexController` → `auth()->user()->name`), atribuindo ao **leitor**
+sugestões que o **servidor** derivou de 5 regras sobre o dado dele. Troca de **sujeito**, não
+divergência de rótulo — a frase afirmava autoria errada com selo de autoridade, que é o mesmo
+vetor que o `JanaDrillDrawer` existe para evitar (não escrever o que o payload não sustenta).
+
+> **O antes→depois REAL em produção é `VOCÊ` → `Jana`.** Medido em 2026-09-18 (`/ia`
+> autenticado, biz=1, dark, DOM estabilizado — 1129 nós em 3 leituras iguais, 0 skeletons): o
+> h2 renderizava **`Ações que VOCÊ sugere`**, porque `userName` chega **falsy** e o fallback
+> `|| 'você'` de `:318` está ativo. O discriminante é a saudação, que sai `Boa tarde.` **sem
+> nome** — e `:489` só omite o nome quando `userName` é falsy. Com o dado presente, o mesmo
+> código assinaria com o nome de quem olha; os dois estados erram o mesmo sujeito, e o segundo
+> é o mais grave.
+>
+> **A CAUSA foi medida (2026-09-18, sessão irmã; reproduzida aqui antes de citar): a tabela
+> `users` não tem coluna `name`.** A migration `2014_10_12_000000_create_users_table.php:17-27`
+> declara `surname`, `first_name`, `last_name`, `username`, `email`, `password`, `language` — e
+> `app/User.php` não define `getNameAttribute` (0 hits; controle positivo no mesmo arquivo:
+> `getUserFullNameAttribute` na `:310`, rc=0). Logo `optional(auth()->user())->name` devolve
+> **null sempre**, em **6 linhas / 6 arquivos** — cinco em `Modules/Jana/Http/Controllers/`
+> (`IndexController:54`, `ChatController:118`, `AlertasController:46`, `AcaoHitlController:51`,
+> `SuperadminController:152`) **e um em `Modules/KB/Http/Controllers/MemoriaController.php:56`**,
+> que serve a aba **Memória** — mesma área, outro módulo. Varredura pelo destino (`'userName'`)
+> **no repo inteiro**, contada: escopar a `Modules/Jana/` devolve 5 e perde o sexto — é a mesma
+> doença de grep estreito que este UC registra no eixo da copy, um nível acima. A personalização
+> da área Jana **nunca funcionou**; são **dois defeitos empilhados**, não um.
+>
+> ⛔ **O conserto óbvio está errado: NÃO usar `user_full_name`.** No UltimatePOS `surname` é
+> **PREFIXO**, não sobrenome — `resources/views/user/profile.blade.php:78` o rotula
+> `__('business.prefix')` com `prefix_placeholder`. Como `getUserFullNameAttribute` retorna
+> `"{surname} {first_name} {last_name}"`, o `split(' ')[0]` de `:318` devolveria **`"Sr."`**: a
+> tela diria `Boa tarde, Sr.` e, sem este fix, `Ações que SR. sugere`. O campo certo é
+> **`first_name`** (NOT NULL, migration `:19`). **Backend, PR próprio, fora deste** — endereçado
+> por sessão irmã.
+
+| eixo | âncora | tela viva (antes) | agora |
+|---|---|---|---|
+| sujeito | `data.person.name` = **Jana** | `firstNameUpper` — **o leitor** (`VOCÊ` hoje; o nome dele se o dado chegasse) | **Jana** |
+| varia por quem olha? | não | **sim**, por construção | não |
+| caixa alta | CSS `.jc-h2` `text-transform: uppercase` | CSS `uppercase` do `SectionTitle` | idem — **nunca foi divergência** |
+
+**O que o teste trava (8 casos, `tests/janaAcoesAutoria.spec.tsx`):** o título nomeia a Jana ·
+não é assinado pelo usuário · é **estável entre usuários** (mesma string para dois nomes
+diferentes e para `undefined`) · **o caminho de prod** (`userName` falsy) também nomeia a Jana e
+não diz "você" · a caixa alta continua vindo da CLASSE, não de `.toUpperCase()` no dado · e —
+controle que impede o conserto de virar régua cega — **com `userName` presente a saudação segue
+personalizada**: `firstName` é uso legítimo em `:489` e a âncora também personaliza ali. Sem esse
+caso, trocar tudo por "você" passaria nos demais asserts. ⚠️ Esse último é contrato do
+**componente**, não afirmação sobre o que a tela mostra hoje — ver a nota de produção acima.
+
+**Mordida provada (ADR 0258 — todo ✅ tem que ter sido visto falhar).** Restaurado o
+`firstNameUpper` no título, **4 dos 8 caem por `AssertionError`** — veredito de natureza, não
+erro de execução: `expected 'Ações que WAGNER sugere' to contain 'Jana'`,
+`expected 'Ações que WAGNER sugere' to be 'Ações que LARISSA sugere'` (exibe o defeito
+literalmente) e `expected 'Ações que VOCÊ sugere' to contain 'Jana'` — este último **reproduz o
+estado medido em produção**. Os 4 que seguem verdes são os controles do detector, a caixa alta e
+a saudação — corretos em não depender do bug.
+
+**Por que nenhum gate pegou, e a lição de método.** O dono do inventário
+(`memory/requisitos/Jana/Index-visual-comparison.md` §R7) **tinha** a linha, com veredito **✅**:
+escrita `"AÇÕES QUE <NOME> SUGERE"` × `"Ações que <Nome> sugere"`, ela abstraiu num placeholder
+comum exatamente a variável em disputa. Mediu a FORMA da frase e calou sobre o conteúdo —
+**falso-verde por 32 dias**, e pior que uma ausência, porque um ✅ desliga a cobrança. Corrigido
+no mesmo PR (precedência: o perdedor se corrige junto). **Regra que fica:** par de copy que
+interpola se registra com o VALOR resolvido de cada lado, nunca com o molde.
+
+**Teste:** `tests/janaAcoesAutoria.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
+
+## UC-JPAIN-25 — o h2 de seção é RÉPLICA da `.jc-h2`, não o h2 do golden
+Status: 🧪 (`npx vitest run tests/janaSectionTitleReplica.spec.tsx` → **5 passed** jsdom local, 2026-09-18, com mordida provada por mutação; vira ✅ quando o manifesto `casos-results` aterrissar)
+
+**Fonte:** âncora `.jc-h2` em `prototipo-ui/cowork/Wagner/chat-jana.css` §"── H2 ──" — âncora de
+SÍMBOLO (`grep -n "jc-h2" prototipo-ui/cowork/Wagner/chat-jana.css`); o sub-rótulo é
+`.jc-h2 .jm-h2-sub` em `jana-merge.css`. Precedência de FORMA: protótipo > teste > casos > charter
+> SPEC ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)),
+sob [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1.
+
+| eixo | âncora | tela viva (antes) | agora |
+|---|---|---|---|
+| font-size | **11px** | 14px (`text-sm`) | **11px** |
+| font-weight | **700** | 600 (`font-semibold`) | **700** |
+| letter-spacing | **0.88px** (`.08em`) | 1.4px (`tracking-widest`) | **0.88px** |
+| família | **mono** (`var(--mono)`) | sans (herdada) | **mono** |
+| gap do ícone | **7px** | 8px (`gap-2`) | **7px** |
+| caixa alta | `uppercase` no CSS | `uppercase` no CSS | **idem — nunca divergiu** |
+| sub-rótulo | `margin-left:auto` · mono 10.5px/400 · `.02em` | `ml-1` · sans 11px · `tracking-normal` | **alinhado** |
+
+**Réplica LOCAL, e é o ponto do caso.** O `SectionTitle` é função interna do `JanaCockpit.tsx` —
+não sai dele. Alinhar aqui **não** impõe a forma da Jana às outras telas, que é o erro invertido
+que o `PageHeader`/`PageHeaderTabs` (37-38 telas) tornaria inevitável. Mesmo caminho que o
+`JanaKpiCard` tomou em vez de mexer no `KpiCard` compartilhado.
+
+**`font-mono` é tradução PROVADA, não suposta:** o espelho declara `--mono: var(--font-mono)`
+(`styles.css:6446`), o token do projeto — mesmo mapeamento que o `JanaKpiCard` já usa em
+`.jc-kpi-h`.
+
+**O que o teste trava (5 casos):** todo h2 carrega a métrica da âncora · **nenhum** h2 mantém a
+métrica antiga do golden (o par que impede o meio-termo) · o ícone é 14px como `.jc-h2 .ic` · o
+sub vai pra **direita** (`ml-auto`, não `ml-1`) em mono 10.5px · e um detector com controle de
+sensibilidade, porque `gap-2` casaria por substring dentro de `gap-[7px]` se o matcher fosse
+ingênuo — ele compara **token inteiro**.
+
+**Mordida provada.** Restaurada a métrica do golden, **2 de 5 caem**: `h2 … sem font-mono`
+(ausência da nova) e `h2 ainda tem text-sm (métrica do golden)` (presença da antiga). Os dois
+sentidos, de propósito.
+
+⚠️ **A COR do sub-rótulo NÃO foi tocada — decisão declarada, não esquecimento.** A âncora usa
+`var(--text-dim)`, que **não é definido no escopo desta tela**: `chat-jana.css` e `jana-merge.css`
+não o declaram, e ele só aparece em `estoque-page.css` e `mockup-pages.css`, de outras telas. Sem
+token resolvível, trocar a cor seria adivinhar — fica medido e aberto.
+
+⚠️ **Frescor da fonte, declarado:** `cowork-mirror-freshness --sla` dá **⬜ INCONCLUSIVO**, não
+SYNC — o `--compare` está completo e no SLA (705/705 sync, 2026-09-17), mas **5 arquivos do vivo
+faltam no espelho** (`.gitignore`, `.thumbnail`, 3 do `_ds/`). O `chat-jana.css`, dono destes
+números, **está entre os sync**, e o eixo novo "vê AUSÊNCIA, nunca MODIFICAÇÃO" — então os valores
+aplicados vêm de arquivo provado fresco. O que segue por provar é o que o `_ds/` ausente poderia
+redefinir, e é exatamente por isso que a cor ficou de fora.
+
+**Teste:** `tests/janaSectionTitleReplica.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
+
+### Emenda 2026-09-18 — o mesmo `SectionTitle` fechou o cabeçalho de METAS (4 linhas → 1)
+
+O `Index.tsx` passou a usar este componente no cabeçalho do bloco METAS. Prod tinha **4 linhas**
+(badge `METAS` + `Acompanhamento contínuo` + h2 de 20px `Metas ativas` + a contagem
+`N metas ativas — visão consolidada do business`); a âncora `JmMetasSecao` tem **uma**
+(`<h2 class="jc-h2">` + controles em `margin-left:auto`).
+
+**A trava era de CONTRATO, não de forma.** `Metas ativas` e `Acompanhamento contínuo` eram copy
+**pinada** em `governance/design/contracts/jana-painel.contract.json` §`painel-metas-header`, e a
+`_nota_metas_header` (2026-08-31) registrava a divergência dizendo *"não corrigida porque copy
+pinada é lei [W]"*. **[W] escolheu remover** quando perguntado diretamente — copy de contrato está
+na lista curta de soberania real (`memory/proibicoes.md` §Comportamento), ao lado de merge e
+valor/estoque, então não era decisão do agente. O contrato foi atualizado no MESMO PR, e a nota
+de 2026-08-31 **ficou**, com a revogação ao lado.
+
+**Duas pegadinhas medidas, que custam tempo a quem repetir:**
+
+1. **`data-contract` tem que ser a string LITERAL no arquivo do `alvo`.** Passar `dataContract`
+   camelCase entrega o atributo no DOM e **mesmo assim** reprova — `X seção "painel-metas-header"
+   sem âncora data-contract no alvo` —, porque o gate faz busca textual. Por isso a prop do
+   `SectionTitle` se chama `'data-contract'`, com hífen.
+2. **O mock do `JanaCockpit` em `janaMetaCardRodape.spec.tsx` quebrou** ao surgir o export
+   `SectionTitle`: os 5 casos do **UC-JPAIN-21** abortaram com `No "SectionTitle" export is
+   defined on the … mock`, e a mensagem **não diz que é do mock** — parece defeito no card de
+   meta. O stub tem de renderizar os children, porque os botões do cabeçalho passaram a morar lá
+   dentro. É a mesma armadilha que aquele arquivo já documentava para o stub do cockpit.
+
+⚠️ **O seletor de período e o `Farol | Cadastro` NÃO vieram** — seguem ❌ **backend**
+(`IndexController::buildMetasPayload` carrega só `periodoAtual`; sem a série de janelas no payload
+não há o que filtrar). O cabeçalho fechou na FORMA e na COPY; a **capacidade** continua pendente.
