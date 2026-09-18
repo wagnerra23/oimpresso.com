@@ -74,7 +74,17 @@ it('renderiza Inertia component Financeiro/Unificado/Index', function () {
     }
 
     expect($response->status())->toBe(200);
-    expect($response->headers->get('X-Inertia'))->not()->toBeNull();
+
+    // NAO asserta o header X-Inertia da RESPOSTA: ele so existe quando o REQUEST e
+    // XHR (X-Inertia: true) -- e nesse modo o Inertia devolve JSON, o que faz o
+    // assertInertia() dos casos vizinhos falhar com "Not a valid Inertia response".
+    // As duas formas sao mutuamente exclusivas: esta linha nunca podia passar num GET
+    // simples. Mesma causa ja consertada no ProvaVivaControllerTest (#5196) e no
+    // FluxoControllerTest (triagem 7/N), que o rodape da quarentena ja apontava aqui.
+    // Fica a prova mais forte: qual componente a rota monta.
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->component('Financeiro/Unificado/Index')
+    );
 });
 
 it('expõe 5 KPIs no shape esperado', function () {
@@ -183,14 +193,29 @@ it('Tier 0 IRREVOGÁVEL: query Titulo respeita business_id global scope (ADR 009
     );
 });
 
-it('Non-Goal: rota /unificado é GET-only — POST/PUT/DELETE retornam 405', function () {
+it('Non-Goal: /unificado nao aceita PUT nem DELETE na COLECAO (POST virou Goal em US-FIN-021)', function () {
     $user = unificadoBootstrap();
 
-    foreach (['post', 'put', 'delete'] as $verb) {
+    // ATENCAO -- este Non-Goal ENCOLHEU de proposito, e o motivo esta medido:
+    // quando o caso nasceu, /financeiro/unificado era GET-only. A Onda 25
+    // (US-FIN-021, insert manual via TituloCreateSheet) acrescentou o POST, que
+    // HOJE existe e tem teste proprio provando que cria Titulo
+    // (UnificadoStoreTest). Perguntado ao runtime, nao ao codigo:
+    //
+    //   php artisan route:list --path=financeiro/unificado
+    //     GET|HEAD  financeiro/unificado        financeiro.unificado.index
+    //     POST      financeiro/unificado        financeiro.unificado.store   <-- Goal
+    //     PUT       financeiro/unificado/{id}   financeiro.unificado.update  <-- com ID
+    //
+    // Por isso o POST dava 302 (store validando payload vazio e redirecionando) e o
+    // caso reprovava desde entao. Cobrar "GET-only" e cobrar o oposto de uma US
+    // entregue -- mesma familia do Wave23SaturationTest (teste podre por CRESCIMENTO
+    // legitimo). O que CONTINUA sendo Non-Goal, e o que este caso guarda agora:
+    // mutacao na COLECAO por PUT/DELETE (sem id). Update existe, mas so em /{id}.
+    foreach (['put', 'delete'] as $verb) {
         $r = $this->actingAs($user)->{$verb}('/financeiro/unificado');
-        // Espera 405 (Method Not Allowed). Pode também retornar 419 (CSRF) no POST
-        // sem token; ambos sinalizam que rota mutativa não existe.
-        expect($r->status())->toBeIn([405, 419, 404]);
+        // 405 Method Not Allowed; 419 (CSRF) e 404 tambem sinalizam rota inexistente.
+        expect($r->status())->toBeIn([405, 419, 404], "verbo {$verb} na colecao deveria ser recusado");
     }
 });
 
