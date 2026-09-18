@@ -149,7 +149,7 @@ class SuperadminController extends Controller
             'janaContext' => [
                 'businessId'   => (int) $request->session()->get('user.business_id'),
                 'businessName' => (string) ($request->session()->get('business.name') ?? ''),
-                'userName'     => optional($user)->name,
+                'userName'     => optional($user)->nome_exibicao,
             ],
         ]);
     }
