@@ -51,6 +51,44 @@ const firstSentence = (s, max = 160) => {
 };
 const trunc = (s, n = 150) => (s && s.length > n ? s.slice(0, n) + '…' : s || '');
 const lsDir = (d) => (existsSync(join(ROOT, d)) ? readdirSync(join(ROOT, d)) : []);
+
+// --- CORTE: o que o GIT IGNORA não é máquina deste repo ---
+// Por que existe (medido 2026-09-18, incidente no #7522): este gerador varre o DISCO,
+// mas o índice descreve o REPO — e os dois DIVERGEM quando há artefato de TRANSPORTE
+// materializado localmente. `governance/nightly-floor.json` é o caso: por ADR 0279 ele
+// vive na branch órfã `governance/nightly-floor`, o CI o MATERIALIZA no CWD antes de
+// medir, e o main NUNCA o versiona (.gitignore, com a razão escrita ao lado). Logo ele
+// existe no disco de quem rodou o nightly e NÃO existe no checkout limpo do CI.
+// O estrago não era um vermelho isolado, era um LOOP: o `--write` local indexava o
+// fantasma, o `--check` do CI acusava "1 no índice que sumiu do disco", e o hook
+// `maquinas-inventario-no-commit` (PreToolUse · git commit) regenerava a cada commit —
+// então consertar à mão durava até o commit seguinte, em QUALQUER sessão com esse
+// arquivo no disco. Irmãos no mesmo transporte: `nightly-coverage.json`,
+// `ragas-real-trend.json` (mesmo bloco do .gitignore).
+//
+// POR QUE `--others --ignored` E NÃO `git ls-files`: `ls-files` devolve só o VERSIONADO,
+// e isso excluiria máquina NOVA ainda não commitada — que deve aparecer no índice (é o
+// caso normal de quem acabou de escrever um hook). O predicado certo é "o git IGNORA?",
+// não "o git JÁ RASTREIA?".
+// UMA chamada (medido: ~0,2s · 6 entradas), `--directory` colapsa pastas inteiras.
+// Fail-open sem git: volta ao comportamento anterior em vez de esvaziar o índice.
+let _ignorados = null;
+const ehIgnoradoPeloGit = (rel) => {
+  if (_ignorados === null) {
+    _ignorados = new Set();
+    try {
+      const out = execFileSync('git', ['ls-files', '--others', '--ignored', '--exclude-standard', '--directory'],
+        { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+      for (const l of out.split('\n')) { const t = l.trim(); if (t) _ignorados.add(t); }
+    } catch { /* sem git / fora de repo: não filtra nada (comportamento pré-2026-09-18) */ }
+  }
+  const p = String(rel).split('\\').join('/');
+  if (_ignorados.has(p)) return true;
+  // `--directory` colapsa pasta ignorada numa entrada com barra final (`.claude/run/`):
+  // qualquer coisa sob ela é ignorada também.
+  for (const ig of _ignorados) if (ig.endsWith('/') && p.startsWith(ig)) return true;
+  return false;
+};
 // Célula de tabela markdown: `|` cru PARTE a tabela (e matcher de hook tem `|` —
 // `Write|Edit|MultiEdit`). Escapa e achata quebras de linha.
 const cell = (s) => String(s ?? '').split('|').join('\\|').split(/\r?\n/).join(' ');
@@ -61,6 +99,7 @@ const readTree = (dir, exts, acc = [], depth = 0, maxDepth = 4) => {
   for (const e of readdirSync(join(ROOT, dir))) {
     const rel = `${dir}/${e}`;
     let st; try { st = statSync(join(ROOT, rel)); } catch { continue; }
+    if (ehIgnoradoPeloGit(rel)) continue;
     if (st.isDirectory()) readTree(rel, exts, acc, depth + 1, maxDepth);
     else if (exts.some((x) => e.endsWith(x))) {
       try { acc.push({ rel, txt: readFileSync(join(ROOT, rel), 'utf8') }); } catch {}
@@ -617,6 +656,7 @@ const dirsComMaquina = (dir, acc = new Set(), depth = 0, maxDepth = 6) => {
     // entrariam sem este corte — linhas que ninguém aqui escreveu nem mantém.
     if (e === 'node_modules') continue;
     const rel = `${dir}/${e}`;
+    if (ehIgnoradoPeloGit(rel)) continue;
     let st; try { st = statSync(join(ROOT, rel)); } catch { continue; }
     if (st.isDirectory()) dirsComMaquina(rel, acc, depth + 1, maxDepth);
     else if (/\.(mjs|js|cjs)$/.test(e) && !e.includes('.test.')) acc.add(dir);
@@ -666,6 +706,9 @@ for (const d of jsonDirs) {
     // máquinas de SOs diferentes ([W] no Windows, o time e o CI em POSIX).
     const p = join(d, f).split('\\').join('/');
     if (seen.has(p)) continue;
+    // artefato de TRANSPORTE materializado local (nightly-floor/coverage/ragas-trend):
+    // existe no disco de quem rodou o nightly, não no checkout do CI. Ver ehIgnoradoPeloGit.
+    if (ehIgnoradoPeloGit(p)) continue;
     seen.add(p);
     let meta = '';
     try {
