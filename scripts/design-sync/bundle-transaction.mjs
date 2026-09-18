@@ -248,6 +248,11 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
     const app = applicationState(row.status);
     const evidence = currentEvidenceRecord({ root, source: row.arquivo, target: row.alvo, manifest, ledger: applicationLedger, comparison: row.status });
     const applied = row.status === 'IDENTICO' || !!evidence?.application;
+    // `tested` = EXISTE recibo verde amarrado a estes hashes — não "esta tela foi testada".
+    // Com `runner: 'ci'` o recibo certifica um job de LANE, e 3 telas podem compartilhar o
+    // mesmo `--job` (medido 2026-09-18). É presença, não comportamento (LC-11); o que o recibo
+    // prova e o que não prova está no docblock de `recordTestEvidence`, incluindo o elo por
+    // tela que É derivável (UC do `.casos.md` → veredito em `scripts/casos-test-results.json`).
     const tested = applied && (evidence?.tests.length || 0) > 0;
     const smoked = tested && (evidence?.smokes.length || 0) > 0;
     const lifecycleState = app.state === 'blocked' || app.state === 'to-create'
@@ -731,6 +736,48 @@ export async function recordComparisonEvidence({
   return { record, report: await refreshApplicationReport({ root: absRoot, paths }) };
 }
 
+/**
+ * recordTestEvidence — grava recibo de TESTE no ledger, indexado por TELA (ADR 0384 D-5).
+ *
+ * O QUE O RECIBO PROVA — e é menos do que a chave por tela sugere. O par
+ * `sourceSha256`/`targetSha256` amarra o recibo ao CONTEÚDO: mudou o `.tsx` ou a fonte do
+ * bundle, `currentWritableRecord` recusa e o recibo antigo morre. Isso é FRESCOR, e é real.
+ * O que NÃO existe neste escritor é vínculo de RELEVÂNCIA: `command` é livre-forma, validado
+ * só por "não-vazio" — nada aqui relaciona o comando à tela do `target`.
+ *
+ * MEDIDO 2026-09-18 nos 4 recibos existentes (`state/applications.json`): `Fiscal/Config`,
+ * `Fiscal/Eventos` e `Fiscal/Sped` carregam o MESMO `gh run view --job 103424388127` — três
+ * telas, um recibo idêntico, e o `.tsx` não aparece no comando. Esse job é
+ * `PHP / Pest (NfeBrasil · MySQL)`: o recorte não é nem por módulo, é por LANE (a lane do
+ * NfeBrasil lista `Modules/Fiscal/Tests`). O predicado satisfeito é "o job da lane saiu verde";
+ * ele seria byte-idêntico se a lane não rodasse um único teste que toca aquela tela. É PRESENÇA,
+ * não comportamento — LC-11.
+ *
+ * O QUE O JOB VERDE AINDA GARANTE, e não se deve jogar fora ao endurecer isto: verificado
+ * 2026-09-18 em `nfebrasil-pest.yml:315`, o step `Suite provou algo? (--check-assertions · LC-13)`
+ * roda SEM `continue-on-error`; ele é guardado por `if: steps.changes.outputs.nfe == 'true'`,
+ * então a transitividade "job verde ⇒ assertions > 0" vale enquanto o seletor continuar exigindo
+ * que o step de Pest tenha EXECUTADO (`escolherRun`, em recibos-ci.mjs — arquivo que o PR #7509
+ * estava alterando nesta data; confira o estado dele antes de citar este parágrafo).
+ *
+ * O ELO POR TELA É DERIVÁVEL, sem convenção humana nova e sem régua paralela (LC-19): a cadeia
+ * já existe e tem dono. `<Tela>.casos.md` declara UC-ids; `casos-results-collect.mjs` lê o UC-id
+ * do atributo `name` do `<testcase>` do JUnit e publica o VEREDITO REAL em
+ * `scripts/casos-test-results.json` (G-7 da ADR 0264) — isto é comportamento, não presença.
+ * Medido 2026-09-18: 30 dos 55 alvos `.tsx` do funil têm ≥1 UC com veredito no manifesto
+ * (16 não têm `.casos.md`: desses não há prova por tela a extrair). O risco de creditar a tela
+ * errada por colisão de id (§5 2026-09-04) está medido: 4 de 826 UC-ids são declarados por mais
+ * de um `.casos.md` — prefixo `UC-CFG`, ZERO deles nas telas que têm recibo.
+ *
+ * POR QUE NÃO FOI LIGADO AQUI (fato datado, não veredito perene): em 2026-09-18 o manifesto de
+ * main tinha `_meta.generated_at = 2026-09-08T14:42Z` e 668 das 743 entradas com `ran_at: null`,
+ * e o auto-PR que o renova (#7117, aberto em 2026-09-09) estava OPEN com `autoMerge: false`.
+ * Consumir esse snapshot como RECIBO trocaria um recibo vago-porém-fresco por um
+ * específico-porém-velho, embutindo estado de 10 dias atrás num ledger de evidência. Re-meça
+ * antes de tratar isto como estado de hoje:
+ *   node -e "console.log(require('./scripts/casos-test-results.json')._meta.generated_at)"
+ *   gh pr view 7117 --json state,autoMergeRequest
+ */
 export async function recordTestEvidence({
   root = process.cwd(), source, target, command, exitCode, output, runner, paths = DEFAULT_PATHS,
 }) {
