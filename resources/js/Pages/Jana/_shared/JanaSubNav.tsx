@@ -71,6 +71,16 @@ export default function JanaSubNav({ active, extraOverflowItems, hidePrimary }: 
       // 6 desde 2026-09-02: a área tem 6 abas com Plataforma (só superadmin), e a âncora
       // (`jana-merge.jsx` §JmTabs) mostra todas inline — nada cai no "⋯ Mais".
       maxVisible={6}
+      // A âncora da Jana (`jana-merge.jsx` §`JmTabs`) pede `13px/500` com `padding 0 14px`;
+      // o default do `PageHeaderTabs` é a métrica do protótipo do CLIENTES (`14px/400`,
+      // `px-3`), fixada por [W] em 2026-07-14. Divergência medida e registrada em
+      // `memory/requisitos/Jana/Index-visual-comparison.md`.
+      //
+      // Parâmetro em vez de réplica local por decisão [W] 2026-09-18: este componente
+      // DELEGA inteiramente ao compartilhado e não tem markup de aba próprio, então
+      // replicar aqui custaria duplicar a barra inteira — diferente do `JanaKpiCard`.
+      // As outras 5 áreas não passam `density` e seguem no `default`, byte-idêntico.
+      density="compact"
       extraOverflowItems={extraOverflowItems}
     />
   );

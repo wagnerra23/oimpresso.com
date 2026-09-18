@@ -1322,3 +1322,49 @@ de 2026-08-31 **ficou**, com a revogação ao lado.
 ⚠️ **O seletor de período e o `Farol | Cadastro` NÃO vieram** — seguem ❌ **backend**
 (`IndexController::buildMetasPayload` carrega só `periodoAtual`; sem a série de janelas no payload
 não há o que filtrar). O cabeçalho fechou na FORMA e na COPY; a **capacidade** continua pendente.
+
+## UC-JPAIN-26 — a aba da Jana usa a métrica da âncora DELA, sem mover as outras 5 áreas
+Status: 🧪 (`npx vitest run tests/pageHeaderTabsDensity.spec.tsx` → **6 passed** jsdom local, 2026-09-18, com bite-test comparativo; vira ✅ quando o manifesto `casos-results` aterrissar)
+
+**Duas âncoras, porque o componente serve mais de um dono:**
+
+| densidade | âncora | métrica |
+|---|---|---|
+| `default` | protótipo do **Clientes** (`clientes-page.css` `.cli-moduletopnav-tab`), fixado por [W] 2026-07-14 | 14px/400 · `px-3` |
+| `compact` | âncora da **Jana** (`jana-merge.jsx` §`JmTabs`) | 13px/500 · `padding 0 14px` |
+
+**Parâmetro em vez de réplica local — decisão [W] 2026-09-18**, escolhida sobre outras três
+(deixar como está · componente de abas próprio da Jana · rever o protótipo do Clientes). Razão
+medida: o `JanaSubNav` **delega inteiramente** ao `PageHeaderTabs` e não tem markup de aba
+próprio, então replicar custaria duplicar a barra inteira — diferente do `JanaKpiCard`
+(UC-JPAIN-20), que replicava um card. As outras **5 áreas** não passam a prop e seguem no
+`default`, byte-idêntico (há um caso que prova a identidade de `omitir` vs `default`).
+
+**⚠️ O achado que motivou este UC não é a métrica — é que a justificativa registrada era FALSA.**
+O `Index-visual-comparison.md` dizia *"13×14px fica (fidelidade travada em
+`pageHeaderTabsFidelity.spec`)"*. Medido por mutação: trocado o default para `compact`, aquele
+spec segue **13/13 VERDE**. Ele trava radius, underline `--accent`, pill do contador e o peso da
+aba **ATIVA**; font-size, padding e o peso da **inativa** passavam livres. O item não estava
+travado — estava **não-feito**, com aparência de decisão técnica. Mesma família do falso-verde do
+`<NOME>` (UC-JPAIN-24): **garantia afirmada e não existente desliga a cobrança melhor que um
+buraco declarado.**
+
+**O bite-test é COMPARATIVO, e é a prova do buraco.** Na mesma mutação (`default` → `compact`):
+
+| spec | veredito |
+|---|---|
+| `pageHeaderTabsFidelity` | **13/13 verde** — cego |
+| `pageHeaderTabsDensity` (este) | **2 de 6 caem** — `default perdeu text-sm` + comparação de className inteira |
+
+**O que o teste trava (6 casos):** o `default` não se mexe (a rede que faltava) · omitir a prop é
+idêntico a `default` · `compact` entrega 13px/`px-[14px]`/500 · a aba **ATIVA** segue
+`font-semibold` nas **duas** densidades · `density` não carrega radius nem cor junto (guarda de
+vizinhança) · e um detector com controle de sensibilidade, porque `px-3` casaria por substring
+dentro de `px-[14px]`.
+
+⚠️ **Ícone e badge NÃO eram gaps.** O ícone já estava corrigido, e o `badge` opt-in **existe no
+componente** (pill do contador, cores de ativo/inativo travadas por 5 casos do spec de
+fidelidade). O que falta para as abas mostrarem `Conversa 3` é o **contador chegar do
+`DataController`** — backend, com raio nas 4 telas da área, não UI ausente.
+
+**Teste:** `tests/pageHeaderTabsDensity.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
