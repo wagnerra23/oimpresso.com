@@ -1,0 +1,3 @@
+# Fixture RUIM — a 2a entrada NAO tem motivo: e o "silenciei um vermelho e nao disse por que".
+Modules/Exemplo/Tests/Feature/ComRazaoTest.php  # DB-dependente, defeito real a investigar
+Modules/Exemplo/Tests/Feature/SemRazaoTest.php

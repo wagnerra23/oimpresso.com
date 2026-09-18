@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-18T13:44:25.309Z",
+  "generatedAt": "2026-09-18T14:20:32.233Z",
   "bundle": {
     "id": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3",
     "baseId": "1949443e50ff13031730a8e7fd6f527cca001a4f2e63ba99e4a57b05baff6571",
@@ -12,9 +12,9 @@
     "transportChanges": 2,
     "screens": 162,
     "tested": 4,
-    "smoked": 0,
+    "smoked": 4,
     "lifecycle": {
-      "tested": 4,
+      "validated": 4,
       "anchored": 130,
       "to-create": 28
     },
@@ -46,11 +46,11 @@
       "module": "Arquivos",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "tested",
+      "lifecycleState": "validated",
       "applicationState": "applied",
       "compared": true,
       "tested": true,
-      "smoked": false,
+      "smoked": true,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Arquivos/arquivos-index.map.json",
@@ -80,10 +80,22 @@
             "recordedAt": "2026-09-18T13:43:40.271Z"
           }
         ],
-        "smokes": [],
+        "smokes": [
+          {
+            "route": "/arquivos",
+            "deploySha": "1cb5389da3e6345e7b638eb9d8f4969d9436b499",
+            "tenant": 1,
+            "host": "ci",
+            "screenshot": "scripts/design-sync/state/smokes/arquivos-index.png",
+            "screenshotSha256": "80c0c47bb4fdcf1455944393c316e0ffcffc576945778a69bb3b1f97a8495ee5",
+            "result": "passed",
+            "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854",
+            "recordedAt": "2026-09-18T14:20:19.480Z"
+          }
+        ],
         "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854"
       },
-      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
+      "nextAction": "aplicação, teste e smoke válidos para os hashes atuais"
     },
     {
       "source": "backup-page.jsx",
@@ -848,11 +860,11 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "tested",
+      "lifecycleState": "validated",
       "applicationState": "applied",
       "compared": true,
       "tested": true,
-      "smoked": false,
+      "smoked": true,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-config.map.json",
@@ -882,10 +894,22 @@
             "recordedAt": "2026-09-18T13:44:14.833Z"
           }
         ],
-        "smokes": [],
+        "smokes": [
+          {
+            "route": "/fiscal/config",
+            "deploySha": "1cb5389da3e6345e7b638eb9d8f4969d9436b499",
+            "tenant": 1,
+            "host": "ci",
+            "screenshot": "scripts/design-sync/state/smokes/fiscal-config.png",
+            "screenshotSha256": "0284d8557a0cff1bc4b02a49feb16d684b85d40c76c9dacfb9a049f036b615de",
+            "result": "passed",
+            "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
+            "recordedAt": "2026-09-18T14:20:24.023Z"
+          }
+        ],
         "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c"
       },
-      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
+      "nextAction": "aplicação, teste e smoke válidos para os hashes atuais"
     },
     {
       "source": "fiscal-page.jsx",
@@ -909,11 +933,11 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "tested",
+      "lifecycleState": "validated",
       "applicationState": "applied",
       "compared": true,
       "tested": true,
-      "smoked": false,
+      "smoked": true,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-eventos.map.json",
@@ -943,10 +967,22 @@
             "recordedAt": "2026-09-18T13:44:20.035Z"
           }
         ],
-        "smokes": [],
+        "smokes": [
+          {
+            "route": "/fiscal/eventos",
+            "deploySha": "1cb5389da3e6345e7b638eb9d8f4969d9436b499",
+            "tenant": 1,
+            "host": "ci",
+            "screenshot": "scripts/design-sync/state/smokes/fiscal-eventos.png",
+            "screenshotSha256": "ccb0dbc87bbfe45abe81b8b51baa0e4bedab46a018f776a6dcf171b91b154766",
+            "result": "passed",
+            "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
+            "recordedAt": "2026-09-18T14:20:27.903Z"
+          }
+        ],
         "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc"
       },
-      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
+      "nextAction": "aplicação, teste e smoke válidos para os hashes atuais"
     },
     {
       "source": "fiscal-page.jsx",
@@ -985,11 +1021,11 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "tested",
+      "lifecycleState": "validated",
       "applicationState": "applied",
       "compared": true,
       "tested": true,
-      "smoked": false,
+      "smoked": true,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-sped.map.json",
@@ -1019,10 +1055,22 @@
             "recordedAt": "2026-09-18T13:44:25.120Z"
           }
         ],
-        "smokes": [],
+        "smokes": [
+          {
+            "route": "/fiscal/sped",
+            "deploySha": "1cb5389da3e6345e7b638eb9d8f4969d9436b499",
+            "tenant": 1,
+            "host": "ci",
+            "screenshot": "scripts/design-sync/state/smokes/fiscal-sped.png",
+            "screenshotSha256": "523ae8747062acf3ce86da07c455174c3d173f77382df33c9cf5e3d613af5539",
+            "result": "passed",
+            "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
+            "recordedAt": "2026-09-18T14:20:32.002Z"
+          }
+        ],
         "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6"
       },
-      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
+      "nextAction": "aplicação, teste e smoke válidos para os hashes atuais"
     },
     {
       "source": "fiscal-subpages.jsx",
