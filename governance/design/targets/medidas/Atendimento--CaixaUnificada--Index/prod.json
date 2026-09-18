@@ -1,7 +1,7 @@
 {
-  "url": "http://127.0.0.1:8000/atendimento/caixa-unificada",
-  "theme": "dark",
-  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo TE AV Atendimento 0 contas ativas · 2 filas · 0 abertas Templates Filas Canais Broadcast Guia + Nova conversa Conversas 0 Todas Filtros Nenhuma conversa Tente outro filtro ou limpe a busca. Selecione uma conversa 0 conversas na caixa. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "url": "https://staging.oimpresso.com/atendimento/caixa-unificada",
+  "theme": "auto",
+  "assinatura": "",
   "roles": {
     "kpi": {
       "count": 0,
@@ -9,11 +9,7 @@
       "overflowX": null,
       "items": []
     },
-    "title": {
-      "fontPx": 14,
-      "weight": "600",
-      "color": "oklch(0.22 0.01 80)"
-    },
+    "title": null,
     "primary": null,
     "filterRows": null,
     "contratos": [],

@@ -3,37 +3,37 @@
   "source": "fiscal-page.jsx",
   "target": "resources/js/Pages/Fiscal/Nfse.tsx",
   "token": "fiscal-nfse",
-  "frescor": "verificado 2026-09-08",
+  "frescor": "verificado 2026-09-17",
   "contrato": "governance/design/contracts/fiscal-nfse.contract.json",
   "compare": {
-    "rc": 0,
-    "veredito": "IGUAL",
+    "rc": 1,
+    "veredito": "DIVERGE (bug)",
     "motivo": "",
-    "bugs": 0,
-    "shell": 2,
-    "sameTheme": true,
+    "bugs": 11,
+    "shell": 0,
+    "sameTheme": false,
     "porDim": {
       "D2": {
-        "diverge": 0,
+        "diverge": 6,
         "bug": 0,
         "semDado": 0,
         "igual": 1
       },
       "D4": {
-        "diverge": 0,
-        "bug": 0,
-        "semDado": 1,
+        "diverge": 5,
+        "bug": 3,
+        "semDado": 0,
         "igual": 1
       },
       "D6": {
-        "diverge": 0,
-        "bug": 0,
+        "diverge": 4,
+        "bug": 4,
         "semDado": 0,
         "igual": 1
       },
       "D8": {
-        "diverge": 0,
-        "bug": 0,
+        "diverge": 4,
+        "bug": 4,
         "semDado": 0,
         "igual": 1
       },
@@ -44,7 +44,7 @@
         "igual": 0
       },
       "SHELL": {
-        "diverge": 2,
+        "diverge": 0,
         "bug": 0,
         "semDado": 4,
         "igual": 0
@@ -129,17 +129,152 @@
       },
       {
         "dim": "D4",
-        "campo": "linha da tabela",
-        "prod": "não medido",
-        "design": "não medido",
-        "veredito": "SEM-DADO",
-        "detalhe": "passe `tableRow` em __DD_ROLES nos DOIS lados"
+        "campo": "col0.mono",
+        "prod": "mono",
+        "design": "sem mono",
+        "veredito": "DIVERGE (fonte)"
+      },
+      {
+        "dim": "D2",
+        "campo": "col0.blocos de texto",
+        "prod": 1,
+        "design": 0,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "D4",
+        "campo": "col1.mono",
+        "prod": "sem mono",
+        "design": "mono",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D6",
+        "campo": "col1.cor",
+        "prod": "herda a da linha",
+        "design": "cor própria",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D2",
+        "campo": "col1.blocos de texto",
+        "prod": 2,
+        "design": 1,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "D4",
+        "campo": "col2.mono",
+        "prod": "sem mono",
+        "design": "mono",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D6",
+        "campo": "col2.cor",
+        "prod": "herda a da linha",
+        "design": "cor própria",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D2",
+        "campo": "col2.blocos de texto",
+        "prod": 1,
+        "design": 2,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "D8",
+        "campo": "col3.alcancavel",
+        "prod": "sem elemento clicavel",
+        "design": "A",
+        "veredito": "DIVERGE (bug)",
+        "detalhe": "o design alcanca o destino; a prod imprime texto morto"
+      },
+      {
+        "dim": "D2",
+        "campo": "col3.blocos de texto",
+        "prod": 1,
+        "design": 3,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "D6",
+        "campo": "col4.pílula.borda",
+        "prod": "sem borda",
+        "design": "com borda",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D4",
+        "campo": "col5.mono",
+        "prod": "mono",
+        "design": "sem mono",
+        "veredito": "DIVERGE (fonte)"
+      },
+      {
+        "dim": "D8",
+        "campo": "col5.align",
+        "prod": "right",
+        "design": "left",
+        "veredito": "DIVERGE (bug)",
+        "detalhe": "o alinhamento é da CÉLULA — classe num filho não alinha o <td> nem o cabeçalho"
+      },
+      {
+        "dim": "D2",
+        "campo": "col5.blocos de texto",
+        "prod": 2,
+        "design": 1,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "D4",
+        "campo": "col6.mono",
+        "prod": "sem mono",
+        "design": "mono",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D6",
+        "campo": "col6.cor",
+        "prod": "herda a da linha",
+        "design": "cor própria",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D8",
+        "campo": "col6.alcancavel",
+        "prod": "sem elemento clicavel",
+        "design": "BUTTON",
+        "veredito": "DIVERGE (bug)",
+        "detalhe": "o design alcanca o destino; a prod imprime texto morto"
+      },
+      {
+        "dim": "D8",
+        "campo": "col6.align",
+        "prod": "left",
+        "design": "right",
+        "veredito": "DIVERGE (bug)",
+        "detalhe": "o alinhamento é da CÉLULA — classe num filho não alinha o <td> nem o cabeçalho"
+      },
+      {
+        "dim": "D2",
+        "campo": "col6.blocos de texto",
+        "prod": 1,
+        "design": 3,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
       },
       {
         "dim": "SHELL",
         "campo": "shell.atalhoTopo.presenca",
         "prod": "0 el (.sb-shortcuts .sb-shortcut)",
-        "design": "3 el (.sb-menu > .sb-item)",
+        "design": "0 el (.sb-menu > .sb-item)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
       },
@@ -155,7 +290,7 @@
         "dim": "SHELL",
         "campo": "shell.grupoHeader.presenca",
         "prod": "0 el (.sb-group-h)",
-        "design": "9 el (.sb-group-h)",
+        "design": "0 el (.sb-group-h)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
       },
@@ -163,25 +298,9 @@
         "dim": "SHELL",
         "campo": "shell.itemGrupo.presenca",
         "prod": "0 el (.sb-item)",
-        "design": "36 el (.sb-group .sb-item, .sb-group-body .sb-item)",
+        "design": "0 el (.sb-group .sb-item, .sb-group-body .sb-item)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
-      },
-      {
-        "dim": "SHELL",
-        "campo": "shell.atalhoTopo.sequencia",
-        "prod": "[]",
-        "design": "[IA3, Visão geralG D, Atendimento6]",
-        "veredito": "DIVERGE (a classificar)",
-        "detalhe": "ordem de navegação é contrato — classifique (DECIDIDA/DERIVA/DESIGN-ANDOU) antes de mexer"
-      },
-      {
-        "dim": "SHELL",
-        "campo": "shell.atalhoTopo.so-no-design",
-        "prod": "—",
-        "design": "IA3, Visão geralG D, Atendimento6",
-        "veredito": "DIVERGE (a classificar)",
-        "detalhe": "candidato típico a DESIGN-ANDOU — confira a data das duas fontes"
       }
     ]
   },
@@ -191,7 +310,7 @@
     "urlFinal": "https://staging.oimpresso.com/fiscal/nfse",
     "componenteInertia": null
   },
-  "medidoEm": "2026-09-08T13:13:56.287Z",
+  "medidoEm": "2026-09-18T12:38:17.334Z",
   "baseUrl": "https://staging.oimpresso.com",
-  "bundle": "f99cbe0b5c32a054223b93610be82ef4c77408e722bde916079b90b4f6ed096c"
+  "bundle": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3"
 }

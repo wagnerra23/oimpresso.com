@@ -1,0 +1,56 @@
+{
+  "url": "https://staging.oimpresso.com/comunicacao-visual",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Comunicação Visual Orçamento por m² pra CI Biz — banner, lona, adesivo, fachada. Calcule na hora, sem abrir o Excel. Calculadora de m² Adicionar peça Você ainda não tem materiais cadastrados. Pode digitar o preço por m² na mão em cada peça — quando cadastrar o catálogo, ele aparece aqui pra escolher. Material Descrição Larg. (m) Alt. (m) Qtd R$/m² m² Subtotal Material Sem catálogo Descrição Largura (m) Altura (m) Qtd Preço por m² Área 1 m² Subtotal R$ 0,00 Acabamento / instalação / entrega (R$) Desconto (R$) Subtotal R$ 0,00 Total estimado R$ 0,00 Conferir no servidor O cálculo na tela é só uma prévia. Ao conferir no servidor, o valor oficial é recalculado com as regras da sua loja. Salvar e enviar orçamento chega em breve. Em breve nesta tela Ordens de serviço em breve Acompanhar cada trabalho da arte até a entrega, num quadro simples. Materiais em breve Cadastrar lona, vinil e ACM com o preço por m² pra calcular ainda mais rápido. Apontamentos em breve Registrar início e fim de cada impressão pra saber quanto cada peça custou de verdade. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 24,
+      "weight": "600",
+      "color": "oklch(0.137 0.036 258.5)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

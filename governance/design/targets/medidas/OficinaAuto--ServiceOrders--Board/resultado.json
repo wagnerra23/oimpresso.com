@@ -3,15 +3,15 @@
   "source": "oficina-page.jsx",
   "target": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
   "token": "oficinaauto",
-  "frescor": "verificado 2026-09-08",
+  "frescor": "verificado 2026-09-17",
   "contrato": null,
   "compare": {
     "rc": 1,
     "veredito": "DIVERGE (bug)",
     "motivo": "",
     "bugs": 1,
-    "shell": 2,
-    "sameTheme": true,
+    "shell": 0,
+    "sameTheme": false,
     "porDim": {
       "D2": {
         "diverge": 0,
@@ -44,7 +44,7 @@
         "igual": 1
       },
       "SHELL": {
-        "diverge": 2,
+        "diverge": 0,
         "bug": 0,
         "semDado": 4,
         "igual": 0
@@ -99,7 +99,7 @@
         "dim": "SHELL",
         "campo": "shell.atalhoTopo.presenca",
         "prod": "0 el (.sb-shortcuts .sb-shortcut)",
-        "design": "3 el (.sb-menu > .sb-item)",
+        "design": "0 el (.sb-menu > .sb-item)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
       },
@@ -115,7 +115,7 @@
         "dim": "SHELL",
         "campo": "shell.grupoHeader.presenca",
         "prod": "0 el (.sb-group-h)",
-        "design": "9 el (.sb-group-h)",
+        "design": "0 el (.sb-group-h)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
       },
@@ -123,35 +123,19 @@
         "dim": "SHELL",
         "campo": "shell.itemGrupo.presenca",
         "prod": "0 el (.sb-item)",
-        "design": "32 el (.sb-group .sb-item, .sb-group-body .sb-item)",
+        "design": "0 el (.sb-group .sb-item, .sb-group-body .sb-item)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
-      },
-      {
-        "dim": "SHELL",
-        "campo": "shell.atalhoTopo.sequencia",
-        "prod": "[]",
-        "design": "[IA3, Visão geralG D, Atendimento6]",
-        "veredito": "DIVERGE (a classificar)",
-        "detalhe": "ordem de navegação é contrato — classifique (DECIDIDA/DERIVA/DESIGN-ANDOU) antes de mexer"
-      },
-      {
-        "dim": "SHELL",
-        "campo": "shell.atalhoTopo.so-no-design",
-        "prod": "—",
-        "design": "IA3, Visão geralG D, Atendimento6",
-        "veredito": "DIVERGE (a classificar)",
-        "detalhe": "candidato típico a DESIGN-ANDOU — confira a data das duas fontes"
       }
     ]
   },
   "veredito": null,
   "motivo": "",
   "meta": {
-    "urlFinal": "http://127.0.0.1:8000/oficina-auto/ordens-servico",
+    "urlFinal": "https://staging.oimpresso.com/oficina-auto/ordens-servico",
     "componenteInertia": null
   },
-  "medidoEm": "2026-09-08T12:45:40.874Z",
-  "baseUrl": "http://127.0.0.1:8000",
-  "bundle": "f99cbe0b5c32a054223b93610be82ef4c77408e722bde916079b90b4f6ed096c"
+  "medidoEm": "2026-09-18T12:40:24.226Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3"
 }

@@ -1,7 +1,7 @@
 {
-  "url": "http://127.0.0.1:58763/oimpresso.com.html",
-  "theme": "light",
-  "assinatura": "OI Oimpresso Matriz IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 4 CRM 14 G R Vendas 19 G V Oficina Auto 1 Vestuário 1 Finanças 4 Caixa G X Financeiro 11 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 6 NF-e · NFC-e NFS-e Eventos Manifesto DF-e Certificado e configuração ⋯ mais 1 Produção 3 Ordens de Serviço Comunicação Visual Assistência técnica 7 Estoque 3 Compras 4 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 10 Auditoria Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 11 Relatórios 4 Arquivos 3 Base de Conhecimento Planilhas 1 Plataforma 4 WR Wagner Rocha Administrador NFS-e Maio 2026 · 2 notas · Sistema Nacional NT 2024-001 · 1 requerem ação SEFAZ-SP operacional Procedência ⌘ K Eventos 5 Enviar p/ contabilidade Emitir Notas fiscais NF-e · NFC-e 8 NFS-e 2 Eventos 5 Manifesto DF-e 3 Certificado SPED e livros Todos os tipos · 2 NFS-e · 2 Todos status · 2 Autorizadas · 1 Rejeitadas · 1 Janela 24h · 0 Processando · 0 C C R Todas 2 Pra resolver hoje 1 Janela 24h aberta 0 Aguardando SEFAZ 0 Só serviço (NFS-e) 2 Tipo Número Cliente / chave Status Prazo Valor NFS-e 2104 05/2026 TechPro Equipamentos 18.402.771/0001-06 · São Paulo/SP · OS #4807 Autorizada — XML PDF R$ 2.840,00 NFS-e 2103 05/2026 Construtora Vale 09.330.481/0001-54 · Guarulhos/SP · OS #4805 Rejeitada ↳ Tomador sem IE municipal — Guarulhos ação XML PDF ↻ R$ 1.200,00 1 – 2 de 2 8 por página 25 por página 50 por página Anterior 1 / 1 Próxima J/K navega · ↵ abre · N emite Débitos conhecidos desta tela Município da prestação não aparece A coluna não existe no schema em produção — duelo de duas migrations para nfse_emissoes, resolvido revertendo o Controller para o schema antigo. Hoje o campo volta vazio por desenho. Cancelamento de NFS-e fora de escopo Varia por município — declarado backlog no charter da tela.",
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR NFS-e Maio 2026 · 2 notas · Sistema Nacional NT 2024-001 · 1 requerem ação SEFAZ-SP operacional Procedência ⌘ K Eventos 5 Enviar p/ contabilidade Emitir Notas fiscais NF-e · NFC-e 8 NFS-e 2 Eventos 5 Manifesto DF-e 3 Certificado SPED e livros Todos os tipos · 2 NFS-e · 2 Todos status · 2 Autorizadas · 1 Rejeitadas · 1 Janela 24h · 0 Processando · 0 C C R Todas 2 Pra resolver hoje 1 Janela 24h aberta 0 Aguardando SEFAZ 0 Só serviço (NFS-e) 2 Tipo Número Cliente / chave Status Prazo Valor NFS-e 2104 05/2026 TechPro Equipamentos 18.402.771/0001-06 · São Paulo/SP · OS #4807 Autorizada — XML PDF R$ 2.840,00 NFS-e 2103 05/2026 Construtora Vale 09.330.481/0001-54 · Guarulhos/SP · OS #4805 Rejeitada ↳ Tomador sem IE municipal — Guarulhos ação XML PDF ↻ R$ 1.200,00 1 – 2 de 2 8 por página 25 por página 50 por página Anterior 1 / 1 Próxima J/K navega · ↵ abre · N emite Débitos conhecidos desta tela Município da prestação não aparece A coluna não existe no schema em produção — duelo de duas migrations para nfse_emissoes, resolvido revertendo o Controller para o schema antigo. Hoje o campo volta vazio por desenho. Cancelamento de NFS-e fora de escopo Varia por município — declarado backlog no charter da tela.",
   "roles": {
     "kpi": {
       "count": 0,
@@ -12,12 +12,12 @@
     "title": {
       "fontPx": 22,
       "weight": "600",
-      "color": "oklch(0.22 0.01 80)"
+      "color": "oklch(0.94 0.005 90)"
     },
     "primary": {
-      "bg": "oklch(0.55 0.15 295)",
-      "color": "oklch(1 0 0)",
-      "border": "oklch(0.55 0.15 295)"
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "oklch(0.14 0.02 295)",
+      "border": "oklch(0.7 0.15 295)"
     },
     "filterRows": null,
     "contratos": [
@@ -58,132 +58,137 @@
         "exemplos": {}
       }
     ],
-    "celulas": null,
-    "tabela": null,
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 4.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.5,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.5,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "700",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": "A",
+        "align": "left",
+        "larguraPct": 37.4,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "700",
+        "blocos": 3,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 14.4,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "600",
+        "blocos": 1,
+        "pill": {
+          "radius": "999px",
+          "borda": true,
+          "bg": "oklch(0.76 0.18 150 / 0.08)",
+          "dot": false
+        }
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.3,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 17.8,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "400",
+        "blocos": 3,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 2,
+      "linhasComEstado": 0
+    },
     "shell": {
       "papeis": {
         "atalhoTopo": {
           "seletor": ".sb-menu > .sb-item",
-          "n": 3,
-          "css": {
-            "height": "34px",
-            "minHeight": "0px",
-            "padding": "0px 10px",
-            "margin": "0px",
-            "gap": "10px",
-            "display": "flex",
-            "alignItems": "center",
-            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
-            "fontSize": "13px",
-            "fontWeight": "400",
-            "lineHeight": "18.85px",
-            "letterSpacing": "normal",
-            "textTransform": "none",
-            "color": "oklch(0.8 0.008 295)",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "borderRadius": "6px",
-            "borderWidth": "0px",
-            "borderColor": "oklch(0.8 0.008 295)",
-            "opacity": "1",
-            "width": "243px",
-            "boxShadow": "none",
-            "textDecorationLine": "none"
-          },
-          "caixa": {
-            "w": 243,
-            "h": 34
-          },
-          "icone": {
-            "w": 16,
-            "h": 16,
-            "strokeWidth": "1.6px"
-          }
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
         },
         "itemGrupo": {
           "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
-          "n": 36,
-          "css": {
-            "height": "34px",
-            "minHeight": "0px",
-            "padding": "0px 10px 0px 18px",
-            "margin": "0px",
-            "gap": "10px",
-            "display": "flex",
-            "alignItems": "center",
-            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
-            "fontSize": "13px",
-            "fontWeight": "400",
-            "lineHeight": "18.85px",
-            "letterSpacing": "normal",
-            "textTransform": "none",
-            "color": "oklch(0.8 0.008 295)",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "borderRadius": "6px",
-            "borderWidth": "0px 0px 0px 2px",
-            "borderColor": "oklch(0.8 0.008 295)",
-            "opacity": "1",
-            "width": "243px",
-            "boxShadow": "none",
-            "textDecorationLine": "none"
-          },
-          "caixa": {
-            "w": 243,
-            "h": 34
-          },
-          "icone": {
-            "w": 16,
-            "h": 16,
-            "strokeWidth": "1.6px"
-          }
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
         },
         "grupoHeader": {
           "seletor": ".sb-group-h",
-          "n": 9,
-          "css": {
-            "height": "25px",
-            "minHeight": "0px",
-            "padding": "6px 10px",
-            "margin": "0px",
-            "gap": "8px",
-            "display": "flex",
-            "alignItems": "center",
-            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
-            "fontSize": "10px",
-            "fontWeight": "600",
-            "lineHeight": "normal",
-            "letterSpacing": "0.6px",
-            "textTransform": "uppercase",
-            "color": "oklch(0.8 0.008 295)",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "borderRadius": "4px",
-            "borderWidth": "0px",
-            "borderColor": "oklch(0.8 0.008 295)",
-            "opacity": "1",
-            "width": "243px",
-            "boxShadow": "none",
-            "textDecorationLine": "none"
-          },
-          "caixa": {
-            "w": 243,
-            "h": 25
-          },
-          "icone": {
-            "w": 10,
-            "h": 10,
-            "strokeWidth": "1.6px"
-          }
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
         },
         "containerMenu": {
           "seletor": ".sb-menu",
           "n": 1,
           "css": {
-            "height": "1646.94px",
+            "height": "525px",
             "minHeight": "0px",
-            "padding": "8px",
+            "padding": "4px 0px",
             "margin": "0px",
-            "gap": "normal",
-            "display": "block",
-            "alignItems": "normal",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
             "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
             "fontSize": "13.5px",
             "fontWeight": "400",
@@ -196,38 +201,22 @@
             "borderWidth": "0px",
             "borderColor": "oklch(0.8 0.008 295)",
             "opacity": "1",
-            "width": "259px",
+            "width": "55px",
             "boxShadow": "none",
             "textDecorationLine": "none"
           },
           "caixa": {
-            "w": 259,
-            "h": 1646.9
+            "w": 55,
+            "h": 525
           },
           "icone": {
-            "w": 16,
-            "h": 16,
+            "w": 18,
+            "h": 18,
             "strokeWidth": "1.6px"
           }
         }
       },
-      "atalhos": [
-        {
-          "i": 0,
-          "rotulo": "IA3",
-          "atual": null
-        },
-        {
-          "i": 1,
-          "rotulo": "Visão geralG D",
-          "atual": null
-        },
-        {
-          "i": 2,
-          "rotulo": "Atendimento6",
-          "atual": null
-        }
-      ]
+      "atalhos": []
     }
   }
 }

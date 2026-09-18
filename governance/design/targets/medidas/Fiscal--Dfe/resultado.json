@@ -1,17 +1,17 @@
 {
   "id": "Fiscal/Dfe",
-  "source": "fiscal-page.jsx",
+  "source": "fiscal-subpages.jsx",
   "target": "resources/js/Pages/Fiscal/Dfe.tsx",
   "token": "fiscal-dfe",
-  "frescor": "verificado 2026-09-08",
+  "frescor": "verificado 2026-09-17",
   "contrato": "governance/design/contracts/fiscal-dfe.contract.json",
   "compare": {
     "rc": 0,
     "veredito": "IGUAL",
     "motivo": "",
     "bugs": 0,
-    "shell": 2,
-    "sameTheme": true,
+    "shell": 0,
+    "sameTheme": false,
     "porDim": {
       "D2": {
         "diverge": 0,
@@ -44,7 +44,7 @@
         "igual": 0
       },
       "SHELL": {
-        "diverge": 2,
+        "diverge": 0,
         "bug": 0,
         "semDado": 4,
         "igual": 0
@@ -139,7 +139,7 @@
         "dim": "D4",
         "campo": "linha da tabela",
         "prod": "não medido",
-        "design": "não medido",
+        "design": "ok",
         "veredito": "SEM-DADO",
         "detalhe": "passe `tableRow` em __DD_ROLES nos DOIS lados"
       },
@@ -147,7 +147,7 @@
         "dim": "SHELL",
         "campo": "shell.atalhoTopo.presenca",
         "prod": "0 el (.sb-shortcuts .sb-shortcut)",
-        "design": "3 el (.sb-menu > .sb-item)",
+        "design": "0 el (.sb-menu > .sb-item)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
       },
@@ -163,7 +163,7 @@
         "dim": "SHELL",
         "campo": "shell.grupoHeader.presenca",
         "prod": "0 el (.sb-group-h)",
-        "design": "9 el (.sb-group-h)",
+        "design": "0 el (.sb-group-h)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
       },
@@ -171,25 +171,9 @@
         "dim": "SHELL",
         "campo": "shell.itemGrupo.presenca",
         "prod": "0 el (.sb-item)",
-        "design": "36 el (.sb-group .sb-item, .sb-group-body .sb-item)",
+        "design": "0 el (.sb-group .sb-item, .sb-group-body .sb-item)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
-      },
-      {
-        "dim": "SHELL",
-        "campo": "shell.atalhoTopo.sequencia",
-        "prod": "[]",
-        "design": "[IA3, Visão geralG D, Atendimento6]",
-        "veredito": "DIVERGE (a classificar)",
-        "detalhe": "ordem de navegação é contrato — classifique (DECIDIDA/DERIVA/DESIGN-ANDOU) antes de mexer"
-      },
-      {
-        "dim": "SHELL",
-        "campo": "shell.atalhoTopo.so-no-design",
-        "prod": "—",
-        "design": "IA3, Visão geralG D, Atendimento6",
-        "veredito": "DIVERGE (a classificar)",
-        "detalhe": "candidato típico a DESIGN-ANDOU — confira a data das duas fontes"
       }
     ]
   },
@@ -199,7 +183,7 @@
     "urlFinal": "https://staging.oimpresso.com/fiscal/dfe",
     "componenteInertia": null
   },
-  "medidoEm": "2026-09-08T13:13:22.786Z",
+  "medidoEm": "2026-09-18T12:37:41.244Z",
   "baseUrl": "https://staging.oimpresso.com",
-  "bundle": "f99cbe0b5c32a054223b93610be82ef4c77408e722bde916079b90b4f6ed096c"
+  "bundle": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3"
 }

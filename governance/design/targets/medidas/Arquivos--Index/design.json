@@ -1,0 +1,229 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Arquivos 10 arquivos · 77 MB · 4 no cofre cifrado Auditoria Acervo 10 Retenção Cofre Trilha 6 Todos 10 Sensível 5 Em uso 3 Histórico 1 Descartar 1 Arquivo Vinculado a Classificação Disco Tamanho Vence em NFe-35260800112233-proc.xml XML de NF-e · · sem classificação humana Venda #14022 Transaction Sensível Restrito vault 47 KB 22/08/2031 No prazo Baixar Classificar Excluir NFe-35260800112230-proc.xml XML de NF-e · · sem classificação humana Venda #14019 Transaction Sensível Restrito vault 46 KB 21/08/2031 No prazo Baixar Classificar Excluir contrato-rota-livre-2026.pdf Contratos · · classificado por rita Cliente #312 Contact Sensível Restrito vault 2 MB 14/08/2031 No prazo Baixar Classificar Excluir fachada-antes.jpg Anexo de OS · · sem classificação humana OS #1187 Os Em uso Equipe local 3 MB 11/08/2028 No prazo Baixar Classificar Excluir fachada-depois.jpg Anexo de OS · · sem classificação humana OS #1187 Os Em uso Equipe local 3 MB 11/08/2028 No prazo Baixar Classificar Excluir laudo-bomba-agua.jpg Foto de reparo · · sem classificação humana OS Repair #8801 Repair Em uso Equipe local 3 MB 20/06/2028 No prazo Baixar Classificar Excluir print-erro-conciliacao.png Anexo de ticket · · classificado por wagner Ticket #442 Ticket Sensível Equipe local 402 KB 18/09/2026 Vencendo 25d Baixar Classificar Excluir arte-banner-final.tif Anexo de OS · · sem classificação humana órfão Descartar Equipe local 65 MB 10/07/2027 No prazo Baixar Classificar Excluir balanco-2025.pdf Documentos fiscais · · classificado por wagner Negócio #4 Business Sensível Restrito vault 881 KB 21/03/2030 No prazo Baixar Classificar Excluir logo-rota-livre.svg Sem contexto mapeado · · classificado por rita Negócio #4 Business Histórico Aberto local 18 KB 22/12/2024 Vencido 610d vencido Baixar Classificar Excluir O acervo é administrativo: o arquivo continua sendo alcançado pela tela do dono (clique no dono e você vai pra lá). Baixar do vault passa sempre pelo — direto não serve arquivo cifrado (ADR 0123 §6). Link assinado expira em 60 min. Esta tela não envia arquivo: upload entra pelos módulos, via trait .",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "abas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "acervo-filtros",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "acervo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 10,
+          "snakeCru": 0
+        },
+        "exemplos": {
+          "dataBr": [
+            "22/08/2031",
+            "21/08/2031",
+            "14/08/2031"
+          ]
+        }
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 33.7,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "700",
+        "blocos": 3,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 13.8,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.4,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 2,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.3 0.06 25)",
+          "dot": true
+        }
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.6,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 7.2,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.2,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "700",
+        "blocos": 2,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.275 0.05 145)",
+          "dot": true
+        }
+      },
+      {
+        "col": 6,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 12.1,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 3,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 10,
+      "linhasComEstado": 3
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

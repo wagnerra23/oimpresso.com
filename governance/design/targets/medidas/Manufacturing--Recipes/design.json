@@ -1,0 +1,90 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Manufacturing 8 receitas · 6 ordens de produção · custo recalculado pelo preço atual dos ingredientes Nova receita Receitas 8 Insumos Ordens de produção 6 · 1 rasc. Relatório Configurações Custo médio / unidade R$ 64,08 média das 8 receitas Margem abaixo de 45% 1 preço de venda desatualizado Desperdício ≥ 8% 2 revisar plotagem / encaixe Produção do mês 5 1 rascunho em aberto Todas Comunicação visual Têxtil Brindes Receita ↑ Categoria ⇵ ⇵ Quantidade ⇵ Custo total ⇵ Custo unitário ⇵ Venda ⇵ Margem Adesivo vinil recortado MFG-0002 · 4 ingredientes Comunicação visual / Adesivo 4,40 m² R$ 69,29 R$ 13,86 R$ 78,00 82 % Banner lona 440g — acabado MFG-0001 · 4 ingredientes Comunicação visual / Banner 14,40 m linear R$ 148,72 R$ 14,87 R$ 62,00 76 % Camiseta DTF — estampa A4 MFG-0005 · 3 ingredientes Têxtil / Camiseta 0,94 un R$ 24,90 R$ 24,90 R$ 59,90 58 % Caneca sublimada 325ml MFG-0006 · 3 ingredientes Brindes / Caneca 0,95 un R$ 10,54 R$ 10,54 R$ 34,90 70 % Fachada ACM 3mm — módulo 1m² MFG-0003 · 4 ingredientes Comunicação visual / Fachada 0,92 m² R$ 230,28 R$ 230,28 R$ 480,00 52 % Lona blackout 2 faces 3x1m MFG-0007 · 3 ingredientes Comunicação visual / Banner 2,88 m² R$ 73,08 R$ 24,36 R$ 96,00 75 % Placa PS 2mm A3 MFG-0004 · 2 ingredientes Comunicação visual / Placa 1,94 cx (10 un) R$ 150,04 R$ 7,50 R$ 24,00 69 % Wind banner 2,8m — kit MFG-0008 · 3 ingredientes Comunicação visual / Estrutura 1,00 un R$ 186,32 R$ 186,32 R$ 320,00 42 %",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

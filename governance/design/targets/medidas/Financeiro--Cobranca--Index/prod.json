@@ -1,0 +1,74 @@
+{
+  "url": "https://staging.oimpresso.com/financeiro/cobranca",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo OI C Cobrança · Boletos e PIX 0 em aberto · gestão de remessa/retorno + gateways Nova cobrança Funil de cobrança · mês corrente Em aberto 0 — → Lembrete 0 3d antes do vcto → Cobrança ativa 0 1-5d após vcto → Vencidos +5d 0 — → Protesto 0 30d+ (Onda 5) Pago no mês R$ 0,00 0 liquidações Vencido R$ 0,00 0 cobranças Em aberto R$ 0,00 0 cobranças Próx. janela remessa hoje 18:30 C6 CNAB diário Todos 0 Em aberto 0 Pagas 0 Vencidas 0 Canceladas 0 Erro 0 Tipo Todos Boleto PIX PIX Aut. Cartão Todos gateways Vence – Todas contas destino Origem Todas Venda Recorrente Vencimento Pagador / Origem Tipo · Gateway Conta destino Nosso nº Valor Status Nenhuma cobrança encontrada Tente outro filtro ou crie uma nova cobrança. Nova cobrança Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": "BUTTON",
+        "align": "center",
+        "larguraPct": 100,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 3,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 1,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "url": "https://staging.oimpresso.com/compras",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C ERP · Operação · Compras Compras 0 de 0 ⌕ ↓ Importar XML + Nova compra Todas 0 A pagar Rascunhos Em trânsito filtros Em breve A pagar 0 compras com saldo em aberto Em trânsito 0 aguardando recebimento Volume do mês R$ 0,00 total comprado no mês Fornecedores ativos 0 fornecedores com compra no período Mostrar 10 25 50 100 entradas · 0 total ↓ CSV ↓ Excel ⎙ Imprimir ⊟ Visibilidade da coluna ↓ PDF Nenhuma compra encontrada com o filtro atual. Total R$ 0,00 Pago R$ 0,00 A pagar R$ 0,00 Reembolsado R$ 0,00 Mostrando 1 – 0 de 0 ← Anterior 1 / 1 Próximo → 0 compras exibidas · total R$ 0,00 · a pagar R$ 0,00 Atalhos: buscar · fechar drawer Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 4,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "A pagar0compra",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": "start",
+          "valueFontPx": 18
+        },
+        {
+          "label": "Em trânsito0ag",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": "start",
+          "valueFontPx": 18
+        },
+        {
+          "label": "Volume do mêsR",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": "start",
+          "valueFontPx": 18
+        },
+        {
+          "label": "Fornecedores a",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": "start",
+          "valueFontPx": 18
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 16,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.55 0.15 295)"
+    },
+    "filterRows": 1,
+    "contratos": [
+      {
+        "nome": "compras-cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "compras-abas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "compras-kpis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}
