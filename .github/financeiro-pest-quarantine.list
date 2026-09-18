@@ -83,7 +83,6 @@ Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4
 Modules/Financeiro/Tests/Feature/ResyncFromCoreCommandTest.php  # 4 failed, 1 passed (1 assertions)
 Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions) — motivo MEDIDO no rodape (decisao [W] pendente)
 Modules/Financeiro/Tests/Feature/UnificadoControllerTest.php  # 2 failed, 1 skipped, 10 passed (75 assertions)
-Modules/Financeiro/Tests/Feature/UnificadoPlanoContaGuardTest.php  # 6 failed, 1 passed (23 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoStoreTest.php  # 3 failed, 3 passed (21 assertions)
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -141,6 +140,58 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 # executionOrder="random". Quem prova é o run da lane deste PR — se algum ficar
 # vermelho lá, volta pra cá com o motivo REAL escrito, não com o motivo herdado.
 #
+# ── UnificadoPlanoContaGuardTest (2026-09-18, triagem 14/N do bucket C) ──
+#   6 failed, 1 passed (23 assertions)  →  7 passed (33 assertions)
+#
+# Classificação: TRÊS defeitos de TESTE, zero regressão de produto. Os dois
+# primeiros são os mesmos do irmão UnificadoStoreTest (triagem 13/N); o TERCEIRO
+# é novo no rodapé e é o achado que vale.
+#
+#   (1) TEARDOWN — 9 sites de `forceDelete()` em Titulo. `fin_titulos` é
+#       append-only (Titulo.php:121) e o forceDelete() do SoftDeletes chama
+#       delete() por dentro. Fix = helper `guardCleanupTitulo()` pelo query
+#       builder. EFEITO EM CASCATA que explica por que 6 de 7 casos caíam e não
+#       só os com título: PlanoConta::delete() (PlanoConta.php:58) recusa remover
+#       conta COM TÍTULOS VINCULADOS — então a falha do título derrubava o
+#       `$plano->forceDelete()` da linha seguinte.
+#
+#   (2) FIXTURE — o [T0] cross-tenant (G7) montava business B "ficcional"
+#       (`max(id) + 88888`) sem `owner_id`, FK NOT NULL → SQLSTATE 23000/1452 no
+#       setup. Fix = 2º business REAL do seed. Mesma forma do
+#       ConciliacaoAuditReabrirTest (#5178) e do ExtratoControllerTest (2/N).
+#
+#   (3) ⏰ BOMBA-RELÓGIO DE CALENDÁRIO — e é por isso que este arquivo parecia
+#       "DB-dependente falhando". NÃO era DB: era o DIA DO MÊS. O fixture criava
+#       `vencimento = now()->addDays(15)`, e o Unificado filtra por `vencimento`
+#       dentro de [startOfMonth, endOfMonth] (UnificadoController::parsePeriodo,
+#       ramo default). Do dia 16 em diante o vencimento cai no MÊS SEGUINTE e o
+#       título some do payload — o próprio caso G2 já suspeitava, na mensagem:
+#       "pode ser que esteja fora do período default".
+#
+#       MEDIDO no CT 100 (2026-09-18, dia 18):
+#         hoje 2026-09-18 · janela [2026-09-01 .. 2026-09-30]
+#         vencimento do fixture 2026-10-03 → FORA
+#       E a varredura do mês inteiro, que mostra a borda exata:
+#         dia  1 → 16/09 dentro   dia 15 → 30/09 dentro
+#         dia 16 → 01/10 FORA     dia 18 → 03/10 FORA     dia 25 → 10/10 FORA
+#       Ou seja: o arquivo passava do dia 1 ao 15 e reprovava do 16 ao fim do
+#       mês, com o MESMO código. Quem medisse na 1ª quinzena concluiria "passa".
+#
+#       O PRODUTO ESTÁ CERTO: título que vence no mês que vem não pertence à visão
+#       do mês corrente. Quem estava errado era o fixture. Fix = clampar o
+#       vencimento no fim do mês (`->min(now()->endOfMonth())`), o que preserva a
+#       intenção (vencer no futuro) sem depender do dia em que o CI roda.
+#
+# PROVA DE EXECUÇÃO (LC-13): assertions 23 → 33, +10 com 7 casos nos dois lados.
+#
+# ⚠️ RESSALVA DE MÉTODO (CT 100 ≠ CI, do cabeçalho): a DB daqui NÃO é fresca. O
+# run de CONTROLE (main, que falha) deixa títulos órfãos presos aos planos G2..G6,
+# e aí o run seguinte falha em `PlanoConta::delete()` por "títulos vinculados" —
+# parecendo defeito do fix, sendo lixo do controle. Limpei ENTRE os runs e medi
+# duas vezes: 7 passed (33 assertions) nas duas. Em CI isso não ocorre.
+#
+# Medido no CT 100, worktree /var/www/qa em origin/main 6e790834540, DB
+# oimpresso_qa provisionada pela receita do CI (.github/actions/pest-mysql-setup).
 # ── Onda7bTroubleshootPresentTest (2026-08-03, triagem 10/N — bucket A) ──
 #   1 failed, 11 passed (44 assertions)  →  12 passed (48 assertions)
 #
