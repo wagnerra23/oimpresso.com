@@ -18,7 +18,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 20
+charter_version: 21
 permissao: jana.access
 ---
 
@@ -87,7 +87,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   (`ml-auto` — vai pra DIREITA da faixa —, mono 10.5px/400, `.02em`).
   **Réplica LOCAL de propósito** ([ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1):
   o `SectionTitle` é função interna do `JanaCockpit.tsx` e não sai dele — alinhar aqui **não**
-  impõe a forma da Jana às outras 37 telas, que é o erro invertido. Travado por **UC-JPAIN-25**.
+  impõe a forma da Jana às outras 37 telas, que é o erro invertido. Travado por **UC-JPAIN-27**.
   ⚠️ A **cor** do sub ficou fora: a âncora usa `var(--text-dim)`, não definido no escopo desta
   tela — sem token resolvível, trocar seria adivinhar.
 
@@ -219,6 +219,27 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 ## Charter version log
 
+- **v21 (2026-09-18)** — **a aba da área passou a 13px/500, por `density="compact"` no
+  `PageHeaderTabs`** — a métrica da âncora da Jana (`jana-merge.jsx` §`JmTabs`), contra os
+  14px/400 do protótipo do **Clientes**, que segue sendo o `default` e as outras **5 áreas**
+  (Financeiro, Forja, Governança, Patrimônio, Ponto) não passam a prop. Decisão [W] de
+  2026-09-18, escolhida sobre outras três: o `JanaSubNav` **delega inteiramente** ao
+  compartilhado e não tem markup de aba próprio, então réplica local custaria duplicar a barra
+  inteira. Travado por **UC-JPAIN-26**.
+
+  **O achado não é a métrica — é que a justificativa registrada era FALSA.** O
+  `Index-visual-comparison.md` dizia *"13×14px fica (fidelidade travada em
+  `pageHeaderTabsFidelity.spec`)"*. Medido por mutação: com o default trocado para `compact`,
+  aquele spec segue **13/13 verde** — ele trava radius, underline, pill e o peso da aba
+  **ATIVA**, nunca font-size/padding/peso-da-inativa. O item não estava travado, estava
+  **não-feito**, com aparência de decisão técnica. O bite-test do UC-JPAIN-26 é **comparativo**
+  e exibe o buraco: mesma mutação, `fidelidade` 13/13 verde × `density` 2 de 6 caindo.
+
+  ⚠️ **Ícone e badge nunca foram gaps** do chip original: o ícone já estava corrigido e o
+  `badge` opt-in **existe no componente** (pill do contador, cores travadas por 5 casos do spec
+  de fidelidade). O que falta para as abas mostrarem `Conversa 3` é o contador chegar do
+  `DataController` — **backend**, com raio nas 4 telas da área.
+
 - **v20 (2026-09-18)** — **o cabeçalho de METAS foi de 4 linhas para 1, e a copy pinada foi
   REVOGADA por [W].** Prod tinha badge `METAS` + `Acompanhamento contínuo` + h2 de 20px
   `Metas ativas` + a contagem `N metas ativas — visão consolidada do business`; a âncora
@@ -246,7 +267,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   `font-mono text-[11px] font-bold tracking-[0.08em] gap-[7px] mt-1.5 mb-2.5`, mais o
   sub-rótulo em `ml-auto` + mono 10.5px (`.jm-h2-sub`). **O `uppercase` não mudou** — a dúvida
   de 2026-09-04 já tinha sido resolvida no doc (*"é uppercase nos dois"*), e o teste agora o
-  trava como **invariante**, não como correção. Travado por **UC-JPAIN-25**, 5 casos, mordida
+  trava como **invariante**, não como correção. Travado por **UC-JPAIN-27**, 5 casos, mordida
   provada nos dois sentidos (ausência da nova métrica **e** presença da antiga).
 
   **Por que réplica LOCAL:** o `SectionTitle` é função interna do `JanaCockpit.tsx`. Alinhar o

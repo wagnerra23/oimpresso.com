@@ -1240,7 +1240,22 @@ interpola se registra com o VALOR resolvido de cada lado, nunca com o molde.
 
 **Teste:** `tests/janaAcoesAutoria.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
 
-## UC-JPAIN-25 — o h2 de seção é RÉPLICA da `.jc-h2`, não o h2 do golden
+## UC-JPAIN-27 — o h2 de seção é RÉPLICA da `.jc-h2`, não o h2 do golden
+
+> ⚠️ **Este UC nasceu 25 e virou 27 — colisão de id entre sessões paralelas, pega antes do merge.**
+> Duas sessões trabalhando na mesma tela no mesmo dia conferiram unicidade de `UC-JPAIN-25`
+> **cada uma no seu instante**, e as duas viram 0 hits — porque o PR da outra ainda não existia.
+> A irmã mergeou primeiro (`NomeExibicaoContratoTest.php`, 7 citações), então o 25 é dela e este
+> cedeu. Medido antes de decidir: `git grep -ohE "UC-JPAIN-[0-9]+" origin/main` → ocupados até
+> **25**; 26 é o UC-JPAIN-26 desta mesma leva; 27 livre.
+>
+> **A lição não é "conferir unicidade" — nós dois conferimos.** É que a checagem responde pelo
+> **instante**, e num repo com sessões paralelas o id só está de fato livre quando o PR entra. Isso
+> é a lápide §5 2026-09-04 ("prova por ID casado num corpus global") no eixo do **relógio**, não do
+> escopo: lá o id colidia entre módulos, aqui colide entre sessões. E o dano seria o mesmo —
+> **falso-crédito**: o gate acha o id no corpus e credita cobertura ao dono errado, sem ficar
+> vermelho. Sintoma pelo qual isto apareceu: a sessão irmã avisou que "o UC-JPAIN-25 está citado
+> por um teste mas não está no `casos.md`" — ela via o dela; eu tinha escrito o meu.
 Status: 🧪 (`npx vitest run tests/janaSectionTitleReplica.spec.tsx` → **5 passed** jsdom local, 2026-09-18, com mordida provada por mutação; vira ✅ quando o manifesto `casos-results` aterrissar)
 
 **Fonte:** âncora `.jc-h2` em `prototipo-ui/cowork/Wagner/chat-jana.css` §"── H2 ──" — âncora de
@@ -1322,3 +1337,49 @@ de 2026-08-31 **ficou**, com a revogação ao lado.
 ⚠️ **O seletor de período e o `Farol | Cadastro` NÃO vieram** — seguem ❌ **backend**
 (`IndexController::buildMetasPayload` carrega só `periodoAtual`; sem a série de janelas no payload
 não há o que filtrar). O cabeçalho fechou na FORMA e na COPY; a **capacidade** continua pendente.
+
+## UC-JPAIN-26 — a aba da Jana usa a métrica da âncora DELA, sem mover as outras 5 áreas
+Status: 🧪 (`npx vitest run tests/pageHeaderTabsDensity.spec.tsx` → **6 passed** jsdom local, 2026-09-18, com bite-test comparativo; vira ✅ quando o manifesto `casos-results` aterrissar)
+
+**Duas âncoras, porque o componente serve mais de um dono:**
+
+| densidade | âncora | métrica |
+|---|---|---|
+| `default` | protótipo do **Clientes** (`clientes-page.css` `.cli-moduletopnav-tab`), fixado por [W] 2026-07-14 | 14px/400 · `px-3` |
+| `compact` | âncora da **Jana** (`jana-merge.jsx` §`JmTabs`) | 13px/500 · `padding 0 14px` |
+
+**Parâmetro em vez de réplica local — decisão [W] 2026-09-18**, escolhida sobre outras três
+(deixar como está · componente de abas próprio da Jana · rever o protótipo do Clientes). Razão
+medida: o `JanaSubNav` **delega inteiramente** ao `PageHeaderTabs` e não tem markup de aba
+próprio, então replicar custaria duplicar a barra inteira — diferente do `JanaKpiCard`
+(UC-JPAIN-20), que replicava um card. As outras **5 áreas** não passam a prop e seguem no
+`default`, byte-idêntico (há um caso que prova a identidade de `omitir` vs `default`).
+
+**⚠️ O achado que motivou este UC não é a métrica — é que a justificativa registrada era FALSA.**
+O `Index-visual-comparison.md` dizia *"13×14px fica (fidelidade travada em
+`pageHeaderTabsFidelity.spec`)"*. Medido por mutação: trocado o default para `compact`, aquele
+spec segue **13/13 VERDE**. Ele trava radius, underline `--accent`, pill do contador e o peso da
+aba **ATIVA**; font-size, padding e o peso da **inativa** passavam livres. O item não estava
+travado — estava **não-feito**, com aparência de decisão técnica. Mesma família do falso-verde do
+`<NOME>` (UC-JPAIN-24): **garantia afirmada e não existente desliga a cobrança melhor que um
+buraco declarado.**
+
+**O bite-test é COMPARATIVO, e é a prova do buraco.** Na mesma mutação (`default` → `compact`):
+
+| spec | veredito |
+|---|---|
+| `pageHeaderTabsFidelity` | **13/13 verde** — cego |
+| `pageHeaderTabsDensity` (este) | **2 de 6 caem** — `default perdeu text-sm` + comparação de className inteira |
+
+**O que o teste trava (6 casos):** o `default` não se mexe (a rede que faltava) · omitir a prop é
+idêntico a `default` · `compact` entrega 13px/`px-[14px]`/500 · a aba **ATIVA** segue
+`font-semibold` nas **duas** densidades · `density` não carrega radius nem cor junto (guarda de
+vizinhança) · e um detector com controle de sensibilidade, porque `px-3` casaria por substring
+dentro de `px-[14px]`.
+
+⚠️ **Ícone e badge NÃO eram gaps.** O ícone já estava corrigido, e o `badge` opt-in **existe no
+componente** (pill do contador, cores de ativo/inativo travadas por 5 casos do spec de
+fidelidade). O que falta para as abas mostrarem `Conversa 3` é o **contador chegar do
+`DataController`** — backend, com raio nas 4 telas da área, não UI ausente.
+
+**Teste:** `tests/pageHeaderTabsDensity.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).

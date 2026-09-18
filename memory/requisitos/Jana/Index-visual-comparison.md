@@ -228,7 +228,7 @@ citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como
 > `N metas ativas — visão consolidada do business`. A âncora `JmMetasSecao` tem **uma** linha:
 > `<h2 class="jc-h2"><JcIcon name="target"/> METAS ATIVAS <span class="jm-per">…` com os controles
 > em `margin-left:auto`. Agora a tela usa o mesmo `SectionTitle` da réplica `.jc-h2`
-> (**UC-JPAIN-25**) com os botões existentes no `ml-auto`.
+> (**UC-JPAIN-27**) com os botões existentes no `ml-auto`.
 >
 > **A trava era de CONTRATO, não de forma, e ela foi levantada explicitamente.** `Metas ativas` e
 > `Acompanhamento contínuo` eram copy **pinada** em `governance/design/contracts/jana-painel.contract.json`
@@ -705,10 +705,39 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 | item | âncora | produção (antes) | veredito |
 |---|---|---|---|
 | tablist | `nav` filho de `.jc-page` · `left=284 w=2237 h=36` · 14px abaixo do header (41px) | inline na Zona C do `PageHeader` · `left=1654 w=451 h=33` · `top=38` (mesmo do h1) | ❌ bug → **corrigido** (slot `below` do `PageHeader` canon) |
-| aba | 13px/500 · ativa 600 + `border-b 2px accent` + bg `oklch(0.33 0.09 295/.5)` · ícone 14px · `padding 0 14px` | 14px/400 · ativa 600 + mesmo underline/pill · **sem ícone** · `6px 12px` | 🟡 ícone **corrigido**; 13×14px fica (fidelidade travada em `pageHeaderTabsFidelity.spec`) |
+| aba | 13px/500 · ativa 600 + `border-b 2px accent` + bg `oklch(0.33 0.09 295/.5)` · ícone 14px · `padding 0 14px` | 13px/500 · ativa 600 + mesmo underline/pill · ícone 14px · `14px` | ✅ **(2026-09-18)** — `density="compact"`; ver nota |
 | Zona R | `Atualizado 09:42` (dot) → `plano Pro` → Configurar → Exportar | `plano Pro` → Configurar → Exportar → **Conversar** (primary); "Atualizado" no subtítulo | ❌ → **corrigido** (Atualizado 1º da Zona R; primary removido) |
 | subtítulo | mono 11.5px `OIMPRESSO MATRIZ · biz=164 · v1404…` | sans 12px | 🟡 → mono (`versão` é dado que a prod não tem) |
 | título | 19px/700 | 22px/700 | ⛔ ~~DECLARADA · decisão [W]~~ **REVOGADO 2026-09-18** — `PageHeader` canon (ADR 0189) é Fundação/Shell de 37 telas |
+
+> ⚠️ **A justificativa da linha `aba` estava FALSA, e isso é o achado — não a métrica.** Ela dizia
+> *"13×14px fica (fidelidade travada em `pageHeaderTabsFidelity.spec`)"*. **Medido por mutação em
+> 2026-09-18:** trocado o default do `PageHeaderTabs` para `compact`, aquele spec segue
+> **13/13 VERDE**. Ele trava radius, underline `--accent`, pill do contador e o peso da aba
+> **ATIVA** — font-size, padding e o peso da **inativa** passavam livres. O item não estava
+> travado por teste nenhum: estava **não-feito**, e a frase dava a isso aparência de decisão
+> técnica. É a mesma família do falso-verde do `<NOME>` registrado no §R7: **artefato afirmando
+> uma garantia que não tem** desliga a cobrança melhor que um buraco declarado.
+>
+> **FECHADO em 2026-09-18 por `density="compact"`** — prop nova no `PageHeaderTabs`, usada só
+> pelo `JanaSubNav`. Decisão [W], escolhida sobre outras três (deixar como está · componente de
+> abas próprio da Jana · rever o protótipo do Clientes): o `JanaSubNav` **delega inteiramente** ao
+> compartilhado e não tem markup de aba próprio, então "réplica local" custaria duplicar a barra
+> inteira — diferente do `JanaKpiCard`, que replicava um card. O `default` segue **byte-idêntico**
+> ao protótipo do Clientes (fixado por [W] em 2026-07-14) e as outras **5 áreas** (Financeiro,
+> Forja, Governança, Patrimônio, Ponto) não passam a prop.
+>
+> **A rede que faltava agora existe:** `tests/pageHeaderTabsDensity.spec.tsx` (**UC-JPAIN-26**),
+> 6 casos, sendo um deles exatamente *"o DEFAULT não se mexe"*. Bite-test comparativo, na MESMA
+> mutação: o `fidelidade` fica **13/13 verde** e o `density` **cai em 2** (`default perdeu
+> text-sm` + a comparação de className inteira). Sem esse caso, trocar a métrica das 6 áreas
+> passaria em toda a suíte.
+>
+> ⚠️ **O ícone e o badge NÃO eram gaps.** A coluna dizia *"sem ícone"* — já estava corrigido — e o
+> `badge` opt-in **existe no componente desde antes** (pill do contador, com cores de ativo/inativo
+> travadas por 5 casos do próprio spec de fidelidade). O que falta para as abas da Jana mostrarem
+> `Conversa 3` / `Alertas 3` é o **contador chegar do `DataController`** — backend, e com raio nas
+> 4 telas da área, não UI ausente.
 | avatar | 40×40 · r8 · accent | 40×40 · r8 · accent (`size-10 rounded-lg bg-primary`) | ✅ |
 
 ### KPIs (→ **Onda 2**, chip)
@@ -826,7 +855,7 @@ uppercase nos dois**. O que diverge é tamanho, peso e tracking, não a caixa.
 > `jana-merge.css` não o declaram; ele só aparece em `estoque-page.css` e `mockup-pages.css`, de
 > outras telas. Sem token resolvível, trocar a cor seria adivinhar. Fica medido e aberto.
 >
-> Travado por **UC-JPAIN-25** (`tests/janaSectionTitleReplica.spec.tsx`), 5 casos, mordida provada
+> Travado por **UC-JPAIN-27** (`tests/janaSectionTitleReplica.spec.tsx`), 5 casos, mordida provada
 > por mutação: restaurada a métrica do golden, 2 de 5 caem — um por **ausência** da nova
 > (`sem font-mono`) e outro por **presença** da antiga (`ainda tem text-sm`), que é o par que
 > impede tanto a regressão quanto o meio-termo.
