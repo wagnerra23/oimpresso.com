@@ -195,9 +195,35 @@ export function mapaRotasDoShell(appSrc) {
   return out;
 }
 
-/** Nomes que um `.jsx` do espelho publica em `window.X = …`. */
+/**
+ * Nomes que um `.jsx` do espelho publica em `window` — pelas DUAS formas que o espelho usa:
+ *   (a) `window.X = …`                     — atribuição direta
+ *   (b) `Object.assign(window, { X, Y })`  — publicação em bloco (shorthand ou `X: valor`)
+ *
+ * ⚠️ A forma (b) era INVISÍVEL até 2026-09-18, e o custo foi medido: das 134 telas do
+ * `RESUMO.md`, **64 saíam `NÃO MEDI · sem rota derivável`** — entre elas as **7 da Jana**,
+ * cujo `jana-merge.jsx:1140` publica exatamente assim (`Object.assign(window, { JanaPage, … })`)
+ * enquanto o `app.jsx:779` **monta** a tela (`if (route === "chat") … <window.JanaPage/>`).
+ * Provado por controle positivo antes do conserto (§5 2026-08-01): `definicoesDoMockup` devolvia
+ * `["matchMedia"]` para o `jana-merge.jsx` e 8 nomes para o `app.jsx` — a função rodava, só não
+ * enxergava a forma. Medido no espelho: **16** dos 199 `.jsx` publicam SÓ por `Object.assign`,
+ * e 5 usam as duas.
+ *
+ * Isto NÃO alarga o critério de decisão: `tokenDoMockup` segue cruzando os nomes com as rotas
+ * REAIS do shell (`r.componente`), então um nome publicado que o shell não roteia continua sem
+ * token. O conserto amplia o que se ENXERGA, não o que se aceita.
+ */
 export function definicoesDoMockup(src) {
-  return [...new Set([...String(src || '').matchAll(/window\.([A-Za-z0-9_]+)\s*=/g)].map((m) => m[1]))];
+  const s = String(src || '');
+  const nomes = [...s.matchAll(/window\.([A-Za-z0-9_]+)\s*=/g)].map((m) => m[1]);
+  for (const bloco of s.matchAll(/Object\.assign\(\s*window\s*,\s*\{([^}]*)\}/g)) {
+    for (const parte of String(bloco[1]).split(',')) {
+      // `X` (shorthand) ou `X: valor` — a CHAVE é o que vira `window.X`
+      const m = /^\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*(?::|$)/.exec(parte);
+      if (m) nomes.push(m[1]);
+    }
+  }
+  return [...new Set(nomes)];
 }
 
 /**
@@ -676,6 +702,17 @@ async function selftest() {
   ok('mapaRotasDoShell: lista .indexOf(route)', porComp.FinanceiroLegadoPage?.tokens.join() === 'fin-receber,fin-pagar');
   ok('mapaRotasDoShell: token + prefixo juntos', porComp.RepairPage?.tokens.join() === 'repair' && porComp.RepairPage?.prefixos.join() === 'rep-');
   ok('definicoesDoMockup: pega window.X = e deduplica', definicoesDoMockup('window.BackupPage = () => 1; window.BackupPage = 2; window.Util = {}').join() === 'BackupPage,Util');
+  // BITE-TEST do conserto de 2026-09-18 — a forma (b) cegava 64 de 134 telas, incl. as 7 da Jana.
+  // Reverter o `definicoesDoMockup` pra só `window.X =` derruba os 3 asserts abaixo.
+  ok('definicoesDoMockup: pega Object.assign(window, {…}) shorthand (o caso da Jana)',
+    definicoesDoMockup('Object.assign(window, { JanaPage, JmTabs, JmMemoria });').join() === 'JanaPage,JmTabs,JmMemoria');
+  ok('definicoesDoMockup: pega `X: valor` dentro do Object.assign',
+    definicoesDoMockup('Object.assign(window, { APage: foo, BPage: () => 1 });').join() === 'APage,BPage');
+  ok('definicoesDoMockup: as DUAS formas no mesmo arquivo, sem duplicar',
+    definicoesDoMockup('window.APage = 1; Object.assign(window, { APage, BPage });').join() === 'APage,BPage');
+  // CONTROLE NEGATIVO: `Object.assign` em OUTRO alvo não publica em window (seria FP).
+  ok('definicoesDoMockup: CONTROLE — Object.assign(outroAlvo, …) NÃO conta',
+    definicoesDoMockup('Object.assign(opts, { NaoEhPagina });').length === 0);
   ok('tokenDoMockup: pelo componente definido no arquivo', JSON.stringify(tokenDoMockup('backup-page.jsx', { rotas, mockupSrc: 'window.BackupPage = () => null;' })) === '{"token":"backup","via":"window.BackupPage"}');
   ok('tokenDoMockup: fallback basename (vendas-page → vendas, componente em OUTRO arquivo)', tokenDoMockup('vendas-page.jsx', { rotas, mockupSrc: 'window.VendasListPage = 1;' }).token === 'vendas');
   const soPref = tokenDoMockup('compras-extras.jsx', { rotas, mockupSrc: 'window.ComprasExtrasPage = 1;' });
