@@ -45,7 +45,6 @@
 
 tests/Feature/Produto/ProdutoIndexContratoTest.php         # UC-PIDX-01/02/06: corte silencioso em 200 sem paginação + busca e filtro de inativos não resolvidos no servidor (o UC-PIDX-03, custo/preço, CAIU em 2026-09-18 — ver abaixo)
 tests/Feature/Produto/ProdutoEditPayloadContratoTest.php   # UC-PEDIT-05/06/07: writer trata ausência de chave como zero (enable_stock, not_for_selling) e a edição não persiste — eixo ESTOQUE, regra-mestre: fix é decisão [W]
-tests/Feature/Produto/ProdutoBulkEditContratoTest.php      # UC-PBULK-05: writer lê 5 chaves/variação, a tela manda 2; ErrorException engolida por catch genérico reverte o lote — eixo VALOR, regra-mestre: fix é decisão [W]
 # SAIU 2026-09-18:
 #   ProdutoShowContratoTest — UC-PSHOW-01 CORRIGIDO. O branch Inertia de `ProductController@show`
 #     passou a consultar `view_purchase_price`/`access_default_selling_price` e a NÃO EMITIR a chave

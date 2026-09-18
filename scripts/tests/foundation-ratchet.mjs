@@ -173,9 +173,32 @@ if (args.includes('--write')) {
     console.error(`✗ --write recusado: ${sobe.join(', ')} SUBIRIA. Catraca só desce. Subida planejada (ex.: quarentena em massa Q3) = --write --force, visível no diff do PR.`);
     process.exit(1);
   }
+  // PRESERVA AS CHAVES IRMÃS. O `--write` gravava `{generated_by, counters}` e descartava
+  // TODO o resto — silenciosamente, com exit 0. Não era hipótese: em 2026-09-18 destruiu as 3
+  // `nota_*` deste baseline em 5 branches de 3 sessões diferentes, e a ironia fecha o
+  // diagnóstico — a nota apagada era exatamente a que DOCUMENTAVA este comportamento e
+  // prescrevia a receita de restaurá-lo à mão. O aviso foi destruído pelo que ele avisava.
+  //
+  // Passou despercebido porque `git diff --stat` mostra `2 +-` (a contagem de LINHAS não
+  // denuncia perda de CHAVE) — quem conferiu pelo `--stat` viu um diff inocente.
+  //
+  // Merge em vez de replace: `counters` e `generated_by` são DESTE script e se sobrescrevem;
+  // qualquer outra chave é de quem a escreveu e sobrevive. A ordem (`generated_by, counters`,
+  // depois as irmãs) mantém o diff mínimo contra o arquivo existente.
+  let anterior = {};
+  try { anterior = JSON.parse(readFileSync(BASELINE, 'utf8')); } catch { /* 1ª medição: sem irmãs */ }
+  const { generated_by: _gb, counters: _c, ...irmas } = anterior;
+
   mkdirSync(dirname(BASELINE), { recursive: true });
-  writeFileSync(BASELINE, JSON.stringify({ generated_by: 'scripts/tests/foundation-ratchet.mjs --write', counters }, null, 2) + '\n');
+  writeFileSync(BASELINE, JSON.stringify({
+    generated_by: 'scripts/tests/foundation-ratchet.mjs --write',
+    counters,
+    ...irmas,
+  }, null, 2) + '\n');
+  const nomes = Object.keys(irmas);
   console.log(`✓ baseline gravado: ${JSON.stringify(counters)}${sobe.length ? ' (FORÇADO pra cima — justifique no PR)' : ''}`);
+  // Dizer O QUE sobreviveu é metade do conserto: o defeito antigo era destrutivo E MUDO.
+  if (nomes.length) console.log(`  ↳ ${nomes.length} chave(s) irmã(s) preservada(s): ${nomes.join(', ')}`);
   process.exit(0);
 }
 
