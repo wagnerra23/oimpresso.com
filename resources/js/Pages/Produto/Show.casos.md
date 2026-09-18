@@ -49,7 +49,7 @@ last_run_ci: "0 UC executado — trio nasce agora (agent sdd-from-source, ADR 03
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-PSHOW-01 | Ficha não mostra custo a quem não pode ver preço de compra | must | `AR-PROD-015` + Blade `@can('view_purchase_price')` | `ProdutoShowContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
+| UC-PSHOW-01 | Ficha não mostra custo a quem não pode ver preço de compra | must | `AR-PROD-015` + Blade `@can('view_purchase_price')` | `ProdutoShowContratoTest` (Pest) | 🧪 corrigido 2026-09-18 |
 | UC-PSHOW-02 | Ficha de produto de outro business → 404 | must `[T0]` | `CU-PROD-10.2` + ADR 0093 + charter §Pest GUARD | `ProdutoShowContratoTest` (Pest) | ⬜ guard — verde esperado |
 | UC-PSHOW-03 | Aba Estoque mostra o **nome do local** do rack | must | Blade `view-modal:140` + `AR-PROD-057` | `ProdutoShowContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
 | UC-PSHOW-04 | Aba Variações identifica o **eixo** (Cor - Azul), não só o valor | should | Blade `variable_product_details:30` | `e2e/produto-show.spec.ts` (stub) | ⬜ não verificado |
@@ -73,7 +73,18 @@ last_run_ci: "0 UC executado — trio nasce agora (agent sdd-from-source, ADR 03
   - **Blade** — `@can('view_purchase_price')` e `@can('access_default_selling_price')` envolvem as colunas de preço nos **3** partials de detalhe (`single_product_details`, `variable_product_details`, `combo_product_details` — 6 ocorrências em cada) e na própria lista (`product_list.blade.php`). Varredura contada: **47 ocorrências em 15 arquivos** de `resources/views`.
   - **Canon** — `CU-PROD-14` (ficha) + o charter Goal "Multi-tenant scopado" (permissão é a mesma família de contenção).
 - **Regressão que defende:** o branch Inertia de `ProductController@show` (`:801-848`) consulta **exatamente 3** permissões — `product.view` (`:803`), `product.update` (`:839`) e `product.delete` (`:840`). Varredura contada de `view_purchase_price|access_default_selling_price`: **12 ocorrências em 5 arquivos** de `app/` — `ProductController` **não está entre eles**; e **0** ocorrências em `Show.tsx`. Resultado: `defaultPurchasePrice` de toda variação viaja pra qualquer um com `product.view`. Ligar a tela React hoje **derruba um gate de custo que o Blade e o Delphi têm.**
-- **Status: ⬜** — failing-first; **vermelho esperado**. Só a lane decide.
+- **Status: 🧪** — **corrigido em 2026-09-18.** O branch Inertia passou a resolver
+  `view_purchase_price`/`access_default_selling_price` e a **não emitir** a chave que o usuário não
+  pode ver (`ProductController@show`), imitando o `ProdutoUnificadoController` (`:145-146`, `:682-694`),
+  que já resolvia isso desde 2026-08-13. A regra é **ausência**: `0`/`null` afirmaria um valor que
+  ele não pode ver, e o assert varre o payload **por valor** — renomear a chave não o faria passar.
+  O `Show.tsx` acompanha: a **coluna** some (não a célula), porque cabeçalho sobre célula vazia
+  afirma que existe um valor escondido ali.
+  **Veredito medido** (CT 100, `--filter=ProdutoShowContrato`, 2026-09-18): `4 passed (18 assertions)`
+  — `UC-PSHOW-01 ✓ · 02 ✓ · 03 ✓ · 06 ✓`. Antes do fix: `1 failed, 3 passed (18 assertions)`, com a
+  falha sendo o assert de contrato (`Failed asserting that true is false`), não erro de runtime.
+  Com o arquivo inteiro verde, ele **saiu** da `.github/estoque-pest-quarantine.list` e volta a rodar
+  na lane `Estoque · MySQL` do PR.
 
 ---
 
