@@ -5,8 +5,8 @@ irmaos: Edit.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — editar o cadastro não pode perder o que a tela velha (Blade + Delphi) preservava.
 owner: wagner
-last_run: "2026-07-29"
-last_run_ci: "lane Estoque · MySQL, run 30366164436 (PR #4953), lido 2026-07-29: UC-PEDIT-05/06/07 ❌ vermelhos (3 defeitos independentes, recibo literal por UC); UC-PEDIT-03 🧪; UC-PEDIT-01/02/04 ⬜ stub test.fixme. Remédio diagnosticado e NÃO aplicado — decisão [W] sob a REGRA MESTRE (eixo estoque). ATUALIZAÇÃO 2026-09-18 — CT 100 (oimpresso-staging, MySQL), arquivo ProdutoEditContratoTest: 6 passed (16 assertions), baseline do mesmo arquivo em main era 2 passed (2 assertions); UC-PEDIT-01/02/04 saíram do stub e viraram Pest de comportamento, os três VERDES (guards, não achados). Os 05/06/07 seguem ❌ no arquivo irmão — nada de cálculo foi tocado aqui"
+last_run: "2026-09-18"
+last_run_ci: "CT 100 (tenant 98, MySQL), cercado por git hash-object antes/depois (idêntico): ANTES do fix 3 failed (7 assertions) — enable_stock 1→0, not_for_selling 1→0, nome não persiste; DEPOIS 5 passed (17 assertions) com UC-PEDIT-08. Smoke de UI no staging fechou os 2 sentidos + controle negativo. UC-PEDIT-03 🧪; UC-PEDIT-01/02/04 ⬜ stub test.fixme · UC-PEDIT-01/02/04 (#7532, arquivo irmão ProdutoEditContratoTest): CT 100 (oimpresso-staging, MySQL), arquivo ProdutoEditContratoTest: 6 passed (16 assertions), baseline do mesmo arquivo em main era 2 passed (2 assertions); UC-PEDIT-01/02/04 saíram do stub e viraram Pest de comportamento, os três VERDES (guards, não achados). Os 05/06/07 seguem ❌ no arquivo irmão — nada de cálculo foi tocado aqui"
 ---
 
 # Casos de Uso & Aceite — Editar produto
@@ -34,10 +34,11 @@ last_run_ci: "lane Estoque · MySQL, run 30366164436 (PR #4953), lido 2026-07-29
 | UC-PEDIT-01 | Editar produto variável não apaga as variações existentes | must | `CU-PROD-02` + AR-PROD-021/032 | `ProdutoEditContratoTest` (Pest) | 🧪 verde no CT 100 2026-09-18 |
 | UC-PEDIT-02 | Tipo (single/variable/combo) não muda após criação | should | Non-Goal charter + AR-PROD (tipo na criação) | `ProdutoEditContratoTest` (Pest) | 🧪 verde no CT 100 2026-09-18 |
 | UC-PEDIT-03 | Editar produto de outro business → 404 (não vaza, não 500) | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter Goal | `ProdutoEditContratoTest` (Pest) + e2e stub | 🧪 achado CONFIRMADO + corrigido (`update()` → `firstOrFail`) |
-| UC-PEDIT-04 | Campo monetário no update não infla no parser pt-BR | must `[V0]` | `ProdutoEditContratoTest` (Pest) | 🧪 verde no CT 100 2026-09-18 |
-| UC-PEDIT-05 | Editar não desliga o controle de estoque (`enable_stock`) | must `[V0]` | `AR-PROD-051/056` + REGRA MESTRE + charter Goal | `ProdutoEditPayloadContratoTest` (Pest) | ❌ **CI vermelho** (run 30122611472) |
-| UC-PEDIT-06 | Editar produto `single` persiste em vez de estourar 500 | must | charter §Goals ("Salvar") | `ProdutoEditPayloadContratoTest` (Pest) | ❌ **CI vermelho** (run 30122611472) |
-| UC-PEDIT-07 | Editar não apaga flags que a tela não envia | must | `AR-PROD-003/042` | `ProdutoEditPayloadContratoTest` (Pest) | ❌ **CI vermelho** (run 30122611472) |
+| UC-PEDIT-04 | Campo monetário no update não infla no parser pt-BR | must `[V0]` | `CU-PROD-01.4` + REGRA MESTRE | `ProdutoEditContratoTest` (Pest) | 🧪 verde no CT 100 2026-09-18 |
+| UC-PEDIT-05 | Editar não desliga o controle de estoque (`enable_stock`) | must `[V0]` | `AR-PROD-051/056` + REGRA MESTRE + charter Goal | `ProdutoEditPayloadContratoTest` (Pest) | 🧪 achado CONFIRMADO + **corrigido** (vermelho reproduzido no CT 100 em 2026-09-18, verde depois) |
+| UC-PEDIT-06 | Editar produto `single` persiste em vez de estourar 500 | must | charter §Goals ("Salvar") | `ProdutoEditPayloadContratoTest` (Pest) | 🧪 achado CONFIRMADO + **corrigido em 2 pontos** (`preparation_time_in_minutes` e `single_variation_id`) |
+| UC-PEDIT-07 | Editar não apaga flags que a tela não envia | must | `AR-PROD-003/042` | `ProdutoEditPayloadContratoTest` (Pest) | 🧪 achado CONFIRMADO + **corrigido** |
+| UC-PEDIT-08 | Desligar as 3 flags continua possível pela Blade (`hidden 0`) | must `[V0]` | par obrigatório do 05/07 + `AR-PROD-051/056` | `ProdutoEditPayloadContratoTest` (Pest) | 🧪 nasce verde — trava o par que o revert do #4994 mostrou ser obrigatório |
 
 > ⚠️ **UC-PEDIT-01/02/04 DEIXARAM de ser stub em 2026-09-18** — viraram Pest de comportamento no
 > `ProdutoEditContratoTest` (o arquivo que esta nota mandava usar), com `PUT` real, `actingAs` e
@@ -47,8 +48,15 @@ last_run_ci: "lane Estoque · MySQL, run 30366164436 (PR #4953), lido 2026-07-29
 > o que este casos.md v1 deixara como "🔶 não afirmado" (usando LC-08 como escudo pra NÃO ler —
 > quando LC-08 manda ler). Os **05/06/07** nasceram do **B1-controle** (1º run real do agent
 > `sdd-from-source`, evidência em [`_b1-controle-Edit.casos.agent.md`](../../../../memory/requisitos/Produto/_b1-controle-Edit.casos.agent.md))
-> e têm Pest failing-first escrito — ficam ⬜ até a lane publicar o veredito, porque **status vem do
-> teste, não da palavra** (G-7).
+> e tinham Pest failing-first escrito. O veredito saiu e o vermelho era real — **corrigidos**,
+> porque status vem do teste, não da palavra (G-7).
+>
+> ⚠️ **O 08 é o par obrigatório do 05/07, e existe por causa de um revert.** Um fix anterior
+> ([#4943](https://github.com/wagnerra23/oimpresso.com/pull/4943)) foi revertido
+> ([#4994](https://github.com/wagnerra23/oimpresso.com/pull/4994)) por mexer no Blade de produção sem
+> smoke. A lição que o revert deixou: preservar-ausência **sozinho** tornaria impossível DESLIGAR as
+> flags na tela que roda em prod — checkbox desmarcado não envia chave nenhuma. O 08 trava o `hidden 0`
+> mecanicamente, para que ninguém remova metade do par sem o CI acusar.
 
 ---
 
@@ -100,7 +108,7 @@ last_run_ci: "lane Estoque · MySQL, run 30366164436 (PR #4953), lido 2026-07-29
 - **Teste:** [`tests/Feature/Produto/ProdutoEditPayloadContratoTest.php`](../../../../tests/Feature/Produto/ProdutoEditPayloadContratoTest.php) — `UC-PEDIT-05` (Pest, failing-first, lane `Estoque · MySQL`).
 - **Contrato:** `AR-PROD-051`/`AR-PROD-056` (no Delphi, "controla estoque" é atributo do produto — editar a ficha não é o gesto que liga/desliga) + `proibicoes.md` §REGRA MESTRE (valor/estoque) + Edit.charter §Goals.
 - **Regressão que defende:** o writer trata **ausência como zero** (`update()` L76-79: `if (! empty($request->input('enable_stock')) && == 1) {1} else {0}`). A tela não manda a chave → salvar o nome **apagaria o controle de estoque em silêncio**: o save "funciona", a tela não reclama, e o estoque some do produto.
-- **Status: ❌ ACHADO CONFIRMADO** pela lane (run 30122611472, 2026-07-24): `enable_stock` foi de **1 → 0** ao editar só o nome. A pré-condição anti-vácuo passou (o save ACONTECEU), então não é ausência-de-escrita: é **zeragem**. Re-confirmado no run 30366164436 (2026-07-29). ⚠️ **O remédio não é o óbvio** — ver [§Diagnóstico do remédio](#diagnóstico-do-remédio-2026-07-29--a-correção-óbvia-é-a-errada): fazer o writer preservar a ausência **quebra o desligar no Blade**, que é o que roda em prod.
+- **Status: 🧪 achado CONFIRMADO e CORRIGIDO (2026-09-18).** Reproduzido no CT 100 (tenant 98): `enable_stock` foi de **1 → 0** ao editar só o nome. A pré-condição anti-vácuo passou (o save ACONTECEU), então não é ausência-de-escrita: é **zeragem**. Re-confirmado no run 30366164436 (2026-07-29). ⚠️ **O remédio óbvio sozinho seria errado** (ver §DESFECHO: foi aplicado **com** o par `hidden 0`) — ver [§Diagnóstico do remédio](#diagnóstico-do-remédio-2026-07-29--a-correção-óbvia-é-a-errada): fazer o writer preservar a ausência **quebra o desligar no Blade**, que é o que roda em prod.
 
 ---
 
@@ -111,7 +119,7 @@ last_run_ci: "lane Estoque · MySQL, run 30366164436 (PR #4953), lido 2026-07-29
 - **Contrato:** Edit.charter §Goals — "Salvar" é Goal declarado da tela.
 - **Regressão que defende:** no ramo `single`, `update()` lê `single_variation_id` de um `$request->only([...])` que **não contém a chave** (`:1111-1112`) → `Variation::find(null)` → `null` → atribuição de propriedade em `null` → `\Error`. O `catch (\Exception)` (`:1173`) **não pega `\Error`** → 500. É a mesma família do `UC-PEDIT-03` (o `catch` genérico que mascara o desfecho real).
 - **Defeito INDEPENDENTE do UC-PEDIT-05** (`proibicoes.md` §5, 2026-07-15): consertar um não conserta o outro, e as correções podem brigar — por isso teste próprio, não um "fix da raiz".
-- **Status: ❌ ACHADO CONFIRMADO** (run 30122611472): o PUT com o payload da tela **não persiste** — aborta em `preparation_time_in_minutes` (hoje `ProductController:1042`, sem `??`), o `catch (\Exception)` engole e vira redirect. **Sem 500** — falha silenciosa, pior que erro visível. Re-confirmado no run 30366164436 (2026-07-29). ⚠️ **Não consertar isoladamente:** este abort é o que hoje impede a zeragem do UC-PEDIT-05 — destravar o `save()` sozinho **piora** o eixo estoque ([§Diagnóstico do remédio](#diagnóstico-do-remédio-2026-07-29--a-correção-óbvia-é-a-errada)).
+- **Status: 🧪 achado CONFIRMADO e CORRIGIDO (2026-09-18).** Reproduzido no CT 100: o PUT com o payload da tela **não persistia** — aborta em `preparation_time_in_minutes` (hoje `ProductController:1042`, sem `??`), o `catch (\Exception)` engole e vira redirect. **Sem 500** — falha silenciosa, pior que erro visível. Re-confirmado no run 30366164436 (2026-07-29). ⚠️ **Não consertar isoladamente:** este abort é o que hoje impede a zeragem do UC-PEDIT-05 — destravar o `save()` sozinho **piora** o eixo estoque ([§Diagnóstico do remédio](#diagnóstico-do-remédio-2026-07-29--a-correção-óbvia-é-a-errada)).
 
 ---
 
@@ -121,11 +129,45 @@ last_run_ci: "lane Estoque · MySQL, run 30366164436 (PR #4953), lido 2026-07-29
 - **Teste:** [`ProdutoEditPayloadContratoTest`](../../../../tests/Feature/Produto/ProdutoEditPayloadContratoTest.php) — `UC-PEDIT-07`.
 - **Contrato:** `AR-PROD-003`/`AR-PROD-042` — no legado, alterar a ficha preserva o que já estava gravado; ausência de um campo no formulário não é "desmarcar".
 - **Regressão que defende:** mesmo padrão ausência→zero do `UC-PEDIT-05`, em `not_for_selling` (`:82`) e `enable_sr_no` (`:101-104`); `sub_unit_ids` (`:71`) vira `null` pela mesma razão. Generaliza o defeito: **não é uma flag, é o contrato do payload**.
-- **Status: ❌ ACHADO CONFIRMADO** (run 30122611472): `not_for_selling` foi de **1 → 0**. Recibo literal: `Failed asserting that 0 is identical to 1` em `ProdutoEditPayloadContratoTest.php:212 (verificado@d4afe95)`. Re-confirmado no run 30366164436 (2026-07-29). Mesmo remédio do UC-PEDIT-05 — ver [§Diagnóstico do remédio](#diagnóstico-do-remédio-2026-07-29--a-correção-óbvia-é-a-errada).
+- **Status: 🧪 achado CONFIRMADO e CORRIGIDO (2026-09-18).** Reproduzido no CT 100: `not_for_selling` foi de **1 → 0**. Recibo literal: `Failed asserting that 0 is identical to 1` em `ProdutoEditPayloadContratoTest.php:212 (verificado@d4afe95)`. Re-confirmado no run 30366164436 (2026-07-29). Mesmo remédio do UC-PEDIT-05 — ver [§Diagnóstico do remédio](#diagnóstico-do-remédio-2026-07-29--a-correção-óbvia-é-a-errada).
 
 ---
 
 ## Diagnóstico do remédio (2026-07-29) — a correção óbvia é a errada
+
+> ## ⚠️ DESFECHO (2026-09-18): a Via B foi ADOTADA — **com a compensação que faltava**
+>
+> Esta seção fica **inteira e intacta** abaixo: ela era honesta no dia, e o dado que a sustenta
+> continua verdadeiro. O que mudou não é o dado — é que a via B nunca foi avaliada **junto do
+> seu par**. Pela regra de precedência (`proibicoes.md`: *teste verde > casos > charter > SPEC*),
+> o teste verde manda e o texto perdedor se corrige no mesmo PR; é o que esta nota faz.
+>
+> **A premissa que caiu:** *"trocar o `update()` para ausência = preservar tira da Larissa a
+> capacidade de desligar controle de estoque pelo Blade"*. Verdadeiro **se e somente se** o Blade
+> continuar sem `hidden`. Com `<input type="hidden" name="..." value="0">` antes de cada checkbox,
+> desmarcar passa a **declarar** o `0` em vez de omitir a chave — e o desligar sobrevive.
+>
+> **Medido em 2026-09-18, não argumentado** (staging CT 100, tenant 98, plugin `input-icheck` ativo
+> no navegador — a camada que o Pest não executa e que esta seção corretamente apontava como fora
+> do alcance dela):
+>
+> | gesto | payload que o form serializa | resultado no banco |
+> |---|---|---|
+> | desmarcar (Blade **com** `hidden`) | `["0"]` | `0 0 0` — **desliga** ✅ |
+> | marcar | `["0","1"]` → last-wins `1` | `1 1 1` — **liga** ✅ |
+> | **controle negativo**: `hidden` removido do DOM, desmarcado | chave **ausente** | `1 1 1` — preserva (= o desligar quebraria **sem** o par) |
+>
+> A terceira linha é a prova de que o par é obrigatório, e é exatamente o risco que esta seção
+> anteviu. Ele agora está travado por máquina: **`UC-PEDIT-08`** falha se o `hidden` sumir do Blade.
+>
+> **Por que não a Via A** (risco zero na tabela abaixo): ela move o contrato para o emissor, e o
+> emissor é a tela React — **inalcançável hoje** (re-medido em 2026-09-18: zero `<Link>` Inertia
+> para `/products` fora das próprias páginas do Produto). Fechá-la ali deixaria o Blade, que é o que
+> de fato roda, ainda zerando flags por ausência. A via B+par corrige **os dois emissores** de uma vez.
+>
+> ⚠️ **Precedente que não se repete:** um fix idêntico ([#4943](https://github.com/wagnerra23/oimpresso.com/pull/4943))
+> foi revertido ([#4994](https://github.com/wagnerra23/oimpresso.com/pull/4994)) por mergear a mudança
+> do Blade **sem smoke**. Desta vez o smoke veio antes, e está colado acima.
 
 > **Decisão [W] 2026-07-29: só diagnóstico.** Nenhum código de correção aqui — o eixo é ESTOQUE
 > (`proibicoes.md` §REGRA MESTRE) e a escolha do remédio é dele. Esta seção grava **o dado que
