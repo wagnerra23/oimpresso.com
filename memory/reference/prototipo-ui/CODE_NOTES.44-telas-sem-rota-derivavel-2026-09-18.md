@@ -68,3 +68,40 @@ Não está feito — é PR do dono do driver, com FP medido antes.
 node scripts/design/design-diff-lote.mjs --dry
 ```
 
+
+---
+
+## ERRATA do mesmo dia — 41, não 43; e as "2 nossas" não eram defeito
+
+Medido depois de publicar a tabela acima, provocado por [W] perguntando se estava correto.
+
+**O que estava certo:** a atribuição fonte↔tela. Conferido — os 130 blocos do `--dry` **todos**
+trazem linha `fonte` (0 sem), então não houve carry-over de parser, que era a minha suspeita.
+
+**O que estava ERRADO:** o relatório tem **mais de uma entrada para a mesma tela** quando duas
+fontes a reivindicam. São **130 blocos para 126 telas distintas**. Consequência direta:
+
+| | |
+|---|---|
+| telas com bloco `sem rota derivável` | 43 |
+| **...que TAMBÉM têm bloco executável (gêmea)** | **2** |
+| **travadas de fato** | **41** |
+
+E as 2 gêmeas são **exatamente** as que a tabela acima classificou como "repo — defeito nosso":
+
+- `Essentials/Knowledge/Index` — o bloco `○` é o de `essenciais-extras.jsx`; existe outro,
+  `●`, com `essenciais-page.jsx`.
+- `Fiscal/Cockpit` — o bloco `○` é o de `fiscal-actions.jsx`; existe outro, `●`, com
+  `fiscal-page.jsx`, que é o que o charter declara nos dois campos (`related_prototype` e
+  `bundle_source`) e o que o `ancora.mjs` resolve.
+
+Ou seja: **não havia divergência charter↔resolução.** O `ancora.mjs` resolve certo nos dois — e
+resolve inclusive o fragmento `#BaseConhecimento` com range de linhas (`:127-188`), que a tabela
+acima supôs descartado. O que existe é uma tela reivindicada por duas fontes, e o lote enumera
+as duas.
+
+**O que sobrevive da tabela:** as 35 em que charter e lote concordam e o shell não monta o
+arquivo — essas seguem sendo pedido ao Cowork, e são a massa do problema. O pedido não muda.
+
+**O que morre:** a linha "ensinar o derivador a ler `#Export` + `_nota` cobriria 5 das 43".
+O `#Export` já é lido. Se sobra ganho aí, ele não foi medido — e não vale propô-lo sem medir.
