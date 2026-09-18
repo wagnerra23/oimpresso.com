@@ -83,8 +83,11 @@
  *      sai como "sem rota derivável" → override. Medido no `--dry` de 2026-09-06: 1 de 62
  *      (`Sells/Create`, cujo charter tampouco declara fonte).
  *   4. IDENTIDADE DA VIEW (D0) — só quando existe `governance/design/contracts/*.contract.json` com
- *      `tela` igual ao id da tela. Sem contrato, a âncora compartilhada (ex.: `repair-page.jsx`
- *      serve 7 telas) pode renderizar OUTRA view e o veredito sai plausível. O `--dry` marca.
+ *      `tela` igual ao id da tela E com `copy[]` preenchida em alguma seção (ver
+ *      `contratoProvaIdentidade`: esqueleto sem copy não prova identidade, e aceitá-lo faria do
+ *      D0 um teste de presença de arquivo). Sem contrato, a âncora compartilhada (ex.:
+ *      `repair-page.jsx` serve 7 telas) pode renderizar OUTRA view e o veredito sai plausível.
+ *      O `--dry` marca.
  *   5. PAPÉIS (`__DD_ROLES`) — os defaults são heurísticos por lado (KpiCard canon na prod,
  *      classes `-stat`/`.kpi` no protótipo). Papel que não casa elemento sai SEM-DADO no dono,
  *      nunca "igual". Ajuste por tela no override.
@@ -229,7 +232,25 @@ export function contratoDe(id, contratos) {
   return c ? c.path : null;
 }
 
-/** Lê `governance/design/contracts/*.contract.json` → [{ path, tela }] (ilegível = ignorado, não inventa). */
+/**
+ * Um contrato só PROVA identidade se alguma seção carrega `copy[]` — a copy literal é o que
+ * distingue esta view de outra servida pela MESMA âncora, que é o inteiro propósito do D0.
+ * O esqueleto que o `gerar-contrato.mjs` emite nasce com `secoes[]` e `copy` VAZIO de propósito
+ * (o docblock dele: "o humano depois preenche copy[]"), então aceitá-lo aqui transformaria o D0
+ * num teste de PRESENÇA DE ARQUIVO — bastaria gerar esqueletos em massa pra silenciar o aviso
+ * sem provar nada (o verde vazio do §5 2026-08-04, e a família presence-gate da LC-11).
+ *
+ * MEDIDO em 2026-09-18 nos 36 contratos do repo: 34 têm copy (130 de 148 seções) e 2 são
+ * esqueleto — `essentials-metas` e `patrimonio-index`. O aperto custa 2, e os 2 são
+ * genuinamente não-provados: não é falso-positivo, é dívida que estava invisível.
+ */
+export function contratoProvaIdentidade(j) {
+  if (!j || typeof j.tela !== 'string') return false;
+  const secoes = Array.isArray(j.secoes) ? j.secoes : [];
+  return secoes.some((s) => Array.isArray(s && s.copy) && s.copy.some((c) => typeof c === 'string' && c.trim()));
+}
+
+/** Lê `governance/design/contracts/*.contract.json` → [{ path, tela }] (ilegível ou sem copy = ignorado, não inventa). */
 export function lerContratos(dir = DIR_CONTRATO) {
   if (!existsSync(dir)) return [];
   const out = [];
@@ -237,7 +258,7 @@ export function lerContratos(dir = DIR_CONTRATO) {
     if (!/\.contract\.json$/.test(f) || f.startsWith('EXEMPLO')) continue;
     try {
       const j = JSON.parse(readFileSync(join(dir, f), 'utf8'));
-      if (j && typeof j.tela === 'string') out.push({ path: relative(ROOT, join(dir, f)).replace(/\\/g, '/'), tela: j.tela });
+      if (contratoProvaIdentidade(j)) out.push({ path: relative(ROOT, join(dir, f)).replace(/\\/g, '/'), tela: j.tela });
     } catch { /* contrato ilegível não vira identidade */ }
   }
   return out;
@@ -675,6 +696,20 @@ async function selftest() {
   ok('contratoDe: sem casamento → null (não inventa D0)', contratoDe('Q/Index', [{ path: 'x.json', tela: 'Backup/Index' }]) === null);
   const contratosReais = lerContratos();
   ok('lerContratos real: Backup/Index tem contrato', contratoDe('Backup/Index', contratosReais) === 'governance/design/contracts/backup.contract.json');
+
+  // D0 exige COPY, não só arquivo. Sem estes 4, gerar esqueleto em massa silenciaria o aviso
+  // sem provar identidade — e o `gerar-contrato.mjs` emite exatamente esse esqueleto.
+  ok('D0: contrato com copy prova identidade',
+    contratoProvaIdentidade({ tela: 'X/Index', secoes: [{ id: 'topo', copy: ['Backup'] }] }) === true);
+  ok('D0 MORDE: esqueleto (secoes sem copy) NÃO prova',
+    contratoProvaIdentidade({ tela: 'X/Index', secoes: [{ id: 'topo' }, { id: 'lista', copy: [] }] }) === false);
+  ok('D0 MORDE: copy só de espaço em branco NÃO prova',
+    contratoProvaIdentidade({ tela: 'X/Index', secoes: [{ id: 'topo', copy: ['   ', ''] }] }) === false);
+  ok('D0: sem secoes → não prova (e não estoura)',
+    contratoProvaIdentidade({ tela: 'X/Index' }) === false);
+  // CONTROLE NEGATIVO: o aperto não pode derrubar o caso bom que já existia acima.
+  ok('D0 controle: os 2 esqueletos do repo saíram, o resto ficou',
+    contratosReais.length > 0 && !contratosReais.some((c) => /essentials-metas|patrimonio-index/.test(c.path)));
 
   const jsonOk = JSON.stringify({ bugs: 0, shell: 0, sameTheme: true, rows: [{ dim: 'D2', veredito: 'IGUAL' }, { dim: 'D4', veredito: 'SEM-DADO' }] });
   const jsonBug = JSON.stringify({ bugs: 2, shell: 1, sameTheme: true, rows: [{ dim: 'D8', veredito: 'DIVERGE (bug)' }, { dim: 'D8', veredito: 'DIVERGE (bug)' }, { dim: 'SHELL', veredito: 'DIVERGE (a classificar)' }] });
