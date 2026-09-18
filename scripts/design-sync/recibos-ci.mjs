@@ -38,33 +38,74 @@ export function moduloDoTeste(path) {
 }
 
 /**
- * Módulos de uma lane que monta a lista de testes EM RUNTIME (padrão árvore-menos-quarentena):
- * `find Modules/<X>/Tests -name '*Test.php' | sort > ...` menos a quarentena. Não há lista
- * estática pra ler — o que a lane declara é a ÁRVORE que ela varre.
+ * Módulos de uma lane que NÃO declara a lista de testes arquivo-a-arquivo — o que ela declara
+ * é a ÁRVORE (ou o diretório) que passa ao Pest.
  *
  * POR QUE EXISTE (medido 2026-09-18): das 21 lanes `*-pest.yml` com job reconhecido, **8**
  * parseavam `tests: []` e ficavam INVISÍVEIS pro seletor — entre elas `financeiro-pest.yml` e
  * `estoque-pest.yml`, que são contexts REQUIRED e rodam Pest de verdade. Efeito no funil de
- * design: 77 de 139 alvos tinham lane; com este fallback, 93 (+16), e 7 telas `applied`
- * passam a conseguir recibo automático. E a cegueira CRESCERIA — o projeto está migrando
- * lanes justamente pra o padrão de árvore (task viva "Lane required de Ponto vira
- * arvore-menos-quarentena"), então cada migração apagava mais uma lane deste seletor.
+ * design: 77 de 139 alvos tinham lane; com este fallback, 93 (+16).
  *
- * FAIL-CLOSED POR EXISTÊNCIA, e é o que mata o falso-positivo: só entra módulo cujo diretório
- * de teste EXISTE. Sem esse filtro o controle negativo acusa 2 lanes visíveis ganhando o
- * módulo literal `X`, que vem de `Modules/X/Tests` escrito como placeholder em comentário.
- * Com ele: 0 de 13. Não é allowlist de nome (família morta no §5) — é a pergunta "esta árvore
- * existe no repo?", que é decidível.
+ * ⚠️ A CAUSA, MEDIDA — e a 1ª redação deste docblock a descrevia errado em 6 de 8 (LC-08):
+ * só **2** montam a lista em runtime (`find … | sort` menos quarentena: `financeiro` e
+ * `estoque`). As outras **6** passam um **diretório estático** ao Pest
+ * (`vendor/bin/pest … tests/Feature/Backup/`), e ficavam invisíveis por outro motivo — o
+ * regex da lista estática exige sufixo `.php`, e diretório não tem. Registro o erro em vez de
+ * apagá-lo: quem ler "todas montam em runtime" desenha a defesa errada.
+ *
+ * ⚠️ COMENTÁRIO NÃO CONTA, e este é o conserto que o adversário arrancou (REJECT de
+ * 2026-09-18). O predicado certo NÃO é *"este módulo aparece no texto do YAML?"* — é *"a lane
+ * RODA este módulo?"*. A diferença tem caso vivo: `estoque-pest.yml:85` diz, em comentário,
+ * *"⚠️ Entra AQUI porque os testes que pareciam cobrir isso NÃO RODAM: `tests/Feature/Domain/`"*
+ * — e o run-set real (`:263`) é `find tests/Feature/{Estoque,Produto,Stock}`, sem `Domain`.
+ * Varrer o texto inteiro lia uma NEGAÇÃO como AFIRMAÇÃO, que é LC-11 (substring em prosa como
+ * âncora, §5 2026-07-26). Por isso o comentário é cortado ANTES de casar.
+ *
+ * FP MEDIDO NO DENOMINADOR CERTO — as 8 lanes onde o fallback DISPARA, nunca as 13 que, por
+ * construção (`if (!modulos.size)`), não podem falhar: antes do corte, **1 de 8**
+ * (`estoque → Domain`); depois, **0 de 8**. Medir nas 13 dava "0 de 13" e era vacuoso.
+ * Contra-exemplo que prova que o corte não é excesso de zelo: `financeiro` ganha
+ * `TravaSegunda` e `Middleware` de linhas de COMANDO (`echo tests/Feature/… >> run.txt`) e
+ * segue ganhando — o que morre é só a menção em prosa.
+ *
+ * A existência do diretório continua sendo fail-closed (módulo que não existe no repo não
+ * entra), mas ela sozinha NÃO basta: `tests/Feature/Domain` existe, e mesmo assim `Domain`
+ * não pertence à lane. Existência filtra o inventado; o corte de comentário filtra o afirmado.
  */
 export function modulosPorArvore(texto, existe = (rel) => existsSync(join(ROOT, rel))) {
   const mods = new Set();
-  for (const m of String(texto).matchAll(/Modules\/([A-Za-z][A-Za-z0-9_]*)\/Tests\b/g)) {
+  // Corta o comentário de cada linha. Conservador de propósito: `#` dentro de string quotada
+  // trunca a linha cedo e no máximo PERDE um módulo — errar pra menos deixa a lane invisível,
+  // como já era; errar pra mais grava recibo citando um job que não roda aquele teste.
+  const codigo = String(texto).split('\n').map((l) => l.replace(/#.*$/, '')).join('\n');
+  for (const m of codigo.matchAll(/Modules\/([A-Za-z][A-Za-z0-9_]*)\/Tests\b/g)) {
     if (existe(`Modules/${m[1]}/Tests`)) mods.add(m[1]);
   }
-  for (const m of String(texto).matchAll(/tests\/Feature\/([A-Za-z][A-Za-z0-9_]*)\//g)) {
+  for (const m of codigo.matchAll(/tests\/Feature\/([A-Za-z][A-Za-z0-9_]*)\//g)) {
     if (existe(`tests/Feature/${m[1]}`)) mods.add(m[1]);
   }
   return mods;
+}
+
+/**
+ * O step que RODA o Pest (≠ o que faz SETUP dele). É por ele que se distingue execução de
+ * skip-as-pass (LC-13), então errar aqui não dá vermelho — dá silêncio com a culpa trocada.
+ *
+ * MEDIDO em 21 de 21 lanes `*-pest.yml` com job reconhecido (2026-09-18): **20** nomeiam o step
+ * `Run Pest …`; **1** — `financeiro-pest.yml`, que é REQUIRED — nomeia
+ * `Selecionar alvos (DIRETÓRIO − QUARENTENA) e rodar Pest`. O predicado antigo era só
+ * `/^Run Pest/`, logo o Financeiro **nunca** era aceito: a linha saía
+ * `pulado: nenhum run prova (… Pest ausente)`, acusando o RUN quando o defeito era o NOME DO
+ * STEP. Custo real, contado: dos +16 alvos que o fallback de árvore desbloqueou, **7 são do
+ * Financeiro** e eram inalcançáveis por isto — o [PR #7507](https://github.com/wagnerra23/oimpresso.com/pull/7507)
+ * afirmou o ganho sem medir esta perna (LC-15: anunciar capacidade que o código não honra).
+ *
+ * `Setup Pest MySQL (…)`, presente em 20 lanes, não casa nenhum dos dois termos — é o
+ * controle negativo que mantém o predicado estreito, e o `--selftest` o pina.
+ */
+export function ehStepDePest(nome) {
+  const n = String(nome || '').trim();
+  return /^Run Pest\b/.test(n) || /\brodar Pest\b/i.test(n);
 }
 
 /** Parse de uma lane: job `PHP / Pest (<X> · MySQL)` + lista EXPLÍCITA de arquivos de teste. */
@@ -106,7 +147,7 @@ export function escolherRun({ runs, lane, jobsDe, identico }) {
   for (const run of runs) {
     const job = (jobsDe(run) || []).find((j) => j.name === lane.job);
     if (!job || job.conclusion !== 'success') { motivos.push(`${run.databaseId}: job ausente/não-verde`); continue; }
-    const pest = (job.steps || []).find((s) => /^Run Pest/.test(s.name));
+    const pest = (job.steps || []).find((s) => ehStepDePest(s.name));
     if (!pest || pest.conclusion !== 'success') { motivos.push(`${run.databaseId}: Pest ${pest?.conclusion || 'ausente'} (skip-as-pass não prova)`); continue; }
     const id = identico(run.headSha);
     if (id !== true) { motivos.push(`${run.databaseId}: head ${String(run.headSha).slice(0, 10)} ${id === false ? 'difere do main' : `não comparável (${id})`}`); continue; }
@@ -238,6 +279,31 @@ async function selftest() {
   assert.equal(lanesDoModulo([laneArvore], 'Delta').length, 1, 'e vira lane utilizável pro seletor');
   assert.equal(lanesDoModulo([laneArvore], 'X').length, 0,
     'CONTROLE: árvore inexistente no repo (placeholder em comentário) NÃO vira módulo');
+
+  /* ── o módulo que aparece SÓ EM COMENTÁRIO não entra (REJECT do adversário, 2026-09-18) ──
+   * Caso VIVO que motivou: `estoque-pest.yml:85` diz, em comentário, "⚠️ Entra AQUI porque os
+   * testes que pareciam cobrir isso NÃO RODAM: `tests/Feature/Domain/`" — e o run-set real
+   * (`:263`) é `find tests/Feature/{Estoque,Produto,Stock}`. O fallback lia a NEGAÇÃO como
+   * AFIRMAÇÃO. O filtro de existência NÃO barra (`tests/Feature/Domain` existe de verdade):
+   * quem barra é cortar o comentário. Por isso `existeFake` aqui diz que Zeta EXISTE — sem
+   * isso a fixture passaria pelo motivo errado e não provaria nada.                            */
+  const soComentarioYaml = [
+    'name: Z · Pest (MySQL)', 'jobs:', '  pest:', '    name: PHP / Pest (Teta · MySQL)', '    steps:',
+    '      - name: Run Pest', '        run: |',
+    '          # os testes que PARECIAM cobrir isso NAO RODAM: tests/Feature/Zeta/',
+    '          find Modules/Teta/Tests -name "*Test.php" | sort > /tmp/all.txt',
+  ].join('\n');
+  const existeTudo = (rel) => ['Modules/Teta/Tests', 'tests/Feature/Zeta'].includes(rel);
+  const laneSoCom = parseLane(soComentarioYaml, 'teta-pest.yml', existeTudo);
+  assert.deepEqual([...laneSoCom.modulos], ['Teta'],
+    'MORDE: módulo citado SÓ em comentário não entra, mesmo EXISTINDO no repo (o run-set é que manda)');
+
+  // O step que RODA o Pest — 20 lanes dizem `Run Pest…`, 1 (financeiro, REQUIRED) diz `…rodar Pest`.
+  assert.equal(ehStepDePest('Run Pest (Arquivos · MySQL) — ALLOWLIST VERDE (catraca)'), true);
+  assert.equal(ehStepDePest('Selecionar alvos (DIRETÓRIO − QUARENTENA) e rodar Pest'), true,
+    'MORDE: a lane REQUIRED do Financeiro nomeia o step assim; `/^Run Pest/` a recusava em silêncio');
+  assert.equal(ehStepDePest('Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)'), false,
+    'CONTROLE: o step de SETUP não pode ser lido como execução — ele é verde mesmo quando o Pest não roda');
 
   // CONTROLE que protege as 13 lanes que já funcionavam: com lista estática, a árvore é ignorada.
   const comListaEArvore = parseLane([
