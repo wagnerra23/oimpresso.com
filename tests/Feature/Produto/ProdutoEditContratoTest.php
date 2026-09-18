@@ -300,8 +300,10 @@ it('UC-PEDIT-04 · custo fracionário com ponto NÃO infla ×100k no update', fu
     $produto = \App\Product::findOrFail($p->productId);
 
     // A forma que o JS manda (Number.toString()): ponto = separador DECIMAL, não milhar.
-    // Foi exatamente este caso que o num_uf leu como milhar em 2026-06-05, gravando
-    // ~R$ 20 milhões numa venda de R$ 205.
+    // Foi exatamente este caso que o num_uf leu como milhar em 2026-06-05, inflando o
+    // total da venda em ~5 ordens de grandeza (o ×100k). Valor redigido de propósito:
+    // é venda real de cliente, e vale a regra Tier 0 de BRL (proibicoes.md), que já
+    // redige este mesmo incidente.
     $payload = peditPayloadBase($produto, [
         'single_variation_id' => $p->variationId(0),
         'single_dpp' => '204.99605',
