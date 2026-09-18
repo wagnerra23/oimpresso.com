@@ -373,6 +373,23 @@ Modules/RecurringBilling/Tests/Feature/Wave4PresenterIndexTest.php
 Modules/RecurringBilling/Tests/Feature/Wave7FaturasIndexTest.php
 Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php
 
+# Wave6PlanCrudTest — MESMO criterio do bloco acima, medido 2026-09-18. Ele fechava
+# 7 UC (UC-RBPLN-01..03 de Planos/Index, UC-RBPNC-01/02 de Planos/Create,
+# UC-RBPNE-01/02 de Planos/Edit) contra um teste que lane nenhuma rodava — o
+# `uc-lane-coverage` listava os 7 como orfaos. Nao e sqlite-safe por acaso: o
+# beforeEach (:52-54) faz markTestSkipped("Smoke test rodado apenas em SQLite
+# in-memory.") quando a conexao nao e sqlite :memory:, e RefreshDatabase=0.
+#
+# VERDE PROVADO ANTES DE ENTRAR (a catraca do arquivo, nao o FAILING-FIRST):
+# rodado no CT 100 (oimpresso-staging) nas DUAS conexoes, contra o mesmo blob que
+# esta branch carrega (conferido por git hash-object x git ls-tree, diff vazio):
+#   MySQL  -> 6 skipped, 0 assertions  (a lane MySQL nao serve pra ele)
+#   SQLite -> 6 passed, 23 assertions  (aqui ele de fato EXECUTA)
+# Os 0 assertions do MySQL sao o motivo de o lar ser esta lista, e nao a
+# financeiro-pest/jana-pest: la ele entraria como skip-as-pass, que e verde por
+# nao-execucao (LC-13) — o oposto do que o casos.md promete.
+Modules/RecurringBilling/Tests/Feature/Wave6PlanCrudTest.php
+
 # ── SyncBank{Statements,Balances}JobTest — MESMO padrao do bloco acima, e pelo
 # mesmo motivo: os dois tem o guard `getDriverName() !== 'sqlite' ->
 # markTestSkipped`, entao na lane MySQL viram skip. So que NUNCA foram listados
