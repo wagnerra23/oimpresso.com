@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-18T10:50:26.535Z",
+  "generatedAt": "2026-09-18T13:44:25.309Z",
   "bundle": {
     "id": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3",
     "baseId": "1949443e50ff13031730a8e7fd6f527cca001a4f2e63ba99e4a57b05baff6571",
@@ -11,10 +11,10 @@
   "summary": {
     "transportChanges": 2,
     "screens": 162,
-    "tested": 0,
+    "tested": 4,
     "smoked": 0,
     "lifecycle": {
-      "applied": 4,
+      "tested": 4,
       "anchored": 130,
       "to-create": 28
     },
@@ -46,10 +46,10 @@
       "module": "Arquivos",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "applied",
+      "lifecycleState": "tested",
       "applicationState": "applied",
       "compared": true,
-      "tested": false,
+      "tested": true,
       "smoked": false,
       "applicationEvidence": {
         "comparison": {
@@ -62,11 +62,28 @@
           "evidenceSha256": "2b9376793051ff28e44a6023bb21850ecbdba4a137b6e5fc299455695cf6eb3b",
           "recordedAt": "2026-09-18T10:50:10.656Z"
         },
-        "tests": [],
+        "tests": [
+          {
+            "command": [
+              "gh",
+              "run",
+              "view",
+              "--job",
+              "103424387659",
+              "--exit-status"
+            ],
+            "exitCode": 0,
+            "runner": "ci",
+            "outputSha256": "21ef8c4a7ffa16710607e0f50bdc4664d8c78de34b5f3ec5ac32788394339df8",
+            "sourceSha256": "846a34652eb8b28a5d1acc86e29d9816945fd25566331741baa5e53bb0f56f34",
+            "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854",
+            "recordedAt": "2026-09-18T13:43:40.271Z"
+          }
+        ],
         "smokes": [],
         "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854"
       },
-      "nextAction": "executar teste pelo registrador para produzir recibo verificável"
+      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
     },
     {
       "source": "backup-page.jsx",
@@ -831,10 +848,10 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "applied",
+      "lifecycleState": "tested",
       "applicationState": "applied",
       "compared": true,
-      "tested": false,
+      "tested": true,
       "smoked": false,
       "applicationEvidence": {
         "comparison": {
@@ -847,11 +864,28 @@
           "evidenceSha256": "939756ad3e609491f3f9d3261fab6e05cd0ddaca71cf970116b248327427b5f3",
           "recordedAt": "2026-09-18T10:50:15.889Z"
         },
-        "tests": [],
+        "tests": [
+          {
+            "command": [
+              "gh",
+              "run",
+              "view",
+              "--job",
+              "103424388127",
+              "--exit-status"
+            ],
+            "exitCode": 0,
+            "runner": "ci",
+            "outputSha256": "92856c1a1e9966cc0585aa2a3ac5726c8c9507920124a6800e58e266074acec8",
+            "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
+            "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
+            "recordedAt": "2026-09-18T13:44:14.833Z"
+          }
+        ],
         "smokes": [],
         "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c"
       },
-      "nextAction": "executar teste pelo registrador para produzir recibo verificável"
+      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
     },
     {
       "source": "fiscal-page.jsx",
@@ -875,10 +909,10 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "applied",
+      "lifecycleState": "tested",
       "applicationState": "applied",
       "compared": true,
-      "tested": false,
+      "tested": true,
       "smoked": false,
       "applicationEvidence": {
         "comparison": {
@@ -891,11 +925,28 @@
           "evidenceSha256": "ebe71025f6ec8adf5f81049dbe5cf1740772f2fbc31a01a1e2d32d4fc50b9080",
           "recordedAt": "2026-09-18T10:50:20.895Z"
         },
-        "tests": [],
+        "tests": [
+          {
+            "command": [
+              "gh",
+              "run",
+              "view",
+              "--job",
+              "103424388127",
+              "--exit-status"
+            ],
+            "exitCode": 0,
+            "runner": "ci",
+            "outputSha256": "92856c1a1e9966cc0585aa2a3ac5726c8c9507920124a6800e58e266074acec8",
+            "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
+            "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
+            "recordedAt": "2026-09-18T13:44:20.035Z"
+          }
+        ],
         "smokes": [],
         "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc"
       },
-      "nextAction": "executar teste pelo registrador para produzir recibo verificável"
+      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
     },
     {
       "source": "fiscal-page.jsx",
@@ -934,10 +985,10 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "applied",
+      "lifecycleState": "tested",
       "applicationState": "applied",
       "compared": true,
-      "tested": false,
+      "tested": true,
       "smoked": false,
       "applicationEvidence": {
         "comparison": {
@@ -950,11 +1001,28 @@
           "evidenceSha256": "7d047ceb70c593dcc62a9d4fa6e7f896b0d72811770582ead870ddfa4180b9e1",
           "recordedAt": "2026-09-18T10:50:26.121Z"
         },
-        "tests": [],
+        "tests": [
+          {
+            "command": [
+              "gh",
+              "run",
+              "view",
+              "--job",
+              "103424388127",
+              "--exit-status"
+            ],
+            "exitCode": 0,
+            "runner": "ci",
+            "outputSha256": "92856c1a1e9966cc0585aa2a3ac5726c8c9507920124a6800e58e266074acec8",
+            "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
+            "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
+            "recordedAt": "2026-09-18T13:44:25.120Z"
+          }
+        ],
         "smokes": [],
         "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6"
       },
-      "nextAction": "executar teste pelo registrador para produzir recibo verificável"
+      "nextAction": "registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)"
     },
     {
       "source": "fiscal-subpages.jsx",
