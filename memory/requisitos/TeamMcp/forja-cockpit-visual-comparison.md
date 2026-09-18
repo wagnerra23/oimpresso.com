@@ -755,7 +755,11 @@ esse delta deve fechar — **e isso NÃO foi medido**: o código ainda não est�
 é ato [W] ([ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md)). Aquelas linhas seguem válidas como **fato datado**
 do dia; quem re-medir depois do deploy deve **re-rodar a sonda**, nunca citar os 749,4px como estado atual.
 
-**Divergência DECLARADA, não consertada — a fórmula.** No protótipo (`forja-page.jsx:936`) `pendencias` soma
+**Divergência DECLARADA, não consertada — a fórmula.** _(Eixo **DADO**, fora da revogação de
+[W] de 2026-09-18 — que alcança **FORMA**. A [UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)
+põe o protótipo soberano no layout/cor/rótulo/afordância; **qual fórmula alimenta um contador é
+dado**, e dado segue do código. Trocar a soma mudaria o número que `/forja/aprovacoes` exibe hoje
+— é decisão de produto, não paridade visual.)_ No protótipo (`forja-page.jsx:936`) `pendencias` soma
 **três** fontes: aprovações + triagem + handoffs `stale`/`gateConflito`. Em produção o badge usa
 `ForjaAprovacoesService::contagem()`, que conta **só** `mcp_tasks` em `AWAITING_HUMAN`. Esta onda **propaga a
 fórmula que a mesa já usa desde a Onda 3**; trocá-la mudaria o número que `/forja/aprovacoes` exibe hoje, o
