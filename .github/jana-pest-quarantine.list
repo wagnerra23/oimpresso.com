@@ -1,0 +1,170 @@
+# Quarentena da lane "PHP / Pest (Jana · MySQL)" — .github/workflows/jana-pest.yml
+#
+# COMO A LANE SELECIONA: run-set = TUDO em Modules/Jana/Tests/Feature/**/*Test.php
+# MENOS três exclusões, nesta ordem:
+#   (1) DERIVADO — arquivo com dono em OUTRA lane (.github/ci-sqlite-pest.list ou
+#       jana-logica-pura-pest.yml). Não é dívida: está coberto, só não aqui.
+#   (2) DERIVADO — arquivo com construto destrutivo em CÓDIGO (RefreshDatabase /
+#       migrate:fresh / dropIfExists). Ver §GUARD abaixo.
+#   (3) ESTE ARQUIVO — o que roda mas não passa (blocos A/B/C, veredito medido
+#       por linha) MAIS os destrutivos do bloco D, que o step já barra por (2) e
+#       que estão aqui para não sumirem da medição (ver §GUARD e §D).
+#
+# A partição é TOTAL: todo arquivo da árvore está em exatamente um dos quatro
+# lados, e arquivo NOVO entra RODANDO. Não existe um terceiro estado "escuro" —
+# que é o bug que esta lista substitui.
+#
+# ── O QUE ESTAVA ESCURO (medido em origin/main, 2026-09-18) ──────────────────
+# A árvore tem 185 arquivos de teste; a allowlist inline do workflow nomeava 93.
+# Dos 92 de fora, 38 não estavam em lane NENHUMA (nem aqui, nem em
+# ci-sqlite-pest.list, nem na lógica pura) — medido com o dono do inventário,
+# `node scripts/governance/test-lane-coverage.mjs --modulo Jana --json`.
+#
+# ⚠️ "FORA DO CI DE PR" ≠ "NUNCA RODA", e o dono do inventário avisa isso em
+# prosa: a nightly do CT 100 (ct100-fullsuite.sh → --roots tests,Modules) varre a
+# árvore inteira, então quase todo teste roda ao menos 1×/dia. O que esta lista
+# ataca é LATÊNCIA DE FEEDBACK (minutos antes do merge × horas depois) e o
+# DEFAULT de arquivo novo — não "cobertura zero", que mediria a fonte errada.
+#
+# ── O QUE A CONVERSÃO MOVEU: NADA, E ISSO É O ACHADO ─────────────────────────
+# Medido antes de escrever (teste de identidade): o run-set novo contém
+# EXATAMENTE os mesmos 93 arquivos que a allowlist inline nomeava. Delta 0.
+# A allowlist não era arbitrária — ela já codificava, à mão, o complemento
+# exato dos três filtros acima. O ganho desta conversão é portanto INTEIRAMENTE
+# estrutural e futuro: o default deixa de ser "escuro" e passa a ser "rodando".
+# Os 38 órfãos de hoje existem porque alguém esqueceu de editar a allowlist;
+# com a partição total, esse esquecimento deixa de ser possível.
+#
+# ── §GUARD: o construto destrutivo é barrado NAS DUAS PONTAS, e cada uma tem ─
+#    um trabalho diferente — isto não é redundância
+# Nesta lane o banco é COMPARTILHADO entre os arquivos do run-set: dropar o
+# schema (FK) limpa o biz=1 semeado e ENVENENA os demais — o custo de um arquivo
+# ruim não é ele falhar, é a lane inteira cair.
+#   · o GUARD DERIVADO do step protege o FUTURO: como o padrão faz arquivo novo
+#     entrar RODANDO, uma lista escrita à mão protegeria só o que já existe
+#     (ADR 0256: derivado+enforçado sobrevive; escrito+lembrado apodrece).
+#   · o BLOCO D desta lista protege a MEDIÇÃO: o dono do inventário trata
+#     `find <dir>` como cobrindo a árvore inteira e só desconta o que a lista
+#     nomeia — sem o bloco, os 27 apareceriam como cobertos. Ver §D.
+#
+# FP MEDIDO ANTES DE ARMAR (regra "LIGUE A MÁQUINA" #4): grep CRU acusa 49 dos
+# 170 arquivos de Tests/Feature; removendo comentário de linha e de bloco, 42.
+# Os 7 de diferença carregam o construto só em PROSA que diz o OPOSTO — é o
+# mesmo FP que custou caro ao financeiro em 2026-08-02 (classificação errada em
+# 10 de 11 arquivos, montada por grep da string). Hit em comentário não é
+# evidência: 3 dos 7 estão entre os que RODAM hoje.
+#
+# ⚠️ Os 27 destrutivos são INCOMPATÍVEIS com esta lane por arquitetura, não
+# "reprovados" — mas são dívida real de CI de PR, porque não rodam em lane
+# nenhuma. Ficam no bloco D, e o próprio jana-pest.yml já nomeava o destino
+# deles antes desta conversão: "O lar deles é a lane sqlite
+# (.github/ci-sqlite-pest.list)". Movê-los exige medir cada um lá — PR próprio,
+# não emenda deste.
+#
+# ── A lane é ADVISORY ────────────────────────────────────────────────────────
+# Medido na união classic_protection.contexts ∪ rulesets.contexts (47 contexts
+# em governance/required-checks-baseline.json): NENHUM contém "jana". Logo esta
+# conversão não pode avermelhar merge alheio. Promover a required é flip [W].
+#
+# 1 path por linha · motivo OBRIGATÓRIO na própria linha (o foundation-ratchet
+# reprova entrada sem motivo — é o que separa "quarentenei e disse por quê" de
+# "silenciei um vermelho").
+#
+# ═════════════════════════════════════════════════════════════════════════════
+# A) VERMELHOS MEDIDOS — rodam, executam, e acusam (9)
+#
+#    Veredito de 2026-09-18, CT 100 (MySQL real, oimpresso-staging), arquivo
+#    inteiro, sem --filter. Agregado do run: 10 failed, 3 skipped, 55 passed
+#    (1137 assertions) — executou de verdade; `0 failed` não prova execução e
+#    `0 assertions` seria "nunca mediu" (LC-13).
+#
+#    ⚠️ LIMITE HONESTO, e ele é grande: o checkout do container está 487 commits
+#    atrás de origin/main (10 deles tocando Modules/Jana/). Estes vermelhos
+#    NÃO estão provados como defeito de código — podem ser defasagem. 6 dos 9
+#    têm 0 commits no próprio arquivo de teste desde aquele ponto, mas o código
+#    SOB teste não foi isolado. Quem for promover qualquer um destes mede na
+#    LANE, não no CT 100.
+#
+Modules/Jana/Tests/Feature/Ai/HallucinationEvalTest.php  # CT100 2026-09-18: 10 tests, 934 assertions, 1 failed — executa; causa não isolada (checkout 487 atrás)
+Modules/Jana/Tests/Feature/CharterHealthCheckerTest.php  # CT100 2026-09-18: 11 tests, 25 assertions, 2 failed
+Modules/Jana/Tests/Feature/IndexIntegrityTest.php  # CT100 2026-09-18: 3 tests, 4 assertions, 1 failed — afirma ordem de LEI MÁXIMA/Comece aqui no INDEX; doc mudou desde o checkout
+Modules/Jana/Tests/Feature/Memoria/DesignDossieCommandTest.php  # CT100 2026-09-18: 4 tests, 9 assertions, 1 failed
+Modules/Jana/Tests/Feature/Smoke/ProcedureDriftSnapshotTest.php  # CT100 2026-09-18: 2 tests, 4 assertions, 1 failed — snapshot de PROCEDURE contra banco persistente do CT100, cego por construção
+Modules/Jana/Tests/Feature/Smoke/ProtocolFreshnessCheckTest.php  # CT100 2026-09-18: 3 tests, 9 assertions, 1 failed — mede frescor por data; 487 commits de defasagem tornam o veredito não-conclusivo
+Modules/Jana/Tests/Feature/TaskRegistry/GitTaskLinkerServiceTest.php  # CT100 2026-09-18: 10 tests, 32 assertions, 1 failed
+Modules/Jana/Tests/Feature/TaskRegistry/JiraStyleSchemaTest.php  # CT100 2026-09-18: 8 tests, 20 assertions, 1 ERROR — RuntimeException de transição ilegal doing→done (FSM mcp_tasks)
+Modules/Jana/Tests/Feature/TaskRegistry/SyncAnchorForwardCloseTest.php  # CT100 2026-09-18: 11 tests, 35 assertions, 1 failed, 3 skipped
+#
+# ═════════════════════════════════════════════════════════════════════════════
+# B) VERDE NO CT 100 QUE É FALSO-VERDE CONHECIDO (1)
+#
+#    ProContractTest passou aqui com 6 tests / 65 assertions / 0 failed. Esse
+#    número é literalmente o que o jana-pest.yml já registra como a armadilha:
+#    "o ProContractTest passava no CT 100 com 65 assertions e reprovou aqui com
+#    6 falhas, todas GET /ia/pro devolvendo 403 em vez de 200. Não é código: a
+#    DB do CT 100 é PERSISTENTE e tem o módulo/permissões da Jana provisionados
+#    de runs antigos, enquanto esta lane semeia o mínimo (biz=1/biz=2) num banco
+#    FRESCO." Mesmo veredito, mesmo número, mesma causa — medir de novo no CT 100
+#    produziria o mesmo falso-verde.
+#
+#    ENCAMINHAMENTO (já nomeado pelo workflow): voltar exige provisionar a
+#    permissão no seed, e o pest-mysql-setup é compartilhado por 16 lanes —
+#    logo é PR próprio.
+#
+Modules/Jana/Tests/Feature/ProContractTest.php  # falso-verde do CT100 (65 assertions): depende de permissão jana.access que o seed do CI não provisiona — reprova na lane com 6x HTTP 403
+#
+# ═════════════════════════════════════════════════════════════════════════════
+# C) SEM VEREDITO — não foi possível medir (1)
+#
+#    Não é "passou" nem "falhou": é ausência de medição, e o honesto é dizer
+#    isso em vez de colapsar num estado do objeto (§5 2026-07-29).
+#
+Modules/Jana/Tests/Feature/Smoke/ScheduleFantasmaCheckTest.php  # SEM VEREDITO: arquivo não existe no checkout do CT100 (487 commits atrás) — medir na lane antes de promover
+#
+# ═════════════════════════════════════════════════════════════════════════════
+# D) CONSTRUTO DESTRUTIVO — incompatíveis com o banco compartilhado (27)
+#
+#    Estes NÃO são exclusão nova: a allowlist antiga já os deixava de fora, e o
+#    workflow já dizia por quê. Eles estão LISTADOS aqui, e não só barrados pelo
+#    guard derivado do step, por uma razão medida: o dono do inventário
+#    (scripts/governance/test-lane-coverage.mjs) trata `find <dir>` como cobrindo
+#    a árvore INTEIRA e só desconta o que esta lista nomeia — item (4) DENYLIST do
+#    --selftest dele. Deixá-los fora daqui faria a Jana reportar `orfaos: 0` com 27
+#    arquivos que não rodam em lane de PR nenhuma: cobertura fingida no exato
+#    instrumento que existe para medi-la. Medido antes e depois: 0 → 38.
+#
+#    O guard derivado do step CONTINUA valendo e não é redundante — ele é o que
+#    protege o FUTURO (arquivo novo destrutivo entra rodando e derrubaria a lane
+#    inteira, não só a si mesmo). Esta lista protege o PRESENTE e a medição.
+#
+#    ENCAMINHAMENTO, já nomeado pelo próprio jana-pest.yml antes desta conversão:
+#    "O lar deles é a lane sqlite (.github/ci-sqlite-pest.list)". Mover exige medir
+#    cada um lá — PR próprio, não emenda deste.
+#
+Modules/Jana/Tests/Feature/Ai/Clarify/ClarifyCascadeServiceTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/BriefDiarioServiceTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/DsrServiceTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/HealthNarratorServiceTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/HealthSnapshotServiceTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/HitTrackerServiceTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/LgpdEsquecerTitularToolTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/AutomationRegistryMigrationTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/AutomationRegistrySyncTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/CyclesCloseToolTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/CyclesCreateToolTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/HandoffDiffToolTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/HandoffDraftToolTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/HandoffFetchSummarizedToolTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/InboxAutoCleanupJobTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/JanaCyclesAutoCloseExpiredCommandTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/JanaWeeklyDigestCommandTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/JanaWeeklyDigestEmailTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/KbAnswerToolTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/MyInboxToolTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/TaskParserPreservaEstadoVivoTest.php  # RefreshDatabase — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Mcp/WeeklyDigestFetchToolTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/McpMemoryHistoryWriteCapTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Memoria/Freshness/StalenessDetectorTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/NarrarSaudeEcosistemaJobTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/ProfileDistillCommandTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)
+Modules/Jana/Tests/Feature/Summarizer/AutoSummarizerServiceTest.php  # dropIfExists — dropa o schema e limpa o biz=1 semeado; envenenaria a lane inteira. Lar natural: lane sqlite (ci-sqlite-pest.list)

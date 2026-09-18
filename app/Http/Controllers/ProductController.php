@@ -2609,11 +2609,33 @@ class ProductController extends Controller
                 //Format variations data
                 foreach ($product_data['variations'] as $key => $value) {
                     $variation = Variation::where('product_id', $product->id)->findOrFail($key);
-                    $variation->default_purchase_price = $this->productUtil->num_uf($value['default_purchase_price']);
-                    $variation->dpp_inc_tax = $this->productUtil->num_uf($value['dpp_inc_tax']);
-                    $variation->profit_percent = $this->productUtil->num_uf($value['profit_percent']);
-                    $variation->default_sell_price = $this->productUtil->num_uf($value['default_sell_price']);
-                    $variation->sell_price_inc_tax = $this->productUtil->num_uf($value['sell_price_inc_tax']);
+
+                    // UC-PBULK-05 — este writer serve DOIS callers com payloads diferentes:
+                    //   Blade legada -> manda os 5 campos (o JS do browser ja derivou);
+                    //   tela React   -> manda 2 (custo e venda); os 3 derivados vem AUSENTES.
+                    // Ausencia nao pode virar zero (REGRA MESTRE: valor mudando sem ninguem ver)
+                    // nem ErrorException engolida pelo catch generico. Quando a chave vem, ela
+                    // manda; quando falta, deriva pelos MESMOS helpers que o resto do sistema
+                    // usa (ProductUtil:911 para o imposto; Util::get_percent = AR-PROD-007).
+                    $purchase = $this->productUtil->num_uf($value['default_purchase_price']);
+                    $sell = $this->productUtil->num_uf($value['default_sell_price']);
+                    $tax_rate = 0;
+                    if (! empty($product_data['tax'])) {
+                        $tax_obj = TaxRate::find($product_data['tax']);
+                        $tax_rate = $tax_obj ? $tax_obj->amount : 0;
+                    }
+
+                    $variation->default_purchase_price = $purchase;
+                    $variation->default_sell_price = $sell;
+                    $variation->dpp_inc_tax = isset($value['dpp_inc_tax'])
+                        ? $this->productUtil->num_uf($value['dpp_inc_tax'])
+                        : $this->productUtil->calc_percentage($purchase, $tax_rate, $purchase);
+                    $variation->sell_price_inc_tax = isset($value['sell_price_inc_tax'])
+                        ? $this->productUtil->num_uf($value['sell_price_inc_tax'])
+                        : $this->productUtil->calc_percentage($sell, $tax_rate, $sell);
+                    $variation->profit_percent = isset($value['profit_percent'])
+                        ? $this->productUtil->num_uf($value['profit_percent'])
+                        : $this->productUtil->get_percent($purchase, $sell);
                     $variations_data[] = $variation;
 
                     //Update price groups
@@ -2646,6 +2668,16 @@ class ProductController extends Controller
             $output = ['success' => 1,
                 'msg' => __('lang_v1.updated_success'),
             ];
+        } catch (\ErrorException $e) {
+            // UC-PBULK-05 — erro de PROGRAMACAO (ex.: chave ausente no payload) NAO se engole.
+            // Era exatamente isto que transformava um bug em bug invisivel: a ErrorException
+            // caia no catch generico abaixo, revertia o lote inteiro e devolvia "algo deu
+            // errado" ao operador, com os valores intactos e ninguem sabendo por que.
+            // Reverte (a transacao tem que fechar) e RELANCA, para o erro aparecer.
+            DB::rollBack();
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
