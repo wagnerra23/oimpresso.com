@@ -13,6 +13,25 @@
 // CONVENÇÃO QUARENTENA (hard-fail, independe de baseline): todo marcador exige
 // `quarantine-reason: <motivo>` a ≤3 linhas. Quarentena sem razão escrita é proibida.
 //
+// ⚠️ HOMÔNIMO — `n_quarantine` nomeia DOIS contadores no repo, e eles NÃO são comparáveis.
+// Medido 2026-09-18, os dois rodados no mesmo commit (`--json` daqui × `sdd-scorecard.mjs`):
+//   • ESTE (foundation-ratchet) = 126. Unidade = MARCADOR: incrementa uma vez por LINHA que
+//     casa o MARKER (`measure()` abaixo faz `lines.forEach`), logo um arquivo com quarentena
+//     granular conta várias vezes. Só `legacy-quarantine`, e só como ANOTAÇÃO ancorada.
+//     Espalhados em ~25 arquivos — número que o comentário do scorecard confirma por outra
+//     via, ao registrar que a medição PRÉ-flip dele (só `legacy-quarantine`) dava 25 arquivos.
+//   • scripts/governance/sdd-scorecard.mjs::measureQuarantine = 250. Unidade = ARQUIVO, e o
+//     critério é substring crua `legacy-quarantine` OU `era-sqlite` em qualquer lugar do .php,
+//     sem exigir razão escrita. Decomposto: 25 arquivos pelo `legacy-quarantine` (os mesmos
+//     que este ratchet cobre) + 225 que entram SÓ por `era-sqlite`, marcador que este aqui
+//     não conta por desenho (ampliação decidida por [W] em 2026-08-17).
+// Como a unidade difere (marcador × arquivo), "126 < 250" não diz nada sobre severidade —
+// são grandezas distintas com o mesmo nome, e mexer numa não move a outra.
+// Um TERCEIRO contador vizinho, `n_lane_quarantine` (42), é o da exclusão de lane — está
+// documentado no bloco `laneQuarantineFiles` mais abaixo e não se confunde com nenhum destes.
+// Qual deles alimenta check required é pergunta pro governance/required-checks-baseline.json,
+// não pra este comentário.
+//
 // Determinístico, Node puro, sem MySQL, segundos. Espelha os ratchets do projeto (a11y/reuse/no-mock).
 // SUBIR baseline = SÓ `--write --force` (diff visível no PR — ex.: quarentena em massa Q3 planejada).
 //

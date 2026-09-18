@@ -37,8 +37,10 @@ interface VariationDetail {
   id: number;
   name: string;
   sku: string;
-  defaultPurchasePrice: number;
-  defaultSellPrice: number;
+  // UC-PSHOW-01 — a chave só chega pra quem pode ver o valor. `AR-PROD-015`: o campo SOME da
+  // tela (não fica read-only nem vazio), então `undefined` aqui significa "sem direito".
+  defaultPurchasePrice?: number;
+  defaultSellPrice?: number;
 }
 
 export interface ProdutoShowPageProps {
@@ -48,6 +50,10 @@ export interface ProdutoShowPageProps {
   permissions: {
     update: boolean;
     delete: boolean;
+    // UC-PSHOW-01 — opcionais porque o payload pode vir de uma versão do servidor que ainda não
+    // as emite. Todo consumo aplica `?? false` (fail-closed): ausência nunca vira permissão.
+    view_purchase_price?: boolean;
+    access_default_selling_price?: boolean;
   };
 }
 
@@ -143,7 +149,11 @@ function ProdutoShow(props: ProdutoShowPageProps) {
           {activeTab === 'resumo' && <ResumoTab product={product} />}
           {activeTab === 'variacoes' && (
             <Deferred data="variations" fallback={<TabSkeleton />}>
-              <VariacoesTab variations={props.variations ?? []} />
+              <VariacoesTab
+                variations={props.variations ?? []}
+                podeVerCusto={permissions.view_purchase_price ?? false}
+                podeVerPreco={permissions.access_default_selling_price ?? false}
+              />
             </Deferred>
           )}
           {activeTab === 'estoque' && (
@@ -218,7 +228,15 @@ function FieldRow({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-function VariacoesTab({ variations }: { variations: VariationDetail[] }) {
+function VariacoesTab({
+  variations,
+  podeVerCusto,
+  podeVerPreco,
+}: {
+  variations: VariationDetail[];
+  podeVerCusto: boolean;
+  podeVerPreco: boolean;
+}) {
   if (variations.length === 0) {
     return (
       <div className="rounded-md bg-white border border-stone-200 p-6 text-center text-stone-500 text-[13px]">
@@ -233,8 +251,10 @@ function VariacoesTab({ variations }: { variations: VariationDetail[] }) {
           <tr className="border-b border-stone-200 bg-stone-50/40">
             <th className="pl-6 pr-3 py-2">Variação</th>
             <th className="pr-3 py-2 w-32">SKU</th>
-            <th className="pr-3 py-2 w-32 text-right">Preço compra</th>
-            <th className="pr-6 py-2 w-32 text-right">Preço venda</th>
+            {/* UC-PSHOW-01 — a COLUNA some, não a célula: cabeçalho sobre células vazias
+                afirmaria que existe um valor escondido ali (AR-PROD-015 = ausência). */}
+            {podeVerCusto && <th className="pr-3 py-2 w-32 text-right">Preço compra</th>}
+            {podeVerPreco && <th className="pr-6 py-2 w-32 text-right">Preço venda</th>}
           </tr>
         </thead>
         <tbody>
@@ -242,15 +262,22 @@ function VariacoesTab({ variations }: { variations: VariationDetail[] }) {
             <tr key={v.id} className="border-b border-stone-100" style={{ height: 40 }}>
               <td className="pl-6 pr-3 text-[13px] font-medium">{v.name}</td>
               <td className="pr-3 font-mono text-[11.5px] text-stone-500">{v.sku}</td>
-              <td className="pr-3 text-[12.5px] text-right tabular-nums">
-                {v.defaultPurchasePrice.toLocaleString('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL',
-                })}
-              </td>
-              <td className="pr-6 text-[12.5px] text-right tabular-nums font-semibold">
-                {v.defaultSellPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-              </td>
+              {podeVerCusto && (
+                <td className="pr-3 text-[12.5px] text-right tabular-nums">
+                  {(v.defaultPurchasePrice ?? 0).toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  })}
+                </td>
+              )}
+              {podeVerPreco && (
+                <td className="pr-6 text-[12.5px] text-right tabular-nums font-semibold">
+                  {(v.defaultSellPrice ?? 0).toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  })}
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
