@@ -87,21 +87,32 @@ class FluxoRealizadoService
         //
         // Estornos (estorno_de_id IS NOT NULL) ficam de fora — consistente com
         // FluxoCaixaService.projetar() histórico.
+        // SEM ALIAS na tabela do proprio model -- e isto NAO e estilo, e o conserto de
+        // um 500 em producao. O BusinessScopeImpl (Tier 0, ADR 0093) aplica
+        // `$model->getTable() . '.business_id'`, ou seja, o nome REAL da tabela. Com
+        // `->from('fin_titulo_baixas as b')` o MySQL nao resolve esse nome e a query
+        // inteira morre com SQLSTATE 42S22 (Unknown column
+        // 'fin_titulo_baixas.business_id' in 'WHERE') -- a aba Realizado do Fluxo de
+        // Caixa devolvia HTTP 500. O alias do JOIN (`t`) pode ficar: a tabela do join
+        // nao recebe o scope deste model.
+        //
+        // O filtro Tier 0 continua DUPLO, como o comentario acima ja prometia (defesa
+        // em profundidade): explicito nas duas tabelas + o global scope, que agora
+        // consegue casar o nome.
         $rows = TituloBaixa::query()
-            ->from('fin_titulo_baixas as b')
             ->join('fin_titulos as t', function ($join) use ($businessId) {
-                $join->on('t.id', '=', 'b.titulo_id')
+                $join->on('t.id', '=', 'fin_titulo_baixas.titulo_id')
                      ->where('t.business_id', '=', $businessId);
             })
-            ->where('b.business_id', $businessId)
-            ->whereBetween('b.data_baixa', [$inicio->toDateString(), $fim->toDateString()])
-            ->whereNull('b.estorno_de_id')
+            ->where('fin_titulo_baixas.business_id', $businessId)
+            ->whereBetween('fin_titulo_baixas.data_baixa', [$inicio->toDateString(), $fim->toDateString()])
+            ->whereNull('fin_titulo_baixas.estorno_de_id')
             ->whereNull('t.deleted_at')
             ->select([
-                DB::raw('YEAR(b.data_baixa) as ano'),
-                DB::raw('MONTH(b.data_baixa) as mes_num'),
+                DB::raw('YEAR(fin_titulo_baixas.data_baixa) as ano'),
+                DB::raw('MONTH(fin_titulo_baixas.data_baixa) as mes_num'),
                 't.tipo as tipo',
-                DB::raw('SUM(b.valor_baixa) as total'),
+                DB::raw('SUM(fin_titulo_baixas.valor_baixa) as total'),
                 DB::raw('COUNT(*) as qtd'),
             ])
             ->groupBy('ano', 'mes_num', 't.tipo')
