@@ -647,12 +647,12 @@
     {
       "source": "hrm-page.jsx",
       "target": "resources/js/Pages/Essentials/Tipos.tsx",
-      "sourceSha256": "d4169ee7fcc163f073626cb11fed3ead65c71abf2c816c176f77d8e7250a160f",
-      "targetSha256": "6937f930b4f8612975d9668aba5a432c81cf90a3dea799c7c2a0b217dc5b873e",
+      "sourceSha256": "6712d4d9886c73259de9edc417dd96ef2ef2870726ec53c71727abc1830079fe",
+      "targetSha256": "09bb388e690bdcab4cf71424296fc10c62f7674d573af41e84b2baa5ab0166f0",
       "comparison": {
         "map": "memory/requisitos/Essentials/tipos.map.json",
-        "mapSha256": "cd3d1b8395296285a6a93845d3f6c532c624a1022425147ecc0e00e27d1117aa",
-        "recordedAt": "2026-09-07T00:54:54.407Z"
+        "mapSha256": "61eaf36eafc870c2582cd7dedba7cbb3164f3af66949caa949898edd9f4f7908",
+        "recordedAt": "2026-09-18T15:58:58.098Z"
       },
       "tests": [],
       "smokes": []
@@ -816,12 +816,12 @@
     {
       "source": "ponto-page.jsx",
       "target": "resources/js/Pages/Ponto/Dashboard/Index.tsx",
-      "sourceSha256": "a22f7fe6c5f25dfb373935c67175133a75fdbf4893eed0da02b2a228e33d44d2",
-      "targetSha256": "4750043c8955cb14e190d986e624ea303179899f4f85634af00105d8130b16b2",
+      "sourceSha256": "e22c0623b1713453271aef46165e546c899f3631e0e90eee5ce9d629a591d1ed",
+      "targetSha256": "360b1f6c2a79261e24a5f01d9568ae7aed811d41275f741f83011a4c0ce36a64",
       "comparison": {
         "map": "memory/requisitos/Ponto/dashboard-index.map.json",
-        "mapSha256": "cc1535b98706a142c6e3b1f6a043d23f94868f3728b63717aec43e27d3478ed9",
-        "recordedAt": "2026-09-06T12:32:08.316Z"
+        "mapSha256": "e9a1ec08c7108fcd7f9c15f952da7a868763dfa530f196f54cef34a7567a68b0",
+        "recordedAt": "2026-09-18T15:59:02.608Z"
       },
       "tests": [],
       "smokes": []
@@ -829,12 +829,12 @@
     {
       "source": "ponto-page.jsx",
       "target": "resources/js/Pages/Ponto/Espelho/Index.tsx",
-      "sourceSha256": "a22f7fe6c5f25dfb373935c67175133a75fdbf4893eed0da02b2a228e33d44d2",
+      "sourceSha256": "e22c0623b1713453271aef46165e546c899f3631e0e90eee5ce9d629a591d1ed",
       "targetSha256": "fa0bb3d3aa2ce553e5a2232cfe5986570516b0e0915d1b7fc6d857d74bf96cb7",
       "comparison": {
         "map": "memory/requisitos/Ponto/espelho-index.map.json",
-        "mapSha256": "55c9ae78737ec3dfad1f4b55e08ebfc01e82e229a44d72236f5e17e48fca02a0",
-        "recordedAt": "2026-09-06T12:32:10.079Z"
+        "mapSha256": "215c94b76b8756da528c14507a2a88842292a5e7a54078d816841e62327b8b1a",
+        "recordedAt": "2026-09-18T15:59:06.838Z"
       },
       "tests": [],
       "smokes": []
@@ -842,12 +842,12 @@
     {
       "source": "ponto-page.jsx",
       "target": "resources/js/Pages/Ponto/Espelho/Show.tsx",
-      "sourceSha256": "a22f7fe6c5f25dfb373935c67175133a75fdbf4893eed0da02b2a228e33d44d2",
+      "sourceSha256": "e22c0623b1713453271aef46165e546c899f3631e0e90eee5ce9d629a591d1ed",
       "targetSha256": "a7439b370b731f5500854a415f9377d8ce251e740d0455e95d60047357936649",
       "comparison": {
         "map": "memory/requisitos/Ponto/espelho-show.map.json",
-        "mapSha256": "396cae50b7024cd0c21de3bc2b83401d33c5a7ef8470a5064757c8a6df4db13c",
-        "recordedAt": "2026-09-06T12:32:12.247Z"
+        "mapSha256": "6d4ce849b26ac4b066a42a3465e287f88d2a10214f651f2bc40c29e9633d4953",
+        "recordedAt": "2026-09-18T15:59:11.538Z"
       },
       "tests": [],
       "smokes": []
