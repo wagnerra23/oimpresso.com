@@ -72,6 +72,25 @@ class WhatsActiveTool extends Tool
             );
         }
 
+        // MEDIDO 2026-09-18, e deixado COMO ESTÁ de propósito — leia antes de "consertar".
+        //
+        // `mcp_cc_messages.ts` guarda UTC, não a timezone do app: a origem é externa (o
+        // cc-watcher repassa o `timestamp` do `.jsonl`, ISO com `Z`, e o
+        // `CcIngestController:239` faz `Carbon::parse($m['ts'])`, preservando o UTC). Estas
+        // duas linhas comparam essa coluna com `now()`, que é America/Sao_Paulo. O efeito é
+        // uma janela ~3h MAIS LARGA que a pedida.
+        //
+        // POR QUE NÃO TROCAR POR `now('UTC')` de passagem: o erro aqui é na direção SEGURA
+        // (esta tool é detector de colisão — super-reportar avisa demais, sub-reportar deixa
+        // duas sessões se atropelarem em silêncio). E a troca NÃO é verificável hoje: as
+        // fixtures de `WhatsActiveToolTest` gravam `ts` com `now()` LOCAL, ou seja, elas
+        // codificam a convenção errada e passariam a reprovar; e nenhuma lane de PR roda esse
+        // arquivo (medido: zero hits de `WhatsActiveToolTest` em `.github/workflows/`), então
+        // o CI não seria testemunha. Corrigir de verdade = alinhar fixture ao ingest real
+        // (`now('UTC')`) + rodar a suíte, numa sessão que possa rodá-la.
+        //
+        // O que FOI corrigido no mesmo dia é a metade sem esse risco: o `diffForHumans` do
+        // display, que reportava o futuro. Ver o comentário na linha do `$shortAgo`.
         $activeSince = now()->subHours($hours);
         $pathsSince = now()->subHours($pathsWindowHours);
 
@@ -160,7 +179,11 @@ class WhatsActiveTool extends Tool
 
         foreach ($sessions as $sessId => $s) {
             $lastAt = $sessionIds->get($sessId);
-            $shortAgo = $lastAt ? \Carbon\Carbon::parse($lastAt)->diffForHumans(['short' => true]) : '—';
+            // `, 'UTC'` NÃO é decoração: sem ele o Carbon lê o valor como hora local e o
+            // `diffForHumans` reporta o futuro. É a metade visível do mesmo defeito do
+            // `$activeSince` acima — e a mais perigosa, porque um "ativo 2h from now" faz
+            // quem lê desconfiar do dado em vez do formato.
+            $shortAgo = $lastAt ? \Carbon\Carbon::parse($lastAt, 'UTC')->diffForHumans(['short' => true]) : '—';
             $project = basename($s->project_path ?? '—');
             $paths = $pathsBySession->get($sessId, []);
 
