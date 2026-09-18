@@ -2,7 +2,7 @@
 id: resources-js-pages-produto-edit-charter
 page: /products/{id}/edit
 component: resources/js/Pages/Produto/Edit.tsx
-related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/Wagner/produto-blade-forms.jsx
 owner: wagner
 status: draft
 last_validated: "2026-05-15"
@@ -13,10 +13,10 @@ related_visual_comparison: memory/requisitos/Produto/_telas/produto-edit-visual-
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/Wagner/produtos-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/produto-blade-forms.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [Edit]
-  divergence_from_blueprint: "none — deriva direto de Create.tsx (mesma estrutura form full-width AppShellV2). ADR 0149 admite Edit deriva de Create da mesma entidade"
+  divergence_from_blueprint: "none — o bloco FormProduto do blueprint é a tradução do PRÓPRIO edit.blade.php desta tela (cabeçalho do .jsx: 'create.blade.php / edit.blade.php + partials/single|variable|combo_product_form_part -> FormProduto'), não um pattern emprestado de outra tela"
 ---
 
 # Page Charter — /products/{id}/edit (DRAFT)
