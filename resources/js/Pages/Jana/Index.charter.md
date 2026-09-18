@@ -18,7 +18,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 20
+charter_version: 21
 permissao: jana.access
 ---
 
@@ -218,6 +218,27 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- **v21 (2026-09-18)** — **a aba da área passou a 13px/500, por `density="compact"` no
+  `PageHeaderTabs`** — a métrica da âncora da Jana (`jana-merge.jsx` §`JmTabs`), contra os
+  14px/400 do protótipo do **Clientes**, que segue sendo o `default` e as outras **5 áreas**
+  (Financeiro, Forja, Governança, Patrimônio, Ponto) não passam a prop. Decisão [W] de
+  2026-09-18, escolhida sobre outras três: o `JanaSubNav` **delega inteiramente** ao
+  compartilhado e não tem markup de aba próprio, então réplica local custaria duplicar a barra
+  inteira. Travado por **UC-JPAIN-26**.
+
+  **O achado não é a métrica — é que a justificativa registrada era FALSA.** O
+  `Index-visual-comparison.md` dizia *"13×14px fica (fidelidade travada em
+  `pageHeaderTabsFidelity.spec`)"*. Medido por mutação: com o default trocado para `compact`,
+  aquele spec segue **13/13 verde** — ele trava radius, underline, pill e o peso da aba
+  **ATIVA**, nunca font-size/padding/peso-da-inativa. O item não estava travado, estava
+  **não-feito**, com aparência de decisão técnica. O bite-test do UC-JPAIN-26 é **comparativo**
+  e exibe o buraco: mesma mutação, `fidelidade` 13/13 verde × `density` 2 de 6 caindo.
+
+  ⚠️ **Ícone e badge nunca foram gaps** do chip original: o ícone já estava corrigido e o
+  `badge` opt-in **existe no componente** (pill do contador, cores travadas por 5 casos do spec
+  de fidelidade). O que falta para as abas mostrarem `Conversa 3` é o contador chegar do
+  `DataController` — **backend**, com raio nas 4 telas da área.
 
 - **v20 (2026-09-18)** — **o cabeçalho de METAS foi de 4 linhas para 1, e a copy pinada foi
   REVOGADA por [W].** Prod tinha badge `METAS` + `Acompanhamento contínuo` + h2 de 20px
