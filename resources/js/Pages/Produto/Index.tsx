@@ -27,6 +27,10 @@ interface ProdutoIndexPermissions {
   update: boolean;
   delete: boolean;
   opening_stock: boolean;
+  // UC-PIDX-03 — opcionais porque o payload pode chegar de uma versão do servidor que ainda
+  // não as emite. Todo consumo aplica `?? false` (fail-closed): ausência nunca vira permissão.
+  view_purchase_price?: boolean;
+  access_default_selling_price?: boolean;
 }
 
 interface ProdutoIndexKpis {
@@ -50,9 +54,11 @@ interface ProdutoRow {
   categoryId: number | null;
   categoryLabel: string | null;
   unit: string | null;
-  price: number;
-  cost: number | null;
-  margin: number | null;
+  // UC-PIDX-03 — a chave só chega pra quem pode ver o valor (`AR-PROD-015`: o campo SOME, não
+  // vem vazio). `undefined` aqui significa "sem direito", e a célula não é renderizada.
+  price?: number;
+  cost?: number;
+  margin?: number;
   stockQty: number | null;
   stockKind: 'estoque' | 'sob_demanda' | 'servico';
   popularity: number;
@@ -399,8 +405,15 @@ function ProdutoCard({ row, canUpdate }: { row: ProdutoRow; canUpdate: boolean }
 
       <div className="mt-3 flex items-end justify-between">
         <div>
-          <div className="text-[10.5px] uppercase tracking-widest text-stone-500">Preço</div>
-          <div className="text-[16px] font-semibold tabular-nums">{fmtBRL(row.price)}</div>
+          {/* UC-PIDX-03 — sem `access_default_selling_price` o servidor não manda `price`, e o
+              bloco inteiro SOME (AR-PROD-015). O rótulo "Preço" sobre um traço afirmaria que
+              existe um valor escondido; a unidade continua, porque é dado de cadastro. */}
+          {row.price !== undefined && (
+            <>
+              <div className="text-[10.5px] uppercase tracking-widest text-stone-500">Preço</div>
+              <div className="text-[16px] font-semibold tabular-nums">{fmtBRL(row.price)}</div>
+            </>
+          )}
           {row.unit && <div className="text-[11px] text-stone-500">/ {row.unit}</div>}
         </div>
         <div className="text-right">
