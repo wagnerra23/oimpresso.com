@@ -46,7 +46,6 @@
 tests/Feature/Produto/ProdutoShowContratoTest.php          # UC-PSHOW-01: custo vaza na ficha p/ quem não tem view_purchase_price (branch Inertia não consulta a permission; Blade gateia com @can)
 tests/Feature/Produto/ProdutoIndexContratoTest.php         # UC-PIDX-01/02/03/06: corte silencioso em 200 sem paginação + busca e filtro de inativos não resolvidos no servidor + custo vaza na linha
 tests/Feature/Produto/ProdutoEditPayloadContratoTest.php   # UC-PEDIT-05/06/07: writer trata ausência de chave como zero (enable_stock, not_for_selling) e a edição não persiste — eixo ESTOQUE, regra-mestre: fix é decisão [W]
-tests/Feature/Produto/ProdutoBulkEditContratoTest.php      # UC-PBULK-05: writer lê 5 chaves/variação, a tela manda 2; ErrorException engolida por catch genérico reverte o lote — eixo VALOR, regra-mestre: fix é decisão [W]
 # SAÍRAM 2026-08-13:
 #   ProdutoUnificadoContratoTest — UC-PUNI-01..06 CORRIGIDOS. O ProdutoUnificadoController
 #     passou a abortar 403 sem product.view/product.create e a NÃO EMITIR as chaves que o
