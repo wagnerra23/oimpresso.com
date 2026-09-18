@@ -11,7 +11,7 @@
 > | | prod `/ia` | âncora (espelho servido) | veredito |
 > |---|---|---|---|
 > | `h1` font-size | **22px** | **22px** | **IGUAL** — a divergência Δ3px **FECHOU** |
-> | `h1` font-weight | **700** | **600** | 🟡 **DECLARADA** — Fundação/Shell (37 telas), decisão [W] |
+> | `h1` font-weight | **700** | **600** | ❌ **DÍVIDA A FECHAR** — prod converge pro protótipo |
 >
 > **Medido** no DOM renderizado, dark × dark, viewport **2560** (a mesma das rodadas antigas) **e**
 > 1440 — mesmo resultado nas duas, o título **não** é responsivo.
@@ -646,7 +646,7 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 | aba | 13px/500 · ativa 600 + `border-b 2px accent` + bg `oklch(0.33 0.09 295/.5)` · ícone 14px · `padding 0 14px` | 14px/400 · ativa 600 + mesmo underline/pill · **sem ícone** · `6px 12px` | 🟡 ícone **corrigido**; 13×14px fica (fidelidade travada em `pageHeaderTabsFidelity.spec`) |
 | Zona R | `Atualizado 09:42` (dot) → `plano Pro` → Configurar → Exportar | `plano Pro` → Configurar → Exportar → **Conversar** (primary); "Atualizado" no subtítulo | ❌ → **corrigido** (Atualizado 1º da Zona R; primary removido) |
 | subtítulo | mono 11.5px `OIMPRESSO MATRIZ · biz=164 · v1404…` | sans 12px | 🟡 → mono (`versão` é dado que a prod não tem) |
-| título | 19px/700 | 22px/700 | 🟡 **DECLARADA · decisão [W]** — `PageHeader` canon (ADR 0189) é Fundação/Shell de 37 telas |
+| título | 19px/700 | 22px/700 | ⛔ ~~DECLARADA · decisão [W]~~ **REVOGADO 2026-09-18** — `PageHeader` canon (ADR 0189) é Fundação/Shell de 37 telas |
 | avatar | 40×40 · r8 · accent | 40×40 · r8 · accent (`size-10 rounded-lg bg-primary`) | ✅ |
 
 ### KPIs (→ **Onda 2**, chip)

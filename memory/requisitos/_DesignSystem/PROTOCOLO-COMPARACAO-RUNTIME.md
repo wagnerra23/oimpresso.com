@@ -79,8 +79,9 @@ full-reload. Comportamento **antes** de pixel.
    dá o veredito MEDIDO. **Nunca** conclua "igual" por screenshot — o print não distingue center×left.
 3. **D1 sempre**: clicar 1 filtro em prod, `read_network_requests`, classificar (partial vs full).
    Ler `aplicar()`/controller pra confirmar `only:` + `defer`.
-4. **Diff por dimensão** → tabela `dimensão | prod | proto | veredito {IGUAL / DIVERGE (bug) /
-   DIVERGE (decisão) / PROD-À-FRENTE}`.
+4. **Diff por dimensão** → tabela `dimensão | prod | proto | veredito {IGUAL / DÍVIDA A FECHAR /
+   PROTÓTIPO ATRASADO}` — vocabulário de 2026-09-18, ver §Regra de veredito. ~~`DIVERGE (decisão)`
+   e `PROD-À-FRENTE`~~ saíram: no eixo FORMA não há divergência aceita, há dívida.
 5. **Screenshots de REGIÃO** (footer, barra de filtro, título) — não só a tela inteira; o v1
    olhou o todo e perdeu as partes.
 6. **Registrar** no `<tela>-visual-comparison.md` (append; 1 tema = 1 doc).
@@ -120,13 +121,47 @@ PROTOCOLO-WAGNER-SEMPRE e com o hook `post-merge-ui-smoke-required`.
 > item. Enforcement em tempo presente não se restateia aqui: o dono é o próprio hook + o teste dele
 > (`post-merge-ui-smoke-required.test.mjs`).
 
-## Regra de veredito (não reverter decisão aprovada)
+## Regra de veredito — **o protótipo manda; paridade é o objetivo** ([W] 2026-09-18)
 
-Divergência **não é automaticamente bug**: pode ser **prod-à-frente** (evolução aprovada — ex: pills
-#3391) ou **decisão**. Cruzar com o **charter** + trilha antes de "consertar". Só é **bug** o que
-(a) é anti-padrão do sistema (D1 full-reload), (b) contradiz o token/ADR canon, ou (c) o Wagner
-aponta como não-intencional. Caso contrário: **a prod é o mais novo → re-exportar o protótipo**, não
-arrastar a prod pra trás.
+> ⛔ **REVOGADA a regra anterior.** [W] 2026-09-18, textual: *"eu revogo tudo, de todos. a regra
+> mudou agora é o Protótipo quem manda, e a paridade deve ser o objetivo"* + *"pode revogar regras
+> conflitantes"*.
+>
+> O texto revogado dizia: ~~*"Divergência não é automaticamente bug: pode ser prod-à-frente
+> (evolução aprovada — ex: pills #3391) ou decisão. (…) a prod é o mais novo → re-exportar o
+> protótipo, não arrastar a prod pra trás."*~~ Fica como registro do que valeu entre 2026-07-06 e
+> 2026-09-18 — **não instrui mais nada**.
+>
+> **Ele já estava em conflito com a [UI-0029](adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)**
+> (accepted 2026-08-28, ratificada 08-31), que decidiu *"Divergência é DEFEITO, não pauta"* e pôs o
+> protótipo **acima do teste** na cadeia de FORMA. As duas conviveram 3 semanas sem reconciliação, e
+> o custo é medido: **15 dos 17** arquivos com divergência declarada no repo foram escritos **depois**
+> da ratificação da 0029.
+
+**No eixo FORMA, divergência do protótipo é DÍVIDA — nunca estado final.**
+
+| veredito | quando | o que fazer |
+|---|---|---|
+| **IGUAL** | os dois lados medem o mesmo | nada |
+| **DÍVIDA A FECHAR** | prod diverge da âncora | **prod converge.** Registrar no `<tela>-visual-comparison.md` com o valor-alvo |
+| **PROTÓTIPO ATRASADO** | prod tem capacidade que a âncora não desenha | **e só então** re-exportar do Cowork — com o recibo de que a capacidade é nova, não de que "prod é mais novo" |
+
+**O que NÃO muda** (a 0029 já separava, e a separação continua): o protótipo manda na **forma**;
+**visibilidade** (permissão · pacote por business · módulo) e **dado** seguem do código — protótipo
+não revoga permissão nem tenancy. `D1` (full-reload) segue sendo bug por outra via: é anti-padrão
+de comportamento, não de forma.
+
+### Componente compartilhado não impõe a forma de uma tela às outras
+
+Conflito medido em 2026-09-18 na Jana: `tests/pageHeaderTabsFidelity.spec.tsx` trava o
+`PageHeaderTabs` (**38 telas**) contra `clientes-page.css` — o protótipo do **Clientes** —, e
+`Components/PageHeader/PageHeader.tsx:111` carrega `font-bold` com o docblock *"peso Vendas"*. A
+Jana consome os dois e herdava as abas do Clientes e o título de Vendas, **nenhum dos dois sendo a
+âncora dela**.
+
+O caminho é **réplica local** ([ADR 0388](../../decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md)
+§D-1, *"réplica primeiro"*) — que a Jana já aplicou no `JanaKpiCard` em vez de mudar o `KpiCard`
+shared de 37 telas. Mudar o compartilhado para servir uma tela é o **mesmo erro invertido**.
 
 ## Camada BUILDADA (pixel) — regressão vs baseline própria (complementar, não substituta)
 
