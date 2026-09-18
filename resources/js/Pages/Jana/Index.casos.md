@@ -1239,3 +1239,55 @@ no mesmo PR (precedência: o perdedor se corrige junto). **Regra que fica:** par
 interpola se registra com o VALOR resolvido de cada lado, nunca com o molde.
 
 **Teste:** `tests/janaAcoesAutoria.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
+
+## UC-JPAIN-25 — o h2 de seção é RÉPLICA da `.jc-h2`, não o h2 do golden
+Status: 🧪 (`npx vitest run tests/janaSectionTitleReplica.spec.tsx` → **5 passed** jsdom local, 2026-09-18, com mordida provada por mutação; vira ✅ quando o manifesto `casos-results` aterrissar)
+
+**Fonte:** âncora `.jc-h2` em `prototipo-ui/cowork/Wagner/chat-jana.css` §"── H2 ──" — âncora de
+SÍMBOLO (`grep -n "jc-h2" prototipo-ui/cowork/Wagner/chat-jana.css`); o sub-rótulo é
+`.jc-h2 .jm-h2-sub` em `jana-merge.css`. Precedência de FORMA: protótipo > teste > casos > charter
+> SPEC ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)),
+sob [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1.
+
+| eixo | âncora | tela viva (antes) | agora |
+|---|---|---|---|
+| font-size | **11px** | 14px (`text-sm`) | **11px** |
+| font-weight | **700** | 600 (`font-semibold`) | **700** |
+| letter-spacing | **0.88px** (`.08em`) | 1.4px (`tracking-widest`) | **0.88px** |
+| família | **mono** (`var(--mono)`) | sans (herdada) | **mono** |
+| gap do ícone | **7px** | 8px (`gap-2`) | **7px** |
+| caixa alta | `uppercase` no CSS | `uppercase` no CSS | **idem — nunca divergiu** |
+| sub-rótulo | `margin-left:auto` · mono 10.5px/400 · `.02em` | `ml-1` · sans 11px · `tracking-normal` | **alinhado** |
+
+**Réplica LOCAL, e é o ponto do caso.** O `SectionTitle` é função interna do `JanaCockpit.tsx` —
+não sai dele. Alinhar aqui **não** impõe a forma da Jana às outras telas, que é o erro invertido
+que o `PageHeader`/`PageHeaderTabs` (37-38 telas) tornaria inevitável. Mesmo caminho que o
+`JanaKpiCard` tomou em vez de mexer no `KpiCard` compartilhado.
+
+**`font-mono` é tradução PROVADA, não suposta:** o espelho declara `--mono: var(--font-mono)`
+(`styles.css:6446`), o token do projeto — mesmo mapeamento que o `JanaKpiCard` já usa em
+`.jc-kpi-h`.
+
+**O que o teste trava (5 casos):** todo h2 carrega a métrica da âncora · **nenhum** h2 mantém a
+métrica antiga do golden (o par que impede o meio-termo) · o ícone é 14px como `.jc-h2 .ic` · o
+sub vai pra **direita** (`ml-auto`, não `ml-1`) em mono 10.5px · e um detector com controle de
+sensibilidade, porque `gap-2` casaria por substring dentro de `gap-[7px]` se o matcher fosse
+ingênuo — ele compara **token inteiro**.
+
+**Mordida provada.** Restaurada a métrica do golden, **2 de 5 caem**: `h2 … sem font-mono`
+(ausência da nova) e `h2 ainda tem text-sm (métrica do golden)` (presença da antiga). Os dois
+sentidos, de propósito.
+
+⚠️ **A COR do sub-rótulo NÃO foi tocada — decisão declarada, não esquecimento.** A âncora usa
+`var(--text-dim)`, que **não é definido no escopo desta tela**: `chat-jana.css` e `jana-merge.css`
+não o declaram, e ele só aparece em `estoque-page.css` e `mockup-pages.css`, de outras telas. Sem
+token resolvível, trocar a cor seria adivinhar — fica medido e aberto.
+
+⚠️ **Frescor da fonte, declarado:** `cowork-mirror-freshness --sla` dá **⬜ INCONCLUSIVO**, não
+SYNC — o `--compare` está completo e no SLA (705/705 sync, 2026-09-17), mas **5 arquivos do vivo
+faltam no espelho** (`.gitignore`, `.thumbnail`, 3 do `_ds/`). O `chat-jana.css`, dono destes
+números, **está entre os sync**, e o eixo novo "vê AUSÊNCIA, nunca MODIFICAÇÃO" — então os valores
+aplicados vêm de arquivo provado fresco. O que segue por provar é o que o `_ds/` ausente poderia
+redefinir, e é exatamente por isso que a cor ficou de fora.
+
+**Teste:** `tests/janaSectionTitleReplica.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).

@@ -163,10 +163,28 @@ type CtaTone = 'danger' | 'violet' | 'orange' | 'dark' | 'primary';
 const ctaVariant = (t: CtaTone): 'default' | 'destructive' | 'secondary' =>
   t === 'danger' ? 'destructive' : t === 'orange' || t === 'dark' ? 'secondary' : 'default';
 
-// Seção seccionadora (H2) — mesmo estilo do golden governance/Dashboard.
+// Seção seccionadora (H2) — RÉPLICA LOCAL da `.jc-h2` da âncora, não o h2 do golden
+// governance/Dashboard (era isso até 2026-09-18, e a métrica divergia em 3 eixos).
+//
+// Âncora: `.jc-h2` em `prototipo-ui/cowork/Wagner/chat-jana.css` §"── H2 ──" — âncora de
+// SÍMBOLO (`grep -n "jc-h2" prototipo-ui/cowork/Wagner/chat-jana.css`):
+//
+//   .jc-h2      700 11px/1 var(--mono) · uppercase · ls .08em · --text-3 · gap 7px
+//                                                             · margin 6px 0 10px
+//   .jc-h2 .ic  14px  (já batia: os dois call-sites passam `size={14}`)
+//
+// A CAIXA ALTA nunca foi divergência — os dois lados usam `text-transform` no CSS. O que
+// divergia era `14px/600/1.4px` contra `11px/700/0.88px` (.08em × 11px = 0.88px), medido e
+// registrado em `memory/requisitos/Jana/Index-visual-comparison.md:735`.
+//
+// Réplica LOCAL de propósito (ADR 0388 §D-1): esta função não sai do `JanaCockpit`, então o
+// alinhamento não é imposto às outras telas — o mesmo caminho que o `JanaKpiCard` tomou em
+// vez de mexer no `KpiCard` compartilhado. `font-mono` é tradução PROVADA, não suposta: o
+// próprio espelho declara `--mono: var(--font-mono)` (`styles.css:6446`), que é o token do
+// projeto.
 function SectionTitle({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
-    <h2 className="mt-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+    <h2 className="mt-1.5 mb-2.5 flex items-center gap-[7px] font-mono text-[11px] leading-none font-bold uppercase tracking-[0.08em] text-muted-foreground">
       <span className="inline-flex text-muted-foreground">{icon}</span>
       {children}
     </h2>
@@ -725,7 +743,15 @@ export default function JanaCockpit({
       {/* Análises principais ───────────────────────────────────────────────── */}
       <SectionTitle icon={<BarChart3 size={14} />}>
         Análises principais
-        <span className="ml-1 text-[11px] font-normal normal-case tracking-normal text-muted-foreground/80">
+        {/* Réplica do `.jc-h2 .jm-h2-sub` (`jana-merge.css:6`): `margin-left:auto` — ele vai
+            pra DIREITA da faixa, não colado no título —, mono 10.5px/400, `ls .02em`, sem
+            caixa alta. A copy já era byte-idêntica à âncora (medido em 2026-08-31); o que
+            divergia era a métrica e a posição.
+            ⚠️ A COR fica como está: a âncora usa `var(--text-dim)`, que NÃO é definido no
+            escopo desta tela (`chat-jana.css`/`jana-merge.css` não o declaram — só
+            `estoque-page.css` e `mockup-pages.css`, de outras telas). Sem token resolvível,
+            trocar a cor seria adivinhar; fica medido e declarado em vez de inventado. */}
+        <span className="ml-auto font-mono text-[10.5px] font-normal normal-case tracking-[0.02em] text-muted-foreground/80">
           clique num card pra ver de onde vem o número
         </span>
       </SectionTitle>

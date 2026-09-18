@@ -764,7 +764,7 @@ Medido: nós · filhos · altura · `display` · `gap` · `grid-template-columns
 | **brief** | display · gap · filhos | block · normal · 7 | **flex** · **24px** · **1** | ❌ DIVERGE (estrutura) |
 | **análises (grade)** | colunas · gap | **3** · 12px | **2** · **16px** | ❌ DIVERGE |
 | **h2 análises** | tamanho · peso · tracking · cor | 11px · 700 · 0.88px · `text-3` | **14px** · **600** · **1.4px** · mais claro | ❌ DIVERGE |
-| **h2 ações** | idem acima | 11px · 700 · 0.88px | **14px** · **600** · **1.4px** | ❌ DIVERGE |
+| **h2 ações** | idem acima | 11px · 700 · 0.88px | 11px · 700 · 0.88px | ✅ **(2026-09-18)** — era `14px · 600 · 1.4px`; ver nota |
 | **ações** | gap | normal | **24px** | ❌ DIVERGE |
 | **corpo** | fonte base | 13px | **13,5px** | 🟡 direção a decidir — 13,5px é o `--fs-4` do RAMP canon; **o protótipo é que está fora dele** |
 | **metas** | — | 5 cards | **empty state** | ⬜ NÃO COMPARÁVEL |
@@ -772,6 +772,42 @@ Medido: nós · filhos · altura · `display` · `gap` · `grid-template-columns
 **Caixa alta dos h2:** ambos os lados têm `text-transform: uppercase` — a dúvida registrada em
 2026-09-04 (*"sentence case no código pode estar sendo uppercase no CSS"*) fica **resolvida: é
 uppercase nos dois**. O que diverge é tamanho, peso e tracking, não a caixa.
+
+> **FECHADO em 2026-09-18 — o `SectionTitle` virou RÉPLICA LOCAL da `.jc-h2`.** Era o h2 do golden
+> `governance/Dashboard` (`text-sm font-semibold tracking-widest`, = `14px/600/1.4px`); passou a
+> `font-mono text-[11px] font-bold tracking-[0.08em] gap-[7px]`, mais `mt-1.5 mb-2.5` pelo
+> `margin: 6px 0 10px` da âncora. O `uppercase` **não mudou** — nunca foi divergência, e o teste o
+> trava como invariante, não como correção.
+>
+> **Réplica LOCAL de propósito** (ADR 0388 §D-1): o `SectionTitle` é função interna do
+> `JanaCockpit.tsx` e não sai dele, então a forma da Jana **não** é imposta às outras telas — o
+> mesmo caminho que o `JanaKpiCard` tomou em vez de mexer no `KpiCard` compartilhado.
+>
+> **`font-mono` é tradução PROVADA, não suposta:** o próprio espelho declara
+> `--mono: var(--font-mono)` (`prototipo-ui/cowork/Wagner/styles.css:6446`), que é o token do
+> projeto — o mesmo mapeamento que o `JanaKpiCard` já usava para `.jc-kpi-h`.
+>
+> **Sub-rótulo (`.jm-h2-sub`, `jana-merge.css:6`) junto:** `ml-1` → **`ml-auto`** (a âncora o
+> empurra pra direita da faixa, não o cola no título), mono 10.5px/400, `tracking-[0.02em]`. A
+> copy já era byte-idêntica desde 2026-08-31.
+>
+> ⚠️ **A COR do sub NÃO foi tocada, e isso é decisão declarada, não esquecimento.** A âncora usa
+> `var(--text-dim)`, que **não é definido no escopo desta tela** — `chat-jana.css` e
+> `jana-merge.css` não o declaram; ele só aparece em `estoque-page.css` e `mockup-pages.css`, de
+> outras telas. Sem token resolvível, trocar a cor seria adivinhar. Fica medido e aberto.
+>
+> Travado por **UC-JPAIN-25** (`tests/janaSectionTitleReplica.spec.tsx`), 5 casos, mordida provada
+> por mutação: restaurada a métrica do golden, 2 de 5 caem — um por **ausência** da nova
+> (`sem font-mono`) e outro por **presença** da antiga (`ainda tem text-sm`), que é o par que
+> impede tanto a regressão quanto o meio-termo.
+>
+> ⚠️ **Frescor da fonte, declarado:** `cowork-mirror-freshness --sla` dá **⬜ INCONCLUSIVO**, não
+> SYNC — o `--compare` está completo e dentro do SLA (705/705 sync, 2026-09-17), mas **5 arquivos
+> do vivo não estão no espelho** (`.gitignore`, `.thumbnail` e 3 do `_ds/`, incluindo
+> `styles.css`). O `chat-jana.css`, dono dos números acima, **está entre os sync**, e o eixo novo
+> "vê AUSÊNCIA, nunca MODIFICAÇÃO". Logo os valores aplicados vêm de arquivo provado fresco; o que
+> permanece por provar é o que o `_ds/` ausente poderia redefinir — e é justamente por isso que a
+> cor ficou de fora.
 
 ### Metas — segue NÃO COMPARÁVEL, agora com data nova
 

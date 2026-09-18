@@ -18,7 +18,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 18
+charter_version: 19
 permissao: jana.access
 ---
 
@@ -78,6 +78,18 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   Âncora: `jana-merge.jsx` §`JmMetaDrawer` — âncora de SÍMBOLO
   (`grep -n "JmMetaDrawer" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
   O drawer **não projeta o fechamento**: ver §Anti-hooks abaixo.
+
+- **O h2 de seção é RÉPLICA LOCAL da `.jc-h2` (v19 — 2026-09-18):** `font-mono text-[11px]
+  font-bold tracking-[0.08em] gap-[7px]` + `mt-1.5 mb-2.5` — a métrica da âncora
+  (`chat-jana.css` §"── H2 ──": `700 11px/1 var(--mono)`, `ls .08em`, `margin 6px 0 10px`).
+  Era o h2 do golden `governance/Dashboard` (`14px/600/1.4px`). O `uppercase` **não mudou**:
+  nunca foi divergência, e o teste o trava como invariante. O sub-rótulo segue `.jm-h2-sub`
+  (`ml-auto` — vai pra DIREITA da faixa —, mono 10.5px/400, `.02em`).
+  **Réplica LOCAL de propósito** ([ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1):
+  o `SectionTitle` é função interna do `JanaCockpit.tsx` e não sai dele — alinhar aqui **não**
+  impõe a forma da Jana às outras 37 telas, que é o erro invertido. Travado por **UC-JPAIN-25**.
+  ⚠️ A **cor** do sub ficou fora: a âncora usa `var(--text-dim)`, não definido no escopo desta
+  tela — sem token resolvível, trocar seria adivinhar.
 
 - **Quem assina as sugestões é a JANA (v18 — 2026-09-18):** o h2 da seção é
   **"Ações que Jana sugere"** — literal, sem interpolação. Vem da âncora `jana-merge.jsx`
@@ -206,6 +218,28 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- **v19 (2026-09-18)** — **o h2 de seção virou réplica local da `.jc-h2`.** Era o h2 do golden
+  `governance/Dashboard` (`text-sm font-semibold tracking-widest` = `14px/600/1.4px`) contra
+  `11px/700/0.88px` da âncora — divergência medida e registrada em
+  `Index-visual-comparison.md` desde a rodada de 2026-09-04. Aplicado
+  `font-mono text-[11px] font-bold tracking-[0.08em] gap-[7px] mt-1.5 mb-2.5`, mais o
+  sub-rótulo em `ml-auto` + mono 10.5px (`.jm-h2-sub`). **O `uppercase` não mudou** — a dúvida
+  de 2026-09-04 já tinha sido resolvida no doc (*"é uppercase nos dois"*), e o teste agora o
+  trava como **invariante**, não como correção. Travado por **UC-JPAIN-25**, 5 casos, mordida
+  provada nos dois sentidos (ausência da nova métrica **e** presença da antiga).
+
+  **Por que réplica LOCAL:** o `SectionTitle` é função interna do `JanaCockpit.tsx`. Alinhar o
+  compartilhado (`PageHeader`/`PageHeaderTabs`, 37-38 telas) imporia a forma da Jana a todas —
+  o mesmo erro, invertido. Caminho já validado pelo `JanaKpiCard`.
+
+  **Duas coisas ficaram FORA, declaradas:** (a) a **cor** do sub-rótulo — a âncora usa
+  `var(--text-dim)`, que não é definido no escopo desta tela (só em `estoque-page.css` e
+  `mockup-pages.css`), e sem token resolvível trocar seria adivinhar; (b) o frescor da fonte é
+  **⬜ INCONCLUSIVO**, não SYNC — `cowork-mirror-freshness --sla` acusa 5 arquivos do vivo
+  ausentes no espelho (3 deles do `_ds/`). O `chat-jana.css`, dono dos números aplicados, está
+  entre os **705 sync**, e o eixo novo vê ausência e não modificação — por isso o que foi
+  aplicado é derivado de fonte provada, e o que dependia do `_ds/` (a cor) não foi.
 
 - **v18 (2026-09-18)** — **a seção de ações era assinada por QUEM OLHA a tela, não pela Jana.**
   O h2 interpolava `firstNameUpper` (derivado de `userName` = usuário logado) onde a âncora
