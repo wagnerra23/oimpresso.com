@@ -36,7 +36,7 @@ vi.mock('@inertiajs/react', () => ({
 // renderizado, e a mensagem de erro dizia "renderizou 0" sem dizer POR QUÊ. Foi a
 // medição do DOM que revelou a estrutura — ler o `Index.tsx` não bastava.
 // ⚠️ `SectionTitle` entrou neste mock em 2026-09-18, quando o cabeçalho de METAS do
-// `Index.tsx` passou a usá-lo (réplica da `.jc-h2` da âncora — UC-JPAIN-25). Sem ele o
+// `Index.tsx` passou a usá-lo (réplica da `.jc-h2` da âncora — UC-JPAIN-27). Sem ele o
 // vitest aborta os 5 casos com `No "SectionTitle" export is defined on the … mock`, e a
 // falha NÃO diz que é do mock: ela aparece como se o card de meta tivesse quebrado.
 //

@@ -1,4 +1,4 @@
-// UC-JPAIN-25 — o h2 de seção do Painel é RÉPLICA da `.jc-h2` da âncora, não o h2 do
+// UC-JPAIN-27 — o h2 de seção do Painel é RÉPLICA da `.jc-h2` da âncora, não o h2 do
 // golden governance/Dashboard.
 //
 // Âncora: `.jc-h2` em `prototipo-ui/cowork/Wagner/chat-jana.css` §"── H2 ──" — âncora de
@@ -88,7 +88,7 @@ describe('detector de classe — controle positivo e negativo (ADR 0258)', () =>
   });
 });
 
-describe('UC-JPAIN-25 — o h2 de seção replica a `.jc-h2`', () => {
+describe('UC-JPAIN-27 — o h2 de seção replica a `.jc-h2`', () => {
   it('todo h2 de seção carrega a métrica da âncora', () => {
     for (const h2 of h2s(renderCockpit())) {
       for (const classe of METRICA_ANCORA) {

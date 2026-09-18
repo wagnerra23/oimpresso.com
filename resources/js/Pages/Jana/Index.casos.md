@@ -1240,7 +1240,22 @@ interpola se registra com o VALOR resolvido de cada lado, nunca com o molde.
 
 **Teste:** `tests/janaAcoesAutoria.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
 
-## UC-JPAIN-25 — o h2 de seção é RÉPLICA da `.jc-h2`, não o h2 do golden
+## UC-JPAIN-27 — o h2 de seção é RÉPLICA da `.jc-h2`, não o h2 do golden
+
+> ⚠️ **Este UC nasceu 25 e virou 27 — colisão de id entre sessões paralelas, pega antes do merge.**
+> Duas sessões trabalhando na mesma tela no mesmo dia conferiram unicidade de `UC-JPAIN-25`
+> **cada uma no seu instante**, e as duas viram 0 hits — porque o PR da outra ainda não existia.
+> A irmã mergeou primeiro (`NomeExibicaoContratoTest.php`, 7 citações), então o 25 é dela e este
+> cedeu. Medido antes de decidir: `git grep -ohE "UC-JPAIN-[0-9]+" origin/main` → ocupados até
+> **25**; 26 é o UC-JPAIN-26 desta mesma leva; 27 livre.
+>
+> **A lição não é "conferir unicidade" — nós dois conferimos.** É que a checagem responde pelo
+> **instante**, e num repo com sessões paralelas o id só está de fato livre quando o PR entra. Isso
+> é a lápide §5 2026-09-04 ("prova por ID casado num corpus global") no eixo do **relógio**, não do
+> escopo: lá o id colidia entre módulos, aqui colide entre sessões. E o dano seria o mesmo —
+> **falso-crédito**: o gate acha o id no corpus e credita cobertura ao dono errado, sem ficar
+> vermelho. Sintoma pelo qual isto apareceu: a sessão irmã avisou que "o UC-JPAIN-25 está citado
+> por um teste mas não está no `casos.md`" — ela via o dela; eu tinha escrito o meu.
 Status: 🧪 (`npx vitest run tests/janaSectionTitleReplica.spec.tsx` → **5 passed** jsdom local, 2026-09-18, com mordida provada por mutação; vira ✅ quando o manifesto `casos-results` aterrissar)
 
 **Fonte:** âncora `.jc-h2` em `prototipo-ui/cowork/Wagner/chat-jana.css` §"── H2 ──" — âncora de

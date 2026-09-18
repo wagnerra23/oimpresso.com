@@ -87,7 +87,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   (`ml-auto` — vai pra DIREITA da faixa —, mono 10.5px/400, `.02em`).
   **Réplica LOCAL de propósito** ([ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1):
   o `SectionTitle` é função interna do `JanaCockpit.tsx` e não sai dele — alinhar aqui **não**
-  impõe a forma da Jana às outras 37 telas, que é o erro invertido. Travado por **UC-JPAIN-25**.
+  impõe a forma da Jana às outras 37 telas, que é o erro invertido. Travado por **UC-JPAIN-27**.
   ⚠️ A **cor** do sub ficou fora: a âncora usa `var(--text-dim)`, não definido no escopo desta
   tela — sem token resolvível, trocar seria adivinhar.
 
@@ -267,7 +267,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   `font-mono text-[11px] font-bold tracking-[0.08em] gap-[7px] mt-1.5 mb-2.5`, mais o
   sub-rótulo em `ml-auto` + mono 10.5px (`.jm-h2-sub`). **O `uppercase` não mudou** — a dúvida
   de 2026-09-04 já tinha sido resolvida no doc (*"é uppercase nos dois"*), e o teste agora o
-  trava como **invariante**, não como correção. Travado por **UC-JPAIN-25**, 5 casos, mordida
+  trava como **invariante**, não como correção. Travado por **UC-JPAIN-27**, 5 casos, mordida
   provada nos dois sentidos (ausência da nova métrica **e** presença da antiga).
 
   **Por que réplica LOCAL:** o `SectionTitle` é função interna do `JanaCockpit.tsx`. Alinhar o
