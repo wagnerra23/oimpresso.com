@@ -50,6 +50,27 @@ writeFileSync(tmpBl, JSON.stringify(zeros));
 const refuse = exec(['--root', join(FIX, 'good'), '--baseline', tmpBl, '--write']);
 check('--write que sobe → recusado (exit 1)', refuse.status === 1 && /recusado/.test(refuse.stderr));
 check('--write recusado → baseline intacto', JSON.parse(readFileSync(tmpBl, 'utf8')).counters.n_quarantine === 0);
+// 4b. O `--write` PRESERVA chaves irmãs. Em 2026-09-18 ele gravava `{generated_by, counters}`
+//     e descartava o resto EM SILÊNCIO (exit 0) — apagou as 3 `nota_*` do baseline real em 5
+//     branches de 3 sessões, incluindo a nota que documentava este próprio comportamento.
+//     `git diff --stat` mostrava `2 +-`, então a perda de CHAVE não aparecia na contagem de LINHAS.
+writeFileSync(tmpBl, JSON.stringify({
+  generated_by: 'antigo',
+  counters: { n_quarantine: 9, n_refresh_database: 9, n_business_first: 9, n_lane_quarantine: 9 },
+  nota_importante: 'escrita por outra sessão — tem de sobreviver ao --write',
+  outra_chave: { aninhada: true },
+}));
+exec(['--root', join(FIX, 'good'), '--baseline', tmpBl, '--write']);
+const depois = JSON.parse(readFileSync(tmpBl, 'utf8'));
+check('MORDE: --write preserva as chaves irmãs (não só counters)',
+  depois.nota_importante === 'escrita por outra sessão — tem de sobreviver ao --write'
+  && depois.outra_chave?.aninhada === true);
+check('--write atualiza counters E generated_by (essas são DELE)',
+  depois.counters.n_quarantine === 1 && /foundation-ratchet/.test(depois.generated_by));
+check('--write anuncia o que preservou (o defeito antigo era destrutivo E MUDO)',
+  /preservada\(s\)/.test(exec(['--root', join(FIX, 'good'), '--baseline', tmpBl, '--write']).stdout));
+
+writeFileSync(tmpBl, JSON.stringify(zeros));
 const forced = exec(['--root', join(FIX, 'good'), '--baseline', tmpBl, '--write', '--force']);
 check('--write --force → grava (exit 0)', forced.status === 0 && JSON.parse(readFileSync(tmpBl, 'utf8')).counters.n_quarantine === 1);
 

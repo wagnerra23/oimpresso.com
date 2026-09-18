@@ -43,10 +43,20 @@
 #     Cada linha diz QUAL contrato falha — a lista é o inventário da dívida.
 # ─────────────────────────────────────────────────────────────────────────────
 
-tests/Feature/Produto/ProdutoShowContratoTest.php          # UC-PSHOW-01: custo vaza na ficha p/ quem não tem view_purchase_price (branch Inertia não consulta a permission; Blade gateia com @can)
-tests/Feature/Produto/ProdutoIndexContratoTest.php         # UC-PIDX-01/02/03/06: corte silencioso em 200 sem paginação + busca e filtro de inativos não resolvidos no servidor + custo vaza na linha
+tests/Feature/Produto/ProdutoIndexContratoTest.php         # UC-PIDX-01/02/06: corte silencioso em 200 sem paginação + busca e filtro de inativos não resolvidos no servidor (o UC-PIDX-03, custo/preço, CAIU em 2026-09-18 — ver abaixo)
 tests/Feature/Produto/ProdutoEditPayloadContratoTest.php   # UC-PEDIT-05/06/07: writer trata ausência de chave como zero (enable_stock, not_for_selling) e a edição não persiste — eixo ESTOQUE, regra-mestre: fix é decisão [W]
-tests/Feature/Produto/ProdutoBulkEditContratoTest.php      # UC-PBULK-05: writer lê 5 chaves/variação, a tela manda 2; ErrorException engolida por catch genérico reverte o lote — eixo VALOR, regra-mestre: fix é decisão [W]
+# SAIU 2026-09-18:
+#   ProdutoShowContratoTest — UC-PSHOW-01 CORRIGIDO. O branch Inertia de `ProductController@show`
+#     passou a consultar `view_purchase_price`/`access_default_selling_price` e a NÃO EMITIR a chave
+#     que o usuário não pode ver (`defaultPurchasePrice`/`defaultSellPrice`), como o
+#     ProdutoUnificadoController já fazia desde 2026-08-13. Regra é AUSÊNCIA, não campo vazio
+#     (AR-PROD-015). Arquivo INTEIRO verde no CT 100 — 4 passed (18 assertions), veredito caso a
+#     caso: UC-PSHOW-01 ✓ · 02 ✓ · 03 ✓ · 06 ✓.
+#   ProdutoIndexContratoTest — CONTINUA aqui, com UMA perna a menos: o UC-PIDX-03 (custo/preço/margem
+#     na linha) fechou pelo mesmo fix em `buildProdutoIndexRows`. Os 3 que restam (01 corte de 200 sem
+#     paginação · 02 busca · 06 filtro de inativos) são a OUTRA metade — alcance/filtragem server-side,
+#     trabalho separado, nada a ver com permissão. Medido no CT 100 depois do fix:
+#     3 failed, 7 passed (67 assertions) nos dois arquivos juntos, contra 5 failed / 5 passed antes.
 # SAÍRAM 2026-08-13:
 #   ProdutoUnificadoContratoTest — UC-PUNI-01..06 CORRIGIDOS. O ProdutoUnificadoController
 #     passou a abortar 403 sem product.view/product.create e a NÃO EMITIR as chaves que o

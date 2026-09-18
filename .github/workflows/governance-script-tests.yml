@@ -415,6 +415,16 @@ jobs:
       - name: cc-watcher redacao de segredo no ingest (morde + controle negativo + chokepoint real)
         if: always() && steps.setup.outcome == 'success'
         run: node --test scripts/cc-watcher/redact.test.mjs
+      # O `--watch` do cc-watcher ficou INERTE 141 dias com o processo VIVO (nascimento
+      # do watcher 2026-04-30 -> 2026-09-18): chokidar 4 removeu suporte a glob, e a
+      # lista de pastas era lida 1x no boot (worktree nova ficava invisivel). Somado a
+      # isso, `content_json` nunca era preenchido, e e dele que sai o "paths tocados"
+      # do whats-active -- a deteccao de sobreposicao nunca funcionou. Exercita a
+      # fiacao REAL (`createJsonlWatcher` com chokidar real), nao uma copia (§5
+      # 2026-07-30). Mordida provada por mutacao: glob de volta => 5 de 10 falham.
+      - name: cc-watcher watch + content_json (morde + controle negativo + fiacao real)
+        if: always() && steps.setup.outcome == 'success'
+        run: node --test scripts/cc-watcher/watch.test.mjs
       - name: Block-automem + block-mwart REGISTRADOS como node (correcao != invocacao)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-automem-mwart-registration.test.mjs

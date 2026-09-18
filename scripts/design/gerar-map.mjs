@@ -355,15 +355,43 @@ function selftest() {
       pae._acionavel === true && pae.status === 'paridade' && pae.prototipo.linhas === '10-20');
   } else { t('fixtures presentes', false); }
 
+  // BITE 2026-09-18 — roda o CLI DE FORA (subprocesso), nao funcao pura. Sem isto o selftest
+  // ficava VERDE enquanto o CLI saia 13 com stdout VAZIO: o `await import('./ancora.mjs')` era
+  // top-level await e o grafo de `ancora` volta ate aqui (ancora -> cowork-mirror-freshness ->
+  // bundle-transaction -> design-code-map-check -> gerar-map), logo nunca fechava. Assert sobre
+  // helper exportado nao prova contrato de pipeline (§5 2026-07-30 / 2026-08-14).
+  {
+    const CLI = fileURLToPath(import.meta.url);
+    const gapFx = join(fx, 'boa-gap.md');
+    if (existsSync(gapFx)) {
+      let ok = false;
+      try {
+        const r = execFileSync(process.execPath, [CLI, gapFx], { encoding: 'utf8', cwd: REPO, maxBuffer: 1e8, stdio: ['ignore', 'pipe', 'pipe'] });
+        ok = Array.isArray(JSON.parse(r).partes);
+      } catch { ok = false; }
+      t('MORDE: CLI por subprocesso devolve JSON no stdout (pega o deadlock de TLA que assert puro nao ve)', ok);
+    } else { t('fixture do bite do CLI presente', false); }
+  }
+
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — esqueleto do map.json deriva do gap.md; verificação = design-code-map-check.mjs.');
   process.exit(fails ? 1 : 0);
 }
 
 const argv = process.argv.slice(2);
 const invokedDirectly = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-if (invokedDirectly) {
-  if (argv.includes('--selftest')) selftest();
-  else {
+
+// CLI dentro de `async function` — NUNCA top-level await. Motivo medido em 2026-09-18: o
+// `await import('./ancora.mjs')` abaixo era TLA, e o grafo de `ancora.mjs` volta até aqui
+//   gerar-map -> ancora -> cowork-mirror-freshness -> bundle-transaction -> design-code-map-check -> gerar-map
+// Com TLA pendente, esse retorno encontra o módulo em avaliação e o grafo NUNCA fecha: o
+// node sai 13 ("unsettled top-level await") com stdout VAZIO — ou seja, `--atualizar`, que é o
+// remédio que a mensagem de STALE do design-code-map-check prescreve, não escrevia nada.
+// Dentro de `main()` a avaliação do módulo termina antes, e o retorno do ciclo resolve pelo
+// cache. O `--selftest` ficava VERDE o tempo todo porque só exercita função pura, nunca o CLI
+// (§5 2026-08-14) — por isso o bite-test novo roda o CLI de fora, por subprocesso.
+async function main() {
+  if (argv.includes('--selftest')) { selftest(); return; }
+  {
     const gapArg = argv.find((a) => !a.startsWith('--'));
     if (!gapArg) { console.error('uso: node scripts/design/gerar-map.mjs <gap.md|Mod/Tela> [--atualizar] | --selftest'); process.exit(2); }
     const gapPath = resolveGap(gapArg);
@@ -405,3 +433,5 @@ if (invokedDirectly) {
     process.exit(0);
   }
 }
+
+if (invokedDirectly) main().catch((e) => { console.error(`✗ ${e && e.stack ? e.stack : e}`); process.exit(1); });

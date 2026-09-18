@@ -13,6 +13,25 @@
 // CONVENÇÃO QUARENTENA (hard-fail, independe de baseline): todo marcador exige
 // `quarantine-reason: <motivo>` a ≤3 linhas. Quarentena sem razão escrita é proibida.
 //
+// ⚠️ HOMÔNIMO — `n_quarantine` nomeia DOIS contadores no repo, e eles NÃO são comparáveis.
+// Medido 2026-09-18, os dois rodados no mesmo commit (`--json` daqui × `sdd-scorecard.mjs`):
+//   • ESTE (foundation-ratchet) = 126. Unidade = MARCADOR: incrementa uma vez por LINHA que
+//     casa o MARKER (`measure()` abaixo faz `lines.forEach`), logo um arquivo com quarentena
+//     granular conta várias vezes. Só `legacy-quarantine`, e só como ANOTAÇÃO ancorada.
+//     Espalhados em ~25 arquivos — número que o comentário do scorecard confirma por outra
+//     via, ao registrar que a medição PRÉ-flip dele (só `legacy-quarantine`) dava 25 arquivos.
+//   • scripts/governance/sdd-scorecard.mjs::measureQuarantine = 250. Unidade = ARQUIVO, e o
+//     critério é substring crua `legacy-quarantine` OU `era-sqlite` em qualquer lugar do .php,
+//     sem exigir razão escrita. Decomposto: 25 arquivos pelo `legacy-quarantine` (os mesmos
+//     que este ratchet cobre) + 225 que entram SÓ por `era-sqlite`, marcador que este aqui
+//     não conta por desenho (ampliação decidida por [W] em 2026-08-17).
+// Como a unidade difere (marcador × arquivo), "126 < 250" não diz nada sobre severidade —
+// são grandezas distintas com o mesmo nome, e mexer numa não move a outra.
+// Um TERCEIRO contador vizinho, `n_lane_quarantine` (42), é o da exclusão de lane — está
+// documentado no bloco `laneQuarantineFiles` mais abaixo e não se confunde com nenhum destes.
+// Qual deles alimenta check required é pergunta pro governance/required-checks-baseline.json,
+// não pra este comentário.
+//
 // Determinístico, Node puro, sem MySQL, segundos. Espelha os ratchets do projeto (a11y/reuse/no-mock).
 // SUBIR baseline = SÓ `--write --force` (diff visível no PR — ex.: quarentena em massa Q3 planejada).
 //
@@ -154,9 +173,32 @@ if (args.includes('--write')) {
     console.error(`✗ --write recusado: ${sobe.join(', ')} SUBIRIA. Catraca só desce. Subida planejada (ex.: quarentena em massa Q3) = --write --force, visível no diff do PR.`);
     process.exit(1);
   }
+  // PRESERVA AS CHAVES IRMÃS. O `--write` gravava `{generated_by, counters}` e descartava
+  // TODO o resto — silenciosamente, com exit 0. Não era hipótese: em 2026-09-18 destruiu as 3
+  // `nota_*` deste baseline em 5 branches de 3 sessões diferentes, e a ironia fecha o
+  // diagnóstico — a nota apagada era exatamente a que DOCUMENTAVA este comportamento e
+  // prescrevia a receita de restaurá-lo à mão. O aviso foi destruído pelo que ele avisava.
+  //
+  // Passou despercebido porque `git diff --stat` mostra `2 +-` (a contagem de LINHAS não
+  // denuncia perda de CHAVE) — quem conferiu pelo `--stat` viu um diff inocente.
+  //
+  // Merge em vez de replace: `counters` e `generated_by` são DESTE script e se sobrescrevem;
+  // qualquer outra chave é de quem a escreveu e sobrevive. A ordem (`generated_by, counters`,
+  // depois as irmãs) mantém o diff mínimo contra o arquivo existente.
+  let anterior = {};
+  try { anterior = JSON.parse(readFileSync(BASELINE, 'utf8')); } catch { /* 1ª medição: sem irmãs */ }
+  const { generated_by: _gb, counters: _c, ...irmas } = anterior;
+
   mkdirSync(dirname(BASELINE), { recursive: true });
-  writeFileSync(BASELINE, JSON.stringify({ generated_by: 'scripts/tests/foundation-ratchet.mjs --write', counters }, null, 2) + '\n');
+  writeFileSync(BASELINE, JSON.stringify({
+    generated_by: 'scripts/tests/foundation-ratchet.mjs --write',
+    counters,
+    ...irmas,
+  }, null, 2) + '\n');
+  const nomes = Object.keys(irmas);
   console.log(`✓ baseline gravado: ${JSON.stringify(counters)}${sobe.length ? ' (FORÇADO pra cima — justifique no PR)' : ''}`);
+  // Dizer O QUE sobreviveu é metade do conserto: o defeito antigo era destrutivo E MUDO.
+  if (nomes.length) console.log(`  ↳ ${nomes.length} chave(s) irmã(s) preservada(s): ${nomes.join(', ')}`);
   process.exit(0);
 }
 
