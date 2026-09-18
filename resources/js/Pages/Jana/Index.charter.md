@@ -226,8 +226,9 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
      com o molde.
   2. **O antes→depois em produção é `VOCÊ` → `Jana`, não `<nome>` → `Jana`.** Medido no DOM:
      `userName` chega **falsy** porque a tabela `users` **não tem coluna `name`** (migration
-     `2014_10_12_000000:17-27`; sem `getNameAttribute` em `app/User.php`), e **5 controllers**
-     da Jana leem `->name`. São **dois defeitos empilhados** — o segundo é backend, PR próprio.
+     `2014_10_12_000000:17-27`; sem `getNameAttribute` em `app/User.php`), e **6 controllers**
+     leem `->name` — 5 em `Modules/Jana/` **e** `Modules/KB/…/MemoriaController.php:56`, da aba
+     Memória. São **dois defeitos empilhados** — o segundo é backend, PR próprio.
      ⛔ E o conserto dele **não** é `user_full_name`: `surname` é PREFIXO no UltimatePOS
      (`profile.blade.php:78` = `business.prefix`), o que faria a tela dizer `Boa tarde, Sr.`.
      O campo é `first_name`.

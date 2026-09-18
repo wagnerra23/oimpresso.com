@@ -263,7 +263,8 @@ citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como
 > chega **falsy** e o fallback `|| 'você'` de `:318` está ativo — o discriminante é a saudação,
 > que sai `Boa tarde.` sem nome. **Causa medida:** a tabela `users` **não tem coluna `name`**
 > (migration `2014_10_12_000000:17-27`; `app/User.php` sem `getNameAttribute`, 0 hits, controle
-> positivo `getUserFullNameAttribute:310`), e 5 controllers da Jana leem `->name`. São **dois
+> positivo `getUserFullNameAttribute:310`), e **6** controllers leem `->name` — 5 em
+> `Modules/Jana/` e um em `Modules/KB/…/MemoriaController.php:56` (aba Memória). São **dois
 > defeitos empilhados**. ⛔ O conserto do outro **não** é `user_full_name`: `surname` é PREFIXO
 > (`profile.blade.php:78` = `business.prefix`), o que daria `Boa tarde, Sr.`. É `first_name`, em
 > PR de backend próprio.

@@ -1191,9 +1191,12 @@ vetor que o `JanaDrillDrawer` existe para evitar (não escrever o que o payload 
 > declara `surname`, `first_name`, `last_name`, `username`, `email`, `password`, `language` — e
 > `app/User.php` não define `getNameAttribute` (0 hits; controle positivo no mesmo arquivo:
 > `getUserFullNameAttribute` na `:310`, rc=0). Logo `optional(auth()->user())->name` devolve
-> **null sempre**, em **5 linhas / 5 arquivos** de `Modules/Jana/Http/Controllers/`
+> **null sempre**, em **6 linhas / 6 arquivos** — cinco em `Modules/Jana/Http/Controllers/`
 > (`IndexController:54`, `ChatController:118`, `AlertasController:46`, `AcaoHitlController:51`,
-> `SuperadminController:152` — varredura pelo destino `'userName'`, contada). A personalização
+> `SuperadminController:152`) **e um em `Modules/KB/Http/Controllers/MemoriaController.php:56`**,
+> que serve a aba **Memória** — mesma área, outro módulo. Varredura pelo destino (`'userName'`)
+> **no repo inteiro**, contada: escopar a `Modules/Jana/` devolve 5 e perde o sexto — é a mesma
+> doença de grep estreito que este UC registra no eixo da copy, um nível acima. A personalização
 > da área Jana **nunca funcionou**; são **dois defeitos empilhados**, não um.
 >
 > ⛔ **O conserto óbvio está errado: NÃO usar `user_full_name`.** No UltimatePOS `surname` é
