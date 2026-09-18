@@ -11,7 +11,24 @@
         "mapSha256": "0f70b5398efb1ac519e4e4c3dfa71f1691edb1ae83023aaabadb70780be30d4c",
         "recordedAt": "2026-09-18T10:49:38.949Z"
       },
-      "tests": [],
+      "tests": [
+        {
+          "command": [
+            "gh",
+            "run",
+            "view",
+            "--job",
+            "103424387659",
+            "--exit-status"
+          ],
+          "exitCode": 0,
+          "runner": "ci",
+          "outputSha256": "21ef8c4a7ffa16710607e0f50bdc4664d8c78de34b5f3ec5ac32788394339df8",
+          "sourceSha256": "846a34652eb8b28a5d1acc86e29d9816945fd25566331741baa5e53bb0f56f34",
+          "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854",
+          "recordedAt": "2026-09-18T13:43:40.271Z"
+        }
+      ],
       "smokes": [],
       "application": {
         "evidence": "memory/requisitos/Arquivos/arquivos-index-gap.md",
@@ -224,7 +241,24 @@
         "mapSha256": "73f4245d280fe49054b68ce2c71e049a44718b0ce15232866c4eb221e49589a2",
         "recordedAt": "2026-09-18T10:49:44.086Z"
       },
-      "tests": [],
+      "tests": [
+        {
+          "command": [
+            "gh",
+            "run",
+            "view",
+            "--job",
+            "103424388127",
+            "--exit-status"
+          ],
+          "exitCode": 0,
+          "runner": "ci",
+          "outputSha256": "92856c1a1e9966cc0585aa2a3ac5726c8c9507920124a6800e58e266074acec8",
+          "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
+          "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
+          "recordedAt": "2026-09-18T13:44:14.833Z"
+        }
+      ],
       "smokes": [],
       "application": {
         "evidence": "memory/requisitos/Fiscal/fiscal-config-visual-comparison.md",
@@ -255,7 +289,24 @@
         "mapSha256": "2b863547b3c0dff421576b795c3ba26b4746565394b4eab8d2971480d20cf2ab",
         "recordedAt": "2026-09-18T10:49:49.282Z"
       },
-      "tests": [],
+      "tests": [
+        {
+          "command": [
+            "gh",
+            "run",
+            "view",
+            "--job",
+            "103424388127",
+            "--exit-status"
+          ],
+          "exitCode": 0,
+          "runner": "ci",
+          "outputSha256": "92856c1a1e9966cc0585aa2a3ac5726c8c9507920124a6800e58e266074acec8",
+          "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
+          "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
+          "recordedAt": "2026-09-18T13:44:20.035Z"
+        }
+      ],
       "smokes": [],
       "application": {
         "evidence": "memory/requisitos/Fiscal/fiscal-eventos-visual-comparison.md",
@@ -299,7 +350,24 @@
         "mapSha256": "4d070af807668a6dcfac0159cc26045ea311dffbc3840f009c9f6a92992ad203",
         "recordedAt": "2026-09-18T10:49:54.899Z"
       },
-      "tests": [],
+      "tests": [
+        {
+          "command": [
+            "gh",
+            "run",
+            "view",
+            "--job",
+            "103424388127",
+            "--exit-status"
+          ],
+          "exitCode": 0,
+          "runner": "ci",
+          "outputSha256": "92856c1a1e9966cc0585aa2a3ac5726c8c9507920124a6800e58e266074acec8",
+          "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
+          "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
+          "recordedAt": "2026-09-18T13:44:25.120Z"
+        }
+      ],
       "smokes": [],
       "application": {
         "evidence": "memory/requisitos/Fiscal/fiscal-sped-visual-comparison.md",
