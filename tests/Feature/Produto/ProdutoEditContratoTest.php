@@ -216,10 +216,18 @@ it('UC-PEDIT-02 · request que manda `type` diferente não muda o tipo do produt
 
     // Hostil de propósito: o cliente mente o `type`, como faria um request forjado.
     //
-    // As 6 chaves do bloco `single` vão junto NÃO por enfeite: sem elas o `update()` aborta
-    // antes do save (UC-PEDIT-06, vermelho conhecido) e este UC mediria AQUELE defeito, não
-    // este. Cada UC isola UMA variável — aqui a variável é o `type`. Medido no CT 100: sem
-    // as chaves, a pré-condição anti-vácuo reprova com "o PUT não persistiu".
+    // As 6 chaves do bloco `single` vão junto NÃO por enfeite: cada UC isola UMA variável,
+    // e aqui a variável é o `type` — não a persistência.
+    //
+    // Fato datado (2026-09-18, medido no CT 100 contra o `update()` de então): SEM essas
+    // chaves, um produto `single` fazia o `update()` abortar antes do save — o acesso a
+    // `$single_data[...]` sem `??` virava ErrorException, engolida pelo catch genérico — e
+    // a pré-condição anti-vácuo reprovava com "o PUT não persistiu". Esse era o UC-PEDIT-06,
+    // outro defeito: sem as chaves, este teste mediria AQUELE.
+    //
+    // O PR #7522 (eixo estoque) passa essas leituras para `array_key_exists`, então a partir
+    // dele a ausência deixa de abortar. Mandar as chaves continua CERTO aqui de qualquer forma
+    // — isolar a variável do UC não depende de qual defeito o writer tem hoje.
     $payload = peditPayloadBase($produto, [
         'type' => 'variable',
         'single_variation_id' => $p->variationId(0),
