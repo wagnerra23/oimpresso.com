@@ -50,7 +50,15 @@ function seedTituloInflado(int $businessId, int $userId, float $coreTotal, float
         'status' => 'final',
         'payment_status' => 'due',
         'final_total' => $coreTotal,
-        'total_remaining_amount' => $coreTotal,
+        // NAO escrever total_remaining_amount aqui: a coluna NAO EXISTE em
+        // `transactions` (nunca existiu no UltimatePOS -- ver a nota em
+        // BridgeExpenseToTitulosCommand:30). O INSERT estourava SQLSTATE 42S22 e
+        // MATAVA o fixture, entao os 4 casos morriam no setup sem exercer nada --
+        // inclusive os dois guards Tier 0 (dry-run nao escreve / nao toca titulo de
+        // outro business), que nunca tinham sido provados.
+        // O comando nao le essa coluna: varredura contada em ResyncFromCoreCommand
+        // da ZERO ocorrencias; ele junta por origem_id + business_id e compara
+        // `ft.valor_total` com `t.final_total`. Remover e neutro pro que o teste prova.
         'transaction_date' => '2026-06-01 10:00:00',
         'created_by' => $userId,
         'created_at' => now(),
@@ -90,7 +98,10 @@ function seedTituloInflado(int $businessId, int $userId, float $coreTotal, float
         'idempotency_key' => 'resynctest_'.$txId,
         'created_by' => $userId,
         'created_at' => now(),
-        'updated_at' => now(),
+        // sem updated_at: `fin_titulo_baixas` e APPEND-ONLY e nao tem a coluna
+        // (16 reais, conferidas com Schema::getColumnListing -- tem created_at e
+        // estorno_de_id, justamente porque baixa nao se ATUALIZA, se ESTORNA).
+        // Escrever updated_at estourava SQLSTATE 42S22 e matava o fixture.
     ]);
 
     return [$txId, $tituloId, $baixaId];
