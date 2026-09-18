@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: comportamento é durável — editar o cadastro não pode perder o que a tela velha (Blade + Delphi) preservava.
 owner: wagner
 last_run: "2026-09-18"
-last_run_ci: "CT 100 (tenant 98, MySQL), cercado por git hash-object antes/depois (idêntico): ANTES do fix 3 failed (7 assertions) — enable_stock 1→0, not_for_selling 1→0, nome não persiste; DEPOIS 5 passed (17 assertions) com UC-PEDIT-08. Smoke de UI no staging fechou os 2 sentidos + controle negativo. UC-PEDIT-03 🧪; UC-PEDIT-01/02/04 ⬜ stub test.fixme"
+last_run_ci: "CT 100 (tenant 98, MySQL), cercado por git hash-object antes/depois (idêntico): ANTES do fix 3 failed (7 assertions) — enable_stock 1→0, not_for_selling 1→0, nome não persiste; DEPOIS 5 passed (17 assertions) com UC-PEDIT-08. Smoke de UI no staging fechou os 2 sentidos + controle negativo. UC-PEDIT-03 🧪; UC-PEDIT-01/02/04 ⬜ stub test.fixme · UC-PEDIT-01/02/04 (#7532, arquivo irmão ProdutoEditContratoTest): CT 100 (oimpresso-staging, MySQL), arquivo ProdutoEditContratoTest: 6 passed (16 assertions), baseline do mesmo arquivo em main era 2 passed (2 assertions); UC-PEDIT-01/02/04 saíram do stub e viraram Pest de comportamento, os três VERDES (guards, não achados). Os 05/06/07 seguem ❌ no arquivo irmão — nada de cálculo foi tocado aqui"
 ---
 
 # Casos de Uso & Aceite — Editar produto
@@ -31,17 +31,20 @@ last_run_ci: "CT 100 (tenant 98, MySQL), cercado por git hash-object antes/depoi
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-PEDIT-01 | Editar produto variável não apaga as variações existentes | must | `CU-PROD-02` + AR-PROD-021/032 | `e2e/produto-edit.spec.ts` (stub) | ⬜ não verificado |
-| UC-PEDIT-02 | Tipo (single/variable/combo) não muda após criação | should | Non-Goal charter + AR-PROD (tipo na criação) | `e2e/produto-edit.spec.ts` (stub) | ⬜ não verificado |
+| UC-PEDIT-01 | Editar produto variável não apaga as variações existentes | must | `CU-PROD-02` + AR-PROD-021/032 | `ProdutoEditContratoTest` (Pest) | 🧪 verde no CT 100 2026-09-18 |
+| UC-PEDIT-02 | Tipo (single/variable/combo) não muda após criação | should | Non-Goal charter + AR-PROD (tipo na criação) | `ProdutoEditContratoTest` (Pest) | 🧪 verde no CT 100 2026-09-18 |
 | UC-PEDIT-03 | Editar produto de outro business → 404 (não vaza, não 500) | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter Goal | `ProdutoEditContratoTest` (Pest) + e2e stub | 🧪 achado CONFIRMADO + corrigido (`update()` → `firstOrFail`) |
-| UC-PEDIT-04 | Campo monetário no update não infla no parser pt-BR | must `[V0]` | `CU-PROD-01.4` + REGRA MESTRE | `e2e/produto-edit.spec.ts` (stub) | ⬜ não verificado |
+| UC-PEDIT-04 | Campo monetário no update não infla no parser pt-BR | must `[V0]` | `CU-PROD-01.4` + REGRA MESTRE | `ProdutoEditContratoTest` (Pest) | 🧪 verde no CT 100 2026-09-18 |
 | UC-PEDIT-05 | Editar não desliga o controle de estoque (`enable_stock`) | must `[V0]` | `AR-PROD-051/056` + REGRA MESTRE + charter Goal | `ProdutoEditPayloadContratoTest` (Pest) | 🧪 achado CONFIRMADO + **corrigido** (vermelho reproduzido no CT 100 em 2026-09-18, verde depois) |
 | UC-PEDIT-06 | Editar produto `single` persiste em vez de estourar 500 | must | charter §Goals ("Salvar") | `ProdutoEditPayloadContratoTest` (Pest) | 🧪 achado CONFIRMADO + **corrigido em 2 pontos** (`preparation_time_in_minutes` e `single_variation_id`) |
 | UC-PEDIT-07 | Editar não apaga flags que a tela não envia | must | `AR-PROD-003/042` | `ProdutoEditPayloadContratoTest` (Pest) | 🧪 achado CONFIRMADO + **corrigido** |
 | UC-PEDIT-08 | Desligar as 3 flags continua possível pela Blade (`hidden 0`) | must `[V0]` | par obrigatório do 05/07 + `AR-PROD-051/056` | `ProdutoEditPayloadContratoTest` (Pest) | 🧪 nasce verde — trava o par que o revert do #4994 mostrou ser obrigatório |
 
-> ⚠️ **UC-PEDIT-01/02/04 seguem stub `test.fixme`** (não rodam, satisfazem só a rastreabilidade G-2)
-> — ⬜ até o Pest rodar no CT100 ([ADR 0062]). O **03** nasceu do adversário de 2026-07-24, que pegou
+> ⚠️ **UC-PEDIT-01/02/04 DEIXARAM de ser stub em 2026-09-18** — viraram Pest de comportamento no
+> `ProdutoEditContratoTest` (o arquivo que esta nota mandava usar), com `PUT` real, `actingAs` e
+> assert de banco. Os três saíram **verdes** no CT 100: são **guards** (travam comportamento
+> correto), não achados. _Fato preservado: até 2026-09-18 eram ⬜ stub `test.fixme`, satisfazendo
+> só a rastreabilidade G-2, ⬜ até o Pest rodar no CT100 ([ADR 0062])._ O **03** nasceu do adversário de 2026-07-24, que pegou
 > o que este casos.md v1 deixara como "🔶 não afirmado" (usando LC-08 como escudo pra NÃO ler —
 > quando LC-08 manda ler). Os **05/06/07** nasceram do **B1-controle** (1º run real do agent
 > `sdd-from-source`, evidência em [`_b1-controle-Edit.casos.agent.md`](../../../../memory/requisitos/Produto/_b1-controle-Edit.casos.agent.md))
@@ -64,7 +67,7 @@ last_run_ci: "CT 100 (tenant 98, MySQL), cercado por git hash-object antes/depoi
 - **Contrato:** `CU-PROD-02` (produto variável — grade preservada) + Edit.charter Non-Goal *"❌ Editar variations dinamicamente (Wave 3)"* — editar o cabeçalho **não é** editar a grade.
 - **Paridade Delphi:** `AR-PROD-021`/`AR-PROD-032` — no legado, "Alterar" edita o registro **preservando** o que já estava carregado (trocar de aba/salvar não perde o produto).
 - **Regressão que defende:** `update()` monta a variação a partir do request; se o payload da Edit React (que **não** manda os campos de variação) fizer o backend zerar a grade, o produto perde SKU/preço/estoque calado.
-- **Status: ⬜** — stub; vira 🧪/✅ quando o Pest rodar no CT100.
+- **Status: 🧪** — **virou Pest em 2026-09-18**, como este casos.md mandava. O `ProdutoEditContratoTest` faz `PUT /products/{id}` com o payload real da Edit React (que não manda `product_variation`) e asserta que as 2 variações sobrevivem **com os mesmos ids** — recriar a grade com ids novos rompe o vínculo de estoque/venda mesmo mantendo a contagem igual. Recibo: rodado no CT 100 (container `oimpresso-staging`, MySQL `oimpresso_staging`) em 2026-09-18 — **6 passed (16 assertions)**; o mesmo arquivo em `main` dava 2 passed (2 assertions). Cerco de hash do `ProductController.php` idêntico antes e depois do run (o checkout de lá é compartilhado entre sessões). Bite-test por mutação dos 4 asserts novos: 4 mutações → 4 vermelhos, então eles leem dado real. Não vira ✅ enquanto a lane não publicar o veredito — status vem do teste, não da palavra (G-7).
 
 ---
 
@@ -75,7 +78,7 @@ last_run_ci: "CT 100 (tenant 98, MySQL), cercado por git hash-object antes/depoi
 - **Contrato:** Edit.charter Non-Goal *"❌ Mudar `type` (Single/Variable/Combo) após criar"* + o `<Input>` de tipo é `disabled` na Edit React (defesa de UI, não de contrato — o UC prova o **backend**).
 - **Paridade Delphi:** o tipo é definido na criação; a tela de alteração não expõe troca de tipo.
 - **Regressão que defende:** o React desabilita o campo, mas UI desabilitada **não** impede o request de mandar `type` — mesma família do furo `UC-PCAD-05`/`UC-PTAB-04` (dropdown escopado ≠ request escopado).
-- **Status: ⬜** — stub.
+- **Status: 🧪** — **virou Pest em 2026-09-18**. O teste manda `type=variable` num produto `single` (request forjado, hostil de propósito) e asserta que o tipo **não** muda. Verde: o `update()` nunca atribui `type` a partir do request — varredura contada no método, 3 ocorrências de `$product->type`, **todas leitura** (`==`), zero atribuição. É guard anti-regressão, não achado. Recibo: rodado no CT 100 (container `oimpresso-staging`, MySQL `oimpresso_staging`) em 2026-09-18 — **6 passed (16 assertions)**; o mesmo arquivo em `main` dava 2 passed (2 assertions). Cerco de hash do `ProductController.php` idêntico antes e depois do run (o checkout de lá é compartilhado entre sessões). Bite-test por mutação dos 4 asserts novos: 4 mutações → 4 vermelhos, então eles leem dado real. Não vira ✅ enquanto a lane não publicar o veredito — status vem do teste, não da palavra (G-7).
 
 ---
 
@@ -95,7 +98,7 @@ last_run_ci: "CT 100 (tenant 98, MySQL), cercado por git hash-object antes/depoi
 - **Teste:** `e2e/produto-edit.spec.ts` — `UC-PEDIT-04` (stub; Pest com o mesmo par `1.234,56`/`204.99605` do `UC-PCAD-04`).
 - **Contrato:** `CU-PROD-01` item 4 `[V0]` + REGRA MESTRE valor/estoque (`proibicoes.md`). `ProductController@update` roda `num_uf` em `single_dpp`/`single_dsp`/`profit_percent` (`ProductController.php:1102-1106 (verificado@d4afe95)`) e `alert_quantity` (`:997`) — **o mesmo parser** que inflou 16 vendas ×100k na ROTA LIVRE (incidente 2026-06-05).
 - **⚠️ Achado de paridade (NÃO afirmado como bug — decisão [W]/[F]):** a **Edit React não tem campo de preço** — o `useForm` não manda `single_dpp`/`single_dsp`/`profit_percent`, e o card "Preço & Imposto" só traz `tax`/`tax_type` (mesmo padrão do `Create.tsx`, §Pendência de contrato do `Create.casos.md`). Já o **Delphi edita Custo/Valor/Margem** com binding bidirecional (`AR-PROD-006`/`007`/`008`). Então: (a) o UC defende o **endpoint** (`update()` parseia pt-BR, caminho Blade/legado); (b) a **ausência do preço na Edit React** é gap de paridade Blade/Delphi→React, registrado abaixo — não afirmo se é Non-Goal ou bug (igual à Pendência do Create; segue [F] reconstruindo o cadastro em abas).
-- **Status: ⬜** — stub.
+- **Status: 🧪** — **virou Pest em 2026-09-18**, com o MESMO par de valores do `UC-PCAD-04` (`1.234,56` e `204.99605`), de propósito: é o mesmo parser nos dois endpoints. Verde nos dois casos — o `num_uf` já carrega a heurística pt-BR canônica, então este UC é **guard anti-regressão do fix de 2026-06-05**, não achado novo. ⛔ **TEST-ONLY**: nada de cálculo foi tocado; a REGRA MESTRE (dupla prova + tabela antes→depois + [W]) vale pra quem for mexer. Recibo: CT 100 (`oimpresso-staging`, MySQL), 2026-09-18 — 6 passed (16 assertions) no arquivo; o bite-test por mutação derruba os dois asserts deste UC.
 
 ---
 
