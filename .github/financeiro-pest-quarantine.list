@@ -82,7 +82,6 @@ Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (10
 Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions) — motivo MEDIDO no rodape (decisao [W] pendente)
 Modules/Financeiro/Tests/Feature/UnificadoControllerTest.php  # 2 failed, 1 skipped, 10 passed (75 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoPlanoContaGuardTest.php  # 6 failed, 1 passed (23 assertions)
-Modules/Financeiro/Tests/Feature/UnificadoStoreTest.php  # 3 failed, 3 passed (21 assertions)
 
 # ─────────────────────────────────────────────────────────────────────────
 # D) SKIP TOTAL — 'passa' com ZERO assertions, logo não prova nada (1)
@@ -139,6 +138,49 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 # executionOrder="random". Quem prova é o run da lane deste PR — se algum ficar
 # vermelho lá, volta pra cá com o motivo REAL escrito, não com o motivo herdado.
 #
+# ── UnificadoStoreTest (2026-09-18, triagem 13/N do bucket C) ────────
+#   3 failed, 3 passed (21 assertions)  →  6 passed (25 assertions)
+#
+# Classificação: DUAS falhas de TESTE, zero regressão de produto — e as duas já
+# tinham precedente consertado NESTE rodapé, o que torna esta a 4ª ocorrência da
+# família "o caso morre fora do que ele se propõe a provar".
+#
+#   (1) TEARDOWN, 2 casos — `$created->forceDelete()` na última linha. As
+#       asserções PASSAVAM; o que estourava era a limpeza: `fin_titulos` é
+#       append-only, `Titulo::delete()` lança DomainException (Titulo.php:121) e o
+#       `forceDelete()` do SoftDeletes chama `delete()` por dentro. Idêntico ao
+#       TituloCriadoEventTest (triagem 1/N). Fix = helper `storeCleanupTitulo()`
+#       pelo query builder, o padrão que TituloCriadoEventTest e
+#       BaixaConservacaoValorContratoTest:96 já documentavam no MESMO módulo.
+#
+#   (2) FIXTURE, 1 caso — o [T0] cross-tenant montava um business SINTÉTICO
+#       (`max(id) + 99999`) sem `owner_id`. `business.owner_id` tem FK NOT NULL pra
+#       `users`, então o insert estourava SQLSTATE 23000/1452 e o caso MORRIA no
+#       setup: o isolamento cross-tenant do store NUNCA foi provado. Mesma forma do
+#       ConciliacaoAuditReabrirTest (#5178) e do ExtratoControllerTest (triagem
+#       2/N). Fix = 2º business REAL, padrão canônico do módulo
+#       (ExtratoControllerTest:96, BackfillExtratoOfxTest:256,
+#       BridgeExpenseToTitulosCommandTest:281) — em CI o seed garante um 2º business
+#       real exatamente "pros testes de isolamento multi-tenant" (pest-mysql-setup).
+#       O teardown deixou de apagar o business: agora ele é do seed, e apagá-lo
+#       destruiria fixture compartilhada das outras 15 lanes.
+#
+# BITE-TEST DO GUARD TIER 0 (não basta ficar verde — tem que MORDER): removi o
+# `->where('business_id', $businessId)` da regra do `plano_conta_id` em
+# StoreTituloRequest:61 e rodei. Caiu EXATAMENTE 1 caso, e foi o certo —
+# "⨯ rejeita plano de outro business no store (Tier 0 ADR 0093)" — com os outros 5
+# verdes. Produção restaurada em seguida.
+#
+# ⚠️ EFEITO COLATERAL DA MUTAÇÃO, e vale pra quem repetir isto: com o scope
+# removido o store ACEITOU e PERSISTIU o título cross-tenant. Como a DB do CT 100
+# NÃO é fresca entre runs (ressalva do cabeçalho), esse resíduo derrubou o run
+# seguinte com UniqueConstraintViolation. Mutação que faz um guard PASSAR escreve
+# justamente o dado que o guard existe pra impedir — limpe depois. Limpei (1
+# título + 1 plano) e re-rodei DUAS vezes: 6 passed (25 assertions) nas duas, o
+# que também prova idempotência entre runs — coisa que o CI, com banco fresco,
+# não consegue testar.
+#
+# PROVA DE EXECUÇÃO (LC-13): assertions 21 → 25, +4 com 6 casos nos dois lados.
 # ── ResyncFromCoreCommandTest (2026-09-18, triagem 12/N do bucket C) ───
 #   4 failed, 1 passed (1 assertions)  →  5 passed (16 assertions)
 #
