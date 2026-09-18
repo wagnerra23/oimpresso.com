@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-17T17:41:13.239Z",
+  "generatedAt": "2026-09-18T10:50:26.535Z",
   "bundle": {
     "id": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3",
     "baseId": "1949443e50ff13031730a8e7fd6f527cca001a4f2e63ba99e4a57b05baff6571",
@@ -14,10 +14,12 @@
     "tested": 0,
     "smoked": 0,
     "lifecycle": {
-      "anchored": 134,
+      "applied": 4,
+      "anchored": 130,
       "to-create": 28
     },
-    "pending": 134,
+    "applied": 4,
+    "pending": 130,
     "to-create": 28
   },
   "transportChanges": [
@@ -44,13 +46,27 @@
       "module": "Arquivos",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
+      "lifecycleState": "applied",
+      "applicationState": "applied",
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Arquivos/arquivos-index.map.json",
+          "mapSha256": "0f70b5398efb1ac519e4e4c3dfa71f1691edb1ae83023aaabadb70780be30d4c",
+          "recordedAt": "2026-09-18T10:49:38.949Z"
+        },
+        "application": {
+          "evidence": "memory/requisitos/Arquivos/arquivos-index-gap.md",
+          "evidenceSha256": "2b9376793051ff28e44a6023bb21850ecbdba4a137b6e5fc299455695cf6eb3b",
+          "recordedAt": "2026-09-18T10:50:10.656Z"
+        },
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854"
+      },
+      "nextAction": "executar teste pelo registrador para produzir recibo verificável"
     },
     {
       "source": "backup-page.jsx",
@@ -815,13 +831,27 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
+      "lifecycleState": "applied",
+      "applicationState": "applied",
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Fiscal/fiscal-config.map.json",
+          "mapSha256": "73f4245d280fe49054b68ce2c71e049a44718b0ce15232866c4eb221e49589a2",
+          "recordedAt": "2026-09-18T10:49:44.086Z"
+        },
+        "application": {
+          "evidence": "memory/requisitos/Fiscal/fiscal-config-visual-comparison.md",
+          "evidenceSha256": "939756ad3e609491f3f9d3261fab6e05cd0ddaca71cf970116b248327427b5f3",
+          "recordedAt": "2026-09-18T10:50:15.889Z"
+        },
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c"
+      },
+      "nextAction": "executar teste pelo registrador para produzir recibo verificável"
     },
     {
       "source": "fiscal-page.jsx",
@@ -845,13 +875,27 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
+      "lifecycleState": "applied",
+      "applicationState": "applied",
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Fiscal/fiscal-eventos.map.json",
+          "mapSha256": "2b863547b3c0dff421576b795c3ba26b4746565394b4eab8d2971480d20cf2ab",
+          "recordedAt": "2026-09-18T10:49:49.282Z"
+        },
+        "application": {
+          "evidence": "memory/requisitos/Fiscal/fiscal-eventos-visual-comparison.md",
+          "evidenceSha256": "ebe71025f6ec8adf5f81049dbe5cf1740772f2fbc31a01a1e2d32d4fc50b9080",
+          "recordedAt": "2026-09-18T10:50:20.895Z"
+        },
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc"
+      },
+      "nextAction": "executar teste pelo registrador para produzir recibo verificável"
     },
     {
       "source": "fiscal-page.jsx",
@@ -890,13 +934,27 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
+      "lifecycleState": "applied",
+      "applicationState": "applied",
+      "compared": true,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "applicationEvidence": {
+        "comparison": {
+          "map": "memory/requisitos/Fiscal/fiscal-sped.map.json",
+          "mapSha256": "4d070af807668a6dcfac0159cc26045ea311dffbc3840f009c9f6a92992ad203",
+          "recordedAt": "2026-09-18T10:49:54.899Z"
+        },
+        "application": {
+          "evidence": "memory/requisitos/Fiscal/fiscal-sped-visual-comparison.md",
+          "evidenceSha256": "7d047ceb70c593dcc62a9d4fa6e7f896b0d72811770582ead870ddfa4180b9e1",
+          "recordedAt": "2026-09-18T10:50:26.121Z"
+        },
+        "tests": [],
+        "smokes": [],
+        "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6"
+      },
+      "nextAction": "executar teste pelo registrador para produzir recibo verificável"
     },
     {
       "source": "fiscal-subpages.jsx",
