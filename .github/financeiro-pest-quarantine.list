@@ -82,7 +82,6 @@ Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (10
 Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4 passed (42 assertions)
 Modules/Financeiro/Tests/Feature/ResyncFromCoreCommandTest.php  # 4 failed, 1 passed (1 assertions)
 Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions) — motivo MEDIDO no rodape (decisao [W] pendente)
-Modules/Financeiro/Tests/Feature/UnificadoControllerTest.php  # 2 failed, 1 skipped, 10 passed (75 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoPlanoContaGuardTest.php  # 6 failed, 1 passed (23 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoStoreTest.php  # 3 failed, 3 passed (21 assertions)
 
@@ -141,6 +140,51 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 # executionOrder="random". Quem prova é o run da lane deste PR — se algum ficar
 # vermelho lá, volta pra cá com o motivo REAL escrito, não com o motivo herdado.
 #
+# ── UnificadoControllerTest (2026-09-18, triagem 15/N do bucket C) ────
+#   2 failed, 11 passed (76 assertions)  →  13 passed (83 assertions)
+#
+# Classificação: DOIS testes podres, zero regressão de produto.
+#
+#   (1) A ASSERÇÃO IMPOSSÍVEL do header X-Inertia, na linha :77 — exatamente onde
+#       o rodapé da triagem 3/N (ProvaVivaControllerTest) avisou que ela estava
+#       copiada: "MESMA LINHA COPIADA EM 3 IRMÃOS AINDA EM QUARENTENA —
+#       DreControllerTest:80, FluxoControllerTest:77 e UnificadoControllerTest:77".
+#       O Fluxo saiu na 7/N; este é o segundo dos três. Sobra o Dre.
+#       O header só existe quando o REQUEST é XHR, e nesse modo o Inertia devolve
+#       JSON — o que faria o assertInertia dos casos vizinhos falhar. Fix = trocar
+#       pela prova mais forte (qual componente a rota monta).
+#
+#   (2) NON-GOAL QUE VIROU GOAL — o caso cobrava "rota /unificado é GET-only:
+#       POST/PUT/DELETE retornam 405". Perguntado ao RUNTIME (não ao código —
+#       §5 2026-07-17), `php artisan route:list --path=financeiro/unificado`:
+#
+#         GET|HEAD  financeiro/unificado        financeiro.unificado.index
+#         POST      financeiro/unificado        financeiro.unificado.store   <-- Goal
+#         PUT       financeiro/unificado/{id}   financeiro.unificado.update  <-- com ID
+#
+#       O POST existe desde a Onda 25 (US-FIN-021, insert manual via
+#       TituloCreateSheet) e tem teste próprio provando que cria Título
+#       (UnificadoStoreTest, triagem 13/N). Por isso o POST devolvia 302 — o store
+#       validando payload vazio e redirecionando — e o caso reprovava desde então.
+#       Cobrar "GET-only" é cobrar o OPOSTO de uma US entregue: mesma família do
+#       Wave23SaturationTest (teste podre por CRESCIMENTO legítimo), e por isso o
+#       encaminhamento NÃO foi trocar 405 por 302 — isso só reiniciaria o relógio.
+#       O Non-Goal ENCOLHEU pro que ainda é Non-Goal: mutação na COLEÇÃO por
+#       PUT/DELETE (sem id).
+#
+#       ⚠️ ISTO É MUDANÇA DE ESCOPO DECLARADA, e escopo é de [W]: o produto já
+#       mudou (US entregue, com teste), então o teste é que contradizia a
+#       realidade — precedencia "teste verde > casos > charter > SPEC". Se o POST
+#       na coleção NÃO era pra existir, o defeito é na US, não aqui.
+#
+# BITE-TEST do Non-Goal encolhido (pra não virar asserção decorativa): acrescentei
+# `Route::put('/unificado', ...)` na COLEÇÃO e rodei. Caiu EXATAMENTE 1 caso, e foi
+# o Non-Goal — 1 failed, 12 passed. Restaurado → 13 passed (83 assertions).
+#
+# PROVA DE EXECUÇÃO (LC-13): assertions 76 → 83, +7.
+#
+# Medido no CT 100, worktree /var/www/qa em origin/main 6e790834540, DB
+# oimpresso_qa provisionada pela receita do CI (.github/actions/pest-mysql-setup).
 # ── Onda7bTroubleshootPresentTest (2026-08-03, triagem 10/N — bucket A) ──
 #   1 failed, 11 passed (44 assertions)  →  12 passed (48 assertions)
 #
