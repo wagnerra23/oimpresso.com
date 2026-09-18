@@ -49,6 +49,36 @@ class OtelHelper
     ];
 
     /**
+     * OTel esta desligado — ou nem da pra PERGUNTAR se esta?
+     *
+     * `config()` estoura `Target class [config] does not exist` quando nao ha app
+     * bootstrapado: CLI cru, worker minimo, e Unit test sem TestCase — os mesmos
+     * tres contextos que o comentario de spanBiz() ja enumerava pro `session()`.
+     *
+     * Nesses casos NAO HA O QUE INSTRUMENTAR, e o contrato de span() ja manda
+     * passar direto ("zero-cost path"). Logo LER a flag nao pode ser mais fatal
+     * que a ausencia dela — era exatamente esse o defeito: o guard que existe pra
+     * nao fazer nada derrubava a operacao observada ANTES de invocar o callback.
+     *
+     * Fail-safe DESLIGANDO (true = nao instrumenta): telemetria indisponivel e
+     * degradacao aceitavel; derrubar a operacao medida nao e.
+     *
+     * Em app bootstrapado (http, console, queue) nada muda: config() resolve e o
+     * valor e o mesmo de antes.
+     *
+     * @see spanBiz() — mesma causa, no eixo auth()/session()
+     */
+    private static function otelIndisponivel(): bool
+    {
+        try {
+            return ! config('otel.enabled', false)
+                || (bool) config('otel.sdk_disabled', false);
+        } catch (\Throwable) {
+            return true;
+        }
+    }
+
+    /**
      * Run callback dentro de OTel span. Zero-cost se OTel ausente.
      *
      * @template T
@@ -60,13 +90,9 @@ class OtelHelper
      */
     public static function span(string $name, array $attributes, callable $callback)
     {
-        // Zero-cost path quando OTel desabilitado.
-        if (! config('otel.enabled', false)) {
-            return $callback();
-        }
-
-        // Kill-switch emergencial (Wave 26): desliga SDK sem mexer flag principal.
-        if (config('otel.sdk_disabled', false)) {
+        // Zero-cost path quando OTel esta desabilitado OU nem da pra perguntar.
+        // Cobre a flag principal e o kill-switch emergencial (Wave 26).
+        if (self::otelIndisponivel()) {
             return $callback();
         }
 
@@ -132,8 +158,7 @@ class OtelHelper
      */
     public static function annotateCurrent(array $attributes, bool $error = false): void
     {
-        if (! config('otel.enabled', false)
-            || config('otel.sdk_disabled', false)
+        if (self::otelIndisponivel()
             || ! class_exists(\OpenTelemetry\API\Trace\Span::class)
         ) {
             return;
@@ -171,14 +196,34 @@ class OtelHelper
      */
     public static function spanBiz(string $name, callable $callback, array $extras = [])
     {
-        // session() não existe em CLI, queue workers e Unit tests sem TestCase.
-        // try/catch evita "Target class [session] does not exist" nesses contextos.
+        // session() E auth() não existem em CLI, queue workers e Unit tests sem
+        // TestCase. O try/catch do session() nasceu com essa nota; o auth() da linha
+        // seguinte ficou FORA dela e estourava
+        // "Target [Illuminate\Contracts\Auth\Factory] is not instantiable" nos MESMOS
+        // contextos que o comentário já enumerava (medido 2026-09-18 no CT 100:
+        // FinanceiroAuditLoggerTest, 4 failed → 5 passed).
+        //
+        // Span é OBSERVAÇÃO: não pode derrubar a operação que mede. Aqui isso era
+        // literal — spanBiz() estourava ANTES de invocar $callback, então o trabalho
+        // observado nem rodava.
+        //
+        // NÃO muda valor: $bizId só alimenta $bizAttrs (atributo de span) logo abaixo,
+        // e 0 já era o fallback anônimo pré-existente.
         try {
             $bizId = session()->get('user.business_id');
         } catch (\Throwable) {
             $bizId = null;
         }
-        $bizId ??= optional(auth()->user())->business_id ?? 0;
+
+        if ($bizId === null) {
+            try {
+                $bizId = optional(auth()->user())->business_id;
+            } catch (\Throwable) {
+                $bizId = null;
+            }
+        }
+
+        $bizId ??= 0;
 
         // Convenção ResourceAttributes canon (config/otel.php): `oimpresso.tenant_id`.
         // Mantém também `business_id` legacy pra compat com call-sites antigos US-WA-083.

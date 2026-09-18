@@ -30,6 +30,28 @@
 # que adicionam linhas são unidos sem conflito — mesma receita do irmão
 # .github/financeiro-pest-quarantine.list, de onde este mecanismo foi copiado).
 #
+# ⚠️ O QUE O `union` NÃO FAZ, e a frase acima sozinha esconde: ele une ADIÇÕES, mas
+# **desfaz REMOÇÃO adjacente EM SILÊNCIO**. Dois PRs que tiram linhas vizinhas produzem
+# merge LIMPO, sem um marcador de conflito sequer, com as duas linhas RESSUSCITADAS.
+# Medido DUAS vezes em 2026-09-18 no #7522: ao mergear o main, a linha removida voltou —
+# na 2ª vez trazendo junto a do #7523, que o main já havia removido.
+# ⚠️ `git apply --3way` NÃO salva: ele reporta "applied cleanly" e ressuscita igual.
+#
+# COMO CONFERIR depois de mergear (nunca confie no merge limpo):
+#   grep -c '^tests/Feature/.../<SeuTest>' <lista>    # 0 = sua remoção sobreviveu
+#   grep '^tests/' <lista> | sort | uniq -d           # vazio = sem duplicata
+#   grep -c '^tests/' <lista>                         # bate com base − (remoções de todos)?
+# ⚠️ A âncora `^` NÃO é zelo: `grep -c <NomeDoTest>` solto conta a NOTA DE SAÍDA que a
+# própria remoção acrescenta nos comentários — devolve 1 com a linha já removida, e você
+# conclui que a remoção não pegou. (Foi o que quase aconteceu no #7522.)
+#
+# COMO RESOLVER se a union já corrompeu: NÃO edite o resultado e NÃO confie no --3way.
+# Parta da versão da base (`git checkout FETCH_HEAD -- <lista>`) e reaplique SÓ a sua
+# mudança, programaticamente — determinístico, e funciona DEPOIS do estrago.
+#
+# (O irmão `financeiro-pest-quarantine.list` carrega a MESMA frase parcial e o mesmo
+# risco; não foi tocado aqui pra não ampliar o raio deste PR.)
+#
 # TIRAR DAQUI é o movimento desejado (a lista deve encolher). PÔR aqui exige
 # motivo escrito na linha — sem isso vira gaveta de silenciar vermelho.
 #
@@ -44,7 +66,6 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 tests/Feature/Produto/ProdutoIndexContratoTest.php         # UC-PIDX-01/02/06: corte silencioso em 200 sem paginação + busca e filtro de inativos não resolvidos no servidor (o UC-PIDX-03, custo/preço, CAIU em 2026-09-18 — ver abaixo)
-tests/Feature/Produto/ProdutoEditPayloadContratoTest.php   # UC-PEDIT-05/06/07: writer trata ausência de chave como zero (enable_stock, not_for_selling) e a edição não persiste — eixo ESTOQUE, regra-mestre: fix é decisão [W]
 # SAIU 2026-09-18:
 #   ProdutoShowContratoTest — UC-PSHOW-01 CORRIGIDO. O branch Inertia de `ProductController@show`
 #     passou a consultar `view_purchase_price`/`access_default_selling_price` e a NÃO EMITIR a chave
@@ -57,6 +78,16 @@ tests/Feature/Produto/ProdutoEditPayloadContratoTest.php   # UC-PEDIT-05/06/07: 
 #     paginação · 02 busca · 06 filtro de inativos) são a OUTRA metade — alcance/filtragem server-side,
 #     trabalho separado, nada a ver com permissão. Medido no CT 100 depois do fix:
 #     3 failed, 7 passed (67 assertions) nos dois arquivos juntos, contra 5 failed / 5 passed antes.
+# SAÍRAM 2026-09-18 (#7522):
+#   ProdutoEditPayloadContratoTest — UC-PEDIT-05/06/07 CORRIGIDOS, e o arquivo sai INTEIRO
+#     verde (5 passed · 17 assertions no CT 100, cercado por `git hash-object` antes/depois).
+#     O writer só escreve `enable_stock`/`not_for_selling`/`enable_sr_no` quando o request
+#     DECLARA a chave, e o Blade passa a declarar o `0` com `hidden` antes de cada checkbox.
+#     O par é obrigatório: sem o hidden, desmarcar viraria no-op — foi o que derrubou a
+#     1ª tentativa (#4943 revertido pelo #4994 por mergear o Blade sem smoke). Desta vez o
+#     smoke de UI veio ANTES (staging CT 100, plugin `input-icheck` ativo): desmarcar desliga,
+#     marcar liga, e o controle negativo (hidden removido) preserva — provando o par.
+#     Nasceu junto o UC-PEDIT-08, que falha se o `hidden` sumir do Blade.
 # SAÍRAM 2026-08-13:
 #   ProdutoUnificadoContratoTest — UC-PUNI-01..06 CORRIGIDOS. O ProdutoUnificadoController
 #     passou a abortar 403 sem product.view/product.create e a NÃO EMITIR as chaves que o
