@@ -121,6 +121,11 @@
             <div class="col-sm-4">
               <div class="form-group">
               <br>
+                {{-- UC-PEDIT-05: hidden 0 ANTES do checkbox. Checkbox desmarcado não envia chave
+                     nenhuma, e o writer passou a PRESERVAR ausência (ProductController@update).
+                     Sem este hidden, desmarcar aqui viraria no-op. Marcado, o "1" do checkbox vem
+                     depois e vence (last-wins do PHP). --}}
+                <input type="hidden" name="enable_stock" value="0">
                 <label>
                   {!! Form::checkbox('enable_stock', 1, $product->enable_stock, ['class' => 'input-icheck', 'id' => 'enable_stock']); !!} <strong>@lang('product.manage_stock')</strong>
                 </label>@show_tooltip(__('tooltip.enable_stock')) <p class="help-block"><i>@lang('product.enable_stock_help')</i></p>
@@ -217,6 +222,8 @@
           @endif
           <div class="col-sm-4">
             <div class="checkbox">
+              {{-- UC-PEDIT-07: hidden 0 declara o desligamento (writer preserva ausência). --}}
+              <input type="hidden" name="enable_sr_no" value="0">
               <label>
                 {!! Form::checkbox('enable_sr_no', 1, $product->enable_sr_no, ['class' => 'input-icheck']); !!} <strong>@lang('lang_v1.enable_imei_or_sr_no')</strong>
               </label>
@@ -227,6 +234,8 @@
           <div class="col-sm-4">
           <div class="form-group">
             <br>
+            {{-- UC-PEDIT-07: hidden 0 declara o desligamento (writer preserva ausência). --}}
+            <input type="hidden" name="not_for_selling" value="0">
             <label>
               {!! Form::checkbox('not_for_selling', 1, $product->not_for_selling, ['class' => 'input-icheck']); !!} <strong>@lang('lang_v1.not_for_selling')</strong>
             </label> @show_tooltip(__('lang_v1.tooltip_not_for_selling'))
