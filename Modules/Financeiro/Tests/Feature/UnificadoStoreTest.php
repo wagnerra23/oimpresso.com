@@ -76,6 +76,20 @@ function storeCreatePlano(int $businessId, string $codigo, string $tipo): PlanoC
     );
 }
 
+/**
+ * Remove titulo criado PELO teste, pelo query builder de proposito.
+ *
+ * `fin_titulos` e append-only por dominio: Titulo::delete() lanca DomainException
+ * (Titulo.php:121) e forceDelete() do SoftDeletes chama delete() internamente, entao
+ * a forma Eloquent SEMPRE estourou aqui -- o caso provava tudo e morria no TEARDOWN.
+ * Mesmo padrao dos irmaos TituloCriadoEventTest e BaixaConservacaoValorContratoTest:96.
+ */
+function storeCleanupTitulo(Titulo $titulo): void
+{
+    DB::table('fin_titulo_baixas')->where('titulo_id', $titulo->id)->delete();
+    DB::table('fin_titulos')->where('id', $titulo->id)->delete();
+}
+
 it('store tipo=receber cria Titulo aberto', function () {
     [$business, $user] = storeBootstrap();
 
@@ -109,7 +123,7 @@ it('store tipo=receber cria Titulo aberto', function () {
     expect($created->origem)->toBe('manual');
     expect($created->created_by)->toBe($user->id);
 
-    $created->forceDelete();
+    storeCleanupTitulo($created);
 });
 
 it('store tipo=pagar cria Titulo aberto', function () {
@@ -140,7 +154,7 @@ it('store tipo=pagar cria Titulo aberto', function () {
     expect($created->tipo)->toBe('pagar');
     expect($created->numero)->toStartWith('P-');
 
-    $created->forceDelete();
+    storeCleanupTitulo($created);
 });
 
 it('rejeita store sem tipo (422)', function () {
@@ -182,15 +196,20 @@ it('rejeita store sem valor_total (422)', function () {
 it('rejeita plano de outro business no store (Tier 0 ADR 0093)', function () {
     [$business, $user] = storeBootstrap();
 
-    $otherBizId = (int) (DB::table('business')->max('id') ?? 0) + 99999;
-    DB::table('business')->insert([
-        'id'         => $otherBizId,
-        'name'       => 'TEST-OTHER-BIZ-STORE',
-        'currency_id' => 1,
-        'start_date' => now()->toDateString(),
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+    // O "outro business" precisa EXISTIR de verdade. O insert sintetico que estava
+    // aqui nao passava `owner_id`, e `business.owner_id` tem FK NOT NULL pra `users`
+    // -- estourava SQLSTATE 23000/1452 e o caso morria ANTES de exercer a rejeicao,
+    // ou seja: este [T0] cross-tenant NUNCA foi provado. Padrao canonico do proprio
+    // modulo: ExtratoControllerTest:96, BackfillExtratoOfxTest:256,
+    // BridgeExpenseToTitulosCommandTest:281. Em CI o seed garante um 2o business real
+    // exatamente "pros testes de isolamento multi-tenant" (pest-mysql-setup).
+    $otherBusiness = Business::where('id', '!=', $business->id)->first();
+
+    if (! $otherBusiness) {
+        test()->markTestSkipped('Sem segundo business no banco pra provar isolamento cross-tenant.');
+    }
+
+    $otherBizId = (int) $otherBusiness->id;
 
     $planoCrossTenant = storeCreatePlano($otherBizId, '3.1.01.XST', 'receita');
 
@@ -206,7 +225,6 @@ it('rejeita plano de outro business no store (Tier 0 ADR 0093)', function () {
 
     if (in_array($response->status(), [403, 404], true)) {
         $planoCrossTenant->forceDelete();
-        DB::table('business')->where('id', $otherBizId)->delete();
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
 
@@ -219,8 +237,9 @@ it('rejeita plano de outro business no store (Tier 0 ADR 0093)', function () {
         ->exists();
     expect($exists)->toBeFalse();
 
+    // So o plano sai: o business agora e REAL e do seed -- apagar seria destruir
+    // fixture compartilhada das outras lanes.
     $planoCrossTenant->forceDelete();
-    DB::table('business')->where('id', $otherBizId)->delete();
 });
 
 it('rejeita plano de tipo incompatível no store (receber + despesa)', function () {
