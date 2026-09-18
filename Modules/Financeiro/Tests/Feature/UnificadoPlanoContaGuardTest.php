@@ -96,7 +96,13 @@ function guardCreateTitulo(int $businessId, int $userId, string $tipo, ?int $pla
         'valor_aberto'      => 50.00,
         'moeda'             => 'BRL',
         'emissao'           => now()->toDateString(),
-        'vencimento'        => now()->addDays(15)->toDateString(),
+        // DENTRO da janela default do Unificado, sempre. UnificadoController::parsePeriodo
+        // cai em [now()->startOfMonth(), now()->endOfMonth()] e o filtro default e por
+        // `vencimento` -- entao `now()->addDays(15)` cru sai do mes a partir do DIA 16 e o
+        // titulo some do payload. Bomba-relogio: o arquivo passava do dia 1 ao 15 e
+        // reprovava do 16 em diante (medido 2026-09-18, dia 18: vencimento caia em 03/10).
+        // Clampar no fim do mes mantem a intencao (vencer no futuro) sem depender do dia.
+        'vencimento'        => now()->addDays(15)->min(now()->endOfMonth())->toDateString(),
         'competencia_mes'   => now()->format('Y-m'),
         'origem'            => 'manual',
         'plano_conta_id'    => $planoId,
@@ -107,6 +113,25 @@ function guardCreateTitulo(int $businessId, int $userId, string $tipo, ?int $pla
 // ════════════════════════════════════════════════════════════════════════
 // G1 — shape Inertia expõe planosConta como prop (não pode sumir)
 // ════════════════════════════════════════════════════════════════════════
+/**
+ * Remove titulo criado PELO teste, pelo query builder de proposito.
+ *
+ * `fin_titulos` e append-only por dominio: Titulo::delete() lanca DomainException
+ * (Titulo.php:121) e forceDelete() do SoftDeletes chama delete() internamente, entao
+ * a forma Eloquent SEMPRE estourou aqui -- os casos provavam tudo e morriam no
+ * TEARDOWN. Mesmo padrao dos irmaos TituloCriadoEventTest e
+ * BaixaConservacaoValorContratoTest:96.
+ *
+ * Tem que rodar ANTES do $plano->forceDelete(): PlanoConta::delete() (PlanoConta.php:58)
+ * recusa remover conta com titulos vinculados, entao a falha do titulo cascateava
+ * pro plano -- por isso o arquivo inteiro caia, nao so os casos com titulo.
+ */
+function guardCleanupTitulo(Titulo $titulo): void
+{
+    DB::table('fin_titulo_baixas')->where('titulo_id', $titulo->id)->delete();
+    DB::table('fin_titulos')->where('id', $titulo->id)->delete();
+}
+
 it('GUARD G1: Inertia prop planosConta exposta na rota /unificado', function () {
     $user = guardBootstrap()[1];
 
@@ -134,7 +159,7 @@ it('GUARD G2: shapeTitulo expõe 3 campos plano_conta_* em cada lançamento', fu
     $response = $this->actingAs($user)->get('/financeiro/unificado');
 
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        guardCleanupTitulo($titulo);
         $plano->forceDelete();
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
@@ -149,7 +174,7 @@ it('GUARD G2: shapeTitulo expõe 3 campos plano_conta_* em cada lançamento', fu
         expect($found['plano_conta_id'])->toBe($titulo->plano_conta_id);
     });
 
-    $titulo->forceDelete();
+    guardCleanupTitulo($titulo);
     $plano->forceDelete();
 });
 
@@ -168,7 +193,7 @@ it('GUARD G3: relation planoConta é eager-loaded (sem N+1 ao iterar)', function
     $queries = DB::getQueryLog();
     DB::disableQueryLog();
 
-    $titulos->each->forceDelete();
+    $titulos->each(fn (Titulo $t) => guardCleanupTitulo($t));
     $plano->forceDelete();
 
     if (in_array($response->status(), [403, 404], true)) {
@@ -199,7 +224,7 @@ it('GUARD G4: Edit PUT /unificado/{id} persiste plano_conta_id', function () {
     ]);
 
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        guardCleanupTitulo($titulo);
         $plano->forceDelete();
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
@@ -208,7 +233,7 @@ it('GUARD G4: Edit PUT /unificado/{id} persiste plano_conta_id', function () {
     $titulo->refresh();
     expect($titulo->plano_conta_id)->toBe($plano->id);
 
-    $titulo->forceDelete();
+    guardCleanupTitulo($titulo);
     $plano->forceDelete();
 });
 
@@ -230,7 +255,7 @@ it('GUARD G5: Edit rejeita plano de tipo incompatível com título (receber + de
     ]);
 
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        guardCleanupTitulo($titulo);
         $planoDespesa->forceDelete();
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
@@ -239,7 +264,7 @@ it('GUARD G5: Edit rejeita plano de tipo incompatível com título (receber + de
     $titulo->refresh();
     expect($titulo->plano_conta_id)->toBeNull();
 
-    $titulo->forceDelete();
+    guardCleanupTitulo($titulo);
     $planoDespesa->forceDelete();
 });
 
@@ -274,7 +299,7 @@ it('GUARD G6: Store POST /unificado persiste plano_conta_id no novo título', fu
     expect($created)->not->toBeNull();
     expect($created->plano_conta_id)->toBe($plano->id);
 
-    $created->forceDelete();
+    guardCleanupTitulo($created);
     $plano->forceDelete();
 });
 
@@ -284,16 +309,20 @@ it('GUARD G6: Store POST /unificado persiste plano_conta_id no novo título', fu
 it('GUARD G7: PlanoConta cross-tenant rejeitado em Update + Store', function () {
     [$business, $user] = guardBootstrap();
 
-    // Cria business B ficcional.
-    $otherBizId = (int) (DB::table('business')->max('id') ?? 0) + 88888;
-    DB::table('business')->insert([
-        'id'         => $otherBizId,
-        'name'       => 'GUARD-G7-OTHER-BIZ',
-        'currency_id' => 1,
-        'start_date' => now()->toDateString(),
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+    // O "business B" precisa EXISTIR de verdade. O insert ficcional que estava aqui
+    // nao passava `owner_id`, e `business.owner_id` tem FK NOT NULL pra `users` --
+    // estourava SQLSTATE 23000/1452 e o caso morria ANTES de exercer a rejeicao, ou
+    // seja: este [T0] cross-tenant NUNCA foi provado. Padrao canonico do proprio
+    // modulo: ExtratoControllerTest:96, BackfillExtratoOfxTest:256,
+    // BridgeExpenseToTitulosCommandTest:281. Em CI o seed garante um 2o business real
+    // exatamente "pros testes de isolamento multi-tenant" (pest-mysql-setup).
+    $otherBusiness = Business::where('id', '!=', $business->id)->first();
+
+    if (! $otherBusiness) {
+        test()->markTestSkipped('Sem segundo business no banco pra provar isolamento cross-tenant.');
+    }
+
+    $otherBizId = (int) $otherBusiness->id;
 
     $planoCrossTenant = guardCreatePlano($otherBizId, '3.1.01.XT7', 'receita');
     $titulo = guardCreateTitulo($business->id, $user->id, 'receber');
@@ -326,9 +355,10 @@ it('GUARD G7: PlanoConta cross-tenant rejeitado em Update + Store', function () 
     expect($created)->toBeFalse('Store aceitou plano cross-tenant — VIOLAÇÃO TIER 0');
 
     // Cleanup
-    $titulo->forceDelete();
+    guardCleanupTitulo($titulo);
+    // So o plano sai: o business agora e REAL e do seed -- apagar seria destruir
+    // fixture compartilhada das outras 15 lanes.
     $planoCrossTenant->forceDelete();
-    DB::table('business')->where('id', $otherBizId)->delete();
 
     if (in_array($resp1->status(), [403, 404], true) || in_array($resp2->status(), [403, 404], true)) {
         test()->markTestSkipped('Module gate bloqueia neste env.');
