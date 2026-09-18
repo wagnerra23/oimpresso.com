@@ -770,6 +770,35 @@ jobs:
       - name: _lib-charter morde (read/frontmatter/walk/SKIP_DIRS · espinha dos 3 consumidores)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design/_lib-charter.test.mjs
+      # O CONSUMIDOR da lib acima, e o unico dos 3 sem prova propria rodando nesta lane. O
+      # `design-diff-lote` tem `--selftest` desde que nasceu (item 4 autorizado por [W] em
+      # 2026-09-06) e nunca foi invocado por ninguem. Medido em 2026-09-18 com `rg --hidden`
+      # no repo inteiro: o basename aparece 1x NESTE arquivo — na linha de COMENTARIO logo
+      # acima, sobre `_lib-charter` — e 1x noutro comentario (`ancora.mjs:684`); zero steps o
+      # executam, zero entradas em package.json / .claude / scripts. Hit em comentario nao e
+      # invocador (§5 2026-07-28) — e e a mesma correcao que o proprio guard de orfaos levou
+      # em 2026-07-28, quando 3 scripts ficavam verdes com comentario fazendo de invocador.
+      #
+      # POR QUE o `selftest-registry-check` nao cobrava (ele esta CERTO, o buraco era humano):
+      # ele e report-only e so lista o subconjunto com os 2 sinais juntos (`--check` + header
+      # citando gate/cadencia). O lote declara no docblock "NAO e gate", entao nao casa. E o
+      # criterio ingenuo que casaria — "tem --selftest e nao tem invocador" — foi MEDIDO em
+      # 85% de falso-positivo (46 acusados, 39 FP) e rejeitado (§5 2026-08-14). Wirar a mao
+      # era a unica saida disponivel; o guard nao tinha como cobrar sem virar ruido.
+      #
+      # Hermetico e barato, medido nesta arvore em 2026-09-18: 59/59 ok, rc=0, ~370ms (3 runs
+      # de 373/376/361). Sem playwright, sem app vivo, sem DB e sem rede externa — os unicos
+      # `fetch` do arquivo apontam pra 127.0.0.1 do servidor que o proprio teste sobe.
+      # O QUE ELE NAO COBRE, por construcao e por lei: o render pareado (browser + auth +
+      # CDN), que o proprio selftest anuncia fora do escopo ("partes puras — o render exige
+      # playwright + app vivo"). Render pareado prod x proto NAO entra em CI nem em cron
+      # (ADR 0290 `status: recusado`, `superseded_by: []`, conferida em 2026-09-18; §5
+      # 2026-07-09 estende a recusa a "CI ou agendado"). Isto aqui trava as partes puras —
+      # o resumo por tela, o parse do `--compare`, a sonda do dono e o servidor do espelho.
+      # A MEDICAO em si segue sob demanda, e e assim de proposito.
+      - name: design-diff-lote morde (partes puras · resumo/sonda/servidor do espelho · hermetico)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design/design-diff-lote.mjs --selftest
       - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/ds-push.test.mjs
