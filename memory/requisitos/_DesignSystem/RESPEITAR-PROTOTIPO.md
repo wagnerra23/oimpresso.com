@@ -60,6 +60,19 @@ deixou de **absolver** e passou a **registrar dívida**.
 > que roda no CI, e vale a regra de sempre — [LC-22](../../LICOES_CODE.md), doc que a máquina lê
 > se valida **rodando a máquina**, não revisando o texto.
 
+> ⚠️ **Segunda ponta solta, mesma natureza — `reconcile-triplet.mjs`.** Ele gera a legenda
+> *"**DIVERGÊNCIA DECLARADA** — diferem, mas o frontmatter tem `divergence_from_blueprint` (desvio
+> consciente)"* (`:513`, com os rótulos em `:434` e `:459`), que sai nos relatórios derivados — por
+> exemplo `memory/requisitos/Produto/_telas/produto-index-setor-matrix.md`, cujo frontmatter
+> declara `gerado_por: scripts/governance/reconcile-triplet.mjs`. **Esses arquivos NÃO se editam à
+> mão:** a próxima execução com `--write` sobrescreve, e o texto volta. O conserto é no gerador, em
+> PR próprio.
+>
+> **As duas pontas juntas dizem o tamanho honesto desta revogação:** a norma mudou hoje; as duas
+> máquinas que a operacionalizam ainda falam o vocabulário antigo, e cada uma sai num PR que possa
+> ser validado rodando-a. Quem ler este documento antes disso vai ver a máquina discordar dele —
+> e agora sabe por quê.
+
 > ⚠️ **Editar o código direto, sem declarar, é o drift** — a M1 pega. Não é "a máquina te barrando": é a máquina **sabendo que você alterou** e pedindo o porquê. Advisory (não bloqueia) — é aviso, não muro.
 
 **Placeholders não contam** (L-24 *presença ≠ correção*, [proibicoes §5](../../proibicoes.md)): `divergence_from_blueprint: "none"` ou `related_prototype: n/a (herda PT-01)` **não** limpam o flag — a M1 mede o **valor semântico**, não "a linha apareceu no diff". E o sinal tem que ser **fresco** (tocado neste PR): uma linha velha de desvio não cega a tela pra sempre.
