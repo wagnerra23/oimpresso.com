@@ -42,6 +42,13 @@ on:
       # o disclaimer nao toca Modules/Financeiro/** -> skip-as-pass -> o guard do anti-hook
       # ("agente NAO remove o disclaimer") fica mudo no PR que ele existe pra pegar.
       - 'resources/js/Pages/Financeiro/Impostos/Index.tsx'
+      # MESMO motivo, app/Util/OtelHelper.php (2026-09-18): FinanceiroAuditLoggerTest saiu da
+      # quarentena porque o OtelHelper passou a honrar o proprio zero-cost path, e esta lane e a
+      # UNICA que exercita esse contrato. Varredura contada: o teste nao esta na
+      # .github/ci-sqlite-pest.list e Financeiro nao esta na matriz do modules-pest.yml. Sem este
+      # path no gatilho, o PR que quebrar o guard de novo da skip-as-pass e o teste fica MUDO
+      # (LC-11/LC-13) - o mesmo buraco que as duas notas acima ja fecham pro app.tsx e o Impostos.
+      - 'app/Util/OtelHelper.php'
       # A quarentena DECIDE o run-set — mexer nela sem rodar a lane é falso verde.
       - '.github/financeiro-pest-quarantine.list'
       - '.github/actions/pest-mysql-setup/**'
@@ -92,6 +99,9 @@ jobs:
               # idem pro disclaimer de estimativa da tela Impostos (UC-IMP-07 / C5a):
               # o guard le ESTE arquivo, entao ele precisa estar no gatilho (2026-08-31).
               - 'resources/js/Pages/Financeiro/Impostos/Index.tsx'
+              # idem pro OtelHelper (2026-09-18): esta e a unica lane que roda o teste do
+              # contrato zero-cost dele - sem o path aqui, quebrar o guard fica mudo.
+              - 'app/Util/OtelHelper.php'
               # sem esta linha, PR que só mexe na quarentena dá skip-as-pass:
               # verde sem ter rodado nada (incidente 2026-07-28, PR #4965)
               - '.github/financeiro-pest-quarantine.list'
