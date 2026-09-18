@@ -1,7 +1,7 @@
 {
   "url": "https://staging.oimpresso.com/fiscal/nfse",
-  "theme": "light",
-  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C NFS-e Sistema Nacional NT 2024-001 · 0 no período · R$ 0,00 autorizado tudo autorizado Buscar Cockpit NF-e · NFC-e NFS-e Manifesto DF-e Eventos Certif. & Cfg. SPED & Livros Todas 0 Autorizadas 0 Rejeitadas 0 Processando 0 Canceladas 0 Nenhuma NFS-e encontrada Ajuste os filtros ou aguarde primeira emissão deste mês. Débitos conhecidos desta tela Os chips filtram por estado da nota de serviço autorizadas, rejeitadas, em processamento (rascunho + processando), canceladas. Existe no Controller; sem teste do resultado filtrado. sem teste A busca aceita número, código de verificação, nome e documento do tomador sem teste do resultado. sem teste O filtro de competência restringe as linhas ao mês escolhido só o caminho de mês inválido tem teste; o caminho feliz não. sem teste O município da prestação aparece na linha a coluna não existe no schema em produção (duelo de duas migrations para a mesma tabela, resolvido revertendo o Controller para o schema antigo e traduzindo os estados). Hoje o campo volta vazio por desenho. Ver SDD §5.2. sem teste · débito de schema Cockpit NF-e Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C NFS-e Sistema Nacional NT 2024-001 · 3 no período · R$ 0,00 autorizado tudo autorizado Buscar Cockpit NF-e · NFC-e NFS-e Manifesto DF-e Eventos Certif. & Cfg. SPED & Livros Todas 3 Autorizadas 0 Rejeitadas 0 Processando 3 Canceladas 0 Número Tomador Município Cód. serviço Status Valor Emissão — WAGNER WR2 TESTE FICTICIO — — — Pendente R$ 100,00 ISS R$ 2,00 08/09 11:20 — TOMADOR FICTICIO TESTE 2 LTDA 00000000000000 — — Pendente ISS 0.02 % R$ 250,00 ISS R$ 5,00 08/09 11:20 — TOMADOR FICTICIO TESTE LTDA 00000000000000 — — Pendente ISS 0.02 % R$ 100,00 ISS R$ 2,00 08/09 11:20 Débitos conhecidos desta tela Os chips filtram por estado da nota de serviço autorizadas, rejeitadas, em processamento (rascunho + processando), canceladas. Existe no Controller; sem teste do resultado filtrado. sem teste A busca aceita número, código de verificação, nome e documento do tomador sem teste do resultado. sem teste O filtro de competência restringe as linhas ao mês escolhido só o caminho de mês inválido tem teste; o caminho feliz não. sem teste O município da prestação aparece na linha a coluna não existe no schema em produção (duelo de duas migrations para a mesma tabela, resolvido revertendo o Controller para o schema antigo e traduzindo os estados). Hoje o campo volta vazio por desenho. Ver SDD §5.2. sem teste · débito de schema Cockpit NF-e Buscar Cmd+K — busque tasks, epics, cycles ou projects",
   "roles": {
     "kpi": {
       "count": 0,
@@ -36,8 +36,103 @@
         "exemplos": {}
       }
     ],
-    "celulas": null,
-    "tabela": null,
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.2,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "700",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 42.8,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 10,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.7,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "99px",
+          "borda": false,
+          "bg": "oklch(0.96 0.05 60)",
+          "dot": false
+        }
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 10.2,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "700",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.2,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 10,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 3,
+      "linhasComEstado": 0
+    },
     "shell": {
       "papeis": {
         "atalhoTopo": {

@@ -1,0 +1,119 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR OFFICEIMPRESSO · 3 locais · 6 ajustes · 5 transferências Estoque Gestor (Wagner) Atualizado 09:42 Novo ajuste Contar Nova transferência Painel Ajustes 6 Transferências 2 Vencimentos 4 Contagem 1 Resumo de hoje · 08/05, 09:42 6 ajustes e 5 transferências no seu escopo. A perda acumulada é R$ 2.100,30 , boa parte de ajuste anormal. Fora do lugar: R$ 4.643,60 em rota, R$ 1.350,00 em lote vencido e R$ 7.537,20 reservado em documento aberto — nada disso é vendável hoje. Comece pela contagem aberta: ela é a única que te diz onde o sistema e a prateleira discordam. Contagem Lotes vencidos Em rota Novo ajuste PERDA DO MÊS R$ 2.100,30 6 ajustes · R$ 1.537,80 anormal EM ROTA 2 R$ 4.643,60 sem mover saldo RESERVADO R$ 7.537,20 no estoque, mas já prometido LOTES VENCIDOS 2 R$ 1.350,00 pra baixar ANÁLISES DO MÓDULO clique num card pra ver de onde vem o número Onde a perda se concentra valor ajustado por produto · mai/26 47% num só item INS-022 R$ 1.080,00 PROD-200 R$ 382,50 PROD-022 R$ 348,00 PROD-310 R$ 233,40 PROD-201 R$ 134,40 INS-014 R$ 102,00 Tinta solvente CMYK 5L responde pela maior fatia — vale olhar manuseio e corte antes de comprar mais. Normal x anormal a régua fiscal do ajuste Normal 3 · R$ 562,50 Anormal 3 · R$ 1.537,80 Anormal precisa justificativa: perda evitável, sinistro, vencimento. Normal é o refile esperado da produção. Físico, reservado e livre INV-4 — reserva não é baixa Matriz R$ 2.961,60 de R$ 18.777,80 Loja Centro R$ 232,00 de R$ 2.817,60 Depósito R$ 4.343,60 de R$ 51.744,00 A barra é a fatia reservada em venda ou OS aberta. Ajuste e transferência só podem consumir o que está livre. Validade vencendo lotes com 30 dias ou menos L-2851 · INS-022 · Depósito vencido há 18 dias LL-330 · PROD-200 · Matriz vencido há 10 dias LV-118 · PROD-022 · Loja Centro em 14 dias L-2860 · INS-022 · Matriz em 28 dias valor vencido R$ 1.350,00 Lote vencido continua somando saldo até alguém lançar o ajuste anormal. O QUE FAZER PRIMEIRO Uma contagem aberta com 2 divergências Contagem aberta é foto que envelhece — fechar gera o ajuste e conserta o saldo. Ver contagem 2 lotes vencidos ainda somando saldo R$ 1.350,00 que o sistema conta e a prateleira não tem. Ver vencimentos 2 transferências sem mover saldo R$ 4.643,60 em rota. Só o status terminal libera a venda no destino (R-XFER-005). Ver em rota",
+  "roles": {
+    "kpi": {
+      "count": 4,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "PERDA DO MÊSR$",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 28
+        },
+        {
+          "label": "EM ROTA2R$ 4.6",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 22
+        },
+        {
+          "label": "RESERVADOR$ 7.",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 22
+        },
+        {
+          "label": "LOTES VENCIDOS",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 22
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

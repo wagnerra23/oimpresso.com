@@ -1,0 +1,228 @@
+{
+  "url": "https://staging.oimpresso.com/sells",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Vendas 6 vendas · R$ 14,5k faturado Nova venda Foco Caixa Faturamento Comissão Todas Imprimir caixa Visões Faturado hoje R$ 0,00 — · 0 vendas Ticket médio R$ 0,00 ↓ -100% vs semana passada A receber R$ 14,5k ● 6 frescos 0–30d 31–60d +60d Pagos hoje R$ 0,00 0 pago s hoje PIX hoje R$ 0,00 sem faturamento hoje Todas 6 Paga 0 Pendente 6 Faturada 0 Cancelada 0 Operacional Financeira Produção Buscar venda, cliente, chave SEFAZ… Filtros avançados Venda Data Cliente Atendido por Origem Pipeline Fiscal Pagamento Total Status # 09/09 07:55 Cliente CI CI CI balcão Oficina — — — ● — R$ 6.010,00 Pendente # 09/09 07:55 Cliente CI CI CI balcão Oficina — — — ● — R$ 0,00 Pendente # VD-TEST-6aa13b376a460 09/09 07:55 — CI CI balcão Oficina — — — ● — R$ 1.234,56 Pendente # 09/09 07:54 Cliente CI CI CI balcão Oficina — — — ● — R$ 6.010,00 Pendente # 09/09 07:54 Cliente CI CI CI balcão Oficina — — — ● — R$ 0,00 Pendente # VD-TEST-6aa13ae878096 09/09 07:54 — CI CI balcão Oficina — — — ● — R$ 1.234,56 Pendente Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "saved-tree",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "menu-visoes",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 2.5,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.8,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 6.5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 6.3,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 13.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "700",
+        "blocos": 3,
+        "pill": {
+          "radius": "50%",
+          "borda": false,
+          "bg": "rgba(0, 0, 0, 0)",
+          "dot": false
+        }
+      },
+      {
+        "col": 5,
+        "tag": "A",
+        "align": "left",
+        "larguraPct": 10.7,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 11,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": {
+          "radius": "99px",
+          "borda": false,
+          "bg": "oklch(0.965 0.004 90)",
+          "dot": false
+        }
+      },
+      {
+        "col": 7,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "700",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 8,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.4,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 3,
+        "pill": null
+      },
+      {
+        "col": 9,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.5,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 10,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 8.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "10px",
+          "borda": false,
+          "bg": "oklch(0.955 0.072 75)",
+          "dot": false
+        }
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 6,
+      "linhasComEstado": 6
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

@@ -1,9 +1,9 @@
 {
   "id": "Fiscal/Eventos",
-  "source": "fiscal-page.jsx",
+  "source": "fiscal-subpages.jsx",
   "target": "resources/js/Pages/Fiscal/Eventos.tsx",
   "token": "fiscal-eventos",
-  "frescor": "verificado 2026-09-08",
+  "frescor": "verificado 2026-09-17",
   "contrato": "governance/design/contracts/fiscal-eventos.contract.json",
   "compare": {
     "rc": 2,
@@ -21,7 +21,7 @@
     "urlFinal": "https://staging.oimpresso.com/fiscal/eventos",
     "componenteInertia": null
   },
-  "medidoEm": "2026-09-08T13:13:33.965Z",
+  "medidoEm": "2026-09-18T12:37:58.562Z",
   "baseUrl": "https://staging.oimpresso.com",
-  "bundle": "f99cbe0b5c32a054223b93610be82ef4c77408e722bde916079b90b4f6ed096c"
+  "bundle": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3"
 }

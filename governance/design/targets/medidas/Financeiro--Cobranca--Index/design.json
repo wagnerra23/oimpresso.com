@@ -1,0 +1,184 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Cobrança Maio 2026 · ROTA LIVRE ✦ Resumir mês Gateways Remessa/Retorno Nova cobrança Financeiro Cobrança Assinaturas Fluxo de caixa Conciliação DRE / Relatórios Plano de contas Impostos e obrigações ⋯ Funil de cobrança · maio 2026 Em aberto 5 R$ 5.484,80 → Lembrete 3 3d antes do vcto → Cobrança ativa 1 1d após vcto → Vencidos +5d 2 R$ 5.790,00 → Protesto 0 30d+ Pago no mês R$ 8.069,80 5 liquidações · ticket R$ 1.613,96 Vencido R$ 5.790,00 2 cobranças · R-mat. cobrança Em aberto R$ 5.484,80 5 cobranças · próximo vencimento amanhã Próx. janela remessa hoje 18:30 C6 CNAB diário · 14 títulos prontos Todos 14 Em aberto 5 Pagas 5 Vencidas 2 Canceladas 1 Erro 1 Exportar Tipo Todos Boleto PIX PIX Automático Cartão Todos gateways Inter PJ C6 Bank Asaas BCB · PIX Automático Todas contas destino Inter PJ · Operacional Itaú PJ · Reserva Asaas · Operacional BCB · Recebedor PIX Aut. Origem Todas Venda Recorrente SaaS Oimpresso Vencimento Pagador / Origem Tipo · Gateway Conta destino Nosso nº Valor Status 22/05/2026 em 3d Padaria Pão Quente LTDA 12.***.***1/0001-08 · Venda TR-9821 IN boleto Inter PJ · Operacional Inter · Ag 0001 00000000018410 480,00 Emitida 20/05/2026 amanhã Sapataria Bom Jesus 08.***.***1/0001-12 · Venda TR-9820 AS pix Asaas · Operacional Asaas cob_ 1840 1.280,00 Emitida 19/06/2026 19/06/2026 Acme Comércio Ltda 11.***.***1/0001-33 · Acme BC pix aut. BCB · Recebedor PIX Aut. BCB mandato # 1839 99,90 Emitida mandato ativo 21/05/2026 em 2d Distrib. Norte Mat. Elétrico 04.***.***1/0001-44 · Fatura RB #9818 IN boleto Inter PJ · Operacional Inter · Ag 0001 00000000018380 3.425,00 Emitida 08/05/2026 há 11d Açougue do Bairro ME 22.***.***2/0001-77 · Venda TR-9815 IN boleto Inter PJ · Operacional Inter · Ag 0001 00000000018350 890,00 Paga 10/05/2026 há 9d Studio Alfa Design 19.***.***2/0001-30 · Venda AS pix Asaas · Operacional Asaas cob_ 1834 2.480,00 Paga 15/05/2026 há 4d TechPro Equipamentos 17.***.***2/0001-22 · TechPro BC pix aut. BCB · Recebedor PIX Aut. BCB mandato # 1833 99,90 Paga 03/05/2026 há 16d Imobiliária Centro 17.***.***2/0001-30 · Venda TR-9812 AS cartão Asaas · Operacional Asaas — 4.500,00 Paga 12/05/2026 há 7d Mercado União 33.***.***1/0001-22 · Venda TR-9809 IN boleto Inter PJ · Operacional Inter · Ag 0001 00000000018290 1.670,00 Vencida 10/05/2026 há 9d Loja Casa & Cia 29.***.***1/0001-15 · Venda AS pix Asaas · Operacional Asaas cob_ 1828 4.120,00 Vencida 15/05/2026 há 4d Farmácia Vida 09.***.***2/0001-55 · Venda IN boleto Inter PJ · Operacional Inter · Ag 0001 — 580,00 Cancelada 20/05/2026 amanhã Auto Posto Rota Mor 42.***.***1/0001-77 · Recorrente C6 boleto — — 1.240,00 Erro 19/05/2026 hoje ROTA LIVRE Comunicação Visual 12.***.***8/0001-90 · ROTA LIVRE BC pix aut. BCB · Recebedor PIX Aut. BCB mandato # 1810 99,90 Paga 19/05/2026 hoje WR Sistemas Ltda 15.***.***2/0001-44 · WR BC pix aut. BCB · Recebedor PIX Aut. BCB mandato # 1809 199,90 Emitida mandato ativo",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": null,
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.7,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 27.5,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 4,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.4,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 9,
+        "weight": "700",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.4,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.2,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 9.4,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.4,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 8.9,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 14,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

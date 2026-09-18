@@ -1,0 +1,181 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Gerenciador de Módulos 32 módulos · 32 ativos · 0 inativos buscar app-wide · cross-tenant Total 32 Ativos 32 Inativos 0 Com erro 0 Área Status 32 módulos Módulo Área Status Migrations Ativo Superadmin superadmin · v 0.0 Allows you to create packages & sell subscription to multiple businesses. Administração Ativo 5 ProductCatalogue productcatalogue · v 0.0 Catalogue & Menu module. Catálogo Ativo 2 Crm crm · v 0.0 Crm Module. Comercial Ativo 8 Woocommerce woocommerce · v 0.0 Allows you to connect POS with WooCommerce website. Comercial Ativo 3 Cms cms · v 0.0 Mini CMS para gerenciar conteúdo do frontend — landing, blog, contato e demais páginas. Conteúdo Ativo 5 Fiscal fiscal · v 0.0 Cockpit fiscal unificado — NF-e/NFC-e + NFS-e + manifesto DF-e + eventos + SPED numa visão só. Financeiro Ativo 4 NfeBrasil nfebrasil · v 0.0 Vender com nota fiscal sem virar contador. NFC-e em 1 clique, NF-e B2B sem fricção, SPED pronto. Financeiro Ativo 10 Jana jana · v 0.0 Chat IA conversacional do business. Conversa, sugere metas, monitora execução. IA Ativo 12 Connector connector · v 0.0 Provide the API's for POS. Integrações Ativo 2 Spreadsheet spreadsheet · v 0.0 Allows you to create spreadsheet and share with employees, roles & todos. Integrações Ativo 2 Officeimpresso officeimpresso · v 0.0 Sistema Office Impresso desktop — licenciamento. Office Impresso Ativo 6 AssetManagement assetmanagement · v 0.0 Useful for managing all kinds of assets. Operações Ativo 3 Manufacturing manufacturing · v 0.0 Used for businesses where products needs to be manufactured. Operações Ativo 4 Repair repair · v 0.0 Useful for all kind of repair shops. Operações Ativo 6 Arquivos arquivos · v 0.0 DMS backbone — todo arquivo anexado da empresa cai aqui (multi-tenant Tier 0). Polimorfismo morph + storage abstraído. ADR 0123. Outros Ativo 6 Auditoria auditoria · v 0.0 Camada de governança transversal — UI /auditoria + undo sobre activity_log. Distingue User vs IA. ADR 0127. Outros Ativo 2 Compras compras · v 0.0 Compras como cockpit operacional: FSM 6 estágios, import XML DF-e, entrada matricial tam×cor. Outros Ativo 9 ComunicacaoVisual comunicacao-visual · v 0.0 Vertical gráfica rápida e comunicação visual BR (CNAE 1813-0/01). Cálculo m² + PCP gráfico + apontamento. Outros Ativo 11 ConsultaOs consultaos · v 0.0 Portal público de consulta de OS — cliente acompanha o pipeline de produção sem login. Outros Ativo 1 Financeiro financeiro · v 0.0 Contas a pagar, a receber, fluxo de caixa e DRE — tudo na mesma tela. Outros Ativo 18 Forja projectmgmt · v 0.0 Cockpit de trabalho do time: Kanban + Backlog + Roadmap + My Work + Inbox + Triage. ADR 0070. Outros Ativo 14 Governance governance · v 0.0 Governança consolidada — ActionGate runtime, audit dashboard, ADRs, policies, drift alerts. Outros Ativo 7 KB kb · v 0.0 Knowledge Base — ADRs, sessions, runbooks e comparativos sincronizados do git. Outros Ativo 5 NFSe nfse · v 0.0 NFS-e via Sistema Nacional (LC 214/2025) — webservice federal direto, custo zero por emissão. Outros Ativo 3 OficinaAuto oficina-auto · v 0.0 Vertical oficinas automotivas BR. CRUD Vehicle + ServiceOrder multi-tenant Tier 0. ADR 0137. Outros Ativo 5 PaymentGateway paymentgateway · v 0.0 Camada técnica de cobrança BR — drivers Inter/C6/Asaas/Pix Automático BCB, webhooks, CNAB. Outros Ativo 8 RecurringBilling recurringbilling · v 0.0 Cobrança recorrente brasileira: assinaturas, Pix Automático, smart retries, régua de inadimplência. Outros Ativo 9 Vestuario vestuario · v 0.0 Vertical lojas de vestuário/moda BR (CNAE 4781-4/00). Piloto ROTA LIVRE em produção. Outros Ativo 4 VozDoCliente vozdocliente · v 0.0 Canal de sinal dentro do sistema — a dor relatada na tela onde acontece, triada até virar melhoria. Outros Ativo 3 Whatsapp whatsapp · v 0.0 WhatsApp transacional via Z-API + Meta Cloud (fallback). Status OS, boleto/NFe, dunning, bot Jana com HITL. Outros Ativo 21 Essentials essentials · v 0.0 Essentials + HRM: documentos, tarefas, feriados, mensagens, base de conhecimento. Recursos Humanos Ativo 24 Ponto ponto · v 0.0 Ponto eletrônico conforme Portaria MTP 671/2021 — WR2 Sistemas. Recursos Humanos Ativo 16",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 4.8,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 62.2,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 3,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.9,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 6.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "999px",
+          "borda": true,
+          "bg": "oklch(0.95 0.05 150)",
+          "dot": false
+        }
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 8.3,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 5.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 4.5,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 32,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

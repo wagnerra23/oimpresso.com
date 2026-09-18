@@ -1,7 +1,7 @@
 {
   "url": "https://staging.oimpresso.com/fiscal",
-  "theme": "light",
-  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Notas Fiscais Maio 2026 · 0 notas · 0 requerem ação SEFAZ-SP operacional Buscar Procedência Eventos 5 Enviar p/ contabilidade Emitir Cockpit NF-e · NFC-e NFS-e Manifesto DF-e Eventos Certif. & Cfg. SPED & Livros Emitidas 0 ↑ 12 vs abr Autorizadas 0 0 % Rejeitadas 0 DF-e p/ manifestar 0 prazo 90d Certif. A1 — sem certificado Faturado fiscal R$ 0,00 Fechar mês → Auditoria mensal · write-off candidatos 2.470 títulos · R$ 770.000,00 · mais antigo 1847 d · Incobrável >365d Revisar Critério determinístico (sem IA): títulos vencidos >365d sem nenhum pagamento parcial registrado. Write-off requer aprovação Wagner + nota fiscal de baixa (CST/CSOSN 00 — não passa SEFAZ). Recomendação: rodar mensalmente após fechamento. Libera dashboard inadimplência. Todas 2 Pra resolver hoje 0 Janela 24h aberta 0 Aguardando SEFAZ 0 Só serviço (NFS-e) 0 Só balcão (NFC-e) 2 Todos os tipos · 2 Todos status · 2 Tipo Número Cliente / chave Status Prazo Valor NFC-e 990001 série 999 — — · Status 0 — XML PDF R$ 10,00 NFC-e 990002 série 999 — — · Status 0 — XML PDF R$ 10,00 1 – 2 de 2 carregadas 8 por página Anterior 1 / 1 Próxima Débitos conhecidos desta tela A série de 14 dias sai de uma consulta agrupada, sem repetição por dia Dado emissões nas últimas duas semanas · Quando a série é montada · Então há um ponto por dia por status, calculado de uma vez só. Anti-hook do charter; sem teste dedicado. sem teste O faturamento aparece formatado em moeda brasileira comportamento só de frontend, sem cobertura de Feature. sem teste Filtros, visões salvas, densidade e seleção em lote da tabela unificada a fonte real chegou em 2026-09-02 (UC-FCKP-07); vira contrato quando alguém escrever o teste de filtro/visão/densidade sobre ela. sem teste buscar emitir navegar mais atalhos Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Notas Fiscais Maio 2026 · 0 notas · 0 requerem ação SEFAZ-SP operacional Buscar Procedência Eventos 5 Enviar p/ contabilidade Emitir Cockpit NF-e · NFC-e NFS-e Manifesto DF-e Eventos Certif. & Cfg. SPED & Livros Emitidas 0 ↑ 12 vs abr Autorizadas 0 0 % Rejeitadas 0 DF-e p/ manifestar 0 prazo 90d Certif. A1 — sem certificado Faturado fiscal R$ 0,00 Fechar mês → Auditoria mensal · write-off candidatos 2.470 títulos · R$ 770.000,00 · mais antigo 1847 d · Incobrável >365d Revisar Critério determinístico (sem IA): títulos vencidos >365d sem nenhum pagamento parcial registrado. Write-off requer aprovação Wagner + nota fiscal de baixa (CST/CSOSN 00 — não passa SEFAZ). Recomendação: rodar mensalmente após fechamento. Libera dashboard inadimplência. Todas 5 Pra resolver hoje 0 Janela 24h aberta 0 Aguardando SEFAZ 0 Só serviço (NFS-e) 3 Só balcão (NFC-e) 2 Todos os tipos · 5 Todos status · 5 Tipo Número Cliente / chave Status Prazo Valor NFS-e RPS-TESTE-ISOL-CROSS série RPS WAGNER WR2 TESTE FICTICIO — · Rascunho — XML PDF R$ 100,00 NFS-e RPS-TESTE-ISOL-002 série RPS TOMADOR FICTICIO TESTE 2 LTDA 00000000000000 · Rascunho — XML PDF R$ 250,00 NFS-e RPS-TESTE-ISOL-001 série RPS TOMADOR FICTICIO TESTE LTDA 00000000000000 · Rascunho — XML PDF R$ 100,00 NFC-e 990001 série 999 — — · Status 0 — XML PDF R$ 10,00 NFC-e 990002 série 999 — — · Status 0 — XML PDF R$ 10,00 1 – 5 de 5 carregadas 8 por página Anterior 1 / 1 Próxima Débitos conhecidos desta tela A série de 14 dias sai de uma consulta agrupada, sem repetição por dia Dado emissões nas últimas duas semanas · Quando a série é montada · Então há um ponto por dia por status, calculado de uma vez só. Anti-hook do charter; sem teste dedicado. sem teste O faturamento aparece formatado em moeda brasileira comportamento só de frontend, sem cobertura de Feature. sem teste Filtros, visões salvas, densidade e seleção em lote da tabela unificada a fonte real chegou em 2026-09-02 (UC-FCKP-07); vira contrato quando alguém escrever o teste de filtro/visão/densidade sobre ela. sem teste buscar emitir navegar mais atalhos Buscar Cmd+K — busque tasks, epics, cycles ou projects",
   "roles": {
     "kpi": {
       "count": 0,
@@ -88,7 +88,7 @@
         "pill": {
           "radius": "99px",
           "borda": false,
-          "bg": "oklch(0.96 0.03 300)",
+          "bg": "oklch(0.94 0.06 145)",
           "dot": false
         }
       },
@@ -108,7 +108,7 @@
         "col": 3,
         "tag": "A",
         "align": "left",
-        "larguraPct": 44.1,
+        "larguraPct": 43.5,
         "mono": false,
         "corPropria": true,
         "fontPx": 13,
@@ -149,7 +149,7 @@
         "col": 6,
         "tag": "BUTTON",
         "align": "right",
-        "larguraPct": 13.3,
+        "larguraPct": 13.9,
         "mono": false,
         "corPropria": true,
         "fontPx": 11,
@@ -161,7 +161,7 @@
     "tabela": {
       "tableLayout": "auto",
       "colunasDeclaradas": 0,
-      "linhas": 2,
+      "linhas": 5,
       "linhasComEstado": 0
     },
     "shell": {

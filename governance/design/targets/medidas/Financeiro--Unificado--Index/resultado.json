@@ -1,0 +1,239 @@
+{
+  "id": "Financeiro/Unificado/Index",
+  "source": "financeiro-page.jsx",
+  "target": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
+  "token": "financeiro",
+  "frescor": "verificado 2026-09-17",
+  "contrato": null,
+  "compare": {
+    "rc": 1,
+    "veredito": "DIVERGE (bug)",
+    "motivo": "",
+    "bugs": 4,
+    "shell": 0,
+    "sameTheme": false,
+    "porDim": {
+      "D2": {
+        "diverge": 4,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D4": {
+        "diverge": 3,
+        "bug": 3,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D6": {
+        "diverge": 1,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D8": {
+        "diverge": 3,
+        "bug": 1,
+        "semDado": 0,
+        "igual": 0
+      },
+      "D9": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 5,
+        "igual": 0
+      },
+      "SHELL": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 4,
+        "igual": 0
+      }
+    },
+    "rows": [
+      {
+        "dim": "D2",
+        "campo": "layout",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D4",
+        "campo": "tipografia",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D6",
+        "campo": "cor",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D8",
+        "campo": "kpi.tag",
+        "prod": "BUTTON",
+        "design": "DIV",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D9",
+        "campo": "filter-pills-toolbar",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "header-acoes",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "kpis",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "periodbar-personalizado",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "tabela-linhas",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D8",
+        "campo": "col0.alcancavel",
+        "prod": "BUTTON",
+        "design": "sem elemento clicavel",
+        "veredito": "DIVERGE (fonte)"
+      },
+      {
+        "dim": "D4",
+        "campo": "col1.mono",
+        "prod": "sem mono",
+        "design": "mono",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D2",
+        "campo": "col1.blocos de texto",
+        "prod": 1,
+        "design": 2,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "D6",
+        "campo": "col2.cor",
+        "prod": "cor própria",
+        "design": "herda a da linha",
+        "veredito": "DIVERGE (fonte)"
+      },
+      {
+        "dim": "D2",
+        "campo": "col2.blocos de texto",
+        "prod": 2,
+        "design": 0,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "D4",
+        "campo": "col3.mono",
+        "prod": "sem mono",
+        "design": "mono",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D8",
+        "campo": "col3.alcancavel",
+        "prod": "BUTTON",
+        "design": "sem elemento clicavel",
+        "veredito": "DIVERGE (fonte)"
+      },
+      {
+        "dim": "D2",
+        "campo": "col3.blocos de texto",
+        "prod": 1,
+        "design": 2,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "D4",
+        "campo": "col8.mono",
+        "prod": "sem mono",
+        "design": "mono",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D2",
+        "campo": "col11.blocos de texto",
+        "prod": 2,
+        "design": 0,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.presenca",
+        "prod": "0 el (.sb-shortcuts .sb-shortcut)",
+        "design": "0 el (.sb-menu > .sb-item)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.presenca",
+        "prod": "0 el (.sb-menu-grouped)",
+        "design": "1 el (.sb-menu)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.grupoHeader.presenca",
+        "prod": "0 el (.sb-group-h)",
+        "design": "0 el (.sb-group-h)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.itemGrupo.presenca",
+        "prod": "0 el (.sb-item)",
+        "design": "0 el (.sb-group .sb-item, .sb-group-body .sb-item)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      }
+    ]
+  },
+  "veredito": null,
+  "motivo": "",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/financeiro/unificado",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-09-18T12:36:57.711Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3"
+}
