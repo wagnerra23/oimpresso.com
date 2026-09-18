@@ -2,7 +2,7 @@
 id: resources-js-pages-produto-create-charter
 page: /products/create
 component: resources/js/Pages/Produto/Create.tsx
-related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/Wagner/produto-blade-forms.jsx
 owner: wagner
 status: draft
 last_validated: "2026-07-17"
@@ -14,10 +14,10 @@ related_visual_comparison: memory/requisitos/Produto/_telas/produto-create-visua
 tier: A
 charter_version: 3
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/Wagner/produtos-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Wagner/produto-blade-forms.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente — Wave 2 B4 Produto 2026-05-15)"
   derived_screens: [Create]
-  divergence_from_blueprint: "form full-width AppShellV2 (não Cockpit 3-col) — Create é form não-list; preserva tokens + header pattern + design system; não usa drawer pattern"
+  divergence_from_blueprint: "none — o bloco FormProduto do blueprint é a tradução do PRÓPRIO create.blade.php desta tela. A divergência antiga ('form full-width, não Cockpit 3-col') descrevia a distância até o blueprint ERRADO (produtos-page.jsx, que é o Index); contra o blueprint certo ela não existe"
 ---
 
 # Page Charter — /products/create (DRAFT)
