@@ -49,16 +49,6 @@ class OtelHelper
     ];
 
     /**
-     * Run callback dentro de OTel span. Zero-cost se OTel ausente.
-     *
-     * @template T
-     *
-     * @param  string  $name  Nome do span (ex 'sells.fsm.execute_action')
-     * @param  array<string, mixed>  $attributes  Atributos (PII filtrado automaticamente)
-     * @param  callable(): T  $callback
-     * @return T
-     */
-    /**
      * OTel esta desligado — ou nem da pra PERGUNTAR se esta?
      *
      * `config()` estoura `Target class [config] does not exist` quando nao ha app
@@ -88,6 +78,16 @@ class OtelHelper
         }
     }
 
+    /**
+     * Run callback dentro de OTel span. Zero-cost se OTel ausente.
+     *
+     * @template T
+     *
+     * @param  string  $name  Nome do span (ex 'sells.fsm.execute_action')
+     * @param  array<string, mixed>  $attributes  Atributos (PII filtrado automaticamente)
+     * @param  callable(): T  $callback
+     * @return T
+     */
     public static function span(string $name, array $attributes, callable $callback)
     {
         // Zero-cost path quando OTel esta desabilitado OU nem da pra perguntar.
