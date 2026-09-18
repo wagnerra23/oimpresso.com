@@ -28,16 +28,24 @@ const out = (bad.stdout || '') + (bad.stderr || '');
 check('ruim → exit 1', bad.status === 1);
 check('ruim → acusa n_refresh_database 0→1', /n_refresh_database 0→1/.test(out));
 check('ruim → acusa n_business_first 0→1', /n_business_first 0→1/.test(out));
-check('ruim → acusa quarentena SEM quarantine-reason', /SEM quarantine-reason/.test(out));
+check('ruim → acusa quarentena SEM razão escrita', /SEM razão escrita/.test(out));
+
+// 2b. QUARENTENA DE LANE (`.github/*-quarantine.list`) — a 2ª quarentena, sem catraca até
+// 2026-09-18. As 3 provas: conta, avermelha ao subir, e nomeia a LINHA sem motivo.
+check('ruim → acusa n_lane_quarantine 0→2', /n_lane_quarantine 0→2/.test(out));
+check('ruim → nomeia a LINHA da entrada de lista sem motivo',
+  /exemplo-pest-quarantine\.list:3/.test(out));
+check('ruim → NÃO acusa a entrada que TEM motivo na linha',
+  !/exemplo-pest-quarantine\.list:2/.test(out));
 
 // 3. --json parseável e fiel à medição da fixture boa.
 const j = JSON.parse(run('good', ['--json']).stdout);
-check('--json: boa mede 1/1/1', j.counters.n_quarantine === 1 && j.counters.n_refresh_database === 1 && j.counters.n_business_first === 1);
+check("--json: boa mede 1/1/1/1", j.counters.n_quarantine === 1 && j.counters.n_refresh_database === 1 && j.counters.n_business_first === 1 && j.counters.n_lane_quarantine === 1);
 
 // 4. Catraca de ESCRITA: --write recusa SUBIR sem --force (baseline intacto); --force grava.
 const tmp = mkdtempSync(join(tmpdir(), 'fr-'));
 const tmpBl = join(tmp, 'baseline.json');
-const zeros = { counters: { n_quarantine: 0, n_refresh_database: 0, n_business_first: 0 } };
+const zeros = { counters: { n_quarantine: 0, n_refresh_database: 0, n_business_first: 0, n_lane_quarantine: 0 } };
 writeFileSync(tmpBl, JSON.stringify(zeros));
 const refuse = exec(['--root', join(FIX, 'good'), '--baseline', tmpBl, '--write']);
 check('--write que sobe → recusado (exit 1)', refuse.status === 1 && /recusado/.test(refuse.stderr));
@@ -46,7 +54,7 @@ const forced = exec(['--root', join(FIX, 'good'), '--baseline', tmpBl, '--write'
 check('--write --force → grava (exit 0)', forced.status === 0 && JSON.parse(readFileSync(tmpBl, 'utf8')).counters.n_quarantine === 1);
 
 // 5. MELHORA (contador < baseline) → verde + convite pra travar o ganho via --write.
-writeFileSync(tmpBl, JSON.stringify({ counters: { n_quarantine: 2, n_refresh_database: 2, n_business_first: 2 } }));
+writeFileSync(tmpBl, JSON.stringify({ counters: { n_quarantine: 2, n_refresh_database: 2, n_business_first: 2, n_lane_quarantine: 2 } }));
 const melhora = exec(['--root', join(FIX, 'good'), '--baseline', tmpBl]);
 check('melhora → exit 0 + convite --write', melhora.status === 0 && /--write pra travar/.test(melhora.stdout));
 

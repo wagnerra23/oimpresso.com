@@ -3,6 +3,7 @@
   "counters": {
     "n_quarantine": 0,
     "n_refresh_database": 0,
-    "n_business_first": 0
+    "n_business_first": 0,
+    "n_lane_quarantine": 0
   }
 }

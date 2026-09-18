@@ -1,0 +1,3 @@
+# Fixture BOA — entrada de quarentena de lane COM motivo na propria linha.
+# O gate conta 1 entrada e nao acusa falta de razao.
+Modules/Exemplo/Tests/Feature/FlakyTest.php  # flake por ordem: passa isolado, falha no processo compartilhado
