@@ -4,6 +4,7 @@
     "n_quarantine": 126,
     "n_refresh_database": 12,
     "n_business_first": 73,
-    "n_lane_quarantine": 28
-  }
+    "n_lane_quarantine": 66
+  },
+  "nota_n_lane_quarantine": "undefined  ||  ABSORVIDO 2026-09-18 (28->66, +38): a lane do Jana virou arvore-menos-quarentena (.github/jana-pest-quarantine.list). As 38 entradas sao TODA a divida de CI de PR do modulo, e o numero bate com o dono do inventario (test-lane-coverage --modulo Jana: orfaos 38->0, quarentena 0->38 — a divida mudou de ESCURA para DECLARADA, nao diminuiu). Composicao: 27 com construto destrutivo (dropIfExists/RefreshDatabase — dropam o schema e limpam o biz=1 semeado; o step ja os barra por guard DERIVADO, e eles estao na lista porque o medidor trata `find <dir>` como cobrindo a arvore e so desconta o que a lista nomeia: sem isso a Jana reportaria orfaos:0 com 27 arquivos que nao rodam em lane nenhuma) + 9 vermelhos medidos no CT 100 + 1 falso-verde conhecido (ProContractTest: 65 assertions no CT100, 6x HTTP 403 na lane, causa ja documentada no proprio workflow antes desta conversao) + 1 sem veredito (ausente no checkout do container, 487 commits atras). NAO entram os 39 com dono em OUTRA lane (sqlite/logica-pura): esses estao cobertos, e lista-los seria falsa divida. A conversao NAO moveu teste nenhum — teste de identidade provado contra o pai deste commit: run-set novo == os mesmos 93 da allowlist inline, 0 perdidos e 0 ganhos. O ganho e estrutural: arquivo novo passa a entrar RODANDO em vez de escuro (bite-test: 93->95 com 2 fixtures limpas; a 3a, destrutiva, foi excluida). Os outros 3 contadores ficam como origin/main os deixou — este PR nao trava ganho de terceiros."
 }
