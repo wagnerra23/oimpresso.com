@@ -83,8 +83,6 @@ Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 faile
 #    quarentenados exatamente como estavam — só o MOTIVO mudou, não o estado.
 Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions) — ex-B
-Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions) — ex-B
-Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (103 assertions)
 Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4 passed (42 assertions)
 Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions) — motivo MEDIDO no rodape (decisao [W] pendente)
 Modules/Financeiro/Tests/Feature/UnificadoControllerTest.php  # 2 failed, 1 skipped, 10 passed (75 assertions)
@@ -144,56 +142,6 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 # executionOrder="random". Quem prova é o run da lane deste PR — se algum ficar
 # vermelho lá, volta pra cá com o motivo REAL escrito, não com o motivo herdado.
 #
-# ── DreControllerTest (2026-09-18, triagem 16/N do bucket C) ──────────
-#   4 failed, 7 passed (93 assertions)  →  11 passed (138 assertions)
-#
-# Classificação: QUATRO testes podres, zero regressão de produto. Os três primeiros
-# são os MESMOS do FluxoControllerTest (triagem 7/N) — este arquivo é o irmão que
-# faltava. O quarto e o quinto são novos, e o quinto só apareceu DEPOIS.
-#
-#   (1) HEADER X-INERTIA IMPOSSÍVEL (:80) — fecha a lista que a triagem 3/N
-#       (ProvaVivaControllerTest #5196) deixou escrita: "MESMA LINHA COPIADA EM 3
-#       IRMÃOS — DreControllerTest:80, FluxoControllerTest:77 e
-#       UnificadoControllerTest:77". Fluxo saiu na 7/N, Unificado na 15/N, e com
-#       este os TRÊS estão fechados.
-#
-#   (2) ROUND-TRIP JSON (:120) — `->where('margem_operacional.meta_pct', 12.0)`
-#       falhava com "12 is identical to 12.0". A constante é float no PHP, o JSON
-#       serializa como `12` e o json_decode devolve INT. Artefato de serialização,
-#       não mudança de produto. Agora compara numericamente.
-#
-#   (3) TYPEERROR (:281) — `fn (array $linhas)`: o
-#       Illuminate\Testing\Fluent\Concerns\Matching::where() embrulha o valor em
-#       Collection ANTES de chamar o closure (Matching.php:29). Drift de FRAMEWORK.
-#
-#   (4) `status()` EM STREAMEDRESPONSE (:191) — "Call to undefined method
-#       Symfony\...\StreamedResponse::status()". MEDIDO por reflexão, não deduzido:
-#         Illuminate\Testing\TestResponse ....... tem status()? NAO (cai no __call)
-#         Illuminate\Http\Response ............... status()=SIM  getStatusCode()=SIM
-#         Symfony\...\StreamedResponse ........... status()=NAO  getStatusCode()=SIM
-#       Ou seja: `$response->status()` funciona no resto do arquivo por ACIDENTE —
-#       porque a resposta base é a do Laravel. A rota de export faz streamDownload,
-#       cuja base é a do Symfony, e aí a mina explode. `getStatusCode()` existe nas
-#       duas. Mina latente em qualquer teste de download.
-#
-#   (5) toHaveKey(chave, MENSAGEM) — ESCONDIDA ATRÁS DE (3), e só aflorou quando o
-#       closure passou a ser alcançado. O 2º argumento do `toHaveKey` é o VALOR
-#       ESPERADO, não a mensagem: a forma antiga asseria
-#       `$linha['pct_rl'] === "linha[0] sem pct_rl — frontend vai quebrar..."` e
-#       falhava com "Failed asserting that 0 matches expected 'linha[0] sem...'".
-#       Mesma classe do aviso que o .github/workflows/ponto-pest.yml já carrega.
-#       Fix = `assertArrayHasKey($chave, $arr, $msg)` (PHPUnit), onde a mensagem tem
-#       POSIÇÃO PRÓPRIA. O `toBeNumeric` ao lado NÃO é variádico e ficou como estava.
-#
-# BITE-TEST da asserção reescrita (pra não virar decorativa): apaguei a emissão de
-# `pct_rl` no DreService:264 e rodei. Caiu 1 caso — e caiu com A MENSAGEM PRETENDIDA
-# ("linha[0] sem pct_rl — frontend vai quebrar com toFixed undefined"), que é a prova
-# dupla: a asserção morde E a mensagem agora aterrissa como MENSAGEM, não como valor
-# esperado. Restaurado → 11 passed (138 assertions).
-#
-# PROVA DE EXECUÇÃO (LC-13): assertions 93 → 138, +45 com 11 casos nos dois lados.
-#
-# Medido no CT 100, worktree /var/www/qa em origin/main 6e790834540, DB
 # ── FinanceiroAuditLoggerTest (2026-09-18, triagem 11/N do bucket C) ────
 #   4 failed, 1 passed (8 assertions)  →  5 passed (13 assertions)
 #
@@ -386,6 +334,57 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 # e aí o run seguinte falha em `PlanoConta::delete()` por "títulos vinculados" —
 # parecendo defeito do fix, sendo lixo do controle. Limpei ENTRE os runs e medi
 # duas vezes: 7 passed (33 assertions) nas duas. Em CI isso não ocorre.
+#
+# Medido no CT 100, worktree /var/www/qa em origin/main 6e790834540, DB
+# oimpresso_qa provisionada pela receita do CI (.github/actions/pest-mysql-setup).
+# ── DreControllerTest (2026-09-18, triagem 16/N do bucket C) ──────────
+#   4 failed, 7 passed (93 assertions)  →  11 passed (138 assertions)
+#
+# Classificação: QUATRO testes podres, zero regressão de produto. Os três primeiros
+# são os MESMOS do FluxoControllerTest (triagem 7/N) — este arquivo é o irmão que
+# faltava. O quarto e o quinto são novos, e o quinto só apareceu DEPOIS.
+#
+#   (1) HEADER X-INERTIA IMPOSSÍVEL (:80) — fecha a lista que a triagem 3/N
+#       (ProvaVivaControllerTest #5196) deixou escrita: "MESMA LINHA COPIADA EM 3
+#       IRMÃOS — DreControllerTest:80, FluxoControllerTest:77 e
+#       UnificadoControllerTest:77". Fluxo saiu na 7/N, Unificado na 15/N, e com
+#       este os TRÊS estão fechados.
+#
+#   (2) ROUND-TRIP JSON (:120) — `->where('margem_operacional.meta_pct', 12.0)`
+#       falhava com "12 is identical to 12.0". A constante é float no PHP, o JSON
+#       serializa como `12` e o json_decode devolve INT. Artefato de serialização,
+#       não mudança de produto. Agora compara numericamente.
+#
+#   (3) TYPEERROR (:281) — `fn (array $linhas)`: o
+#       Illuminate\Testing\Fluent\Concerns\Matching::where() embrulha o valor em
+#       Collection ANTES de chamar o closure (Matching.php:29). Drift de FRAMEWORK.
+#
+#   (4) `status()` EM STREAMEDRESPONSE (:191) — "Call to undefined method
+#       Symfony\...\StreamedResponse::status()". MEDIDO por reflexão, não deduzido:
+#         Illuminate\Testing\TestResponse ....... tem status()? NAO (cai no __call)
+#         Illuminate\Http\Response ............... status()=SIM  getStatusCode()=SIM
+#         Symfony\...\StreamedResponse ........... status()=NAO  getStatusCode()=SIM
+#       Ou seja: `$response->status()` funciona no resto do arquivo por ACIDENTE —
+#       porque a resposta base é a do Laravel. A rota de export faz streamDownload,
+#       cuja base é a do Symfony, e aí a mina explode. `getStatusCode()` existe nas
+#       duas. Mina latente em qualquer teste de download.
+#
+#   (5) toHaveKey(chave, MENSAGEM) — ESCONDIDA ATRÁS DE (3), e só aflorou quando o
+#       closure passou a ser alcançado. O 2º argumento do `toHaveKey` é o VALOR
+#       ESPERADO, não a mensagem: a forma antiga asseria
+#       `$linha['pct_rl'] === "linha[0] sem pct_rl — frontend vai quebrar..."` e
+#       falhava com "Failed asserting that 0 matches expected 'linha[0] sem...'".
+#       Mesma classe do aviso que o .github/workflows/ponto-pest.yml já carrega.
+#       Fix = `assertArrayHasKey($chave, $arr, $msg)` (PHPUnit), onde a mensagem tem
+#       POSIÇÃO PRÓPRIA. O `toBeNumeric` ao lado NÃO é variádico e ficou como estava.
+#
+# BITE-TEST da asserção reescrita (pra não virar decorativa): apaguei a emissão de
+# `pct_rl` no DreService:264 e rodei. Caiu 1 caso — e caiu com A MENSAGEM PRETENDIDA
+# ("linha[0] sem pct_rl — frontend vai quebrar com toFixed undefined"), que é a prova
+# dupla: a asserção morde E a mensagem agora aterrissa como MENSAGEM, não como valor
+# esperado. Restaurado → 11 passed (138 assertions).
+#
+# PROVA DE EXECUÇÃO (LC-13): assertions 93 → 138, +45 com 11 casos nos dois lados.
 #
 # Medido no CT 100, worktree /var/www/qa em origin/main 6e790834540, DB
 # oimpresso_qa provisionada pela receita do CI (.github/actions/pest-mysql-setup).
