@@ -62,26 +62,49 @@ tests/Feature/Produto/ProdutoBulkEditContratoTest.php      # UC-PBULK-05: writer
 #     ProductBomController). Irmãos já verdes (UC-PBOM-01/03/04 = pass).
 
 # ─────────────────────────────────────────────────────────────────────────────
-# (B) NUNCA RODARAM — status desconhecido, não "verde".
-#     Zero ocorrências do basename em .github/, scripts/ e package.json.
-#     Entram aqui pela regra conservadora: só sai da quarentena o que for
-#     PROVADO verde nesta lane, um a um.
+# (B) ESVAZIADO em 2026-09-18 — os 14 `Wave2*` foram PROVADOS e entraram no run-set.
+#
+#     Como foram provados (a instrução da linha era "provar antes de ligar"):
+#     rodados no CT 100 (`oimpresso-staging`), UM ARQUIVO POR PROCESSO para ter
+#     atribuição limpa, e depois OS 14 NUM PROCESSO SÓ para exercitar a interação
+#     (a ressalva de que 1-por-processo != todos-juntos é do cabeçalho do irmão
+#     `financeiro-pest-quarantine.list`). Os dois runs bateram: 113 testes ·
+#     147 assertions. Não é "0 failed com 0 assertions" — asserção houve (LC-13).
+#     Zero colisão de símbolo global: os 7 `const *_PAGE_PATH` e as 7 `function
+#     read*()` têm nomes distintos, e o `repo_path()` é guardado por function_exists.
+#
+#     Um único vermelho no CT 100: `Wave2IndexInertiaTest > Charter declara
+#     mwart_pattern_reuse` — `toContain('produto-cockpit')` em Produto/Index.charter.md.
+#     ELE NÃO EXISTE NA ÁRVORE DE HOJE. O checkout do container estava em 755f6de79
+#     (2026-09-08, 10 dias atrás) e 13 dos 23 alvos que estes testes leem mudaram
+#     nesse intervalo — então o run de lá não transferia de graça. A transferência
+#     foi MEDIDA e não deduzida: 364 pares (needle × alvo) comparados entre as duas
+#     árvores, EXATAMENTE 1 flip, e é este, de ausente -> presente. O #7085 pôs
+#     `produto-cockpit` no charter.
+#
+#     ⚠️ O QUE ELES PROVAM — leia antes de tratá-los como cobertura do Produto.
+#     Os 147 asserts são `file_get_contents` + `toContain`, `file_exists` e
+#     `ReflectionClass::hasMethod`. ZERO requisição HTTP, ZERO `actingAs`, ZERO
+#     asserção de banco (varredura contada: 14 de 14 arquivos). Eles medem PRESENÇA
+#     DE TEXTO NO FONTE, não comportamento — um controller que só tivesse
+#     `// TODO: Inertia::render('Produto/BulkEdit')` em COMENTÁRIO satisfaz 3 de 3
+#     asserts do `Wave2BulkEditBaselineTest` (controle rodado em 2026-09-18).
+#     A ironia que fecha o argumento: o `produto-cockpit` que agora deixa o teste
+#     verde é um COMENTÁRIO no charter dizendo que aquele diretório não existe mais.
+#
+#     Por que ligar mesmo assim: rodando, eles são tripwire de DELEÇÃO/RENOMEAÇÃO
+#     de 7 Pages + 7 charters + 7 RUNBOOKs — some o arquivo, a lane fica vermelha.
+#     É pouco, mas é mais que zero, e custa ~44s. Quarentenados eram zero para
+#     sempre. O que NÃO se pode concluir deles é que o Produto tem contrato testado:
+#     quem faz isso é o bloco (A), e é por isso que o (A) está VERMELHO.
+#     A dívida real — comportamento das 7 telas Wave2 — não é desta lista.
+#
+#     E não é espécie nova nesta lane: os 8 `tests/Feature/Stock/Wave2*` têm o
+#     MESMO padrão (medido 2026-09-18: 63 its, zero `$this->get/post`, tudo
+#     `file_get_contents`+`toContain`) e NUNCA estiveram em quarentena — já rodavam
+#     aqui. Ligar os 14 do Produto só torna o tratamento consistente; a população
+#     de teste-de-presença nesta lane passa a ser 22, e sempre foi ≥8.
 # ─────────────────────────────────────────────────────────────────────────────
-
-tests/Feature/Produto/Wave2BulkEditBaselineTest.php        # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
-tests/Feature/Produto/Wave2BulkEditInertiaTest.php         # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
-tests/Feature/Produto/Wave2CreateBaselineTest.php          # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
-tests/Feature/Produto/Wave2CreateInertiaTest.php           # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
-tests/Feature/Produto/Wave2EditBaselineTest.php            # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
-tests/Feature/Produto/Wave2EditInertiaTest.php             # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
-tests/Feature/Produto/Wave2IndexBaselineTest.php           # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
-tests/Feature/Produto/Wave2IndexInertiaTest.php            # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
-tests/Feature/Produto/Wave2SellingPricesBaselineTest.php   # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
-tests/Feature/Produto/Wave2SellingPricesInertiaTest.php    # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
-tests/Feature/Produto/Wave2ShowBaselineTest.php            # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
-tests/Feature/Produto/Wave2ShowInertiaTest.php             # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
-tests/Feature/Produto/Wave2StockHistoryBaselineTest.php    # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
-tests/Feature/Produto/Wave2StockHistoryInertiaTest.php     # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
 
 # ─────────────────────────────────────────────────────────────────────────────
 # (C) TEM LANE PRÓPRIA — fora daqui não é dívida, é evitar execução duplicada.
