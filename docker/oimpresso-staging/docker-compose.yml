@@ -27,6 +27,18 @@ services:
       - /opt/oimpresso-staging/code:/var/www/html
       - /opt/oimpresso-staging/storage:/var/www/html/storage
       - /opt/oimpresso-staging/bootstrap-cache:/var/www/html/bootstrap/cache
+      # OPcache: o php.ini da imagem MCP entra como `conf.d/zz-mcp-overrides.ini` com
+      # `validate_timestamps = 0` — certo pra produção/Octane, ERRADO herdado aqui. Sem este
+      # overlay o CLI (Pest) lê o disco e o WEB serve bytecode do boot do container: smoke de
+      # UI media código velho e passava verde (medido 2026-09-18, container com HEAD de 10 dias
+      # antes). `zzz` ordena DEPOIS de `zz` em conf.d — é o que faz esta diretiva vencer, e a
+      # prova de que a ordem alfabética manda aqui é a própria imagem: o `zz-mcp-overrides.ini`
+      # já vence os `docker-php-ext-*.ini` por esse mesmo critério.
+      # ⚠️ ORDEM DE DEPLOY: bind-mount de ARQUIVO inexistente faz o Docker criar um DIRETÓRIO no
+      # lugar. O `deploy.sh` atualiza o código (1/5) antes do `compose up` (5/5), então está
+      # protegido — mas um `docker compose up` avulso num clone anterior a este commit criaria
+      # o diretório. Atualize o clone primeiro.
+      - /opt/oimpresso-staging/code/docker/oimpresso-staging/php-staging.ini:/usr/local/etc/php/conf.d/zzz-staging.ini:ro
 
     env_file:
       - /opt/oimpresso-staging/code/.env
