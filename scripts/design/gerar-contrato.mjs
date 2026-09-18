@@ -130,7 +130,7 @@ export function gerar(gapPath) {
   return {
     contrato: {
       _nota: `ESQUELETO gerado por gerar-contrato.mjs de ${relative(REPO, gapPath).replace(/\\/g, '/')} — PREENCHA copy[] + adicione data-contract="<id>" no .tsx. Region-scoped (só partes acionáveis).`,
-      tela: fmVal(fm, 'tela') || basename(gapPath).replace(/-gap\.md$/, ''),
+      tela: idDeTela(fmVal(fm, 'tela')) || basename(gapPath).replace(/-gap\.md$/, ''),
       fonte, alvo: alvo ? [alvo] : [], secoes,
     },
     alvo, totalPartes: partes.length, acionaveis: acionaveis.length,
@@ -142,8 +142,27 @@ export function gerar(gapPath) {
 // essa checagem com o regex canônico. gerar-contrato PARA no esqueleto; a verificação de
 // presença-de-âncora+copy é do gate canônico, rodado DEPOIS que o humano preenche/ancora.
 
+/**
+ * O frontmatter do gap.md grafa `tela: Mod/Tela (/rota)` — id MAIS a rota. O consumidor do
+ * contrato casa por IGUALDADE EXATA (`contratoDe` no design-diff-lote: `x.tela === id`), então
+ * copiar o frontmatter verbatim gera contrato que máquina nenhuma encontra: artefato inerte com
+ * cara de entrega.
+ *
+ * MEDIDO em 2026-09-18: 69 dos 74 gap.md trazem a rota entre parênteses, e 0 dos 36 contratos
+ * do repo a têm — os 36 foram normalizados à mão, um a um. Sem isto, gerar contrato em lote
+ * produziria 69 arquivos que o D0 ignora.
+ */
+export const idDeTela = (s) => String(s || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+
 function selftest() {
   let fails = 0; const t = (l, c) => { if (!c) fails++; console.log(`  [${c ? 'PASS' : 'FAIL'}] ${l}`); };
+  t('idDeTela: tira a rota entre parênteses (o consumidor casa por igualdade exata)',
+    idDeTela('Essentials/Documents/Index (/essentials/document)') === 'Essentials/Documents/Index');
+  t('idDeTela: id já limpo passa intacto (não estraga os 36 que existem)',
+    idDeTela('Arquivos/Index') === 'Arquivos/Index' && idDeTela('cockpit/_sidebar') === 'cockpit/_sidebar');
+  t('idDeTela: só o parêntese FINAL sai — nome com parêntese no meio sobrevive',
+    idDeTela('Mod/Tela (x) Extra') === 'Mod/Tela (x) Extra');
+  t('idDeTela: vazio/ausente não estoura', idDeTela(null) === '' && idDeTela(undefined) === '');
   t('slug normaliza acento+parênteses', slug('Thread (mensagens)') === 'thread' && slug('Header da página') === 'header-da-pagina');
   t('ehAcionavel: "Nada (vivo à frente)"=false · "Catch-up opcional"=true',
     ehAcionavel('**Nada** (vivo à frente)') === false && ehAcionavel('**Catch-up opcional**') === true && ehAcionavel('**NÃO RESSUSCITAR**') === false);
