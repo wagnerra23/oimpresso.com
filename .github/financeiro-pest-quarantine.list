@@ -80,7 +80,6 @@ Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 fai
 Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (103 assertions)
 Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4 passed (42 assertions)
-Modules/Financeiro/Tests/Feature/ResyncFromCoreCommandTest.php  # 4 failed, 1 passed (1 assertions)
 Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions) — motivo MEDIDO no rodape (decisao [W] pendente)
 Modules/Financeiro/Tests/Feature/UnificadoPlanoContaGuardTest.php  # 6 failed, 1 passed (23 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoStoreTest.php  # 3 failed, 3 passed (21 assertions)
@@ -184,6 +183,45 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 # PROVA DE EXECUÇÃO (LC-13): assertions 76 → 83, +7.
 #
 # Medido no CT 100, worktree /var/www/qa em origin/main 6e790834540, DB
+# ── ResyncFromCoreCommandTest (2026-09-18, triagem 12/N do bucket C) ───
+#   4 failed, 1 passed (1 assertions)  →  5 passed (16 assertions)
+#
+# Classificação: FIXTURE quebrada, NÃO regressão de produto. Terceira ocorrência da
+# MESMA forma já catalogada duas vezes neste rodapé (ConciliacaoAuditReabrirTest
+# #5178, ExtratoControllerTest): o fixture morre no setup e o arquivo PARECE
+# defeito de produto. Aqui o vetor é COLUNA FANTASMA, não FK.
+#
+# Duas colunas que NÃO EXISTEM eram escritas pelo `seedTituloInflado`:
+#   1. `transactions.total_remaining_amount` — nunca existiu no UltimatePOS; o
+#      próprio código de produção registra isso em BridgeExpenseToTitulosCommand:30.
+#   2. `fin_titulo_baixas.updated_at` — a tabela é APPEND-ONLY. As 16 colunas reais
+#      (Schema::getColumnListing) têm `created_at` e `estorno_de_id`, e nenhuma
+#      `updated_at`: baixa não se ATUALIZA, se ESTORNA.
+#
+# As duas estouravam SQLSTATE 42S22 no INSERT, então 4 dos 5 casos morriam ANTES
+# de exercer qualquer coisa — inclusive DOIS guards Tier 0 que nunca tinham sido
+# provados: "dry-run (default) não escreve nada" e "não toca título de outro
+# business (Tier 0 multi-tenant)". Ambos passam agora.
+#
+# MEDI A FAMÍLIA, NÃO O SINTOMA (§5 2026-08-03 — consertar UMA de N e não medir os
+# irmãos): depois da 1ª coluna o erro ANDOU pra 2ª. Em vez de iterar erro-a-erro,
+# extraí todos os `DB::table(X)->insert([...])` do arquivo e conferi coluna a
+# coluna contra o schema real — transactions 9 colunas (0 fantasma), fin_titulos
+# 17 (0 fantasma), fin_titulo_baixas 13 (1 fantasma). Total: 1 restante, e era só
+# essa.
+#
+# PRODUÇÃO INTOCADA — e isto importa porque o comando MEXE EM VALOR (re-sincroniza
+# `fin_titulos.valor_total` com o `final_total` do core, resíduo do incidente
+# num_uf #2279/#2280). O diff deste PR é SO´ o arquivo de teste. Varredura contada
+# em ResyncFromCoreCommand: ZERO ocorrências de `total_remaining_amount` — ele
+# junta por origem_id + business_id e compara `ft.valor_total` com `t.final_total`.
+# Logo remover as fantasmas é neutro pro que o teste prova; o que mudou é que
+# agora ele PROVA.
+#
+# PROVA DE EXECUÇÃO (LC-13 — "0 failed" não prova, assertions sim): 1 → 16, +15 com
+# os mesmos 5 casos. Uma única assertion antes era todo o valor do arquivo.
+#
+# Medido no CT 100, worktree /var/www/qa em origin/main 5ab93d5ae17, DB
 # oimpresso_qa provisionada pela receita do CI (.github/actions/pest-mysql-setup).
 # ── Onda7bTroubleshootPresentTest (2026-08-03, triagem 10/N — bucket A) ──
 #   1 failed, 11 passed (44 assertions)  →  12 passed (48 assertions)
