@@ -183,6 +183,29 @@ export function parseMessage(row) {
         msg.tool_name = c.name;
         // redige ANTES do corte de 1000: mesma razao anti-straddle do corte de 50k
         parts.push(`[tool: ${c.name}] ${redactText(JSON.stringify(c.input)).text.slice(0, 1000)}`);
+
+        // `content_json` com o path do arquivo tocado. Ficava SEMPRE null (era
+        // inicializado assim e nunca atribuido), e o consumidor — o agregado
+        // "paths tocados" do `whats-active` — filtra `whereNotNull('content_json')`
+        // e le `input.file_path`. Resultado medido em 2026-09-18: a deteccao de
+        // sobreposicao de path NUNCA funcionou, pra sessao nenhuma; era justo a
+        // metade que serve pra duas sessoes nao se atropelarem no mesmo arquivo.
+        //
+        // O shape NAO e invencao minha: e o que o teste do proprio consumidor
+        // semeia (`tests/Feature/Modules/Copiloto/Mcp/WhatsActiveToolTest.php`,
+        // `json_encode(['input' => ['file_path' => $filePath]])`) — o contrato
+        // existia, so o produtor nao o emitia. Era por isso que o teste ficava
+        // verde com a producao quebrada: ele semeia a coluna direto no banco e
+        // nunca atravessa este watcher.
+        //
+        // Guarda só o path (não o `input` inteiro) de propósito: input de Write
+        // carrega o arquivo todo, e replicar isso em toda linha de tool_use
+        // incharia a coluna sem consumidor que peça. `notebook_path` entra porque
+        // o consumidor inclui NotebookEdit no `whereIn` de tool_name.
+        const tocado = c.input?.file_path ?? c.input?.notebook_path ?? null;
+        if (typeof tocado === 'string' && tocado !== '') {
+          msg.content_json = { input: { file_path: tocado } };
+        }
       }
       if (c.type === 'tool_result') {
         msg.type = 'tool_result';
@@ -231,20 +254,46 @@ export async function postBatch(session, messages) {
     const resumo = Object.entries(redHits).map(([k, v]) => k + '=' + v).join(' ');
     console.log('\n  [redacao] ' + redN + ' segredo(s) redigido(s): ' + resumo);
   }
-  const res = await fetch(MCP_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${MCP_TOKEN}`,
-    },
-    body: JSON.stringify(payload),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${data?.message || data?.error || res.statusText}`);
+  const corpo = JSON.stringify(payload);
+
+  // Retry com espera pra 429/5xx. Antes era one-shot: throttle ⇒ o arquivo era
+  // DESCARTADO com erro no log e o offset não avançava, então o dado só voltava
+  // no próximo backfill manual. Medido em 2026-09-18, quando o `--watch` passou
+  // a funcionar pela 1ª vez: 13 sessões escrevendo ao mesmo tempo estouram o
+  // throttle da rota e a maioria dos POSTs virava 429 perdido.
+  // `Retry-After` do Laravel manda; sem ele, backoff exponencial.
+  const TENTATIVAS = 4;
+  let ultimoErro = null;
+
+  for (let tentativa = 1; tentativa <= TENTATIVAS; tentativa++) {
+    const res = await fetch(MCP_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${MCP_TOKEN}`,
+      },
+      body: corpo,
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return data;
+
+    ultimoErro = `HTTP ${res.status}: ${data?.message || data?.error || res.statusText}`;
+
+    const vaiRetentar = (res.status === 429 || res.status >= 500) && tentativa < TENTATIVAS;
+    if (!vaiRetentar) break;
+
+    const retryAfter = Number.parseInt(res.headers.get('retry-after') ?? '', 10);
+    const esperaMs = Number.isFinite(retryAfter) && retryAfter > 0
+      ? Math.min(retryAfter, 60) * 1000
+      : Math.min(2 ** tentativa, 30) * 1000;
+
+    console.log(`\n  [retry ${tentativa}/${TENTATIVAS - 1}] ${ultimoErro} — aguardando ${esperaMs / 1000}s`);
+    await new Promise((r) => setTimeout(r, esperaMs));
   }
-  return data;
+
+  throw new Error(ultimoErro ?? 'falha desconhecida no POST');
 }
 
 // ──────────────────────────────────────────────────────────────────────
@@ -337,20 +386,153 @@ async function ingestOnce() {
   console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 }
 
+// ──────────────────────────────────────────────────────────────────────
+// Lock de instância única (só no modo watch)
+// ──────────────────────────────────────────────────────────────────────
+const LOCK_FILE = path.join(os.homedir(), '.claude', '.cc-watcher.lock');
+
+/**
+ * Impede N daemons simultâneos. Medido em 2026-09-18: 3 rodando ao mesmo tempo,
+ * cada um POSTando os MESMOS arquivos — o dedup por `msg_uuid` protege o dado,
+ * mas o tráfego triplica e estoura o throttle da rota (HTTP 429). Aqui há ~89
+ * sessões Claude simultâneas e qualquer uma pode subir um watcher, então a
+ * proteção precisa ser do próprio daemon, não da disciplina de quem inicia.
+ *
+ * `process.kill(pid, 0)` não mata: só testa se o PID existe (ESRCH = morto).
+ * Lock órfão (processo caiu sem liberar) é assumido, nunca respeitado — senão
+ * um crash deixaria o pipe cego pra sempre, que é o modo de falha que esta
+ * sessão foi consertar.
+ */
+export function adquirirLock(lockFile = LOCK_FILE) {
+  try {
+    const dono = JSON.parse(fs.readFileSync(lockFile, 'utf-8'));
+    if (typeof dono?.pid === 'number' && dono.pid !== process.pid) {
+      let vivo = true;
+      try {
+        process.kill(dono.pid, 0);
+      } catch {
+        vivo = false;
+      }
+      if (vivo) {
+        console.error(`[erro] já há um cc-watcher em modo watch (PID ${dono.pid}, desde ${dono.desde}).`);
+        console.error('       N daemons = N× POST do mesmo arquivo = HTTP 429. Encerre o outro antes,');
+        console.error(`       ou remova ${lockFile} se tiver certeza de que ele morreu.`);
+        return false;
+      }
+      console.log(`   [lock] assumindo lock órfão do PID ${dono.pid} (processo não existe mais)`);
+    }
+  } catch {
+    // sem lock, ilegível ou corrompido → segue e reescreve
+  }
+
+  fs.mkdirSync(path.dirname(lockFile), { recursive: true });
+  fs.writeFileSync(lockFile, JSON.stringify({ pid: process.pid, desde: new Date().toISOString() }, null, 2));
+
+  const liberar = () => {
+    try {
+      const atual = JSON.parse(fs.readFileSync(lockFile, 'utf-8'));
+      if (atual?.pid === process.pid) fs.unlinkSync(lockFile);
+    } catch {}
+  };
+  process.on('exit', liberar);
+
+  return true;
+}
+
+// Relevante = `.jsonl` cuja pasta-pai casa PROJECT_GLOB. O recorte do projeto é
+// FILTRO DE HANDLER, não padrão de path — ver watch() pro motivo. Exportado pro
+// bite-test poder asseverar o predicado isolado.
+export function isRelevantJsonl(filePath) {
+  if (!filePath.endsWith('.jsonl')) return false;
+
+  return path.basename(path.dirname(filePath)).startsWith(PROJECT_GLOB);
+}
+
+// Monta o watcher REAL. Extraído (e exportado) de propósito: o bite-test precisa
+// exercitar ESTA fiação — objeto de opções + filtro de handler —, não uma cópia
+// dela. Assert sobre cópia paralela é o que deixou o defeito (A) verde por 141
+// dias (`memory/proibicoes.md` §5 2026-07-30).
+export function createJsonlWatcher(chokidar, projectsDir, onFile) {
+  const watcher = chokidar.watch(projectsDir, {
+    persistent: true,
+    ignoreInitial: true,
+    depth: 2,
+    awaitWriteFinish: { stabilityThreshold: 2000, pollInterval: 500 },
+  });
+
+  // Fila SERIAL com coalescing por path. Sem ela, 13 sessões escrevendo ao mesmo
+  // tempo disparam N ingests concorrentes que estouram o throttle da rota (429
+  // medido em 2026-09-18 — o defeito só apareceu quando o watch passou a
+  // funcionar, porque antes nenhum evento chegava aqui). O Map colapsa rajada de
+  // mudanças do MESMO arquivo num trabalho só: o ingest é incremental por offset,
+  // então processar 1× depois de 5 escritas pega as 5.
+  const pendentes = new Map();
+  let drenando = false;
+
+  const drenar = async () => {
+    if (drenando) return;
+    drenando = true;
+    try {
+      while (pendentes.size > 0) {
+        const [filePath, label] = pendentes.entries().next().value;
+        pendentes.delete(filePath);
+        try {
+          await onFile(filePath, label);
+        } catch (e) {
+          // erro de 1 arquivo não pode matar a fila nem o daemon
+          console.error(` ✗ ${path.basename(filePath)}: ${e?.message ?? e}`);
+        }
+      }
+    } finally {
+      drenando = false;
+    }
+  };
+
+  const onHit = (filePath, label) => {
+    if (!isRelevantJsonl(filePath)) return;
+    pendentes.set(filePath, label);
+    void drenar();
+  };
+
+  watcher.on('change', (filePath) => onHit(filePath, '🔄'));
+  watcher.on('add', (filePath) => onHit(filePath, '➕'));
+  watcher.on('error', (e) => console.error(`\n❌ watcher: ${e?.message ?? e}`));
+
+  return watcher;
+}
+
 async function watch() {
+  // ANTES do backfill: um 2º daemon não deve nem gastar o backfill inteiro
+  // (412 pastas) pra descobrir no fim que era duplicado.
+  if (!adquirirLock()) {
+    process.exit(2);
+  }
+
   await ingestOnce();
   console.log('\n👀 Modo watch — monitorando mudanças (Ctrl+C pra sair)...');
 
   const { default: chokidar } = await import('chokidar');
-  const folders = listProjectFolders();
-  const watcher = chokidar.watch(folders.map(f => path.join(f, '*.jsonl')), {
-    persistent: true,
-    ignoreInitial: true,
-    awaitWriteFinish: { stabilityThreshold: 2000, pollInterval: 500 },
-  });
 
-  watcher.on('change', async (filePath) => {
-    console.log(`\n🔄 ${path.basename(filePath)} mudou — re-ingerindo`);
+  // Observa o DIRETÓRIO-PAI, nunca um glob por pasta. Dois defeitos INDEPENDENTES
+  // medidos em 2026-09-18 (watcher vivo desde 17/09 19:46, heartbeat dead=399):
+  //
+  //   (A) chokidar 4 REMOVEU suporte a glob. `watch('<pasta>/*.jsonl')` observa
+  //       0 paths e nunca emite evento — medido com controle positivo (mesmo
+  //       harness observando o diretório emite `change`). O `^4.0.3` está no
+  //       package.json desde o NASCIMENTO do watcher (f20982bb0, 2026-04-30),
+  //       logo `--watch` nunca funcionou: só o `ingestOnce()` do boot ingeria.
+  //   (B) `listProjectFolders()` era lido 1× no boot, então pasta de projeto
+  //       criada DEPOIS (worktree nova) nunca entrava na lista. Em 18/09 as 10
+  //       pastas com atividade do dia eram TODAS pós-boot — o caso dominante,
+  //       porque worktree nova é a rotina aqui.
+  //
+  // Observar PROJECTS_DIR cobre `<projects>/<pasta>/<arquivo>.jsonl` e torna a
+  // descoberta de pasta nova automática (chokidar emite `add` pro arquivo dentro
+  // do subdir novo, sem restart). `depth` é o nº de níveis ABAIXO do observado:
+  // pasta = 1, arquivo dentro dela = 2 — valor fixado por bite-test, não por
+  // leitura da doc.
+  const watcher = createJsonlWatcher(chokidar, PROJECTS_DIR, async (filePath, label) => {
+    console.log(`\n${label} ${path.basename(filePath)} — ingerindo`);
     try {
       const r = await processFile(filePath);
       if (r.skipped) return;
@@ -359,15 +541,15 @@ async function watch() {
       console.error(` ✗ ${e.message}`);
     }
   });
-  watcher.on('add', async (filePath) => {
-    console.log(`\n➕ Nova sessão: ${path.basename(filePath)}`);
-    try {
-      const r = await processFile(filePath);
-      console.log(` ✓ ${r.messages} msgs (ins=${r.inserted})`);
-    } catch (e) {
-      console.error(` ✗ ${e.message}`);
-    }
-  });
+
+  // Instrumento que não consegue observar DIZ isso, em vez de ficar inerte calado
+  // (foi assim que o defeito (A) sobreviveu 141 dias: processo vivo, 0 evento).
+  await new Promise((resolve) => watcher.on('ready', resolve));
+  const observados = Object.values(watcher.getWatched()).flat().length;
+  console.log(`   observando ${PROJECTS_DIR} (depth 2) — ${observados} path(s), filtro '${PROJECT_GLOB}*/**.jsonl'`);
+  if (observados === 0) {
+    console.error('   ⚠️ 0 paths observados — watch INERTE. Não confie no pipe até investigar.');
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────────
@@ -387,7 +569,28 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   console.log('   PROJECT_GLOB: ' + PROJECT_GLOB);
   console.log('   MODE: ' + MODE);
   console.log('   STATE: ' + STATE_FILE);
+  console.log('   PID: ' + process.pid);
   console.log('');
+
+  // Daemon de vigia não pode morrer calado: em `watch` ele é a ÚNICA fonte do
+  // heartbeat, e sumir sem dizer nada é o modo de falha que deixou o pipe cego
+  // (processo vivo mas inerte é primo disto — morto e silencioso é pior).
+  // Loga e SEGUE; quem decide derrubar é o operador, não um erro de 1 arquivo.
+  process.on('unhandledRejection', (e) => {
+    console.error(`\n[unhandledRejection] ${e?.message ?? e}`);
+    if (e?.stack) console.error(e.stack);
+  });
+  process.on('uncaughtException', (e) => {
+    console.error(`\n[uncaughtException] ${e?.message ?? e}`);
+    if (e?.stack) console.error(e.stack);
+  });
+  for (const sinal of ['SIGINT', 'SIGTERM']) {
+    process.on(sinal, () => {
+      console.log(`\n[${sinal}] encerrando por pedido do operador (PID ${process.pid})`);
+      process.exit(0);
+    });
+  }
+
   try {
     if (MODE === 'watch') await watch();
     else await ingestOnce();

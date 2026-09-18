@@ -35,9 +35,32 @@ node index.js --watch
 
 Monitora mudanças via `chokidar`. Ingere incremental conforme você usa o Claude Code. Ctrl+C pra sair.
 
+**Instância única:** o `--watch` toma um lock em `~/.claude/.cc-watcher.lock`. Subir um 2º daemon sai com **exit 2** em vez de duplicar o tráfego. Lock de processo morto é assumido automaticamente — crash não deixa o pipe cego.
+
+### O `--watch` ficou INERTE de 2026-04-30 a 2026-09-18 (141 dias)
+
+> Vale ler antes de mexer aqui: o daemon ficava **vivo e sem ingerir nada**, o que é
+> pior que cair — `whats-active` servia "nenhuma sessão vista" enquanto 13 sessões
+> paralelas se atropelavam no mesmo arquivo. Quatro defeitos independentes:
+>
+> | # | Defeito | Por que passou |
+> |---|---|---|
+> | A | **chokidar 4 removeu suporte a glob.** `watch('<pasta>/*.jsonl')` observa 0 paths e nunca emite evento | `^4.0.3` está aqui desde o 1º commit (`f20982bb0`) — nunca houve versão em que funcionasse |
+> | B | A lista de pastas era lida **1× no boot**, então worktree criada depois ficava invisível | caso dominante: em 18/09 as 10 pastas com atividade do dia eram todas pós-boot |
+> | C | `content_json` era inicializado `null` e **nunca atribuído** — e é dele que sai o "paths tocados" do `whats-active` (`whereNotNull`) | o teste do consumidor semeia a coluna **direto no banco**, então ficava verde com a produção quebrada |
+> | D | 429 do throttle **descartava** o arquivo (one-shot, sem retry) | só aparecia quando o watch funcionasse — e ele nunca funcionou |
+>
+> Consertado observando `PROJECTS_DIR` (sem glob) + filtro de handler, `content_json`
+> com o path tocado, retry com `Retry-After`, e fila serial com coalescing. O gate é
+> [`watch.test.mjs`](watch.test.mjs) — exercita a fiação REAL (`createJsonlWatcher`
+> com chokidar real), porque assert sobre cópia paralela é exatamente o que deixou
+> (A) verde por 141 dias. Mordida provada por mutação: glob de volta ⇒ 5 de 13 falham.
+
 ### Cron diário (alternativa ao daemon)
 
 Windows Task Scheduler / Linux cron pra rodar `node index.js` 1×/dia 23:00 BRT.
+
+⚠️ **Não existe nenhum agendamento hoje** (medido em 18/09: 207 tasks no Task Scheduler, nenhuma do watcher). O daemon é iniciado **à mão**, então ninguém o reinicia depois de reboot — e é por isso que o heartbeat morria sozinho mesmo antes dos defeitos acima. Quem detecta é o `IngestLivenessChecker` (`enforcement: warn`), não um watchdog de cron.
 
 ## Config (env opcional)
 
