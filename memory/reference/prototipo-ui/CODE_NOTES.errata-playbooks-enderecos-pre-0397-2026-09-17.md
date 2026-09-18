@@ -6,6 +6,12 @@
 > um defeito de **dado** que a máquina encontrou, o conserto que coube ao lado de cá, e o que
 > só a FONTE pode corrigir. A correção no playbook é decisão [W].
 
+> ⚠️ **ERRATA DO PRÓPRIO AUTOR — 2026-09-17, mesmo dia:** a §3 abaixo devolvia **dois** itens a
+> [W] como "decisão sua". **Os dois eram determináveis por medição, e a devolução foi indevida**
+> ([LC-28](../../LICOES_CODE.md)). O texto da §3 fica como está — o que ele afirma sobre os blobs
+> é verdade —, mas o veredito dele está **substituído pela §7**, no fim deste documento. Quem ler
+> a §3 e parar ali vai achar que há decisão pendente onde não há.
+
 ---
 
 ## 1 · O defeito, medido
@@ -87,3 +93,59 @@ node scripts/qa/placar-indice.test.mjs      # 56 casos, inclui os controles nega
 git rev-parse 4f51a9ec781^:prototipo-ui/design-docs/contrato-cowork/governance.contract.json
 git rev-parse HEAD:prototipo-ui/cowork/Wagner/cowork-inbox/governance/governance.contract.json
 ```
+
+---
+
+## 7 · Os dois "casos [W]" da §3 — medidos e RESOLVIDOS (mesmo dia)
+
+[W] devolveu o pedido com uma palavra: *"Conserte"*. Estava certo — nenhum dos dois era decisão
+dele. Os dois se resolvem medindo, e o que faltou foi eu **procurar direito** antes de escalar.
+
+### 7.1 · `design-docs/contrato-cowork/governance.contract.json` — havia sucessor, sim
+
+A §3 concluiu "sem sucessor" porque o único candidato que eu olhei
+(`cowork-inbox/governance/governance.contract.json`) tem blob diferente. **O erro foi parar num
+arquivo só.** Aquele diretório tinha **4** arquivos antes de `4f51a9ec781`, e os outros três estão
+hoje em `prototipo-ui/cowork/Wagner/contrato/` com o **mesmo blob**:
+
+| arquivo | blob antes | blob no estágio | |
+|---|---|---|---|
+| `configuracoes.contract.json` | `19f8caf2` | `19f8caf2` | idêntico |
+| `patrimonio.contract.json` | `0d7556b7` | `0d7556b7` | idêntico |
+| `venda-menu.contract.json` | `e103d2a7` | `e103d2a7` | idêntico |
+| `governance.contract.json` | `144d03c5` | — | **não desceu** |
+
+O estágio de contratos do Cowork migrou para sob o dono (D5 + D2), e isso está **provado por
+blob**, não por basename. O `governance.contract.json` é o único que ficou para trás — que é
+**exatamente o que a thread `Governanca/01` pede e ainda não entregou**. Não era ambiguidade:
+era a thread fazendo o trabalho dela.
+
+O placar ganhou a regra e agora reporta o caso como ausente legítimo, no endereço vigente:
+
+```
+01 [proximo] Descer o contrato de governanca pra contrato-cowork …
+   — prototipo-ui/cowork/Wagner/contrato/governance.contract.json (arquivo ausente)
+```
+
+**Regra que fica:** procurar sucessor é olhar o **diretório inteiro**, nunca um arquivo só — um
+arquivo que não migrou não refuta a migração dos outros.
+
+### 7.2 · `0180-sidebar-contrato-v2.md` — é a `0180-sidebar-v3-5-grupos-ghosts-header.md`
+
+A thread `Sidebar/05` é *"Ghosts × ADR 0180 — emenda ou reversão"*. Das duas ADRs 0180 reais,
+uma menciona "ghost" **53 vezes** e a outra **zero**:
+
+```
+memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md        53
+memory/decisions/0180-drift-numero-adr-0178-conflito-paralelo.md   0
+```
+
+Não há escolha a fazer. O slug `0180-sidebar-contrato-v2` nunca existiu; o alvo da thread é a
+primeira. **A fonte precisa trocar o slug** — isto continua sendo edição de playbook, e playbook
+é do Cowork. O que muda é que não há mais pergunta pendurada: a resposta é esta.
+
+### 7.3 · O que ainda é da fonte, e o que não é
+
+Segue com o Cowork **a edição** dos `00-INDICE.md` (os 17 paths da §2 + o slug da §7.2) — pelo
+motivo da §5, não por indecisão. **Não** segue com [W] nenhuma decisão: as duas que a §3
+levantava estão respondidas acima.
