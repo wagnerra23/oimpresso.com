@@ -1490,6 +1490,12 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ NÃO virar gate.** O predicado — *"esta afirmação de impedimento foi medida?"* — é **semântico por construção** ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md): semântico = advisory), e a forma sintática (caçar "sem sucessor"/"decisão [W]"/"não dá" em prosa) é a família de guard sintático que este §5 já enterrou 8× — allowlist-de-pasta 06-30 · guard `@scope` 07-09 · vocabulário **130 FP** 07-16 · `toHaveKey` **100% FP** 07-26 · `toContain` 07-28 · par usuário/senha 08-02 · `jq` 08-11 · variante Radix 08-25. O campo `Gate:` da LC-28 já registra o teto advisory, e o da LC-08 registra que o gate óbvio dela foi **medido e reprovado** — não re-propor nenhum dos dois. O que pegou aqui foi o dono lendo e cobrando em uma palavra.
 
+### 2026-09-18 — Alarmar/reprovar o `design-smoke-ci` quando `count=0` (o step summary JÁ diz — e `cancelled` não é `success`)
+
+- **O limite (variante também proibida).** **(a)** Não propor gate, alarme, catraca ou `::warning` que faça lane **advisory de captura** reprovar ou alarmar por **conjunto-de-trabalho vazio** — `count=0`, `0 telas elegíveis`, `0 arquivos no diff`, `nada a publicar`. Quando o vazio é um estado legítimo do mundo, alarme nele é vermelho-que-não-pode-ficar-verde; se um dia o vazio virar sintoma, o predicado tem de ser sobre a **causa** do vazio (ex.: *"havia tela `tested` e a seleção devolveu zero"*), nunca sobre o zero. **(b)** Antes de dizer que um workflow *"não diz"*, **ler o step summary de uma run no estado em questão** — o dono pode já estar falando, e aqui estava. **(c)** Não enunciar o modo de parada de forma ampla: `cancelled` ≠ `success`, e afirmar que um mecanismo sai verde sem sair é afirmação sobre enforcement em tempo presente, a família [LC-10](LICOES_CODE.md).
+
+- **⚠️ NÃO virar gate — e o buraco real não é de máquina.** O que a conclusão do check não distingue (`success` com foto × `success` sem foto) é **por desenho**, não por omissão: advisory nunca reprova. Um gate que corrigisse isso seria a política da 0314 reaberta sem ADR. O buraco é de **leitura** — alguém precisa abrir o summary —, e buraco de leitura não se fecha com YAML. A defesa é esta lápide mais o dono que já imprime a linha.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
