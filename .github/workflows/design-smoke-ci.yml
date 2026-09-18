@@ -19,9 +19,17 @@ name: Design Smoke CI (ADR 0390)
 # ADVISORY POR DESENHO: `push: main` + `workflow_dispatch`, nunca `pull_request`; não é required
 # e nunca falha o merge (ADR 0314: required = Tier-0). Vermelho aqui = "não consegui
 # fotografar", visível no step summary; a tela fica onde estava (`tested`), sem regredir.
-# Deconflito com `screen-smoke-after-merge.yml`: aquele fotografa PRODUÇÃO (host=producao,
-# exige OPENAI + credencial biz=99 e está desligado por switch); este fotografa o CI
-# (host=ci). São hosts distintos do MESMO recibo — não é régua paralela.
+# Deconflito com `screen-smoke-after-merge.yml`: aquele fotografa PRODUÇÃO, mas o DESTINO dele
+# é `<Tela>.review.md` via PR (job PERSIST) — ele NÃO escreve no ledger do Design Sync. Medido
+# 2026-09-18: `grep -cE "design-sync|record-smoke|applications[.]json"` NAQUELE arquivo = 0; o
+# controle positivo do grep é ESTE arquivo, que casa (conta não fixada de propósito — ela muda
+# quando este comentário muda, e quem quiser o número roda o comando). Corolário: o
+# `host=producao` do enum de `--record-smoke` (producao · staging-ct100 · ci) NÃO é emitido por
+# ele; preencher esse host depende de outro produtor. Não é régua paralela porque os ARTEFATOS
+# são distintos (recibo de ledger × review.md), não porque seriam "hosts do mesmo recibo". O
+# estado de ativação daquele workflow (switch/secrets) é dele — o dono é o header dele +
+# `gh variable`/`gh secret`, e não se restateia aqui: era esse o defeito LC-10 que esta linha
+# corrige (§5 2026-07-16 + emenda 2026-08-11).
 #
 # Reuso deliberado, não cópia divergente: os steps de setup são os do visual-regression.yml
 # (env incl. ADMINISTRATOR_USERNAMES/MWART_*/VISREG_FREEZE_CLOCK, sem ext opentelemetry —

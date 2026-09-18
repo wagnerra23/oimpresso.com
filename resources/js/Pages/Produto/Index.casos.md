@@ -55,7 +55,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 |----|-------------|------|--------|-------|--------|
 | UC-PIDX-01 | Todo produto do catálogo é alcançável na lista (sem corte silencioso) | must | Blade DataTables server-side + `AR-PROD-022/023` | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
 | UC-PIDX-02 | Busca é resolvida no servidor e acha por SKU de variação (`sub_sku`) | must | Blade `filterColumn('products.sku')` + `CU-PROD-02` | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
-| UC-PIDX-03 | Preço e custo na lista respeitam a permissão de vê-los | must | Blade `@can` ×2 (`resources/views/product/index.blade.php:287 (verificado@5d5cac0),294`) + `AR-PROD-015` | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
+| UC-PIDX-03 | Preço e custo na lista respeitam a permissão de vê-los | must | Blade `@can` ×2 (`resources/views/product/index.blade.php:287 (verificado@5d5cac0),294`) + `AR-PROD-015` | `ProdutoIndexContratoTest` (Pest) | 🧪 corrigido 2026-09-18 |
 | UC-PIDX-04 | Lista, KPIs e contadores só enxergam o business atual | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter §Anti-hooks | `ProdutoIndexContratoTest` (Pest) | ⬜ guard — verde esperado |
 | UC-PIDX-05 | Abrir a lista não escreve no banco (GET é leitura pura) | must | charter §Anti-hooks + `AR-PROD-064` | `ProdutoIndexContratoTest` (Pest) | ⬜ guard — verde esperado |
 | UC-PIDX-06 | "Mostrar inativos" é resolvido no servidor | should | `AR-PROD-003/022` + Blade `active_state` (`:173-179`) | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
@@ -112,7 +112,18 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   - **Precedente do módulo** — `UC-PSHOW-01` (mesma família, na ficha) já está em failing-first; este é o mesmo furo na porta de entrada, onde o dado sai em **lote**.
 - **Regressão que defende:** `buildProdutoIndexRows` (`:450-471`) monta **`price`**, **`cost`** e **`margin`** para **toda** linha, sem consultar permissão alguma. As únicas permissões que o branch Inertia lê são `create`/`update`/`delete`/`opening_stock` (`:352-357`) — varredura contada de `view_purchase_price|access_default_selling_price` em `ProductController.php`: **0**. O card renderiza `fmtBRL(row.price)` (`Index.tsx:403 (verificado@d4afe95)`) sem gate; `cost` e `margin` não são renderizados mas **viajam no JSON das props** — visíveis no HTML da página. Ligar a lista React hoje **derruba um gate de custo que o Blade e o Delphi têm**, e em escala (todo o catálogo de uma vez, não um produto por vez).
 - **Não é `[V0]`:** não altera cálculo de valor — gateia **exibição**. A REGRA MESTRE (dupla-confirmação + antes→depois) não se aplica; marcar `[V0]` aqui inflaria o ritual sem proteger nada.
-- **Status: ⬜** — failing-first; **vermelho esperado**.
+- **Status: 🧪** — **corrigido em 2026-09-18**, junto com o irmão `UC-PSHOW-01` (mesmo furo, mesma
+  família). `index()` resolve as duas permissões uma vez e passa ao builder; `buildProdutoIndexRows`
+  só emite `price` com `access_default_selling_price`, `cost` com `view_purchase_price`, e `margin`
+  **só com os dois** — ela deriva de ambos, então entregá-la sabendo um entrega o outro por dedução.
+  O `Index.tsx` acompanha: sem o direito, o bloco "Preço" do card some inteiro (rótulo sobre traço
+  afirmaria que há um valor escondido); a unidade fica, porque é dado de cadastro.
+  **Veredito medido** (CT 100, 2026-09-18): `UC-PIDX-03 ✓`. Nos dois contratos juntos,
+  `3 failed, 7 passed (67 assertions)` — antes do fix eram `5 failed / 5 passed`.
+- ⚠️ **O arquivo CONTINUA em quarentena de lane, e isso é honesto:** os outros 3 casos
+  (`UC-PIDX-01` corte de 200 sem paginação · `UC-PIDX-02` busca · `UC-PIDX-06` filtro de inativos)
+  seguem vermelhos. São a **outra metade** — alcance e filtragem server-side —, não têm relação com
+  permissão, e sair da lista exigiria fechá-los também.
 
 ---
 
