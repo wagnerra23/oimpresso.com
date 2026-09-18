@@ -244,10 +244,22 @@ export function contratoDe(id, contratos) {
  * esqueleto — `essentials-metas` e `patrimonio-index`. O aperto custa 2, e os 2 são
  * genuinamente não-provados: não é falso-positivo, é dívida que estava invisível.
  */
+/**
+ * Uma entrada de `copy[]` só conta se for copy DE VERDADE. O `gerar-contrato.mjs` emite
+ * `"TODO: copy literal da região (preencher do protótipo)"` — string NÃO-VAZIA. Sem esta
+ * exclusão, o esqueleto que o próprio gerador produz passaria no teste, e o aperto teria a
+ * forma de um guard sem o efeito (é a família do placeholder `{{X}}` — §5 2026-08-04).
+ * Descoberto rodando o gerador, não lendo o código: eu ia gerar 22 esqueletos e eles teriam
+ * satisfeito o D0 em silêncio.
+ * FP medido em 2026-09-18 no corpus real: 0 de 477 entradas de copy nos 36 contratos começam
+ * com TODO.
+ */
+export const copyPreenchida = (c) => typeof c === 'string' && !!c.trim() && !/^\s*TODO\b/i.test(c);
+
 export function contratoProvaIdentidade(j) {
   if (!j || typeof j.tela !== 'string') return false;
   const secoes = Array.isArray(j.secoes) ? j.secoes : [];
-  return secoes.some((s) => Array.isArray(s && s.copy) && s.copy.some((c) => typeof c === 'string' && c.trim()));
+  return secoes.some((s) => Array.isArray(s && s.copy) && s.copy.some(copyPreenchida));
 }
 
 /** Lê `governance/design/contracts/*.contract.json` → [{ path, tela }] (ilegível ou sem copy = ignorado, não inventa). */
@@ -707,6 +719,12 @@ async function selftest() {
     contratoProvaIdentidade({ tela: 'X/Index', secoes: [{ id: 'topo', copy: ['   ', ''] }] }) === false);
   ok('D0: sem secoes → não prova (e não estoura)',
     contratoProvaIdentidade({ tela: 'X/Index' }) === false);
+  // O esqueleto do `gerar-contrato.mjs` nasce com copy NÃO-VAZIA (um TODO). Sem este assert,
+  // o aperto teria a forma do guard e nenhum efeito sobre o artefato que ele mira.
+  ok('D0 MORDE: o TODO que o gerar-contrato emite NÃO conta como copy',
+    contratoProvaIdentidade({ tela: 'X/Index', secoes: [{ id: 'topo', copy: ['TODO: copy literal da região (preencher do protótipo)'] }] }) === false);
+  ok('D0 controle: copy que só MENCIONA todo no meio da frase continua valendo',
+    contratoProvaIdentidade({ tela: 'X/Index', secoes: [{ id: 'topo', copy: ['Ver todos os documentos'] }] }) === true);
   // CONTROLE NEGATIVO: o aperto não pode derrubar o caso bom que já existia acima.
   ok('D0 controle: os 2 esqueletos do repo saíram, o resto ficou',
     contratosReais.length > 0 && !contratosReais.some((c) => /essentials-metas|patrimonio-index/.test(c.path)));
