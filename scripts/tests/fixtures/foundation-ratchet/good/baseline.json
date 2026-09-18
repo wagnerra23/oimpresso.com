@@ -1,8 +1,9 @@
 {
-  "nota": "baseline da fixture boa — bate com a medição (1 quarentena com razão · 1 RefreshDatabase · 1 Business::first)",
+  "nota": "baseline da fixture boa — bate com a medição (1 quarentena com razão · 1 RefreshDatabase · 1 Business::first · 1 entrada de quarentena de lane com motivo)",
   "counters": {
     "n_quarantine": 1,
     "n_refresh_database": 1,
-    "n_business_first": 1
+    "n_business_first": 1,
+    "n_lane_quarantine": 1
   }
 }

@@ -71,9 +71,58 @@ function* phpFiles(dir) {
   }
 }
 
+/**
+ * QUARENTENA DE LANE — a segunda quarentena, que não tinha catraca nenhuma.
+ *
+ * São DOIS mecanismos distintos, e até 2026-09-18 só um era vigiado:
+ *   1. marcador `@group legacy-quarantine` DENTRO do .php — contado por `n_quarantine`,
+ *      catracado aqui, exige `quarantine-reason:` a ≤3 linhas.
+ *   2. exclusão de lane em `.github/*-quarantine.list` — o arquivo que a lane subtrai da
+ *      árvore (`find Modules/<X>/Tests` MENOS esta lista). **Nada contava.**
+ *
+ * POR QUE IMPORTA (medido 2026-09-18): as duas listas vivas somam 42 testes fora do CI de PR,
+ * e as duas são caminho de dinheiro — `financeiro-pest-quarantine.list` (22) e
+ * `estoque-pest-quarantine.list` (20). Quatro entradas do Estoque são defeito REAL confirmado
+ * aguardando decisão [W]: custo vazando para quem não tem `view_purchase_price`, corte
+ * silencioso em 200 sem paginação, writer tratando ausência de chave como zero em
+ * `enable_stock` (eixo ESTOQUE), e lote de bulk-edit revertido por `ErrorException` engolida
+ * (eixo VALOR). Sem catraca, a lista pode crescer em silêncio — que é literalmente o que o
+ * cabeçalho dela proíbe em prosa: *"TIRAR DAQUI é o movimento desejado (a lista deve
+ * encolher). PÔR aqui exige motivo escrito na linha — sem isso vira gaveta de silenciar
+ * vermelho."* A regra existia; nenhuma máquina a cobrava.
+ *
+ * FP MEDIDO ANTES DE ARMAR (regra "LIGUE A MÁQUINA" item 4): 42 de 42 entradas JÁ têm motivo
+ * escrito na linha — a disciplina vinha sendo cumprida à mão. Logo a catraca nasce VERDE e
+ * não reprova nada que exista hoje; ela só impede a PRÓXIMA entrada silenciosa.
+ *
+ * Crescimento legítimo continua possível pelo mesmo caminho dos outros 3 contadores:
+ * `--write --force`, visível no diff do PR. Advisory, como o resto deste gate — a §5
+ * 2026-07-01 proíbe re-promover o `foundation-ratchet` a required sem reabrir a ADR 0314.
+ */
+export function laneQuarantineFiles(root) {
+  const dir = join(root, '.github');
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true })
+    .filter((e) => e.isFile() && /-quarantine\.list$/.test(e.name))
+    .map((e) => join(dir, e.name))
+    .sort();
+}
+
 function measure(root) {
-  const counters = { n_quarantine: 0, n_refresh_database: 0, n_business_first: 0 };
+  const counters = { n_quarantine: 0, n_refresh_database: 0, n_business_first: 0, n_lane_quarantine: 0 };
   const semRazao = [];
+
+  for (const lista of laneQuarantineFiles(root)) {
+    const rel = relative(root, lista).replace(/\\/g, '/');
+    readFileSync(lista, 'utf8').split('\n').forEach((linha, i) => {
+      if (/^\s*(#|$)/.test(linha)) return;          // comentário e linha vazia não são entrada
+      counters.n_lane_quarantine++;
+      // MOTIVO = comentário na PRÓPRIA linha. É o que a lista exige de si mesma; sem ele a
+      // entrada é indistinguível de "silenciei um vermelho e não disse por quê".
+      if (!/#\s*\S/.test(linha)) semRazao.push(`${rel}:${i + 1}`);
+    });
+  }
+
   for (const tr of testRoots(root)) for (const f of phpFiles(tr)) {
     const src = readFileSync(f, 'utf8');
     if (refreshDatabaseTraitUsed(src)) counters.n_refresh_database++;
@@ -126,12 +175,12 @@ const fail = pioras.length > 0 || semRazao.length > 0;
 if (process.env.GITHUB_STEP_SUMMARY) {
   const md = ['## Foundation ratchet (advisory · FV-Q1)', '', '| contador | baseline | atual | Δ |', '|---|---:|---:|---|',
     ...rows.map((r) => `| ${r.k} | ${r.base} | ${r.cur} | ${r.cur > r.base ? `🔴 +${r.cur - r.base}` : r.cur < r.base ? `🟢 −${r.base - r.cur}` : '—'} |`),
-    semRazao.length ? `\n🔴 **quarentena sem \`quarantine-reason:\`** (${semRazao.length}): ${semRazao.join(' · ')}` : ''].join('\n');
+    semRazao.length ? `\n🔴 **quarentena sem razão escrita** (${semRazao.length}) — \`quarantine-reason:\` no marcador, \`#\` na linha da \`*-quarantine.list\`: ${semRazao.join(' · ')}` : ''].join('\n');
   appendFileSync(process.env.GITHUB_STEP_SUMMARY, md + '\n');
 }
 
 for (const r of rows) console.log(`  ${r.status === 'SUBIU' ? '✗' : '✓'} ${r.k}: ${r.cur} (baseline ${r.base})`);
-if (semRazao.length) console.error(`✗ marcador legacy-quarantine SEM quarantine-reason: a ≤3 linhas:\n  ${semRazao.join('\n  ')}`);
+if (semRazao.length) console.error(`✗ quarentena SEM razão escrita (marcador legacy-quarantine: \`quarantine-reason:\` a ≤3 linhas · entrada de *-quarantine.list: comentário \`#\` na própria linha):\n  ${semRazao.join('\n  ')}`);
 if (fail) {
   if (pioras.length) console.error(`✗ catraca FALHOU — fundação piorou: ${pioras.map((r) => `${r.k} ${r.base}→${r.cur}`).join(', ')}. Não adicione RefreshDatabase/Business::first() cru em teste novo (use DatabaseTransactions / trait de tenant seedado).`);
   process.exit(1);
