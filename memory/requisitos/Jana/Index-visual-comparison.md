@@ -245,10 +245,41 @@ citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como
 
 | componente | protótipo | tela viva | veredito |
 |---|---|---|---|
-| seção | "AÇÕES QUE <NOME> SUGERE" | "Ações que <Nome> sugere" | ✅ |
+| seção | "AÇÕES QUE **JANA** SUGERE" (`data.person.name`) | "Ações que **Jana** sugere" | ✅ **(2026-09-18)** — era ❌, ver nota |
 | linha de ação | `AcaoRow` com CTA por tom | equivalente (ícone + título + sub + CTA) | ✅ |
 | ao clicar o CTA | `JmAcaoModal` — confirma antes de disparar (HITL) | `JanaAcaoModal` — prévia do servidor + **Aprovar** grava em `jana_acao_aprovacoes` | ✅ **(esta onda)** — registra a decisão; o **disparo** é PR próprio (por isso o CTA diz "Revisar") |
 | gate por plano | só no Pro | — | ❌ produto |
+
+> ⚠️ **O ✅ da primeira linha era FALSO-VERDE, de 2026-08-17 até 2026-09-18 — e a notação foi o
+> vetor.** Escrito `"AÇÕES QUE <NOME> SUGERE"` × `"Ações que <Nome> sugere"`, o par abstraiu num
+> placeholder comum exatamente o que divergia: **quem é o nome**. Na âncora é `data.person.name`
+> — a **Jana** (`{ name: "Jana", role: "Analista IA" }`, `chat-jana.jsx:59`). Na tela viva era
+> `firstNameUpper`, derivado de `userName` — o **usuário logado**. Prod dizia "AÇÕES QUE WAGNER
+> SUGERE" e atribuía ao leitor sugestões que o servidor derivou de 5 regras sobre o dado dele.
+> Não era divergência de copy: era troca de **sujeito**, e o `<Nome>` a escondeu por 32 dias.
+>
+> **O antes→depois REAL em prod é `VOCÊ` → `Jana`.** Medido em 2026-09-18 (`/ia` autenticado,
+> biz=1, dark, DOM estabilizado): o h2 renderizava `Ações que VOCÊ sugere`, porque `userName`
+> chega **falsy** e o fallback `|| 'você'` de `:318` está ativo — o discriminante é a saudação,
+> que sai `Boa tarde.` sem nome. **Causa medida:** a tabela `users` **não tem coluna `name`**
+> (migration `2014_10_12_000000:17-27`; `app/User.php` sem `getNameAttribute`, 0 hits, controle
+> positivo `getUserFullNameAttribute:310`), e 5 controllers da Jana leem `->name`. São **dois
+> defeitos empilhados**. ⛔ O conserto do outro **não** é `user_full_name`: `surname` é PREFIXO
+> (`profile.blade.php:78` = `business.prefix`), o que daria `Boa tarde, Sr.`. É `first_name`, em
+> PR de backend próprio.
+>
+> **Corrigido** em `_components/JanaCockpit.tsx` (o título passa a nomear a Jana; `firstName`
+> segue personalizando a SAUDAÇÃO, que é uso legítimo e a âncora também personaliza). Travado por
+> `tests/janaAcoesAutoria.spec.tsx` (**UC-JPAIN-24**), com mordida provada por mutação: restaurado
+> o `firstNameUpper`, 4 dos 8 casos caem por `AssertionError` — incluindo
+> `expected 'Ações que WAGNER sugere' to be 'Ações que LARISSA sugere'`, que exibe o defeito, e
+> `expected 'Ações que VOCÊ sugere' to contain 'Jana'`, que reproduz o estado de produção.
+>
+> **A lição de método, porque ela vale além desta linha:** comparação registrada com placeholder
+> (`<NOME>`, `<X>`, `…`) só é honesta quando o placeholder é o MESMO dado dos dois lados. Quando
+> ele abstrai a própria variável em disputa, o veredito mede a FORMA da frase e cala sobre o
+> conteúdo — e um ✅ assim é pior que ausência, porque desliga a cobrança. Ao registrar par de
+> copy que interpola, escreva o VALOR resolvido de cada lado, não o molde.
 
 **As linhas, uma a uma.** A âncora tem **4 ações fixas** (dados do Martinho); a viva **deriva** as
 suas de 5 regras sobre o dado real, então a contagem varia por tenant. O par:

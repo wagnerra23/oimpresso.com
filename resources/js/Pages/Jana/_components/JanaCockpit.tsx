@@ -316,7 +316,6 @@ export default function JanaCockpit({
   const sparkSum = sparkline.reduce((a, b) => a + b, 0);
 
   const firstName = userName?.split(' ')[0] || 'você';
-  const firstNameUpper = firstName.toUpperCase();
 
   // ── Ações sugeridas ──────────────────────────────────────────────────────
   // A LÓGICA das 5 regras veio idêntica do V2. O que mudou em 2026-08-18 é o
@@ -925,7 +924,23 @@ export default function JanaCockpit({
       {/* Ações sugeridas ───────────────────────────────────────────────────── */}
       {acoes.length > 0 && (
         <>
-          <SectionTitle icon={<Lightbulb size={14} />}>Ações que {firstNameUpper} sugere</SectionTitle>
+          {/* Quem sugere é a JANA, não quem está olhando a tela. Até 2026-09-18 isto
+              interpolava `firstNameUpper`, derivado de `userName` — o usuário logado —, então
+              a tela atribuía ao LEITOR sugestões que o servidor derivou de 5 regras sobre o
+              dado dele. MEDIDO em prod (biz=1, 2026-09-18) o h2 renderizava
+              `Ações que VOCÊ sugere`: o fallback `|| 'você'` de `:318` está ativo porque
+              `userName` chega falsy (a saudação sai `Boa tarde.` sem nome, que é o
+              discriminante — `:489` só omite o nome quando `userName` é falsy). Com
+              `userName` preenchido, o mesmo código diria "AÇÕES QUE <USUÁRIO> SUGERE".
+              Os dois erram o mesmo sujeito. ⚠️ A CAUSA do falsy é NÃO-MEDIDA — as hipóteses
+              abertas são `auth()->user()->name` nulo ou a prop não propagar; é pendência
+              separada, deste comentário não sai conclusão sobre ela. A âncora
+              `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmPainel` escreve
+              `AÇÕES QUE {data.person.name.toUpperCase()} SUGERE`, e `data.person` é
+              `{ name: "Jana", role: "Analista IA" }` — âncora de SÍMBOLO, re-localize com
+              `grep -n "person:" prototipo-ui/cowork/Wagner/chat-jana.jsx`.
+              A caixa alta vem do CSS do `SectionTitle` (`uppercase`), igual à `.jc-h2`. */}
+          <SectionTitle icon={<Lightbulb size={14} />}>Ações que Jana sugere</SectionTitle>
 
           <Card>
             <CardContent className="flex flex-col divide-y divide-border p-0">

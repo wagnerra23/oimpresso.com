@@ -1162,3 +1162,77 @@ inerte no runtime (classe LC-30). Quem prova runtime é o **UC-JPAIN-22**, que l
 verdade. O par existe justamente porque Pest não monta React.
 
 **Teste:** `Modules/Jana/Tests/Feature/PainelContratoTest.php` · mesma lane.
+
+## UC-JPAIN-24 — quem assina as sugestões é a JANA, não quem está olhando a tela
+Status: 🧪 (`npx vitest run tests/janaAcoesAutoria.spec.tsx` → **7 passed** jsdom local, 2026-09-18, com mordida provada por mutação; vira ✅ quando o manifesto `casos-results` aterrissar — o G-7 lê o manifesto commitado, não esta linha)
+
+**Fonte:** âncora `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JmPainel` —
+`AÇÕES QUE {data.person.name.toUpperCase()} SUGERE`, e `data.person` é
+`{ name: "Jana", role: "Analista IA" }` (âncora de SÍMBOLO; re-localize com
+`grep -n "person:" prototipo-ui/cowork/Wagner/chat-jana.jsx`). Precedência de FORMA:
+protótipo > teste > casos > charter > SPEC ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
+
+**O defeito, e por que não é copy.** Até 2026-09-18 o título interpolava `firstNameUpper`,
+derivado de `userName` (`IndexController` → `auth()->user()->name`), atribuindo ao **leitor**
+sugestões que o **servidor** derivou de 5 regras sobre o dado dele. Troca de **sujeito**, não
+divergência de rótulo — a frase afirmava autoria errada com selo de autoridade, que é o mesmo
+vetor que o `JanaDrillDrawer` existe para evitar (não escrever o que o payload não sustenta).
+
+> **O antes→depois REAL em produção é `VOCÊ` → `Jana`.** Medido em 2026-09-18 (`/ia`
+> autenticado, biz=1, dark, DOM estabilizado — 1129 nós em 3 leituras iguais, 0 skeletons): o
+> h2 renderizava **`Ações que VOCÊ sugere`**, porque `userName` chega **falsy** e o fallback
+> `|| 'você'` de `:318` está ativo. O discriminante é a saudação, que sai `Boa tarde.` **sem
+> nome** — e `:489` só omite o nome quando `userName` é falsy. Com o dado presente, o mesmo
+> código assinaria com o nome de quem olha; os dois estados erram o mesmo sujeito, e o segundo
+> é o mais grave.
+>
+> **A CAUSA foi medida (2026-09-18, sessão irmã; reproduzida aqui antes de citar): a tabela
+> `users` não tem coluna `name`.** A migration `2014_10_12_000000_create_users_table.php:17-27`
+> declara `surname`, `first_name`, `last_name`, `username`, `email`, `password`, `language` — e
+> `app/User.php` não define `getNameAttribute` (0 hits; controle positivo no mesmo arquivo:
+> `getUserFullNameAttribute` na `:310`, rc=0). Logo `optional(auth()->user())->name` devolve
+> **null sempre**, em **5 linhas / 5 arquivos** de `Modules/Jana/Http/Controllers/`
+> (`IndexController:54`, `ChatController:118`, `AlertasController:46`, `AcaoHitlController:51`,
+> `SuperadminController:152` — varredura pelo destino `'userName'`, contada). A personalização
+> da área Jana **nunca funcionou**; são **dois defeitos empilhados**, não um.
+>
+> ⛔ **O conserto óbvio está errado: NÃO usar `user_full_name`.** No UltimatePOS `surname` é
+> **PREFIXO**, não sobrenome — `resources/views/user/profile.blade.php:78` o rotula
+> `__('business.prefix')` com `prefix_placeholder`. Como `getUserFullNameAttribute` retorna
+> `"{surname} {first_name} {last_name}"`, o `split(' ')[0]` de `:318` devolveria **`"Sr."`**: a
+> tela diria `Boa tarde, Sr.` e, sem este fix, `Ações que SR. sugere`. O campo certo é
+> **`first_name`** (NOT NULL, migration `:19`). **Backend, PR próprio, fora deste** — endereçado
+> por sessão irmã.
+
+| eixo | âncora | tela viva (antes) | agora |
+|---|---|---|---|
+| sujeito | `data.person.name` = **Jana** | `firstNameUpper` — **o leitor** (`VOCÊ` hoje; o nome dele se o dado chegasse) | **Jana** |
+| varia por quem olha? | não | **sim**, por construção | não |
+| caixa alta | CSS `.jc-h2` `text-transform: uppercase` | CSS `uppercase` do `SectionTitle` | idem — **nunca foi divergência** |
+
+**O que o teste trava (8 casos, `tests/janaAcoesAutoria.spec.tsx`):** o título nomeia a Jana ·
+não é assinado pelo usuário · é **estável entre usuários** (mesma string para dois nomes
+diferentes e para `undefined`) · **o caminho de prod** (`userName` falsy) também nomeia a Jana e
+não diz "você" · a caixa alta continua vindo da CLASSE, não de `.toUpperCase()` no dado · e —
+controle que impede o conserto de virar régua cega — **com `userName` presente a saudação segue
+personalizada**: `firstName` é uso legítimo em `:489` e a âncora também personaliza ali. Sem esse
+caso, trocar tudo por "você" passaria nos demais asserts. ⚠️ Esse último é contrato do
+**componente**, não afirmação sobre o que a tela mostra hoje — ver a nota de produção acima.
+
+**Mordida provada (ADR 0258 — todo ✅ tem que ter sido visto falhar).** Restaurado o
+`firstNameUpper` no título, **4 dos 8 caem por `AssertionError`** — veredito de natureza, não
+erro de execução: `expected 'Ações que WAGNER sugere' to contain 'Jana'`,
+`expected 'Ações que WAGNER sugere' to be 'Ações que LARISSA sugere'` (exibe o defeito
+literalmente) e `expected 'Ações que VOCÊ sugere' to contain 'Jana'` — este último **reproduz o
+estado medido em produção**. Os 4 que seguem verdes são os controles do detector, a caixa alta e
+a saudação — corretos em não depender do bug.
+
+**Por que nenhum gate pegou, e a lição de método.** O dono do inventário
+(`memory/requisitos/Jana/Index-visual-comparison.md` §R7) **tinha** a linha, com veredito **✅**:
+escrita `"AÇÕES QUE <NOME> SUGERE"` × `"Ações que <Nome> sugere"`, ela abstraiu num placeholder
+comum exatamente a variável em disputa. Mediu a FORMA da frase e calou sobre o conteúdo —
+**falso-verde por 32 dias**, e pior que uma ausência, porque um ✅ desliga a cobrança. Corrigido
+no mesmo PR (precedência: o perdedor se corrige junto). **Regra que fica:** par de copy que
+interpola se registra com o VALOR resolvido de cada lado, nunca com o molde.
+
+**Teste:** `tests/janaAcoesAutoria.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).

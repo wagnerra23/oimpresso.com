@@ -7,7 +7,7 @@ related_prototype: prototipo-ui/cowork/Wagner/jana-merge.jsx
 states: [default]  # gate L2 — o `default` desta tela é semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o `JanaKpiCard` em `emphasis` do "A receber vencido" entre em baseline; sync com tests/Browser/visreg-states.json
 owner: wagner
 status: live
-last_validated: "2026-09-07"
+last_validated: "2026-09-18"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [26, 31, 35, 36, 52, 93, 94, 107, 114]
@@ -18,7 +18,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 17
+charter_version: 18
 permissao: jana.access
 ---
 
@@ -79,8 +79,19 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   (`grep -n "JmMetaDrawer" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
   O drawer **não projeta o fechamento**: ver §Anti-hooks abaixo.
 
+- **Quem assina as sugestões é a JANA (v18 — 2026-09-18):** o h2 da seção é
+  **"Ações que Jana sugere"** — literal, sem interpolação. Vem da âncora `jana-merge.jsx`
+  §`JmPainel` (`AÇÕES QUE {data.person.name.toUpperCase()} SUGERE`, e `data.person` é
+  `{ name: "Jana", role: "Analista IA" }`). Até 2026-09-18 o título interpolava
+  `firstNameUpper`, derivado de `userName` — **o usuário logado** —, atribuindo ao leitor
+  sugestões que o servidor derivou. É troca de **sujeito**, não de rótulo, e a caixa alta vem
+  do CSS (`uppercase`), nunca de `.toUpperCase()` no dado. Travado por **UC-JPAIN-24**
+  (`tests/janaAcoesAutoria.spec.tsx`). ⚠️ `firstName` **segue legítimo na SAUDAÇÃO** do brief —
+  a âncora também personaliza ali; o que não pode voltar é o nome do leitor **assinando** as
+  ações.
+
 - **Ação sugerida vira decisão REGISTRADA (v10 — 2026-08-18):** o CTA de cada linha
-  da seção "Ações que … sugere" abre `_components/JanaAcaoModal.tsx` — prévia do que a
+  da seção "Ações que Jana sugere" abre `_components/JanaAcaoModal.tsx` — prévia do que a
   ação faria + aprovação auditada em `jana_acao_aprovacoes` (`AcaoHitlService`,
   `business_id` NOT NULL, Tier 0). **A PRÉVIA NASCE NO SERVIDOR**, lida do mesmo
   agregado que pinta a linha (`SellsCockpitAggregator::buildInsightsAggregates`) —
@@ -195,6 +206,31 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- **v18 (2026-09-18)** — **a seção de ações era assinada por QUEM OLHA a tela, não pela Jana.**
+  O h2 interpolava `firstNameUpper` (derivado de `userName` = usuário logado) onde a âncora
+  `jana-merge.jsx:1121` usa `data.person.name` = **Jana**. Bug de **sentido**: a tela atribuía ao
+  leitor sugestões que o servidor derivou de 5 regras sobre o dado dele. Corrigido em
+  `_components/JanaCockpit.tsx`; `firstNameUpper` deletado (virou órfão). Travado por
+  **UC-JPAIN-24** — 8 casos, mordida provada por mutação (4 de 8 caem com o `firstNameUpper`
+  restaurado).
+
+  **Dois achados que este PR registra além do fix:**
+
+  1. **O `Index-visual-comparison.md` §R7 dava ✅ para esta linha desde 2026-08-17** — escrita
+     `"AÇÕES QUE <NOME> SUGERE"` × `"Ações que <Nome> sugere"`, a notação abstraiu num
+     placeholder comum **justamente a variável em disputa**. Mediu a forma da frase e calou
+     sobre o conteúdo: **falso-verde de 32 dias**, pior que ausência porque um ✅ desliga a
+     cobrança. Corrigido no mesmo PR (precedência: o perdedor se corrige junto). **Regra que
+     fica:** par de copy que interpola se registra com o VALOR resolvido de cada lado, nunca
+     com o molde.
+  2. **O antes→depois em produção é `VOCÊ` → `Jana`, não `<nome>` → `Jana`.** Medido no DOM:
+     `userName` chega **falsy** porque a tabela `users` **não tem coluna `name`** (migration
+     `2014_10_12_000000:17-27`; sem `getNameAttribute` em `app/User.php`), e **5 controllers**
+     da Jana leem `->name`. São **dois defeitos empilhados** — o segundo é backend, PR próprio.
+     ⛔ E o conserto dele **não** é `user_full_name`: `surname` é PREFIXO no UltimatePOS
+     (`profile.blade.php:78` = `business.prefix`), o que faria a tela dizer `Boa tarde, Sr.`.
+     O campo é `first_name`.
 
 - **v17 (2026-09-18)** — **ERRATA da v13: a divergência do título era de PESO, não de TAMANHO — e
   o número 19px descrevia CSS que já não governa nada.** A v13 registra *"título 22px (canon
