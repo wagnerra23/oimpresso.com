@@ -71,8 +71,19 @@ tier: B
    passo a passo — D1 SEMPRE (clicar 1 filtro + `read_network_requests`).
 5. **Canário:** antes de concluir, validar a sonda contra UMA diferença já conhecida (ex: o
    alinhamento dos KPI). Sonda que não pega o canário = sonda quebrada, não "tela igual".
-6. **Veredito por dimensão** (`IGUAL / DIVERGE(bug) / DIVERGE(decisão) / PROD-À-FRENTE`) →
-   registrar no `<tela>-visual-comparison.md` (append; 1 tema = 1 doc).
+6. **Veredito por dimensão** (`IGUAL / DÍVIDA A FECHAR / PROTÓTIPO ATRASADO`) → registrar no
+   `<tela>-visual-comparison.md` (append; 1 tema = 1 doc). ~~`DIVERGE(decisão)` e
+   `PROD-À-FRENTE`~~ **saíram em 2026-09-18, por revogação de [W]** (*"agora é o Protótipo quem
+   manda, e a paridade deve ser o objetivo"*): no eixo FORMA **não há divergência aceita, há
+   dívida**. O que era `DIVERGE(decisão)` vira **DÍVIDA A FECHAR** (a prod converge); o que era
+   `PROD-À-FRENTE` vira **PROTÓTIPO ATRASADO** (re-exportar o protótipo, que é o lado a mover).
+   Os dois rótulos antigos ficam riscados como registro; **não são mais veredito válido**.
+   Fonte: [PROTOCOLO-COMPARACAO-RUNTIME §Regra de veredito](../../../memory/requisitos/_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md)
+   + [RESPEITAR-PROTOTIPO](../../../memory/requisitos/_DesignSystem/RESPEITAR-PROTOTIPO.md).
+   ⚠️ **O eixo importa:** isto vale para **FORMA** (layout, cor, tipografia, ícone, rótulo,
+   afordância, estado). **Visibilidade** (permissão/pacote/módulo), **dado** e **comportamento**
+   seguem do código — ali a cadeia é a de [proibicoes.md](../../../memory/proibicoes.md)
+   (*teste verde > casos > charter > SPEC*), e ausência de dado no protótipo **não** é dívida.
 
 ## Proibições desta skill
 

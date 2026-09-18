@@ -5,8 +5,16 @@ id: requisitos-design-system-respeitar-prototipo
 # Como respeitar o protótipo — a norma (fonte da verdade da tela)
 
 > **O protótipo Cowork aprovado é a fonte da verdade da tela.** O código a segue.
-> Toda divergência ou é **DECLARADA** (autorizada) ou é **PEGA** (drift não-declarado).
-> A máquina que pega o drift é a **M1** (`scripts/governance/detect-ui-drift.mjs`).
+> ~~Toda divergência ou é **DECLARADA** (autorizada) ou é **PEGA** (drift não-declarado).~~
+> ⛔ **REVOGADO por [W] em 2026-09-18** (*"eu revogo tudo, de todos. a regra mudou, agora é o
+> Protótipo quem manda, e a paridade deve ser o objetivo"*). **Não existe divergência autorizada
+> no eixo FORMA** — existe **dívida a fechar**. Declarar um desvio agora **registra** a dívida;
+> não a absolve. A frase riscada fica como registro do que valeu de 2026-07-12 a 2026-09-18;
+> **não instrui mais nada**.
+>
+> A máquina que pega o drift é a **M1** (`scripts/governance/detect-ui-drift.mjs`), e ela segue
+> valendo pelo que sempre fez de útil: **saber que a tela mudou**. O que mudou é o *significado*
+> da declaração, não a detecção.
 >
 > Origem: Wagner 2026-07-11/12 — *"cada customização não é pega como alteração da máquina; parece que não sabe que alterou."* Esta norma + a M1 fazem a máquina **saber que alterou**.
 
@@ -28,12 +36,29 @@ declara a fonte       o visual, fonte da verdade    tem que seguir     Wagner ap
 
 ## Como se pede uma customização (SEM virar drift)
 
-Há **duas** formas legítimas de o `.tsx` de uma tela mudar. Cada uma **declara** o motivo — e a M1 as reconhece **no mesmo PR**:
+⛔ **Esta seção mudou de sentido em 2026-09-18.** Ela descrevia **duas** formas legítimas de o
+`.tsx` divergir; hoje só a segunda é legítima no eixo FORMA. A primeira **não desapareceu** — ela
+deixou de **absolver** e passou a **registrar dívida**.
 
-| Você quer... | Como declarar (o que a M1 aceita) |
+| Você quer... | O que fazer (e o que a M1 aceita) |
 |---|---|
-| **Desviar do protótipo** (um ajuste pontual autorizado) | Adicione/atualize `divergence_from_blueprint: "<razão real>"` no charter irmão da tela, **neste PR**. Ex: `"cliente pediu densidade maior na lista"`. |
-| **Aplicar/seguir o design** (mudar o protótipo, ou fazer o código convergir pro protótipo aprovado) | (a) mude o `related_prototype` do charter pra apontar pro protótipo real, **OU** (b) registre a aplicação no `memory/reference/prototipo-ui/SYNC_LOG.md` citando a tela (o registro que o loop Cowork↔Code já usa). |
+| **Que a tela fique diferente do protótipo** | O caminho é **mudar o protótipo** no Cowork vivo e descer — não desviar dele no código. O protótipo é soberano na FORMA ([UI-0029](adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)); quem discorda dele discute com ele, não contorna. |
+| **Aplicar/seguir o design** (fazer o código convergir pro protótipo aprovado) | (a) mude o `related_prototype` do charter pra apontar pro protótipo real, **OU** (b) registre a aplicação no `memory/reference/prototipo-ui/SYNC_LOG.md` citando a tela (o registro que o loop Cowork↔Code já usa). |
+| **Não consegue fechar agora** (custo, raio, dependência) | `divergence_from_blueprint: "<razão real>"` no charter irmão, **neste PR** — mas leia o que ele significa hoje: **DÍVIDA A FECHAR registrada**, com a razão de ainda não ter fechado. Não é autorização, não prescreve, e não protege a tela numa leitura futura. |
+
+> ~~**Desviar do protótipo** (um ajuste pontual autorizado) — `divergence_from_blueprint: "<razão
+> real>"`. Ex: `"cliente pediu densidade maior na lista"`.~~ ⛔ **REVOGADO por [W] em 2026-09-18.**
+> Fica como registro da redação de 2026-07-12; **não instrui mais nada**.
+
+> ⚠️ **Ponta solta declarada, NÃO consertada neste PR — a M1 ainda fala o vocabulário revogado.**
+> `detect-ui-drift.mjs` classifica um `divergence_from_blueprint` com razão real como
+> `CLEARED — desvio declarado` (L129-131), e o docblock dela abre com *"Duas formas legítimas…
+> 1. DESVIO DECLARADO"* (L15-18). **O campo tem adoção real:** 37 charters o declaram, **33 com
+> razão escrita** (medido 2026-09-18, `rg -g '*.charter.md'` em `resources/` + `Modules/`) — logo
+> não é letra morta que se apague de passagem. A detecção segue correta; o que envelheceu é a
+> palavra `CLEARED` e a moldura de "legítimo". Reescrever isso é **PR próprio**: mexe em máquina
+> que roda no CI, e vale a regra de sempre — [LC-22](../../LICOES_CODE.md), doc que a máquina lê
+> se valida **rodando a máquina**, não revisando o texto.
 
 > ⚠️ **Editar o código direto, sem declarar, é o drift** — a M1 pega. Não é "a máquina te barrando": é a máquina **sabendo que você alterou** e pedindo o porquê. Advisory (não bloqueia) — é aviso, não muro.
 
@@ -67,4 +92,12 @@ No CI: `detect-ui-drift.yml` roda em todo PR que toca `Pages/**/*.tsx|*.charter.
 
 **Escopo v1 (honesto):** a M1 cobre telas com **charter irmão** (`<Tela>.charter.md`). Um `.tsx` sem charter irmão (ex: `_components/`) vira **nota** advisory, não flag — vetor de drift real, marcado como gap conhecido de v1 (fechar em v2 atribuindo componente ao charter-tela ancestral).
 
-**Última atualização:** 2026-07-12 — norma criada + M1 (detector de mudança de UI não-declarada). Reusa `fmScalar` (reconcile-triplet), forma diff-aware (design-return-gate), SYNC_LOG (loop Cowork↔Code) — zero vocabulário novo.
+**Última atualização:** 2026-09-18 — **[W] revogou a "divergência DECLARADA (autorizada)"**: no eixo
+FORMA não há desvio aceito, há **dívida a fechar**, e a paridade com o protótipo é o objetivo
+([UI-0029](adr/ui/0029-prototipo-soberano-sobre-adr-ui.md), ratificada em 2026-08-31). O texto antigo
+fica riscado, não apagado. **Ponta solta nomeada:** a M1 ainda emite `CLEARED — desvio declarado`
+(PR próprio). **Fora do eixo, intactos:** **visibilidade** (permissão/pacote/módulo), **dado** e
+**comportamento** seguem do código, pela regra de precedência de [proibicoes.md](../../proibicoes.md)
+— esta revogação é só sobre FORMA.
+
+**2026-07-12** — norma criada + M1 (detector de mudança de UI não-declarada). Reusa `fmScalar` (reconcile-triplet), forma diff-aware (design-return-gate), SYNC_LOG (loop Cowork↔Code) — zero vocabulário novo.
