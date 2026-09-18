@@ -1,5 +1,41 @@
 # Painel da Jana (`/ia`) — protótipo × tela viva, por região e componente
 
+> ## ⚠️ ERRATA 2026-09-18 — **todo `19px` deste documento caducou em 2026-09-11**
+>
+> Este doc afirma, em 7 lugares, que o `h1` da âncora mede **19px** (medições de 08-17, 08-25 e
+> 09-03, todas corretas na data). **Deixaram de valer** com o [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224)
+> (2026-09-11, *"separar fontes por dono e remover paralelos"*), que fez o `JanaHeader` da âncora
+> delegar ao `CliPageHead`. As linhas antigas **ficam** — são fato datado, e é a data que lhes dá
+> sentido. O que muda é o estado de hoje:
+>
+> | | prod `/ia` | âncora (espelho servido) | veredito |
+> |---|---|---|---|
+> | `h1` font-size | **22px** | **22px** | **IGUAL** — a divergência Δ3px **FECHOU** |
+> | `h1` font-weight | **700** | **600** | 🟡 **DECLARADA** — Fundação/Shell (37 telas), decisão [W] |
+>
+> **Medido** no DOM renderizado, dark × dark, viewport **2560** (a mesma das rodadas antigas) **e**
+> 1440 — mesmo resultado nas duas, o título **não** é responsivo.
+>
+> **Causa:** a regra que produzia 19px é [`chat-jana.css:40`](../../../prototipo-ui/cowork/Wagner/chat-jana.css)
+> `.jc-id h1 { font: 700 19px/1.2 }`, e **`.jc-id` tem 0 nós no DOM** — CSS órfão. O
+> `JanaHeader` ([`chat-jana.jsx:214`](../../../prototipo-ui/cowork/Wagner/chat-jana.jsx)) renderiza
+> `<window.CliPageHead>`, cujo docblock (`cli-pagehead.jsx:11`) declara *"o desenho é do DS, aqui só
+> resta tradução de vocabulário"* e cita essas mesmas regras `.jc-id` legadas como o problema que
+> veio resolver. O `h1` passou a herdar o token do DS
+> ([`colors_and_type.css:373`](../../../prototipo-ui/design-system/colors_and_type.css)):
+> `h1 { font-size: var(--fs-7); font-weight: 600 }`, `--fs-7: 22px` (`:148`). O seletor sobreviveu
+> no arquivo; o nó que o recebia, não.
+>
+> **Por que sobreviveu 7 dias sem ninguém ver:** nenhuma máquina mede a tipografia deste `h1`. O
+> [`jana--index.alvo.json`](../../../governance/design/targets/jana--index.alvo.json) foi re-medido
+> **no mesmo #7224** (não está atrasado), mas os 9 seletores dele param no container — a seção
+> `header` mede `13px/400` e não desce até o título. E o `secao-check` que o consome roda
+> `--servir-espelho` (espelho × espelho) e é **advisory**. O
+> [`PARIDADE-area-jana-diagnostico-e-ondas.md`](PARIDADE-area-jana-diagnostico-e-ondas.md) carrega o
+> mesmo 19px e fica intacto pelo mesmo motivo: é fóssil datado, e esta errata é o ponteiro.
+>
+> Trilha completa: `Index.charter.md` **v17**.
+
 - **Data da medição:** 2026-08-17 (**re-medido** — ver §Correções abaixo) · **âncora:** `prototipo-ui/cowork/Wagner/jana-merge.jsx` (resolvida por `node scripts/design/ancora.mjs Jana/Index`)
 - **Tela viva:** `resources/js/Pages/Jana/Index.tsx` + `_components/JanaCockpit.tsx` + `_components/JanaDrillDrawer.tsx` + `_components/JanaMetaDrawer.tsx` + `_components/JanaConfigDrawer.tsx`
 - **Charter:** `resources/js/Pages/Jana/Index.charter.md` **v10**

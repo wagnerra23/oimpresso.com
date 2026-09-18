@@ -18,7 +18,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 16
+charter_version: 17
 permissao: jana.access
 ---
 
@@ -195,6 +195,41 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- **v17 (2026-09-18)** — **ERRATA da v13: a divergência do título era de PESO, não de TAMANHO — e
+  o número 19px descrevia CSS que já não governa nada.** A v13 registra *"título 22px (canon
+  `PageHeader`, ADR 0189) × 19px da âncora"*; era **verdade em 2026-09-03** e o fato datado fica lá
+  intacto. Deixou de ser em **2026-09-11** (#7224, *"separar fontes por dono e remover paralelos"*),
+  que fez `JanaHeader` delegar ao `CliPageHead` — e o commit **não tocou** a linha da v13. Medido
+  hoje no DOM renderizado, viewport **2560** (a mesma da v13) e 1440, dark × dark:
+
+  | | prod `/ia` | âncora (espelho servido) | veredito |
+  |---|---|---|---|
+  | `h1` font-size | **22px** | **22px** | **IGUAL** — a divergência de tamanho FECHOU |
+  | `h1` font-weight | **700** | **600** | 🟡 **DECLARADA, decisão [W]** — Fundação/Shell (37 telas) |
+
+  **Por que 19px sumiu:** a regra que o produzia é [`chat-jana.css:40`](../../../../prototipo-ui/cowork/Wagner/chat-jana.css)
+  `.jc-id h1 { font: 700 19px/1.2 }`, e `.jc-id` **não existe mais no DOM** (medido: 0 nós). O
+  `JanaHeader` da âncora ([`chat-jana.jsx:214`](../../../../prototipo-ui/cowork/Wagner/chat-jana.jsx))
+  renderiza `<window.CliPageHead>`, cujo docblock (`cli-pagehead.jsx:11`) declara *"o desenho é do
+  DS, aqui só resta tradução de vocabulário"* — e cita essas mesmas regras `.jc-id` legadas como o
+  problema que veio resolver. O `h1` passou a herdar o token do DS
+  ([`colors_and_type.css:373`](../../../../prototipo-ui/design-system/colors_and_type.css)):
+  `h1 { font-size: var(--fs-7); font-weight: 600 }`, com `--fs-7: 22px` (`:148`). O CSS sobreviveu
+  no arquivo; o nó que o recebia, não.
+
+  **O peso 700 de prod é deliberado e permanece:** vem de
+  [`Components/PageHeader/PageHeader.tsx:111`](../../../../resources/js/Components/PageHeader/PageHeader.tsx)
+  (`text-[22px] font-bold`, docblock *"peso Vendas"*), que é o `PageHeader` que o `JanaAreaHeader`
+  importa (`:56`). A decisão [W] da v13 — *"é Fundação/Shell compartilhada, não desta tela"* — segue
+  válida; só muda o eixo a que ela se aplica.
+
+  **Por que sobreviveu 7 dias:** nenhuma máquina mede a tipografia deste `h1`. O
+  `jana--index.alvo.json` foi re-medido no MESMO #7224 (está em dia), mas os 9 seletores dele param
+  no container — `header` mede `13px/400` e não desce até o título; e o `secao-check` roda
+  `--servir-espelho` (espelho × espelho) e é advisory. Registros datados que citam 19px em
+  `Index-visual-comparison.md` e `PARIDADE-area-jana-diagnostico-e-ondas.md` ficam intactos como
+  fósseis — a errata deles está no topo do primeiro.
 
 - **v16 (2026-09-08)** — **o drawer da meta absorve `metas/show` e `fontes/show`** (PR-3 do
   [`RUNBOOK-metas`](../../../../memory/requisitos/Jana/RUNBOOK-metas.md) §9.4, *"Fonte e apurações

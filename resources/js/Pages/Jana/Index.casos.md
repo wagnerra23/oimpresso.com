@@ -977,7 +977,7 @@ O título fica sozinho na linha dele, com a identidade do tenant em mono embaixo
 | "Atualizado" | Zona R, 1º item, botão com dot | dentro do subtítulo | ❌ → **corrigido** |
 | primary no header | não existe | "Conversar" (do `DataController.primary`) | ❌ → **removido** |
 | subtítulo | mono 11.5px `TENANT · biz=N · versão` | sans 12px `TENANT·biz=N·Atualizado` | 🟡 → mono; `versão` não existe na prod (dado) |
-| título | 19px | 22px | 🟡 **declarada** — canon `PageHeader` (ADR 0189), Fundação/Shell, decisão [W] |
+| título | ~~19px~~ **22px** | 22px | ⚠️ **ERRATA 2026-09-18** — o tamanho é IGUAL nos dois lados; o que diverge é o **peso** (prod 700 × âncora 600). Ver abaixo |
 
 **Critério de aceite (o que o teste mede, no DOM renderizado):**
 
@@ -990,7 +990,19 @@ O título fica sozinho na linha dele, com a identidade do tenant em mono embaixo
 
 **O que NÃO entrou aqui, de propósito:** contador `n` nas abas (backend, R2 do
 `Index-visual-comparison.md`), Exportar em menu de 3 itens (o botão segue mudo — UC-JPAIN-16 /
-decisão [W]), e o título 22×19px (acima).
+decisão [W]), e o **peso** do título (abaixo).
+
+> ⚠️ **ERRATA 2026-09-18 — este bullet dizia "o título 22×19px".** O 19px era verdade quando a
+> tabela foi escrita (2026-09-03) e sai como fato datado. Deixou de ser em **2026-09-11** (#7224),
+> que fez `JanaHeader` delegar ao `CliPageHead`: a regra que produzia 19px
+> (`chat-jana.css:40` `.jc-id h1`) ficou **órfã** — `.jc-id` tem **0 nós** no DOM —, e o `h1`
+> passou a herdar o token do DS (`colors_and_type.css:373` `h1 { var(--fs-7) }`, `--fs-7: 22px`).
+> Medido hoje nos dois lados, viewport 2560 (a mesma de 09-03) e 1440, dark × dark:
+> **tamanho 22px = 22px (IGUAL)**; **peso prod 700 × âncora 600 (DIVERGE)**.
+> O 700 vem de `Components/PageHeader/PageHeader.tsx:111` (`font-bold`, docblock *"peso Vendas"*),
+> que é o `PageHeader` importado pelo `JanaAreaHeader` (`:56`). A decisão [W] — *Fundação/Shell
+> compartilhada, 37 telas, não desta tela* — **segue valendo**; só muda o eixo a que se aplica.
+> Trilha completa no charter v17.
 
 ## UC-JPAIN-21 — o card de meta lê "<valor> de <alvo>" e "<pct>% do alvo"
 Status: 🧪 (**duas** defesas, as duas com mordida provada por mutação; aguardam o verde vir do
