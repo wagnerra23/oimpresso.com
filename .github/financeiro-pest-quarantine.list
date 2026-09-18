@@ -79,7 +79,6 @@ Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed,
 Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions) — ex-B
 Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (103 assertions)
-Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4 passed (42 assertions)
 Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions) — motivo MEDIDO no rodape (decisao [W] pendente)
 Modules/Financeiro/Tests/Feature/UnificadoControllerTest.php  # 2 failed, 1 skipped, 10 passed (75 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoPlanoContaGuardTest.php  # 6 failed, 1 passed (23 assertions)
@@ -179,6 +178,62 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 # os mesmos 5 casos. Uma única assertion antes era todo o valor do arquivo.
 #
 # Medido no CT 100, worktree /var/www/qa em origin/main 5ab93d5ae17, DB
+# oimpresso_qa provisionada pela receita do CI (.github/actions/pest-mysql-setup).
+# ── FluxoRealizadoControllerTest (2026-09-18, triagem 17/N do bucket C) ──
+#   6 failed, 4 passed (42 assertions)  →  10 passed (237 assertions)
+#
+# 🔴 Classificação: DEFEITO DO PRODUTO — o ÚNICO da série. O arquivo de teste
+# NÃO FOI TOCADO: o diff é 1 arquivo de produção, e o teste ficou verde sozinho. Ele
+# estava certo o tempo todo, e o rótulo do bucket ("defeito real a investigar")
+# acertou aqui.
+#
+# A ABA "REALIZADO" DO FLUXO DE CAIXA DEVOLVIA HTTP 500. Medido direto:
+#   GET /financeiro/fluxo?tab=projetado ... 200
+#   GET /financeiro/fluxo?tab=realizado ... 500
+#
+# Causa (SQL do log, não deduzida):
+#   SQLSTATE[42S22]: Unknown column 'fin_titulo_baixas.business_id' in 'WHERE'
+#
+# O FluxoRealizadoService:91 abria a query com `->from('fin_titulo_baixas as b')`.
+# O BusinessScopeImpl (Tier 0, ADR 0093) aplica
+# `$model->getTable() . '.business_id'` — o nome REAL da tabela. Com a tabela
+# aliasada como `b`, o MySQL não resolve `fin_titulo_baixas.business_id` e a query
+# inteira morre. O autor até tinha escrito o filtro Tier 0 à mão nas DUAS tabelas
+# ("defesa em profundidade", diz o comentário dele) — o que morria era o scope
+# AUTOMÁTICO, que não conseguia casar o nome.
+#
+# Fix = TIRAR O ALIAS da tabela do próprio model (o alias do JOIN, `t`, pode ficar:
+# tabela de join não recebe o scope deste model). O scope volta a casar e o filtro
+# continua DUPLO, como o comentário já prometia.
+#
+# VALOR (REGRA MESTRE de proibicoes.md) — dois caminhos independentes, com número
+# concreto, e antes→depois. Fixture determinística: receber 1000,00 + 234,56 ·
+# pagar 400,00 no biz medido, MAIS receber 99.999,00 num SEGUNDO business (isca
+# cross-tenant):
+#
+#                             ANTES (main)               DEPOIS (com o fix)
+#   HTTP da tela ........... 500                         200
+#   Service (Eloquent+scope) ESTOUROU 42S22              1234.56 / 400.00 / 834.56
+#   SQL cru (sem Eloquent) . 1234.56 / 400.00 / 834.56   1234.56 / 400.00 / 834.56
+#   confronto .............. impossível (um lado morto)  BATEM
+#   isca de 99.999,00 ...... —                           NÃO vazou (Tier 0 intacto)
+#
+# NÃO há risco de corromper valor GRAVADO: a mudança é numa query de LEITURA, e o
+# próprio arquivo tem o caso "não dispara mutação em GET /fluxo?tab=realizado
+# (read-only puro)", que passa. O "antes" não é um número errado — é tela morta.
+#
+# PROVA DE EXECUÇÃO (LC-13): assertions 42 → 237, +195 com 10 casos nos dois lados —
+# o salto é o tamanho do que os 6 casos mortos deixavam de asserir. Entre eles o
+# UC-FLX-07 (Tier 0 IRREVOGÁVEL: realizado respeita business_id), que nunca tinha
+# sido provado.
+#
+# VARREDURA CONTADA da família (§5 2026-08-03 — não consertar UMA de N sem medir os
+# irmãos): `from('fin_<tabela> as <alias>')` em código de produção dá 2 sites, e só
+# 1 é defeito. O outro é ResyncFromCoreCommand:285, um COMANDO — roda em CLI, onde
+# `session()->has('user.business_id')` é falso e o scope faz `return` seco. Por isso
+# ele nunca quebrou (e por isso o teste dele, triagem 12/N, passa).
+#
+# Medido no CT 100, worktree /var/www/qa em origin/main 6e790834540, DB
 # oimpresso_qa provisionada pela receita do CI (.github/actions/pest-mysql-setup).
 # ── Onda7bTroubleshootPresentTest (2026-08-03, triagem 10/N — bucket A) ──
 #   1 failed, 11 passed (44 assertions)  →  12 passed (48 assertions)
