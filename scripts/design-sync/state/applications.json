@@ -29,7 +29,19 @@
           "recordedAt": "2026-09-18T13:43:40.271Z"
         }
       ],
-      "smokes": [],
+      "smokes": [
+        {
+          "route": "/arquivos",
+          "deploySha": "1cb5389da3e6345e7b638eb9d8f4969d9436b499",
+          "tenant": 1,
+          "host": "ci",
+          "screenshot": "scripts/design-sync/state/smokes/arquivos-index.png",
+          "screenshotSha256": "80c0c47bb4fdcf1455944393c316e0ffcffc576945778a69bb3b1f97a8495ee5",
+          "result": "passed",
+          "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854",
+          "recordedAt": "2026-09-18T14:20:19.480Z"
+        }
+      ],
       "application": {
         "evidence": "memory/requisitos/Arquivos/arquivos-index-gap.md",
         "evidenceSha256": "2b9376793051ff28e44a6023bb21850ecbdba4a137b6e5fc299455695cf6eb3b",
@@ -259,7 +271,19 @@
           "recordedAt": "2026-09-18T13:44:14.833Z"
         }
       ],
-      "smokes": [],
+      "smokes": [
+        {
+          "route": "/fiscal/config",
+          "deploySha": "1cb5389da3e6345e7b638eb9d8f4969d9436b499",
+          "tenant": 1,
+          "host": "ci",
+          "screenshot": "scripts/design-sync/state/smokes/fiscal-config.png",
+          "screenshotSha256": "0284d8557a0cff1bc4b02a49feb16d684b85d40c76c9dacfb9a049f036b615de",
+          "result": "passed",
+          "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
+          "recordedAt": "2026-09-18T14:20:24.023Z"
+        }
+      ],
       "application": {
         "evidence": "memory/requisitos/Fiscal/fiscal-config-visual-comparison.md",
         "evidenceSha256": "939756ad3e609491f3f9d3261fab6e05cd0ddaca71cf970116b248327427b5f3",
@@ -307,7 +331,19 @@
           "recordedAt": "2026-09-18T13:44:20.035Z"
         }
       ],
-      "smokes": [],
+      "smokes": [
+        {
+          "route": "/fiscal/eventos",
+          "deploySha": "1cb5389da3e6345e7b638eb9d8f4969d9436b499",
+          "tenant": 1,
+          "host": "ci",
+          "screenshot": "scripts/design-sync/state/smokes/fiscal-eventos.png",
+          "screenshotSha256": "ccb0dbc87bbfe45abe81b8b51baa0e4bedab46a018f776a6dcf171b91b154766",
+          "result": "passed",
+          "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
+          "recordedAt": "2026-09-18T14:20:27.903Z"
+        }
+      ],
       "application": {
         "evidence": "memory/requisitos/Fiscal/fiscal-eventos-visual-comparison.md",
         "evidenceSha256": "ebe71025f6ec8adf5f81049dbe5cf1740772f2fbc31a01a1e2d32d4fc50b9080",
@@ -368,7 +404,19 @@
           "recordedAt": "2026-09-18T13:44:25.120Z"
         }
       ],
-      "smokes": [],
+      "smokes": [
+        {
+          "route": "/fiscal/sped",
+          "deploySha": "1cb5389da3e6345e7b638eb9d8f4969d9436b499",
+          "tenant": 1,
+          "host": "ci",
+          "screenshot": "scripts/design-sync/state/smokes/fiscal-sped.png",
+          "screenshotSha256": "523ae8747062acf3ce86da07c455174c3d173f77382df33c9cf5e3d613af5539",
+          "result": "passed",
+          "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
+          "recordedAt": "2026-09-18T14:20:32.002Z"
+        }
+      ],
       "application": {
         "evidence": "memory/requisitos/Fiscal/fiscal-sped-visual-comparison.md",
         "evidenceSha256": "7d047ceb70c593dcc62a9d4fa6e7f896b0d72811770582ead870ddfa4180b9e1",
