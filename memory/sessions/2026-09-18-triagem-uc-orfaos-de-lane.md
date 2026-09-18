@@ -52,6 +52,15 @@ maiores proximos, todos medidos e **nenhum** igual a 137:
 **Nao invento explicacao para o 137.** O que se afirma com recibo: a saida de hoje carrega
 69, e o codigo nao admite os dois numeros ao mesmo tempo.
 
+> ⚠️ **O `69` e um retrato de 2026-09-18, e ele ANDA de proposito.** Cada conversao desta
+> triagem o derruba, e o `na-lane` / `quarentena` andam por trabalho de terceiros tambem.
+> Medido no mesmo dia: o [#7530](https://github.com/wagnerra23/oimpresso.com/pull/7530) leva
+> `ORFAO` a **62** (`-7`, o `Wave6PlanCrudTest`), e o
+> [#7519](https://github.com/wagnerra23/oimpresso.com/pull/7519), de outra sessao, leva
+> `quarentena` de 26 a 22. **Nao restatear estes numeros a mao** — rode
+> `node scripts/qa/uc-lane-coverage.mjs` (§6). O que este documento fixa e a **classificacao**
+> das 69 e o **veredito medido** de cada teste, nao o placar.
+
 ## 2. Contexto que muda a leitura: o gate esta VERDE
 
 O `uc-lane-coverage` **e wirado** — `.github/workflows/governance-script-tests.yml:196` roda
