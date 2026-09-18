@@ -13,7 +13,7 @@
  *   node scripts/design-sync/recibos-ci.mjs [--dry] [--limit 20] [--no-fetch] [--root DIR]
  *   node scripts/design-sync/recibos-ci.mjs --selftest
  */
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
@@ -37,8 +37,38 @@ export function moduloDoTeste(path) {
   return path.match(/^Modules\/([^/]+)\/Tests\//)?.[1] || path.match(/^tests\/Feature\/([^/]+)\//)?.[1] || null;
 }
 
+/**
+ * Módulos de uma lane que monta a lista de testes EM RUNTIME (padrão árvore-menos-quarentena):
+ * `find Modules/<X>/Tests -name '*Test.php' | sort > ...` menos a quarentena. Não há lista
+ * estática pra ler — o que a lane declara é a ÁRVORE que ela varre.
+ *
+ * POR QUE EXISTE (medido 2026-09-18): das 21 lanes `*-pest.yml` com job reconhecido, **8**
+ * parseavam `tests: []` e ficavam INVISÍVEIS pro seletor — entre elas `financeiro-pest.yml` e
+ * `estoque-pest.yml`, que são contexts REQUIRED e rodam Pest de verdade. Efeito no funil de
+ * design: 77 de 139 alvos tinham lane; com este fallback, 93 (+16), e 7 telas `applied`
+ * passam a conseguir recibo automático. E a cegueira CRESCERIA — o projeto está migrando
+ * lanes justamente pra o padrão de árvore (task viva "Lane required de Ponto vira
+ * arvore-menos-quarentena"), então cada migração apagava mais uma lane deste seletor.
+ *
+ * FAIL-CLOSED POR EXISTÊNCIA, e é o que mata o falso-positivo: só entra módulo cujo diretório
+ * de teste EXISTE. Sem esse filtro o controle negativo acusa 2 lanes visíveis ganhando o
+ * módulo literal `X`, que vem de `Modules/X/Tests` escrito como placeholder em comentário.
+ * Com ele: 0 de 13. Não é allowlist de nome (família morta no §5) — é a pergunta "esta árvore
+ * existe no repo?", que é decidível.
+ */
+export function modulosPorArvore(texto, existe = (rel) => existsSync(join(ROOT, rel))) {
+  const mods = new Set();
+  for (const m of String(texto).matchAll(/Modules\/([A-Za-z][A-Za-z0-9_]*)\/Tests\b/g)) {
+    if (existe(`Modules/${m[1]}/Tests`)) mods.add(m[1]);
+  }
+  for (const m of String(texto).matchAll(/tests\/Feature\/([A-Za-z][A-Za-z0-9_]*)\//g)) {
+    if (existe(`tests/Feature/${m[1]}`)) mods.add(m[1]);
+  }
+  return mods;
+}
+
 /** Parse de uma lane: job `PHP / Pest (<X> · MySQL)` + lista EXPLÍCITA de arquivos de teste. */
-export function parseLane(texto, workflow) {
+export function parseLane(texto, workflow, existe) {
   const job = texto.match(/^\s*name:\s*(PHP \/ Pest \([^)]*\))\s*$/m)?.[1] || null;
   const tests = [];
   for (const linha of texto.split(/\r?\n/)) {
@@ -47,6 +77,11 @@ export function parseLane(texto, workflow) {
     if (m) tests.push(m[1]);
   }
   const modulos = new Set(tests.map(moduloDoTeste).filter(Boolean));
+  // FALLBACK de RAIO MÍNIMO: só quando NÃO há lista estática. Lane que lista arquivos segue
+  // exatamente como era — os 13 casos visíveis não mudam de comportamento em nada, e os
+  // controles negativos do selftest (comentário não vira teste; `Beta` não vira lane) seguem
+  // valendo por construção, porque naquela fixture a lista não é vazia.
+  if (!modulos.size) for (const mod of modulosPorArvore(texto, existe)) modulos.add(mod);
   return { workflow, job, tests, modulos };
 }
 
@@ -184,6 +219,34 @@ async function selftest() {
   assert.equal(moduloDoAlvo('resources/views/x.blade.php'), null);
   assert.equal(lanesDoModulo([lane], 'Alpha').length, 1);
   assert.equal(lanesDoModulo([lane], 'Beta').length, 0, 'módulo só citado em comentário = sem lane');
+
+  /* ── fallback árvore-menos-quarentena (2026-09-18) ────────────────────────────────────
+   * As 3 provas que o fallback precisa ter, e a do meio é a que protege quem já funcionava.
+   * `existe` é injetado: o selftest continua hermético (sem tocar o filesystem real).        */
+  const arvoreYaml = [
+    'name: Y · Pest (MySQL)', 'jobs:', '  pest:', '    name: PHP / Pest (Delta · MySQL)', '    steps:',
+    '      - name: Run Pest', '        run: |',
+    '          find Modules/Delta/Tests -name "*Test.php" | sort > /tmp/all.txt',
+    '          # placeholder de doc, o diretório não existe: Modules/X/Tests',
+    '          echo tests/Feature/Epsilon/AlgumTest.php >> /tmp/run.txt',
+  ].join('\n');
+  const existeFake = (rel) => ['Modules/Delta/Tests', 'tests/Feature/Epsilon'].includes(rel);
+  const laneArvore = parseLane(arvoreYaml, 'delta-pest.yml', existeFake);
+  assert.deepEqual(laneArvore.tests, [], 'lane de árvore não tem lista estática — é esse o caso');
+  assert.deepEqual([...laneArvore.modulos].sort(), ['Delta', 'Epsilon'],
+    'MORDE: lane que monta a lista em runtime recupera o módulo pela árvore que ela varre');
+  assert.equal(lanesDoModulo([laneArvore], 'Delta').length, 1, 'e vira lane utilizável pro seletor');
+  assert.equal(lanesDoModulo([laneArvore], 'X').length, 0,
+    'CONTROLE: árvore inexistente no repo (placeholder em comentário) NÃO vira módulo');
+
+  // CONTROLE que protege as 13 lanes que já funcionavam: com lista estática, a árvore é ignorada.
+  const comListaEArvore = parseLane([
+    '    name: PHP / Pest (Alpha · MySQL)', '      - name: Run Pest', '        run: |',
+    '          find Modules/Delta/Tests -name "*Test.php"',
+    '            Modules/Alpha/Tests/Feature/UmTest.php',
+  ].join('\n'), 'misto-pest.yml', () => true);
+  assert.deepEqual([...comListaEArvore.modulos], ['Alpha'],
+    'CONTROLE: lane COM lista estática não ganha módulo da árvore (raio mínimo)');
   const report = { screens: [
     { target: 'a', lifecycleState: 'applied', applicationEvidence: { tests: [] } },
     { target: 'b', lifecycleState: 'tested', applicationEvidence: { tests: [{ exitCode: 0 }] } },
