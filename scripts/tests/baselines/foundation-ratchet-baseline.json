@@ -2,9 +2,10 @@
   "generated_by": "scripts/tests/foundation-ratchet.mjs --write",
   "counters": {
     "n_quarantine": 126,
-    "n_refresh_database": 13,
-    "n_business_first": 75,
-    "n_lane_quarantine": 42
+    "n_refresh_database": 12,
+    "n_business_first": 73,
+    "n_lane_quarantine": 41
   },
-  "nota_n_lane_quarantine": "ARMADO 2026-09-18 — 2a quarentena (exclusao de lane em .github/*-quarantine.list) passa a ser contada. Medido no instante do armamento: 42 entradas (financeiro 22 + estoque 20), 42 de 42 COM motivo escrito na linha, logo nasce VERDE e nao reprova nada existente. Os outros 3 contadores ficam nos valores que ja estavam (13/75) de proposito: a medicao viva esta em 12/73, ganho de terceiros ainda nao travado, e travar ganho alheio no PR de outra intencao seria raio maior que o necessario."
+  "nota_n_lane_quarantine": "ARMADO 2026-09-18 — 2a quarentena (exclusao de lane em .github/*-quarantine.list) passa a ser contada. Medido no instante do armamento: 42 entradas (financeiro 22 + estoque 20), 42 de 42 COM motivo escrito na linha, logo nasce VERDE e nao reprova nada existente.",
+  "nota_2026_09_18_primeiro_burn_down": "42 -> 41: o ProdutoShowContratoTest saiu da quarentena de estoque (UC-PSHOW-01 corrigido, arquivo inteiro verde no CT 100). A nota do armamento dizia que os outros 3 contadores ficavam nos valores antigos (13/75) de proposito, pra nao travar ganho de terceiros no PR de outra intencao. Aqui eles FORAM travados (13->12, 75->73) porque o --write do script grava os 4 de uma vez e nao tem flag por metrica; travar e seguro (a catraca so desce, e a medicao atual == baseline, entao nada existente reprova), mas o raio e maior que a intencao deste PR e por isso fica declarado. Crescimento legitimo segue por --write --force, visivel no diff."
 }
