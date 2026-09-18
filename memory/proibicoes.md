@@ -203,6 +203,18 @@
 - ⛔ **Artefato de DESIGN** (`.html`/protótipo/relatório *meta* do Cowork) **segue as mesmas duas regras acima** — não-duplicação (1 tema = 1 doc; edita o existente, nunca `vN.html`) + append-only/trilha-do-tempo (rodapé de evolução + lápide ao arquivar). Versão escopada + exemplos em [`memory/reference/prototipo-ui/CLAUDE_DESIGN_BRIEFING.md §7.1`](../memory/reference/prototipo-ui/CLAUDE_DESIGN_BRIEFING.md). Origem: Cowork 2026-06-01 (L-21/L-22).
 - ⛔ **NUNCA commitar valores BRL** (R$, MRR, totais, valor por mês) em `memory/`, `*.md` canon, PR body, ou commit message. **Só Wagner/Eliana têm acesso a valores via git** — Felipe/Maiara/Luiz veem **escopo, contagens, estrutura** (108 subs, 1311 invoices, etc) mas NÃO valores monetários do que foi migrado. Origem: Wagner regra explícita 2026-06-08 *"maiara felipe e luiz não podem ter acesso a nada de valores no git. pode saber o que migrou mas não saber o conteudo (valores)"*. **Reincidência custou:** sessão 2026-06-08 vazei valores em handoff + session + SPEC + 08-handoff (PRs #2433/#2434). Recuperação: redact forward #2435 + `git filter-repo --replace-text 'R\$\s?\d[\d.,]*' → 'R$ [redacted Tier 0]'` em **5.033 commits** + force-push `main` (allow_force_pushes habilitado temporariamente via gh API + restaurado). Custo defesa: ~30min + branch protection window aberta. **Pattern futuro:** se precisar comunicar valor → mencione "[redacted Tier 0]" ou comunique fora-banda (chat Wagner direto, não git). Para reforço mecânico, considerar hook PreToolUse `block-brl-values-in-memory.ps1` que detecta `R\$\s?\d` em Edit/Write de `memory/**/*.md` e bloqueia.
 
+> **EMENDA 2026-09-18 — o escopo da regra acima ([ADR 0407](decisions/0407-regra-brl-protege-valor-de-cliente-no-canon-nao-numero-em-artefato.md)).**
+> O fato de 2026-06-08 fica como está: o eixo é **acesso do time a valor de CLIENTE**, e ele
+> vale integralmente em `memory/`, PR body e commit message. O que muda daqui pra frente é o
+> alcance da MÁQUINA, que varria o repo inteiro e por isso acusava número que não é dado de
+> negócio. [W] 2026-09-18, textual: *"não é só aí que devem ser as exceções, a regra deve ser
+> reinterpretada no sistema inteiro"*.
+> **Fora do eixo, por construção:** artefato de **design** (`prototipo-ui/` — já isento desde
+> 2026-08-21 — e `governance/design/`, que é a medição dele: medir tela de ERP captura dinheiro
+> por construção), **vetor de asserção** em teste/fixture, e **string de UI** no código. Para os
+> dois últimos a isenção segue **por substring no allowlist**, caso a caso — não por pasta —,
+> porque é neles que um valor real pode aterrissar sem parecer. Residual declarado na ADR.
+
 ## Comportamento Claude (sessão)
 
 - ⛔ **Após Wagner cortar minha proposta 1x, PARAR e PERGUNTAR** — não re-inflar com "versão refinada". Re-inflar é não-ouvir disfarçado de iteração. Sessão 2026-05-13 teve 3 cortes consecutivos (Wagner cortou skill+subagent → cortou modo brabo → cortou estado-da-arte complexo) antes de Claude obedecer; ROI cortado em cada inflação. Sinal de degradação comportamental — ver `memory/how-trabalhar.md` §"Reconhecer degradação de sessão".

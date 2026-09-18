@@ -101,6 +101,18 @@ const ARQUIVOS_DA_FERRAMENTA = [
  */
 const PASTAS_ISENTAS = [
   'prototipo-ui/',
+  // ADR 0407 ([W] 2026-09-18: "a regra deve ser reinterpretada no sistema inteiro"). Mesma
+  // razão da linha acima, um passo adiante: `governance/design/` é a MEDIÇÃO daquele design
+  // — o `design-diff-lote` captura o texto renderizado das telas, e medir tela de ERP captura
+  // dinheiro POR CONSTRUÇÃO. Sem esta isenção o gate avermelharia em toda rodada do lote, o
+  // que treina o leitor a ignorá-lo.
+  // MEDIDO em 2026-09-18: dos arquivos versionados com o padrão monetário sob `governance/`,
+  // 73 de 73 estão em `design/targets` — a pasta é homogênea, não é um balde misto.
+  // ⚠️ Residual, herdado e declarado: medição nasce às vezes com número copiado de produção
+  // pra parecer real. O gate não pega mais esse caso aqui. Código e testes NÃO entram nesta
+  // lista de propósito (é onde um valor real pode aterrissar sem parecer) — lá a isenção segue
+  // por substring no allowlist, caso a caso.
+  'governance/design/',
 ];
 
 export function ehArquivoDaFerramenta(arquivo) {
@@ -210,6 +222,13 @@ function selftest() {
     ['ISENTA o hook (documenta o predicado)', '+++ b/.claude/hooks/block-brl-values-in-memory.mjs\n+// exemplo: R$ 5.000,00', 0],
     ['ISENTA o proprio scanner', '+++ b/scripts/governance/brl-scan-diff.mjs\n+// exemplo: R$ 1,00', 0],
     ['ISENTA o allowlist e o workflow', '+++ b/.github/brl-scan-allowlist.txt\n+R$ 9,99', 0],
+    // ADR 0407 — a medição do design entra na isenção de pasta, e os controles que garantem
+    // que ela não virou um balde: o resto de `governance/` continua varrido, e o canon idem.
+    ['ISENTA a medicao de design (ADR 0407)', '+++ b/governance/design/targets/medidas/X/design.json\n+  "label": "TOTAL R$ 1.234,56",', 0],
+    ['ISENTA tambem o contrato de tela sob governance/design/', '+++ b/governance/design/contracts/x.contract.json\n+  "copy": ["Total R$ 99,00"],', 0],
+    ['CONTROLE: o resto de governance/ NAO e isento', '+++ b/governance/required-checks-baseline.json\n+  "nota": "custo R$ 50,00",', 1],
+    ['CONTROLE: memory/ segue mordendo (o eixo da regra nao mudou)', '+++ b/memory/requisitos/X/SPEC.md\n+saldo R$ 12.000,00', 1],
+    ['CONTROLE: codigo de produto NAO entra na isencao de pasta (decisao explicita da 0407)', '+++ b/Modules/Financeiro/X.php\n+$msg = "saldo R$ 3.000,00";', 1],
     ['NAO isenta outro arquivo de .claude/hooks', '+++ b/.claude/hooks/outro.mjs\n+R$ 9,99', 1],
   ];
   let ok = 0;
