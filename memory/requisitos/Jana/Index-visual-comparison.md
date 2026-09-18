@@ -228,7 +228,7 @@ citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como
 > `N metas ativas — visão consolidada do business`. A âncora `JmMetasSecao` tem **uma** linha:
 > `<h2 class="jc-h2"><JcIcon name="target"/> METAS ATIVAS <span class="jm-per">…` com os controles
 > em `margin-left:auto`. Agora a tela usa o mesmo `SectionTitle` da réplica `.jc-h2`
-> (**UC-JPAIN-25**) com os botões existentes no `ml-auto`.
+> (**UC-JPAIN-27**) com os botões existentes no `ml-auto`.
 >
 > **A trava era de CONTRATO, não de forma, e ela foi levantada explicitamente.** `Metas ativas` e
 > `Acompanhamento contínuo` eram copy **pinada** em `governance/design/contracts/jana-painel.contract.json`
@@ -826,7 +826,7 @@ uppercase nos dois**. O que diverge é tamanho, peso e tracking, não a caixa.
 > `jana-merge.css` não o declaram; ele só aparece em `estoque-page.css` e `mockup-pages.css`, de
 > outras telas. Sem token resolvível, trocar a cor seria adivinhar. Fica medido e aberto.
 >
-> Travado por **UC-JPAIN-25** (`tests/janaSectionTitleReplica.spec.tsx`), 5 casos, mordida provada
+> Travado por **UC-JPAIN-27** (`tests/janaSectionTitleReplica.spec.tsx`), 5 casos, mordida provada
 > por mutação: restaurada a métrica do golden, 2 de 5 caem — um por **ausência** da nova
 > (`sem font-mono`) e outro por **presença** da antiga (`ainda tem text-sm`), que é o par que
 > impede tanto a regressão quanto o meio-termo.
