@@ -1498,6 +1498,12 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ NÃO virar gate.** O predicado — *"o runtime carregou este arquivo?"* — não é derivável do texto do diff nem do repo: depende do estado de um processo remoto. O gate óbvio da [LC-08](LICOES_CODE.md) já está **medido e reprovado** (não re-propor), e a forma sintática (acusar smoke de UI em PR que toca `.php`) reprovaria o uso legítimo, que é a maioria — a família de guard sintático com 8 lápides medidas neste §5. O que fecha a classe é o **caso discriminante**, que custa um terceiro smoke.
 
+### 2026-09-18 — A SONDA DE CONFERÊNCIA era invalidada pela própria remoção que ela deveria conferir (e circulou entre 4 sessões)
+
+- **O limite (variante também proibida).** Sonda de conferência **não pode casar texto que o próprio ato conferido produz**. Antes de adotar uma, rodá-la no estado **pós-ato** e ver se ela ainda distingue — e preferir âncora estrutural a substring: `^` de início de linha, chave de JSON, nó de AST, coluna de banco. Vale para todo arquivo que mistura **dados e prosa** na mesma extensão: lista com comentários, YAML com `#`, `.env` com notas, `CHANGELOG` que cita o que removeu, baseline com campo `nota_*`. Corolário do outro lado do `union`, que a mesma medição expôs: conferir a **sua** linha não basta — `grep '^tests/' <lista> | sort | uniq -d` flagra a duplicação que a união produz nas linhas **vizinhas**, que é o dano que ninguém procura porque não é seu.
+
+- **⚠️ NÃO virar gate.** O gate óbvio mediria **presença da sonda** no processo — que é a própria doença que a LC-11 cataloga. E o predicado *"esta sonda é invalidada pelo artefato que ela confere?"* é **semântico por construção** ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)). O conserto foi **em canon, não em YAML**: o cabeçalho da lista afirmava só que *"PRs concorrentes que adicionam linhas são unidos sem conflito"* — verdade parcial, e foi ela que deu confiança num merge limpo já corrompido. Agora declara o que o `union` **não** faz, a sonda ancorada, o porquê da âncora e a receita de recuperação. O irmão `financeiro-pest-quarantine.list` carrega a mesma frase parcial e ficou **declarado como ponta solta**, não tocado, para não ampliar o raio do PR.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

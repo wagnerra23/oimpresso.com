@@ -2298,3 +2298,20 @@
 - **Quem pegou:** eu, pelo controle negativo — que eu só rodei porque o §5 o exige. Publicado às 3 sessões irmãs no mesmo dia; uma delas respondeu que o conselho pegou um erro dela (defesa anunciada sem prova) **antes** de virar PR.
 
 - Ocorrência da **LC-08**.
+### 2026-09-18 — A SONDA DE CONFERÊNCIA era invalidada pela própria remoção que ela deveria conferir (e circulou entre 4 sessões)
+
+- **O que foi tentado.** Quatro sessões mexiam ao mesmo tempo em `.github/estoque-pest-quarantine.list`, cada uma removendo a linha do seu teste. O arquivo tem `merge=union` no `.gitattributes`, que **desfaz remoção adjacente em silêncio** — merge limpo, sem marcador, com as linhas ressuscitadas. Combinamos por mensagem a conferência pós-merge: `grep -c <NomeDoTest> <lista>` — se voltar 0, a remoção sobreviveu.
+
+- **Por que caiu.** A sonda devolve **1 com a linha já removida**. O arquivo pede motivo escrito e mantém um bloco de histórico (`# SAÍRAM <data>: <NomeDoTest> — ...`), então **a própria remoção acrescenta o nome nos comentários**. O `grep` solto conta a nota de saída. É presença de substring em prosa lida como presença da coisa — [LC-11](LICOES_CODE.md) — na forma mais irônica possível: **a evidência do conserto é o que faz a sonda mentir**, e quanto melhor documentada a remoção, mais confiante o falso positivo.
+
+- **O que o torna mais que um near-miss.** A receita não morreu na sessão que a inventou: **circulou por mensagem entre 4 sessões** antes de ser medida. A sessão que a repassou registrou, ao receber a correção, que *"a minha receita tinha o defeito que eu estava perseguindo"* — ela passou o dia caçando exatamente esta classe. Ninguém a testou contra um arquivo onde a remoção já tivesse acontecido; todos a validaram no raciocínio.
+
+- **O limite (variante também proibida).** Sonda de conferência **não pode casar texto que o próprio ato conferido produz**. Antes de adotar uma, rodá-la no estado **pós-ato** e ver se ela ainda distingue — e preferir âncora estrutural a substring: `^` de início de linha, chave de JSON, nó de AST, coluna de banco. Vale para todo arquivo que mistura **dados e prosa** na mesma extensão: lista com comentários, YAML com `#`, `.env` com notas, `CHANGELOG` que cita o que removeu, baseline com campo `nota_*`. Corolário do outro lado do `union`, que a mesma medição expôs: conferir a **sua** linha não basta — `grep '^tests/' <lista> | sort | uniq -d` flagra a duplicação que a união produz nas linhas **vizinhas**, que é o dano que ninguém procura porque não é seu.
+
+- **⚠️ NÃO virar gate.** O gate óbvio mediria **presença da sonda** no processo — que é a própria doença que a LC-11 cataloga. E o predicado *"esta sonda é invalidada pelo artefato que ela confere?"* é **semântico por construção** ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)). O conserto foi **em canon, não em YAML**: o cabeçalho da lista afirmava só que *"PRs concorrentes que adicionam linhas são unidos sem conflito"* — verdade parcial, e foi ela que deu confiança num merge limpo já corrompido. Agora declara o que o `union` **não** faz, a sonda ancorada, o porquê da âncora e a receita de recuperação. O irmão `financeiro-pest-quarantine.list` carrega a mesma frase parcial e ficou **declarado como ponta solta**, não tocado, para não ampliar o raio do PR.
+
+- **Evidência:** `grep -c ProdutoEditPayload <lista>` = **1** com a linha ativa em **0** · `grep -c '^tests/Feature/Produto/ProdutoEditPayloadContratoTest'` = **0** (âncora discrimina) · pós-merge do main no #7522, a linha removida **voltou** e `ProdutoIndex`/`ProdutoBulkEdit` **duplicaram**, com merge limpo e zero marcadores · `sort | uniq -d` vazio após a reconstrução.
+
+- **Quem pegou:** eu, ao conferir antes de commitar — e só porque a contagem `1` contradizia o que eu sabia ter feito. A sessão que havia difundido a receita confirmou a estrutura e repassou a versão ancorada às outras duas.
+
+- Ocorrência da **LC-11**.
