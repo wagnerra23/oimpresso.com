@@ -187,7 +187,7 @@ lifecycle: ativo
 | `block-askq-execution-menu.mjs` | PreToolUse(AskUserQuestion) | test + hook-bites | `memory/reference/feedback-recomendado-quando-tecnico.md` +12 | enforcement POR MÁQUINA da regra |
 | `block-automem.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test | `memory/decisions/0299-figma-nao-e-fonte-de-design.md` +12 | PreToolUse:Write\|Edit\|MultiEdit (PORTE cross-plataforma do .ps1). |
 | `block-bom-encoding.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +3 | PreToolUse:Write\|Edit\|MultiEdit (PORTE cross-plataforma do .ps1). |
-| `block-brl-values-in-memory.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | — | `memory/proibicoes.md` +14 | BLOQUEIA Write/Edit/MultiEdit que introduza valor BRL |
+| `block-brl-values-in-memory.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | — | `memory/decisions/0407-regra-brl-protege-valor-de-cliente-no-canon-nao-numero-em-artefato.md` +15 | BLOQUEIA Write/Edit/MultiEdit que introduza valor BRL |
 | `block-claim-without-evidence.mjs` | PreToolUse(Bash) | test | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +8 | PreToolUse:Bash (PORTE cross-plataforma do .ps1). |
 | `block-design-sync-without-optin.mjs` | PreToolUse(DesignSync) UserPromptSubmit(*) | test | `memory/decisions/0315-design-sync-claude-design-vs-cowork-charter.md` +7 | claude.ai/design NÃO é fonte de design canônica. |
 | `block-destructive.mjs` | PreToolUse(Bash) | test + hook-bites | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +64 | PreToolUse:Bash (PORTE cross-plataforma do .ps1). |
@@ -493,9 +493,9 @@ lifecycle: ativo
 | `_lib-charter.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/proposals/documentacao-do-fonte-layout-canonico.md` +6 | helpers compartilhados de leitura de charter/bundle. |
 | `analise-regiao.mjs` | ci | 🟢 só lê | — | `memory/reference/prototipo-ui/RUNBOOK-fidelidade-fingerprint.md` | W3 do processo região-a-região: ROTEIA cada região ao crítico certo, |
 | `ancora-guard.mjs` | ci, script | 🟢 só lê | — | `memory/proibicoes.md` +8 | CATRACA: o protótipo tem 1 lugar fixo e nunca troca de lugar. |
-| `ancora.mjs` | agente, ci, script | 🟢 só lê | bite-log | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +145 | a ÂNCORA de uma tela é COMPUTADA do charter, nunca escolhida no olho. |
+| `ancora.mjs` | agente, ci, script | 🟢 só lê | bite-log | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +146 | a ÂNCORA de uma tela é COMPUTADA do charter, nunca escolhida no olho. |
 | `consumir-map.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +14 | o CONSUMO do <tela>.map.json na FASE 4 (sessão limpa de aplicação). |
-| `design-diff-lote.mjs` | script | 🔴 disco | — | `memory/decisions/0401-resolucao-ds-bound-no-servidor-de-preview.md` +15 | DRIVER que transforma "ancorada" em "comparada por SONDA", em lote. |
+| `design-diff-lote.mjs` | script | 🔴 disco | — | `memory/decisions/0401-resolucao-ds-bound-no-servidor-de-preview.md` +17 | DRIVER que transforma "ancorada" em "comparada por SONDA", em lote. |
 | `design-diff.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0385-sidebar-alinhado-ao-prototipo-diferenca-em-tres-categorias.md` +40 | comparador DETERMINÍSTICO design(Cowork vivo) × produção, por MEDIÇÃO. |
 | `detectar-telas.mjs` | agente, ci, npm, script | 🟢 só lê | selftest + test | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +24 | Fase 0 + 0.5 do protocolo aplicar-prototipo, como MECANISMO. |
 | `ds-behavior.js` | — | 🟢 só lê | — | `memory/requisitos/_DesignSystem/adr/ui/0017-design-system-v3-reconciliacao-ui-v2.md` +4 | (sem descrição no cabeçalho) |
@@ -507,7 +507,7 @@ lifecycle: ativo
 | `gerar-map.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +42 | deriva o ESQUELETO do <tela>.map.json a partir do <tela>-gap.md. |
 | `gerar-mapas-handoff.js` | — | 🟢 só lê | — | — | (sem descrição no cabeçalho) |
 | `handoff-changed.mjs` | script | 🟢 só lê | selftest | `memory/reference/prototipo-ui/CODE_NOTES.handoff-ds-2026-09-17-recusado-por-r4.md` | PORTÃO BARATO (zero LLM) da Fase −1 do protocolo aplicar-prototipo. |
-| `importar-bundle.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +7 | IMPORT atômico do ZIP Cowork (Fase −1 como máquina, não receita). |
+| `importar-bundle.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +8 | IMPORT atômico do ZIP Cowork (Fase −1 como máquina, não receita). |
 | `integrity-check.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/0293-governanca-decisao-design-responsavel-registro-veredito.md` +23 | Testes de Integridade · PROCESSO_MEMORIA_CC.md §15 |
 | `protocolo.config.mjs` | agente, ci, script | 🟢 só lê | — | `memory/decisions/0387-github-md-diario-cowork-aceito-e-tratado.md` +44 | FONTE ÚNICA EXECUTÁVEL do protocolo de aplicação de protótipo (skill |
 | `recortar-regiao.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +1 | W2 do processo região-a-região: recorta o screenshot da tela pela |
@@ -518,7 +518,7 @@ lifecycle: ativo
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
-| `alvo.mjs` | agente, ci, npm, script | 🔴 disco | — | (só sessão/handoff · 2) | PR-A1 do protocolo de export: o ALVO de uma seção vira MEDIDA executável. |
+| `alvo.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/LICOES_CODE.md` +2 | PR-A1 do protocolo de export: o ALVO de uma seção vira MEDIDA executável. |
 | `aplicar-payload.mjs` | agente, script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +23 | consome bundle Design v2 (ou payload legado) sem transcrição. |
 | `bundle-contract.mjs` | script | 🟢 só lê | — | `memory/decisions/0398-espelho-cowork-recebe-a-arvore-da-conta.md` +5 | Contrato v2 do transporte Design → git. |
 | `bundle-transaction.mjs` | script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` | Aplicação transacional de um bundle Design v2. |
@@ -530,7 +530,7 @@ lifecycle: ativo
 | `ds-tokens-build-sync.mjs` | ci, script | 🔴 disco | bite-log | `memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md` +7 | os `_generated-*.css` commitados batem com um build fresco? |
 | `gerar-payload-partes.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0389-emenda-0374-escrita-do-espelho-quando-o-get-file-volta-inline.md` +18 | emite snapshot/delta Design v2 em partes de até 256 KiB. |
 | `payload-dependency-graph.mjs` | script | 🟢 só lê | test | (só sessão/handoff · 1) | Grafo estático das dependências LOCAIS alcançáveis a partir de um shell HTML. |
-| `pedido.mjs` | agente, npm | 🔴 disco | — | `.claude/commands/onda.md` | PR-A7 do protocolo de export: o PEDIDO DE SEÇÃO vira DERIVADO. |
+| `pedido.mjs` | agente, npm, script | 🔴 disco | — | `.claude/commands/onda.md` +2 | PR-A7 do protocolo de export: o PEDIDO DE SEÇÃO vira DERIVADO. |
 | `receber-handoff.mjs` | script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +8 | recebe o ZIP de handoff do Cowork e o transforma em import validado. |
 | `recibos-ci.mjs` | ci, script | 🟢 só lê | — | — | grava recibo de TESTE (ADR 0384 D-5) em massa a partir de lanes de CI. |
 | `smoke-consumir.mjs` | ci | 🔴 disco | — | `memory/decisions/0390-emenda-0384-smoke-em-ambiente-controlado.md` +2 | transporta o smoke renderizado no CI até o recibo do Design Sync. |
@@ -572,7 +572,7 @@ lifecycle: ativo
 | `baseline-tamper-guard.mjs` | ci, script | 🟢 só lê | selftest | `memory/decisions/0331-anti-duplicacao-work-claim-gate.md` +46 | anti-grandfather (Gap 2 do blueprint SDD · ADR 0256/0258). |
 | `blade-migration-census.mjs` | agente, ci, script | 🟢 só lê | — | `memory/proibicoes.md` +40 | o CONTRATO DE COMPLETUDE da ADR 0277, derivado da árvore. |
 | `briefing-code-staleness.mjs` | agente, ci, npm, script | 🟢 só lê | test | `memory/decisions/0348-briefing-coverage-required-emenda-0314.md` +26 | sentinela: a PORTA (BRIEFING.md) ficou atrás do CÓDIGO? |
-| `brl-scan-diff.mjs` | ci, script | 🔴 disco | — | `memory/08-handoff.md` +4 | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |
+| `brl-scan-diff.mjs` | ci, script | 🔴 disco | — | `memory/decisions/0407-regra-brl-protege-valor-de-cliente-no-canon-nao-numero-em-artefato.md` +5 | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |
 | `catalog-graph.mjs` | agente, ci, script | 🔴 disco | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +32 | GERADOR determinístico do GRAFO TIPADO de módulos. |
 | `charter-blueprint-pointers.mjs` | ci, script | 🟢 só lê | — | `memory/decisions/proposals/2026-06-23-prototipo-ssot-unico-com-historico.md` +12 | auditoria de PONTEIROS DE PROTÓTIPO dos Page Charters. |
 | `charter-live-signal.mjs` | ci, script | 🟢 só lê | selftest | `memory/decisions/0330-mapa-dos-niveis-estado-real-2026-07-constituicao.md` +19 | gate de SINAL pra charter `status: live` (proposta SDD 2026-06-24). |
@@ -708,7 +708,7 @@ lifecycle: ativo
 | `critica.mjs` | ci, script | 🔴 disco | test | (só sessão/handoff · 3) | passe crítico do pr-critic (a parte AGENTE; o roteamento é coleta.mjs). |
 | `precisao.mjs` | ci, script | 🔴 disco | test | — | MEDIDOR DE PRECISÃO DO PRÓPRIO pr-critic (fecha o loop). |
 
-### 5.16 `scripts/qa/` — 17
+### 5.16 `scripts/qa/` — 18
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -719,14 +719,14 @@ lifecycle: ativo
 | `exposicao-tier0.mjs` | ci, npm, script | 🔴 disco | — | `memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md` +10 | Sentinela de cadência (Onda 0c · pilar CADÊNCIA da ADR 0256). |
 | `mv-metabolismo.mjs` | ci, script | 🔴 disco | test | `memory/requisitos/_Governanca/roadmap/_ROADMAP.md` +17 | o batimento do Módulo Vivo (MV2 · stream MV do roadmap SDD). |
 | `page-path.mjs` | agente, ci, script | 🟢 só lê | test | `memory/decisions/0403-errata-0402-denominador-ja-inclui-pages-de-modulo.md` +16 | localizados em resources/js/Pages/**. |
-| `placar-indice.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md` +8 | PR-A8: o PLACAR DA LISTA. "O Code terminou a lista inteira?" |
-| `placar.mjs` | agente, ci, npm, script | 🟢 só lê | test | `memory/reference/prototipo-ui/CODE_NOTES.errata-pr-a8-fonte-removida-pela-0397-2026-09-17.md` +1 | PR-A6 do protocolo de export: o PLACAR de entrega de uma tela vira MEDIDA |
+| `placar-indice.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md` +9 | PR-A8: o PLACAR DA LISTA. "O Code terminou a lista inteira?" |
+| `placar.mjs` | agente, ci, npm, script | 🟢 só lê | test | `memory/reference/prototipo-ui/CODE_NOTES.errata-playbooks-enderecos-pre-0397-2026-09-17.md` +2 | PR-A6 do protocolo de export: o PLACAR de entrega de uma tela vira MEDIDA |
 | `prototipo-readiness.mjs` | ci | 🔴 disco | test | `memory/requisitos/_Governanca/roadmap/_ROADMAP.md` +7 | "quais telas de protótipo posso aplicar SEM me preocupar?" |
 | `screen-coverage-map.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +72 | mapa de cobertura de QA por tela + baseline da catraca. |
 | `screen-grade-report.mjs` | npm | 🟢 só lê | test | `memory/requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md` +7 | a FOTO LADO A LADO: UX × comportamento por tela. |
 | `screen-grade-seed.mjs` | script | 🔴 disco | — | `memory/decisions/0250-screen-qa-specialist-sustentavel.md` +1 | materializa os scorecards YAML por tela a partir do |
 | `screen-grades-ratchet.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0373-screen-grades-ratchet-required-emenda-0314.md` +19 | catraca anti-regressão da nota por tela. |
-| `secao-check.mjs` | ci, npm | 🔴 disco | — | — | PR-A3 do protocolo de export: o ALVO versionado vira GATE. |
+| `secao-check.mjs` | ci, npm, script | 🔴 disco | — | — | PR-A3 do protocolo de export: o ALVO versionado vira GATE. |
 | `uc-id-lint.mjs` | ci | 🔴 disco | test | `memory/proibicoes.md` +7 | o id de UC casa o regex canônico? (ADR 0264 · fonte única scripts/lib/uc-regex.mjs) |
 | `uc-lane-coverage.mjs` | ci, script | 🔴 disco | test | (só sessão/handoff · 2) | o teste que o `casos.md` cita EXISTE, e alguma lane de CI o RODA? |
 | `vital-signs.mjs` | ci, script | 🔴 disco | test | `memory/requisitos/_Governanca/roadmap/MV1-espinha-dorsal-vital-signs.md` +8 | sinais vitais da frota por módulo (MV1 · espinha dorsal do Módulo Vivo). |
@@ -785,6 +785,7 @@ lifecycle: ativo
 | `governance/module-group.json` | script | `memory/08-handoff.md` +1 | (baseline/estado) |
 | `governance/module-table-coupling-baseline.json` | script | — | (baseline/estado) |
 | `governance/multi-tenant-scope-baseline.json` | — | `memory/decisions/proposals/2026-09-02-mcp-para-forja-item-4-ondas.md` +2 | (baseline/estado) |
+| `governance/nightly-floor.json` | ci, script | `memory/decisions/0319-product-truth-stream-adversario-modulo-analise.md` +17 | (baseline/estado) |
 | `governance/prod-flags.json` | ci, script | `memory/requisitos/_DesignSystem/SPEC.md` +4 | (baseline/estado) |
 | `governance/required-checks-baseline.json` | agente, ci, script | `memory/decisions/0361-errata-0354-teammcp-pest-required-nunca-executado.md` +81 | Required checks de main CONGELADOS — GT-G4 (plano 2026-06-12 §2 GARANTIDA) |
 | `governance/reseed-meilisearch-manifest.json` | — | `memory/requisitos/_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md` | (baseline/estado) |
@@ -812,4 +813,4 @@ lifecycle: ativo
 | `scripts/perf-static-baseline.json` | script | `memory/governance/AUDITORIA-PERFORMANCE-2026-07.md` +2 | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
 | `scripts/reuse-duplicates-baseline.json` | agente, ci, script | `memory/decisions/0272-arvore-componentes-canonica.md` +2 | (baseline/estado) |
 
-> Total baselines JSON em governance/+config/+scripts: 49 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
+> Total baselines JSON em governance/+config/+scripts: 50 · (mais ~5 dot-baselines na raiz + fixtures em tests/).

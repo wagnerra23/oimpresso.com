@@ -92,6 +92,22 @@ function measureAnchors() {
 // "Self-schema test — SQLite-only" (8 casos) e "corruptor de schema compartilhado"
 // (9 casos). Não foram incluídas porque não têm marcador literal estável como
 // `era-sqlite`; pegá-las por prosa seria o guard sintático que o §5 já enterrou 4×.
+//
+// ⚠️ HOMÔNIMO — `n_quarantine` nomeia DOIS contadores no repo, e eles NÃO são comparáveis.
+// Medido 2026-09-18, os dois rodados no mesmo commit:
+//   • ESTE = 250. Unidade = ARQUIVO (a função abaixo incrementa `files` uma vez por .php que
+//     casa o regex, qualquer que seja o número de ocorrências dentro dele).
+//   • scripts/tests/foundation-ratchet.mjs = 126. Unidade = MARCADOR — ele incrementa por
+//     LINHA casada, conta só `@group legacy-quarantine` ANCORADO em docblock (menção em prosa
+//     não vale, falso-positivo que ele corrigiu em 2026-07-08) e ainda exige
+//     `quarantine-reason:` a ≤3 linhas, o que este aqui não pede.
+// Decomposição da diferença, medida: dos 250 daqui, 25 arquivos carregam `legacy-quarantine`
+// — e são exatamente os que o ratchet cobre, o que reencontra por outra via o "25 arquivos"
+// que a nota de ampliação acima registra como a medição pré-flip — e 225 entram SÓ por
+// `era-sqlite`. Zero arquivos entram por menção em prosa: o critério mais frouxo daqui não
+// está, hoje, inflando a métrica; o delta é inteiramente o `era-sqlite`, que é decisão [W].
+// Como a unidade difere (arquivo × marcador), 250 e 126 não se somam, não se subtraem e não
+// se ordenam — e mexer num não move o outro.
 const QUARANTINE_RE = /legacy-quarantine|era-sqlite/;
 // `root` injetável (mesmo padrão de measureDistillerFreshness) pra o bite-test
 // exercitar ESTA função — o chokepoint — e não uma cópia do regex. Assert sobre

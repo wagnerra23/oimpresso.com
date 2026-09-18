@@ -340,6 +340,13 @@ class ProductController extends Controller
         // Coexistência opt-in: header X-Inertia presente → Page React; ausente → Blade legacy.
         // Tier 0 multi-tenant (ADR 0093): business_id passado explicitamente a cada builder.
         if (request()->header('X-Inertia')) {
+            // UC-PIDX-03 — o MESMO gate que o outro branch deste método aplica na Blade
+            // (`product/index.blade.php:287,294`): preço de compra e de venda não viajam pra
+            // quem não tem o direito de vê-los. Resolvido AQUI (uma vez) e passado ao builder,
+            // como o `ProdutoUnificadoController::index` já faz (`:145-146`).
+            $podeVerCusto = (bool) auth()->user()->can('view_purchase_price');
+            $podeVerPreco = (bool) auth()->user()->can('access_default_selling_price');
+
             return Inertia::render('Produto/Index', [
                 'filters' => [
                     'busca' => (string) request()->input('busca', ''),
@@ -347,13 +354,17 @@ class ProductController extends Controller
                     'mostrarInativos' => (bool) request()->input('mostrarInativos', false),
                 ],
                 'kpis' => Inertia::defer(fn () => $this->buildProdutoIndexKpis($business_id)),
-                'rows' => Inertia::defer(fn () => $this->buildProdutoIndexRows($business_id)),
+                'rows' => Inertia::defer(fn () => $this->buildProdutoIndexRows($business_id, $podeVerCusto, $podeVerPreco)),
                 'categorias' => Inertia::defer(fn () => $this->buildProdutoIndexCategorias($business_id)),
                 'permissions' => [
                     'create' => auth()->user()->can('product.create'),
                     'update' => auth()->user()->can('product.update'),
                     'delete' => auth()->user()->can('product.delete'),
                     'opening_stock' => auth()->user()->can('product.opening_stock'),
+                    // EAGER (não defer): são 2 booleanos já resolvidos — o `.tsx` aplica default
+                    // fail-closed, então ausência da prop nunca vira permissão.
+                    'view_purchase_price' => $podeVerCusto,
+                    'access_default_selling_price' => $podeVerPreco,
                 ],
             ]);
         }
@@ -421,8 +432,15 @@ class ProductController extends Controller
 
     /**
      * Build rows for Produto/Index Inertia page.
+     *
+     * UC-PIDX-03 (`resources/js/Pages/Produto/Index.casos.md`) — a regra é AUSÊNCIA, não campo
+     * vazio: `AR-PROD-015` diz que custo e margem SOMEM da tela pra quem não tem o direito
+     * (`liedtCusto.Visible := GetPodeVerCustos`), e a Blade desta mesma lista envolve as duas
+     * colunas em `@can` (`product/index.blade.php:287,294`). Por isso a chave NÃO é emitida —
+     * mandar `0`/`null` afirmaria um valor que o usuário não pode ver, e o teste de contrato
+     * varre o payload por VALOR (renomear a chave não o faz passar).
      */
-    protected function buildProdutoIndexRows(int $businessId): array
+    protected function buildProdutoIndexRows(int $businessId, bool $podeVerCusto = false, bool $podeVerPreco = false): array
     {
         $rows = Product::where('business_id', $businessId)
             ->where('type', '!=', 'modifier')
@@ -447,27 +465,39 @@ class ProductController extends Controller
             ->limit(200)
             ->get();
 
-        return $rows->map(function ($p) {
+        return $rows->map(function ($p) use ($podeVerCusto, $podeVerPreco) {
             $price = (float) ($p->min_price ?? 0);
             $cost = (float) ($p->min_cost ?? 0);
-            $margin = $price > 0 ? round((($price - $cost) / $price) * 100) : 0;
 
-            return [
+            $linha = [
                 'id' => (int) $p->id,
                 'sku' => (string) ($p->sku ?? ''),
                 'name' => (string) $p->name,
                 'categoryId' => $p->category_id ? (int) $p->category_id : null,
                 'categoryLabel' => $p->category?->name,
                 'unit' => $p->unit?->actual_name,
-                'price' => $price,
-                'cost' => $cost,
-                'margin' => $margin,
                 'stockQty' => null,
                 'stockKind' => $p->enable_stock ? 'estoque' : 'sob_demanda',
                 'popularity' => 0, // popularity computation deferred a Wave 3
                 'active' => empty($p->is_inactive),
                 'updatedAt' => $p->updated_at?->toIso8601String(),
             ];
+
+            // A chave só existe se o usuário puder ver o valor (mesmo desenho do
+            // `ProdutoUnificadoController::produtos`, `:682-694`).
+            if ($podeVerPreco) {
+                $linha['price'] = $price;
+            }
+            if ($podeVerCusto) {
+                $linha['cost'] = $cost;
+            }
+            // `margin` deriva dos DOIS. Entregá-la sabendo um deles entrega o outro por
+            // dedução — é o mesmo vazamento com uma conta no meio.
+            if ($podeVerCusto && $podeVerPreco) {
+                $linha['margin'] = $price > 0 ? round((($price - $cost) / $price) * 100) : 0;
+            }
+
+            return $linha;
         })->all();
     }
 
@@ -817,6 +847,10 @@ class ProductController extends Controller
                 ->with(['variations', 'variations.product_variation', 'category', 'sub_category', 'brand', 'unit'])
                 ->findOrFail($id);
 
+            // Resolvido uma vez, fora da closure deferida (a permissão não muda entre variações).
+            $podeVerCusto = (bool) auth()->user()->can('view_purchase_price');
+            $podeVerPreco = (bool) auth()->user()->can('access_default_selling_price');
+
             return Inertia::render('Produto/Show', [
                 'product' => [
                     'id' => (int) $product->id,
@@ -833,16 +867,36 @@ class ProductController extends Controller
                     'image' => $product->image_url,
                 ],
                 'rackDetails' => Inertia::defer(fn () => $this->productUtil->getRackDetails($business_id, $id, true)),
-                'variations' => Inertia::defer(fn () => $product->variations->map(fn ($v) => [
-                    'id' => (int) $v->id,
-                    'name' => (string) $v->name,
-                    'sku' => (string) ($v->sub_sku ?? ''),
-                    'defaultPurchasePrice' => (float) ($v->default_purchase_price ?? 0),
-                    'defaultSellPrice' => (float) ($v->sell_price_inc_tax ?? 0),
-                ])->all()),
+                // UC-PSHOW-01 — a ficha Blade que o operador realmente abre (`view-modal.blade.php`
+                // + os 3 partials de detalhe) envolve preço de compra e de venda em
+                // `@can('view_purchase_price')` / `@can('access_default_selling_price')`, e o
+                // Delphi faz o campo SUMIR (`AR-PROD-015`, `liedtCusto.Visible := GetPodeVerCustos`).
+                // A chave NÃO é emitida: `0`/`null` afirmaria um valor que o usuário não pode ver.
+                'variations' => Inertia::defer(function () use ($product, $podeVerCusto, $podeVerPreco) {
+                    return $product->variations->map(function ($v) use ($podeVerCusto, $podeVerPreco) {
+                        $variacao = [
+                            'id' => (int) $v->id,
+                            'name' => (string) $v->name,
+                            'sku' => (string) ($v->sub_sku ?? ''),
+                        ];
+
+                        if ($podeVerCusto) {
+                            $variacao['defaultPurchasePrice'] = (float) ($v->default_purchase_price ?? 0);
+                        }
+                        if ($podeVerPreco) {
+                            $variacao['defaultSellPrice'] = (float) ($v->sell_price_inc_tax ?? 0);
+                        }
+
+                        return $variacao;
+                    })->all();
+                }),
                 'permissions' => [
                     'update' => auth()->user()->can('product.update'),
                     'delete' => auth()->user()->can('product.delete'),
+                    // EAGER: 2 booleanos já resolvidos. O `.tsx` aplica default fail-closed,
+                    // então ausência da prop nunca vira permissão.
+                    'view_purchase_price' => $podeVerCusto,
+                    'access_default_selling_price' => $podeVerPreco,
                 ],
             ]);
         }
