@@ -45,8 +45,17 @@
 
 tests/Feature/Produto/ProdutoShowContratoTest.php          # UC-PSHOW-01: custo vaza na ficha p/ quem não tem view_purchase_price (branch Inertia não consulta a permission; Blade gateia com @can)
 tests/Feature/Produto/ProdutoIndexContratoTest.php         # UC-PIDX-01/02/03/06: corte silencioso em 200 sem paginação + busca e filtro de inativos não resolvidos no servidor + custo vaza na linha
-tests/Feature/Produto/ProdutoEditPayloadContratoTest.php   # UC-PEDIT-05/06/07: writer trata ausência de chave como zero (enable_stock, not_for_selling) e a edição não persiste — eixo ESTOQUE, regra-mestre: fix é decisão [W]
 tests/Feature/Produto/ProdutoBulkEditContratoTest.php      # UC-PBULK-05: writer lê 5 chaves/variação, a tela manda 2; ErrorException engolida por catch genérico reverte o lote — eixo VALOR, regra-mestre: fix é decisão [W]
+# SAÍRAM 2026-09-18:
+#   ProdutoEditPayloadContratoTest — UC-PEDIT-05/06/07 CORRIGIDOS, e o arquivo sai INTEIRO
+#     verde (5 passed · 17 assertions no CT 100, cercado por `git hash-object` antes/depois).
+#     O writer só escreve `enable_stock`/`not_for_selling`/`enable_sr_no` quando o request
+#     DECLARA a chave, e o Blade passa a declarar o `0` com `hidden` antes de cada checkbox.
+#     O par é obrigatório: sem o hidden, desmarcar viraria no-op — foi o que derrubou a
+#     1ª tentativa (#4943 revertido pelo #4994 por mergear o Blade sem smoke). Desta vez o
+#     smoke de UI veio ANTES (staging CT 100, plugin `input-icheck` ativo): desmarcar desliga,
+#     marcar liga, e o controle negativo (hidden removido) preserva — provando o par.
+#     Nasceu junto o UC-PEDIT-08, que falha se o `hidden` sumir do Blade.
 # SAÍRAM 2026-08-13:
 #   ProdutoUnificadoContratoTest — UC-PUNI-01..06 CORRIGIDOS. O ProdutoUnificadoController
 #     passou a abortar 403 sem product.view/product.create e a NÃO EMITIR as chaves que o
