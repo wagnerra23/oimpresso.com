@@ -95,6 +95,11 @@ class CcSearchTool extends Tool
         if ($userFilter !== null && $userFilter !== '') {
             $base->where('u.email', $userFilter);
         }
+        // `m.ts` é UTC (vem do `.jsonl` via cc-watcher → `CcIngestController:239`), e `now()`
+        // é America/Sao_Paulo: a janela sai ~3h mais larga. Medido 2026-09-18 junto com o
+        // mesmo caso no `WhatsActiveTool`. NÃO trocado por `now('UTC')` aqui pelo mesmo motivo
+        // de lá — erro na direção segura (busca acha a mais, nunca a menos) e sem lane de PR
+        // que testemunhe a troca. Em janela de DIAS o desvio é proporcionalmente irrisório.
         $base->where('m.ts', '>=', now()->subDays($daysAgo));
 
         // FULLTEXT search
