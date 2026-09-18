@@ -48,6 +48,36 @@ class TransactionPaymentInertiaSmokeTest extends FinanceiroTestCase
         if (! Schema::hasTable('transaction_payments') || ! Schema::hasTable('transactions')) {
             $this->markTestSkipped('Tabelas legacy UltimatePOS ausentes.');
         }
+
+        $this->garanteEdicaoDePagamento();
+    }
+
+    /**
+     * Da `edit_sell_payment` DIRETO ao user, nao via role.
+     *
+     * O caminho antigo era `Role::where('name', "Admin#{business}")->first()` seguido de
+     * `if ($role && ...)`. No banco semeado pela receita do CI
+     * (.github/actions/pest-mysql-setup) NAO EXISTE role nenhuma -- medido:
+     * `roles` = 0 linhas, `Admin#1` ausente, o user de biz=1 com 0 roles. Logo o
+     * `$role` vinha null, o `if` pulava CALADO e o user nunca recebia a permissao:
+     * TransactionPaymentController:202/235 exige
+     * `can('edit_sell_payment')` e devolvia 403 em 7 dos 8 casos -- que entao
+     * asseriam 403 contra 200/404 e pareciam defeito de produto.
+     *
+     * Direto no user funciona porque o `can()` do Spatie olha permissao DIRETA e
+     * via role. E e local: nao mexe no seed compartilhado pelas 16 lanes.
+     *
+     * NAO afeta o caso `test_index_inertia_403_sem_permissao`: ele cria um user
+     * PROPRIO (`$noPermUser`) e nao usa este.
+     */
+    private function garanteEdicaoDePagamento(): void
+    {
+        \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'edit_sell_payment', 'guard_name' => 'web']);
+
+        if (! $this->admin->hasPermissionTo('edit_sell_payment')) {
+            $this->admin->givePermissionTo('edit_sell_payment');
+            $this->admin->forgetCachedPermissions();
+        }
     }
 
     protected function tearDown(): void
@@ -185,11 +215,7 @@ class TransactionPaymentInertiaSmokeTest extends FinanceiroTestCase
         $this->myPayment = TransactionPayment::find($created['payment_id']);
 
         // Garante role tem permissão edit_sell_payment
-        $perm = \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'edit_sell_payment', 'guard_name' => 'web']);
-        $role = \Spatie\Permission\Models\Role::where('name', "Admin#{$this->business->id}")->first();
-        if ($role && ! $role->hasPermissionTo($perm)) {
-            $role->givePermissionTo($perm);
-        }
+        $this->garanteEdicaoDePagamento();
 
         $response = $this->inertiaGet("/payments/v2/{$this->myPayment->id}/edit");
         $this->assertSame(200, $response->status(), 'Edit próprio deveria retornar 200');
@@ -218,11 +244,7 @@ class TransactionPaymentInertiaSmokeTest extends FinanceiroTestCase
             $this->otherPayment = TransactionPayment::withoutGlobalScopes()->find($created['payment_id']);
 
             // Garante perm edit (não bloquear no RBAC, queremos cair no 404 cross-tenant)
-            $perm = \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'edit_sell_payment', 'guard_name' => 'web']);
-            $role = \Spatie\Permission\Models\Role::where('name', "Admin#{$this->business->id}")->first();
-            if ($role && ! $role->hasPermissionTo($perm)) {
-                $role->givePermissionTo($perm);
-            }
+            $this->garanteEdicaoDePagamento();
 
             $response = $this->inertiaGet("/payments/v2/{$this->otherPayment->id}/edit");
             $this->assertSame(404, $response->status(), 'Cross-tenant Edit DEVE retornar 404');
