@@ -83,8 +83,6 @@ Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 faile
 #    quarentenados exatamente como estavam — só o MOTIVO mudou, não o estado.
 Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 4 failed, 4 passed (8 assertions) — FICA: 1 causa consertada neste PR, 3 medidas no rodape (decisao [W])
-Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions) — ex-B
-Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (103 assertions)
 Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4 passed (42 assertions)
 Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions) — motivo MEDIDO no rodape (decisao [W] pendente)
@@ -288,49 +286,6 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 #
 # Medido no CT 100, worktree /var/www/qa em origin/main 5ab93d5ae17, DB
 # oimpresso_qa provisionada pela receita do CI (.github/actions/pest-mysql-setup).
-# ── TransactionPaymentInertiaSmokeTest (2026-09-18, triagem 18/N) — FICA, com
-#    motivo MEDIDO. Consertei 1 das 4 causas; as outras 3 são decisão [W].
-#   7 failed, 1 passed (8 assertions)  →  4 failed, 4 passed (8 assertions)
-#
-# O motivo herdado ("DB-dependente FALHANDO — defeito real a investigar", + "ex-B")
-# era vago demais pra ser acionado. Medido, são QUATRO causas distintas, e só a
-# primeira era barata e sem risco:
-#
-#   ✅ (1) CONSERTADO AQUI — GRANT DE PERMISSÃO QUE NUNCA ACONTECIA. O arquivo fazia
-#       `Role::where('name', "Admin#{business}")->first()` e depois
-#       `if ($role && ...)`. No banco semeado pela receita do CI NÃO EXISTE ROLE
-#       NENHUMA — medido: `roles` = 0 linhas, `Admin#1` ausente, user de biz=1 com 0
-#       roles. O `$role` vinha null, o `if` pulava CALADO, o user nunca recebia
-#       `edit_sell_payment`, e TransactionPaymentController:202/235 devolvia 403.
-#       Fix = dar a permissão DIRETO ao user (o `can()` do Spatie olha permissão
-#       direta e via role). Local, sem tocar o seed das 16 lanes. 7 falhas → 4.
-#
-#       ⚠️ O MESMO padrão cego está no `EssentialsTestCase::ensureEssentialsPermissions`,
-#       que o FinanceiroTestCase usa: 6 permissions concedidas a uma role que não
-#       existe. Silenciosamente no-op pra TODO teste do módulo. NÃO toquei — raio
-#       grande demais pra um PR de triagem, e vira PR próprio.
-#
-#   ❌ (2) `/payments/v2` (index) segue 403 — o gate do index pede permissão
-#       DIFERENTE de `edit_sell_payment`. Não identifiquei qual; exige ler o
-#       controller do index, que NÃO é o TransactionPaymentController.
-#
-#   ❌ (3) "edit payment próprio" devolve 500, não 200. Exceção medida no log:
-#       ErrorException em `app/Util/Util.php:253`. ⚠️ PARE AQUI: `Util.php` é o
-#       arquivo do incidente num_uf (#2279/#2280, valor inflado ~×100k em 16 vendas
-#       do biz=4). Mexer nele cai na REGRA MESTRE (dupla confirmação + antes→depois
-#       + aprovação) e NÃO cabe em PR de triagem de quarentena.
-#
-#   ❌ (4) os 2 casos de paginação/filtro do index caem junto com (2).
-#
-# POR QUE FICA NA QUARENTENA: 4 casos ainda reprovam. Tirar daqui agora deixaria a
-# lane vermelha — e a lane é REQUIRED.
-#
-# PROVA de que (1) foi de verdade: 7 failed → 4 failed com os mesmos 8 casos. As
-# assertions NÃO subiram (8 → 8) de propósito, e isso é informação, não ruído: os
-# 4 que ainda caem seguem abortando ANTES de asserir. Quando (2) e (3) caírem, o
-# número de assertions é que vai medir o ganho real (LC-13).
-#
-# Medido no CT 100, worktree /var/www/qa em origin/main 7235b717196, DB
 # ── UnificadoPlanoContaGuardTest (2026-09-18, triagem 14/N do bucket C) ──
 #   6 failed, 1 passed (23 assertions)  →  7 passed (33 assertions)
 #
@@ -382,6 +337,50 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 # duas vezes: 7 passed (33 assertions) nas duas. Em CI isso não ocorre.
 #
 # Medido no CT 100, worktree /var/www/qa em origin/main 6e790834540, DB
+# oimpresso_qa provisionada pela receita do CI (.github/actions/pest-mysql-setup).
+# ── TransactionPaymentInertiaSmokeTest (2026-09-18, triagem 18/N) — FICA, com
+#    motivo MEDIDO. Consertei 1 das 4 causas; as outras 3 são decisão [W].
+#   7 failed, 1 passed (8 assertions)  →  4 failed, 4 passed (8 assertions)
+#
+# O motivo herdado ("DB-dependente FALHANDO — defeito real a investigar", + "ex-B")
+# era vago demais pra ser acionado. Medido, são QUATRO causas distintas, e só a
+# primeira era barata e sem risco:
+#
+#   ✅ (1) CONSERTADO AQUI — GRANT DE PERMISSÃO QUE NUNCA ACONTECIA. O arquivo fazia
+#       `Role::where('name', "Admin#{business}")->first()` e depois
+#       `if ($role && ...)`. No banco semeado pela receita do CI NÃO EXISTE ROLE
+#       NENHUMA — medido: `roles` = 0 linhas, `Admin#1` ausente, user de biz=1 com 0
+#       roles. O `$role` vinha null, o `if` pulava CALADO, o user nunca recebia
+#       `edit_sell_payment`, e TransactionPaymentController:202/235 devolvia 403.
+#       Fix = dar a permissão DIRETO ao user (o `can()` do Spatie olha permissão
+#       direta e via role). Local, sem tocar o seed das 16 lanes. 7 falhas → 4.
+#
+#       ⚠️ O MESMO padrão cego está no `EssentialsTestCase::ensureEssentialsPermissions`,
+#       que o FinanceiroTestCase usa: 6 permissions concedidas a uma role que não
+#       existe. Silenciosamente no-op pra TODO teste do módulo. NÃO toquei — raio
+#       grande demais pra um PR de triagem, e vira PR próprio.
+#
+#   ❌ (2) `/payments/v2` (index) segue 403 — o gate do index pede permissão
+#       DIFERENTE de `edit_sell_payment`. Não identifiquei qual; exige ler o
+#       controller do index, que NÃO é o TransactionPaymentController.
+#
+#   ❌ (3) "edit payment próprio" devolve 500, não 200. Exceção medida no log:
+#       ErrorException em `app/Util/Util.php:253`. ⚠️ PARE AQUI: `Util.php` é o
+#       arquivo do incidente num_uf (#2279/#2280, valor inflado ~×100k em 16 vendas
+#       do biz=4). Mexer nele cai na REGRA MESTRE (dupla confirmação + antes→depois
+#       + aprovação) e NÃO cabe em PR de triagem de quarentena.
+#
+#   ❌ (4) os 2 casos de paginação/filtro do index caem junto com (2).
+#
+# POR QUE FICA NA QUARENTENA: 4 casos ainda reprovam. Tirar daqui agora deixaria a
+# lane vermelha — e a lane é REQUIRED.
+#
+# PROVA de que (1) foi de verdade: 7 failed → 4 failed com os mesmos 8 casos. As
+# assertions NÃO subiram (8 → 8) de propósito, e isso é informação, não ruído: os
+# 4 que ainda caem seguem abortando ANTES de asserir. Quando (2) e (3) caírem, o
+# número de assertions é que vai medir o ganho real (LC-13).
+#
+# Medido no CT 100, worktree /var/www/qa em origin/main 7235b717196, DB
 # oimpresso_qa provisionada pela receita do CI (.github/actions/pest-mysql-setup).
 # ── Onda7bTroubleshootPresentTest (2026-08-03, triagem 10/N — bucket A) ──
 #   1 failed, 11 passed (44 assertions)  →  12 passed (48 assertions)
