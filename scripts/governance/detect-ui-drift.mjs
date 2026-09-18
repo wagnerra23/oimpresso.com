@@ -12,23 +12,38 @@
  * "foi AUTORIZADA?". Este é o eixo ortogonal que faltava: quando uma `.tsx` de tela
  * muda num PR, exige um SINAL DE AUTORIZAÇÃO FRESCO no MESMO PR. Sem sinal → 🚩.
  *
- * O protótipo Cowork aprovado é a fonte da verdade da tela. Duas formas legítimas de
- * um `.tsx` mudar — cada uma limpa o flag:
- *   1. DESVIO DECLARADO   — `divergence_from_blueprint` no charter irmão vira uma razão
- *                            REAL (não "none"/"n/a"), adicionada/alterada NESTE PR.
- *   2. ORIGEM DE DESIGN DECLARADA — a mudança pertence ao loop Cowork↔Code,
+ * O protótipo Cowork aprovado é a fonte da verdade da tela. Três saídas, e desde
+ * 2026-09-18 elas NÃO valem o mesmo — [W] revogou a "divergência DECLARADA
+ * (autorizada)": no eixo FORMA não há desvio aceito, há DÍVIDA A FECHAR
+ * (UI-0029 + memory/requisitos/_DesignSystem/RESPEITAR-PROTOTIPO.md).
+ *
+ *   1. DÍVIDA REGISTRADA (◐) — `divergence_from_blueprint` no charter irmão vira uma
+ *                            razão REAL (não "none"/"n/a"), adicionada/alterada NESTE PR.
+ *                            REGISTRA a dívida e diz por que ela ainda não fechou;
+ *                            NÃO absolve, NÃO é "limpa". Continua não sendo 🚩 porque
+ *                            declarar é melhor que mudar em silêncio — que é a única
+ *                            coisa que esta máquina sabe medir.
+ *   2. ORIGEM DE DESIGN DECLARADA (✓ limpa) — a mudança pertence ao loop Cowork↔Code,
  *                            sinalizada por REUSO do vocabulário existente:
  *                            (a) `related_prototype` do charter mudou pra um protótipo
  *                                REAL neste PR, OU
  *                            (b) entrada NOVA em `memory/reference/prototipo-ui/SYNC_LOG.md` citando a
  *                                tela (o registro que o loop Cowork↔Code já usa).
+ *                            Estas duas seguem LEGÍTIMAS — a revogação não as toca:
+ *                            elas dizem "estou seguindo o design", não "estou desviando".
  * Qualquer outra mudança da `.tsx` (bugfix de layout, refactor, "customização") sem
  * um desses sinais → drift não-declarado → 🚩 FLAG.
+ *
+ * O PREDICADO NÃO MUDOU — esta máquina mede DECLARAÇÃO, nunca paridade. Ela segue
+ * respondendo "mudou sem declarar?". O que mudou em 2026-09-18 é que o caminho 1
+ * deixou de ser contado como "limpo". Fazê-la exigir paridade seria outra máquina,
+ * e promovê-la a bloqueante é ato [W] via `gates-registry.json` `promote_by`.
  *
  * HONESTIDADE (o teto — L-24 "presença ≠ correção", §5 proibicoes / charter-sync-gate
  * rejeitado 2026-07-01):
  *   - Mede VALOR SEMÂNTICO do campo, NUNCA "a linha do charter apareceu no diff":
- *       · `divergence_from_blueprint` só limpa se virar razão real (≠ none/n/a/vazio).
+ *       · `divergence_from_blueprint` só vira DÍVIDA (◐, e nunca "limpa") se for razão
+ *         real (≠ none/n/a/vazio); placeholder segue caindo em 🚩.
  *       · `related_prototype` só limpa se MUDAR pra um protótipo REAL (≠ n/a→n/a).
  *   - FRESHNESS por construção: só olha o DIFF deste PR (base...HEAD). Uma linha velha
  *     de desvio (não tocada no PR) NÃO limpa — senão declarar 1 desvio cegaria a tela
@@ -122,12 +137,12 @@ export const removedValues = (diff, key) => {
 /**
  * CLASSIFICADOR PURO — o coração testável (sem git, sem fs).
  * @param {{charterDiff?: string, syncLogAdded?: string[], telaTokens?: string[]}} input
- * @returns {{estado:'CLEARED'|'FLAG', motivo:string}}
+ * @returns {{estado:'CLEARED'|'DIVIDA'|'FLAG', motivo:string}}
  */
 export function classifyTela({ charterDiff = '', syncLogAdded = [], telaTokens = [] }) {
-  // 1) DESVIO DECLARADO fresco com razão real
+  // 1) DÍVIDA REGISTRADA fresca com razão real — registra, NÃO absolve ([W] 2026-09-18)
   if (addedValues(charterDiff, 'divergence_from_blueprint').some((v) => !isNoneReason(v))) {
-    return { estado: 'CLEARED', motivo: 'desvio declarado — divergence_from_blueprint com razão real, fresco no PR' };
+    return { estado: 'DIVIDA', motivo: 'dívida registrada — divergence_from_blueprint com razão real, fresco no PR. NÃO é autorização: no eixo FORMA o protótipo manda (UI-0029), e a razão declarada diz por que ainda não fechou' };
   }
   // 2a) FONTE ANCORADA — autoriza a mudança, mas NÃO atesta aplicação.
   const protoAdded = addedValues(charterDiff, 'related_prototype');
@@ -182,6 +197,7 @@ function run(argv) {
   const syncLogAdded = syncLogDiff.split(/\r?\n/).filter((l) => l.startsWith('+') && !l.startsWith('+++'));
 
   const flags = [];
+  const divida = [];
   const cleared = [];
   const semCharter = [];
 
@@ -193,10 +209,11 @@ function run(argv) {
       syncLogAdded,
       telaTokens: telaTokensFor(tsx),
     });
-    (res.estado === 'FLAG' ? flags : cleared).push({ tsx, charter: charterRel, ...res });
+    const balde = res.estado === 'FLAG' ? flags : res.estado === 'DIVIDA' ? divida : cleared;
+    balde.push({ tsx, charter: charterRel, ...res });
   }
 
-  const result = { base, total_tsx: pagesTsx.length, flags, cleared, sem_charter: semCharter };
+  const result = { base, total_tsx: pagesTsx.length, flags, divida, cleared, sem_charter: semCharter };
 
   if (asJson) {
     console.log(JSON.stringify(result, null, 2));
@@ -212,11 +229,14 @@ function run(argv) {
 function render(r) {
   console.log(`M1 · detector de mudança de UI não-declarada — base ${r.base}`);
   if (!r.total_tsx) { console.log('  Nenhuma .tsx de tela tocada neste diff. OK.'); return; }
-  console.log(`  telas tocadas: ${r.total_tsx} · limpas: ${r.cleared.length} · flags: ${r.flags.length} · sem charter (fora do contrato v1): ${r.sem_charter.length}`);
+  console.log(`  telas tocadas: ${r.total_tsx} · limpas: ${r.cleared.length} · dívida registrada: ${(r.divida || []).length} · flags: ${r.flags.length} · sem charter (fora do contrato v1): ${r.sem_charter.length}`);
   console.log('');
   for (const c of r.cleared) console.log(`  ✓ ${c.tsx}\n      ${c.motivo}`);
+  for (const d of r.divida || []) {
+    console.log(`  ◐ ${d.tsx}\n      ${d.motivo}\n      → NÃO está limpa: a dívida fica aberta até a paridade fechar (ou até o protótipo mudar no Cowork e descer).`);
+  }
   for (const f of r.flags) {
-    console.log(`  🚩 ${f.tsx}\n      ${f.motivo}\n      → declare o desvio (divergence_from_blueprint no ${f.charter}) OU ancore a fonte/registre o loop (related_prototype / SYNC_LOG).`);
+    console.log(`  🚩 ${f.tsx}\n      ${f.motivo}\n      → ancore a fonte/registre o loop (related_prototype / SYNC_LOG) — é a saída LIMPA. Se não dá pra fechar agora, registre a dívida (divergence_from_blueprint no ${f.charter}), sabendo que ela fica aberta.`);
     if (IN_CI) console.log(`::warning file=${f.tsx}::mudança de UI não-declarada (M1) — .tsx mudou sem desvio declarado nem origem de design fresca. Ver memory/requisitos/_DesignSystem/RESPEITAR-PROTOTIPO.md`);
   }
   if (r.sem_charter.length) {
@@ -229,7 +249,8 @@ function render(r) {
     const L = ['## M1 — mudança de UI não-declarada', '',
       'Estas telas mudaram a `.tsx` **sem** sinal de autorização fresco neste PR:', ''];
     for (const f of r.flags) L.push(`- \`${f.tsx}\``);
-    L.push('', 'Conserto: declare o desvio (`divergence_from_blueprint` no charter irmão) **ou** ancore a origem de design (`related_prototype` mudado / entrada no `SYNC_LOG.md`). A aplicação é comprovada separadamente pelo design-sync.',
+    L.push('', 'Saída LIMPA: ancore a origem de design (`related_prototype` mudado / entrada no `SYNC_LOG.md`) — a aplicação é comprovada separadamente pelo design-sync.',
+      '', 'Se não dá pra fechar agora: registre a dívida (`divergence_from_blueprint` com razão real no charter irmão). Desde [W] 2026-09-18 isso **registra, não absolve** — a tela sai como ◐ dívida, não como limpa.',
       '', 'Norma: `memory/requisitos/_DesignSystem/RESPEITAR-PROTOTIPO.md`. Advisory (não bloqueia).');
     try { execFileSync('bash', ['-c', `cat >> "$GITHUB_STEP_SUMMARY"`], { input: L.join('\n') + '\n' }); } catch { /* best-effort */ }
   }

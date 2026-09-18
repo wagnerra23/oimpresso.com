@@ -50,28 +50,43 @@ deixou de **absolver** e passou a **registrar dívida**.
 > real>"`. Ex: `"cliente pediu densidade maior na lista"`.~~ ⛔ **REVOGADO por [W] em 2026-09-18.**
 > Fica como registro da redação de 2026-07-12; **não instrui mais nada**.
 
-> ⚠️ **Ponta solta declarada, NÃO consertada neste PR — a M1 ainda fala o vocabulário revogado.**
-> `detect-ui-drift.mjs` classifica um `divergence_from_blueprint` com razão real como
-> `CLEARED — desvio declarado` (L129-131), e o docblock dela abre com *"Duas formas legítimas…
-> 1. DESVIO DECLARADO"* (L15-18). **O campo tem adoção real:** 37 charters o declaram, **33 com
-> razão escrita** (medido 2026-09-18, `rg -g '*.charter.md'` em `resources/` + `Modules/`) — logo
-> não é letra morta que se apague de passagem. A detecção segue correta; o que envelheceu é a
-> palavra `CLEARED` e a moldura de "legítimo". Reescrever isso é **PR próprio**: mexe em máquina
-> que roda no CI, e vale a regra de sempre — [LC-22](../../LICOES_CODE.md), doc que a máquina lê
-> se valida **rodando a máquina**, não revisando o texto.
-
-> ⚠️ **Segunda ponta solta, mesma natureza — `reconcile-triplet.mjs`.** Ele gera a legenda
-> *"**DIVERGÊNCIA DECLARADA** — diferem, mas o frontmatter tem `divergence_from_blueprint` (desvio
-> consciente)"* (`:513`, com os rótulos em `:434` e `:459`), que sai nos relatórios derivados — por
-> exemplo `memory/requisitos/Produto/_telas/produto-index-setor-matrix.md`, cujo frontmatter
-> declara `gerado_por: scripts/governance/reconcile-triplet.mjs`. **Esses arquivos NÃO se editam à
-> mão:** a próxima execução com `--write` sobrescreve, e o texto volta. O conserto é no gerador, em
-> PR próprio.
+> ✅ **Ponta solta FECHADA em 2026-09-18 — a M1 já fala o vocabulário novo.**
+> ~~`detect-ui-drift.mjs` classifica um `divergence_from_blueprint` com razão real como
+> `CLEARED — desvio declarado`~~ — agora ele devolve um estado **próprio**, `DIVIDA`, e imprime
+> **`◐`**, fora do balde de "limpas". A contagem do relatório passou a ser
+> `limpas · dívida registrada · flags`.
 >
-> **As duas pontas juntas dizem o tamanho honesto desta revogação:** a norma mudou hoje; as duas
-> máquinas que a operacionalizam ainda falam o vocabulário antigo, e cada uma sai num PR que possa
-> ser validado rodando-a. Quem ler este documento antes disso vai ver a máquina discordar dele —
-> e agora sabe por quê.
+> **O predicado NÃO mudou, e isso é deliberado:** a M1 mede **declaração**, nunca paridade — ela
+> segue respondendo *"mudou sem declarar?"*, e declarar segue não sendo 🚩, porque é melhor que
+> mudar em silêncio. O que mudou é que o caminho do desvio **deixou de contar como limpo**. Os
+> outros dois caminhos (`related_prototype` fresco · `SYNC_LOG`) seguem **`✓` limpos** e a
+> revogação não os toca: eles dizem *"estou seguindo o design"*, não *"estou desviando"*.
+> Promovê-la a bloqueante continua sendo ato [W] via `gates-registry.json` `promote_by`.
+>
+> Provado **rodando a máquina**, não revisando o texto ([LC-22](../../LICOES_CODE.md)): CLI de
+> fora em 3 casos — razão real ⇒ `dívida 1 / limpas 0` · sem sinal ⇒ `flags 1` · placeholder
+> `"none"` ⇒ `flags 1` (não vira dívida). Mais mutação: revertido o estado para `CLEARED`, **2
+> asserts caem**; restaurado, verde. **O campo tem adoção real** — 37 charters o declaram, 33 com
+> razão escrita (medido 2026-09-18) —, então nada disso apaga o que já está declarado: aquelas
+> telas passam a aparecer como **dívida aberta**, que é o retrato correto.
+
+> ✅ **Segunda ponta FECHADA no mesmo dia — `reconcile-triplet.mjs`.** O estado interno
+> ~~`DIVERGENCIA_DECLARADA`~~ virou **`DIVIDA_REGISTRADA`**, o badge ~~`~ DIVERGÊNCIA DECLARADA`~~
+> virou **`◐ DÍVIDA REGISTRADA`**, e a legenda deixou de dizer *"desvio consciente"* — agora diz
+> que **registra a dívida, não a autoriza**. Provado rodando o comando do CI (`--all`): o badge
+> novo aparece em **26** slots, contra 1.149 `✓ CONFORME` e 107 `✗ DIVERGÊNCIA MUDA`. O
+> `reconcile-triplet.test.mjs` foi atualizado com **controle** — se o estado voltar a se chamar
+> `DIVERGENCIA_DECLARADA` ou `CONFORME`, o assert cai.
+>
+> ⚠️ **O derivado `produto-index-setor-matrix.md` ainda mostra o texto ANTIGO, e é de propósito.**
+> O gerador já está certo; o arquivo só muda quando alguém rodar `--write`. Não o regerei aqui
+> porque **descobri, rodando, que o regen APAGA o `id:` do frontmatter** — campo que o
+> `doc-id-stamp.mjs` carimba e que o `doc-id-index` trata como `STAMPED; sobrevive a move de
+> path`. São **dois produtores do mesmo arquivo**, e decidir qual manda é escopo próprio, não
+> carona de um PR de vocabulário. (O regen também traria `gerado_em` novo e os slots do protótipo
+> saindo de `AUSENTE` para valores reais — mudanças verdadeiras, mas de outro assunto.)
+> ⚠️ Nota de contexto medida no mesmo dia: `doc-id-index --check` **já falha em `origin/main`
+> limpo** (conferido em worktree separado) — drift pré-existente, de outro dono.
 
 > ⚠️ **Editar o código direto, sem declarar, é o drift** — a M1 pega. Não é "a máquina te barrando": é a máquina **sabendo que você alterou** e pedindo o porquê. Advisory (não bloqueia) — é aviso, não muro.
 
@@ -108,8 +123,10 @@ No CI: `detect-ui-drift.yml` roda em todo PR que toca `Pages/**/*.tsx|*.charter.
 **Última atualização:** 2026-09-18 — **[W] revogou a "divergência DECLARADA (autorizada)"**: no eixo
 FORMA não há desvio aceito, há **dívida a fechar**, e a paridade com o protótipo é o objetivo
 ([UI-0029](adr/ui/0029-prototipo-soberano-sobre-adr-ui.md), ratificada em 2026-08-31). O texto antigo
-fica riscado, não apagado. **Ponta solta nomeada:** a M1 ainda emite `CLEARED — desvio declarado`
-(PR próprio). **Fora do eixo, intactos:** **visibilidade** (permissão/pacote/módulo), **dado** e
+fica riscado, não apagado. **As duas máquinas foram alinhadas no mesmo dia:** a M1
+(`detect-ui-drift`) passou a devolver o estado **`DIVIDA`** (`◐`, fora das "limpas") no caminho do
+desvio, e o `reconcile-triplet` deixou de chamar a divergência de "desvio consciente" — as duas
+provadas rodando, não revisando. **Fora do eixo, intactos:** **visibilidade** (permissão/pacote/módulo), **dado** e
 **comportamento** seguem do código, pela regra de precedência de [proibicoes.md](../../proibicoes.md)
 — esta revogação é só sobre FORMA.
 
