@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Illuminate\Support\Collection;
 use Inertia\Testing\AssertableInertia;
 use Modules\Financeiro\Models\Titulo;
 use Spatie\Permission\Models\Permission;
@@ -77,7 +78,15 @@ it('renderiza DRE 200 com Inertia component Financeiro/Dre/Index', function () {
     }
 
     expect($response->status())->toBe(200);
-    expect($response->headers->get('X-Inertia'))->not()->toBeNull();
+
+    // NAO asserta o header X-Inertia da RESPOSTA: ele so existe quando o REQUEST e
+    // XHR, e nesse modo o Inertia devolve JSON -- o que faria o assertInertia dos
+    // casos vizinhos falhar. As duas formas sao mutuamente exclusivas. Este e o 3o e
+    // ULTIMO dos irmaos que o rodape da triagem 3/N nomeou (ProvaViva #5196, Fluxo
+    // 7/N, Unificado 15/N). Fica a prova mais forte: qual componente a rota monta.
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->component('Financeiro/Dre/Index')
+    );
 });
 
 it('UC-DRE-01 · expõe Props no shape canon (meta, linhas, margem_operacional, top_categorias_receita)', function () {
@@ -117,7 +126,11 @@ it('expõe margem_operacional meta = 12.0 (Q6 hardcode aprovado 2026-05-20)', fu
     }
 
     $response->assertInertia(fn (AssertableInertia $page) => $page
-        ->where('margem_operacional.meta_pct', 12.0)
+        // Compara NUMERICAMENTE: a constante e float no PHP, mas o JSON do Inertia
+        // serializa 12.0 como `12` e o json_decode devolve INT -- "12 is identical
+        // to 12.0" e artefato de round-trip, nao mudanca de produto. Mesma causa
+        // ja consertada no FluxoControllerTest (triagem 7/N, margem_minima).
+        ->where('margem_operacional.meta_pct', fn ($v) => (float) $v === 12.0)
     );
 });
 
@@ -188,11 +201,17 @@ it('Export CSV retorna text/csv charset UTF-8 com BOM', function () {
     $user = dreBootstrap();
     $response = $this->actingAs($user)->get('/financeiro/dre/export-csv');
 
-    if (in_array($response->status(), [403, 404], true)) {
+    // getStatusCode(), NAO status(). Medido: Illuminate\Testing\TestResponse NAO
+    // define status() -- ela cai no __call e e repassada pra resposta base. Pra rota
+    // normal a base e Illuminate\Http\Response, que TEM status() (ResponseTrait), e
+    // por isso o resto do arquivo funciona. Esta rota faz streamDownload e a base e
+    // Symfony\...\StreamedResponse, que NAO tem -- dava "Call to undefined method".
+    // getStatusCode() existe nas duas.
+    if (in_array($response->getStatusCode(), [403, 404], true)) {
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
 
-    expect($response->status())->toBe(200);
+    expect($response->getStatusCode())->toBe(200);
 
     $ct = (string) $response->headers->get('Content-Type');
     expect($ct)->toContain('text/csv');
@@ -278,10 +297,23 @@ it('cada linha do payload tem pct_rl e delta_pct numericos (regression guard)', 
 
     $response->assertInertia(fn (AssertableInertia $page) => $page
         ->has('linhas')
-        ->where('linhas', function (array $linhas) {
+        // Collection, nao array: Illuminate\Testing\Fluent\Concerns\Matching::where()
+        // embrulha o valor (`is_array($actual) ? new Collection($actual) : $actual`,
+        // Matching.php:29) ANTES de chamar o closure. Drift de FRAMEWORK, nao de
+        // produto -- mesma causa consertada no FluxoControllerTest (triagem 7/N).
+        ->where('linhas', function (Collection $linhas) {
             foreach ($linhas as $i => $linha) {
-                expect($linha)->toHaveKey('pct_rl', "linha[$i] sem pct_rl — frontend vai quebrar com toFixed undefined");
-                expect($linha)->toHaveKey('delta_pct', "linha[$i] sem delta_pct");
+                // assertArrayHasKey (PHPUnit), NAO toHaveKey (Pest): o 2o argumento do
+                // toHaveKey e o VALOR ESPERADO, nao a mensagem -- entao a forma antiga
+                // asseria `$linha['pct_rl'] === "linha[0] sem pct_rl - frontend vai..."`
+                // e falhava com "Failed asserting that 0 matches expected 'linha[0]...'".
+                // Estava ESCONDIDA atras do TypeError do type-hint acima: so aflorou
+                // quando o closure passou a ser alcancado. Em assertArrayHasKey a
+                // mensagem tem posicao propria. Mesma classe do aviso ja escrito no
+                // .github/workflows/ponto-pest.yml.
+                test()->assertArrayHasKey('pct_rl', $linha, "linha[$i] sem pct_rl — frontend vai quebrar com toFixed undefined");
+                test()->assertArrayHasKey('delta_pct', $linha, "linha[$i] sem delta_pct");
+                // toBeNumeric NAO e variadico (so aceita a mensagem), entao fica.
                 expect($linha['pct_rl'])->toBeNumeric("linha[$i].pct_rl deve ser numero (não null)");
                 expect($linha['delta_pct'])->toBeNumeric("linha[$i].delta_pct deve ser numero");
             }
