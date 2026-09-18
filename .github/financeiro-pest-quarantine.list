@@ -66,7 +66,13 @@ Modules/Financeiro/Tests/Feature/Onda8bChipsDirectionTest.php  # 4 failed, 5 pas
 Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 failed (0 assertions)
 
 # ─────────────────────────────────────────────────────────────────────────
-# C) DB-dependente FALHANDO — defeito real a investigar (13)
+# C) DB-dependente FALHANDO — defeito real a investigar
+#    (a contagem NAO se escreve aqui: ela e derivavel e apodrece. O numero de
+#     hoje sai de  grep -c '^Modules/'  entre este cabecalho e o do bucket D.
+#     O '(13)' que estava nesta linha ja media 10 quando foi lido em 2026-09-18.
+#     Os cabecalhos de A e E tem a MESMA divergencia medida no mesmo dia
+#     -- A diz 10 e sao 8, E diz 1 e sao 2 -- e NAO foram tocados aqui de
+#     proposito: um intent por PR, e nenhum deles e causado por este.)
 #    Estes são o achado de maior valor: falham contra MySQL semeado, não por
 #    formatação. Podem ser regressão de produto OU teste desatualizado —
 #    exige olhar caso a caso, não conserto em lote.
@@ -78,11 +84,11 @@ Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 faile
 Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 4 failed, 4 passed (8 assertions) — FICA: 1 causa consertada neste PR, 3 medidas no rodape (decisao [W])
 Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions) — ex-B
+Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (103 assertions)
 Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4 passed (42 assertions)
 Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions) — motivo MEDIDO no rodape (decisao [W] pendente)
 Modules/Financeiro/Tests/Feature/UnificadoControllerTest.php  # 2 failed, 1 skipped, 10 passed (75 assertions)
-Modules/Financeiro/Tests/Feature/UnificadoPlanoContaGuardTest.php  # 6 failed, 1 passed (23 assertions)
 
 # ─────────────────────────────────────────────────────────────────────────
 # D) SKIP TOTAL — 'passa' com ZERO assertions, logo não prova nada (1)
@@ -139,6 +145,66 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 # executionOrder="random". Quem prova é o run da lane deste PR — se algum ficar
 # vermelho lá, volta pra cá com o motivo REAL escrito, não com o motivo herdado.
 #
+# ── FinanceiroAuditLoggerTest (2026-09-18, triagem 11/N do bucket C) ────
+#   4 failed, 1 passed (8 assertions)  →  5 passed (13 assertions)
+#
+# Classificação: DEFEITO DO PRODUTO — e o produto é o próprio guard defensivo do
+# OtelHelper, que não honrava o contrato escrito nele mesmo. NÃO toca valor.
+#
+# As 4 falhas tinham UMA causa, em cascata de duas pernas. O `spanBiz()` diz,
+# textual, na linha de cima do defeito:
+#
+#     // session() nao existe em CLI, queue workers e Unit tests sem TestCase.
+#     // try/catch evita "Target class [session] does not exist" nesses contextos.
+#     try { $bizId = session()->get('user.business_id'); } catch (...) { ... }
+#     $bizId ??= optional(auth()->user())->business_id ?? 0;   <-- FORA do try
+#
+# O autor enumerou os três contextos, guardou o `session()` — e deixou o `auth()`
+# da linha SEGUINTE de fora. Medido: `Target [Illuminate\Contracts\Auth\Factory]
+# is not instantiable`, em OtelHelper:181 chamado de FinanceiroAuditLogger:97.
+#
+# Consertado o `auth()`, o erro NÃO sumiu — ANDOU, para
+# `Target class [config] does not exist`, vindo do próprio zero-cost path:
+#
+#     // Zero-cost path quando OTel desabilitado.
+#     if (! config('otel.enabled', false)) { return $callback(); }
+#
+# Ou seja: o guard que existe PRA NÃO FAZER NADA derrubava a operação observada,
+# porque LER a flag era mais fatal que a ausência dela. E derrubava ANTES de
+# invocar o `$callback`, então o trabalho medido nem rodava — span deixava de ser
+# observação e virava ponto de falha.
+#
+# Fix = `otelIndisponivel()`, fail-safe DESLIGANDO (não instrumenta quando não dá
+# pra perguntar), usado em span() e annotateCurrent(); mais o try/catch simétrico
+# no auth() do spanBiz(). Telemetria indisponível é degradação aceitável;
+# derrubar a operação medida não é.
+#
+# POR QUE O TESTE ESTAVA CERTO (e não era ele o podre): o único caso que passava
+# é o que faz `require` do config como ARQUIVO, sem container. Os 4 que morriam
+# exercitam redação de PII — lógica pura — que a classe roteia por dentro do
+# wrapper de observabilidade. `Modules/Financeiro/Tests/Unit` não tem
+# `uses(TestCase::class)` (conferido em tests/Pest.php: só Feature, Browser e
+# KB Feature/Unit têm), então é exatamente o 3º contexto que o comentário nomeia.
+#
+# PROVA DE EXECUÇÃO (não é "0 failed", é assertions — LC-13): 8 → 13, +5 com os
+# mesmos 5 casos. O salto é o que os 4 casos abortados deixavam de asserir.
+#
+# BITE-TEST / CONTROLE NEGATIVO, na ordem: árvore limpa → 4 failed, 1 passed;
+# com o fix → 5 passed. Feito ANTES de tirar da quarentena.
+#
+# INVARIÂNCIA EM APP BOOTSTRAPADO (o risco real de mexer em infra com 505
+# call-sites em 222 arquivos): os 3 arquivos que exercitam OtelHelper direto
+# rodados SEM e COM o fix deram resultado idêntico, inclusive na contagem de
+# assertions — OtelHelperTest 4 passed (7), OtelHelperRealSdkTest 1 skipped +
+# 14 passed (43), Connector/ObservabilityTest 8 passed (39), que é justamente o
+# arquivo dono do caso "spanBiz é zero-cost quando otel.enabled=false".
+# Varredura contada: nenhum teste do repo asserta que span/spanBiz ESTOURA.
+#
+# NÃO muda valor: `$bizId` só alimenta `$bizAttrs` (atributo de span) e `0` já era
+# o fallback anônimo pré-existente. Em app bootstrapado `config()`/`auth()`
+# resolvem e o valor é o mesmo de antes — por isso o run acima é idêntico.
+#
+# Medido no CT 100, worktree /var/www/qa em origin/main 1cb5389da3e, DB
 # ── UnificadoStoreTest (2026-09-18, triagem 13/N do bucket C) ────────
 #   3 failed, 3 passed (21 assertions)  →  6 passed (25 assertions)
 #
@@ -265,6 +331,57 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 # número de assertions é que vai medir o ganho real (LC-13).
 #
 # Medido no CT 100, worktree /var/www/qa em origin/main 7235b717196, DB
+# ── UnificadoPlanoContaGuardTest (2026-09-18, triagem 14/N do bucket C) ──
+#   6 failed, 1 passed (23 assertions)  →  7 passed (33 assertions)
+#
+# Classificação: TRÊS defeitos de TESTE, zero regressão de produto. Os dois
+# primeiros são os mesmos do irmão UnificadoStoreTest (triagem 13/N); o TERCEIRO
+# é novo no rodapé e é o achado que vale.
+#
+#   (1) TEARDOWN — 9 sites de `forceDelete()` em Titulo. `fin_titulos` é
+#       append-only (Titulo.php:121) e o forceDelete() do SoftDeletes chama
+#       delete() por dentro. Fix = helper `guardCleanupTitulo()` pelo query
+#       builder. EFEITO EM CASCATA que explica por que 6 de 7 casos caíam e não
+#       só os com título: PlanoConta::delete() (PlanoConta.php:58) recusa remover
+#       conta COM TÍTULOS VINCULADOS — então a falha do título derrubava o
+#       `$plano->forceDelete()` da linha seguinte.
+#
+#   (2) FIXTURE — o [T0] cross-tenant (G7) montava business B "ficcional"
+#       (`max(id) + 88888`) sem `owner_id`, FK NOT NULL → SQLSTATE 23000/1452 no
+#       setup. Fix = 2º business REAL do seed. Mesma forma do
+#       ConciliacaoAuditReabrirTest (#5178) e do ExtratoControllerTest (2/N).
+#
+#   (3) ⏰ BOMBA-RELÓGIO DE CALENDÁRIO — e é por isso que este arquivo parecia
+#       "DB-dependente falhando". NÃO era DB: era o DIA DO MÊS. O fixture criava
+#       `vencimento = now()->addDays(15)`, e o Unificado filtra por `vencimento`
+#       dentro de [startOfMonth, endOfMonth] (UnificadoController::parsePeriodo,
+#       ramo default). Do dia 16 em diante o vencimento cai no MÊS SEGUINTE e o
+#       título some do payload — o próprio caso G2 já suspeitava, na mensagem:
+#       "pode ser que esteja fora do período default".
+#
+#       MEDIDO no CT 100 (2026-09-18, dia 18):
+#         hoje 2026-09-18 · janela [2026-09-01 .. 2026-09-30]
+#         vencimento do fixture 2026-10-03 → FORA
+#       E a varredura do mês inteiro, que mostra a borda exata:
+#         dia  1 → 16/09 dentro   dia 15 → 30/09 dentro
+#         dia 16 → 01/10 FORA     dia 18 → 03/10 FORA     dia 25 → 10/10 FORA
+#       Ou seja: o arquivo passava do dia 1 ao 15 e reprovava do 16 ao fim do
+#       mês, com o MESMO código. Quem medisse na 1ª quinzena concluiria "passa".
+#
+#       O PRODUTO ESTÁ CERTO: título que vence no mês que vem não pertence à visão
+#       do mês corrente. Quem estava errado era o fixture. Fix = clampar o
+#       vencimento no fim do mês (`->min(now()->endOfMonth())`), o que preserva a
+#       intenção (vencer no futuro) sem depender do dia em que o CI roda.
+#
+# PROVA DE EXECUÇÃO (LC-13): assertions 23 → 33, +10 com 7 casos nos dois lados.
+#
+# ⚠️ RESSALVA DE MÉTODO (CT 100 ≠ CI, do cabeçalho): a DB daqui NÃO é fresca. O
+# run de CONTROLE (main, que falha) deixa títulos órfãos presos aos planos G2..G6,
+# e aí o run seguinte falha em `PlanoConta::delete()` por "títulos vinculados" —
+# parecendo defeito do fix, sendo lixo do controle. Limpei ENTRE os runs e medi
+# duas vezes: 7 passed (33 assertions) nas duas. Em CI isso não ocorre.
+#
+# Medido no CT 100, worktree /var/www/qa em origin/main 6e790834540, DB
 # oimpresso_qa provisionada pela receita do CI (.github/actions/pest-mysql-setup).
 # ── Onda7bTroubleshootPresentTest (2026-08-03, triagem 10/N — bucket A) ──
 #   1 failed, 11 passed (44 assertions)  →  12 passed (48 assertions)
