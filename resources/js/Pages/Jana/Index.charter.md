@@ -18,7 +18,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 19
+charter_version: 20
 permissao: jana.access
 ---
 
@@ -218,6 +218,26 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- **v20 (2026-09-18)** — **o cabeçalho de METAS foi de 4 linhas para 1, e a copy pinada foi
+  REVOGADA por [W].** Prod tinha badge `METAS` + `Acompanhamento contínuo` + h2 de 20px
+  `Metas ativas` + a contagem `N metas ativas — visão consolidada do business`; a âncora
+  `JmMetasSecao` tem **uma** linha (`.jc-h2` + controles em `margin-left:auto`). Agora usa o
+  mesmo `SectionTitle` da v19, com os botões existentes no `ml-auto`.
+
+  **A trava não era de forma, era de CONTRATO.** `Metas ativas` e `Acompanhamento contínuo`
+  eram copy pinada em `jana-painel.contract.json` §`painel-metas-header`, e a
+  `_nota_metas_header` (2026-08-31) registrava a divergência dizendo *"não corrigida porque
+  copy pinada é lei [W]"*, oferecendo duas saídas. **Perguntei, e [W] escolheu remover** —
+  `memory/proibicoes.md` põe *copy de contrato* na lista curta de soberania real, ao lado de
+  merge e valor/estoque, então esta não era decisão minha. O contrato foi atualizado no MESMO
+  PR (sem isso o `contrato-de-tela` reprova) e a nota original **ficou**, com a revogação ao
+  lado — não se apaga o que era verdade numa data.
+
+  **O seletor de período e o `Farol | Cadastro` NÃO vieram:** seguem ❌ **backend**
+  (`IndexController::buildMetasPayload` carrega só `periodoAtual`). O cabeçalho fechou na forma
+  e na copy; a capacidade continua pendente, e dizer o contrário seria prometer no charter o que
+  a rota não entrega.
 
 - **v19 (2026-09-18)** — **o h2 de seção virou réplica local da `.jc-h2`.** Era o h2 do golden
   `governance/Dashboard` (`text-sm font-semibold tracking-widest` = `14px/600/1.4px`) contra

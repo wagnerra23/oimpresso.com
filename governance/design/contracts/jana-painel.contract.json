@@ -20,10 +20,10 @@
     },
     {
       "id": "painel-metas-header",
-      "_papel": "cabeçalho do bloco de metas",
+      "_papel": "cabeçalho do bloco de metas — UMA linha, como a âncora `JmMetasSecao`",
+      "_nota_revogacao_2026_09_18": "A copy \"Acompanhamento contínuo\" SAIU desta lista por decisão [W] de 2026-09-18, textual: \"eu revogo tudo, de todos. a regra mudou agora é o Protótipo quem manda, e a paridade deve ser o objetivo\" + \"pode revogar regras conflitantes\". A `_nota_metas_header` abaixo (2026-08-31) media a divergência e registrava que NÃO corrigia porque copy pinada é lei [W]; ela oferecia duas saídas — remover ou manter como acréscimo consciente — e [W] escolheu REMOVER quando a pergunta lhe foi feita explicitamente. Saíram junto, no mesmo PR, o `<Badge>METAS</Badge>` (a âncora não o tem, e ele rotulava \"Jana V2\", nomenclatura que nenhuma outra parte da tela usa) e a contagem \"N metas ativas — visão consolidada do business\" (idem). O que SOBREVIVE é \"Metas ativas\", que a âncora tem como `METAS ATIVAS` — a caixa alta vem do `text-transform` da `.jc-h2`, então a copy pinada segue em sentence case e o gate continua encontrando-a. A âncora `data-contract` migrou do `<span>` do subtítulo para o próprio `<h2>`, via a prop `data-contract` do `SectionTitle` (o nome da prop e o ATRIBUTO com hifen, nao camelCase: o gate procura a string literal `data-contract` no alvo, e com camelCase ele reprova mesmo o atributo chegando ao DOM — medido): um `<span class=\"sr-only\">` só para carregar o atributo duplicaria o texto para leitor de tela.",
       "copy": [
-        "Metas ativas",
-        "Acompanhamento contínuo"
+        "Metas ativas"
       ]
     },
     {

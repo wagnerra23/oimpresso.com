@@ -1291,3 +1291,34 @@ aplicados vêm de arquivo provado fresco. O que segue por provar é o que o `_ds
 redefinir, e é exatamente por isso que a cor ficou de fora.
 
 **Teste:** `tests/janaSectionTitleReplica.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
+
+### Emenda 2026-09-18 — o mesmo `SectionTitle` fechou o cabeçalho de METAS (4 linhas → 1)
+
+O `Index.tsx` passou a usar este componente no cabeçalho do bloco METAS. Prod tinha **4 linhas**
+(badge `METAS` + `Acompanhamento contínuo` + h2 de 20px `Metas ativas` + a contagem
+`N metas ativas — visão consolidada do business`); a âncora `JmMetasSecao` tem **uma**
+(`<h2 class="jc-h2">` + controles em `margin-left:auto`).
+
+**A trava era de CONTRATO, não de forma.** `Metas ativas` e `Acompanhamento contínuo` eram copy
+**pinada** em `governance/design/contracts/jana-painel.contract.json` §`painel-metas-header`, e a
+`_nota_metas_header` (2026-08-31) registrava a divergência dizendo *"não corrigida porque copy
+pinada é lei [W]"*. **[W] escolheu remover** quando perguntado diretamente — copy de contrato está
+na lista curta de soberania real (`memory/proibicoes.md` §Comportamento), ao lado de merge e
+valor/estoque, então não era decisão do agente. O contrato foi atualizado no MESMO PR, e a nota
+de 2026-08-31 **ficou**, com a revogação ao lado.
+
+**Duas pegadinhas medidas, que custam tempo a quem repetir:**
+
+1. **`data-contract` tem que ser a string LITERAL no arquivo do `alvo`.** Passar `dataContract`
+   camelCase entrega o atributo no DOM e **mesmo assim** reprova — `X seção "painel-metas-header"
+   sem âncora data-contract no alvo` —, porque o gate faz busca textual. Por isso a prop do
+   `SectionTitle` se chama `'data-contract'`, com hífen.
+2. **O mock do `JanaCockpit` em `janaMetaCardRodape.spec.tsx` quebrou** ao surgir o export
+   `SectionTitle`: os 5 casos do **UC-JPAIN-21** abortaram com `No "SectionTitle" export is
+   defined on the … mock`, e a mensagem **não diz que é do mock** — parece defeito no card de
+   meta. O stub tem de renderizar os children, porque os botões do cabeçalho passaram a morar lá
+   dentro. É a mesma armadilha que aquele arquivo já documentava para o stub do cockpit.
+
+⚠️ **O seletor de período e o `Farol | Cadastro` NÃO vieram** — seguem ❌ **backend**
+(`IndexController::buildMetasPayload` carrega só `periodoAtual`; sem a série de janelas no payload
+não há o que filtrar). O cabeçalho fechou na FORMA e na COPY; a **capacidade** continua pendente.

@@ -201,7 +201,7 @@ citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como
 
 | componente | protótipo | tela viva | veredito |
 |---|---|---|---|
-| seção | `JmMetasSecao` — "METAS ATIVAS" com seletor de período | bloco "Metas ativas" | 🟡 |
+| seção | `JmMetasSecao` — "METAS ATIVAS" com seletor de período | `SectionTitle` (`.jc-h2`) "Metas ativas" + controles em `ml-auto` | ✅ **(2026-09-18)** — era 🟡 com 4 linhas; ver nota |
 | seletor de período | 3 janelas clicáveis (`JM_PERIODOS`) | — | ❌ **precisa de backend** |
 | "Nova meta" | botão no cabeçalho da seção | `<a href>` **nativo** pra `/ia/metas/create` | ✅ **(#5881)** — ver nota |
 | card | `JmMetaCard` — farol + período + valor/alvo + **barra de progresso** + % + **projeção** | `MetaCard` — farol + período (#5881) + alvo + **barra** + % + sparkline | 🟡 **sem a projeção** — ver nota |
@@ -222,6 +222,36 @@ citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como
 > **Por que o seletor de período precisa de backend:** `IndexController::buildMetasPayload` carrega
 > só `periodoAtual`. Trocar a janela no cliente exigiria a série de períodos no payload — não há o
 > que filtrar.
+
+> **CABEÇALHO FECHADO em 2026-09-18 — de 4 linhas para 1, por decisão [W].** Prod tinha badge
+> `METAS` + `Acompanhamento contínuo` + h2 de 20px `Metas ativas` + a contagem
+> `N metas ativas — visão consolidada do business`. A âncora `JmMetasSecao` tem **uma** linha:
+> `<h2 class="jc-h2"><JcIcon name="target"/> METAS ATIVAS <span class="jm-per">…` com os controles
+> em `margin-left:auto`. Agora a tela usa o mesmo `SectionTitle` da réplica `.jc-h2`
+> (**UC-JPAIN-25**) com os botões existentes no `ml-auto`.
+>
+> **A trava era de CONTRATO, não de forma, e ela foi levantada explicitamente.** `Metas ativas` e
+> `Acompanhamento contínuo` eram copy **pinada** em `governance/design/contracts/jana-painel.contract.json`
+> §`painel-metas-header`, e a `_nota_metas_header` de 2026-08-31 registrava a divergência dizendo
+> *"não corrigida aqui porque copy pinada é lei [W]"*, com duas saídas oferecidas — remover ou
+> manter como acréscimo consciente. **[W] escolheu REMOVER** quando a pergunta lhe foi feita
+> diretamente (2026-09-18: *"agora é o Protótipo quem manda, e a paridade deve ser o objetivo"*).
+> O contrato foi atualizado **no mesmo PR** — sem isso o gate `contrato-de-tela` reprova —, e a
+> revogação ficou escrita nele, ao lado da nota original, que **não** foi apagada.
+>
+> **Duas pegadinhas medidas, registradas porque custam tempo a quem repetir:**
+> 1. **O `data-contract` tem que ser a string LITERAL no arquivo do `alvo`.** Passar `dataContract`
+>    camelCase pro `SectionTitle` entrega o atributo no DOM e **ainda assim** reprova
+>    (`X seção "painel-metas-header" sem âncora data-contract no alvo`) — o gate faz busca textual.
+>    A prop do componente chama-se `'data-contract'`, com hífen, por isso.
+> 2. **O mock do `JanaCockpit` no `janaMetaCardRodape.spec.tsx` quebrou** ao ganhar o export
+>    `SectionTitle`: 5 casos do UC-JPAIN-21 abortaram com `No "SectionTitle" export is defined on
+>    the … mock`, e a falha **não se anuncia como de mock** — parece que o card de meta quebrou. O
+>    stub precisa renderizar os children (os botões do cabeçalho moram lá dentro agora), que é a
+>    mesma armadilha que aquele arquivo já documentava para o stub do cockpit.
+>
+> ⚠️ **O seletor de período e o `Farol | Cadastro` NÃO vieram** — seguem ❌ backend, pela razão do
+> parágrafo acima. O cabeçalho fechou na FORMA e na COPY; a capacidade continua pendente.
 
 ## R6 · Análises
 

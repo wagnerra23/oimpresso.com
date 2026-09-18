@@ -182,9 +182,30 @@ const ctaVariant = (t: CtaTone): 'default' | 'destructive' | 'secondary' =>
 // vez de mexer no `KpiCard` compartilhado. `font-mono` é tradução PROVADA, não suposta: o
 // próprio espelho declara `--mono: var(--font-mono)` (`styles.css:6446`), que é o token do
 // projeto.
-function SectionTitle({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+export function SectionTitle({
+  icon,
+  children,
+  'data-contract': dataContract,
+}: {
+  icon: ReactNode;
+  children: ReactNode;
+  /** Âncora do `contrato-de-tela`, quando a seção é pinada em `*.contract.json`.
+   *
+   *  Fica no próprio `<h2>` — um `<span class="sr-only">` só pra carregar o atributo
+   *  duplicaria o texto para leitor de tela.
+   *
+   *  ⚠️ O nome da prop é o ATRIBUTO com hífen, não `dataContract` camelCase, e isso é
+   *  exigência do gate, não estilo: o `contrato-de-tela` procura a string literal
+   *  `data-contract` nos arquivos do `alvo` do contrato. Com a prop em camelCase o
+   *  atributo chega ao DOM igual, mas o grep do gate não acha — e ele reprova com
+   *  `X seção "..." sem âncora data-contract no alvo`. Medido nesta forma exata. */
+  'data-contract'?: string;
+}) {
   return (
-    <h2 className="mt-1.5 mb-2.5 flex items-center gap-[7px] font-mono text-[11px] leading-none font-bold uppercase tracking-[0.08em] text-muted-foreground">
+    <h2
+      data-contract={dataContract}
+      className="mt-1.5 mb-2.5 flex items-center gap-[7px] font-mono text-[11px] leading-none font-bold uppercase tracking-[0.08em] text-muted-foreground"
+    >
       <span className="inline-flex text-muted-foreground">{icon}</span>
       {children}
     </h2>
