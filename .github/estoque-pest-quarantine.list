@@ -39,11 +39,24 @@
 #
 # COMO CONFERIR depois de mergear (nunca confie no merge limpo):
 #   grep -c '^tests/Feature/.../<SeuTest>' <lista>    # 0 = sua remoção sobreviveu
-#   grep '^tests/' <lista> | sort | uniq -d           # vazio = sem duplicata
+#   sed 's/#.*//; s/[[:space:]]*$//' <lista> | grep -vE '^$' | sort | uniq -d   # vazio = sem duplicata
 #   grep -c '^tests/' <lista>                         # bate com base − (remoções de todos)?
 # ⚠️ A âncora `^` NÃO é zelo: `grep -c <NomeDoTest>` solto conta a NOTA DE SAÍDA que a
 # própria remoção acrescenta nos comentários — devolve 1 com a linha já removida, e você
 # conclui que a remoção não pegou. (Foi o que quase aconteceu no #7522.)
+# ⚠️ O `sed` que corta o comentário ANTES do `uniq -d` também não é zelo — a 1ª versão
+# desta linha era `grep '^tests/' | sort | uniq -d`, que compara LINHA INTEIRA e por isso é
+# CEGA ao caso de EDIÇÃO: quando a mudança não é remover a linha e sim reescrever o MOTIVO
+# dela, a union mantém as DUAS versões; como os comentários diferem, as linhas diferem, e o
+# `uniq -d` sai vazio com o path duplicado o tempo todo. Medido no #7541
+# (`TransactionPaymentInertiaSmokeTest` em `:85` e `:87`, um dizendo "7 failed", o outro
+# "4 failed"). O efeito é silencioso e duradouro: a lane dedupa por `sort -u`, então o
+# run-set fica certo e NADA avermelha — só a lista canônica passa a carregar dois motivos
+# contraditórios pro mesmo arquivo. Não por acaso, cortar o comentário antes é exatamente
+# o que o step da lane já faz pra montar o run-set: compare como a lane compara.
+# ⚠️ Não ponha `grep -c` dentro de script com `set -e`: ele sai com **rc=1 quando conta
+# ZERO**, que aqui é o caso de SUCESSO (remoção viva) — o script morre calado no caminho
+# bom. Use `awk '/regex/{c++} END{print c+0}'`, que sempre sai 0.
 #
 # COMO RESOLVER se a union já corrompeu: NÃO edite o resultado e NÃO confie no --3way.
 # Parta da versão da base (`git checkout FETCH_HEAD -- <lista>`) e reaplique SÓ a sua
