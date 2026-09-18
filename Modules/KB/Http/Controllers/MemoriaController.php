@@ -53,7 +53,7 @@ class MemoriaController extends Controller
             'janaContext' => [
                 'businessId'   => $businessId,
                 'businessName' => (string) ($request->session()->get('business.name') ?? ''),
-                'userName'     => optional(auth()->user())->name,
+                'userName'     => optional(auth()->user())->nome_exibicao,
             ],
         ]);
     }

@@ -313,6 +313,32 @@ class User extends Authenticatable
     }
 
     /**
+     * Nome do usuário para EXIBIÇÃO em tela (saudação, autoria, avatar).
+     *
+     * Mesmo idioma que `HandleInertiaRequests::share()` já usa para montar
+     * `auth.user.name` — first_name + last_name, e é de propósito que o
+     * `surname` fique de fora.
+     *
+     * ⛔ NÃO troque por `user_full_name`: o `surname` do UltimatePOS é o
+     * PREFIXO (`resources/views/user/profile.blade.php:78` rotula o campo
+     * como `__('business.prefix')`, placeholder `prefix_placeholder`), então
+     * `user_full_name` devolve "Sr. Wagner Rocha" e todo consumidor que faz
+     * `split(' ')[0]` — como o Painel da Jana — passaria a exibir "Sr.".
+     *
+     * ⛔ NÃO volte para `->name`: a tabela `users` NÃO TEM essa coluna
+     * (`2014_10_12_000000_create_users_table.php:17-27` declara surname,
+     * first_name, last_name, username, email, password, language) e o model
+     * não tem accessor para ela. Ler `->name` devolve null em silêncio — foi
+     * o defeito que este atributo veio consertar, medido em produção em
+     * 2026-09-18: o Painel da Jana exibia "Ações que VOCÊ sugere" e
+     * "Boa tarde." sem nome, em todos os tenants.
+     */
+    public function getNomeExibicaoAttribute(): string
+    {
+        return trim($this->first_name.' '.($this->last_name ?? ''));
+    }
+
+    /**
      * Return true/false based on selected_contact access
      *
      * @return bool
