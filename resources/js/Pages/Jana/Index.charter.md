@@ -18,7 +18,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 16
+charter_version: 17
 permissao: jana.access
 ---
 
@@ -196,6 +196,49 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 ## Charter version log
 
+- **v17 (2026-09-18)** — **ERRATA da v13: a divergência do título era de PESO, não de TAMANHO — e
+  o número 19px descrevia CSS que já não governa nada.** A v13 registra *"título 22px (canon
+  `PageHeader`, ADR 0189) × 19px da âncora"*; era **verdade em 2026-09-03** e o fato datado fica lá
+  intacto. Deixou de ser em **2026-09-11** (#7224, *"separar fontes por dono e remover paralelos"*),
+  que fez `JanaHeader` delegar ao `CliPageHead` — e o commit **não tocou** a linha da v13. Medido
+  hoje no DOM renderizado, viewport **2560** (a mesma da v13) e 1440, dark × dark:
+
+  | | prod `/ia` | âncora (espelho servido) | veredito |
+  |---|---|---|---|
+  | `h1` font-size | **22px** | **22px** | **IGUAL** — a divergência de tamanho FECHOU |
+  | `h1` font-weight | **700** | **600** | ❌ **DÍVIDA A FECHAR** — prod converge pro protótipo |
+
+  > ⛔ **A 1ª redação desta v17 escreveu "🟡 DECLARADA, decisão [W]" nesta linha. REVOGADO por [W]
+  > em 2026-09-18, textual: _"eu revogo tudo, de todos. a regra mudou agora é o Protótipo quem
+  > manda, e a paridade deve ser o objetivo"_.** Fica registrado, não apagado, porque o erro é
+  > instrutivo: eu reproduzi, no mesmo PR que corrigia o charter, a classe que o charter tinha —
+  > transformar divergência em lei. **Divergência de FORMA não é estado final: é dívida.** A
+  > [UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)
+  > já dizia isso desde 2026-08-28 (*"Divergência é DEFEITO, não pauta"*) — o que faltou foi cumprir.
+
+  **Por que 19px sumiu:** a regra que o produzia é [`chat-jana.css:40`](../../../../prototipo-ui/cowork/Wagner/chat-jana.css)
+  `.jc-id h1 { font: 700 19px/1.2 }`, e `.jc-id` **não existe mais no DOM** (medido: 0 nós). O
+  `JanaHeader` da âncora ([`chat-jana.jsx:214`](../../../../prototipo-ui/cowork/Wagner/chat-jana.jsx))
+  renderiza `<window.CliPageHead>`, cujo docblock (`cli-pagehead.jsx:11`) declara *"o desenho é do
+  DS, aqui só resta tradução de vocabulário"* — e cita essas mesmas regras `.jc-id` legadas como o
+  problema que veio resolver. O `h1` passou a herdar o token do DS
+  ([`colors_and_type.css:373`](../../../../prototipo-ui/design-system/colors_and_type.css)):
+  `h1 { font-size: var(--fs-7); font-weight: 600 }`, com `--fs-7: 22px` (`:148`). O CSS sobreviveu
+  no arquivo; o nó que o recebia, não.
+
+  **O peso 700 de prod é deliberado e permanece:** vem de
+  [`Components/PageHeader/PageHeader.tsx:111`](../../../../resources/js/Components/PageHeader/PageHeader.tsx)
+  (`text-[22px] font-bold`, docblock *"peso Vendas"*), que é o `PageHeader` que o `JanaAreaHeader`
+  importa (`:56`). A decisão [W] da v13 — *"é Fundação/Shell compartilhada, não desta tela"* — segue
+  válida; só muda o eixo a que ela se aplica.
+
+  **Por que sobreviveu 7 dias:** nenhuma máquina mede a tipografia deste `h1`. O
+  `jana--index.alvo.json` foi re-medido no MESMO #7224 (está em dia), mas os 9 seletores dele param
+  no container — `header` mede `13px/400` e não desce até o título; e o `secao-check` roda
+  `--servir-espelho` (espelho × espelho) e é advisory. Registros datados que citam 19px em
+  `Index-visual-comparison.md` e `PARIDADE-area-jana-diagnostico-e-ondas.md` ficam intactos como
+  fósseis — a errata deles está no topo do primeiro.
+
 - **v16 (2026-09-08)** — **o drawer da meta absorve `metas/show` e `fontes/show`** (PR-3 do
   [`RUNBOOK-metas`](../../../../memory/requisitos/Jana/RUNBOOK-metas.md) §9.4, *"Fonte e apurações
   como seções"*). Três seções novas em `_components/JanaMetaDrawer.tsx`: **Identificação**
@@ -273,7 +316,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   — **33** itens abertos no módulo, **zero** deles do componente novo (medido depois do rebase
   sobre a Onda 1: o 33º é do `JanaSubNav.tsx`, que veio com ela).
 
-- **v13 (2026-09-03)** — **Onda 1 da paridade com o protótipo: a barra de abas sai da linha do título e vira FAIXA PRÓPRIA abaixo do header** (UC-JPAIN-19; UI-0029 "protótipo soberano sobre ADR UI"). Medido com a MESMA sonda nos dois lados (design-diff, dark × dark, viewport 2560; render do `jana-merge.jsx` pelo shell do espelho × `/ia` em prod): (a) abas — âncora `nav` filho de `.jc-page`, `left=284 w=2237 h=36`, 14px abaixo do header, itens 13px/500 (ativa 600, underline accent, pill accent-soft), ícone 14px por aba; prod tablist INLINE na Zona C do `PageHeader`, `left=1654 w=451`, no `top` do h1. (b) header — âncora `.jc-header-r` = `Atualizado HH:MM` (dot verde) → selo → Configurar → Exportar, **sem** primary; prod tinha "Atualizado" no subtítulo e um primary "Conversar" que duplicava a aba. (c) subtítulo — âncora mono 11.5px; prod sans 12px. Conserto: `PageHeader` canon ganha o slot `below` (faixa própria dentro do `<header>`, posição que `Cliente/Index.tsx` já usava hand-rolado — [W] 2026-07-14 "mesma posição do Clientes/protótipo em todas"); `JanaSubNav` mapeia ícone por key (`JANA_TAB_ICON`, FORMA → cliente, o `SidebarGhost` PHP não tem `icon`); `PageHeaderPrimary` sai; Conversa ganha "Nova conversa" + Configurar só-ícone no header (âncora `isChat`). §Goals reescrito no mesmo PR. **Divergência que FICA declarada, decisão [W]:** título 22px (canon `PageHeader`, ADR 0189) × 19px da âncora — é Fundação/Shell compartilhada (37 telas), não desta tela. Teste: `tests/janaAreaHeaderParidade.spec.tsx` (vitest, jsdom — mede o DOM renderizado, não o texto do arquivo).
+- **v13 (2026-09-03)** — **Onda 1 da paridade com o protótipo: a barra de abas sai da linha do título e vira FAIXA PRÓPRIA abaixo do header** (UC-JPAIN-19; UI-0029 "protótipo soberano sobre ADR UI"). Medido com a MESMA sonda nos dois lados (design-diff, dark × dark, viewport 2560; render do `jana-merge.jsx` pelo shell do espelho × `/ia` em prod): (a) abas — âncora `nav` filho de `.jc-page`, `left=284 w=2237 h=36`, 14px abaixo do header, itens 13px/500 (ativa 600, underline accent, pill accent-soft), ícone 14px por aba; prod tablist INLINE na Zona C do `PageHeader`, `left=1654 w=451`, no `top` do h1. (b) header — âncora `.jc-header-r` = `Atualizado HH:MM` (dot verde) → selo → Configurar → Exportar, **sem** primary; prod tinha "Atualizado" no subtítulo e um primary "Conversar" que duplicava a aba. (c) subtítulo — âncora mono 11.5px; prod sans 12px. Conserto: `PageHeader` canon ganha o slot `below` (faixa própria dentro do `<header>`, posição que `Cliente/Index.tsx` já usava hand-rolado — [W] 2026-07-14 "mesma posição do Clientes/protótipo em todas"); `JanaSubNav` mapeia ícone por key (`JANA_TAB_ICON`, FORMA → cliente, o `SidebarGhost` PHP não tem `icon`); `PageHeaderPrimary` sai; Conversa ganha "Nova conversa" + Configurar só-ícone no header (âncora `isChat`). §Goals reescrito no mesmo PR. ~~**Divergência que FICA declarada, decisão [W]:** título 22px (canon `PageHeader`, ADR 0189) × 19px da âncora — é Fundação/Shell compartilhada (37 telas), não desta tela.~~ ⛔ **REVOGADO por [W] em 2026-09-18** (*"agora é o Protótipo quem manda, e a paridade deve ser o objetivo"*) — e já era violação da [UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md) quando foi escrita, 3 dias depois da ratificação dela. O texto fica como registro do que se decidiu em 09-03; **não instrui mais nada**. Ver v17. Teste: `tests/janaAreaHeaderParidade.spec.tsx` (vitest, jsdom — mede o DOM renderizado, não o texto do arquivo).
 - **v12 (2026-09-02)** — **dois ponteiros podres do frontmatter, gap #23 do [AUDIT-GAPS](../../../../memory/requisitos/Jana/AUDIT-GAPS-2026-08-10.md).** (a) `related_charters` apontava pra `Cockpit.charter.md`, **apagado** — removido; medido no repo inteiro: **280 charters, 3 usam `related_charters`, 1 entrada morta** (esta). (b) `permissao: copiloto.access` — a key não existe; a real é **`jana.access`**, aplicada no grupo `/ia` ([`routes.php:50`](../../../../Modules/Jana/Http/routes.php)). (c) o título do corpo dizia `/copiloto/dashboard`, rota que hoje é 301; a emenda histórica do Cowork registra que foi de cabeçalho assim que saiu o `/jana` errado da rodada 1.
   ⚠️ **Nenhum script valida `related_charters`, e isso segue assim de propósito:** o `deadlink-gate` **já varre** `Pages/**/*.charter.md` (desde 2026-08-10, FP medido) mas só o CORPO markdown — e o próprio `deadlink-gate.test.mjs` usa **este caso** como fixture do limite (*"charter LIMITE: frontmatter related_charters NAO e validado por este gate"*). Com adoção de 3/280 e 1 entrada morta, ampliar seria catraca sobre campo quase não usado; two-strikes ([ADR 0344](../../../../memory/decisions/0344-two-strikes-cobre-processo.md)): 1ª ocorrência conserta, não codifica.
 

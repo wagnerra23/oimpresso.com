@@ -4,7 +4,7 @@ casos: Jana Painel · metas ativas · farol server-side · cockpit deferido · /
 irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · governance/design/contracts/jana-painel.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-08"
+last_run: "2026-09-18"
 ---
 
 # Casos de uso — /ia (Painel da Jana)
@@ -973,11 +973,11 @@ O título fica sozinho na linha dele, com a identidade do tenant em mono embaixo
 | item | âncora (render do espelho) | produção (antes) | veredito |
 |---|---|---|---|
 | posição da tablist | `nav` filho de `.jc-page`, `left=284 w=2237 h=36`, 14px abaixo do header | inline na Zona C do header, `left=1654 w=451`, mesmo `top` do h1 | ❌ DIVERGE (bug) → **corrigido** |
-| aba | 13px/500 · ativa 600 + underline accent + pill accent-soft · ícone 14px | 14px/400 · ativa 600 + underline accent + pill · **sem ícone** | 🟡 ícone **corrigido**; 13×14px fica (fidelidade do `PageHeaderTabs` é travada por `tests/pageHeaderTabsFidelity.spec.tsx`) |
+| aba | 13px/500 · ativa 600 + underline accent + pill accent-soft · ícone 14px | 14px/400 · ativa 600 + underline accent + pill · **sem ícone** | ❌ **DÍVIDA A FECHAR** — ícone corrigido; os 13×14px **NÃO ficam** (⛔ REVOGADO por [W] 2026-09-18). O `tests/pageHeaderTabsFidelity.spec.tsx` trava o `PageHeaderTabs` contra `clientes-page.css` `.cli-moduletopnav-tab.active` — o protótipo do **Clientes** —, e a Jana o consome via `JanaSubNav.tsx:6`. Componente compartilhado não impõe a forma de uma tela às outras: o caminho é **réplica local** (ADR 0388 §D-1), como a Jana já fez no `JanaKpiCard` |
 | "Atualizado" | Zona R, 1º item, botão com dot | dentro do subtítulo | ❌ → **corrigido** |
 | primary no header | não existe | "Conversar" (do `DataController.primary`) | ❌ → **removido** |
 | subtítulo | mono 11.5px `TENANT · biz=N · versão` | sans 12px `TENANT·biz=N·Atualizado` | 🟡 → mono; `versão` não existe na prod (dado) |
-| título | 19px | 22px | 🟡 **declarada** — canon `PageHeader` (ADR 0189), Fundação/Shell, decisão [W] |
+| título | ~~19px~~ **22px** | 22px | ⚠️ **ERRATA 2026-09-18** — tamanho IGUAL; diverge o **peso** (prod 700 × âncora 600) → **DÍVIDA A FECHAR**, prod converge. Ver abaixo |
 
 **Critério de aceite (o que o teste mede, no DOM renderizado):**
 
@@ -990,7 +990,24 @@ O título fica sozinho na linha dele, com a identidade do tenant em mono embaixo
 
 **O que NÃO entrou aqui, de propósito:** contador `n` nas abas (backend, R2 do
 `Index-visual-comparison.md`), Exportar em menu de 3 itens (o botão segue mudo — UC-JPAIN-16 /
-decisão [W]), e o título 22×19px (acima).
+decisão [W]), e o **peso** do título (abaixo).
+
+> ⚠️ **ERRATA 2026-09-18 — este bullet dizia "o título 22×19px".** O 19px era verdade quando a
+> tabela foi escrita (2026-09-03) e sai como fato datado. Deixou de ser em **2026-09-11** (#7224),
+> que fez `JanaHeader` delegar ao `CliPageHead`: a regra que produzia 19px
+> (`chat-jana.css:40` `.jc-id h1`) ficou **órfã** — `.jc-id` tem **0 nós** no DOM —, e o `h1`
+> passou a herdar o token do DS (`colors_and_type.css:373` `h1 { var(--fs-7) }`, `--fs-7: 22px`).
+> Medido hoje nos dois lados, viewport 2560 (a mesma de 09-03) e 1440, dark × dark:
+> **tamanho 22px = 22px (IGUAL)**; **peso prod 700 × âncora 600 (DIVERGE)**.
+> O 700 vem de `Components/PageHeader/PageHeader.tsx:111` (`font-bold`, docblock *"peso Vendas"* —
+> o protótipo de **Vendas**), que é o `PageHeader` importado pelo `JanaAreaHeader` (`:56`).
+>
+> ⛔ **A 1ª redação desta errata dizia que a decisão [W] de manter *"segue valendo"*. REVOGADO
+> por [W] em 2026-09-18:** _"eu revogo tudo, de todos. a regra mudou agora é o Protótipo quem
+> manda, e a paridade deve ser o objetivo"_. O peso 600 da âncora é o alvo; **prod converge**.
+> Componente compartilhado não impõe a forma de uma tela às outras — o caminho é **réplica
+> local** no `JanaAreaHeader`, como a Jana já fez no `JanaKpiCard` (ADR 0388 §D-1), sem tocar
+> nas outras 37 telas. Trilha completa no charter v17.
 
 ## UC-JPAIN-21 — o card de meta lê "<valor> de <alvo>" e "<pct>% do alvo"
 Status: 🧪 (**duas** defesas, as duas com mordida provada por mutação; aguardam o verde vir do
