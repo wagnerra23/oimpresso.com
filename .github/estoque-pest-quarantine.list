@@ -30,6 +30,26 @@
 # que adicionam linhas são unidos sem conflito — mesma receita do irmão
 # .github/financeiro-pest-quarantine.list, de onde este mecanismo foi copiado).
 #
+# ⚠️ O QUE O `union` NÃO FAZ, e a frase acima sozinha esconde: ele une ADIÇÕES, mas
+# **desfaz REMOÇÃO adjacente EM SILÊNCIO**. Dois PRs que tiram linhas vizinhas produzem
+# merge LIMPO, sem um marcador de conflito sequer, com as duas linhas RESSUSCITADAS e as
+# vizinhas DUPLICADAS. Medido em 2026-09-18 no #7522: mergear o main devolveu a linha que
+# o PR tinha removido e duplicou ProdutoIndex + ProdutoBulkEdit.
+#
+# COMO CONFERIR depois de mergear (nunca confie no merge limpo):
+#   grep -c '^tests/Feature/.../<SeuTest>' <lista>    # 0 = sua remoção sobreviveu
+#   grep '^tests/' <lista> | sort | uniq -d           # vazio = sem duplicata
+# ⚠️ A âncora `^` NÃO é zelo: `grep -c <NomeDoTest>` solto conta a NOTA DE SAÍDA que a
+# própria remoção acrescenta nos comentários — devolve 1 com a linha já removida, e você
+# conclui que a remoção não pegou. (Foi o que quase aconteceu no #7522.)
+#
+# COMO RESOLVER se a union já corrompeu: NÃO edite o resultado. Parta da versão da base
+# (`git checkout FETCH_HEAD -- <lista>`) e reaplique SÓ a sua mudança por cima — é
+# determinístico e funciona DEPOIS do estrago, não só antes.
+#
+# (O irmão `financeiro-pest-quarantine.list` carrega a MESMA frase parcial e o mesmo
+# risco; não foi tocado aqui pra não ampliar o raio deste PR.)
+#
 # TIRAR DAQUI é o movimento desejado (a lista deve encolher). PÔR aqui exige
 # motivo escrito na linha — sem isso vira gaveta de silenciar vermelho.
 #
