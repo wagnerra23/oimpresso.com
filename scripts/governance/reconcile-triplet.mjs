@@ -17,7 +17,11 @@
  * _DesignSystem/padroes-tela/PT-01-Lista.md) via assinaturas DETECTÁVEIS, e classifica
  * cada slot em 3 estados:
  *   - CONFORME            — charter ≈ produção
- *   - DIVERGENCIA_DECLARADA — diferem MAS há `divergence_from_blueprint` no frontmatter
+ *   - DIVIDA_REGISTRADA    — diferem MAS há `divergence_from_blueprint` no frontmatter.
+ *                           REGISTRA a dívida e diz por que ela não fechou; NÃO absolve.
+ *                           ([W] 2026-09-18 revogou a "divergência DECLARADA (autorizada)":
+ *                           no eixo FORMA o protótipo manda — UI-0029. O estado segue não
+ *                           falhando, porque o que ESTA máquina mede é declaração, não paridade.)
  *   - DIVERGENCIA_MUDA    — diferem SEM declaração → FALHA (--strict exit 1)
  * O veredito da tela = pior slot, nomeado.
  *
@@ -336,9 +340,9 @@ function charterSatisfied(charterWants, prodHas) {
 }
 
 // estado por slot
-const ESTADO = { CONFORME: 'CONFORME', DECLARADA: 'DIVERGENCIA_DECLARADA', MUDA: 'DIVERGENCIA_MUDA' };
+const ESTADO = { CONFORME: 'CONFORME', DECLARADA: 'DIVIDA_REGISTRADA', MUDA: 'DIVERGENCIA_MUDA' };
 // pior-é-maior pra computar veredito da tela
-const SEVERITY = { CONFORME: 0, DIVERGENCIA_DECLARADA: 1, DIVERGENCIA_MUDA: 2 };
+const SEVERITY = { CONFORME: 0, DIVIDA_REGISTRADA: 1, DIVERGENCIA_MUDA: 2 };
 
 /**
  * Reconcilia UMA tela. Retorna a matriz (6 células) + veredito.
@@ -380,7 +384,7 @@ function reconcileScreen(charterRel, coworkMap) {
 
     let veredito;
     if (estado === ESTADO.CONFORME) veredito = `charter(${wants}) ≡ produção(${prod})`;
-    else if (estado === ESTADO.DECLARADA) veredito = `charter(${wants}) ≠ produção(${prod}) — divergência DECLARADA no frontmatter`;
+    else if (estado === ESTADO.DECLARADA) veredito = `charter(${wants}) ≠ produção(${prod}) — DÍVIDA registrada no frontmatter (registra, não absolve)`;
     else veredito = `charter(${wants}) ≠ produção(${prod}) — divergência MUDA (sem declaração) → FALHA`;
 
     return {
@@ -431,7 +435,7 @@ function reconcileScreen(charterRel, coworkMap) {
 function renderText(result) {
   const L = [];
   const badge = (e) => e === ESTADO.CONFORME ? '✓ CONFORME'
-    : e === ESTADO.DECLARADA ? '~ DIVERGÊNCIA DECLARADA'
+    : e === ESTADO.DECLARADA ? '◐ DÍVIDA REGISTRADA'
     : '✗ DIVERGÊNCIA MUDA';
   L.push(`Tela: ${result.tela}`);
   L.push(`  charter:   ${result.charter}${result.charter_missing ? '  [AUSENTE]' : ''}`);
@@ -456,7 +460,7 @@ function renderText(result) {
 
 function renderMatrixMarkdown(result, now) {
   const badge = (e) => e === ESTADO.CONFORME ? '✓ CONFORME'
-    : e === ESTADO.DECLARADA ? '~ DIVERGÊNCIA DECLARADA'
+    : e === ESTADO.DECLARADA ? '◐ DÍVIDA REGISTRADA'
     : '✗ DIVERGÊNCIA MUDA';
   const L = [];
   L.push('---');
@@ -510,7 +514,7 @@ function renderMatrixMarkdown(result, now) {
   L.push('## Legenda dos estados');
   L.push('');
   L.push('- **CONFORME** — charter ≈ produção no slot.');
-  L.push('- **DIVERGÊNCIA DECLARADA** — diferem, mas o frontmatter tem `divergence_from_blueprint` (desvio consciente).');
+  L.push('- **DÍVIDA REGISTRADA** — diferem, e o frontmatter tem `divergence_from_blueprint`. Desde [W] 2026-09-18 isso **registra a dívida, não a autoriza**: no eixo FORMA o protótipo manda (UI-0029), e a razão declarada diz por que ainda não fechou.');
   L.push('- **DIVERGÊNCIA MUDA** — diferem **sem** declaração → FALHA (`--strict` exit 1).');
   L.push('');
   L.push('## Limites do v1 (honestidade)');

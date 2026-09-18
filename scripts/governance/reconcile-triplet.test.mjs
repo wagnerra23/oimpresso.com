@@ -3,7 +3,9 @@
 // SELF-TEST — prova que reconcile-triplet.mjs:
 //   (a) charter=grid, prod=grid, proto=AUSENTE → slot 5 CONFORME (não-muda) MAS reporta proto ausente
 //   (b) charter=grid, prod=tabela (sem declaração) → DIVERGENCIA_MUDA, exit≠0 em --strict
-//   (c) charter=grid, prod=tabela + divergence_from_blueprint declarado → DIVERGENCIA_DECLARADA, NÃO falha
+//   (c) charter=grid, prod=tabela + divergence_from_blueprint declarado → DIVIDA_REGISTRADA, NÃO falha
+//       ([W] 2026-09-18: registra a dívida, não autoriza — mas segue não falhando, porque esta
+//        máquina mede DECLARAÇÃO, nunca paridade)
 //   (d) todos conformes → verde (exit 0, sem MUDA)
 //   (e) charter-blueprint-pointers detecta ponteiro órfão e libera quando todos existem
 //
@@ -131,7 +133,7 @@ const tsxTabela = [
   check('(b) --strict exit 1', strict.status === 1, `status=${strict.status}`);
 }
 
-// ── (c) charter=grid, prod=tabela, COM divergence_from_blueprint → DECLARADA, NÃO falha ──
+// ── (c) charter=grid, prod=tabela, COM divergence_from_blueprint → DIVIDA_REGISTRADA, NÃO falha ──
 {
   const root = makeRepo({ charter: charterGridDeclarado, tsx: tsxTabela });
   const strict = run(root, ['--strict', '--json']);
@@ -139,7 +141,10 @@ const tsxTabela = [
   try { parsed = JSON.parse(strict.stdout); } catch { /* */ }
   const res = parsed && parsed.results && parsed.results[0];
   const slot5 = res && res.cells.find((c) => c.slot === 5);
-  check('(c) slot 5 DIVERGENCIA_DECLARADA', slot5 && slot5.estado === 'DIVERGENCIA_DECLARADA', slot5 && slot5.estado);
+  check('(c) slot 5 DIVIDA_REGISTRADA', slot5 && slot5.estado === 'DIVIDA_REGISTRADA', slot5 && slot5.estado);
+  // CONTROLE: se voltar a se chamar "declarada"/"conforme", a revogação de [W] foi desfeita calada.
+  check('(c-controle) o estado NÃO se chama DECLARADA nem CONFORME',
+    slot5 && slot5.estado !== 'DIVERGENCIA_DECLARADA' && slot5.estado !== 'CONFORME', slot5 && slot5.estado);
   check('(c) --strict NÃO falha (exit 0)', strict.status === 0, `status=${strict.status}`);
   check('(c) divergence_declared capturada', res && !!res.divergence_declared, JSON.stringify(res && res.divergence_declared));
 }
