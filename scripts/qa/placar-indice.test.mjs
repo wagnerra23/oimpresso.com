@@ -197,7 +197,61 @@ r = cli(['--root', cadSemSaida, '--indice', rel(cadSemSaida), '--thread', '02', 
 ok(/PRÓXIMO: nenhum/.test(r.out), '--thread 02: com a 01 NÃO feita, a 02 deixa de ser próximo (a dependência atravessa o recorte)');
 ok(cli(['--root', cad, '--indice', rel(cad), '--thread', '99']).rc === 2, '--thread inexistente → 2 (NÃO MEDI), nunca "0 de 0"');
 
-/* ── 15. O eixo A6 (tela) não regrediu — o A8 pluga, não substitui ───────────────────── */
+/* ── 15. ENDEREÇO APOSENTADO pela ADR 0397 — medir no novo, sem acusar o inocente ────── */
+// O corpus real (12 índices) veio do import da conta Cowork carregando `prova.path` do mundo
+// pré-0397. Antes disto o placar respondia "arquivo ausente" — que o leitor entende como "a
+// thread não entregou" — para arquivo que EXISTE no endereço novo. Era LC-33 na direção
+// acusação, e fabricava um placar que não podia sair de zero (gate-de-teatro invertido).
+// Cada caso abaixo vem com o controle NEGATIVO ao lado: sem ele, "migrou" ficaria livre pra
+// virar carimbo que aprova qualquer coisa.
+
+// CONTROLE+ : prova cita `prototipo-ui/contrato/…` (D3) e o arquivo vive em
+//             `governance/design/contracts/…`. A thread tem de FECHAR.
+const apos = root({
+  indice: IDX([{ tipo: 'arquivo', path: 'prototipo-ui/contrato/x.contract.json' }]),
+  saidas: ['01'],
+  arquivos: { 'governance/design/contracts/x.contract.json': '{}' },
+});
+r = cli(['--root', apos, '--indice', rel(apos), '--check']);
+ok(r.rc === 0 && /entregue 1 de 1/.test(r.out), 'endereço pré-0397 (D3 contratos): mede no endereço NOVO e a thread FECHA');
+ok(/fonte desatualizada: 1 prova/.test(r.out), 'a migração é DITA no relato — a dívida da fonte não fica muda');
+
+// CONTROLE− : mesmo endereço aposentado, mas o arquivo NÃO existe no destino novo.
+//             Tem de continuar reprovando: migrar endereço não é perdoar ausência.
+const aposVazio = root({ indice: IDX([{ tipo: 'arquivo', path: 'prototipo-ui/contrato/x.contract.json' }]), saidas: ['01'] });
+r = cli(['--root', aposVazio, '--indice', rel(aposVazio), '--check']);
+ok(r.rc === 1 && /entregue 0 de 1/.test(r.out), 'CONTROLE−: endereço migrado mas arquivo ausente no destino SEGUE reprovando');
+ok(/governance\/design\/contracts\/x\.contract\.json/.test(r.out), 'CONTROLE−: o motivo cita o endereço NOVO (não manda procurar no lugar velho)');
+
+// D2 (dono no endereço) e D5 (cowork-inbox) — as outras duas regras estruturais.
+const aposDono = root({
+  indice: IDX([{ tipo: 'arquivo', path: 'prototipo-ui/cowork/sidebar.jsx' }]),
+  saidas: ['01'], arquivos: { 'prototipo-ui/cowork/Wagner/sidebar.jsx': 'x' },
+});
+ok(/entregue 1 de 1/.test(cli(['--root', aposDono, '--indice', rel(aposDono)]).out), 'D2: `cowork/<solto>` resolve sob o dono Wagner');
+const aposInbox = root({
+  indice: IDX([{ tipo: 'arquivo', path: 'prototipo-ui/design-docs/cowork-inbox/m/playbook/_saida-03.md' }]),
+  saidas: ['01'], arquivos: { 'prototipo-ui/cowork/Wagner/cowork-inbox/m/playbook/_saida-03.md': 'x' },
+});
+ok(/entregue 1 de 1/.test(cli(['--root', aposInbox, '--indice', rel(aposInbox)]).out), 'D5: `design-docs/cowork-inbox/` resolve na árvore viva (o caso Fiscal/03)');
+
+// SEM SUCESSOR: `design-docs/` fora do `cowork-inbox/` não tem destino fixado pela ADR.
+// Não se inventa (D6 proíbe basename) — sai NÃO MEDIDA: não fecha e NÃO morde o --check.
+const semSuc = root({
+  indice: IDX([{ tipo: 'arquivo', path: 'prototipo-ui/design-docs/contrato-cowork/g.contract.json' }]),
+  saidas: ['01'],
+});
+r = cli(['--root', semSuc, '--indice', rel(semSuc), '--check']);
+ok(r.rc === 0, 'sem sucessor: NÃO morde o --check (acusar por falta de endereço é LC-33)');
+ok(/entregue 0 de 1/.test(r.out) && /não medida|nao medidas/i.test(r.out), 'sem sucessor: também NÃO fecha (fail-closed nos dois lados)');
+
+// CONTROLE− : path que a ADR 0397 não aposentou passa INTACTO. Sem este caso, a migração
+//             poderia estar reescrevendo endereço legítimo e ninguém veria.
+const intacto = root({ indice: IDX([{ tipo: 'arquivo', path: 'resources/js/Pages/X.tsx' }]), saidas: ['01'], arquivos: { 'resources/js/Pages/X.tsx': 'x' } });
+r = cli(['--root', intacto, '--indice', rel(intacto)]);
+ok(/entregue 1 de 1/.test(r.out) && !/fonte desatualizada/.test(r.out), 'CONTROLE−: endereço vivo passa intacto e NÃO é reportado como migrado');
+
+/* ── 16. O eixo A6 (tela) não regrediu — o A8 pluga, não substitui ───────────────────── */
 ok(!existsSync(join(TMP, 'x')) && cli(['--dir', join(TMP, 'nao-existe')]).rc === 2, 'A6 intacto: o eixo de tela segue saindo 2 em diretório inexistente');
 
 rmSync(TMP, { recursive: true, force: true });
