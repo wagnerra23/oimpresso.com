@@ -78,13 +78,23 @@ export const ENDERECOS_APOSENTADOS = [
   { re: /^prototipo-ui\/cowork\/(?!Wagner\/|Felipe\/)/, para: 'prototipo-ui/cowork/Wagner/', regra: 'ADR 0397 D2 (dono no endereço)' },
   // D5 — `design-docs/` não é cemitério válido; a árvore `cowork-inbox/` migrou inteira.
   { re: /^prototipo-ui\/design-docs\/cowork-inbox\//, para: 'prototipo-ui/cowork/Wagner/cowork-inbox/', regra: 'ADR 0397 D5 (cowork-inbox)' },
+  // D5+D2 — o estágio de contratos do Cowork saiu de `design-docs/contrato-cowork/` e passou a
+  // viver sob o dono. PROVADO POR BLOB, não por basename: dos 4 arquivos que havia ali antes de
+  // `4f51a9ec781`, três estão hoje em `cowork/Wagner/contrato/` com o MESMO blob
+  // (`configuracoes` 19f8caf2 · `patrimonio` 0d7556b7 · `venda-menu` e103d2a7 — idênticos nos
+  // dois lados). O quarto, `governance.contract.json`, simplesmente não desceu: o estágio tem 3
+  // arquivos e nenhum é ele. Isso é o que a thread `Governanca/01` pede e ainda não entregou —
+  // ausente legítimo, agora reportado no endereço certo em vez de sair como "não medida".
+  { re: /^prototipo-ui\/design-docs\/contrato-cowork\//, para: 'prototipo-ui/cowork/Wagner/contrato/', regra: 'ADR 0397 D5+D2 (estágio de contrato)' },
 ];
 
-// D5 aposentou `design-docs/` INTEIRO, mas só o `cowork-inbox/` tem sucessor fixado pela ADR.
-// Para o resto não se inventa destino: medido 2026-09-17, `design-docs/contrato-cowork/
-// governance.contract.json` (blob 144d03c5) NÃO é o `cowork-inbox/governance/
-// governance.contract.json` de hoje (blob 156ff30a) — bytes diferentes. Casá-los pelo
-// basename seria exatamente a heurística que a D6 proíbe. Sem sucessor ⇒ NÃO MEDIDA.
+// Rede de segurança para o resto de `design-docs/`, que a D5 aposentou sem sucessor único.
+// Aqui NÃO se inventa destino (a D6 proíbe basename) — sai NÃO MEDIDA, que não acusa nem aprova.
+// ⚠️ O que caiu aqui até 2026-09-17 e NÃO devia: `contrato-cowork/`. A primeira leitura parou no
+// candidato `cowork-inbox/governance/governance.contract.json` (blob 156ff30a ≠ 144d03c5),
+// concluiu "sem sucessor" e devolveu a decisão a [W]. Era determinável: bastava olhar os OUTROS
+// três arquivos do mesmo diretório, que provam a rota por blob. Procurar sucessor é olhar o
+// DIRETÓRIO inteiro, nunca um arquivo só — um arquivo que não migrou não refuta a migração.
 export const APOSENTADO_SEM_SUCESSOR = /^prototipo-ui\/(design-docs|_arquivo)\//;
 
 /** Aplica os endereços da ADR 0397. Devolve `{ path, migrado?, semSucessor? }`. */

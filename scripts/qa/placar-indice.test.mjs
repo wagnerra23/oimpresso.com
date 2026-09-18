@@ -235,10 +235,26 @@ const aposInbox = root({
 });
 ok(/entregue 1 de 1/.test(cli(['--root', aposInbox, '--indice', rel(aposInbox)]).out), 'D5: `design-docs/cowork-inbox/` resolve na árvore viva (o caso Fiscal/03)');
 
-// SEM SUCESSOR: `design-docs/` fora do `cowork-inbox/` não tem destino fixado pela ADR.
+// D5+D2 — o estágio de contrato migrou para sob o dono. O par abaixo é o que separa "achei o
+// sucessor" de "chutei": um arquivo que DESCEU fecha a thread; o que NÃO desceu segue ausente,
+// no endereço novo. Sem o segundo caso, a regra poderia estar aprovando o que nunca migrou.
+const aposEstagio = root({
+  indice: IDX([{ tipo: 'arquivo', path: 'prototipo-ui/design-docs/contrato-cowork/patrimonio.contract.json' }]),
+  saidas: ['01'], arquivos: { 'prototipo-ui/cowork/Wagner/contrato/patrimonio.contract.json': '{}' },
+});
+ok(/entregue 1 de 1/.test(cli(['--root', aposEstagio, '--indice', rel(aposEstagio)]).out), 'D5+D2: `design-docs/contrato-cowork/` resolve no estágio sob o dono');
+const aposEstagioVazio = root({
+  indice: IDX([{ tipo: 'arquivo', path: 'prototipo-ui/design-docs/contrato-cowork/governance.contract.json' }]),
+  saidas: ['01'],
+});
+r = cli(['--root', aposEstagioVazio, '--indice', rel(aposEstagioVazio), '--check']);
+ok(r.rc === 1 && /prototipo-ui\/cowork\/Wagner\/contrato\/governance\.contract\.json \(arquivo ausente\)/.test(r.out),
+  'CONTROLE−: o contrato que NÃO desceu segue ausente — e no endereço novo (o caso Governanca/01)');
+
+// SEM SUCESSOR: `design-docs/` fora do `cowork-inbox/` e do `contrato-cowork/` não tem destino.
 // Não se inventa (D6 proíbe basename) — sai NÃO MEDIDA: não fecha e NÃO morde o --check.
 const semSuc = root({
-  indice: IDX([{ tipo: 'arquivo', path: 'prototipo-ui/design-docs/contrato-cowork/g.contract.json' }]),
+  indice: IDX([{ tipo: 'arquivo', path: 'prototipo-ui/design-docs/relatorios/x.md' }]),
   saidas: ['01'],
 });
 r = cli(['--root', semSuc, '--indice', rel(semSuc), '--check']);
