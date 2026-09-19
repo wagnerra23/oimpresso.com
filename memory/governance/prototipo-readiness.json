@@ -49,6 +49,8 @@
     "Ponto/Intercorrencias/Index",
     "Ponto/Intercorrencias/Show",
     "Ponto/Relatorios/Index",
+    "Produto/Create",
+    "Produto/Edit",
     "Produto/SellingPrices",
     "Purchase/Create",
     "Purchase/Index",
@@ -410,5 +412,5 @@
       ]
     }
   ],
-  "total": 92
+  "total": 94
 }
