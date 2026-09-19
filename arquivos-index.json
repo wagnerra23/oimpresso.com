@@ -1,0 +1,8 @@
+{
+    "slug": "arquivos-index",
+    "route": "/arquivos",
+    "target": "resources/js/Pages/Arquivos/Index.tsx",
+    "renderedPath": "/arquivos",
+    "viewport": "1280x800",
+    "capturedAt": "2026-06-11T12:00:00-03:00"
+}

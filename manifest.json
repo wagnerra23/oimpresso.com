@@ -1,0 +1,53 @@
+{
+  "schema": "oimpresso-design-smokes/1",
+  "deploySha": "85de95180949d236c08be908c57886c8b7eeb0c0",
+  "host": "ci",
+  "generatedAt": "2026-09-19T14:08:54.068Z",
+  "smokes": [
+    {
+      "tela": "arquivos-index",
+      "source": "arquivos-page.jsx",
+      "target": "resources/js/Pages/Arquivos/Index.tsx",
+      "route": "/arquivos",
+      "png": "arquivos-index.png",
+      "targetBlob": "d66a3192dfbfe44c76dbe7ad4485c7ae688916c7",
+      "deploySha": "85de95180949d236c08be908c57886c8b7eeb0c0",
+      "host": "ci",
+      "capturedAt": "2026-09-19T14:08:54.068Z"
+    },
+    {
+      "tela": "fiscal-config",
+      "source": "fiscal-page.jsx",
+      "target": "resources/js/Pages/Fiscal/Config.tsx",
+      "route": "/fiscal/config",
+      "png": "fiscal-config.png",
+      "targetBlob": "9dbecfc6b14dec88c3c49f58bf7bbdeebbc6b956",
+      "deploySha": "85de95180949d236c08be908c57886c8b7eeb0c0",
+      "host": "ci",
+      "capturedAt": "2026-09-19T14:08:54.068Z"
+    },
+    {
+      "tela": "fiscal-eventos",
+      "source": "fiscal-page.jsx",
+      "target": "resources/js/Pages/Fiscal/Eventos.tsx",
+      "route": "/fiscal/eventos",
+      "png": "fiscal-eventos.png",
+      "targetBlob": "1803ddfa484d4b3367c63516a134136631fda0d8",
+      "deploySha": "85de95180949d236c08be908c57886c8b7eeb0c0",
+      "host": "ci",
+      "capturedAt": "2026-09-19T14:08:54.068Z"
+    },
+    {
+      "tela": "fiscal-sped",
+      "source": "fiscal-page.jsx",
+      "target": "resources/js/Pages/Fiscal/Sped.tsx",
+      "route": "/fiscal/sped",
+      "png": "fiscal-sped.png",
+      "targetBlob": "366da91d968b64736d707d8ac715278636770a1d",
+      "deploySha": "85de95180949d236c08be908c57886c8b7eeb0c0",
+      "host": "ci",
+      "capturedAt": "2026-09-19T14:08:54.068Z"
+    }
+  ],
+  "semPng": []
+}
