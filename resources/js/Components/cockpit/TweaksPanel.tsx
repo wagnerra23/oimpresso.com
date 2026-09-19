@@ -1,8 +1,10 @@
 // @memcofre
 //   modulo: Cockpit (TweaksPanel)
 //   adrs: UI-0008 (cockpit como layout-mae)
-//   nota: FAB flutuante bottom-right + card com 3 controles (Vibe / Densidade
-//         / Accent hue). Reescreve CSS vars em runtime via oklch().
+//   nota: FAB flutuante bottom-right + card com 2 controles (Vibe / Densidade).
+//         O 3o — "Tom do accent" — foi REMOVIDO na UI-0034: ele deixava a preferencia
+//         de UM navegador mandar na cor do Design System, e o hue nao e ajuste de
+//         usuario, e token do DS (protototipo soberano na forma, UI-0029).
 
 import { Sliders, X } from 'lucide-react';
 
@@ -13,8 +15,6 @@ export function TweaksPanel({
   onVibe,
   density,
   onDensity,
-  hue,
-  onHue,
   open,
   onToggle,
 }: {
@@ -22,8 +22,6 @@ export function TweaksPanel({
   onVibe: (v: Vibe) => void;
   density: number;
   onDensity: (n: number) => void;
-  hue: number;
-  onHue: (n: number) => void;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -86,24 +84,6 @@ export function TweaksPanel({
             value={density}
             onChange={(e) => onDensity(Number(e.target.value))}
           />
-        </div>
-
-        <div className="cockpit-tweaks-section">
-          <div className="cockpit-tweaks-label">Cor</div>
-          <div className="cockpit-tweaks-sublabel">
-            <span>Tom do accent</span>
-            <span style={{ color: 'var(--text-mute)' }}>{hue}°</span>
-          </div>
-          <input
-            type="range"
-            className="cockpit-tweaks-slider"
-            min={0}
-            max={360}
-            step={10}
-            value={hue}
-            onChange={(e) => onHue(Number(e.target.value))}
-          />
-          <div className="cockpit-tweaks-hue-preview" />
         </div>
       </div>
     </div>

@@ -99,7 +99,7 @@
     },
     "bubble": {
       "$type": "color",
-      "bubble-me":      { "$value": "var(--accent)",        "$description": "Alias CSS literal pra --accent (var-ref preservado verbatim pra equivalência byte-a-byte; não resolver).", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --bubble-me", "com.oimpresso.alias_of": "cockpit.accent.accent", "com.oimpresso.dark_absent": "herda light" } },
+      "bubble-me":      { "$value": "var(--accent)",        "$description": "Alias CSS literal pra --accent (var-ref preservado verbatim pra equivalência byte-a-byte; não resolver).", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --bubble-me", "com.oimpresso.alias_of": "cockpit.accent.accent", "com.oimpresso.dark": "oklch(0.55 0.15 295)" } },
       "bubble-me-fg":   { "$value": "#ffffff",              "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --bubble-me-fg", "com.oimpresso.dark_absent": "herda light" } },
       "bubble-them":    { "$value": "oklch(0.96 0.003 90)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --bubble-them", "com.oimpresso.dark": "oklch(0.32 0.008 282)" } },
       "bubble-them-fg": { "$value": "var(--text)",          "$description": "Alias CSS literal pra --text (var-ref preservado verbatim).", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --bubble-them-fg", "com.oimpresso.alias_of": "cockpit.surface.text", "com.oimpresso.dark_absent": "herda light" } }

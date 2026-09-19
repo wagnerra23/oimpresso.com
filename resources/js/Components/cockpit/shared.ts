@@ -176,7 +176,6 @@ export const LS = {
   CONV: 'oimpresso.cockpit.conv',
   TW_VIBE: 'oimpresso.cockpit.tweaks.vibe',
   TW_DENSITY: 'oimpresso.cockpit.tweaks.density',
-  TW_HUE: 'oimpresso.cockpit.tweaks.accentHue',
   TW_OPEN: 'oimpresso.cockpit.tweaks.open',
   SUPER_EXPANDED: 'oimpresso.cockpit.superadmin.expanded',
   SB_MODE: 'oimpresso.sb.mode',
