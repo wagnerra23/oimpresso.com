@@ -1,0 +1,10 @@
+{
+  "schema": "nightly-coverage/v1 (SDD P07 · ADR 0275)",
+  "coverage_pct": null,
+  "covered": null,
+  "total": null,
+  "runs": [],
+  "computed_at": null,
+  "measured_of": 0,
+  "note": "aguardando >=1 nightly com clover valido (pcov na imagem CT100); read-side trata como not_yet_measured"
+}
