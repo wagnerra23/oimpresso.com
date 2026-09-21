@@ -26,12 +26,12 @@ Line endings normalizados para LF no import (o zip vinha CRLF).
 
 | ausente | o que é | sem ele |
 |---|---|---|
-| `_ds/_ds_bundle.js` | os 45 componentes do DS (`window.OfficeImpressoDesignSystem_d7f886`) | `TypeError: … reading 'Button'` no destructuring de [`sells-ui.jsx:2`](../../../prototipo-ui/cowork/Felipe/venda-v3/sells-ui.jsx) |
+| `_ds/_ds_bundle.js` | os 45 componentes do DS (`window.OfficeImpressoDesignSystem_d7f886`) | `TypeError: … reading 'Button'` no destructuring de [`sells-ui.jsx:2`](https://github.com/wagnerra23/oimpresso.com/blob/bdf6d07e3/prototipo-ui/cowork/Felipe/venda-v3/sells-ui.jsx) |
 | `_ds/colors_and_type.css` | tokens de cor e tipografia | sem `--accent`/`--surface`, fonte cai pra Times New Roman |
 | `_ds/styles.css` | entry do DS (só um `@import` do anterior) | — |
-| `sells-roteiro.jsx` | define `CuDrawer` (drawer dos CU) | `ReferenceError: CuDrawer is not defined` em [`sells-app.jsx:62`](../../../prototipo-ui/cowork/Felipe/venda-v3/sells-app.jsx) |
+| `sells-roteiro.jsx` | define `CuDrawer` (drawer dos CU) | `ReferenceError: CuDrawer is not defined` em [`sells-app.jsx:62`](https://github.com/wagnerra23/oimpresso.com/blob/bdf6d07e3/prototipo-ui/cowork/Felipe/venda-v3/sells-app.jsx) |
 
-**Consequência, medida no browser:** [`cowork/venda-v3/index.html`](../../../prototipo-ui/cowork/Felipe/venda-v3/index.html)
+**Consequência, medida no browser:** [`cowork/venda-v3/index.html`](https://github.com/wagnerra23/oimpresso.com/blob/bdf6d07e3/prototipo-ui/cowork/Felipe/venda-v3/index.html)
 **não renderiza — tela em branco**, `#root` com 0 caracteres.
 
 ### Como VER o protótipo assim mesmo (receita reproduzida em 2026-08-10)
