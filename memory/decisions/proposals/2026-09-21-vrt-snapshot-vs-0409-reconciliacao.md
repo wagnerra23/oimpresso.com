@@ -226,6 +226,29 @@ cai nele, porque não contrata `baselineFile` — e ela própria declara isso, e
 `IsolatedStatesBaselineTest.php:243`: *"Esta suíte NÃO passa `baselineFile`"*. O passo seguinte
 (versionar o `.snap`) nunca teve cobrador.
 
+⚠️ **CORREÇÃO (minha, apontada pelo peer): não é uma suíte — são QUATRO das cinco.** A primeira
+redação desta seção tratava o bootstrap como particularidade da suíte de estados. **Falso.**
+`assertBandedScreenshot()` tem **5 chamadores** e o parâmetro tem default `?string $baselineFile = null`;
+as chamadas são todas por **argumento nomeado**, e só o `PixelBaselineTest` o passa:
+
+| suíte | contrata `baselineFile`? | `.snap` |
+|---|---|---|
+| `PixelBaselineTest` | ✅ sim | 52 |
+| `IsolatedStatesBaselineTest` | ❌ não | 19 |
+| `FinanceiroFlowBaselineTest` | ❌ não | 12 |
+| `SellsCreateFlowBaselineTest` | ❌ não | 12 |
+| `ComprasFlowBaselineTest` | ❌ não | 9 |
+
+**Superfície exposta: 52 de 104 `.snap` — exatamente metade.** O raio *hoje* continua sendo 2
+(as fotos das outras suítes existem), mas a distinção importa: **raio ≠ superfície**. Qualquer
+`.snap` que suma dessas 4 suítes, e qualquer tela/estado/fluxo novo que entre nelas, bootstrapa
+em silêncio — não é condição excepcional da Jana, é o default de metade do acervo.
+
+E o próprio código já dizia, em `VisregThreshold.php:146`: *"quando `$baselineFile` era null
+(as 4 suítes de estados/fluxos = 53 dos 59 `.snap`)"*. O fato estava escrito desde 2026-07-16
+— só nunca tinha sido ligado à condição 2 da 0409, que nem existia ainda. (O `53 de 59` é o
+retrato daquela data; hoje é `52 de 104`.)
+
 **Raio medido em `origin/main` (2026-09-21):** cruzando `screens[*].states[]` do manifesto com o
 diretório de snapshots — **21 pares declarados × 19 `.snap` = 2 sem foto**, e são exatamente
 `jana · dark` e `jana · empty`. **Zero colateral fora da Jana** (controle positivo:
@@ -247,6 +270,12 @@ lista de zona cinza — porque não havia contra o que comparar. É verde que **
 vermelho: a [LC-13](../../LICOES_CODE.md) na camada L2, e o lado de *acusação* dela é o eixo que
 o §5 2026-07-29 nomeia — colapsar *"não consegui medir"* num estado do objeto medido.
 
+**Recibo por COMPORTAMENTO, não por inventário** (medição do peer, baixando o artifact
+`pixel-snapshots` do run `35632076822` e comparando contra o git nas 5 suítes): Compras 9/9 ·
+Financeiro 12/12 · Sells 12/12 · Pixel 52/52 → **0 bootstrapados**; `IsolatedStates` **21 no
+artifact × 19 no git → 2**. O número bate com o do inventário, agora provado pelo que o runner
+de fato produziu — e cobrindo as cinco suítes, não uma.
+
 **Por que isso não se conserta sozinho, e por que entra AQUI:** fazer o ramo reprovar cria um
 vermelho cuja única cura é **criar baseline** — que é precisamente o ato que a 0409 restringe e
 que o modo update executa. O conserto de forma (*skip explícito* em vez de *pass*, que é o que
@@ -255,6 +284,15 @@ caem no mesmo nó que esta proposta submete.
 
 **Isto NÃO altera a recomendação (B)** — reforça-a: se o `.snap` ausente já produz conformidade
 declarada sem medição, a porta [W] no dispatch importa mais, não menos.
+
+**Estado (2026-09-21):** o conserto de forma está no
+[#7668](https://github.com/wagnerra23/oimpresso.com/pull/7668) (mesma sessão do achado):
+`pass` → `skipped` no ramo, **preservando a escrita do snapshot** — porque a rampa de
+versionamento é humana (`ui-impact.mjs:431` instrui a pessoa a copiar o `.snap` do artifact;
+nenhum `download-artifact` o consome), e remover a escrita junto trocaria um verde mudo por um
+vermelho mudo. O bite-test que prova o conserto está declarado lá: o step tem de sair de
+`21 passed` para `19 passed, 2 skipped` — se sair `21 passed` de novo, o conserto é decorativo.
+**Os 2 pares seguem sem decisão: criar baseline ou remover do manifesto é [W]** (item 5 da §6).
 
 ---
 
