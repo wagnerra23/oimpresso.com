@@ -1410,7 +1410,7 @@ jobs:
           if [ "${{ steps.compras-flows.outcome }}" = "failure" ]; then
             echo "🔴 L2.5 COMPRAS FALHOU. A causa está no log do step de fluxos acima:"
             echo "   REGRESSÃO CLARA (> τ_alto) · ZONA CINZA (entre limiares, precisa de [W]) · dimensões divergentes · ou o fluxo não montou."
-            echo "   1ª execução sem baseline GERA e passa (artifact pixel-snapshots comita). Regressão? conserte. Fix aprovado? modo update (dispatch) regenera."
+            echo "   1ª execução sem baseline GERA o snapshot e PULA o caso (skipped, não passed — mudou em 2026-09-21, ADR 0409: verde sem comparação não é conformidade). Pegue o .snap no artifact pixel-snapshots e versione. Regressão? conserte. Fix aprovado? modo update (dispatch) regenera."
           elif [ "${{ steps.compras-flows.outcome }}" = "success" ]; then
             echo "✅ fluxos Compras OK — visibilidade de colunas, menu de Ações e drawer capturados em compact/desktop/wide."
           fi
