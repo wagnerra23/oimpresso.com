@@ -8,6 +8,19 @@
  * pagination (default true) · resizable · density 'compact'|'comfortable'
  * Seleção e ordenação: internas por padrão; passe selectedIds/onToggleRow ou
  * sortKey/onSort para controlar por fora (API antiga do DataTable).
+ *
+ * `caption` — NOME ACESSÍVEL da tabela, num <caption> visualmente oculto.
+ * Trazido do DataTable de 2026-09-09 (que por sua vez veio do vivo,
+ * `resources/js/Components/shared/DataTable.tsx`) e que a fusão tinha deixado
+ * para trás: o alias repassava o prop, mas aqui ninguém o lia, então o nome
+ * sumia sem erro nenhum. Duas tabelas na mesma página são indistinguíveis na
+ * lista de tabelas do leitor de tela sem ele, e NENHUMA regra de axe cobre isso
+ * (medido no vivo com axe-core 4.12.1 em 5 arranjos de markup: 0 violações em
+ * todos). Opcional aqui e OBRIGATÓRIO no `.d.ts` do alias `DataTable`, como no
+ * vivo — o runtime degrada em vez de quebrar.
+ *
+ * `scope="col"` nos cabeçalhos é explicitação (WCAG H63), não conserto: o
+ * algoritmo de tabela já associava coluna e célula.
  */
 function GridCell({ value, mono }) {
   if (value && typeof value === 'object' && !React.isValidElement(value) && ('primary' in value || 'sub' in value)) {
@@ -38,7 +51,7 @@ export function DataGrid({
   pageSize: pageSizeProp = 10, pageSizeOptions = [10, 25, 50, 100], onPageSizeChange,
   page: pageProp, defaultPage = 1, onPageChange, density = 'compact', selectable = false, zebra = true,
   resizable = false, onRowClick, onSelectionChange, defaultSort, maxHeight = 420, height,
-  emptyLabel = 'Nenhum registro encontrado', totalLabel = 'registros',
+  emptyLabel = 'Nenhum registro encontrado', totalLabel = 'registros', caption,
   selectedIds, onToggleRow, onToggleAll, sortKey: sortKeyProp, sortDir: sortDirProp, onSort,
 }) {
   const [pageState, setPageState] = React.useState(defaultPage);
@@ -152,15 +165,18 @@ export function DataGrid({
     <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, background: 'var(--surface)' }}>
       <div style={{ maxHeight: height != null ? height : maxHeight, overflow: 'auto', scrollbarGutter: 'stable' }}>
         <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: 12.5, color: 'var(--text)', fontFamily: 'var(--font-sans)', tableLayout: resizable ? 'fixed' : 'auto' }}>
+          {caption && (
+            <caption style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0 0 0 0)', clipPath: 'inset(50%)', whiteSpace: 'nowrap', border: 0 }}>{caption}</caption>
+          )}
           <thead>
             <tr>
               {selectable && (
-                <th style={{ ...th, width: 34, textAlign: 'center' }}>
+                <th scope="col" style={{ ...th, width: 34, textAlign: 'center' }}>
                   <input type="checkbox" ref={headChk} checked={!!allChecked} onChange={(e) => toggleAll(e.target.checked)} aria-label="Selecionar página" style={chk} />
                 </th>
               )}
               {columns.map((c, ci) => (
-                <th key={c.key} style={{ ...th, position: 'sticky', textAlign: c.align === 'right' ? 'right' : 'left', width: colW(c), cursor: c.sortable ? 'pointer' : 'default' }}
+                <th key={c.key} scope="col" style={{ ...th, position: 'sticky', textAlign: c.align === 'right' ? 'right' : 'left', width: colW(c), cursor: c.sortable ? 'pointer' : 'default' }}
                   aria-sort={sortKey === c.key ? (sortDir === 'desc' ? 'descending' : 'ascending') : undefined}>
                   <span onClick={() => doSort(c)} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: sortKey === c.key ? 'var(--text)' : 'inherit' }}>
                     {c.label}

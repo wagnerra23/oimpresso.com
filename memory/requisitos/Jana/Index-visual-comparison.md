@@ -34,26 +34,6 @@
 > [`PARIDADE-area-jana-diagnostico-e-ondas.md`](PARIDADE-area-jana-diagnostico-e-ondas.md) carrega o
 > mesmo 19px e fica intacto pelo mesmo motivo: é fóssil datado, e esta errata é o ponteiro.
 >
-> **FECHADO em 2026-09-21 — o peso convergiu, por réplica local.** A linha `font-weight` da
-> tabela acima vira **600 = 600**; ela fica como está porque é o retrato de 09-18. O que a rodada
-> de hoje acrescenta é o fundamento que faltava: **as duas âncoras discordam entre si.** A de
-> **Vendas** declara **700** explicitamente (`styles.css:4772`, 0-1-1, e `financeiro.css:1727`,
-> 0-3-1 — esta vence), com o comentário de `styles.css:4765` dizendo textual *"`.os-head` — mesmo
-> CANON do PageHeader"*; a da **Jana** não declara peso e herda o DS (600). O 700 do componente é
-> decisão [W] datada e **ainda válida** (PR #1477, 2026-05-25, *"prefiro o mesmo peso do sells"* —
-> referência re-medida hoje, segue 700), então mudá-la alinharia **42** telas ao peso da Jana.
-> Conserto: prop opt-in `titleWeight` no `PageHeader` (default `'bold'`, mesmo contrato de
-> `leading`/`below`); só o `JanaAreaHeader` declara `'semibold'` — as outras **41** não mudam um
-> pixel. UC-JPAIN-30, mordida provada por 2 mutações. **Computed style MEDIDO** (browser real + CSS do
-> projeto gerado pelo entry de verdade, Tailwind v4.3.3): **600** com a prop, **700** sem ela, e
-> `font-size` **22px nos dois** — a paridade de tamanho **não foi tocada**. Necessária porque no v4
-> a regra é indireta (`font-weight: var(--font-weight-semibold)`) e só o browser resolve; controle
-> positivo `folhaCarregou: true` no mesmo turno. ⚠️ Não é a tela `/ia` **logada inteira** — smoke
-> autenticado não foi feito (302 sem sessão). O `<h1>` **continua fora** dos 9
-> seletores do `jana--index.alvo.json` — o buraco de medição que esta seção denuncia **segue
-> aberto**, e fechá-lo exige re-medir por sonda contra render servido, não editar o alvo à mão.
-> Trilha: `Index.charter.md` **v25**.
->
 > Trilha completa: `Index.charter.md` **v17**.
 
 - **Data da medição:** 2026-08-17 (**re-medido** — ver §Correções abaixo) · **âncora:** `prototipo-ui/cowork/Wagner/jana-merge.jsx` (resolvida por `node scripts/design/ancora.mjs Jana/Index`)
@@ -1062,291 +1042,208 @@ remover `py-0 gap-0`), com restauração conferida por hash. O detalhe — inclu
 breakpoints são `min-[761px]`/`min-[1101px]` e a prova de que o Tailwind os gera — está no
 **UC-JPAIN-31** de [`Index.casos.md`](../../../resources/js/Pages/Jana/Index.casos.md); aqui não
 se repete, para os dois não drifarem.
-## Rodada MEDIDA de 2026-09-21 — GRÁFICOS (o eixo que nenhuma rodada anterior tinha sondado)
+## Rodada MEDIDA 2026-09-21 (2ª) — ritmo vertical entre seções (o `margin-bottom` que ficara aberto)
 
-> **Por que esta rodada existe:** [W] relatou que os gráficos estão diferentes. As rodadas de
-> 08-17, 08-21, 09-02, 09-03, 09-07 e a errata de 09-18 mediram header, abas, brief, KPIs, metas,
-> análises e ações — **gráfico nunca foi papel de sonda em nenhuma delas**.
->
-> ⚠️ **Precisão sobre a premissa do chip.** Ele dizia "nenhuma rodada tem item de gráfico". Isso
-> é **quase** verdade, e a diferença importa: as linhas 207, 208 e 261 deste doc **citam** série,
-> barra e sparkline — mas como itens de **EXISTÊNCIA** (tem/não tem), nunca como **medição de
-> forma**. O que faltava não era a menção, era o número. É esta rodada.
+> A rodada anterior deixou este item **aberto e declarado** como decisão [W] — *"o 16px vem do
+> `space-y-4` do container, logo rege TODAS as seções"*. [W] decidiu: arrumar. Esta rodada mede e
+> fecha.
 
-### Como foi medido
+**Método:** espaço **VISUAL** entre blocos consecutivos (`top` do próximo − `bottom` do atual), não
+a propriedade isolada — que engana quando há padding no meio. Chrome, 2560, dark, os dois lados na
+mesma janela.
+
+| de → para | âncora | prod (antes) | veredito |
+|---|---|---|---|
+| brief → kpis | **18** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| kpis → METAS | **18** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| METAS → h2 Análises | **6** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| h2 → grade | 10 | 10 | ✅ **IGUAL** |
+| grade → h2 Ações | **18** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| h2 Ações → ações | 10 | 10 | ✅ **IGUAL** |
+
+**6 de 6 transições comparáveis** batem depois da mudança (prova de runtime no DOM da produção,
+com as regras do CSS compilado, revertida limpa).
+
+### O que a medição mudou no conserto "óbvio"
+
+A correção intuitiva — trocar `space-y-4` por `space-y-[18px]` e pronto — **pioraria** a transição
+de METAS: ela iria de 16 → 18px, onde a âncora quer **6px**. Trocaria um erro de 10px por um de
+12px, no sentido oposto. Por isso o wrapper ganhou `mb-1.5` explícito: na âncora, `.jm-metas`
+também foge do ritmo.
+
+### O erro de instrumento, que vale mais que o acerto
+
+A **primeira** prova de runtime disse que `h2 → conteúdo` ia de 10 para **18px** — ou seja, que a
+mudança quebrava duas transições corretas. Era falso: injetei as regras num `<style>` **fora de
+`@layer`**, e CSS fora de layer vence o que está dentro **independente de especificidade**. A regra
+do `space-y` do app vive em `@layer utilities`. Refeita a injeção dentro do layer, o `h2` fica em
+10px (o `mb-2.5` vence o `:where()` de especificidade 0) e as 6 transições batem.
+
+**Simulação de cascata que não reproduz a CAMADA mede outra cascata** — e o sintoma foi um
+falso-negativo plausível, do tipo que não se denuncia.
+
+### Aberto e medido: o `pt-6` de METAS
+
+Do último KPI até o **texto** "METAS ATIVAS" são **46px** em prod (16 margem + 24 `pt-6` + 6
+`mt-1.5`) contra **24px** na âncora (18 + 6). É *padding*, não margem, e o bloco pertence a outro
+chip. A sessão de METAS mediu em paralelo e confirmou a decomposição: **nenhum dos dois consertos
+sozinho acerta** — só este dá 48, só o dela dá 16, **os dois juntos dão 24 exatos**.
+
+**Enforcement:** UC-JPAIN-33, `tests/janaRitmoVerticalReplica.spec.tsx`, 3 casos, mordida provada
+nos dois lados com restauração por hash. Detalhe no `Index.casos.md`; aqui não se repete.
+
+---
+
+
+---
+
+## Rodada MEDIDA de 2026-09-21 — seção **METAS**, o "não comparável" DESTRAVADO
+
+> **Por que esta rodada existe:** [W] relatou *"Metas e kpi não renderizam corretos"*. O registro
+> acima (§Metas) dizia **"não comparável hoje (0 metas em todos os tenants, medido
+> 2026-08-21/08-31)"**. Isso é **fato datado e CADUCOU** — a regra de §5 2026-09-03 manda re-medir
+> antes de herdar. Re-medido: **três** premissas daquele registro são falsas hoje.
+
+### As 3 premissas que caducaram (medidas, com o comando ao lado)
+
+| premissa de ago/2026 | medição de 2026-09-21 | como |
+|---|---|---|
+| "0 metas em todos os tenants" | **prod tem 5 metas ATIVAS** | `php artisan tinker` no public_html de prod: `app('db')->table('jana_metas')->where('ativo',1)->count()` = **5** |
+| "âncora `Nova meta` à direita × prod **3 botões**" | **a âncora TAMBÉM tem os 3** | render do símbolo `JmMetasSecao`: o `.jc-h2` contém `METAS ATIVAS · Nova meta · Jana Pro · Conversar com a Jana` — **não é divergência** |
+| "âncora desenha projeção no card, prod **não**" | **prod TEM projeção, e com a MESMA copy** | os dois renderizam `… no fechamento`. A medição de agosto buscou a palavra "projeção" no DOM — a prod renomeou o rótulo. Rótulo do protótipo **não é chave de busca** em código que renomeou (§5 2026-07-15 · LC-08) |
+
+### Como foi medido (sem pular passo)
 
 | passo | o que foi feito |
 |---|---|
-| âncora | `ancora.mjs Jana/Index` → `prototipo-ui/cowork/Wagner/jana-merge.jsx` (frescor verificado contra o Cowork vivo em 2026-09-21T10:43Z) |
-| **dep de render** | o gráfico do Painel **não mora na âncora**: `jana-merge.jsx:889` consome `AnaliseCard` de `window`, e quem o define é `chat-jana.jsx:723`, junto com `Sparkline` e `Donut`. É **dependência de render do shell** — o que a skill chama de LC-07 ("só âncora = cego pra infra"). ⚠️ Isto **não** reabre a lápide §5 2026-08-10: ela baniu `chat-jana.jsx` como `related_prototype` (âncora de tela), não como dep de render |
-| frescor da dep | `DesignSync.get_file(019dcfd3…, chat-jana.jsx)` → `Sparkline` e `Donut` do espelho são **byte-idênticos** ao vivo, incluindo o espaçamento duplo em `offset="0%"   stopColor`. **Prova ESCOPADA**: vale para as funções medidas mais o `Object.assign` final, não para o arquivo inteiro (o `get_file` voltou inline, 33 KB — sem JSON em disco a rota `--export-from` não se aplica, e transcrever é proibido) |
-| lado design | espelho servido em :5632 na **raiz do worktree**, rota `/prototipo-ui/cowork/Wagner/oimpresso.com.html`, dark, esperando `__oiLazyDone` + `.jm-sk` sumir + 2 leituras iguais (1068 nós) |
-| lado produção | `https://oimpresso.com/ia` autenticado, biz=1, dark, 2560px, 2 leituras iguais (1117 nós) |
-| sonda | **papel de gráfico não existe no `design-diff.mjs --probe`** (ele tem 6: `filterControls`, `kpi`, `primary`, `shell`, `tableRow`, `title`). Escrita sonda nova sob a convenção `window.__DD_ROLES.charts`, **injetada byte-idêntica nos dois lados** |
-| canários | **5**, todos obrigatórios antes de qualquer veredito |
+| D0 âncora | `node scripts/design/ancora.mjs Jana/Index` → `prototipo-ui/cowork/Wagner/jana-merge.jsx`, frescor **verificado contra o Cowork vivo em 2026-09-21T10:43:20Z** |
+| alvo de medição | **staging** (`e57b78bf5`), PROVADO equivalente a prod **para esta seção**: o diff de `Index.tsx` entre o SHA do staging e o de prod (`79564b61b4`) é de **4 linhas — 3 comentários + `pro={pro}`** — e **zero** casamentos de MetaCard, jm-meta, grid gap, EmptyState ou painel-metas |
+| dado | staging tinha **0 metas** → fixture de 5 metas em **biz=1**, cobrindo os 4 farois + `aguardando apuração` + `sem histórico`. ⚠️ **biz=1, NÃO biz=98**: o 98 é o `Tenant Vazio (visreg estado empty)` e os seeders irmãos declaram *"o biz=98 fica INTOCADO"* — semear lá quebraria o estado `empty` que a Jana ganhou no #7616 |
+| lado design | símbolo `JmMetasSecao` montado no host do espelho (`oimpresso.com.html`, porta 5621), tema **dark**, container na **mesma largura útil da grade da prod (1117px)** — a grade da âncora é `auto-fit`, então comparar em larguras diferentes mediria a largura, não o desenho |
+| lado prod | `/_visreg-state/jana/default` autenticado em staging, **dark**, viewport **1440×900** |
+| sonda | `design-diff.mjs --probe`, **byte-idêntica** nos dois lados (17341 bytes). A CSP barrou script externo → servida pela mesma origem e **removida depois** (404 confirmado) |
+| canário | **obrigatório, e ele MORDEU** — ver abaixo |
 
-### ⚠️ Um erro de setup que quase virou medição falsa — registrado porque quase passou
+### ⚠️ O canário mordeu: a sonda canônica mediu o elemento ERRADO na prod
 
-A **primeira** rodada do lado design saiu com `--text-dim`, `--sunken`, `--bg` e `--border`
-**vazios**, e toda cor de texto e de trilho caindo em `rgb(0,0,0)`. Não era o design: era o meu
-servidor. O shell resolve a base do DS por
-`location.pathname.indexOf` do trecho `/prototipo-ui/cowork/` (`oimpresso.com.html:18`), e eu
-havia servido a raiz *dentro* de `prototipo-ui/cowork` — então o pathname não continha o trecho,
-a base caía no fallback `_ds/` inexistente, e `colors_and_type.css` carregava com **0 regras**.
-Os arquivos existiam em disco o tempo todo (19.917 e 5.705 bytes).
+A sonda reportou `valueFontPx` **16** na prod. **É falso.** O canário — abrir qual nó ela escolheu —
+mostrou: a prod **não tem `<b>` nem classe com "value"**, então ela caiu no fallback *"maior
+texto-folha"*; e o valor real (`.text-2xl`, **24px**) **tem filho inline** (o `<small>de R$ …`), logo
+não é folha e foi **excluído**. O fallback acabou pegando o título do card (16px).
 
-**Aquela medição foi descartada inteira**, não corrigida em cima. Se tivesse sido aceita, eu teria
-reportado divergência de cor onde havia defeito de preview — a família §5 2026-07-29
-(não colapsar "não consegui medir" num estado do objeto).
+Sem o canário, este documento teria registrado **20 × 16** — errado nos dois lados da diferença.
 
-### Canários — a sonda discrimina (5/5)
+**É defeito do instrumento, não desta tela:** o docblock do fallback diz que ele existe justamente
+para cobrir utility-first (`text-2xl` sem "value" no nome), mas o filtro que exige folha o anula
+exatamente nesse caso. Fica **declarado, não consertado** — conserto de sonda canônica é PR próprio,
+e mexer nela daqui mudaria o veredito de todas as telas que a usam.
 
-| canário | esperado | obtido | pegou |
+### O veredito MEDIDO — mesma largura útil (1117px), mesmo viewport (1440×900), ambos dark
+
+| item | âncora `.jm-meta` | prod `MetaCard` | veredito |
 |---|---|---|---|
-| C1 · `stroke-width` 2 para 5 | 5 | 5 | sim |
-| C2 · `vector-effect` removido | `none` | `none` | sim |
-| C3 · altura do trilho 5 para 12px | 12 | 12 | sim |
-| C4 · path de área removido (2 para 1) | 1 | 1 | sim |
-| C5 · espessura efetiva com x sem `non-scaling-stroke` | difere | 0,75 x 0,08 user-units | sim |
+| grade — **colunas** | **4** (271,75px) | **3** (361,7px) | ❌ DIVERGE |
+| grade — **gap** | **10px** | **16px** (`gap-4`) | ❌ DIVERGE |
+| grade — regra | `auto-fit minmax(232px,1fr)` | `sm:grid-cols-2 xl:grid-cols-3` | ❌ breakpoint fixo × auto-fit |
+| layout | 5 cards / 2 linhas | 5 cards / 2 linhas | ✅ |
+| card — **altura** | **122px** | **236px** | ❌ DIVERGE (~2×) |
+| card — **padding** | **12px 13px** | **24px 0px** | ❌ DIVERGE |
+| card — **gap interno** | **8px** | **24px** | ❌ DIVERGE |
+| card — radius | 12px | 12px | ✅ |
+| card — tag | BUTTON | BUTTON | ✅ |
+| card — display | flex | flex | ✅ |
+| **valor — tamanho** | **20px** | **24px** | ❌ DIVERGE |
+| **valor — peso** | **700** | **600** | ❌ DIVERGE |
+| **valor — família** | **IBM Plex Mono** | **IBM Plex Sans** | ❌ DIVERGE |
+| h2 da seção — tamanho/peso | 11px / 700 | 11px / 700 | ✅ |
+| alinhamento (D8) | left / left / normal | left / left / normal | ✅ |
 
-Estado revertido e conferido nos 5 (`REVERTIDO_OK: true`).
+**Leitura em uma frase:** a seção METAS da prod está **mais solta que a âncora em todos os eixos de
+densidade** — cards com o dobro da altura, padding e gap interno 2-3×, grade com uma coluna a menos e
+gap maior, e o número da meta em **sans 24/600** onde a âncora pede **mono 20/700**. É consistente com
+o relato de [W].
 
-⚠️ **Um canário FALHOU antes do C5, e ele está aqui porque mudou o método.** A primeira tentativa
-de medir a espessura efetiva usou `getBoundingClientRect()` do `polyline` com e sem
-`non-scaling-stroke`: deu **idêntico** (`PEGOU: false`). O `getBoundingClientRect` de um polyline
-devolve a caixa **geométrica escalada, sem o stroke** — a sonda era cega ali. Não concluí daquela
-leitura; troquei para `isPointInStroke()`, que é a API exata, e só então o canário pegou.
+### O que esta rodada NÃO mediu (declarado, não escondido)
 
-### Papel 1 · Sparkline de análise (Faturamento) — o gráfico que [W] vê
+- **D6 cor — NÃO MEDI.** O espelho **não tem o diretório `_ds/`**: o host pede o bundle do Design
+  System e recebe **404**. Sem os tokens, as `var()` de cor/superfície/borda não resolvem, e o lado
+  design mediu preto puro e borda 0px. Isso é **artefato de medição, não divergência** — os valores
+  literais (padding, gap, radius, font-size) seguem confiáveis porque não dependem de `var()`.
+- **Estado VAZIO da âncora — NÃO MEDI,** pelo mesmo motivo: ele usa o `EmptyState` do DS, ausente.
+  ⚠️ Fica registrado que a âncora pede a variante `first` e **essa variante não existe** no componente
+  (ele declara default, search, error e success) — achado já catalogado no `UC-JPAIN-29`; é decisão de DS.
+- **Copy do vazio — divergente, e NÃO É MINHA DECISÃO.** Âncora: *"Nenhuma meta ativa neste período"* +
+  *"Criar meta"*. Prod: *"Nenhuma meta cadastrada ainda"* + *"Pergunte algo a Jana"*. A copy da prod é
+  **pinada** em `governance/design/contracts/jana-painel.contract.json` na seção `painel-metas-vazio`, e
+  copy de contrato é soberania [W] (`memory/proibicoes.md` §Comportamento). **Registrado, não alterado.**
+- **D1 rede** (partial-reload) — não exercitada nesta rodada.
 
-Âncora: `chat-jana.jsx:271` §`Sparkline`, consumido por `AnaliseCard` quando `kind==='sparkline'`.
-Produção: `resources/js/Pages/Jana/_components/JanaCockpit.tsx:951`.
+### 🔴 Achado colateral: o gate visual fotografa METAS **vazio** e chama de `default`
 
-| # | propriedade | protótipo | produção | veredito |
-|---|---|---|---|---|
-| G1 | elemento do traço | `path` | `polyline` | **DÍVIDA A FECHAR** |
-| G2 | nº de desenhos | **2** (área + linha) | **1** (linha) | **DÍVIDA A FECHAR** |
-| G3 | área preenchida | sim — `url(#jcSparkGrad)` | **não** — `fill:none` | **DÍVIDA A FECHAR** |
-| G4 | gradientes | **1** (2 stops, `--pos` 0.26 → 0) | **0** | **DÍVIDA A FECHAR** |
-| G5 | forma do traço | **curva Bézier** (46 comandos `Q`/`T`) | **reta** (30 pontos, 0 curvas) | **DÍVIDA A FECHAR** |
-| G6 | cor do traço | `oklch(0.76 0.18 150)` — `--pos`, **verde** | `oklch(0.7 0.15 295)` — `--accent`, **roxo** | **DÍVIDA A FECHAR** |
-| G7 | `stroke-width` declarado | 2 | 1,5 | **DÍVIDA A FECHAR** |
-| G8 | `vector-effect` | `non-scaling-stroke` | **`none`** | **DÍVIDA A FECHAR** |
-| G9 | **espessura EFETIVA na tela** | **2px uniforme** | **13,46px horizontal x 1,5px vertical** | **DÍVIDA A FECHAR** |
-| G10 | `viewBox` | `0 0 280 60` | `0 0 120 40` | **DÍVIDA A FECHAR** |
-| G11 | altura renderizada | 60px | 40px | **DÍVIDA A FECHAR** |
-| G12 | `preserveAspectRatio` | `none` | `none` | IGUAL |
-| G13 | label · `font-size` | 10,5px | 10px | **DÍVIDA A FECHAR** |
-| G14 | label · `font-family` | IBM Plex Sans | IBM Plex Sans | IGUAL |
-| G15 | label · `justify-content` | `space-between` | `space-between` | IGUAL |
-| G16 | largura renderizada do card | **737,66px** (3 colunas) | **1110,5px** (2 colunas) | **DÍVIDA A FECHAR** — ver nota |
+Medido, com varredura contada:
 
-**G9 é o item mais caro, e é o único que exigiu medição indireta.** A produção combina
-`preserveAspectRatio="none"` **sem** `vector-effect`, então o traço é deformado pela escala do
-viewBox. Medido: escala **x = 8,971 · y = 1** (bbox render dividido pelo viewBox), e o traço ocupa
-**1,5 user-units** (`isPointInStroke`, meia-largura 0,75) → **13,456px** de espessura perpendicular
-a um segmento vertical, contra 1,5px num horizontal. **Razão de deformação: 8,97x.** O protótipo
-não tem esse efeito porque declara `non-scaling-stroke`.
+- O lever `seedJanaVisregFlow` (`routes/web.php`, linhas 179-274) semeia **uma transação vencida** e
+  **nenhuma meta** — busca por "meta" no corpo da função devolve **0 ocorrências**.
+- **Nenhum** dos 9 seeders `database/seeders/Visreg*.php` semeia meta — busca por `jana_metas`,
+  `MetaPeriodo` ou a entidade `Meta` devolve **vazio**.
 
-⚠️ **E aqui o dado de hoje ESCONDE o defeito, o que vale registrar:** a série de Faturamento de
-biz=1 é **plana** — medido, os 30 pontos têm **1 único valor de y** (`y=39`). Uma linha horizontal
-reta não exibe deformação nenhuma. O G9 é real e está calculado a partir de escala medida, mas
-**só se manifesta na tela quando a série tiver variação**. Quem olhar o print de hoje não vê.
+Consequência: o snapshot chamado `default` da Jana é, **na seção METAS, indistinguível do `empty`**.
+Regressão na grade, no card, na barra de progresso ou na projeção **passa batida pelo VRT**, porque a
+baseline nunca teve um card de meta. É a mesma doença que o próprio `routes/web.php` documenta para os
+casos irmãos (*"dado ausente vira snapshot de tela vazia com nome de default"*) — só que na Jana
+ninguém tinha medido.
 
-> **Nota do G16 — o número NÃO é meu, e a atribuição importa.** Eu medi os dois lados em viewports
-> diferentes (design 1280, prod 2560) e ia registrar `NÃO COMPARÁVEL`. A sessão irmã que trabalha
-> a grade de Análises mediu os dois na **mesma viewport 2560**, com o container em **2237px
-> idêntico nos dois lados** — e com isso a largura **é** comparável: a âncora usa **3 colunas de
-> 737,66px com gap 12px**, a produção **2 colunas de 1110,5px com gap 16px**. Crédito da medição a
-> ela; eu não a refiz. Quando o PR dela mergear, o card cai para ~737,7px (−33,6%) e a curva
-> comprime horizontalmente — os demais itens do Papel 1 (altura 40px, `stroke-width`, cor, labels)
-> **não** dependem da largura e seguem valendo.
+**Fechar isso é PR próprio** (fixture versionado no padrão do `VisregJanaChatSeeder` + sonda de
+contagem), e ele destrava não só o VRT: destrava qualquer comparação futura desta seção sem depender
+de fixture ad-hoc como o desta rodada.
 
-### Papel 2 · Barras horizontais de análise
 
-| # | propriedade | protótipo | produção | veredito |
-|---|---|---|---|---|
-| G17 | nº de trilhos no Painel | **12** (8 `.jc-bar-track` + 4 `.jc-bk-bar`) | **12** | IGUAL |
-| G18 | altura do trilho | **7px** | **6px** (`h-1.5`) | **DÍVIDA A FECHAR** |
-| G19 | preenchimento (Pareto e Métodos) | **gradiente** `linear-gradient(90deg, oklch(0.76 0.15 295), oklch(0.7 0.15 295))` | **sólido** `oklch(0.7 0.15 295)` | **DÍVIDA A FECHAR** |
-| G20 | preenchimento (buckets) | cor por faixa — `--warn`, mix warn/neg, `--neg`, `--text-3` | 3 sólidas — `oklch(0.55 0.17 18)`, `oklch(0.68 0.13 162)`, `oklch(0.7 0.15 295)` | **parcial** — a paleta difere, mas o dado de biz=1 não exercita as 4 faixas |
-| G21 | `background` do trilho | `oklch(0.23 0.006 240)` | `oklch(0.235 0.01 240)` | equivalente |
-| G22 | `border-radius` do trilho | `999px` | `3.35544e+07px` | equivalente no efeito |
+---
 
-### Papel 3 · Barra de progresso da meta — **NÃO MEDI**
+### ⚠️ ERRATA da própria rodada acima — as 5 metas de prod estão ÓRFÃS, e é isso que [W] vê
 
-Produção biz=1 tem a seção METAS ATIVAS e o botão Nova meta, mas **zero meta cadastrada**
-(0 `svg[width=120][height=32]`, 0 `[data-contract="painel-meta-sem-historico"]`). Sem meta não há
-card, não há barra e não há drawer. Consistente com o que este doc já registra desde 08-21.
+A tabela das 3 premissas caducadas diz, com razão, que **"prod tem 5 metas ATIVAS"**. Está certo, e
+foi o que destravou a comparação. **Mas é meia verdade, e a metade que faltava é a que explica o
+relato.** Medido em prod no mesmo dia (a sonda demorou a voltar e só foi lida depois de o registro
+acima ter sido escrito):
 
-Do CSS — **leitura, não medição**: protótipo `.jm-meta-track{height:5px}` contra produção `h-1.5`
-(6px). Fica como **hipótese a medir** quando houver meta, nunca como veredito.
-
-### Papel 4 · Série de 12 barras (drawer da meta) — **NÃO MEDI na produção**
-
-Mesma causa: sem meta, o drawer não abre. **No lado design foi medida em parte**, e o que ficou
-de fora está declarado:
-
-| propriedade | protótipo (medido) |
-|---|---|
-| nº de colunas | 12 |
-| `gap` | 4px |
-| altura do container | 88px |
-| `padding` | `6px 0px` |
-| `align-items` | `flex-end` |
-| `border-radius` da barra | `3px 3px 0 0` |
-| **cores** | **2** — normais `oklch(0.7 0.15 295 / 0.7)`, **última** `oklch(0.7 0.15 295)` (destaque) |
-| label `.jm-serie-range` | 10,5px · **IBM Plex Mono** · `space-between` |
-| **largura** | **NÃO MEDI** — o `aside` do drawer renderiza colapsado (w=1px) no preview; forçar `width:520px` não propagou (controle rodado, falhou) |
-
-A produção implementa a série em `JanaMetaDrawer.tsx:119` com a **mesma fórmula de altura**
-(`max(4, v/max*100)%`) e `flex-1 rounded-t bg-primary/70`. Comparar isso com o protótipo exige
-meta cadastrada — **hipótese registrada, não veredito**: o protótipo destaca a **última** barra
-com cor cheia (`.jm-serie-col:last-child`), e no código da produção não há regra equivalente.
-
-### Papel 5 · Donut — IGUAL (ausente dos dois)
-
-`Donut` existe em `chat-jana.jsx:298` e é exportado, mas o Painel **não o usa**: 0 `.jc-donut` no
-design, 0 na produção. Confirma a lápide §5 2026-08-10 (Frota utilização não volta) pelo lado da
-medição, não da leitura.
-
-### D1 · rede — partial
-
-Clique no card do sparkline (`BUTTON.w-full rounded-lg text-left…`): **0 requisições** (fetch e
-XHR instrumentados), `beforeunload` não disparou, URL inalterada, drawer abriu com o texto
-"de onde vem". O drill é client-side.
-
-### Placar
-
-**22 itens comparáveis · 16 DÍVIDA A FECHAR · 5 IGUAL · 1 parcial** · 3 papéis NÃO MEDI
-(2 por ausência de dado em biz=1, 1 por artefato de preview).
-
-A concentração é no **Papel 1**: 12 de 16 dívidas estão no sparkline de análise, e elas não são
-ajustes de token — são de **natureza do desenho** (curva x reta, com área x sem área, verde x
-roxo). O protótipo desenha uma curva suave verde com área em gradiente; a produção desenha uma
-poligonal roxa sem preenchimento. É a resposta medida ao relato de que os gráficos estão
-diferentes.
-
-### O que esta rodada NÃO cobriu (declarado)
-
-- **Contraste par-a-par** dos labels de gráfico — não calculado.
-- **Série e progresso na produção** — bloqueados por ausência de meta, não por limite de sonda.
-- **Sparkline do card de meta** (`Index.tsx:98`) — mesma causa. Pela leitura do código ele é
-  `polyline` reto `text-primary` `strokeWidth=2` `w=120 h=32`, e o protótipo **não tem**
-  sparkline no `JmMetaCard` — mas isso é **leitura, não medição**, e não vira veredito aqui.
-- **Margem vertical das seções** — a sessão irmã mediu que os 16px vêm do `space-y-4` do container
-  da página (a âncora usa 18px) e deixou fora do PR dela de propósito, porque mexer ali muda o
-  ritmo de todas as seções. Registrado aqui para não virar achado novo depois.
-
-### Conserto aplicado no MESMO dia — Papel 1, 11 das 16 dívidas
-
-> **Por que o conserto entrou nesta sessão, se o chip dizia "não corrija":** [W] cortou no meio
-> da medição — *"precisa melhorar e muito o código"* / *"tu não consegue fazer melhor?"*. Pedido
-> do dono é decisão, não proposta (ADR 0382), e supersede a instrução anterior do chip. A tabela
-> acima **fica como está** — é o fato datado do estado ANTES; esta seção é o depois.
-
-`resources/js/Pages/Jana/_components/JanaCockpit.tsx` — componente `SparkArea` novo, portado de
-`chat-jana.jsx:271`, substituindo o `<polyline>` inline do card de Faturamento.
-
-| item | antes | depois | como foi provado |
+| meta (biz=1) | período | apuração | fonte |
 |---|---|---|---|
-| G1 | `polyline` | `path` | sonda, pós-fix |
-| G2 | 1 desenho | 2 (área + linha) | sonda, pós-fix |
-| G3 | sem área | `fill=url(#gid)` | sonda, pós-fix |
-| G4 | 0 gradientes | 1 (0.26 → 0) | sonda, pós-fix |
-| G5 | reta | **58 comandos** `Q`/`T` | sonda, pós-fix |
-| G6 | `oklch(0.7 0.15 295)` roxo | `oklch(0.68 0.13 162)` positivo | sonda, pós-fix |
-| G7 | `stroke-width` 1,5 | 2 | sonda, pós-fix |
-| G8 | `vector-effect` ausente | `non-scaling-stroke` | sonda, pós-fix |
-| G9 | 13,46 × 1,5px (razão 8,97×) | **2px uniforme** | consequência de G8 |
-| G10 | `viewBox 0 0 120 40` | `0 0 280 60` | sonda, pós-fix |
-| G11 | altura 40px | **60px** | `.h-\[60px\]{height:60px}` no CSS do build |
-| G13 | label 10px | **10,5px** | `.text-\[10\.5px\]{font-size:10.5px}` no CSS do build |
+| Faturamento mensal | **0** | **0** | **0** |
+| Ticket médio | **0** | **0** | **0** |
+| Vendas no mês | **0** | **0** | **0** |
+| Clientes atendidos | **0** | **0** | **0** |
+| Margem de contribuição | **0** | **0** | **0** |
 
-**Segue aberto e é deliberado:** G16 (largura) depende do PR da grade em sessão irmã; G17-G22
-(barras horizontais) não foram tocados; G18/G19 exigem decidir se o gradiente das barras entra —
-não entrou neste porte, para não misturar intents.
+As 5 existem, estão `ativo=1` e têm `origem=manual` — mas **nenhuma tem período, fonte ou apuração**.
+Sem `periodo_atual` não há alvo; sem `ultima_apuracao` não há realizado; e sem **fonte** a meta **não
+apura**, que é o que o próprio `buildMetasPayload` já declarava (*"`null` = meta sem fonte gravada,
+que é estado REAL: sem fonte a meta não apura"*).
 
-#### O que NÃO foi copiado da âncora, e por quê
+**O que isso produz na tela, MEDIDO** (staging com o estado de prod espelhado — 5 metas biz=1 sem
+período/fonte/apuração —, dark, 1440×900):
 
-- **A cor** sai de `text-success` (token da produção, `oklch(0.68 0.13 162)`), não do literal
-  `--pos` da âncora (`oklch(0.76 0.18 150)`). O papel semântico é o mesmo; o valor difere, e
-  igualar isso é mexer em **Fundações** (UI-0013), que muda a tela inteira e é decisão [W].
-  **A dívida de fundação fica declarada aqui, não silenciada.**
-- **A copy** `D-30` / `hoje` ficou — é o recorte real de 30 dias da produção, enquanto a âncora
-  mostra `mai/24` / `mai/26` (24 meses de mock). Copy adaptada de propósito **não é dívida**.
-- **`useId` no gradiente**, que a âncora não tem: id de `<defs>` é global no documento, e a
-  âncora usa id fixo (`jcSparkGrad`) porque só tem uma instância. Duas instâncias colidiriam e a
-  segunda herdaria o preenchimento da primeira. É correção de bug latente, não desvio de forma.
-- **Guarda de série de 1 ponto:** a âncora faz `w/(n-1)`, que com `n=1` dá `Infinity` e produz um
-  path `NaN`. Aqui degrada para um ponto em `x=0`. Mesmo caso: buraco da âncora, não forma dela.
+```
+os 5 cards são IDÊNTICOS:   "<nome> | <unidade> | Aguardando apuração…"
+temValor: false · temBarra: false · temProjecao: false · temPeriodo: false · temSemHistorico: false
+temApurando: true  ·  todosIguais: true  ·  altura do card: 134px
+```
 
-#### Verificação (a Regra 0 — CI verde não prova runtime, LC-30)
+**Por que isso importa mais que a divergência de forma.** A rodada acima mediu a seção com um fixture
+que TINHA período e apuração — ou seja, mediu um estado **que a produção não está renderizando**. A
+comparação de forma segue válida (as classes são as mesmas nos dois estados, e é isso que a réplica
+trava), mas o **ganho visível** em prod é menor do que aquela tabela sugere: onde não há valor, não
+há o que pôr em mono 20/700; onde não há alvo, não há barra nem projeção.
 
-| prova | resultado |
-|---|---|
-| `tsc --noEmit` | 0 erros em `JanaCockpit.tsx` (os que saem são pré-existentes em Forja, Officeimpresso e PaymentGateway) |
-| `eslint` no arquivo | exit 0 |
-| `vitest` — `janaPainelEstadoVazio` + `janaPainelGatingPro` | **20/20 passed** — UC-JPAIN-07 ("Sem histórico") e UC-JPAIN-08 (skeleton) preservados |
-| `npm run build:inertia` | exit 0; `non-scaling-stroke` presente em `JanaCockpit-utepVQE0.js` |
-| forma pós-fix | **9 de 10 itens** conferidos contra a âncora por injeção medida na produção, com estado revertido (`restaurado: true`) |
-| G11 / G13 | classes arbitrárias **geradas pelo build**, com regra literal conferida |
+**Leitura do relato de [W] (*"Metas e kpi não renderizam corretos"*), agora com as duas metades:**
 
-⚠️ **O que esta verificação NÃO prova:** que está no ar. Não houve deploy — isso é R10, e é do
-[W]. O que está provado é que o código **produz** a forma da âncora, não que a produção já a
-serve.
+1. **Forma** — a grade e o card divergiam da âncora. Isso é bug de réplica e foi corrigido.
+2. **Dado** — as 5 metas estão órfãs, e por isso os cards saem todos em *"Aguardando apuração…"*.
+   **Não é bug de código.** É cadastro incompleto: falta período (alvo) e fonte (de onde vem o
+   número). Preencher isso é decisão de **produto** — quais alvos, e qual query alimenta cada meta —,
+   não de réplica visual.
 
-#### Três sondas minhas mentiram nesta sessão, e o controle pegou as três
+⚠️ **O que NÃO foi medido aqui:** por que as 5 nasceram sem período/fonte. Podem ter vindo de um seed
+antigo, de um wizard interrompido, ou de criação manual que parou no meio. `origem=manual` nas 5 diz
+como foram criadas, não por que ficaram incompletas.
 
-Registro porque o padrão é mais útil que os casos:
-
-1. **CSS do DS com 0 regras** no preview → toda cor caindo em preto. Era a raiz do servidor, não
-   o design. Medição inteira **descartada**, não corrigida em cima.
-2. **`getBoundingClientRect()` do `polyline`** para medir espessura de traço: deu idêntico com e
-   sem `non-scaling-stroke` (`PEGOU: false`) porque ignora o stroke. Troquei para
-   `isPointInStroke()`, e só então o canário pegou.
-3. **Regex com escaping de shell** ao contar classes no CSS: o controle negativo
-   (`h-[9997px]`, que ninguém usa) devolveu **38** ocorrências — impossível. Os colchetes viraram
-   classe de caractere. Refeito com busca literal, e aí o controle deu 0.
-
-Em nenhum dos três o defeito apareceu como erro: apareceu como **número plausível**. O que os
-separou de conclusão errada foi o controle, nunca a leitura do resultado.
-
-### ⚠️ ERRATA do mesmo dia — a causa do `NÃO MEDI` dos Papéis 3 e 4 estava ERRADA
-
-Acima eu escrevi, duas vezes, que a produção biz=1 tem **"zero meta cadastrada"**. **É falso**, e o
-registro fica porque o erro é do tipo que se propaga: quem lesse aquilo concluiria que destravar a
-medição exige *criar meta*, quando o que falta é outra coisa.
-
-**Medido em produção, `/ia`, biz=1, após aviso de sessão irmã** (que afirmou existirem 5 metas — ela
-estava certa em me mandar re-medir):
-
-| sonda | valor | leitura |
-|---|---|---|
-| botões de card de meta | **5** | as metas EXISTEM: Clientes atendidos · Faturamento mensal · Margem de contribuição · Ticket médio · Vendas no mês |
-| `[data-contract="painel-meta-apurando"]` | **5** | **todas as 5 em "Aguardando apuração…"** |
-| `[data-contract="painel-meta-sem-historico"]` | 0 | o card em `apurando` nem chega a renderizar o sparkline |
-| `svg[width=120][height=32]` | 0 | idem — nenhuma série desenhada |
-
-**A causa correta:** não faltam metas, falta **apuração**. Sem `apuracoes_recentes` não há série para
-o `Sparkline` do card nem para a `Serie` do drawer; e sem `realizado` o `progresso` é `null`, então a
-barra de progresso não renderiza por contrato (`Index.tsx`: `{progresso !== null && …}`).
-
-**O veredito `NÃO MEDI` dos Papéis 3 e 4 permanece** — mas por esta razão, não pela que estava
-escrita. E a ação que destrava passa a ser **rodar apuração**, não cadastrar meta.
-
-**Por que eu errei, e é a lição reutilizável:** sondei por `svg[width=120][height=32]` e por
-`painel-meta-sem-historico`, os dois ausentes, e li a ausência **do gráfico** como ausência **da
-meta**. São proposições diferentes, e a segunda não decorre da primeira — é a mesma família do
-§5 2026-09-15 (concluir conteúdo único porque o NOME não existia do outro lado): a medição parou
-um nível acima do fato.
-
-### G16 — re-medido após o merge do #7638, e ele ainda NÃO está em produção
-
-O [#7638](https://github.com/wagnerra23/oimpresso.com/pull/7638) (grade de Análises a 3 colunas)
-mergeou em `main`, mas a produção **ainda serve 2 colunas**: `grid-template-columns` medido agora =
-`1110.5px 1110.5px`, `gap: 16px`, e o card do sparkline segue em **1076,5px**.
-
-Ou seja: **merge não é deploy**, e o G16 continua com o número de 2 colunas até o deploy rodar. Fica
-como está, datado — quem reler depois do deploy vai medir ~737,7px e não deve ler a diferença como
-regressão.

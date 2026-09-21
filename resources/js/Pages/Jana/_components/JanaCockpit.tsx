@@ -64,7 +64,7 @@
 // quiser mesmo a superfície de hover cinza do shadcn — `hover:bg-accent` escrito
 // pensando "accent = roxo" entrega CINZA.
 
-import { useId, useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
@@ -225,115 +225,6 @@ export function SectionTitle({
 }
 
 // Card de análise (título + ícone + pill opcional + valor grande + corpo).
-/**
- * Curva do sparkline de análise — o `Sparkline` da âncora (`chat-jana.jsx:271`, que o
- * `jana-merge.jsx` consome via `AnaliseCard`), portado.
- *
- * O que a âncora faz e a produção NÃO fazia — medido em 2026-09-21 com a mesma sonda nos dois
- * lados (`Index-visual-comparison.md` §Rodada MEDIDA de 2026-09-21 — GRÁFICOS, itens G1-G11):
- *  - traça CURVA Bézier (`Q`/`T`), não poligonal reta;
- *  - preenche a ÁREA sob a curva com gradiente do tom positivo (0.26 → 0);
- *  - declara `vector-effect="non-scaling-stroke"`.
- *
- * O `vector-effect` é o item caro, e não é preciosismo: com `preserveAspectRatio="none"` o traço
- * é deformado pela escala do viewBox. Medido na produção: escala x=8,971 · y=1, e o traço ocupava
- * **13,46px na horizontal contra 1,5px na vertical** (razão 8,97×, por `isPointInStroke`). Não
- * saltava aos olhos porque a série de biz=1 é plana — os 30 pontos tinham um único valor de y —,
- * e linha horizontal não exibe deformação. Apareceria no primeiro tenant com série variável.
- *
- * `useId` no gradiente porque id de `<defs>` é global no documento. A âncora usa id fixo
- * (`jcSparkGrad`) e tem uma instância só; aqui, duas instâncias colidiriam e a segunda herdaria
- * o preenchimento da primeira.
- *
- * ⚠️ A COR vem de `text-success` (token da produção, `oklch(0.68 0.13 162)`), não do literal da
- * âncora (`--pos`, `oklch(0.76 0.18 150)`). O papel semântico é o mesmo; o valor difere, e isso é
- * dívida de **Fundações** (UI-0013) — mexer no token muda a tela inteira e é decisão [W], não
- * deste porte.
- */
-/**
- * Trilho e preenchimento das barras horizontais de análise — as duas famílias da âncora
- * (`chat-jana.css` §`.jc-bar-track` e §`.jc-bk-bar`), medidas em 2026-09-21
- * (`Index-visual-comparison.md` §Rodada de GRÁFICOS, itens G17-G22).
- *
- * As duas têm `height: 7px` na âncora; a produção usava `h-1.5` (6px). O que as separa é o
- * PREENCHIMENTO: `.jc-bar-track > div` usa `linear-gradient(90deg, var(--accent-hi), var(--accent))`,
- * enquanto `.jc-bk-bar > div` recebe a cor por faixa, do dado.
- *
- * ⚠️ O gradiente é derivado do TOKEN, não de literal. A produção não tem `--accent-hi`, e criar
- * token é decisão [W]; então o tom claro sai do próprio `--color-primary` com o delta de
- * luminosidade que foi MEDIDO na âncora (+0.06 em L). Conferido no runtime: a expressão abaixo
- * resolve para `linear-gradient(90deg, oklch(0.76 0.15 295), oklch(0.7 0.15 295))`, que é
- * exatamente o que o protótipo renderiza. `var(--primary)` NÃO resolve nesta base (devolve
- * transparente) — o Tailwind v4 expõe as cores do `@theme` como `--color-*`.
- */
-const TRILHO_BARRA = 'h-[7px] overflow-hidden rounded-full bg-muted';
-
-const PREENCHIMENTO_GRADIENTE =
-  'linear-gradient(90deg, oklch(from var(--color-primary) calc(l + 0.06) c h), var(--color-primary))';
-
-/**
- * Escala de severidade dos buckets de inadimplência — a âncora pinta CADA faixa de uma cor
- * (`getJanaData().analises[inad].buckets`: `--warn` → mix(warn,neg) → `--neg` → `--text-3`),
- * enquanto a produção pintava as quatro de `bg-destructive`. A leitura que se perdia é a de que
- * atraso maior não é "mais do mesmo vermelho": a faixa mais velha sai da escala quente e vira
- * cinza, porque `>365d` é candidata a baixa, não a cobrança — é o que o próprio card já diz no
- * rodapé da âncora.
- *
- * Os tons vêm dos tokens desta base, não dos literais da âncora: o papel semântico é o mesmo e o
- * valor difere, o que é dívida de Fundações (UI-0013) e não deste porte.
- */
-const CORES_BUCKET = [
-  'var(--color-warning)',
-  'color-mix(in oklch, var(--color-warning) 70%, var(--color-destructive))',
-  'var(--color-destructive)',
-  'var(--color-muted-foreground)',
-] as const;
-
-function SparkArea({ dados }: { dados: number[] }) {
-  const gid = useId();
-  const w = 280;
-  const h = 60;
-  const min = Math.min(...dados);
-  const max = Math.max(...dados);
-  const norm = (v: number) => (max === min ? 0.5 : (v - min) / (max - min));
-  // série de 1 ponto: `w/(n-1)` daria Infinity e o path sairia NaN. A âncora tem esse buraco
-  // (ela nunca recebe série curta); aqui degrada para um ponto em x=0 em vez de sumir com a curva.
-  const xStep = dados.length > 1 ? w / (dados.length - 1) : 0;
-  const pts = dados.map((v, i) => [i * xStep, h - 4 - norm(v) * (h - 10)] as const);
-  let d = `M ${pts[0]![0]} ${pts[0]![1]}`;
-  for (let i = 1; i < pts.length; i++) {
-    const [x0, y0] = pts[i - 1]!;
-    const [x1, y1] = pts[i]!;
-    const cx = (x0 + x1) / 2;
-    d += ` Q ${cx} ${y0}, ${cx} ${(y0 + y1) / 2} T ${x1} ${y1}`;
-  }
-  const area = `${d} L ${w} ${h} L 0 ${h} Z`;
-
-  return (
-    <svg
-      viewBox={`0 0 ${w} ${h}`}
-      preserveAspectRatio="none"
-      className="h-[60px] w-full"
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="currentColor" stopOpacity="0.26" />
-          <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={area} fill={`url(#${gid})`} />
-      <path
-        d={d}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        vectorEffect="non-scaling-stroke"
-      />
-    </svg>
-  );
-}
-
 function AnalysisCard({
   icon,
   title,
@@ -491,6 +382,7 @@ export default function JanaCockpit({
   const topDevedor = insightsAggregates.topDevedor;
 
   const sparkline = coworkAggregates?.sparkline ?? [];
+  const sparkMax = Math.max(...sparkline, 1);
   const sparkSum = sparkline.reduce((a, b) => a + b, 0);
 
   const firstName = userName?.split(' ')[0] || 'você';
@@ -657,7 +549,28 @@ export default function JanaCockpit({
   }
 
   return (
-    <div className="space-y-4">
+    /* Ritmo vertical entre seções = **18px**, o da âncora. Medido em 2026-09-21 (Chrome,
+       2560, dark, os dois lados na mesma janela), comparando o espaço VISUAL entre blocos
+       consecutivos — não a propriedade isolada, que engana quando há padding no meio:
+
+         de → para              âncora   prod (antes)
+         brief → kpis             18        16
+         kpis → metas             18        16
+         metas → h2 Análises       6        16      ← vai pro outro lado; ver `mb-1.5` no Index
+         h2 → grade               10        10  ✅
+         grade → h2 Ações         18        16
+         h2 → ações               10        10  ✅
+
+       Na âncora o 18px não vem de um container: cada seção declara o seu
+       (`.jc-brief`, `.jc-kpis`, `.jc-grid`, `.jc-acoes` — 4 ocorrências em
+       `chat-jana.css`). Aqui fica no `space-y`, que é o idioma desta tela e produz o
+       mesmo espaçamento com uma declaração em vez de quatro.
+
+       ⚠️ Os `h2` continuam em 10px e isso é da âncora, não descuido: o `space-y` gera
+       `:where(.space-y-* > :not(:last-child))`, de especificidade **0**, então o `mb-2.5`
+       do `SectionTitle` vence sem `!important` — exatamente como a `.jc-h2` (`margin: 6px
+       0 10px`) vence o ritmo do `.jc-page`. */
+    <div className="space-y-[18px]">
       {/* Header do cockpit — REMOVIDO na onda de fusão (2026-08-07, US-COPI-148).
           Era a SEGUNDA barra da tela: identidade (Jana · Analista IA + business +
           biz) e ações (Atualizado / Configurar / Exportar) duplicavam o que já
@@ -1033,20 +946,16 @@ export default function JanaCockpit({
           onClick={abrirInad}
         >
           <div className="flex flex-col gap-2">
-            {Object.entries(ageingBuckets).map(([label, v], i) => (
+            {Object.entries(ageingBuckets).map(([label, v]) => (
               <div key={label} className="flex flex-col gap-1">
                 <div className="flex items-baseline justify-between text-xs">
                   <span className="text-muted-foreground">{label}</span>
                   <b className="font-semibold tabular-nums text-foreground">{fmtShort(v)}</b>
                 </div>
-                <div className={TRILHO_BARRA}>
+                <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                   <div
-                    className="h-full rounded-full"
-                    style={{
-                      width: ageingTotal > 0 ? `${(v / ageingTotal) * 100}%` : '0%',
-                      // escala de severidade por faixa, como a âncora — não um vermelho só
-                      background: CORES_BUCKET[Math.min(i, CORES_BUCKET.length - 1)],
-                    }}
+                    className="h-full rounded-full bg-destructive"
+                    style={{ width: ageingTotal > 0 ? `${(v / ageingTotal) * 100}%` : '0%' }}
                   />
                 </div>
               </div>
@@ -1079,9 +988,16 @@ export default function JanaCockpit({
           ) : sparkline.length === 0 ? (
             <div className="py-2 text-xs text-muted-foreground">Sem histórico</div>
           ) : (
-            <div className="text-success">
-              <SparkArea dados={sparkline} />
-              <div className="flex justify-between text-[10.5px] text-muted-foreground">
+            <div className="text-primary">
+              <svg viewBox={`0 0 ${sparkline.length * 4} 40`} preserveAspectRatio="none" className="h-10 w-full">
+                <polyline
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  points={sparkline.map((v, i) => `${i * 4},${40 - (v / sparkMax) * 38 - 1}`).join(' ')}
+                />
+              </svg>
+              <div className="flex justify-between text-[10px] text-muted-foreground">
                 <span>D-{sparkline.length}</span>
                 <span>hoje</span>
               </div>
@@ -1111,13 +1027,10 @@ export default function JanaCockpit({
                     </span>
                     <b className="font-semibold tabular-nums text-foreground">{fmtShort(c.total)}</b>
                   </div>
-                  <div className={TRILHO_BARRA}>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                     <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: topClientesTotal > 0 ? `${(c.total / topClientesTotal) * 100}%` : '0%',
-                        backgroundImage: PREENCHIMENTO_GRADIENTE,
-                      }}
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: topClientesTotal > 0 ? `${(c.total / topClientesTotal) * 100}%` : '0%' }}
                     />
                   </div>
                 </div>
@@ -1148,13 +1061,10 @@ export default function JanaCockpit({
                       {methodsTotal > 0 ? Math.round((m.total / methodsTotal) * 100) : 0}%
                     </b>
                   </div>
-                  <div className={TRILHO_BARRA}>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                     <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: methodsTotal > 0 ? `${(m.total / methodsTotal) * 100}%` : '0%',
-                        backgroundImage: PREENCHIMENTO_GRADIENTE,
-                      }}
+                      className="h-full rounded-full bg-success"
+                      style={{ width: methodsTotal > 0 ? `${(m.total / methodsTotal) * 100}%` : '0%' }}
                     />
                   </div>
                 </div>
