@@ -9,7 +9,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { matchDestructive, normalizeCmd, statements, alvosRmRf, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete, ehStatementInerte, ehToolRm } from './block-destructive.mjs';
+import { matchDestructive, normalizeCmd, statements, alvosRmRf, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete, ehStatementInerte, ehToolRm, removeHeredocDeDado } from './block-destructive.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'block-destructive.mjs');
 let fails = 0;
@@ -231,13 +231,56 @@ check('BITE rm: whitelist sobrevive a um `cd` antes (era o FP dos 19)',
   matchDestructive('cd /repo && rm -rf node_modules') === null);
 check('BITE rm: idem com `;`', matchDestructive('cd /repo; rm -rf /tmp/scratch') === null);
 check('BITE rm: idem em bloco multi-linha', matchDestructive('cd /repo\nrm -rf public/build-inertia') === null);
-// Prosa: com a isenção por ALVO, a frase que continua depois do path vira "alvo"
-// e não casa a whitelist → bloqueia. É FP conhecido e ACEITO (medido: 1 em 153k,
-// e era prosa minha). O caminho é passar a mensagem por ARQUIVO, não afrouxar.
-check('CN rm: prosa multi-palavra citando um rm whitelisted BLOQUEIA (FP aceito do multi-arg)',
-  matchDestructive('git commit -F - <<EOF\nex: `cd x && rm -rf node_modules` bloqueia hoje\nEOF')?.key === 'rm-rf-perigoso');
-check('CN rm: prosa com o rm no MEIO da frase segue bloqueando (FP pré-existente)',
-  matchDestructive('git commit -F - <<EOF\ntexto citando rm -rf node_modules aqui\nEOF')?.key === 'rm-rf-perigoso');
+// ── HEREDOC de DADO: prosa deixou de ser statement ([W] 2026-09-21) ───────────
+// FATO DATADO, não apagar: até 2026-09-21 estes dois casos BLOQUEAVAM, e o
+// bloqueio estava registrado aqui como "FP conhecido e ACEITO (medido: 1 em
+// 153k)", com o remédio "passar a mensagem por ARQUIVO, não afrouxar".
+// O que mudou não é a tolerância ao FP — é o DIAGNÓSTICO. A causa não era a
+// isenção por alvo ("a frase depois do path vira alvo"); era o FATIADOR, que
+// quebrava o corpo do heredoc em `\n` e promovia uma linha de PROSA a statement.
+// `removeHeredocDeDado` conserta isso sem tocar a whitelist de alvos.
+// Medido antes de aplicar: AFROUXOU 23/23 no corpus, APERTOU **0**, e 0 dos 23
+// sem heredoc. Pedido de [W] 2026-09-21 ("arruma o heredoc").
+check('BITE heredoc: prosa multi-palavra citando um rm whitelisted PASSA (era FP)',
+  matchDestructive('git commit -F - <<EOF\nex: `cd x && rm -rf node_modules` bloqueia hoje\nEOF') === null);
+check('BITE heredoc: prosa com o rm no MEIO da frase PASSA (era FP pré-existente)',
+  matchDestructive('git commit -F - <<EOF\ntexto citando rm -rf node_modules aqui\nEOF') === null);
+check('BITE heredoc: prosa com alvo FORA da whitelist também passa (é dado, não alvo)',
+  matchDestructive("cat > doc.md <<'EOF'\nprosa citando rm -rf /etc/passwd\nEOF") === null);
+
+// CONTROLES NEGATIVOS do heredoc — corpo que alimenta EXECUTOR é CÓDIGO, não dado.
+// Sem estes, "ignorar heredoc" abriria `bash <<EOF … EOF` inteiro.
+check('CN heredoc: `bash` lendo do stdin segue BLOQ',
+  matchDestructive("bash <<'EOF'\nrm -rf /etc/passwd\nEOF")?.key === 'rm-rf-perigoso');
+check('CN heredoc: `sh` lendo do stdin segue BLOQ',
+  matchDestructive('sh <<EOF\nrm -rf /var/www\nEOF')?.key === 'rm-rf-perigoso');
+check('CN heredoc: `cat <<EOF | sh` segue BLOQ',
+  matchDestructive("cat <<'EOF' | sh\nrm -rf /etc/passwd\nEOF")?.key === 'rm-rf-perigoso');
+check('CN heredoc: `ssh prod <<EOF` segue BLOQ (filesystem remoto é real)',
+  matchDestructive("ssh prod <<'EOF'\nrm -rf /var/www\nEOF")?.key === 'rm-rf-perigoso');
+check('CN heredoc: `| tailscale ssh … docker exec -i … sh` segue BLOQ',
+  matchDestructive("cat <<'EOF' | tailscale ssh root@ct100 'docker exec -i c sh'\nrm -rf /etc\nEOF")?.key === 'rm-rf-perigoso');
+check('CN heredoc: `xargs rm -rf` alimentado por heredoc segue BLOQ',
+  matchDestructive("cat <<'EOF' | xargs rm -rf\n/etc\nEOF")?.key === 'rm-rf-perigoso');
+// FORA do heredoc: o parser não pode engolir comando real vizinho
+check('CN heredoc: comando real DEPOIS do fecho segue BLOQ',
+  matchDestructive("cat > x <<'EOF'\ntexto\nEOF\nrm -rf /etc/passwd")?.key === 'rm-rf-perigoso');
+check('CN heredoc: comando real ANTES do heredoc segue BLOQ',
+  matchDestructive("rm -rf /etc/passwd && cat > x <<'EOF'\ntexto\nEOF")?.key === 'rm-rf-perigoso');
+check('CN heredoc: comando real ENTRE dois heredocs segue BLOQ',
+  matchDestructive("cat > a <<'E1'\ntexto\nE1\nrm -rf /etc/passwd\ncat > b <<'E2'\ntexto\nE2")?.key === 'rm-rf-perigoso');
+check('CN heredoc: SEM fecho não vira dado (não se inventa fronteira)',
+  matchDestructive("cat > x <<'EOF'\nrm -rf /etc/passwd")?.key === 'rm-rf-perigoso');
+// o transformador, isolado
+check('removeHeredocDeDado: descarta corpo de dado e preserva o fecho',
+  !/prosa/.test(removeHeredocDeDado("cat > x <<'EOF'\nprosa\nEOF")) &&
+  /EOF/.test(removeHeredocDeDado("cat > x <<'EOF'\nprosa\nEOF")));
+check('removeHeredocDeDado: PRESERVA corpo quando o abridor executa',
+  /codigo/.test(removeHeredocDeDado("bash <<'EOF'\ncodigo\nEOF")));
+check('removeHeredocDeDado: comando sem heredoc sai idêntico',
+  removeHeredocDeDado('rm -rf /etc') === 'rm -rf /etc');
+check('removeHeredocDeDado: `<<-` com tabulação também é reconhecido',
+  !/prosa/.test(removeHeredocDeDado("cat > x <<-'EOF'\n\tprosa\n\tEOF")));
 
 // CONTROLES NEGATIVOS — o que a isenção por statement NÃO pode liberar
 check('CN rm: alvo FORA da whitelist segue bloqueado, mesmo depois de um cd',
