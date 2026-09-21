@@ -1433,3 +1433,87 @@ fidelidade). O que falta para as abas mostrarem `Conversa 3` é o **contador che
 `DataController`** — backend, com raio nas 4 telas da área, não UI ausente.
 
 **Teste:** `tests/pageHeaderTabsDensity.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
+
+## UC-JPAIN-28 — o tier Pro governa brief, análises e ações; METAS nunca
+
+Status: 🧪 (`npx vitest run tests/janaPainelGatingPro.spec.tsx` → **9 passed** jsdom local,
+2026-09-21, com mordida provada por mutação; vira ✅ quando o manifesto `casos-results` aterrissar)
+
+**Fonte:** âncora `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JanaPage` — âncora de SÍMBOLO
+(`grep -n "upsell({ t:" prototipo-ui/cowork/Wagner/jana-merge.jsx`). Pedido descido pelo playbook
+do Cowork em `cowork-inbox/jana/playbook/01-painel.gating-pro.md` (ONDA 01), recebido no handoff 28.
+
+A âncora desenha um produto de **dois planos**. A produção renderizava tudo pra todo mundo — e
+exibia o selo "Grátis" do `JanaPlanoBadge` **ao lado** do conteúdo que o `/ia/pro` vende
+([ADR 0140](../../../../memory/decisions/0140-jana-pro-paywall.md)). O `useJanaPro()` já era lido
+no `Index.tsx`, mas só alimentava o badge: o tier não governava seção nenhuma.
+
+| seção | Grátis | Pro |
+|---|---|---|
+| header · abas · nota-mob | renderiza | renderiza |
+| **brief diário** | **upsell** `O brief diário é do plano Pro` | `BriefDiario` |
+| KPIs (3) | renderizam, **sem drill** | renderizam, clicáveis |
+| **METAS ATIVAS** | renderiza | renderiza |
+| h2 `ANÁLISES PRINCIPAIS` | renderiza (sem a sub-linha) | renderiza + sub-linha |
+| **as 5 análises** | **upsell** `As 5 análises são do plano Pro` | grade |
+| **AÇÕES QUE JANA SUGERE** | **ausente** — h2 e faixa não montam | renderiza |
+
+**Zero fundação.** `jana.pro` já chegava como shared prop **lazy** (`HandleInertiaRequests.php:170`
+→ `janaPlanoPro` lendo `jana_pro_module` na assinatura ativa), default `false` — fail-safe: na
+dúvida, Grátis. Nenhum campo, nenhuma query, nenhum endpoint. O `SellsCockpitAggregator` segue
+apurando igual: esconder card não economiza cálculo, e o drawer já diz isso ao usuário.
+
+**O marcador da grade é `Top 5 clientes`, e isso é parte do caso.** "Inadimplência" **não** serve:
+a descrição do upsell de análises contém a palavra ("Inadimplência, faturamento, concentração,
+churn ouro e métodos de pagamento"), então usá-la daria positivo no Grátis — mediria o upsell e
+chamaria de grade. É a armadilha de §5 2026-09-16 (prefixo que também é prefixo de outra coisa),
+e o primeiro `describe` do spec **prova a unicidade** antes de qualquer caso usá-la.
+
+**O `PARAR SE` do pedido foi medido, e não disparou.** A ficha declarava no §8 não ter lido os dois
+donos do contrato. Lidos:
+
+- `governance/design/contracts/jana-painel.contract.json` declara **6** seções —
+  `painel-cta-conversar`, `painel-metas-header`, `painel-metas-vazio`, `painel-meta-apurando`,
+  `painel-meta-sem-historico`, `painel-plano` — e **nenhuma** é brief/análises/ações. A `ordem` são
+  as 3 do eixo METAS, que esta onda não toca.
+- `Modules/Jana/Tests/Feature/PainelContratoTest.php` não tem **nenhuma** referência ao tier:
+  `grep -noE "jana\.pro|janaPro|'pro'|useJanaPro"` → **0**, com `grep -c "UC-JPAIN"` → **62** de
+  controle positivo. Os **110** hits de `pro` que um grep ingênuo devolve são substring de
+  *processo · produto · próprio · prova*.
+
+**Os dois casos que pareciam colidir medem o texto-FONTE, não o render** — e por isso sobrevivem:
+
+- **UC-JPAIN-16** extrai rótulos de `<Button>` do arquivo. Rodadas as regex **literais** dele
+  contra o arquivo editado, a lista sai idêntica às 5 dívidas declaradas (`Disparar régua WhatsApp
+  pros atrasados`, `Exportar`, `Investigar queda ticket médio`, `Ouvir áudio`, `Ver top devedores`):
+  os 2 botões novos ficam de fora porque estão dentro de `<Link href="/ia/pro">`, que o `$wrapper`
+  do extrator reconhece como quem dá comportamento ao filho.
+- **UC-JPAIN-18** recorta o bloco `<KpiGrid>` e segue devolvendo
+  `['Receita 30 dias','A receber vencido','Ticket médio']` **na ordem**, com
+  `<KpiGrid cols={4} className="gap-2.5">` intacto. O gating tirou o `onClick`, não os cards.
+
+**O que o teste trava (9 casos):** dois controles de sensibilidade (o marcador da grade não é
+substring da copy do upsell; o render Pro contém os 3 marcadores, senão a ausência no Grátis não
+provaria nada) · brief vira upsell com copy literal · grade vira upsell com copy literal · a faixa
+de ações some **inteira**, sem virar um terceiro upsell · os 2 upsells levam a `/ia/pro` e o botão
+não nasce mudo · o Grátis tem **menos** botões que o Pro (direção, não número — se o gating for
+revertido, empatam) · `aposKpis` renderiza nos **dois** planos (METAS nunca gated) · e o default da
+prop protege o `Chat.tsx`, outro consumidor do cockpit.
+
+**Mordida provada.** Revertido o gating nos 3 pontos (`{pro ? (` → `{true ? (` nos dois blocos e
+`{pro && acoes.length > 0 &&` → `{acoes.length > 0 &&`), **4 de 9** caem — brief, grade, ações e os
+links `/ia/pro`. Os 5 restantes passam porque são controles que a mutação não alcança, e isso é o
+desenho, não sobra.
+
+⚠️ **`overdueCount: 1` no fixture não é decorativo:** é ele que faz `acoes` ter ≥1 item
+(`JanaCockpit.tsx` §`const acoes` → `if (overdueCount > 0)`). Sem isso o caso das ações ficaria
+verde nos dois planos por vacuidade — um teste que não pode reprovar (§5 2026-09-05).
+
+⚠️ **Smoke autenticado NÃO foi feito, e nada aqui afirma render medido.** `oimpresso.com/ia` e
+`staging.oimpresso.com/ia` devolvem **302** sem sessão, e o `launch.json` deste repo só serve
+protótipo estático. O DoD §9 do pedido (4 screenshots: dark/light × Pro/Grátis) segue **aberto**.
+O que foi medido é: tsc (0 erros nos 2 arquivos tocados, contra 307 pré-existentes no repo),
+eslint (2 arquivos analisados, 0/0), `layout:check` (total 1695, **igual** ao baseline), as regex
+reais dos UC-16/18, e a copy **byte a byte** contra a âncora (5 strings, com controle negativo).
+
+**Teste:** `tests/janaPainelGatingPro.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
