@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Artisan;
 use Modules\Jana\Entities\Meta;
 use Modules\Jana\Entities\MetaApuracao;
@@ -20,18 +21,20 @@ use Modules\Jana\Entities\MetaFonte;
  * Tenant 98 — fictício por construção (ADR 0358). biz=4 é proibido em teste sem exceção;
  * biz=1 é produção real.
  */
-const BIZ_TESTE = 98;
+// Os 41 testes de `Modules/Jana/Tests/Feature` declaram isto — o `Pest.php` só aplica
+// `TestCase` em `tests/Feature`, e o comentário dele avisa que módulo com suite própria
+// precisa declarar. Sem a linha, o teste roda sem bootstrap e morre em
+// `connection() on null` (foi o que aconteceu na primeira rodada: 6 failed, 0 assertions).
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
-afterEach(function () {
-    $ids = Meta::withoutGlobalScopes()->where('business_id', BIZ_TESTE)
-        ->where('slug', 'like', 'backfill-teste-%')->pluck('id');
-
-    if ($ids->isNotEmpty()) {
-        MetaApuracao::withoutGlobalScopes()->whereIn('meta_id', $ids)->delete();
-        MetaFonte::withoutGlobalScopes()->whereIn('meta_id', $ids)->delete();
-        Meta::withoutGlobalScopes()->whereIn('id', $ids)->delete();
-    }
-});
+/**
+ * Tenant fictício por construção (ADR 0358). Função em vez de `const` porque constante
+ * de topo em arquivo Pest é global e colide entre arquivos da mesma suite.
+ */
+function bizTesteBackfill(): int
+{
+    return 98;
+}
 
 it('está REGISTRADO no Artisan — registry vivo, não class_exists', function () {
     expect(array_keys(Artisan::all()))->toContain('jana:metas:backfill-apuracoes');
@@ -55,7 +58,7 @@ it('RECUSA --business não numérico, em vez de tratar como 0', function () {
 
 it('--dry-run calcula de VERDADE e NÃO grava — o contrato central', function () {
     $meta = Meta::withoutGlobalScopes()->create([
-        'business_id'     => BIZ_TESTE,
+        'business_id'     => bizTesteBackfill(),
         'slug'            => 'backfill-teste-'.uniqid(),
         'nome'            => 'Meta de teste do backfill',
         'unidade'         => 'R$',
@@ -67,14 +70,14 @@ it('--dry-run calcula de VERDADE e NÃO grava — o contrato central', function 
     MetaFonte::withoutGlobalScopes()->create([
         'meta_id'     => $meta->id,
         'driver'      => 'sql',
-        'config_json' => ['query' => 'SELECT 123.45 AS valor'],
+        'config_json' => ['query' => 'SELECT 123.45 AS valor, :business_id AS biz'],
         'cadencia'    => 'diaria',
     ]);
 
     expect(MetaApuracao::withoutGlobalScopes()->where('meta_id', $meta->id)->count())->toBe(0);
 
     $code = Artisan::call('jana:metas:backfill-apuracoes', [
-        '--business' => (string) BIZ_TESTE,
+        '--business' => (string) bizTesteBackfill(),
         '--meta'     => (string) $meta->id,
         '--janelas'  => 3,
         '--dry-run'  => true,
@@ -93,7 +96,7 @@ it('--dry-run calcula de VERDADE e NÃO grava — o contrato central', function 
 
 it('sem --dry-run GRAVA uma linha por janela, e repetir não duplica (idempotente)', function () {
     $meta = Meta::withoutGlobalScopes()->create([
-        'business_id'     => BIZ_TESTE,
+        'business_id'     => bizTesteBackfill(),
         'slug'            => 'backfill-teste-'.uniqid(),
         'nome'            => 'Meta de teste do backfill',
         'unidade'         => 'R$',
@@ -105,11 +108,11 @@ it('sem --dry-run GRAVA uma linha por janela, e repetir não duplica (idempotent
     MetaFonte::withoutGlobalScopes()->create([
         'meta_id'     => $meta->id,
         'driver'      => 'sql',
-        'config_json' => ['query' => 'SELECT 10.00 AS valor'],
+        'config_json' => ['query' => 'SELECT 10.00 AS valor, :business_id AS biz'],
         'cadencia'    => 'diaria',
     ]);
 
-    $args = ['--business' => (string) BIZ_TESTE, '--meta' => (string) $meta->id, '--janelas' => 4];
+    $args = ['--business' => (string) bizTesteBackfill(), '--meta' => (string) $meta->id, '--janelas' => 4];
 
     expect(Artisan::call('jana:metas:backfill-apuracoes', $args))->toBe(0);
 
@@ -125,7 +128,7 @@ it('sem --dry-run GRAVA uma linha por janela, e repetir não duplica (idempotent
 
 it('não toca meta de OUTRO business (Tier 0 cross-tenant)', function () {
     $alheia = Meta::withoutGlobalScopes()->create([
-        'business_id'     => BIZ_TESTE + 1,
+        'business_id'     => (bizTesteBackfill() + 1),
         'slug'            => 'backfill-teste-alheia-'.uniqid(),
         'nome'            => 'Meta de outro tenant',
         'unidade'         => 'R$',
@@ -137,11 +140,11 @@ it('não toca meta de OUTRO business (Tier 0 cross-tenant)', function () {
     MetaFonte::withoutGlobalScopes()->create([
         'meta_id'     => $alheia->id,
         'driver'      => 'sql',
-        'config_json' => ['query' => 'SELECT 99.00 AS valor'],
+        'config_json' => ['query' => 'SELECT 99.00 AS valor, :business_id AS biz'],
         'cadencia'    => 'diaria',
     ]);
 
-    Artisan::call('jana:metas:backfill-apuracoes', ['--business' => (string) BIZ_TESTE, '--janelas' => 2]);
+    Artisan::call('jana:metas:backfill-apuracoes', ['--business' => (string) bizTesteBackfill(), '--janelas' => 2]);
 
     expect(MetaApuracao::withoutGlobalScopes()->where('meta_id', $alheia->id)->count())->toBe(0);
 
