@@ -1,0 +1,56 @@
+{
+  "url": "https://staging.oimpresso.com/recurring-billing/configuracoes",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Configurações · cobrança recorrente Gateways de pagamento, régua de dunning, NFe automática e webhooks por gateway. atalhos Gateways de boleto/pix Credenciais ativas e sandbox cadastradas neste business. Nenhum gateway cadastrado Cadastre uma credencial Inter PJ, C6 ou Asaas para começar a cobrar. Adicionar gateway Régua de dunning (cobrança) Cronograma de retentativas quando uma fatura falha no pagamento. Régua padrão de cobrança em caso de falha de pagamento. Cada retentativa dispara dunning (boleto novo, novo email, novo WhatsApp). Após a 3ª retentativa, a assinatura entra em past_due → fail e exige ação manual. 1ª retentativa + 3 d Soft decline — provavelmente saldo insuficiente ou intermitência gateway. 2ª retentativa + 7 d Cobrança persistente — emite dunning escalado (email + WhatsApp). 3ª retentativa (final) + 15 d Falha definitiva — assinatura vira past_due → fail, requer ação manual no detail drawer. Em breve (Onda futura — régua per-business + per-plan). NFe-de-boleto-pago automática Emissão fiscal disparada automaticamente ao receber pagamento. Desativada Ref. Em breve Quando uma fatura é paga (Asaas/Inter PJ webhook), o sistema dispara automaticamente a emissão de NFe via Módulo NfeBrasil. Requer plano com fiscal_type = nfe ou nfse cadastrado. Em breve (Onda futura — toggle por business + per-plan override). Webhooks URLs canônicas pra colar no painel admin do gateway. POST Asaas docs Webhook unificado (pagamento, assinatura, transferência) Copiar Autenticação: Header X-Webhook-Token configurado no Asaas (Account → Integrações → Webhooks). POST Banco Inter PJ docs Webhook PIX recebido (pix.recebido) Copiar Autenticação: Header X-Inter-Webhook-Secret validado contra config_json.webhook_secret da credencial Inter ativa. 1 / 4 Tour · Configurações Gateways de pagamento Configuram quais bancos recebem cobrança — Inter PJ, C6 Bank ou Asaas. Sandbox = teste, production = real. Não mostrar mais Anterior Próximo Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 24,
+      "weight": "600",
+      "color": "oklch(0.137 0.036 258.5)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

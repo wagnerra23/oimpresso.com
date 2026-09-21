@@ -1,0 +1,185 @@
+{
+  "url": "https://staging.oimpresso.com/asset/dashboard",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C CI Biz · 14 bens Patrimônio O que a empresa tem, quanto vale e quem está com o quê. Atualizado 11:25 Alocar recurso Adicionar recurso Resumo de hoje 21/09/2026, 11:25 14 bens cadastrados, 20 unidades e R$ 54.700,00 de patrimônio bruto. O valor residual depois da depreciação não é calculado pelo sistema ( — ). Nenhum bem com garantia vencida ou vencendo nos próximos 30 dias. Garantia crítica Em manutenção Alocados Patrimônio bruto R$ 54.700,00 20 unidades em 14 bens Valor residual — a regra de depreciação ainda não foi definida Alocados 0 de 16 16 unidades livres pra alocar Garantia vencida ou vencendo 0 tudo coberto Análises do módulo Patrimônio por categoria valor unitário × quantidade, por categoria 100% em nenhum nenhum R$ 54.700,00 Situação da garantia bem sem registro não conta como vencido Na garantia 0 · R$ 0,00 Vence em 30 dias 0 · R$ 0,00 Vencida 0 · R$ 0,00 Sem garantia 14 · R$ 54.700,00 Manutenção em aberto o que está fora de operação ou agendado — · Asset Wagner biz=1 — — · Servidor Teste Manutencao 2 — — · Servidor Teste Manutencao 2 — — · Asset Wagner biz=1 — custo de manutenção no ano — o sistema ainda não registra o custo de cada manutenção O que fazer primeiro Nenhum bem com garantia vencida ou vencendo Tudo coberto nos próximos 30 dias. Ver bens 4 manutenções em aberto O que está fora de operação não aparece como disponível pra alocar. Ver manutenções 16 unidades alocáveis paradas Equipamento sem alocação não tem responsável registrado. Ver alocações Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 3,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Patrimônio bru",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Valor residual",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Alocados0 de 1",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "subnav",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "resumo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 1,
+          "snakeCru": 0
+        },
+        "exemplos": {
+          "dataBr": [
+            "21/09/2026"
+          ]
+        }
+      },
+      {
+        "nome": "kpis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "analises",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "acoes",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "url": "https://staging.oimpresso.com/stock-transfers/create",
+  "theme": "light",
+  "assinatura": "CI Biz Visão geral Gerenciamento de usuários Contatos Produtos Vendas Relatórios Configurações Suporte Jana Sidebar Menu Collapse Sidebar Calendário Adicionar a fazer Application Tour Calculator Reparar Today's Profit 09/18/2026 Notifications CI Signed in as CI Perfil Desconectar Adicionar transferência de estoque Data:* Número de referência: Status:* Selecionar pendente Em trânsito Terminado Selecionar Do local:* Selecionar Selecionar Até o local:* Selecionar Selecionar Produto Quantidade Preço unitário Subtotal Total: 0.00 Custos de envio: Notas adicionais Valor total: 0.00 Salvar - V6.4 | Copyright © 2026 All rights reserved. × Benefício de hoje Fechar × Entrada Saída Endereço de IP: 177.74.67.30 Relógio na nota: Nota do relógio: Enviar Fechar Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Só essenciais Aceitar tudo Tour da Aplicação Vamos passar pelo aplicativo em 7 passos rápidos ... « Anterior Próximo » Tour final",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 32,
+      "weight": "700",
+      "color": "rgb(0, 0, 0)"
+    },
+    "primary": {
+      "bg": "rgb(240, 240, 240)",
+      "color": "rgb(0, 0, 0)",
+      "border": "rgb(0, 0, 0)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

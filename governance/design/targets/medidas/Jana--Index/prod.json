@@ -1,0 +1,138 @@
+{
+  "url": "https://staging.oimpresso.com/ia",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C J Jana · Analista IA CI BIZ · biz= 1 Atualizado 11:23 plano Grátis Configurar Exportar Painel Conversa Alertas Ações Memória Brief diário · 21 de setembro de 2026 IA Ouvir áudio Bom dia , CI . 6 vendas no período · 6 pendentes . Hoje somou R$ 0,00 . Ticket médio -100 % vs semana passada — investigar mix de produto. Ver top devedores Investigar queda ticket médio Receita 30 dias R$ 14,5k A receber vencido R$ 0,00 tudo em dia Ticket médio R$ 2,4k -100 % 7d Metas ativas Nova meta Jana Pro Conversar com a Jana Nenhuma meta cadastrada ainda Pergunte algo à Jana — ela aprende o que importa pro seu business e cria metas com base no que conversamos. Pergunte algo a Jana Análises principais clique num card pra ver de onde vem o número Inadimplência 0 vendas vencidas OK R$ 0,00 0-30d R$ 0,00 30-90d R$ 0,00 90-365d R$ 0,00 >365d R$ 0,00 Faturamento 30 dias R$ 14,5k D- 30 hoje Top 5 clientes concentração 2 Cliente CI R$ 12,0k Cliente padrão R$ 2,5k Métodos de pagamento top 0 R$ 0,00 Sem pagamentos registrados Churn ouro maior LTV parado 0 Ninguém de peso parou de comprar Ações que Jana sugere Investigar queda ticket médio -100% vs semana passada · pode ser mix de produto mudando Revisar recorte Insights baseados em vendas filtradas atual + agregados 30d. A aprovação de uma ação é registrada aqui; o disparo das mensagens entra num PR próprio. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "painel-plano",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "painel-metas-header",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "painel-cta-conversar",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "painel-metas-vazio",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

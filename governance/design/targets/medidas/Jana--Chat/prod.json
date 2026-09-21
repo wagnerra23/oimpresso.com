@@ -1,0 +1,111 @@
+{
+  "url": "https://staging.oimpresso.com/ia/conversa",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CB C J Jana · Analista IA CI BIZ · biz= 1 Atualizado 11:23 plano Grátis Nova conversa Painel Conversa Alertas Ações Memória Conversas 1 ⌘K Todas Arquivadas Fixadas Arraste para fixar Recentes Nova conversa 11:23 Olá! Sou seu Copiloto. Estou olhando CI Biz — vejo 0 clientes ativos e 1 meses de faturam… última em 11:23 J K anda · ⌘K busca · ⌘⇧H recolhe Nova conversa só sua CP Olá! Sou seu Copiloto. Estou olhando CI Biz — vejo 0 clientes ativos e 1 meses de faturamento nos últimos 90 dias. Quer que eu sugira metas pro próximo período? É só pedir. Pergunte sobre Qual o faturamento de hoje? Top 5 clientes do mês Despesas vencendo nos próximos 7 dias Criar uma meta de faturamento mensal Apps Vinculados Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "painel-plano",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

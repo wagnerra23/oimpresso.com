@@ -1,0 +1,274 @@
+{
+  "url": "https://staging.oimpresso.com/asset/asset-maintenance",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Manutenções O que está fora de operação, com quem e desde quando Situação todas Prioridade todas Responsável todas Manutenções do patrimônio Ações Código Bem Situação Prioridade Garantia Detalhes Enviado em Atribuído a Criado por Editar manutenção — Asset Wagner Inverso Excluir manutenção — Asset Wagner Inverso — Asset Wagner Inverso Terminado — Sem garantia — 08/09/2026 11:02 há 1 semana Sem responsável CI Editar manutenção — Asset Wagner biz=1 Excluir manutenção — Asset Wagner biz=1 — Asset Wagner biz=1 Em andamento — Sem garantia — 08/09/2026 11:02 há 1 semana Sem responsável CI Editar manutenção — Servidor Teste Manutencao Excluir manutenção — Servidor Teste Manutencao — Servidor Teste Manutencao Terminado — Sem garantia — 08/09/2026 11:02 há 1 semana Sem responsável CI Editar manutenção — Servidor Teste Manutencao 2 Excluir manutenção — Servidor Teste Manutencao 2 — Servidor Teste Manutencao 2 Em andamento — Sem garantia — 08/09/2026 11:02 há 1 semana Sem responsável CI Editar manutenção — Servidor Teste Manutencao 2 Excluir manutenção — Servidor Teste Manutencao 2 — Servidor Teste Manutencao 2 Em andamento — Sem garantia — 08/09/2026 11:00 há 1 semana Sem responsável CI Editar manutenção — Asset Wagner biz=1 Excluir manutenção — Asset Wagner biz=1 — Asset Wagner biz=1 Em andamento — Sem garantia — 08/09/2026 11:00 há 1 semana Sem responsável CI Editar manutenção — Servidor Teste Manutencao Excluir manutenção — Servidor Teste Manutencao — Servidor Teste Manutencao Terminado — Sem garantia — 08/09/2026 11:00 há 1 semana Sem responsável CI Editar manutenção — Asset Wagner Inverso Excluir manutenção — Asset Wagner Inverso — Asset Wagner Inverso Terminado — Sem garantia — 08/09/2026 11:00 há 1 semana Sem responsável CI Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "subnav",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "tabela",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 8,
+          "snakeCru": 0
+        },
+        "exemplos": {
+          "dataBr": [
+            "08/09/2026"
+          ]
+        }
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": "A",
+        "align": "left",
+        "larguraPct": 7.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.7,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 0,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "3.35544e+07px",
+          "borda": true,
+          "bg": "oklch(0.97 0.02 162)",
+          "dot": true
+        }
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 12.6,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "3.35544e+07px",
+          "borda": true,
+          "bg": "oklch(0.97 0.004 90)",
+          "dot": true
+        }
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 16.5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.3,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 8,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 12.6,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "3.35544e+07px",
+          "borda": true,
+          "bg": "oklch(0.97 0.02 18)",
+          "dot": true
+        }
+      },
+      {
+        "col": 9,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 12,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "fixed",
+      "colunasDeclaradas": 9,
+      "linhas": 8,
+      "linhasComEstado": 4
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

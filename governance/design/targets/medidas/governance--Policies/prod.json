@@ -1,0 +1,56 @@
+{
+  "url": "https://staging.oimpresso.com/governance/policies",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Policies (Governança) mcp_governance_rules — runtime gates enforçados pelo ActionGate (Constituição Art. 8). Toggle ativa/desativa rule. Edição inline + create vão pra próxima iteração. Rules total 0 Ativas 0 Triggered total 0 Soma de hits desde criação Categorias 0 Sem rules ainda Quando o decision flow ADS criar rules, elas aparecem aqui pra Wagner habilitar/desabilitar. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 24,
+      "weight": "600",
+      "color": "oklch(0.137 0.036 258.5)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

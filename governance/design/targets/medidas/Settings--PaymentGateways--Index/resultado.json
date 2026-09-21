@@ -1,0 +1,170 @@
+{
+  "id": "Settings/PaymentGateways/Index",
+  "source": "pg-payment-gateways-page.jsx",
+  "target": "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx",
+  "token": "payment-gateways",
+  "frescor": "verificado 2026-09-17",
+  "contrato": null,
+  "compare": {
+    "rc": 1,
+    "veredito": "DIVERGE (bug)",
+    "motivo": "",
+    "bugs": 2,
+    "shell": 0,
+    "sameTheme": false,
+    "porDim": {
+      "D2": {
+        "diverge": 2,
+        "bug": 1,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D4": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 1,
+        "igual": 0
+      },
+      "D6": {
+        "diverge": 1,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D8": {
+        "diverge": 2,
+        "bug": 1,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D9": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "SHELL": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 4,
+        "igual": 0
+      }
+    },
+    "rows": [
+      {
+        "dim": "D2",
+        "campo": "layout",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D4",
+        "campo": "título",
+        "prod": "—",
+        "design": "—",
+        "veredito": "SEM-DADO"
+      },
+      {
+        "dim": "D6",
+        "campo": "cor",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D8",
+        "campo": "kpi align",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D9",
+        "campo": "texto",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D2",
+        "campo": "nº de colunas",
+        "prod": 1,
+        "design": 7,
+        "veredito": "DIVERGE (bug)",
+        "detalhe": "comparando as 1 primeiras"
+      },
+      {
+        "dim": "D6",
+        "campo": "col0.cor",
+        "prod": "cor própria",
+        "design": "herda a da linha",
+        "veredito": "DIVERGE (fonte)"
+      },
+      {
+        "dim": "D8",
+        "campo": "col0.alcancavel",
+        "prod": "BUTTON",
+        "design": "sem elemento clicavel",
+        "veredito": "DIVERGE (fonte)"
+      },
+      {
+        "dim": "D8",
+        "campo": "col0.align",
+        "prod": "center",
+        "design": "left",
+        "veredito": "DIVERGE (bug)",
+        "detalhe": "o alinhamento é da CÉLULA — classe num filho não alinha o <td> nem o cabeçalho"
+      },
+      {
+        "dim": "D2",
+        "campo": "col0.blocos de texto",
+        "prod": 3,
+        "design": 1,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.presenca",
+        "prod": "0 el (.sb-shortcuts .sb-shortcut)",
+        "design": "0 el (.sb-menu > .sb-item)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.presenca",
+        "prod": "0 el (.sb-menu-grouped)",
+        "design": "1 el (.sb-menu)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.grupoHeader.presenca",
+        "prod": "0 el (.sb-group-h)",
+        "design": "0 el (.sb-group-h)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.itemGrupo.presenca",
+        "prod": "0 el (.sb-item)",
+        "design": "0 el (.sb-group .sb-item, .sb-group-body .sb-item)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      }
+    ]
+  },
+  "veredito": null,
+  "motivo": "",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/settings/payment-gateways",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-09-18T12:33:26.428Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3"
+}

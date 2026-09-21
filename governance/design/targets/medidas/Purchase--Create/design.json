@@ -1,0 +1,152 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Compras · Nova compra Adicionar item à compra SKUs na grade 12 Σ unidades 0 Valor R$ 0,00 Compras Movimentações Patrimônio · Pedidos de compra Requisições de compra Devoluções de compra Grade matrix (tam × cor) Modelo CAM-001 — Camiseta básica algodão ( Camisetas ) CAL-007 — Calça jeans skinny ( Calças ) VES-022 — Vestido midi viscose ( Vestidos ) ETQ-001 — Etiqueta adesiva preço (item simples) 4 tam × 3 cor = 12 SKUs Custo unitário (R$) aplicado a todas as células Limpar grade Adicionar à compra Tam roupa adulto tam ↓ · cor → Preto Σ 0 Branco Σ 0 Azul mar. Σ 0 Σ linha P 0 M 0 G 0 GG 0 Σ col 0 0 0 0 R$ 0,00 próx. cor cor anterior próx. tam navegar limpar grade preencher coluna",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 29.5,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 17.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 17.2,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 20,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 16.2,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 5,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

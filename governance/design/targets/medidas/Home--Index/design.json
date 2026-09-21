@@ -1,0 +1,116 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Visão geral R$ 312,5k vendas · R$ 68,4k a receber · R$ 41,9k despesas Administrador Período Dia Semana Mês De 20/08/2026 Até 18/09/2026 Substitui o antigo Home (Blade) — /dashboard-legacy?legacy=1 · atualizado agora Loja Todas as lojas Matriz Filial Norte Simular falha Papel simulado Administrador Financeiro (Eliana) Balcão (Larissa) Sem dashboard.data Líquido no período R$ 202.190,00 ↗ + 12 % vs anterior Vendas R$ 312.480,00 ↗ + 9 % vs anterior incluindo impostos A receber R$ 68.420,00 -4% vs anterior · líquido de descontos de razão Despesas R$ 41.870,00 +6% vs anterior · lançadas no período Contrapartidas mesmo período Compras R$ 128,3k incluindo impostos A pagar R$ 37,6k líquido de descontos Devolução de venda R$ 7,5k bruto R$ 12k Devolução de compra R$ 2,1k devido ao fornecedor Pendências 1 título de venda vencido Atrasado 1 título de compra vencido Atrasado 2 produtos abaixo do mínimo Urgente 1 lote vence em 9 dias Vencendo 1 expedição atrasada Atrasada Vendas por dia últimos 30 dias Vendas por dia, últimos 30 dias : total de R$ 357.4k no período; maior valor em dia 27 , R$ 19.2k . Período Valor dia 1 R$ 8.2k dia 2 R$ 11.4k dia 3 R$ 9.6k dia 4 R$ 14.2k dia 5 R$ 12.8k dia 6 R$ 6.1k dia 7 R$ 0.0k dia 8 R$ 10.4k dia 9 R$ 13.6k dia 10 R$ 12.2k dia 11 R$ 15.8k dia 12 R$ 14.1k dia 13 R$ 7.4k dia 14 R$ 0.0k dia 15 R$ 11.9k dia 16 R$ 16.2k dia 17 R$ 14.8k dia 18 R$ 13.1k dia 19 R$ 17.4k dia 20 R$ 15.2k dia 21 R$ 8.8k dia 22 R$ 0.0k dia 23 R$ 12.6k dia 24 R$ 18.1k dia 25 R$ 16.4k dia 26 R$ 15.9k dia 27 R$ 19.2k dia 28 R$ 17.8k dia 29 R$ 9.4k dia 30 R$ 14.8k Vendas por mês ano fiscal Vendas por mês, ano fiscal : total de R$ 3196k no período; maior valor em nov , R$ 334k . Período Valor jan R$ 186k fev R$ 204k mar R$ 241k abr R$ 228k mai R$ 262k jun R$ 254k jul R$ 289k ago R$ 276k set R$ 312k out R$ 298k nov R$ 334k dez R$ 312k Vencimentos de venda 7 Vencimentos de compra 5 Estoque mínimo 12 Lotes a vencer 4 Pedidos de venda 6 Ordens de compra 3 Requisições 2 Expedições pendentes 8 Fluxo de caixa 9 Nota ↕ Cliente ↕ Vencimento ↕ Situação Devido ↕ NF 1240 Acme Comércio 19/08/2026 Atrasado R$ 12.480,00 NF 1236 Padaria Estrela 20/08/2026 Parcial R$ 3.240,00 NF 1231 TechPro Sistemas 21/08/2026 Pendente R$ 8.760,00 NF 1229 Mercado União 22/08/2026 Pendente R$ 2.180,00 NF 1224 Posto BR Centro 23/08/2026 Parcial R$ 15.900,00 NF 1220 Clínica Vida 24/08/2026 Pendente R$ 1.340,00 NF 1218 Auto Center RS 25/08/2026 Pendente R$ 24.520,00 7 de 7 linhas · clique para abrir o detalhe Exportar CSV Herança do Blade que não foi portada Os widgets pluggable de módulo (4 posições) estão comentados no Blade legado e ficaram fora desta tela — decidir se voltam.",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 47,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "700",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 52.6,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 30,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

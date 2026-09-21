@@ -1,0 +1,221 @@
+{
+  "id": "Patrimonio/Index",
+  "source": "patrimonio-page.jsx",
+  "target": "resources/js/Pages/Patrimonio/Index.tsx",
+  "token": "assets",
+  "frescor": "verificado 2026-09-17",
+  "contrato": null,
+  "compare": {
+    "rc": 1,
+    "veredito": "DIVERGE (bug)",
+    "motivo": "",
+    "bugs": 1,
+    "shell": 0,
+    "sameTheme": false,
+    "porDim": {
+      "D2": {
+        "diverge": 1,
+        "bug": 1,
+        "semDado": 0,
+        "igual": 0
+      },
+      "D4": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 1,
+        "igual": 1
+      },
+      "D6": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D8": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D9": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 11,
+        "igual": 0
+      },
+      "SHELL": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 4,
+        "igual": 0
+      }
+    },
+    "rows": [
+      {
+        "dim": "D2",
+        "campo": "kpi.count",
+        "prod": 3,
+        "design": 4,
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D4",
+        "campo": "tipografia",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D6",
+        "campo": "cor",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D8",
+        "campo": "kpi align",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D9",
+        "campo": "acoes",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "analises",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "cabecalho",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "kpis",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "resumo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-alcas",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-corpo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-modos",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-rodape",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-topo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "subnav",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D4",
+        "campo": "linha da tabela",
+        "prod": "não medido",
+        "design": "não medido",
+        "veredito": "SEM-DADO",
+        "detalhe": "passe `tableRow` em __DD_ROLES nos DOIS lados"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.presenca",
+        "prod": "0 el (.sb-shortcuts .sb-shortcut)",
+        "design": "0 el (.sb-menu > .sb-item)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.presenca",
+        "prod": "0 el (.sb-menu-grouped)",
+        "design": "1 el (.sb-menu)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.grupoHeader.presenca",
+        "prod": "0 el (.sb-group-h)",
+        "design": "0 el (.sb-group-h)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.itemGrupo.presenca",
+        "prod": "0 el (.sb-item)",
+        "design": "0 el (.sb-group .sb-item, .sb-group-body .sb-item)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      }
+    ]
+  },
+  "veredito": null,
+  "motivo": "",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/asset/dashboard",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-09-21T14:25:22.418Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3"
+}

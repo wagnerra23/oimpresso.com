@@ -1,0 +1,298 @@
+{
+  "url": "https://staging.oimpresso.com/asset/assets",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Bens O patrimônio da empresa: o que a casa tem, onde está e com quem Novo ativo Categoria todas Local todas Tipo de compra todas Somente alocáveis Bens do patrimônio Ações Código Imagem Bem Categoria Local Qtd Alocado Valor unitário Garantia Compra Situação Alocar recurso — Asset Wagner biz=1 Enviar pra manutenção — Asset Wagner biz=1 Editar — Asset Wagner biz=1 Excluir — Asset Wagner biz=1 AST-CRS-X12 — Asset Wagner biz=1 — — 1 0 R$ 2.000,00 Sem garantia vigente — 1 em manutenção Alocar recurso — Asset Wagner biz=1 Enviar pra manutenção — Asset Wagner biz=1 Editar — Asset Wagner biz=1 Excluir — Asset Wagner biz=1 AST-CRS-X12 — Asset Wagner biz=1 — — 1 0 R$ 2.000,00 Sem garantia vigente — 1 em manutenção Alocar recurso — Asset Wagner Inverso Enviar pra manutenção — Asset Wagner Inverso Editar — Asset Wagner Inverso Excluir — Asset Wagner Inverso AST-CRS-X13 — Asset Wagner Inverso — — 1 0 R$ 2.500,00 Sem garantia vigente — Operando Alocar recurso — Asset Wagner Inverso Enviar pra manutenção — Asset Wagner Inverso Editar — Asset Wagner Inverso Excluir — Asset Wagner Inverso AST-CRS-X13 — Asset Wagner Inverso — — 1 0 R$ 2.500,00 Sem garantia vigente — Operando Alocar recurso — Dropdown Wagner Legítimo Enviar pra manutenção — Dropdown Wagner Legítimo Editar — Dropdown Wagner Legítimo Excluir — Dropdown Wagner Legítimo AST-CRS-X1D — Dropdown Wagner Legítimo — — 3 0 R$ 150,00 Sem garantia vigente — Operando Alocar recurso — Dropdown Wagner Legítimo Enviar pra manutenção — Dropdown Wagner Legítimo Editar — Dropdown Wagner Legítimo Excluir — Dropdown Wagner Legítimo AST-CRS-X1D — Dropdown Wagner Legítimo — — 3 0 R$ 150,00 Sem garantia vigente — Operando Alocar recurso — Impressora Teste WR2 Enviar pra manutenção — Impressora Teste WR2 Editar — Impressora Teste WR2 Excluir — Impressora Teste WR2 AST-TST-9992 — Impressora Teste WR2 — — 2 0 R$ 1.200,00 Sem garantia vigente — Operando Alocar recurso — Impressora Teste WR2 Enviar pra manutenção — Impressora Teste WR2 Editar — Impressora Teste WR2 Excluir — Impressora Teste WR2 AST-TST-9992 — Impressora Teste WR2 — — 2 0 R$ 1.200,00 Sem garantia vigente — Operando Alocar recurso — Notebook Teste Isolamento WR2 Enviar pra manutenção — Notebook Teste Isolamento WR2 Editar — Notebook Teste Isolamento WR2 Excluir — Notebook Teste Isolamento WR2 AST-TST-9991 — Notebook Teste Isolamento WR2 — — 1 0 R$ 3.500,00 Sem garantia vigente — Operando Alocar recurso — Notebook Teste Isolamento WR2 Enviar pra manutenção — Notebook Teste Isolamento WR2 Editar — Notebook Teste Isolamento WR2 Excluir — Notebook Teste Isolamento WR2 AST-TST-9991 — Notebook Teste Isolamento WR2 — — 1 0 R$ 3.500,00 Sem garantia vigente — Operando Enviar pra manutenção — Servidor Teste Manutencao Editar — Servidor Teste Manutencao Excluir — Servidor Teste Manutencao AST-TST-9993 — Servidor Teste Manutencao — — 1 — R$ 8.000,00 Sem garantia vigente — Operando Enviar pra manutenção — Servidor Teste Manutencao Editar — Servidor Teste Manutencao Excluir — Servidor Teste Manutencao AST-TST-9993 — Servidor Teste Manutencao — — 1 — R$ 8.000,00 Sem garantia vigente — Operando Enviar pra manutenção — Servidor Teste Manutencao 2 Editar — Servidor Teste Manutencao 2 Excluir — Servidor Teste Manutencao 2 AST-TST-9994 — Servidor Teste Manutencao 2 — — 1 — R$ 8.500,00 Sem garantia vigente — 1 em manutenção Enviar pra manutenção — Servidor Teste Manutencao 2 Editar — Servidor Teste Manutencao 2 Excluir — Servidor Teste Manutencao 2 AST-TST-9994 — Servidor Teste Manutencao 2 — — 1 — R$ 8.500,00 Sem garantia vigente — 1 em manutenção Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "subnav",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "filtros",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "tabela",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": "A",
+        "align": "left",
+        "larguraPct": 10.8,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 4,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.4,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 5.7,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 0,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 6.1,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 6.7,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 8,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 9.6,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 9,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 13.8,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "3.35544e+07px",
+          "borda": true,
+          "bg": "oklch(0.97 0.004 90)",
+          "dot": true
+        }
+      },
+      {
+        "col": 10,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 11,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "3.35544e+07px",
+          "borda": true,
+          "bg": "oklch(0.97 0.03 75)",
+          "dot": true
+        }
+      }
+    ],
+    "tabela": {
+      "tableLayout": "fixed",
+      "colunasDeclaradas": 11,
+      "linhas": 14,
+      "linhasComEstado": 4
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

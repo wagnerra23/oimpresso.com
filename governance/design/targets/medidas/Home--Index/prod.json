@@ -1,0 +1,141 @@
+{
+  "url": "https://staging.oimpresso.com/dashboard-legacy",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Visão geral R$ 14,5k vendas · R$ 14,5k a receber · R$ 0,00 despesas Bem-vindo , CI Período Dia Semana Mês De Até Líquido no período R$ 0,00 Vendas R$ 14.489,12 incluindo impostos A receber R$ 14.489,12 líquido de descontos de razão Despesas R$ 0,00 lançadas no período Contrapartidas mesmo período Compras R$ 0,00 incluindo impostos A pagar R$ 0,00 líquido de descontos Devolução de venda R$ 0,00 no período Devolução de compra R$ 0,00 devido ao fornecedor Pendências agora Nada pendente. Vendas por dia últimos 30 dias Vendas por dia, últimos 30 dias : total de R$ 14.489,12 no período; maior valor em 09/09 , R$ 14.489,12 . Período Valor 20/08 R$ 0,00 21/08 R$ 0,00 22/08 R$ 0,00 23/08 R$ 0,00 24/08 R$ 0,00 25/08 R$ 0,00 26/08 R$ 0,00 27/08 R$ 0,00 28/08 R$ 0,00 29/08 R$ 0,00 30/08 R$ 0,00 31/08 R$ 0,00 01/09 R$ 0,00 02/09 R$ 0,00 03/09 R$ 0,00 04/09 R$ 0,00 05/09 R$ 0,00 06/09 R$ 0,00 07/09 R$ 0,00 08/09 R$ 0,00 09/09 R$ 14.489,12 10/09 R$ 0,00 11/09 R$ 0,00 12/09 R$ 0,00 13/09 R$ 0,00 14/09 R$ 0,00 15/09 R$ 0,00 16/09 R$ 0,00 17/09 R$ 0,00 18/09 R$ 0,00 Vendas por mês ano fiscal Vendas por mês, ano fiscal : total de R$ 14.489,12 no período; maior valor em set , R$ 14.489,12 . Período Valor jan R$ 0,00 fev R$ 0,00 mar R$ 0,00 abr R$ 0,00 mai R$ 0,00 jun R$ 0,00 jul R$ 0,00 ago R$ 0,00 set R$ 14.489,12 out R$ 0,00 nov R$ 0,00 dez R$ 0,00 Vencimentos de venda Vencimentos de compra Estoque mínimo Pedidos de venda Expedições pendentes Nada em vencimentos de venda Quando houver registros nesta lista, eles aparecem aqui. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "kpis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "contrapartidas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "pendencias",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "graficos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "grades",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 36.8,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "700",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 63.2,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 30,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "url": "http://127.0.0.1:8000/oficina-auto/service-orders/1",
+  "theme": "dark",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo TE AV OS #1 Status aberta KM na entrada 184.320 Entrada 01/06/2026, 08:00:00 Previsão entrega 05/06/2026, 18:00:00 Conclusão — Entrega cliente — Veículo VRGB101 Observações VISREG-BOARD — fixture do gate visual (recepcao) Aprovação do cliente A execução não inicia sem o cliente autorizar. Envie o orçamento com a vistoria por WhatsApp. Enviar orçamento por WhatsApp Itens da OS Adicionar item Nenhum item lançado ainda. Use \"Adicionar item\" pra lançar peças, mão-de-obra ou serviços. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 24,
+      "weight": "600",
+      "color": "oklch(0.965 0.004 240)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}
