@@ -18,7 +18,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 21
+charter_version: 23
 permissao: jana.access
 ---
 
@@ -242,6 +242,43 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- **v23 (2026-09-21)** — **business sem histórico vê UM estado de página, não 6 caixas vazias.**
+  ONDA 02 do mesmo playbook (`cowork-inbox/jana/playbook/02-painel.estado-vazio.md`). Um arquivo,
+  nenhum campo novo: o predicado (`sellKpis.total` · `totalAReceber` · `topClientes` ·
+  `methodsAgg`, todos zerados) deriva do payload que o controller já manda.
+
+  **`coworkAggregates` fica fora do predicado de propósito** — é `Inertia::defer`, e `undefined`
+  ali significa "ainda não chegou", não "não tem dado". Incluí-lo faria a tela **piscar** o
+  empty-state no meio de um carregamento normal. Precedência: `carregandoCockpit` (skeleton) →
+  `semHistorico` → conteúdo.
+
+  **A dúvida que a ficha deixou aberta está respondida pelo código vivo:** ela pedia confirmar que
+  `topClientes`/`methodsAgg` chegam `[]` e não `null`. As linhas acima do predicado já fazem
+  `.reduce()` direto nos dois, sem guard, desde sempre — com `null` a tela estaria quebrada hoje em
+  qualquer business.
+
+  ⚠️ **O ramo de ERRO do protótipo NÃO desceu.** O `IndexController` não emite sinal de falha, e
+  exportar aquele card seria pedir UI pra um estado que o servidor não sabe produzir. É fundação +
+  decisão [W].
+
+  ⚠️ **`variant="first"` do pedido NÃO EXISTE** — o `EmptyState` declara
+  `'default' | 'search' | 'error' | 'success'`. Ficou no `default`; inventar variante nova pra um
+  caso seria criar token de UI por atalho. O **ícone** foi conferido contra o resolvedor real
+  (`Icon` cai em `Icons.Circle` **silenciosamente** se o nome não resolve): `sparkles` → `Sparkles`,
+  com controle negativo.
+
+  **METAS não são tocadas** — eixos separados: um business pode ter meta e zero venda. O
+  `painel-metas-vazio` segue com a copy pinada, e há caso dedicado provando que `aposKpis` renderiza
+  dentro do estado vazio. **Nenhuma âncora do contrato é afetada**, medido: as 6 renderizam em
+  `Index.tsx` (5) e `JanaPlanoBadge.tsx` (1) — nenhuma no `JanaCockpit.tsx`.
+
+  Travado por **UC-JPAIN-29** (`tests/janaPainelEstadoVazio.spec.tsx`, 11 casos), com mordida
+  provada em **dois eixos**: desligar o ramo derruba 5 de 11; tirar o guard do defer derruba
+  **exatamente 1** — o anti-flicker.
+
+  ⚠️ **Smoke autenticado NÃO foi feito** (302 sem sessão) e **business zerado não foi observado em
+  prod**. O DoD §9 segue aberto.
 
 - **v22 (2026-09-21)** — **o tier Pro passou a governar brief, análises e ações.** Pedido
   descido pelo playbook do Cowork (`cowork-inbox/jana/playbook/01-painel.gating-pro.md`, ONDA
