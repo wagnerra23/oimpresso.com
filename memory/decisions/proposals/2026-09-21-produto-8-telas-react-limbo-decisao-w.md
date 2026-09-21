@@ -1,8 +1,10 @@
 ---
 title: "As 8 telas React do Produto — ligar, rota paralela (US-PROD-029), ou trancar a porta? E a reconciliação 023 ↔ 029"
-status: proposed
+status: accepted
 date: "2026-09-21"
-decisores: [Wagner (decide), Felipe (decidiu a 029 em 2026-08-24), Claude Code (autor)]
+decidido_em: "2026-09-21"
+decisao: "SIM, entra na navegação — aplicar as duas linhas e a reconciliação ([W], textual)"
+decisores: [Wagner (decidiu), Felipe (decidiu a 029 em 2026-08-24), Claude Code (autor)]
 parent_module: Produto
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
@@ -20,10 +22,35 @@ origem: "Chip aberto no #7522 (fix do writer de estoque) — a correção pousou
 
 # As 8 telas React do Produto — o que a medição mudou na pergunta
 
+> ## ⚠️ DECIDIDO e ERRATA (2026-09-21, no mesmo dia)
+>
+> **[W] respondeu: SIM, a Consulta entra na navegação** — e mandou aplicar as duas linhas e a
+> reconciliação. Ao ir aplicar, **medi e derrubei uma afirmação minha deste documento**. Ela
+> fica registrada, não apagada:
+>
+> **ERRADO (o que eu escrevi e publiquei em PR):** *"uma rota sem `can:`"*, *"superfície Tier-0
+> viva e sem dono"*, e a recomendação de adicionar `middleware('can:product.view')`.
+>
+> **MEDIDO:** `ProdutoUnificadoController:139` **já aborta com 403** e aceita
+> `product.view` **OU** `product.create` — e o comentário ao lado declara a intenção:
+> *"a semântica canônica **NÃO é middleware** … porque quem pode cadastrar produto precisa
+> alcançar o catálogo"*. Tem UC próprio (`UC-PUNI-06`) **com teste**
+> (`ProdutoUnificadoContratoTest.php:340`). Eu afirmei "sem gate" lendo a **ausência de
+> middleware** na rota, sem abrir o corpo do controller — a classe [LC-08](../../LICOES_CODE.md),
+> e a mesma forma da §5 2026-09-08 (*afirmar sobre a interação de duas defesas tendo lido uma*).
+>
+> **Consequência prática — a "linha 1" estava invertida:** aplicar o middleware seria
+> **REGRESSÃO** (trancaria quem tem `product.create` e não tem `product.view`, exatamente o
+> caso que o controller garante) e o teste do UC-PUNI-06 cairia. O `TODO [CL]` em
+> `routes/web.php:699` é uma **instrução em canon que produz regressão se obedecida** — o
+> conserto certo é **corrigir o TODO**, não cumpri-lo. Ver §3 reescrito.
+>
+> O resto do documento — a porta de entrada, a circularidade, o reponte do BulkEdit e a
+> reconciliação 023↔029 — **sobreviveu à medição** e está aplicado.
+
 > **O que eu resolvi e o que é seu.** A técnica (como partir a US, qual writer é de quem)
-> eu resolvi medindo, e está proposta abaixo. **Uma coisa é sua e só sua:** a Consulta
-> `/products/unificado` entra na navegação? Dela decorre se as 6 telas não-cadastrais
-> ganham usuário ou continuam especulativas.
+> eu resolvi medindo, e está proposta abaixo. **Uma coisa era sua e só sua:** a Consulta
+> `/products/unificado` entra na navegação? — **respondida: SIM** ([W] 2026-09-21).
 
 ## 1. A correção do enquadramento (e é o que mais importa aqui)
 
@@ -46,7 +73,7 @@ tela React alcançável digitando a URL. E ela liga no resto do cacho:
 
 | passo | arquivo:linha | o que acontece |
 |---|---|---|
-| entra | `routes/web.php:700` | `/products/unificado` — render Inertia incondicional, **sem `can:`** |
+| entra | `routes/web.php:700` | `/products/unificado` — render Inertia incondicional (o gate de permissão existe, mas **dentro** do controller: `:139`, `abort(403)`, `view` OU `create`) |
 | → cadastrar | `Unificado/Index.tsx:721` e `:1323` | `router.visit('/products/create')` — **manda** `X-Inertia` |
 | → editar | `Unificado/_components/DetalheProduto.tsx:363` | `router.visit('/products/{id}/edit')` — **manda** `X-Inertia` |
 | React renderiza | `ProductController` (8 sites de `header('X-Inertia')`) | pega o ramo Inertia → `Produto/Create` / `Produto/Edit` |
@@ -62,10 +89,11 @@ sidebar recebe o `href` do menu legado e usa `<a href>` puro — ou seja, Blade.
 1. **O #7522 não protegeu caminho morto.** Ele fechou um bug num writer que qualquer um com
    a URL alcança. A conclusão do chip ("corrigi um defeito num caminho que ninguém percorre")
    estava certa sobre o *tráfego* e errada sobre a *exposição*.
-2. **Hoje existe superfície Tier-0 viva e sem dono:** uma rota sem `can:` que leva a telas
-   que escrevem preço e estoque pelo writer compartilhado — com **zero** benefício, porque
-   ninguém chega lá clicando. É o pior dos dois mundos, e é o único item aqui que não depende
-   da sua decisão de direção.
+2. ~~**Hoje existe superfície Tier-0 viva e sem dono:** uma rota sem `can:`…~~ — **REFUTADO
+   por mim mesmo na aplicação; ver a errata no topo.** O gate existe (`:139`, `abort(403)`,
+   `product.view` **OU** `product.create`, com UC e teste). O que sobra de verdadeiro, e é bem
+   mais modesto: um caminho de escrita **vivo e sem tráfego** — protegido por permissão, mas
+   exercitado por ninguém, logo sem smoke real que o cubra.
 3. **Há corroboração independente de que ninguém as usa, e é dura:** `BulkEdit.tsx:138` salva
    em `POST /products/mass-update`, e essa rota **não existe** — medido com controle positivo:
    `mass-update` em `routes/` dá **zero** (rc=1), `bulk-update` existe (`routes/web.php:715`).
@@ -73,18 +101,37 @@ sidebar recebe o `href` do menu legado e usa `<a href>` puro — ou seja, Blade.
    Pior: `BulkEdit.casos.md:41` registra **decisão [W] de 2026-07-27 mandando repontar a
    tela**, e a linha do `.tsx` nunca foi aplicada — ~2 meses.
 
-## 3. O que NÃO depende da sua decisão (e eu recomendo fazer já)
+## 3. As "duas linhas" — uma inverteu na medição, a outra destravou
 
-Duas linhas, ambas já decididas antes, nenhuma delas escolhe direção:
+### Linha 1 — ~~adicionar `can:product.view` na rota~~ → **corrigir o TODO que manda fazer isso**
 
-- **`can:product.view` em `/products/unificado`.** O `TODO [CL]` está literal no
-  `routes/web.php:699`, e isso **já é o primeiro item do aceite da US-PROD-023**. Converte
-  "superfície Tier-0 latente" em "de fato dormente" enquanto você decide.
-- **Repontar `BulkEdit.tsx` pra `/products/bulk-update`** — cumprir a decisão [W] de
-  2026-07-27 que ficou pendente.
+Medido ao ir aplicar (detalhe na errata do topo): o gate **já existe** dentro do controller,
+com semântica `product.view` **OU** `product.create`, declarada em comentário, coberta por
+`UC-PUNI-06` e **com teste**. Pôr `middleware('can:product.view')` na rota seria **mais
+estrito que o controller** e trancaria quem só tem `product.create` — regressão, e o teste
+cairia.
 
-Não apliquei nenhuma das duas: `routes/` aciona `infra-contract-required`, e o pedido foi
-explícito em não implementar antes da decisão. Ficam prontas pra ir num PR próprio.
+O defeito real é o **`TODO [CL]` de `routes/web.php:699`**: ele instrui a próxima sessão a
+cometer essa regressão. Vira comentário que aponta pro gate verdadeiro. Aplicado em PR
+próprio (só `routes/`, mudança de comentário, zero delta de comportamento).
+
+### Linha 2 — **repontar `BulkEdit.tsx` pra `/products/bulk-update`** ✅ destravada
+
+A decisão [W] é de **2026-07-27**, e o canon repetia em 3 lugares (`casos.md:41`,
+`charter.md:85`, `RUNBOOK:82`) que a linha do `.tsx` *"viaja junto com o `UC-PBULK-05` —
+sozinha não faz a tela salvar"*, porque o writer lia 5 chaves sem `??` e revertia o lote.
+
+**Re-medido hoje (§5 2026-09-03 — gap declarado em canon tem prazo de validade):** o
+**[#7523](https://github.com/wagnerra23/oimpresso.com/pull/7523) entregou o `UC-PBULK-05` em
+2026-09-18** (*"writer deriva chave ausente"*, eixo VALOR aprovado por [W] sob a REGRA MESTRE).
+A pré-condição está satisfeita — o reponte agora **completa** a cadeia em vez de ficar órfão.
+Payload conferido: `bulkUpdate()` lê `input('products')` e itera `['variations']`, exatamente
+a forma que a tela monta.
+
+⚠️ **O que o reponte NÃO faz:** a flag `enable_product_bulk_edit` segue **`false`**
+(`config/constants.php:84`, upstream *"Will be depreciated in future"*), então o operador não
+alcança o botão pela lista Blade. O reponte remove a mina; **não** liga a feature. O destino
+dela segue decisão sua, como o `PARIDADE-charter-vs-legado.md:222` já registra.
 
 ## 4. A reconciliação 023 ↔ 029 — a ordem declarada é o inverso da intenção
 
@@ -121,16 +168,21 @@ motivaram a 029. As outras 6 podem andar sem tocar nele.
 
 Isso remove a circularidade sem que nenhuma das duas US precise ser cancelada.
 
-## 5. A pergunta que sobra — e é sua
+## 5. A pergunta — RESPONDIDA
 
 > **A Consulta `/products/unificado` entra na navegação?**
+> ### ✅ **SIM** — [W] 2026-09-21: *"sim, entra na navegação — aplica as duas linhas e a reconciliação"*
 
-- **Se SIM:** as 6 telas da 023 ganham usuário de verdade, e terminá-las deixa de ser
-  especulativo. A Consulta é **aditiva** (não substitui `/products`), então não há cutover F5
-  nem canary envolvido em ligá-la — o risco é baixo e o ganho é real.
-- **Se NÃO:** elas seguem sem usuário. Aí a 023 não deveria estar como *"finalizar +
-  promover"*; deveria ser **parqueada** com a razão escrita, e o gate do item 3 passa a ser a
-  única coisa a fazer no módulo até haver sinal.
+Consequência: as 6 telas da 023 **ganham usuário**, e terminá-las deixa de ser especulativo.
+A Consulta é **aditiva** (não substitui `/products`), então ligá-la não tem cutover F5 nem
+canary.
+
+⚠️ **O fio que eu NÃO puxei, e por que:** *ligar na navegação* é trabalho de execução da
+US-PROD-023, não uma das "duas linhas" — e fazê-lo **hoje** exporia a Larissa a 7 telas
+`draft` que, pelo 🔴 do próprio BRIEFING, *"ainda não cobrem toda a função de produto simples,
+variável e combo já disponível no Blade"*. A decisão está registrada e o item entrou no aceite
+da 023; o cabeamento acontece quando as telas estiverem prontas. Se você quiser o link **já**,
+mesmo com as telas em `draft`, isso é uma palavra sua e eu ligo.
 
 Sobre a direção do cadastro (Create/Edit) eu **não** recomendo reabrir a 029: a decisão de
 Felipe de 2026-08-24 é recente, foi tomada com a medição certa, e a sua de **2026-09-18**
@@ -165,7 +217,12 @@ Rodado em `origin/main` (fast-forward nesta sessão, `0 0` vs `origin/main`), 20
 - A afirmação *"ninguém chega clicando"* vale pro **código servido** que eu varri
   (`resources/views/`, `resources/js/`, menu em PHP). Um link colado fora do repo não aparece
   nessa varredura.
-- **Não tratei** a `US-PROD-020` (que hoje bloqueia a 023). Ela segue como está; a proposta do
-  §4 não depende dela.
-- As 3 linhas prontas do §3 e a edição do §4 **não foram aplicadas** — o pedido era decisão,
-  não implementação.
+- **Não tratei** a `US-PROD-020` (que hoje bloqueia a 023). Ela segue como está; a reconciliação
+  do §4 não depende dela.
+- **Não liguei a navegação** — razão e condição no §5.
+- **Não medi** o `whats-active` na volta pra aplicar: o servidor MCP estava desconectado. Usei o
+  fallback de git que a §5 2026-09-05 nomeia (`git log HEAD..origin/main -- <alvo>`), que é piso,
+  não teto — sessão irmã sem push segue invisível.
+- **O que FOI aplicado** (o pedido de [W] em 2026-09-21): a reconciliação do §4 no `SPEC.md`
+  (neste PR) · o reponte do `BulkEdit.tsx` + os 3 textos de canon que afirmavam "não aplicado"
+  (PR próprio) · o conserto do `TODO` de `routes/web.php` (PR próprio).
