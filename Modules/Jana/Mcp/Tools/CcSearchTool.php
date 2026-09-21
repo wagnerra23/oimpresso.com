@@ -96,11 +96,15 @@ class CcSearchTool extends Tool
             $base->where('u.email', $userFilter);
         }
         // `m.ts` é UTC (vem do `.jsonl` via cc-watcher → `CcIngestController:239`), e `now()`
-        // é America/Sao_Paulo: a janela sai ~3h mais larga. Medido 2026-09-18 junto com o
-        // mesmo caso no `WhatsActiveTool`. NÃO trocado por `now('UTC')` aqui pelo mesmo motivo
-        // de lá — erro na direção segura (busca acha a mais, nunca a menos) e sem lane de PR
-        // que testemunhe a troca. Em janela de DIAS o desvio é proporcionalmente irrisório.
-        $base->where('m.ts', '>=', now()->subDays($daysAgo));
+        // é America/Sao_Paulo, o que abria a janela ~3h além da pedida. Corrigido em
+        // 2026-09-21 junto com o mesmo caso no `WhatsActiveTool`, que carrega a medição da
+        // origem UTC e o assert que morde.
+        //
+        // RESÍDUO DECLARADO: esta linha não tem testemunha de CI. `CcSearchTool` não tem teste
+        // (medido 2026-09-21: 0 arquivos `*Test.php` o citam), e um teste dele não roda na
+        // lane sqlite porque a query usa `MATCH(...) AGAINST(...)`, que é FULLTEXT de MySQL.
+        // O mecanismo é idêntico ao do `WhatsActiveTool` e está provado LÁ, não aqui.
+        $base->where('m.ts', '>=', now('UTC')->subDays($daysAgo));
 
         // FULLTEXT search
         $rows = $base->whereRaw(

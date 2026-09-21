@@ -72,27 +72,31 @@ class WhatsActiveTool extends Tool
             );
         }
 
-        // MEDIDO 2026-09-18, e deixado COMO ESTÁ de propósito — leia antes de "consertar".
+        // `now('UTC')` NÃO é decoração: `mcp_cc_messages.ts` guarda UTC, não a timezone do
+        // app. A origem é externa, e foi medida em 2026-09-21: o cc-watcher repassa o
+        // `timestamp` do `.jsonl` verbatim (34.050 de 34.050 com sufixo `Z`, em 60 arquivos
+        // do corpus), e os DOIS caminhos de ingest — `CcIngestController:239` e
+        // `CcIngestService:144` — fazem `Carbon::parse($m['ts'])`, que preserva o UTC; o cast
+        // `datetime` formata o wall-clock sem converter pra timezone do app.
         //
-        // `mcp_cc_messages.ts` guarda UTC, não a timezone do app: a origem é externa (o
-        // cc-watcher repassa o `timestamp` do `.jsonl`, ISO com `Z`, e o
-        // `CcIngestController:239` faz `Carbon::parse($m['ts'])`, preservando o UTC). Estas
-        // duas linhas comparam essa coluna com `now()`, que é America/Sao_Paulo. O efeito é
-        // uma janela ~3h MAIS LARGA que a pedida.
+        // Até 2026-09-21 estas duas linhas usavam `now()` (America/Sao_Paulo), o que abria a
+        // janela ~3h ALÉM da pedida. O erro era na direção segura — esta tool é detector de
+        // colisão, e super-reportar avisa demais — mas era a janela errada, e a correção
+        // exigia mexer nas fixtures junto (elas gravavam `ts` em hora local).
         //
-        // POR QUE NÃO TROCAR POR `now('UTC')` de passagem: o erro aqui é na direção SEGURA
-        // (esta tool é detector de colisão — super-reportar avisa demais, sub-reportar deixa
-        // duas sessões se atropelarem em silêncio). E a troca NÃO é verificável hoje: as
-        // fixtures de `WhatsActiveToolTest` gravam `ts` com `now()` LOCAL, ou seja, elas
-        // codificam a convenção errada e passariam a reprovar; e nenhuma lane de PR roda esse
-        // arquivo (medido: zero hits de `WhatsActiveToolTest` em `.github/workflows/`), então
-        // o CI não seria testemunha. Corrigir de verdade = alinhar fixture ao ingest real
-        // (`now('UTC')`) + rodar a suíte, numa sessão que possa rodá-la.
+        // QUEM MEXER AQUI: o assert que MORDE é `WhatsActiveTool ignora sessão sem atividade
+        // na janela`. Ele grava a mensagem a UTC-3h contra janela de 2h, então voltar `now()`
+        // alarga a janela em 3h, a mensagem velha entra e o assert cai. Provado por mutação em
+        // 2026-09-21 (CT 100, sqlite `:memory:`): tool revertida → 1 failed / 6 passed, com
+        // `<failure>` do assert de contrato, não `<error>`.
         //
-        // O que FOI corrigido no mesmo dia é a metade sem esse risco: o `diffForHumans` do
-        // display, que reportava o futuro. Ver o comentário na linha do `$shortAgo`.
-        $activeSince = now()->subHours($hours);
-        $pathsSince = now()->subHours($pathsWindowHours);
+        // CUIDADO com o irmão que NÃO é o mesmo caso: `mcp_ingest_heartbeat.last_ingest_at`
+        // tem origem SERVIDOR (`$hb->last_ingest_at = now()`), logo é hora local dos dois
+        // lados, e comparar com `now()` local está CORRETO — o `IngestLivenessService` faz
+        // isso de propósito. O eixo é a ORIGEM do dado (externa vs servidor), não o nome da
+        // coluna.
+        $activeSince = now('UTC')->subHours($hours);
+        $pathsSince = now('UTC')->subHours($pathsWindowHours);
 
         // Sessões com atividade recente (status='active' OU última msg recente).
         // Fonte de verdade pra "ativo": existe message nas últimas N horas.
@@ -179,10 +183,10 @@ class WhatsActiveTool extends Tool
 
         foreach ($sessions as $sessId => $s) {
             $lastAt = $sessionIds->get($sessId);
-            // `, 'UTC'` NÃO é decoração: sem ele o Carbon lê o valor como hora local e o
-            // `diffForHumans` reporta o futuro. É a metade visível do mesmo defeito do
-            // `$activeSince` acima — e a mais perigosa, porque um "ativo 2h from now" faz
-            // quem lê desconfiar do dado em vez do formato.
+            // `, 'UTC'` NÃO é decoração: sem ele o Carbon lê este valor (que é UTC) como hora
+            // local e o `diffForHumans` reporta o FUTURO — um "ativo 2h from now" faz quem lê
+            // desconfiar do dado em vez do formato. Mesma origem-UTC explicada no bloco do
+            // `$activeSince`, que desde 2026-09-21 também compara em UTC.
             $shortAgo = $lastAt ? \Carbon\Carbon::parse($lastAt, 'UTC')->diffForHumans(['short' => true]) : '—';
             $project = basename($s->project_path ?? '—');
             $paths = $pathsBySession->get($sessId, []);
