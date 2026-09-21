@@ -47,7 +47,7 @@
       resp: h(Avatar, { name: 'Carlos Souza' }), valor: 'R$ 540' } },
   ];
   ReactDOM.createRoot(document.getElementById('root')).render(
-    h('div', { className: 'wrap' }, h(DataTable, { columns, rows, onRowClick: () => {} }))
+    h('div', { className: 'wrap' }, h(DataTable, { columns, rows, caption: 'Ordens de serviço em pipeline', onRowClick: () => {} }))
   );
 </script>
 </body>

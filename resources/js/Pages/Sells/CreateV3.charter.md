@@ -8,7 +8,7 @@ last_validated: "2026-08-27"
 parent_module: Sells
 related_us: [US-SELL-058]
 related_adrs: [253, 104, 93, 62]
-related_prototype: prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx
+related_prototype: prototipo-ui/cowork/Felipe/venda-v3.jsx (VendaV3Create)
 tier: C
 charter_version: 2
 ---
@@ -140,7 +140,7 @@ ligação. **Escrever** em outro módulo, não.
 
 > _pendente [W]/[L]_ — copy literal e ordem dos blocos. Enquanto vazio, a âncora de design abaixo é a referência.
 
-**Âncora de design:** [`prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx`](../../../../prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx) — cockpit "Venda — Guia de Produção", do handoff `design_handoff_cadastro_venda` (projeto de design Oimpresso `019e2365`, 2026-08-06). Declarada em `related_prototype`, então `node scripts/design/ancora.mjs Sells/CreateV3` a resolve. Contexto do bundle: [`memory/reference/prototipo-ui/FONTE-DESIGN-venda-v3.md`](../../../../memory/reference/prototipo-ui/FONTE-DESIGN-venda-v3.md) — o doc mora no root porque `cowork/` é **build-only** e não aceita `.md` (regra R1 do `cowork-ssot-guard`).
+**Âncora de design:** [`prototipo-ui/cowork/Felipe/venda-v3.jsx`](../../../../prototipo-ui/cowork/Felipe/venda-v3.jsx) (seção `sells-create.jsx`, `window.VendaV3Create`) _(repontado 2026-09-21 — o espelho do Felipe passou a ser o pacote "Produto Unificado V2", onde a Venda V3 veio num arquivo só: `venda-v3.jsx`, seção `sells-create.jsx`, exporta `window.VendaV3Create`. A âncora anterior `venda-v3/sells-create.jsx` segue no histórico em [bdf6d07e3](https://github.com/wagnerra23/oimpresso.com/blob/bdf6d07e3/prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx); dono: `resources/js/Pages/Sells/CreateV3.charter.md`)_ — cockpit "Venda — Guia de Produção", do handoff `design_handoff_cadastro_venda` (projeto de design Oimpresso `019e2365`, 2026-08-06). Declarada em `related_prototype`, então `node scripts/design/ancora.mjs Sells/CreateV3` a resolve. Contexto do bundle: [`memory/reference/prototipo-ui/FONTE-DESIGN-venda-v3.md`](../../../../memory/reference/prototipo-ui/FONTE-DESIGN-venda-v3.md) — o doc mora no root porque `cowork/` é **build-only** e não aceita `.md` (regra R1 do `cowork-ssot-guard`).
 
 > ⚠️ **Errata 2026-08-10 — esta linha apontava pro vazio, e o registro fica.**
 > A redação anterior declarava a âncora em `prototipo-ui/design-oimpresso/04-modulos/vendas/sells-create.jsx`

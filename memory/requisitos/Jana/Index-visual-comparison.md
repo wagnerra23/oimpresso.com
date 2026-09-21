@@ -34,6 +34,26 @@
 > [`PARIDADE-area-jana-diagnostico-e-ondas.md`](PARIDADE-area-jana-diagnostico-e-ondas.md) carrega o
 > mesmo 19px e fica intacto pelo mesmo motivo: é fóssil datado, e esta errata é o ponteiro.
 >
+> **FECHADO em 2026-09-21 — o peso convergiu, por réplica local.** A linha `font-weight` da
+> tabela acima vira **600 = 600**; ela fica como está porque é o retrato de 09-18. O que a rodada
+> de hoje acrescenta é o fundamento que faltava: **as duas âncoras discordam entre si.** A de
+> **Vendas** declara **700** explicitamente (`styles.css:4772`, 0-1-1, e `financeiro.css:1727`,
+> 0-3-1 — esta vence), com o comentário de `styles.css:4765` dizendo textual *"`.os-head` — mesmo
+> CANON do PageHeader"*; a da **Jana** não declara peso e herda o DS (600). O 700 do componente é
+> decisão [W] datada e **ainda válida** (PR #1477, 2026-05-25, *"prefiro o mesmo peso do sells"* —
+> referência re-medida hoje, segue 700), então mudá-la alinharia **42** telas ao peso da Jana.
+> Conserto: prop opt-in `titleWeight` no `PageHeader` (default `'bold'`, mesmo contrato de
+> `leading`/`below`); só o `JanaAreaHeader` declara `'semibold'` — as outras **41** não mudam um
+> pixel. UC-JPAIN-30, mordida provada por 2 mutações. **Computed style MEDIDO** (browser real + CSS do
+> projeto gerado pelo entry de verdade, Tailwind v4.3.3): **600** com a prop, **700** sem ela, e
+> `font-size` **22px nos dois** — a paridade de tamanho **não foi tocada**. Necessária porque no v4
+> a regra é indireta (`font-weight: var(--font-weight-semibold)`) e só o browser resolve; controle
+> positivo `folhaCarregou: true` no mesmo turno. ⚠️ Não é a tela `/ia` **logada inteira** — smoke
+> autenticado não foi feito (302 sem sessão). O `<h1>` **continua fora** dos 9
+> seletores do `jana--index.alvo.json` — o buraco de medição que esta seção denuncia **segue
+> aberto**, e fechá-lo exige re-medir por sonda contra render servido, não editar o alvo à mão.
+> Trilha: `Index.charter.md` **v25**.
+>
 > Trilha completa: `Index.charter.md` **v17**.
 
 - **Data da medição:** 2026-08-17 (**re-medido** — ver §Correções abaixo) · **âncora:** `prototipo-ui/cowork/Wagner/jana-merge.jsx` (resolvida por `node scripts/design/ancora.mjs Jana/Index`)
@@ -707,7 +727,7 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 | tablist | `nav` filho de `.jc-page` · `left=284 w=2237 h=36` · 14px abaixo do header (41px) | inline na Zona C do `PageHeader` · `left=1654 w=451 h=33` · `top=38` (mesmo do h1) | ❌ bug → **corrigido** (slot `below` do `PageHeader` canon) |
 | aba | 13px/500 · ativa 600 + `border-b 2px accent` + bg `oklch(0.33 0.09 295/.5)` · ícone 14px · `padding 0 14px` | 13px/500 · ativa 600 + mesmo underline/pill · ícone 14px · `14px` | ✅ **(2026-09-18)** — `density="compact"`; ver nota |
 | Zona R | `Atualizado 09:42` (dot) → `plano Pro` → Configurar → Exportar | `plano Pro` → Configurar → Exportar → **Conversar** (primary); "Atualizado" no subtítulo | ❌ → **corrigido** (Atualizado 1º da Zona R; primary removido) |
-| subtítulo | mono 11.5px `OIMPRESSO MATRIZ · biz=164 · v1404…` | sans 12px | 🟡 → mono (`versão` é dado que a prod não tem) |
+| subtítulo | mono 11.5px `OIMPRESSO MATRIZ · biz=164 · v1404…` | sans 12px | 🟡 → mono (`versão` é dado que a prod não tem) → ✅ **FECHADO 2026-09-03 (#6655)** — `font-mono tracking-wide` no `subtitle` do [`JanaAreaHeader`](../../../resources/js/Pages/Jana/_components/JanaAreaHeader.tsx); a `versão` segue ausente por falta de dado |
 | título | 19px/700 | 22px/700 | ⛔ ~~DECLARADA · decisão [W]~~ **REVOGADO 2026-09-18** — `PageHeader` canon (ADR 0189) é Fundação/Shell de 37 telas |
 
 > ⚠️ **A justificativa da linha `aba` estava FALSA, e isso é o achado — não a métrica.** Ela dizia
@@ -744,15 +764,63 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 
 | item | âncora `.jc-kpi` | produção `KpiCard` shared | veredito |
 |---|---|---|---|
-| grid | `repeat(4, 1fr)` · gap 10 · 3 cards ocupam 3/4 | `grid-cols-3` · gap 12 · 3 cards ocupam tudo (`w=738`) | ❌ |
-| card | `h=98` · pad `12px 14px 14px` · r **8px** · gap 3px · bg `surface` | `h=125` · pad `16px` · r **12px** · gap 8px · bg `card` | ❌ |
-| label | **mono** 10px/700 uppercase `.06em` · ícone 15px **inline** à direita do label (`.jc-kpi-h`) | sans 11px/600 uppercase · ícone dentro de **caixa 36×36** `bg-muted rounded-lg` | ❌ (é o "feio": a caixa de ícone e o padding) |
-| valor | 22px/700 (`--fs-7`) · **28px** no `.emph` | 22px/600 · 22px no danger | 🟡 peso 700×600; emph 28px ausente |
-| delta/sub | `small` 11px `text-3` (`-68% vs mai/25` · `4.255 títulos · 76% inadimplência`) | `description` 12px só no vencido | 🟡 |
-| card em alarme | `.emph`: bg `--neg-soft` (`oklch(0.36 0.12 25)`), borda `neg 22%`, ícone e texto `--text` | `tone=danger`: bg `destructive/5`, borda `destructive/20` | ❌ tinta sólida × 5% |
-| tag | `DIV` (não clicável, salvo `jm-an-hit` por fora) | `BUTTON` (KpiCard com `onClick`) | 🟡 a sonda acusa; prod é clicável por design (drill) — classificar com [W] |
+| grid | `repeat(4, 1fr)` · gap 10 · 3 cards ocupam 3/4 | `grid-cols-3` · gap 12 · 3 cards ocupam tudo (`w=738`) | ❌ → ✅ **FECHADO 2026-09-03 (#6662)** — `KpiGrid cols={4}` + `gap-2.5` (10px) |
+| card | `h=98` · pad `12px 14px 14px` · r **8px** · gap 3px · bg `surface` | `h=125` · pad `16px` · r **12px** · gap 8px · bg `card` | ❌ → ✅ **FECHADO 2026-09-03 (#6662)** — r8 por `--radius`, `pt-3 px-3.5 pb-3.5`, `gap-[3px]` |
+| label | **mono** 10px/700 uppercase `.06em` · ícone 15px **inline** à direita do label (`.jc-kpi-h`) | sans 11px/600 uppercase · ícone dentro de **caixa 36×36** `bg-muted rounded-lg` | ❌ (é o "feio": a caixa de ícone e o padding) → ✅ **FECHADO 2026-09-03 (#6662)** — a caixa 36×36 sumiu; ícone 15px inline |
+| valor | 22px/700 (`--fs-7`) · **28px** no `.emph` | 22px/600 · 22px no danger | 🟡 peso 700×600; emph 28px ausente → ✅ **FECHADO 2026-09-03 (#6662)** — 700 nos dois; `emph` no degrau `--fs-8` |
+| delta/sub | `small` 11px `text-3` (`-68% vs mai/25` · `4.255 títulos · 76% inadimplência`) | `description` 12px só no vencido | 🟡 → ✅ **FECHADO 2026-09-03 (#6662)** — `small` 11px nos dois, e o delta passou a existir |
+| card em alarme | `.emph`: bg `--neg-soft` (`oklch(0.36 0.12 25)`), borda `neg 22%`, ícone e texto `--text` | `tone=danger`: bg `destructive/5`, borda `destructive/20` | ❌ tinta sólida × 5% → ✅ **FECHADO 2026-09-03 (#6662)** — `bg-destructive-soft` (tinta do token), não mais 5% |
+| tag | `DIV` (não clicável, salvo `jm-an-hit` por fora) | `BUTTON` (KpiCard com `onClick`) | 🟡 a sonda acusa; prod é clicável por design (drill) — classificar com [W] → ✅ **FECHADO 2026-09-03 (#6662)** — o card voltou a `DIV`; quem recebe o clique é o wrapper |
+
+
+> **As 7 linhas acima FECHARAM em 2026-09-03, e a tabela ficou sem o ponteiro por 18 dias.**
+> Ela preserva o retrato do dia — os `h=125`, `r 12px`, `sans 11px/600` e a **caixa 36×36** eram
+> verdade quando foi escrita — e o conserto entrou às **17:44Z do MESMO dia** (a hora da
+> medição não está registrada; a do merge, sim), pela
+> [#6662](https://github.com/wagnerra23/oimpresso.com/pull/6662) (*"Onda 2 da paridade — os KPIs viram RÉPLICA do `.jc-kpi`"*), que criou
+> [`JanaKpiCard.tsx`](../../../resources/js/Pages/Jana/_components/JanaKpiCard.tsx) em vez de mexer
+> no `KpiCard` shared de 37 telas (réplica local, ADR 0388 §D-1).
+>
+> **A medição do DEPOIS não se repete aqui** (§5 2026-07-17: dois docs com o mesmo número drifam):
+> ela está em [`Index.casos.md`](../../../resources/js/Pages/Jana/Index.casos.md)
+> §*"Medição de runtime — mesma sonda nos dois lados (2026-09-03)"*, **13 campos**, com a única
+> diferença residual declarada ali (4px de altura, `line-height` do `small` herdado do body de cada
+> bancada). Travado por **UC-JPAIN-20** em
+> [`tests/janaKpiReplica.spec.tsx`](../../../tests/janaKpiReplica.spec.tsx), mordida provada por
+> mutação (`rounded-xl` + `bg-destructive/5` de volta ⇒ 3 de 13 caem).
+>
+> ⚠️ **O `emph` vale um parágrafo porque a linha `valor` acima confunde dois eixos.** A réplica os
+> separou: `emphasis` rege **fundo + borda + o degrau `--fs-8`**, e `valueTone` rege **só a cor do
+> valor**. No dataset da âncora os dois caem no mesmo card (N=1), e era por isso que pareciam um.
+>
+> ⚠️ **O `delta` existir não quer dizer que o CONTEÚDO bata.** A célula da âncora cita
+> `-68% vs mai/25` e `4.255 títulos · 76% inadimplência`; o que fechou foi a **forma** (`small` 11px,
+> cores por direção, o `%` escrito no texto). Quais deltas a prod publica depende do payload, e
+> **isso não foi re-medido nesta passada**.
 
 ### Metas — não comparável hoje (0 metas em todos os tenants, medido 2026-08-21/08-31); âncora `METAS ATIVAS` mono + 5 cards em linha + `Nova meta` à direita × prod pill `METAS` + h2 + 3 botões + empty. Fica pra quando existir dado.
+
+> ⚠️ **Este §Metas caducou em DOIS eixos — o título acima fica como fato datado (§5 2026-09-03).**
+>
+> **Eixo FORMA — fechado.** O `METAS ATIVAS` mono e o `Nova meta` à direita **existem hoje**: o
+> cabeçalho passou a usar o mesmo `SectionTitle` réplica da `.jc-h2`
+> ([#7555](https://github.com/wagnerra23/oimpresso.com/pull/7555), 2026-09-18, **UC-JPAIN-27**) e o botão vive num `ml-auto`
+> ([`Index.tsx`](../../../resources/js/Pages/Jana/Index.tsx) §`painel-metas-header`). O
+> `pill METAS + h2 + 3 botões` que esta linha descreve foi o que aquele PR **removeu** — a trilha
+> completa está na nota *"CABEÇALHO FECHADO em 2026-09-18"* do §R5, e não se repete aqui.
+>
+> **Eixo DADO — a premissa "0 metas em todos os tenants" não vale mais.** Ela sustentou três
+> rodadas (08-21 · 08-31 · 09-07) e o *"fica pra quando existir dado"*. Em 2026-09-21 a seção
+> **virou comparável**: a contagem viva e a tabela item-a-item estão na rodada de 2026-09-21
+> §**METAS** ([#7639](https://github.com/wagnerra23/oimpresso.com/pull/7639)) — **medição de sessão irmã, não desta**, e o número
+> mora lá, não aqui.
+>
+> ⚠️ **"5 cards em linha" fechou como ESTRUTURA, não como densidade.** A prod renderiza os cards
+> em grade quando há dado (deixa de cair no `EmptyState`), mas a grade é
+> `sm:grid-cols-2 xl:grid-cols-3` com `gap-4` contra `auto-fit minmax(232px,1fr)` + gap 10px da
+> âncora — **dívida aberta**, medida naquela rodada. Não carimbe esta linha como fechada por
+> inteiro.
+
 
 ### Ondas (resolvidas em PRs separados, ≤300 linhas cada)
 
@@ -819,14 +887,33 @@ Medido: nós · filhos · altura · `display` · `gap` · `grid-template-columns
 |---|---|---|---|---|
 | **kpis** | display · gap · colunas | grid · 10px · 4 | grid · 10px · 4 | ✅ **IGUAL** (a onda 2 fechou) |
 | **header** | display · altura | flex · 80px | block · **130px** | ❌ DIVERGE |
-| **tabs** | altura · gap | 36px · 0px | **33px** · **2px** | ❌ DIVERGE |
+| **tabs** | altura · gap | 36px · 0px | **33px** · **2px** | ❌ DIVERGE → ❌ **RE-CONFERIDO 2026-09-21: SEGUE ABERTO** — o `density="compact"` (2026-09-18) fechou fonte e padding da *aba*, **não** este eixo: o `gap-0.5` (2px) do container `role="tablist"` segue intocado ([`PageHeaderTabs.tsx`](../../../resources/js/Components/shared/PageHeaderTabs.tsx) §`flex items-center gap-0.5`) |
 | **brief** | display · gap · filhos | block · normal · 7 | **flex** · **24px** · **1** | ❌ DIVERGE (estrutura) |
-| **análises (grade)** | colunas · gap | **3** · 12px | **2** · **16px** | ❌ DIVERGE |
-| **h2 análises** | tamanho · peso · tracking · cor | 11px · 700 · 0.88px · `text-3` | **14px** · **600** · **1.4px** · mais claro | ❌ DIVERGE |
+| **análises (grade)** | colunas · gap | **3** · 12px | **2** · **16px** | ❌ DIVERGE → ✅ **FECHADO 2026-09-21 (#7638)** — 3 colunas + gap 12px; travado por **UC-JPAIN-31** |
+| **h2 análises** | tamanho · peso · tracking · cor | 11px · 700 · 0.88px · `text-3` | **14px** · **600** · **1.4px** · mais claro | ❌ DIVERGE → ✅ **FECHADO 2026-09-18 (#7555)** — mesmo `SectionTitle` réplica que fechou o `h2 ações` ao lado; **UC-JPAIN-27**. Re-medido no runtime em 2026-09-21: **8/8** propriedades batem |
 | **h2 ações** | idem acima | 11px · 700 · 0.88px | 11px · 700 · 0.88px | ✅ **(2026-09-18)** — era `14px · 600 · 1.4px`; ver nota |
-| **ações** | gap | normal | **24px** | ❌ DIVERGE |
+| **ações** | gap | normal | **24px** | ❌ DIVERGE → ⚠️ **RECLASSIFICADO 2026-09-21 (#7638)** — medição certa, propriedade **inerte**: o `Card` tem 1 filho e `gap` sem 2º filho não separa nada. O respiro de 24px era o `py-6` do `Card` canon, removido naquele PR |
 | **corpo** | fonte base | 13px | **13,5px** | 🟡 direção a decidir — 13,5px é o `--fs-4` do RAMP canon; **o protótipo é que está fora dele** |
-| **metas** | — | 5 cards | **empty state** | ⬜ NÃO COMPARÁVEL |
+| **metas** | — | 5 cards | **empty state** | ⬜ NÃO COMPARÁVEL → ⚠️ **DEIXOU DE SER NÃO-COMPARÁVEL em 2026-09-21** — a premissa "0 metas em todos os tenants" caducou; a seção foi medida COM cards renderizados. Veredito item-a-item na rodada de 2026-09-21 §**METAS** (#7639) — medição de sessão irmã, e o número mora lá |
+
+
+> **Ponteiros de fechamento acrescentados em 2026-09-21 — e o que NÃO foi reavaliado.**
+> Quatro linhas desta tabela ganharam ponteiro acima; as outras **não foram re-medidas nesta
+> passada**, e dizer que seguem valendo seria afirmar sem medir. O estado declarado:
+>
+> | linha | estado em 2026-09-21 |
+> |---|---|
+> | `kpis` | já trazia `✅ IGUAL`; confere com a réplica da [#6662](https://github.com/wagnerra23/oimpresso.com/pull/6662) — ver §KPIs da rodada de 09-03 |
+> | `análises (grade)` · `h2 análises` · `ações` | **fechadas / reclassificada** — ponteiro na própria linha |
+> | `tabs` | **re-conferido, SEGUE ABERTO** — o `gap-0.5` do container continua lá |
+> | `header` · `brief` · `corpo` | **NÃO reavaliados** — exigiriam sonda no DOM, fora do recorte deste PR (doc-only) |
+> | `metas` | deixou de ser `⬜ NÃO COMPARÁVEL` — ver §Metas logo abaixo |
+>
+> **Por que isto existe:** em 2026-09-21 três sessões irmãs receberam ordem de consertar itens
+> daqui, mediram antes de editar e acharam o item **já correto em produção**. A tabela estava certa
+> como história e enganosa como estado — e o `h2 análises` era o caso mais duro, porque o
+> `h2 ações` **ao lado** recebeu o `✅` do mesmo conserto e ele não: o documento se contradizia a
+> duas linhas de distância. Obedecer teria reescrito código correto e derrubado teste.
 
 **Caixa alta dos h2:** ambos os lados têm `text-transform: uppercase` — a dúvida registrada em
 2026-09-04 (*"sentence case no código pode estar sendo uppercase no CSS"*) fica **resolvida: é
@@ -875,6 +962,20 @@ O alvo renderiza **5 cards**, no formato exato que a onda 2.1 implementou
 `Aguardando apuração… alvo <X>` na meta sem apuração). A produção mostra o **empty state**:
 **zero metas em biz=1**, confirmado também na aba Plataforma (as duas tabelas vazias). Terceira
 medição seguida com o mesmo resultado (08-21 · 08-31 · **09-07**).
+
+> ⚠️ **Ponteiro de 2026-09-21: a quarta medição QUEBROU a série.** As três leituras acima
+> (08-21 · 08-31 · 09-07) estão corretas nas datas delas e **ficam**. O que caducou é a conclusão
+> operacional — *"a onda 2.1 não foi verificada em produção"* deixou de ser consequência de não
+> haver dado: em 2026-09-21 a seção foi medida **com** cards renderizados, e o veredito item-a-item
+> está na rodada de 2026-09-21 §**METAS** ([#7639](https://github.com/wagnerra23/oimpresso.com/pull/7639)).
+>
+> Duas coisas que aquela rodada mostrou e que esta seção não poderia saber: **(a)** o
+> `Nova meta`/`Jana Pro`/`Conversar` que as leituras antigas contaram como divergentes **também
+> existem na âncora** — os *"3 botões"* nunca foram gap; **(b)** a projeção marcada como ausente
+> **existe na prod com a mesma copy** — a busca antiga procurou a palavra *"projeção"* no DOM, e a
+> prod renomeou o rótulo (rótulo do protótipo não é chave de busca em código que renomeou —
+> §5 2026-07-15 · LC-08). A dívida que **sobrou** é de densidade (grade e card), e é nova.
+
 
 **Portanto a onda 2.1 NÃO foi verificada em produção** — só por Pest (arquivo) e por render jsdom
 (DOM, 6 casos com mordida provada). O card em si continua sem prova na tela real, e isso não é
