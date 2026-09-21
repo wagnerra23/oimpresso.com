@@ -874,7 +874,7 @@ Medido: nós · filhos · altura · `display` · `gap` · `grid-template-columns
 | **h2 ações** | idem acima | 11px · 700 · 0.88px | 11px · 700 · 0.88px | ✅ **(2026-09-18)** — era `14px · 600 · 1.4px`; ver nota |
 | **ações** | gap | normal | **24px** | ❌ DIVERGE → ⚠️ **RECLASSIFICADO 2026-09-21 (#7638)** — medição certa, propriedade **inerte**: o `Card` tem 1 filho e `gap` sem 2º filho não separa nada. O respiro de 24px era o `py-6` do `Card` canon, removido naquele PR |
 | **corpo** | fonte base | 13px | **13,5px** | 🟡 direção a decidir — 13,5px é o `--fs-4` do RAMP canon; **o protótipo é que está fora dele** |
-| **metas** | — | 5 cards | **empty state** | ⬜ NÃO COMPARÁVEL |
+| **metas** | — | 5 cards | **empty state** | ⬜ NÃO COMPARÁVEL → ⚠️ **DEIXOU DE SER NÃO-COMPARÁVEL em 2026-09-21** — a premissa "0 metas em todos os tenants" caducou; a seção foi medida COM cards renderizados. Veredito item-a-item na rodada de 2026-09-21 §**METAS** (#7639) — medição de sessão irmã, e o número mora lá |
 
 
 > **Ponteiros de fechamento acrescentados em 2026-09-21 — e o que NÃO foi reavaliado.**
