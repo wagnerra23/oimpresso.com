@@ -35,8 +35,20 @@ vi.mock('@inertiajs/react', () => ({
 // primeira versão deste stub devolvia só uma `<div>` e engolia a seção inteira: 0 card
 // renderizado, e a mensagem de erro dizia "renderizou 0" sem dizer POR QUÊ. Foi a
 // medição do DOM que revelou a estrutura — ler o `Index.tsx` não bastava.
+// ⚠️ `SectionTitle` entrou neste mock em 2026-09-18, quando o cabeçalho de METAS do
+// `Index.tsx` passou a usá-lo (réplica da `.jc-h2` da âncora — UC-JPAIN-27). Sem ele o
+// vitest aborta os 5 casos com `No "SectionTitle" export is defined on the … mock`, e a
+// falha NÃO diz que é do mock: ela aparece como se o card de meta tivesse quebrado.
+//
+// O stub é um `<h2>` que RENDERIZA OS CHILDREN, não uma `<div>` vazia — os botões do
+// cabeçalho ("Nova meta", "Jana Pro", "Conversar com a Jana") moram lá dentro desde que
+// o bloco virou uma linha só. É exatamente a armadilha que o comentário acima registra:
+// stub que engole o conteúdo devolve "renderizou 0" sem dizer por quê.
 vi.mock('@/Pages/Jana/_components/JanaCockpit', () => ({
   default: ({ aposKpis }: { aposKpis?: React.ReactNode }) => <div data-stub="cockpit">{aposKpis}</div>,
+  SectionTitle: ({ children }: { children?: React.ReactNode }) => (
+    <h2 data-stub="section-title">{children}</h2>
+  ),
 }));
 vi.mock('@/Pages/Jana/_components/JanaConfigDrawer', () => ({ default: () => null }));
 vi.mock('@/Pages/Jana/_components/JanaMetaDrawer', () => ({ default: () => null }));

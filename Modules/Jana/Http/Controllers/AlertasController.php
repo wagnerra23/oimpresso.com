@@ -43,7 +43,7 @@ class AlertasController extends Controller
             'janaContext' => [
                 'businessId'   => $businessId,
                 'businessName' => $businessName,
-                'userName'     => optional($user)->name,
+                'userName'     => optional($user)->nome_exibicao,
             ],
         ]);
     }

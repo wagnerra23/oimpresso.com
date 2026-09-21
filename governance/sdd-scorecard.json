@@ -68,40 +68,40 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 284,
+      "value": 275,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "1f87ab2588a8a9f1",
+        "floor_files_hash": "c1658343d94a21f1",
         "runs": [
           {
-            "sha": "046875f8",
-            "ts": "20260916-020001",
-            "failed": 454,
-            "errors": 390,
-            "skipped": 2239,
-            "all_shards_measured": true
-          },
-          {
-            "sha": "aec265b5",
-            "ts": "20260917-020001",
-            "failed": 448,
-            "errors": 383,
-            "skipped": 2256,
-            "all_shards_measured": true
-          },
-          {
-            "sha": null,
+            "sha": "c89bb2ab",
             "ts": "20260918-020001",
             "failed": 462,
             "errors": 381,
             "skipped": 2220,
             "all_shards_measured": true
+          },
+          {
+            "sha": "c7adc44d",
+            "ts": "20260919-020001",
+            "failed": 430,
+            "errors": 375,
+            "skipped": 2273,
+            "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260920-020001",
+            "failed": 454,
+            "errors": 344,
+            "skipped": 2268,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260918-020001",
+        "computed_at": "20260920-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -182,22 +182,22 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 63.6,
+      "value": 66.7,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 11,
-        "weeks_valid": 7,
+        "weeks_expected": 12,
+        "weeks_valid": 8,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-09-13",
+        "last_week": "2026-09-20",
         "latest": {
           "gate_status": "pass",
           "n_evaluated": 51,
-          "faithfulness_avg": 0.8845,
-          "relevancy_avg": 0.9529,
-          "context_recall_avg": 0.5729
+          "faithfulness_avg": 0.9257,
+          "relevancy_avg": 0.9647,
+          "context_recall_avg": 0.5769
         }
       },
       "stream": "MEM"

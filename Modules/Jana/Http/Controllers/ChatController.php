@@ -115,7 +115,7 @@ class ChatController extends Controller
                 'janaContext' => [
                     'businessId'   => (int) $businessId,
                     'businessName' => (string) (session('business.name') ?? ''),
-                    'userName'     => optional(auth()->user())->name,
+                    'userName'     => optional(auth()->user())->nome_exibicao,
                 ],
             ]
         ));

@@ -115,12 +115,27 @@ O design declara, literalmente:
 | 21 | **Ícone** | `chart` (eixo + 3 barras — `icons.jsx:21`) | `Home` na minha 1ª versão | ❌ → **corrigido** (`BarChart3`) |
 | 22 | **`aria-current="page"`** | presente (`sidebar.jsx:278`) | ausente (nem o `SidebarMenuItem` marcava) | ❌ → **corrigido** no atalho |
 | 23 | Alocação | entry **sem grupo** → topo | caía em **SISTEMA**, o último grupo, por match do label 'Dashboard' | ❌ → **corrigido** (`group: 'landing'`) |
-| 24 | **Bloco de atalhos** | `.sb-item` inline no `sb-menu`; **`sb-shortcuts` não existe** no espelho inteiro | `.sb-shortcut` em bloco `.sb-shortcuts` próprio | ⚠️ **PROD DIVERGE — pré-existente, NÃO corrigido** |
-| 25 | Forja no topo | 3 atalhos; comentário diz "Equipe → MAIS" | 4 atalhos (IA · Forja · Atendimento · Visão geral) | ⚠️ **PROD-À-FRENTE** ou design atrasado — não tocado |
+| 24 | **Bloco de atalhos** | `.sb-item` inline no `sb-menu`; **`sb-shortcuts` não existe** no espelho inteiro | `.sb-shortcut` em bloco `.sb-shortcuts` próprio | ⚠️ ~~**PROD DIVERGE — pré-existente, NÃO corrigido**~~ → **DÍVIDA A FECHAR** (raio: shell) |
+| 25 | Forja no topo | 3 atalhos; comentário diz "Equipe → MAIS" | 4 atalhos (IA · Forja · Atendimento · Visão geral) | ⚠️ ~~**PROD-À-FRENTE** ou design atrasado~~ → **PROTÓTIPO ATRASADO** — prod tem 4, o protótipo 3 |
+
+> ⛔ **Rótulos trocados por revogação de [W] em 2026-09-18** (*"agora é o Protótipo quem manda, e a
+> paridade deve ser o objetivo"*). Os **fatos** das duas linhas continuam medidos e válidos; o que
+> muda é o que cada rótulo prescreve.
+>
+> **#25 era ambíguo no próprio texto** — *"PROD-À-FRENTE **ou** design atrasado"* —, e a ambiguidade
+> é exatamente o que o vocabulário novo desfaz: produção com **4** atalhos contra **3** do protótipo
+> é **PROTÓTIPO ATRASADO**, e o lado que se move é o protótipo (ganha o 4º no Cowork e desce). Não
+> há hipótese em que a produção perca um atalho vivo para "voltar" a 3.
+>
+> **#24 vira DÍVIDA A FECHAR** com o raio declarado: `.sb-shortcut`/`.sb-shortcuts` não existem no
+> espelho, então quem diverge é a produção.
 
 **#24 e #25 não são desta rodada.** O #24 afeta IA/Forja/Atendimento **igualmente** — é divergência
 de shell anterior a este trabalho, e reconciliar (trocar `.sb-shortcut` por `.sb-item` inline)
 mexeria no topo de **todas** as telas. É decisão [W], não carona de um PR de dashboard.
+⚠️ **Desde 2026-09-18, "não é desta rodada" diz QUANDO, não SE:** o raio de shell é a razão de
+precisar de PR próprio e de aceite [W] — nunca de a divergência poder ficar. Enquanto não fechar,
+ela é dívida aberta, e a próxima comparação do shell vai marcá-la de novo, corretamente.
 
 ### Adaptação declarada — importei a forma, não a premissa
 

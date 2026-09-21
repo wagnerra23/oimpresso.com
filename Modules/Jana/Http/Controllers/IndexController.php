@@ -51,7 +51,7 @@ class IndexController extends Controller
             'janaContext' => [
                 'businessId'   => $businessId,
                 'businessName' => $businessName,
-                'userName'     => optional(auth()->user())->name,
+                'userName'     => optional(auth()->user())->nome_exibicao,
             ],
         ]);
     }

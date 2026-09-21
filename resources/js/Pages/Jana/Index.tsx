@@ -17,7 +17,7 @@ import EmptyState from '@/Components/shared/EmptyState'
 import { MessageSquare, TrendingUp, TrendingDown, Minus, Sparkles, Settings, Download, Target } from 'lucide-react'
 import FabJana from './_components/FabJana'
 import { JanaAreaHeader } from './_components/JanaAreaHeader'
-import JanaCockpit, { type JanaCockpitProps } from './_components/JanaCockpit'
+import JanaCockpit, { SectionTitle, type JanaCockpitProps } from './_components/JanaCockpit'
 import JanaConfigDrawer from './_components/JanaConfigDrawer'
 import { JanaPlanoBadge } from './_components/JanaPlanoBadge'
 import { useJanaPro } from './_components/useJanaPro'
@@ -350,27 +350,27 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
               Sem `p-6`/`shrink-0`: agora está DENTRO do cockpit, que já vive em
               `px-6 pt-6`. */}
         <div className="space-y-6 pt-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                {/* Badge sólido em `primary`. Era um gradiente de 3 paradas
-                    (violet→fuchsia→pink) — paleta inventada, fora do sistema de
-                    token e sem par no dark. Não vira "gradiente de token": some. */}
-                <Badge aria-label="Versão Jana V2">
-                  <Sparkles className="mr-1 h-3 w-3" aria-hidden="true" />
-                  METAS
-                </Badge>
-                <span data-contract="painel-metas-header" className="text-xs text-muted-foreground">Acompanhamento contínuo</span>
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold tracking-tight">Metas ativas</h2>
-                <p className="text-sm text-muted-foreground">
-                  {metas.length} {metas.length === 1 ? 'meta ativa' : 'metas ativas'} — visão consolidada do business
-                </p>
-              </div>
-            </div>
+          {/* Cabeçalho de METAS — UMA linha, como a âncora `jana-merge.jsx` §`JmMetasSecao`:
+              `<h2 class="jc-h2"><JcIcon name="target"/> METAS ATIVAS <span class="jm-per">…`,
+              com os controles no `jm-per` (`margin-left:auto`). Âncora de SÍMBOLO:
+              `grep -n "JmMetasSecao" prototipo-ui/cowork/Wagner/jana-merge.jsx`.
 
-            <div className="flex flex-wrap items-center gap-2">
+              ⚠️ ATÉ 2026-09-18 eram QUATRO linhas: badge `METAS` + "Acompanhamento contínuo"
+              + h2 de 20px "Metas ativas" + a contagem "N metas ativas — visão consolidada do
+              business". A âncora não tem nenhuma das três últimas. A divergência estava MEDIDA
+              e registrada desde 2026-08-31, e NÃO foi corrigida na época porque
+              `Acompanhamento contínuo` e `Metas ativas` são copy PINADA no
+              `governance/design/contracts/jana-painel.contract.json` §`painel-metas-header`,
+              e copy de contrato é soberania [W] (`memory/proibicoes.md` §Comportamento).
+              [W] decidiu em 2026-09-18 FECHAR a paridade e apagar a copy — o contrato foi
+              atualizado no MESMO PR, senão o gate `contrato-de-tela` reprova.
+
+              O `data-contract` migrou pro h2: a seção continua ancorada e vigiada, com a copy
+              que sobreviveu. O `<Badge>` de versão saiu junto — a âncora não o tem, e ele
+              rotulava "Jana V2", nomenclatura que nenhuma outra parte da tela usa. */}
+          <SectionTitle icon={<Target size={14} />} data-contract="painel-metas-header">
+            Metas ativas
+            <span className="ml-auto flex flex-wrap items-center gap-2">
               {/* "Nova meta" — a âncora põe este botão no cabeçalho da seção METAS.
 
                   ⚠️ ATÉ 2026-09-07 este botão era um `<a href>` NATIVO, e o comentário
@@ -420,8 +420,8 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                   Conversar com a Jana
                 </Button>
               </Link>
-            </div>
-          </div>
+            </span>
+          </SectionTitle>
 
 
 

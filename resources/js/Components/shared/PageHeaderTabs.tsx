@@ -107,8 +107,34 @@ interface Props {
    * excedentes, separadas por divider). Wagner 2026-05-21 tweak Fase 5.
    */
   extraOverflowItems?: PageHeaderOverflowItem[];
+  /**
+   * Métrica da aba. `default` é a do protótipo do **Clientes**
+   * (`clientes-page.css` `.cli-moduletopnav-tab`), fixada por [W] em 2026-07-14 e travada
+   * por `tests/pageHeaderTabsFidelity.spec.tsx` — **não mexa nela**: são 6 áreas
+   * (Financeiro, Forja, Governança, Jana, Patrimônio, Ponto) penduradas neste componente.
+   *
+   * `compact` existe porque a âncora da **Jana** (`jana-merge.jsx` §`JmTabs`) pede
+   * `13px/500` com `padding 0 14px`, contra os `14px/400` + `px-3` do Clientes. Divergência
+   * medida e registrada em `memory/requisitos/Jana/Index-visual-comparison.md`.
+   *
+   * ⚠️ **Por que parâmetro e não réplica local:** decisão [W] de 2026-09-18, escolhida sobre
+   * as outras três opções que lhe foram apresentadas (deixar como está · componente de abas
+   * próprio da Jana · rever o protótipo do Clientes). O `JanaSubNav` **delega inteiramente**
+   * a este componente e não tem markup de aba próprio, então "réplica local" aqui custaria
+   * duplicar a barra inteira — diferente do `JanaKpiCard`, que replicava um card.
+   *
+   * ⚠️ **Não vire eixo de opinião.** Um valor novo aqui só entra com âncora de protótipo que
+   * o exija; `density` não é dial de gosto, é a forma que a fonte de design daquela área pede.
+   */
+  density?: 'default' | 'compact';
   className?: string;
 }
+
+/** Métrica por densidade — o `default` é byte-idêntico ao que existia antes da prop. */
+const TAB_DENSITY: Record<'default' | 'compact', { base: string; inactive: string }> = {
+  default: { base: 'px-3 py-1.5 text-sm', inactive: 'text-muted-foreground' },
+  compact: { base: 'px-[14px] py-1.5 text-[13px]', inactive: 'text-muted-foreground font-medium' },
+};
 
 export default function PageHeaderTabs({
   primary,
@@ -118,6 +144,7 @@ export default function PageHeaderTabs({
   onGhostChange,
   maxVisible = 5,
   extraOverflowItems = [],
+  density = 'default',
   className,
 }: Props) {
   const hue = group ? SIDEBAR_GROUP_HUE[group] : undefined;
@@ -234,7 +261,8 @@ export default function PageHeaderTabs({
                   ghost.icon || ghost.badge != null ? 'inline-flex items-center gap-1.5' : '',
                   // Fiel ao protótipo `.cli-moduletopnav-tab`: slim, RETO (sem border-radius)
                   // e `-mb-px` pra o underline da aba ativa colar/sobrepor a linha da base.
-                  'px-3 py-1.5 text-sm whitespace-nowrap snap-start -mb-px',
+                  TAB_DENSITY[density].base,
+                  'whitespace-nowrap snap-start -mb-px',
                   'transition-colors border-b-2 border-transparent',
                   'hover:bg-accent hover:text-accent-foreground',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -246,7 +274,7 @@ export default function PageHeaderTabs({
                   // header). `hue` segue só pro botão primary colorido (out of scope).
                   isActive
                     ? 'text-foreground font-semibold'
-                    : 'text-muted-foreground',
+                    : TAB_DENSITY[density].inactive,
                 )}
                 style={
                   isActive

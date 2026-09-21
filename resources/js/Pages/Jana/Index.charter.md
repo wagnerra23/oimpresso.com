@@ -7,7 +7,7 @@ related_prototype: prototipo-ui/cowork/Wagner/jana-merge.jsx
 states: [default]  # gate L2 — o `default` desta tela é semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o `JanaKpiCard` em `emphasis` do "A receber vencido" entre em baseline; sync com tests/Browser/visreg-states.json
 owner: wagner
 status: live
-last_validated: "2026-09-07"
+last_validated: "2026-09-18"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [26, 31, 35, 36, 52, 93, 94, 107, 114]
@@ -18,7 +18,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 17
+charter_version: 21
 permissao: jana.access
 ---
 
@@ -79,8 +79,31 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   (`grep -n "JmMetaDrawer" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
   O drawer **não projeta o fechamento**: ver §Anti-hooks abaixo.
 
+- **O h2 de seção é RÉPLICA LOCAL da `.jc-h2` (v19 — 2026-09-18):** `font-mono text-[11px]
+  font-bold tracking-[0.08em] gap-[7px]` + `mt-1.5 mb-2.5` — a métrica da âncora
+  (`chat-jana.css` §"── H2 ──": `700 11px/1 var(--mono)`, `ls .08em`, `margin 6px 0 10px`).
+  Era o h2 do golden `governance/Dashboard` (`14px/600/1.4px`). O `uppercase` **não mudou**:
+  nunca foi divergência, e o teste o trava como invariante. O sub-rótulo segue `.jm-h2-sub`
+  (`ml-auto` — vai pra DIREITA da faixa —, mono 10.5px/400, `.02em`).
+  **Réplica LOCAL de propósito** ([ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1):
+  o `SectionTitle` é função interna do `JanaCockpit.tsx` e não sai dele — alinhar aqui **não**
+  impõe a forma da Jana às outras 37 telas, que é o erro invertido. Travado por **UC-JPAIN-27**.
+  ⚠️ A **cor** do sub ficou fora: a âncora usa `var(--text-dim)`, não definido no escopo desta
+  tela — sem token resolvível, trocar seria adivinhar.
+
+- **Quem assina as sugestões é a JANA (v18 — 2026-09-18):** o h2 da seção é
+  **"Ações que Jana sugere"** — literal, sem interpolação. Vem da âncora `jana-merge.jsx`
+  §`JmPainel` (`AÇÕES QUE {data.person.name.toUpperCase()} SUGERE`, e `data.person` é
+  `{ name: "Jana", role: "Analista IA" }`). Até 2026-09-18 o título interpolava
+  `firstNameUpper`, derivado de `userName` — **o usuário logado** —, atribuindo ao leitor
+  sugestões que o servidor derivou. É troca de **sujeito**, não de rótulo, e a caixa alta vem
+  do CSS (`uppercase`), nunca de `.toUpperCase()` no dado. Travado por **UC-JPAIN-24**
+  (`tests/janaAcoesAutoria.spec.tsx`). ⚠️ `firstName` **segue legítimo na SAUDAÇÃO** do brief —
+  a âncora também personaliza ali; o que não pode voltar é o nome do leitor **assinando** as
+  ações.
+
 - **Ação sugerida vira decisão REGISTRADA (v10 — 2026-08-18):** o CTA de cada linha
-  da seção "Ações que … sugere" abre `_components/JanaAcaoModal.tsx` — prévia do que a
+  da seção "Ações que Jana sugere" abre `_components/JanaAcaoModal.tsx` — prévia do que a
   ação faria + aprovação auditada em `jana_acao_aprovacoes` (`AcaoHitlService`,
   `business_id` NOT NULL, Tier 0). **A PRÉVIA NASCE NO SERVIDOR**, lida do mesmo
   agregado que pinta a linha (`SellsCockpitAggregator::buildInsightsAggregates`) —
@@ -195,6 +218,95 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- **v21 (2026-09-18)** — **a aba da área passou a 13px/500, por `density="compact"` no
+  `PageHeaderTabs`** — a métrica da âncora da Jana (`jana-merge.jsx` §`JmTabs`), contra os
+  14px/400 do protótipo do **Clientes**, que segue sendo o `default` e as outras **5 áreas**
+  (Financeiro, Forja, Governança, Patrimônio, Ponto) não passam a prop. Decisão [W] de
+  2026-09-18, escolhida sobre outras três: o `JanaSubNav` **delega inteiramente** ao
+  compartilhado e não tem markup de aba próprio, então réplica local custaria duplicar a barra
+  inteira. Travado por **UC-JPAIN-26**.
+
+  **O achado não é a métrica — é que a justificativa registrada era FALSA.** O
+  `Index-visual-comparison.md` dizia *"13×14px fica (fidelidade travada em
+  `pageHeaderTabsFidelity.spec`)"*. Medido por mutação: com o default trocado para `compact`,
+  aquele spec segue **13/13 verde** — ele trava radius, underline, pill e o peso da aba
+  **ATIVA**, nunca font-size/padding/peso-da-inativa. O item não estava travado, estava
+  **não-feito**, com aparência de decisão técnica. O bite-test do UC-JPAIN-26 é **comparativo**
+  e exibe o buraco: mesma mutação, `fidelidade` 13/13 verde × `density` 2 de 6 caindo.
+
+  ⚠️ **Ícone e badge nunca foram gaps** do chip original: o ícone já estava corrigido e o
+  `badge` opt-in **existe no componente** (pill do contador, cores travadas por 5 casos do spec
+  de fidelidade). O que falta para as abas mostrarem `Conversa 3` é o contador chegar do
+  `DataController` — **backend**, com raio nas 4 telas da área.
+
+- **v20 (2026-09-18)** — **o cabeçalho de METAS foi de 4 linhas para 1, e a copy pinada foi
+  REVOGADA por [W].** Prod tinha badge `METAS` + `Acompanhamento contínuo` + h2 de 20px
+  `Metas ativas` + a contagem `N metas ativas — visão consolidada do business`; a âncora
+  `JmMetasSecao` tem **uma** linha (`.jc-h2` + controles em `margin-left:auto`). Agora usa o
+  mesmo `SectionTitle` da v19, com os botões existentes no `ml-auto`.
+
+  **A trava não era de forma, era de CONTRATO.** `Metas ativas` e `Acompanhamento contínuo`
+  eram copy pinada em `jana-painel.contract.json` §`painel-metas-header`, e a
+  `_nota_metas_header` (2026-08-31) registrava a divergência dizendo *"não corrigida porque
+  copy pinada é lei [W]"*, oferecendo duas saídas. **Perguntei, e [W] escolheu remover** —
+  `memory/proibicoes.md` põe *copy de contrato* na lista curta de soberania real, ao lado de
+  merge e valor/estoque, então esta não era decisão minha. O contrato foi atualizado no MESMO
+  PR (sem isso o `contrato-de-tela` reprova) e a nota original **ficou**, com a revogação ao
+  lado — não se apaga o que era verdade numa data.
+
+  **O seletor de período e o `Farol | Cadastro` NÃO vieram:** seguem ❌ **backend**
+  (`IndexController::buildMetasPayload` carrega só `periodoAtual`). O cabeçalho fechou na forma
+  e na copy; a capacidade continua pendente, e dizer o contrário seria prometer no charter o que
+  a rota não entrega.
+
+- **v19 (2026-09-18)** — **o h2 de seção virou réplica local da `.jc-h2`.** Era o h2 do golden
+  `governance/Dashboard` (`text-sm font-semibold tracking-widest` = `14px/600/1.4px`) contra
+  `11px/700/0.88px` da âncora — divergência medida e registrada em
+  `Index-visual-comparison.md` desde a rodada de 2026-09-04. Aplicado
+  `font-mono text-[11px] font-bold tracking-[0.08em] gap-[7px] mt-1.5 mb-2.5`, mais o
+  sub-rótulo em `ml-auto` + mono 10.5px (`.jm-h2-sub`). **O `uppercase` não mudou** — a dúvida
+  de 2026-09-04 já tinha sido resolvida no doc (*"é uppercase nos dois"*), e o teste agora o
+  trava como **invariante**, não como correção. Travado por **UC-JPAIN-27**, 5 casos, mordida
+  provada nos dois sentidos (ausência da nova métrica **e** presença da antiga).
+
+  **Por que réplica LOCAL:** o `SectionTitle` é função interna do `JanaCockpit.tsx`. Alinhar o
+  compartilhado (`PageHeader`/`PageHeaderTabs`, 37-38 telas) imporia a forma da Jana a todas —
+  o mesmo erro, invertido. Caminho já validado pelo `JanaKpiCard`.
+
+  **Duas coisas ficaram FORA, declaradas:** (a) a **cor** do sub-rótulo — a âncora usa
+  `var(--text-dim)`, que não é definido no escopo desta tela (só em `estoque-page.css` e
+  `mockup-pages.css`), e sem token resolvível trocar seria adivinhar; (b) o frescor da fonte é
+  **⬜ INCONCLUSIVO**, não SYNC — `cowork-mirror-freshness --sla` acusa 5 arquivos do vivo
+  ausentes no espelho (3 deles do `_ds/`). O `chat-jana.css`, dono dos números aplicados, está
+  entre os **705 sync**, e o eixo novo vê ausência e não modificação — por isso o que foi
+  aplicado é derivado de fonte provada, e o que dependia do `_ds/` (a cor) não foi.
+
+- **v18 (2026-09-18)** — **a seção de ações era assinada por QUEM OLHA a tela, não pela Jana.**
+  O h2 interpolava `firstNameUpper` (derivado de `userName` = usuário logado) onde a âncora
+  `jana-merge.jsx:1121` usa `data.person.name` = **Jana**. Bug de **sentido**: a tela atribuía ao
+  leitor sugestões que o servidor derivou de 5 regras sobre o dado dele. Corrigido em
+  `_components/JanaCockpit.tsx`; `firstNameUpper` deletado (virou órfão). Travado por
+  **UC-JPAIN-24** — 8 casos, mordida provada por mutação (4 de 8 caem com o `firstNameUpper`
+  restaurado).
+
+  **Dois achados que este PR registra além do fix:**
+
+  1. **O `Index-visual-comparison.md` §R7 dava ✅ para esta linha desde 2026-08-17** — escrita
+     `"AÇÕES QUE <NOME> SUGERE"` × `"Ações que <Nome> sugere"`, a notação abstraiu num
+     placeholder comum **justamente a variável em disputa**. Mediu a forma da frase e calou
+     sobre o conteúdo: **falso-verde de 32 dias**, pior que ausência porque um ✅ desliga a
+     cobrança. Corrigido no mesmo PR (precedência: o perdedor se corrige junto). **Regra que
+     fica:** par de copy que interpola se registra com o VALOR resolvido de cada lado, nunca
+     com o molde.
+  2. **O antes→depois em produção é `VOCÊ` → `Jana`, não `<nome>` → `Jana`.** Medido no DOM:
+     `userName` chega **falsy** porque a tabela `users` **não tem coluna `name`** (migration
+     `2014_10_12_000000:17-27`; sem `getNameAttribute` em `app/User.php`), e **6 controllers**
+     leem `->name` — 5 em `Modules/Jana/` **e** `Modules/KB/…/MemoriaController.php:56`, da aba
+     Memória. São **dois defeitos empilhados** — o segundo é backend, PR próprio.
+     ⛔ E o conserto dele **não** é `user_full_name`: `surname` é PREFIXO no UltimatePOS
+     (`profile.blade.php:78` = `business.prefix`), o que faria a tela dizer `Boa tarde, Sr.`.
+     O campo é `first_name`.
 
 - **v17 (2026-09-18)** — **ERRATA da v13: a divergência do título era de PESO, não de TAMANHO — e
   o número 19px descrevia CSS que já não governa nada.** A v13 registra *"título 22px (canon

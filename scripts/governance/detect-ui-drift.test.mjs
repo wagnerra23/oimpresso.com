@@ -2,7 +2,7 @@
 // @ts-check
 // SELF-TEST — prova que detect-ui-drift.mjs MORDE e LIBERA (contrato, não implementação):
 //   (a) .tsx mudou + NADA declarado                     → FLAG          (morde)
-//   (b) + divergence_from_blueprint com razão real      → CLEARED       (libera: desvio)
+//   (b) + divergence_from_blueprint com razão real      → DIVIDA        (registra, NÃO absolve — [W] 2026-09-18)
 //   (c) + related_prototype mudou pra protótipo real    → CLEARED       (libera: ancoragem, não aplicação)
 //   (d) + entrada SYNC_LOG citando a tela               → CLEARED       (libera: sync log)
 //   (e) divergence "none" no diff                       → FLAG          (semântico: placeholder não conta)
@@ -32,12 +32,18 @@ const TOK = ['Sells/Index', 'Pages/Sells/Index'];
 check('(a) tsx mudou, nada declarado → FLAG',
   classifyTela({ charterDiff: '', syncLogAdded: [], telaTokens: TOK }).estado === 'FLAG');
 
-// (b) libera: desvio declarado com razão real
-check('(b) +divergence_from_blueprint razão real → CLEARED',
-  classifyTela({
-    charterDiff: '+divergence_from_blueprint: "cliente pediu densidade maior na lista"',
-    telaTokens: TOK,
-  }).estado === 'CLEARED');
+// (b) REGISTRA a dívida — e NÃO limpa. [W] revogou a "divergência autorizada" em
+// 2026-09-18: no eixo FORMA o protótipo manda (UI-0029), então declarar diz por que
+// ainda não fechou, nunca que pode ficar.
+const bDiv = classifyTela({
+  charterDiff: '+divergence_from_blueprint: "cliente pediu densidade maior na lista"',
+  telaTokens: TOK,
+});
+check('(b) +divergence_from_blueprint razão real → DIVIDA', bDiv.estado === 'DIVIDA');
+// CONTROLE do (b): se um dia isto voltar a CLEARED, a revogação de [W] foi desfeita
+// em silêncio. Este assert é o que impede — não o nome do estado, que é fácil trocar.
+check('(b-controle) DIVIDA nunca é CLEARED nem FLAG',
+  bDiv.estado !== 'CLEARED' && bDiv.estado !== 'FLAG' && /não absolve|NÃO é autorização/i.test(bDiv.motivo));
 
 // (c) libera: related_prototype mudou pra protótipo real
 const anchored = classifyTela({

@@ -83,7 +83,14 @@ Os tres, na mesma ordem e com o titulo literal identico:
 O **custo de manutencao no ano** (rodape do 3o bloco no prototipo) renderiza `—`: a tabela
 `asset_maintenances` nao tem coluna de valor (RESIDUO 3 do playbook). Tambem declarado no charter.
 
-## D7 — "Resumo de hoje": **IGUAL na 1a frase · a 2a e RECUSA DECLARADA**
+## D7 — "Resumo de hoje": **IGUAL na 1a frase · a 2a e RECUSA DECLARADA** — _eixo DADO, fora da revogação de 2026-09-18_
+
+> ⚠️ **Por que esta recusa SOBREVIVE à revogação de [W] em 2026-09-18** (*"agora é o Protótipo
+> quem manda"*): a [UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md) põe o
+> protótipo soberano na **FORMA** — layout, hierarquia, cor, tipografia, ícone, rótulo, afordância,
+> estado. **Conteúdo com número inventado não é forma, é DADO**, e dado segue do código. Portar a
+> 2ª frase seria portar o **mock**, não a paridade. Esta seção não é uma divergência autorizada: é
+> um caso em que o protótipo carrega dado falso, e o eixo em disputa nunca foi o dele.
 
 O prototipo escreve duas linhas mais um destaque. A producao porta a primeira e **omite a segunda
 com o motivo escrito no proprio `.tsx`** (`:136-137`): ela nomeia equipamentos especificos e um
@@ -91,7 +98,10 @@ custo por peca que **sao o cenario do mock**, nao dados do banco. Omitida, nao i
 (que manda comecar pela garantia de um equipamento nominal) cai pelo mesmo motivo.
 
 Isto e o comportamento certo, e vale registrar como precedente: **prosa de prototipo que cita
-numero especifico e dado de mock ate prova em contrario.**
+numero especifico e dado de mock ate prova em contrario.** ⚠️ E o limite do precedente, pra ele
+não virar porta de fuga: ele cobre **o número inventado**, nunca a **forma** que o carrega. A
+afordância (o caminho de 1 clique) é forma e **desceu** no [#7133](https://github.com/wagnerra23/oimpresso.com/pull/7133),
+como a emenda datada mais abaixo registra — foi exatamente a leitura certa da separação.
 
 ## D7 — Chips do "Resumo de hoje": ~~AUSENTE~~ → **PORTADO em 2026-09-09** ✅
 
@@ -153,7 +163,15 @@ do Resumo evitou. O que esta ausente e a **afordancia** — o caminho de 1 cliqu
 tela que resolve. Se ela deve existir e decisao de produto do [W]; o que este documento afirma e
 apenas que **hoje ela nao existe e ninguem disse que nao deveria**.
 
-## D7 — "Bens alocados a voce": **PROD-A-FRENTE por heranca do legado**
+## D7 — "Bens alocados a voce": ~~**PROD-A-FRENTE por heranca do legado**~~ → **PROTÓTIPO ATRASADO**
+
+> ⛔ **Rótulo trocado por revogação de [W] em 2026-09-18** (*"agora é o Protótipo quem manda, e a
+> paridade deve ser o objetivo"*). O **fato** abaixo está certo e fica: a produção **de fato** tem
+> um bloco legítimo que o protótipo não tem. O que muda é a **ação que o rótulo prescrevia**.
+> `PROD-A-FRENTE` era um estado terminal — "fica assim, os dois lados divergem e está ok".
+> **PROTÓTIPO ATRASADO** diz qual lado se move: **o protótipo ganha o bloco no Cowork e desce.**
+> Enquanto não descer, a próxima comparação volta a marcar isto como diferença — e vai marcar
+> certo, porque a paridade é o objetivo.
 
 A producao tem um bloco que o prototipo **nao** tem (`data-contract="meus-bens"`): dois KPIs
 (*Bens alocados a voce*, *Categorias*) mais a lista por categoria.
@@ -161,7 +179,8 @@ A producao tem um bloco que o prototipo **nao** tem (`data-contract="meus-bens"`
 Nao e invencao: e o bloco pessoal que a `dashboard.blade.php` legada ja exibia
 (`total_assets_allocated` + `asset_allocation_by_category`), preservado na migracao. O prototipo
 desenhou o painel so na visao de quem administra; o backend sempre teve as duas visoes.
-**Prod a frente, e corretamente.**
+~~**Prod a frente, e corretamente.**~~ **Prod a frente, e corretamente — logo o trabalho pendente
+é do lado do protótipo**, não desta tela.
 
 ## D7 — Icone do "Resumo de hoje" e selo da analise: **PORTADOS em 2026-09-09** ✅
 

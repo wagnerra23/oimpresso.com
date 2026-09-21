@@ -201,7 +201,7 @@ citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como
 
 | componente | protótipo | tela viva | veredito |
 |---|---|---|---|
-| seção | `JmMetasSecao` — "METAS ATIVAS" com seletor de período | bloco "Metas ativas" | 🟡 |
+| seção | `JmMetasSecao` — "METAS ATIVAS" com seletor de período | `SectionTitle` (`.jc-h2`) "Metas ativas" + controles em `ml-auto` | ✅ **(2026-09-18)** — era 🟡 com 4 linhas; ver nota |
 | seletor de período | 3 janelas clicáveis (`JM_PERIODOS`) | — | ❌ **precisa de backend** |
 | "Nova meta" | botão no cabeçalho da seção | `<a href>` **nativo** pra `/ia/metas/create` | ✅ **(#5881)** — ver nota |
 | card | `JmMetaCard` — farol + período + valor/alvo + **barra de progresso** + % + **projeção** | `MetaCard` — farol + período (#5881) + alvo + **barra** + % + sparkline | 🟡 **sem a projeção** — ver nota |
@@ -222,6 +222,36 @@ citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como
 > **Por que o seletor de período precisa de backend:** `IndexController::buildMetasPayload` carrega
 > só `periodoAtual`. Trocar a janela no cliente exigiria a série de períodos no payload — não há o
 > que filtrar.
+
+> **CABEÇALHO FECHADO em 2026-09-18 — de 4 linhas para 1, por decisão [W].** Prod tinha badge
+> `METAS` + `Acompanhamento contínuo` + h2 de 20px `Metas ativas` + a contagem
+> `N metas ativas — visão consolidada do business`. A âncora `JmMetasSecao` tem **uma** linha:
+> `<h2 class="jc-h2"><JcIcon name="target"/> METAS ATIVAS <span class="jm-per">…` com os controles
+> em `margin-left:auto`. Agora a tela usa o mesmo `SectionTitle` da réplica `.jc-h2`
+> (**UC-JPAIN-27**) com os botões existentes no `ml-auto`.
+>
+> **A trava era de CONTRATO, não de forma, e ela foi levantada explicitamente.** `Metas ativas` e
+> `Acompanhamento contínuo` eram copy **pinada** em `governance/design/contracts/jana-painel.contract.json`
+> §`painel-metas-header`, e a `_nota_metas_header` de 2026-08-31 registrava a divergência dizendo
+> *"não corrigida aqui porque copy pinada é lei [W]"*, com duas saídas oferecidas — remover ou
+> manter como acréscimo consciente. **[W] escolheu REMOVER** quando a pergunta lhe foi feita
+> diretamente (2026-09-18: *"agora é o Protótipo quem manda, e a paridade deve ser o objetivo"*).
+> O contrato foi atualizado **no mesmo PR** — sem isso o gate `contrato-de-tela` reprova —, e a
+> revogação ficou escrita nele, ao lado da nota original, que **não** foi apagada.
+>
+> **Duas pegadinhas medidas, registradas porque custam tempo a quem repetir:**
+> 1. **O `data-contract` tem que ser a string LITERAL no arquivo do `alvo`.** Passar `dataContract`
+>    camelCase pro `SectionTitle` entrega o atributo no DOM e **ainda assim** reprova
+>    (`X seção "painel-metas-header" sem âncora data-contract no alvo`) — o gate faz busca textual.
+>    A prop do componente chama-se `'data-contract'`, com hífen, por isso.
+> 2. **O mock do `JanaCockpit` no `janaMetaCardRodape.spec.tsx` quebrou** ao ganhar o export
+>    `SectionTitle`: 5 casos do UC-JPAIN-21 abortaram com `No "SectionTitle" export is defined on
+>    the … mock`, e a falha **não se anuncia como de mock** — parece que o card de meta quebrou. O
+>    stub precisa renderizar os children (os botões do cabeçalho moram lá dentro agora), que é a
+>    mesma armadilha que aquele arquivo já documentava para o stub do cockpit.
+>
+> ⚠️ **O seletor de período e o `Farol | Cadastro` NÃO vieram** — seguem ❌ backend, pela razão do
+> parágrafo acima. O cabeçalho fechou na FORMA e na COPY; a capacidade continua pendente.
 
 ## R6 · Análises
 
@@ -245,10 +275,42 @@ citado depois do prazo vira afirmação. Antes de usar qualquer linha daqui como
 
 | componente | protótipo | tela viva | veredito |
 |---|---|---|---|
-| seção | "AÇÕES QUE <NOME> SUGERE" | "Ações que <Nome> sugere" | ✅ |
+| seção | "AÇÕES QUE **JANA** SUGERE" (`data.person.name`) | "Ações que **Jana** sugere" | ✅ **(2026-09-18)** — era ❌, ver nota |
 | linha de ação | `AcaoRow` com CTA por tom | equivalente (ícone + título + sub + CTA) | ✅ |
 | ao clicar o CTA | `JmAcaoModal` — confirma antes de disparar (HITL) | `JanaAcaoModal` — prévia do servidor + **Aprovar** grava em `jana_acao_aprovacoes` | ✅ **(esta onda)** — registra a decisão; o **disparo** é PR próprio (por isso o CTA diz "Revisar") |
 | gate por plano | só no Pro | — | ❌ produto |
+
+> ⚠️ **O ✅ da primeira linha era FALSO-VERDE, de 2026-08-17 até 2026-09-18 — e a notação foi o
+> vetor.** Escrito `"AÇÕES QUE <NOME> SUGERE"` × `"Ações que <Nome> sugere"`, o par abstraiu num
+> placeholder comum exatamente o que divergia: **quem é o nome**. Na âncora é `data.person.name`
+> — a **Jana** (`{ name: "Jana", role: "Analista IA" }`, `chat-jana.jsx:59`). Na tela viva era
+> `firstNameUpper`, derivado de `userName` — o **usuário logado**. Prod dizia "AÇÕES QUE WAGNER
+> SUGERE" e atribuía ao leitor sugestões que o servidor derivou de 5 regras sobre o dado dele.
+> Não era divergência de copy: era troca de **sujeito**, e o `<Nome>` a escondeu por 32 dias.
+>
+> **O antes→depois REAL em prod é `VOCÊ` → `Jana`.** Medido em 2026-09-18 (`/ia` autenticado,
+> biz=1, dark, DOM estabilizado): o h2 renderizava `Ações que VOCÊ sugere`, porque `userName`
+> chega **falsy** e o fallback `|| 'você'` de `:318` está ativo — o discriminante é a saudação,
+> que sai `Boa tarde.` sem nome. **Causa medida:** a tabela `users` **não tem coluna `name`**
+> (migration `2014_10_12_000000:17-27`; `app/User.php` sem `getNameAttribute`, 0 hits, controle
+> positivo `getUserFullNameAttribute:310`), e **6** controllers leem `->name` — 5 em
+> `Modules/Jana/` e um em `Modules/KB/…/MemoriaController.php:56` (aba Memória). São **dois
+> defeitos empilhados**. ⛔ O conserto do outro **não** é `user_full_name`: `surname` é PREFIXO
+> (`profile.blade.php:78` = `business.prefix`), o que daria `Boa tarde, Sr.`. É `first_name`, em
+> PR de backend próprio.
+>
+> **Corrigido** em `_components/JanaCockpit.tsx` (o título passa a nomear a Jana; `firstName`
+> segue personalizando a SAUDAÇÃO, que é uso legítimo e a âncora também personaliza). Travado por
+> `tests/janaAcoesAutoria.spec.tsx` (**UC-JPAIN-24**), com mordida provada por mutação: restaurado
+> o `firstNameUpper`, 4 dos 8 casos caem por `AssertionError` — incluindo
+> `expected 'Ações que WAGNER sugere' to be 'Ações que LARISSA sugere'`, que exibe o defeito, e
+> `expected 'Ações que VOCÊ sugere' to contain 'Jana'`, que reproduz o estado de produção.
+>
+> **A lição de método, porque ela vale além desta linha:** comparação registrada com placeholder
+> (`<NOME>`, `<X>`, `…`) só é honesta quando o placeholder é o MESMO dado dos dois lados. Quando
+> ele abstrai a própria variável em disputa, o veredito mede a FORMA da frase e cala sobre o
+> conteúdo — e um ✅ assim é pior que ausência, porque desliga a cobrança. Ao registrar par de
+> copy que interpola, escreva o VALOR resolvido de cada lado, não o molde.
 
 **As linhas, uma a uma.** A âncora tem **4 ações fixas** (dados do Martinho); a viva **deriva** as
 suas de 5 regras sobre o dado real, então a contagem varia por tenant. O par:
@@ -643,10 +705,39 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 | item | âncora | produção (antes) | veredito |
 |---|---|---|---|
 | tablist | `nav` filho de `.jc-page` · `left=284 w=2237 h=36` · 14px abaixo do header (41px) | inline na Zona C do `PageHeader` · `left=1654 w=451 h=33` · `top=38` (mesmo do h1) | ❌ bug → **corrigido** (slot `below` do `PageHeader` canon) |
-| aba | 13px/500 · ativa 600 + `border-b 2px accent` + bg `oklch(0.33 0.09 295/.5)` · ícone 14px · `padding 0 14px` | 14px/400 · ativa 600 + mesmo underline/pill · **sem ícone** · `6px 12px` | 🟡 ícone **corrigido**; 13×14px fica (fidelidade travada em `pageHeaderTabsFidelity.spec`) |
+| aba | 13px/500 · ativa 600 + `border-b 2px accent` + bg `oklch(0.33 0.09 295/.5)` · ícone 14px · `padding 0 14px` | 13px/500 · ativa 600 + mesmo underline/pill · ícone 14px · `14px` | ✅ **(2026-09-18)** — `density="compact"`; ver nota |
 | Zona R | `Atualizado 09:42` (dot) → `plano Pro` → Configurar → Exportar | `plano Pro` → Configurar → Exportar → **Conversar** (primary); "Atualizado" no subtítulo | ❌ → **corrigido** (Atualizado 1º da Zona R; primary removido) |
 | subtítulo | mono 11.5px `OIMPRESSO MATRIZ · biz=164 · v1404…` | sans 12px | 🟡 → mono (`versão` é dado que a prod não tem) |
 | título | 19px/700 | 22px/700 | ⛔ ~~DECLARADA · decisão [W]~~ **REVOGADO 2026-09-18** — `PageHeader` canon (ADR 0189) é Fundação/Shell de 37 telas |
+
+> ⚠️ **A justificativa da linha `aba` estava FALSA, e isso é o achado — não a métrica.** Ela dizia
+> *"13×14px fica (fidelidade travada em `pageHeaderTabsFidelity.spec`)"*. **Medido por mutação em
+> 2026-09-18:** trocado o default do `PageHeaderTabs` para `compact`, aquele spec segue
+> **13/13 VERDE**. Ele trava radius, underline `--accent`, pill do contador e o peso da aba
+> **ATIVA** — font-size, padding e o peso da **inativa** passavam livres. O item não estava
+> travado por teste nenhum: estava **não-feito**, e a frase dava a isso aparência de decisão
+> técnica. É a mesma família do falso-verde do `<NOME>` registrado no §R7: **artefato afirmando
+> uma garantia que não tem** desliga a cobrança melhor que um buraco declarado.
+>
+> **FECHADO em 2026-09-18 por `density="compact"`** — prop nova no `PageHeaderTabs`, usada só
+> pelo `JanaSubNav`. Decisão [W], escolhida sobre outras três (deixar como está · componente de
+> abas próprio da Jana · rever o protótipo do Clientes): o `JanaSubNav` **delega inteiramente** ao
+> compartilhado e não tem markup de aba próprio, então "réplica local" custaria duplicar a barra
+> inteira — diferente do `JanaKpiCard`, que replicava um card. O `default` segue **byte-idêntico**
+> ao protótipo do Clientes (fixado por [W] em 2026-07-14) e as outras **5 áreas** (Financeiro,
+> Forja, Governança, Patrimônio, Ponto) não passam a prop.
+>
+> **A rede que faltava agora existe:** `tests/pageHeaderTabsDensity.spec.tsx` (**UC-JPAIN-26**),
+> 6 casos, sendo um deles exatamente *"o DEFAULT não se mexe"*. Bite-test comparativo, na MESMA
+> mutação: o `fidelidade` fica **13/13 verde** e o `density` **cai em 2** (`default perdeu
+> text-sm` + a comparação de className inteira). Sem esse caso, trocar a métrica das 6 áreas
+> passaria em toda a suíte.
+>
+> ⚠️ **O ícone e o badge NÃO eram gaps.** A coluna dizia *"sem ícone"* — já estava corrigido — e o
+> `badge` opt-in **existe no componente desde antes** (pill do contador, com cores de ativo/inativo
+> travadas por 5 casos do próprio spec de fidelidade). O que falta para as abas da Jana mostrarem
+> `Conversa 3` / `Alertas 3` é o **contador chegar do `DataController`** — backend, e com raio nas
+> 4 telas da área, não UI ausente.
 | avatar | 40×40 · r8 · accent | 40×40 · r8 · accent (`size-10 rounded-lg bg-primary`) | ✅ |
 
 ### KPIs (→ **Onda 2**, chip)
@@ -732,7 +823,7 @@ Medido: nós · filhos · altura · `display` · `gap` · `grid-template-columns
 | **brief** | display · gap · filhos | block · normal · 7 | **flex** · **24px** · **1** | ❌ DIVERGE (estrutura) |
 | **análises (grade)** | colunas · gap | **3** · 12px | **2** · **16px** | ❌ DIVERGE |
 | **h2 análises** | tamanho · peso · tracking · cor | 11px · 700 · 0.88px · `text-3` | **14px** · **600** · **1.4px** · mais claro | ❌ DIVERGE |
-| **h2 ações** | idem acima | 11px · 700 · 0.88px | **14px** · **600** · **1.4px** | ❌ DIVERGE |
+| **h2 ações** | idem acima | 11px · 700 · 0.88px | 11px · 700 · 0.88px | ✅ **(2026-09-18)** — era `14px · 600 · 1.4px`; ver nota |
 | **ações** | gap | normal | **24px** | ❌ DIVERGE |
 | **corpo** | fonte base | 13px | **13,5px** | 🟡 direção a decidir — 13,5px é o `--fs-4` do RAMP canon; **o protótipo é que está fora dele** |
 | **metas** | — | 5 cards | **empty state** | ⬜ NÃO COMPARÁVEL |
@@ -740,6 +831,42 @@ Medido: nós · filhos · altura · `display` · `gap` · `grid-template-columns
 **Caixa alta dos h2:** ambos os lados têm `text-transform: uppercase` — a dúvida registrada em
 2026-09-04 (*"sentence case no código pode estar sendo uppercase no CSS"*) fica **resolvida: é
 uppercase nos dois**. O que diverge é tamanho, peso e tracking, não a caixa.
+
+> **FECHADO em 2026-09-18 — o `SectionTitle` virou RÉPLICA LOCAL da `.jc-h2`.** Era o h2 do golden
+> `governance/Dashboard` (`text-sm font-semibold tracking-widest`, = `14px/600/1.4px`); passou a
+> `font-mono text-[11px] font-bold tracking-[0.08em] gap-[7px]`, mais `mt-1.5 mb-2.5` pelo
+> `margin: 6px 0 10px` da âncora. O `uppercase` **não mudou** — nunca foi divergência, e o teste o
+> trava como invariante, não como correção.
+>
+> **Réplica LOCAL de propósito** (ADR 0388 §D-1): o `SectionTitle` é função interna do
+> `JanaCockpit.tsx` e não sai dele, então a forma da Jana **não** é imposta às outras telas — o
+> mesmo caminho que o `JanaKpiCard` tomou em vez de mexer no `KpiCard` compartilhado.
+>
+> **`font-mono` é tradução PROVADA, não suposta:** o próprio espelho declara
+> `--mono: var(--font-mono)` (`prototipo-ui/cowork/Wagner/styles.css:6446`), que é o token do
+> projeto — o mesmo mapeamento que o `JanaKpiCard` já usava para `.jc-kpi-h`.
+>
+> **Sub-rótulo (`.jm-h2-sub`, `jana-merge.css:6`) junto:** `ml-1` → **`ml-auto`** (a âncora o
+> empurra pra direita da faixa, não o cola no título), mono 10.5px/400, `tracking-[0.02em]`. A
+> copy já era byte-idêntica desde 2026-08-31.
+>
+> ⚠️ **A COR do sub NÃO foi tocada, e isso é decisão declarada, não esquecimento.** A âncora usa
+> `var(--text-dim)`, que **não é definido no escopo desta tela** — `chat-jana.css` e
+> `jana-merge.css` não o declaram; ele só aparece em `estoque-page.css` e `mockup-pages.css`, de
+> outras telas. Sem token resolvível, trocar a cor seria adivinhar. Fica medido e aberto.
+>
+> Travado por **UC-JPAIN-27** (`tests/janaSectionTitleReplica.spec.tsx`), 5 casos, mordida provada
+> por mutação: restaurada a métrica do golden, 2 de 5 caem — um por **ausência** da nova
+> (`sem font-mono`) e outro por **presença** da antiga (`ainda tem text-sm`), que é o par que
+> impede tanto a regressão quanto o meio-termo.
+>
+> ⚠️ **Frescor da fonte, declarado:** `cowork-mirror-freshness --sla` dá **⬜ INCONCLUSIVO**, não
+> SYNC — o `--compare` está completo e dentro do SLA (705/705 sync, 2026-09-17), mas **5 arquivos
+> do vivo não estão no espelho** (`.gitignore`, `.thumbnail` e 3 do `_ds/`, incluindo
+> `styles.css`). O `chat-jana.css`, dono dos números acima, **está entre os sync**, e o eixo novo
+> "vê AUSÊNCIA, nunca MODIFICAÇÃO". Logo os valores aplicados vêm de arquivo provado fresco; o que
+> permanece por provar é o que o `_ds/` ausente poderia redefinir — e é justamente por isso que a
+> cor ficou de fora.
 
 ### Metas — segue NÃO COMPARÁVEL, agora com data nova
 

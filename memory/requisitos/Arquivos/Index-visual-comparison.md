@@ -151,42 +151,61 @@ UI oferece** — decisao de dominio, nao typo, e fora do intento daquele PR (tri
 possiveis (alinhar a UI ao ENUM · alinhar o `Rule::in` ao ENUM · renomear o dominio) mexem em
 coisas diferentes e so uma delas e cosmetica.
 
-## D7 — Acoes por linha: **PROD-A-FRENTE por decisao declarada**
+## D7 — Acoes por linha: ~~**PROD-A-FRENTE por decisao declarada**~~ → **DÍVIDA A FECHAR**
+
+> ⛔ **Rótulo REVOGADO por [W] em 2026-09-18** (*"agora é o Protótipo quem manda, e a paridade
+> deve ser o objetivo"*). E ele estava **invertido**: o protótipo tem 5 ações, a produção tem
+> **zero** — quem está atrás é a **produção**, não o protótipo. `PROD-A-FRENTE` dizia o oposto do
+> que a própria contagem abaixo mostra. O texto fica como registro; o veredito agora é
+> **DÍVIDA A FECHAR**, e o escopo de onda é a razão de ela **ainda não ter fechado**, nunca uma
+> autorização para não fechar.
 
 O prototipo tem 5 (`onBaixar` · `onExcluir` · `onClassificar` · `onAvisar` · `onRestaurar`);
 a producao tem **zero**.
 
-**Nao e gap** — e escopo declarado. O charter poe a tela como **leitura pura** na onda 1, e o
+~~**Nao e gap** — e escopo declarado.~~ **É dívida, com data de vencimento declarada.** O charter
+poe a tela como **leitura pura** na onda 1, e o
 `ArquivosAdminControllerTest` tem assert que reprova se `->delete(` / `->save(` / `dispatch(`
 aparecerem no controller. Mutacao entra na onda 2+; purge depende de decisao [W] na proposta
 `arquivos-retencao-ui-aviso-titular.md`.
 
-## D7 — Abas: **PROD-A-FRENTE por decisao declarada**
+## D7 — Abas: ~~**PROD-A-FRENTE por decisao declarada**~~ → **DÍVIDA A FECHAR**
+
+> ⛔ **Mesma revogação, mesma inversão** ([W] 2026-09-18): protótipo **4** abas, produção **1**
+> (hoje 3, pelas emendas abaixo). A produção está atrás.
 
 Prototipo: 4 (`acervo` · `retencao` · `cofre` · `trilha`, linhas 19-22). Producao: 1.
 
 Mesmo motivo, e o RUNBOOK e explicito: *"a barra de abas nasce com elas, nao antes — aba que
-nao leva a lugar nenhum e promessa, nao navegacao"*.
+nao leva a lugar nenhum e promessa, nao navegacao"*. Isso segue valendo como **ordem de
+execução** (aba sem destino é promessa) — não como dispensa da paridade.
 
 > **Emenda — PR-2 (onda 1 · vista Trilha).** O retrato acima e o de antes do PR-2 e fica como
 > registro. **Producao passou de 1 pra 2 vistas** (`acervo` + `trilha`) e **a barra de abas
 > existe**, montada com `PageHeaderTabs` canon e navegando por rota (`?tab=`), como Financeiro
 > / Fiscal/Dfe / Cliente. Faltam `retencao` (PR-3, depende de decisao [W] na proposta
-> `arquivos-retencao-ui-aviso-titular`) e `cofre` (PR-4) — logo **2 de 4**, e o `PROD-A-FRENTE`
-> segue valendo pelas duas que faltam, pelo mesmo motivo declarado.
+> `arquivos-retencao-ui-aviso-titular`) e `cofre` (PR-4) — logo **2 de 4**, e ~~o `PROD-A-FRENTE`
+> segue valendo pelas duas que faltam, pelo mesmo motivo declarado~~ ⛔ **REVOGADO 2026-09-18**:
+> as duas que faltam são **DÍVIDA A FECHAR**.
 >
-> Divergencia deliberada, pra nao virar "bug" na proxima leitura: **as abas nao tem badge de
-> contagem**. O prototipo mostra uma porque tem tudo em memoria; aqui custaria um `COUNT` eager
+> ~~Divergencia deliberada, pra nao virar "bug" na proxima leitura:~~ **Dívida com razão de
+> custo medida** ([W] 2026-09-18 — deliberada não é o mesmo que aceita): **as abas nao tem badge
+> de contagem**. O prototipo mostra uma porque tem tudo em memoria; aqui custaria um `COUNT` eager
 > na tabela inteira pra pintar numero em aba que ninguem abriu. O numero da vista aberta vai no
-> subtitulo, de graca, vindo do paginador que ja veio.
+> subtitulo, de graca, vindo do paginador que ja veio. **O custo é real e continua sendo a razão
+> de não ter fechado — não é licença para nunca fechar.** Fecha com contagem barata (índice,
+> cache curto, ou `COUNT` só da vista aberta) ou com o protótipo mudando no Cowork.
 
 > **Emenda — PR-4 (onda 1 · vista Cofre).** Producao passou de 2 pra **3 de 4** vistas
 > (`acervo` · `cofre` · `trilha`). A ordem das abas segue a do prototipo (linhas 19-22), com o
 > lugar da `retencao` guardado entre Acervo e Cofre em vez de a nova ser emendada no fim.
-> `PROD-A-FRENTE` segue valendo pela que falta, pelo mesmo motivo declarado.
+> ~~`PROD-A-FRENTE` segue valendo pela que falta, pelo mesmo motivo declarado.~~ ⛔ **REVOGADO
+> 2026-09-18** — a que falta é **DÍVIDA A FECHAR**.
 >
-> Tres divergencias deliberadas nesta vista, registradas aqui pra nao virarem "bug" na proxima
-> leitura — as duas primeiras sao **medidas**, nao gosto:
+> Tres ~~divergencias deliberadas~~ **dívidas com razão medida** nesta vista, registradas aqui pra
+> nao virarem "bug" na proxima leitura — as duas primeiras sao **medidas**, nao gosto. ⚠️ Desde
+> 2026-09-18 "registrada" **não** quer dizer "aceita": as três seguem abertas, e a razão de cada
+> uma é o que falta resolver, não o que dispensa resolver.
 >
 > - **Sem barra de progresso nos cards de disco.** No prototipo ela e `Progress value={bytes /
 >   (5 * 1073741824)}` (linha 297) — 5 GB e numero do mock. Conferido em
@@ -196,13 +215,15 @@ nao leva a lugar nenhum e promessa, nao navegacao"*.
 >   em que houver quota configurada.
 > - **Sem o botao "Rodar dry-run do cleanup"** (prototipo, linha 305) e sem a secao
 >   `data-contract="dry-run"` que ele revela. E a **onda 3** — PR-8 da proposta
->   `arquivos-retencao-ui-aviso-titular` —, e a onda 1 inteira e leitura pura. Escopo declarado,
->   como as acoes por linha do acervo.
+>   `arquivos-retencao-ui-aviso-titular` —, e a onda 1 inteira e leitura pura. ~~Escopo declarado,~~
+>   **DÍVIDA A FECHAR na onda 3** ([W] 2026-09-18), como as acoes por linha do acervo.
 > - **O duplicado nao afirma economia de disco.** O prototipo agrupa por MD5 e para ai; aqui o
 >   grupo carrega tambem `caminhos` (caminhos de storage distintos), porque o caminho de gravacao
 >   e derivado do proprio hash — copias do mesmo mes apontam pro MESMO arquivo fisico. Sem esse
 >   numero, somar bytes e chamar de economia seria inventar. **Producao a frente do prototipo
->   aqui**, nao atras.
+>   aqui**, nao atras → **PROTÓTIPO ATRASADO** (vocabulário de 2026-09-18): o lado a mover é o
+>   protótipo, que ganha os `caminhos` no Cowork e desce. Não é divergência a tolerar; é
+>   re-exportação pendente.
 >
 > O que **bate** com o prototipo: os 2 blocos (`cofre-discos` cards + `cofre-achados` lista) e os
 > 3 achados na mesma ordem — acima do cap · orfao · conteudo repetido —, com a mesma explicacao
@@ -212,7 +233,11 @@ nao leva a lugar nenhum e promessa, nao navegacao"*.
 > producao devolve 403, e nao ha render pra injetar a sonda. Comparacao estrutural, contada dos
 > dois fontes — nao veredito de pixel.
 
-## D6-parcial — CSS: **DIVERGE (decisao NAO declarada)** ⚠️
+## D6-parcial — CSS: ~~**DIVERGE (decisao NAO declarada)**~~ → **DÍVIDA A FECHAR** ⚠️
+
+> Rótulo trocado em 2026-09-18 pelo vocabulário vigente. O achado **não muda** — muda que ele já
+> não precisa do qualificador "não declarada": no eixo FORMA **nenhuma** divergência é aceita,
+> declarada ou não, então "declarada" deixou de ser o que separa dívida de defeito.
 
 Este e o achado que o [W] pediu ao dizer "compare com css".
 
