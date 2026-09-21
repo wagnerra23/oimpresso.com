@@ -63,6 +63,21 @@ full-reload. Comportamento **antes** de pixel.
   D3 (ícones), D5 (footer) seguem passos do agente abaixo — o tool **mecaniza** a parte medível,
   **não substitui** o protocolo. A comparação é dispatch do agente (browser + design vivo), não
   gate de PR (CI não renderiza — mesma limitação de plataforma do mirror-freshness).
+- **Papel `chart`** (2026-09-21) — curva, série e barra. Papel novo, **não dimensão nova**: cada
+  sinal sai rotulado com a dimensão canônica (forma e altura → D2, `stroke-width` → D4, cor e
+  gradiente → D6), como a linha de tabela já fazia. Mede tipo do traço (curva × reta), área
+  preenchida, gradientes, cor, espessura e **anisotropia** — o sinal que denuncia traço
+  deformado por `preserveAspectRatio="none"` sem `vector-effect`.
+  A ausência desse papel tinha sintoma: quando alguém precisava medir gráfico, nascia um gate
+  **por tela** (`fiscal-cockpit-sparklines-gate`, `patrimonio-painel-gate`). O terceiro caso — o
+  Painel da Jana — foi medido com sonda ad-hoc que morreu com a sessão. Estender aqui é o que
+  evita o quarto.
+  ⚠️ Não compara **nº de pontos nem valores**, de propósito: dependem do DADO (mock × banco), e
+  sinal que não separa "capacidade ausente" de "série mais curta hoje" não pode reprovar ninguém.
+- **Dimensão `SAÚDE`** (2026-09-21) — o snapshot carrega `saude` (folhas CSS com href e **zero
+  regras** + tokens de cor que não resolvem na raiz), e o comparador emite **`NÃO MEDI`** antes
+  de qualquer veredito quando o render está quebrado. Existe porque render sem CSS **não dá
+  erro: dá número plausível** — ver §Armadilhas, abaixo.
 
 ## Procedimento (passo a passo)
 
@@ -222,3 +237,69 @@ funcionando; atualize-a, não o contorne.
 - **D4/D5 ⚠️ INCONCLUSIVO:** no ESPELHO local, título (22px/700) e footer (fmt "N lançamentos · Total
   entrada · Total saída") são IGUAIS à prod — mas o espelho pode estar velho. **Refazer contra o
   Cowork vivo** (passo 0) antes de cravar "título grande"/"somatório diferente".
+
+---
+
+## Armadilhas de medição — instrumentos que devolvem número plausível e errado
+
+> Catalogadas medindo, não em revisão. Cada uma custou pelo menos uma rodada, e **nenhuma
+> falhou como erro**: falharam como número que parecia resposta. É por isso que estão aqui e
+> não num comentário de código.
+
+### `getBoundingClientRect()` de `<polyline>` e `<path>` é CEGO ao stroke
+
+Ele devolve a caixa **geométrica escalada, sem a espessura do traço**. Medir espessura por ali
+dá **idêntico** com e sem `vector-effect` — o canário passa e você conclui "não há deformação"
+quando há.
+
+Medido em 2026-09-21 (Painel da Jana): a primeira tentativa deu `PEGOU: false`, e a deformação
+real era de **8,97×**. A API que responde é **`isPointInStroke()`**, no espaço do usuário,
+convertida pela escala que você mediu (`bbox ÷ viewBox`).
+
+### `preserveAspectRatio="none"` sem `vector-effect` deforma o traço — e some quando o dado é plano
+
+Com `none`, o SVG estica para preencher a caixa. Sem `vector-effect="non-scaling-stroke"`, o
+traço estica junto: medido, escala `x=8.971 · y=1` → **13,46px** de espessura na horizontal
+contra **1,5px** na vertical.
+
+⚠️ **O defeito não aparece enquanto a série for plana** — uma linha horizontal não exibe
+deformação nenhuma. No caso medido, os 30 pontos tinham um único valor de `y`, então print,
+olho e screenshot mostravam tudo certo. Só apareceria no primeiro tenant com dado variável.
+É a razão de o papel `chart` da sonda medir `anisotropia` e não a aparência.
+
+### Render com CSS faltando devolve medida, não erro
+
+O shell do espelho resolve a base do Design System por `location.pathname`. Servindo a raiz
+**de dentro** de `prototipo-ui/cowork`, o pathname não casa, o CSS do DS volta **404**, e
+**toda cor cai em preto** — num tema dark, sem aviso nenhum.
+
+Duas sessões caíram nisso no mesmo dia: uma descartou a rodada inteira, a outra quase registrou
+*"o design diverge em cor"* quando era o próprio servidor.
+
+**Agora a sonda recusa:** o snapshot carrega `saude` (folhas CSS com href e zero regras +
+tokens de cor que não resolvem na raiz), e o comparador emite `NÃO MEDI` na dimensão `SAÚDE`
+antes de qualquer veredito. Render quebrado não vira opinião sobre o design.
+
+**A regra positiva, se você medir fora da sonda:** sirva a **raiz do repositório** e abra
+`/prototipo-ui/cowork/Wagner/oimpresso.com.html`. Confira que `colors_and_type.css` carregou
+com mais de zero regras antes de confiar em qualquer cor.
+
+---
+
+## Merge ≠ deploy — todo número medido nessa janela nasce datado
+
+Um PR mergeado em `main` **não** está em produção. Entre o merge e o deploy existe uma janela
+em que a produção serve o código antigo, e medir ali produz número correto sobre um estado que
+vai mudar.
+
+Medido em 2026-09-21: o PR da grade de Análises mergeou, e a produção continuou servindo
+**2 colunas** (`1110.5px × 2`) enquanto a âncora já pedia 3. Quem lesse aquele número depois do
+deploy leria como regressão.
+
+**A regra:** ao registrar medição de produção, diga contra qual dos dois estados foi medida —
+*"antes do deploy do #NNNN"* é uma frase de uma linha que impede um diagnóstico errado inteiro.
+
+⚠️ **E o inverso, que é pior:** o OPcache pode servir bytecode antigo **depois** do deploy. Em
+2026-09-18 dois smokes passaram contra bytecode de **10 dias**. Cerco de hash prova o que está
+no disco, nunca o que o runtime carregou — a prova é um **caso discriminante**, um cujo
+desfecho muda com o fix aplicado.

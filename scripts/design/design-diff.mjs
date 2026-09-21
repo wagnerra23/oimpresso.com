@@ -395,8 +395,88 @@ export const PROBE_SOURCE = /* js */ `(() => {
       : null;
     return { papeis, atalhos };
   })() : null;
+  // GRÁFICO — papel que faltava, e a ausência tinha sintoma: quando alguém precisou medir
+  // gráfico, nasceu um gate POR TELA (fiscal-cockpit-sparklines, patrimonio-painel) em vez
+  // de uma régua. Este é o terceiro caso; medido em 2026-09-21 no Painel da Jana, onde a
+  // produção desenhava poligonal roxa sem área contra uma curva Bézier verde com gradiente.
+  //
+  // 'anisotropia' é o sinal caro e o menos óbvio: com preserveAspectRatio='none' e SEM
+  // vector-effect, o traço é deformado pela escala do viewBox. Medido lá: escala x=8.97,
+  // y=1 — espessura de 13.46px na horizontal contra 1.5px na vertical. Não salta aos olhos
+  // quando a série é plana (linha horizontal não exibe deformação), e por isso escapa de
+  // print e de olho: só aparece quando o dado varia.
+  //
+  // ATENÇÃO ao medir isto fora daqui: getBoundingClientRect de <polyline> devolve a caixa
+  // GEOMÉTRICA escalada, SEM o stroke — medir espessura por ali dá idêntico com e sem
+  // vector-effect. A API que responde é isPointInStroke.
+  const chartRaiz = R.chart ? q(R.chart) : null;
+  const chart = chartRaiz ? (() => {
+    const svg = chartRaiz.tagName.toLowerCase() === 'svg' ? chartRaiz : chartRaiz.querySelector('svg');
+    const cx = chartRaiz.getBoundingClientRect();
+    // barras: filho com altura OU largura declarada em % (a forma das duas famílias do DS)
+    const barras = [...chartRaiz.querySelectorAll('*')].filter((b) => b.style && /%$/.test(b.style.height || b.style.width || ''));
+    if (!svg) {
+      const cc = cs(chartRaiz);
+      return {
+        kind: 'barras', alturaPx: Math.round(cx.height * 100) / 100,
+        gap: cc.gap === 'normal' ? 0 : Math.round(parseFloat(cc.gap) * 100) / 100,
+        nBarras: barras.length,
+        radius: barras.length ? cs(barras[0]).borderRadius : null,
+        preenche: barras.length ? (cs(barras[0]).backgroundImage !== 'none' ? 'gradiente' : cs(barras[0]).backgroundColor) : null,
+      };
+    }
+    const vb = (svg.getAttribute('viewBox') || '').trim().split(/\\s+/).map(Number);
+    const r = svg.getBoundingClientRect();
+    const ex = (vb.length === 4 && vb[2]) ? r.width / vb[2] : null;
+    const ey = (vb.length === 4 && vb[3]) ? r.height / vb[3] : null;
+    const tracos = [...svg.querySelectorAll('path,polyline,polygon,line')].map((n) => {
+      const c = cs(n);
+      const d = n.getAttribute('d') || '';
+      const pts = n.getAttribute('points') || '';
+      return {
+        tag: n.tagName.toLowerCase(),
+        curvas: (d.match(/[QTCS]/g) || []).length,
+        pontos: pts ? pts.trim().split(/\\s+/).length : (d.match(/[MLQTCS]/g) || []).length,
+        temArea: c.fill !== 'none' && c.fill !== 'rgba(0, 0, 0, 0)',
+        gradiente: /url\\(/.test(c.fill),
+        stroke: c.stroke,
+        strokeWidth: Math.round(parseFloat(c.strokeWidth) * 100) / 100,
+        naoEscala: (n.getAttribute('vector-effect') || c.vectorEffect || '') === 'non-scaling-stroke',
+      };
+    });
+    return {
+      kind: 'svg', alturaPx: Math.round(r.height * 100) / 100,
+      viewBox: svg.getAttribute('viewBox') || null,
+      preserveAspectRatio: svg.getAttribute('preserveAspectRatio') || 'xMidYMid meet',
+      escalaX: ex == null ? null : Math.round(ex * 1000) / 1000,
+      anisotropia: (ex == null || ey == null || !ey) ? null : Math.round((ex / ey) * 1000) / 1000,
+      nTracos: tracos.length, tracos,
+      nGradientes: svg.querySelectorAll('linearGradient,radialGradient').length,
+      nBarras: barras.length,
+    };
+  })() : null;
+  // SAÚDE DO RENDER — o lado que se mede pode estar quebrado, e o modo de falha é o pior:
+  // não dá erro, dá NÚMERO PLAUSÍVEL. Medido em 2026-09-21: o shell do espelho resolve a
+  // base do Design System por location.pathname; servindo a raiz de dentro de
+  // prototipo-ui/cowork o pathname não casa, o CSS do DS volta 404 e TODA cor cai em preto
+  // num tema dark. Duas sessões no mesmo dia mediram assim — uma descartou a rodada, a
+  // outra quase registrou "o design diverge em cor" quando era o servidor dela.
+  //
+  // Folha com href e ZERO regras = 404 ou bloqueio. CORS não conta (cssRules lança, e isso
+  // é legítimo em fonte de terceiro). Token de cor que não resolve = cascata incompleta.
+  const saude = (() => {
+    const vazias = [...document.styleSheets].filter((s) => {
+      if (!s.href) return false;
+      try { return s.cssRules.length === 0; } catch (e) { return false; }
+    }).map((s) => String(s.href).split('/').pop().split('?')[0]);
+    const raiz = getComputedStyle(document.documentElement);
+    const mortos = ['--accent', '--pos', '--neg', '--warn', '--text-dim', '--sunken', '--border']
+      .filter((t) => !raiz.getPropertyValue(t).trim());
+    return { folhasVazias: vazias, tokensMortos: mortos, nFolhas: document.styleSheets.length };
+  })();
   return {
     url: location.href,
+    saude,
     theme: document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light'),
     // D0 — ASSINATURA da view. (Sem crase neste bloco: ele vive DENTRO do template
     // string do PROBE_SOURCE, e uma crase aqui fecha a string no meio — foi o que
@@ -406,7 +486,7 @@ export const PROBE_SOURCE = /* js */ `(() => {
     // 17). Num shell que carrega vários protótipos juntos, comparar sem provar a
     // view mede a TELA ERRADA e devolve veredito plausível — o pior tipo de erro.
     assinatura: textoVisivel(document.body).slice(0, 20000),
-    roles: { kpi, title, primary, filterRows: filterEls.length ? visualRows(filterEls) : null, contratos, celulas, tabela, shell },
+    roles: { kpi, title, primary, filterRows: filterEls.length ? visualRows(filterEls) : null, contratos, celulas, tabela, shell, chart },
   };
 })()`;
 
@@ -917,7 +997,88 @@ function dimShell(prod, design) {
   return rows;
 }
 
-const DIMENSIONS = [dimLayout, dimTipografia, dimCor, dimAlinhamento, dimTexto, dimCelulas, dimShell];
+/**
+ * GRÁFICO — curva, série e barra. Papel novo (2026-09-21), não dimensão nova: cada sinal
+ * sai rotulado com a dimensão CANÔNICA dele, como a linha de tabela já faz.
+ *
+ * Existe porque medir gráfico não tinha régua, e a ausência tinha sintoma: dois gates POR
+ * TELA (`fiscal-cockpit-sparklines-gate`, `patrimonio-painel-gate`) nasceram para cobrir
+ * casos pontuais. O terceiro caso — o Painel da Jana — foi medido com sonda ad-hoc que
+ * morreu com a sessão. Estender aqui é o que evita o quarto gate-por-tela.
+ *
+ * O que NÃO se compara aqui, de propósito: número de pontos e valores. Eles dependem do
+ * DADO (mock do protótipo × banco real), e um sinal que não distingue "capacidade ausente"
+ * de "série mais curta hoje" não pode reprovar ninguém — é a mesma regra de `linhasComEstado`.
+ */
+function dimGrafico(prod, design) {
+  const rows = [];
+  const p = prod.chart, d = design.chart;
+
+  if (!p || !d) {
+    if (p || d) {
+      rows.push({ dim: 'D2', campo: 'gráfico', prod: p ? p.kind : 'ausente', design: d ? d.kind : 'ausente',
+        veredito: 'SEM-DADO', detalhe: 'passe `chart` em __DD_ROLES nos DOIS lados' });
+    }
+    return rows;
+  }
+
+  if (p.kind !== d.kind) {
+    rows.push({ dim: 'D2', campo: 'gráfico.tipo', prod: p.kind, design: d.kind, veredito: 'DIVERGE (bug)' });
+    return rows; // svg × barras: comparar o resto seria comparar coisas diferentes
+  }
+
+  if (p.kind === 'barras') {
+    if (p.alturaPx !== d.alturaPx) rows.push({ dim: 'D2', campo: 'barra.altura', prod: p.alturaPx + 'px', design: d.alturaPx + 'px', veredito: 'DIVERGE (bug)' });
+    if (p.gap !== d.gap) rows.push({ dim: 'D2', campo: 'barra.gap', prod: p.gap + 'px', design: d.gap + 'px', veredito: 'DIVERGE (bug)' });
+    const pg = p.preenche === 'gradiente', dg = d.preenche === 'gradiente';
+    if (pg !== dg) rows.push({ dim: 'D6', campo: 'barra.preenchimento', prod: pg ? 'gradiente' : 'sólido', design: dg ? 'gradiente' : 'sólido', veredito: 'DIVERGE (bug)' });
+    if (!rows.length) rows.push({ dim: 'D2', campo: 'gráfico (barras)', prod: 'ok', design: 'ok', veredito: 'IGUAL' });
+    return rows;
+  }
+
+  // ── svg ──
+  const pt = p.tracos.find((t) => !t.temArea) || p.tracos[0];
+  const dt = d.tracos.find((t) => !t.temArea) || d.tracos[0];
+
+  if (p.nTracos !== d.nTracos) {
+    rows.push({ dim: 'D2', campo: 'gráfico.desenhos', prod: p.nTracos, design: d.nTracos, veredito: 'DIVERGE (bug)',
+      detalhe: 'área preenchida sob a curva costuma ser o desenho que falta' });
+  }
+  if (p.nGradientes !== d.nGradientes) {
+    rows.push({ dim: 'D6', campo: 'gráfico.gradientes', prod: p.nGradientes, design: d.nGradientes, veredito: 'DIVERGE (bug)' });
+  }
+  if (p.alturaPx !== d.alturaPx) {
+    rows.push({ dim: 'D2', campo: 'gráfico.altura', prod: p.alturaPx + 'px', design: d.alturaPx + 'px', veredito: 'DIVERGE (bug)' });
+  }
+  if (pt && dt) {
+    const pCurvo = pt.curvas > 0, dCurvo = dt.curvas > 0;
+    if (pCurvo !== dCurvo) {
+      rows.push({ dim: 'D2', campo: 'gráfico.forma do traço', prod: pCurvo ? 'curva' : 'reta', design: dCurvo ? 'curva' : 'reta', veredito: 'DIVERGE (bug)' });
+    }
+    if (pt.temArea !== dt.temArea || p.tracos.some((t) => t.temArea) !== d.tracos.some((t) => t.temArea)) {
+      rows.push({ dim: 'D2', campo: 'gráfico.área', prod: p.tracos.some((t) => t.temArea) ? 'preenchida' : 'sem área', design: d.tracos.some((t) => t.temArea) ? 'preenchida' : 'sem área', veredito: 'DIVERGE (bug)' });
+    }
+    if (pt.strokeWidth !== dt.strokeWidth) {
+      rows.push({ dim: 'D4', campo: 'gráfico.stroke-width', prod: pt.strokeWidth, design: dt.strokeWidth, veredito: 'DIVERGE (bug)' });
+    }
+    if (pt.stroke !== dt.stroke) {
+      rows.push({ dim: 'D6', campo: 'gráfico.cor do traço', prod: pt.stroke, design: dt.stroke,
+        veredito: prod.__theme === design.__theme ? 'DIVERGE (bug)' : 'DIVERGE (tema)' });
+    }
+    // O sinal caro: traço que DEFORMA. Só vale acusar quando o próprio lado do design
+    // resolveu o problema — se os dois deformam, é decisão de desenho, não bug da prod.
+    const deforma = (s, t) => s.preserveAspectRatio === 'none' && !t.naoEscala && s.anisotropia != null && Math.abs(s.anisotropia - 1) > 0.15;
+    if (deforma(p, pt) && !deforma(d, dt)) {
+      rows.push({ dim: 'D2', campo: 'gráfico.traço deforma', prod: 'anisotropia ' + p.anisotropia + '×', design: dt.naoEscala ? 'non-scaling-stroke' : 'proporcional',
+        veredito: 'DIVERGE (bug)', detalhe: 'preserveAspectRatio=none sem vector-effect: a espessura escala com o viewBox. Invisível enquanto a série for plana' });
+    }
+  }
+  if (!rows.length) rows.push({ dim: 'D2', campo: 'gráfico', prod: 'ok', design: 'ok', veredito: 'IGUAL' });
+
+  return rows;
+}
+
+const DIMENSIONS = [dimLayout, dimTipografia, dimCor, dimAlinhamento, dimTexto, dimCelulas, dimShell, dimGrafico];
 
 /**
  * @param {any} prodSnap @param {any} designSnap
@@ -931,6 +1092,20 @@ export function compare(prodSnap, designSnap, opts = {}) {
   const prod = { ...prodSnap.roles, __theme: prodSnap.theme };
   const design = { ...designSnap.roles, __theme: designSnap.theme };
   const brutas = DIMENSIONS.flatMap((fn) => fn(prod, design));
+  // RENDER QUEBRADO -> NÃO MEDI, antes de qualquer veredito. Render com CSS faltando produz
+  // medida plausível e errada, e "não consegui medir" NÃO é um estado do objeto medido.
+  for (const [lado, snap] of [['prod', prodSnap], ['design', designSnap]]) {
+    const s = snap && snap.saude;
+    if (!s) continue;
+    if (s.folhasVazias && s.folhasVazias.length) {
+      brutas.push({ dim: 'SAÚDE', campo: `render.${lado}`, prod: lado === 'prod' ? s.folhasVazias.join(', ') : '—', design: lado === 'design' ? s.folhasVazias.join(', ') : '—',
+        veredito: 'NÃO MEDI', detalhe: `${s.folhasVazias.length} folha(s) CSS com href e ZERO regras: 404 ou bloqueio. Cor e espaçamento deste lado NÃO são confiáveis` });
+    }
+    if (s.tokensMortos && s.tokensMortos.length) {
+      brutas.push({ dim: 'SAÚDE', campo: `tokens.${lado}`, prod: lado === 'prod' ? s.tokensMortos.join(' ') : '—', design: lado === 'design' ? s.tokensMortos.join(' ') : '—',
+        veredito: 'NÃO MEDI', detalhe: 'token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback' });
+    }
+  }
   const decl = aplicarDeclaracao(brutas, opts.declarado || []);
   const rows = decl.rows;
   const bugs = rows.filter((r) => r.veredito === 'DIVERGE (bug)');
@@ -1840,6 +2015,69 @@ function selftest() {
     // (f) BITE CLI de fora -- assert em funcao exportada nao prova o pipeline
     ['BITE CLI canario: snapshot medido -> exit 0', rCanBom.status === 0],
     ['BITE CLI canario: snapshot vazio -> exit 2 e a mensagem chega', rCanVazio.status === 2 && /F2/.test(String(rCanVazio.stdout))],
+  );
+
+  // (g) GRAFICO -- papel novo (2026-09-21). Papel sem bite-test e papel decorativo:
+  //     cada assert abaixo corresponde a UM defeito real medido no Painel da Jana.
+  const svgBase = (o = {}) => ({
+    kind: 'svg', alturaPx: 60, viewBox: '0 0 280 60', preserveAspectRatio: 'none',
+    escalaX: 0.74, anisotropia: 0.74, nTracos: 2, nGradientes: 1, nBarras: 0,
+    tracos: [
+      { tag: 'path', curvas: 46, pontos: 49, temArea: true, gradiente: true, stroke: 'none', strokeWidth: 1, naoEscala: false },
+      { tag: 'path', curvas: 46, pontos: 47, temArea: false, gradiente: false, stroke: 'oklch(0.76 0.18 150)', strokeWidth: 2, naoEscala: true },
+    ], ...o,
+  });
+  // A prod que o Painel tinha: polilinha reta, roxa, sem area, sem gradiente, e deformando.
+  const svgProdRuim = svgBase({
+    nTracos: 1, nGradientes: 0, alturaPx: 40, viewBox: '0 0 120 40', escalaX: 8.971, anisotropia: 8.971,
+    tracos: [{ tag: 'polyline', curvas: 0, pontos: 30, temArea: false, gradiente: false, stroke: 'oklch(0.7 0.15 295)', strokeWidth: 1.5, naoEscala: false }],
+  });
+  const comChart = (c, theme = 'dark') => ({ theme, roles: { chart: c } });
+  // `barra.*` e `gráfico.*` — o filtro pega as duas famílias de campo que a dimensão emite.
+  const campos = (a, b) => compare(comChart(a), comChart(b)).rows.filter((r) => /gráfico|barra\./.test(r.campo)).map((r) => r.campo + ':' + r.veredito);
+
+  const gRuim = campos(svgProdRuim, svgBase());
+  const gIgual = campos(svgBase(), svgBase());
+  // Os DOIS deformando = decisao de desenho, nao bug da prod. Este e o controle que impede
+  // o sinal mais caro de virar falso-positivo universal.
+  const ambosDeformam = campos(
+    svgBase({ anisotropia: 8.9, tracos: [{ tag: 'path', curvas: 40, pontos: 40, temArea: false, gradiente: false, stroke: 'x', strokeWidth: 2, naoEscala: false }] }),
+    svgBase({ anisotropia: 8.9, tracos: [{ tag: 'path', curvas: 40, pontos: 40, temArea: false, gradiente: false, stroke: 'x', strokeWidth: 2, naoEscala: false }] }),
+  );
+  const soUmLado = compare(comChart(svgBase()), comChart(null)).rows.filter((r) => /gráfico/.test(r.campo));
+  const barrasDif = campos(
+    { kind: 'barras', alturaPx: 6, gap: 0, nBarras: 1, radius: '999px', preenche: 'oklch(0.7 0.15 295)' },
+    { kind: 'barras', alturaPx: 7, gap: 0, nBarras: 1, radius: '999px', preenche: 'gradiente' },
+  );
+
+  checks.push(
+    ['grafico: curva x reta e acusada', gRuim.includes('gráfico.forma do traço:DIVERGE (bug)')],
+    ['grafico: area ausente e acusada', gRuim.includes('gráfico.área:DIVERGE (bug)')],
+    ['grafico: gradiente ausente e acusado', gRuim.includes('gráfico.gradientes:DIVERGE (bug)')],
+    ['grafico: cor do traco e acusada (mesmo tema)', gRuim.includes('gráfico.cor do traço:DIVERGE (bug)')],
+    ['grafico: traco que DEFORMA e acusado', gRuim.includes('gráfico.traço deforma:DIVERGE (bug)')],
+    ['grafico: CONTROLE -- lados iguais nao acusam nada', gIgual.length === 1 && gIgual[0] === 'gráfico:IGUAL'],
+    ['grafico: CONTROLE -- se os DOIS deformam, nao e bug da prod', !ambosDeformam.some((c) => /deforma/.test(c))],
+    ['grafico: CONTROLE -- papel so de um lado vira SEM-DADO, nao bug', soUmLado.length === 1 && soUmLado[0].veredito === 'SEM-DADO'],
+    ['grafico: barras -- altura e preenchimento sao comparados', barrasDif.includes('barra.altura:DIVERGE (bug)') && barrasDif.includes('barra.preenchimento:DIVERGE (bug)')],
+  );
+
+  // (h) SAUDE DO RENDER -- o lado medido pode estar quebrado, e um render sem CSS devolve
+  //     NUMERO PLAUSIVEL, nao erro. A regua tem que RECUSAR veredito, nao opinar.
+  const comSaude = (s) => ({ theme: 'dark', saude: s, roles: { chart: svgBase() } });
+  const renderSao = { folhasVazias: [], tokensMortos: [], nFolhas: 12 };
+  const renderQuebrado = { folhasVazias: ['colors_and_type.css'], tokensMortos: ['--text-dim', '--sunken'], nFolhas: 12 };
+  const rSaudavel = compare(comSaude(renderSao), comSaude(renderSao)).rows.filter((r) => r.dim === 'SAÚDE');
+  const rQuebrado = compare(comSaude(renderQuebrado), comSaude(renderSao)).rows.filter((r) => r.dim === 'SAÚDE');
+  // Sem o campo `saude` no snapshot (formato antigo) nao pode explodir nem inventar alarme.
+  const rAntigo = compare({ theme: 'dark', roles: { chart: svgBase() } }, { theme: 'dark', roles: { chart: svgBase() } }).rows.filter((r) => r.dim === 'SAÚDE');
+
+  checks.push(
+    ['saude: folha CSS vazia vira NAO MEDI', rQuebrado.some((r) => r.campo === 'render.prod' && r.veredito === 'NÃO MEDI')],
+    ['saude: token de cor morto vira NAO MEDI', rQuebrado.some((r) => r.campo === 'tokens.prod' && r.veredito === 'NÃO MEDI')],
+    ['saude: o lado SAO nao e acusado junto', !rQuebrado.some((r) => /\.design$/.test(r.campo))],
+    ['saude: CONTROLE -- render saudavel nao gera linha nenhuma', rSaudavel.length === 0],
+    ['saude: CONTROLE -- snapshot sem o campo saude nao explode nem alarma', rAntigo.length === 0],
   );
   for (const f of [fCanBom, fCanVazio]) { try { rmSync(f, { force: true }); } catch { /* best-effort */ } }
 
