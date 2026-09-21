@@ -70,7 +70,9 @@
       "charter": "resources/js/Pages/Jana/Index.charter.md",
       "source": "Jana",
       "states": [
-        "default"
+        "default",
+        "dark",
+        "empty"
       ]
     },
     "ponto-dashboard": {
