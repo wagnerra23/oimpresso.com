@@ -37,7 +37,45 @@ class StoreMetaRequest extends FormRequest
             'unidade' => ['required', Rule::in(['R$', 'qtd', '%', 'dias'])],
             'tipo_agregacao' => ['required', Rule::in(['soma', 'media', 'ultimo', 'contagem'])],
             'business_id' => ['nullable', 'integer', 'min:1'],
+
+            // ---- ALVO (opcional no contrato, obrigatorio na pratica) -------------
+            //
+            // POR QUE ENTROU AQUI (2026-09-21). Ate esta data o `store` criava SO a
+            // `Meta`, enquanto o caminho via IA (`ChatController@escolher`) criava
+            // `Meta` + `MetaPeriodo` + `MetaFonte` e ainda despachava o `ApurarMetaJob`.
+            // O resultado, medido em producao, foram 5 metas com ZERO periodo, ZERO
+            // apuracao e ZERO fonte — os 5 cards do Painel saiam identicos, em
+            // "Aguardando apuracao...", sem valor, sem barra e sem projecao. Nao era
+            // cadastro interrompido pelo usuario: sem campo de alvo no request, criar
+            // uma meta completa por aqui era IMPOSSIVEL.
+            //
+            // As regras sao as MESMAS do `StorePeriodoRequest` de proposito — os dois
+            // alimentam a mesma tabela, e divergir faria a validacao depender da porta
+            // de entrada. Se um dia mudarem, mudam juntos.
+            //
+            // NULLABLE, e nao required, por retrocompatibilidade medida: o form Blade
+            // legado (`metas/create.blade.php`) manda so os 4 campos de identidade, e
+            // torna-los obrigatorios aqui devolveria 422 pra ele. O drawer do Painel
+            // (caminho novo) manda o alvo sempre. O cutover do Blade e o PR-4 do
+            // RUNBOOK-metas §9.4.
+            //
+            // `required_with` amarra os tres entre si: ou vem o alvo inteiro, ou nao
+            // vem nada. Meia-declaracao (alvo sem janela, ou janela sem alvo) e
+            // exatamente o estado quebrado que este bloco existe pra impedir.
+            'valor_alvo' => ['nullable', 'numeric', 'min:0', 'required_with:data_ini,data_fim'],
+            'data_ini' => ['nullable', 'date', 'required_with:valor_alvo,data_fim'],
+            'data_fim' => ['nullable', 'date', 'after_or_equal:data_ini', 'required_with:valor_alvo,data_ini'],
+            'tipo_periodo' => ['nullable', Rule::in(['mes', 'trim', 'ano', 'custom'])],
+            'trajetoria' => ['nullable', Rule::in(['linear', 'sazonal', 'exponencial', 'manual'])],
         ];
+    }
+
+    /** O alvo veio inteiro? (os tres campos que o `MetaPeriodo` exige) */
+    public function temAlvo(): bool
+    {
+        $d = $this->validated();
+
+        return isset($d['valor_alvo'], $d['data_ini'], $d['data_fim']);
     }
 
     public function messages(): array
@@ -48,6 +86,12 @@ class StoreMetaRequest extends FormRequest
             'nome.required' => 'Informe o nome da meta.',
             'unidade.in' => 'Unidade inválida. Use R$, qtd, % ou dias.',
             'tipo_agregacao.in' => 'Tipo de agregação inválido. Use soma, media, ultimo ou contagem.',
+            'valor_alvo.required_with' => 'Informe o valor alvo — sem ele a meta não tem o que comparar.',
+            'valor_alvo.numeric' => 'O valor alvo precisa ser um número.',
+            'data_ini.required_with' => 'Informe a data inicial da janela.',
+            'data_fim.required_with' => 'Informe a data final da janela.',
+            'data_fim.after_or_equal' => 'A data final deve ser igual ou posterior à inicial.',
+            'tipo_periodo.in' => 'Tipo de período inválido. Use mes, trim, ano ou custom.',
         ];
     }
 }
