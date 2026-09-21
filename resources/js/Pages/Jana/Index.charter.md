@@ -18,7 +18,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 23
+charter_version: 24
 permissao: jana.access
 ---
 
@@ -242,6 +242,56 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- **v24 (2026-09-21)** — **os 3 estados do gate L2 existem, e a medição expôs um PONTO CEGO que
+  nenhuma das duas ondas tinha visto.**
+
+  **O que passou a existir** (`#7616` + modo update run `35610507942`, escopo `["Jana"]`):
+
+  | estado | tenant | o que o render PROVA |
+  |---|---|---|
+  | `default` | biz=1 | já existia — é **LIGHT** (ver ⚠️ abaixo) |
+  | **`dark`** | biz=1 + flag | a onda 01 no tema escuro: upsell do brief com `Ver Jana Pro`, selo `plano Grátis`, e o h2 `ANÁLISES PRINCIPAIS` **sem** a sub-linha de drill |
+  | **`empty`** | **biz=98** (vazio por construção) | a onda 02 em runtime: a copy literal do UC-JPAIN-29, `Ir para a Conversa`, o corpo sumindo inteiro — e **METAS de pé ao lado**, que é o invariante dos eixos separados |
+
+  O `empty` é o primeiro render **real** do estado vazio: no biz=1 o `$seedJanaVisregFlow` semeia uma
+  venda vencida, `sellKpis.total > 0`, e `semHistorico` nunca é `true`. Até aqui o UC-JPAIN-29 só
+  tinha prova em jsdom.
+
+  ⚠️ **O `default` é LIGHT, não dark** — medido no render. A sidebar é preta nos **dois** modos
+  ([UI-0023](../../../../memory/requisitos/_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)),
+  então ela **não indica tema**; quem indica é o conteúdo. Eu quase classifiquei o snapshot antigo
+  como "dark" e declarei um eixo fechado que não estava.
+
+  ### ⛔ PONTO CEGO da baseline: as ABAS não entram em snapshot nenhum
+
+  **Medido:** `JanaSubNav.tsx` faz `if (!janaItem?.ghosts?.length) return null;`. As abas vêm de
+  `shell.menu[].ghosts`, servidos pelo `DataController`; no tenant do visreg o grupo `ia` não os
+  tem, então o SubNav **retorna `null`**. As **6 abas** que a âncora desenha
+  (`jana-merge.jsx` §`JmTabs`: Painel · Conversa · Alertas · Ações · Memória · Plataforma)
+  **não aparecem em `default`, `dark` nem `empty`**.
+
+  **Isto é pré-existente, não regressão das ondas** — a baseline anterior também não as tinha. Mas
+  a consequência é dura e fica declarada: **o gate L2 desta tela não cobre a barra de abas**, e
+  quem ler um snapshot verde não pode concluir que a subnav está sã. A `v21` travou a métrica da
+  aba por `density="compact"` num **spec jsdom** (`pageHeaderTabsDensity`), não por pixel — e é
+  por isso que a divergência não acusou em lugar nenhum.
+
+  ⚠️ **Não consertei**: fazer o seed do visreg produzir `ghosts` mexe no `ShellMenuBuilder`/
+  `DataController` e muda o render de **todas** as telas que declaram estado, não só a Jana. É onda
+  própria, com decisão [W] — não carona num PR de charter.
+
+  ### A âncora foi confirmada pela PORTA VIVA, não pelo charter
+
+  Até aqui eu vinha lendo `related_prototype` direto do frontmatter — que é a fonte que o próprio
+  charter declara, e portanto circular. Rodado `node scripts/design/ancora.mjs Jana/Index`:
+
+  > `âncora ✓: [related_prototype (charter)] prototipo-ui/cowork/Wagner/jana-merge.jsx`
+  > `✓ frescor: verificado contra o Cowork vivo em 2026-09-21T10:43:20Z — fala DESTE arquivo`
+
+  ⚠️ E ela emite uma ressalva que o charter não carregava: **`cobertura: o espelho NÃO cobre o vivo
+  — 4 arquivo(s) de 734 existem lá e nunca desceram`**. O ✓ de frescor fala **daquele arquivo**;
+  não prova que a fonte da tela está toda no espelho.
 
 - **v23 (2026-09-21)** — **business sem histórico vê UM estado de página, não 6 caixas vazias.**
   ONDA 02 do mesmo playbook (`cowork-inbox/jana/playbook/02-painel.estado-vazio.md`). Um arquivo,
