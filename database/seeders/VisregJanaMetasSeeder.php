@@ -9,101 +9,101 @@ use Modules\Jana\Services\ApuracaoService;
 use RuntimeException;
 
 /**
- * Fixture da secao METAS do Painel da Jana (`/ia`) no gate visual L2.
+ * Fixture da seção METAS do Painel da Jana (`/ia`) no gate visual L2.
  *
  * ── O DEFEITO QUE ELE FECHA (medido 2026-09-21) ─────────────────────────────
  *
- * O estado `default` fotografava a secao METAS **vazia** — indistinguivel do
- * estado `empty`. Nao e figura de linguagem: `Pages/Jana/Index.tsx` decide por
- * `metas.length === 0`, e nos dois casos renderiza o MESMO card
- * `data-contract="painel-metas-vazio"`. Logo regressao em grade, card, barra de
- * progresso, farol ou projecao passava batida — a baseline nunca teve um card de
+ * O estado `default` fotografava a seção METAS **vazia** — indistinguível do
+ * estado `empty`. Não é figura de linguagem: `Pages/Jana/Index.tsx` decide por
+ * `metas.length === 0` e, nos dois casos, renderiza o MESMO card
+ * `data-contract="painel-metas-vazio"`. Logo regressão em grade, card, barra de
+ * progresso, farol ou projeção passava batida — a baseline nunca teve um card de
  * meta pra perder.
  *
  * As duas contagens que estabelecem isso, com o comando ao lado:
  *
- *   - `$seedJanaVisregFlow` (routes/web.php) semeia UMA transacao vencida e zero
+ *   - `$seedJanaVisregFlow` (routes/web.php) semeia UMA transação vencida e zero
  *     metas: busca por "meta" (case-insensitive) no corpo da closure devolve 0.
  *   - nenhum dos 9 seeders `Visreg*` semeia meta:
  *     `rg -l -e jana_metas -e MetaPeriodo -e 'Entities.Meta' database/seeders/`
  *     devolve rc=1 (controle positivo: o mesmo `rg` com `business_id` devolve 18).
  *
- * E a mesma doenca que o proprio `routes/web.php` ja documenta pros casos irmaos
- * — "dado ausente vira snapshot de tela vazia com nome de default" —, so que na
- * Jana ninguem tinha medido.
+ * É a mesma doença que o próprio `routes/web.php` já documenta pros casos irmãos
+ * — "dado ausente vira snapshot de tela vazia com nome de default" —, só que na
+ * Jana ninguém tinha medido.
  *
- * ── POR QUE AS DATAS SAO LITERAIS E CONGELADAS ──────────────────────────────
+ * ── POR QUE AS DATAS SÃO LITERAIS E CONGELADAS ──────────────────────────────
  *
  * `Meta::periodoAtual` filtra `data_ini <= now() AND data_fim >= now()` com o
- * `now()` do PHP. E o `now()` do PHP **ESTA congelado no request HTTP**:
+ * `now()` do PHP. E o `now()` do PHP **ESTÁ congelado no request HTTP**:
  * `AppServiceProvider::boot()` chama `Carbon::setTestNow(config('visreg.freeze_clock'))`
- * antes de qualquer controller, e o docblock de la declara o alcance —
- * "governa `now()`, `Carbon::now()` e o facade `Date`". A env e escrita no `.env`
- * do servidor pelo proprio `visual-regression.yml` (`VISREG_FREEZE_CLOCK` = o
+ * antes de qualquer controller, e o docblock de lá declara o alcance —
+ * "governa `now()`, `Carbon::now()` e o facade `Date`". A env é escrita no `.env`
+ * do servidor pelo próprio `visual-regression.yml` (`VISREG_FREEZE_CLOCK` = o
  * mesmo instante de `INSTANTE` abaixo, no heredoc que precede o `key:generate`),
- * e o comentario de la confirma o lado PHP: "o setTestNow so congelava o relogio
+ * e o comentário de lá confirma o lado PHP: "o setTestNow só congelava o relógio
  * do PHP".
  *
- * Isso importa porque e o OPOSTO do caso vizinho: o predicado do overdue da Jana
- * usa `CURDATE()` do BANCO, que o `setTestNow` nao governa — por isso LA a data
- * tem de ser fixa e antiga. AQUI o relogio lido e o congelado, entao um periodo
- * fixo que CONTENHA o instante congelado resolve `periodoAtual` e ainda da rotulo
- * estavel ("junho/2026", montado por `periodoLabel` a partir de data_ini/data_fim).
- * Nao ha tensao entre "periodo vigente" e "rotulo estavel": as duas coisas saem do
- * mesmo literal.
+ * Isso importa porque é o OPOSTO do caso vizinho: o predicado do overdue da Jana
+ * usa `CURDATE()` do BANCO, que o `setTestNow` não governa — por isso LÁ a data
+ * tem de ser fixa e antiga. AQUI o relógio lido é o congelado, então um período
+ * fixo que CONTENHA o instante congelado resolve `periodoAtual` e ainda dá rótulo
+ * estável ("jun/2026", montado por `periodoLabel` a partir de data_ini/data_fim).
+ * Não há tensão entre "período vigente" e "rótulo estável": as duas coisas saem
+ * do mesmo literal.
  *
  * ⚠️ MANTENHA `INSTANTE`/`PERIODO_*` ALINHADOS AO `VISREG_FREEZE_CLOCK`. Mover o
- * relogio pra fora de `PERIODO_INI..PERIODO_FIM` faz `periodoAtual` virar null nas
- * 5 metas de uma vez, `projecao` virar null, e TODAS cairem em `cinza` — a secao
- * continuaria com 5 cards, entao contagem de card nao flagraria. Quem flagra e a
- * auto-verificacao no fim deste seeder, que compara o farol COMPUTADO com o
+ * relógio pra fora de `PERIODO_INI..PERIODO_FIM` faz `periodoAtual` virar null nas
+ * 5 metas de uma vez, `projecao` virar null, e TODAS caírem em `cinza` — a seção
+ * continuaria com 5 cards, então contagem de card não flagraria. Quem flagra é a
+ * auto-verificação no fim deste seeder, que compara o farol COMPUTADO com o
  * declarado e explode. Nunca `now()`, nunca data relativa.
  *
  * ── COBERTURA (o que cada meta exercita) ────────────────────────────────────
  *
  *   verde · amarelo · vermelho          → as 3 faixas de `ApuracaoService::farol`
- *   sem apuracao                        → `projecao` null -> `cinza` + o contrato
+ *   sem apuração                        → `projecao` null -> `cinza` + o contrato
  *                                         `painel-meta-apurando`
- *   1 apuracao so                       → `painel-meta-sem-historico` (o Sparkline
+ *   1 apuração só                       → `painel-meta-sem-historico` (o Sparkline
  *                                         exige >= 2 pontos)
  *
- * De quebra, as 4 unidades do enum (`R$`/`qtd`/`%`/`dias`) e 4 agregacoes
- * aparecem — entao regressao em `formatValue` tambem passa a ter onde doer.
+ * De quebra, as 4 unidades do enum (`R$`/`qtd`/`%`/`dias`) e 4 agregações
+ * aparecem — então regressão em `formatValue` também passa a ter onde doer.
  *
- * VALORES DISTINTOS entre metas e entre apuracoes da mesma meta, de proposito:
- * `ultimaApuracao` e `latestOfMany('data_ref')` e `apuracoes` vem
+ * VALORES DISTINTOS entre metas e entre apurações da mesma meta, de propósito:
+ * `ultimaApuracao` é `latestOfMany('data_ref')` e `apuracoes` vem
  * `orderBy('data_ref')` — empate deixaria a ordem por conta do MySQL, e duas
- * linhas trocando de lugar entre execucoes e flake de baseline com cara de
- * regressao (mesma razao declarada no `VisregJanaChatSeeder`).
+ * linhas trocando de lugar entre execuções é flake de baseline com cara de
+ * regressão (mesma razão declarada no `VisregJanaChatSeeder`).
  *
  * ── TENANCY ─────────────────────────────────────────────────────────────────
  *
- * So biz=1 (ADR 0101/0358). ⛔ NUNCA biz=98: ele e o `Tenant Vazio` do estado
- * `empty` (`VisregEmptyTenantSeeder::BIZ_EMPTY`) — semear meta la quebraria
- * justamente o estado que a Jana ganhou pra fotografar a secao vazia. ⛔ E nunca
- * biz=4, que e cliente real.
+ * Só biz=1 (ADR 0101/0358). ⛔ NUNCA biz=98: ele é o `Tenant Vazio` do estado
+ * `empty` (`VisregEmptyTenantSeeder::BIZ_EMPTY`) — semear meta lá quebraria
+ * justamente o estado que a Jana ganhou pra fotografar a seção vazia. ⛔ E nunca
+ * biz=4, que é cliente real.
  *
- * O `where('business_id')` explicito da verificacao NAO e redundante: quando este
- * seeder roda pelo lever, a sessao ja foi esvaziada (`session()->forget([...])`
+ * O `where('business_id')` explícito da verificação NÃO é redundante: quando este
+ * seeder roda pelo lever, a sessão já foi esvaziada (`session()->forget([...])`
  * em `/_visreg-state`), e `ScopeByBusiness::apply` retorna cedo sem filtro nesse
- * caso ("Sessao sem user_id -> sem filtro"). O filtro de tenant e este, nao o
- * scope — e por isso ele e escrito a mao em vez de herdado.
+ * caso ("Sessão sem user_id -> sem filtro"). O filtro de tenant é este, não o
+ * scope — e por isso ele é escrito à mão em vez de herdado.
  *
- * ⚠️ VAZA PRO L1 SE NAO FOR LIMPO — mesmo vetor que o lever do overdue ja
- * registrou: a suite do L2 nao usa `RefreshDatabase` e o `visreg-flake-retry.sh`
- * re-roda o arquivo inteiro. A limpeza cirurgica (por slug exato, nunca por
+ * ⚠️ VAZA PRO L1 SE NÃO FOR LIMPO — mesmo vetor que o lever do overdue já
+ * registrou: a suíte do L2 não usa `RefreshDatabase` e o `visreg-flake-retry.sh`
+ * re-roda o arquivo inteiro. A limpeza cirúrgica (por slug exato, nunca por
  * range) vive no `visregLimparFixturesDeEstado()` do IsolatedStatesBaselineTest,
  * e as tabelas filhas saem por `ON DELETE CASCADE`.
  *
  * @see routes/web.php                                     (`$seedJanaVisregFlow` — quem invoca)
  * @see tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php (a limpeza)
- * @see Modules/Jana/Services/ApuracaoService.php          (farol/projecao — a regra verificada)
+ * @see Modules/Jana/Services/ApuracaoService.php          (farol/projeção — a regra verificada)
  */
 class VisregJanaMetasSeeder extends Seeder
 {
     public const BUSINESS_ID = 1;
 
-    /** Contem o `VISREG_FREEZE_CLOCK` — ver o ⚠️ do docblock. */
+    /** Contém o `VISREG_FREEZE_CLOCK` — ver o ⚠️ do docblock. */
     public const PERIODO_INI = '2026-06-01';
 
     public const PERIODO_FIM = '2026-06-30';
@@ -111,30 +111,30 @@ class VisregJanaMetasSeeder extends Seeder
     /** Igual ao `VISREG_FREEZE_CLOCK` do workflow. */
     public const INSTANTE = '2026-06-11 12:00:00';
 
-    /** Marca da apuracao desta fixture — entra na UNIQUE `(meta_id, data_ref, fonte_query_hash)`. */
+    /** Marca da apuração desta fixture — entra na UNIQUE `(meta_id, data_ref, fonte_query_hash)`. */
     public const FONTE_HASH = 'visreg-fixture';
 
     /**
      * O fixture inteiro, declarado.
      *
-     * `farol` NAO e dado gravado: e a EXPECTATIVA que a auto-verificacao confere
+     * `farol` NÃO é dado gravado: é a EXPECTATIVA que a auto-verificação confere
      * contra o que o `ApuracaoService` calcula. Se as fronteiras -5/-15 mudarem,
-     * se a projecao mudar, ou se o relogio congelado sair do periodo, o seeder
+     * se a projeção mudar, ou se o relógio congelado sair do período, o seeder
      * explode em vez de fotografar 5 cards cinza calados.
      *
-     * A aritmetica (progresso = 10,5/29 = 0,3620689655 no instante congelado):
+     * A aritmética (progresso = 10,5/29 = 0,3620689655 no instante congelado):
      *   receita    alvo 120000,00  projetado 43448,28  realizado 48900,00  desvio +12,55%  verde
      *   margem     alvo     90,00  projetado    32,59  realizado    29,30  desvio -10,08%  amarelo
      *   pedidos    alvo    800,00  projetado   289,66  realizado   188,00  desvio -35,10%  vermelho
-     *   prazo      alvo     45,00  (sem apuracao)                                          cinza
+     *   prazo      alvo     45,00  (sem apuração)                                          cinza
      *   recorrente alvo 250000,00  projetado 90517,24  realizado 96000,00  desvio  +6,06%  verde
      *
-     * Margem ate a fronteira mais proxima: 17,55 / 4,92 / 20,10 / — / 11,06 pp.
+     * Margem até a fronteira mais próxima: 17,55 / 4,92 / 20,10 / — / 11,06 pp.
      */
     private const FIXTURE = [
         [
             'slug' => 'visreg-jana-receita',
-            'nome' => 'Receita do mes',
+            'nome' => 'Receita do mês',
             'unidade' => 'R$',
             'tipo_agregacao' => 'soma',
             'valor_alvo' => 120000.00,
@@ -147,7 +147,7 @@ class VisregJanaMetasSeeder extends Seeder
         ],
         [
             'slug' => 'visreg-jana-margem',
-            'nome' => 'Margem de contribuicao',
+            'nome' => 'Margem de contribuição',
             'unidade' => '%',
             'tipo_agregacao' => 'media',
             'valor_alvo' => 90.00,
@@ -172,10 +172,10 @@ class VisregJanaMetasSeeder extends Seeder
             'farol' => 'vermelho',
         ],
         [
-            // SEM apuracao de proposito: `projecao` devolve null (o `$ultima` e null),
+            // SEM apuração de propósito: `projecao` devolve null (o `$ultima` é null),
             // o farol vira `cinza` e o card cai no `data-contract="painel-meta-apurando"`.
             'slug' => 'visreg-jana-prazo',
-            'nome' => 'Prazo medio de entrega',
+            'nome' => 'Prazo médio de entrega',
             'unidade' => 'dias',
             'tipo_agregacao' => 'media',
             'valor_alvo' => 45.00,
@@ -183,9 +183,9 @@ class VisregJanaMetasSeeder extends Seeder
             'farol' => 'cinza',
         ],
         [
-            // UMA apuracao so: o `Sparkline` exige >= 2 pontos, entao este card
+            // UMA apuração só: o `Sparkline` exige >= 2 pontos, então este card
             // renderiza `data-contract="painel-meta-sem-historico"` — com farol
-            // `verde`, pra provar que "sem historico" e independente do farol.
+            // `verde`, pra provar que "sem histórico" é independente do farol.
             'slug' => 'visreg-jana-recorrente',
             'nome' => 'Receita recorrente',
             'unidade' => 'R$',
@@ -210,10 +210,10 @@ class VisregJanaMetasSeeder extends Seeder
 
     public function run(): void
     {
-        // Pre-condicao AUSENTE sai em silencio (mesmo idioma dos levers irmaos: o
+        // Pré-condição AUSENTE sai em silêncio (mesmo idioma dos levers irmãos: o
         // insert violaria FK e derrubaria o request do harness). Fixture MENTINDO
-        // explode — ver `verificar()`. Os dois casos sao diferentes e tem desfechos
-        // diferentes de proposito.
+        // explode — ver `verificar()`. Os dois casos são diferentes e têm desfechos
+        // diferentes de propósito.
         $business = DB::table('business')->where('id', self::BUSINESS_ID)->exists();
 
         if (! $business) {
@@ -235,8 +235,8 @@ class VisregJanaMetasSeeder extends Seeder
     private function semear(): void
     {
         foreach (self::FIXTURE as $item) {
-            // DB::table (nao Eloquent) pelo mesmo motivo do VisregJanaChatSeeder:
-            // sem global scope no caminho, o seed e literal e previsivel.
+            // DB::table (não Eloquent) pelo mesmo motivo do VisregJanaChatSeeder:
+            // sem global scope no caminho, o seed é literal e previsível.
             DB::table('jana_metas')->updateOrInsert(
                 [
                     'business_id' => self::BUSINESS_ID,
@@ -247,9 +247,9 @@ class VisregJanaMetasSeeder extends Seeder
                     'unidade' => $item['unidade'],
                     'tipo_agregacao' => $item['tipo_agregacao'],
                     'ativo' => 1,
-                    // NULL de proposito: `criada_por_user_id` nao entra no payload do
-                    // Painel (conferido em `IndexController::buildMetasPayload`), entao
-                    // nao ha render a estabilizar, e a coluna e nullable.
+                    // NULL de propósito: `criada_por_user_id` não entra no payload do
+                    // Painel (conferido em `IndexController::buildMetasPayload`), então
+                    // não há render a estabilizar, e a coluna é nullable.
                     'criada_por_user_id' => null,
                     'origem' => 'seed',
                     'created_at' => self::INSTANTE,
@@ -262,8 +262,8 @@ class VisregJanaMetasSeeder extends Seeder
                 ->where('slug', $item['slug'])
                 ->value('id');
 
-            // Idempotente por (meta_id, data_ini): a tabela nao tem UNIQUE, so o
-            // indice (meta_id, data_ini) — o par e a chave logica do periodo.
+            // Idempotente por (meta_id, data_ini): a tabela não tem UNIQUE, só o
+            // índice (meta_id, data_ini) — o par é a chave lógica do período.
             DB::table('jana_meta_periodos')->updateOrInsert(
                 [
                     'meta_id' => $metaId,
@@ -314,17 +314,17 @@ class VisregJanaMetasSeeder extends Seeder
      * A SONDA — e ela roda no chokepoint que o fluxo atravessa.
      *
      * Uma sonda de contagem no step "Seed demo tenant" do workflow contaria ZERO:
-     * este seeder e invocado pelo lever `/_visreg-state`, ou seja, DENTRO do
-     * request do teste, muito depois daquele step. Sonda em ponto que o fluxo nao
-     * atravessa e teatro, e o proprio workflow ja registra a licao vizinha ("esta
-     * sonda mede o SEED, nao o RENDER").
+     * este seeder é invocado pelo lever `/_visreg-state`, ou seja, DENTRO do
+     * request do teste, muito depois daquele step. Sonda em ponto que o fluxo não
+     * atravessa é teatro, e o próprio workflow já registra a lição vizinha ("esta
+     * sonda mede o SEED, não o RENDER").
      *
-     * Aqui a verificacao e do FAROL COMPUTADO, nao da contagem de linha, porque a
-     * degradacao silenciosa desta fixture nao e "sumiu": e "virou 5 cards cinza"
-     * — que uma contagem de card nao distingue de 5 cards certos.
+     * Aqui a verificação é do FAROL COMPUTADO, não da contagem de linha, porque a
+     * degradação silenciosa desta fixture não é "sumiu": é "virou 5 cards cinza"
+     * — que uma contagem de card não distingue de 5 cards certos.
      *
      * Explode (RuntimeException) em vez de retornar: o request vira 500, o
-     * `assertSee` do IsolatedStatesBaselineTest reprova, e o job falha. Quem le a
+     * `assertSee` do IsolatedStatesBaselineTest reprova, e o job falha. Quem lê a
      * falha acha esta mensagem no log com o farol esperado e o obtido.
      */
     private function verificar(): void
@@ -339,7 +339,7 @@ class VisregJanaMetasSeeder extends Seeder
         if ($metas->count() !== count($esperado)) {
             throw new RuntimeException(sprintf(
                 'VisregJanaMetasSeeder: esperava %d metas no biz=%d, encontrou %d. '
-                . 'Fixture pela metade fotografa estado que ninguem declarou.',
+                . 'Fixture pela metade fotografa estado que ninguém declarou.',
                 count($esperado),
                 self::BUSINESS_ID,
                 $metas->count()
@@ -356,7 +356,7 @@ class VisregJanaMetasSeeder extends Seeder
                     'VisregJanaMetasSeeder: meta "%s" calculou farol "%s", o fixture declara "%s". '
                     . 'Suspeito n.1: VISREG_FREEZE_CLOCK saiu de %s..%s (periodoAtual vira null e '
                     . 'TODAS caem em cinza). Suspeito n.2: as fronteiras -5/-15 do ApuracaoService '
-                    . 'mudaram. NAO regrave a baseline — conserte a causa.',
+                    . 'mudaram. NÃO regrave a baseline — conserte a causa.',
                     $meta->slug,
                     $obtido,
                     $esperado[$meta->slug],
