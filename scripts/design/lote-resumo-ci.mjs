@@ -5,7 +5,7 @@
  * resumo legível, com o denominador na frente. Escreve markdown no stdout (o workflow
  * redireciona pro `$GITHUB_STEP_SUMMARY`); não escreve arquivo, não commita, não cria task.
  *
- * Origem: decisão [W] "ligue" em 2026-09-18 (ADR 0409, que emenda a 0290). O lote já media
+ * Origem: decisão [W] "ligue" em 2026-09-21 (ADR 0408, que emenda a 0290). O lote já media
  * e gravava; o que faltava era alguém LER. Este arquivo é esse alguém.
  *
  * ── AS TRÊS REGRAS QUE ELE EXISTE PRA CUMPRIR ──────────────────────────────────────────
@@ -39,11 +39,13 @@
  *
  * ── COMO RODAR ─────────────────────────────────────────────────────────────────────────
  *   node scripts/design/lote-resumo-ci.mjs              # markdown no stdout
- *   node scripts/design/lote-resumo-ci.mjs --selftest   # partes puras, hermético
+ *   node scripts/design/lote-resumo-ci.mjs --selftest   # 18 casos, hermético (sem rede/app);
+ *                                                        # os 4 últimos exercitam o CLI de fora
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 
 const DIR_MEDIDAS = 'governance/design/targets/medidas';
 const REPORT = 'scripts/design-sync/state/application-report.json';
@@ -141,6 +143,25 @@ export function achadosPorCampo(dir, leitor = fs) {
 function main() {
   const out = [];
   const say = (s = '') => out.push(s);
+
+  // O `RESUMO.md` é VERSIONADO. Se o step de medição não terminou (falhou, estourou o
+  // timeout, ou foi cancelado pela concorrência — aconteceu no dispatch de prova em
+  // 2026-09-21, run 35589355425, morta 17s depois de um push em main entrar no mesmo
+  // `concurrency.group`), este script leria o arquivo do repo e publicaria dado ANTIGO com
+  // cara de rodada nova. Isso é "afirmar sem medir" com passos extras: o leitor não tem como
+  // distinguir. Por isso o outcome do step entra por env e é declarado ANTES de qualquer número.
+  const outcome = process.env.LOTE_OUTCOME || '';
+  if (outcome && outcome !== 'success') {
+    say(`## Lote de paridade — NÃO MEDI (step de medição: \`${outcome}\`)`);
+    say('');
+    say('O step que renderiza e compara não concluiu, então **esta rodada não produziu medida**.');
+    say('Os números abaixo seriam os do `RESUMO.md` versionado — de uma rodada anterior — e');
+    say('publicá-los aqui os faria passar por novos. Não são, e por isso não vão.');
+    say('');
+    say('Ver o log do step acima. **Ausência de medida não é "tudo igual"** (§5 2026-07-29).');
+    process.stdout.write(out.join('\n') + '\n');
+    return;
+  }
 
   if (!fs.existsSync(`${DIR_MEDIDAS}/RESUMO.md`)) {
     say('## Lote de paridade — RESUMO não gerado');
@@ -281,6 +302,23 @@ function selftest() {
   // dir ausente nao explode nem inventa zero-com-cara-de-medido
   const vazio = achadosPorCampo('nao-existe', { existsSync: () => false, readdirSync: () => [], readFileSync: () => '' });
   t('achadosPorCampo: dir ausente = 0 achados sem lancar', vazio.total === 0);
+
+  // GUARD DE OUTCOME — exercita o CLI DE FORA, nao o helper: o guard vive no main(), que nao
+  // e exportado, e assert sobre funcao pura nao prova contrato de pipeline (LC-15). Origem:
+  // run 35589355425 (2026-09-21), cancelada pela concorrencia — sem o guard, o resumo leria o
+  // RESUMO.md versionado e publicaria a rodada anterior como se fosse esta.
+  const cli = (env) => spawnSync(process.execPath, [import.meta.filename], {
+    env: { ...process.env, ...env }, encoding: 'utf8',
+  });
+  const mau = cli({ LOTE_OUTCOME: 'cancelled' });
+  t('guard: outcome != success declara NAO MEDI', /NÃO MEDI/.test(mau.stdout));
+  t('guard: outcome != success NAO publica numero de medida',
+    !/\d+\s+linhas|total \d+/.test(mau.stdout));
+  const bom = cli({ LOTE_OUTCOME: 'success' });
+  // controle positivo: com success, o CLI volta a publicar (se o corpus existir na arvore).
+  t('guard: outcome success nao e bloqueado pelo guard', !/NÃO MEDI \(step/.test(bom.stdout));
+  const semEnv = cli({ LOTE_OUTCOME: '' });
+  t('guard: env ausente nao bloqueia (uso local)', !/NÃO MEDI \(step/.test(semEnv.stdout));
 
   console.log(`\n${ok}/${ok + fail} ok`);
   process.exitCode = fail ? 1 : 0;

@@ -50,7 +50,15 @@ on:
     - cron: "40 4 * * 1"
 
 concurrency:
-  group: design-smoke-ci
+  # ISOLADO POR EVENTO+REF desde 2026-09-21. Era `design-smoke-ci` global com
+  # cancel-in-progress, e isso matou a run de prova do lote: o dispatch 35589355425 foi
+  # cancelado 17s depois de um `push: main` entrar no MESMO group (e aquele push, por sua
+  # vez, tinha matado a run anterior). Com o lote levando ~20min, um group global significa
+  # que qualquer merge em main durante a janela mata a medição — e o sintoma e `cancelled`,
+  # que se le como "deu erro" quando na verdade e "nem rodou".
+  # O comportamento do SMOKE fica identico: push em main segue cancelando push em main,
+  # porque event+ref sao os mesmos. O que muda e que schedule/dispatch deixam de competir.
+  group: design-smoke-ci-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -337,6 +345,10 @@ jobs:
           always() && steps.lote.conclusion != 'skipped' &&
           steps.select.outputs.count != '0' &&
           (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        env:
+          # Sem isto o script leria o RESUMO.md VERSIONADO e publicaria a rodada anterior
+          # como se fosse esta. Com isto, ele declara "NAO MEDI" e nao imprime numero nenhum.
+          LOTE_OUTCOME: ${{ steps.lote.outcome }}
         run: node scripts/design/lote-resumo-ci.mjs >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload das medidas do lote (dado bruto · NAO commitado)
