@@ -127,6 +127,52 @@ Com isso o CT 100 fica **auto-suficiente** (gera seu próprio sinal "o que é ma
 - ⚠️ **OOM no `mcp:sync-memory` (status=137, ~2×/dia):** pré-existente, separado deste fix (o SHA agora é gravado ANTES do passo que mata). Vale investigar limite de memória do container / chunking da indexação.
 - ⚠️ **Unit systemd não versionada:** `oimpresso-git-sync.{service,timer}` vivem só no host (criadas ad-hoc 2026-05-12, agora editadas ad-hoc). Um rebuild do CT 100 via bootstrap perde o fix. Mover a definição da unit pro `docker/oimpresso-mcp/scripts/bootstrap-ct100*.sh` (ou systemd unit no repo) pra durabilidade real.
 
+## 2026-09-21 — 3ª ocorrência: o timer estava `active` e **não disparava há 38 dias**
+
+**Sintoma.** `deploy-latest-main-sha.txt` congelado em `0404b631aa39` (2026-08-13 21:23Z),
+**1698 commits** atrás do tip. Mesmo arquivo, mesma classe do incidente de 2026-05-29 —
+e de novo achado por acaso, não por alarme.
+
+**O que enganava.** `systemctl is-active oimpresso-git-sync.timer` → `active`;
+`is-enabled` → `enabled`; `SubState` → `waiting`. Tudo **declaração**. E o campo de
+runtime que eu consultei primeiro, `NextElapseUSecRealtime`, vinha **vazio** — o que me
+levou a concluir "o timer morreu". **Estava errado, e a razão vale mais que o caso:**
+este timer é **monotônico** (`OnBootSec` + `OnUnitActiveSec`), e timer monotônico não
+preenche o campo *Realtime* — o campo certo é **`NextElapseUSecMonotonic`**. Pedir o
+campo errado devolve vazio com cara de resposta (§5 2026-07-17).
+
+**A causa real, medida no campo certo.** O host rebootou em **14/ago 10:43** (`-- Boot
+2498b72c… --` no journal do timer). Depois desse boot:
+
+| campo | valor medido em 2026-09-21 09:37Z, ANTES do restart |
+|---|---|
+| `LastTriggerUSecMonotonic` | **0** — nunca disparou desde o boot |
+| `NextElapseUSecMonotonic` | **1 month 1w 18h** — próximo disparo a ~38 dias |
+
+`OnUnitActiveSec` ancora na **última ativação do serviço**, e `ActiveEnterTimestamp` do
+service está **vazio**. Sem âncora, o próximo disparo foi calculado contra o uptime do
+host e foi parar mais de um mês à frente. O timer ficou "armado e mudo": nunca falhou,
+nunca alarmou, nunca rodou.
+
+**O que foi feito (2026-09-21 09:37Z).** `systemctl restart oimpresso-git-sync.timer` +
+um disparo manual. **Consequência medida, não declarada:** o arquivo foi reescrito com
+`254cf5f0027b`, mtime `09:37:50`, e `list-timers` passou a mostrar `NEXT Mon 2026-09-21
+15:37:49` (em ~6h — o `override.conf` trocou os 5min originais por `OnUnitActiveSec=6h`).
+
+**Pendente, e é decisão [W] porque é config de servidor fora do git** (a unit vive em
+`/etc/systemd/system/`, não versionada — Tier 0 §Ambiente): o restart cura até o próximo
+reboot, não a classe. O conserto durável é trocar `OnUnitActiveSec` por
+**`OnCalendar=*:0/5` + `Persistent=true`** — agendamento de relógio rearma sozinho e não
+depende de ancoragem numa ativação anterior, que é exatamente o que quebrou aqui.
+
+**Defesa que JÁ foi instalada, do lado do consumidor** (essa é minha e está no git): o
+`staging-freshness-sentinel.sh` passou a **descartar a referência quando o arquivo está
+stale** (`STAGING_MAIN_SHA_MAX_AGE_S`, default 6h) e cair no `ls-remote`, em vez de só
+tratar o caso *vazio*. Com isso a sentinela de staging fica correta **mesmo que este
+timer morra de novo** — e o `main_src` no status JSON diz de qual porta veio a
+referência. O buraco a montante (o `DeployDriftChecker` da ADR 0216 lê o **mesmo**
+arquivo e não tem essa guarda) segue **aberto e declarado**, fora do escopo daquele PR.
+
 ## Histórico
 
 - **2026-05-12 14:08 BRT:** último sync OK (gerado por trigger desconhecido — provavelmente webhook que funcionou)

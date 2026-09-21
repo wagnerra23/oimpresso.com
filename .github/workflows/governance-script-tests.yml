@@ -137,6 +137,21 @@ jobs:
       # Fixtures do falso-positivo REAL de 2026-08-04: main parado a noite toda + rajada de
       # 2 commits -> a formula antiga (head - served) devolvia 14.4h e alarmava com o servidor
       # 3min atras. A fixture "a formula ANTIGA teria alarmado" impede a regressao voltar.
+      # Sentinela de frescor do checkout de STAGING (host CT 100, cron horario). O
+      # --selftest dela existia desde 2026-07-17 e NINGUEM o invocava: `git grep` em
+      # .github/, scripts/, package.json e .claude/ devolvia rc=1 (zero). Maquina que
+      # existe e ninguem invoca e bug, nao neutralidade -- e o custo ficou visivel em
+      # 2026-09-21, quando a sentinela passou 39 dias medindo contra uma referencia de
+      # main congelada (o produtor dela, `oimpresso-git-sync.timer`, parou de disparar
+      # apos um reboot) sem que nada avermelhasse. Os asserts cobrem os dois nucleos
+      # PUROS -- `avaliar_frescor` e `referencia_confiavel` -- incluindo a borda do
+      # descarte e o controle negativo "referencia podre torna `fresco` inalcancavel".
+      # Aqui e nao em workflow novo porque este job JA e o dono de "bite-test de script"
+      # (ADR 0298: estender o dono, nunca abrir paralelo).
+      # Sem o guard de `steps.setup` de proposito: e bash puro, nao usa node nem deps.
+      - name: Staging freshness · bite-test (referencia podre e DESCARTADA · borda do TTL · fresco alcancavel)
+        if: always()
+        run: bash docker/oimpresso-staging/staging-freshness-sentinel.sh --selftest
       - name: MCP drift · lag mede HA QUANTO TEMPO o servidor deve (nao a distancia entre commits)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/mcp-drift-sentinel.mjs --selftest
