@@ -40,9 +40,25 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # CADENCIA DO LOTE DE PARIDADE (2026-09-18, decisao [W] "ligue" -> ADR 0408, que emenda a
+  # 0290). Semanal, nao nightly: o universo do lote sao as `anchored` do application-report,
+  # e elas mudam por TRABALHO humano (aplicar tela, mover pra compared), nao por relogio.
+  # Medido no dia: 23 telas executaveis de 68 `anchored` — o job nao cresce sozinho.
+  # Segunda 04:40 UTC (01:40 BRT) pra nao colidir com os crons de segunda ja existentes
+  # (anchor-drift 06:00 · charter-us-gate 06:00 · baseline-folga 06:17 · devcontainer 07:45).
+  schedule:
+    - cron: "40 4 * * 1"
 
 concurrency:
-  group: design-smoke-ci
+  # ISOLADO POR EVENTO+REF desde 2026-09-21. Era `design-smoke-ci` global com
+  # cancel-in-progress, e isso matou a run de prova do lote: o dispatch 35589355425 foi
+  # cancelado 17s depois de um `push: main` entrar no MESMO group (e aquele push, por sua
+  # vez, tinha matado a run anterior). Com o lote levando ~20min, um group global significa
+  # que qualquer merge em main durante a janela mata a medição — e o sintoma e `cancelled`,
+  # que se le como "deu erro" quando na verdade e "nem rodou".
+  # O comportamento do SMOKE fica identico: push em main segue cancelando push em main,
+  # porque event+ref sao os mesmos. O que muda e que schedule/dispatch deixam de competir.
+  group: design-smoke-ci-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -52,7 +68,11 @@ jobs:
   design-smoke:
     name: Fotografa telas tested|validated no app efêmero do CI
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    # 30 pro caminho de sempre (push/dispatch do smoke). Em `schedule` o job carrega
+    # tambem o lote de paridade (~20min sobre o boot + smoke), e 30 nao cabe: medido em
+    # 2026-09-18, sao 23 telas executaveis x 2 renders cada. Teto, nao custo — o job segue
+    # terminando quando termina. Mesmo padrao condicional do visual-regression.yml:83.
+    timeout-minutes: ${{ github.event_name == 'schedule' && 50 || 30 }}
 
     services:
       mysql:
@@ -265,3 +285,68 @@ jobs:
           else
             echo "Design Smoke CI: ${{ steps.manifest.outputs.smokes }} tela(s) fotografadas."
           fi
+
+      # ── LOTE DE PARIDADE prototipo x vivo (ADR 0408) ───────────────────────────────────
+      # Hospedado no SERVIDOR DO PEST, por decisao [W] em 2026-09-21, depois de 4 runs falhando.
+      #
+      # A 1a versao subia `php artisan serve` aqui no step e deu, QUATRO vezes, 23 ERRO de
+      # net::ERR_CONNECTION_REFUSED em 23 telas — com o servidor VIVO e registrando respostas
+      # (runs 35590027120 · 35590936821 · 35592105902). A causa esta no composer.lock e e de
+      # ARQUITETURA, nao de configuracao: o `pestphp/pest-plugin-browser` traz
+      # **amphp/http-server** (assincrono, multiplexado), enquanto o `artisan serve` usa o
+      # servidor EMBUTIDO do PHP. Nem `--no-reload` + PHP_CLI_SERVER_WORKERS=8 sustentaram a
+      # carga real de cada tela (documento + redirect do auth-bridge + assets do bundle Inertia,
+      # em paralelo): ele aceitava a 1a conexao e recusava as seguintes. Por isso o log mostrava
+      # `/_visreg-login/1` RESPONDIDO e o Playwright, na MESMA URL, dizia refused.
+      #
+      # A prova de que o servidor do Pest aguenta ja estava na MESMA run que falhava: o step do
+      # `DesignSmokeTest` acima fotografa telas logado, sem erro. Eu estava subindo um SEGUNDO
+      # servidor ao lado de um que ja servia.
+      #
+      # `PARIDADE_LOTE=1` e obrigatorio: sem ele o teste se SKIPA com motivo visivel, pra nao
+      # entrar de carona (~20min) nas lanes Pest comuns.
+      #
+      # ADVISORY (`continue-on-error`), e o teste so falha quando NAO MEDIU (telas em ERRO de
+      # navegacao). Divergencia de design e DADO e nunca falha — render pareado nao bloqueia
+      # merge: a ADR 0290 segue recusada e a 0408 libera MEDIR, nao BLOQUEAR.
+      - name: Lote de paridade — mede prototipo x vivo no servidor do Pest (ADVISORY)
+        if: >-
+          steps.select.outputs.count != '0' &&
+          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        id: lote
+        continue-on-error: true
+        timeout-minutes: 80
+        env:
+          PARIDADE_LOTE: "1"
+        run: |
+          set -o pipefail
+          ./vendor/bin/pest tests/Browser/DesignSmoke/ParidadeLoteTest.php 2>&1 | tee /tmp/lote.log
+
+      - name: Resumo do lote (denominador + causa) no step summary
+        if: >-
+          always() && steps.lote.conclusion != 'skipped' &&
+          steps.select.outputs.count != '0' &&
+          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        env:
+          # Sem isto o script leria o RESUMO.md VERSIONADO e publicaria a rodada anterior
+          # como se fosse esta. Com isto, ele declara "NAO MEDI" e nao imprime numero nenhum.
+          LOTE_OUTCOME: ${{ steps.lote.outcome }}
+        run: node scripts/design/lote-resumo-ci.mjs >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload das medidas do lote (dado bruto · NAO commitado)
+        if: >-
+          always() && steps.lote.conclusion != 'skipped' &&
+          steps.select.outputs.count != '0' &&
+          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        # Artifact e NAO commit: baseline congelada esta vetada por [W] ("a baseline tem que
+        # sumir, isso ja deu muito erro") e o §5 tem 3 lapides de rebake que nao fecha
+        # (2026-08-24 · 2026-08-26 · 2026-09-02). Comparar duas rodadas = rodar o MESMO
+        # comando em dois SHAs, nunca diffar contra artefato guardado.
+        uses: actions/upload-artifact@v4
+        with:
+          name: paridade-lote-${{ github.run_id }}
+          path: |
+            governance/design/targets/medidas/**
+            /tmp/lote.log
+          if-no-files-found: ignore
+          retention-days: 30
