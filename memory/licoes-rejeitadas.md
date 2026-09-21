@@ -2551,3 +2551,57 @@
   **abrir o dono antes de afirmar**, e ele estava a um `grep` de distância.
 
 Ocorrência da **LC-08**. Ocorrência da **LC-10**.
+
+### 2026-09-21 — Tirar o `/i` do detector do `rm`, e isentar `docker exec`/`ssh … rm` por PREFIXO — duas propostas minhas ao #7613, ambas refutadas por medição da autora
+
+- **O que foi tentado.** Auditando o [#7613](https://github.com/wagnerra23/oimpresso.com/pull/7613)
+  (que abriu a categoria `rm-rf-perigoso` para o `rm(1)` **sem flag**), propus duas mudanças ao
+  guard, cada uma a partir de um achado meu que estava correto:
+  **(1) tirar o `/i` do detector.** Eu tinha medido uma classe de FP que **nasce com o PR**: o
+  idioma `const RM = 'r' + 'm'` — que é justamente a técnica que as duas sessões usavam para
+  escrever *sobre* o hook sem disparar o hook — passa a disparar o hook, porque `RM` tem espaço
+  antes e depois e casa `(^|[\s;&|])rm(\s|$)` sob `/i`. Medido: **4 distintos de 559 apertados**,
+  com **controle 0 no hook anterior** (a classe é nova) e 8 ocorrências do idioma no corpus. O
+  argumento que anexei: *"o shell POSIX é case-sensitive; `RM` daria command not found, logo `/i`
+  no NOME do comando só pode gerar falso positivo"*.
+  **(2) estender `ehToolRm` para `docker exec <container> rm` e `ssh|tailscale … rm`.** Medido
+  que a lista de 9 ferramentas casava `docker\s+rm` (remover container) e **não** `docker exec
+  <container> rm` (o `rm(1)` dentro do container) — 17 distintos, +9 de ssh/tailscale. O
+  argumento: *"o alvo vive em outro sistema de arquivos"*.
+
+- **Por que caiu.**
+  **(1) A premissa é verdadeira no sistema errado.** A autora foi medir a plataforma e `RM`
+  **executa**. Confirmei em instalação diferente da dela: `command -v RM` → `/usr/bin/RM` (rc=0) ·
+  `RM --version` → `rm (GNU coreutils) 8.32` · `Rm` → `/usr/bin/Rm` · `rM` → `/usr/bin/rM` ·
+  `uname -s` → `MINGW64_NT-10.0-26200`. É **NTFS case-insensitive sob MSYS**, e `RM -rf src/`
+  apaga de verdade aqui. Aplicar a proposta teria **ABERTO** um guardrail Tier-0 na plataforma
+  onde o time trabalha. Corolário que ninguém tinha: o assert `RM -RF` que o comentário do hook
+  descrevia como *"herança do porte .ps1"* — e que as duas sessões liam como decorativo —
+  **protege caso real**, e agora tem causa medida.
+  **(2) Filesystem remoto é filesystem real.** `ssh prod rm -rf /var/www` é precisamente o que o
+  guard existe para pegar; isentar por **prefixo de execução** abriria alvo arbitrário em
+  produção. E o caso legítimo que motivou a proposta (`docker exec … rm -f /tmp/x`) já ficou
+  resolvido pelo §POSIÇÃO do mesmo PR — que mantém o **alvo** como critério em vez de dar passe
+  livre ao prefixo. Verificado no `main` pós-merge: `ssh prod rm -rf /var/www` **BLOQ** ·
+  `docker exec c rm /etc/passwd` **BLOQ** · `docker exec oimpresso-staging rm -f /tmp/x.php`
+  **passa**.
+
+- **O limite (variantes também proibidas).** **(a)** Não re-propor tirar, afrouxar ou condicionar
+  o `/i` da categoria `rm-rf-perigoso` com o argumento de case-sensitivity do POSIX — a premissa
+  não vale nesta plataforma, e há mutante que derruba os **dois** asserts (o da proteção real e o
+  do FP) para quem tentar. Vale a generalização: afirmação sobre comportamento de **shell, SO ou
+  filesystem** se resolve **rodando o comando na plataforma onde o código roda**, e o recibo
+  carrega o `uname -s` — porque a condição não é *"Windows"*, é *"MSYS sobre NTFS"*, e quem ler
+  num Mac daqui a seis meses vai achar que o comentário está errado. **(b)** Não isentar `rm` por
+  **prefixo de execução remota ou containerizada** (`docker exec`, `docker run`, `ssh`,
+  `tailscale`, `kubectl exec`) — sob nenhum nome. O que decide continua sendo o **alvo**, via
+  `alvoIsento()`, e é isso que faz `/tmp/` passar e `/var/www` bloquear no mesmo prefixo.
+  **(c)** O FP dos 4 fica como **custo declarado e inevitável**, com assert fixando-o. O remédio
+  é de quem escreve a sonda — `const R_M`, ou montar por charCode —, nunca mexer no flag.
+
+- **⚠️ NÃO virar gate.** Nada aqui pede máquina nova: a defesa contra (a) já é o par de asserts
+  mais o mutante, e contra (b) é o `alvoIsento()` que já existe, com controle negativo fixado. O
+  que faltou nas duas propostas não era gate, era **rodar o comando antes de recomendar** —
+  em (a) o `command -v`, em (b) o controle do mesmo prefixo com alvo fora da whitelist.
+
+Ocorrência da **LC-09**.

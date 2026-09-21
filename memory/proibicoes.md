@@ -1616,6 +1616,28 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 Ocorrência da **LC-08**. Ocorrência da **LC-10**.
 
+### 2026-09-21 — Tirar o `/i` do detector do `rm`, e isentar `docker exec`/`ssh … rm` por PREFIXO — duas propostas minhas ao #7613, ambas refutadas por medição da autora
+
+- **O limite (variantes também proibidas).** **(a)** Não re-propor tirar, afrouxar ou condicionar
+  o `/i` da categoria `rm-rf-perigoso` com o argumento de case-sensitivity do POSIX — a premissa
+  não vale nesta plataforma, e há mutante que derruba os **dois** asserts (o da proteção real e o
+  do FP) para quem tentar. Vale a generalização: afirmação sobre comportamento de **shell, SO ou
+  filesystem** se resolve **rodando o comando na plataforma onde o código roda**, e o recibo
+  carrega o `uname -s` — porque a condição não é *"Windows"*, é *"MSYS sobre NTFS"*, e quem ler
+  num Mac daqui a seis meses vai achar que o comentário está errado. **(b)** Não isentar `rm` por
+  **prefixo de execução remota ou containerizada** (`docker exec`, `docker run`, `ssh`,
+  `tailscale`, `kubectl exec`) — sob nenhum nome. O que decide continua sendo o **alvo**, via
+  `alvoIsento()`, e é isso que faz `/tmp/` passar e `/var/www` bloquear no mesmo prefixo.
+  **(c)** O FP dos 4 fica como **custo declarado e inevitável**, com assert fixando-o. O remédio
+  é de quem escreve a sonda — `const R_M`, ou montar por charCode —, nunca mexer no flag.
+
+- **⚠️ NÃO virar gate.** Nada aqui pede máquina nova: a defesa contra (a) já é o par de asserts
+  mais o mutante, e contra (b) é o `alvoIsento()` que já existe, com controle negativo fixado. O
+  que faltou nas duas propostas não era gate, era **rodar o comando antes de recomendar** —
+  em (a) o `command -v`, em (b) o controle do mesmo prefixo com alvo fora da whitelist.
+
+Ocorrência da **LC-09**.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
