@@ -1657,75 +1657,6 @@ ficha já declarava.
 ⚠️ O `eslint` **não cobre `tests/`** (`File ignored because no matching configuration was
 supplied`), então "N arquivos analisados" naquele diretório não é "N verificados".
 
-## UC-JPAIN-30 — o h1 da área herda o peso do token do DS (600), sem mover o canon das outras
-
-Status: 🧪 (`npx vitest run tests/janaAreaHeaderParidade.spec.tsx` → **6 passed** jsdom local,
-2026-09-21, com mordida provada por **duas** mutações, uma por perna; vira ✅ quando o manifesto
-`casos-results` aterrissar)
-
-**Fonte:** âncora `prototipo-ui/cowork/Wagner/jana-merge.jsx` → `CliPageHead`, que **não declara
-peso** e herda `prototipo-ui/design-system/colors_and_type.css:373`
-(`h1 { font-size: var(--fs-7); font-weight: 600 }`, `--fs-7: 22px` em `:148`). Frescor da âncora
-conferido no dia: `node scripts/design/ancora.mjs Jana/Index` → *"verificado contra o Cowork vivo
-em 2026-09-21T10:43:20Z"*.
-
-Fecha a dívida que a errata de 2026-09-18 (acima) deixou aberta: **tamanho já estava igual
-(22px = 22px); o peso divergia, prod 700 × âncora 600.**
-
-**Por que réplica local, e não mudar o default do canon** — a errata já prescrevia o caminho
-("componente compartilhado não impõe a forma de uma tela às outras", ADR 0388 §D-1); o que esta
-rodada acrescenta é o **fundamento medido**, que faltava. As duas âncoras **discordam entre si**:
-
-| âncora | declara peso? | valor | onde |
-|---|---|---|---|
-| **Vendas** (`vendas-page.jsx` §`.os-head-l h1`) | sim, explícito | **700** | `styles.css:4772` (0-1-1) e `financeiro.css:1727` (0-3-1, **a que vence**) |
-| **Jana** (`jana-merge.jsx` → `CliPageHead`) | não — herda o DS | **600** | `colors_and_type.css:373` |
-
-O comentário de `styles.css:4765` diz, textual, *"`.os-head` — mesmo CANON do PageHeader"*: o
-protótipo de Vendas foi escrito **para** casar com o componente. E o 700 do default é decisão [W]
-datada — **PR #1477** (2026-05-25), textual *"prefiro o mesmo peso do sells, pode criar v3.2"*.
-Re-medida em 2026-09-21: `/sells` **continua 700**, logo a premissa **não caducou** (ao contrário
-do 19px da Jana, que caducou no #7224). Mudar o default reverteria essa decisão e alinharia **42**
-telas ao peso que a Jana quer — a imposição que o canon proíbe.
-
-**Conserto:** prop opt-in `titleWeight` no `PageHeader` (idioma que o componente já usa em
-`leading` e `below`: *"sem a prop, nada muda"*), com default `'bold'`. Só o `JanaAreaHeader`
-declara `titleWeight="semibold"`. As outras **41** telas não passam a prop e **não mudam um pixel**.
-
-**Mordida provada (canário de 2 pernas, cada uma no seu lado):**
-
-| mutação | esperado | obtido |
-|---|---|---|
-| remover `titleWeight="semibold"` do `JanaAreaHeader` | cai o assert da Jana | `AssertionError: h1 da Jana deveria ser 600` · 1 failed / 5 passed |
-| trocar o default do canon para `'semibold'` | cai o **controle negativo** | `AssertionError: default do canon deveria seguir 700` · 1 failed / 5 passed |
-
-Os dois mutantes foram restaurados a partir de cópia byte-exata, com `sha256sum` conferido antes e
-depois (§5 2026-09-21 — restauração não sai de transformação reversa).
-
-**COMPUTED STYLE — medido no browser em 2026-09-21.** O assert do vitest prova a **classe**
-(jsdom não carrega CSS); o computed foi medido à parte, num browser real, com o CSS do projeto
-gerado pelo entry de verdade (`npx @tailwindcss/cli -i resources/css/inertia.css`, 742 KB,
-Tailwind v4.3.3). Importa porque no v4 a regra é indireta — `.font-semibold { font-weight:
-var(--font-weight-semibold) }` —, então só o browser resolve o valor final:
-
-| `<h1>` | `font-weight` | `font-size` |
-|---|---|---|
-| com `titleWeight="semibold"` (Jana) | **600** | 22px |
-| sem a prop (canon, as outras 41) | **700** | 22px |
-
-O `font-size` fica **22px nos dois** — a paridade de tamanho que já existia **não foi tocada**.
-A className testada foi **extraída do fonte** por regex (as duas resoluções do ternário), não
-digitada à mão. Controle positivo no mesmo turno: `folhaCarregou: true` — sem ele, um computed
-"600" poderia ser o default do user-agent com a folha ausente, que é medir nada (§5 2026-08-01).
-
-⚠️ **O que este UC NÃO prova.** A medição acima é do `<h1>` com a className real + o CSS real do
-projeto — **não é a tela `/ia` logada inteira**, onde uma regra de maior especificidade poderia
-(em tese) sobrescrever. **Smoke autenticado NÃO foi feito:** `/ia` devolve 302 sem sessão, como o UC-29 já
-registra. A prova de que o browser computa 600 é o visreg (esta tela está em
-`tests/Browser/visreg-screens.json`) e o `<h1>` continua **fora** dos 9 seletores do
-`governance/design/targets/jana--index.alvo.json` — ver §Resíduo no PR.
-
-**Teste:** `tests/janaAreaHeaderParidade.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
 ---
 
 ## UC-JPAIN-31 — a grade das análises é RÉPLICA da `.jc-grid`: 3 colunas, gap 12px, breakpoints da âncora
@@ -2001,3 +1932,76 @@ assere a className do **stub** e passa por engano.
 *padding*, não margem, e o bloco é de outro chip — a sessão de METAS mediu junto e confirmou que
 **nenhum dos dois consertos sozinho acerta**: só este dá 48, só o dela dá 16, os dois juntos dão
 **24 exatos**.
+
+## UC-JPAIN-32 — a grade e o card de META replicam a `.jm-metas-grid` / `.jm-meta`: 4 colunas, card compacto, valor em mono 20/700
+
+Status: 🧪 (`npx vitest run tests/janaGradeMetasReplica.spec.tsx` → **9 passed** jsdom local,
+2026-09-21, com mordida provada por **5 mutantes válidos**; vira ✅ quando o manifesto
+`casos-results` aterrissar)
+
+**Fonte:** âncora `.jm-metas-grid`, `.jm-meta` e `.jm-meta-v b` em
+`prototipo-ui/cowork/Wagner/jana-merge.css` — âncora de SÍMBOLO
+(`grep -n "jm-metas-grid" prototipo-ui/cowork/Wagner/jana-merge.css`). Precedência de FORMA:
+protótipo > teste > casos > charter > SPEC
+([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)),
+sob [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1.
+
+**Medido em runtime, não deduzido** (2026-09-21, staging autenticado, dark nos dois lados,
+viewport 1440×900, container da grade **1117px idêntico** ⇒ a diferença não vinha de largura
+disponível). O dado existia: prod tinha **5 metas ativas**, e o staging recebeu fixture
+equivalente — foi o que destravou esta medição, registrada em
+[`Index-visual-comparison.md`](../../../../memory/requisitos/Jana/Index-visual-comparison.md).
+
+| eixo | âncora | tela viva (antes) | agora |
+|---|---|---|---|
+| colunas (container 1117px) | **4** (271,8px) | 3 (361,7px) | **4** (273,2px) |
+| regra da grade | `auto-fit minmax(232px,1fr)` | `sm:grid-cols-2 xl:grid-cols-3` | `<Grid fit="sm">` (auto-fit por token) |
+| gap da grade | **10px** | 16px (`gap-4`) | **8px** (`gap={2}`) |
+| altura do card | **122px** | 236px | **198px** |
+| padding do card | **12px 13px** | 24px 0 (`py-6` + `px-6 pl-5`) | **12px 13px** (`py-3` + `px-[13px]`) |
+| gap interno | **8px** | 24px (`gap-6`) | **8px** (`gap-2`) |
+| ritmo do conteúdo | 8px | 12px (`space-y-3`) | **8px** (`space-y-2`) |
+| valor | **mono 20px/700** | sans 24px/600 | **mono 20px/700** |
+| `border-radius` | 12px | 12px (`rounded-xl`) | inalterado ✅ |
+
+**Por que `<Grid fit="sm">` e não a classe crua `minmax(232px,1fr)`.** O dono de grade auto-fit
+neste repo é o [`Components/layout/grid.tsx`](../../../Components/layout/grid.tsx) (ADR 0253), e o
+docblock dele é explícito: *"largura mínima vem de token (enum), não de px solto no call-site"*.
+Escrever a classe crua seria mais literal e **menos correto** — é autorar paralelo a um dono que
+existe, e o `Grid` já é consumido na própria área (`Jana/Plataforma.tsx`, `JanaMetaDrawer.tsx`).
+**Residual declarado:** `fit="sm"` é 14rem (224px) contra 232px, e `gap={2}` é 8px contra 10px —
+medido, dá **4 colunas de 273,2px** contra 271,8px da âncora, **1,4px (0,5%)**, e o número de
+colunas, que é o que se enxerga, é o **mesmo**. Fechar os 1,4px exigiria **token novo no DS**, que é
+decisão [W], não desta tela.
+
+**⚠️ O que este UC NÃO fecha, e é residual DECLARADO:** o card fica em **198px** contra os **122px**
+da âncora. A diferença é **conteúdo que a âncora não tem**, não forma — medido no DOM: o
+**Sparkline** (32px + 8 de gap) e o **Badge de unidade** no header (22px) somam ~62 dos ~76px
+restantes. Removê-los é decisão de **produto**, não de réplica visual, e por isso não entra aqui.
+
+**Pronto quando:** a grade renderiza `grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]` + `gap-2`; o
+card renderiza `gap-2 py-3` (não `gap-6 py-6`); header e conteúdo usam `px-[13px]` (não `px-6 pl-5`);
+o conteúdo usa `space-y-2`; e o valor usa `font-mono text-[20px] font-bold tabular-nums` (não
+`text-2xl font-semibold`).
+
+**Mordida provada por mutação** (2026-09-21, restauração conferida por **hash sha256** em todas, e
+**controle positivo rodado antes** — íntegro = 9 passed):
+
+| mutante | resultado |
+|---|---|
+| `fit="sm"` → `min="sm"` (auto-fill em vez de auto-fit) | 1 failed |
+| `gap={2}` → `gap={4}` | 1 failed |
+| card `gap-2 py-3` → `gap-6 py-6` | 1 failed |
+| valor `font-mono text-[20px] font-bold` → `text-2xl font-semibold` | 1 failed |
+| conteúdo `px-[13px] space-y-2` → `pl-5 space-y-3` | 2 failed |
+
+⚠️ Um 6º mutante — trocar `<Grid>` por `<div className="grid …">` — devolveu **saída vazia**, e isso
+**não é mordida**: o `</Grid>` fica órfão, o build quebra e nenhum teste roda. Está registrado aqui
+porque `0 failed` e "não rodou" são indistinguíveis por exit code, e o que separa os dois é o
+**controle positivo** (§5 2026-09-16).
+
+**Onde:** [`tests/janaGradeMetasReplica.spec.tsx`](../../../../tests/janaGradeMetasReplica.spec.tsx),
+9 casos (6 de contrato + 3 de controle negativo, ADR 0258). jsdom não computa classe Tailwind, então
+o que se assere é a **classe** — que é o que o bundle traduz. O efeito em px foi provado à parte, no
+DOM da prod, aplicando as classes reais e medindo antes→depois.
+

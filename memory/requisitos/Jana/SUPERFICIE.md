@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 561 arquivos em 19 papéis.
+**Total mapeado:** 569 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -203,15 +203,18 @@ module: Jana
 - [NotificarDesvioListener.php](../../../Modules/Jana/Listeners/NotificarDesvioListener.php)
 - [LangfuseAgentTelemetryListener.php](../../../Modules/Jana/Listeners/Telemetry/LangfuseAgentTelemetryListener.php)
 
-## Console / Commands — 46
+## Console / Commands — 49
 
 - [ApurarMetricasCommand.php](../../../Modules/Jana/Console/Commands/ApurarMetricasCommand.php)
 - [AutomationsSyncCommand.php](../../../Modules/Jana/Console/Commands/AutomationsSyncCommand.php)
 - [AvaliarGabaritoCommand.php](../../../Modules/Jana/Console/Commands/AvaliarGabaritoCommand.php)
+- [BackfillApuracoesCommand.php](../../../Modules/Jana/Console/Commands/BackfillApuracoesCommand.php)
 - [BackfillFatosCommand.php](../../../Modules/Jana/Console/Commands/BackfillFatosCommand.php)
 - [BackfillTasksFromMarkdownCommand.php](../../../Modules/Jana/Console/Commands/BackfillTasksFromMarkdownCommand.php)
 - [CacheStatsCommand.php](../../../Modules/Jana/Console/Commands/CacheStatsCommand.php)
 - [CleanupMemoriaCommand.php](../../../Modules/Jana/Console/Commands/CleanupMemoriaCommand.php)
+- [ConfigurarFontesMetaCommand.php](../../../Modules/Jana/Console/Commands/ConfigurarFontesMetaCommand.php)
+- [ConfigurarPeriodosMetaCommand.php](../../../Modules/Jana/Console/Commands/ConfigurarPeriodosMetaCommand.php)
 - [ContextualizeBackfillCommand.php](../../../Modules/Jana/Console/Commands/ContextualizeBackfillCommand.php)
 - [DesignDossieCommand.php](../../../Modules/Jana/Console/Commands/DesignDossieCommand.php)
 - [DesignIngestZipCommand.php](../../../Modules/Jana/Console/Commands/DesignIngestZipCommand.php)
@@ -351,7 +354,7 @@ module: Jana
 - [Plataforma.casos.md](../../../resources/js/Pages/Jana/Plataforma.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 186
+## Testes (Pest) — 191
 
 - 41 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
 - 12 em [Modules/Jana/Tests/Feature/Ai/](../../../Modules/Jana/Tests/Feature/Ai)
@@ -359,7 +362,7 @@ module: Jana
 - 2 em [Modules/Jana/Tests/Feature/Ai/Clarify/](../../../Modules/Jana/Tests/Feature/Ai/Clarify)
 - 2 em [Modules/Jana/Tests/Feature/Backlinks/](../../../Modules/Jana/Tests/Feature/Backlinks)
 - 4 em [Modules/Jana/Tests/Feature/Chat/](../../../Modules/Jana/Tests/Feature/Chat)
-- 3 em [Modules/Jana/Tests/Feature/Console/](../../../Modules/Jana/Tests/Feature/Console)
+- 8 em [Modules/Jana/Tests/Feature/Console/](../../../Modules/Jana/Tests/Feature/Console)
 - 1 em [Modules/Jana/Tests/Feature/Http/](../../../Modules/Jana/Tests/Feature/Http)
 - 2 em [Modules/Jana/Tests/Feature/Kb/](../../../Modules/Jana/Tests/Feature/Kb)
 - 40 em [Modules/Jana/Tests/Feature/Mcp/](../../../Modules/Jana/Tests/Feature/Mcp)
