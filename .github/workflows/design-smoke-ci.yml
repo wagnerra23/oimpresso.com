@@ -287,40 +287,73 @@ jobs:
           fi
 
       # ── LOTE DE PARIDADE prototipo x vivo (ADR 0408) ───────────────────────────────────
-      # Hospedado no SERVIDOR DO PEST, por decisao [W] em 2026-09-21, depois de 4 runs falhando.
+      # HISTORICO DO TRANSPORTE — esta lista existe pra ninguem refazer o caminho:
       #
-      # A 1a versao subia `php artisan serve` aqui no step e deu, QUATRO vezes, 23 ERRO de
-      # net::ERR_CONNECTION_REFUSED em 23 telas — com o servidor VIVO e registrando respostas
-      # (runs 35590027120 · 35590936821 · 35592105902). A causa esta no composer.lock e e de
-      # ARQUITETURA, nao de configuracao: o `pestphp/pest-plugin-browser` traz
-      # **amphp/http-server** (assincrono, multiplexado), enquanto o `artisan serve` usa o
-      # servidor EMBUTIDO do PHP. Nem `--no-reload` + PHP_CLI_SERVER_WORKERS=8 sustentaram a
-      # carga real de cada tela (documento + redirect do auth-bridge + assets do bundle Inertia,
-      # em paralelo): ele aceitava a 1a conexao e recusava as seguintes. Por isso o log mostrava
-      # `/_visreg-login/1` RESPONDIDO e o Playwright, na MESMA URL, dizia refused.
+      #  1. `artisan serve` cru .................. 23 ERRO/23 `ERR_CONNECTION_REFUSED`
+      #     (runs 35590027120 · 35590936821), com o servidor VIVO e respondendo no log.
+      #  2. + `--no-reload` + PHP_CLI_SERVER_WORKERS ... idem (run 35592105902). O
+      #     `--no-reload` PEGOU (o WARN dos workers sumiu do log) e mesmo assim.
+      #  3. servidor do PEST (`amphp/http-server`), decisao [W] .... 23 ERRO/23, mas o erro
+      #     MUDOU pra `Timeout exceeded` — conexao ACEITA, sem resposta (run 35594386353).
+      #     Causa: o Amp roda no MESMO processo PHP do teste; enquanto `Process::run()`
+      #     bloqueia esperando o node, o event loop nao gira. O SO aceita no backlog (por
+      #     isso nao e mais refused) e ninguem responde. Hospedar o lote num Process
+      #     bloqueante dentro do Pest NAO PODE funcionar — e limite estrutural, nao bug.
+      #  4. AQUI: volta ao `artisan serve`, agora com o CANARIO que mede antes de medir.
       #
-      # A prova de que o servidor do Pest aguenta ja estava na MESMA run que falhava: o step do
-      # `DesignSmokeTest` acima fotografa telas logado, sem erro. Eu estava subindo um SEGUNDO
-      # servidor ao lado de um que ja servia.
+      # O que nunca foi medido, e por isso esta rodada existe: se o servidor embutido aguenta
+      # requests PARALELOS com `--no-reload` + workers. As 3 primeiras rodadas checaram health
+      # com UM curl sequencial — que testa exatamente o caso que funciona. A run que ia medir
+      # isso (o canario) foi cancelada no meio, quando o caminho mudou pro Pest.
       #
-      # `PARIDADE_LOTE=1` e obrigatorio: sem ele o teste se SKIPA com motivo visivel, pra nao
-      # entrar de carona (~20min) nas lanes Pest comuns.
-      #
-      # ADVISORY (`continue-on-error`), e o teste so falha quando NAO MEDIU (telas em ERRO de
-      # navegacao). Divergencia de design e DADO e nunca falha — render pareado nao bloqueia
-      # merge: a ADR 0290 segue recusada e a 0408 libera MEDIR, nao BLOQUEAR.
-      - name: Lote de paridade — mede prototipo x vivo no servidor do Pest (ADVISORY)
+      # ADVISORY: `continue-on-error` + este workflow nunca roda em `pull_request`. Vermelho
+      # aqui nao bloqueia merge (ADR 0314); render pareado nao e gate (ADR 0290 segue recusada,
+      # a 0408 libera MEDIR).
+      - name: Lote de paridade — mede prototipo x vivo (ADVISORY)
         if: >-
           steps.select.outputs.count != '0' &&
           (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         id: lote
         continue-on-error: true
-        timeout-minutes: 80
+        timeout-minutes: 45
         env:
-          PARIDADE_LOTE: "1"
+          PHP_CLI_SERVER_WORKERS: "8"
         run: |
           set -o pipefail
-          ./vendor/bin/pest tests/Browser/DesignSmoke/ParidadeLoteTest.php 2>&1 | tee /tmp/lote.log
+          php artisan serve --host=127.0.0.1 --port=8000 --no-reload > /tmp/lote-serve.log 2>&1 &
+          SERVE_PID=$!
+          for i in $(seq 1 30); do
+            curl -sf -o /dev/null http://127.0.0.1:8000/login && break
+            sleep 2
+          done
+          kill -0 "$SERVE_PID" 2>/dev/null || {
+            echo "::error title=Lote de paridade::o processo do serve MORREU — nada foi medido"
+            cat /tmp/lote-serve.log; exit 1
+          }
+          # CANARIO DE CONCORRENCIA — a medicao que faltou nas 3 primeiras rodadas.
+          # 6 requests SIMULTANEOS: e o que cada tela de fato exige (documento + redirect do
+          # auth-bridge + assets do bundle Inertia). Se o servidor nao aguentar, ABORTA aqui
+          # com diagnostico, em vez de produzir 23 ERRO de conexao que se leem como veredito
+          # de fidelidade. Gate mudo e pior que gate ausente porque parece cobertura.
+          echo "PHP_CLI_SERVER_WORKERS=${PHP_CLI_SERVER_WORKERS:-<vazio>} · processos servindo: $(pgrep -fc 'artisan serve' || echo 0)"
+          FALHAS=0
+          for i in $(seq 1 6); do
+            curl -sf -o /dev/null --max-time 25 http://127.0.0.1:8000/login || FALHAS=$((FALHAS+1)) &
+          done
+          wait
+          echo "canario: $FALHAS falha(s) em 6 requests simultaneos"
+          if [ "$FALHAS" -gt 0 ]; then
+            echo "::error title=Lote de paridade::servidor NAO aguenta paralelismo ($FALHAS/6 recusados) — abortando em vez de medir o nada. Proximo caminho: servidor fora do processo (FrankenPHP / php -S dedicado), NAO mais workers."
+            cat /tmp/lote-serve.log
+            exit 1
+          fi
+          node scripts/design/design-diff-lote.mjs --base-url http://127.0.0.1:8000 2>&1 | tee /tmp/lote.log
+          RC=${PIPESTATUS[0]}
+          kill -0 "$SERVE_PID" 2>/dev/null || {
+            echo "::error title=Lote de paridade::o serve caiu DURANTE a medicao — os ERRO sao de conexao, nao de fidelidade"
+            cat /tmp/lote-serve.log; exit 1
+          }
+          exit "$RC"
 
       - name: Resumo do lote (denominador + causa) no step summary
         if: >-
@@ -331,7 +364,7 @@ jobs:
           # Sem isto o script leria o RESUMO.md VERSIONADO e publicaria a rodada anterior
           # como se fosse esta. Com isto, ele declara "NAO MEDI" e nao imprime numero nenhum.
           LOTE_OUTCOME: ${{ steps.lote.outcome }}
-        run: node scripts/design/lote-resumo-ci.mjs >> "$GITHUB_STEP_SUMMARY"
+        run: node scripts/design/lote-resumo-ci.mjs --check >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload das medidas do lote (dado bruto · NAO commitado)
         if: >-
@@ -348,5 +381,6 @@ jobs:
           path: |
             governance/design/targets/medidas/**
             /tmp/lote.log
+            /tmp/lote-serve.log
           if-no-files-found: ignore
           retention-days: 30
