@@ -889,3 +889,75 @@ opinião: é a consequência de não haver dado.
 - **Camadas UI-0013** — o que se mediu foi **Shell** (header/tabs) e **Módulo** (seções da tela).
   **Fundações** entrou só de raspão (a fonte base 13 × 13,5px), e **Padrão de Tela** não foi
   avaliado contra nenhum PT — o Painel não declara PT no charter.
+
+---
+
+## Rodada MEDIDA 2026-09-21 — grade de Análises (3 colunas) e bloco de Ações
+
+> **Escopo:** o CONTAINER da seção de Análises (grade + bloco de Ações). O conteúdo dos cards
+> (gráficos, KPIs, Metas, `h1`) é de chips irmãos e **não** foi medido aqui.
+
+### Como foi medido (o que torna esta rodada auditável)
+
+| item | valor |
+|---|---|
+| fonte provada | `cowork-mirror-freshness --sla`: **708 sync · 0 stale**, rodada de 2026-09-21T10:43Z. Os **4** arquivos do eixo `--live-only` são `.gitignore`, `.thumbnail` e 2 JSON de `_ds/` — **nenhum é fonte visual**, logo não desqualificam esta tela |
+| âncora | `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JanaPage`, sha256 `7bb8e713130a9f80` (idêntico ao do repo principal — conferido por hash, com controle positivo de 2 arquivos que DEVEM diferir) |
+| D0 · identidade da view | os **3** `.jc-h2` dos dois lados são `METAS ATIVAS` · `ANÁLISES PRINCIPAIS` · `AÇÕES QUE JANA SUGERE`, com **5** cards de análise — assinatura da view **Painel**, não Chat/Alertas/Memória (`jana-merge.jsx` serve 3 telas) |
+| ambiente | **mesmo Chrome, mesma janela**, viewport **2560×951** nos dois lados, `data-theme=dark` nos dois |
+| container | **2237px idêntico** nos dois lados ⇒ a diferença de colunas **não** vem de largura disponível |
+| sonda | uma só, byte-idêntica nos dois lados (sha256 `32da053c84740ca1ea0f63fa7452ae5e`), papéis mapeados por `data-sec` pelo MESMO critério (texto do `h2`) |
+| canário | rodado **nos dois lados**: forcei em cada um o estado do outro; a sonda acusou e reverteu limpo (`revertido: true`) |
+
+⚠️ **Viewport 2560, não 1440** — e por quê: `resize_window` reportou sucesso e foi **inerte**
+(`outerW` seguiu 2563; janela maximizada em monitor 3840). Em vez de aceitar o número, igualei os
+DOIS lados na mesma janela. A conclusão não depende disso: a âncora quebra em 1100px e a prod
+usava `lg:` (1024px), então 1440 e 2560 caem na mesma faixa dos dois lados.
+
+⚠️ **COR não foi medida neste render do protótipo, e não é veredito omitido:** `--text-3` resolve
+para `var(--text-mute)`, que não é declarado no escopo — todas as cores do lado âncora computam
+`rgb(0,0,0)`. Layout e tipografia **carregaram** (`.jc-grid` e `.jc-h2` resolveram valores não-default),
+então o que se afirma abaixo é só o que o instrumento de fato mediu.
+
+### O que a medição devolveu
+
+| bloco | campo | âncora | prod (antes) | veredito |
+|---|---|---|---|---|
+| **análises (grade)** | colunas | **3** (`737.66px` × 3) | **2** (`1110.5px` × 2) | ❌ **DÍVIDA A FECHAR** → fechada nesta rodada |
+| **análises (grade)** | gap | **12px** | **16px** | ❌ **DÍVIDA A FECHAR** → fechada nesta rodada |
+| **h2 análises** | 8 propriedades | `700 11px/11px` mono · ls `0.88px` · uppercase · `m 6px 0 10px` · `gap 7px` | **idêntico** | ✅ **IGUAL** — já estava fechado (2026-09-18, UC-JPAIN-27) |
+| **h2 ações** | idem | idem | idem | ✅ **IGUAL** |
+| **ações** | `padding` | **0** | **24px 0** | ❌ **DÍVIDA A FECHAR** → fechada nesta rodada |
+| **ações** | `gap` | `normal` | `24px` | ⚠️ **medição certa, dívida enganosa** — ver abaixo |
+| **ações** | `border-radius` | 12px | 12px | ✅ **IGUAL** |
+
+> **A linha `h2 análises` da rodada de 2026-09-07 está CADUCA.** Aquela tabela a marca `❌ DIVERGE`
+> (`11px/700/0.88px × 14px/600/1.4px`), mas a nota de fechamento logo abaixo dela, no mesmo doc,
+> registra o conserto de 2026-09-18 — e só a linha do `h2 ações` recebeu o ✅. Medido hoje no
+> runtime: os dois h2 batem com a âncora em **8 de 8** propriedades. A tabela preserva o fato do
+> dia; não é o estado de hoje (§5 2026-09-03). Três sessões irmãs chegaram a isso em paralelo.
+
+> **O `gap: 24px` das Ações era o sintoma legível, não a causa.** Medido: o `Card` tem **UM** filho,
+> e gap sem segundo filho não separa nada. Quem produzia o respiro de 24px é o **`py-6`** do `Card`
+> canon (`ui/card.tsx:29`). A rodada de 09-07 mediu certo e nomeou a propriedade inerte.
+
+### O que NÃO entrou, e por quê (escopo declarado, não omissão)
+
+- **`margin-bottom` 18px (âncora) × 16px (prod).** Medido: o 16px **não é da grade** — vem do
+  `space-y-4` do container da página (a className da grade não declara margem), logo ele rege
+  **todas** as seções: KPIs, Metas, Análises, Ações. Convergir para 18px é mudar o ritmo vertical
+  da tela inteira, tocando território de 4 chips irmãos vivos. Fica **medido e aberto**, decisão [W].
+- **Conteúdo dos cards** (o sparkline de Faturamento, em especial). Não medido aqui. ⚠️ Consequência
+  declarada da mudança: a largura do card cai de **1110,5px → ~737,7px** (−33,6%) nessa viewport, e
+  o `<svg>` do sparkline é `preserveAspectRatio="none"`, logo a curva **comprime horizontalmente**
+  (a altura segue travada em 40px). A sessão irmã que mede os gráficos foi avisada antes de medir.
+- **D1 rede**, **shell/sidebar**, **contraste par-a-par**: fora do recorte desta rodada.
+
+### Enforcement
+
+**UC-JPAIN-31** — [`tests/janaGradeAnalisesReplica.spec.tsx`](../../../tests/janaGradeAnalisesReplica.spec.tsx),
+6 casos, mordida provada por mutação (2 asserts caem ao restaurar `gap-4 lg:grid-cols-2`; 1 ao
+remover `py-0 gap-0`), com restauração conferida por hash. O detalhe — incluindo por que os
+breakpoints são `min-[761px]`/`min-[1101px]` e a prova de que o Tailwind os gera — está no
+**UC-JPAIN-31** de [`Index.casos.md`](../../../resources/js/Pages/Jana/Index.casos.md); aqui não
+se repete, para os dois não drifarem.

@@ -887,8 +887,28 @@ export default function JanaCockpit({
         )}
       </SectionTitle>
 
+      {/* Grade das análises — RÉPLICA LOCAL da `.jc-grid` da âncora.
+          Medido em 2026-09-21 (Chrome, mesma janela, viewport 2560, dark, container
+          2237px nos DOIS lados): âncora `repeat(3, 1fr)` + `gap: 12px`; prod estava
+          em 2 colunas + 16px. Fonte: `prototipo-ui/cowork/Wagner/chat-jana.css`
+          §"── Análises ──" — re-localize com
+          `grep -n "jc-grid" prototipo-ui/cowork/Wagner/chat-jana.css`.
+
+          ⚠️ Os BREAKPOINTS são os da âncora, não os do Tailwind. Ela quebra em
+          `max-width: 1100px` (→2) e `max-width: 760px` (→1); o `lg:` daqui era 1024px
+          e nunca chegava a 3. As `min-[761px]`/`min-[1101px]` são a tradução exata
+          dessas duas queries — usar `lg:`/`xl:` aproximaria, e aproximar num
+          breakpoint é o que fazia a prod parar em 2 colunas no monitor de 1280px
+          da ROTA LIVRE, onde a âncora já mostra 3.
+
+          ⚠️ O `margin-bottom` NÃO entra aqui de propósito: o 16px da prod vem do
+          `space-y-4` do container da página (medido — a className da grade não
+          declara margem), logo ele rege TODAS as seções (KPIs, Metas, Ações). A
+          âncora usa 18px. Convergir isso é mudança de ritmo vertical da tela
+          inteira, não da grade — fica medido e declarado, não corrigido de
+          passagem. */}
       {pro ? (
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 min-[761px]:grid-cols-2 min-[1101px]:grid-cols-3">
         {/* Inadimplência buckets.
             `big` herda `text-foreground`; só o NEGATIVO vira vermelho — senão
             R$ 0,00 aparece em vermelho afirmando alerta sobre ausência de dado.
@@ -1123,7 +1143,19 @@ export default function JanaCockpit({
               A caixa alta vem do CSS do `SectionTitle` (`uppercase`), igual à `.jc-h2`. */}
           <SectionTitle icon={<Lightbulb size={14} />}>Ações que Jana sugere</SectionTitle>
 
-          <Card>
+          {/* `py-0 gap-0` sobrescreve o `py-6 gap-6` do `Card` canon (`ui/card.tsx:29`)
+              para casar a `.jc-acoes` da âncora, que é `padding: 0` + `overflow: hidden`
+              (`chat-jana.css` §"── Ações sugeridas ──").
+
+              ⚠️ Qual dos dois é a dívida VISUAL, medido em 2026-09-21: o `gap-6` é
+              INERTE aqui — o `Card` tem UM filho só (o `CardContent`), e gap sem
+              segundo filho não separa nada. Quem produzia o respiro de 24px no topo
+              e na base, que a âncora não tem, é o `py-6`. A rodada de 2026-09-07
+              registrou "ações · gap · normal × 24px": a medição estava certa, mas o
+              `gap` era o sintoma legível, não a causa. Zero os dois porque a âncora
+              tem os dois zerados — e `gap: normal` em flex É `0px`, então o par não
+              reabre como divergência na próxima rodada. */}
+          <Card className="gap-0 py-0">
             <CardContent className="flex flex-col divide-y divide-border p-0">
               {acoes.map((a) => (
                 <div key={a.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-3.5 p-3.5">
