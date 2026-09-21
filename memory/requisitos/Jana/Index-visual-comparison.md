@@ -752,6 +752,32 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 | card em alarme | `.emph`: bg `--neg-soft` (`oklch(0.36 0.12 25)`), borda `neg 22%`, ícone e texto `--text` | `tone=danger`: bg `destructive/5`, borda `destructive/20` | ❌ tinta sólida × 5% |
 | tag | `DIV` (não clicável, salvo `jm-an-hit` por fora) | `BUTTON` (KpiCard com `onClick`) | 🟡 a sonda acusa; prod é clicável por design (drill) — classificar com [W] |
 
+> ⚠️ **ESTA TABELA É O RETRATO DO *ANTES*, e ela derrubou uma sessão em 2026-09-21.** A coluna
+> diz *"produção `KpiCard` shared"* — e o `JanaKpiCard` nasceu **no mesmo dia desta rodada**
+> (2026-09-03, [#6662](https://github.com/wagnerra23/oimpresso.com/pull/6662), a "Onda 2" que a
+> própria linha de ondas abaixo marca). A medição do **DEPOIS** existe e mora no arquivo irmão:
+> **[`Index.casos.md` §"Medição de runtime — mesma sonda nos dois lados (2026-09-03)"]**, com
+> 13 de 14 campos ✅.
+>
+> **FECHADO — re-medido na TELA VIVA em 2026-09-21** (staging autenticado, dark × dark, 1440,
+> mesma sonda ad-hoc nos dois lados, canário acusando em ambos): **24 de 26 campos idênticos**.
+> Os três itens que esta tabela marca `❌` estão IGUAIS hoje — label `10px · 700 · mono ·
+> ls 0.6px · uppercase`; ícone `15×15` inline sem caixa (`iconCaixaW: null`); valor `22px · 700 ·
+> lh 22 · ls -0.44`. Grid, raio (8), padding (12/14/14/14), gap (3) e tag (DIV) idem.
+>
+> As duas diferenças restantes **não são dívida de forma**, e estão decompostas no
+> `Index.casos.md` §UC-JPAIN-30: o `small` ausente no 1º card é **dado** (staging sem delta de
+> receita), e os 4px de altura são `+6` (o card 2 da âncora está em `emph` por ter vencido real,
+> o staging tem `R$ 0,00`) `−2` (borda que o render do espelho não pintou). ⚠️ Isso **refuta** a
+> causa registrada em 2026-09-03 (*"line-height do `small` herdado do body"*): o `<small>` tem
+> `line-height: 16.5px` idêntico nos dois lados.
+>
+> **O que a re-medição ACHOU de dívida real** foi outra coisa, num eixo que nenhuma rodada tinha
+> medido: o **breakpoint do grid** (`.jc-kpis` quebra em 1100px; o `KpiGrid` em 1024/640). Isso
+> bate com a queixa literal de [W] — *"quantidade de colunas de kpi"*. Fechado por réplica local
+> `JanaKpiGrid`; medição por viewport e as **duas tentativas refutadas** (arbitrary variant sai
+> inerte no Tailwind 4) em `Index.casos.md` §UC-JPAIN-30.
+
 ### Metas — não comparável hoje (0 metas em todos os tenants, medido 2026-08-21/08-31); âncora `METAS ATIVAS` mono + 5 cards em linha + `Nova meta` à direita × prod pill `METAS` + h2 + 3 botões + empty. Fica pra quando existir dado.
 
 ### Ondas (resolvidas em PRs separados, ≤300 linhas cada)
@@ -759,7 +785,7 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 | onda | escopo | estado |
 |---|---|---|
 | **1** | abas em faixa própria · Atualizado na Zona R · sem primary · ícones · Conversa com "Nova conversa" | **este PR** |
-| 2 | KPI no desenho `.jc-kpi` (réplica ADR 0388 em `_components/`, tokens; grid 4; `.emph`) | chip |
+| 2 | KPI no desenho `.jc-kpi` (réplica ADR 0388 em `_components/`, tokens; grid 4; `.emph`) | **[#6662](https://github.com/wagnerra23/oimpresso.com/pull/6662)** (2026-09-03) · anatomia re-medida ✅ em 2026-09-21 · o **breakpoint** do grid saiu depois, no UC-JPAIN-30 |
 | 3 | Conversa: histórico como card `jm-hist` (busca ⌘K · chips · itens ricos · atalhos) · thread header `título · só sua` · composer com chips de sugestão | chip — medição em `Chat-visual-comparison.md` §2026-09-03 |
 | 4 | Memória: largura toda · barra `busca + chips + n de m` · linha `jm-fato` com meta mono e botões-texto | chip — medição em `Memoria-visual-comparison.md` §2026-09-03 |
 | 5 | título 19×22px (Fundação) · Exportar em menu 3 itens · contador nas abas (backend) | decisão [W] |
@@ -889,3 +915,78 @@ opinião: é a consequência de não haver dado.
 - **Camadas UI-0013** — o que se mediu foi **Shell** (header/tabs) e **Módulo** (seções da tela).
   **Fundações** entrou só de raspão (a fonte base 13 × 13,5px), e **Padrão de Tela** não foi
   avaliado contra nenhum PT — o Painel não declara PT no charter.
+
+## Rodada MEDIDA de 2026-09-21 — o eixo RESPONSIVO dos KPIs (o que nenhuma rodada tinha medido)
+
+> **Por que esta rodada existe:** chip pedindo pra fechar a dívida visual do KPI, descrevendo a
+> anatomia interna (rótulo sans, caixa de ícone 36×36, valor 22 × 24px). Re-medida a tela viva,
+> **essa dívida não existia mais** — fechou em 2026-09-03 ([#6662](https://github.com/wagnerra23/oimpresso.com/pull/6662)).
+> O que a re-medição achou foi outro eixo, e ele bate com a queixa literal de [W]:
+> *"quantidade de colunas de kpi"*.
+
+**Como foi medido** (fluxo da skill `comparar-design-prod`, sem pular passo):
+
+| passo | o que foi feito |
+|---|---|
+| fonte | `ancora.mjs Jana/Index` → `jana-merge.jsx`; `--sla` ⬜ INCONCLUSIVO (compare completo 708/708 · 4 do vivo fora do espelho, **todos config/meta**: `.gitignore`, `.thumbnail`, 2 JSON do `_ds/`) |
+| D0 | design `data-screen-label="Jana — Painel"` (`jana-merge.jsx:1057`) · prod `/ia` + `.cockpit` + h1 "Jana · Analista IA" |
+| tema | dark × dark (`corTexto` claro nos dois) |
+| sonda | ad-hoc, **byte-idêntica** nos dois lados — a oficial (`--probe`) mede só `valueFontPx`/align por KPI e **não** cobre anatomia nem responsivo |
+| canário | padding forçado a 40px em cada lado ⇒ **os dois acusaram** (`12 14 14 14 → 40 40 40 40`) |
+
+### Anatomia — 24 de 26 campos IGUAL
+
+Grid 4 col · gap 10 · raio 8 · pad `12 14 14 14` · gap interno 3 · `flex column` · rótulo
+`10px/700/mono/ls 0.6/uppercase` · cabeçalho `flex space-between` · `mb 4` · ícone `15×15` sem
+caixa · valor `22px/700/lh 22/ls -0.44` · tag `DIV` · largura 275,5.
+
+As 2 restantes **não são dívida de forma** — estão decompostas no `Index.casos.md` §UC-JPAIN-30
+(`small` ausente no 1º card = dado; 4px de altura = `+6` do `emph` não disparado no staging `−2`
+da borda que o render do espelho não pintou). ⚠️ A segunda **refuta** a causa registrada em
+2026-09-03 (*"line-height do `small`"*): ele é `16.5px` idêntico nos dois lados.
+
+### O achado: o BREAKPOINT do grid — **DÍVIDA A FECHAR**, e foi fechada
+
+| viewport | âncora `.jc-kpis` | produção (antes) | depois |
+|---|---|---|---|
+| 1440 | 4 col · 276px | 4 col · 276px | 4 ✅ |
+| 1280 | 4 col · 287px | 4 col · 287px | 4 ✅ |
+| **1080** | **2 col · 483px** | **4 col · 237px** ❌ | **2** ✅ |
+| **1050** | **2 col · 468px** | **4 col · 229px** ❌ | **2** ✅ |
+| 900 | 2 col · 393px | 2 col · 393px | 2 ✅ |
+| **600** | **2 col · 279px** | **1 col · 552px** ❌ | **2** ✅ |
+
+A `.jc-kpis` é `repeat(4,1fr)` e quebra em `@media (max-width:1100px)` para `repeat(2,1fr)` —
+**sem degrau de mobile**. O `colsMap[4]` do `KpiGrid` compartilhado quebra em `lg:`(1024) e
+`sm:`(640), deixando as três faixas acima. Fechado por **réplica local** `JanaKpiGrid`
+(ADR 0388 §D-1 — o `KpiGrid` serve 37 telas e não recebe a forma da Jana). Prova em bancada com
+o CSS buildado: **6/6 viewports** batendo, com controle antes × depois discriminando em 3.
+
+> ⚠️ **ARMADILHA DO TAILWIND 4, e ela custa um PR inteiro se ninguém avisar.** O caminho óbvio —
+> `className="max-[1100px]:grid-cols-2"` no `KpiGrid` — **sai INERTE**, e a segunda tentativa
+> (`min-[1101px]:grid-cols-4`) também. O Tailwind 4 emite os variants **arbitrários** (`min-[…]`,
+> `max-[…]`) **ANTES** dos nomeados (`sm:`, `lg:`); com a especificidade igual, vence quem vem
+> depois — sempre o `colsMap`. Medido no CSS buildado:
+>
+> ```
+> .max-[1100px]:grid-cols-2  @264896  <  .lg:grid-cols-4  @271781   -> lg vence
+> .min-[1101px]:grid-cols-4  @264997  <  .lg:grid-cols-2  @271756   -> lg vence
+> ```
+>
+> Passa em typecheck, lint e CI sem mover um pixel (LC-30). **O que pegou foi a bancada com
+> canário**, não a leitura: remover a classe devolveu o MESMO número, assinatura de classe
+> inerte. E a primeira "prova de ordem" que escrevi media `max-width: 1100px` de **CSS legado**
+> (`.sells-cowork`, `.fin-cowork`) em vez da utility — proxy plausível lido como alvo.
+
+### ⚠️ O que ficou MEDIDO E ABERTO
+
+- **`margin-bottom` 18 × 16** (2px, todas as viewports). Não vem de classe no grid: vem do
+  `space-y-4` do container pai (`gridMarginBottom: 16px` · `paiClasses: "space-y-4"` ·
+  `irmaoMarginTop: 0px`). `mb-[18px]` na utility seria **inerte** — especificidade `(0,1,0)`
+  contra `(0,2,0)` do pai. Fechar exige tocar o `space-y-4`, que governa **todas** as seções da
+  tela e é território de chips irmãos vivos. Declarado, não consertado.
+- **Cor de fundo, borda e texto do lado DESIGN não foram medidas.** No render do espelho o
+  `colors_and_type.css` carregou com **0 regras** e `--surface`/`--border`/`--text-3` ficaram
+  vazios. Nenhum dos 24 campos ✅ depende deles (`--r-2`, `--fs-7` e `--mono` resolveram); os de
+  cor simplesmente **não entram em veredito** nesta rodada.
+- **D1 (rede/partial-reload)** não exercitada nesta rodada.
