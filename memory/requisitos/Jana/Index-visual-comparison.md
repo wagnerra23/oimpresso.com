@@ -1437,3 +1437,52 @@ ninguém tinha medido.
 contagem), e ele destrava não só o VRT: destrava qualquer comparação futura desta seção sem depender
 de fixture ad-hoc como o desta rodada.
 
+
+---
+
+### ⚠️ ERRATA da própria rodada acima — as 5 metas de prod estão ÓRFÃS, e é isso que [W] vê
+
+A tabela das 3 premissas caducadas diz, com razão, que **"prod tem 5 metas ATIVAS"**. Está certo, e
+foi o que destravou a comparação. **Mas é meia verdade, e a metade que faltava é a que explica o
+relato.** Medido em prod no mesmo dia (a sonda demorou a voltar e só foi lida depois de o registro
+acima ter sido escrito):
+
+| meta (biz=1) | período | apuração | fonte |
+|---|---|---|---|
+| Faturamento mensal | **0** | **0** | **0** |
+| Ticket médio | **0** | **0** | **0** |
+| Vendas no mês | **0** | **0** | **0** |
+| Clientes atendidos | **0** | **0** | **0** |
+| Margem de contribuição | **0** | **0** | **0** |
+
+As 5 existem, estão `ativo=1` e têm `origem=manual` — mas **nenhuma tem período, fonte ou apuração**.
+Sem `periodo_atual` não há alvo; sem `ultima_apuracao` não há realizado; e sem **fonte** a meta **não
+apura**, que é o que o próprio `buildMetasPayload` já declarava (*"`null` = meta sem fonte gravada,
+que é estado REAL: sem fonte a meta não apura"*).
+
+**O que isso produz na tela, MEDIDO** (staging com o estado de prod espelhado — 5 metas biz=1 sem
+período/fonte/apuração —, dark, 1440×900):
+
+```
+os 5 cards são IDÊNTICOS:   "<nome> | <unidade> | Aguardando apuração…"
+temValor: false · temBarra: false · temProjecao: false · temPeriodo: false · temSemHistorico: false
+temApurando: true  ·  todosIguais: true  ·  altura do card: 134px
+```
+
+**Por que isso importa mais que a divergência de forma.** A rodada acima mediu a seção com um fixture
+que TINHA período e apuração — ou seja, mediu um estado **que a produção não está renderizando**. A
+comparação de forma segue válida (as classes são as mesmas nos dois estados, e é isso que a réplica
+trava), mas o **ganho visível** em prod é menor do que aquela tabela sugere: onde não há valor, não
+há o que pôr em mono 20/700; onde não há alvo, não há barra nem projeção.
+
+**Leitura do relato de [W] (*"Metas e kpi não renderizam corretos"*), agora com as duas metades:**
+
+1. **Forma** — a grade e o card divergiam da âncora. Isso é bug de réplica e foi corrigido.
+2. **Dado** — as 5 metas estão órfãs, e por isso os cards saem todos em *"Aguardando apuração…"*.
+   **Não é bug de código.** É cadastro incompleto: falta período (alvo) e fonte (de onde vem o
+   número). Preencher isso é decisão de **produto** — quais alvos, e qual query alimenta cada meta —,
+   não de réplica visual.
+
+⚠️ **O que NÃO foi medido aqui:** por que as 5 nasceram sem período/fonte. Podem ter vindo de um seed
+antigo, de um wizard interrompido, ou de criação manual que parou no meio. `origem=manual` nas 5 diz
+como foram criadas, não por que ficaram incompletas.
