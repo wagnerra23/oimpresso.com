@@ -84,8 +84,14 @@ class BackfillApuracoesCommand extends Command
         // `loadMissing` não recarrega o que já está carregado, pré-carregar aqui é o que
         // faz o comando funcionar no CLI. Medido no CT 100: sem isto, 10 de 10 janelas
         // falhavam com essa mensagem.
+        // SUPERADMIN: closure aplicada às relações do eager-load. `MetaFonte` e `MetaPeriodo`
+        // são multi-tenant VIA PARENT — o escopo delas resolve pelo business da Meta, que o
+        // where abaixo já fixou. Sem isto o CLI carrega relação vazia (ver bloco acima).
         $semEscopo = fn ($q) => $q->withoutGlobalScopes();
 
+        // SUPERADMIN: o `where('business_id', $businessId)` da linha seguinte é MAIS
+        // restritivo que o scope — exige o id explícito em vez de inferi-lo da sessão, que
+        // no CLI não existe.
         $query = Meta::withoutGlobalScopes()
             ->with(['fonte' => $semEscopo, 'periodoAtual' => $semEscopo])
             ->where('business_id', $businessId);
@@ -121,6 +127,9 @@ class BackfillApuracoesCommand extends Command
         foreach ($metas as $meta) {
             foreach ($datas as $dataRef) {
                 // ANTES: o que já está gravado para esta (meta, data), se houver.
+                // SUPERADMIN: leitura do valor ANTES, para o antes→depois. Filtrada por
+                // `meta_id` de uma Meta que o where do business já validou — o escopo não
+                // acrescentaria isolamento, e no CLI ele devolveria vazio.
                 $antes = MetaApuracao::withoutGlobalScopes()
                     ->where('meta_id', $meta->id)
                     ->whereDate('data_ref', $dataRef->toDateString())

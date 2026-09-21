@@ -129,6 +129,9 @@ class ConfigurarPeriodosMetaCommand extends Command
 
         foreach ($metas as $meta) {
             $chave = $this->normalizar((string) $meta->nome);
+            // SUPERADMIN: lê o período vigente da janela só para relatar o alvo "antes". O
+            // `meta_id` vem de Meta já filtrada por business; `MetaPeriodo` é scoped via
+            // parent e no CLI devolveria vazio, fazendo um período existente parecer ausente.
             $atual = MetaPeriodo::withoutGlobalScopes()
                 ->where('meta_id', $meta->id)
                 ->whereDate('data_ini', $ini->toDateString())
@@ -163,6 +166,9 @@ class ConfigurarPeriodosMetaCommand extends Command
             ];
 
             if (! $dry) {
+                // SUPERADMIN: a ESCRITA do alvo. Chave (`meta_id`, `data_ini`) de uma Meta já
+                // filtrada pelo business do argumento — alcance é o tenant pedido, e há teste
+                // cross-tenant provando que meta de outro business não é tocada.
                 MetaPeriodo::withoutGlobalScopes()->updateOrCreate(
                     ['meta_id' => $meta->id, 'data_ini' => $ini->toDateString()],
                     [

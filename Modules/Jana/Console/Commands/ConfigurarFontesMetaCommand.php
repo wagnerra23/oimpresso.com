@@ -127,6 +127,9 @@ class ConfigurarFontesMetaCommand extends Command
 
         foreach ($metas as $meta) {
             $chave = $this->normalizar((string) $meta->nome);
+            // SUPERADMIN: lê a fonte vigente só para relatar "antes". A `Meta` que dá o
+            // `meta_id` já veio do where por business; `MetaFonte` é scoped via parent e no
+            // CLI devolveria vazio, escondendo que a fonte existe.
             $atual = MetaFonte::withoutGlobalScopes()->where('meta_id', $meta->id)->first();
 
             if (! isset($defs[$chave])) {
@@ -151,6 +154,9 @@ class ConfigurarFontesMetaCommand extends Command
             ];
 
             if (! $dry) {
+                // SUPERADMIN: a ESCRITA. Chave `meta_id` de Meta já filtrada pelo business do
+                // argumento — alcance é o tenant pedido, nunca varrimento cross-tenant, e há
+                // teste que prova (`não configura meta de OUTRO business`).
                 MetaFonte::withoutGlobalScopes()->updateOrCreate(
                     ['meta_id' => $meta->id],
                     [
