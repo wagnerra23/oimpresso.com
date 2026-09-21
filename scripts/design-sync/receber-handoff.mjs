@@ -55,6 +55,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { extrairZip } from './zip-reader.mjs';
 import { roleForPath, validateManifest } from './bundle-contract.mjs';
+import { pathsForOwner } from './bundle-transaction.mjs';
 import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
 // PASSO 0 do painel. O dono da pergunta "de quem e este handoff" e o protocolo.config:
 // importo a funcao dele em vez de reimplementar (LC-19 — maquina paralela ao dono).
@@ -62,7 +63,6 @@ import { deQuemEhOHandoff, CONTAS, PROJETOS } from '../design/protocolo.config.m
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(AQUI, '..', '..');
-const ATIVO = join(REPO, 'scripts/design-sync/state/active-bundle.json');
 const SNAPSHOT_DS = join(REPO, 'prototipo-ui/design-system');
 const ENTRY = 'oimpresso.com.html';
 
@@ -113,11 +113,10 @@ export function listarRelativos(raiz, listar = readdirSync) {
 
 /** Path do repo onde um path LÓGICO do bundle pousaria. Mesma regra de `espelho()` no passo [3]
  *  e de `targetForLogical` na transação — extraída daqui pra poder ser testada sem fs. */
-export function pathNoEspelho(rel, papel = roleForPath(rel)) {
+export function pathNoEspelho(rel, papel = roleForPath(rel), dono = 'Wagner') {
   if (papel === 'preview-cache') return `prototipo-ui/design-system/${dsRuntimeRelPath(rel)}`;
-  const base = papel === 'design-doc'
-    ? 'prototipo-ui/cowork/Wagner/handoffs'
-    : 'prototipo-ui/cowork/Wagner';
+  const raizDono = pathsForOwner(dono).cowork;
+  const base = papel === 'design-doc' ? `${raizDono}/handoffs` : raizDono;
   return `${base}/${rel}`;
 }
 
@@ -183,8 +182,12 @@ function checkIgnoreGit(paths) {
  *  E o buraco não era cosmético: o `espelho()` abaixo escreve em `prototipo-ui/cowork/Wagner`
  *  HARDCODED. Um handoff exportado de outra conta entrava por aqui e pousava no espelho do
  *  Wagner — que é exatamente o "espelho ganha arquivo órfão" que o `--de-quem` foi escrito pra
- *  impedir. A conta do [F] tem `espelhada: false` e projeto nenhum em PROJETOS: não há espelho
- *  pra receber, logo não há importação possível por esta rota.
+ *  impedir. A conta do [F] tinha `espelhada: false` e projeto nenhum em PROJETOS: não havia
+ *  espelho pra receber, logo não havia importação possível por esta rota.
+ *
+ *  ATUALIZAÇÃO 2026-09-21: a conta do [F] ganhou projeto em PROJETOS (`telasFelipe`, espelho
+ *  `prototipo-ui/cowork/Felipe/`), e o destino passou a sair da conta liberada (`DONO` no fluxo
+ *  principal → `pathsForOwner`). O parágrafo acima fica como registro do porquê do portão.
  *
  *  O 3º VEREDITO É INALCANÇÁVEL DE OUTRO JEITO, e é por isso que `--conta` existe: o
  *  `deQuemEhOHandoff` procura o UUID do projeto num PATH, e o zip do Cowork nomeia a raiz pelo
@@ -238,8 +241,8 @@ export function decidirDono(dono, contaDeclarada, contas = CONTAS, projetos = PR
     const c = contas[contaDeclarada];
     return {
       ok: false, conta: null, exigeDeclaracao: true,
-      motivo: `conta "${contaDeclarada}" (${c.dono}) nao tem espelho no repo — esta rota escreve em `
-        + `prototipo-ui/cowork/Wagner, entao importar aqui criaria arquivo orfao no espelho de outro dono`,
+      motivo: `conta "${contaDeclarada}" (${c.dono}) nao tem espelho no repo — registre um projeto dela `
+        + `em PROJETOS (com a chave espelho) antes; importar sem isso criaria arquivo orfao no espelho de outro dono`,
     };
   }
   return {
@@ -400,15 +403,29 @@ function principal() {
     console.log(`                   -> por isso o pacote e ignorado e o bundle e REGERADO abaixo.`);
   }
 
+  // DONO DO LOTE — sai da conta que o PASSO 0 liberou, e decide TODOS os destinos abaixo:
+  // espelho, estado da última importação e o `--owner` do gerador e do aplicador.
+  // Até 2026-09-21 só o gerador recebia o dono; validar/aplicar rodavam com o default (Wagner),
+  // e um zip da conta do Felipe teria pousado no espelho do Wagner (PR #7620 esbarrou nisso).
+  const DONO = decisao.conta === 'felipe' ? 'Felipe' : 'Wagner';
+  const PATHS_DONO = pathsForOwner(DONO);
+  const ATIVO_DONO = join(REPO, ...PATHS_DONO.state.split('/'), 'active-bundle.json');
+  const COWORK_DONO = PATHS_DONO.cowork;
+  console.log(`\n  [2b] DONO        ${DONO} -> ${COWORK_DONO}/ · estado em ${PATHS_DONO.state}/`);
+
   // 3. DIREÇÃO (zip x espelho x manifesto ativo)
-  if (!existsSync(ATIVO)) morre('nao ha bundle ativo em scripts/design-sync/state/');
-  const ativo = JSON.parse(readFileSync(ATIVO, 'utf8'));
+  // Sem bundle ativo: pro Wagner é estado quebrado (sempre houve importação); pra outra conta é a
+  // PRIMEIRA importação — tudo entra como novo, e o manifesto gerado vira a base da próxima.
+  if (!existsSync(ATIVO_DONO) && DONO === 'Wagner') morre('nao ha bundle ativo em scripts/design-sync/state/');
+  const primeira = !existsSync(ATIVO_DONO);
+  if (primeira) console.log(`                   primeira importacao desta conta - sem bundle ativo, tudo entra como novo`);
+  const ativo = primeira ? { files: [] } : JSON.parse(readFileSync(ATIVO_DONO, 'utf8'));
   const porPathAtivo = new Map(ativo.files.map((f) => [f.path, f.sha256]));
   const espelho = (rel) => {
     const papel = roleForPath(rel);
     const alvo = papel === 'preview-cache'
       ? join(SNAPSHOT_DS, ...dsRuntimeRelPath(rel).split('/'))
-      : join(REPO, papel === 'design-doc' ? 'prototipo-ui/cowork/Wagner/handoffs' : 'prototipo-ui/cowork/Wagner', ...rel.split('/'));
+      : join(REPO, ...pathNoEspelho(rel, papel, DONO).split('/'));
     return existsSync(alvo) ? readFileSync(alvo) : null;
   };
   const contagem = {};
@@ -433,7 +450,7 @@ function principal() {
   for (const rel of novos) {
     const papel = roleForPath(rel);
     if (papel === 'preview-cache') continue; // dono e o projeto DS; resolvido por regra no passo [4]
-    const pathRepo = `${papel === 'design-doc' ? 'prototipo-ui/cowork/Wagner/handoffs' : 'prototipo-ui/cowork/Wagner'}/${rel}`;
+    const pathRepo = pathNoEspelho(rel, papel, DONO);
     const z = naArvore(rel);
     const commit = z && jaEsteveNoEspelho(pathRepo, sha(z));
     if (commit) regressoes.push({ rel, commit });
@@ -463,14 +480,18 @@ function principal() {
   // (876 x 808 no ciclo de 10/09). O `--sla-live-only` ja recusa comparar escopos diferentes e
   // vai dizer "denominador mudou" na 1a rodada por esta rota. E o comportamento certo — inventar
   // entradas de diretorio pra casar o numero seria fabricar o denominador.
+  // O medidor de frescor (`cowork-mirror-freshness`) conhece só o espelho do Wagner. Pra outra
+  // conta, medir aqui compararia o zip dela com a pasta errada — pulo e digo, em vez de medir torto.
   const listaPath = join(destino, '_live-only.json');
   writeFileSync(listaPath, JSON.stringify({ paths: listarRelativos(raiz) }));
   // Ledger so no --apply: medicao de run exploratorio nao vira registro.
-  const lo = roda('scripts/governance/cowork-mirror-freshness.mjs',
-    ['--live-only', listaPath, ...(aplicar ? ['--ledger'] : [])]);
+  const lo = DONO === 'Wagner'
+    ? roda('scripts/governance/cowork-mirror-freshness.mjs', ['--live-only', listaPath, ...(aplicar ? ['--ledger'] : [])])
+    : { ok: true, out: '', pulado: true };
   const resumo = (lo.out.match(/\((\d+) de (\d+) paths\)/) || []);
   const telas = (lo.out.match(/prot[oó]tipo de tela \((\d+)\)/) || [])[1];
-  console.log(`\n  [3c] LIVE-ONLY   ${resumo[1] ?? '?'} de ${resumo[2] ?? '?'} paths do export nunca desceram pro espelho`);
+  if (lo.pulado) console.log(`\n  [3c] LIVE-ONLY   pulado - o medidor de frescor so conhece o espelho do Wagner (conta ${DONO})`);
+  else console.log(`\n  [3c] LIVE-ONLY   ${resumo[1] ?? '?'} de ${resumo[2] ?? '?'} paths do export nunca desceram pro espelho`);
   if (telas !== undefined) {
     console.log(`                   destes, prototipo de TELA: ${telas}${telas === '0' ? ' (o resto e dotfile, interno do _ds e copia de repo)' : ' <- candidatos reais a versionar'}`);
   }
@@ -514,7 +535,7 @@ function principal() {
     console.log(`\n  [4b] IGNORADOS   ${ignorados.size} arquivo(s) fora por .gitignore do repo - nao podem existir no espelho`);
     for (const rel of [...ignorados].sort()) {
       rmSync(join(raiz, ...rel.split('/')), { force: true });
-      console.log(`                   ${rel}  -> ${pathNoEspelho(rel)}`);
+      console.log(`                   ${rel}  -> ${pathNoEspelho(rel, roleForPath(rel), DONO)}`);
     }
     console.log(`                   nao e perda: o espelho ja nao os tinha. Versiona-los reabre o #7224/#7314 ([W]).`);
   } else {
@@ -525,9 +546,8 @@ function principal() {
   const outSync = join(destino, '_sync-regerado');
   // `--owner` vem da conta que o PASSO 0 liberou — quem chama sabe de quem e o lote; o path da
   // arvore extraida (tmpdir) nao diz. Sem isto o gerador sai `owner: "project"` (medido).
-  const donoDoLote = decisao.conta === 'felipe' ? 'Felipe' : 'Wagner';
   const g = roda('scripts/design-sync/gerar-payload-partes.mjs',
-    ['--root', raiz, '--out', outSync, '--previous', ATIVO, '--full-tree', '--owner', donoDoLote]);
+    ['--root', raiz, '--out', outSync, ...(primeira ? [] : ['--previous', ATIVO_DONO]), '--full-tree', '--owner', DONO]);
   if (!g.ok) { console.error(g.out); morre('o gerador canonico falhou'); }
   console.log(`\n  [5] REGERAR      ${((g.out.match(/BUNDLE v2: \w+/) || [''])[0] || '').trim()}`);
   console.log(`                   ${((g.out.match(/DELTA:.*/) || [''])[0] || '').trim()}`);
@@ -537,7 +557,7 @@ function principal() {
   if (!partes.length) morre('o gerador nao emitiu partes');
 
   // 6. VALIDAR
-  const d = roda('scripts/design-sync/aplicar-payload.mjs', [...partes, '--dry', '--require-complete-shell']);
+  const d = roda('scripts/design-sync/aplicar-payload.mjs', [...partes, '--owner', DONO, '--dry', '--require-complete-shell']);
   console.log(`\n  [6] VALIDAR      ${d.ok ? 'dry-run VALIDADO' : 'REPROVADO'}`);
   if (!d.ok) { console.error(d.out); morre('o aplicador recusou o lote no dry-run'); }
 
@@ -559,7 +579,7 @@ function principal() {
       + `      · pacote POSTERIOR ao estado ativo -> caso (b), espelho editado aqui: o pacote prevalece\n`
       + `        (ADR 0404) — repita com --permitir-regressao, que neste caso e o caminho CERTO.`);
   }
-  const a = roda('scripts/design-sync/aplicar-payload.mjs', [...partes, '--require-complete-shell']);
+  const a = roda('scripts/design-sync/aplicar-payload.mjs', [...partes, '--owner', DONO, '--require-complete-shell']);
   if (!a.ok) { console.error(a.out); morre('o aplicador falhou na promocao (transacao atomica: nada mudou)'); }
   console.log(`\n  [7] APLICAR      PROMOVIDO ATOMICAMENTE`);
   console.log(`${a.out.split('\n').filter((l) => /id:|transporte:/.test(l)).join('\n')}`);
@@ -572,6 +592,10 @@ function principal() {
   //    neutralidade (CLAUDE.md §LIGUE A MÁQUINA, item 2). A entrada é datada com o `generatedAt`
   //    do bundle, nunca com a hora da leitura — quem garante isso é o próprio `--ledger`, que
   //    RECUSA bundle sem `generatedAt` em vez de inventar frescor.
+  if (DONO !== 'Wagner') {
+    console.log(`\n  [8] REGISTRAR    pulado - o ledger de frescor so conhece o espelho do Wagner (conta ${DONO})\n`);
+    return;
+  }
   const reg = roda('scripts/governance/cowork-mirror-freshness.mjs', ['--compare-bundle', '--ledger']);
   const linha = (reg.out.match(/✓ sync:.*/) || [''])[0].trim();
   console.log(`\n  [8] REGISTRAR    ${reg.ok ? linha || 'rodada registrada' : 'FALHOU - o --sla vai seguir lendo a rodada anterior'}`);

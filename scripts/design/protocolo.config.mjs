@@ -95,13 +95,17 @@ export const CONTAS = {
     usadaPor: ['[F] Felipe', '[M] Maiara', '[L] Luiz'],
     papel: 'conta da equipe — telas desenhadas fora da conta do dono ([W] 2026-09-11)',
     alcancavel: false,         // ⚠ invisível deste lado: outra conta, outro login
-    espelhada: false,          // não há espelho no repo, e isso está CORRETO
-    projetos: [],              // nenhum ID conhecido aqui — ver "PRA ATIVAR" abaixo
+    espelhada: true,           // espelho em prototipo-ui/cowork/Felipe/ (ADR 0405) — ativado 2026-09-21
+    projetos: ['telasFelipe'], // ID informado pelo [F] em 2026-09-21 (URL do projeto no Cowork)
     // Titular x usuários é distinção OPERACIONAL, não burocracia: quem exporta o handoff é
     // quem tem o login, e só o titular consegue. [W] 2026-09-11: "conta do Felipe (usada pelo
     // Felipe, Maiara e o Luiz)".
     //
-    // PRA ATIVAR (o que falta, exatamente):
+    // ATIVADO em 2026-09-21: o [F] informou o ID pela URL do projeto
+    // ("PROTÓTIPO OFICIAL - PRODUTO UNIFICADO V2"), e a rota ZIP passou a escrever no espelho do
+    // dono liberado. O roteiro abaixo fica como registro de como se chegou aqui.
+    //
+    // PRA ATIVAR (o que faltava, exatamente):
     //   1. o projectId do projeto de telas dessa conta — NINGUÉM deste lado consegue descobrir:
     //      o DesignSync autentica como [W], então a conta do [F] é invisível POR CONSTRUÇÃO.
     //      list_projects vazio sobre ela não é evidência de nada.
@@ -118,6 +122,10 @@ export const CONTAS = {
 export const PROJETOS = {
   cowork:       { id: COWORK_PROJECT_ID,        nome: 'Oimpresso ERP Comunicação Visual', papel: 'telas',  listado: false, conta: 'w', espelho: 'prototipo-ui/cowork/Wagner/' },
   designSystem: { id: DESIGN_SYSTEM_PROJECT_ID, nome: 'Office Impresso — Design System',   papel: 'ds',     listado: true,  conta: 'w', espelho: 'prototipo-ui/design-system/' },
+  // Projeto de telas da conta do Felipe (usada por [F]/[M]/[L]). ID informado pelo [F] em
+  // 2026-09-21. `listado: false` pelo mesmo motivo do `cowork`: projeto de telas não aparece em
+  // `list_projects` (que só lista design system), e a conta nem é visível deste lado.
+  telasFelipe:  { id: '2e7d3640-825c-4c09-ac52-17c8469f3b91', nome: 'PROTÓTIPO OFICIAL - PRODUTO UNIFICADO V2', papel: 'telas', listado: false, conta: 'felipe', espelho: 'prototipo-ui/cowork/Felipe/' },
 };
 
 // ── PATHS FIXOS (as âncoras do protocolo dependem destes — RUNBOOK Fase −1) ─────
