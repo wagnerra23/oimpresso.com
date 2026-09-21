@@ -1062,6 +1062,7 @@ remover `py-0 gap-0`), com restauração conferida por hash. O detalhe — inclu
 breakpoints são `min-[761px]`/`min-[1101px]` e a prova de que o Tailwind os gera — está no
 **UC-JPAIN-31** de [`Index.casos.md`](../../../resources/js/Pages/Jana/Index.casos.md); aqui não
 se repete, para os dois não drifarem.
+
 ## Rodada MEDIDA de 2026-09-21 — GRÁFICOS (o eixo que nenhuma rodada anterior tinha sondado)
 
 > **Por que esta rodada existe:** [W] relatou que os gráficos estão diferentes. As rodadas de
@@ -1402,3 +1403,159 @@ sozinho acerta** — só este dá 48, só o dela dá 16, **os dois juntos dão 2
 
 **Enforcement:** UC-JPAIN-33, `tests/janaRitmoVerticalReplica.spec.tsx`, 3 casos, mordida provada
 nos dois lados com restauração por hash. Detalhe no `Index.casos.md`; aqui não se repete.
+
+---
+
+
+---
+
+## Rodada MEDIDA de 2026-09-21 — seção **METAS**, o "não comparável" DESTRAVADO
+
+> **Por que esta rodada existe:** [W] relatou *"Metas e kpi não renderizam corretos"*. O registro
+> acima (§Metas) dizia **"não comparável hoje (0 metas em todos os tenants, medido
+> 2026-08-21/08-31)"**. Isso é **fato datado e CADUCOU** — a regra de §5 2026-09-03 manda re-medir
+> antes de herdar. Re-medido: **três** premissas daquele registro são falsas hoje.
+
+### As 3 premissas que caducaram (medidas, com o comando ao lado)
+
+| premissa de ago/2026 | medição de 2026-09-21 | como |
+|---|---|---|
+| "0 metas em todos os tenants" | **prod tem 5 metas ATIVAS** | `php artisan tinker` no public_html de prod: `app('db')->table('jana_metas')->where('ativo',1)->count()` = **5** |
+| "âncora `Nova meta` à direita × prod **3 botões**" | **a âncora TAMBÉM tem os 3** | render do símbolo `JmMetasSecao`: o `.jc-h2` contém `METAS ATIVAS · Nova meta · Jana Pro · Conversar com a Jana` — **não é divergência** |
+| "âncora desenha projeção no card, prod **não**" | **prod TEM projeção, e com a MESMA copy** | os dois renderizam `… no fechamento`. A medição de agosto buscou a palavra "projeção" no DOM — a prod renomeou o rótulo. Rótulo do protótipo **não é chave de busca** em código que renomeou (§5 2026-07-15 · LC-08) |
+
+### Como foi medido (sem pular passo)
+
+| passo | o que foi feito |
+|---|---|
+| D0 âncora | `node scripts/design/ancora.mjs Jana/Index` → `prototipo-ui/cowork/Wagner/jana-merge.jsx`, frescor **verificado contra o Cowork vivo em 2026-09-21T10:43:20Z** |
+| alvo de medição | **staging** (`e57b78bf5`), PROVADO equivalente a prod **para esta seção**: o diff de `Index.tsx` entre o SHA do staging e o de prod (`79564b61b4`) é de **4 linhas — 3 comentários + `pro={pro}`** — e **zero** casamentos de MetaCard, jm-meta, grid gap, EmptyState ou painel-metas |
+| dado | staging tinha **0 metas** → fixture de 5 metas em **biz=1**, cobrindo os 4 farois + `aguardando apuração` + `sem histórico`. ⚠️ **biz=1, NÃO biz=98**: o 98 é o `Tenant Vazio (visreg estado empty)` e os seeders irmãos declaram *"o biz=98 fica INTOCADO"* — semear lá quebraria o estado `empty` que a Jana ganhou no #7616 |
+| lado design | símbolo `JmMetasSecao` montado no host do espelho (`oimpresso.com.html`, porta 5621), tema **dark**, container na **mesma largura útil da grade da prod (1117px)** — a grade da âncora é `auto-fit`, então comparar em larguras diferentes mediria a largura, não o desenho |
+| lado prod | `/_visreg-state/jana/default` autenticado em staging, **dark**, viewport **1440×900** |
+| sonda | `design-diff.mjs --probe`, **byte-idêntica** nos dois lados (17341 bytes). A CSP barrou script externo → servida pela mesma origem e **removida depois** (404 confirmado) |
+| canário | **obrigatório, e ele MORDEU** — ver abaixo |
+
+### ⚠️ O canário mordeu: a sonda canônica mediu o elemento ERRADO na prod
+
+A sonda reportou `valueFontPx` **16** na prod. **É falso.** O canário — abrir qual nó ela escolheu —
+mostrou: a prod **não tem `<b>` nem classe com "value"**, então ela caiu no fallback *"maior
+texto-folha"*; e o valor real (`.text-2xl`, **24px**) **tem filho inline** (o `<small>de R$ …`), logo
+não é folha e foi **excluído**. O fallback acabou pegando o título do card (16px).
+
+Sem o canário, este documento teria registrado **20 × 16** — errado nos dois lados da diferença.
+
+**É defeito do instrumento, não desta tela:** o docblock do fallback diz que ele existe justamente
+para cobrir utility-first (`text-2xl` sem "value" no nome), mas o filtro que exige folha o anula
+exatamente nesse caso. Fica **declarado, não consertado** — conserto de sonda canônica é PR próprio,
+e mexer nela daqui mudaria o veredito de todas as telas que a usam.
+
+### O veredito MEDIDO — mesma largura útil (1117px), mesmo viewport (1440×900), ambos dark
+
+| item | âncora `.jm-meta` | prod `MetaCard` | veredito |
+|---|---|---|---|
+| grade — **colunas** | **4** (271,75px) | **3** (361,7px) | ❌ DIVERGE |
+| grade — **gap** | **10px** | **16px** (`gap-4`) | ❌ DIVERGE |
+| grade — regra | `auto-fit minmax(232px,1fr)` | `sm:grid-cols-2 xl:grid-cols-3` | ❌ breakpoint fixo × auto-fit |
+| layout | 5 cards / 2 linhas | 5 cards / 2 linhas | ✅ |
+| card — **altura** | **122px** | **236px** | ❌ DIVERGE (~2×) |
+| card — **padding** | **12px 13px** | **24px 0px** | ❌ DIVERGE |
+| card — **gap interno** | **8px** | **24px** | ❌ DIVERGE |
+| card — radius | 12px | 12px | ✅ |
+| card — tag | BUTTON | BUTTON | ✅ |
+| card — display | flex | flex | ✅ |
+| **valor — tamanho** | **20px** | **24px** | ❌ DIVERGE |
+| **valor — peso** | **700** | **600** | ❌ DIVERGE |
+| **valor — família** | **IBM Plex Mono** | **IBM Plex Sans** | ❌ DIVERGE |
+| h2 da seção — tamanho/peso | 11px / 700 | 11px / 700 | ✅ |
+| alinhamento (D8) | left / left / normal | left / left / normal | ✅ |
+
+**Leitura em uma frase:** a seção METAS da prod está **mais solta que a âncora em todos os eixos de
+densidade** — cards com o dobro da altura, padding e gap interno 2-3×, grade com uma coluna a menos e
+gap maior, e o número da meta em **sans 24/600** onde a âncora pede **mono 20/700**. É consistente com
+o relato de [W].
+
+### O que esta rodada NÃO mediu (declarado, não escondido)
+
+- **D6 cor — NÃO MEDI.** O espelho **não tem o diretório `_ds/`**: o host pede o bundle do Design
+  System e recebe **404**. Sem os tokens, as `var()` de cor/superfície/borda não resolvem, e o lado
+  design mediu preto puro e borda 0px. Isso é **artefato de medição, não divergência** — os valores
+  literais (padding, gap, radius, font-size) seguem confiáveis porque não dependem de `var()`.
+- **Estado VAZIO da âncora — NÃO MEDI,** pelo mesmo motivo: ele usa o `EmptyState` do DS, ausente.
+  ⚠️ Fica registrado que a âncora pede a variante `first` e **essa variante não existe** no componente
+  (ele declara default, search, error e success) — achado já catalogado no `UC-JPAIN-29`; é decisão de DS.
+- **Copy do vazio — divergente, e NÃO É MINHA DECISÃO.** Âncora: *"Nenhuma meta ativa neste período"* +
+  *"Criar meta"*. Prod: *"Nenhuma meta cadastrada ainda"* + *"Pergunte algo a Jana"*. A copy da prod é
+  **pinada** em `governance/design/contracts/jana-painel.contract.json` na seção `painel-metas-vazio`, e
+  copy de contrato é soberania [W] (`memory/proibicoes.md` §Comportamento). **Registrado, não alterado.**
+- **D1 rede** (partial-reload) — não exercitada nesta rodada.
+
+### 🔴 Achado colateral: o gate visual fotografa METAS **vazio** e chama de `default`
+
+Medido, com varredura contada:
+
+- O lever `seedJanaVisregFlow` (`routes/web.php`, linhas 179-274) semeia **uma transação vencida** e
+  **nenhuma meta** — busca por "meta" no corpo da função devolve **0 ocorrências**.
+- **Nenhum** dos 9 seeders `database/seeders/Visreg*.php` semeia meta — busca por `jana_metas`,
+  `MetaPeriodo` ou a entidade `Meta` devolve **vazio**.
+
+Consequência: o snapshot chamado `default` da Jana é, **na seção METAS, indistinguível do `empty`**.
+Regressão na grade, no card, na barra de progresso ou na projeção **passa batida pelo VRT**, porque a
+baseline nunca teve um card de meta. É a mesma doença que o próprio `routes/web.php` documenta para os
+casos irmãos (*"dado ausente vira snapshot de tela vazia com nome de default"*) — só que na Jana
+ninguém tinha medido.
+
+**Fechar isso é PR próprio** (fixture versionado no padrão do `VisregJanaChatSeeder` + sonda de
+contagem), e ele destrava não só o VRT: destrava qualquer comparação futura desta seção sem depender
+de fixture ad-hoc como o desta rodada.
+
+
+---
+
+### ⚠️ ERRATA da própria rodada acima — as 5 metas de prod estão ÓRFÃS, e é isso que [W] vê
+
+A tabela das 3 premissas caducadas diz, com razão, que **"prod tem 5 metas ATIVAS"**. Está certo, e
+foi o que destravou a comparação. **Mas é meia verdade, e a metade que faltava é a que explica o
+relato.** Medido em prod no mesmo dia (a sonda demorou a voltar e só foi lida depois de o registro
+acima ter sido escrito):
+
+| meta (biz=1) | período | apuração | fonte |
+|---|---|---|---|
+| Faturamento mensal | **0** | **0** | **0** |
+| Ticket médio | **0** | **0** | **0** |
+| Vendas no mês | **0** | **0** | **0** |
+| Clientes atendidos | **0** | **0** | **0** |
+| Margem de contribuição | **0** | **0** | **0** |
+
+As 5 existem, estão `ativo=1` e têm `origem=manual` — mas **nenhuma tem período, fonte ou apuração**.
+Sem `periodo_atual` não há alvo; sem `ultima_apuracao` não há realizado; e sem **fonte** a meta **não
+apura**, que é o que o próprio `buildMetasPayload` já declarava (*"`null` = meta sem fonte gravada,
+que é estado REAL: sem fonte a meta não apura"*).
+
+**O que isso produz na tela, MEDIDO** (staging com o estado de prod espelhado — 5 metas biz=1 sem
+período/fonte/apuração —, dark, 1440×900):
+
+```
+os 5 cards são IDÊNTICOS:   "<nome> | <unidade> | Aguardando apuração…"
+temValor: false · temBarra: false · temProjecao: false · temPeriodo: false · temSemHistorico: false
+temApurando: true  ·  todosIguais: true  ·  altura do card: 134px
+```
+
+**Por que isso importa mais que a divergência de forma.** A rodada acima mediu a seção com um fixture
+que TINHA período e apuração — ou seja, mediu um estado **que a produção não está renderizando**. A
+comparação de forma segue válida (as classes são as mesmas nos dois estados, e é isso que a réplica
+trava), mas o **ganho visível** em prod é menor do que aquela tabela sugere: onde não há valor, não
+há o que pôr em mono 20/700; onde não há alvo, não há barra nem projeção.
+
+**Leitura do relato de [W] (*"Metas e kpi não renderizam corretos"*), agora com as duas metades:**
+
+1. **Forma** — a grade e o card divergiam da âncora. Isso é bug de réplica e foi corrigido.
+2. **Dado** — as 5 metas estão órfãs, e por isso os cards saem todos em *"Aguardando apuração…"*.
+   **Não é bug de código.** É cadastro incompleto: falta período (alvo) e fonte (de onde vem o
+   número). Preencher isso é decisão de **produto** — quais alvos, e qual query alimenta cada meta —,
+   não de réplica visual.
+
+⚠️ **O que NÃO foi medido aqui:** por que as 5 nasceram sem período/fonte. Podem ter vindo de um seed
+antigo, de um wizard interrompido, ou de criação manual que parou no meio. `origem=manual` nas 5 diz
+como foram criadas, não por que ficaram incompletas.
+
