@@ -822,7 +822,7 @@ Medido: nós · filhos · altura · `display` · `gap` · `grid-template-columns
 | **tabs** | altura · gap | 36px · 0px | **33px** · **2px** | ❌ DIVERGE |
 | **brief** | display · gap · filhos | block · normal · 7 | **flex** · **24px** · **1** | ❌ DIVERGE (estrutura) |
 | **análises (grade)** | colunas · gap | **3** · 12px | **2** · **16px** | ❌ DIVERGE |
-| **h2 análises** | tamanho · peso · tracking · cor | 11px · 700 · 0.88px · `text-3` | **14px** · **600** · **1.4px** · mais claro | ❌ DIVERGE |
+| **h2 análises** | tamanho · peso · tracking · cor | 11px · 700 · 0.88px · `text-3` | **14px** · **600** · **1.4px** · mais claro | ✅ **(2026-09-18)** — era `14px · 600 · 1.4px`; mesma nota do `h2 ações` abaixo (o `SectionTitle` é um só, [#7555](https://github.com/wagnerra23/oimpresso.com/pull/7555), UC-JPAIN-27). Re-medido em runtime 2026-09-21: **8 de 8** propriedades batem |
 | **h2 ações** | idem acima | 11px · 700 · 0.88px | 11px · 700 · 0.88px | ✅ **(2026-09-18)** — era `14px · 600 · 1.4px`; ver nota |
 | **ações** | gap | normal | **24px** | ❌ DIVERGE |
 | **corpo** | fonte base | 13px | **13,5px** | 🟡 direção a decidir — 13,5px é o `--fs-4` do RAMP canon; **o protótipo é que está fora dele** |
