@@ -72,7 +72,10 @@ jobs:
     # tambem o lote de paridade (~20min sobre o boot + smoke), e 30 nao cabe: medido em
     # 2026-09-18, sao 23 telas executaveis x 2 renders cada. Teto, nao custo — o job segue
     # terminando quando termina. Mesmo padrao condicional do visual-regression.yml:83.
-    timeout-minutes: ${{ github.event_name == 'schedule' && 50 || 30 }}
+    # dispatch entra junto com schedule: e por ele que o lote e exercitado antes de entrar na
+    # cadencia. Com 30 o JOB matava o step de 45 no meio — run 35596450412 cancelada as
+    # 12:23:39, exatamente 30min apos 11:53:24. Teto de job tem que ser >= teto de step.
+    timeout-minutes: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 60 || 30 }}
 
     services:
       mysql:
@@ -336,11 +339,17 @@ jobs:
           # com diagnostico, em vez de produzir 23 ERRO de conexao que se leem como veredito
           # de fidelidade. Gate mudo e pior que gate ausente porque parece cobertura.
           echo "PHP_CLI_SERVER_WORKERS=${PHP_CLI_SERVER_WORKERS:-<vazio>} · processos servindo: $(pgrep -fc 'artisan serve' || echo 0)"
-          FALHAS=0
+          # `VAR=$((VAR+1))` DENTRO de `&` roda em SUBSHELL e NAO propaga pro shell pai —
+          # provado local: 3 falhas garantidas deixavam FALHAS=0. A 1a versao deste canario
+          # tinha esse bug, entao ele NUNCA podia reprovar: era o gate mudo que ele existe
+          # pra evitar. A forma que funciona e guardar os PIDs e ler o exit de cada um.
+          PIDS=""
           for i in $(seq 1 6); do
-            curl -sf -o /dev/null --max-time 25 http://127.0.0.1:8000/login || FALHAS=$((FALHAS+1)) &
+            curl -sf -o /dev/null --max-time 25 http://127.0.0.1:8000/login &
+            PIDS="$PIDS $!"
           done
-          wait
+          FALHAS=0
+          for pid in $PIDS; do wait "$pid" || FALHAS=$((FALHAS+1)); done
           echo "canario: $FALHAS falha(s) em 6 requests simultaneos"
           if [ "$FALHAS" -gt 0 ]; then
             echo "::error title=Lote de paridade::servidor NAO aguenta paralelismo ($FALHAS/6 recusados) — abortando em vez de medir o nada. Proximo caminho: servidor fora do processo (FrankenPHP / php -S dedicado), NAO mais workers."
