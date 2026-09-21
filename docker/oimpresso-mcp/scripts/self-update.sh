@@ -124,6 +124,23 @@ if [ -f "$SDDSNAP_SRC" ]; then
   fi
 fi
 
+# Mesmo sync anti-drift pra cópia do lote de paridade protótipo × vivo (ADR 0408 —
+# decisão [W] 2026-09-21 "tem máquina para isso"). O cron seg 04:40 BRT roda
+# /opt/oimpresso-governance/ct100-paridade-lote.sh. mkdir -p deliberado (dir novo — a cópia
+# nasce no 1º sync sem passo manual; só a linha de crontab é manual 1×, ver header do .sh).
+# Sem ESTE bloco a cópia drifta igual à do fullsuite, que ficou 13 dias parada (comentário
+# do bloco lá em cima) — o passo manual "atualizar após merge" já falhou uma vez aqui.
+PARIDADE_SRC="$REPO_DIR/scripts/tests/ct100-paridade-lote.sh"
+PARIDADE_DST="${PARIDADE_LOTE_SCRIPT:-/opt/oimpresso-governance/ct100-paridade-lote.sh}"
+if [ -f "$PARIDADE_SRC" ]; then
+  mkdir -p "$(dirname "$PARIDADE_DST")"
+  if ! cmp -s "$PARIDADE_SRC" "$PARIDADE_DST"; then
+    install -m 0755 "$PARIDADE_SRC" "$PARIDADE_DST.tmp" && mv -f "$PARIDADE_DST.tmp" "$PARIDADE_DST" \
+      && log "paridade-lote: cópia do semanal sincronizada com o canônico" \
+      || log "WARN: sync da cópia do paridade-lote falhou (não-fatal)"
+  fi
+fi
+
 git fetch --quiet origin main || { log "FATAL: git fetch falhou"; exit 1; }
 LOCAL="$(git rev-parse HEAD)"
 REMOTE="$(git rev-parse origin/main)"
