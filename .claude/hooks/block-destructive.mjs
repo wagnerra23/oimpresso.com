@@ -125,53 +125,56 @@ export function statements(cmd) {
 //   FP conhecido e aceito — o caminho é passar a mensagem por arquivo
 //   (`git commit -F` / `gh pr create --body-file`), não afrouxar o guard.
 //
-// ⚠️ Duas decisões que a medição sustenta, e que NÃO se refazem sem re-medir:
-//   · flags `-rf` LITERAL (não `-[rRf]+`): aceitar `-f` sozinho isentaria
-//     `rm -f /tmp/x`, que hoje BLOQUEIA — eram **43** comandos afrouxados no
-//     corpus de 2026-09-16 (fato datado; o número abaixo é o de hoje).
+// ── FLAG-SET: a isenção casa o CONJUNTO de flags ([W] 2026-09-21) ───────────
 //
-//     RE-MEDIDO 2026-09-21 — 1845/1845 jsonl · 160.647 blocos tool_use
-//     Bash/PowerShell: **64 distintos / 65 ocorrências**, e APERTOU = **0**
-//     (alinhar só pode SUBTRAIR bloqueio: a whitelist de ALVOS não muda).
-//     Os 64 foram lidos um a um — 62 são `/tmp/*` (sonda, `.bak`, `.b64`,
-//     JUnit, lint temporário) e 2 são `rm -f vendor` removendo um SYMLINK
-//     antes de recriá-lo. Zero alvo perigoso.
+// HISTÓRICO, fato datado — não apagar. Até 2026-09-21 a isenção casava o
+// literal `-rf`, e o efeito não correspondia a nada no SO. Enunciado exato do
+// que ela aceitava: **o par ORDENADO `(r|R)(f|F)`**. Sobre o MESMO alvo isento:
+//     passavam  : (sem flag) · -rf · -rF · -Rf · -RF
+//     BLOQUEAVAM: -f · -r · -R · -F · -fr · -fR · -Fr · -FR
+// Duas propriedades, e só a 1ª tinha justificativa registrada:
+//   1. VALE de destrutividade — o mais destrutivo (`-rf`) passava, o menos
+//      destrutivo (`-f`) bloqueava, e o sem-flag passava. A justificativa era
+//      a contagem de 09-16 ("43 comandos afrouxados"), que media QUANTIDADE,
+//      não RISCO.
+//   2. ORDEM e CAIXA das flags — `rm -rf`, `rm -fr` e `rm -Rf` são o MESMO
+//      comando pro SO e saíam daqui com vereditos diferentes. Artefato da
+//      forma do literal (posicional + `/i`), nunca decisão de ninguém.
 //
-//     ⚠️ O que 09-16 mediu foi QUANTIDADE, não RISCO — e o risco tem DUAS
-//     faces que contagem nenhuma mostra. Sobre o MESMO alvo isento, os 9
-//     pontos (medidos no hook de hoje):
-//         rm /tmp/x       → passa      (sem flag: nem casa o detector)
-//         rm -f /tmp/x    → BLOQUEIA
-//         rm -r /tmp/x    → BLOQUEIA
-//         rm -R /tmp/x    → BLOQUEIA
-//         rm -rf /tmp/x   → passa      (recursivo + força: isento)
-//         rm -fr /tmp/x   → BLOQUEIA   ← o literal `rf` é POSICIONAL
-//         rm -Rf /tmp/x   → passa      ← o `/i` aceita `R`
-//         rm -rF, -RF     → passam     (idem `/i`)
+// HOJE: `-[rRf]+`, igual ao detector — a isenção vale por CONJUNTO de flags.
 //
-//     1. VALE de destrutividade: o mais destrutivo passa, o menos destrutivo
-//        bloqueia, e o sem-flag passa. Não é "errar pro lado seguro" — é um
-//        ponto de corte arbitrário, e o custo dele são os 64 acima.
-//     2. ORDEM e CAIXA das flags: `rm -rf`, `rm -Rf` e `rm -fr` são o MESMO
-//        comando pro SO, e saem daqui com 3 vereditos em 2 grupos. Isso não
-//        corresponde a nada no mundo — é artefato da forma do literal, não
-//        decisão. A (1) tem justificativa registrada; a (2) não tem nenhuma.
-//     Reproduz: node -e "import('./.claude/hooks/block-destructive.mjs').then(
-//       m=>['','-f ','-r ','-R ','-rf ','-fr ','-Rf ','-rF ','-RF '].forEach(f=>
-//       console.log((f||'(sem flag)').padEnd(11),
-//       m.matchDestructive('r'+'m '+f+'/tmp/x')?'BLOQ':'passa')))"
-//       (troque /tmp/x por /etc/passwd: TODOS bloqueiam — a proteção real
-//        não afrouxa em ponto nenhum da escala; é só a ISENÇÃO que é torta.)
+// ⚠️ Isto AFROUXA um guardrail Tier-0 e foi decisão explícita do [W]
+// (2026-09-21: "alinha o regex, pode fechar o vale") — não é efeito colateral,
+// exatamente como o afrouxamento de 2026-09-16 no topo deste bloco.
 //
-//     Fechar os dois (`-rf` → `-[rRf]+` em alvosRmRf, 1 linha) AFROUXA um
-//     guardrail Tier-0 — logo é ato do [W], como foi o afrouxamento de
-//     2026-09-16 registrado no topo deste bloco. Os 9 pontos da escala estão
-//     nos asserts §DECISÃO de `block-destructive.test.mjs`: quem mexer no
-//     regex por reflexo vê 4 deles caírem e chega aqui.
-//     ⚠️ E não suponha que `-[rf]+` seria uma correção parcial "sem o R":
-//     MEDIDO — com o `/i` já presente, `-[rf]+` e `-[rRf]+` são equivalentes
-//     aqui (os dois casam `-R`, mesmos 4 asserts vermelhos). O `R` vem do
-//     flag, não da classe.
+// MEDIDO ANTES de aplicar — 1846/1846 jsonl · 160.799 blocos tool_use
+// Bash/PowerShell:
+//   · 64 distintos / 65 ocorrências afrouxadas · APERTOU **0** (a whitelist de
+//     ALVOS não mudou, então alinhar só pode SUBTRAIR bloqueio).
+//   · Os 64 lidos um a um: 62 são `/tmp/*` (sonda, `.bak`, `.b64`, JUnit, lint
+//     temporário) e 2 removem o SYMLINK `vendor` antes de recriá-lo — que é o
+//     uso em que a forma não-recursiva é a correta. Zero alvo perigoso.
+//   · Em alvo NÃO isento (`/etc/passwd`): **zero** dos 13 pontos de flag mudou
+//     — todos seguem bloqueando. Só a ISENÇÃO afrouxou, e só onde a whitelist
+//     já autorizava.
+//   · Bordas preservadas: vacuidade (`rm -rf` sem alvo), `xargs … rm`,
+//     multi-arg com 1 alvo fora, travessia `..`, `$var` FORA de prefixo isento.
+//   · Bordas que mudam, e são coerentes: `rm -f -r /tmp/x` (flags separadas)
+//     passa — é o mesmo comando que `rm -rf /tmp/x`, que já passava; e
+//     `rm -f /tmp/$X` passa, que é a 2ª decisão abaixo aplicada também ao `-f`.
+//
+// Reproduz: node -e "import('./.claude/hooks/block-destructive.mjs').then(
+//   m=>['','-f ','-r ','-R ','-F ','-rf ','-rF ','-Rf ','-RF ','-fr ','-fR ',
+//   '-Fr ','-FR '].forEach(f=>console.log((f||'(sem flag)').padEnd(11),
+//   m.matchDestructive('r'+'m '+f+'/tmp/x')?'BLOQ':'passa')))"
+//   (troque /tmp/x por /etc/passwd: TODOS com flag bloqueiam, antes e depois.)
+//
+// Os 13 pontos e as bordas estão nos asserts §FLAG-SET de
+// `block-destructive.test.mjs`. ⚠️ E não suponha que `-[rf]+` seria uma
+// variante "sem o R": MEDIDO — com o `/i` presente, `-[rf]+` e `-[rRf]+` são
+// equivalentes aqui. O `R` vem do flag, não da classe.
+//
+// ⚠️ Decisão que a medição sustenta, e que NÃO se refaz sem re-medir:
 //   · alvo NÃO-VERIFICÁVEL (`$var`, glob) dentro de prefixo whitelisted
 //     (`rm -rf /tmp/$X`) segue ISENTO: bloqueá-lo mede **0** no corpus e criaria
 //     FP em temp-dir dinâmico. Fora de prefixo whitelisted, `$X` já bloqueia
@@ -219,7 +222,7 @@ const RM_WHITELIST_ALVOS = [
  * @returns {string[]|null} null = o statement não é um `rm -rf`
  */
 export function alvosRmRf(stmt) {
-  const m = /^rm\s+-rf(\s+|$)/i.exec(String(stmt || ''));
+  const m = /^rm\s+-[rRf]+(\s+|$)/i.exec(String(stmt || ''));
   if (!m) return null;
   const toks = String(stmt).slice(m[0].length).match(/"[^"]*"|'[^']*'|\S+/g) || [];
   const alvos = [];

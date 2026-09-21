@@ -273,49 +273,56 @@ check('CN multi-arg: aspas envolventes não quebram o casamento',
 
 // as duas decisões que a medição sustenta (mexer nelas exige re-medir)
 //
-// §DECISÃO/ESCALA — sobre o MESMO alvo isento (`/tmp/x`), o veredito NÃO é
-// monotônico, e isso é ponto de corte deliberado do [W] (2026-09-16), não
-// descuido. Medido 2026-09-21, os 9 pontos:
-//     rm /tmp/x       → passa      (assert no bloco ALLOW, "rm sem -rf")
-//     rm -f /tmp/x    → BLOQUEIA   ← aqui
-//     rm -r /tmp/x    → BLOQUEIA   ← aqui
-//     rm -R /tmp/x    → BLOQUEIA   ← aqui
-//     rm -rf /tmp/x   → passa      (assert no bloco ALLOW + E2E)
-//     rm -fr /tmp/x   → BLOQUEIA   ← aqui  (literal `rf` é POSICIONAL)
-//     rm -Rf /tmp/x   → passa      ← aqui  (o flag `i` do regex aceita `R`)
-//     rm -rF, rm -RF  → passam     (idem `i`; cobertos pelo `-Rf`)
+// §FLAG-SET — a isenção vale pelo CONJUNTO de flags ([W] 2026-09-21).
 //
-// Duas propriedades distintas, e só a 2ª não tem defesa nenhuma:
-//  1. VALE de destrutividade — o mais destrutivo (`-rf`) passa, o menos
-//     destrutivo (`-f`) bloqueia, e o sem-flag passa.
-//  2. ORDEM e CAIXA das flags — `rm -rf`, `rm -Rf` e `rm -fr` são o MESMO
-//     comando pro SO, e o hook dá 3 vereditos em 2 grupos. Isso não
-//     corresponde a nada no mundo: é artefato do literal `rf` ser posicional
-//     e do `/i` torná-lo case-insensitive.
+// HISTÓRICO (fato datado, não apagar): até 2026-09-21 a isenção casava o
+// literal `-rf`, aceitando exatamente o par ORDENADO `(r|R)(f|F)`. Efeito:
+// `rm -rf`, `rm -fr` e `rm -Rf` — o MESMO comando pro SO — saíam daqui com
+// vereditos diferentes, e o menos destrutivo (`-f`) bloqueava enquanto o mais
+// destrutivo (`-rf`) passava. Medido e fechado por decisão do [W].
 //
-// Re-medido 2026-09-21 (1845/1845 jsonl · 160.647 blocos): fechar o vale
-// afrouxaria 64 distintos / 65 ocorrências, APERTOU=0, zero perigosos.
-// Fechá-lo é ato do [W] — ver §MULTI-ARG em block-destructive.mjs.
+// HOJE, sobre o MESMO alvo isento, os 13 pontos: (sem flag) passa por não
+// casar o detector; TODAS as combinações de `r|R|f|F` passam por serem isentas.
+// Em alvo NÃO isento, as 12 com flag BLOQUEIAM — medido antes e depois, zero
+// mudou ali. Só a isenção afrouxou, e só onde a whitelist já autorizava.
 //
-// ⚠️ MEDIDO 2026-09-21 (a intuição erra aqui): NÃO existe "meia correção" por
-// classe de caracteres. Como o regex já tem o flag `/i`, `-[rf]+` e `-[rRf]+`
-// são EQUIVALENTES neste ponto — os dois casam `-R` e derrubam exatamente os
-// mesmos 4 asserts acima. O `R` vem de graça do `/i`, não da classe. Quem for
-// mexer aqui: rode os dois mutantes antes de supor que diferem.
-check('DECISÃO: flags `-rf` LITERAL — `rm -f /tmp/x` segue BLOQUEANDO (como hoje)',
-  matchDestructive('rm -f /tmp/x')?.key === 'rm-rf-perigoso');
-check('DECISÃO: `rm -r /tmp/x` idem — a isenção exige `-rf` literal, não `-[rRf]+`',
-  matchDestructive('rm -r /tmp/x')?.key === 'rm-rf-perigoso');
-check('DECISÃO: `rm -R /tmp/x` (BSD) idem — mesma perna da escala',
-  matchDestructive('rm -R /tmp/x')?.key === 'rm-rf-perigoso');
-check('DECISÃO/ORDEM: `rm -fr /tmp/x` BLOQUEIA — literal `rf` é posicional (mesmo cmd que `-rf`)',
-  matchDestructive('rm -fr /tmp/x')?.key === 'rm-rf-perigoso');
-check('DECISÃO/CAIXA: `rm -Rf /tmp/x` PASSA — o `/i` do regex aceita `R` (mesmo cmd que `-fr`)',
-  matchDestructive('rm -Rf /tmp/x') === null);
-// CN: a proteção REAL não afrouxa em nenhum ponto novo da escala.
-check('CN escala: em alvo NÃO isento, `-fr` e `-Rf` seguem BLOQUEANDO',
-  matchDestructive('rm -fr /etc/passwd')?.key === 'rm-rf-perigoso'
-  && matchDestructive('rm -Rf /etc/passwd')?.key === 'rm-rf-perigoso');
+// ⚠️ MEDIDO (a intuição erra aqui): NÃO existe variante "sem o R" por classe
+// de caracteres. Como o regex tem `/i`, `-[rf]+` e `-[rRf]+` são EQUIVALENTES
+// neste ponto. O `R` vem do flag, não da classe — rode os dois mutantes antes
+// de supor que diferem.
+const isento = (c) => matchDestructive(c) === null;
+const bloqueia = (c) => matchDestructive(c)?.key === 'rm-rf-perigoso';
+check('FLAG-SET: as 12 combinações de r/R/f/F isentam em alvo whitelisted',
+  ['-f', '-r', '-R', '-F', '-rf', '-rF', '-Rf', '-RF', '-fr', '-fR', '-Fr', '-FR']
+    .every((f) => isento(`rm ${f} /tmp/x`)));
+check('FLAG-SET/ORDEM: `-fr` e `-fR` isentam igual a `-rf` (mesmo cmd pro SO)',
+  isento('rm -fr /tmp/x') && isento('rm -fR /tmp/x') && isento('rm -rf /tmp/x'));
+check('FLAG-SET/CAIXA: `-Rf` e `-RF` isentam igual a `-rf`',
+  isento('rm -Rf /tmp/x') && isento('rm -RF /tmp/x'));
+check('FLAG-SET: flags SEPARADAS em alvo isento também isentam (`rm -f -r /tmp/x`)',
+  isento('rm -f -r /tmp/x'));
+// ── CN: o afrouxamento é SÓ na isenção. A proteção real não cedeu em nada. ──
+check('CN FLAG-SET: em alvo NÃO isento, as 12 combinações seguem BLOQUEANDO',
+  ['-f', '-r', '-R', '-F', '-rf', '-rF', '-Rf', '-RF', '-fr', '-fR', '-Fr', '-FR']
+    .every((f) => bloqueia(`rm ${f} /etc/passwd`)));
+check('CN FLAG-SET: flags separadas NÃO isentam alvo de fora (`rm -f -r /etc`)',
+  bloqueia('rm -f -r /etc'));
+check('CN FLAG-SET: multi-arg com 1 alvo fora segue bloqueando, agora também com `-f`',
+  bloqueia('rm -f /tmp/a src/b'));
+check('CN FLAG-SET: travessia `..` segue bloqueando, agora também com `-f`',
+  bloqueia('rm -f node_modules/../../etc'));
+check('CN FLAG-SET: `xargs … rm -f` (alvo vem de arquivo) segue BLOQUEANDO',
+  bloqueia('xargs -a lista.txt rm -f'));
+check('CN FLAG-SET: `rm -f` sem alvo nenhum NÃO é isento (vacuidade seria buraco)',
+  bloqueia('cd /x\nrm -f\necho fim'));
+// E2E pelo CLI de fora (processo real + stdin JSON), não só o helper: é o
+// chokepoint que a sessão atravessa. Controle positivo do harness logo acima,
+// na linha do `rm -rf Modules/` → exit 2.
+check('E2E FLAG-SET: `rm -f /tmp/x` isento → exit 0', runHook(j('rm -f /tmp/x')) === 0);
+check('E2E FLAG-SET: `rm -fr /tmp/x` (ordem invertida) isento → exit 0',
+  runHook(j('rm -fr /tmp/x')) === 0);
+check('E2E FLAG-SET: `rm -f /etc/passwd` → exit 2 (proteção real intacta)',
+  runHook(j('rm -f /etc/passwd')) === 2);
 check('DECISÃO: `$var` dentro de prefixo isento segue isento (temp-dir dinâmico)',
   matchDestructive('rm -rf /tmp/$SESSION') === null);
 check('CN: `$var` FORA de prefixo isento bloqueia (proteção vem de graça)',
