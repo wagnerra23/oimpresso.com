@@ -118,6 +118,21 @@ export function normalizeDsRequires(dsRequires) {
   return { owner, slug, arquivos };
 }
 
+/**
+ * Aplica UMA regra `ds-ref`: troca `de` por `para` so quando e o VALOR de `href="`/`src="`.
+ *
+ * FONTE UNICA da conversao — o gerador calcula `shaDepois` com ela e o aplicador escreve com
+ * ela. Medido 2026-09-21: o gerador usava regex ancorada em href/src e o aplicador fazia
+ * `split(de).join(para)` no texto INTEIRO. Qualquer arquivo que citasse o `_ds/<slug>/` fora de
+ * atributo (ternario de fallback, comentario) pousaria com sha != `shaDepois` e o lote seria
+ * recusado. Sem regex de proposito: nada de barra invertida pra colapsar no transporte (LC-26).
+ */
+export function aplicarRefDs(texto, de, para) {
+  let out = String(texto);
+  for (const attr of ['href="', 'src="']) out = out.split(attr + de).join(attr + para);
+  return out;
+}
+
 /** Normaliza `transforms`: paths POSIX, sha minusculo, ordem estavel por path. */
 export function normalizeTransforms(transforms) {
   if (!Array.isArray(transforms)) throw new Error('transforms: esperado array');

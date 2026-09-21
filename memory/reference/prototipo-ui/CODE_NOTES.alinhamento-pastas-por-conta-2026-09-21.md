@@ -217,3 +217,50 @@ O Code confere isso na próxima importação.
 de 32 para 30 arquivos. No repositório eles coincidem com
 `design-system/public/cowork-preview/erp-shell-v2/`, então a regra atual de conteúdo único segue
 recusando-os na importação. Isso só muda com a troca de "bytes iguais" por "um lugar só" (§7, item 3).
+
+---
+
+## 12. Conferência da importação de 21/09 (noite) — e o que a ferramenta passou a fazer sozinha
+
+Zip `PROTÓTIPO OFICIAL - PRODUTO UNIFICADO V2-handoff.zip`, exportado depois da limpeza. Promovido
+com `receber-handoff.mjs --zip … --conta felipe --apply`: **0 sobrando** no espelho, **0 repetido**
+dentro do pacote (hash sem CR), `cowork-ssot-guard` verde.
+
+**O que o §11 prometia conferir, e o que se achou:**
+
+| Relato do Cowork (§11) | Medido no zip |
+|---|---|
+| um design system só (`49a36f76`) | ✅ confirmado |
+| os repetidos saíram | ✅ 0 grupos repetidos (sem CR, fora `_ds/`) |
+| "o apelido virou uma linha declarada na página" | ❌ **não existe em lugar nenhum.** O `oimpresso.com.html` tem só um comentário dizendo que o alias "vive no fim do `_ds_bundle.js`"; o bundle termina em `})();` e publica só `OfficeImpressoPontoWR2DesignSystem_019dd0`. As páginas fazem `window.OfficeImpressoDesignSystem_49a36f \|\| {}` e caem num objeto vazio **sem erro no console**. Já estava assim no `main` antes desta importação (17 arquivos). Correção pedida ao Claude Design |
+
+**Três recusas que antes pediam trabalho à mão e agora são regra da ferramenta** (PR desta data):
+
+1. **Passo 0 "não-vinculada".** Com um DS só, o único id no pacote era o `49a36f76`, que vive em
+   `CONTAS.felipe.dsCopia` e não em `PROJETOS` — e `--conta` não vale para "não-vinculada". A
+   limpeza pedida ao Cowork quebrava a importação. Agora o id do `dsCopia` conta como cache de DS
+   (→ "indeterminado", resolvido por `--conta felipe`) e nunca como dono.
+2. **CRLF.** O Cowork exporta `erp-shell-v2/` inteiro em CRLF (112 arquivos); o repo é
+   `* text=auto eol=lf`. O gerador carimbava o sha com CR e o aplicador recusava:
+   `estado-alvo diverge no staging: erp-shell-v2/app.jsx`. Agora o passo [1b] normaliza como o git
+   faria, logo depois de extrair. **Efeito colateral esperado:** o 1º run depois disto mostra ~116
+   "modificados" no DELTA, porque o manifesto ativo anterior tinha shas com CR; o `git status` não
+   vê nada neles.
+3. **R4 contra o DS.** `erp-shell-v2/styles.css` e `tweaks-panel.jsx` têm os mesmos bytes de
+   `design-system/public/cowork-preview/erp-shell-v2/`. O #7620 os tirou e religou 3 páginas à mão.
+   Agora o passo [4d] faz isso: arquivo do lote idêntico a um arquivo do DS sai do lote, e os
+   `href`/`src` que apontavam para ele passam a apontar para o DS.
+
+**E um defeito que não recusava, mas corrompia:** a ref ao DS em página de subpasta
+(`handoff_fabricacao/design/…` usa `href="../../_ds/…"`) não era convertida, e a importação desfazia
+a correção manual `../../../../design-system/`. E o gerador convertia só `href`/`src` enquanto o
+aplicador trocava o texto inteiro. As duas coisas usam agora a mesma função
+(`aplicarRefDs`, em `bundle-contract.mjs`), e a profundidade sai do path do arquivo.
+
+**Para o próximo teste de importação:**
+- rode primeiro sem `--apply`; o `[1b] EOL`, o `[4d] JA NO DS` e as linhas `ds-ref` dizem o que a
+  ferramenta mexeu por você;
+- confira depois com inventário por hash **sem CR** (zero sobrando, e "diferente" só nas páginas
+  convertidas/religadas);
+- se aparecer recusa nova, ela é **defeito a virar regra**, não arquivo para consertar à mão;
+- afirmação do Claude Design sobre o que "já foi feito" se confere no zip antes de repetir.
