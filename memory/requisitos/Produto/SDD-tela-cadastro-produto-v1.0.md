@@ -1002,7 +1002,7 @@ a lista mostre valor a quem não pode ver, misture tenant ou esconda item em sil
 | 8 telas `draft`, 0 `live` | UI de produto inteira atrás de flag; `module-grade 71` mede telas que nem entraram em prod | Promover `draft`→`live` com smoke biz=1 (US-PROD-023) |
 | Sem SPEC/`casos.md` até 2026-07 | Teste vira tautológico (proibicoes §5) | SPEC criado (G-04); `casos.md` = US-PROD-020 (pré-req dos testes de valor) |
 | Verticais desconectadas do core | Banner não é cadastrável por m²; peça sem aplicação/OEM/fornecedor | Trilhas §10.2 (comvis) e §10.3 (oficina) — medir sinal (ADR 0105) |
-| `/products/unificado` sem `can:product.view` | Gap de permissão (TODO no código) | G-05 |
+| ~~`/products/unificado` sem `can:product.view`~~ — **não era gap** (corrigido 2026-09-21) | A tela **é gateada** no controller (`ProdutoUnificadoController:139`, `view` OU `create`) desde o #5733 (2026-08-13); middleware ali seria **mais estrito** e trancaria quem só tem `create`. Gap REAL, medido: o caminho `create`-only não tem cobertura de teste | #7583 removeu o TODO; cobertura = resíduo aberto |
 
 ---
 
