@@ -366,16 +366,31 @@ jobs:
           # que o lote usa: auth-bridge + redirect + render. 6 simultaneos.
           # `VAR=$((VAR+1))` dentro de `&` roda em SUBSHELL e NAO propaga (provado local:
           # 3 falhas garantidas deixavam 0), por isso o exit vem de `wait "$pid"`.
+          # CONTROLE SEQUENCIAL PRIMEIRO — 1 request sozinho. Sem ele o canario nao
+          # distingue ROTA QUEBRADA de SERVIDOR SATURADO, e foi isso que aconteceu na run
+          # 35609115465: 6/6 falharam com o FrankenPHP reportando `num_threads: 8`, o que
+          # nao e assinatura de saturacao — e de caminho que nao responde. `-f` tambem
+          # engole o status, entao aqui o codigo HTTP e IMPRESSO antes de qualquer veredito.
+          ALVO="http://127.0.0.1:8000/_visreg-login/1?to=%2F"
+          SOLO=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 -L "$ALVO" || echo 000)
+          echo "controle sequencial (1 request): HTTP $SOLO"
+          if [ "$SOLO" != "200" ]; then
+            echo "::error title=Lote de paridade::o caminho do lote nao responde NEM sozinho (HTTP $SOLO) — isto NAO e concorrencia. Ver o boot do app (rota env-guarded? PHP 8.5 do FrankenPHP x 8.4 do projeto?)."
+            echo "--- corpo da resposta (primeiras linhas) ---"
+            curl -s --max-time 30 -L "$ALVO" | head -25
+            cat /tmp/lote-serve.log; exit 1
+          fi
+          # So AGORA a pergunta de concorrencia faz sentido: o caminho responde sozinho.
           PIDS=""
           for i in $(seq 1 6); do
-            curl -sf -o /dev/null --max-time 30 -L "http://127.0.0.1:8000/_visreg-login/1?to=%2F" &
+            curl -sf -o /dev/null --max-time 30 -L "$ALVO" &
             PIDS="$PIDS $!"
           done
           FALHAS=0
           for pid in $PIDS; do wait "$pid" || FALHAS=$((FALHAS+1)); done
-          echo "canario (caminho real): $FALHAS falha(s) em 6 requests simultaneos"
+          echo "canario (caminho real): $FALHAS falha(s) em 6 simultaneos — sequencial ja deu 200"
           if [ "$FALHAS" -gt 0 ]; then
-            echo "::error title=Lote de paridade::FrankenPHP tambem nao aguenta o caminho real ($FALHAS/6) — abortando em vez de medir o nada. Nao tunar: investigar o que o Playwright pede alem do documento."
+            echo "::error title=Lote de paridade::caminho responde sozinho mas cai com $FALHAS/6 em paralelo — AI sim e concorrencia."
             cat /tmp/lote-serve.log; exit 1
           fi
 
