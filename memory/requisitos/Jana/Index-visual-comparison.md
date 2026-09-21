@@ -707,7 +707,7 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 | tablist | `nav` filho de `.jc-page` · `left=284 w=2237 h=36` · 14px abaixo do header (41px) | inline na Zona C do `PageHeader` · `left=1654 w=451 h=33` · `top=38` (mesmo do h1) | ❌ bug → **corrigido** (slot `below` do `PageHeader` canon) |
 | aba | 13px/500 · ativa 600 + `border-b 2px accent` + bg `oklch(0.33 0.09 295/.5)` · ícone 14px · `padding 0 14px` | 13px/500 · ativa 600 + mesmo underline/pill · ícone 14px · `14px` | ✅ **(2026-09-18)** — `density="compact"`; ver nota |
 | Zona R | `Atualizado 09:42` (dot) → `plano Pro` → Configurar → Exportar | `plano Pro` → Configurar → Exportar → **Conversar** (primary); "Atualizado" no subtítulo | ❌ → **corrigido** (Atualizado 1º da Zona R; primary removido) |
-| subtítulo | mono 11.5px `OIMPRESSO MATRIZ · biz=164 · v1404…` | sans 12px | 🟡 → mono (`versão` é dado que a prod não tem) |
+| subtítulo | mono 11.5px `OIMPRESSO MATRIZ · biz=164 · v1404…` | sans 12px | 🟡 → mono (`versão` é dado que a prod não tem) → ✅ **FECHADO 2026-09-03 (#6655)** — `font-mono tracking-wide` no `subtitle` do [`JanaAreaHeader`](../../../resources/js/Pages/Jana/_components/JanaAreaHeader.tsx); a `versão` segue ausente por falta de dado |
 | título | 19px/700 | 22px/700 | ⛔ ~~DECLARADA · decisão [W]~~ **REVOGADO 2026-09-18** — `PageHeader` canon (ADR 0189) é Fundação/Shell de 37 telas |
 
 > ⚠️ **A justificativa da linha `aba` estava FALSA, e isso é o achado — não a métrica.** Ela dizia
@@ -744,15 +744,63 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 
 | item | âncora `.jc-kpi` | produção `KpiCard` shared | veredito |
 |---|---|---|---|
-| grid | `repeat(4, 1fr)` · gap 10 · 3 cards ocupam 3/4 | `grid-cols-3` · gap 12 · 3 cards ocupam tudo (`w=738`) | ❌ |
-| card | `h=98` · pad `12px 14px 14px` · r **8px** · gap 3px · bg `surface` | `h=125` · pad `16px` · r **12px** · gap 8px · bg `card` | ❌ |
-| label | **mono** 10px/700 uppercase `.06em` · ícone 15px **inline** à direita do label (`.jc-kpi-h`) | sans 11px/600 uppercase · ícone dentro de **caixa 36×36** `bg-muted rounded-lg` | ❌ (é o "feio": a caixa de ícone e o padding) |
-| valor | 22px/700 (`--fs-7`) · **28px** no `.emph` | 22px/600 · 22px no danger | 🟡 peso 700×600; emph 28px ausente |
-| delta/sub | `small` 11px `text-3` (`-68% vs mai/25` · `4.255 títulos · 76% inadimplência`) | `description` 12px só no vencido | 🟡 |
-| card em alarme | `.emph`: bg `--neg-soft` (`oklch(0.36 0.12 25)`), borda `neg 22%`, ícone e texto `--text` | `tone=danger`: bg `destructive/5`, borda `destructive/20` | ❌ tinta sólida × 5% |
-| tag | `DIV` (não clicável, salvo `jm-an-hit` por fora) | `BUTTON` (KpiCard com `onClick`) | 🟡 a sonda acusa; prod é clicável por design (drill) — classificar com [W] |
+| grid | `repeat(4, 1fr)` · gap 10 · 3 cards ocupam 3/4 | `grid-cols-3` · gap 12 · 3 cards ocupam tudo (`w=738`) | ❌ → ✅ **FECHADO 2026-09-03 (#6662)** — `KpiGrid cols={4}` + `gap-2.5` (10px) |
+| card | `h=98` · pad `12px 14px 14px` · r **8px** · gap 3px · bg `surface` | `h=125` · pad `16px` · r **12px** · gap 8px · bg `card` | ❌ → ✅ **FECHADO 2026-09-03 (#6662)** — r8 por `--radius`, `pt-3 px-3.5 pb-3.5`, `gap-[3px]` |
+| label | **mono** 10px/700 uppercase `.06em` · ícone 15px **inline** à direita do label (`.jc-kpi-h`) | sans 11px/600 uppercase · ícone dentro de **caixa 36×36** `bg-muted rounded-lg` | ❌ (é o "feio": a caixa de ícone e o padding) → ✅ **FECHADO 2026-09-03 (#6662)** — a caixa 36×36 sumiu; ícone 15px inline |
+| valor | 22px/700 (`--fs-7`) · **28px** no `.emph` | 22px/600 · 22px no danger | 🟡 peso 700×600; emph 28px ausente → ✅ **FECHADO 2026-09-03 (#6662)** — 700 nos dois; `emph` no degrau `--fs-8` |
+| delta/sub | `small` 11px `text-3` (`-68% vs mai/25` · `4.255 títulos · 76% inadimplência`) | `description` 12px só no vencido | 🟡 → ✅ **FECHADO 2026-09-03 (#6662)** — `small` 11px nos dois, e o delta passou a existir |
+| card em alarme | `.emph`: bg `--neg-soft` (`oklch(0.36 0.12 25)`), borda `neg 22%`, ícone e texto `--text` | `tone=danger`: bg `destructive/5`, borda `destructive/20` | ❌ tinta sólida × 5% → ✅ **FECHADO 2026-09-03 (#6662)** — `bg-destructive-soft` (tinta do token), não mais 5% |
+| tag | `DIV` (não clicável, salvo `jm-an-hit` por fora) | `BUTTON` (KpiCard com `onClick`) | 🟡 a sonda acusa; prod é clicável por design (drill) — classificar com [W] → ✅ **FECHADO 2026-09-03 (#6662)** — o card voltou a `DIV`; quem recebe o clique é o wrapper |
+
+
+> **As 7 linhas acima FECHARAM em 2026-09-03, e a tabela ficou sem o ponteiro por 18 dias.**
+> Ela preserva o retrato do dia — os `h=125`, `r 12px`, `sans 11px/600` e a **caixa 36×36** eram
+> verdade quando foi escrita — e o conserto entrou às **17:44Z do MESMO dia** (a hora da
+> medição não está registrada; a do merge, sim), pela
+> [#6662](https://github.com/wagnerra23/oimpresso.com/pull/6662) (*"Onda 2 da paridade — os KPIs viram RÉPLICA do `.jc-kpi`"*), que criou
+> [`JanaKpiCard.tsx`](../../../resources/js/Pages/Jana/_components/JanaKpiCard.tsx) em vez de mexer
+> no `KpiCard` shared de 37 telas (réplica local, ADR 0388 §D-1).
+>
+> **A medição do DEPOIS não se repete aqui** (§5 2026-07-17: dois docs com o mesmo número drifam):
+> ela está em [`Index.casos.md`](../../../resources/js/Pages/Jana/Index.casos.md)
+> §*"Medição de runtime — mesma sonda nos dois lados (2026-09-03)"*, **13 campos**, com a única
+> diferença residual declarada ali (4px de altura, `line-height` do `small` herdado do body de cada
+> bancada). Travado por **UC-JPAIN-20** em
+> [`tests/janaKpiReplica.spec.tsx`](../../../tests/janaKpiReplica.spec.tsx), mordida provada por
+> mutação (`rounded-xl` + `bg-destructive/5` de volta ⇒ 3 de 13 caem).
+>
+> ⚠️ **O `emph` vale um parágrafo porque a linha `valor` acima confunde dois eixos.** A réplica os
+> separou: `emphasis` rege **fundo + borda + o degrau `--fs-8`**, e `valueTone` rege **só a cor do
+> valor**. No dataset da âncora os dois caem no mesmo card (N=1), e era por isso que pareciam um.
+>
+> ⚠️ **O `delta` existir não quer dizer que o CONTEÚDO bata.** A célula da âncora cita
+> `-68% vs mai/25` e `4.255 títulos · 76% inadimplência`; o que fechou foi a **forma** (`small` 11px,
+> cores por direção, o `%` escrito no texto). Quais deltas a prod publica depende do payload, e
+> **isso não foi re-medido nesta passada**.
 
 ### Metas — não comparável hoje (0 metas em todos os tenants, medido 2026-08-21/08-31); âncora `METAS ATIVAS` mono + 5 cards em linha + `Nova meta` à direita × prod pill `METAS` + h2 + 3 botões + empty. Fica pra quando existir dado.
+
+> ⚠️ **Este §Metas caducou em DOIS eixos — o título acima fica como fato datado (§5 2026-09-03).**
+>
+> **Eixo FORMA — fechado.** O `METAS ATIVAS` mono e o `Nova meta` à direita **existem hoje**: o
+> cabeçalho passou a usar o mesmo `SectionTitle` réplica da `.jc-h2`
+> ([#7555](https://github.com/wagnerra23/oimpresso.com/pull/7555), 2026-09-18, **UC-JPAIN-27**) e o botão vive num `ml-auto`
+> ([`Index.tsx`](../../../resources/js/Pages/Jana/Index.tsx) §`painel-metas-header`). O
+> `pill METAS + h2 + 3 botões` que esta linha descreve foi o que aquele PR **removeu** — a trilha
+> completa está na nota *"CABEÇALHO FECHADO em 2026-09-18"* do §R5, e não se repete aqui.
+>
+> **Eixo DADO — a premissa "0 metas em todos os tenants" não vale mais.** Ela sustentou três
+> rodadas (08-21 · 08-31 · 09-07) e o *"fica pra quando existir dado"*. Em 2026-09-21 a seção
+> **virou comparável**: a contagem viva e a tabela item-a-item estão na rodada de 2026-09-21
+> §**METAS** ([#7639](https://github.com/wagnerra23/oimpresso.com/pull/7639)) — **medição de sessão irmã, não desta**, e o número
+> mora lá, não aqui.
+>
+> ⚠️ **"5 cards em linha" fechou como ESTRUTURA, não como densidade.** A prod renderiza os cards
+> em grade quando há dado (deixa de cair no `EmptyState`), mas a grade é
+> `sm:grid-cols-2 xl:grid-cols-3` com `gap-4` contra `auto-fit minmax(232px,1fr)` + gap 10px da
+> âncora — **dívida aberta**, medida naquela rodada. Não carimbe esta linha como fechada por
+> inteiro.
+
 
 ### Ondas (resolvidas em PRs separados, ≤300 linhas cada)
 
@@ -819,14 +867,33 @@ Medido: nós · filhos · altura · `display` · `gap` · `grid-template-columns
 |---|---|---|---|---|
 | **kpis** | display · gap · colunas | grid · 10px · 4 | grid · 10px · 4 | ✅ **IGUAL** (a onda 2 fechou) |
 | **header** | display · altura | flex · 80px | block · **130px** | ❌ DIVERGE |
-| **tabs** | altura · gap | 36px · 0px | **33px** · **2px** | ❌ DIVERGE |
+| **tabs** | altura · gap | 36px · 0px | **33px** · **2px** | ❌ DIVERGE → ❌ **RE-CONFERIDO 2026-09-21: SEGUE ABERTO** — o `density="compact"` (2026-09-18) fechou fonte e padding da *aba*, **não** este eixo: o `gap-0.5` (2px) do container `role="tablist"` segue intocado ([`PageHeaderTabs.tsx`](../../../resources/js/Components/shared/PageHeaderTabs.tsx) §`flex items-center gap-0.5`) |
 | **brief** | display · gap · filhos | block · normal · 7 | **flex** · **24px** · **1** | ❌ DIVERGE (estrutura) |
-| **análises (grade)** | colunas · gap | **3** · 12px | **2** · **16px** | ❌ DIVERGE |
-| **h2 análises** | tamanho · peso · tracking · cor | 11px · 700 · 0.88px · `text-3` | **14px** · **600** · **1.4px** · mais claro | ❌ DIVERGE |
+| **análises (grade)** | colunas · gap | **3** · 12px | **2** · **16px** | ❌ DIVERGE → ✅ **FECHADO 2026-09-21 (#7638)** — 3 colunas + gap 12px; travado por **UC-JPAIN-31** |
+| **h2 análises** | tamanho · peso · tracking · cor | 11px · 700 · 0.88px · `text-3` | **14px** · **600** · **1.4px** · mais claro | ❌ DIVERGE → ✅ **FECHADO 2026-09-18 (#7555)** — mesmo `SectionTitle` réplica que fechou o `h2 ações` ao lado; **UC-JPAIN-27**. Re-medido no runtime em 2026-09-21: **8/8** propriedades batem |
 | **h2 ações** | idem acima | 11px · 700 · 0.88px | 11px · 700 · 0.88px | ✅ **(2026-09-18)** — era `14px · 600 · 1.4px`; ver nota |
-| **ações** | gap | normal | **24px** | ❌ DIVERGE |
+| **ações** | gap | normal | **24px** | ❌ DIVERGE → ⚠️ **RECLASSIFICADO 2026-09-21 (#7638)** — medição certa, propriedade **inerte**: o `Card` tem 1 filho e `gap` sem 2º filho não separa nada. O respiro de 24px era o `py-6` do `Card` canon, removido naquele PR |
 | **corpo** | fonte base | 13px | **13,5px** | 🟡 direção a decidir — 13,5px é o `--fs-4` do RAMP canon; **o protótipo é que está fora dele** |
-| **metas** | — | 5 cards | **empty state** | ⬜ NÃO COMPARÁVEL |
+| **metas** | — | 5 cards | **empty state** | ⬜ NÃO COMPARÁVEL → ⚠️ **DEIXOU DE SER NÃO-COMPARÁVEL em 2026-09-21** — a premissa "0 metas em todos os tenants" caducou; a seção foi medida COM cards renderizados. Veredito item-a-item na rodada de 2026-09-21 §**METAS** (#7639) — medição de sessão irmã, e o número mora lá |
+
+
+> **Ponteiros de fechamento acrescentados em 2026-09-21 — e o que NÃO foi reavaliado.**
+> Quatro linhas desta tabela ganharam ponteiro acima; as outras **não foram re-medidas nesta
+> passada**, e dizer que seguem valendo seria afirmar sem medir. O estado declarado:
+>
+> | linha | estado em 2026-09-21 |
+> |---|---|
+> | `kpis` | já trazia `✅ IGUAL`; confere com a réplica da [#6662](https://github.com/wagnerra23/oimpresso.com/pull/6662) — ver §KPIs da rodada de 09-03 |
+> | `análises (grade)` · `h2 análises` · `ações` | **fechadas / reclassificada** — ponteiro na própria linha |
+> | `tabs` | **re-conferido, SEGUE ABERTO** — o `gap-0.5` do container continua lá |
+> | `header` · `brief` · `corpo` | **NÃO reavaliados** — exigiriam sonda no DOM, fora do recorte deste PR (doc-only) |
+> | `metas` | deixou de ser `⬜ NÃO COMPARÁVEL` — ver §Metas logo abaixo |
+>
+> **Por que isto existe:** em 2026-09-21 três sessões irmãs receberam ordem de consertar itens
+> daqui, mediram antes de editar e acharam o item **já correto em produção**. A tabela estava certa
+> como história e enganosa como estado — e o `h2 análises` era o caso mais duro, porque o
+> `h2 ações` **ao lado** recebeu o `✅` do mesmo conserto e ele não: o documento se contradizia a
+> duas linhas de distância. Obedecer teria reescrito código correto e derrubado teste.
 
 **Caixa alta dos h2:** ambos os lados têm `text-transform: uppercase` — a dúvida registrada em
 2026-09-04 (*"sentence case no código pode estar sendo uppercase no CSS"*) fica **resolvida: é
@@ -875,6 +942,20 @@ O alvo renderiza **5 cards**, no formato exato que a onda 2.1 implementou
 `Aguardando apuração… alvo <X>` na meta sem apuração). A produção mostra o **empty state**:
 **zero metas em biz=1**, confirmado também na aba Plataforma (as duas tabelas vazias). Terceira
 medição seguida com o mesmo resultado (08-21 · 08-31 · **09-07**).
+
+> ⚠️ **Ponteiro de 2026-09-21: a quarta medição QUEBROU a série.** As três leituras acima
+> (08-21 · 08-31 · 09-07) estão corretas nas datas delas e **ficam**. O que caducou é a conclusão
+> operacional — *"a onda 2.1 não foi verificada em produção"* deixou de ser consequência de não
+> haver dado: em 2026-09-21 a seção foi medida **com** cards renderizados, e o veredito item-a-item
+> está na rodada de 2026-09-21 §**METAS** ([#7639](https://github.com/wagnerra23/oimpresso.com/pull/7639)).
+>
+> Duas coisas que aquela rodada mostrou e que esta seção não poderia saber: **(a)** o
+> `Nova meta`/`Jana Pro`/`Conversar` que as leituras antigas contaram como divergentes **também
+> existem na âncora** — os *"3 botões"* nunca foram gap; **(b)** a projeção marcada como ausente
+> **existe na prod com a mesma copy** — a busca antiga procurou a palavra *"projeção"* no DOM, e a
+> prod renomeou o rótulo (rótulo do protótipo não é chave de busca em código que renomeou —
+> §5 2026-07-15 · LC-08). A dívida que **sobrou** é de densidade (grade e card), e é nova.
+
 
 **Portanto a onda 2.1 NÃO foi verificada em produção** — só por Pest (arquivo) e por render jsdom
 (DOM, 6 casos com mordida provada). O card em si continua sem prova na tela real, e isso não é
@@ -961,6 +1042,298 @@ remover `py-0 gap-0`), com restauração conferida por hash. O detalhe — inclu
 breakpoints são `min-[761px]`/`min-[1101px]` e a prova de que o Tailwind os gera — está no
 **UC-JPAIN-31** de [`Index.casos.md`](../../../resources/js/Pages/Jana/Index.casos.md); aqui não
 se repete, para os dois não drifarem.
+
+## Rodada MEDIDA de 2026-09-21 — GRÁFICOS (o eixo que nenhuma rodada anterior tinha sondado)
+
+> **Por que esta rodada existe:** [W] relatou que os gráficos estão diferentes. As rodadas de
+> 08-17, 08-21, 09-02, 09-03, 09-07 e a errata de 09-18 mediram header, abas, brief, KPIs, metas,
+> análises e ações — **gráfico nunca foi papel de sonda em nenhuma delas**.
+>
+> ⚠️ **Precisão sobre a premissa do chip.** Ele dizia "nenhuma rodada tem item de gráfico". Isso
+> é **quase** verdade, e a diferença importa: as linhas 207, 208 e 261 deste doc **citam** série,
+> barra e sparkline — mas como itens de **EXISTÊNCIA** (tem/não tem), nunca como **medição de
+> forma**. O que faltava não era a menção, era o número. É esta rodada.
+
+### Como foi medido
+
+| passo | o que foi feito |
+|---|---|
+| âncora | `ancora.mjs Jana/Index` → `prototipo-ui/cowork/Wagner/jana-merge.jsx` (frescor verificado contra o Cowork vivo em 2026-09-21T10:43Z) |
+| **dep de render** | o gráfico do Painel **não mora na âncora**: `jana-merge.jsx:889` consome `AnaliseCard` de `window`, e quem o define é `chat-jana.jsx:723`, junto com `Sparkline` e `Donut`. É **dependência de render do shell** — o que a skill chama de LC-07 ("só âncora = cego pra infra"). ⚠️ Isto **não** reabre a lápide §5 2026-08-10: ela baniu `chat-jana.jsx` como `related_prototype` (âncora de tela), não como dep de render |
+| frescor da dep | `DesignSync.get_file(019dcfd3…, chat-jana.jsx)` → `Sparkline` e `Donut` do espelho são **byte-idênticos** ao vivo, incluindo o espaçamento duplo em `offset="0%"   stopColor`. **Prova ESCOPADA**: vale para as funções medidas mais o `Object.assign` final, não para o arquivo inteiro (o `get_file` voltou inline, 33 KB — sem JSON em disco a rota `--export-from` não se aplica, e transcrever é proibido) |
+| lado design | espelho servido em :5632 na **raiz do worktree**, rota `/prototipo-ui/cowork/Wagner/oimpresso.com.html`, dark, esperando `__oiLazyDone` + `.jm-sk` sumir + 2 leituras iguais (1068 nós) |
+| lado produção | `https://oimpresso.com/ia` autenticado, biz=1, dark, 2560px, 2 leituras iguais (1117 nós) |
+| sonda | **papel de gráfico não existe no `design-diff.mjs --probe`** (ele tem 6: `filterControls`, `kpi`, `primary`, `shell`, `tableRow`, `title`). Escrita sonda nova sob a convenção `window.__DD_ROLES.charts`, **injetada byte-idêntica nos dois lados** |
+| canários | **5**, todos obrigatórios antes de qualquer veredito |
+
+### ⚠️ Um erro de setup que quase virou medição falsa — registrado porque quase passou
+
+A **primeira** rodada do lado design saiu com `--text-dim`, `--sunken`, `--bg` e `--border`
+**vazios**, e toda cor de texto e de trilho caindo em `rgb(0,0,0)`. Não era o design: era o meu
+servidor. O shell resolve a base do DS por
+`location.pathname.indexOf` do trecho `/prototipo-ui/cowork/` (`oimpresso.com.html:18`), e eu
+havia servido a raiz *dentro* de `prototipo-ui/cowork` — então o pathname não continha o trecho,
+a base caía no fallback `_ds/` inexistente, e `colors_and_type.css` carregava com **0 regras**.
+Os arquivos existiam em disco o tempo todo (19.917 e 5.705 bytes).
+
+**Aquela medição foi descartada inteira**, não corrigida em cima. Se tivesse sido aceita, eu teria
+reportado divergência de cor onde havia defeito de preview — a família §5 2026-07-29
+(não colapsar "não consegui medir" num estado do objeto).
+
+### Canários — a sonda discrimina (5/5)
+
+| canário | esperado | obtido | pegou |
+|---|---|---|---|
+| C1 · `stroke-width` 2 para 5 | 5 | 5 | sim |
+| C2 · `vector-effect` removido | `none` | `none` | sim |
+| C3 · altura do trilho 5 para 12px | 12 | 12 | sim |
+| C4 · path de área removido (2 para 1) | 1 | 1 | sim |
+| C5 · espessura efetiva com x sem `non-scaling-stroke` | difere | 0,75 x 0,08 user-units | sim |
+
+Estado revertido e conferido nos 5 (`REVERTIDO_OK: true`).
+
+⚠️ **Um canário FALHOU antes do C5, e ele está aqui porque mudou o método.** A primeira tentativa
+de medir a espessura efetiva usou `getBoundingClientRect()` do `polyline` com e sem
+`non-scaling-stroke`: deu **idêntico** (`PEGOU: false`). O `getBoundingClientRect` de um polyline
+devolve a caixa **geométrica escalada, sem o stroke** — a sonda era cega ali. Não concluí daquela
+leitura; troquei para `isPointInStroke()`, que é a API exata, e só então o canário pegou.
+
+### Papel 1 · Sparkline de análise (Faturamento) — o gráfico que [W] vê
+
+Âncora: `chat-jana.jsx:271` §`Sparkline`, consumido por `AnaliseCard` quando `kind==='sparkline'`.
+Produção: `resources/js/Pages/Jana/_components/JanaCockpit.tsx:951`.
+
+| # | propriedade | protótipo | produção | veredito |
+|---|---|---|---|---|
+| G1 | elemento do traço | `path` | `polyline` | **DÍVIDA A FECHAR** |
+| G2 | nº de desenhos | **2** (área + linha) | **1** (linha) | **DÍVIDA A FECHAR** |
+| G3 | área preenchida | sim — `url(#jcSparkGrad)` | **não** — `fill:none` | **DÍVIDA A FECHAR** |
+| G4 | gradientes | **1** (2 stops, `--pos` 0.26 → 0) | **0** | **DÍVIDA A FECHAR** |
+| G5 | forma do traço | **curva Bézier** (46 comandos `Q`/`T`) | **reta** (30 pontos, 0 curvas) | **DÍVIDA A FECHAR** |
+| G6 | cor do traço | `oklch(0.76 0.18 150)` — `--pos`, **verde** | `oklch(0.7 0.15 295)` — `--accent`, **roxo** | **DÍVIDA A FECHAR** |
+| G7 | `stroke-width` declarado | 2 | 1,5 | **DÍVIDA A FECHAR** |
+| G8 | `vector-effect` | `non-scaling-stroke` | **`none`** | **DÍVIDA A FECHAR** |
+| G9 | **espessura EFETIVA na tela** | **2px uniforme** | **13,46px horizontal x 1,5px vertical** | **DÍVIDA A FECHAR** |
+| G10 | `viewBox` | `0 0 280 60` | `0 0 120 40` | **DÍVIDA A FECHAR** |
+| G11 | altura renderizada | 60px | 40px | **DÍVIDA A FECHAR** |
+| G12 | `preserveAspectRatio` | `none` | `none` | IGUAL |
+| G13 | label · `font-size` | 10,5px | 10px | **DÍVIDA A FECHAR** |
+| G14 | label · `font-family` | IBM Plex Sans | IBM Plex Sans | IGUAL |
+| G15 | label · `justify-content` | `space-between` | `space-between` | IGUAL |
+| G16 | largura renderizada do card | **737,66px** (3 colunas) | **1110,5px** (2 colunas) | **DÍVIDA A FECHAR** — ver nota |
+
+**G9 é o item mais caro, e é o único que exigiu medição indireta.** A produção combina
+`preserveAspectRatio="none"` **sem** `vector-effect`, então o traço é deformado pela escala do
+viewBox. Medido: escala **x = 8,971 · y = 1** (bbox render dividido pelo viewBox), e o traço ocupa
+**1,5 user-units** (`isPointInStroke`, meia-largura 0,75) → **13,456px** de espessura perpendicular
+a um segmento vertical, contra 1,5px num horizontal. **Razão de deformação: 8,97x.** O protótipo
+não tem esse efeito porque declara `non-scaling-stroke`.
+
+⚠️ **E aqui o dado de hoje ESCONDE o defeito, o que vale registrar:** a série de Faturamento de
+biz=1 é **plana** — medido, os 30 pontos têm **1 único valor de y** (`y=39`). Uma linha horizontal
+reta não exibe deformação nenhuma. O G9 é real e está calculado a partir de escala medida, mas
+**só se manifesta na tela quando a série tiver variação**. Quem olhar o print de hoje não vê.
+
+> **Nota do G16 — o número NÃO é meu, e a atribuição importa.** Eu medi os dois lados em viewports
+> diferentes (design 1280, prod 2560) e ia registrar `NÃO COMPARÁVEL`. A sessão irmã que trabalha
+> a grade de Análises mediu os dois na **mesma viewport 2560**, com o container em **2237px
+> idêntico nos dois lados** — e com isso a largura **é** comparável: a âncora usa **3 colunas de
+> 737,66px com gap 12px**, a produção **2 colunas de 1110,5px com gap 16px**. Crédito da medição a
+> ela; eu não a refiz. Quando o PR dela mergear, o card cai para ~737,7px (−33,6%) e a curva
+> comprime horizontalmente — os demais itens do Papel 1 (altura 40px, `stroke-width`, cor, labels)
+> **não** dependem da largura e seguem valendo.
+
+### Papel 2 · Barras horizontais de análise
+
+| # | propriedade | protótipo | produção | veredito |
+|---|---|---|---|---|
+| G17 | nº de trilhos no Painel | **12** (8 `.jc-bar-track` + 4 `.jc-bk-bar`) | **12** | IGUAL |
+| G18 | altura do trilho | **7px** | **6px** (`h-1.5`) | **DÍVIDA A FECHAR** |
+| G19 | preenchimento (Pareto e Métodos) | **gradiente** `linear-gradient(90deg, oklch(0.76 0.15 295), oklch(0.7 0.15 295))` | **sólido** `oklch(0.7 0.15 295)` | **DÍVIDA A FECHAR** |
+| G20 | preenchimento (buckets) | cor por faixa — `--warn`, mix warn/neg, `--neg`, `--text-3` | 3 sólidas — `oklch(0.55 0.17 18)`, `oklch(0.68 0.13 162)`, `oklch(0.7 0.15 295)` | **parcial** — a paleta difere, mas o dado de biz=1 não exercita as 4 faixas |
+| G21 | `background` do trilho | `oklch(0.23 0.006 240)` | `oklch(0.235 0.01 240)` | equivalente |
+| G22 | `border-radius` do trilho | `999px` | `3.35544e+07px` | equivalente no efeito |
+
+### Papel 3 · Barra de progresso da meta — **NÃO MEDI**
+
+Produção biz=1 tem a seção METAS ATIVAS e o botão Nova meta, mas **zero meta cadastrada**
+(0 `svg[width=120][height=32]`, 0 `[data-contract="painel-meta-sem-historico"]`). Sem meta não há
+card, não há barra e não há drawer. Consistente com o que este doc já registra desde 08-21.
+
+Do CSS — **leitura, não medição**: protótipo `.jm-meta-track{height:5px}` contra produção `h-1.5`
+(6px). Fica como **hipótese a medir** quando houver meta, nunca como veredito.
+
+### Papel 4 · Série de 12 barras (drawer da meta) — **NÃO MEDI na produção**
+
+Mesma causa: sem meta, o drawer não abre. **No lado design foi medida em parte**, e o que ficou
+de fora está declarado:
+
+| propriedade | protótipo (medido) |
+|---|---|
+| nº de colunas | 12 |
+| `gap` | 4px |
+| altura do container | 88px |
+| `padding` | `6px 0px` |
+| `align-items` | `flex-end` |
+| `border-radius` da barra | `3px 3px 0 0` |
+| **cores** | **2** — normais `oklch(0.7 0.15 295 / 0.7)`, **última** `oklch(0.7 0.15 295)` (destaque) |
+| label `.jm-serie-range` | 10,5px · **IBM Plex Mono** · `space-between` |
+| **largura** | **NÃO MEDI** — o `aside` do drawer renderiza colapsado (w=1px) no preview; forçar `width:520px` não propagou (controle rodado, falhou) |
+
+A produção implementa a série em `JanaMetaDrawer.tsx:119` com a **mesma fórmula de altura**
+(`max(4, v/max*100)%`) e `flex-1 rounded-t bg-primary/70`. Comparar isso com o protótipo exige
+meta cadastrada — **hipótese registrada, não veredito**: o protótipo destaca a **última** barra
+com cor cheia (`.jm-serie-col:last-child`), e no código da produção não há regra equivalente.
+
+### Papel 5 · Donut — IGUAL (ausente dos dois)
+
+`Donut` existe em `chat-jana.jsx:298` e é exportado, mas o Painel **não o usa**: 0 `.jc-donut` no
+design, 0 na produção. Confirma a lápide §5 2026-08-10 (Frota utilização não volta) pelo lado da
+medição, não da leitura.
+
+### D1 · rede — partial
+
+Clique no card do sparkline (`BUTTON.w-full rounded-lg text-left…`): **0 requisições** (fetch e
+XHR instrumentados), `beforeunload` não disparou, URL inalterada, drawer abriu com o texto
+"de onde vem". O drill é client-side.
+
+### Placar
+
+**22 itens comparáveis · 16 DÍVIDA A FECHAR · 5 IGUAL · 1 parcial** · 3 papéis NÃO MEDI
+(2 por ausência de dado em biz=1, 1 por artefato de preview).
+
+A concentração é no **Papel 1**: 12 de 16 dívidas estão no sparkline de análise, e elas não são
+ajustes de token — são de **natureza do desenho** (curva x reta, com área x sem área, verde x
+roxo). O protótipo desenha uma curva suave verde com área em gradiente; a produção desenha uma
+poligonal roxa sem preenchimento. É a resposta medida ao relato de que os gráficos estão
+diferentes.
+
+### O que esta rodada NÃO cobriu (declarado)
+
+- **Contraste par-a-par** dos labels de gráfico — não calculado.
+- **Série e progresso na produção** — bloqueados por ausência de meta, não por limite de sonda.
+- **Sparkline do card de meta** (`Index.tsx:98`) — mesma causa. Pela leitura do código ele é
+  `polyline` reto `text-primary` `strokeWidth=2` `w=120 h=32`, e o protótipo **não tem**
+  sparkline no `JmMetaCard` — mas isso é **leitura, não medição**, e não vira veredito aqui.
+- **Margem vertical das seções** — a sessão irmã mediu que os 16px vêm do `space-y-4` do container
+  da página (a âncora usa 18px) e deixou fora do PR dela de propósito, porque mexer ali muda o
+  ritmo de todas as seções. Registrado aqui para não virar achado novo depois.
+
+### Conserto aplicado no MESMO dia — Papel 1, 11 das 16 dívidas
+
+> **Por que o conserto entrou nesta sessão, se o chip dizia "não corrija":** [W] cortou no meio
+> da medição — *"precisa melhorar e muito o código"* / *"tu não consegue fazer melhor?"*. Pedido
+> do dono é decisão, não proposta (ADR 0382), e supersede a instrução anterior do chip. A tabela
+> acima **fica como está** — é o fato datado do estado ANTES; esta seção é o depois.
+
+`resources/js/Pages/Jana/_components/JanaCockpit.tsx` — componente `SparkArea` novo, portado de
+`chat-jana.jsx:271`, substituindo o `<polyline>` inline do card de Faturamento.
+
+| item | antes | depois | como foi provado |
+|---|---|---|---|
+| G1 | `polyline` | `path` | sonda, pós-fix |
+| G2 | 1 desenho | 2 (área + linha) | sonda, pós-fix |
+| G3 | sem área | `fill=url(#gid)` | sonda, pós-fix |
+| G4 | 0 gradientes | 1 (0.26 → 0) | sonda, pós-fix |
+| G5 | reta | **58 comandos** `Q`/`T` | sonda, pós-fix |
+| G6 | `oklch(0.7 0.15 295)` roxo | `oklch(0.68 0.13 162)` positivo | sonda, pós-fix |
+| G7 | `stroke-width` 1,5 | 2 | sonda, pós-fix |
+| G8 | `vector-effect` ausente | `non-scaling-stroke` | sonda, pós-fix |
+| G9 | 13,46 × 1,5px (razão 8,97×) | **2px uniforme** | consequência de G8 |
+| G10 | `viewBox 0 0 120 40` | `0 0 280 60` | sonda, pós-fix |
+| G11 | altura 40px | **60px** | `.h-\[60px\]{height:60px}` no CSS do build |
+| G13 | label 10px | **10,5px** | `.text-\[10\.5px\]{font-size:10.5px}` no CSS do build |
+
+**Segue aberto e é deliberado:** G16 (largura) depende do PR da grade em sessão irmã; G17-G22
+(barras horizontais) não foram tocados; G18/G19 exigem decidir se o gradiente das barras entra —
+não entrou neste porte, para não misturar intents.
+
+#### O que NÃO foi copiado da âncora, e por quê
+
+- **A cor** sai de `text-success` (token da produção, `oklch(0.68 0.13 162)`), não do literal
+  `--pos` da âncora (`oklch(0.76 0.18 150)`). O papel semântico é o mesmo; o valor difere, e
+  igualar isso é mexer em **Fundações** (UI-0013), que muda a tela inteira e é decisão [W].
+  **A dívida de fundação fica declarada aqui, não silenciada.**
+- **A copy** `D-30` / `hoje` ficou — é o recorte real de 30 dias da produção, enquanto a âncora
+  mostra `mai/24` / `mai/26` (24 meses de mock). Copy adaptada de propósito **não é dívida**.
+- **`useId` no gradiente**, que a âncora não tem: id de `<defs>` é global no documento, e a
+  âncora usa id fixo (`jcSparkGrad`) porque só tem uma instância. Duas instâncias colidiriam e a
+  segunda herdaria o preenchimento da primeira. É correção de bug latente, não desvio de forma.
+- **Guarda de série de 1 ponto:** a âncora faz `w/(n-1)`, que com `n=1` dá `Infinity` e produz um
+  path `NaN`. Aqui degrada para um ponto em `x=0`. Mesmo caso: buraco da âncora, não forma dela.
+
+#### Verificação (a Regra 0 — CI verde não prova runtime, LC-30)
+
+| prova | resultado |
+|---|---|
+| `tsc --noEmit` | 0 erros em `JanaCockpit.tsx` (os que saem são pré-existentes em Forja, Officeimpresso e PaymentGateway) |
+| `eslint` no arquivo | exit 0 |
+| `vitest` — `janaPainelEstadoVazio` + `janaPainelGatingPro` | **20/20 passed** — UC-JPAIN-07 ("Sem histórico") e UC-JPAIN-08 (skeleton) preservados |
+| `npm run build:inertia` | exit 0; `non-scaling-stroke` presente em `JanaCockpit-utepVQE0.js` |
+| forma pós-fix | **9 de 10 itens** conferidos contra a âncora por injeção medida na produção, com estado revertido (`restaurado: true`) |
+| G11 / G13 | classes arbitrárias **geradas pelo build**, com regra literal conferida |
+
+⚠️ **O que esta verificação NÃO prova:** que está no ar. Não houve deploy — isso é R10, e é do
+[W]. O que está provado é que o código **produz** a forma da âncora, não que a produção já a
+serve.
+
+#### Três sondas minhas mentiram nesta sessão, e o controle pegou as três
+
+Registro porque o padrão é mais útil que os casos:
+
+1. **CSS do DS com 0 regras** no preview → toda cor caindo em preto. Era a raiz do servidor, não
+   o design. Medição inteira **descartada**, não corrigida em cima.
+2. **`getBoundingClientRect()` do `polyline`** para medir espessura de traço: deu idêntico com e
+   sem `non-scaling-stroke` (`PEGOU: false`) porque ignora o stroke. Troquei para
+   `isPointInStroke()`, e só então o canário pegou.
+3. **Regex com escaping de shell** ao contar classes no CSS: o controle negativo
+   (`h-[9997px]`, que ninguém usa) devolveu **38** ocorrências — impossível. Os colchetes viraram
+   classe de caractere. Refeito com busca literal, e aí o controle deu 0.
+
+Em nenhum dos três o defeito apareceu como erro: apareceu como **número plausível**. O que os
+separou de conclusão errada foi o controle, nunca a leitura do resultado.
+
+### ⚠️ ERRATA do mesmo dia — a causa do `NÃO MEDI` dos Papéis 3 e 4 estava ERRADA
+
+Acima eu escrevi, duas vezes, que a produção biz=1 tem **"zero meta cadastrada"**. **É falso**, e o
+registro fica porque o erro é do tipo que se propaga: quem lesse aquilo concluiria que destravar a
+medição exige *criar meta*, quando o que falta é outra coisa.
+
+**Medido em produção, `/ia`, biz=1, após aviso de sessão irmã** (que afirmou existirem 5 metas — ela
+estava certa em me mandar re-medir):
+
+| sonda | valor | leitura |
+|---|---|---|
+| botões de card de meta | **5** | as metas EXISTEM: Clientes atendidos · Faturamento mensal · Margem de contribuição · Ticket médio · Vendas no mês |
+| `[data-contract="painel-meta-apurando"]` | **5** | **todas as 5 em "Aguardando apuração…"** |
+| `[data-contract="painel-meta-sem-historico"]` | 0 | o card em `apurando` nem chega a renderizar o sparkline |
+| `svg[width=120][height=32]` | 0 | idem — nenhuma série desenhada |
+
+**A causa correta:** não faltam metas, falta **apuração**. Sem `apuracoes_recentes` não há série para
+o `Sparkline` do card nem para a `Serie` do drawer; e sem `realizado` o `progresso` é `null`, então a
+barra de progresso não renderiza por contrato (`Index.tsx`: `{progresso !== null && …}`).
+
+**O veredito `NÃO MEDI` dos Papéis 3 e 4 permanece** — mas por esta razão, não pela que estava
+escrita. E a ação que destrava passa a ser **rodar apuração**, não cadastrar meta.
+
+**Por que eu errei, e é a lição reutilizável:** sondei por `svg[width=120][height=32]` e por
+`painel-meta-sem-historico`, os dois ausentes, e li a ausência **do gráfico** como ausência **da
+meta**. São proposições diferentes, e a segunda não decorre da primeira — é a mesma família do
+§5 2026-09-15 (concluir conteúdo único porque o NOME não existia do outro lado): a medição parou
+um nível acima do fato.
+
+### G16 — re-medido após o merge do #7638, e ele ainda NÃO está em produção
+
+O [#7638](https://github.com/wagnerra23/oimpresso.com/pull/7638) (grade de Análises a 3 colunas)
+mergeou em `main`, mas a produção **ainda serve 2 colunas**: `grid-template-columns` medido agora =
+`1110.5px 1110.5px`, `gap: 16px`, e o card do sparkline segue em **1076,5px**.
+
+Ou seja: **merge não é deploy**, e o G16 continua com o número de 2 colunas até o deploy rodar. Fica
+como está, datado — quem reler depois do deploy vai medir ~737,7px e não deve ler a diferença como
+regressão.
+
+---
+
 
 ---
 
