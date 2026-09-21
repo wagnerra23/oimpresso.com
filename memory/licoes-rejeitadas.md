@@ -2355,6 +2355,54 @@
 
 - **Resíduo declarado, e consertado à parte:** a varredura que produziu esta lápide **listou** `Modules/Superadmin/…/Negocios/Index.charter.md` e eu **não o triei** — escopei a triagem a `resources/js/Pages/` + `memory/requisitos/` sem declarar que estava deixando `Modules/**/Resources/js/Pages/` de fora. Ele sobreviveu no `main` e saiu no [PR #7568](https://github.com/wagnerra23/oimpresso.com/pull/7568). Tinha o dado e não o processei.
 
+### 2026-09-18 — "Autocorreção" com sonda MAIS FROUXA que a original: ampliei o padrão pra conferir, ele casou pelo OUTRO termo, e eu retratei uma leitura que estava CERTA
+
+- **O que foi tentado.** Procurando o segredo `VISREG_LOGIN_TOKEN` (pré-requisito pra rodar o lote de design contra staging) em `memory/_INDEX-SECRETS.md`, rodei `grep -niE "visreg" … | head -5 || echo "(nao mencionado)"` e não veio nada. Notei — **corretamente** — que `grep | head` mascara o `rc` (§5 2026-08-13(b), o `rc` é do último comando do pipe) e fui conferir. Na conferência **ampliei o padrão** para `grep -niE "visreg|visual.regression"`, ele devolveu `rc=0`, e eu **publiquei ao [W] uma retratação**: *"meu grep mascarou o rc, me fazendo ler 'não achou' onde o índice TINHA a entrada"*.
+
+- **Por que caiu.** O padrão ampliado casou pelo **segundo** termo, e o segundo termo pertence a **outro segredo**. Medido (re-medido em 2026-09-21, reproduz idêntico): `grep -ncE "visreg"` → **0** · `grep -ncE "visual.regression"` → **1** · a alternância → **1** · `grep -ncF "VISREG_LOGIN_TOKEN"` → **0** · controle positivo `grep -ncF "COWORK_BOT_PAT"` → **1**. E `grep -noE` nomeia o culpado: `41:visual-regression` — a linha 41 é a entrada do **`COWORK_BOT_PAT`**, que cita `visual-regression` na lista de *consumidores* dele. Ou seja: a leitura **original estava certa** (o token não está no índice, e segue não estando), e a **correção** é que era o falso positivo. Retratei um acerto, publiquei o erro como rigor, e retratei a retratação no turno seguinte.
+
+- **O limite (variante também proibida).** Ao ampliar um padrão para conferir um match **negativo**, o match do padrão ampliado **não confirma o termo original** — ele confirma *alguma* alternativa, e qual delas é justamente o que você não sabe. A forma positiva é **testar cada alternativa isoladamente** (é o *"contadas uma a uma"* que o rec de 09-16 do [LC-08](LICOES_CODE.md) já praticava); `grep -oE`, que imprime **qual** alternativa casou, serve como confirmação barata **e só para alternativas disjuntas**. ⚠️ **Os 3 furos do `-oE`, medidos aqui, porque uma regra positiva com furo não declarado é [LC-15](LICOES_CODE.md) dentro da lápide que registra uma falha de medição:** **(H2, o sério)** GNU grep é *leftmost-longest*, então quando uma alternativa é **prefixo** da outra a curta fica escondida — `grep -oE 'vis|visreg'` sobre `visreg_token` imprime **`visreg`**, e nunca `vis`; no caso desta lápide o `-oE` funcionou por **sorte dos termos** serem disjuntos, não pela regra. **(H3)** `-c` e `-o` **não compõem**: numa linha com os dois termos, `grep -coE` devolve **1** (conta linhas) e `grep -oE | wc -l` devolve **2** (conta matches). **(H4)** âncora **não distribui** na alternância: sobre `alfa um com beta no MEIO`, o padrão `^alfa|beta` casa **`beta` no meio da linha 1**, enquanto `^(alfa|beta)` casa só `alfa` — ampliar um padrão ancorado sem agrupar muda a semântica em silêncio.
+
+- **O que esta lápide NÃO descobriu** (exigência da §5 2026-08-13, que abre a própria seção disso pra não inflar): **(i)** o predicado geral — *"esta sonda responde a pergunta que eu fiz?"* — **já é canon** desde §5 2026-08-13(d), e já foi declarado semântico/advisory; o que esta acrescenta é **um mecanismo nomeável** sob aquele guarda-chuva, do mesmo jeito que §5 2026-08-20 (sondar o git com mudança não-commitada) e §5 2026-09-16 (grep na SAÍDA de um relatório) são mecanismos específicos sob ele. **(ii)** O rec de **09-16** do LC-08 é a irmã na mesma superfície (`grep -c` com alternância), e **não** é a mesma coisa: lá o número saiu **errado** (2 quando eram 4) por unidade/quoting, aqui o número está **certo** (1 linha casa mesmo) e o que erra é **a qual alternativa o hit pertence** — subcontagem × falso-confirma, direções inversas. **(iii)** A única lápide que menciona *alternância* (§5 2026-08-23, P4 do `block-sonda-que-mente`) registra a falha **oposta**: `\|` em ERE vira pipe literal e o padrão **deixa de casar**.
+
+- **O que é de fato inédito, e é a parte que dói:** a **inversão da retratação**. O canon já trata *"correção vinda de peer é hipótese a testar"* (§5 2026-07-26 · §5 2026-08-31), mas as duas são sobre correção vinda de **outro**. Correção vinda de **mim mesmo**, que **piora** a leitura e é publicada **como rigor**, não estava catalogada. O gatilho é traiçoeiro justamente porque a intenção é boa: eu tinha acabado de identificar um defeito real na minha sonda, e a diligência de conferir virou o veículo do erro.
+
+- **Quem pegou:** ninguém, na hora — a retratação foi publicada. Caiu depois, quando um job em background que eu mesmo deixara pendente devolveu a linha inteira e eu vi que o hit era do `COWORK_BOT_PAT`.
+
+- **NÃO virar gate.** O predicado — *"o match deste padrão pertence ao termo que eu investigo?"* — é **semântico por construção** ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)), e o gate óbvio da LC-08 já está **medido e reprovado** (não re-propor). A forma sintática — acusar `grep -E` com `|` — reprovaria o uso legítimo, que é a maioria, e é a família de guard sintático que este §5 já enterrou 8×. A defesa é a regra positiva acima, e ela custa um comando a mais.
+
+- **Fato lateral que fica registrado porque trava trabalho futuro:** o `VISREG_LOGIN_TOKEN` **não está** no `_INDEX-SECRETS.md` (medido: `grep -ncF` → 0). Ele existe como env (`config/app.php:44` · `routes/web.php:100` · consumido em `scripts/design/design-diff-lote.mjs:599`), mas quem for rodar o lote contra staging não o descobre pelo índice — que é o caminho que a skill Tier A `memory-first-secret-search` manda percorrer primeiro.
+
+- Ocorrência da **LC-08**.
+
+### 2026-09-21 — `grep -iF` ABORTA (SIGABRT, rc=134) neste ambiente: saída vazia que parece "não achei", e a causa que me deram estava errada
+
+- **O que foi tentado.** Um `ciclo-adversary` rodando no meu worktree relatou, de passagem, que `grep -niF "uma a uma" memory/licoes-rejeitadas.md` *"aborta com rc=134 (SIGABRT — **linhas de 250KB+**)"*. Testei a coisa errada — rodei `grep -cF`, **sem** o `-i` — obtive `rc=0`, medi que a maior linha do arquivo tem **3.056** chars (não 250KB), e **publiquei ao [W] que "não reproduziu"**.
+
+- **Por que caiu.** Eu tinha a evidência física na árvore e não olhei: o `gh pr create` avisou *"1 uncommitted change"*, e o arquivo era um **`grep.exe.stackdump` com mtime daquela manhã**. O grep **abortou de verdade**; o que eu não tinha era o comando certo. A diferença entre o dele e o meu era **uma letra**: `-i`.
+
+- **A causa real, medida — e a que me deram está REFUTADA.** Não é tamanho de linha, não é UTF-8, não é o arquivo. É a **combinação `-i` com `-F`**, e ela aborta **sempre**:
+
+  ```
+  arquivo ASCII de 1 linha  -> grep -ciF  rc=134  (core dumped)
+  linha de 5.000 chars      -> grep -ciF  rc=134
+  linha de 30.000 chars     -> grep -ciF  rc=134
+  licoes-rejeitadas.md      -> grep -ciF  rc=134
+  CONTROLES (todos rc=0):   -F sozinho · -i sozinho · -iE · -nF
+  ```
+
+  As **três** formas de pedir a mesma coisa morrem igual — `-iF`, `-Fi` e `--ignore-case --fixed-strings` —, então é **semântico, não de sintaxe da flag**. GNU grep **3.0** sob MSYS. `rg -iF` (ripgrep) responde `rc=0` normalmente.
+
+- **O limite (variante também proibida).** Não usar `grep -iF` (nem `-Fi`, nem `--ignore-case --fixed-strings`) neste ambiente — a saída é **sempre vazia** e o `rc` é **134**, não 1. Quem escrever o idioma comum `grep -iF … || echo "(não achou)"` recebe *"não achou"* de um comando que **nem rodou** — é literalmente a §5 2026-07-17 (`cmd || echo` não distingue *rodou-e-não-achou* de *nem rodou*) casada com a §5 2026-07-31 (`git grep -F` com `\E` saindo rc=128 e zero linhas). Substitutos medidos: **`grep -iE`** quando o padrão não tem metacaractere, **`rg -iF`**, ou baixar o caso na linguagem (`s.lower().count(x.lower())`).
+
+- **Alcance no repo, medido antes de alarmar: ZERO.** `git grep` por qualquer combinação de `-i` com `-F` em `*.sh · *.mjs · *.js · *.yml · *.ps1` versionados devolve **0 arquivos**. Nenhum script, hook ou workflow do projeto está quebrado por isto — o risco é **só** para comando ad-hoc de agente, que é exatamente onde ele apareceu (o adversário, e quase eu).
+
+- **O que esta lápide acrescenta à §5 2026-07-31 (mesma família, vetor novo).** Lá o vazio vinha de **padrão** inválido (`\E` encerrando o quoting); aqui vem de **combinação de flags**, com três agravantes próprios: **(i)** atinge o caso trivial, então nenhum "mas o meu arquivo é pequeno" protege; **(ii)** o `rc` é **134**, e quem testa `rc -eq 1` para "não achou" acerta por acidente, enquanto quem usa `||` erra sempre; **(iii)** `-F` é justamente a flag que a gente escolhe **para ser seguro** com string literal — o instinto correto leva ao comando quebrado.
+
+- **O erro de método que é meu, e é o que dói:** ao "não reproduzir", eu mudei **duas** variáveis de uma vez (tirei o `-i` e troquei `-n` por `-c`) e li o `rc=0` como refutação. Reproduzir relato alheio exige rodar **o comando dele, literal** — e só depois variar uma flag por vez. Some a isso que aceitei a **causa** que ele deu ("linhas de 250KB+") como se fosse a observação: a causa era hipótese dele, o `rc=134` é que era o fato. Separar os dois é o que teria me feito rodar o comando certo.
+
+- **NÃO virar gate.** Um lint contra `-iF` é sintaticamente decidível, mas o alcance medido é **0 ocorrências** no repo — gate para população zero é a definição de carimbo (§5 2026-07-28: vermelho que nunca fica verde, ou verde que nunca fica vermelho). Se algum dia aparecer no repo, o dono a **estender** é o `block-sonda-que-mente` (já é o dono de *sonda cujo vazio mente*, com a forma de duas pernas), nunca hook novo.
+
 - Ocorrência da **LC-08**.
 
 ### 2026-09-21 — RECIBO-INSTÂNCIA da emenda 2026-09-03 ("um dono não é O dono"): 3ª violação da mesma regra — o dono deste eixo estava INDEXADO, e nenhuma das duas sessões o consultou
