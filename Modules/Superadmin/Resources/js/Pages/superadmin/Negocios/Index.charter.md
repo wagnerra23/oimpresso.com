@@ -88,7 +88,22 @@ ordem. Fonte da copy: o §3 do F1 [CC] (`cowork-inbox/SUPERADMIN-F1-2026-08-18.m
 | `superadmin.negocios.paginacao` | — (estrutura, sem copy fixa) |
 | `superadmin.negocios.drawer` | Assinatura · Uso contra o limite do pacote · Dono e contato · Histórico de assinaturas |
 
-⚠️ **4 das 7 seções do F1**, e duas divergências DECLARADAS em vez de escondidas:
+⚠️ **4 das 7 seções do F1**, e ~~duas divergências DECLARADAS~~ **quatro DÍVIDAS A FECHAR**,
+registradas em vez de escondidas:
+
+> ⛔ **"DECLARADAS" revogado por [W] em 2026-09-18** (*"eu revogo tudo, de todos. a regra mudou,
+> agora é o Protótipo quem manda, e a paridade deve ser o objetivo"*). No eixo FORMA não há
+> divergência aceita — há **dívida a fechar**, e a razão de cada item abaixo diz por que ela ainda
+> não fechou, nunca que pode ficar ([UI-0029](../../../../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md),
+> ratificada em 2026-08-31, §41: *"não se abre exceção per-tela"*).
+>
+> ⚠️ **O texto dizia "duas" e lista QUATRO** — e as quatro não são do mesmo eixo. **BulkBar** e
+> **FormDrawer** são **capacidade ausente** (a SA-O3 mediu que `edit`/`update` são andaime
+> quebrado: não há comportamento a contratar) — dívida cuja pré-condição é backend, não paridade
+> visual. **Tabela** (5 colunas + seleção × 6 sem seleção) e **paginação** (6 × 20) são **FORMA
+> pura**, e essas duas o protótipo decide: ou a produção converge, ou o protótipo muda no Cowork
+> e desce. A pergunta aberta sobre o `6` ser intenção ou tamanho do mock **segue sendo decisão
+> [W]** — mas ela agora é *"qual é o número certo"*, não *"posso divergir"*.
 
 - **BulkBar + seleção múltipla** ficaram de fora — produção não tem, e dependem das ações da SA-O3.
 - **FormDrawer novo/editar** ficou de fora — o pré-flight da SA-O3 ([#6011](https://github.com/wagnerra23/oimpresso.com/pull/6011))
