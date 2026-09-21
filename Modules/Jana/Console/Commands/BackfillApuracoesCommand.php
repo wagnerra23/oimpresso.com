@@ -75,7 +75,20 @@ class BackfillApuracoesCommand extends Command
         // SUPERADMIN: comando de manutenção roda fora de request, sem session() para o
         // global scope resolver. O escopo é reimposto explicitamente no where abaixo —
         // é mais restritivo que o scope, porque exige o id em vez de inferi-lo.
-        $query = Meta::withoutGlobalScopes()->where('business_id', $businessId);
+        //
+        // As relações vêm carregadas COM `withoutGlobalScopes` de propósito: `MetaFonte` e
+        // `MetaPeriodo` são multi-tenant VIA PARENT, e o `loadMissing(['fonte',
+        // 'periodoAtual'])` que o `ApuracaoService` faz por dentro aplicaria o scope — que
+        // sem `session()` não resolve e devolve vazio. O Service então lançaria
+        // "Meta #N não tem MetaFonte configurada" para metas que TÊM fonte. Como o
+        // `loadMissing` não recarrega o que já está carregado, pré-carregar aqui é o que
+        // faz o comando funcionar no CLI. Medido no CT 100: sem isto, 10 de 10 janelas
+        // falhavam com essa mensagem.
+        $semEscopo = fn ($q) => $q->withoutGlobalScopes();
+
+        $query = Meta::withoutGlobalScopes()
+            ->with(['fonte' => $semEscopo, 'periodoAtual' => $semEscopo])
+            ->where('business_id', $businessId);
 
         if ($metaOpt !== null && $metaOpt !== '') {
             $query->where('id', (int) $metaOpt);
