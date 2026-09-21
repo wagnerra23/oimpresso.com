@@ -364,17 +364,30 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
               instante em que ele subiu. Corrigido junto, não depois.
               Sem `p-6`/`shrink-0`: agora está DENTRO do cockpit, que já vive em
               `px-6 pt-6`. */}
-        {/* Sem `pt-6`: o ritmo ENTRE secoes ja vem do container (`space-y` do pai),
-            e o padding somava por cima. MEDIDO em 2026-09-21 (staging, dark, 1440):
-            do fim dos KPIs ate o TEXTO de "METAS ATIVAS" eram **46px** — 16 da margem
-            do bloco anterior + 24 deste `pt-6` + 6 do `mt-1.5` do h2 —, contra **24px**
-            na ancora (18 de ritmo + 6 do h2). Removendo o padding o trecho cai pra 16px
-            com o `space-y-4` de hoje, e fecha em **24px exatos** quando o ritmo do
-            cockpit for a 18px (chip irmao da grade de Analises, que mediu os 4 vaos).
-            O comentario antigo justificava o `pt-6` com "agora esta DENTRO do cockpit,
-            que ja vive em px-6 pt-6" — isso valia quando o bloco ficava no FIM da
-            pagina; deixou de valer quando ele subiu pra logo apos os KPIs. */}
-        <div className="space-y-6">
+        {/* `mb-1.5` (6px) — esta seção é a ÚNICA que foge do ritmo de 18px, e foge na
+            âncora também: medido em 2026-09-21, `.jm-metas` → `h2` de Análises é **6px**
+            lá, contra 16px aqui. Sem este `mb`, o `space-y-[18px]` do cockpit a levaria
+            para 18px e trocaria um erro de 10px por um de 12px, no sentido oposto.
+            Vence o container sem `!important` porque o `space-y` gera `:where(...)`,
+            de especificidade 0.
+
+            ⚠️ O comentário do #7653 dizia aqui "o `pt-6` FICA, e é dívida declarada" —
+            era verdade NAQUELE PR, cujo pedido era só o `margin-bottom`, e deixou de ser
+            neste: o padding saiu logo abaixo. O fato datado fica; a afirmação em presente
+            se corrige no mesmo PR que a torna falsa (regra de precedência).
+
+            Sem `pt-6`: o ritmo ENTRE seções já vem do container (`space-y` do pai), e o
+            padding somava por cima. MEDIDO em 2026-09-21 (staging, dark, 1440): do fim
+            dos KPIs até o TEXTO de "METAS ATIVAS" eram **46px** — 16 da margem do bloco
+            anterior + 24 deste `pt-6` + 6 do `mt-1.5` do h2 —, contra **24px** na âncora
+            (18 de ritmo + 6 do h2). Sem o padding o trecho cai pra 16px com o `space-y-4`
+            antigo e fecha em **24px exatos** com o `space-y-[18px]` que o #7653 trouxe —
+            os dois consertos são complementares, e nenhum acerta sozinho.
+
+            O comentário mais antigo justificava o `pt-6` com "agora está DENTRO do
+            cockpit, que já vive em px-6 pt-6": valia quando o bloco ficava no FIM da
+            página, e deixou de valer quando ele subiu pra logo após os KPIs. */}
+        <div className="space-y-6 mb-1.5">
           {/* Cabeçalho de METAS — UMA linha, como a âncora `jana-merge.jsx` §`JmMetasSecao`:
               `<h2 class="jc-h2"><JcIcon name="target"/> METAS ATIVAS <span class="jm-per">…`,
               com os controles no `jm-per` (`margin-left:auto`). Âncora de SÍMBOLO:

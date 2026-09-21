@@ -876,7 +876,12 @@ function checkAdrVivoMasProposto() {
   if (!exists(dir)) return;
   // corpus = "código que roda". NÃO inclui memory/** (lá é doc, não execução) nem o
   // próprio baseline (senão o grandfather vira citação circular auto-confirmante).
-  const isCode = (rel) => /\.(mjs|js|ts|php|json)$/.test(rel) && !rel.includes('.memory-health-baseline');
+  // `scripts/design-sync/state/` também sai: são manifestos de importação de protótipo — DADO,
+  // não código. Eles listam os arquivos do pacote Cowork, e um pacote com ADRs PRÓPRIAS do
+  // protótipo (pasta design/adr/, numeradas como as do repo) casava a regex de citação abaixo
+  // e acusava as ADRs homônimas do repo (falso positivo, PR #7620, 2026-09-21).
+  const isCode = (rel) => /\.(mjs|js|ts|php|json)$/.test(rel) && !rel.includes('.memory-health-baseline')
+    && !rel.replace(/\\/g, '/').startsWith('scripts/design-sync/state/');
   const corpusFiles = [
     ...listFiles('scripts', isCode),
     ...(exists('.github/workflows') ? listFiles('.github/workflows', (p) => /\.ya?ml$/.test(p)) : []),

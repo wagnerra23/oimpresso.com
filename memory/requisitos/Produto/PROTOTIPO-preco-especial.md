@@ -163,6 +163,11 @@ Não é screenshot de intenção — o comportamento foi medido no DOM:
 
 ## Como abrir
 
+> ⚠️ **2026-09-21 — o protótipo saiu do repositório.** O espelho do Felipe passou a ser o pacote
+> "Produto Unificado V2", que não traz esta tela. Os arquivos seguem no histórico em
+> [`bdf6d07e3`](https://github.com/wagnerra23/oimpresso.com/blob/bdf6d07e3/prototipo-ui/cowork/Felipe/produto-preco-especial/); a receita abaixo só funciona
+> depois de restaurá-los (`git checkout bdf6d07e3 -- prototipo-ui/cowork/Felipe/produto-preco-especial`).
+
 `file://` é bloqueado no browser da sessão — servir por HTTP:
 
 ```bash
