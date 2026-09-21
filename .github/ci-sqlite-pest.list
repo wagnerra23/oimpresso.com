@@ -8,6 +8,61 @@
 # são UNIDOS automaticamente pelo git, sem conflito. O runner faz `sort -u`, então
 # ordem e duplicatas não importam.
 #
+# ⚠️ O QUE O `union` NÃO FAZ, e a frase acima sozinha esconde: ele une ADIÇÕES, mas
+# **desfaz REMOÇÃO adjacente EM SILÊNCIO**. Dois PRs que tiram linhas vizinhas produzem
+# merge LIMPO, sem um marcador de conflito sequer, com as duas linhas RESSUSCITADAS.
+# ⚠️ `git apply --3way` NÃO salva: ele reporta "applied cleanly" e ressuscita igual.
+#
+# POR QUE IMPORTA AQUI (medido 2026-09-21): esta é uma ALLOWLIST — ela CRESCE, ao
+# contrário das quarentenas irmãs, onde encolher é o movimento desejado. Mesmo assim
+# remoção de path não é rara e, pior, vem CONCENTRADA em onda de refactor, que é
+# justamente quando vários PRs tocam este arquivo na mesma janela:
+#   for s in $(git log --format=%H origin/main -- .github/ci-sqlite-pest.list); do \
+#     git show --format= -U0 "$s" -- .github/ci-sqlite-pest.list \
+#     | grep -E '^-[^-]' | grep -qE '^-(tests|Modules)/' && echo "$s"; done | wc -l
+#   → 8 de 84 commits removem path, e 7 dos 8 são a leva que apagou Modules/TeamMcp.
+# NENHUMA mordida está registrada nesta lista (`git log -i --grep=union -- <lista>`
+# devolve 2 commits, e os dois apenas MENCIONAM a receita) — mas ausência de registro
+# não é ausência de ocorrência: o dano é silencioso por construção. O irmão
+# .github/financeiro-pest-quarantine.list tem 6 mordidas com 7 commits de conserto
+# dedicados (2026-09-18); lá o perfil é outro, 23 de 26 commits removem.
+#
+# COMO CONFERIR depois de mergear (nunca confie no merge limpo) — troque o path pelo seu:
+#   awk '/^tests\/Feature\/Sidebar\/Biz4RotaLivreSidebarTest\.php$/{c++} END{print c+0}' <lista>
+#        # 0 = sua remoção sobreviveu · 1 = a union a desfez
+#   grep -vE '^[[:space:]]*(#|$)' <lista> | sort | uniq -d    # vazio = sem path duplicado
+#   awk '/^(tests|Modules)\//{c++} END{print c+0}' <lista>    # bate com base − remoções?
+# ⚠️ A âncora `^...$` NÃO é zelo, e isto foi MEDIDO aqui: `grep -c <NomeDoTeste>` solto
+# também casa linha de COMENTÁRIO. O motivo mora em linha PRÓPRIA acima do path, e em
+# 17 dos 171 paths o comentário cita o nome do próprio teste — mas o caso que pega todo
+# mundo é ESTE bloco, que usa um path como exemplo: aquele nome passa a ter 2 ocorrências.
+# Provado por mutação (removido o path do arquivo): a ancorada vai de 1 → 0, a solta vai
+# de 2 → 1 e NUNCA zera. Você concluiria que a remoção não pegou.
+# ⚠️ `^tests/` sozinho cobre 18 de 172 entradas — 154 são `Modules/`. Ancore nos dois.
+# ⚠️ `awk` e não `grep -c`: este sai com **rc=1 ao contar ZERO**, que aqui é o caso de
+# SUCESSO, e mata script de conferência com `set -e` no caminho BOM. Vale pro seu script;
+# esta lane não usa `grep -c`.
+# ⚠️ E o `sort -u` do `mapfile` no ci.yml ABSORVE path duplicado: o run-set fica certo e
+# NADA avermelha — só esta lista passa a carregar a linha 2×. É a parte silenciosa.
+#
+# MODO DE DANO SEM SONDA, declarado: o motivo mora em BLOCO DE COMENTÁRIO, porque esta
+# lane NÃO corta comentário inline (ela usa `grep -vE '^[[:space:]]*(#|$)'`, então
+# `caminho.php  # motivo` iria INTEIRO como alvo do Pest — medido: 0 linhas de path com
+# `#`). Duas sessões editando o MESMO bloco fazem a union DUPLICAR o texto, e aí o
+# `uniq -d` de paths sai LIMPO. Aqui não há sonda boa: comentário repetido é LEGÍTIMO
+# nesta lista (o separador de seção aparece 2×, e o boilerplate "NÃO rodei o Pest" repete
+# por bloco), então `uniq -d` sobre comentário é falso-positivo por construção. A
+# conferência é OLHAR O DIFF do merge — a mesma conclusão que o ⚠️ do
+# memory/08-handoff.md já tirou pro caso dele.
+#
+# COMO RESOLVER se a union já corrompeu: NÃO edite o resultado e NÃO confie no `--3way`.
+# Parta da versão da base (`git checkout FETCH_HEAD -- <lista>`) e reaplique SÓ a sua
+# mudança, programaticamente — determinístico, e funciona DEPOIS do estrago.
+#
+# (O memory/08-handoff.md também é `merge=union` e carrega moldura parcial: o ⚠️ dele
+# cobre DUPLICAÇÃO de seção de instrução, não remoção desfeita. Não tocado aqui — um
+# intent por PR.)
+#
 # REGRA: só testes SQLITE-SAFE (rodam em :memory: sem migrate completo). NÃO
 # adicionar testes com RefreshDatabase/migrate:fresh que puxem migration MySQL-only
 # (ex ALTER TABLE ... ENUM) — esses pertencem à lane MySQL (financeiro-pest /
