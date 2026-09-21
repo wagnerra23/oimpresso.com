@@ -239,6 +239,21 @@ function main() {
   say('duas rodadas, rode o **mesmo comando** em dois SHAs.');
 
   process.stdout.write(out.join('\n') + '\n');
+
+  // `--check`: sai != 0 quando a MEDIÇÃO não aconteceu. `ERRO` é falha de NAVEGAÇÃO
+  // (refused/timeout), nunca divergência de design — e foi ele que mascarou 5 rodadas
+  // seguidas saindo `success` com 23/23 em ERRO. Divergência NÃO entra aqui: render pareado
+  // não bloqueia nada (ADR 0290 recusada; a 0408 libera medir, não bloquear).
+  if (process.argv.includes('--check')) {
+    const erros = ver['ERRO'] || 0;
+    if (erros > 0) {
+      process.stderr.write(
+        `\n::error title=Lote de paridade::${erros} de ${linhas.length} telas falharam na NAVEGAÇÃO ` +
+        `(ERRO), não na comparação — isso é falha de MEDIÇÃO, não divergência de design.\n`,
+      );
+      process.exitCode = 1;
+    }
+  }
 }
 
 function selftest() {
@@ -319,6 +334,27 @@ function selftest() {
   t('guard: outcome success nao e bloqueado pelo guard', !/NÃO MEDI \(step/.test(bom.stdout));
   const semEnv = cli({ LOTE_OUTCOME: '' });
   t('guard: env ausente nao bloqueia (uso local)', !/NÃO MEDI \(step/.test(semEnv.stdout));
+
+  // `--check` — o assert que faltava nas 5 primeiras rodadas. Exercita o CLI de fora contra o
+  // corpus REAL da arvore: se ele tiver ERRO, --check reprova; se nao tiver, libera. Os dois
+  // ramos sao cobertos porque o corpus pode estar em qualquer um dos dois estados, e o teste
+  // afirma a RELACAO (tem ERRO <=> exit 1), nunca um numero fixo do corpus do dia.
+  const comCheck = spawnSync(process.execPath, [import.meta.filename, '--check'], {
+    env: { ...process.env, LOTE_OUTCOME: 'success' }, encoding: 'utf8',
+  });
+  const temErro = /\|\s*ERRO\s*\|/.test(
+    fs.existsSync(`${DIR_MEDIDAS}/RESUMO.md`) ? fs.readFileSync(`${DIR_MEDIDAS}/RESUMO.md`, 'utf8') : '',
+  );
+  t('--check: reprova SE e SO SE o corpus tem ERRO',
+    temErro ? comCheck.status === 1 : comCheck.status === 0);
+  t('--check: quando reprova, diz que e falha de MEDICAO (nao de design)',
+    !temErro || /falha de MEDIÇÃO/.test(comCheck.stderr));
+
+  // CONTROLE NEGATIVO: sem --check, nunca reprova — o resumo e leitura, nao gate.
+  const semCheck = spawnSync(process.execPath, [import.meta.filename], {
+    env: { ...process.env, LOTE_OUTCOME: 'success' }, encoding: 'utf8',
+  });
+  t('controle negativo: sem --check o resumo nunca reprova', semCheck.status === 0);
 
   console.log(`\n${ok}/${ok + fail} ok`);
   process.exitCode = fail ? 1 : 0;
