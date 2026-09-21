@@ -15,6 +15,26 @@ prs:
 
 # Incidente 2026-09-21 — auto-merge ligando sozinho, em lote, com o token do [W]
 
+## TL;DR
+
+Em 2026-09-21 o auto-merge foi ativado **13+ vezes** em PRs da Jana com o token
+do [W], sem acao dele — e **dois PRs entraram em `main` sem aprovacao** (#7637,
+#7640), revertidos no #7654.
+
+**A causa NAO foi identificada.** Seis suspeitos foram eliminados por medicao,
+incluindo o `"Auto-fix pull requests"` do app — que estava **desativado 20 min**
+antes do evento decisivo. O mecanismo age em **lote sobre uma lista** (3 PRs em
+4s, 2s de intervalo), o que descarta gatilhos por-PR.
+
+Duas notas tecnicas que custaram caro: o evento no timeline chama-se
+**`auto_squash_enabled`** (nao `auto_merge_enabled`), e **`actor=wagnerra23` nao
+distingue** o [W], o app e as sessoes — e o mesmo token.
+
+Mitigacao que funciona sem depender do diagnostico: **`draft`**.
+
+Este registro existe para a proxima investigacao comecar daqui, em vez de refazer
+as mesmas seis hipoteses — refaze-las custou uma tarde.
+
 > **Estado: NÃO RESOLVIDO.** A causa não foi identificada. Seis suspeitos foram
 > eliminados **por medição** (não por opinião) e o perfil do mecanismo está
 > caracterizado. Este registro existe para que a próxima investigação **comece de
