@@ -44,6 +44,7 @@
 // Medido e aberto, registrado no `Index.casos.md` §UC-JPAIN-30.
 
 import * as React from 'react';
+import { Grid } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
 
 interface Props {
@@ -58,13 +59,15 @@ interface Props {
 }
 
 export default function JanaKpiGrid({ children, className, ...rest }: Props) {
+  // `cols={2}` vem do primitivo (ADR 0253) e o degrau de 1101px entra pelo `className`,
+  // que o `cn` aplica DEPOIS das variantes. Funciona aqui — e nao funcionava no `KpiGrid` —
+  // porque as variantes do `<Grid>` sao simples (`grid-cols-2`, sem `sm:`/`lg:`), entao nao
+  // ha variant nomeado emitido depois do arbitrario pra vencer dele.
+  // O `gap` do primitivo so tem inteiros (o 10px da ancora seria `gap-2.5`), entao ele vem
+  // pelo `className` tambem, substituindo o `gap-4` default via twMerge.
   return (
-    <div
-      data-slot="kpi-grid"
-      className={cn('grid grid-cols-2 gap-2.5 min-[1101px]:grid-cols-4', className)}
-      {...rest}
-    >
+    <Grid cols={2} data-slot="kpi-grid" className={cn('gap-2.5 min-[1101px]:grid-cols-4', className)} {...rest}>
       {children}
-    </div>
+    </Grid>
   );
 }

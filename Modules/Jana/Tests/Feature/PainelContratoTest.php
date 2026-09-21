@@ -1242,33 +1242,50 @@ it('UC-JPAIN-30: o grid e a replica local com o breakpoint de 1101px da ancora',
     $cockpit = acaoCockpitTsx();
     $grid = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaKpiGrid.tsx'));
 
-    // -- BITE-TEST do detector: morde a ausencia E nao morde o legitimo? -----
-    // Sem este par, um `toContain` vira decoracao (ADR 0258 - detector que nunca
-    // acusa e enfeite).
-    $temBreakpoint = static fn (string $src): bool => (bool) preg_match(
-        '/min-\[1101px\]:grid-cols-4/u',
-        $src
-    );
+    // -- O EXTRATOR: so a linha do <Grid>, NUNCA o arquivo inteiro. ------------
+    // Medido em 2026-09-21: o docblock deste componente cita `grid-cols-2`,
+    // `grid-cols-1` e `min-[1101px]` ao explicar as tentativas refutadas. Um
+    // `toContain` sobre o arquivo passaria pela PROSA (LC-11, presence-gate) e o
+    // `not->toContain('grid-cols-1')` falharia por uma MENCAO em comentario.
+    // Contado no arquivo real: `grid-cols-2` 5x no total, 0x em codigo.
+    $linhaDoGrid = static function (string $src): string {
+        foreach (preg_split('/\R/u', $src) as $l) {
+            if (preg_match('/^\s*(\/\/|\*|\/\*)/u', $l)) {
+                continue;                      // comentario nao conta
+            }
+            if (str_contains($l, '<Grid')) {
+                return $l;
+            }
+        }
 
-    expect($temBreakpoint("cn('grid grid-cols-2 gap-2.5 min-[1101px]:grid-cols-4', className)"))->toBeTrue();
-    expect($temBreakpoint("cn('grid grid-cols-2 gap-2.5 lg:grid-cols-4', className)"))->toBeFalse();
+        return '';
+    };
 
-    // -- o contrato -----------------------------------------------------------
-    // base 2 colunas (a ancora nao tem degrau de mobile) e 4 so acima de 1101.
-    expect($grid)
-        ->toContain('grid-cols-2')
+    // -- BITE-TEST do extrator: pega o codigo, ignora o comentario -------------
+    expect($linhaDoGrid("  <Grid cols={2} className={cn('gap-2.5')}>"))->toContain('<Grid');
+    expect($linhaDoGrid("  // <Grid cols={4}> era assim antes"))->toBe('');
+    expect($linhaDoGrid("  * <Grid cols={4}> no docblock"))->toBe('');
+    expect($linhaDoGrid('const x = 1;'))->toBe('');
+
+    $linha = $linhaDoGrid($grid);
+
+    // -- o contrato, medido NA LINHA ------------------------------------------
+    // 2 colunas na base (a ancora nao tem degrau de mobile) e 4 so acima de 1101.
+    expect($linha)
+        ->toContain('cols={2}')
         ->toContain('min-[1101px]:grid-cols-4')
         ->toContain('gap-2.5');
 
-    expect($temBreakpoint($grid))->toBeTrue();
+    // o degrau do shared NAO volta: `cols={4}` reintroduziria `lg:grid-cols-4`,
+    // que foi medido vencendo o arbitrario e deixando o conserto inerte.
+    expect($linha)->not->toContain('cols={4}');
 
-    // o degrau do shared NAO volta por outra porta: `grid-cols-1` so existe no
-    // `colsMap`, e a ancora nunca e 1 coluna.
-    expect($grid)->not->toContain('grid-cols-1');
+    // e o primitivo de layout, nao um <div> solto (ADR 0253 - layout ratchet).
+    expect($linha)->toContain('<Grid');
 
-    // e a tela consome a replica, nao o compartilhado (o extrator do UC-JPAIN-18
-    // depende disso: sem o par, ele devolveria [] e o caso ficaria verde por
-    // ausencia de alvo - LC-11 na forma silenciosa).
+    // -- a tela consome a replica, nao o compartilhado -------------------------
+    // Sem este par o extrator do UC-JPAIN-18 devolveria [] e aquele caso ficaria
+    // verde por ausencia de alvo - LC-11 na forma silenciosa.
     expect($cockpit)
         ->toContain('<JanaKpiGrid>')
         ->toContain("import JanaKpiGrid from './JanaKpiGrid';");

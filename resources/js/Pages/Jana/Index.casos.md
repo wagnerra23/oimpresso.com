@@ -1753,8 +1753,14 @@ de novo em 640. Sobravam duas faixas: **1024–1100** (4 col onde a âncora põe
 
 ### O conserto — réplica local do grid, e **duas tentativas mais simples foram REFUTADAS antes**
 
-O que entrou foi `_components/JanaKpiGrid.tsx`, réplica da `.jc-kpis` (`grid grid-cols-2 gap-2.5
-min-[1101px]:grid-cols-4`). O caminho óbvio — passar um arbitrary variant no `className` do
+O que entrou foi `_components/JanaKpiGrid.tsx`, réplica da `.jc-kpis` sobre o primitivo
+`<Grid cols={2}>` (ADR 0253), com o degrau pelo `className`. O que chega ao DOM — extraído do
+render, não escrito à mão — é `grid grid-cols-2 gap-2.5 min-[1101px]:grid-cols-4`.
+
+O primitivo funciona onde o `KpiGrid` não funcionava por uma razão específica: as variantes
+do `<Grid>` são **simples** (`grid-cols-2`, sem `sm:`/`lg:`), então não há variant nomeado
+emitido depois do arbitrário pra vencer dele. O `gap` dele só tem inteiros (a âncora pede
+10px = `gap-2.5`), então o gap vem pelo `className`, substituindo o default via `twMerge`. O caminho óbvio — passar um arbitrary variant no `className` do
 `KpiGrid` compartilhado — foi tentado **duas vezes e saiu INERTE nas duas**, e o registro fica
 aqui porque a próxima sessão vai ter a mesma ideia:
 
@@ -1817,8 +1823,9 @@ Não são dívida, e o registro existe pra ninguém as reabrir:
    não recebe sub no staging, enquanto a âncora traz `-68% vs mai/25`. Os cards 2 e 3 têm sub de
    11px nos dois lados.
 2. **altura 95,5 × 91,5** (4px) — decompõe em `+6` e `−2`, nenhum dos dois de forma:
-   **+6** porque o card 2 da âncora está em `emph` (valor 28px, `--fs-8`) por ter `R$ 4,5M`
-   vencido, enquanto no staging é `R$ 0,00` e o `emphasis` corretamente não dispara; **−2** pela
+   **+6** porque o card 2 da âncora está em `emph` (valor 28px, `--fs-8`) por ter vencido
+   **diferente de zero**, enquanto no staging o saldo vencido é **zero** e o `emphasis`
+   corretamente não dispara; **−2** pela
    borda de 1px que o **meu render do espelho não pintou** (`--border` vazio ali — ver limite
    abaixo). ⚠️ Isto **refuta** a causa registrada em 2026-09-03 (*"line-height do `small`
    herdado do body de cada bancada"*): o `<small>` tem `line-height: 16.5px` **idêntico** nos
@@ -1834,8 +1841,11 @@ deram IGUAL são geométricos e tipográficos, e nenhum depende desses três tok
 **⬜ INCONCLUSIVO** no dia: `--compare` completo (708/708 sync) e 4 arquivos do vivo fora do
 espelho, todos config/meta (`.gitignore`, `.thumbnail`, 2 JSON do `_ds/`).
 
-**Teste:** `Modules/Jana/Tests/Feature/PainelContratoTest.php` — `UC-JPAIN-30`, com bite-test do
-detector (morde a forma antiga `lg:grid-cols-4`, não morde a nova). O **perdedor foi corrigido no
+**Teste:** `Modules/Jana/Tests/Feature/PainelContratoTest.php` — `UC-JPAIN-30`. O assert mede **a linha do `<Grid>`**, nunca o arquivo: o docblock do
+componente cita `grid-cols-2`, `grid-cols-1` e `min-[1101px]` ao explicar as tentativas
+refutadas, e um `toContain` sobre o arquivo passaria pela **prosa** (LC-11) — contado,
+`grid-cols-2` aparece 5× no arquivo e **0× em código**. O extrator tem bite-test próprio
+(pega a linha de código, ignora `//` e `*`). O **perdedor foi corrigido no
 mesmo PR**: o extrator `painelKpisDoGrid` casava `<KpiGrid…</KpiGrid>` e passou a casar
 `<JanaKpiGrid>`; sem isso ele devolveria `[]` e o **UC-JPAIN-18 ficaria verde por não achar
 nada** — LC-11 na forma silenciosa, que é exatamente o risco que o docblock daquele extrator já

@@ -768,7 +768,7 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 > As duas diferenças restantes **não são dívida de forma**, e estão decompostas no
 > `Index.casos.md` §UC-JPAIN-30: o `small` ausente no 1º card é **dado** (staging sem delta de
 > receita), e os 4px de altura são `+6` (o card 2 da âncora está em `emph` por ter vencido real,
-> o staging tem `R$ 0,00`) `−2` (borda que o render do espelho não pintou). ⚠️ Isso **refuta** a
+> o staging tem vencido zero) `−2` (borda que o render do espelho não pintou). ⚠️ Isso **refuta** a
 > causa registrada em 2026-09-03 (*"line-height do `small` herdado do body"*): o `<small>` tem
 > `line-height: 16.5px` idêntico nos dois lados.
 >
@@ -1012,7 +1012,7 @@ Grid 4 col · gap 10 · raio 8 · pad `12 14 14 14` · gap interno 3 · `flex co
 caixa · valor `22px/700/lh 22/ls -0.44` · tag `DIV` · largura 275,5.
 
 As 2 restantes **não são dívida de forma** — estão decompostas no `Index.casos.md` §UC-JPAIN-30
-(`small` ausente no 1º card = dado; 4px de altura = `+6` do `emph` não disparado no staging `−2`
+(`small` ausente no 1º card = dado; 4px de altura = `+6` do `emph` não disparado no staging (vencido zero) `−2`
 da borda que o render do espelho não pintou). ⚠️ A segunda **refuta** a causa registrada em
 2026-09-03 (*"line-height do `small`"*): ele é `16.5px` idêntico nos dois lados.
 
