@@ -425,6 +425,23 @@ jobs:
       - name: cc-watcher watch + content_json (morde + controle negativo + fiacao real)
         if: always() && steps.setup.outcome == 'success'
         run: node --test scripts/cc-watcher/watch.test.mjs
+      # O run incremental nao incrementava: `readJsonl` lia o arquivo INTEIRO e o
+      # `lineCount` do state era WRITE-ONLY como offset (gravado, lido so como `> 0`).
+      # Somado a isso o state so era gravado DEPOIS de todos os batches, entao um 429
+      # jogava fora o progresso ja confirmado e o run seguinte reenviava tudo --
+      # gerando mais 429. Medido no corpus real em 21/09: 188 POSTs / 30.189 msgs por
+      # run para ~3 mil de fato novas; 455 sessoes POSTadas com so 19 dos 883 .jsonl
+      # modificados em 24h. O custo nao era latencia: o `throttle:60/min` do grupo
+      # `api` chaveia por IP (roda antes do `mcp.auth`, sem user), logo o balde e
+      # COMPARTILHADO com as outras sessoes Claude da maquina.
+      # Depois: 27 POSTs / 3.322 msgs (-89%). Exercita o CLI DE FORA contra servidor
+      # HTTP real -- assert sobre helper exportado nao provaria o pipeline e deixaria
+      # passar mutacao no chamador (§5 2026-07-30). Mordida provada por 6 mutacoes;
+      # a que grava mtime real no progresso parcial causa PERDA silenciosa e so morde
+      # porque o teste para de tocar o mtime entre os runs (§5 2026-09-05).
+      - name: cc-watcher ingest incremental (morde + controle negativo + CLI de fora)
+        if: always() && steps.setup.outcome == 'success'
+        run: node --test scripts/cc-watcher/incremental.test.mjs
       - name: Block-automem + block-mwart REGISTRADOS como node (correcao != invocacao)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-automem-mwart-registration.test.mjs

@@ -69,7 +69,8 @@ Windows Task Scheduler / Linux cron pra rodar `node index.js` 1×/dia 23:00 BRT.
 | `MCP_URL` | `https://mcp.oimpresso.com/api/cc/ingest` | Endpoint backend |
 | `MCP_TOKEN` | auto-detect de `.claude/settings.local.json` | Bearer token |
 | `PROJECT_GLOB` | `D--oimpresso-com` | Filtra subfolders de `~/.claude/projects/` |
-| `STATE_FILE` | `~/.claude/.cc-watcher-state.json` | Offset por arquivo (mtime+lineCount) |
+| `STATE_FILE` | `~/.claude/.cc-watcher-state.json` | Offset por arquivo: `mtime` decide se o arquivo é lido, `lineCount` decide de **qual linha** o POST começa. `mtime: 0` marca progresso parcial (entregue pela metade sob 429) — força reler sem pular |
+| `CC_PROJECTS_DIR` | `~/.claude/projects` | Raiz dos `.jsonl`. Existe pro bite-test rodar o CLI contra uma sandbox; em produção não se mexe |
 
 ## O que ingere
 
@@ -179,9 +180,24 @@ Token revogado ou inválido. Gera novo em `/copiloto/admin/team`.
 
 User não tem permission `copiloto.cc.ingest.self` ou `jana.mcp.use`. Wagner atribui via tinker.
 
-### "HTTP 429 Quota Exceeded"
+### "HTTP 429"
 
-Bateu cota MCP. Espera reset (00:00 BRT) ou Wagner aumenta em `/admin/team`.
+⚠️ Esta seção dizia *"bateu cota MCP — espera reset (00:00 BRT) ou Wagner aumenta em `/admin/team`"*. **Medido em 2026-09-21: errado na prática.** Existem **dois** 429 possíveis nesta rota e eles se distinguem pela mensagem do corpo — esperar o reset ou pedir mais cota não resolve o que o watcher de fato batia.
+
+| Mensagem | Quem devolve | Chave do limite | O que fazer |
+|---|---|---|---|
+| `Too Many Attempts.` | `ThrottleRequests` do grupo `api` | **IP**, 60/min | ver abaixo — **é este o caso comum** |
+| `Quota excedida — chamadas bloqueadas. Detalhes: [...]` | `QuotaEnforcer`, dentro do `mcp.auth` | user_id | aí sim: reset 00:00 BRT ou aumentar em `/copiloto/admin/team` |
+
+**Por que o limite é por IP e não por user.** A rota declara `['api', 'mcp.auth']` sem `throttle:` próprio ([`Modules/Forja/Http/routes.php:181`](../../Modules/Forja/Http/routes.php)); quem limita é o grupo `api` → `RateLimiter::for('api')` → `Limit::perMinute(60)->by($request->user()?->id ?: $request->ip())` ([`app/Providers/RouteServiceProvider.php:49`](../../app/Providers/RouteServiceProvider.php)). O grupo `api` roda **antes** do `mcp.auth`, então não há user autenticado no instante do throttle e a chave cai no `?:` — o **IP**. Ele é compartilhado por todas as sessões Claude da máquina, então um watcher que POSTa demais queima o balde **das sessões vizinhas**, não o próprio.
+
+Conferência barata de que não é cota: a tool MCP `claude-code-usage-self` reporta `quota` por usuário. Em 21/09 ela dava `quota: 0` em 7 dias enquanto o run colecionava 429 — logo, throttle.
+
+**A causa histórica, e o que ela ensina.** Até 21/09 o run re-POSTava quase tudo a cada passada: `readJsonl` lia o arquivo inteiro e o `lineCount` do state era **write-only** como offset. Medido no corpus real: **188 POSTs / 30.189 mensagens** por run, para ~3 mil de fato novas. Somava-se a isso o state só ser gravado **depois** de todos os batches — um 429 no último jogava fora o progresso dos anteriores, e o run seguinte reenviava o arquivo inteiro, gerando mais 429. O indício que denunciou o círculo: **455 sessões POSTadas** num momento em que só **19** dos 883 `.jsonl` tinham sido modificados nas últimas 24h.
+
+Corrigido no mesmo dia (offset real + avanço por batch confirmado): **27 POSTs / 3.322 mensagens** no mesmo corpus, −89% de mensagens. O gate é [`incremental.test.mjs`](incremental.test.mjs), que exercita o CLI de fora; mordida provada por 6 mutações, incluindo a que grava o mtime real no progresso parcial — essa causa **perda silenciosa**, e sobrevivia até o teste parar de tocar o mtime entre os runs.
+
+Se ainda aparecer `Too Many Attempts.` depois disso: o watcher já faz 4 tentativas honrando `Retry-After`, então 429 repetido significa concorrência real no mesmo IP — mais de um watcher rodando (confira o lock e a tarefa agendada) ou muitas sessões ingerindo ao mesmo tempo.
 
 ### Falha de rede / 5xx
 
@@ -192,4 +208,4 @@ Re-rode — idempotência cobre.
 - [SPEC MEM-CC-UI-1](../../memory/requisitos/Copiloto/SPEC-cc-sessions.md)
 - [ADR 0053 — MCP server governança](../../memory/decisions/0053-mcp-server-governanca-como-produto.md)
 - [ADR 0059 — Governança Anthropic Team](../../memory/decisions/0059-governanca-memoria-estilo-anthropic-team.md)
-- Endpoint backend: `Modules/Copiloto/Http/Controllers/Mcp/CcIngestController.php`
+- Endpoint backend: `Modules/Forja/Http/Controllers/Mcp/CcIngestController.php` (o ponteiro dizia `Modules/Copiloto/...`, que **não existe** — o cluster de ingest veio pra Forja em 2026-07-31; a URL e o route name `jana.cc.ingest` seguem inalterados de propósito)
