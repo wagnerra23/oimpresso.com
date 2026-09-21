@@ -1853,3 +1853,76 @@ assere a className do **stub** e passa por engano.
 *padding*, não margem, e o bloco é de outro chip — a sessão de METAS mediu junto e confirmou que
 **nenhum dos dois consertos sozinho acerta**: só este dá 48, só o dela dá 16, os dois juntos dão
 **24 exatos**.
+
+## UC-JPAIN-32 — a grade e o card de META replicam a `.jm-metas-grid` / `.jm-meta`: 4 colunas, card compacto, valor em mono 20/700
+
+Status: 🧪 (`npx vitest run tests/janaGradeMetasReplica.spec.tsx` → **9 passed** jsdom local,
+2026-09-21, com mordida provada por **5 mutantes válidos**; vira ✅ quando o manifesto
+`casos-results` aterrissar)
+
+**Fonte:** âncora `.jm-metas-grid`, `.jm-meta` e `.jm-meta-v b` em
+`prototipo-ui/cowork/Wagner/jana-merge.css` — âncora de SÍMBOLO
+(`grep -n "jm-metas-grid" prototipo-ui/cowork/Wagner/jana-merge.css`). Precedência de FORMA:
+protótipo > teste > casos > charter > SPEC
+([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)),
+sob [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1.
+
+**Medido em runtime, não deduzido** (2026-09-21, staging autenticado, dark nos dois lados,
+viewport 1440×900, container da grade **1117px idêntico** ⇒ a diferença não vinha de largura
+disponível). O dado existia: prod tinha **5 metas ativas**, e o staging recebeu fixture
+equivalente — foi o que destravou esta medição, registrada em
+[`Index-visual-comparison.md`](../../../../memory/requisitos/Jana/Index-visual-comparison.md).
+
+| eixo | âncora | tela viva (antes) | agora |
+|---|---|---|---|
+| colunas (container 1117px) | **4** (271,8px) | 3 (361,7px) | **4** (273,2px) |
+| regra da grade | `auto-fit minmax(232px,1fr)` | `sm:grid-cols-2 xl:grid-cols-3` | `<Grid fit="sm">` (auto-fit por token) |
+| gap da grade | **10px** | 16px (`gap-4`) | **8px** (`gap={2}`) |
+| altura do card | **122px** | 236px | **198px** |
+| padding do card | **12px 13px** | 24px 0 (`py-6` + `px-6 pl-5`) | **12px 13px** (`py-3` + `px-[13px]`) |
+| gap interno | **8px** | 24px (`gap-6`) | **8px** (`gap-2`) |
+| ritmo do conteúdo | 8px | 12px (`space-y-3`) | **8px** (`space-y-2`) |
+| valor | **mono 20px/700** | sans 24px/600 | **mono 20px/700** |
+| `border-radius` | 12px | 12px (`rounded-xl`) | inalterado ✅ |
+
+**Por que `<Grid fit="sm">` e não a classe crua `minmax(232px,1fr)`.** O dono de grade auto-fit
+neste repo é o [`Components/layout/grid.tsx`](../../../Components/layout/grid.tsx) (ADR 0253), e o
+docblock dele é explícito: *"largura mínima vem de token (enum), não de px solto no call-site"*.
+Escrever a classe crua seria mais literal e **menos correto** — é autorar paralelo a um dono que
+existe, e o `Grid` já é consumido na própria área (`Jana/Plataforma.tsx`, `JanaMetaDrawer.tsx`).
+**Residual declarado:** `fit="sm"` é 14rem (224px) contra 232px, e `gap={2}` é 8px contra 10px —
+medido, dá **4 colunas de 273,2px** contra 271,8px da âncora, **1,4px (0,5%)**, e o número de
+colunas, que é o que se enxerga, é o **mesmo**. Fechar os 1,4px exigiria **token novo no DS**, que é
+decisão [W], não desta tela.
+
+**⚠️ O que este UC NÃO fecha, e é residual DECLARADO:** o card fica em **198px** contra os **122px**
+da âncora. A diferença é **conteúdo que a âncora não tem**, não forma — medido no DOM: o
+**Sparkline** (32px + 8 de gap) e o **Badge de unidade** no header (22px) somam ~62 dos ~76px
+restantes. Removê-los é decisão de **produto**, não de réplica visual, e por isso não entra aqui.
+
+**Pronto quando:** a grade renderiza `grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]` + `gap-2`; o
+card renderiza `gap-2 py-3` (não `gap-6 py-6`); header e conteúdo usam `px-[13px]` (não `px-6 pl-5`);
+o conteúdo usa `space-y-2`; e o valor usa `font-mono text-[20px] font-bold tabular-nums` (não
+`text-2xl font-semibold`).
+
+**Mordida provada por mutação** (2026-09-21, restauração conferida por **hash sha256** em todas, e
+**controle positivo rodado antes** — íntegro = 9 passed):
+
+| mutante | resultado |
+|---|---|
+| `fit="sm"` → `min="sm"` (auto-fill em vez de auto-fit) | 1 failed |
+| `gap={2}` → `gap={4}` | 1 failed |
+| card `gap-2 py-3` → `gap-6 py-6` | 1 failed |
+| valor `font-mono text-[20px] font-bold` → `text-2xl font-semibold` | 1 failed |
+| conteúdo `px-[13px] space-y-2` → `pl-5 space-y-3` | 2 failed |
+
+⚠️ Um 6º mutante — trocar `<Grid>` por `<div className="grid …">` — devolveu **saída vazia**, e isso
+**não é mordida**: o `</Grid>` fica órfão, o build quebra e nenhum teste roda. Está registrado aqui
+porque `0 failed` e "não rodou" são indistinguíveis por exit code, e o que separa os dois é o
+**controle positivo** (§5 2026-09-16).
+
+**Onde:** [`tests/janaGradeMetasReplica.spec.tsx`](../../../../tests/janaGradeMetasReplica.spec.tsx),
+9 casos (6 de contrato + 3 de controle negativo, ADR 0258). jsdom não computa classe Tailwind, então
+o que se assere é a **classe** — que é o que o bundle traduz. O efeito em px foi provado à parte, no
+DOM da prod, aplicando as classes reais e medindo antes→depois.
+
