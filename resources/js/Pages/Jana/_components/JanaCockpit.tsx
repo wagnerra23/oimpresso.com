@@ -82,6 +82,7 @@ import {
   UserMinus,
   Volume2,
 } from 'lucide-react';
+import { Link } from '@inertiajs/react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
@@ -103,6 +104,17 @@ export interface JanaCockpitProps {
    * quebrar o cockpit em dois ou duplicar seções.
    */
   aposKpis?: ReactNode;
+  /**
+   * Tier da Jana (`jana_pro_module`). Governa brief, análises e ações — as três
+   * seções que a âncora (`jana-merge.jsx` §`JanaPage`) só desenha no Pro.
+   *
+   * Default `true` DE PROPÓSITO, e não `false` como o fail-safe do backend: o
+   * `Chat.tsx` também monta este componente, e quem não passa a prop não pode
+   * mudar de comportamento. O fail-safe vive onde o tier é LIDO
+   * (`useJanaPro`/`HandleInertiaRequests::janaPlanoPro`, default `false`); aqui
+   * o default só responde "ninguém me disse o tier", que é outra pergunta.
+   */
+  pro?: boolean;
   sellKpis: {
     total: number;
     paid: number;
@@ -280,6 +292,7 @@ function AnalysisCard({
 
 export default function JanaCockpit({
   aposKpis,
+  pro = true,
   sellKpis,
   coworkAggregates,
   insightsAggregates,
@@ -494,6 +507,14 @@ export default function JanaCockpit({
           chat-jana.css, consumido via `BriefDiario` no jana-merge.jsx — âncora de
           SÍMBOLO, não de linha: `grep -n "\.jc-brief{" prototipo-ui/cowork/Wagner/chat-jana.css`):
           `color-mix(in oklch, var(--accent) 9%, var(--surface))`. */}
+      {/* ⚠️ O CORPO DOS DOIS RAMOS `pro` DESTE ARQUIVO (brief e grade de análises) NÃO foi
+          reindentado ao ganhar o ternário. É deliberado: reindentar os 333 linhas dos dois
+          blocos produziria ~660 linhas de diff e ESCONDERIA as ~20 que mudam o
+          comportamento. Não há formatter obrigatório aqui — medido em 2026-09-21: nenhum
+          workflow de `.github/workflows/` roda `prettier`, e o `eslint.config.js` não tem
+          regra de indentação (`grep -cE '\bindent\b'` = 0, com `rules` = 6 de controle
+          positivo). Quem reindentar um dia, faça em PR próprio e sozinho. */}
+      {pro ? (
       <Card className="border-primary/25 bg-[color:color-mix(in_oklch,var(--color-primary)_9%,var(--color-card))]">
         <CardContent className="flex flex-col gap-3.5 p-5">
           <header className="flex flex-wrap items-center gap-3">
@@ -637,6 +658,25 @@ export default function JanaCockpit({
           </div>
         </CardContent>
       </Card>
+      ) : (
+        /* Grátis: o brief vira upsell. `EmptyState` shared, variante `default` — `pro`
+           falso é o estado de um usuário LEGÍTIMO, não erro: nada de tom `danger`, nada
+           de cadeado. A âncora não tem nenhum dos dois. Copy literal do protótipo. */
+        <EmptyState
+          className="rounded-lg border border-dashed border-border"
+          icon="calendar"
+          title="O brief diário é do plano Pro"
+          description="Toda manhã às 06h a Jana escreve o que aconteceu, o que está crítico e o que fazer hoje — com os números da sua empresa. No Grátis, você pergunta; no Pro, ela adianta."
+          action={
+            <Link href="/ia/pro">
+              <Button variant="outline" className="gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                Ver Jana Pro
+              </Button>
+            </Link>
+          }
+        />
+      )}
 
       {/* KPIs (3 cards) ────────────────────────────────────────────────────── */}
       {/* RÓTULOS — alinhados à âncora (`jana-merge.jsx` → `getJanaData().kpis` no
@@ -718,7 +758,10 @@ export default function JanaCockpit({
             value={fmtShort(sparkSum)}
             icon="wallet"
             delta={deltaRev !== null ? { value: deltaRev, label: 'hoje vs ontem' } : null}
-            onClick={abrirFat}
+            /* Drill só no Pro — na âncora o `alvo` do KPI é `pro ? … : null`. `undefined`
+               (e não um handler vazio) porque o `JanaKpiCard` degrada pro card inerte: sem
+               `<button>`, sem `aria-label` de ação pendurado em algo que não abre nada. */
+            onClick={pro ? abrirFat : undefined}
           />
         )}
         {/* `tone` só enfatiza quando HÁ alerta. O ramo `else` era `success`, que
@@ -747,7 +790,7 @@ export default function JanaCockpit({
                   .join(' · ')
               : 'tudo em dia'
           }
-          onClick={abrirInad}
+          onClick={pro ? abrirInad : undefined}
         />
         <JanaKpiCard
           label="Ticket médio"
@@ -772,11 +815,17 @@ export default function JanaCockpit({
             escopo desta tela (`chat-jana.css`/`jana-merge.css` não o declaram — só
             `estoque-page.css` e `mockup-pages.css`, de outras telas). Sem token resolvível,
             trocar a cor seria adivinhar; fica medido e declarado em vez de inventado. */}
+        {/* A sub-linha é PROMESSA DE DRILL, então acompanha o drill: no Grátis os cards
+            não abrem o drawer, e prometer o clique seria o "(em breve)" que o UC-JPAIN-16
+            cataloga. O TÍTULO fica nos dois planos — é ele que ancora a seção. */}
+        {pro && (
         <span className="ml-auto font-mono text-[10.5px] font-normal normal-case tracking-[0.02em] text-muted-foreground/80">
           clique num card pra ver de onde vem o número
         </span>
+        )}
       </SectionTitle>
 
+      {pro ? (
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Inadimplência buckets.
             `big` herda `text-foreground`; só o NEGATIVO vira vermelho — senão
@@ -967,9 +1016,32 @@ export default function JanaCockpit({
           />
         )}
       </div>
+      ) : (
+        /* Grátis: a grade vira upsell. `nenhumaAnalise` (todas escondidas no Configurar)
+           continua valendo SÓ dentro do ramo Pro, acima — a config é preferência de
+           EXIBIÇÃO de quem TEM as análises, nunca gate de plano. No Grátis quem manda é
+           o upsell, e o drawer segue intocado. */
+        <EmptyState
+          className="rounded-lg border border-dashed border-border"
+          icon="bar-chart-3"
+          title="As 5 análises são do plano Pro"
+          description="Inadimplência, faturamento, concentração, churn ouro e métodos de pagamento — recalculadas todo dia, com drill-down até a origem do número."
+          action={
+            <Link href="/ia/pro">
+              <Button variant="outline" className="gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                Ver Jana Pro
+              </Button>
+            </Link>
+          }
+        />
+      )}
 
       {/* Ações sugeridas ───────────────────────────────────────────────────── */}
-      {acoes.length > 0 && (
+      {/* No Grátis a faixa some INTEIRA — h2 junto —, como na âncora. Não vira upsell:
+          dois cards de venda na mesma tela seria insistência, e o §3 do pedido marca esta
+          seção como "ausente", não como "upsell". */}
+      {pro && acoes.length > 0 && (
         <>
           {/* Quem sugere é a JANA, não quem está olhando a tela. Até 2026-09-18 isto
               interpolava `firstNameUpper`, derivado de `userName` — o usuário logado —, então

@@ -337,6 +337,10 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
           flex encolhia o wrapper e o conteúdo (mais alto) vazava sobre o bloco Metas. */}
       <div className="px-6 pt-6 shrink-0">
         <JanaCockpit
+          // Tier da Jana: governa brief, análises e ações. A const já existia — até
+          // aqui ela só alimentava o `JanaPlanoBadge` do header, então a tela exibia o
+          // selo "Grátis" ao lado do conteúdo que o `/ia/pro` vende (ADR 0140).
+          pro={pro}
           // METAS na posição da âncora: logo depois dos KPIs, antes das análises.
           // Estava no fim da página, depois das ações — [W] 2026-08-17: "layout
           // esta diferente". Ordem medida no render do protótipo:

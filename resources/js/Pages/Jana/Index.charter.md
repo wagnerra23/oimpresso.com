@@ -113,6 +113,30 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   Âncora: `jana-merge.jsx` §`JmAcaoModal` — âncora de SÍMBOLO
   (`grep -n "JmAcaoModal" prototipo-ui/cowork/Wagner/jana-merge.jsx`).
 
+- **O TIER governa três seções (v22 — 2026-09-21):** brief diário, grade das 5 análises e a
+  faixa "Ações que Jana sugere" só renderizam no **Pro**. No Grátis as duas primeiras viram
+  card de upsell (`EmptyState` shared + `Link` pra `/ia/pro`) e a terceira **some inteira**,
+  h2 junto — exatamente como a âncora `jana-merge.jsx` §`JanaPage`, que desenha um produto de
+  dois planos (`upsell({ t: … })` em `:1078` e `:1102` — âncora de SÍMBOLO, re-localize com
+  `grep -n "upsell({ t:" prototipo-ui/cowork/Wagner/jana-merge.jsx`). O drill do KPI acompanha:
+  no Grátis o card não abre o drawer, porque prometer clique que não acontece é o defeito que
+  o **UC-JPAIN-16** cataloga.
+
+  **Não é cosmética.** Até aqui a tela entregava de graça o que o `/ia/pro` vende ([ADR 0140](../../../../memory/decisions/0140-jana-pro-produto-comercial-saas.md)),
+  com o selo "Grátis" do `JanaPlanoBadge` ao lado do conteúdo Pro renderizado — quem paga não
+  recebia nada a mais nesta tela. O `useJanaPro()` já era lido no `Index.tsx`; só não governava
+  seção nenhuma.
+
+  **Zero fundação:** `jana.pro` já chegava como shared prop **lazy**
+  (`HandleInertiaRequests.php:170`, `janaPlanoPro` lendo `jana_pro_module` na assinatura ativa),
+  com default `false` — fail-safe: na dúvida, Grátis. Nenhum campo, nenhuma query, nenhum
+  endpoint novo.
+
+  ⚠️ **METAS, conversa e memória NUNCA são gated**, e a config de análises
+  (`JanaConfigDrawer`/`analisesVisiveis`) **não** é gate de plano — é preferência de exibição
+  de quem já tem as análises. Travado por **UC-JPAIN-28**
+  (`tests/janaPainelGatingPro.spec.tsx`), cujo caso do slot `aposKpis` roda nos dois planos.
+
 ## Non-Goals
 
 - ⛔ Edição inline de meta (vai em `/copiloto/metas/{id}/edit` — US-COPI-013)
@@ -218,6 +242,53 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- **v22 (2026-09-21)** — **o tier Pro passou a governar brief, análises e ações.** Pedido
+  descido pelo playbook do Cowork (`cowork-inbox/jana/playbook/01-painel.gating-pro.md`, ONDA
+  01). Dois arquivos, nenhum componente novo, nenhum token novo: o upsell é o `EmptyState`
+  shared na variante `default` — `pro === false` é o estado de um usuário **legítimo**, não
+  erro, então nada de tom `danger` e nada de cadeado (a âncora não tem nenhum dos dois).
+
+  **O `PARAR SE` do pedido foi medido e NÃO disparou.** A ficha declarava, no §8, não ter lido
+  os dois donos do contrato; lidos aqui: o `jana-painel.contract.json` declara **6** seções
+  (`painel-cta-conversar`, `painel-metas-header`, `painel-metas-vazio`, `painel-meta-apurando`,
+  `painel-meta-sem-historico`, `painel-plano`) e **nenhuma** é brief/análises/ações; o
+  `PainelContratoTest.php` tem **zero** referência ao tier
+  (`grep -noE "jana\.pro|janaPro|'pro'|useJanaPro"` → 0, com `UC-JPAIN` → 62 de controle
+  positivo — os 110 hits de `pro` que um grep ingênuo acha são *processo/produto/prova*).
+
+  **Os dois casos que pareciam colidir medem o texto-FONTE, não o render**, e por isso
+  sobrevivem ao ramo: o **UC-JPAIN-16** extrai rótulos de `<Button>` do arquivo — rodadas as
+  regex literais dele contra o arquivo editado, a lista sai **idêntica** às 5 dívidas
+  declaradas, porque os 2 botões novos estão dentro de `<Link href="/ia/pro">`, que o extrator
+  reconhece como wrapper vivo; e o **UC-JPAIN-18** recorta o bloco `<KpiGrid>` e segue
+  devolvendo `['Receita 30 dias','A receber vencido','Ticket médio']` na ordem, com o
+  `<KpiGrid cols={4} className="gap-2.5">` intacto — o gating tirou o `onClick`, não os cards.
+
+  **Mordida provada por mutação:** revertido o gating nos 3 pontos, **4 de 9** casos do
+  `janaPainelGatingPro.spec.tsx` caem, e são os 4 que testam o comportamento; os 5 que passam
+  são controles que a mutação não alcança.
+
+  ⚠️ **ERRATA, no mesmo dia (2026-09-21): o parágrafo abaixo ficou DESATUALIZADO em ~1h, e a
+  afirmação dele vira instrução de desistência se lida como estado do mundo (§5 2026-09-01).**
+  O smoke autenticado **existe** — quem o produziu foi o `visual-regression` do CI, que renderiza
+  a tela **logada** (`PixelBaselineTest`, escopo `["Jana"]`) e publica o artefato
+  `pixel-diff-views/jana.html` com baseline × atual × diff. Medido no run `35592531986`:
+  `diff 2.0169% > τ_alto 2.0000%`, e o **atual** mostra o gating funcionando — selo
+  `plano Grátis` no header, o brief substituído pelo upsell com a copy literal e o botão
+  `Ver Jana Pro`, o h2 `ANÁLISES PRINCIPAIS` **sem** a sub-linha de drill (a baseline tinha), e
+  `METAS ATIVAS` de pé. É a prova de **runtime** que fecha o risco de LC-30 nesta onda: a
+  declaração não é inerte.
+  O que segue aberto é **só** o recorte do DoD §9 que o visreg não cobre: light mode e o par
+  `jana.pro` true/false lado a lado — o CI renderiza dark e o tenant de teste não tem
+  `jana_pro_module`. E a **aprovação [W] (F1.5)** da baseline nova segue sendo dele, não minha.
+  O texto original fica abaixo, não apagado, porque era honesto quando foi escrito:
+
+  ⚠️ ~~**Smoke autenticado NÃO foi feito**~~ — `oimpresso.com/ia` e `staging.oimpresso.com/ia`
+  devolvem **302** sem sessão, e o `launch.json` só serve protótipo estático. O DoD §9 (4
+  screenshots: dark/light × Pro/Grátis) segue **aberto**, e nada aqui afirma render medido.
+  A copy, essa sim, foi conferida **byte a byte** contra a âncora (5 strings, com controle
+  negativo).
 
 - **v21 (2026-09-18)** — **a aba da área passou a 13px/500, por `density="compact"` no
   `PageHeaderTabs`** — a métrica da âncora da Jana (`jana-merge.jsx` §`JmTabs`), contra os
