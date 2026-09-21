@@ -139,7 +139,8 @@ runtime que eu consultei primeiro, `NextElapseUSecRealtime`, vinha **vazio** —
 levou a concluir "o timer morreu". **Estava errado, e a razão vale mais que o caso:**
 este timer é **monotônico** (`OnBootSec` + `OnUnitActiveSec`), e timer monotônico não
 preenche o campo *Realtime* — o campo certo é **`NextElapseUSecMonotonic`**. Pedir o
-campo errado devolve vazio com cara de resposta (§5 2026-07-17).
+campo errado devolve vazio com cara de resposta (§5 2026-07-17, *deduzir quem-roda* — há **8**
+lápides nessa data, e a convenção canônica é citar por **data + apelido**, nunca por data só).
 
 ⚠️ **E ERREI UMA SEGUNDA VEZ NO MESMO CAMPO — fica registrado, não apagado.** Ao "corrigir"
 a primeira leitura, escrevi que o timer *"rearmou com `NEXT` a ~38 dias no futuro
@@ -152,8 +153,16 @@ do meu restart, e eu o apresentei como o estado de **antes**. A conta fecha e de
 |---|---|
 | boot do host | `2026-08-14 10:43:41` |
 | uptime | `3284111s` = **38,0 dias** |
-| `NextElapseUSecMonotonic` | `1month 1w 18h 25min 11.039463s` ≈ **38,77 dias após o boot** |
-| = em relógio de parede | **2026-09-21 15:37** — que é exatamente o `NEXT` que o `list-timers` mostrava **depois** do restart (`4h 38min left`) |
+| `NextElapseUSecMonotonic` | `1month 1w 18h 25min 11.039463s` = **3.300.911 s** = **38,2050 dias** após o boot (⚠️ no systemd `1month` = **2629800 s** = 30,4375 d, **não 31 d**) |
+| = em relógio de parede | `boot + 3.300.911 s` = **2026-09-21 15:38:52**, contra o `NEXT` medido de `15:37:49` — Δ **63 s**, que é o intervalo entre as duas leituras |
+| ✅ **verificação CONSTANTE-LIVRE** (a que dispensa saber quanto vale "month") | `NextElapse − uptime` = `3.300.911 − 3.284.111` = **16.800 s = 4,667 h**, contra o `4h 38min left` que o `list-timers` imprimiu — fecha sem nenhuma constante de calendário |
+
+⚠️ **A 1ª redação desta errata escreveu `≈ 38,77 dias` e ao lado `= 2026-09-21 15:37`, afirmando
+que "a conta fecha".** As duas linhas eram **mutuamente exclusivas por 13h31m**: 38,77 d implica
+`1month = 31 d`, constante que o systemd não usa. Eu publiquei o número **sem fazer a subtração**
+— dentro do parágrafo que registra o erro de não medir. Fica registrado (§5 2026-07-30: cometer
+a própria classe ao registrá-la). A linha da verificação constante-livre acima existe porque ela
+estava à mão desde o começo e não foi usada.
 
 Ou seja: aquele número diz *"daqui a ~6h"*, não *"daqui a 38 dias"*. **Pedir o sabor errado
 do campo** (Realtime num timer monotônico) e **ler mal o sabor certo** (absoluto como
@@ -163,13 +172,13 @@ serem medidos.
 **O que sobra medido, e é o que sustenta o diagnóstico.** O host rebootou em **14/ago
 10:43:41** (`-- Boot 2498b72c… --` no journal do timer). A partir daí:
 
-| evidência | valor |
-|---|---|
-| `LastTriggerUSecMonotonic` | **0** |
-| journal do timer | `Aug 14 10:43:42 Started …` e **nenhuma linha** até o meu restart de hoje |
-| `deploy-latest-main-sha.txt` | congelado desde `2026-08-13 19:50:01 -03` |
+| evidência | valor | imune ao restart? |
+|---|---|---|
+| journal do timer | `Aug 14 10:43:42 Started …` e **nenhuma linha** até o meu restart de hoje | ✅ é history |
+| `deploy-latest-main-sha.txt` | congelado desde `2026-08-13 19:50:01 -03` | ✅ é mtime de disco |
+| `LastTriggerUSecMonotonic` | **0** | ⚠️ **NÃO** — só foi lido às `12:38:51Z`, **depois** do restart de `12:37:48Z`; nunca foi lido antes. **Não sustenta sozinho**, e está aqui só como consistente com as duas de cima |
 
-As três convergem: **o timer nunca disparou em 38 dias**, embora `is-active` dissesse
+As duas primeiras — e só elas — sustentam: **o timer nunca disparou em 38 dias**, embora `is-active` dissesse
 `active` e `SubState` dissesse `waiting`. Ficou *armado e mudo* — nunca falhou, nunca
 alarmou, nunca rodou.
 
