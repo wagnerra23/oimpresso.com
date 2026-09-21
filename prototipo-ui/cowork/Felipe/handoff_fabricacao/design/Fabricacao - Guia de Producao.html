@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="cockpit">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fabricação (Manufacturing) — guia de produção</title>
+
+<!-- Fonte do cockpit: IBM Plex Sans + Mono (mesmo link do protótipo oimpresso.com.html).
+     O DS de produção serve as mesmas famílias auto-hospedadas; aqui vem do CDN porque o
+     pacote precisa abrir com duplo-clique. Contorno do pacote, declarado no README §14. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- ══ CAMADA 0 · DESIGN SYSTEM + SHELL (externos ao handoff — NÃO editar) ══
+     A ordem dos <link> É o contrato: camada de cima nunca é sobrescrita por camada de baixo.
+     colors_and_type.css  → tokens de identidade (.cockpit claro / .cockpit[data-theme=dark])
+     styles.css           → folha do shell cockpit: :root da sidebar/accent/radius/fontes +
+                            os padrões de página que o módulo consome (.os-page-h, .os-btn) -->
+<link rel="stylesheet" href="../../design-system/colors_and_type.css">
+<link rel="stylesheet" href="styles.css">
+
+<!-- ══ CAMADA 1 · FUNDAÇÕES — vazia nesta tela (ver design/README.md §CSS) ══ -->
+
+<!-- ══ CAMADA 2 · SHELL ══ -->
+<link rel="stylesheet" href="02-shell/css/otimiza-ondas.css">
+<link rel="stylesheet" href="02-shell/css/guia-standalone.css">
+
+<!-- ══ CAMADA 3 · PADRÕES DE TELA — vazia nesta tela (ver design/README.md §CSS) ══ -->
+
+<!-- ══ CAMADA 4 · MÓDULO ══ -->
+<link rel="stylesheet" href="04-modulos/manufacturing/css/manufacturing.css">
+</head>
+<body>
+<div id="app"></div>
+
+<!-- runtime: versões PINADAS com integrity SRI (mesmos hashes do protótipo) -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- ordem = dependência (cada arquivo publica em window no fim; escopos Babel não se falam) -->
+<script type="text/babel" src="manufacturing-data.jsx"></script>  <!-- 1. dados + cálculo -->
+<script type="text/babel" src="icons.jsx"></script>               <!-- 2. primitivo: window.I -->
+<script type="text/babel" src="manufacturing-recipe.jsx"></script><!-- 3. peças -->
+<script type="text/babel" src="manufacturing-insumos.jsx"></script>
+<script type="text/babel" src="manufacturing-producao.jsx"></script>
+<script type="text/babel" src="manufacturing-print.jsx"></script>
+<script type="text/babel" src="manufacturing-page.jsx"></script>  <!-- 4. a tela -->
+<script type="text/babel" src="manufacturing-app.jsx"></script>   <!-- 5. mount -->
+</body>
+</html>

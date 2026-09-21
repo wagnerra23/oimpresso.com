@@ -1,0 +1,116 @@
+/* configuracoes-page.css — só o que o shell, o hrm-page.css e o perfil/usuários não entregam.
+   A tela reusa o rail e o formulário das Preferências (fnc-rail / pf-form / cms-field). */
+.cfg-page{padding-bottom:40px}
+/* A tela reusa o grid do rail das Preferências, mas rola com a página (não em duas caixas internas) */
+.cfg-page .hrm-body{flex:1 1 auto}
+.cfg-page .cfg-body{flex:1 1 auto;min-height:520px;align-items:start}
+.cfg-page .cfg-body>.pf-rail{overflow:visible;position:sticky;top:0;align-self:start}
+.cfg-page .cfg-body>.pf-pane{overflow:visible;min-width:0}
+.cfg-bloco{border-top:1px solid var(--border);margin-top:18px;padding-top:14px;display:flex;flex-direction:column;gap:10px}
+.cfg-bloco>h3{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 2px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-mute)}
+.cfg-mini-link{background:none;border:0;padding:0;font:inherit;font-size:11px;letter-spacing:.02em;text-transform:none;color:var(--accent);cursor:pointer}
+.cfg-liga-fb{display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer}
+.cfg-liga-fb.travado{opacity:.6;cursor:not-allowed}
+.cfg-prefixos{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.cfg-mods{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.cfg-mod{display:flex;align-items:center;gap:9px;border:1px solid var(--border);border-radius:var(--r-2);background:var(--bg-2);padding:9px 11px;font-size:12.5px;color:var(--text-dim);cursor:pointer}
+.cfg-mod.on{border-color:color-mix(in oklch,var(--accent) 34%,transparent);background:color-mix(in oklch,var(--accent) 7%,transparent);color:var(--text)}
+.cfg-mod.bloq{opacity:.55;cursor:not-allowed}
+.cfg-mod.bloq em{margin-left:6px;font-style:normal;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--warn,var(--text-mute))}
+.cfg-mod input{accent-color:var(--accent)}
+.cfg-link{background:none;border:0;padding:0;font:inherit;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.cfg-salvar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:16px 24px 0}
+.cfg-salvar .hrm-note-ds{flex:1 1 320px;margin:0}
+.cfg-hint{font-size:12px;color:var(--text-mute);margin-right:auto;text-wrap:pretty;max-width:60ch}
+.cfg-hint b{color:var(--text);font-family:var(--font-mono,ui-monospace);font-weight:500}
+.cfg-acoes{display:flex;flex-wrap:wrap;gap:6px}
+.cfg-page .cfg-toolbar2{margin-top:6px}
+.cfg-pad{display:inline-block;margin-left:6px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:color-mix(in oklch,var(--accent) 10%,transparent);border:1px solid color-mix(in oklch,var(--accent) 26%,transparent);border-radius:99px;padding:1px 7px;vertical-align:middle}
+.cfg-p{margin:0 0 10px;font-size:12.5px;line-height:1.55;color:var(--text-dim);text-wrap:pretty}
+.cfg-page .os-btn.xs,.cfg-lay .os-btn.xs{padding:3px 8px;font-size:11.5px}
+.cfg-ordem{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-mute)}
+.cfg-rail-plano{margin-left:auto;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--warn,var(--text-mute))}
+.cfg-tab-off{opacity:.45}
+.cfg-erro{margin:0 0 12px;border:1px solid color-mix(in oklch,var(--neg) 32%,transparent);background:color-mix(in oklch,var(--neg) 8%,transparent);border-radius:var(--r-2);padding:8px 11px;font-size:12.5px;color:var(--text)}
+
+/* Logo do negócio */
+.cfg-logo{display:flex;gap:14px;align-items:center}
+.cfg-logo-box{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;flex:0 0 auto;border:1px solid var(--border);border-radius:var(--r-2);background:color-mix(in oklch,var(--accent) 12%,transparent);color:var(--accent);font-weight:700;font-size:16px;letter-spacing:.04em}
+.cfg-logo-t{display:flex;flex-direction:column;gap:4px;min-width:0}
+.cfg-logo-t b{font-size:12.5px;color:var(--text)}
+.cfg-logo-t small{font-size:11.5px;color:var(--text-mute)}
+
+/* Formas de pagamento por local */
+.cfg-pagtos table{width:100%}
+.cfg-pagtos input[type=checkbox]{accent-color:var(--accent)}
+
+/* Confirmação de exclusão (fallback quando o DS não expõe Modal) */
+.cfg-conf-bg{position:fixed;inset:0;background:color-mix(in oklch,var(--bg) 55%,transparent);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:70}
+.cfg-conf{width:min(420px,92vw);border:1px solid var(--border);border-radius:var(--r-3);background:var(--surface);padding:18px}
+.cfg-conf h3{margin:0 0 8px;font-size:14px;color:var(--text)}
+.cfg-conf-t{margin:0 0 14px;font-size:12.5px;line-height:1.55;color:var(--text-dim);text-wrap:pretty}
+.cfg-conf-a{display:flex;justify-content:flex-end;gap:8px}
+.os-btn.danger{border-color:color-mix(in oklch,var(--neg) 40%,transparent);background:color-mix(in oklch,var(--neg) 12%,transparent);color:var(--text)}
+.os-btn.danger:hover{background:color-mix(in oklch,var(--neg) 20%,transparent)}
+
+/* ── Editor de layout da fatura (C4) ── */
+.cfg-lay{display:flex;flex-direction:column;min-height:0;padding-bottom:32px}
+.cfg-lay-h{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:0 24px 12px}
+.cfg-lay-h h2{margin:0;font-size:16px;font-weight:600;color:var(--text)}
+.cfg-lay-h p{margin:2px 0 0;font-size:12px;color:var(--text-mute)}
+.cfg-lay-h-a{display:flex;gap:8px}
+.cfg-lay-body{display:grid;grid-template-columns:210px minmax(0,1fr) 420px;align-items:start;min-height:0}
+.cfg-lay-pane{overflow:visible;min-width:0}
+.cfg-lay-body>.pf-rail{overflow:visible;position:sticky;top:0}
+.cfg-cks{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
+.cfg-ck{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--border);border-radius:var(--r-2);background:var(--bg-2);padding:8px 11px;font-size:12.5px;color:var(--text-dim);cursor:pointer}
+.cfg-ck.on{border-color:color-mix(in oklch,var(--accent) 34%,transparent);background:color-mix(in oklch,var(--accent) 7%,transparent);color:var(--text)}
+.cfg-ck input{margin-top:2px;accent-color:var(--accent)}
+.cfg-ck small{display:block;font-size:11px;color:var(--text-mute);margin-top:2px}
+
+/* Folha de prova */
+.cfg-prova{position:sticky;top:0;padding:0 24px 0 0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.cfg-prova-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-mute)}
+.cfg-prova-h b{color:var(--text);font-size:11.5px}
+.cfg-prova-fb{border:1px solid var(--border);border-radius:var(--r-2);background:var(--surface);padding:16px}
+.cfg-prova-n{margin:0;font-size:11px;line-height:1.5;color:var(--text-mute);text-wrap:pretty}
+.cfg-folha{background:#fff;color:#1a1a1a;padding:16px;font-size:8.5px;line-height:1.45;display:flex;flex-direction:column;gap:9px;min-height:440px}
+.cfg-folha .mono{font-family:var(--font-mono,ui-monospace)}
+.cfg-folha-h{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #d8d8d8;padding-bottom:8px}
+.cfg-folha-marca{display:flex;gap:8px;align-items:flex-start}
+.cfg-folha-marca>div{display:flex;flex-direction:column}
+.cfg-folha-logo{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;flex:0 0 auto;border-radius:3px;background:var(--destaque,#7c3aed);color:#fff;font-weight:700;font-size:10px}
+.cfg-folha-neg{font-size:11px}
+.cfg-folha-loc{font-size:10px}
+.cfg-folha-sub{font-size:7.5px;color:#555}
+.cfg-folha-doc{display:flex;flex-direction:column;align-items:flex-end;text-align:right}
+.cfg-folha-doc b{font-size:12px;color:var(--destaque,#7c3aed);text-transform:uppercase;letter-spacing:.04em}
+.cfg-folha-doc span{font-size:7.5px;color:#444}
+.cfg-folha-cab{margin:0;font-size:8px;color:#444}
+.cfg-folha-partes{display:grid;grid-template-columns:1fr auto;gap:12px;border:1px solid #e4e4e4;padding:7px}
+.cfg-folha-partes>div{display:flex;flex-direction:column;gap:1px;font-size:7.5px;color:#444;min-width:0}
+.cfg-folha-partes b{font-size:9px;color:#1a1a1a}
+.cfg-folha-rot{font-size:6.5px;letter-spacing:.08em;text-transform:uppercase;color:#8a8a8a}
+.cfg-folha-t{width:100%;border-collapse:collapse}
+.cfg-folha-t th{text-align:left;font-size:6.5px;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--destaque,#7c3aed);padding:4px 5px}
+.cfg-folha-t td{border-bottom:1px solid #ececec;padding:4px 5px;vertical-align:top;font-size:8px}
+.cfg-folha-t .num{text-align:right}
+.cfg-folha-t b{font-size:8.5px;display:block}
+.cfg-folha-min{display:block;font-size:7px;color:#666}
+.cfg-folha-tot{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.cfg-folha-tot dl{display:grid;grid-template-columns:auto auto;gap:1px 16px;margin:0;min-width:170px}
+.cfg-folha-tot dt{font-size:7.5px;color:#555}
+.cfg-folha-tot dd{margin:0;font-size:8px;text-align:right}
+.cfg-folha-tot .forte{font-weight:700;font-size:10px;color:var(--destaque,#7c3aed)}
+.cfg-folha-palavras{margin:0;font-size:7px;font-style:italic;color:#666}
+.cfg-folha-imp{display:flex;justify-content:space-between;gap:10px;border-top:1px dashed #d8d8d8;padding-top:5px;font-size:7.5px;color:#555}
+.cfg-folha-f{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;margin-top:auto;border-top:1px solid #d8d8d8;padding-top:7px}
+.cfg-folha-f-t{display:flex;flex-direction:column;gap:3px;min-width:0}
+.cfg-folha-f-t p{margin:0;font-size:7.5px;color:#444}
+.cfg-folha-termos{font-size:6.5px !important;color:#777 !important}
+.cfg-folha-selos{display:flex;align-items:flex-end;gap:8px;flex:0 0 auto;color:#333}
+.cfg-folha-qr{display:flex;flex-direction:column;align-items:center;gap:2px}
+.cfg-folha-qr-q{width:34px;height:34px;background:repeating-conic-gradient(#1a1a1a 0 25%,#fff 0 50%) 0 0/8px 8px;border:2px solid #1a1a1a}
+.cfg-folha-qr small{font-size:6px;color:#666}
+.cfg-folha-barras{width:64px;height:26px;background:repeating-linear-gradient(90deg,#1a1a1a 0 1.5px,#fff 1.5px 3.5px)}
+@media (max-width:1280px){.cfg-lay-body{grid-template-columns:190px minmax(0,1fr);}.cfg-prova{grid-column:1/-1;padding:0 24px;position:static;max-width:520px}}

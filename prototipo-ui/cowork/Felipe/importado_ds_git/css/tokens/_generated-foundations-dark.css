@@ -1,0 +1,10 @@
+/* GERADO por Style Dictionary v4 a partir de resources/css/tokens/*.tokens.json (DTCG).
+   NÃO EDITAR À MÃO — rode `npm run tokens:build` (ou `node resources/css/tokens/style-dictionary.config.mjs`).
+   ATIVAÇÃO (feat/onda-dtcg-ativar): este arquivo é a CAMADA DE TOKEN consumida pelo build.
+   Edite o token no .tokens.json — o CSS é SAÍDA. Equivalência: scripts/governance/dtcg-equivalence.mjs. */
+
+[data-theme="dark"] {
+  --sh-1: 0 4px 14px -6px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.3);
+  --sh-2: 0 18px 50px -18px rgba(0,0,0,.6), 0 4px 14px -6px rgba(0,0,0,.4);
+  --atmo: radial-gradient(1100px 600px at 82% -8%, oklch(0.26 0.07 295 / .28), transparent 60%), radial-gradient(900px 520px at 8% 108%, oklch(0.24 0.05 250 / .22), transparent 62%);
+}

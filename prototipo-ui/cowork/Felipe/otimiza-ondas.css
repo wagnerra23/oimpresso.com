@@ -1,0 +1,32 @@
+/* Camada transversal de otimização (ondas 1-7) — vale pra TODO módulo sem repintar nenhum.
+   Regra de ouro: tudo em :where() (especificidade 0) → qualquer CSS de módulo continua vencendo.
+   Nada aqui pinta cor nova: só token do DS vivo. Telas ouro (Clientes 🔵, Inbox 🔵) intactas. */
+
+/* ── 1 · Cabeçalho de tabela fixo em toda consulta (no-op onde não há scroll) ── */
+:where(#app) table thead th{position:sticky;top:0;z-index:2;background:var(--surface)}
+
+/* ── 2 · Números que não dançam: coluna de valor/qtd/data alinhada por dígito ── */
+:where(#app) td[align="right"],:where(#app) th[align="right"],:where(#app) .mono,:where(#app) [data-num]{font-variant-numeric:tabular-nums}
+
+/* ── 3 · Foco visível universal (canon DS: accent + halo).
+   Recupera o anel nos muitos botões com `all: unset` — a11y não é negociável. */
+:where(#app) :focus-visible{outline:2px solid var(--accent);outline-offset:1px;box-shadow:0 0 0 3px var(--accent-soft);border-radius:var(--radius-sm,4px)}
+:where(#app) :focus:not(:focus-visible){outline:none}
+
+/* ── 4 · Alvo de toque ≥44px nas personas tablet/celular (Técnico Repair, ponto mobile) ── */
+@media (pointer:coarse){:where(#app) button,:where(#app) a[role="button"],:where(#app) [role="tab"],:where(#app) select,:where(#app) input[type="checkbox"]{min-height:44px}
+:where(#app) input[type="checkbox"]{min-width:44px}}
+/* Mesmo piso ligado à mão pelo Tweak "Alvo de toque" (ver no desktop o que o tablet entrega). */
+:where([data-toque="tablet"] #app) button,:where([data-toque="tablet"] #app) a[role="button"],:where([data-toque="tablet"] #app) [role="tab"],:where([data-toque="tablet"] #app) select,:where([data-toque="tablet"] #app) input[type="checkbox"]{min-height:44px}
+:where([data-toque="tablet"] #app) input[type="checkbox"]{min-width:44px}
+
+/* ── 5 · Densidade como um interruptor só (herda do shell, não por tela) ── */
+:where(#app) [data-dense="compacto"] table td,:where(#app) [data-dense="compacto"] table th{padding-block:4px}
+:where(#app) [data-dense="confortavel"] table td,:where(#app) [data-dense="confortavel"] table th{padding-block:10px}
+
+/* ── 6 · Link nunca azul de browser (o usuário insere link no editor depois) ── */
+:where(#app) a{color:var(--accent);text-decoration:none}
+:where(#app) a:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* ── 7 · Motion budget do DS: entrada some pra quem pediu menos movimento ── */
+@media (prefers-reduced-motion:reduce){:where(#app) *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
