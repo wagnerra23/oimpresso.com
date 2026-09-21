@@ -298,6 +298,98 @@ const D = [
   {k:"alert",tone:"danger",title:"Retratação dupla — 13/09/2026",body:"Este doc afirmou, por vários ciclos, que os contratos moram em <code>prototipo-ui/contrato/</code> e que um <code>financeiro-unificado.<b>intent</b>.json</code> estava fora do glob do CI. Medido em <code>ffe69844cb71</code>: <b>o diretório não existe</b> (os contratos estão em <code>governance/design/contracts/</code>) e <b>o tal <code>.intent.json</code> não existe em nenhum lugar da árvore</b> (filtro <code>contract\\.json$|contrato/</code> em 16.569 arquivos: 39 hits, nenhum deles). Eu não li um arquivo errado — eu <b>citei de memória</b> e depois usei a citação como prova. A thread 06 do playbook nasceu dessa premissa falsa e foi reescrita."},
   {k:"alert",tone:"info",title:"Onde o pedido mora",body:"<code>cowork-inbox/ancora/playbook/</code> — <code>_PATCH-INDICE-2026-09-10.md</code> (delta do índice, porque a pasta local é cache) + <code>04-denominador-cobertura.md</code> · <code>05-campo-duplo-divergente.md</code> · <code>06-contrato-fora-do-glob.md</code>. Cada thread fecha por <b>execução com recibo</b>, não por \"o arquivo contém a string\"."}]},
 
+{ id:"tec-ds-fluxo", grp:"tec", nav:"Fluxo do DS → tela", title:"Fluxo do design system — do token do git ao pixel da tela",
+  sub:"Cinco blocos, cada um com um dono: fonte no git, bundle espelhado, base resolvida em runtime, host + fila de módulos, aplicação na tela. Quem pula um bloco reintroduz cópia que apodrece.",
+  type:"reference", auth:"canonical", upd:"2026-09-18", git:"prototipo-ui/design-system/HANDOFF.md",
+  rel:["ADR 0239 — git é SSOT do DS","ADR 0190/0235 — primary roxo hue 295","HANDOFF.md §3 — âncora de tela"],
+  blocks:[
+  {k:"flow",label:"Do token ao pixel — cinco blocos",stages:[
+    {t:"Fonte",src:"resources/css/tokens/*.tokens.json",items:["Tokens DTCG: <code>base</code> + <code>semantic</code>","Style Dictionary compila → <code>_generated-*.css</code>","Componentes reais em <code>Components/ui/*.tsx</code>","<b>Dono: git main</b> — SSOT"]},
+    {t:"Bundle",src:"_ds_bundle.js · colors_and_type.css",items:["<code>ds-push.mjs</code> monta o espelho — nunca transcrição à mão","<code>cockpit_domains.css</code> = camada de domínio","<b>Dono: projeto DS</b> — aqui só se consome"]},
+    {t:"Base em runtime",src:"window.__OI_DS_BASE__",items:["O host decide o caminho: <code>_ds/…</code> aqui, <code>../../design-system/</code> no cowork","Os <code>link</code>/<code>script</code> saem por <code>document.write</code>","Ref literal a <code>_ds/</code> é proibida"]},
+    {t:"Host + fila",src:"oimpresso.com.html",items:["React UMD → lucide → <code>_ds_bundle</code> (defer)","CSS de módulo entra <code>media=print</code> e vira <code>all</code> no onload","Fila <code>oi-lazy</code>: janela de 8, família da rota na frente"]},
+    {t:"Tela",src:"&lt;modulo&gt;-page.jsx",items:["<code>const DS = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {}</code>","Rota no <code>app.jsx</code>, dado no <code>data.jsx</code>","Tokens <code>.cockpit</code> por <code>var(--*)</code> — zero cor crua"]}]},
+  {k:"p",t:"O fio que une os cinco: <b>nada de identidade nasce neste lado</b>. O protótipo escolhe <i>como</i> compõe; o git escolhe <i>com que valor</i>."},
+  {k:"h2",t:"Ordem de carga no host — é ordem, não lista"},
+  {k:"table",head:["#","O que entra","Por que nessa posição"],rows:[
+    ["1","<code>__OI_DS_BASE__</code> + <code>colors_and_type.css</code>","tokens de identidade antes de qualquer folha que os use"],
+    ["2","<code>styles.css</code> (shell) ","o Cockpit V2 assume os tokens já resolvidos"],
+    ["3","<code>cockpit_domains.css</code>","camada de domínio carrega <b>depois</b> pra vencer literais antigos"],
+    ["4","folhas de módulo (<code>media=print</code>)","baixam sem bloquear a pintura; a folha da rota atual é promovida na hora"],
+    ["5","React + ReactDOM + Babel + lucide","o bundle do DS é JS puro e depende de <code>window.React</code>"],
+    ["6","<code>_ds_bundle.js</code> (defer)","publica <code>window.OfficeImpressoPontoWR2DesignSystem_019dd0</code>"],
+    ["7","peças compartilhadas + <code>app.jsx</code>","sidebar, abas, page header e roteador pintam o shell primeiro"],
+    ["8","fila <code>text/oi-lazy</code>","os módulos entram em segundo plano, um arquivo por tela, no próprio escopo"]]},
+  {k:"alert",tone:"danger",title:"Ref literal a _ds/ apaga o design system",body:"<code>href</code>/<code>src</code> literal apontando pra <code>_ds/</code> entra no fechamento do pacote e faz o import do protótipo <b>escrever em</b> <code>prototipo-ui/design-system/</code> — cujo dono é o projeto DS. Foi o que apagou arquivos do DS, as fontes inclusive. A base sai de <code>window.__OI_DS_BASE__</code>, sempre."},
+  {k:"h2",t:"Quem manda em quê"},
+  {k:"kv",rows:[
+    ["identidade","neutros, radius, tipo, status → <code>colors_and_type.css</code> do DS vivo"],
+    ["domínio","stage, sla, canal, kpi, vip → <code>cockpit_domains.css</code>"],
+    ["shell","sidebar dark-fixo, page header, densidade → <code>styles.css</code> + <code>otimiza-ondas.css</code>"],
+    ["módulo","só o que é exclusivo da tela → <code>&lt;modulo&gt;.css</code>, em <code>:where()</code> quando transversal"],
+    ["componente","<code>DS.Button</code>, <code>DS.DataGrid</code>, <code>DS.Drawer</code>… — compor, nunca reestilizar HTML cru"],
+    ["variação","<code>useTweaks</code> no mesmo componente — nunca arquivo novo"]]},
+  {k:"h2",t:"Aplicação numa tela — os quatro toques"},
+  {k:"table",head:["Passo","Onde","Regra"],rows:[
+    ["componente","<code>&lt;modulo&gt;-page.jsx</code> → <code>window.&lt;Modulo&gt;Page</code>","um arquivo por tela; fallback quando <code>DS</code> não existe"],
+    ["registro","<code>script</code> no host","<code>text/oi-lazy</code> pra módulo; <code>text/babel</code> só pro compartilhado"],
+    ["rota","<code>app.jsx</code>","rota sem componente é o ponto cego declarado (C6)"],
+    ["dado","<code>data.jsx</code> / <code>&lt;modulo&gt;-data.jsx</code>","copy em PT-BR, moeda e data no formato do DS"]]},
+  {k:"alert",tone:"warn",title:"Este lado é espelho",body:"Mudar um token editando <code>colors_and_type.css</code> daqui cria divergência silenciosa. Valor novo volta pelo <code>HANDOFF.md</code> / <code>ds-push.mjs</code> — o protótipo propõe, o <code>main</code> ratifica."},
+  {k:"p",t:"Esta página cobre a <b>metade de cima</b>: como a identidade chega ao protótipo e é aplicada numa tela <i>daqui</i>. A metade de baixo — como essa tela atravessa até o <code>.tsx</code> em produção, com recibo — é a página seguinte."},
+  {k:"h2",t:"Quando a tela não fica igual ao DS"},
+  {k:"ul",items:[
+    "Componente sumiu e sobrou HTML cru: o bundle não carregou — confira <code>window.__OI_DS_BASE__</code> e o <code>defer</code>.",
+    "Cor fora do tom: alguém escreveu valor cru. Token ou nada.",
+    "Medição divergente: medir só depois de <code>__oiLazyDone</code> e de <b>duas leituras iguais</b> de <code>querySelectorAll('*').length</code>.",
+    "Veredito por classe declarada não vale — é <code>getComputedStyle</code>, sempre."]}]},
+
+{ id:"tec-ds-aplicar", grp:"tec", nav:"Aplicação na tela (6 fases)", title:"Aplicação — do bundle importado ao .tsx com recibo",
+  sub:"A metade de baixo do pipeline. Seis fases, cada uma com máquina própria e um recibo no ledger; o estado da tela é derivado dos recibos, nunca escrito à mão.",
+  type:"runbook", auth:"canonical", upd:"2026-09-18", git:"scripts/design-sync/state/README.md",
+  rel:["ADR 0384 — ciclo de vida por tela no ledger","ADR 0390 — smoke com host, sha de deploy e screenshot","ADR 0286 — contrato de tela"],
+  blocks:[
+  {k:"flow",label:"Do pacote importado à tela em prod — seis fases",stages:[
+    {t:"Importar",n:"−1",src:"receber-handoff + irmãs",items:["Pacote do Cowork desce por partes + <code>bundle.manifest.json</code>","Espelho atualizado em <code>prototipo-ui/cowork/&lt;dono&gt;/</code>","<b>Gate DS: required</b>"]},
+    {t:"Detectar",n:"0/0.5",src:"scripts/design/detectar-telas.mjs",items:["Casa <code>&lt;modulo&gt;-page.jsx</code> com <code>Pages/&lt;Mod&gt;/&lt;Tela&gt;.tsx</code> + charter","Sentinela ALIAS↔charter (<code>--selftest</code> no CI)","Sem par, a tela não entra na esteira"]},
+    {t:"Mapear e comparar",n:"1",src:"style-fingerprint · design-diff · gerar-map",items:["Gera o esqueleto do <code>map.json</code> — nunca fabrica linha","Grava <code>prototipo_sha</code> + <code>target_sha</code>","Recibo: <code>--mark-compared</code>"]},
+    {t:"Aplicar",n:"3/4",src:"consumir-map · contrato-de-tela.mjs",items:["<b>Portão de frescor</b>: sha velho aborta (exit 3)","Contrato declara seções, copy literal e estados","Recibo: <code>--mark-applied</code> (arquivo versionado)"]},
+    {t:"Preflight e teste",n:"4",src:"ds-guard · cowork-ssot-guard · Vite build",items:["<code>anchor-content-check</code> + cobertura de casos","Recibo: <code>--run-test</code> — só saída zero prova","Nome de teste não vira recibo"]},
+    {t:"Fechar o loop",n:"5",src:"status.mjs --record-smoke",items:["Rota + sha do deploy + screenshot em <code>state/smokes/</code>","Tenant 1 em qualquer host; <code>biz=4</code> recusado","Só então a tela é <b>validated</b>"]}]},
+  {k:"h2",t:"O ciclo de vida da tela"},
+  {k:"fsm",label:"Estado derivado dos recibos (status.mjs é a única porta)",hue:295,steps:[["anchored","done"],["compared","done"],["applied","current"],["tested","todo"],["validated","todo"]]},
+  {k:"kv",rows:[
+    ["anchored","âncora declarada — a tela tem par e charter"],
+    ["compared","mapa válido; comparação medida, não afirmada"],
+    ["applied","arquivo versionado no <code>main</code>"],
+    ["tested","comando executado com <b>saída zero</b>"],
+    ["validated","smoke posterior, com sha de deploy e screenshot versionado"]]},
+  {k:"alert",tone:"info",title:"Os verbos são literais",body:"Texto livre não vira recibo. E qualquer mudança de hash <b>invalida os recibos dependentes</b> e recua a tela ao último estado ainda provado — é assim que a aprovação caduca sozinha em vez de mentir."},
+  {k:"h2",t:"O que é máquina e o que é gate de verdade"},
+  {k:"table",head:["Fase","Máquina","No CI"],rows:[
+    ["−1 importar","<code>receber-handoff</code> + 6 irmãs","<b>required</b> (DS gate)"],
+    ["0/0.5 detectar","<code>detectar-telas</code> (+ selftest e anti-drift)","selftest no design-memory-gate"],
+    ["1 mapear","<code>style-fingerprint</code> · <code>design-diff</code> · <code>gerar-map</code>","<b>required</b> só a âncora de design não-shell"],
+    ["3/4 aplicar","<code>consumir-map</code> · <code>contrato-de-tela</code>","contrato-de-tela <b>advisory</b>"],
+    ["4 preflight","<code>ds-guard</code> · <code>cowork-ssot-guard</code> · <code>anchor-content-check</code>","<b>required</b>: DS, casos, nota de tela, Vite build"],
+    ["5 fechar","<code>--record-smoke</code> · <code>design-code-map-check</code>","design-memory-gate <b>advisory</b>"]]},
+  {k:"alert",tone:"warn",title:"Nenhum gate do ato de aplicar é required",body:"Medição de [CL] no dono (<code>governance/required-checks-baseline.json</code>), 18/09: contrato-de-tela, visual-regression, placar, a11y, design-memory e map são todos <b>advisory</b>. Os required protegem as <b>bordas</b> — âncora, DS, nota, casos, build — não o ato de escrever na tela."},
+  {k:"h2",t:"Onde o caminho parou"},
+  {k:"table",head:["Fase","Pares que chegaram"],rows:[
+    ["1 — comparado (<code>map.json</code>)","55"],
+    ["3/4 — aplicado na tela","4"],
+    ["4 — testado (job de CI, exitCode 0)","4"],
+    ["5 — smoke em prod","4"]]},
+  {k:"p",t:"Os 4 são <code>arquivos-page.jsx → Arquivos/Index.tsx</code> e três do <code>fiscal-page.jsx</code> (<code>Fiscal/Config</code>, <code>Fiscal/Eventos</code>, <code>Fiscal/Sped</code>) — todos em 06-07/09, no deploy <code>7bff2ca69d</code>. Desde então a metade de cima rodou 10 handoffs e a de baixo, zero."},
+  {k:"alert",tone:"danger",title:"Uma das 4 aprovações caducou",body:"<code>Fiscal/Sped.tsx</code> está <b>STALE</b>: o <code>targetSha256</code> gravado no smoke não é o do arquivo de hoje. O recibo não cobre o que está em prod — refazer a fase 5."},
+  {k:"alert",tone:"warn",title:"E 4 mapas envelheceram com os imports",body:"<code>design-code-map-check --check --strict</code> reprova (rc=1): 4 <code>map.json</code> (Essentials/tipos, Ponto dashboard-index e espelho-index/show) com <code>prototipo_sha</code> vencido — efeito direto de importar 10 handoffs sem re-rodar a fase 1. Quem enxerga é advisory, então está vermelho e não barra ninguém; o <code>consumir-map</code> aborta se alguém tentar aplicar sobre eles. Falta a regeneração (<code>gerar-map --atualizar</code>, que preserva o preenchido)."},
+  {k:"h2",t:"A regra que esta página existe pra fixar"},
+  {k:"ul",items:[
+    "<b>Importar não é aplicar.</b> Pacote descido move a fase −1, e mais nada.",
+    "Estado de tela nunca se escreve: é derivado do ledger (<code>applications.json</code>).",
+    "Recibo de teste sem saída zero não existe; smoke sem sha de deploy e screenshot não existe.",
+    "Números desta página são de medição citada, não de leitura minha — quem afirma é quem rodou o comando."]}]},
+
 { id:"tec-qa", grp:"tec", nav:"Qualidade & CI", title:"Qualidade — o que o CI cobra de verdade",
   sub:"Pest v4 nos testes, baselines pra dívida existente, guards pra doutrina. A régua não é opinião: é script com nome.",
   type:"runbook", auth:"canonical", upd:"2026-07-28", git:"package.json",
@@ -369,7 +461,7 @@ const D = [
 
 // Fonte ÚNICA da linha de autoridade do cabeçalho. Estava literal no subhead
 // ("02/08/2026") e envelheceu 6 semanas — data escrita à mão sempre envelhece.
-const SYNC={data:"13/09/2026",arvore:"ffe69844cb71"};
+const SYNC={data:"18/09/2026",arvore:"c89bb2abe985"};
 const GRPS=[["start","Comece aqui"],["dominio","Domínio — as entidades"],["fluxo","Fluxos de operação"],["tec","Técnico — construir"],["gov","Governança"],["corpus","Corpus"]];
 // Ordem de leitura = ordem do array; a numeração é derivada (nunca escrita à mão).
 const ORDER=["start","dominio","fluxo","tec","gov","corpus"];
@@ -425,6 +517,17 @@ function Blocks({ doc }){
     {DS.FsmStepper
       ? <DS.FsmStepper variant={wide?"full":"inline"} hue={b.hue} steps={b.steps.map(s=>({label:s[0],state:s[1]}))} />
       : <div style={{fontFamily:"var(--font-mono)",fontSize:12}}>{b.steps.map(s=>s[0]).join(" → ")}</div>}
+   </div>);
+  if(b.k==="flow")return (
+   <div className="doc-flow" key={i}><div className="doc-fsm-h">{b.label}</div>
+    <ol className="doc-flow-r">
+     {b.stages.map((s,j)=>(
+      <li className="doc-flow-s" key={j}>
+       <span className="doc-flow-n">{s.n||j+1}</span>
+       <b>{s.t}</b><em dangerouslySetInnerHTML={{__html:s.src}} />
+       <ul>{s.items.map((it,k2)=><li key={k2} dangerouslySetInnerHTML={{__html:it}} />)}</ul>
+      </li>))}
+    </ol>
    </div>);
   if(b.k==="alert")return (
    <div className="doc-note" key={i}>{DS.Alert

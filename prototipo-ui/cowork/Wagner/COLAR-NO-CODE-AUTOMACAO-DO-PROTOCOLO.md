@@ -75,6 +75,65 @@
 
 ---
 
+## PR-A9 · DS **por dono**, convertido na APLICAÇÃO 🟢 — decisão [W] 2026-09-17
+
+> **O problema que isto encerra:** o `_ds/` é recorte do **bind de cada projeto** — o do Wagner tem slug (`_ds/office-impresso-…019dd02f/`, 10 arquivos `preview-cache`), o do Felipe é **sem slug** (`_ds/colors_and_type.css`, `_ds/styles.css`, `_ds/_ds_bundle.js` em `venda-v3/index.html`). Normalizar a forma no lado do DESIGN cobra de cada dono, a cada refresh de binding. [W]: *"cada um fica com seu `_ds` próprio; quando for aplicar no Code, faz a conversão"*. A conversão tem endereço natural no applier, que **já é o dono do roteamento** (`destinoDoBundle` · `dsRuntimeRelPath`).
+>
+> **Custo medido de fazer diferente (1 dia):** 3 refs de `<link>` custaram 4 ocorrências de `__OI_DS_BASE__` escritas à mão, 1 pacote recusado (26), 1 revert dele, 1 revert errado meu e uma máquina nova (+21/+7/+10/+4/+30 linhas em `bundle-transaction.mjs`/`.test.mjs`). E não terminava: o host do Felipe teria de ser migrado por outro dono, e todo refresh recriaria o caso. **Uma regra, dois donos, zero conserto por pacote** é o objetivo deste PR.
+
+> **Pedido pronto para colar no Code:** `COLAR-NO-CODE-A9-DS-POR-DONO.md` (thread única, auto-suficiente). Este bloco é a norma/backlog; o executor lê o pedido, não este arquivo (§13).
+
+### Desenho (5 peças, nenhuma nova do zero)
+1. **Bytes do DS saem do lote por FLAG que já existe:** `--exclude '_ds/**'` no `gerar-payload-partes.mjs` (glob suportado; o próprio docblock cita o teste com `--exclude '_ds/**/_ds_bundle.js'`). Nada de `preview-cache` pousa — a regra de dono do [CL] fica **intacta, e sem código novo**.
+2. **`dsRequires` POR DONO, com o slug de cada um:** `{ owner, slug|null, arquivos:[{path, sha256}] }`, lido do `_ds/` em disco (⚠️ leitura **nova** — `classificarParaSync` trata `_ds/` como ruído e o gerador **não** o lê hoje; premissa minha corrigida por [CL]). Slug `null` é a forma legítima do Felipe, não erro.
+3. **`transforms` declarado no manifesto:** `[{path, regra:'ds-ref', de, para}]` + o **sha pós-transformação** de cada arquivo tocado, calculado pelo gerador. Regra única e determinística: `_ds/<slug>?/x` → caminho relativo a `prototipo-ui/design-system/x`.
+4. **Applier converte na aterrissagem** com essa regra, e **verifica** o DS exigido contra `prototipo-ui/design-system/`: **ausente ⇒ recusa o lote** nomeando arquivo e sha · **sha divergente ⇒ RELATO**, exit 0 (o espelho é o dono e pode estar à frente — foi o caso das 4 fontes hoje; e hash **não diz direção**) · igual ⇒ silêncio. `dsRequires` ausente (pacote legado) ⇒ `NÃO MEDIDO`, nunca verde por omissão.
+5. **O gate de ref literal INVERTE de papel:** deixa de recusar e passa a ser o **gatilho** da conversão. Recusa só a ref `_ds/` que **não casa** a regra (ex.: `_ds/` apontando para arquivo fora da whitelist de runtime).
+
+### Por que a transformação tem de ser DECLARADA (a condição, não um detalhe)
+Converter muda o conteúdo do host na aterrissagem, e **duas máquinas dependem de o arquivo do espelho ser byte-idêntico ao transportado**: o applier confere `bytes` declarado × real e recusa o lote na divergência; o `--compare-bundle` compara `rawHash(disco)` × `sha256` do manifesto — **é o único sinal que pega remendo à mão no espelho** (caso de 13/08, 4 dias sem ninguém ver). Conversão não declarada ⇒ host **STALE em 100% dos ciclos** e esse alarme morre. Com `transforms` + sha pós-transform: bytes-check segue valendo no payload (pré-transform) e o frescor compara contra o sha pós-transform. **Retrabalho visível trocado por cegueira é o pior negócio possível** — daí a condição.
+
+### Dois furos de máquina que a mesma medição expôs (entram no PR)
+- **`styles.css` NÃO está na whitelist de runtime** do `dsRuntimeRelPath` (`_ds_bundle.js | colors_and_type.css | cockpit_domains.css | assets/`) — e é o que carrega os **componentes** do DS, do qual o host do Felipe depende. Sem isso o DS não tem como pousar componente para ninguém.
+- **Caminho sem slug LANÇA:** `_ds/colors_and_type.css` não casa `^_ds/[^/]+/`, cai na whitelist e dá `throw`. Coerente com a árvore: **não existe `_ds/` sob `Felipe/`** — as refs dele estão penduradas no espelho hoje.
+
+### `dsRequires`/`transforms` ficam FORA da identidade do bundle
+`createManifest` hasheia `identity = {schema, source, entry, files, missing, mirrorScope?}` e `validateManifest` **recomputa esse conjunto** — campo novo dentro da identidade reprova por construção (foi a recusa do dry-run do [CL]). E a classificação é essa mesma: identidade = **o que pousa**; `dsRequires`/`transforms` = **pré-condição e regra de aterrissagem**. Viajam como metadado (ao lado de `mode`/`totals`/`changes`), com **shape-check** no validador e enforcement no applier. ❌ **Não** relaxar o validador para ignorar campo desconhecido na identidade (porta do drift silencioso) e ❌ **não** assinar os campos na identidade (muda o id de **todo** bundle, quebra a cadeia de delta e força re-sync snapshot dos **702** arquivos do estado ativo).
+
+### Aceite — nos DOIS espelhos, senão não conta
+1. **Wagner (com slug):** lote com host referenciando `_ds/<slug>/colors_and_type.css` pousa com a ref convertida e **0 byte** de `_ds/**` escrito.
+2. **Felipe (sem slug):** mesmo lote com `_ds/colors_and_type.css` + `_ds/styles.css` **pousa igual** — hoje isso dá `throw`. É o bite que prova "funciona nos dois".
+3. **BITE ausência:** apagar `prototipo-ui/design-system/_ds_bundle.js` ⇒ lote **recusado** citando path e sha exigido.
+4. **CONTROLE positivo:** o mesmo lote com o DS completo **passa** (sem ele, "recusa sempre" ficaria verde no item 3).
+5. **BITE divergência:** mutar 1 byte do `colors_and_type.css` do espelho ⇒ **RELATO**, exit 0, com o texto dizendo que o espelho pode estar à frente.
+6. **BITE frescor pós-transform:** rodar `--compare-bundle` depois da aplicação ⇒ **SYNC** (é o que prova que a conversão não cegou o alarme); e remendar 1 byte do host no espelho à mão ⇒ **STALE**.
+7. **T5:** remover uma entrada de `dsRequires` faz a contagem cair **nomeando** o arquivo; remover a entrada de `transforms` faz a ref chegar **não convertida** e o item 6 reprovar.
+
+### Simulação das 6 possibilidades (feita ANTES de pedir — não por pacote)
+Testes que hoje decidem se um lote vive: **(a)** gate de ref literal · **(b)** `dsRuntimeRelPath` (slug + whitelist) · **(c)** escrita no DS (dono) · **(d)** bytes-check / `--compare-bundle` · **(e)** R4 de bytes duplicados (as 4 fontes) · **(f)** funciona para o Felipe.
+
+| opção | falha em | por quê, medido | veredito |
+|---|---|---|---|
+| **O1** indireção `__OI_DS_BASE__` no design (status quo) | **f** | host do Felipe tem 3 refs literais **sem slug** ⇒ lote recusado e `dsRuntimeRelPath` lança | cobra cada dono a cada refresh de bind |
+| **O2** conversão na aplicação (`dsRequires`+`transforms`) | — | passa nos 6 **se** o `transforms` declarar o sha pós-transform; bytes saem por `--exclude '_ds/**'`, que já existe | ✅ **escolhida** |
+| **O3** importar `_ds/` na íntegra | **c · e · d** | 10 arquivos sobre **251** = poda; 4 fontes idênticas (45.712 B) reprovam por dupe; tokens/fontes daqui são **mais velhos** ⇒ desfaz o #7456 | recusa por pacote, para sempre |
+| **O4** só refresh do binding | **a · b · f** | com `_ds/` batendo, não há o que escrever (c/e passam por acidente), mas o Felipe segue sem rota | complemento necessário, não solução |
+| **O5** DS por URL absoluta / `<base href>` | **c · d** | DS sai do grafo e do espelho versionado; `<base>` reescreveria **todas** as ~270 refs relativas do app | descartada |
+| **O6** um `_ds/` por dono dentro do espelho | **e** | R4 hasheia tudo em `prototipo-ui/` **inclusive cache ignorado** ⇒ 2 cópias = vermelho garantido; e o caso 9 do teste afirma que `_ds/` **não** pousa sob o dono | descartada |
+
+**Escolha: O2 + O4** — O2 é a única que passa nos 6 e a única que **para de cobrar dos donos**; O4 é o passo separado (refresh do bind) que torna o eixo de bytes inócuo.
+
+### Ordem de aplicação (para não modificar o import de novo)
+Enquanto o gate atual (recusa por ref literal) estiver vigente, o **host do Wagner mantém** `__OI_DS_BASE__` — ele passa nesse gate e está aplicado no 25. **Quando o A9 entrar**, a indireção sai numa **única** edição declarada e o host volta a refs literais, que a conversão resolve; o host do Felipe **não precisa ser tocado por ninguém**. Fora dessa ordem, o lote de alguém morre no meio do caminho.
+
+### O que este PR **NÃO** resolve (decisão [W], não máquina)
+**Cadência da rota do DS.** A verificação torna DS defasado visível; não atualiza nada. Quem escreve `design-system/` é o export do projeto DS (#7096), que hoje roda **por evento, sem periodicidade** — **236 de 251** arquivos congelados desde 2026-09-09, `ds-mirror-drift` medindo **1 de 251**, e o cache do bind deste lado ainda com os 8 tokens pré-v1.2.0 e as 4 Sans byte-idênticas (45.712 B) contra o git já consertado (**63.020 / 66.740 / 67.060 / 63.012 B**). Falta **dono + gatilho**.
+
+### Lição de classe (vale além deste PR)
+**"Não escrever" foi implementado como "não olhar".** A exclusão do `_ds/**` era de **escrita** (dono), mas desceu ao `classificarParaSync` como exclusão de **conhecimento** — e por isso o gerador não tinha de onde tirar a exigência. Mesma forma do meu erro do mesmo dia (concluir que o DS precisava de ref literal porque a máquina de frescor não o media): **ausência de medição virando ausência de existência**. Regra: ao barrar a escrita de algo, declarar **quem passa a ler** — senão a barreira apaga o dado junto com a permissão.
+
+---
+
 ## O que NÃO se automatiza (e não deve)
 
 - **Decisões [W]:** alocação/label no sidebar · motor do gantt (`@svar-ui/react-gantt` × `.fj-g-*`: 163 dependências viram setas) · alvo de toque em ERP denso · quais capacidades entram.
