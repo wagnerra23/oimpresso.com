@@ -2242,3 +2242,35 @@ sexta nasce quebrada.
 pararam na etapa 1. O `activity_log` (o Model tem `LogsActivity`) responderia *quando* e *por quem*, mas o SSH
 da Hostinger não completou em 5 tentativas nesta sessão. Isso **não muda a causa**, que está estabelecida no
 código — muda só a atribuição.
+
+**⚠️ ERRATA — o "não medido" acima foi MEDIDO (forense de prod, 2026-09-21).** O bloco anterior dizia
+que o `activity_log` responderia *quando* e *por quem*, mas que o SSH da Hostinger não completou. Ele
+completou na 6ª tentativa, e o resultado **fortalece** o diagnóstico em vez de mudá-lo:
+
+| evidência | medida |
+|---|---|
+| criação das 5 | **2026-09-07**, todas pelo mesmo user (id 635) |
+| ritmo | a 1ª às 20:32:42; as **4 seguintes em 6 segundos** (20:35:51 → 20:35:57) |
+| `activity_log` (`log_name=jana_meta`) | exatamente **5 linhas**, todas `created` — **nenhuma** `updated` |
+| `jana_meta_periodos` | **`AUTO_INCREMENT = 1`**, 0 linhas |
+| `jana_meta_fontes` | **`AUTO_INCREMENT = 1`**, 0 linhas |
+| `jana_meta_apuracoes` | **`AUTO_INCREMENT = 1`**, 0 linhas |
+| `jana_metas` | `AUTO_INCREMENT = 6`, 5 linhas — nenhuma meta deletada |
+
+**O `AUTO_INCREMENT = 1` nas três tabelas filhas é a prova mais dura desta US.** Ele significa que elas
+**nunca receberam um único INSERT** — não é que período e fonte foram criados e depois apagados; é que
+**nunca existiram**. Isso elimina, por medição e não por argumento, as duas hipóteses alternativas que
+sobravam:
+
+- **"alguém apagou"** — refutada: um `DELETE` deixaria o contador acima do número de linhas, como
+  acontece em `jana_metas` (AI=6 para 5 linhas).
+- **"o usuário começou a completar e parou"** — refutada: o `activity_log` tem só `created`, **zero**
+  `updated`, e as tabelas filhas estão zeradas desde a origem.
+
+**O ritmo de 6 segundos** para as 4 últimas mostra alguém criando em sequência pelo formulário — e
+parando ali, porque **ali acabava o que o formulário permitia fazer**. É exatamente o comportamento
+esperado de um fluxo cuja primeira etapa não pede alvo e não sinaliza que faltam outras duas.
+
+⚠️ **O que continua não medido:** *por que* aquele usuário não percorreu as etapas 2 e 3. A resposta
+provável está no próprio desenho (nada as indica), mas isso é inferência sobre intenção, não medição —
+e fica como tal.
