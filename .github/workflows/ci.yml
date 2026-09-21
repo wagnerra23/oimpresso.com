@@ -60,10 +60,19 @@ jobs:
       - name: Install PHP deps (sem scripts ate .env existir)
         run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
 
-      - name: PHP syntax lint (app/ + Modules/)
+      - name: PHP syntax lint (app/ + Modules/ + tests/)
         run: |
           set -e
-          find app Modules -name '*.php' -not -path '*/vendor/*' -not -path '*/node_modules/*' -print0 \
+          # `tests` entrou em 2026-09-21. Antes disso o lint cobria app+Modules, e o
+          # phpunit.xml nao inclui tests/Browser (so design-smoke-ci e visual-regression
+          # o tocam, por ARQUIVO): arquivo novo la com erro de sintaxe passava em todo
+          # check de PR e so quebrava no schedule semanal, semanas depois e sem relacao
+          # aparente com o PR que o introduziu.
+          # FP medido ANTES de ligar (CT 100, container oimpresso-staging, PHP 8.4.24,
+          # arvore do HEAD 7f99528 exportada via git archive): 523/523 arquivos limpos,
+          # incluindo as 23 fixtures de tests/governance-fixtures/ (elas sao invalidas
+          # SEMANTICAMENTE, pra o gate morder — nunca sintaticamente).
+          find app Modules tests -name '*.php' -not -path '*/vendor/*' -not -path '*/node_modules/*' -print0 \
             | xargs -0 -n1 -P4 php -l > /dev/null
 
       - name: Prepare .env (sqlite, sem boot DB-heavy)
