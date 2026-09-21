@@ -12,6 +12,7 @@ import AppShellV2 from '@/Layouts/AppShellV2'
 import { Link } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Grid } from '@/Components/layout/grid'
 import { Badge } from '@/Components/ui/badge'
 import EmptyState from '@/Components/shared/EmptyState'
 import { MessageSquare, TrendingUp, TrendingDown, Minus, Sparkles, Settings, Download, Target } from 'lucide-react'
@@ -164,11 +165,17 @@ function MetaCard({ meta, onOpen }: { meta: Meta; onOpen: (meta: Meta, periodo: 
       aria-label={`Abrir a meta ${meta.nome}`}
       className="w-full rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-    <Card className="relative h-full overflow-hidden transition-colors hover:border-primary/40">
+    {/* `gap-2 py-3` sobrescreve o `gap-6 py-6` do `Card` do DS: a ancora `.jm-meta`
+          declara `gap:8px` e `padding:12px 13px`. Medido em 2026-09-21: o card da prod
+          tinha 236px de altura contra 122px da ancora, e 48px disso era so o `py-6`.
+          `rounded-xl` do Card ja bate com o `border-radius:12px` da ancora. */}
+    <Card className="gap-2 py-3 relative h-full overflow-hidden transition-colors hover:border-primary/40">
       {/* Farol lateral */}
       <div className={`absolute left-0 top-0 h-full w-1 ${FAROL_CLASSES[farol]}`} aria-hidden="true" />
 
-      <CardHeader className="pb-2 pl-5">
+      {/* `px-[13px]`: a ancora `.jm-meta` tem `padding:12px 13px`. O `pl-5` (20px) existia
+          por causa do farol lateral (`w-1` = 4px); 13px ainda deixa 9px de folga. */}
+      <CardHeader className="px-[13px] pb-0">
         {/* 3 filhos no MESMO flex, sem wrapper novo: o título leva `flex-1` e
             empurra período + unidade pro canto direito. Um `<div>` agrupando os
             dois últimos seria um flex/grid solto A MAIS neste arquivo, e o
@@ -185,9 +192,13 @@ function MetaCard({ meta, onOpen }: { meta: Meta; onOpen: (meta: Meta, periodo: 
         </div>
       </CardHeader>
 
-      <CardContent className="pl-5 space-y-3">
+      <CardContent className="px-[13px] space-y-2">
+          {/* `.jm-meta-v b` da ancora: `font-family:var(--font-mono)`, `font-size:20px`,
+                `font-weight:700`, `font-variant-numeric:tabular-nums`. A prod estava em sans
+                24/600 — medido nos dois lados em 2026-09-21. `font-mono` aqui resolve pra
+                "IBM Plex Mono", a MESMA familia da ancora (medido no computed style). */}
         {realizado !== null ? (
-          <div className="text-2xl font-semibold tabular-nums">
+          <div className="font-mono text-[20px] font-bold tabular-nums">
             {formatValue(realizado, meta.unidade)}
             {/* `jm-meta-v` da âncora: `<b>{atual}</b><small>de {alvo}</small>` — o alvo é a
                 régua do número e vive na MESMA linha, um degrau abaixo. `<small>` inline
@@ -444,6 +455,20 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
               O valor NÃO é repetido em prosa aqui de propósito — o
               `PainelContratoTest` casa a string literal do atributo, e um
               comentário que a contém satisfaz o teste sozinho (LC-11). */}
+          {/* A `.jm-metas-grid` da ancora e `repeat(auto-fit,minmax(232px,1fr))` com `gap:10px`,
+                e o dono disso aqui e o `Grid` (ADR 0253), que ja expoe `auto-fit` por TOKEN —
+                o docblock dele e explicito: "largura minima vem de token, nao de px solto no
+                call-site". Por isso NAO se escreve a classe crua, mesmo sendo mais literal.
+
+                Residual DECLARADO: `fit="sm"` e 14rem (224px) e `gap={2}` e 8px, contra 232px
+                e 10px da ancora. Medido no container de 1117px: a ancora da 4 colunas de
+                271,8px e este da 4 colunas de 273,2px — **1,4px de diferenca (0,5%)**, e o
+                numero de colunas, que e o que [W] enxerga, e o MESMO. Fechar os 1,4px exigiria
+                token novo no DS, que e decisao [W], nao desta tela.
+
+                Nao se traduz `auto-fit` para breakpoint fixo: aproximar num breakpoint E a
+                divergencia, nao uma traducao dela (licao do UC-JPAIN-31, na grade de Analises).
+                Antes daqui a prod tinha 3 colunas de 361,7px com gap 16px. */}
           {metas.length === 0 ? (
             <Card data-contract="painel-metas-vazio" className="border-dashed">
               <EmptyState
@@ -461,7 +486,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
               />
             </Card>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <Grid fit="sm" gap={2}>
               {metas.map(meta => (
                 <MetaCard
                   key={meta.id}
@@ -469,7 +494,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                   onOpen={(m, periodo) => setMetaAberta({ meta: m, periodo })}
                 />
               ))}
-            </div>
+            </Grid>
           )}
         </div>
 
