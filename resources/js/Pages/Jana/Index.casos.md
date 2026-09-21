@@ -1640,6 +1640,13 @@ dedicado provando que `aposKpis` renderiza dentro do estado vazio.
 `JanaCockpit.tsx`**, que é o único arquivo que esta onda toca. O UC-JPAIN-09 (âncoras + ordem) fica
 intacto.
 
+⚠️ **A errata do UC-JPAIN-28 NÃO cobre este caso, e a diferença é o predicado.** Lá o
+`visual-regression` do CI serviu de smoke autenticado porque o gating Pro aparece no render com
+dados. Aqui não serve: o `$seedJanaVisregFlow` semeia **uma venda vencida**, então
+`sellKpis.total > 0`, `semHistorico` é `false`, e o empty-state **não monta** naquele render — o
+visreg fotografa exatamente o ramo que este UC **não** trata. Quem quiser o smoke deste caso
+precisa de um business **sem vendas**, que o seed não produz.
+
 ⚠️ **Smoke autenticado NÃO foi feito.** `/ia` devolve **302** sem sessão em prod e staging, e o
 `launch.json` só serve protótipo estático. O DoD §9 do pedido (4 screenshots: dark/light × com e
 sem vendas, mais a prova do flicker com throttle) segue **aberto** — nada aqui afirma render

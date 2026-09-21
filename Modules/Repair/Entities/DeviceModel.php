@@ -46,11 +46,31 @@ class DeviceModel extends Model
     /**
      * The attributes that should be cast to native types.
      *
+     * ⚠️ `repair_checklist` NÃO entra aqui, e o motivo é medido — ele já esteve com
+     * `=> 'array'` (herança do upstream UltimatePOS, 2025-05-16) e isso QUEBRAVA A
+     * COLUNA NOS DOIS SENTIDOS, porque o formato real desta tabela é **string separada
+     * por `|`**, nunca JSON:
+     *
+     *   LEITURA  — o cast fazia `json_decode` da string do legado, falhava e devolvia
+     *              `null`. Medido no CT 100: raw `'Tela trincada| Bateria ||Carcaca'`
+     *              → accessor `NULL` → `(string)` dele `''`. Todos os `explode('|', …)`
+     *              do módulo (8 sites: DataTables, payload Inertia, form de edição,
+     *              checklist da OS, 2 Blades do JobSheet) viravam lista VAZIA.
+     *   ESCRITA  — o cast fazia `json_encode` da string vinda do textarea. Medido:
+     *              `Tela trincada|Bateria` era gravado como `'"Tela trincada|Bateria"'`,
+     *              com aspas, corrompendo o dado a cada salvar.
+     *
+     * Que o formato é pipe está dito em três lugares independentes: a migration
+     * (`text`, não json), o tooltip que o produto mostra ao usuário (*"separada por
+     * barra vertical (|)"*) e os 8 consumidores, que todos fazem `explode('|')` e
+     * nenhum faz `json_decode`.
+     *
+     * `transactions.repair_checklist` é outra coluna, essa sim JSON
+     * (`DataController::50` faz `json_encode`) — não confundir.
+     *
      * @var array
      */
-    protected $casts = [
-        'repair_checklist' => 'array',
-    ];
+    protected $casts = [];
 
     /**
      * user who added a model.

@@ -277,8 +277,13 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   provada em **dois eixos**: desligar o ramo derruba 5 de 11; tirar o guard do defer derruba
   **exatamente 1** — o anti-flicker.
 
-  ⚠️ **Smoke autenticado NÃO foi feito** (302 sem sessão) e **business zerado não foi observado em
-  prod**. O DoD §9 segue aberto.
+  ⚠️ **Smoke — e aqui a v22 NÃO se aplica, de propósito.** A errata da v22 registra que o
+  `visual-regression` do CI renderiza a tela **autenticada**; isso vale para o gating Pro, e
+  **não** para esta onda: o `$seedJanaVisregFlow` semeia **uma venda vencida**, logo
+  `sellKpis.total > 0`, `semHistorico` é `false` e o empty-state **nunca monta** naquele render.
+  O visreg prova o ramo com dados, não o vazio. Somam-se a isso o `/ia` em **302** sem sessão e o
+  **business zerado não observado em prod** — o cenário segue inferido do payload. O DoD §9
+  (dark/light × com e sem vendas, mais a prova do flicker com throttle) segue **aberto**.
 
 - **v22 (2026-09-21)** — **o tier Pro passou a governar brief, análises e ações.** Pedido
   descido pelo playbook do Cowork (`cowork-inbox/jana/playbook/01-painel.gating-pro.md`, ONDA
