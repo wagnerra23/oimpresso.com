@@ -1445,7 +1445,7 @@ do Cowork em `cowork-inbox/jana/playbook/01-painel.gating-pro.md` (ONDA 01), rec
 
 A âncora desenha um produto de **dois planos**. A produção renderizava tudo pra todo mundo — e
 exibia o selo "Grátis" do `JanaPlanoBadge` **ao lado** do conteúdo que o `/ia/pro` vende
-([ADR 0140](../../../../memory/decisions/0140-jana-pro-paywall.md)). O `useJanaPro()` já era lido
+([ADR 0140](../../../../memory/decisions/0140-jana-pro-produto-comercial-saas.md)). O `useJanaPro()` já era lido
 no `Index.tsx`, mas só alimentava o badge: o tier não governava seção nenhuma.
 
 | seção | Grátis | Pro |
@@ -1509,7 +1509,35 @@ desenho, não sobra.
 (`JanaCockpit.tsx` §`const acoes` → `if (overdueCount > 0)`). Sem isso o caso das ações ficaria
 verde nos dois planos por vacuidade — um teste que não pode reprovar (§5 2026-09-05).
 
-⚠️ **Smoke autenticado NÃO foi feito, e nada aqui afirma render medido.** `oimpresso.com/ia` e
+> ⚠️ **ERRATA (2026-09-21, ~1h depois) — o parágrafo seguinte CADUCOU, e em canon isso não é
+> detalhe: afirmação de impossibilidade vira instrução de desistência pra próxima sessão
+> (§5 2026-09-01). O smoke autenticado EXISTE, e quem o produziu foi o próprio CI.**
+>
+> O `visual-regression` renderiza a tela **logada** (`tests/Browser/CoreScreens/PixelBaselineTest.php`,
+> escopo `VISREG_SCREENS=["Jana"]`) e publica `pixel-diff-views/jana.html` com **baseline × atual ×
+> diff**. Medido no run `35592531986` do [#7587](https://github.com/wagnerra23/oimpresso.com/pull/7587):
+> `VisregThreshold [Jana]: diff 2.0169% > τ_alto 2.0000%`.
+>
+> **O que o render ATUAL mostra** (conferido imagem a imagem, depois de descobrir que a ordem no
+> HTML é `Diff · Baseline · Atual` — rotulei errado na primeira leitura e quase reportei o inverso):
+> selo `plano Grátis` no header · o brief **substituído** pelo upsell, com a copy literal e o botão
+> `Ver Jana Pro` · o h2 `ANÁLISES PRINCIPAIS` **sem** a sub-linha `clique num card pra ver de onde
+> vem o número`, que a baseline tinha · `METAS ATIVAS` de pé com o `painel-metas-vazio` intacto.
+> O ícone `calendar` do upsell renderizou como calendário, o que confirma em runtime a medição do
+> resolvedor do `Icon`.
+>
+> Isto fecha o risco de **LC-30** nesta onda: a declaração `pro={pro}` **não** é inerte — o efeito
+> está no DOM renderizado, não só no fonte.
+>
+> **O que segue aberto**, e é bem menor que o texto abaixo sugere: o recorte do DoD §9 que o visreg
+> não cobre — **light mode** e o par `jana.pro` **true/false lado a lado** (o CI renderiza dark, e o
+> tenant de teste não tem `jana_pro_module`, então só o ramo Grátis foi visto). E a **aprovação [W]
+> (F1.5)** da baseline nova, que é dele.
+>
+> O texto original fica, não apagado — era honesto quando foi escrito, e a lição é sobre o tempo
+> verbal, não sobre a medição.
+
+⚠️ ~~**Smoke autenticado NÃO foi feito, e nada aqui afirma render medido.**~~ `oimpresso.com/ia` e
 `staging.oimpresso.com/ia` devolvem **302** sem sessão, e o `launch.json` deste repo só serve
 protótipo estático. O DoD §9 do pedido (4 screenshots: dark/light × Pro/Grátis) segue **aberto**.
 O que foi medido é: tsc (0 erros nos 2 arquivos tocados, contra 307 pré-existentes no repo),
