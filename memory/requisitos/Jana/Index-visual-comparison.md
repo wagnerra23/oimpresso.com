@@ -1485,9 +1485,14 @@ falso-negativo plausível, do tipo que não se denuncia.
 ### Aberto e medido: o `pt-6` de METAS
 
 Do último KPI até o **texto** "METAS ATIVAS" são **46px** em prod (16 margem + 24 `pt-6` + 6
-`mt-1.5`) contra **24px** na âncora (18 + 6). É *padding*, não margem, e o bloco pertence a outro
-chip. A sessão de METAS mediu em paralelo e confirmou a decomposição: **nenhum dos dois consertos
-sozinho acerta** — só este dá 48, só o dela dá 16, **os dois juntos dão 24 exatos**.
+`mt-1.5`) ~~contra **24px** na âncora (18 + 6)~~. É *padding*, não margem, e o bloco pertence a
+outro chip. A sessão de METAS mediu em paralelo e confirmou a decomposição: **nenhum dos dois
+consertos sozinho acerta** — só este dá 48, só o dela dá 16, ~~os dois juntos dão 24 exatos~~.
+
+> ⚠️ **Os dois trechos riscados acima estão ERRADOS — ver a ERRATA no fim deste arquivo.** O alvo
+> da âncora ali é **18px**, não 24: eu **somei** `18 + 6` em vez de medir, e o `margin-top` do
+> `.jc-h2` **colapsa** com a do pai. Os 46px da prod e a decomposição estão corretos; o que estava
+> errado era o **alvo**. Medido em prod após os dois merges: **18px**, igual à âncora.
 
 **Enforcement:** UC-JPAIN-33, `tests/janaRitmoVerticalReplica.spec.tsx`, 3 casos, mordida provada
 nos dois lados com restauração por hash. Detalhe no `Index.casos.md`; aqui não se repete.
@@ -1647,3 +1652,41 @@ há o que pôr em mono 20/700; onde não há alvo, não há barra nem projeção
 antigo, de um wizard interrompido, ou de criação manual que parou no meio. `origem=manual` nas 5 diz
 como foram criadas, não por que ficaram incompletas.
 
+
+---
+
+## ERRATA 2026-09-21 (pós-deploy) — o alvo "24px" que eu declarei para o trecho KPI → METAS era **18px**
+
+**O que eu afirmei, em 3 sites:** que do último KPI até o texto "METAS ATIVAS" a âncora tinha
+**24px** (18 de ritmo + 6 do `mt-1.5` do h2), e que os dois consertos — o `space-y-[18px]` do #7653
+e a remoção do `pt-6` do #7646 — fechariam em "24 exatos".
+
+**O que a âncora mede, renderizada (2560, dark):** **18px**. E o mesmo 18 até a **caixa** e até o
+**texto**.
+
+**A causa do meu erro:** eu **somei** em vez de medir. O `margin-top: 6px` do `.jc-h2` **COLAPSA**
+com a margem do pai — ele é o primeiro filho, e a `.jm-metas` não tem `padding-top` nem `border`
+para barrar o colapso. Somar margem de primeiro filho com margem do pai só vale quando há algo
+barrando; aqui não há.
+
+**A ironia que explica por que ninguém percebeu antes:** era justamente o `pt-6` do lado da
+produção que **barrava o colapso** e fazia o 6 aparecer somado. Enquanto o defeito existia, a minha
+conta "fechava" — o número errado era consistente com o estado errado.
+
+**O desfecho está correto e foi medido em produção após os dois merges:** o trecho dá **18px**,
+igual à âncora. O que estava errado era só o **alvo declarado**, nunca o conserto.
+
+| | antes dos 2 PRs | depois | âncora |
+|---|---|---|---|
+| KPI → CAIXA de METAS | 16 | **18** | **18** ✅ |
+| KPI → TEXTO "METAS ATIVAS" | 46 | **18** | **18** ✅ |
+
+**Alcance do erro — ele não ficou só em mim.** Passei o "24" à sessão de METAS por mensagem, e ela
+o registrou como alvo no comentário do `Index.tsx`. Os dois sites estão corrigidos no mesmo PR.
+É a lápide §5 2026-08-10 (*citar canon não é medir*) com o agravante de que o canon citado era meu
+— e a §5 2026-07-15, porque um número **somado** foi apresentado com a mesma autoridade dos
+**medidos** ao lado dele.
+
+**Regra que fica:** número de espaçamento vertical entre blocos **não se soma de propriedades** —
+mede-se no render, porque o colapso de margem depende de padding, border e posição do filho.
+Em toda esta rodada, o único número que eu havia obtido por aritmética foi o único errado.

@@ -379,10 +379,20 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
             Sem `pt-6`: o ritmo ENTRE seções já vem do container (`space-y` do pai), e o
             padding somava por cima. MEDIDO em 2026-09-21 (staging, dark, 1440): do fim
             dos KPIs até o TEXTO de "METAS ATIVAS" eram **46px** — 16 da margem do bloco
-            anterior + 24 deste `pt-6` + 6 do `mt-1.5` do h2 —, contra **24px** na âncora
-            (18 de ritmo + 6 do h2). Sem o padding o trecho cai pra 16px com o `space-y-4`
-            antigo e fecha em **24px exatos** com o `space-y-[18px]` que o #7653 trouxe —
-            os dois consertos são complementares, e nenhum acerta sozinho.
+            anterior + 24 deste `pt-6` + 6 do `mt-1.5` do h2.
+
+            ⚠️ ERRATA (2026-09-21, pós-deploy): este comentário dizia que a âncora tinha
+            **24px** ali (18 de ritmo + 6 do h2) e que os dois consertos fechariam em "24
+            exatos". **Os dois números estavam errados, e o erro é meu** (#7653): eu SOMEI
+            18 + 6 em vez de medir. MEDIDO na âncora renderizada, o trecho é **18px** —
+            tanto até a CAIXA quanto até o TEXTO, porque o `margin-top: 6px` do `.jc-h2`
+            **COLAPSA** com a margem do pai (primeiro filho, e a `.jm-metas` não tem
+            padding-top nem border para barrar o colapso). Foi exatamente o `pt-6` daqui
+            que barrava o colapso do lado de cá e fazia o 6 aparecer somado.
+
+            O desfecho não muda e ficou certo: medido em prod depois dos dois merges, o
+            trecho dá **18px**, igual à âncora. Os dois consertos continuam complementares;
+            só o alvo era 18, não 24.
 
             O comentário mais antigo justificava o `pt-6` com "agora está DENTRO do
             cockpit, que já vive em px-6 pt-6": valia quando o bloco ficava no FIM da

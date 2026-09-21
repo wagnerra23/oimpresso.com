@@ -1928,10 +1928,24 @@ vale para o arquivo inteiro — o caso que mede o container real precisa de `vi.
 assere a className do **stub** e passa por engano.
 
 **Dívida vizinha, medida e NÃO consertada aqui:** o `pt-6` do mesmo wrapper. Do último KPI até o
-**texto** "METAS ATIVAS" são **46px** em prod (16 + 24 + 6) contra **24px** na âncora (18 + 6). É
-*padding*, não margem, e o bloco é de outro chip — a sessão de METAS mediu junto e confirmou que
-**nenhum dos dois consertos sozinho acerta**: só este dá 48, só o dela dá 16, os dois juntos dão
-**24 exatos**.
+**texto** "METAS ATIVAS" são **46px** em prod (16 + 24 + 6). É *padding*, não margem, e o bloco é
+de outro chip.
+
+> ⚠️ **ERRATA 2026-09-21 (pós-deploy) — o alvo da âncora aqui era 18px, não 24, e o erro é meu.**
+> Este parágrafo dizia *"contra **24px** na âncora (18 + 6)"* e *"os dois juntos dão **24
+> exatos**"*. **Eu SOMEI em vez de medir**: 18 de ritmo + 6 do `mt-1.5` do h2. Medido na âncora
+> renderizada (2560, dark), o trecho é **18px** — e o mesmo **18** até a CAIXA e até o TEXTO,
+> porque o `margin-top` do `.jc-h2` **COLAPSA** com a do pai (primeiro filho, e a `.jm-metas` não
+> tem padding-top nem border para barrar o colapso). Ironia útil: era o `pt-6` do lado de cá que
+> barrava o colapso e fazia o 6 aparecer somado — por isso a conta "fechava" enquanto o defeito
+> existia.
+>
+> **O desfecho ficou certo**: medido em prod após os dois merges, o trecho dá **18px**, igual à
+> âncora. O que estava errado era só o alvo declarado.
+>
+> ⚠️ **E o número errado não ficou só aqui:** eu o passei à sessão de METAS, que o usou como alvo
+> no comentário do `Index.tsx` — corrigido no mesmo PR desta errata. É a lápide §5 2026-08-10 na
+> prática (*citar canon não é medir*), com o agravante de que o canon citado era meu.
 
 ## UC-JPAIN-32 — a grade e o card de META replicam a `.jm-metas-grid` / `.jm-meta`: 4 colunas, card compacto, valor em mono 20/700
 
