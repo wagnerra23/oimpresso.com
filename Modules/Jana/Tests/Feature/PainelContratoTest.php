@@ -963,7 +963,7 @@ it('UC-JPAIN-16: nenhum botão novo do Painel nasce clicável sem fazer nada', f
  */
 function painelKpisDoGrid(string $src): array
 {
-    if (! preg_match('/<KpiGrid\b.*?<\/KpiGrid>/us', $src, $bloco)) {
+    if (! preg_match('/<JanaKpiGrid\b.*?<\/JanaKpiGrid>/us', $src, $bloco)) {
         return [];
     }
 
@@ -997,9 +997,9 @@ it('UC-JPAIN-18: o grid tem os 3 KPIs da âncora e o PIX saiu como CARD, não co
 
     // ── BITE-TEST do extrator: ele mede o que diz medir? ─────────────────────
     // Controle positivo E negativo antes de confiar no número real (§5 2026-08-01).
-    $fixtureBoa  = '<KpiGrid cols={4}><JanaKpiCard label="A" /><JanaKpiCard label="B" /></KpiGrid>';
-    $fixtureSkel = '<KpiGrid cols={4}><KpiCardSkeleton label="X" /><JanaKpiCard label="A" /></KpiGrid>';
-    $fixtureFora = '<JanaKpiCard label="Z" /><KpiGrid cols={4}><JanaKpiCard label="A" /></KpiGrid>';
+    $fixtureBoa  = '<JanaKpiGrid><JanaKpiCard label="A" /><JanaKpiCard label="B" /></JanaKpiGrid>';
+    $fixtureSkel = '<JanaKpiGrid><KpiCardSkeleton label="X" /><JanaKpiCard label="A" /></JanaKpiGrid>';
+    $fixtureFora = '<JanaKpiCard label="Z" /><JanaKpiGrid><JanaKpiCard label="A" /></JanaKpiGrid>';
 
     expect(painelKpisDoGrid($fixtureBoa))->toBe(['A', 'B']);   // conta os cards
     expect(painelKpisDoGrid($fixtureSkel))->toBe(['A']);       // ignora o skeleton
@@ -1018,7 +1018,7 @@ it('UC-JPAIN-18: o grid tem os 3 KPIs da âncora e o PIX saiu como CARD, não co
     // A `jc-kpis` é `grid-template-columns: repeat(4, 1fr); gap: 10px`, e os 3 cards
     // ocupam 3/4 — o vão à direita é do DESENHO, não sobra de card removido. Era
     // `cols={3}` até 2026-09-03, quando a Onda 2 mediu a âncora (`gap-2.5` = 10px).
-    expect($cockpit)->toContain('<KpiGrid cols={4} className="gap-2.5">');
+    expect($cockpit)->toContain('<JanaKpiGrid>');
 
     // ── 2b. e o card é a RÉPLICA, não o shared PT-04 ─────────────────────────
     // Sem este par, trocar `JanaKpiCard` de volta por `KpiCard` deixaria o extrator
@@ -1026,7 +1026,9 @@ it('UC-JPAIN-18: o grid tem os 3 KPIs da âncora e o PIX saiu como CARD, não co
     // do extrator acabou de avisar.
     expect($cockpit)
         ->toContain("import JanaKpiCard from './JanaKpiCard';")
-        ->not->toContain("from '@/Components/shared/KpiCard'");
+        ->toContain("import JanaKpiGrid from './JanaKpiGrid';")
+        ->not->toContain("from '@/Components/shared/KpiCard'")
+        ->not->toContain("from '@/Components/shared/KpiGrid'");
 
     // ── 3. o PIX saiu como CARD ──────────────────────────────────────────────
     expect($cockpit)
@@ -1196,4 +1198,78 @@ it('UC-JPAIN-23: o drawer tem as seções Apurações gravadas e Fonte do númer
     // dia em fuso negativo. O helper recorta a string justamente pra não converter.
     expect($drawer)->toContain('function dataCurta(');
     expect($drawer)->not->toContain('new Date(a.data_ref');
+});
+
+/**
+ * UC-JPAIN-30 - o grid de KPIs quebra no BREAKPOINT da ancora, nao no do shared.
+ *
+ * A `.jc-kpis` da ancora (`prototipo-ui/cowork/Wagner/chat-jana.css:139` e o bloco
+ * `@media (max-width: 1100px)` em `:444`) e `repeat(4, 1fr)` acima de 1100px e
+ * `repeat(2, 1fr)` em TODA faixa abaixo - ela nao tem degrau de mobile. O `colsMap[4]`
+ * do `KpiGrid` compartilhado usa `lg:` (1024) e `sm:` (640), o que deixava duas faixas
+ * divergentes. MEDIDO na tela viva em 2026-09-21 (staging autenticado, dark x dark,
+ * mesma sonda nos dois lados, canario acusando em ambos):
+ *
+ *   viewport | ancora                | producao (antes)      |
+ *   ---------|-----------------------|-----------------------|
+ *   1440     | 4 col - card 276px    | 4 col - card 276px    | IGUAL
+ *   1280     | 4 col - card 287px    | 4 col - card 287px    | IGUAL
+ *   1080     | 2 col - card 483px    | 4 col - card 237px    | DIVERGE
+ *   1050     | 2 col - card 468px    | 4 col - card 229px    | DIVERGE
+ *   900      | 2 col - card 393px    | 2 col - card 393px    | IGUAL
+ *   600      | 2 col - card 279px    | 1 col - card 552px    | DIVERGE
+ *
+ * O conserto e uma REPLICA LOCAL do grid (`JanaKpiGrid`), nao um `className` no shared -
+ * e a razao foi MEDIDA, nao escolhida por gosto: no Tailwind 4 os variants ARBITRARIOS
+ * (`min-[...]`, `max-[...]`) sao emitidos ANTES dos nomeados (`sm:`, `lg:`), entao com o
+ * `colsMap` no meio o arbitrario SEMPRE perde e a classe fica inerte. Duas tentativas
+ * medidas no CSS buildado, ambas reprovadas:
+ *
+ *   .max-[1100px]:grid-cols-2   @264896   <   .lg:grid-cols-4   @271781   -> lg vence
+ *   .min-[1101px]:grid-cols-4   @264997   <   .lg:grid-cols-2   @271756   -> lg vence
+ *
+ * Sem o `colsMap` competindo sobra `grid-cols-2` (base) contra `min-[1101px]:grid-cols-4`
+ * (na media query), e ai a ordem funciona a favor. Reproduzir: buildar e comparar os
+ * offsets dos dois seletores no mesmo `build-inertia/assets/app-*.css`.
+ *
+ * ATENCAO ao que este caso NAO prova, e e o limite honesto dele: media query nao e
+ * avaliada aqui - este teste le o `.tsx` e trava a DECLARACAO. Que a declaracao produza 2
+ * colunas em 1080px foi medido em bancada com o CSS buildado (recibo no corpo do PR); o
+ * par visual por viewport e do `visual-regression`. Trava-se aqui o que apagar a classe
+ * derruba, que e a regressao realista - nao o comportamento do motor de CSS.
+ */
+it('UC-JPAIN-30: o grid e a replica local com o breakpoint de 1101px da ancora', function () {
+    $cockpit = acaoCockpitTsx();
+    $grid = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaKpiGrid.tsx'));
+
+    // -- BITE-TEST do detector: morde a ausencia E nao morde o legitimo? -----
+    // Sem este par, um `toContain` vira decoracao (ADR 0258 - detector que nunca
+    // acusa e enfeite).
+    $temBreakpoint = static fn (string $src): bool => (bool) preg_match(
+        '/min-\[1101px\]:grid-cols-4/u',
+        $src
+    );
+
+    expect($temBreakpoint("cn('grid grid-cols-2 gap-2.5 min-[1101px]:grid-cols-4', className)"))->toBeTrue();
+    expect($temBreakpoint("cn('grid grid-cols-2 gap-2.5 lg:grid-cols-4', className)"))->toBeFalse();
+
+    // -- o contrato -----------------------------------------------------------
+    // base 2 colunas (a ancora nao tem degrau de mobile) e 4 so acima de 1101.
+    expect($grid)
+        ->toContain('grid-cols-2')
+        ->toContain('min-[1101px]:grid-cols-4')
+        ->toContain('gap-2.5');
+
+    expect($temBreakpoint($grid))->toBeTrue();
+
+    // o degrau do shared NAO volta por outra porta: `grid-cols-1` so existe no
+    // `colsMap`, e a ancora nunca e 1 coluna.
+    expect($grid)->not->toContain('grid-cols-1');
+
+    // e a tela consome a replica, nao o compartilhado (o extrator do UC-JPAIN-18
+    // depende disso: sem o par, ele devolveria [] e o caso ficaria verde por
+    // ausencia de alvo - LC-11 na forma silenciosa).
+    expect($cockpit)
+        ->toContain('<JanaKpiGrid>')
+        ->toContain("import JanaKpiGrid from './JanaKpiGrid';");
 });
