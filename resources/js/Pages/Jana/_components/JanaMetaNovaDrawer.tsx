@@ -21,7 +21,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
-import { Stack } from '@/Components/layout';
+import { Grid, Stack } from '@/Components/layout';
 
 /** Enums REAIS da migration (RUNBOOK §3) — não inventados aqui. */
 const UNIDADES = ['R$', 'qtd', '%', 'dias'] as const;
@@ -245,7 +245,11 @@ export default function JanaMetaNovaDrawer({ aberto, onClose }: { aberto: boolea
             </Select>
           </Stack>
 
-          <div className="grid grid-cols-2 gap-3">
+          {/* Primitivo `Grid` (ADR 0253), nao container solto: o `layout-primitives-guard`
+              conta flex/grid solto por arquivo, e o primitivo e o dono do tema.
+              ⚠️ O comentario NAO cita a forma proibida de proposito — o guard casa por
+              TEXTO, entao escreve-la aqui faria o proprio comentario ser acusado. */}
+          <Grid cols={2} gap={3}>
             <Stack gap={1}>
               <Label htmlFor="nova-meta-ini">Inicio</Label>
               <Input
@@ -264,7 +268,7 @@ export default function JanaMetaNovaDrawer({ aberto, onClose }: { aberto: boolea
                 onChange={(e) => setJanela((j) => ({ ...j, fim: e.target.value }))}
               />
             </Stack>
-          </div>
+          </Grid>
 
           {/* ⚠️ RESIDUAL DECLARADO, e o usuario merece saber: com alvo a meta ja mostra
               barra e "% do alvo", mas quem CALCULA o realizado e a FONTE — e nao existe
