@@ -181,6 +181,33 @@ if (app()->environment(['local', 'testing', 'staging'])) {
             return;
         }
 
+        // METAS — a seção que o `default` fotografava VAZIA. Medido 2026-09-21: este lever
+        // semeia a venda vencida e ZERO metas, e nenhum dos 9 seeders `Visreg*` semeia meta
+        // (`rg -l -e jana_metas -e MetaPeriodo -e 'Entities.Meta' database/seeders/` → rc=1,
+        // com controle positivo em `business_id` → 18). Como o `Index.tsx` decide por
+        // `metas.length === 0` e cai no MESMO card `painel-metas-vazio` do estado `empty`,
+        // o `default` era indistinguível do `empty` naquela seção — e regressão em card,
+        // grade, farol ou projeção não tinha baseline pra quebrar.
+        //
+        // ⚠️ ANTES do early-return do `$jaExiste` abaixo, e isso é load-bearing: aquele
+        // return sai quando a venda vencida já existe, então metas penduradas depois dele
+        // só seriam semeadas na PRIMEIRA execução. As duas fixtures são independentes e
+        // cada uma tem a própria idempotência.
+        //
+        // Por que AQUI e não no step "Seed demo tenant" do workflow: semear metas
+        // globalmente as faria aparecer também no L1 (`PixelBaselineTest`), cuja baseline
+        // da Jana já existe — regravar baseline pra acomodar fixture nova é a inversão que
+        // o §5 de 2026-08-26 proíbe, e é a mesma razão registrada logo abaixo pro
+        // `$seedJanaVisregFlow` não entrar no `/_visreg-login`. Vivendo no lever, a fixture
+        // alcança só `default` e `dark` do L2 (o `empty` é excluído no call-site, que é
+        // biz=98) e é desfeita pelo `visregLimparFixturesDeEstado()`.
+        //
+        // O guard de tenant é explícito de propósito: o seeder é biz=1 por construção
+        // (⛔ nunca 98, que é o tenant do estado `empty`; ⛔ nunca 4, cliente real).
+        if ($businessId === \Database\Seeders\VisregJanaMetasSeeder::BUSINESS_ID) {
+            app(\Database\Seeders\VisregJanaMetasSeeder::class)->run();
+        }
+
         $invoiceNo = 'VISREG-JANA-OVERDUE-001';
 
         $jaExiste = \Illuminate\Support\Facades\DB::table('transactions')
