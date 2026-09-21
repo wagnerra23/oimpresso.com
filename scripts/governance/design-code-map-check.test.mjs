@@ -250,7 +250,8 @@ check('resumo declara que o denominador canônico é o -gap.md', /Denominador ca
 check('resumo publica quantos gap.md saíram do denominador por map_json: n/a', /Fora do denominador \(`map_json: n\/a` declarado no gap\.md\) \| 1 \|/.test(resumo));
 check('resumo traz o comando que o reproduz (número nunca sem comando ao lado)',
   /node scripts\/governance\/design-code-map-check\.mjs --check/.test(resumo));
-check('resumo decompõe o linha-only em acionável × precisa-ancorar', /fila acionável/.test(resumo) && /ancorar o `\.tsx` primeiro/.test(resumo));
+check('resumo decompõe o linha-only em fato-de-disco × fila ACIONÁVEL × precisa-ancorar',
+  /\(fato de disco\)/.test(resumo) && /fila ACIONÁVEL \(sem `vivo\.ancora: false` declarado\)/.test(resumo) && /ancorar o `\.tsx` primeiro/.test(resumo));
 
 // PONTO CEGO (2026-09-14): partes TODAS com `prototipo.arquivo: n/a` zeravam a lista de fontes e
 // o bloco de staleness nem rodava — map ficava stale pra sempre, invisível. O gap declara a fonte
@@ -269,6 +270,55 @@ writeFileSync(join(reqDir, 'index-gap.md'), `---\nprototipo: prototipo-ui/cowork
 const semFonte = runCheck(['--check']);
 check('controle negativo: fonte irresolvível → WARN "NÃO MEDIDA", nunca silêncio nem STALE inventado',
   /NÃO MEDIDA/.test(semFonte.stdout) && !/STALE/.test(semFonte.stdout));
+
+// ── FILA ACIONÁVEL × OPT-OUT (2026-09-21) ──────────────────────────────────
+// O contador da fila era incrementado ANTES do teste de opt-out, então o resumo anunciava
+// trabalho que o per-parte já tinha decidido não pedir. Medido no corpus real: 148 anunciados
+// contra 0 warns emitidos, porque `vivo.ancora` é declarado em 587/587 partes e 503 dizem
+// `false`. Controle POSITIVO (fila vazia quando é opt-out) + NEGATIVO (fila conta quando o
+// campo está ausente, que é o caso que o nudge de fato serve).
+writeFileSync(join(vivoDir, 'Index.tsx'), 'export default function Index() { return <div data-contract="regiao-x" /> }\n');
+writeFileSync(join(reqDir, 'index-gap.md'), `---\nprototipo: prototipo-ui/cowork/Wagner/fixture-page.jsx\nmap_json: index.map.json\ngerado_em: 2026-01-01\n---\n\n# gap\n`);
+const parteOptOut = { id: 'header', prototipo: { arquivo: 'prototipo-ui/cowork/Wagner/fixture-page.jsx', linhas: '1-10' }, vivo: { arquivo: 'resources/js/Pages/Fixture/Index.tsx', linhas: '1-5', ancora: false }, status: 'paridade', acao: 'no-op' };
+writeMap({ prototipo_sha: sha(root), gap_fonte: 'memory/requisitos/Fixture/index-gap.md', partes: [parteOptOut] });
+const optOutRun = runCheck(['--check']);
+check('BITE fila acionável: parte com data-contract no vivo MAS `vivo.ancora: false` → fila ACIONÁVEL VAZIA (0), nunca 1',
+  /0 sem opt-out declarado/.test(optOutRun.stdout) && /fila ACIONÁVEL VAZIA/.test(optOutRun.stdout));
+check('controle negativo da fila: opt-out não gera nudge de "declare vivo.ancora"',
+  !/mas o map não declara vivo\.ancora/.test(optOutRun.stdout));
+const { ancora: _drop, ...vivoSemAncora } = parteOptOut.vivo;
+writeMap({ prototipo_sha: sha(root), gap_fonte: 'memory/requisitos/Fixture/index-gap.md', partes: [{ ...parteOptOut, vivo: vivoSemAncora }] });
+const semDeclRun = runCheck(['--check']);
+check('controle POSITIVO da fila: campo `vivo.ancora` AUSENTE (não avaliado) → fila conta 1 e o nudge sai',
+  /1 sem opt-out declarado/.test(semDeclRun.stdout) && /mas o map não declara vivo\.ancora/.test(semDeclRun.stdout));
+
+// ── IDADE DA AFIRMAÇÃO (2026-09-21) ────────────────────────────────────────
+// `map.gerado_em` é a data da DERIVAÇÃO; a afirmação vem do gap.md. Caso real que motivou:
+// Financeiro/unificado mandava aplicar 5 capacidades entregues no #3928 (2026-07-07) com
+// `gerado_em: 2026-09-14` — parecia fresco, e as claims eram de um gap.md de 2026-07-01.
+writeMap({ prototipo_sha: sha(root), gerado_em: '2026-04-01', gap_fonte: 'memory/requisitos/Fixture/index-gap.md', partes: [parteOptOut] });
+const idadeRun = runCheck(['--check']);
+check('BITE idade: gap 2026-01-01 → map 2026-04-01 mede 90d e lista o map',
+  /idade da afirmação/.test(idadeRun.stdout) && /\b90d\b/.test(idadeRun.stdout) && /61\+d 1/.test(idadeRun.stdout));
+check('idade NUNCA é drift (afirmação velha ≠ afirmação errada — Compras tem 83d e segue verdadeira)',
+  runCheck(['--check', '--strict']).status === 0);
+// LC-33: data YAML entre aspas é válida e NÃO pode virar "NÃO MEDIDA" — era defeito da sonda,
+// não do artefato (2 dos 7 indeterminados do corpus eram só isto).
+writeFileSync(join(reqDir, 'index-gap.md'), `---\nprototipo: prototipo-ui/cowork/Wagner/fixture-page.jsx\nmap_json: index.map.json\ngerado_em: "2026-01-01"\n---\n\n# gap\n`);
+const citadaRun = runCheck(['--check']);
+check('BITE aspas no GAP: `gerado_em: "2026-01-01"` mede 90d igual, sem cair em NÃO MEDIDA',
+  /\b90d\b/.test(citadaRun.stdout) && !/idade da afirmação NÃO MEDIDA/.test(citadaRun.stdout));
+// IRMÃO (§5 2026-08-03): consertar um lado e não medir o outro deixa o mesmo defeito vivo. O map
+// é JSON, mas o valor pode chegar citado por qualquer gerador/edição — o strip vale nos 2 lados.
+writeMap({ prototipo_sha: sha(root), gerado_em: '"2026-04-01"', gap_fonte: 'memory/requisitos/Fixture/index-gap.md', partes: [parteOptOut] });
+const citadaMapRun = runCheck(['--check']);
+check('BITE aspas no MAP: `gerado_em: "2026-04-01"` mede 90d igual, sem cair em NÃO MEDIDA',
+  /\b90d\b/.test(citadaMapRun.stdout) && !/idade da afirmação NÃO MEDIDA/.test(citadaMapRun.stdout));
+// controle negativo: sem a data, declara que não mediu — nunca finge "em dia" (§5 2026-07-29)
+writeFileSync(join(reqDir, 'index-gap.md'), `---\nprototipo: prototipo-ui/cowork/Wagner/fixture-page.jsx\nmap_json: index.map.json\n---\n\n# gap\n`);
+const semDataRun = runCheck(['--check']);
+check('controle negativo da idade: gap.md sem `gerado_em` → WARN "NÃO MEDIDA", nunca silêncio',
+  /idade da afirmação NÃO MEDIDA/.test(semDataRun.stdout) && semDataRun.status === 0);
 
 rmSync(root, { recursive: true, force: true });
 console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — design-code-map-check morde (âncora quebrada, sha stale por CONTEÚDO ou legado git, schema, data-contract declarado que sumiu, partes n/a com fonte no gap) e libera certo (íntegro, TODO pendente, linha-only, commit sem mudança de conteúdo).');

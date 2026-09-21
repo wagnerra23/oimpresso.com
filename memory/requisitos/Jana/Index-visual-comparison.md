@@ -34,6 +34,26 @@
 > [`PARIDADE-area-jana-diagnostico-e-ondas.md`](PARIDADE-area-jana-diagnostico-e-ondas.md) carrega o
 > mesmo 19px e fica intacto pelo mesmo motivo: é fóssil datado, e esta errata é o ponteiro.
 >
+> **FECHADO em 2026-09-21 — o peso convergiu, por réplica local.** A linha `font-weight` da
+> tabela acima vira **600 = 600**; ela fica como está porque é o retrato de 09-18. O que a rodada
+> de hoje acrescenta é o fundamento que faltava: **as duas âncoras discordam entre si.** A de
+> **Vendas** declara **700** explicitamente (`styles.css:4772`, 0-1-1, e `financeiro.css:1727`,
+> 0-3-1 — esta vence), com o comentário de `styles.css:4765` dizendo textual *"`.os-head` — mesmo
+> CANON do PageHeader"*; a da **Jana** não declara peso e herda o DS (600). O 700 do componente é
+> decisão [W] datada e **ainda válida** (PR #1477, 2026-05-25, *"prefiro o mesmo peso do sells"* —
+> referência re-medida hoje, segue 700), então mudá-la alinharia **42** telas ao peso da Jana.
+> Conserto: prop opt-in `titleWeight` no `PageHeader` (default `'bold'`, mesmo contrato de
+> `leading`/`below`); só o `JanaAreaHeader` declara `'semibold'` — as outras **41** não mudam um
+> pixel. UC-JPAIN-30, mordida provada por 2 mutações. **Computed style MEDIDO** (browser real + CSS do
+> projeto gerado pelo entry de verdade, Tailwind v4.3.3): **600** com a prop, **700** sem ela, e
+> `font-size` **22px nos dois** — a paridade de tamanho **não foi tocada**. Necessária porque no v4
+> a regra é indireta (`font-weight: var(--font-weight-semibold)`) e só o browser resolve; controle
+> positivo `folhaCarregou: true` no mesmo turno. ⚠️ Não é a tela `/ia` **logada inteira** — smoke
+> autenticado não foi feito (302 sem sessão). O `<h1>` **continua fora** dos 9
+> seletores do `jana--index.alvo.json` — o buraco de medição que esta seção denuncia **segue
+> aberto**, e fechá-lo exige re-medir por sonda contra render servido, não editar o alvo à mão.
+> Trilha: `Index.charter.md` **v25**.
+>
 > Trilha completa: `Index.charter.md` **v17**.
 
 - **Data da medição:** 2026-08-17 (**re-medido** — ver §Correções abaixo) · **âncora:** `prototipo-ui/cowork/Wagner/jana-merge.jsx` (resolvida por `node scripts/design/ancora.mjs Jana/Index`)
@@ -793,7 +813,7 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 > lh 22 · ls -0.44`. Grid, raio (8), padding (12/14/14/14), gap (3) e tag (DIV) idem.
 >
 > As duas diferenças restantes **não são dívida de forma**, e estão decompostas no
-> `Index.casos.md` §UC-JPAIN-30: o `small` ausente no 1º card é **dado** (staging sem delta de
+> `Index.casos.md` §UC-JPAIN-34: o `small` ausente no 1º card é **dado** (staging sem delta de
 > receita), e os 4px de altura são `+6` (o card 2 da âncora está em `emph` por ter vencido real,
 > o staging tem vencido zero) `−2` (borda que o render do espelho não pintou). ⚠️ Isso **refuta** a
 > causa registrada em 2026-09-03 (*"line-height do `small` herdado do body"*): o `<small>` tem
@@ -803,7 +823,7 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 > medido: o **breakpoint do grid** (`.jc-kpis` quebra em 1100px; o `KpiGrid` em 1024/640). Isso
 > bate com a queixa literal de [W] — *"quantidade de colunas de kpi"*. Fechado por réplica local
 > `JanaKpiGrid`; medição por viewport e as **duas tentativas refutadas** (arbitrary variant sai
-> inerte no Tailwind 4) em `Index.casos.md` §UC-JPAIN-30.
+> inerte no Tailwind 4) em `Index.casos.md` §UC-JPAIN-34.
 
 ### Metas — não comparável hoje (0 metas em todos os tenants, medido 2026-08-21/08-31); âncora `METAS ATIVAS` mono + 5 cards em linha + `Nova meta` à direita × prod pill `METAS` + h2 + 3 botões + empty. Fica pra quando existir dado.
 
@@ -834,7 +854,7 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 | onda | escopo | estado |
 |---|---|---|
 | **1** | abas em faixa própria · Atualizado na Zona R · sem primary · ícones · Conversa com "Nova conversa" | **este PR** |
-| 2 | KPI no desenho `.jc-kpi` (réplica ADR 0388 em `_components/`, tokens; grid 4; `.emph`) | **[#6662](https://github.com/wagnerra23/oimpresso.com/pull/6662)** (2026-09-03) · anatomia re-medida ✅ em 2026-09-21 · o **breakpoint** do grid saiu depois, no UC-JPAIN-30 |
+| 2 | KPI no desenho `.jc-kpi` (réplica ADR 0388 em `_components/`, tokens; grid 4; `.emph`) | **[#6662](https://github.com/wagnerra23/oimpresso.com/pull/6662)** (2026-09-03) · anatomia re-medida ✅ em 2026-09-21 · o **breakpoint** do grid saiu depois, no UC-JPAIN-34 |
 | 3 | Conversa: histórico como card `jm-hist` (busca ⌘K · chips · itens ricos · atalhos) · thread header `título · só sua` · composer com chips de sugestão | chip — medição em `Chat-visual-comparison.md` §2026-09-03 |
 | 4 | Memória: largura toda · barra `busca + chips + n de m` · linha `jm-fato` com meta mono e botões-texto | chip — medição em `Memoria-visual-comparison.md` §2026-09-03 |
 | 5 | título 19×22px (Fundação) · Exportar em menu 3 itens · contador nas abas (backend) | decisão [W] |
@@ -1093,7 +1113,7 @@ Grid 4 col · gap 10 · raio 8 · pad `12 14 14 14` · gap interno 3 · `flex co
 `10px/700/mono/ls 0.6/uppercase` · cabeçalho `flex space-between` · `mb 4` · ícone `15×15` sem
 caixa · valor `22px/700/lh 22/ls -0.44` · tag `DIV` · largura 275,5.
 
-As 2 restantes **não são dívida de forma** — estão decompostas no `Index.casos.md` §UC-JPAIN-30
+As 2 restantes **não são dívida de forma** — estão decompostas no `Index.casos.md` §UC-JPAIN-34
 (`small` ausente no 1º card = dado; 4px de altura = `+6` do `emph` não disparado no staging (vencido zero) `−2`
 da borda que o render do espelho não pintou). ⚠️ A segunda **refuta** a causa registrada em
 2026-09-03 (*"line-height do `small`"*): ele é `16.5px` idêntico nos dois lados.
@@ -1138,6 +1158,14 @@ o CSS buildado: **6/6 viewports** batendo, com controle antes × depois discrimi
   `irmaoMarginTop: 0px`). `mb-[18px]` na utility seria **inerte** — especificidade `(0,1,0)`
   contra `(0,2,0)` do pai. Fechar exige tocar o `space-y-4`, que governa **todas** as seções da
   tela e é território de chips irmãos vivos. Declarado, não consertado.
+  > ⚠️ **FECHADO por OUTRA sessão enquanto este PR esperava, e a minha análise do conserto
+  > estava ERRADA** — `UC-JPAIN-33` ([#7653](https://github.com/wagnerra23/oimpresso.com/pull/7653),
+  > 2026-09-21). Eu medi certo *de onde vinha* em produção (o `space-y-4` do container) e concluí
+  > errado *como se fecha*: escrevi que exigiria tocar o container e o espaçamento de todas as
+  > seções. A medição deles na **âncora** mostra o oposto — lá o 18px **não vem de um container,
+  > vem de cada seção** — e por isso o conserto coube por seção, sem raio nas vizinhas.
+  > Medir a produção não substitui medir a âncora: eu parei na primeira.
+
 - **Cor de fundo, borda e texto do lado DESIGN não foram medidas.** No render do espelho o
   `colors_and_type.css` carregou com **0 regras** e `--surface`/`--border`/`--text-3` ficaram
   vazios. Nenhum dos 24 campos ✅ depende deles (`--r-2`, `--fs-7` e `--mono` resolveram); os de
@@ -1431,3 +1459,55 @@ mergeou em `main`, mas a produção **ainda serve 2 colunas**: `grid-template-co
 Ou seja: **merge não é deploy**, e o G16 continua com o número de 2 colunas até o deploy rodar. Fica
 como está, datado — quem reler depois do deploy vai medir ~737,7px e não deve ler a diferença como
 regressão.
+
+---
+
+## Rodada MEDIDA 2026-09-21 (2ª) — ritmo vertical entre seções (o `margin-bottom` que ficara aberto)
+
+> A rodada anterior deixou este item **aberto e declarado** como decisão [W] — *"o 16px vem do
+> `space-y-4` do container, logo rege TODAS as seções"*. [W] decidiu: arrumar. Esta rodada mede e
+> fecha.
+
+**Método:** espaço **VISUAL** entre blocos consecutivos (`top` do próximo − `bottom` do atual), não
+a propriedade isolada — que engana quando há padding no meio. Chrome, 2560, dark, os dois lados na
+mesma janela.
+
+| de → para | âncora | prod (antes) | veredito |
+|---|---|---|---|
+| brief → kpis | **18** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| kpis → METAS | **18** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| METAS → h2 Análises | **6** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| h2 → grade | 10 | 10 | ✅ **IGUAL** |
+| grade → h2 Ações | **18** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| h2 Ações → ações | 10 | 10 | ✅ **IGUAL** |
+
+**6 de 6 transições comparáveis** batem depois da mudança (prova de runtime no DOM da produção,
+com as regras do CSS compilado, revertida limpa).
+
+### O que a medição mudou no conserto "óbvio"
+
+A correção intuitiva — trocar `space-y-4` por `space-y-[18px]` e pronto — **pioraria** a transição
+de METAS: ela iria de 16 → 18px, onde a âncora quer **6px**. Trocaria um erro de 10px por um de
+12px, no sentido oposto. Por isso o wrapper ganhou `mb-1.5` explícito: na âncora, `.jm-metas`
+também foge do ritmo.
+
+### O erro de instrumento, que vale mais que o acerto
+
+A **primeira** prova de runtime disse que `h2 → conteúdo` ia de 10 para **18px** — ou seja, que a
+mudança quebrava duas transições corretas. Era falso: injetei as regras num `<style>` **fora de
+`@layer`**, e CSS fora de layer vence o que está dentro **independente de especificidade**. A regra
+do `space-y` do app vive em `@layer utilities`. Refeita a injeção dentro do layer, o `h2` fica em
+10px (o `mb-2.5` vence o `:where()` de especificidade 0) e as 6 transições batem.
+
+**Simulação de cascata que não reproduz a CAMADA mede outra cascata** — e o sintoma foi um
+falso-negativo plausível, do tipo que não se denuncia.
+
+### Aberto e medido: o `pt-6` de METAS
+
+Do último KPI até o **texto** "METAS ATIVAS" são **46px** em prod (16 margem + 24 `pt-6` + 6
+`mt-1.5`) contra **24px** na âncora (18 + 6). É *padding*, não margem, e o bloco pertence a outro
+chip. A sessão de METAS mediu em paralelo e confirmou a decomposição: **nenhum dos dois consertos
+sozinho acerta** — só este dá 48, só o dela dá 16, **os dois juntos dão 24 exatos**.
+
+**Enforcement:** UC-JPAIN-33, `tests/janaRitmoVerticalReplica.spec.tsx`, 3 casos, mordida provada
+nos dois lados com restauração por hash. Detalhe no `Index.casos.md`; aqui não se repete.

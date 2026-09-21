@@ -1,0 +1,163 @@
+/* ═══════════════════════════════════════════════════════════════════
+   OIMPRESSO TOKENS — SINGLE SOURCE OF TRUTH
+   Source: Design System v4.html (CANÔNICO) · atualizado 2026-05-29
+   v4 = SHELL ROXO (hue 295). Era azul 220 até v3; Wagner aprovou a
+   virada full-roxo em 2026-05-29 → SUPERSEDE ADR 0190 (que mantinha
+   shell azul + só primário roxo). Agora accent E primário são roxo.
+   Não duplicar em arquivos de módulo. Token novo? Atualize PRIMEIRO o
+   Design System v4.html e este arquivo.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* ── Neutrals — warm off-white scale (Attio-leaning) ── */
+  --bg:           oklch(0.985 0.003 90);   /* canvas / page bg */
+  --bg-2:         oklch(0.965 0.004 90);   /* toolbar / subtle zones */
+  --surface:      #ffffff;                  /* cards, drawer, modal */
+  --border:       oklch(0.90 0.004 90);    /* dividers, borders */
+  --border-2:     oklch(0.93 0.004 90);    /* subtle dividers */
+  --text:         oklch(0.22 0.01 80);     /* body text */
+  --text-dim:     oklch(0.50 0.01 80);     /* secondary, labels */
+  --text-mute:    oklch(0.65 0.01 80);     /* tertiary, eyebrow */
+
+  /* ── Accent — ROXO (v4 · o "roxinho", padrão Oficina). Era azul 220. ──
+     Trocar SÓ estas 3 linhas re-tematiza todo o sistema (botões, foco,
+     ativo, links) — porque tudo consome --accent / camada semântica. ── */
+  --accent:       oklch(0.55 0.15 295);
+  --accent-2:     oklch(0.62 0.15 295);
+  --accent-soft:  oklch(0.95 0.04 295);
+  --accent-fg:    #ffffff;
+
+  /* ── Sidebar — DARK FIXO azul-petróleo (canon real do repo · cockpit.css) ──
+     A sidebar continua petróleo — NÃO vira roxo. Só o conteúdo/ações roxam. ── */
+  --sb-bg:        oklch(0.18 0.006 240);
+  --sb-bg-2:      oklch(0.16 0.006 240);
+  --sb-border:    oklch(0.28 0.008 240);
+  --sb-text:      oklch(0.78 0.005 90);
+  --sb-text-dim:  oklch(0.58 0.005 90);
+  --sb-text-hi:   oklch(0.96 0.005 90);
+  --sb-hover:     oklch(0.27 0.008 240);
+  --sb-active:    oklch(0.32 0.008 240);
+
+  /* ── Origins — color-by-meaning (Attio) ── */
+  --origin-OS-bg:  oklch(0.93 0.07 70);   --origin-OS-fg:  oklch(0.40 0.10 60);
+  --origin-CRM-bg: oklch(0.92 0.06 220);  --origin-CRM-fg: oklch(0.40 0.10 220);
+  --origin-FIN-bg: oklch(0.93 0.07 145);  --origin-FIN-fg: oklch(0.36 0.10 145);
+  --origin-PNT-bg: oklch(0.93 0.06 295);  --origin-PNT-fg: oklch(0.40 0.10 295);
+  --origin-MFG-bg: oklch(0.93 0.05 30);   --origin-MFG-fg: oklch(0.40 0.10 30);
+
+  /* ── Semantic — status ── */
+  --ok-bg:        oklch(0.94 0.06 145);   --ok-fg:    oklch(0.32 0.13 145);
+  --warn-bg:      oklch(0.96 0.05 60);    --warn-fg:  oklch(0.42 0.13 60);
+  --danger-bg:    oklch(0.95 0.04 25);    --danger-fg: oklch(0.55 0.18 25);
+  --info-bg:      var(--accent-soft);     --info-fg:  var(--accent);
+
+  /* ── Spacing — 4-base scale ── */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px;  --s-4: 16px;
+  --s-5: 20px; --s-6: 24px; --s-8: 32px;  --s-10: 40px;
+
+  /* ── Radius ── */
+  --radius-sm: 4px;
+  --radius:    6px;        /* default — botões, badges, inputs */
+  --radius-md: 8px;        /* cards */
+  --radius-lg: 12px;       /* drawer, modal */
+
+  /* ── Shadows — elevation scale 5 níveis (v1.3) ── */
+  --shadow-0:    none;
+  --shadow-1:    0 1px 2px rgba(16,18,22,.05);
+  --shadow-2:    0 2px 6px -1px rgba(16,18,22,.08), 0 1px 2px rgba(16,18,22,.05);
+  --shadow-3:    0 6px 16px -4px rgba(16,18,22,.12), 0 2px 5px -2px rgba(16,18,22,.07);
+  --shadow-4:    0 16px 40px -8px rgba(16,18,22,.20), 0 4px 12px -4px rgba(16,18,22,.10);
+  --shadow-soft: var(--shadow-1);
+  --shadow-pop:  var(--shadow-3);
+
+  /* ── Type ── */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ── Motion ── */
+  --t-fast:    120ms;
+  --t-base:    180ms;
+  --t-slow:    280ms;
+  --ease-out:  cubic-bezier(.22,1,.36,1);
+  --ease-soft: cubic-bezier(.4,0,.2,1);
+
+  /* ── Z-stack — escala completa (v1.3) ── */
+  --z-base:     0;
+  --z-raised:   10;
+  --z-sticky:   25;
+  --z-drawer:   40;
+  --z-overlay:  50;
+  --z-toast:    60;
+  --z-modal:    80;
+  --z-popover:  90;
+  --z-max:      100;
+
+  /* ── Breakpoints (v1.3) ── */
+  --bp-mobile:  640px;
+  --bp-tablet:  900px;
+  --bp-desktop: 1200px;
+  --bp-wide:    1440px;
+  --bp-ultra:   1920px;
+
+  /* ── Density (v1.3) ── */
+  --row-h:      30px;
+  --field-h:    30px;
+  --pad-x:      12px;
+  --pad-y:      10px;
+}
+
+/* Density modes — sobrescrevem os tokens acima */
+[data-density="compact"]{ --row-h: 26px; --field-h: 26px; --pad-x: 10px; --pad-y: 6px; }
+[data-density="default"]{ --row-h: 30px; --field-h: 30px; --pad-x: 12px; --pad-y: 10px; }
+[data-density="comfy"]  { --row-h: 36px; --field-h: 36px; --pad-x: 16px; --pad-y: 13px; }
+
+/* ── Tokens SEMÂNTICOS (v3) — camada de intenção sobre os primitivos ──
+   Componentes consomem ESTES, não os primitivos. Re-tematizar = mexer aqui. */
+:root{
+  --color-action-primary:       var(--accent);
+  --color-action-primary-hover: var(--accent-2);
+  --color-action-primary-fg:    var(--accent-fg);
+  --color-text-default:         var(--text);
+  --color-text-secondary:       var(--text-dim);
+  --color-text-tertiary:        var(--text-mute);
+  --color-text-danger:          var(--danger-fg);
+  --color-text-success:         var(--ok-fg);
+  --color-text-link:            var(--accent);
+  --surface-page:               var(--bg);
+  --surface-subtle:             var(--bg-2);
+  --surface-default:            var(--surface);
+  --surface-raised:             var(--surface);
+  --border-default:             var(--border);
+  --border-subtle:              var(--border-2);
+  --border-focus:               var(--accent);
+  --focus-ring:                 0 0 0 3px var(--accent-soft);
+  /* v4: primário das Index == accent (ambos roxo). Mantido por compat com
+     telas que referenciam --primary-page diretamente. */
+  --primary-page:               var(--accent);
+  --primary-page-border:        oklch(0.45 0.15 295);
+  --primary-page-fg:            oklch(0.99 0 0);
+}
+
+/* Dark theme */
+[data-theme="dark"]{
+  --bg:        oklch(0.16 0.003 240);
+  --bg-2:      oklch(0.14 0.003 240);
+  --surface:   oklch(0.19 0.003 240);
+  --border:    oklch(0.26 0.005 240);
+  --border-2:  oklch(0.23 0.005 240);
+  --text:      oklch(0.92 0.005 90);
+  --text-dim:  oklch(0.68 0.005 90);
+  --text-mute: oklch(0.55 0.005 90);
+
+  --accent-soft: oklch(0.30 0.05 295);
+
+  --origin-OS-bg:  oklch(0.30 0.07 60);   --origin-OS-fg:  oklch(0.85 0.07 60);
+  --origin-CRM-bg: oklch(0.30 0.07 220);  --origin-CRM-fg: oklch(0.85 0.07 220);
+  --origin-FIN-bg: oklch(0.30 0.07 145);  --origin-FIN-fg: oklch(0.85 0.07 145);
+  --origin-PNT-bg: oklch(0.30 0.07 295);  --origin-PNT-fg: oklch(0.85 0.07 295);
+  --origin-MFG-bg: oklch(0.30 0.07 30);   --origin-MFG-fg: oklch(0.85 0.07 30);
+
+  --ok-bg:     oklch(0.30 0.07 145); --ok-fg:     oklch(0.85 0.10 145);
+  --warn-bg:   oklch(0.30 0.07 60);  --warn-fg:   oklch(0.85 0.10 60);
+  --danger-bg: oklch(0.30 0.07 25);  --danger-fg: oklch(0.85 0.16 25);
+}

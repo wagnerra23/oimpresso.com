@@ -657,7 +657,28 @@ export default function JanaCockpit({
   }
 
   return (
-    <div className="space-y-4">
+    /* Ritmo vertical entre seções = **18px**, o da âncora. Medido em 2026-09-21 (Chrome,
+       2560, dark, os dois lados na mesma janela), comparando o espaço VISUAL entre blocos
+       consecutivos — não a propriedade isolada, que engana quando há padding no meio:
+
+         de → para              âncora   prod (antes)
+         brief → kpis             18        16
+         kpis → metas             18        16
+         metas → h2 Análises       6        16      ← vai pro outro lado; ver `mb-1.5` no Index
+         h2 → grade               10        10  ✅
+         grade → h2 Ações         18        16
+         h2 → ações               10        10  ✅
+
+       Na âncora o 18px não vem de um container: cada seção declara o seu
+       (`.jc-brief`, `.jc-kpis`, `.jc-grid`, `.jc-acoes` — 4 ocorrências em
+       `chat-jana.css`). Aqui fica no `space-y`, que é o idioma desta tela e produz o
+       mesmo espaçamento com uma declaração em vez de quatro.
+
+       ⚠️ Os `h2` continuam em 10px e isso é da âncora, não descuido: o `space-y` gera
+       `:where(.space-y-* > :not(:last-child))`, de especificidade **0**, então o `mb-2.5`
+       do `SectionTitle` vence sem `!important` — exatamente como a `.jc-h2` (`margin: 6px
+       0 10px`) vence o ritmo do `.jc-page`. */
+    <div className="space-y-[18px]">
       {/* Header do cockpit — REMOVIDO na onda de fusão (2026-08-07, US-COPI-148).
           Era a SEGUNDA barra da tela: identidade (Jana · Analista IA + business +
           biz) e ações (Atualizado / Configurar / Exportar) duplicavam o que já
@@ -924,7 +945,7 @@ export default function JanaCockpit({
           e arbitrary variant no `className` dele sai INERTE (o Tailwind 4 emite os
           arbitrários ANTES dos nomeados, então `lg:` vence). Os offsets medidos e as três
           faixas divergentes estão no docblock do componente e no `Index.casos.md`
-          §UC-JPAIN-30. */}
+          §UC-JPAIN-34. */}
       <JanaKpiGrid>
         {carregandoCockpit ? (
           <KpiCardSkeleton label="Receita 30 dias" />

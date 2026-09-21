@@ -1,0 +1,1902 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../design-system/colors_and_type.css">
+<link rel="stylesheet" href="../../design-system/styles.css">
+<script src="../../design-system/_ds_bundle.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg, #fafaf9); }
+  a { color: var(--color-primary); text-decoration: none; }
+  /* Hover de link: o guia do DS marca hover com sublinhado, não com troca de matiz — e
+     `--accent-2` é par do `--accent`, que o shell reescreve em runtime. Cor fica no contrato. */
+  a:hover { color: var(--color-primary); text-decoration: underline; text-underline-offset: 3px; }
+  /* Defeito na origem do DS (ADR 0403): a TabBar declara overflow-x:auto, o navegador força
+     overflow-y:auto, e com botões de 36px numa caixa de 35px sobra 1px — aparece barra vertical.
+     Não é suprimível de fora (overflow do ancestral não afeta o descendente que rola), então o
+     override fica aqui até a altura ser corrigida na origem. Mira atributo semântico, não posição. */
+  nav[aria-label="Sub-navegação"] { overflow-y: hidden; }
+  /* Densidade: no DS é contrato de tokens do SHELL, não prop de componente.
+     Fonte: templates/pt-01-lista, <style> do <helmet> + a lógica que escreve --d-*. */
+  .cockpit table td { padding-top: var(--d-td-y, 10px) !important; padding-bottom: var(--d-td-y, 10px) !important; }
+  .cockpit table th { padding-top: var(--d-th-y, 9px) !important; padding-bottom: var(--d-th-y, 9px) !important; }
+  /* Cabeçalho fixo na lista, com a rolagem da PÁGINA — o modelo de rolagem do `main`
+     (Index.charter.md, Goals: "a rolagem vertical é da PÁGINA"), reafirmado pela Maiara em
+     26/08. Nenhum ancestral da tabela declara overflow, então o scrollport do sticky é o
+     documento: o th prende no topo da JANELA e nenhuma linha passa por cima dele.
+     ATENÇÃO — é o ponto que quebra sozinho: qualquer `overflow` (mesmo só `-x:auto`) num
+     ancestral da tabela faz o navegador computar `auto` no outro eixo, o scrollport passa a ser
+     aquele contêiner e o cabeçalho volta a sair de vista com a página. A rolagem horizontal da
+     tabela larga é a do documento, de propósito.
+     Contorno da tela: o DataTablePro tem header sticky nativo, mas não aceita ordenação
+     controlada (só defaultSort) nem state:'selected', e esta tela controla ordem e linha ativa
+     por fora. Proposta P1 na pauta do DS. O fundo opaco do th é do DS (o DataTable escreve
+     `background: var(--bg-2)` inline); a tela não reescreve fundo aqui. */
+  .cockpit thead th { position: sticky; top: 0; z-index: 6; }
+  .cockpit thead th::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--border); }
+  .cockpit tbody td { z-index: 0; }
+  /* Régua do DrawerSection retirada no bloco de saldo (Maiara, 26/08): ele é a continuação da tira
+     de identidade, não um bloco novo. O componente escreve border-top inline, então só !important
+     alcança — mira o invólucro, nunca a posição. Vale só para este bloco. */
+  [data-sem-regua] > div { border-top: 0 !important; padding-top: 0 !important; }
+  /* Lupa no campo de busca da toolbar: o `Input` do DS não tem slot de ícone (pauta P1) e o
+     template PT-01 desenha o campo à mão só para ter o glyph. Contorno que **não** substitui o
+     componente: o glyph fica no invólucro, absoluto, e o campo abre espaço para ele. O 30px é o
+     `padding 10px` do controle (Input.jsx L21) + lupa 14 + 6 de folga. */
+  #campo-busca { position: relative; }
+  #campo-busca input { padding-left: 30px !important; }
+  ::selection { background: color-mix(in oklch, var(--color-primary) 12%, transparent); }
+  /* [DS-repo] Sidebar em hue 295 — ADR UI-0028 (accepted 28/08/2026), aplicada aqui por pedido
+     explícito da Maiara em 01/09: EXCEÇÃO ASSINADA ao "o DS ganha" (o espelho `_ds/` serve
+     hue 240 em colors_and_type.css L308-315; o `main` já está em 295). Os 8 valores são
+     TRANSCRITOS de `resources/css/cockpit.css` L193-200 do `main` (que por sua vez os copiou de
+     `prototipo-ui/cowork/styles.css`) — nada convertido, nada arredondado, nada inventado.
+     `--sb-scroll` e `--sb-bullet-out` NÃO entram: D-3 da UI-0028 os deixa em 240 porque o
+     protótipo não os declara; inventar valor pra eles seria alucinar fonte.
+     Some quando o espelho do DS adotar o 295 (pergunta aberta na pauta). */
+  .cockpit {
+    --sb-bg:       oklch(0.21 0.025 295);
+    --sb-bg-2:     oklch(0.18 0.025 295);
+    --sb-border:   oklch(0.30 0.03 295);
+    --sb-text:     oklch(0.80 0.008 295);
+    --sb-text-dim: oklch(0.55 0 0);
+    --sb-text-hi:  oklch(0.97 0.004 295);
+    --sb-hover:    oklch(0.28 0.035 295);
+    --sb-active:   oklch(0.34 0.05 295);
+  }
+</style>
+</helmet>
+
+<div class="cockpit" data-theme="{{ tema }}" ref="{{ cockpitRef }}" style="display:flex; align-items:flex-start; min-height:100vh; background:radial-gradient(1100px 620px at 84% -10%, oklch(0.30 0.07 295 / .16), transparent 60%), radial-gradient(900px 520px at 6% 110%, oklch(0.26 0.05 250 / .12), transparent 62%), var(--bg); color:var(--text); font-family:var(--font-sans); font-size:var(--d-fontsz, 13.5px)">
+
+  <!-- A sidebar só aparece quando a tela roda sozinha. Embutida no shell do cowork (iframe),
+       quem navega é a sidebar do shell — duas empilhadas eram duas navegações concorrentes. -->
+  <sc-if value="{{ verSidebar }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none; position:sticky; top:0; left:0; z-index:20; height:100vh; overflow-y:auto; overflow-x:hidden">
+      <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.AppSidebar" active="Produtos" hint-size="260px,100%"></x-import>
+    </div>
+  </sc-if>
+
+  <main style="flex:1; min-width:0; display:flex; flex-direction:column">
+
+      <div style="flex:none; padding:0 var(--d-cpad-x, 22px)">
+        <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.PageHeader" title="Produtos" actions="{{ headerActions }}" hint-size="100%,57px"></x-import>
+      </div>
+
+      <sc-if value="{{ naListagem }}" hint-placeholder-val="{{ true }}">
+        <!-- Fundo do invólucro das abas: o `PageHeader` escreve `background: var(--bg)` opaco
+             (_ds_bundle.js L5171) e a `TabBar` não escreve fundo nenhum, então nessa faixa
+             aparecia o bloom roxo do radial-gradient do `.cockpit` — claro à esquerda, tingido à
+             direita. O valor aqui é citação do PageHeader, não cor nova. -->
+        <div style="flex:none; padding:0 var(--d-cpad-x, 22px); background:var(--bg)">
+          <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.TabBar" tabs="{{ abas }}" active="{{ abaAtiva }}" on-change="{{ trocarAba }}" hint-size="100%,37px"></x-import>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ naListagem }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex; flex-direction:column">
+
+          <div style="flex:none; padding:var(--d-cpad-y, 16px) var(--d-cpad-x, 22px) 0; display:grid; gap:9px; grid-template-columns:repeat(4, minmax(0, 1fr))">
+            <sc-if value="{{ verKpiMin }}" hint-placeholder-val="{{ true }}">
+              <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.KpiFilterCard" label="Abaixo do mínimo" sub="repor" tone="amber" icon="{{ icMin }}" value="{{ kpiMin }}" selected="{{ selMin }}" on-click="{{ toggleMin }}" hint-size="100%,66px"></x-import>
+            </sc-if>
+            <sc-if value="{{ verKpiZero }}" hint-placeholder-val="{{ true }}">
+              <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.KpiFilterCard" label="Sem saldo" sub="bloqueado" tone="rose" icon="{{ icZero }}" value="{{ kpiZero }}" selected="{{ selZero }}" on-click="{{ toggleZero }}" hint-size="100%,66px"></x-import>
+            </sc-if>
+            <sc-if value="{{ verKpiParado }}" hint-placeholder-val="{{ true }}">
+            <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.KpiFilterCard" label="{{ labelParado }}" sub="{{ subParado }}" tone="violet" icon="{{ icParado }}" value="{{ kpiParado }}" selected="{{ selParado }}" on-click="{{ toggleParado }}" hint-size="100%,66px"></x-import>
+            </sc-if>
+            <sc-if value="{{ verKpiMargem }}" hint-placeholder-val="{{ true }}">
+              <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.KpiFilterCard" label="Margem baixa" sub="{{ subMargem }}" tone="primary" icon="{{ icMargem }}" value="{{ kpiMargem }}" selected="{{ selMargem }}" on-click="{{ toggleMargem }}" hint-size="100%,66px"></x-import>
+            </sc-if>
+          </div>
+
+          <div style="flex:none; margin-top:var(--d-cpad-y, 16px); display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:var(--d-tb-y, 11px) var(--d-cpad-x, 22px); border-bottom:1px solid var(--border); background:var(--bg)">
+            <sc-for list="{{ filtros }}" as="f" hint-placeholder-count="6">
+              <div style="flex:0 0 auto" onClickCapture="{{ fecharPainelSeAberto }}">
+                <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.DropdownMenu" trigger="{{ f.texto }}" items="{{ f.itens }}" align="start" width="220" hint-size="auto,32px"></x-import>
+              </div>
+            </sc-for>
+
+            <div style="flex:0 0 auto" onClickCapture="{{ fecharPainelSeAberto }}">
+              <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.DropdownMenu" trigger="{{ ordenacao.texto }}" items="{{ ordenacao.itens }}" align="start" width="230" hint-size="auto,32px"></x-import>
+            </div>
+
+            <sc-if value="{{ temFiltroAtivo }}" hint-placeholder-val="{{ false }}">
+              <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.Button" variant="ghost" size="sm" on-click="{{ limparFiltros }}" hint-size="auto,32px">Limpar</x-import>
+            </sc-if>
+
+            <span style="font:11px/1 var(--font-mono); color:var(--text-dim); white-space:nowrap">{{ contagem }}</span>
+
+            <div style="flex:1 1 240px; min-width:240px; margin-left:auto; display:flex; align-items:center; gap:6px">
+              <div id="campo-busca" style="flex:1 1 auto; min-width:0">
+                <span aria-hidden="true" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); z-index:1; display:inline-flex; color:var(--text-mute); pointer-events:none">{{ icBuscaCampo }}</span>
+                <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.Input" type="search" value="{{ busca }}" on-change="{{ onBusca }}" placeholder="Buscar descrição, código, referência…" hint-size="100%,34px"></x-import>
+              </div>
+              <sc-if value="{{ temBusca }}" hint-placeholder-val="{{ false }}">
+                <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.Button" variant="ghost" size="sm" on-click="{{ limparBusca }}" hint-size="auto,32px">Limpar</x-import>
+              </sc-if>
+              <sc-if value="{{ semBusca }}" hint-placeholder-val="{{ true }}">
+                <kbd style="flex:0 0 auto; font:600 10px/1 var(--font-mono); padding:2px 5px; color:var(--text-mute); background:var(--bg-2); border:1px solid var(--border); border-radius:4px">/</kbd>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="padding:0 var(--d-cpad-x, 22px) var(--d-cpad-x, 22px)">
+
+          <div style="padding-top:var(--d-cpad-y, 16px)">
+
+          <sc-if value="{{ carregando }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:0 1px 2px rgba(0,0,0,.04); background:var(--surface); padding:14px 16px; display:flex; flex-direction:column; gap:8px">
+              <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.Skeleton" variant="row" count="8" hint-size="100%,340px"></x-import>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ semTabela }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:0 1px 2px rgba(0,0,0,.04); background:var(--surface); padding:40px 24px">
+              <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.EmptyState" variant="{{ estadoVariante }}" title="{{ estadoTitulo }}" description="{{ estadoTexto }}" hint-size="100%,200px"></x-import>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ comTabela }}" hint-placeholder-val="{{ true }}">
+          <div style="border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:0 1px 2px rgba(0,0,0,.04); background:var(--surface)">
+            <div style="{{ tabelaStyle }}">
+              <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.DataTable" columns="{{ colunas }}" rows="{{ linhasTabela }}" on-row-click="{{ abrirLinha }}" sort-key="{{ ordemKey }}" sort-dir="{{ ordemDir }}" on-sort="{{ sortCol }}" selectable="{{ true }}" selected-ids="{{ selecionados }}" on-toggle-row="{{ marcarLinha }}" on-toggle-all="{{ marcarTodas }}" hint-size="100%,420px"></x-import>
+            </div>
+
+            <sc-if value="{{ vazio }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:40px 24px">
+                <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.EmptyState" variant="{{ vazioVariante }}" title="Nenhum item neste recorte" description="{{ vazioDica }}" hint-size="100%,200px"></x-import>
+              </div>
+            </sc-if>
+
+          </div>
+          </sc-if>
+
+          </div>
+
+          <sc-if value="{{ temSelecao }}" hint-placeholder-val="{{ false }}">
+            <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.BulkBar" count="{{ qtdSelecao }}" label="{{ labelSelecao }}" actions="{{ acoesSelecao }}" on-close="{{ limparSelecao }}" hint-size="auto,44px"></x-import>
+          </sc-if>
+
+          </div>
+
+            <sc-if value="{{ mostraRodape }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:none; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:7px var(--d-cpad-x, 22px); border-top:1px solid var(--border); background:var(--surface)">
+                <sc-if value="{{ temTotais }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap">
+                    <sc-for list="{{ totais }}" as="t" hint-placeholder-count="2">
+                      <span style="display:inline-flex; align-items:baseline; gap:6px">
+                        <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.1em; color:var(--text-mute)">{{ t.rotulo }}</span>
+                        <span style="{{ t.estilo }}">{{ t.valor }}</span>
+                      </span>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.Pagination" page="{{ pagina }}" page-count="{{ paginas }}" on-change="{{ irPara }}" total="{{ totalLinhas }}" page-size="{{ porPagina }}" on-page-size="{{ setPorPagina }}" hint-size="auto,32px"></x-import>
+              </div>
+            </sc-if>
+
+        </div>
+      </sc-if>
+
+  </main>
+
+  <sc-if value="{{ temToast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; left:50%; bottom:28px; transform:translateX(-50%); z-index:90; pointer-events:none">
+      <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.Toast" tone="{{ toastTone }}" hint-size="auto,42px">{{ toastTexto }}</x-import>
+    </div>
+  </sc-if>
+
+  <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.Modal" open="{{ confirmarAberto }}" on-close="{{ fecharConfirmar }}" title="{{ tituloConfirmar }}" footer="{{ rodapeConfirmar }}" hint-size="100%,100%">
+    <p style="margin:0; font-size:13px; line-height:1.5; color:var(--text-dim)">{{ textoConfirmar }}</p>
+  </x-import>
+
+  <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.Command" open="{{ paletaAberta }}" on-close="{{ fecharPaleta }}" placeholder="Buscar em tudo…" groups="{{ paletaGrupos }}" hint-size="100%,100%"></x-import>
+
+  <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.Drawer" open="{{ drawerAberto }}" on-close="{{ fecharDrawer }}" badge="{{ det.cabecalho }}" width="{{ drawerWidth }}" footer="{{ drawerFooter }}" hint-size="420px,100%">
+
+    <div style="display:flex; align-items:center; gap:12px; padding:14px 18px" data-comment-anchor="faf17435d2-div">
+      <span style="flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:3px">
+        {{ det.foto }}
+        <sc-if value="{{ det.semFoto }}" hint-placeholder-val="{{ true }}">
+          <span style="font-size:10.5px; line-height:1.2; color:var(--text-mute)">sem imagem</span>
+        </sc-if>
+        <span style="margin-top:2px; white-space:nowrap">{{ det.estBadge }}</span>
+      </span>
+      <span style="min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:4px">
+        <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.StatusBadge" tone="outline" label="{{ det.tipoCurto }}" hint-size="auto,20px"></x-import>
+        <span style="font-size:12px; color:var(--text-dim)">{{ det.categoria }}</span>
+        <span style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-top:2px">
+          <span style="display:flex; align-items:baseline; gap:5px">
+            <span style="font:600 10.5px/1.4 var(--font-sans); text-transform:uppercase; letter-spacing:.05em; color:var(--text-mute)">Cód</span>
+            {{ det.botaoCodigo }}
+          </span>
+          <sc-if value="{{ det.temReferencia }}" hint-placeholder-val="{{ true }}">
+            <span style="display:flex; align-items:baseline; gap:5px">
+              <span style="font:600 10.5px/1.4 var(--font-sans); text-transform:uppercase; letter-spacing:.05em; color:var(--text-mute)">Ref</span>
+              {{ det.botaoReferencia }}
+            </span>
+          </sc-if>
+          <sc-if value="{{ det.temMarca }}" hint-placeholder-val="{{ true }}">
+            <span style="display:flex; align-items:baseline; gap:5px">
+              <span style="font:600 10.5px/1.4 var(--font-sans); text-transform:uppercase; letter-spacing:.05em; color:var(--text-mute)">Marca</span>
+              <span style="font-size:12px; color:var(--text)">{{ det.marca }}</span>
+            </span>
+          </sc-if>
+        </span>
+      </span>
+    </div>
+
+    <sc-if value="{{ temAtalhosSec }}" hint-placeholder-val="{{ false }}">
+      <div style="position:sticky; top:0; z-index:3; display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:10px 18px; background:var(--surface); border-bottom:1px solid var(--border)">
+        <sc-for list="{{ atalhosSec }}" as="a" hint-placeholder-count="4">
+          <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.Button" variant="ghost" size="sm" on-click="{{ a.ir }}" hint-size="auto,26px">{{ a.rotulo }}</x-import>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ det.inativo }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:14px 18px 0">
+        <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.Alert" tone="warn" title="Produto inativo" hint-size="100%,72px">Não pode ser vendido nem incluído em orçamento. Consulta e histórico seguem disponíveis.</x-import>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ det.obsCritica }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:14px 18px 0">
+        <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.Alert" tone="warn" title="{{ det.obsTag }}" hint-size="100%,72px">{{ det.obsTexto }}</x-import>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ det.ehKit }}" hint-placeholder-val="{{ false }}">
+      <div data-sec="venda"></div>
+      <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.DrawerSection" title="Disponível para venda" hint-size="100%,120px">
+        <div style="display:flex; flex-direction:column; gap:8px">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+            <span style="font-size:12px; color:var(--text-dim)">Pode vender agora</span>
+            <span style="{{ det.vendaStyle }}">{{ det.vendaTotal }}</span>
+          </div>
+          <sc-if value="{{ det.temMontaveis }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+              <span style="font-size:12px; color:var(--text-dim)">Montados em estoque</span>
+              <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px">{{ det.prontos }}</span>
+            </div>
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+              <span style="font-size:12px; color:var(--text-dim)">Montáveis com o saldo atual</span>
+              <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px">{{ det.montaveis }}</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ det.limiteNota }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:11.5px; line-height:1.45; color:var(--text-dim)">{{ det.limiteNota }}</div>
+          </sc-if>
+          <sc-if value="{{ det.limiteBloqueio }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:2px">
+              <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.Alert" tone="danger" title="Sem montagem possível" hint-size="100%,72px">{{ det.limiteBloqueio }}</x-import>
+            </div>
+          </sc-if>
+        </div>
+      </x-import>
+      </sc-if>
+
+
+
+
+
+    <sc-if value="{{ det.verComp }}" hint-placeholder-val="{{ false }}">
+      <div data-sec="composicao"></div>
+      <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.DrawerSection" title="Composição" hint-size="100%,200px">
+        <div style="display:flex; flex-direction:column; gap:8px">
+          <div style="font-size:11.5px; line-height:1.45; color:var(--text-dim)">{{ det.compExplica }}</div>
+          <div style="display:grid; grid-template-columns:1fr 74px 88px; gap:12px; padding-bottom:5px; border-bottom:1px solid var(--border)">
+            <span style="font:600 10.5px/1.4 var(--font-sans); text-transform:uppercase; letter-spacing:.05em; color:var(--text-mute)">Item</span>
+            <span style="font:600 10.5px/1.4 var(--font-sans); text-transform:uppercase; letter-spacing:.05em; color:var(--text-mute); text-align:right">{{ det.compRotuloQtd }}</span>
+            <span style="font:600 10.5px/1.4 var(--font-sans); text-transform:uppercase; letter-spacing:.05em; color:var(--text-mute); text-align:right">Dá para montar</span>
+          </div>
+          <sc-for list="{{ det.comp }}" as="c" hint-placeholder-count="4">
+            <div style="display:grid; grid-template-columns:1fr 74px 88px; gap:12px; align-items:baseline">
+              <span style="min-width:0; display:flex; flex-direction:column; gap:2px">
+                <span style="font-size:12.5px; color:var(--text)">{{ c.nome }}</span>
+                <span style="display:flex; align-items:baseline; gap:6px; flex-wrap:wrap">
+                  <span style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-mute)">{{ c.codigo }}</span>
+                  <span style="{{ c.saldoStyle }}">{{ c.saldo }}</span>
+                </span>
+              </span>
+              <span style="display:flex; flex-direction:column; align-items:flex-end; gap:2px">
+                <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:600">{{ c.qtd }}</span>
+                <sc-if value="{{ c.subtotal }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:10.5px; color:var(--text-dim)">{{ c.subtotal }}</span>
+                </sc-if>
+              </span>
+              <span style="display:flex; flex-direction:column; align-items:flex-end; gap:2px">
+                <span style="{{ c.comportaStyle }}">{{ c.comporta }}</span>
+                <sc-if value="{{ c.limita }}" hint-placeholder-val="{{ false }}">
+                  <span style="{{ c.limitaStyle }}">{{ c.limitaTexto }}</span>
+                </sc-if>
+              </span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ det.somaComp }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-top:4px; padding-top:8px; border-top:1px solid var(--border)">
+              <span style="font-size:11.5px; color:var(--text-dim)">Custo do kit (soma da composição)</span>
+              <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:600">{{ det.somaComp }}</span>
+            </div>
+          </sc-if>
+        </div>
+      </x-import>
+      </sc-if>
+
+    <sc-if value="{{ det.semPermComp }}" hint-placeholder-val="{{ false }}">
+      <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.DrawerSection" title="Composição" hint-size="100%,90px">
+        <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.Alert" tone="info" title="Restrito ao administrador" hint-size="100%,72px">A composição deste kit e o custo derivado dela não são exibidos no seu perfil.</x-import>
+      </x-import>
+    </sc-if>
+
+    <sc-if value="{{ det.mostraSaldo }}" hint-placeholder-val="{{ true }}">
+      <div data-sem-regua="1">
+      <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.DrawerSection" hint-size="100%,90px">
+        <div style="display:flex; flex-direction:column; gap:8px">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+          <span style="min-width:0; display:flex; flex-direction:column; gap:2px">
+            <span style="font-size:12px; color:var(--text-dim)">{{ det.rotuloSaldo }}</span>
+            <sc-if value="{{ det.temGrade }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size:11px; line-height:1.4; color:var(--text-mute)">{{ det.notaSaldo }}</span>
+            </sc-if>
+          </span>
+          <span style="{{ det.saldoStyle }}">{{ det.saldo }}</span>
+        </div>
+        </div>
+      </x-import>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ det.temGrade }}" hint-placeholder-val="{{ false }}">
+      <div data-sec="grade"></div>
+      <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.DrawerSection" title="Grade" hint-size="100%,220px">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:10px">
+          <span style="min-width:0; display:flex; flex-direction:column; gap:2px">
+            <span style="font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--text-mute)">{{ det.gradeEixos }}</span>
+            <span style="font-size:10.5px; color:var(--text-mute)">{{ det.gradeLegenda }}</span>
+          </span>
+          <span style="{{ det.gradeResumoStyle }}">{{ det.gradeResumo }}</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px">
+          <sc-if value="{{ det.gradeMatriz.temColunas }}" hint-placeholder-val="{{ true }}">
+            <div style="{{ det.gradeCabStyle }}">
+              <span></span>
+              <sc-for list="{{ det.gradeMatriz.colunas }}" as="col" hint-placeholder-count="2">
+                <span style="font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-mute); text-align:right">{{ col }}</span>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-for list="{{ det.gradeMatriz.linhas }}" as="ln" hint-placeholder-count="3">
+            <div style="{{ det.gradeLinhaStyle }}">
+              <span style="font-size:12.5px; color:var(--text); align-self:center">{{ ln.rotulo }}</span>
+              <sc-for list="{{ ln.celulas }}" as="cel" hint-placeholder-count="2">
+                <span style="{{ cel.celStyle }}">
+                  <span style="{{ cel.codStyle }}">{{ cel.cod }}</span>
+                  <span style="{{ cel.saldoStyle }}">{{ cel.saldo }}</span>
+                  <span style="{{ cel.precoStyle }}">{{ cel.preco }}</span>
+                  <span style="{{ cel.margemStyle }}">{{ cel.margem }}</span>
+                </span>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </x-import>
+      </sc-if>
+
+    <div data-sec="preco"></div>
+    <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.DrawerSection" title="Preço e margem" hint-size="100%,110px">
+      <div style="display:flex; flex-direction:column; gap:8px">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+          <span style="font-size:12px; color:var(--text-dim)">Preço de venda</span>
+          <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:600">{{ det.preco }}</span>
+        </div>
+        <sc-if value="{{ det.temAlcada }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+            <span style="min-width:0; display:flex; flex-direction:column; gap:2px">
+              <span style="font-size:12px; color:var(--text-dim)">Pode fechar até</span>
+              <span style="font-size:11px; line-height:1.4; color:var(--text-mute)">{{ det.notaAlcada }}</span>
+            </span>
+            <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:600">{{ det.limiteVenda }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ det.semAlcada }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px; line-height:1.45; color:var(--text-mute)">Sem alçada de desconto: fechar fora do preço de tabela exige aprovação.</div>
+        </sc-if>
+        <sc-if value="{{ verMargemAberta }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+            <span style="font-size:12px; color:var(--text-dim)">Margem</span>
+            <span style="{{ det.margemStyle }}">{{ det.margem }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ verCustoAberta }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+          <span style="font-size:12px; color:var(--text-dim)">Custo</span>
+          <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px">{{ det.custo }}</span>
+        </div>
+        </sc-if>
+        <sc-if value="{{ semCustoAberta }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px; line-height:1.45; color:var(--text-mute)">{{ notaSemCusto }}</div>
+        </sc-if>
+        <sc-if value="{{ semMargemAberta }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px; line-height:1.45; color:var(--text-mute)">{{ notaSemMargem }}</div>
+        </sc-if>
+        <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-top:6px; padding-top:10px; border-top:1px solid var(--border)">
+          <span style="font-size:12px; color:var(--text-dim)">Origem do preço</span>
+          <span style="font-size:12.5px; color:var(--text); text-align:right">{{ det.precoProcedencia }}</span>
+        </div>
+      </div>
+      <sc-if value="{{ det.temFaixas }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:6px">
+          <div role="heading" aria-level="5" style="font:600 10.5px/1.4 var(--font-sans); text-transform:uppercase; letter-spacing:.05em; color:var(--text-mute)" data-comment-anchor="f7f4067ff6-div">Preço por quantidade</div>
+          <sc-for list="{{ det.faixas }}" as="fx" hint-placeholder-count="3">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px">
+              <span style="color:var(--text-dim)">{{ fx.qtd }}</span>
+              <span style="display:flex; align-items:baseline; gap:10px">
+                <sc-if value="{{ fx.limite }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:11px; color:var(--text-mute)">até {{ fx.limite }}</span>
+                </sc-if>
+                <span style="font-weight:600">{{ fx.preco }}</span>
+              </span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ det.temLimiteFaixa }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:2px; font-size:11px; line-height:1.45; color:var(--text-mute)">{{ det.notaLimiteFaixa }}</div>
+          </sc-if>
+          <sc-if value="{{ det.notaAcresc }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:4px; font-size:11.5px; line-height:1.45; color:var(--text-dim)">{{ det.notaAcresc }}</div>
+          </sc-if>
+        </div>
+        </sc-if>
+      </x-import>
+
+    <sc-if value="{{ det.temReposicao }}" hint-placeholder-val="{{ false }}">
+      <div data-sec="reposicao"></div>
+      <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.DrawerSection" title="Reposição" hint-size="100%,90px">
+        <div style="display:flex; flex-direction:column; gap:8px">
+          <sc-if value="{{ det.temCompra }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+              <span style="font-size:12px; color:var(--text-dim)">Fornecedor</span>
+              <span style="font-size:12.5px; color:var(--text)">{{ det.fornecedor }}</span>
+            </div>
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+              <span style="font-size:12px; color:var(--text-dim)">Última compra</span>
+              <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px">{{ det.ultimaCompra }}</span>
+            </div>
+            <sc-if value="{{ det.custoCompra }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+                <span style="font-size:12px; color:var(--text-dim)">Custo na última compra</span>
+                <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px">{{ det.custoCompra }}</span>
+              </div>
+            </sc-if>
+          </sc-if>
+          <sc-if value="{{ det.temEncomenda }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+            <span style="font-size:12px; color:var(--text-dim)">Prazo de entrega</span>
+            <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--text)">{{ det.prazoEncomenda }}</span>
+          </div>
+          <sc-if value="{{ det.janelaEncomenda }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+              <span style="font-size:12px; color:var(--text-dim)">Entregas</span>
+              <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--text)">{{ det.janelaEncomenda }}</span>
+            </div>
+          </sc-if>
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+            <span style="font-size:12px; color:var(--text-dim)">Pedido mínimo</span>
+            <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--text)">{{ det.minEncomenda }}</span>
+          </div>
+          </sc-if>
+        </div>
+      </x-import>
+      </sc-if>
+
+    <sc-if value="{{ det.temEstoque }}" hint-placeholder-val="{{ true }}">
+    <div data-sec="estoque"></div>
+    <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.DrawerSection" title="Estoque" hint-size="100%,140px">
+      <div style="display:flex; flex-direction:column; gap:8px">
+        <sc-if value="{{ det.temGrade }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px; line-height:1.45; color:var(--text-dim)">{{ det.notaMinimo }}</div>
+        </sc-if>
+        <sc-if value="{{ det.semGrade }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+            <span style="font-size:12px; color:var(--text-dim)">Mínimo</span>
+            <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px">{{ det.minimo }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ det.temBloqueado }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+            <span style="min-width:0; display:flex; flex-direction:column; gap:2px">
+              <span style="font-size:12px; color:var(--text-dim)">Reservado (não vende)</span>
+              <span style="font-size:11px; line-height:1.4; color:var(--text-mute)">{{ det.notaBloqueado }}</span>
+            </span>
+            <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px; color:var(--text)">{{ det.bloqueado }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ det.temCustodia }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+            <span style="min-width:0; display:flex; flex-direction:column; gap:2px">
+              <span style="font-size:12px; color:var(--text-dim)">Em garantia (de clientes)</span>
+              <span style="font-size:11px; line-height:1.4; color:var(--text-mute)">{{ det.notaCustodia }}</span>
+            </span>
+            <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px; color:var(--text)">{{ det.custodia }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ det.temPerdas }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+            <span style="min-width:0; display:flex; flex-direction:column; gap:2px">
+              <span style="font-size:12px; color:var(--text-dim)">Baixas em 90 dias</span>
+              <span style="font-size:11px; line-height:1.4; color:var(--text-mute)">{{ det.notaPerdas }}</span>
+            </span>
+            <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px; color:var(--color-destructive)">{{ det.perdas }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ det.temValorEstoque }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+            <span style="font-size:12px; color:var(--text-dim)">{{ det.rotuloValorEstoque }}</span>
+            <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px">{{ det.valorEstoque }}</span>
+          </div>
+        </sc-if>
+      </div>
+      <sc-if value="{{ det.temLocais }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:8px" data-comment-anchor="399f4b6d95-div">
+          <div role="heading" aria-level="5" style="font:600 10.5px/1.4 var(--font-sans); text-transform:uppercase; letter-spacing:.05em; color:var(--text-mute)">{{ det.tituloLocais }}</div>
+          <sc-if value="{{ det.temGrade }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:-2px; font-size:11px; line-height:1.4; color:var(--text-mute)">Não separado por combinação.</div>
+          </sc-if>
+          <sc-for list="{{ det.locais }}" as="l" hint-placeholder-count="3">
+            <div style="{{ l.style }}">
+              <span style="font-family:var(--font-sans); color:var(--text-dim)">{{ l.nome }}</span>
+              <span>{{ l.qtd }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </x-import>
+    </sc-if>
+
+    <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.DrawerSection" title="Giro" hint-size="100%,80px">
+      <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px">
+        <span style="font-size:12px; color:var(--text-dim)">Última venda</span>
+        <span style="font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px">{{ det.ultimaVenda }}</span>
+      </div>
+    </x-import>
+
+    <sc-if value="{{ det.temObsSimples }}" hint-placeholder-val="{{ false }}">
+      <x-import component-from-global-scope="OfficeImpressoDesignSystem_49a36f.DrawerSection" title="Observações" hint-size="100%,90px">
+        <p style="margin:0; font-size:12.5px; line-height:1.5; color:var(--text-dim)">{{ det.obsTexto }}</p>
+      </x-import>
+    </sc-if>
+  </x-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;perfil&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;autorizado&quot;,&quot;vendedor&quot;],&quot;default&quot;:&quot;autorizado&quot;,&quot;tsType&quot;:&quot;'autorizado' | 'vendedor'&quot;,&quot;section&quot;:&quot;Autorização&quot;},&quot;permiteMargem&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Autorização&quot;},&quot;alcadaDesconto&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:0.25,&quot;step&quot;:0.01,&quot;default&quot;:0.08,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Autorização&quot;},&quot;pisoMargem&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0.1,&quot;max&quot;:0.7,&quot;step&quot;:0.01,&quot;default&quot;:0.37,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Parâmetros de negócio&quot;},&quot;diasParado&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;min&quot;:15,&quot;max&quot;:180,&quot;step&quot;:15,&quot;default&quot;:90,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Parâmetros de negócio&quot;},&quot;estado&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dados&quot;,&quot;carregando&quot;,&quot;erro&quot;,&quot;sem_permissao&quot;],&quot;default&quot;:&quot;dados&quot;,&quot;tsType&quot;:&quot;'dados' | 'carregando' | 'erro' | 'sem_permissao'&quot;,&quot;section&quot;:&quot;Estado da tela&quot;}}">
+class Component extends DCLogic {
+  state = {
+    aba: 'todos', kpi: '', busca: '', ordem: null, abertoId: null, tema: 'light', paleta: false, sel: [],
+    pagina: 1, porPagina: 10, toast: null, confirmar: null, colsOcultas: [], recentes: [], ativa: -1, densa: false,
+    f: { categoria: '', tipo: '', marca: '', estoque: '' },
+  };
+
+  buscaRef = React.createRef();
+
+  composicao = {
+    6: [
+      { ref: 5, qtd: 6 },
+      { ref: 10, qtd: 4 },
+      { ref: 8, qtd: 2 },
+      { ref: 4, qtd: 1.5 },
+    ],
+  };
+
+  dados = [
+    { id: 1, codigo: 1042, referencia: 'BAN-LON-440', name: 'Banner lona 440g 4x0', tipo: 'produto', cat: 'Impressão digital', unit: 'm²', marca: 'Vinilcor', stockQty: 128, minimo: 40, parado: false, ultimaVenda: '18/08/2026', active: true, price: 89.9, cost: 41.2 },
+    { id: 2, codigo: 1043, referencia: 'ADE-VIN-BRA', name: 'Adesivo vinil branco brilho', tipo: 'produto', cat: 'Impressão digital', unit: 'm²', marca: '3M', stockQty: 18, minimo: 25, parado: false, ultimaVenda: '18/08/2026', active: true, price: 74.5, cost: 38.9 },
+    { id: 3, codigo: 1051, referencia: 'PLA-PS2-CRI', name: 'Placa PS 2mm cristal', tipo: 'produto', cat: 'Comunicação visual', unit: 'un', marca: 'Videplast', stockQty: 0, minimo: 10, parado: false, ultimaVenda: '11/08/2026', active: true, price: 132, cost: 88.4 },
+    { id: 4, codigo: 1067, referencia: null, name: 'Instalação em altura', tipo: 'servico', cat: 'Serviços', unit: 'h', marca: null, stockQty: null, minimo: null, parado: false, ultimaVenda: '15/08/2026', active: true, price: 180, cost: 96 },
+    { id: 5, codigo: 1072, referencia: 'LON-BLK-380', name: 'Lona blackout 380g', tipo: 'materia', cat: 'Insumos', unit: 'm', marca: 'Vinilcor', stockQty: 340, minimo: 100, parado: false, ultimaVenda: '17/08/2026', active: true, price: 22.4, cost: 14.1 },
+    { id: 6, codigo: 1080, referencia: 'KIT-FAC-STD', name: 'Kit fachada padrão 3m', tipo: 'kit', cat: 'Kits', unit: 'cj', marca: null, stockQty: 4, minimo: 2, parado: false, ultimaVenda: '09/08/2026', active: true, price: 2480, cost: 1390 },
+    { id: 7, codigo: 1088, referencia: 'TIN-CMYK-1L', name: 'Tinta UV CMYK 1L', tipo: 'materia', cat: 'Insumos', unit: 'L', marca: 'Roland', stockQty: 6, minimo: 8, parado: false, ultimaVenda: '16/08/2026', active: true, price: 340, cost: 268 },
+    { id: 8, codigo: 1094, referencia: 'ACM-3MM-BRC', name: 'ACM 3mm branco 1220x3000', tipo: 'produto', cat: 'Comunicação visual', unit: 'pç', marca: 'Alcoa', stockQty: 22, minimo: 6, parado: false, ultimaVenda: '18/08/2026', active: true, price: 610, cost: 372 },
+    { id: 9, codigo: 1101, referencia: null, name: 'Projeto / arte final', tipo: 'servico', cat: 'Serviços', unit: 'h', marca: null, stockQty: null, minimo: null, parado: false, ultimaVenda: '18/08/2026', active: true, price: 150, cost: 60 },
+    { id: 10, codigo: 1109, referencia: 'PER-ALU-U', name: 'Perfil alumínio U 3m', tipo: 'materia', cat: 'Insumos', unit: 'br', marca: 'Alcoa', stockQty: 0, minimo: 12, parado: false, ultimaVenda: '05/08/2026', active: true, price: 78, cost: 52.6 },
+    { id: 11, codigo: 1115, referencia: 'FAI-REF-3M', name: 'Faixa refletiva grau técnico', tipo: 'produto', cat: 'Impressão digital', unit: 'm²', marca: '3M', stockQty: 9, minimo: 15, parado: false, ultimaVenda: '12/08/2026', active: true, price: 198, cost: 121 },
+    { id: 12, codigo: 1120, referencia: 'LET-CX-PVC', name: 'Letra caixa PVC 20cm', tipo: 'produto', cat: 'Comunicação visual', unit: 'un', marca: 'Videplast', stockQty: 64, minimo: 20, parado: true, ultimaVenda: '12/03/2026', active: true, price: 46, cost: 19.8 },
+    { id: 13, codigo: 1127, referencia: 'CAR-COU-300', name: 'Cartão couché 300g 4x4', tipo: 'produto', cat: 'Gráfica offset', unit: 'mil', marca: null, stockQty: 12, minimo: 5, parado: true, ultimaVenda: '28/02/2026', active: true, price: 220, cost: 138 },
+    { id: 14, codigo: 1133, referencia: 'MDF-6MM-CRU', name: 'MDF 6mm cru', tipo: 'materia', cat: 'Insumos', unit: 'pç', marca: null, stockQty: 3, minimo: 10, parado: true, ultimaVenda: '21/01/2026', active: false, price: 96, cost: 61 },
+  ];
+
+  // Natureza do local decide se entra no disponível. 'venda' soma; 'bloqueado' existe e não
+  // vende; custódia de terceiro e baixa NÃO são locais (ver custodiaPorId e perdasPorId).
+  naturezaLocal = { 'Loja': 'venda', 'Depósito': 'venda', 'Produção': 'bloqueado', 'Obra': 'bloqueado' };
+
+  locaisPorId = {
+    1: [['Loja', 0], ['Depósito', 96], ['Produção', 32]],
+    2: [['Loja', 4], ['Depósito', 14]],
+    3: [['Loja', 0], ['Depósito', 0]],
+    5: [['Depósito', 250], ['Produção', 90]],
+    6: [['Loja', 1], ['Depósito', 3]],
+    7: [['Produção', 6]],
+    8: [['Loja', 2], ['Depósito', 18], ['Obra', 2]],
+    10: [['Loja', 0], ['Depósito', 0]],
+    11: [['Loja', 3], ['Depósito', 6]],
+    12: [['Loja', 12], ['Depósito', 52]],
+    13: [['Depósito', 12]],
+    14: [['Depósito', 3]],
+  };
+
+  // Mercadoria de cliente em garantia: posse da empresa, propriedade do cliente.
+  // Fora do saldo e fora do valor em estoque — é custódia, não ativo.
+  // Foto do produto. Sem url, a miniatura vira espaço reservado — nunca um monograma
+  // (Avatar é canon de pessoa no DS) nem a inicial do nome.
+  fotoPorId = {};
+
+  miniatura(r, tam) {
+    const url = this.fotoPorId[r.id];
+    const base = { flex: '0 0 auto', width: tam, height: tam, borderRadius: 4, overflow: 'hidden',
+      border: '1px solid var(--border)', background: 'var(--bg-2)', display: 'grid', placeItems: 'center' };
+    if (url) return React.createElement('span', { style: base },
+      React.createElement('img', { src: url, alt: r.name, style: { width: '100%', height: '100%', objectFit: 'cover' } }));
+    // Espaço reservado: borda tracejada declara "falta foto"; o glyph não compete com o nome.
+    return React.createElement('span', {
+      style: Object.assign({}, base, { border: '1px dashed color-mix(in oklch, var(--text-mute) 45%, transparent)', color: 'var(--text-mute)' }),
+      title: 'Sem imagem', 'aria-label': 'Produto sem imagem', role: 'img',
+    }, this.ico('package', Math.round(tam * 0.5)));
+  }
+
+  custodiaPorId = { 8: { qtd: 3, clientes: 2, etapa: 'com o fabricante' }, 12: { qtd: 5, clientes: 3, etapa: 'retido para envio' } };
+
+  // Baixas são lançamentos, não local. O que serve à tela é a taxa na janela, não o acumulado.
+  perdasPorId = { 1: { qtd: 12, custo: 494.40, motivo: 'quebra no transporte' }, 2: { qtd: 3, custo: 116.70, motivo: 'erro de corte' }, 12: { qtd: 6, custo: 111.60, motivo: 'quebra no manuseio' } };
+
+  vendavel(r) {
+    const ls = this.locaisPorId[r.id];
+    if (!ls) return r.stockQty;
+    return ls.filter((l) => (this.naturezaLocal[l[0]] || 'venda') === 'venda').reduce((soma, l) => soma + l[1], 0);
+  }
+  fisico(r) {
+    if (r.stockQty === null) return null;
+    const ls = this.locaisPorId[r.id];
+    if (!ls) return r.stockQty;
+    return this.vendavel(r) + this.bloqueado(r);
+  }
+  bloqueado(r) {
+    const ls = this.locaisPorId[r.id];
+    if (!ls) return 0;
+    return ls.filter((l) => this.naturezaLocal[l[0]] === 'bloqueado').reduce((soma, l) => soma + l[1], 0);
+  }
+
+  // 'tag' é o rótulo do chip; 'critica' governa a COR e o Alert do painel — campos separados,
+  // porque condição declarada (sob encomenda) não é condição que travа a venda (exige aprovação).
+  obsPorId = {
+    2: { tag: '', critica: false, texto: 'Rolo aberto no depósito: conferir metragem restante antes de empenhar em OP.' },
+    3: { tag: 'Sob encomenda', critica: false, texto: 'Sob encomenda — item não estocado.' },
+    6: { tag: 'Exige aprovação', critica: true, texto: 'Kit montado sob medida. Desconto acima da sua alçada exige aprovação do gerente comercial.' },
+    8: { tag: '', critica: false, texto: 'Chapa cortada sob medida; sobras acima de 40 cm voltam ao estoque como retalho.' },
+    10: { tag: 'Sob encomenda', critica: false, texto: 'Sob encomenda — barra de 3 m. Frete por conta do cliente abaixo do pedido mínimo.' },
+    14: { tag: '', critica: false, texto: 'Lote com variação de tonalidade; conferir antes de usar em fachada.' },
+  };
+
+  // Grade: o item físico. Saldo, código e acréscimo vivem na combinação.
+  grades = {
+    2: { eixos: ['Cor', 'Largura'], combos: [
+      { valores: ['Branco', '1,00 m'], cod: '1043-BRA-100', saldo: 6, minimo: 4 },
+      { valores: ['Branco', '1,40 m'], cod: '1043-BRA-140', saldo: 4, minimo: 6, acresc: { tipo: 'val', v: 6 } },
+      { valores: ['Preto', '1,00 m'], cod: '1043-PRE-100', saldo: 0, minimo: 3 },
+      { valores: ['Preto', '1,40 m'], cod: '1043-PRE-140', saldo: 5, minimo: 3, acresc: { tipo: 'val', v: 6 } },
+      { valores: ['Prata metálico', '1,00 m'], cod: '1043-PRA-100', saldo: 3, minimo: 2, acresc: { tipo: 'pct', v: 12 } },
+      { valores: ['Prata metálico', '1,40 m'], cod: '1043-PRA-140', saldo: 0, minimo: 2, acresc: { tipo: 'pct', v: 12 } },
+    ] },
+    8: { eixos: ['Cor'], combos: [
+      { valores: ['Branco'], cod: '1094-BRC', saldo: 12, minimo: 4 },
+      { valores: ['Preto'], cod: '1094-PRE', saldo: 7, minimo: 4 },
+      { valores: ['Escovado'], cod: '1094-ESC', saldo: 3, minimo: 2, acresc: { tipo: 'val', v: 45 } },
+    ] },
+  };
+
+  // Faixa por quantidade: política do pai, independente de ter grade.
+  faixasQtd = { 1: [1, 10, 50, 100], 2: [1, 50, 200], 3: [1, 10, 30], 5: [1, 50, 200], 6: [1, 3, 10], 8: [1, 5, 20], 11: [1, 20, 100] };
+
+  compraPorId = {
+    1: { fornecedor: 'Videplast', em: '02/08/2026', custo: 39.80 },
+    2: { fornecedor: 'Videplast', em: '11/08/2026', custo: 36.50 },
+    3: { fornecedor: 'Videplast', em: '19/02/2026', custo: 84.00 },
+    5: { fornecedor: 'Sansuy', em: '14/08/2026', custo: 13.40 },
+    7: { fornecedor: 'Marabu', em: '05/08/2026', custo: 259.00 },
+    8: { fornecedor: 'Alcoa', em: '09/08/2026', custo: 356.00 },
+    10: { fornecedor: 'Alcoa', em: '07/08/2026', custo: 49.90 },
+    11: { fornecedor: '3M', em: '28/07/2026', custo: 96.00 },
+  };
+
+  encomendaPorId = {
+    3: { prazo: '7 dias úteis', minimo: '10 chapas' },
+    10: { prazo: 'até a próxima terça', janela: 'terças', minimo: '20 barras' },
+  };
+
+  precoPorMarkup = { 1: true, 2: true, 3: true, 5: true, 6: true, 8: true, 11: true };
+
+  precoAlteradoEm = { 1: '14/08/2026', 2: '05/03/2026', 3: '12/08/2026', 5: '01/08/2026', 6: '28/07/2026', 8: '15/08/2026', 10: '19/02/2026', 11: '11/08/2026' };
+
+  fatoresFaixa = [1, 0.93, 0.88, 0.84, 0.81];
+
+  faixasDe(r) {
+    const qtds = this.faixasQtd[r.id];
+    if (!qtds || r.price === undefined) return [];
+    const c0 = this.custoDe(r);
+    const piso = c0 !== undefined ? c0 * 1.15 : 0;
+    return qtds.map((q, i) => {
+      const bruto = r.price * (this.fatoresFaixa[i] ?? 0.8);
+      return [q, Math.round(Math.max(bruto, piso) * 100) / 100];
+    });
+  }
+
+  temGrade(r) { return !!this.grades[r.id]; }
+  gradeDe(r) { return this.grades[r.id] ? this.grades[r.id].combos : []; }
+  comSaldo(r) { return this.gradeDe(r).filter((c) => c.saldo > 0).length; }
+  sobMinimo(r) { return this.gradeDe(r).filter((c) => c.saldo <= (c.minimo ?? 0)).length; }
+  rotuloCombo(c) { return c.valores.join(' · '); }
+  precoCombo(r, c) {
+    if (r.price === undefined) return undefined;
+    if (!c.acresc) return r.price;
+    return c.acresc.tipo === 'pct' ? r.price * (1 + c.acresc.v / 100) : r.price + c.acresc.v;
+  }
+  acrescLabel(c) {
+    if (!c.acresc) return '';
+    return c.acresc.tipo === 'pct' ? '+' + c.acresc.v + '%' : '+ ' + this.brl(c.acresc.v);
+  }
+  // Código do filho encontra, mas quem abre é o pai.
+  comboBuscado(r) {
+    const q = this.state.busca.trim().toLowerCase();
+    if (!q) return null;
+    return this.gradeDe(r).find((c) => c.cod.toLowerCase().includes(q) || this.rotuloCombo(c).toLowerCase().includes(q)) || null;
+  }
+
+
+  linhaTip(a, b, forte) {
+    return React.createElement('span', { style: { display: 'flex', justifyContent: 'space-between', gap: 14, fontVariantNumeric: 'tabular-nums' } },
+      React.createElement('span', { style: { opacity: .75 } }, a),
+      React.createElement('span', { style: { fontWeight: forte ? 700 : 500 } }, b));
+  }
+
+  ladoTip = 'bottom';
+
+  corpoTip(titulo, filhos) {
+    return React.createElement('span', { style: { display: 'flex', flexDirection: 'column', gap: 4, minWidth: 180, maxWidth: 260 } },
+      this.tituloTip(titulo), ...filhos);
+  }
+
+  tituloTip(t) {
+    return React.createElement('span', { style: { display: 'block', fontSize: 10, letterSpacing: '.09em', textTransform: 'uppercase', opacity: .6 } }, t);
+  }
+
+  tipFaixas(fx, r) {
+    const linhas = fx.slice(0, 4).map((f, i) => React.createElement('span', { key: i }, this.linhaTip((f[0] === 1 ? '1 +' : f[0] + ' +'), this.brl(f[1]), true)));
+    const n = this.gradeDe(r).filter((c) => c.acresc).length;
+    const nota = n ? React.createElement('span', { key: 'n', style: { opacity: .7 } }, n === 1 ? '1 combinação tem acréscimo.' : n + ' combinações têm acréscimo.') : null;
+    return this.corpoTip('Preço por quantidade', [...linhas, nota]);
+  }
+
+  // Nomes de unidade. ILUSTRATIVA no protótipo: no produto a descrição vem do cadastro de
+  // unidades (sigla + nome), nunca de um mapa no front. Serve à dúvida do Felipe (26/08):
+  // "0 br" e "0 L" não se explicam sozinhos — a sigla fica visível, o nome vem na dica.
+  UNIDADES = { 'm²': 'metro quadrado', m: 'metro', un: 'unidade', pç: 'peça', br: 'barra',
+    L: 'litro', kg: 'quilograma', h: 'hora', cj: 'conjunto', mil: 'milheiro', UNID: 'unidade' };
+  nomeUnidade(u) { return this.UNIDADES[u] || null; }
+
+  dicaEst(r, locais) {
+    const nome = r.stockQty === null ? null : this.nomeUnidade(r.unit);
+    const linhaUn = nome ? React.createElement('span', { key: 'un', style: { opacity: .8 } }, r.unit + ' = ' + nome) : null;
+    if (locais.length > 1) return this.corpoTip('Estoque por local', [...this.linhasLocais(locais, r), linhaUn]);
+    return linhaUn ? this.corpoTip('Unidade', [linhaUn]) : null;
+  }
+
+  linhasLocais(locais, r) {
+    const linhas = locais.map((l, i) => React.createElement('span', { key: i }, this.linhaTip(l[0], this.num(l[1]) + ' ' + r.unit, l[1] === 0)));
+    const zeros = locais.filter((l) => l[1] === 0).map((l) => l[0]);
+    const alerta = zeros.length && locais.some((l) => l[1] > 0)
+      ? React.createElement('span', { key: 'z', style: { opacity: .8 } }, '0 na ' + zeros.join(' e ') + ' — saldo em outro local.') : null;
+    return [...linhas, alerta];
+  }
+
+  tipLocais(locais, r) {
+    return this.corpoTip('Estoque por local', this.linhasLocais(locais, r));
+  }
+
+  // Geometria citada do TagChip do DS; só a cor muda, porque ele não tem tom de perigo (pauta P2).
+  chipCritico = {
+    display: 'inline-flex', alignItems: 'center', gap: 5, padding: '1px 8px', borderRadius: 9999,
+    fontSize: 'var(--fs-1)', fontWeight: 500, lineHeight: 1.6, textTransform: 'lowercase',
+    letterSpacing: '-.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+    maxWidth: 190, color: 'var(--color-destructive)',
+    background: 'color-mix(in oklch, var(--color-destructive) 16%, transparent)',
+    border: '1px solid color-mix(in oklch, var(--color-destructive) 30%, transparent)',
+  };
+
+  tipObs(obs) {
+    return this.corpoTip(obs.tag || 'Observação', [
+      React.createElement('span', { key: 't', style: { fontWeight: 400, lineHeight: 1.45, whiteSpace: 'normal' } }, obs.texto)]);
+  }
+
+  CHAVE = 'oi.produtos.recorte.v1';
+
+  // Acento por tema — B-01 item 4, transcrito de `templates/pt-01-lista` (`applyTheme` L135-140):
+  // o shell escreve `--accent`, `--accent-2`, `--accent-soft` e `--color-primary` a partir da matiz
+  // 295, com L mais alto no escuro (0.72) para vencer o fundo `oklch(0.26)`. O DS só troca
+  // `--accent-soft` em `.cockpit[data-theme="dark"]` (colors_and_type.css L337), então sem isto o
+  // roxo do escuro fica no valor do claro.
+  aplicaTema() {
+    const el = this.cockpit;
+    if (!el) return;
+    const escuro = this.state.tema === 'dark';
+    el.classList.toggle('dark', escuro);
+    const hue = 295;
+    const set = (k, v) => el.style.setProperty(k, v);
+    const L = escuro ? '0.72' : '0.55';
+    set('--accent', 'oklch(' + L + ' 0.15 ' + hue + ')');
+    set('--accent-2', 'oklch(' + (escuro ? '0.78' : '0.62') + ' 0.15 ' + hue + ')');
+    set('--accent-soft', escuro ? 'oklch(0.32 0.07 ' + hue + ')' : 'oklch(0.95 0.04 ' + hue + ')');
+    set('--color-primary', 'oklch(' + L + ' 0.15 ' + hue + ')');
+  }
+
+  // Densidade no DS é contrato de tokens do shell (templates/pt-01-lista), não prop de componente.
+  aplicaDensidade() {
+    const el = this.cockpit;
+    if (!el) return;
+    const set = (k, v) => el.style.setProperty(k, v);
+    if (this.state.densa) {
+      set('--d-fontsz', '13px'); set('--d-cpad-x', '14px'); set('--d-cpad-y', '12px');
+      set('--d-tb-y', '7px'); set('--d-td-y', '6px'); set('--d-th-y', '6px');
+      ['10px', '11px', '11.5px', '12.5px', '13.5px', '15.5px', '19px', '23px', '31px']
+        .forEach((v, i) => set('--fs-' + (i + 1), v));
+    } else {
+      set('--d-fontsz', '13.5px'); set('--d-cpad-x', '22px'); set('--d-cpad-y', '16px');
+      set('--d-tb-y', '11px'); set('--d-td-y', '10px'); set('--d-th-y', '9px');
+      ['10.5px', '11.5px', '12.5px', '13.5px', '15px', '18px', '22px', '28px', '38px']
+        .forEach((v, i) => set('--fs-' + (i + 1), v));
+    }
+  }
+
+  componentDidMount() {
+    document.addEventListener('keydown', this.onKey);
+    this.marcarBusca();
+    this.aplicaDensidade();
+    this.aplicaTema();
+    try {
+      const bruto = localStorage.getItem(this.CHAVE);
+      if (bruto) {
+        const r = JSON.parse(bruto);
+        this.setState({
+          aba: r.aba || 'todos', kpi: r.kpi || '', busca: r.busca || '',
+          ordem: r.ordem || null, porPagina: r.porPagina || 10,
+          colsOcultas: Array.isArray(r.colsOcultas) ? r.colsOcultas : [],
+          f: Object.assign({ categoria: '', tipo: '', marca: '', estoque: '' }, r.f || {}),
+          recentes: Array.isArray(r.recentes) ? r.recentes : [],
+          densa: !!r.densa,
+        });
+      }
+    } catch (e) { /* recorte inválido: começa limpo */ }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    this.marcarBusca();
+    this.aplicaDensidade();
+    this.aplicaTema();
+    this.nomeiaDrawer();
+    if (!prevState) { this.gravaRecorte(); return; }
+    const chaves = ['aba', 'kpi', 'busca', 'ordem', 'porPagina', 'colsOcultas', 'f', 'recentes', 'densa'];
+    if (chaves.some((k) => prevState[k] !== this.state[k])) this.gravaRecorte();
+  }
+
+  // O Drawer do DS deriva o aria-label da prop `title`, que esta tela não passa (o nome foi
+  // para a faixa do cabeçalho, §19.6). Sem isso o diálogo fica sem nome acessível.
+  nomeiaDrawer() {
+    const el = document.querySelector('[role="dialog"][aria-modal="true"]');
+    if (!el) return;
+    const r = this.dados.find((x) => x.id === this.state.abertoId);
+    if (r) el.setAttribute('aria-label', r.name + ' · ' + r.codigo);
+  }
+
+  gravaRecorte() {
+    clearTimeout(this._g);
+    this._g = setTimeout(() => {
+      const st = this.state;
+      try {
+        localStorage.setItem(this.CHAVE, JSON.stringify({
+          aba: st.aba, kpi: st.kpi, busca: st.busca, ordem: st.ordem,
+          porPagina: st.porPagina, colsOcultas: st.colsOcultas, f: st.f, recentes: st.recentes, densa: st.densa,
+        }));
+      } catch (e) { /* cota cheia: segue sem persistir */ }
+    }, 250);
+  }
+
+  campoBusca() { return document.querySelector('#campo-busca input'); }
+
+  registraRecente(id) {
+    this.setState((st) => ({ recentes: [id, ...st.recentes.filter((x) => x !== id)].slice(0, 8) }));
+  }
+
+  abrir(id) { this.registraRecente(id); this.setState({ abertoId: id }); }
+
+  irVizinho(delta) {
+    const ids = this.idsOrdenados || [];
+    const i = ids.indexOf(this.state.abertoId);
+    if (i < 0) return;
+    const j = i + delta;
+    if (ids[j] === undefined) return;
+    this.registraRecente(ids[j]);
+    this.setState((st) => ({ abertoId: ids[j], pagina: Math.floor(j / st.porPagina) + 1 }));
+  }
+
+  marcarBusca() {
+    const el = this.campoBusca();
+    if (!el) { this.tentaBusca = requestAnimationFrame(() => this.marcarBusca()); return; }
+    if (el.getAttribute('aria-keyshortcuts') !== '/') {
+      el.setAttribute('aria-keyshortcuts', '/');
+      el.setAttribute('aria-label', 'Buscar produtos');
+    }
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._t);
+    clearTimeout(this._g);
+    document.removeEventListener('keydown', this.onKey);
+    if (this.tentaBusca) cancelAnimationFrame(this.tentaBusca);
+  }
+
+  onKey = (ev) => {
+    const alvo = ev.target;
+    const digitando = !!alvo && /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName || '');
+    if (ev.key === '/' && !digitando) {
+      ev.preventDefault();
+      const el = this.campoBusca();
+      el && el.focus();
+    }
+    if (!digitando && (ev.key === 'ArrowDown' || ev.key === 'ArrowUp')) {
+      ev.preventDefault();
+      if (this.state.abertoId) { this.irVizinho(ev.key === 'ArrowDown' ? 1 : -1); return; }
+      const ids = this.idsOrdenados || [];
+      if (!ids.length) return;
+      this.setState((st) => {
+        const i = st.ativa < 0 ? (ev.key === 'ArrowDown' ? 0 : ids.length - 1)
+          : Math.min(Math.max(0, st.ativa + (ev.key === 'ArrowDown' ? 1 : -1)), ids.length - 1);
+        return { ativa: i, pagina: Math.floor(i / st.porPagina) + 1 };
+      });
+      return;
+    }
+    if (!digitando && ev.key === 'Enter' && !this.state.abertoId && this.state.ativa >= 0) {
+      ev.preventDefault();
+      const id = (this.idsOrdenados || [])[this.state.ativa];
+      if (id !== undefined) this.abrir(id);
+      return;
+    }
+    if (!digitando && ev.key === 'Escape' && !this.state.abertoId && this.state.ativa >= 0) {
+      this.setState({ ativa: -1 });
+      return;
+    }
+    if (ev.key.toLowerCase() === 'k' && (ev.metaKey || ev.ctrlKey)) {
+      ev.preventDefault();
+      this._fechouPaleta = Date.now();
+      this.setState((st) => ({ paleta: !st.paleta }));
+    }
+  };
+
+  perm() {
+    const p = this.props.perfil || 'autorizado';
+    const custo = p === 'autorizado';
+    // Margem é permissão própria (o comprador vê custo e não precisa de margem), mas
+    // depende de custo: preço + margem revelam o custo por aritmética.
+    return { custo, preco: true, composicao: custo, compras: custo, margem: custo && (this.props.permiteMargem !== false), reposicao: p !== 'vendedor' };
+  }
+  // KPI visível = KPI aplicável. Um recorte ativo cujo cartão não está na tela vira filtro fantasma.
+  // 'min' é responsabilidade de reposição (fora do perfil vendedor); 'min' e 'zero' não valem
+  // para serviço, que não tem saldo. Decisão do Wagner + Maiara (26/08/2026).
+  kpiVisivel(k) {
+    const emServicos = this.state.aba === 'servicos';
+    if (k === 'min') return this.perm().reposicao && !emServicos;
+    if (k === 'zero') return !emServicos;
+    // Serviço também se vende: giro parado é recorte válido nele (Wagner, 27/08/2026).
+    // Matéria-prima sai porque é consumida em OP, não vendida no balcão.
+    if (k === 'parado') return this.perm().custo && this.state.aba !== 'materia';
+    if (k === 'margem') return this.perm().margem && this.state.aba !== 'materia';
+    return true;
+  }
+  // Kit: o custo revela a composição por dedução — as duas permissões andam juntas.
+  verCustoDe(r) { const p = this.perm(); return this.ehKit(r) ? (p.custo && p.composicao) : p.custo; }
+  piso() { return this.props.pisoMargem ?? 0.37; }
+  // Alçada de desconto do colaborador logado. Incide sobre o preço de tabela — assim o
+  // limite pode ser exibido a quem não vê custo, sem revelá-lo por aritmética.
+  alcada() { const a = this.props.alcadaDesconto; return a === undefined ? 0.08 : a; }
+  pisoDoVendedor(r) {
+    if (r.price === undefined) return undefined;
+    return r.price * (1 - this.alcada());
+  }
+  dias() { return this.props.diasParado ?? 90; }
+
+  num = (n) => (Number.isInteger(n) ? String(n) : n.toLocaleString('pt-BR', { maximumFractionDigits: 3 }));
+  brl = (n) => 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  pct = (n) => Math.round(n * 100) + '%';
+
+  estado(r) {
+    if (r.stockQty === null) return { chave: 'nao', label: 'Não estocável', rank: -1 };
+    if (this.temGrade(r)) {
+      const cs = this.gradeDe(r);
+      if (cs.every((c) => c.saldo === 0)) return { chave: 'sem', label: 'Sem saldo', rank: 0 };
+      if (cs.some((c) => c.saldo <= (c.minimo ?? 0))) return { chave: 'baixo', label: 'Abaixo do mínimo', rank: 1 };
+      return { chave: 'em', label: 'Disponível', rank: 2 };
+    }
+    const v = this.vendavel(r);
+    if (v === 0) return { chave: 'sem', label: 'Sem saldo', rank: 0 };
+    if (r.minimo !== null && v <= r.minimo) return { chave: 'baixo', label: 'Abaixo do mínimo', rank: 1 };
+    return { chave: 'em', label: 'Disponível', rank: 2 };
+  }
+  // Custo do kit é derivado: soma dos componentes. Nunca digitado no cadastro.
+  custoDe(r) {
+    if (!this.ehKit(r)) return r.cost;
+    const cs = this.compDe(r).filter((c) => c.subtotal !== undefined);
+    if (!cs.length) return r.cost;
+    return Math.round(cs.reduce((soma, c) => soma + c.subtotal, 0) * 100) / 100;
+  }
+
+  compDe(r) {
+    return (this.composicao[r.id] || []).map((c) => {
+      const it = this.dados.find((d) => d.id === c.ref) || {};
+      const estocavel = it.stockQty !== null && it.stockQty !== undefined;
+      return {
+        id: c.ref, nome: it.name || '—', codigo: it.codigo, unit: it.unit || '',
+        qtd: c.qtd, saldo: estocavel ? it.stockQty : null, custo: it.cost,
+        subtotal: it.cost !== undefined ? it.cost * c.qtd : undefined,
+        montaveis: estocavel ? Math.floor(it.stockQty / c.qtd) : null,
+      };
+    });
+  }
+
+  montaveis(r) {
+    const cs = this.compDe(r).filter((c) => c.montaveis !== null);
+    if (!cs.length) return null;
+    return cs.reduce((min, c) => Math.min(min, c.montaveis), Infinity);
+  }
+
+  ehKit(r) { return r.tipo === 'kit' && (this.composicao[r.id] || []).length > 0; }
+
+  margemFrac(r) {
+    const c = this.custoDe(r);
+    if (c === undefined || r.price === undefined || r.price <= 0) return undefined;
+    return (r.price - c) / r.price;
+  }
+  sobOPiso(r) { const m = this.margemFrac(r); return m !== undefined && m < this.piso(); }
+
+  tomEstoque(chave) {
+    return { em: 'fresc-hot', baixo: 'fresc-warm', sem: 'fresc-cold', nao: 'outline' }[chave] || 'outline';
+  }
+
+
+  porAba(aba) {
+    const map = { produtos: 'produto', servicos: 'servico', materia: 'materia', kits: 'kit' };
+    if (aba === 'inativos') return this.dados.filter((r) => !r.active);
+    const ativos = this.dados.filter((r) => r.active);
+    if (aba === 'todos') return ativos;
+    return ativos.filter((r) => r.tipo === map[aba]);
+  }
+
+  aplica(rows) {
+    const { busca, f } = this.state;
+    const kpi = this.kpiVisivel(this.state.kpi) ? this.state.kpi : '';
+    let out = rows;
+    if (kpi === 'min') out = out.filter((r) => this.estado(r).chave === 'baixo');
+    if (kpi === 'zero') out = out.filter((r) => this.estado(r).chave === 'sem');
+    if (kpi === 'parado') out = out.filter((r) => r.parado);
+    if (kpi === 'margem') out = out.filter((r) => this.sobOPiso(r));
+    if (f.categoria) out = out.filter((r) => r.cat === f.categoria);
+    if (f.tipo) out = out.filter((r) => r.tipo === f.tipo);
+    if (f.marca) out = out.filter((r) => r.marca === f.marca);
+    if (f.estoque) out = out.filter((r) => this.estado(r).chave === f.estoque);
+    const q = busca.trim().toLowerCase();
+    if (q) out = out.filter((r) => {
+      const proprio = [r.name, String(r.codigo), r.referencia || '', r.cat || ''].join(' ').toLowerCase();
+      if (proprio.includes(q)) return true;
+      return this.gradeDe(r).some((c) => (c.cod + ' ' + this.rotuloCombo(c)).toLowerCase().includes(q));
+    });
+    return out;
+  }
+
+  valorOrdem(r, key) {
+    switch (key) {
+      case 'cod': return r.codigo;
+      case 'prod': return r.name.toLowerCase();
+      case 'cat': return (r.cat || '').toLowerCase();
+      case 'tipo': return r.tipo;
+      case 'est': return this.estado(r).rank * 1e9 + (this.vendavel(r) ?? 0);
+      case 'custo': return this.custoDe(r) ?? -1;
+      case 'preco': return r.price ?? -1;
+      case 'margem': return this.margemFrac(r) ?? -1;
+      default: return 0;
+    }
+  }
+
+  setF = (k, v) => this.setState((s) => ({ f: Object.assign({}, s.f, { [k]: v }), pagina: 1, sel: [], ativa: -1 }));
+  sort = (key) => this.setState((s) => ({ ordem: s.ordem && s.ordem.key === key ? { key, dir: s.ordem.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }, sel: [] }));
+  toggleKpi = (k) => this.setState((s) => ({ kpi: s.kpi === k ? '' : k, pagina: 1, sel: [] }));
+
+  ico(name, size = 16) {
+    const I = typeof window !== 'undefined' && window.Icon;
+    return I ? React.createElement(I, { name, size }) : null;
+  }
+
+  plural(n, sing, plur) { return n + ' ' + (n === 1 ? sing : plur); }
+
+  aviso(texto, tone) {
+    clearTimeout(this._t);
+    this.setState({ toast: { texto, tone: tone || 'default', k: Date.now() } });
+    this._t = setTimeout(() => this.setState({ toast: null }), 2600);
+  }
+
+  copiar(texto, rotulo) {
+    const ok = () => this.aviso(rotulo + ' copiado.', 'ok');
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(ok, ok);
+    else ok();
+  }
+
+  botaoCopia(texto, rotulo) {
+    return React.createElement('button', {
+      type: 'button', title: 'Copiar',
+      onClick: () => this.copiar(texto, rotulo),
+      style: { font: 'inherit', fontFamily: 'var(--font-mono)', fontSize: 12.5, color: 'var(--text)',
+        background: 'transparent', border: 'none', padding: 0, cursor: 'copy' },
+    }, texto);
+  }
+
+  // Rola o corpo do drawer até a seção marcada, sem depender de scrollIntoView.
+  irSecao(id) {
+    const alvo = document.querySelector('[data-sec="' + id + '"]');
+    if (!alvo) return;
+    let cont = alvo.parentElement;
+    while (cont && cont.scrollHeight <= cont.clientHeight + 4) cont = cont.parentElement;
+    if (!cont) return;
+    const delta = alvo.getBoundingClientRect().top - cont.getBoundingClientRect().top;
+    cont.scrollTop = Math.max(0, cont.scrollTop + delta - 44);
+  }
+
+  celulaCodigo(r) {
+    return React.createElement('button', {
+      type: 'button', title: 'Copiar código',
+      onClick: (ev) => { ev.stopPropagation(); this.copiar(String(r.codigo), 'Código ' + r.codigo); },
+      // Valores do ramo `mono` do Cell do DS (DataTable.jsx L24): 12,5px, -0.01em. Célula em nó
+      // não recebe o estilo do componente — então cita, não reescreve.
+      style: { font: 'inherit', fontFamily: 'var(--font-mono)', fontSize: 12.5, letterSpacing: '-0.01em',
+        color: 'var(--text)', background: 'transparent',
+        border: 'none', padding: 0, cursor: 'copy', textAlign: 'left' },
+    }, String(r.codigo));
+  }
+
+  // fechaDrawer: o DropdownMenu do DS tem z-index 70 e o Drawer 60 (_ds_bundle.js L4040 / L3807);
+  // o menu de uma linha atrás do painel passaria por cima dele. Nunca os dois abertos.
+  // Valores do `Button variant="ghost"` do DS (Button.jsx L7-24: 30×30 no tamanho default,
+  // `--surface`, `1px --border`, `--text-dim`, raio `--radius-md`, hover `--bg-2`/`--text`/
+  // `--text-mute`, transição .15s), transcritos porque o `DropdownMenu` acrescenta caret a
+  // gatilho-nó — só a forma render-função dá controle do botão — e o `Button` do DS não repassa
+  // `aria-haspopup`/`aria-expanded`, que a tela precisa manter.
+  // `lado` acompanha a altura dos irmãos: 26 no cabeçalho (Button size="sm" = 26, _ds_bundle L2256),
+  // 30 na linha da tabela, que convive com célula. `rotulo` dá nome ao botão só-ícone.
+  gatilhoIcone(nome, tam, fechaDrawer, rotulo, lado) {
+    const L = lado || 30;
+    const sai = (e) => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--text-dim)'; e.currentTarget.style.borderColor = 'var(--border)'; };
+    return ({ onClick, open }) => React.createElement('button', {
+      type: 'button', 'aria-haspopup': 'menu', 'aria-expanded': !!open, 'aria-label': rotulo || 'Mais ações',
+      onMouseEnter: (e) => { e.currentTarget.style.background = 'var(--bg-2)'; e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.borderColor = 'var(--text-mute)'; },
+      onMouseLeave: sai,
+      onClick: (e) => {
+        if (fechaDrawer) {
+          // o clique do ⋯ não pode chegar ao onRowClick do DataTable, que reabriria o painel
+          e.preventDefault(); e.stopPropagation();
+          if (!open && this.state.abertoId !== null) this.setState({ abertoId: null });
+        }
+        onClick(e);
+      },
+      style: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: L, height: L,
+        cursor: 'pointer', background: 'var(--surface)', border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-md, 6px)', color: 'var(--text-dim)',
+        transition: 'background .15s, color .15s, border-color .15s' },
+    }, this.ico(nome, tam || 16));
+  }
+
+  ds() { return (typeof window !== 'undefined' && window.OfficeImpressoDesignSystem_49a36f) || {}; }
+
+  renderVals() {
+    const DS = this.ds();
+    const h = React.createElement;
+    const perm = this.perm();
+    const { aba, kpi, busca, f } = this.state;
+    // Vig\u00eancia da sele\u00e7\u00e3o: com tudo inativo a a\u00e7\u00e3o em lote \u00e9 Ativar; sen\u00e3o, Inativar.
+    const selRows = this.dados.filter((r) => this.state.sel.includes(String(r.id)));
+    const selTodasInativas = selRows.length > 0 && selRows.every((r) => !r.active);
+    const daAba = this.porAba(aba);
+    const listadas = this.aplica(daAba);
+    const ordem = this.state.ordem || { key: 'cod', dir: 'asc' };
+    const linhasBrutas = ordem
+      ? [...listadas].sort((a, b) => {
+          const va = this.valorOrdem(a, ordem.key), vb = this.valorOrdem(b, ordem.key);
+          if (va === vb) return 0;
+          return (va > vb ? 1 : -1) * (ordem.dir === 'asc' ? 1 : -1);
+        })
+      : listadas;
+
+    this.idsOrdenados = linhasBrutas.map((r) => r.id);
+    const totalLinhas = linhasBrutas.length;
+    const porPagina = this.state.porPagina;
+    const paginas = Math.max(1, Math.ceil(totalLinhas / porPagina));
+    const pagina = Math.min(this.state.pagina, paginas);
+    const ini = (pagina - 1) * porPagina;
+    const daPagina = linhasBrutas.slice(ini, ini + porPagina);
+    const irPara = (p) => this.setState({ pagina: Math.min(Math.max(1, p), paginas) });
+
+    const mostraTipo = aba === 'todos' || aba === 'inativos';
+    const verCusto = perm.custo, verPreco = perm.preco, verMargem = perm.margem && perm.preco;
+
+    const estadoTela = this.props.estado ?? 'dados';
+    const cockpitRef = (el) => { this.cockpit = el; if (el) { this.aplicaDensidade(); this.aplicaTema(); } };
+    const icBusca = this.ico('search', 14);
+    const temFiltroAtivo = !!(f.categoria || f.tipo || f.marca || f.estoque || busca || kpi);
+    const densa = this.state.densa;
+    const linhas = daPagina.map((r) => {
+      const e = this.estado(r);
+      const fx = this.faixasDe(r);
+      const locais = this.locaisPorId[r.id] || [];
+      const obs = this.obsPorId[r.id];
+      const comboAchado = this.comboBuscado(r);
+      const notaGrade = this.temGrade(r)
+        ? h('span', { key: 'g', style: { fontSize: 11, whiteSpace: 'nowrap', color: this.comSaldo(r) < this.gradeDe(r).length ? 'var(--color-destructive)' : 'var(--text-mute)' } }, this.comSaldo(r) + ' de ' + this.gradeDe(r).length + ' com saldo')
+        : null;
+      const m = this.margemFrac(r);
+      const abaixo = this.sobOPiso(r);
+
+      const celProduto = h('div', { style: { display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 } },
+        this.miniatura(r, 30),
+        h('div', { style: { minWidth: 0 } },
+          h('div', { style: { fontWeight: 600, fontSize: 13, letterSpacing: '-0.006em', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, r.name),
+          h('div', { style: { display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, marginTop: 1 } },
+            densa ? null : h('span', { style: { fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--text-mute)', lineHeight: 1.3, whiteSpace: 'nowrap' } }, r.unit + (r.cat ? ' · ' + r.cat : '')),
+            comboAchado ? h('span', { style: { fontSize: 11, color: 'var(--color-primary)', whiteSpace: 'nowrap' } }, 'encontrado por ' + this.rotuloCombo(comboAchado)) : null,
+            obs ? h(DS.Tooltip, { content: this.tipObs(obs), side: this.ladoTip },
+              obs.critica ? h('span', { style: this.chipCritico }, obs.tag || 'observação')
+                          : h(DS.TagChip, { label: obs.tag || 'observação' })) : null)));
+
+      const badgeEst = h(DS.StatusBadge, {
+        tone: this.tomEstoque(e.chave),
+        label: r.stockQty === null ? e.label : e.label + '  ' + this.num(this.vendavel(r)) + ' ' + r.unit,
+      });
+      const notaBloq = this.bloqueado(r) > 0
+        ? h('span', { key: 'b', style: { fontSize: 11, whiteSpace: 'nowrap', color: 'var(--text-mute)' } }, '+' + this.num(this.bloqueado(r)) + ' ' + r.unit + ' reservado')
+        : null;
+      const notasEst = [notaGrade, notaBloq, !densa && locais.length > 1
+        ? h('span', { key: 'loc', style: { fontSize: 11, color: 'var(--text-mute)', whiteSpace: 'nowrap', borderBottom: '1px dashed color-mix(in oklch, var(--text-mute) 55%, transparent)' } }, locais.length + ' locais')
+        : null].filter(Boolean);
+      const dicaEst = this.dicaEst(r, locais);
+      const celEstoque = h('span', { style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 3 } },
+        dicaEst
+          ? h(DS.Tooltip, { content: dicaEst, side: this.ladoTip }, badgeEst)
+          : badgeEst,
+        notasEst.length ? h('span', { style: { display: 'inline-flex', alignItems: 'baseline', gap: 8 } }, notasEst) : null);
+
+      const celPreco = fx.length > 1
+        ? h(DS.Tooltip, { content: this.tipFaixas(fx, r), side: this.ladoTip },
+            h('span', { style: { display: 'block', textAlign: 'right' } },
+              h('span', { style: { fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 13, fontWeight: 600, borderBottom: '1px dashed color-mix(in oklch, var(--text-mute) 60%, transparent)' } }, r.price !== undefined ? this.brl(r.price) : '')))
+        : h('span', { style: { fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 13, fontWeight: 600 } }, r.price !== undefined ? this.brl(r.price) : '');
+
+      const celAcoes = h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2 } },
+        h(DS.DropdownMenu, {
+          align: 'end', width: 208,
+          trigger: this.gatilhoIcone('menu', 16, true, 'Ações de ' + r.name),
+          items: [
+            { id: 'abrir', label: 'Ver detalhes', onSelect: () => this.abrir(r.id) },
+            { id: 'preco', label: 'Formação de preço', onSelect: () => this.aviso('Formação de preço — tela do administrador.') },
+            { id: 'duplicar', label: 'Duplicar', onSelect: () => this.aviso('Cópia de ' + r.name + ' criada como rascunho.', 'ok') },
+            { id: 'sep', separator: true },
+            // Ação de vigência é um par: produto inativo só aceita Ativar. Oferecer 'Inativar'
+            // no que já está inativo é ação sem efeito — o menu segue r.active.
+            r.active
+              ? { id: 'inativar', label: 'Inativar produto', tone: 'danger', onSelect: () => this.setState({ confirmar: { tipo: 'linha', acao: 'inativar', nome: r.name } }) }
+              : { id: 'ativar', label: 'Ativar produto', onSelect: () => this.setState({ confirmar: { tipo: 'linha', acao: 'ativar', nome: r.name } }) },
+          ],
+        }));
+
+      return {
+        id: r.id,
+        state: this.state.abertoId === r.id || (!this.state.abertoId && this.idsOrdenados && this.idsOrdenados[this.state.ativa] === r.id) ? 'selected'
+          : (r.stockQty !== null && this.vendavel(r) === 0 ? 'urgent' : (!r.active ? 'archived' : undefined)),
+        cells: {
+          cod: this.celulaCodigo(r),
+          prod: celProduto,
+          tipo: h(DS.StatusBadge, { tone: 'outline', label: { produto: 'PROD', servico: 'SERV', materia: 'M-PRIMA', kit: 'KIT' }[r.tipo] }),
+          est: celEstoque,
+          custo: h('span', { style: { fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 12.5, letterSpacing: '-0.01em' } }, this.verCustoDe(r) && this.custoDe(r) !== undefined ? this.brl(this.custoDe(r)) : '—'),
+          preco: celPreco,
+          margem: h('span', { style: { fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 12.5, fontWeight: abaixo ? 600 : 400, color: abaixo ? 'var(--color-destructive)' : 'var(--text-dim)' } }, this.verCustoDe(r) && perm.margem && m !== undefined ? this.pct(m) : '—'),
+          acoes: celAcoes,
+        },
+      };
+    });
+
+    const colunas = [
+      { key: 'cod', label: 'Código', mono: true, width: '88px', sortable: true },
+      { key: 'prod', label: 'Produto', sortable: true },
+    ];
+    if (mostraTipo) colunas.push({ key: 'tipo', label: 'Tipo', width: '96px', sortable: true });
+    colunas.push({ key: 'est', label: 'Disponível', width: '210px', sortable: true });
+    if (verCusto) colunas.push({ key: 'custo', label: 'Custo', align: 'right', mono: true, width: '108px', sortable: true });
+    if (verPreco) colunas.push({ key: 'preco', label: 'Preço de venda', align: 'right', width: '136px', sortable: true });
+    if (verMargem) colunas.push({ key: 'margem', label: 'Margem', align: 'right', width: '92px', sortable: true });
+    colunas.push({ key: 'acoes', label: '', width: '48px' });
+
+    const ocultaveis = colunas.filter((c) => ['tipo', 'custo', 'preco', 'margem'].includes(c.key));
+    const ocultas = this.state.colsOcultas;
+    const colunasVisiveis = colunas.filter((c) => !ocultas.includes(c.key));
+    // + 36: a coluna de checkbox do DataTable (DataTable.jsx L48/L104: `width: 36`). A coluna de
+    // ações já está somada em `colunas`, então não entra aqui de novo.
+    const larguraMin = colunasVisiveis.reduce((soma, c) => soma + (c.width ? parseInt(c.width, 10) : 340), 0) + 36;
+    const menuColunas = {
+      itens: ocultaveis.map((c) => ({
+        id: 'col-' + c.key,
+        label: (ocultas.includes(c.key) ? '' : '✓ ') + 'Coluna ' + c.label.toLowerCase(),
+        onSelect: () => this.setState((st) => ({
+          colsOcultas: st.colsOcultas.includes(c.key) ? st.colsOcultas.filter((k) => k !== c.key) : [...st.colsOcultas, c.key],
+        })),
+      })),
+    };
+
+    const menuItens = [
+      { id: 'densidade', label: (this.state.densa ? '' : '✓ ') + 'Linhas confortáveis', onSelect: () => this.setState((st) => ({ densa: !st.densa })) },
+      { id: 'sep-dens', separator: true },
+      ...menuColunas.itens,
+      { id: 'sep-col', separator: true },
+      { id: 'importar', label: 'Importar planilha', onSelect: () => this.aviso('Importar planilha — abre o assistente de importação.') },
+      { id: 'exportar', label: 'Exportar planilha', onSelect: () => this.aviso(this.plural(total, 'item exportado', 'itens exportados') + ' para planilha.', 'ok') },
+    ];
+
+    const conta = (fn) => daAba.filter(fn).length;
+    const abasDef = [['todos', 'Todos'], ['produtos', 'Produtos'], ['servicos', 'Serviços'], ['materia', 'Matéria-prima'], ['kits', 'Kits'], ['inativos', 'Inativos']];
+    const abas = abasDef.map(([key, label]) => ({ key, label, count: this.porAba(key).length.toLocaleString('pt-BR') }));
+
+    const uniq = (k) => Array.from(new Set(this.dados.map((r) => r[k]).filter(Boolean))).sort();
+    const opt = (arr) => arr.map((v) => (typeof v === 'string' ? { value: v, label: v } : v));
+    const defs = [
+      { key: 'categoria', label: 'Categoria', opcoes: opt(uniq('cat')) },
+      mostraTipo && { key: 'tipo', label: 'Tipo', opcoes: [{ value: 'produto', label: 'Produto' }, { value: 'servico', label: 'Serviço' }, { value: 'materia', label: 'Matéria-prima' }, { value: 'kit', label: 'Kit' }] },
+      { key: 'marca', label: 'Marca', opcoes: opt(uniq('marca')) },
+      { key: 'estoque', label: 'Disponível', opcoes: [{ value: 'em', label: 'Com saldo' }, { value: 'baixo', label: 'Abaixo do mínimo' }, { value: 'sem', label: 'Sem saldo' }, { value: 'nao', label: 'Não estocável' }] },
+    ];
+
+    const filtros = defs.filter(Boolean).map((d) => {
+      const sel = d.opcoes.find((o) => o.value === f[d.key]);
+      const itens = [];
+      if (sel) itens.push({ id: 'limpar', label: 'Limpar ' + d.label.toLowerCase(), onSelect: () => this.setF(d.key, '') }, { id: 'sep', separator: true });
+      d.opcoes.forEach((o) => itens.push({
+        id: d.key + ':' + o.value,
+        label: (sel && sel.value === o.value ? '✓ ' : '') + o.label,
+        onSelect: () => this.setF(d.key, o.value),
+      }));
+      return { texto: sel ? d.label + ': ' + sel.label : d.label, itens };
+    });
+
+    const ordemAtual = this.state.ordem || { key: 'cod', dir: 'asc' };
+    const chavesOrdem = [
+      { key: 'cod', label: 'Código' }, { key: 'prod', label: 'Produto' }, { key: 'cat', label: 'Categoria' },
+      { key: 'est', label: 'Disponível' },
+    ];
+    if (verPreco) chavesOrdem.push({ key: 'preco', label: 'Preço' });
+    if (verMargem) chavesOrdem.push({ key: 'margem', label: 'Margem' });
+    const rotuloOrdem = (chavesOrdem.find((c) => c.key === ordemAtual.key) || { label: 'Código' }).label;
+    const ordenacao = {
+      texto: React.createElement('span', { style: { whiteSpace: 'nowrap' } }, rotuloOrdem + (ordemAtual.dir === 'asc' ? ' ↑' : ' ↓')),
+      itens: [
+        ...chavesOrdem.map((c) => ({
+          id: 'ord-' + c.key,
+          label: (ordemAtual.key === c.key ? '✓ ' : '') + c.label,
+          onSelect: () => this.setState({ ordem: { key: c.key, dir: 'asc' }, pagina: 1, sel: [] }),
+        })),
+        { id: 'sep', separator: true },
+        { id: 'dir', label: ordemAtual.dir === 'asc' ? 'Inverter (maior primeiro)' : 'Inverter (menor primeiro)',
+          onSelect: () => this.setState((st) => ({ ordem: { key: (st.ordem || ordemAtual).key, dir: (st.ordem || ordemAtual).dir === 'asc' ? 'desc' : 'asc' }, pagina: 1 })) },
+      ],
+    };
+
+    const total = listadas.length;
+    const aberta = linhasBrutas.find((r) => r.id === this.state.abertoId) || this.dados.find((r) => r.id === this.state.abertoId) || null;
+    const comboAberto = aberta ? this.comboBuscado(aberta) : null;
+    const iAberta = aberta ? linhasBrutas.findIndex((r) => r.id === aberta.id) : -1;
+    const temAnterior = iAberta > 0;
+    const temProximo = iAberta >= 0 && iAberta < linhasBrutas.length - 1;
+    const posicaoAberta = iAberta >= 0 ? (iAberta + 1) + ' de ' + linhasBrutas.length : '';
+    const e = aberta ? this.estado(aberta) : null;
+    const mAb = aberta ? this.margemFrac(aberta) : undefined;
+    const det = aberta
+      ? {
+          nome: aberta.name,
+          codigo: aberta.codigo,
+          estTone: this.tomEstoque(e.chave), estFull: e.label,
+          // Nome e código acima da linha do cabeçalho (Felipe, 26/08). O Drawer do DS desenha
+          // title/subtitle num bloco ABAIXO da borda; o slot que fica na faixa é o `badge`.
+          // Então o cabeçalho vai por ali, com os valores tipográficos citados do próprio
+          // componente (_ds_bundle.js L3876-3889): h3 600 17px/1.3 -.01em --text, código 12.5px
+          // --text-dim. Proposta na pauta do DS; nada de recriar o Drawer.
+          cabecalho: h('span', { style: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 } },
+            h('h3', { style: { margin: 0, font: '600 17px/1.3 var(--font-sans)', letterSpacing: '-.01em', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, aberta.name),
+            h('span', { style: { fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 12.5, color: 'var(--text-dim)' } }, String(aberta.codigo))),
+          // Situação de saldo volta pra baixo da miniatura (Wagner + Maiara, 26/08/2026):
+          // fora do cabeçalho do Drawer, junto do produto que ela descreve.
+          estBadge: h(DS.StatusBadge, { tone: this.tomEstoque(e.chave), label: e.label }),
+          saldo: (aberta.stockQty === null ? '—' : this.num(this.vendavel(aberta))) + ' ' + aberta.unit,
+          saldoStyle: { fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 16, fontWeight: 600, color: this.vendavel(aberta) === 0 ? 'var(--color-destructive)' : 'var(--text)' },
+          temBloqueado: this.bloqueado(aberta) > 0,
+          bloqueado: this.num(this.bloqueado(aberta)) + ' ' + aberta.unit,
+          notaBloqueado: (this.locaisPorId[aberta.id] || []).filter((l) => this.naturezaLocal[l[0]] === 'bloqueado').map((l) => l[0].toLowerCase()).join(' · '),
+          temCustodia: !!this.custodiaPorId[aberta.id],
+          custodia: this.custodiaPorId[aberta.id] ? this.num(this.custodiaPorId[aberta.id].qtd) + ' ' + aberta.unit : '',
+          notaCustodia: this.custodiaPorId[aberta.id]
+            ? 'de ' + this.custodiaPorId[aberta.id].clientes + (this.custodiaPorId[aberta.id].clientes === 1 ? ' cliente' : ' clientes') + ' · ' + this.custodiaPorId[aberta.id].etapa
+            : '',
+          temPerdas: !!this.perdasPorId[aberta.id],
+          perdas: this.perdasPorId[aberta.id] ? this.num(this.perdasPorId[aberta.id].qtd) + ' ' + aberta.unit : '',
+          notaPerdas: this.perdasPorId[aberta.id]
+            ? (perm.custo ? this.brl(this.perdasPorId[aberta.id].custo) + ' · ' : '') + this.perdasPorId[aberta.id].motivo
+            : '',
+          minimo: aberta.minimo === null ? '—' : aberta.minimo + ' ' + aberta.unit,
+          unidade: aberta.unit,
+          ultimaVenda: aberta.ultimaVenda || 'sem registro',
+          custo: this.verCustoDe(aberta) && this.custoDe(aberta) !== undefined ? this.brl(this.custoDe(aberta)) + ' / ' + aberta.unit : '',
+          preco: aberta.price !== undefined ? this.brl(aberta.price) + ' / ' + aberta.unit : '',
+          margem: mAb !== undefined ? this.pct(mAb) : '',
+          margemStyle: { fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 12.5, fontWeight: 600, color: this.sobOPiso(aberta) ? 'var(--color-destructive)' : 'var(--text)' },
+          temLocais: (this.locaisPorId[aberta.id] || []).length > 0,
+          locais: (this.locaisPorId[aberta.id] || []).map((l) => ({
+            nome: l[0] + (this.naturezaLocal[l[0]] === 'bloqueado' ? ' · não vende' : ''),
+            qtd: this.num(l[1]) + ' ' + aberta.unit,
+            style: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16, fontSize: 12.5,
+              fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums',
+              color: l[1] === 0 ? 'var(--color-destructive)' : 'var(--text)', fontWeight: l[1] === 0 ? 600 : 400 },
+          })),
+          temGrade: this.temGrade(aberta),
+          // Vocabulário único de saldo que vende (Felipe, 26/08): a coluna da lista diz
+          // "Disponível", o drawer dizia "Saldo vendável"/"Saldo atual" — dois nomes, um número.
+          rotuloSaldo: this.temGrade(aberta) ? 'Disponível para venda (soma da grade)'
+            : 'Disponível para venda',
+          notaSaldo: this.temGrade(aberta)
+            ? 'Não vendável como bloco: ' + this.comSaldo(aberta) + ' de ' + this.gradeDe(aberta).length + ' combinações têm saldo.'
+            : '',
+          gradeEixos: this.grades[aberta.id] ? this.grades[aberta.id].eixos.join(' × ') : '',
+          gradeResumo: this.temGrade(aberta) ? this.comSaldo(aberta) + ' de ' + this.gradeDe(aberta).length + ' com saldo' : '',
+          gradeResumoStyle: { fontFamily: 'var(--font-mono)', fontSize: 11.5,
+            color: this.temGrade(aberta) && this.comSaldo(aberta) < this.gradeDe(aberta).length ? 'var(--color-destructive)' : 'var(--text-dim)' },
+          gradeMatriz: (() => {
+            const g = this.grades[aberta.id];
+            if (!g) return { colunas: [], linhas: [] };
+            const combos = g.combos;
+            const eixo1 = [...new Set(combos.map((c) => c.valores[0]))];
+            const eixo2 = g.eixos.length > 1 ? [...new Set(combos.map((c) => c.valores[1]))] : [''];
+            const verM = this.verCustoDe(aberta) && perm.margem;
+            return {
+              temColunas: g.eixos.length > 1,
+              colunas: eixo2,
+              linhas: eixo1.map((v1) => ({
+                rotulo: v1,
+                celulas: eixo2.map((v2) => {
+                  const c = combos.find((x) => x.valores[0] === v1 && (g.eixos.length > 1 ? x.valores[1] === v2 : true));
+                  if (!c) return { vazio: true, saldo: '', preco: '', margem: '', cod: '', celStyle: { padding: '7px 5px', borderRadius: 5, border: '1px dashed var(--border)' }, codStyle: {}, saldoStyle: {}, precoStyle: {}, margemStyle: {} };
+                  const p = this.precoCombo(aberta, c);
+                  const zero = c.saldo === 0;
+                  const baixo = !zero && c.saldo <= (c.minimo ?? 0);
+                  const achado = comboAberto && comboAberto.cod === c.cod;
+                  const cAb = this.custoDe(aberta);
+                  const mg = verM && cAb !== undefined && p ? (p - cAb) / p : undefined;
+                  return {
+                    vazio: false, cod: c.cod,
+                    saldo: this.num(c.saldo) + ' ' + aberta.unit,
+                    preco: p === undefined ? '' : this.brl(p),
+                    margem: mg === undefined ? '' : this.pct(mg),
+                    celStyle: { padding: '7px 5px', borderRadius: 5, textAlign: 'right', background: 'var(--bg-2)',
+                      border: '1px solid ' + (achado ? 'color-mix(in oklch, var(--color-primary) 55%, transparent)' : 'var(--border)'),
+                      boxShadow: zero ? 'inset 2px 0 0 var(--color-destructive)' : (baixo ? 'inset 2px 0 0 var(--warn)' : 'none') },
+                    codStyle: { display: 'block', marginBottom: 3, fontFamily: 'var(--font-mono)', fontSize: 10.5, letterSpacing: '.02em', color: 'var(--text-mute)' },
+                    saldoStyle: { display: 'block', fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 12.5,
+                      fontWeight: 600, color: zero ? 'var(--color-destructive)' : (baixo ? 'var(--warn)' : 'var(--text)') },
+                    precoStyle: { display: 'block', marginTop: 2, fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--text-dim)' },
+                    margemStyle: { display: 'block', fontFamily: 'var(--font-mono)', fontSize: 10.5,
+                      color: mg !== undefined && mg < this.piso() ? 'var(--color-destructive)' : 'var(--text-mute)' },
+                  };
+                }),
+              })),
+            };
+          })(),
+          gradeLegenda: this.verCustoDe(aberta) && perm.margem ? 'código · saldo · preço · margem' : 'código · saldo · preço',
+          precoAlterado: this.precoAlteradoEm[aberta.id] || 'sem registro',
+          precoProcedencia: (this.precoPorMarkup[aberta.id] ? 'Formação de preço (markup)' : 'Preço manual')
+            + (this.precoAlteradoEm[aberta.id] ? ', ' + this.precoAlteradoEm[aberta.id] : ''),
+          temAlcada: aberta.price !== undefined && this.alcada() > 0 && this.faixasDe(aberta).length <= 1,
+          semAlcada: aberta.price !== undefined && this.alcada() === 0,
+          limiteVenda: aberta.price !== undefined ? this.brl(this.pisoDoVendedor(aberta)) + ' / ' + aberta.unit : '',
+          notaAlcada: 'sua alçada: −' + Math.round(this.alcada() * 100) + '% · abaixo disso, aprovação',
+          gradeCabStyle: (() => {
+            const g = this.grades[aberta.id];
+            const n = g && g.eixos.length > 1 ? [...new Set(g.combos.map((c) => c.valores[1]))].length : 1;
+            return { display: 'grid', gridTemplateColumns: 'minmax(88px, 1.2fr) repeat(' + n + ', 1fr)', gap: 6, padding: '0 6px 2px' };
+          })(),
+          gradeLinhaStyle: (() => {
+            const g = this.grades[aberta.id];
+            const n = g && g.eixos.length > 1 ? [...new Set(g.combos.map((c) => c.valores[1]))].length : 1;
+            return { display: 'grid', gridTemplateColumns: 'minmax(88px, 1.2fr) repeat(' + n + ', 1fr)', gap: 6, alignItems: 'stretch' };
+          })(),
+          temFaixas: this.faixasDe(aberta).length > 1,
+          faixas: this.faixasDe(aberta).map((f) => ({
+            qtd: 'a partir de ' + this.num(f[0]) + ' ' + aberta.unit,
+            preco: this.brl(f[1]) + ' / ' + aberta.unit,
+            limite: this.alcada() > 0 ? this.brl(f[1] * (1 - this.alcada())) : '',
+          })),
+          temLimiteFaixa: this.alcada() > 0 && this.faixasDe(aberta).length > 1,
+          notaLimiteFaixa: 'Limite da sua alçada (−' + Math.round(this.alcada() * 100) + '%) em cada faixa. Abaixo disso, aprovação.',
+          notaAcresc: (() => {
+            const n = this.gradeDe(aberta).filter((c) => c.acresc).length;
+            if (!n) return '';
+            return (n === 1 ? '1 combinação tem acréscimo' : n + ' combinações têm acréscimo') + ' sobre o preço base, em qualquer faixa — ver Grade.';
+          })(),
+          tipoLabel: { produto: 'Produto', servico: 'Serviço', materia: 'Matéria-prima', kit: 'Kit' }[aberta.tipo] || '—',
+          // Mesmo selo da coluna Tipo da lista, mesmo código curto (Maiara, 26/08: "aquele
+          // botãozinho cinza"). Um só vocabulário de tipo na tela.
+          tipoCurto: { produto: 'PROD', servico: 'SERV', materia: 'M-PRIMA', kit: 'KIT' }[aberta.tipo] || '—',
+          categoria: aberta.cat || '—',
+          marca: aberta.marca || '—',
+          referencia: aberta.referencia || '—',
+          foto: this.miniatura(aberta, 60),
+          semFoto: !this.fotoPorId[aberta.id],
+          botaoCodigo: this.botaoCopia(String(aberta.codigo), 'Código ' + aberta.codigo),
+          botaoReferencia: aberta.referencia ? this.botaoCopia(aberta.referencia, 'Referência ' + aberta.referencia) : null,
+          ehKit: this.ehKit(aberta),
+          verComp: this.ehKit(aberta) && perm.composicao,
+          semPermComp: this.ehKit(aberta) && !perm.composicao,
+          comp: this.compDe(aberta).map((c) => ({
+            nome: c.nome, codigo: String(c.codigo),
+            qtd: this.num(c.qtd) + ' ' + c.unit,
+            saldo: c.saldo === null ? 'serviço' : this.num(c.saldo) + ' ' + c.unit + ' em saldo',
+            subtotal: perm.custo && c.subtotal !== undefined ? this.brl(c.subtotal) : '',
+            // Coluna "Dá para montar": só o número, porque o cabeçalho da coluna já diz o que é.
+            // Serviço não tem saldo, então não limita montagem — vira "não limita" (Felipe/Luiz, 26/08).
+            comporta: c.montaveis === null ? 'não limita' : this.num(c.montaveis) + ' ' + aberta.unit,
+            comportaStyle: c.montaveis === null
+              ? { fontSize: 11, color: 'var(--text-mute)' }
+              : { fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 12.5,
+                  color: c.montaveis === 0 ? 'var(--color-destructive)' : 'var(--text)' },
+            limita: c.montaveis !== null && c.montaveis === this.montaveis(aberta),
+            limitaTexto: c.montaveis === 0 ? 'trava o kit' : 'é o limite',
+            limitaStyle: { fontSize: 10.5, fontWeight: 600, letterSpacing: '.05em', textTransform: 'uppercase',
+              color: c.montaveis === 0 ? 'var(--color-destructive)' : 'var(--text-mute)' },
+            saldoStyle: { fontFamily: 'var(--font-mono)', fontSize: 11, color: c.saldo === 0 ? 'var(--color-destructive)' : 'var(--text-dim)' },
+          })),
+          somaComp: this.ehKit(aberta) && perm.custo ? this.brl(this.custoDe(aberta)) : '',
+          compRotuloQtd: 'Por ' + aberta.unit,
+          compExplica: 'Montar 1 ' + aberta.unit + ' deste kit consome as quantidades abaixo. '
+            + 'A última coluna é quantos ' + aberta.unit + ' o saldo de cada item dá para montar.',
+          temMontaveis: this.montaveis(aberta) !== null && this.montaveis(aberta) > 0,
+          prontos: this.num(aberta.stockQty || 0) + ' ' + aberta.unit,
+          montaveis: (() => { const n = this.montaveis(aberta); return n === null ? '—' : this.num(n) + ' ' + aberta.unit; })(),
+          vendaTotal: (() => { const n = this.montaveis(aberta); return this.num((aberta.stockQty || 0) + (n || 0)) + ' ' + aberta.unit; })(),
+          vendaStyle: { fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 16, fontWeight: 600,
+            color: ((aberta.stockQty || 0) + (this.montaveis(aberta) || 0)) === 0 ? 'var(--color-destructive)' : 'var(--text)' },
+          naoEhKit: !this.ehKit(aberta),
+          inativo: !aberta.active,
+          temReposicao: !!(this.encomendaPorId[aberta.id] || (this.compraPorId[aberta.id] && perm.compras)),
+          temEncomenda: !!this.encomendaPorId[aberta.id],
+          temCompra: !!this.compraPorId[aberta.id] && perm.compras,
+          fornecedor: this.compraPorId[aberta.id] && perm.compras ? this.compraPorId[aberta.id].fornecedor : '',
+          ultimaCompra: this.compraPorId[aberta.id] && perm.compras ? this.compraPorId[aberta.id].em : '',
+          custoCompra: this.compraPorId[aberta.id] && perm.custo
+            ? this.brl(this.compraPorId[aberta.id].custo) + ' / ' + aberta.unit : '',
+          prazoEncomenda: this.encomendaPorId[aberta.id] ? this.encomendaPorId[aberta.id].prazo : '',
+          janelaEncomenda: this.encomendaPorId[aberta.id] ? (this.encomendaPorId[aberta.id].janela || '') : '',
+          minEncomenda: this.encomendaPorId[aberta.id] ? this.encomendaPorId[aberta.id].minimo : '',
+          temEstoque: aberta.stockQty !== null,
+          mostraSaldo: aberta.stockQty !== null && !this.ehKit(aberta),
+          semGrade: !this.temGrade(aberta),
+          notaMinimo: this.temGrade(aberta)
+            ? 'Mínimo é por combinação — ' + this.sobMinimo(aberta) + ' de ' + this.gradeDe(aberta).length + ' no limite ou abaixo. Ver Grade.'
+            : '',
+          tituloLocais: this.temGrade(aberta) ? 'Por local (todas as naturezas)' : 'Por local',
+          temValorEstoque: this.verCustoDe(aberta) && this.custoDe(aberta) !== undefined && this.fisico(aberta),
+          valorEstoque: this.verCustoDe(aberta) && this.custoDe(aberta) !== undefined && this.fisico(aberta)
+            ? this.brl(this.custoDe(aberta) * this.fisico(aberta)) : '',
+          rotuloValorEstoque: this.bloqueado(aberta) > 0 ? 'Valor em estoque (inclui reservado)' : 'Valor em estoque',
+          temMarca: !!aberta.marca,
+          temReferencia: !!aberta.referencia,
+          limiteNota: (() => {
+            const n = this.montaveis(aberta);
+            if (n === null || n === 0) return '';
+            const c = this.compDe(aberta).find((x) => x.montaveis === n);
+            return c ? 'Limitado por ' + c.nome + '.' : '';
+          })(),
+          limiteBloqueio: (() => {
+            if (this.montaveis(aberta) !== 0) return '';
+            const c = this.compDe(aberta).find((x) => x.montaveis === 0);
+            return c ? c.nome + ' está sem saldo. Só é possível vender os kits já montados.' : '';
+          })(),
+          temObs: !!this.obsPorId[aberta.id],
+          temObsSimples: !!(this.obsPorId[aberta.id] && !this.obsPorId[aberta.id].critica),
+          obsCritica: !!(this.obsPorId[aberta.id] && this.obsPorId[aberta.id].critica),
+          obsTag: this.obsPorId[aberta.id] ? this.obsPorId[aberta.id].tag : '',
+          obsTexto: (() => {
+            const o = this.obsPorId[aberta.id];
+            if (!o) return '';
+            if (!o.tag || !o.critica) return o.texto;
+            const t = o.texto.replace(new RegExp('^' + o.tag + '\\s*[—–-]\\s*', 'i'), '');
+            return t.charAt(0).toUpperCase() + t.slice(1);
+          })(),
+        }
+      : { nome: '', codigo: '', cabecalho: null, tipoCurto: '', estTone: 'outline', estFull: '', estBadge: null, saldo: '', saldoStyle: {}, minimo: '', unidade: '', ultimaVenda: '', custo: '', preco: '', margem: '', margemStyle: {}, inativo: false, temReposicao: false, temEncomenda: false, temCompra: false, fornecedor: '', ultimaCompra: '', custoCompra: '', prazoEncomenda: '', janelaEncomenda: '', minEncomenda: '', mostraSaldo: false, semGrade: true, notaMinimo: '', tituloLocais: 'Por local', temValorEstoque: false, valorEstoque: '', temGrade: false, rotuloSaldo: 'Saldo atual', notaSaldo: '', gradeMatriz: { colunas: [], linhas: [] }, gradeLegenda: '', precoProcedencia: '', temAlcada: false, semAlcada: false, limiteVenda: '', notaAlcada: '', temLimiteFaixa: false, notaLimiteFaixa: '', gradeCabStyle: {}, gradeLinhaStyle: {}, gradeEixos: '', gradeResumo: '', gradeResumoStyle: {}, grade: [], notaAcresc: '',
+          temLocais: false, locais: [], temBloqueado: false, bloqueado: '', rotuloValorEstoque: 'Valor em estoque', notaBloqueado: '', temCustodia: false, custodia: '', notaCustodia: '', temPerdas: false, perdas: '', notaPerdas: '', temFaixas: false, faixas: [], tipoLabel: '', categoria: '', marca: '', referencia: '', foto: null, semFoto: true, botaoCodigo: null, botaoReferencia: null, ehKit: false, naoEhKit: true, somaComp: '', temMontaveis: false, temEstoque: false, temMarca: false, temReferencia: false, verComp: false, semPermComp: false, comp: [], prontos: '', montaveis: '', vendaTotal: '', vendaStyle: {}, limiteNota: '', limiteBloqueio: '', temObs: false, temObsSimples: false, obsCritica: false, obsTag: '', obsTexto: '' };
+
+    return {
+      // Topbar retirada do shell em 27/08/2026 (decisão da Maiara; o template PT-01 já não a traz).
+      // Com ela saíram trilha, campo de busca global e botão de ajuda. A busca global continua
+      // existindo como paleta `Command`, acionada por ⌘K/Ctrl+K — atalho sem afordância visual na
+      // tela, consequência declarada da remoção.
+      // Sozinha: sidebar própria. Embutida no shell do cowork: a do shell manda.
+      // O embutimento é DECLARADO na URL (`?embed=1`), não inferido do frame — o host de preview
+      // renderiza toda página dentro de um iframe, então `window.self === window.top` é sempre
+      // falso e apagaria a sidebar também na tela aberta sozinha.
+      verSidebar: (typeof location === 'undefined' || new URLSearchParams(location.search).get('embed') !== '1'),
+      naListagem: true, cockpitRef, icBusca, icBuscaCampo: icBusca, abrirPaleta: () => this.setState({ paleta: true }),
+
+      menuItens,
+
+      selecionados: this.state.sel,
+      temSelecao: this.state.sel.length > 0,
+      qtdSelecao: this.state.sel.length,
+      labelSelecao: (() => {
+        const nesta = daPagina.map((r) => String(r.id));
+        const fora = this.state.sel.filter((id) => !nesta.includes(id)).length;
+        const base = this.state.sel.length === 1 ? 'item selecionado' : 'itens selecionados';
+        return fora ? base + ' · ' + fora + ' fora desta página' : base;
+      })(),
+      limparSelecao: () => this.setState({ sel: [] }),
+      marcarLinha: (id) => this.setState((st) => ({ sel: st.sel.includes(String(id)) ? st.sel.filter((x) => x !== String(id)) : [...st.sel, String(id)] })),
+      marcarTodas: (on) => this.setState((st) => {
+        const nesta = daPagina.map((r) => String(r.id));
+        const fora = st.sel.filter((id) => !nesta.includes(id));
+        return { sel: on ? [...fora, ...nesta] : fora };
+      }),
+      acoesSelecao: [
+        { id: 'exportar', label: 'Exportar seleção', onClick: () => { const n = this.state.sel.length; this.aviso(this.plural(n, 'item exportado', 'itens exportados') + ' para planilha.', 'ok'); this.setState({ sel: [] }); } },
+        { id: 'etiquetas', label: 'Gerar etiquetas', onClick: () => this.aviso('Etiquetas de ' + this.plural(this.state.sel.length, 'item', 'itens') + ' na fila de impressão.', 'ok') },
+        selTodasInativas
+          ? { id: 'ativar', label: 'Ativar', onClick: () => this.setState({ confirmar: { tipo: 'lote', acao: 'ativar' } }) }
+          : { id: 'inativar', label: 'Inativar', tone: 'danger', onClick: () => this.setState({ confirmar: { tipo: 'lote', acao: 'inativar' } }) },
+      ],
+      confirmarAberto: !!this.state.confirmar,
+      fecharConfirmar: () => this.setState({ confirmar: null }),
+      tituloConfirmar: (() => {
+        const c = this.state.confirmar;
+        if (!c) return '';
+        if (c.acao === 'ativar') return c.tipo === 'linha' ? 'Ativar produto' : 'Ativar itens selecionados';
+        return c.tipo === 'linha' ? 'Inativar produto' : 'Inativar itens selecionados';
+      })(),
+      textoConfirmar: (() => {
+        const c = this.state.confirmar;
+        if (!c) return '';
+        if (c.acao === 'ativar') {
+          return c.tipo === 'linha'
+            ? 'Ativar ' + c.nome + '? Ele volta a aparecer na consulta de venda e pode ser incluído em orçamento.'
+            : 'Ativar ' + this.plural(this.state.sel.length, 'item', 'itens') + '? ' + (this.state.sel.length === 1
+                ? 'Ele volta a aparecer na consulta de venda e pode ser incluído em orçamento.'
+                : 'Eles voltam a aparecer na consulta de venda e podem ser incluídos em orçamento.');
+        }
+        return c.tipo === 'linha'
+          ? 'Inativar ' + c.nome + '? Ele sai da consulta de venda e do orçamento, mas o histórico é mantido.'
+          : 'Inativar ' + this.plural(this.state.sel.length, 'item', 'itens') + '? ' + (this.state.sel.length === 1
+              ? 'Ele sai da consulta de venda e do orçamento, mas o histórico é mantido.'
+              : 'Eles saem da consulta de venda e do orçamento, mas o histórico é mantido.');
+      })(),
+      rodapeConfirmar: h(React.Fragment, null,
+        h(DS.Button, { variant: 'ghost', size: 'sm', onClick: () => this.setState({ confirmar: null }) }, 'Cancelar'),
+        h(DS.Button, {
+          variant: this.state.confirmar && this.state.confirmar.acao === 'ativar' ? 'primary' : 'danger',
+          size: 'sm',
+          onClick: () => {
+            const c = this.state.confirmar;
+            const ativando = !!c && c.acao === 'ativar';
+            if (c && c.tipo === 'linha') {
+              this.setState({ confirmar: null });
+              this.aviso(c.nome + (ativando ? ' ativado.' : ' inativado.'), ativando ? 'ok' : 'warn');
+              return;
+            }
+            const n = this.state.sel.length;
+            this.setState({ confirmar: null, sel: [] });
+            this.aviso(ativando
+              ? this.plural(n, 'item ativado.', 'itens ativados.')
+              : this.plural(n, 'item inativado.', 'itens inativados.'), ativando ? 'ok' : 'warn');
+          },
+        }, this.state.confirmar && this.state.confirmar.acao === 'ativar' ? 'Ativar' : 'Inativar')),
+      temToast: !!this.state.toast,
+      toastTexto: this.state.toast ? this.state.toast.texto : '',
+      toastTone: this.state.toast ? this.state.toast.tone : 'default',
+
+      ordenacao,
+
+      paletaAberta: this.state.paleta,
+      fecharPaleta: () => { this._fechouPaleta = Date.now(); this.setState({ paleta: false }); },
+      paletaGrupos: [
+        { label: 'Ações', items: [
+          { id: 'novo', label: 'Novo produto', kbd: 'N', onSelect: () => { this.setState({ paleta: false }); this.aviso('Cadastro de produto — formulário em branco.'); } },
+          { id: 'buscar', label: 'Buscar na lista', kbd: '/', onSelect: () => { this.setState({ paleta: false }); setTimeout(() => { const el = this.campoBusca(); el && el.focus(); }, 60); } },
+          { id: 'importar', label: 'Importar planilha', onSelect: () => { this.setState({ paleta: false }); this.aviso('Importar planilha — abre o assistente de importação.'); } },
+          { id: 'exportar', label: 'Exportar planilha', onSelect: () => this.aviso(this.plural(total, 'item exportado', 'itens exportados') + ' para planilha.', 'ok') },
+          { id: 'limpar', label: 'Limpar filtros', onSelect: () => this.setState({ paleta: false, busca: '', kpi: '', pagina: 1, sel: [], f: { categoria: '', tipo: '', marca: '', estoque: '' } }) },
+        ] },
+        { label: 'Abas', items: abasDef.map(([key, label]) => ({
+          id: 'aba-' + key, label, hint: this.porAba(key).length.toLocaleString('pt-BR') + ' itens',
+          onSelect: () => this.setState({ paleta: false, aba: key, kpi: '', pagina: 1 }),
+        })) },
+        ...(this.state.recentes.length ? [{ label: 'Recentes', items: this.state.recentes.map((id) => {
+          const r = this.dados.find((x) => x.id === id);
+          if (!r) return null;
+          return { id: 'rec-' + id, label: r.name, hint: String(r.codigo) + (r.cat ? ' · ' + r.cat : ''), onSelect: () => { this.setState({ paleta: false }); this.abrir(id); } };
+        }).filter(Boolean) }] : []),
+        { label: 'Grade', items: this.dados.flatMap((r) => this.gradeDe(r).map((c) => ({
+          id: 'g-' + c.cod, label: c.cod, hint: r.name + ' · ' + this.rotuloCombo(c) + (c.saldo === 0 ? ' · sem saldo' : ' · ' + this.num(c.saldo) + ' ' + r.unit),
+          onSelect: () => this.setState({ paleta: false, busca: c.cod, pagina: 1, sel: [], abertoId: r.id }),
+        }))) },
+        { label: 'Recortes', items: [
+          { id: 'r-min', label: 'Abaixo do mínimo', onSelect: () => this.setState({ paleta: false, kpi: 'min', pagina: 1 }) },
+          { id: 'r-zero', label: 'Sem saldo', onSelect: () => this.setState({ paleta: false, kpi: 'zero', pagina: 1 }) },
+          { id: 'r-parado', label: 'Sem venda há ' + this.dias() + ' dias', onSelect: () => this.setState({ paleta: false, kpi: 'parado', pagina: 1 }) },
+          { id: 'r-margem', label: 'Margem: lucro abaixo de ' + this.pct(this.piso()) + ' do preço', onSelect: () => this.setState({ paleta: false, kpi: 'margem', pagina: 1 }) },
+        ] },
+      ],
+
+      atalhosSec: !aberta ? [] : [
+        aberta && this.ehKit(aberta) ? { rotulo: 'Venda', ir: () => this.irSecao('venda') } : null,
+        aberta && this.ehKit(aberta) && perm.composicao ? { rotulo: 'Composição', ir: () => this.irSecao('composicao') } : null,
+        aberta && this.temGrade(aberta) ? { rotulo: 'Grade', ir: () => this.irSecao('grade') } : null,
+        { rotulo: 'Preço', ir: () => this.irSecao('preco') },
+        (this.compraPorId[aberta.id] && perm.compras) || this.encomendaPorId[aberta.id] ? { rotulo: 'Reposição', ir: () => this.irSecao('reposicao') } : null,
+        aberta.stockQty !== null ? { rotulo: 'Estoque', ir: () => this.irSecao('estoque') } : null,
+      ].filter(Boolean),
+      temAtalhosSec: !!aberta && (this.ehKit(aberta) || this.temGrade(aberta)),
+      fecharPainelSeAberto: () => { if (this.state.abertoId !== null) this.setState({ abertoId: null }); },
+      verCustoAberta: !!aberta && this.verCustoDe(aberta),
+      verMargemAberta: !!aberta && this.verCustoDe(aberta) && perm.margem,
+      semCustoAberta: !!aberta && !this.verCustoDe(aberta),
+      notaSemCusto: aberta && this.ehKit(aberta) && !perm.composicao
+        ? 'Custo e margem deste kit são derivados da composição, restrita ao administrador.'
+        : 'Custo e margem são restritos ao administrador.',
+      semMargemAberta: !!aberta && this.verCustoDe(aberta) && !perm.margem,
+      notaSemMargem: 'Margem restrita pelo administrador.',
+      abas, abaAtiva: aba, trocarAba: (k) => this.setState((st) => ({ aba: k, kpi: '', pagina: 1, sel: [], f: Object.assign({}, st.f, { tipo: '' }) })), filtros, linhas, mostraTipo, verGestao: perm.custo, verCusto, verPreco, verMargem,
+      carregando: estadoTela === 'carregando',
+      semTabela: estadoTela === 'erro' || estadoTela === 'sem_permissao',
+      comTabela: estadoTela === 'dados',
+      estadoVariante: estadoTela === 'erro' ? 'error' : 'no-perm',
+      estadoTitulo: estadoTela === 'erro' ? 'Não foi possível carregar o catálogo' : 'Você não tem acesso ao catálogo',
+      estadoTexto: estadoTela === 'erro'
+        ? 'A consulta falhou no servidor. Tente novamente em alguns instantes.'
+        : 'Peça ao administrador a permissão de consulta de produtos.',
+      vazioVariante: temFiltroAtivo ? 'filtered' : 'no-results',
+      vazio: linhas.length === 0,
+      vazioDica: temFiltroAtivo
+        ? 'Tente limpar a busca, o filtro ou o cartão selecionado acima.'
+        : 'Esta aba não tem itens cadastrados.',
+      temFiltroAtivo,
+      chips: [
+        f.categoria && { k: 'categoria', label: 'Categoria', valor: f.categoria },
+        f.tipo && { k: 'tipo', label: 'Tipo', valor: { produto: 'Produto', servico: 'Serviço', materia: 'Matéria-prima', kit: 'Kit' }[f.tipo] || f.tipo },
+        f.marca && { k: 'marca', label: 'Marca', valor: f.marca },
+        f.estoque && { k: 'estoque', label: 'Disponível', valor: { em: 'Com saldo', baixo: 'Abaixo do mínimo', sem: 'Sem saldo', nao: 'Não estocável' }[f.estoque] || f.estoque },
+        busca && { k: 'busca', label: 'Busca', valor: busca },
+      ].filter(Boolean).map((c) => ({
+        label: c.label, valor: c.valor,
+        onRemove: () => (c.k === 'busca' ? this.setState({ busca: '', pagina: 1 }) : this.setState((st) => ({ f: Object.assign({}, st.f, { [c.k]: '' }), pagina: 1 }))),
+      })),
+      limparFiltros: () => this.setState({ busca: '', kpi: '', pagina: 1, sel: [], f: { categoria: '', tipo: '', marca: '', estoque: '' } }),
+      contagem: total.toLocaleString('pt-BR') + (total === 1 ? ' registro' : ' registros'),
+      paginado: totalLinhas > porPagina,
+      mostraRodape: estadoTela === 'dados' && linhas.length > 0,
+      porPagina,
+      totalLinhas, paginas, pagina, irPara,
+      setPorPagina: (n) => this.setState({ porPagina: n, pagina: 1 }),
+
+      busca, temBusca: !!busca, semBusca: !busca,
+      onBusca: (ev) => this.setState({ busca: ev.target.value, sel: [], ativa: -1 }),
+      limparBusca: () => this.setState({ busca: '', ativa: -1 }),
+
+      kpiMin: conta((r) => this.estado(r).chave === 'baixo').toLocaleString('pt-BR'),
+      kpiZero: conta((r) => this.estado(r).chave === 'sem').toLocaleString('pt-BR'),
+      kpiParado: conta((r) => r.parado).toLocaleString('pt-BR'),
+      kpiMargem: conta((r) => this.sobOPiso(r)).toLocaleString('pt-BR'),
+      labelParado: 'Sem venda ' + this.dias() + 'd', subParado: 'sem giro',
+      // O que o KPI mede: (preço − custo) ÷ preço. O sub declara a base, não o jargão do piso.
+      subMargem: 'lucro abaixo de ' + this.pct(this.piso()) + ' do preço',
+      selMin: kpi === 'min', selZero: kpi === 'zero',
+      verKpiMin: this.kpiVisivel('min'), verKpiZero: this.kpiVisivel('zero'),
+      verKpiParado: this.kpiVisivel('parado'), verKpiMargem: this.kpiVisivel('margem'),
+      selParado: kpi === 'parado', selMargem: kpi === 'margem',
+      toggleMin: () => this.toggleKpi('min'),
+      toggleZero: () => this.toggleKpi('zero'), toggleParado: () => this.toggleKpi('parado'),
+      toggleMargem: () => this.toggleKpi('margem'),
+      icMin: this.ico('bell'),
+      icZero: this.ico('lock'),
+      icParado: this.ico('clock'),
+      icMargem: this.ico('bar-chart-3'),
+
+      temTotais: perm.custo && listadas.length > 0,
+      totais: (() => {
+        if (!perm.custo) return [];
+        const num = { fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 12.5, fontWeight: 600, color: 'var(--text)' };
+        const emEstoque = listadas.reduce((soma, r) => { const c = this.custoDe(r); const f = this.fisico(r); return soma + (c !== undefined && f ? c * f : 0); }, 0);
+        const repor = listadas.reduce((soma, r) => {
+          const c = this.custoDe(r);
+          if (c === undefined || r.stockQty === null || r.minimo === null) return soma;
+          const falta = r.minimo - this.vendavel(r);
+          return soma + (falta > 0 ? falta * c : 0);
+        }, 0);
+        const out = [{ rotulo: 'Valor em estoque (recorte, físico)', valor: this.brl(emEstoque), estilo: num }];
+        if (repor > 0) out.push({ rotulo: 'Repor até o mínimo (disponível para venda)', valor: this.brl(repor), estilo: Object.assign({}, num, { color: 'var(--color-destructive)' }) });
+        return out;
+      })(),
+      colunas: colunasVisiveis, tabelaStyle: { minWidth: larguraMin }, linhasTabela: linhas,
+      abrirLinha: (row) => this.abrir(row.id),
+      ordemKey: ordem ? ordem.key : '', ordemDir: ordem ? ordem.dir : '', sortCol: this.sort,
+      // Cabeçalho sem `stats` (decisão da Maiara, 27/08): todo número candidato já vive em outro
+      // bloco — contagem do recorte na toolbar (B-07 item 5), contadores por aba (B-05 item 4),
+      // alarmes nos KPI (B-06) e valor em estoque no rodapé (B-11). `stats` é opcional no
+      // PageHeader (`_ds_bundle.js` L5192: `(stats || subtitle) &&`).
+      tema: this.state.tema,
+      headerActions: h(React.Fragment, null,
+        h(DS.Button, { variant: 'ghost', size: 'sm', onClick: () => this.setState((st) => ({ tema: st.tema === 'dark' ? 'light' : 'dark' })) },
+          this.state.tema === 'dark' ? 'Claro' : 'Escuro'),
+        h(DS.DropdownMenu, { trigger: this.gatilhoIcone('menu', 15, true, 'Mais ações desta tela', 26), items: menuItens, align: 'end', width: 228 }),
+        h(DS.Button, { variant: 'primary', size: 'sm', style: { whiteSpace: 'nowrap' }, onClick: () => this.aviso('Cadastro de produto — formulário em branco.') }, 'Novo')),
+
+      drawerWidth: aberta && (this.temGrade(aberta) || this.ehKit(aberta)) ? 480 : 420,
+      drawerAberto: !!aberta, fecharDrawer: () => this.setState({ abertoId: null }),
+      drawerFooter: h(React.Fragment, null,
+        h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: 4, marginRight: 'auto' } },
+          h(DS.Button, { variant: 'ghost', size: 'sm', icon: true, disabled: !temAnterior, onClick: () => this.irVizinho(-1) },
+            React.createElement('span', { style: { display: 'inline-flex', transform: 'rotate(180deg)' } }, this.ico('chevron-down', 15))),
+          h(DS.Button, { variant: 'ghost', size: 'sm', icon: true, disabled: !temProximo, onClick: () => this.irVizinho(1) },
+            this.ico('chevron-down', 15)),
+          h('span', { style: { fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)', whiteSpace: 'nowrap' } }, posicaoAberta)),
+        perm.custo ? h(DS.Button, { variant: 'ghost', size: 'sm', style: { whiteSpace: 'nowrap' }, onClick: () => this.aviso('Formação de preço — tela do administrador.') }, 'Formar preço') : null,
+        h(DS.Button, { variant: 'primary', size: 'sm', style: { whiteSpace: 'nowrap' }, onClick: () => this.aviso('Cadastro do produto — outra tela do módulo.') }, 'Abrir cadastro')),
+      det,
+
+    };
+  }
+}
+</script>
+</body>
+</html>

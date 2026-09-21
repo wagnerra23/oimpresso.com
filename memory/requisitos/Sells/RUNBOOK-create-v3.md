@@ -83,7 +83,7 @@ tabela de negócio nenhuma, então não há query a escopar (ADR 0093 satisfeito
 - Faixa de aviso permanente no topo: quem abrir por engano sabe em 1 segundo que não é produção.
 - Botão "Finalizar venda" **desabilitado** por construção.
 
-**Âncora de design:** `prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx` _(repontado 2026-09-15 — a âncora anterior `prototipo-ui/design-oimpresso/04-modulos/vendas/sells-create.jsx` nunca versionado no repo; dono: `resources/js/Pages/Sells/CreateV3.charter.md`)_
+**Âncora de design:** `prototipo-ui/cowork/Felipe/venda-v3.jsx` (seção `sells-create.jsx`) _(repontado 2026-09-21 — o espelho do Felipe passou a ser o pacote "Produto Unificado V2", onde a Venda V3 veio num arquivo só: `venda-v3.jsx`, seção `sells-create.jsx`, exporta `window.VendaV3Create`. A âncora anterior `venda-v3/sells-create.jsx` segue no histórico em [bdf6d07e3](https://github.com/wagnerra23/oimpresso.com/blob/bdf6d07e3/prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx); dono: `resources/js/Pages/Sells/CreateV3.charter.md`)_ _(histórico: repontado 2026-09-15 — a âncora anterior `prototipo-ui/design-oimpresso/04-modulos/vendas/sells-create.jsx` nunca versionado no repo; dono: `resources/js/Pages/Sells/CreateV3.charter.md`)_
 (cockpit "Venda — Guia de Produção", importado do projeto de design Oimpresso `019e2365` em 2026-08-06).
 Roda local em `http://localhost:5570` via a config `cockpit-vendas` do `.claude/launch.json`.
 

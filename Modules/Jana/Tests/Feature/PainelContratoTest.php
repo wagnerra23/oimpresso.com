@@ -1201,7 +1201,7 @@ it('UC-JPAIN-23: o drawer tem as seções Apurações gravadas e Fonte do númer
 });
 
 /**
- * UC-JPAIN-30 - o grid de KPIs quebra no BREAKPOINT da ancora, nao no do shared.
+ * UC-JPAIN-34 - o grid de KPIs quebra no BREAKPOINT da ancora, nao no do shared.
  *
  * A `.jc-kpis` da ancora (`prototipo-ui/cowork/Wagner/chat-jana.css:139` e o bloco
  * `@media (max-width: 1100px)` em `:444`) e `repeat(4, 1fr)` acima de 1100px e
@@ -1238,7 +1238,7 @@ it('UC-JPAIN-23: o drawer tem as seções Apurações gravadas e Fonte do númer
  * par visual por viewport e do `visual-regression`. Trava-se aqui o que apagar a classe
  * derruba, que e a regressao realista - nao o comportamento do motor de CSS.
  */
-it('UC-JPAIN-30: o grid e a replica local com o breakpoint de 1101px da ancora', function () {
+it('UC-JPAIN-34: o grid e a replica local com o breakpoint de 1101px da ancora', function () {
     $cockpit = acaoCockpitTsx();
     $grid = file_get_contents(base_path('resources/js/Pages/Jana/_components/JanaKpiGrid.tsx'));
 

@@ -55,6 +55,15 @@ d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/Qualidade
 8480e6d6025f9142247968135037f792b37d51a7:prototipo-ui/cowork/officeimpresso-page.jsx:generic-api-key:763
 8480e6d6025f9142247968135037f792b37d51a7:prototipo-ui/cowork/officeimpresso-page.jsx:generic-api-key:764
 8480e6d6025f9142247968135037f792b37d51a7:prototipo-ui/cowork/officeimpresso-page.jsx:generic-api-key:765
+# 2026-09-21 — o MESMO mock chegou no espelho do Felipe (pacote "Produto Unificado V2",
+# PR #7620). Os 5 valores `secret` são idênticos aos de cima (sha256 dos 5 juntos bate com o
+# de prototipo-ui/cowork/Wagner/officeimpresso-page.jsx), logo a verificação de 2026-08-20
+# (0 de 5 contra os oauth_clients de produção) cobre estes também. Só mudou o caminho/linha.
+4ad5f507e03c5d9a7b23aab3207b7236e856a200:prototipo-ui/cowork/Felipe/officeimpresso-page.jsx:generic-api-key:761
+4ad5f507e03c5d9a7b23aab3207b7236e856a200:prototipo-ui/cowork/Felipe/officeimpresso-page.jsx:generic-api-key:762
+4ad5f507e03c5d9a7b23aab3207b7236e856a200:prototipo-ui/cowork/Felipe/officeimpresso-page.jsx:generic-api-key:763
+4ad5f507e03c5d9a7b23aab3207b7236e856a200:prototipo-ui/cowork/Felipe/officeimpresso-page.jsx:generic-api-key:764
+4ad5f507e03c5d9a7b23aab3207b7236e856a200:prototipo-ui/cowork/Felipe/officeimpresso-page.jsx:generic-api-key:765
 
 # 2026-09-16 — CcSecretSweepTest.php, linhas 155 e 184 do commit 48512677dd2
 # (PR #7418). FALSO POSITIVO: valores SINTETICOS que eu inventei pra exercitar o

@@ -1671,6 +1671,33 @@ Ocorrência da **LC-09**.
 
 Ocorrência da **LC-24**.
 
+### 2026-09-21 — Inventei a HORA de uma medição DENTRO da nota que existe para marcar medição caduca — e os 3 números verdadeiros ao lado autenticaram o falso
+
+- **O limite (variante também proibida).** **(a)** Número de **TEMPO** — hora, duração, *"há N
+  dias"*, *"por N semanas"*, *"desde que"* — só entra em doc canônico **calculado ou citado de
+  fonte** (`mergedAt`, `%cd`/`%ad` de commit com o eixo declarado, timestamp de log, aritmética de
+  datas explicitada); nunca reconstruído de plausibilidade. Quando a fonte **não registra** aquele
+  campo, o honesto é dizer que não registra — foi o conserto aplicado aqui. **(b)** E o teste
+  barato, que é o que esta lápide acrescenta: **número verdadeiro ao lado não autentica o
+  vizinho.** Antes de fechar parágrafo que mistura medidos e não-medidos, reler **cada** número
+  perguntando *"de onde ESTE veio?"*; quando a resposta for *"parece razoável"*, ele sai ou ganha a
+  ressalva explícita. Vale para hora, contagem, percentual, nota e nome de arquivo.
+
+- **⚠️ NÃO virar gate, e as razões são medidas, não tímidas.** O gate óbvio da classe **já está
+  medido e reprovado** e o campo `Gate:` da LC-08 registra isso — detector de *"afirmação sem
+  evidência"* deu **130 FP**, e ampliar o corpus do `fact-anchor` deu **~64% FP**; não re-propor.
+  A forma sintática específica (acusar menção de hora sem fonte ao lado) reprovaria os
+  **legítimos**, que são a maioria **neste mesmo arquivo** — é a família de guard sintático que
+  este §5 já enterrou (allowlist-de-pasta 06-30 · guard `@scope` 07-09 · vocabulário 130 FP
+  07-16 · `toHaveKey` 100% FP 07-26 · `toContain` 07-28 · par usuário/senha 08-02 · `jq` 08-11 ·
+  variante Radix 08-25). E o predicado verdadeiro — *"de onde veio este número?"* — é
+  **semântico por construção** ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md):
+  semântico = advisory). Por [ADR 0344](decisions/0344-two-strikes-cobre-processo.md) também não
+  se codifica: não chegou a prod. **O que pegou foi releitura própria do texto já publicado**, e
+  não máquina nenhuma — isso é dado, não desculpa.
+
+Ocorrência da **LC-08**.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

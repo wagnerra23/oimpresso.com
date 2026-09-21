@@ -12,8 +12,8 @@ last_validated: "2026-08-27"
 
 > **Ancora computada, nao escolhida no olho** — `related_prototype` do
 > [`CreateV3.charter.md`](../../../resources/js/Pages/Sells/CreateV3.charter.md) declara
-> `prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx`, e o drawer de item mora em
-> `sells-item-detail.jsx` (464 linhas) do mesmo bundle.
+> `prototipo-ui/cowork/Felipe/venda-v3.jsx` (seção `sells-create.jsx`), e o drawer de item mora na seção
+> `sells-item-detail.jsx` do mesmo arquivo. _(repontado 2026-09-21 — o espelho do Felipe passou a ser o pacote "Produto Unificado V2", onde a Venda V3 veio num arquivo só: `venda-v3.jsx`, seção `sells-create.jsx`, exporta `window.VendaV3Create`. A âncora anterior `venda-v3/sells-create.jsx` segue no histórico em [bdf6d07e3](https://github.com/wagnerra23/oimpresso.com/blob/bdf6d07e3/prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx); dono: `resources/js/Pages/Sells/CreateV3.charter.md`)_
 >
 > Primeiro registro desta tela. Medido em **2026-08-27**, depois de o [W] comparar a tela
 > com o protótipo e apontar as diferenças aba a aba.

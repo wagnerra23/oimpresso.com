@@ -131,7 +131,7 @@ O backlog completo e seus critérios estão em [SPEC.md](SPEC.md). As frentes re
 
 ### G · Design e protótipos
 
-- [PROTOTIPO-preco-especial.md](PROTOTIPO-preco-especial.md) · [produto-preco-especial](../../../prototipo-ui/cowork/Felipe/produto-preco-especial/) · `produtos-page.jsx` (`prototipo-ui/cowork/Wagner/produtos-page.jsx`, movido para `cowork/Wagner/` pelo #7224 em 2026-09-11 — rename R100, VIVO em main · ADR 0397) · [protótipo Produto Unificado](../../../prototipo-ui/cowork/prototipo-ui-patch/prototipos/produto/) _(removido em 2026-08-31, 539efa2a8aa)_ · [produtos-gap.md](produtos-gap.md).
+- [PROTOTIPO-preco-especial.md](PROTOTIPO-preco-especial.md) · [produto-preco-especial](https://github.com/wagnerra23/oimpresso.com/blob/bdf6d07e3/prototipo-ui/cowork/Felipe/produto-preco-especial/produto-preco-especial.html) _(retirado do repo em 2026-09-21; link do histórico)_ · `produtos-page.jsx` (`prototipo-ui/cowork/Wagner/produtos-page.jsx`, movido para `cowork/Wagner/` pelo #7224 em 2026-09-11 — rename R100, VIVO em main · ADR 0397) · [protótipo Produto Unificado](../../../prototipo-ui/cowork/prototipo-ui-patch/prototipos/produto/) _(removido em 2026-08-31, 539efa2a8aa)_ · [produtos-gap.md](produtos-gap.md).
 
 ### H · Decisões e histórico
 

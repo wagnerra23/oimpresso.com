@@ -41,7 +41,10 @@
 // `gridMarginBottom: 16px` · `paiClasses: "space-y-4"` · `irmaoMarginTop: 0px`). Uma utility
 // `mb-[18px]` seria inerte — a regra do pai tem especificidade (0,2,0) contra (0,1,0) da
 // utility. Fechar os 2px exige tocar o `space-y-4`, que governa TODAS as seções da tela.
-// Medido e aberto, registrado no `Index.casos.md` §UC-JPAIN-30.
+// ⚠️ FECHADO por outra sessao (UC-JPAIN-33, #7653) enquanto este PR esperava — e a minha
+// analise do CONSERTO estava errada: medi certo de onde vinha em producao (o `space-y-4`),
+// e conclui que fechar exigiria tocar o container. Na ANCORA o 18px nao vem de container,
+// vem de cada secao, e o conserto coube por secao. Detalhe no `Index.casos.md` §UC-JPAIN-34.
 
 import * as React from 'react';
 import { Grid } from '@/Components/layout';
