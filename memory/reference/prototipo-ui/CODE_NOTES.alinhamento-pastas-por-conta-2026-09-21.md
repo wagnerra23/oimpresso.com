@@ -180,3 +180,40 @@ Estado hoje (medido em `origin/main`): o shell vive em `cowork/Wagner/` (`oimpre
 D4 diz que "o shell Wagner referencia" o DS. O `design-system/public/cowork-preview/erp-shell-v2/`
 guarda só 3 arquivos de uma prévia antiga. Aceitar a proposta muda essa estrutura, e por isso ela
 vai como **emenda à 0397**, para o [W] decidir.
+
+---
+
+## 11. Errata ao §5 — a pasta `019dd02f` NÃO foi improvisada (mesmo dia)
+
+O §5 diz que *"o Cowork avisou que montou essa cópia como contorno"*. **Está errado.** O Code repetiu
+de boa-fé uma afirmação que o próprio Cowork depois retratou. O texto acima fica como estava
+(append-only); a procedência certa é esta:
+
+- a pasta `_ds/office-impresso-design-system-019dd02f-…` **existia no projeto desde 09/09**, e o
+  próprio pacote recebido prova isso: `mapa-do-terreno.md` (Camada 3) a registra como
+  *"`oimpresso.com.html` L121 — é este que roda"*, regenerada em 09/09, e
+  `auditoria-aderencia-fabricacao-v2.md` a trata como o espelho normativo;
+- **improvisado era só o `cockpit_domains.css` de 158 bytes dentro dela**: um stub vazio, criado
+  para calar um 404. A medição do §5 (158 × 5.705 bytes) segue correta; errado era atribuir a
+  **pasta inteira** ao contorno;
+- o bundle do `019dd02f` **é** o do `49a36f76` (as mesmas 9.354 linhas) mais 11 linhas de apelido
+  que publicam o global antigo apontando para o novo. Conferido pelo Code: prefixo byte-idêntico
+  depois de ignorar CR. São **o mesmo design system em dois endereços**: `019dd02f` é o projeto de
+  origem, `49a36f76` o vinculado. **Não há divergência a decidir** entre o DS cadastrado em
+  `protocolo.config.mjs` e o que o [F] usa.
+
+**O que mudou no Cowork depois (relato do Cowork, não medido pelo Code):**
+- o pacote passou a ter **um** design system: o `49a36f76`;
+- saíram a terceira pasta (`d7f88676`, namespace próprio, nenhuma página a carregava) e as cópias
+  de DS de dentro dos handoffs;
+- o apelido saiu do bundle e virou uma linha declarada na página;
+- o `cockpit_domains.css` vazio foi removido, e as cores de domínio caem no neutro até o companion
+  do git existir.
+
+O Code confere isso na próxima importação.
+
+**E corrige o pedido de limpeza:** `erp-shell-v2/styles.css` e `erp-shell-v2/tweaks-panel.jsx`
+**não** são repetidos dentro do projeto no Cowork (diferem dos da raiz). Ficam lá, e o pedido cai
+de 32 para 30 arquivos. No repositório eles coincidem com
+`design-system/public/cowork-preview/erp-shell-v2/`, então a regra atual de conteúdo único segue
+recusando-os na importação. Isso só muda com a troca de "bytes iguais" por "um lugar só" (§7, item 3).
