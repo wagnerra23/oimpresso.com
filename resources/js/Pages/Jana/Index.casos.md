@@ -1791,3 +1791,65 @@ avisada **antes** de medir, para carimbar os números dela como "medidos em grad
 lg:grid-cols-2` derruba **2** asserts — um por ausência da nova, outro por presença da antiga —, e
 remover `py-0 gap-0` derruba **1**. Arquivo restaurado com **hash conferido** após a mutação
 (`96dff22f8a951e5f` antes e depois), para nenhum mutante sobreviver no diff.
+
+---
+
+## UC-JPAIN-33 — o ritmo vertical entre seções é o da âncora: 18px, e 6px na única que foge
+
+Status: 🧪 (`npx vitest run tests/janaRitmoVerticalReplica.spec.tsx` → **3 passed** jsdom local,
+2026-09-21, mordida provada por mutação nos dois lados; vira ✅ quando o manifesto
+`casos-results` aterrissar)
+
+**Fonte:** `chat-jana.css` — na âncora o 18px **não vem de um container**, vem de cada seção
+(`grep -n "margin-bottom: 18px" prototipo-ui/cowork/Wagner/chat-jana.css` → 4 hits: `.jc-brief`,
+`.jc-kpis`, `.jc-grid`, `.jc-acoes`). Precedência de FORMA: protótipo > teste > casos > charter >
+SPEC ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)),
+sob [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1.
+
+**Medido pelo espaço VISUAL entre blocos** (`top` do próximo − `bottom` do atual), não pela
+propriedade isolada — que engana quando há padding no meio. Chrome, 2560, dark, os dois lados na
+mesma janela, 2026-09-21:
+
+| de → para | âncora | prod (antes) | agora |
+|---|---|---|---|
+| brief → kpis | **18** | 16 | **18** |
+| kpis → METAS | **18** | 16 | **18** |
+| METAS → h2 Análises | **6** | 16 | **6** |
+| h2 → grade | 10 | 10 | 10 |
+| grade → h2 Ações | **18** | 16 | **18** |
+| h2 Ações → ações | 10 | 10 | 10 |
+
+**6 de 6 transições comparáveis** batem depois da mudança.
+
+⚠️ **METAS foge do ritmo, e foge na âncora também.** Sem o `mb-1.5` (6px) no wrapper, o
+`space-y-[18px]` levaria a seção de 16 → 18px e **trocaria um erro de 10px por um de 12px, no
+sentido oposto** — a correção "óbvia" (só trocar o container) piora essa transição.
+
+⚠️ **Os `h2` continuam em 10px e isso é da âncora, não descuido.** O `space-y` gera
+`:where(.space-y-* > :not(:last-child))`, de especificidade **0** (lido no CSS servido em
+produção), então o `mb-2.5` do `SectionTitle` vence sem `!important` — o mesmo que a `.jc-h2`
+(`margin: 6px 0 10px`) faz contra o ritmo do `.jc-page`.
+
+⚠️ **A primeira prova de runtime saiu ERRADA, e o erro vale mais que o acerto.** Injetei as regras
+num `<style>` **fora de `@layer`** e medi `h2 → conteúdo` indo de 10 para **18px** — ia concluir que
+a mudança quebrava duas transições certas. A regra do `space-y` do app vive em **`@layer
+utilities`**, e CSS fora de layer vence qualquer coisa dentro de layer **independente de
+especificidade**. Refeita a injeção dentro de `@layer utilities`, o `h2` fica em 10px e as 6
+transições batem. **Simulação de cascata que não reproduz a CAMADA mede outra cascata.**
+
+**Teste:** `tests/janaRitmoVerticalReplica.spec.tsx` (vitest/jsdom), 3 casos: 1 de controle
+positivo/negativo do detector + 2 de contrato (o container no `JanaCockpit`, o `mb-1.5` no
+`Index`). Mordida provada nos dois lados: devolver `space-y-4` derruba 1 assert; tirar o `mb-1.5`
+derruba outro. Arquivos restaurados por **cópia byte-exata com hash conferido**
+(`51569a0f85b18de5` / `1eab367a29757d85`).
+
+⚠️ **Armadilha do próprio teste, registrada porque custou uma rodada vermelha:** o `vi.mock` do
+`JanaCockpit` (necessário para renderizar a Page e alcançar o wrapper de METAS) sofre **hoisting** e
+vale para o arquivo inteiro — o caso que mede o container real precisa de `vi.importActual`, senão
+assere a className do **stub** e passa por engano.
+
+**Dívida vizinha, medida e NÃO consertada aqui:** o `pt-6` do mesmo wrapper. Do último KPI até o
+**texto** "METAS ATIVAS" são **46px** em prod (16 + 24 + 6) contra **24px** na âncora (18 + 6). É
+*padding*, não margem, e o bloco é de outro chip — a sessão de METAS mediu junto e confirmou que
+**nenhum dos dois consertos sozinho acerta**: só este dá 48, só o dela dá 16, os dois juntos dão
+**24 exatos**.

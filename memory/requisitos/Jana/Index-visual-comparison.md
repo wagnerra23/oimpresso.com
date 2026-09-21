@@ -1350,3 +1350,55 @@ mergeou em `main`, mas a produção **ainda serve 2 colunas**: `grid-template-co
 Ou seja: **merge não é deploy**, e o G16 continua com o número de 2 colunas até o deploy rodar. Fica
 como está, datado — quem reler depois do deploy vai medir ~737,7px e não deve ler a diferença como
 regressão.
+
+---
+
+## Rodada MEDIDA 2026-09-21 (2ª) — ritmo vertical entre seções (o `margin-bottom` que ficara aberto)
+
+> A rodada anterior deixou este item **aberto e declarado** como decisão [W] — *"o 16px vem do
+> `space-y-4` do container, logo rege TODAS as seções"*. [W] decidiu: arrumar. Esta rodada mede e
+> fecha.
+
+**Método:** espaço **VISUAL** entre blocos consecutivos (`top` do próximo − `bottom` do atual), não
+a propriedade isolada — que engana quando há padding no meio. Chrome, 2560, dark, os dois lados na
+mesma janela.
+
+| de → para | âncora | prod (antes) | veredito |
+|---|---|---|---|
+| brief → kpis | **18** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| kpis → METAS | **18** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| METAS → h2 Análises | **6** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| h2 → grade | 10 | 10 | ✅ **IGUAL** |
+| grade → h2 Ações | **18** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| h2 Ações → ações | 10 | 10 | ✅ **IGUAL** |
+
+**6 de 6 transições comparáveis** batem depois da mudança (prova de runtime no DOM da produção,
+com as regras do CSS compilado, revertida limpa).
+
+### O que a medição mudou no conserto "óbvio"
+
+A correção intuitiva — trocar `space-y-4` por `space-y-[18px]` e pronto — **pioraria** a transição
+de METAS: ela iria de 16 → 18px, onde a âncora quer **6px**. Trocaria um erro de 10px por um de
+12px, no sentido oposto. Por isso o wrapper ganhou `mb-1.5` explícito: na âncora, `.jm-metas`
+também foge do ritmo.
+
+### O erro de instrumento, que vale mais que o acerto
+
+A **primeira** prova de runtime disse que `h2 → conteúdo` ia de 10 para **18px** — ou seja, que a
+mudança quebrava duas transições corretas. Era falso: injetei as regras num `<style>` **fora de
+`@layer`**, e CSS fora de layer vence o que está dentro **independente de especificidade**. A regra
+do `space-y` do app vive em `@layer utilities`. Refeita a injeção dentro do layer, o `h2` fica em
+10px (o `mb-2.5` vence o `:where()` de especificidade 0) e as 6 transições batem.
+
+**Simulação de cascata que não reproduz a CAMADA mede outra cascata** — e o sintoma foi um
+falso-negativo plausível, do tipo que não se denuncia.
+
+### Aberto e medido: o `pt-6` de METAS
+
+Do último KPI até o **texto** "METAS ATIVAS" são **46px** em prod (16 margem + 24 `pt-6` + 6
+`mt-1.5`) contra **24px** na âncora (18 + 6). É *padding*, não margem, e o bloco pertence a outro
+chip. A sessão de METAS mediu em paralelo e confirmou a decomposição: **nenhum dos dois consertos
+sozinho acerta** — só este dá 48, só o dela dá 16, **os dois juntos dão 24 exatos**.
+
+**Enforcement:** UC-JPAIN-33, `tests/janaRitmoVerticalReplica.spec.tsx`, 3 casos, mordida provada
+nos dois lados com restauração por hash. Detalhe no `Index.casos.md`; aqui não se repete.
