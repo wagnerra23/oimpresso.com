@@ -34,6 +34,26 @@
 > [`PARIDADE-area-jana-diagnostico-e-ondas.md`](PARIDADE-area-jana-diagnostico-e-ondas.md) carrega o
 > mesmo 19px e fica intacto pelo mesmo motivo: é fóssil datado, e esta errata é o ponteiro.
 >
+> **FECHADO em 2026-09-21 — o peso convergiu, por réplica local.** A linha `font-weight` da
+> tabela acima vira **600 = 600**; ela fica como está porque é o retrato de 09-18. O que a rodada
+> de hoje acrescenta é o fundamento que faltava: **as duas âncoras discordam entre si.** A de
+> **Vendas** declara **700** explicitamente (`styles.css:4772`, 0-1-1, e `financeiro.css:1727`,
+> 0-3-1 — esta vence), com o comentário de `styles.css:4765` dizendo textual *"`.os-head` — mesmo
+> CANON do PageHeader"*; a da **Jana** não declara peso e herda o DS (600). O 700 do componente é
+> decisão [W] datada e **ainda válida** (PR #1477, 2026-05-25, *"prefiro o mesmo peso do sells"* —
+> referência re-medida hoje, segue 700), então mudá-la alinharia **42** telas ao peso da Jana.
+> Conserto: prop opt-in `titleWeight` no `PageHeader` (default `'bold'`, mesmo contrato de
+> `leading`/`below`); só o `JanaAreaHeader` declara `'semibold'` — as outras **41** não mudam um
+> pixel. UC-JPAIN-30, mordida provada por 2 mutações. **Computed style MEDIDO** (browser real + CSS do
+> projeto gerado pelo entry de verdade, Tailwind v4.3.3): **600** com a prop, **700** sem ela, e
+> `font-size` **22px nos dois** — a paridade de tamanho **não foi tocada**. Necessária porque no v4
+> a regra é indireta (`font-weight: var(--font-weight-semibold)`) e só o browser resolve; controle
+> positivo `folhaCarregou: true` no mesmo turno. ⚠️ Não é a tela `/ia` **logada inteira** — smoke
+> autenticado não foi feito (302 sem sessão). O `<h1>` **continua fora** dos 9
+> seletores do `jana--index.alvo.json` — o buraco de medição que esta seção denuncia **segue
+> aberto**, e fechá-lo exige re-medir por sonda contra render servido, não editar o alvo à mão.
+> Trilha: `Index.charter.md` **v25**.
+>
 > Trilha completa: `Index.charter.md` **v17**.
 
 - **Data da medição:** 2026-08-17 (**re-medido** — ver §Correções abaixo) · **âncora:** `prototipo-ui/cowork/Wagner/jana-merge.jsx` (resolvida por `node scripts/design/ancora.mjs Jana/Index`)
