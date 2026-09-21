@@ -353,7 +353,18 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
               instante em que ele subiu. Corrigido junto, não depois.
               Sem `p-6`/`shrink-0`: agora está DENTRO do cockpit, que já vive em
               `px-6 pt-6`. */}
-        <div className="space-y-6 pt-6">
+        {/* `mb-1.5` (6px) — esta seção é a ÚNICA que foge do ritmo de 18px, e foge na
+            âncora também: medido em 2026-09-21, `.jm-metas` → `h2` de Análises é **6px**
+            lá, contra 16px aqui. Sem este `mb`, o `space-y-[18px]` do cockpit a levaria
+            para 18px e trocaria um erro de 10px por um de 12px, no sentido oposto.
+            Vence o container sem `!important` porque o `space-y` gera `:where(...)`,
+            de especificidade 0.
+            ⚠️ O `pt-6` FICA, e é dívida declarada, não descuido: ele é *padding*, não
+            margem, e empurra o conteúdo por dentro — do último KPI até o texto "METAS
+            ATIVAS" são **46px** aqui contra **24px** na âncora (16 + 24 + 6 × 18 + 6).
+            Tirá-lo alinharia o trecho, mas é o bloco de METAS, de outro chip, e o pedido
+            desta rodada foi o `margin-bottom`. Fica medido para quem pegar METAS. */}
+        <div className="space-y-6 pt-6 mb-1.5">
           {/* Cabeçalho de METAS — UMA linha, como a âncora `jana-merge.jsx` §`JmMetasSecao`:
               `<h2 class="jc-h2"><JcIcon name="target"/> METAS ATIVAS <span class="jm-per">…`,
               com os controles no `jm-per` (`margin-left:auto`). Âncora de SÍMBOLO:
