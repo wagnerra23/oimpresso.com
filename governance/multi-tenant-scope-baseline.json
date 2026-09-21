@@ -1,7 +1,7 @@
 {
-    "_doc":  "Baseline FORWARD-ONLY do tests/Feature/Architecture/MultiTenantScopeArchitectureTest.php (Tier 0 ADR 0093). Roda na lane required \"No hardcode business_id (Tier 0)\". DOIS campos, com semanticas OPOSTAS - nao confundir: `grandfathered` = DIVIDA datada (Model que nao aplica escopo automatico e ainda nao foi curado); e catraca SO-DESCE, sai quando o arquivo for tocado por trabalho real, NUNCA cresce. `allowlist` = EXCECAO permanente (Model legitimamente global: catalogo read-only, entidade system-wide) e cada entrada exige razao em `allowlist_razoes`. Model NOVO sem escopo NAO entra em nenhum dos dois - corrige-se o Model. Backfill em massa do legado morre no CI (proibicoes.md §5 2026-07-12).",
+    "_doc":  "Divida TRANSITORIA do tests/Feature/Architecture/MultiTenantScopeArchitectureTest.php (Tier 0 ADR 0093). Roda na lane required \"No hardcode business_id (Tier 0)\". `grandfathered` = Model que nao aplica escopo automatico e ainda nao foi curado; e catraca SO-DESCE, NUNCA cresce. A lane recebe o diff e REPROVA se um arquivo grandfathered tocado continuar sem escopo: tocar acorda a divida e exige cura no mesmo PR. Excecao arquitetural nao mora neste arquivo: e contrato nominal em governance/multi-tenant-global-model-contract.json, com razao e decisao verificadas. Model NOVO sem escopo nao entra aqui - corrige-se o Model.",
     "_origem":  "Receptor do MultiTenantScopeChecker (Modules/Governance, ADR 0218), cuja varredura em modo --diff-only reportava models_scanned=0 em todo PR - medido 2026-07-30 no artefato governance-drift-report.json de runs reais. Ver o cabecalho do teste.",
-    "_medicao":  "Lista gerada em 2026-07-31 pelo proprio teste (run 30627447505, lane required, tree = origin/main @ ca8876c08de). O checker antigo reportava 94 no modo --all; 28 desses eram falso-positivo (trait com `class X extends Model` no docblock; Models que aplicam escopo por trait LOCAL do modulo). NENHUM item aqui foi triado como legitimo - por isso todos entram em `grandfathered` (divida) e `allowlist` nasce vazia.",
+    "_medicao":  "Lista gerada em 2026-07-31 pelo proprio teste (run 30627447505, lane required, tree = origin/main @ ca8876c08de). O checker antigo reportava 94 no modo --all; 28 desses eram falso-positivo (trait com `class X extends Model` no docblock; Models que aplicam escopo por trait LOCAL do modulo). NENHUM item desta lista foi triado como legitimo - todos permanecem em `grandfathered` ate a cura. Excecoes arquiteturais vivem no contrato separado.",
     "_regenerar":  "O teste imprime a lista completa quando falha. Rodar a lane, copiar os caminhos reportados. NAO editar a mao pra silenciar Model novo.",
     "generated_at":  "2026-07-31",
     "grandfathered":  [
@@ -71,11 +71,5 @@
                           "Modules/Vestuario/Entities/VestuarioSetting.php",
                           "Modules/VozDoCliente/Entities/Sinal.php",
                           "Modules/Woocommerce/Entities/WoocommerceSyncLog.php"
-                      ],
-    "allowlist":  [
-                      "Modules/NfeBrasil/Models/NfeSefazStatus.php"
-                  ],
-    "allowlist_razoes":  {
-                             "Modules/NfeBrasil/Models/NfeSefazStatus.php":  "Entidade system-wide, nao dado de negocio: guarda a saude do autorizador SEFAZ por UF (PK natural = uf). 'SEFAZ-SC esta fora' e o MESMO fato para todo tenant - escopar por business duplicaria a linha N vezes e deixaria a falha de rede de um tenant contaminar a leitura do outro. O isolamento por tenant vive na DECISAO, nao na observacao: nfe_business_configs.em_contingencia e por business e so o tenant liga (a ADR TECH-0002 rejeitou auto-ativacao). Schema especificado pela ADR TECH-0002 (NfeBrasil) secao 'Schema additions' com PRIMARY KEY (uf) e sem business_id. NAO e divida - por isso entra em allowlist (excecao permanente), nunca em grandfathered."
-                         }
+                      ]
 }

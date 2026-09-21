@@ -53,11 +53,12 @@ declare(strict_types=1);
  *
  * ── FORWARD-ONLY (ADR 0275) ─────────────────────────────────────────────────
  *
- * A dívida existente fica GRANDFATHERED em
- * `governance/multi-tenant-scope-baseline.json`. O teste morde quem PIORA:
- * Model novo (ou Model existente que perde a trait) sem escopo. Backfill em
- * massa de legado morre no CI (proibicoes.md §5 2026-07-12) — a dívida sai
- * quando o arquivo for tocado por trabalho real.
+ * A dívida existente fica temporariamente GRANDFATHERED em
+ * `governance/multi-tenant-scope-baseline.json`. O teste morde quem PIORA e
+ * também acorda a dívida do Model no instante em que o arquivo é tocado:
+ * Model novo, Model que perde a trait ou Model grandfathered alterado precisa
+ * sair do PR com escopo. Backfill em massa continua fora do caminho crítico;
+ * o próprio trabalho real reduz a dívida até zero.
  *
  * Refs:
  *   - memory/decisions/0093-multi-tenant-isolation-tier-0.md
@@ -71,6 +72,8 @@ declare(strict_types=1);
 const MTS_ROOT = __DIR__ . '/../../..';
 
 const MTS_BASELINE_PATH = MTS_ROOT . '/governance/multi-tenant-scope-baseline.json';
+
+const MTS_GLOBAL_CONTRACT_PATH = MTS_ROOT . '/governance/multi-tenant-global-model-contract.json';
 
 /**
  * Assinatura ESTRUTURAL de uma trait que aplica escopo de tenant.
@@ -323,14 +326,45 @@ function mtsInfratores(): array
 function mtsBaseline(): array
 {
     if (! is_file(MTS_BASELINE_PATH)) {
-        return ['grandfathered' => [], 'allowlist' => []];
+        return ['grandfathered' => []];
     }
     $j = json_decode((string) file_get_contents(MTS_BASELINE_PATH), true);
 
     return [
         'grandfathered' => (array) ($j['grandfathered'] ?? []),
-        'allowlist' => (array) ($j['allowlist'] ?? []),
     ];
+}
+
+/** @return array<string, array{reason: string, decision: string}> */
+function mtsContratosGlobais(): array
+{
+    if (! is_file(MTS_GLOBAL_CONTRACT_PATH)) {
+        return [];
+    }
+    $j = json_decode((string) file_get_contents(MTS_GLOBAL_CONTRACT_PATH), true);
+
+    return (array) ($j['models'] ?? []);
+}
+
+/**
+ * @return array<int, string> Models tocados no diff que disparou a lane required.
+ */
+function mtsArquivosTocados(?string $raw = null): array
+{
+    $raw ??= (string) (getenv('MTS_CHANGED_MODELS') ?: '');
+    $arquivos = [];
+
+    foreach (preg_split('/\R/', $raw) ?: [] as $path) {
+        $path = str_replace('\\', '/', trim($path));
+        if (preg_match('#^Modules/[^/]+/(?:Entities|Models)/.+\.php$#', $path) === 1) {
+            $arquivos[] = $path;
+        }
+    }
+
+    $arquivos = array_values(array_unique($arquivos));
+    sort($arquivos);
+
+    return $arquivos;
 }
 
 describe('Arquitetura — Model de módulo com escopo automático por business (Tier 0)', function () {
@@ -359,7 +393,7 @@ describe('Arquitetura — Model de módulo com escopo automático por business (
 
     it('nenhum Model NOVO sem escopo automático de tenant', function () {
         $baseline = mtsBaseline();
-        $isentos = array_merge($baseline['grandfathered'], $baseline['allowlist']);
+        $isentos = array_merge($baseline['grandfathered'], array_keys(mtsContratosGlobais()));
         $novos = array_values(array_diff(mtsInfratores(), $isentos));
 
         if ($novos !== []) {
@@ -368,9 +402,32 @@ describe('Arquitetura — Model de módulo com escopo automático por business (
                 . implode("\n  - ", $novos)
                 . "\n\nAção: aplicar `use App\\Concerns\\HasBusinessScope;` (ou "
                 . "`BelongsToBusinessViaParent`, ou uma trait de escopo do próprio módulo) no Model.\n"
-                . 'Se o Model for LEGITIMAMENTE global (catálogo read-only, system-wide), declarar em '
-                . "governance/multi-tenant-scope-baseline.json > allowlist COM razão.\n"
+                . 'Se o Model for LEGITIMAMENTE global (catálogo read-only, system-wide), declarar no '
+                . "contrato `governance/multi-tenant-global-model-contract.json` COM razão e decisão.\n"
                 . 'NÃO adicionar em `grandfathered` — esse campo é dívida datada, só desce.',
+            );
+        }
+
+        expect(true)->toBeTrue();
+    });
+
+    it('Model grandfathered TOCADO perde a tolerância e precisa sair com escopo', function () {
+        $baseline = mtsBaseline();
+        $tocados = mtsArquivosTocados();
+        $dividaAcordada = array_values(array_intersect(
+            mtsInfratores(),
+            $baseline['grandfathered'],
+            $tocados,
+        ));
+
+        if ($dividaAcordada !== []) {
+            $this->fail(
+                'Model alterado ainda depende de tolerância grandfathered (Tier 0 ADR 0093) em '
+                . count($dividaAcordada) . " arquivo(s):\n  - "
+                . implode("\n  - ", $dividaAcordada)
+                . "\n\nAção: aplicar escopo automático de business neste mesmo PR e remover o caminho "
+                . "de `grandfathered`. Alterar o Model acorda a dívida; ampliar ou manter a tolerância "
+                . 'não satisfaz o gate.',
             );
         }
 
@@ -391,6 +448,24 @@ describe('Arquitetura — Model de módulo com escopo automático por business (
 
         expect(array_values(array_diff($baseline['grandfathered'], mtsColetarArquivos())))
             ->toBe([], 'baseline cita arquivo que não existe mais — regenerar');
+    });
+
+    it('exceção global é contrato nominal com razão e decisão verificáveis', function () {
+        $contratos = mtsContratosGlobais();
+        expect(array_values(array_intersect(array_keys($contratos), mtsBaseline()['grandfathered'])))
+            ->toBe([], 'contrato arquitetural não pode também constar como dívida grandfathered');
+
+        foreach ($contratos as $path => $contrato) {
+            expect($path)->toMatch('#^Modules/[^/]+/(?:Entities|Models)/.+\.php$#');
+            expect(is_file(MTS_ROOT . '/' . $path))->toBeTrue("contrato global cita arquivo inexistente: {$path}");
+            $analise = mtsAnalisar((string) file_get_contents(MTS_ROOT . '/' . $path));
+            expect($analise['is_model'])->toBeTrue("contrato global precisa apontar para um Model: {$path}");
+            expect(mtsTemEscopo($analise))->toBeFalse("Model com escopo não precisa de contrato global: {$path}");
+            expect(trim((string) ($contrato['reason'] ?? '')))->not->toBeEmpty("contrato global sem razão: {$path}");
+            $decision = trim((string) ($contrato['decision'] ?? ''));
+            expect($decision)->not->toBeEmpty("contrato global sem decisão: {$path}");
+            expect(is_file(MTS_ROOT . '/' . $decision))->toBeTrue("decisão do contrato global não existe: {$decision}");
+        }
     });
 
     // ── BITE-TEST: prova que o analisador MORDE, e que não morde o legítimo ──
@@ -464,5 +539,17 @@ describe('Arquitetura — Model de módulo com escopo automático por business (
         expect(mtsTraitAplicaEscopo('trait T { public function f() { $q->addGlobalScope("business_id"); } }'))->toBeTrue();
         expect(mtsTraitAplicaEscopo('trait T { public $business_id; }'))->toBeFalse();      // cita, não aplica
         expect(mtsTraitAplicaEscopo('trait T { static::addGlobalScope($s); }'))->toBeFalse(); // aplica, mas não de tenant
+    });
+
+    it('a lista de tocados aceita só Models de módulo e normaliza paths do runner', function () {
+        $raw = "README.md\nModules/Foo/Entities/Cliente.php\n"
+            . "Modules\\Foo\\Models\\Pedido.php\nModules/Foo/Models/Concerns/Scope.php\n"
+            . "app/Models/User.php\nModules/Foo/Entities/Cliente.php\n";
+
+        expect(mtsArquivosTocados($raw))->toBe([
+            'Modules/Foo/Entities/Cliente.php',
+            'Modules/Foo/Models/Concerns/Scope.php',
+            'Modules/Foo/Models/Pedido.php',
+        ]);
     });
 });

@@ -1,0 +1,9 @@
+{
+  "_doc": "Contrato nominal de Models deliberadamente globais. Isto nao e tolerancia nem divida: cada entrada exige razao, decisao existente e teste de arquitetura. ADR 0093 continua sendo a regra; novas excecoes exigem decisao de Wagner conforme a propria ADR.",
+  "models": {
+    "Modules/NfeBrasil/Models/NfeSefazStatus.php": {
+      "reason": "Entidade system-wide que registra a saude do autorizador SEFAZ por UF. O fato observado e comum aos tenants; a decisao de ativar contingencia permanece isolada por business em nfe_business_configs.",
+      "decision": "memory/requisitos/NfeBrasil/adr/tech/0002-contingencia-epec-fsda-retentativa-ordenada.md"
+    }
+  }
+}
