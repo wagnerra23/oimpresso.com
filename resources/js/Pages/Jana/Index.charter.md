@@ -4,7 +4,7 @@ page: /ia
 component: resources/js/Pages/Jana/Index.tsx
 related_visual_comparison: memory/requisitos/Jana/Index-visual-comparison.md
 related_prototype: prototipo-ui/cowork/Wagner/jana-merge.jsx
-states: [default]  # gate L2 — o `default` desta tela é semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o `JanaKpiCard` em `emphasis` do "A receber vencido" entre em baseline; sync com tests/Browser/visreg-states.json
+states: [default, dark, empty]  # gate L2 — `default`: biz=1 semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o `JanaKpiCard` em `emphasis` do "A receber vencido" entre em baseline. `dark`: mesmo biz=1 + flag do VisregStateMiddleware — fecha o eixo de TEMA que faltava (o `default` é LIGHT; a sidebar é preta nos dois modos por UI-0023, então ela não indica tema). `empty`: biz=98 (VisregEmptyTenantSeeder, vazio por construção, ADR 0358) — é o ÚNICO render que exercita o estado vazio de página do UC-JPAIN-29, porque no biz=1 `sellKpis.total > 0` e `semHistorico` nunca é true. Sync com tests/Browser/visreg-states.json (o visreg-states-lint falha se divergirem)
 owner: wagner
 status: live
 last_validated: "2026-09-18"
