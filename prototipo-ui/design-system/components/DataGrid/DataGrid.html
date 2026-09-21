@@ -37,7 +37,7 @@
   });
   ReactDOM.createRoot(document.getElementById('root')).render(
     h('div', { style: { border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' } },
-      h(DataGrid, { columns, rows, pageSize: 8, selectable: true, maxHeight: 280, totalLabel: 'OS', defaultSort: { key: 'os', dir: 'desc' }, onRowClick: () => {} }))
+      h(DataGrid, { columns, rows, caption: 'Ordens de serviço abertas', pageSize: 8, selectable: true, maxHeight: 280, totalLabel: 'OS', defaultSort: { key: 'os', dir: 'desc' }, onRowClick: () => {} }))
   );
 
 </script>
