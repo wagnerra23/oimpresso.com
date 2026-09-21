@@ -19,7 +19,13 @@ const check = (name, cond) => { console.log((cond ? '[OK]   ' : '[FAIL] ') + nam
 const BLOCK = [
   ['rm -rf em path de trabalho', 'rm -rf src/'],
   ['rm -rf no meio de pipeline (;)', 'cd x; rm -rf Modules/'],
-  ['RM -RF maiúsculo (PS -match era case-insensitive)', 'RM -RF app/'],
+  // ⚠️ Este NÃO é herança decorativa do porte .ps1. MEDIDO no Git Bash/Windows
+  // (NTFS case-insensitive) em 2026-09-21: `command -v RM` → /usr/bin/RM e
+  // `RM --version` → "rm (GNU coreutils) 8.32". `RM -RF app/` APAGA aqui.
+  // Quem propuser tirar o `/i` do detector alegando "POSIX é case-sensitive":
+  // a premissa vale em Linux/macOS e não vale nesta plataforma. Rode os dois
+  // comandos acima antes.
+  ['RM -RF maiúsculo (executa mesmo — NTFS é case-insensitive)', 'RM -RF app/'],
   ['git push --force', 'git push --force origin main'],
   ['git push -f', 'git push -f'],
   ['git push --force-with-lease (exige confirmação Wagner)', 'git push origin main --force-with-lease'],
@@ -383,6 +389,19 @@ check('CN ESCOPO: `rm` dentro de outra palavra não casa (npm, charm, term)',
 check('ehToolRm isolado: reconhece o tool, não a palavra solta',
   ehToolRm('git rm x') === true && ehToolRm('rm x') === false
   && ehToolRm('docker rm c') === true && ehToolRm('gitrm x') === false);
+
+// ── FP CONHECIDO E ACEITO do `/i` no detector (2026-09-21) ─────────────────
+// O idioma `const RM = 'r' + 'm'` — que as sessões usam para escrever SOBRE o
+// hook sem disparar o hook — é acusado, porque `RM` entre espaços casa sob
+// `/i`. Medido: 4 de 559 (0,7%), concentrado em quem mexe neste arquivo.
+// Fica ASSERTADO de propósito: é custo declarado, não surpresa. O remédio NÃO
+// é tirar o `/i` (ver o comentário do assert 'RM -RF maiúsculo' acima —
+// `RM` executa de verdade no Git Bash/Windows); é escrever o identificador de
+// outro jeito, ex. `const R_M` ou montar por charCode.
+check('FP aceito: o idioma `const RM = ...` dispara o detector (custo do /i)',
+  matchDestructive(`node -e "const RM = 'r' + 'm'; console.log(RM)"`)?.key === 'rm-rf-perigoso');
+check('CN do FP: `RM` COLADO noutro token não dispara (não é palavra solta)',
+  matchDestructive('node -e "const xRMy = 1"') === null);
 check('DECISÃO: `$var` dentro de prefixo isento segue isento (temp-dir dinâmico)',
   matchDestructive('rm -rf /tmp/$SESSION') === null);
 check('CN: `$var` FORA de prefixo isento bloqueia (proteção vem de graça)',

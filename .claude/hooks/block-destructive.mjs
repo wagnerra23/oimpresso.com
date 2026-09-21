@@ -329,6 +329,20 @@ const PADROES = [
     // o `$`, fatiar trocaria um falso-positivo por um falso-NEGATIVO. Delta da
     // mudança de regex sozinha, medido no blob: 0.
     // FLAG deixou de ser exigida em 2026-09-21 ([W]) — ver §ESCOPO rm(1).
+    //
+    // ⚠️ O `/i` FICA, e não é herança decorativa do porte .ps1. Foi proposto
+    // tirá-lo com o argumento "shell POSIX é case-sensitive, `RM` daria
+    // command not found, logo `/i` só gera FP". A premissa é verdadeira em
+    // Linux/macOS e FALSA na plataforma onde este hook roda. MEDIDO no Git
+    // Bash/Windows (NTFS case-insensitive), 2026-09-21:
+    //     command -v RM   →  /usr/bin/RM
+    //     RM --version    →  rm (GNU coreutils) 8.32     (executa!)
+    // Ou seja, `RM -rf src/` apaga de verdade aqui. O assert 'RM -RF
+    // maiúsculo' no test protege caso real, não fantasma.
+    // CUSTO ACEITO do `/i`: o idioma `const RM = 'r' + 'm'` — que as sessões
+    // usam pra escrever SOBRE o hook sem disparar o hook — passa a ser
+    // acusado. Medido: 4 de 559 (0,7%), concentrado em quem mexe neste
+    // arquivo. Há assert fixando esse FP, pra ele não virar surpresa.
     regex: /(^|[\s;&|])rm(\s|$)/i,
     // Isenção por STATEMENT e por ALVO — ver §MULTI-ARG / RM_WHITELIST_ALVOS.
     // `<tool> rm` (git/docker/…) não é rm(1) e sai pela isenção — ver ehToolRm.
