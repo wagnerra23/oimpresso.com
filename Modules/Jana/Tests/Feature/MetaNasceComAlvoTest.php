@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-COPI-150
+
 use App\Business;
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;

@@ -1,5 +1,7 @@
 // UC-JPAIN-33 — a gaveta de criar meta pede o ALVO, e não cria meta sem ele.
 //
+// @covers-us US-COPI-150
+//
 // POR QUE ESTE UC EXISTE. Medido em produção em 2026-09-21: as 5 metas do tenant tinham
 // ZERO período, ZERO apuração e ZERO fonte, e por isso os 5 cards do Painel saíam
 // idênticos — "<nome> | <unidade> | Aguardando apuração…", sem valor, sem barra e sem

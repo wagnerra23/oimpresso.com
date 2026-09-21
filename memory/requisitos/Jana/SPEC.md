@@ -2172,6 +2172,21 @@ e prova a afirmação escolhida · nenhum `git commit` executado dentro do conta
 
 **Testado em:** [`Modules/Jana/Tests/Feature/MetaNasceComAlvoTest.php`](../../../Modules/Jana/Tests/Feature/MetaNasceComAlvoTest.php) — 7 casos. ⚠️ **Executados de fato no CT 100** (MySQL real, tenant 98): `Tests: 7 passed (25 assertions)`. As **25 assertions** são o que separa execução de skip — `0 failed` nunca prova que rodou (§5 2026-07-24 · LC-13). Mordida provada por mutação: desligando o `if ($request->temAlvo())` do `store`, **3 failed**, com verificação de que a troca entrou no disco antes de ler o resultado. Front: [`tests/janaMetaNovaAlvo.spec.tsx`](../../../tests/janaMetaNovaAlvo.spec.tsx) — 7 casos (5 de contrato + 2 de controle negativo), 3 mutantes, 3 mordidas
 
+**DoD:**
+
+- [x] `StoreMetaRequest` aceita `valor_alvo`, `data_ini`, `data_fim`, `tipo_periodo` e `trajetoria`, com as regras **idênticas** às do `StorePeriodoRequest`
+- [x] `required_with` amarra os três obrigatórios: alvo sem janela e janela sem alvo são **recusados**, e nada é criado
+- [x] `MetasController@store` cria o `MetaPeriodo` junto quando o alvo vem inteiro
+- [x] `periodoAtual` resolve numa janela que contém hoje — é o que dá barra e `% do alvo` ao card
+- [x] o período nasce no **mesmo business** da meta (Tier 0 via parent)
+- [x] `JanaMetaNovaDrawer` pede alvo + janela, com a janela pré-sugerida pelo tipo, e **trava o botão** sem alvo
+- [x] o drawer **avisa** que a fonte se configura fora dele (residual declarado, não escondido)
+- [x] payload SEM alvo continua criando a meta — o Blade legado não quebra (retrocompatibilidade)
+- [x] testes rodados **no CT 100** (MySQL real, tenant 98) com assertions > 0, e mordida provada por mutação
+
+⚠️ **Fora do DoD, por decisão:** criar a `MetaFonte`. Não existe UI para ela (US-COPI-040), e
+inventar um campo de SQL na gaveta seria pior que o buraco.
+
 **Origem:** sessão 2026-09-21. [W] relatou *"Metas e kpi não renderizam corretos"* no Painel. A investigação
 começou pela forma (e havia divergência real, fechada na US irmã), mas o que ele via tinha **outra metade**.
 
