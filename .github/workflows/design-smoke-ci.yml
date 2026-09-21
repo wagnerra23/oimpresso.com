@@ -68,11 +68,23 @@ jobs:
   design-smoke:
     name: Fotografa telas tested|validated no app efêmero do CI
     runs-on: ubuntu-24.04
-    # 30 pro caminho de sempre (push/dispatch do smoke). Em `schedule` o job carrega
-    # tambem o lote de paridade (~20min sobre o boot + smoke), e 30 nao cabe: medido em
-    # 2026-09-18, sao 23 telas executaveis x 2 renders cada. Teto, nao custo — o job segue
+    # 30 pro caminho de sempre (push do smoke). Em `schedule` E `workflow_dispatch` o job
+    # carrega tambem o lote de paridade (~20min sobre o boot + smoke), e 30 nao cabe: medido
+    # em 2026-09-18, sao 23 telas executaveis x 2 renders cada. Teto, nao custo — o job segue
     # terminando quando termina. Mesmo padrao condicional do visual-regression.yml:83.
-    timeout-minutes: ${{ github.event_name == 'schedule' && 50 || 30 }}
+    #
+    # O `workflow_dispatch` entrou nesta conta em 2026-09-21, e a razao e que ele JA rodava o
+    # lote: o `if:` dos 3 steps do lote (abaixo) e `schedule || workflow_dispatch`, entao o
+    # dispatch pagava o custo do lote com o teto do smoke. O efeito nao era um erro legivel —
+    # era `cancelled` no meio da medicao, que se le como "deu problema" quando e "o teto
+    # acabou". Medido em 3 tentativas no mesmo dia, todas com a Jana/Index no universo:
+    #   14:04 -> success em 3min   (nada a medir: a Jana ainda saia "sem rota derivavel")
+    #   17:46 -> cancelled em 31min
+    #   18:34 -> cancelled em 30min  <- o teto exato do job, nao do step
+    # O step do lote declara `timeout-minutes: 45`, que num dispatch NUNCA era honrado —
+    # timeout de step maior que o do job e decorativo. Agora os dois caminhos que rodam o
+    # lote tem o mesmo teto, e o 45 do step volta a ser o limite real de quem mede.
+    timeout-minutes: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 50 || 30 }}
 
     services:
       mysql:
