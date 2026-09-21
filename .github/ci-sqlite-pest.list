@@ -21,6 +21,12 @@
 #     git show --format= -U0 "$s" -- .github/ci-sqlite-pest.list \
 #     | grep -E '^-[^-]' | grep -qE '^-(tests|Modules)/' && echo "$s"; done | wc -l
 #   → 8 de 84 commits removem path, e 7 dos 8 são a leva que apagou Modules/TeamMcp.
+# E o pior caso é MUDO — é o que esta lista tem de específico. Remoção desfeita mantém
+# rodando um teste que você tirou de propósito, e o motivo típico de tirar é ele ter
+# deixado de ser sqlite-safe e migrado pra lane MySQL. Pela REGRA lá em cima, MySQL-only
+# dá `markTestSkipped` aqui e vira **skip-as-pass**: o teste ressuscitado não avermelha
+# ninguém, ele só passa a não provar nada. A quarentena irmã falha RUIDOSA (teste some
+# do run-set); esta falha CALADA (teste volta e skipa).
 # NENHUMA mordida está registrada nesta lista (`git log -i --grep=union -- <lista>`
 # devolve 2 commits, e os dois apenas MENCIONAM a receita) — mas ausência de registro
 # não é ausência de ocorrência: o dano é silencioso por construção. O irmão

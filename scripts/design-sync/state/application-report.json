@@ -1,41 +1,132 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-18T15:59:29.901Z",
+  "generatedAt": "2026-09-21T10:43:26.092Z",
   "bundle": {
-    "id": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3",
-    "baseId": "1949443e50ff13031730a8e7fd6f527cca001a4f2e63ba99e4a57b05baff6571",
+    "id": "e8ffe5c0bdffbb3c552c17e4b54fb5ec48efd84e999ba9fe932de85ebaec6798",
+    "baseId": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3",
     "mode": "delta",
     "source": "cowork:oimpresso.com.html",
     "transportComplete": true
   },
   "summary": {
-    "transportChanges": 2,
-    "screens": 162,
-    "tested": 4,
-    "smoked": 4,
+    "transportChanges": 15,
+    "screens": 164,
+    "tested": 3,
+    "smoked": 3,
     "lifecycle": {
-      "validated": 4,
-      "compared": 62,
+      "compared": 63,
       "to-create": 28,
-      "anchored": 68
+      "anchored": 70,
+      "validated": 3
     },
-    "applied": 4,
-    "pending": 130,
-    "to-create": 28
+    "pending": 133,
+    "to-create": 28,
+    "applied": 3
   },
   "transportChanges": [
     {
+      "path": "COLAR-NO-CODE-A9-DS-POR-DONO.md",
+      "change": "added",
+      "bytes": 11598,
+      "sha256": "7b3fb0bea9badaddcc458c3e6686968db2830059bf9067fff5130c20bd3fa33d",
+      "role": "cowork-source"
+    },
+    {
+      "path": "COLAR-NO-CODE-ACERTOS-E-LICOES.md",
+      "change": "modified",
+      "bytes": 19879,
+      "sha256": "bf16545e837821408c7e05f45e7a529b863f1ac614f88dc2a422ba707f28c614",
+      "role": "cowork-source"
+    },
+    {
+      "path": "COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md",
+      "change": "modified",
+      "bytes": 19853,
+      "sha256": "3dbc7142d08fa99cc54ef8b4b5836417b1c764c3c84f61507d030c722e90e75a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "COLAR-NO-CODE-jana-tabs-cor-e-icone.md",
+      "change": "deleted",
+      "bytes": 22534,
+      "sha256": "6e258fe35fe3ccd171cc1ca58eb01af0728820506d4a229a40dfa67087e5453c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ancora/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 10868,
+      "sha256": "5ff5c26820b848d49e8df8adf737eb2e1ae21982aaea05f42d8bc3b0e031f42f",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/hrm/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 25435,
+      "sha256": "42e16326199be7287bd9e9173a7f02bec9626730efdd46bf134a41805b2623da",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/jana/playbook/00-INDICE.md",
+      "change": "added",
+      "bytes": 4474,
+      "sha256": "ecd82f19808fafc7f5b40a173f54c077e1010cbec0caf81de0fb6791b5aecfb7",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/jana/playbook/01-painel.gating-pro.md",
+      "change": "added",
+      "bytes": 12217,
+      "sha256": "bba8506d31b7b78ee5abb625fc59c4aad0bc258921d5e6c15aacb7eba6b929e9",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/jana/playbook/02-painel.estado-vazio.md",
+      "change": "added",
+      "bytes": 9204,
+      "sha256": "316b6914b8281a57dc06f311015acfb6a6a7c687923d325a1bb87aa4309e2f48",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 24425,
+      "sha256": "69dc3b9a95da772654271e555b8ebcc9178f6271c036e08a77260d273301b20a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 26570,
+      "sha256": "efbc8e25cbfb3872d5470f21a57b54c7a0948a0ff0a817fe6ba09659b8e53d16",
+      "role": "cowork-source"
+    },
+    {
+      "path": "documentacao-page.css",
+      "change": "modified",
+      "bytes": 12967,
+      "sha256": "8db456cf192293f3f7925b82f67c138ced035ab450fe79e61ea60ea160da7b00",
+      "role": "cowork-source"
+    },
+    {
+      "path": "documentacao-page.jsx",
+      "change": "modified",
+      "bytes": 73123,
+      "sha256": "010b71a984a1607368afc5f1fcd9fc437a0ff75539f0015b8cd0cbc5923973e3",
+      "role": "cowork-source"
+    },
+    {
       "path": "github.md",
       "change": "modified",
-      "bytes": 113467,
-      "sha256": "4c0ded1bbb7072acce6045e0103bd133e66d5d3562cdd1b9ef8bc438ceefd4aa",
+      "bytes": 116743,
+      "sha256": "056cd6381872377c132f47be02fdd45630caf598ad9bac502f5d94b1221b8c7e",
       "role": "cowork-source"
     },
     {
       "path": "oimpresso.com.html",
       "change": "modified",
-      "bytes": 36205,
-      "sha256": "e9bd8c184c49bb47579fc307167d21b0181c6cd15e3f66b3c89909a5f3d1ce7f",
+      "bytes": 36206,
+      "sha256": "e2906ee2009343830b7f805a3e62004ec2afb6aa011921b649572f675632f1f9",
       "role": "cowork-source"
     }
   ],
@@ -47,56 +138,23 @@
       "module": "Arquivos",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "validated",
-      "applicationState": "applied",
+      "lifecycleState": "compared",
+      "applicationState": "pending",
       "compared": true,
-      "tested": true,
-      "smoked": true,
+      "tested": false,
+      "smoked": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Arquivos/arquivos-index.map.json",
           "mapSha256": "0f70b5398efb1ac519e4e4c3dfa71f1691edb1ae83023aaabadb70780be30d4c",
           "recordedAt": "2026-09-18T10:49:38.949Z"
         },
-        "application": {
-          "evidence": "memory/requisitos/Arquivos/arquivos-index-gap.md",
-          "evidenceSha256": "2b9376793051ff28e44a6023bb21850ecbdba4a137b6e5fc299455695cf6eb3b",
-          "recordedAt": "2026-09-18T10:50:10.656Z"
-        },
-        "tests": [
-          {
-            "command": [
-              "gh",
-              "run",
-              "view",
-              "--job",
-              "103424387659",
-              "--exit-status"
-            ],
-            "exitCode": 0,
-            "runner": "ci",
-            "outputSha256": "21ef8c4a7ffa16710607e0f50bdc4664d8c78de34b5f3ec5ac32788394339df8",
-            "sourceSha256": "846a34652eb8b28a5d1acc86e29d9816945fd25566331741baa5e53bb0f56f34",
-            "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854",
-            "recordedAt": "2026-09-18T13:43:40.271Z"
-          }
-        ],
-        "smokes": [
-          {
-            "route": "/arquivos",
-            "deploySha": "1cb5389da3e6345e7b638eb9d8f4969d9436b499",
-            "tenant": 1,
-            "host": "ci",
-            "screenshot": "scripts/design-sync/state/smokes/arquivos-index.png",
-            "screenshotSha256": "80c0c47bb4fdcf1455944393c316e0ffcffc576945778a69bb3b1f97a8495ee5",
-            "result": "passed",
-            "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854",
-            "recordedAt": "2026-09-18T14:20:19.480Z"
-          }
-        ],
+        "application": null,
+        "tests": [],
+        "smokes": [],
         "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854"
       },
-      "nextAction": "aplicação, teste e smoke válidos para os hashes atuais"
+      "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
       "source": "backup-page.jsx",
@@ -655,7 +713,7 @@
     },
     {
       "source": "documentacao-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "—",
       "module": null,
       "mapping": "registro a-criar",
@@ -2783,6 +2841,36 @@
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
+      "source": "produto-blade-forms.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Produto/Create.tsx",
+      "module": "Produto",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "produto-blade-forms.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Produto/Edit.tsx",
+      "module": "Produto",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
       "source": "produtos-page.jsx",
       "bundleChange": "unchanged",
       "target": "resources/js/Pages/Produto/Index.tsx",
@@ -3481,15 +3569,21 @@
       "role": "cowork-source"
     },
     {
+      "path": "COLAR-NO-CODE-A9-DS-POR-DONO.md",
+      "bytes": 11598,
+      "sha256": "7b3fb0bea9badaddcc458c3e6686968db2830059bf9067fff5130c20bd3fa33d",
+      "role": "cowork-source"
+    },
+    {
       "path": "COLAR-NO-CODE-ACERTOS-E-LICOES.md",
-      "bytes": 17918,
-      "sha256": "23dbfa3a6a7aa18ce7405dcc71bf34fa52465e48c9e285dfd6b36cfe6c9d6d0a",
+      "bytes": 19879,
+      "sha256": "bf16545e837821408c7e05f45e7a529b863f1ac614f88dc2a422ba707f28c614",
       "role": "cowork-source"
     },
     {
       "path": "COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md",
-      "bytes": 10015,
-      "sha256": "3e5e00d52e7bd667c3082e17c5079c48d69ae0af606532d751166e2448707057",
+      "bytes": 19853,
+      "sha256": "3dbc7142d08fa99cc54ef8b4b5836417b1c764c3c84f61507d030c722e90e75a",
       "role": "cowork-source"
     },
     {
@@ -3526,12 +3620,6 @@
       "path": "COLAR-NO-CODE-hrm-ondas.md",
       "bytes": 2245,
       "sha256": "9fbb46dd5869e18bf440f48d8085d7ac4966fdbd275667cf33e19cfe62db2dd6",
-      "role": "cowork-source"
-    },
-    {
-      "path": "COLAR-NO-CODE-jana-tabs-cor-e-icone.md",
-      "bytes": 22534,
-      "sha256": "6e258fe35fe3ccd171cc1ca58eb01af0728820506d4a229a40dfa67087e5453c",
       "role": "cowork-source"
     },
     {
@@ -3794,8 +3882,8 @@
     },
     {
       "path": "cowork-inbox/ancora/playbook/00-INDICE.md",
-      "bytes": 10847,
-      "sha256": "a6bca976864bc4d622a11ea69164d018ecd7460e37c4785bb4f04c8dd055a140",
+      "bytes": 10868,
+      "sha256": "5ff5c26820b848d49e8df8adf737eb2e1ae21982aaea05f42d8bc3b0e031f42f",
       "role": "cowork-source"
     },
     {
@@ -4478,8 +4566,8 @@
     },
     {
       "path": "cowork-inbox/hrm/playbook/00-INDICE.md",
-      "bytes": 25372,
-      "sha256": "f8fcc3a6bb96cea48be7f331989ab2ee7b2543b7e1466749609c24cde0285b66",
+      "bytes": 25435,
+      "sha256": "42e16326199be7287bd9e9173a7f02bec9626730efdd46bf134a41805b2623da",
       "role": "cowork-source"
     },
     {
@@ -4618,6 +4706,24 @@
       "path": "cowork-inbox/JANA-REFAZER-ZERO-TOQUE-2026-08-26.md",
       "bytes": 7953,
       "sha256": "98f4d73e046f5334371337f7ec18a9c87961dc5c2f7567e8975344985a191c04",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/jana/playbook/00-INDICE.md",
+      "bytes": 4474,
+      "sha256": "ecd82f19808fafc7f5b40a173f54c077e1010cbec0caf81de0fb6791b5aecfb7",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/jana/playbook/01-painel.gating-pro.md",
+      "bytes": 12217,
+      "sha256": "bba8506d31b7b78ee5abb625fc59c4aad0bc258921d5e6c15aacb7eba6b929e9",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/jana/playbook/02-painel.estado-vazio.md",
+      "bytes": 9204,
+      "sha256": "316b6914b8281a57dc06f311015acfb6a6a7c687923d325a1bb87aa4309e2f48",
       "role": "cowork-source"
     },
     {
@@ -5198,8 +5304,8 @@
     },
     {
       "path": "cowork-inbox/ponto/playbook/00-INDICE.md",
-      "bytes": 24411,
-      "sha256": "224de59ec62283c7c00b778cf0e6d7f5815151335923c0ab081b466e2445a824",
+      "bytes": 24425,
+      "sha256": "69dc3b9a95da772654271e555b8ebcc9178f6271c036e08a77260d273301b20a",
       "role": "cowork-source"
     },
     {
@@ -5546,8 +5652,8 @@
     },
     {
       "path": "cowork-inbox/sidebar/playbook/00-INDICE.md",
-      "bytes": 26514,
-      "sha256": "798465b867b8a425c4ebfe53396577613569fe2512fa2de7b5c7354be0b6d15a",
+      "bytes": 26570,
+      "sha256": "efbc8e25cbfb3872d5470f21a57b54c7a0948a0ff0a817fe6ba09659b8e53d16",
       "role": "cowork-source"
     },
     {
@@ -5780,14 +5886,14 @@
     },
     {
       "path": "documentacao-page.css",
-      "bytes": 11177,
-      "sha256": "caca5c1f89264780f6ad86e5e324539019d18fe9d376fbb8db4b4575ae2513f1",
+      "bytes": 12967,
+      "sha256": "8db456cf192293f3f7925b82f67c138ced035ab450fe79e61ea60ea160da7b00",
       "role": "cowork-source"
     },
     {
       "path": "documentacao-page.jsx",
-      "bytes": 60394,
-      "sha256": "e5b1e9fd81fd42088c35c5ca6fcdda5c43c7e875dd9685dd6411507cb028ddef",
+      "bytes": 73123,
+      "sha256": "010b71a984a1607368afc5f1fcd9fc437a0ff75539f0015b8cd0cbc5923973e3",
       "role": "cowork-source"
     },
     {
@@ -6146,8 +6252,8 @@
     },
     {
       "path": "github.md",
-      "bytes": 113467,
-      "sha256": "4c0ded1bbb7072acce6045e0103bd133e66d5d3562cdd1b9ef8bc438ceefd4aa",
+      "bytes": 116743,
+      "sha256": "056cd6381872377c132f47be02fdd45630caf598ad9bac502f5d94b1221b8c7e",
       "role": "cowork-source"
     },
     {
@@ -6644,8 +6750,8 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 36205,
-      "sha256": "e9bd8c184c49bb47579fc307167d21b0181c6cd15e3f66b3c89909a5f3d1ce7f",
+      "bytes": 36206,
+      "sha256": "e2906ee2009343830b7f805a3e62004ec2afb6aa011921b649572f675632f1f9",
       "role": "cowork-source"
     },
     {

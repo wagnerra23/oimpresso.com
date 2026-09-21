@@ -3,6 +3,17 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-18T10:36:16Z
+tree: c89bb2abe985 (andou desde aec265b545d0 — ~24 h)
+branch: main
+
+### Updated in this project
+- **Documentação ganhou as duas metades do pipeline do DS** (`documentacao-page.jsx` + `.css`, bloco de gráfico novo `k:"flow"`): página `Fluxo do DS → tela` (token DTCG → `ds-push` → `_ds_bundle.js` → `__OI_DS_BASE__` → host/fila `oi-lazy` → `<modulo>-page.jsx`) e página `Aplicação na tela (6 fases)` (−1 importar → 0/0.5 detectar → 1 mapear → 3/4 aplicar → 4 preflight → 5 smoke).
+- **Lido no `main` neste turno:** `scripts/design-sync/state/README.md` (ledger v2 `applications.json`, `status.mjs` como única porta, ciclo `anchored→compared→applied→tested→validated`, ADR 0384/0390), `package.json` (nomes reais dos comandos: `telas:detect`, `contrato:*`, `alvo:*`, `ds:push`, `placar`), e os steps da espinha de import em `.github/workflows/design-memory-gate.yml` (`consumir-map --selftest` = portão de frescor; `design-code-map-check --check --strict` **advisory**).
+- ⚠️ **Números da fase (55 comparados / 4 aplicados / 4 testados / 4 smoke, `Fiscal/Sped.tsx` STALE, 4 `map.json` STALE) são medição de [CL] citada, não leitura minha** — estão marcados como tal na própria página.
+- ⚠️ **Ciclo fechado SEM pacote regenerado** (`documentacao-page.jsx` · `documentacao-page.css` · host). `node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json`. Não roda daqui (ADR 0374) — não afirmo que regenerei.
+
+## Sync anterior
 date: 2026-09-17T10:38:26Z
 tree: aec265b545d0 (andou desde c1f77b029185 — ~16 h)
 branch: main
@@ -59,6 +70,10 @@ branch: main
 - ✅ **Host restaurado ao do 25, medido no ARQUIVO-FONTE:** `__OI_DS_BASE__` **4×** · `(href|src)="_ds/` **0** · 4 `preload` de imagem · 35.925 B. Runtime: DS carregado, 1 tag de bundle, as 2 folhas do DS com `sheet` não-nulo, `--accent oklch(0.70 0.15 295)`.
 - 📌 **Regra colada:** *antes de exigir que uma referência seja literal, perguntar de quem é o arquivo.* Declaração serve ao grafo; **dono** decide quem pode escrever. Colidindo, dono vence — e o grafo se resolve por outra rota (o passo [4] do `receber-handoff` já fazia isso).
 - ⚠️ **O que sobra, e não é meu:** o pacote 26 tem de voltar da origem com este host; e ele mesmo declarou o furo do lado dele — **zero smoke visual** nos imports 23/25/26 (Regra 0: medir no runtime).
+- 📐 **Decisão [W] de forma, e o pedido reescrito: DS por DONO, convertido na APLICAÇÃO.** *"Cada um fica com seu `_ds` próprio; quando for aplicar no Code, faz a conversão."* Simulei **6 opções × 6 gates** antes de escrever (tabela no PR-A9): só **O2** (conversão no applier + `dsRequires` + `transforms` com sha pós-transform) passa em todas, e é a única que **para de cobrar dos donos**. `--exclude '_ds/**'` já existe ⇒ zero byte de DS no lote, sem código novo.
+- 🔬 **Medido no espelho do Felipe (o que reprovava a minha forma):** `cowork/Felipe/venda-v3/index.html` carrega `_ds/colors_and_type.css`, `_ds/styles.css` e `_ds/_ds_bundle.js` — **literais e sem slug**. Consequências: o gate novo **recusaria o lote dele**; `dsRuntimeRelPath` **lança** em caminho sem slug (não existe `_ds/` sob `Felipe/` — as refs dele estão penduradas hoje); e **`styles.css` não está na whitelist de runtime**, ou seja o DS não tem como pousar componente para ninguém. Dois furos de máquina que entram no A9.
+- ⛔ **"Importar o `_ds/` na íntegra" simulado e reprovado:** o cache daqui são **10** arquivos contra **251** no espelho ⇒ poda; as 4 Sans idênticas (45.712 B) reprovam por bytes duplicados; e tokens/fontes daqui são **mais velhos** ⇒ desfaria o #7456. Se o refresh do bind fosse feito antes, importar seria **inócuo** — prova de que o que falta é **cadência**, não mecanismo.
+- 📌 **Ordem acordada para não mexer no import de novo:** enquanto o gate de ref literal vigir, meu host **mantém** `__OI_DS_BASE__` (é o do 25, aplicado); quando o A9 entrar, a indireção sai em **uma** edição declarada e o host do Felipe **não é tocado por ninguém**.
 
 ## Sync anterior
 date: 2026-09-16T18:51:00Z

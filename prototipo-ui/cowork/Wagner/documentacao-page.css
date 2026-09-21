@@ -68,6 +68,21 @@
 .doc-fsm{border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:18px 16px;margin:0 0 18px;overflow-x:auto}
 .doc-fsm-h{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mute);margin-bottom:14px}
 .doc-note{margin:0 0 18px}
+/* Gráfico de fluxo em blocos (k:"flow"): trilha vertical numerada com fio contínuo entre as etapas.
+   Vertical porque a coluna de leitura da doc é estreita — 6 blocos lado a lado viram 90px cada. */
+.doc-flow{border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:18px 16px;margin:0 0 18px}
+.doc-flow-r{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.doc-flow-s{position:relative;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:11px 13px 11px 62px}
+/* o fio: sai do badge e desce até o bloco seguinte (o último não tem sequência, então não desenha) */
+.doc-flow-s:not(:last-child)::after{content:"";position:absolute;left:31px;top:30px;bottom:-11px;width:1px;background:var(--border)}
+.doc-flow-s>b{display:block;font-size:13.5px;line-height:1.3;margin:0 0 2px}
+.doc-flow-s>em{display:block;font-family:var(--font-mono);font-size:10.5px;font-style:normal;color:var(--text-mute);overflow-wrap:anywhere;margin:0 0 8px}
+.doc-flow-s>ul{margin:0;padding:0;list-style:none;display:grid;gap:5px}
+.doc-flow-s>ul>li{font-size:12px;line-height:1.5;color:var(--text-dim);padding-left:11px;position:relative;overflow-wrap:anywhere}
+.doc-flow-s>ul>li::before{content:"";position:absolute;left:0;top:7px;width:4px;height:4px;border-radius:50%;background:var(--border)}
+.doc-flow-s>ul>li code{font-size:11px}
+/* pilula de largura fixa: o rótulo é o número REAL da fase (−1 · 0/0.5 · 3/4), não o ordinal */
+.doc-flow-n{position:absolute;left:11px;top:10px;width:40px;height:19px;border-radius:999px;border:1px solid color-mix(in oklch,var(--accent) 45%,transparent);background:var(--surface);color:var(--accent);font-family:var(--font-mono);font-size:10.5px;display:flex;align-items:center;justify-content:center}
 .doc-src{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:36px;padding-top:18px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--text-mute)}
 .doc-src a{color:var(--accent);text-decoration:none}
 .doc-src a:hover{text-decoration:underline}

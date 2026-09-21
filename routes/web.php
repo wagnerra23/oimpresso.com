@@ -696,7 +696,13 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 
     // Catálogo Unificado (Cockpit V2) — 5 sub-telas em uma rota.
     // Persona Larissa [L] · 1280×1024 · ROTA LIVRE.
-    // TODO [CL]: adicionar middleware('can:product.view') após confirmar permission name.
+    // Gate de permissão: está DENTRO do controller (ProdutoUnificadoController:139), e isso
+    // é deliberado — ele aborta 403 aceitando `product.view` OU `product.create`, como a lista
+    // irmã (ProductController@index), porque quem pode cadastrar produto precisa alcançar o
+    // catálogo. Contrato em UC-PUNI-06, com teste (ProdutoUnificadoContratoTest.php:340).
+    // ⚠️ NÃO adicionar middleware('can:product.view') aqui: seria MAIS ESTRITO que o
+    // controller e trancaria quem só tem `product.create` — regressão, e o teste cai. O TODO
+    // que pedia isso foi removido em 2026-09-21 por medição (proposal produto-8-telas-react-limbo).
     Route::get('/products/unificado', [\App\Http\Controllers\ProdutoUnificadoController::class, 'index'])
         ->name('products.unificado.index');
 

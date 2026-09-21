@@ -31,7 +31,7 @@ base: 752041ac450d
 Muitos-para-um, medido: **20** charters do Ponto → **2** arquivos (`ponto-page.jsx`, `ponto-telas.jsx`) · `Financeiro/{Conciliacao,Dre,Fluxo,Impostos}` → **1** (`financeiro-telas-extras.jsx`) · **5** do Patrimônio → **1** (`patrimonio-page.jsx`) · **7** do Fiscal → **2**. A skill `comparar-design-prod` já declara: *"responde QUAL ARQUIVO é a âncora, nunca QUAL VIEW dentro dele"*. Logo **o contrato de tela não é decidível pela âncora como ela é hoje**.
 
 Um único charter do corpus medido resolve isso, e resolve bem:
-`Sells/Caixa/Index` → `prototipo-ui/cowork/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)`.
+`Sells/Caixa/Index` → `prototipo-ui/cowork/Wagner/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)`.
 
 É a mesma ancoragem por **símbolo** das threads 13–15 do Ponto. Virar norma do campo é **decisão de [W]** (`D-SIMBOLO` abaixo), não PR do Code.
 
@@ -63,7 +63,7 @@ Li em `752041ac450d`; a última busca do turno já respondeu de `7742b9621c32`. 
  "gerado": "2026-09-09",
  "variaveis": {
   "ALVO": "prototipo-ui/ancora.mjs",
-  "FIXO": "prototipo-ui/cowork"
+  "FIXO": "prototipo-ui/cowork/Wagner"
  },
  "decisoes": [
   {
@@ -102,7 +102,7 @@ Li em `752041ac450d`; a última busca do turno já respondeu de `7742b9621c32`. 
     { "tipo": "contem", "path": "prototipo-ui/ancora.mjs", "padrao": "LUGAR_FIXO", "nota": "a constante já existe; a thread passa a usá-la na perna do bundle" },
     { "tipo": "contem", "path": "prototipo-ui/ancora.mjs", "padrao": "BITE bundle sem staging" },
     { "tipo": "contem", "path": ".claude/hooks/post-merge-ui-smoke-required.mjs", "padrao": "caminhoDaAncora", "guarda": true },
-    { "tipo": "arquivo", "path": "prototipo-ui/cowork/repair-page.jsx", "guarda": true }
+    { "tipo": "arquivo", "path": "prototipo-ui/cowork/Wagner/repair-page.jsx", "guarda": true }
    ]
   },
   {

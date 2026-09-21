@@ -183,6 +183,16 @@ export function jqExisteLocalmente() {
   return _jqCache;
 }
 
+/**
+ * O mangling de revspec (`<ref>:<path>` → `<ref>;<path>` com `/` virando `\`) é do
+ * MSYS/Git Bash, que só existe no Windows. No Mac/Linux do time MCP o mesmo comando
+ * funciona — acusar lá seria falso-positivo por construção, então o P6 se desliga.
+ * Espelha a forma do P5 (que se desliga onde o `jq` existe): a 2ª perna é o AMBIENTE.
+ */
+export function ehWindows() {
+  return process.platform === 'win32';
+}
+
 /** @type {{id:string, nome:string, re:RegExp, porque:string, saida:string, exceto?:(cmd:string)=>boolean}[]} */
 export const PADROES = [
   {
@@ -254,6 +264,41 @@ export const PADROES = [
     saida:
       'Use `node -e` (o repo garante node) — ex.: `gh pr checks N --json name,bucket | node -e "…"`. ' +
       'Se o que você quer é filtrar saída do `gh`, a flag `--jq` dele é built-in e NÃO usa o binário.',
+  },
+  {
+    id: 'P6',
+    nome: 'revspec `<ref>:<path>` com path iniciado em ponto (MSYS mangleia)',
+    // No Git Bash o MSYS converte o argumento: o `:` vira `;` e as `/` viram `\`.
+    // O git recebe `origin\main;.claude\hooks\x.mjs`, sai rc=128 e NÃO imprime nada —
+    // e um `grep -c` depois (ainda mais com `2>/dev/null || true`) lê isso como "0".
+    // Só dispara quando o path começa com `.`; os demais atravessam sem mangling.
+    re: /\bgit\s+(?:-C\s+\S+\s+)?(?:show|cat-file|grep|checkout|restore)\b[^\n]{0,120}?(?:^|[\s"'=])[A-Za-z0-9_@^~][A-Za-z0-9_@^~./-]*:\.[A-Za-z0-9_][A-Za-z0-9_./-]*/,
+    // QUATRO abstenções, todas medidas no corpus (1.838 transcripts / 158.376 comandos):
+    //  (a) AMBIENTE — o mangling é do MSYS; no Mac/Linux do time MCP o comando funciona;
+    //  (b) já protegido por `MSYS_NO_PATHCONV=1` — 655 dos 991 hits (66%) JÁ fazem certo,
+    //      e acusá-los seria o falso-positivo que mata a trava por ruído;
+    //  (c) o git roda DENTRO de JS/Python (`execSync`, `node -e`) — ali o Node passa o
+    //      argumento direto ao processo, sem o shell MSYS no caminho;
+    //  (d) executa em OUTRA máquina (CT 100 / Hostinger / container), que é Linux.
+    // Os 336 casos NUS restantes foram abertos um a um: 138 revspecs distintos, TODOS
+    // arquivos reais (`.github/workflows/*.yml`, `.gitignore`, `.claude/settings.json`,
+    // `.gitattributes`, `.mcp.json`). Zero falso-positivo na amostra inteira.
+    // (a) AMBIENTE mora no `achaPadrao`, junto com o desligamento do P5 e pelo mesmo
+    //     motivo: como `exceto` ele não seria INJETÁVEL, e as fixtures passariam aqui
+    //     (Windows) e falhariam no CI (ubuntu) — fixture medindo o runner.
+    exceto: (cmd) => /MSYS_NO_PATHCONV/.test(cmd)
+      || /\bssh\b|tailscale|docker\s+exec/.test(cmd)
+      || /execSync\s*\(|spawnSync\s*\(|subprocess\.|node\s+-e|python\s+-c/.test(cmd),
+    porque:
+      'No Git Bash o MSYS mangleia o revspec: `:` vira `;` e `/` vira `\\`. O git sai **rc=128** ' +
+      'sem listar nada — e com `2>/dev/null` ou `|| true` o erro some e a saída VAZIA lê como ' +
+      '"0 ocorrências". Em 2026-09-18 isso quase virou a conclusão "o conteúdo não chegou ao main" ' +
+      'sobre um arquivo que estava lá (2 ocorrências de cada termo). É a 2ª vez: §5 2026-08-23 ' +
+      'enterrou o mesmo mecanismo com `git cat-file -e`.',
+    saida:
+      'Prefixe `MSYS_NO_PATHCONV=1` (o que 66% dos usos do corpus já fazem), ou use ' +
+      '`git ls-tree <ref> -- <path>` / `git checkout <ref> -- <path>`, que separam ref e path ' +
+      'em argumentos distintos e são imunes. E confira o `rc`: aqui vazio pode ser rc=128.',
   },
 ];
 
@@ -549,6 +594,9 @@ export function achaPadrao(cmd, amb = {}) {
     // A sonda é consultada AQUI, depois do regex casar, e não no topo: senão todo
     // comando do agente pagaria o spawn, e só ~0,03% deles chega a este ponto.
     if (p.id === 'P5' && (amb.jqExiste ?? jqExisteLocalmente())) continue;
+    // P6 só faz sentido onde o MSYS mangleia — ou seja, no Windows. No Mac/Linux do
+    // time MCP o mesmo comando funciona, e acusar lá seria FP por construção.
+    if (p.id === 'P6' && !(amb.ehWindows ?? ehWindows())) continue;
     return p;
   }
   return null;
@@ -608,6 +656,27 @@ const FIXTURES = [
   ['grep -E "foo\\|bar" a.txt', true],
   ['grep -E "foo|bar" a.txt', false],
   ['grep -F "foo|bar" a.txt', false],
+  // ── P6: revspec com path iniciado em ponto (MSYS) ─────────────────────────
+  // O caso real de 2026-09-18: devolveu rc=128, o `2>/dev/null` comeu o erro e o
+  // `grep -c` leu "0" — quase virou "o conteúdo não chegou ao main".
+  ['git show "origin/main:.claude/skills/x/SKILL.md" | grep -c foo', true],
+  ['git show origin/main:.github/workflows/deploy.yml | head -5', true],
+  ['git cat-file -e origin/main:.gitignore', true],
+  // CONTROLES NEGATIVOS — os 4 caminhos de abstenção, todos MEDIDOS no corpus:
+  // (b) já protegido — 655 de 991 hits (66%) fazem assim, e acusá-los mataria a
+  //     trava por ruído, que é como a família do guard sintático morreu 8×.
+  ['MSYS_NO_PATHCONV=1 git show origin/main:.github/workflows/deploy.yml', false],
+  // path SEM ponto inicial não sofre mangling — atravessa inteiro.
+  ['git show origin/main:memory/proibicoes.md', false],
+  // (c) dentro de JS: o Node passa o argumento direto ao processo, sem shell MSYS.
+  ["node -e \"execSync('git show origin/main:.github/x.yml')\"", false],
+  // (d) executa em OUTRA máquina, que é Linux.
+  ['ssh ct100 "git show origin/main:.github/workflows/x.yml"', false],
+  // a forma IMUNE, que é a saída recomendada: ref e path em argumentos separados.
+  ['git ls-tree origin/main -- .claude/hooks/x.mjs', false],
+  ['git checkout origin/main -- .github/workflows/deploy.yml', false],
+  // menção (corpo de commit citando o defeito — inclusive o desta mudança).
+  ['git commit -F - <<\'EOF\'\nfix: git show origin/main:.claude/x quebra no MSYS\nEOF', false],
   // ── FP ESTRUTURAL DO P4 (medido 2026-09-15: era 100% dos disparos) ─────────
   // Todos estes USAM a barra-pipe de propósito e FUNCIONAM. A fixture original
   // não tinha nenhum, então o selftest ficava verde enquanto o gate acusava
@@ -685,8 +754,11 @@ if (ehEntrypoint) {
     // jqExiste:false é INJETADO — sem isso o resultado das fixtures P5 dependeria
     // da máquina: no CI (ubuntu) o jq EXISTE e o P5 se desliga, então elas
     // falhariam lá e passariam aqui. Fixture não pode medir o runner.
+    // `ehWindows:true` é INJETADO pelo mesmo motivo que `jqExiste:false`: sem isso as
+    // fixtures do P6 passariam no Windows e falhariam no CI (ubuntu), onde não há
+    // mangling. A sonda real é checada em FORMA logo abaixo, como a do jq.
     for (const [cmd, esperado] of FIXTURES) {
-      const bloqueou = achaPadrao(cmd, { jqExiste: false }) !== null;
+      const bloqueou = achaPadrao(cmd, { jqExiste: false, ehWindows: true }) !== null;
       const ok = bloqueou === esperado;
       if (!ok) falhas++;
       console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${esperado ? 'MORDE  ' : 'ignora '} ${cmd.slice(0, 52)}`);
@@ -707,7 +779,19 @@ if (ehEntrypoint) {
     if (!sondaOk) falhas++;
     console.log(`  [${sondaOk ? 'PASS' : 'FAIL'}] jqExisteLocalmente → boolean estável (aqui: ${v1})`);
 
-    console.log(falhas ? `\nSELFTEST FALHOU — ${falhas} caso(s).` : '\nSELFTEST OK — morde os 4 padrões, ignora os controles negativos, e o P5 se desliga onde o jq existe.');
+    // Espelho do desligamento do P5, no eixo do P6: fora do Windows não há mangling,
+    // então acusar seria FP por construção — e o time MCP roda Mac/Linux.
+    const p6Desliga = achaPadrao('git show origin/main:.gitignore', { ehWindows: false }) === null;
+    if (!p6Desliga) falhas++;
+    console.log(`  [${p6Desliga ? 'PASS' : 'FAIL'}] P6 SE DESLIGA fora do Windows (sem MSYS, sem mangling)`);
+
+    const w1 = ehWindows(), w2 = ehWindows();
+    const sondaW = typeof w1 === 'boolean' && w1 === w2;
+    if (!sondaW) falhas++;
+    console.log(`  [${sondaW ? 'PASS' : 'FAIL'}] ehWindows → boolean estável (aqui: ${w1})`);
+
+    // O número dos padrões é DERIVADO — escrevê-lo à mão apodrece no próximo par (LC-10).
+    console.log(falhas ? `\nSELFTEST FALHOU — ${falhas} caso(s).` : `\nSELFTEST OK — morde os ${PADROES.length} padrões, ignora os controles negativos, e o P5/P6 se desligam onde não fazem sentido.`);
     process.exit(falhas ? 1 : 0);
   }
 
