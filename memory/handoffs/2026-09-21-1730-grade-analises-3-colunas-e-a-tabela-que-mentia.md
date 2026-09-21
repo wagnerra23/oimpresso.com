@@ -17,6 +17,14 @@ next_steps:
 **1 PR mergeado pelo [W]** ([#7638](https://github.com/wagnerra23/oimpresso.com/pull/7638), 130 pass · 0 fail),
 **em produção e medido lá**.
 
+## TL;DR
+
+A grade de Análises do Painel da Jana foi a **3 colunas** (gap **12px**) e o bloco de Ações perdeu o
+respiro de 24px — medido em prod pós-deploy, **idêntico à âncora**. **Três itens do enunciado estavam
+caducos**, e um era gatilho de regressão: o `h2` fechara em 18/09 e batia 8 de 8. A causa comum é a
+tabela de 09-07 do `Index-visual-comparison.md`, que guarda o *antes* e não ganhou nota de
+fechamento — **três sessões** leram a linha caduca no mesmo dia e pediram conserto de código correto.
+
 ## O que entregou
 
 A grade de Análises do Painel (`/ia`) converge ao protótipo: **3 colunas** (era 2), **gap 12px**
@@ -82,6 +90,51 @@ sessões simultâneas, deixou de ser exceção.
   num arquivo de 13.659 bytes contra 617.497 do local. Era o chunk do `/login`, não o CSS de
   `/ia`: **cegueira do instrumento, não ausência da regra**. Sem o controle eu teria reportado "a
   regra não chegou ao deploy". A prova válida foi medir a tela.
+
+## Estado MCP no momento do fechamento
+
+> **Obrigatório (ADR 0130 §6)** — snapshot do que as tools devolveram, não promessa.
+
+### cycles-active
+```
+Nenhum cycle ATIVO em COPI. Use `cycles-list project:COPI` para ver todos.
+```
+
+### my-work
+```
+✨ Sem tasks ativas pra @wr23. Use `tasks-list owner:wr23 status:done` pra ver fechadas.
+```
+
+### sessions-recent limit:3
+```
+- session-2026-08-22-arte-agentes-ia-ui-guardrails        (indexed: 2026-09-21)
+- session-2026-08-22-arte-escala-centenas-de-telas        (indexed: 2026-09-21)
+- session-2026-08-22-arte-fidelidade-prototipo-producao   (indexed: 2026-09-21)
+```
+
+### decisions-search "Jana painel grade análises protótipo âncora"
+```
+4 ADR(s):
+- 0378-execucao-mcp-jana-para-forja-ondas
+- adr-_designsystem-ui-0031-fundacao-dark-adota-o-accent-do-prototipo
+- 0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias   ← a que rege este trabalho (§D-1, réplica LOCAL)
+- 0366-fronteira-jana-forja-governance-kb
+```
+
+### whats-active
+```
+15 sessões ativas (6h) — CINCO delas tocando `resources/js/Pages/Jana/`:
+  - Fechar dívida visual do KPI do Painel da Jana        (busy)
+  - Medir os gráficos do Painel da Jana × protótipo      (busy)
+  - Destravar e fechar a comparação das Metas da Jana    (busy)
+  - Alinhar o h1 do Painel da Jana ao token do DS        (busy)
+  - Jana painel gating-pro e estado-vazio                (busy · tocou JanaCockpit.tsx ~1h antes)
+```
+
+⚠️ **Este `whats-active` não foi formalidade — foi o que mudou o trabalho.** Declarei escopo às 5
+antes do primeiro Edit; três responderam com correção que alterou o que eu ia fazer (o `h2` já
+fechado, o id `UC-JPAIN-30` já tomado, o `Sparkline` morando no `window` do shell). Sem ele, eu
+teria editado o `SectionTitle` e colidido no id.
 
 ## Para a próxima sessão
 
