@@ -31,7 +31,12 @@ import { redactText, redactPayload, totalHits } from './redact.mjs';
 const MCP_URL = process.env.MCP_URL || 'https://oimpresso.com/api/cc/ingest';
 const MCP_TOKEN = process.env.MCP_TOKEN || readTokenFromSettings();
 const PROJECT_GLOB = process.env.PROJECT_GLOB || 'D--oimpresso-com';
-const PROJECTS_DIR = path.join(os.homedir(), '.claude', 'projects');
+// Injetável pelo mesmo motivo que `createJsonlWatcher` recebe `projectsDir` por
+// parâmetro: sem isso o bite-test não consegue exercitar o PIPELINE (ingestOnce
+// → processFile → readJsonl → postBatch) contra uma sandbox, e sobraria assertar
+// o helper exportado — que é o erro que deixou o `--watch` verde e inerte por
+// 141 dias (`memory/proibicoes.md` §5 2026-07-30).
+const PROJECTS_DIR = process.env.CC_PROJECTS_DIR || path.join(os.homedir(), '.claude', 'projects');
 const STATE_FILE = process.env.STATE_FILE || path.join(os.homedir(), '.claude', '.cc-watcher-state.json');
 const BATCH_SIZE = 200;
 const SKIP_TYPES = new Set(['queue-operation', 'attachment']); // ignoradas
@@ -104,9 +109,28 @@ function listProjectFolders() {
 
 // ──────────────────────────────────────────────────────────────────────
 // Lê 1 jsonl, agrega session metadata + messages
+//
+// `skipLines` = quantas linhas FÍSICAS já foram ingeridas num run anterior
+// (o `lineCount` do state). Só as MENSAGENS são cortadas; o metadata da sessão
+// e os timestamps seguem vindo do arquivo INTEIRO — de propósito:
+// `CcIngestController::upsertSession` faz `updateOrCreate`, então mandar o
+// `started_at` do incremento sobrescreveria a data de início da sessão a cada
+// run, empurrando-a pra frente. O custo de ler o arquivo todo é I/O local; o
+// que doía era o POST, e é esse que encolhe.
+//
+// Medido em 2026-09-21, antes deste corte: o `lineCount` era gravado no state
+// (:342) e lido só como `> 0` (:308) — ou seja, WRITE-ONLY como offset. Todo
+// arquivo cujo mtime mudou reenviava o conteúdo inteiro: 65.322 linhas
+// re-postadas para 7.258 de fato novas, 88,9% de desperdício, contra um balde
+// de rate-limit por IP que é COMPARTILHADO com as outras sessões da máquina.
+//
+// `truncado` avisa que o arquivo encolheu (rotação/reescrita): aí o offset
+// guardado é maior que o arquivo e pular por ele PERDERIA mensagens. O
+// chamador relê do zero — reenviar demais é recuperável, perder não é.
 // ──────────────────────────────────────────────────────────────────────
-async function readJsonl(filePath) {
+export async function readJsonl(filePath, skipLines = 0) {
   const session = { messages: [] };
+  const linhasDasMensagens = [];
   let lineNum = 0;
   let firstTs = null;
   let lastTs = null;
@@ -139,15 +163,29 @@ async function readJsonl(filePath) {
 
     // Mensagem real
     if (!row.uuid) continue;
+    // O corte do incremento. Fica DEPOIS do metadata e dos timestamps de
+    // propósito (ver cabeçalho): só a mensagem é poupada do POST.
+    if (lineNum <= skipLines) continue;
     const msg = parseMessage(row);
-    if (msg) session.messages.push(msg);
+    if (msg) {
+      session.messages.push(msg);
+      // Array PARALELO (mesmo índice), não um campo dentro da mensagem: o payload
+      // que vai pro backend não pode ganhar campo que ele não espera. Serve pro
+      // chamador avançar o offset por batch confirmado.
+      linhasDasMensagens.push(lineNum);
+    }
   }
 
   if (session.uuid) {
     session.started_at = firstTs;
     session.ended_at = lastTs;
   }
-  return { session, lineCount: lineNum };
+  return {
+    session,
+    lineCount: lineNum,
+    linhasDasMensagens,
+    truncado: skipLines > 0 && lineNum < skipLines,
+  };
 }
 
 // ──────────────────────────────────────────────────────────────────────
@@ -309,8 +347,23 @@ async function processFile(filePath) {
     return { skipped: true, file: path.basename(filePath) };
   }
 
-  const { session, lineCount } = await readJsonl(filePath);
+  let { session, lineCount, linhasDasMensagens, truncado } =
+    await readJsonl(filePath, lastIngested.lineCount || 0);
+  if (truncado) {
+    // Arquivo encolheu desde o último run — o offset guardado aponta pra além
+    // do fim e pular por ele PERDERIA mensagens. Relê inteiro: reenviar demais
+    // é recuperável (msg_uuid é UNIQUE no servidor), perder não é.
+    ({ session, lineCount, linhasDasMensagens } = await readJsonl(filePath, 0));
+  }
+
   if (!session.uuid || session.messages.length === 0) {
+    // Nada novo a postar. Grava o state assim mesmo: sem isto o arquivo é
+    // RELIDO do disco a cada run pra sempre, porque o mtime segue à frente do
+    // que o state registrou. É o caso dos 3.214/3.214 medidos em 21/09 —
+    // mtime avançou (inclusive porque a sessão escreve DURANTE o nosso POST,
+    // e o `stat` acima é de antes dele) sem nenhuma linha nova.
+    state[fileKey] = { mtime: stat.mtimeMs, lineCount };
+    saveState(state);
     return { empty: true, file: path.basename(filePath) };
   }
 
@@ -324,7 +377,18 @@ async function processFile(filePath) {
     ended_at: session.ended_at,
   };
 
-  // Envia em batches
+  // Envia em batches, AVANÇANDO O OFFSET a cada batch confirmado.
+  //
+  // Antes, o state só era gravado depois do loop inteiro: um `throw` de 429 no
+  // último batch jogava fora o progresso dos anteriores, e o run seguinte
+  // reenviava o arquivo INTEIRO — o que produz mais 429. Círculo que se alimenta,
+  // e é o que explica o indício medido em 21/09: 455 sessões POSTadas num momento
+  // em que só 19 dos 883 arquivos tinham sido modificados nas últimas 24h.
+  //
+  // O `mtime: 0` do progresso parcial é deliberado: grava o offset mas NÃO deixa o
+  // arquivo ser pulado no próximo run (`:347` compara `stat.mtimeMs <= mtime`).
+  // Gravar o mtime real aqui faria o run seguinte pular um arquivo entregue pela
+  // metade — perda silenciosa. O mtime verdadeiro só entra no sucesso completo.
   let totalInserted = 0, totalDup = 0;
   for (let i = 0; i < session.messages.length; i += BATCH_SIZE) {
     const batch = session.messages.slice(i, i + BATCH_SIZE);
@@ -333,6 +397,12 @@ async function processFile(filePath) {
       totalInserted += res.messages_inserted || 0;
       totalDup += res.messages_duplicated || 0;
       process.stdout.write('.');
+
+      const ultimaLinhaDoBatch = linhasDasMensagens[i + batch.length - 1];
+      if (ultimaLinhaDoBatch) {
+        state[fileKey] = { mtime: 0, lineCount: ultimaLinhaDoBatch };
+        saveState(state);
+      }
     } catch (e) {
       console.error(`\n❌ ${path.basename(filePath)} batch ${i}: ${e.message}`);
       throw e;
