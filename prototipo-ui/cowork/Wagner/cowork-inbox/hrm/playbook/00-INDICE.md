@@ -54,7 +54,7 @@ Também medido nesta sha: `.claude/commands/onda.md` **não existe** (PR-A7 não
 | 10 | Folha — BLOQUEADA (ADR própria) | [W] | fora deste playbook | D2 | — |
 | 11 | Fim do topnav Blade + limpeza O8 | [CL] | `layouts/nav_hrm.blade.php` · `partials/sidebar_hrm.blade.php` · blades `leave/* leave_type/* sales_targets/* dashboard/hrm_dashboard` | 02 · 03 · 05 · 06 + screenshot [W2] | 3 |
 
-**Âncora de implementação para toda Page nova = a irmã golden `resources/js/Pages/Essentials/Metas.tsx` (#6869)** — mesmo pacote de 8 peças (tsx · charter com frontmatter `component:`/`runbook:` · casos · `contrato/essentials-<tela>.contract.json` gerado pelo `criar-tela.mjs` · Pest `Hrm<Tela>Test.php` · `e2e/essentials-<tela>.spec.ts` · `RUNBOOK-<tela>.md` · lane em `essentials-pest.yml`). Alvo de layout continua o protótipo medido (`prototipo-ui/cowork/hrm-*.jsx`, campo `related_prototype` do charter).
+**Âncora de implementação para toda Page nova = a irmã golden `resources/js/Pages/Essentials/Metas.tsx` (#6869)** — mesmo pacote de 8 peças (tsx · charter com frontmatter `component:`/`runbook:` · casos · `contrato/essentials-<tela>.contract.json` gerado pelo `criar-tela.mjs` · Pest `Hrm<Tela>Test.php` · `e2e/essentials-<tela>.spec.ts` · `RUNBOOK-<tela>.md` · lane em `essentials-pest.yml`). Alvo de layout continua o protótipo medido (`prototipo-ui/cowork/Wagner/hrm-*.jsx`, campo `related_prototype` do charter).
 **Vaga 1:** 01 ∥ 02 ∥ 03 ∥ 04 ∥ 07 ∥ 08 · **Vaga 2:** 05 ∥ 06 ∥ 09 · **Vaga 3:** 11. Entre vagas, S0 consolida.
 
 ## 2-bis · ESTADO — derivado, nunca escrito (o Code lê ESTA)
@@ -127,9 +127,9 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
   ],
   "threads": [
     { "id": "01", "titulo": "Build: TABS do HRM (−Presença · +Departamentos/Cargos)", "dono": "CC", "vaga": 1, "arquivo": "01-build-tabs-hrm.md",
-      "prefixo": ["prototipo-ui/cowork/hrm-page.jsx", "prototipo-ui/cowork/hrm-data.jsx", "prototipo-ui/cowork/oimpresso.com.html"],
-      "nao_toca": ["prototipo-ui/cowork/hrm-extras.jsx", "prototipo-ui/cowork/hrm-forms.jsx", "prototipo-ui/cowork/app.jsx"],
-      "provas": [ { "tipo": "nao_contem", "path": "prototipo-ui/cowork/hrm-page.jsx", "padrao": "id:\"hrm-presenca\"", "nota": "aba Presença fora do TABS (D1); a parte +Departamentos só com RESIDUO-2" } ] },
+      "prefixo": ["prototipo-ui/cowork/Wagner/hrm-page.jsx", "prototipo-ui/cowork/Wagner/hrm-data.jsx", "prototipo-ui/cowork/Wagner/oimpresso.com.html"],
+      "nao_toca": ["prototipo-ui/cowork/Wagner/hrm-extras.jsx", "prototipo-ui/cowork/Wagner/hrm-forms.jsx", "prototipo-ui/cowork/Wagner/app.jsx"],
+      "provas": [ { "tipo": "nao_contem", "path": "prototipo-ui/cowork/Wagner/hrm-page.jsx", "padrao": "id:\"hrm-presenca\"", "nota": "aba Presença fora do TABS (D1); a parte +Departamentos só com RESIDUO-2" } ] },
     { "id": "02", "titulo": "Licenças — Page", "dono": "CL", "vaga": 1, "arquivo": "02-licencas.md",
       "prefixo": ["${PAGES}/Licencas.tsx", "${PAGES}/Licencas/", "Modules/Essentials/Http/Controllers/EssentialsLeaveController.php", "prototipo-ui/contrato/essentials-licencas.contract.json", "Modules/Essentials/Tests/Feature/HrmLicencaTest.php", "e2e/essentials-licencas.spec.ts", ".github/workflows/essentials-pest.yml"],
       "nao_toca": ["Modules/Essentials/Services/LeaveRequestService.php", "${PAGES}/Metas.tsx", "${PAGES}/Settings/", "${PAGES}/Holidays/", "${PAGES}/Todo/", "${PAGES}/Knowledge/", "${PAGES}/Documents/", "${PAGES}/Messages/", "${PAGES}/Reminders/"],
@@ -152,7 +152,7 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
         { "tipo": "contem", "path": "Modules/Essentials/Http/Controllers/EssentialsLeaveTypeController.php", "padrao": "Inertia::render('Essentials/Tipos" }
       ] },
     { "id": "04", "titulo": "Metas — PUXAR (produção à frente, #6869)", "dono": "CC", "vaga": 1, "arquivo": "04-metas-venda.md",
-      "prefixo": ["prototipo-ui/cowork/hrm-extras.jsx"], "nao_toca": ["${PAGES}/Metas.tsx", "Modules/Essentials/Http/Controllers/SalesTargetController.php"],
+      "prefixo": ["prototipo-ui/cowork/Wagner/hrm-extras.jsx"], "nao_toca": ["${PAGES}/Metas.tsx", "Modules/Essentials/Http/Controllers/SalesTargetController.php"],
       "depende_decisoes": ["RESIDUO-5"],
       "provas": [], "nota_provas": "read-only + build: prova = _saida-04.md com o diff nos dois sentidos (Metas.tsx × hrm-extras.jsx Metas) e a divergência de VALOR declarada" },
     { "id": "05", "titulo": "Turnos — Page", "dono": "CL", "vaga": 2, "arquivo": "05-turnos.md",

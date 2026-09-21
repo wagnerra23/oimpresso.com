@@ -53,7 +53,7 @@ Só `.md` roteia (DesignSync `get_file` → `--export-from <dir>`); fonte da má
 | 05 | Conformidade CLT — **BLOQUEADA** | [W] | — | 04 · W1–W4 | — |
 | 06 | REP-P sem selfie: 7 rotas → `MobileMarcacaoController` + app do colaborador + fila | [CL] | `Http/routes.php` (bloco API) · `Api/MobileMarcacaoController.php` · `Pages/Ponto/Mobile/**` · `contrato/ponto-rep-p.contract.json` | W10 | 2 |
 | 07 | Contratos 4/4 → `required` | [CL] | `prototipo-ui/contrato/ponto-{fechamento,rep-p}.contract.json` · gate | 04 · 05 · 06 | 3 |
-| 08 | PUXAR Painel + Espelho (as 2 com contrato) → protótipo | [CC] | `prototipo-ui/cowork/ponto-page.jsx` | — | 1 |
+| 08 | PUXAR Painel + Espelho (as 2 com contrato) → protótipo | [CC] | `prototipo-ui/cowork/Wagner/ponto-page.jsx` | — | 1 |
 | 09 | PUXAR as 11 telas restantes → protótipo | [CC] | `ponto-telas.jsx` · `ponto-data.jsx` · `ponto-ui.jsx` | 10 | 2 |
 | 10 | Build: REP-P do protótipo **sem selfie** (ADR 0383) | [CC] | `ponto-mobile.jsx` · `ponto-data.jsx` (só bloco mobile) · host bump | — | 1 |
 | 11 | Limpeza: 26 blades mortas + nav legado + inbox residual (+ `/react` se W8) | [CL] | `Modules/Ponto/Resources/views/**` **exceto `reports/`** · `cowork-inbox/ponto-dashboard/` · `routes.php` (só se W8) | W8 só para `/react` | 1 |
@@ -123,7 +123,7 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
   "sha": "e86130722de1",
   "gerado": "2026-09-06",
   "absorve": ["COLAR-NO-CODE-ponto-ondas.md (2026-09-04)", "prototipo-ui/design-docs/cowork-inbox/ponte/COLAR-NO-CODE-ponto.md", "prototipo-ui/design-docs/cowork-inbox/ponte/_pedido-CL-ponto-teste-pratico.md"],
-  "variaveis": { "PAGES": "resources/js/Pages/Ponto", "COWORK": "prototipo-ui/cowork" },
+  "variaveis": { "PAGES": "resources/js/Pages/Ponto", "COWORK": "prototipo-ui/cowork/Wagner" },
   "decisoes": [
     { "id": "W1", "pergunta": "Estado da competência: tabela ponto_competencias ou derivado das apurações?", "respondida": false, "destrava": ["04", "05"] },
     { "id": "W2", "pergunta": "Permissão do fechamento: nova ou reusa ponto.configuracoes.manage?", "respondida": false, "destrava": ["04"] },
