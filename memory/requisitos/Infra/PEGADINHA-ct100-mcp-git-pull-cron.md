@@ -141,18 +141,44 @@ este timer é **monotônico** (`OnBootSec` + `OnUnitActiveSec`), e timer monotô
 preenche o campo *Realtime* — o campo certo é **`NextElapseUSecMonotonic`**. Pedir o
 campo errado devolve vazio com cara de resposta (§5 2026-07-17).
 
-**A causa real, medida no campo certo.** O host rebootou em **14/ago 10:43** (`-- Boot
-2498b72c… --` no journal do timer). Depois desse boot:
+⚠️ **E ERREI UMA SEGUNDA VEZ NO MESMO CAMPO — fica registrado, não apagado.** Ao "corrigir"
+a primeira leitura, escrevi que o timer *"rearmou com `NEXT` a ~38 dias no futuro
+(`NextElapseUSecMonotonic = 1month 1w 18h`)"*. **Também falso**, por duas razões que só
+aparecem quando se fecha a aritmética: **(a)** `NextElapseUSecMonotonic` é timestamp
+**ABSOLUTO desde o boot**, não "daqui a tanto"; **(b)** aquele valor foi colhido **DEPOIS**
+do meu restart, e eu o apresentei como o estado de **antes**. A conta fecha e desmente:
 
-| campo | valor medido em 2026-09-21 09:37Z, ANTES do restart |
+| medida (2026-09-21) | valor |
 |---|---|
-| `LastTriggerUSecMonotonic` | **0** — nunca disparou desde o boot |
-| `NextElapseUSecMonotonic` | **1 month 1w 18h** — próximo disparo a ~38 dias |
+| boot do host | `2026-08-14 10:43:41` |
+| uptime | `3284111s` = **38,0 dias** |
+| `NextElapseUSecMonotonic` | `1month 1w 18h 25min 11.039463s` ≈ **38,77 dias após o boot** |
+| = em relógio de parede | **2026-09-21 15:37** — que é exatamente o `NEXT` que o `list-timers` mostrava **depois** do restart (`4h 38min left`) |
 
-`OnUnitActiveSec` ancora na **última ativação do serviço**, e `ActiveEnterTimestamp` do
-service está **vazio**. Sem âncora, o próximo disparo foi calculado contra o uptime do
-host e foi parar mais de um mês à frente. O timer ficou "armado e mudo": nunca falhou,
-nunca alarmou, nunca rodou.
+Ou seja: aquele número diz *"daqui a ~6h"*, não *"daqui a 38 dias"*. **Pedir o sabor errado
+do campo** (Realtime num timer monotônico) e **ler mal o sabor certo** (absoluto como
+relativo) são o mesmo erro em dois passos — e os dois viraram afirmação publicada antes de
+serem medidos.
+
+**O que sobra medido, e é o que sustenta o diagnóstico.** O host rebootou em **14/ago
+10:43:41** (`-- Boot 2498b72c… --` no journal do timer). A partir daí:
+
+| evidência | valor |
+|---|---|
+| `LastTriggerUSecMonotonic` | **0** |
+| journal do timer | `Aug 14 10:43:42 Started …` e **nenhuma linha** até o meu restart de hoje |
+| `deploy-latest-main-sha.txt` | congelado desde `2026-08-13 19:50:01 -03` |
+
+As três convergem: **o timer nunca disparou em 38 dias**, embora `is-active` dissesse
+`active` e `SubState` dissesse `waiting`. Ficou *armado e mudo* — nunca falhou, nunca
+alarmou, nunca rodou.
+
+⚠️ **A CAUSA do não-disparo NÃO foi isolada, e é de propósito que ela não está escrita
+aqui como fato.** A hipótese natural — `OnUnitActiveSec` ancora na última ativação do
+serviço, e `ActiveEnterTimestamp` dele está **vazio**, logo o agendamento ficou sem âncora
+— é *consistente* com o medido, mas **não foi provada**: nada explica, sob essa hipótese,
+o `OnBootSec=2min` ter deixado de disparar às 10:45 daquele dia. Registrar a hipótese como
+desfecho seria dar à próxima sessão uma instrução que eu não medi (§5 2026-09-04).
 
 **O que foi feito (2026-09-21 09:37Z).** `systemctl restart oimpresso-git-sync.timer` +
 um disparo manual. **Consequência medida, não declarada:** o arquivo foi reescrito com
@@ -161,9 +187,12 @@ um disparo manual. **Consequência medida, não declarada:** o arquivo foi reesc
 
 **Pendente, e é decisão [W] porque é config de servidor fora do git** (a unit vive em
 `/etc/systemd/system/`, não versionada — Tier 0 §Ambiente): o restart cura até o próximo
-reboot, não a classe. O conserto durável é trocar `OnUnitActiveSec` por
-**`OnCalendar=*:0/5` + `Persistent=true`** — agendamento de relógio rearma sozinho e não
-depende de ancoragem numa ativação anterior, que é exatamente o que quebrou aqui.
+reboot, não a classe. O conserto durável **recomendado** é trocar `OnUnitActiveSec` por
+**`OnCalendar=*:0/5` + `Persistent=true`** — e a recomendação **não depende** da hipótese
+não-provada acima: agendamento de relógio rearma por si, sem ancorar numa ativação
+anterior e sem depender do uptime, então é robusto qualquer que tenha sido a causa. Quem
+executar, meça a **consequência** (mtime do arquivo mudando sozinho em < 10min), nunca o
+`is-active` — foi exatamente ele que mentiu por 38 dias.
 
 **Defesa que JÁ foi instalada, do lado do consumidor** (essa é minha e está no git): o
 `staging-freshness-sentinel.sh` passou a **descartar a referência quando o arquivo está
