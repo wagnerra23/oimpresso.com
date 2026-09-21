@@ -9,7 +9,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { matchDestructive, normalizeCmd, statements, alvosRmRf, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete } from './block-destructive.mjs';
+import { matchDestructive, normalizeCmd, statements, alvosRmRf, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete, ehStatementInerte } from './block-destructive.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'block-destructive.mjs');
 let fails = 0;
@@ -31,6 +31,9 @@ const BLOCK = [
   ['TRUNCATE TABLE', 'mysql -e "TRUNCATE TABLE sale_stage_history"'],
   ['composer update sem --lock (ADR 0063)', 'composer update'],
   ['composer update pacote sem --lock', 'composer update laravel/framework'],
+  // GAP fechado em 2026-09-21: `composer.phar update` nunca casou por mérito —
+  // os 2 do corpus bloqueavam por acidente, via banner de echo ao lado.
+  ['composer.phar update (forma phar, ADR 0063)', 'php /opt/x/composer.phar update nikic/php-parser --no-install'],
   ['migrate:fresh', 'php artisan migrate:fresh'],
   ['migrate:reset', 'php artisan migrate:reset --force'],
   ['migrate:rollback --step grande (2+ dígitos)', 'php artisan migrate:rollback --step=10'],
@@ -49,6 +52,8 @@ const ALLOW = [
   ['git reset --hard local (sem origin/)', 'git reset --hard HEAD~1'],
   ['DELETE FROM com WHERE real (fix do backtracking do .ps1)', 'mysql -e "DELETE FROM contacts WHERE id = 42"'],
   ['composer update --lock (ADR 0063 caminho certo)', 'composer update --lock'],
+  ['composer.phar update --lock (o fix nao pode pegar o caminho certo)', 'php composer.phar update --lock'],
+  ['composer.phar install (install nao e update)', 'php composer.phar install --no-interaction'],
   ['composer require', 'composer require laravel/ai:^0.6'],
   ['migrate normal', 'php artisan migrate'],
   ['migrate:rollback --step=1', 'php artisan migrate:rollback --step=1'],
@@ -56,6 +61,41 @@ const ALLOW = [
   ['comando vazio (fail-open)', ''],
 ];
 for (const [nome, cmd] of ALLOW) check(`ALLOW: ${nome}`, matchDestructive(cmd) === null);
+
+// ── §STATEMENT INERTE (fix 2026-09-21): `echo`/`printf` emite texto ─────────────
+//
+// O FP que abriu isto: uma consulta read-only bloqueada porque `rm -f` aparecia
+// dentro de um `echo`. O hook impedia que se LESSE o próprio hook.
+const INERTE_ALLOW = [
+  ['o FP literal que abriu o fix', 'echo "=== nota do autor sobre rm -f ==="'],
+  ['prosa citando rm -rf dentro de echo', 'echo "use rm -rf node_modules pra limpar"'],
+  ['printf com o padrao no formato', 'printf "rm -rf %s" node_modules'],
+  ['echo de SQL (categoria blob, statement unico e inerte)', 'echo "DROP TABLE users"'],
+  ['echo citando force push', 'echo "nao rode git push --force aqui"'],
+];
+for (const [nome, cmd] of INERTE_ALLOW) check(`ALLOW inerte: ${nome}`, matchDestructive(cmd) === null);
+
+// CONTROLE NEGATIVO — as 3 portas que o fix deixa FECHADAS de propósito.
+// Sem estes asserts, o fix seria indistinguível de "desligar a categoria".
+const INERTE_BLOCK = [
+  // ⚠️ o espaço antes do `rm` NÃO é estilo: o regex da categoria exige
+  // `(^|[\s;&|])` antes do `rm`, então `$(rm` (colado no parêntese) nunca casou
+  // — nem antes deste fix. Com o espaço, a forma É bloqueada hoje, e o assert
+  // passa a medir o fix em vez de medir um buraco que já existia.
+  ['substituicao EXECUTA (nao pode virar inerte)', 'echo "$( rm -rf /etc )"'],
+  ['substituicao por backtick tambem executa', 'echo "` rm -rf /etc `"'],
+  ['redirecionamento ESCREVE arquivo', 'echo "limpe com rm -rf /etc" > script.sh'],
+  ['statement IRMAO segue julgado sozinho', 'echo ok && rm -rf /etc'],
+  ['blob nao pode cair pelo 1o token (falso-negativo)', 'echo hi && mysql -e "DROP TABLE users"'],
+  ['echo inerte nao isenta rm real na mesma linha', 'echo limpando; rm -rf src/'],
+];
+for (const [nome, cmd] of INERTE_BLOCK) check(`BLOCK inerte: ${nome}`, matchDestructive(cmd) !== null);
+
+check('ehStatementInerte: echo simples', ehStatementInerte('echo "rm -rf /"') === true);
+check('ehStatementInerte: com substituicao NAO', ehStatementInerte('echo "$(rm -rf /)"') === false);
+check('ehStatementInerte: com redirecionamento NAO', ehStatementInerte('echo x > f') === false);
+check('ehStatementInerte: comando de verdade NAO', ehStatementInerte('rm -rf src/') === false);
+check('ehStatementInerte: echoes nao e echo', ehStatementInerte('echoes -rf') === false);
 
 // ── unitários (redundância de defesa) ───────────────────────────────────────────
 check('normalizeCmd colapsa espaços', normalizeCmd('  rm   -rf    src/ ') === 'rm -rf src/');
@@ -68,6 +108,14 @@ function runHook(stdin) {
 }
 const j = (cmd) => JSON.stringify({ tool_name: 'Bash', tool_input: { command: cmd } });
 check('E2E: rm -rf perigoso → exit 2 (BLOQUEIA)', runHook(j('rm -rf Modules/')) === 2);
+
+// E2E §STATEMENT INERTE — pelo PROCESSO real, não só pela função exportada.
+// (o assert sobre a função pura não prova o wrapper — §5 2026-07-30)
+check('E2E inerte: o FP literal que abriu o fix → exit 0', runHook(j('echo "=== nota do autor sobre rm -f ==="')) === 0);
+check('E2E inerte: echo de SQL (blob todo inerte) → exit 0', runHook(j('echo "DROP TABLE users"')) === 0);
+check('E2E inerte: echo + rm REAL no irmão → exit 2', runHook(j('echo ok && rm -rf /etc')) === 2);
+check('E2E inerte: echo + SQL REAL no irmão → exit 2', runHook(j('echo hi && mysql -e "DROP TABLE u"')) === 2);
+check('E2E gap phar: composer.phar update → exit 2', runHook(j('php /opt/x/composer.phar update foo')) === 2);
 check('E2E: rm -rf /tmp/ whitelisted → exit 0', runHook(j('rm -rf /tmp/x')) === 0);
 check('E2E: tool não-Bash → exit 0', runHook(JSON.stringify({ tool_name: 'Write', tool_input: { file_path: 'x' } })) === 0);
 check('E2E: stdin vazio → exit 0 (fail-open)', runHook('') === 0);
