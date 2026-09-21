@@ -331,7 +331,15 @@ jobs:
             (command -v fuser >/dev/null && fuser -k 8000/tcp) || true
             sleep 3
           fi
-          php artisan serve --host=127.0.0.1 --port=8000 > /tmp/lote-serve.log 2>&1 &
+          # `--no-reload` NAO e enfeite: sem ele o Laravel IGNORA PHP_CLI_SERVER_WORKERS e
+          # sobe UM worker so — o proprio log diz "Unable to respect the PHP_CLI_SERVER_WORKERS
+          # environment variable without the --no-reload flag. Only creating a single server."
+          # Com 1 worker, o servidor serve o documento e RECUSA as conexoes paralelas dos assets
+          # do SPA: o Playwright reporta net::ERR_CONNECTION_REFUSED e a tela vira ERRO. Foi o
+          # que deu 23 ERRO / 23 nas runs 35590027120 e 35590936821, com o servidor VIVO e
+          # respondendo /_visreg-login o tempo todo — a hipotese de "o serve morreu" estava
+          # errada, e quem a refutou foi este log (capturado no artifact desde a 2a tentativa).
+          php artisan serve --host=127.0.0.1 --port=8000 --no-reload > /tmp/lote-serve.log 2>&1 &
           SERVE_PID=$!
           echo "serve PID=$SERVE_PID"
           for i in $(seq 1 30); do
