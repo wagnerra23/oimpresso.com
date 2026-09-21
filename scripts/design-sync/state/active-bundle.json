@@ -880,6 +880,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/ds-atomos/playbook/07-alvo-de-toque-datatablepro.md",
+      "bytes": 9003,
+      "sha256": "06c483e050bc94701615ad5b808f18746c97ff7cad760d3c0ae5626c585a88a0",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/ERRATA-CL-fontface-nao-havia-conserto-2026-09-17.md",
       "bytes": 4367,
       "sha256": "62747eca8f0c3ec80acb0fe43b3de03919b82caaa39253d86abe805a893a14d6",
@@ -1361,8 +1367,8 @@
     },
     {
       "path": "cowork-inbox/jana/playbook/00-INDICE.md",
-      "bytes": 4474,
-      "sha256": "ecd82f19808fafc7f5b40a173f54c077e1010cbec0caf81de0fb6791b5aecfb7",
+      "bytes": 5967,
+      "sha256": "7a19a09dd99abe56d853efcd77fdc02a5a03dfa02a91029b0cc1666da4376f3d",
       "role": "cowork-source"
     },
     {
@@ -2903,8 +2909,8 @@
     },
     {
       "path": "github.md",
-      "bytes": 116743,
-      "sha256": "056cd6381872377c132f47be02fdd45630caf598ad9bac502f5d94b1221b8c7e",
+      "bytes": 118908,
+      "sha256": "60c84ac2a954da6a11c8c1e48049c636d652570011eb5989eaebb0c7fb784b0a",
       "role": "cowork-source"
     },
     {
@@ -3365,8 +3371,8 @@
     },
     {
       "path": "oficina-os-page.css",
-      "bytes": 21714,
-      "sha256": "efc277b826f3fc6db6ceaff4b0a9113d3d3b2009961829c8cb1db527a4bdbc38",
+      "bytes": 24025,
+      "sha256": "4ed5563ddc376176402185a673b994cfb319dc3e986679443f7a21bfffd8881f",
       "role": "cowork-source"
     },
     {
@@ -3419,8 +3425,8 @@
     },
     {
       "path": "otimiza-ondas.css",
-      "bytes": 2662,
-      "sha256": "8b7278c99a14c89f5bc7c92328f20d86efeee05b247792fc7dcf8ca70665d729",
+      "bytes": 3372,
+      "sha256": "11793b40df130ab1e2c5e41faec5bd94a1caf511a6e954ac40ad13c86557af86",
       "role": "cowork-source"
     },
     {
@@ -4254,10 +4260,10 @@
   ],
   "missing": [],
   "mirrorScope": "tree",
-  "bundleId": "e8ffe5c0bdffbb3c552c17e4b54fb5ec48efd84e999ba9fe932de85ebaec6798",
-  "baseBundleId": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3",
+  "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+  "baseBundleId": "e8ffe5c0bdffbb3c552c17e4b54fb5ec48efd84e999ba9fe932de85ebaec6798",
   "mode": "delta",
-  "generatedAt": "2026-09-21T10:43:20.789Z",
+  "generatedAt": "2026-09-21T16:37:10.809Z",
   "dsRequires": {
     "owner": "Wagner",
     "slug": "office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac",
@@ -4309,31 +4315,20 @@
     ]
   },
   "totals": {
-    "files": 708,
-    "bytes": 10181623
+    "files": 709,
+    "bytes": 10197305
   },
   "changes": {
     "added": [
-      "COLAR-NO-CODE-A9-DS-POR-DONO.md",
-      "cowork-inbox/jana/playbook/00-INDICE.md",
-      "cowork-inbox/jana/playbook/01-painel.gating-pro.md",
-      "cowork-inbox/jana/playbook/02-painel.estado-vazio.md"
+      "cowork-inbox/ds-atomos/playbook/07-alvo-de-toque-datatablepro.md"
     ],
     "modified": [
-      "COLAR-NO-CODE-ACERTOS-E-LICOES.md",
-      "COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md",
-      "cowork-inbox/ancora/playbook/00-INDICE.md",
-      "cowork-inbox/hrm/playbook/00-INDICE.md",
-      "cowork-inbox/ponto/playbook/00-INDICE.md",
-      "cowork-inbox/sidebar/playbook/00-INDICE.md",
-      "documentacao-page.css",
-      "documentacao-page.jsx",
+      "cowork-inbox/jana/playbook/00-INDICE.md",
       "github.md",
-      "oimpresso.com.html"
+      "oficina-os-page.css",
+      "otimiza-ondas.css"
     ],
-    "deleted": [
-      "COLAR-NO-CODE-jana-tabs-cor-e-icone.md"
-    ],
-    "unchanged": 694
+    "deleted": [],
+    "unchanged": 704
   }
 }
