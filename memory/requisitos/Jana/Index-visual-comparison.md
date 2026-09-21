@@ -1210,3 +1210,42 @@ Registro porque o padrão é mais útil que os casos:
 
 Em nenhum dos três o defeito apareceu como erro: apareceu como **número plausível**. O que os
 separou de conclusão errada foi o controle, nunca a leitura do resultado.
+
+### ⚠️ ERRATA do mesmo dia — a causa do `NÃO MEDI` dos Papéis 3 e 4 estava ERRADA
+
+Acima eu escrevi, duas vezes, que a produção biz=1 tem **"zero meta cadastrada"**. **É falso**, e o
+registro fica porque o erro é do tipo que se propaga: quem lesse aquilo concluiria que destravar a
+medição exige *criar meta*, quando o que falta é outra coisa.
+
+**Medido em produção, `/ia`, biz=1, após aviso de sessão irmã** (que afirmou existirem 5 metas — ela
+estava certa em me mandar re-medir):
+
+| sonda | valor | leitura |
+|---|---|---|
+| botões de card de meta | **5** | as metas EXISTEM: Clientes atendidos · Faturamento mensal · Margem de contribuição · Ticket médio · Vendas no mês |
+| `[data-contract="painel-meta-apurando"]` | **5** | **todas as 5 em "Aguardando apuração…"** |
+| `[data-contract="painel-meta-sem-historico"]` | 0 | o card em `apurando` nem chega a renderizar o sparkline |
+| `svg[width=120][height=32]` | 0 | idem — nenhuma série desenhada |
+
+**A causa correta:** não faltam metas, falta **apuração**. Sem `apuracoes_recentes` não há série para
+o `Sparkline` do card nem para a `Serie` do drawer; e sem `realizado` o `progresso` é `null`, então a
+barra de progresso não renderiza por contrato (`Index.tsx`: `{progresso !== null && …}`).
+
+**O veredito `NÃO MEDI` dos Papéis 3 e 4 permanece** — mas por esta razão, não pela que estava
+escrita. E a ação que destrava passa a ser **rodar apuração**, não cadastrar meta.
+
+**Por que eu errei, e é a lição reutilizável:** sondei por `svg[width=120][height=32]` e por
+`painel-meta-sem-historico`, os dois ausentes, e li a ausência **do gráfico** como ausência **da
+meta**. São proposições diferentes, e a segunda não decorre da primeira — é a mesma família do
+§5 2026-09-15 (concluir conteúdo único porque o NOME não existia do outro lado): a medição parou
+um nível acima do fato.
+
+### G16 — re-medido após o merge do #7638, e ele ainda NÃO está em produção
+
+O [#7638](https://github.com/wagnerra23/oimpresso.com/pull/7638) (grade de Análises a 3 colunas)
+mergeou em `main`, mas a produção **ainda serve 2 colunas**: `grid-template-columns` medido agora =
+`1110.5px 1110.5px`, `gap: 16px`, e o card do sparkline segue em **1076,5px**.
+
+Ou seja: **merge não é deploy**, e o G16 continua com o número de 2 colunas até o deploy rodar. Fica
+como está, datado — quem reler depois do deploy vai medir ~737,7px e não deve ler a diferença como
+regressão.
