@@ -1,0 +1,20 @@
+/* ═══════════════════════════════════════════════════════════════════
+   FOUNDATIONS — Camada Fundações (Constituição UI v2 · ADR UI-0013)
+   Fonte ÚNICA de tokens de FUNDAÇÃO compartilhados entre Shell e telas.
+   Arquivo previsto pelo foundation-guard (TOKEN_DEF_ALLOW) desde o PACOTE-Q9;
+   nasce aqui com o Type RAMP (F2 Financeiro · autorizado [W] textual "vai"
+   2026-06-10 — Tier 0, registrado no PR).
+   Mudar token aqui = decisão de fundação (PR revisado), nunca css de tela.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* CAMADA DE TOKEN (foundations :root + dark) — onda DTCG ATIVADA
+   (feat/onda-dtcg-ativar). As 15 vars :root (Type RAMP + TEMPERO) e as 3 dark
+   agora são SAÍDA do Style Dictionary a partir de resources/css/tokens/*.tokens.json.
+   Editar token = editar o JSON portável. Equivalência byte-a-byte provada:
+   scripts/governance/dtcg-equivalence.mjs. Estes arquivos gerados são previstos
+   pelo foundation-guard (TOKEN_DEF_ALLOW) como continuação desta Fundação. */
+@import "./tokens/_generated-foundations-light.css";
+
+/* TEMPERO · dark — data-theme mora no .cockpit; casar por [data-theme] (sem a classe)
+   mantém a Fundação desacoplada do Shell (ADR UI-0013) e casa no mesmo elemento. */
+@import "./tokens/_generated-foundations-dark.css";

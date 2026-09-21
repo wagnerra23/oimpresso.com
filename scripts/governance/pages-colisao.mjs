@@ -47,7 +47,8 @@ function inventario() {
   const raw = execFileSync(
     'git',
     ['-c', `safe.directory=${ROOT.replaceAll('\\', '/')}`, 'ls-files', '-z'],
-    { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    // maxBuffer: a lista do repo inteiro passou do default de 1 MiB em 2026-09-21 (ENOBUFS).
+    { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024 },
   );
   return raw.split('\0').filter(Boolean);
 }

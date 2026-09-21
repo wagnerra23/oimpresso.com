@@ -81,7 +81,9 @@ function inventarioRepo() {
     raw = execFileSync(
       'git',
       ['-c', `safe.directory=${safeRoot}`, 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
-      { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+      // maxBuffer: o default do Node (1 MiB) estourou em 2026-09-21 — a lista do repo inteiro
+      // passou de 1.045.285 bytes (main) pra 1.067.765 no PR #7620 e saiu ENOBUFS.
+      { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024 },
     );
   } catch (error) {
     const detalhe = error instanceof Error ? error.message : String(error);

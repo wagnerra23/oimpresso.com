@@ -1,0 +1,110 @@
+/* patrimonio-page.css — só o que os componentes do DS não cobrem: layout das áreas,
+   toolbar, rodapé, cartões de log/alocação e os modos densidade/toque.
+   Grid, pills, botões, menus, paginação, formulários e drawer vêm do bundle. */
+.ptr-root{height:100%;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.ptr-root .mp-busca kbd{font-size:9px;font-family:var(--mono);color:var(--text-mute);background:var(--sunken);padding:1px 5px;border-radius:3px}
+/* O grupo de ações do header encolhe e quebra em vez de sumir na borda cortada. */
+.ptr-root .jc-header-r{flex:1 1 auto;min-width:0;flex-wrap:wrap;justify-content:flex-end;column-gap:8px}
+.ptr-root .mp-busca{flex:1 1 200px;min-width:150px;max-width:320px}
+@media (max-width:860px){.ptr-root .jc-updated{display:none}}
+
+/* ── Áreas de lista ── */
+.ptr-list{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:10px;padding:0 28px 18px}
+@media (max-width:900px){.ptr-list{padding:0 16px 14px}}
+.ptr-grid{flex:1 1 auto;min-height:120px;border:1px solid var(--border);border-radius:var(--r-2,8px);overflow:hidden;background:var(--surface)}
+.ptr-subtabs{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ptr-subtabs .sp{flex:1}
+.ptr-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+
+.ptr-toolbar{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap}
+.ptr-toolbar .sp{flex:1}
+.ptr-filtro{min-width:132px;max-width:170px}
+.ptr-aviso-perm{font-size:11.5px;color:var(--text-2);background:color-mix(in oklch,var(--accent) 6%,transparent);border:1px solid color-mix(in oklch,var(--accent) 20%,transparent);border-radius:var(--r-1,6px);padding:6px 10px}
+
+.ptr-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--text-2)}
+.ptr-foot .sp{flex:1}
+.ptr-foot b{font-family:var(--mono);color:var(--text)}
+
+/* ── Configurações ── */
+.ptr-cfg{display:flex;flex-direction:column;gap:22px;max-width:760px}
+.ptr-cfg h3{margin:0 0 3px;font-size:13px;font-weight:700}
+.ptr-cfg p{margin:0 0 10px;font-size:12px;color:var(--text-mute)}
+.ptr-cfg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 16px}
+.ptr-cfg-switches{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-2,8px);padding:14px}
+.ptr-cfg-acoes{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--text-mute)}
+
+/* ── Conteúdo dentro do Drawer do DS ── */
+.ptr-drawer-nav{padding:0 18px}
+.ptr-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 16px}
+.ptr-fields .f label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mute);margin-bottom:2px}
+.ptr-fields .f span{font-size:12.5px;color:var(--text)}
+.ptr-fields .f .mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.ptr-placa{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.ptr-placa small{font-size:11px;color:var(--text-mute)}
+.ptr-saldo{display:flex;gap:10px;margin-bottom:10px}
+.ptr-saldo>span{flex:1;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-2,8px);padding:8px 11px}
+.ptr-saldo small{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mute)}
+.ptr-saldo b{display:block;font-family:var(--font-mono);font-size:17px;font-variant-numeric:tabular-nums;margin-top:2px}
+.ptr-saldo .ok b{color:var(--pos)}
+.ptr-aloc{display:flex;align-items:center;gap:12px;justify-content:space-between;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-2,8px);padding:10px 13px;margin-bottom:7px}
+.ptr-aloc.off{opacity:.6}
+.ptr-aloc b{font-size:12.5px}
+.ptr-aloc small{display:block;font-size:11px;color:var(--text-mute);margin-top:2px}
+.ptr-aloc small.mono{font-family:var(--font-mono);font-size:10.5px}
+.ptr-man{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-2,8px);padding:11px 13px;margin-bottom:7px}
+.ptr-man .h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:3px}
+.ptr-man small{display:block;font-size:10.5px;color:var(--text-mute);font-family:var(--font-mono)}
+.ptr-man p{margin:6px 0 0;font-size:12px;color:var(--text-2);line-height:1.5}
+.ptr-nota{display:block;margin-top:10px;font-size:11px;color:var(--text-mute);line-height:1.5}
+
+/* ── Integração e trilha de auditoria ── */
+.ptr-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
+.ptr-link-card{appearance:none;cursor:pointer;text-align:left;display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-2,8px);padding:10px 12px;font:inherit;color:var(--text)}
+.ptr-link-card:hover{border-color:color-mix(in oklch,var(--accent) 40%,var(--border))}
+.ptr-link-card b{font-size:12.5px}
+.ptr-link-card small{grid-column:1;font-size:11px;color:var(--text-mute)}
+.ptr-link-card span{grid-row:1/3;color:var(--accent);font-size:14px}
+.ptr-log{display:flex;flex-direction:column;gap:7px}
+.ptr-log-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-2,8px);padding:10px 12px}
+.ptr-log-item .h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.ptr-log-item .h b{font-size:12.5px}
+.ptr-log-item .h .mono{font-family:var(--font-mono);font-size:11px;color:var(--text-mute)}
+.ptr-log-item>small{display:block;font-size:10.5px;color:var(--text-mute);margin-top:2px}
+.ptr-log-campos{margin:7px 0 0;padding-left:16px;font-size:11.5px;color:var(--text-2);line-height:1.6}
+.ptr-log-campos .mono{font-family:var(--font-mono);font-size:10.5px;color:var(--text-mute)}
+
+/* ── Formulários: só a moldura da mídia e a grade (campos são do DS) ── */
+.pfm-grid{display:grid;gap:12px 16px}
+.pfm-midia{display:flex;align-items:center;gap:14px}
+.pfm-midia-plate{display:grid;place-items:center;width:74px;height:56px;border-radius:var(--r-2,8px);border:1px dashed var(--border);background:var(--bg-2);font-size:10.5px;color:var(--text-mute);text-align:center;padding:4px}
+
+/* ── A11y, densidade e alvo de toque ── */
+.ptr-aviso-live{position:absolute;inset:auto 0 0 0;pointer-events:none}
+.ptr-aviso-live>*{pointer-events:auto}
+.ptr-root :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.ptr-dense .ptr-list{gap:7px}
+.ptr-dense .ptr-cfg{gap:16px}
+.ptr-dense .ptr-fields{gap:8px 12px}
+.ptr-toque .ptr-link-card{min-height:56px}
+.ptr-toque .ptr-list button{min-height:44px}
+.ptr-toque .ptr-toolbar select{min-height:44px}
+@media (max-width:1100px){.ptr-list{padding:0 14px 12px}.ptr-filtro{min-width:130px}}
+
+/* TabBar do DS: nav tem height fixo + border-bottom (clientHeight 35) e filhos de 36px,
+   então o overflow:auto do componente materializa uma scrollbar vertical de 15px.
+   Neutralizamos só o eixo Y — o X segue rolando quando as abas não cabem. */
+.ptr-subtabs nav,.ptr-drawer-nav nav{overflow-y:hidden}
+.ptr-acoes-cel{display:flex;align-items:center;gap:4px}
+/* Nome acessível dos botões-ícone: o Button do DS não repassa aria-label,
+   então o nome vem do conteúdo (texto recortado visualmente). */
+.ptr-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.ptr-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ptr-limpar{appearance:none;background:none;border:0;cursor:pointer;font:inherit;font-size:11px;color:var(--text-mute);text-decoration:underline;text-underline-offset:2px;padding:2px 4px}
+.ptr-limpar:hover{color:var(--accent)}
+.ptr-pessoa{display:flex;align-items:center;gap:8px;min-width:0}
+.ptr-pessoa>span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ptr-pessoa b{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptr-trilha{padding:0 18px 2px}
+.ptr-periodo{margin-bottom:12px}
+.ptr-curva{margin-top:14px}
+.ptr-curva-lb{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mute);margin-bottom:4px}
