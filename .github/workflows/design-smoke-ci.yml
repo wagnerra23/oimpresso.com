@@ -40,6 +40,14 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # CADENCIA DO LOTE DE PARIDADE (2026-09-18, decisao [W] "ligue" -> ADR 0408, que emenda a
+  # 0290). Semanal, nao nightly: o universo do lote sao as `anchored` do application-report,
+  # e elas mudam por TRABALHO humano (aplicar tela, mover pra compared), nao por relogio.
+  # Medido no dia: 23 telas executaveis de 68 `anchored` — o job nao cresce sozinho.
+  # Segunda 04:40 UTC (01:40 BRT) pra nao colidir com os crons de segunda ja existentes
+  # (anchor-drift 06:00 · charter-us-gate 06:00 · baseline-folga 06:17 · devcontainer 07:45).
+  schedule:
+    - cron: "40 4 * * 1"
 
 concurrency:
   group: design-smoke-ci
@@ -52,7 +60,11 @@ jobs:
   design-smoke:
     name: Fotografa telas tested|validated no app efêmero do CI
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    # 30 pro caminho de sempre (push/dispatch do smoke). Em `schedule` o job carrega
+    # tambem o lote de paridade (~20min sobre o boot + smoke), e 30 nao cabe: medido em
+    # 2026-09-18, sao 23 telas executaveis x 2 renders cada. Teto, nao custo — o job segue
+    # terminando quando termina. Mesmo padrao condicional do visual-regression.yml:83.
+    timeout-minutes: ${{ github.event_name == 'schedule' && 50 || 30 }}
 
     services:
       mysql:
@@ -265,3 +277,82 @@ jobs:
           else
             echo "Design Smoke CI: ${{ steps.manifest.outputs.smokes }} tela(s) fotografadas."
           fi
+
+      # ── LOTE DE PARIDADE prototipo x vivo (2026-09-18 · ADR 0408, que emenda a 0290) ────
+      # Roda o `design-diff-lote.mjs` contra o MESMO app efemero que os steps acima ja
+      # subiram (migrate + seeds Visreg + build:inertia + auth-bridge `/_visreg-login`).
+      # NAO duplica boot: pega carona. Foi por isso que a cadencia veio parar AQUI e nao num
+      # workflow novo (LC-19: nao autorar maquina paralela a tema que ja tem dono).
+      #
+      # O `visual-regression.yml` foi descartado como hospedeiro POR MEDICAO, nao por gosto:
+      # 42 condicionais de `github.event_name` em 56 steps, todas escritas pra `pull_request`
+      # ou `workflow_dispatch` — enfiar `schedule` la exigiria revisar 42 ramos do gate visual
+      # do projeto. Aqui sao 0: este workflow nunca roda em PR.
+      #
+      # POR QUE so `schedule`/`dispatch` e NAO `push: main`: o lote leva ~20min e o universo
+      # dele muda por TRABALHO humano (aplicar tela, mover pra `compared`), nao por commit.
+      # Rodar a cada merge seria custo sem sinal.
+      #
+      # DEPENDENCIA DECLARADA (acoplamento consciente, nao bug): se `select.count` for 0, o
+      # boot inteiro acima e pulado e este step nao teria app pra medir — por isso ele carrega
+      # a MESMA condicao dos outros 17 steps do job. Medido em 2026-09-18: `--select` devolve
+      # 4 (as `validated`), entao o boot roda. Se um dia der 0, este step some junto e o
+      # silencio e visivel: a secao do resumo simplesmente nao aparece no step summary.
+      #
+      # ADVISORY: `continue-on-error: true` + este workflow nao roda em `pull_request`.
+      # Vermelho aqui nunca bloqueia merge (ADR 0314: required = so Tier-0).
+      - name: Lote de paridade — sobe HTTP e mede prototipo x vivo (ADVISORY)
+        if: >-
+          steps.select.outputs.count != '0' &&
+          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        id: lote
+        continue-on-error: true
+        timeout-minutes: 22
+        run: |
+          set -o pipefail
+          # O Pest Browser sobe servidor proprio e o derruba ao terminar; o lote precisa de um
+          # HTTP estavel em --base-url, entao subimos explicitamente.
+          php artisan serve --host=127.0.0.1 --port=8000 > /tmp/lote-serve.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf -o /dev/null http://127.0.0.1:8000/login; then echo "app no ar (tentativa $i)"; break; fi
+            sleep 2
+          done
+          # Falha VISIVEL se o app nao subiu. Sem esta guarda o lote mediria a AUSENCIA do app
+          # contra o prototipo e gravaria divergencia em tudo — que e o motivo #1 da ADR 0290
+          # (veredito por coincidencia de quebra, nao por fidelidade) chegando pela porta dos
+          # fundos. Gate mudo e pior que gate ausente porque parece cobertura.
+          curl -sf -o /dev/null http://127.0.0.1:8000/login || {
+            echo "::error title=Lote de paridade::app nao subiu em 60s — nada foi medido (NAO MEDI != tudo igual)"
+            tail -20 /tmp/lote-serve.log
+            exit 1
+          }
+          node scripts/design/design-diff-lote.mjs --base-url http://127.0.0.1:8000 2>&1 | tee /tmp/lote.log
+
+      # O CONSUMIDOR. Sem ele o lote volta a ser o que era: mede, grava e ninguem le.
+      # Publica denominador + corte por CAUSA; nunca "N telas divergentes", nunca nota de
+      # fidelidade (§5 2026-07-17). A logica vive em `scripts/design/lote-resumo-ci.mjs`
+      # (com `--selftest`, 14 casos) e nao inline aqui: YAML nao se testa.
+      - name: Resumo do lote (denominador + causa) no step summary
+        if: >-
+          always() && steps.lote.conclusion != 'skipped' &&
+          steps.select.outputs.count != '0' &&
+          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        run: node scripts/design/lote-resumo-ci.mjs >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload das medidas do lote (dado bruto · NAO commitado)
+        if: >-
+          always() && steps.lote.conclusion != 'skipped' &&
+          steps.select.outputs.count != '0' &&
+          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        # Artifact e NAO commit: baseline congelada esta vetada por [W] ("a baseline tem que
+        # sumir, isso ja deu muito erro") e o §5 tem 3 lapides de rebake que nao fecha
+        # (2026-08-24 · 2026-08-26 · 2026-09-02). Comparar duas rodadas = rodar o MESMO
+        # comando em dois SHAs, nunca diffar contra artefato guardado.
+        uses: actions/upload-artifact@v4
+        with:
+          name: paridade-lote-${{ github.run_id }}
+          path: |
+            governance/design/targets/medidas/**
+            /tmp/lote.log
+          if-no-files-found: ignore
+          retention-days: 30
