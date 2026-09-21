@@ -755,7 +755,8 @@ fonte (ver `Index.casos.md` §Pendência do UC-JPAIN-18); decisão [W] sobre mig
 
 > **As 7 linhas acima FECHARAM em 2026-09-03, e a tabela ficou sem o ponteiro por 18 dias.**
 > Ela preserva o retrato do dia — os `h=125`, `r 12px`, `sans 11px/600` e a **caixa 36×36** eram
-> verdade às 09h daquele dia — e o conserto entrou às **17:44Z do MESMO dia**, pela
+> verdade quando foi escrita — e o conserto entrou às **17:44Z do MESMO dia** (a hora da
+> medição não está registrada; a do merge, sim), pela
 > [#6662](https://github.com/wagnerra23/oimpresso.com/pull/6662) (*"Onda 2 da paridade — os KPIs viram RÉPLICA do `.jc-kpi`"*), que criou
 > [`JanaKpiCard.tsx`](../../../resources/js/Pages/Jana/_components/JanaKpiCard.tsx) em vez de mexer
 > no `KpiCard` shared de 37 telas (réplica local, ADR 0388 §D-1).
