@@ -2605,3 +2605,59 @@ Ocorrência da **LC-08**. Ocorrência da **LC-10**.
   em (a) o `command -v`, em (b) o controle do mesmo prefixo com alvo fora da whitelist.
 
 Ocorrência da **LC-09**.
+
+### 2026-09-21 — REINCIDÊNCIA da LC-24 num 2º instrumento: o auto-canário do `memory-health` decidia com UMA amostra, e o conserto de 2026-08-13 nunca chegou nele
+
+- **O que aconteceu.** O job `cron-liveness` de [`memory-health.yml`](../.github/workflows/memory-health.yml)
+  (auto-canário [ADR 0317](decisions/0317-maquina-revisao-adr-quando-rever-gatilhos.md)) acusou **"cron memory-health MORTO há 23 dias"**
+  na run [35611023564](https://github.com/wagnerra23/oimpresso.com/actions/runs/35611023564)
+  (2026-09-21T14:23:13Z) com a cron **viva** — a última run agendada real era `2026-09-20T13:38:29Z`,
+  1 dia antes. Ele leu `2026-08-28T20:57:39Z`. Mesma fonte, mesma query e mesmo defeito que o
+  `cron-watchdog.mjs` já tinha medido e consertado em **2026-08-13**, a lápide-mãe desta.
+
+- **Por que durou 6 ocorrências.** Não foi desconhecimento da regra — foi **duplicação**. Os dois
+  instrumentos emitiam a query IDÊNTICA (`run list --workflow X --event schedule --status completed
+  --limit 1`), e o conserto de 08-13 (`melhorAmostra` + re-consulta só no estado que alarma) entrou
+  **só no dono**. O ancestral — o canário single-cron que o `cron-watchdog` declara generalizar
+  (ADR 0317 §2) — ficou com a cópia velha e falhou **6 vezes em 4394 runs de PR** desde 01/07:
+  21/09 leu 28/08 · 26/08 leu 16/07 · 20/08 leu 27/07 · 18/08 leu 26/07 (as 2 de 20/07 falharam
+  antes de imprimir). Denominador:
+  `gh api "repos/{owner}/{repo}/actions/workflows/290947446/runs?per_page=1&event=pull_request&created=>=2026-07-01" --jq .total_count`
+
+- **Recibos da fonte.** Nos 4 casos legíveis a data lida ocupa a posição **`dias+1`** na lista
+  filtrada — e como a cron é diária isso é **consequência da cadência**, não evidência de paginação
+  (cheguei a ler "página 24"; a aritmética derruba). **Refutadas por medição:** registro de workflow
+  duplicado (a API lista **1 só**, `id=290947446`, `active`) · ordenação (`per_page=100` volta
+  monotônica em 104 runs) · re-run (`attempt=1`, `updated_at` de 28/08) · token/escopo/branch
+  (seriam determinísticos; foram 6 em milhares com o mesmo `GITHUB_TOKEN` e `permissions: actions: read`).
+  **Não reproduz sob demanda:** 40/40 leituras locais com `per_page=1` vieram corretas — o FATO está
+  medido e o MECANISMO dentro do GitHub **não** (nomeá-lo seria inferir mecanismo a partir de sintoma).
+  **Captura AO VIVO, durante o PR do conserto:** procurando a run do próprio PR, a API devolveu runs
+  da faixa de **agosto** (IDs 33,2 bi) como as mais recentes; 8 releituras imediatas voltaram
+  `total_count=5200` e topo `35615599043` de `14:56:59Z`. A resposta INTEIRA era retrato velho, e
+  reler resolveu — a mesma assinatura de 08-13, agora com um 2º recibo.
+
+- **O limite (variante também proibida).** Ao consertar uma classe de defeito **dentro de um
+  instrumento**, perguntar **quem mais implementa aquela mesma regra** — e dizer o número, com a
+  varredura contada. Havendo 2+ implementações, o conserto não termina na que doeu: ou as outras são
+  consertadas no MESMO PR, ou passam a **chamar uma só**. Regra duplicada **diverge por construção** —
+  a cópia não tocada envelhece em silêncio e reaparece meses depois com cara de defeito novo. Vale
+  para query repetida em dois lugares, validação espelhada em front e back, limiar escrito em YAML e
+  em código, e parser reimplementado ao lado do dono. Corolário de diagnóstico, porque é o que
+  encurta a investigação: **diante do alarme de um instrumento, pergunte se existe irmão que faz a
+  mesma pergunta** — se existir e ele estiver saudável, a diferença entre os dois É a causa.
+
+- **⚠️ Sobre virar gate — e o que mudou SEM virar gate.** O gate de CLASSE segue **banido por
+  construção**, e a [LC-24](LICOES_CODE.md) já declara por quê: *"esta fonte pode estar atrasada?"*
+  não se decide por sintaxe, e acusar toda leitura única é a família de guard sintático que este §5
+  já enterrou. O que mudou é estrutural, não mecânico: a regra existia em **2 implementações** e
+  passa a existir em **1** — medido,
+  `git grep -l -e '--event schedule' <ref> -- '*.mjs' '*.yml' '*.sh' '*.js' '*.php'` devolve
+  `memory-health.yml` + `cron-watchdog.mjs` em `main` e só o segundo com o conserto. Um **terceiro**
+  instrumento seguiria exposto, então `Gate:` continua `none` e a classe segue alarmando — leitura
+  correta da convenção, não pendência escondida. ⚠️ E os 6 asserts novos rodam no `--selftest` do
+  dono, na lane `governance-script-tests`, que **não estava** na união dos 47 contexts required
+  (medido 2026-09-21) — logo, pela convenção do cabeçalho do ledger, isso **não** conta como defesa
+  mecânica.
+
+Ocorrência da **LC-24**.

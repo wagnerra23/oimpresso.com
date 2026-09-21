@@ -1638,6 +1638,33 @@ Ocorrência da **LC-08**. Ocorrência da **LC-10**.
 
 Ocorrência da **LC-09**.
 
+### 2026-09-21 — REINCIDÊNCIA da LC-24 num 2º instrumento: o auto-canário do `memory-health` decidia com UMA amostra, e o conserto de 2026-08-13 nunca chegou nele
+
+- **O limite (variante também proibida).** Ao consertar uma classe de defeito **dentro de um
+  instrumento**, perguntar **quem mais implementa aquela mesma regra** — e dizer o número, com a
+  varredura contada. Havendo 2+ implementações, o conserto não termina na que doeu: ou as outras são
+  consertadas no MESMO PR, ou passam a **chamar uma só**. Regra duplicada **diverge por construção** —
+  a cópia não tocada envelhece em silêncio e reaparece meses depois com cara de defeito novo. Vale
+  para query repetida em dois lugares, validação espelhada em front e back, limiar escrito em YAML e
+  em código, e parser reimplementado ao lado do dono. Corolário de diagnóstico, porque é o que
+  encurta a investigação: **diante do alarme de um instrumento, pergunte se existe irmão que faz a
+  mesma pergunta** — se existir e ele estiver saudável, a diferença entre os dois É a causa.
+
+- **⚠️ Sobre virar gate — e o que mudou SEM virar gate.** O gate de CLASSE segue **banido por
+  construção**, e a [LC-24](LICOES_CODE.md) já declara por quê: *"esta fonte pode estar atrasada?"*
+  não se decide por sintaxe, e acusar toda leitura única é a família de guard sintático que este §5
+  já enterrou. O que mudou é estrutural, não mecânico: a regra existia em **2 implementações** e
+  passa a existir em **1** — medido,
+  `git grep -l -e '--event schedule' <ref> -- '*.mjs' '*.yml' '*.sh' '*.js' '*.php'` devolve
+  `memory-health.yml` + `cron-watchdog.mjs` em `main` e só o segundo com o conserto. Um **terceiro**
+  instrumento seguiria exposto, então `Gate:` continua `none` e a classe segue alarmando — leitura
+  correta da convenção, não pendência escondida. ⚠️ E os 6 asserts novos rodam no `--selftest` do
+  dono, na lane `governance-script-tests`, que **não estava** na união dos 47 contexts required
+  (medido 2026-09-21) — logo, pela convenção do cabeçalho do ledger, isso **não** conta como defesa
+  mecânica.
+
+Ocorrência da **LC-24**.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
