@@ -135,7 +135,8 @@ export function resolveRef(ref, { root, linkBase }) {
 /** índice de arquivos trackeados (git ls-files) — determinístico, ordem estável. null se git falhar. */
 function gitFileIndex(root) {
   try {
-    const out = execSync('git ls-files', { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    // maxBuffer: a lista do repo inteiro passou do default de 1 MiB em 2026-09-21 (ENOBUFS → null).
+    const out = execSync('git ls-files', { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 * 1024 * 1024 });
     return out.split('\n').map((s) => s.trim().replace(/\\/g, '/')).filter(Boolean);
   } catch { return null; }
 }
