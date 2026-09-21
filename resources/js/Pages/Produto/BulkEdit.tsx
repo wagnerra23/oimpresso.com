@@ -135,7 +135,7 @@ function ProdutoBulkEdit(props: ProdutoBulkEditPageProps) {
       setShowConfirm(true);
       return;
     }
-    post('/products/mass-update');
+    post('/products/bulk-update');
   };
 
   const productCount = props.products.length;

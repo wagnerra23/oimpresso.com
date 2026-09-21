@@ -57,7 +57,7 @@ Instrumentos do protótipo que **nunca** vão pro vivo: `WipMark` · `podeVer(pa
 > **Correção — 01 e 02 NÃO eram paralelas.** Ambas participam do mesmo corte de código morto e a **02 depende da 01**: cortar as props em `app.jsx` antes de a 01 remover o JSX que as consome quebra o `Sidebar`. Lei 1 pegou o conflito de arquivo (01×03), não este — conflito de **ordem sem arquivo em comum**.
 
 **Vaga 1:** 01 ∥ 02 ∥ 04 · **Vaga 2:** 03 ∥ 05 · **Vaga 3:** 06. Entre vagas, S0 consolida.
-**Ancoragem dupla:** alvo de layout = o protótipo medido (`prototipo-ui/cowork/sidebar.jsx`); **âncora de implementação = `Components/cockpit/Sidebar.tsx` + `cockpit.css`** — reusar `.sb-*`, `SidebarMode`, `LS.SB_MODE`, `AUTO_RAIL_MQ` que já existem lá. O `main` responde *onde e com que dado*; o protótipo responde *como*.
+**Ancoragem dupla:** alvo de layout = o protótipo medido (`prototipo-ui/cowork/Wagner/sidebar.jsx`); **âncora de implementação = `Components/cockpit/Sidebar.tsx` + `cockpit.css`** — reusar `.sb-*`, `SidebarMode`, `LS.SB_MODE`, `AUTO_RAIL_MQ` que já existem lá. O `main` responde *onde e com que dado*; o protótipo responde *como*.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
 > **Fonte = bloco ```json do §7 + o repo.** `node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs --indice <este arquivo> --root . --proximo`. Regra: `_saida-NN.md` presente **e** provas verdes = `feito`; sem `_saida` = não feito, mesmo com PR mergeado.
@@ -131,7 +131,7 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
   "gerado": "2026-09-10",
   "granularidade": "secao",
   "absorve": ["prototipo-ui/design-docs/handoff-sidebar/PEDIDO-CODE.md"],
-  "variaveis": { "CKPT": "resources/js/Components/cockpit", "BUILD": "prototipo-ui/cowork", "CT": "prototipo-ui/contrato/cockpit-sidebar.contract.json", "REC": "prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/recibos" },
+  "variaveis": { "CKPT": "resources/js/Components/cockpit", "BUILD": "prototipo-ui/cowork/Wagner", "CT": "prototipo-ui/contrato/cockpit-sidebar.contract.json", "REC": "prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/recibos" },
   "contratos_de_prova": "lidos em prototipo-ui/design-docs/cowork-inbox/_scripts/README-placar.md (main, 2026-09-10): contem/nao_contem NÃO fecham thread — estrutura não prova execução. execucao=recibo JSON+summary da máquina que rodou; revisao=parecer, só pra tarefa que escreve apenas .md/.contract.json; comparacao=design-diff --compare --contrato --check --check-shell --json, exige o .contract.json.",
   "decisoes": [
     { "id": "RESIDUO-1", "pergunta": "Ghosts: emendar ADR 0180 (código venceu) ou reverter GHOST_TETO do vivo?", "respondida": true, "resposta": "não era decisão de [W]: UI-0029 (28/08) diz que ADR divergente do protótipo está errada, e o corolário 1 proíbe devolver a pergunta. Emenda datada na 0180.", "destrava": ["05"] },
@@ -192,12 +192,12 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
       ],
       "nota_estado": "DESTRAVADA pela UI-0029 (modo e alça são forma; o protótipo tem os dois). O rail do alerta de certificado (thread 03) é invenção do protótipo, não paridade — se entrar no vivo, é decisão à parte." },
     { "id": "05", "titulo": "Ghosts × ADR 0180 — emenda ou reversão", "dono": "W", "vaga": 2, "arquivo": "05-ghosts-adr-0180.md",
-      "prefixo": ["memory/decisions/0180-sidebar-contrato-v2.md"],
+      "prefixo": ["memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md"],
       "nao_toca": ["${CKPT}/Sidebar.tsx"],
       "provas": [
-        { "tipo": "contem", "path": "memory/decisions/0180-sidebar-contrato-v2.md", "padrao": "2026-09", "nota": "pré-condição: emenda datada, nunca ADR paralela (LC-19)" },
+        { "tipo": "contem", "path": "memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md", "padrao": "2026-09", "nota": "pré-condição: emenda datada, nunca ADR paralela (LC-19)" },
         { "tipo": "revisao", "path": "${REC}/05-revisao.json",
-          "fontes": ["memory/decisions/0180-sidebar-contrato-v2.md", "${CKPT}/Sidebar.tsx"],
+          "fontes": ["memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md", "${CKPT}/Sidebar.tsx"],
           "criterios": ["emenda-datada", "ghost-teto-conferido-no-codigo", "sem-adr-paralela"],
           "nota": "quem fecha. Escreve só .md, então revisao é o contrato válido: parecer com revisor identificado e justificativa por critério." }
       ],
