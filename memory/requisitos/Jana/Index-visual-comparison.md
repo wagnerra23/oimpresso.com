@@ -44,8 +44,12 @@
 > referência re-medida hoje, segue 700), então mudá-la alinharia **42** telas ao peso da Jana.
 > Conserto: prop opt-in `titleWeight` no `PageHeader` (default `'bold'`, mesmo contrato de
 > `leading`/`below`); só o `JanaAreaHeader` declara `'semibold'` — as outras **41** não mudam um
-> pixel. UC-JPAIN-30, mordida provada por 2 mutações. ⚠️ **Não é computed style:** jsdom não carrega
-> Tailwind e smoke autenticado não foi feito (`/ia` -> 302). O `<h1>` **continua fora** dos 9
+> pixel. UC-JPAIN-30, mordida provada por 2 mutações. **Computed style MEDIDO** (browser real + CSS do
+> projeto gerado pelo entry de verdade, Tailwind v4.3.3): **600** com a prop, **700** sem ela, e
+> `font-size` **22px nos dois** — a paridade de tamanho **não foi tocada**. Necessária porque no v4
+> a regra é indireta (`font-weight: var(--font-weight-semibold)`) e só o browser resolve; controle
+> positivo `folhaCarregou: true` no mesmo turno. ⚠️ Não é a tela `/ia` **logada inteira** — smoke
+> autenticado não foi feito (302 sem sessão). O `<h1>` **continua fora** dos 9
 > seletores do `jana--index.alvo.json` — o buraco de medição que esta seção denuncia **segue
 > aberto**, e fechá-lo exige re-medir por sonda contra render servido, não editar o alvo à mão.
 > Trilha: `Index.charter.md` **v25**.

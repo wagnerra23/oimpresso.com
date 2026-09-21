@@ -1702,10 +1702,25 @@ declara `titleWeight="semibold"`. As outras **41** telas não passam a prop e **
 Os dois mutantes foram restaurados a partir de cópia byte-exata, com `sha256sum` conferido antes e
 depois (§5 2026-09-21 — restauração não sai de transformação reversa).
 
-⚠️ **O que este UC NÃO prova.** jsdom não carrega o CSS do Tailwind, então o assert é sobre a
-**classe que o componente renderiza no DOM**, não sobre `getComputedStyle().fontWeight` — medir o
-computed aqui devolveria o default do user-agent e seria medir a propriedade errada (§5
-2026-07-16). **Smoke autenticado NÃO foi feito:** `/ia` devolve 302 sem sessão, como o UC-29 já
+**COMPUTED STYLE — medido no browser em 2026-09-21.** O assert do vitest prova a **classe**
+(jsdom não carrega CSS); o computed foi medido à parte, num browser real, com o CSS do projeto
+gerado pelo entry de verdade (`npx @tailwindcss/cli -i resources/css/inertia.css`, 742 KB,
+Tailwind v4.3.3). Importa porque no v4 a regra é indireta — `.font-semibold { font-weight:
+var(--font-weight-semibold) }` —, então só o browser resolve o valor final:
+
+| `<h1>` | `font-weight` | `font-size` |
+|---|---|---|
+| com `titleWeight="semibold"` (Jana) | **600** | 22px |
+| sem a prop (canon, as outras 41) | **700** | 22px |
+
+O `font-size` fica **22px nos dois** — a paridade de tamanho que já existia **não foi tocada**.
+A className testada foi **extraída do fonte** por regex (as duas resoluções do ternário), não
+digitada à mão. Controle positivo no mesmo turno: `folhaCarregou: true` — sem ele, um computed
+"600" poderia ser o default do user-agent com a folha ausente, que é medir nada (§5 2026-08-01).
+
+⚠️ **O que este UC NÃO prova.** A medição acima é do `<h1>` com a className real + o CSS real do
+projeto — **não é a tela `/ia` logada inteira**, onde uma regra de maior especificidade poderia
+(em tese) sobrescrever. **Smoke autenticado NÃO foi feito:** `/ia` devolve 302 sem sessão, como o UC-29 já
 registra. A prova de que o browser computa 600 é o visreg (esta tela está em
 `tests/Browser/visreg-screens.json`) e o `<h1>` continua **fora** dos 9 seletores do
 `governance/design/targets/jana--index.alvo.json` — ver §Resíduo no PR.

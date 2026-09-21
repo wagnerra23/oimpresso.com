@@ -258,8 +258,12 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   e só o `JanaAreaHeader` declara `'semibold'`; as outras **41** telas não mudam um pixel.
   UC-JPAIN-30, com mordida provada por duas mutações (uma por perna: some o opt-in -> cai o assert
   da Jana; muda o default -> cai o controle negativo que protege as demais). Teste:
-  `tests/janaAreaHeaderParidade.spec.tsx`. ⚠️ **Não prova o computed style**: jsdom não carrega o
-  Tailwind, e smoke autenticado não foi feito (`/ia` -> 302 sem sessão). O `<h1>` segue FORA dos 9
+  `tests/janaAreaHeaderParidade.spec.tsx`. **Computed style MEDIDO** (2026-09-21, browser real + CSS do projeto gerado pelo entry
+  de verdade, Tailwind v4.3.3): com a prop **600**, sem a prop **700**, e `font-size` **22px nos
+  dois** — a paridade de tamanho não foi tocada. A medição é necessária porque no v4 a regra é
+  indireta (`font-weight: var(--font-weight-semibold)`) e só o browser resolve. Controle positivo
+  no mesmo turno (`folhaCarregou: true`), e a className veio extraída do fonte, não digitada.
+  ⚠️ Não é a tela `/ia` logada inteira: smoke autenticado não foi feito (302 sem sessão). O `<h1>` segue FORA dos 9
   seletores do `governance/design/targets/jana--index.alvo.json` — resíduo declarado, não fechado.
 
 - **v24 (2026-09-21)** — **os 3 estados do gate L2 existem, e a medição expôs um PONTO CEGO que
