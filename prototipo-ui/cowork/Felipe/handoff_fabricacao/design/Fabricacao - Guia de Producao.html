@@ -17,13 +17,13 @@
      colors_and_type.css  → tokens de identidade (.cockpit claro / .cockpit[data-theme=dark])
      styles.css           → folha do shell cockpit: :root da sidebar/accent/radius/fontes +
                             os padrões de página que o módulo consome (.os-page-h, .os-btn) -->
-<link rel="stylesheet" href="../../design-system/colors_and_type.css">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../../../../design-system/colors_and_type.css">
+<link rel="stylesheet" href="../../styles.css">
 
 <!-- ══ CAMADA 1 · FUNDAÇÕES — vazia nesta tela (ver design/README.md §CSS) ══ -->
 
 <!-- ══ CAMADA 2 · SHELL ══ -->
-<link rel="stylesheet" href="02-shell/css/otimiza-ondas.css">
+<link rel="stylesheet" href="../../otimiza-ondas.css">
 <link rel="stylesheet" href="02-shell/css/guia-standalone.css">
 
 <!-- ══ CAMADA 3 · PADRÕES DE TELA — vazia nesta tela (ver design/README.md §CSS) ══ -->
@@ -40,8 +40,8 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- ordem = dependência (cada arquivo publica em window no fim; escopos Babel não se falam) -->
-<script type="text/babel" src="manufacturing-data.jsx"></script>  <!-- 1. dados + cálculo -->
-<script type="text/babel" src="icons.jsx"></script>               <!-- 2. primitivo: window.I -->
+<script type="text/babel" src="../../manufacturing-data.jsx"></script>  <!-- 1. dados + cálculo -->
+<script type="text/babel" src="../../icons.jsx"></script>               <!-- 2. primitivo: window.I -->
 <script type="text/babel" src="manufacturing-recipe.jsx"></script><!-- 3. peças -->
 <script type="text/babel" src="manufacturing-insumos.jsx"></script>
 <script type="text/babel" src="manufacturing-producao.jsx"></script>
