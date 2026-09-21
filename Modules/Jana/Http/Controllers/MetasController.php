@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Jana\Entities\Meta;
 use Modules\Jana\Entities\MetaApuracao;
+use Modules\Jana\Entities\MetaPeriodo;
 use Modules\Jana\Http\Requests\StoreMetaRequest;
 use Modules\Jana\Http\Requests\UpdateMetaRequest;
 use Modules\Jana\Jobs\ApurarMetaJob;
@@ -85,6 +86,38 @@ class MetasController extends Controller
             'criada_por_user_id' => auth()->id(),
             'origem'             => 'manual',
         ]));
+
+        // O ALVO nasce JUNTO com a meta, quando veio (2026-09-21).
+        //
+        // Ate aqui este metodo criava SO a `Meta`, enquanto o irmao via IA
+        // (`ChatController@escolher`) criava `Meta` + `MetaPeriodo` + `MetaFonte` e
+        // ainda despachava o `ApurarMetaJob`. A assimetria nao era teorica: medidas
+        // em producao, as 5 metas do tenant tinham ZERO periodo, ZERO apuracao e ZERO
+        // fonte, e por isso os 5 cards do Painel saiam identicos, em "Aguardando
+        // apuracao...". Sem `periodo_atual` nao ha alvo; sem alvo nao ha barra, nao ha
+        // "% do alvo" e nao ha projecao.
+        //
+        // ⚠️ O que este bloco NAO resolve, e e residual DECLARADO: a `MetaFonte`.
+        // Sem fonte a meta nao apura — e isso o proprio `buildMetasPayload` ja dizia
+        // ("`null` = meta sem fonte gravada, que e estado REAL: sem fonte a meta nao
+        // apura"). Nao se cria fonte aqui porque NAO EXISTE UI pra ela em lugar nenhum:
+        // a tela `copiloto::fontes.show` e somente-leitura e declara, no proprio corpo,
+        // que "o editor com previa do resultado antes de salvar e a US-COPI-040".
+        // Inventar um campo de SQL no drawer seria pior que o buraco.
+        //
+        // `Meta::create` ignora as chaves de periodo por `$fillable`, entao elas chegam
+        // no `$data` sem sujar a meta — mas se lem aqui de forma explicita, e nao por
+        // efeito colateral do merge.
+        if ($request->temAlvo()) {
+            MetaPeriodo::create([
+                'meta_id'      => $meta->id,
+                'tipo_periodo' => $data['tipo_periodo'] ?? 'mes',
+                'data_ini'     => $data['data_ini'],
+                'data_fim'     => $data['data_fim'],
+                'valor_alvo'   => $data['valor_alvo'],
+                'trajetoria'   => $data['trajetoria'] ?? 'linear',
+            ]);
+        }
 
         // O drawer de criação (PR-2b) posta daqui sem sair do Painel — mesma regra das
         // outras ações: origem Inertia volta pra origem, HTTP comum mantém o de sempre.

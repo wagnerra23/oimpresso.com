@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 568 arquivos em 19 papéis.
+**Total mapeado:** 569 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -316,7 +316,7 @@ module: Jana
 - [Plataforma.tsx](../../../resources/js/Pages/Jana/Plataforma.tsx)
 - [Pro.tsx](../../../resources/js/Pages/Jana/Pro.tsx)
 
-## Componentes / apoio de tela — 14
+## Componentes / apoio de tela — 15
 
 - [AssistantUiChat.tsx](../../../resources/js/Pages/Jana/_components/AssistantUiChat.tsx)
 - [FabJana.tsx](../../../resources/js/Pages/Jana/_components/FabJana.tsx)
@@ -328,6 +328,7 @@ module: Jana
 - [JanaConversaHeader.tsx](../../../resources/js/Pages/Jana/_components/JanaConversaHeader.tsx)
 - [JanaDrillDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaDrillDrawer.tsx)
 - [JanaKpiCard.tsx](../../../resources/js/Pages/Jana/_components/JanaKpiCard.tsx)
+- [JanaKpiGrid.tsx](../../../resources/js/Pages/Jana/_components/JanaKpiGrid.tsx)
 - [JanaMetaDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx)
 - [JanaMetaNovaDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaMetaNovaDrawer.tsx)
 - [JanaPlanoBadge.tsx](../../../resources/js/Pages/Jana/_components/JanaPlanoBadge.tsx)
@@ -353,9 +354,9 @@ module: Jana
 - [Plataforma.casos.md](../../../resources/js/Pages/Jana/Plataforma.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 191
+## Testes (Pest) — 192
 
-- 41 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
+- 42 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
 - 12 em [Modules/Jana/Tests/Feature/Ai/](../../../Modules/Jana/Tests/Feature/Ai)
 - 2 em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor)
 - 2 em [Modules/Jana/Tests/Feature/Ai/Clarify/](../../../Modules/Jana/Tests/Feature/Ai/Clarify)

@@ -1722,6 +1722,154 @@ avisada **antes** de medir, para carimbar os números dela como "medidos em grad
 lg:grid-cols-2` derruba **2** asserts — um por ausência da nova, outro por presença da antiga —, e
 remover `py-0 gap-0` derruba **1**. Arquivo restaurado com **hash conferido** após a mutação
 (`96dff22f8a951e5f` antes e depois), para nenhum mutante sobreviver no diff.
+## UC-JPAIN-34 — o grid de KPIs quebra no breakpoint da ÂNCORA, não no do shared
+
+Status: 🧪 (a lógica do assert foi rodada em PHP no CT 100 contra o arquivo real —
+**extrator 4/4** (pega a linha de código, ignora `//` e `*`) e **asserts 5/5**, 2026-09-21; a
+suite `PHP / Pest (Jana · MySQL)` completa é a lane do CI, e o veredito vira ✅ quando o
+manifesto `casos-results` aterrissar — o G-7 lê o manifesto commitado, não esta linha.
+⚠️ A **primeira** versão deste caso FALHOU na lane (run 35630130145): o assert media o
+arquivo e pegou `grid-cols-1` do próprio docblock — presence-gate sobre prosa, consertado
+passando a medir a LINHA do `<Grid>`.)
+
+**Origem:** chip de 2026-09-21 pedindo pra fechar a dívida visual do KPI. A dívida que o chip
+descrevia (rótulo sans 11px, caixa de ícone 36×36, valor 22 × 24px) **não existia mais** — foi
+fechada em 2026-09-03 pela Onda 2 ([#6662](https://github.com/wagnerra23/oimpresso.com/pull/6662)),
+e a re-medição desta data confirma **24 de 26 campos idênticos**. O que a re-medição achou foi
+OUTRA coisa, num eixo que nenhuma rodada anterior tinha medido: o **responsivo**.
+
+### O que foi medido (tela viva, não bancada)
+
+Staging autenticado (`/_visreg-login`), `/ia`, dark × dark, mesma sonda ad-hoc nos dois lados,
+**canário acusando em ambos** (padding forçado a 40px ⇒ a sonda muda de veredito). D0: o lado
+design declara `data-screen-label="Jana — Painel"`; o lado prod está em `/ia` com `.cockpit`.
+
+| viewport | âncora `.jc-kpis` | produção `KpiGrid cols={4}` | |
+|---|---|---|---|
+| 1440 | 4 col · card 276px | 4 col · card 276px | ✅ |
+| 1280 | 4 col · card 287px | 4 col · card 287px | ✅ |
+| 1080 | **2 col · card 483px** | **4 col · card 237px** | ❌ |
+| 1050 | **2 col · card 468px** | **4 col · card 229px** | ❌ |
+| 900 | 2 col · card 393px | 2 col · card 393px | ✅ |
+| 600 | **2 col · card 279px** | **1 col · card 552px** | ❌ |
+
+**A causa:** a `.jc-kpis` é `repeat(4, 1fr)` e quebra em `@media (max-width: 1100px)` para
+`repeat(2, 1fr)` (`chat-jana.css:139` e `:444`) — **sem degrau de mobile**. O `colsMap[4]` do
+`KpiGrid` compartilhado é `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`, ou seja quebra em 1024 e
+de novo em 640. Sobravam duas faixas: **1024–1100** (4 col onde a âncora põe 2) e **<640**
+(1 col onde a âncora põe 2).
+
+### O conserto — réplica local do grid, e **duas tentativas mais simples foram REFUTADAS antes**
+
+O que entrou foi `_components/JanaKpiGrid.tsx`, réplica da `.jc-kpis` sobre o primitivo
+`<Grid cols={2}>` (ADR 0253), com o degrau pelo `className`. O que chega ao DOM — extraído do
+render, não escrito à mão — é `grid grid-cols-2 gap-2.5 min-[1101px]:grid-cols-4`.
+
+O primitivo funciona onde o `KpiGrid` não funcionava por uma razão específica: as variantes
+do `<Grid>` são **simples** (`grid-cols-2`, sem `sm:`/`lg:`), então não há variant nomeado
+emitido depois do arbitrário pra vencer dele. O `gap` dele só tem inteiros (a âncora pede
+10px = `gap-2.5`), então o gap vem pelo `className`, substituindo o default via `twMerge`. O caminho óbvio — passar um arbitrary variant no `className` do
+`KpiGrid` compartilhado — foi tentado **duas vezes e saiu INERTE nas duas**, e o registro fica
+aqui porque a próxima sessão vai ter a mesma ideia:
+
+| tentativa | offset da classe | offset do concorrente | resultado |
+|---|---|---|---|
+| `max-[1100px]:grid-cols-2` | `.max-[1100px]:grid-cols-2` @264896 | `.lg:grid-cols-4` @271781 | `lg` vence → 4 col em 1080px |
+| `min-[1101px]:grid-cols-4` | `.min-[1101px]:grid-cols-4` @264997 | `.lg:grid-cols-2` @271756 | `lg` vence → 4 col em 1080px |
+
+**A causa é do Tailwind 4, e é geral:** ele emite os variants **arbitrários** (`min-[…]`,
+`max-[…]`) **antes** dos nomeados (`sm:`, `lg:`). Como a especificidade é a mesma, vence quem vem
+depois — ou seja, sempre o `colsMap`. Enquanto o `colsMap` estiver no meio, **arbitrary variant
+naquele `className` é decoração**: passa em typecheck, lint e CI, e não move um pixel (LC-30).
+
+Sem o `colsMap` competindo sobra `grid-cols-2` (base, sem media query) contra
+`min-[1101px]:grid-cols-4` (dentro da media) — e aí a ordem funciona a favor. Reproduzir: buildar
+e comparar os offsets dos dois seletores no mesmo `build-inertia/assets/app-*.css`.
+
+⚠️ **Como a segunda tentativa foi pega:** pela bancada, não pela leitura. O canário (remover a
+classe e re-medir) devolveu **o mesmo número**, que é a assinatura de classe inerte. Uma
+verificação por leitura de CSS teria aprovado as duas — e a primeira "prova de ordem" que escrevi
+estava medindo `max-width: 1100px` de **CSS legado** (`.sells-cowork`, `.fin-cowork`), não a
+utility. Proxy plausível lido como alvo.
+
+**Por que réplica local e não mexer no `colsMap`:** o `KpiGrid` serve 37 telas com o degrau
+PT-04, e a forma da Jana não se impõe ao resto do ERP — a mesma razão que fez o `JanaKpiCard`
+nascer réplica em vez de ajuste no `KpiCard`
+([ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1),
+e que o `SectionTitle` seguiu em 2026-09-18. É o terceiro precedente desta mesma tela.
+
+### A prova (bancada com o CSS buildado, controle antes × depois)
+
+| viewport | âncora | antes (`KpiGrid cols={4}`) | depois (`JanaKpiGrid`) |
+|---|---|---|---|
+| 1440 | 4 | 4 | **4** ✅ |
+| 1280 | 4 | 4 | **4** ✅ |
+| 1080 | 2 | 4 | **2** ✅ |
+| 1050 | 2 | 4 | **2** ✅ |
+| 900 | 2 | 2 | **2** ✅ |
+| 600 | 2 | 1 | **2** ✅ |
+
+**6/6 batendo**, e o controle **discrimina**: em 3 viewports o markup antigo e o novo dão números
+diferentes na mesma página — sem isso, "6/6 igual" seria compatível com uma bancada cega.
+
+### ⚠️ O que ficou MEDIDO E ABERTO — `margin-bottom` 18 × 16
+
+A `.jc-kpis` tem `margin-bottom: 18px`; em produção o espaço é **16px**, e ele **não vem de uma
+classe no grid** — vem do `space-y-4` do container pai (medido no DOM: `gridMarginBottom: 16px`,
+`paiClasses: "space-y-4"`, `irmaoMarginTop: 0px`). Uma utility `mb-[18px]` no grid seria
+**inerte**: a regra do pai tem especificidade `(0,2,0)` contra `(0,1,0)` da utility.
+
+Fechar isso exige tocar o `space-y-4`, que governa o espaçamento de **todas** as seções da tela
+— fora do raio deste PR, e território de chips irmãos vivos (grade de Análises, gráficos, Metas).
+Fica medido e declarado, não consertado. Diferença de 2px entre seções.
+> ⚠️ **FECHADO por OUTRA sessão enquanto este PR esperava, e a minha análise do conserto
+> estava ERRADA** — `UC-JPAIN-33` ([#7653](https://github.com/wagnerra23/oimpresso.com/pull/7653),
+> 2026-09-21). Eu medi certo *de onde vinha* em produção (o `space-y-4` do container) e concluí
+> errado *como se fecha*: escrevi que exigiria tocar o container e o espaçamento de todas as
+> seções. A medição deles na **âncora** mostra o oposto — lá o 18px **não vem de um container,
+> vem de cada seção** — e por isso o conserto coube por seção, sem raio nas vizinhas.
+> Medir a produção não substitui medir a âncora: eu parei na primeira.
+
+
+### As duas "divergências" que a medição DISSOLVEU
+
+Não são dívida, e o registro existe pra ninguém as reabrir:
+
+1. **`smallPx` do 1º card** (âncora 11px × prod ausente) — é **dado**: o card `Receita 30 dias`
+   não recebe sub no staging, enquanto a âncora traz `-68% vs mai/25`. Os cards 2 e 3 têm sub de
+   11px nos dois lados.
+2. **altura 95,5 × 91,5** (4px) — decompõe em `+6` e `−2`, nenhum dos dois de forma:
+   **+6** porque o card 2 da âncora está em `emph` (valor 28px, `--fs-8`) por ter vencido
+   **diferente de zero**, enquanto no staging o saldo vencido é **zero** e o `emphasis`
+   corretamente não dispara; **−2** pela
+   borda de 1px que o **meu render do espelho não pintou** (`--border` vazio ali — ver limite
+   abaixo). ⚠️ Isto **refuta** a causa registrada em 2026-09-03 (*"line-height do `small`
+   herdado do body de cada bancada"*): o `<small>` tem `line-height: 16.5px` **idêntico** nos
+   dois lados, medido por decomposição da altura em parcelas.
+
+### ⚠️ Limite desta rodada, declarado
+
+No render do espelho o `colors_and_type.css` carregou com **0 regras** e os tokens `--surface`,
+`--border` e `--text-3` ficaram vazios. Logo **cor de fundo, cor de borda e cor de texto do lado
+design NÃO foram medidas** — e por isso não entram em veredito nenhum acima. Os 24 campos que
+deram IGUAL são geométricos e tipográficos, e nenhum depende desses três tokens (`--r-2`,
+`--fs-7` e `--mono` resolveram normalmente). O `cowork-mirror-freshness --sla` dá
+**⬜ INCONCLUSIVO** no dia: `--compare` completo (708/708 sync) e 4 arquivos do vivo fora do
+espelho, todos config/meta (`.gitignore`, `.thumbnail`, 2 JSON do `_ds/`).
+
+**Teste:** `Modules/Jana/Tests/Feature/PainelContratoTest.php` — `UC-JPAIN-34`. O assert mede **a linha do `<Grid>`**, nunca o arquivo: o docblock do
+componente cita `grid-cols-2`, `grid-cols-1` e `min-[1101px]` ao explicar as tentativas
+refutadas, e um `toContain` sobre o arquivo passaria pela **prosa** (LC-11) — contado,
+`grid-cols-2` aparece 5× no arquivo e **0× em código**. O extrator tem bite-test próprio
+(pega a linha de código, ignora `//` e `*`). O **perdedor foi corrigido no
+mesmo PR**: o extrator `painelKpisDoGrid` casava `<KpiGrid…</KpiGrid>` e passou a casar
+`<JanaKpiGrid>`; sem isso ele devolveria `[]` e o **UC-JPAIN-18 ficaria verde por não achar
+nada** — LC-11 na forma silenciosa, que é exatamente o risco que o docblock daquele extrator já
+declarava. As 3 fixtures do bite-test dele e o par de proveniência vieram junto.
+
+⚠️ Ele trava a **declaração**, não o motor de CSS: media query não é avaliada num teste que lê o
+`.tsx`. O comportamento por viewport está na tabela acima, medido em bancada com o CSS buildado;
+o par visual é do `visual-regression`.
 
 ---
 

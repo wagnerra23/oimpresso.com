@@ -181,6 +181,9 @@ export function selftest() {
   ok(decidirDono(naoVin, 'w', contasT, projsT).motivo.includes('--conta NAO vale aqui'), 'MORDE: e diz por que nao cede');
   // CONTROLE NEGATIVO do par: se decidirDono virasse "nao pra tudo", os 5 SOLTA caem juntos.
   ok(decidirDono(vinc, 'outra', contasT, projsT).ok === true, 'SOLTA: vinculada ignora --conta irrelevante (nao virou nao-pra-tudo)');
+  // Uma 2a conta COM espelho passa a ser aceita — o registro e que decide, nao um `if` por nome.
+  const projsF = { ...projsT, telasF: { conta: 'outra', espelho: 'prototipo-ui/cowork/Felipe/' } };
+  ok(decidirDono(indet, 'outra', contasT, projsF).ok === true, 'SOLTA: conta que ganha espelho em PROJETOS passa a importar');
 
   // -- ignoradosPeloRepo (o que o .gitignore proibe NAO entra no manifesto) --------
   // Injetor FAKE de proposito: acoplar ao .gitignore real faria o caso mudar de veredito quando
@@ -191,6 +194,17 @@ export function selftest() {
     'MAPA: path de tela pousa no espelho do Wagner');
   ok(pathNoEspelho('_ds/x/colors_and_type.css', 'preview-cache').startsWith('prototipo-ui/design-system/'),
     'MAPA: preview-cache pousa no design-system (dsRuntimeRelPath)');
+  // Conta do Felipe (2026-09-21): o destino sai do DONO do lote. Antes era hardcoded Wagner, e um
+  // zip do Felipe teria pousado no espelho do Wagner.
+  ok(pathNoEspelho('app.jsx', undefined, 'Felipe') === 'prototipo-ui/cowork/Felipe/app.jsx',
+    'MAPA: path de tela do dono Felipe pousa no espelho do Felipe');
+  ok(pathNoEspelho('app.jsx', undefined, 'Wagner') === 'prototipo-ui/cowork/Wagner/app.jsx',
+    'MAPA: dono Wagner explicito continua no espelho do Wagner (controle negativo)');
+  ok(pathNoEspelho('_ds/x/colors_and_type.css', 'preview-cache', 'Felipe').startsWith('prototipo-ui/design-system/'),
+    'MAPA: preview-cache do Felipe tambem pousa no DS unico, nunca no espelho dele');
+  let donoInvalido = false;
+  try { pathNoEspelho('app.jsx', undefined, 'Outro'); } catch { donoInvalido = true; }
+  ok(donoInvalido, 'MORDE: dono fora de Wagner/Felipe recusa em vez de escrever num lugar inventado');
 
   const ign = ignoradosPeloRepo(['inbox-photo-c1.png', 'inbox-page.jsx', 'app.jsx'], soPng);
   ok(ign.has('inbox-photo-c1.png'), 'MORDE: png que o .gitignore exclui sai do export');

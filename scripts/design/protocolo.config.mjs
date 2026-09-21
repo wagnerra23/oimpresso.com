@@ -95,13 +95,28 @@ export const CONTAS = {
     usadaPor: ['[F] Felipe', '[M] Maiara', '[L] Luiz'],
     papel: 'conta da equipe — telas desenhadas fora da conta do dono ([W] 2026-09-11)',
     alcancavel: false,         // ⚠ invisível deste lado: outra conta, outro login
-    espelhada: false,          // não há espelho no repo, e isso está CORRETO
-    projetos: [],              // nenhum ID conhecido aqui — ver "PRA ATIVAR" abaixo
+    espelhada: true,           // espelho em prototipo-ui/cowork/Felipe/ (ADR 0405) — ativado 2026-09-21
+    projetos: ['telasFelipe'], // ID informado pelo [F] em 2026-09-21 (URL do projeto no Cowork)
+    // DESIGN SYSTEM DESTA CONTA — o MESMO DS do [W], não outro ([F] 2026-09-21, textual: "O Design
+    // system que informei é o mesmo que do Wagner. Puxo as atualizações direto do main do git, então
+    // eles estão sincronizados. O ID é diferente porque importei o DS na minha conta").
+    //   · `49a36f76-…` é a CÓPIA na conta do [F]; `DESIGN_SYSTEM_PROJECT_ID` (`019dd02f-…`) é o
+    //     projeto do [W]. Mesmo conteúdo, dois endereços: não é divergência, e não há o que decidir.
+    //   · a fonte dos dois é o git (`prototipo-ui/design-system/`): o DS desta conta PUXA do `main`,
+    //     não é espelhado PARA o repo. Por isso não entra em PROJETOS (lá todo projeto tem pasta
+    //     espelho, e o `--procedencia` e o `--de-quem` a leem).
+    //   · conferido pelo Code no pacote de 2026-09-18: o bundle do `019dd02f` é o do `49a36f76`
+    //     byte a byte (9.354 linhas) + 11 linhas de alias do nome global antigo.
+    dsCopia: { id: '49a36f76-2672-43f6-b955-c6cbb52f7f86', nome: 'WAGNER Office Impresso — Design System', mesmoDsQue: 'designSystem', fonte: 'git main (prototipo-ui/design-system/)' },
     // Titular x usuários é distinção OPERACIONAL, não burocracia: quem exporta o handoff é
     // quem tem o login, e só o titular consegue. [W] 2026-09-11: "conta do Felipe (usada pelo
     // Felipe, Maiara e o Luiz)".
     //
-    // PRA ATIVAR (o que falta, exatamente):
+    // ATIVADO em 2026-09-21: o [F] informou o ID pela URL do projeto
+    // ("PROTÓTIPO OFICIAL - PRODUTO UNIFICADO V2"), e a rota ZIP passou a escrever no espelho do
+    // dono liberado. O roteiro abaixo fica como registro de como se chegou aqui.
+    //
+    // PRA ATIVAR (o que faltava, exatamente):
     //   1. o projectId do projeto de telas dessa conta — NINGUÉM deste lado consegue descobrir:
     //      o DesignSync autentica como [W], então a conta do [F] é invisível POR CONSTRUÇÃO.
     //      list_projects vazio sobre ela não é evidência de nada.
@@ -118,6 +133,10 @@ export const CONTAS = {
 export const PROJETOS = {
   cowork:       { id: COWORK_PROJECT_ID,        nome: 'Oimpresso ERP Comunicação Visual', papel: 'telas',  listado: false, conta: 'w', espelho: 'prototipo-ui/cowork/Wagner/' },
   designSystem: { id: DESIGN_SYSTEM_PROJECT_ID, nome: 'Office Impresso — Design System',   papel: 'ds',     listado: true,  conta: 'w', espelho: 'prototipo-ui/design-system/' },
+  // Projeto de telas da conta do Felipe (usada por [F]/[M]/[L]). ID informado pelo [F] em
+  // 2026-09-21. `listado: false` pelo mesmo motivo do `cowork`: projeto de telas não aparece em
+  // `list_projects` (que só lista design system), e a conta nem é visível deste lado.
+  telasFelipe:  { id: '2e7d3640-825c-4c09-ac52-17c8469f3b91', nome: 'PROTÓTIPO OFICIAL - PRODUTO UNIFICADO V2', papel: 'telas', listado: false, conta: 'felipe', espelho: 'prototipo-ui/cowork/Felipe/' },
 };
 
 // ── PATHS FIXOS (as âncoras do protocolo dependem destes — RUNBOOK Fase −1) ─────
@@ -834,6 +853,7 @@ function procedencia() {
       + (c.alcancavel ? 'alcançável daqui' : '⚠ INVISÍVEL daqui (outra conta)')
       + (c.espelhada ? ' · espelhada' : ' · sem espelho'));
     for (const k of c.projetos) console.log('          └─ ' + PROJETOS[k].espelho.padEnd(30) + PROJETOS[k].id + '  "' + PROJETOS[k].nome + '"');
+    if (c.dsCopia) console.log('          └─ ' + ('DS = ' + c.dsCopia.mesmoDsQue + ' (cópia) ').padEnd(30) + c.dsCopia.id + '  "' + c.dsCopia.nome + '" · fonte: ' + c.dsCopia.fonte);
   }
   console.log(''); console.log('RESUMO (' + entradas.length + ' telas com charter):');
   for (const [k, v] of [...porClasse.entries()].sort((a, b) => b[1] - a[1])) {
