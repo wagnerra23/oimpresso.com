@@ -1445,7 +1445,7 @@ do Cowork em `cowork-inbox/jana/playbook/01-painel.gating-pro.md` (ONDA 01), rec
 
 A âncora desenha um produto de **dois planos**. A produção renderizava tudo pra todo mundo — e
 exibia o selo "Grátis" do `JanaPlanoBadge` **ao lado** do conteúdo que o `/ia/pro` vende
-([ADR 0140](../../../../memory/decisions/0140-jana-pro-paywall.md)). O `useJanaPro()` já era lido
+([ADR 0140](../../../../memory/decisions/0140-jana-pro-produto-comercial-saas.md)). O `useJanaPro()` já era lido
 no `Index.tsx`, mas só alimentava o badge: o tier não governava seção nenhuma.
 
 | seção | Grátis | Pro |

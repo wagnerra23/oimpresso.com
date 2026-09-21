@@ -122,7 +122,7 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   no Grátis o card não abre o drawer, porque prometer clique que não acontece é o defeito que
   o **UC-JPAIN-16** cataloga.
 
-  **Não é cosmética.** Até aqui a tela entregava de graça o que o `/ia/pro` vende ([ADR 0140](../../../../memory/decisions/0140-jana-pro-paywall.md)),
+  **Não é cosmética.** Até aqui a tela entregava de graça o que o `/ia/pro` vende ([ADR 0140](../../../../memory/decisions/0140-jana-pro-produto-comercial-saas.md)),
   com o selo "Grátis" do `JanaPlanoBadge` ao lado do conteúdo Pro renderizado — quem paga não
   recebia nada a mais nesta tela. O `useJanaPro()` já era lido no `Index.tsx`; só não governava
   seção nenhuma.
