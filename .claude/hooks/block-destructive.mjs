@@ -83,8 +83,64 @@ function juntaContinuacoes(cmd) {
  *
  * @returns {string[]} statements normalizados, sem vazios
  */
+// ── HEREDOC: o corpo é DADO, menos quando alimenta um EXECUTOR ([W] 2026-09-21) ─
+//
+// O `split(/\n/)` abaixo transformava CADA linha do corpo de um heredoc num
+// "statement". Num `cat > doc.md <<'EOF' … EOF` que escreve prosa, a linha de
+// TEXTO virava comando e o detector acusava a prosa — o hook impedia escrever
+// sobre o próprio hook. Mesma família do #7586 (que resolveu o caso `echo`),
+// pela porta do heredoc.
+//
+// ⚠️ Heredoc NÃO é inerte por construção: `bash <<EOF … EOF` EXECUTA o corpo.
+// Por isso a isenção é decidida pelo comando que CONSOME o stdin, não pela
+// presença do heredoc — tratar todo corpo como dado abriria `bash`/`sh`/`ssh`
+// inteiros, que é o oposto do que este guard existe pra fazer.
+//
+// MEDIDO ANTES de aplicar (2026-09-21) — 1848 jsonl · 161.242 blocos tool_use:
+//   · AFROUXOU 23 distintos / 23 ocorrências · APERTOU **0**
+//   · dos 23, **0 sem heredoc** (a mudança não alcança mais nada por acidente);
+//     abridores: `cat >`, `git commit -F -`, `tee`, `gh pr … --body-file`
+//   · 7 controles negativos de executor (`bash`, `sh`, `cat|sh`, `ssh`,
+//     `tailscale`+`docker exec`, `python3`, `xargs`) seguem BLOQ
+//   · 14 bordas com alvo FORA da whitelist (`/etc/passwd`, pra o veredito vir
+//     do parser e não da isenção de alvo): 14/14 conforme esperado, incluindo
+//     comando real ANTES, DEPOIS e no MEIO de heredocs, e heredoc sem fecho.
+const CONSOME_STDIN_EXECUTANDO =
+  /(^|[\s;&|(])(sh|bash|zsh|ksh|dash|ash|fish|python3?|node|perl|ruby|php|psql|mysql|sqlite3?|ssh|tailscale|docker|podman|kubectl|xargs|eval|source)(\s|$)/i;
+
+/**
+ * Descarta o CORPO de heredocs cujo abridor NÃO executa stdin, preservando o
+ * delimitador de fecho. Heredoc sem fecho não é tocado — não se inventa
+ * fronteira sobre entrada malformada.
+ * @returns {string} o comando com os corpos de DADO removidos
+ */
+export function removeHeredocDeDado(cmd) {
+  const linhas = String(cmd || '').split(/\r?\n/);
+  const saida = [];
+  for (let i = 0; i < linhas.length; i++) {
+    const linha = linhas[i];
+    saida.push(linha);
+    // `<<EOF`, `<<-EOF`, `<<'EOF'`, `<<"EOF"` — o ÚLTIMO da linha é o que vale
+    const abre = [...linha.matchAll(/<<-?\s*(['"]?)([A-Za-z_][A-Za-z0-9_]*)\1/g)].pop();
+    if (!abre) continue;
+    const delim = abre[2];
+    let fim = -1;
+    for (let j = i + 1; j < linhas.length; j++) {
+      if (linhas[j].trim() === delim) { fim = j; break; }
+    }
+    if (fim < 0) continue;                       // sem fecho: não mexe
+    if (CONSOME_STDIN_EXECUTANDO.test(linha)) {  // corpo é CÓDIGO: preserva
+      for (let j = i + 1; j <= fim; j++) saida.push(linhas[j]);
+    } else {
+      saida.push(delim);                          // corpo é DADO: descarta
+    }
+    i = fim;
+  }
+  return saida.join('\n');
+}
+
 export function statements(cmd) {
-  return juntaContinuacoes(cmd)
+  return juntaContinuacoes(removeHeredocDeDado(cmd))
     .split(/\r?\n|;|&&|\|\|/)
     .map(normalizeCmd)
     .filter(Boolean);
