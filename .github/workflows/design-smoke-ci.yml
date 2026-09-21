@@ -286,111 +286,42 @@ jobs:
             echo "Design Smoke CI: ${{ steps.manifest.outputs.smokes }} tela(s) fotografadas."
           fi
 
-      # ── LOTE DE PARIDADE prototipo x vivo (2026-09-18 · ADR 0408, que emenda a 0290) ────
-      # Roda o `design-diff-lote.mjs` contra o MESMO app efemero que os steps acima ja
-      # subiram (migrate + seeds Visreg + build:inertia + auth-bridge `/_visreg-login`).
-      # NAO duplica boot: pega carona. Foi por isso que a cadencia veio parar AQUI e nao num
-      # workflow novo (LC-19: nao autorar maquina paralela a tema que ja tem dono).
+      # ── LOTE DE PARIDADE prototipo x vivo (ADR 0408) ───────────────────────────────────
+      # Hospedado no SERVIDOR DO PEST, por decisao [W] em 2026-09-21, depois de 4 runs falhando.
       #
-      # O `visual-regression.yml` foi descartado como hospedeiro POR MEDICAO, nao por gosto:
-      # 42 condicionais de `github.event_name` em 56 steps, todas escritas pra `pull_request`
-      # ou `workflow_dispatch` — enfiar `schedule` la exigiria revisar 42 ramos do gate visual
-      # do projeto. Aqui sao 0: este workflow nunca roda em PR.
+      # A 1a versao subia `php artisan serve` aqui no step e deu, QUATRO vezes, 23 ERRO de
+      # net::ERR_CONNECTION_REFUSED em 23 telas — com o servidor VIVO e registrando respostas
+      # (runs 35590027120 · 35590936821 · 35592105902). A causa esta no composer.lock e e de
+      # ARQUITETURA, nao de configuracao: o `pestphp/pest-plugin-browser` traz
+      # **amphp/http-server** (assincrono, multiplexado), enquanto o `artisan serve` usa o
+      # servidor EMBUTIDO do PHP. Nem `--no-reload` + PHP_CLI_SERVER_WORKERS=8 sustentaram a
+      # carga real de cada tela (documento + redirect do auth-bridge + assets do bundle Inertia,
+      # em paralelo): ele aceitava a 1a conexao e recusava as seguintes. Por isso o log mostrava
+      # `/_visreg-login/1` RESPONDIDO e o Playwright, na MESMA URL, dizia refused.
       #
-      # POR QUE so `schedule`/`dispatch` e NAO `push: main`: o lote leva ~20min e o universo
-      # dele muda por TRABALHO humano (aplicar tela, mover pra `compared`), nao por commit.
-      # Rodar a cada merge seria custo sem sinal.
+      # A prova de que o servidor do Pest aguenta ja estava na MESMA run que falhava: o step do
+      # `DesignSmokeTest` acima fotografa telas logado, sem erro. Eu estava subindo um SEGUNDO
+      # servidor ao lado de um que ja servia.
       #
-      # DEPENDENCIA DECLARADA (acoplamento consciente, nao bug): se `select.count` for 0, o
-      # boot inteiro acima e pulado e este step nao teria app pra medir — por isso ele carrega
-      # a MESMA condicao dos outros 17 steps do job. Medido em 2026-09-18: `--select` devolve
-      # 4 (as `validated`), entao o boot roda. Se um dia der 0, este step some junto e o
-      # silencio e visivel: a secao do resumo simplesmente nao aparece no step summary.
+      # `PARIDADE_LOTE=1` e obrigatorio: sem ele o teste se SKIPA com motivo visivel, pra nao
+      # entrar de carona (~20min) nas lanes Pest comuns.
       #
-      # ADVISORY: `continue-on-error: true` + este workflow nao roda em `pull_request`.
-      # Vermelho aqui nunca bloqueia merge (ADR 0314: required = so Tier-0).
-      - name: Lote de paridade — sobe HTTP e mede prototipo x vivo (ADVISORY)
+      # ADVISORY (`continue-on-error`), e o teste so falha quando NAO MEDIU (telas em ERRO de
+      # navegacao). Divergencia de design e DADO e nunca falha — render pareado nao bloqueia
+      # merge: a ADR 0290 segue recusada e a 0408 libera MEDIR, nao BLOQUEAR.
+      - name: Lote de paridade — mede prototipo x vivo no servidor do Pest (ADVISORY)
         if: >-
           steps.select.outputs.count != '0' &&
           (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         id: lote
         continue-on-error: true
-        timeout-minutes: 22
+        timeout-minutes: 80
         env:
-          # Built-in PHP server e single-thread. Sem workers, os requests de asset do SPA
-          # serializam — o visual-regression.yml:1524 ja aprendeu isso e usa 4.
-          # 8, nao 4: cada tela do lote abre documento + redirect do auth-bridge + os assets
-          # do bundle Inertia, e o canario abaixo mede 6 simultaneos. O visual-regression usa 4
-          # pro Lighthouse, que navega UMA pagina por vez — carga diferente da nossa.
-          PHP_CLI_SERVER_WORKERS: "8"
+          PARIDADE_LOTE: "1"
         run: |
           set -o pipefail
-          # PORTA LIMPA PRIMEIRO. O step anterior (Pest Browser) sobe servidor proprio; se
-          # sobrar resto escutando na 8000, o `serve` abaixo falha no bind, MORRE, e o curl
-          # de health ainda passa — respondido pelo resto. Foi exatamente o que aconteceu na
-          # run 35590027120: health OK e, na 1a tela, ERR_CONNECTION_REFUSED em 23 de 23.
-          if curl -sf -o /dev/null --max-time 3 http://127.0.0.1:8000/login 2>/dev/null; then
-            echo "::warning::porta 8000 ja ocupada antes do serve — matando o residuo"
-            (command -v fuser >/dev/null && fuser -k 8000/tcp) || true
-            sleep 3
-          fi
-          # `--no-reload` NAO e enfeite: sem ele o Laravel IGNORA PHP_CLI_SERVER_WORKERS e
-          # sobe UM worker so — o proprio log diz "Unable to respect the PHP_CLI_SERVER_WORKERS
-          # environment variable without the --no-reload flag. Only creating a single server."
-          # Com 1 worker, o servidor serve o documento e RECUSA as conexoes paralelas dos assets
-          # do SPA: o Playwright reporta net::ERR_CONNECTION_REFUSED e a tela vira ERRO. Foi o
-          # que deu 23 ERRO / 23 nas runs 35590027120 e 35590936821, com o servidor VIVO e
-          # respondendo /_visreg-login o tempo todo — a hipotese de "o serve morreu" estava
-          # errada, e quem a refutou foi este log (capturado no artifact desde a 2a tentativa).
-          php artisan serve --host=127.0.0.1 --port=8000 --no-reload > /tmp/lote-serve.log 2>&1 &
-          SERVE_PID=$!
-          echo "serve PID=$SERVE_PID"
-          for i in $(seq 1 30); do
-            if curl -sf -o /dev/null http://127.0.0.1:8000/login; then echo "app no ar (tentativa $i)"; break; fi
-            sleep 2
-          done
-          # DUAS provas, nao uma: o processo esta vivo E responde. Só o curl nao basta —
-          # ele passa quando quem responde e outro processo (o caso acima).
-          kill -0 "$SERVE_PID" 2>/dev/null || {
-            echo "::error title=Lote de paridade::o processo do serve MORREU (PID $SERVE_PID) — nada foi medido"
-            cat /tmp/lote-serve.log; exit 1
-          }
-          curl -sf -o /dev/null http://127.0.0.1:8000/login || {
-            echo "::error title=Lote de paridade::app nao respondeu em 60s — nada foi medido (NAO MEDI != tudo igual)"
-            cat /tmp/lote-serve.log; exit 1
-          }
-          # CANARIO DE CONCORRENCIA — a licao das runs 35590027120/35590936821/35592105902.
-          # Nas tres o health de UMA conexao passou e o lote deu 23 ERRO / 23 de
-          # net::ERR_CONNECTION_REFUSED, com o servidor VIVO e registrando respostas. O
-          # Playwright abre varias conexoes por tela (documento + redirect + assets do SPA) e
-          # e a 2a em diante que e recusada — coisa que um curl sequencial nunca revela.
-          # Entao aqui medimos o que o lote de fato exige: 6 requests SIMULTANEOS.
-          echo "workers vistos pelo processo: PHP_CLI_SERVER_WORKERS=${PHP_CLI_SERVER_WORKERS:-<vazio>}"
-          echo "processos php servindo: $(pgrep -fc "artisan serve" || echo 0)"
-          FALHAS=0
-          for i in $(seq 1 6); do curl -sf -o /dev/null --max-time 20 http://127.0.0.1:8000/login || FALHAS=$((FALHAS+1)) & done
-          wait
-          echo "canario de concorrencia: $FALHAS falha(s) em 6 requests simultaneos"
-          if [ "$FALHAS" -gt 0 ]; then
-            echo "::error title=Lote de paridade::o servidor NAO aguenta requests paralelos ($FALHAS/6 recusados). O lote produziria ERRO de conexao em todas as telas e isso passaria por veredito de fidelidade. Abortando em vez de medir o nada."
-            cat /tmp/lote-serve.log
-            exit 1
-          fi
-          node scripts/design/design-diff-lote.mjs --base-url http://127.0.0.1:8000 2>&1 | tee /tmp/lote.log
-          RC=${PIPESTATUS[0]}
-          # POS-CONDICAO: se o serve caiu DURANTE o lote, as telas viram ERRO de conexao e o
-          # lote termina 0 — "rodou" com zero medida. Isso e gate mudo, entao grita.
-          kill -0 "$SERVE_PID" 2>/dev/null || {
-            echo "::error title=Lote de paridade::o serve caiu DURANTE a medicao — os vereditos ERRO sao de conexao, nao de fidelidade"
-            cat /tmp/lote-serve.log
-            exit 1
-          }
-          exit "$RC"
+          ./vendor/bin/pest tests/Browser/DesignSmoke/ParidadeLoteTest.php 2>&1 | tee /tmp/lote.log
 
-      # O CONSUMIDOR. Sem ele o lote volta a ser o que era: mede, grava e ninguem le.
-      # Publica denominador + corte por CAUSA; nunca "N telas divergentes", nunca nota de
-      # fidelidade (§5 2026-07-17). A logica vive em `scripts/design/lote-resumo-ci.mjs`
-      # (com `--selftest`, 14 casos) e nao inline aqui: YAML nao se testa.
       - name: Resumo do lote (denominador + causa) no step summary
         if: >-
           always() && steps.lote.conclusion != 'skipped' &&
@@ -417,6 +348,5 @@ jobs:
           path: |
             governance/design/targets/medidas/**
             /tmp/lote.log
-            /tmp/lote-serve.log
           if-no-files-found: ignore
           retention-days: 30
