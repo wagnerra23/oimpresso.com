@@ -86,7 +86,7 @@ import { Link } from '@inertiajs/react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
-import KpiGrid from '@/Components/shared/KpiGrid';
+import JanaKpiGrid from './JanaKpiGrid';
 import JanaKpiCard from './JanaKpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 import { BriefValorSkeleton, KpiCardSkeleton, SparklineSkeleton } from './JanaCockpitSkeleton';
@@ -919,7 +919,13 @@ export default function JanaCockpit({
           cálculo a mês-calendário para casar a palavra antiga — mexeria, e aí
           vale a regra mestre de VALOR (dupla prova + antes→depois). É decisão
           [W], registrada no `Index.casos.md` §UC-JPAIN-14. */}
-      <KpiGrid cols={4} className="gap-2.5">
+      {/* O grid é réplica local (`JanaKpiGrid`), não o `KpiGrid` compartilhado: a
+          `.jc-kpis` da âncora quebra em 1100px e o `colsMap` do shared quebra em 1024/640,
+          e arbitrary variant no `className` dele sai INERTE (o Tailwind 4 emite os
+          arbitrários ANTES dos nomeados, então `lg:` vence). Os offsets medidos e as três
+          faixas divergentes estão no docblock do componente e no `Index.casos.md`
+          §UC-JPAIN-30. */}
+      <JanaKpiGrid>
         {carregandoCockpit ? (
           <KpiCardSkeleton label="Receita 30 dias" />
         ) : (
@@ -968,7 +974,7 @@ export default function JanaCockpit({
           icon="trending-up"
           delta={deltaTicket !== null ? { value: deltaTicket, label: '7d' } : null}
         />
-      </KpiGrid>
+      </JanaKpiGrid>
 
       {/* Metas entram AQUI — posição da âncora. Ver §R5 de
           `memory/requisitos/Jana/Index-visual-comparison.md`. */}
