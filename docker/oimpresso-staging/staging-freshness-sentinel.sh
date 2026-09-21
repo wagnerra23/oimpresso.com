@@ -48,6 +48,12 @@ TRACK_BRANCH="${STAGING_TRACK_BRANCH:-main}"
 # seguem sendo o sinal. `0` desliga (dev/host sem docker).
 MCP_CONTAINER="${MCP_CONTAINER:-oimpresso-mcp}"
 ESCALATE="${STAGING_FRESHNESS_ESCALATE:-1}"
+# Idade máxima tolerada do MAIN_SHA_FILE antes de ele ser tratado como PODRE e descartado.
+# Derivada da cadência do PRODUTOR (systemd `oimpresso-git-sync.timer`, /5min) — 72x a
+# cadência: generoso o bastante pra absorver atraso do timer, apertado pra pegar morte
+# real. NÃO troque por um número desligado dessa cadência (§5 2026-08-27: janela de
+# tolerância maior que a taxa de mudança do objeto = verde por construção).
+MAIN_SHA_MAX_AGE_S="${STAGING_MAIN_SHA_MAX_AGE_S:-21600}"   # 6h
 
 log() { echo "[$(date -Is)] [staging-freshness] $*"; }
 
@@ -81,6 +87,31 @@ avaliar_frescor() {
   if [ "$age" -gt "$thr" ]; then echo "stale:${age}d"; else echo "atras-recente:${age}d"; fi
 }
 
+# --- núcleo puro: a referência de main vinda do arquivo ainda é CONFIÁVEL? ---
+# args: idade_do_arquivo_em_segundos (vazio = arquivo ausente)  tolerancia_s
+# ecoa: usar | descartar:<motivo>
+#
+# POR QUE EXISTE (medido 2026-09-21, e é o defeito que esta função fecha): o
+# MAIN_SHA_FILE estava congelado em 0404b631aa39 (2026-08-13 21:23Z) — 1698 commits
+# atrás do tip — porque o produtor (`oimpresso-git-sync.timer`) morreu em 2026-08-14
+# com `Could not resolve host: github.com` e ninguém viu por 38 dias. `systemctl
+# is-active` dizia `active`: isso é DECLARAÇÃO; os campos de runtime
+# `NextElapseUSecRealtime` e `LastTriggerUSec` estavam ambos VAZIOS (§5 2026-07-17 —
+# medir pela consequência, não pela declaração).
+# O consumidor só caía no fallback quando o arquivo estava VAZIO; STALE ele engolia
+# como verdade. Efeito: o veredito `fresco` ficou INALCANÇÁVEL por 39 dias (o HEAD do
+# staging nunca ia bater com um main de agosto) e a sentinela degradou EM SILÊNCIO de
+# "frescor vs main" para "idade do commit do HEAD" — ainda pegava staging-parado, mas
+# cegou staging-em-commit-recente-porém-muito-atrás.
+# É a §5 2026-08-01: o instrumento que falha nem sempre devolve VAZIO — às vezes devolve
+# um valor PLAUSÍVEL, e o vazio (único caso que o código tratava) é o caso fácil.
+referencia_confiavel() {
+  local idade="$1" tol="$2"
+  [ -z "$idade" ] && { echo "descartar:arquivo-ausente"; return; }
+  case "$idade" in ''|*[!0-9-]*) echo "descartar:idade-ilegivel"; return ;; esac
+  if [ "$idade" -gt "$tol" ]; then echo "descartar:stale:${idade}s>${tol}s"; else echo "usar"; fi
+}
+
 # --- selftest: controle-negativo que PROVA que a sentinela morde (repo §fixture boa/ruim) ---
 if [ "${1:-}" = "--selftest" ]; then
   fail=0
@@ -91,6 +122,17 @@ if [ "${1:-}" = "--selftest" ]; then
   check "$(avaliar_frescor aaaa111 bbbb222 1 3)"        "atras-recente:1d"  "SHA != + recente <= thr = tolerado"
   check "$(avaliar_frescor '' bbbb222 0 3)"             "indeterminado:sem-head" "sem head = indeterminado"
   check "$(avaliar_frescor aaaa111 '' 0 3)"             "indeterminado:sem-main" "sem main = indeterminado"
+  # referencia_confiavel — o eixo que faltava (regressão medida em 2026-09-21)
+  check "$(referencia_confiavel 60 21600)"      "usar"                          "arquivo de 1min = usar"
+  check "$(referencia_confiavel 21600 21600)"   "usar"                          "exatamente no limite = usar (nao-estrito)"
+  check "$(referencia_confiavel 21601 21600)"   "descartar:stale:21601s>21600s" "1s alem do limite = descartar (MORDE na borda)"
+  check "$(referencia_confiavel 3369600 21600)" "descartar:stale:3369600s>21600s" "arquivo de 39d = descartar (o caso real medido)"
+  check "$(referencia_confiavel '' 21600)"      "descartar:arquivo-ausente"     "arquivo ausente = descartar"
+  check "$(referencia_confiavel abc 21600)"     "descartar:idade-ilegivel"      "idade ilegivel = descartar (nunca 'usar' por acidente)"
+  # CONTROLE NEGATIVO ponta-a-ponta: com a referencia PODRE o veredito 'fresco' e
+  # inalcancavel para o MESMO head; com a referencia VIVA ele volta a ser alcancavel.
+  check "$(avaliar_frescor e57b78bf5 0404b631aa39 0 3)" "atras-recente:0d" "referencia PODRE: 'fresco' inalcancavel (o bug)"
+  check "$(avaliar_frescor e57b78bf5 e57b78bf54e7 0 3)" "fresco"           "referencia VIVA: 'fresco' alcancavel (o fix)"
   if [ "$fail" = 0 ]; then echo "SELFTEST OK"; exit 0; else echo "SELFTEST FALHOU"; exit 1; fi
 fi
 
@@ -98,28 +140,56 @@ fi
 head_sha="$(git -C "$STAGING_DIR" rev-parse HEAD 2>/dev/null || true)"
 branch="$(git -C "$STAGING_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
 
-main_sha="$(tr -d '[:space:]' < "$MAIN_SHA_FILE" 2>/dev/null || true)"
+# A referência de main tem DUAS portas: o arquivo que o produtor grava (/5min) e o
+# remoto. O arquivo só vale enquanto for FRESCO — ver `referencia_confiavel` acima.
+main_sha=""
+main_src="nenhuma"
+arquivo_idade_s=""
+if [ -f "$MAIN_SHA_FILE" ]; then
+  arquivo_mtime="$(stat -c %Y "$MAIN_SHA_FILE" 2>/dev/null || true)"
+  [ -n "$arquivo_mtime" ] && arquivo_idade_s=$(( $(date +%s) - arquivo_mtime ))
+fi
+confianca="$(referencia_confiavel "$arquivo_idade_s" "$MAIN_SHA_MAX_AGE_S")"
+if [ "$confianca" = "usar" ]; then
+  main_sha="$(tr -d '[:space:]' < "$MAIN_SHA_FILE" 2>/dev/null || true)"
+  if [ -n "$main_sha" ]; then main_src="arquivo"; else confianca="descartar:arquivo-vazio"; fi
+fi
 if [ -z "$main_sha" ]; then
+  log "referência do arquivo: $confianca — caindo no remoto (read-only)"
   # fallback read-only (NÃO fetch, NÃO escreve ref): pergunta o SHA de main direto ao remoto
   main_sha="$(git -C "$STAGING_DIR" ls-remote origin main 2>/dev/null | awk 'NR==1{print $1}')"
+  [ -n "$main_sha" ] && main_src="ls-remote"
 fi
+# Se as DUAS portas falharem, main_sha fica vazio e avaliar_frescor devolve
+# indeterminado:sem-main => exit 3. NUNCA colapsar "não consegui medir" num veredito
+# de saúde (§5 2026-07-29) nem numa acusação (LC-33).
 
 head_ts="$(git -C "$STAGING_DIR" show -s --format=%ct HEAD 2>/dev/null || echo 0)"
 now_ts="$(date +%s)"
 age_days=0
 [ "${head_ts:-0}" -gt 0 ] && age_days=$(( (now_ts - head_ts) / 86400 ))
 
-# só vigia quando o checkout está na branch que deveria seguir (outra = staleness N/A)
-if [ "$branch" != "$TRACK_BRANCH" ]; then
-  veredito="nao-aplicavel:branch=${branch:-desconhecido}"
+# Branch VAZIA e branch DIFERENTE não são a mesma coisa, e confundi-las é fail-open:
+# "estou numa worktree/feature" é N/A legítimo (exit 0); "não consegui ler branch
+# nenhuma" (STAGING_DIR sumiu, bind quebrou, não é repo git) é NÃO-MEDIÇÃO e tem de
+# sair por indeterminado/exit 3. Antes de 2026-09-21 as duas caíam em
+# `nao-aplicavel:branch=desconhecido` + exit 0 — um diretório inexistente devolvia
+# SAÚDE (LC-33 / §5 2026-07-29). Achado ao enumerar os demais ramos deste mesmo
+# instrumento enquanto se consertava o ramo da referência (§5 2026-09-03).
+if [ -z "$branch" ]; then
+  veredito="indeterminado:sem-branch"
+elif [ "$branch" != "$TRACK_BRANCH" ]; then
+  veredito="nao-aplicavel:branch=$branch"
 else
   veredito="$(avaliar_frescor "$head_sha" "$main_sha" "$age_days" "$THRESHOLD_DAYS")"
 fi
 
-# status file (machine-readable — discoverable por quem quiser plugar num painel/alerta)
+# status file (machine-readable — discoverable por quem quiser plugar num painel/alerta).
+# `main_src` + `main_ref` são o que torna um `fresco` AUDITÁVEL: sem eles não dá pra
+# distinguir "bateu com o main vivo" de "bateu com um arquivo podre de agosto".
 mkdir -p "$(dirname "$STATUS_FILE")" 2>/dev/null || true
-printf '{"veredito":"%s","head":"%s","main":"%s","branch":"%s","age_days":%s,"threshold_days":%s,"checked_at":"%s"}\n' \
-  "$veredito" "$head_sha" "$main_sha" "$branch" "$age_days" "$THRESHOLD_DAYS" "$(date -Is)" > "$STATUS_FILE" 2>/dev/null || true
+printf '{"veredito":"%s","head":"%s","main":"%s","main_src":"%s","main_ref":"%s","branch":"%s","age_days":%s,"threshold_days":%s,"checked_at":"%s"}\n' \
+  "$veredito" "$head_sha" "$main_sha" "$main_src" "$confianca" "$branch" "$age_days" "$THRESHOLD_DAYS" "$(date -Is)" > "$STATUS_FILE" 2>/dev/null || true
 
 case "$veredito" in
   fresco|nao-aplicavel:*)

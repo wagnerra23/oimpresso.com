@@ -52,10 +52,21 @@ Incidente 2026-07-17: ~4 dias stale + edições na mão, visto por acaso.
 
 `staging-freshness-sentinel.sh` fecha esse buraco **sem** o risco do self-update:
 **só MEDE e ALERTA, nunca sincroniza**. Lê o `.git/HEAD` do checkout e compara com o
-main-SHA fresco que o self-update do MCP já grava (`/opt/oimpresso-mcp/storage/app/
-deploy-latest-main-sha.txt`, /15min) — fallback `git ls-remote` read-only. Roda no
+main-SHA que o `oimpresso-git-sync.timer` grava (`/opt/oimpresso-mcp/storage/app/
+deploy-latest-main-sha.txt`) — fallback `git ls-remote` read-only. Roda no
 **host** porque só ele enxerga o disco do staging **e** o sha-file do MCP ao mesmo
 tempo, e vive **fora** do checkout que vigia (senão apodrece junto).
+
+⚠️ **A referência do arquivo só vale enquanto for FRESCA** (`STAGING_MAIN_SHA_MAX_AGE_S`,
+default 6h — 72x a cadência do produtor). Medido em 2026-09-21: o arquivo estava
+congelado em `0404b631aa39` (2026-08-13 21:23Z), **1698 commits** atrás do tip, e a
+sentinela o engolia como verdade porque só caía no fallback quando ele estava *vazio*.
+Efeito: o veredito `fresco` ficou **inalcançável por 39 dias** e a sentinela degradou em
+silêncio de "frescor vs main" para "idade do commit do HEAD". O campo `main_src` do
+`freshness-status.json` (`arquivo` | `ls-remote` | `nenhuma`) + `main_ref` existem para
+tornar um `fresco` **auditável** — sem eles não dá pra distinguir "bateu com o main vivo"
+de "bateu com um arquivo podre de agosto". Causa a montante em
+[PEGADINHA-ct100-mcp-git-pull-cron](../../memory/requisitos/Infra/PEGADINHA-ct100-mcp-git-pull-cron.md).
 
 ```bash
 # instalar (uma vez, no host CT 100):
