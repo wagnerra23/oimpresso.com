@@ -127,7 +127,35 @@ export function statements(cmd) {
 //
 // ⚠️ Duas decisões que a medição sustenta, e que NÃO se refazem sem re-medir:
 //   · flags `-rf` LITERAL (não `-[rRf]+`): aceitar `-f` sozinho isentaria
-//     `rm -f /tmp/x`, que hoje BLOQUEIA — seriam 43 comandos afrouxados.
+//     `rm -f /tmp/x`, que hoje BLOQUEIA — eram **43** comandos afrouxados no
+//     corpus de 2026-09-16 (fato datado; o número abaixo é o de hoje).
+//
+//     RE-MEDIDO 2026-09-21 — 1845/1845 jsonl · 160.647 blocos tool_use
+//     Bash/PowerShell: **64 distintos / 65 ocorrências**, e APERTOU = **0**
+//     (alinhar só pode SUBTRAIR bloqueio: a whitelist de ALVOS não muda).
+//     Os 64 foram lidos um a um — 62 são `/tmp/*` (sonda, `.bak`, `.b64`,
+//     JUnit, lint temporário) e 2 são `rm -f vendor` removendo um SYMLINK
+//     antes de recriá-lo. Zero alvo perigoso.
+//
+//     ⚠️ O que 09-16 mediu foi QUANTIDADE, não RISCO — e o risco tem uma face
+//     que contagem nenhuma mostra: **a escala não é monotônica**. Sobre o
+//     MESMO alvo isento (medido no hook de hoje):
+//         rm /tmp/x      → passa      (sem flag: nem casa o detector)
+//         rm -f /tmp/x   → BLOQUEIA
+//         rm -r /tmp/x   → BLOQUEIA
+//         rm -rf /tmp/x  → passa      (recursivo + força: isento)
+//     O bloqueio é um VALE no meio da escala: o mais destrutivo passa, o menos
+//     destrutivo passa, e o meio segura. Não é "errar pro lado seguro" — é um
+//     ponto de corte arbitrário, e o custo dele são os 64 acima.
+//     Reproduz: node -e "import('./.claude/hooks/block-destructive.mjs').then(
+//       m=>['/tmp/x'].forEach(a=>['','-f ','-r ','-rf '].forEach(f=>
+//       console.log(f||'(sem flag)', m.matchDestructive('r'+'m '+f+a)?'BLOQ':'passa'))))"
+//
+//     Fechar o vale (`-rf` → `-[rRf]+` em alvosRmRf, 1 linha) AFROUXA um
+//     guardrail Tier-0 — logo é ato do [W], como foi o afrouxamento de
+//     2026-09-16 registrado no topo deste bloco. Os 4 pontos da escala acima
+//     estão nos asserts §DECISÃO de `block-destructive.test.mjs`: quem mexer
+//     no regex por reflexo vê o teste cair e chega aqui.
 //   · alvo NÃO-VERIFICÁVEL (`$var`, glob) dentro de prefixo whitelisted
 //     (`rm -rf /tmp/$X`) segue ISENTO: bloqueá-lo mede **0** no corpus e criaria
 //     FP em temp-dir dinâmico. Fora de prefixo whitelisted, `$X` já bloqueia

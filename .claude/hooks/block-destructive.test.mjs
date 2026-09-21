@@ -272,8 +272,24 @@ check('CN multi-arg: aspas envolventes não quebram o casamento',
   matchDestructive('rm -rf "/tmp/dir com espaco"') === null);
 
 // as duas decisões que a medição sustenta (mexer nelas exige re-medir)
+//
+// §DECISÃO/ESCALA — sobre o MESMO alvo isento (`/tmp/x`), o veredito NÃO é
+// monotônico, e isso é ponto de corte deliberado do [W] (2026-09-16), não
+// descuido:
+//     rm /tmp/x      → passa      (assert no bloco ALLOW, "rm sem -rf")
+//     rm -f /tmp/x   → BLOQUEIA   ← aqui
+//     rm -r /tmp/x   → BLOQUEIA   ← aqui
+//     rm -rf /tmp/x  → passa      (assert no bloco ALLOW + E2E)
+// O bloqueio é um VALE: o mais destrutivo passa, o menos destrutivo passa, e o
+// meio segura. Re-medido 2026-09-21 (1845/1845 jsonl · 160.647 blocos): fechar
+// o vale afrouxaria 64 distintos / 65 ocorrências, APERTOU=0, zero perigosos.
+// Fechá-lo é ato do [W] — ver §MULTI-ARG em block-destructive.mjs.
 check('DECISÃO: flags `-rf` LITERAL — `rm -f /tmp/x` segue BLOQUEANDO (como hoje)',
   matchDestructive('rm -f /tmp/x')?.key === 'rm-rf-perigoso');
+check('DECISÃO: `rm -r /tmp/x` idem — a isenção exige `-rf` literal, não `-[rRf]+`',
+  matchDestructive('rm -r /tmp/x')?.key === 'rm-rf-perigoso');
+check('DECISÃO: `rm -R /tmp/x` (BSD) idem — mesma perna da escala',
+  matchDestructive('rm -R /tmp/x')?.key === 'rm-rf-perigoso');
 check('DECISÃO: `$var` dentro de prefixo isento segue isento (temp-dir dinâmico)',
   matchDestructive('rm -rf /tmp/$SESSION') === null);
 check('CN: `$var` FORA de prefixo isento bloqueia (proteção vem de graça)',
