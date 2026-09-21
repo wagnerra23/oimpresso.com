@@ -354,9 +354,9 @@ module: Jana
 - [Plataforma.casos.md](../../../resources/js/Pages/Jana/Plataforma.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 191
+## Testes (Pest) — 192
 
-- 41 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
+- 42 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
 - 12 em [Modules/Jana/Tests/Feature/Ai/](../../../Modules/Jana/Tests/Feature/Ai)
 - 2 em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor)
 - 2 em [Modules/Jana/Tests/Feature/Ai/Clarify/](../../../Modules/Jana/Tests/Feature/Ai/Clarify)
