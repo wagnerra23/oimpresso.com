@@ -36,7 +36,7 @@ last_run_ci: "NAO RODEI a suite nesta leva - o bump de last_run e por REVALIDACA
 
 | Fato | Onde |
 |---|---|
-| Nada gateia a tela. O TODO pede middleware, mas o padrão canônico do módulo **não é middleware**: a lista irmã aborta 403 **dentro do controller** (`product.view` **ou** `product.create`) | `routes/web.php:665-667 (verificado@e2c8397)` + `ProductController@index:66` |
+| A tela **é gateada**, e o padrão canônico do módulo **não é middleware**: ela aborta 403 **dentro do controller**, aceitando `product.view` **ou** `product.create`, como a lista irmã. ⚠️ Corrigido em 2026-09-21: esta linha dizia *"nada gateia a tela"* — falso desde o [#5733](https://github.com/wagnerra23/oimpresso.com/pull/5733) (2026-08-13), que fechou o gate. O TODO que pedia middleware foi removido no [#7583](https://github.com/wagnerra23/oimpresso.com/pull/7583) por ser instrução de regressão | `ProdutoUnificadoController:139` + `ProductController@index:66` |
 | `produtos()` monta `price`, `cost` e `margin` para **toda** linha, sem consultar permissão | `:122-124` |
 | Varredura contada de `view_purchase_price\|access_default_selling_price` no controller | **0 ocorrências** |
 | `historico()` devolve `value` = qty × `unit_price_inc_tax` — preço de venda por linha, sem gate | `:249`, `:260` |
@@ -167,9 +167,15 @@ last_run_ci: "NAO RODEI a suite nesta leva - o bump de last_run e por REVALIDACA
 
 - **Aceite:** Dado um usuário autenticado **sem** `product.view` **nem** `product.create` · Quando pede `/products/unificado` ·
   Então recebe 403 — não a página.
-- **Estado hoje:** nada gateia a tela. O TODO em `routes/web.php:665 (verificado@e2c8397)` pede middleware, mas o padrão
-  canônico do módulo **não é middleware**: a lista irmã aborta dentro do controller
-  (`ProductController@index:66`). Vermelho esperado.
+- **Estado hoje:** a tela **é gateada** — `ProdutoUnificadoController:139` aborta 403 aceitando
+  `product.view` **ou** `product.create`, que é o padrão canônico do módulo (**não é middleware**),
+  espelhando a lista irmã (`ProductController@index:66`). Verde esperado, e verde de fato.
+  ⚠️ Até 2026-09-21 esta linha dizia *"nada gateia a tela ... Vermelho esperado"* enquanto o
+  **Status** logo abaixo já dizia `✅ verde` — o arquivo se contradizia desde o [#5733](https://github.com/wagnerra23/oimpresso.com/pull/5733)
+  (2026-08-13), que fechou o gate e não atualizou esta prosa.
+- **Resíduo medido (2026-09-21):** o caminho `create`-only **não tem cobertura** — este UC revoga
+  **as duas** permissions, e os 3 testes que concedem só `product.create` não citam a rota. Uma
+  regressão que trancasse quem tem só `create` passaria **verde**.
 - **Teste:** [`ProdutoUnificadoContratoTest`](../../../../../tests/Feature/Produto/ProdutoUnificadoContratoTest.php) — `UC-PUNI-06`.
 - **Status: ✅** — verde na run `31706439580`.
 

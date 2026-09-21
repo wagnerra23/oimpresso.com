@@ -34,7 +34,10 @@ use Tests\Support\EstoqueFixture;
  *    consulta produziu linha.
  *
  * ⛔ Escopo honesto: a tela ainda não é alcançável em prod (nenhum item de menu aponta pra rota,
- *    e ela segue sem `can:product.view` — TODO no código). Vermelho aqui é bloqueador de
+ *    até 2026-09-21 — o PR #7590 liga a entrada no sidebar). ⚠️ O que esta nota dizia sobre
+ *    permissão ("segue sem `can:product.view`") era FALSO: a tela é gateada dentro do
+ *    controller (`ProdutoUnificadoController:139`, `view` OU `create`) desde o #5733. Corrigido
+ *    em 2026-09-21. Vermelho aqui é bloqueador de
  *    migração, não incidente de produção.
  *
  * ⛔ Multi-tenant: biz seedado canônico + o 2º business seedado como cross-tenant.

@@ -1554,6 +1554,62 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ Segue NÃO armado, e o recibo novo ENFRAQUECE o candidato em vez de habilitá-lo.** O FP dele continua sem medição, e agora sabe-se que ele **não pegaria este caso** — o denominador de manifestações cresce e a cobertura não, então a razão cai. Isso **confirma** um teto que a lápide já documentava duas vezes (09-05: *"existe uma sub-classe que corrompe sem invalidar"*; 09-15: *"segue cego"*); o que o recibo acrescenta é fechar a desculpa de que o braço PHP era apenas não-medido. Prevenção barata e sem FP, que é o que fica no lugar: **base64 para transportar conteúdo** (elimina a classe inteira — não há escape a colapsar) e o **assert de hash** na restauração.
 
+### 2026-09-21 — EMENDA da lápide 2026-07-29 (claim de ausência no eixo ROTA): os donos de *"esta rota tem gate?"* não são os que ela lista — e a máquina que já sabia disso estava no repo, com bite-test
+
+- **⚠️ O achado mais duro não é o erro de leitura — é que a MÁQUINA JÁ EXISTIA.**
+  `scripts/governance/ciclo-completo.mjs:255-269`, elo `rota_protegida`, **já aceita as duas
+  formas** (middleware **ou** gate no controller), e o comentário dele carrega a medição que
+  torna isso obrigatório: *"em 2026-08-25 só 3 de 52 arquivos de rota usam `can:` no middleware,
+  contra 112 Controllers que autorizam no corpo"*. Ele ainda tem **contraponto no selftest**
+  (`:588-596`) provando que *"sem `can:` na rota, mas autorizada no Controller … PASSA"*. Ou
+  seja: o repo já tinha codificado, com bite-test, que **ausência-na-rota ≠ ausência-de-gate** —
+  e eu não abri. É a perna **(b)** da mãe 2026-07-28 (*consultar o dono do inventário*) cumprida
+  zero.
+
+- **O limite (variante também proibida):** não afirmar que uma rota, endpoint ou ação está
+  **desprotegida** a partir do arquivo de rotas. Num app onde a convenção dominante é autorizar
+  **no corpo do controller** — e aqui ela é dominante por 112 a 3, medido — o arquivo de rotas é
+  o **pior** lugar para responder essa pergunta. Antes de escrever "sem gate", abrir: o método do
+  controller, o `.casos.md` da tela, e o teste de contrato. E, se houver máquina de governança
+  que já cruze isso, ela ganha de todos eles.
+
+- **⚠️ A minha própria justificativa tinha o mecanismo errado, e isso é a segunda camada do
+  mesmo erro.** Eu escrevi, em três sites, que pôr o middleware faria *"o teste do UC-PUNI-06
+  cair"*. **Falso, medido:** o teste (`ProdutoUnificadoContratoTest.php:346-349`) revoga **as
+  duas** permissions antes de exigir `403`, logo o `403` vindo do middleware satisfaria o assert
+  igual. E o caminho `create`-only **não tem cobertura** — os 3 testes que concedem só
+  `product.create` têm **zero** referência a `products/unificado`. A conclusão não muda (o
+  middleware seria regressão), mas a regressão **passaria VERDE**. Registrar causa não-medida
+  dentro da errata de uma causa não-medida é a forma da errata §5 2026-07-30 (*"cometi, ao
+  registrar a classe, a própria classe"*).
+
+- **⚠️ A perna LC-10, e ela é a que explica por que o erro foi fácil.** O gate foi fechado em
+  **2026-08-13** (#5733) e **4 afirmações em presente não acompanharam**, vivendo ~39 dias
+  dizendo o contrário — uma delas no arquivo que **eu** li. Medido por mim, com o comando ao
+  lado (não é o número de ninguém):
+
+  ```bash
+  git grep -nE "n[ãa]o tem middleware|sem .can:product.view|[Nn]ada gateia|n[ãa]o gateia"     origin/main -- tests/ resources/js/Pages/Produto/ memory/requisitos/Produto/
+  ```
+
+  `Unificado/Index.casos.md:39` e `:170` (*"Nada gateia a tela"* — e o `:170` dizia *"Vermelho
+  esperado"* com o **Status ✅ verde** quatro linhas abaixo, o arquivo se contradizendo),
+  `ProdutoUnificadoCategoriasContratoTest.php:37` e `SDD-tela-cadastro-produto-v1.0.md:1005`.
+  Corrigidas em 2026-09-21, com o fato datado preservado. **Metade NÃO flipada de propósito:** o
+  mesmo comentário do teste também diz *"nenhum item de menu aponta pra rota"*, e isso **ainda
+  era verdade** no momento do conserto — flipar criaria o passado-falso que esta mesma sessão já
+  tinha cometido e corrigido no SPEC.
+
+- **⚠️ NÃO virar gate, e por duas razões independentes.** O campo `Gate:` da LC-08 já registra
+  que a forma óbvia foi **medida e reprovada** (detector de *"afirmação sem evidência"* deu
+  **130 FP**; ampliar o corpus do `fact-anchor` deu **~64% FP**). E a forma **específica** —
+  acusar rota sem `can:` — está pior que morta: está **refutada em código pelo próprio dono**,
+  que a nomeia como *"o guard sintático que este §5 já matou 4 vezes"* e mantém o contraponto no
+  selftest para impedir que alguém a reintroduza. O que fecha a classe aqui não é máquina: é
+  **abrir o dono antes de afirmar**, e ele estava a um `grep` de distância.
+
+Ocorrência da **LC-08**. Ocorrência da **LC-10**.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
