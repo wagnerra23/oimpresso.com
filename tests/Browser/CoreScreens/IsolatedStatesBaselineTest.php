@@ -121,6 +121,21 @@ function visregLimparFixturesDeEstado(): void
         ->where('colaborador_config_id', \Database\Seeders\VisregPontoSeeder::COLABORADOR_ID)
         ->where('data', config('visreg.fixture_date'))
         ->delete();
+
+    // METAS do Painel da Jana (`VisregJanaMetasSeeder`, invocado pelo MESMO lever). Mesmo
+    // vetor das duas acima, e o alvo do vazamento e uma baseline do L1: o `/ia` do
+    // PixelBaselineTest fotografa a secao METAS vazia, e sem esta limpeza um flake em
+    // QUALQUER tela do L2 faria os 5 cards aparecerem la e fabricaria regressao numa tela
+    // que ninguem tocou.
+    //
+    // CIRURGICO pela lista de slugs EXATA que o seeder declara — nunca por `LIKE`/range,
+    // e nunca por `business_id` sozinho (que varreria meta de tenant). As filhas
+    // (`jana_meta_periodos`, `jana_meta_apuracoes`, `jana_meta_fontes`) saem sozinhas: as
+    // tres tem FK `meta_id` com `ON DELETE CASCADE`.
+    \Illuminate\Support\Facades\DB::table('jana_metas')
+        ->where('business_id', \Database\Seeders\VisregJanaMetasSeeder::BUSINESS_ID)
+        ->whereIn('slug', \Database\Seeders\VisregJanaMetasSeeder::slugs())
+        ->delete();
 }
 
 /**
