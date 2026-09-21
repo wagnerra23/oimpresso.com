@@ -18,7 +18,7 @@
         "ancora": true
       },
       "status": "vivo-a-frente-com-residuo",
-      "acao": "aplicar-delta-residuo: CmdK (Index.tsx 2548-2579) e empty-state CTA (Index.tsx 1777-1792) viram 'Novo título' abrindo TituloCreateSheet; resto no-op",
+      "acao": "no-op — ENTREGUE (medido 2026-09-21): o CmdK abre o TituloCreateSheet via setCreateTipo (Index.tsx:2734, item \"Novo lançamento\"; o sheet renderiza em :3063-3069). RESÍDUO: a copy difere do protótipo (\"Novo lançamento\" × \"Novo título\") — isso é contrato de tela, muda pelo contrato-de-tela, não por este map.",
       "_acionavel": true,
       "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = a Zona R do `<PageHeader>` (div `ml-auto` com as 3 lentes + FinanceiroSubNav + dropdown \"+ Novo título\" que carrega o OCR). O PageHeader é componente e não espalha props — por isso a âncora fica no filho DOM. O range antigo (1407-1493) apontava pro handler de teclado: estava defasado."
     },
@@ -97,8 +97,8 @@
         "linhas": "106-234",
         "ancora": true
       },
-      "status": "vivo-a-frente-com-residuo",
-      "acao": "aplicar-delta-micro: default meio_pagamento = forma prevista do título (FinBaixaSheet.tsx 55-73); resto no-op",
+      "status": "fechado-no-codigo",
+      "acao": "no-op — ENTREGUE (medido 2026-09-21): FinBaixaSheet.tsx:56-57 \"Fila P6 (inventário 2026-07-07): forma prevista do título pré-seleciona o select\" — formaPrevista alimenta meio_pagamento em :65 e :75. O \"resto no-op\" da ação anterior segue valendo.",
       "_acionavel": true,
       "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<SheetContent>` do FinBaixaSheet (espalha props → DOM do portal)."
     },
@@ -114,7 +114,7 @@
         "ancora": true
       },
       "status": "gap-parcial",
-      "acao": "aplicar-delta: drag&drop + multiple no upload (frontend-only); seeds 'do sistema' (ops.jsx 188-199) = virar-US-ADR (backend NfeBrasil)",
+      "acao": "no-op — ENTREGUE a parte frontend (medido 2026-09-21): FinAnexosPanel.tsx:114 `input.multiple = true`, :138 onDragOver, :140 onDrop com enviarArquivos(dataTransfer). RESÍDUO INALTERADO: seeds \"do sistema\" (ops.jsx 188-199) = virar-US-ADR (backend NfeBrasil).",
       "_acionavel": true,
       "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = a drop-zone (div `border-t … rounded-b` com onDrop) do FinAnexosPanel; tag multi-linha, atributo em linha própria."
     },
@@ -130,7 +130,7 @@
         "ancora": true
       },
       "status": "gap-parcial",
-      "acao": "aplicar-delta: motivo de rejeição inline (ENTREGUE — ver _nota); desfazer/reenviar (ops.jsx 332-346) = virar-US-ADR (backend workflow)",
+      "acao": "no-op — ENTREGUE a parte frontend (medido 2026-09-21): motivo de rejeição inline em Index.tsx:514 \"Inventário por região 2026-07-07 (fila P8a) — motivo de rejeição INLINE\". RESÍDUO INALTERADO: desfazer/reenviar (ops.jsx 332-346) = virar-US-ADR (backend workflow).",
       "_acionavel": true,
       "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = o bloco \"Aprovação\" do drawer (div `border-t border-border pt-4` que só renderiza pra payable aberto/atrasado/vencendo — Onda 21 #55). O range antigo (2358-2427) caía em Forma de pagamento/Conciliação: defasado."
     },
@@ -161,8 +161,8 @@
         "linhas": "128-150",
         "ancora": true
       },
-      "status": "gap",
-      "acao": "aplicar-delta (GAP nº1, US-FIN-024): wire ClienteCombobox.tsx (1-175, órfão) no campo cliente_descricao do TituloCreateSheet (wiring do protótipo: financeiro-page.jsx 1373-1379); bump charter v17 + UC no casos.md",
+      "status": "fechado-no-codigo",
+      "acao": "no-op — ENTREGUE, US-FIN-024 fechada (medido 2026-09-21): ClienteCombobox importado em TituloCreateSheet.tsx:23 e usado em :143, com o comentário \"Fila P10 (inventário 2026-07-07) — fecha US-FIN-024\". O charter (v18, 2026-07-07) já declara DONE e riscou o Non-Goal. A ação anterior pedia \"bump charter v17\" — o charter está em v22.",
       "_acionavel": true,
       "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = o wrapper `onBlurCapture` que envolve `<ClienteCombobox id=\"cr-desc\">` (fila P10 / US-FIN-024); tag multi-linha, atributo em linha própria."
     },
@@ -198,5 +198,6 @@
       "_acionavel": true
     }
   ],
-  "_nota_mapeamento": "2026-09-06: 11 partes ganharam vivo.ancora=true (data-contract adicionado em Index.tsx + 5 _components). Os ranges de linha herdados do gap.md (2026-07) estavam DEFASADOS no HEAD (ex.: \"kpis 831-958\" caía no editor de categoria; \"aprovacao 2358-2427\" caía na conciliação) — exatamente o rot silencioso que a âncora estável fecha; todos regravados com o range medido do elemento ancorado."
+  "_nota_mapeamento": "2026-09-06: 11 partes ganharam vivo.ancora=true (data-contract adicionado em Index.tsx + 5 _components). Os ranges de linha herdados do gap.md (2026-07) estavam DEFASADOS no HEAD (ex.: \"kpis 831-958\" caía no editor de categoria; \"aprovacao 2358-2427\" caía na conciliação) — exatamente o rot silencioso que a âncora estável fecha; todos regravados com o range medido do elemento ancorado.",
+  "_nota_reconciliacao": "RECONCILIAÇÃO 2026-09-21 — as 5 partes que este map marcava como `aplicar-delta` estavam TODAS entregues no código; as ações viraram `no-op — ENTREGUE` com a evidência (arquivo:linha) de cada uma, e o resíduo real (backend/US) foi preservado onde existe. POR QUE FICOU STALE, e é estrutural: o portão de frescor guarda `prototipo_sha` e invalida o map quando o PROTÓTIPO re-exporta — quando é a TELA que ganha a capacidade, `consumir-map` segue dizendo `sha ok` (o `_doc` acima admite: \"Lado VIVO: range de linha é INFORMATIVO (frágil)\"). As 5 entregas saíram da mesma onda (\"inventário 2026-07-07\", filas P6/P8a/P10) e o map, gerado antes, nunca acompanhou. Consequência que a próxima sessão deve saber: uma ação deste map NÃO prova pendência — confira no código antes de executar. O ranges do lado vivo também envelheceram (o antigo apontava Index.tsx 2548-2579 para o CmdK; hoje aquele trecho é FinCommentsThread)."
 }
