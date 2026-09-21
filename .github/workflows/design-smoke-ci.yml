@@ -316,25 +316,48 @@ jobs:
         id: lote
         continue-on-error: true
         timeout-minutes: 22
+        env:
+          # Built-in PHP server e single-thread. Sem workers, os requests de asset do SPA
+          # serializam — o visual-regression.yml:1524 ja aprendeu isso e usa 4.
+          PHP_CLI_SERVER_WORKERS: "4"
         run: |
           set -o pipefail
-          # O Pest Browser sobe servidor proprio e o derruba ao terminar; o lote precisa de um
-          # HTTP estavel em --base-url, entao subimos explicitamente.
+          # PORTA LIMPA PRIMEIRO. O step anterior (Pest Browser) sobe servidor proprio; se
+          # sobrar resto escutando na 8000, o `serve` abaixo falha no bind, MORRE, e o curl
+          # de health ainda passa — respondido pelo resto. Foi exatamente o que aconteceu na
+          # run 35590027120: health OK e, na 1a tela, ERR_CONNECTION_REFUSED em 23 de 23.
+          if curl -sf -o /dev/null --max-time 3 http://127.0.0.1:8000/login 2>/dev/null; then
+            echo "::warning::porta 8000 ja ocupada antes do serve — matando o residuo"
+            (command -v fuser >/dev/null && fuser -k 8000/tcp) || true
+            sleep 3
+          fi
           php artisan serve --host=127.0.0.1 --port=8000 > /tmp/lote-serve.log 2>&1 &
+          SERVE_PID=$!
+          echo "serve PID=$SERVE_PID"
           for i in $(seq 1 30); do
             if curl -sf -o /dev/null http://127.0.0.1:8000/login; then echo "app no ar (tentativa $i)"; break; fi
             sleep 2
           done
-          # Falha VISIVEL se o app nao subiu. Sem esta guarda o lote mediria a AUSENCIA do app
-          # contra o prototipo e gravaria divergencia em tudo — que e o motivo #1 da ADR 0290
-          # (veredito por coincidencia de quebra, nao por fidelidade) chegando pela porta dos
-          # fundos. Gate mudo e pior que gate ausente porque parece cobertura.
+          # DUAS provas, nao uma: o processo esta vivo E responde. Só o curl nao basta —
+          # ele passa quando quem responde e outro processo (o caso acima).
+          kill -0 "$SERVE_PID" 2>/dev/null || {
+            echo "::error title=Lote de paridade::o processo do serve MORREU (PID $SERVE_PID) — nada foi medido"
+            cat /tmp/lote-serve.log; exit 1
+          }
           curl -sf -o /dev/null http://127.0.0.1:8000/login || {
-            echo "::error title=Lote de paridade::app nao subiu em 60s — nada foi medido (NAO MEDI != tudo igual)"
-            tail -20 /tmp/lote-serve.log
-            exit 1
+            echo "::error title=Lote de paridade::app nao respondeu em 60s — nada foi medido (NAO MEDI != tudo igual)"
+            cat /tmp/lote-serve.log; exit 1
           }
           node scripts/design/design-diff-lote.mjs --base-url http://127.0.0.1:8000 2>&1 | tee /tmp/lote.log
+          RC=${PIPESTATUS[0]}
+          # POS-CONDICAO: se o serve caiu DURANTE o lote, as telas viram ERRO de conexao e o
+          # lote termina 0 — "rodou" com zero medida. Isso e gate mudo, entao grita.
+          kill -0 "$SERVE_PID" 2>/dev/null || {
+            echo "::error title=Lote de paridade::o serve caiu DURANTE a medicao — os vereditos ERRO sao de conexao, nao de fidelidade"
+            cat /tmp/lote-serve.log
+            exit 1
+          }
+          exit "$RC"
 
       # O CONSUMIDOR. Sem ele o lote volta a ser o que era: mede, grava e ninguem le.
       # Publica denominador + corte por CAUSA; nunca "N telas divergentes", nunca nota de
@@ -366,5 +389,6 @@ jobs:
           path: |
             governance/design/targets/medidas/**
             /tmp/lote.log
+            /tmp/lote-serve.log
           if-no-files-found: ignore
           retention-days: 30
