@@ -1,6 +1,36 @@
 #!/usr/bin/env node
 // @ts-check
-/** Lista operacional do último bundle: o que mudou, onde aplicar e por que está bloqueado. */
+// status.mjs — painel operacional do último bundle: o que mudou, onde aplicar, o que está bloqueado — e as 2 catracas do funil (`--check-mapping`, `--check-lifecycle`).
+//
+// ─── POR QUE `--check-lifecycle` NÃO TEM CHOKEPOINT DE CI — declarado, não esquecido ────
+//
+// Ele exige `--source` ou `--module` e sai 2 sem um deles. Isso NÃO é wiring faltando: é a
+// implementação literal da **D-8 "Catraca gradual"** da ADR 0384 (`memory/decisions/
+// 0384-design-sync-recibos-executaveis-por-tela.md`), que decide, com estas palavras:
+//
+//   "A checagem de lifecycle exige seletor explícito de fonte ou módulo. Ela não bloqueia
+//    todo o legado. Fiscal é o piloto Tier 0; outras telas entram quando forem tocadas ou
+//    formalmente colocadas em onda."
+//
+// A mesma ADR, em §Não decidido, registra que ela não promove check global a required, e
+// remete promoção futura ao registry de gates + evidência de mordida (ADR 0336 DR-2).
+//
+// POR QUE um chokepoint repo-wide seria alarme que se aprende a ignorar — MEDIDO 2026-09-21
+// contra `state/application-report.json` (162 telas: anchored 68 · compared 62 · to-create 28
+// · validated 4). Rodando a catraca sobre TODAS, quantas reprovariam por `--minimum`:
+//   anchored → 28 · compared → 96 · applied → 158 · tested → 158
+// Reproduzir: `node scripts/design-sync/status.mjs --json` e contar `screens[].lifecycleState`
+// contra a `order` do bloco `--check-lifecycle` abaixo. Vermelho que não pode ficar verde é a
+// forma do gate-de-teatro (§5 2026-07-28, `FAIL >= 5` nascendo vermelho permanente).
+//
+// QUEM RODA O QUÊ (por MODO — um script de N modos é N gates, §5 2026-07-28 eixo flag):
+//   `--run-test` e `--refresh` → `recibos-ci.mjs` (L197, L205), que trata rc != 0 como erro;
+//   os modos por fase → painel `scripts/design/protocolo.config.mjs` (fase 5 publica este);
+//   as 2 catracas → `status.test.mjs`, wirado em `governance-script-tests.yml`. Bite-test
+//   prova que a catraca MORDE (L4 exit 2 de uso · L6b solta no limiar exato · L7 typo no
+//   `--source` morde em vez de anistiar); ele não prova, nem pretende, que ela ROLE sobre o
+//   dado vivo — essa é a decisão D-8, não uma lacuna.
+// Enforcement de qualquer check vive em `governance/required-checks-baseline.json`, não aqui.
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
