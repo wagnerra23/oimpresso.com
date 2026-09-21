@@ -1698,6 +1698,10 @@ Ocorrência da **LC-24**.
 
 Ocorrência da **LC-08**.
 
+### 2026-09-21 — Disparar a regeneração de baseline do VRT: o mecanismo ainda FUNCIONA, e a prática tinha sido aposentada no mesmo dia (ADR 0409)
+
+- **O limite (variante também proibida):** antes de disparar comando ou workflow que **PRODUZ artefato canônico** — baseline, snapshot, manifesto, índice, scorecard —, conferir se decisão recente aposentou a prática (`decisions-search`, ou listar os ADRs de maior número). **Mecanismo que ainda funciona NÃO é evidência de que a prática ainda é canônica:** o canon anda por ADR e a máquina anda por PR, e o vão entre os dois é exatamente onde este erro mora — quanto mais nova a decisão, maior o vão. Aqui ele tinha menos de 24h, e nada no repo impedia o disparo: o workflow estava lá, íntegro, com a receita documentada no próprio comentário. Vale pra todo mecanismo que sobrevive à decisão que o aposentou, e é o **inverso** da §5 2026-09-03 (*lápide que declara um GAP tem prazo de validade*): lá o canon envelhece contra o mundo, aqui a máquina envelhece contra o canon.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
