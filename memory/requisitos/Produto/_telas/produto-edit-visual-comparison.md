@@ -50,6 +50,25 @@ ADR 0149: Edit deriva de Create (form-secundário mesma entidade) — sem diverg
 
 ## Rodada de medição — 2026-09-21 (PARCIAL: lado design medido, lado prod NÃO MEDIDO)
 
+> ⚠️ **ERRATA 2026-09-21, do próprio autor — o achado 4 abaixo CADUCOU, e antes do merge
+> que o publicou.** Ele afirma que `Produto/Edit` e `Create` **não estão** em `anchored` no
+> `application-report.json`. Isso era verdade na base em que medi (18/09), e **deixou de ser**
+> quando o #7579 regenerou o report: `generatedAt` **2026-09-21T10:43:26Z**, commitado
+> **11:09:44Z** — o PR que publicou o achado (#7584) mergeou **11:23:15Z**, 14 minutos depois.
+> Medido agora: `design-diff-lote --dry --tela Produto/Edit` **seleciona** a tela, fonte
+> `produto-blade-forms.jsx`, frescor verificado 2026-09-21.
+>
+> **Causa do erro:** rebasear a branch atualiza o código, **não as conclusões** — eu não
+> re-rodei a medição no instante de publicar (§5 2026-09-05, emenda).
+>
+> **O que do achado 4 PERMANECE verdadeiro, e foi confirmado pelo próprio evento:**
+> (a) estar em `anchored` **não** é estar medível — o lote reporta **`executáveis: 0/1`** para
+> as duas telas (rota parametrizada `{id}` e/ou sem rota derivável no shell), e **1/1 sem
+> contrato D0**; (b) quem reescreveu o report foi um **handoff de bundle** (#7579), não a
+> correção de charter — exatamente o mecanismo que o achado descreve.
+>
+> O texto do achado 4 fica abaixo **como foi publicado**; esta errata é que vale.
+
 > Registro do que foi **medido por sonda**, e do que **não foi**. Nada aqui foi concluído por
 > screenshot ou por leitura de código apresentada como equivalência (LC-06).
 > O conteúdo de 2026-05-15 acima fica **intacto** — é o retrato daquele dia.
@@ -151,3 +170,4 @@ de propósito; quem fechar a comparação atualiza a data com o veredito complet
 |---|---|---|
 | 2026-05-15 | [W2-C] | Comparativo criado em Wave 2 B4 Produto. |
 | 2026-09-21 | [C] | Rodada de medição parcial: lado design medido por sonda, lado prod NÃO MEDIDO (bloqueio de permissão); 4 achados estruturais; divergências candidatas do bloco Fiscal. |
+| 2026-09-21 | [C] | ERRATA no achado 4: a tela passou a constar em `anchored` (report regenerado pelo #7579 às 10:43Z, 14min antes do merge do #7584); permanece `executáveis: 0/1` e sem contrato D0. |
