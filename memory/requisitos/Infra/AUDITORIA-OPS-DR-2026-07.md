@@ -200,7 +200,7 @@ e o Vaultwarden (SPOF-3) precisam da própria estratégia (follow-ups).
 | DR-03 | Nova estratégia de backup do auth-state wuzapi (dump do store, não path) — §3.2 | P0 | 1 sessão | verificar storage wuzapi |
 | DR-04 | Cron de backup do volume Vaultwarden (SPOF-3) | P0 | ½ sessão | Wagner |
 | DR-05 | Runbook de restore ponta-a-ponta + drill com o zip prod real (mede RTO completo) | P1 | 1 sessão | decisão PII |
-| DR-06 | Versionar systemd units do CT100 (`oimpresso-git-sync.*`) no repo (hoje ad-hoc no host) | P2 | ½ sessão | — |
+| DR-06 | ✅ **FEITO 2026-09-21** — units em [`docker/oimpresso-mcp/systemd/`](../../../docker/oimpresso-mcp/systemd/) com receita, verificação por consequência e histórico. Saiu junto com o conserto do timer (era `OnBootSec`+`OnUnitActiveSec`, monotônicos: passou **38 dias armado e mudo**) | P2 | ½ sessão | — |
 
 ---
 
