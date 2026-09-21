@@ -1055,6 +1055,9 @@ então o que se afirma abaixo é só o que o instrumento de fato mediu.
   `space-y-4` do container da página (a className da grade não declara margem), logo ele rege
   **todas** as seções: KPIs, Metas, Análises, Ações. Convergir para 18px é mudar o ritmo vertical
   da tela inteira, tocando território de 4 chips irmãos vivos. Fica **medido e aberto**, decisão [W].
+  → ✅ **FECHADO 2026-09-21 (#7653)** — o ritmo vertical foi a **18px**, e a única seção que
+  foge dele ficou com **6px**, como na âncora. Travado por **UC-JPAIN-33**. O *"decisão [W]"*
+  acima vale como fato datado: era a leitura correta enquanto o raio parecia ser as 4 seções.
 - **Conteúdo dos cards** (o sparkline de Faturamento, em especial). Não medido aqui. ⚠️ Consequência
   declarada da mudança: a largura do card cai de **1110,5px → ~737,7px** (−33,6%) nessa viewport, e
   o `<svg>` do sparkline é `preserveAspectRatio="none"`, logo a curva **comprime horizontalmente**
@@ -1542,19 +1545,19 @@ e mexer nela daqui mudaria o veredito de todas as telas que a usam.
 
 | item | âncora `.jm-meta` | prod `MetaCard` | veredito |
 |---|---|---|---|
-| grade — **colunas** | **4** (271,75px) | **3** (361,7px) | ❌ DIVERGE |
-| grade — **gap** | **10px** | **16px** (`gap-4`) | ❌ DIVERGE |
-| grade — regra | `auto-fit minmax(232px,1fr)` | `sm:grid-cols-2 xl:grid-cols-3` | ❌ breakpoint fixo × auto-fit |
+| grade — **colunas** | **4** (271,75px) | **3** (361,7px) | ❌ DIVERGE → ✅ **FECHADO 2026-09-21 (#7646)** — **UC-JPAIN-32** — `Grid` com `auto-fit`/`minmax(232px,1fr)` por token (ADR 0253) |
+| grade — **gap** | **10px** | **16px** (`gap-4`) | ❌ DIVERGE → ✅ **FECHADO 2026-09-21 (#7646)** — **UC-JPAIN-32** — gap 10px |
+| grade — regra | `auto-fit minmax(232px,1fr)` | `sm:grid-cols-2 xl:grid-cols-3` | ❌ breakpoint fixo × auto-fit → ✅ **FECHADO 2026-09-21 (#7646)** — **UC-JPAIN-32** — `auto-fit` de verdade, **não** breakpoint fixo aproximado |
 | layout | 5 cards / 2 linhas | 5 cards / 2 linhas | ✅ |
-| card — **altura** | **122px** | **236px** | ❌ DIVERGE (~2×) |
-| card — **padding** | **12px 13px** | **24px 0px** | ❌ DIVERGE |
-| card — **gap interno** | **8px** | **24px** | ❌ DIVERGE |
+| card — **altura** | **122px** | **236px** | ❌ DIVERGE (~2×) → ✅ **FECHADO 2026-09-21 (#7646)** — **UC-JPAIN-32** — `gap-2 py-3` sobrescreve o `gap-6 py-6` do `Card` do DS (48px eram só o `py-6`) |
+| card — **padding** | **12px 13px** | **24px 0px** | ❌ DIVERGE → ✅ **FECHADO 2026-09-21 (#7646)** — **UC-JPAIN-32** — `px-[13px]` |
+| card — **gap interno** | **8px** | **24px** | ❌ DIVERGE → ✅ **FECHADO 2026-09-21 (#7646)** — **UC-JPAIN-32** — `gap-2` |
 | card — radius | 12px | 12px | ✅ |
 | card — tag | BUTTON | BUTTON | ✅ |
 | card — display | flex | flex | ✅ |
-| **valor — tamanho** | **20px** | **24px** | ❌ DIVERGE |
-| **valor — peso** | **700** | **600** | ❌ DIVERGE |
-| **valor — família** | **IBM Plex Mono** | **IBM Plex Sans** | ❌ DIVERGE |
+| **valor — tamanho** | **20px** | **24px** | ❌ DIVERGE → ✅ **FECHADO 2026-09-21 (#7646)** — **UC-JPAIN-32** — `text-[20px]` |
+| **valor — peso** | **700** | **600** | ❌ DIVERGE → ✅ **FECHADO 2026-09-21 (#7646)** — **UC-JPAIN-32** — `font-bold` |
+| **valor — família** | **IBM Plex Mono** | **IBM Plex Sans** | ❌ DIVERGE → ✅ **FECHADO 2026-09-21 (#7646)** — **UC-JPAIN-32** — `font-mono` |
 | h2 da seção — tamanho/peso | 11px / 700 | 11px / 700 | ✅ |
 | alinhamento (D8) | left / left / normal | left / left / normal | ✅ |
 
