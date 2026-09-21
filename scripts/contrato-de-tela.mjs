@@ -50,7 +50,10 @@ const ok = (...a) => console.log('OK ' + a.join(' '));
 const warn = (...a) => console.log('! ' + a.join(' '));
 
 function git(args, opts = {}) {
-  try { return execSync(`git ${args}`, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], ...opts }).trim(); }
+  // maxBuffer: com o default (1 MiB) o `git ls-files` do repo inteiro estourou em 2026-09-21,
+  // o catch devolvia '' e o preflight acusava "worktree órfão (0 arquivos)" — não-medição lida
+  // como acusação (LC-33).
+  try { return execSync(`git ${args}`, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 * 1024 * 1024, ...opts }).trim(); }
   catch { return null; }
 }
 

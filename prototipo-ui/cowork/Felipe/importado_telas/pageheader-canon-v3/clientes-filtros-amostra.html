@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clientes — 5 variantes do botão Filtros avançados</title>
+<style>
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --border: 214 32% 91%;
+  --accent: 210 40% 96%;
+  --slate-50: 210 40% 98%;
+  --slate-100: 210 40% 96%;
+  --slate-200: 214 32% 91%;
+  --slate-500: 215 16% 47%;
+  --slate-600: 215 19% 35%;
+  --slate-700: 215 25% 27%;
+  --slate-900: 222 47% 11%;
+
+  /* hue cadastro (cliente) */
+  --hue: 202;
+  --primary: oklch(0.55 0.15 var(--hue));
+  --primary-dark: oklch(0.45 0.15 var(--hue));
+  --primary-light: oklch(0.85 0.08 var(--hue));
+  --primary-soft: oklch(0.94 0.04 var(--hue));
+
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-snap: cubic-bezier(0.22, 1, 0.36, 1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; }
+body {
+  background: hsl(var(--slate-50));
+  color: hsl(var(--foreground));
+  padding: 2rem;
+  min-height: 100vh;
+}
+h1 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+p.lead {
+  color: hsl(var(--muted-foreground));
+  font-size: 13.5px;
+  margin-bottom: 2rem;
+  max-width: 64ch;
+  line-height: 1.5;
+}
+h2.variant-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: hsl(var(--slate-700));
+  margin: 2rem 0 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+p.variant-desc {
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 0.5rem;
+}
+.card {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* ============================================================
+   HEADER CANON BASE
+   ============================================================ */
+.os-page-h {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem 2rem 1rem;
+  min-height: 64px;
+  background: hsl(var(--background));
+  border-bottom: 1px solid hsl(var(--border));
+}
+.page-h-zone-l { flex: 1; min-width: 0; }
+.page-h-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.011em;
+  line-height: 1.5;
+  color: hsl(var(--foreground));
+}
+.page-h-title-suffix { color: hsl(var(--muted-foreground)); font-weight: 600; }
+.page-h-subtitle {
+  font-size: 13.5px;
+  color: hsl(var(--muted-foreground));
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.page-h-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  align-self: stretch;
+  flex-shrink: 0;
+}
+.page-h-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: 36px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color 120ms var(--ease-smooth), border-color 120ms var(--ease-smooth);
+}
+.page-h-tab:hover { color: hsl(var(--foreground)); border-bottom-color: hsl(var(--border)); }
+.page-h-tab[aria-current="page"] {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  border-bottom-color: var(--primary);
+}
+.page-h-tab svg { width: 14px; height: 14px; opacity: 0.7; }
+.page-h-tab[aria-current="page"] svg { opacity: 1; }
+
+.page-h-zone-r {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   PRIMARY (igual em todas variantes)
+   ============================================================ */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  background: var(--primary);
+  border: 1px solid var(--primary-dark);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 120ms var(--ease-smooth), transform 60ms var(--ease-snap);
+}
+.btn-primary:hover { background: oklch(0.48 0.16 var(--hue)); border-color: oklch(0.38 0.16 var(--hue)); }
+.btn-primary:active { transform: scale(0.97); }
+
+/* overflow icon button (3 pontinhos) — comum em todas */
+.btn-overflow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: background 120ms var(--ease-smooth), color 120ms var(--ease-smooth);
+}
+.btn-overflow:hover { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+
+/* ============================================================
+   5 VARIANTES DO BOTÃO FILTROS AVANÇADOS
+   ============================================================ */
+
+/* A — Ghost puro (igual /servico/* atual) */
+.btn-filter--ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(var(--slate-600));
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 120ms var(--ease-smooth), color 120ms var(--ease-smooth);
+}
+.btn-filter--ghost:hover { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+.btn-filter--ghost svg { width: 14px; height: 14px; }
+
+/* B — Outline (com borda permanente) */
+.btn-filter--outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(var(--slate-700));
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 120ms var(--ease-smooth), border-color 120ms var(--ease-smooth);
+}
+.btn-filter--outline:hover { background: hsl(var(--accent)); border-color: hsl(var(--slate-200)); }
+.btn-filter--outline svg { width: 14px; height: 14px; opacity: 0.8; }
+
+/* C — Soft (bg muted leve, sem borda) */
+.btn-filter--soft {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(var(--slate-700));
+  background: hsl(var(--slate-100));
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 120ms var(--ease-smooth);
+}
+.btn-filter--soft:hover { background: hsl(214 32% 87%); }
+.btn-filter--soft svg { width: 14px; height: 14px; opacity: 0.7; }
+
+/* D — Tinted (bg light do hue do grupo) */
+.btn-filter--tinted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: oklch(0.35 0.15 var(--hue));
+  background: var(--primary-soft);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 120ms var(--ease-smooth);
+}
+.btn-filter--tinted:hover { background: var(--primary-light); }
+.btn-filter--tinted svg { width: 14px; height: 14px; }
+
+/* E — Chip (pílula com borda colorida sutil) */
+.btn-filter--chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: oklch(0.35 0.15 var(--hue));
+  background: hsl(var(--background));
+  border: 1px solid var(--primary-light);
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 120ms var(--ease-smooth), border-color 120ms var(--ease-smooth);
+}
+.btn-filter--chip:hover { background: var(--primary-soft); border-color: var(--primary); }
+.btn-filter--chip svg { width: 13px; height: 13px; }
+
+/* badge contador (mostra quantos filtros ativos) */
+.filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 9px;
+  background: var(--primary);
+  color: white;
+}
+.btn-filter--ghost .filter-count,
+.btn-filter--soft .filter-count,
+.btn-filter--outline .filter-count { background: var(--primary); color: white; }
+</style>
+</head>
+<body>
+
+<h1>Clientes / Contatos — 5 variantes do botão Filtros avançados</h1>
+<p class="lead">
+Mesma tela, mesma Zona L (título + subtítulo), mesma Zona C (5 tabs), mesma Zona R (primary <strong>+ Novo cliente</strong> + overflow <code>⋮</code>).
+Só muda o tratamento visual do botão <strong>Filtros avançados</strong> à esquerda do overflow.
+Hover em cada um pra sentir o feedback. Aponta qual te incomoda menos.
+</p>
+
+<!-- ========== A — GHOST PURO ========== -->
+<h2 class="variant-title">A · Ghost puro (igual /servico/* atual)</h2>
+<p class="variant-desc">Sem fundo, sem borda, só texto+ícone. Hover ganha fundo cinza claro. <strong>Pode ser o que te incomoda</strong> — parece "link", não "botão".</p>
+<div class="card">
+  <header class="os-page-h">
+    <div class="page-h-zone-l">
+      <h1 class="page-h-title">Clientes<span class="page-h-title-suffix"> · cadastro</span></h1>
+      <p class="page-h-subtitle">31 cadastrados · 4 ativos · 2 com saldo</p>
+    </div>
+    <nav class="page-h-nav">
+      <a class="page-h-tab" href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Todos</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>Clientes</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/></svg>Fornecedores</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>Funcionários</a>
+    </nav>
+    <div class="page-h-zone-r">
+      <button class="btn-filter--ghost">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filtros avançados
+      </button>
+      <button class="btn-overflow" aria-label="Mais ações"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+      <button class="btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo cliente</button>
+    </div>
+  </header>
+</div>
+
+<!-- ========== B — OUTLINE ========== -->
+<h2 class="variant-title">B · Outline (borda permanente)</h2>
+<p class="variant-desc">Tem borda visível sempre — "parece botão" claramente. Pattern shadcn / Linear / Stripe. Mais peso visual sem competir com primary.</p>
+<div class="card">
+  <header class="os-page-h">
+    <div class="page-h-zone-l">
+      <h1 class="page-h-title">Clientes<span class="page-h-title-suffix"> · cadastro</span></h1>
+      <p class="page-h-subtitle">31 cadastrados · 4 ativos · 2 com saldo</p>
+    </div>
+    <nav class="page-h-nav">
+      <a class="page-h-tab" href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>Todos</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>Clientes</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/></svg>Fornecedores</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>Funcionários</a>
+    </nav>
+    <div class="page-h-zone-r">
+      <button class="btn-filter--outline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filtros avançados
+      </button>
+      <button class="btn-overflow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+      <button class="btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo cliente</button>
+    </div>
+  </header>
+</div>
+
+<!-- ========== C — SOFT ========== -->
+<h2 class="variant-title">C · Soft (fundo cinza-claro, sem borda)</h2>
+<p class="variant-desc">Tem fundo sutil (`bg-slate-100`), sem borda. "Parece botão" sem peso visual de borda. Pattern Notion / Vercel.</p>
+<div class="card">
+  <header class="os-page-h">
+    <div class="page-h-zone-l">
+      <h1 class="page-h-title">Clientes<span class="page-h-title-suffix"> · cadastro</span></h1>
+      <p class="page-h-subtitle">31 cadastrados · 4 ativos · 2 com saldo</p>
+    </div>
+    <nav class="page-h-nav">
+      <a class="page-h-tab" href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>Todos</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>Clientes</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/></svg>Fornecedores</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>Funcionários</a>
+    </nav>
+    <div class="page-h-zone-r">
+      <button class="btn-filter--soft">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filtros avançados
+      </button>
+      <button class="btn-overflow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+      <button class="btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo cliente</button>
+    </div>
+  </header>
+</div>
+
+<!-- ========== D — TINTED ========== -->
+<h2 class="variant-title">D · Tinted (fundo ciano-claro do hue do grupo)</h2>
+<p class="variant-desc">Bg `oklch(0.94 0.04 202)` ciano-clarissimo + texto ciano-escuro. <strong>Conecta visualmente com o primary</strong> (mesma família de cor), mas em peso bem menor. Pattern Stripe / Mercury.</p>
+<div class="card">
+  <header class="os-page-h">
+    <div class="page-h-zone-l">
+      <h1 class="page-h-title">Clientes<span class="page-h-title-suffix"> · cadastro</span></h1>
+      <p class="page-h-subtitle">31 cadastrados · 4 ativos · 2 com saldo</p>
+    </div>
+    <nav class="page-h-nav">
+      <a class="page-h-tab" href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>Todos</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>Clientes</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/></svg>Fornecedores</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>Funcionários</a>
+    </nav>
+    <div class="page-h-zone-r">
+      <button class="btn-filter--tinted">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filtros avançados
+      </button>
+      <button class="btn-overflow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+      <button class="btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo cliente</button>
+    </div>
+  </header>
+</div>
+
+<!-- ========== E — CHIP ========== -->
+<h2 class="variant-title">E · Chip (pílula com borda colorida sutil)</h2>
+<p class="variant-desc">Borda fina ciano + bordas arredondadas 999px + altura 32px (menor). Comunica "filtro/refinar" sem ser botão pesado. Pattern Linear / Pipedrive.</p>
+<div class="card">
+  <header class="os-page-h">
+    <div class="page-h-zone-l">
+      <h1 class="page-h-title">Clientes<span class="page-h-title-suffix"> · cadastro</span></h1>
+      <p class="page-h-subtitle">31 cadastrados · 4 ativos · 2 com saldo</p>
+    </div>
+    <nav class="page-h-nav">
+      <a class="page-h-tab" href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>Todos</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>Clientes</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/></svg>Fornecedores</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>Funcionários</a>
+    </nav>
+    <div class="page-h-zone-r">
+      <button class="btn-filter--chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filtros avançados
+      </button>
+      <button class="btn-overflow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+      <button class="btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo cliente</button>
+    </div>
+  </header>
+</div>
+
+<!-- ========== BONUS — TINTED COM BADGE ATIVO ========== -->
+<h2 class="variant-title">Bonus · Tinted COM contador (3 filtros aplicados)</h2>
+<p class="variant-desc">Mesma variante D + badge mostrando quantos filtros ativos. Power-user vê de longe "tem 3 filtros sobrepostos".</p>
+<div class="card">
+  <header class="os-page-h">
+    <div class="page-h-zone-l">
+      <h1 class="page-h-title">Clientes<span class="page-h-title-suffix"> · cadastro</span></h1>
+      <p class="page-h-subtitle">31 cadastrados · <strong>4 ativos</strong> filtrados</p>
+    </div>
+    <nav class="page-h-nav">
+      <a class="page-h-tab" href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>Todos</a>
+      <a class="page-h-tab" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>Clientes</a>
+    </nav>
+    <div class="page-h-zone-r">
+      <button class="btn-filter--tinted">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filtros avançados
+        <span class="filter-count">3</span>
+      </button>
+      <button class="btn-overflow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+      <button class="btn-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo cliente</button>
+    </div>
+  </header>
+</div>
+
+<!-- ========== COMPARATIVO LADO A LADO ========== -->
+<h2 class="variant-title">Comparativo lado a lado (sem header, só os botões)</h2>
+<p class="variant-desc">Os 5 botões isolados pra você comparar peso visual sem a distração do header.</p>
+<div class="card" style="padding: 2rem; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; background: hsl(var(--background));">
+  <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
+    <span style="font-size:11px;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600;">A · Ghost</span>
+    <button class="btn-filter--ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filtros avançados</button>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
+    <span style="font-size:11px;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600;">B · Outline</span>
+    <button class="btn-filter--outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filtros avançados</button>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
+    <span style="font-size:11px;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600;">C · Soft</span>
+    <button class="btn-filter--soft"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filtros avançados</button>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
+    <span style="font-size:11px;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600;">D · Tinted</span>
+    <button class="btn-filter--tinted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filtros avançados</button>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
+    <span style="font-size:11px;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600;">E · Chip</span>
+    <button class="btn-filter--chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filtros avançados</button>
+  </div>
+</div>
+
+<p style="margin-top: 2rem; padding: 1rem 1.25rem; background: hsl(var(--slate-100)); border-radius: 6px; font-size: 13px; color: hsl(var(--slate-700)); line-height: 1.6;">
+<strong>Qual te incomoda menos?</strong> Te aviso depois qual padrão Stripe / Linear / Notion / Hubspot usam, mas primeiro vamos pelo teu olho.<br><br>
+
+Minha aposta pelo que você disse ("ghost incomoda"): <strong>D · Tinted</strong>. Porque:<br>
+&nbsp;&nbsp;• não é ghost (tem fundo)<br>
+&nbsp;&nbsp;• conecta visualmente com o primary (mesma família de cor, mesmo grupo cadastro)<br>
+&nbsp;&nbsp;• não compete (peso muito menor que o primary)<br>
+&nbsp;&nbsp;• badge contador (3) cai naturalmente porque tem espaço visual<br>
+&nbsp;&nbsp;• escala pra outros grupos: troca só `--hue` e fica coerente em todos
+</p>
+
+</body>
+</html>

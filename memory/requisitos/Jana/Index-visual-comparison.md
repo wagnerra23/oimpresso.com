@@ -34,6 +34,26 @@
 > [`PARIDADE-area-jana-diagnostico-e-ondas.md`](PARIDADE-area-jana-diagnostico-e-ondas.md) carrega o
 > mesmo 19px e fica intacto pelo mesmo motivo: é fóssil datado, e esta errata é o ponteiro.
 >
+> **FECHADO em 2026-09-21 — o peso convergiu, por réplica local.** A linha `font-weight` da
+> tabela acima vira **600 = 600**; ela fica como está porque é o retrato de 09-18. O que a rodada
+> de hoje acrescenta é o fundamento que faltava: **as duas âncoras discordam entre si.** A de
+> **Vendas** declara **700** explicitamente (`styles.css:4772`, 0-1-1, e `financeiro.css:1727`,
+> 0-3-1 — esta vence), com o comentário de `styles.css:4765` dizendo textual *"`.os-head` — mesmo
+> CANON do PageHeader"*; a da **Jana** não declara peso e herda o DS (600). O 700 do componente é
+> decisão [W] datada e **ainda válida** (PR #1477, 2026-05-25, *"prefiro o mesmo peso do sells"* —
+> referência re-medida hoje, segue 700), então mudá-la alinharia **42** telas ao peso da Jana.
+> Conserto: prop opt-in `titleWeight` no `PageHeader` (default `'bold'`, mesmo contrato de
+> `leading`/`below`); só o `JanaAreaHeader` declara `'semibold'` — as outras **41** não mudam um
+> pixel. UC-JPAIN-30, mordida provada por 2 mutações. **Computed style MEDIDO** (browser real + CSS do
+> projeto gerado pelo entry de verdade, Tailwind v4.3.3): **600** com a prop, **700** sem ela, e
+> `font-size` **22px nos dois** — a paridade de tamanho **não foi tocada**. Necessária porque no v4
+> a regra é indireta (`font-weight: var(--font-weight-semibold)`) e só o browser resolve; controle
+> positivo `folhaCarregou: true` no mesmo turno. ⚠️ Não é a tela `/ia` **logada inteira** — smoke
+> autenticado não foi feito (302 sem sessão). O `<h1>` **continua fora** dos 9
+> seletores do `jana--index.alvo.json` — o buraco de medição que esta seção denuncia **segue
+> aberto**, e fechá-lo exige re-medir por sonda contra render servido, não editar o alvo à mão.
+> Trilha: `Index.charter.md` **v25**.
+>
 > Trilha completa: `Index.charter.md` **v17**.
 
 - **Data da medição:** 2026-08-17 (**re-medido** — ver §Correções abaixo) · **âncora:** `prototipo-ui/cowork/Wagner/jana-merge.jsx` (resolvida por `node scripts/design/ancora.mjs Jana/Index`)
@@ -1334,6 +1354,58 @@ regressão.
 
 ---
 
+## Rodada MEDIDA 2026-09-21 (2ª) — ritmo vertical entre seções (o `margin-bottom` que ficara aberto)
+
+> A rodada anterior deixou este item **aberto e declarado** como decisão [W] — *"o 16px vem do
+> `space-y-4` do container, logo rege TODAS as seções"*. [W] decidiu: arrumar. Esta rodada mede e
+> fecha.
+
+**Método:** espaço **VISUAL** entre blocos consecutivos (`top` do próximo − `bottom` do atual), não
+a propriedade isolada — que engana quando há padding no meio. Chrome, 2560, dark, os dois lados na
+mesma janela.
+
+| de → para | âncora | prod (antes) | veredito |
+|---|---|---|---|
+| brief → kpis | **18** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| kpis → METAS | **18** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| METAS → h2 Análises | **6** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| h2 → grade | 10 | 10 | ✅ **IGUAL** |
+| grade → h2 Ações | **18** | 16 | ❌ **DÍVIDA A FECHAR** → fechada |
+| h2 Ações → ações | 10 | 10 | ✅ **IGUAL** |
+
+**6 de 6 transições comparáveis** batem depois da mudança (prova de runtime no DOM da produção,
+com as regras do CSS compilado, revertida limpa).
+
+### O que a medição mudou no conserto "óbvio"
+
+A correção intuitiva — trocar `space-y-4` por `space-y-[18px]` e pronto — **pioraria** a transição
+de METAS: ela iria de 16 → 18px, onde a âncora quer **6px**. Trocaria um erro de 10px por um de
+12px, no sentido oposto. Por isso o wrapper ganhou `mb-1.5` explícito: na âncora, `.jm-metas`
+também foge do ritmo.
+
+### O erro de instrumento, que vale mais que o acerto
+
+A **primeira** prova de runtime disse que `h2 → conteúdo` ia de 10 para **18px** — ou seja, que a
+mudança quebrava duas transições corretas. Era falso: injetei as regras num `<style>` **fora de
+`@layer`**, e CSS fora de layer vence o que está dentro **independente de especificidade**. A regra
+do `space-y` do app vive em `@layer utilities`. Refeita a injeção dentro do layer, o `h2` fica em
+10px (o `mb-2.5` vence o `:where()` de especificidade 0) e as 6 transições batem.
+
+**Simulação de cascata que não reproduz a CAMADA mede outra cascata** — e o sintoma foi um
+falso-negativo plausível, do tipo que não se denuncia.
+
+### Aberto e medido: o `pt-6` de METAS
+
+Do último KPI até o **texto** "METAS ATIVAS" são **46px** em prod (16 margem + 24 `pt-6` + 6
+`mt-1.5`) contra **24px** na âncora (18 + 6). É *padding*, não margem, e o bloco pertence a outro
+chip. A sessão de METAS mediu em paralelo e confirmou a decomposição: **nenhum dos dois consertos
+sozinho acerta** — só este dá 48, só o dela dá 16, **os dois juntos dão 24 exatos**.
+
+**Enforcement:** UC-JPAIN-33, `tests/janaRitmoVerticalReplica.spec.tsx`, 3 casos, mordida provada
+nos dois lados com restauração por hash. Detalhe no `Index.casos.md`; aqui não se repete.
+
+---
+
 
 ---
 
@@ -1486,3 +1558,4 @@ há o que pôr em mono 20/700; onde não há alvo, não há barra nem projeção
 ⚠️ **O que NÃO foi medido aqui:** por que as 5 nasceram sem período/fonte. Podem ter vindo de um seed
 antigo, de um wizard interrompido, ou de criação manual que parou no meio. `origem=manual` nas 5 diz
 como foram criadas, não por que ficaram incompletas.
+

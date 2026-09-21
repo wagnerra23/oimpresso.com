@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Oimpresso DS · v6 — Receita de Tela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: oklch(0.992 0.0015 95); --sunken: oklch(0.974 0.003 95); --surface: oklch(1 0 0);
+  --border: oklch(0.905 0.004 95); --border-2: oklch(0.95 0.003 95);
+  --text: oklch(0.205 0.008 90); --text-2: oklch(0.46 0.007 90); --text-3: oklch(0.63 0.006 90); --text-4: oklch(0.74 0.005 90);
+  --accent: oklch(0.55 0.15 295); --accent-soft: oklch(0.965 0.022 295); --accent-line: oklch(0.86 0.05 295); --accent-fg: #fff;
+  --pos: oklch(0.50 0.12 150); --pos-soft: oklch(0.95 0.075 150); --neg: oklch(0.55 0.18 25); --warn: oklch(0.58 0.12 70);
+  --r-2: 8px; --r-3: 11px; --r-4: 16px;
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+[data-theme="dark"]{
+  --bg: oklch(0.165 0.008 282); --sunken: oklch(0.142 0.008 282); --surface: oklch(0.205 0.009 282);
+  --border: oklch(0.30 0.012 282); --border-2: oklch(0.25 0.010 282);
+  --text: oklch(0.965 0.004 282); --text-2: oklch(0.74 0.008 282); --text-3: oklch(0.58 0.009 282); --text-4: oklch(0.47 0.009 282);
+  --accent: oklch(0.72 0.15 295); --accent-soft: oklch(0.30 0.07 295); --accent-line: oklch(0.42 0.10 295); --accent-fg: oklch(0.14 0.02 295);
+  --pos: oklch(0.74 0.14 150); --pos-soft: oklch(0.30 0.085 150); --neg: oklch(0.72 0.16 25); --warn: oklch(0.80 0.13 75);
+}
+*{ box-sizing: border-box; }
+html,body{ margin: 0; }
+body{ background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+.top{ position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 13px; padding: 16px 32px; background: color-mix(in oklch, var(--bg) 86%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.logo{ width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), color-mix(in oklch, var(--accent) 60%, var(--text))); display: grid; place-items: center; color: var(--accent-fg); font-weight: 700; font-size: 13px; }
+.top b{ font-size: 15px; font-weight: 600; }
+.top .ver{ font-family: var(--mono); font-size: 11px; color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+.themeBtn{ margin-left: auto; appearance: none; cursor: pointer; font: inherit; height: 34px; padding: 0 14px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12.5px; font-weight: 500; }
+
+.wrap{ max-width: 880px; margin: 0 auto; padding: 40px 32px 90px; }
+h1{ font-size: 30px; font-weight: 600; letter-spacing: -0.03em; margin: 0 0 10px; }
+.lead{ font-size: 14.5px; line-height: 1.6; color: var(--text-2); margin: 0 0 8px; }
+.step{ display: flex; gap: 16px; margin: 40px 0 0; }
+.step-n{ flex: 0 0 auto; width: 34px; height: 34px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 14px; border: 1px solid var(--accent-line); }
+.step-b{ flex: 1 1 auto; min-width: 0; }
+.step-b h2{ font-size: 18px; font-weight: 600; letter-spacing: -0.02em; margin: 4px 0 8px; }
+.step-b p{ font-size: 13.5px; line-height: 1.6; color: var(--text-2); margin: 0 0 12px; }
+.card{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-4); padding: 16px 18px; margin: 12px 0; }
+.chk{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.chk li{ display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.45; }
+.chk .tick{ flex: 0 0 auto; width: 18px; height: 18px; border-radius: 6px; background: var(--pos-soft); color: var(--pos); display: grid; place-items: center; margin-top: 1px; }
+.chk b{ color: var(--text); }
+.chk code, code.k{ font-family: var(--mono); font-size: 11.5px; color: var(--accent); background: var(--accent-soft); padding: 1px 6px; border-radius: 4px; }
+pre{ margin: 0; background: var(--sunken); border: 1px solid var(--border); border-radius: var(--r-3); padding: 15px 16px; overflow-x: auto; font-family: var(--mono); font-size: 12px; line-height: 1.65; color: var(--text-2); }
+pre .t{ color: var(--text-4); } pre .a{ color: var(--accent); } pre .c{ color: var(--pos); }
+.loop{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.loop span{ font-size: 12px; font-weight: 500; padding: 6px 11px; border-radius: 8px; background: var(--sunken); border: 1px solid var(--border-2); }
+.loop b{ color: var(--accent); }
+.arrow{ color: var(--text-4); }
+.principios{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+.princ{ border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--r-3); padding: 12px 14px; }
+.princ b{ display: block; font-size: 13px; margin-bottom: 3px; }
+.princ small{ font-size: 11.5px; color: var(--text-3); line-height: 1.4; }
+.no{ border-left-color: var(--neg); } .no b{ color: var(--neg); }
+@media (max-width:640px){ .principios{ grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="logo">Oi</div><b>Receita de Tela</b><span class="ver">DS v6</span>
+  <button class="themeBtn" id="themeBtn">◐ Escuro</button>
+</div>
+
+<div class="wrap">
+  <h1>Como nascer uma tela.</h1>
+  <p class="lead">A tela não se desenha do zero — ela se <b>monta</b> do kit. Esta receita é a ordem que faz qualquer tela nova já nascer coerente, bonita e em claro/escuro. Quem segue, passa no lint e na crítica sem retrabalho.</p>
+
+  <div class="step">
+    <div class="step-n">1</div>
+    <div class="step-b">
+      <h2>Comece pelo shell, não pela tela</h2>
+      <p>Toda tela mora no <b>Cockpit V2</b>: sidebar (dark-fixo) · header · corpo · e <b>rail de contexto</b> ou drawer. Não reinvente o esqueleto — só preencha o corpo.</p>
+      <pre><span class="t">&lt;!-- corpo da tela: container + tokens, nada de cor crua --&gt;</span>
+&lt;div class="<span class="a">minha-tela</span>"&gt;
+  &lt;header&gt; <span class="c">c-id</span> (header de identidade) + ações &lt;/header&gt;
+  &lt;div class="kpis"&gt; <span class="c">c-kpi</span> × N &lt;/div&gt;
+  &lt;main&gt; conteúdo + <span class="c">c-tl</span> / <span class="c">c-asset</span> ... &lt;/main&gt;
+  &lt;aside&gt; <span class="c">c-rail</span> + <span class="c">c-nba</span> (contexto / Jana) &lt;/aside&gt;
+&lt;/div&gt;</pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-n">2</div>
+    <div class="step-b">
+      <h2>Monte com o kit — não escreva CSS de cor</h2>
+      <p>Pegue as peças do Showcase. Se precisa de algo que o kit não tem, é sinal de buraco no DS (passo 5), não de CSS novo.</p>
+      <div class="card"><ul class="chk">
+        <li><span class="tick">✓</span><div><b>Header de identidade</b> <code class="k">.c-id</code> — cliente/frota/OS no topo.</div></li>
+        <li><span class="tick">✓</span><div><b>KPI / stat</b> <code class="k">.c-kpi</code> — número grande, tom semântico quando importa.</div></li>
+        <li><span class="tick">✓</span><div><b>Pílula de status</b> <code class="k">.c-pill</code> + <b>etapas</b> <code class="k">.c-stage</code>.</div></li>
+        <li><span class="tick">✓</span><div><b>Timeline unificada</b> <code class="k">.c-tl</code> · <b>card de ativo</b> <code class="k">.c-asset</code>.</div></li>
+        <li><span class="tick">✓</span><div><b>Rail de contexto</b> <code class="k">.c-rail</code> + <b>próxima-ação</b> <code class="k">.c-nba</code>.</div></li>
+      </ul></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-n">3</div>
+    <div class="step-b">
+      <h2>Obedeça os tokens — o claro/escuro sai de graça</h2>
+      <div class="principios">
+        <div class="princ"><b>Cor = token</b><small>Só <code class="k">--accent</code>, <code class="k">--pos/neg/warn</code>, <code class="k">--origin-*</code>, <code class="k">--stage-*</code>. O roxo 295 é a marca.</small></div>
+        <div class="princ"><b>Superfície em camada</b><small><code class="k">--bg → sunken → surface → raised</code>. Borda sempre <code class="k">--border</code>.</small></div>
+        <div class="princ no"><b>Nunca oklch cru</b><small>Cor escrita à mão não flipa no tema e quebra o lint. Zero exceções.</small></div>
+        <div class="princ no"><b>Nunca modal pra detalhe</b><small>Detalhe = rail ou drawer lateral. Densidade pro 1280 da Larissa.</small></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-n">4</div>
+    <div class="step-b">
+      <h2>Pense em fluxo, não em tela</h2>
+      <p>Pergunte: <b>de onde o dado vem</b> e <b>pra onde ele vai</b>? Desenhe a <b>costura</b> (a passagem pro próximo módulo) — é onde o ERP ganha ou perde. Surfe o contexto cross-módulo no rail.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-n">5</div>
+    <div class="step-b">
+      <h2>Faltou peça? É buraco do DS — proponha, não invente</h2>
+      <p>Esse é o ciclo que mantém o sistema vivo (foi assim que a paleta <code class="k">--stage-*</code> nasceu):</p>
+      <div class="loop">
+        <span>monto a tela</span><span class="arrow">→</span>
+        <span>sobra cor/peça <b>crua</b></span><span class="arrow">→</span>
+        <span>isso é <b>buraco do DS</b></span><span class="arrow">→</span>
+        <span>vira <b>token/componente</b></span><span class="arrow">→</span>
+        <span>harmonizo</span>
+      </div>
+      <p style="margin-top:14px">Mudança no DS é <b>Tier-0</b> (decisão de [W], vira ADR). Eu <b>proponho</b>; nunca cunho versão sozinho.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-n">6</div>
+    <div class="step-b">
+      <h2>Feche com o gate</h2>
+      <div class="card"><ul class="chk">
+        <li><span class="tick">✓</span><div>Passa nos <b>dois temas</b> (toggle claro/escuro, nada quebra).</div></li>
+        <li><span class="tick">✓</span><div><b>Zero oklch cru</b> (lint verde) · só componentes do kit.</div></li>
+        <li><span class="tick">✓</span><div>Legível e denso no <b>1280</b> (persona balcão).</div></li>
+        <li><span class="tick">✓</span><div>A <b>costura</b> pro próximo módulo está explícita.</div></li>
+        <li><span class="tick">✓</span><div>Aprovação visual de [W] (F2) → ponte pro Code.</div></li>
+      </ul></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var root = document.documentElement, btn = document.getElementById('themeBtn');
+  try{ var s = localStorage.getItem('dsv6.theme'); if(s) root.dataset.theme = s; }catch(e){}
+  function label(){ btn.textContent = (root.dataset.theme === 'dark' ? '◐ Escuro' : '◑ Claro'); }
+  label();
+  btn.addEventListener('click', function(){
+    root.dataset.theme = (root.dataset.theme === 'dark' ? 'light' : 'dark');
+    try{ localStorage.setItem('dsv6.theme', root.dataset.theme); }catch(e){}
+    label();
+  });
+})();
+</script>
+</body>
+</html>
