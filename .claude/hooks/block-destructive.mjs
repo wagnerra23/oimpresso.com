@@ -139,12 +139,31 @@ export function statements(cmd) {
 //   APERTOU  561 distintos / 563 ocorrências   AFROUXOU 18 / 18
 //
 //   O que passa a bloquear, por classe:
-//     B) rm(1) de verdade ......... 505 / 506  (89,9%)  ← o alvo da mudança
-//     C) `rm` dentro de string .....  52 /  53  ( 9,4%)  ← FP, ver abaixo
-//     A) `<tool> rm` residual ......   4 /   4  ( 0,7%)  ← FP
-//   O que deixa de bloquear:
-//     18 `git rm -r` / `git rm -f` — FP PRÉ-EXISTENTE que esta mudança corrige
-//     (ver ehToolRm). Não é alvo novo liberado: `git rm` nunca foi rm(1).
+//     B) rm(1) de verdade ......... 505 / 506  (90,5%)  ← o alvo da mudança
+//     C) `rm` dentro de string .....  ~52 / ~53 ( 9,4%)  ← FP, ver abaixo
+//     A) `<tool> rm` residual ......    ~4 /  ~4 ( 0,7%)  ← FP
+//   O que deixa de bloquear: 32, TODOS lidos e benignos —
+//     18 `git rm -r`/`-f` (FP pré-existente, ver ehToolRm: `git rm` nunca foi
+//     rm(1) e é reversível) + 14 `docker exec … rm /tmp/*` (§POSIÇÃO abaixo).
+//
+// ⚠️ O 9,9% de FP é um PISO, não uma medida — e isso importa pra quem ler o
+// número. 47% do universo apertado é comando MULTI-LINHA, onde o `rm` pode
+// estar em heredoc, template literal ou string de outra linguagem; nenhuma
+// heurística de aspas alcança isso. Duas medições independentes (esta sessão e
+// uma sessão irmã, eixos diferentes) deram 9,4% e 12,2% pra mesma classe — a
+// diferença É a fatia que cada heurística alcança. O que está medido com
+// confiança é o TOTAL (≈560) e a classe B; a partição do resto é estimativa.
+//
+// ── POSIÇÃO: a isenção não exige mais `rm` como 1º token (2026-09-21) ───────
+// `sudo rm -rf vendor` e `docker exec c rm /tmp/x` bloqueavam embora o alvo
+// esteja na whitelist — só porque o extrator ancorava em `^rm`. Medidos 5 no
+// corpus, todos `docker exec … rm /tmp/*.php` (sonda no CT 100). Corrigido em
+// alvosRmRf; os 4 CN do §POSIÇÃO no test provam que prefixo não isenta alvo de
+// fora, inclusive remoto.
+// ⚠️ NÃO estendi ehToolRm pra `docker exec`/`ssh … rm`, embora sugerido: o
+// alvo remoto é um filesystem REAL, e `ssh prod rm -rf /var/www` é exatamente
+// o que o guard existe pra pegar. O caso legítimo (alvo reconstruível) já é
+// resolvido pelo §POSIÇÃO, sem abrir a porta do alvo arbitrário.
 //
 // O `<tool> rm` sai pela isenção, e isso NÃO é zelo: sem ele, o mesmo corpus
 // acusaria 183 `git rm` (24,6% de tudo). Medido nas duas versões.
@@ -255,9 +274,15 @@ const RM_WHITELIST_ALVOS = [
  * @returns {string[]|null} null = o statement não é um `rm -rf`
  */
 export function alvosRmRf(stmt) {
-  const m = /^rm(\s+|$)/i.exec(String(stmt || ''));
+  // O `rm` pode NAO ser o 1o token do statement: `docker exec c rm /tmp/x`,
+  // `timeout 200 rm /tmp/x`, `sudo rm /tmp/x`. Ancorar em `^rm` deixava esses
+  // FORA da isencao mesmo com alvo whitelisted — medido: 5 casos no corpus,
+  // todos `docker exec … rm /tmp/*.php`. Achar em qualquer posicao NAO
+  // afrouxa o que importa: o veredito segue vindo de alvoIsento() sobre CADA
+  // alvo, e `xargs … rm -rf` continua com alvos=[] (vacuidade nao isenta).
+  const m = /(^|[\s;&|])rm(\s+|$)/i.exec(String(stmt || ''));
   if (!m) return null;
-  const toks = String(stmt).slice(m[0].length).match(/"[^"]*"|'[^']*'|\S+/g) || [];
+  const toks = String(stmt).slice(m.index + m[0].length).match(/"[^"]*"|'[^']*'|\S+/g) || [];
   const alvos = [];
   for (let t of toks) {
     if (/^(\||&|;|\d*>|<|>>)/.test(t)) break;   // operador de shell → acabou o rm

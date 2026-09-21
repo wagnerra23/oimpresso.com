@@ -240,8 +240,27 @@ check('CN rm: FECHA falso-negativo — 1º rm whitelisted não cobre o 2º perig
   matchDestructive('rm -rf /tmp/a && rm -rf src/')?.key === 'rm-rf-perigoso');
 check('CN rm: idem com o perigoso em outra linha',
   matchDestructive('rm -rf node_modules\nrm -rf /etc')?.key === 'rm-rf-perigoso');
-check('CN rm: whitelist exige o rm no INÍCIO do statement (sudo não é isento)',
-  matchDestructive('sudo rm -rf vendor')?.key === 'rm-rf-perigoso');
+// ── §POSIÇÃO (2026-09-21): a isenção deixa de exigir `rm` no 1º token ───────
+// Era: `sudo rm -rf vendor` BLOQUEAVA, embora `vendor` esteja na whitelist e
+// `rm -rf vendor` passe. O motivo era só a âncora `^rm` do extrator. Medido no
+// corpus: 5 comandos com TODOS os alvos já whitelisted bloqueavam por isso,
+// todos `docker exec … rm /tmp/*.php` — trabalho normal de sonda no CT 100.
+// Isto NÃO afrouxa o que importa: o veredito continua vindo de alvoIsento()
+// sobre CADA alvo (os 4 CN abaixo), e a vacuidade do xargs segue fechada.
+check('POSIÇÃO: `sudo rm -rf vendor` isenta — o alvo é que decide, não a posição',
+  matchDestructive('sudo rm -rf vendor') === null);
+check('POSIÇÃO: `docker exec c rm /tmp/x.php` isenta (o caso real do corpus)',
+  matchDestructive('docker exec c rm /tmp/x.php') === null);
+check('POSIÇÃO: `timeout 200 rm /tmp/x` isenta',
+  matchDestructive('timeout 200 rm /tmp/x') === null);
+check('CN POSIÇÃO: prefixo NÃO isenta alvo de fora (`sudo rm /etc/passwd`)',
+  matchDestructive('sudo rm /etc/passwd')?.key === 'rm-rf-perigoso');
+check('CN POSIÇÃO: idem em container (`docker exec c rm /etc/passwd`)',
+  matchDestructive('docker exec c rm /etc/passwd')?.key === 'rm-rf-perigoso');
+check('CN POSIÇÃO: multi-arg com 1 alvo de fora segue bloqueando mesmo com prefixo',
+  matchDestructive('docker exec c rm /tmp/a src/b')?.key === 'rm-rf-perigoso');
+check('CN POSIÇÃO: `ssh host rm -rf /var/www` NÃO é isento — alvo remoto é alvo',
+  matchDestructive('ssh prod rm -rf /var/www')?.key === 'rm-rf-perigoso');
 check('CN rm: statement terminando nas flags (xargs) segue bloqueando — sem `$` viraria falso-NEGATIVO',
   matchDestructive('xargs -a lista.txt rm -rf')?.key === 'rm-rf-perigoso');
 check('CN rm: `xargs ... rm -f` no fim do statement segue bloqueando (comportamento de hoje preservado)',
