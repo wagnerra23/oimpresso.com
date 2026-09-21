@@ -63,12 +63,25 @@ jobs:
     permissions:
       actions: read
     steps:
+      # A LEITURA do heartbeat é do `cron-watchdog.mjs` — dono único da regra desde
+      # 2026-08-13, quando ele mediu que uma amostra só do índice do GitHub pode vir
+      # como retrato velho e passou a confirmar com `max()` sobre N leituras. Este
+      # canário fazia a MESMA query e decidia com UMA amostra: em 2026-09-21 leu
+      # `2026-08-28` e acusou "MORTO há 23 dias" com a cron viva (última agendada 1d
+      # antes). 6 falsos-positivos em 4394 runs de PR desde 01/07 — o defeito
+      # sobreviveu porque a regra estava DUPLICADA e só a cópia do dono foi consertada.
+      # A política (8 dias) segue aqui; só a leitura mudou de dono.
+      # Checkout esparso de 1 arquivo, sem `setup-node` (o runner já traz Node 20+).
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/governance/cron-watchdog.mjs
+          sparse-checkout-cone-mode: false
       - name: Última run agendada não pode estar velha (> 8 dias)
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          last=$(gh run list --workflow memory-health.yml --event schedule --status completed --limit 1 --json createdAt --jq '.[0].createdAt // empty')
+          last=$(node scripts/governance/cron-watchdog.mjs --heartbeat memory-health.yml --limite-dias 8)
           if [ -z "$last" ]; then
             echo "::warning::sem run agendada ainda (bootstrap) — canário arma na 1a execução do cron"
             exit 0
