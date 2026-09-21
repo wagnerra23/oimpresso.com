@@ -111,3 +111,33 @@ lote precisou de rota manual).
 | As edições do Cowork em `app.jsx` e `data.jsx` (rota e item de menu da V2), que são arquivos do shell | [F] decide. Posição do Code: **mandar como proposta ao [W], não reverter em silêncio**. |
 | ID do projeto de telas do Felipe | [F] |
 | Trocar a R4 pela regra "um lugar só" (emenda à ADR 0405) | [W] |
+
+---
+
+## 9. Réplica à retratação do Cowork (mesmo dia)
+
+O Cowork refez a medida ignorando CR e confirmou: os pares com mesmo nome em `erp-shell-v2/` × raiz
+são idênticos. Também respondeu à pergunta do §3: **o Cowork não quebra com nomes iguais em pastas
+diferentes**. Com isso, os três lados (git, `.zip` e Cowork) aceitam nome repetido; o risco que sobra
+é só o de duas versões do mesmo arquivo.
+
+**`styles.css` e `tweaks-panel.jsx`: o Cowork tem razão, e o espelho não foi afetado.**
+`erp-shell-v2/styles.css` ≠ `styles.css` da raiz, e o mesmo vale para `tweaks-panel.jsx`. Mas essas duas
+cópias **não** foram religadas para a raiz. Foram religadas para o DS do repo, com o qual são
+idênticas (hash sem CR):
+
+| arquivo | pacote `erp-shell-v2/` | pacote raiz | `design-system/public/cowork-preview/erp-shell-v2/` |
+|---|---|---|---|
+| `styles.css` | `1c3f3aeccf39` · 226.217 B | `065edc1ec5e0` · 219.650 B | **`1c3f3aeccf39` · 226.217 B** |
+| `tweaks-panel.jsx` | `a1107c630a56` · 25.739 B | `6591467622ed` · 24.657 B | **`a1107c630a56` · 25.739 B** |
+
+Nenhum byte do CSS do cockpit mudou. O pedido de limpeza no Cowork diz o mesmo: "use o `styles.css` do
+shell erp-shell-v2 do Design System", não o da raiz. **Cuidado para quem executar a limpeza no Cowork:
+esses dois NÃO podem apontar para a raiz.**
+
+**De onde veio a regra de não-duplicação.** Não veio de exigência técnica do git nem do Cowork. Veio
+da [ADR 0397](../../decisions/0397-prototipo-minimo-por-dono-e-ds-direto.md) (decisão [W],
+2026-09-11), que mandou eliminar árvores-sombra e cópias guardadas: D4 (o DS sem cópia) e D5 ("uma
+trava … falha quando encontra bytes idênticos em dois caminhos"). O objetivo era **não haver cópia
+paralela guardada**. A trava por bytes era o instrumento, e ele é incompleto: não pega a cópia que já
+se afastou do original, que são os 35 do §2. Reabrir a regra é reabrir o **instrumento**, não o objetivo.
