@@ -251,6 +251,61 @@ Todo o resto fica entre 1 e 5 commits — ruído, não posse. **Conclusão hones
 de módulo neste repo.** A atribuição dos 29 é ato do [W], não inferência do agente. Deixar em branco
 é mais correto do que preencher com palpite: dono inventado parece canon e é pior que ausente.
 
+### 3.3.1 A VENDA tem dono — [F], por ato do [W] em 2026-09-21
+
+> **[W] 2026-09-21, textual:** *"quem é o dono da venda então, é o Felipe"*. Registrado aqui porque
+> a atribuição é ato dele (regra do parágrafo acima) e **registrar é do agente** — sem isso a próxima
+> sessão remede, não acha dono, e pergunta de novo.
+>
+> **Dono da venda: [F].**
+>
+> **A venda não é um módulo — e é por isso que ela não estava entre os 29.** Esta seção conta o
+> buraco no eixo *`Modules/<X>`*, e a venda é **core UltimatePOS**. Medido em 2026-09-21 contra
+> `origin/main`:
+>
+> ```bash
+> git ls-tree origin/main Modules/ --name-only | grep -i sell        # vazio — Modules/Sells NAO existe
+> for p in resources/js/Pages/Sells app/Http/Controllers/SellController.php \
+>          app/Http/Controllers/SellPosController.php resources/views/sell \
+>          resources/views/sale_pos memory/requisitos/Sells; do
+>   echo "$(git ls-tree -r origin/main --name-only -- "$p" | wc -l)  $p"; done
+> ```
+>
+> | path | arquivos |
+> |---|---|
+> | `resources/js/Pages/Sells/` | 78 |
+> | `resources/views/sale_pos/` | 61 |
+> | `memory/requisitos/Sells/` | 47 |
+> | `resources/views/sell/` | 9 |
+> | `app/Http/Controllers/SellController.php` · `SellPosController.php` | 1 + 1 |
+> | **total** | **197 em 6 paths** |
+>
+> **Corroboração independente da atribuição** (não é inferência de nome — o [W] decidiu, e o
+> histórico confirma): o único colaborador que casa com Felipe é **`felipewr2-cell`**
+> (`felipewr2@gmail.com`, permissão `write`, medido por `list_repository_collaborators` em
+> 2026-09-21), e os commits dessa conta são majoritariamente **na venda** — [#2501](https://github.com/wagnerra23/oimpresso.com/pull/2501)
+> (`fix(sells/edit)`, incidente "venda em branco" ROTA LIVRE) · [#2296](https://github.com/wagnerra23/oimpresso.com/pull/2296)
+> (guard de veículo não vazar pra ROTA LIVRE) · [#2309](https://github.com/wagnerra23/oimpresso.com/pull/2309)
+> · [#2299](https://github.com/wagnerra23/oimpresso.com/pull/2299) (jornada da venda) ·
+> [#2615](https://github.com/wagnerra23/oimpresso.com/pull/2615) (3 loader-blockers em testes de
+> `Sells`). Desambiguação que a mesma medição deu de graça: **`SupportWR` é a Maiara** (`MaiaraWR`),
+> não o Felipe.
+>
+> **O que este registro NÃO faz, de propósito:**
+>
+> 1. **Não arma o `CODEOWNERS`.** Medido em 2026-09-21: `grep -cvE '^\s*(#|$)'` devolve **20** paths
+>    e **nenhum** casa `sell|sale_pos|venda`. Armar torna a review do [F] **bloqueante** nos 197
+>    arquivos — incluindo a tela de maior volume do produto — e é intent separado, com consequência
+>    de merge, não de registro. O handle fica **medido aqui** pra quem armar não ter que remedir; os
+>    dois `TODO: + @<handle Felipe>` que o arquivo já carrega mostram que o handle nunca esteve em canon.
+> 2. **Não abre linha na §3.** Uma linha *"Venda (core UltimatePOS)"* exigiria os 5 níveis
+>    (W · M · F · L · E), e o [W] declarou **um** dono. Preencher os outros 4 é redistribuir carga —
+>    decisão [W] pela regra que a errata de 2026-08-10 já fixou logo acima.
+>
+> **Consequência prática imediata:** o resíduo `Sells/vendas.map.json` (a afirmação mais velha do
+> corpus de maps, 84d em 2026-09-21, com 5 das 7 partes acionáveis) passa a ter destinatário — **[F]**,
+> não [W] e não o agente.
+
 ---
 
 ## 4. Convenção de identificação em commits / PRs / SPEC.md
