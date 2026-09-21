@@ -2349,3 +2349,33 @@
 - **Fato lateral que fica registrado porque trava trabalho futuro:** o `VISREG_LOGIN_TOKEN` **não está** no `_INDEX-SECRETS.md` (medido: `grep -ncF` → 0). Ele existe como env (`config/app.php:44` · `routes/web.php:100` · consumido em `scripts/design/design-diff-lote.mjs:599`), mas quem for rodar o lote contra staging não o descobre pelo índice — que é o caminho que a skill Tier A `memory-first-secret-search` manda percorrer primeiro.
 
 - Ocorrência da **LC-08**.
+
+### 2026-09-21 — `grep -iF` ABORTA (SIGABRT, rc=134) neste ambiente: saída vazia que parece "não achei", e a causa que me deram estava errada
+
+- **O que foi tentado.** Um `ciclo-adversary` rodando no meu worktree relatou, de passagem, que `grep -niF "uma a uma" memory/licoes-rejeitadas.md` *"aborta com rc=134 (SIGABRT — **linhas de 250KB+**)"*. Testei a coisa errada — rodei `grep -cF`, **sem** o `-i` — obtive `rc=0`, medi que a maior linha do arquivo tem **3.056** chars (não 250KB), e **publiquei ao [W] que "não reproduziu"**.
+
+- **Por que caiu.** Eu tinha a evidência física na árvore e não olhei: o `gh pr create` avisou *"1 uncommitted change"*, e o arquivo era um **`grep.exe.stackdump` com mtime daquela manhã**. O grep **abortou de verdade**; o que eu não tinha era o comando certo. A diferença entre o dele e o meu era **uma letra**: `-i`.
+
+- **A causa real, medida — e a que me deram está REFUTADA.** Não é tamanho de linha, não é UTF-8, não é o arquivo. É a **combinação `-i` com `-F`**, e ela aborta **sempre**:
+
+  ```
+  arquivo ASCII de 1 linha  -> grep -ciF  rc=134  (core dumped)
+  linha de 5.000 chars      -> grep -ciF  rc=134
+  linha de 30.000 chars     -> grep -ciF  rc=134
+  licoes-rejeitadas.md      -> grep -ciF  rc=134
+  CONTROLES (todos rc=0):   -F sozinho · -i sozinho · -iE · -nF
+  ```
+
+  As **três** formas de pedir a mesma coisa morrem igual — `-iF`, `-Fi` e `--ignore-case --fixed-strings` —, então é **semântico, não de sintaxe da flag**. GNU grep **3.0** sob MSYS. `rg -iF` (ripgrep) responde `rc=0` normalmente.
+
+- **O limite (variante também proibida).** Não usar `grep -iF` (nem `-Fi`, nem `--ignore-case --fixed-strings`) neste ambiente — a saída é **sempre vazia** e o `rc` é **134**, não 1. Quem escrever o idioma comum `grep -iF … || echo "(não achou)"` recebe *"não achou"* de um comando que **nem rodou** — é literalmente a §5 2026-07-17 (`cmd || echo` não distingue *rodou-e-não-achou* de *nem rodou*) casada com a §5 2026-07-31 (`git grep -F` com `\E` saindo rc=128 e zero linhas). Substitutos medidos: **`grep -iE`** quando o padrão não tem metacaractere, **`rg -iF`**, ou baixar o caso na linguagem (`s.lower().count(x.lower())`).
+
+- **Alcance no repo, medido antes de alarmar: ZERO.** `git grep` por qualquer combinação de `-i` com `-F` em `*.sh · *.mjs · *.js · *.yml · *.ps1` versionados devolve **0 arquivos**. Nenhum script, hook ou workflow do projeto está quebrado por isto — o risco é **só** para comando ad-hoc de agente, que é exatamente onde ele apareceu (o adversário, e quase eu).
+
+- **O que esta lápide acrescenta à §5 2026-07-31 (mesma família, vetor novo).** Lá o vazio vinha de **padrão** inválido (`\E` encerrando o quoting); aqui vem de **combinação de flags**, com três agravantes próprios: **(i)** atinge o caso trivial, então nenhum "mas o meu arquivo é pequeno" protege; **(ii)** o `rc` é **134**, e quem testa `rc -eq 1` para "não achou" acerta por acidente, enquanto quem usa `||` erra sempre; **(iii)** `-F` é justamente a flag que a gente escolhe **para ser seguro** com string literal — o instinto correto leva ao comando quebrado.
+
+- **O erro de método que é meu, e é o que dói:** ao "não reproduzir", eu mudei **duas** variáveis de uma vez (tirei o `-i` e troquei `-n` por `-c`) e li o `rc=0` como refutação. Reproduzir relato alheio exige rodar **o comando dele, literal** — e só depois variar uma flag por vez. Some a isso que aceitei a **causa** que ele deu ("linhas de 250KB+") como se fosse a observação: a causa era hipótese dele, o `rc=134` é que era o fato. Separar os dois é o que teria me feito rodar o comando certo.
+
+- **NÃO virar gate.** Um lint contra `-iF` é sintaticamente decidível, mas o alcance medido é **0 ocorrências** no repo — gate para população zero é a definição de carimbo (§5 2026-07-28: vermelho que nunca fica verde, ou verde que nunca fica vermelho). Se algum dia aparecer no repo, o dono a **estender** é o `block-sonda-que-mente` (já é o dono de *sonda cujo vazio mente*, com a forma de duas pernas), nunca hook novo.
+
+- Ocorrência da **LC-08**.
