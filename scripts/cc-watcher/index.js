@@ -422,18 +422,87 @@ async function processFile(filePath) {
 }
 
 // ──────────────────────────────────────────────────────────────────────
+// Poda de entradas órfãs do state (arquivo que não existe mais)
+//
+// Worktree deletada leva junto a pasta de projeto dela, e a entrada fica no
+// state pra sempre. Medido em 2026-09-21: 501 órfãs de 1.384 entradas (280 KB),
+// 496 delas sob `worktrees`. Não causam re-POST — o custo é o arquivo inchando
+// sem limite —, mas voltam a acumular todo dia, então limpar à mão é recuar num
+// arquivo em vez de virar regra do mecanismo (`memory/proibicoes.md`
+// §5 2026-08-02): o próximo run repete.
+//
+// As três guardas, e cada uma tem um caso real atrás:
+//
+//  1. VOLUME. `statSync` devolve ENOENT tanto pra "arquivo apagado" quanto pra
+//     "o disco inteiro sumiu" — e nesse segundo caso podar apagaria o state
+//     todo. A varredura desta rodada é a prova de que a raiz responde: se ela
+//     não achou arquivo NENHUM, não se poda nada. (Medido: 379 das 501 têm a
+//     pasta-pai também ausente, então exigir pai vivo limparia só 122 — a
+//     guarda certa é a raiz, não o pai.)
+//  2. ENOENT ESPECÍFICO. Qualquer outro código (EPERM, EACCES, EBUSY) é
+//     "não consegui ler", que NÃO é "não existe" — preserva. Colapsar os dois
+//     é transformar falha de medição em acusação (LC-33).
+//  3. ESCOPO. Só entra o que está sob a MINHA raiz e casa o MEU glob. Um
+//     watcher de outro `PROJECT_GLOB` pode compartilhar o mesmo STATE_FILE, e
+//     a entrada dele não é minha pra apagar. (Medido hoje: 0 nesse caso — a
+//     guarda é pelo dia em que deixar de ser 0.)
+// ──────────────────────────────────────────────────────────────────────
+export function podarOrfas(state, arquivosVistos, { projectsDir, projectGlob } = {}) {
+  const raiz = projectsDir || PROJECTS_DIR;
+  const glob = projectGlob || PROJECT_GLOB;
+
+  // Guarda 1 — sem prova de que a raiz respondeu, não se poda.
+  if (!Array.isArray(arquivosVistos) || arquivosVistos.length === 0) {
+    return { podadas: 0, motivo: 'varredura vazia — raiz não respondeu' };
+  }
+
+  const vivos = new Set(arquivosVistos);
+  let podadas = 0;
+
+  for (const chave of Object.keys(state)) {
+    // Fast-path, NÃO uma guarda: quem foi varrido existe, então a guarda 2 já o
+    // protegeria com um `statSync` a mais. Medido por mutação — remover esta
+    // linha não muda veredito nenhum, e é por isso que ela não tem bite-test
+    // próprio: inventar um seria assert que não corresponde a comportamento.
+    if (vivos.has(chave)) continue;
+
+    // Guarda 3 — escopo: sob a raiz E na pasta do glob.
+    const rel = path.relative(raiz, chave);
+    if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) continue;
+    const pastaDoProjeto = rel.split(path.sep)[0];
+    if (!pastaDoProjeto || !pastaDoProjeto.startsWith(glob)) continue;
+
+    // Guarda 2 — só ENOENT. Existir sem ter sido varrido (ex.: não termina em
+    // .jsonl) também preserva: o `continue` do try cobre esse caso.
+    try {
+      fs.statSync(chave);
+      continue;
+    } catch (e) {
+      if (e.code !== 'ENOENT') continue;
+    }
+
+    delete state[chave];
+    podadas++;
+  }
+
+  return { podadas, motivo: null };
+}
+
+// ──────────────────────────────────────────────────────────────────────
 // Main
 // ──────────────────────────────────────────────────────────────────────
 async function ingestOnce() {
   const folders = listProjectFolders();
   console.log(`📂 ${folders.length} projeto(s) casando com '${PROJECT_GLOB}'`);
 
+  const arquivosVistos = [];
   let totalSessions = 0, totalMsgs = 0, totalIns = 0, totalDup = 0, totalSkip = 0;
   for (const folder of folders) {
     const jsonls = fs.readdirSync(folder).filter(f => f.endsWith('.jsonl'));
     console.log(`\n📁 ${path.basename(folder)} → ${jsonls.length} sessões`);
     for (const f of jsonls) {
       const filePath = path.join(folder, f);
+      arquivosVistos.push(filePath);
       try {
         const r = await processFile(filePath);
         if (r.skipped) { totalSkip++; continue; }
@@ -447,6 +516,16 @@ async function ingestOnce() {
         console.error(` ✗ ${f.slice(0, 8)}: ${e.message}`);
       }
     }
+  }
+
+  // Poda depois de processar: a lista de arquivos vistos é a prova de que a raiz
+  // respondeu, e ela só está completa aqui.
+  const poda = podarOrfas(state, arquivosVistos);
+  if (poda.podadas > 0) {
+    saveState(state);
+    console.log(`\n🧹 ${poda.podadas} entrada(s) órfã(s) removida(s) do state`);
+  } else if (poda.motivo) {
+    console.log(`\n🧹 poda pulada: ${poda.motivo}`);
   }
 
   console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);

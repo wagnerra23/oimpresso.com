@@ -274,3 +274,94 @@ test('MORDE: 429 no meio NAO joga fora o progresso ja confirmado', async (t) => 
     `entao devia mandar ${esperado}. Zero = arquivo pulado com metade entregue (PERDA); ` +
     `700 = progresso jogado fora, que e o re-POST eterno sob 429.`);
 });
+
+test('MORDE: entrada ORFA some do state; entrada VIVA fica', async (t) => {
+  const { srv, url } = await servidorFake();
+  t.after(() => srv.close());
+
+  const sid = 'ffffffff-1111-2222-3333-444444444444';
+  const sb = sandbox(20, sid);
+
+  // state pre-existente: 1 viva (a do sandbox) + 3 orfas, uma delas com a
+  // pasta-pai TAMBEM ausente (e o caso das 379 medidas em 21/09)
+  const orfaMesmaPasta = path.join(sb.projects, `${GLOB}-sandbox`, 'sumiu-1111-2222.jsonl');
+  const orfaPastaMorta = path.join(sb.projects, `${GLOB}-worktree-deletada`, 'sumiu-3333.jsonl');
+  const foraDoGlob = path.join(sb.projects, 'OUTRO-PROJETO', 'alheio.jsonl');
+  fs.writeFileSync(sb.state, JSON.stringify({
+    [orfaMesmaPasta]: { mtime: 1, lineCount: 10 },
+    [orfaPastaMorta]: { mtime: 1, lineCount: 10 },
+    [foraDoGlob]: { mtime: 1, lineCount: 10 },
+  }, null, 2));
+
+  await rodar(sb, url);
+
+  const st = JSON.parse(fs.readFileSync(sb.state, 'utf-8'));
+  assert.ok(!(orfaMesmaPasta in st), 'orfa de pasta viva sobreviveu');
+  assert.ok(!(orfaPastaMorta in st), 'orfa de pasta deletada sobreviveu — e o caso dominante (379 de 501)');
+  assert.ok(st[sb.jsonl], 'a entrada do arquivo VIVO foi podada — isso e perda de offset');
+  assert.ok(foraDoGlob in st,
+    'podou entrada de OUTRO PROJECT_GLOB — o state pode ser compartilhado, aquilo nao e nosso pra apagar');
+});
+
+test('CONTROLE NEGATIVO: varredura vazia NAO poda nada (volume fora != arquivo apagado)', async (t) => {
+  const { srv, url } = await servidorFake();
+  t.after(() => srv.close());
+
+  const sid = '99999999-1111-2222-3333-444444444444';
+  const sb = sandbox(10, sid);
+
+  // pasta do glob existe mas SEM nenhum .jsonl: a varredura volta vazia.
+  // E o proxy do disco desmontado — se podasse aqui, apagaria o state inteiro.
+  fs.unlinkSync(sb.jsonl);
+  const chaveQualquer = path.join(sb.projects, `${GLOB}-sandbox`, 'preservar-me.jsonl');
+  fs.writeFileSync(sb.state, JSON.stringify({ [chaveQualquer]: { mtime: 1, lineCount: 5 } }, null, 2));
+
+  await rodar(sb, url);
+
+  const st = JSON.parse(fs.readFileSync(sb.state, 'utf-8'));
+  assert.ok(chaveQualquer in st,
+    'podou com a varredura vazia — e exatamente o cenario "o disco sumiu", em que ENOENT nao prova nada');
+});
+
+test('MORDE: erro que NAO e ENOENT preserva a entrada (nao-consegui-ler != nao-existe)', async (t) => {
+  // Guarda 2 da poda. `statSync` num caminho cujo PAI e um arquivo comum devolve
+  // ENOTDIR em POSIX — e o proxy barato de EPERM/EACCES/EBUSY, que sao os casos
+  // reais de "o disco respondeu, mas nao consegui ler este aqui".
+  //
+  // No Windows o mesmo caminho devolve ENOENT (medido em 21/09: caractere
+  // invalido, nome de 300 chars e filho-de-arquivo, os tres dao ENOENT), entao
+  // nao ha como distinguir os dois casos ali. O teste declara isso e PULA em vez
+  // de passar fingindo ter medido — e a lane do CI roda em Linux, que e onde ele
+  // de fato exercita a guarda.
+  const sonda = fs.mkdtempSync(path.join(os.tmpdir(), 'cc-errcode-'));
+  const arquivoComum = path.join(sonda, 'sou-arquivo');
+  fs.writeFileSync(arquivoComum, 'x');
+  const filhoDeArquivo = path.join(arquivoComum, 'filho.jsonl');
+  let code = null;
+  try { fs.statSync(filhoDeArquivo); } catch (e) { code = e.code; }
+  if (code === 'ENOENT' || code === null) {
+    t.skip(`plataforma ${process.platform} devolve ${code} aqui — nao distingue nao-existe de nao-consegui-ler`);
+    return;
+  }
+  assert.notEqual(code, 'ENOENT', 'a sonda precisa produzir um erro diferente de ENOENT');
+
+  const { srv, url } = await servidorFake();
+  t.after(() => srv.close());
+
+  const sid = '77777777-1111-2222-3333-444444444444';
+  const sb = sandbox(12, sid);
+
+  // a chave fica DENTRO do escopo (sob a raiz, na pasta do glob) pra passar a
+  // guarda 3 e chegar ate a guarda 2, que e a que esta sob teste
+  const pastaGlob = path.join(sb.projects, `${GLOB}-sandbox`);
+  const arqNaPasta = path.join(pastaGlob, 'sou-arquivo');
+  fs.writeFileSync(arqNaPasta, 'x');
+  const ilegivel = path.join(arqNaPasta, 'ilegivel.jsonl');
+  fs.writeFileSync(sb.state, JSON.stringify({ [ilegivel]: { mtime: 1, lineCount: 3 } }, null, 2));
+
+  await rodar(sb, url);
+
+  const st = JSON.parse(fs.readFileSync(sb.state, 'utf-8'));
+  assert.ok(ilegivel in st,
+    `podou uma entrada cujo stat falhou com ${code} — isso e falha de MEDICAO tratada como ausencia`);
+});
