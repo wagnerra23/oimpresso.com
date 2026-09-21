@@ -97,6 +97,17 @@ export const CONTAS = {
     alcancavel: false,         // ⚠ invisível deste lado: outra conta, outro login
     espelhada: true,           // espelho em prototipo-ui/cowork/Felipe/ (ADR 0405) — ativado 2026-09-21
     projetos: ['telasFelipe'], // ID informado pelo [F] em 2026-09-21 (URL do projeto no Cowork)
+    // DESIGN SYSTEM DESTA CONTA — o MESMO DS do [W], não outro ([F] 2026-09-21, textual: "O Design
+    // system que informei é o mesmo que do Wagner. Puxo as atualizações direto do main do git, então
+    // eles estão sincronizados. O ID é diferente porque importei o DS na minha conta").
+    //   · `49a36f76-…` é a CÓPIA na conta do [F]; `DESIGN_SYSTEM_PROJECT_ID` (`019dd02f-…`) é o
+    //     projeto do [W]. Mesmo conteúdo, dois endereços: não é divergência, e não há o que decidir.
+    //   · a fonte dos dois é o git (`prototipo-ui/design-system/`): o DS desta conta PUXA do `main`,
+    //     não é espelhado PARA o repo. Por isso não entra em PROJETOS (lá todo projeto tem pasta
+    //     espelho, e o `--procedencia` e o `--de-quem` a leem).
+    //   · conferido pelo Code no pacote de 2026-09-18: o bundle do `019dd02f` é o do `49a36f76`
+    //     byte a byte (9.354 linhas) + 11 linhas de alias do nome global antigo.
+    dsCopia: { id: '49a36f76-2672-43f6-b955-c6cbb52f7f86', nome: 'WAGNER Office Impresso — Design System', mesmoDsQue: 'designSystem', fonte: 'git main (prototipo-ui/design-system/)' },
     // Titular x usuários é distinção OPERACIONAL, não burocracia: quem exporta o handoff é
     // quem tem o login, e só o titular consegue. [W] 2026-09-11: "conta do Felipe (usada pelo
     // Felipe, Maiara e o Luiz)".
@@ -842,6 +853,7 @@ function procedencia() {
       + (c.alcancavel ? 'alcançável daqui' : '⚠ INVISÍVEL daqui (outra conta)')
       + (c.espelhada ? ' · espelhada' : ' · sem espelho'));
     for (const k of c.projetos) console.log('          └─ ' + PROJETOS[k].espelho.padEnd(30) + PROJETOS[k].id + '  "' + PROJETOS[k].nome + '"');
+    if (c.dsCopia) console.log('          └─ ' + ('DS = ' + c.dsCopia.mesmoDsQue + ' (cópia) ').padEnd(30) + c.dsCopia.id + '  "' + c.dsCopia.nome + '" · fonte: ' + c.dsCopia.fonte);
   }
   console.log(''); console.log('RESUMO (' + entradas.length + ' telas com charter):');
   for (const [k, v] of [...porClasse.entries()].sort((a, b) => b[1] - a[1])) {
