@@ -272,8 +272,57 @@ check('CN multi-arg: aspas envolventes não quebram o casamento',
   matchDestructive('rm -rf "/tmp/dir com espaco"') === null);
 
 // as duas decisões que a medição sustenta (mexer nelas exige re-medir)
-check('DECISÃO: flags `-rf` LITERAL — `rm -f /tmp/x` segue BLOQUEANDO (como hoje)',
-  matchDestructive('rm -f /tmp/x')?.key === 'rm-rf-perigoso');
+//
+// §FLAG-SET — a isenção vale pelo CONJUNTO de flags ([W] 2026-09-21).
+//
+// HISTÓRICO (fato datado, não apagar): até 2026-09-21 a isenção casava o
+// literal `-rf`, aceitando exatamente o par ORDENADO `(r|R)(f|F)`. Efeito:
+// `rm -rf`, `rm -fr` e `rm -Rf` — o MESMO comando pro SO — saíam daqui com
+// vereditos diferentes, e o menos destrutivo (`-f`) bloqueava enquanto o mais
+// destrutivo (`-rf`) passava. Medido e fechado por decisão do [W].
+//
+// HOJE, sobre o MESMO alvo isento, os 13 pontos: (sem flag) passa por não
+// casar o detector; TODAS as combinações de `r|R|f|F` passam por serem isentas.
+// Em alvo NÃO isento, as 12 com flag BLOQUEIAM — medido antes e depois, zero
+// mudou ali. Só a isenção afrouxou, e só onde a whitelist já autorizava.
+//
+// ⚠️ MEDIDO (a intuição erra aqui): NÃO existe variante "sem o R" por classe
+// de caracteres. Como o regex tem `/i`, `-[rf]+` e `-[rRf]+` são EQUIVALENTES
+// neste ponto. O `R` vem do flag, não da classe — rode os dois mutantes antes
+// de supor que diferem.
+const isento = (c) => matchDestructive(c) === null;
+const bloqueia = (c) => matchDestructive(c)?.key === 'rm-rf-perigoso';
+check('FLAG-SET: as 12 combinações de r/R/f/F isentam em alvo whitelisted',
+  ['-f', '-r', '-R', '-F', '-rf', '-rF', '-Rf', '-RF', '-fr', '-fR', '-Fr', '-FR']
+    .every((f) => isento(`rm ${f} /tmp/x`)));
+check('FLAG-SET/ORDEM: `-fr` e `-fR` isentam igual a `-rf` (mesmo cmd pro SO)',
+  isento('rm -fr /tmp/x') && isento('rm -fR /tmp/x') && isento('rm -rf /tmp/x'));
+check('FLAG-SET/CAIXA: `-Rf` e `-RF` isentam igual a `-rf`',
+  isento('rm -Rf /tmp/x') && isento('rm -RF /tmp/x'));
+check('FLAG-SET: flags SEPARADAS em alvo isento também isentam (`rm -f -r /tmp/x`)',
+  isento('rm -f -r /tmp/x'));
+// ── CN: o afrouxamento é SÓ na isenção. A proteção real não cedeu em nada. ──
+check('CN FLAG-SET: em alvo NÃO isento, as 12 combinações seguem BLOQUEANDO',
+  ['-f', '-r', '-R', '-F', '-rf', '-rF', '-Rf', '-RF', '-fr', '-fR', '-Fr', '-FR']
+    .every((f) => bloqueia(`rm ${f} /etc/passwd`)));
+check('CN FLAG-SET: flags separadas NÃO isentam alvo de fora (`rm -f -r /etc`)',
+  bloqueia('rm -f -r /etc'));
+check('CN FLAG-SET: multi-arg com 1 alvo fora segue bloqueando, agora também com `-f`',
+  bloqueia('rm -f /tmp/a src/b'));
+check('CN FLAG-SET: travessia `..` segue bloqueando, agora também com `-f`',
+  bloqueia('rm -f node_modules/../../etc'));
+check('CN FLAG-SET: `xargs … rm -f` (alvo vem de arquivo) segue BLOQUEANDO',
+  bloqueia('xargs -a lista.txt rm -f'));
+check('CN FLAG-SET: `rm -f` sem alvo nenhum NÃO é isento (vacuidade seria buraco)',
+  bloqueia('cd /x\nrm -f\necho fim'));
+// E2E pelo CLI de fora (processo real + stdin JSON), não só o helper: é o
+// chokepoint que a sessão atravessa. Controle positivo do harness logo acima,
+// na linha do `rm -rf Modules/` → exit 2.
+check('E2E FLAG-SET: `rm -f /tmp/x` isento → exit 0', runHook(j('rm -f /tmp/x')) === 0);
+check('E2E FLAG-SET: `rm -fr /tmp/x` (ordem invertida) isento → exit 0',
+  runHook(j('rm -fr /tmp/x')) === 0);
+check('E2E FLAG-SET: `rm -f /etc/passwd` → exit 2 (proteção real intacta)',
+  runHook(j('rm -f /etc/passwd')) === 2);
 check('DECISÃO: `$var` dentro de prefixo isento segue isento (temp-dir dinâmico)',
   matchDestructive('rm -rf /tmp/$SESSION') === null);
 check('CN: `$var` FORA de prefixo isento bloqueia (proteção vem de graça)',
