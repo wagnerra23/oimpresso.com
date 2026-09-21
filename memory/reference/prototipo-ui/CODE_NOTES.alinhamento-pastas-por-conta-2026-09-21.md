@@ -141,3 +141,42 @@ da [ADR 0397](../../decisions/0397-prototipo-minimo-por-dono-e-ds-direto.md) (de
 trava … falha quando encontra bytes idênticos em dois caminhos"). O objetivo era **não haver cópia
 paralela guardada**. A trava por bytes era o instrumento, e ele é incompleto: não pega a cópia que já
 se afastou do original, que são os 35 do §2. Reabrir a regra é reabrir o **instrumento**, não o objetivo.
+
+---
+
+## 10. Fechamento com o Cowork (mesmo dia)
+
+**O número do `styles.css` — mesmo arquivo, contado de dois jeitos.** O Cowork mediu 230.502 / 222.556;
+o Code, 226.217. Não há terceira cópia:
+
+| `erp-shell-v2/styles.css` do pacote | com CR | sem CR |
+|---|---|---|
+| **caracteres** (contagem do Cowork) | 230.502 | 222.556 |
+| **bytes UTF-8** (contagem do Code) | 234.163 | 226.217 |
+| CR | 7.946 | — |
+
+Os 3.661 a mais em bytes são caracteres acentuados e travessões (mais de 1 byte em UTF-8). A cópia em
+`prototipo-ui/design-system/public/cowork-preview/erp-shell-v2/styles.css` tem 222.556 caracteres e
+226.217 bytes: idêntica. **Convenção daqui pra frente: medir em bytes, sem CR.**
+
+**Consenso Code ↔ Cowork:**
+- nome repetido em pastas diferentes não quebra nada (git, `.zip`, importação e Cowork);
+- o risco é a cópia que se afastou; a regra é "um lugar só, os outros apontam pelo caminho";
+- a comparação ignora quebra de linha;
+- a regra de não-duplicação (ADR 0397) fica; muda o **método de conferência**;
+- o `.zip` é sempre o projeto inteiro; toda entrada no repo é por PR, com merge do [W].
+
+**Respostas do [F] às pendências do §8:**
+- `app.jsx`/`data.jsx` → **proposta ao [W]**. O Cowork escreve o diff.
+- Método de conferência → de acordo com "um lugar só" + ignorar quebra de linha.
+- ID do projeto de telas do Felipe → está na URL da página do projeto no Cowork; o [F] copia de lá.
+
+**Proposta do Cowork para o dono do shell — decisão [W]:** o shell passa a morar em
+`prototipo-ui/design-system/`, não em `cowork/Wagner/`. O motivo: o Felipe consome o shell do mesmo
+jeito que consome o DS, e o [W] já decide os dois; em `Wagner/` ele parece tela, e tela é o que cada
+um edita na própria pasta.
+Estado hoje (medido em `origin/main`): o shell vive em `cowork/Wagner/` (`oimpresso.com.html`,
+`app.jsx`, `data.jsx`, `sidebar.jsx`, `styles.css`…), e a [ADR 0397](../../decisions/0397-prototipo-minimo-por-dono-e-ds-direto.md)
+D4 diz que "o shell Wagner referencia" o DS. O `design-system/public/cowork-preview/erp-shell-v2/`
+guarda só 3 arquivos de uma prévia antiga. Aceitar a proposta muda essa estrutura, e por isso ela
+vai como **emenda à 0397**, para o [W] decidir.
