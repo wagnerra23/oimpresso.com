@@ -27,7 +27,7 @@
 // tela e dizem que ainda não abrem — botão que promete e não entrega é pior
 // que botão ausente.
 //
-// Âncora de design: prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx
+// Âncora de design: prototipo-ui/cowork/Felipe/venda-v3.jsx (seção sells-create.jsx · window.VendaV3Create)
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Search, Settings } from 'lucide-react';

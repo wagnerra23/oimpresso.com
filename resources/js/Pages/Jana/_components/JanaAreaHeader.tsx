@@ -147,6 +147,19 @@ export function JanaAreaHeader({
       // não traz isso por default, então preservamos via className pra não
       // regredir o comportamento de scroll das 3 telas.
       className="sticky top-0 z-10 bg-card/95 backdrop-blur"
+      // PESO DO TÍTULO — 600, não o 700 default do canon. A âncora da área
+      // (`jana-merge.jsx` → `CliPageHead`) não declara peso e herda o token do DS
+      // (`colors_and_type.css:373` `h1 { font-weight: 600 }`); o default 700 do
+      // `PageHeader` segue a âncora de VENDAS, que declara 700 explicitamente
+      // (`financeiro.css:1727`, a regra que vence por especificidade).
+      //
+      // É réplica LOCAL, não mudança do canon: as outras 41 telas não passam a
+      // prop e não mudam um pixel. Mexer no default reverteria decisão [W] viva
+      // (PR #1477, 2026-05-25, *"prefiro o mesmo peso do sells"* — referência
+      // re-medida em 2026-09-21 e ainda 700) e imporia a forma da Jana às demais,
+      // que é o que a `Index.casos.md:976` já barrou para as abas (ADR 0388 §D-1,
+      // mesmo caminho do `JanaKpiCard`).
+      titleWeight="semibold"
       // AVATAR da área — `JanaAvatar` quadrado mono "J", o que a âncora tem
       // (`jana-merge.jsx` §`JanaHeader` → `.jc-avatar`, medido no preview:
       // 40×40, radius 8px, `bg` accent, peso 700) e o que o `SPEC.md`

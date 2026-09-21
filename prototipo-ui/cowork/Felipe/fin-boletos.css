@@ -1,0 +1,387 @@
+/* fin-boletos.css — pequenos ajustes para Financeiro + Boletos seguirem o
+   pattern `.os-page` do shell unificado, com toques específicos:
+   - KPI strip horizontal (.fin-stats) com hero card destacado
+   - Sub-nav de 5 telas internas (.fin-subnav)
+   - Mantém a tabela em Tailwind por enquanto (não vai distoar) */
+
+/* Sub-nav abaixo do .os-page-h ─────────────────────────────────────────── */
+.fin-subnav {
+  display: flex;
+  gap: 4px;
+  padding: 0 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  flex-shrink: 0;  /* não pode colapsar dentro do flex column do .os-page */
+}
+.fin-subnav-tab {
+  appearance: none; border: none; background: transparent;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: var(--fs-4);
+  color: var(--text-dim);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color .12s, border-color .12s;
+}
+.fin-subnav-tab:hover { color: var(--text); }
+.fin-subnav-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+/* Stats — cartões SOLTOS elevados (modernização 2026-06-16: era caixa única
+   dividida por traços 1px + hero PRETO com número verde = look planilha/terminal
+   anos-90. Agora cada KPI é um card próprio com gap e sombra suave [linguagem
+   Mercury/Stripe]; hero ganha superfície clara com luz da identidade roxa.
+   Zero cor nova — color-mix dos tokens canônicos; dark flipa sozinho.) */
+.fin-stats {
+  margin: 18px 24px 2px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  display: grid;
+  grid-template-columns: 1.5fr repeat(4, 1fr);
+  gap: 12px;
+  overflow: visible;
+  flex-shrink: 0;
+  box-shadow: none;
+}
+.fin-stats .os-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  border-right: 1px solid var(--border);
+  padding: 15px 18px;
+  min-width: 0;
+  box-shadow: var(--sh-1);
+  transition: box-shadow var(--t-1) var(--ease), border-color var(--t-1) var(--ease), transform var(--t-1) var(--ease);
+}
+.fin-stats .os-stat:last-child { border-right: 1px solid var(--border); }
+.fin-stats .fin-stat-click{ cursor: pointer; }
+.fin-stats .fin-stat-click:hover { box-shadow: var(--sh-2); border-color: var(--accent-line); transform: translateY(-1px); }
+/* Lente ativa \u2014 anel da identidade somado \u00e0 eleva\u00e7\u00e3o (vence o sh-1 base por vir depois) */
+.fin-stats .fin-stat-on { box-shadow: var(--sh-1), inset 0 0 0 1.5px var(--accent); border-color: color-mix(in oklab, var(--accent) 40%, var(--border)); }
+.fin-stats .fin-stat-hero.fin-stat-on { box-shadow: var(--sh-2), inset 0 0 0 1.5px var(--accent); }
+.fin-stats .os-stat small { font-size: var(--fs-1); letter-spacing: .07em; }
+/* Caso 08 (O Adversário): agrupar entradas × saídas — ponto verde nas que ENTRAM
+   (Recebido + A receber), vermelho nas que SAEM (Pago + A pagar). A relação fica visível. */
+.fin-stats .fin-stat-in small::before,
+.fin-stats .fin-stat-out small::before{
+  content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  margin-right: 6px; vertical-align: middle;
+}
+.fin-stats .fin-stat-in small::before{ background: var(--pos); }
+.fin-stats .fin-stat-out small::before{ background: var(--neg); }
+.fin-stats .os-stat b { font-size: var(--fs-7); line-height: 1.05; letter-spacing: -0.02em; }
+.fin-stat-hero {
+  background:
+    radial-gradient(540px 200px at 14% -45%, color-mix(in oklab, var(--accent) 16%, transparent), transparent 70%),
+    linear-gradient(160deg, color-mix(in oklab, var(--accent) 8%, var(--surface)) 0%, var(--surface) 78%) !important;
+  border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border)) !important;
+  box-shadow: var(--sh-2) !important;
+}
+.fin-stat-hero small { color: var(--text-2) !important; }
+.fin-stat-hero b { color: var(--text) !important; font-size: var(--fs-8) !important; }
+.fin-stat-hero .fin-stat-hint { color: var(--text-2); }
+.fin-stat-hero .fin-stat-hint b { color: var(--text); font-size: var(--fs-2) !important; }
+/* Dark — mesma receita de luz, só que sobre superfície escura (color-mix flipa) */
+[data-theme="dark"] .fin-stat-hero {
+  background:
+    radial-gradient(540px 200px at 14% -45%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 70%),
+    linear-gradient(160deg, color-mix(in oklab, var(--accent) 12%, var(--surface)) 0%, var(--surface) 80%) !important;
+  border-color: color-mix(in oklab, var(--accent) 24%, var(--border)) !important;
+}
+[data-theme="dark"] .fin-stat-hero small { color: var(--text-2) !important; }
+[data-theme="dark"] .fin-stat-hero b { color: var(--text) !important; }
+[data-theme="dark"] .fin-stat-hero .fin-stat-hint { color: var(--text-2); }
+[data-theme="dark"] .fin-stat-hero .fin-stat-hint b { color: var(--text); }
+/* Caso 03 (O Adversário): saldo previsto NEGATIVO carrega o humor do dado \u2014 alarme, não neutro */
+.fin-stat-hero b.fin-num-neg,
+[data-theme="dark"] .fin-stat-hero b.fin-num-neg{ color: var(--neg) !important; }
+.fin-stat-hero .fin-hero-alarm{
+  display: inline-flex; align-items: center; margin-left: 7px;
+  padding: 1px 7px; border-radius: 99px;
+  font-size: var(--fs-1); font-weight: 600; letter-spacing: .02em;
+  text-transform: none;
+  background: color-mix(in oklab, var(--neg) 14%, var(--surface));
+  color: var(--neg);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neg) 30%, transparent);
+}
+.fin-stat-hint {
+  font-size: var(--fs-2);
+  color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+.fin-stat-hint b { font-weight: 600; color: var(--text-dim); }
+/* Tokens --pos/--neg do ds-v6 já flipam no dark — sem par hardcoded (G5 −8 cruas, 2026-06-10) */
+.fin-num-pos { color: var(--pos); }
+.fin-num-neg { color: var(--neg); }
+
+/* Corpo do módulo ─────────────────────────────────────────────────────── */
+.fin-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  background: transparent; /* tempero: deixa a atmosfera (--atmo do body) respirar — era var(--bg) sólido */
+  /* Container de consulta: o KPI strip reflua pela largura REAL do conteúdo
+     (pós-sidebar), não pela do viewport — cura a colisão da Larissa @1280px
+     (content ~1040px) que o @media de viewport não pegava. Seguro: os overlays
+     position:fixed (Drawer/CmdK/Digest/Trilha/Present) são IRMÃOS de .fin-body,
+     não filhos — a containment não os captura. */
+  container: finbody / inline-size;
+}
+.fin-body table { background: var(--surface); }
+
+/* Sparkline no hero (saldo projetado 30d) — linha suave, sem cara de osciloscópio */
+.fin-stat-hero { position: relative; padding-bottom: 18px !important; min-height: 96px; }
+.fin-spark { width: calc(100% + 24px); margin-left: -12px; margin-top: 10px; height: 34px; opacity: 0.9; }
+.fin-spark path { stroke-linejoin: round; stroke-linecap: round; }
+
+/* ── R5 GOLDEN-REFERENCE — reflow por CONTAINER (não viewport) ────────────
+   5-col (1.4fr repeat(4,1fr)). Antes refluia por @media (max-width:1180px) =
+   largura do VIEWPORT; mas o shell tem sidebar ~240px, então na Larissa
+   (viewport 1280 → conteúdo ~1040px) o @media não disparava e os números
+   tabulares colidiam (medido: cells 2–3 a 1px do limite). Agora reflua por
+   @container finbody = largura do conteúdo REAL: ≤1100px hero full-width no topo
+   + 4 KPIs folgados abaixo (Larissa cai aqui, limpa); ≤600px 2×2. Robusto
+   também com sidebar colapsada. Trilha: 2026-06-02 [CC] media→container. */
+@container finbody (max-width: 1100px){
+  .fin-stats{ grid-template-columns: repeat(4, 1fr); }
+  .fin-stats .fin-stat-hero{ grid-column: 1 / -1; }
+}
+@container finbody (max-width: 600px){
+  .fin-stats{ grid-template-columns: repeat(2, 1fr); }
+  .fin-stats .os-stat:nth-child(2),
+  .fin-stats .os-stat:nth-child(4){ border-right: none; }
+}
+
+/* Ageing horizontal — barra empilhada de "A receber" */
+.fin-ageing {
+  margin: 8px 24px 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,.02);
+}
+.fin-ageing-l { white-space: nowrap; }
+.fin-ageing-l small { font-size: var(--fs-1); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; display: block; }
+.fin-ageing-l b { font-size: var(--fs-5); font-weight: 700; display: block; margin-top: 2px; }
+.fin-ageing-bar { display: flex; height: 24px; border-radius: 5px; overflow: hidden; background: var(--border-2); }
+.fin-ageing-bar .seg { display: flex; align-items: center; justify-content: center; min-width: 0; padding: 0 6px; font-family: 'IBM Plex Mono', monospace; font-size: var(--fs-1); color: white; font-weight: 600; white-space: nowrap; }
+.fin-ageing-bar .seg.s1 { background: oklch(0.50 0.13 145); }
+.fin-ageing-bar .seg.s2 { background: oklch(0.62 0.13 70); }
+.fin-ageing-bar .seg.s3 { background: oklch(0.60 0.16 30); }
+.fin-ageing-bar .seg.s4 { background: oklch(0.50 0.18 25); }
+
+/* Boletos · funil de cobrança acima dos KPIs */
+.bol-funnel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.bol-funnel-h { font-size: var(--fs-1); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; margin-bottom: 10px; }
+.bol-funnel-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.bol-funnel-step {
+  background: var(--bg);
+  border: 1px solid var(--border-2);
+  border-radius: 6px;
+  padding: 9px 11px;
+  min-width: 0;
+}
+.bol-funnel-step .l { font-size: var(--fs-1); color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.04em; }
+.bol-funnel-step .v { font-size: var(--fs-6); font-family: 'IBM Plex Mono', monospace; font-weight: 700; margin-top: 2px; letter-spacing: -0.01em; }
+.bol-funnel-step .vv { font-size: var(--fs-1); color: var(--text-mute); font-family: 'IBM Plex Mono', monospace; margin-top: 1px; }
+.bol-funnel-step.active { background: oklch(0.97 0.025 220); border-color: oklch(0.90 0.05 220); }
+.bol-funnel-step.alert { background: oklch(0.94 0.05 25); border-color: oklch(0.86 0.08 25); }
+.bol-funnel-step.alert .v { color: oklch(0.50 0.16 25); }
+/* Botões inline dentro de linhas da grid (Financeiro + Boletos) */
+.fin-body table button,
+.bol-root table button {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: var(--fs-2);
+  border-radius: 5px;
+  padding: 3px 8px;
+  height: 26px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.fin-body table button:hover,
+.bol-root table button:hover {
+  background: var(--border-2);
+  color: var(--text);
+}
+/* Botões de ação positiva (Recebi/Paguei) com tinta verde */
+.fin-body table button.text-emerald-700 {
+  color: oklch(0.40 0.13 145);
+  font-weight: 600;
+}
+.fin-body table button.text-emerald-700:hover {
+  background: oklch(0.94 0.05 145);
+  color: oklch(0.32 0.13 145);
+}
+/* Botões icon-only (copy/download/more) com tamanho consistente */
+.bol-root table button[title] {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  justify-content: center;
+  color: var(--text-mute);
+}
+.bol-root table button[title]:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Colunas de data com mono tabular e dia-da-semana sutil */
+.fin-body td.num.whitespace-nowrap,
+.fin-body td:first-of-type {
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+.fin-body .text-stone-400.text-\[10\.5px\],
+.fin-body .text-rose-600,
+.fin-body .text-amber-600 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-1);
+}
+/* Boletos · células de data */
+.bol-root td .font-medium {
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-3);
+}
+.bol-root td .text-rose-600 {
+  color: oklch(0.50 0.18 25);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-1);
+  font-weight: 500;
+  margin-top: 1px;
+  display: block;
+}
+
+/* Date group header (Financeiro · "22 DE ABR. DE 2026 · há 16 dias") */
+.fin-body tr.bg-stone-50\/60 td {
+  background: var(--bg) !important;
+  padding-top: 10px !important;
+  padding-bottom: 4px !important;
+}
+.fin-body tr.bg-stone-50\/60 .text-\[10\.5px\] {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: var(--fs-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+
+/* Esconder o `Header` interno duplicado do TelaBoletos / TelaContas
+   (mantemos só o hero unificado de .os-page-h) */
+.bol-root .fin-body > header { display: none; }
+
+.fin-toolbar { gap: 8px; padding: 12px 24px 8px; flex-wrap: wrap; }
+.fin-toolbar .os-tabs { gap: 2px; }
+.fin-toolbar .os-btn { height: 30px; padding: 0 10px; }
+.fin-toolbar .os-search { width: 220px; }
+
+/* Tabela do Financeiro: empurra cores Tailwind pra ficar coerente com o
+   stone real do shell (algumas classes Tailwind usam stone do CDN). */
+.fin-body .row-hover:hover { background: var(--bg-2); }
+/* Seleção CLARAMENTE roxa ([W] 2026-06-16: "estava cinza, devia ser roxinho claro") —
+   accent-soft sozinho lia como cinza; sobe o chroma + acento na borda. */
+.fin-body .row-selected { background: color-mix(in oklab, var(--accent) 14%, var(--surface)) !important; box-shadow: inset 3px 0 0 var(--accent); }
+.fin-body .num { font-variant-numeric: tabular-nums; }
+
+/* ── Header enxuto: 3 lentes (Caixa·A receber·A pagar) + menu ··· (Wagner 2026-05-31) ── */
+.fin-hero .fin-hero-title-sub { color: var(--text-mute); font-weight: 600; }
+
+.fin-lens-seg{
+  display: inline-flex; align-items: center;
+  gap: 2px; padding: 3px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  flex: 0 0 auto;
+  align-self: center;
+}
+.fin-lens-btn{
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 30px; padding: 0 15px;
+  border: none; background: transparent;
+  border-radius: 6px;
+  font-size: var(--fs-4); font-weight: 500;
+  color: var(--text-dim); cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t-fast), color var(--t-fast), box-shadow var(--t-fast);
+}
+.fin-lens-btn:hover{ color: var(--text); }
+.fin-lens-btn.on{
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow-1);
+}
+.fin-lens-btn svg{ opacity: .85; }
+
+/* Menu "···" suspenso */
+.fin-overflow{ position: relative; }
+.fin-overflow-btn{ width: 34px; padding: 0 !important; justify-content: center; }
+.fin-overflow-btn.on{ background: var(--bg-2); color: var(--text); }
+.fin-overflow-menu{
+  position: absolute; top: calc(100% + 6px); right: 0;
+  min-width: 224px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  box-shadow: var(--shadow-3);
+  padding: 6px;
+  z-index: var(--z-popover, 90);
+  display: flex; flex-direction: column; gap: 1px;
+}
+.fin-overflow-item{
+  display: flex; align-items: center; gap: 11px;
+  width: 100%; height: 36px; padding: 0 10px;
+  border: none; background: transparent;
+  border-radius: 7px;
+  font-size: var(--fs-4); color: var(--text);
+  cursor: pointer; text-align: left;
+}
+.fin-overflow-item:hover{ background: var(--bg-2); }
+.fin-overflow-item svg{ color: var(--text-dim); flex: 0 0 auto; }
+.fin-overflow-item span{ flex: 1 1 auto; }
+.fin-overflow-kbd{
+  font-family: var(--font-mono); font-size: var(--fs-1);
+  color: var(--text-mute);
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: 1px 5px; background: var(--bg-2);
+}
+.fin-overflow-sep{ height: 1px; background: var(--border); margin: 5px 4px; }
+
+
+/* ════════ DARK auto-flip dos soft-chips (Tier-2 · [W] 2026-06-20) ════════
+   Gerado: bg pastel→tom escuro mesma hue, texto→claro. Light intacto.
+   Só selectores SEM override dark prévio. ════════ */
+[data-theme="dark"] .bol-funnel-step.active{ background: oklch(0.275 0.050 220); border-color: oklch(0.40 0.050 220); }
+[data-theme="dark"] .bol-funnel-step.alert{ background: oklch(0.275 0.050 25); border-color: oklch(0.40 0.080 25); }
+[data-theme="dark"] .fin-body table button.text-emerald-700:hover{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.130 145); }

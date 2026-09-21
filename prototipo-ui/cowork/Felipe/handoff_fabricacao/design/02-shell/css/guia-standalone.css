@@ -1,0 +1,77 @@
+/* ==========================================================================
+   CAMADA 2 · SHELL — moldura mínima para o guia rodar FORA do cockpit
+   --------------------------------------------------------------------------
+   CONTORNO DO PACOTE, não parte da tela. No app real o shell é
+   resources/js/Layouts/AppShellV2.tsx (sidebar preta dark-fixo, UI-0023) e nada
+   deste arquivo existe. Aqui ele só faz três coisas que o shell faria:
+   dar altura à região de dados, dar fundo/tipografia ao documento, e desenhar a
+   barra do guia (troca de tema + aviso de navegação encurtada).
+
+   O que NÃO entra aqui: nenhuma regra `.mfg-*` (essas são camada 4), nenhum
+   token novo, nenhuma cor crua fora do escopo `.guia-*`.
+
+   Condição de morte: o arquivo é descartado na reimplementação. Quem porta a
+   tela não copia nada daqui.
+   ========================================================================== */
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+}
+
+/* Garantir o DADO, não o chrome: a região de dados recebe o piso de altura e o
+   shell se ajusta. Sem isto a lista mostra 1 de 10 linhas em janela curta. */
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+#app > .guia-conteudo {
+  flex: 1;
+  min-height: 520px;   /* piso da região de dados */
+  display: flex;
+  flex-direction: column;
+  overflow: auto;      /* válvula: nunca esconder dado sem escape */
+}
+
+/* ── Barra do guia (só do pacote) ───────────────────────────────────────── */
+.guia-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-2);
+}
+.guia-bar b { font-size: 12.5px; font-weight: 600; color: var(--text); }
+.guia-bar small { font-size: 11px; color: var(--text-dim); }
+.guia-bar .sp { flex: 1; }
+.guia-bar-seg { display: flex; gap: 2px; border: 1px solid var(--border); border-radius: 6px; padding: 2px; background: var(--surface); }
+.guia-bar-seg button {
+  background: none; border: 0; border-radius: 4px; cursor: pointer;
+  font: inherit; font-size: 11.5px; padding: 3px 9px; color: var(--text-dim);
+}
+.guia-bar-seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
+.guia-aviso {
+  flex: none;
+  padding: 7px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-2);
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+.guia-aviso code {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
+@media print { .guia-bar, .guia-aviso { display: none !important; } }

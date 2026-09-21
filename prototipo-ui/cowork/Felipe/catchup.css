@@ -1,0 +1,26 @@
+/* catchup.css — KPIs derivados, dica de teclado, lista de definição e tabela de itens
+   das 12 telas do catch-up. Só tokens do DS. */
+.cu-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:0 0 12px}
+.cu-kpi{border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.cu-kpi small{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.cu-kpi b{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.cu-kpi span{font-size:11.5px;color:var(--text-3);line-height:1.35}
+.cu-kpi.warn{border-color:color-mix(in oklch,var(--warn) 45%,var(--border))}
+.cu-kpi.warn b{color:var(--warn)}
+.cu-kpi.pos b{color:var(--pos)}
+.cu-kbd{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-3);white-space:nowrap}
+.cu-kbd b{font-family:var(--font-mono,ui-monospace),monospace;font-size:10px;font-weight:600;border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;padding:1px 5px;color:var(--text-2);background:var(--surface-2,var(--surface))}
+.cu-kbd i{opacity:.45;font-style:normal;margin:0 2px}
+@media (max-width:1320px){.cu-kbd{display:none}}
+.cu-def{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin:0}
+.cu-def>div{display:flex;flex-direction:column;gap:1px;min-width:0}
+.cu-def dt{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3)}
+.cu-def dd{margin:0;font-size:13px;color:var(--text-1);line-height:1.4;text-wrap:pretty}
+.cu-itens{width:100%;border-collapse:collapse;font-size:12.5px}
+.cu-itens th,.cu-itens td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+.cu-itens thead th{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3);font-weight:600}
+.cu-itens .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cu-itens tfoot td{font-weight:600;border-bottom:none;border-top:1px solid var(--border)}
+.cu-dr-acoes{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cu-dr-acoes .sp{flex:1}
+.cu-nota{font-size:12px;color:var(--text-3);line-height:1.45;text-wrap:pretty;margin:0}

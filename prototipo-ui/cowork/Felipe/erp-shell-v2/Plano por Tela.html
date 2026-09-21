@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Plano por Tela · Estado da Arte · Oimpresso ERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(0.98 0.005 80);
+    --surface: #fff;
+    --text: oklch(0.20 0.01 80);
+    --text-dim: oklch(0.40 0.01 80);
+    --text-mute: oklch(0.55 0.01 80);
+    --border: oklch(0.92 0.005 80);
+    --border-2: oklch(0.95 0.005 80);
+    --accent: oklch(0.58 0.12 220);
+    --ok: oklch(0.55 0.13 145);
+    --warn: oklch(0.62 0.13 70);
+    --bad: oklch(0.55 0.18 25);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; background: var(--bg);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    color: var(--text); font-size: 14px; line-height: 1.55;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 48px 32px 80px; }
+
+  .hero { margin-bottom: 40px; }
+  .meta {
+    display: flex; gap: 14px; align-items: center;
+    color: var(--text-mute);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+  .meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .hero-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--text-mute); font-weight: 500;
+  }
+  h1 {
+    margin: 8px 0 12px;
+    font-size: 40px; font-weight: 700; letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+  .hero p { margin: 0; font-size: 16px; color: var(--text-dim); max-width: 720px; }
+
+  /* Module */
+  .mod {
+    margin-bottom: 40px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .mod-h {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: center;
+  }
+  .mod-rank {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px; font-weight: 700; color: var(--text-mute);
+    background: var(--border-2);
+    padding: 6px 10px; border-radius: 6px;
+    letter-spacing: 0.02em;
+  }
+  .mod-h-c { min-width: 0; }
+  .mod-h-c h2 { margin: 0 0 3px; font-size: 24px; font-weight: 700; letter-spacing: -0.015em; }
+  .mod-h-c p { margin: 0; color: var(--text-dim); font-size: 13.5px; }
+  .mod-h-r { text-align: right; }
+  .mod-h-r .score { font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+  .mod-h-r .max { font-size: 14px; color: var(--text-mute); }
+  .mod-h-r .grade {
+    font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 99px;
+    margin-top: 4px; display: inline-block; letter-spacing: 0.04em;
+  }
+
+  .mod-body {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+  }
+  .col {
+    padding: 24px 28px;
+    border-right: 1px solid var(--border);
+  }
+  .col:last-child { border-right: none; }
+  .col-h {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 14px;
+  }
+  .col-h .ico {
+    width: 28px; height: 28px; border-radius: 7px;
+    display: grid; place-items: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px; font-weight: 700;
+  }
+  .col-h h3 {
+    margin: 0; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    font-weight: 600; color: var(--text);
+  }
+  .col-h small { font-size: 11px; color: var(--text-mute); margin-left: auto; }
+
+  .col.adicionar .ico { background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145); }
+  .col.remover .ico { background: oklch(0.94 0.05 25); color: oklch(0.42 0.13 20); }
+  .col.arte .ico { background: oklch(0.94 0.05 220); color: oklch(0.40 0.10 220); }
+
+  .col ul { margin: 0; padding: 0; list-style: none; }
+  .col li {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-2);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .col li:last-child { border-bottom: none; }
+  .col li b { display: block; color: var(--text); font-weight: 600; margin-bottom: 2px; font-size: 13px; }
+  .col li small {
+    display: block; color: var(--text-mute);
+    font-size: 11.5px; line-height: 1.45;
+    margin-top: 3px;
+  }
+  .col li .why {
+    color: var(--text-dim); font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px; padding: 1px 6px; border-radius: 3px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    background: var(--border-2); color: var(--text-mute);
+    font-weight: 600; margin-left: 4px;
+    vertical-align: 2px;
+  }
+  .badge.high { background: oklch(0.94 0.05 25); color: oklch(0.42 0.13 20); }
+  .badge.med { background: oklch(0.94 0.06 70); color: oklch(0.42 0.12 60); }
+  .badge.low { background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145); }
+
+  .arte .ref {
+    background: oklch(0.97 0.012 220);
+    border: 1px solid oklch(0.92 0.04 220);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .arte .ref b {
+    font-size: 12.5px; color: oklch(0.40 0.10 220);
+    display: block; margin-bottom: 2px;
+  }
+  .arte .ref small {
+    font-size: 11.5px; color: var(--text-dim); display: block; line-height: 1.45;
+  }
+  .arte .quote {
+    font-style: italic;
+    color: var(--text-dim);
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin-top: 8px;
+  }
+  .arte .quote::before { content: '“'; color: var(--text-mute); margin-right: 2px; }
+  .arte .quote::after { content: '”'; color: var(--text-mute); margin-left: 2px; }
+
+  .summary {
+    background: var(--text); color: oklch(0.95 0.01 80);
+    border-radius: 16px; padding: 32px;
+    margin-top: 32px;
+  }
+  .summary h2 {
+    margin: 0 0 8px; font-size: 22px; font-weight: 700;
+    color: oklch(0.98 0.01 80);
+  }
+  .summary p.lead { margin: 0 0 20px; color: oklch(0.78 0.01 80); }
+  .summary .picks {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    margin-top: 16px;
+  }
+  .pick {
+    background: oklch(0.30 0.01 80);
+    border-radius: 10px; padding: 16px;
+    border: 1px solid oklch(0.36 0.01 80);
+  }
+  .pick small {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: oklch(0.68 0.01 80); font-weight: 600;
+  }
+  .pick h4 { margin: 4px 0 6px; font-size: 14px; color: oklch(0.98 0.01 80); font-weight: 600; }
+  .pick p { margin: 0; font-size: 12px; color: oklch(0.78 0.01 80); line-height: 1.5; }
+
+  .pri { display: inline-block; padding: 1px 5px; border-radius: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; font-weight: 700; letter-spacing: 0.04em; margin-right: 4px; vertical-align: 1px; }
+  .pri.p1 { background: oklch(0.94 0.05 25); color: oklch(0.42 0.13 20); }
+  .pri.p2 { background: oklch(0.94 0.06 70); color: oklch(0.42 0.12 60); }
+  .pri.p3 { background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145); }
+
+  code { font-family: 'IBM Plex Mono', monospace; font-size: 0.9em; background: var(--border-2); padding: 1px 5px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="meta">
+      <span class="dot"></span>
+      <span>Plano por Tela · maio/2026</span>
+      <span>·</span>
+      <span>Estado da arte por domínio</span>
+    </div>
+    <div class="hero-eyebrow">Oimpresso ERP · Auditoria · Volume 2</div>
+    <h1>Estado da arte por tela</h1>
+    <p>
+      Para cada uma das 5 telas auditadas: <b>o que adicionar</b>, <b>o que remover</b>, e <b>a referência
+      de estado da arte</b> do domínio. Priorização P1/P2/P3 — impacto × esforço.
+    </p>
+  </header>
+
+
+  <!-- ────────── OFICINA AUTO ────────── -->
+  <article class="mod">
+    <header class="mod-h">
+      <div class="mod-rank">#1</div>
+      <div class="mod-h-c">
+        <h2>Oficina Auto</h2>
+        <p>Vertical de manutenção automotiva — recepção → diagnóstico → peças → execução → entrega</p>
+      </div>
+      <div class="mod-h-r">
+        <div class="score">9.0<span class="max">/10</span></div>
+        <span class="grade" style="background: oklch(0.93 0.07 145); color: oklch(0.36 0.10 145);">A · refinar</span>
+      </div>
+    </header>
+    <div class="mod-body">
+
+      <div class="col adicionar">
+        <div class="col-h">
+          <span class="ico">+</span>
+          <h3>Adicionar</h3>
+        </div>
+        <ul>
+          <li>
+            <b><span class="pri p1">P1</span>Mini-foto do veículo no card</b>
+            <small>Placeholder 48×36 abaixo da placa Mercosul. Foto da frente quando carro chega na recepção.</small>
+            <div class="why">Reconhecimento visual instantâneo do veículo é regra de ouro em oficina.</div>
+          </li>
+          <li>
+            <b><span class="pri p1">P1</span>Linha de produtividade do dia</b>
+            <small>Barra horizontal no topo: 8 OSes abertas, 4 em execução, 2 saíram. Calor visual da oficina.</small>
+          </li>
+          <li>
+            <b><span class="pri p2">P2</span>Switch "Mecânico vs Carros"</b>
+            <small>Toggle que reagrupa o board: por mecânico (utilização) ou por veículo (pipeline).</small>
+            <div class="why">Já existe foco "Mecânico" — só precisa virar primary action.</div>
+          </li>
+          <li>
+            <b><span class="pri p3">P3</span>Tempo restante do box</b>
+            <small>Timer no box ocupado: "1h 20min restantes" em verde / vermelho se passou estimativa.</small>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col remover">
+        <div class="col-h">
+          <span class="ico">−</span>
+          <h3>Remover / Simplificar</h3>
+        </div>
+        <ul>
+          <li>
+            <b>Tweaks toolbar inline</b>
+            <small>Foco/Densidade/Pressão ocupam linha inteira. Mover pra ícone <code>⚙</code> no topo direito → popover.</small>
+            <div class="why">Power-user feature; não precisa estar sempre visível.</div>
+          </li>
+          <li>
+            <b>Card "Valor em curso"</b>
+            <small>Sozinho na segunda linha de KPIs. Mover pra dentro do KPI "Urgentes" como sub-line ou eliminar.</small>
+          </li>
+          <li>
+            <b>Filtros por box em pílulas</b>
+            <small>6 pílulas (Todos/Box 1/Box 2/Box 3/Elev 1/Elev 2) ocupam linha. Virar dropdown ou usar sidebar leve.</small>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col arte">
+        <div class="col-h">
+          <span class="ico">★</span>
+          <h3>Estado da arte</h3>
+        </div>
+
+        <div class="ref">
+          <b>ServiceTitan · Job Board</b>
+          <small>Kanban por técnico, foto do veículo no card, timer ao vivo, drag-drop entre boxes, mapa de localização.</small>
+        </div>
+        <div class="ref">
+          <b>Mitchell 1 ProDemand</b>
+          <small>Workflow visual + diagnóstico OBD-II integrado + estimador de peças.</small>
+        </div>
+        <div class="ref">
+          <b>Tractian · OS Manutenção</b>
+          <small>BR · sensor IoT + timeline visual + alertas preditivos.</small>
+        </div>
+
+        <p class="quote">
+          O melhor design de oficina mostra <b>3 coisas em 1 segundo</b>: placa, mecânico, prazo. Você já tem.
+          Falta só foto + timer ao vivo.
+        </p>
+      </div>
+
+    </div>
+  </article>
+
+
+  <!-- ────────── COMPRAS ────────── -->
+  <article class="mod">
+    <header class="mod-h">
+      <div class="mod-rank">#2</div>
+      <div class="mod-h-c">
+        <h2>Compras</h2>
+        <p>Pedidos de compra, NF-e de entrada, FSM (estágios) e pagamentos a fornecedores</p>
+      </div>
+      <div class="mod-h-r">
+        <div class="score">8.5<span class="max">/10</span></div>
+        <span class="grade" style="background: oklch(0.93 0.07 145); color: oklch(0.36 0.10 145);">A−</span>
+      </div>
+    </header>
+    <div class="mod-body">
+
+      <div class="col adicionar">
+        <div class="col-h">
+          <span class="ico">+</span>
+          <h3>Adicionar</h3>
+        </div>
+        <ul>
+          <li>
+            <b><span class="pri p1">P1</span>Ageing de fornecedores</b>
+            <small>Barra empilhada "A pagar por janela": 0-7d 40% · 8-30d 35% · 31-60d 25%.</small>
+            <div class="why">Compras precisa saber "vence quando" mais que "vence o quê".</div>
+          </li>
+          <li>
+            <b><span class="pri p1">P1</span>Drop XML inline na lista</b>
+            <small>Zone drop direto na tabela: arrasta XML → cria compra automaticamente.</small>
+            <div class="why">É o ato mais frequente do dia-a-dia de compras.</div>
+          </li>
+          <li>
+            <b><span class="pri p2">P2</span>Top 5 fornecedores · gasto mês</b>
+            <small>Mini-bar chart no rodapé/lateral: quem está concentrando spend.</small>
+          </li>
+          <li>
+            <b><span class="pri p3">P3</span>Comparativo de preço por SKU</b>
+            <small>No drawer, mostrar histórico do mesmo SKU em outras compras → catch de aumento.</small>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col remover">
+        <div class="col-h">
+          <span class="ico">−</span>
+          <h3>Remover / Simplificar</h3>
+        </div>
+        <ul>
+          <li>
+            <b>Coluna "NF-e" como ✓/—</b>
+            <small>Pouca info. Substituir por status SEFAZ visual (autorizada/pendente/erro) ou remover.</small>
+          </li>
+          <li>
+            <b>Filtros tab "Cancelados"</b>
+            <small>Zero por mês. Mover pra dropdown "mais filtros".</small>
+          </li>
+          <li>
+            <b>Footer KPI duplicado</b>
+            <small>"7 compras · R$ 32.771,70" repete números do hero. Mover pra hover/tooltip.</small>
+          </li>
+          <li>
+            <b>4 KPIs cards retangulares</b>
+            <small>Volume do mês e Fornecedores ativos têm pouca acionabilidade. Comprimir em 2 cards ricos.</small>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col arte">
+        <div class="col-h">
+          <span class="ico">★</span>
+          <h3>Estado da arte</h3>
+        </div>
+
+        <div class="ref">
+          <b>SAP Ariba · Procurement</b>
+          <small>Workflow visual com aprovação por nível + integração 3-way match (PO/NF/recebimento).</small>
+        </div>
+        <div class="ref">
+          <b>Ramp · Bill Pay</b>
+          <small>UX moderna para pagamento de fornecedores · OCR + aging visual + 1-click pay.</small>
+        </div>
+        <div class="ref">
+          <b>Nibo · Compras</b>
+          <small>BR · drag XML + cadastro automático fornecedor + sugestão de centro de custo.</small>
+        </div>
+
+        <p class="quote">
+          Compras é sobre <b>velocidade de entrada</b> e <b>visibilidade de saída</b>. Ramp e Nibo brilham
+          na entrada (XML drop), SAP brilha na saída (aging). Você tem cream-and-navy bonito; falta velocidade.
+        </p>
+      </div>
+
+    </div>
+  </article>
+
+
+  <!-- ────────── OS (REFERÊNCIA) ────────── -->
+  <article class="mod">
+    <header class="mod-h">
+      <div class="mod-rank">#3</div>
+      <div class="mod-h-c">
+        <h2>Ordens de Serviço <span style="color: var(--text-mute); font-weight: 500; font-size: 13px; margin-left: 6px;">(referência canônica)</span></h2>
+        <p>Listagem master de pedidos em produção — espinha dorsal do ERP</p>
+      </div>
+      <div class="mod-h-r">
+        <div class="score">8.0<span class="max">/10</span></div>
+        <span class="grade" style="background: oklch(0.93 0.07 145); color: oklch(0.36 0.10 145);">A−</span>
+      </div>
+    </header>
+    <div class="mod-body">
+
+      <div class="col adicionar">
+        <div class="col-h">
+          <span class="ico">+</span>
+          <h3>Adicionar</h3>
+        </div>
+        <ul>
+          <li>
+            <b><span class="pri p1">P1</span>Mini-stepper de etapa na linha</b>
+            <small>Em vez do texto "Aprovação", 6 bolinhas inline com a atual destacada.</small>
+            <div class="why">Visual scan de pipeline 5x mais rápido.</div>
+          </li>
+          <li>
+            <b><span class="pri p1">P1</span>Comand-K rico</b>
+            <small>⌘K abre palette: ações (Nova OS, exportar), filtros salvos, pessoas. Linear-style.</small>
+          </li>
+          <li>
+            <b><span class="pri p2">P2</span>Saved views</b>
+            <small>"Minhas OSes", "Em produção hoje", "Atrasadas" — usuário cria suas vistas.</small>
+          </li>
+          <li>
+            <b><span class="pri p3">P3</span>Inline edit no row</b>
+            <small>Clique no responsável muda; clique no prazo abre date picker. Sem precisar abrir drawer.</small>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col remover">
+        <div class="col-h">
+          <span class="ico">−</span>
+          <h3>Remover / Simplificar</h3>
+        </div>
+        <ul>
+          <li>
+            <b>Tab "Todas"</b>
+            <small>Sempre o maior número, raramente o filtro útil. Substituir por dropdown "ver mais".</small>
+          </li>
+          <li>
+            <b>Tabs de etapa expandidas</b>
+            <small>9 tabs (Abertas/Atrasadas/Todas/Orçado/Aprovação/Produção/Acabamento/Expedição/Entregues).
+            Manter só 3 principais + dropdown.</small>
+          </li>
+          <li>
+            <b>KPI "Total no mês"</b>
+            <small>Número grande sem ação. Mover pra footer ou eliminar.</small>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col arte">
+        <div class="col-h">
+          <span class="ico">★</span>
+          <h3>Estado da arte</h3>
+        </div>
+
+        <div class="ref">
+          <b>Linear · Issues</b>
+          <small>Mini-stepper de status visual, ⌘K poderoso, saved views, inline edit, atalhos visíveis.</small>
+        </div>
+        <div class="ref">
+          <b>Pipefy · Pipes</b>
+          <small>BR · kanban + lista com transição fluída + automações no row.</small>
+        </div>
+        <div class="ref">
+          <b>Height · Projects</b>
+          <small>Listas com group-by dinâmico + sub-tasks expansíveis inline.</small>
+        </div>
+
+        <p class="quote">
+          OS é a tela mais usada do dia-a-dia. Linear é o benchmark mundial em tabela rica + atalhos.
+          Você está a 2 features de chegar lá: mini-stepper + ⌘K rico.
+        </p>
+      </div>
+
+    </div>
+  </article>
+
+
+  <!-- ────────── FINANCEIRO ────────── -->
+  <article class="mod">
+    <header class="mod-h">
+      <div class="mod-rank">#4</div>
+      <div class="mod-h-c">
+        <h2>Financeiro</h2>
+        <p>Visão unificada de entradas/saídas, fluxo de caixa, DRE, conciliação, plano de contas</p>
+      </div>
+      <div class="mod-h-r">
+        <div class="score">6.5<span class="max">/10</span></div>
+        <span class="grade" style="background: oklch(0.94 0.06 70); color: oklch(0.42 0.12 60);">C+ · alto retorno</span>
+      </div>
+    </header>
+    <div class="mod-body">
+
+      <div class="col adicionar">
+        <div class="col-h">
+          <span class="ico">+</span>
+          <h3>Adicionar</h3>
+        </div>
+        <ul>
+          <li>
+            <b><span class="pri p1">P1</span>Sparkline no hero card</b>
+            <small>Substituir "—R$ 1.812,40" chapado por saldo + linha dos últimos 30d projetando até fim do mês.</small>
+            <div class="why">Stripe Balance · Mercury · Brex todos têm. É o que torna "dashboard" e não tabela.</div>
+          </li>
+          <li>
+            <b><span class="pri p1">P1</span>Calendário de vencimentos (semana)</b>
+            <small>Strip horizontal: 7 dias × bolinhas por valor. Hoje em destaque, fim de semana cinza.</small>
+            <div class="why">"O que vence essa semana" é a pergunta #1 do financeiro.</div>
+          </li>
+          <li>
+            <b><span class="pri p1">P1</span>Ageing de contas em aberto</b>
+            <small>Barra empilhada: 0-30d (verde) / 31-60d (amarelo) / 61-90d (laranja) / 90+ (vermelho).</small>
+          </li>
+          <li>
+            <b><span class="pri p2">P2</span>Comparativo mês-anterior em cada KPI</b>
+            <small>"R$ 1.980 · ↑ 12% vs abr".</small>
+          </li>
+          <li>
+            <b><span class="pri p3">P3</span>Insights automáticos no topo</b>
+            <small>"3 fornecedores concentram 60% das saídas" / "Receita banner cresceu 22% no mês".</small>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col remover">
+        <div class="col-h">
+          <span class="ico">−</span>
+          <h3>Remover / Simplificar</h3>
+        </div>
+        <ul>
+          <li>
+            <b>Pílulas Categoria/Contraparte/Conta</b>
+            <small>Quebram em 2ª linha · pouco usadas. Trocar por <code>Filtros avançados</code> (icon).</small>
+          </li>
+          <li>
+            <b>Tab "Atraso" no fim</b>
+            <small>Mais importante que outros — promover pra primeiro/segundo.</small>
+          </li>
+          <li>
+            <b>Tabs "Recebidas" e "Pagas"</b>
+            <small>5 tabs viram 3 (Aberto/Recebidas+Pagas combinadas/Atrasado). Reduz noise.</small>
+          </li>
+          <li>
+            <b>Sub-nav 5 telas no header</b>
+            <small>Fluxo/Conciliação/DRE/Plano são telas distintas — podiam virar sub-rotas do menu lateral, não do header.</small>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col arte">
+        <div class="col-h">
+          <span class="ico">★</span>
+          <h3>Estado da arte</h3>
+        </div>
+
+        <div class="ref">
+          <b>Stripe Balance</b>
+          <small>Sparkline ao vivo · projeção saldo · settlement timeline · disputas inline.</small>
+        </div>
+        <div class="ref">
+          <b>Mercury · Cashflow</b>
+          <small>"Next 30 days" gráfico de saldo projetado · alerts inteligentes · forecast scenarios.</small>
+        </div>
+        <div class="ref">
+          <b>Brex · Spend</b>
+          <small>Cohorts de gasto por categoria + anomaly detection.</small>
+        </div>
+        <div class="ref">
+          <b>Conta Azul · Cockpit</b>
+          <small>BR · KPI + gráfico DRE + calendário no mesmo cockpit.</small>
+        </div>
+
+        <p class="quote">
+          Hoje sua tela mostra <b>números agregados</b>, não <b>tendência</b>. Stripe transforma o mesmo
+          dado em narrativa visual: sparkline, projeção, ageing. É a diferença entre CRUD e cockpit.
+        </p>
+      </div>
+
+    </div>
+  </article>
+
+
+  <!-- ────────── BOLETOS ────────── -->
+  <article class="mod">
+    <header class="mod-h">
+      <div class="mod-rank">#5</div>
+      <div class="mod-h-c">
+        <h2>Boletos (Inter)</h2>
+        <p>Emissão e gestão de boletos via Inter API · remessa/retorno CNAB · contas bancárias</p>
+      </div>
+      <div class="mod-h-r">
+        <div class="score">6.0<span class="max">/10</span></div>
+        <span class="grade" style="background: oklch(0.94 0.06 70); color: oklch(0.42 0.12 60);">C · gap maior</span>
+      </div>
+    </header>
+    <div class="mod-body">
+
+      <div class="col adicionar">
+        <div class="col-h">
+          <span class="ico">+</span>
+          <h3>Adicionar</h3>
+        </div>
+        <ul>
+          <li>
+            <b><span class="pri p1">P1</span>Timeline inline por boleto</b>
+            <small>5 bolinhas no row: gerado → registrado → enviado → lembrete → pago/vencido.</small>
+            <div class="why">É o que define o domínio — sem isso vira tabela bancária genérica.</div>
+          </li>
+          <li>
+            <b><span class="pri p1">P1</span>Funil de cobrança visual</b>
+            <small>Card extra: 14 a receber → 3 lembrete enviado → 1 cobrança ativa → 0 protesto.</small>
+          </li>
+          <li>
+            <b><span class="pri p1">P1</span>CTAs inline por linha</b>
+            <small>Hover: <code>Lembrar</code> · <code>WhatsApp</code> · <code>Link pagto</code> · <code>PDF</code>.</small>
+          </li>
+          <li>
+            <b><span class="pri p2">P2</span>Forecast de recebimento</b>
+            <small>"Próximos 7 dias deve entrar R$ X com base no histórico de pagamento dos clientes."</small>
+          </li>
+          <li>
+            <b><span class="pri p3">P3</span>Score de cliente</b>
+            <small>Bolinha verde/amarela/vermelha por linha = histórico de pontualidade.</small>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col remover">
+        <div class="col-h">
+          <span class="ico">−</span>
+          <h3>Remover / Simplificar</h3>
+        </div>
+        <ul>
+          <li>
+            <b>Coluna "Nosso Número" exposta</b>
+            <small>14 dígitos ocupam coluna inteira · técnico demais. Mover pra hover/copy.</small>
+          </li>
+          <li>
+            <b>Tab "Cancelados"</b>
+            <small>Tipicamente vazio. Mover pra dropdown.</small>
+          </li>
+          <li>
+            <b>Pills Tailwind ("Todos · Em aberto · Pagos…")</b>
+            <small>Destoa do resto. Adotar <code>.os-tab</code> do shell.</small>
+          </li>
+          <li>
+            <b>Sub-tela "Contas & Caixa" no mesmo módulo</b>
+            <small>Mistura conceitos (gestão de boletos vs gestão de contas). Separar em rotas distintas.</small>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col arte">
+        <div class="col-h">
+          <span class="ico">★</span>
+          <h3>Estado da arte</h3>
+        </div>
+
+        <div class="ref">
+          <b>Asaas · Cobrança</b>
+          <small>BR · timeline por boleto + régua de cobrança configurável + WhatsApp inline + dunning automático.</small>
+        </div>
+        <div class="ref">
+          <b>Iugu · Recebíveis</b>
+          <small>BR · retry visual + multi-canal (boleto/PIX/cartão) + sub-conta.</small>
+        </div>
+        <div class="ref">
+          <b>Stripe · Invoices</b>
+          <small>Status timeline + reminder schedule + customer portal link.</small>
+        </div>
+        <div class="ref">
+          <b>Inter Empresas · PJ</b>
+          <small>Hoje é o que você quer "esconder" — o usuário do Oimpresso não deveria precisar abrir.</small>
+        </div>
+
+        <p class="quote">
+          Boleto não é cadastro — é <b>cobrança</b>. Asaas ganhou mercado mostrando a jornada (régua,
+          lembrete, retry). Sem isso, vira "lista do banco" e o usuário volta pra Inter.
+        </p>
+      </div>
+
+    </div>
+  </article>
+
+
+  <!-- SUMMARY -->
+  <section class="summary">
+    <h2>Top 3 — se fizer só uma coisa em cada</h2>
+    <p class="lead">
+      Maior diferença visual com menor esforço. Cada uma é P1 single-shot, dá pra fazer numa tarde.
+    </p>
+    <div class="picks">
+      <div class="pick">
+        <small>Tela #4 Financeiro</small>
+        <h4>Sparkline no hero card preto</h4>
+        <p>30d de saldo projetado + linha de meta. Transforma número chapado em narrativa.</p>
+      </div>
+      <div class="pick">
+        <small>Tela #5 Boletos</small>
+        <h4>Timeline inline por boleto</h4>
+        <p>5 bolinhas mostrando estado do boleto. Define o domínio em 1 olhada.</p>
+      </div>
+      <div class="pick">
+        <small>Tela #3 OS</small>
+        <h4>Mini-stepper de etapa no row</h4>
+        <p>6 bolinhas inline em vez de texto "Aprovação". Visual scan 5× mais rápido.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

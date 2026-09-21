@@ -1,0 +1,82 @@
+/* repair-print.css — impressos do Repair (folha de OS, etiqueta, via do cliente).
+   Padrão canônico do shell (espelha oficina-print.css): overlay escondido na tela,
+   revelado só no @media print. Preto-no-branco + marcas de corte e mira de registro
+   (print-craft do DS em CSS, já que o overlay é vanilla). */
+
+#rep-print-root { display: none; }
+
+@media print {
+  body.rep-printing > *:not(#rep-print-root) { display: none !important; }
+  #rep-print-root { display: block !important; }
+  @page { size: A4; margin: 12mm 12mm 14mm; }
+  body.rep-printing.rep-etiqueta-print #rep-print-root { }
+}
+
+.rep-sheet, .rep-label { position: relative; font-family: "IBM Plex Sans", system-ui, sans-serif; color: #111; background: #fff; }
+.rep-sheet * , .rep-label * { box-sizing: border-box; }
+.rep-sheet { font-size: 11.5px; line-height: 1.45; }
+/* O DS tem regra de ELEMENTO (p{color:var(--fg-1)}) que vence a herança do overlay —
+   no papel branco isso saía quase branco. Cor fixa em tudo que o impresso escreve. */
+.rep-sheet p, .rep-label p, .rep-sheet li, .rep-sheet span, .rep-sheet b, .rep-sheet small,
+.rep-sheet h3, .rep-sheet h4, .rep-sheet td, .rep-sheet th, .rep-label div, .rep-label b { color: #111 }
+.rep-mira { color: #111; opacity: .7 }
+
+/* marcas de corte nos 4 cantos */
+.rep-corte { position: absolute; width: 9mm; height: 9mm; pointer-events: none }
+.rep-corte::before, .rep-corte::after { content: ""; position: absolute; background: #111 }
+.rep-corte::before { width: 100%; height: .3mm; top: 0 }
+.rep-corte::after { width: .3mm; height: 100%; left: 0 }
+.rep-corte.tl { top: -5mm; left: -5mm }
+.rep-corte.tr { top: -5mm; right: -5mm } .rep-corte.tr::after { left: auto; right: 0 }
+.rep-corte.bl { bottom: -5mm; left: -5mm } .rep-corte.bl::before { top: auto; bottom: 0 }
+.rep-corte.br { bottom: -5mm; right: -5mm } .rep-corte.br::before { top: auto; bottom: 0 } .rep-corte.br::after { left: auto; right: 0 }
+
+.rep-sheet-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-bottom: 10px; margin-bottom: 14px; border-bottom: 2px solid #111 }
+.rep-sheet-brand { font-size: 17px; font-weight: 800; letter-spacing: -.02em }
+.rep-sheet-brand small { display: block; font-size: 9.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #555; margin-top: 2px }
+.rep-sheet-doc { text-align: right; flex: 1 }
+.rep-sheet-doc .t { font-size: 12.5px; font-weight: 700 }
+.rep-sheet-doc .n { display: block; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 16px; font-weight: 700; letter-spacing: .01em }
+.rep-sheet-doc small { font-size: 10px; color: #555 }
+
+.rep-sheet-grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid #bbb; border-radius: 3px; overflow: hidden; margin-bottom: 12px }
+.rep-kv { padding: 6px 9px; border-right: 1px solid #ddd; border-bottom: 1px solid #ddd }
+.rep-kv label { display: block; font-size: 8.5px; text-transform: uppercase; letter-spacing: .08em; color: #666 }
+
+.rep-sheet-bloco { margin-bottom: 12px; break-inside: avoid }
+.rep-sheet-bloco h3 { margin: 0 0 6px; font-size: 9.5px; text-transform: uppercase; letter-spacing: .1em; color: #444 !important; border-bottom: 1px solid #ddd; padding-bottom: 3px }
+.rep-sheet-bloco ul, .rep-sheet-bloco ol { margin: 0; padding-left: 16px }
+.rep-sheet-bloco li { margin-bottom: 2px }
+.rep-cond { margin: 6px 0 0 }
+.rep-cl { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px }
+.rep-kv span { font-size: 11.5px; font-weight: 600 }
+.rep-cl li { display: flex; align-items: center; gap: 6px; color: #555 !important }
+.rep-cl li.on { color: #111 !important; font-weight: 600 }
+.rep-termos ol li { color: #444 !important }
+.rep-sheet-foot span { color: #666 !important }
+.rep-cl .bx { width: 9px; height: 9px; border: 1px solid #111; display: inline-block; flex: none }
+.rep-cl li.on .bx { background: #111 }
+
+.rep-tb { width: 100%; border-collapse: collapse; font-size: 11px }
+.rep-tb th, .rep-tb td { border: 1px solid #ddd; padding: 4px 7px; text-align: left }
+.rep-tb th { background: #f2f2f2; font-size: 9px; text-transform: uppercase; letter-spacing: .06em }
+.rep-tb .r { text-align: right; font-family: "IBM Plex Mono", ui-monospace, monospace }
+.rep-tb tfoot td { background: #fafafa; font-weight: 600 }
+.rep-termos ol { font-size: 9.5px; color: #444; line-height: 1.5 }
+
+.rep-sign { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; margin-top: 22px }
+.rep-sign .ln { display: block; border-top: 1px solid #111; margin-bottom: 4px; height: 26px }
+.rep-sign small { font-size: 9.5px; color: #555 !important }
+.rep-sheet-foot { display: flex; justify-content: space-between; margin-top: 16px; padding-top: 6px; border-top: 1px solid #ddd; font-size: 9px; color: #666 }
+.rep-sheet-foot .mono, .rep-portal .mono { font-family: "IBM Plex Mono", ui-monospace, monospace }
+.rep-portal p { margin: 0; font-size: 11px }
+
+/* etiqueta 100×50 mm */
+.rep-label { width: 100mm; height: 50mm; padding: 5mm; display: flex; flex-direction: column; gap: 1mm; border: .3mm solid #111 }
+.rep-label-h { display: flex; align-items: center; justify-content: space-between; font-size: 10px; letter-spacing: .1em; text-transform: uppercase }
+.rep-label-n { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 20px; font-weight: 700; letter-spacing: .02em }
+.rep-label-l { font-size: 10.5px }
+.rep-label .mono { font-family: "IBM Plex Mono", ui-monospace, monospace }
+.rep-barras { margin-top: auto; display: flex; align-items: flex-end; gap: 1px; height: 9mm }
+.rep-barras i { display: block; height: 100%; background: #111 }
+@media print { body.rep-printing.rep-label-mode { } .rep-label { page-break-after: always } }
