@@ -8,6 +8,66 @@
 # são UNIDOS automaticamente pelo git, sem conflito. O runner faz `sort -u`, então
 # ordem e duplicatas não importam.
 #
+# ⚠️ O QUE O `union` NÃO FAZ, e a frase acima sozinha esconde: ele une ADIÇÕES, mas
+# **desfaz REMOÇÃO adjacente EM SILÊNCIO**. Dois PRs que tiram linhas vizinhas produzem
+# merge LIMPO, sem um marcador de conflito sequer, com as duas linhas RESSUSCITADAS.
+# ⚠️ `git apply --3way` NÃO salva: ele reporta "applied cleanly" e ressuscita igual.
+#
+# AQUI O ESTRAGO É O INVERSO do irmão `.github/financeiro-pest-quarantine.list`, e a
+# diferença importa: aquela lista é QUARENTENA (subtrai do run-set), então remoção
+# desfeita mantém um teste no ESCURO. Esta é ALLOWLIST (soma ao run-set), então remoção
+# desfeita mantém rodando um teste que você tirou de propósito — tipicamente um que
+# deixou de ser sqlite-safe e migrou pra lane MySQL. E o pior caso é MUDO: pela REGRA
+# acima, teste MySQL-only dá `markTestSkipped` em sqlite e vira **skip-as-pass** — verde
+# que não prova nada. A remoção desfeita não avermelha ninguém; ela só desaparece.
+#
+# O risco NÃO é teórico nesta lista: dos 84 commits que a tocaram, **12 removeram linha**
+# (72 linhas ao todo) — inclusive levas de -20 (`5db436867a`, `88d3457680`) e a série que
+# desmontou o `Modules/TeamMcp` (`9da3549d55` -7, `4b70f6dcfa` -5, `55be5e85c0` -6).
+# ⚠️ Mas, medido em 2026-09-21, a union **nunca mordeu ESTE arquivo**: `git log -i
+# --grep=union -- <lista>` só devolve commits que CITAM o mecanismo na moldura benigna
+# ("merge=union, sem conflito"), nenhum consertando dano. Quem quiser ver a mordida real
+# olhe o irmão do Financeiro, que tem 7 commits de conserto só em 2026-09-18 — inclusive
+# um intitulado "6a mordida da union". O perigo aqui é ESTRUTURAL (mesmo `merge=union`,
+# e remoção acontece), não histórico. Esta nota existe pra continuar assim.
+#
+# COMO CONFERIR depois de mergear (nunca confie no merge limpo):
+#   awk '/^Modules\/.*<SeuTest>/{c++} END{print c+0}' <lista>
+#        # 0 = sua remoção sobreviveu
+#   grep -vE '^[[:space:]]*(#|$)' <lista> | sort | uniq -d
+#        # vazio = sem path duplicado (cosmético aqui — ver abaixo —, mas denuncia a mordida)
+#   awk '!/^[[:space:]]*(#|$)/{c++} END{print c+0}' <lista>
+#        # total de alvos: bate com (base − remoções de todos os PRs da janela)?
+#
+# ⚠️ A âncora `^Modules/` NÃO é zelo: procurar o nome do teste SOLTO conta também as
+# MENÇÕES dele nos comentários — e esta lista é cheia deles, porque aqui o motivo mora
+# em linha de comentário PRÓPRIA (ver as notas ao longo do arquivo). Sem âncora a sonda
+# devolve >0 com a linha JÁ removida, e você conclui que a remoção não pegou.
+#
+# ⚠️ A sonda de duplicata acima usa `grep -vE`, e NÃO o `sed 's/#.*//'` do irmão, DE
+# PROPÓSITO: compare como A SUA lane compara. O runner daqui (.github/workflows/ci.yml:112)
+# faz `grep -vE '^[[:space:]]*(#|$)' | sort -u` — ele descarta a linha que É comentário e
+# **não corta comentário INLINE**. Consequência prática, medida: uma linha
+# `Modules/X/AlgumTest.php  # motivo` chega ao pest COM o `# motivo` colado, virando path
+# inexistente. Por isso, nesta lista, motivo vai em linha SÓ DELE, acima do path — nunca
+# ao lado. (No irmão do Financeiro é o contrário: lá o motivo mora na mesma linha e a
+# lane usa `sed`. Copiar a sonda de lá pra cá, ou a convenção, quebra dos dois lados.)
+#
+# ⚠️ Duplicata aqui é COSMÉTICA pro run-set — o `sort -u` da lane a absorve, e a frase
+# acima está certa nisso. Ela ainda assim vale como SINTOMA: se apareceu duplicata, a
+# union mexeu no arquivo, e a remoção que veio junto é que precisa ser conferida.
+#
+# ⚠️ Não ponha `grep -c` dentro de script com `set -e`: ele sai com **rc=1 quando conta
+# ZERO**, que aqui é o caso de SUCESSO (remoção viva) — o script morre calado no caminho
+# BOM. Por isso as sondas acima usam `awk`, que sempre sai 0.
+#
+# COMO RESOLVER se a union já corrompeu: NÃO edite o resultado e NÃO confie no `--3way`.
+# Parta da versão da base e reaplique SÓ a sua mudança, programaticamente:
+#   git status --short <lista>                                  # ⚠️ o checkout abaixo DESTRÓI
+#   git fetch origin main && git checkout FETCH_HEAD -- <lista>  #    o não-commitado (LC-23)
+#   <reaplique sua remoção por script, não à mão>
+#   <rode as 3 sondas acima ANTES de commitar>
+#
 # REGRA: só testes SQLITE-SAFE (rodam em :memory: sem migrate completo). NÃO
 # adicionar testes com RefreshDatabase/migrate:fresh que puxem migration MySQL-only
 # (ex ALTER TABLE ... ENUM) — esses pertencem à lane MySQL (financeiro-pest /
