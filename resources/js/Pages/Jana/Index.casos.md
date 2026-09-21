@@ -1545,3 +1545,114 @@ eslint (2 arquivos analisados, 0/0), `layout:check` (total 1695, **igual** ao ba
 reais dos UC-16/18, e a copy **byte a byte** contra a âncora (5 strings, com controle negativo).
 
 **Teste:** `tests/janaPainelGatingPro.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
+
+## UC-JPAIN-29 — business sem histórico vê UM estado de página, não 6 caixas vazias
+
+Status: 🧪 (`npx vitest run tests/janaPainelEstadoVazio.spec.tsx` → **11 passed** jsdom local,
+2026-09-21, com mordida provada por **duas** mutações; vira ✅ quando o manifesto
+`casos-results` aterrissar)
+
+**Fonte:** âncora `prototipo-ui/cowork/Wagner/jana-merge.jsx` §`JanaPage` — âncora de SÍMBOLO
+(`grep -n "ainda não tem histórico" prototipo-ui/cowork/Wagner/jana-merge.jsx`). Pedido descido
+pelo playbook do Cowork em `cowork-inbox/jana/playbook/02-painel.estado-vazio.md` (ONDA 02),
+recebido no handoff 28.
+
+A produção tinha empty-state **por bloco**: "Sem histórico" no sparkline, "Sem dados de clientes",
+"Sem pagamentos registrados", "Ninguém de peso parou de comprar", "Nenhuma meta cadastrada ainda".
+Num business recém-onboardado o resultado é uma tela de caixas vazias e `R$ 0,00` repetido — cada
+bloco dizendo baixinho que não tem dado, **nenhum** dizendo por quê nem o que fazer. É exatamente
+quem mais precisa da frase.
+
+**Copy literal da âncora:** título `A Jana ainda não tem histórico pra analisar` · descrição
+`Ela precisa de pelo menos um mês de movimento pra montar o brief, os KPIs e as análises. Enquanto
+isso, pergunte o que quiser na aba Conversa.` · ação `Ir para a Conversa` → `/ia/conversa`.
+
+### O predicado, e por que `coworkAggregates` fica de fora
+
+```
+semHistorico = sellKpis.total === 0
+            && insightsAggregates.totalAReceber === 0
+            && insightsAggregates.topClientes.length === 0
+            && insightsAggregates.methodsAgg.length === 0
+```
+
+Tudo já chega **sem defer** (o controller declara `Inertia::defer` só em `coworkAggregates`).
+Nenhum campo novo, nenhuma query, nenhuma flag de servidor.
+
+`coworkAggregates` fica **fora de propósito**: é deferida, e `undefined` ali significa "ainda não
+chegou", não "não tem dado". Misturar os dois faria a tela **piscar** o empty-state durante o
+carregamento normal. **Precedência:** `carregandoCockpit` (skeleton) → `semHistorico` → conteúdo.
+
+⚠️ **A dúvida que a ficha declarou aberta está RESPONDIDA, e não por suposição.** Ela pedia
+confirmar que `topClientes`/`methodsAgg` vêm `[]` e não `null`. As linhas imediatamente acima do
+predicado já fazem `methodsAggList.reduce(...)` e `topClientesList.reduce(...)` **direto, sem
+guard, desde sempre** — se o servidor mandasse `null`, a tela estaria quebrada hoje em qualquer
+business. É o comportamento vivo que prova.
+
+### O que NÃO desceu, e por quê
+
+O protótipo bifurca em `vazio || erro` e mostra duas copies. **Só o ramo `vazio` virou pedido.**
+O ramo de **ERRO** ("Não consegui ler os dados da empresa agora" + "Tentar de novo") **não tem
+fonte no `main`**: o `IndexController` não emite sinal de falha — `buildSellKpis` /
+`buildInsightsAggregates` resolvem ou estouram, e um estouro vira página de erro do Inertia, não
+este card. Exportá-lo seria pedir UI pra um estado que o servidor não sabe produzir. Fechar exige
+decidir (a) o que é falha recuperável do aggregator, (b) como ela chega à Page, (c) o que "tentar
+de novo" recarrega — **PR de fundação + decisão [W]**, não esta onda.
+
+### ⚠️ `variant="first"` não existe — e a escolha está declarada
+
+A ficha pedia `EmptyState` com `variant="first"`. Medido: o componente declara
+`type Variant = 'default' | 'search' | 'error' | 'success'`
+(`resources/js/Components/shared/EmptyState.tsx`). Ficou no **`default`**, que é o mais próximo da
+intenção (primeiro uso, não erro nem filtro). Inventar uma variante nova pra um caso seria criar
+token de UI por atalho.
+
+**Ícone conferido contra o resolvedor real**, e isso não é zelo excessivo: o `Icon` faz
+`map[name] ?? map[toPascalCase(name)] ?? Icons.Circle` — o fallback é **silencioso**, então nome
+errado vira um círculo em produção com o CI verde. Replicado o `toPascalCase` e rodado contra o
+`lucide-react` do projeto: `sparkles` → `Sparkles` ✅ (e o controle negativo `xxx-nao-existe-yyy`
+cai no `Circle`, provando que a sonda discrimina).
+
+**O que o teste trava (11 casos):** um controle de sensibilidade (com movimento, o corpo renderiza
+e o estado vazio **não** aparece — senão "apareceu" não distinguiria predicado de componente que
+sempre mostra) · a copy literal dos três textos · o corpo some **inteiro**, incluindo os
+empty-states por bloco · a saída leva a `/ia/conversa` e o botão não nasce mudo · **METAS
+continuam** · o anti-flicker durante o defer · e as **quatro pernas** do predicado, uma por caso,
+mais o sentido inverso.
+
+**Mordida provada, em dois eixos:**
+
+| mutação | caem |
+|---|---|
+| `if (false && !carregandoCockpit && semHistorico)` — desliga o ramo | **5 de 11** |
+| `if (semHistorico)` — tira o guard do defer, reintroduz o **flicker** | **exatamente 1** — o anti-flicker |
+
+A segunda é a que vale mais: **só** o caso do flicker cai, provando que ele mede exatamente o que
+o nome diz, e não se apoia nos vizinhos.
+
+⚠️ **METAS e vendas são eixos SEPARADOS.** Um business pode ter meta cadastrada e zero venda, e
+vice-versa. Este estado cobre o eixo VENDAS; a seção METAS segue com o `painel-metas-vazio` dela,
+cuja copy é **pinada em contrato**. Fundir os dois apagaria copy que é lei [W] — e por isso há caso
+dedicado provando que `aposKpis` renderiza dentro do estado vazio.
+
+**Nenhuma âncora do contrato é afetada**, e isto foi medido, não deduzido: as 6 seções do
+`jana-painel.contract.json` renderizam em `Index.tsx` (5) e `JanaPlanoBadge.tsx` (1) — **nenhuma no
+`JanaCockpit.tsx`**, que é o único arquivo que esta onda toca. O UC-JPAIN-09 (âncoras + ordem) fica
+intacto.
+
+⚠️ **A errata do UC-JPAIN-28 NÃO cobre este caso, e a diferença é o predicado.** Lá o
+`visual-regression` do CI serviu de smoke autenticado porque o gating Pro aparece no render com
+dados. Aqui não serve: o `$seedJanaVisregFlow` semeia **uma venda vencida**, então
+`sellKpis.total > 0`, `semHistorico` é `false`, e o empty-state **não monta** naquele render — o
+visreg fotografa exatamente o ramo que este UC **não** trata. Quem quiser o smoke deste caso
+precisa de um business **sem vendas**, que o seed não produz.
+
+⚠️ **Smoke autenticado NÃO foi feito.** `/ia` devolve **302** sem sessão em prod e staging, e o
+`launch.json` só serve protótipo estático. O DoD §9 do pedido (4 screenshots: dark/light × com e
+sem vendas, mais a prova do flicker com throttle) segue **aberto** — nada aqui afirma render
+medido. **Business zerado não foi observado em prod**: o cenário é inferido do payload, como a
+ficha já declarava.
+
+**Teste:** `tests/janaPainelEstadoVazio.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
+⚠️ O `eslint` **não cobre `tests/`** (`File ignored because no matching configuration was
+supplied`), então "N arquivos analisados" naquele diretório não é "N verificados".

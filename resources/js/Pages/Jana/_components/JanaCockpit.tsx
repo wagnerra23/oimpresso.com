@@ -359,6 +359,24 @@ export default function JanaCockpit({
   const methodsTotal = methodsAggList.reduce((a, m) => a + m.total, 0);
   const topClientesList = insightsAggregates.topClientes;
   const topClientesTotal = topClientesList.reduce((a, c) => a + c.total, 0);
+  // ── Business sem histórico: o corpo vira UM estado, não 6 caixas vazias ────
+  // Predicado derivado do payload que o controller JÁ manda — nenhum campo novo,
+  // nenhuma flag de servidor.
+  //
+  // `coworkAggregates` fica FORA de propósito: é `Inertia::defer`, chega depois, e
+  // `undefined` ali significa "ainda não chegou", não "não tem dado". Misturar os dois
+  // faria a tela piscar o empty-state durante o carregamento normal — o `carregandoCockpit`
+  // continua mandando no skeleton, e este predicado só é consultado quando ele é `false`.
+  //
+  // Os dois `.length` são seguros: as linhas logo acima já fazem `.reduce()` direto em
+  // `methodsAgg` e `topClientes` sem guard, desde sempre — se o servidor mandasse `null`,
+  // a tela estaria quebrada hoje em qualquer business. Vêm `[]`, e é o comportamento vivo
+  // que prova, não uma suposição do pedido.
+  const semHistorico =
+    totalVendas === 0 &&
+    totalAReceber === 0 &&
+    topClientesList.length === 0 &&
+    methodsAggList.length === 0;
   const churnList = insightsAggregates.churnOuro;
   const ticketMedio = insightsAggregates.ticketMedio;
   const topDevedor = insightsAggregates.topDevedor;
@@ -485,6 +503,50 @@ export default function JanaCockpit({
   const abrirMetodos = () =>
     setDrill({ id: 'metodos', title: 'Métodos de pagamento', sub: `top ${methodsAggList.length}` });
   const abrirChurn = () => setDrill({ id: 'churn', title: 'Churn ouro', sub: 'maior LTV parado' });
+
+  // ── Estado VAZIO de página (UC-JPAIN-29) ──────────────────────────────────────
+  // Precedência, e a ordem importa: `carregandoCockpit` (skeleton) → `semHistorico`
+  // (este ramo) → conteúdo. O early return vem DEPOIS de todos os hooks — os dois
+  // `useState` acima são os últimos —, então nenhuma chamada é pulada entre renders.
+  //
+  // Sem isto, um business recém-onboardado vê seis caixas dizendo "Sem histórico",
+  // "Sem dados de clientes", "Sem pagamentos registrados", "Ninguém de peso parou de
+  // comprar" e `R$ 0,00` repetido — cada bloco sussurrando que não tem dado, nenhum
+  // dizendo por quê nem o que fazer. É exatamente quem mais precisa da frase.
+  //
+  // ⚠️ `aposKpis` (METAS) CONTINUA: metas e vendas são eixos SEPARADOS — um business
+  // pode ter meta cadastrada e zero venda, e vice-versa. Este estado cobre o eixo
+  // VENDAS; a seção METAS segue com o `painel-metas-vazio` dela, cuja copy é pinada em
+  // contrato. Fundir os dois apagaria copy que é lei [W].
+  //
+  // Os empty-states POR BLOCO ficam onde estão: eles continuam cobrindo o caso "tem
+  // venda, não tem cliente top", que este ramo não alcança.
+  if (!carregandoCockpit && semHistorico) {
+    return (
+      <div className="space-y-4">
+        {/* `variant` fica no `default`. O pedido dizia `variant="first"`, que NÃO EXISTE
+            neste componente — os quatro são `default | search | error | success`
+            (`Components/shared/EmptyState.tsx`). `default` é o mais próximo da intenção
+            declarada (primeiro uso, não erro nem filtro), e inventar uma variante nova
+            pra um caso seria criar token de UI por atalho. */}
+        <EmptyState
+          className="rounded-lg border border-dashed border-border"
+          icon="sparkles"
+          title="A Jana ainda não tem histórico pra analisar"
+          description="Ela precisa de pelo menos um mês de movimento pra montar o brief, os KPIs e as análises. Enquanto isso, pergunte o que quiser na aba Conversa."
+          action={
+            <Link href="/ia/conversa">
+              <Button variant="outline" className="gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Ir para a Conversa
+              </Button>
+            </Link>
+          }
+        />
+        {aposKpis}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
