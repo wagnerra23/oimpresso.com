@@ -290,76 +290,99 @@ jobs:
           fi
 
       # ── LOTE DE PARIDADE prototipo x vivo (ADR 0408) ───────────────────────────────────
-      # HISTORICO DO TRANSPORTE — esta lista existe pra ninguem refazer o caminho:
+      # SERVIDOR: FrankenPHP, por decisao [W] em 2026-09-21 ("troca o servidor") apos 7 runs.
+      # E o runtime canonico do projeto (ADR 0058, CT 100) — nao e tecnologia nova aqui.
       #
-      #  1. `artisan serve` cru .................. 23 ERRO/23 `ERR_CONNECTION_REFUSED`
-      #     (runs 35590027120 · 35590936821), com o servidor VIVO e respondendo no log.
-      #  2. + `--no-reload` + PHP_CLI_SERVER_WORKERS ... idem (run 35592105902). O
-      #     `--no-reload` PEGOU (o WARN dos workers sumiu do log) e mesmo assim.
-      #  3. servidor do PEST (`amphp/http-server`), decisao [W] .... 23 ERRO/23, mas o erro
-      #     MUDOU pra `Timeout exceeded` — conexao ACEITA, sem resposta (run 35594386353).
-      #     Causa: o Amp roda no MESMO processo PHP do teste; enquanto `Process::run()`
-      #     bloqueia esperando o node, o event loop nao gira. O SO aceita no backlog (por
-      #     isso nao e mais refused) e ninguem responde. Hospedar o lote num Process
-      #     bloqueante dentro do Pest NAO PODE funcionar — e limite estrutural, nao bug.
-      #  4. AQUI: volta ao `artisan serve`, agora com o CANARIO que mede antes de medir.
+      # HISTORICO DO TRANSPORTE — a lista existe pra ninguem refazer o caminho:
+      #  1. `artisan serve` cru ............... 23 ERRO/23 `ERR_CONNECTION_REFUSED`
+      #     (runs 35590027120 · 35590936821), servidor VIVO e respondendo no log.
+      #  2. + `--no-reload` + WORKERS=8 ....... idem (35592105902). O `--no-reload` PEGOU
+      #     (o WARN sumiu do log) e mesmo assim.
+      #  3. servidor do PEST (amphp) .......... 23/23, erro MUDOU pra `Timeout` (35594386353).
+      #     O Amp roda no MESMO processo PHP; enquanto `Process::run()` bloqueia esperando o
+      #     node, o event loop nao gira. Limite ESTRUTURAL, nao bug.
+      #  4. `serve` + canario ................. canario passou `0 falha(s) em 6` e o lote deu
+      #     23 ERRO assim mesmo (35599684015). Isso REFUTOU a hipotese: o canario batia em
+      #     `/login` (leve, sem auth, sem bundle), nao no caminho real da tela
+      #     (`/_visreg-login` -> 302 -> rota pesada -> assets em PARALELO).
       #
-      # O que nunca foi medido, e por isso esta rodada existe: se o servidor embutido aguenta
-      # requests PARALELOS com `--no-reload` + workers. As 3 primeiras rodadas checaram health
-      # com UM curl sequencial — que testa exatamente o caso que funciona. A run que ia medir
-      # isso (o canario) foi cancelada no meio, quando o caminho mudou pro Pest.
+      # DUAS SONDAS MINHAS ESTAVAM ERRADAS, e por isso o diagnostico demorou:
+      #   · `pgrep -fc 'artisan serve'` conta o processo PAI — os workers do `php -S` sao
+      #     FORKS dele e nao casam esse padrao. O "processos servindo: 1" nunca provou que os
+      #     workers falharam. Agora conta descendentes do PID real.
+      #   · o canario batia na rota ERRADA. Agora bate em `/_visreg-login/1?to=/`, que e o
+      #     caminho que as telas de fato percorrem (login + redirect + render).
       #
-      # ADVISORY: `continue-on-error` + este workflow nunca roda em `pull_request`. Vermelho
-      # aqui nao bloqueia merge (ADR 0314); render pareado nao e gate (ADR 0290 segue recusada,
-      # a 0408 libera MEDIR).
-      - name: Lote de paridade — mede prototipo x vivo (ADVISORY)
+      # ADVISORY: `continue-on-error` + este workflow nunca roda em `pull_request`.
+      - name: Lote de paridade — mede prototipo x vivo (FrankenPHP · ADVISORY)
         if: >-
           steps.select.outputs.count != '0' &&
           (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         id: lote
         continue-on-error: true
         timeout-minutes: 45
-        env:
-          PHP_CLI_SERVER_WORKERS: "8"
         run: |
           set -o pipefail
-          php artisan serve --host=127.0.0.1 --port=8000 --no-reload > /tmp/lote-serve.log 2>&1 &
+
+          # FrankenPHP standalone. Binario estatico: nao mexe no PHP do runner nem no
+          # `setup-php` que os steps acima usam.
+          curl -fsSL -o /tmp/frankenphp \
+            https://github.com/php/frankenphp/releases/latest/download/frankenphp-linux-x86_64
+          chmod +x /tmp/frankenphp
+
+          # GATE DE EXTENSAO, antes de qualquer coisa: o FrankenPHP embute o PROPRIO PHP, e se
+          # faltar `pdo_mysql` o app sobe e morre em toda query — o que apareceria como tela
+          # quebrada, nao como servidor errado. O workflow declara mbstring/dom/fileinfo/
+          # pdo_mysql/gd no setup-php; aqui cobramos as que o render precisa.
+          FALTA=""
+          for ext in pdo_mysql mbstring dom fileinfo; do
+            /tmp/frankenphp php-cli -r "exit(extension_loaded('$ext') ? 0 : 1);" || FALTA="$FALTA $ext"
+          done
+          if [ -n "$FALTA" ]; then
+            echo "::error title=Lote de paridade::FrankenPHP sem extensao(oes):$FALTA — o app subiria e morreria em query. Nada foi medido."
+            /tmp/frankenphp php-cli -m | head -40
+            exit 1
+          fi
+          echo "FrankenPHP: $(/tmp/frankenphp version 2>&1 | head -1)"
+
+          /tmp/frankenphp php-server --root public/ --listen 127.0.0.1:8000 \
+            > /tmp/lote-serve.log 2>&1 &
           SERVE_PID=$!
           for i in $(seq 1 30); do
             curl -sf -o /dev/null http://127.0.0.1:8000/login && break
             sleep 2
           done
           kill -0 "$SERVE_PID" 2>/dev/null || {
-            echo "::error title=Lote de paridade::o processo do serve MORREU — nada foi medido"
+            echo "::error title=Lote de paridade::FrankenPHP MORREU — nada foi medido"
             cat /tmp/lote-serve.log; exit 1
           }
-          # CANARIO DE CONCORRENCIA — a medicao que faltou nas 3 primeiras rodadas.
-          # 6 requests SIMULTANEOS: e o que cada tela de fato exige (documento + redirect do
-          # auth-bridge + assets do bundle Inertia). Se o servidor nao aguentar, ABORTA aqui
-          # com diagnostico, em vez de produzir 23 ERRO de conexao que se leem como veredito
-          # de fidelidade. Gate mudo e pior que gate ausente porque parece cobertura.
-          echo "PHP_CLI_SERVER_WORKERS=${PHP_CLI_SERVER_WORKERS:-<vazio>} · processos servindo: $(pgrep -fc 'artisan serve' || echo 0)"
-          # `VAR=$((VAR+1))` DENTRO de `&` roda em SUBSHELL e NAO propaga pro shell pai —
-          # provado local: 3 falhas garantidas deixavam FALHAS=0. A 1a versao deste canario
-          # tinha esse bug, entao ele NUNCA podia reprovar: era o gate mudo que ele existe
-          # pra evitar. A forma que funciona e guardar os PIDs e ler o exit de cada um.
+
+          # SONDA DE PROCESSOS — conta DESCENDENTES do PID, nao o pai. A versao anterior
+          # (`pgrep -fc 'artisan serve'`) media o processo errado e reportou "1" o tempo todo.
+          echo "servidor: PID $SERVE_PID · descendentes: $(pgrep -P "$SERVE_PID" 2>/dev/null | wc -l)"
+
+          # CANARIO NO CAMINHO REAL. A versao anterior batia em `/login` e passava `0/6`
+          # enquanto as telas davam 23 ERRO — media a rota errada. Aqui o alvo e o MESMO
+          # que o lote usa: auth-bridge + redirect + render. 6 simultaneos.
+          # `VAR=$((VAR+1))` dentro de `&` roda em SUBSHELL e NAO propaga (provado local:
+          # 3 falhas garantidas deixavam 0), por isso o exit vem de `wait "$pid"`.
           PIDS=""
           for i in $(seq 1 6); do
-            curl -sf -o /dev/null --max-time 25 http://127.0.0.1:8000/login &
+            curl -sf -o /dev/null --max-time 30 -L "http://127.0.0.1:8000/_visreg-login/1?to=%2F" &
             PIDS="$PIDS $!"
           done
           FALHAS=0
           for pid in $PIDS; do wait "$pid" || FALHAS=$((FALHAS+1)); done
-          echo "canario: $FALHAS falha(s) em 6 requests simultaneos"
+          echo "canario (caminho real): $FALHAS falha(s) em 6 requests simultaneos"
           if [ "$FALHAS" -gt 0 ]; then
-            echo "::error title=Lote de paridade::servidor NAO aguenta paralelismo ($FALHAS/6 recusados) — abortando em vez de medir o nada. Proximo caminho: servidor fora do processo (FrankenPHP / php -S dedicado), NAO mais workers."
-            cat /tmp/lote-serve.log
-            exit 1
+            echo "::error title=Lote de paridade::FrankenPHP tambem nao aguenta o caminho real ($FALHAS/6) — abortando em vez de medir o nada. Nao tunar: investigar o que o Playwright pede alem do documento."
+            cat /tmp/lote-serve.log; exit 1
           fi
+
           node scripts/design/design-diff-lote.mjs --base-url http://127.0.0.1:8000 2>&1 | tee /tmp/lote.log
           RC=${PIPESTATUS[0]}
           kill -0 "$SERVE_PID" 2>/dev/null || {
-            echo "::error title=Lote de paridade::o serve caiu DURANTE a medicao — os ERRO sao de conexao, nao de fidelidade"
+            echo "::error title=Lote de paridade::o servidor caiu DURANTE a medicao — os ERRO sao de conexao, nao de fidelidade"
             cat /tmp/lote-serve.log; exit 1
           }
           exit "$RC"
