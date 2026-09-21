@@ -46,8 +46,17 @@ const REPO = resolve(HERE, '../..');
  *  fresco no disco — o path direto do mesmo arquivo saía exit 0 com o plano completo.
  *  A ponte fonte↔tela↔mapa já existia e tem dono: é o `applications.json`, o mesmo registro
  *  que o `status.mjs --check-mapping` lê pra imprimir `mapa: <path>` em cada linha. Aqui ele
- *  é CONSULTADO em vez de a convenção ser adivinhada (derivar por path em vez de perguntar ao
- *  dono do inventário é o que fazia 69 maps registrados ficarem inalcançáveis pelo atalho).
+ *  é CONSULTADO em vez de a convenção ser adivinhada. Quanto isso valia, medido em 2026-09-21:
+ *  **29 de 64** telas com map registrado eram inalcançáveis pelo atalho (35 resolviam pela
+ *  convenção); com a 3ª perna, 64/64. O 64 é o nº de namespaces distintos — há 69 registros,
+ *  5 deles duplicando alvo. Reproduzir:
+ *    node --input-type=module -e "import{resolveMap}from'./scripts/design/consumir-map.mjs';
+ *      import{pageNamespacePath}from'./scripts/qa/page-path.mjs';import{readFileSync}from'node:fs';
+ *      const a=JSON.parse(readFileSync('scripts/design-sync/state/applications.json','utf8')).applications;
+ *      const n=[...new Set(a.filter(x=>x?.comparison?.map&&x?.target).map(x=>pageNamespacePath(x.target).replace(/\.tsx$/,'')))];
+ *      console.log(n.length, n.filter(t=>resolveMap(t)).length)"
+ *  (⚠️ o docblock não repete o número por conta própria — §5 2026-07-17; ele vem com o comando
+ *  que o recalcula, porque o registro cresce e um número escrito à mão apodrece.)
  *
  *  Não substitui a convenção — é a 3ª perna, só corre quando ela falha.
  */
@@ -171,16 +180,30 @@ async function selftest() {
     mkdirSync(stateDir, { recursive: true });
     writeFileSync(join(stateDir, 'applications.json'), JSON.stringify({
       schema: 'oimpresso-design-applications/2',
-      applications: [{
-        source: 'fonte-com-outro-nome.jsx',
-        target: 'resources/js/Pages/ZZFake/Tela.tsx',
-        comparison: { map: 'memory/requisitos/ZZFake/fonte-com-outro-nome.map.json' },
-      }],
+      applications: [
+        {
+          source: 'fonte-com-outro-nome.jsx',
+          target: 'resources/js/Pages/ZZFake/Tela.tsx',
+          comparison: { map: 'memory/requisitos/ZZFake/fonte-com-outro-nome.map.json' },
+        },
+        // Registro que CASA o namespace mas cujo map NÃO existe no disco. Sem esta entrada o
+        // assert de baixo era decorativo: `ZZFake/Sumiu` não casava registro nenhum, então o
+        // `null` vinha do laço esgotando e NÃO do `existsSync` — mutação que removia o
+        // `existsSync` sobrevivia ao selftest (achado do adversário, 2026-09-21; é a §5
+        // 2026-09-05: valor esperado coincidindo com o que a mutação produz).
+        {
+          source: 'map-que-sumiu-do-disco.jsx',
+          target: 'resources/js/Pages/ZZFake/Sumiu.tsx',
+          comparison: { map: 'memory/requisitos/ZZFake/ESTE-MAP-NAO-EXISTE.map.json' },
+        },
+      ],
     }, null, 2));
     // O map é nomeado pela FONTE e o atalho usa a TELA: só resolve consultando o registro.
     t('atalho <Mod/Tela> COM registro → resolve pelo applications.json (o bug de 2026-09-21)',
       resolveMap('ZZFake/Tela', { root }) === mapRegistrado);
-    t('registro com map inexistente no disco → não inventa path', mapDoRegistro('ZZFake/Sumiu', { root }) === null);
+    // Este é o assert que o `existsSync` final sustenta — o registro CASA e o map não está lá.
+    t('registro CASA mas map ausente do disco → não inventa path', mapDoRegistro('ZZFake/Sumiu', { root }) === null);
+    t('namespace sem registro nenhum → null (laço esgota)', mapDoRegistro('ZZFake/NemRegistrado', { root }) === null);
 
     // CLI ponta-a-ponta: exit 3 no stale, 0 no fresco (o contrato que a Fase 4 scripta)
     const { spawnSync } = await import('node:child_process');
