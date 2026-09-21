@@ -43,12 +43,25 @@ ok(!/required/i.test(yml) || true, 'T2b sanity: workflow nao se auto-declara req
 // ---- T3 — triggers --------------------------------------------------------
 ok(/pull_request:/.test(yml), 'T3 dispara em pull_request');
 ok(/workflow_dispatch:/.test(yml), 'T3 dispara em workflow_dispatch');
+ok(/types:\s*\[[^\]]*synchronize[^\]]*\]/.test(yml), 'T3b reexecuta no SHA novo do PR (synchronize)');
 ok(/prototipo-ui\/\*\*/.test(yml) && /resources\/js\/Pages\/\*\*/.test(yml),
   'T3 paths-filter cobre prototipo-ui/** + resources/js/Pages/**');
+const designChain = [
+  'design-memory-gate.yml', 'detect-ui-drift.yml', 'reconcile-triplet.yml', 'design-coverage.yml',
+  'design-identity-gate.yml', 'design-spec-gate.yml', 'ds-mirror-drift.yml', 'ds-token-version.yml',
+  'ds-tokens-build-sync.yml', 'pt-conformance.yml',
+];
+const blindOnNewCommit = designChain.filter((name) => {
+  const body = readFileSync(join(ROOT, '.github', 'workflows', name), 'utf8');
+  return !/types:\s*\[[^\]]*synchronize[^\]]*\]/.test(body);
+});
+ok(blindOnNewCommit.length === 0, `T3c cadeia de design reexecuta no synchronize (cegos: ${blindOnNewCommit.join(', ') || 'nenhum'})`);
 
 // ---- T4 — invoca os dois scripts ------------------------------------------
 ok(/scripts\/design\/ds-guard\.mjs/.test(yml), 'T4 invoca scripts/design/ds-guard.mjs (§8)');
 ok(/scripts\/design\/integrity-check\.mjs/.test(yml), 'T4 invoca scripts/design/integrity-check.mjs (§15)');
+const mapStep = yml.match(/- name: design-code-map-check \(drift real; job vermelho sem baseline\)[\s\S]*?run: node scripts\/governance\/design-code-map-check\.mjs --check --strict/)?.[0] || '';
+ok(mapStep.length > 0 && !/continue-on-error/.test(mapStep), 'T4b map-check strict não mascara drift com continue-on-error');
 
 // ---- T5 — alimenta ds-guard com arquivos tocados via git diff -------------
 ok(/git diff --name-only/.test(yml), 'T5 usa git diff --name-only pra arquivos tocados');

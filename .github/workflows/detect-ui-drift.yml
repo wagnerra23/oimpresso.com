@@ -13,7 +13,7 @@ name: Detect UI drift — M1 (advisory)
 
 on:
   pull_request:
-    types: [opened, reopened, ready_for_review]
+    types: [opened, reopened, ready_for_review, synchronize]
     branches: [main]
     paths:
       # Raizes de Pages: o nucleo E o modulo dono (Modules/<X>/Resources/js/Pages).

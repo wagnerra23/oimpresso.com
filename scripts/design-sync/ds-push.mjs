@@ -110,7 +110,7 @@ if (doWrite) {
   console.log('  ⚠ so rode --write DEPOIS de provar o upload: a foto antes da prova zera o');
   console.log('    sentinela sem o espelho ter mudado (alarme mudo, divergencia intacta).');
   console.log('  → confira com: node scripts/governance/ds-mirror-drift.mjs   (espera drift 0)');
-  console.log('    NAO rode --update-baseline pra fechar: apos um push correto o drift cai');
+  console.log('    Não existe baseline para fechar: após um push correto o drift precisa voltar a zero');
   console.log('    sozinho. Regravar o baseline e ato de [W] ao ACEITAR um piso novo.');
   console.log('  → commite o snapshot.\n');
 }

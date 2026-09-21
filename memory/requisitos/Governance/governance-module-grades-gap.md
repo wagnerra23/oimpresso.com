@@ -4,6 +4,7 @@ tela: governance/ModuleGrades/Index (/governance/module-grades)
 prototipo: prototipo-ui/cowork/Wagner/governance-page.jsx + governance-telas.jsx
 tela_viva: resources/js/Pages/governance/ModuleGrades/Index.tsx
 gerado_em: 2026-09-06
+map_json: n/a (tela aposentada pela ADR 0399; análise preservada em governance-module-grades.map.retired.json)
 ---
 
 # GAP-SPEC — governance/ModuleGrades/Index
@@ -20,13 +21,11 @@ gerado_em: 2026-09-06
 > perderia a análise, não a tela. O `BRIEFING.md` do Governance já declara o mesmo — os dois não
 > se contradizem.
 >
-> **Consequência medida, declarada e NÃO silenciada:** `design-code-map-check.mjs --check --strict`
-> acusa **13 problemas** no `governance-module-grades.map.json` ao lado (1 `mapping.target` + 12
-> `vivo.arquivo não existe`). O step é advisory (`continue-on-error: true` em
-> `design-memory-gate.yml:569`), logo não bloqueia merge. Nenhum campo foi inventado no `.map.json`
-> para suprimir isso: o script não conhece marcador de aposentadoria, e declará-lo faria o
-> artefato anunciar um comportamento que o código não tem. Se o ruído incomodar, o caminho é
-> estender o dono do check — decisão de [W], não conserto silencioso aqui.
+> **Tratamento operacional decidido em 2026-09-21:** a análise histórica ficou preservada em
+> `governance-module-grades.map.retired.json`, fora do sufixo executável `*.map.json`. O frontmatter
+> declara `map_json: n/a`, portanto a tela aposentada também saiu do denominador de cobertura.
+> Isso elimina 13 alarmes permanentes sem baseline, waiver ou exceção dentro do checker: se a
+> tela voltar, exige mapa ativo novo contra arquivos vivos.
 
 
 > Protótipo = porte REVERSO do vivo (governance-page.jsx:1-3 "Espelha as telas vivas"; governance-telas.jsx:3 "Espelha … ModuleGradeController (rubrica module-grade-v3, ADR 0155)"; retrato de ~2026-08-23). Fase 1 = PARIDADE. Charter: `resources/js/Pages/governance/ModuleGrades/Index.charter.md` (Non-Goals respeitados, nunca reabertos).

@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-21T16:37:16.656Z",
+  "generatedAt": "2026-09-21T17:37:30.298Z",
   "bundle": {
     "id": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
     "baseId": "e8ffe5c0bdffbb3c552c17e4b54fb5ec48efd84e999ba9fe932de85ebaec6798",
@@ -13,11 +13,14 @@
     "screens": 164,
     "tested": 3,
     "smoked": 3,
+    "smokedCi": 3,
+    "smokedStaging": 0,
+    "validated": 0,
     "lifecycle": {
       "compared": 63,
       "to-create": 28,
       "anchored": 70,
-      "validated": 3
+      "smoked-ci": 3
     },
     "pending": 133,
     "to-create": 28,
@@ -73,6 +76,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Arquivos/arquivos-index.map.json",
@@ -82,7 +86,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854"
+        "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "846a34652eb8b28a5d1acc86e29d9816945fd25566331741baa5e53bb0f56f34",
+          "mapSha256": "0f70b5398efb1ac519e4e4c3dfa71f1691edb1ae83023aaabadb70780be30d4c",
+          "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -98,6 +112,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Backup/backup-index.map.json",
@@ -107,7 +122,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "03c0b54b4397a125c3c4b65d9224721d06d368bca710b30fa61bcb67c97445a4"
+        "targetSha256": "03c0b54b4397a125c3c4b65d9224721d06d368bca710b30fa61bcb67c97445a4",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "88eec8930cdc5c3f91b4a5598415f2233b678d41973437d3b5f22f83f252571e",
+          "mapSha256": "b1d77a302fe01b5b460faaed4fa4e592cd94d30933aad9e68a79e98c50a6fd9e",
+          "targetSha256": "03c0b54b4397a125c3c4b65d9224721d06d368bca710b30fa61bcb67c97445a4",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -123,6 +148,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -138,6 +164,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -153,6 +180,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -168,6 +196,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -183,6 +212,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -198,6 +228,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -213,6 +244,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -228,6 +260,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Cliente/clientes.map.json",
@@ -237,7 +270,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "f9c2a3c1ef25a6370ed5250379d7bafc29b59c880b062aaf6ac8ac5b4e156528"
+        "targetSha256": "f9c2a3c1ef25a6370ed5250379d7bafc29b59c880b062aaf6ac8ac5b4e156528",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "8086f48f54849c4adf66ceaee76b6108fc12ca3b3006be439594aca7139eac7e",
+          "mapSha256": "b11a3244f23063ff489445de78e69096a06325ab74dda2ea1537f3f82784e538",
+          "targetSha256": "f9c2a3c1ef25a6370ed5250379d7bafc29b59c880b062aaf6ac8ac5b4e156528",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -253,6 +296,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -268,6 +312,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/RecurringBilling/cobranca-recorrente-configuracoes.map.json",
@@ -277,7 +322,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "e69a7abb2beb026d37bb0fa91f70d80318dcee0aea055e5360477f053bf586a0"
+        "targetSha256": "e69a7abb2beb026d37bb0fa91f70d80318dcee0aea055e5360477f053bf586a0",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "a74c03d47ab4e5217f3d6aa519ee20bca45c502eed3f775c8f7131977a6abeb7",
+          "mapSha256": "f8f237ba1b4d716c68f1f4af77612de0253880fa8b3a74cf22c45cf4f168e6c1",
+          "targetSha256": "e69a7abb2beb026d37bb0fa91f70d80318dcee0aea055e5360477f053bf586a0",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -293,6 +348,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/RecurringBilling/cobranca-recorrente-faturas.map.json",
@@ -302,7 +358,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "5b1bf1f6360cf05aceed277c11176b977417897a5cf6fb5fea2c7cb43340863c"
+        "targetSha256": "5b1bf1f6360cf05aceed277c11176b977417897a5cf6fb5fea2c7cb43340863c",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "a74c03d47ab4e5217f3d6aa519ee20bca45c502eed3f775c8f7131977a6abeb7",
+          "mapSha256": "8707a0493c69303b578accf3c66cdcf2c9f1b62685466eea363a80846a935f00",
+          "targetSha256": "5b1bf1f6360cf05aceed277c11176b977417897a5cf6fb5fea2c7cb43340863c",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -318,6 +384,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/RecurringBilling/cobranca-recorrente.map.json",
@@ -327,7 +394,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "41b4967660b690758d92dfb62d221f70bbda1d6a6d8410a037d34414e6ab38f7"
+        "targetSha256": "41b4967660b690758d92dfb62d221f70bbda1d6a6d8410a037d34414e6ab38f7",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "a74c03d47ab4e5217f3d6aa519ee20bca45c502eed3f775c8f7131977a6abeb7",
+          "mapSha256": "84e950c31ea55d5421c66367f6185d3abeb8de8b520e4727407d06599ec7d0ad",
+          "targetSha256": "41b4967660b690758d92dfb62d221f70bbda1d6a6d8410a037d34414e6ab38f7",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -343,6 +420,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -358,6 +436,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/RecurringBilling/cobranca-recorrente-planos.map.json",
@@ -367,7 +446,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "6264be3cad44d9507ad97b7cb1126bc0a8f700387b6b4dcdc1afcbee34a5fbca"
+        "targetSha256": "6264be3cad44d9507ad97b7cb1126bc0a8f700387b6b4dcdc1afcbee34a5fbca",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "a74c03d47ab4e5217f3d6aa519ee20bca45c502eed3f775c8f7131977a6abeb7",
+          "mapSha256": "642243ff41c9374874f724055f75204abc41b5e5cbff32889b6ee6dbc054b8ee",
+          "targetSha256": "6264be3cad44d9507ad97b7cb1126bc0a8f700387b6b4dcdc1afcbee34a5fbca",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -383,6 +472,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -398,6 +488,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -413,6 +504,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Compras/compras-grade-matrix.map.json",
@@ -422,7 +514,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "4903570e7c6a4c7699d19810113c0ee4722f2aaf1bbe6948ac9d0fdeff3a54ec"
+        "targetSha256": "4903570e7c6a4c7699d19810113c0ee4722f2aaf1bbe6948ac9d0fdeff3a54ec",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "aecdc9181f31e44594879b185732d44431adb8c612bb2d2e676046af1933acf7",
+          "mapSha256": "08a4bfe53e131f47b30596351b9b3f29f7a4ce5021ed5d6814bf574215b102b7",
+          "targetSha256": "4903570e7c6a4c7699d19810113c0ee4722f2aaf1bbe6948ac9d0fdeff3a54ec",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -438,6 +540,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Compras/compras.map.json",
@@ -447,7 +550,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "bc9f5540a6935eb14503fc09959b659679e6ddf3d455cc45696a827e0e57f5a5"
+        "targetSha256": "bc9f5540a6935eb14503fc09959b659679e6ddf3d455cc45696a827e0e57f5a5",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "24bc9f55af936f1259b5407bafc2390b8c8e8c3890eeb0d6572be5a9c22b71c1",
+          "mapSha256": "cc437500add03b9e650b63666b60de41a3354bdc815a4552e28133eee6123065",
+          "targetSha256": "bc9f5540a6935eb14503fc09959b659679e6ddf3d455cc45696a827e0e57f5a5",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -463,6 +576,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -478,6 +592,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -493,6 +608,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -508,6 +624,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -523,6 +640,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -538,6 +656,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -553,6 +672,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -568,6 +688,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -583,6 +704,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -598,6 +720,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -613,6 +736,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -628,6 +752,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Dashboard/home-index.map.json",
@@ -637,7 +762,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "d4fff8cda39255a45827bfc00cae5557a29475f5eb16aa33484f42f2dd3de196"
+        "targetSha256": "d4fff8cda39255a45827bfc00cae5557a29475f5eb16aa33484f42f2dd3de196",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "65ec5710d493eb7057b916d3b9ae10207b10967460fa0e80766013fd2287369c",
+          "mapSha256": "7cc105c8857346ce6cdf42b2f3d8843c3082d7efac228df5730e6cb700f40696",
+          "targetSha256": "d4fff8cda39255a45827bfc00cae5557a29475f5eb16aa33484f42f2dd3de196",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -653,6 +788,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -668,6 +804,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -683,6 +820,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Essentials/knowledge-index.map.json",
@@ -692,7 +830,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "5fb5919b8d7ff9cb7b2fadf29a9802c4afc48e20c7c5b9436ccf6419b448b8f6"
+        "targetSha256": "5fb5919b8d7ff9cb7b2fadf29a9802c4afc48e20c7c5b9436ccf6419b448b8f6",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "948723aba503756018306bd192fa2f1ae68bad5e60cd28d8091b2782d6b0e921",
+          "mapSha256": "5982db0b23da990994d297aae586754ba812a4f79f1e0685af50449e9221308e",
+          "targetSha256": "5fb5919b8d7ff9cb7b2fadf29a9802c4afc48e20c7c5b9436ccf6419b448b8f6",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -708,6 +856,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Essentials/documents-index.map.json",
@@ -717,7 +866,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "61f05663cb5c5776f117ecdac0c53ed9c96a32eaa5cb1af891ef4a2424d8d44a"
+        "targetSha256": "61f05663cb5c5776f117ecdac0c53ed9c96a32eaa5cb1af891ef4a2424d8d44a",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "91643224c26e9209cf8719bcc2fd6a451e7c5d31e80a8788a2c246885f563ab9",
+          "mapSha256": "addba91360fb56e04dad464c0f9d3b413238c111ad831312acf9def8b2f6f55a",
+          "targetSha256": "61f05663cb5c5776f117ecdac0c53ed9c96a32eaa5cb1af891ef4a2424d8d44a",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -733,6 +892,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Essentials/knowledge-index.map.json",
@@ -742,7 +902,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "5fb5919b8d7ff9cb7b2fadf29a9802c4afc48e20c7c5b9436ccf6419b448b8f6"
+        "targetSha256": "5fb5919b8d7ff9cb7b2fadf29a9802c4afc48e20c7c5b9436ccf6419b448b8f6",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "91643224c26e9209cf8719bcc2fd6a451e7c5d31e80a8788a2c246885f563ab9",
+          "mapSha256": "5982db0b23da990994d297aae586754ba812a4f79f1e0685af50449e9221308e",
+          "targetSha256": "5fb5919b8d7ff9cb7b2fadf29a9802c4afc48e20c7c5b9436ccf6419b448b8f6",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -758,6 +928,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Essentials/messages-index.map.json",
@@ -767,7 +938,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "ce0ff6f490c236570d6a53b9bc9f1bc6ca9da1082e6fb0f97b0d48e203f5510b"
+        "targetSha256": "ce0ff6f490c236570d6a53b9bc9f1bc6ca9da1082e6fb0f97b0d48e203f5510b",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "91643224c26e9209cf8719bcc2fd6a451e7c5d31e80a8788a2c246885f563ab9",
+          "mapSha256": "3a829425fb26ea26c4d528af3c95bb8da376b71815e888d3312d0dc0148bfa30",
+          "targetSha256": "ce0ff6f490c236570d6a53b9bc9f1bc6ca9da1082e6fb0f97b0d48e203f5510b",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -783,6 +964,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Essentials/reminders-index.map.json",
@@ -792,7 +974,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "5393a43d0ecf9c789947f0727962143f9317cb75e013fac7ef435debb355ab26"
+        "targetSha256": "5393a43d0ecf9c789947f0727962143f9317cb75e013fac7ef435debb355ab26",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "91643224c26e9209cf8719bcc2fd6a451e7c5d31e80a8788a2c246885f563ab9",
+          "mapSha256": "a9c0afa0ee0c3716c012aa27bd1b3416333bf2237d1a331413cbffa63b9296c3",
+          "targetSha256": "5393a43d0ecf9c789947f0727962143f9317cb75e013fac7ef435debb355ab26",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -808,6 +1000,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Essentials/todo-index.map.json",
@@ -817,7 +1010,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "ce4f811d92bc0deeaa816a3c0bd3b4fe77fd4c7bc92f8f410261c5ecd483490d"
+        "targetSha256": "ce4f811d92bc0deeaa816a3c0bd3b4fe77fd4c7bc92f8f410261c5ecd483490d",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "91643224c26e9209cf8719bcc2fd6a451e7c5d31e80a8788a2c246885f563ab9",
+          "mapSha256": "8a03fca37f975298cc0bc8cd1e1368ac0341bec0cc70a609a1e3062df17e4fb1",
+          "targetSha256": "ce4f811d92bc0deeaa816a3c0bd3b4fe77fd4c7bc92f8f410261c5ecd483490d",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -833,6 +1036,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Estoque/stock-adjustment-create.map.json",
@@ -842,7 +1046,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "9af3e49d8ff479802dcb07e65dcb57f2f4dcc8a3cbe7834241d422f368f835e6"
+        "targetSha256": "9af3e49d8ff479802dcb07e65dcb57f2f4dcc8a3cbe7834241d422f368f835e6",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "2fa322cf6e87671252516a022149e8effac1687e60a1fe97ce59a02a99015b53",
+          "mapSha256": "de5906c74012c659829bf9ccde2f30b032a64b50048024212b566e637e125e4f",
+          "targetSha256": "9af3e49d8ff479802dcb07e65dcb57f2f4dcc8a3cbe7834241d422f368f835e6",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -858,6 +1072,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Estoque/stock-adjustment-index.map.json",
@@ -867,7 +1082,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "149749c96b02911817432ff94bdc5d472a03b41258ce5621d03e9149847369b2"
+        "targetSha256": "149749c96b02911817432ff94bdc5d472a03b41258ce5621d03e9149847369b2",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "2fa322cf6e87671252516a022149e8effac1687e60a1fe97ce59a02a99015b53",
+          "mapSha256": "59b2a0d7d86a39aa1007f4daa64609d1959abb8a5aac023351340d76fc6d5ba3",
+          "targetSha256": "149749c96b02911817432ff94bdc5d472a03b41258ce5621d03e9149847369b2",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -883,6 +1108,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Estoque/stock-transfer-create.map.json",
@@ -892,7 +1118,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "447bb513ca6ee23d5bd2d100843469d8d84d6342e0817b37ff52ee8c1c4c8102"
+        "targetSha256": "447bb513ca6ee23d5bd2d100843469d8d84d6342e0817b37ff52ee8c1c4c8102",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "2fa322cf6e87671252516a022149e8effac1687e60a1fe97ce59a02a99015b53",
+          "mapSha256": "317fe5da3ab7f1d5a3fb00eb7f651ceca96381dc0ab341dd1a200bcdd6295a84",
+          "targetSha256": "447bb513ca6ee23d5bd2d100843469d8d84d6342e0817b37ff52ee8c1c4c8102",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -908,6 +1144,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Estoque/stock-transfer-index.map.json",
@@ -917,7 +1154,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "0c242d0570cd5df641c9a6a90c5fbdd7188f59fdcb0e7ab3b912d5a36f591cd9"
+        "targetSha256": "0c242d0570cd5df641c9a6a90c5fbdd7188f59fdcb0e7ab3b912d5a36f591cd9",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "2fa322cf6e87671252516a022149e8effac1687e60a1fe97ce59a02a99015b53",
+          "mapSha256": "8d975ffa83ca7af9744c67f9dfd80cedc1a3c11678d0230ef21cdab72bc2f609",
+          "targetSha256": "0c242d0570cd5df641c9a6a90c5fbdd7188f59fdcb0e7ab3b912d5a36f591cd9",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -933,16 +1180,27 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Financeiro/unificado.map.json",
-          "mapSha256": "774acdb563769d366494c72b5dc9b9cfff4f9a8f4bfa3bc3b2ff2452215db6e9",
-          "recordedAt": "2026-09-18T14:41:29.696Z"
+          "mapSha256": "cd1c2a6f43391b8f1e4204c74cf4f82dc7f19ad6cef464237d60aa88d92f559f",
+          "recordedAt": "2026-09-21T17:37:30.105Z"
         },
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "d94350ae21671af8dfb4be44a647e8b5a1a86e66e8fc6896c11f0552803288e9"
+        "targetSha256": "d94350ae21671af8dfb4be44a647e8b5a1a86e66e8fc6896c11f0552803288e9",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "f61a6c58e508f4962e00cd3fe96c3ab2d2bae8519b4121525bc709fd66bb1e77",
+          "mapSha256": "cd1c2a6f43391b8f1e4204c74cf4f82dc7f19ad6cef464237d60aa88d92f559f",
+          "targetSha256": "d94350ae21671af8dfb4be44a647e8b5a1a86e66e8fc6896c11f0552803288e9",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -958,6 +1216,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -973,6 +1232,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -988,6 +1248,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1003,6 +1264,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1018,6 +1280,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1033,6 +1296,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-cockpit.map.json",
@@ -1042,7 +1306,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "471cb071690129dc6d1749df20ec44ba46b380cc361945d2c00b48ea76bf9832"
+        "targetSha256": "471cb071690129dc6d1749df20ec44ba46b380cc361945d2c00b48ea76bf9832",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
+          "mapSha256": "6a3b5536690f91f23e244d2ea14156871c3b727d12e40487dda24a4612fa4473",
+          "targetSha256": "471cb071690129dc6d1749df20ec44ba46b380cc361945d2c00b48ea76bf9832",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1053,11 +1327,12 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "validated",
+      "lifecycleState": "smoked-ci",
       "applicationState": "applied",
       "compared": true,
       "tested": true,
       "smoked": true,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-config.map.json",
@@ -1100,9 +1375,25 @@
             "recordedAt": "2026-09-18T14:20:24.023Z"
           }
         ],
-        "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c"
+        "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
+          "mapSha256": "73f4245d280fe49054b68ce2c71e049a44718b0ce15232866c4eb221e49589a2",
+          "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
+          "testOutputSha256": [
+            "92856c1a1e9966cc0585aa2a3ac5726c8c9507920124a6800e58e266074acec8"
+          ],
+          "deploySha": [
+            "1cb5389da3e6345e7b638eb9d8f4969d9436b499"
+          ],
+          "smokeScreenshotSha256": [
+            "0284d8557a0cff1bc4b02a49feb16d684b85d40c76c9dacfb9a049f036b615de"
+          ],
+          "productionValidated": false
+        }
       },
-      "nextAction": "aplicação, teste e smoke válidos para os hashes atuais"
+      "nextAction": "smoke de CI registrado; executar e registrar smoke no deploy de produção"
     },
     {
       "source": "fiscal-page.jsx",
@@ -1116,6 +1407,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-dfe.map.json",
@@ -1125,7 +1417,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "1688d63f44cd27de41bce967f2cad79f014ff4eb2696ec34ffad7de3fe5d1c06"
+        "targetSha256": "1688d63f44cd27de41bce967f2cad79f014ff4eb2696ec34ffad7de3fe5d1c06",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
+          "mapSha256": "e9176c1db97fa573a724406120a2ab44c8c082bd16a73413f697b4f686395f68",
+          "targetSha256": "1688d63f44cd27de41bce967f2cad79f014ff4eb2696ec34ffad7de3fe5d1c06",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1136,11 +1438,12 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "validated",
+      "lifecycleState": "smoked-ci",
       "applicationState": "applied",
       "compared": true,
       "tested": true,
       "smoked": true,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-eventos.map.json",
@@ -1183,9 +1486,25 @@
             "recordedAt": "2026-09-18T14:20:27.903Z"
           }
         ],
-        "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc"
+        "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
+          "mapSha256": "2b863547b3c0dff421576b795c3ba26b4746565394b4eab8d2971480d20cf2ab",
+          "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
+          "testOutputSha256": [
+            "92856c1a1e9966cc0585aa2a3ac5726c8c9507920124a6800e58e266074acec8"
+          ],
+          "deploySha": [
+            "1cb5389da3e6345e7b638eb9d8f4969d9436b499"
+          ],
+          "smokeScreenshotSha256": [
+            "ccb0dbc87bbfe45abe81b8b51baa0e4bedab46a018f776a6dcf171b91b154766"
+          ],
+          "productionValidated": false
+        }
       },
-      "nextAction": "aplicação, teste e smoke válidos para os hashes atuais"
+      "nextAction": "smoke de CI registrado; executar e registrar smoke no deploy de produção"
     },
     {
       "source": "fiscal-page.jsx",
@@ -1199,6 +1518,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-nfe.map.json",
@@ -1208,7 +1528,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "f6b8672e3a01afeed35ffe881f05b987e510a9c1b2598c6288202c0582629948"
+        "targetSha256": "f6b8672e3a01afeed35ffe881f05b987e510a9c1b2598c6288202c0582629948",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
+          "mapSha256": "ecda4181dcc7a4a3fa4b1d00d92623bdadf37bddc6c214935a017fd20d71990f",
+          "targetSha256": "f6b8672e3a01afeed35ffe881f05b987e510a9c1b2598c6288202c0582629948",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1224,6 +1554,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-nfse.map.json",
@@ -1233,7 +1564,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "082e47490589ae3d13b5a2a918062cb9e18ef28d857add4bc439bfd6a19cf687"
+        "targetSha256": "082e47490589ae3d13b5a2a918062cb9e18ef28d857add4bc439bfd6a19cf687",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
+          "mapSha256": "7ce91afc620640c2c446e091bd1939470bbab286e7c037912828468b8629eb50",
+          "targetSha256": "082e47490589ae3d13b5a2a918062cb9e18ef28d857add4bc439bfd6a19cf687",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1244,11 +1585,12 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "validated",
+      "lifecycleState": "smoked-ci",
       "applicationState": "applied",
       "compared": true,
       "tested": true,
       "smoked": true,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-sped.map.json",
@@ -1291,9 +1633,25 @@
             "recordedAt": "2026-09-18T14:20:32.002Z"
           }
         ],
-        "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6"
+        "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
+          "mapSha256": "4d070af807668a6dcfac0159cc26045ea311dffbc3840f009c9f6a92992ad203",
+          "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
+          "testOutputSha256": [
+            "92856c1a1e9966cc0585aa2a3ac5726c8c9507920124a6800e58e266074acec8"
+          ],
+          "deploySha": [
+            "1cb5389da3e6345e7b638eb9d8f4969d9436b499"
+          ],
+          "smokeScreenshotSha256": [
+            "523ae8747062acf3ce86da07c455174c3d173f77382df33c9cf5e3d613af5539"
+          ],
+          "productionValidated": false
+        }
       },
-      "nextAction": "aplicação, teste e smoke válidos para os hashes atuais"
+      "nextAction": "smoke de CI registrado; executar e registrar smoke no deploy de produção"
     },
     {
       "source": "fiscal-subpages.jsx",
@@ -1307,6 +1665,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-config.map.json",
@@ -1316,7 +1675,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c"
+        "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
+          "mapSha256": "73f4245d280fe49054b68ce2c71e049a44718b0ce15232866c4eb221e49589a2",
+          "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1332,6 +1701,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-dfe.map.json",
@@ -1341,7 +1711,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "1688d63f44cd27de41bce967f2cad79f014ff4eb2696ec34ffad7de3fe5d1c06"
+        "targetSha256": "1688d63f44cd27de41bce967f2cad79f014ff4eb2696ec34ffad7de3fe5d1c06",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
+          "mapSha256": "e9176c1db97fa573a724406120a2ab44c8c082bd16a73413f697b4f686395f68",
+          "targetSha256": "1688d63f44cd27de41bce967f2cad79f014ff4eb2696ec34ffad7de3fe5d1c06",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1357,6 +1737,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-eventos.map.json",
@@ -1366,7 +1747,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc"
+        "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
+          "mapSha256": "2b863547b3c0dff421576b795c3ba26b4746565394b4eab8d2971480d20cf2ab",
+          "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1382,6 +1773,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Fiscal/fiscal-sped.map.json",
@@ -1391,7 +1783,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6"
+        "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
+          "mapSha256": "4d070af807668a6dcfac0159cc26045ea311dffbc3840f009c9f6a92992ad203",
+          "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1407,6 +1809,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1422,6 +1825,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1437,6 +1841,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1452,6 +1857,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1467,6 +1873,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -1482,6 +1889,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Governance/governance-audit.map.json",
@@ -1491,7 +1899,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "4b9de67069ba2eddc87441458b852d6851aefa69da5ba3be4e2ac7d968103b04"
+        "targetSha256": "4b9de67069ba2eddc87441458b852d6851aefa69da5ba3be4e2ac7d968103b04",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "c7cf5c4040a674ec9b0415d4cee7e4e00a0e4d989cc44a152bda09d5fba5dec2",
+          "mapSha256": "94415431cf740fcdf3a7b12cc6219a84ed582eee5a8bfdc1b834f634fc8a8479",
+          "targetSha256": "4b9de67069ba2eddc87441458b852d6851aefa69da5ba3be4e2ac7d968103b04",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1507,6 +1925,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Governance/governance-dashboard.map.json",
@@ -1516,7 +1935,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "ac3d84506996035c23eeb8a1e16ed5bb7671c184708d0ed8a84cb9b18bc296e9"
+        "targetSha256": "ac3d84506996035c23eeb8a1e16ed5bb7671c184708d0ed8a84cb9b18bc296e9",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "c7cf5c4040a674ec9b0415d4cee7e4e00a0e4d989cc44a152bda09d5fba5dec2",
+          "mapSha256": "51ef425c7484c4db9953944a6e5736ef8eb708198ce69607c189589fe3e76a38",
+          "targetSha256": "ac3d84506996035c23eeb8a1e16ed5bb7671c184708d0ed8a84cb9b18bc296e9",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1532,6 +1961,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Governance/governance-drift-alerts.map.json",
@@ -1541,7 +1971,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "7d52572de2a7a711886480a81aec752f39f6da85bb3005b27bb95ff083fb18e7"
+        "targetSha256": "7d52572de2a7a711886480a81aec752f39f6da85bb3005b27bb95ff083fb18e7",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "c7cf5c4040a674ec9b0415d4cee7e4e00a0e4d989cc44a152bda09d5fba5dec2",
+          "mapSha256": "28384e1153f13643a60ce611a04078b656f53e58bf3ddb46bc17222de461a8e8",
+          "targetSha256": "7d52572de2a7a711886480a81aec752f39f6da85bb3005b27bb95ff083fb18e7",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1557,6 +1997,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Governance/governance-policies.map.json",
@@ -1566,7 +2007,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "92fb7555dabb8ba961bd5469768b1a8456a6e514cc9f029ffb90b354ce412123"
+        "targetSha256": "92fb7555dabb8ba961bd5469768b1a8456a6e514cc9f029ffb90b354ce412123",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "c7cf5c4040a674ec9b0415d4cee7e4e00a0e4d989cc44a152bda09d5fba5dec2",
+          "mapSha256": "2ae686ba02056dfa5ee1adb0377c45d82df1faf2ce9f183ca44b74df255aa079",
+          "targetSha256": "92fb7555dabb8ba961bd5469768b1a8456a6e514cc9f029ffb90b354ce412123",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1582,6 +2033,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1597,6 +2049,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Essentials/holidays-index.map.json",
@@ -1606,7 +2059,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "4d8d8bd8a70e0e126a3c9ac85cc4c5497772a5fc85b20d6a7e17a45e41ea517d"
+        "targetSha256": "4d8d8bd8a70e0e126a3c9ac85cc4c5497772a5fc85b20d6a7e17a45e41ea517d",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "6712d4d9886c73259de9edc417dd96ef2ef2870726ec53c71727abc1830079fe",
+          "mapSha256": "372e4f710906fb2bfde23b28d80c964b22163df033a56b01eaa41cdf2264232f",
+          "targetSha256": "4d8d8bd8a70e0e126a3c9ac85cc4c5497772a5fc85b20d6a7e17a45e41ea517d",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1622,6 +2085,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Essentials/settings-index.map.json",
@@ -1631,7 +2095,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "41e32aa5049e13b37e469fed9bab98f61ad9c03f831f6daa7b5848965153d56b"
+        "targetSha256": "41e32aa5049e13b37e469fed9bab98f61ad9c03f831f6daa7b5848965153d56b",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "6712d4d9886c73259de9edc417dd96ef2ef2870726ec53c71727abc1830079fe",
+          "mapSha256": "aa0b61c3faef2993ca5ff6d2f7cb473af34c13d750d1a168c0125b94a69ee1db",
+          "targetSha256": "41e32aa5049e13b37e469fed9bab98f61ad9c03f831f6daa7b5848965153d56b",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1647,6 +2121,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Essentials/tipos.map.json",
@@ -1656,7 +2131,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "09bb388e690bdcab4cf71424296fc10c62f7674d573af41e84b2baa5ab0166f0"
+        "targetSha256": "09bb388e690bdcab4cf71424296fc10c62f7674d573af41e84b2baa5ab0166f0",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "6712d4d9886c73259de9edc417dd96ef2ef2870726ec53c71727abc1830079fe",
+          "mapSha256": "61eaf36eafc870c2582cd7dedba7cbb3164f3af66949caa949898edd9f4f7908",
+          "targetSha256": "09bb388e690bdcab4cf71424296fc10c62f7674d573af41e84b2baa5ab0166f0",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1672,6 +2157,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Atendimento/caixa-unificada.map.json",
@@ -1681,7 +2167,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "b26c174f88c786f937cf68d65cad0a07a8e0d7e5b07c82c339107412680fd7c5"
+        "targetSha256": "b26c174f88c786f937cf68d65cad0a07a8e0d7e5b07c82c339107412680fd7c5",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "10ab0b18e34509192a30575e994a8474e5caf32e80a4428de586cee6b2534163",
+          "mapSha256": "397964abc8bac1010294ae14363cf1527b93d266a0e405cd24e2dc6ac4357453",
+          "targetSha256": "b26c174f88c786f937cf68d65cad0a07a8e0d7e5b07c82c339107412680fd7c5",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1697,6 +2193,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1712,6 +2209,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1727,6 +2225,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1742,6 +2241,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1757,6 +2257,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1772,6 +2273,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1787,6 +2289,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1802,6 +2305,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1817,6 +2321,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1832,6 +2337,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/KB/kb.map.json",
@@ -1841,7 +2347,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "9e7ff864df754d7317672e30c6c0458ab02a4380a7a377218d4f8271d61f9f7f"
+        "targetSha256": "9e7ff864df754d7317672e30c6c0458ab02a4380a7a377218d4f8271d61f9f7f",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "797f931adabd430c54cb5939e6c917274e9536205bf8ec764b3f026997b18840",
+          "mapSha256": "23b8046dbb61820011490d71993208f70f516774d0e628d8349dca006dc7d991",
+          "targetSha256": "9e7ff864df754d7317672e30c6c0458ab02a4380a7a377218d4f8271d61f9f7f",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1857,6 +2373,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/KB/kb-index-v2.map.json",
@@ -1866,7 +2383,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "94cebcb2521b60766808e276a2da880a793d041f41d13acca107c02652a13c45"
+        "targetSha256": "94cebcb2521b60766808e276a2da880a793d041f41d13acca107c02652a13c45",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "797f931adabd430c54cb5939e6c917274e9536205bf8ec764b3f026997b18840",
+          "mapSha256": "513f741e7fd3e60dabeb762ffb9fc7108e518051d73dee5e884e2c53d3bc02c0",
+          "targetSha256": "94cebcb2521b60766808e276a2da880a793d041f41d13acca107c02652a13c45",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1882,6 +2409,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1897,6 +2425,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Manufacturing/manufacturing-index.map.json",
@@ -1906,7 +2435,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "23d016ed0c328ff69c9f46628da558e30f350383982b6f27206493adc2717eef"
+        "targetSha256": "23d016ed0c328ff69c9f46628da558e30f350383982b6f27206493adc2717eef",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "d9581fcab21cf2435cdcf4f758ff719a4a76cd48c550fdc1ee1f94419448d7d6",
+          "mapSha256": "f8eb11f41c049b9500b02b1c5e71dae537e4046f3d2a97a58268ce506d1a3314",
+          "targetSha256": "23d016ed0c328ff69c9f46628da558e30f350383982b6f27206493adc2717eef",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1922,6 +2461,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Manufacturing/manufacturing-recipes.map.json",
@@ -1931,7 +2471,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "93c9c227f21c279ba4e21668a6a0fffb842d853edd1656f787e4e398abafa549"
+        "targetSha256": "93c9c227f21c279ba4e21668a6a0fffb842d853edd1656f787e4e398abafa549",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "d9581fcab21cf2435cdcf4f758ff719a4a76cd48c550fdc1ee1f94419448d7d6",
+          "mapSha256": "2006738783c569fdb8af783672a0aa91f9134275c20d59bfe50f5ea533805d5c",
+          "targetSha256": "93c9c227f21c279ba4e21668a6a0fffb842d853edd1656f787e4e398abafa549",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -1947,6 +2497,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1962,6 +2513,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1977,6 +2529,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Superadmin/modules-index.map.json",
@@ -1986,7 +2539,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "2416a609ea667292fc6d4c4a5250985a13202ea53132085c579cc1f1c28cd1a8"
+        "targetSha256": "2416a609ea667292fc6d4c4a5250985a13202ea53132085c579cc1f1c28cd1a8",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "e0bcbd247c6c5bb82dac110259c0357b5784674083960d640d6382e4abcdb429",
+          "mapSha256": "54e047dbea03b8e335c6bdfe014c17b87765db3b5da650b6f9192ef3d5d0ea8a",
+          "targetSha256": "2416a609ea667292fc6d4c4a5250985a13202ea53132085c579cc1f1c28cd1a8",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2002,6 +2565,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2017,6 +2581,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Officeimpresso/logs-index.map.json",
@@ -2026,7 +2591,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "5dab5f601ab8f001b1e441369a9dbe1440962a24bb4445b340554b9b05ed3afb"
+        "targetSha256": "5dab5f601ab8f001b1e441369a9dbe1440962a24bb4445b340554b9b05ed3afb",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "39b2cfcfba453ce030bc9f8cb2e76851488ef6ff8dc900daf5f823c722926244",
+          "mapSha256": "576a460f83f6cf9e1ffc264d7cd685f32814e15b6c5000bd1c898a8aa823c065",
+          "targetSha256": "5dab5f601ab8f001b1e441369a9dbe1440962a24bb4445b340554b9b05ed3afb",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2042,6 +2617,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Officeimpresso/logs-timeline.map.json",
@@ -2051,7 +2627,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "1a69167d9c9ffec13a327cfaac7c4a113fa92ff8365f66661f673a365d64fa3c"
+        "targetSha256": "1a69167d9c9ffec13a327cfaac7c4a113fa92ff8365f66661f673a365d64fa3c",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "39b2cfcfba453ce030bc9f8cb2e76851488ef6ff8dc900daf5f823c722926244",
+          "mapSha256": "baa6974149d098e4bfbad63c5a3ff5881d2534386f21014e8edb0f82d28a0011",
+          "targetSha256": "1a69167d9c9ffec13a327cfaac7c4a113fa92ff8365f66661f673a365d64fa3c",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2067,6 +2653,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2082,6 +2669,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2097,6 +2685,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2112,6 +2701,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2127,6 +2717,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2142,6 +2733,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/OficinaAuto/service-orders-show.map.json",
@@ -2151,7 +2743,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "7f4d1fc65575950191ff93e7b2f6b4b577df586d0c3c11dab385e7a0e9addb65"
+        "targetSha256": "7f4d1fc65575950191ff93e7b2f6b4b577df586d0c3c11dab385e7a0e9addb65",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "209d1ad413a189db0a6a58ab0a870b90eea4bc0a08f48c87bf08351a227ff519",
+          "mapSha256": "6576dd387e0469292f336a509349234de841e3b1279aeb078865c1046d1747fc",
+          "targetSha256": "7f4d1fc65575950191ff93e7b2f6b4b577df586d0c3c11dab385e7a0e9addb65",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2167,6 +2769,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/OficinaAuto/ordens-servico-board.map.json",
@@ -2176,7 +2779,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "deb2715486e0c1e94f5726d0a089f499c72230c2cd68ba36f3b50e3a0964a155"
+        "targetSha256": "deb2715486e0c1e94f5726d0a089f499c72230c2cd68ba36f3b50e3a0964a155",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "409e02172cd394c3d77838f4b9499d9681a2cbde4b48654cc589fe22015c12e2",
+          "mapSha256": "840a9f03220ee09660c258ac81c838fb921384e6e4c78b573455771e660f0f34",
+          "targetSha256": "deb2715486e0c1e94f5726d0a089f499c72230c2cd68ba36f3b50e3a0964a155",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2192,6 +2805,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2207,6 +2821,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2222,6 +2837,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2237,6 +2853,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2252,6 +2869,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2267,6 +2885,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2282,6 +2901,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2297,6 +2917,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2312,6 +2933,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Financeiro/cobranca-index.map.json",
@@ -2321,7 +2943,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "047e17cecd0be92a4eba52cbe7f1332055de9e986e330a25f25edf2756ebaf1c"
+        "targetSha256": "047e17cecd0be92a4eba52cbe7f1332055de9e986e330a25f25edf2756ebaf1c",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "4ee1617c7909d3579181d065b830988da4c05e3297b588ccb330c2bb6a81f805",
+          "mapSha256": "51ee1a3706e9e9c222e84f5ff8c2da45333d19e9f0f855955c60c0daac8d08cf",
+          "targetSha256": "047e17cecd0be92a4eba52cbe7f1332055de9e986e330a25f25edf2756ebaf1c",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2337,6 +2969,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/PaymentGateway/settings-paymentgateways-index.map.json",
@@ -2346,7 +2979,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "1514d056563d54a96270099a2635f9e85b63f82cc8ddbaf0f36d847a61a9bb8e"
+        "targetSha256": "1514d056563d54a96270099a2635f9e85b63f82cc8ddbaf0f36d847a61a9bb8e",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "af1736ae1d9390283d0d92be7d13b9cafdd704269d08fb0f53aa75d04394a5cc",
+          "mapSha256": "dffb4c2ed1c1b13333d3a65bf7c51ed96336da4fb9bd96dcb98c3b63149ecd8d",
+          "targetSha256": "1514d056563d54a96270099a2635f9e85b63f82cc8ddbaf0f36d847a61a9bb8e",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2362,6 +3005,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2377,6 +3021,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2392,6 +3037,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2407,6 +3053,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2422,6 +3069,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Ponto/dashboard-index.map.json",
@@ -2431,7 +3079,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "360b1f6c2a79261e24a5f01d9568ae7aed811d41275f741f83011a4c0ce36a64"
+        "targetSha256": "360b1f6c2a79261e24a5f01d9568ae7aed811d41275f741f83011a4c0ce36a64",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "e22c0623b1713453271aef46165e546c899f3631e0e90eee5ce9d629a591d1ed",
+          "mapSha256": "e9a1ec08c7108fcd7f9c15f952da7a868763dfa530f196f54cef34a7567a68b0",
+          "targetSha256": "360b1f6c2a79261e24a5f01d9568ae7aed811d41275f741f83011a4c0ce36a64",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2447,6 +3105,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Ponto/espelho-index.map.json",
@@ -2456,7 +3115,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "fa0bb3d3aa2ce553e5a2232cfe5986570516b0e0915d1b7fc6d857d74bf96cb7"
+        "targetSha256": "fa0bb3d3aa2ce553e5a2232cfe5986570516b0e0915d1b7fc6d857d74bf96cb7",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "e22c0623b1713453271aef46165e546c899f3631e0e90eee5ce9d629a591d1ed",
+          "mapSha256": "215c94b76b8756da528c14507a2a88842292a5e7a54078d816841e62327b8b1a",
+          "targetSha256": "fa0bb3d3aa2ce553e5a2232cfe5986570516b0e0915d1b7fc6d857d74bf96cb7",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2472,6 +3141,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Ponto/espelho-show.map.json",
@@ -2481,7 +3151,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "a7439b370b731f5500854a415f9377d8ce251e740d0455e95d60047357936649"
+        "targetSha256": "a7439b370b731f5500854a415f9377d8ce251e740d0455e95d60047357936649",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "e22c0623b1713453271aef46165e546c899f3631e0e90eee5ce9d629a591d1ed",
+          "mapSha256": "6d4ce849b26ac4b066a42a3465e287f88d2a10214f651f2bc40c29e9633d4953",
+          "targetSha256": "a7439b370b731f5500854a415f9377d8ce251e740d0455e95d60047357936649",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2497,6 +3177,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2512,6 +3193,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2527,6 +3209,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2542,6 +3225,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2557,6 +3241,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2572,6 +3257,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2587,6 +3273,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2602,6 +3289,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2617,6 +3305,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2632,6 +3321,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2647,6 +3337,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2662,6 +3353,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2677,6 +3369,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2692,6 +3385,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2707,6 +3401,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2722,6 +3417,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2737,6 +3433,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2752,6 +3449,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2767,6 +3465,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2782,6 +3481,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2797,6 +3497,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2812,6 +3513,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2827,6 +3529,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2842,6 +3545,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2857,6 +3561,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2872,6 +3577,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2887,6 +3593,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Repair/repair-dashboard.map.json",
@@ -2896,7 +3603,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "24a6ed3cde58bd280e4268da2d05bb67ea0e3806d9893fdb5b09cc2ead683199"
+        "targetSha256": "24a6ed3cde58bd280e4268da2d05bb67ea0e3806d9893fdb5b09cc2ead683199",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
+          "mapSha256": "0d431943e347f1f85e4b1f619bb4331d0ec59b5903c894cdf2964a93d115c1ea",
+          "targetSha256": "24a6ed3cde58bd280e4268da2d05bb67ea0e3806d9893fdb5b09cc2ead683199",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2912,6 +3629,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Repair/repair-device-models.map.json",
@@ -2921,7 +3639,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "9f6dafbd0b6d19ec4573396eda6fbafab6dac12e0d90d06693eaaa853b63bed5"
+        "targetSha256": "9f6dafbd0b6d19ec4573396eda6fbafab6dac12e0d90d06693eaaa853b63bed5",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
+          "mapSha256": "02a0e5d259326ee25d6f6a49bc0ca7f36e3d41bc0f1584cb68d17d4b1ac8be51",
+          "targetSha256": "9f6dafbd0b6d19ec4573396eda6fbafab6dac12e0d90d06693eaaa853b63bed5",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2937,6 +3665,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Repair/repair-index.map.json",
@@ -2946,7 +3675,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "10ad215532fbe52eb3056f3053033f0df17f110bf6ac584f832e2789891a6a08"
+        "targetSha256": "10ad215532fbe52eb3056f3053033f0df17f110bf6ac584f832e2789891a6a08",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
+          "mapSha256": "e827f7bb549b7f1044ce55e855a98a4b172eae6920f09c3018f0ce168cb0d55f",
+          "targetSha256": "10ad215532fbe52eb3056f3053033f0df17f110bf6ac584f832e2789891a6a08",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2962,6 +3701,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Repair/repair-jobsheet.map.json",
@@ -2971,7 +3711,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "43e2a7b5cbb8d6679b4dada0cf21e76417dc8e5c2cf494c8a87600cb3d159364"
+        "targetSha256": "43e2a7b5cbb8d6679b4dada0cf21e76417dc8e5c2cf494c8a87600cb3d159364",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
+          "mapSha256": "85341266efe2582d944a4cbc1f23bc706fb8f313c3925e261fdca3f6856125f6",
+          "targetSha256": "43e2a7b5cbb8d6679b4dada0cf21e76417dc8e5c2cf494c8a87600cb3d159364",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -2987,6 +3737,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Repair/repair-producao-oficina.map.json",
@@ -2996,7 +3747,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "c9cf3c7d4c4ff3b0aeec044b6e1656b3c1e89a40569f25eac02cfefe322eb227"
+        "targetSha256": "c9cf3c7d4c4ff3b0aeec044b6e1656b3c1e89a40569f25eac02cfefe322eb227",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
+          "mapSha256": "dd336e621de3a5ffa5f20869410e758c3af5705fe366983c3b66d20b2856bd53",
+          "targetSha256": "c9cf3c7d4c4ff3b0aeec044b6e1656b3c1e89a40569f25eac02cfefe322eb227",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -3012,6 +3773,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Repair/repair-settings.map.json",
@@ -3021,7 +3783,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "9b8ea72b02522d29d1fc53c078284c20ec2c20d569002cc3cf384f2c5012c0f1"
+        "targetSha256": "9b8ea72b02522d29d1fc53c078284c20ec2c20d569002cc3cf384f2c5012c0f1",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
+          "mapSha256": "5f3f8498828d1bfece50bacb05183c118596ea27912b0ec88170b62ab8802a27",
+          "targetSha256": "9b8ea72b02522d29d1fc53c078284c20ec2c20d569002cc3cf384f2c5012c0f1",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -3037,6 +3809,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Repair/repair-status.map.json",
@@ -3046,7 +3819,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "39fab18098d6385f01519246a3c7978e8ef9eb7db8242093a33970520fd9fdc3"
+        "targetSha256": "39fab18098d6385f01519246a3c7978e8ef9eb7db8242093a33970520fd9fdc3",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
+          "mapSha256": "3ac403082d2582df8b42912a50d51515db721766c08fdacc29bb865a3249c583",
+          "targetSha256": "39fab18098d6385f01519246a3c7978e8ef9eb7db8242093a33970520fd9fdc3",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -3062,6 +3845,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Superadmin/superadmin-assinaturas.map.json",
@@ -3071,7 +3855,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "1b597d01218d2a35a33ac24b03b2e98681e316c7a38130841c95bcd32f67cd11"
+        "targetSha256": "1b597d01218d2a35a33ac24b03b2e98681e316c7a38130841c95bcd32f67cd11",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "871fb232df50fff6e75f3cfcd0f539538b138e2958bdeb7ea8b125dabfaa26c9",
+          "mapSha256": "5cfa07383048d57ff0197f14f69de728966dd4f219b80bfef01dacb51938aff2",
+          "targetSha256": "1b597d01218d2a35a33ac24b03b2e98681e316c7a38130841c95bcd32f67cd11",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -3087,6 +3881,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Superadmin/superadmin-dashboard.map.json",
@@ -3096,7 +3891,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "600d4630b77bf119fd4397c9e809bb0a523388fb96460bab5227b9aa986281ee"
+        "targetSha256": "600d4630b77bf119fd4397c9e809bb0a523388fb96460bab5227b9aa986281ee",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "871fb232df50fff6e75f3cfcd0f539538b138e2958bdeb7ea8b125dabfaa26c9",
+          "mapSha256": "2202cc7ce94405ee1300d79725c1044aaa06429024af2edf248557ae3f1ca3b5",
+          "targetSha256": "600d4630b77bf119fd4397c9e809bb0a523388fb96460bab5227b9aa986281ee",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -3112,6 +3917,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Superadmin/superadmin-negocios.map.json",
@@ -3121,7 +3927,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "a80154c08aa1528ae1087feef52564b48c7933a9849e19074ec8dac458e28528"
+        "targetSha256": "a80154c08aa1528ae1087feef52564b48c7933a9849e19074ec8dac458e28528",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "871fb232df50fff6e75f3cfcd0f539538b138e2958bdeb7ea8b125dabfaa26c9",
+          "mapSha256": "30b7e2f9e89f47920bc41a5a644fd302ee134936b40a1275d75801279478cecf",
+          "targetSha256": "a80154c08aa1528ae1087feef52564b48c7933a9849e19074ec8dac458e28528",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -3137,6 +3953,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Superadmin/superadmin-pacotes.map.json",
@@ -3146,7 +3963,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "59a60d0d06cb0f4da1dca07ee145882df9b77d6e7ea21fa0772f7a28ea1e1168"
+        "targetSha256": "59a60d0d06cb0f4da1dca07ee145882df9b77d6e7ea21fa0772f7a28ea1e1168",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "871fb232df50fff6e75f3cfcd0f539538b138e2958bdeb7ea8b125dabfaa26c9",
+          "mapSha256": "0349569e660bc9d573d3f98d277a78c7fff793674adb9ed934b1b1bc4025bd2a",
+          "targetSha256": "59a60d0d06cb0f4da1dca07ee145882df9b77d6e7ea21fa0772f7a28ea1e1168",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -3162,6 +3989,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -3177,6 +4005,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -3192,6 +4021,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -3207,6 +4037,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -3222,6 +4053,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -3237,6 +4069,7 @@
       "compared": true,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": {
         "comparison": {
           "map": "memory/requisitos/Sells/vendas.map.json",
@@ -3246,7 +4079,17 @@
         "application": null,
         "tests": [],
         "smokes": [],
-        "targetSha256": "1fabb6bcff4f975a1965d42a4ea13a64364927cfb5a52358282ba6f446017d06"
+        "targetSha256": "1fabb6bcff4f975a1965d42a4ea13a64364927cfb5a52358282ba6f446017d06",
+        "proofChain": {
+          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "sourceSha256": "6415238d7121208900cdf9a34c255b777aca477563f4099714f3d529309e465d",
+          "mapSha256": "e607c0ddcfd6f4493f1197f7d4220b1a00609c4ee615b15b7c6fbaaa83111be5",
+          "targetSha256": "1fabb6bcff4f975a1965d42a4ea13a64364927cfb5a52358282ba6f446017d06",
+          "testOutputSha256": [],
+          "deploySha": [],
+          "smokeScreenshotSha256": [],
+          "productionValidated": false
+        }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
@@ -3262,6 +4105,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -3277,6 +4121,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     }

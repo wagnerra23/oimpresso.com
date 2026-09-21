@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **414** arquivos · **399** números únicos · máx **0409**
-- **ADRs ATIVOS (lifecycle ativo): 368** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 363 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 368 · substituido 25 · arquivado 21
+- **415** arquivos · **400** números únicos · máx **0410**
+- **ADRs ATIVOS (lifecycle ativo): 369** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 364 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 369 · substituido 25 · arquivado 21
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (414)
+## Todas as ADRs (415)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -452,3 +452,4 @@ _(nenhuma)_
 | 0407 | aceito | ativo | decision | A regra BRL protege valor de CLIENTE no canon — não todo número com R$ no repo |
 | 0408 | aceito | ativo | decision | Medição de paridade protótipo×prod pode ser AGENDADA e advisory — o que a 0290 r |
 | 0409 | proposto | ativo | decision | Zero baseline de tolerância — conformidade absoluta e dívida acordada por toque |
+| 0410 | aceito | ativo | decision | Ratificação do zero baseline no funil de design e validação exclusiva em produçã |

@@ -10,7 +10,7 @@ name: DS pt-conformance (advisory)
 
 on:
   pull_request:
-    types: [opened, reopened, ready_for_review]
+    types: [opened, reopened, ready_for_review, synchronize]
     branches: [main]
     paths:
       - 'resources/js/Pages/**/*.charter.md'
