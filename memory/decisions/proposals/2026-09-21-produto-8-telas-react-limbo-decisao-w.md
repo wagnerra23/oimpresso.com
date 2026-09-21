@@ -41,7 +41,7 @@ origem: "Chip aberto no #7522 (fix do writer de estoque) — a correção pousou
 >
 > **Consequência prática — a "linha 1" estava invertida:** aplicar o middleware seria
 > **REGRESSÃO** (trancaria quem tem `product.create` e não tem `product.view`, exatamente o
-> caso que o controller garante) e o teste do UC-PUNI-06 cairia. O `TODO [CL]` em
+> caso que o controller garante). ⚠️ **Mas a minha justificativa tinha o mecanismo errado:** eu escrevi que "o teste do UC-PUNI-06 cairia" — **falso, medido**. Ele revoga **as duas** permissions antes de exigir `403`, então o `403` do middleware satisfaz o assert; e o caminho `create`-only não tem cobertura. A regressão seria real **e passaria VERDE**. O `TODO [CL]` em
 > `routes/web.php:699` é uma **instrução em canon que produz regressão se obedecida** — o
 > conserto certo é **corrigir o TODO**, não cumpri-lo. Ver §3 reescrito.
 >
@@ -108,8 +108,12 @@ sidebar recebe o `href` do menu legado e usa `<a href>` puro — ou seja, Blade.
 Medido ao ir aplicar (detalhe na errata do topo): o gate **já existe** dentro do controller,
 com semântica `product.view` **OU** `product.create`, declarada em comentário, coberta por
 `UC-PUNI-06` e **com teste**. Pôr `middleware('can:product.view')` na rota seria **mais
-estrito que o controller** e trancaria quem só tem `product.create` — regressão, e o teste
-cairia.
+estrito que o controller** e trancaria quem só tem `product.create` — regressão. ⚠️ E
+**nenhum teste a pegaria**, medido: o único que exercita o gate
+(`ProdutoUnificadoContratoTest.php:340`) revoga **as duas** permissions antes de exigir
+`403`, logo o `403` do middleware satisfaz o assert igual; e o caminho `create`-only tem
+**zero** cobertura no unificado (os 3 testes que concedem só `product.create` não citam a
+rota). A regressão passaria VERDE — o que **agrava** o TODO em vez de aliviar.
 
 O defeito real é o **`TODO [CL]` de `routes/web.php:699`**: ele instrui a próxima sessão a
 cometer essa regressão. Vira comentário que aponta pro gate verdadeiro. Aplicado em PR
