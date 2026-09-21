@@ -23,7 +23,7 @@ related_charters: []
 | afirmação | medido | recibo |
 |---|---|---|
 | 0409 `status: proposto` | ✅ **confirmado** | `git show origin/main:memory/decisions/0409-*.md` → `status: proposto` |
-| lápide do episódio está em `memory/licoes-rejeitadas.md` | ❌ **não está em `main`** | o [#7662](https://github.com/wagnerra23/oimpresso.com/pull/7662) que a carrega está **OPEN**; `grep -nE '^### 2026-09-21' memory/licoes-rejeitadas.md` não devolve a entrada |
+| lápide do episódio está em `memory/licoes-rejeitadas.md` | ⚠️ **estava em PR aberto às 18:4xZ; mergeou às 18:53:55Z** — ver errata abaixo | [#7662](https://github.com/wagnerra23/oimpresso.com/pull/7662) |
 | "dois PRs (#7649, #7657), ambos fechados" | ⚠️ **são três, e um segue ABERTO** | #7621 (run `35610507942`, criado 14:16:08Z) está `open` — [W] fechou #7649/#7657 às 18:16:46Z/18:16:49Z e esse ficou |
 | "#7599 foi baseline mergeada hoje" | ⚠️ **é PRÉ-0409 por 24 min** | 0409 entrou em `main` **12:38:58Z** (`27d4ba4ef7c`); #7599 mergeou **12:14:34Z** |
 
@@ -31,6 +31,16 @@ A última linha importa para não acusar o inocente: **nenhuma baseline entrou e
 0409** — filtrando os 91 PRs `vrt/baselines-*` por `merged_at > 2026-09-21T12:38:58Z` o resultado
 é **0**. A contenção existiu, mas foi **humana** ([W] fechando PR), não mecânica; e ela vazou uma
 vez, no #7621.
+
+> ⚠️ **ERRATA DO PRÓPRIO AUTOR (mesmo dia, ~35 min depois), e ela é da classe que este doc mede.**
+> A linha 2 da tabela nasceu **medida e correta** — quando rodei, o #7662 estava `OPEN` e a
+> entrada não existia em `main`. Ele **mergeou às 18:53:55Z**, e a afirmação virou falsa com o
+> documento já publicado no [#7665](https://github.com/wagnerra23/oimpresso.com/pull/7665).
+> Fica registrada, não apagada: é exatamente a §5 2026-09-03 (*"lápide que declara um GAP tem
+> prazo de validade implícito"*) aplicada a mim — eu abri este doc corrigindo quatro afirmações
+> caducas do enunciado e produzi a quinta em meia hora. **A lápide ESTÁ em `main`**
+> (`git show origin/main:memory/licoes-rejeitadas.md | grep -c '^### 2026-09-21 — Disparar a
+> regeneração de baseline do VRT'` → `1`). Quem citar esta tabela, cite a errata.
 
 ---
 
@@ -171,7 +181,7 @@ A 0409 lista cinco condições para um gate declarar conformidade. Aplicadas ao 
 | # | condição | veredito | recibo |
 |---|---|---|---|
 | 1 | executou o detector sobre o escopo declarado | ✅ | o pixel-diff roda e mede; a cinza vai ao step summary + artifact `pixel-diff-views` |
-| 2 | controle positivo contra verde por não-execução | ✅ | step *"Canário anti-verde-vazio"* (L1420) → `ui-impact.mjs --assert-execution` cruzando `expected`/`executed`/`compared` |
+| 2 | controle positivo contra verde por não-execução | ⚠️ **só no L7** | step *"Canário anti-verde-vazio"* (L1420) → `ui-impact.mjs --assert-execution` cruzando `expected`/`executed`/`compared`. **Ele lê só `steps.pixel-diff.outputs.*`** — a suíte de estados tem `id: matriz-states` e o canário **não a consulta**. Ver §4.1 |
 | 3 | bite-test que prova que a falha real reprova | ✅ | `tests/Unit/VisregGrayApprovalTest.php` + `scripts/tests/visreg-clock-bite.mjs` (pré-condição do update, L1283) |
 | 4 | **não descontou violações por constarem de lista histórica** | ❌ **falha** | a banda do meio não bloqueia: `grayZoneRequiresApproval()` devolve `false` sempre que `VISREG_GRAY_APPROVED=1`, e o env é fixo em `'1'` para todo `pull_request` |
 | 5 | publicou evidência reproduzível | ✅ | artifact + step summary + `scripts/tests/snap-diff.mjs` decodifica o `.snap` |
@@ -193,6 +203,58 @@ software estiver maduro"* — com o recibo de que as 3 telas que travavam o #675
 abertos mexendo nelas. **Não recomendo religar**; recomendo que a 0409, ao ser ratificada, diga
 se essa decisão de 09-04 sobrevive a ela ou é superseded, porque hoje as duas coexistem sem
 hierarquia declarada.
+
+### 4.1 O buraco da condição 2: BOOTSTRAP silencioso no L2 (estados isolados)
+
+> **Crédito:** achado da sessão `local_76fa61b7` (*"Semear meta no fixture do VRT da Jana"*) —
+> a mesma que disparou o modo update hoje e escreveu a lápide do #7662. Ela parou ao entrar
+> neste escopo em vez de tocar o arquivo. **Reproduzi independentemente antes de registrar**
+> (§5 2026-07-26: relatório de peer é hipótese a testar, não fato a copiar) — confere em tudo.
+
+`VisregThreshold::assertBandedScreenshot()` tem dois ramos quando a baseline não existe
+(`tests/Browser/Support/VisregThreshold.php:190-219`):
+
+| ramo | comportamento | veredito |
+|---|---|---|
+| `$baselineFile !== null` (baseline **contratada**) | `test()->fail("baseline contratada ausente…")` | ✅ correto |
+| `$baselineFile === null` | tira screenshot, **grava como baseline** e passa | ⚠️ bootstrap silencioso |
+
+O segundo ramo é deliberado e documentado — *"Suítes sem manifesto: a primeira execução
+materializa o snapshot e o publica no artifact para versionamento"*. **Mas a
+`IsolatedStatesBaselineTest` TEM manifesto** (`tests/Browser/visreg-states.json`) e mesmo assim
+cai nele, porque não contrata `baselineFile` — e ela própria declara isso, em
+`IsolatedStatesBaselineTest.php:243`: *"Esta suíte NÃO passa `baselineFile`"*. O passo seguinte
+(versionar o `.snap`) nunca teve cobrador.
+
+**Raio medido em `origin/main` (2026-09-21):** cruzando `screens[*].states[]` do manifesto com o
+diretório de snapshots — **21 pares declarados × 19 `.snap` = 2 sem foto**, e são exatamente
+`jana · dark` e `jana · empty`. **Zero colateral fora da Jana** (controle positivo:
+`sells-index · default` TEM foto).
+
+```bash
+node -e "
+const m=require('./tests/Browser/visreg-states.json'), fs=require('fs');
+const dir='tests/.pest/snapshots/Browser/CoreScreens/IsolatedStatesBaselineTest';
+const snaps=new Set(fs.readdirSync(dir));
+for(const [t,c] of Object.entries(m.screens)) for(const s of (c.states||[])) {
+  const n='it_'+t.replace(/-/g,'_')+'_·_estado_'+s+'_bate_com_a_baseline_isolada.snap';
+  if(!snaps.has(n)) console.log('SEM FOTO:', t, '·', s);
+}"
+```
+
+**Consequência:** no run `35632076822` (PR #7645) os dois saíram `✓ PASS` e não apareceram na
+lista de zona cinza — porque não havia contra o que comparar. É verde que **não podia** ficar
+vermelho: a [LC-13](../../LICOES_CODE.md) na camada L2, e o lado de *acusação* dela é o eixo que
+o §5 2026-07-29 nomeia — colapsar *"não consegui medir"* num estado do objeto medido.
+
+**Por que isso não se conserta sozinho, e por que entra AQUI:** fazer o ramo reprovar cria um
+vermelho cuja única cura é **criar baseline** — que é precisamente o ato que a 0409 restringe e
+que o modo update executa. O conserto de forma (*skip explícito* em vez de *pass*, que é o que
+o §5 2026-07-29 pede) é decisão técnica; **criar as duas fotos da Jana é decisão [W]**. Os dois
+caem no mesmo nó que esta proposta submete.
+
+**Isto NÃO altera a recomendação (B)** — reforça-a: se o `.snap` ausente já produz conformidade
+declarada sem medição, a porta [W] no dispatch importa mais, não menos.
 
 ---
 
@@ -254,6 +316,10 @@ Sem propor implementação — é [W] quem decide se e como:
 3. **Corrigir as 7 afirmações da seção 5.** Isso é higiene, não governança — mas a linha 1381
    sai em PR público a cada dispatch.
 4. **Fechar o #7621** (ou mergeá-lo deliberadamente). É baseline pós-0409 pendente.
+5. **Decidir os 2 pares sem foto da §4.1** (`jana · dark`, `jana · empty`): criar as baselines,
+   ou tirar os estados do manifesto, ou fazer o ramo virar *skip explícito*. As três são
+   possíveis; as duas primeiras são [W], a terceira é técnica — e a sessão que achou já se
+   ofereceu para executá-la.
 
 ### O que NÃO recomendo, e por quê
 
