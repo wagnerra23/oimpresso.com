@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 720,
-    "edges": 1012,
+    "nodes": 722,
+    "edges": 1013,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 121,
+      "adr": 123,
       "component": 384,
       "api": 74
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 108,
       "migratesTo": 1,
       "supersedes": 24,
-      "supersedesPartially": 55,
+      "supersedesPartially": 56,
       "supersededBy": 28
     },
     "dangling": 0
@@ -622,6 +622,13 @@
       "exists": true
     },
     {
+      "id": "adr:0208",
+      "type": "adr",
+      "num": "0208",
+      "slug": "0208-larastan-baseline-ratchet",
+      "exists": true
+    },
+    {
       "id": "adr:0225",
       "type": "adr",
       "num": "0225",
@@ -899,6 +906,13 @@
       "type": "adr",
       "num": "0405",
       "slug": "0405-espelhos-cowork-independentes-por-conta",
+      "exists": true
+    },
+    {
+      "id": "adr:0409",
+      "type": "adr",
+      "num": "0409",
+      "slug": "0409-zero-baseline-de-tolerancia-conformidade-absoluta",
       "exists": true
     },
     {
@@ -6469,6 +6483,12 @@
     {
       "from": "adr:0405",
       "to": "adr:0398",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0409",
+      "to": "adr:0208",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },
