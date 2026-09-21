@@ -52,6 +52,9 @@ class JanaServiceProvider extends ServiceProvider
             $this->commands([
                 \Modules\Jana\Console\Commands\ApurarMetricasCommand::class,    // MEM-MET-2
                 \Modules\Jana\Console\Commands\AvaliarGabaritoCommand::class,   // MEM-EVAL-1
+                \Modules\Jana\Console\Commands\BackfillApuracoesCommand::class, // série do Painel
+                \Modules\Jana\Console\Commands\ConfigurarFontesMetaCommand::class, // query de apuração
+                \Modules\Jana\Console\Commands\ConfigurarPeriodosMetaCommand::class, // janela + alvo
                 \Modules\Jana\Console\Commands\BackfillFatosCommand::class,     // MEM-EVAL-2
                 \Modules\Jana\Console\Commands\McpSystemTokenCommand::class,    // MEM-MEM-MCP-1
                 \Modules\Jana\Console\Commands\McpSyncMemoryCommand::class,     // MEM-MCP-1.a
