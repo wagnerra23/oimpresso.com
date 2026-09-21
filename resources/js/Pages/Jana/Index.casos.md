@@ -1240,6 +1240,56 @@ interpola se registra com o VALOR resolvido de cada lado, nunca com o molde.
 
 **Teste:** `tests/janaAcoesAutoria.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
 
+## UC-JPAIN-25 — o nome do usuário vem de um atributo que EXISTE, e sem o prefixo
+Status: 🧪 (`--filter=NomeExibicaoContrato` no CT 100 → **5 passed (14 assertions)**, 2026-09-18, com mordida provada nos DOIS sentidos; e a lane `PHP / Pest (Jana · MySQL)` do CI confirma `PASS` com os 5 casos ✓ no head. Vira ✅ quando o manifesto `casos-results` aterrissar — o G-7 lê o manifesto commitado, não esta linha)
+
+**Fonte (três externas ao código consertado, nenhuma lida dele):**
+1. `database/migrations/2014_10_12_000000_create_users_table.php:17-27` — as colunas que a tabela
+   `users` de fato tem: `surname`, `first_name`, `last_name`, `username`, `email`, `password`,
+   `language`. **Não há `name`.**
+2. `resources/views/user/profile.blade.php:78` — rotula `surname` como `__('business.prefix')`,
+   placeholder `prefix_placeholder`: no UltimatePOS `surname` é **PREFIXO** (Sr./Sra./Dr.), não
+   sobrenome.
+3. `app/Http/Middleware/HandleInertiaRequests.php:68` — o idioma canônico do projeto para "nome do
+   usuário" já existia: `auth.user.name` é montado como `first_name . ' ' . last_name`.
+
+**O defeito.** Os 6 call-sites que montavam `janaContext.userName` liam
+`optional(auth()->user())->name` — atributo que o model não tem e a tabela não declara. Devolvia
+**null em silêncio**, em todos os tenants, desde sempre. Cinco em `Modules/Jana/Http/Controllers/`
+(`IndexController:54`, `ChatController:118`, `AlertasController:46`, `AcaoHitlController:51`,
+`SuperadminController:152`) e — o que uma varredura escopada a `Modules/Jana/` **perde** — um em
+`Modules/KB/Http/Controllers/MemoriaController.php:56`, que serve a aba **Memória** da mesma área.
+Varredura contada com string fixa, imune a escaping: `auth()->user()->name` e `Auth::user()->name`
+crus não existem no repo (rc=1).
+
+> **Medido em produção (2026-09-18, `/ia` autenticado, biz=1, dark, DOM estabilizado — 1129 nós em
+> 3 leituras iguais, 0 skeletons):** a saudação do brief saía **`Boa tarde.`**, sem vírgula e sem
+> nome. Esse é o **discriminante** do UC: `:489` só omite o nome quando `userName` é falsy, então a
+> frase seca prova o null sem precisar do payload. É a mesma causa que o [UC-JPAIN-24](#uc-jpain-24--quem-assina-as-sugestões-é-a-jana-não-quem-está-olhando-a-tela)
+> descreve no título das Ações — **dois defeitos empilhados, um de dado e um de sujeito**, e cada um
+> precisou do seu conserto: sem este, o título apenas trocaria `VOCÊ` por `WAGNER`.
+>
+> **Verificado depois do deploy (2026-09-18, mesma tela, 1116 nós):** `Boa noite, Wagner.` —
+> o nome chega. Controle positivo na mesma leitura (`Receita 30 dias` presente pelo nó folha),
+> controle negativo limpo.
+
+**⛔ O conserto óbvio está ERRADO, e o caso 2 existe para travar isso.** `user_full_name`
+(`app/User.php:312`) retorna `"{surname} {first_name} {last_name}"` — com o prefixo. Como o
+consumidor faz `split(' ')[0]` (`JanaCockpit.tsx:318`), trocar por ele faria a tela exibir
+**`"Sr."`**: um bug no lugar do outro, com o agravante de *parecer* consertado. O accessor
+`nome_exibicao` (`app/User.php`) usa o idioma da fonte 3 e carrega os dois ⛔ no docblock.
+
+**Por que o caso 2 é discriminante por construção** (§5 2026-09-05): com `surname='Sr.'`, os três
+candidatos divergem — `nome_exibicao` → `"Wagner Rocha"`, `user_full_name` → `"Sr. Wagner Rocha"`,
+`name` → `null`. Um assert que passasse nos três não provaria nada; este só passa no primeiro.
+
+**Mordida provada nos dois sentidos** (não "passou" — *vi falhar*): com o `User.php` novo e os 6
+controllers ainda antigos no container, `1 failed, 4 passed`, e o caso-guarda reprovou **listando
+os 6 arquivos um a um**; com o fix completo, `5 passed (14 assertions)`. Os casos 1-4 são de
+unidade e não tocam o banco — rodam sempre, nunca skipam (skip sai exit 0 — LC-13).
+
+**Teste:** `Modules/Jana/Tests/Feature/NomeExibicaoContratoTest.php` (lane Pest `Jana · MySQL`).
+
 ## UC-JPAIN-27 — o h2 de seção é RÉPLICA da `.jc-h2`, não o h2 do golden
 
 > ⚠️ **Este UC nasceu 25 e virou 27 — colisão de id entre sessões paralelas, pega antes do merge.**
