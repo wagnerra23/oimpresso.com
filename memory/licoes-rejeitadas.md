@@ -2665,3 +2665,61 @@ Ocorrência da **LC-09**.
   mecânica.
 
 Ocorrência da **LC-24**.
+### 2026-09-21 — Inventei a HORA de uma medição DENTRO da nota que existe para marcar medição caduca — e os 3 números verdadeiros ao lado autenticaram o falso
+
+- **O que aconteceu.** O [#7642](https://github.com/wagnerra23/oimpresso.com/pull/7642) marcou, no
+  `memory/requisitos/Jana/Index-visual-comparison.md`, quais itens de dívida visual do Painel
+  **já estavam fechados** — trabalho que existe porque três sessões irmãs, no mesmo dia,
+  receberam ordem de consertar item que a medição mostrou **já correto em produção**. Na
+  nota-recibo dos KPIs eu escrevi que os números antigos *"eram verdade **às 09h daquele
+  dia**"*. **A rodada de 2026-09-03 não registra hora nenhuma** — nem naquele doc, nem no
+  `Index.casos.md`. Eu reconstruí de plausibilidade: a medição é de 09-03, o conserto tem hora
+  medida (17:44Z), então "de manhã" *soava* certo.
+
+- **Por que passou — e é o incremento desta instância.** A frase falsa estava cercada de
+  **três números que eu havia medido de verdade**: a hora do merge do conserto
+  (`17:44:08Z`, de `gh pr view --json mergedAt`), o intervalo de **18 dias** (calculado, não
+  estimado) e os **13 campos** da medição do depois (contados no `casos.md`). O inventado
+  **herdou a credibilidade da vizinhança**: não precisou de disfarço nenhum, bastou a companhia.
+  O §5 2026-07-17 já proíbe *"escrever o número à mão e citar a tool ao lado como se fosse
+  recibo"* — ali o disfarçe é **ativo**; aqui eu não citei tool alguma para ele, e a
+  autenticação veio **passivamente**, dos recibos legítimos dos vizinhos. Parágrafo que mistura
+  medidos e não-medidos é mais perigoso que parágrafo todo por medir, porque o leitor calibra a
+  confiança no bloco, não na frase.
+
+- **O agravante, e ele é exato.** A nota **existe** para dizer *"esta medição é fato datado, não
+  estado de hoje"* (§5 2026-09-03) — o PR inteiro se justifica por três sessões terem sido
+  enganadas por retrato vencido. Inventar a **hora** do retrato dentro da nota que marca o retrato
+  como vencido é cometer a classe no único lugar onde ela estava sendo combatida. Mesmo formato da
+  emenda §5 2026-07-30 (*"cometi, ao registrar a classe, a própria classe"*).
+
+- **O alçance real, medido — não chegou ao `main`.** O texto falso viveu **2min22s** no head
+  (1º commit `a32254815` às 17:20:05Z → errata `7097e6eb1` às 17:22:27Z, committer date), e o PR
+  foi aberto **dentro** dessa janela (17:21:28Z), logo existiu publicamente por **59s**. Merge do
+  [W] às 17:34:06Z, já com a errata. Registrado como errata em commit próprio + corpo do PR, não
+  corrigido no calado.
+
+- **O limite (variante também proibida).** **(a)** Número de **TEMPO** — hora, duração, *"há N
+  dias"*, *"por N semanas"*, *"desde que"* — só entra em doc canônico **calculado ou citado de
+  fonte** (`mergedAt`, `%cd`/`%ad` de commit com o eixo declarado, timestamp de log, aritmética de
+  datas explicitada); nunca reconstruído de plausibilidade. Quando a fonte **não registra** aquele
+  campo, o honesto é dizer que não registra — foi o conserto aplicado aqui. **(b)** E o teste
+  barato, que é o que esta lápide acrescenta: **número verdadeiro ao lado não autentica o
+  vizinho.** Antes de fechar parágrafo que mistura medidos e não-medidos, reler **cada** número
+  perguntando *"de onde ESTE veio?"*; quando a resposta for *"parece razoável"*, ele sai ou ganha a
+  ressalva explícita. Vale para hora, contagem, percentual, nota e nome de arquivo.
+
+- **⚠️ NÃO virar gate, e as razões são medidas, não tímidas.** O gate óbvio da classe **já está
+  medido e reprovado** e o campo `Gate:` da LC-08 registra isso — detector de *"afirmação sem
+  evidência"* deu **130 FP**, e ampliar o corpus do `fact-anchor` deu **~64% FP**; não re-propor.
+  A forma sintática específica (acusar menção de hora sem fonte ao lado) reprovaria os
+  **legítimos**, que são a maioria **neste mesmo arquivo** — é a família de guard sintático que
+  este §5 já enterrou (allowlist-de-pasta 06-30 · guard `@scope` 07-09 · vocabulário 130 FP
+  07-16 · `toHaveKey` 100% FP 07-26 · `toContain` 07-28 · par usuário/senha 08-02 · `jq` 08-11 ·
+  variante Radix 08-25). E o predicado verdadeiro — *"de onde veio este número?"* — é
+  **semântico por construção** ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md):
+  semântico = advisory). Por [ADR 0344](decisions/0344-two-strikes-cobre-processo.md) também não
+  se codifica: não chegou a prod. **O que pegou foi releitura própria do texto já publicado**, e
+  não máquina nenhuma — isso é dado, não desculpa.
+
+Ocorrência da **LC-08**.
