@@ -8,12 +8,12 @@ padrão de tela novo. Nenhuma cor **inventada**; o único literal OKLCH da tela 
 
 | Arquivo | Papel |
 |---|---|
-| `Consulta de Produtos.dc.html` | a tela inteira: template, lógica e estilo |
-| `support.js` | runtime do Design Component (template → React); não editar |
-| `_ds/wagner-office-impresso-design-system-49a36f76-…/_ds_bundle.js` | camada 0 · componentes do DS |
-| `_ds/wagner-office-impresso-design-system-49a36f76-…/colors_and_type.css` | camada 0 · tokens e tipografia |
-| `_ds/wagner-office-impresso-design-system-49a36f76-…/styles.css` | camada 0 · classes do DS |
-| `_ds/…/assets/fonts/*.woff2` | IBM Plex Sans/Mono, self-hosted |
+| `../../Consulta de Produtos.dc.html` | a tela inteira: template, lógica e estilo — **na raiz** (21/09/2026) |
+| `../../support.js` | runtime do Design Component (template → React); não editar — **na raiz** |
+| `../../_ds/wagner-…-49a36f76-…/_ds_bundle.js` | camada 0 · componentes do DS — **na raiz** |
+| `../../_ds/wagner-…-49a36f76-…/colors_and_type.css` | camada 0 · tokens e tipografia — **na raiz** |
+| `../../_ds/wagner-…-49a36f76-…/styles.css` | camada 0 · classes do DS — **na raiz** |
+| `../../_ds/…/assets/fonts/*.woff2` | IBM Plex Sans/Mono, self-hosted — **na raiz** |
 
 ### Como abrir
 
