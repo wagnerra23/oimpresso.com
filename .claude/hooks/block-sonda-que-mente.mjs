@@ -193,6 +193,49 @@ export function ehWindows() {
   return process.platform === 'win32';
 }
 
+/**
+ * Fatia um comando de shell nas INVOCAÇÕES `gh pr|api` que ele contém.
+ *
+ * Só o P7 usa, e a razão é medida: sem isto, um `gh pr checks N | wc -l; gh pr view N
+ * --json mergeStateStatus` era julgado como UM comando, e a análise cruzava flag de
+ * uma invocação com campo de outra — o falso-NEGATIVO que a fixture discriminante
+ * `gh pr list --state open …; gh pr view N --json mergeStateStatus` trava (achada por
+ * mutação: a 1ª versão da fixture mordia igual com a fatia quebrada, logo não provava
+ * nada).
+ *
+ * ⚠️ NÃO trata continuação de linha (`\` + \n) de propósito. A 1ª versão tratava, com
+ * justificativa plausível — e a MEDIÇÃO derrubou: em 4 casos construídos para
+ * exercitá-la (`--json` quebrado no meio, `--jq` na 2ª linha, 2ª invocação após
+ * continuação, ambíguo sozinho quebrado) o veredito foi **idêntico com e sem**. Os
+ * regexes do P7 usam `[^|;&]`, que já aceita `\n`. Código que não muda veredito
+ * nenhum é dívida, não robustez.
+ *
+ * @param {string} cmd
+ * @returns {string[]}
+ */
+export function invocacoesGh(cmd) {
+  const flat = cmd;
+  const out = [];
+  const re = /\bgh\s+(?:pr|api)\b/g;
+  let m, prev = -1;
+  while ((m = re.exec(flat))) {
+    if (prev > -1) out.push(flat.slice(prev, m.index));
+    prev = m.index;
+  }
+  if (prev > -1) out.push(flat.slice(prev));
+  return out;
+}
+
+/** O campo AMBÍGUO (só significa algo junto do estado) aparece nesta invocação? */
+const P7_AMBIGUO = /--json[^|;&]{0,140}?\b(mergeStateStatus|mergeable|rebaseable)\b|\bmergeable_state\b/;
+/** O antídoto, na MESMA invocação — e nenhum deles custa rede a mais. */
+const P7_ESTADO = /--json[^|;&]{0,160}?\b(state|merged|closed)\b|--state[= ]|\.state\b|\.merged\b/;
+
+/** Há invocação que pede campo ambíguo SEM pedir o estado junto? */
+export function pedeDerivadoSemEstado(cmd) {
+  return invocacoesGh(cmd).some((inv) => P7_AMBIGUO.test(inv) && !P7_ESTADO.test(inv));
+}
+
 /** @type {{id:string, nome:string, re:RegExp, porque:string, saida:string, exceto?:(cmd:string)=>boolean}[]} */
 export const PADROES = [
   {
@@ -299,6 +342,36 @@ export const PADROES = [
       'Prefixe `MSYS_NO_PATHCONV=1` (o que 66% dos usos do corpus já fazem), ou use ' +
       '`git ls-tree <ref> -- <path>` / `git checkout <ref> -- <path>`, que separam ref e path ' +
       'em argumentos distintos e são imunes. E confira o `rc`: aqui vazio pode ser rc=128.',
+  },
+  {
+    id: 'P7',
+    nome: 'campo DERIVADO de PR pedido sem o campo de ESTADO',
+    // `mergeStateStatus`/`mergeable`/`rebaseable` são derivados: em PR ABERTO o valor
+    // é transitório (~20-25s até resolver) e em PR FECHADO é `UNKNOWN` PERMANENTE.
+    // O mesmo valor significa coisas OPOSTAS, e nada na resposta diz qual é.
+    re: P7_AMBIGUO,
+    // A 2ª perna é SINTÁTICA e NÃO faz rede — foi o que destravou este par, que estava
+    // barrado justamente por custo (uma perna de rede em PreToolUse rodaria ~2,9k vezes
+    // e reintroduziria a doença da §5 2026-08-11: hook dependente do que pode faltar).
+    // Isenta 3 formas, todas de graça e todas medidas no corpus:
+    //   (a) `state`/`merged`/`closed` no MESMO `--json`;
+    //   (b) `--state open|closed|merged` (o filtro já garante o estado);
+    //   (c) `.state`/`.merged` lido no `--jq`.
+    // A análise é por INVOCAÇÃO (ver `invocacoesGh`): sem isso, `gh pr checks N | wc -l;
+    // gh pr view N --json mergeStateStatus` cruzava flag de uma com campo de outra.
+    // A 2ª abstenção nasceu do hook mordendo o PRÓPRIO comando que o testava: o padrão
+    // dentro de `node -e "…"` é TEXTO, não invocação. Mesma razão (e mesma função) do P5.
+    exceto: (cmd) => !pedeDerivadoSemEstado(cmd)
+      || dentroDeCodigoInline(cmd, P7_AMBIGUO),
+    porque:
+      'Campo derivado de PR só tem sentido JUNTO do estado. Em PR fechado `mergeStateStatus` ' +
+      'é `UNKNOWN` PERMANENTE; em PR aberto é transitório (~20-25s). Ler o derivado sozinho faz ' +
+      '"fechado" parecer "ainda calculando" — e a espera nunca termina. Em 2026-09-15 isso custou ' +
+      'uma investigação inteira, e em 2026-09-21 quase fez um loop de merge tentar mergear um PR ' +
+      'que o [W] já havia mergeado.',
+    saida:
+      'Peça os dois na MESMA chamada: `gh pr view N --json state,mergeStateStatus`. Custa o mesmo ' +
+      '(uma requisição), e o `state` desfaz a ambiguidade. Em listagem, `--state open` já basta.',
   },
 ];
 
@@ -677,6 +750,25 @@ const FIXTURES = [
   ['git checkout origin/main -- .github/workflows/deploy.yml', false],
   // menção (corpo de commit citando o defeito — inclusive o desta mudança).
   ['git commit -F - <<\'EOF\'\nfix: git show origin/main:.claude/x quebra no MSYS\nEOF', false],
+  // ── P7: campo derivado de PR sem o campo de estado ────────────────────────
+  // O caso de 2026-09-15 (investigação inteira perdida) e o de 09-21 (loop de merge).
+  ['gh pr view 7 --json mergeStateStatus --jq .mergeStateStatus', true],
+  ['gh pr view 7 --json mergeable -q .mergeable', true],
+  ['gh pr checks 7 | wc -l; gh pr view 7 --json mergeStateStatus --jq .mergeStateStatus', true],
+  // DISCRIMINANTE da fatia por invocação — a de cima NÃO era: julgando o comando
+  // inteiro ela morde igual, então passava mesmo com `invocacoesGh` quebrado (achado
+  // por MUTAÇÃO). Aqui a 1ª invocação TEM o estado e a 2ª NÃO: quem julga o comando
+  // inteiro vê o `--state` da 1ª e isenta as duas — falso-negativo que só esta pega.
+  ['gh pr list --state open --json number; gh pr view 7 --json mergeStateStatus', true],
+  // E o espelho: as DUAS corretas seguem isentas (a fatia não pode inventar acusação).
+  ['gh pr list --state open --json number; gh pr view 7 --json state,mergeable', false],
+  // CONTROLES NEGATIVOS — as 3 isenções, todas SEM REDE e todas medidas no corpus:
+  ['gh pr view 7 --json state,mergeStateStatus --jq .state', false],        // (a) no mesmo --json
+  ['gh pr list --state open --json number,mergeable', false],               // (b) --state já garante
+  ['gh pr view 7 --json number,mergeable,mergeStateStatus \\\n  --jq .state', false], // (c) jq + continuação de linha
+  // derivado NÃO-ambíguo não entra: `headRefOid` vale o mesmo em PR aberto ou fechado.
+  ['gh pr view 7 --json headRefOid --jq .headRefOid', false],
+  ['gh pr checks 7 | grep fail', false],
   // ── FP ESTRUTURAL DO P4 (medido 2026-09-15: era 100% dos disparos) ─────────
   // Todos estes USAM a barra-pipe de propósito e FUNCIONAM. A fixture original
   // não tinha nenhum, então o selftest ficava verde enquanto o gate acusava
