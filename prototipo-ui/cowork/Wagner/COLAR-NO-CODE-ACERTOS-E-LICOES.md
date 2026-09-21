@@ -32,6 +32,16 @@
 **Erro 4 · Pendência minha que eu quase executei sem medir.** O `github.md` de hoje registra: *"depois do refresh do binding, remeço os 8 e removo o `ds-tokens-git.css` + o tweak `dsTokens`"*. Medi o `_ds/…/colors_and_type.css` **agora**: `--accent-soft 0.32 0.06 295` · `--pos 0.74 0.14 150` · `--neg 0.72 0.16 25` · `--warn 0.80 0.13 75` · `-foreground` 0.51/0.78 ⇒ **os 8 seguem velhos, o refresh não pousou, o A/B continua necessário**. Removê-lo hoje apagaria a única forma de [W] decidir vendo.
 → **Lição (proposta):** *pendência condicionada se abre medindo a condição*, não a data. "Depois do refresh" é predicado, não prazo.
 
+**Erro 5 · Bani a ref literal do DS por uma razão que a minha própria medição derruba.** Troquei o host (ternário `__OI_DS_BASE__`) por 3 refs **literais** a `_ds/` alegando que sem elas "o DS sai do grafo e do frescor". Mas `rowsDoBundle` **exclui `_ds/**` do denominador** do freshness — número que eu havia medido e escrito no `github.md` na mesma sessão. O efeito real da ref literal é puxar o DS para o fechamento do pacote ⇒ **o import do protótipo escrevendo no Design System**, que já havia apagado 10 arquivos (as 4 fontes inclusive). [CL] recusou o pacote 26 e armou o gate; ele estava certo.
+→ **Lição (proposta):** *antes de exigir que uma referência seja literal, perguntar de quem é o arquivo.* Declaração serve ao grafo; **dono** decide quem escreve. Colidindo, dono vence.
+
+**Erro 6 · Escrevi no pedido que o gerador "já lê o `_ds/` do root".** Não lê: `classificarParaSync` trata `_ds/` como ruído, e ele só entrava quando o shell o referenciava literalmente — o caso que acabou banido. Medido e corrigido por [CL] no mesmo dia; a leitura de disco é **código novo**, não reaproveitamento.
+→ **Lição (proposta):** *"a máquina já faz X" é afirmação sobre o repo* — só entra no pedido com o arquivo lido no turno. Supor capacidade é a mesma classe de supor caminho.
+
+**Erro 7 (o caro) · Eu vinha descobrindo regra POR PACOTE.** Custo medido de um dia, para resolver 3 linhas de `<link>`: 4 ocorrências de ternário escritas à mão, 1 pacote recusado, 1 revert dele, 1 revert errado meu, 1 máquina nova (+21/+7/+10/+4/+30 linhas) e 5 idas e voltas com [W] — que nomeou o desperdício antes de mim.
+→ **Lição (proposta):** *antes de pedir mudança de transporte, SIMULAR as opções contra os gates que já existem e registrar a tabela no pedido.* Feito no PR-A9 (6 opções × 6 testes). Descobrir por pacote é gastar ciclo de [W] para aprender o que a leitura de 3 arquivos entregaria.
+
+
 ### 🔁 Reincidência — o que este ciclo prova sobre o método
 **4º caso do mesmo padrão em 4 dias: eu meço com rigor e erro o ESTATUTO do que medi.** 14/09 `prototipo-ui/contrato/` (caminho que só existia em pacote espelhado) · 16/09 `styles.css:6387` (folha certa, override não visto) · 17/09 `-fg` (token certo, consumidor não procurado) · hoje o `sync/` (bytes certos, pacote morto).
 → **Consequência de método:** o passo 0 do §13.7 ("RELER a árvore no turno") ganha um irmão obrigatório — **"provar o ESTATUTO do objeto antes de medi-lo"**: é o ativo? tem dono? quem o aplica? Rigor sobre objeto sem estatuto produz laudo perfeito de coisa irrelevante — e consome o ciclo de [W].
