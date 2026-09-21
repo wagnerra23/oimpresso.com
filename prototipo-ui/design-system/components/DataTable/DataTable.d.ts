@@ -19,6 +19,14 @@ export interface DataTableProps {
   columns: DataTableColumn[];
   rows: DataTableRow[];
   onRowClick?: (row: DataTableRow) => void;
+  /**
+   * Nome acessível da tabela, num `<caption>` visualmente oculto.
+   *
+   * Tipado NÃO-OPCIONAL de propósito, como no vivo: um default genérico daria o
+   * mesmo nome a todas as tabelas, e quem navega por tabela não distinguiria duas
+   * na mesma página. O runtime degrada em vez de quebrar.
+   */
+  caption: string;
   selectable?: boolean;
   /** Seleção controlada (API antiga). */
   selectedIds?: Array<string | number>;
