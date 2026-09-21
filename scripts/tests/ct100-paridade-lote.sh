@@ -106,7 +106,9 @@ set -e
 # ERRO = falha de NAVEGAÇÃO. Publicar isso como veredito de fidelidade foi o que mascarou
 # 5 rodadas; o consumidor tem o mesmo assert, aqui em shell pra decidir se PUBLICA.
 ERROS="$(grep -c '| ERRO |' "$MEDIDAS/RESUMO.md" || true)"
-TELAS="$(grep -c '^| ' "$MEDIDAS/RESUMO.md" || true)"
+# `^| ` casa tambem o CABECALHO da tabela — o 1o run no CT 100 reportou 69 onde o
+# consumidor dizia 68. Descontar 1 seria fragil; exclui-se a linha cujo 1o campo e "Tela".
+TELAS="$(awk -F'|' '/^\| / && $2 !~ /^ *Tela *$/ {n++} END{print n+0}' "$MEDIDAS/RESUMO.md")"
 if [ "${ERROS:-0}" -gt 0 ]; then
   fail "$ERROS de $TELAS telas falharam na NAVEGAÇÃO — falha de MEDIÇÃO, não divergência. Nada publicado. Ver /tmp/paridade-lote.log"
 fi
