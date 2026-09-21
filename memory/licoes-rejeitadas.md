@@ -2330,6 +2330,31 @@
 
 - Ocorrência da **LC-11**.
 
+### 2026-09-18 — Rótulo de veredito que INVERTE a direção da contagem ao lado dele (e a tese que eu ia registrar junto caiu na própria medição)
+
+- **O que foi tentado.** [W] revogou a "divergência DECLARADA (autorizada)" no eixo FORMA e mandou limpar o canon. Ao triar, achei em [`memory/requisitos/Arquivos/Index-visual-comparison.md`](requisitos/Arquivos/Index-visual-comparison.md) dois vereditos `PROD-A-FRENTE por decisao declarada` que **diziam o oposto da contagem na linha de baixo**: o protótipo tem **5** ações por linha e a produção **zero**; o protótipo tem **4** abas e a produção tinha **1**. Nos dois, quem está atrás é a **produção** — e `PROD-À-FRENTE` a marcava como adiantada, o que **blinda a dívida de aparecer como dívida**: uma leitura futura vê "prod à frente" e não vai atrás das 5 ações ausentes.
+
+- **Por que caiu** (a parte que é minha, e é o registro que importa): junto com o achado acima eu ia escrever que **"15 das 17 ocorrências foram escritas DEPOIS da ratificação da UI-0029, logo não é regra nova, é descumprimento"**. Mandei um adversário derrubar antes de virar canon, e ele derrubou — com medição que eu **re-rodei** (repo **não-raso**, `git rev-parse --is-shallow-repository` = false, senão data de git não valeria · §5 2026-07-24):
+
+  | operacionalização | total | antes de 08-31 | depois |
+  |---|---:|---:|---:|
+  | corpus paridade, padrão estreito | **12** | **6** | **6** — *empate* |
+  | repo `*.md` fora `scripts/`+`hooks/` | **18** | **10** | **8** — *direção INVERTIDA* |
+  | repo inteiro | **29** | — | — |
+  | por **evento** (commits distintos) | **7** | **3** | **4** |
+
+  **Nenhuma dá 17; nenhuma dá a razão 15/17.** O número tinha vindo do enunciado, não da minha medição — e eu ia carimbá-lo em canon. Pior: a evidência-vitrine (os dois vereditos invertidos) nasceu num **único** commit, `9bbc64ecdf0`, em **2026-08-25** — *antes* da ratificação. A melhor prova do fechamento estava do lado errado da linha que a tese traçava.
+
+- **O limite (variantes também proibidas).** **(a)** Veredito de comparação (`PROD-À-FRENTE`, `IGUAL`, `CONFORME`, `OK`) **não se escreve sem conferir a direção contra o dado adjacente** — e a conferência é a subtração, não a leitura: *protótipo N × produção M, quem é maior?*. O rótulo foi derivado da **justificativa de escopo** ("é escopo declarado, leitura pura na onda 1") em vez da **medição que estava uma linha abaixo**; a medição existia e estava certa. **(b)** Número que entra em lápide, ADR ou PR vem **com o comando e o corpus declarados ao lado** — sem os dois não é auditável, e "veio do enunciado" não é recibo (§5 2026-07-28). **(c)** Quando a contagem for de artefatos espalhados, diga a **unidade**: 2 rótulos escritos no mesmo commit são **1 evento**, não 2 observações independentes — contar por linha infla o contador.
+
+- ⚠️ **O que esta lápide NÃO autoriza, e é onde eu ia errar de novo:** concluir que *"rótulo positivo não é conferido porque soa como boa notícia"*. Medido: é **N=1** (um commit, um arquivo, uma sessão), e há **contra-exemplo na mesma varredura** — o `PROD-A-FRENTE` de [`AssetManagement/Index-visual-comparison.md`](requisitos/AssetManagement/Index-visual-comparison.md) está **correto e foi conferido** (a produção tem mesmo um bloco herdado da `dashboard.blade.php` legada, com as duas colunas de origem citadas). Generalizar instruiria sessões futuras a desconfiar de `PROD-À-FRENTE` **certos**. O achado verdadeiro é menor e cabe numa frase: *uma sessão escreveu dois rótulos invertidos no mesmo commit*.
+
+- ⚠️ **Sem classe nova, e sem lápide para o outro eixo.** O eixo *"artefato de tela desobedece ADR ratificada"* **já está enterrado** em §5 2026-08-11: *"Nenhum gate pega documento contradizendo documento — a defesa aqui é ler o dono antes de escrever lei."* Re-registrar duplicaria régua consolidada (§5 2026-07-09). E o fundamento mais direto da revogação não é *"divergência é DEFEITO"*, é a **§41 da [UI-0029](requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)** (ratificada em **2026-08-31**, commit `017b79d491f`): *"não se abre exceção per-tela"* — que é a descrição literal do mecanismo destes rótulos.
+
+- ⚠️ **NÃO virar gate.** O predicado — *"este veredito contradiz a contagem ao lado?"* — exige ler a prosa e casar com números em outra linha; é **semântico por construção** ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md): semântico = advisory). A forma sintática (acusar `PROD-À-FRENTE` perto de um `0`) reprovaria o legítimo — o caso do AssetManagement acima —, que é a família de guard sintático já enterrada 8× neste §5. O campo `Gate:` da LC-08 já registra que o gate óbvio dela foi **medido e reprovado**: não re-propor. O que pegou aqui foi **processo**: um adversário read-only rodado ANTES de escrever canon.
+
+- **Resíduo declarado, e consertado à parte:** a varredura que produziu esta lápide **listou** `Modules/Superadmin/…/Negocios/Index.charter.md` e eu **não o triei** — escopei a triagem a `resources/js/Pages/` + `memory/requisitos/` sem declarar que estava deixando `Modules/**/Resources/js/Pages/` de fora. Ele sobreviveu no `main` e saiu no [PR #7568](https://github.com/wagnerra23/oimpresso.com/pull/7568). Tinha o dado e não o processei.
+
 ### 2026-09-18 — "Autocorreção" com sonda MAIS FROUXA que a original: ampliei o padrão pra conferir, ele casou pelo OUTRO termo, e eu retratei uma leitura que estava CERTA
 
 - **O que foi tentado.** Procurando o segredo `VISREG_LOGIN_TOKEN` (pré-requisito pra rodar o lote de design contra staging) em `memory/_INDEX-SECRETS.md`, rodei `grep -niE "visreg" … | head -5 || echo "(nao mencionado)"` e não veio nada. Notei — **corretamente** — que `grep | head` mascara o `rc` (§5 2026-08-13(b), o `rc` é do último comando do pipe) e fui conferir. Na conferência **ampliei o padrão** para `grep -niE "visreg|visual.regression"`, ele devolveu `rc=0`, e eu **publiquei ao [W] uma retratação**: *"meu grep mascarou o rc, me fazendo ler 'não achou' onde o índice TINHA a entrada"*.

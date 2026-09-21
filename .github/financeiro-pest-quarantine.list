@@ -14,6 +14,63 @@
 # que adicionam linhas são unidos sem conflito — mesma receita do irmão
 # .github/ci-sqlite-pest.list, cujo cabeçalho explica por que não é linha inline).
 #
+# ⚠️ O QUE O `union` NÃO FAZ, e a frase acima sozinha esconde: ele une ADIÇÕES, mas
+# **desfaz REMOÇÃO adjacente EM SILÊNCIO** — e às vezes DUPLICA o path em vez de desfazer.
+# Dois PRs que mexem em linhas vizinhas produzem merge LIMPO, sem um marcador de conflito
+# sequer, com a linha RESSUSCITADA ou repetida.
+#
+# NÃO é hipótese importada do irmão: ESTA lista foi mordida SEIS vezes, e o recibo está na
+# própria história dela. `git log -i --grep=union --grep=mordida -- <lista>` devolve 7
+# commits de conserto dedicados, todos de 2026-09-18; os títulos separam os DOIS modos:
+#   fb6d6b80c88  "a union desfez DUAS remocoes no merge"           (modo A: remoção desfeita)
+#   a6c40195628  "union DUPLICOU o path (nao desfez)"              (modo B: path duplicado)
+#   3375d972173  "6a mordida da union — path duplicado + remocao de main desfeita"  (os dois)
+#
+# ONDE O DANO NASCE (medido no #7541): a duplicata aparece em 257a9689f84 e 2522934f3d0 —
+# os DOIS são `Merge branch 'main'` — e some nos commits de conserto seguintes. O gatilho é
+# o MERGE DO MAIN, não a sua edição: você não faz nada errado e o arquivo corrompe assim mesmo.
+# Por isso a conferência abaixo roda DEPOIS DE CADA MERGE, não depois de cada edição.
+# ⚠️ `git apply --3way` NÃO salva: ele reporta "applied cleanly" e ressuscita igual.
+#
+# COMO CONFERIR depois de mergear (nunca confie no merge limpo):
+#   awk '/^Modules\/Financeiro\/Tests\// && /<SeuTest>/{c++} END{print c+0}' <lista>
+#        # 0 = sua remoção sobreviveu
+#   sed 's/#.*//; s/[[:space:]]*$//' <lista> | grep -vE '^$' | sort | uniq -d
+#        # vazio = sem path duplicado
+#   awk '{sub(/#.*/,""); gsub(/[[:space:]]+$/,"")} /./{c++} END{print c+0}' <lista>
+#        # total de paths: bate com (base − remoções de todos os PRs da janela)?
+#
+# ⚠️ A âncora `^Modules/Financeiro/Tests/` NÃO é zelo: procurar o nome do teste SOLTO conta
+# também a NOTA DE SAÍDA que a própria remoção acrescenta nos comentários — devolve >0 com a
+# linha JÁ removida, e você conclui que a remoção não pegou. Provado por mutação neste arquivo:
+# removendo o path do `TransactionPaymentInertiaSmokeTest`, a sonda ancorada vai de 1 para 0
+# (correto) e a solta vai de 3 para 2 — ela NUNCA chega a zero, porque conta o rodapé em
+# comentário e até as menções deste próprio bloco. Sonda sem âncora é invalidada pelo ato que
+# ela deveria conferir. (A receita defeituosa circulou entre 4 sessões antes de alguém medir.)
+#
+# ⚠️ O `sed` que corta o comentário ANTES do `uniq -d` também não é zelo — comparar a LINHA
+# INTEIRA é CEGO ao caso de EDIÇÃO: quando a mudança não é remover a linha e sim reescrever o
+# MOTIVO dela, a union mantém as DUAS versões; como os comentários diferem, as linhas diferem,
+# e o `uniq -d` sai vazio com o path duplicado o tempo todo. O efeito é silencioso e duradouro,
+# e isto também foi medido por mutação: injetado o path 2× com motivos diferentes, o arquivo
+# passa a ter 16 linhas de path e a lane continua vendo 15, porque ela dedupa com `sort -u` —
+# o run-set fica CERTO e NADA avermelha; só a lista canon passa a carregar dois motivos
+# contraditórios pro mesmo arquivo. Não por acaso, cortar o comentário antes é exatamente o
+# que a lane já faz pra montar o run-set (.github/workflows/financeiro-pest.yml:171):
+# compare como a lane compara.
+#
+# ⚠️ Não ponha `grep -c` dentro de script com `set -e`: ele sai com **rc=1 quando conta ZERO**,
+# que aqui é o caso de SUCESSO (remoção viva) — o script morre calado no caminho BOM. Por isso
+# as sondas acima usam `awk`, que sempre sai 0. (A lane roda `set -uo pipefail`, SEM o `-e`; o
+# risco é do script de quem confere, não dela.)
+#
+# COMO RESOLVER se a union já corrompeu: NÃO edite o resultado e NÃO confie no `--3way`.
+# Parta da versão da base e reaplique SÓ a sua mudança, programaticamente:
+#   git status --short <lista>                                  # ⚠️ o checkout abaixo DESTRÓI
+#   git fetch origin main && git checkout FETCH_HEAD -- <lista>  #    o não-commitado (LC-23)
+#   <reaplique sua remoção por script, não à mão>
+#   <rode as 3 sondas acima ANTES de commitar>
+#
 # TIRAR DAQUI é o movimento desejado (a lista deve encolher). PÔR aqui exige
 # motivo escrito na linha — sem isso vira gaveta de silenciar vermelho.
 #
