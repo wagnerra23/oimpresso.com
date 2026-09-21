@@ -258,8 +258,9 @@ declarado:** `Admin/ToolsController` e `Admin/TeamScopesController` (consumidos 
 > heartbeat identificado · banco único confirmado). Ficam registrados lá, não apagados. O que segue aberto:
 
 - **Pest não rodado.** Tier 0 manda rodar no CT 100, e lá o container `oimpresso-mcp` aponta pro **banco de
-  produção** — rodar suite nele está fora de cogitação. O `oimpresso-staging` serve, mas seu checkout está
-  em 2026-07-23 com alterações não-commitadas de outra sessão. **A verificação real da E2b é o CI.** O que
+  produção** — rodar suite nele está fora de cogitação. O `oimpresso-staging` serve, mas seu checkout estava, quando isto foi escrito
+  (2026-07-31), em 2026-07-23 com alterações não-commitadas de outra sessão — ele **se move**, então não
+  cite esta data como estado; o oráculo que o mede está em [`proibicoes.md` §Ambiente](../../proibicoes.md). **A verificação real da E2b é o CI.** O que
   rodou local: `php -l` nos 6 arquivos PHP tocados (lint, não teste — permitido) + os gates de memória.
 - **O smoke do R6 FOI FEITO — recibo abaixo (medido 2026-07-31, prod em `e2f861e69`).**
   | Prova | Resultado |
