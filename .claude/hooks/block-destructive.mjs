@@ -257,7 +257,15 @@ const PADROES = [
   },
   {
     key: 'composer-update-sem-lock',
-    regex: /(?<!#\s)composer\s+update(?!\s+--lock\b)(?!.*\s--lock\b)/i,
+    // `(\.phar)?` — GAP FECHADO JUNTO com o §STATEMENT INERTE (2026-09-21), e a
+    // medição é o motivo: os 2 únicos `php composer.phar update X --no-install`
+    // do corpus (159.8k blocos) bloqueavam **por acidente**, via um `echo "==
+    // composer update ... =="` ao lado. O regex exigia `composer` + ESPAÇO, então
+    // `composer.phar update` nunca casou por mérito próprio. Tirar o acidente sem
+    // fechar o gap deixaria a categoria com saldo NEGATIVO — por isso as duas
+    // coisas andam juntas. Forma-imagem (`docker run composer:2 update`) segue
+    // NÃO coberta: 0 ocorrências no corpus, residual declarado e não estimado.
+    regex: /(?<!#\s)composer(\.phar)?\s+update(?!\s+--lock\b)(?!.*\s--lock\b)/i,
     // Aqui o `.*` mora num lookahead NEGATIVO, então atravessar statement
     // afrouxava: um `--lock` de qualquer comando posterior SUPRIMIA o bloqueio
     // (medido — `composer update && echo "use --lock"` saía rc=0). Per-statement
@@ -273,6 +281,44 @@ const PADROES = [
     sugestao: 'usar migrate:rollback --step=1 com revisão; OU em prod, criar migration formal com down() controlado',
   },
 ];
+
+// ── STATEMENT INERTE: `echo`/`printf` EMITE texto — não executa ──────────────
+//
+// O DEFEITO (medido 2026-09-21): uma consulta READ-ONLY foi bloqueada porque a
+// string `rm -f` aparecia dentro de um `echo "=== nota sobre rm -f ==="`. O
+// regex da categoria casa em QUALQUER posição do statement, e a isenção
+// (`alvosRmRf`) exige `rm` no INÍCIO — então prosa dentro de `echo` casa o
+// bloqueio e não alcança isenção nenhuma. O hook chegou a impedir que se LESSE
+// o próprio hook.
+//
+// ⚠️ ESCOPO — isto NÃO reabre a decisão do [W] de 2026-09-16 (§MULTI-ARG, "FP
+// conhecido e aceito"). Aquela é sobre PROSA DE HEREDOC: linha solta de PR body
+// que, depois do `&&`, vira um statement cujos "alvos" são as palavras da frase
+// — lá não há comando, e o remédio declarado segue sendo passar a mensagem por
+// arquivo (`git commit -F` / `gh pr create --body-file`). Aqui o statement TEM
+// comando, e o comando é um emissor de texto: o argumento é dado por
+// CONSTRUÇÃO, não por convenção. São vetores diferentes.
+//
+// POR QUE É SEGURO — as 3 portas que ficam FECHADAS de propósito:
+//   · `$(...)` / backtick → EXECUTA. `echo "$(rm -rf /)"` NÃO é inerte.
+//   · `<` `>` `>>`        → ESCREVE arquivo. `echo "rm -rf /" > s.sh` segue
+//                           bloqueado — veredito idêntico ao de hoje.
+//   · statement IRMÃO     → o fatiamento é ANTERIOR a isto: `echo ok && rm -rf
+//                           /etc` são DOIS statements, e o 2º bloqueia igual.
+//
+// A escala respeita a assimetria que já existe (ver §matchDestructive): no blob
+// (as 7 categorias legadas) a isenção só vale quando TODOS os statements são
+// inertes. Filtrar o blob pelo 1º token seria falso-NEGATIVO —
+// `echo hi && mysql -e "DROP TABLE x"` começa com `echo` e perderia o bloqueio.
+
+/** o statement só EMITE texto? (argumento é dado, não comando) */
+export function ehStatementInerte(stmt) {
+  const s = normalizeCmd(stmt);
+  if (!/^(echo|printf)(\s|$)/i.test(s)) return false;
+  if (/\$\(|`/.test(s)) return false;   // substituição EXECUTA
+  if (/[<>]/.test(s)) return false;     // redireciona: escreve arquivo
+  return true;
+}
 
 /**
  * Veredito único: {key, razao, sugestao} da primeira categoria que casar, ou null.
@@ -293,11 +339,15 @@ export function matchDestructive(cmd) {
   const cmdNorm = normalizeCmd(cmd);
   if (!cmdNorm) return null;
   const stmts = statements(cmd);
+  // §STATEMENT INERTE: tira de consideração o que só emite texto. Só SUBTRAI
+  // superfície de avaliação — nada que hoje passa pode passar a bloquear.
+  const executaveis = stmts.filter((s) => !ehStatementInerte(s));
+  const todosInertes = stmts.length > 0 && executaveis.length === 0;
   const isento = (p, alvo) => p.key === 'rm-rf-perigoso' && rmIsento(alvo);
   for (const p of PADROES) {
     // a isenção acompanha a escala: por statement ela vale só pro statement que
     // a ganhou; no blob (comportamento legado das demais) vale pro comando todo.
-    const alvos = p.porStatement ? stmts : [cmdNorm];
+    const alvos = p.porStatement ? executaveis : (todosInertes ? [] : [cmdNorm]);
     if (!alvos.some((a) => p.regex.test(a) && !isento(p, a))) continue;
     return p;
   }
