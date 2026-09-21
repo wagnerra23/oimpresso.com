@@ -2162,3 +2162,83 @@ e prova a afirmação escolhida · nenhum `git commit` executado dentro do conta
 
 **Refs:** [PR #7366](https://github.com/wagnerra23/oimpresso.com/pull/7366) · [PR #7369](https://github.com/wagnerra23/oimpresso.com/pull/7369) ·
 [ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md) · classe **LC-15** (mecanismo anuncia saída que não implementa).
+
+### US-COPI-150 · Meta criada pelo caminho MANUAL nasce órfã — sem alvo, e por isso muda para sempre
+
+> owner: — · priority: p1 · status: done · type: story
+> blocked_by: —
+
+**Implementado em:** [`Modules/Jana/Http/Requests/StoreMetaRequest.php`](../../../Modules/Jana/Http/Requests/StoreMetaRequest.php) · [`Modules/Jana/Http/Controllers/MetasController.php`](../../../Modules/Jana/Http/Controllers/MetasController.php) · [`resources/js/Pages/Jana/_components/JanaMetaNovaDrawer.tsx`](../../../resources/js/Pages/Jana/_components/JanaMetaNovaDrawer.tsx) — o request passa a aceitar alvo + janela, o `store` cria o `MetaPeriodo` junto, e a gaveta do Painel pede esses campos
+
+**Testado em:** [`Modules/Jana/Tests/Feature/MetaNasceComAlvoTest.php`](../../../Modules/Jana/Tests/Feature/MetaNasceComAlvoTest.php) — 7 casos. ⚠️ **Executados de fato no CT 100** (MySQL real, tenant 98): `Tests: 7 passed (25 assertions)`. As **25 assertions** são o que separa execução de skip — `0 failed` nunca prova que rodou (§5 2026-07-24 · LC-13). Mordida provada por mutação: desligando o `if ($request->temAlvo())` do `store`, **3 failed**, com verificação de que a troca entrou no disco antes de ler o resultado. Front: [`tests/janaMetaNovaAlvo.spec.tsx`](../../../tests/janaMetaNovaAlvo.spec.tsx) — 7 casos (5 de contrato + 2 de controle negativo), 3 mutantes, 3 mordidas
+
+**Origem:** sessão 2026-09-21. [W] relatou *"Metas e kpi não renderizam corretos"* no Painel. A investigação
+começou pela forma (e havia divergência real, fechada na US irmã), mas o que ele via tinha **outra metade**.
+
+**O que foi medido, em produção:** as 5 metas do tenant estão `ativo=1` e têm **ZERO período, ZERO apuração
+e ZERO fonte**. Espelhado o estado no staging e medido o DOM, os 5 cards saem **idênticos**:
+
+```
+"<nome> | <unidade> | Aguardando apuração…"
+temValor: false · temBarra: false · temProjecao: false · temPeriodo: false
+todosIguais: true · altura do card: 134px
+```
+
+Sem `periodo_atual` não há alvo; sem alvo não há barra, não há `% do alvo` e não há projeção.
+
+**A causa — assimetria entre os dois caminhos de criação, lida nos dois controllers:**
+
+| | `ChatController@escolher` (IA) | `MetasController@store` (manual) |
+|---|---|---|
+| `Meta` | ✅ | ✅ |
+| `MetaPeriodo` (o alvo) | ✅ | ❌ |
+| `MetaFonte` (de onde vem o número) | ✅ | ❌ |
+| dispara `ApurarMetaJob` | ✅ | ❌ |
+
+As 5 metas têm `origem = manual`. **E não era descuido do controller:** o `StoreMetaRequest` aceitava apenas
+`slug`, `nome`, `unidade`, `tipo_agregacao` e `business_id` — **não existia campo de alvo**. Criar uma meta
+completa por ali era impossível.
+
+**Descartado por medição:** não vieram de seed. Varredura no repo inteiro (incluindo dotfiles) pelos 5 slugs
+devolveu **zero** ocorrências; a única — `ticket-medio` — é id de pergunta no `golden-questions.yaml`, e os
+nomes só aparecem em testes de Sells como rótulo de KPI.
+
+**O fluxo real é de 3 telas, e nada leva da primeira às outras:**
+
+1. `POST /ia/metas` → identidade
+2. `POST /ia/metas/{id}/periodos` → o alvo (`PeriodosController`)
+3. `PATCH /ia/metas/{id}/fonte` → a query (`FontesController`, em `Modules\KB`, faz `updateOrCreate`)
+
+E o caminho **mais novo** tinha o mesmo buraco: o `JanaMetaNovaDrawer` postava para `/ia/metas` com **zero
+menções** a alvo, período ou fonte na interface. Entregava uma meta que já nascia em "Aguardando apuração…".
+
+**Veredito:** não é cadastro interrompido pelo usuário — é o desenho do fluxo. Toda meta criada manualmente
+nascia, por construção, sem alvo.
+
+**O que esta US fecha:** o eixo do **ALVO**. O `StoreMetaRequest` aceita `valor_alvo`, `data_ini`, `data_fim`,
+`tipo_periodo` e `trajetoria` — regras **idênticas** às do `StorePeriodoRequest`, porque alimentam a mesma
+tabela e divergir faria a validação depender da porta de entrada. `required_with` amarra os três entre si: ou
+vem o alvo inteiro, ou não vem nada — meia-declaração é o estado quebrado que isto existe para impedir.
+
+**`nullable`, e não `required`, por retrocompatibilidade medida:** o form Blade legado
+(`metas/create.blade.php`) manda só os 4 campos de identidade, e torná-los obrigatórios devolveria 422 para
+ele. O drawer manda o alvo sempre. O cutover do Blade é o PR-4 do RUNBOOK-metas §9.4.
+
+⚠️ **O que esta US NÃO fecha, e é residual DECLARADO — a `MetaFonte`.** Sem fonte a meta **não apura**, e o
+próprio `buildMetasPayload` já dizia isso (*"`null` = meta sem fonte gravada, que é estado REAL: sem fonte a
+meta não apura"*). Não se cria fonte aqui porque **não existe UI para ela em lugar nenhum**: a tela
+`copiloto::fontes.show` é **somente-leitura** e declara, no próprio corpo, que *"o editor com prévia do
+resultado antes de salvar é a **US-COPI-040**"*. A rota `PATCH` existe e funciona, mas nenhuma tela a usa.
+Inventar um campo de SQL na gaveta seria pior que o buraco — o que ela faz é **avisar** que a fonte fica fora,
+e isso é testado.
+
+⚠️ **E o que esta US não alcança: as 5 metas que JÁ existem.** Elas continuam órfãs até alguém preencher
+período e fonte. O backfill é trabalho de outra sessão (comandos `ConfigurarPeriodosMetaCommand`,
+`ConfigurarFontesMetaCommand`, `BackfillApuracoesCommand`, em curso em 2026-09-21) — a divisão combinada é:
+**esta US cuida do futuro, o backfill cuida do passado.** Sem o backfill, as 5 seguem mudas; sem esta US, a
+sexta nasce quebrada.
+
+**Não medido:** *por que* as 5 nasceram sem período. `origem=manual` diz **como** foram criadas, não por que
+pararam na etapa 1. O `activity_log` (o Model tem `LogsActivity`) responderia *quando* e *por quem*, mas o SSH
+da Hostinger não completou em 5 tentativas nesta sessão. Isso **não muda a causa**, que está estabelecida no
+código — muda só a atribuição.
