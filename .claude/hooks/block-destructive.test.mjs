@@ -9,7 +9,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { matchDestructive, normalizeCmd, statements, alvosRmRf, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete, ehStatementInerte } from './block-destructive.mjs';
+import { matchDestructive, normalizeCmd, statements, alvosRmRf, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete, ehStatementInerte, ehToolRm } from './block-destructive.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'block-destructive.mjs');
 let fails = 0;
@@ -246,8 +246,22 @@ check('CN rm: statement terminando nas flags (xargs) segue bloqueando — sem `$
   matchDestructive('xargs -a lista.txt rm -rf')?.key === 'rm-rf-perigoso');
 check('CN rm: `xargs ... rm -f` no fim do statement segue bloqueando (comportamento de hoje preservado)',
   matchDestructive('cd /x\nxargs -a /tmp/l.txt -r rm -f\necho fim')?.key === 'rm-rf-perigoso');
-check('CN rm: `rm -rf` dentro de padrão de grep NÃO bloqueia (o `|` é alternação)',
-  matchDestructive('git show HEAD:x.mjs | grep -nE "design|rm -rf|wipe" | head -5') === null);
+// ⚠️ REGRESSÃO CONHECIDA E MEDIDA, assumida ao fechar o `rm` sem flag ([W]
+// 2026-09-21). Até então este caso PASSAVA: com o detector exigindo `-[rRf]+`,
+// o `rm -rf|` dentro do padrão não casava (o `|` não é `\s` nem fim). Sem a
+// exigência de flag, `|rm ` casa — o `|` está em `[\s;&|]`.
+// O FP é ESTREITO, e isso foi medido antes de aceitar: só atinge o `rm` logo
+// após `|` ou como token solto. Seguem PASSANDO (medidos):
+//     grep -n "rm " arquivo          · grep -rn "rm -rf" scripts/
+//     echo "use rm pra limpar"       · git log | grep "rm"
+// Custo no corpus: classe C = 53 de 563 comandos que passam a bloquear (9,4%).
+// Caminho pra quem esbarrar: passar o padrão por arquivo/variável, que é o
+// mesmo remédio do FP de prosa em `git commit -F` documentado no §MULTI-ARG.
+check('CN rm: `rm` após `|` num padrão de grep BLOQUEIA (regressão aceita do rm-sem-flag)',
+  matchDestructive('git show HEAD:x.mjs | grep -nE "design|rm -rf|wipe" | head -5')?.key === 'rm-rf-perigoso');
+check('CN rm: o FP é ESTREITO — `rm` dentro de aspas sem `|` antes segue passando',
+  matchDestructive('grep -n "rm " .claude/hooks/block-destructive.mjs') === null
+  && matchDestructive('grep -rn "rm -rf" scripts/') === null);
 check('E2E rm: cd + whitelist → exit 0', runHook(j('cd /repo && rm -rf node_modules')) === 0);
 check('E2E rm: cd + alvo fora da whitelist → exit 2', runHook(j('cd /repo && rm -rf src/')) === 2);
 
@@ -323,6 +337,33 @@ check('E2E FLAG-SET: `rm -fr /tmp/x` (ordem invertida) isento → exit 0',
   runHook(j('rm -fr /tmp/x')) === 0);
 check('E2E FLAG-SET: `rm -f /etc/passwd` → exit 2 (proteção real intacta)',
   runHook(j('rm -f /etc/passwd')) === 2);
+
+// ── §ESCOPO rm(1): a categoria deixa de exigir FLAG ([W] 2026-09-21) ────────
+// Único ponto do arquivo onde uma mudança ADICIONA bloqueio. Medido antes:
+// 561 distintos / 563 ocorrências passam a bloquear, 89,9% deles rm(1) real.
+check('ESCOPO: `rm arquivo.txt` sem flag BLOQUEIA (era invisível até 2026-09-21)',
+  bloqueia('rm arquivo.txt'));
+check('ESCOPO: `rm /etc/passwd` sem flag BLOQUEIA',
+  bloqueia('rm /etc/passwd'));
+check('ESCOPO: `cd x && rm y.txt` — vale por statement, não só no início',
+  bloqueia('cd x && rm y.txt'));
+check('ESCOPO: alvo isento segue passando sem flag (`rm /tmp/x`)',
+  isento('rm /tmp/x'));
+// ── ehToolRm: `<tool> rm` NÃO é rm(1). Sem isto, 183 `git rm` no corpus. ────
+check('TOOL-RM: `git rm` não é rm(1) — passa',
+  isento('git rm arquivo.txt') && isento('git rm -q x.php'));
+check('TOOL-RM: `git rm -r dir/` passa — corrige FP PRÉ-EXISTENTE (18 no corpus)',
+  isento('git rm -r dir/'));
+check('TOOL-RM: docker/svn/hg/kubectl rm também',
+  isento('docker rm cont') && isento('docker rm -f cont')
+  && isento('svn rm x') && isento('kubectl rm pod'));
+check('CN TOOL-RM: o rm(1) DEPOIS de um tool-rm no mesmo statement ainda conta',
+  bloqueia('git status && rm src/x.php'));
+check('CN ESCOPO: `rm` dentro de outra palavra não casa (npm, charm, term)',
+  isento('npm run build') && isento('charm x') && isento('term rm-less'));
+check('ehToolRm isolado: reconhece o tool, não a palavra solta',
+  ehToolRm('git rm x') === true && ehToolRm('rm x') === false
+  && ehToolRm('docker rm c') === true && ehToolRm('gitrm x') === false);
 check('DECISÃO: `$var` dentro de prefixo isento segue isento (temp-dir dinâmico)',
   matchDestructive('rm -rf /tmp/$SESSION') === null);
 check('CN: `$var` FORA de prefixo isento bloqueia (proteção vem de graça)',

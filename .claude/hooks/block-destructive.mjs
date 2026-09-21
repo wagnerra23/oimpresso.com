@@ -125,6 +125,39 @@ export function statements(cmd) {
 //   FP conhecido e aceito — o caminho é passar a mensagem por arquivo
 //   (`git commit -F` / `gh pr create --body-file`), não afrouxar o guard.
 //
+// ── ESCOPO rm(1): a categoria deixa de exigir FLAG ([W] 2026-09-21) ─────────
+//
+// Antes o detector exigia `-[rRf]+`, então `rm arquivo.txt` — sem flag — não
+// era visto por ninguém. É a forma menos destrutiva (não pega diretório, falha
+// em read-only), mas apaga trabalho não-commitado igual. Fechado a pedido do
+// [W]: "fecha o rm sem flag também".
+//
+// ⚠️ Isto APERTA o guard: é o único ponto deste arquivo onde uma mudança
+// ADICIONA bloqueio. O custo foi medido ANTES — 1846/1846 jsonl · 160.895
+// blocos tool_use Bash/PowerShell:
+//
+//   APERTOU  561 distintos / 563 ocorrências   AFROUXOU 18 / 18
+//
+//   O que passa a bloquear, por classe:
+//     B) rm(1) de verdade ......... 505 / 506  (89,9%)  ← o alvo da mudança
+//     C) `rm` dentro de string .....  52 /  53  ( 9,4%)  ← FP, ver abaixo
+//     A) `<tool> rm` residual ......   4 /   4  ( 0,7%)  ← FP
+//   O que deixa de bloquear:
+//     18 `git rm -r` / `git rm -f` — FP PRÉ-EXISTENTE que esta mudança corrige
+//     (ver ehToolRm). Não é alvo novo liberado: `git rm` nunca foi rm(1).
+//
+// O `<tool> rm` sai pela isenção, e isso NÃO é zelo: sem ele, o mesmo corpus
+// acusaria 183 `git rm` (24,6% de tudo). Medido nas duas versões.
+//
+// ⚠️ REGRESSÃO ASSUMIDA, declarada porque ela desfaz parte do #7586 (do mesmo
+// dia): `… | grep -nE "a|rm -rf|b"` volta a bloquear, porque `|rm ` casa e o
+// `|` está em `[\s;&|]`. O FP é ESTREITO e foi medido antes de aceitar — só
+// pega `rm` logo após `|` ou como token solto. Seguem passando:
+//     grep -n "rm " arquivo    ·  grep -rn "rm -rf" scripts/
+//     echo "use rm pra limpar" ·  git log | grep "rm"
+// Remédio pra quem esbarrar: padrão por arquivo/variável — o mesmo do FP de
+// prosa em `git commit -F` já documentado no §MULTI-ARG.
+//
 // ── FLAG-SET: a isenção casa o CONJUNTO de flags ([W] 2026-09-21) ───────────
 //
 // HISTÓRICO, fato datado — não apagar. Até 2026-09-21 a isenção casava o
@@ -222,7 +255,7 @@ const RM_WHITELIST_ALVOS = [
  * @returns {string[]|null} null = o statement não é um `rm -rf`
  */
 export function alvosRmRf(stmt) {
-  const m = /^rm\s+-[rRf]+(\s+|$)/i.exec(String(stmt || ''));
+  const m = /^rm(\s+|$)/i.exec(String(stmt || ''));
   if (!m) return null;
   const toks = String(stmt).slice(m[0].length).match(/"[^"]*"|'[^']*'|\S+/g) || [];
   const alvos = [];
@@ -246,20 +279,37 @@ function rmIsento(stmt) {
   return alvos.every(alvoIsento);
 }
 
+/**
+ * `git rm` / `docker rm` / `svn rm` NAO sao o rm(1) do shell: o subcomando
+ * pertence a outra ferramenta, tem semantica propria e — no caso do git —
+ * e reversivel (o arquivo fica staged; `git checkout` restaura).
+ *
+ * MEDIDO: sem esta exclusao, abrir o detector pro rm sem flag acusaria 183
+ * ocorrencias de `git rm` no corpus (24,6% de tudo que passaria a bloquear).
+ */
+export const ehToolRm = (stmt) =>
+  /(^|[\s;&|])(git|docker|docker-compose|podman|kubectl|svn|hg|cargo|helm)\s+rm(\s|$)/i
+    .test(String(stmt || ''));
+
 /** categorias proibidas — ordem determinística (primeiro match dá a mensagem). */
 const PADROES = [
   {
+    // A key continua `rm-rf-perigoso` de propósito: ela é citada na mensagem de
+    // bloqueio e em docs/handoffs, e renomeá-la quebraria essas referências sem
+    // ganho. O ESCOPO é que mudou — hoje a categoria é "qualquer rm(1)".
     key: 'rm-rf-perigoso',
     // `(\s|$)` em vez de `\s+`: isolado, um statement pode TERMINAR nas flags —
     // `xargs -a lista.txt rm -rf` é rm recursivo com os alvos vindos do arquivo.
     // No blob isso casava por acidente (o espaço vinha do comando SEGUINTE); sem
     // o `$`, fatiar trocaria um falso-positivo por um falso-NEGATIVO. Delta da
     // mudança de regex sozinha, medido no blob: 0.
-    regex: /(^|[\s;&|])rm\s+-[rRf]+(\s|$)/i,
+    // FLAG deixou de ser exigida em 2026-09-21 ([W]) — ver §ESCOPO rm(1).
+    regex: /(^|[\s;&|])rm(\s|$)/i,
     // Isenção por STATEMENT e por ALVO — ver §MULTI-ARG / RM_WHITELIST_ALVOS.
+    // `<tool> rm` (git/docker/…) não é rm(1) e sai pela isenção — ver ehToolRm.
     porStatement: true,
-    razao: 'rm -rf pode apagar trabalho não commitado / config / dados de prod',
-    sugestao: 'use rm com path específico, ou whitelist: /tmp/, node_modules, vendor, storage/framework/{views,cache}, public/build*',
+    razao: 'rm pode apagar trabalho não commitado / config / dados de prod — sem -r não pega diretório, mas pega o arquivo',
+    sugestao: 'alvo reconstruível (whitelist: /tmp/, node_modules, vendor, storage/framework/{views,cache}, public/build*); OU `git rm` se o arquivo é versionado (fica staged, reversível); OU peça ao Wagner',
   },
   {
     key: 'git-force-push',
@@ -390,7 +440,7 @@ export function matchDestructive(cmd) {
   // superfície de avaliação — nada que hoje passa pode passar a bloquear.
   const executaveis = stmts.filter((s) => !ehStatementInerte(s));
   const todosInertes = stmts.length > 0 && executaveis.length === 0;
-  const isento = (p, alvo) => p.key === 'rm-rf-perigoso' && rmIsento(alvo);
+  const isento = (p, alvo) => p.key === 'rm-rf-perigoso' && (rmIsento(alvo) || ehToolRm(alvo));
   for (const p of PADROES) {
     // a isenção acompanha a escala: por statement ela vale só pro statement que
     // a ganhou; no blob (comportamento legado das demais) vale pro comando todo.
