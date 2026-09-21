@@ -31,19 +31,64 @@ import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveGap } from './gerar-contrato.mjs';
+import { pageNamespacePath } from '../qa/page-path.mjs';
 import { shaAtualPara, shaIndeterminado, shaBate } from './gerar-map.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, '../..');
 
+/** Fallback de resolução: o REGISTRO que já casa target↔map (`applications.json`).
+ *
+ *  POR QUE EXISTE (medido 2026-09-21): a convenção de path abaixo nomeia gap/map pela FONTE
+ *  do protótipo (`vendas.map.json`, `compras.map.json`), enquanto quem digita o atalho usa a
+ *  TELA (`Sells/Index`). São dois vocabulários e a derivação por nome não faz a ponte, então
+ *  `consumir-map.mjs Sells/Index` saía exit 1 ("map não encontrado") com o map ÍNTegro e
+ *  fresco no disco — o path direto do mesmo arquivo saía exit 0 com o plano completo.
+ *  A ponte fonte↔tela↔mapa já existia e tem dono: é o `applications.json`, o mesmo registro
+ *  que o `status.mjs --check-mapping` lê pra imprimir `mapa: <path>` em cada linha. Aqui ele
+ *  é CONSULTADO em vez de a convenção ser adivinhada. Quanto isso valia, medido em 2026-09-21:
+ *  **29 de 64** telas com map registrado eram inalcançáveis pelo atalho (35 resolviam pela
+ *  convenção); com a 3ª perna, 64/64. O 64 é o nº de namespaces distintos — há 69 registros,
+ *  5 deles duplicando alvo. Reproduzir:
+ *    node --input-type=module -e "import{resolveMap}from'./scripts/design/consumir-map.mjs';
+ *      import{pageNamespacePath}from'./scripts/qa/page-path.mjs';import{readFileSync}from'node:fs';
+ *      const a=JSON.parse(readFileSync('scripts/design-sync/state/applications.json','utf8')).applications;
+ *      const n=[...new Set(a.filter(x=>x?.comparison?.map&&x?.target).map(x=>pageNamespacePath(x.target).replace(/\.tsx$/,'')))];
+ *      console.log(n.length, n.filter(t=>resolveMap(t)).length)"
+ *  (⚠️ o docblock não repete o número por conta própria — §5 2026-07-17; ele vem com o comando
+ *  que o recalcula, porque o registro cresce e um número escrito à mão apodrece.)
+ *
+ *  Não substitui a convenção — é a 3ª perna, só corre quando ela falha.
+ */
+export function mapDoRegistro(arg, { root = REPO } = {}) {
+  const registro = join(root, 'scripts', 'design-sync', 'state', 'applications.json');
+  if (!existsSync(registro)) return null;
+  let apps;
+  try { apps = JSON.parse(readFileSync(registro, 'utf8'))?.applications; } catch { return null; }
+  if (!Array.isArray(apps)) return null;
+  const alvo = String(arg).replace(/\.tsx$/, '').toLowerCase();
+  for (const a of apps) {
+    const map = a?.comparison?.map;
+    if (!map || !a?.target) continue;
+    const ns = pageNamespacePath(a.target).replace(/\.tsx$/, '').toLowerCase();
+    if (ns !== alvo && !ns.endsWith('/' + alvo)) continue;
+    const abs = join(root, map);
+    if (existsSync(abs)) return abs;
+  }
+  return null;
+}
+
 // <Mod/Tela> → memory/requisitos/<Mod>/<tela>.map.json (irmão do -gap.md, mesma resolução
 // do gerar-map — 1 convenção de path, não 2); caminho direto pra .map.json também vale.
+// Falhando a convenção, cai no registro (mapDoRegistro) — ver o porquê no docblock dele.
 export function resolveMap(arg, { root = REPO } = {}) {
   if (String(arg).endsWith('.map.json')) return existsSync(arg) ? arg : (existsSync(join(root, arg)) ? join(root, arg) : null);
   const gap = resolveGap(arg);
-  if (!gap) return null;
-  const map = gap.replace(/-gap\.md$/, '.map.json');
-  return existsSync(map) ? map : null;
+  if (gap) {
+    const map = gap.replace(/-gap\.md$/, '.map.json');
+    if (existsSync(map)) return map;
+  }
+  return mapDoRegistro(arg, { root });
 }
 
 /** Portão de frescor: {fresco, indeterminado, salvo, atual}. Indeterminado NUNCA bloqueia
@@ -121,6 +166,44 @@ async function selftest() {
     const p = plano(mapa(shaOk));
     t('plano: aplicar-delta ABRIR · no-op e rejeitar pulam · vivo n/a pula', p.find((i) => i.id === 'a').abrir === true && p.find((i) => i.id === 'b').abrir === false && p.find((i) => i.id === 'c').abrir === false);
     t('plano: carrega os DOIS ranges + ancora default false', p[0].prototipo.linhas === '1-3' && p[0].vivo.linhas === '5-9' && p[0].vivo.ancora === false);
+
+    // resolveMap pelo ATALHO <Mod/Tela> — o caminho que o humano digita, e o que estava
+    // quebrado: até 2026-09-21 os 9 asserts daqui só exercitavam path DIRETO, então o
+    // selftest saía OK enquanto `consumir-map.mjs Sells/Index` saía exit 1 com o map no
+    // disco. Controle negativo primeiro: sem registro, o atalho NÃO resolve.
+    const mapRegistrado = join(root, 'memory', 'requisitos', 'ZZFake', 'fonte-com-outro-nome.map.json');
+    mkdirSync(dirname(mapRegistrado), { recursive: true });
+    writeFileSync(mapRegistrado, JSON.stringify(mapa(shaOk), null, 2));
+    t('atalho <Mod/Tela> SEM registro → não resolve (controle negativo)', resolveMap('ZZFake/Tela', { root }) === null);
+
+    const stateDir = join(root, 'scripts', 'design-sync', 'state');
+    mkdirSync(stateDir, { recursive: true });
+    writeFileSync(join(stateDir, 'applications.json'), JSON.stringify({
+      schema: 'oimpresso-design-applications/2',
+      applications: [
+        {
+          source: 'fonte-com-outro-nome.jsx',
+          target: 'resources/js/Pages/ZZFake/Tela.tsx',
+          comparison: { map: 'memory/requisitos/ZZFake/fonte-com-outro-nome.map.json' },
+        },
+        // Registro que CASA o namespace mas cujo map NÃO existe no disco. Sem esta entrada o
+        // assert de baixo era decorativo: `ZZFake/Sumiu` não casava registro nenhum, então o
+        // `null` vinha do laço esgotando e NÃO do `existsSync` — mutação que removia o
+        // `existsSync` sobrevivia ao selftest (achado do adversário, 2026-09-21; é a §5
+        // 2026-09-05: valor esperado coincidindo com o que a mutação produz).
+        {
+          source: 'map-que-sumiu-do-disco.jsx',
+          target: 'resources/js/Pages/ZZFake/Sumiu.tsx',
+          comparison: { map: 'memory/requisitos/ZZFake/ESTE-MAP-NAO-EXISTE.map.json' },
+        },
+      ],
+    }, null, 2));
+    // O map é nomeado pela FONTE e o atalho usa a TELA: só resolve consultando o registro.
+    t('atalho <Mod/Tela> COM registro → resolve pelo applications.json (o bug de 2026-09-21)',
+      resolveMap('ZZFake/Tela', { root }) === mapRegistrado);
+    // Este é o assert que o `existsSync` final sustenta — o registro CASA e o map não está lá.
+    t('registro CASA mas map ausente do disco → não inventa path', mapDoRegistro('ZZFake/Sumiu', { root }) === null);
+    t('namespace sem registro nenhum → null (laço esgota)', mapDoRegistro('ZZFake/NemRegistrado', { root }) === null);
 
     // CLI ponta-a-ponta: exit 3 no stale, 0 no fresco (o contrato que a Fase 4 scripta)
     const { spawnSync } = await import('node:child_process');
