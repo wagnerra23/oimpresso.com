@@ -113,10 +113,16 @@
 .ofx-dvi-item{ display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line-2); }
 .ofx-dvi-item:last-child{ border-bottom:0; }
 .ofx-traffic{ display:flex; gap:4px; flex:0 0 auto; }
-.ofx-tl{ width:13px; height:13px; border-radius:50%; border:1.5px solid var(--line); background:var(--card-2); cursor:pointer; transition:.12s; }
-.ofx-tl.g.on{ background:var(--good); border-color:var(--good); }
-.ofx-tl.y.on{ background:var(--warn); border-color:var(--warn); }
-.ofx-tl.r.on{ background:var(--bad); border-color:var(--bad); }
+/* O alvo é o BOTÃO; a luz é o `::before`. A pintura mora no ponto (e não no botão)
+   desde 2026-09-21: com a cor no botão, o piso de toque de 44px transformava cada
+   luz num DISCO sólido de 44 — o ponto desaparecia dentro dele. Assim o modo toque
+   mexe só na GEOMETRIA (botão 44×44, ponto 26px) e a aparência no desktop fica
+   idêntica: `::before` a 100% de um botão de 13px é o mesmo círculo de antes. */
+.ofx-tl{ width:13px; height:13px; border:0; padding:0; background:none; cursor:pointer; display:grid; place-items:center; }
+.ofx-tl::before{ content:""; width:13px; height:13px; border-radius:50%; border:1.5px solid var(--line); background:var(--card-2); transition:.12s; }
+.ofx-tl.g.on::before{ background:var(--good); border-color:var(--good); }
+.ofx-tl.y.on::before{ background:var(--warn); border-color:var(--warn); }
+.ofx-tl.r.on::before{ background:var(--bad); border-color:var(--bad); }
 .ofx-dvi-item .nm{ flex:1 1 auto; font-size:13.5px; font-weight:500; }
 .ofx-dvi-item .nm small{ display:block; font-weight:400; color:var(--muted); font-size:11.5px; }
 .ofx-photo{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; color:var(--muted);
@@ -274,9 +280,6 @@
   .ofx-grid{ padding:14px; gap:14px; }
   .ofx-hero{ flex-wrap:wrap; gap:14px; }
   .ofx-fuel{ width:auto; flex:1 1 140px; }
-  /* alvos de toque ≥44px no chão da oficina (mãos do mecânico) */
-  .ofx-tl{ width:26px; height:26px; }
-  .ofx-traffic{ gap:8px; }
   .ofx-dmg, .ofx-photo, .ofx-tab, .ofx-vsw button{ min-height:40px; }
   .ofx-back{ width:40px; height:40px; }
   .ofx-foot{ flex-wrap:wrap; gap:10px; padding:10px 14px; }
@@ -285,6 +288,37 @@
   .ofx-line{ grid-template-columns:1fr auto auto; }
   .ofx-line .ofx-qty:nth-of-type(2){ display:none; }
 }
+
+/* ════════ Alvo de toque do semáforo da vistoria (persona Técnico Repair) ════════
+   ESTENDE o eixo que o projeto já decidiu — `otimiza-ondas.css` §4:
+   `@media (pointer:coarse)` + a variante `[data-toque="tablet"]` do Tweak, ligada
+   pelo shell em `app.jsx`. NÃO usar `max-width` aqui: tablet de chão de oficina em
+   1024px landscape é coarse e NÃO é estreito — foi assim que a versão anterior
+   deste bloco (2026-09-21, keyed por largura) deixou o mecânico sem os 44.
+
+   Por que a tela precisa de regra própria: a transversal só garante o PISO do alvo
+   (44×44 no botão). O ponto tem tamanho PRÓPRIO em px nos dois modos — 13 na base,
+   26 aqui. Medido em 2026-09-21: com `width:100%` na base, o ponto virava 44 junto
+   com o botão e a luz aparecia como um disco sólido, mesmo com esta regra de 26px
+   casando o elemento. Valor fixo × valor fixo não tem esse buraco.
+   A pintura NUNCA está neste bloco — ela mora na base, no `::before`; aqui só
+   geometria. `gap:0` porque passo de 34 (26+8) faria dois alvos de 44 se
+   sobreporem, e alvo sobreposto reprova igual ao pequeno.
+
+   O desktop (13×13) NÃO muda: é o §6 da ADR UI-0032, decisão [W] em aberto.
+   Duplicado nos dois seletores porque media query não se agrupa com seletor de
+   atributo — mesma forma que o `otimiza-ondas.css` §4 já usa. */
+@media (pointer:coarse){
+  .ofx-tl{ width:44px; height:44px; }
+  .ofx-tl::before{ width:26px; height:26px; }
+  .ofx-traffic{ gap:0; }
+  /* sem isto o nome não encolhe (min-width auto do flex) e a linha estoura */
+  .ofx-dvi-item .nm{ min-width:0; }
+}
+[data-toque="tablet"] .ofx-tl{ width:44px; height:44px; }
+[data-toque="tablet"] .ofx-tl::before{ width:26px; height:26px; }
+[data-toque="tablet"] .ofx-traffic{ gap:0; }
+[data-toque="tablet"] .ofx-dvi-item .nm{ min-width:0; }
 
 /* ════════ DARK — flip da paleta local pro padrão ds-v6 (neutro 282) ════════
    A tela centraliza tudo nos tokens .ofx → um bloco resolve a tela inteira.

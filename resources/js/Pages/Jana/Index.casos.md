@@ -1726,3 +1726,68 @@ registra. A prova de que o browser computa 600 é o visreg (esta tela está em
 `governance/design/targets/jana--index.alvo.json` — ver §Resíduo no PR.
 
 **Teste:** `tests/janaAreaHeaderParidade.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
+---
+
+## UC-JPAIN-31 — a grade das análises é RÉPLICA da `.jc-grid`: 3 colunas, gap 12px, breakpoints da âncora
+
+> ⚠️ **Este UC nasceu 30 e virou 31 — 2ª colisão de id nesta tela, mesmo mecanismo do UC-JPAIN-27.**
+> Medi unicidade em `origin/main` e vi ocupados até 29; a sessão irmã do `h1` mediu no mesmo dia,
+> viu o mesmo, e abriu o [#7637](https://github.com/wagnerra23/oimpresso.com/pull/7637) com o 30
+> antes de mim. Ela ofereceu ceder; **cedi eu**, porque o PR dela já estava aberto e reverter id em
+> PR publicado custa mais que renumerar em árvore local. A nota do UC-JPAIN-27 já dizia a lição
+> com todas as letras — *"a checagem responde pelo INSTANTE, e o id só está de fato livre quando o
+> PR entra"* — e ela se confirmou **13 dias depois**, com 5 sessões na mesma tela. Não é "conferir
+> melhor": é que a conferência não pode ser conclusiva num repo com sessões paralelas.
+
+Status: 🧪 (`npx vitest run tests/janaGradeAnalisesReplica.spec.tsx` → **6 passed** jsdom local,
+2026-09-21, com mordida provada por mutação; vira ✅ quando o manifesto `casos-results` aterrissar)
+
+**Fonte:** âncora `.jc-grid` e `.jc-acoes` em `prototipo-ui/cowork/Wagner/chat-jana.css`
+§"── Análises ──" e §"── Ações sugeridas ──" — âncora de SÍMBOLO
+(`grep -n "jc-grid" prototipo-ui/cowork/Wagner/chat-jana.css`). Precedência de FORMA:
+protótipo > teste > casos > charter > SPEC
+([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)),
+sob [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1.
+
+| eixo | âncora | tela viva (antes) | agora |
+|---|---|---|---|
+| colunas (>1100px) | **3** | 2 (`lg:grid-cols-2`) | **3** (`min-[1101px]:grid-cols-3`) |
+| colunas (761–1100px) | **2** | 2 | **2** (`min-[761px]:grid-cols-2`) |
+| colunas (≤760px) | **1** | 1 | **1** (`grid-cols-1`) |
+| gap | **12px** | 16px (`gap-4`) | **12px** (`gap-3`) |
+| `.jc-acoes` padding | **0** | 24px 0 (`py-6` do `Card`) | **0** (`py-0`) |
+
+**Medido em runtime, não deduzido** (2026-09-21, Chrome, mesma janela, viewport 2560, dark nos dois
+lados, container **2237px idêntico** ⇒ a diferença não vinha de largura disponível): âncora
+`737.656px × 3` · prod `1110.5px × 2`. Aplicadas a className nova **e** as regras do CSS compilado
+ao DOM da prod, ela devolveu `737.656px 737.672px 737.672px` — o mesmo valor da âncora — e reverteu
+limpo. Canário rodado **nos dois lados** antes de concluir.
+
+**Por que `min-[761px]`/`min-[1101px]` e não `lg:`/`xl:`.** A âncora quebra em `max-width: 1100px`
+e `max-width: 760px`; `lg:` é 1024px e `xl:` é 1280px. Com `lg:` a prod parava em 2 colunas no
+monitor de **1280px** da ROTA LIVRE, onde a âncora já mostra 3 — aproximar num breakpoint É a
+divergência, não uma tradução dela. As duas regras foram **provadas no CSS compilado** (com
+controle positivo e negativo), porque classe que o Tailwind não gera é correção inerte:
+`@media (min-width:1101px){.min-\[1101px\]\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}`.
+
+⚠️ **O `gap: 24px` das Ações era o sintoma, não a causa.** Medido: o `Card` tem **UM** filho, e gap
+sem segundo filho não separa nada. Quem produzia o respiro de 24px é o `py-6` do `Card` canon
+(`ui/card.tsx:29`). A rodada de 2026-09-07 mediu certo e nomeou a propriedade inerte; zerei os dois
+porque a âncora tem os dois zerados e porque `gap: normal` em flex **é** `0px`.
+
+⚠️ **O `margin-bottom` (18px na âncora × 16px na prod) NÃO entra neste UC.** Medido: o 16px vem do
+`space-y-4` do container da página — a className da grade não declara margem —, logo rege **todas**
+as seções (KPIs, Metas, Análises, Ações). É ritmo vertical da tela, não da grade; convergir ali é
+decisão [W], não conserto de passagem.
+
+⚠️ **Consequência declarada:** com 3 colunas o card de análise cai de **1110,5px → ~737,7px**
+(−33,6% naquela viewport). O sparkline de Faturamento é `preserveAspectRatio="none"`, então a curva
+**comprime horizontalmente** (altura travada em 40px). A sessão irmã que mede os gráficos foi
+avisada **antes** de medir, para carimbar os números dela como "medidos em grade de 2 colunas".
+
+**Teste:** `tests/janaGradeAnalisesReplica.spec.tsx` (vitest/jsdom — roda local, não é lane Pest),
+6 casos: 1 de controle positivo/negativo do detector + 5 de contrato, incluindo o ramo **sem Pro**
+(onde a âncora mostra upsell e não pode haver grade). Mordida provada: restaurar `gap-4
+lg:grid-cols-2` derruba **2** asserts — um por ausência da nova, outro por presença da antiga —, e
+remover `py-0 gap-0` derruba **1**. Arquivo restaurado com **hash conferido** após a mutação
+(`96dff22f8a951e5f` antes e depois), para nenhum mutante sobreviver no diff.

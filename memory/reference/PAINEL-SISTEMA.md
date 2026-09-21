@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-20**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-21**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **11/13** métricas medidas · floor full-suite = **275**.
+- Scorecard: **11/13** métricas medidas · floor full-suite = **276**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -146,13 +146,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **412** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 362 · superseded: 25 · proposto: 12 · deprecated: 11 · rascunho: 1 · recusado: 1.
+- **414** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 363 · superseded: 25 · proposto: 13 · deprecated: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 212 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 221 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -367,6 +367,15 @@ lente: [construir]
 - ~~2026-09-18 — Alarmar/reprovar o `design-smoke-ci` quando `count=0` (o step summary JÁ diz — e `cancelled` não é `success`)~~
 - ~~2026-09-18 — Dois smokes de UI passaram medindo BYTECODE DE 10 DIAS ATRÁS (`opcache.validate_timestamps = Off`) — e o cerco de hash não pega isso~~
 - ~~2026-09-18 — A SONDA DE CONFERÊNCIA era invalidada pela própria remoção que ela deveria conferir (e circulou entre 4 sessões)~~
+- ~~2026-09-21 — EMENDA da lápide de 2026-09-18 (sonda de conferência auto-invalidada): o **irmão** do mesmo bloco `merge=union` repetiu o vetor em 2d 19h — e o conserto que ela prescreve falhou UMA vez, com o aviso 7 linhas acima da violação~~
+- ~~2026-09-18 — Rótulo de veredito que INVERTE a direção da contagem ao lado dele (e a tese que eu ia registrar junto caiu na própria medição)~~
+- ~~2026-09-18 — "Autocorreção" com sonda MAIS FROUXA que a original: ampliei o padrão pra conferir, ele casou pelo OUTRO termo, e eu retratei uma leitura que estava CERTA~~
+- ~~2026-09-21 — `grep -iF` ABORTA (SIGABRT, rc=134) neste ambiente: saída vazia que parece "não achei", e a causa que me deram estava errada~~
+- ~~2026-09-21 — RECIBO-INSTÂNCIA da emenda 2026-09-03 ("um dono não é O dono"): 3ª violação da mesma regra — o dono deste eixo estava INDEXADO, e nenhuma das duas sessões o consultou~~
+- ~~2026-09-21 — EMENDA da lápide 2026-08-19 (par de barra colapsa no transporte): o vetor foi a RESTAURAÇÃO, e o braço PHP do candidato a gate deixou de ser imensurável — está medido e CEGO~~
+- ~~2026-09-21 — EMENDA da lápide 2026-07-29 (claim de ausência no eixo ROTA): os donos de *"esta rota tem gate?"* não são os que ela lista — e a máquina que já sabia disso estava no repo, com bite-test~~
+- ~~2026-09-21 — Tirar o `/i` do detector do `rm`, e isentar `docker exec`/`ssh … rm` por PREFIXO — duas propostas minhas ao #7613, ambas refutadas por medição da autora~~
+- ~~2026-09-21 — REINCIDÊNCIA da LC-24 num 2º instrumento: o auto-canário do `memory-health` decidia com UMA amostra, e o conserto de 2026-08-13 nunca chegou nele~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -377,14 +386,14 @@ lente: [construir]
 
 ## Rastro
 
-- **540** handoffs · **758** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **547** handoffs · **760** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-21-zero-baseline-tier0`
+  - `2026-09-21-auditoria-baselines-tolerancia`
   - `2026-09-18-triagem-uc-orfaos-de-lane`
   - `2026-09-16-token-pares-revogacao`
   - `2026-09-16-session-protocolo-ultimo-importado`
   - `2026-09-16-recepcao-pacote-e-dois-universos`
-  - `2026-09-16-poda-worktrees-e-token-fora-do-disco`
-  - `2026-09-16-paridade-bundle-por-conta`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-20 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-21 · deriva das fontes canônicas, não as substitui._

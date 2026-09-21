@@ -3,6 +3,19 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-21T16:18:00Z
+tree: 19ff53c88491
+branch: main
+
+### Updated in this project
+- **Ondas 01 e 02 do playbook da Jana fecharam em código:** #7587 (gating Pro — brief/análises/ações governados por `jana.pro`) e #7591 (estado vazio de página), mergeadas em 21/09, com **UC-JPAIN-28** e **UC-JPAIN-29** citados por spec. **Não re-despachar** — eu havia lido `estado: "aberta"` do índice como pendência; esse campo é ignorado pelo consumidor (Lei 2: estado é DERIVADO).
+- 🔴 **Defeito meu, consertado: `cowork-inbox/jana/playbook/00-INDICE.md` emitia `"ondas"` com `"estado"`.** O consumidor (`scripts/qa/placar-indice.mjs`, `validarIndice()`) exige **`threads`** com **`provas`**; como ele avalia os 13 índices num `map`, o meu lançava `NaoMedi` e **derrubava a medição dos outros 12** (`rc=2`, `placar-de-lista` vermelho no `main` desde 11:09:45Z). Os outros 12 módulos já usavam `threads` — o desvio era só meu.
+- **Índice reemitido no formato do consumidor:** 2 threads (`01` · `02`), **5 provas estruturais** (`contem`), zero prova de recibo ⇒ zero `NÃO MEDIDA`. Cada padrão foi **verificado por `arquivo:linha` no `main` neste turno**: `JanaCockpit.tsx:730` · `:1089` · `:535` e `Index.casos.md:1437` · `:1549`. Descartei `pro={pro}` como prova — já existia antes das ondas (`Index.tsx:289`), ficaria verde sem entrega.
+- ⚠️ **Não escrevi `_saida-01.md`/`_saida-02.md`** (o recibo é de quem executa): sem eles o placar deriva `em curso`/`pendente`, não `feito` — fabricá-los seria escrever o dado que o medidor consome, a via recusada no §4.1 da devolutiva.
+- **Achado de [CL] anotado pro próximo ciclo:** `EmptyState` não tem `variant="first"` (só `default|search|error|success`) — a ficha 02 pediu errado, caiu no `default`.
+- ⚠️ **Ciclo fechado SEM pacote regenerado** (`cowork-inbox/jana/playbook/00-INDICE.md` · `github.md`). `node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json`. Não roda daqui (ADR 0374) — **não afirmo que regenerei**; item 9 do DoD fecha só quando alguém com os arquivos em disco rodar.
+
+## Sync anterior
 date: 2026-09-18T10:36:16Z
 tree: c89bb2abe985 (andou desde aec265b545d0 — ~24 h)
 branch: main
