@@ -134,7 +134,7 @@ function makeEditMsg(int $sessId, int $userId, string $filePath, ?\Carbon\Carbon
         'msg_type' => 'tool_use',
         'tool_name' => 'Edit',
         'content_json' => json_encode(['input' => ['file_path' => $filePath]]),
-        'ts' => ($ts ?? now())->toDateTimeString(),
+        'ts' => ($ts ?? now('UTC'))->toDateTimeString(),
         'created_at' => now(),
         'updated_at' => now(),
     ]);
@@ -218,7 +218,7 @@ it('WhatsActiveTool ignora sessão sem atividade na janela', function () {
 
     makeSession(10, $wagner->id, 'D:\\oimpresso.com', 'main');
     // Mensagem velha (3h atrás) — fora da janela default 2h
-    makeEditMsg(10, $wagner->id, 'D:\\oimpresso.com\\app\\User.php', now()->subHours(3));
+    makeEditMsg(10, $wagner->id, 'D:\\oimpresso.com\\app\\User.php', now('UTC')->subHours(3));
 
     OimpressoMcpServer::actingAs($wagner)
         ->tool(WhatsActiveTool::class)
@@ -230,7 +230,7 @@ it('WhatsActiveTool aceita parâmetro hours pra ampliar janela', function () {
     $wagner = makeUser();
 
     makeSession(10, $wagner->id, 'D:\\oimpresso.com', 'main');
-    makeEditMsg(10, $wagner->id, 'D:\\oimpresso.com\\app\\User.php', now()->subHours(5));
+    makeEditMsg(10, $wagner->id, 'D:\\oimpresso.com\\app\\User.php', now('UTC')->subHours(5));
 
     OimpressoMcpServer::actingAs($wagner)
         ->tool(WhatsActiveTool::class, ['hours' => 12])
