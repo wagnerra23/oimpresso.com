@@ -56,41 +56,6 @@ export interface PageHeaderProps {
    * canon; em vez de hand-rolar um header fora do padrão, o slot entra aqui.
    */
   leading?: React.ReactNode;
-  /**
-   * OPT-IN (2026-09-21): peso do `<h1>`. Default `'bold'` (700) — as 41 telas que
-   * não declaram renderizam exatamente como antes, mesmo contrato dos opt-in
-   * `leading` e `below` acima.
-   *
-   * POR QUE existe, e por que NÃO virou mudança do default: as duas âncoras
-   * DISCORDAM entre si, e este componente só pode servir uma delas.
-   *
-   *   - Vendas (`vendas-page.jsx` §`.os-head-l h1`) declara **700** em duas
-   *     regras, e a que vence por especificidade é a de `financeiro.css:1727`
-   *     (`.vendas-aplus .vd-head-clean .os-head-l h1`, 0-3-1, contra 0-1-1 de
-   *     `styles.css:4772`). O comentário de `styles.css:4765` diz, textual,
-   *     "mesmo CANON do PageHeader" — o protótipo foi escrito PARA casar com
-   *     este arquivo. Medido em 2026-09-21, no espelho fresco (`ancora.mjs`
-   *     verificou o Cowork vivo às 10:43Z do mesmo dia).
-   *   - Jana (`jana-merge.jsx` → `CliPageHead`) NÃO declara peso e herda o token
-   *     do DS: `colors_and_type.css:373` `h1 { font-weight: 600 }`, `--fs-7: 22px`
-   *     (`:148`). Passou a herdar no #7224 (2026-09-11), que fez o `JanaHeader`
-   *     delegar ao `CliPageHead`; a regra `.jc-id h1` de 19px/700 que valia antes
-   *     ficou órfã no arquivo (0 nós no DOM).
-   *
-   * O 700 do default é decisão [W] DATADA E AINDA VÁLIDA — PR #1477 (2026-05-25),
-   * textual: *"prefiro o mesmo peso do sells, pode criar v3.2"*, com `/sells` do
-   * Cowork como referência. A referência foi re-medida hoje e **continua 700**,
-   * então a premissa não caducou (diferente do 19px da Jana, que caducou).
-   * Mudar o default alinharia as 42 telas ao peso que a Jana quer e REVERTERIA
-   * essa decisão — é a forma de uma tela se impondo às outras, que a
-   * `Index.casos.md:976` já barrou para as abas ("componente compartilhado não
-   * impõe a forma de uma tela às outras: o caminho é réplica local", ADR 0388
-   * §D-1, como o `JanaKpiCard` fez).
-   *
-   * Portanto: quem tem âncora que herda o token do DS passa `'semibold'`; quem
-   * segue a âncora de Vendas não passa nada. Sem opt-in, zero pixel muda.
-   */
-  titleWeight?: 'bold' | 'semibold';
   /** Título principal · entidade da página. Ex: "Clientes", "Cobrança". */
   title: string;
   /** Sufixo cinza após o título · contexto. Ex: " · Boletos e PIX". Opcional. */
@@ -132,7 +97,6 @@ export function PageHeader({
   below,
   children,
   className = '',
-  titleWeight = 'bold',
 }: PageHeaderProps) {
   return (
     <header
@@ -144,12 +108,7 @@ export function PageHeader({
         {/* ZONA L · identidade */}
         <div className="flex-1 min-w-0">
           <h1
-            /* As duas classes ficam LITERAIS no fonte de propósito: o Tailwind
-               detecta por varredura de texto, e `font-${titleWeight}` montado por
-               interpolação não geraria nenhuma das duas no CSS final. */
-            className={`text-[22px] ${
-              titleWeight === 'semibold' ? 'font-semibold' : 'font-bold'
-            } tracking-tight text-foreground leading-snug`}
+            className="text-[22px] font-bold tracking-tight text-foreground leading-snug"
             /* Cor pelo token do DS (`--text`), não pelo `--foreground` do shadcn.
                MEDIDO em prod (/ia, dark, computed style) antes da mudança:
                  h1  → oklch(0.965 0.004 240)   ← shadcn, branco FRIO
