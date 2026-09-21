@@ -40,14 +40,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  # CADENCIA DO LOTE DE PARIDADE (2026-09-18, decisao [W] "ligue" -> ADR 0408, que emenda a
-  # 0290). Semanal, nao nightly: o universo do lote sao as `anchored` do application-report,
-  # e elas mudam por TRABALHO humano (aplicar tela, mover pra compared), nao por relogio.
-  # Medido no dia: 23 telas executaveis de 68 `anchored` — o job nao cresce sozinho.
-  # Segunda 04:40 UTC (01:40 BRT) pra nao colidir com os crons de segunda ja existentes
-  # (anchor-drift 06:00 · charter-us-gate 06:00 · baseline-folga 06:17 · devcontainer 07:45).
-  schedule:
-    - cron: "40 4 * * 1"
 
 concurrency:
   # ISOLADO POR EVENTO+REF desde 2026-09-21. Era `design-smoke-ci` global com
@@ -72,10 +64,7 @@ jobs:
     # tambem o lote de paridade (~20min sobre o boot + smoke), e 30 nao cabe: medido em
     # 2026-09-18, sao 23 telas executaveis x 2 renders cada. Teto, nao custo — o job segue
     # terminando quando termina. Mesmo padrao condicional do visual-regression.yml:83.
-    # dispatch entra junto com schedule: e por ele que o lote e exercitado antes de entrar na
-    # cadencia. Com 30 o JOB matava o step de 45 no meio — run 35596450412 cancelada as
-    # 12:23:39, exatamente 30min apos 11:53:24. Teto de job tem que ser >= teto de step.
-    timeout-minutes: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 60 || 30 }}
+    timeout-minutes: 30
 
     services:
       mysql:
@@ -289,145 +278,17 @@ jobs:
             echo "Design Smoke CI: ${{ steps.manifest.outputs.smokes }} tela(s) fotografadas."
           fi
 
-      # ── LOTE DE PARIDADE prototipo x vivo (ADR 0408) ───────────────────────────────────
-      # SERVIDOR: FrankenPHP, por decisao [W] em 2026-09-21 ("troca o servidor") apos 7 runs.
-      # E o runtime canonico do projeto (ADR 0058, CT 100) — nao e tecnologia nova aqui.
+      # ── LOTE DE PARIDADE: MEDE NO CT 100, NAO AQUI (ADR 0408) ─────────────────────────
+      # Esteve aqui entre 2026-09-18 e 2026-09-21 e NUNCA mediu: 8 runs, sempre 23 ERRO/23.
+      # A causa raiz nao era servidor (tentei `artisan serve` cru, `--no-reload`+WORKERS=8,
+      # o servidor do Pest e FrankenPHP standalone) — era o `APP_URL=http://localhost` do
+      # .env deste workflow, SEM porta: o redirect do `/_visreg-login` apontava pra
+      # `localhost:80`, onde nada escuta. Diagnostico final: `HTTP 302000` (`-L` juntando
+      # `302`+`000`) e `exit 7` do curl, na run 35609709843.
       #
-      # HISTORICO DO TRANSPORTE — a lista existe pra ninguem refazer o caminho:
-      #  1. `artisan serve` cru ............... 23 ERRO/23 `ERR_CONNECTION_REFUSED`
-      #     (runs 35590027120 · 35590936821), servidor VIVO e respondendo no log.
-      #  2. + `--no-reload` + WORKERS=8 ....... idem (35592105902). O `--no-reload` PEGOU
-      #     (o WARN sumiu do log) e mesmo assim.
-      #  3. servidor do PEST (amphp) .......... 23/23, erro MUDOU pra `Timeout` (35594386353).
-      #     O Amp roda no MESMO processo PHP; enquanto `Process::run()` bloqueia esperando o
-      #     node, o event loop nao gira. Limite ESTRUTURAL, nao bug.
-      #  4. `serve` + canario ................. canario passou `0 falha(s) em 6` e o lote deu
-      #     23 ERRO assim mesmo (35599684015). Isso REFUTOU a hipotese: o canario batia em
-      #     `/login` (leve, sem auth, sem bundle), nao no caminho real da tela
-      #     (`/_visreg-login` -> 302 -> rota pesada -> assets em PARALELO).
-      #
-      # DUAS SONDAS MINHAS ESTAVAM ERRADAS, e por isso o diagnostico demorou:
-      #   · `pgrep -fc 'artisan serve'` conta o processo PAI — os workers do `php -S` sao
-      #     FORKS dele e nao casam esse padrao. O "processos servindo: 1" nunca provou que os
-      #     workers falharam. Agora conta descendentes do PID real.
-      #   · o canario batia na rota ERRADA. Agora bate em `/_visreg-login/1?to=/`, que e o
-      #     caminho que as telas de fato percorrem (login + redirect + render).
-      #
-      # ADVISORY: `continue-on-error` + este workflow nunca roda em `pull_request`.
-      - name: Lote de paridade — mede prototipo x vivo (FrankenPHP · ADVISORY)
-        if: >-
-          steps.select.outputs.count != '0' &&
-          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        id: lote
-        continue-on-error: true
-        timeout-minutes: 45
-        run: |
-          set -o pipefail
-
-          # FrankenPHP standalone. Binario estatico: nao mexe no PHP do runner nem no
-          # `setup-php` que os steps acima usam.
-          curl -fsSL -o /tmp/frankenphp \
-            https://github.com/php/frankenphp/releases/latest/download/frankenphp-linux-x86_64
-          chmod +x /tmp/frankenphp
-
-          # GATE DE EXTENSAO, antes de qualquer coisa: o FrankenPHP embute o PROPRIO PHP, e se
-          # faltar `pdo_mysql` o app sobe e morre em toda query — o que apareceria como tela
-          # quebrada, nao como servidor errado. O workflow declara mbstring/dom/fileinfo/
-          # pdo_mysql/gd no setup-php; aqui cobramos as que o render precisa.
-          FALTA=""
-          for ext in pdo_mysql mbstring dom fileinfo; do
-            /tmp/frankenphp php-cli -r "exit(extension_loaded('$ext') ? 0 : 1);" || FALTA="$FALTA $ext"
-          done
-          if [ -n "$FALTA" ]; then
-            echo "::error title=Lote de paridade::FrankenPHP sem extensao(oes):$FALTA — o app subiria e morreria em query. Nada foi medido."
-            /tmp/frankenphp php-cli -m | head -40
-            exit 1
-          fi
-          echo "FrankenPHP: $(/tmp/frankenphp version 2>&1 | head -1)"
-
-          /tmp/frankenphp php-server --root public/ --listen 127.0.0.1:8000 \
-            > /tmp/lote-serve.log 2>&1 &
-          SERVE_PID=$!
-          for i in $(seq 1 30); do
-            curl -sf -o /dev/null http://127.0.0.1:8000/login && break
-            sleep 2
-          done
-          kill -0 "$SERVE_PID" 2>/dev/null || {
-            echo "::error title=Lote de paridade::FrankenPHP MORREU — nada foi medido"
-            cat /tmp/lote-serve.log; exit 1
-          }
-
-          # SONDA DE PROCESSOS — conta DESCENDENTES do PID, nao o pai. A versao anterior
-          # (`pgrep -fc 'artisan serve'`) media o processo errado e reportou "1" o tempo todo.
-          echo "servidor: PID $SERVE_PID · descendentes: $(pgrep -P "$SERVE_PID" 2>/dev/null | wc -l)"
-
-          # CANARIO NO CAMINHO REAL. A versao anterior batia em `/login` e passava `0/6`
-          # enquanto as telas davam 23 ERRO — media a rota errada. Aqui o alvo e o MESMO
-          # que o lote usa: auth-bridge + redirect + render. 6 simultaneos.
-          # `VAR=$((VAR+1))` dentro de `&` roda em SUBSHELL e NAO propaga (provado local:
-          # 3 falhas garantidas deixavam 0), por isso o exit vem de `wait "$pid"`.
-          # CONTROLE SEQUENCIAL PRIMEIRO — 1 request sozinho. Sem ele o canario nao
-          # distingue ROTA QUEBRADA de SERVIDOR SATURADO, e foi isso que aconteceu na run
-          # 35609115465: 6/6 falharam com o FrankenPHP reportando `num_threads: 8`, o que
-          # nao e assinatura de saturacao — e de caminho que nao responde. `-f` tambem
-          # engole o status, entao aqui o codigo HTTP e IMPRESSO antes de qualquer veredito.
-          ALVO="http://127.0.0.1:8000/_visreg-login/1?to=%2F"
-          SOLO=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 -L "$ALVO" || echo 000)
-          echo "controle sequencial (1 request): HTTP $SOLO"
-          if [ "$SOLO" != "200" ]; then
-            echo "::error title=Lote de paridade::o caminho do lote nao responde NEM sozinho (HTTP $SOLO) — isto NAO e concorrencia. Ver o boot do app (rota env-guarded? PHP 8.5 do FrankenPHP x 8.4 do projeto?)."
-            echo "--- corpo da resposta (primeiras linhas) ---"
-            curl -s --max-time 30 -L "$ALVO" | head -25
-            cat /tmp/lote-serve.log; exit 1
-          fi
-          # So AGORA a pergunta de concorrencia faz sentido: o caminho responde sozinho.
-          PIDS=""
-          for i in $(seq 1 6); do
-            curl -sf -o /dev/null --max-time 30 -L "$ALVO" &
-            PIDS="$PIDS $!"
-          done
-          FALHAS=0
-          for pid in $PIDS; do wait "$pid" || FALHAS=$((FALHAS+1)); done
-          echo "canario (caminho real): $FALHAS falha(s) em 6 simultaneos — sequencial ja deu 200"
-          if [ "$FALHAS" -gt 0 ]; then
-            echo "::error title=Lote de paridade::caminho responde sozinho mas cai com $FALHAS/6 em paralelo — AI sim e concorrencia."
-            cat /tmp/lote-serve.log; exit 1
-          fi
-
-          node scripts/design/design-diff-lote.mjs --base-url http://127.0.0.1:8000 2>&1 | tee /tmp/lote.log
-          RC=${PIPESTATUS[0]}
-          kill -0 "$SERVE_PID" 2>/dev/null || {
-            echo "::error title=Lote de paridade::o servidor caiu DURANTE a medicao — os ERRO sao de conexao, nao de fidelidade"
-            cat /tmp/lote-serve.log; exit 1
-          }
-          exit "$RC"
-
-      - name: Resumo do lote (denominador + causa) no step summary
-        if: >-
-          always() && steps.lote.conclusion != 'skipped' &&
-          steps.select.outputs.count != '0' &&
-          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        env:
-          # Sem isto o script leria o RESUMO.md VERSIONADO e publicaria a rodada anterior
-          # como se fosse esta. Com isto, ele declara "NAO MEDI" e nao imprime numero nenhum.
-          LOTE_OUTCOME: ${{ steps.lote.outcome }}
-        run: node scripts/design/lote-resumo-ci.mjs --check >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload das medidas do lote (dado bruto · NAO commitado)
-        if: >-
-          always() && steps.lote.conclusion != 'skipped' &&
-          steps.select.outputs.count != '0' &&
-          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        # Artifact e NAO commit: baseline congelada esta vetada por [W] ("a baseline tem que
-        # sumir, isso ja deu muito erro") e o §5 tem 3 lapides de rebake que nao fecha
-        # (2026-08-24 · 2026-08-26 · 2026-09-02). Comparar duas rodadas = rodar o MESMO
-        # comando em dois SHAs, nunca diffar contra artefato guardado.
-        uses: actions/upload-artifact@v4
-        with:
-          name: paridade-lote-${{ github.run_id }}
-          path: |
-            governance/design/targets/medidas/**
-            /tmp/lote.log
-            /tmp/lote-serve.log
-          if-no-files-found: ignore
-          retention-days: 30
+      # Mudou pro CT 100 por decisao [W] 2026-09-21 ("tem maquina para isso"). La o staging
+      # tem APP_URL real, PHP 8.4 (nao o 8.5 do FrankenPHP standalone) e a maquina tem 16
+      # cores / 32 GB — medido. Aqui a conta e `User` em repo publico com 0 self-hosted:
+      # larger runner nao existe. Dono: `scripts/tests/ct100-paridade-lote.sh` (cron semanal,
+      # seg 04:40) + selftest em governance-script-tests.yml.
+      # NAO re-hospedar aqui sem resolver o APP_URL — e sem ler este comentario.
