@@ -49,11 +49,18 @@ TRACK_BRANCH="${STAGING_TRACK_BRANCH:-main}"
 MCP_CONTAINER="${MCP_CONTAINER:-oimpresso-mcp}"
 ESCALATE="${STAGING_FRESHNESS_ESCALATE:-1}"
 # Idade máxima tolerada do MAIN_SHA_FILE antes de ele ser tratado como PODRE e descartado.
-# Derivada da cadência do PRODUTOR (systemd `oimpresso-git-sync.timer`, /5min) — 72x a
-# cadência: generoso o bastante pra absorver atraso do timer, apertado pra pegar morte
-# real. NÃO troque por um número desligado dessa cadência (§5 2026-08-27: janela de
-# tolerância maior que a taxa de mudança do objeto = verde por construção).
-MAIN_SHA_MAX_AGE_S="${STAGING_MAIN_SHA_MAX_AGE_S:-21600}"   # 6h
+# Derivada da cadência REAL do PRODUTOR (systemd `oimpresso-git-sync.timer`), que é de
+# **6h** — `OnCalendar=00/6:00:00`, ver docker/oimpresso-mcp/systemd/README.md.
+# 7h = 6h de cadência + 1h de folga, que cobre com sobra o run mais longo observado
+# (10min25s). A folga é obrigatória: teto IGUAL à cadência descartaria a referência
+# VÁLIDA no fim de cada janela, porque o arquivo chega a ter ~6h logo antes do disparo
+# seguinte.
+# ⚠️ A 1ª versão desta constante fixou 6h derivando dos "/5min" que a DOC declarava
+# (5min x 72), não da cadência MEDIDA. Derivar do doc em vez da medição é a mesma classe
+# que este script foi escrito pra evitar. Se a cadência mudar, este número muda junto.
+# NÃO troque por número desligado dela (§5 2026-08-27: janela maior que a taxa de
+# mudança do objeto = verde por construção).
+MAIN_SHA_MAX_AGE_S="${STAGING_MAIN_SHA_MAX_AGE_S:-25200}"   # 6h
 
 log() { echo "[$(date -Is)] [staging-freshness] $*"; }
 
@@ -123,12 +130,12 @@ if [ "${1:-}" = "--selftest" ]; then
   check "$(avaliar_frescor '' bbbb222 0 3)"             "indeterminado:sem-head" "sem head = indeterminado"
   check "$(avaliar_frescor aaaa111 '' 0 3)"             "indeterminado:sem-main" "sem main = indeterminado"
   # referencia_confiavel — o eixo que faltava (regressão medida em 2026-09-21)
-  check "$(referencia_confiavel 60 21600)"      "usar"                          "arquivo de 1min = usar"
-  check "$(referencia_confiavel 21600 21600)"   "usar"                          "exatamente no limite = usar (nao-estrito)"
-  check "$(referencia_confiavel 21601 21600)"   "descartar:stale:21601s>21600s" "1s alem do limite = descartar (MORDE na borda)"
-  check "$(referencia_confiavel 3369600 21600)" "descartar:stale:3369600s>21600s" "arquivo de 39d = descartar (o caso real medido)"
-  check "$(referencia_confiavel '' 21600)"      "descartar:arquivo-ausente"     "arquivo ausente = descartar"
-  check "$(referencia_confiavel abc 21600)"     "descartar:idade-ilegivel"      "idade ilegivel = descartar (nunca 'usar' por acidente)"
+  check "$(referencia_confiavel 60 25200)"      "usar"                          "arquivo de 1min = usar"
+  check "$(referencia_confiavel 25200 25200)"   "usar"                          "exatamente no limite = usar (nao-estrito)"
+  check "$(referencia_confiavel 25201 25200)"   "descartar:stale:25201s>25200s" "1s alem do limite = descartar (MORDE na borda)"
+  check "$(referencia_confiavel 3369600 25200)" "descartar:stale:3369600s>25200s" "arquivo de 39d = descartar (o caso real medido)"
+  check "$(referencia_confiavel '' 25200)"      "descartar:arquivo-ausente"     "arquivo ausente = descartar"
+  check "$(referencia_confiavel abc 25200)"     "descartar:idade-ilegivel"      "idade ilegivel = descartar (nunca 'usar' por acidente)"
   # CONTROLE NEGATIVO ponta-a-ponta: com a referencia PODRE o veredito 'fresco' e
   # inalcancavel para o MESMO head; com a referencia VIVA ele volta a ser alcancavel.
   check "$(avaliar_frescor e57b78bf5 0404b631aa39 0 3)" "atras-recente:0d" "referencia PODRE: 'fresco' inalcancavel (o bug)"
@@ -140,7 +147,7 @@ fi
 head_sha="$(git -C "$STAGING_DIR" rev-parse HEAD 2>/dev/null || true)"
 branch="$(git -C "$STAGING_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
 
-# A referência de main tem DUAS portas: o arquivo que o produtor grava (/5min) e o
+# A referência de main tem DUAS portas: o arquivo que o produtor grava (a cada 6h) e o
 # remoto. O arquivo só vale enquanto for FRESCO — ver `referencia_confiavel` acima.
 main_sha=""
 main_src="nenhuma"

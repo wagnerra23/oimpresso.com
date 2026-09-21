@@ -211,6 +211,51 @@ timer morra de novo** — e o `main_src` no status JSON diz de qual porta veio a
 referência. O buraco a montante (o `DeployDriftChecker` da ADR 0216 lê o **mesmo**
 arquivo e não tem essa guarda) segue **aberto e declarado**, fora do escopo daquele PR.
 
+### Desfecho 2026-09-21 — o timer foi consertado na CLASSE, e a unit virou versionada
+
+**O que mudou.** `OnBootSec=2min` + `OnUnitActiveSec=5min` (mais o `override.conf` que trocava os
+5min por 6h) → **`OnCalendar=00/6:00:00` + `Persistent=true`**. Os dois anteriores são
+**monotônicos** e ancoram na última ativação do serviço; `OnCalendar` é relógio de parede, rearma
+por si e não depende de ancoragem nem do uptime — por isso vale **qualquer que tenha sido** a
+causa do não-disparo, que continua não isolada.
+
+**A unit agora é VERSIONADA** em [`docker/oimpresso-mcp/systemd/`](../../../docker/oimpresso-mcp/systemd/),
+com receita de aplicação, seção de verificação e histórico. Fecha o **DR-06** desta auditoria de
+ops. O host recebe cópia; conferido byte-a-byte por `sha256` (repo == host).
+
+**O `override.conf` foi NEUTRALIZADO, não apagado** — o conteúdo saiu, o arquivo ficou explicando
+o que vivia ali e por quê. Apagar esconderia a história, e o hook `block-destructive` barra
+remoção de config em prod, corretamente.
+
+**Consequência medida logo após aplicar** (o campo *Realtime*, que num timer monotônico vinha
+vazio por construção, agora está preenchido — é a assinatura de que virou relógio):
+
+| medida | antes | depois |
+|---|---|---|
+| `NextElapseUSecRealtime` | *(vazio)* | `Mon 2026-09-21 12:00:00 -03` |
+| `Persistent` | — | `yes` |
+| `list-timers` NEXT / LEFT | `-` / `-` | `12:00:00` / `29min left` |
+| diretivas efetivas | `OnBootSec` + `OnUnitActiveSec` | só `OnCalendar` + `Persistent` |
+
+⚠️ **A CADÊNCIA DE 6h FOI MANTIDA DE PROPÓSITO, e o pendente de voltar à curta NÃO foi cumprido.**
+O [handoff de 2026-08-12](../../handoffs/2026-08-12-1026-extensao-mcp-loop-sync-git-sha.md) deixou
+escrito *"voltar o timer de 6h pra cadência curta — 6h é contenção, não cura"*. **Metade da cura
+chegou:** o churn de CPU que motivou a contenção **acabou** (meilisearch medido hoje em **0,13%**,
+contra os 100,3% do #5663). **A outra metade não:** o run de hoje 09:37 morreu com `status=137`
+(SIGKILL/OOM) aos **10min25s** — o `mcp:sync-memory` não completa. Encurtar agora trocaria churn
+de CPU por churn de OOM. **Reabrir exige um run com `Result=success`**, e o OOM do sync é achado
+novo, fora do escopo deste conserto.
+
+**Backup, para reverter:** `/root/ct100-backups/timer-pre-oncalendar-20260921/` (`timer.bak`,
+`override.conf.bak`, `service.bak`) — restaurar, `daemon-reload`, `restart`.
+
+**O consumidor foi realinhado junto.** O `STAGING_MAIN_SHA_MAX_AGE_S` do
+[`staging-freshness-sentinel.sh`](../../../docker/oimpresso-staging/staging-freshness-sentinel.sh)
+era 6h, derivado dos *"/5min"* que a **doc** declarava (5min × 72) em vez da cadência **medida**.
+Com produtor de 6h, teto igual à cadência descartaria a referência **válida** no fim de cada
+janela. Agora é **7h** = 6h + 1h de folga, e o E2E prova os dois lados: arquivo de 6h →
+`main_src=arquivo`; de 39d → `main_src=ls-remote`.
+
 ## Histórico
 
 - **2026-05-12 14:08 BRT:** último sync OK (gerado por trigger desconhecido — provavelmente webhook que funcionou)
