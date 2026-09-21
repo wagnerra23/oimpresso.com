@@ -9,7 +9,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { matchDestructive, normalizeCmd, statements, alvosRmRf, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete, ehStatementInerte } from './block-destructive.mjs';
+import { matchDestructive, normalizeCmd, statements, alvosRmRf, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete, ehStatementInerte, ehToolRm } from './block-destructive.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'block-destructive.mjs');
 let fails = 0;
@@ -19,7 +19,13 @@ const check = (name, cond) => { console.log((cond ? '[OK]   ' : '[FAIL] ') + nam
 const BLOCK = [
   ['rm -rf em path de trabalho', 'rm -rf src/'],
   ['rm -rf no meio de pipeline (;)', 'cd x; rm -rf Modules/'],
-  ['RM -RF maiúsculo (PS -match era case-insensitive)', 'RM -RF app/'],
+  // ⚠️ Este NÃO é herança decorativa do porte .ps1. MEDIDO no Git Bash/Windows
+  // (NTFS case-insensitive) em 2026-09-21: `command -v RM` → /usr/bin/RM e
+  // `RM --version` → "rm (GNU coreutils) 8.32". `RM -RF app/` APAGA aqui.
+  // Quem propuser tirar o `/i` do detector alegando "POSIX é case-sensitive":
+  // a premissa vale em Linux/macOS e não vale nesta plataforma. Rode os dois
+  // comandos acima antes.
+  ['RM -RF maiúsculo (executa mesmo — NTFS é case-insensitive)', 'RM -RF app/'],
   ['git push --force', 'git push --force origin main'],
   ['git push -f', 'git push -f'],
   ['git push --force-with-lease (exige confirmação Wagner)', 'git push origin main --force-with-lease'],
@@ -240,14 +246,47 @@ check('CN rm: FECHA falso-negativo — 1º rm whitelisted não cobre o 2º perig
   matchDestructive('rm -rf /tmp/a && rm -rf src/')?.key === 'rm-rf-perigoso');
 check('CN rm: idem com o perigoso em outra linha',
   matchDestructive('rm -rf node_modules\nrm -rf /etc')?.key === 'rm-rf-perigoso');
-check('CN rm: whitelist exige o rm no INÍCIO do statement (sudo não é isento)',
-  matchDestructive('sudo rm -rf vendor')?.key === 'rm-rf-perigoso');
+// ── §POSIÇÃO (2026-09-21): a isenção deixa de exigir `rm` no 1º token ───────
+// Era: `sudo rm -rf vendor` BLOQUEAVA, embora `vendor` esteja na whitelist e
+// `rm -rf vendor` passe. O motivo era só a âncora `^rm` do extrator. Medido no
+// corpus: 5 comandos com TODOS os alvos já whitelisted bloqueavam por isso,
+// todos `docker exec … rm /tmp/*.php` — trabalho normal de sonda no CT 100.
+// Isto NÃO afrouxa o que importa: o veredito continua vindo de alvoIsento()
+// sobre CADA alvo (os 4 CN abaixo), e a vacuidade do xargs segue fechada.
+check('POSIÇÃO: `sudo rm -rf vendor` isenta — o alvo é que decide, não a posição',
+  matchDestructive('sudo rm -rf vendor') === null);
+check('POSIÇÃO: `docker exec c rm /tmp/x.php` isenta (o caso real do corpus)',
+  matchDestructive('docker exec c rm /tmp/x.php') === null);
+check('POSIÇÃO: `timeout 200 rm /tmp/x` isenta',
+  matchDestructive('timeout 200 rm /tmp/x') === null);
+check('CN POSIÇÃO: prefixo NÃO isenta alvo de fora (`sudo rm /etc/passwd`)',
+  matchDestructive('sudo rm /etc/passwd')?.key === 'rm-rf-perigoso');
+check('CN POSIÇÃO: idem em container (`docker exec c rm /etc/passwd`)',
+  matchDestructive('docker exec c rm /etc/passwd')?.key === 'rm-rf-perigoso');
+check('CN POSIÇÃO: multi-arg com 1 alvo de fora segue bloqueando mesmo com prefixo',
+  matchDestructive('docker exec c rm /tmp/a src/b')?.key === 'rm-rf-perigoso');
+check('CN POSIÇÃO: `ssh host rm -rf /var/www` NÃO é isento — alvo remoto é alvo',
+  matchDestructive('ssh prod rm -rf /var/www')?.key === 'rm-rf-perigoso');
 check('CN rm: statement terminando nas flags (xargs) segue bloqueando — sem `$` viraria falso-NEGATIVO',
   matchDestructive('xargs -a lista.txt rm -rf')?.key === 'rm-rf-perigoso');
 check('CN rm: `xargs ... rm -f` no fim do statement segue bloqueando (comportamento de hoje preservado)',
   matchDestructive('cd /x\nxargs -a /tmp/l.txt -r rm -f\necho fim')?.key === 'rm-rf-perigoso');
-check('CN rm: `rm -rf` dentro de padrão de grep NÃO bloqueia (o `|` é alternação)',
-  matchDestructive('git show HEAD:x.mjs | grep -nE "design|rm -rf|wipe" | head -5') === null);
+// ⚠️ REGRESSÃO CONHECIDA E MEDIDA, assumida ao fechar o `rm` sem flag ([W]
+// 2026-09-21). Até então este caso PASSAVA: com o detector exigindo `-[rRf]+`,
+// o `rm -rf|` dentro do padrão não casava (o `|` não é `\s` nem fim). Sem a
+// exigência de flag, `|rm ` casa — o `|` está em `[\s;&|]`.
+// O FP é ESTREITO, e isso foi medido antes de aceitar: só atinge o `rm` logo
+// após `|` ou como token solto. Seguem PASSANDO (medidos):
+//     grep -n "rm " arquivo          · grep -rn "rm -rf" scripts/
+//     echo "use rm pra limpar"       · git log | grep "rm"
+// Custo no corpus: classe C = 53 de 563 comandos que passam a bloquear (9,4%).
+// Caminho pra quem esbarrar: passar o padrão por arquivo/variável, que é o
+// mesmo remédio do FP de prosa em `git commit -F` documentado no §MULTI-ARG.
+check('CN rm: `rm` após `|` num padrão de grep BLOQUEIA (regressão aceita do rm-sem-flag)',
+  matchDestructive('git show HEAD:x.mjs | grep -nE "design|rm -rf|wipe" | head -5')?.key === 'rm-rf-perigoso');
+check('CN rm: o FP é ESTREITO — `rm` dentro de aspas sem `|` antes segue passando',
+  matchDestructive('grep -n "rm " .claude/hooks/block-destructive.mjs') === null
+  && matchDestructive('grep -rn "rm -rf" scripts/') === null);
 check('E2E rm: cd + whitelist → exit 0', runHook(j('cd /repo && rm -rf node_modules')) === 0);
 check('E2E rm: cd + alvo fora da whitelist → exit 2', runHook(j('cd /repo && rm -rf src/')) === 2);
 
@@ -323,6 +362,46 @@ check('E2E FLAG-SET: `rm -fr /tmp/x` (ordem invertida) isento → exit 0',
   runHook(j('rm -fr /tmp/x')) === 0);
 check('E2E FLAG-SET: `rm -f /etc/passwd` → exit 2 (proteção real intacta)',
   runHook(j('rm -f /etc/passwd')) === 2);
+
+// ── §ESCOPO rm(1): a categoria deixa de exigir FLAG ([W] 2026-09-21) ────────
+// Único ponto do arquivo onde uma mudança ADICIONA bloqueio. Medido antes:
+// 561 distintos / 563 ocorrências passam a bloquear, 89,9% deles rm(1) real.
+check('ESCOPO: `rm arquivo.txt` sem flag BLOQUEIA (era invisível até 2026-09-21)',
+  bloqueia('rm arquivo.txt'));
+check('ESCOPO: `rm /etc/passwd` sem flag BLOQUEIA',
+  bloqueia('rm /etc/passwd'));
+check('ESCOPO: `cd x && rm y.txt` — vale por statement, não só no início',
+  bloqueia('cd x && rm y.txt'));
+check('ESCOPO: alvo isento segue passando sem flag (`rm /tmp/x`)',
+  isento('rm /tmp/x'));
+// ── ehToolRm: `<tool> rm` NÃO é rm(1). Sem isto, 183 `git rm` no corpus. ────
+check('TOOL-RM: `git rm` não é rm(1) — passa',
+  isento('git rm arquivo.txt') && isento('git rm -q x.php'));
+check('TOOL-RM: `git rm -r dir/` passa — corrige FP PRÉ-EXISTENTE (18 no corpus)',
+  isento('git rm -r dir/'));
+check('TOOL-RM: docker/svn/hg/kubectl rm também',
+  isento('docker rm cont') && isento('docker rm -f cont')
+  && isento('svn rm x') && isento('kubectl rm pod'));
+check('CN TOOL-RM: o rm(1) DEPOIS de um tool-rm no mesmo statement ainda conta',
+  bloqueia('git status && rm src/x.php'));
+check('CN ESCOPO: `rm` dentro de outra palavra não casa (npm, charm, term)',
+  isento('npm run build') && isento('charm x') && isento('term rm-less'));
+check('ehToolRm isolado: reconhece o tool, não a palavra solta',
+  ehToolRm('git rm x') === true && ehToolRm('rm x') === false
+  && ehToolRm('docker rm c') === true && ehToolRm('gitrm x') === false);
+
+// ── FP CONHECIDO E ACEITO do `/i` no detector (2026-09-21) ─────────────────
+// O idioma `const RM = 'r' + 'm'` — que as sessões usam para escrever SOBRE o
+// hook sem disparar o hook — é acusado, porque `RM` entre espaços casa sob
+// `/i`. Medido: 4 de 559 (0,7%), concentrado em quem mexe neste arquivo.
+// Fica ASSERTADO de propósito: é custo declarado, não surpresa. O remédio NÃO
+// é tirar o `/i` (ver o comentário do assert 'RM -RF maiúsculo' acima —
+// `RM` executa de verdade no Git Bash/Windows); é escrever o identificador de
+// outro jeito, ex. `const R_M` ou montar por charCode.
+check('FP aceito: o idioma `const RM = ...` dispara o detector (custo do /i)',
+  matchDestructive(`node -e "const RM = 'r' + 'm'; console.log(RM)"`)?.key === 'rm-rf-perigoso');
+check('CN do FP: `RM` COLADO noutro token não dispara (não é palavra solta)',
+  matchDestructive('node -e "const xRMy = 1"') === null);
 check('DECISÃO: `$var` dentro de prefixo isento segue isento (temp-dir dinâmico)',
   matchDestructive('rm -rf /tmp/$SESSION') === null);
 check('CN: `$var` FORA de prefixo isento bloqueia (proteção vem de graça)',
