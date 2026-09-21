@@ -269,7 +269,22 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   `janaPainelGatingPro.spec.tsx` caem, e são os 4 que testam o comportamento; os 5 que passam
   são controles que a mutação não alcança.
 
-  ⚠️ **Smoke autenticado NÃO foi feito** — `oimpresso.com/ia` e `staging.oimpresso.com/ia`
+  ⚠️ **ERRATA, no mesmo dia (2026-09-21): o parágrafo abaixo ficou DESATUALIZADO em ~1h, e a
+  afirmação dele vira instrução de desistência se lida como estado do mundo (§5 2026-09-01).**
+  O smoke autenticado **existe** — quem o produziu foi o `visual-regression` do CI, que renderiza
+  a tela **logada** (`PixelBaselineTest`, escopo `["Jana"]`) e publica o artefato
+  `pixel-diff-views/jana.html` com baseline × atual × diff. Medido no run `35592531986`:
+  `diff 2.0169% > τ_alto 2.0000%`, e o **atual** mostra o gating funcionando — selo
+  `plano Grátis` no header, o brief substituído pelo upsell com a copy literal e o botão
+  `Ver Jana Pro`, o h2 `ANÁLISES PRINCIPAIS` **sem** a sub-linha de drill (a baseline tinha), e
+  `METAS ATIVAS` de pé. É a prova de **runtime** que fecha o risco de LC-30 nesta onda: a
+  declaração não é inerte.
+  O que segue aberto é **só** o recorte do DoD §9 que o visreg não cobre: light mode e o par
+  `jana.pro` true/false lado a lado — o CI renderiza dark e o tenant de teste não tem
+  `jana_pro_module`. E a **aprovação [W] (F1.5)** da baseline nova segue sendo dele, não minha.
+  O texto original fica abaixo, não apagado, porque era honesto quando foi escrito:
+
+  ⚠️ ~~**Smoke autenticado NÃO foi feito**~~ — `oimpresso.com/ia` e `staging.oimpresso.com/ia`
   devolvem **302** sem sessão, e o `launch.json` só serve protótipo estático. O DoD §9 (4
   screenshots: dark/light × Pro/Grátis) segue **aberto**, e nada aqui afirma render medido.
   A copy, essa sim, foi conferida **byte a byte** contra a âncora (5 strings, com controle
