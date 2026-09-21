@@ -176,3 +176,69 @@ commit meu.
 **Canal:** PROTOCOL §10.2 (`[CL]` → `[CC]`) · **Origem:** sessão de 2026-09-21, ondas 01 e 02 do
 playbook da Jana · **Recibo do vermelho:**
 [#7579 comentário](https://github.com/wagnerra23/oimpresso.com/pull/7579#issuecomment-5759577169)
+
+---
+
+## RECIBO — pedido 1 atendido (2026-09-21, mesma data)
+
+> **O que fecha:** o **pedido 1** (`"ondas"` → `threads` com `provas`). O **pedido 2** (item 9 do
+> DoD) **segue aberto** e continua sendo do lado que tem os arquivos em disco — nada aqui o toca.
+
+O gerador do playbook emitiu a **2ª emissão** e ela desceu pelo transporte do painel
+(`protocolo.config.mjs` §PONTE/INTAKE: `DesignSync.list_files` → `get_file`), não por edição à mão
+no espelho. `.md` **não** entra no `--export-from` — o `exportPlan` build-only recusa
+([`cowork-mirror-freshness.mjs:244`](../../../scripts/governance/cowork-mirror-freshness.mjs)) —,
+então a escrita foi a rota inline da ADR 0389, com as 4 condições cumpridas e declaradas:
+origem única resolvida por `list_files` **antes** (3 arquivos em `cowork-inbox/jana/playbook/`,
+zero homônimo em outro caminho) · `truncated: false` · verificação rodando o consumidor (abaixo) ·
+escrita inline declarada no PR.
+
+### Antes → depois, medido no mesmo checkout limpo
+
+| | `node scripts/qa/placar.mjs --indice --todos` |
+|---|---|
+| **antes** | `rc=2` · `NÃO MEDI: índice sem threads — "0 de 0" não é placar` · **0 módulos medidos** |
+| **depois** | `rc=0` · **13 módulos medidos** · cobertura cumulativa `1 de 63 (1.6%)` |
+
+A jana entrou com as 2 threads e **as 5 provas passando** — nenhuma linha de prova falha ao lado
+delas (contraste: `Hrm 01` lista `hrm-page.jsx (ainda contém "id:"hrm-presenca"")`):
+
+```
+jana: entregue 0 de 2 · próximo 2 · em curso 0 · pendente 0 · bloqueada 0
+  01 [proximo  ] Painel: o tier Pro governa brief, análises e ações — sem _saida
+  02 [proximo  ] Painel sem histórico mostra um estado de página, não 6 caixas vazias — sem _saida
+```
+
+`próximo` (e não `feito`) é o veredito **correto**: falta `_saida-01.md` / `_saida-02.md`, que é
+recibo de quem executa. A própria 2ª emissão antecipa isso e recusa escrevê-los por [CL] — seria
+escrever o dado que o medidor consome, a via que o §4.1 acima já tinha recusado.
+
+### A pasta desceu inteira — e só 1 dos 3 arquivos mudou
+
+Conferido arquivo a arquivo contra a origem, por probes literais (não por olho), com controle
+negativo provando que a sonda discrimina:
+
+| arquivo | veredito | método |
+|---|---|---|
+| `00-INDICE.md` | **substituído** (+69 −38) | `"ondas"`/`estado` → `threads`/`provas` + `variaveis` |
+| `01-painel.gating-pro.md` | inalterado | 6/6 probes HIT · 12.217 B · 148 linhas |
+| `02-painel.estado-vazio.md` | inalterado | 6/6 probes HIT · 9.204 B · 127 linhas |
+
+### Duas verificações que o formato novo exigia, e que foram feitas antes de escrever
+
+1. **O consumidor expande `${VAR}`.** A 2ª emissão usa `variaveis` + `${COCKPIT}`/`${CASOS}`; o
+   `resolverPath()` ([`placar-indice.mjs:120`](../../../scripts/qa/placar-indice.mjs)) resolve, e
+   `${VAR}` não decidido vira `indefinida` — nunca path chutado.
+2. **As 5 provas batem no `main`**, contadas uma a uma antes do write: `1 · 1 · 1 · 2 · 1`.
+
+### Resíduos declarados (nenhum é consertável deste lado)
+
+- **Pedido 2 — item 9 do DoD: aberto.** `github.md` sem a linha de 21/09, bundle não regenerado.
+  Rotina do lado do design desde a decisão [W] de 2026-09-06.
+- **`variant="first"` não foi corrigido na ficha 02** (§5 e §6 seguem pedindo). O índice o marca
+  como *"achado de [CL] pendente no próximo ciclo"* — está declarado, não esquecido.
+- **`_saida-01.md` / `_saida-02.md`** não escritos, pela razão acima.
+- O `estado: "aberta"` da 1ª emissão foi o que fez uma sessão **re-despachar as duas ondas já
+  mergeadas** (#7587 · #7591) como se estivessem abertas. É a Lei 2 cobrando o preço: campo de
+  estado escrito à mão numa ponte vira instrução errada pra quem lê depois. A 2ª emissão não o
+  tem.
