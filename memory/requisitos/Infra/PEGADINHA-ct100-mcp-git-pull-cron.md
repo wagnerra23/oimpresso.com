@@ -139,20 +139,55 @@ runtime que eu consultei primeiro, `NextElapseUSecRealtime`, vinha **vazio** —
 levou a concluir "o timer morreu". **Estava errado, e a razão vale mais que o caso:**
 este timer é **monotônico** (`OnBootSec` + `OnUnitActiveSec`), e timer monotônico não
 preenche o campo *Realtime* — o campo certo é **`NextElapseUSecMonotonic`**. Pedir o
-campo errado devolve vazio com cara de resposta (§5 2026-07-17).
+campo errado devolve vazio com cara de resposta (§5 2026-07-17, *deduzir quem-roda* — há **8**
+lápides nessa data, e a convenção canônica é citar por **data + apelido**, nunca por data só).
 
-**A causa real, medida no campo certo.** O host rebootou em **14/ago 10:43** (`-- Boot
-2498b72c… --` no journal do timer). Depois desse boot:
+⚠️ **E ERREI UMA SEGUNDA VEZ NO MESMO CAMPO — fica registrado, não apagado.** Ao "corrigir"
+a primeira leitura, escrevi que o timer *"rearmou com `NEXT` a ~38 dias no futuro
+(`NextElapseUSecMonotonic = 1month 1w 18h`)"*. **Também falso**, por duas razões que só
+aparecem quando se fecha a aritmética: **(a)** `NextElapseUSecMonotonic` é timestamp
+**ABSOLUTO desde o boot**, não "daqui a tanto"; **(b)** aquele valor foi colhido **DEPOIS**
+do meu restart, e eu o apresentei como o estado de **antes**. A conta fecha e desmente:
 
-| campo | valor medido em 2026-09-21 09:37Z, ANTES do restart |
+| medida (2026-09-21) | valor |
 |---|---|
-| `LastTriggerUSecMonotonic` | **0** — nunca disparou desde o boot |
-| `NextElapseUSecMonotonic` | **1 month 1w 18h** — próximo disparo a ~38 dias |
+| boot do host | `2026-08-14 10:43:41` |
+| uptime | `3284111s` = **38,0 dias** |
+| `NextElapseUSecMonotonic` | `1month 1w 18h 25min 11.039463s` = **3.300.911 s** = **38,2050 dias** após o boot (⚠️ no systemd `1month` = **2629800 s** = 30,4375 d, **não 31 d**) |
+| = em relógio de parede | `boot + 3.300.911 s` = **2026-09-21 15:38:52**, contra o `NEXT` medido de `15:37:49` — Δ **63 s**, que é o intervalo entre as duas leituras |
+| ✅ **verificação CONSTANTE-LIVRE** (a que dispensa saber quanto vale "month") | `NextElapse − uptime` = `3.300.911 − 3.284.111` = **16.800 s = 4,667 h**, contra o `4h 38min left` que o `list-timers` imprimiu — fecha sem nenhuma constante de calendário |
 
-`OnUnitActiveSec` ancora na **última ativação do serviço**, e `ActiveEnterTimestamp` do
-service está **vazio**. Sem âncora, o próximo disparo foi calculado contra o uptime do
-host e foi parar mais de um mês à frente. O timer ficou "armado e mudo": nunca falhou,
-nunca alarmou, nunca rodou.
+⚠️ **A 1ª redação desta errata escreveu `≈ 38,77 dias` e ao lado `= 2026-09-21 15:37`, afirmando
+que "a conta fecha".** As duas linhas eram **mutuamente exclusivas por 13h31m**: 38,77 d implica
+`1month = 31 d`, constante que o systemd não usa. Eu publiquei o número **sem fazer a subtração**
+— dentro do parágrafo que registra o erro de não medir. Fica registrado (§5 2026-07-30: cometer
+a própria classe ao registrá-la). A linha da verificação constante-livre acima existe porque ela
+estava à mão desde o começo e não foi usada.
+
+Ou seja: aquele número diz *"daqui a ~6h"*, não *"daqui a 38 dias"*. **Pedir o sabor errado
+do campo** (Realtime num timer monotônico) e **ler mal o sabor certo** (absoluto como
+relativo) são o mesmo erro em dois passos — e os dois viraram afirmação publicada antes de
+serem medidos.
+
+**O que sobra medido, e é o que sustenta o diagnóstico.** O host rebootou em **14/ago
+10:43:41** (`-- Boot 2498b72c… --` no journal do timer). A partir daí:
+
+| evidência | valor | imune ao restart? |
+|---|---|---|
+| journal do timer | `Aug 14 10:43:42 Started …` e **nenhuma linha** até o meu restart de hoje | ✅ é history |
+| `deploy-latest-main-sha.txt` | congelado desde `2026-08-13 19:50:01 -03` | ✅ é mtime de disco |
+| `LastTriggerUSecMonotonic` | **0** | ⚠️ **NÃO** — só foi lido às `12:38:51Z`, **depois** do restart de `12:37:48Z`; nunca foi lido antes. **Não sustenta sozinho**, e está aqui só como consistente com as duas de cima |
+
+As duas primeiras — e só elas — sustentam: **o timer nunca disparou em 38 dias**, embora `is-active` dissesse
+`active` e `SubState` dissesse `waiting`. Ficou *armado e mudo* — nunca falhou, nunca
+alarmou, nunca rodou.
+
+⚠️ **A CAUSA do não-disparo NÃO foi isolada, e é de propósito que ela não está escrita
+aqui como fato.** A hipótese natural — `OnUnitActiveSec` ancora na última ativação do
+serviço, e `ActiveEnterTimestamp` dele está **vazio**, logo o agendamento ficou sem âncora
+— é *consistente* com o medido, mas **não foi provada**: nada explica, sob essa hipótese,
+o `OnBootSec=2min` ter deixado de disparar às 10:45 daquele dia. Registrar a hipótese como
+desfecho seria dar à próxima sessão uma instrução que eu não medi (§5 2026-09-04).
 
 **O que foi feito (2026-09-21 09:37Z).** `systemctl restart oimpresso-git-sync.timer` +
 um disparo manual. **Consequência medida, não declarada:** o arquivo foi reescrito com
@@ -161,9 +196,12 @@ um disparo manual. **Consequência medida, não declarada:** o arquivo foi reesc
 
 **Pendente, e é decisão [W] porque é config de servidor fora do git** (a unit vive em
 `/etc/systemd/system/`, não versionada — Tier 0 §Ambiente): o restart cura até o próximo
-reboot, não a classe. O conserto durável é trocar `OnUnitActiveSec` por
-**`OnCalendar=*:0/5` + `Persistent=true`** — agendamento de relógio rearma sozinho e não
-depende de ancoragem numa ativação anterior, que é exatamente o que quebrou aqui.
+reboot, não a classe. O conserto durável **recomendado** é trocar `OnUnitActiveSec` por
+**`OnCalendar=*:0/5` + `Persistent=true`** — e a recomendação **não depende** da hipótese
+não-provada acima: agendamento de relógio rearma por si, sem ancorar numa ativação
+anterior e sem depender do uptime, então é robusto qualquer que tenha sido a causa. Quem
+executar, meça a **consequência** (mtime do arquivo mudando sozinho em < 10min), nunca o
+`is-active` — foi exatamente ele que mentiu por 38 dias.
 
 **Defesa que JÁ foi instalada, do lado do consumidor** (essa é minha e está no git): o
 `staging-freshness-sentinel.sh` passou a **descartar a referência quando o arquivo está
