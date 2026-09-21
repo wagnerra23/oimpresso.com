@@ -1724,6 +1724,14 @@ remover `py-0 gap-0` derruba **1**. Arquivo restaurado com **hash conferido** ap
 (`96dff22f8a951e5f` antes e depois), para nenhum mutante sobreviver no diff.
 ## UC-JPAIN-30 — o grid de KPIs quebra no breakpoint da ÂNCORA, não no do shared
 
+Status: 🧪 (a lógica do assert foi rodada em PHP no CT 100 contra o arquivo real —
+**extrator 4/4** (pega a linha de código, ignora `//` e `*`) e **asserts 5/5**, 2026-09-21; a
+suite `PHP / Pest (Jana · MySQL)` completa é a lane do CI, e o veredito vira ✅ quando o
+manifesto `casos-results` aterrissar — o G-7 lê o manifesto commitado, não esta linha.
+⚠️ A **primeira** versão deste caso FALHOU na lane (run 35630130145): o assert media o
+arquivo e pegou `grid-cols-1` do próprio docblock — presence-gate sobre prosa, consertado
+passando a medir a LINHA do `<Grid>`.)
+
 **Origem:** chip de 2026-09-21 pedindo pra fechar a dívida visual do KPI. A dívida que o chip
 descrevia (rótulo sans 11px, caixa de ícone 36×36, valor 22 × 24px) **não existia mais** — foi
 fechada em 2026-09-03 pela Onda 2 ([#6662](https://github.com/wagnerra23/oimpresso.com/pull/6662)),
