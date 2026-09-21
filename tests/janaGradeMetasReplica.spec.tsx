@@ -180,6 +180,19 @@ describe('UC-JPAIN-32 — a grade e o card de meta replicam a âncora', () => {
     expect(cards[0].querySelector('.space-y-3')).toBeNull();
   });
 
+  it('o wrapper da seção não tem `pt-6` — o ritmo entre seções vem do container', () => {
+    const { cards } = renderPainel();
+    // Sobe do CARD até o wrapper da seção. Não se procura pelo h2: o mock do
+    // `SectionTitle` (acima) não repassa o `data-contract`, então buscar por ele
+    // devolveria null e o assert passaria por ausência — falso verde.
+    const wrapper = cards[0].closest('div.space-y-6') as HTMLElement | null;
+    expect(wrapper, 'wrapper `space-y-6` da seção METAS não encontrado').toBeTruthy();
+    // MEDIDO em 2026-09-21: com `pt-6` o trecho KPIs→"METAS ATIVAS" dava 46px contra 24px
+    // da âncora. O padding somava por cima do ritmo que o container já aplica.
+    expect(wrapper!.className).not.toContain('pt-6');
+    expect(cards.length).toBeGreaterThan(0);
+  });
+
   it('o valor é mono 20px/700 (`.jm-meta-v b`), não sans 24px/600', () => {
     const { cards } = renderPainel();
     const valor = cards[0].querySelector<HTMLElement>('.font-mono.text-\\[20px\\]');
@@ -210,6 +223,11 @@ describe('UC-JPAIN-32 · controle negativo — os detectores acusam a forma ANTI
     expect(ANTIGO_CARD).toMatch(/\bgap-6\b/);
     expect(ANTIGO_CARD).toMatch(/\bpy-6\b/);
     expect(ANTIGO_CARD).not.toMatch(/\bpy-3\b/);
+  });
+
+  it('o wrapper antigo (`space-y-6 pt-6`) falharia no detector de padding', () => {
+    expect('space-y-6 pt-6').toContain('pt-6');
+    expect('space-y-6').not.toContain('pt-6');
   });
 
   it('o valor antigo falharia no detector de mono 20/700', () => {

@@ -364,7 +364,17 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
               instante em que ele subiu. Corrigido junto, não depois.
               Sem `p-6`/`shrink-0`: agora está DENTRO do cockpit, que já vive em
               `px-6 pt-6`. */}
-        <div className="space-y-6 pt-6">
+        {/* Sem `pt-6`: o ritmo ENTRE secoes ja vem do container (`space-y` do pai),
+            e o padding somava por cima. MEDIDO em 2026-09-21 (staging, dark, 1440):
+            do fim dos KPIs ate o TEXTO de "METAS ATIVAS" eram **46px** — 16 da margem
+            do bloco anterior + 24 deste `pt-6` + 6 do `mt-1.5` do h2 —, contra **24px**
+            na ancora (18 de ritmo + 6 do h2). Removendo o padding o trecho cai pra 16px
+            com o `space-y-4` de hoje, e fecha em **24px exatos** quando o ritmo do
+            cockpit for a 18px (chip irmao da grade de Analises, que mediu os 4 vaos).
+            O comentario antigo justificava o `pt-6` com "agora esta DENTRO do cockpit,
+            que ja vive em px-6 pt-6" — isso valia quando o bloco ficava no FIM da
+            pagina; deixou de valer quando ele subiu pra logo apos os KPIs. */}
+        <div className="space-y-6">
           {/* Cabeçalho de METAS — UMA linha, como a âncora `jana-merge.jsx` §`JmMetasSecao`:
               `<h2 class="jc-h2"><JcIcon name="target"/> METAS ATIVAS <span class="jm-per">…`,
               com os controles no `jm-per` (`margin-left:auto`). Âncora de SÍMBOLO:
