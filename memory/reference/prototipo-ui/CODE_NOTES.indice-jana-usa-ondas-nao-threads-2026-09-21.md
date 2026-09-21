@@ -1,11 +1,20 @@
-# O `00-INDICE.md` da Jana usa `"ondas"` — e isso derruba o placar dos **13** playbooks, não só o dele
+# Dois pedidos do ciclo da Jana: o índice usa `"ondas"`, e o item 9 do DoD não fechou
 
-> **O que é:** pedido `[CL]` → `[CC]` para o gerador do playbook. O índice que desceu no handoff 28
-> declara a unidade de trabalho como `"ondas"`; o consumidor in-repo exige `"threads"` **com
-> `provas`**. Como o agregador avalia os índices num `map`, um índice que ele não entende lança e
-> **mata a medição dos outros 12**. Não é preferência de vocabulário: é contrato de máquina.
+> **O que é:** devolutiva `[CL]` → `[CC]` do ciclo de 2026-09-21 (ondas 01 e 02 do playbook da
+> Jana, ambas mergeadas). **Dois pedidos, um destinatário — por isso vêm juntos, e não em dois
+> turnos de lá:**
 >
-> **Não conserto daqui, e a razão é do processo, não preguiça** — as três vias estão medidas no §4.
+> 1. **O `00-INDICE.md` declara `"ondas"`; o consumidor in-repo exige `"threads"` com `provas`.**
+>    Como o agregador avalia os 13 índices num `map`, um que ele não entende lança e **mata a
+>    medição dos outros 12**. Não é preferência de vocabulário — é contrato de máquina.
+> 2. **O item 9 do DoD das DUAS fichas não fechou:** o `github.md` não tem a linha deste ciclo, e o
+>    bundle não foi regenerado. Desde 2026-09-06 isso é **rotina decidida**, não pedido.
+>
+> **Nenhum dos dois eu conserto daqui**, e a razão é de processo, não preguiça: as três vias do (1)
+> estão medidas abaixo, e o (2) roda no lado que tem os arquivos em disco.
+>
+> ⚠️ **O conteúdo das fichas está fora da crítica** — as duas ondas saíram delas sem ambiguidade.
+> O que falha é o índice e o fechamento, não o pedido de design.
 
 ## O sintoma
 
@@ -100,6 +109,55 @@ seria a mesma fabricação que recusei no §4.1. O que este documento fixa é o 
   e o `PARAR SE` de ambas foi medido e não disparou. O defeito é só do índice.
 - **Nada sobre a âncora.** Medido em 2026-09-21: `jana-merge.jsx` é **byte-idêntico** entre o
   espelho e o vivo (sha256 `7bb8e713130a9f80`, 60.716 bytes, 1141 linhas).
+
+## Segundo pedido, do mesmo turno: **o item 9 do DoD não fechou nas duas ondas**
+
+O §9 das **duas** fichas termina no mesmo item, palavra por palavra:
+
+> 9. `github.md` com a linha do ciclo + `bundle regenerado (<data> · N arquivos)`.
+
+**Medido no `main` em 2026-09-21, depois das duas ondas mergearem:**
+
+| verificação | resultado |
+|---|---|
+| `github.md` → `## Last sync` | `date: 2026-09-18T10:36:16Z` |
+| linha do ciclo de **21/09** (o que gerou este playbook) | **ausente** |
+| `bundle regenerado` no arquivo | 3 ocorrências — **todas de ciclos anteriores** |
+
+O próprio `00-INDICE.md` já nascia declarando isto, e a honestidade dele é o motivo de eu não
+tratar como defeito escondido:
+
+> Este ciclo fecha **sem** pacote regenerado — o gerador exige os arquivos em disco e **não roda do
+> lado do agente** (ADR 0374), então **não afirmo que regenerei**.
+
+⚠️ **Mas isso já não é "pedido", é rotina decidida.** O painel executável
+(`scripts/design/protocolo.config.mjs`) registra, textual:
+
+> DECISÃO [W] 2026-09-06 (*"2 e 3 ok pode fazer"*): regenerar o bundle ao **FIM DE TODO CICLO** do
+> Cowork é **ROTINA obrigatória** do lado do design, **não pedido**.
+
+### Por que isso importa mais do que parece
+
+O ciclo fecha **em código** e não fecha **em registro**. As duas ondas estão no `main` com trio
+completo e mordida provada; o que falta é o rastro pelo qual o próximo ciclo sabe o que já desceu.
+A consequência é a que o painel já descreve: **o espelho fica atrás do vivo por padrão**, e daí
+*"não achei no espelho" nunca prova ausência*.
+
+Nesta sessão isso já produziu um efeito concreto: o `--sla` do
+`cowork-mirror-freshness` devolveu **⬜ INCONCLUSIVO** — o `--compare` estava dentro do SLA
+(última rodada 2026-09-17, 705 sync · 0 stale), mas **5 arquivos existem no vivo e não no espelho**
+(`.gitignore`, `.thumbnail`, e 3 do cache `_ds/` incluindo `styles.css`). Nenhum deles é `jana-*`,
+então **não afetou este trabalho** — mas é o mesmo mecanismo, e ele piora a cada ciclo que fecha
+sem regenerar.
+
+### O que fecha o item 9
+
+1. `github.md` ganha a entrada do ciclo de **2026-09-21** (as 2 ondas da Jana).
+2. `gerar-payload-partes.mjs --root <design-vivo> --out sync/ --previous sync/bundle.manifest.json`,
+   e a linha `bundle regenerado (<data> · N arquivos)` como recibo (ADR 0387).
+
+Os dois rodam do lado que **tem os arquivos em disco** — por isso vêm neste canal, e não como
+commit meu.
 
 ## Dois achados menores das mesmas fichas, para o próximo ciclo
 
