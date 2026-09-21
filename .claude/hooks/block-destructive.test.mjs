@@ -275,21 +275,47 @@ check('CN multi-arg: aspas envolventes não quebram o casamento',
 //
 // §DECISÃO/ESCALA — sobre o MESMO alvo isento (`/tmp/x`), o veredito NÃO é
 // monotônico, e isso é ponto de corte deliberado do [W] (2026-09-16), não
-// descuido:
-//     rm /tmp/x      → passa      (assert no bloco ALLOW, "rm sem -rf")
-//     rm -f /tmp/x   → BLOQUEIA   ← aqui
-//     rm -r /tmp/x   → BLOQUEIA   ← aqui
-//     rm -rf /tmp/x  → passa      (assert no bloco ALLOW + E2E)
-// O bloqueio é um VALE: o mais destrutivo passa, o menos destrutivo passa, e o
-// meio segura. Re-medido 2026-09-21 (1845/1845 jsonl · 160.647 blocos): fechar
-// o vale afrouxaria 64 distintos / 65 ocorrências, APERTOU=0, zero perigosos.
+// descuido. Medido 2026-09-21, os 9 pontos:
+//     rm /tmp/x       → passa      (assert no bloco ALLOW, "rm sem -rf")
+//     rm -f /tmp/x    → BLOQUEIA   ← aqui
+//     rm -r /tmp/x    → BLOQUEIA   ← aqui
+//     rm -R /tmp/x    → BLOQUEIA   ← aqui
+//     rm -rf /tmp/x   → passa      (assert no bloco ALLOW + E2E)
+//     rm -fr /tmp/x   → BLOQUEIA   ← aqui  (literal `rf` é POSICIONAL)
+//     rm -Rf /tmp/x   → passa      ← aqui  (o flag `i` do regex aceita `R`)
+//     rm -rF, rm -RF  → passam     (idem `i`; cobertos pelo `-Rf`)
+//
+// Duas propriedades distintas, e só a 2ª não tem defesa nenhuma:
+//  1. VALE de destrutividade — o mais destrutivo (`-rf`) passa, o menos
+//     destrutivo (`-f`) bloqueia, e o sem-flag passa.
+//  2. ORDEM e CAIXA das flags — `rm -rf`, `rm -Rf` e `rm -fr` são o MESMO
+//     comando pro SO, e o hook dá 3 vereditos em 2 grupos. Isso não
+//     corresponde a nada no mundo: é artefato do literal `rf` ser posicional
+//     e do `/i` torná-lo case-insensitive.
+//
+// Re-medido 2026-09-21 (1845/1845 jsonl · 160.647 blocos): fechar o vale
+// afrouxaria 64 distintos / 65 ocorrências, APERTOU=0, zero perigosos.
 // Fechá-lo é ato do [W] — ver §MULTI-ARG em block-destructive.mjs.
+//
+// ⚠️ MEDIDO 2026-09-21 (a intuição erra aqui): NÃO existe "meia correção" por
+// classe de caracteres. Como o regex já tem o flag `/i`, `-[rf]+` e `-[rRf]+`
+// são EQUIVALENTES neste ponto — os dois casam `-R` e derrubam exatamente os
+// mesmos 4 asserts acima. O `R` vem de graça do `/i`, não da classe. Quem for
+// mexer aqui: rode os dois mutantes antes de supor que diferem.
 check('DECISÃO: flags `-rf` LITERAL — `rm -f /tmp/x` segue BLOQUEANDO (como hoje)',
   matchDestructive('rm -f /tmp/x')?.key === 'rm-rf-perigoso');
 check('DECISÃO: `rm -r /tmp/x` idem — a isenção exige `-rf` literal, não `-[rRf]+`',
   matchDestructive('rm -r /tmp/x')?.key === 'rm-rf-perigoso');
 check('DECISÃO: `rm -R /tmp/x` (BSD) idem — mesma perna da escala',
   matchDestructive('rm -R /tmp/x')?.key === 'rm-rf-perigoso');
+check('DECISÃO/ORDEM: `rm -fr /tmp/x` BLOQUEIA — literal `rf` é posicional (mesmo cmd que `-rf`)',
+  matchDestructive('rm -fr /tmp/x')?.key === 'rm-rf-perigoso');
+check('DECISÃO/CAIXA: `rm -Rf /tmp/x` PASSA — o `/i` do regex aceita `R` (mesmo cmd que `-fr`)',
+  matchDestructive('rm -Rf /tmp/x') === null);
+// CN: a proteção REAL não afrouxa em nenhum ponto novo da escala.
+check('CN escala: em alvo NÃO isento, `-fr` e `-Rf` seguem BLOQUEANDO',
+  matchDestructive('rm -fr /etc/passwd')?.key === 'rm-rf-perigoso'
+  && matchDestructive('rm -Rf /etc/passwd')?.key === 'rm-rf-perigoso');
 check('DECISÃO: `$var` dentro de prefixo isento segue isento (temp-dir dinâmico)',
   matchDestructive('rm -rf /tmp/$SESSION') === null);
 check('CN: `$var` FORA de prefixo isento bloqueia (proteção vem de graça)',
