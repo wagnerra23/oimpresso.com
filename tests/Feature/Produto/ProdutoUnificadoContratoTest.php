@@ -334,7 +334,10 @@ it('UC-PUNI-05 · nenhuma prop do unificado enxerga produto de outro business', 
 });
 
 // =============================================================================
-// UC-PUNI-06 — a rota não tem middleware de permissão (routes/web.php:449 TODO).
+// UC-PUNI-06 — o gate NAO é middleware na rota: vive DENTRO do controller
+// (ProdutoUnificadoController:139, abort 403), por desenho. O TODO que pedia
+// middleware('can:product.view') foi removido em 2026-09-21: ele seria mais estrito
+// que o controller e trancaria quem só tem `product.create` — este teste cairia.
 // =============================================================================
 
 it('UC-PUNI-06 · a tela exige product.view (ou product.create, como a lista irmã)', function () {
