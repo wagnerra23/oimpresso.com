@@ -199,7 +199,7 @@ de boa-fé uma afirmação que o próprio Cowork depois retratou. O texto acima 
 - o bundle do `019dd02f` **é** o do `49a36f76` (as mesmas 9.354 linhas) mais 11 linhas de apelido
   que publicam o global antigo apontando para o novo. Conferido pelo Code: prefixo byte-idêntico
   depois de ignorar CR. São **o mesmo design system em dois endereços**: `019dd02f` é o projeto de
-  origem, `49a36f76` o vinculado. **Não há divergência a decidir** entre o DS cadastrado em
+  origem, do [W]; `49a36f76` é a **cópia na conta do [F]**, que ele sincroniza a partir do `main` do git ([F] 2026-09-21: *"O ID é diferente porque importei o DS na minha conta"*). **Não há divergência a decidir** entre o DS cadastrado em
   `protocolo.config.mjs` e o que o [F] usa.
 
 **O que mudou no Cowork depois (relato do Cowork, não medido pelo Code):**
