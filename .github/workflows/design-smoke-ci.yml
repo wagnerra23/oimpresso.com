@@ -319,7 +319,10 @@ jobs:
         env:
           # Built-in PHP server e single-thread. Sem workers, os requests de asset do SPA
           # serializam — o visual-regression.yml:1524 ja aprendeu isso e usa 4.
-          PHP_CLI_SERVER_WORKERS: "4"
+          # 8, nao 4: cada tela do lote abre documento + redirect do auth-bridge + os assets
+          # do bundle Inertia, e o canario abaixo mede 6 simultaneos. O visual-regression usa 4
+          # pro Lighthouse, que navega UMA pagina por vez — carga diferente da nossa.
+          PHP_CLI_SERVER_WORKERS: "8"
         run: |
           set -o pipefail
           # PORTA LIMPA PRIMEIRO. O step anterior (Pest Browser) sobe servidor proprio; se
@@ -356,6 +359,23 @@ jobs:
             echo "::error title=Lote de paridade::app nao respondeu em 60s — nada foi medido (NAO MEDI != tudo igual)"
             cat /tmp/lote-serve.log; exit 1
           }
+          # CANARIO DE CONCORRENCIA — a licao das runs 35590027120/35590936821/35592105902.
+          # Nas tres o health de UMA conexao passou e o lote deu 23 ERRO / 23 de
+          # net::ERR_CONNECTION_REFUSED, com o servidor VIVO e registrando respostas. O
+          # Playwright abre varias conexoes por tela (documento + redirect + assets do SPA) e
+          # e a 2a em diante que e recusada — coisa que um curl sequencial nunca revela.
+          # Entao aqui medimos o que o lote de fato exige: 6 requests SIMULTANEOS.
+          echo "workers vistos pelo processo: PHP_CLI_SERVER_WORKERS=${PHP_CLI_SERVER_WORKERS:-<vazio>}"
+          echo "processos php servindo: $(pgrep -fc "artisan serve" || echo 0)"
+          FALHAS=0
+          for i in $(seq 1 6); do curl -sf -o /dev/null --max-time 20 http://127.0.0.1:8000/login || FALHAS=$((FALHAS+1)) & done
+          wait
+          echo "canario de concorrencia: $FALHAS falha(s) em 6 requests simultaneos"
+          if [ "$FALHAS" -gt 0 ]; then
+            echo "::error title=Lote de paridade::o servidor NAO aguenta requests paralelos ($FALHAS/6 recusados). O lote produziria ERRO de conexao em todas as telas e isso passaria por veredito de fidelidade. Abortando em vez de medir o nada."
+            cat /tmp/lote-serve.log
+            exit 1
+          fi
           node scripts/design/design-diff-lote.mjs --base-url http://127.0.0.1:8000 2>&1 | tee /tmp/lote.log
           RC=${PIPESTATUS[0]}
           # POS-CONDICAO: se o serve caiu DURANTE o lote, as telas viram ERRO de conexao e o
