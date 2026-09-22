@@ -678,7 +678,8 @@ Honestidade sobre o próprio alcance, datada — 2026-09-22:
 | regra | estado |
 |---|---|
 | lock válido (campos, caminho completo, hash confere) | ✅ `design-lock.mjs --check` |
-| DS único (fora da canônica · nome com conteúdo divergente) | ✅ `--ds` |
+| DS único — **duplicata por conteúdo** (mesmo nome, hash divergente) | ✅ `--ds` |
+| DS único — "nome de DS fora da canônica" | ⚠️ **informativo, não achado** — ver abaixo |
 | âncora ambígua falha e lista candidatos | ✅ `--ambiguidade` (e `--strict` para exit 1) |
 | lock desambigua a tela travada | ✅ testado nos dois sentidos |
 | **prova de runtime (global/fingerprint do DS carregado)** | ❌ **não implementado** — depende de sonda no browser, como o resto do D1–D8 |
@@ -688,3 +689,24 @@ As duas linhas ❌ ficam **declaradas como dívida**, não descritas como se exi
 que anuncia o que não faz é [LC-15](../../LICOES_CODE.md). E este complemento **não afirma o
 próprio enforcement**: quem é required vive em
 [`governance/required-checks-baseline.json`](../../../governance/required-checks-baseline.json).
+
+#### Por que "nome de DS fora da canônica" é informativo, e não achado
+
+Porque classificar por **nome de arquivo** é o guard sintático que o §5 de
+[`proibicoes.md`](../../proibicoes.md) enterra 8× — e aqui ele já produziu **falso-positivo com
+consequência**, medido em 2026-09-22, no mesmo dia em que nasceu:
+
+`prototipo-ui/cowork/Wagner/venda-v3/01-fundacoes/css/tokens-tema-escuro.css` foi acusado e
+**não é cópia de DS**. São 35 linhas em escopo `.cockpit[data-theme="dark"]`, com o cabeçalho
+declarando *"NÃO cria token novo (ADR-0050): apenas dá valor escuro a tokens que o bundle do DS
+declara só no tema claro"*. Existe porque **8 de 29 pares reprovavam WCAG AA no escuro**; é
+carregado por `venda-v3/index.html:47`; e o `venda-v3` é a **âncora viva** de `Sells/CreateV3`.
+Apagá-lo reintroduziria a falha de contraste e quebraria o protótipo de uma tela de venda.
+
+Tentei um critério melhor — *"declara token em `:root` = fundação, em escopo = override"* — e ele
+**falhou no controle positivo**: o próprio canônico `colors_and_type.css` mede `tokensRoot = 0`
+(245 tokens, nenhum em `:root`). Sonda que não discrimina no controle não entra.
+
+Então o eixo **reporta e não reprova**, até existir critério que separe cópia de override sem ler
+a prosa do cabeçalho. O que reprova é a **duplicata por conteúdo** — mesmo nome, hash divergente —
+que não depende do nome parecer "de DS", e foi o eixo que de fato pegou o `ds-v6/tokens.css`.

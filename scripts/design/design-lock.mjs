@@ -92,9 +92,31 @@ const rel = (root, p) => relative(root, p).replace(/\\/g, '/');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // REGRA 1 — DS ÚNICO
-//   Reprova cópia de DS fora da fonte canônica. Não é guard sintático de nome:
-//   o predicado é PROVENIÊNCIA POR CAMINHO (o arquivo está sob a raiz canônica?)
-//   combinado com CONTEÚDO (duas cópias do mesmo nome com hash diferente).
+//
+// DOIS eixos, com FORÇA DIFERENTE — e a diferença foi MEDIDA, não estimada:
+//
+//   `duplicatas` (ACHADO)     mesmo nome de arquivo com CONTEÚDO divergente.
+//                             Não depende do nome ser "de DS": duas cópias que
+//                             discordam são problema em qualquer leitura. Foi
+//                             este eixo que pegou o `ds-v6/tokens.css`.
+//
+//   `fora`       (INFORMATIVO) arquivo cujo NOME parece de DS e está fora da raiz
+//                             canônica. FP MEDIDO em 2026-09-22: dos 4 acusados,
+//                             `venda-v3/01-fundacoes/css/tokens-tema-escuro.css`
+//                             NÃO é cópia — é override de CONTRASTE em escopo
+//                             (`.cockpit[data-theme="dark"]`, 35 linhas, cabeçalho
+//                             declarando *"NÃO cria token novo (ADR-0050)"*),
+//                             carregado por `venda-v3/index.html:47`, e o venda-v3
+//                             é a âncora viva de `Sells/CreateV3`. Apagá-lo
+//                             reintroduz 8 de 29 pares reprovando WCAG AA.
+//
+// Classificar por NOME é o guard sintático que o §5 de `proibicoes.md` enterra 8×
+// (allowlist-de-pasta · `@scope` · vocabulário 130 FP · `toHaveKey` 100% FP · …).
+// Tentei um critério melhor — "declara token em `:root` = fundação" — e ele FALHOU
+// NO CONTROLE POSITIVO: o próprio canônico `colors_and_type.css` mede `tokensRoot=0`
+// (245 tokens, nenhum em `:root`). Sonda que não discrimina no controle não entra.
+// Por isso o eixo `fora` REPORTA e não conta como achado, até existir critério que
+// separe cópia de override sem ler a prosa do cabeçalho.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function checarDsUnico(repoRoot = REPO_DEFAULT) {
@@ -277,11 +299,18 @@ function imprimir(repoRoot, { ds, amb, lockInfo, lockVal }) {
   // DS ÚNICO
   if (!ds.medi) console.log(`  ⛔ DS        NÃO MEDI — ${ds.motivo}`);
   else {
-    const n = ds.fora.length + ds.duplicatas.length;
-    if (n === 0) console.log(`  ✓ DS ÚNICO  ${ds.total} arquivo(s) de DS, todos sob ${DS_CANON}`);
-    else {
-      console.log(`  ⛔ DS ÚNICO  ${ds.fora.length} fora da canônica · ${ds.duplicatas.length} nome(s) com conteúdo divergente`);
-      for (const f of ds.fora.slice(0, 10)) console.log(`       fora: ${f}`);
+    if (ds.duplicatas.length === 0) console.log(`  ✓ DS ÚNICO  nenhum nome de DS com conteúdo divergente (${ds.total} arquivo(s) varrido(s))`);
+    else console.log(`  ⛔ DS ÚNICO  ${ds.duplicatas.length} nome(s) com conteúdo divergente`);
+    if (ds.fora.length) {
+      console.log(`  ▫ informativo — ${ds.fora.length} arquivo(s) de nome "de DS" fora de ${DS_CANON}.`);
+      console.log(`     NÃO é achado: o nome não prova cópia. Medido em 2026-09-22 — o`);
+      console.log(`     venda-v3/tokens-tema-escuro.css é override de CONTRASTE em escopo`);
+      console.log(`     (.cockpit[data-theme=dark], 35 ln, "NÃO cria token novo" · ADR-0050),`);
+      console.log(`     carregado por venda-v3/index.html:47. Apagá-lo reintroduz 8 pares`);
+      console.log(`     reprovando WCAG AA. Confira um a um antes de agir sobre esta lista.`);
+      for (const f of ds.fora.slice(0, 10)) console.log(`       ${f}`);
+    }
+    {
       for (const d of ds.duplicatas.slice(0, 6)) {
         console.log(`       dup:  ${d.nome}`);
         for (const a of d.arquivos) console.log(`             ${a.h}  ${a.f}`);
@@ -344,7 +373,9 @@ function main() {
     process.exit(2);
   }
 
-  const achados = ds.fora.length + ds.duplicatas.length + amb.ambiguas.length + amb.orfas.length + lockVal.erros.length;
+  // `ds.fora` NÃO entra: é INFORMATIVO, com FP medido (ver checarDsUnico). O achado
+  // que conta no eixo DS é a duplicata por CONTEÚDO, que não depende do nome.
+  const achados = ds.duplicatas.length + amb.ambiguas.length + amb.orfas.length + lockVal.erros.length;
   if (achados && strict) {
     console.error(`  ⛔ ${achados} achado(s) sob --strict\n`);
     process.exit(1);
@@ -378,12 +409,26 @@ function selftest() {
 
   put('prototipo-ui/cowork/Felipe/ds-galerias/tokens.css', ':root{--a:2}');
   r = checarDsUnico(raiz);
-  t('DS RUIM: cópia FORA da canônica é acusada', r.fora.length === 1, `fora=${JSON.stringify(r.fora)}`);
+  t('DS: arquivo de nome "de DS" fora da canônica é REPORTADO (informativo)', r.fora.length === 1,
+    `fora=${JSON.stringify(r.fora)}`);
 
   put(DS_CANON + 'tokens.css', ':root{--a:9}');
   r = checarDsUnico(raiz);
   t('DS RUIM: mesmo nome com conteúdo DIVERGENTE vira duplicata', r.duplicatas.length === 1,
     `dup=${r.duplicatas.length}`);
+
+  // CONTROLE DO FP REAL (incidente 2026-09-22): override de contraste em escopo,
+  // com nome "tokens-*", NÃO pode virar achado — apagá-lo reintroduz falha WCAG AA.
+  const raizO = mkdtempSync(join(tmpdir(), 'design-lock-fp-'));
+  const putO = (p, txt) => { mkdirSync(dirname(join(raizO, p)), { recursive: true }); writeFileSync(join(raizO, p), txt); };
+  putO(DS_CANON + 'colors_and_type.css', ':root{--fg:oklch(.2 0 0)}');
+  putO('prototipo-ui/cowork/Wagner/venda-v3/01-fundacoes/css/tokens-tema-escuro.css',
+    '/* NAO cria token novo (ADR-0050) */\n.cockpit[data-theme="dark"]{--fg:oklch(.94 .005 90)}');
+  const rO = checarDsUnico(raizO);
+  t('DS CONTROLE-FP: override escopado com nome "tokens-*" NÃO vira achado (duplicatas=0)',
+    rO.duplicatas.length === 0, `dup=${rO.duplicatas.length}`);
+  t('DS CONTROLE-FP: ele aparece no informativo, não no achado', rO.fora.length === 1,
+    `fora=${rO.fora.length}`);
 
   // controle negativo: mesmo nome, MESMO conteúdo, não é duplicata
   const raiz2 = mkdtempSync(join(tmpdir(), 'design-lock-b-'));
@@ -456,7 +501,7 @@ function selftest() {
   const nmA = checarAmbiguidade(vazio, null);
   t('NÃO MEDI: sem cowork/ o eixo de fonte devolve medi=false', nmA.medi === false, `medi=${nmA.medi}`);
 
-  for (const d of [raiz, raiz2, raizA, raizP, vazio]) { try { rmSync(d, { recursive: true, force: true }); } catch {} }
+  for (const d of [raiz, raiz2, raizA, raizP, raizO, vazio]) { try { rmSync(d, { recursive: true, force: true }); } catch {} }
 
   console.log(`\n  ${ok} ok · ${fail} falha(s)\n`);
   process.exit(fail ? 1 : 0);
