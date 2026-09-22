@@ -530,3 +530,159 @@ Declaração: CONCLUÍDA | PARCIALMENTE PUBLICADA | BLOQUEADA
 por tela ou onda pequena sem dependência, registrando antes da próxima. Aprovação visual de uma
 tela não aprova as vizinhas — e componente compartilhado não transporta aceite (ver
 *Componente compartilhado não impõe a forma de uma tela às outras*, acima).
+
+---
+
+## Fonte provada — DS único, lock de design e resolução sem ambiguidade
+
+> **Por que existe ([W] 2026-09-22, complemento ao [#7703](https://github.com/wagnerra23/oimpresso.com/pull/7703)):**
+> a seção anterior fechou o **aceite por item** (matriz, `T00`, `sameTheme`). Faltava o outro
+> eixo do mesmo problema — **garantir que a comparação usa o protótipo certo e o Design System
+> certo**. [W], textual: *"o que não pode existir é […] a ferramenta escolher a fonte por
+> basename […] usar 'o primeiro arquivo encontrado'"*.
+>
+> Pastas por autor (`cowork/Felipe/`, `cowork/Wagner/`) são **legítimas** — os dois trabalham no
+> mesmo projeto e sincronizam. O que não pode existir é **duas cópias do DS**, **dois globals
+> carregáveis**, ou **fonte escolhida por sorte de varredura**.
+
+### Autoridade — [W] decide a fonte; a máquina prova qual foi usada
+
+[W] é o dono do oimpresso e do Design System, e é a autoridade para: aprovar a versão canônica
+do DS · decidir qual protótipo rege uma tela · resolver conflito entre protótipos de autores ·
+aprovar diferença intencional · aceitar exceção de escopo · aceitar a promoção final.
+
+**A decisão fica registrada e auditável, e não substitui a validação técnica.** Qualquer autor —
+[W], [F] ou outro — passa pela mesma prova depois que a fonte estiver aceita. A separação é:
+
+| quem | responde |
+|---|---|
+| **[W]** | *qual* fonte vale |
+| **a máquina** | *qual* fonte foi de fato usada, e o que entrou na aplicação |
+
+### O defeito é ATIVO — medido em 2026-09-22, antes de escrever a regra
+
+`node scripts/design/design-lock.mjs --check` sobre a árvore:
+
+| medida | valor |
+|---|---|
+| charters que declaram `-page.jsx` em `bundle_source`/`visual_source` | **46** |
+| declaram com **caminho completo** (a forma correta) | **6** → resolvem **NADA**: `ancora.mjs:512` compara `basename(f) === valor cru`, e o caminho nunca casa |
+| **ambíguos** (2+ arquivos com aquele basename) | **40** |
+| destes, com **conteúdo divergente** | **38** → `.find()` escolhe o primeiro da varredura (`Felipe/`, por ordem alfabética) e nada declara a escolha |
+| resolvem exatamente 1 candidato | **0** |
+
+Ou seja: a perna do bundle **nunca resolve corretamente hoje** — ou escolhe entre divergentes,
+ou ignora quem declarou o caminho certo. E quem faz o **certo** (declarar o caminho) é o mais
+penalizado. Isto não é risco futuro; é o estado medido.
+
+### Regra do DS único
+
+O Design System tem **uma** fonte canônica: `prototipo-ui/design-system/`.
+
+Protótipos de qualquer autor, handoffs e páginas-guia podem **referenciar** o DS canônico e
+**não podem** carregar, embutir ou manter cópia independente dele. A validação reprova:
+
+1. cópia de arquivo de DS **fora** da fonte canônica;
+2. mesmo nome de arquivo de DS com **conteúdo divergente**;
+3. mais de um global/runtime de DS disponível;
+4. versão de DS em runtime diferente da declarada para a comparação;
+5. handoff ou bundle legado capaz de **vencer** a resolução de fonte.
+
+⚠️ **Sincronizar DS não é promover tela.** Renomear global, mudar comentário, ajustar caminho de
+import ou subir versão de dependência é **sincronização** — nunca prova de que uma tela foi
+promovida para produção.
+
+### Lock de design — caminho completo, revisão e hash
+
+Antes de implementar ou comparar, a fonte fica travada em
+[`governance/design/design-lock.json`](../../../governance/design/design-lock.json):
+
+```json
+{
+  "design_system": {
+    "path": "prototipo-ui/design-system/colors_and_type.css",
+    "git_revision": "<commit>",
+    "content_hash": "<sha256>",
+    "runtime_global": "window.<nome-canonico>",
+    "approved_by": "Wagner",
+    "approved_at": "YYYY-MM-DD"
+  },
+  "screens": [
+    {
+      "id": "<Modulo>/<Tela>",
+      "prototype_path": "prototipo-ui/cowork/<Autor>/<arquivo>-page.jsx",
+      "git_revision": "<commit>",
+      "content_hash": "<sha256>",
+      "accepted_by": "Wagner",
+      "accepted_at": "YYYY-MM-DD"
+    }
+  ]
+}
+```
+
+**Basename não identifica fonte.** `manufacturing-page.jsx` não diz nada quando existem três
+arquivos com esse nome — e existem. A referência válida é **caminho completo + revisão + hash**.
+O hash de um arquivo sai de `node scripts/design/design-lock.mjs --hash <arquivo>`.
+
+_(JSON e não YAML por medição: `js-yaml` não está em `dependencies` nem `devDependencies`, e um
+lock YAML faria um gate depender de pacote ausente — o defeito que o gate existe para impedir.
+`governance/` já é JSON.)_
+
+### Resolução sem ambiguidade
+
+Havendo **mais de um candidato** para uma fonte visual ou de DS, a execução **falha**, lista os
+candidatos e exige caminho explícito no lock. É **proibido** resolver fonte por: primeiro
+resultado de `find()` · basename · ordem de varredura · prioridade implícita de pasta · estado da
+máquina local.
+
+Renomear diretório ou rodar noutra máquina **não pode** mudar em silêncio o protótipo comparado.
+
+### Prova de runtime
+
+Git correto **não** é prova suficiente. A comparação prova, no ambiente real, que a aplicação
+carregou: **uma** versão do DS · o global declarado no lock · a revisão/fingerprint esperada ·
+**nenhuma** cópia legada de handoff, bundle alternativo ou import antigo.
+
+A prova é registrada junto ao `<Tela>-visual-comparison.md`, ao lado da matriz.
+
+### Ordem das pré-condições — o lock vem ANTES do `T00`
+
+Estas regras **complementam** a seção anterior; não substituem `T00` nem `sameTheme`. A ordem é:
+
+| # | pré-condição | se falhar |
+|---|---|---|
+| 1 | lock resolve caminho, revisão e hash | `BLOQUEADO` |
+| 2 | sem ambiguidade de âncora e sem duplicata de DS | `BLOQUEADO` |
+| 3 | runtime provou o DS esperado | `NÃO MEDIDO` |
+| 4 | `T00` — os dois lados são a mesma tela | `NÃO MEDIDO` |
+| 5 | `sameTheme: true` | `NÃO MEDIDO` |
+| 6 | veredito visual | só aqui `ACEITO` é possível |
+
+**Falhou qualquer etapa, o resultado é `NÃO MEDIDO` ou `BLOQUEADO` — nunca `IGUAL`.**
+
+### Reprodutibilidade entre máquinas
+
+O mesmo commit, lock, dado, viewport, tema e versão de ferramenta devem produzir o mesmo
+resultado para qualquer autor. O recibo da comparação registra: commit do repositório · hash do
+protótipo · hash do DS · viewport · tema · fixture/dado · versão da ferramenta · ambiente.
+
+Máquinas diferentes achando fontes ou resultados diferentes ⇒ **`NÃO REPRODUTÍVEL`**, que é um
+veredito próprio e não se confunde com divergência de design.
+
+### O que a máquina já faz, e o que ainda não
+
+Honestidade sobre o próprio alcance, datada — 2026-09-22:
+
+| regra | estado |
+|---|---|
+| lock válido (campos, caminho completo, hash confere) | ✅ `design-lock.mjs --check` |
+| DS único (fora da canônica · nome com conteúdo divergente) | ✅ `--ds` |
+| âncora ambígua falha e lista candidatos | ✅ `--ambiguidade` (e `--strict` para exit 1) |
+| lock desambigua a tela travada | ✅ testado nos dois sentidos |
+| **prova de runtime (global/fingerprint do DS carregado)** | ❌ **não implementado** — depende de sonda no browser, como o resto do D1–D8 |
+| **recibo de reprodutibilidade no artefato da tela** | ❌ **não implementado** |
+
+As duas linhas ❌ ficam **declaradas como dívida**, não descritas como se existissem — mecanismo
+que anuncia o que não faz é [LC-15](../../LICOES_CODE.md). E este complemento **não afirma o
+próprio enforcement**: quem é required vive em
+[`governance/required-checks-baseline.json`](../../../governance/required-checks-baseline.json).
