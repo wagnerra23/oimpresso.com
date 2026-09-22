@@ -26,13 +26,20 @@
  * 3x: 6949/6561/6063ms no `--write`, 6165/6689ms no `--check`. O gerador e IDEMPOTENTE (dois
  * writes seguidos dao o mesmo hash), entao ele nao fabrica diff espurio.
  *
- * DRIFT HERDADO: se o indice estava stale por commit de TERCEIRO, o `--write` regenera tudo e o
- * diff sai maior que o toque do autor. Isso e inevitavel — o `--check` compara FIDELIDADE TOTAL
- * — e a mensagem diz isso em voz alta, em vez de deixar o autor descobrir no `git diff`.
+ * DRIFT HERDADO: se o indice estava stale por commit de TERCEIRO, a regeneracao traz tudo e o
+ * diff sai maior que o toque do autor. Isso e inevitavel — a comparacao e do conteudo INTEIRO do
+ * arquivo — e a mensagem diz isso em voz alta, em vez de deixar o autor descobrir no `git diff`.
+ * (Ate 2026-09-22 este comentario dizia que o `--check` comparava "fidelidade total". Era falso:
+ * o `--check` compara so os nomes das maquinas. Por isso o hook deixou de usa-lo.)
+ *
+ * LIMITE DECLARADO: o filtro de path continua o mesmo (so dispara em commit que toca maquina).
+ * Editar documento sem tocar maquina muda a coluna Documento e NAO regenera ali — o drift vem
+ * no proximo commit que tocar maquina. Ampliar o filtro faria ~toda edicao de memory/ pagar
+ * os ~6,5s do gerador.
  */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const INDICE = 'memory/reference/MAQUINAS-INVENTARIO.md';
 const GERADOR = 'scripts/governance/maquinas-inventario.mjs';
@@ -144,20 +151,31 @@ function main() {
   }
   if (!tocaCoberto(paths)) return 0;        // nao paga a medicao
 
-  // --- so agora o passo CARO: quem decide e a medicao da arvore, nunca a presenca no diff
-  let stale = false;
+  // --- so agora o passo CARO: quem decide e a medicao da arvore, nunca a presenca no diff.
+  // Compara o CONTEUDO INTEIRO (saida do gerador × arquivo), nao so a cobertura. Ate 2026-09-22
+  // este passo chamava o `--check`, que compara apenas os NOMES das maquinas (faltou/sobrou) —
+  // e as colunas derivadas (Invocador, Leitor, Evidencia, Documento) envelheciam caladas: medido
+  // no dia, o `main` tinha 2 linhas stale (`replica-inconsistencias` ganhou invocador `ci`;
+  // `selftest-registry-check` mudou de documento) com o `--check` verde. O gerador e IDEMPOTENTE,
+  // entao comparar bytes nao fabrica diff espurio; e a saida do modo dry E o que o `--write` grava,
+  // logo ela e escrita direto — sem pagar os ~6,5s uma segunda vez.
+  let fresco;
   try {
-    execFileSync('node', [GERADOR, '--check'], { cwd, stdio: 'ignore', timeout: 120000 });
-  } catch (e) {
-    if (typeof e.status === 'number' && e.status === 1) stale = true;
-    else return 0;                          // crash/timeout: fail-open, nao afirmo staleness
+    fresco = execFileSync('node', [GERADOR], {
+      cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 120000, maxBuffer: 64 * 1024 * 1024,
+    });
+  } catch {
+    return 0;                               // crash/timeout: fail-open, nao afirmo staleness
   }
-  if (!stale) return 0;                     // indice fresco: SILENCIO (aqui morre o presence-gate)
+  if (typeof fresco !== 'string' || !fresco.trim()) return 0;   // saida vazia = nao medi
+  let atual = null;
+  try { atual = readFileSync(INDICE, 'utf8'); } catch { /* ausente: regenera */ }
+  if (atual === fresco) return 0;           // indice fresco: SILENCIO (aqui morre o presence-gate)
 
   try {
-    execFileSync('node', [GERADOR, '--write'], { cwd, stdio: 'ignore', timeout: 120000 });
+    writeFileSync(INDICE, fresco);
   } catch {
-    console.error('[maquinas-inventario] o --write falhou; commit segue, indice fica stale.');
+    console.error('[maquinas-inventario] nao consegui gravar o indice; commit segue, indice fica stale.');
     return 0;
   }
 
@@ -180,10 +198,11 @@ function main() {
   console.error(
     '[maquinas-inventario] REGENEREI e ESTAGIEI ' + INDICE + '.\n' +
     '  Motivo: este commit toca maquina (.claude/ · scripts/governance/ · .github/workflows/)\n' +
-    '  e o `--check` acusou drift. Derivado com dono acompanha a mudanca do insumo.\n' +
-    '  Se o diff do indice for maior que o seu toque, o excedente e DRIFT HERDADO de commits\n' +
-    '  anteriores que nao regeneraram — o `--check` compara fidelidade TOTAL, nao ha como pagar\n' +
-    '  so a propria linha. Medido em 2026-09-15: 72 de 81 commits omitiram isso.'
+    '  e o conteudo do indice divergia da arvore. Derivado com dono acompanha a mudanca do insumo.\n' +
+    '  Se o diff do indice for maior que o seu toque, o excedente e DRIFT HERDADO: commits\n' +
+    '  anteriores que nao regeneraram, ou documentos editados sem tocar maquina (a coluna\n' +
+    '  Documento muda com eles). A comparacao e do arquivo INTEIRO, nao ha como pagar so a\n' +
+    '  propria linha. Medido em 2026-09-15: 72 de 81 commits omitiram isso.'
   );
   return 0;
 }
