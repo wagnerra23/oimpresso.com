@@ -181,7 +181,10 @@ function montarDsRequires() {
   let slug = null;
   let dentroDe = relativoAoDs;
   if (!naRaiz.length) {
-    const slugs = new Set(dsPaths.map((rel) => rel.split('/')[1]).filter(Boolean));
+    // Slug e PASTA: so conta quem tem arquivo DENTRO (`_ds/<slug>/x`). Medido 2026-09-21 (zip V5):
+    // o Cowork passou a deixar uma nota solta `_ds/_export-baseline.json`, e o `split('/')[1]`
+    // a contava como 2o design system — "ambiguo" por causa de um arquivo, nao de um DS.
+    const slugs = new Set(dsPaths.filter((rel) => rel.split('/').length >= 3).map((rel) => rel.split('/')[1]));
     if (slugs.size !== 1) {
       // 2 design systems no mesmo pacote e ambiguidade, nao escolha silenciosa (mesma regra do
       // `previewDsPlan`, que ja erra explicito nesse caso).

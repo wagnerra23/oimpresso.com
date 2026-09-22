@@ -291,5 +291,25 @@ console.log('\n=== ds-ref — profundidade e so atributo (2026-09-21) ===');
     'MORDE: shaDepois do gerador = resultado da MESMA funcao que o aplicador usa');
 }
 
+console.log('\n=== dsRequires — arquivo solto em _ds/ nao e design system (zip V5, 2026-09-21) ===');
+{
+  const S = 'ds-x-22222222';
+  const monta = (extra) => {
+    const dir = mkdtempSync(join(tmpdir(), 'gpp-ds2-'));
+    writeFileSync(join(dir, 'oimpresso.com.html'), `<link rel="stylesheet" href="_ds/${S}/colors_and_type.css"/>\n`);
+    mkdirSync(join(dir, '_ds', S), { recursive: true });
+    writeFileSync(join(dir, '_ds', S, 'colors_and_type.css'), 'a{}\n');
+    extra(dir);
+    return rodar(['--root', dir, '--out', saida(), '--full-tree', '--owner', 'Felipe', '--piso', '0']);
+  };
+  const nota = monta((dir) => writeFileSync(join(dir, '_ds', '_export-baseline.json'), '{"gerado":"x"}\n'));
+  ok(nota.code === 0, `SOLTA: nota solta _ds/_export-baseline.json nao vira 2o DS (exit ${nota.code})`);
+  const dois = monta((dir) => {
+    mkdirSync(join(dir, '_ds', 'outro-ds-3333'), { recursive: true });
+    writeFileSync(join(dir, '_ds', 'outro-ds-3333', 'colors_and_type.css'), 'b{}\n');
+  });
+  ok(dois.code !== 0 && /2 design systems/.test(dois.out), 'MORDE: duas PASTAS de DS seguem recusadas como ambiguas');
+}
+
 console.log(falhas ? `\n✗ ${falhas} asserção(ões) falharam\n` : '\n✓ todas as asserções passaram\n');
 process.exit(falhas ? 1 : 0);
