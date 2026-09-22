@@ -179,6 +179,13 @@ it('UC-CV-07 controle-negativo — catalogo de OUTRO business nunca chega a pagi
 
         $payload = json_encode($resposta->viewData('page')['props'] ?? [], JSON_UNESCAPED_UNICODE) ?: '';
 
+        // ⚠️ A DIREÇÃO NÃO MUDOU: `str_contains(...) === false` é o mesmo "não contém" do
+        // `->not->toContain(...)`. O que mudou é que ANTES o assert não valia nada — era
+        // `->not->toContain($marcadorAlheio, '<mensagem>')`, e `toContain` é variádico
+        // (`mixed ...$needles`, Mixins/Expectation.php:184): a mensagem virava um 2º needle,
+        // o positivo passava a lançar SEMPRE, e o `not->` — que passa exatamente quando o
+        // positivo lança (OppositeExpectation.php:770-784) — ficava true com ou sem o
+        // marcador. Este assert de vazamento cross-tenant NÃO PODIA FALHAR. Agora pode.
         expect(str_contains($payload, $marcadorAlheio))->toBeFalse('Vazamento cross-tenant Tier 0 (ADR 0093): material de outro business apareceu no ' .
             'payload da página. Ver SDD §6 CU-CV-09 item 2.');
     } finally {

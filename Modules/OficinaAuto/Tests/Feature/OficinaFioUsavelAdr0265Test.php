@@ -234,6 +234,10 @@ it('fio usável: criar OS → recepcao → entregue → imprimir, sem role mecan
         foreach (['actions' => $actions, 'gate' => $gate] as $nome => $r) {
             $raw = mb_strtolower(json_encode($r->json(), JSON_UNESCAPED_UNICODE));
             foreach (['locação', 'locacao', 'caçamba', 'cacamba'] as $proibida) {
+                // ⚠️ A DIREÇÃO NÃO MUDOU: `str_contains(...) === false` é o mesmo "não contém".
+                // Antes era `->not->toContain($proibida, '<mensagem>')`, e `toContain` é
+                // variádico — a mensagem virava 2º needle, o positivo lançava sempre e o `not->`
+                // passava sempre. O guard de vocabulário proibido (ADR 0265) não podia falhar.
                 expect(str_contains($raw, $proibida))->toBeFalse("payload {$nome} no passo {$actionKey} não pode conter '{$proibida}'");
             }
         }
