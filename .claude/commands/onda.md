@@ -50,13 +50,28 @@ Os 9 itens do bloco D são o DoD, e o item 6 (**placar**) vai no corpo do PR: `e
 Nem toda onda é seção de tela. Quando o trabalho é uma **thread de playbook** (`SINCRONIZAR <Mod>`), o que abre a sessão é o `NN-*.md` da thread, não o pedido de seção. Mesmo princípio do §2-quater: a sessão **nasce lida**.
 
 ```bash
-# 1. O estado da thread — DERIVADO do repo (provas + _saida), ninguém escreve
-node scripts/qa/placar.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/$1/playbook/00-INDICE.md --thread $NN --proximo
+# 0. RESOLVER os argumentos. O harness entrega $1 $2 $3 — a variavel $NN NAO existe.
+#    `/onda <Modulo> --thread <NN>`  =>  $1=<Modulo>  $2=--thread  $3=<NN>
+#    O diretorio do playbook e MINUSCULO (hrm, ponto, placar): normalize antes de montar.
+MOD=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+NN="$3"
+IDX="prototipo-ui/cowork/Wagner/cowork-inbox/$MOD/playbook/00-INDICE.md"
 
-# 2. Os 2 arquivos que a sessão abre ANTES de qualquer Edit
+# 1. PORTAO — sem indice no main, a sessao NAO improvisa.
+test -f "$IDX" || { echo "NAO MEDI: indice '$MOD' ausente no main - o pacote do Cowork nao foi importado. Nada executado."; exit 1; }
+
+# 2. O estado da thread — DERIVADO do repo (provas + _saida), ninguém escreve
+node scripts/qa/placar.mjs --indice "$IDX" --thread "$NN" --proximo
+
+# 3. Os 2 arquivos que a sessão abre ANTES de qualquer Edit
 #    (o NN-*.md é o pedido; o 00-INDICE.md é o contrato — prefixo, nao_toca, deps, decisões)
-ls prototipo-ui/cowork/Wagner/cowork-inbox/$1/playbook/$NN-*.md
+ls "prototipo-ui/cowork/Wagner/cowork-inbox/$MOD/playbook/$NN"-*.md
 ```
+
+> **Se o passo 1 imprimir `NÃO MEDI`, PARE.** Responda só essa linha e encerre: não rode outro
+> módulo, não varra os 13, não escolha uma thread no lugar da pedida. Índice ausente é **falta de
+> import**, não convite a improvisar — e improvisar é pior que falhar, porque devolve um relatório
+> plausível sobre outra coisa. Peça o handoff do Cowork e pare.
 
 **Leia o estado antes de executar** — ele diz se a thread sequer é sua para pegar:
 
