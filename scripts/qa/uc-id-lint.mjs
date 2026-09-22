@@ -46,7 +46,13 @@
 // USO (na raiz do repo):
 //   node scripts/qa/uc-id-lint.mjs                          # report full-tree (exit 0)
 //   node scripts/qa/uc-id-lint.mjs --check                  # exit 1 se houver QUALQUER inválido
-//   node scripts/qa/uc-id-lint.mjs --check --baseline governance/uc-id-baseline.json
+//   node scripts/qa/uc-id-lint.mjs --check
+//
+// BASELINE EXTINTO em 2026-09-22 (ADR 0409): `governance/uc-id-baseline.json` chegou a
+// `grandfathered: []` — os 42 ids legados foram consertados — e o arquivo foi apagado.
+// O CI roda `--check` CRU. A flag `--baseline` segue no codigo para quem precisar medir
+// contra uma lista, mas recriar tolerancia para este gate exige decisao de [W] (0409:
+// "criar um novo exige nova decisao de [W]").
 //   node scripts/qa/uc-id-lint.mjs --write-baseline governance/uc-id-baseline.json
 //   node scripts/qa/uc-id-lint.mjs --json                   # determinístico (sem data/sha)
 //   node scripts/qa/uc-id-lint.mjs <arquivo.casos.md ...>   # só os arquivos passados
