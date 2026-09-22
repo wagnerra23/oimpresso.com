@@ -3,7 +3,7 @@ sessao: "02"
 titulo: /onda modo thread — caminho quebrado e índice ausente vira PARAR
 executor: "[CC]"
 base: 701f40c6ec66
-pr: "#7737"
+pr: "#7739"
 ---
 # _saida 02
 
