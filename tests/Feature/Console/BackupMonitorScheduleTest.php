@@ -68,3 +68,54 @@ it('config de monitor exige backup com no máximo 1 dia de idade', function () {
     expect($maxAge)->not->toBeNull('deve haver health_check MaximumAgeInDays configurado');
     expect($maxAge)->toBeLessThanOrEqual(1, 'backup não pode passar de 1 dia sem alarme (RPO 24h)');
 });
+
+/**
+ * Incidente 2026-09-22 — o veredito do backup não pode depender do SMTP.
+ *
+ * Mecanismo (lido no vendor, não inferido): Tasks/Backup/BackupJob.php:357 dispara
+ * `event(new BackupWasSuccessful(...))` DENTRO do `try` de Commands/BackupCommand.php
+ * (try na 56, `return SUCCESS` na 103). Se o canal levantar exceção, o `catch` da 104
+ * devolve `FAILURE` na 125 — um backup BEM-SUCEDIDO vira exit 1.
+ *
+ * Foi o que aconteceu por 3 meses: 694 falhas `535` (auth SMTP) desde 2026-06-21,
+ * todas às 01h e 09h, enquanto o zip do dia estava em disco com o MySQL dentro. O
+ * alarme noturno era sobre e-mail e passava por "backup falhou".
+ */
+it('notificação de SUCESSO não tem canal — SMTP fora do ar não pode reprovar backup bom', function () {
+    $canais = config('backup.notifications.notifications');
+
+    $sucesso = [
+        \Spatie\Backup\Notifications\Notifications\BackupWasSuccessfulNotification::class,
+        \Spatie\Backup\Notifications\Notifications\HealthyBackupWasFoundNotification::class,
+        \Spatie\Backup\Notifications\Notifications\CleanupWasSuccessfulNotification::class,
+    ];
+
+    foreach ($sucesso as $notificacao) {
+        expect($canais)->toHaveKey($notificacao);
+        expect($canais[$notificacao])->toBe(
+            [],
+            "{$notificacao} não pode ter canal: ela roda dentro do try do BackupCommand, "
+            .'então qualquer canal que falhe (SMTP fora do ar) converte backup bem-sucedido em exit 1'
+        );
+    }
+});
+
+it('notificação de FALHA continua indo por mail — o alarme volta sozinho quando a credencial for corrigida', function () {
+    // O contraponto do teste acima. Zerar TODOS os canais calaria o alarme real:
+    // aqui o backup falhar de verdade tem que continuar tentando avisar.
+    $canais = config('backup.notifications.notifications');
+
+    $falha = [
+        \Spatie\Backup\Notifications\Notifications\BackupHasFailedNotification::class,
+        \Spatie\Backup\Notifications\Notifications\UnhealthyBackupWasFoundNotification::class,
+        \Spatie\Backup\Notifications\Notifications\CleanupHasFailedNotification::class,
+    ];
+
+    foreach ($falha as $notificacao) {
+        expect($canais)->toHaveKey($notificacao);
+        expect($canais[$notificacao])->toContain(
+            'mail',
+            "{$notificacao} precisa manter um canal de alarme — sem ele a falha REAL de backup fica muda"
+        );
+    }
+});
