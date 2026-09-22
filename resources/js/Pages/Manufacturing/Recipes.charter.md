@@ -5,6 +5,7 @@ owner: wagner
 status: draft
 parent_module: Manufacturing
 # 2026-09-22 [W]: fonte = handoff_fabricacao do Felipe. Caminho COMPLETO de proposito - bundle_source resolve por BASENAME (ancora.mjs:512) e ha 3 copias de manufacturing-page.jsx no staging.
+# 2026-09-22 [F+C]: o caminho abaixo é a RAIZ de cowork/Felipe/ — o que o shell (oimpresso.com.html) carrega e o protótipo validado. A cópia em cowork/Felipe/handoff_fabricacao/design/ é DUPLICATA (usada só pela página-guia do pacote), não a fonte.
 related_prototype: prototipo-ui/cowork/Felipe/manufacturing-page.jsx
 related_us: [US-MANU-001]
 runbook: memory/requisitos/Manufacturing/RUNBOOK-recipes.md
