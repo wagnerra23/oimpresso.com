@@ -5,7 +5,7 @@ description: A travessia completa de uma venda pelos quatro domínios (venda, es
 type: reference
 authority: canonical
 lifecycle: ativo
-updated_at: "2026-08-17"
+updated_at: "2026-09-22"
 nav_group: fluxo
 nav_order: 10
 lente: [operar, construir]
@@ -170,13 +170,11 @@ Dono: [`CancelarVendaCascade`](../../app/Domain/Fsm/SideEffects/CancelarVendaCas
 · contrato provado em [`CancelarVendaCascadeSideEffectTest`](../../tests/Feature/Domain/Fsm/CancelarVendaCascadeSideEffectTest.php)
 · percurso próprio em [`FLUXO-CANCELAMENTO.md`](FLUXO-CANCELAMENTO.md).
 
-> ⚠️ **Estado dos outros percursos** (medido 2026-08-17, atualizado no mesmo dia):
-> [`FLUXO-CANCELAMENTO.md`](FLUXO-CANCELAMENTO.md) tinha o mesmo buraco e **foi fechado** — as
-> quatro perguntas estão respondidas lá, com âncora no seeder da ação e nos quatro jobs da
-> cascata. [`FLUXO-DEPLOY.md`](FLUXO-DEPLOY.md) **segue aberto**, e é o mais sério: um percurso
-> de deploy sem linha de rollback é a lacuna que a auditoria de infra já tinha apontado por outro
-> caminho. Não foi escrito porque exige saber o procedimento **real** de reversão em produção;
-> inventar um passo que parece canon é pior do que a ausência declarada.
+> ⚠️ **Retrato medido em 2026-08-17:** naquela data,
+> [`FLUXO-CANCELAMENTO.md`](FLUXO-CANCELAMENTO.md) teve quatro perguntas fechadas, enquanto
+> [`FLUXO-DEPLOY.md`](FLUXO-DEPLOY.md) ainda não declarava recuperação. A revisão de
+> 2026-09-22 documentou o comportamento real do failsafe e o limite: não existe rollback
+> automático para outro commit.
 >
 > Dos **7 fluxos** que o D7 pede (venda, cancelamento, fiscal, WhatsApp, IA, migração, deploy),
 > **3 têm documento** — fiscal, WhatsApp e migração não têm nenhum.
@@ -188,3 +186,47 @@ por dois caminhos independentes e **apresentar o impacto antes de aplicar**. Nas
 incidente real de produção, não de zelo teórico.
 
 Dono: [`memory/proibicoes.md`](../proibicoes.md) (§ *Cálculo de valor ou estoque*).
+
+## Contrato verificável da venda
+
+### Entrada e invocador
+
+A entrada de gravação é a requisição de venda recebida pelas rotas de `sells`, com empresa e
+local da sessão autenticada, cliente, itens, quantidades, preços, pagamentos e estado solicitado.
+O invocador web é o [`SellController::store`](../../app/Http/Controllers/SellController.php);
+[`TransactionUtil::createSellTransaction`](../../app/Utils/TransactionUtil.php) cria a venda e
+as rotinas do mesmo serviço persistem linhas, pagamentos e movimentos. Canais diferentes podem
+chegar por controllers próprios, mas não podem retirar `business_id` do contrato.
+
+Depois da gravação, observers, máquina de estados e jobs invocam as pernas de estoque,
+financeiro e fiscal. Essas pernas são independentes; nenhuma delas transforma a existência da
+venda em prova de que as demais terminaram.
+
+### Saída durável e prova
+
+A saída durável mínima é a transação de venda com suas linhas. Conforme a entrada e o avanço do
+processo, também ficam persistidos pagamentos, reservas ou movimentos de estoque, título a
+receber, histórico FSM e documento fiscal. Cada registro preserva a empresa dona; job recebe o
+tenant explicitamente.
+
+Os invariantes de gravação são cobertos por
+[`SellPosControllerStoreInvariantsTest`](../../tests/Feature/Sells/SellPosControllerStoreInvariantsTest.php),
+e o isolamento SQL por
+[`MultiTenantSqlGuardTest`](../../tests/Feature/Sells/MultiTenantSqlGuardTest.php). A máquina e a
+cascata de cancelamento têm provas próprias apontadas nas seções anteriores. Teste de uma perna
+não é usado como prova das outras.
+
+### Falso-verde conhecido
+
+Uma linha em `transactions`, uma tela que mostra número de venda ou um HTTP 200 provam somente
+que aquela camada respondeu. Não provam baixa no caixa, consumo de estoque, criação de título,
+autorização fiscal nem recebimento no gateway. Outro falso-verde é somar o valor na interface e
+assumir que o backend persistiu o mesmo rateio; cálculo de valor exige os dois caminhos
+independentes definidos em `memory/proibicoes.md`.
+
+### Limite da prova
+
+Os testes automatizados cobrem contrato e persistência controlada. Eles não medem disponibilidade
+atual de SEFAZ, gateway, fila ou worker em produção. O fechamento de uma venda real exige consultar
+o recibo da perna relevante. Integração inacessível ou sem recibo fica **NÃO MEDIDO**; não herda o
+verde da venda, do CI ou de execução anterior.

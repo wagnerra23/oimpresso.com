@@ -81,9 +81,22 @@ function fontesInvocadoras(root) {
   return paths.map((p) => ({ rel: posix(relative(root, p)), text: read(p) }));
 }
 
+function fontesDeProva(root) {
+  const paths = [
+    ...walk(join(root, 'scripts'), (p) => /\.test\.(?:mjs|js|cjs)$/.test(p)),
+    ...walk(join(root, '.claude', 'hooks'), (p) => /\.test\.(?:mjs|js|cjs)$/.test(p)),
+  ];
+  return paths.map((p) => ({ rel: posix(relative(root, p)), text: read(p) }));
+}
+
+function linhasExecutaveis(texto) {
+  return String(texto).split(/\r?\n/).filter((l) => !/^\s*#/.test(l));
+}
+
 export function auditarMaquina(root, rel, fontes = fontesInvocadoras(root)) {
   const abs = join(root, rel);
   const base = basename(rel);
+  const stem = base.replace(/\.(?:mjs|js|cjs|ya?ml)$/, '');
   const self = posix(rel);
   const invoca = (f) => {
     const linhas = f.text.split(/\r?\n/).filter((l) => l.includes(self) || l.includes(base));
@@ -93,17 +106,28 @@ export function auditarMaquina(root, rel, fontes = fontesInvocadoras(root)) {
   const invocadores = fontes
     .filter((f) => f.rel !== self && invoca(f))
     .map((f) => f.rel);
-  const test = rel.replace(/\.(mjs|js|cjs)$/, '.test.$1');
-  const temTeste = test !== rel && existsSync(join(root, test));
-  const testeInvocado = temTeste && fontes.some((f) => f.rel.startsWith('.github/workflows/') && f.text.includes(test));
+  const sibling = rel.replace(/\.(mjs|js|cjs)$/, '.test.$1');
+  const provas = fontesDeProva(root);
+  const stemQuoted = new RegExp(`['\"]${stem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['\"]`);
+  const candidatos = provas.filter((p) =>
+    p.rel === sibling || linhasExecutaveis(p.text).some((l) =>
+      l.includes(self) || l.includes(base) || (rel.startsWith('.claude/hooks/') && stemQuoted.test(l)),
+    ),
+  );
+  const testeLigado = candidatos.find((p) => fontes.some((f) =>
+    f.rel.startsWith('.github/workflows/') && linhasExecutaveis(f.text).some((l) => l.includes(p.rel)),
+  ));
+  const selftestLigado = /--selftest\b/.test(read(abs)) && fontes.some((f) =>
+    f.rel.startsWith('.github/workflows/') && linhasExecutaveis(f.text).some((l) => l.includes(self) && /--selftest\b/.test(l)),
+  );
   const workflow = rel.startsWith('.github/workflows/');
   const evento = workflow && /^on\s*:/m.test(read(abs));
   return {
     arquivo: rel,
     existe: existsSync(abs) && statSync(abs).isFile(),
     invocadores: workflow && evento ? ['evento do próprio workflow'] : invocadores,
-    prova: testeInvocado ? 'teste+wiring' : temTeste ? 'teste-sem-wiring' : 'nao-localizada',
-    teste: temTeste ? test : null,
+    prova: testeLigado || selftestLigado ? 'teste+wiring' : candidatos.length ? 'teste-sem-wiring' : 'nao-localizada',
+    teste: selftestLigado ? `${rel} --selftest` : testeLigado?.rel || candidatos[0]?.rel || null,
   };
 }
 
