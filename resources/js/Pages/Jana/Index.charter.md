@@ -243,6 +243,29 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 
 ## Charter version log
 
+- **v25 (2026-09-21)** — **a divergência de PESO que a v17 deixou aberta FECHOU, por réplica
+  local — e o fundamento que faltava está medido: as duas âncoras discordam entre si.** A v17
+  estabeleceu o alvo (prod 700 -> âncora 600) e a `Index.casos.md` já prescrevia o caminho
+  ("componente compartilhado não impõe a forma de uma tela às outras", ADR 0388 §D-1). O que esta
+  rodada acrescenta é a medição do OUTRO lado: a âncora de **Vendas** declara **700**
+  explicitamente, em duas regras — `styles.css:4772` (0-1-1) e `financeiro.css:1727` (0-3-1, a que
+  vence por especificidade) —, e o comentário de `styles.css:4765` diz, textual, *"`.os-head` —
+  mesmo CANON do PageHeader"*: aquele protótipo foi escrito PARA casar com o componente. O 700 do
+  `PageHeader` é, portanto, decisão [W] datada e **ainda válida** (PR #1477, 2026-05-25, *"prefiro
+  o mesmo peso do sells"* — referência re-medida hoje e ainda 700), não desvio acidental. Mudá-la
+  alinharia **42** telas ao peso que a Jana quer. Conserto: prop opt-in `titleWeight` no
+  `PageHeader` (mesmo contrato de `leading`/`below` — sem a prop, nada muda), default `'bold'`,
+  e só o `JanaAreaHeader` declara `'semibold'`; as outras **41** telas não mudam um pixel.
+  UC-JPAIN-30, com mordida provada por duas mutações (uma por perna: some o opt-in -> cai o assert
+  da Jana; muda o default -> cai o controle negativo que protege as demais). Teste:
+  `tests/janaAreaHeaderParidade.spec.tsx`. **Computed style MEDIDO** (2026-09-21, browser real + CSS do projeto gerado pelo entry
+  de verdade, Tailwind v4.3.3): com a prop **600**, sem a prop **700**, e `font-size` **22px nos
+  dois** — a paridade de tamanho não foi tocada. A medição é necessária porque no v4 a regra é
+  indireta (`font-weight: var(--font-weight-semibold)`) e só o browser resolve. Controle positivo
+  no mesmo turno (`folhaCarregou: true`), e a className veio extraída do fonte, não digitada.
+  ⚠️ Não é a tela `/ia` logada inteira: smoke autenticado não foi feito (302 sem sessão). O `<h1>` segue FORA dos 9
+  seletores do `governance/design/targets/jana--index.alvo.json` — resíduo declarado, não fechado.
+
 - **v24 (2026-09-21)** — **os 3 estados do gate L2 existem, e a medição expôs um PONTO CEGO que
   nenhuma das duas ondas tinha visto.**
 
