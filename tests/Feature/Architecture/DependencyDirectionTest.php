@@ -135,6 +135,34 @@ test('BITE: import de módulo em código é detectado; em comentário NÃO', fun
         ->toBe([], 'import de vendor não é violação de direção');
 });
 
+/**
+ * Arquivos de app/ modificados no diff — a UNIDADE da ADR 0409.
+ *
+ * A lane entrega a lista via env (0409: "a lane required entrega ao teste a lista de
+ * arquivos modificados no diff"). Vazio = nada de app/ mudou; o teste do toque passa
+ * por vacuidade, que e correto: sem toque nao ha divida acordada.
+ *
+ * Idioma copiado de mtsArquivosTocados() no MultiTenantScopeArchitectureTest — aquele
+ * gate ja foi convertido a 0409 e e o modelo canonico. Nao inventei um segundo jeito.
+ */
+function ddArquivosTocados(?string $raw = null): array
+{
+    $raw ??= (string) (getenv('DD_CHANGED_FILES') ?: '');
+    $arquivos = [];
+
+    foreach (preg_split('/\R/', $raw) ?: [] as $path) {
+        $path = str_replace('\\', '/', trim($path));
+        if (preg_match('#^app/.+\.php$#', $path) === 1) {
+            $arquivos[] = $path;
+        }
+    }
+
+    $arquivos = array_values(array_unique($arquivos));
+    sort($arquivos);
+
+    return $arquivos;
+}
+
 test('CATRACA: nenhum arquivo NOVO de app/ importa de Modules/', function () {
     $baseline = ddBaseline();
     $isentos = array_merge($baseline['grandfathered'], $baseline['allowlist']);
@@ -147,6 +175,23 @@ test('CATRACA: nenhum arquivo NOVO de app/ importa de Modules/', function () {
         . "  (c) se for dívida consciente, entrar em governance/dependency-direction-baseline.json"
         . " > allowlist COM razão declarada.\n"
         . "Arquivos:\n  - " . implode("\n  - ", $novos));
+});
+
+test('ADR 0409: arquivo grandfathered TOCADO perde a tolerancia', function () {
+    $baseline = ddBaseline();
+    $tocados = ddArquivosTocados();
+    $dividaAcordada = array_values(array_intersect(
+        ddInfratores(),
+        $baseline['grandfathered'],
+        $tocados,
+    ));
+
+    expect($dividaAcordada)->toBe([], count($dividaAcordada)
+        . " arquivo(s) de app/ com divida grandfathered foram ALTERADOS neste PR e continuam"
+        . " importando de Modules/.\n\n"
+        . "ADR 0409 — a lista ADIA a cura, nao perdoa: alterar o arquivo acorda a divida e"
+        . " exige sair com a seta certa no MESMO PR. Manter ou ampliar a tolerancia nao"
+        . " satisfaz o gate.\n\nArquivos:\n  - " . implode("\n  - ", $dividaAcordada));
 });
 
 test('a baseline não cita arquivo que já foi curado (catraca só desce)', function () {

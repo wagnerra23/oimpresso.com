@@ -121,6 +121,30 @@ jobs:
           EOF
           php artisan key:generate
 
+      # ADR 0409 — a lane entrega ao teste a lista de arquivos de app/ modificados no
+      # diff. Sem isso o `DD_CHANGED_FILES` vem vazio, o teste do TOQUE passa por
+      # vacuidade (correto: sem toque nao ha divida acordada) e a catraca antiga segue
+      # sendo a unica defesa. Base VIVA (merge-base), nunca `base.sha` congelado: aquele
+      # campo envelhece contra o merge ref e arrasta pro range o que veio do main.
+      - name: Arquivos de app/ tocados no diff (ADR 0409)
+        run: |
+          set -euo pipefail
+          base_ref="origin/${GITHUB_BASE_REF:-main}"
+          git fetch --no-tags --quiet origin "${GITHUB_BASE_REF:-main}" || true
+          if base="$(git merge-base "${base_ref}" HEAD 2>/dev/null)"; then
+            changed="$(git diff --name-only "${base}" HEAD)"
+          else
+            echo "::warning::sem base — DD_CHANGED_FILES vazio (teste do toque passa por vacuidade)"
+            changed=""
+          fi
+          echo "Arquivos de app/ mudados:"
+          echo "${changed}" | grep -E '^app/.*[.]php$' || echo "  <nenhum>"
+          {
+            echo 'DD_CHANGED_FILES<<DD_EOF'
+            echo "${changed}" | grep -E '^app/.*[.]php$' || true
+            echo 'DD_EOF'
+          } >> "${GITHUB_ENV}"
+
       - name: Pest — UI architecture gates
         run: |
           vendor/bin/pest \
