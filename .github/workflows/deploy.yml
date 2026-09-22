@@ -396,7 +396,42 @@ jobs:
           /tmp/ssh_exec.sh "cd $RDIR && rm -f .git/index.lock .git/refs/heads/main.lock 2>&1; echo OK"
           /tmp/ssh_exec.sh "cd $RDIR && php artisan up 2>&1 || rm -f storage/framework/down 2>&1; echo OK"
 
-      - name: Backup (arquivos + DB) com rotação (mantém 5 mais recentes)
+      - name: Snapshot pré-deploy dos ARQUIVOS (não é backup de banco) — rotação 5
+        # ⚠️ O nome anterior era "Backup (arquivos + DB)" e NÃO havia dump de banco
+        # nenhum aqui — só este `tar`. Quem lesse o nome concluía que o `migrate
+        # --force` logo abaixo tinha rede de proteção neste passo. Não tinha.
+        #
+        # QUEM protege o banco (o dono de verdade, já existente e MEDIDO em
+        # 2026-09-22): `spatie/laravel-backup`, agendado no app/Console/Kernel.php
+        # (`backup:run` 01:30, `backup:clean` 01:00, `backup:monitor` 09:00). Ele
+        # inclui o MySQL (config/backup.php `source.databases: ['mysql']`) e grava em
+        # public/uploads/UltimatePOS/ (config/backup.php `name` + config/filesystems
+        # `local.root = public_path('uploads')`). Conferido na origem: 7 zips diários,
+        # o mais recente 2026-09-22 01:30, 260 MB.
+        #
+        # ⚠️ O log de produção mostra `backup:run` saindo com exit 1 TODA noite, mas o
+        # zip do dia ESTÁ lá: o que falha é a NOTIFICAÇÃO (SMTP 535 em
+        # no-reply@wr2.com.br), depois do backup pronto. É alarme falso que mascara
+        # falha real — conserto é outro PR, fora do intent deste.
+        #
+        # POR QUE AS DUAS EXCLUSÕES NOVAS (medido em produção, 2026-09-22):
+        #   • `.git` = 1,6 GB — redundante com o GitHub, e o tar vive no MESMO disco,
+        #     então não é disaster recovery; é ponto de rollback. Pior: são packfiles
+        #     já comprimidos, o caso mais caro possível pro gzip.
+        #   • `public/uploads/UltimatePOS` = ~1,6 GB — são os 7 zips do spatie. Era
+        #     backup comprimindo backup, todo deploy.
+        # Efeito medido no servidor, mesmo comando, escrita real em disco:
+        #   antes  3,4 GB / 303–309 s  (3 runs reais: jobs 106471614408, 106462583275,
+        #                               106478607559 — 78% do job de deploy inteiro)
+        #   depois  584 MB /      66 s
+        # O job de deploy sai de ~390 s para ~150 s. Como `concurrency:
+        # deploy-production` serializa, essa é a seção que CRIA a fila: em 2026-09-21 a
+        # espera até o build chegou a 34 min, com 13 deploys ocupando ~83 min de slot.
+        # Também derruba o disco retido de ~17 GB (5 × 3,4) para ~2,9 GB.
+        #
+        # ⚠️ O path do spatie é literal aqui. Se `config/backup.php` `name` ou o root do
+        # disco `local` mudarem, esta exclusão para de casar e o tar volta a 5 min —
+        # degrada devagar, não quebra.
         if: ${{ inputs.skip_backup != 'true' }}
         run: |
           TS=$(date +%Y%m%d-%H%M)
@@ -406,9 +441,11 @@ jobs:
               --exclude='node_modules' \
               --exclude='vendor' \
               --exclude='storage/logs' \
+              --exclude='.git' \
+              --exclude='public/uploads/UltimatePOS' \
               . 2>&1 | tail -3 &&
             ls -lh ~/backup-predeploy-${TS}.tar.gz &&
-            echo '=== rotação: removendo backups além dos 5 mais recentes ===' &&
+            echo '=== rotação: removendo snapshots além dos 5 mais recentes ===' &&
             ls -t ~/backup-predeploy-*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm -v || true
           "
 
