@@ -5,7 +5,7 @@ description: Cancelar uma venda é desfazer em quatro domínios, e nem tudo é r
 type: reference
 authority: canonical
 lifecycle: ativo
-updated_at: "2026-08-17"
+updated_at: "2026-09-22"
 nav_group: fluxo
 nav_order: 20
 lente: [operar, construir]
@@ -136,3 +136,40 @@ Cancelamento move **valor e estoque** ao mesmo tempo — a combinação mais sen
 Vale integralmente a regra de [`memory/proibicoes.md`](../proibicoes.md): dois caminhos
 independentes de conferência e **tabela antes→depois apresentada antes de aplicar**, com
 dry-run em produção.
+
+## Contrato verificável da execução
+
+### Entrada e invocador
+
+A entrada é uma ação FSM `cancelar_venda` sobre uma venda identificada, com o ator autenticado,
+a empresa da venda e o motivo informado. A rota chega ao
+[`SaleFsmActionController`](../../app/Http/Controllers/SaleFsmActionController.php); o invocador
+de domínio é o [`ExecuteStageActionService`](../../app/Domain/Fsm/Services/ExecuteStageActionService.php),
+que valida estágio, papel e empresa antes de registrar a transição e chamar o side effect
+[`CancelarVendaCascade`](../../app/Domain/Fsm/SideEffects/CancelarVendaCascade.php).
+
+Os jobs recebem `business_id` e identificadores no construtor. Nenhuma perna assíncrona pode
+reconstruir tenant por sessão.
+
+### Prova e falso-verde conhecido
+
+A prova automatizada principal é
+[`CancelarVendaCascadeSideEffectTest`](../../tests/Feature/Domain/Fsm/CancelarVendaCascadeSideEffectTest.php):
+ela cobre venda com e sem NFe, nota já cancelada, liberação de reserva, boleto pendente e
+notificação. O estorno tem prova própria em
+[`EstornarBoletoJobTest`](../../tests/Feature/Domain/Fsm/EstornarBoletoJobTest.php), e o consentimento
+da comunicação em
+[`NotificarClienteCancelamentoJobTest`](../../Modules/Whatsapp/Tests/Feature/NotificarClienteCancelamentoJobTest.php).
+
+O falso-verde central é olhar somente a venda em `cancelled`. Esse estado prova a transição,
+mas não prova que SEFAZ, gateway e canal de comunicação concluíram. `Bus::fake()` verde prova
+despacho e payload; não prova o efeito no sistema externo. Flag de estorno desligada e contato
+sem opt-in também produzem ausência intencional de uma perna, e não podem ser apresentados como
+sucesso externo.
+
+### Limite da prova
+
+Esta documentação e os testes não medem o estado vivo da SEFAZ, do banco, do gateway ou do
+canal de mensagem. O fechamento operacional exige recibo de cada perna no ambiente real. Se
+uma integração não puder ser consultada, o resultado dessa perna é **NÃO MEDIDO**; o estado da
+venda nunca substitui esse recibo.
