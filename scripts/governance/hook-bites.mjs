@@ -180,6 +180,54 @@ export function arquivosTranscript(dias, base) {
   return listarJsonlLocal({ base, desdeMs: dias ? Date.now() - dias * 86400000 : 0 });
 }
 
+/**
+ * OPORTUNIDADE DO CORPUS — quantas chamadas de ferramenta o transcript local registra.
+ *
+ * ── POR QUE EXISTE (medido 2026-09-22, container de nuvem recém-aberto) ─────────────
+ * A proteção de "corpus vazio" (no heartbeat) só dispara com ZERO arquivos. Numa sessão
+ * nova de nuvem o corpus tem UM `.jsonl` — o da sessão que está abrindo —, a proteção não
+ * disparava, e o heartbeat publicava "0 entregaram · 52 wired com ZERO entrega". Minutos
+ * depois, na mesma sessão: 4 entregaram, 48 "mortos". É a 3ª vez que ESTE instrumento
+ * colapsa "não medi" em "morto", cada conserto fechando só o comprimento que doeu: o filtro
+ * Windows-only deixava o corpus vazio (ver `listarJsonlLocal`), a guarda passou a cobrir
+ * zero arquivos, e o caso real era UM arquivo (§5 2026-08-03 — medir os irmãos).
+ *
+ * ── POR QUE OPORTUNIDADE, E NÃO RELÓGIO ─────────────────────────────────────────────
+ * A 1ª versão deste conserto mediu o corpus pelo 1º `timestamp`. O adversário derrubou:
+ * uma sessão retomada, com 2 linhas e ZERO chamadas, mas timestamp de 40 dias, lia "40d de
+ * história" e voltava a acusar os 52. Relógio não é oportunidade. A maioria dos hooks é
+ * PreToolUse — só pode disparar quando há CHAMADA DE FERRAMENTA —, então a unidade honesta
+ * é contar `tool_use` no corpus. E ela é soma: não depende de agregar o "mais antigo".
+ *
+ * ── A ASSIMETRIA QUE A REGRA RESPEITA ───────────────────────────────────────────────
+ * Entrega é evidência POSITIVA e vale com qualquer amostra (um hook que emitiu, emitiu).
+ * "Zero entrega" é evidência NEGATIVA e só vale se houve oportunidade. Por isso oportunidade
+ * curta suprime só a lista de zero-entrega, nunca a de entregas.
+ *
+ * O piso é DECLARADO, não derivado: NÃO foi medido contra um corpus real (esta estação só
+ * tinha 1 sessão). Ele barra o caso sem trabalho nenhum; acima dele o caveat de sempre
+ * continua valendo — zero pode ser condição nunca satisfeita. Custo declarado: um corpus
+ * curto de verdade (poucas dezenas de chamadas) também cai em NAO MEDIDO.
+ */
+export const PISO_OPORTUNIDADE_TOOL_USES = 50;
+
+/** quantas chamadas de ferramenta (`"type":"tool_use","id"`) o texto do transcript registra. */
+export function contarToolUses(texto) {
+  const s = '"type":"tool_use","id"';
+  let n = 0;
+  for (let i = 0; ; ) { const p = texto.indexOf(s, i); if (p < 0) break; n++; i = p + s.length; }
+  return n;
+}
+
+/**
+ * @param {{toolUses: number, piso?: number}} o
+ * @returns {{toolUses: number, suficiente: boolean}}
+ */
+export function oportunidade({ toolUses, piso = PISO_OPORTUNIDADE_TOOL_USES }) {
+  const n = Number.isFinite(toolUses) ? toolUses : 0;
+  return { toolUses: n, suficiente: n >= piso };
+}
+
 /** tags que EMITIRAM no corpus mas não pertencem a nenhum hook wired.
  *  O ponto cego INVERSO: hook desligado do settings que segue emitindo, script
  *  se passando por hook, ou tag de hook renomeado. Ruído conhecido do corpus
@@ -204,11 +252,11 @@ export function tagsOrfas(texto, conhecidas) {
   return achadas;
 }
 
-export function relatorio({ wired, contagem, naoObservaveis, sessoes, segundos, orfas }) {
+export function relatorio({ wired, contagem, naoObservaveis, sessoes, segundos, orfas, cob }) {
   const L = [];
   L.push('');
   L.push('=== hook-bites — a defesa mordeu NO MUNDO? (advisory · dead man\'s switch) ===');
-  L.push(`  corpus: ${sessoes} sessoes locais · ${segundos}s`);
+  L.push(`  corpus: ${sessoes} sessoes locais · ${segundos}s${cob ? ` · ${cob.toolUses} chamadas de ferramenta` : ''}`);
   const obs = wired.filter((h) => h.tag);
   const zero = obs.filter((h) => (contagem.get(h.tag) || 0) === 0);
   L.push(`  hooks wired: ${wired.length} · observaveis: ${obs.length} · sem tag: ${naoObservaveis.length}`);
@@ -217,7 +265,11 @@ export function relatorio({ wired, contagem, naoObservaveis, sessoes, segundos, 
     const n = contagem.get(h.tag) || 0;
     L.push(`   ${String(n).padStart(5)}  ${h.arquivo}${h.tag !== h.arquivo ? ` [${h.tag}]` : ''}`);
   }
-  if (zero.length) {
+  if (zero.length && cob && !cob.suficiente) {
+    L.push('');
+    L.push(`  [?] NAO MEDIDO — ${zero.length} hook(s) sem entrega, mas o corpus tem so ${cob.toolUses} chamadas de ferramenta (piso ${PISO_OPORTUNIDADE_TOOL_USES}):`);
+    L.push('        sem trabalho registrado nao houve oportunidade de disparar; zero aqui e\' cegueira, nao morte.');
+  } else if (zero.length) {
     L.push('');
     L.push(`  [!] ${zero.length} hook(s) wired com ZERO entrega na janela — OLHAR, nao e' falha:`);
     for (const h of zero) L.push(`        ${h.arquivo}  (${h.evento} ${h.matcher})`);
@@ -279,6 +331,9 @@ export function checarAliases(dirHooks = DIR_HOOKS) {
  * pro throttle de 20h; deixa de ser pra toda sessão, que é o que o throttle já resolve.
  */
 function heartbeatJaRodou(root, horas) {
+  // `--throttle-horas 0` = rodar sempre SEM tocar o marcador — senão um teste (ou uma
+  // sonda manual) cala o heartbeat real do SessionStart pelas próximas 20h.
+  if (!(horas > 0)) return false;
   const marca = join(root, '.claude', 'run', '.last-hook-bites');
   try {
     if (existsSync(marca)) {
@@ -326,8 +381,10 @@ function main() {
   const contagem = new Map();
   const conhecidas = new Set(wired.map((h) => h.tag).filter(Boolean));
   const orfas = new Map();
+  let toolUses = 0;
   for (const f of arquivos) {
     let txt; try { txt = readFileSync(f, 'utf8'); } catch { continue; }
+    toolUses += contarToolUses(txt);
     for (const h of wired) {
       if (!h.tag) continue;
       const n = contarNoTexto(txt, h.tag);
@@ -336,6 +393,7 @@ function main() {
     for (const [t, n] of tagsOrfas(txt, conhecidas)) orfas.set(t, (orfas.get(t) || 0) + n);
   }
   const segundos = ((Date.now() - t0) / 1000).toFixed(1);
+  const cob = oportunidade({ toolUses });
   if (argv.includes('--heartbeat')) {
     // Resumo de 4 linhas pro SessionStart. Existe porque a análise completa é boa e
     // NINGUÉM a invocava: o dead man's switch estava, ele próprio, órfão (medido em
@@ -358,7 +416,16 @@ function main() {
       console.log(`      detalhe: node scripts/governance/hook-bites.mjs --dias ${dias || 14}\n`);
       process.exit(0);
     }
-    console.log(`  ${comEntrega.length} entregaram · ${semEntrega.length} wired com ZERO entrega · ${naoObservaveis.length} nao-observaveis (silencio = indistinguivel de morte)`);
+    // CORPUS SEM TRABALHO TAMBEM NAO E' "ZERO ENTREGAS" (ver `oportunidade()` acima): a sessao
+    // recem-aberta e' o unico transcript num container de nuvem. Entrega continua valendo;
+    // a lista de zero-entrega sai como NAO MEDIDO.
+    if (!cob.suficiente) {
+      console.log(`  ${comEntrega.length} entregaram · corpus com so ${cob.toolUses} chamadas de ferramenta (${arquivos.length} sessao(oes) · piso ${PISO_OPORTUNIDADE_TOOL_USES})`);
+      console.log(`  [?] NAO MEDIDO — os outros ${semEntrega.length} sem entrega: sem trabalho registrado nao houve oportunidade; e' cegueira, nao morte.`);
+      console.log(`  detalhe: node scripts/governance/hook-bites.mjs --dias ${dias || 14}\n`);
+      process.exit(0);
+    }
+    console.log(`  ${comEntrega.length} entregaram · ${semEntrega.length} wired com ZERO entrega · ${naoObservaveis.length} nao-observaveis · ${cob.toolUses} chamadas no corpus (silencio = indistinguivel de morte)`);
     if (semEntrega.length) {
       console.log(`  zero entrega: ${semEntrega.slice(0, 6).map((h) => curto(h.arquivo)).join(', ')}${semEntrega.length > 6 ? ` (+${semEntrega.length - 6})` : ''}`);
     }
@@ -368,11 +435,12 @@ function main() {
   if (argv.includes('--json')) {
     console.log(JSON.stringify({
       sessoes: arquivos.length, segundos: Number(segundos),
+      tool_uses: cob.toolUses, oportunidade_suficiente: cob.suficiente,
       hooks: wired.map((h) => ({ ...h, entregas: h.tag ? (contagem.get(h.tag) || 0) : null })),
       nao_observaveis: naoObservaveis, orfas: [...orfas],
     }, null, 2));
   } else {
-    console.log(relatorio({ wired, contagem, naoObservaveis, orfas, sessoes: arquivos.length, segundos }));
+    console.log(relatorio({ wired, contagem, naoObservaveis, orfas, sessoes: arquivos.length, segundos, cob }));
   }
   process.exit(0);
 }

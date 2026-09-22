@@ -4,10 +4,13 @@
 // sabemos que existe e NÃO achar o que sabemos que não existe).
 // Rodar: node scripts/governance/hook-bites.test.mjs
 
-import { mkdtempSync, writeFileSync, mkdirSync, utimesSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, mkdirSync, utimesSync, rmSync, existsSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, basename } from 'node:path';
-import { hooksWired, tagDe, sondas, contarNoTexto, relatorio, ALIASES, checarAliases, listarJsonlLocal, arquivosTranscript } from './hook-bites.mjs';
+import { hooksWired, tagDe, sondas, contarNoTexto, relatorio, ALIASES, checarAliases, listarJsonlLocal, arquivosTranscript,
+  contarToolUses, oportunidade, PISO_OPORTUNIDADE_TOOL_USES } from './hook-bites.mjs';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 let fails = 0;
 const check = (n, c) => { console.log((c ? '[OK]   ' : '[FAIL] ') + n); if (!c) fails++; };
@@ -160,6 +163,81 @@ check('relatorio diz que a convencao e forward-only', /Forward-only|forward-only
     !janela.includes('sub.jsonl') && janela.includes('raso.jsonl') && janela.includes('wfagente.jsonl'));
   check('arquivosTranscript(0) = janela toda (wrapper nao perde arquivo)',
     arquivosTranscript(0, base).length === 3);
+}
+
+
+// ── oportunidade do corpus: "zero entrega" so vale se houve CHAMADA DE FERRAMENTA ─────
+// O defeito que isto trava (medido 2026-09-22, container de nuvem): corpus de 1 .jsonl —
+// a sessao que estava abrindo —, a protecao de corpus VAZIO nao disparava e o heartbeat
+// publicava "52 wired com ZERO entrega" (§5 2026-07-29 · LC-33). A 1a versao do conserto
+// media por RELOGIO (1o timestamp) e o adversario derrubou: sessao retomada com 2 linhas,
+// zero chamadas e timestamp de 40 dias lia "40d" e voltava a acusar. Os casos abaixo
+// travam as duas coisas.
+{
+  const TU = (n) => Array.from({ length: n }, (_, i) => `{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_${i}","name":"Bash"}]}}`).join('\n');
+  check('contarToolUses conta chamadas de ferramenta', contarToolUses(TU(3)) === 3);
+  check('CONTROLE NEGATIVO: attachment de hook / tool_result NAO conta como chamada',
+    contarToolUses('{"attachment":{"type":"hook_success"}}\n{"type":"tool_result","tool_use_id":"toolu_1"}') === 0);
+  check('oportunidade: 0 chamadas => INSUFICIENTE', oportunidade({ toolUses: 0 }).suficiente === false);
+  check('oportunidade: fronteira no piso declarado',
+    oportunidade({ toolUses: PISO_OPORTUNIDADE_TOOL_USES }).suficiente === true
+      && oportunidade({ toolUses: PISO_OPORTUNIDADE_TOOL_USES - 1 }).suficiente === false);
+
+  const base = { wired: [{ arquivo: 'vivo', tag: 'vivo', evento: 'PreToolUse', matcher: 'Edit' },
+    { arquivo: 'mudo', tag: 'mudo', evento: 'PreToolUse', matcher: 'Edit' }],
+    contagem: new Map([['vivo', 3]]), naoObservaveis: [], sessoes: 1, segundos: '0.1' };
+  const curto = relatorio({ ...base, cob: { toolUses: 0, suficiente: false } });
+  check('relatorio sem oportunidade: zero vira NAO MEDIDO, nao "ZERO entrega"',
+    /NAO MEDIDO/.test(curto) && !/wired com ZERO entrega/.test(curto));
+  check('relatorio sem oportunidade: entrega (evidencia positiva) segue listada', /3\s+vivo/.test(curto));
+  const longo = relatorio({ ...base, cob: { toolUses: 500, suficiente: true } });
+  check('CONTROLE: corpus com trabalho continua acusando zero entrega', /wired com ZERO entrega/.test(longo));
+
+  // CLI de FORA — o heartbeat e' o que chega na sessao; assert em funcao pura nao prova
+  // o pipeline (§5 2026-07-30). HOME aponta pra um corpus-fixture; nada do corpus real.
+  const script = join(fileURLToPath(new URL('.', import.meta.url)), 'hook-bites.mjs');
+  const homes = [];
+  const rodar = (arquivos, extra = []) => {
+    const home = mkdtempSync(join(tmpdir(), 'hb-home-')); homes.push(home);
+    const proj = join(home, '.claude', 'projects', '-home-user-oimpresso-com');
+    mkdirSync(proj, { recursive: true });
+    arquivos.forEach((txt, i) => writeFileSync(join(proj, `s${i}.jsonl`), txt));
+    const r = spawnSync(process.execPath, [script, ...extra, '--dias', '14', '--throttle-horas', '0'],
+      { encoding: 'utf8', env: { ...process.env, HOME: home, USERPROFILE: home } });
+    return { rc: r.status, out: (r.stdout || '') + (r.stderr || '') };
+  };
+  const hb = (arqs) => rodar(arqs, ['--heartbeat']);
+  const agora = new Date().toISOString();
+  const velho = new Date(Date.now() - 40 * 86400000).toISOString();
+
+  const novo = hb([`{"type":"x","timestamp":"${agora}"}\n`]);
+  check('CLI heartbeat: sessao recem-aberta (0 chamadas) => NAO MEDIDO, sem acusar',
+    novo.rc === 0 && /NAO MEDIDO/.test(novo.out) && !/wired com ZERO entrega/.test(novo.out));
+  // o contra-exemplo do adversario: 2 linhas, ZERO chamadas, timestamp de 40 dias
+  const retomada = hb([`{"type":"x","timestamp":"${velho}"}\n{"type":"y","timestamp":"${velho}"}\n`]);
+  check('CLI heartbeat: sessao retomada com timestamp antigo e 0 chamadas => NAO MEDIDO (relogio nao e oportunidade)',
+    retomada.rc === 0 && /NAO MEDIDO/.test(retomada.out) && !/wired com ZERO entrega/.test(retomada.out));
+  // SOMA entre arquivos: cada um abaixo do piso, juntos acima. Mata o mutante "=" no lugar de "+=".
+  const meio = Math.ceil(PISO_OPORTUNIDADE_TOOL_USES / 2);
+  const dois = hb([TU(meio) + '\n', TU(meio) + '\n']);
+  check('CLI heartbeat (CONTROLE): oportunidade SOMA entre sessoes => acusa zero entrega',
+    dois.rc === 0 && /wired com ZERO entrega/.test(dois.out) && !/NAO MEDIDO/.test(dois.out));
+  const um = hb([TU(meio) + '\n']);
+  check('CLI heartbeat: uma sessao abaixo do piso sozinha => NAO MEDIDO', /NAO MEDIDO/.test(um.out));
+
+  const js = rodar([TU(meio) + '\n', TU(meio) + '\n'], ['--json']);
+  const parsed = (() => { try { return JSON.parse(js.out); } catch { return null; } })();
+  check('--json expoe tool_uses (soma) e oportunidade_suficiente',
+    !!parsed && parsed.tool_uses === 2 * meio && parsed.oportunidade_suficiente === true && parsed.sessoes === 2);
+
+  // --throttle-horas 0 NAO pode gravar o marcador real (senao o teste cala o heartbeat do SessionStart por 20h)
+  const marca = join(fileURLToPath(new URL('../..', import.meta.url)), '.claude', 'run', '.last-hook-bites');
+  const antes = existsSync(marca) ? statSync(marca).mtimeMs : null;
+  hb([`{"type":"x"}\n`]);
+  const depois = existsSync(marca) ? statSync(marca).mtimeMs : null;
+  check('--throttle-horas 0 nao toca o marcador do throttle real', antes === depois);
+
+  for (const h of homes) { try { rmSync(h, { recursive: true, force: true }); } catch { /* ignora */ } }
 }
 
 console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — mede ENTREGA real, ignora tag em codigo-fonte/prosa, zero e OLHAR nao falha, --check-aliases morde e a varredura do corpus desce em subagents/.');
