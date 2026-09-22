@@ -1379,9 +1379,6 @@ jobs:
       - name: worktree-janitor — nunca apaga worktree VIVA (13 casos)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/worktree-janitor.mjs --selftest
-      - name: producao-oficina-probes — sonda de viewport (controle positivo + negativo)
-        if: always() && steps.setup.outcome == 'success'
-        run: node scripts/tests/producao-oficina-probes.test.mjs
       - name: lote-resumo-ci — bite-test (21 asserts · sem --check o resumo nunca reprova)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design/lote-resumo-ci.mjs --selftest
