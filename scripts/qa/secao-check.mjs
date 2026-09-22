@@ -111,6 +111,37 @@ export function comparar(esperado, medido) {
 /** Todas as seções ausentes = render/rota errada. É NÃO MEDI, nunca "regrediu" (§5 2026-07-29). */
 export function ehNaoMedi(r) { return r.secoes > 0 && r.ausentesTotais === r.secoes; }
 
+/**
+ * O ALVO e DERIVADO do `<slug>.secoes.json`; a DECLARACAO e que manda. Se a declaracao tem
+ * secao que o alvo nao carrega, o alvo esta DEFASADO -- e o buraco e SILENCIOSO por construcao,
+ * porque `comparar()` itera `Object.keys(esperado.secoes)`, ou seja as secoes do ALVO: secao
+ * declarada e nao medida nunca entra na comparacao.
+ *
+ * MEDIDO em 2026-09-22 com `jana--index.secoes.json` declarando 10 e o alvo carregando 9:
+ *   secao-check -> `OK 9 secao(oes) conforme`      exit 0
+ *   placar      -> `entregue 9 de 9 (100%)`        exit 0
+ * Os dois ficaram cegos, e o placar publicou 100% sobre um denominador errado. E a familia da
+ * lapide 5 de 2026-08-10 (catraca cujo universo vem do lado mutavel) numa porta nova: aqui o
+ * universo vem do artefato DERIVADO em vez da declaracao. O README de targets/ ja nomeava o
+ * vetor ("editar o alvo e a forma de burlar o check") e a defesa que ele declarava -- o path no
+ * gatilho da lane -- nao o fecha: rodar o comparador nao ajuda se o universo dele e o alvo.
+ *
+ * FP = 0 por construcao, e isto e o que torna o predicado seguro: a sonda emite TODA secao
+ * declarada, com `ausente: true` quando o seletor nao casa (ALVO_PROBE_SOURCE) -- entao secao
+ * declarada SEMPRE aterrissa no alvo, e divergencia de conjunto so acontece com alvo defasado.
+ * Chave que comeca com `_` e nota/`_ausentes`, nao secao (mesma convencao que a sonda ignora).
+ */
+export function conferirDeclaracao(declaracao, alvo) {
+  const declaradas = Object.keys(declaracao || {}).filter((k) => !k.startsWith('_'));
+  const noAlvo = new Set(Object.keys((alvo && alvo.secoes) || {}));
+  return declaradas.filter((id) => !noAlvo.has(id)).map((id) => ({
+    secao: id,
+    campo: '(alvo defasado)',
+    esperado: 'secao medida no alvo (ela esta declarada no .secoes.json)',
+    obtido: 'ausente do .alvo.json -- re-rode `npm run alvo:medir`',
+  }));
+}
+
 /* ── medição (delegada ao dono) ─────────────────────────────────────────────────────────── */
 
 async function medirVia(alvo, url) {
@@ -229,6 +260,24 @@ function selftest() {
   const esperadoAusente = clone(BASE); esperadoAusente.secoes.b = { seletor: '.b', ausente: true };
   ok('alvo com ausente:true declarado não vira achado', comparar(esperadoAusente, jaAusente).achados.length === 0);
 
+  // ── ALVO DEFASADO (buraco medido em 2026-09-22) ─────────────────────────────────────
+  // Sem esta perna, secao declarada no `.secoes.json` e ausente do `.alvo.json` saia
+  // "conforme": o comparador itera o ALVO, nao a declaracao.
+  const d1 = conferirDeclaracao({ _: 'nota', a: { seletor: '.a' }, b: { seletor: '.b' }, c: { seletor: '.c' } }, BASE);
+  ok('MORDE: secao DECLARADA que o alvo nao carrega (alvo defasado), nomeando-a',
+    d1.length === 1 && d1[0].secao === 'c', `achados=${d1.length}`);
+  ok('...e o achado ENSINA o conserto (re-rodar a medida)', /alvo:medir/.test(JSON.stringify(d1)));
+  ok('CONTROLE: declaracao em sincronia NAO acusa',
+    conferirDeclaracao({ _: 'nota', a: {}, b: {} }, BASE).length === 0);
+  ok('CONTROLE: chave de nota (`_`, `_ausentes`) nao e secao',
+    conferirDeclaracao({ _: 'x', _ausentes: { z: { motivo: 'sem endpoint' } } }, BASE).length === 0);
+  ok('CONTROLE: sem arquivo de declaracao NAO acusa (null)',
+    conferirDeclaracao(null, BASE).length === 0);
+  // FP=0 por construcao: secao cujo seletor nao casa entra no alvo com ausente:true, logo
+  // ESTA no conjunto -- nao e defasagem. Sem este controle o predicado acusaria o legitimo.
+  ok('CONTROLE: secao no alvo com ausente:true conta como PRESENTE (nao e defasagem)',
+    conferirDeclaracao({ a: {}, b: {} }, esperadoAusente).length === 0);
+
   for (const c of checks) console.log(`${c.ok ? '  ok  ' : '  FALHOU '} ${c.nome}${c.det ? ' — ' + c.det : ''}`);
   const maus = checks.filter((c) => !c.ok).length;
   console.log(`\nselftest: ${checks.length - maus}/${checks.length}`);
@@ -288,15 +337,39 @@ async function main() {
         pior = Math.max(pior, 2);
         continue;
       }
+      // O alvo e derivado da declaracao; conferir o CONJUNTO fecha o buraco do alvo defasado,
+      // que `comparar()` nao pode ver (ele itera as secoes do ALVO). Ver conferirDeclaracao().
+      const declArq = join(DIR_ALVOS, `${nome}.secoes.json`);
+      if (existsSync(declArq)) {
+        let decl;
+        try { decl = JSON.parse(readFileSync(declArq, 'utf8')); }
+        catch (e) {
+          // declaracao ilegivel e falha de MEDICAO, nunca regressao (LC-33).
+          console.error(`NAO MEDI (${nome}): ${basename(declArq)} ilegivel -- ${e.message.slice(0, 120)}`);
+          pior = Math.max(pior, 2);
+          continue;
+        }
+        res.achados.push(...conferirDeclaracao(decl, alvo));
+      }
       reportar(nome, res);
       if (res.achados.length) pior = Math.max(pior, 1);
     }
   } finally { if (servidor) servidor.close(); }
 
-  console.log(pior === 0 ? '\nsecao-check: conforme' : pior === 1 ? '\nsecao-check: REGREDIU — um slot declarado no alvo sumiu do render' : '\nsecao-check: NÃO MEDI (o silêncio aqui não é "está são")');
+  console.log(pior === 0 ? '\nsecao-check: conforme' : pior === 1 ? '\nsecao-check: REGREDIU — um slot declarado sumiu do render, ou o alvo esta DEFASADO em relação ao .secoes.json' : '\nsecao-check: NÃO MEDI (o silêncio aqui não é "está são")');
   return pior;
 }
 
-main()
-  .then((rc) => process.exit(rc))
-  .catch((e) => { console.error(`${e.naoMedi ? 'NÃO MEDI' : 'FALHOU'}: ${e.message}`); process.exit(e.naoMedi ? 2 : 1); });
+// Guard de entrypoint: sem ele `import` deste arquivo RODA o CLI e MATA o processo do chamador.
+// Medido em 2026-09-22: importar pra usar `comparar()` imprimia o texto de uso e saia 2, antes de
+// qualquer linha do importador -- o mesmo trap que o docblock do alvo.mjs descreve pro design-diff,
+// e que os 4 irmaos deste conjunto (alvo.mjs, design-diff.mjs, render-proto-baseline.mjs,
+// style-fingerprint.mjs) e o placar.mjs ja tinham fechado. Este exporta 4 simbolos
+// (`comparar`, `ehNaoMedi`, `conferirDeclaracao`, `CAMPOS_SLOT`) e era o unico sem o guard.
+// O CLI segue identico: invocado por `node scripts/qa/secao-check.mjs`, argv[1] e este arquivo.
+const ehEntrypoint = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (ehEntrypoint) {
+  main()
+    .then((rc) => process.exit(rc))
+    .catch((e) => { console.error(`${e.naoMedi ? 'NÃO MEDI' : 'FALHOU'}: ${e.message}`); process.exit(e.naoMedi ? 2 : 1); });
+}
