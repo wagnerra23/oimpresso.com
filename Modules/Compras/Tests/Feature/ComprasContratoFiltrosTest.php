@@ -92,6 +92,16 @@ beforeEach(function () {
     ]);
     $this->user->assignRole($role);
 
+    // ACESSO A TODAS AS LOCALIZACOES — o caso NORMAL que os demais UCs assumem.
+    // Vai DIRETO no user (fresco a cada teste via uniqid), NAO no $role, que e
+    // firstOrCreate e persiste entre testes: mexer nele criaria dependencia de ordem.
+    // Sem isto, `permitted_locations()` devolve [] (nem access_all, nem location.*),
+    // o CU-COM-05 aplica `whereIn(location_id, [])` e TODA listagem vem vazia — que e
+    // o comportamento correto do dominio, e tambem o de `/purchases` (Blade). O UC-CMP-08
+    // revoga esta permissao porque ele exerce justamente o usuario RESTRITO.
+    $permAllLocations = Permission::firstOrCreate(['name' => 'access_all_locations', 'guard_name' => 'web']);
+    $this->user->givePermissionTo($permAllLocations);
+
     // business_locations tem FK NOT NULL invoice_scheme_id + invoice_layout_id.
     // Reusa os existentes; cria mínimo se a tabela estiver vazia.
     $schemeId = DB::table('invoice_schemes')->value('id');
@@ -309,6 +319,9 @@ it('UC-CMP-08 · compra de local não permitido não aparece no cockpit', functi
     // Usuário SEM `access_all_locations`, com permissão DIRETA só pra Loja A.
     // `User::permitted_locations()` lê `$user->permissions` (permissões DIRETAS),
     // por isso o givePermissionTo vai no user, não no role.
+    // Revoga o access_all que o beforeEach concede: ESTE uc exerce o usuario restrito.
+    $this->user->revokePermissionTo('access_all_locations');
+
     Permission::firstOrCreate(['name' => 'location.'.$this->locA->id, 'guard_name' => 'web']);
     $this->user->givePermissionTo('location.'.$this->locA->id);
 
