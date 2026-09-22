@@ -5,7 +5,7 @@ slug: lacunas-revisao-fluxos-fechadas
 tldr: "As 17 pendências da revisão de fluxos foram fechadas e a execução viva estrita passou com zero falha e zero pendência."
 decided_by: [W]
 cycle: null
-prs: []
+prs: [7725]
 next_steps: []
 related_adrs: [0329-doutrina-documentacao-de-processo-executavel]
 ---

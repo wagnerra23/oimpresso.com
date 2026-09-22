@@ -4,7 +4,7 @@ hour: "15:36 BRT"
 topic: "Fechamento das lacunas da revisão de fluxos"
 authors: [C]
 outcomes: ["17 pendências reduzidas a zero", "Prova do deploy ligada ao CI", "Zero selftests órfãos"]
-prs: []
+prs: [7725]
 related_adrs: [0329-doutrina-documentacao-de-processo-executavel]
 ---
 
