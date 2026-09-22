@@ -10,5 +10,7 @@ related_adrs: [0329-doutrina-documentacao-de-processo-executavel]
 
 # Sessão — lacunas dos fluxos
 
+## Contexto
+
 Os três contratos foram completados, a descoberta de provas agregadas foi corrigida e a última
 prova órfã foi ligada. A revisão viva estrita passou sem baseline local.
