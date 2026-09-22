@@ -18,7 +18,7 @@
 //            sempre 0 la. A sonda de OVERFLOW e exercitada com valores INJETADOS pra provar
 //            a comparacao; a medida de verdade so o Chromium responde (UC-RPOE-02 no CI).
 //
-// COMO RODAR (sob demanda — nao esta ligado a nenhum job de CI)
+// COMO RODAR (local e no job visual-regression, depois do npm ci)
 //   node scripts/tests/producao-oficina-probes.test.mjs
 //
 // @see tests/Browser/Repair/ProducaoOficinaIndexTest.php (fonte das sondas)

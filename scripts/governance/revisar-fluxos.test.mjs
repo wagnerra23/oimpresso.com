@@ -3,7 +3,7 @@
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { revisar, slugDoRemote } from './revisar-fluxos.mjs';
+import { auditarMaquina, revisar, slugDoRemote } from './revisar-fluxos.mjs';
 
 const root = mkdtempSync(join(tmpdir(), 'revisar-fluxos-'));
 const put = (p, s) => { const a = join(root, p); mkdirSync(dirname(a), { recursive: true }); writeFileSync(a, s); };
@@ -45,6 +45,38 @@ r = revisar(root);
 test('MORDE path fantasma', r.falhas_concretas.some((x) => /path fantasma/.test(x)));
 test('MORDE contrato documental incompleto', r.documentos[0].faltam.includes('falso_verde') && r.documentos[0].faltam.includes('prova'));
 test('não usa baseline', r._meta.baseline_usada === false && r.enforcement.status === 'NAO_MEDIDO');
+
+put('scripts/agregada.mjs', '// máquina coberta por teste agregado\n');
+put('scripts/provas-maquinas.test.mjs', '// cobre scripts/agregada.mjs por comportamento\n');
+put('.github/workflows/provas.yml', `on: pull_request
+jobs:
+  prova:
+    steps:
+      - run: node scripts/provas-maquinas.test.mjs
+`);
+test('teste agregado que cita a máquina e está no CI conta como prova',
+  auditarMaquina(root, 'scripts/agregada.mjs').prova === 'teste+wiring');
+
+put('scripts/embutida.mjs', "// suporta --selftest\nif (process.argv.includes('--selftest')) process.exit(0);\n");
+put('.github/workflows/embutida.yml', `on: pull_request
+jobs:
+  prova:
+    steps:
+      - run: node scripts/embutida.mjs --selftest
+`);
+test('selftest embutido ligado diretamente no CI conta como prova',
+  auditarMaquina(root, 'scripts/embutida.mjs').prova === 'teste+wiring');
+
+put('scripts/comentada.mjs', "// suporta --selftest\n");
+put('.github/workflows/comentada.yml', `on: pull_request
+jobs:
+  prova:
+    steps:
+      # run: node scripts/comentada.mjs --selftest
+      - run: echo sem-prova
+`);
+test('selftest citado somente em comentário não conta como wiring',
+  auditarMaquina(root, 'scripts/comentada.mjs').prova !== 'teste+wiring');
 
 console.log(fails ? `\n${fails} falha(s)` : '\nOK — revisão morde path fantasma e falta documental, e prova wiring sem baseline.');
 process.exit(fails ? 1 : 0);
