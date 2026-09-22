@@ -65,9 +65,17 @@ resources/views/sale_pos/                   @wagnerra23 @felipewr2-cell   # Blad
 memory/requisitos/Sells/                    @wagnerra23 @felipewr2-cell   # SPEC · charter · casos
 
 # ──────────────────────────────────────────────
-# 🔒 LGPD / DADOS PESSOAIS — Wagner (Felipe futuro)
+# 🔒 LGPD / DADOS PESSOAIS — Wagner (+ Felipe em Modules/Jana/)
 # ──────────────────────────────────────────────
-Modules/Jana/                       @wagnerra23   # ex-Copiloto (rename ADR 0088) — TODO: + @<handle Felipe>
+# O `# TODO: + @<handle Felipe>` desta linha foi preenchido por ato do [W] em
+# 2026-09-22 ("agora preenche o TODO da Jana e do SRS"). Handle conferido na
+# fonte primária, não adivinhado do nome: @felipewr2-cell autora commits deste
+# repo com `felipewr2@gmail.com`, e o corpo deles diz "maquina Felipe" /
+# "conta felipewr2".
+# ⚠️ O [W] nomeou a JANA, não o bloco LGPD inteiro — as 5 linhas abaixo
+# seguem só com @wagnerra23 DE PROPÓSITO. Estendê-las é ato dele, não
+# "completar o que faltou" (dono inventado parece canon — TEAM.md §3.3).
+Modules/Jana/                       @wagnerra23 @felipewr2-cell   # ex-Copiloto (rename ADR 0088)
 memory/requisitos/Jana/             @wagnerra23   # docs LGPD-crítico (SPEC, PII-REDACTION, retention). Ghost-dir requisitos/Copiloto/ migrado p/ cá em 2026-07-01 (só lápides restam, sem conteúdo LGPD)
 memory/requisitos/EvolutionAgent/   @wagnerra23
 Modules/Ponto/                      @wagnerra23   # ponto eletrônico = dado pessoal (ex-PontoWr2)
@@ -75,9 +83,23 @@ memory/requisitos/Ponto/            @wagnerra23   # docs ponto (dir canônico at
 memory/requisitos/PontoWr2/         @wagnerra23   # docs ponto legacy (ainda com arquivos)
 
 # ──────────────────────────────────────────────
-# 🗝️ SEGREDOS / COFRE — Wagner
+# 🗝️ SEGREDOS / COFRE — Wagner + Maiara + Felipe
 # ──────────────────────────────────────────────
-Modules/SRS/                        @wagnerra23   # ex-MemCofre, em deprecação — TODO: + @<handle Maiara> @<handle Felipe>
+# O `# TODO: + @<handle Maiara> @<handle Felipe>` foi preenchido por ato do [W]
+# em 2026-09-22, mesmo pedido da Jana acima. Handles conferidos na fonte
+# primária: @SupportWR autora commits deste repo com `name: "MaiaraWR"` (é a
+# MAIARA, não o Felipe — o login engana); @felipewr2-cell como acima.
+#
+# ⚠️ FATO DATADO 2026-09-22 — a regra abaixo não casa arquivo nenhum hoje:
+# `Modules/SRS/` tem **0** arquivos em `origin/main` (o módulo foi removido).
+# Controle positivo no MESMO comando: `Modules/Financeiro` = 232.
+#   git ls-tree -r origin/main --name-only -- Modules/SRS | wc -l
+# Ressuscitar o SRS é PROIBIDO (§5 2026-07-29); os sucessores canônicos são
+# `Modules/KB`, `Modules/Jana` e `Modules/Governance`. O que sobrou do SRS são
+# 3 docs em `memory/requisitos/SRS/` (BRIEFING · DEPRECATION-PLAN · SPEC), que
+# este arquivo NÃO cobre — se a posse deve valer sobre eles, é decisão do [W]
+# e é uma linha. Re-meça antes de citar este número.
+Modules/SRS/                        @wagnerra23 @SupportWR @felipewr2-cell
 
 # ──────────────────────────────────────────────
 # 🏗️ INFRA / CI / DEPLOY / GOVERNANÇA — Wagner (ninguém mergeia sem ele)
