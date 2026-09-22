@@ -73,6 +73,6 @@ it('schedule arquivos:health-check só roda em ambiente live', function () {
         $envs = $prop->getValue($event);
 
         expect($envs)->toContain('live', 'deve rodar em live');
-        expect($envs)->not->toContain('testing', 'não deve rodar em testing (evita poluir CI)');
+        expect(in_array('testing', $envs, true))->toBeFalse('não deve rodar em testing (evita poluir CI)');
     }
 });

@@ -51,11 +51,17 @@ it('backup:monitor tem withoutOverlapping e só roda em live', function () {
 
         // FALHA AQUI SIGNIFICA: monitor só faz sentido em produção (onde backup:run roda)
         expect($envs)->toContain('live');
-        // ⚠️ Era `->not->toContain('testing', '<mensagem>')`. `toContain` é variádico
-        // (`mixed ...$needles`), então a mensagem virava um 2º needle. Na forma NEGADA
-        // isso é benigno — só acrescenta "e também não contém essa frase", que é sempre
-        // verdade —, por isso passava. Na forma positiva a mesma escrita reprova sempre;
-        // foi o que aconteceu logo abaixo neste arquivo. `toBeFalse` leva mensagem de verdade.
+        // ⚠️ ERRATA — a versão anterior deste comentário dizia que na forma NEGADA o
+        // defeito era "benigno". É FALSO, e ficou 40 minutos no main: eu apliquei De
+        // Morgan a uma API que não o implementa. Era
+        // `->not->toContain('testing', '<mensagem>')`, e o mecanismo é:
+        //   Mixins/Expectation.php:184        `toContain` ITERA os needles e asserta cada
+        //                                      um -> `toContain($a,$msg)` SEMPRE lança,
+        //                                      porque a msg nunca está no haystack;
+        //   OppositeExpectation.php:770-784   `not->` roda o positivo num try e PASSA
+        //                                      exatamente quando ele lança.
+        // Composto: o assert passava SEMPRE, com ou sem 'testing'. Não era fraco — estava
+        // MORTO. `toBeFalse(string $message)` não é variádico, então a mensagem tem lugar.
         expect(in_array('testing', $envs, true))->toBeFalse('não deve rodar em testing (evita ruído no CI)');
     }
 });
