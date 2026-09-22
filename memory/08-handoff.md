@@ -1,5 +1,6 @@
 # 08 — Handoff (índice)
 
+- [2026-09-22 15:36 BRT — **Lacunas da revisão de fluxos fechadas**](handoffs/2026-09-22-1536-lacunas-revisao-fluxos-fechadas.md) (17→0 · contrato do deploy com RELEASE+4 BITE · zero selftests órfãos · execução viva estrita sem baseline passou)
 - [2026-09-22 14:55 BRT — **Revisão executável dos fluxos e máquinas, sem baseline local**](handoffs/2026-09-22-1455-revisao-fluxos-maquinas-sem-baseline.md) (5 fluxos descobertos · 6 máquinas citadas · 0 path fantasma · 17 lacunas declaradas · enforcement medido na API viva)
 - [2026-09-22 10:51 BRT — **Cobertura modular do funil: suporte existe, cobertura universal não**](handoffs/2026-09-22-1051-cobertura-modular-funil-design.md) (7 módulos com 80 Pages · 37 charters · zero rota modular no smoke · persistência de `review.md` modular corrigida na #7648, inclusive primeiro arquivo não rastreado)
 - [2026-09-22 10:15 BRT — **Buracos atuais do protótipo até produção, com falso verde de rota fechado na PR**](handoffs/2026-09-22-1015-buracos-prototipo-producao.md) (`validated` 0 · 133 pares pendentes · comparação visual real fora do CI · smoke de produção com 12 rotas e falha recente de login · Page sem rota agora falha como `NÃO MEDIDO` na #7648)
