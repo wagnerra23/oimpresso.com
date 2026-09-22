@@ -177,7 +177,7 @@ test('CATRACA: nenhum arquivo NOVO de app/ importa de Modules/', function () {
         . "Arquivos:\n  - " . implode("\n  - ", $novos));
 });
 
-test('ADR 0409: arquivo grandfathered TOCADO perde a tolerancia', function () {
+test('ADR 0409: arquivo grandfathered TOCADO acorda a divida (avisa, nao reprova)', function () {
     $baseline = ddBaseline();
     $tocados = ddArquivosTocados();
     $dividaAcordada = array_values(array_intersect(
@@ -186,12 +186,27 @@ test('ADR 0409: arquivo grandfathered TOCADO perde a tolerancia', function () {
         $tocados,
     ));
 
-    expect($dividaAcordada)->toBe([], count($dividaAcordada)
-        . " arquivo(s) de app/ com divida grandfathered foram ALTERADOS neste PR e continuam"
-        . " importando de Modules/.\n\n"
-        . "ADR 0409 — a lista ADIA a cura, nao perdoa: alterar o arquivo acorda a divida e"
-        . " exige sair com a seta certa no MESMO PR. Manter ou ampliar a tolerancia nao"
-        . " satisfaz o gate.\n\nArquivos:\n  - " . implode("\n  - ", $dividaAcordada));
+    // Este assert NAO reprova, por decisao [W] em 2026-09-22. Medido na mesma data, no repo
+    // completo (`git rev-parse --is-shallow-repository` = false): 13 dos 19 arquivos de app/
+    // listados em grandfathered receberam commit nos ultimos 90 dias. Com essa densidade, o
+    // hard-fail acorda divida em PR que so passa perto do arquivo, e o custo cai sobre quem
+    // nao a criou. O aviso sai alto no stderr da lane; curar segue sendo o objetivo.
+    //
+    // Voltar a reprovar e flip do [W] — nao e autofix nem "limpeza" de passagem. O idioma
+    // report-only aqui e copiado do teste vizinho (`catraca so desce`), nao inventado.
+    //
+    // Quem for reabrir: re-rode a medicao acima antes de argumentar. O numero e datado.
+    if ($dividaAcordada !== []) {
+        fwrite(STDERR, PHP_EOL . '[dependency-direction] ' . count($dividaAcordada)
+            . ' arquivo(s) de app/ com divida grandfathered foram ALTERADOS neste PR e'
+            . ' continuam importando de Modules/.' . PHP_EOL
+            . 'ADR 0409 — a lista ADIA a cura, nao perdoa: alterar o arquivo acorda a divida.'
+            . ' Saia com a seta certa no MESMO PR se estiver ao seu alcance.' . PHP_EOL
+            . 'Arquivos:' . PHP_EOL . '  - '
+            . implode(PHP_EOL . '  - ', $dividaAcordada) . PHP_EOL);
+    }
+
+    expect(true)->toBeTrue();
 });
 
 test('a baseline não cita arquivo que já foi curado (catraca só desce)', function () {
