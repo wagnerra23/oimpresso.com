@@ -236,3 +236,28 @@ Os donos vivos de cada eixo:
 
 E ele **não decide** se uma máquina deveria bloquear ou avisar — isso é a ADR 0224 mais a soberania
 do dono sobre promoção a required.
+
+---
+
+## Revisão executável de todos os fluxos
+
+**Entrada:** todos os `memory/reference/FLUXO-*.md` e os paths executáveis citados neles. O Code é
+o invocador humano; o workflow de governança executa a checagem estrutural.
+
+```text
+descobrir fluxos → validar contrato documental → resolver máquinas
+  → localizar invocador → localizar teste ligado → executar provas existentes
+  → consultar enforcement vivo → corrigir → repetir
+```
+
+A máquina é `scripts/governance/revisar-fluxos.mjs`. A decisão usa `PASSOU`, `FALHOU` ou
+`NÃO MEDIDO`; falta de ambiente ou autenticação nunca vira sucesso. O falso-verde principal é
+tratar script existente como script invocado, ou teste existente como teste ligado ao CI.
+
+`node scripts/governance/revisar-fluxos.mjs --execute` pesquisa e executa as provas locais. Para
+fechamento, o Code acrescenta `--live --strict`: `--live` consulta o GitHub em vez de usar
+baseline local como prova do estado atual; `--strict` reprova lacuna documental ou máquina sem
+prova localizada. A saída pode ser recibo humano ou JSON.
+
+**Limite:** análise estática localiza invocadores prováveis; somente o oráculo vivo e um recibo
+de execução provam o ambiente real. O bite-test da máquina roda no workflow de governança.
