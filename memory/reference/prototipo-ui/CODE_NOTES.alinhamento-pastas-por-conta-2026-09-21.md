@@ -286,3 +286,19 @@ a prova é o byte no zip.
 `ibm-plex-sans-{400,500,600,700}` = 63.020 / 66.740 / 67.060 / 63.012 B · sem o comentário ALIAS
 no `oimpresso.com.html` · `CLAUDE.md` sem `019dd02f`. O `_ds/` não entra no repo (dono = projeto DS),
 então os itens de `_ds/` só corrigem a prévia no Cowork.
+
+### 12.2 Errata do §12.1 (mesmo dia) — o CRLF nasce no EXPORTADOR, não nos arquivos do Cowork
+
+O §12.1 sugeria que a ferramenta do Claude Design "entrega o texto já normalizado" e que o
+"medi e está LF" dele não valia. **Errado.** Ele mediu por byte no Cowork (`cr: 0`) e a conta fecha
+com o zip, 9 de 9 arquivos nas três pastas: `bytes no zip − bytes no Cowork = número de LF` e o
+zip sem CR tem exatamente o tamanho do Cowork (ex.: `erp-shell-v2/app.jsx` 41.262 − 40.582 = 680 =
+680 linhas; `styles.css` 234.163 − 226.217 = 7.946 = 7.946 linhas). O conteúdo é o mesmo; **quem
+acrescenta o CR é o empacotamento do zip**, e só nessas três pastas (`erp-shell-v2/`,
+`importado_prototipo_ui/`, `importado_telas/` — 112 arquivos); o resto sai em LF. Por que só nelas
+não se sabe do lado de cá.
+
+**Não é pendência do Claude Design nem de ninguém:** o passo [1b] da importação já converte. Se um
+zip futuro trouxer CRLF, é o exportador — a ferramenta absorve e não há o que pedir ao Cowork.
+Os 4 arquivos com acento no nome em `erp-shell-v2/` ele não conseguiu ler; no zip eles vieram em
+CRLF como os outros 56 e ficaram idênticos ao espelho depois da conversão.
