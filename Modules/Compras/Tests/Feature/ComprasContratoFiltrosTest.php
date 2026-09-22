@@ -340,15 +340,12 @@ it('UC-CMP-08 · compra de local não permitido não aparece no cockpit', functi
     // FALHA AQUI SIGNIFICA: PRÉ-CONDIÇÃO FALHOU: a compra do local PERMITIDO não apareceu. O teste não exercitou o contrato — conferir fixture/permissão antes de ler o resultado.
     expect($refs)->toContain($refPermitida);
 
-    expect($refs)->not->toContain(
-        $refProibida,
-        'PERDA DE ESCOPO NA MIGRAÇÃO: compra da Loja B (usuário sem permissão nela) '
+    expect(in_array($refProibida, $refs, true))->toBeFalse('PERDA DE ESCOPO NA MIGRAÇÃO: compra da Loja B (usuário sem permissão nela) '
         .'apareceu no cockpit. /purchases aplica whereIn(location_id, permitted_locations) '
         .'nos DOIS caminhos (Blade AJAX e indexInertia); ComprasService::listarCompras não '
         .'aplica escopo algum além do business_id. Não é vazamento cross-tenant — é '
         .'intra-tenant entre lojas (SDD §5.4.1 · CU-COM-05). '
-        .'Se Compras NÃO deve ter escopo por localização, isto vira Non-Goal no charter ([W]).'
-    );
+        .'Se Compras NÃO deve ter escopo por localização, isto vira Non-Goal no charter ([W]).');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
