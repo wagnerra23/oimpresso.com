@@ -595,7 +595,9 @@ promovida para produção.
 ### Lock de design — caminho completo, revisão e hash
 
 Antes de implementar ou comparar, a fonte fica travada em
-[`governance/design/design-lock.json`](../../../governance/design/design-lock.json):
+`governance/design/design-lock.json` — que **ainda não existe**, de propósito: ele exige
+`approved_by` de [W], e criá-lo aqui seria forjar a aprovação que o mecanismo existe para provar.
+O formato é este:
 
 ```json
 {
