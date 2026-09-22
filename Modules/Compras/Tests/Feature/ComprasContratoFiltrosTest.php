@@ -340,8 +340,7 @@ it('UC-CMP-08 · compra de local não permitido não aparece no cockpit', functi
     // FALHA AQUI SIGNIFICA: PRÉ-CONDIÇÃO FALHOU: a compra do local PERMITIDO não apareceu. O teste não exercitou o contrato — conferir fixture/permissão antes de ler o resultado.
     expect($refs)->toContain($refPermitida);
 
-    expect($refs)->not->toContain(
-        $refProibida,
+    expect(in_array($refProibida, $refs, true))->toBeFalse(
         'PERDA DE ESCOPO NA MIGRAÇÃO: compra da Loja B (usuário sem permissão nela) '
         .'apareceu no cockpit. /purchases aplica whereIn(location_id, permitted_locations) '
         .'nos DOIS caminhos (Blade AJAX e indexInertia); ComprasService::listarCompras não '
