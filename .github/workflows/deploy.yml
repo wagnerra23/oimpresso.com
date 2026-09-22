@@ -445,15 +445,59 @@ jobs:
           DOWN="php artisan down --secret='$SECRET' --retry=60 --refresh=15"
           /tmp/ssh_exec.sh "cd $RDIR && ( $DOWN --render='errors::503' || $DOWN ) || true"
 
-      - name: Git pull — branch main (apenas código-fonte; bundles vêm do runner)
+      - name: Git reset no SHA DESTE run — o mesmo commit que buildou os bundles
+        # ⚠️ Aqui havia um reset contra o tip vivo (`origin/main`), e era a causa MEDIDA
+        # de produção servir CÓDIGO NOVO com ASSETS ANTIGOS. O job `build` faz checkout
+        # de ${{ github.sha }} (o commit que disparou a run) e é DESSE commit que saem os
+        # bundles publicados no passo "Publicar bundles buildados no runner". Apontar o
+        # fonte pro tip publicava um par descasado — fonte de um commit, bundle de outro.
+        # Como o Inertia resolve a página pelo manifest, o browser recebia o JS antigo
+        # enquanto o PHP novo já mandava as props novas.
+        #
+        # MEDIDO em 2026-09-21 (53 runs no dia; 13 chegaram a publicar):
+        #   • 11 dos 13 terminaram com fonte != commit dos bundles;
+        #   • em 4 deles o intervalo tinha mudança real em resources/js — janelas de
+        #     52min, 38min, 22min e 6min com produção servindo o híbrido;
+        #   • em 13/13 o sha do build AVANÇA na ordem de conclusão dos deploys, logo
+        #     pinar no próprio SHA não faz produção andar pra trás.
+        # O job irmão `sync-light` já pinava no SHA do run, pela razão que o comentário
+        # dele explica. Este passo ficou de fora daquele conserto.
+        #
+        # SEM o "pula se a main andou" que o sync-light tem: lá o skip é inócuo (aquele
+        # job não publica bundle nenhum), aqui ele estrangularia o deploy sempre que o
+        # commit seguinte fosse de docs — esses não criam run (paths-ignore memory/**,
+        # **.md, prototipo-ui/**), então ninguém publicaria o código. Publicar o próprio
+        # SHA converge sozinho: o run enfileirado mais novo traz a main adiante com o
+        # bundle dele.
         run: |
           /tmp/ssh_exec.sh "
             cd $RDIR &&
             git fetch origin &&
             git checkout main &&
-            git reset --hard origin/main &&
+            git reset --hard ${{ github.sha }} &&
             git log --oneline -3
           "
+
+      - name: Prova de que fonte e bundle são do MESMO commit
+        # Guard determinístico do invariante acima: se alguém reapontar este reset pro
+        # tip vivo, este assert cai. Roda AINDA em maintenance ON — falhar aqui mantém o
+        # 503 gracioso em vez de expor o par descasado ao usuário.
+        #
+        # SSH mudo NÃO vira acusação: HEAD ilegível é ausência de medição, e a mensagem
+        # diz isso em vez de afirmar um descasamento que ninguém mediu.
+        run: |
+          SRV=$(/tmp/ssh_exec.sh "cd $RDIR && git rev-parse HEAD" | tr -d '\r\n')
+          echo "fonte no servidor:  ${SRV:-<nao lido>}"
+          echo "commit dos bundles: ${{ github.sha }}"
+          if [ -z "$SRV" ]; then
+            echo "::error::NÃO consegui ler o HEAD do servidor (SSH). Isto não é evidência de par descasado — é ausência de medição. Falhando fail-closed, ainda em maintenance."
+            exit 1
+          fi
+          if [ "$SRV" != "${{ github.sha }}" ]; then
+            echo "::error::fonte ($SRV) != commit que buildou os bundles (${{ github.sha }}). Produção serviria código de um commit com assets de outro — a janela que o passo anterior existe pra fechar."
+            exit 1
+          fi
+          echo "✅ fonte e bundle do mesmo commit"
 
       - name: Composer install (produção)
         # NÃO usar --no-dev: Faker é usado em prod (incidente 2026-04-25, tela branca Inertia "null.component").
