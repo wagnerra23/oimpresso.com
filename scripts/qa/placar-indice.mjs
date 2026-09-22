@@ -268,6 +268,28 @@ export function avaliarIndice(indice, ctx) {
       && l.depende_threads.every((id) => byId[id].estado === 'feito' || byId[id].indecidivel);
   }
 
+  // `sem recibo`: TUDO que da pra medir esta verde e so falta o recibo de quem executou.
+  // NAO e `feito` — a Lei 2 continua valendo: nao entra em `entregue X de Y` nem no `fecha`,
+  // e o `--check` nao muda de veredito por causa dela. O estado so serve pra ser DITO, a parte.
+  // Existe porque `provas verdes sem _saida` e `nunca comecou` caiam no MESMO balde (`proximo`),
+  // e e assim que playbook envelhece sem ninguem ver: HRM 02/03 e Patrimonio 01/02/03 estao em
+  // producao e o placar os mostrava como trabalho a fazer.
+  // Resolve topologico (e nao um for simples) porque a condicao 3 le o `semRecibo` das
+  // dependencias — num for a thread que vem antes leria `undefined` da que vem depois.
+  const semReciboVisto = new Set();
+  const resolverSemRecibo = (l) => {
+    if (semReciboVisto.has(l.id)) return;
+    semReciboVisto.add(l.id);                   // marca ANTES: validarIndice ja barrou ciclo
+    for (const id of l.depende_threads) resolverSemRecibo(byId[id]);
+    l.semRecibo = !l.saida && l.estado !== 'bloqueada'
+      // >=1 prova EXPLICITA: thread sem prova propria nunca vira `sem recibo` — sem evidencia
+      // de entrega, "verde" seria so a ausencia de alguem para reprovar.
+      && l.provas.length > 0
+      && l.provas.every((pr) => pr.ok && !pr.naoMedida && !pr.indefinida)
+      && l.depende_threads.every((id) => byId[id].estado === 'feito' || byId[id].semRecibo);
+  };
+  for (const l of linhas) resolverSemRecibo(l);
+
   const cont = Object.fromEntries(ESTADOS.map((e) => [e, linhas.filter((l) => l.estado === e).length]));
   const motivo = (l) => `${l.saida ? '' : 'sem _saida; '}${l.decisPend.length ? 'decisão pendente ' + l.decisPend.join(',') + '; ' : ''}${l.ausentes.join('; ')}`.replace(/; $/, '');
   return {
@@ -276,6 +298,7 @@ export function avaliarIndice(indice, ctx) {
     naoMedidas: linhas.reduce((n, l) => n + l.naoMedidas, 0),
     migrados: linhas.reduce((n, l) => n + l.migrados, 0),
     indecidiveis: linhas.filter((l) => l.indecidivel).length,
+    semRecibos: linhas.filter((l) => l.semRecibo).length,
     // `fecha` do módulo: entregue, bloqueada (decisão declarada) ou indecidível (sem
     // instrumento) — o resto é dívida medida, e é só por ela que o --check morde.
     fecha: linhas.every((l) => l.estado === 'feito' || l.estado === 'bloqueada' || l.indecidivel),
@@ -318,6 +341,7 @@ export function agregarIndices(root, alvos, { thread = null } = {}) {
       m.naoMedidas = m.linhas.reduce((n, l) => n + l.naoMedidas, 0);
       m.migrados = m.linhas.reduce((n, l) => n + l.migrados, 0);
       m.indecidiveis = m.linhas.filter((l) => l.indecidivel).length;
+      m.semRecibos = m.linhas.filter((l) => l.semRecibo).length;
       m.fecha = m.linhas.every((l) => l.estado === 'feito' || l.estado === 'bloqueada' || l.indecidivel);
       m.falhas = m.linhas.filter((l) => l.estado !== 'feito' && l.estado !== 'bloqueada').map((l) => `${l.id} ${l.titulo} — ${m.motivo(l)}`);
       m.cont = Object.fromEntries(ESTADOS.map((e) => [e, m.linhas.filter((l) => l.estado === e).length]));
@@ -333,6 +357,9 @@ export function agregarIndices(root, alvos, { thread = null } = {}) {
     migrados: modulos.reduce((n, m) => n + m.migrados, 0),
     proximos: modulos.flatMap((m) => m.linhas.filter((l) => l.executavel).map((l) => ({ modulo: m.modulo, ...l }))),
     indecidiveis: modulos.reduce((n, m) => n + m.indecidiveis, 0),
+    semRecibos: modulos.reduce((n, m) => n + m.semRecibos, 0),
+    semRecibosLista: modulos.flatMap((m) => m.linhas.filter((l) => l.semRecibo)
+      .map((l) => ({ modulo: m.modulo, ...l }))),
     // Cada módulo já decide o próprio `fecha` (entregue · bloqueada · indecidível).
     fecha: modulos.every((m) => m.fecha),
   };
@@ -346,12 +373,18 @@ const cortar = (itens, n, rotulo) => itens.length <= n
   ? itens.join(' · ')
   : `${itens.slice(0, n).join(' · ')} · _+${itens.length - n} ${rotulo}_`;
 
+/** `sem recibo` DITO a parte — NUNCA somado a `entregue` (Lei 2). Ver avaliarIndice. */
+const semReciboSufixo = (m) => {
+  const ids = m.linhas.filter((l) => l.semRecibo).map((l) => l.id);
+  return ids.length ? ' · ' + ids.length + ' sem recibo (' + ids.join(', ') + ')' : '';
+};
+
 export function emitirMdIndice(r) {
   const L = ['<!-- placar-de-indice -->', '## Placar da lista — PR-A8', ''];
   for (const m of r.modulos) {
     // Uma linha por módulo + as ausentes em sub-lista. Antes isto concatenava tudo numa linha
     // só: 2.759 chars, ilegível — e comentário que ninguém lê equivale a não comentar.
-    L.push(`- **${m.modulo}** · entregue ${m.feito} de ${m.total}${m.indecidiveis ? ` · ${m.indecidiveis} indecidível(is)` : ''}`);
+    L.push(`- **${m.modulo}** · entregue ${m.feito} de ${m.total}${m.indecidiveis ? ` · ${m.indecidiveis} indecidível(is)` : ''}` + semReciboSufixo(m));
     for (const f of m.falhas.slice(0, 5)) {
       const [cabeca, ...resto] = f.split(' — ');
       L.push(`  - \`${cabeca}\` — ${(resto.join(' — ') || 'pendente').slice(0, 180)}`);
@@ -363,6 +396,11 @@ export function emitirMdIndice(r) {
   if (r.naoMedidas) {
     L.push('', `**⚠️ Não medidas:** ${r.naoMedidas} prova(s) de recibo — o avaliador saiu do repo com a ADR 0397. Thread com prova não medida NÃO conta como entregue, e o \`--check\` não morde por ela.`);
   }
+  if (r.semRecibos) {
+    L.push('', '**Sem recibo:** ' + r.semRecibos + ' thread(s) com TODAS as provas verdes e sem `_saida-NN.md` — '
+      + cortar(r.semRecibosLista.map((l) => '`' + l.modulo + '/' + l.id + '` ' + l.titulo), 8, 'sem recibo')
+      + ' — falta o `_saida-NN.md` de quem executou. NAO conta como entregue (Lei 2) e nao muda o `--check`.');
+  }
   if (r.migrados) {
     L.push('', `**📍 Fonte desatualizada:** ${r.migrados} prova(s) citam endereços que a ADR 0397 (#7224) aposentou — foram medidas no endereço NOVO, e por isso o veredito acima é honesto. A correção pertence à FONTE (playbook do Cowork): \`prototipo-ui/cowork/Wagner/**\` é espelho de leitura (ADR 0374) e o import sincroniza com \`/PURGE\`, então editar aqui seria desfeito no próximo pacote.`);
   }
@@ -372,13 +410,13 @@ export function emitirMdIndice(r) {
 
 export function emitirTextoIndice(r, { proximo = false } = {}) {
   for (const m of r.modulos) {
-    console.log(`${m.modulo}: entregue ${m.feito} de ${m.total} · próximo ${m.cont.proximo} · em curso ${m.cont['em curso']} · pendente ${m.cont.pendente} · bloqueada ${m.cont.bloqueada}`);
+    console.log(`${m.modulo}: entregue ${m.feito} de ${m.total} · próximo ${m.cont.proximo} · em curso ${m.cont['em curso']} · pendente ${m.cont.pendente} · bloqueada ${m.cont.bloqueada}` + semReciboSufixo(m));
     for (const l of m.linhas) {
       // O motivo é o MESMO texto do `falhas`/`--md`: decisão pendente + _saida + provas.
       // Antes esta linha só mostrava `ausentes[0]`, e decisão pendente saía muda — reprovação
       // sem motivo legível é meio caminho pro gate que ninguém entende e todos ignoram.
       const cauda = (l.estado === 'feito' || l.estado === 'bloqueada') ? '' : ' — ' + (m.motivo(l) || 'sem pendência legível');
-      console.log(`  ${l.id} [${l.estado.padEnd(9)}]${l.indecidivel ? ' (indecidível)' : ''} ${l.titulo}${cauda}`);
+      console.log(`  ${l.id} [${l.estado.padEnd(9)}]${l.indecidivel ? ' (indecidível)' : ''}${l.semRecibo ? ' (sem recibo)' : ''} ${l.titulo}${cauda}`);
     }
   }
   console.log(`cobertura cumulativa: ${r.somaFeito} de ${r.somaTotal} (${r.cobertura}%)`);
