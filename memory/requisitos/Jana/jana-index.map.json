@@ -1,0 +1,91 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Jana/Index (/ia)",
+  "gap_fonte": "memory/requisitos/Jana/jana-index-gap.md",
+  "prototipo_sha": "sha256:72674c94f568",
+  "gerado_em": "2026-09-22",
+  "partes": [
+    {
+      "id": "h1-do-header-peso-700-600-da-ancora",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/jana-merge.jsx",
+        "linhas": "1058"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Components/PageHeader/PageHeader.tsx",
+        "linhas": "110-111",
+        "ancora": false
+      },
+      "status": "gap-aberto",
+      "acao": "Réplica local, e o caminho já está provado. Não mexer no default: as âncoras DISCORDAM — a de Vendas declara 700 explicitamente (`styles.css:4772` 0-1-1 e `financeiro.css:1727` 0-3-1, a que vence), com o comentário `styles.css:4765` dizendo *\"mesmo CANON do PageHeader\"*, e o 700 é decisão [W] datada (#1477, *\"prefiro o mesmo peso do sells\"*, re-medida em 2026-09-21: segue 700). Trocar o default alinharia 42 telas ao peso da Jana. O conserto revertido (prop opt-in `titleWeight`, default preservado) segue sendo o certo — falta aprovação, não solução.",
+      "_acionavel": true,
+      "nota_de_ancoragem": "O h1 NAO nasce na tela: `Index.tsx:292` monta o `JanaAreaHeader`, que em `:56` importa o `PageHeader` canon; a regra do peso esta em `PageHeader.tsx:111`. Do lado da ancora, `jana-merge.jsx:1058` e o `JanaHeader`, que em `chat-jana.jsx:216` delega ao `CliPageHead` e herda `colors_and_type.css:373`."
+    },
+    {
+      "id": "a-secao-header-do-alvo-mede-o-container-nao-o-titulo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/jana-merge.jsx",
+        "linhas": "1058"
+      },
+      "vivo": {
+        "arquivo": "governance/design/targets/jana--index.secoes.json",
+        "linhas": "secao `header`",
+        "ancora": false
+      },
+      "status": "mapeado-sem-acao",
+      "acao": "Decidir [W]. Estender o alvo exige re-medir por sonda contra render servido (o `.alvo.json` é medido, não escrito à mão — `secoes.json` declara *\"COLHIDOS do DOM por `--mapa`, nunca de lembrança\"*), e o `secao-check` que o consome roda `--servir-espelho` (espelho × espelho) e é advisory: ele pegaria a ÂNCORA mudar, não prod regredir. Quem protegeria prod é teste de componente, não o alvo.",
+      "_acionavel": true,
+      "nota_de_ancoragem": "Parte de INSTRUMENTO, nao de tela: o alvo mede `.jc-page > div:first-child > header` e para no container. O lado \"vivo\" aqui e o proprio seletor declarado."
+    },
+    {
+      "id": "jm-nota-mob-fora-das-9-secoes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/jana-merge.jsx",
+        "linhas": "1060"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Jana/Index.tsx",
+        "linhas": "335-340",
+        "ancora": false
+      },
+      "status": "mapeado-sem-acao",
+      "acao": "Nenhuma. Registrado para que a próxima leitura não o conte como buraco.",
+      "_acionavel": false,
+      "nota_de_ancoragem": "Copy identica byte a byte nos dois lados. Oculto acima de 768px em AMBOS (`jana-merge.css:93-94` x `md:hidden`), logo fora da viewport que a sonda mede."
+    },
+    {
+      "id": "skeleton-e-estado-vazio-erro",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/jana-merge.jsx",
+        "linhas": "1061-1063"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Jana/Index.tsx",
+        "linhas": "350,506",
+        "ancora": false
+      },
+      "status": "mapeado-sem-acao",
+      "acao": "Nenhuma no eixo alvo. O estado vazio tem dono próprio (UC-JPAIN-29) e declara que não foi observado em prod.",
+      "_acionavel": false,
+      "nota_de_ancoragem": "Ramos alternativos do mesmo no. No vivo o conteudo vem do `JanaCockpit` (:350) e o vazio de metas tem ancora propria `painel-metas-vazio` (:506). UC-JPAIN-29 e o dono do estado vazio."
+    },
+    {
+      "id": "6-overlays-jmmetadrawer-jmmetasoverlays-jmdrilldrawer-jmacaomodal-configdrawer-toast",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/jana-merge.jsx",
+        "linhas": "1130-1135"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Jana/Index.tsx",
+        "linhas": "534,552,554",
+        "ancora": false
+      },
+      "status": "mapeado-sem-acao",
+      "acao": "Nenhuma no eixo alvo. Medi-los exigiria roteiro de interação, que é outro instrumento (E2E), não a sonda de seção.",
+      "_acionavel": false,
+      "nota_de_ancoragem": "So existem no DOM quando abertos: `JanaConfigDrawer` (:534), `JanaMetaNovaDrawer` (:552), `JanaMetaDrawer` (:554). Medi-los e roteiro de interacao (E2E), nao sonda de secao."
+    }
+  ],
+  "_procedencia": "Linhas obtidas por `grep -n` nos dois lados em 2026-09-22 — nenhuma fabricada (o gerador grava TODO de proposito). A tela NAO tem medicao D6: este map cobre COMPOSICAO + 1 ponto de tipografia medido no browser. Ver o §PROCEDENCIA do gap_fonte."
+}
