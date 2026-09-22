@@ -303,3 +303,164 @@ deploy leria como regressão.
 2026-09-18 dois smokes passaram contra bytecode de **10 dias**. Cerco de hash prova o que está
 no disco, nunca o que o runtime carregou — a prova é um **caso discriminante**, um cujo
 desfecho muda com o fix aplicado.
+
+---
+
+## Promoção de protótipo — inventário e aceite POR ITEM (vale para toda tela)
+
+> **Por que existe ([W] 2026-09-22):** o [#7701](https://github.com/wagnerra23/oimpresso.com/pull/7701)
+> (SupportWR) escreveu este procedimento como RUNBOOK de **um módulo**
+> (`memory/requisitos/Manufacturing/RUNBOOK-promocao-prototipo.md`). [W], textual:
+> *"Isso deve ser global"*. A peça vem para cá porque aqui é o dono do tema — e porque a
+> **errata de 2026-08-28** deste mesmo arquivo já declarava, com todas as letras, que o que
+> seguia descoberto era *"os passos D1/D3/D5/D7 que o `design-diff` não mecaniza, e **o veredito
+> por item**"*. Isto é o veredito por item.
+>
+> Medido antes de escrever, com o comando ao lado (`git grep -lI "<termo>" origin/main | wc -l`):
+> `matriz de aceite`, `FORA DE ESCOPO APROVADO` e `PARCIALMENTE PUBLICADA` existiam em **1**
+> arquivo cada — o próprio #7701. O conteúdo não duplica régua nenhuma; o que estava estreito
+> era só o escopo.
+
+### O caso que obriga esta seção a existir (medido 2026-09-22)
+
+`governance/design/targets/medidas/Manufacturing--Recipes/resultado.json` carrega
+`compare.veredito = "IGUAL"`. Abrindo as células desse mesmo arquivo: `rows[0..3]` são `IGUAL` e
+`rows[4..12]` são **`SEM-DADO`** — **4 medidas de 13**, com as regiões principais (cabeçalho,
+filtros, KPIs, lista) saindo com o motivo *"região só existe de um lado"*.
+
+O rótulo agregado do topo **não distingue "bateu" de "não foi medido"**. Quem lesse só ele
+declararia fidelidade com 9 células cegas — é a [LC-13](../../LICOES_CODE.md) (verde por
+não-execução) no eixo design. Nenhum comparador automático resolve isso sozinho: a separação entre
+*medido e igual* e *não medido* é o trabalho da matriz abaixo.
+_(Medição levantada pela sessão da Fabricação; recibo em `Manufacturing/Recipes-visual-comparison.md`.)_
+
+### A quem se aplica — o denominador, para não cobrar o impossível
+
+Só a tela cuja **âncora de design resolve**: `node scripts/design/ancora.mjs <Mod/Tela>` devolve
+fonte. Tela que declara `n/a (herda PT-0X)` **nasce no Design System**, não no Cowork — não tem
+protótipo a promover e **não entra neste denominador**. Cobrá-la seria falso-positivo por
+construção (§5 2026-08-28).
+
+Quem responde *"que telas posso aplicar sem quebrar comportamento"* é a porta viva
+`node scripts/qa/prototipo-readiness.mjs` (✅ PRONTA / 🟡 1-CICLO / ⛔ SEM-ÂNCORA). Este protocolo
+**não republica** essa lista nem a contagem dela — número que outro sistema sabe melhor não se
+restateia em prosa (§5 2026-07-17).
+
+### Regra de conclusão
+
+Uma tela está **CONCLUÍDA** quando todo item do inventário está `ACEITO` ou
+`FORA DE ESCOPO APROVADO`, cada um com evidência. Com qualquer item pendente, bloqueado ou sem
+evidência, ela está **PARCIALMENTE PUBLICADA** — e é assim que se reporta.
+
+**Não usar "igual ao protótipo", "pronta", "completa" ou "fiel" sem anexar a matriz.** Um medidor
+parcial autoriza afirmar **quais dimensões ele comparou**, nunca fidelidade integral: o
+`design-diff` mecaniza D2/D4/D6/D8 e não decide fluxo, drawer, permissão, ícone nem regra de
+negócio. É a **Regra 0** (acima) aplicada item a item — ela já proíbe declarar "aplicado/pronto"
+sem prova; aqui a prova ganha unidade.
+
+### Onde a matriz mora — no artefato que já existe
+
+A matriz é uma seção do **`<Tela>-visual-comparison.md`** daquela tela, ao lado dos demais itens.
+Não criar artefato novo, não abrir planilha, não deixar em comentário de PR: o inventário tem de
+sobreviver à sessão que o escreveu, porque o agente seguinte retoma **da matriz versionada, nunca
+da memória de conversa** — contexto longo omite item.
+
+### Inventário — ler o protótipo de cima a baixo
+
+Cada elemento observável vira **uma linha**. Não agrupar em termo vago ("ajustes de tabela",
+"formulário revisado"): item agrupado é item que ninguém confere. Registrar, quando existirem:
+
+1. Cabeçalho, breadcrumb, título, descrição e ações principais.
+2. Busca, filtros, chips, ordenação e filtros ativos.
+3. Indicadores, cartões, totais e métricas.
+4. Abas, navegação interna e estado selecionado.
+5. Lista/tabela: **cada** coluna, badge, menu, paginação, ordenação, e os estados vazio,
+   carregando e erro.
+6. Modais, drawers e formulários: campos, máscaras, obrigatoriedade, validação, erro, sucesso e
+   cancelamento.
+7. Fluxos: criar, editar, excluir/cancelar, aprovar, imprimir/exportar, abrir detalhe.
+8. Tooltip, ícone, rodapé, atalho e a responsividade que o protótipo mostrar.
+9. Permissões: quem vê e quem executa cada ação.
+
+Elemento desenhado sem comportamento definido → `NÃO DEFINIDO NO PROTÓTIPO`. **Não inventar
+regra:** anti-padrão inventado é pior que ausente, porque parece canon (§5 2026-07-16).
+
+### Classificar ANTES de implementar
+
+| Classe | Tratamento |
+|---|---|
+| Visual | Implementa e compara pelas dimensões D2/D4/D6/D7/D8. |
+| Comportamento existente | Reusa o comportamento confirmado **e** testa. |
+| Dado existente | Confirma endpoint, query e permissão de origem. |
+| Dado novo | Backend primeiro. O componente não aparece antes do dado. |
+| Regra de valor/estoque | **Regra Mestre Tier 0** ([proibicoes.md](../../proibicoes.md)): dupla prova + antes→depois + aprovação [W]. Não se restateia aqui. |
+| Permissão | Confirma pacote, perfil e o comportamento sem autorização. |
+| Fluxo novo | Especifica e testa antes de chamar de funcional. |
+| Fora de escopo | Só com aprovação explícita, com quem aprovou e quando. |
+
+**Dado fictício para a tela "parecer certa" é proibido.** Sem backend, o item fica `BLOQUEADO` — um
+mock que engana a comparação transforma o medidor em carimbo.
+
+### Os dois eixos da matriz — e como se amarram
+
+A matriz carrega **duas colunas que não são a mesma pergunta**, e confundi-las é o que faz uma tela
+parecer pronta:
+
+- **Estado de aceite** — onde o item está no ciclo:
+  `NÃO INICIADO` · `EM IMPLEMENTAÇÃO` · `PRONTO PARA VALIDAR` · `ACEITO` · `BLOQUEADO` ·
+  `FORA DE ESCOPO APROVADO`. Nenhum outro estado encerra um item.
+- **Veredito de medição** — o que a comparação devolveu, no vocabulário que a **Regra de veredito**
+  (acima, [W] 2026-09-18) já fixou: `IGUAL` · `DÍVIDA A FECHAR` · `PROTÓTIPO ATRASADO`. Acrescente
+  `NÃO MEDIDO` quando a sonda não cobriu aquele item — pelo caso do `Recipes`, é o estado que mais
+  se disfarça de aprovação.
+
+**A amarração, que é o que impede os dois de brigarem:**
+
+| Para marcar | Exige |
+|---|---|
+| `ACEITO` | veredito `IGUAL`, **ou** uma diferença aprovada com quem aprovou e quando |
+| `ACEITO` | evidência anexada — sem ela o estado não vale |
+| `FORA DE ESCOPO APROVADO` | quem aprovou, data e motivo |
+| `BLOQUEADO` | o que falta e de quem é a próxima decisão |
+
+`DÍVIDA A FECHAR` **nunca** convive com `ACEITO`: no eixo FORMA divergência é dívida, não estado
+final — quem converge é a produção. `PROTÓTIPO ATRASADO` exige o recibo de que a capacidade é nova,
+e aí o caminho é re-exportar do Cowork, não arrastar a prod para trás. **`NÃO MEDIDO` nunca vira
+`ACEITO` por omissão** — ou se mede, ou se declara fora de escopo com aprovação.
+
+### Ordem de execução
+
+1. Fixar a fonte oficial **e a revisão dela**. Havendo mais de um protótipo candidato, o trabalho
+   fica `BLOQUEADO` até decisão humana — não assumir que o mais novo, o mais bonito ou o mais
+   parecido com o código atual é o certo.
+2. Criar a matriz e levantar bloqueio de dado, regra, permissão e fluxo novo.
+3. Dados e regras confirmadas.
+4. Estrutura da tela + estados carregando/vazio/erro.
+5. Fluxos e validações.
+6. Tabela, filtros, indicadores, ações, modais, drawers.
+7. **Só então** o acabamento visual contra a âncora.
+8. Evidência anexada, matriz atualizada.
+9. Só então declarar.
+
+Começar pelo passo 7 numa tela que depende de dado ausente produz exatamente a tela que parece
+pronta e não é.
+
+### Relatório final
+
+```text
+Tela: <nome e rota>
+Fonte oficial: <caminho/URL e revisão>
+Itens inventariados: <n>   Aceitos: <n>   Fora de escopo aprovados: <n>
+Pendentes: <lista ou nenhum>      Bloqueados: <lista ou nenhum>
+Não medidos: <lista ou nenhum>
+Evidência visual: <links>   de fluxo: <testes>   de dado/valor/permissão: <provas>
+Diferenças aprovadas: <lista ou nenhuma>
+Declaração: CONCLUÍDA | PARCIALMENTE PUBLICADA | BLOQUEADA
+```
+
+### Módulo é a soma das telas
+
+**Não existe aceite único de módulo.** Uma matriz por tela, mais uma visão consolidada; trabalhar
+por tela ou onda pequena sem dependência, registrando antes da próxima. Aprovação visual de uma
+tela não aprova as vizinhas — e componente compartilhado não transporta aceite (ver
+*Componente compartilhado não impõe a forma de uma tela às outras*, acima).
