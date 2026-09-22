@@ -79,6 +79,23 @@ invalida o veredito. O Δ2px do título pode ser real ou artefato; hoje não dá
 
 ## Re-medicao 2026-09-22 — `DIVERGE (bug)`, e o delta de 2px do titulo e REAL
 
+> **D0 — identidade da view NAO provada nesta medicao.** O `resultado.json` desta tela tem
+> `contrato: null`, e o `design-diff` trata D0 como **pre-condicao, nao dimensao**
+> ([`design-diff.mjs:1216`](../../../scripts/design/design-diff.mjs) — *"IDENTIDADE DA VIEW
+> (pre-condicao, nao dimensao)"*). Sem contrato, nada garante que o que foi renderizado do lado
+> design e **esta** tela. O `--dry` avisou, com estas palavras: *"D0 sem contrato — identidade da
+> view NAO provada (ancora pode servir outra tela)"* — e a rodada seguiu assim mesmo.
+>
+> **Consequencia honesta:** o veredito abaixo vale como **indicio**, nao como paridade provada.
+> Fecha-se criando o contrato de tela (o molde e
+> [`manufacturing-recipes.contract.json`](../../../governance/design/contracts/manufacturing-recipes.contract.json),
+> a unica da familia que tem).>
+> Esta tela e a **prova viva** do aviso: a primeira rodada de hoje, com D0 nao provado, mediu a
+> aba **Receitas** contra a producao de **Ordens de producao** e devolveu um veredito de aparencia
+> valida. O token foi corrigido por override e a medicao refeita — mas o D0 **continua** nao
+> provado, e por isso esta ressalva fica.
+
+
 | | |
 |---|---|
 | veredito | **`DIVERGE (bug)`** · `rc=1` · 1 bug |

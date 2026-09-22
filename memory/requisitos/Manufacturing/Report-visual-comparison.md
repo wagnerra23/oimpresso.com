@@ -44,6 +44,19 @@ divergência** — e nenhum gate que bloqueia merge mede fidelidade.
 
 ## Primeira medicao — 2026-09-22 · `IGUAL`, cobrindo 4 celulas de 20
 
+> **D0 — identidade da view NAO provada nesta medicao.** O `resultado.json` desta tela tem
+> `contrato: null`, e o `design-diff` trata D0 como **pre-condicao, nao dimensao**
+> ([`design-diff.mjs:1216`](../../../scripts/design/design-diff.mjs) — *"IDENTIDADE DA VIEW
+> (pre-condicao, nao dimensao)"*). Sem contrato, nada garante que o que foi renderizado do lado
+> design e **esta** tela. O `--dry` avisou, com estas palavras: *"D0 sem contrato — identidade da
+> view NAO provada (ancora pode servir outra tela)"* — e a rodada seguiu assim mesmo.
+>
+> **Consequencia honesta:** o veredito abaixo vale como **indicio**, nao como paridade provada.
+> Fecha-se criando o contrato de tela (o molde e
+> [`manufacturing-recipes.contract.json`](../../../governance/design/contracts/manufacturing-recipes.contract.json),
+> a unica da familia que tem).
+
+
 | | |
 |---|---|
 | veredito | **`IGUAL`** · `rc=0` · 0 bugs |

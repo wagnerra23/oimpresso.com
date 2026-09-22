@@ -69,6 +69,14 @@ lados invalida o veredito pelo
 
 ## Re-medicao 2026-09-22 — `IGUAL`, e o denominador PIOROU
 
+> **D0 — identidade da view PROVADA aqui, e so aqui.** Esta e a unica das 5 com contrato de tela
+> ([`manufacturing-recipes.contract.json`](../../../governance/design/contracts/manufacturing-recipes.contract.json)),
+> entao a pre-condicao que o `design-diff` exige ([`design-diff.mjs:1216`](../../../scripts/design/design-diff.mjs))
+> esta satisfeita: o que foi renderizado do lado design **e** esta tela. Nas outras tres medidas
+> (`Index`, `Report`, `Settings`) o `contrato` e `null` e o veredito vale so como indicio — ver a
+> ressalva no topo da secao de medicao de cada uma.
+
+
 | | |
 |---|---|
 | veredito | **`IGUAL`** · `rc=0` · 0 bugs |
