@@ -112,6 +112,21 @@ jobs:
       - name: §5 derive bite-test (corta arqueologia, NUNCA come limite · lapide de 2 eixos)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/sec5-derive.mjs --selftest
+      # O design-lock nasceu em 2026-09-22 (#7709) e entrou em main SEM invocador — o
+      # `selftest-registry-check` o acusou: "ORFAO EMBUTIDO: implementa --selftest e nenhum
+      # workflow o roda". Script sem invocador e bug, nao neutralidade (proibicoes.md
+      # §Sempre-fazer #2). Ligado AQUI, e nao num job required, de proposito: step hard-fail
+      # dentro de required e bloqueio de merge sem flip [W] (o umbrella documenta o caso do
+      # #4826). Este job e advisory — medido contra a uniao classic+ruleset dos 47 required,
+      # "governance script tests" nao casa nenhum.
+      # O selftest defende os 2 controles do FALSO-POSITIVO de 2026-09-22: o eixo `fora`
+      # classificava copia de DS por NOME de arquivo e quase custou a delecao de um override
+      # de contraste WCAG AA. Se alguem reintroduzir o nome como criterio de ACHADO, cai aqui.
+      # Nao precisa de npm: o script importa so builtins (node:fs/os/path/crypto/url), que e
+      # o contrato deste job — ele nao instala nada.
+      - name: design-lock bite-test (DS unico por CONTEUDO · fonte ambigua · lock invalido · NAO MEDI)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design/design-lock.mjs --selftest
       # O auto-aperto de baseline ESCREVE em arquivo de catraca — se o medidor de direcao
       # errar, ele grandfathera divida em vez de travar ganho, que e o Gap-2 do tamper-guard.
       # Por isso o bite-test dele roda em PR (aqui), nao so no cron semanal que o invoca:
