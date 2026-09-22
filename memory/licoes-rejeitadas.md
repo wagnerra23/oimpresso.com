@@ -2877,3 +2877,19 @@ Ocorrência da **LC-08**.
 - **Alcance real.** Não chegou a decisão nenhuma: o banner acusou numa sessão, foi reconhecido como não-medição antes de virar recomendação ao [W], e o conserto veio na mesma sessão ([#7729](https://github.com/wagnerra23/oimpresso.com/pull/7729)).
 
 - Ocorrência da **LC-33**.
+
+### 2026-09-22 — Propor QUEBRAR um job de CI afirmando que "um step vermelho esconde os outros" sem ler o `if:` dos steps (216 de 220 rodavam com always())
+
+- **O que aconteceu.** Numa análise do fluxo de máquinas pela lente de microsserviços, publiquei ao [W] como item 4 de uma lista de recomendações: *"o `governance-script-tests.yml` concentra 221 steps e 161 chamadas de script em 2 jobs. Um step vermelho deixa a lane inteira vermelha e esconde os outros"* — e propus quebrá-lo em mais jobs. [W] mandou fazer. Ao abrir o YAML para executar, a medição derrubou a premissa: **216 dos 220** steps do job `tests` rodam com `if: always() && steps.setup.outcome == 'success'` (os 4 restantes: `always()`, `!cancelled()` ×2, filtro de evento). Um teste vermelho **não** pula os demais; cada step falho aparece nomeado no log.
+
+- **Por que passou, e é o incremento desta instância.** Eu **contei** os steps (`grep -c '- name:'`) e **não li** as condições deles. A contagem era verdadeira; a conclusão sobre comportamento de execução ("esconde os outros") era dedução do default do GitHub Actions (step falho pula os seguintes), sem conferir se o arquivo sobrescrevia o default — e sobrescrevia em 98% dos steps. É a família da LC-08 (afirmar a partir da medida errada): mediu-se o **tamanho** do job e concluiu-se sobre a **semântica** dele. O agravante é que a afirmação não ficou interna: virou **recomendação de reestruturação** ao dono, com custo real se executada — cada job novo paga checkout + setup-node (~40 s) em todo PR num repo que já cortou volume de fila por saturação, sem ganho de tempo (o job levava 2m39s contra 3m23s do PHPStan required) e com risco de quebrar os 34 arquivos que leem aquele YAML.
+
+- **O limite (variante também proibida).** Não afirmar comportamento de **execução** de pipeline — o que roda depois de uma falha, o que é pulado, o que bloqueia — a partir da **estrutura** (contagem de steps, de jobs, de linhas). A resposta está nas condições (`if:`, `continue-on-error`, `needs:`, `strategy.fail-fast`, `concurrency.cancel-in-progress`), e elas sobrescrevem o default do runner. Corolário que generaliza: **antes de propor reestruturar um mecanismo, meça o defeito que a reestruturação conserta** — se ele não existe, a proposta só tem custo. E quando o dono manda executar uma recomendação sua, o primeiro ato é re-medir a premissa dela; executar sem isso é pagar o custo do erro duas vezes.
+
+- **Desfecho.** O job não foi quebrado. O resíduo real — o check aparece como um vermelho único e achar qual dos ~220 steps caiu exigia rolar o log — virou um step final que lista no summary os steps falhos, lidos da API do próprio run, com `NÃO MEDIDO` quando não consegue ler ([#7735](https://github.com/wagnerra23/oimpresso.com/pull/7735); validado ao vivo: *"Nenhum step falhou (224 steps concluidos)"*).
+
+- **⚠️ NÃO virar gate.** O gate óbvio da LC-08 já está **medido e reprovado** (130 FP no detector de vocabulário; ~64% FP ao ampliar o corpus do `fact-anchor`) — não re-propor. O predicado desta instância (*"esta afirmação sobre execução leu as condições?"*) é semântico ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)). O que pegou foi re-medir a premissa no momento de executar — e isso é disciplina, não máquina.
+
+- **Alcance real.** Não chegou a código nem a canon: a proposta foi derrubada antes da primeira edição, e a correção foi dita ao [W] no mesmo turno. Origem: sessão 2026-09-22.
+
+- Ocorrência da **LC-08**.
