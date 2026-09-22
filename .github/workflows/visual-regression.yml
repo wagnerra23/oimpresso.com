@@ -325,6 +325,10 @@ jobs:
         if: steps.mode.outputs.ui == 'true'
         run: npm ci
 
+      - name: Produção Oficina — sondas do Pest Browser mordem DOM bom e defeituoso
+        if: steps.mode.outputs.ui == 'true'
+        run: node scripts/tests/producao-oficina-probes.test.mjs
+
       - name: Verify Playwright npm client from lockfile
         if: steps.mode.outputs.ui == 'true'
         # @playwright/test é devDependency e o lock materializa `playwright` na raiz.
