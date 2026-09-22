@@ -417,6 +417,10 @@ function principal() {
   // 1. EXTRAIR (efêmero por padrão)
   const destino = arg('--out') || mkdtempSync(join(tmpdir(), 'oi-handoff-'));
   mkdirSync(destino, { recursive: true });
+  // Rascunho da ferramenta (lista do live-only, sync regerado) NUNCA dentro da extracao. Medido
+  // 2026-09-21 (zip V5): o zip veio SEM a pasta `project/`, a raiz do projeto virou o proprio
+  // `destino`, e o `_live-only.json` gravado ali entrou no lote e foi promovido pro espelho.
+  const rascunho = mkdtempSync(join(tmpdir(), 'oi-handoff-aux-'));
   const entradas = extrairZip(readFileSync(zip), destino);
   console.log(`\n  [1] EXTRAIR      ${entradas.length} arquivo(s) - CRC-32 conferido em todos`);
   console.log(`                   ${destino}`);
@@ -571,7 +575,7 @@ function principal() {
   // entradas de diretorio pra casar o numero seria fabricar o denominador.
   // O medidor de frescor (`cowork-mirror-freshness`) conhece só o espelho do Wagner. Pra outra
   // conta, medir aqui compararia o zip dela com a pasta errada — pulo e digo, em vez de medir torto.
-  const listaPath = join(destino, '_live-only.json');
+  const listaPath = join(rascunho, '_live-only.json');
   writeFileSync(listaPath, JSON.stringify({ paths: listarRelativos(raiz) }));
   // Ledger so no --apply: medicao de run exploratorio nao vira registro.
   const lo = DONO === 'Wagner'
@@ -645,7 +649,7 @@ function principal() {
   }
 
   // 5. REGERAR pelo gerador CANÔNICO
-  const outSync = join(destino, '_sync-regerado');
+  const outSync = join(rascunho, '_sync-regerado');
   // `--owner` vem da conta que o PASSO 0 liberou — quem chama sabe de quem e o lote; o path da
   // arvore extraida (tmpdir) nao diz. Sem isto o gerador sai `owner: "project"` (medido).
   const g = roda('scripts/design-sync/gerar-payload-partes.mjs',
