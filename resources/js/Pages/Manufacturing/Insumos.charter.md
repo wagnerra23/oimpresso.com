@@ -4,7 +4,7 @@ component: resources/js/Pages/Manufacturing/Insumos.tsx
 owner: wagner
 status: draft
 parent_module: Manufacturing
-related_prototype: prototipo-ui/cowork/Wagner/manufacturing-insumos.jsx
+related_prototype: prototipo-ui/cowork/Felipe/manufacturing-insumos.jsx
 related_us: [US-MANU-005]
 runbook: memory/requisitos/Manufacturing/RUNBOOK-insumos.md
 casos: resources/js/Pages/Manufacturing/Insumos.casos.md

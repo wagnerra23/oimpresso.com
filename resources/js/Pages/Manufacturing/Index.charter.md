@@ -2,8 +2,9 @@
 id: resources-js-pages-manufacturing-index-charter
 page: /manufacturing/production
 component: resources/js/Pages/Manufacturing/Index.tsx
-related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
-bundle_source: manufacturing-page.jsx  # 2026-09-09 [C]: porte REVERSO — `manufacturing-page.jsx:2` declara "Espelho de Modules/Manufacturing"; o gap-spec de 06/09 mede o prototipo ATRAS do vivo nos KPIs. Fonte de bundle, NAO design aprovado (§5 2026-08-28).
+# 2026-09-22 [F+C]: âncora = protótipo importado do Felipe (#7673), o que o shell carrega; a view de ordens de produção é MfgProducaoView. A cópia em handoff_fabricacao/design/ é duplicata.
+related_prototype: prototipo-ui/cowork/Felipe/manufacturing-producao.jsx
+# bundle_source removido 2026-09-22: por nome solto resolvia na cópia do Wagner (ou na 1ª de 3 homônimas com --staging). Nota original: 2026-09-09 [C]: porte REVERSO — `manufacturing-page.jsx:2` declara "Espelho de Modules/Manufacturing"; o gap-spec de 06/09 mede o prototipo ATRAS do vivo nos KPIs. Fonte de bundle, NAO design aprovado (§5 2026-08-28).
 page_id: manufacturing-index
 status: draft
 owner: wagner

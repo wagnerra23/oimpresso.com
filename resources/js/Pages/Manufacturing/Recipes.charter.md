@@ -4,7 +4,7 @@ component: resources/js/Pages/Manufacturing/Recipes.tsx
 owner: wagner
 status: draft
 parent_module: Manufacturing
-related_prototype: prototipo-ui/cowork/Wagner/manufacturing-page.jsx
+related_prototype: prototipo-ui/cowork/Felipe/manufacturing-page.jsx
 related_us: [US-MANU-001]
 runbook: memory/requisitos/Manufacturing/RUNBOOK-recipes.md
 casos: resources/js/Pages/Manufacturing/Recipes.casos.md

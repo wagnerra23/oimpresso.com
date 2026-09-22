@@ -4,7 +4,7 @@ component: resources/js/Pages/Manufacturing/Report.tsx
 owner: wagner
 status: draft
 parent_module: Manufacturing
-related_prototype: prototipo-ui/cowork/Wagner/manufacturing-producao.jsx
+related_prototype: prototipo-ui/cowork/Felipe/manufacturing-producao.jsx
 related_us: [US-MANU-002]
 runbook: memory/requisitos/Manufacturing/RUNBOOK-report.md
 casos: resources/js/Pages/Manufacturing/Report.casos.md
