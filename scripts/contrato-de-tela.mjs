@@ -416,15 +416,35 @@ function resolveContract(file, ctxStr) {
 
 // ── Catraca 3: omissão (inverte a fonte) ──────────────────────────────────────
 //
-// MEDIDO no corpus real em 2026-09-22, ANTES de ligar no CI (regra "LIGUE A MÁQUINA" item 4:
-// FP medido antes de instalar). Corpus: 231 merges de PR do main, escopo `resources/js/Pages`
-// + `Modules`, dos quais 135 tocam a superfície. Como o modo estava, ele acusaria 22 merges
-// (16,3% da população de gatilho) com 152 acusações — e ~68% delas eram ruído, por duas causas
-// independentes, consertadas em C1 e C2 abaixo. Depois das duas: 11 merges (8,1%), 48 acusações.
-// Reproduzir: para cada merge de PR do main, `git diff --unified=0 <parent1>...<merge> -- <escopo>`
-// + `git log <parent1>..<merge> --format=%B`, e aplicar este mesmo predicado. Só merges
-// "Merge pull request #N" entram — em "Merge branch 'main' into x" o parent1 é a branch, e o
-// diff traz tudo que veio do main (ruído da medição, não do gate: no CI a base é origin/main).
+// ⚠️ ERRATA 2026-09-22 (mesmo dia, pós-merge do #7691) — A MEDIÇÃO ORIGINAL DESCREVIA OUTRO
+// UNIVERSO. Ela dizia: "231 merges de PR do main, 135 tocam a superfície, 22 acusados (16,3%)
+// → 11 (8,1%) com C1+C2". Esse texto fica registrado porque é o que sustentou o PR, e cada
+// número dele é reproduzível — mas ele erra em TRÊS eixos, todos medidos:
+//
+//   (1) CORPUS MORTO. `git log --merges` no main só enxerga até 2026-06-08: desde então o repo
+//       é squash-only (linear history · RUNBOOK-branch-protection.md:35), e 4.905 commits
+//       posteriores são invisíveis a `--merges`. A DATA da medição era 09-22; o CORPUS era
+//       abr–jun. (A sessão descobriu o squash-only ao tomar "Merge commits are not allowed"
+//       no próprio merge e não voltou para questionar o corpus.)
+//   (2) ESCOPO ANACRÔNICO. Os 35 contratos ativos nasceram TODOS em 2026-09-11, e 23 dos 40
+//       `alvo[]` (57,5%) não existiam em 2026-06-08 — medir o escopo dos contratos contra
+//       aquele corpus era mudo por construção, não por a superfície ser parada.
+//   (3) DENOMINADOR ERRADO. A taxa foi calculada sobre "toca Pages|Modules", que é o escopo do
+//       `--alvo` (o INSUMO). O que o gate de fato vê é o `detect` do workflow, mais estreito.
+//       No corpus de merges: 291 PRs, 173 tocam Pages|Modules, só 72 disparam o detect.
+//
+// MEDIÇÃO VÁLIDA (corpus VIVO, pós C1+C2) — 300 commits de squash, janela 2026-09-15..09-22:
+//   46 tocam Pages|Modules (escopo do --alvo)   ·   21 DISPARAM O DETECT (gatilho real)
+//   2 acusados de 21 = 9,5%   ·   2 acusações   (`SparkArea` num revert; `VariacoesTab`)
+// Reproduzir: para cada commit `c` de `git log origin/main --no-merges`, aplicar o predicado a
+// `git diff --unified=0 c~1 c -- resources/js/Pages Modules` + `git log c~1..c --format=%B`, e
+// contar sobre os que casam a regex do `detect` (lida do YAML, não redigitada).
+// ⚠️ `c^` NÃO funciona: em `execSync` no Windows o shell é o cmd.exe, onde `^` é o caractere de
+// escape — o parent some, o diff fica vazio e o zero parece resultado. Use `c~1`.
+//
+// O que NÃO muda com a errata: as duas correções abaixo (C1/C2) seguem certas pelo mérito —
+// símbolo movido não é omissão, e descrição de teste não é símbolo — e o bite-test com controle
+// negativo continua provando as duas. O que muda é a TAXA e o universo que ela descreve.
 //
 // ⚠️ Escopo importa mais que o predicado: sobre os `alvo[]` dos contratos (40 paths estreitos)
 // o modo é CEGO — 172 linhas removidas na janela, ZERO casando qualquer regex, porque o que

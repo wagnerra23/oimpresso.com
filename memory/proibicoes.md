@@ -1734,6 +1734,16 @@ Ocorrência da **LC-31**.
 
 Ocorrência da **LC-13**.
 
+### 2026-09-22 — O zero de um medidor tem TRÊS causas, não duas: a terceira é CORPUS ANACRÔNICO, e ela não aparece em nenhuma lápide anterior
+
+- **O limite (variante também proibida):** diante de um medidor que devolve **zero**, não concluir antes de separar **três** causas — predicado cego · superfície parada · **corpus anacrônico** (o alvo nasceu depois do último elemento do corpus). O binário *"bruto>0 ⇒ predicado / bruto==0 ⇒ superfície"* é **insuficiente**: `bruto>0` pode vir inteiro dos paths antigos enquanto os que importam são mudos por data. A terceira causa se checa com uma linha — `git log --diff-filter=A --format=%cd -1 -- <alvo>` contra a data do elemento mais recente do corpus. E o corolário que vale além deste gate: **antes de medir num corpus derivado de `git log --merges`, conferir se o repo ainda PRODUZ merges** — sob squash-only aquele corpus congela numa data e segue respondendo, com cara de atual.
+
+- **⚠️ Agravante, e é o que torna esta cara de repetir:** o diagnóstico errado **não foi near-miss** — chegou ao [W] por escrito, como conclusão, com número ao lado; e o número corrigido **foi mergeado** ([#7691](https://github.com/wagnerra23/oimpresso.com/pull/7691)) antes de a errata existir. Duas vezes na mesma sessão eu quase descartei o gate por razões opostas (cego, depois ruidoso), e nas duas o que faltava era justificar o escopo. Pior: eu **descobri** o squash-only na hora do merge, ao tomar `Merge commits are not allowed on this repository`, e não voltei para questionar o corpus — os dois fatos estavam na minha mão, a uma pergunta de distância.
+
+- **⚠️ NÃO virar gate:** o predicado — *"o corpus em que você mediu ainda é produzido?"* — depende de saber qual corpus alimenta qual afirmação, e não é derivável do texto do comando; é semântico ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)). A forma sintática (acusar `git log --merges` num repo squash-only) reprovaria o uso legítimo — ler história antiga é exatamente para isso que ela serve. E não cito o campo `Gate:` da LC-08 como recusa: aquele marcador é regex sobre o corpo da LC e afirma que *alguma* forma óbvia caiu, nunca que **esta** caiu (errata §5 2026-09-15). O que fecha é a linha de `--diff-filter=A` acima.
+
+Ocorrência da **LC-08**.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

@@ -153,23 +153,28 @@ jobs:
       # chamava — "máquina que existe e ninguém invoca é bug, não neutralidade" (proibicoes.md,
       # LIGUE A MÁQUINA item 2).
       #
-      # FP MEDIDO ANTES de ligar (item 4 da mesma regra), em 231 merges de PR do main:
-      #   como estava .............. 22 merges acusados (16,3%), 152 acusações, ~68% ruído
-      #   com C1+C2 (no script) .... 11 merges  (8,1%),  48 acusações
-      # As duas correções e os números por família estão no docblock de SYMBOL_RES.
+      # FP MEDIDO ANTES de ligar (item 4 da mesma regra). ⚠️ A medição do #7691 descrevia OUTRO
+      # universo e foi corrigida no mesmo dia — a errata, com as 3 causas, está no docblock de
+      # `SYMBOL_RES`. Número válido, corpus VIVO (300 commits de squash, 2026-09-15..09-22):
+      #   21 commits disparam este detect (a população que o gate REALMENTE vê)
+      #    2 acusados = 9,5%, 2 acusações  (`SparkArea` num revert; `VariacoesTab`)
+      # A taxa é sobre o `detect`, não sobre "toca Pages|Modules": aquele é o escopo do --alvo,
+      # o INSUMO do predicado, e é 2,2× maior (46 × 21) — contar ali mede o que o gate não vê.
       #
-      # ESCOPO: a árvore de telas/módulos, NÃO os `alvo[]` dos contratos. Medido: sobre os 40
-      # paths de contrato o modo é CEGO (172 linhas removidas na janela, ZERO casando) porque
-      # o que some numa tela é JSX/copy/bloco, não símbolo. Ligar ali seria gate-carimbo.
+      # ESCOPO do --alvo: a árvore de telas/módulos, NÃO os `alvo[]` dos contratos. Sobre os 40
+      # paths de contrato o modo é CEGO — mas a leitura "a superfície é parada" estava errada:
+      # 23 dos 40 nasceram DEPOIS do corpus em que foram medidos. Ver errata no docblock.
       #
-      # ⚠️ COBERTURA PARCIAL, declarada: o `detect` acima casa `resources/js/Pages/**`, não
+      # ⚠️ COBERTURA PARCIAL, declarada: este `detect` casa `resources/js/Pages/**`, não
       # `Modules/**` (fora o ChannelsController). PR que só toca `Modules/` não dispara este
       # step. Ampliar o `detect` mudaria o disparo de TODOS os steps do job — é outro intent.
       #
-      # SEM `continue-on-error`/`|| true`: este workflow não é required (conferido no
-      # governance/required-checks-baseline.json), então vermelho aqui NÃO bloqueia merge.
-      # Advisory = não bloqueia; nunca = não pode ficar vermelho (§5 2026-07-09).
-      - name: Omissão — símbolo/rota removido sem justificativa (advisory)
+      # SEM `continue-on-error`/`|| true`, de propósito: advisory significa *não bloqueia o
+      # merge*, nunca *não pode ficar vermelho* (§5 2026-07-09). Em 2026-09-22 este workflow
+      # não constava de `governance/required-checks-baseline.json` (união classic_protection ∪
+      # rulesets = 47 contexts, nenhum casando). Esse é um fato datado: quem precisar saber o
+      # enforcement de HOJE lê o baseline, que é o dono — não esta linha (LC-10).
+      - name: Omissão — símbolo/rota removido sem justificativa
         if: steps.detect.outputs.relevant == 'true'
         run: |
           set -euo pipefail
