@@ -21,7 +21,22 @@ import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, join, relative } from 'node:path';
 
 const ROOT = process.cwd();
-const SCAN_DIR = resolve(ROOT, 'resources/js');
+// 2 RAIZES de telas Inertia. O #5686 (2026-08-12) moveu as telas pro modulo dono e o
+// scanner NAO foi junto: o baseline ja carregava 24 paths sob Modules/ que este guard
+// nunca visitava. Medido em 2026-09-22: 23 adotantes reais em Modules/, 17 no baseline,
+// 6 FORA — invisiveis a um gate required. Mesmo eixo que o eslint-gate fechou em
+// 2026-08-28 ("2a raiz de telas Inertia. Sem ela o gate ficaria MUDO justamente na
+// superficie"), e que aqui seguia aberto.
+function modulesResourcesJs() {
+  const base = resolve(ROOT, 'Modules');
+  if (!existsSync(base)) return [];
+  return readdirSync(base, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => resolve(base, e.name, 'Resources', 'js'))
+    .filter((dir) => existsSync(dir));
+}
+
+const SCAN_DIRS = [resolve(ROOT, 'resources/js'), ...modulesResourcesJs()];
 const BASELINE_PATH = resolve(ROOT, 'config/pageheader-shared-baseline.json');
 const MODE_WRITE = process.argv.includes('--write');
 
@@ -41,7 +56,7 @@ function listTsx(dir) {
 
 function findOldAdopters() {
   const files = [];
-  for (const f of listTsx(SCAN_DIR)) {
+  for (const f of SCAN_DIRS.flatMap(listTsx)) {
     if (OLD_IMPORT.test(readFileSync(f, 'utf8'))) {
       files.push(relative(ROOT, f).replace(/\\/g, '/'));
     }
