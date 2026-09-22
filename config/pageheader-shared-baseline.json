@@ -1,8 +1,9 @@
 {
   "_meta": {
-    "generated_at": "2026-09-22T17:22:45.724Z",
+    "generated_at": "2026-09-22T18:21:08.333Z",
     "count": 68,
-    "note": "F4 — ratchet do PageHeader antigo (shared/PageHeader). Contador só desce (migração pro canon @/Components/PageHeader). Tela nova nunca adota o antigo. Ver MANUAL-CSS-JS.md §5."
+    "adr": "0409 — divida transitoria, nao tolerancia",
+    "note": "DIVIDA TRANSITORIA do PageHeader antigo (shared/PageHeader), nao selo de conformidade. Estar nesta lista ADIA a cura; nao perdoa: tocar a tela reprova o gate (ADR 0409). A lista so DESCE — o --write recusa crescimento. Meta: zero, e entao este arquivo e apagado."
   },
   "files": [
     "Modules/Forja/Resources/js/Pages/ads/Admin/Projects.tsx",

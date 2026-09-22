@@ -18,6 +18,7 @@
 // Refs: MANUAL-CSS-JS.md §5 (F4) · ADR 0189/0190 (PageHeader canon v3) · INDEX-DESIGN-MEMORIAS.md
 
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 import { resolve, join, relative } from 'node:path';
 
 const ROOT = process.cwd();
@@ -42,6 +43,43 @@ const MODE_WRITE = process.argv.includes('--write');
 
 // Import EXATO do componente antigo (não os irmãos PageHeaderActions/ModuleNav/Tabs).
 const OLD_IMPORT = /from\s+['"]@\/Components\/shared\/PageHeader['"]/;
+
+/**
+ * Arquivos tocados no diff — a UNIDADE da ADR 0409 ("alterar a unidade acorda a divida").
+ *
+ * Base VIVA, nunca `pull_request.base.sha`: aquele campo congela no instante em que o PR
+ * abriu e envelhece contra o merge ref, entao o range passa a incluir o que veio do main
+ * (§5 2026-09-15). `GITHUB_BASE_REF` honra PR que mira branch != main.
+ *
+ * Devolve `null` quando NAO CONSEGUIU MEDIR — e o chamador sai 2, nunca 0. Colapsar
+ * "nao medi" em "nada tocado" daria verde por nao-execucao (§5 2026-07-29 · LC-33).
+ */
+function arquivosTocados() {
+  const baseRef = process.env.GITHUB_BASE_REF ? 'origin/' + process.env.GITHUB_BASE_REF : 'origin/main';
+  try {
+    execSync('git rev-parse --git-dir', { stdio: 'ignore' });
+  } catch {
+    return null;
+  }
+  try {
+    execSync('git fetch --no-tags --quiet ' + baseRef.replace('origin/', 'origin '), { stdio: 'ignore' });
+  } catch {
+    // offline / sem permissao: segue com a ref local que houver
+  }
+  let base = '';
+  try {
+    base = execSync('git merge-base ' + baseRef + ' HEAD', { encoding: 'utf8' }).trim();
+  } catch {
+    return null;
+  }
+  if (!base) return null;
+  try {
+    const out = execSync('git diff --name-only ' + base + '...HEAD', { encoding: 'utf8' });
+    return new Set(out.split(String.fromCharCode(10)).map((s) => s.trim()).filter(Boolean));
+  } catch {
+    return null;
+  }
+}
 
 function listTsx(dir) {
   const out = [];
@@ -68,16 +106,36 @@ const current = findOldAdopters();
 const count = current.length;
 
 if (MODE_WRITE) {
+  // ADR 0409 — "os arquivos de tolerancia [...] NAO PODEM CRESCER" e "regenerar uma
+  // lista para acomodar a saida NAO e correcao". A guarda abaixo poe isso na maquina:
+  // o --write so aceita gravar quando a divida DIMINUI (ou fica igual). Pra subir, o
+  // caminho e curar a tela, nao regravar a lista.
+  if (existsSync(BASELINE_PATH)) {
+    const anterior = JSON.parse(readFileSync(BASELINE_PATH, 'utf8'));
+    const antes = anterior._meta?.count ?? (anterior.files || []).length;
+    if (count > antes) {
+      console.error('');
+      console.error('❌ --write RECUSADO: a divida SUBIRIA de ' + antes + ' para ' + count + '.');
+      console.error('   ADR 0409: lista de tolerancia nao cresce, e regravar pra acomodar a');
+      console.error('   saida nao e correcao. Migre a(s) tela(s) para @/Components/PageHeader.');
+      process.exit(1);
+    }
+  }
+
   const out = {
     _meta: {
       generated_at: new Date().toISOString(),
       count,
-      note: 'F4 — ratchet do PageHeader antigo (shared/PageHeader). Contador só desce (migração pro canon @/Components/PageHeader). Tela nova nunca adota o antigo. Ver MANUAL-CSS-JS.md §5.',
+      adr: '0409 — divida transitoria, nao tolerancia',
+      note:
+        'DIVIDA TRANSITORIA do PageHeader antigo (shared/PageHeader), nao selo de conformidade. ' +
+        'Estar nesta lista ADIA a cura; nao perdoa: tocar a tela reprova o gate (ADR 0409). ' +
+        'A lista so DESCE — o --write recusa crescimento. Meta: zero, e entao este arquivo e apagado.',
     },
     files: current,
   };
-  writeFileSync(BASELINE_PATH, JSON.stringify(out, null, 2) + '\n');
-  console.log(`✅ Baseline gravado: ${count} telas no PageHeader antigo → ${relative(ROOT, BASELINE_PATH)}`);
+  writeFileSync(BASELINE_PATH, JSON.stringify(out, null, 2) + String.fromCharCode(10));
+  console.log('✅ Divida regravada: ' + count + ' tela(s) no PageHeader antigo.');
   process.exit(0);
 }
 
@@ -89,24 +147,54 @@ if (!existsSync(BASELINE_PATH)) {
 const baseline = JSON.parse(readFileSync(BASELINE_PATH, 'utf8'));
 const baseCount = baseline._meta?.count ?? (baseline.files || []).length;
 const baseSet = new Set(baseline.files || []);
+const naBaseline = current.filter((f) => baseSet.has(f));
 const novos = current.filter((f) => !baseSet.has(f));
 
-console.log(`PageHeader migration guard · ${count} telas no antigo (baseline: ${baseCount})`);
+console.log('PageHeader migration guard · ' + count + ' telas no antigo (divida registrada: ' + baseCount + ')');
 
+// ── REGRA 1 — DIVIDA NOVA NUNCA ENTRA (ADR 0409: "eles nao podem crescer") ──────
 if (novos.length) {
-  console.error(`\n❌ ${novos.length} tela(s) NOVA(s) adotando o PageHeader ANTIGO (shared/PageHeader):\n`);
+  console.error('');
+  console.error('❌ ' + novos.length + ' tela(s) NOVA(s) adotando o PageHeader ANTIGO:');
   for (const f of novos) console.error('  🆕 ' + f);
-  console.error(
-    `\nTela nova usa o canon: \`import PageHeader from '@/Components/PageHeader'\` (v3.8, ADR 0189/0190).` +
-      `\nO header antigo está em migração (F4) — não ganha adotantes novos. Ver MANUAL-CSS-JS.md §5.`,
-  );
+  console.error('');
+  console.error("Tela nova usa o canon: import PageHeader from '@/Components/PageHeader' (v3.8, ADR 0189/0190).");
+  console.error('Absorver no baseline NAO e correcao (ADR 0409). Migre a tela.');
   process.exit(1);
 }
 
-if (count > baseCount) {
-  console.error(`\n❌ Contador subiu (${baseCount} → ${count}) sem arquivo novo identificável. Investigue o diff.`);
+// ── NAO CONSEGUI MEDIR != NADA TOCADO (LC-33) ──────────────────────────────────
+const tocados = arquivosTocados();
+if (tocados === null) {
+  console.error('');
+  console.error('⚠️  NAO MEDI: sem git, sem base ou sem diff — nao da pra saber o que foi tocado.');
+  console.error('   Sem isso o gate nao pode declarar conformidade (ADR 0409 §"Um gate so pode');
+  console.error('   declarar conformidade quando executou o detector sobre o escopo declarado").');
+  process.exit(2);
+}
+
+// ── REGRA 2 — TOCOU A UNIDADE, CURA NO MESMO PR (ADR 0409) ─────────────────────
+const dividaTocada = naBaseline.filter((f) => tocados.has(f));
+if (dividaTocada.length) {
+  console.error('');
+  console.error('❌ ' + dividaTocada.length + ' tela(s) com divida do header antigo foram TOCADAS neste PR:');
+  for (const f of dividaTocada) console.error('  ✏️  ' + f);
+  console.error('');
+  console.error('ADR 0409 — "alterar a unidade acorda a divida e exige a cura no mesmo PR".');
+  console.error('Estar na lista adia; nao perdoa. Migre para @/Components/PageHeader.');
   process.exit(1);
 }
 
-console.log(`✅ Sem novos adotantes do header antigo (migração ${baseCount - count > 0 ? `avançou −${baseCount - count}` : 'estável'}).`);
+// ── REGRA 3 — DIVIDA NAO TOCADA: VISIVEL, SEM SELO (ADR 0409) ──────────────────
+// A lista NAO concede conformidade. O verde aqui diz "este PR nao piorou nem tocou",
+// nunca "o repo esta conforme" — por isso a divida e impressa toda vez.
+if (naBaseline.length) {
+  console.log('');
+  console.log('📉 divida transitoria do header antigo: ' + naBaseline.length + ' tela(s) — nao tocadas neste PR.');
+  console.log('   Visiveis por decisao (ADR 0409): a lista adia, nao concede conformidade.');
+  console.log('   Meta: zero. Cada migracao para @/Components/PageHeader remove uma entrada.');
+}
+
+console.log('');
+console.log('✅ Nenhuma adocao nova e nenhuma divida tocada neste PR.');
 process.exit(0);
