@@ -82,24 +82,25 @@ Modules/Ponto/                      @wagnerra23   # ponto eletrônico = dado pes
 memory/requisitos/Ponto/            @wagnerra23   # docs ponto (dir canônico atual)
 memory/requisitos/PontoWr2/         @wagnerra23   # docs ponto legacy (ainda com arquivos)
 
-# ──────────────────────────────────────────────
-# 🗝️ SEGREDOS / COFRE — Wagner + Maiara + Felipe
-# ──────────────────────────────────────────────
-# O `# TODO: + @<handle Maiara> @<handle Felipe>` foi preenchido por ato do [W]
-# em 2026-09-22, mesmo pedido da Jana acima. Handles conferidos na fonte
-# primária: @SupportWR autora commits deste repo com `name: "MaiaraWR"` (é a
-# MAIARA, não o Felipe — o login engana); @felipewr2-cell como acima.
+# ⚰️ A seção "🗝️ SEGREDOS / COFRE" foi REMOVIDA em 2026-09-22, por ato do [W]
+# ("tira a regra do SRS, o módulo não existe mais"). Ela tinha UMA regra —
+# `Modules/SRS/` —, fóssil do rename `MemCofre`→`SRS` (#3559, 2026-07-01), cujo
+# módulo foi deletado depois. NÃO recriar: ressuscitar o SRS é proibido
+# (§5 2026-07-29); os sucessores são `Modules/KB`, `Modules/Jana` e
+# `Modules/Governance`.
 #
-# ⚠️ FATO DATADO 2026-09-22 — a regra abaixo não casa arquivo nenhum hoje:
-# `Modules/SRS/` tem **0** arquivos em `origin/main` (o módulo foi removido).
-# Controle positivo no MESMO comando: `Modules/Financeiro` = 232.
-#   git ls-tree -r origin/main --name-only -- Modules/SRS | wc -l
-# Ressuscitar o SRS é PROIBIDO (§5 2026-07-29); os sucessores canônicos são
-# `Modules/KB`, `Modules/Jana` e `Modules/Governance`. O que sobrou do SRS são
-# 3 docs em `memory/requisitos/SRS/` (BRIEFING · DEPRECATION-PLAN · SPEC), que
-# este arquivo NÃO cobre — se a posse deve valer sobre eles, é decisão do [W]
-# e é uma linha. Re-meça antes de citar este número.
-Modules/SRS/                        @wagnerra23 @SupportWR @felipewr2-cell
+# ⚠️ E o que a remoção NÃO tirou, porque nunca existiu: medido em 2026-09-22,
+# ZERO regras deste arquivo casavam path de segredo/cofre/credencial — o nome
+# da seção prometia mais do que ela entregava. Quem de fato governa segredo é
+# o Vaultwarden ([ADR 0044]) + `_INDEX-SECRETS.md` + o gitleaks do CI, não
+# reviewer obrigatório aqui. Se um path de segredo tiver que exigir review, é
+# regra NOVA com path REAL — não a volta desta.
+#   git show origin/main:.github/CODEOWNERS | sed 's/#.*//' | grep -vE '^\s*$' \
+#     | grep -icE 'secret|vault|cofre|credential|\.env'     # controle: 'Modules/' > 0
+#
+# ⚠️ Consequência mecânica, declarada e NÃO consertada aqui: @SupportWR (Maiara)
+# ficou com ZERO regras — esta era a única dela. Pôr a Maiara como dona de algo
+# é ato do [W], não conserto de passagem (dono inventado parece canon).
 
 # ──────────────────────────────────────────────
 # 🏗️ INFRA / CI / DEPLOY / GOVERNANÇA — Wagner (ninguém mergeia sem ele)
