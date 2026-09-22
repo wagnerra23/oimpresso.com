@@ -3,15 +3,15 @@
   "source": "manufacturing-page.jsx",
   "target": "resources/js/Pages/Manufacturing/Recipes.tsx",
   "token": "manufacturing",
-  "frescor": "verificado 2026-09-17",
+  "frescor": "STALE 2026-09-21",
   "contrato": "governance/design/contracts/manufacturing-recipes.contract.json",
   "compare": {
     "rc": 0,
     "veredito": "IGUAL",
     "motivo": "",
     "bugs": 0,
-    "shell": 0,
-    "sameTheme": false,
+    "shell": 2,
+    "sameTheme": true,
     "porDim": {
       "D2": {
         "diverge": 0,
@@ -40,13 +40,19 @@
       "D9": {
         "diverge": 0,
         "bug": 0,
-        "semDado": 4,
+        "semDado": 9,
         "igual": 0
       },
       "SHELL": {
-        "diverge": 0,
+        "diverge": 2,
         "bug": 0,
         "semDado": 4,
+        "igual": 0
+      },
+      "SAÚDE": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
         "igual": 0
       }
     },
@@ -112,6 +118,46 @@
         "detalhe": "região só existe de um lado"
       },
       {
+        "dim": "D9",
+        "campo": "sb-alcas",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-corpo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-modos",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-rodape",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-topo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
         "dim": "D4",
         "campo": "linha da tabela",
         "prod": "não medido",
@@ -123,7 +169,7 @@
         "dim": "SHELL",
         "campo": "shell.atalhoTopo.presenca",
         "prod": "0 el (.sb-shortcuts .sb-shortcut)",
-        "design": "0 el (.sb-menu > .sb-item)",
+        "design": "3 el (.sb-menu > .sb-item)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
       },
@@ -139,7 +185,7 @@
         "dim": "SHELL",
         "campo": "shell.grupoHeader.presenca",
         "prod": "0 el (.sb-group-h)",
-        "design": "0 el (.sb-group-h)",
+        "design": "9 el (.sb-group-h)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
       },
@@ -147,9 +193,33 @@
         "dim": "SHELL",
         "campo": "shell.itemGrupo.presenca",
         "prod": "0 el (.sb-item)",
-        "design": "0 el (.sb-group .sb-item, .sb-group-body .sb-item)",
+        "design": "34 el (.sb-group .sb-item, .sb-group-body .sb-item)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.sequencia",
+        "prod": "[]",
+        "design": "[IA3, Visão geralG D, Atendimento6]",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "ordem de navegação é contrato — classifique (DECIDIDA/DERIVA/DESIGN-ANDOU) antes de mexer"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.so-no-design",
+        "prod": "—",
+        "design": "IA3, Visão geralG D, Atendimento6",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "candidato típico a DESIGN-ANDOU — confira a data das duas fontes"
+      },
+      {
+        "dim": "SAÚDE",
+        "campo": "tokens.prod",
+        "prod": "--accent --pos --neg --warn --text-dim --sunken --border",
+        "design": "—",
+        "veredito": "NÃO MEDI",
+        "detalhe": "token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback"
       }
     ]
   },
@@ -159,7 +229,7 @@
     "urlFinal": "https://staging.oimpresso.com/manufacturing/recipe",
     "componenteInertia": null
   },
-  "medidoEm": "2026-09-18T12:39:58.453Z",
+  "medidoEm": "2026-09-22T13:46:32.099Z",
   "baseUrl": "https://staging.oimpresso.com",
-  "bundle": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3"
+  "bundle": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe"
 }

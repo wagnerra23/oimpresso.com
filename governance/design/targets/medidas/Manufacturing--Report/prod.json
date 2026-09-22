@@ -1,5 +1,5 @@
 {
-  "url": "https://staging.oimpresso.com/manufacturing/recipe",
+  "url": "https://staging.oimpresso.com/manufacturing/report",
   "saude": {
     "folhasVazias": [],
     "tokensMortos": [
@@ -14,7 +14,7 @@
     "nFolhas": 7
   },
   "theme": "light",
-  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Manufacturing 0 receita s · 0 ordem s de produção · custo recalculado pelo preço atual dos ingredientes Nova receita Receitas 0 Insumos Ordens de produção 0 Relatório Configurações Custo médio / unidade R$ 0,00 média das 0 receita s Margem abaixo de 45% 0 preço de venda desatualizado Desperdício ≥ 8% 0 revisar plotagem / encaixe Produção do mês 0 0 rascunho s em aberto Todas Receita ↑ Categoria ⇵ ⇵ Quantidade ⇵ Custo total ⇵ Custo unitário ⇵ Venda ⇵ Margem Nenhuma receita encontrada Ajuste a busca, troque a categoria ou limpe o filtro de KPI. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CB C Manufacturing Relatório de produção do período · custo agrupado por produto Receitas 0 Insumos Ordens de produção 0 Relatório Configurações De Até Só finalizadas Produto Ordens Quantidade Custo total Custo médio % do período Sem produção no período Ajuste as datas ou inclua os rascunhos. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
   "roles": {
     "kpi": {
       "count": 0,
@@ -77,15 +77,6 @@
       },
       {
         "nome": "cabecalho",
-        "classes": {
-          "dataIso": 0,
-          "dataBr": 0,
-          "snakeCru": 0
-        },
-        "exemplos": {}
-      },
-      {
-        "nome": "kpis",
         "classes": {
           "dataIso": 0,
           "dataBr": 0,

@@ -67,6 +67,55 @@ lado do design **não renderizou**. "IGUAL" aqui significa *"nada do que foi med
 lados invalida o veredito pelo
 [PROTOCOLO-COMPARACAO-RUNTIME](../_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md). **Refazer.**
 
+## Re-medicao 2026-09-22 — `IGUAL`, e o denominador PIOROU
+
+> **D0 — identidade da view PROVADA aqui, e so aqui.** Esta e a unica das 5 com contrato de tela
+> ([`manufacturing-recipes.contract.json`](../../../governance/design/contracts/manufacturing-recipes.contract.json)),
+> entao a pre-condicao que o `design-diff` exige ([`design-diff.mjs:1216`](../../../scripts/design/design-diff.mjs))
+> esta satisfeita: o que foi renderizado do lado design **e** esta tela. Nas outras tres medidas
+> (`Index`, `Report`, `Settings`) o `contrato` e `null` e o veredito vale so como indicio — ver a
+> ressalva no topo da secao de medicao de cada uma.
+
+
+| | |
+|---|---|
+| veredito | **`IGUAL`** · `rc=0` · 0 bugs |
+| `sameTheme` | **`true`** (`--tema light`) — o vicio de 18/09 esta corrigido |
+| ancora | `prototipo-ui/cowork/Felipe/manufacturing-page.jsx` (a nova, do #7696) |
+| token do shell | `manufacturing` (aba padrao = receitas — **derivacao correta**, sem override) |
+| celulas | **4 IGUAL · 14 SEM-DADO · 2 DIVERGE (a classificar) · 1 NAO MEDI** (21) |
+
+Na rodada de 18/09 o `IGUAL` cobria **4 de 13**. Agora cobre **4 de 21** — o instrumento passou a
+olhar mais coisa e encontrou mais buraco, nao mais paridade. As 4 regioes principais
+(`cabecalho`, `filtros`, `kpis`, `lista`) **seguem** `SEM-DADO`.
+
+### O que ficou SEM-DADO, e por que importa
+
+A causa dominante e o **mapa de papeis (`__DD_ROLES`) nao calibrado** para esta familia, e ele
+erra nas DUAS direcoes:
+
+- **regioes de conteudo** (`cabecalho`, `filtros`, `kpis`, `lista`, `form`) devolvem
+  `prod: presente / design: ausente` — o seletor do lado **design** nao casa;
+- **sidebar** (`sb-*` e as 4 linhas `SHELL`) devolvem `prod: 0 el` contra `design: 3/1/9/34 el` —
+  aqui e o seletor do lado **prod** que nao casa, porque usa as classes `.sb-*` do prototipo.
+
+Enquanto isso nao for calibrado, o veredito agregado fala de **4 celulas**, nao da tela.
+
+### Dois achados que NAO sao desta familia
+
+- **`DIVERGE (a classificar)` no atalho de topo do shell** — `IA`, `Visao geral` e `Atendimento`
+  so existem no design. E do **shell**, nao das telas da Fabricacao; classificar
+  (DECIDIDA / DERIVA / DESIGN-ANDOU) e trabalho do dono do shell.
+- **`NAO MEDI / SAUDE / tokens.prod`** — `--accent --pos --neg --warn --text-dim --sunken
+  --border` **nao resolvem na raiz** em producao. Isso conversa diretamente com os dois achados
+  ALTA de contraste do LAUDO, e merece medicao propria.
+
+### Frescor: `STALE 2026-09-21`
+
+Agora o frescor e **medido**: antes da parametrizacao do espelho, `frescorDaFonte` devolvia
+`fora do espelho` para ancora fora de `Wagner/`. O `STALE` e porque a ultima rodada do ledger de
+frescor nao cobriu o espelho do Felipe — nao e defeito da tela.
+
 ## Cobertura desta tela hoje
 
 | camada | estado |
@@ -83,8 +132,9 @@ O que o teste de navegador confere é que a tela **abre** e que não há erro gr
 
 ## Pendências
 
-1. **Re-medir** com a âncora nova, `sameTheme: true` e o mapa de papéis (`__DD_ROLES`) corrigido —
-   sem isso as 4 regiões principais continuam SEM-DADO, que é o buraco real desta tela.
+1. ~~Re-medir com a âncora nova e `sameTheme: true`~~ — **FEITO em 2026-09-22** (secao acima).
+   O `sameTheme` esta corrigido; o buraco das regioes **continua**, e agora esta medido: 4 de 21.
+2. **Calibrar o `__DD_ROLES`** desta familia (override em [`governance/design/targets/roles/`](../../../governance/design/targets/roles/)). E o que tira as regioes de `SEM-DADO` e faz o veredito falar da tela, nao de 4 celulas. O molde pronto e o [`Compras--Index.json`](../../../governance/design/targets/roles/Compras--Index.json), que ja mede papel no DOM dos dois lados em vez de adivinhar.
 2. Achados do [LAUDO](../../../prototipo-ui/cowork/Felipe/handoff_fabricacao/design/LAUDO-conferencia-fabricacao.md)
    que caem aqui: `--text-mute` nomeia a **coluna de dinheiro** e o **SKU do insumo** e reprova AA
    nos dois temas; `--accent` como texto mede **2,64:1** no escuro, e cai no *"Custo por unidade"*.

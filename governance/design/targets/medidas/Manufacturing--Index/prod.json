@@ -1,7 +1,20 @@
 {
   "url": "https://staging.oimpresso.com/manufacturing/production",
-  "theme": "auto",
-  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Produção Ordens de produção do módulo de Fabricação. Nova produção Receitas 0 Insumos Ordens de produção 0 Relatório Configurações Total 0 Finalizadas 0 Pendentes 0 Valor total R$ 0,00 até Só finalizadas Sem produções cadastradas Crie a primeira ordem de produção pelo botão \"Nova produção\". Nova produção Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 7
+  },
+  "theme": "light",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Produção 0 receitas · 0 ordens de produção Nova produção Receitas 0 Insumos Ordens de produção 0 Relatório Configurações Total 0 Finalizadas 0 Pendentes 0 Valor total R$ 0,00 De Até Só finalizadas Sem produções cadastradas Crie a primeira ordem de produção pelo botão \"Nova produção\". Nova produção Buscar Cmd+K — busque tasks, epics, cycles ou projects",
   "roles": {
     "kpi": {
       "count": 0,
@@ -16,7 +29,53 @@
     },
     "primary": null,
     "filterRows": null,
-    "contratos": [],
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
     "celulas": null,
     "tabela": null,
     "shell": {
@@ -51,6 +110,7 @@
         }
       },
       "atalhos": []
-    }
+    },
+    "chart": null
   }
 }
