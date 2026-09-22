@@ -51,7 +51,12 @@ it('backup:monitor tem withoutOverlapping e só roda em live', function () {
 
         // FALHA AQUI SIGNIFICA: monitor só faz sentido em produção (onde backup:run roda)
         expect($envs)->toContain('live');
-        expect($envs)->not->toContain('testing', 'não deve rodar em testing (evita ruído no CI)');
+        // ⚠️ Era `->not->toContain('testing', '<mensagem>')`. `toContain` é variádico
+        // (`mixed ...$needles`), então a mensagem virava um 2º needle. Na forma NEGADA
+        // isso é benigno — só acrescenta "e também não contém essa frase", que é sempre
+        // verdade —, por isso passava. Na forma positiva a mesma escrita reprova sempre;
+        // foi o que aconteceu logo abaixo neste arquivo. `toBeFalse` leva mensagem de verdade.
+        expect(in_array('testing', $envs, true))->toBeFalse('não deve rodar em testing (evita ruído no CI)');
     }
 });
 
@@ -113,8 +118,13 @@ it('notificação de FALHA continua indo por mail — o alarme volta sozinho qua
 
     foreach ($falha as $notificacao) {
         expect($canais)->toHaveKey($notificacao);
-        expect($canais[$notificacao])->toContain(
-            'mail',
+
+        // ⚠️ `toContain` do Pest é VARIÁDICO: o 2º argumento vira outro needle, não
+        // mensagem. Escrever `toContain('mail', "explicação")` faz o assert exigir que
+        // o array contenha a própria frase — e ele reprova sempre. É a lápide §5
+        // 2026-07-28 + emenda 2026-09-05; caí nela neste mesmo arquivo e o CI pegou.
+        // `toBeTrue(string $message)` NÃO é variádico, então a mensagem tem lugar próprio.
+        expect(in_array('mail', $canais[$notificacao], true))->toBeTrue(
             "{$notificacao} precisa manter um canal de alarme — sem ele a falha REAL de backup fica muda"
         );
     }
