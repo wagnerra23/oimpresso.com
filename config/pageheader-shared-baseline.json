@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-09-22T18:19:45.570Z",
+    "generated_at": "2026-09-22T18:21:08.333Z",
     "count": 68,
     "adr": "0409 — divida transitoria, nao tolerancia",
     "note": "DIVIDA TRANSITORIA do PageHeader antigo (shared/PageHeader), nao selo de conformidade. Estar nesta lista ADIA a cura; nao perdoa: tocar a tela reprova o gate (ADR 0409). A lista so DESCE — o --write recusa crescimento. Meta: zero, e entao este arquivo e apagado."

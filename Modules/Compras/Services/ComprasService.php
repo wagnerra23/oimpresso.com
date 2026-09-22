@@ -47,6 +47,39 @@ class ComprasService
      * @param  array{q?:string, stage?:string, sort?:string, dir?:string}  $filters
      * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder
      */
+    /**
+     * Escopo por LOCALIZACAO permitida — CU-COM-05 `[must]` `[reg]` (SDD Compras §5.4.1).
+     *
+     * PARIDADE, nao politica nova: `PurchaseController` ja aplica o mesmo `whereIn` nos
+     * DOIS caminhos do /purchases (linhas 85 e 251). A migracao Blade -> Inertia deixou
+     * o escopo para tras, e o cockpit passou a mostrar compras de lojas as quais o
+     * usuario nao tem acesso.
+     *
+     * NAO e vazamento cross-tenant — `business_id` segue escopado (UC-CMP-01 prova). E
+     * perda de escopo INTRA-tenant, entre lojas do mesmo business.
+     *
+     * Idioma copiado de `GradesDoPainelService` (app/Services/Dashboard, linhas 419-422),
+     * que e o precedente do projeto pra escopo de localizacao dentro de Service.
+     *
+     * Sem usuario autenticado (job, CLI, cron) o escopo NAO se aplica: quem chama fora de
+     * request ja passa `$businessId` explicito e nao carrega permissao de usuario. Guardar
+     * o null aqui evita quebrar esses callers — e nenhum deles serve payload pra tela.
+     */
+    private function aplicarEscopoLocalizacao($query, string $coluna = 'transactions.location_id')
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return $query;
+        }
+
+        $permitidos = $user->permitted_locations();
+        if ($permitidos !== 'all') {
+            $query->whereIn($coluna, $permitidos);
+        }
+
+        return $query;
+    }
+
     public function listarCompras(int $businessId, array $filters = [])
     {
         // Audit sênior 2026-05-25 Gap #11 — OTel span custom (D9.a +1).
@@ -67,6 +100,9 @@ class ComprasService
     private function listarComprasInterno(int $businessId, array $filters)
     {
         $query = $this->transactionUtil->getListPurchases($businessId);
+
+        // CU-COM-05 — paridade com PurchaseController@index:85. Ver aplicarEscopoLocalizacao().
+        $this->aplicarEscopoLocalizacao($query);
 
         // Coluna "Itens" do protótipo (`compras-page.jsx:501` — `<td className="num">{p.items}</td>`).
         // SUBSELECT, não join: a query do core já agrupa por `transactions.id` com SUM/COUNT
@@ -128,6 +164,11 @@ class ComprasService
         // leftJoin com `transaction_payments` (tabela que também tem `business_id`).
         $base = Transaction::where('transactions.business_id', $businessId)
             ->where('transactions.type', 'purchase');
+
+        // CU-COM-05 tambem no SUMARIO: sem isto o rodape somaria compras de lojas que a
+        // listagem (corretamente) esconde — numero plausivel e errado, que e o pior tipo
+        // de defeito quando VALOR esta em jogo (proibicoes §"CALCULO DE VALOR ou ESTOQUE").
+        $this->aplicarEscopoLocalizacao($base);
 
         // Aplica mesmos filtros que listarCompras (q + stage) pra coerência
         if (! empty($filters['q'])) {

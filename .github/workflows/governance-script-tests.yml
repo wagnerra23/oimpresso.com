@@ -112,6 +112,21 @@ jobs:
       - name: §5 derive bite-test (corta arqueologia, NUNCA come limite · lapide de 2 eixos)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/sec5-derive.mjs --selftest
+      # O design-lock nasceu em 2026-09-22 (#7709) e entrou em main SEM invocador — o
+      # `selftest-registry-check` o acusou: "ORFAO EMBUTIDO: implementa --selftest e nenhum
+      # workflow o roda". Script sem invocador e bug, nao neutralidade (proibicoes.md
+      # §Sempre-fazer #2). Ligado AQUI, e nao num job required, de proposito: step hard-fail
+      # dentro de required e bloqueio de merge sem flip [W] (o umbrella documenta o caso do
+      # #4826). Este job e advisory — medido contra a uniao classic+ruleset dos 47 required,
+      # "governance script tests" nao casa nenhum.
+      # O selftest defende os 2 controles do FALSO-POSITIVO de 2026-09-22: o eixo `fora`
+      # classificava copia de DS por NOME de arquivo e quase custou a delecao de um override
+      # de contraste WCAG AA. Se alguem reintroduzir o nome como criterio de ACHADO, cai aqui.
+      # Nao precisa de npm: o script importa so builtins (node:fs/os/path/crypto/url), que e
+      # o contrato deste job — ele nao instala nada.
+      - name: design-lock bite-test (DS unico por CONTEUDO · fonte ambigua · lock invalido · NAO MEDI)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design/design-lock.mjs --selftest
       # O auto-aperto de baseline ESCREVE em arquivo de catraca — se o medidor de direcao
       # errar, ele grandfathera divida em vez de travar ganho, que e o Gap-2 do tamper-guard.
       # Por isso o bite-test dele roda em PR (aqui), nao so no cron semanal que o invoca:
@@ -246,6 +261,12 @@ jobs:
       - name: Fluxo do sistema (DORA + Flow do repo inteiro · CFR/recuperacao/WIP/adocao mordem por fixture · nao-medido nunca vira 0)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/fluxo-sistema.test.mjs
+      - name: Revisão dos fluxos (documento, máquina, wiring e prova · sem baseline)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/revisar-fluxos.test.mjs
+      - name: Revisão dos fluxos (paths executáveis existem · sem baseline)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/revisar-fluxos.mjs --check
       - name: Agent cost per PR (custo USD por PR · join 2-sinais morde/libera · item #7 grade-das-reguas)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/agent-cost-per-pr.test.mjs
@@ -1364,3 +1385,12 @@ jobs:
       - name: worktree-janitor — nunca apaga worktree VIVA (13 casos)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/worktree-janitor.mjs --selftest
+      - name: lote-resumo-ci — bite-test (21 asserts · sem --check o resumo nunca reprova)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design/lote-resumo-ci.mjs --selftest
+      - name: ds-report — bite-test (7 asserts · filtro ds/* + controle negativo)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/ds-report.mjs --selftest
+      - name: replica-inconsistencias — bite-test (20 asserts · ESLint indisponível vira NÃO MEDIDO)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/replica-inconsistencias.mjs --selftest

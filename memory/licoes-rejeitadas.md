@@ -2811,3 +2811,31 @@ Ocorrência da **LC-13**.
 - **⚠️ NÃO virar gate:** o predicado — *"o corpus em que você mediu ainda é produzido?"* — depende de saber qual corpus alimenta qual afirmação, e não é derivável do texto do comando; é semântico ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)). A forma sintática (acusar `git log --merges` num repo squash-only) reprovaria o uso legítimo — ler história antiga é exatamente para isso que ela serve. E não cito o campo `Gate:` da LC-08 como recusa: aquele marcador é regex sobre o corpo da LC e afirma que *alguma* forma óbvia caiu, nunca que **esta** caiu (errata §5 2026-09-15). O que fecha é a linha de `--diff-filter=A` acima.
 
 Ocorrência da **LC-08**.
+
+
+### 2026-09-22 — EMENDA da lápide 2026-06-30 (âncora por NOME/PASTA): o mesmo predicado voltou num detector NOVO — e o falso-positivo saiu do CI e virou ORDEM DE DELEÇÃO do dono
+
+> **Não reverte a mãe — ESTENDE** (append-only). O limite dela vale inteiro e não se reformula
+> aqui: *adivinhar por nome de arquivo ou pasta é incompleto por construção; a proveniência é o
+> que o charter declara*. O que esta emenda acrescenta é **onde** o predicado reapareceu e **como**
+> o dano mudou de forma.
+
+- **O que foi tentado:** a pedido de [W] (complemento ao [#7703](https://github.com/wagnerra23/oimpresso.com/pull/7703)), escrevi `scripts/design/design-lock.mjs` para provar *"DS único / fonte única de protótipo"*. Um dos eixos — `fora` — classificava **cópia de Design System** por **regex no NOME do arquivo** (`/(design-system|tokens|colors_and_type|ds-v6)[^/]*\.(css|js|mjs)$/i`), e nasceu **contando como achado** e **reprovando sob `--strict`**. Mergeado no [#7709](https://github.com/wagnerra23/oimpresso.com/pull/7709).
+
+- **Por que caiu:** rodei, ele acusou 5 arquivos, e eu **entreguei a lista ao [W] como achado**. [W] respondeu *"apaga o tokens-tema-escuro do venda-v3 tbm"*. Fui apagar e medi antes: `prototipo-ui/cowork/Wagner/venda-v3/01-fundacoes/css/tokens-tema-escuro.css` **não é cópia** — são 34 linhas em escopo `.cockpit[data-theme="dark"]`, com o cabeçalho declarando *"NÃO cria token novo (ADR-0050): apenas dá valor escuro a tokens que o bundle do DS declara só no tema claro"*, existindo porque **8 de 29 pares reprovavam WCAG AA no escuro**, e carregado por `cowork/Wagner/venda-v3/index.html:47`. Não apaguei; consertei o detector no mesmo PR (o eixo `fora` virou **informativo**; quem reprova passou a ser só `duplicatas` — mesmo nome com hash divergente).
+
+- **O vetor NOVO, e é o motivo desta emenda:** nas ocorrências anteriores desta família o guard sintático morria **como check** — reprovado antes de existir, ou vermelho no CI, que é visível e reversível. Aqui ele morreu **como relatório**: a saída virou **lista acionável entregue a um humano**, e o dono **emitiu ordem de deleção** sobre ela, contra um artefato de **acessibilidade**. Um CI vermelho custa um ciclo; uma ordem de apagar executa. **A contenção também não foi método:** só houve medição porque a ordem nomeou **um** arquivo. Tivesse sido *"apaga os 5"*, nada no fluxo forçava abrir cada um — o caveat *"confira um a um antes de agir sobre esta lista"* só nasceu **depois**, no conserto.
+
+- **O limite (variantes também proibidas):** **(a)** o da mãe, intacto; **(b)** saída de detector heurístico **não se entrega a humano como lista de ação** sem o caveat de conferência **por item** — e o caveat nasce junto com o detector, não depois do primeiro FP; **(c)** detector cujo docblock **nega** ser o que ele é: a versão pré-fix afirmava *"Não é guard sintático de nome: o predicado é PROVENIÊNCIA POR CAMINHO"* enquanto o universo era `filter(f => DS_RE.test(f))` — nome puro. Frase que dispensa a objeção **sem medir** é pior que a ausência dela, porque desarma quem revisaria (é [LC-15](LICOES_CODE.md) dentro da própria classe).
+
+- **A regra existia, era always-on, e não foi executada** — e isto é o enquadramento honesto, não "descobri uma forma nova": [`proibicoes.md`](proibicoes.md) §"LIGUE A MÁQUINA" item 4 diz, verbatim, *"Máquina **nova** exige **FP medido ANTES** de instalar"*, e o item 6 manda nascer **advisory**. O eixo `fora` nasceu somando em `achados` e reprovando sob `--strict`. Some-se que a própria lápide-mãe já nomeava o dono do predicado (`ancora.mjs::resolveAncora`) **neste mesmo domínio**. Falha de execução, não lacuna de conhecimento.
+
+- **⚠️ E a razão que publiquei para RECUSAR também estava errada — duas vezes, em canon.** A recusa foi certa; a justificativa, não:
+  - escrevi que *"o `venda-v3` é a âncora viva de `Sells/CreateV3`"*. **Falso:** `node scripts/design/ancora.mjs Sells/CreateV3` resolve **`prototipo-ui/cowork/Felipe/venda-v3.jsx`** — outra árvore, outro dono; nenhum charter declara `cowork/Wagner/venda-v3`.
+  - escrevi que um critério alternativo (*"token em `:root` = fundação"*) **falhara no controle positivo**, com `colors_and_type.css` medindo `tokensRoot = 0`. **Era a sonda que estava cega:** `indexOf(':root')` casou uma **menção dentro de um comentário** (linha 12) e parou antes do seletor real (linha 44). Sem comentários, o critério **discrimina** — canônico 245 tokens/**128** em `:root`; o FP 13/**0**; `ds-galerias/tokens.css` 139/**102**. O descarte legítimo existe e é outro: falso-**negativo** (`ds-galerias/design-system.css` mede 26/**0** e ainda pode ser cópia).
+
+  As duas frases entraram em `main` em dois sites, uma delas como *"fica registrado pra ninguém re-tentar"* — **instrução de desistência baseada em medição falsa** (§5 2026-09-01). Corrigidas por errata datada, não apagadas. Quem as pegou foi o **`ciclo-adversary`**, rodado antes de a lição virar ledger; ele derrubou 3 de 7 fatos do meu fechamento, inclusive o incremento que eu alegava para abrir lápide própria em vez desta emenda.
+
+- **NÃO armado:** nada de máquina nova. O gate óbvio de LC-08 já está medido e reprovado, e o predicado *"esta saída vira lista acionável?"* é semântico ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)). O que sobra como defesa é o caveat por item na saída do detector — que existe agora — e a regra do item 4, que já existia.
+
+Ocorrência da **LC-08**.

@@ -615,6 +615,7 @@ O formato é este:
       "prototype_path": "prototipo-ui/cowork/<Autor>/<arquivo>-page.jsx",
       "git_revision": "<commit>",
       "content_hash": "<sha256>",
+      "anchor_status": "VERIFIED",
       "accepted_by": "Wagner",
       "accepted_at": "YYYY-MM-DD"
     }
@@ -697,16 +698,215 @@ Porque classificar por **nome de arquivo** é o guard sintático que o §5 de
 consequência**, medido em 2026-09-22, no mesmo dia em que nasceu:
 
 `prototipo-ui/cowork/Wagner/venda-v3/01-fundacoes/css/tokens-tema-escuro.css` foi acusado e
-**não é cópia de DS**. São 35 linhas em escopo `.cockpit[data-theme="dark"]`, com o cabeçalho
+**não é cópia de DS**. São **34 linhas** em escopo `.cockpit[data-theme="dark"]`, com o cabeçalho
 declarando *"NÃO cria token novo (ADR-0050): apenas dá valor escuro a tokens que o bundle do DS
-declara só no tema claro"*. Existe porque **8 de 29 pares reprovavam WCAG AA no escuro**; é
-carregado por `venda-v3/index.html:47`; e o `venda-v3` é a **âncora viva** de `Sells/CreateV3`.
-Apagá-lo reintroduziria a falha de contraste e quebraria o protótipo de uma tela de venda.
+declara só no tema claro"*. Existe porque **8 de 29 pares reprovavam WCAG AA no escuro**, e é
+carregado por `prototipo-ui/cowork/Wagner/venda-v3/index.html:47`. Apagá-lo reintroduziria a falha
+de contraste e deixaria aquele `<link>` em 404.
 
-Tentei um critério melhor — *"declara token em `:root` = fundação, em escopo = override"* — e ele
-**falhou no controle positivo**: o próprio canônico `colors_and_type.css` mede `tokensRoot = 0`
-(245 tokens, nenhum em `:root`). Sonda que não discrimina no controle não entra.
+E a regra que teria evitado isto **já estava escrita e é always-on**:
+[`proibicoes.md`](../../proibicoes.md) §"LIGUE A MÁQUINA" item 4 — *máquina nova exige **FP medido
+ANTES** de instalar*. Some-se a lápide §5 de **2026-06-30**, que mata este mesmo predicado **neste
+mesmo domínio** e nomeia o dono (`ancora.mjs::resolveAncora`). Não foi lacuna de conhecimento: foi
+falha de execução.
 
-Então o eixo **reporta e não reprova**, até existir critério que separe cópia de override sem ler
-a prosa do cabeçalho. O que reprova é a **duplicata por conteúdo** — mesmo nome, hash divergente —
-que não depende do nome parecer "de DS", e foi o eixo que de fato pegou o `ds-v6/tokens.css`.
+> ⚠️ **ERRATA 2026-09-22 — duas frases desta seção nasceram FALSAS e ficam registradas, não
+> apagadas.** Foram pegas pelo `ciclo-adversary`, rodado antes de a lição virar ledger.
+>
+> **(1)** Dizia-se *"o `venda-v3` é a **âncora viva** de `Sells/CreateV3`"*. **Falso.**
+> `node scripts/design/ancora.mjs Sells/CreateV3` resolve
+> **`prototipo-ui/cowork/Felipe/venda-v3.jsx`** — outra árvore, outro dono; nenhum charter declara
+> `cowork/Wagner/venda-v3`. A recusa em apagar estava certa, mas a razão que eu publiquei, não. A
+> razão que se sustenta sozinha é a do parágrafo acima: é override de contraste em escopo, com um
+> `<link>` apontando para ele.
+>
+> **(2)** Dizia-se que o critério *"declara token em `:root` = fundação"* havia **falhado no
+> controle positivo**, com `colors_and_type.css` medindo `tokensRoot = 0`. **Era a sonda que
+> estava cega**, não o critério: ela fazia `indexOf(':root')` e casou uma **menção a `:root` dentro
+> de um comentário** (linha 12), parando antes do seletor real (linha 44). Removendo os comentários
+> antes de casar, o critério **discrimina**:
+>
+> | arquivo | tokens | em `:root` |
+> |---|---:|---:|
+> | canônico `colors_and_type.css` | 245 | **128** |
+> | o FP `tokens-tema-escuro.css` | 13 | **0** |
+> | Felipe `ds-galerias/tokens.css` | 139 | **102** (cópia real) |
+> | Felipe `ds-galerias/styles.css` | 80 | **42** (cópia real) |
+>
+> Publicar *"o critério falhou"* a partir de sonda cega é **instrução de desistência sobre algo que
+> funciona** (§5 2026-09-01) — por isso a errata fica, em vez de a frase sumir.
+
+Então o eixo **reporta e não reprova** — mas pela razão **verdadeira**, que é outra: o critério de
+`:root` tem falso-**negativo** (`ds-galerias/design-system.css` mede 26 tokens · **0** em `:root` e
+ainda assim pode ser cópia). O que reprova é a **duplicata por conteúdo** — mesmo nome, hash
+divergente — que não depende do nome parecer "de DS", e foi o eixo que de fato pegou o
+`ds-v6/tokens.css`.
+
+## Migração dos charters existentes — estado da âncora, lotes e testes
+
+> **Por que existe ([W] 2026-09-22, 2º complemento no mesmo dia):** a seção anterior diz **como**
+> uma fonte fica provada. Faltava dizer o que acontece com os **charters que já existem** e cuja
+> âncora nasceu antes dessa prova — caminho incorreto, cópia antiga, espelho do código de
+> produção, basename duplicado, formato que a ferramenta não resolve, ou protótipo que não existe
+> mais. Esses charters **não podem continuar gerando verde por compatibilidade**.
+>
+> Ela fecha quatro formas de falso "validado": comparar contra o **protótipo errado** · contra
+> **cópia duplicada do DS** · medir a **tela errada** · manter **teste verde** que só prova uma
+> âncora antiga, incompleta ou ambígua.
+
+### Âncora errada não rebaixa o charter — é um eixo separado
+
+Uma âncora visual incorreta **não** significa que o charter inteiro está errado: o contrato
+funcional, os casos de uso e os testes de comportamento podem continuar válidos. Por isso:
+
+- o **status funcional** do charter (`draft`/`live`) **não muda** por causa da âncora;
+- a confiabilidade da fonte visual vive num **eixo próprio**, o `anchor_status`, registrado no
+  lock (campo em `screens[]`, ver o formato acima).
+
+### Os 6 estados da âncora visual
+
+| estado | significado | gera veredito visual? |
+|---|---|---|
+| `VERIFIED` | caminho completo, revisão, hash e aceite de [W] confirmados | **sim** |
+| `AMBIGUOUS` | dois ou mais candidatos possíveis | não |
+| `WRONG_SOURCE` | aponta para cópia ou espelho não aprovado | não |
+| `MISSING` | a fonte declarada não existe | não |
+| `UNSUPPORTED` | a ferramenta ainda não resolve o formato declarado | não |
+| `N_A` | a tela herda o Padrão de Tela e não tem protótipo próprio | **fora do denominador** |
+
+Qualquer estado diferente de `VERIFIED` ou `N_A` produz, e só produz:
+
+```text
+NÃO MEDIDO — <motivo explícito>
+```
+
+Nunca `IGUAL`, `VALIDADO`, `ACEITO` ou "fiel ao protótipo".
+
+⚠️ `N_A` é a declaração consciente que a cadeia já reconhece (`n/a (herda PT-0X…)`,
+`ehDeclaracaoNa`) — não é ausência de fonte e não é dívida. Cobrá-la seria falso-positivo por
+construção (§5 2026-09-09 de [`proibicoes.md`](../../proibicoes.md)).
+
+### A ferramenta aceita caminho completo — e não reescreve caminho para basename
+
+Caminho completo declarado em charter **é suportado**. Reescrever um caminho completo para
+basename só para caber numa limitação da ferramenta é proibido: é trocar a forma certa pela
+errada para calar um sintoma. Se a ferramenta não resolve o caminho, a âncora fica
+`UNSUPPORTED` e o conserto é **na ferramenta**.
+
+### As 5 etapas da migração
+
+**Etapa 1 — corrigir a ferramenta, antes de tocar charter em massa.**
+1. suportar caminho completo;
+2. detectar ambiguidade;
+3. falhar de forma observável com dois ou mais candidatos;
+4. validar lock, revisão e hash;
+5. impedir que âncora não-`VERIFIED` gere `IGUAL`.
+
+Falha obrigatória global **não** se promove sem medir o impacto e preparar a migração dos casos
+existentes.
+
+**Etapa 2 — inventário.** Um relatório **derivado** (gerado pela máquina, nunca escrito à mão)
+com uma linha por charter:
+
+```text
+Tela · Charter · Fonte declarada · Candidatos encontrados · Hash de cada candidato
+     · Estado da âncora · Fonte aprovada · Próxima ação
+```
+
+**Etapa 3 — decisão de fonte.** Havendo mais de uma fonte possível, **[W] escolhe**. Não se
+assume que a mais nova, a mais bonita, a mais próxima do código ou a que está na pasta de um
+autor é a correta.
+
+**Etapa 4 — lock e atualização.** Depois da decisão: registrar caminho, commit e hash no lock ·
+apontar o charter para a fonte aceita · provar que a ferramenta resolve **uma** fonte · rodar a
+comparação de novo · gerar recibo novo.
+
+**Etapa 5 — evidência histórica.** Recibo feito contra fonte errada, ambígua ou não verificável
+**não é apagado** (append-only). Ele é marcado:
+
+```text
+SUPERSEDED — comparação anterior usou fonte não verificável
+```
+
+e deixa de contar como evidência atual de fidelidade.
+
+### Remodelagem dos testes existentes
+
+Teste verde hoje pode provar apenas que a ferramenta **achou algum arquivo** — não que achou o
+certo. Depois da correção, um teste antigo pode ficar vermelho **legitimamente**.
+
+**Expectativa não se atualiza para "fazer passar".** Cada falha nova é classificada: ou o teste
+provava a âncora errada (reescreve-se o teste contra a fonte aprovada), ou revelou divergência
+real (a divergência entra na matriz de promoção). Mesma regra do eixo FORMA (UI-0029): o perdedor
+é **reescrito, nunca desabilitado**.
+
+| teste de hoje | contrato novo |
+|---|---|
+| "a âncora existe" | resolve caminho completo **único**, revisão e hash esperados |
+| busca por basename | **falha** se houver dois candidatos |
+| snapshot de fonte antiga | só se regenera contra fonte **aprovada** |
+| charter apontando para espelho | migra para lock aprovado |
+| smoke que abre qualquer página | prova rota, `T00`, tema e a tela esperada |
+| "o DS carregou" | prova global/fingerprint **único** em runtime |
+| verde sem recibo | vira `NÃO MEDIDO` |
+
+**Casos negativos obrigatórios** — cada um com fixture própria, provando **falha real** (exit ≠ 0
+ou veredito `NÃO MEDIDO`/`BLOQUEADO`), nunca só que uma mensagem foi impressa:
+
+1. dois protótipos com mesmo basename e conteúdo diferente;
+2. charter com caminho completo válido (controle positivo — tem de **resolver**);
+3. charter com caminho completo inexistente;
+4. charter apontando para espelho/cópia não aprovada;
+5. lock com hash divergente;
+6. duas cópias funcionais de DS;
+7. dois globals de DS carregáveis;
+8. runtime com DS diferente do lock;
+9. `T00` não provado;
+10. `sameTheme: false`;
+11. recibo antigo contra fonte errada;
+12. máquinas ou fixtures que produzem resultado não reprodutível.
+
+O caso 2 é o controle positivo do conjunto: sem ele, uma ferramenta que reprova **tudo** passaria
+nos outros onze.
+
+### Rollout — em lotes, nunca num PR só
+
+1. corrigir resolvedor, lock e casos negativos;
+2. gerar o inventário;
+3. marcar as fontes ambíguas como `NÃO MEDIDO`;
+4. migrar telas **por lotes aprovados por [W]**;
+5. regenerar comparações e recibos contra a fonte correta;
+6. medir falso-positivo e impacto;
+7. só então promover enforcement para todos os charters elegíveis.
+
+**Durante a migração não existe fallback para "o primeiro arquivo encontrado".** Compatibilidade
+que escolhe fonte em silêncio perpetua o defeito — é exatamente o `.find()` que a medição acima
+flagrou.
+
+### Critério de conclusão
+
+O trabalho termina quando:
+
+- todo charter tem `anchor_status` explícito;
+- toda fonte `VERIFIED` tem caminho, commit, hash e aceite de [W];
+- âncora ambígua falha;
+- DS duplicado ou runtime divergente falha;
+- recibos antigos contra fonte errada estão `SUPERSEDED`;
+- os testes existentes foram remodelados para provar a fonte correta;
+- tela nova não consegue nascer com âncora por basename;
+- tela sem prova é reportada `NÃO MEDIDO`, nunca verde;
+- a mesma entrada gera o mesmo resultado técnico em qualquer máquina.
+
+### Onde isto está hoje — datado, 2026-09-22
+
+| etapa / regra | estado |
+|---|---|
+| resolvedor aceita caminho completo | ❌ **não** — `scripts/design/ancora.mjs` ainda casa `basename(f) === valor declarado` com `.find()` |
+| ambiguidade reportada e listada | ✅ `design-lock.mjs --ambiguidade` (`--strict` sai 1) |
+| `anchor_status` no lock | ❌ **não implementado** — o campo existe só no formato acima |
+| inventário da Etapa 2 | ❌ **não existe** |
+| marcação `SUPERSEDED` de recibos | ❌ **não existe** |
+| os 12 casos negativos | ❌ **não existem** como conjunto; os já cobertos vivem no `--selftest` do `design-lock.mjs` |
+
+As linhas ❌ são **dívida declarada**, não capacidade — descrever como feito o que não está feito
+é [LC-15](../../LICOES_CODE.md). O próximo passo é a **Etapa 1**, e ela é código, em PR próprio.
