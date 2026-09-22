@@ -1379,3 +1379,12 @@ jobs:
       - name: worktree-janitor — nunca apaga worktree VIVA (13 casos)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/worktree-janitor.mjs --selftest
+      - name: lote-resumo-ci — bite-test (21 asserts · sem --check o resumo nunca reprova)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design/lote-resumo-ci.mjs --selftest
+      - name: ds-report — bite-test (7 asserts · filtro ds/* + controle negativo)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/ds-report.mjs --selftest
+      - name: replica-inconsistencias — bite-test (20 asserts · ESLint indisponível vira NÃO MEDIDO)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/replica-inconsistencias.mjs --selftest
