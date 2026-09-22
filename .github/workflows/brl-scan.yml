@@ -33,6 +33,24 @@ name: BRL scan (valor monetário em linha nova)
 # pra (a) passar no gate e ADICIONAR valor no corpo depois, e (b) consertar o corpo sem
 # o gate reconhecer. Medido, não deduzido da doc: corpo editado 12:24Z e a última run
 # seguia sendo a de 12:18Z — zero run nova.
+# FP DA SUPERFICIE "MENSAGEM DE COMMIT" — MEDIDO EM 2026-09-22, e o numero DESACONSELHA
+# promover este job a required. O FP citado acima (0 em 38.324 linhas) e da superficie
+# ARQUIVO; a de commit message nunca tinha sido medida. Sonda: o proprio `scanBrlLeak` sobre
+# `git log -n 3000 --format=%B origin/main` (janela 2026-07-17..2026-09-22), com controle
+# positivo/negativo/zero antes de contar.
+#   17 commits acusados em 3000 (0,57%). Classificacao por criterio declarado:
+#     10 META      — o commit FALA do scan/lapide ao explicar o proprio conserto
+#      2 mock/prototipo · 1 largura de card de KPI · 4 a revisar
+#   Dos 4 a revisar, 1 e vazamento genuino: o MRR de producao do #5981 (2026-08-19),
+#   ANTERIOR a este step, que nasceu em 2026-08-20 (#6010).
+#   Janela POS-gate (>= 2026-08-20): 6 acusados, 0 genuinos = 100% FP — e os 6 entraram
+#   em main, porque advisory nao bloqueia. Promover hoje reprovaria ~6 PRs/mes sem impedir
+#   vazamento algum, e a classe dominante seria o commit que RESPONDE a este proprio gate
+#   (foi o caso do #7641: o commit que conserta o achado cita o valor ao explicar o conserto,
+#   e os valores eram de prototipo e staging). Ruido que se aprende a ignorar e o desenho que
+#   a §5 2026-07-28 ja enterrou. O `promote_by: 2026-09-30` do gates-registry deve ser lido
+#   com este numero na mao — a decisao do flip e do [W].
+
 on:
   pull_request:
     branches: [main]
@@ -100,7 +118,14 @@ jobs:
       - name: Varre o corpo do PR
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: printf '%s' "$PR_BODY" | node scripts/governance/brl-scan-diff.mjs --stdin
+        # `run:` sem `shell:` roda em `bash -e {0}` — com -e, SEM -o pipefail. Num pipeline
+        # o rc e do ULTIMO comando, entao falha do produtor a esquerda chega ao scanner como
+        # stdin VAZIO e vira `0 achados` = verde. Os dois steps de pipe deste job ganharam
+        # `set -euo pipefail` em 2026-09-22; o step `--base` acima nunca precisou (nao e pipe:
+        # o proprio scanner resolve o range e sai 2 quando a base nao existe).
+        run: |
+          set -euo pipefail
+          printf '%s' "${PR_BODY:-}" | node scripts/governance/brl-scan-diff.mjs --stdin
 
       # `%B` (mensagem INTEIRA), nao `%s` (so o assunto). MEDIDO em 2026-08-20 sobre os
       # 400 commits mais recentes de main, rodando o proprio scanner (nao um grep): 9 commits
@@ -112,4 +137,12 @@ jobs:
       - name: Varre as mensagens INTEIRAS dos commits do PR
         env:
           BASE_SHA: ${{ steps.diffbase.outputs.sha }}
-        run: git log --format='%B' "$BASE_SHA"..HEAD | node scripts/governance/brl-scan-diff.mjs --stdin
+        run: |
+          set -euo pipefail
+          # BASE_SHA vazio nao e "sem vazamento" — e ausencia de medicao, e ela se declara
+          # (exit 2 = nao-medi, o mesmo contrato do ds-mirror-drift).
+          if [ -z "${BASE_SHA:-}" ]; then
+            echo "::error::BASE_SHA vazio — as mensagens de commit NAO foram varridas (isto nao e um verde)"
+            exit 2
+          fi
+          git log --format='%B' "$BASE_SHA"..HEAD | node scripts/governance/brl-scan-diff.mjs --stdin

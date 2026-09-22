@@ -306,7 +306,7 @@ O próprio workflow registra isso corretamente **uma vez** (L816, fato datado: *
 required em 2026-08-26 … medido aqui em 2026-09-11: 0 de 45+1"*) e aponta ao dono outra vez
 (L1185). Mas **sete** afirmações em tempo presente dizem o contrário:
 
-| linha | texto | efeito |
+| linha (em 2026-09-21) | texto | efeito |
 |---|---|---|
 | 210 | "o check `visual-regression` já é required" | instrução falsa |
 | 558 | "o check `visual-regression` já é required" | instrução falsa |
@@ -315,6 +315,12 @@ required em 2026-08-26 … medido aqui em 2026-09-11: 0 de 45+1"*) e aponta ao d
 | 1492 | "O job `visual-regression` JÁ é required" | instrução falsa |
 | 1505 | "o check `visual-regression` já é required" | instrução falsa |
 | 1511 | "(que já é required)" | instrução falsa |
+
+> ⚠️ **Os números acima são o retrato de 2026-09-21 e JÁ MUDARAM — não os use para localizar.**
+> O [#7668](https://github.com/wagnerra23/oimpresso.com/pull/7668) mergeou em 22/09 às 10:34:49Z
+> e deslocou três (1492→1497 · 1505→1510 · 1511→1516); a correção deslocou de novo. Ref de linha
+> apodrece no primeiro refactor (§5 2026-07-26) — a âncora durável é o **texto**:
+> `grep -nE 'já é required|ja e required' .github/workflows/visual-regression.yml`.
 
 Não é cosmético. Cinco delas ensinam que *"promover a ENFORCING dispensa clique de branch
 protection porque o check já é required"* — e isso é **falso desde 2026-08-26**: remover o
@@ -351,8 +357,11 @@ Sem propor implementação — é [W] quem decide se e como:
    devolve px alterados · Δmax · células da grade, e a assinatura separa rasterização (Δ≤3) de
    conteúdo (Δ≥200). Rodá-lo sobre o diff e colar no corpo do PR faz a revisão do [W] ser sobre
    **a mudança**, não sobre a palavra "regeneradas".
-3. **Corrigir as 7 afirmações da seção 5.** Isso é higiene, não governança — mas a linha 1381
-   sai em PR público a cada dispatch.
+3. ~~**Corrigir as 7 afirmações da seção 5.**~~ **FEITO** —
+   [#7676](https://github.com/wagnerra23/oimpresso.com/pull/7676) (2026-09-22, a pedido de [W]).
+   Era higiene, não governança; a mais urgente era a que sai em PR público a cada dispatch.
+   Não promove nem demove nada: a demoção de 2026-08-26 segue de pé, o workflow só parou de
+   mentir sobre ela.
 4. **Fechar o #7621** (ou mergeá-lo deliberadamente). É baseline pós-0409 pendente.
 5. **Decidir os 2 pares sem foto da §4.1** (`jana · dark`, `jana · empty`): criar as baselines,
    ou tirar os estados do manifesto, ou fazer o ramo virar *skip explícito*. As três são

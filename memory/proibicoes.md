@@ -1702,6 +1702,14 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** antes de disparar comando ou workflow que **PRODUZ artefato canônico** — baseline, snapshot, manifesto, índice, scorecard —, conferir se decisão recente aposentou a prática (`decisions-search`, ou listar os ADRs de maior número). **Mecanismo que ainda funciona NÃO é evidência de que a prática ainda é canônica:** o canon anda por ADR e a máquina anda por PR, e o vão entre os dois é exatamente onde este erro mora — quanto mais nova a decisão, maior o vão. Aqui ele tinha menos de 24h, e nada no repo impedia o disparo: o workflow estava lá, íntegro, com a receita documentada no próprio comentário. Vale pra todo mecanismo que sobrevive à decisão que o aposentou, e é o **inverso** da §5 2026-09-03 (*lápide que declara um GAP tem prazo de validade*): lá o canon envelhece contra o mundo, aqui a máquina envelhece contra o canon.
 
+### 2026-09-21 — Arbitrary variant (`min-[…]`/`max-[…]`) no `className` de componente cujas variantes usam `sm:`/`lg:` — MEDIDO INERTE duas vezes, com CI verde
+
+- **O limite (variante também proibida):** não fechar breakpoint por arbitrary variant no `className` de um componente cujas variantes emitam `sm:`/`lg:`/`md:` para a **mesma propriedade** — vale para `grid-cols`, `col-span`, `gap`, `text-`, qualquer família que o `cva`/`colsMap` do compartilhado já cubra. Também proibido "resolver" por `!important`: reconstrói o problema com dívida. O caminho é **réplica local** (ADR 0388 §D-1) sem o `colsMap` competindo — aí sobra `grid-cols-2` (base, sem media query) contra `min-[1101px]:grid-cols-4` (dentro da media), e a ordem passa a funcionar a favor. Reproduzir o veredito: buildar e comparar os offsets dos dois seletores **no mesmo arquivo**.
+
+### 2026-09-21 — EMENDA da lápide 2026-09-18 (opcache): o eixo **ASSET BUILDADO** — `git rev-parse HEAD` em prod diz o CÓDIGO, não o ARTEFATO servido
+
+- **O limite (variante também proibida):** não tratar `git rev-parse HEAD` em produção como prova de que a mudança está no ar. Ele responde *"qual código o servidor tem"*, nunca *"qual artefato ele serve"* — e para front-end quem decide é o **bundle**. Antes de declarar pronto, ou de diagnosticar uma tela errada como regressão, conferir os **dois**: o SHA **e** o artefato, baixando o CSS/JS público e procurando o **seletor escapado** que a mudança introduz (`.min-\[1101px\]\:grid-cols-4`, não a media query solta — `max-width:1100px` aparece em CSS de módulos que nada têm a ver).
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
