@@ -55,7 +55,7 @@ name: Design-memory gate (advisory)
 
 on:
   pull_request:
-    types: [opened, reopened, ready_for_review]
+    types: [opened, reopened, ready_for_review, synchronize]
     branches: [main]
     paths:
       - 'resources/js/Components/ui/**'
@@ -584,9 +584,8 @@ jobs:
       - name: design-code-map-check selftest (morde âncora quebrada + sha stale · libera íntegro/TODO)
         if: always()
         run: node scripts/governance/design-code-map-check.test.mjs
-      - name: design-code-map-check (advisory · report-only · cobertura + drift real)
+      - name: design-code-map-check (drift real; job vermelho sem baseline)
         if: always()
-        continue-on-error: true
         run: node scripts/governance/design-code-map-check.mjs --check --strict
       # PROTO-BASELINE (roubo #7, régua Applitools Eyes): o design renderizado vira baseline
       # versionado (<tela>.proto-baseline.json) e a prod é comparada contra a INTENÇÃO, não só

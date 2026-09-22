@@ -6,7 +6,7 @@
  * POR QUE EXISTE (ADR 0390, emenda ao D-6 da ADR 0384): o estado `validated` exigia smoke
  * de PRODUÇÃO, e produção exige login humano que o agente não digita — 0/93 telas validadas
  * por construção. O workflow `design-smoke-ci.yml` sobe o app efêmero do próprio CI (mesmo
- * seed biz=1/2 do visual-regression), renderiza as telas `tested|validated` logado como o
+ * seed biz=1/2 do visual-regression), renderiza as telas `tested|smoked-*|validated` logado como o
  * admin do biz=1 e publica os PNGs + `manifest.json` na branch órfã `governance/design-smokes`.
  * Este script fecha o elo do outro lado: baixa a órfã, casa cada smoke com o alvo ATUAL e
  * chama o registrador oficial (`status.mjs --record-smoke … --host ci`). Ele NÃO grava no
@@ -22,7 +22,7 @@
  * MODOS
  *   (sem flag)                    fetch órfã → manifest → copia PNG p/ state/smokes/ → --record-smoke
  *   --dry                         mesmo caminho, sem copiar e sem gravar (imprime o plano)
- *   --select [--json]             lado CI: telas elegíveis (tested|validated) + rota derivada
+ *   --select [--json]             lado CI: telas elegíveis sem smoke CI atual + rota derivada
  *   --manifest --selection F --dir D --sha SHA --out F   lado CI: monta manifest.json dos PNGs
  *   --selftest                    funções puras (slug · rota do charter · seleção · casamento)
  *   --root DIR                    raiz do repo (default: cwd)
@@ -41,7 +41,7 @@ import { fileURLToPath } from 'node:url';
 export const SMOKE_BRANCH = 'governance/design-smokes';
 export const SMOKE_MANIFEST_SCHEMA = 'oimpresso-design-smokes/1';
 export const SMOKE_STATE_DIR = 'scripts/design-sync/state/smokes';
-const ELEGIVEIS = new Set(['tested', 'validated']);
+const ELEGIVEIS = new Set(['tested', 'smoked-staging', 'validated']);
 
 /* ── funções puras ───────────────────────────────────────────────────────────────────────── */
 
@@ -124,7 +124,7 @@ export function matchEntries({ manifest, report, blobOf }) {
   for (const smoke of manifest.smokes || []) {
     const screen = (report?.screens || []).find((s) => s.target === smoke.target && s.source === smoke.source);
     if (!screen) { pular.push({ tela: smoke.tela, motivo: 'par fonte→alvo não está mais no application-report' }); continue; }
-    if (!ELEGIVEIS.has(screen.lifecycleState)) { pular.push({ tela: smoke.tela, motivo: `tela está em ${screen.lifecycleState}; smoke exige tested|validated (teste antes do smoke, D-6)` }); continue; }
+    if (!ELEGIVEIS.has(screen.lifecycleState)) { pular.push({ tela: smoke.tela, motivo: `tela está em ${screen.lifecycleState}; smoke CI exige tested|smoked-staging|validated sem recibo CI atual (teste antes do smoke, D-6)` }); continue; }
     if (!/^[a-f0-9]{40,64}$/.test(String(smoke.deploySha || ''))) { pular.push({ tela: smoke.tela, motivo: 'deploySha inválido no manifesto' }); continue; }
     const atual = blobOf(smoke.target);
     if (!atual) { pular.push({ tela: smoke.tela, motivo: `alvo ausente localmente: ${smoke.target}` }); continue; }
@@ -200,7 +200,7 @@ async function consumir({ root, dry }) {
         '--record-smoke', smoke.source, '--target', smoke.target, '--route', smoke.route,
         '--deploy-sha', smoke.deploySha, '--screenshot', destinoRel, '--tenant', '1', '--host', 'ci',
       ], { encoding: 'utf8', cwd: root });
-      if (run.status === 0) { gravados++; console.log(`  [GRAVA] ${smoke.tela} → ${destinoRel} (validated)`); }
+      if (run.status === 0) { gravados++; console.log(`  [GRAVA] ${smoke.tela} → ${destinoRel} (smoked-ci; produção ainda pendente)`); }
       else { falhas++; console.log(`  [FALHA] ${smoke.tela} — status.mjs exit ${run.status}: ${String(run.stderr || run.stdout).trim().split('\n').pop()}`); }
     }
     console.log(`\n  gravados ${gravados} · pulados ${pular.length} · falhas ${falhas}\n`);
@@ -240,7 +240,7 @@ function selftest() {
     'resources/js/Pages/kb/Index.charter.md': '---\nroute: kb.index\n---',
   };
   const sel = selectScreens(report, (p) => charters[p] ?? null);
-  check('seleção: só tested|validated entram', sel.selecionadas.length === 2 && sel.selecionadas.every((s) => ['tested', 'validated'].includes(s.lifecycleState)), JSON.stringify(sel));
+  check('seleção: telas sem smoke CI atual entram', sel.selecionadas.length === 2 && sel.selecionadas.every((s) => ['tested', 'validated'].includes(s.lifecycleState)), JSON.stringify(sel));
   check('seleção: report.route vence charter', sel.selecionadas.find((s) => s.slug === 'fiscal-sped')?.routeOrigin === 'report.route');
   check('seleção: charter.url deriva a rota', sel.selecionadas.find((s) => s.slug === 'fiscal-config')?.route === '/fiscal/config');
   check('seleção: applied fica fora sem constar como erro', !sel.foraDaSelecao.some((s) => s.slug === 'arquivos-index'));
@@ -257,7 +257,7 @@ function selftest() {
   check('casamento: .tsx mudou depois do render → pula com motivo', m2.gravar.length === 0 && /mudou depois do render/.test(m2.pular[0]?.motivo || ''), JSON.stringify(m2));
   const reportRegredido = { screens: [{ ...report.screens[0], lifecycleState: 'applied' }] };
   const m3 = matchEntries({ manifest, report: reportRegredido, blobOf: (t) => blobs[t] });
-  check('casamento: tela que voltou a applied não recebe smoke (teste antes do smoke)', m3.gravar.length === 0 && /tested\|validated/.test(m3.pular[0]?.motivo || ''));
+  check('casamento: tela que voltou a applied não recebe smoke (teste antes do smoke)', m3.gravar.length === 0 && /smoke CI exige/.test(m3.pular[0]?.motivo || ''));
   const m4 = matchEntries({ manifest: { ...manifest, host: 'producao' }, report, blobOf: (t) => blobs[t] });
   check('casamento: manifesto com host ≠ ci é recusado inteiro', m4.gravar.length === 0 && /só grava host ci/.test(m4.pular[0]?.motivo || ''));
   const m5 = matchEntries({ manifest: { ...manifest, smokes: [{ ...manifest.smokes[0], deploySha: 'xyz' }] }, report, blobOf: (t) => blobs[t] });

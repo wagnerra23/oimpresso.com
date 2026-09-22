@@ -235,7 +235,7 @@ function currentEvidenceRecord({ root, source, target, manifest, ledger, compari
     return !!repoEvidence(root, smoke.screenshot, smoke.screenshotSha256);
   }) : [];
 
-  return { record, targetSha256, compared, comparisonEvidence, application, tests, smokes };
+  return { record, sourceSha256: sourceFile.sha256, targetSha256, compared, comparisonEvidence, application, tests, smokes };
 }
 
 export async function buildApplicationReport({ root, stagedCowork, manifest, previousReport = null, applicationLedger = null }) {
@@ -255,9 +255,21 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
     // tela que É derivável (UC do `.casos.md` → veredito em `scripts/casos-test-results.json`).
     const tested = applied && (evidence?.tests.length || 0) > 0;
     const smoked = tested && (evidence?.smokes.length || 0) > 0;
+    // Smoke de CI/staging prova que a tela renderizou naquele ambiente. Só produção fecha
+    // o funil: chamar CI de `validated` escondia precisamente a etapa que ainda faltava.
+    // Recibos legados sem `host` continuam sendo produção porque esse era o único host
+    // aceito antes da ADR 0390 (mesma regra de compatibilidade de currentEvidenceRecord).
+    const productionSmokes = smoked
+      ? evidence.smokes.filter((smoke) => smoke.host === undefined || smoke.host === 'producao')
+      : [];
+    const ciSmokes = smoked ? evidence.smokes.filter((smoke) => smoke.host === 'ci') : [];
+    const stagingSmokes = smoked ? evidence.smokes.filter((smoke) => smoke.host === 'staging-ct100') : [];
+    const validated = productionSmokes.length > 0;
     const lifecycleState = app.state === 'blocked' || app.state === 'to-create'
       ? app.state
-      : smoked ? 'validated'
+      : validated ? 'validated'
+      : stagingSmokes.length ? 'smoked-staging'
+      : ciSmokes.length ? 'smoked-ci'
       : tested ? 'tested'
       : applied ? 'applied'
       : evidence?.compared ? 'compared'
@@ -274,14 +286,27 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
       compared: !!evidence?.compared,
       tested,
       smoked,
+      validated,
       applicationEvidence: evidence ? {
         comparison: evidence.comparisonEvidence,
         application: evidence.application,
         tests: evidence.tests,
         smokes: evidence.smokes,
         targetSha256: evidence.targetSha256,
+        proofChain: {
+          bundleId: manifest.bundleId,
+          sourceSha256: evidence.sourceSha256,
+          mapSha256: evidence.comparisonEvidence?.mapSha256 || null,
+          targetSha256: evidence.targetSha256,
+          testOutputSha256: evidence.tests.map((test) => test.outputSha256),
+          deploySha: evidence.smokes.map((smoke) => smoke.deploySha),
+          smokeScreenshotSha256: evidence.smokes.map((smoke) => smoke.screenshotSha256),
+          productionValidated: validated,
+        },
       } : null,
       nextAction: lifecycleState === 'validated' ? 'aplicação, teste e smoke válidos para os hashes atuais'
+        : lifecycleState === 'smoked-ci' ? 'smoke de CI registrado; executar e registrar smoke no deploy de produção'
+        : lifecycleState === 'smoked-staging' ? 'smoke de staging registrado; executar e registrar smoke no deploy de produção'
         : lifecycleState === 'tested' ? 'registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)'
         : lifecycleState === 'applied' ? 'executar teste pelo registrador para produzir recibo verificável'
         : lifecycleState === 'compared' ? 'aplicar no alvo e registrar evidência durável'
@@ -334,6 +359,9 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
       screens: screens.length,
       tested: screens.filter((screen) => screen.tested).length,
       smoked: screens.filter((screen) => screen.smoked).length,
+      smokedCi: screens.filter((screen) => screen.lifecycleState === 'smoked-ci').length,
+      smokedStaging: screens.filter((screen) => screen.lifecycleState === 'smoked-staging').length,
+      validated: screens.filter((screen) => screen.lifecycleState === 'validated').length,
       lifecycle: byLifecycle,
       ...byState,
     },
