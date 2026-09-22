@@ -748,6 +748,14 @@ function selftest() {
     if (B.veredito !== "indeterminado") fails.push("de-quem: CONTROLE NEGATIVO falhou — id so no cache _ds/ virou veredito de dono");
     if (C.veredito !== "nao-vinculada") fails.push("de-quem: material sem id conhecido nao deu nao-vinculada");
     if (D.veredito !== "vinculada" || D.projeto !== "cowork") fails.push("de-quem: id FORA do cache devia vencer o cache");
+    // dsCopia: o pacote que ficou so com a COPIA do DS (id fora de PROJETOS) tem de cair em
+    // indeterminado (resolvido por --conta), nunca em nao-vinculada; e o id da copia, mesmo
+    // fora do cache, nunca vira dono.
+    const contasC = { ...contas, f: { id: "f", espelhada: true, dsCopia: { id: "ID-COPIA", mesmoDsQue: "designSystem" } } };
+    const E = deQuemEhOHandoff(["_ds/ds-ID-COPIA/styles.css", "vendas-page.jsx"], projs, contasC);
+    const F = deQuemEhOHandoff(["ID-COPIA/app.jsx"], projs, contasC);
+    if (E.veredito !== "indeterminado") fails.push("de-quem: cache so com a copia do DS (dsCopia) nao deu indeterminado");
+    if (F.veredito === "vinculada") fails.push("de-quem: CONTROLE NEGATIVO falhou — id da copia do DS virou dono do material");
   }
 
   const scripts = scriptsReferenciados();
@@ -904,6 +912,15 @@ export function deQuemEhOHandoff(paths, projetos = PROJETOS, contas = CONTAS) {
   for (const [chave, p] of Object.entries(projetos)) {
     if (rel.some((x) => x.includes(p.id))) achados.push({ projeto: chave, id: p.id, conta: p.conta });
   }
+  // A COPIA do DS numa conta (`CONTAS.<c>.dsCopia`) tem id proprio, fora de PROJETOS. Medido
+  // 2026-09-21: o pacote do [F], depois de ficar com UM DS so (o `49a36f76`), nao trazia mais
+  // nenhum id de PROJETOS e caia em "nao-vinculada" — onde `--conta` nao vale. A copia e o
+  // mesmo DS: entra aqui SO como cache (`ehCopiaDs`), nunca como dono do material.
+  for (const c of Object.values(contas)) {
+    const d = c && c.dsCopia;
+    if (d && d.id && rel.some((x) => x.includes(d.id)))
+      achados.push({ projeto: d.mesmoDsQue || "designSystem", id: d.id, conta: null, ehCopiaDs: true });
+  }
 
   // camada 2 — sobreposicao com cada espelho (indicio, nunca veredito sozinho)
   const placar = [];
@@ -918,7 +935,7 @@ export function deQuemEhOHandoff(paths, projetos = PROJETOS, contas = CONTAS) {
     // O cache `_ds/<slug>-<uuid>/` do projeto de TELAS carrega o id do projeto de DS. Entao
     // "achei o id do DS" NAO quer dizer "este material E o DS" — quer dizer "este material
     // CONSOME o DS". Dono = o id que aparece FORA do cache.
-    const forasDoCache = achados.filter((a) => rel.some((x) => x.includes(a.id) && !x.includes("_ds/")));
+    const forasDoCache = achados.filter((a) => !a.ehCopiaDs && rel.some((x) => x.includes(a.id) && !x.includes("_ds/")));
     if (forasDoCache.length) {
       const e = forasDoCache[0];
       return { veredito: "vinculada", conta: e.conta, projeto: e.projeto,

@@ -26,7 +26,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { lerZip, extrairZip, crc32, nomeSeguro } from './zip-reader.mjs';
 import { createManifest } from './bundle-contract.mjs';
-import { acharRaiz, auditarPacote, classificar, listarRelativos, decidirDono, ignoradosPeloRepo, pathNoEspelho } from './receber-handoff.mjs';
+import { acharRaiz, auditarPacote, classificar, listarRelativos, decidirDono, ignoradosPeloRepo, pathNoEspelho, normalizarEolComoGit, religarRefs } from './receber-handoff.mjs';
 
 let falhas = 0;
 const ok = (cond, nome) => {
@@ -222,6 +222,30 @@ export function selftest() {
   try { ignoradosPeloRepo(['app.jsx'], () => { throw new Error('git sumiu'); }); }
   catch { propagou = true; }
   ok(propagou, 'MORDE: falha do check-ignore propaga (nao vira "0 ignorados")');
+
+  // EOL (2026-09-21): o Cowork exporta `erp-shell-v2/` em CRLF; o repo e `text=auto eol=lf`.
+  // Sem normalizar, 112 arquivos identicos ao espelho derrubavam o lote no staging.
+  const crlf = Buffer.from('a\r\nb\r\n', 'utf8');
+  ok(normalizarEolComoGit(crlf).toString('utf8') === 'a\nb\n', 'MORDE: texto CRLF vira LF, como o git gravaria');
+  const lf = Buffer.from('a\nb\n', 'utf8');
+  ok(normalizarEolComoGit(lf) === lf, 'SOLTA: texto ja em LF volta o MESMO buffer (nada a reescrever)');
+  ok(normalizarEolComoGit(Buffer.from('a\rb', 'utf8')).toString('utf8') === 'a\rb', 'SOLTA: CR solto fica (git so converte CRLF)');
+  const bin = Buffer.from([0x89, 0x50, 0x00, 0x0d, 0x0a, 0x01]);
+  ok(normalizarEolComoGit(bin) === bin, 'SOLTA: binario (NUL no inicio) nunca e tocado');
+
+  // [4d] JA NO DS (2026-09-21): religacao que o #7620 fez a mao vira regra.
+  const alvosDs = new Map([['erp-shell-v2/styles.css', 'prototipo-ui/design-system/public/cowork-preview/erp-shell-v2/styles.css']]);
+  const pag = '<link rel="stylesheet" href="styles.css?v=2"/><link href="outro.css"/><a href="https://x/styles.css">';
+  const rl = religarRefs(pag, 'erp-shell-v2', 'prototipo-ui/cowork/Felipe/erp-shell-v2', alvosDs);
+  ok(rl.trocas === 1 && rl.texto.includes('href="../../../design-system/public/cowork-preview/erp-shell-v2/styles.css?v=2"'),
+    'MORDE: ref ao arquivo que saiu do lote passa a apontar pro DS (query preservada)');
+  ok(rl.texto.includes('href="outro.css"') && rl.texto.includes('href="https://x/styles.css"'),
+    'SOLTA: ref a outro arquivo e URL absoluta ficam como estao');
+  const raizPag = religarRefs('<script src="erp-shell-v2/styles.css"></script>', '', 'prototipo-ui/cowork/Felipe', alvosDs);
+  ok(raizPag.texto.includes('src="../../design-system/public/cowork-preview/erp-shell-v2/styles.css"'),
+    'MORDE: pagina em outra pasta resolve pelo proprio diretorio');
+  ok(religarRefs(pag, 'outra-pasta', 'prototipo-ui/cowork/Felipe/outra-pasta', alvosDs).trocas === 0,
+    'SOLTA: mesmo nome em outra pasta nao e o arquivo removido');
 
   console.log(`\n  ${falhas === 0 ? 'OK' : 'FALHAS: ' + falhas}\n`);
   if (falhas) process.exit(1);

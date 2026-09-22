@@ -24,6 +24,7 @@ import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import { aplicarRefDs } from './bundle-contract.mjs';
 
 const GERADOR = fileURLToPath(new URL('./gerar-payload-partes.mjs', import.meta.url));
 const CAP = 262144;
@@ -255,6 +256,59 @@ console.log('\n=== 9) SOLTA — part01 pode carregar só o manifesto quando o pr
   ok(envs[0].targetManifest && envs[0].chunks.length === 0, 'part01 é controle-only quando necessário');
   ok(files.every((file) => statSync(join(out, file)).size <= capControle), 'todas as partes respeitam o cap');
   ok(envs.slice(1).flatMap((env) => env.chunks).some((chunk) => chunk.path === '000-grande.css'), 'chunk grande seguiu nas partes de dados');
+}
+
+console.log('\n=== ds-ref — profundidade e so atributo (2026-09-21) ===');
+{
+  // A ref do DS em SUBPASTA (`../_ds/…`) nao era convertida e desfazia a correcao manual do
+  // espelho; e o aplicador trocava TODA ocorrencia enquanto o gerador so trocava atributo.
+  const dir = mkdtempSync(join(tmpdir(), 'gpp-ds-'));
+  const S = 'ds-x-11111111';
+  writeFileSync(join(dir, 'oimpresso.com.html'),
+    `<link rel="stylesheet" href="_ds/${S}/colors_and_type.css"/>\n<script>var b = c ? '../../design-system/' : '_ds/${S}/';</script>\n`);
+  mkdirSync(join(dir, 'sub', 'dois'), { recursive: true });
+  writeFileSync(join(dir, 'sub', 'dois', 'pag.html'), `<link rel="stylesheet" href="../../_ds/${S}/colors_and_type.css"/>\n`);
+  // Citacao do `_ds/` FORA de href/src numa subpasta — nao e ref, nao pode virar transform.
+  writeFileSync(join(dir, 'sub', 'errada.html'), `<p data-x="../_ds/${S}/">texto</p>\n`);
+  mkdirSync(join(dir, '_ds', S), { recursive: true });
+  // `colors_and_type.css` e arquivo de RUNTIME do DS: sem um, o gerador nao declara dsRequires.
+  writeFileSync(join(dir, '_ds', S, 'colors_and_type.css'), 'a{}\n');
+  const out = saida();
+  const r = rodar(['--root', dir, '--out', out, '--full-tree', '--owner', 'Felipe', '--piso', '0']);
+  ok(r.code === 0, `gera com _ds/ e subpasta (exit ${r.code}) ${r.code ? r.out.slice(-300) : ''}`);
+  const env = JSON.parse(readFileSync(join(out, partesDe(out)[0]), 'utf8'));
+  const tr = new Map(((env.targetManifest || env.manifest || {}).transforms || []).map((t) => [t.path, t]));
+  const sub = tr.get('sub/dois/pag.html');
+  ok(sub && sub.de === `../../_ds/${S}/` && sub.para === '../../../../design-system/',
+    'MORDE: ref em subpasta sobe ate a raiz do projeto e o destino soma os mesmos niveis');
+  ok(!tr.has('sub/errada.html'), 'SOLTA: citacao do _ds/ fora de href/src nao e convertida');
+  const host = tr.get('oimpresso.com.html');
+  ok(host && host.de === `_ds/${S}/` && host.para === '../../design-system/', 'SOLTA: pagina da raiz segue com o destino de sempre');
+  const hostTxt = readFileSync(join(dir, 'oimpresso.com.html'), 'utf8');
+  const convertido = aplicarRefDs(hostTxt, host.de, host.para);
+  ok(convertido.includes(`: '_ds/${S}/'`), 'SOLTA: string JS fora de href/src nao e convertida (fallback do Cowork)');
+  ok(createHash('sha256').update(Buffer.from(convertido, 'utf8')).digest('hex') === host.shaDepois,
+    'MORDE: shaDepois do gerador = resultado da MESMA funcao que o aplicador usa');
+}
+
+console.log('\n=== dsRequires — arquivo solto em _ds/ nao e design system (zip V5, 2026-09-21) ===');
+{
+  const S = 'ds-x-22222222';
+  const monta = (extra) => {
+    const dir = mkdtempSync(join(tmpdir(), 'gpp-ds2-'));
+    writeFileSync(join(dir, 'oimpresso.com.html'), `<link rel="stylesheet" href="_ds/${S}/colors_and_type.css"/>\n`);
+    mkdirSync(join(dir, '_ds', S), { recursive: true });
+    writeFileSync(join(dir, '_ds', S, 'colors_and_type.css'), 'a{}\n');
+    extra(dir);
+    return rodar(['--root', dir, '--out', saida(), '--full-tree', '--owner', 'Felipe', '--piso', '0']);
+  };
+  const nota = monta((dir) => writeFileSync(join(dir, '_ds', '_export-baseline.json'), '{"gerado":"x"}\n'));
+  ok(nota.code === 0, `SOLTA: nota solta _ds/_export-baseline.json nao vira 2o DS (exit ${nota.code})`);
+  const dois = monta((dir) => {
+    mkdirSync(join(dir, '_ds', 'outro-ds-3333'), { recursive: true });
+    writeFileSync(join(dir, '_ds', 'outro-ds-3333', 'colors_and_type.css'), 'b{}\n');
+  });
+  ok(dois.code !== 0 && /2 design systems/.test(dois.out), 'MORDE: duas PASTAS de DS seguem recusadas como ambiguas');
 }
 
 console.log(falhas ? `\n✗ ${falhas} asserção(ões) falharam\n` : '\n✓ todas as asserções passaram\n');
