@@ -15,6 +15,64 @@ prs:
 
 # Incidente 2026-09-21 — auto-merge ligando sozinho, em lote, com o token do [W]
 
+
+## ⚠️ ERRATA 2026-09-22 — GitHub Apps ELIMINADOS, e o numero era 18, nao "13+"
+
+> O corpo abaixo fica como esta (fato do dia). Esta errata corrige duas coisas e
+> **fecha o caminho que o registro original declarava como principal pendencia**.
+
+### 1. GitHub Apps estao ELIMINADOS (o registro original os deixou em aberto)
+
+O corpo diz que `repos/OWNER/REPO/installation` devolve **401** e que a lista de Apps
+"nunca foi vista". Verdade — mas a pergunta era **outra**, e tinha resposta por um
+caminho que eu nao tentei: **eventos de timeline carregam `performed_via_github_app`**.
+
+```bash
+gh api --paginate "repos/OWNER/REPO/issues/<N>/timeline" --jq '.[] | select(.event=="auto_squash_enabled") | .performed_via_github_app.slug'
+```
+
+**Medido em 2026-09-22, nos 9 PRs envolvidos: 18 ativacoes, `performed_via_github_app`
+= `null` em 18 de 18.**
+
+**Com CONTROLE POSITIVO** (sem ele o resultado seria cego): o campo **e** preenchido
+neste repo — comentarios do `github-actions` em #7654, #7655 e #7664 trazem
+`performed_via_github_app: github-actions`. A sonda discrimina.
+
+Logo: **nenhuma ativacao passou por GitHub App.** App instalado, webhook e GitHub Action
+registrariam a atribuicao; as 18 nao tem. Isso vale como eliminacao — e **nao** como
+prova de que Apps nao existem no repo: `user/installations` da **403** com o token
+OAuth do `gh`, que nao e autorizado para App.
+
+### 2. O numero: 18 ativacoes, das quais 16 espontaneas
+
+O corpo diz "13+ vezes" — estimativa repetida, nunca contada. Contado:
+
+| PR | ativacoes |
+|---|---|
+| #7637 | 5 |
+| #7641 | 4 |
+| #7639 | 4 |
+| #7640 · #7646 · #7659 · #7654 · #7664 | 1 cada |
+
+**18 no total.** Duas sao legitimas e minhas (#7654 as 18:10:26 e #7664 as 18:56:37,
+ligadas com autorizacao do [W]). **16 foram espontaneas.**
+
+### 3. O que sobra, agora que Apps cairam
+
+As 18 vieram de **token de usuario sem App associado**. Isso e consistente com **o app
+desktop ou uma sessao remota usando a credencial OAuth do [W]**, e inconsistente com
+App, webhook ou Action.
+
+**Caminho unico que resta:** sessoes **Remote Control e cloud** — os transcripts delas
+nao estao na maquina local, e havia varias vivas no repo. Nao foi possivel varrer daqui.
+
+### 4. Licao de metodo desta errata
+
+O registro original tratou o **401** como "inalcancavel" e parou ali. O 401 era de **um
+endpoint**; a pergunta tinha outro caminho. **Impossibilidade de medir declarada em canon
+vira instrucao de desistencia para quem ler depois** — e quase funcionou contra o proprio
+autor, um dia depois.
+
 ## TL;DR
 
 Em 2026-09-21 o auto-merge foi ativado **13+ vezes** em PRs da Jana com o token
