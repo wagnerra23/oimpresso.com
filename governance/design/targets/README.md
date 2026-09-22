@@ -136,4 +136,4 @@ Bite-test: `npm run placar:test` (27 casos, com controles negativos).
 
 | tela | slug | seções | como reproduzir |
 |---|---|---|---|
-| Jana/Index (Painel `/ia/dashboard`) | `jana--index` | 9 (header · tabs · brief · kpis · metas · analises_titulo · analises · acoes_titulo · acoes) | espelho servido (rota default `chat` + tab `painel`, dark) · `npm run alvo:medir -- http://127.0.0.1:5550/ --tela Jana--Index --secoes governance/design/targets/jana--index.secoes.json --aguardar-sumir .jm-sk --quieto-ms 2000` · viewport 1280×900 |
+| Jana/Index (Painel `/ia/dashboard`) | `jana--index` | 10 (header · header_titulo · tabs · brief · kpis · metas · analises_titulo · analises · acoes_titulo · acoes) | espelho servido (rota default `chat` + tab `painel`, dark) · `npm run alvo:medir -- http://127.0.0.1:5550/ --tela Jana--Index --secoes governance/design/targets/jana--index.secoes.json --aguardar-sumir .jm-sk --quieto-ms 2000` · viewport 1280×900 |
