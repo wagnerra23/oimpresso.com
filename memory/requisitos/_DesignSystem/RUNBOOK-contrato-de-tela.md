@@ -125,6 +125,28 @@ Visível, rastreável, atribuído — **não** um campo "justificativa" que o r�
 
 O dano real do handoff stale é **omissão** (some um símbolo/rota/teste que o handoff nunca citou). Isso **já tem dono**: o padrão `infra-contract-required` (PR-body section + `evidence-override`). A adoção **estende o escopo desse gate** pros arquivos-alvo de design-port, em vez de criar um terceiro mecanismo. _(diff→handoff, nunca handoff→diff — inverte a fonte pra pegar o omitido.)_
 
+**Ligado no CI em 2026-09-22** (advisory, step `Omissão — símbolo/rota removido sem justificativa` no `contrato-de-tela.yml`). Antes disso o modo era órfão: existia no script, no `package.json` (`contrato:omission`) e no self-test, e **nenhum workflow o chamava** — o caso que `proibicoes.md` §LIGUE A MÁQUINA item 2 chama de bug, não de neutralidade.
+
+O FP foi medido **antes** de ligar (item 4 da mesma regra), sobre 231 merges de PR do `main`, escopo `resources/js/Pages` + `Modules` (135 tocando a superfície):
+
+| cenário | merges acusados | taxa de disparo | acusações |
+|---|---|---|---|
+| como estava | 22 | 16,3% | 152 |
+| + C1 (descontar movidos) | 17 | 12,6% | 100 |
+| + C2 (tirar descrição de teste) | 15 | 11,1% | 99 |
+| **C1 + C2 — o que foi ligado** | **11** | **8,1%** | **48** |
+
+As duas causas de ruído, ambas corrigidas no script (docblock de `SYMBOL_RES`):
+
+- **C1 — símbolo MOVIDO não é omissão.** O modo se chama omissão; símbolo que reaparece no `+` do mesmo diff foi movido de arquivo ou renomeado junto, e o autor não tem por que citá-lo. Eram 52 das 152 (34,2%), falso-positivo por construção.
+- **C2 — descrição de `it()` não é símbolo.** É prosa: exigir a frase inteira no commit é absurdo, e a amostra era toda ruído (renomear `"gold-set … >= 20 perguntas"` para `">= 30"` era o trabalho daquele PR e virava falha). Eram 53 das 152 (34,9%). Segue **detectada** — o relatório informa — e não acusa.
+
+Cada correção tem no `contrato-de-tela.test.mjs` o caso que ela conserta **e** o controle negativo que prova que ela não desligou a catraca (`C1 controle negativo: sumiu de vez → exit 1`, `C2 controle negativo: símbolo some junto → exit 1`). Provado por mutação: desligando C1, o caso 6b falha; desligando C2, o 6d falha.
+
+⚠️ **O escopo é o que decide se este modo morde.** Sobre os `alvo[]` dos contratos (os ~40 paths declarados) ele é **cego**: na mesma janela houve 172 linhas removidas ali e **zero** casaram qualquer regex, porque o que some numa tela é JSX, copy e bloco de UI — não símbolo exportado. Ligá-lo naquele escopo daria um step que nunca fica vermelho, que é o gate-carimbo do §5. Por isso o CI o roda sobre a árvore de telas/módulos.
+
+⚠️ **Cobertura parcial, declarada:** o `detect` do job casa `resources/js/Pages/**`, não `Modules/**` (fora um controller específico). PR que só toca `Modules/` não dispara o step. Ampliar o `detect` mudaria o disparo de **todos** os steps do job — é outro intent, não foi feito aqui.
+
 ---
 
 ## 3. As 3 condições inegociáveis (senão é teatro — veredito dos adversários)

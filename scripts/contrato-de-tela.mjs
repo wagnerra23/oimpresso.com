@@ -415,30 +415,68 @@ function resolveContract(file, ctxStr) {
 }
 
 // ── Catraca 3: omissão (inverte a fonte) ──────────────────────────────────────
+//
+// MEDIDO no corpus real em 2026-09-22, ANTES de ligar no CI (regra "LIGUE A MÁQUINA" item 4:
+// FP medido antes de instalar). Corpus: 231 merges de PR do main, escopo `resources/js/Pages`
+// + `Modules`, dos quais 135 tocam a superfície. Como o modo estava, ele acusaria 22 merges
+// (16,3% da população de gatilho) com 152 acusações — e ~68% delas eram ruído, por duas causas
+// independentes, consertadas em C1 e C2 abaixo. Depois das duas: 11 merges (8,1%), 48 acusações.
+// Reproduzir: para cada merge de PR do main, `git diff --unified=0 <parent1>...<merge> -- <escopo>`
+// + `git log <parent1>..<merge> --format=%B`, e aplicar este mesmo predicado. Só merges
+// "Merge pull request #N" entram — em "Merge branch 'main' into x" o parent1 é a branch, e o
+// diff traz tudo que veio do main (ruído da medição, não do gate: no CI a base é origin/main).
+//
+// ⚠️ Escopo importa mais que o predicado: sobre os `alvo[]` dos contratos (40 paths estreitos)
+// o modo é CEGO — 172 linhas removidas na janela, ZERO casando qualquer regex, porque o que
+// some numa tela é JSX/copy/bloco, não símbolo exportado. Ligar ali seria gate-carimbo.
+// Por isso o CI o roda sobre a árvore de telas/módulos, não sobre os alvos de contrato.
 const SYMBOL_RES = [
-  /export\s+(?:default\s+)?(?:async\s+)?(?:function|const|class)\s+([A-Za-z0-9_]+)/,
-  /^[-]\s*(?:async\s+)?function\s+([A-Za-z0-9_]+)\s*\(/,
-  /route\(\s*["'`]([\w.]+)["'`]/,
-  /Route::[a-z]+\(\s*["'`]([^"'`]+)["'`]/,
-  /\b(?:it|test|describe)\(\s*["'`]([^"'`]+)["'`]/,
+  { fam: 'export', acusa: true, re: /export\s+(?:default\s+)?(?:async\s+)?(?:function|const|class)\s+([A-Za-z0-9_]+)/ },
+  { fam: 'function', acusa: true, re: /^[-]\s*(?:async\s+)?function\s+([A-Za-z0-9_]+)\s*\(/ },
+  { fam: 'route()', acusa: true, re: /route\(\s*["'`]([\w.]+)["'`]/ },
+  { fam: 'Route::', acusa: true, re: /Route::[a-z]+\(\s*["'`]([^"'`]+)["'`]/ },
+  // C2 — a DESCRIÇÃO de um teste não é um símbolo: é prosa, e exigir a frase inteira no
+  // commit é absurdo por construção. Media 53 das 152 acusações (34,9%) e a amostra é toda
+  // ruído: renomear "gold-set … >= 20 perguntas" para ">= 30" é o trabalho legítimo daquele
+  // PR e virava falha. Segue DETECTADA (o relatório informa) e não acusa.
+  { fam: 'it/test/describe', acusa: false, re: /\b(?:it|test|describe)\(\s*["'`]([^"'`]+)["'`]/ },
 ];
 function checkOmission(base = 'origin/main', alvos, notesFile) {
   const pathArgs = (alvos && alvos.length) ? '-- ' + alvos.map(a => `"${a}"`).join(' ') : '';
   const diff = git(`diff --unified=0 ${base}...HEAD ${pathArgs}`);
   if (diff === null) { err(`git diff falhou (base ${base} existe?)`); return 1; }
-  const removed = new Set();
+  // C1 — o modo se chama OMISSÃO. Símbolo que reaparece no `+` do MESMO diff não foi omitido:
+  // foi movido de arquivo ou renomeado junto, e o autor não tem por que citá-lo. Media 52 das
+  // 152 acusações (34,2%), falso-positivo por construção. Por isso o `+` é varrido igual ao `-`.
+  // Sem `break` no loop de regexes: fiel ao original, que testa todas (uma linha pode casar mais
+  // de uma família). Conferido em 2026-09-22 — com e sem short-circuit o corpus dá o mesmo número.
+  const removed = new Map();   // nome -> família que o detectou
+  const readded = new Set();
   for (const line of diff.split('\n')) {
-    if (!line.startsWith('-') || line.startsWith('---')) continue;
-    for (const re of SYMBOL_RES) { const m = line.match(re); if (m) removed.add(m[1]); }
+    if (line.startsWith('---') || line.startsWith('+++')) continue;
+    const saiu = line.startsWith('-');
+    const entrou = line.startsWith('+');
+    if (!saiu && !entrou) continue;
+    for (const { re, fam } of SYMBOL_RES) {
+      const m = line.match(re);
+      if (!m) continue;
+      if (saiu) { if (!removed.has(m[1])) removed.set(m[1], fam); }
+      else readded.add(m[1]);
+    }
   }
   let just = git(`log ${base}..HEAD --format=%B`) || '';
   if (notesFile && existsSync(resolve(ROOT, notesFile))) just += '\n' + readFileSync(resolve(ROOT, notesFile), 'utf8');
-  let fail = 0;
+  let fail = 0, mudos = 0;
   if (!removed.size) { ok(`nenhum símbolo/rota/teste removido nos arquivos-alvo`); return 0; }
-  for (const sym of removed) {
-    if (just.includes(sym)) ok(`removido "${sym}" — justificado`);
-    else { err(`removido "${sym}" SEM justificativa (cite no PR/handoff ou --notes)`); fail++; }
+  for (const [sym, fam] of removed) {
+    if (readded.has(sym)) { ok(`removido "${sym}" — reaparece no diff (movido/renomeado), não é omissão`); continue; }
+    if (just.includes(sym)) { ok(`removido "${sym}" — justificado`); continue; }
+    if (!SYMBOL_RES.find(s => s.fam === fam).acusa) {
+      warn(`removido "${sym}" (${fam}) — detectado, família não acusa`); mudos++; continue;
+    }
+    err(`removido "${sym}" SEM justificativa (cite no PR/handoff ou --notes)`); fail++;
   }
+  if (mudos) log(`  (${mudos} detecção(ões) de família que não acusa — ver SYMBOL_RES, C2)`);
   return fail;
 }
 
