@@ -332,8 +332,7 @@ it('cenario 1: GET /compras user biz=1 NAO vê compras criadas em biz=99', funct
     $rowsData = $payload['props']['rows']['data'] ?? [];
     $refs = array_map(fn ($r) => $r['ref_no'] ?? null, $rowsData);
 
-    expect($refs)
-        ->not->toContain($refLeak, "VAZAMENTO TIER 0: ref_no biz=99 '{$refLeak}' apareceu na listagem do user biz=1");
+    expect(in_array($refLeak, $refs, true))->toBeFalse("VAZAMENTO TIER 0: ref_no biz=99 '{$refLeak}' apareceu na listagem do user biz=1");
 });
 
 // ─── CENÁRIO 2 — Show 404 (R-COM-002 + ADR 0093 defense-in-depth) ────────────

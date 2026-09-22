@@ -90,7 +90,7 @@ it('AuditController defere entries + kpis mas mantém filters eager (UI state)',
     $lines = explode("\n", $source);
     $filterLines = array_filter($lines, fn ($l) => str_contains($l, "'filters'"));
     foreach ($filterLines as $line) {
-        expect($line)->not->toContain('Inertia::defer(', "filters é UI state (target de partial reload) — deve ficar eager. Linha violadora: {$line}");
+        expect(str_contains($line, 'Inertia::defer('))->toBeFalse("filters é UI state (target de partial reload) — deve ficar eager. Linha violadora: {$line}");
     }
 });
 

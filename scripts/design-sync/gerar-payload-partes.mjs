@@ -33,7 +33,7 @@ import { join, resolve, basename } from 'node:path';
 import { classificarParaSync } from '../design/importar-bundle.mjs';
 import { payloadDependencyGraph, normalizePayloadPath } from './payload-dependency-graph.mjs';
 import {
-  BUNDLE_SCHEMA, changesDigest, createManifest, manifestDigest, sha256, validateManifest,
+  BUNDLE_SCHEMA, aplicarRefDs, changesDigest, createManifest, manifestDigest, sha256, validateManifest,
 } from './bundle-contract.mjs';
 
 const args = process.argv.slice(2);
@@ -181,7 +181,10 @@ function montarDsRequires() {
   let slug = null;
   let dentroDe = relativoAoDs;
   if (!naRaiz.length) {
-    const slugs = new Set(dsPaths.map((rel) => rel.split('/')[1]).filter(Boolean));
+    // Slug e PASTA: so conta quem tem arquivo DENTRO (`_ds/<slug>/x`). Medido 2026-09-21 (zip V5):
+    // o Cowork passou a deixar uma nota solta `_ds/_export-baseline.json`, e o `split('/')[1]`
+    // a contava como 2o design system — "ambiguo" por causa de um arquivo, nao de um DS.
+    const slugs = new Set(dsPaths.filter((rel) => rel.split('/').length >= 3).map((rel) => rel.split('/')[1]));
     if (slugs.size !== 1) {
       // 2 design systems no mesmo pacote e ambiguidade, nao escolha silenciosa (mesma regra do
       // `previewDsPlan`, que ja erra explicito nesse caso).
@@ -241,21 +244,24 @@ function montarTransforms() {
   // Entao a regra casa so `href="_ds/…"` / `src="_ds/…"` — que e o que o GRAFO cobra e o que o
   // browser resolve como arquivo. String dentro de JS nao e ref; e codigo do dono.
   const corpo = dsRequires.slug ? `_ds/${dsRequires.slug}/` : '_ds/';
-  const alvoRe = new RegExp(`((?:href|src)=")${corpo}`, "g");  // `/` não precisa escape em RegExp por string
+  // ⚠️ PROFUNDIDADE (2026-09-21). Pagina em SUBPASTA chega ao `_ds/` da raiz do projeto com
+  // `../` — `handoff_fabricacao/design/Guia.html` usa `href="../../_ds/<slug>/…"`. A 1a versao
+  // so casava `href="_ds/…"`: a ref com `../` passava SEM conversao e desfazia no espelho a
+  // correcao manual do #7620 (`../../../../design-system/`). E o destino tambem sobe: a raiz do
+  // projeto e `cowork/<Dono>/`, entao cada nivel de pasta soma um `../` ao `DS_DESTINO`.
+  // So converte a ref que sobe EXATAMENTE ate a raiz do projeto (ups == profundidade); outra
+  // coisa nao aponta pro `_ds/` do bind e fica como esta.
   const saida = [];
   for (const file of sourceFiles) {
     if (!/\.(html|jsx|js|css)$/i.test(file.path)) continue;
     const antes = file.buffer.toString('utf8');
-    if (!alvoRe.test(antes)) { alvoRe.lastIndex = 0; continue; }
-    alvoRe.lastIndex = 0;
-    const depois = antes.replace(alvoRe, `$1${DS_DESTINO}`);
-    saida.push({
-      path: file.path,
-      regra: 'ds-ref',
-      de: dsRequires.slug ? `_ds/${dsRequires.slug}/` : '_ds/',
-      para: DS_DESTINO,
-      shaDepois: sha256(Buffer.from(depois, 'utf8')),
-    });
+    const profundidade = file.path.split('/').length - 1;
+    const sobe = '../'.repeat(profundidade);
+    const de = sobe + corpo;
+    if (!antes.includes('href="' + de) && !antes.includes('src="' + de)) continue;
+    const para = sobe + DS_DESTINO;
+    const depois = aplicarRefDs(antes, de, para);
+    saida.push({ path: file.path, regra: 'ds-ref', de, para, shaDepois: sha256(Buffer.from(depois, 'utf8')) });
   }
   return saida.length ? saida : null;
 }

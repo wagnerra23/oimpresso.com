@@ -41,10 +41,9 @@
 `icons.jsx` (primitivo `window.I`, 22 glyphs), `handoff_fabricacao/design/adr/*` e os `.md` de
 conferência.
 
-**Qual espelho do DS é o normativo:** o app carrega `oimpresso.com.html` L121 →
-`_ds/office-impresso-design-system-019dd02f-…/_ds_bundle.js`. Medido: esse arquivo é **idêntico**
-ao espelho vinculado (`_ds/wagner-office-impresso-design-system-49a36f76-…/_ds_bundle.js`) até a
-L9290, mais um shim de 11 linhas que aponta o global antigo para o novo. Toda linha `[DS]` abaixo
+**Qual espelho do DS é o normativo:** desde 21/09/2026 há um só — `oimpresso.com.html` carrega
+`_ds/wagner-office-impresso-design-system-49a36f76-…/_ds_bundle.js`, cópia byte a byte do DS vivo
+(349.364 B), sem shim de alias. A pasta `019dd02f` citada na medição original foi apagada. Toda linha `[DS]` abaixo
 vale nos dois. **Defeito de documentação:** o comentário de `oimpresso.com.html` L119 ainda diz que
 o bundle publica `window.OfficeImpressoPontoWR2DesignSystem_019dd0` — ele publica
 `window.OfficeImpressoDesignSystem_49a36f` (bundle L5) e o global antigo é só um alias (L9301).

@@ -21,23 +21,39 @@ Tudo abaixo medido em **10/09/2026**, salvo indicação.
 
 ## Camada 2 — por onde começar no DS
 
-- `_ds_manifest.json` — mapa nome→`sourcePath`, **41 entradas**, `namespace: OfficeImpressoDesignSystem_49a36f`. **É o começo de qualquer auditoria**, não o bundle.
+- `_ds_manifest.json` — mapa nome→`sourcePath`, **41 entradas**, `namespace: OfficeImpressoPontoWR2DesignSystem_019dd0`. **É o começo de qualquer auditoria**, não o bundle.
 - `components/<Nome>/<Nome>.jsx` + `.d.ts` — o componente e o contrato de props.
 - `_adherence.oxlintrc.json` — **795 linhas**, contrato de aderência legível por máquina (`no-restricted-imports` com as ~40 pastas + `react/forbid-elements`).
 - `prototipo-ui/` — **1 arquivo só** (`Design System v4.html`). Histórico. Não é fonte.
 - `Norte/` — 3 arquivos (`Norte - Fluxo do Caminhão.html`, `norte-app.jsx`, `norte-data.jsx`).
 
-## Camada 3 — os três espelhos, e qual roda
+## Camada 3 — um espelho só (era três até 21/09/2026)
 
 | pasta | quem carrega | estado |
 |---|---|---|
-| `_ds/office-impresso-design-system-019dd02f-…` | **`oimpresso.com.html` L121 — é este que roda** | regenerado 09/09: 9.301 → **9.355 + shim** |
-| `_ds/wagner-…-49a36f76-…` | o vinculado pela skill | regenerado 09/09: 9.290 → **9.355** |
-| `_ds/office-impresso-atual-d7f88676-…` | **não medi quem consome** | não medi |
+| `_ds/wagner-…-49a36f76-…` | **tudo** — `oimpresso.com.html`, a Consulta de Produtos, as duas páginas de handoff | o único. **Regenerado da fonte viva em 21/09 (noite): 349.364 B, 59 componentes, byte a byte igual ao DS vivo** (entraram DataGrid, ColumnManager, ColumnPrefs, Toolbar+ToolbarButton/Search/Divider/Spacer, Widget, Segmented, Timeline, Kebab, PresenterMode, SearchInput; nenhum saiu) |
+| ~~`_ds/office-impresso-design-system-019dd02f-…`~~ | — | **apagada 21/09.** Era o bundle do `49a36f` + shim de 11 linhas; mesmo conteúdo, mesmo namespace |
+| ~~`_ds/office-impresso-atual-d7f88676-…`~~ | — | **apagada 21/09.** Esta era DS diferente: namespace `OfficeImpressoDesignSystem_d7f886`, 287.322 B × 295.062 B. Nenhuma página carregava; 4 ADRs citavam |
 
-⚠️ O `019dd02f` tem um **shim de alias de 11 linhas no fim** (publica o global antigo apontando para
-`window.OfficeImpressoDesignSystem_49a36f`, declarado no bundle L5). Regenerar **preservando o shim**.
-Atualizar só o `wagner-…` **não muda nada em runtime** e o sintoma é silencioso.
+✅ **Não há mais alias — o nome é um só (21/09/2026, noite).** O `_ds_bundle.js` publica
+`window.OfficeImpressoPontoWR2DesignSystem_019dd0` e termina em `})();`, sem acréscimo nenhum. As
+páginas que liam `OfficeImpressoDesignSystem_49a36f` foram trocadas para o nome publicado — 6
+arquivos: `Consulta de Produtos.dc.html` e os cinco `manufacturing-*.jsx` da raiz.
+
+**Ao regenerar o espelho, copiar do DS vivo como está.** Não reaplicar alias: não existe mais nada
+para perder numa regeneração. Teste de aceite: no console,
+`typeof window.OfficeImpressoDesignSystem_49a36f === 'undefined'` e
+`Object.keys(window.OfficeImpressoPontoWR2DesignSystem_019dd0).length === 59`.
+
+> Registro histórico: até 21/09 o espelho carregava um shim de alias (nas duas direções, em momentos
+> diferentes). Ele foi removido junto com a pasta `019dd02f`.
+
+⚠️ **`cockpit_domains.css`: eu removi por engano e restaurei.** Afirmei que o arquivo não existia no
+repositório nem no DS; **existe** — 139 linhas no projeto do DS, 62 tokens light + 60 dark, gerado
+de `semantic.tokens.json` por `ds-domains-companion.mjs`. Eu tinha em mãos um stub vazio criado por
+mim e concluí a ausência a partir dele. O arquivo real foi copiado da fonte viva e o `<link>` está
+de volta no shell. Conferido: `--canal-email-bg`, `--kind-customer`, `--kpi-feature-bg` e
+`--origin-CRM-bg` resolvem (antes caíam no neutro).
 
 ## DataTable — os endereços que eu errei quatro vezes
 

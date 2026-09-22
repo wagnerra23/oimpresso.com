@@ -580,12 +580,12 @@ na primeira carga: React 18.3.1, ReactDOM, Babel 7.29.0 e as fontes IBM Plex vê
 - **Imprimir:** `Ctrl/Cmd+P` a partir de "Ficha com custo" ou "Via de produção" — a folha PT-07 é
   A4 e sai sem o chrome.
 - O bundle de componentes do DS (`_ds_bundle.js`) **é obrigatório** desde a onda A: a família lê
-  `window.OfficeImpressoDesignSystem_49a36f` em todos os cinco arquivos de tela. No protótipo ele
-  já é carregado por `oimpresso.com.html` L121 (o arquivo servido em
-  `_ds/office-impresso-design-system-019dd02f…/_ds_bundle.js` é o bundle 49a36f com um alias no
-  fim, L9208 — mesmo conteúdo, mesmo namespace). Cada arquivo resolve o namespace em tempo de
-  render (`const ds = () => window.OfficeImpressoDesignSystem_49a36f || {}`) e não em tempo de
-  carga, porque a família é lazy. **No alvo, nada disso se copia:** o §15.3 mapeia cada componente
+  `window.OfficeImpressoPontoWR2DesignSystem_019dd0` em todos os cinco arquivos de tela. No
+  protótipo ele já é carregado por `oimpresso.com.html`, do espelho único
+  `_ds/wagner-office-impresso-design-system-49a36f76-…/_ds_bundle.js` (a pasta `019dd02f` e o alias
+  que ela carregava foram apagados em 21/09/2026). Cada arquivo resolve o namespace em tempo de
+  render (`const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {}`) e não em tempo
+  de carga, porque a família é lazy. **No alvo, nada disso se copia:** o §15.3 mapeia cada componente
   do DS para o arquivo real do repo.
 
 ---
@@ -794,9 +794,9 @@ com a linha da declaração · **[TELA]** decidido aqui · **[RUNTIME]** observa
 ### 19.1 · Pré-requisito
 
 A família resolve o namespace em tempo de render, não de carga:
-`const ds = () => window.OfficeImpressoDesignSystem_49a36f || {};` — os cinco arquivos são
-lazy (`oimpresso.com.html` L190-195) e o bundle é `defer` (L121). **Conferir:**
-`Object.keys(window.OfficeImpressoDesignSystem_49a36f).length` ≥ 45 no console.
+`const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};` — os cinco arquivos são
+lazy e o bundle é `defer`. **Conferir:**
+`Object.keys(window.OfficeImpressoPontoWR2DesignSystem_019dd0).length` === 59 no console.
 
 ### 19.2 · Substituições
 
@@ -956,13 +956,11 @@ inferir pelo global que falta.
 
 | Arquivo | Quem carrega |
 |---|---|
-| `_ds/office-impresso-design-system-**019dd02f**-…/_ds_bundle.js` | **`oimpresso.com.html` L121** — este é o que roda |
-| `_ds/wagner-office-impresso-design-system-**49a36f76**-…/_ds_bundle.js` | ninguém. É o espelho vinculado, referência de leitura |
+| `_ds/wagner-office-impresso-design-system-**49a36f76**-…/_ds_bundle.js` | **`oimpresso.com.html`** — espelho único desde 21/09/2026 |
+| ~~`_ds/office-impresso-design-system-**019dd02f**-…`~~ | apagada em 21/09/2026, junto com o alias de 5 linhas que ela carregava |
 
-O 019dd02f é o bundle 49a36f **mais 5 linhas de alias** no fim
-(`window.OfficeImpressoPontoWR2DesignSystem_019dd0 = window.OfficeImpressoDesignSystem_49a36f`).
-Mesmo namespace, mesmo conteúdo — mas é **cópia**, não link: atualizar um não move o outro.
-Mesma coisa para `colors_and_type.css` (L13).
+**Histórico — o defeito que este parágrafo registrava.** Havia dois espelhos, um deles com um alias
+no fim do bundle. Eram **cópias**, não links: atualizar um não movia o outro.
 
 **O que eu fiz de errado.** Puxei a atualização, gravei só no espelho 49a36f e declarei
 resolvido lendo o arquivo. O runtime seguiu com o bundle velho por 4.114 ch, e as duas edições
@@ -981,7 +979,7 @@ degrada em silêncio. É o pior modo de falha possível para quem confere lendo 
 versionar o `?v=` das duas tags, e **conferir em runtime, nunca no arquivo**:
 
 ```js
-const ns = window.OfficeImpressoDesignSystem_49a36f;
+const ns = window.OfficeImpressoPontoWR2DesignSystem_019dd0;
 /'soft-success'/.test(String(ns.StatusBadge))   // → true
 /\n {4}producao: \{/.test(String(ns.StatusBadge)) // → true  (NÃO usar /producao/: casa em
                                                   //  em_producao dentro do kind `os`)

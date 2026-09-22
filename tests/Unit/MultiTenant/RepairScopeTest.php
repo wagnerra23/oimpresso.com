@@ -59,7 +59,6 @@ test('Repair models não têm boot manual com addGlobalScope (paridade migraçã
         $reflection = new ReflectionClass($model);
         $contents = file_get_contents($reflection->getFileName());
 
-        expect($contents)
-            ->not->toContain('addGlobalScope(new ScopeByBusiness)', "$model ainda tem addGlobalScope manual");
+        expect(str_contains($contents, 'addGlobalScope(new ScopeByBusiness)'))->toBeFalse("$model ainda tem addGlobalScope manual");
     }
 });

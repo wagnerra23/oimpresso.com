@@ -158,6 +158,5 @@ it('isolamento multi-tenant: biz=99 não vê orçamento de biz=1', function () {
 it('apontamento append-only: tentativa de delete não usa SoftDeletes', function () {
     // Não cria registro DB; reflection-only verifica padrão classe
     $traits = class_uses_recursive(Apontamento::class);
-    expect($traits)->not->toContain(\Illuminate\Database\Eloquent\SoftDeletes::class,
-        'Apontamento é registro legal — append-only protegido (não pode soft-delete)');
+    expect(in_array(\Illuminate\Database\Eloquent\SoftDeletes::class, $traits, true))->toBeFalse('Apontamento é registro legal — append-only protegido (não pode soft-delete)');
 });

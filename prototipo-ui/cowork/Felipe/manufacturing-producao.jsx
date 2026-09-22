@@ -18,7 +18,7 @@ const { useState, useMemo } = React;
 const I = window.I;
 const G = () => window.MFG;
 const Campo = (p) => window.MfgCampo(p);
-const ds = () => window.OfficeImpressoDesignSystem_49a36f || {};
+const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 
 // DatePicker do DS fala Date; o estado da tela é ISO "aaaa-mm-dd" (usado nas comparações
 // de período). A ponte é local nos dois sentidos: passar a string crua faz o componente

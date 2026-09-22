@@ -161,6 +161,5 @@ it('Gap #2: ComprasController não usa mais "(int) session(\'user.business_id\')
     // Especificamente em index() — show() pode ainda referenciar pra cross-check
     // mas o source-of-truth é auth()
     $indexBlock = substr($src, strpos($src, 'public function index'), 2000);
-    expect($indexBlock)->not->toContain("(int) session('user.business_id')",
-        'pré-refactor business_id vinha de session — agora vem de auth()');
+    expect(str_contains($indexBlock, "(int) session('user.business_id')"))->toBeFalse('pré-refactor business_id vinha de session — agora vem de auth()');
 });

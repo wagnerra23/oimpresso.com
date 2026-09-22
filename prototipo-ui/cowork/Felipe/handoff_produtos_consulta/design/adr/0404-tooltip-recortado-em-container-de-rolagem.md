@@ -35,5 +35,5 @@ ou aceitar um prop `portal` opcional.
 
 ## Referências
 
-- `_ds/office-impresso-atual-d7f88676-…/_ds_bundle.js` — `Tooltip`, `DropdownMenu`.
+- `_ds/wagner-office-impresso-design-system-49a36f76-…/_ds_bundle.js` — `Tooltip`, `DropdownMenu`. (O caminho citado na medição original, `_ds/office-impresso-atual-d7f88676-…`, foi apagado em 21/09/2026.)
 - ADRs 0401–0403 (dívidas do DS nesta tela).

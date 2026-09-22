@@ -217,3 +217,102 @@ O Code confere isso na próxima importação.
 de 32 para 30 arquivos. No repositório eles coincidem com
 `design-system/public/cowork-preview/erp-shell-v2/`, então a regra atual de conteúdo único segue
 recusando-os na importação. Isso só muda com a troca de "bytes iguais" por "um lugar só" (§7, item 3).
+
+---
+
+## 12. Conferência da importação de 21/09 (noite) — e o que a ferramenta passou a fazer sozinha
+
+Zip `PROTÓTIPO OFICIAL - PRODUTO UNIFICADO V2-handoff.zip`, exportado depois da limpeza. Promovido
+com `receber-handoff.mjs --zip … --conta felipe --apply`: **0 sobrando** no espelho, **0 repetido**
+dentro do pacote (hash sem CR), `cowork-ssot-guard` verde.
+
+**O que o §11 prometia conferir, e o que se achou:**
+
+| Relato do Cowork (§11) | Medido no zip |
+|---|---|
+| um design system só (`49a36f76`) | ✅ confirmado |
+| os repetidos saíram | ✅ 0 grupos repetidos (sem CR, fora `_ds/`) |
+| "o apelido virou uma linha declarada na página" | ❌ **não existe em lugar nenhum.** O `oimpresso.com.html` tem só um comentário dizendo que o alias "vive no fim do `_ds_bundle.js`"; o bundle termina em `})();` e publica só `OfficeImpressoPontoWR2DesignSystem_019dd0`. As páginas fazem `window.OfficeImpressoDesignSystem_49a36f \|\| {}` e caem num objeto vazio **sem erro no console**. Já estava assim no `main` antes desta importação (17 arquivos). Correção pedida ao Claude Design |
+
+**Três recusas que antes pediam trabalho à mão e agora são regra da ferramenta** (PR desta data):
+
+1. **Passo 0 "não-vinculada".** Com um DS só, o único id no pacote era o `49a36f76`, que vive em
+   `CONTAS.felipe.dsCopia` e não em `PROJETOS` — e `--conta` não vale para "não-vinculada". A
+   limpeza pedida ao Cowork quebrava a importação. Agora o id do `dsCopia` conta como cache de DS
+   (→ "indeterminado", resolvido por `--conta felipe`) e nunca como dono.
+2. **CRLF.** O Cowork exporta `erp-shell-v2/` inteiro em CRLF (112 arquivos); o repo é
+   `* text=auto eol=lf`. O gerador carimbava o sha com CR e o aplicador recusava:
+   `estado-alvo diverge no staging: erp-shell-v2/app.jsx`. Agora o passo [1b] normaliza como o git
+   faria, logo depois de extrair. **Efeito colateral esperado:** o 1º run depois disto mostra ~116
+   "modificados" no DELTA, porque o manifesto ativo anterior tinha shas com CR; o `git status` não
+   vê nada neles.
+3. **R4 contra o DS.** `erp-shell-v2/styles.css` e `tweaks-panel.jsx` têm os mesmos bytes de
+   `design-system/public/cowork-preview/erp-shell-v2/`. O #7620 os tirou e religou 3 páginas à mão.
+   Agora o passo [4d] faz isso: arquivo do lote idêntico a um arquivo do DS sai do lote, e os
+   `href`/`src` que apontavam para ele passam a apontar para o DS.
+
+**E um defeito que não recusava, mas corrompia:** a ref ao DS em página de subpasta
+(`handoff_fabricacao/design/…` usa `href="../../_ds/…"`) não era convertida, e a importação desfazia
+a correção manual `../../../../design-system/`. E o gerador convertia só `href`/`src` enquanto o
+aplicador trocava o texto inteiro. As duas coisas usam agora a mesma função
+(`aplicarRefDs`, em `bundle-contract.mjs`), e a profundidade sai do path do arquivo.
+
+**Para o próximo teste de importação:**
+- rode primeiro sem `--apply`; o `[1b] EOL`, o `[4d] JA NO DS` e as linhas `ds-ref` dizem o que a
+  ferramenta mexeu por você;
+- confira depois com inventário por hash **sem CR** (zero sobrando, e "diferente" só nas páginas
+  convertidas/religadas);
+- se aparecer recusa nova, ela é **defeito a virar regra**, não arquivo para consertar à mão;
+- afirmação do Claude Design sobre o que "já foi feito" se confere no zip antes de repetir.
+
+### 12.1 Errata do §12 (mesmo dia) — "17/19 arquivos" contava documento como leitura
+
+O §12 e o recado ao Claude Design diziam que ~19 arquivos (17 no `main`) **liam** o nome antigo.
+Errado: o grep contou toda **menção**. Medido de novo no mesmo zip, separando código de prosa:
+**6 arquivos de código** leem `OfficeImpressoDesignSystem_49a36f` — `Consulta de Produtos.dc.html`
+(39 ocorrências) e `manufacturing-{page,recipe,producao,insumos,print}.jsx`. As outras menções
+em código são **comentário** (`manufacturing-page.css:5`, `oimpresso.com.html:128`) e o resto é
+`.md`. 59 arquivos de código já liam `OfficeImpressoPontoWR2DesignSystem_019dd0`. O Claude Design
+mediu certo. O defeito (componentes vazios sem erro) era real; o tamanho, não.
+
+**E o inverso, no relato dele:** "todos os `.md/.html/.jsx/.js/.css/.json` já estão em LF" não bate
+com o zip — **112** arquivos em CRLF: `erp-shell-v2/` 60, `importado_prototipo_ui/` 10,
+`importado_telas/` 42. A ferramenta de leitura dele provavelmente entrega o texto já normalizado.
+Sem efeito prático: o passo [1b] converte. Mas **"medi e está LF" do Cowork não vale como prova** —
+a prova é o byte no zip.
+
+**Para conferir no próximo zip** (itens que ele diz ter feito): 0 arquivo de código lendo
+`_49a36f` · `_ds/…49a36f76/_ds_bundle.js` = 349.364 B terminando em `})();` · fontes
+`ibm-plex-sans-{400,500,600,700}` = 63.020 / 66.740 / 67.060 / 63.012 B · sem o comentário ALIAS
+no `oimpresso.com.html` · `CLAUDE.md` sem `019dd02f`. O `_ds/` não entra no repo (dono = projeto DS),
+então os itens de `_ds/` só corrigem a prévia no Cowork.
+
+### 12.2 Errata do §12.1 (mesmo dia) — o CRLF nasce no EXPORTADOR, não nos arquivos do Cowork
+
+O §12.1 sugeria que a ferramenta do Claude Design "entrega o texto já normalizado" e que o
+"medi e está LF" dele não valia. **Errado.** Ele mediu por byte no Cowork (`cr: 0`) e a conta fecha
+com o zip, 9 de 9 arquivos nas três pastas: `bytes no zip − bytes no Cowork = número de LF` e o
+zip sem CR tem exatamente o tamanho do Cowork (ex.: `erp-shell-v2/app.jsx` 41.262 − 40.582 = 680 =
+680 linhas; `styles.css` 234.163 − 226.217 = 7.946 = 7.946 linhas). O conteúdo é o mesmo; **quem
+acrescenta o CR é o empacotamento do zip**, e só nessas três pastas (`erp-shell-v2/`,
+`importado_prototipo_ui/`, `importado_telas/` — 112 arquivos); o resto sai em LF. Por que só nelas
+não se sabe do lado de cá.
+
+**Não é pendência do Claude Design nem de ninguém:** o passo [1b] da importação já converte. Se um
+zip futuro trouxer CRLF, é o exportador — a ferramenta absorve e não há o que pedir ao Cowork.
+Os 4 arquivos com acento no nome em `erp-shell-v2/` ele não conseguiu ler; no zip eles vieram em
+CRLF como os outros 56 e ficaram idênticos ao espelho depois da conversão.
+
+### 12.3 Zip V5 (mesmo dia, noite) — os 5 pontos conferem; dois defeitos novos da ferramenta
+
+Os 5 pontos pedidos ao Claude Design conferidos **no zip**: 0 código lendo `_49a36f`; bundle
+349.364 B terminando em `})();`; fontes 63.020/66.740/67.060/63.012 B; sem comentário ALIAS;
+`CLAUDE.md` cita o `019dd02f` só para dizer que não existe mais. **Zip sem CRLF** desta vez.
+
+Dois formatos novos do export quebraram a ferramenta, e viraram regra (#7672):
+- **nota solta em `_ds/`** (`_ds/_export-baseline.json`, os tamanhos esperados do DS) era contada
+  como um 2º design system → "ambíguo". Agora só **pasta** dentro de `_ds/` é design system.
+- **zip sem a pasta `project/`**: a raiz do projeto virou a própria pasta de extração, e o
+  rascunho da ferramenta (`_live-only.json`) entrou no lote e foi promovido. Agora o rascunho vive
+  em pasta separada. Pego no `git status` depois do `--apply` — **confira sempre os arquivos
+  NOVOS contra a lista do zip**; o guard não pega arquivo que não é repetido.

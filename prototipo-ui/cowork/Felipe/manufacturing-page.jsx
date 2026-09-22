@@ -6,12 +6,12 @@
 //
 // ADERÊNCIA AO DS (onda A, 2026-09-08): a moldura, os KPIs, os overlays, a paginação, a
 // barra de seleção, o estado vazio, a etiqueta de margem e o toast vêm do bundle compilado
-// window.OfficeImpressoDesignSystem_49a36f. O que continua local está declarado no handoff:
+// window.OfficeImpressoPontoWR2DesignSystem_019dd0. O que continua local está declarado no handoff:
 // a tabela (B-01), a busca com atalho "/" (B-02), os chips de categoria (B-08).
 (() => {
 const { useState, useMemo, useEffect, useRef } = React;
 const I = window.I;
-const ds = () => window.OfficeImpressoDesignSystem_49a36f || {};
+const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 
 // A família é lazy e a fila do carregador (oimpresso.com.html L344-437) executa um arquivo por
 // macrotask. Este arquivo pode rodar ANTES de manufacturing-print/insumos/producao terminarem —

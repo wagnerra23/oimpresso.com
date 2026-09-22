@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { payloadDependencyGraph, normalizePayloadPath } from './payload-dependency-graph.mjs';
 import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
 import {
-  changesDigest, createManifest, manifestDigest, roleForPath, sha256,
+  aplicarRefDs, changesDigest, createManifest, manifestDigest, roleForPath, sha256,
   validateBundleParts, validateManifest,
 } from './bundle-contract.mjs';
 import { buildManifest as detectarTelas } from '../../scripts/design/detectar-telas.mjs';
@@ -469,7 +469,7 @@ function writeAndVerifyTarget({ root, staged, manifest, buffers, previous, permi
   const aplicarTransform = (path, buffer) => {
     const t = transformPorPath.get(path);
     if (!t) return buffer;
-    return Buffer.from(buffer.toString('utf8').split(t.de).join(t.para), 'utf8');
+    return Buffer.from(aplicarRefDs(buffer.toString('utf8'), t.de, t.para), 'utf8');
   };
 
   const escritasRecusadas = [];

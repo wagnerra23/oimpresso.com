@@ -59,7 +59,7 @@ Sem esta onda, qualquer item aprovado nas outras é implementado a partir do có
 |---|---|---|---|
 | P-1 | `handoff_fabricacao/design/manufacturing-*.jsx` divergem da raiz em 5 dos 6 arquivos (page 20.595 vs 21.655 ch; recipe 15.254 vs 15.578; producao 20.804 vs 22.449; insumos 5.316 vs 5.977; print 6.456 vs 6.768; só `-data.jsx` bate) · o CSS do pacote ainda tem `.mfg-pill` L47-50, `.mfg-kpi*` L11-18, `.mfg-tab*` L9 | os 6 `.jsx` e o `manufacturing.css` do pacote **copiados da raiz**, sem edição de conteúdo | `diff` de cada par volta vazio; `grep -c "mfg-pill\|os-btn" ` no pacote volta 0 |
 | P-2 | `Fabricacao - Guia de Producao.html` L20-32 carrega 4 CSS e L43-50 sete `<script type="text/babel">` — **nenhuma tag carrega `_ds_bundle.js`** | `<script src="…/_ds_bundle.js">` antes dos babel, na ordem do contrato de camadas do próprio guia | abrir o guia: console limpo, `PageHeader`/`TabBar`/`Drawer` pintam; `grep -c "_ds_bundle"` ≥ 1 |
-| P-3 | `oimpresso.com.html` L119 diz que o bundle publica `window.OfficeImpressoPontoWR2DesignSystem_019dd0` | comentário corrigido: publica `OfficeImpressoDesignSystem_49a36f` (bundle L5); o global antigo é alias (L9301) | o comentário casa com o `grep` do bundle |
+| P-3 | ~~divergência entre o comentário do shell e o nome publicado pelo bundle~~ | **encerrado em 21/09/2026:** o bundle publica só `window.OfficeImpressoPontoWR2DesignSystem_019dd0`, não há alias, e o comentário do `oimpresso.com.html` diz exatamente isso | `grep -c OfficeImpressoDesignSystem_49a36f` no bundle e nas páginas → 0 |
 
 **Gate da onda:** o guia do pacote abre e pinta igual à raiz. Só então qualquer outra onda começa.
 

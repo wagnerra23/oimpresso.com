@@ -18,17 +18,15 @@ camada 1 ou 2 não estiver aberta na sessão, a frase certa é **"não medi"**, 
 
 ## Qual espelho o protótipo carrega — importa, e não é o óbvio
 
-`oimpresso.com.html` **L121** carrega `_ds/office-impresso-…019dd02f/_ds_bundle.js`, **não** o
-`wagner-…49a36f76/`. O `019dd02f` é o mesmo arquivo + um shim de alias de 11 linhas no fim (publica
-o global antigo apontando para `window.OfficeImpressoDesignSystem_49a36f`, declarado no bundle L5).
-**Atualizar só o `wagner-…` não muda nada em runtime, e o sintoma é silencioso.** Atualizei os dois
-em 09/09 e preservei o shim.
+**Desde 21/09/2026 há um espelho só.** `oimpresso.com.html` carrega
+`_ds/wagner-office-impresso-design-system-49a36f76-…/_ds_bundle.js`. As pastas `019dd02f` e
+`office-impresso-atual-d7f88676` foram apagadas, e com elas o shim de alias. O bundle publica
+`window.OfficeImpressoPontoWR2DesignSystem_019dd0` e nada mais; é esse o nome que as páginas leem.
 
 ## Os nomes que você citou, um por um
 
-**`_ds/`** — camada 3. Cópia para o protótipo rodar. Tem 3 pastas: `wagner-…49a36f76` (o vinculado
-pela skill), `office-impresso-…019dd02f` (o que a página carrega) e `office-impresso-atual-d7f88676`
-(uma terceira, que **não medi** e não sei se alguém consome).
+**`_ds/`** — camada 3. Cópia para o protótipo rodar. Tem **uma** pasta:
+`wagner-…49a36f76` — a vinculada pela skill e a que a página carrega.
 
 **`prototipo-ui/`** — no projeto do DS tem **um arquivo só**: `Design System v4.html`. É histórico.
 Não é fonte de nada, e não é o que eu comparo. (O README do DS trata `prototipo-ui/cowork/ds-v6`

@@ -12,7 +12,7 @@
 > **Regra de manutenção:** apareceu item novo no cabeçalho de alguma tela? Atualiza-se **o bloco
 > B-04**, sobe a versão dele, e todas as telas herdam. Nenhuma ficha de tela redescreve bloco.
 >
-> Versão do manual: **v1 · 27/08/2026** · Base medida: DS `OfficeImpressoDesignSystem_49a36f`
+> Versão do manual: **v1 · 27/08/2026** · Base medida: DS `OfficeImpressoPontoWR2DesignSystem_019dd0`
 > (`_ds_bundle.js`), template canônico `templates/pt-01-lista/Pt01Lista.dc.html`, e a tela
 > `Consulta de Produtos.dc.html` com seu handoff.
 

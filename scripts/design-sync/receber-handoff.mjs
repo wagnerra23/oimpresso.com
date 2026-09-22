@@ -48,7 +48,7 @@
  * Exit: 0 = ok · 1 = insumo/validação reprovou (inclui PASSO 0 não liberado) · 2 = erro de uso.
  */
 import { readFileSync, existsSync, mkdtempSync, mkdirSync, writeFileSync, readdirSync, rmSync } from 'node:fs';
-import { join, dirname, relative, resolve } from 'node:path';
+import { join, dirname, relative, resolve, posix } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -67,6 +67,79 @@ const SNAPSHOT_DS = join(REPO, 'prototipo-ui/design-system');
 const ENTRY = 'oimpresso.com.html';
 
 const sha = (buf) => createHash('sha256').update(buf).digest('hex');
+
+/**
+ * O que o git faz com `* text=auto eol=lf`: arquivo sem byte NUL nos primeiros 8000 bytes e
+ * texto, e todo CRLF vira LF (CR solto fica). Devolve o MESMO buffer quando nada muda — quem
+ * chama compara por identidade pra nao reescrever a toa. Por byte, sem decodificar: um texto
+ * que nao seja UTF-8 valido passa intacto.
+ */
+export function normalizarEolComoGit(buf) {
+  if (buf.subarray(0, 8000).includes(0)) return buf;
+  if (!buf.includes(Buffer.from([13, 10]))) return buf;
+  const out = Buffer.allocUnsafe(buf.length);
+  let n = 0;
+  for (let i = 0; i < buf.length; i++) {
+    if (buf[i] === 13 && buf[i + 1] === 10) continue;
+    out[n++] = buf[i];
+  }
+  return out.subarray(0, n);
+}
+/** Sha dos arquivos de `design-system/` (bytes crus, como o R4 compara). */
+function hashesDoDs(listar = listarRelativos) {
+  const mapa = new Map();
+  for (const rel of listar(SNAPSHOT_DS)) {
+    const h = sha(readFileSync(join(SNAPSHOT_DS, ...rel.split('/'))));
+    if (!mapa.has(h)) mapa.set(h, `prototipo-ui/design-system/${rel}`);
+  }
+  return mapa;
+}
+
+/**
+ * Troca, nos atributos `href="…"`/`src="…"` de `texto`, toda ref que resolve (a partir de
+ * `dirDoArquivo`, no lote) para uma chave de `alvos` pelo path relativo ao destino no repo.
+ * `alvos`: Map<relNoLote, pathNoRepo>. `dirNoRepo`: pasta onde o arquivo pousa no repo.
+ * Pura — exportada pro teste.
+ */
+export function religarRefs(texto, dirDoArquivo, dirNoRepo, alvos) {
+  let trocas = 0;
+  const saida = texto.replace(/((?:href|src)=")([^"]+)"/g, (inteiro, attr, valor) => {
+    if (/^(?:[a-z]+:|\/\/|#|\/)/i.test(valor)) return inteiro;
+    const corte = valor.search(/[?#]/);
+    const semQuery = corte >= 0 ? valor.slice(0, corte) : valor;
+    const sufixo = corte >= 0 ? valor.slice(corte) : '';
+    const alvoNoLote = posix.normalize(posix.join(dirDoArquivo, semQuery));
+    const destino = alvos.get(alvoNoLote);
+    if (!destino) return inteiro;
+    trocas++;
+    return `${attr}${posix.relative(dirNoRepo, destino)}${sufixo}"`;
+  });
+  return { texto: saida, trocas };
+}
+
+/** Passo [4d]: remove do lote o que ja existe byte a byte no DS e religa as refs. */
+function religarAoDs(raiz, dono) {
+  const ds = hashesDoDs();
+  const alvos = new Map();
+  for (const rel of listarRelativos(raiz)) {
+    if (rel.startsWith('_ds/')) continue;
+    const destino = ds.get(sha(readFileSync(join(raiz, ...rel.split('/')))));
+    if (destino) alvos.set(rel, destino);
+  }
+  if (!alvos.size) return { removidos: [], paginas: 0 };
+  for (const rel of alvos.keys()) rmSync(join(raiz, ...rel.split('/')), { force: true });
+  const raizNoRepo = pathsForOwner(dono).cowork;
+  let paginas = 0;
+  for (const rel of listarRelativos(raiz)) {
+    if (rel.startsWith('_ds/') || !/\.(html|jsx|js|css)$/i.test(rel)) continue;
+    const abs = join(raiz, ...rel.split('/'));
+    const dir = posix.dirname(rel) === '.' ? '' : posix.dirname(rel);
+    const r = religarRefs(readFileSync(abs, 'utf8'), dir, posix.join(raizNoRepo, dir), alvos);
+    if (r.trocas) { writeFileSync(abs, r.texto); paginas++; }
+  }
+  return { removidos: [...alvos], paginas };
+}
+
 const arg = (nome, padrao = null) => {
   const i = process.argv.indexOf(nome);
   return i >= 0 && process.argv[i + 1] && !process.argv[i + 1].startsWith('--') ? process.argv[i + 1] : padrao;
@@ -344,6 +417,10 @@ function principal() {
   // 1. EXTRAIR (efêmero por padrão)
   const destino = arg('--out') || mkdtempSync(join(tmpdir(), 'oi-handoff-'));
   mkdirSync(destino, { recursive: true });
+  // Rascunho da ferramenta (lista do live-only, sync regerado) NUNCA dentro da extracao. Medido
+  // 2026-09-21 (zip V5): o zip veio SEM a pasta `project/`, a raiz do projeto virou o proprio
+  // `destino`, e o `_live-only.json` gravado ali entrou no lote e foi promovido pro espelho.
+  const rascunho = mkdtempSync(join(tmpdir(), 'oi-handoff-aux-'));
   const entradas = extrairZip(readFileSync(zip), destino);
   console.log(`\n  [1] EXTRAIR      ${entradas.length} arquivo(s) - CRC-32 conferido em todos`);
   console.log(`                   ${destino}`);
@@ -351,6 +428,22 @@ function principal() {
   const raiz = acharRaiz(destino);
   if (!raiz) morre(`nao achei ${ENTRY} na arvore extraida - este ZIP nao e um handoff do Cowork`);
   console.log(`                   raiz do projeto: ${relative(destino, raiz) || '.'}`);
+
+  // 1b. FIM DE LINHA — o repo e `* text=auto eol=lf` (.gitattributes). O Cowork exporta parte
+  //     da arvore em CRLF: medido 2026-09-21, 112 arquivos do pacote do [F] (todo `erp-shell-v2/`)
+  //     identicos ao espelho SEM o CR. Sem normalizar aqui, o gerador carimbava o sha COM CR, o
+  //     delta via o arquivo como inalterado (nao viajava) e o staging ficava com a versao LF do
+  //     espelho → `estado-alvo diverge no staging: erp-shell-v2/app.jsx` e o lote inteiro recusado.
+  //     E o mesmo arquivo que o git gravaria: normalizar antes de medir e medir o que vai pousar.
+  let eolNormalizados = 0;
+  for (const rel of listarRelativos(raiz)) {
+    const abs = join(raiz, ...rel.split('/'));
+    const atual = readFileSync(abs);
+    const lf = normalizarEolComoGit(atual);
+    if (lf !== atual) { writeFileSync(abs, lf); eolNormalizados++; }
+  }
+  console.log(`\n  [1b] EOL        ${eolNormalizados ? `${eolNormalizados} arquivo(s) de texto CRLF -> LF (regra do .gitattributes)` : 'nada - nenhum texto em CRLF'}`);
+
 
   // 0. DE QUEM E — PASSO 0 do painel, fail-closed ANTES de medir ou escrever qualquer byte.
   //    Fica DEPOIS do [1] no numero porque a arvore precisa existir pra ser classificada, mas e o
@@ -482,7 +575,7 @@ function principal() {
   // entradas de diretorio pra casar o numero seria fabricar o denominador.
   // O medidor de frescor (`cowork-mirror-freshness`) conhece só o espelho do Wagner. Pra outra
   // conta, medir aqui compararia o zip dela com a pasta errada — pulo e digo, em vez de medir torto.
-  const listaPath = join(destino, '_live-only.json');
+  const listaPath = join(rascunho, '_live-only.json');
   writeFileSync(listaPath, JSON.stringify({ paths: listarRelativos(raiz) }));
   // Ledger so no --apply: medicao de run exploratorio nao vira registro.
   const lo = DONO === 'Wagner'
@@ -542,8 +635,21 @@ function principal() {
     console.log(`\n  [4b] IGNORADOS   nada - todo path do export pode existir no espelho`);
   }
 
+  // 4d. JA NO DS — arquivo do lote com os MESMOS BYTES de um arquivo de `design-system/` e a
+  //     duplicata que o `cowork-ssot-guard` R4 recusa. No Cowork cada projeto tem a sua copia e
+  //     ali nao e repetido; no repo o DS e um so. Ate 2026-09-21 isso era resolvido A MAO a cada
+  //     importacao (#7620: tirar `erp-shell-v2/styles.css` + `tweaks-panel.jsx` e religar 3
+  //     paginas). Recuo a mao repete no proximo run — virou regra (§5 2026-08-02).
+  const religados = religarAoDs(raiz, DONO);
+  if (religados.removidos.length) {
+    console.log(`\n  [4d] JA NO DS    ${religados.removidos.length} arquivo(s) identico(s) ao design-system saem do lote; ${religados.paginas} pagina(s) religada(s)`);
+    for (const [rel, ds] of religados.removidos) console.log(`                   ${rel}  -> ${ds}`);
+  } else {
+    console.log(`\n  [4d] JA NO DS    nada - nenhum arquivo do lote repete o design-system`);
+  }
+
   // 5. REGERAR pelo gerador CANÔNICO
-  const outSync = join(destino, '_sync-regerado');
+  const outSync = join(rascunho, '_sync-regerado');
   // `--owner` vem da conta que o PASSO 0 liberou — quem chama sabe de quem e o lote; o path da
   // arvore extraida (tmpdir) nao diz. Sem isto o gerador sai `owner: "project"` (medido).
   const g = roda('scripts/design-sync/gerar-payload-partes.mjs',

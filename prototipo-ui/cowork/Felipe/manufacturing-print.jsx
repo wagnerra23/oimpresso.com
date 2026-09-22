@@ -13,7 +13,7 @@
 // se o token não sobreviver ao @media print, o resultado é a medição, não um ajuste aqui.
 (() => {
 const { useEffect } = React;
-const ds = () => window.OfficeImpressoDesignSystem_49a36f || {};
+const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 
 function Folha({ r, c, semCusto, hoje }) {
   const { RegistrationMark, ProofFrame, Dimension, ProofStrip } = ds();

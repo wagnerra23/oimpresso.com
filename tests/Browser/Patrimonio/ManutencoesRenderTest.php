@@ -189,8 +189,7 @@ it('CONTRATO · para quem vê TODAS as manutenções, o aviso de escopo NÃO apa
     $page = abrirManutencoes()->resize(1280, 800);
     $sequencia = ancorasManEstaveis($page, implode(',', ANCORAS_MANUTENCOES_ADMIN));
 
-    expect($sequencia)
-        ->not->toContain('alerta', 'o aviso de escopo restrito não pode renderizar pra quem tem asset.view_all_maintenance');
+    expect(str_contains($sequencia, 'alerta'))->toBeFalse('o aviso de escopo restrito não pode renderizar pra quem tem asset.view_all_maintenance');
 });
 
 it('RENDER · a 1280 (monitor da Larissa/ROTA LIVRE) a página não ganha scroll horizontal', function () {

@@ -702,14 +702,19 @@ recorte · `idsOrdenados`.
 | `contexto/pauta-design-system.md` | propostas e defeitos do DS |
 | `contexto/recomendacoes-outras-telas.md` | o que pertence a Orçamento/PDV, Cadastro, RH, Compras + modelo de dados |
 | `design/README.md` | como os arquivos se organizam |
-| `design/Consulta de Produtos.dc.html` | a tela (template + lógica + estilo) |
-| `design/support.js` | runtime do Design Component |
-| `design/_ds/office-impresso-atual-…/` | camada 0 · bundle, tokens, classes, fontes |
+| `../Consulta de Produtos.dc.html` | a tela (template + lógica + estilo) — **na raiz do projeto**, não dentro do pacote (21/09/2026: um arquivo compartilhado vive num lugar só) |
+| `../support.js` | runtime do Design Component — idem |
+| `../_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/` | camada 0 · bundle, tokens, classes, fontes — idem |
 | `design/adr/0401…0404` | ADRs abertas na primeira rodada |
 | `design/LAUDO-conferencia-consulta-produtos.md` | conferência de 2026-08-17 — **desatualizada** |
 | `design/CHECKLIST-15D-consulta-produtos.md` | score de 2026-08-17 — **desatualizado** |
 
-**Como abrir:** duplo-clique em `design/Consulta de Produtos.dc.html`. Sem build, sem rede.
+**Como abrir:** duplo-clique em `Consulta de Produtos.dc.html` **na raiz do projeto**. Sem build, sem rede.
+
+> ⚠️ Mudou em 21/09/2026: a tela, o `support.js` e o DS não são mais copiados para dentro de
+> `design/`. O pacote deixou de ser auto-contido por decisão de processo — o .zip passou a ser
+> sempre o projeto inteiro, então as referências apontam para a raiz. Descompactar só a pasta
+> `handoff_produtos_consulta/` não abre a tela.
 
 ## 15 · Divergências observadas na implementação (24/08/2026)
 
