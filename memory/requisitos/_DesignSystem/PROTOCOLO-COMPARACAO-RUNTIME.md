@@ -357,6 +357,22 @@ Medir a tela errada não devolve erro: devolve **número plausível sobre outra 
 `D0` é a linha `T00` da matriz, e enquanto ela não estiver `ACEITO` **nenhuma outra linha conta** —
 um `IGUAL` abaixo de um `D0` não provado é medição de outra tela.
 
+#### As duas pré-condições falham em SILÊNCIO — e é por isso que a amarração é dura
+
+Identidade da view e mesmo tema têm o mesmo defeito, em eixos diferentes: **nenhuma das duas
+rebaixa o veredito agregado**. Medido em `origin/main`:
+
+| pré-condição | como o código a trata | consequência |
+|---|---|---|
+| identidade (`D0`) | `design-diff-lote.mjs:481` grava `avisoD0` num campo do JSON | fica num campo que ninguém lê |
+| mesmo tema | `design-diff.mjs:1120` deriva `sameTheme: prodSnap.theme === designSnap.theme`; em `:1386` imprime `⚠ TEMAS DIFERENTES` | é **aviso de console**; `res.sameTheme` não entra no cálculo do veredito |
+
+Ou seja: a falha das duas é **registrada e não punida**. É o mesmo defeito do rótulo agregado, um
+nível acima — a pré-condição não se auto-invalida, só deixa rastro. Daí a regra da matriz ser
+`T00` **bloqueante** em vez de mais um campo informativo: um campo a mais seria a terceira coisa
+verdadeira que ninguém lê.
+_(O eixo do tema foi levantado pela sessão da Fabricação; verifiquei as duas linhas acima.)_
+
 ### A quem se aplica — o denominador, para não cobrar o impossível
 
 Só a tela cuja **âncora de design resolve**: `node scripts/design/ancora.mjs <Mod/Tela>` devolve
