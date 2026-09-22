@@ -371,6 +371,90 @@ function makeGitRepo() {
   drop(root);
 }
 
+// ── C1/C2: as 2 correções de ruído medidas em 2026-09-22 no corpus real ───────
+// Corpus: 231 merges de PR do main, escopo Pages+Modules. Antes: 22 merges acusados
+// (16,3%), 152 acusações. Depois de C1+C2: 11 merges (8,1%), 48 acusações — 68% do
+// ruído eliminado. Cada correção tem aqui o caso que ela conserta E o controle
+// negativo que prova que ela não desligou a catraca.
+function repoOmissao(nome) {
+  const root = mkdtempSync(join(tmpdir(), nome));
+  mkdirSync(join(root, 'tela'), { recursive: true });
+  git(root, ['init', '-q']);
+  git(root, ['config', 'user.email', 't@t.t']);
+  git(root, ['config', 'user.name', 't']);
+  return git(root, ['rev-parse', '--git-dir']).status === 0 ? root : (drop(root), null);
+}
+
+// 6b. C1 POSITIVO — símbolo MOVIDO de arquivo reaparece no `+` → NÃO é omissão → exit 0.
+//     Era 52 das 152 acusações (34,2%), falso-positivo por construção.
+{
+  const root = repoOmissao('contrato-omis-mov-');
+  if (!root) console.log('[SKIP] C1 movido (git indisponível)');
+  else {
+    writeFileSync(join(root, 'tela', 'x.ts'), `export function Sparkline(){return 1;}\n`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'base']);
+    writeFileSync(join(root, 'tela', 'x.ts'), `// movido daqui\n`);
+    writeFileSync(join(root, 'tela', 'y.ts'), `export function Sparkline(){return 1;}\n`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'reorganiza arquivos da tela']);
+    const r = node(root, ['--omission', 'HEAD~1', '--alvo', 'tela']);
+    check('C1 símbolo movido de arquivo → exit 0 (reaparece no diff, não é omissão)',
+      r.status === 0 && /reaparece no diff/.test(out(r)), out(r));
+    drop(root);
+  }
+}
+
+// 6c. C1 CONTROLE NEGATIVO — sumiu de vez (não reaparece) → AINDA acusa → exit 1.
+//     Sem este, C1 poderia ter desligado a catraca inteira e o verde pareceria saúde.
+{
+  const root = repoOmissao('contrato-omis-sumiu-');
+  if (!root) console.log('[SKIP] C1 controle negativo (git indisponível)');
+  else {
+    writeFileSync(join(root, 'tela', 'x.ts'), `export function Sparkline(){return 1;}\n`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'base']);
+    writeFileSync(join(root, 'tela', 'x.ts'), `// nada\n`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'mexe na tela sem citar nada']);
+    const r = node(root, ['--omission', 'HEAD~1', '--alvo', 'tela']);
+    check('C1 controle negativo: sumiu de vez → exit 1 (a catraca continua mordendo)',
+      r.status === 1 && /SEM justificativa/.test(out(r)), out(r));
+    drop(root);
+  }
+}
+
+// 6d. C2 POSITIVO — descrição de it() renomeada NÃO acusa → exit 0.
+//     Era 53 das 152 (34,9%), toda a amostra ruído: renomear a frase é o trabalho do PR.
+{
+  const root = repoOmissao('contrato-omis-testdesc-');
+  if (!root) console.log('[SKIP] C2 descrição de teste (git indisponível)');
+  else {
+    writeFileSync(join(root, 'tela', 'x.spec.ts'), `it('gold-set tem >= 20 perguntas canon', () => {});\n`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'base']);
+    writeFileSync(join(root, 'tela', 'x.spec.ts'), `it('gold-set tem >= 30 perguntas canon', () => {});\n`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'amplia o gold-set']);
+    const r = node(root, ['--omission', 'HEAD~1', '--alvo', 'tela']);
+    check('C2 descrição de teste renomeada → exit 0 (prosa não é símbolo)',
+      r.status === 0 && /família não acusa/.test(out(r)), out(r));
+    drop(root);
+  }
+}
+
+// 6e. C2 CONTROLE NEGATIVO — C2 vale SÓ pra descrição de teste; símbolo no mesmo PR
+//     continua acusando. Prova que C2 não virou anistia geral pra arquivo de teste.
+{
+  const root = repoOmissao('contrato-omis-c2neg-');
+  if (!root) console.log('[SKIP] C2 controle negativo (git indisponível)');
+  else {
+    writeFileSync(join(root, 'tela', 'x.spec.ts'),
+      `it('descrição antiga', () => {});\nexport function helperDoTeste(){return 1;}\n`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'base']);
+    writeFileSync(join(root, 'tela', 'x.spec.ts'), `it('descrição nova', () => {});\n`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'renomeia o caso']);
+    const r = node(root, ['--omission', 'HEAD~1', '--alvo', 'tela']);
+    check('C2 controle negativo: símbolo some junto → exit 1 (C2 não anistia o arquivo)',
+      r.status === 1 && /helperDoTeste/.test(out(r)), out(r));
+    drop(root);
+  }
+}
+
 // 7. --map --check POSITIVO — fonte existe + seção ancorada → exit 0.
 {
   const root = mkdtempSync(join(tmpdir(), 'contrato-map-'));
