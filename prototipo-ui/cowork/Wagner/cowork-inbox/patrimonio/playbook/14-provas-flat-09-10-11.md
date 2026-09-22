@@ -3,14 +3,14 @@ sessao: "14"
 titulo: provas de 09/10/11 apontam subpasta; o main é flat
 dono: "[CL]"
 base: f8e6e02876fc
-prefixo: prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/00-INDICE.md
+prefixo: prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md
 nao_toca: resources/js/** · Modules/AssetManagement/**
 depende: —
 ---
 # 14 · o placar diz "arquivo ausente" para três telas que estão em produção
 
 ## A · IDENTIDADE
-- **âncora:** `prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/00-INDICE.md` (**22.024 B**) :: `§7.threads` — objetos `09`, `10`, `11`, campo `provas[].path`.
+- **âncora:** `prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md` (**22.024 B**) :: `§7.threads` — objetos `09`, `10`, `11`, campo `provas[].path`.
 - **oráculo (existência, não leitura):** `resources/js/Pages/Patrimonio/Alocacoes.tsx` 14.994 B · `Manutencoes.tsx` 19.025 B · `Configuracoes.tsx` 17.605 B.
 - **precedente que fecha a discussão:** a errata de 08/09 na thread `08` já fez exatamente isto para Bens (`Bens/Index.tsx` → `Bens.tsx`), com o diagnóstico escrito: *"a prova NUNCA passaria, e o placar marcava 'pendente · arquivo ausente' para uma tela que está em produção"*.
 

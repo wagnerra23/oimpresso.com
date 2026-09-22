@@ -48,14 +48,14 @@ dono: "[CL]"
   "titulo": "fechar o denominador: --list --json cobre 100% dos charters e imprime o numero de cobertura",
   "dono": "CL",
   "arquivo": "04-denominador-cobertura.md",
-  "prefixo": ["prototipo-ui/ancora.mjs"],
+  "prefixo": ["scripts/design/ancora.mjs"],
   "nao_toca": ["resources/js/Pages/**", "scripts/governance/**"],
   "depende_threads": ["03"],
   "depende_decisoes": [],
   "nota_provas": "mesmo arquivo das 01-03 — remedir o sha antes de escrever",
   "provas": [
-   { "tipo": "execucao", "cmd": "node prototipo-ui/ancora.mjs --list --json > /tmp/ancora.json", "recibo": "_saida-04.md", "exige": "total de charters, com_ancora, na_declarado, sem_campo, por_via (related|bundle|visual|component), somando ao total" },
-   { "tipo": "execucao", "cmd": "node prototipo-ui/ancora.mjs --selftest", "exige": "exit 0" }
+   { "tipo": "execucao", "cmd": "node scripts/design/ancora.mjs --list --json > /tmp/ancora.json", "recibo": "_saida-04.md", "exige": "total de charters, com_ancora, na_declarado, sem_campo, por_via (related|bundle|visual|component), somando ao total" },
+   { "tipo": "execucao", "cmd": "node scripts/design/ancora.mjs --selftest", "exige": "exit 0" }
   ]
  },
  {
@@ -63,13 +63,13 @@ dono: "[CL]"
   "titulo": "campo duplo divergente para de ser silencio: conflito vira aviso e entra no --list",
   "dono": "CL",
   "arquivo": "05-campo-duplo-divergente.md",
-  "prefixo": ["prototipo-ui/ancora.mjs"],
+  "prefixo": ["scripts/design/ancora.mjs"],
   "nao_toca": ["resources/js/Pages/**", ".claude/hooks/**"],
   "depende_threads": ["04"],
   "depende_decisoes": ["D-PRECEDENCIA"],
   "provas": [
-   { "tipo": "execucao", "cmd": "node prototipo-ui/ancora.mjs Fiscal/Config", "exige": "saida cita OS DOIS caminhos e marca conflito; caso de sanidade: Cliente/Index (campo unico) NAO marca conflito" },
-   { "tipo": "execucao", "cmd": "node prototipo-ui/ancora.mjs --list --json", "exige": "campo conflito:true nas 4 telas do Fiscal e nas que a varredura achar" }
+   { "tipo": "execucao", "cmd": "node scripts/design/ancora.mjs Fiscal/Config", "exige": "saida cita OS DOIS caminhos e marca conflito; caso de sanidade: Cliente/Index (campo unico) NAO marca conflito" },
+   { "tipo": "execucao", "cmd": "node scripts/design/ancora.mjs --list --json", "exige": "campo conflito:true nas 4 telas do Fiscal e nas que a varredura achar" }
   ]
  },
  {
@@ -78,7 +78,7 @@ dono: "[CL]"
   "dono": "CL",
   "arquivo": "06-contrato-fora-do-glob.md",
   "prefixo": ["scripts/qa", "prototipo-ui/contrato"],
-  "nao_toca": ["prototipo-ui/ancora.mjs", "resources/js/Pages/**"],
+  "nao_toca": ["scripts/design/ancora.mjs", "resources/js/Pages/**"],
   "depende_threads": [],
   "depende_decisoes": [],
   "provas": [
@@ -91,7 +91,7 @@ dono: "[CL]"
 ## 4. Acrescentar na tabela de threads (prosa)
 | # | thread | prefixo | veredito |
 |---|---|---|---|
-| **04** | denominador fechado + número de cobertura no `--list` | `prototipo-ui/ancora.mjs` | **CABE** · depende 03 |
-| **05** | campo duplo divergente vira aviso | `prototipo-ui/ancora.mjs` | **CABE** · depende 04 + `D-PRECEDENCIA` |
+| **04** | denominador fechado + número de cobertura no `--list` | `scripts/design/ancora.mjs` | **CABE** · depende 03 |
+| **05** | campo duplo divergente vira aviso | `scripts/design/ancora.mjs` | **CABE** · depende 04 + `D-PRECEDENCIA` |
 | **06** | contrato fora do glob `*.contract.json` | `scripts/qa` | **CABE** |
 | — | `Produto/Index` reancorado | `resources/js/Pages` | **BLOQUEADA** por `D-PRODUTO-INDEX` ([W]) |

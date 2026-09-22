@@ -5,8 +5,8 @@ autor: "[CC]"
 criado: 2026-09-05
 revisado: 2026-09-05 rev.2 — após medição do [CL] contra origin/main a88c66a (4 defeitos corrigidos, ver §5 R4)
 base: wagnerra23/oimpresso.com@main (tree 45e63465d2e4 · lida 2026-09-05 22:26 UTC)
-destino_no_main: prototipo-ui/design-docs/cowork-inbox/hrm/playbook/
-regra: este índice é PEDIDO (lista de threads a executar, com sha), não inventário. Ninguém escreve estado — ele é derivado (§2-bis). Nunca em prototipo-ui/cowork/ (guard R1).
+destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/hrm/playbook/
+regra: este índice é PEDIDO (lista de threads a executar, com sha), não inventário. Ninguém escreve estado — ele é derivado (§2-bis). Nunca em prototipo-ui/cowork/Wagner/ (guard R1).
 ---
 
 # SINCRONIZAR Hrm — playbook
@@ -14,9 +14,9 @@ regra: este índice é PEDIDO (lista de threads a executar, com sha), não inven
 > **Absorve, não duplica:** `cowork-inbox/hrm/PEDIDO-CL-hrm.md` (D1/D2/D3 respondidas por [W] em 2026-09-05) + `cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md`. Onde divergem, **a emenda [W] manda**: Presença sai do HRM; Folha vira projeto com ADR própria. **Metas já está em produção (#6869)** — a onda 9 do export está feita.
 
 ## 0 · Landing — como esta pasta desce (resposta ao [CL], 2026-09-05)
-- **A unidade é a PASTA inteira** (`00-INDICE.md` + 11 `NN-*.md`): índice sozinho aponta pra arquivos inexistentes — o mesmo defeito do item 3 do §5. Rota: DesignSync `get_file` de cada `.md` → `--export-from <dir>`; `.md` roteia pra `prototipo-ui/design-docs/cowork-inbox/hrm/playbook/`.
+- **A unidade é a PASTA inteira** (`00-INDICE.md` + 11 `NN-*.md`): índice sozinho aponta pra arquivos inexistentes — o mesmo defeito do item 3 do §5. Rota: DesignSync `get_file` de cada `.md` → `--export-from <dir>`; `.md` roteia pra `prototipo-ui/cowork/Wagner/cowork-inbox/hrm/playbook/`.
 - **Só `.md` roteia.** Por isso a fonte da máquina (`playbook.json`) **não é arquivo**: é o primeiro bloco ```json deste índice (§7). O schema e o script viajam como anexos de `COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md` (PR-A8) e o [CL] os cria nos paths lá declarados. Nada `.json`/`.mjs` solto neste pacote.
-- **`.md` em `prototipo-ui/cowork/` é proibido** (guard R1) — se o roteador mandar pra lá, é erro de rota, não exceção a pedir.
+- **`.md` em `prototipo-ui/cowork/Wagner/` é proibido** (guard R1) — se o roteador mandar pra lá, é erro de rota, não exceção a pedir.
 
 ## 1 · LEVANTAR — quadro por estado (rota-first · **4 denominadores** · 4 sinais · 1 sha)
 
@@ -59,7 +59,7 @@ Também medido nesta sha: `.claude/commands/onda.md` **não existe** (PR-A7 não
 
 ## 2-bis · ESTADO — derivado, nunca escrito (o Code lê ESTA)
 
-> **Fonte = bloco ```json do §7 + o repo.** Rode `node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/hrm/playbook/00-INDICE.md --root . --proximo`. Regra: `_saida-NN.md` presente **e** provas verdes = `feito`; sem `_saida` = não feito mesmo com PR mergeado; `bloqueada` é fila de [W], não do Code. `PRÓXIMO:` = deps de thread feitas + decisões respondidas + nenhuma variável nula.
+> **Fonte = bloco ```json do §7 + o repo.** Rode `node scripts/qa/placar-indice.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/hrm/playbook/00-INDICE.md --root . --proximo`. Regra: `_saida-NN.md` presente **e** provas verdes = `feito`; sem `_saida` = não feito mesmo com PR mergeado; `bloqueada` é fila de [W], não do Code. `PRÓXIMO:` = deps de thread feitas + decisões respondidas + nenhuma variável nula.
 
 **Render 2026-09-05 rev.2 (saída do script contra repo simulado = `main` 45e63465):** `Hrm: entregue 0 de 11 · próximo 6 · em curso 0 · pendente 4 · bloqueada 1` — **PRÓXIMO: 01 · 02 · 03 · 07 · 08 · 09.** Presos: 04 (RESÍDUO 5) · 05 (09 + RESÍDUO 3) · 06 (09) · 11 (02·03·05·06). O RESÍDUO 1 (`<PAGES>`) **deixou de existir** — a árvore respondeu. Testado: entrega flat **ou** pasta conta; Page criada sem `Inertia::render` no controller fica "em curso" nomeando o controller (D4 é prova); 09 com o cron vivo fica "em curso" nomeando `EssentialsServiceProvider.php:108`.
 
@@ -77,13 +77,13 @@ Também medido nesta sha: `.claude/commands/onda.md` **não existe** (PR-A7 não
 ```
 Sessão fresca. ANTES de abrir: `gh pr list --state open` e cruze com os arquivos do seu prefixo (whats-active está morto — HTTP 000; colisão de 04/09 veio de ninguém checar).
 Leia nesta ordem, do main, nunca de cópia local:
-1. prototipo-ui/design-docs/cowork-inbox/ponte/03-REGRAS-DE-PARALELISMO.md   ← Leis 1–4
-2. prototipo-ui/design-docs/cowork-inbox/hrm/playbook/00-INDICE.md           ← §1 estados · §2 seu prefixo · §7 fonte
-3. prototipo-ui/design-docs/cowork-inbox/hrm/playbook/NN-<sua-thread>.md     ← escopo · alvo · dado · prova
-4. prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md §"Emenda 2026-09-05 [W]" ← D1/D2/D3.
+1. prototipo-ui/cowork/Wagner/cowork-inbox/ponte/03-REGRAS-DE-PARALELISMO.md   ← Leis 1–4
+2. prototipo-ui/cowork/Wagner/cowork-inbox/hrm/playbook/00-INDICE.md           ← §1 estados · §2 seu prefixo · §7 fonte
+3. prototipo-ui/cowork/Wagner/cowork-inbox/hrm/playbook/NN-<sua-thread>.md     ← escopo · alvo · dado · prova
+4. prototipo-ui/cowork/Wagner/cowork-inbox/hrm/PEDIDO-CL-hrm.md §"Emenda 2026-09-05 [W]" ← D1/D2/D3.
    AVISO: os 2 planos de memory/sessions/ que ela manda ler NÃO EXISTEM no main (medido 159e572d e a88c66a). Não bloqueie neles.
 5. resources/js/Pages/Essentials/Metas.tsx + Metas.charter.md                ← a irmã golden: o pacote que sua Page tem de repetir
-6. prototipo-ui/PRE-FLIGHT-TELA.md · memory/proibicoes.md · memory/LICOES_CC.md
+6. memory/reference/prototipo-ui/PRE-FLIGHT-TELA.md · memory/proibicoes.md · memory/LICOES_CC.md
 7. os arquivos da âncora listados na sua thread
 Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Não edita este índice, github.md nem memory/**.
 Terminou: escreva _saida-NN.md e pare.
@@ -114,7 +114,7 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
   "modulo": "Hrm",
   "sha": "45e63465d2e4",
   "gerado": "2026-09-05",
-  "absorve": ["prototipo-ui/design-docs/cowork-inbox/hrm/PEDIDO-CL-hrm.md", "prototipo-ui/design-docs/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md"],
+  "absorve": ["prototipo-ui/cowork/Wagner/cowork-inbox/hrm/PEDIDO-CL-hrm.md", "prototipo-ui/cowork/Wagner/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md"],
   "variaveis": { "PAGES": "resources/js/Pages/Essentials" },
   "decisoes": [
     { "id": "RESIDUO-2", "pergunta": "Departamentos e Cargos (nav_hrm → TaxonomyController) viram abas do HRM no protótipo?", "respondida": false, "destrava": ["01"] },
@@ -131,24 +131,24 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
       "nao_toca": ["prototipo-ui/cowork/Wagner/hrm-extras.jsx", "prototipo-ui/cowork/Wagner/hrm-forms.jsx", "prototipo-ui/cowork/Wagner/app.jsx"],
       "provas": [ { "tipo": "nao_contem", "path": "prototipo-ui/cowork/Wagner/hrm-page.jsx", "padrao": "id:\"hrm-presenca\"", "nota": "aba Presença fora do TABS (D1); a parte +Departamentos só com RESIDUO-2" } ] },
     { "id": "02", "titulo": "Licenças — Page", "dono": "CL", "vaga": 1, "arquivo": "02-licencas.md",
-      "prefixo": ["${PAGES}/Licencas.tsx", "${PAGES}/Licencas/", "Modules/Essentials/Http/Controllers/EssentialsLeaveController.php", "prototipo-ui/contrato/essentials-licencas.contract.json", "Modules/Essentials/Tests/Feature/HrmLicencaTest.php", "e2e/essentials-licencas.spec.ts", ".github/workflows/essentials-pest.yml"],
+      "prefixo": ["${PAGES}/Licencas.tsx", "${PAGES}/Licencas/", "Modules/Essentials/Http/Controllers/EssentialsLeaveController.php", "governance/design/contracts/essentials-licencas.contract.json", "Modules/Essentials/Tests/Feature/HrmLicencaTest.php", "e2e/essentials-licencas.spec.ts", ".github/workflows/essentials-pest.yml"],
       "nao_toca": ["Modules/Essentials/Services/LeaveRequestService.php", "${PAGES}/Metas.tsx", "${PAGES}/Settings/", "${PAGES}/Holidays/", "${PAGES}/Todo/", "${PAGES}/Knowledge/", "${PAGES}/Documents/", "${PAGES}/Messages/", "${PAGES}/Reminders/"],
       "provas": [
         { "tipo": "um_de", "paths": ["${PAGES}/Licencas.tsx", "${PAGES}/Licencas/Index.tsx"] },
         { "tipo": "um_de", "paths": ["${PAGES}/Licencas.charter.md", "${PAGES}/Licencas/Index.charter.md"] },
         { "tipo": "um_de", "paths": ["${PAGES}/Licencas.casos.md", "${PAGES}/Licencas/Index.casos.md"] },
-        { "tipo": "json_com_chaves", "path": "prototipo-ui/contrato/essentials-licencas.contract.json", "chaves": ["alvo", "secoes"], "nota": "nome segue a irmã (essentials-metas); o hrm-licencas.contract.json do cowork-inbox é insumo, o gerador carimba" },
+        { "tipo": "json_com_chaves", "path": "governance/design/contracts/essentials-licencas.contract.json", "chaves": ["alvo", "secoes"], "nota": "nome segue a irmã (essentials-metas); o hrm-licencas.contract.json do cowork-inbox é insumo, o gerador carimba" },
         { "tipo": "arquivo", "path": "e2e/essentials-licencas.spec.ts" },
         { "tipo": "contem", "path": "Modules/Essentials/Http/Controllers/EssentialsLeaveController.php", "padrao": "Inertia::render('Essentials/Licencas", "nota": "D4: a rota passa a ter Page" }
       ] },
     { "id": "03", "titulo": "Tipos de licença — Page", "dono": "CL", "vaga": 1, "arquivo": "03-tipos-licenca.md",
-      "prefixo": ["${PAGES}/Tipos.tsx", "${PAGES}/Tipos/", "Modules/Essentials/Http/Controllers/EssentialsLeaveTypeController.php", "prototipo-ui/contrato/essentials-tipos.contract.json", "e2e/essentials-tipos.spec.ts"],
+      "prefixo": ["${PAGES}/Tipos.tsx", "${PAGES}/Tipos/", "Modules/Essentials/Http/Controllers/EssentialsLeaveTypeController.php", "governance/design/contracts/essentials-tipos.contract.json", "e2e/essentials-tipos.spec.ts"],
       "nao_toca": ["Modules/Essentials/Http/Controllers/EssentialsLeaveController.php", "Modules/Essentials/Tests/Feature/HrmExclusaoGuardaTest.php"],
       "provas": [
         { "tipo": "um_de", "paths": ["${PAGES}/Tipos.tsx", "${PAGES}/Tipos/Index.tsx"] },
         { "tipo": "um_de", "paths": ["${PAGES}/Tipos.charter.md", "${PAGES}/Tipos/Index.charter.md"] },
         { "tipo": "um_de", "paths": ["${PAGES}/Tipos.casos.md", "${PAGES}/Tipos/Index.casos.md"] },
-        { "tipo": "json_com_chaves", "path": "prototipo-ui/contrato/essentials-tipos.contract.json", "chaves": ["alvo", "secoes"] },
+        { "tipo": "json_com_chaves", "path": "governance/design/contracts/essentials-tipos.contract.json", "chaves": ["alvo", "secoes"] },
         { "tipo": "contem", "path": "Modules/Essentials/Http/Controllers/EssentialsLeaveTypeController.php", "padrao": "Inertia::render('Essentials/Tipos" }
       ] },
     { "id": "04", "titulo": "Metas — PUXAR (produção à frente, #6869)", "dono": "CC", "vaga": 1, "arquivo": "04-metas-venda.md",
@@ -156,18 +156,18 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
       "depende_decisoes": ["RESIDUO-5"],
       "provas": [], "nota_provas": "read-only + build: prova = _saida-04.md com o diff nos dois sentidos (Metas.tsx × hrm-extras.jsx Metas) e a divergência de VALOR declarada" },
     { "id": "05", "titulo": "Turnos — Page", "dono": "CL", "vaga": 2, "arquivo": "05-turnos.md",
-      "prefixo": ["${PAGES}/Turnos.tsx", "${PAGES}/Turnos/", "Modules/Essentials/Http/Controllers/ShiftController.php", "prototipo-ui/contrato/essentials-turnos.contract.json", "e2e/essentials-turnos.spec.ts"],
+      "prefixo": ["${PAGES}/Turnos.tsx", "${PAGES}/Turnos/", "Modules/Essentials/Http/Controllers/ShiftController.php", "governance/design/contracts/essentials-turnos.contract.json", "e2e/essentials-turnos.spec.ts"],
       "nao_toca": ["Modules/Essentials/Http/Controllers/AttendanceController.php"],
       "depende_threads": ["09"], "depende_decisoes": ["RESIDUO-3"],
       "provas": [
         { "tipo": "um_de", "paths": ["${PAGES}/Turnos.tsx", "${PAGES}/Turnos/Index.tsx"] },
         { "tipo": "um_de", "paths": ["${PAGES}/Turnos.charter.md", "${PAGES}/Turnos/Index.charter.md"] },
         { "tipo": "um_de", "paths": ["${PAGES}/Turnos.casos.md", "${PAGES}/Turnos/Index.casos.md"] },
-        { "tipo": "json_com_chaves", "path": "prototipo-ui/contrato/essentials-turnos.contract.json", "chaves": ["alvo", "secoes"] },
+        { "tipo": "json_com_chaves", "path": "governance/design/contracts/essentials-turnos.contract.json", "chaves": ["alvo", "secoes"] },
         { "tipo": "contem", "path": "Modules/Essentials/Http/Controllers/ShiftController.php", "padrao": "Inertia::render('Essentials/Turnos" }
       ] },
     { "id": "06", "titulo": "Painel — Page", "dono": "CL", "vaga": 2, "arquivo": "06-painel.md",
-      "prefixo": ["${PAGES}/Painel.tsx", "${PAGES}/Painel/", "Modules/Essentials/Http/Controllers/DashboardController.php", "prototipo-ui/contrato/essentials-painel.contract.json"],
+      "prefixo": ["${PAGES}/Painel.tsx", "${PAGES}/Painel/", "Modules/Essentials/Http/Controllers/DashboardController.php", "governance/design/contracts/essentials-painel.contract.json"],
       "nao_toca": ["Modules/Essentials/Http/Controllers/AttendanceController.php"],
       "depende_threads": ["09"],
       "provas": [

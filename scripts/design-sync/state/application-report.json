@@ -1,65 +1,604 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-21T17:37:30.298Z",
+  "generatedAt": "2026-09-22T19:46:17.526Z",
   "bundle": {
-    "id": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
-    "baseId": "e8ffe5c0bdffbb3c552c17e4b54fb5ec48efd84e999ba9fe932de85ebaec6798",
+    "id": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
+    "baseId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
     "mode": "delta",
     "source": "cowork:oimpresso.com.html",
     "transportComplete": true
   },
   "summary": {
-    "transportChanges": 5,
-    "screens": 164,
+    "transportChanges": 82,
+    "screens": 165,
     "tested": 3,
     "smoked": 3,
     "smokedCi": 3,
     "smokedStaging": 0,
     "validated": 0,
     "lifecycle": {
-      "compared": 63,
+      "compared": 59,
       "to-create": 28,
-      "anchored": 70,
+      "anchored": 75,
       "smoked-ci": 3
     },
-    "pending": 133,
+    "pending": 134,
     "to-create": 28,
     "applied": 3
   },
   "transportChanges": [
     {
-      "path": "cowork-inbox/ds-atomos/playbook/07-alvo-de-toque-datatablepro.md",
-      "change": "added",
-      "bytes": 9003,
-      "sha256": "06c483e050bc94701615ad5b808f18746c97ff7cad760d3c0ae5626c585a88a0",
+      "path": "CLAUDE.md",
+      "change": "modified",
+      "bytes": 17333,
+      "sha256": "bc88def71eb9b5bff2c41b5b6afe4c75a8c5cde4185511779137fed6659466a6",
       "role": "cowork-source"
     },
     {
-      "path": "cowork-inbox/jana/playbook/00-INDICE.md",
+      "path": "COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md",
       "change": "modified",
-      "bytes": 5967,
-      "sha256": "7a19a09dd99abe56d853efcd77fdc02a5a03dfa02a91029b0cc1666da4376f3d",
+      "bytes": 19542,
+      "sha256": "4f4e57f26ec70e54a04178a4ba05b5ffd1aa2cdaffeb64198b2828d13a886957",
+      "role": "cowork-source"
+    },
+    {
+      "path": "COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md",
+      "change": "modified",
+      "bytes": 90992,
+      "sha256": "1f1e705c0285298789eb901b045bbac13bbd11f6ba010dd9d778693cad0f6d38",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ancora/playbook/_PATCH-INDICE-2026-09-10.md",
+      "change": "modified",
+      "bytes": 4707,
+      "sha256": "33404f229e41e577784866d73b78c14a97bf5f0f3a1d75da16919b832c4f9e4d",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ancora/playbook/_PATCH-INDICE-2026-09-16.md",
+      "change": "modified",
+      "bytes": 3778,
+      "sha256": "920359bc1beb6fd62f283175380e2a3be3f9a48b2792a2c0d5b7544666fd0ade",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ancora/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 10909,
+      "sha256": "013eb9d3c218466724c168f32a29d4da168abbdafd608cadfadb617ebf41037b",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ancora/playbook/01-bundle-sem-staging.md",
+      "change": "modified",
+      "bytes": 6352,
+      "sha256": "2f10aa7ea8ead13afec98d7edb659d65c3b03af5369db74f8d57516ea448087a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ancora/playbook/02-query-ambigua.md",
+      "change": "modified",
+      "bytes": 4753,
+      "sha256": "7a35661d6c8e75a8371be3e18b6be69c633060296a351d9033ecfd9534d66ddf",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ancora/playbook/03-list-prova-arquivo.md",
+      "change": "modified",
+      "bytes": 5350,
+      "sha256": "2d5be31c55bd15e8b7cd390a4fc4b7c3b12cf34396b57683493500f6a1ea7b26",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ancora/playbook/04-denominador-cobertura.md",
+      "change": "modified",
+      "bytes": 2170,
+      "sha256": "5b5f0f173930dafaadfcd525c9f7ab58e71fa47cb9c90d09b145b70b8998341d",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ancora/playbook/05-campo-duplo-divergente.md",
+      "change": "modified",
+      "bytes": 2247,
+      "sha256": "3c966ad2a7f0274882be5bb16dbb8db733b1ee6ba3db4ffcea85f75cf5e88045",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ancora/playbook/06-contrato-fora-do-glob.md",
+      "change": "modified",
+      "bytes": 3100,
+      "sha256": "6170e90ded7dbc19caffa171208a54b5dc5d4ed80134ace4d30ebff378b3e1f5",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ancora/playbook/07-cruzar-report-trio-contrato.md",
+      "change": "modified",
+      "bytes": 9793,
+      "sha256": "1c5753af9704445a7b81460d9c40f75e06e707dcc5dcadca62bfb6e7a1aa430a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/compras/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 14026,
+      "sha256": "c687dd488d2e3a86e30fef4f366ca9a21300eac9803dc3ea98e163ae8fcb9259",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/compras/playbook/01-rede-e2e.md",
+      "change": "modified",
+      "bytes": 6113,
+      "sha256": "db171e9b2a70ee10cf1857dbdc897ae957fe090a7d999177fa72d8cbe941f5e3",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/compras/playbook/02-margem-sem-fonte.md",
+      "change": "modified",
+      "bytes": 3576,
+      "sha256": "e38cfbedd594cac6913ef9ff8c95a77dc519e303bfe805d5d4bc42316685a028",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ds-atomos/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 12025,
+      "sha256": "9d5af88b907eb361e916738861d6368ebfea514d9b5a894cf33c7b7f5efd91bd",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ds-atomos/playbook/01-card-anatomia.md",
+      "change": "modified",
+      "bytes": 3903,
+      "sha256": "3b3d0a3198e94cb838339d4e16ea77d40b350f5cf74f8fc992e895c36e5d5b19",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ds-atomos/playbook/02-kpicard-filter.md",
+      "change": "modified",
+      "bytes": 4416,
+      "sha256": "4459715bb561818b8962a8d7bca2632c8b1d4e70c8e81115b29295eaaf1bb0ca",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ds-atomos/playbook/03-toolbar-criar.md",
+      "change": "modified",
+      "bytes": 5323,
+      "sha256": "03bb465d57e88c0f2d2efac4524aa9182bfdf0f95d6b3af16032dd83d4eeb4b5",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/financeiro/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 5404,
+      "sha256": "242b45eb1dc6d23ab920044b34315be7236b4ff105f8e45b800ecfcff9f7cfb0",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/fiscal/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 11119,
+      "sha256": "6b8f5ce1d11770f2bdbcb28dd9d54bf970f17c13ce4f5a00057f9bcdda19d2d9",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/fiscal/playbook/01-rede-e2e.md",
+      "change": "modified",
+      "bytes": 4464,
+      "sha256": "912f45685168c0a5e8f0075857e30fa8d2f5cee4bdafc5402c74731e0bdb7665",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/fiscal/playbook/02-paginacao.md",
+      "change": "modified",
+      "bytes": 5806,
+      "sha256": "670fcd0c01afb72071710b61487869951ab4623d9cebc9e12314221cc7c91921",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/governance/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 10378,
+      "sha256": "662ce7d55015cf26d98d086f633957846de275ec8f18a26a49543f00bd212d16",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/governance/playbook/01-contrato-desce.md",
+      "change": "modified",
+      "bytes": 4064,
+      "sha256": "472df02f9b2df9929aeeed18813ed7759cadef157e28a8cc23ffa4b0ad2c1302",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/governance/playbook/03a-casos-policies.md",
+      "change": "modified",
+      "bytes": 3622,
+      "sha256": "fc0889bc7016a4fd3f060301850de558a1a8f72aef0fd45f70c376c307b12061",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/hrm/playbook/_saida-01.md",
+      "change": "added",
+      "bytes": 3037,
+      "sha256": "7cd5fbf7bea6db322283e69e1fbf0b53666963cfb4ac54225443ae8c0402a2da",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/hrm/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 25526,
+      "sha256": "80d1fc5d8b9809cb975785618d867dc03543e527406d63e4304960805d555149",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/hrm/playbook/01-build-tabs-hrm.md",
+      "change": "modified",
+      "bytes": 3065,
+      "sha256": "6413e9e5232f3b3497406ae93e53b5f4cfbafcd09e12cc785ea008e0231a69ca",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/hrm/playbook/02-licencas.md",
+      "change": "modified",
+      "bytes": 6703,
+      "sha256": "74a214744079c40ebc4676d2cf82e2e58c8e5ae8c1049480d914d41b6ed06177",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/hrm/playbook/03-tipos-licenca.md",
+      "change": "modified",
+      "bytes": 3451,
+      "sha256": "9e19863760eb303b392253f67a3e60a311ab5ed537ea788c26d91979a59a2a74",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/hrm/playbook/04-metas-venda.md",
+      "change": "modified",
+      "bytes": 3642,
+      "sha256": "09edc47ae5f07b98e771b6b1eb32db66e9bf5cb8426e0079fce4765fc6a6968a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/hrm/playbook/05-turnos.md",
+      "change": "modified",
+      "bytes": 3940,
+      "sha256": "0c0b0db92adc312ee4059d373830a4870e17b70c5a226384af67dae54824cc3a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/hrm/playbook/06-painel.md",
+      "change": "modified",
+      "bytes": 3858,
+      "sha256": "75d2164b05e0cfa83a405d033fafb4b0098aba6b63bea985600bca73e42253ed",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/hrm/playbook/08-feriados-puxar.md",
+      "change": "modified",
+      "bytes": 1838,
+      "sha256": "69f502be638ee1893c4c24f14e111889c66268f3a29f3acbcb54eb655e9a48a9",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/JANA-CICLO-COMPLETO-PRODUCAO-2026-08-13.md",
+      "change": "modified",
+      "bytes": 22367,
+      "sha256": "59e2e90fae35374f2a8d5bb05a7e67e81d7dd76839924521777679187dbdf496",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/patrimonio/playbook/_PATCH-INDICE-2026-09-09.md",
+      "change": "modified",
+      "bytes": 9088,
+      "sha256": "aa11cf5b6b9edfbca9988f25cfd7a79d5325183266d9f7469d9bf9bf8f037817",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/patrimonio/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 9551,
+      "sha256": "fe0d4a578579d0f6a85ccccc544fa28101bb652a6a918ebe7ce070f4b5489b6d",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/patrimonio/playbook/14-provas-flat-09-10-11.md",
+      "change": "modified",
+      "bytes": 4265,
+      "sha256": "364d0cbd952370e8f9b1b3bfdad94aee555c1139ddfa23ed9f873e6b14b2c586",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/patrimonio/playbook/16-revogacoes-na-aba.md",
+      "change": "modified",
+      "bytes": 5283,
+      "sha256": "c3a4421948597dd9605ac2ad0ba3f5363919bb734f1570fe8f5ae89e0096e9ae",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/patrimonio/playbook/17-bens-form.md",
+      "change": "modified",
+      "bytes": 3934,
+      "sha256": "4346278d5fa4dbc55cb7ee4f63abb4a13187514d70770bcfa06e337155c8e267",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/placar/playbook/00-INDICE.md",
+      "change": "added",
+      "bytes": 1994,
+      "sha256": "86fe765e34cf4d17c0cbe5ed2a1c4b25343a340870901a62d2d1ac1db15a55b4",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/placar/playbook/01-entregue-sem-recibo.md",
+      "change": "added",
+      "bytes": 2613,
+      "sha256": "5368fec8b2c36bd8880e0ff1b7288e268b636be8bc280a579b8f4749a8499d34",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/placar/playbook/02-onda-modo-thread.md",
+      "change": "added",
+      "bytes": 1997,
+      "sha256": "dc56514312f01272a4b170a2555958f8bc7831a671d796cc725129a3a24c71d2",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/_delta-indice-13a15.md",
+      "change": "modified",
+      "bytes": 9078,
+      "sha256": "ccd39ea1e37e1b02809bf36ff5c5975e9eb67b3917c6bf8c0399a85bc384a6d1",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 24527,
+      "sha256": "9f335aca3347ef31d78655a457f0a718d15c9e1afef620443f22131d6ed4f47d",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/03-a11y-divergencia.md",
+      "change": "modified",
+      "bytes": 2349,
+      "sha256": "7b8e6676f6f6a2694d3faa6b63ceb6c9202b8e51fd3f9931b1168ec93c45d830",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/04-fechamento-bloqueada.md",
+      "change": "modified",
+      "bytes": 2639,
+      "sha256": "fab2868045626a07268aa52cc4ce3572c1e7b62f097e196625ee5bcf1baaa52f",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/05-conformidade-bloqueada.md",
+      "change": "modified",
+      "bytes": 1793,
+      "sha256": "9cfd46799897b48734d779ef999d2f9880e79a2f783d57fa066c9bfa74be3612",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/06-rep-p.md",
+      "change": "modified",
+      "bytes": 5630,
+      "sha256": "0d28533553c2f90975386b25f1c6648139d15268171f546c782dd582eb9df4e6",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/07-contratos-required.md",
+      "change": "modified",
+      "bytes": 1627,
+      "sha256": "9e80a450616b8c97b0b5977d950494a1828d199bc22c6241db36a69bb9315946",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/08-puxar-painel-espelho.md",
+      "change": "modified",
+      "bytes": 2395,
+      "sha256": "2c07c196748a1bf229d604b28188c45c56f62aeb5f7571b0d1343abec6cfec3e",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/09-puxar-11-telas.md",
+      "change": "modified",
+      "bytes": 2337,
+      "sha256": "1f6ebedd89c03dd6425bcf96532dc50c43bd4110d432484715dc331ecca45ef3",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/10-build-mobile-sem-selfie.md",
+      "change": "modified",
+      "bytes": 2072,
+      "sha256": "66e294a3409ed54a7fd6d2132a2b6c3e0fd45bf4ffbf4a4e3e401067085eb604",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/11-limpeza-blades-inbox.md",
+      "change": "modified",
+      "bytes": 2768,
+      "sha256": "b0bbd9f6f34a910c73656152929f8665e555ed8421139b9fa425ffd963d484a6",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/13-forma-painel.md",
+      "change": "modified",
+      "bytes": 5679,
+      "sha256": "e633066408c37e4a7b5cacf7717e90d6f13810814bc93c34bf885e63fd183bd4",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/14-forma-espelho-lista.md",
+      "change": "modified",
+      "bytes": 4899,
+      "sha256": "ad1d9dd8fa15607b6e4ac46acd193022fd87c7cdfbaddf91939bcd5d8de5dd0c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/15-forma-aprovacoes.md",
+      "change": "modified",
+      "bytes": 4870,
+      "sha256": "2d0fd17c2df60b89dc2cfd8d47bcdde68387738aab26f4bce0c3406007213f8c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/30-pedido-retidos-aprovado.md",
+      "change": "modified",
+      "bytes": 7803,
+      "sha256": "00f846191331ab1b687cb1829c6c7c7add8dffa4fb0641f749212a0f22491ce4",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/ponto/playbook/ATA-DECISOES-2026-09-14.md",
+      "change": "modified",
+      "bytes": 19918,
+      "sha256": "9c7923e5a1c913dbcd62892bf39c3bbb0fd04be1e4d551f2ebd2559e0cdacfe7",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/recepcao-pacote/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 5035,
+      "sha256": "9d80730c8c4892b99fc9eae90e132f30518e5dce6f987671422204b6078d2013",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/recepcao-pacote/playbook/01-recepcao-regenera.md",
+      "change": "modified",
+      "bytes": 2798,
+      "sha256": "57a79fe27ad7430b72243dbc7ce1bb0af2dd7a147d9c5e31e24774912edda150",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/shell-usermenu/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 5413,
+      "sha256": "4c5a6446be7c59f0539398bf64074ef1d79cfa51738ab2cbac11af99820e6c4e",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/00-INDICE.md",
+      "change": "modified",
+      "bytes": 26635,
+      "sha256": "6ba52a83223acf57b147380826b953875b744f25e380b0da65c3eede1e727088",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/01-corpo-a11y.md",
+      "change": "modified",
+      "bytes": 5404,
+      "sha256": "9b71f457cb23611c88a3005bdce097fa9aab7863daa03725d204c5eab44d3b7d",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/02-modos-auto-rail.md",
+      "change": "modified",
+      "bytes": 5582,
+      "sha256": "503e756cd64dc58d9b091f84201e0af169bb946fabba6418bdc1fb661d6690dc",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/03-topo-picker.md",
+      "change": "modified",
+      "bytes": 3307,
+      "sha256": "f92a2359dec472c4c98e7067848acdc3fa4d65ce95cc0ded8199ca29691b6ca9",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/04-hidden-reopen.md",
+      "change": "modified",
+      "bytes": 4805,
+      "sha256": "0d6064e3672ee695a89ee296f4a301438ee71d30cfe7ca9f90cba5fc0b7c9655",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/05-ghosts-adr-0180.md",
+      "change": "modified",
+      "bytes": 2823,
+      "sha256": "b48aaa617580fa7259db7f95252c59477471c9ff9565bcbef9e0aa7e237eaa5e",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/06-contrato-e-gates.md",
+      "change": "modified",
+      "bytes": 3556,
+      "sha256": "e2a9fcfcecf59cea1aa947ea6f310e2f276bdd37f08b38c28a93d57cff7f4969",
+      "role": "cowork-source"
+    },
+    {
+      "path": "data.jsx",
+      "change": "modified",
+      "bytes": 35299,
+      "sha256": "3574801c1b0bc3e5cd70ac3aaaa7125b7fcd1b43c74aad5e7856608576f3edf2",
+      "role": "cowork-source"
+    },
+    {
+      "path": "documentacao-page.css",
+      "change": "modified",
+      "bytes": 16050,
+      "sha256": "11e293a19dbf8bfb58a4d827244f82657c3affc292876cc061fafef128f6c249",
+      "role": "cowork-source"
+    },
+    {
+      "path": "documentacao-page.jsx",
+      "change": "modified",
+      "bytes": 81260,
+      "sha256": "3b895fa2188bd488eba5a226f62f52e5aace3365a1eb7a1c2f56b37c7bc3831f",
+      "role": "cowork-source"
+    },
+    {
+      "path": "ds-v6/gabarito-vendas.html",
+      "change": "deleted",
+      "bytes": 24849,
+      "sha256": "fbe684e36d7ace611f04438243561a1c3b76d0766c461ef0f2faf2e63f3d0ae6",
+      "role": "cowork-source"
+    },
+    {
+      "path": "ds-v6/tokens.css",
+      "change": "deleted",
+      "bytes": 18982,
+      "sha256": "7b406fdb4cace6f8f1a3f348693d5fd9b1086c5b5c13388ed24cdb1af3307185",
       "role": "cowork-source"
     },
     {
       "path": "github.md",
       "change": "modified",
-      "bytes": 118908,
-      "sha256": "60c84ac2a954da6a11c8c1e48049c636d652570011eb5989eaebb0c7fb784b0a",
+      "bytes": 120004,
+      "sha256": "265ddd3964b9e82a13e25e575bfd4f181b484d228f980314e0324b2a0a3dc7c8",
       "role": "cowork-source"
     },
     {
-      "path": "oficina-os-page.css",
+      "path": "hrm-data.jsx",
       "change": "modified",
-      "bytes": 24025,
-      "sha256": "4ed5563ddc376176402185a673b994cfb319dc3e986679443f7a21bfffd8881f",
+      "bytes": 15548,
+      "sha256": "f56c4a97e5702139b40ff3f8421e8e5c074c9b5973b6b0fff8fd68aefe314591",
       "role": "cowork-source"
     },
     {
-      "path": "otimiza-ondas.css",
+      "path": "hrm-page.jsx",
       "change": "modified",
-      "bytes": 3372,
-      "sha256": "11793b40df130ab1e2c5e41faec5bd94a1caf511a6e954ac40ad13c86557af86",
+      "bytes": 38121,
+      "sha256": "185c4e5e510ab5f3d8a6ffa575edf56380a0e85f95bcc28ca5f2052cefa577b0",
+      "role": "cowork-source"
+    },
+    {
+      "path": "oimpresso.com.html",
+      "change": "modified",
+      "bytes": 36245,
+      "sha256": "be5c1cf9e677a09e53cf3b6e95071a7765e016d2d79859ad3640706848647fae",
+      "role": "cowork-source"
+    },
+    {
+      "path": "venda-v3/01-fundacoes/css/tokens-tema-escuro.css",
+      "change": "deleted",
+      "bytes": 1530,
+      "sha256": "801b3ed55ae3442453c30b45b9e5ac091639d849a05051cf6b8f8cf8b4fbecf9",
+      "role": "cowork-source"
+    },
+    {
+      "path": "venda-v3/index.html",
+      "change": "modified",
+      "bytes": 5374,
+      "sha256": "f38815f82773a7d5fbe6aa4c4acae966ef9fb3854ca1798f836a5b6f2c2fd923",
       "role": "cowork-source"
     }
   ],
@@ -88,7 +627,7 @@
         "smokes": [],
         "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "846a34652eb8b28a5d1acc86e29d9816945fd25566331741baa5e53bb0f56f34",
           "mapSha256": "0f70b5398efb1ac519e4e4c3dfa71f1691edb1ae83023aaabadb70780be30d4c",
           "targetSha256": "6c6ce5b5a679af17896a999f1d6f3dc539e80f4fbe957685fc59dfecd2b8b854",
@@ -124,7 +663,7 @@
         "smokes": [],
         "targetSha256": "03c0b54b4397a125c3c4b65d9224721d06d368bca710b30fa61bcb67c97445a4",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "88eec8930cdc5c3f91b4a5598415f2233b678d41973437d3b5f22f83f252571e",
           "mapSha256": "b1d77a302fe01b5b460faaed4fa4e592cd94d30933aad9e68a79e98c50a6fd9e",
           "targetSha256": "03c0b54b4397a125c3c4b65d9224721d06d368bca710b30fa61bcb67c97445a4",
@@ -272,7 +811,7 @@
         "smokes": [],
         "targetSha256": "f9c2a3c1ef25a6370ed5250379d7bafc29b59c880b062aaf6ac8ac5b4e156528",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "8086f48f54849c4adf66ceaee76b6108fc12ca3b3006be439594aca7139eac7e",
           "mapSha256": "b11a3244f23063ff489445de78e69096a06325ab74dda2ea1537f3f82784e538",
           "targetSha256": "f9c2a3c1ef25a6370ed5250379d7bafc29b59c880b062aaf6ac8ac5b4e156528",
@@ -324,7 +863,7 @@
         "smokes": [],
         "targetSha256": "e69a7abb2beb026d37bb0fa91f70d80318dcee0aea055e5360477f053bf586a0",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "a74c03d47ab4e5217f3d6aa519ee20bca45c502eed3f775c8f7131977a6abeb7",
           "mapSha256": "f8f237ba1b4d716c68f1f4af77612de0253880fa8b3a74cf22c45cf4f168e6c1",
           "targetSha256": "e69a7abb2beb026d37bb0fa91f70d80318dcee0aea055e5360477f053bf586a0",
@@ -360,7 +899,7 @@
         "smokes": [],
         "targetSha256": "5b1bf1f6360cf05aceed277c11176b977417897a5cf6fb5fea2c7cb43340863c",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "a74c03d47ab4e5217f3d6aa519ee20bca45c502eed3f775c8f7131977a6abeb7",
           "mapSha256": "8707a0493c69303b578accf3c66cdcf2c9f1b62685466eea363a80846a935f00",
           "targetSha256": "5b1bf1f6360cf05aceed277c11176b977417897a5cf6fb5fea2c7cb43340863c",
@@ -396,7 +935,7 @@
         "smokes": [],
         "targetSha256": "41b4967660b690758d92dfb62d221f70bbda1d6a6d8410a037d34414e6ab38f7",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "a74c03d47ab4e5217f3d6aa519ee20bca45c502eed3f775c8f7131977a6abeb7",
           "mapSha256": "84e950c31ea55d5421c66367f6185d3abeb8de8b520e4727407d06599ec7d0ad",
           "targetSha256": "41b4967660b690758d92dfb62d221f70bbda1d6a6d8410a037d34414e6ab38f7",
@@ -448,7 +987,7 @@
         "smokes": [],
         "targetSha256": "6264be3cad44d9507ad97b7cb1126bc0a8f700387b6b4dcdc1afcbee34a5fbca",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "a74c03d47ab4e5217f3d6aa519ee20bca45c502eed3f775c8f7131977a6abeb7",
           "mapSha256": "642243ff41c9374874f724055f75204abc41b5e5cbff32889b6ee6dbc054b8ee",
           "targetSha256": "6264be3cad44d9507ad97b7cb1126bc0a8f700387b6b4dcdc1afcbee34a5fbca",
@@ -516,7 +1055,7 @@
         "smokes": [],
         "targetSha256": "4903570e7c6a4c7699d19810113c0ee4722f2aaf1bbe6948ac9d0fdeff3a54ec",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "aecdc9181f31e44594879b185732d44431adb8c612bb2d2e676046af1933acf7",
           "mapSha256": "08a4bfe53e131f47b30596351b9b3f29f7a4ce5021ed5d6814bf574215b102b7",
           "targetSha256": "4903570e7c6a4c7699d19810113c0ee4722f2aaf1bbe6948ac9d0fdeff3a54ec",
@@ -552,7 +1091,7 @@
         "smokes": [],
         "targetSha256": "bc9f5540a6935eb14503fc09959b659679e6ddf3d455cc45696a827e0e57f5a5",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "24bc9f55af936f1259b5407bafc2390b8c8e8c3890eeb0d6572be5a9c22b71c1",
           "mapSha256": "cc437500add03b9e650b63666b60de41a3354bdc815a4552e28133eee6123065",
           "targetSha256": "bc9f5540a6935eb14503fc09959b659679e6ddf3d455cc45696a827e0e57f5a5",
@@ -764,7 +1303,7 @@
         "smokes": [],
         "targetSha256": "d4fff8cda39255a45827bfc00cae5557a29475f5eb16aa33484f42f2dd3de196",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "65ec5710d493eb7057b916d3b9ae10207b10967460fa0e80766013fd2287369c",
           "mapSha256": "7cc105c8857346ce6cdf42b2f3d8843c3082d7efac228df5730e6cb700f40696",
           "targetSha256": "d4fff8cda39255a45827bfc00cae5557a29475f5eb16aa33484f42f2dd3de196",
@@ -778,7 +1317,7 @@
     },
     {
       "source": "documentacao-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "—",
       "module": null,
       "mapping": "registro a-criar",
@@ -832,7 +1371,7 @@
         "smokes": [],
         "targetSha256": "5fb5919b8d7ff9cb7b2fadf29a9802c4afc48e20c7c5b9436ccf6419b448b8f6",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "948723aba503756018306bd192fa2f1ae68bad5e60cd28d8091b2782d6b0e921",
           "mapSha256": "5982db0b23da990994d297aae586754ba812a4f79f1e0685af50449e9221308e",
           "targetSha256": "5fb5919b8d7ff9cb7b2fadf29a9802c4afc48e20c7c5b9436ccf6419b448b8f6",
@@ -868,7 +1407,7 @@
         "smokes": [],
         "targetSha256": "61f05663cb5c5776f117ecdac0c53ed9c96a32eaa5cb1af891ef4a2424d8d44a",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "91643224c26e9209cf8719bcc2fd6a451e7c5d31e80a8788a2c246885f563ab9",
           "mapSha256": "addba91360fb56e04dad464c0f9d3b413238c111ad831312acf9def8b2f6f55a",
           "targetSha256": "61f05663cb5c5776f117ecdac0c53ed9c96a32eaa5cb1af891ef4a2424d8d44a",
@@ -904,7 +1443,7 @@
         "smokes": [],
         "targetSha256": "5fb5919b8d7ff9cb7b2fadf29a9802c4afc48e20c7c5b9436ccf6419b448b8f6",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "91643224c26e9209cf8719bcc2fd6a451e7c5d31e80a8788a2c246885f563ab9",
           "mapSha256": "5982db0b23da990994d297aae586754ba812a4f79f1e0685af50449e9221308e",
           "targetSha256": "5fb5919b8d7ff9cb7b2fadf29a9802c4afc48e20c7c5b9436ccf6419b448b8f6",
@@ -940,7 +1479,7 @@
         "smokes": [],
         "targetSha256": "ce0ff6f490c236570d6a53b9bc9f1bc6ca9da1082e6fb0f97b0d48e203f5510b",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "91643224c26e9209cf8719bcc2fd6a451e7c5d31e80a8788a2c246885f563ab9",
           "mapSha256": "3a829425fb26ea26c4d528af3c95bb8da376b71815e888d3312d0dc0148bfa30",
           "targetSha256": "ce0ff6f490c236570d6a53b9bc9f1bc6ca9da1082e6fb0f97b0d48e203f5510b",
@@ -976,7 +1515,7 @@
         "smokes": [],
         "targetSha256": "5393a43d0ecf9c789947f0727962143f9317cb75e013fac7ef435debb355ab26",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "91643224c26e9209cf8719bcc2fd6a451e7c5d31e80a8788a2c246885f563ab9",
           "mapSha256": "a9c0afa0ee0c3716c012aa27bd1b3416333bf2237d1a331413cbffa63b9296c3",
           "targetSha256": "5393a43d0ecf9c789947f0727962143f9317cb75e013fac7ef435debb355ab26",
@@ -1012,7 +1551,7 @@
         "smokes": [],
         "targetSha256": "ce4f811d92bc0deeaa816a3c0bd3b4fe77fd4c7bc92f8f410261c5ecd483490d",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "91643224c26e9209cf8719bcc2fd6a451e7c5d31e80a8788a2c246885f563ab9",
           "mapSha256": "8a03fca37f975298cc0bc8cd1e1368ac0341bec0cc70a609a1e3062df17e4fb1",
           "targetSha256": "ce4f811d92bc0deeaa816a3c0bd3b4fe77fd4c7bc92f8f410261c5ecd483490d",
@@ -1048,7 +1587,7 @@
         "smokes": [],
         "targetSha256": "9af3e49d8ff479802dcb07e65dcb57f2f4dcc8a3cbe7834241d422f368f835e6",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "2fa322cf6e87671252516a022149e8effac1687e60a1fe97ce59a02a99015b53",
           "mapSha256": "de5906c74012c659829bf9ccde2f30b032a64b50048024212b566e637e125e4f",
           "targetSha256": "9af3e49d8ff479802dcb07e65dcb57f2f4dcc8a3cbe7834241d422f368f835e6",
@@ -1084,7 +1623,7 @@
         "smokes": [],
         "targetSha256": "149749c96b02911817432ff94bdc5d472a03b41258ce5621d03e9149847369b2",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "2fa322cf6e87671252516a022149e8effac1687e60a1fe97ce59a02a99015b53",
           "mapSha256": "59b2a0d7d86a39aa1007f4daa64609d1959abb8a5aac023351340d76fc6d5ba3",
           "targetSha256": "149749c96b02911817432ff94bdc5d472a03b41258ce5621d03e9149847369b2",
@@ -1120,7 +1659,7 @@
         "smokes": [],
         "targetSha256": "447bb513ca6ee23d5bd2d100843469d8d84d6342e0817b37ff52ee8c1c4c8102",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "2fa322cf6e87671252516a022149e8effac1687e60a1fe97ce59a02a99015b53",
           "mapSha256": "317fe5da3ab7f1d5a3fb00eb7f651ceca96381dc0ab341dd1a200bcdd6295a84",
           "targetSha256": "447bb513ca6ee23d5bd2d100843469d8d84d6342e0817b37ff52ee8c1c4c8102",
@@ -1156,7 +1695,7 @@
         "smokes": [],
         "targetSha256": "0c242d0570cd5df641c9a6a90c5fbdd7188f59fdcb0e7ab3b912d5a36f591cd9",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "2fa322cf6e87671252516a022149e8effac1687e60a1fe97ce59a02a99015b53",
           "mapSha256": "8d975ffa83ca7af9744c67f9dfd80cedc1a3c11678d0230ef21cdab72bc2f609",
           "targetSha256": "0c242d0570cd5df641c9a6a90c5fbdd7188f59fdcb0e7ab3b912d5a36f591cd9",
@@ -1175,26 +1714,22 @@
       "module": "Financeiro",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "compared",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
-      "compared": true,
+      "compared": false,
       "tested": false,
       "smoked": false,
       "validated": false,
       "applicationEvidence": {
-        "comparison": {
-          "map": "memory/requisitos/Financeiro/unificado.map.json",
-          "mapSha256": "cd1c2a6f43391b8f1e4204c74cf4f82dc7f19ad6cef464237d60aa88d92f559f",
-          "recordedAt": "2026-09-21T17:37:30.105Z"
-        },
+        "comparison": null,
         "application": null,
         "tests": [],
         "smokes": [],
         "targetSha256": "d94350ae21671af8dfb4be44a647e8b5a1a86e66e8fc6896c11f0552803288e9",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "f61a6c58e508f4962e00cd3fe96c3ab2d2bae8519b4121525bc709fd66bb1e77",
-          "mapSha256": "cd1c2a6f43391b8f1e4204c74cf4f82dc7f19ad6cef464237d60aa88d92f559f",
+          "mapSha256": null,
           "targetSha256": "d94350ae21671af8dfb4be44a647e8b5a1a86e66e8fc6896c11f0552803288e9",
           "testOutputSha256": [],
           "deploySha": [],
@@ -1202,7 +1737,7 @@
           "productionValidated": false
         }
       },
-      "nextAction": "aplicar no alvo e registrar evidência durável"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "financeiro-telas-extras.jsx",
@@ -1308,7 +1843,7 @@
         "smokes": [],
         "targetSha256": "471cb071690129dc6d1749df20ec44ba46b380cc361945d2c00b48ea76bf9832",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
           "mapSha256": "6a3b5536690f91f23e244d2ea14156871c3b727d12e40487dda24a4612fa4473",
           "targetSha256": "471cb071690129dc6d1749df20ec44ba46b380cc361945d2c00b48ea76bf9832",
@@ -1377,7 +1912,7 @@
         ],
         "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
           "mapSha256": "73f4245d280fe49054b68ce2c71e049a44718b0ce15232866c4eb221e49589a2",
           "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
@@ -1419,7 +1954,7 @@
         "smokes": [],
         "targetSha256": "1688d63f44cd27de41bce967f2cad79f014ff4eb2696ec34ffad7de3fe5d1c06",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
           "mapSha256": "e9176c1db97fa573a724406120a2ab44c8c082bd16a73413f697b4f686395f68",
           "targetSha256": "1688d63f44cd27de41bce967f2cad79f014ff4eb2696ec34ffad7de3fe5d1c06",
@@ -1488,7 +2023,7 @@
         ],
         "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
           "mapSha256": "2b863547b3c0dff421576b795c3ba26b4746565394b4eab8d2971480d20cf2ab",
           "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
@@ -1530,7 +2065,7 @@
         "smokes": [],
         "targetSha256": "f6b8672e3a01afeed35ffe881f05b987e510a9c1b2598c6288202c0582629948",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
           "mapSha256": "ecda4181dcc7a4a3fa4b1d00d92623bdadf37bddc6c214935a017fd20d71990f",
           "targetSha256": "f6b8672e3a01afeed35ffe881f05b987e510a9c1b2598c6288202c0582629948",
@@ -1566,7 +2101,7 @@
         "smokes": [],
         "targetSha256": "082e47490589ae3d13b5a2a918062cb9e18ef28d857add4bc439bfd6a19cf687",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
           "mapSha256": "7ce91afc620640c2c446e091bd1939470bbab286e7c037912828468b8629eb50",
           "targetSha256": "082e47490589ae3d13b5a2a918062cb9e18ef28d857add4bc439bfd6a19cf687",
@@ -1635,7 +2170,7 @@
         ],
         "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "eedd5b9c201370e0d0922aa24dca3dc46c0590f25331645c550d46d647e49823",
           "mapSha256": "4d070af807668a6dcfac0159cc26045ea311dffbc3840f009c9f6a92992ad203",
           "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
@@ -1677,7 +2212,7 @@
         "smokes": [],
         "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
           "mapSha256": "73f4245d280fe49054b68ce2c71e049a44718b0ce15232866c4eb221e49589a2",
           "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
@@ -1713,7 +2248,7 @@
         "smokes": [],
         "targetSha256": "1688d63f44cd27de41bce967f2cad79f014ff4eb2696ec34ffad7de3fe5d1c06",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
           "mapSha256": "e9176c1db97fa573a724406120a2ab44c8c082bd16a73413f697b4f686395f68",
           "targetSha256": "1688d63f44cd27de41bce967f2cad79f014ff4eb2696ec34ffad7de3fe5d1c06",
@@ -1749,7 +2284,7 @@
         "smokes": [],
         "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
           "mapSha256": "2b863547b3c0dff421576b795c3ba26b4746565394b4eab8d2971480d20cf2ab",
           "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
@@ -1785,7 +2320,7 @@
         "smokes": [],
         "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
           "mapSha256": "4d070af807668a6dcfac0159cc26045ea311dffbc3840f009c9f6a92992ad203",
           "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
@@ -1901,7 +2436,7 @@
         "smokes": [],
         "targetSha256": "4b9de67069ba2eddc87441458b852d6851aefa69da5ba3be4e2ac7d968103b04",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "c7cf5c4040a674ec9b0415d4cee7e4e00a0e4d989cc44a152bda09d5fba5dec2",
           "mapSha256": "94415431cf740fcdf3a7b12cc6219a84ed582eee5a8bfdc1b834f634fc8a8479",
           "targetSha256": "4b9de67069ba2eddc87441458b852d6851aefa69da5ba3be4e2ac7d968103b04",
@@ -1937,7 +2472,7 @@
         "smokes": [],
         "targetSha256": "ac3d84506996035c23eeb8a1e16ed5bb7671c184708d0ed8a84cb9b18bc296e9",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "c7cf5c4040a674ec9b0415d4cee7e4e00a0e4d989cc44a152bda09d5fba5dec2",
           "mapSha256": "51ef425c7484c4db9953944a6e5736ef8eb708198ce69607c189589fe3e76a38",
           "targetSha256": "ac3d84506996035c23eeb8a1e16ed5bb7671c184708d0ed8a84cb9b18bc296e9",
@@ -1973,7 +2508,7 @@
         "smokes": [],
         "targetSha256": "7d52572de2a7a711886480a81aec752f39f6da85bb3005b27bb95ff083fb18e7",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "c7cf5c4040a674ec9b0415d4cee7e4e00a0e4d989cc44a152bda09d5fba5dec2",
           "mapSha256": "28384e1153f13643a60ce611a04078b656f53e58bf3ddb46bc17222de461a8e8",
           "targetSha256": "7d52572de2a7a711886480a81aec752f39f6da85bb3005b27bb95ff083fb18e7",
@@ -2009,7 +2544,7 @@
         "smokes": [],
         "targetSha256": "92fb7555dabb8ba961bd5469768b1a8456a6e514cc9f029ffb90b354ce412123",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "c7cf5c4040a674ec9b0415d4cee7e4e00a0e4d989cc44a152bda09d5fba5dec2",
           "mapSha256": "2ae686ba02056dfa5ee1adb0377c45d82df1faf2ce9f183ca44b74df255aa079",
           "targetSha256": "92fb7555dabb8ba961bd5469768b1a8456a6e514cc9f029ffb90b354ce412123",
@@ -2039,111 +2574,51 @@
     },
     {
       "source": "hrm-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Essentials/Holidays/Index.tsx",
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "compared",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
-      "compared": true,
+      "compared": false,
       "tested": false,
       "smoked": false,
       "validated": false,
-      "applicationEvidence": {
-        "comparison": {
-          "map": "memory/requisitos/Essentials/holidays-index.map.json",
-          "mapSha256": "372e4f710906fb2bfde23b28d80c964b22163df033a56b01eaa41cdf2264232f",
-          "recordedAt": "2026-09-18T14:42:27.746Z"
-        },
-        "application": null,
-        "tests": [],
-        "smokes": [],
-        "targetSha256": "4d8d8bd8a70e0e126a3c9ac85cc4c5497772a5fc85b20d6a7e17a45e41ea517d",
-        "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
-          "sourceSha256": "6712d4d9886c73259de9edc417dd96ef2ef2870726ec53c71727abc1830079fe",
-          "mapSha256": "372e4f710906fb2bfde23b28d80c964b22163df033a56b01eaa41cdf2264232f",
-          "targetSha256": "4d8d8bd8a70e0e126a3c9ac85cc4c5497772a5fc85b20d6a7e17a45e41ea517d",
-          "testOutputSha256": [],
-          "deploySha": [],
-          "smokeScreenshotSha256": [],
-          "productionValidated": false
-        }
-      },
-      "nextAction": "aplicar no alvo e registrar evidência durável"
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "hrm-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Essentials/Settings/Index.tsx",
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "compared",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
-      "compared": true,
+      "compared": false,
       "tested": false,
       "smoked": false,
       "validated": false,
-      "applicationEvidence": {
-        "comparison": {
-          "map": "memory/requisitos/Essentials/settings-index.map.json",
-          "mapSha256": "aa0b61c3faef2993ca5ff6d2f7cb473af34c13d750d1a168c0125b94a69ee1db",
-          "recordedAt": "2026-09-18T14:42:32.291Z"
-        },
-        "application": null,
-        "tests": [],
-        "smokes": [],
-        "targetSha256": "41e32aa5049e13b37e469fed9bab98f61ad9c03f831f6daa7b5848965153d56b",
-        "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
-          "sourceSha256": "6712d4d9886c73259de9edc417dd96ef2ef2870726ec53c71727abc1830079fe",
-          "mapSha256": "aa0b61c3faef2993ca5ff6d2f7cb473af34c13d750d1a168c0125b94a69ee1db",
-          "targetSha256": "41e32aa5049e13b37e469fed9bab98f61ad9c03f831f6daa7b5848965153d56b",
-          "testOutputSha256": [],
-          "deploySha": [],
-          "smokeScreenshotSha256": [],
-          "productionValidated": false
-        }
-      },
-      "nextAction": "aplicar no alvo e registrar evidência durável"
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "hrm-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Essentials/Tipos.tsx",
       "module": "Essentials",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "compared",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
-      "compared": true,
+      "compared": false,
       "tested": false,
       "smoked": false,
       "validated": false,
-      "applicationEvidence": {
-        "comparison": {
-          "map": "memory/requisitos/Essentials/tipos.map.json",
-          "mapSha256": "61eaf36eafc870c2582cd7dedba7cbb3164f3af66949caa949898edd9f4f7908",
-          "recordedAt": "2026-09-18T15:58:58.098Z"
-        },
-        "application": null,
-        "tests": [],
-        "smokes": [],
-        "targetSha256": "09bb388e690bdcab4cf71424296fc10c62f7674d573af41e84b2baa5ab0166f0",
-        "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
-          "sourceSha256": "6712d4d9886c73259de9edc417dd96ef2ef2870726ec53c71727abc1830079fe",
-          "mapSha256": "61eaf36eafc870c2582cd7dedba7cbb3164f3af66949caa949898edd9f4f7908",
-          "targetSha256": "09bb388e690bdcab4cf71424296fc10c62f7674d573af41e84b2baa5ab0166f0",
-          "testOutputSha256": [],
-          "deploySha": [],
-          "smokeScreenshotSha256": [],
-          "productionValidated": false
-        }
-      },
-      "nextAction": "aplicar no alvo e registrar evidência durável"
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "inbox-page.jsx",
@@ -2169,7 +2644,7 @@
         "smokes": [],
         "targetSha256": "b26c174f88c786f937cf68d65cad0a07a8e0d7e5b07c82c339107412680fd7c5",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "10ab0b18e34509192a30575e994a8474e5caf32e80a4428de586cee6b2534163",
           "mapSha256": "397964abc8bac1010294ae14363cf1527b93d266a0e405cd24e2dc6ac4357453",
           "targetSha256": "b26c174f88c786f937cf68d65cad0a07a8e0d7e5b07c82c339107412680fd7c5",
@@ -2349,7 +2824,7 @@
         "smokes": [],
         "targetSha256": "9e7ff864df754d7317672e30c6c0458ab02a4380a7a377218d4f8271d61f9f7f",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "797f931adabd430c54cb5939e6c917274e9536205bf8ec764b3f026997b18840",
           "mapSha256": "23b8046dbb61820011490d71993208f70f516774d0e628d8349dca006dc7d991",
           "targetSha256": "9e7ff864df754d7317672e30c6c0458ab02a4380a7a377218d4f8271d61f9f7f",
@@ -2385,7 +2860,7 @@
         "smokes": [],
         "targetSha256": "94cebcb2521b60766808e276a2da880a793d041f41d13acca107c02652a13c45",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "797f931adabd430c54cb5939e6c917274e9536205bf8ec764b3f026997b18840",
           "mapSha256": "513f741e7fd3e60dabeb762ffb9fc7108e518051d73dee5e884e2c53d3bc02c0",
           "targetSha256": "94cebcb2521b60766808e276a2da880a793d041f41d13acca107c02652a13c45",
@@ -2437,7 +2912,7 @@
         "smokes": [],
         "targetSha256": "23d016ed0c328ff69c9f46628da558e30f350383982b6f27206493adc2717eef",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "d9581fcab21cf2435cdcf4f758ff719a4a76cd48c550fdc1ee1f94419448d7d6",
           "mapSha256": "f8eb11f41c049b9500b02b1c5e71dae537e4046f3d2a97a58268ce506d1a3314",
           "targetSha256": "23d016ed0c328ff69c9f46628da558e30f350383982b6f27206493adc2717eef",
@@ -2473,7 +2948,7 @@
         "smokes": [],
         "targetSha256": "93c9c227f21c279ba4e21668a6a0fffb842d853edd1656f787e4e398abafa549",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "d9581fcab21cf2435cdcf4f758ff719a4a76cd48c550fdc1ee1f94419448d7d6",
           "mapSha256": "2006738783c569fdb8af783672a0aa91f9134275c20d59bfe50f5ea533805d5c",
           "targetSha256": "93c9c227f21c279ba4e21668a6a0fffb842d853edd1656f787e4e398abafa549",
@@ -2484,6 +2959,22 @@
         }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
+    },
+    {
+      "source": "manufacturing-producao.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Manufacturing/Index.tsx",
+      "module": "Manufacturing",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "manufacturing-producao.jsx",
@@ -2541,7 +3032,7 @@
         "smokes": [],
         "targetSha256": "2416a609ea667292fc6d4c4a5250985a13202ea53132085c579cc1f1c28cd1a8",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "e0bcbd247c6c5bb82dac110259c0357b5784674083960d640d6382e4abcdb429",
           "mapSha256": "54e047dbea03b8e335c6bdfe014c17b87765db3b5da650b6f9192ef3d5d0ea8a",
           "targetSha256": "2416a609ea667292fc6d4c4a5250985a13202ea53132085c579cc1f1c28cd1a8",
@@ -2593,7 +3084,7 @@
         "smokes": [],
         "targetSha256": "5dab5f601ab8f001b1e441369a9dbe1440962a24bb4445b340554b9b05ed3afb",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "39b2cfcfba453ce030bc9f8cb2e76851488ef6ff8dc900daf5f823c722926244",
           "mapSha256": "576a460f83f6cf9e1ffc264d7cd685f32814e15b6c5000bd1c898a8aa823c065",
           "targetSha256": "5dab5f601ab8f001b1e441369a9dbe1440962a24bb4445b340554b9b05ed3afb",
@@ -2629,7 +3120,7 @@
         "smokes": [],
         "targetSha256": "1a69167d9c9ffec13a327cfaac7c4a113fa92ff8365f66661f673a365d64fa3c",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "39b2cfcfba453ce030bc9f8cb2e76851488ef6ff8dc900daf5f823c722926244",
           "mapSha256": "baa6974149d098e4bfbad63c5a3ff5881d2534386f21014e8edb0f82d28a0011",
           "targetSha256": "1a69167d9c9ffec13a327cfaac7c4a113fa92ff8365f66661f673a365d64fa3c",
@@ -2745,7 +3236,7 @@
         "smokes": [],
         "targetSha256": "7f4d1fc65575950191ff93e7b2f6b4b577df586d0c3c11dab385e7a0e9addb65",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "209d1ad413a189db0a6a58ab0a870b90eea4bc0a08f48c87bf08351a227ff519",
           "mapSha256": "6576dd387e0469292f336a509349234de841e3b1279aeb078865c1046d1747fc",
           "targetSha256": "7f4d1fc65575950191ff93e7b2f6b4b577df586d0c3c11dab385e7a0e9addb65",
@@ -2781,7 +3272,7 @@
         "smokes": [],
         "targetSha256": "deb2715486e0c1e94f5726d0a089f499c72230c2cd68ba36f3b50e3a0964a155",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "409e02172cd394c3d77838f4b9499d9681a2cbde4b48654cc589fe22015c12e2",
           "mapSha256": "840a9f03220ee09660c258ac81c838fb921384e6e4c78b573455771e660f0f34",
           "targetSha256": "deb2715486e0c1e94f5726d0a089f499c72230c2cd68ba36f3b50e3a0964a155",
@@ -2945,7 +3436,7 @@
         "smokes": [],
         "targetSha256": "047e17cecd0be92a4eba52cbe7f1332055de9e986e330a25f25edf2756ebaf1c",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "4ee1617c7909d3579181d065b830988da4c05e3297b588ccb330c2bb6a81f805",
           "mapSha256": "51ee1a3706e9e9c222e84f5ff8c2da45333d19e9f0f855955c60c0daac8d08cf",
           "targetSha256": "047e17cecd0be92a4eba52cbe7f1332055de9e986e330a25f25edf2756ebaf1c",
@@ -2981,7 +3472,7 @@
         "smokes": [],
         "targetSha256": "1514d056563d54a96270099a2635f9e85b63f82cc8ddbaf0f36d847a61a9bb8e",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "af1736ae1d9390283d0d92be7d13b9cafdd704269d08fb0f53aa75d04394a5cc",
           "mapSha256": "dffb4c2ed1c1b13333d3a65bf7c51ed96336da4fb9bd96dcb98c3b63149ecd8d",
           "targetSha256": "1514d056563d54a96270099a2635f9e85b63f82cc8ddbaf0f36d847a61a9bb8e",
@@ -3081,7 +3572,7 @@
         "smokes": [],
         "targetSha256": "360b1f6c2a79261e24a5f01d9568ae7aed811d41275f741f83011a4c0ce36a64",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "e22c0623b1713453271aef46165e546c899f3631e0e90eee5ce9d629a591d1ed",
           "mapSha256": "e9a1ec08c7108fcd7f9c15f952da7a868763dfa530f196f54cef34a7567a68b0",
           "targetSha256": "360b1f6c2a79261e24a5f01d9568ae7aed811d41275f741f83011a4c0ce36a64",
@@ -3117,7 +3608,7 @@
         "smokes": [],
         "targetSha256": "fa0bb3d3aa2ce553e5a2232cfe5986570516b0e0915d1b7fc6d857d74bf96cb7",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "e22c0623b1713453271aef46165e546c899f3631e0e90eee5ce9d629a591d1ed",
           "mapSha256": "215c94b76b8756da528c14507a2a88842292a5e7a54078d816841e62327b8b1a",
           "targetSha256": "fa0bb3d3aa2ce553e5a2232cfe5986570516b0e0915d1b7fc6d857d74bf96cb7",
@@ -3153,7 +3644,7 @@
         "smokes": [],
         "targetSha256": "a7439b370b731f5500854a415f9377d8ce251e740d0455e95d60047357936649",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "e22c0623b1713453271aef46165e546c899f3631e0e90eee5ce9d629a591d1ed",
           "mapSha256": "6d4ce849b26ac4b066a42a3465e287f88d2a10214f651f2bc40c29e9633d4953",
           "targetSha256": "a7439b370b731f5500854a415f9377d8ce251e740d0455e95d60047357936649",
@@ -3605,7 +4096,7 @@
         "smokes": [],
         "targetSha256": "24a6ed3cde58bd280e4268da2d05bb67ea0e3806d9893fdb5b09cc2ead683199",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
           "mapSha256": "0d431943e347f1f85e4b1f619bb4331d0ec59b5903c894cdf2964a93d115c1ea",
           "targetSha256": "24a6ed3cde58bd280e4268da2d05bb67ea0e3806d9893fdb5b09cc2ead683199",
@@ -3641,7 +4132,7 @@
         "smokes": [],
         "targetSha256": "9f6dafbd0b6d19ec4573396eda6fbafab6dac12e0d90d06693eaaa853b63bed5",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
           "mapSha256": "02a0e5d259326ee25d6f6a49bc0ca7f36e3d41bc0f1584cb68d17d4b1ac8be51",
           "targetSha256": "9f6dafbd0b6d19ec4573396eda6fbafab6dac12e0d90d06693eaaa853b63bed5",
@@ -3677,7 +4168,7 @@
         "smokes": [],
         "targetSha256": "10ad215532fbe52eb3056f3053033f0df17f110bf6ac584f832e2789891a6a08",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
           "mapSha256": "e827f7bb549b7f1044ce55e855a98a4b172eae6920f09c3018f0ce168cb0d55f",
           "targetSha256": "10ad215532fbe52eb3056f3053033f0df17f110bf6ac584f832e2789891a6a08",
@@ -3713,7 +4204,7 @@
         "smokes": [],
         "targetSha256": "43e2a7b5cbb8d6679b4dada0cf21e76417dc8e5c2cf494c8a87600cb3d159364",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
           "mapSha256": "85341266efe2582d944a4cbc1f23bc706fb8f313c3925e261fdca3f6856125f6",
           "targetSha256": "43e2a7b5cbb8d6679b4dada0cf21e76417dc8e5c2cf494c8a87600cb3d159364",
@@ -3749,7 +4240,7 @@
         "smokes": [],
         "targetSha256": "c9cf3c7d4c4ff3b0aeec044b6e1656b3c1e89a40569f25eac02cfefe322eb227",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
           "mapSha256": "dd336e621de3a5ffa5f20869410e758c3af5705fe366983c3b66d20b2856bd53",
           "targetSha256": "c9cf3c7d4c4ff3b0aeec044b6e1656b3c1e89a40569f25eac02cfefe322eb227",
@@ -3785,7 +4276,7 @@
         "smokes": [],
         "targetSha256": "9b8ea72b02522d29d1fc53c078284c20ec2c20d569002cc3cf384f2c5012c0f1",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
           "mapSha256": "5f3f8498828d1bfece50bacb05183c118596ea27912b0ec88170b62ab8802a27",
           "targetSha256": "9b8ea72b02522d29d1fc53c078284c20ec2c20d569002cc3cf384f2c5012c0f1",
@@ -3821,7 +4312,7 @@
         "smokes": [],
         "targetSha256": "39fab18098d6385f01519246a3c7978e8ef9eb7db8242093a33970520fd9fdc3",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "f9261334bda39914fd1e1c9e5eff67021d148943cada054060372b160c91630a",
           "mapSha256": "3ac403082d2582df8b42912a50d51515db721766c08fdacc29bb865a3249c583",
           "targetSha256": "39fab18098d6385f01519246a3c7978e8ef9eb7db8242093a33970520fd9fdc3",
@@ -3857,7 +4348,7 @@
         "smokes": [],
         "targetSha256": "1b597d01218d2a35a33ac24b03b2e98681e316c7a38130841c95bcd32f67cd11",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "871fb232df50fff6e75f3cfcd0f539538b138e2958bdeb7ea8b125dabfaa26c9",
           "mapSha256": "5cfa07383048d57ff0197f14f69de728966dd4f219b80bfef01dacb51938aff2",
           "targetSha256": "1b597d01218d2a35a33ac24b03b2e98681e316c7a38130841c95bcd32f67cd11",
@@ -3893,7 +4384,7 @@
         "smokes": [],
         "targetSha256": "600d4630b77bf119fd4397c9e809bb0a523388fb96460bab5227b9aa986281ee",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "871fb232df50fff6e75f3cfcd0f539538b138e2958bdeb7ea8b125dabfaa26c9",
           "mapSha256": "2202cc7ce94405ee1300d79725c1044aaa06429024af2edf248557ae3f1ca3b5",
           "targetSha256": "600d4630b77bf119fd4397c9e809bb0a523388fb96460bab5227b9aa986281ee",
@@ -3929,7 +4420,7 @@
         "smokes": [],
         "targetSha256": "a80154c08aa1528ae1087feef52564b48c7933a9849e19074ec8dac458e28528",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "871fb232df50fff6e75f3cfcd0f539538b138e2958bdeb7ea8b125dabfaa26c9",
           "mapSha256": "30b7e2f9e89f47920bc41a5a644fd302ee134936b40a1275d75801279478cecf",
           "targetSha256": "a80154c08aa1528ae1087feef52564b48c7933a9849e19074ec8dac458e28528",
@@ -3965,7 +4456,7 @@
         "smokes": [],
         "targetSha256": "59a60d0d06cb0f4da1dca07ee145882df9b77d6e7ea21fa0772f7a28ea1e1168",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "871fb232df50fff6e75f3cfcd0f539538b138e2958bdeb7ea8b125dabfaa26c9",
           "mapSha256": "0349569e660bc9d573d3f98d277a78c7fff793674adb9ed934b1b1bc4025bd2a",
           "targetSha256": "59a60d0d06cb0f4da1dca07ee145882df9b77d6e7ea21fa0772f7a28ea1e1168",
@@ -4010,7 +4501,7 @@
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
-      "source": "venda-v3/sells-create.jsx",
+      "source": "venda-v3.jsx",
       "bundleChange": "unchanged",
       "target": "resources/js/Pages/Sells/CreateV3.tsx",
       "module": "Sells",
@@ -4081,7 +4572,7 @@
         "smokes": [],
         "targetSha256": "1fabb6bcff4f975a1965d42a4ea13a64364927cfb5a52358282ba6f446017d06",
         "proofChain": {
-          "bundleId": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe",
+          "bundleId": "2a61e216f50b9d3ee778aa9f02b3a194fbbf3bb541bdac94ff9206fbaebe4939",
           "sourceSha256": "6415238d7121208900cdf9a34c255b777aca477563f4099714f3d529309e465d",
           "mapSha256": "e607c0ddcfd6f4493f1197f7d4220b1a00609c4ee615b15b7c6fbaaa83111be5",
           "targetSha256": "1fabb6bcff4f975a1965d42a4ea13a64364927cfb5a52358282ba6f446017d06",
@@ -4225,8 +4716,8 @@
     },
     {
       "path": "CLAUDE.md",
-      "bytes": 16106,
-      "sha256": "8bf5efefb70f94a7546eac27f360bbf148abda2422169565870293ee6ccc27c0",
+      "bytes": 17333,
+      "sha256": "bc88def71eb9b5bff2c41b5b6afe4c75a8c5cde4185511779137fed6659466a6",
       "role": "cowork-source"
     },
     {
@@ -4357,8 +4848,8 @@
     },
     {
       "path": "COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md",
-      "bytes": 19853,
-      "sha256": "3dbc7142d08fa99cc54ef8b4b5836417b1c764c3c84f61507d030c722e90e75a",
+      "bytes": 19542,
+      "sha256": "4f4e57f26ec70e54a04178a4ba05b5ffd1aa2cdaffeb64198b2828d13a886957",
       "role": "cowork-source"
     },
     {
@@ -4417,8 +4908,8 @@
     },
     {
       "path": "COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md",
-      "bytes": 89566,
-      "sha256": "c70b5f518239f027283b76eb0be8dcf95f3fd17cfee4e70a63af9f4bdabfc394",
+      "bytes": 90992,
+      "sha256": "1f1e705c0285298789eb901b045bbac13bbd11f6ba010dd9d778693cad0f6d38",
       "role": "cowork-source"
     },
     {
@@ -4645,62 +5136,62 @@
     },
     {
       "path": "cowork-inbox/ancora/playbook/_PATCH-INDICE-2026-09-10.md",
-      "bytes": 4689,
-      "sha256": "612e03685d94a30b8314ce6e39a9def51b5417a79ff6061f8f43288dfe826a7e",
+      "bytes": 4707,
+      "sha256": "33404f229e41e577784866d73b78c14a97bf5f0f3a1d75da16919b832c4f9e4d",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ancora/playbook/_PATCH-INDICE-2026-09-16.md",
-      "bytes": 3767,
-      "sha256": "970d6317577fa52420b399fc3cfd1bd2945a5aae48009827a3933c6e6fb8fd93",
+      "bytes": 3778,
+      "sha256": "920359bc1beb6fd62f283175380e2a3be3f9a48b2792a2c0d5b7544666fd0ade",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ancora/playbook/00-INDICE.md",
-      "bytes": 10868,
-      "sha256": "5ff5c26820b848d49e8df8adf737eb2e1ae21982aaea05f42d8bc3b0e031f42f",
+      "bytes": 10909,
+      "sha256": "013eb9d3c218466724c168f32a29d4da168abbdafd608cadfadb617ebf41037b",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ancora/playbook/01-bundle-sem-staging.md",
-      "bytes": 6321,
-      "sha256": "6deabcc6fb43323863f0f6c5dbbbba8f71d6fb27aa3dbf47f847043e0c5b28b3",
+      "bytes": 6352,
+      "sha256": "2f10aa7ea8ead13afec98d7edb659d65c3b03af5369db74f8d57516ea448087a",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ancora/playbook/02-query-ambigua.md",
-      "bytes": 4745,
-      "sha256": "307bc2c4bfc65125f843939e60ecd0e59c82d44ca66e8fb5a8fa736840b8350c",
+      "bytes": 4753,
+      "sha256": "7a35661d6c8e75a8371be3e18b6be69c633060296a351d9033ecfd9534d66ddf",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ancora/playbook/03-list-prova-arquivo.md",
-      "bytes": 5342,
-      "sha256": "aeea64fc792ade4ba33453d8cec697f1afde6442cf3e407b228fb72c88c34dc6",
+      "bytes": 5350,
+      "sha256": "2d5be31c55bd15e8b7cd390a4fc4b7c3b12cf34396b57683493500f6a1ea7b26",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ancora/playbook/04-denominador-cobertura.md",
-      "bytes": 2164,
-      "sha256": "3e87f61d2122316f55b5dd4ed095aa530a0ad1e21ce36bb288dae0e95ff07058",
+      "bytes": 2170,
+      "sha256": "5b5f0f173930dafaadfcd525c9f7ab58e71fa47cb9c90d09b145b70b8998341d",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ancora/playbook/05-campo-duplo-divergente.md",
-      "bytes": 2241,
-      "sha256": "76d87b8288b334a9423e155859da4a049a8af750b9ce431fc183e587feb968f2",
+      "bytes": 2247,
+      "sha256": "3c966ad2a7f0274882be5bb16dbb8db733b1ee6ba3db4ffcea85f75cf5e88045",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ancora/playbook/06-contrato-fora-do-glob.md",
-      "bytes": 3088,
-      "sha256": "9db2a2ffb5d6b724f6ab8c41ffa43205c6aff425871561a6be9faf7431a2cc29",
+      "bytes": 3100,
+      "sha256": "6170e90ded7dbc19caffa171208a54b5dc5d4ed80134ace4d30ebff378b3e1f5",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ancora/playbook/07-cruzar-report-trio-contrato.md",
-      "bytes": 9789,
-      "sha256": "a7e93590b5c658ec5ce6b0b92d4c0abb8c94856d66b7ad79ce8bdc38978aafd8",
+      "bytes": 9793,
+      "sha256": "1c5753af9704445a7b81460d9c40f75e06e707dcc5dcadca62bfb6e7a1aa430a",
       "role": "cowork-source"
     },
     {
@@ -4891,20 +5382,20 @@
     },
     {
       "path": "cowork-inbox/compras/playbook/00-INDICE.md",
-      "bytes": 13919,
-      "sha256": "858ecdbba1a260f5cb4b6d533fb147d0324a5476e079e3e0d5b1ee273effbda2",
+      "bytes": 14026,
+      "sha256": "c687dd488d2e3a86e30fef4f366ca9a21300eac9803dc3ea98e163ae8fcb9259",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/compras/playbook/01-rede-e2e.md",
-      "bytes": 6107,
-      "sha256": "e904079ebee9e452c7918ca7b188f63ac10e4ac0a8bc56a18a8ac2330e4b522b",
+      "bytes": 6113,
+      "sha256": "db171e9b2a70ee10cf1857dbdc897ae957fe090a7d999177fa72d8cbe941f5e3",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/compras/playbook/02-margem-sem-fonte.md",
-      "bytes": 3548,
-      "sha256": "4c53c3876e5ec479883bc55459742e9a6f802264616e11e7cfcfd9af65baddf1",
+      "bytes": 3576,
+      "sha256": "e38cfbedd594cac6913ef9ff8c95a77dc519e303bfe805d5d4bc42316685a028",
       "role": "cowork-source"
     },
     {
@@ -4975,26 +5466,26 @@
     },
     {
       "path": "cowork-inbox/ds-atomos/playbook/00-INDICE.md",
-      "bytes": 11889,
-      "sha256": "2ef521580fc4b031815d5cccedc89cf987d8199444eae63e424a77d97814f39b",
+      "bytes": 12025,
+      "sha256": "9d5af88b907eb361e916738861d6368ebfea514d9b5a894cf33c7b7f5efd91bd",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ds-atomos/playbook/01-card-anatomia.md",
-      "bytes": 3896,
-      "sha256": "9425fb05f0721652edf5af3ab84cb17cf2e7b15631ba0cd136c5acf56fc418cc",
+      "bytes": 3903,
+      "sha256": "3b3d0a3198e94cb838339d4e16ea77d40b350f5cf74f8fc992e895c36e5d5b19",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ds-atomos/playbook/02-kpicard-filter.md",
-      "bytes": 4409,
-      "sha256": "64f7957f1348a7fc59ccaddb586a0f25aa46aa1304afe4851bb7cc814a1558be",
+      "bytes": 4416,
+      "sha256": "4459715bb561818b8962a8d7bca2632c8b1d4e70c8e81115b29295eaaf1bb0ca",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ds-atomos/playbook/03-toolbar-criar.md",
-      "bytes": 5316,
-      "sha256": "463745afeaf2a9bb8d56715f54c4b43b64531d33bd4650714ffd6a90bddd584e",
+      "bytes": 5323,
+      "sha256": "03bb465d57e88c0f2d2efac4524aa9182bfdf0f95d6b3af16032dd83d4eeb4b5",
       "role": "cowork-source"
     },
     {
@@ -5143,8 +5634,8 @@
     },
     {
       "path": "cowork-inbox/financeiro/playbook/00-INDICE.md",
-      "bytes": 5387,
-      "sha256": "52ffd982a19cc3001ba97e6f71395b4c39946767b0db6767ebb52b629963ff01",
+      "bytes": 5404,
+      "sha256": "242b45eb1dc6d23ab920044b34315be7236b4ff105f8e45b800ecfcff9f7cfb0",
       "role": "cowork-source"
     },
     {
@@ -5203,20 +5694,20 @@
     },
     {
       "path": "cowork-inbox/fiscal/playbook/00-INDICE.md",
-      "bytes": 11041,
-      "sha256": "27bb8ee831ff96d1a55f5f59b0a41396651799a94cb43f00d51d088f34b207dd",
+      "bytes": 11119,
+      "sha256": "6b8f5ce1d11770f2bdbcb28dd9d54bf970f17c13ce4f5a00057f9bcdda19d2d9",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/fiscal/playbook/01-rede-e2e.md",
-      "bytes": 4452,
-      "sha256": "d5ae836d07b9bfea07e9fefc91c418350f69e9e7b3104ed1dfd9f13434e9f1a8",
+      "bytes": 4464,
+      "sha256": "912f45685168c0a5e8f0075857e30fa8d2f5cee4bdafc5402c74731e0bdb7665",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/fiscal/playbook/02-paginacao.md",
-      "bytes": 5799,
-      "sha256": "30c453633d33df1723d84bd322e458931697ced47591a533ebbb46ab56f7fa08",
+      "bytes": 5806,
+      "sha256": "670fcd0c01afb72071710b61487869951ab4623d9cebc9e12314221cc7c91921",
       "role": "cowork-source"
     },
     {
@@ -5275,14 +5766,14 @@
     },
     {
       "path": "cowork-inbox/governance/playbook/00-INDICE.md",
-      "bytes": 10377,
-      "sha256": "181f1a7ed7ab24df645efa348b48da2dee2dcead436f5fccd4472a72be765e85",
+      "bytes": 10378,
+      "sha256": "662ce7d55015cf26d98d086f633957846de275ec8f18a26a49543f00bd212d16",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/governance/playbook/01-contrato-desce.md",
-      "bytes": 4048,
-      "sha256": "9019565cbd06d1cd669f80742e80b4129870c8d5a543fc3ba245858f089632ac",
+      "bytes": 4064,
+      "sha256": "472df02f9b2df9929aeeed18813ed7759cadef157e28a8cc23ffa4b0ad2c1302",
       "role": "cowork-source"
     },
     {
@@ -5293,8 +5784,8 @@
     },
     {
       "path": "cowork-inbox/governance/playbook/03a-casos-policies.md",
-      "bytes": 3616,
-      "sha256": "dbeee8c164977be6da3921a2b883b934f790df2f324311717c660d81d659f297",
+      "bytes": 3622,
+      "sha256": "fc0889bc7016a4fd3f060301850de558a1a8f72aef0fd45f70c376c307b12061",
       "role": "cowork-source"
     },
     {
@@ -5346,45 +5837,51 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/hrm/playbook/_saida-01.md",
+      "bytes": 3037,
+      "sha256": "7cd5fbf7bea6db322283e69e1fbf0b53666963cfb4ac54225443ae8c0402a2da",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/hrm/playbook/00-INDICE.md",
-      "bytes": 25435,
-      "sha256": "42e16326199be7287bd9e9173a7f02bec9626730efdd46bf134a41805b2623da",
+      "bytes": 25526,
+      "sha256": "80d1fc5d8b9809cb975785618d867dc03543e527406d63e4304960805d555149",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/hrm/playbook/01-build-tabs-hrm.md",
-      "bytes": 3051,
-      "sha256": "29e89a0b1b4637d7e45eca1abe0efab0700c8930c949ab9af8b33ada2811aa00",
+      "bytes": 3065,
+      "sha256": "6413e9e5232f3b3497406ae93e53b5f4cfbafcd09e12cc785ea008e0231a69ca",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/hrm/playbook/02-licencas.md",
-      "bytes": 6678,
-      "sha256": "19727deaf3db98b0b0c372580e9d2e00f655c000413156db779bc31a7bce8ed2",
+      "bytes": 6703,
+      "sha256": "74a214744079c40ebc4676d2cf82e2e58c8e5ae8c1049480d914d41b6ed06177",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/hrm/playbook/03-tipos-licenca.md",
-      "bytes": 3445,
-      "sha256": "bbf8da4a12c413dd6510205807530c92a91c639d13096b6063054002eb0ae7df",
+      "bytes": 3451,
+      "sha256": "9e19863760eb303b392253f67a3e60a311ab5ed537ea788c26d91979a59a2a74",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/hrm/playbook/04-metas-venda.md",
-      "bytes": 3609,
-      "sha256": "adcf2fab06dd2aabb0865d096ff947b6a6faccc1a0c7106147282da391c2d5c0",
+      "bytes": 3642,
+      "sha256": "09edc47ae5f07b98e771b6b1eb32db66e9bf5cb8426e0079fce4765fc6a6968a",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/hrm/playbook/05-turnos.md",
-      "bytes": 3934,
-      "sha256": "d693458cf9c090f81456ad17e5ed3303d2a1b4dbca00ce8553bed2c8a2da2fa0",
+      "bytes": 3940,
+      "sha256": "0c0b0db92adc312ee4059d373830a4870e17b70c5a226384af67dae54824cc3a",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/hrm/playbook/06-painel.md",
-      "bytes": 3852,
-      "sha256": "4e5f4bd8fabb0910964076f5b879b86f472e566fbc79d6a40a7bb8d67e557148",
+      "bytes": 3858,
+      "sha256": "75d2164b05e0cfa83a405d033fafb4b0098aba6b63bea985600bca73e42253ed",
       "role": "cowork-source"
     },
     {
@@ -5395,8 +5892,8 @@
     },
     {
       "path": "cowork-inbox/hrm/playbook/08-feriados-puxar.md",
-      "bytes": 1831,
-      "sha256": "233954aacbf90f83ad9595ae1537793c2ef1120b81d3010cff2bc6d15279325e",
+      "bytes": 1838,
+      "sha256": "69f502be638ee1893c4c24f14e111889c66268f3a29f3acbcb54eb655e9a48a9",
       "role": "cowork-source"
     },
     {
@@ -5443,8 +5940,8 @@
     },
     {
       "path": "cowork-inbox/JANA-CICLO-COMPLETO-PRODUCAO-2026-08-13.md",
-      "bytes": 21701,
-      "sha256": "dc2599798bb6f444dbce54b447e1bde5ec28931f8e41af139c3f8c9155199a17",
+      "bytes": 22367,
+      "sha256": "59e2e90fae35374f2a8d5bb05a7e67e81d7dd76839924521777679187dbdf496",
       "role": "cowork-source"
     },
     {
@@ -5743,14 +6240,14 @@
     },
     {
       "path": "cowork-inbox/patrimonio/playbook/_PATCH-INDICE-2026-09-09.md",
-      "bytes": 9078,
-      "sha256": "4c9f5fa518d21bf83315909a7a2105382d8cc7dd62e7d6fa7d93db4decc4ca83",
+      "bytes": 9088,
+      "sha256": "aa11cf5b6b9edfbca9988f25cfd7a79d5325183266d9f7469d9bf9bf8f037817",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/patrimonio/playbook/00-INDICE.md",
-      "bytes": 9533,
-      "sha256": "90da86cfff5223f30199a79bc5a7b070296fc97a7fd8c5bddedae0428f290216",
+      "bytes": 9551,
+      "sha256": "fe0d4a578579d0f6a85ccccc544fa28101bb652a6a918ebe7ce070f4b5489b6d",
       "role": "cowork-source"
     },
     {
@@ -5791,8 +6288,8 @@
     },
     {
       "path": "cowork-inbox/patrimonio/playbook/14-provas-flat-09-10-11.md",
-      "bytes": 4261,
-      "sha256": "41eb924c9eca2251b7af693fba4f4efa431d49a383c150f1ec6a7951c6641a2c",
+      "bytes": 4265,
+      "sha256": "364d0cbd952370e8f9b1b3bfdad94aee555c1139ddfa23ed9f873e6b14b2c586",
       "role": "cowork-source"
     },
     {
@@ -5803,14 +6300,14 @@
     },
     {
       "path": "cowork-inbox/patrimonio/playbook/16-revogacoes-na-aba.md",
-      "bytes": 5276,
-      "sha256": "2e70a228bde1fc89d87e1b85fd909dd3a41eb936d5aeb70b9d34c0f853fff4b8",
+      "bytes": 5283,
+      "sha256": "c3a4421948597dd9605ac2ad0ba3f5363919bb734f1570fe8f5ae89e0096e9ae",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/patrimonio/playbook/17-bens-form.md",
-      "bytes": 3927,
-      "sha256": "618dd070f97f5a41b3221b5ae63c219d09c7ce43da1c648c9147c8e44666c3cf",
+      "bytes": 3934,
+      "sha256": "4346278d5fa4dbc55cb7ee4f63abb4a13187514d70770bcfa06e337155c8e267",
       "role": "cowork-source"
     },
     {
@@ -5907,6 +6404,24 @@
       "path": "cowork-inbox/PEDIDO-DS-tokens-fg-e-manifest-2026-09-17.md",
       "bytes": 7578,
       "sha256": "effc0d74546326e87c70d2de15ef8f7de4085de78f765b7fcf4e81d6b4a720bf",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/placar/playbook/00-INDICE.md",
+      "bytes": 1994,
+      "sha256": "86fe765e34cf4d17c0cbe5ed2a1c4b25343a340870901a62d2d1ac1db15a55b4",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/placar/playbook/01-entregue-sem-recibo.md",
+      "bytes": 2613,
+      "sha256": "5368fec8b2c36bd8880e0ff1b7288e268b636be8bc280a579b8f4749a8499d34",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/placar/playbook/02-onda-modo-thread.md",
+      "bytes": 1997,
+      "sha256": "dc56514312f01272a4b170a2555958f8bc7831a671d796cc725129a3a24c71d2",
       "role": "cowork-source"
     },
     {
@@ -6067,8 +6582,8 @@
     },
     {
       "path": "cowork-inbox/ponto/playbook/_delta-indice-13a15.md",
-      "bytes": 9064,
-      "sha256": "9a1011e2296a0e435c592a0ec8bdcff4f85dce6f787bcda1a762b9157f6056e9",
+      "bytes": 9078,
+      "sha256": "ccd39ea1e37e1b02809bf36ff5c5975e9eb67b3917c6bf8c0399a85bc384a6d1",
       "role": "cowork-source"
     },
     {
@@ -6085,8 +6600,8 @@
     },
     {
       "path": "cowork-inbox/ponto/playbook/00-INDICE.md",
-      "bytes": 24425,
-      "sha256": "69dc3b9a95da772654271e555b8ebcc9178f6271c036e08a77260d273301b20a",
+      "bytes": 24527,
+      "sha256": "9f335aca3347ef31d78655a457f0a718d15c9e1afef620443f22131d6ed4f47d",
       "role": "cowork-source"
     },
     {
@@ -6103,56 +6618,56 @@
     },
     {
       "path": "cowork-inbox/ponto/playbook/03-a11y-divergencia.md",
-      "bytes": 2343,
-      "sha256": "bd27d5d271cd6c017d8a9795382c2fe12cb198da25646c7467ae164866a65533",
+      "bytes": 2349,
+      "sha256": "7b8e6676f6f6a2694d3faa6b63ceb6c9202b8e51fd3f9931b1168ec93c45d830",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ponto/playbook/04-fechamento-bloqueada.md",
-      "bytes": 2626,
-      "sha256": "26bcf27ba4bc00bef48236db6d14a25b6242a3610c20b37055afbfb4b34e3de8",
+      "bytes": 2639,
+      "sha256": "fab2868045626a07268aa52cc4ce3572c1e7b62f097e196625ee5bcf1baaa52f",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ponto/playbook/05-conformidade-bloqueada.md",
-      "bytes": 1786,
-      "sha256": "4e31ede711e0623f97cdb1c33c9a6e345a4b74704a490b7aca37c9158464781f",
+      "bytes": 1793,
+      "sha256": "9cfd46799897b48734d779ef999d2f9880e79a2f783d57fa066c9bfa74be3612",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ponto/playbook/06-rep-p.md",
-      "bytes": 5611,
-      "sha256": "435499ee09eb74e4ad4a281d35d7e5ed94937a7e989b0bb273a1af3674d33177",
+      "bytes": 5630,
+      "sha256": "0d28533553c2f90975386b25f1c6648139d15268171f546c782dd582eb9df4e6",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ponto/playbook/07-contratos-required.md",
-      "bytes": 1609,
-      "sha256": "fd578a4c67fdec478d60e864a7a33140c314aad6abbccc4d8755fe04337fc64e",
+      "bytes": 1627,
+      "sha256": "9e80a450616b8c97b0b5977d950494a1828d199bc22c6241db36a69bb9315946",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ponto/playbook/08-puxar-painel-espelho.md",
-      "bytes": 2381,
-      "sha256": "ed6c13363c77d8b8bb45eef442f064540bbb2c57a00e250fba36659bb5771389",
+      "bytes": 2395,
+      "sha256": "2c07c196748a1bf229d604b28188c45c56f62aeb5f7571b0d1343abec6cfec3e",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ponto/playbook/09-puxar-11-telas.md",
-      "bytes": 2323,
-      "sha256": "be28d1edbc1cadfd5cde913d0df49ba48f550c14a26130849d50263d1fc33c94",
+      "bytes": 2337,
+      "sha256": "1f6ebedd89c03dd6425bcf96532dc50c43bd4110d432484715dc331ecca45ef3",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ponto/playbook/10-build-mobile-sem-selfie.md",
-      "bytes": 2058,
-      "sha256": "7c76825ca5f0dd3bd28da183fd874943ce6a4148ffcc80940d547d2975a526e1",
+      "bytes": 2072,
+      "sha256": "66e294a3409ed54a7fd6d2132a2b6c3e0fd45bf4ffbf4a4e3e401067085eb604",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ponto/playbook/11-limpeza-blades-inbox.md",
-      "bytes": 2764,
-      "sha256": "fef132915f34012b89d4e741ec2c825d77278ff6ae938bd2c3040a42a94c02c4",
+      "bytes": 2768,
+      "sha256": "b0bbd9f6f34a910c73656152929f8665e555ed8421139b9fa425ffd963d484a6",
       "role": "cowork-source"
     },
     {
@@ -6163,20 +6678,20 @@
     },
     {
       "path": "cowork-inbox/ponto/playbook/13-forma-painel.md",
-      "bytes": 5666,
-      "sha256": "cfad00d79c7baa380bbd38ff58542c95071a7625ef718264ab410a71507daf0c",
+      "bytes": 5679,
+      "sha256": "e633066408c37e4a7b5cacf7717e90d6f13810814bc93c34bf885e63fd183bd4",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ponto/playbook/14-forma-espelho-lista.md",
-      "bytes": 4886,
-      "sha256": "751065ec64ab44322d6c6f26a743732c4fcaf91f78e945b933a57e31c606e3ea",
+      "bytes": 4899,
+      "sha256": "ad1d9dd8fa15607b6e4ac46acd193022fd87c7cdfbaddf91939bcd5d8de5dd0c",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/ponto/playbook/15-forma-aprovacoes.md",
-      "bytes": 4863,
-      "sha256": "25b5f9eee0a68f69a28255c14c5a150d93ec7cf24249218ffb3b795900e7f0ea",
+      "bytes": 4870,
+      "sha256": "2d0fd17c2df60b89dc2cfd8d47bcdde68387738aab26f4bce0c3406007213f8c",
       "role": "cowork-source"
     },
     {
@@ -6259,8 +6774,8 @@
     },
     {
       "path": "cowork-inbox/ponto/playbook/30-pedido-retidos-aprovado.md",
-      "bytes": 7796,
-      "sha256": "de8f012005ed5fa96cd8a31bac7c78acc0eb385350bd7f1f2ed056d4a6e839a7",
+      "bytes": 7803,
+      "sha256": "00f846191331ab1b687cb1829c6c7c7add8dffa4fb0641f749212a0f22491ce4",
       "role": "cowork-source"
     },
     {
@@ -6271,8 +6786,8 @@
     },
     {
       "path": "cowork-inbox/ponto/playbook/ATA-DECISOES-2026-09-14.md",
-      "bytes": 19911,
-      "sha256": "07935502970d72fa3d14cfea47f4fc5e470c83ce4f2ae16351c2cf9f3505aa76",
+      "bytes": 19918,
+      "sha256": "9c7923e5a1c913dbcd62892bf39c3bbb0fd04be1e4d551f2ebd2559e0cdacfe7",
       "role": "cowork-source"
     },
     {
@@ -6373,14 +6888,14 @@
     },
     {
       "path": "cowork-inbox/recepcao-pacote/playbook/00-INDICE.md",
-      "bytes": 5028,
-      "sha256": "f598c43686a640945d51595440f8e4872d5335c9d14965569453eb2ed4083db7",
+      "bytes": 5035,
+      "sha256": "9d80730c8c4892b99fc9eae90e132f30518e5dce6f987671422204b6078d2013",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/recepcao-pacote/playbook/01-recepcao-regenera.md",
-      "bytes": 2791,
-      "sha256": "732eedfb1e6181fe0a4b80665eaa65546c1e85e99ea69c123a7f192f3ef50e9b",
+      "bytes": 2798,
+      "sha256": "57a79fe27ad7430b72243dbc7ce1bb0af2dd7a147d9c5e31e24774912edda150",
       "role": "cowork-source"
     },
     {
@@ -6391,8 +6906,8 @@
     },
     {
       "path": "cowork-inbox/shell-usermenu/playbook/00-INDICE.md",
-      "bytes": 5396,
-      "sha256": "a152e789028db1bcc29b7d881a7c10f38fa6d283e8620e26e57ba0a37c6fb33c",
+      "bytes": 5413,
+      "sha256": "4c5a6446be7c59f0539398bf64074ef1d79cfa51738ab2cbac11af99820e6c4e",
       "role": "cowork-source"
     },
     {
@@ -6433,44 +6948,44 @@
     },
     {
       "path": "cowork-inbox/sidebar/playbook/00-INDICE.md",
-      "bytes": 26570,
-      "sha256": "efbc8e25cbfb3872d5470f21a57b54c7a0948a0ff0a817fe6ba09659b8e53d16",
+      "bytes": 26635,
+      "sha256": "6ba52a83223acf57b147380826b953875b744f25e380b0da65c3eede1e727088",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/sidebar/playbook/01-corpo-a11y.md",
-      "bytes": 5376,
-      "sha256": "b0018936be0c1c5c931352c93970894adbb231b91b344290e4d8f1213709b247",
+      "bytes": 5404,
+      "sha256": "9b71f457cb23611c88a3005bdce097fa9aab7863daa03725d204c5eab44d3b7d",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/sidebar/playbook/02-modos-auto-rail.md",
-      "bytes": 5568,
-      "sha256": "500bc0ae6cdfe1a14a92acf2cbe7eb80bff32f07880f2e1c84cf828a985c47eb",
+      "bytes": 5582,
+      "sha256": "503e756cd64dc58d9b091f84201e0af169bb946fabba6418bdc1fb661d6690dc",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/sidebar/playbook/03-topo-picker.md",
-      "bytes": 3279,
-      "sha256": "20e2357dd2d041a63beb3b244cf70559dbf7d9ea93d2d298a030d03ca0aaa0a4",
+      "bytes": 3307,
+      "sha256": "f92a2359dec472c4c98e7067848acdc3fa4d65ce95cc0ded8199ca29691b6ca9",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/sidebar/playbook/04-hidden-reopen.md",
-      "bytes": 4798,
-      "sha256": "78dacbf8e01733914318db02179187ae93aeec57c6897cb05942422e51226d9d",
+      "bytes": 4805,
+      "sha256": "0d6064e3672ee695a89ee296f4a301438ee71d30cfe7ca9f90cba5fc0b7c9655",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/sidebar/playbook/05-ghosts-adr-0180.md",
-      "bytes": 2816,
-      "sha256": "a2451e09be8c37cf8029103633886c5dcda84a88021ae3fe13d321e8ab4369af",
+      "bytes": 2823,
+      "sha256": "b48aaa617580fa7259db7f95252c59477471c9ff9565bcbef9e0aa7e237eaa5e",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/sidebar/playbook/06-contrato-e-gates.md",
-      "bytes": 3538,
-      "sha256": "6cfc8355b43d68ff66c7d52a162942411d58480725b6cd1095cd496c1140fbf7",
+      "bytes": 3556,
+      "sha256": "e2a9fcfcecf59cea1aa947ea6f310e2f276bdd37f08b38c28a93d57cff7f4969",
       "role": "cowork-source"
     },
     {
@@ -6661,20 +7176,20 @@
     },
     {
       "path": "data.jsx",
-      "bytes": 35228,
-      "sha256": "5183db6e7e336cb0be45d52cba24257b77a5190aeac350ce8cbb557006be5de6",
+      "bytes": 35299,
+      "sha256": "3574801c1b0bc3e5cd70ac3aaaa7125b7fcd1b43c74aad5e7856608576f3edf2",
       "role": "cowork-source"
     },
     {
       "path": "documentacao-page.css",
-      "bytes": 12967,
-      "sha256": "8db456cf192293f3f7925b82f67c138ced035ab450fe79e61ea60ea160da7b00",
+      "bytes": 16050,
+      "sha256": "11e293a19dbf8bfb58a4d827244f82657c3affc292876cc061fafef128f6c249",
       "role": "cowork-source"
     },
     {
       "path": "documentacao-page.jsx",
-      "bytes": 73123,
-      "sha256": "010b71a984a1607368afc5f1fcd9fc437a0ff75539f0015b8cd0cbc5923973e3",
+      "bytes": 81260,
+      "sha256": "3b895fa2188bd488eba5a226f62f52e5aace3365a1eb7a1c2f56b37c7bc3831f",
       "role": "cowork-source"
     },
     {
@@ -6687,18 +7202,6 @@
       "path": "ds-tokens-git.css",
       "bytes": 5883,
       "sha256": "7d32fd05e6c2358dbf7e959860e196d3e0faf787e32addf938e94da196f9f844",
-      "role": "cowork-source"
-    },
-    {
-      "path": "ds-v6/gabarito-vendas.html",
-      "bytes": 24849,
-      "sha256": "fbe684e36d7ace611f04438243561a1c3b76d0766c461ef0f2faf2e63f3d0ae6",
-      "role": "cowork-source"
-    },
-    {
-      "path": "ds-v6/tokens.css",
-      "bytes": 18982,
-      "sha256": "7b406fdb4cace6f8f1a3f348693d5fd9b1086c5b5c13388ed24cdb1af3307185",
       "role": "cowork-source"
     },
     {
@@ -7033,8 +7536,8 @@
     },
     {
       "path": "github.md",
-      "bytes": 118908,
-      "sha256": "60c84ac2a954da6a11c8c1e48049c636d652570011eb5989eaebb0c7fb784b0a",
+      "bytes": 120004,
+      "sha256": "265ddd3964b9e82a13e25e575bfd4f181b484d228f980314e0324b2a0a3dc7c8",
       "role": "cowork-source"
     },
     {
@@ -7141,8 +7644,8 @@
     },
     {
       "path": "hrm-data.jsx",
-      "bytes": 15513,
-      "sha256": "702a95bcbd71050beda063df6b4a7b7bcdf28a8507332b6a57a452257ca9ea7c",
+      "bytes": 15548,
+      "sha256": "f56c4a97e5702139b40ff3f8421e8e5c074c9b5973b6b0fff8fd68aefe314591",
       "role": "cowork-source"
     },
     {
@@ -7165,8 +7668,8 @@
     },
     {
       "path": "hrm-page.jsx",
-      "bytes": 32777,
-      "sha256": "6712d4d9886c73259de9edc417dd96ef2ef2870726ec53c71727abc1830079fe",
+      "bytes": 38121,
+      "sha256": "185c4e5e510ab5f3d8a6ffa575edf56380a0e85f95bcc28ca5f2052cefa577b0",
       "role": "cowork-source"
     },
     {
@@ -7531,8 +8034,8 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 36206,
-      "sha256": "e2906ee2009343830b7f805a3e62004ec2afb6aa011921b649572f675632f1f9",
+      "bytes": 36245,
+      "sha256": "be5c1cf9e677a09e53cf3b6e95071a7765e016d2d79859ad3640706848647fae",
       "role": "cowork-source"
     },
     {
@@ -8178,12 +8681,6 @@
       "role": "cowork-source"
     },
     {
-      "path": "venda-v3/01-fundacoes/css/tokens-tema-escuro.css",
-      "bytes": 1530,
-      "sha256": "801b3ed55ae3442453c30b45b9e5ac091639d849a05051cf6b8f8cf8b4fbecf9",
-      "role": "cowork-source"
-    },
-    {
       "path": "venda-v3/02-shell/css/base.css",
       "bytes": 1879,
       "sha256": "3bc8323777820d4dd81424b90dfe252e9abbf38be4127f763f75cd846fe450af",
@@ -8221,8 +8718,8 @@
     },
     {
       "path": "venda-v3/index.html",
-      "bytes": 5445,
-      "sha256": "e2e44fc3d85a93be475c9326cec4b237a2196fc1166ba4db52bc4885e073febf",
+      "bytes": 5374,
+      "sha256": "f38815f82773a7d5fbe6aa4c4acae966ef9fb3854ca1798f836a5b6f2c2fd923",
       "role": "cowork-source"
     },
     {

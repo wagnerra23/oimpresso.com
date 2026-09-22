@@ -3,7 +3,7 @@ sessao: "02"
 titulo: Coluna "Margem" no drawer do protótipo — número sem fonte
 dono: "[CC]"
 base: 9101f86af501
-prefixo: prototipo-ui/cowork/compras-page.jsx · prototipo-ui/cowork/oimpresso.com.html (bump ?v=)
+prefixo: prototipo-ui/cowork/Wagner/compras-page.jsx · prototipo-ui/cowork/Wagner/oimpresso.com.html (bump ?v=)
 nao_toca: resources/js/Pages/Compras/** · Modules/Compras/** · compras-grade-matrix.jsx · qualquer arquivo do main
 depende: — (vaga 1). Esta thread NÃO vira PR no main: é correção do ALVO.
 ---
@@ -27,8 +27,8 @@ Margem = (venda − custo) / venda é **conta derivada**. Calcular na UI é a me
 
 ## Execução
 ```
-ARQUIVOS A EDITAR : prototipo-ui/cowork/compras-page.jsx  (só o cabeçalho e as células do items-tbl)
-                    prototipo-ui/cowork/oimpresso.com.html (bump ?v= do compras-page.jsx)
+ARQUIVOS A EDITAR : prototipo-ui/cowork/Wagner/compras-page.jsx  (só o cabeçalho e as células do items-tbl)
+                    prototipo-ui/cowork/Wagner/oimpresso.com.html (bump ?v= do compras-page.jsx)
 REUSAR            : o próprio items-tbl (5 colunas restantes ficam intactas, mesma ordem)
 CRIAR             : nada
 NÃO TOCAR         : layout, tokens, largura das outras colunas, a grade tam×cor, o cockpit do main

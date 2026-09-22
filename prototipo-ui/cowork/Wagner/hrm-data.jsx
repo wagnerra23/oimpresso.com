@@ -138,7 +138,7 @@ const DIA = { monday:"seg", tuesday:"ter", wednesday:"qua", thursday:"qui", frid
 
 // ── Papéis simulados (onda O9) — a permissão real vem do Spatie; aqui é afordância de protótipo ──
 const PAPEIS = {
-  admin: { l:"Administrador", d:"is_admin — vê e faz tudo no negócio", pode:["ver_todos","aprovar","gerir_licenca","gerir_turno","gerir_feriado","gerir_folha","gerir_meta","config","importar","marcar"] },
+  admin: { l:"Administrador", d:"is_admin — vê e faz tudo no negócio", pode:["ver_todos","aprovar","gerir_licenca","gerir_turno","gerir_departamento","gerir_cargo","gerir_feriado","gerir_folha","gerir_meta","config","importar","marcar"] },
   gestor: { l:"Gestor de equipe", d:"crud_all_leave · approve_leave · crud_all_attendance", pode:["ver_todos","aprovar","gerir_licenca","importar","marcar"] },
   colab:  { l:"Colaborador", d:"crud_own_leave · view_own_attendance · allow_users_for_attendance_from_web", pode:["marcar"] },
 };

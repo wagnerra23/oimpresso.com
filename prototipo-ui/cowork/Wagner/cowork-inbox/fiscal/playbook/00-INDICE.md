@@ -5,9 +5,9 @@ autor: "[CC]"
 criado: 2026-09-08
 revisado: 2026-09-08 rev.2 — após a thread 03 (aferição). 4 das 6 threads da rev.1 morreram; ver `_saida-03.md`
 base: wagnerra23/oimpresso.com@main (árvores 11eff17f13db · 99530522729d, lidas 2026-09-08 11:09 e 11:19 UTC)
-destino_no_main: prototipo-ui/design-docs/cowork-inbox/fiscal/playbook/
+destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/
 constituicao: CONSTITUICAO-COWORK.md (C1–C12) + memory/proibicoes.md — citadas, não copiadas
-regra: PEDIDO, não inventário. Estado é derivado (§2-bis). Nunca em prototipo-ui/cowork/ (guard R1).
+regra: PEDIDO, não inventário. Estado é derivado (§2-bis). Nunca em prototipo-ui/cowork/Wagner/ (guard R1).
 ---
 
 # SINCRONIZAR Fiscal — playbook
@@ -52,19 +52,19 @@ regra: PEDIDO, não inventário. Estado é derivado (§2-bis). Nunca em prototip
 **Vaga 1:** 01 ∥ 02 (prefixos disjuntos). Nenhuma outra thread — e não se inventa terceira para o playbook parecer cheio.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
-`node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/fiscal/playbook/00-INDICE.md --root . --proximo`
+`node scripts/qa/placar-indice.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/00-INDICE.md --root . --proximo`
 Render esperado: `Fiscal: entregue 1 de 3 · próximo 2 · bloqueada 0` — **PRÓXIMO: 01 · 02.**
 
 ## 3 · Abertura de thread (colar como 1ª mensagem — sessão limpa)
 ```
 Sessão fresca. ANTES de abrir: gh pr list --state open e cruze com os arquivos do seu prefixo.
 Leia nesta ordem, do main:
-1. prototipo-ui/design-docs/cowork-inbox/ponte/03-REGRAS-DE-PARALELISMO.md   ← Leis 1–4
-2. prototipo-ui/CONSTITUICAO-COWORK.md                                       ← C1–C12
+1. prototipo-ui/cowork/Wagner/cowork-inbox/ponte/03-REGRAS-DE-PARALELISMO.md   ← Leis 1–4
+2. memory/reference/prototipo-ui/CONSTITUICAO-COWORK.md                                       ← C1–C12
 3. .../fiscal/playbook/00-INDICE.md  §0 · §1 · §2                            ← o que JÁ está feito
 4. .../fiscal/playbook/NN-<sua-thread>.md                                    ← escopo · recorte · prova
 5. .../fiscal/playbook/_saida-03.md                                          ← a medição que matou 9 ondas
-6. o §0 (leis do módulo) de prototipo-ui/COLAR-NO-CODE-fiscal-notafiscal-ondas.md
+6. o §0 (leis do módulo) de prototipo-ui/cowork/Wagner/COLAR-NO-CODE-fiscal-notafiscal-ondas.md
 7. os RECORTES nomeados na sua thread (arquivo :: símbolo :: faixa) — e SÓ eles
 AVISO: os blocos 1 e 1-bis do arquivo-ponte estão VENCIDOS. Não abra PR por onda de lá.
 Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md.
@@ -92,7 +92,7 @@ Terminou: escreva _saida-NN.md e pare.
   "modulo": "Fiscal",
   "sha": "99530522729d",
   "gerado": "2026-09-08",
-  "absorve": ["prototipo-ui/COLAR-NO-CODE-fiscal-notafiscal-ondas.md"],
+  "absorve": ["prototipo-ui/cowork/Wagner/COLAR-NO-CODE-fiscal-notafiscal-ondas.md"],
   "decisoes": [
     { "id": "D-TIPO", "pergunta": "Select de tipo + densidade em NF-e/NFS-e", "respondida": true, "resposta": "codigo: DensidadeToggle em Cockpit.tsx:24, Nfe.tsx:25, Nfse.tsx:20" },
     { "id": "D-SPARK", "pergunta": "As 3 sparklines do ribbon entram?", "respondida": true, "resposta": "codigo: RibbonSpark em Cockpit.tsx:29" },
@@ -103,11 +103,11 @@ Terminou: escreva _saida-NN.md e pare.
   "threads": [
     { "id": "01", "titulo": "Rede: 2 specs E2E (cockpit + NF-e)", "dono": "CL", "vaga": 1, "arquivo": "01-rede-e2e.md",
       "prefixo": ["e2e/fiscal-cockpit.spec.ts", "e2e/fiscal-nfe.spec.ts"],
-      "nao_toca": ["resources/js/Pages/Fiscal/", "Modules/Fiscal/", "prototipo-ui/contrato/fiscal-cockpit.contract.json", "prototipo-ui/contrato/fiscal-nfe.contract.json"],
+      "nao_toca": ["resources/js/Pages/Fiscal/", "Modules/Fiscal/", "governance/design/contracts/fiscal-cockpit.contract.json", "governance/design/contracts/fiscal-nfe.contract.json"],
       "provas": [
         { "tipo": "arquivo", "path": "e2e/fiscal-cockpit.spec.ts" },
         { "tipo": "arquivo", "path": "e2e/fiscal-nfe.spec.ts" },
-        { "tipo": "arquivo", "path": "prototipo-ui/contrato/fiscal-cockpit.contract.json", "guarda": true },
+        { "tipo": "arquivo", "path": "governance/design/contracts/fiscal-cockpit.contract.json", "guarda": true },
         { "tipo": "contem", "path": "resources/js/Pages/Fiscal/Cockpit.tsx", "padrao": "onKeyDown", "guarda": true, "nota": "UC-FCKP-11 nao pode sumir num PR de rede" }
       ] },
     { "id": "02", "titulo": "Paginacao .fx-pager no Cockpit", "dono": "CL", "vaga": 1, "arquivo": "02-paginacao.md",
@@ -120,7 +120,7 @@ Terminou: escreva _saida-NN.md e pare.
       ] },
     { "id": "03", "titulo": "Afericao read-only (FEITA)", "dono": "CC", "vaga": 1, "arquivo": "03-afericao.md",
       "prefixo": [], "nao_toca": ["resources/js/Pages/Fiscal/", "Modules/Fiscal/"],
-      "provas": [ { "tipo": "arquivo", "path": "prototipo-ui/design-docs/cowork-inbox/fiscal/playbook/_saida-03.md" } ],
+      "provas": [ { "tipo": "arquivo", "path": "prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/_saida-03.md" } ],
       "nota_provas": "matou as threads 04/05/06 da rev.1 e fechou as 5 decisoes [W] com caminho e linha" }
   ]
 }

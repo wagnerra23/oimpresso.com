@@ -8,8 +8,8 @@ reemitido: 2026-09-09 (v2 — alvo remedido pós-limpeza · largura declarada ·
 # DS-átomos · playbook
 
 ## Leia antes (read-order desta pasta)
-1. `prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md` · `PRE-FLIGHT-TELA.md` — no `main`, nunca de cópia.
-2. `memory/LICOES_CC.md` (erro catalogado) **+ `prototipo-ui/design-docs/COLAR-NO-CODE-ACERTOS-E-LICOES.md`** (acerto catalogado — bloco *Ciclo 2026-09-09 · Ponto*). A1–A8 dizem o que **não** se refaz; os erros 1–5 dizem como **não** medir.
+1. `memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md` · `PRE-FLIGHT-TELA.md` — no `main`, nunca de cópia.
+2. `memory/LICOES_CC.md` (erro catalogado) **+ `prototipo-ui/design-docs/COLAR-NO-CODE-ACERTOS-E-LICOES.md`** (acerto catalogado — bloco *Ciclo 2026-09-09 · Ponto*; ⚠️ `design-docs/` foi removida pela ADR 0397 sem sucessor fixado — ler no git em `4f51a9ec781^`, não no `main`). A1–A8 dizem o que **não** se refaz; os erros 1–5 dizem como **não** medir.
 3. Este índice — §Alvo é a **única** fonte dos números. As threads 13/14/15 do `ponto/playbook/` citam esta seção por nome; nenhuma delas repete os valores (regra copiada envelhece em paralelo).
 
 ## Por que isto NÃO é um playbook do Ponto

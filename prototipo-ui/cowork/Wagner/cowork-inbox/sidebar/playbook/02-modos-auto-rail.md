@@ -3,7 +3,7 @@ sessao: "02"
 titulo: Seção MODOS — auto-rail por largura (UI-0030) e persistir só a escolha manual
 dono: "[CC]"
 base: af09f7c3a0fd
-prefixo: prototipo-ui/cowork/app.jsx
+prefixo: prototipo-ui/cowork/Wagner/app.jsx
 nao_toca: sidebar.jsx · styles.css · Components/cockpit/**
 depende: — (vaga 1). Produção está à frente: 🔵 PUXAR, não inventar. Acumula o corte do estado morto do Chat (RESÍDUO-2, §C-bis) — coordenar com a 01.
 ---
@@ -44,7 +44,7 @@ Medido nesta data: `SidebarTabs`/`SidebarChat`/`ConvRow` (em `sidebar.jsx`) e **
 
 ## Execução
 ```
-ARQUIVOS A EDITAR : prototipo-ui/cowork/app.jsx (só o bloco "Sidebar: modo expanded | rail | hidden")
+ARQUIVOS A EDITAR : prototipo-ui/cowork/Wagner/app.jsx (só o bloco "Sidebar: modo expanded | rail | hidden")
 MEDIR             : com localStorage limpo, abrir em largura acima e abaixo do AUTO_RAIL_MQ e conferir o modo;
                     depois escolher manualmente e reabrir na outra largura — a escolha tem de vencer
 PASSO A PASSO     : 1) ler AUTO_RAIL_MQ no main  2) init por chave→largura (1280 INCLUSIVE)  3) escolherModo()  4) listener

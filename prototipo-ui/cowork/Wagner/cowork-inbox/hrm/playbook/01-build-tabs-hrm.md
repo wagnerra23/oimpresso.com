@@ -3,7 +3,7 @@ sessao: "01"
 titulo: Build — TABS do HRM (−Presença · +Departamentos/Cargos)
 dono: "[CC]"
 base: 159e572dd448
-prefixo: hrm-page.jsx · hrm-data.jsx · oimpresso.com.html (só bump ?v=) — deste projeto Cowork; espelho em prototipo-ui/cowork/
+prefixo: hrm-page.jsx · hrm-data.jsx · oimpresso.com.html (só bump ?v=) — deste projeto Cowork; espelho em prototipo-ui/cowork/Wagner/
 nao_toca: hrm-extras.jsx (Presenca fica no arquivo até a 09 fechar) · hrm-forms.jsx · DS · app.jsx (rota hrm-presenca continua existindo e redireciona)
 depende: RESÍDUO 2 (Departamentos/Cargos) — a parte −Presença não depende de nada (D1 respondida)
 ---
@@ -35,6 +35,6 @@ depende: RESÍDUO 2 (Departamentos/Cargos) — a parte −Presença não depende
 - Algum card do Painel precisar de número do Ponto → `—` + linha no `_saida` (dado do Ponto não é deste módulo).
 
 ## Prova (PLACAR confere)
-- `hrm-page.jsx` no espelho `prototipo-ui/cowork/` sem `hrm-presenca` em `TABS` · `NAV.ds-tabbar` com 7 ou 9 `BUTTON` `aria-selected`
+- `hrm-page.jsx` no espelho `prototipo-ui/cowork/Wagner/` sem `hrm-presenca` em `TABS` · `NAV.ds-tabbar` com 7 ou 9 `BUTTON` `aria-selected`
 - `_saida-01.md` nesta pasta
 - Não verificável daqui: o pacote (`gerar-payload-partes.mjs`) — aviso o comando, não afirmo que regenerei

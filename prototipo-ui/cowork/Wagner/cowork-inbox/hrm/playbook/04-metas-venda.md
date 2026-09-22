@@ -3,14 +3,14 @@ sessao: "04"
 titulo: Metas de venda — PUXAR (produção à frente · #6869)
 dono: "[CC] read-only → build"
 base: 45e63465d2e4
-prefixo: prototipo-ui/cowork/hrm-extras.jsx (`Metas`) — só se houver gap a puxar
-nao_toca: resources/js/Pages/Essentials/Metas.tsx · SalesTargetController.php · prototipo-ui/contrato/essentials-metas.contract.json
+prefixo: prototipo-ui/cowork/Wagner/hrm-extras.jsx (`Metas`) — só se houver gap a puxar
+nao_toca: resources/js/Pages/Essentials/Metas.tsx · SalesTargetController.php · governance/design/contracts/essentials-metas.contract.json
 depende: RESÍDUO 5 (o que fazer com as 5 colunas de apuração do protótipo)
 ---
 # 04 · Metas — puxar o vivo (a rev.1 desta thread mandava reconstruir uma tela em produção)
 
 ## Estado (lido no `main` 45e63465)
-`/hrm/sales-target` **já é Inertia**: `SalesTargetController.php:80` → `Inertia::render('Essentials/Metas')`. O #6869 (mergeado 2026-09-05 18:50, **32 s antes** da base que a rev.1 declarou) entregou o pacote inteiro: `resources/js/Pages/Essentials/Metas.tsx` (330 ln) · `Metas.charter.md` (`page: /hrm/sales-target`, `related_prototype: prototipo-ui/cowork/hrm-extras.jsx (Metas)`) · `Metas.casos.md` · `prototipo-ui/contrato/essentials-metas.contract.json` · `Tests/Feature/HrmMetasTest.php` · `e2e/essentials-metas.spec.ts` · `RUNBOOK-metas.md` · lane em `essentials-pest.yml`. Frescor 🔵 — **não repintar, não reescrever charter.**
+`/hrm/sales-target` **já é Inertia**: `SalesTargetController.php:80` → `Inertia::render('Essentials/Metas')`. O #6869 (mergeado 2026-09-05 18:50, **32 s antes** da base que a rev.1 declarou) entregou o pacote inteiro: `resources/js/Pages/Essentials/Metas.tsx` (330 ln) · `Metas.charter.md` (`page: /hrm/sales-target`, `related_prototype: prototipo-ui/cowork/Wagner/hrm-extras.jsx (Metas)`) · `Metas.casos.md` · `governance/design/contracts/essentials-metas.contract.json` · `Tests/Feature/HrmMetasTest.php` · `e2e/essentials-metas.spec.ts` · `RUNBOOK-metas.md` · lane em `essentials-pest.yml`. Frescor 🔵 — **não repintar, não reescrever charter.**
 
 ## O que a produção decidiu e o protótipo ainda não sabe (lido no charter)
 - **Non-Goal explícito:** as **5 colunas de apuração** do protótipo (`Mês anterior · Mês atual · Faixa atingida · Progresso na faixa · Comissão em R$`) ficaram **fora** — único produtor é `DashboardController::getUserSalesTargets` (admin-only, DataTables) e trazê-lo é caminho de VALOR (dupla prova, `proibicoes.md`). Meu protótipo mostra as 5 como se fossem desta tela → **divergência a declarar no build**, não pedido pro Code.
@@ -32,4 +32,4 @@ depende: RESÍDUO 5 (o que fazer com as 5 colunas de apuração do protótipo)
 
 ## Prova (PLACAR confere)
 - `_saida-04.md` com o diff nos dois sentidos, a sha lida e a proposta de copy por seção.
-- Se entrou no build: `hrm-extras.jsx` no espelho `prototipo-ui/cowork/` com os átomos puxados e sem as colunas de VALOR (ou com o selo).
+- Se entrou no build: `hrm-extras.jsx` no espelho `prototipo-ui/cowork/Wagner/` com os átomos puxados e sem as colunas de VALOR (ou com o selo).

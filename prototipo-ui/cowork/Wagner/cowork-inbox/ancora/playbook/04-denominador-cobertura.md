@@ -2,7 +2,7 @@
 thread: "04"
 modulo: ancora
 dono: "[CL]"
-prefixo: prototipo-ui/ancora.mjs
+prefixo: scripts/design/ancora.mjs
 depende: ["03"]
 base: remedir antes de escrever (li ed4398d77437 em 2026-09-10)
 ---
@@ -18,8 +18,8 @@ Ninguém sabe **quantas** telas têm âncora. O playbook de 09/09 mediu **189** 
 3. `--list` (texto) ganha uma última linha com o mesmo resumo, uma linha só.
 
 ## Prova (execução, não estrutura)
-- `node prototipo-ui/ancora.mjs --list --json` → recibo `_saida-04.md` com o objeto `resumo` colado **inteiro** e o `total` batendo com `find resources/js/Pages -name '*.charter.md' | wc -l`.
-- `node prototipo-ui/ancora.mjs --selftest` → exit 0.
+- `node scripts/design/ancora.mjs --list --json` → recibo `_saida-04.md` com o objeto `resumo` colado **inteiro** e o `total` batendo com `find resources/js/Pages -name '*.charter.md' | wc -l`.
+- `node scripts/design/ancora.mjs --selftest` → exit 0.
 - **Caso de sanidade obrigatório:** rodar o resumo, apagar mentalmente 1 charter conhecido (`Cliente/Index`) do filtro e conferir que o total cai em 1 — sonda que não reage a mudança conhecida não é sonda.
 
 ## Parar se

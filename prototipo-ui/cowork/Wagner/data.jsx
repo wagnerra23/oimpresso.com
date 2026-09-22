@@ -164,11 +164,12 @@ const MENU = [
     { id: "ponto",   icon: "user",    label: "Ponto" },
     { id: "hrm",     icon: "users",   label: "HRM", ghosts: [
       { id: "hrm-licencas", icon: "doc",     label: "Licenças" },
-      { id: "hrm-presenca", icon: "clock",   label: "Presença" },
       { id: "hrm-turnos",   icon: "refresh", label: "Turnos" },
       { id: "hrm-folha",    icon: "cash",    label: "Folha de pagamento" },
       { id: "hrm-feriados", icon: "clock",   label: "Feriados" },
       { id: "hrm-metas",    icon: "chart",   label: "Metas de venda" },
+      { id: "hrm-departamentos", icon: "users", label: "Departamentos" },
+      { id: "hrm-cargos",   icon: "users",   label: "Cargos" },
       { id: "hrm-config",   icon: "cog",     label: "Configurações" },
     ]},
     { id: "essenciais", icon: "check", label: "Essenciais", ghosts: [

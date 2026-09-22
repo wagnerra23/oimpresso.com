@@ -4,8 +4,8 @@ titulo: SINCRONIZAR Sidebar — índice do playbook (fonte da máquina embutida 
 autor: "[CC]"
 criado: 2026-09-10
 base: wagnerra23/oimpresso.com@main (tree af09f7c3a0fd · lida 2026-09-10 10:37–10:38 UTC)
-destino_no_main: prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/
-regra: este índice é PEDIDO (lista de threads com prefixo e prova), não inventário. Estado é derivado (§2-bis), nunca escrito. Nunca em prototipo-ui/cowork/ (guard R1).
+destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/sidebar/playbook/
+regra: este índice é PEDIDO (lista de threads com prefixo e prova), não inventário. Estado é derivado (§2-bis), nunca escrito. Nunca em prototipo-ui/cowork/Wagner/ (guard R1).
 ---
 
 # SINCRONIZAR Sidebar — playbook
@@ -14,9 +14,9 @@ regra: este índice é PEDIDO (lista de threads com prefixo e prova), não inven
 > A Sidebar é **página única** → **onda = seção** (corpo/menu · modos · topo), nunca "o sidebar inteiro".
 
 ## 0 · Landing — como esta pasta desce
-- **A unidade é a PASTA inteira** (`00-INDICE.md` + 6 `NN-*.md`). Rota: DesignSync `get_file` de cada `.md` → `--export-from <dir>`; `.md` roteia pra `prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/`.
+- **A unidade é a PASTA inteira** (`00-INDICE.md` + 6 `NN-*.md`). Rota: DesignSync `get_file` de cada `.md` → `--export-from <dir>`; `.md` roteia pra `prototipo-ui/cowork/Wagner/cowork-inbox/sidebar/playbook/`.
 - **Só `.md` roteia.** Por isso a fonte da máquina não é arquivo: é o primeiro bloco ```json deste índice (§7). Nada `.json`/`.mjs` solto no pacote.
-- `.md` em `prototipo-ui/cowork/` é **proibido** (guard R1) — se o roteador mandar pra lá é erro de rota, não exceção.
+- `.md` em `prototipo-ui/cowork/Wagner/` é **proibido** (guard R1) — se o roteador mandar pra lá é erro de rota, não exceção.
 
 ## 1 · LEVANTAR — o pedido de 2026-08-28 relido contra o `main` de hoje
 
@@ -51,7 +51,7 @@ Instrumentos do protótipo que **nunca** vão pro vivo: `WipMark` · `podeVer(pa
 | 03 | Seção TOPO: paridade `CompanyPicker` + slot de alerta pós-picker | [CC] | `sidebar.jsx` (topo) · `data.jsx` | 01 (mesmo arquivo) · ~~RESÍDUO-4~~ **respondido: importar** — **slot FEITO; diff do picker pendente** | 2 |
 | 04 | Modo `hidden` + `SidebarReopenHandle` → promover pro vivo | [CL] | `Components/cockpit/{Sidebar.tsx,shared.ts}` · `Layouts/AppShellV2.tsx` · `resources/css/cockpit.css` | 01 (a11y do alvo) · RESÍDUO-3 | 1 |
 | 05 | Ghosts × ADR 0180 — emenda ou reversão | [W] → [CL] | `memory/decisions/0180-*.md` | RESÍDUO-1 (despacho [W]) | 2 |
-| 06 | Contrato de tela do shell + gates | [CL] | `prototipo-ui/contrato/cockpit-sidebar.contract.json` · `tests/Feature/Sidebar/` | 01 · 03 · 04 | 3 |
+| 06 | Contrato de tela do shell + gates | [CL] | `governance/design/contracts/cockpit-sidebar.contract.json` · `tests/Feature/Sidebar/` | 01 · 03 · 04 | 3 |
 
 > **Vaga 1 na prática:** a **01** e a **02** estão **feitas** (2026-09-10 — ver `_saida-01.md` / `_saida-02.md`); a **04** segue presa ao RESÍDUO-3.
 > **Correção — 01 e 02 NÃO eram paralelas.** Ambas participam do mesmo corte de código morto e a **02 depende da 01**: cortar as props em `app.jsx` antes de a 01 remover o JSX que as consome quebra o `Sidebar`. Lei 1 pegou o conflito de arquivo (01×03), não este — conflito de **ordem sem arquivo em comum**.
@@ -60,7 +60,7 @@ Instrumentos do protótipo que **nunca** vão pro vivo: `WipMark` · `podeVer(pa
 **Ancoragem dupla:** alvo de layout = o protótipo medido (`prototipo-ui/cowork/Wagner/sidebar.jsx`); **âncora de implementação = `Components/cockpit/Sidebar.tsx` + `cockpit.css`** — reusar `.sb-*`, `SidebarMode`, `LS.SB_MODE`, `AUTO_RAIL_MQ` que já existem lá. O `main` responde *onde e com que dado*; o protótipo responde *como*.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
-> **Fonte = bloco ```json do §7 + o repo.** `node prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs --indice <este arquivo> --root . --proximo`. Regra: `_saida-NN.md` presente **e** provas verdes = `feito`; sem `_saida` = não feito, mesmo com PR mergeado.
+> **Fonte = bloco ```json do §7 + o repo.** `node prototipo-ui/cowork/Wagner/cowork-inbox/_scripts/placar-indice.mjs --indice <este arquivo> --root . --proximo`. Regra: `_saida-NN.md` presente **e** provas verdes = `feito`; sem `_saida` = não feito, mesmo com PR mergeado.
 
 > **Defeito estrutural do próprio playbook — apontado pelo [CL] em 2026-09-10, confirmado lendo `_scripts/README-placar.md` no `main`.** As seis threads nasceram só com provas `contem`/`nao_contem`, e o placar diz a razão numa linha: *estrutura não prova execução*. Nenhuma delas conseguia chegar a `feito` — o `entregue 0 de 6` era do **desenho**, não do andamento. Contratos válidos, agora declarados no §7: **`execucao`** (recibo JSON + summary do `junit-summary.mjs` ou reporter nativo do Playwright, hashes SHA-256, gerado pela máquina que rodou), **`revisao`** (parecer documental — só encerra tarefa que escreve *apenas* `.md`/`.contract.json`), **`comparacao`** (snapshots do `design-diff --compare --contrato --check --check-shell --json`, exige o `.contract.json` da tela).
 >
@@ -83,11 +83,11 @@ Instrumentos do protótipo que **nunca** vão pro vivo: `WipMark` · `podeVer(pa
 ```
 Sessão fresca. ANTES de abrir: `gh pr list --state open` cruzado com os arquivos do seu prefixo.
 Leia nesta ordem, do main, nunca de cópia local:
-1. prototipo-ui/design-docs/cowork-inbox/ponte/03-REGRAS-DE-PARALELISMO.md      ← Leis 1–4
-2. prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/00-INDICE.md          ← §1 medição · §2 seu prefixo · §7 fonte
-3. prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/NN-<sua-thread>.md    ← escopo · alvo · dado · prova
+1. prototipo-ui/cowork/Wagner/cowork-inbox/ponte/03-REGRAS-DE-PARALELISMO.md      ← Leis 1–4
+2. prototipo-ui/cowork/Wagner/cowork-inbox/sidebar/playbook/00-INDICE.md          ← §1 medição · §2 seu prefixo · §7 fonte
+3. prototipo-ui/cowork/Wagner/cowork-inbox/sidebar/playbook/NN-<sua-thread>.md    ← escopo · alvo · dado · prova
 4. resources/js/Components/cockpit/Sidebar.tsx + Layouts/AppShellV2.tsx         ← a âncora (não recriar nada que já esteja lá)
-5. prototipo-ui/PRE-FLIGHT-TELA.md · memory/proibicoes.md · memory/LICOES_CC.md
+5. memory/reference/prototipo-ui/PRE-FLIGHT-TELA.md · memory/proibicoes.md · memory/LICOES_CC.md
 AVISO: o handoff-sidebar/PEDIDO-CODE.md de 2026-08-28 está SUPERADO por este playbook — os deltas A e B já estão no main, e o C mudou de lado. Não o execute.
 Regras duras: sidebar PRETA nos dois modos (UI-0023) · `.sb-item.is-open` não clareia · item de sidebar é single-link (AP19) · nenhum grupo cross-módulo em AdminSidebarMenu.php · sem cor crua (só --sb-*, hue por grupo via --gh) · PT-BR · sem emoji · um <main> por documento (AP9) · chain de overflow (AP10).
 Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Não edita este índice, github.md nem memory/**.
@@ -131,8 +131,8 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
   "gerado": "2026-09-10",
   "granularidade": "secao",
   "absorve": ["prototipo-ui/design-docs/handoff-sidebar/PEDIDO-CODE.md"],
-  "variaveis": { "CKPT": "resources/js/Components/cockpit", "BUILD": "prototipo-ui/cowork/Wagner", "CT": "prototipo-ui/contrato/cockpit-sidebar.contract.json", "REC": "prototipo-ui/design-docs/cowork-inbox/sidebar/playbook/recibos" },
-  "contratos_de_prova": "lidos em prototipo-ui/design-docs/cowork-inbox/_scripts/README-placar.md (main, 2026-09-10): contem/nao_contem NÃO fecham thread — estrutura não prova execução. execucao=recibo JSON+summary da máquina que rodou; revisao=parecer, só pra tarefa que escreve apenas .md/.contract.json; comparacao=design-diff --compare --contrato --check --check-shell --json, exige o .contract.json.",
+  "variaveis": { "CKPT": "resources/js/Components/cockpit", "BUILD": "prototipo-ui/cowork/Wagner", "CT": "governance/design/contracts/cockpit-sidebar.contract.json", "REC": "prototipo-ui/cowork/Wagner/cowork-inbox/sidebar/playbook/recibos" },
+  "contratos_de_prova": "lidos em prototipo-ui/cowork/Wagner/cowork-inbox/_scripts/README-placar.md (main, 2026-09-10): contem/nao_contem NÃO fecham thread — estrutura não prova execução. execucao=recibo JSON+summary da máquina que rodou; revisao=parecer, só pra tarefa que escreve apenas .md/.contract.json; comparacao=design-diff --compare --contrato --check --check-shell --json, exige o .contract.json.",
   "decisoes": [
     { "id": "RESIDUO-1", "pergunta": "Ghosts: emendar ADR 0180 (código venceu) ou reverter GHOST_TETO do vivo?", "respondida": true, "resposta": "não era decisão de [W]: UI-0029 (28/08) diz que ADR divergente do protótipo está errada, e o corolário 1 proíbe devolver a pergunta. Emenda datada na 0180.", "destrava": ["05"] },
     { "id": "RESIDUO-2", "pergunta": "Aposentar SidebarTabs/SidebarChat/ConvRow do protótipo (UI-0011) ou selar como demo?", "respondida": true, "resposta": "remover — medido 2026-09-10: zero call sites; ChatPage/ConvTabsBar/Thread/LinkedAppsPanel também mortas; remoção dividida 01 (JSX+CSS) × 02 (estado em app.jsx)", "destrava": ["01", "02"] },
@@ -203,7 +203,7 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
       ],
       "nota_estado": "DESBLOQUEADA: pela UI-0029, ADR divergente do protótipo está errada — o código venceu e a emenda se aplica. Abri como 'bloqueada em [W]' contra o corolário 1, que proíbe devolver essa pergunta." },
     { "id": "06", "titulo": "Contrato de tela do shell + gates", "dono": "CL", "vaga": 3, "arquivo": "06-contrato-e-gates.md",
-      "prefixo": ["prototipo-ui/contrato/cockpit-sidebar.contract.json", "tests/Feature/Sidebar/"],
+      "prefixo": ["governance/design/contracts/cockpit-sidebar.contract.json", "tests/Feature/Sidebar/"],
       "nao_toca": ["${CKPT}/", "resources/js/Layouts/AppShellV2.tsx"],
       "depende_threads": [],
       "provas": [

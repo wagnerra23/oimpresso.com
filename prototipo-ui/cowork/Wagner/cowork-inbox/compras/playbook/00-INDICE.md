@@ -4,8 +4,8 @@ titulo: SINCRONIZAR Compras — índice do playbook (fonte da máquina embutida 
 autor: "[CC]"
 criado: 2026-09-08
 base: wagnerra23/oimpresso.com@main (árvore 9101f86af501 · lida 2026-09-08 10:31 UTC)
-destino_no_main: prototipo-ui/design-docs/cowork-inbox/compras/playbook/
-regra: este índice é PEDIDO (threads a executar), não inventário. Ninguém escreve estado — ele é derivado (§2-bis). Nunca em prototipo-ui/cowork/ (guard R1).
+destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/compras/playbook/
+regra: este índice é PEDIDO (threads a executar), não inventário. Ninguém escreve estado — ele é derivado (§2-bis). Nunca em prototipo-ui/cowork/Wagner/ (guard R1).
 ---
 
 # SINCRONIZAR Compras — playbook
@@ -59,7 +59,7 @@ regra: este índice é PEDIDO (threads a executar), não inventário. Ninguém e
 
 ## 2-bis · ESTADO — derivado, nunca escrito
 
-> `node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/compras/playbook/00-INDICE.md --root . --proximo`
+> `node scripts/qa/placar-indice.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/compras/playbook/00-INDICE.md --root . --proximo`
 > `_saida-NN.md` presente **e** provas verdes = `feito`; sem `_saida` = não feito mesmo com PR mergeado; `bloqueada` é fila de [W], não do Code.
 
 Render esperado contra 9101f86af501: `Compras: entregue 0 de 5 · próximo 2 · pendente 0 · bloqueada 3` — **PRÓXIMO: 01 · 02.**
@@ -78,14 +78,14 @@ Render esperado contra 9101f86af501: `Compras: entregue 0 de 5 · próximo 2 · 
 ```
 Sessão fresca. ANTES de abrir: gh pr list --state open e cruze com os arquivos do seu prefixo.
 Leia nesta ordem, do main, nunca de cópia local:
-1. prototipo-ui/design-docs/cowork-inbox/ponte/03-REGRAS-DE-PARALELISMO.md   ← Leis 1–4
-2. prototipo-ui/design-docs/cowork-inbox/compras/playbook/00-INDICE.md       ← §1 estados · §2 seu prefixo · §7 fonte
-3. prototipo-ui/design-docs/cowork-inbox/compras/playbook/NN-<sua-thread>.md ← escopo · alvo · dado · prova
+1. prototipo-ui/cowork/Wagner/cowork-inbox/ponte/03-REGRAS-DE-PARALELISMO.md   ← Leis 1–4
+2. prototipo-ui/cowork/Wagner/cowork-inbox/compras/playbook/00-INDICE.md       ← §1 estados · §2 seu prefixo · §7 fonte
+3. prototipo-ui/cowork/Wagner/cowork-inbox/compras/playbook/NN-<sua-thread>.md ← escopo · alvo · dado · prova
 4. memory/requisitos/Compras/SCOPE.md                                        ← "cockpit de LEITURA; CRUD é /purchases"
 5. resources/js/Pages/Purchase/Create.charter.md                             ← Non-Goal C1 (não nasce Pages/Compras/Create.tsx)
-6. prototipo-ui/PRE-FLIGHT-TELA.md · memory/proibicoes.md · memory/LICOES_CC.md
+6. memory/reference/prototipo-ui/PRE-FLIGHT-TELA.md · memory/proibicoes.md · memory/LICOES_CC.md
 7. os arquivos da âncora listados na sua thread
-AVISO: o doc prototipo-ui/COLAR-NO-CODE-compras-ondas.md (04/09) está VENCIDO nos blocos 1-bis e 6 —
+AVISO: o doc prototipo-ui/cowork/Wagner/COLAR-NO-CODE-compras-ondas.md (04/09) está VENCIDO nos blocos 1-bis e 6 —
 os 4 casos.md e os 2 contratos que ele manda criar JÁ EXISTEM. Este índice §0 é a versão medida.
 Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Não edita este índice, github.md nem memory/**.
 Terminou: escreva _saida-NN.md e pare.
@@ -116,7 +116,7 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
   "modulo": "Compras",
   "sha": "9101f86af501",
   "gerado": "2026-09-08",
-  "absorve": ["prototipo-ui/COLAR-NO-CODE-compras-ondas.md"],
+  "absorve": ["prototipo-ui/cowork/Wagner/COLAR-NO-CODE-compras-ondas.md"],
   "variaveis": { "LANE": null },
   "decisoes": [
     { "id": "D-GHOST", "pergunta": "Ghost /compras/create do sidebar v3: remover (1 arquivo) ou criar a rota (6 arquivos, contra o Non-Goal C1 do Purchase/Create)?", "respondida": false, "destrava": ["04"] },
@@ -127,17 +127,17 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
   "threads": [
     { "id": "01", "titulo": "Rede: 2 specs E2E do modulo", "dono": "CL", "vaga": 1, "arquivo": "01-rede-e2e.md",
       "prefixo": ["e2e/compras-cockpit.spec.ts", "e2e/purchase-create.spec.ts"],
-      "nao_toca": ["resources/js/Pages/Compras/", "resources/js/Pages/Purchase/", "Modules/Compras/", "prototipo-ui/contrato/compras-cockpit.contract.json", "prototipo-ui/contrato/purchase-create.contract.json"],
+      "nao_toca": ["resources/js/Pages/Compras/", "resources/js/Pages/Purchase/", "Modules/Compras/", "governance/design/contracts/compras-cockpit.contract.json", "governance/design/contracts/purchase-create.contract.json"],
       "provas": [
         { "tipo": "arquivo", "path": "e2e/compras-cockpit.spec.ts" },
         { "tipo": "arquivo", "path": "e2e/purchase-create.spec.ts" },
-        { "tipo": "arquivo", "path": "prototipo-ui/contrato/compras-cockpit.contract.json", "guarda": true, "nota": "contrato JA existe (3.946 B) — a thread nao o recria nem o edita" },
-        { "tipo": "arquivo", "path": "prototipo-ui/contrato/purchase-create.contract.json", "guarda": true, "nota": "contrato JA existe (4.272 B)" },
+        { "tipo": "arquivo", "path": "governance/design/contracts/compras-cockpit.contract.json", "guarda": true, "nota": "contrato JA existe (3.946 B) — a thread nao o recria nem o edita" },
+        { "tipo": "arquivo", "path": "governance/design/contracts/purchase-create.contract.json", "guarda": true, "nota": "contrato JA existe (4.272 B)" },
         { "tipo": "contem", "path": "resources/js/Pages/Purchase/Create.tsx", "padrao": "GradeMatrixInput", "guarda": true, "nota": "a grade nao pode ser desplugada por um PR de rede" }
       ] },
     { "id": "02", "titulo": "Build daqui: coluna Margem sem fonte no drawer do prototipo", "dono": "CC", "vaga": 1, "arquivo": "02-margem-sem-fonte.md",
-      "prefixo": ["prototipo-ui/cowork/compras-page.jsx", "prototipo-ui/cowork/oimpresso.com.html"],
-      "nao_toca": ["resources/js/Pages/Compras/", "Modules/Compras/", "prototipo-ui/cowork/compras-grade-matrix.jsx"],
+      "prefixo": ["prototipo-ui/cowork/Wagner/compras-page.jsx", "prototipo-ui/cowork/Wagner/oimpresso.com.html"],
+      "nao_toca": ["resources/js/Pages/Compras/", "Modules/Compras/", "prototipo-ui/cowork/Wagner/compras-grade-matrix.jsx"],
       "provas": [],
       "nota_provas": "build do Cowork: prova = _saida-02.md com a decisao (remover a coluna OU declarar a fonte real lida no ComprasService/Drawer.tsx) + render medido. Nao vira PR no main." },
     { "id": "03", "titulo": "Fornecedores — aba sem receptor", "dono": "W", "arquivo": "03-fornecedores-bloqueada.md",

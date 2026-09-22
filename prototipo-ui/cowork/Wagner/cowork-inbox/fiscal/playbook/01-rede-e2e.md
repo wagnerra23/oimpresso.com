@@ -15,8 +15,8 @@ depende: — (vaga 1)
 ## B · Ancoragem — RECORTE, não arquivo
 ```
 ÂNCORA (congelada 2026-09-08)
-  contrato   prototipo-ui/contrato/fiscal-cockpit.contract.json     1.113 B  sha f2f341620799
-  contrato   prototipo-ui/contrato/fiscal-nfe.contract.json         1.070 B  sha 100685ee6e62
+  contrato   governance/design/contracts/fiscal-cockpit.contract.json     1.113 B  sha f2f341620799
+  contrato   governance/design/contracts/fiscal-nfe.contract.json         1.070 B  sha 100685ee6e62
   ler        os 2 contratos INTEIROS (2,2 KB — são pequenos) = seções, copy literal e estados
   recorte    Cockpit.tsx :: a linha da lista — faixa de :590 a :640 (o onKeyDown está em :605)
   recorte    Nfe.tsx :: a linha da lista — faixas :215–:250 e :300–:330 (onKeyDown em :231 e :316)

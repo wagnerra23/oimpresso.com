@@ -13,7 +13,7 @@ bloqueio: "D-FORMS — NÃO EXECUTAR sem resposta [W]"
 > ⛔ **BLOQUEADA por `D-FORMS`.** Os 5 charters do Patrimônio declaram `create`/`edit`/`show` como **Non-Goal com motivo**. Abrir PR aqui antes da resposta de [W] é pedido **contra o charter** — e a errata da thread `08` já registra esse Non-Goal como decisão, não esquecimento.
 
 ## A · IDENTIDADE (ancoragem dupla)
-- **alvo (layout, read-only):** `prototipo-ui/cowork/patrimonio-forms.jsx` (**18.810 B**) — os formulários do módulo no regime drawer PT-02.
+- **alvo (layout, read-only):** `prototipo-ui/cowork/Wagner/patrimonio-forms.jsx` (**18.810 B**) — os formulários do módulo no regime drawer PT-02.
 - **âncora (código):** `AssetController.php` :: `create()` **:479** (`view('assetmanagement::asset.create')`) · `show()` **:520** (`view('assetmanagement::show')`) · `edit()` **:551** (`view('assetmanagement::asset.edit')`). O `index()` já é React (**:269**, `Inertia::render('Patrimonio/Bens')`).
 - **receptor:** `resources/js/Pages/Patrimonio/Bens.tsx` (**21.047 B**) + charter + casos.
 - **Blade em jogo:** `asset/create.blade.php` **9.867 B** · `asset/edit.blade.php` **10.070 B** — os dois maiores do módulo. O `asset/index.blade.php` (11.242 B) **não** entra: já foi substituído.

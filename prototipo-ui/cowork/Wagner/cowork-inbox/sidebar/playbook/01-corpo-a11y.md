@@ -3,7 +3,7 @@ sessao: "01"
 titulo: Seção CORPO — `nav` acessível, bateria a11y A1–A12 e fim da aba Chat no protótipo
 dono: "[CC]"
 base: af09f7c3a0fd
-prefixo: prototipo-ui/cowork/sidebar.jsx · prototipo-ui/cowork/styles.css (bloco Sidebar)
+prefixo: prototipo-ui/cowork/Wagner/sidebar.jsx · prototipo-ui/cowork/Wagner/styles.css (bloco Sidebar)
 nao_toca: app.jsx · data.jsx · Components/cockpit/** (esta thread não escreve no vivo)
 depende: RESÍDUO-2 **respondido 2026-09-10 (remover)** — thread integralmente destravada; vaga 1
 ---
@@ -35,8 +35,8 @@ depende: RESÍDUO-2 **respondido 2026-09-10 (remover)** — thread integralmente
 
 ## Execução
 ```
-ARQUIVOS A EDITAR : prototipo-ui/cowork/sidebar.jsx (nav + semântica dos clicáveis + aria dos grupos)
-                    prototipo-ui/cowork/styles.css (só se o :focus-visible da linha não existir/estiver fraco)
+ARQUIVOS A EDITAR : prototipo-ui/cowork/Wagner/sidebar.jsx (nav + semântica dos clicáveis + aria dos grupos)
+                    prototipo-ui/cowork/Wagner/styles.css (só se o :focus-visible da linha não existir/estiver fraco)
 MEDIR ANTES       : tema dark · esperar __oiLazyDone · DUAS leituras iguais de querySelectorAll('*').length
                     sonda de a11y roda um caso de sanidade de valor conhecido ANTES de qualquer veredito
                     escopo do seletor = a <aside class="sb">, NUNCA document (erro catalogado 2026-09-05)

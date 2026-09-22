@@ -4,7 +4,7 @@ titulo: Ghosts na sidebar × ADR 0180 — o código foi na frente da lei
 dono: "[W]" (despacho) → "[CL]" (emenda)
 base: af09f7c3a0fd
 prefixo: memory/decisions/0180-*.md (emenda datada — nunca ADR paralela, LC-19)
-nao_toca: Components/cockpit/Sidebar.tsx · prototipo-ui/cowork/sidebar.jsx — NENHUMA linha de código antes do despacho
+nao_toca: Components/cockpit/Sidebar.tsx · prototipo-ui/cowork/Wagner/sidebar.jsx — NENHUMA linha de código antes do despacho
 estado: BLOQUEADA em [W] (RESÍDUO-1)
 ---
 # 05 · Ghosts × ADR 0180

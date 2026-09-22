@@ -10,7 +10,7 @@ depende: — (vaga 1). É a ÚNICA das 10 ondas de 03/09 que sobreviveu à relei
 # 02 · Paginação `.fx-pager`
 
 ## A · Identidade — ancoragem dupla
-- **alvo (protótipo medido, dark, T1 estável 1099/1099/1099):** `.fx-page` tem **10 filhos nesta ordem** — `.fx-h · .ds-tabbar · .fx-ribbon · .fx-alerts · .fx-writeoff · .fx-toolbar · .fx-chips · .fx-table.fx-d-comfort · **.fx-pager** · .fx-toasts`. O `.fx-pager` é o **9º**, entre a tabela e os toasts. Fonte: `prototipo-ui/cowork/fiscal-page.jsx`.
+- **alvo (protótipo medido, dark, T1 estável 1099/1099/1099):** `.fx-page` tem **10 filhos nesta ordem** — `.fx-h · .ds-tabbar · .fx-ribbon · .fx-alerts · .fx-writeoff · .fx-toolbar · .fx-chips · .fx-table.fx-d-comfort · **.fx-pager** · .fx-toasts`. O `.fx-pager` é o **9º**, entre a tabela e os toasts. Fonte: `prototipo-ui/cowork/Wagner/fiscal-page.jsx`.
 - **âncora (código):** `resources/js/Pages/Fiscal/Cockpit.tsx` (34.457 B, sha `a75f4bd1a961`). Busca dirigida hoje por `Pagination` em `Pages/Fiscal/` → **0 hit**: a tela **não tem paginação**, nem do DS nem local.
 - **componente obrigatório:** `Pagination` do DS (`prev/next + números + elipse + "N–M de T"`, props `page`/`pageCount`/`onChange` + `total`/`pageSize`). **Não escrever pager próprio** (C1 · §5 do pacote).
 

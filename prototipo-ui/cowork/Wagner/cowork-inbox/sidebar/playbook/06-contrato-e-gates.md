@@ -3,14 +3,14 @@ sessao: "06"
 titulo: Contrato de tela do shell + gates — travar a Sidebar no CI
 dono: "[CL]"
 base: af09f7c3a0fd
-prefixo: prototipo-ui/contrato/cockpit-sidebar.contract.json · tests/Feature/Sidebar/
+prefixo: governance/design/contracts/cockpit-sidebar.contract.json · tests/Feature/Sidebar/
 nao_toca: Components/cockpit/** · Layouts/AppShellV2.tsx (esta thread não muda comportamento, só o trava)
 depende: 01 · 03 · 04 (o contrato descreve o estado final, não o intermediário)
 ---
 # 06 · Contrato de tela + gates
 
 ## A · O que é
-`prototipo-ui/contrato/*.contract.json` (ADR 0286) declara **seções + copy literal + estados** e trava o comportamento no CI. A Sidebar nunca teve um: é o shell de **todas** as telas, e hoje o que impede regressão nela é teste de PHP mais screenshot de humano.
+`governance/design/contracts/*.contract.json` (ADR 0286) declara **seções + copy literal + estados** e trava o comportamento no CI. A Sidebar nunca teve um: é o shell de **todas** as telas, e hoje o que impede regressão nela é teste de PHP mais screenshot de humano.
 
 ## B · Seções a declarar (o `alvo` é o shell depois das threads 01·03·04)
 | seção | conteúdo travado | estados |
@@ -48,6 +48,6 @@ PARAR SE      : a 05 continuar bloqueada → declarar `corpo` SEM a linha de gho
 ```
 
 ## Prova
-- `prototipo-ui/contrato/cockpit-sidebar.contract.json` válido no schema, com `alvo` e `secoes`.
+- `governance/design/contracts/cockpit-sidebar.contract.json` válido no schema, com `alvo` e `secoes`.
 - Os 5 gates verdes, placar no PR, `_saida-06.md`.
 - Não verificável daqui: T7 · screenshot prod ([W2]).

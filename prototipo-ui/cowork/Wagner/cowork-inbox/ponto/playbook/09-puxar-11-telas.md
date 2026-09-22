@@ -3,7 +3,7 @@ sessao: "09"
 titulo: PUXAR as 11 telas restantes → protótipo
 dono: "[CC] read-only → build"
 base: e86130722de1
-prefixo: prototipo-ui/cowork/ponto-telas.jsx · ponto-data.jsx · ponto-ui.jsx · oimpresso.com.html (bump)
+prefixo: prototipo-ui/cowork/Wagner/ponto-telas.jsx · ponto-data.jsx · ponto-ui.jsx · oimpresso.com.html (bump)
 nao_toca: resources/js/Pages/** · ponto-page.jsx (08) · ponto-mobile.jsx · ponto-fechamento.jsx (alvos das 04–06, não se puxa o que não existe)
 depende: thread 10 feita (Lei 1: ambas tocam ponto-data.jsx) — vaga 2
 ---
@@ -29,4 +29,4 @@ depende: thread 10 feita (Lei 1: ambas tocam ponto-data.jsx) — vaga 2
 - Puxar exigir mexer em `ponto-mobile.jsx` → é da 10; parar.
 
 ## Prova
-- `_saida-09.md` com a tabela de 11 linhas (tela × átomos puxados × divergência declarada × sha) · `ponto-telas.jsx`/`ponto-data.jsx` no espelho `prototipo-ui/cowork/`
+- `_saida-09.md` com a tabela de 11 linhas (tela × átomos puxados × divergência declarada × sha) · `ponto-telas.jsx`/`ponto-data.jsx` no espelho `prototipo-ui/cowork/Wagner/`

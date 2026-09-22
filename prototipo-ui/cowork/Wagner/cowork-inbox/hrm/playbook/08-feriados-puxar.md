@@ -25,4 +25,4 @@ depende: — (vaga 1)
 
 ## Prova
 - `_saida-08.md` com o diff nos dois sentidos e a sha lida
-- Se entrou no build: `hrm-extras.jsx` no espelho `prototipo-ui/cowork/` com os átomos puxados
+- Se entrou no build: `hrm-extras.jsx` no espelho `prototipo-ui/cowork/Wagner/` com os átomos puxados

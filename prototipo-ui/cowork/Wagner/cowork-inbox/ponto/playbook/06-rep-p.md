@@ -3,7 +3,7 @@ sessao: "06"
 titulo: REP-P sem selfie — 7 rotas 501 → MobileMarcacaoController · app do colaborador · fila do gestor
 dono: "[CL]"
 base: e86130722de1
-prefixo: Modules/Ponto/Http/routes.php (SÓ o bloco 2 — /ponto/api) · Http/Controllers/Api/MobileMarcacaoController.php · resources/js/Pages/Ponto/Mobile/** · prototipo-ui/contrato/ponto-rep-p.contract.json · Tests/Feature/Wave28MobileMarcacaoTest.php (estender)
+prefixo: Modules/Ponto/Http/routes.php (SÓ o bloco 2 — /ponto/api) · Http/Controllers/Api/MobileMarcacaoController.php · resources/js/Pages/Ponto/Mobile/** · governance/design/contracts/ponto-rep-p.contract.json · Tests/Feature/Wave28MobileMarcacaoTest.php (estender)
 nao_toca: Services/MarcacaoService.php (NSR/hash — canônico) · Services/NsrService.php · Services/MobileMarcacaoService.php (anti-fraude pronto: expor, não reescrever) · Database/ · ponto_marcacoes
 depende: W10 (ratificar o escopo reescrito) — vaga 2
 ---
@@ -19,7 +19,7 @@ depende: W10 (ratificar o escopo reescrito) — vaga 2
 `routes.php` bloco 2: **7 closures `abort(501)`** (`POST /marcar` · `GET /marcacoes/hoje` · `GET /saldo` · `GET|POST /intercorrencias` · `GET /escala/hoje` · `GET /dashboard/kpis`) — middleware `auth:api` (Passport). `Api/MobileMarcacaoController.php` (5 KB) **existe e nada o alcança** (a ADR mediu). Não há `Pages/Ponto/Mobile/`.
 
 ## A · Identidade — ancoragem dupla
-- **alvo (layout):** `prototipo-ui/cowork/ponto-mobile.jsx` **depois da thread 10** (sem selfie): 3 telas do colaborador (`BaterPonto` · `MeuEspelho` · `Justificar`) dentro do `android-frame` + `ValidacaoMobile` (fila do gestor, `os-table` 8 `th`). Medido 04/09: 991 nós · `.pt-nota.info` (2) · `.ptm-wrap` (2). Remedir após a 10.
+- **alvo (layout):** `prototipo-ui/cowork/Wagner/ponto-mobile.jsx` **depois da thread 10** (sem selfie): 3 telas do colaborador (`BaterPonto` · `MeuEspelho` · `Justificar`) dentro do `android-frame` + `ValidacaoMobile` (fila do gestor, `os-table` 8 `th`). Medido 04/09: 991 nós · `.pt-nota.info` (2) · `.ptm-wrap` (2). Remedir após a 10.
 - **âncora (código):** `MobileMarcacaoController` + `MobileMarcacaoService` · irmã golden `Pages/Ponto/Espelho/Show.tsx` (pacote: tsx · charter · casos · contrato · `*ContratoTest` · e2e).
 - Persona: Técnico Repair (celular, toque ≥44 px) · gestor (fila).
 
@@ -44,7 +44,7 @@ ARQUIVOS A EDITAR : routes.php bloco 2 (7 closures → métodos do MobileMarcaca
                     Api/MobileMarcacaoController.php (métodos que faltam; reusar MobileMarcacaoService)
                     ${PAGES}/Mobile/{Index|Marcar}.tsx + MeuEspelho.tsx + Justificar.tsx (CRIAR via criar-tela.mjs Ponto/Mobile PT-0X)
                     ${PAGES}/Aprovacoes/Index.tsx NÃO — a fila do gestor reusa a tela viva com filtro `origem=mobile` (1 filtro, não tela nova)
-                    prototipo-ui/contrato/ponto-rep-p.contract.json (gerador carimba)
+                    governance/design/contracts/ponto-rep-p.contract.json (gerador carimba)
                     Wave28MobileMarcacaoTest.php (estender com os UC da tela)
 PASSO A PASSO     : 1) gh pr list 2) LER controller + service inteiros 3) rotas → controller (PR 1, ≤300 ln, com Pest)
                     4) criar-tela.mjs 5) Pages 6) contrato 7) placar no PR 8) _saida-06.md

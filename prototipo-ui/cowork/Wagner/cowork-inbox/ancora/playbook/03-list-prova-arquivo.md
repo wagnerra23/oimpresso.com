@@ -3,14 +3,14 @@ sessao: "03"
 titulo: --list prova o arquivo e mede o fallback component
 dono: "[CL]"
 base: 752041ac450d
-prefixo: prototipo-ui/ancora.mjs
+prefixo: scripts/design/ancora.mjs
 nao_toca: scripts/governance/** · resources/js/Pages/** · scripts/qa/**
 depende: "02 (mesmo arquivo — remedir o sha antes de escrever)"
 ---
 # 03 · `hasSource` diz que tem fonte sem nunca ter aberto arquivo
 
 ## A · IDENTIDADE (ancoragem dupla)
-- **âncora (código):** `prototipo-ui/ancora.mjs` :: `listAll()` — a linha `const source = fm.related_prototype || doBundle || mockupJsx(fm.component) || null` e o `rows.push({ page, source, hasSource: !!source, charter, isNa, via })`.
+- **âncora (código):** `scripts/design/ancora.mjs` :: `listAll()` — a linha `const source = fm.related_prototype || doBundle || mockupJsx(fm.component) || null` e o `rows.push({ page, source, hasSource: !!source, charter, isNa, via })`.
 - **consumidor declarado no próprio arquivo:** `design-coverage` (o comentário de 2026-08-26 diz que é **1 de 1** consumidor de `--list --json`). Confirmar no PR com `git grep`.
 
 ## B · NÃO INVENTAR
@@ -35,7 +35,7 @@ Duas coisas no mesmo `source`:
 8. PLACAR no corpo do PR.
 
 ## 4-ter · EXECUÇÃO
-- **ARQUIVOS A EDITAR:** `prototipo-ui/ancora.mjs` — **só este**.
+- **ARQUIVOS A EDITAR:** `scripts/design/ancora.mjs` — **só este**.
 - **REUSAR:** `caminhoDaAncora`, `desasparValor`, `ehDeclaracaoNa`, `ehArquivo`.
 - **CRIAR:** nada. **Nem** relatório, **nem** json de retrato: as 3 contagens vão no corpo do PR (mapa é comando, não arquivo — ADR 0256).
 - **NÃO TOCAR:** `design-coverage.mjs`, `ancora-guard.mjs`, `anchor-content-check` (gate required), nenhum charter.
@@ -49,4 +49,4 @@ Duas coisas no mesmo `source`:
 - **quebra:** se o `--list` já emite `existe`, **não execute** — reporte e pare.
 
 ## PROVA
-`prototipo-ui/ancora.mjs` contém `existe` + `BITE list: fonte que nao abre` + os 2 controles · `hasSource` intacto (guarda) · `--selftest` verde · `_saida-03.md`.
+`scripts/design/ancora.mjs` contém `existe` + `BITE list: fonte que nao abre` + os 2 controles · `hasSource` intacto (guarda) · `--selftest` verde · `_saida-03.md`.
