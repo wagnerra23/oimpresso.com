@@ -101,22 +101,42 @@ const rel = (root, p) => relative(root, p).replace(/\\/g, '/');
 //                             este eixo que pegou o `ds-v6/tokens.css`.
 //
 //   `fora`       (INFORMATIVO) arquivo cujo NOME parece de DS e está fora da raiz
-//                             canônica. FP MEDIDO em 2026-09-22: dos 4 acusados,
+//                             canônica. FP MEDIDO em 2026-09-22: dos 5 acusados na
+//                             data (4 hoje — o `ds-v6/tokens.css` saiu no #7710),
 //                             `venda-v3/01-fundacoes/css/tokens-tema-escuro.css`
 //                             NÃO é cópia — é override de CONTRASTE em escopo
-//                             (`.cockpit[data-theme="dark"]`, 35 linhas, cabeçalho
+//                             (`.cockpit[data-theme="dark"]`, 34 linhas, cabeçalho
 //                             declarando *"NÃO cria token novo (ADR-0050)"*),
-//                             carregado por `venda-v3/index.html:47`, e o venda-v3
-//                             é a âncora viva de `Sells/CreateV3`. Apagá-lo
-//                             reintroduz 8 de 29 pares reprovando WCAG AA.
+//                             carregado por `cowork/Wagner/venda-v3/index.html:47`.
+//                             Apagá-lo reintroduz 8 de 29 pares reprovando WCAG AA
+//                             e deixa aquele `<link>` em 404.
 //
 // Classificar por NOME é o guard sintático que o §5 de `proibicoes.md` enterra 8×
-// (allowlist-de-pasta · `@scope` · vocabulário 130 FP · `toHaveKey` 100% FP · …).
-// Tentei um critério melhor — "declara token em `:root` = fundação" — e ele FALHOU
-// NO CONTROLE POSITIVO: o próprio canônico `colors_and_type.css` mede `tokensRoot=0`
-// (245 tokens, nenhum em `:root`). Sonda que não discrimina no controle não entra.
-// Por isso o eixo `fora` REPORTA e não conta como achado, até existir critério que
-// separe cópia de override sem ler a prosa do cabeçalho.
+// (allowlist-de-pasta · `@scope` · vocabulário 130 FP · `toHaveKey` 100% FP · …) —
+// e a lápide de 2026-06-30 já mata este predicado NESTE domínio, nomeando o dono
+// (`ancora.mjs::resolveAncora`). A regra que eu devia ter executado antes de armar
+// está em `memory/proibicoes.md` §"LIGUE A MÁQUINA" item 4: *máquina nova exige FP
+// medido ANTES de instalar*. Ela é always-on via CLAUDE.md. Não foi lacuna de
+// conhecimento; foi falha de execução.
+//
+// ⚠️ ERRATA 2026-09-22, no mesmo dia: a 1ª redação deste bloco dizia que um critério
+// alternativo — *"declara token em `:root` = fundação"* — havia FALHADO no controle
+// positivo, com `colors_and_type.css` medindo `tokensRoot=0`. **Era a MINHA SONDA que
+// estava cega**, não o critério: ela fazia `indexOf(':root')` e casou uma MENÇÃO a
+// `:root` dentro de um bloco de COMENTÁRIO (linha 12), parando antes do seletor real
+// (linha 44). Removendo comentários antes de casar, o critério DISCRIMINA:
+//
+//     canônico colors_and_type.css   245 tokens · 128 em :root
+//     o FP  tokens-tema-escuro.css    13 tokens ·   0 em :root
+//     Felipe ds-galerias/tokens.css  139 tokens · 102 em :root   (cópia real)
+//     Felipe ds-galerias/styles.css   80 tokens ·  42 em :root   (cópia real)
+//
+// Reproduzir: remover `/*…*/` e contar `--x:` dentro dos blocos cujo seletor casa
+// `:root`. O eixo `fora` segue INFORMATIVO — mas pela razão VERDADEIRA, que é outra:
+// `ds-galerias/design-system.css` mede 26 tokens · 0 em `:root` e ainda assim pode
+// ser cópia, então o critério tem falso-NEGATIVO. Publicar "o critério falhou" a
+// partir de sonda cega é instrução de desistência sobre algo que funciona (§5
+// 2026-09-01), e por isso a errata fica aqui em vez de a frase ser apagada.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function checarDsUnico(repoRoot = REPO_DEFAULT) {
@@ -305,7 +325,7 @@ function imprimir(repoRoot, { ds, amb, lockInfo, lockVal }) {
       console.log(`  ▫ informativo — ${ds.fora.length} arquivo(s) de nome "de DS" fora de ${DS_CANON}.`);
       console.log(`     NÃO é achado: o nome não prova cópia. Medido em 2026-09-22 — o`);
       console.log(`     venda-v3/tokens-tema-escuro.css é override de CONTRASTE em escopo`);
-      console.log(`     (.cockpit[data-theme=dark], 35 ln, "NÃO cria token novo" · ADR-0050),`);
+      console.log(`     (.cockpit[data-theme=dark], 34 ln, "NÃO cria token novo" · ADR-0050),`);
       console.log(`     carregado por venda-v3/index.html:47. Apagá-lo reintroduz 8 pares`);
       console.log(`     reprovando WCAG AA. Confira um a um antes de agir sobre esta lista.`);
       for (const f of ds.fora.slice(0, 10)) console.log(`       ${f}`);
