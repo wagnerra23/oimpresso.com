@@ -196,11 +196,42 @@ final class VisregThreshold
                 return;
             }
 
-            // Suítes sem manifesto: a primeira execução materializa o snapshot e o publica
-            // no artifact para versionamento. Feito pelo motor próprio (ITEM 7 · 3c) — antes
-            // era `$page->assertScreenshotMatches()`, que fazia a baseline nascer com o Arial
-            // do plugin (MakesScreenshotAssertions.php:19-27) e forçava a comparação a
-            // injetar Arial só pra casar. Agora NENHUMA baseline nasce pelo plugin.
+            // Suítes que não contratam `baselineFile`: a primeira execução materializa o
+            // snapshot e o publica no artifact para versionamento. Feito pelo motor próprio
+            // (ITEM 7 · 3c) — antes era `$page->assertScreenshotMatches()`, que fazia a
+            // baseline nascer com o Arial do plugin (MakesScreenshotAssertions.php:19-27) e
+            // forçava a comparação a injetar Arial só pra casar. Agora NENHUMA baseline
+            // nasce pelo plugin.
+            //
+            // ⚠️ O VEREDITO DESTE RAMO ERA `pass` E PASSOU A SER `skipped` (2026-09-21).
+            //
+            // POR QUE MUDOU: materializar a foto e devolver verde faz o caso ser
+            // ESTRUTURALMENTE INCAPAZ DE REPROVAR — ele fotografa o que renderizar e chama
+            // de correto, sem nada contra o que comparar. Enquanto o passo seguinte (versionar
+            // o `.snap`) não acontecer, o par passa pra sempre, e o verde é indistinguível de
+            // "comparei e bateu". A [ADR 0409] exige que um gate só declare conformidade
+            // quando "teve controle positivo contra verde por não-execução" — este ramo
+            // declarava sem ter medido.
+            //
+            // "Não consegui medir" é estado PRÓPRIO, não um estado do objeto medido: é a
+            // lição §5 2026-07-29 (colapsar não-medição num veredito do objeto), e `skipped`
+            // é o que a suíte já usa pro caso irmão (tenant não seedado).
+            //
+            // A ESCRITA FICA, de propósito: o artifact `pixel-snapshots` é a rampa de
+            // onboarding e ela é consumida por HUMANO, não por máquina — medido em
+            // 2026-09-21: nenhum `download-artifact` o lê, e o `ui-impact.mjs:431` instrui a
+            // pessoa a copiar o `.snap` novo de lá. Trocar só o veredito preserva a rampa;
+            // remover a escrita trocaria um verde mudo por um vermelho mudo.
+            //
+            // RAIO MEDIDO no run 35632076822, comparando o artifact contra o git nas 5
+            // suítes: 2 pares nasciam por bootstrap — `jana · estado=dark` e
+            // `jana · estado=empty`. Compras 9/9, Financeiro 12/12, Sells 12/12 e Pixel 52/52
+            // já estavam versionados, então não mudam de comportamento. Tela NOVA passa a
+            // pular (com a receita na mensagem) em vez de passar calada, que é o ponto.
+            //
+            // NÃO vira `fail`: o único remédio seria versionar um `.snap` novo, e sob a 0409
+            // criar baseline é ato de [W] — um vermelho que o autor não pode curar é alarme
+            // que se aprende a ignorar (§5 2026-07-28).
             $bootstrapFilename = self::actualFilename($screenName);
             $page->screenshot(false, $bootstrapFilename);
             $bootstrapBlob = @file_get_contents(self::screenshotPath($bootstrapFilename));
@@ -214,9 +245,22 @@ final class VisregThreshold
                 }
             }
 
-            test()->expect($bootstrapBlob)->not->toBeFalse('baseline ausente: snapshot materializado pelo motor próprio');
+            // Não conseguir sequer materializar é falha de verdade — o harness não rodou.
+            if ($bootstrapBlob === false) {
+                test()->fail(
+                    "VisregThreshold [{$screenName}]: baseline ausente E o screenshot de "
+                    . 'bootstrap não pôde ser lido — o caso não chegou a renderizar.'
+                );
 
-            return;
+                return;
+            }
+
+            test()->markTestSkipped(
+                "VisregThreshold [{$screenName}]: NÃO MEDIDO — não há baseline versionada, "
+                . 'então não houve comparação. O snapshot foi materializado e vai no artifact '
+                . '`pixel-snapshots`; versionar o `.snap` é o que transforma este caso em '
+                . 'medição de verdade. Criar baseline é decisão [W] (ADR 0409).'
+            );
         }
 
         // 2. Screenshot atual (mesmo motor do plugin; fullPage:false = viewport contrato).

@@ -1410,7 +1410,12 @@ jobs:
           if [ "${{ steps.compras-flows.outcome }}" = "failure" ]; then
             echo "🔴 L2.5 COMPRAS FALHOU. A causa está no log do step de fluxos acima:"
             echo "   REGRESSÃO CLARA (> τ_alto) · ZONA CINZA (entre limiares, precisa de [W]) · dimensões divergentes · ou o fluxo não montou."
-            echo "   1ª execução sem baseline GERA e passa (artifact pixel-snapshots comita). Regressão? conserte. Fix aprovado? modo update (dispatch) regenera."
+            # A razão da mudança mora no docblock de VisregThreshold::assertBandedScreenshot
+            # (ramo "baseline ausente"), e NÃO é citada aqui de propósito: o Check L do
+            # memory-health trata citação de ADR não-ratificada em .github/workflows/** como
+            # dependência viva de decisão não-aceita, e ele está certo — o comportamento vive
+            # no PHP, esta linha é só a mensagem pro humano.
+            echo "   1ª execução sem baseline GERA o snapshot e PULA o caso (skipped, não passed — mudou em 2026-09-21: verde sem comparação não é conformidade; ver o docblock de VisregThreshold). Pegue o .snap no artifact pixel-snapshots e versione. Regressão? conserte. Fix aprovado? modo update (dispatch) regenera."
           elif [ "${{ steps.compras-flows.outcome }}" = "success" ]; then
             echo "✅ fluxos Compras OK — visibilidade de colunas, menu de Ações e drawer capturados em compact/desktop/wide."
           fi
