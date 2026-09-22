@@ -96,6 +96,22 @@ export function placarDeTela({ slug, alvo, declaracao, render = null }) {
   const ids = Object.keys((alvo && alvo.secoes) || {}).sort();
   if (!ids.length) throw new NaoMedi(`${slug}: alvo sem nenhuma seção — "0 de 0" não é 100%`);
 
+  // O alvo e DERIVADO do `<slug>.secoes.json`, e o denominador sai do ALVO (`ids`, acima). Se a
+  // declaracao tem secao que o alvo nao carrega, o denominador esta DEFASADO e publicar
+  // "entregue X de Y" afirma uma cobertura que ninguem mediu. MEDIDO em 2026-09-22 com a
+  // declaracao em 10 e o alvo em 9: saia `entregue 9 de 9` + `cobertura cumulativa 9 de 9
+  // (100%)`, exit 0 -- 100% sobre denominador errado, e a 10a secao invisivel.
+  //
+  // NAO e o mesmo predicado do secao-check (la o GATE acusa o PR, exit 1). Aqui o placar RECUSA
+  // publicar um numero que nao sabe computar -- acao diferente, nao um 2o oraculo da mesma regra
+  // (§5 2026-07-09). E a doutrina de sempre: "nao medi" nunca vira veredito (§5 2026-07-29), que
+  // e exactamente o que a linha acima ja faz com "0 de 0".
+  const declaradasTopo = Object.keys(declaracao || {}).filter((k) => !k.startsWith('_'));
+  const faltamNoAlvo = declaradasTopo.filter((id) => !ids.includes(id));
+  if (faltamNoAlvo.length) {
+    throw new NaoMedi(`${slug}: alvo DEFASADO -- ${slug}.secoes.json declara ${faltamNoAlvo.map((x) => `"${x}"`).join(' · ')} que o .alvo.json nao carrega. "entregue X de ${ids.length}" seria percentual sobre denominador errado; re-rode \`npm run alvo:medir\``);
+  }
+
   // Sem --render o lado medido é o próprio alvo (o que a sonda achou no espelho servido).
   // COM --render, o lado medido é o render e o alvo vira só o denominador.
   const lado = render ? entreguesDe(render) : entreguesDe(alvo);
