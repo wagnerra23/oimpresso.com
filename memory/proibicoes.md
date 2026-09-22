@@ -1766,6 +1766,12 @@ Ocorrência da **LC-08**.
 
 - **⚠️ NÃO virar gate — reavaliado, não herdado.** Três ocorrências no mesmo instrumento pesam a favor de máquina, então a pergunta foi refeita: a defesa que cabe **é** no dono, e agora ela existe com mutantes mortos. Um detector genérico (acusar `length === 0` em guarda, ou heartbeat sem piso) seria critério sintático e reprovaria o uso legítimo, onde vazio é a pergunta certa — família de guard sintático já enterrada várias vezes neste arquivo, e sem FP medido.
 
+### 2026-09-22 — Propor QUEBRAR um job de CI afirmando que "um step vermelho esconde os outros" sem ler o `if:` dos steps (216 de 220 rodavam com always())
+
+- **O limite (variante também proibida).** Não afirmar comportamento de **execução** de pipeline — o que roda depois de uma falha, o que é pulado, o que bloqueia — a partir da **estrutura** (contagem de steps, de jobs, de linhas). A resposta está nas condições (`if:`, `continue-on-error`, `needs:`, `strategy.fail-fast`, `concurrency.cancel-in-progress`), e elas sobrescrevem o default do runner. Corolário que generaliza: **antes de propor reestruturar um mecanismo, meça o defeito que a reestruturação conserta** — se ele não existe, a proposta só tem custo. E quando o dono manda executar uma recomendação sua, o primeiro ato é re-medir a premissa dela; executar sem isso é pagar o custo do erro duas vezes.
+
+- **⚠️ NÃO virar gate.** O gate óbvio da LC-08 já está **medido e reprovado** (130 FP no detector de vocabulário; ~64% FP ao ampliar o corpus do `fact-anchor`) — não re-propor. O predicado desta instância (*"esta afirmação sobre execução leu as condições?"*) é semântico ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)). O que pegou foi re-medir a premissa no momento de executar — e isso é disciplina, não máquina.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
