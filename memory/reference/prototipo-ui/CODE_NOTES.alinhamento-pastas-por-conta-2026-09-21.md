@@ -302,3 +302,17 @@ não se sabe do lado de cá.
 zip futuro trouxer CRLF, é o exportador — a ferramenta absorve e não há o que pedir ao Cowork.
 Os 4 arquivos com acento no nome em `erp-shell-v2/` ele não conseguiu ler; no zip eles vieram em
 CRLF como os outros 56 e ficaram idênticos ao espelho depois da conversão.
+
+### 12.3 Zip V5 (mesmo dia, noite) — os 5 pontos conferem; dois defeitos novos da ferramenta
+
+Os 5 pontos pedidos ao Claude Design conferidos **no zip**: 0 código lendo `_49a36f`; bundle
+349.364 B terminando em `})();`; fontes 63.020/66.740/67.060/63.012 B; sem comentário ALIAS;
+`CLAUDE.md` cita o `019dd02f` só para dizer que não existe mais. **Zip sem CRLF** desta vez.
+
+Dois formatos novos do export quebraram a ferramenta, e viraram regra (#7672):
+- **nota solta em `_ds/`** (`_ds/_export-baseline.json`, os tamanhos esperados do DS) era contada
+  como um 2º design system → "ambíguo". Agora só **pasta** dentro de `_ds/` é design system.
+- **zip sem a pasta `project/`**: a raiz do projeto virou a própria pasta de extração, e o
+  rascunho da ferramenta (`_live-only.json`) entrou no lote e foi promovido. Agora o rascunho vive
+  em pasta separada. Pego no `git status` depois do `--apply` — **confira sempre os arquivos
+  NOVOS contra a lista do zip**; o guard não pega arquivo que não é repetido.
