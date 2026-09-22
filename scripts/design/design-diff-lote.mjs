@@ -108,9 +108,21 @@ import { fileURLToPath } from 'node:url';
 import { frontmatter } from './_lib-charter.mjs';
 import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
 
+const argv = process.argv.slice(2);
+const flag = (n) => argv.includes(n);
+const val = (n, d = null) => { const i = argv.indexOf(n); return i >= 0 && argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[i + 1] : d; };
+
 const HERE = dirname(fileURLToPath(import.meta.url));            // prototipo-ui/
 const ROOT = resolve(HERE, '../..');
-const COWORK_DIR = resolve(HERE, '../../prototipo-ui/cowork/Wagner');
+// `--espelho <dir>`: o lado design e o espelho DAQUELE dono, nao sempre o do Wagner.
+// Nasceu em 2026-09-22. A familia Fabricacao ancorou no handoff do Felipe (#7696) e este
+// driver ficou CEGO nas 5 telas, por duas vias que a constante fixa causava: `frescorDaFonte`
+// devolvia `'fora do espelho'` (o `relative(COWORK_DIR, abs)` sai com `..`) e `servirEspelho`
+// 404ava o mockup (ele guarda a raiz de proposito -- ver o selftest `nao sai da raiz`).
+// Default INALTERADO: sem a flag, segue `Wagner`. Medido antes de ligar: `cowork/Felipe` e
+// auto-contido para o shell (`oimpresso.com.html` + `app.jsx` + `styles.css` + os
+// `manufacturing-*`); os 64 arquivos que so existem no Wagner sao docs `COLAR-NO-CODE-*.md`.
+const COWORK_DIR = resolve(ROOT, val('--espelho', 'prototipo-ui/cowork/Wagner'));
 const SHELL_HTML = 'oimpresso.com.html';
 const APP_JSX = join(COWORK_DIR, 'app.jsx');
 const DESIGN_DIFF = join(HERE, 'design-diff.mjs');
@@ -120,10 +132,6 @@ const DIR_ROLES = resolve(HERE, '../../governance/design/targets/roles');
 const DIR_CONTRATO = resolve(HERE, '../../governance/design/contracts');
 const RESUMO = join(DIR_MEDIDAS, 'RESUMO.md');
 const LOGIN_PATH = '/_visreg-login';
-
-const argv = process.argv.slice(2);
-const flag = (n) => argv.includes(n);
-const val = (n, d = null) => { const i = argv.indexOf(n); return i >= 0 && argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[i + 1] : d; };
 
 /* ═══════════════════════════════════════════════════════════════════════════════════════
  * PARTE PURA — selecionável, derivável, testável sem browser
@@ -158,11 +166,15 @@ export function rotaViva(page) {
  * Telas do application-report que entram no lote: `lifecycleState === 'anchored'`.
  * `filtro` aceita `Mod/Tela`, o path do `.tsx`, ou sufixo de qualquer um dos dois.
  */
-export function selecionarTelas(report, filtro = null) {
+export function selecionarTelas(report, filtro = null, opts = {}) {
   const screens = Array.isArray(report?.screens) ? report.screens : [];
   const f = filtro ? String(filtro).replace(/\\/g, '/').replace(/\.tsx$/i, '') : null;
   return screens
-    .filter((s) => s && s.lifecycleState === 'anchored' && s.target)
+    // `anchored` = ainda nao comparada, e e a fila NATURAL deste driver. `compared` sai por
+    // desenho -- mas RE-MEDIR tela ja comparada e legitimo quando a ancora dela MUDOU (#7696)
+    // ou quando a medicao anterior saiu invalida (ex.: `sameTheme:false`). Opt-in por
+    // `--incluir-comparadas`; sem a flag o comportamento e byte-a-byte o de antes.
+    .filter((s) => s && (opts.incluirComparadas ? ['anchored', 'compared'] : ['anchored']).includes(s.lifecycleState) && s.target)
     .filter((s) => {
       if (!f) return true;
       const id = idDaTela(s.target) || '';
@@ -434,7 +446,7 @@ async function frescorDaFonte(caminhoAncoraRel) {
  * ═════════════════════════════════════════════════════════════════════════════════════ */
 export async function montarPlano({ filtro = null, urlForcada = null, baseUrl }) {
   const report = JSON.parse(readFileSync(REPORT, 'utf8'));
-  const telas = selecionarTelas(report, filtro);
+  const telas = selecionarTelas(report, filtro, { incluirComparadas: flag('--incluir-comparadas') });
   const rotas = mapaRotasDoShell(readFileSync(APP_JSX, 'utf8'));
   const contratos = lerContratos();
   const { resolveAncora, caminhoDaAncora, ehDeclaracaoNa } = await import('./ancora.mjs');

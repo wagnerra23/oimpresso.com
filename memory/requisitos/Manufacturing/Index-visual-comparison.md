@@ -77,6 +77,77 @@ medidas contra o staging"*), artefato
 diferente nos dois lados, o que pelo [PROTOCOLO-COMPARACAO-RUNTIME](../_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md)
 invalida o veredito. O Δ2px do título pode ser real ou artefato; hoje não dá para dizer qual.
 
+## Re-medicao 2026-09-22 — `DIVERGE (bug)`, e o delta de 2px do titulo e REAL
+
+> **D0 — identidade da view NAO provada nesta medicao.** O `resultado.json` desta tela tem
+> `contrato: null`, e o `design-diff` trata D0 como **pre-condicao, nao dimensao**
+> ([`design-diff.mjs:1216`](../../../scripts/design/design-diff.mjs) — *"IDENTIDADE DA VIEW
+> (pre-condicao, nao dimensao)"*). Sem contrato, nada garante que o que foi renderizado do lado
+> design e **esta** tela. O `--dry` avisou, com estas palavras: *"D0 sem contrato — identidade da
+> view NAO provada (ancora pode servir outra tela)"* — e a rodada seguiu assim mesmo.
+>
+> **Consequencia honesta:** o veredito abaixo vale como **indicio**, nao como paridade provada.
+> Fecha-se criando o contrato de tela (o molde e
+> [`manufacturing-recipes.contract.json`](../../../governance/design/contracts/manufacturing-recipes.contract.json),
+> a unica da familia que tem).>
+> Esta tela e a **prova viva** do aviso: a primeira rodada de hoje, com D0 nao provado, mediu a
+> aba **Receitas** contra a producao de **Ordens de producao** e devolveu um veredito de aparencia
+> valida. O token foi corrigido por override e a medicao refeita — mas o D0 **continua** nao
+> provado, e por isso esta ressalva fica.
+
+
+| | |
+|---|---|
+| veredito | **`DIVERGE (bug)`** · `rc=1` · 1 bug |
+| `sameTheme` | **`true`** (`--tema light`) — o vicio metodologico da rodada de 18/09 esta corrigido |
+| ancora | `prototipo-ui/cowork/Felipe/manufacturing-producao.jsx` (a nova, do #7696) |
+| token do shell | **`mfg-producao`** · `urlFinal` `https://staging.oimpresso.com/manufacturing/production` |
+| celulas | **3 IGUAL · 1 DIVERGE (bug) · 10 SEM-DADO · 2 DIVERGE (a classificar) · 1 NAO MEDI** (17) |
+
+| dim | campo | prod | design | veredito |
+|---|---|---|---|---|
+| D4 | titulo font-size | **24px** | **22px** | **DIVERGE (bug)** — delta 2px, banda +-1px |
+| D2 · D6 · D8 | layout · cor · kpi align | ok | ok | IGUAL |
+
+**O delta sobreviveu a todas as objecoes.** A rodada de 18/09 ja o registrava, mas com dois vicios
+que permitiam descarta-lo: `sameTheme: false` e fonte antiga. Agora foi medido com **tema igual nos
+dois lados**, contra a **ancora nova** e — o que so se descobriu aqui — contra a **aba certa**.
+
+**A primeira rodada de hoje mediu a TELA ERRADA, e o veredito parecia valido.** Ela gravou
+`token: manufacturing`, que no `app.jsx` do espelho monta `<window.ManufacturingPage />` **sem**
+`initialView`, ou seja a aba **Receitas**, enquanto a producao mostrava Ordens de producao. A causa
+e que `tokenDoMockup` deriva do `source` do `application-report` (`manufacturing-page.jsx`, o hub),
+**nao** da ancora resolvida. Corrigido por override
+([`Manufacturing--Index.json`](../../../governance/design/targets/roles/Manufacturing--Index.json)),
+com a razao escrita la. O delta persiste nas duas rodadas.
+
+### O que ficou SEM-DADO, e por que importa
+
+A causa dominante e o **mapa de papeis (`__DD_ROLES`) nao calibrado** para esta familia, e ele
+erra nas DUAS direcoes:
+
+- **regioes de conteudo** (`cabecalho`, `filtros`, `kpis`, `lista`, `form`) devolvem
+  `prod: presente / design: ausente` — o seletor do lado **design** nao casa;
+- **sidebar** (`sb-*` e as 4 linhas `SHELL`) devolvem `prod: 0 el` contra `design: 3/1/9/34 el` —
+  aqui e o seletor do lado **prod** que nao casa, porque usa as classes `.sb-*` do prototipo.
+
+Enquanto isso nao for calibrado, o veredito agregado fala de **4 celulas**, nao da tela.
+
+### Dois achados que NAO sao desta familia
+
+- **`DIVERGE (a classificar)` no atalho de topo do shell** — `IA`, `Visao geral` e `Atendimento`
+  so existem no design. E do **shell**, nao das telas da Fabricacao; classificar
+  (DECIDIDA / DERIVA / DESIGN-ANDOU) e trabalho do dono do shell.
+- **`NAO MEDI / SAUDE / tokens.prod`** — `--accent --pos --neg --warn --text-dim --sunken
+  --border` **nao resolvem na raiz** em producao. Isso conversa diretamente com os dois achados
+  ALTA de contraste do LAUDO, e merece medicao propria.
+
+### Frescor: `STALE 2026-09-21`
+
+Agora o frescor e **medido**: antes da parametrizacao do espelho, `frescorDaFonte` devolvia
+`fora do espelho` para ancora fora de `Wagner/`. O `STALE` e porque a ultima rodada do ledger de
+frescor nao cobriu o espelho do Felipe — nao e defeito da tela.
+
 ## Cobertura desta tela hoje
 
 | camada | estado |
@@ -90,7 +161,11 @@ invalida o veredito. O Δ2px do título pode ser real ou artefato; hoje não dá
 
 ## Pendências
 
-1. **Re-medir** com a âncora nova e `sameTheme: true` — é o que decide o Δ2px.
+1. ~~Re-medir com a âncora nova e `sameTheme: true`~~ — **FEITO em 2026-09-22** (secao acima).
+   O veredito: o delta de 2px do titulo e **real**.
+2. **Decidir o titulo**: alinhar producao ao prototipo (24px -> 22px) ou registrar decisao [W]
+   de manter 24px e reescrever a banda. E decisao de forma, logo cadeia da [UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md) — prototipo soberano.
+3. **Calibrar o `__DD_ROLES`** desta familia (override em [`governance/design/targets/roles/`](../../../governance/design/targets/roles/)). E o que tira as regioes de `SEM-DADO` e faz o veredito falar da tela, nao de 4 celulas. O molde pronto e o [`Compras--Index.json`](../../../governance/design/targets/roles/Compras--Index.json), que ja mede papel no DOM dos dois lados em vez de adivinhar.
 2. Os 3 achados do [LAUDO do handoff](../../../prototipo-ui/cowork/Felipe/handoff_fabricacao/design/LAUDO-conferencia-fabricacao.md)
    valem para a família: 2 ALTA de contraste (`--text-mute` reprova AA; `--accent` como texto mede
    **2,64:1** no tema escuro) + 1 MÉDIA de layout. As duas ALTA são **token do DS** (ADRs 0410 e

@@ -1,0 +1,5 @@
+{
+  "_medido_em": "2026-09-22",
+  "_por_que": "A ancora desta tela e manufacturing-producao.jsx, que NAO e um -page.jsx: ele expoe window.MfgConfig (:330), nao window.ManufacturingPage. A derivacao do token cruza o 'window.YPage =' do mockup com a tabela de rotas do app.jsx e por isso sai 'sem rota derivavel' -- nao e defeito, e o arquivo nao ser o hub. O token abaixo foi LIDO do app.jsx do espelho do Felipe (:848-851), onde 'if (route === \"mfg-config\") content = <window.ManufacturingPage initialView=...' monta exatamente esta tela. Tres telas dividem o manufacturing-producao.jsx (Index/Report/Settings) em componentes diferentes; o token e o que as separa.",
+  "token": "mfg-config"
+}
