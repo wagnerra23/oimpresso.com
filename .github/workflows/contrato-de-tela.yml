@@ -95,6 +95,9 @@ jobs:
             echo "relevant=false" >> "${GITHUB_OUTPUT}"
             echo "→ nada relevante mudou: SKIP-AS-PASS (gate verde sem rodar; mesma cobertura de antes)."
           fi
+          # Exportada pro step de omissão consumir a MESMA base (não recalcular: duas bases
+          # divergem em silêncio, e a lógica de base viva acima já é a certa · §5 2026-09-15).
+          echo "base=${base}" >> "${GITHUB_OUTPUT}"
 
       - name: Setup Node
         if: steps.detect.outputs.relevant == 'true'
@@ -143,6 +146,35 @@ jobs:
       - name: Anti-tautologia (contrato deriva da âncora, não da tela)
         if: steps.detect.outputs.relevant == 'true'
         run: node scripts/contrato-de-tela.mjs --anti-tautologia
+
+      # Catraca 3 INVERTIDA — pega o que o handoff OMITIU, sem depender de alguém declarar
+      # item a item. Ligada em 2026-09-22 (onda P do PARIDADE-area-jana). Estava órfã desde
+      # que nasceu: existia no script, no package.json e no self-test, e nenhum workflow a
+      # chamava — "máquina que existe e ninguém invoca é bug, não neutralidade" (proibicoes.md,
+      # LIGUE A MÁQUINA item 2).
+      #
+      # FP MEDIDO ANTES de ligar (item 4 da mesma regra), em 231 merges de PR do main:
+      #   como estava .............. 22 merges acusados (16,3%), 152 acusações, ~68% ruído
+      #   com C1+C2 (no script) .... 11 merges  (8,1%),  48 acusações
+      # As duas correções e os números por família estão no docblock de SYMBOL_RES.
+      #
+      # ESCOPO: a árvore de telas/módulos, NÃO os `alvo[]` dos contratos. Medido: sobre os 40
+      # paths de contrato o modo é CEGO (172 linhas removidas na janela, ZERO casando) porque
+      # o que some numa tela é JSX/copy/bloco, não símbolo. Ligar ali seria gate-carimbo.
+      #
+      # ⚠️ COBERTURA PARCIAL, declarada: o `detect` acima casa `resources/js/Pages/**`, não
+      # `Modules/**` (fora o ChannelsController). PR que só toca `Modules/` não dispara este
+      # step. Ampliar o `detect` mudaria o disparo de TODOS os steps do job — é outro intent.
+      #
+      # SEM `continue-on-error`/`|| true`: este workflow não é required (conferido no
+      # governance/required-checks-baseline.json), então vermelho aqui NÃO bloqueia merge.
+      # Advisory = não bloqueia; nunca = não pode ficar vermelho (§5 2026-07-09).
+      - name: Omissão — símbolo/rota removido sem justificativa (advisory)
+        if: steps.detect.outputs.relevant == 'true'
+        run: |
+          set -euo pipefail
+          node scripts/contrato-de-tela.mjs --omission "${{ steps.detect.outputs.base }}" \
+            --alvo "resources/js/Pages,Modules"
 
       - name: Intenção de fluxo (bloqueante — rota legada = vermelho)
         if: steps.detect.outputs.relevant == 'true'
