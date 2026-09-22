@@ -116,9 +116,14 @@ a forma da resposta (recomendar em vez de dar menu, não diagnosticar sem evidê
 Tecnicamente é a Estação 2 outra vez — o `git commit` entra pelo matcher `Bash` do `PreToolUse` —
 mas vale separar, porque o que acontece aqui tem consequência diferente.
 
-Além das travas de segredo e disciplina, roda o `maquinas-inventario-no-commit`: se você criou ou
-apagou uma máquina, ele **regenera o inventário e o coloca no stage**, no mesmo commit. É por isso
-que o censo nunca fica velho sem alguém perceber.
+Além das travas de segredo e disciplina, roda o `maquinas-inventario-no-commit`: se o commit toca
+máquina (`.claude/`, `scripts/governance/`, `.github/workflows/`) e o inventário não bate **byte a
+byte** com o que o gerador produz agora, ele **regenera o inventário e o coloca no stage**, no mesmo
+commit. Desde 2026-09-22 a comparação é do conteúdo inteiro — antes era só a lista de nomes, e as
+colunas derivadas (quem chama, quem lê, qual documento cita) envelheciam sem ninguém ver.
+
+Limite: editar só documento não dispara o hook, então a coluna Documento pode atrasar até o próximo
+commit que tocar máquina — e aí ela entra junto, como drift herdado.
 
 ⚠️ **A pegadinha que custa caro aqui é o `git add -A`.** Rodar uma ferramenta de governança "só pra
 espiar um número" pode produzir artefato derivado como efeito colateral; com `-A`, ele entra no seu

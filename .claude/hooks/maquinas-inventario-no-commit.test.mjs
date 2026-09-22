@@ -73,13 +73,19 @@ function sandbox({ staleInicial, comGerador = true }) {
 
   if (comGerador) {
     mkdirSync(join(dir, 'scripts/governance'), { recursive: true });
-    // gerador FALSO: --check sai 1 se existir o marcador STALE; --write regrava o indice
+    // gerador FALSO. Modo dry (sem arg) imprime o que o indice DEVERIA conter: 'indice NOVO'
+    // se existir o marcador STALE, senao repete o conteudo atual (= fresco). O `--check` sai
+    // SEMPRE 0 — cobertura completa — de proposito: o hook nao pode mais depender dele, e o
+    // caso "nomes completos, conteudo divergente" tem que morder mesmo assim. CRASH faz o
+    // dry sair 2 (fail-open); VAZIO faz ele imprimir nada (nao-medicao).
     writeFileSync(join(dir, 'scripts/governance/maquinas-inventario.mjs'), [
-      "import { existsSync, writeFileSync } from 'node:fs';",
+      "import { existsSync, readFileSync, writeFileSync } from 'node:fs';",
       "const modo = process.argv[2];",
-      "if (modo === '--check') process.exit(existsSync('STALE') ? 1 : 0);",
-      "if (modo === '--write') { writeFileSync('" + INDICE + "', 'indice NOVO\\n'); process.exit(0); }",
-      "process.exit(0);",
+      "if (modo === '--check') process.exit(0);",
+      "if (modo === '--write') { writeFileSync('" + INDICE + "', 'indice via --write\\n'); process.exit(0); }",
+      "if (existsSync('CRASH')) process.exit(2);",
+      "if (existsSync('VAZIO')) process.exit(0);",
+      "process.stdout.write(existsSync('STALE') ? 'indice NOVO\\n' : readFileSync('" + INDICE + "', 'utf8'));",
     ].join('\n'));
   }
   if (staleInicial) writeFileSync(join(dir, 'STALE'), '');
@@ -110,7 +116,7 @@ console.log('CLI de fora (sandbox):');
   execFileSync('git', ['add', '--', '.claude/hooks/novo.mjs'], { cwd: dir, stdio: 'ignore' });
   const r = roda(dir, 'git commit -m "toca maquina"');
   ok(r.status === 0, 'MORDE: exit 0 (nunca bloqueia)');
-  ok(conteudo(dir).includes('NOVO'), 'MORDE: rodou o --write');
+  ok(conteudo(dir) === 'indice NOVO\n', 'MORDE: gravou a saida do gerador (sem pagar um --write a mais)');
   ok(stageado(dir).includes(INDICE), 'MORDE: ESTAGIOU o indice');
   ok(/REGENEREI e ESTAGIEI/.test(r.stderr), 'MORDE: disse o que fez');
   ok(/DRIFT HERDADO/.test(r.stderr), 'MORDE: avisa do churn de terceiros');
@@ -125,7 +131,7 @@ console.log('CLI de fora (sandbox):');
   execFileSync('git', ['add', '--', '.claude/hooks/novo.mjs'], { cwd: dir, stdio: 'ignore' });
   const r = roda(dir, 'git commit -m x');
   ok(r.status === 0 && r.stderr === '', 'NEG: indice fresco -> silencio (nao e presence-gate)');
-  ok(!conteudo(dir).includes('NOVO'), 'NEG: fresco -> nao chamou o --write');
+  ok(conteudo(dir) === 'indice velho\n', 'NEG: fresco -> nao regravou o indice');
   ok(!stageado(dir).includes(INDICE), 'NEG: fresco -> nao estagiou');
   rmSync(dir, { recursive: true, force: true });
 }
@@ -137,7 +143,7 @@ console.log('CLI de fora (sandbox):');
   execFileSync('git', ['add', '--', 'README.md'], { cwd: dir, stdio: 'ignore' });
   const r = roda(dir, 'git commit -m x');
   ok(r.status === 0 && r.stderr === '', 'NEG: path nao coberto -> silencio');
-  ok(!conteudo(dir).includes('NOVO'), 'NEG: nao coberto -> nem rodou o --check');
+  ok(!conteudo(dir).includes('NOVO'), 'NEG: nao coberto -> nem rodou o gerador');
   rmSync(dir, { recursive: true, force: true });
 }
 
@@ -179,9 +185,52 @@ console.log('CLI de fora (sandbox):');
   writeFileSync(join(dir, '.claude/hooks/novo.mjs'), '// x\n');
   execFileSync('git', ['add', '--', '.claude/hooks/novo.mjs'], { cwd: dir, stdio: 'ignore' });
   const r = roda(dir, 'git commit -m x -- .claude/hooks/novo.mjs');
-  ok(conteudo(dir).includes('NOVO'), 'pathspec: regenerou');
+  ok(conteudo(dir) === 'indice NOVO\n', 'pathspec: regenerou');
   ok(!stageado(dir).includes(INDICE), 'pathspec: NAO estagiou');
   ok(/NAO estagiei/.test(r.stderr), 'pathspec: explicou por que nao estagiou');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// O CASO QUE MOTIVOU A MUDANCA: `--check` verde (cobertura completa) e conteudo divergente.
+// O hook antigo chamava so o `--check` e ficava em silencio aqui — foi assim que o main juntou
+// 2 linhas stale em 2026-09-22. O gerador falso deste sandbox tem `--check` sempre 0.
+{
+  const dir = sandbox({ staleInicial: true });
+  const checkVerde = spawnSync('node', ['scripts/governance/maquinas-inventario.mjs', '--check'], { cwd: dir }).status === 0;
+  mkdirSync(join(dir, '.github/workflows'), { recursive: true });
+  writeFileSync(join(dir, '.github/workflows/w.yml'), 'on: push\n');
+  execFileSync('git', ['add', '--', '.github/workflows/w.yml'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m "liga um step num workflow"');
+  ok(checkVerde, 'pre-condicao: o --check deste sandbox esta VERDE (cobertura ok)');
+  ok(conteudo(dir) === 'indice NOVO\n' && stageado(dir).includes(INDICE),
+    'MORDE: --check verde + conteudo divergente -> regenera e estagia mesmo assim');
+  ok(/REGENEREI e ESTAGIEI/.test(r.stderr), 'MORDE: avisou tambem neste caso');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// FAIL-OPEN: gerador crasha -> nao toca o indice, nao afirma nada
+{
+  const dir = sandbox({ staleInicial: true });
+  writeFileSync(join(dir, 'CRASH'), '');
+  mkdirSync(join(dir, '.claude/hooks'), { recursive: true });
+  writeFileSync(join(dir, '.claude/hooks/novo.mjs'), '// x\n');
+  execFileSync('git', ['add', '--', '.claude/hooks/novo.mjs'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m x');
+  ok(r.status === 0 && r.stderr === '' && conteudo(dir) === 'indice velho\n',
+    'FAIL-OPEN: gerador crasha -> silencio e indice intocado');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// NAO-MEDICAO: gerador sai 0 com saida VAZIA -> nao pode apagar o indice
+{
+  const dir = sandbox({ staleInicial: true });
+  writeFileSync(join(dir, 'VAZIO'), '');
+  mkdirSync(join(dir, '.claude/hooks'), { recursive: true });
+  writeFileSync(join(dir, '.claude/hooks/novo.mjs'), '// x\n');
+  execFileSync('git', ['add', '--', '.claude/hooks/novo.mjs'], { cwd: dir, stdio: 'ignore' });
+  roda(dir, 'git commit -m x');
+  ok(conteudo(dir) === 'indice velho\n' && !stageado(dir).includes(INDICE),
+    'NAO-MEDICAO: saida vazia do gerador -> indice NAO e sobrescrito com nada');
   rmSync(dir, { recursive: true, force: true });
 }
 
