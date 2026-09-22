@@ -368,10 +368,34 @@ rebaixa o veredito agregado**. Medido em `origin/main`:
 | mesmo tema | `design-diff.mjs:1120` deriva `sameTheme: prodSnap.theme === designSnap.theme`; em `:1386` imprime `⚠ TEMAS DIFERENTES` | é **aviso de console**; `res.sameTheme` não entra no cálculo do veredito |
 
 Ou seja: a falha das duas é **registrada e não punida**. É o mesmo defeito do rótulo agregado, um
-nível acima — a pré-condição não se auto-invalida, só deixa rastro. Daí a regra da matriz ser
-`T00` **bloqueante** em vez de mais um campo informativo: um campo a mais seria a terceira coisa
-verdadeira que ninguém lê.
-_(O eixo do tema foi levantado pela sessão da Fabricação; verifiquei as duas linhas acima.)_
+nível acima — a pré-condição não se auto-invalida, só deixa rastro.
+
+**E a forma certa já existe no mesmo arquivo — aplicada a UM eixo só.** O `--check-shell`
+(`design-diff.mjs:1409-1419`, auditoria adversarial de 2026-08-28) sai **`2`** quando há `SEM-DADO`
+de shell, com o vocabulário escrito no próprio comentário — *"1 = medi e divergiu · 2 = não
+consegui medir"* — e a justificativa: *"zero medido lido como zero divergente é o mesmo defeito de
+'0 failed' numa suíte que não rodou"*. Já o `--check` (`:1407`) sai `1` olhando **só** `res.bugs`.
+
+Medido, o instrumento pune **1 de 3** pré-condições:
+
+| eixo | tratamento hoje | pune? |
+|---|---|---|
+| shell sem dado | `--check-shell` → **exit 2** | ✅ |
+| identidade (`D0`) | campo `avisoD0` no JSON | ❌ |
+| mesmo tema | `console.log` de aviso | ❌ |
+
+Então esta seção **não pede mecanismo novo**: pede **estender ao `D0` e ao tema o tratamento que o
+shell já tem** — mesmo arquivo, mesmo vocabulário de exit code, precedente com autoria e data.
+Enquanto isso não for feito, `T00` é a trava no processo, e é por isso que ela é **bloqueante** em
+vez de mais um campo informativo: um campo a mais seria a terceira coisa verdadeira que ninguém lê.
+
+⚠️ **E esta matriz diz de si mesma o que é:** em 2026-09-22 **nenhuma máquina a força** — o
+`Gate:` declarado da [LC-13](../../LICOES_CODE.md) (`junit-summary --check-assertions`) roda dentro
+das lanes Pest e **não alcança instrumento de design**. A matriz é disciplina de processo com
+âncora medível, não gate; quem a tratar como defesa automática está lendo errado.
+_(Eixo do tema e medição do `--check-shell` levantados pela sessão da Fabricação; verifiquei cada
+linha citada em `origin/main` antes de escrever. O `--tema` existe no `design-diff-lote.mjs:820`,
+não no `design-diff.mjs` — onde tem 0 ocorrências.)_
 
 ### A quem se aplica — o denominador, para não cobrar o impossível
 
