@@ -1744,6 +1744,16 @@ Ocorrência da **LC-13**.
 
 Ocorrência da **LC-08**.
 
+### 2026-09-22 — EMENDA da lápide 2026-06-30 (âncora por NOME/PASTA): o mesmo predicado voltou num detector NOVO — e o falso-positivo saiu do CI e virou ORDEM DE DELEÇÃO do dono
+
+- **O limite (variantes também proibidas):** **(a)** o da mãe, intacto; **(b)** saída de detector heurístico **não se entrega a humano como lista de ação** sem o caveat de conferência **por item** — e o caveat nasce junto com o detector, não depois do primeiro FP; **(c)** detector cujo docblock **nega** ser o que ele é: a versão pré-fix afirmava *"Não é guard sintático de nome: o predicado é PROVENIÊNCIA POR CAMINHO"* enquanto o universo era `filter(f => DS_RE.test(f))` — nome puro. Frase que dispensa a objeção **sem medir** é pior que a ausência dela, porque desarma quem revisaria (é [LC-15](LICOES_CODE.md) dentro da própria classe).
+
+- **⚠️ E a razão que publiquei para RECUSAR também estava errada — duas vezes, em canon.** A recusa foi certa; a justificativa, não:
+  - escrevi que *"o `venda-v3` é a âncora viva de `Sells/CreateV3`"*. **Falso:** `node scripts/design/ancora.mjs Sells/CreateV3` resolve **`prototipo-ui/cowork/Felipe/venda-v3.jsx`** — outra árvore, outro dono; nenhum charter declara `cowork/Wagner/venda-v3`.
+  - escrevi que um critério alternativo (*"token em `:root` = fundação"*) **falhara no controle positivo**, com `colors_and_type.css` medindo `tokensRoot = 0`. **Era a sonda que estava cega:** `indexOf(':root')` casou uma **menção dentro de um comentário** (linha 12) e parou antes do seletor real (linha 44). Sem comentários, o critério **discrimina** — canônico 245 tokens/**128** em `:root`; o FP 13/**0**; `ds-galerias/tokens.css` 139/**102**. O descarte legítimo existe e é outro: falso-**negativo** (`ds-galerias/design-system.css` mede 26/**0** e ainda pode ser cópia).
+
+  As duas frases entraram em `main` em dois sites, uma delas como *"fica registrado pra ninguém re-tentar"* — **instrução de desistência baseada em medição falsa** (§5 2026-09-01). Corrigidas por errata datada, não apagadas. Quem as pegou foi o **`ciclo-adversary`**, rodado antes de a lição virar ledger; ele derrubou 3 de 7 fatos do meu fechamento, inclusive o incremento que eu alegava para abrir lápide própria em vez desta emenda.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

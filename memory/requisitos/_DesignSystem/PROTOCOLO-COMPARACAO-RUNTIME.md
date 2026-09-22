@@ -697,16 +697,46 @@ Porque classificar por **nome de arquivo** é o guard sintático que o §5 de
 consequência**, medido em 2026-09-22, no mesmo dia em que nasceu:
 
 `prototipo-ui/cowork/Wagner/venda-v3/01-fundacoes/css/tokens-tema-escuro.css` foi acusado e
-**não é cópia de DS**. São 35 linhas em escopo `.cockpit[data-theme="dark"]`, com o cabeçalho
+**não é cópia de DS**. São **34 linhas** em escopo `.cockpit[data-theme="dark"]`, com o cabeçalho
 declarando *"NÃO cria token novo (ADR-0050): apenas dá valor escuro a tokens que o bundle do DS
-declara só no tema claro"*. Existe porque **8 de 29 pares reprovavam WCAG AA no escuro**; é
-carregado por `venda-v3/index.html:47`; e o `venda-v3` é a **âncora viva** de `Sells/CreateV3`.
-Apagá-lo reintroduziria a falha de contraste e quebraria o protótipo de uma tela de venda.
+declara só no tema claro"*. Existe porque **8 de 29 pares reprovavam WCAG AA no escuro**, e é
+carregado por `prototipo-ui/cowork/Wagner/venda-v3/index.html:47`. Apagá-lo reintroduziria a falha
+de contraste e deixaria aquele `<link>` em 404.
 
-Tentei um critério melhor — *"declara token em `:root` = fundação, em escopo = override"* — e ele
-**falhou no controle positivo**: o próprio canônico `colors_and_type.css` mede `tokensRoot = 0`
-(245 tokens, nenhum em `:root`). Sonda que não discrimina no controle não entra.
+E a regra que teria evitado isto **já estava escrita e é always-on**:
+[`proibicoes.md`](../../proibicoes.md) §"LIGUE A MÁQUINA" item 4 — *máquina nova exige **FP medido
+ANTES** de instalar*. Some-se a lápide §5 de **2026-06-30**, que mata este mesmo predicado **neste
+mesmo domínio** e nomeia o dono (`ancora.mjs::resolveAncora`). Não foi lacuna de conhecimento: foi
+falha de execução.
 
-Então o eixo **reporta e não reprova**, até existir critério que separe cópia de override sem ler
-a prosa do cabeçalho. O que reprova é a **duplicata por conteúdo** — mesmo nome, hash divergente —
-que não depende do nome parecer "de DS", e foi o eixo que de fato pegou o `ds-v6/tokens.css`.
+> ⚠️ **ERRATA 2026-09-22 — duas frases desta seção nasceram FALSAS e ficam registradas, não
+> apagadas.** Foram pegas pelo `ciclo-adversary`, rodado antes de a lição virar ledger.
+>
+> **(1)** Dizia-se *"o `venda-v3` é a **âncora viva** de `Sells/CreateV3`"*. **Falso.**
+> `node scripts/design/ancora.mjs Sells/CreateV3` resolve
+> **`prototipo-ui/cowork/Felipe/venda-v3.jsx`** — outra árvore, outro dono; nenhum charter declara
+> `cowork/Wagner/venda-v3`. A recusa em apagar estava certa, mas a razão que eu publiquei, não. A
+> razão que se sustenta sozinha é a do parágrafo acima: é override de contraste em escopo, com um
+> `<link>` apontando para ele.
+>
+> **(2)** Dizia-se que o critério *"declara token em `:root` = fundação"* havia **falhado no
+> controle positivo**, com `colors_and_type.css` medindo `tokensRoot = 0`. **Era a sonda que
+> estava cega**, não o critério: ela fazia `indexOf(':root')` e casou uma **menção a `:root` dentro
+> de um comentário** (linha 12), parando antes do seletor real (linha 44). Removendo os comentários
+> antes de casar, o critério **discrimina**:
+>
+> | arquivo | tokens | em `:root` |
+> |---|---:|---:|
+> | canônico `colors_and_type.css` | 245 | **128** |
+> | o FP `tokens-tema-escuro.css` | 13 | **0** |
+> | Felipe `ds-galerias/tokens.css` | 139 | **102** (cópia real) |
+> | Felipe `ds-galerias/styles.css` | 80 | **42** (cópia real) |
+>
+> Publicar *"o critério falhou"* a partir de sonda cega é **instrução de desistência sobre algo que
+> funciona** (§5 2026-09-01) — por isso a errata fica, em vez de a frase sumir.
+
+Então o eixo **reporta e não reprova** — mas pela razão **verdadeira**, que é outra: o critério de
+`:root` tem falso-**negativo** (`ds-galerias/design-system.css` mede 26 tokens · **0** em `:root` e
+ainda assim pode ser cópia). O que reprova é a **duplicata por conteúdo** — mesmo nome, hash
+divergente — que não depende do nome parecer "de DS", e foi o eixo que de fato pegou o
+`ds-v6/tokens.css`.
