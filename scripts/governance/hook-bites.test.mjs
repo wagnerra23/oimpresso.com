@@ -7,7 +7,10 @@
 import { mkdtempSync, writeFileSync, mkdirSync, utimesSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, basename } from 'node:path';
-import { hooksWired, tagDe, sondas, contarNoTexto, relatorio, ALIASES, checarAliases, listarJsonlLocal, arquivosTranscript } from './hook-bites.mjs';
+import { hooksWired, tagDe, sondas, contarNoTexto, relatorio, ALIASES, checarAliases, listarJsonlLocal, arquivosTranscript,
+  primeiroTimestampMs, cobertura, PISO_COBERTURA_HORAS } from './hook-bites.mjs';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 let fails = 0;
 const check = (n, c) => { console.log((c ? '[OK]   ' : '[FAIL] ') + n); if (!c) fails++; };
@@ -160,6 +163,57 @@ check('relatorio diz que a convencao e forward-only', /Forward-only|forward-only
     !janela.includes('sub.jsonl') && janela.includes('raso.jsonl') && janela.includes('wfagente.jsonl'));
   check('arquivosTranscript(0) = janela toda (wrapper nao perde arquivo)',
     arquivosTranscript(0, base).length === 3);
+}
+
+
+// ── cobertura do corpus: "zero entrega" so vale se houve OPORTUNIDADE ─────────
+// O defeito que isto trava (medido 2026-09-22, container de nuvem): o corpus tinha 1
+// .jsonl — o da sessao que estava abrindo, com segundos de idade —, a protecao de corpus
+// VAZIO nao disparava, e o heartbeat publicava "52 wired com ZERO entrega". Acusacao por
+// nao-medicao pela porta do corpus de 1 (§5 2026-07-29 · LC-33).
+{
+  const agora = Date.parse('2026-09-22T12:00:00Z');
+  check('primeiroTimestampMs le o 1o timestamp do jsonl',
+    primeiroTimestampMs('{"a":1,"timestamp":"2026-09-22T10:00:00.000Z"}\n{"timestamp":"2026-09-22T11:00:00Z"}')
+      === Date.parse('2026-09-22T10:00:00.000Z'));
+  check('CONTROLE NEGATIVO: sem timestamp => null (nao inventa inicio)', primeiroTimestampMs('{"a":1}') === null);
+  check('cobertura: sessao de minutos => INSUFICIENTE',
+    cobertura({ inicioMs: agora - 5 * 60000, agoraMs: agora }).suficiente === false);
+  check('cobertura: 3 dias de historia => suficiente',
+    cobertura({ inicioMs: agora - 3 * 86400000, agoraMs: agora }).suficiente === true);
+  check('cobertura: fronteira no piso declarado', cobertura({ inicioMs: agora - PISO_COBERTURA_HORAS * 3600000, agoraMs: agora }).suficiente === true
+    && cobertura({ inicioMs: agora - PISO_COBERTURA_HORAS * 3600000 + 1, agoraMs: agora }).suficiente === false);
+  check('cobertura: inicio desconhecido => insuficiente (nao sei o que cobre, nao afirmo ausencia)',
+    cobertura({ inicioMs: null, agoraMs: agora }).suficiente === false);
+
+  const base = { wired: [{ arquivo: 'vivo', tag: 'vivo', evento: 'PreToolUse', matcher: 'Edit' },
+    { arquivo: 'mudo', tag: 'mudo', evento: 'PreToolUse', matcher: 'Edit' }],
+    contagem: new Map([['vivo', 3]]), naoObservaveis: [], sessoes: 1, segundos: '0.1' };
+  const curto = relatorio({ ...base, cob: { horas: 0.1, suficiente: false } });
+  check('relatorio com corpus CURTO: zero vira NAO MEDIDO, nao "ZERO entrega"',
+    /NAO MEDIDO/.test(curto) && !/wired com ZERO entrega/.test(curto));
+  check('relatorio com corpus CURTO: entrega (evidencia positiva) segue listada', /3\s+vivo/.test(curto));
+  const longo = relatorio({ ...base, cob: { horas: 72, suficiente: true } });
+  check('CONTROLE: corpus com historia continua acusando zero entrega', /wired com ZERO entrega/.test(longo));
+
+  // CLI de FORA — o heartbeat e' o que chega na sessao; assert em funcao pura nao prova
+  // o pipeline (§5 2026-07-30). HOME aponta pra um corpus-fixture; nada do corpus real.
+  const script = join(fileURLToPath(new URL('.', import.meta.url)), 'hook-bites.mjs');
+  const heartbeat = (tsIso) => {
+    const home = mkdtempSync(join(tmpdir(), 'hb-home-'));
+    const proj = join(home, '.claude', 'projects', '-home-user-oimpresso-com');
+    mkdirSync(proj, { recursive: true });
+    writeFileSync(join(proj, 's.jsonl'), `{"type":"x","timestamp":"${tsIso}"}\n`);
+    const r = spawnSync(process.execPath, [script, '--heartbeat', '--dias', '14', '--throttle-horas', '0'],
+      { encoding: 'utf8', env: { ...process.env, HOME: home, USERPROFILE: home } });
+    return { rc: r.status, out: (r.stdout || '') + (r.stderr || '') };
+  };
+  const novo = heartbeat(new Date(Date.now() - 2 * 60000).toISOString());
+  check('CLI heartbeat: sessao recem-aberta => NAO MEDIDO, sem acusar "ZERO entrega"',
+    novo.rc === 0 && /NAO MEDIDO/.test(novo.out) && !/wired com ZERO entrega/.test(novo.out));
+  const velho = heartbeat(new Date(Date.now() - 3 * 86400000).toISOString());
+  check('CLI heartbeat (CONTROLE): corpus de 3 dias => acusa zero entrega normalmente',
+    velho.rc === 0 && /wired com ZERO entrega/.test(velho.out) && !/NAO MEDIDO/.test(velho.out));
 }
 
 console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — mede ENTREGA real, ignora tag em codigo-fonte/prosa, zero e OLHAR nao falha, --check-aliases morde e a varredura do corpus desce em subagents/.');

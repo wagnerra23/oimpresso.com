@@ -180,6 +180,54 @@ export function arquivosTranscript(dias, base) {
   return listarJsonlLocal({ base, desdeMs: dias ? Date.now() - dias * 86400000 : 0 });
 }
 
+/**
+ * COBERTURA DO CORPUS — quanto tempo de história o transcript local cobre.
+ *
+ * ── POR QUE EXISTE (medido 2026-09-22, container de nuvem recém-aberto) ─────────────
+ * A proteção de "corpus vazio" (abaixo, no heartbeat) só dispara com ZERO arquivos. Numa
+ * sessão nova de nuvem o corpus tem exatamente UM `.jsonl` — o da própria sessão que está
+ * abrindo, com segundos de idade —, a proteção não dispara, e o heartbeat publicava
+ * "0 entregaram · 52 wired com ZERO entrega": a mesma acusação-por-não-medição que o bloco
+ * do corpus vazio foi escrito pra impedir (§5 2026-07-29 · LC-33), só que pela porta do
+ * corpus de 1. Rodado de novo minutos depois, na mesma sessão: 4 entregaram, 48 "mortos".
+ *
+ * ── A ASSIMETRIA QUE A REGRA RESPEITA ───────────────────────────────────────────────
+ * Entrega é evidência POSITIVA e vale com qualquer amostra (um hook que emitiu, emitiu).
+ * "Zero entrega" é evidência NEGATIVA e só vale se houve OPORTUNIDADE — e a maioria dos
+ * hooks é PreToolUse condicional, que precisa de trabalho real pra ter chance de disparar.
+ * Por isso a cobertura curta suprime só a lista de zero-entrega, nunca a de entregas.
+ *
+ * O piso de 24h é DECLARADO, não derivado: separa "a sessão que acabou de abrir" de
+ * "histórico". Acima dele o caveat de sempre continua valendo (zero pode ser condição
+ * nunca satisfeita) — o piso não prova suficiência, só barra o caso sem história nenhuma.
+ */
+export const PISO_COBERTURA_HORAS = 24;
+
+/** primeiro `"timestamp":"<ISO>"` do texto, em ms — ou null se não houver. */
+export function primeiroTimestampMs(texto) {
+  const m = /"timestamp":"(\d{4}-\d{2}-\d{2}T[^"]+)"/.exec(texto);
+  if (!m) return null;
+  const t = Date.parse(m[1]);
+  return Number.isFinite(t) ? t : null;
+}
+
+/**
+ * @param {{inicioMs: number|null, agoraMs?: number, pisoHoras?: number}} o
+ * @returns {{horas: number|null, suficiente: boolean}} — sem início conhecido = insuficiente
+ *   (não sei quanto o corpus cobre ⇒ não posso afirmar ausência).
+ */
+export function cobertura({ inicioMs, agoraMs = Date.now(), pisoHoras = PISO_COBERTURA_HORAS }) {
+  if (inicioMs == null) return { horas: null, suficiente: false };
+  const horas = Math.max(0, (agoraMs - inicioMs) / 3600000);
+  return { horas, suficiente: horas >= pisoHoras };
+}
+
+/** texto humano da cobertura: "3.2h" / "5.0d" / "desconhecida". */
+export function fmtCobertura(horas) {
+  if (horas == null) return 'desconhecida';
+  return horas < 48 ? `${horas.toFixed(1)}h` : `${(horas / 24).toFixed(1)}d`;
+}
+
 /** tags que EMITIRAM no corpus mas não pertencem a nenhum hook wired.
  *  O ponto cego INVERSO: hook desligado do settings que segue emitindo, script
  *  se passando por hook, ou tag de hook renomeado. Ruído conhecido do corpus
@@ -204,11 +252,11 @@ export function tagsOrfas(texto, conhecidas) {
   return achadas;
 }
 
-export function relatorio({ wired, contagem, naoObservaveis, sessoes, segundos, orfas }) {
+export function relatorio({ wired, contagem, naoObservaveis, sessoes, segundos, orfas, cob }) {
   const L = [];
   L.push('');
   L.push('=== hook-bites — a defesa mordeu NO MUNDO? (advisory · dead man\'s switch) ===');
-  L.push(`  corpus: ${sessoes} sessoes locais · ${segundos}s`);
+  L.push(`  corpus: ${sessoes} sessoes locais · ${segundos}s${cob ? ` · cobre ${fmtCobertura(cob.horas)}` : ''}`);
   const obs = wired.filter((h) => h.tag);
   const zero = obs.filter((h) => (contagem.get(h.tag) || 0) === 0);
   L.push(`  hooks wired: ${wired.length} · observaveis: ${obs.length} · sem tag: ${naoObservaveis.length}`);
@@ -217,7 +265,11 @@ export function relatorio({ wired, contagem, naoObservaveis, sessoes, segundos, 
     const n = contagem.get(h.tag) || 0;
     L.push(`   ${String(n).padStart(5)}  ${h.arquivo}${h.tag !== h.arquivo ? ` [${h.tag}]` : ''}`);
   }
-  if (zero.length) {
+  if (zero.length && cob && !cob.suficiente) {
+    L.push('');
+    L.push(`  [?] NAO MEDIDO — ${zero.length} hook(s) sem entrega, mas o corpus cobre so ${fmtCobertura(cob.horas)} (piso ${PISO_COBERTURA_HORAS}h):`);
+    L.push('        sem historia nao houve oportunidade de disparar; zero aqui e\' cegueira, nao morte.');
+  } else if (zero.length) {
     L.push('');
     L.push(`  [!] ${zero.length} hook(s) wired com ZERO entrega na janela — OLHAR, nao e' falha:`);
     for (const h of zero) L.push(`        ${h.arquivo}  (${h.evento} ${h.matcher})`);
@@ -326,8 +378,11 @@ function main() {
   const contagem = new Map();
   const conhecidas = new Set(wired.map((h) => h.tag).filter(Boolean));
   const orfas = new Map();
+  let inicioMs = null;
   for (const f of arquivos) {
     let txt; try { txt = readFileSync(f, 'utf8'); } catch { continue; }
+    const t = primeiroTimestampMs(txt);
+    if (t != null && (inicioMs == null || t < inicioMs)) inicioMs = t;
     for (const h of wired) {
       if (!h.tag) continue;
       const n = contarNoTexto(txt, h.tag);
@@ -336,6 +391,7 @@ function main() {
     for (const [t, n] of tagsOrfas(txt, conhecidas)) orfas.set(t, (orfas.get(t) || 0) + n);
   }
   const segundos = ((Date.now() - t0) / 1000).toFixed(1);
+  const cob = cobertura({ inicioMs });
   if (argv.includes('--heartbeat')) {
     // Resumo de 4 linhas pro SessionStart. Existe porque a análise completa é boa e
     // NINGUÉM a invocava: o dead man's switch estava, ele próprio, órfão (medido em
@@ -358,7 +414,16 @@ function main() {
       console.log(`      detalhe: node scripts/governance/hook-bites.mjs --dias ${dias || 14}\n`);
       process.exit(0);
     }
-    console.log(`  ${comEntrega.length} entregaram · ${semEntrega.length} wired com ZERO entrega · ${naoObservaveis.length} nao-observaveis (silencio = indistinguivel de morte)`);
+    // CORPUS CURTO TAMBEM NAO E' "ZERO ENTREGAS" (ver `cobertura()` acima): a sessao
+    // recem-aberta e' o unico transcript num container de nuvem. Entrega continua valendo;
+    // a lista de zero-entrega sai como NAO MEDIDO.
+    if (!cob.suficiente) {
+      console.log(`  ${comEntrega.length} entregaram · corpus cobre so ${fmtCobertura(cob.horas)} (${arquivos.length} sessao(oes) · piso ${PISO_COBERTURA_HORAS}h)`);
+      console.log(`  [?] NAO MEDIDO — os outros ${semEntrega.length} sem entrega: sem historia nao houve oportunidade; e' cegueira, nao morte.`);
+      console.log(`  detalhe: node scripts/governance/hook-bites.mjs --dias ${dias || 14}\n`);
+      process.exit(0);
+    }
+    console.log(`  ${comEntrega.length} entregaram · ${semEntrega.length} wired com ZERO entrega · ${naoObservaveis.length} nao-observaveis · corpus cobre ${fmtCobertura(cob.horas)} (silencio = indistinguivel de morte)`);
     if (semEntrega.length) {
       console.log(`  zero entrega: ${semEntrega.slice(0, 6).map((h) => curto(h.arquivo)).join(', ')}${semEntrega.length > 6 ? ` (+${semEntrega.length - 6})` : ''}`);
     }
@@ -368,11 +433,12 @@ function main() {
   if (argv.includes('--json')) {
     console.log(JSON.stringify({
       sessoes: arquivos.length, segundos: Number(segundos),
+      cobertura_horas: cob.horas == null ? null : Number(cob.horas.toFixed(2)), cobertura_suficiente: cob.suficiente,
       hooks: wired.map((h) => ({ ...h, entregas: h.tag ? (contagem.get(h.tag) || 0) : null })),
       nao_observaveis: naoObservaveis, orfas: [...orfas],
     }, null, 2));
   } else {
-    console.log(relatorio({ wired, contagem, naoObservaveis, orfas, sessoes: arquivos.length, segundos }));
+    console.log(relatorio({ wired, contagem, naoObservaveis, orfas, sessoes: arquivos.length, segundos, cob }));
   }
   process.exit(0);
 }

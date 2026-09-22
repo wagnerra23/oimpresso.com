@@ -2857,3 +2857,21 @@ Ocorrência da **LC-08**.
 - **Alcance real.** Não chegou ao `main` nem ao [W] como afirmação de estado: o CI mordeu no PR, o step foi removido no commit seguinte, e o corpo do PR foi corrigido com as duas casas medidas e o motivo de cada recusa. Origem: sessão 2026-09-22, [#7721](https://github.com/wagnerra23/oimpresso.com/pull/7721) (commits `32dfcac9a` → `a1f2dffb5`).
 
 - Ocorrência da **LC-08**.
+
+### 2026-09-22 — EMENDA da lápide 2026-07-29 (fail-open que vira frase falsa): o dead man's switch dos hooks acusou 52 mortos lendo UM transcript de segundos — a proteção dele parava exatamente em zero
+
+- **O que aconteceu.** Numa sessão de nuvem recém-aberta, o banner de `SessionStart` do [`hook-bites.mjs`](../scripts/governance/hook-bites.mjs) publicou *"0 entregaram · 52 wired com ZERO entrega"*. Rodado de novo minutos depois, na mesma sessão: *"4 entregaram · 48 wired com ZERO entrega"*. Os hooks não morreram nem ressuscitaram — o corpus é que tinha **um** `.jsonl`, o da própria sessão que estava abrindo, com segundos de idade.
+
+- **Por que passou, e é o incremento desta instância.** O instrumento **já conhecia** esta doença: o heartbeat tem um bloco escrito justamente para ela (*"CORPUS VAZIO NAO E' ZERO ENTREGAS… Acontece em TODA estacao sem historico local: container de nuvem, clone fresco"*). Mas a guarda testava `!arquivos.length` — **zero arquivos**. O caso real de nuvem não é zero, é **um**: o transcript da sessão corrente já existe quando o hook roda. A proteção foi escrita para a forma **limite** do problema (vazio) e não para a forma **comum** (quase vazio), e por isso nunca disparou no único ambiente que ela nomeia no próprio comentário.
+
+- **O limite (variante também proibida).** Proteção contra "não consegui medir" não se ancora na **contagem de insumos** (`length === 0`) quando a pergunta é sobre **oportunidade**: um arquivo de segundos é tão cego quanto nenhum. A forma positiva é perguntar **quanto o corpus cobre** (aqui: primeiro `timestamp` do transcript mais antigo → horas de história) e respeitar a **assimetria**: evidência **positiva** (o hook emitiu) vale com qualquer amostra; evidência **negativa** (zero entrega) só vale se houve oportunidade de disparar. Por isso o conserto suprime só a lista de zero-entrega, nunca a de entregas. Vale para todo dead man's switch, staleness e watchdog cuja entrada pode ser **curta** sem ser **vazia**.
+
+- **O piso é declarado, não derivado.** `PISO_COBERTURA_HORAS = 24` separa "a sessão que acabou de abrir" de "histórico"; ele **não** prova suficiência. Acima do piso o caveat de sempre continua valendo — zero pode ser condição nunca satisfeita, e distinguir exige bite-test com payload real.
+
+- **Prova.** 11 asserts novos no [`hook-bites.test.mjs`](../scripts/governance/hook-bites.test.mjs), dois deles exercitando o **CLI de fora** com `HOME` apontado para um corpus-fixture (sessão de 2 minutos → `NAO MEDIDO`; controle com 3 dias de história → acusa zero entrega normalmente). **Mordida provada por mutação:** desligadas as duas guardas numa cópia, 2 asserts caem (`relatorio com corpus CURTO` e `CLI heartbeat: sessao recem-aberta`); restaurado por backup byte-exato com hash conferido, 100% verde. Os consumidores do módulo (`hook-replay`, `agent-cost-per-pr`) seguem verdes.
+
+- **⚠️ NÃO virar gate.** O dono já existe, é advisory por desenho e mora na Estação 1 do [FLUXO-MAQUINAS](reference/FLUXO-MAQUINAS.md) — o conserto foi **no dono**. Um detector genérico de "guarda que testa `length === 0`" seria critério sintático, e reprovaria o uso legítimo (vazio **é** a pergunta certa em muitos lugares) — família de guard sintático já enterrada várias vezes neste arquivo.
+
+- **Alcance real.** Não chegou a decisão nenhuma: o banner acusou numa sessão, a acusação foi reconhecida como não-medição antes de virar recomendação ao [W], e o conserto veio na mesma sessão. Origem: sessão 2026-09-22, análise do fluxo de máquinas pela lente de microsserviços.
+
+- Ocorrência da **LC-33**.
