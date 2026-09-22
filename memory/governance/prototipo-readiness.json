@@ -26,6 +26,7 @@
     "Jana/Index",
     "Jana/Memoria",
     "kb/Index",
+    "Manufacturing/Index",
     "Modules/Index",
     "OficinaAuto/ServiceOrders/Create",
     "OficinaAuto/ServiceOrders/Edit",
@@ -51,7 +52,6 @@
     "Ponto/Relatorios/Index",
     "Produto/Create",
     "Produto/Edit",
-    "Produto/SellingPrices",
     "Purchase/Create",
     "Purchase/Index",
     "Purchase/Show",
@@ -196,7 +196,7 @@
       "arquivo": "resources/js/Pages/Manufacturing/Insumos.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/Wagner/manufacturing-insumos.jsx",
+      "prototipo": "prototipo-ui/cowork/Felipe/manufacturing-insumos.jsx",
       "falta": [
         "scorecard"
       ]
@@ -206,7 +206,7 @@
       "arquivo": "resources/js/Pages/Manufacturing/Recipes.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/Wagner/manufacturing-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Felipe/manufacturing-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -216,7 +216,7 @@
       "arquivo": "resources/js/Pages/Manufacturing/Report.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
+      "prototipo": "prototipo-ui/cowork/Felipe/manufacturing-producao.jsx",
       "falta": [
         "scorecard"
       ]
@@ -226,7 +226,7 @@
       "arquivo": "resources/js/Pages/Manufacturing/Settings.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
+      "prototipo": "prototipo-ui/cowork/Felipe/manufacturing-producao.jsx",
       "falta": [
         "scorecard"
       ]
@@ -296,7 +296,7 @@
       "arquivo": "resources/js/Pages/Sells/CreateV3.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx",
+      "prototipo": "prototipo-ui/cowork/Felipe/venda-v3.jsx (VendaV3Create)",
       "falta": [
         "scorecard"
       ]
