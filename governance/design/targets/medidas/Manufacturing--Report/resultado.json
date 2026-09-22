@@ -1,15 +1,15 @@
 {
-  "id": "Manufacturing/Index",
-  "source": "manufacturing-page.jsx",
-  "target": "resources/js/Pages/Manufacturing/Index.tsx",
-  "token": "mfg-producao",
+  "id": "Manufacturing/Report",
+  "source": "manufacturing-producao.jsx",
+  "target": "resources/js/Pages/Manufacturing/Report.tsx",
+  "token": "mfg-relatorio",
   "frescor": "STALE 2026-09-21",
   "contrato": null,
   "compare": {
-    "rc": 1,
-    "veredito": "DIVERGE (bug)",
+    "rc": 0,
+    "veredito": "IGUAL",
     "motivo": "",
-    "bugs": 1,
+    "bugs": 0,
     "shell": 2,
     "sameTheme": true,
     "porDim": {
@@ -20,10 +20,10 @@
         "igual": 1
       },
       "D4": {
-        "diverge": 1,
-        "bug": 1,
+        "diverge": 0,
+        "bug": 0,
         "semDado": 1,
-        "igual": 0
+        "igual": 1
       },
       "D6": {
         "diverge": 0,
@@ -40,7 +40,7 @@
       "D9": {
         "diverge": 0,
         "bug": 0,
-        "semDado": 5,
+        "semDado": 8,
         "igual": 0
       },
       "SHELL": {
@@ -66,11 +66,10 @@
       },
       {
         "dim": "D4",
-        "campo": "título font-size",
-        "prod": "24px",
-        "design": "22px",
-        "veredito": "DIVERGE (bug)",
-        "detalhe": "Δ 2px · banda tituloPx ±1px"
+        "campo": "tipografia",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
       },
       {
         "dim": "D6",
@@ -85,6 +84,30 @@
         "prod": "ok",
         "design": "ok",
         "veredito": "IGUAL"
+      },
+      {
+        "dim": "D9",
+        "campo": "cabecalho",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "filtros",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "lista",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
       },
       {
         "dim": "D9",
@@ -195,10 +218,10 @@
   "veredito": null,
   "motivo": "",
   "meta": {
-    "urlFinal": "https://staging.oimpresso.com/manufacturing/production",
+    "urlFinal": "https://staging.oimpresso.com/manufacturing/report",
     "componenteInertia": null
   },
-  "medidoEm": "2026-09-22T13:48:12.327Z",
+  "medidoEm": "2026-09-22T13:46:43.700Z",
   "baseUrl": "https://staging.oimpresso.com",
   "bundle": "345ab5871e75e92bda11697821219628525c2f6509e47ceb6f2df13f13c02afe"
 }

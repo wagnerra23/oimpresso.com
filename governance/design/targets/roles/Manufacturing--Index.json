@@ -1,0 +1,5 @@
+{
+  "_medido_em": "2026-09-22",
+  "_por_que": "SEM este override a medicao sai contra a TELA ERRADA do lado design, e o veredito parece valido. Medido em 2026-09-22: a primeira rodada gravou `token: manufacturing`, que no app.jsx do espelho monta `<window.ManufacturingPage />` SEM initialView -- ou seja, a aba RECEITAS (`useState(initialView || \"receitas\")`), enquanto a producao mostrava ORDENS DE PRODUCAO. A causa e que `tokenDoMockup` deriva do `source` do application-report (`manufacturing-page.jsx`, o hub), nao da ancora resolvida (`manufacturing-producao.jsx`). O token abaixo foi LIDO do app.jsx do espelho do Felipe (:849): `if (route === \"mfg-producao\") content = <window.ManufacturingPage initialView=\"producao\" />`.",
+  "token": "mfg-producao"
+}
