@@ -282,6 +282,52 @@
       "seletor": ".jc-page > div:first-child > header",
       "truncado": false
     },
+    "header_titulo": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "header",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "color": "oklch(0.94 0.005 90)",
+        "fontSize": "22px",
+        "fontWeight": "600",
+        "letterSpacing": "-0.33px",
+        "lineHeight": "28.6px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "header"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "span"
+      ],
+      "rect": {
+        "h": 31,
+        "w": 80
+      },
+      "seletor": ".jc-page > div:first-child > header h1",
+      "truncado": false
+    },
     "kpis": {
       "contraste": {
         "fundo": "oklch(0.26 0.006 240)",
