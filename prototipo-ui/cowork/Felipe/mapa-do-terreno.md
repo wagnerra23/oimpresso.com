@@ -21,7 +21,7 @@ Tudo abaixo medido em **10/09/2026**, salvo indicação.
 
 ## Camada 2 — por onde começar no DS
 
-- `_ds_manifest.json` — mapa nome→`sourcePath`, **41 entradas**, `namespace: OfficeImpressoDesignSystem_49a36f`. **É o começo de qualquer auditoria**, não o bundle.
+- `_ds_manifest.json` — mapa nome→`sourcePath`, **41 entradas**, `namespace: OfficeImpressoPontoWR2DesignSystem_019dd0`. **É o começo de qualquer auditoria**, não o bundle.
 - `components/<Nome>/<Nome>.jsx` + `.d.ts` — o componente e o contrato de props.
 - `_adherence.oxlintrc.json` — **795 linhas**, contrato de aderência legível por máquina (`no-restricted-imports` com as ~40 pastas + `react/forbid-elements`).
 - `prototipo-ui/` — **1 arquivo só** (`Design System v4.html`). Histórico. Não é fonte.
@@ -31,27 +31,22 @@ Tudo abaixo medido em **10/09/2026**, salvo indicação.
 
 | pasta | quem carrega | estado |
 |---|---|---|
-| `_ds/wagner-…-49a36f76-…` | **tudo** — `oimpresso.com.html`, a Consulta de Produtos, as duas páginas de handoff | o único. **Regenerado da fonte viva em 21/09: 295.062 → 346.587 B, 44 → 59 componentes** (entraram DataGrid, ColumnManager, ColumnPrefs, Toolbar+ToolbarButton/Search/Divider/Spacer, Widget, Segmented, Timeline, Kebab, PresenterMode, SearchInput; nenhum saiu) |
+| `_ds/wagner-…-49a36f76-…` | **tudo** — `oimpresso.com.html`, a Consulta de Produtos, as duas páginas de handoff | o único. **Regenerado da fonte viva em 21/09 (noite): 349.364 B, 59 componentes, byte a byte igual ao DS vivo** (entraram DataGrid, ColumnManager, ColumnPrefs, Toolbar+ToolbarButton/Search/Divider/Spacer, Widget, Segmented, Timeline, Kebab, PresenterMode, SearchInput; nenhum saiu) |
 | ~~`_ds/office-impresso-design-system-019dd02f-…`~~ | — | **apagada 21/09.** Era o bundle do `49a36f` + shim de 11 linhas; mesmo conteúdo, mesmo namespace |
 | ~~`_ds/office-impresso-atual-d7f88676-…`~~ | — | **apagada 21/09.** Esta era DS diferente: namespace `OfficeImpressoDesignSystem_d7f886`, 287.322 B × 295.062 B. Nenhuma página carregava; 4 ADRs citavam |
 
-⚠️ **O alias vive no FIM do `_ds_bundle.js` do espelho — e a direção inverteu em 21/09.**
+✅ **Não há mais alias — o nome é um só (21/09/2026, noite).** O `_ds_bundle.js` publica
+`window.OfficeImpressoPontoWR2DesignSystem_019dd0` e termina em `})();`, sem acréscimo nenhum. As
+páginas que liam `OfficeImpressoDesignSystem_49a36f` foram trocadas para o nome publicado — 6
+arquivos: `Consulta de Produtos.dc.html` e os cinco `manufacturing-*.jsx` da raiz.
 
-| | antes de 21/09 | agora |
-|---|---|---|
-| o bundle publica | `OfficeImpressoDesignSystem_49a36f` | `OfficeImpressoPontoWR2DesignSystem_019dd0` (é o que o DS gera) |
-| o alias publica | `…PontoWR2…_019dd0 = …_49a36f` | `OfficeImpressoDesignSystem_49a36f = …PontoWR2…_019dd0` |
-| onde mora | shim de 11 linhas no bundle `019dd02f` (apagado) | 7 linhas no fim de `_ds/wagner-…/_ds_bundle.js` |
-| quando publica | em tempo de execução do bundle | em tempo de execução do bundle |
+**Ao regenerar o espelho, copiar do DS vivo como está.** Não reaplicar alias: não existe mais nada
+para perder numa regeneração. Teste de aceite: no console,
+`typeof window.OfficeImpressoDesignSystem_49a36f === 'undefined'` e
+`Object.keys(window.OfficeImpressoPontoWR2DesignSystem_019dd0).length === 59`.
 
-**REAPLICAR o alias ao regenerar o espelho.** O DS não o gera — é acréscimo deste projeto. Sem ele,
-toda página que lê `OfficeImpressoDesignSystem_49a36f` (Consulta de Produtos, as duas de handoff, o
-shell) quebra em silêncio. Conferido em 21/09: os dois nomes existem, com 59 componentes, e são a
-**mesma referência**.
-
-> Correção de registro: houve uma janela de poucos minutos em 21/09 em que o alias foi extraído para
-> um `<script defer>` no `oimpresso.com.html`, publicando no `DOMContentLoaded`. Foi desfeito ao
-> regenerar o espelho. Se alguma cópia do projeto tiver esse `<script>`, ele é redundante.
+> Registro histórico: até 21/09 o espelho carregava um shim de alias (nas duas direções, em momentos
+> diferentes). Ele foi removido junto com a pasta `019dd02f`.
 
 ⚠️ **`cockpit_domains.css`: eu removi por engano e restaurei.** Afirmei que o arquivo não existia no
 repositório nem no DS; **existe** — 139 linhas no projeto do DS, 62 tokens light + 60 dark, gerado

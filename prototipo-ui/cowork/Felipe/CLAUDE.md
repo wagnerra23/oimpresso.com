@@ -9,6 +9,13 @@
   Quem implementa lê a ficha da tela (§2), vê a lista de blocos e lê só esses blocos. Item novo em
   um bloco atualiza **só a ficha daquele bloco** e sobe a versão dele. Blocos não cobertos estão
   declarados no §1.
+- `pre-export.md` + `conferir-export.mjs` — **o porteiro do pacote.** Dez testes de máquina que
+  reprovam o zip antes de ele sair: espelho único em `_ds/`, namespace lido do cabeçalho
+  `@ds-bundle` do bundle, ausência de alias, código lendo só o nome publicado, espelho igual à
+  linha de base, pesos de fonte distintos, caminhos mortos, referências locais, duplicatas e
+  CRLF medido por byte. `node conferir-export.mjs .` antes de exportar e de novo na importação;
+  `--baseline` **só** logo após regenerar o espelho da fonte viva. Teste novo entra com a seção
+  de mesmo número no `pre-export.md`, nunca sozinho.
 - `pauta-design-system.md` — propostas de prop, defeitos de origem do DS e contornos em pé.
   Classificação P1 (propor já) / P2 (esperar segundo caso) / D (defeito).
 - `recomendacoes-outras-telas.md` — o que pertence a Orçamento/PDV, Cadastro, RH e Compras,
@@ -143,15 +150,25 @@ e nunca com a cópia local:
    (mapa nome→`sourcePath`, 41 entradas) e ler `components/<Nome>/<Nome>.jsx` + `.d.ts`. O
    `_adherence.oxlintrc.json` (795 linhas) é o contrato de aderência legível por máquina.
 3. `_ds/` **nunca é fonte** — é cópia para o protótipo rodar, e envelhece. Antes de qualquer
-   auditoria, comparar o `_ds/` com a fonte viva e regenerar se divergir. Regenerar **os dois**
-   espelhos: `oimpresso.com.html` L121 carrega o `019dd02f`, não o `wagner-…`, e o `019dd02f` tem um
-   shim de alias de 11 linhas no fim que precisa ser preservado.
+   auditoria, comparar o `_ds/` com a fonte viva e regenerar se divergir. Espelho **único**:
+   `_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/`, que é o que
+   `oimpresso.com.html` carrega. A pasta `019dd02f` e o shim de alias que vivia no fim do bundle
+   **não existem mais** (21/09/2026): o bundle publica só
+   `window.OfficeImpressoPontoWR2DesignSystem_019dd0` e as páginas leem esse nome. Ao regenerar,
+   copiar do DS vivo **como está** — não reaplicar alias nenhum.
 
 **Proibições que esta semana custou caro:**
 
 - `grep` em caminho cross-project (`/projects/…`) **devolve vazio mesmo com o termo presente** —
   nunca usar como prova de ausência. Cross-project é `read_file`.
 - `local_grep` que estoura o tempo **não é ausência** — o próprio retorno diz "results are incomplete".
+- **Quebra de linha não se mede lendo texto.** O leitor de arquivo entrega o conteúdo já
+  normalizado, então "li e está em LF" é cegueira da ferramenta, não medição. LF/CRLF só por
+  byte (`0x0D 0x0A`) — é o teste 10 do `conferir-export.mjs`.
+- **Contorno que o gerador não gera é dívida com prazo.** O alias do bundle sobreviveu meses
+  porque cada regeneração o apagava em silêncio e alguém o reaplicava. A saída nunca é lembrar
+  melhor: é remover o contorno e alinhar as duas pontas (as páginas passaram a ler o nome que o
+  bundle publica). Quando não der para remover, o contorno vira teste de máquina no porteiro.
 - Ler o bundle compilado e concluir sobre o componente: começar pelo manifest e pelo `.jsx`.
 - Reaproveitar citação de arquivo:linha de mensagem anterior. Remedir na hora.
 - Corrigir número de linha por chute. Auto-sync de endereço é conserto; chute é invenção.

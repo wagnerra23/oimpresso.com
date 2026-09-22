@@ -70,9 +70,15 @@
       "role": "cowork-source"
     },
     {
+      "path": "_live-only.json",
+      "bytes": 39346,
+      "sha256": "80b2e307534b81fcc50221a2783f02436484a656a008e547b636d0610fe4031f",
+      "role": "cowork-source"
+    },
+    {
       "path": "absorcao-v2-em-todos-os-produtos.md",
-      "bytes": 69874,
-      "sha256": "9bdf20fce9197b4bb2f8e3a47332b8f391d43c362a31701bf72ce91fc5f19826",
+      "bytes": 69929,
+      "sha256": "1b1782143e71b9d489cba20e5b60bdcd8a5d24d974799af2a15db5316b285a98",
       "role": "cowork-source"
     },
     {
@@ -95,8 +101,8 @@
     },
     {
       "path": "app.jsx",
-      "bytes": 75265,
-      "sha256": "295d5eff830da4da33c6efedafc78f046d9333f8aebf7f205742c8009527951b",
+      "bytes": 75219,
+      "sha256": "012ec3f3c4a88b80055d7fa994c6a5a58ced8440f43d94e781f62baed86ec8aa",
       "role": "cowork-source"
     },
     {
@@ -107,8 +113,8 @@
     },
     {
       "path": "arquivos-identicos-medido.md",
-      "bytes": 6397,
-      "sha256": "411e64a988397296627081c52dad2376a066569b7c279a480b65332f2588b333",
+      "bytes": 6518,
+      "sha256": "6e2e1e3f94e64bb6f975f9fa56715f9c2d7a7d35812997521398af6fd0b4bcc3",
       "role": "cowork-source"
     },
     {
@@ -119,14 +125,14 @@
     },
     {
       "path": "auditoria-aderencia-fabricacao-v2.md",
-      "bytes": 27354,
-      "sha256": "1f7d8d5ccd1a1f710608776f6f3821357d0a73d8795142991b2b4a7bd1a0adef",
+      "bytes": 27290,
+      "sha256": "96bb92f7e3e6593737035d151e06ac38480a98ee959300997bb2e11789c82183",
       "role": "cowork-source"
     },
     {
       "path": "auditoria-aderencia-fabricacao.md",
-      "bytes": 18076,
-      "sha256": "82d8ed39fceb59ebdfd56d893e01e04df23e70a0cb1df1b977dd498ac2c3a7d0",
+      "bytes": 18084,
+      "sha256": "497cbfbc3f4bccb542e72b1cca19a9a8d26ea5f28fe8b8e48155bb66438baa72",
       "role": "cowork-source"
     },
     {
@@ -191,8 +197,8 @@
     },
     {
       "path": "CLAUDE.md",
-      "bytes": 13974,
-      "sha256": "191a937b751538710d41c4ffe0f656878c9b504b749b3592f1e1367e0ee78bc8",
+      "bytes": 15508,
+      "sha256": "8f3857ee7bc6f0616ebecb506ecc6f7923f1842d82a45d741ddd7aea2b8eb036",
       "role": "cowork-source"
     },
     {
@@ -340,6 +346,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "conferir-export.mjs",
+      "bytes": 12622,
+      "sha256": "829f14eaed9bf06a05ca032a7c378788ede803a3c8bba10ee23582668c5fa0e9",
+      "role": "cowork-source"
+    },
+    {
       "path": "configuracoes-cadastros.jsx",
       "bytes": 51669,
       "sha256": "83843866dc0e8624a7fc37eece65da2c6c155510ee67aca7380b77275cd55d0e",
@@ -383,8 +395,8 @@
     },
     {
       "path": "Consulta de Produtos.dc.html",
-      "bytes": 126831,
-      "sha256": "d46331878fa9bcae22ec6ac61cd9857f45bd158832d129e52fc70644d36c359b",
+      "bytes": 127032,
+      "sha256": "5a7fda61b5802929620d0e4650f0b10edd2b11632614b5183e53a07e8077a2ed",
       "role": "cowork-source"
     },
     {
@@ -983,8 +995,8 @@
     },
     {
       "path": "financeiro-page.jsx",
-      "bytes": 132171,
-      "sha256": "afb0e4dc13a9b210a226d7bc607d6af0aa4e3643aaf204eb704e32150d6e000d",
+      "bytes": 131989,
+      "sha256": "1cf7bc8784aa5cf91d5f3d71dbe09bcd84da984ec8cc331870b55f2fdbd7e24d",
       "role": "cowork-source"
     },
     {
@@ -1157,8 +1169,8 @@
     },
     {
       "path": "handoff_fabricacao/design/adr/0411-accent-sem-versao-escura.md",
-      "bytes": 3431,
-      "sha256": "9fbb0a03305771ce6ae109a133d3d4ffc060a0e6c8b09f11f5c967ff100817cc",
+      "bytes": 3472,
+      "sha256": "0af4bc671311b9807d322306ff1d6e9dec8a6c8f038c9f4a3f353ac0a6fea782",
       "role": "cowork-source"
     },
     {
@@ -1187,8 +1199,8 @@
     },
     {
       "path": "handoff_fabricacao/design/LAUDO-conferencia-fabricacao.md",
-      "bytes": 13621,
-      "sha256": "74e047ecc0d11aca95dbb85b590982f7f4d38e5f281e9d238148b6823053c568",
+      "bytes": 13628,
+      "sha256": "d98304e18e337b315c9bbc83700d4bc0a0ea2b7deb62c4d779653deabf062f65",
       "role": "cowork-source"
     },
     {
@@ -1229,14 +1241,14 @@
     },
     {
       "path": "handoff_fabricacao/design/README.md",
-      "bytes": 8525,
-      "sha256": "133fb5561b297fafdba37bc405d1622f4a9c6127033674c5a384da44fc641069",
+      "bytes": 8535,
+      "sha256": "9b2b60ea0342dd5e25c1adbb8b83873f0b261fa1d4fec8213386f01b9cc85efd",
       "role": "cowork-source"
     },
     {
       "path": "handoff_fabricacao/README.md",
-      "bytes": 73795,
-      "sha256": "5a2ca328eada00b6f84fa30cd780eb6fc51af0e0cdc1425f7159719200f9a6d6",
+      "bytes": 73681,
+      "sha256": "d66b52919fb4b79f3cdea61a0f42d22ca251623422076fac8621c046f790e32c",
       "role": "cowork-source"
     },
     {
@@ -1271,20 +1283,20 @@
     },
     {
       "path": "handoff_produtos_consulta/design/adr/0402-pagination-do-ds-nao-cobre-primeira-ultima.md",
-      "bytes": 1961,
-      "sha256": "7c507d7f81725f266db569a379bd16f89b34b61bc19f6a0bdfc467f16b2442d2",
+      "bytes": 2087,
+      "sha256": "79b376cb07ec974ad3c11a27eb6dd67d892f31fa357b80fd6ef01fe57e909965",
       "role": "cowork-source"
     },
     {
       "path": "handoff_produtos_consulta/design/adr/0403-tabbar-gera-barra-de-rolagem-vertical.md",
-      "bytes": 1819,
-      "sha256": "099290502eb103da75a1b41c6697a167741b69e24bffa69eeeb08ffe3f709853",
+      "bytes": 1945,
+      "sha256": "db9415aef98e4c88235e9bd5bcceadca3a38a301cee3161cbe1a6c54098fc6a6",
       "role": "cowork-source"
     },
     {
       "path": "handoff_produtos_consulta/design/adr/0404-tooltip-recortado-em-container-de-rolagem.md",
-      "bytes": 1962,
-      "sha256": "c1b265c9c0e56092d17b25322d4abfc9b92b421baf3ff12fbc088ae82d0e95a4",
+      "bytes": 2088,
+      "sha256": "16c427e28eaf45cd190658260a6f3f626398ec61c58ee16f1e8a5d92d56d6fdd",
       "role": "cowork-source"
     },
     {
@@ -1817,8 +1829,8 @@
     },
     {
       "path": "inbox-page.jsx",
-      "bytes": 87890,
-      "sha256": "37ff306a453d9ef4ea939dc058aba9dc4006b44f4e1b01825f5dcee223b517d1",
+      "bytes": 87446,
+      "sha256": "0679f6bb292b6ed0a55e92e5812a9d54f97fb944817165c2ce3e91f17e9b8df5",
       "role": "cowork-source"
     },
     {
@@ -1907,8 +1919,8 @@
     },
     {
       "path": "manual-de-blocos.md",
-      "bytes": 61525,
-      "sha256": "7811b6069f8177e1b06299b67a6594a78e4d7860d936d76213eea7fd45756469",
+      "bytes": 61533,
+      "sha256": "c41ff0a78ef32f28b2f867fca4511f4ecf93e3be1c619aa5b9d315b4774e4788",
       "role": "cowork-source"
     },
     {
@@ -1925,8 +1937,8 @@
     },
     {
       "path": "manufacturing-insumos.jsx",
-      "bytes": 6011,
-      "sha256": "778e2139c9880259c68f1092a3658fafb97eb6f5f6fe10f4064e3f418d5c17b5",
+      "bytes": 6019,
+      "sha256": "b4c78897c3c7de566759d3010705ab419c6d61e274d8b13470f48a0ca8322e9e",
       "role": "cowork-source"
     },
     {
@@ -1937,32 +1949,32 @@
     },
     {
       "path": "manufacturing-page.jsx",
-      "bytes": 21807,
-      "sha256": "612329faf386af1aefa6d6ea424f3165446c0eac61496f956e0baf47763d50f7",
+      "bytes": 21823,
+      "sha256": "5c057cd1f8a26535489061e5df0122d90731946f67a241dd6e0b0c426dcf5d26",
       "role": "cowork-source"
     },
     {
       "path": "manufacturing-print.jsx",
-      "bytes": 6827,
-      "sha256": "58e078834cda49be6650c42f95fe5d5d8cb53dd7dcc1339d02ca74d860f7d3af",
+      "bytes": 6835,
+      "sha256": "cf732cd48d170e857f2d6930281ed2cbd29415134d63526bafaf964dc03c220d",
       "role": "cowork-source"
     },
     {
       "path": "manufacturing-producao.jsx",
-      "bytes": 22668,
-      "sha256": "45c51ec0583df48b065c99afac0a4e40b038f758c805de871f9b20680b040420",
+      "bytes": 22676,
+      "sha256": "5c1c692bce46808f916ad45f2a1db9b806e289027741a7f1a6ec6ef1c5fe9aeb",
       "role": "cowork-source"
     },
     {
       "path": "manufacturing-recipe.jsx",
-      "bytes": 15682,
-      "sha256": "67b5664d2b109fe87ed6c2a2a598e139bee02d2dd0624185d7efc6756751be37",
+      "bytes": 15690,
+      "sha256": "25b344a4fc6120d353fde9704682e1f4b0387c7ee286f3dcc23ef7e230ddaa29",
       "role": "cowork-source"
     },
     {
       "path": "mapa-do-terreno.md",
-      "bytes": 7286,
-      "sha256": "7e9cf3556c01d9250afb88fd2c614a29ea7051c6d91a9fee346089b9e2450ca5",
+      "bytes": 6946,
+      "sha256": "b4f6b477a3d53708561f1d107274dc0b8f60b8f5b10fa1873e2c0c5893b99e56",
       "role": "cowork-source"
     },
     {
@@ -2033,8 +2045,8 @@
     },
     {
       "path": "o-que-vale-como-fonte.md",
-      "bytes": 5857,
-      "sha256": "71150b851a7aae23483569a192762f93b18430f6c4eef0bd96c1cdbefabde4f0",
+      "bytes": 5658,
+      "sha256": "0f3516e097bdf8e376d57fbcedae6888d7a7b60ae86905d4e5b5452e83174622",
       "role": "cowork-source"
     },
     {
@@ -2105,8 +2117,8 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 33542,
-      "sha256": "85ab26f383454b972c6a2739a15a314fb3fe22d5a515267061f135310d6b05b5",
+      "bytes": 33245,
+      "sha256": "d2e266344a7c2ef42203c3aa2a448650084069c796116d5b564762fe3559b7ac",
       "role": "cowork-source"
     },
     {
@@ -2161,6 +2173,12 @@
       "path": "pauta-design-system.md",
       "bytes": 54949,
       "sha256": "1988953a26b4ec7e1b61ff73de6ecb2a33c50d4906b42d2b4ca56cae8f68ffe2",
+      "role": "cowork-source"
+    },
+    {
+      "path": "pedido-ao-projeto-do-ds.md",
+      "bytes": 5644,
+      "sha256": "1a54bcb1b137c6d1168d45f877624839c4d76ae92ff117807873ba8bac80d667",
       "role": "cowork-source"
     },
     {
@@ -2237,14 +2255,14 @@
     },
     {
       "path": "plano-fabricacao-no-ds.md",
-      "bytes": 14560,
-      "sha256": "461b3d91af6bffcaaccb08e720fa4c6c430e764cf33f2771abfa51b2b9e397f6",
+      "bytes": 14568,
+      "sha256": "f3697029572a31d5c8059f58f433aca3c13e181a0dee6e31190089bf52979841",
       "role": "cowork-source"
     },
     {
       "path": "plano-ondas-fabricacao-v2.md",
-      "bytes": 21172,
-      "sha256": "6e4954e458cbe07991c14fc5ff49fd4cfe852bb4336b6c9a9808225b01c760b3",
+      "bytes": 21245,
+      "sha256": "379c95cde68049b4a8e530e578a1d590578394e1d6399c513a3c1356c5d6542c",
       "role": "cowork-source"
     },
     {
@@ -2287,6 +2305,12 @@
       "path": "ponto-ui.jsx",
       "bytes": 5900,
       "sha256": "5f69317bbf00a2fac48bc407a8e5ca6beca00175d42973511e79076246c57b30",
+      "role": "cowork-source"
+    },
+    {
+      "path": "pre-export.md",
+      "bytes": 6136,
+      "sha256": "587ebf8ff599d48b1b362aef53e29e6833cdb36e838c8e5ee86d2b0145c5fd52",
       "role": "cowork-source"
     },
     {
@@ -2459,8 +2483,8 @@
     },
     {
       "path": "sidebar.jsx",
-      "bytes": 26302,
-      "sha256": "ec018f63f5f6dcf9899d8ca41b525b6fd9f15b3fd0e559cb1c8867fc690f9fa8",
+      "bytes": 26259,
+      "sha256": "c1715e8c9a5a7803497b3215bd62d539ea0a381ddcab3a3609798b50f81ec51c",
       "role": "cowork-source"
     },
     {
@@ -2603,8 +2627,8 @@
     },
     {
       "path": "vendas-extras.jsx",
-      "bytes": 64291,
-      "sha256": "9c2637446a84d2e8cb3e9331c5a072475476ab2271353d0fbd4c05766bfd80bc",
+      "bytes": 64249,
+      "sha256": "53087a06d55b57cc66abdd8311496f737c5d283e176401568ee4d413c6e7acee",
       "role": "cowork-source"
     },
     {
@@ -2621,8 +2645,8 @@
     },
     {
       "path": "vendas-page.jsx",
-      "bytes": 92181,
-      "sha256": "e8419e7def78301a21c646b0aee9ea492ac5927a663687c472eb7d54261f9dc8",
+      "bytes": 92134,
+      "sha256": "90e6d08da352c55374eaa7d6cab865261ccdca0c83e7ca5f94c26862cb5079c3",
       "role": "cowork-source"
     },
     {
@@ -2664,10 +2688,10 @@
   ],
   "missing": [],
   "mirrorScope": "tree",
-  "bundleId": "ada5f513f1306ffe435d8d06730278b1d4a5d8d8d8809cd3ae0b3793c1a90171",
-  "baseBundleId": "2907817accc68a35548ffc1b8f11c21656f875d3c307b17cd4e8895ec379737c",
+  "bundleId": "a5de78c2e1fa46b7186a3b182791e69de7c1ccd800f4544aad25646c421a2414",
+  "baseBundleId": "ada5f513f1306ffe435d8d06730278b1d4a5d8d8d8809cd3ae0b3793c1a90171",
   "mode": "delta",
-  "generatedAt": "2026-09-21T20:20:02.784Z",
+  "generatedAt": "2026-09-22T01:28:14.766Z",
   "dsRequires": {
     "owner": "Felipe",
     "slug": "wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86",
@@ -2675,6 +2699,26 @@
       {
         "path": "_ds_bundle.js",
         "sha256": "0453d2c5d2fb64f6eb867ef1f31f1d94ba419cec9ce4ddbe1ffd73cdd8921389"
+      },
+      {
+        "path": "assets/brand/brand-bg.png",
+        "sha256": "0c5c709c7c54e1ecc7490e6be8877b20fcbe2a0650aa37be0bfac040f6f1968d"
+      },
+      {
+        "path": "assets/brand/logo-full.svg",
+        "sha256": "7a41dd47056da092696992b424e79eccc05e6a8f7477dd143283f4a09081b3df"
+      },
+      {
+        "path": "assets/brand/logo-lockup.png",
+        "sha256": "d3af3c3c01abe321cf101af8b90606298f8726bacb5d4230d4b15171bcbd4741"
+      },
+      {
+        "path": "assets/brand/logo-mark.png",
+        "sha256": "81ae8bde0857b20a2f26834f4a7f77e5abc9f8427b61a07757293a0b3b3859cb"
+      },
+      {
+        "path": "assets/brand/logo-mark.svg",
+        "sha256": "e410e01e5b0baf0e2edb0fb6526e58e25c96440066d95f64bba9a2531a225ba2"
       },
       {
         "path": "assets/fonts/ibm-plex-mono-400.woff2",
@@ -2705,6 +2749,10 @@
         "sha256": "fa7130d854a660b39a7fc9e6e0f2dc23dba5f1346e2adea3e1fe37b6d884133d"
       },
       {
+        "path": "assets/logo-small.png",
+        "sha256": "aa188a2ac22f1754abcd32517430b099b42ec7b54e358db52a4454f2be9f19ca"
+      },
+      {
         "path": "cockpit_domains.css",
         "sha256": "77046b89f2bad6c22acd8140357a76587d0bb9e84c403edc1423afcc374b4fa4"
       },
@@ -2724,7 +2772,7 @@
       "regra": "ds-ref",
       "de": "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/",
       "para": "../../design-system/",
-      "shaDepois": "e2193e978fd5401005a41c23f21f3c8964ee98342f6235893aa1925188c663a9"
+      "shaDepois": "26e6ce8f33dc33dec944bd85b49f1474abdb03dfaa14676d53fd1fe8c9c14e02"
     },
     {
       "path": "handoff_fabricacao/design/Fabricacao - Guia de Producao.html",
@@ -2738,171 +2786,53 @@
       "regra": "ds-ref",
       "de": "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/",
       "para": "../../design-system/",
-      "shaDepois": "c8ea4444cb0832d0ab763fdd414017a0c58206c6a16237ff8296f332c88b5e80"
+      "shaDepois": "1c2083ba2ae2132fad3582f24ae620de5e9e9b18f258930332d6a72578fc60fb"
     }
   ],
   "totals": {
-    "files": 443,
-    "bytes": 11913959
+    "files": 447,
+    "bytes": 11978381
   },
   "changes": {
     "added": [
-      "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/_ds_bundle.js",
-      "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/assets/fonts/ibm-plex-mono-400.woff2",
-      "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/assets/fonts/ibm-plex-mono-500.woff2",
-      "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/assets/fonts/ibm-plex-mono-600.woff2",
-      "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/assets/fonts/ibm-plex-sans-400.woff2",
-      "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/assets/fonts/ibm-plex-sans-500.woff2",
-      "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/assets/fonts/ibm-plex-sans-600.woff2",
-      "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/assets/fonts/ibm-plex-sans-700.woff2",
-      "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/cockpit_domains.css",
-      "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/colors_and_type.css",
-      "arquivos-identicos-medido.md",
-      "resposta-ao-claude-code.md"
+      "_live-only.json",
+      "conferir-export.mjs",
+      "pedido-ao-projeto-do-ds.md",
+      "pre-export.md"
     ],
     "modified": [
       "absorcao-v2-em-todos-os-produtos.md",
-      "erp-shell-v2/app.jsx",
-      "erp-shell-v2/Auditoria Final.html",
-      "erp-shell-v2/Auditoria UI.html",
-      "erp-shell-v2/Bench Mecânica.html",
-      "erp-shell-v2/chat-jana.css",
-      "erp-shell-v2/chat-jana.jsx",
-      "erp-shell-v2/clientes-page.jsx",
-      "erp-shell-v2/compras-page.css",
-      "erp-shell-v2/compras-page.jsx",
-      "erp-shell-v2/Compras.html",
-      "erp-shell-v2/crm-page.css",
-      "erp-shell-v2/crm-page.jsx",
-      "erp-shell-v2/data-os.jsx",
-      "erp-shell-v2/data-vendas.jsx",
-      "erp-shell-v2/data.jsx",
-      "erp-shell-v2/Diagnóstico Cobrança Recorrente - KB-9.75.html",
-      "erp-shell-v2/Diagnóstico Fiscal - KB-9.75.html",
-      "erp-shell-v2/Estado da Arte.html",
-      "erp-shell-v2/fiscal-data.jsx",
-      "erp-shell-v2/fiscal-page.css",
-      "erp-shell-v2/fiscal-page.jsx",
-      "erp-shell-v2/icons.jsx",
-      "erp-shell-v2/Identidade Visual.html",
-      "erp-shell-v2/Inventario - Migracao Blade React.html",
-      "erp-shell-v2/mockup-pages.css",
-      "erp-shell-v2/oficina-page.css",
-      "erp-shell-v2/oficina-page.jsx",
-      "erp-shell-v2/Oimpresso ERP - Chat.html",
-      "erp-shell-v2/os-page.jsx",
-      "erp-shell-v2/Plano por Tela.html",
-      "erp-shell-v2/prod-mec.css",
-      "erp-shell-v2/prod-page-extras.css",
-      "erp-shell-v2/prod-page-v1-cv.jsx",
-      "erp-shell-v2/prod-page.jsx",
-      "erp-shell-v2/Produção Oficina - Tela.html",
-      "erp-shell-v2/producao-page.jsx",
-      "erp-shell-v2/Product Cadastro.html",
-      "erp-shell-v2/Product Picker Mecanica.html",
-      "erp-shell-v2/Product Picker.html",
-      "erp-shell-v2/Produto Unificado.html",
-      "erp-shell-v2/produto-app.jsx",
-      "erp-shell-v2/produto-data.jsx",
-      "erp-shell-v2/produto-icons.jsx",
-      "erp-shell-v2/Produtos Cockpit.html",
-      "erp-shell-v2/recurring-data.jsx",
-      "erp-shell-v2/recurring-icons.jsx",
-      "erp-shell-v2/recurring-page.jsx",
-      "erp-shell-v2/sidebar.jsx",
-      "erp-shell-v2/Telas Faltantes Onda 2.html",
-      "erp-shell-v2/Telas Faltantes.html",
-      "erp-shell-v2/Venda por Estagio FSM v1.html",
-      "erp-shell-v2/Venda por Estagio FSM.html",
-      "erp-shell-v2/Venda Simples F1.html",
-      "erp-shell-v2/vendas-create-completo.jsx",
-      "erp-shell-v2/vendas-extras.jsx",
-      "erp-shell-v2/vendas-page.jsx",
-      "erp-shell-v2/whatsapp-page.css",
-      "erp-shell-v2/whatsapp-page.jsx",
-      "handoff_fabricacao/design/Fabricacao - Guia de Producao.html",
-      "handoff_produtos_consulta/design/README.md",
-      "handoff_produtos_consulta/README.md",
-      "importado_prototipo_ui/CODE_DESIGN_CONTRACT.md",
-      "importado_prototipo_ui/GLOSSARY.md",
-      "importado_prototipo_ui/GOLDEN-REFERENCE.md",
-      "importado_prototipo_ui/HANDOFF.md",
-      "importado_prototipo_ui/MATRIZ_MIGRACAO_DS.md",
-      "importado_prototipo_ui/PRE-FLIGHT-TELA.md",
-      "importado_prototipo_ui/PROTOCOL.md",
-      "importado_prototipo_ui/REGISTRY_DS_COMPONENTES.md",
-      "importado_prototipo_ui/REGRAS_DS_LINT.md",
-      "importado_prototipo_ui/TELAS_REVIEW_QUEUE.md",
-      "importado_telas/clientes/BUNDLE_README.md",
-      "importado_telas/clientes/clientes-975.css",
-      "importado_telas/clientes/clientes-975.jsx",
-      "importado_telas/clientes/clientes-app.jsx",
-      "importado_telas/clientes/clientes-data.jsx",
-      "importado_telas/clientes/clientes-drawer.jsx",
-      "importado_telas/clientes/clientes-icons.jsx",
-      "importado_telas/clientes/clientes-linked.jsx",
-      "importado_telas/clientes/clientes-listagem.jsx",
-      "importado_telas/clientes/clientes-table.jsx",
-      "importado_telas/clientes/clientes-tabs.css",
-      "importado_telas/clientes/clientes-tabs.jsx",
-      "importado_telas/clientes/clientes.css",
-      "importado_telas/clientes/cockpit.css",
-      "importado_telas/clientes/HANDOFF_CLIENTES.md",
-      "importado_telas/clientes/Oimpresso ERP - Clientes.html",
-      "importado_telas/clientes/tweaks-panel.jsx",
-      "importado_telas/compras-grade-matrix/Compras - Grade Matrix.html",
-      "importado_telas/compras-grade-matrix/NOTES.md",
-      "importado_telas/compras-grade-matrix/page.css",
-      "importado_telas/compras-grade-matrix/page.jsx",
-      "importado_telas/ds-galerias/Design System v4.html",
-      "importado_telas/ds-galerias/design-system.css",
-      "importado_telas/ds-galerias/ds-v6-gabarito-vendas.html",
-      "importado_telas/ds-galerias/ds-v6-receita.html",
-      "importado_telas/ds-galerias/ds-v6-REUSE_MAPPING.md",
-      "importado_telas/ds-galerias/ds-v6-showcase.html",
-      "importado_telas/ds-galerias/styles.css",
-      "importado_telas/ds-galerias/tokens.css",
-      "importado_telas/mockups/mockup-cliente-fields.html",
-      "importado_telas/oficina/oficina-page.css",
-      "importado_telas/oficina/oficina-page.jsx",
-      "importado_telas/pageheader-canon-v3/3-familias.html",
-      "importado_telas/pageheader-canon-v3/b-v2-roxo-kpis.html",
-      "importado_telas/pageheader-canon-v3/clientes-filtros-amostra.html",
-      "importado_telas/pageheader-canon-v3/index.html",
-      "importado_telas/pageheader-canon-v3/SPEC.md",
-      "importado_telas/sidebar/sidebar-icons-comparison.html",
-      "importado_telas/sidebar/sidebar-v3-unificado.html",
-      "importado_telas/vendas/vendas-extras.jsx",
-      "importado_telas/vendas/vendas-page.jsx",
-      "importado_telas/vendas/vendas.css",
+      "app.jsx",
+      "arquivos-identicos-medido.md",
+      "auditoria-aderencia-fabricacao-v2.md",
+      "auditoria-aderencia-fabricacao.md",
+      "CLAUDE.md",
+      "Consulta de Produtos.dc.html",
+      "financeiro-page.jsx",
+      "handoff_fabricacao/design/adr/0411-accent-sem-versao-escura.md",
+      "handoff_fabricacao/design/LAUDO-conferencia-fabricacao.md",
+      "handoff_fabricacao/design/README.md",
+      "handoff_fabricacao/README.md",
+      "handoff_produtos_consulta/design/adr/0402-pagination-do-ds-nao-cobre-primeira-ultima.md",
+      "handoff_produtos_consulta/design/adr/0403-tabbar-gera-barra-de-rolagem-vertical.md",
+      "handoff_produtos_consulta/design/adr/0404-tooltip-recortado-em-container-de-rolagem.md",
+      "inbox-page.jsx",
+      "manual-de-blocos.md",
+      "manufacturing-insumos.jsx",
+      "manufacturing-page.jsx",
+      "manufacturing-print.jsx",
+      "manufacturing-producao.jsx",
+      "manufacturing-recipe.jsx",
       "mapa-do-terreno.md",
-      "oimpresso.com.html"
+      "o-que-vale-como-fonte.md",
+      "oimpresso.com.html",
+      "plano-fabricacao-no-ds.md",
+      "plano-ondas-fabricacao-v2.md",
+      "sidebar.jsx",
+      "vendas-extras.jsx",
+      "vendas-page.jsx"
     ],
-    "deleted": [
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/cockpit_domains.css",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css",
-      "erp-shell-v2/chat.jsx",
-      "erp-shell-v2/data-clientes.jsx",
-      "erp-shell-v2/data-orc-prod.jsx",
-      "erp-shell-v2/laravel-panel.jsx",
-      "erp-shell-v2/linked-apps.jsx",
-      "erp-shell-v2/mockup-bodies.js",
-      "erp-shell-v2/mockup-pages.jsx",
-      "erp-shell-v2/orc-page.jsx",
-      "erp-shell-v2/styles.css",
-      "erp-shell-v2/tasks.jsx",
-      "erp-shell-v2/tweaks-panel.jsx",
-      "erp-shell-v2/viewers.jsx",
-      "importado_telas/ds-galerias/ds-behavior.js",
-      "importado_telas/vendas/data-vendas.jsx",
-      "importado_telas/vendas/vendas-ai.jsx",
-      "importado_telas/vendas/vendas-curation.jsx",
-      "importado_telas/vendas/vendas-flow.jsx",
-      "importado_telas/vendas/vendas-output.jsx",
-      "importado_telas/vendas/vendas-shortcuts.jsx",
-      "importado_telas/vendas/vendas-tweaks.jsx"
-    ],
-    "unchanged": 315
+    "deleted": [],
+    "unchanged": 413
   }
 }

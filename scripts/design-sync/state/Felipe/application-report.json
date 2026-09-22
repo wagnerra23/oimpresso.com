@@ -1,1085 +1,264 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-21T20:20:18.260Z",
+  "generatedAt": "2026-09-22T01:28:32.684Z",
   "bundle": {
-    "id": "ada5f513f1306ffe435d8d06730278b1d4a5d8d8d8809cd3ae0b3793c1a90171",
-    "baseId": "2907817accc68a35548ffc1b8f11c21656f875d3c307b17cd4e8895ec379737c",
+    "id": "a5de78c2e1fa46b7186a3b182791e69de7c1ccd800f4544aad25646c421a2414",
+    "baseId": "ada5f513f1306ffe435d8d06730278b1d4a5d8d8d8809cd3ae0b3793c1a90171",
     "mode": "delta",
     "source": "cowork:oimpresso.com.html",
     "transportComplete": true
   },
   "summary": {
-    "transportChanges": 151,
-    "screens": 179,
+    "transportChanges": 34,
+    "screens": 178,
     "tested": 0,
     "smoked": 0,
     "lifecycle": {
       "anchored": 154,
       "to-create": 21,
-      "review": 1,
       "blocked": 3
     },
     "pending": 154,
     "to-create": 21,
-    "review": 1,
     "blocked": 3
   },
   "transportChanges": [
     {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js",
-      "change": "deleted",
-      "bytes": 298593,
-      "sha256": "398fd88081303361c919b807bf621327a9967c8f3260da1a3b261f579de2039d",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/cockpit_domains.css",
-      "change": "deleted",
-      "bytes": 158,
-      "sha256": "d0971ee48cc2e166de43d06e03c169c210282ffcf5b16c699b28aa2a2cc912ae",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css",
-      "change": "deleted",
-      "bytes": 20948,
-      "sha256": "1c2b70233b3ab5b47b24e48a310e088a7c3b57e525be0c3c8580d1883bd57a92",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/_ds_bundle.js",
+      "path": "_live-only.json",
       "change": "added",
-      "bytes": 349364,
-      "sha256": "0453d2c5d2fb64f6eb867ef1f31f1d94ba419cec9ce4ddbe1ffd73cdd8921389",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/assets/fonts/ibm-plex-mono-400.woff2",
-      "change": "added",
-      "bytes": 14708,
-      "sha256": "08949f728dc52d528e69b1667d15c89a5686a4ee9a296ff90983985f99c380f7",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/assets/fonts/ibm-plex-mono-500.woff2",
-      "change": "added",
-      "bytes": 14888,
-      "sha256": "01d285447409c8a588692162439a038b8cbd7871309ee20267b0d2d91c6e8e22",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/assets/fonts/ibm-plex-mono-600.woff2",
-      "change": "added",
-      "bytes": 15620,
-      "sha256": "0d1f0b8d0722224e32e9f28261bdc86c79115be73444ae5eceb73976a1bcdf83",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/assets/fonts/ibm-plex-sans-400.woff2",
-      "change": "added",
-      "bytes": 63020,
-      "sha256": "ba711a3085ff9f27440b6b9c4550cfc47c97bf36591d5da958b975bb3add8c1a",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/assets/fonts/ibm-plex-sans-500.woff2",
-      "change": "added",
-      "bytes": 66740,
-      "sha256": "5660f8a658f8bb50dbc005232f885eadffd2bc1c235c4f6fbb63469d1f9cde6d",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/assets/fonts/ibm-plex-sans-600.woff2",
-      "change": "added",
-      "bytes": 67060,
-      "sha256": "f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/assets/fonts/ibm-plex-sans-700.woff2",
-      "change": "added",
-      "bytes": 63012,
-      "sha256": "fa7130d854a660b39a7fc9e6e0f2dc23dba5f1346e2adea3e1fe37b6d884133d",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/cockpit_domains.css",
-      "change": "added",
-      "bytes": 5705,
-      "sha256": "77046b89f2bad6c22acd8140357a76587d0bb9e84c403edc1423afcc374b4fa4",
-      "role": "preview-cache"
-    },
-    {
-      "path": "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/colors_and_type.css",
-      "change": "added",
-      "bytes": 19917,
-      "sha256": "11a6648f85539eb644160998d3ae87a2dd4a8ceffa2e07b7bc09c4f6f72e5369",
-      "role": "preview-cache"
+      "bytes": 39346,
+      "sha256": "80b2e307534b81fcc50221a2783f02436484a656a008e547b636d0610fe4031f",
+      "role": "cowork-source"
     },
     {
       "path": "absorcao-v2-em-todos-os-produtos.md",
       "change": "modified",
-      "bytes": 69874,
-      "sha256": "9bdf20fce9197b4bb2f8e3a47332b8f391d43c362a31701bf72ce91fc5f19826",
+      "bytes": 69929,
+      "sha256": "1b1782143e71b9d489cba20e5b60bdcd8a5d24d974799af2a15db5316b285a98",
+      "role": "cowork-source"
+    },
+    {
+      "path": "app.jsx",
+      "change": "modified",
+      "bytes": 75219,
+      "sha256": "012ec3f3c4a88b80055d7fa994c6a5a58ced8440f43d94e781f62baed86ec8aa",
       "role": "cowork-source"
     },
     {
       "path": "arquivos-identicos-medido.md",
+      "change": "modified",
+      "bytes": 6518,
+      "sha256": "6e2e1e3f94e64bb6f975f9fa56715f9c2d7a7d35812997521398af6fd0b4bcc3",
+      "role": "cowork-source"
+    },
+    {
+      "path": "auditoria-aderencia-fabricacao-v2.md",
+      "change": "modified",
+      "bytes": 27290,
+      "sha256": "96bb92f7e3e6593737035d151e06ac38480a98ee959300997bb2e11789c82183",
+      "role": "cowork-source"
+    },
+    {
+      "path": "auditoria-aderencia-fabricacao.md",
+      "change": "modified",
+      "bytes": 18084,
+      "sha256": "497cbfbc3f4bccb542e72b1cca19a9a8d26ea5f28fe8b8e48155bb66438baa72",
+      "role": "cowork-source"
+    },
+    {
+      "path": "CLAUDE.md",
+      "change": "modified",
+      "bytes": 15508,
+      "sha256": "8f3857ee7bc6f0616ebecb506ecc6f7923f1842d82a45d741ddd7aea2b8eb036",
+      "role": "cowork-source"
+    },
+    {
+      "path": "conferir-export.mjs",
       "change": "added",
-      "bytes": 6397,
-      "sha256": "411e64a988397296627081c52dad2376a066569b7c279a480b65332f2588b333",
+      "bytes": 12622,
+      "sha256": "829f14eaed9bf06a05ca032a7c378788ede803a3c8bba10ee23582668c5fa0e9",
       "role": "cowork-source"
     },
     {
-      "path": "erp-shell-v2/app.jsx",
+      "path": "Consulta de Produtos.dc.html",
       "change": "modified",
-      "bytes": 40582,
-      "sha256": "5eee025b6e94c7535bd5a542a69f93dd851728e5d4db919f107a4d37648d237c",
+      "bytes": 127032,
+      "sha256": "5a7fda61b5802929620d0e4650f0b10edd2b11632614b5183e53a07e8077a2ed",
       "role": "cowork-source"
     },
     {
-      "path": "erp-shell-v2/Auditoria Final.html",
+      "path": "financeiro-page.jsx",
       "change": "modified",
-      "bytes": 18163,
-      "sha256": "38c257a57f974e537e31ab6f57ec2960eddcdcf3e00ed81530108df74b546ca7",
+      "bytes": 131989,
+      "sha256": "1cf7bc8784aa5cf91d5f3d71dbe09bcd84da984ec8cc331870b55f2fdbd7e24d",
       "role": "cowork-source"
     },
     {
-      "path": "erp-shell-v2/Auditoria UI.html",
+      "path": "handoff_fabricacao/design/adr/0411-accent-sem-versao-escura.md",
       "change": "modified",
-      "bytes": 27932,
-      "sha256": "8c48df469dcae42f3fba27403a7c53a3dee669c5e43b5398b28693865defb572",
+      "bytes": 3472,
+      "sha256": "0af4bc671311b9807d322306ff1d6e9dec8a6c8f038c9f4a3f353ac0a6fea782",
       "role": "cowork-source"
     },
     {
-      "path": "erp-shell-v2/Bench Mecânica.html",
+      "path": "handoff_fabricacao/design/LAUDO-conferencia-fabricacao.md",
       "change": "modified",
-      "bytes": 15715,
-      "sha256": "d0b2e38c013b0e8e492f9253358b5e0bb882175361184dcd69678d6f03219337",
+      "bytes": 13628,
+      "sha256": "d98304e18e337b315c9bbc83700d4bc0a0ea2b7deb62c4d779653deabf062f65",
       "role": "cowork-source"
     },
     {
-      "path": "erp-shell-v2/chat-jana.css",
+      "path": "handoff_fabricacao/design/README.md",
       "change": "modified",
-      "bytes": 17344,
-      "sha256": "9b1741712af029bb7acd309bcfb4acd66949ed1e7acafc292de744c17fd703ae",
+      "bytes": 8535,
+      "sha256": "9b2b60ea0342dd5e25c1adbb8b83873f0b261fa1d4fec8213386f01b9cc85efd",
       "role": "cowork-source"
     },
     {
-      "path": "erp-shell-v2/chat-jana.jsx",
+      "path": "handoff_fabricacao/README.md",
       "change": "modified",
-      "bytes": 20200,
-      "sha256": "9021da5b9b0d566898e2420dfced5a66fb560bd6c2ac0fdcb1695ce706b4d6a7",
+      "bytes": 73681,
+      "sha256": "d66b52919fb4b79f3cdea61a0f42d22ca251623422076fac8621c046f790e32c",
       "role": "cowork-source"
     },
     {
-      "path": "erp-shell-v2/chat.jsx",
-      "change": "deleted",
-      "bytes": 8897,
-      "sha256": "b8c4956dd44aae134b6a6e7c004288ad3f42664b17eab6381f3617429124c217",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/clientes-page.jsx",
-      "change": "modified",
-      "bytes": 10006,
-      "sha256": "bf9dffb2bb082b037bf6203e8f0452bbe3c9c2d3f6322c9cfaa89617726e64e1",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/compras-page.css",
-      "change": "modified",
-      "bytes": 15020,
-      "sha256": "a1b52bd6b7673f9f08bcd73fe598f656ace1ff1d386329d63f851d34b4b91d51",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/compras-page.jsx",
-      "change": "modified",
-      "bytes": 23899,
-      "sha256": "90eeb3981049431ab1aa2a9b81ee5dda486e3b18a50ae3a2f4776dcd2f7d69ee",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Compras.html",
-      "change": "modified",
-      "bytes": 38768,
-      "sha256": "f812a2510135801fee630f5dd287593b2e141130323bea47c99644e91de8f2ef",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/crm-page.css",
-      "change": "modified",
-      "bytes": 7235,
-      "sha256": "706352439f67d199e63d45e27fb6dcc5885b2be4dea22c733747ad7ceea5f74b",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/crm-page.jsx",
-      "change": "modified",
-      "bytes": 12913,
-      "sha256": "48e3acd68c9a9fcd94f4f98ca67317d93aafe67b153bd6b46693035664394310",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/data-clientes.jsx",
-      "change": "deleted",
-      "bytes": 4228,
-      "sha256": "a08ccd2bacbf1c4ef2ea733940306914fe33679d78c4792fbf1b80d289cb9eea",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/data-orc-prod.jsx",
-      "change": "deleted",
-      "bytes": 17799,
-      "sha256": "674d8374b6e5e4239ec9b7a8e911975d18154b999ae4dd232a24b845ad4c38e4",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/data-os.jsx",
-      "change": "modified",
-      "bytes": 12795,
-      "sha256": "ef642bea608e508c8b1bc4b8b7efe1668f26638a56ae39d3ee0c85d3734fd807",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/data-vendas.jsx",
-      "change": "modified",
-      "bytes": 3865,
-      "sha256": "f06228fa725bda85a38414ee7a21fd129645331f461039b6a1fabb8ba4ce9615",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/data.jsx",
-      "change": "modified",
-      "bytes": 18414,
-      "sha256": "472a9cd2bed7d537236eef9f05eec6c8850319113a8b3ffe648401fcbf2b0c09",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Diagnóstico Cobrança Recorrente - KB-9.75.html",
-      "change": "modified",
-      "bytes": 48794,
-      "sha256": "1f550280e704f1f37ae99837b40801da1f4a4d94c1896f5f2136ac5369e68c65",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Diagnóstico Fiscal - KB-9.75.html",
-      "change": "modified",
-      "bytes": 62581,
-      "sha256": "a771c146f7ea4a34697892f2b72281f16e33c75c3e49b83a00ddea92d558bdbd",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Estado da Arte.html",
-      "change": "modified",
-      "bytes": 55873,
-      "sha256": "414d742443029da2923ae751ff48faa4c84573da1003011da950978579c97783",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/fiscal-data.jsx",
-      "change": "modified",
-      "bytes": 18445,
-      "sha256": "10cdbb85d46566451f522080f032f1d898750b121c71457c794325473985ab4f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/fiscal-page.css",
-      "change": "modified",
-      "bytes": 35963,
-      "sha256": "d1fdc3269014eb15f2a61ed1218a069f0bd91ebe6771e6a2a3b64029a57d88b9",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/fiscal-page.jsx",
-      "change": "modified",
-      "bytes": 68555,
-      "sha256": "b3f25a2ab3170c4c385356fc195cd355878f629a5dfa9e528e50860d12df921e",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/icons.jsx",
-      "change": "modified",
-      "bytes": 10076,
-      "sha256": "f42caa5e6909eababd07b2585dfc4d8a1642a24fa87f2bfd2d6050f31ed308ab",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Identidade Visual.html",
-      "change": "modified",
-      "bytes": 37572,
-      "sha256": "a3f978fc7803b79e652da62ad5c98dd9d7cc7b033e650cfbbb4375d62cff240a",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Inventario - Migracao Blade React.html",
-      "change": "modified",
-      "bytes": 29896,
-      "sha256": "6f20b3fec696491762d81b3f8a0c5b1d0f38d2526f8a104af3cb3c780126a747",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/laravel-panel.jsx",
-      "change": "deleted",
-      "bytes": 5767,
-      "sha256": "561815595759b66813464317a269209ccbbe520e4b677f8fcaf019092139e341",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/linked-apps.jsx",
-      "change": "deleted",
-      "bytes": 7723,
-      "sha256": "e869b38d16e5ab6c9e4e2b02637430f9ed99b0ad6c52865c9b0a0b59694b120a",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/mockup-bodies.js",
-      "change": "deleted",
-      "bytes": 52792,
-      "sha256": "af76f5b1c3b5c75902c728c95da52de634541011e29c3f0fd7d285777c85b1e8",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/mockup-pages.css",
-      "change": "modified",
-      "bytes": 29331,
-      "sha256": "3bae777b5b4f02634efed9c8ff4eb2b3e0e44e94e296280586c2e8a50da0b389",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/mockup-pages.jsx",
-      "change": "deleted",
-      "bytes": 882,
-      "sha256": "ce374e802f9638f9315f3620e4018f596e7545a5a16b92dd3d412efc3564db10",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/oficina-page.css",
-      "change": "modified",
-      "bytes": 18431,
-      "sha256": "4eab3b4c3042fde6d1694f3111c30d897e3a0a82ce1c8257a70c6c420a99ee6d",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/oficina-page.jsx",
-      "change": "modified",
-      "bytes": 41757,
-      "sha256": "80e3d87ae699a8dd43d2009c5af408d010b637dd32c8b43915ef41d0fdb38b30",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Oimpresso ERP - Chat.html",
-      "change": "modified",
-      "bytes": 4832,
-      "sha256": "c398d273dbabb6d86b28fab56b26262807ae3a8710073a17aaf5579ecc8f7f70",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/orc-page.jsx",
-      "change": "deleted",
-      "bytes": 6442,
-      "sha256": "b32a21625a978fdcc06c1843bd6ee8d5c0c3d9b5fbec89761a546a4f810b2122",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/os-page.jsx",
-      "change": "modified",
-      "bytes": 45660,
-      "sha256": "0b853567c21853c5138846808d7782054e9e0168dae7717c8753acd30271aaf7",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Plano por Tela.html",
-      "change": "modified",
-      "bytes": 28168,
-      "sha256": "c18bed6f0af4cb5cb57008c6aa56b0419672e9dd1efcfce3e58ea447b3bc40bf",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/prod-mec.css",
-      "change": "modified",
-      "bytes": 22319,
-      "sha256": "ed6480c67409d3bd484748c8b1a7415c36f3774df50a7dc0135b0b97751d163c",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/prod-page-extras.css",
-      "change": "modified",
-      "bytes": 12720,
-      "sha256": "399be7cdd4276ed5276c826f4fe659de8dec7fafee31f0cb93a7138e1d0409e1",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/prod-page-v1-cv.jsx",
-      "change": "modified",
-      "bytes": 16799,
-      "sha256": "3fc8e60e46de4939816913340bb17cf063bed27b57942fe4474bf0bc3a2d12de",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/prod-page.jsx",
-      "change": "modified",
-      "bytes": 33080,
-      "sha256": "4df27c3829ffae4b88d658affe9ea9e1d26b86e0aa38b2008c80a7ef1334ac17",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Produção Oficina - Tela.html",
-      "change": "modified",
-      "bytes": 56024,
-      "sha256": "8cac9d9f53df617f1778a11a470a5edf26f4c64fd0349144a2e54cae5354d762",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/producao-page.jsx",
-      "change": "modified",
-      "bytes": 14833,
-      "sha256": "08c53bae1a24c9fdbcaf9fc937a57aadfe3277d6f1385a2f6235f4d5859592e8",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Product Cadastro.html",
-      "change": "modified",
-      "bytes": 45427,
-      "sha256": "02fc0e5b10199c111d8f6c4c81ff406875568f89da8c8397057d8b6e81b6cb6b",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Product Picker Mecanica.html",
-      "change": "modified",
-      "bytes": 33152,
-      "sha256": "0624d996606736d48fb07cf1833d91320bf2e81e66a3afccb5b7979d6afd21fd",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Product Picker.html",
-      "change": "modified",
-      "bytes": 18668,
-      "sha256": "ff58fa700c9d468c83a0bae9a4856223441a4fa1f11cb73e55c0da537d967116",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Produto Unificado.html",
-      "change": "modified",
-      "bytes": 2943,
-      "sha256": "780e942d160644adc868873d44f99ea2443373031533783bf2e8e0b1d2443a89",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/produto-app.jsx",
-      "change": "modified",
-      "bytes": 60920,
-      "sha256": "72320551386546d9fa6312b83d967c99654844c83baebb4c0536ab8c89c409b1",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/produto-data.jsx",
-      "change": "modified",
-      "bytes": 13592,
-      "sha256": "5d7393071ca0fd4bcc5adeb6f970d643383c3ca870efca97096c02def7e641ca",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/produto-icons.jsx",
-      "change": "modified",
-      "bytes": 6000,
-      "sha256": "dc3cffee27f809fbcbae89a9c4b82eace8e349cf72a4aadececc18abdbeb1994",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Produtos Cockpit.html",
-      "change": "modified",
-      "bytes": 44157,
-      "sha256": "e212dc63a1a3c6ffd8ea8d5672ede7ab371486283fc2ba066444aa773ab34596",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/recurring-data.jsx",
-      "change": "modified",
-      "bytes": 19043,
-      "sha256": "16f30eedb280bc3cd0b36f4297a1e468076ce7cf426decabf1ebe34280ed79cc",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/recurring-icons.jsx",
-      "change": "modified",
-      "bytes": 3621,
-      "sha256": "1d84a1d249bc3e16d9210942e24da92aa3cc0e30c5cde745bef0d3264f6dbe2a",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/recurring-page.jsx",
-      "change": "modified",
-      "bytes": 73962,
-      "sha256": "1f0775067c2bf6cbf07a1b6c9eca4ce6f654b95dd2a72d9909ce34b4d671772b",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/sidebar.jsx",
-      "change": "modified",
-      "bytes": 17792,
-      "sha256": "e77b3600b3dee3a241f9cce5acdd2914bb9c77402aee284a80fb565b90fa8e4d",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/styles.css",
-      "change": "deleted",
-      "bytes": 234163,
-      "sha256": "4d9502e6ab745fe6f1587c4b761ba3178239fc7f946180deb655a57f19de938f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/tasks.jsx",
-      "change": "deleted",
-      "bytes": 9401,
-      "sha256": "3af4aa9d7630332e7485fe901ee617616f3b3a8ed93e6874b9d90901e1a9f750",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Telas Faltantes Onda 2.html",
-      "change": "modified",
-      "bytes": 48847,
-      "sha256": "fee983996d3041a979c82f084fe31104216351ec526b8663a44c02a6ac128ae9",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Telas Faltantes.html",
-      "change": "modified",
-      "bytes": 44390,
-      "sha256": "797ae8bedf2a475fb196fe6121016a6ad4028975d5dae855fbfc69e65c8e91ef",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/tweaks-panel.jsx",
-      "change": "deleted",
-      "bytes": 26307,
-      "sha256": "dece39c6aec7424c2c575512899aa645177523718f35293b40b241f871d6bf8a",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Venda por Estagio FSM v1.html",
-      "change": "modified",
-      "bytes": 22142,
-      "sha256": "1dbd3874ade8e59677bdbad15b4eab541501bcdb4860175a1ddf55758837ea73",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Venda por Estagio FSM.html",
-      "change": "modified",
-      "bytes": 32790,
-      "sha256": "9615050507b930e07c6791d57a135181d5135c96b7137270108c56b683aceb7e",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/Venda Simples F1.html",
-      "change": "modified",
-      "bytes": 14838,
-      "sha256": "56186073e05740701d8563ce3c4fddcb530d285a8c2f249467493fe05ed51700",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/vendas-create-completo.jsx",
-      "change": "modified",
-      "bytes": 34881,
-      "sha256": "44f6c3dbee71fdfd2ab063a5403614dceb5d06d46c19e4f352cd1840c3bd1297",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/vendas-extras.jsx",
-      "change": "modified",
-      "bytes": 56095,
-      "sha256": "5f1d3c6965ac919ec1d49b99021e03cf99972e9e49fd2510794382481aa386cc",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/vendas-page.jsx",
-      "change": "modified",
-      "bytes": 25490,
-      "sha256": "e7fba924b32316e877554a452a577b899908a82aeca4eb6206f1644aa179d796",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/viewers.jsx",
-      "change": "deleted",
-      "bytes": 8942,
-      "sha256": "90480e0f94ff7433a959bb9580eeb1488729a92e44b66f33241286ba70c3a5f4",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/whatsapp-page.css",
-      "change": "modified",
-      "bytes": 8059,
-      "sha256": "04dc69fda6e16792c50e19321f31989c8bf76182057dd94a28b1f2fb4a83a344",
-      "role": "cowork-source"
-    },
-    {
-      "path": "erp-shell-v2/whatsapp-page.jsx",
-      "change": "modified",
-      "bytes": 11182,
-      "sha256": "7fc8dfb4540707a63a7f31719772bd7511114adcb835cfa7ee62cacdc6b6bc94",
-      "role": "cowork-source"
-    },
-    {
-      "path": "handoff_fabricacao/design/Fabricacao - Guia de Producao.html",
-      "change": "modified",
-      "bytes": 3393,
-      "sha256": "a169c2569873b9a5f02cec7588cc1eda669e1b8b64eca7bbb48ed54e20115eaa",
-      "role": "cowork-source"
-    },
-    {
-      "path": "handoff_produtos_consulta/design/README.md",
-      "change": "modified",
-      "bytes": 6671,
-      "sha256": "5b665c21b9d4a73db9c2491dc8e7c3f9d47e94f6bb7ea0b0e9d694f8aee4cf4d",
-      "role": "cowork-source"
-    },
-    {
-      "path": "handoff_produtos_consulta/README.md",
-      "change": "modified",
-      "bytes": 164374,
-      "sha256": "5f2240a4f3d292c8f8076ddf4beaaa1789603d1e0f70734021edfc6c7df65b0f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_prototipo_ui/CODE_DESIGN_CONTRACT.md",
-      "change": "modified",
-      "bytes": 14872,
-      "sha256": "250e948409c74a40f8203319f759f762f4639ed97d36cadef99a5250d4d1a898",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_prototipo_ui/GLOSSARY.md",
-      "change": "modified",
-      "bytes": 4849,
-      "sha256": "865affd46cc0db9fb7f39091bb45b69b2b77e5c2f96a86feadc74ad60e34ccad",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_prototipo_ui/GOLDEN-REFERENCE.md",
-      "change": "modified",
-      "bytes": 9331,
-      "sha256": "a351e0623aa71954910108ad34b9ec1172484c98f3cd051bd2b8069366dc2db3",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_prototipo_ui/HANDOFF.md",
-      "change": "modified",
-      "bytes": 5354,
-      "sha256": "28a82c2254f4c66f8f6643895442e2df25104ec4b4569d2e582982764b57a0c2",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_prototipo_ui/MATRIZ_MIGRACAO_DS.md",
-      "change": "modified",
-      "bytes": 5498,
-      "sha256": "2d0bbfb84db94fbbf5e742eb9f0729405623c21212284acb116eb4fdd757e4cd",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_prototipo_ui/PRE-FLIGHT-TELA.md",
-      "change": "modified",
-      "bytes": 4690,
-      "sha256": "2ca4e33e6c7677e681cba42ff803191545c42b3d582e6fa0ad515acd252a02bc",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_prototipo_ui/PROTOCOL.md",
-      "change": "modified",
-      "bytes": 16829,
-      "sha256": "ebd6d37462c6f415b49c2125fa66c5b47e0fb2976bfd461473b3006c4f4a3a22",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_prototipo_ui/REGISTRY_DS_COMPONENTES.md",
-      "change": "modified",
-      "bytes": 5456,
-      "sha256": "96ccb126eda7ad81458990cf60d109b3a1972f5ffaa3821ec855f07362896a99",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_prototipo_ui/REGRAS_DS_LINT.md",
-      "change": "modified",
-      "bytes": 5331,
-      "sha256": "cbd54d6a039b1686849b4c73b5f1951021502b9677cbc1d32d7f4756ce8a36ff",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_prototipo_ui/TELAS_REVIEW_QUEUE.md",
-      "change": "modified",
-      "bytes": 10491,
-      "sha256": "950daa54bc8ed75bc830a1fede15c3cc613cf7b298a7082616c24a0dcb73a1ef",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/clientes/BUNDLE_README.md",
-      "change": "modified",
-      "bytes": 2046,
-      "sha256": "78482b8ec1a86c96de00e9116cdff33bcd2356d624ec545fe593f5d859eba321",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/clientes/clientes-975.css",
-      "change": "modified",
-      "bytes": 13437,
-      "sha256": "1d9166d5f75c8c857c2e247f5e6626925e6f4863348e7771c44f900455ddee1b",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/clientes/clientes-975.jsx",
-      "change": "modified",
-      "bytes": 29451,
-      "sha256": "dd3bfe8276aa21b4bc43b79e5b165f11559b9b4df717d194c212aa21317156c4",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/clientes/clientes-app.jsx",
-      "change": "modified",
-      "bytes": 7196,
-      "sha256": "82b642343c896470a1cf0fc0224d81064312d906b626613e2e9d2a16531b197e",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/clientes/clientes-data.jsx",
-      "change": "modified",
-      "bytes": 18297,
-      "sha256": "396ecea93d7ce8a85c62fc9c91cd0cbff1ff7a6de779d2ae3e6ce48fab8b395a",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/clientes/clientes-drawer.jsx",
-      "change": "modified",
-      "bytes": 25498,
-      "sha256": "b9241712edc4862683984a364f75a5ffb8b767f0e8c3695f365b96ee3a94f471",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/clientes/clientes-icons.jsx",
-      "change": "modified",
-      "bytes": 8398,
-      "sha256": "681a801bae084bc1aabc58dad2b56f1e4314b5fc86ca5d5886c1ad2228bdba74",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/clientes/clientes-linked.jsx",
-      "change": "modified",
-      "bytes": 6494,
-      "sha256": "7a0de0b9572a63f85c876b574259557c6b102d7f21f2d1c13bff67191a78c86a",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/clientes/clientes-listagem.jsx",
-      "change": "modified",
-      "bytes": 8286,
-      "sha256": "9950582545646238571be24ac666c40fe0a9440de132b86710b6d092e1d7ea29",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/clientes/clientes-table.jsx",
-      "change": "modified",
-      "bytes": 17062,
-      "sha256": "27a69bf40c1293b8868e820c6dbc68ccb9215895009f1a955b51e988f5da408b",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/clientes/clientes-tabs.css",
+      "path": "handoff_produtos_consulta/design/adr/0402-pagination-do-ds-nao-cobre-primeira-ultima.md",
       "change": "modified",
-      "bytes": 6798,
-      "sha256": "74f89faec845614c05d59f9a1d69082386498c2cbd69ac69cf766850592711fe",
+      "bytes": 2087,
+      "sha256": "79b376cb07ec974ad3c11a27eb6dd67d892f31fa357b80fd6ef01fe57e909965",
       "role": "cowork-source"
     },
     {
-      "path": "importado_telas/clientes/clientes-tabs.jsx",
+      "path": "handoff_produtos_consulta/design/adr/0403-tabbar-gera-barra-de-rolagem-vertical.md",
       "change": "modified",
-      "bytes": 20262,
-      "sha256": "5fa67123ddcf0822147d374d32df87bdb394e1010c53129b4f68ae93d7ae408b",
+      "bytes": 1945,
+      "sha256": "db9415aef98e4c88235e9bd5bcceadca3a38a301cee3161cbe1a6c54098fc6a6",
       "role": "cowork-source"
     },
     {
-      "path": "importado_telas/clientes/clientes.css",
+      "path": "handoff_produtos_consulta/design/adr/0404-tooltip-recortado-em-container-de-rolagem.md",
       "change": "modified",
-      "bytes": 19240,
-      "sha256": "5ca07b1593ebf2004600cd25c5f13d0d0e23bf5529c7c887a381ffd24f8cf213",
+      "bytes": 2088,
+      "sha256": "16c427e28eaf45cd190658260a6f3f626398ec61c58ee16f1e8a5d92d56d6fdd",
       "role": "cowork-source"
     },
     {
-      "path": "importado_telas/clientes/cockpit.css",
+      "path": "inbox-page.jsx",
       "change": "modified",
-      "bytes": 47811,
-      "sha256": "062e64c7f9094f8284f51a2faedf089e7ccd344b9c889b0c381a7da23819cbf0",
+      "bytes": 87446,
+      "sha256": "0679f6bb292b6ed0a55e92e5812a9d54f97fb944817165c2ce3e91f17e9b8df5",
       "role": "cowork-source"
     },
     {
-      "path": "importado_telas/clientes/HANDOFF_CLIENTES.md",
+      "path": "manual-de-blocos.md",
       "change": "modified",
-      "bytes": 17241,
-      "sha256": "72cbf8326361d66979a1e2c0aaaf9a6574807049650125d004230985e4ff1b8b",
+      "bytes": 61533,
+      "sha256": "c41ff0a78ef32f28b2f867fca4511f4ecf93e3be1c619aa5b9d315b4774e4788",
       "role": "cowork-source"
     },
     {
-      "path": "importado_telas/clientes/Oimpresso ERP - Clientes.html",
+      "path": "manufacturing-insumos.jsx",
       "change": "modified",
-      "bytes": 2923,
-      "sha256": "43d5b2db752cc940ea07ee249ff916a6149c79d57da096ce3e051af31b803a48",
+      "bytes": 6019,
+      "sha256": "b4c78897c3c7de566759d3010705ab419c6d61e274d8b13470f48a0ca8322e9e",
       "role": "cowork-source"
     },
     {
-      "path": "importado_telas/clientes/tweaks-panel.jsx",
+      "path": "manufacturing-page.jsx",
       "change": "modified",
-      "bytes": 25802,
-      "sha256": "22c052960f83ac314fa6170384f19bbdeefda516fdddc6a917a5a72797171d8d",
+      "bytes": 21823,
+      "sha256": "5c057cd1f8a26535489061e5df0122d90731946f67a241dd6e0b0c426dcf5d26",
       "role": "cowork-source"
     },
     {
-      "path": "importado_telas/compras-grade-matrix/Compras - Grade Matrix.html",
+      "path": "manufacturing-print.jsx",
       "change": "modified",
-      "bytes": 2073,
-      "sha256": "2f0fc63fb524d2f77c23fc7e63222c0f200cd377c7ca129fa1283536c0d7252b",
+      "bytes": 6835,
+      "sha256": "cf732cd48d170e857f2d6930281ed2cbd29415134d63526bafaf964dc03c220d",
       "role": "cowork-source"
     },
     {
-      "path": "importado_telas/compras-grade-matrix/NOTES.md",
+      "path": "manufacturing-producao.jsx",
       "change": "modified",
-      "bytes": 7153,
-      "sha256": "2640a356d53fac679b43be09638cd83491910b9a8aeb200b22d98f51ff79826c",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/compras-grade-matrix/page.css",
-      "change": "modified",
-      "bytes": 8479,
-      "sha256": "d7a8a5cc8a4c31ad88216e993e05c837ed1c8e876315710aa0eef2aeb9053bad",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/compras-grade-matrix/page.jsx",
-      "change": "modified",
-      "bytes": 12432,
-      "sha256": "cd2512e2aa48755a6ac7bab9ae358565197ce5d1f328898823a6d4853c76fda3",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/ds-galerias/Design System v4.html",
-      "change": "modified",
-      "bytes": 236831,
-      "sha256": "4f32903563039d9d533b3f54c9d82584585d32c26ae5805698bb92f395b49f1a",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/ds-galerias/design-system.css",
-      "change": "modified",
-      "bytes": 62618,
-      "sha256": "89d1a7e349a1b845d525b687df0a3ab32ffd5a5f0cee1c891530e71d3d072129",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/ds-galerias/ds-behavior.js",
-      "change": "deleted",
-      "bytes": 11310,
-      "sha256": "5029bdc2c8873583f02c496603f6648b7effa2403d025d54481b28a042fadf9c",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/ds-galerias/ds-v6-gabarito-vendas.html",
-      "change": "modified",
-      "bytes": 24849,
-      "sha256": "fbe684e36d7ace611f04438243561a1c3b76d0766c461ef0f2faf2e63f3d0ae6",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/ds-galerias/ds-v6-receita.html",
-      "change": "modified",
-      "bytes": 11463,
-      "sha256": "5fd90b887e1cc1cb2e9b736bca6090adcf974a6df02c66ff83fca866003a0498",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/ds-galerias/ds-v6-REUSE_MAPPING.md",
-      "change": "modified",
-      "bytes": 6672,
-      "sha256": "60aa1d13061d28beb221eedeb529c6985e2088d998216978605256693cdb4c23",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/ds-galerias/ds-v6-showcase.html",
-      "change": "modified",
-      "bytes": 26089,
-      "sha256": "a6a222fe273997fac9d6d7a6c66b4e7c21270b3379d617342cbdbc23d5cbbe6b",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/ds-galerias/styles.css",
-      "change": "modified",
-      "bytes": 194409,
-      "sha256": "b9e68a2dad5223ebe49dbc7fcce5edf737336f4e7844a8f40a40e02bf1162da1",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/ds-galerias/tokens.css",
-      "change": "modified",
-      "bytes": 7492,
-      "sha256": "05eaa449464e7222d186870314bfbd9f3d9565c98dd7454db4aef6e986430397",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/mockups/mockup-cliente-fields.html",
-      "change": "modified",
-      "bytes": 17096,
-      "sha256": "8637c98e0f306781732ce65973e98794ac8d68ae8b03c522acfbd9d4299a99e3",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/oficina/oficina-page.css",
-      "change": "modified",
-      "bytes": 22101,
-      "sha256": "1a529aef923bbef386145a444fb556cb977ebe1f563eaebee9dae85c7927f436",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/oficina/oficina-page.jsx",
-      "change": "modified",
-      "bytes": 45993,
-      "sha256": "b9c3a36a52a4913cb30e9964174d984b64f288ee03d5b9fb1e0062718be95a94",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/pageheader-canon-v3/3-familias.html",
-      "change": "modified",
-      "bytes": 18604,
-      "sha256": "ad5237c8cb0ab8a59a700010ee7f5b8bb80ab099c542b5ee43fcc98663e3448f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/pageheader-canon-v3/b-v2-roxo-kpis.html",
-      "change": "modified",
-      "bytes": 11962,
-      "sha256": "641fca9ba66e802873f0fd1c724cca46bf0437e6c941ccf83ca49c7faa9d245d",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/pageheader-canon-v3/clientes-filtros-amostra.html",
-      "change": "modified",
-      "bytes": 25564,
-      "sha256": "b45db7570f6505174b0466c728e9fdfdb32aa04d973c75149e6b98e3d90eb96e",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/pageheader-canon-v3/index.html",
-      "change": "modified",
-      "bytes": 24470,
-      "sha256": "954758b5c69186d4ba07f7fc96fadbb5fa74c88dce170586fc342f015f1caca0",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/pageheader-canon-v3/SPEC.md",
-      "change": "modified",
-      "bytes": 47624,
-      "sha256": "0ab223e5b7a0668017a539cab80a86bd5a99bb7ab747f22b7494c7b55ba9df83",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/sidebar/sidebar-icons-comparison.html",
-      "change": "modified",
-      "bytes": 18377,
-      "sha256": "bed257c93c8c67572f808260d82a9cd480fe0430c82828967f1ce17415c10e90",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/sidebar/sidebar-v3-unificado.html",
-      "change": "modified",
-      "bytes": 24584,
-      "sha256": "eb637932384ece985b0309d6e13d6ea55ba7e8ede4599ce0ea483af56d06ec74",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/vendas/data-vendas.jsx",
-      "change": "deleted",
-      "bytes": 19047,
-      "sha256": "8d5b068530f96e362245e90a971a549807b3eee67c3cb3bebe928c2558ae437c",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/vendas/vendas-ai.jsx",
-      "change": "deleted",
-      "bytes": 14524,
-      "sha256": "97eaec756fd56b9a51a71e538003e4b7fa224d53a1937ae832fd68ee603b38c3",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/vendas/vendas-curation.jsx",
-      "change": "deleted",
-      "bytes": 22448,
-      "sha256": "b80830b2b2747991cfca0257c16ce6b3b40166cb6621ea0e96dae975c8099673",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/vendas/vendas-extras.jsx",
-      "change": "modified",
-      "bytes": 60756,
-      "sha256": "3e56ca62c019ef6c123e61bf2618820cccbb91e0decf1489a6c03e86751fa9d7",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/vendas/vendas-flow.jsx",
-      "change": "deleted",
-      "bytes": 65869,
-      "sha256": "aef5d3fa7dc7be6af7c57eaa4c0bd1b56c2666b9a223df8fc0e9e56b3bc7fc62",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/vendas/vendas-output.jsx",
-      "change": "deleted",
-      "bytes": 22055,
-      "sha256": "7e422a339708728a71fce5c1adcf2f98af198cfb9803493bee61d8b7675ce506",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/vendas/vendas-page.jsx",
-      "change": "modified",
-      "bytes": 93362,
-      "sha256": "77d0bf50cf46c414f735682dfd00aca3dabb4fdf83f1c41e77b3a6b0ba5e2317",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/vendas/vendas-shortcuts.jsx",
-      "change": "deleted",
-      "bytes": 3689,
-      "sha256": "0dfac204de6df3a25e06d80d727e7d52f0256ed3346c8f451538cd72e9b48cdf",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/vendas/vendas-tweaks.jsx",
-      "change": "deleted",
-      "bytes": 4006,
-      "sha256": "25873f3e6578a8571439eab9168a6574d47833f1abcd6dd1de6f590f9601f87f",
+      "bytes": 22676,
+      "sha256": "5c1c692bce46808f916ad45f2a1db9b806e289027741a7f1a6ec6ef1c5fe9aeb",
       "role": "cowork-source"
     },
     {
-      "path": "importado_telas/vendas/vendas.css",
+      "path": "manufacturing-recipe.jsx",
       "change": "modified",
-      "bytes": 103943,
-      "sha256": "3610ef8076039d8e392b3e6489695c74a1d0ee704f68fc303bf93dca33c16a28",
+      "bytes": 15690,
+      "sha256": "25b344a4fc6120d353fde9704682e1f4b0387c7ee286f3dcc23ef7e230ddaa29",
       "role": "cowork-source"
     },
     {
       "path": "mapa-do-terreno.md",
       "change": "modified",
-      "bytes": 7286,
-      "sha256": "7e9cf3556c01d9250afb88fd2c614a29ea7051c6d91a9fee346089b9e2450ca5",
+      "bytes": 6946,
+      "sha256": "b4f6b477a3d53708561f1d107274dc0b8f60b8f5b10fa1873e2c0c5893b99e56",
+      "role": "cowork-source"
+    },
+    {
+      "path": "o-que-vale-como-fonte.md",
+      "change": "modified",
+      "bytes": 5658,
+      "sha256": "0f3516e097bdf8e376d57fbcedae6888d7a7b60ae86905d4e5b5452e83174622",
       "role": "cowork-source"
     },
     {
       "path": "oimpresso.com.html",
       "change": "modified",
-      "bytes": 33542,
-      "sha256": "85ab26f383454b972c6a2739a15a314fb3fe22d5a515267061f135310d6b05b5",
+      "bytes": 33245,
+      "sha256": "d2e266344a7c2ef42203c3aa2a448650084069c796116d5b564762fe3559b7ac",
       "role": "cowork-source"
     },
     {
-      "path": "resposta-ao-claude-code.md",
+      "path": "pedido-ao-projeto-do-ds.md",
       "change": "added",
-      "bytes": 14469,
-      "sha256": "800ebccc38ca32aba8cbf455de3f466c6e99ff91bf46fc310423b2b14fda2d59",
+      "bytes": 5644,
+      "sha256": "1a54bcb1b137c6d1168d45f877624839c4d76ae92ff117807873ba8bac80d667",
+      "role": "cowork-source"
+    },
+    {
+      "path": "plano-fabricacao-no-ds.md",
+      "change": "modified",
+      "bytes": 14568,
+      "sha256": "f3697029572a31d5c8059f58f433aca3c13e181a0dee6e31190089bf52979841",
+      "role": "cowork-source"
+    },
+    {
+      "path": "plano-ondas-fabricacao-v2.md",
+      "change": "modified",
+      "bytes": 21245,
+      "sha256": "379c95cde68049b4a8e530e578a1d590578394e1d6399c513a3c1356c5d6542c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "pre-export.md",
+      "change": "added",
+      "bytes": 6136,
+      "sha256": "587ebf8ff599d48b1b362aef53e29e6833cdb36e838c8e5ee86d2b0145c5fd52",
+      "role": "cowork-source"
+    },
+    {
+      "path": "sidebar.jsx",
+      "change": "modified",
+      "bytes": 26259,
+      "sha256": "c1715e8c9a5a7803497b3215bd62d539ea0a381ddcab3a3609798b50f81ec51c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "vendas-extras.jsx",
+      "change": "modified",
+      "bytes": 64249,
+      "sha256": "53087a06d55b57cc66abdd8311496f737c5d283e176401568ee4d413c6e7acee",
+      "role": "cowork-source"
+    },
+    {
+      "path": "vendas-page.jsx",
+      "change": "modified",
+      "bytes": 92134,
+      "sha256": "90e6d08da352c55374eaa7d6cab865261ccdca0c83e7ca5f94c26862cb5079c3",
       "role": "cowork-source"
     }
   ],
@@ -1506,7 +685,7 @@
     },
     {
       "source": "erp-shell-v2/clientes-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Cliente/Index.tsx",
       "module": "Cliente",
       "mapping": "charter.component",
@@ -1521,7 +700,7 @@
     },
     {
       "source": "erp-shell-v2/compras-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Compras/Index.tsx",
       "module": "Compras",
       "mapping": "charter.component",
@@ -1536,7 +715,7 @@
     },
     {
       "source": "erp-shell-v2/compras-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Purchase/Index.tsx",
       "module": "Purchase",
       "mapping": "charter.component",
@@ -1551,7 +730,7 @@
     },
     {
       "source": "erp-shell-v2/compras-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Purchase/Show.tsx",
       "module": "Purchase",
       "mapping": "charter.component",
@@ -1566,7 +745,7 @@
     },
     {
       "source": "erp-shell-v2/crm-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Cliente/Index.tsx",
       "module": "Cliente",
       "mapping": "alias",
@@ -1581,7 +760,7 @@
     },
     {
       "source": "erp-shell-v2/fiscal-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Cockpit.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
@@ -1596,7 +775,7 @@
     },
     {
       "source": "erp-shell-v2/fiscal-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Config.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
@@ -1611,7 +790,7 @@
     },
     {
       "source": "erp-shell-v2/fiscal-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Dfe.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
@@ -1626,7 +805,7 @@
     },
     {
       "source": "erp-shell-v2/fiscal-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Eventos.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
@@ -1641,7 +820,7 @@
     },
     {
       "source": "erp-shell-v2/fiscal-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Nfe.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
@@ -1656,7 +835,7 @@
     },
     {
       "source": "erp-shell-v2/fiscal-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Nfse.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
@@ -1671,7 +850,7 @@
     },
     {
       "source": "erp-shell-v2/fiscal-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Sped.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
@@ -1686,7 +865,7 @@
     },
     {
       "source": "erp-shell-v2/oficina-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
       "module": "OficinaAuto",
       "mapping": "charter.component",
@@ -1700,23 +879,8 @@
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
-      "source": "erp-shell-v2/orc-page.jsx",
-      "bundleChange": "deleted",
-      "target": "—",
-      "module": null,
-      "mapping": "registro a-criar",
-      "comparison": "SOURCE-REMOVED",
-      "lifecycleState": "review",
-      "applicationState": "review",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "revisar o alvo React; remoção no Design nunca apaga produto automaticamente"
-    },
-    {
       "source": "erp-shell-v2/os-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "—",
       "module": null,
       "mapping": "registro a-criar",
@@ -1731,7 +895,7 @@
     },
     {
       "source": "erp-shell-v2/prod-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "—",
       "module": null,
       "mapping": "nenhum",
@@ -1746,7 +910,7 @@
     },
     {
       "source": "erp-shell-v2/producao-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "—",
       "module": null,
       "mapping": "registro a-criar",
@@ -1761,7 +925,7 @@
     },
     {
       "source": "erp-shell-v2/recurring-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "—",
       "module": null,
       "mapping": "nenhum",
@@ -1776,7 +940,7 @@
     },
     {
       "source": "erp-shell-v2/vendas-extras.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Sells/Caixa/Index.tsx",
       "module": "Sells",
       "mapping": "charter.component",
@@ -1791,7 +955,7 @@
     },
     {
       "source": "erp-shell-v2/vendas-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Sells/Index.tsx",
       "module": "Sells",
       "mapping": "charter.component",
@@ -1806,7 +970,7 @@
     },
     {
       "source": "erp-shell-v2/whatsapp-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "—",
       "module": null,
       "mapping": "nenhum",
@@ -1971,7 +1135,7 @@
     },
     {
       "source": "financeiro-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
       "module": "Financeiro",
       "mapping": "charter.component",
@@ -2481,7 +1645,7 @@
     },
     {
       "source": "importado_telas/oficina/oficina-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx",
       "module": "OficinaAuto",
       "mapping": "charter.component",
@@ -2496,7 +1660,7 @@
     },
     {
       "source": "importado_telas/vendas/vendas-extras.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Sells/Caixa/Index.tsx",
       "module": "Sells",
       "mapping": "charter.component",
@@ -2511,7 +1675,7 @@
     },
     {
       "source": "importado_telas/vendas/vendas-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Sells/Index.tsx",
       "module": "Sells",
       "mapping": "charter.component",
@@ -2526,7 +1690,7 @@
     },
     {
       "source": "inbox-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
       "module": "Whatsapp",
       "mapping": "charter.component",
@@ -2541,7 +1705,7 @@
     },
     {
       "source": "inbox-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Index.tsx",
       "module": "Whatsapp",
       "mapping": "charter.component",
@@ -2556,7 +1720,7 @@
     },
     {
       "source": "inbox-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "Modules/Whatsapp/Resources/js/Pages/Atendimento/Macros/Index.tsx",
       "module": "Whatsapp",
       "mapping": "charter.component",
@@ -2661,7 +1825,7 @@
     },
     {
       "source": "manufacturing-insumos.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Manufacturing/Insumos.tsx",
       "module": "Manufacturing",
       "mapping": "charter.component",
@@ -2676,7 +1840,7 @@
     },
     {
       "source": "manufacturing-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Manufacturing/Index.tsx",
       "module": "Manufacturing",
       "mapping": "charter.component",
@@ -2691,7 +1855,7 @@
     },
     {
       "source": "manufacturing-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Manufacturing/Recipes.tsx",
       "module": "Manufacturing",
       "mapping": "charter.component",
@@ -2706,7 +1870,7 @@
     },
     {
       "source": "manufacturing-producao.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Manufacturing/Report.tsx",
       "module": "Manufacturing",
       "mapping": "charter.component",
@@ -2721,7 +1885,7 @@
     },
     {
       "source": "manufacturing-producao.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Manufacturing/Settings.tsx",
       "module": "Manufacturing",
       "mapping": "charter.component",
@@ -3711,7 +2875,7 @@
     },
     {
       "source": "vendas-extras.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Sells/Caixa/Index.tsx",
       "module": "Sells",
       "mapping": "charter.component",
@@ -3726,7 +2890,7 @@
     },
     {
       "source": "vendas-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Sells/Index.tsx",
       "module": "Sells",
       "mapping": "charter.component",
@@ -3838,9 +3002,15 @@
       "role": "cowork-source"
     },
     {
+      "path": "_live-only.json",
+      "bytes": 39346,
+      "sha256": "80b2e307534b81fcc50221a2783f02436484a656a008e547b636d0610fe4031f",
+      "role": "cowork-source"
+    },
+    {
       "path": "absorcao-v2-em-todos-os-produtos.md",
-      "bytes": 69874,
-      "sha256": "9bdf20fce9197b4bb2f8e3a47332b8f391d43c362a31701bf72ce91fc5f19826",
+      "bytes": 69929,
+      "sha256": "1b1782143e71b9d489cba20e5b60bdcd8a5d24d974799af2a15db5316b285a98",
       "role": "cowork-source"
     },
     {
@@ -3863,8 +3033,8 @@
     },
     {
       "path": "app.jsx",
-      "bytes": 75265,
-      "sha256": "295d5eff830da4da33c6efedafc78f046d9333f8aebf7f205742c8009527951b",
+      "bytes": 75219,
+      "sha256": "012ec3f3c4a88b80055d7fa994c6a5a58ced8440f43d94e781f62baed86ec8aa",
       "role": "cowork-source"
     },
     {
@@ -3875,8 +3045,8 @@
     },
     {
       "path": "arquivos-identicos-medido.md",
-      "bytes": 6397,
-      "sha256": "411e64a988397296627081c52dad2376a066569b7c279a480b65332f2588b333",
+      "bytes": 6518,
+      "sha256": "6e2e1e3f94e64bb6f975f9fa56715f9c2d7a7d35812997521398af6fd0b4bcc3",
       "role": "cowork-source"
     },
     {
@@ -3887,14 +3057,14 @@
     },
     {
       "path": "auditoria-aderencia-fabricacao-v2.md",
-      "bytes": 27354,
-      "sha256": "1f7d8d5ccd1a1f710608776f6f3821357d0a73d8795142991b2b4a7bd1a0adef",
+      "bytes": 27290,
+      "sha256": "96bb92f7e3e6593737035d151e06ac38480a98ee959300997bb2e11789c82183",
       "role": "cowork-source"
     },
     {
       "path": "auditoria-aderencia-fabricacao.md",
-      "bytes": 18076,
-      "sha256": "82d8ed39fceb59ebdfd56d893e01e04df23e70a0cb1df1b977dd498ac2c3a7d0",
+      "bytes": 18084,
+      "sha256": "497cbfbc3f4bccb542e72b1cca19a9a8d26ea5f28fe8b8e48155bb66438baa72",
       "role": "cowork-source"
     },
     {
@@ -3959,8 +3129,8 @@
     },
     {
       "path": "CLAUDE.md",
-      "bytes": 13974,
-      "sha256": "191a937b751538710d41c4ffe0f656878c9b504b749b3592f1e1367e0ee78bc8",
+      "bytes": 15508,
+      "sha256": "8f3857ee7bc6f0616ebecb506ecc6f7923f1842d82a45d741ddd7aea2b8eb036",
       "role": "cowork-source"
     },
     {
@@ -4108,6 +3278,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "conferir-export.mjs",
+      "bytes": 12622,
+      "sha256": "829f14eaed9bf06a05ca032a7c378788ede803a3c8bba10ee23582668c5fa0e9",
+      "role": "cowork-source"
+    },
+    {
       "path": "configuracoes-cadastros.jsx",
       "bytes": 51669,
       "sha256": "83843866dc0e8624a7fc37eece65da2c6c155510ee67aca7380b77275cd55d0e",
@@ -4151,8 +3327,8 @@
     },
     {
       "path": "Consulta de Produtos.dc.html",
-      "bytes": 126831,
-      "sha256": "d46331878fa9bcae22ec6ac61cd9857f45bd158832d129e52fc70644d36c359b",
+      "bytes": 127032,
+      "sha256": "5a7fda61b5802929620d0e4650f0b10edd2b11632614b5183e53a07e8077a2ed",
       "role": "cowork-source"
     },
     {
@@ -4751,8 +3927,8 @@
     },
     {
       "path": "financeiro-page.jsx",
-      "bytes": 132171,
-      "sha256": "afb0e4dc13a9b210a226d7bc607d6af0aa4e3643aaf204eb704e32150d6e000d",
+      "bytes": 131989,
+      "sha256": "1cf7bc8784aa5cf91d5f3d71dbe09bcd84da984ec8cc331870b55f2fdbd7e24d",
       "role": "cowork-source"
     },
     {
@@ -4925,8 +4101,8 @@
     },
     {
       "path": "handoff_fabricacao/design/adr/0411-accent-sem-versao-escura.md",
-      "bytes": 3431,
-      "sha256": "9fbb0a03305771ce6ae109a133d3d4ffc060a0e6c8b09f11f5c967ff100817cc",
+      "bytes": 3472,
+      "sha256": "0af4bc671311b9807d322306ff1d6e9dec8a6c8f038c9f4a3f353ac0a6fea782",
       "role": "cowork-source"
     },
     {
@@ -4955,8 +4131,8 @@
     },
     {
       "path": "handoff_fabricacao/design/LAUDO-conferencia-fabricacao.md",
-      "bytes": 13621,
-      "sha256": "74e047ecc0d11aca95dbb85b590982f7f4d38e5f281e9d238148b6823053c568",
+      "bytes": 13628,
+      "sha256": "d98304e18e337b315c9bbc83700d4bc0a0ea2b7deb62c4d779653deabf062f65",
       "role": "cowork-source"
     },
     {
@@ -4997,14 +4173,14 @@
     },
     {
       "path": "handoff_fabricacao/design/README.md",
-      "bytes": 8525,
-      "sha256": "133fb5561b297fafdba37bc405d1622f4a9c6127033674c5a384da44fc641069",
+      "bytes": 8535,
+      "sha256": "9b2b60ea0342dd5e25c1adbb8b83873f0b261fa1d4fec8213386f01b9cc85efd",
       "role": "cowork-source"
     },
     {
       "path": "handoff_fabricacao/README.md",
-      "bytes": 73795,
-      "sha256": "5a2ca328eada00b6f84fa30cd780eb6fc51af0e0cdc1425f7159719200f9a6d6",
+      "bytes": 73681,
+      "sha256": "d66b52919fb4b79f3cdea61a0f42d22ca251623422076fac8621c046f790e32c",
       "role": "cowork-source"
     },
     {
@@ -5039,20 +4215,20 @@
     },
     {
       "path": "handoff_produtos_consulta/design/adr/0402-pagination-do-ds-nao-cobre-primeira-ultima.md",
-      "bytes": 1961,
-      "sha256": "7c507d7f81725f266db569a379bd16f89b34b61bc19f6a0bdfc467f16b2442d2",
+      "bytes": 2087,
+      "sha256": "79b376cb07ec974ad3c11a27eb6dd67d892f31fa357b80fd6ef01fe57e909965",
       "role": "cowork-source"
     },
     {
       "path": "handoff_produtos_consulta/design/adr/0403-tabbar-gera-barra-de-rolagem-vertical.md",
-      "bytes": 1819,
-      "sha256": "099290502eb103da75a1b41c6697a167741b69e24bffa69eeeb08ffe3f709853",
+      "bytes": 1945,
+      "sha256": "db9415aef98e4c88235e9bd5bcceadca3a38a301cee3161cbe1a6c54098fc6a6",
       "role": "cowork-source"
     },
     {
       "path": "handoff_produtos_consulta/design/adr/0404-tooltip-recortado-em-container-de-rolagem.md",
-      "bytes": 1962,
-      "sha256": "c1b265c9c0e56092d17b25322d4abfc9b92b421baf3ff12fbc088ae82d0e95a4",
+      "bytes": 2088,
+      "sha256": "16c427e28eaf45cd190658260a6f3f626398ec61c58ee16f1e8a5d92d56d6fdd",
       "role": "cowork-source"
     },
     {
@@ -5585,8 +4761,8 @@
     },
     {
       "path": "inbox-page.jsx",
-      "bytes": 87890,
-      "sha256": "37ff306a453d9ef4ea939dc058aba9dc4006b44f4e1b01825f5dcee223b517d1",
+      "bytes": 87446,
+      "sha256": "0679f6bb292b6ed0a55e92e5812a9d54f97fb944817165c2ce3e91f17e9b8df5",
       "role": "cowork-source"
     },
     {
@@ -5675,8 +4851,8 @@
     },
     {
       "path": "manual-de-blocos.md",
-      "bytes": 61525,
-      "sha256": "7811b6069f8177e1b06299b67a6594a78e4d7860d936d76213eea7fd45756469",
+      "bytes": 61533,
+      "sha256": "c41ff0a78ef32f28b2f867fca4511f4ecf93e3be1c619aa5b9d315b4774e4788",
       "role": "cowork-source"
     },
     {
@@ -5693,8 +4869,8 @@
     },
     {
       "path": "manufacturing-insumos.jsx",
-      "bytes": 6011,
-      "sha256": "778e2139c9880259c68f1092a3658fafb97eb6f5f6fe10f4064e3f418d5c17b5",
+      "bytes": 6019,
+      "sha256": "b4c78897c3c7de566759d3010705ab419c6d61e274d8b13470f48a0ca8322e9e",
       "role": "cowork-source"
     },
     {
@@ -5705,32 +4881,32 @@
     },
     {
       "path": "manufacturing-page.jsx",
-      "bytes": 21807,
-      "sha256": "612329faf386af1aefa6d6ea424f3165446c0eac61496f956e0baf47763d50f7",
+      "bytes": 21823,
+      "sha256": "5c057cd1f8a26535489061e5df0122d90731946f67a241dd6e0b0c426dcf5d26",
       "role": "cowork-source"
     },
     {
       "path": "manufacturing-print.jsx",
-      "bytes": 6827,
-      "sha256": "58e078834cda49be6650c42f95fe5d5d8cb53dd7dcc1339d02ca74d860f7d3af",
+      "bytes": 6835,
+      "sha256": "cf732cd48d170e857f2d6930281ed2cbd29415134d63526bafaf964dc03c220d",
       "role": "cowork-source"
     },
     {
       "path": "manufacturing-producao.jsx",
-      "bytes": 22668,
-      "sha256": "45c51ec0583df48b065c99afac0a4e40b038f758c805de871f9b20680b040420",
+      "bytes": 22676,
+      "sha256": "5c1c692bce46808f916ad45f2a1db9b806e289027741a7f1a6ec6ef1c5fe9aeb",
       "role": "cowork-source"
     },
     {
       "path": "manufacturing-recipe.jsx",
-      "bytes": 15682,
-      "sha256": "67b5664d2b109fe87ed6c2a2a598e139bee02d2dd0624185d7efc6756751be37",
+      "bytes": 15690,
+      "sha256": "25b344a4fc6120d353fde9704682e1f4b0387c7ee286f3dcc23ef7e230ddaa29",
       "role": "cowork-source"
     },
     {
       "path": "mapa-do-terreno.md",
-      "bytes": 7286,
-      "sha256": "7e9cf3556c01d9250afb88fd2c614a29ea7051c6d91a9fee346089b9e2450ca5",
+      "bytes": 6946,
+      "sha256": "b4f6b477a3d53708561f1d107274dc0b8f60b8f5b10fa1873e2c0c5893b99e56",
       "role": "cowork-source"
     },
     {
@@ -5801,8 +4977,8 @@
     },
     {
       "path": "o-que-vale-como-fonte.md",
-      "bytes": 5857,
-      "sha256": "71150b851a7aae23483569a192762f93b18430f6c4eef0bd96c1cdbefabde4f0",
+      "bytes": 5658,
+      "sha256": "0f3516e097bdf8e376d57fbcedae6888d7a7b60ae86905d4e5b5452e83174622",
       "role": "cowork-source"
     },
     {
@@ -5873,8 +5049,8 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 33542,
-      "sha256": "85ab26f383454b972c6a2739a15a314fb3fe22d5a515267061f135310d6b05b5",
+      "bytes": 33245,
+      "sha256": "d2e266344a7c2ef42203c3aa2a448650084069c796116d5b564762fe3559b7ac",
       "role": "cowork-source"
     },
     {
@@ -5929,6 +5105,12 @@
       "path": "pauta-design-system.md",
       "bytes": 54949,
       "sha256": "1988953a26b4ec7e1b61ff73de6ecb2a33c50d4906b42d2b4ca56cae8f68ffe2",
+      "role": "cowork-source"
+    },
+    {
+      "path": "pedido-ao-projeto-do-ds.md",
+      "bytes": 5644,
+      "sha256": "1a54bcb1b137c6d1168d45f877624839c4d76ae92ff117807873ba8bac80d667",
       "role": "cowork-source"
     },
     {
@@ -6005,14 +5187,14 @@
     },
     {
       "path": "plano-fabricacao-no-ds.md",
-      "bytes": 14560,
-      "sha256": "461b3d91af6bffcaaccb08e720fa4c6c430e764cf33f2771abfa51b2b9e397f6",
+      "bytes": 14568,
+      "sha256": "f3697029572a31d5c8059f58f433aca3c13e181a0dee6e31190089bf52979841",
       "role": "cowork-source"
     },
     {
       "path": "plano-ondas-fabricacao-v2.md",
-      "bytes": 21172,
-      "sha256": "6e4954e458cbe07991c14fc5ff49fd4cfe852bb4336b6c9a9808225b01c760b3",
+      "bytes": 21245,
+      "sha256": "379c95cde68049b4a8e530e578a1d590578394e1d6399c513a3c1356c5d6542c",
       "role": "cowork-source"
     },
     {
@@ -6055,6 +5237,12 @@
       "path": "ponto-ui.jsx",
       "bytes": 5900,
       "sha256": "5f69317bbf00a2fac48bc407a8e5ca6beca00175d42973511e79076246c57b30",
+      "role": "cowork-source"
+    },
+    {
+      "path": "pre-export.md",
+      "bytes": 6136,
+      "sha256": "587ebf8ff599d48b1b362aef53e29e6833cdb36e838c8e5ee86d2b0145c5fd52",
       "role": "cowork-source"
     },
     {
@@ -6227,8 +5415,8 @@
     },
     {
       "path": "sidebar.jsx",
-      "bytes": 26302,
-      "sha256": "ec018f63f5f6dcf9899d8ca41b525b6fd9f15b3fd0e559cb1c8867fc690f9fa8",
+      "bytes": 26259,
+      "sha256": "c1715e8c9a5a7803497b3215bd62d539ea0a381ddcab3a3609798b50f81ec51c",
       "role": "cowork-source"
     },
     {
@@ -6371,8 +5559,8 @@
     },
     {
       "path": "vendas-extras.jsx",
-      "bytes": 64291,
-      "sha256": "9c2637446a84d2e8cb3e9331c5a072475476ab2271353d0fbd4c05766bfd80bc",
+      "bytes": 64249,
+      "sha256": "53087a06d55b57cc66abdd8311496f737c5d283e176401568ee4d413c6e7acee",
       "role": "cowork-source"
     },
     {
@@ -6389,8 +5577,8 @@
     },
     {
       "path": "vendas-page.jsx",
-      "bytes": 92181,
-      "sha256": "e8419e7def78301a21c646b0aee9ea492ac5927a663687c472eb7d54261f9dc8",
+      "bytes": 92134,
+      "sha256": "90e6d08da352c55374eaa7d6cab865261ccdca0c83e7ca5f94c26862cb5079c3",
       "role": "cowork-source"
     },
     {

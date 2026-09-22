@@ -77,7 +77,7 @@ O gerador recusou o pacote por conter três design systems sem indicação de qu
 | `_ds/…019dd02f…/` apagada | era o bundle do `49a36f` + shim de 11 linhas. Mesmo conteúdo, mesmo namespace — nunca foi um segundo DS |
 | `_ds/office-impresso-atual-d7f88676-…/` apagada | **esta era diferente**: namespace `OfficeImpressoDesignSystem_d7f886`, 287.322 B × 295.062 B. Nenhuma página carregava |
 | `handoff_*/design/_ds/` apagadas | as duas páginas apontam para a raiz |
-| shim de alias | saiu do bundle, virou `<script>` declarado no `oimpresso.com.html` |
+| shim de alias | **removido de vez em 21/09/2026 (noite)**: não vive no bundle nem no `oimpresso.com.html`. As 6 páginas que liam o nome antigo passaram a ler `OfficeImpressoPontoWR2DesignSystem_019dd0` |
 | `cockpit_domains.css` | **removido, não substituído** — era stub vazio. 41 tokens de domínio seguem definidos por outras folhas |
 
 Resta **um** design system: `_ds/wagner-office-impresso-design-system-49a36f76-…/`.

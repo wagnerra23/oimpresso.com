@@ -15,7 +15,7 @@ baixo.
 
 | # | Camada | Arquivo | Responsabilidade | Origem |
 |---|---|---|---|---|
-| 0 | Design System | `_ds/office-impresso-design-system-019dd02f-…/colors_and_type.css` | tokens de identidade: `.cockpit` (claro) e `.cockpit[data-theme="dark"]` (escuro), rampa `--fs-1..9`, estilos de elemento | cópia **verbatim** — não editar |
+| 0 | Design System | `_ds/wagner-office-impresso-design-system-49a36f76-…/colors_and_type.css` | tokens de identidade: `.cockpit` (claro) e `.cockpit[data-theme="dark"]` (escuro), rampa `--fs-1..9`, estilos de elemento | cópia **verbatim** — não editar |
 | 0 | Shell | `styles.css` | folha do shell cockpit: `:root` da sidebar, `--accent`, `--radius*`, `--font-*`, e os padrões de página que o módulo consome (`.os-page-h`, `.os-btn` e variantes) | cópia **verbatim** do protótipo — não editar |
 | 1 | Fundações | *(vazia)* | — | **por que vazia:** nenhuma correção de CSS do DS foi aplicada nesta tela. Os 4 defeitos medidos estão em `adr/` e três deles são de **componente React do repo alvo**, não de folha de estilo; o quarto (paleta de impressão) não tem token para corrigir. Corrigir `--text-mute` por `!important` aqui esconderia o defeito em vez de resolvê-lo na origem |
 | 2 | Shell | `02-shell/css/otimiza-ondas.css` | `thead` fixo, `tabular-nums`, **foco visível universal**, alvo de toque ≥44px em `pointer: coarse`. Tudo em `:where()` → especificidade 0 | cópia **verbatim** |
@@ -85,7 +85,7 @@ Cada arquivo termina publicando em `window` (escopos Babel não se comunicam). *
 | `window.__go(rota)` | shell (`app.jsx` no protótipo; `manufacturing-app.jsx` aqui) | as pontes entre módulos silenciam — o código já protege com `window.__go && window.__go(...)` |
 
 **A família consome o bundle compilado do DS** desde a onda A (2026-09-08): 23 elementos vêm de
-`window.OfficeImpressoDesignSystem_49a36f`, carregado por `oimpresso.com.html` L121. O que
+`window.OfficeImpressoPontoWR2DesignSystem_019dd0`, carregado por `oimpresso.com.html`. O que
 continua local está declarado como contorno no §19 do handoff, com o motivo medido em cada caso.
 (Até 2026-09-07 esta linha dizia o contrário: nenhum componente compilado era consumido, só os
 tokens de `colors_and_type.css`.)

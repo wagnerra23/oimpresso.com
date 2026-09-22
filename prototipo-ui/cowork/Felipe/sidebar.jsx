@@ -558,7 +558,7 @@ function Sidebar({ company, onCompany, tab, onTab, activeConvId, onSelectConv, a
 
   return (
     <aside className={"sb" + (rail ? " sb--rail" : "")}>
-      <div className="sb-top" data-comment-anchor="817b4e58ef-div-473-7">
+      <div className="sb-top">
         {rail ?
         <CompanyPickerRail company={company} onChange={onCompany} /> :
         <CompanyPicker company={company} onChange={onCompany} />}
