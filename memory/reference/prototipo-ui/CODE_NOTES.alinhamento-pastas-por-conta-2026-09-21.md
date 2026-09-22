@@ -264,3 +264,25 @@ aplicador trocava o texto inteiro. As duas coisas usam agora a mesma função
   convertidas/religadas);
 - se aparecer recusa nova, ela é **defeito a virar regra**, não arquivo para consertar à mão;
 - afirmação do Claude Design sobre o que "já foi feito" se confere no zip antes de repetir.
+
+### 12.1 Errata do §12 (mesmo dia) — "17/19 arquivos" contava documento como leitura
+
+O §12 e o recado ao Claude Design diziam que ~19 arquivos (17 no `main`) **liam** o nome antigo.
+Errado: o grep contou toda **menção**. Medido de novo no mesmo zip, separando código de prosa:
+**6 arquivos de código** leem `OfficeImpressoDesignSystem_49a36f` — `Consulta de Produtos.dc.html`
+(39 ocorrências) e `manufacturing-{page,recipe,producao,insumos,print}.jsx`. As outras menções
+em código são **comentário** (`manufacturing-page.css:5`, `oimpresso.com.html:128`) e o resto é
+`.md`. 59 arquivos de código já liam `OfficeImpressoPontoWR2DesignSystem_019dd0`. O Claude Design
+mediu certo. O defeito (componentes vazios sem erro) era real; o tamanho, não.
+
+**E o inverso, no relato dele:** "todos os `.md/.html/.jsx/.js/.css/.json` já estão em LF" não bate
+com o zip — **112** arquivos em CRLF: `erp-shell-v2/` 60, `importado_prototipo_ui/` 10,
+`importado_telas/` 42. A ferramenta de leitura dele provavelmente entrega o texto já normalizado.
+Sem efeito prático: o passo [1b] converte. Mas **"medi e está LF" do Cowork não vale como prova** —
+a prova é o byte no zip.
+
+**Para conferir no próximo zip** (itens que ele diz ter feito): 0 arquivo de código lendo
+`_49a36f` · `_ds/…49a36f76/_ds_bundle.js` = 349.364 B terminando em `})();` · fontes
+`ibm-plex-sans-{400,500,600,700}` = 63.020 / 66.740 / 67.060 / 63.012 B · sem o comentário ALIAS
+no `oimpresso.com.html` · `CLAUDE.md` sem `019dd02f`. O `_ds/` não entra no repo (dono = projeto DS),
+então os itens de `_ds/` só corrigem a prévia no Cowork.
