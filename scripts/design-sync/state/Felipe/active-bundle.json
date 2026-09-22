@@ -70,12 +70,6 @@
       "role": "cowork-source"
     },
     {
-      "path": "_live-only.json",
-      "bytes": 39346,
-      "sha256": "80b2e307534b81fcc50221a2783f02436484a656a008e547b636d0610fe4031f",
-      "role": "cowork-source"
-    },
-    {
       "path": "absorcao-v2-em-todos-os-produtos.md",
       "bytes": 69929,
       "sha256": "1b1782143e71b9d489cba20e5b60bdcd8a5d24d974799af2a15db5316b285a98",
@@ -2688,10 +2682,10 @@
   ],
   "missing": [],
   "mirrorScope": "tree",
-  "bundleId": "a5de78c2e1fa46b7186a3b182791e69de7c1ccd800f4544aad25646c421a2414",
-  "baseBundleId": "ada5f513f1306ffe435d8d06730278b1d4a5d8d8d8809cd3ae0b3793c1a90171",
+  "bundleId": "3c43b8539b056c95cfc550f536b945b413d5d0b21ec9f8f3a002dad3ff6433a7",
+  "baseBundleId": "a5de78c2e1fa46b7186a3b182791e69de7c1ccd800f4544aad25646c421a2414",
   "mode": "delta",
-  "generatedAt": "2026-09-22T01:28:14.766Z",
+  "generatedAt": "2026-09-22T01:30:48.553Z",
   "dsRequires": {
     "owner": "Felipe",
     "slug": "wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86",
@@ -2790,49 +2784,15 @@
     }
   ],
   "totals": {
-    "files": 447,
-    "bytes": 11978381
+    "files": 446,
+    "bytes": 11939035
   },
   "changes": {
-    "added": [
-      "_live-only.json",
-      "conferir-export.mjs",
-      "pedido-ao-projeto-do-ds.md",
-      "pre-export.md"
+    "added": [],
+    "modified": [],
+    "deleted": [
+      "_live-only.json"
     ],
-    "modified": [
-      "absorcao-v2-em-todos-os-produtos.md",
-      "app.jsx",
-      "arquivos-identicos-medido.md",
-      "auditoria-aderencia-fabricacao-v2.md",
-      "auditoria-aderencia-fabricacao.md",
-      "CLAUDE.md",
-      "Consulta de Produtos.dc.html",
-      "financeiro-page.jsx",
-      "handoff_fabricacao/design/adr/0411-accent-sem-versao-escura.md",
-      "handoff_fabricacao/design/LAUDO-conferencia-fabricacao.md",
-      "handoff_fabricacao/design/README.md",
-      "handoff_fabricacao/README.md",
-      "handoff_produtos_consulta/design/adr/0402-pagination-do-ds-nao-cobre-primeira-ultima.md",
-      "handoff_produtos_consulta/design/adr/0403-tabbar-gera-barra-de-rolagem-vertical.md",
-      "handoff_produtos_consulta/design/adr/0404-tooltip-recortado-em-container-de-rolagem.md",
-      "inbox-page.jsx",
-      "manual-de-blocos.md",
-      "manufacturing-insumos.jsx",
-      "manufacturing-page.jsx",
-      "manufacturing-print.jsx",
-      "manufacturing-producao.jsx",
-      "manufacturing-recipe.jsx",
-      "mapa-do-terreno.md",
-      "o-que-vale-como-fonte.md",
-      "oimpresso.com.html",
-      "plano-fabricacao-no-ds.md",
-      "plano-ondas-fabricacao-v2.md",
-      "sidebar.jsx",
-      "vendas-extras.jsx",
-      "vendas-page.jsx"
-    ],
-    "deleted": [],
-    "unchanged": 413
+    "unchanged": 446
   }
 }
