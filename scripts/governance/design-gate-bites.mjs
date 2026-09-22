@@ -75,7 +75,8 @@ const LEDGER = join(ROOT, 'memory/governance/design-gate-bites.jsonl');
 const GATES = [
   { name: 'component-registry', cmd: ['scripts/governance/component-registry-check.mjs', '--check', '--strict'] },
   { name: 'pt-conformance', cmd: ['scripts/governance/pt-conformance.mjs', '--check'] },
-  { name: 'ds-mirror-drift', cmd: ['scripts/governance/ds-mirror-drift.mjs'] },
+  { name: 'ds-mirror-drift', cmd: ['scripts/governance/ds-mirror-drift.mjs', '--enforce'] },
+  { name: 'design-code-map', cmd: ['scripts/governance/design-code-map-check.mjs', '--check', '--strict'] },
   { name: 'design-coverage', cmd: ['scripts/qa/design-coverage.mjs', '--check'] },
   { name: 'ds-token-version', cmd: ['scripts/design-sync/ds-token-version.mjs', '--check'] },
   { name: 'ds-tokens-build-sync', cmd: ['scripts/design-sync/ds-tokens-build-sync.mjs', '--check'] },
@@ -102,10 +103,8 @@ const GATES = [
  *   pt-conformance       → drift no **stderr**  (console.error)
  *   design-coverage      → drift no **stderr**  (console.error)
  *   ds-token-version     → drift no **stderr**  (console.error)
- *   ds-mirror-drift      → **exit 0** no comando que o CI roda (sem `--enforce`, todo caminho
- *                          de drift cai em `console.log` + exit 0) → não vira mordida por
- *                          construção. Fato declarado, não corrigido aqui: mudar o comando faria
- *                          o recorder medir um caminho diferente do que o CI executa.
+ *   ds-mirror-drift      → drift no **stderr** em `--enforce`
+ *   design-code-map      → drift no **stdout** + exit 1 em `--strict`
  * Ou seja: 3 de 6 escreviam o drift onde o recorder não olhava. O efeito não era só motivo em
  * branco — o `sig` virava sha256(gate + ""), IGUAL pra qualquer violação daquele gate, e o
  * dedup do `scan` descartava a 2ª violação distinta. Como o `--tally` conta PRs distintos

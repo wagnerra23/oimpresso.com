@@ -1024,6 +1024,13 @@ mergeado e **bloqueia** frases de conclusão nos cinco minutos seguintes até qu
 limpa — e **nenhum comando de terminal a limpa**: só o uso real de um navegador. Não há como
 narrar a saída; só olhar.
 
+O ledger executável separa os ambientes: `smoked-ci` e `smoked-staging` provam que a tela abriu
+no SHA e no host registrados, mas deixam produção pendente. Só recibo com `host: producao`,
+tenant 1, SHA do deploy, hash atual do alvo e hash da screenshot leva a `validated`. A cadeia de
+prova de cada tela fica em `applicationEvidence.proofChain`: bundle, fonte, mapa, alvo, saída de
+teste, deploy e screenshot. Em 2026-09-21, a reclassificação do estado vivo resultou em **3
+`smoked-ci` e 0 `validated`**; antes, as mesmas três telas eram chamadas de validadas por CI.
+
 Os dois escapes que ele anuncia **existem no código** e são cobertos por teste — inclusive um
 teste que exige que a mensagem de bloqueio continue nomeando os escapes, para que ela não anuncie
 o que sumiu.

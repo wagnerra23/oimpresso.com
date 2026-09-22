@@ -302,8 +302,8 @@
       "targetSha256": "d94350ae21671af8dfb4be44a647e8b5a1a86e66e8fc6896c11f0552803288e9",
       "comparison": {
         "map": "memory/requisitos/Financeiro/unificado.map.json",
-        "mapSha256": "774acdb563769d366494c72b5dc9b9cfff4f9a8f4bfa3bc3b2ff2452215db6e9",
-        "recordedAt": "2026-09-18T14:41:29.696Z"
+        "mapSha256": "cd1c2a6f43391b8f1e4204c74cf4f82dc7f19ad6cef464237d60aa88d92f559f",
+        "recordedAt": "2026-09-21T17:37:30.105Z"
       },
       "tests": [],
       "smokes": []

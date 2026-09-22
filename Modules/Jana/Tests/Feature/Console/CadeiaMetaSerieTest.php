@@ -18,9 +18,14 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * O critério não é opinião: `Index.tsx:99` faz `if (dados.length < 2) return "Sem
  * histórico"`. Então **≥ 2 pontos** é a fronteira entre a curva existir e não existir.
  */
+/**
+ * Tenant fictício por construção (ADR 0358), resolvido pelo trait `WithSeededTenant` que já
+ * vive no `Tests\TestCase` — ele SKIPA com mensagem acionável se o seed não rodou, em vez de
+ * estourar FK no meio do teste. biz=4 é proibido sem exceção; biz=1 é empresa real.
+ */
 function bizCadeia(): int
 {
-    return 98;
+    return (int) test()->seededTenant()->id;
 }
 
 it('CADEIA COMPLETA: sem fonte → configurar → backfill → a tela tem ≥2 pontos e desenha', function () {

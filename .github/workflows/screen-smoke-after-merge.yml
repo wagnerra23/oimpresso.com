@@ -125,7 +125,7 @@ jobs:
           echo "=== arquivos alterados ==="; printf '%s\n' "$CHANGED"
 
           # CRÍTICO 2: allowlist ESTRITO de charset (descarta nome com espaço/injeção).
-          SCREENS="$(printf '%s\n' "$CHANGED" | grep -E '^resources/js/Pages/[A-Za-z0-9/_.-]+\.tsx$' || true)"
+          SCREENS="$(printf '%s\n' "$CHANGED" | grep -E '^(resources/js/Pages|Modules/[A-Za-z0-9_.-]+/[Rr]esources/js/Pages)/[A-Za-z0-9/_.-]+\.tsx$' || true)"
           # Navegação (gap #3945 — item de menu não é uma tela). Match exato.
           NAV="$(printf '%s\n' "$CHANGED" | grep -E '^(resources/js/Components/cockpit/Sidebar\.tsx|app/Http/Middleware/AdminSidebarMenu\.php|app/Services/LegacyMenuAdapter\.php)$' || true)"
 
@@ -203,6 +203,9 @@ jobs:
           npm ci --no-audit --no-fund
           npx playwright install --with-deps chromium
 
+      - name: Self-test — Page sem rota não vira verde pelo fallback
+        run: node scripts/screen-smoke/select-routes.test.mjs
+
       - name: Smoke visual (Playwright + OpenAI vision)
         env:
           SMOKE_BASE_URL: https://oimpresso.com
@@ -223,6 +226,8 @@ jobs:
           path: |
             storage/screen-smoke/**
             resources/js/Pages/**/*.review.md
+            Modules/*/Resources/js/Pages/**/*.review.md
+            Modules/*/resources/js/Pages/**/*.review.md
           if-no-files-found: ignore
           retention-days: 30
 
@@ -263,17 +268,20 @@ jobs:
           fi
           # Só os review.md (screenshots ficam no artifact; review.md os referencia).
           FOUND=0
+          REVIEW_FILES=()
           while IFS= read -r f; do
             rel="${f#_smoke_artifacts/}"
             case "$rel" in
-              resources/js/Pages/*.review.md)
-                mkdir -p "$(dirname "$rel")"; cp "$f" "$rel"; FOUND=1 ;;
+              resources/js/Pages/*.review.md|Modules/*/Resources/js/Pages/*.review.md|Modules/*/resources/js/Pages/*.review.md)
+                mkdir -p "$(dirname "$rel")"; cp "$f" "$rel"; REVIEW_FILES+=("$rel"); FOUND=1 ;;
             esac
           done < <(find _smoke_artifacts -type f -name '*.review.md')
           rm -rf _smoke_artifacts
 
           [ "$FOUND" = "0" ] && { echo "→ nenhum review.md no artifact."; exit 0; }
-          if git diff --quiet -- resources/js/Pages; then
+          # `git diff --quiet` ignora arquivo novo não rastreado. O status cobre tanto
+          # o primeiro review de uma tela quanto rounds posteriores, no core e nos módulos.
+          if [ -z "$(git status --porcelain -- "${REVIEW_FILES[@]}")" ]; then
             echo "→ review.md idêntico ao canon — nada a commitar."; exit 0
           fi
           if [ -z "${BOT_PAT:-}" ]; then
@@ -285,7 +293,7 @@ jobs:
           git config user.email "ci@oimpresso.com"
           git remote set-url origin "https://x-access-token:${BOT_PAT}@github.com/${GITHUB_REPOSITORY}.git"
           git checkout -b "$BR"
-          git add -A -- resources/js/Pages
+          git add -A -- "${REVIEW_FILES[@]}"
           git commit -m "docs(screen-review): round de smoke pós-deploy — ${SCREENS} [smoke]" \
                      -m "Fase C→A do PDCA (ADR 0164). review.md gerado pelo smoke automático (Playwright+OpenAI). Screenshots no artifact screen-smoke-${RUN_ID}. Wagner (Act): edite 'decisão: approved|rejected|iterate' e mergeie."
           git push -u origin "$BR"

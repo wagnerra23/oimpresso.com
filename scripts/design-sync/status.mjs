@@ -175,7 +175,7 @@ else {
   const summary = report.summary || {};
   console.log(`\nDESIGN-SYNC · bundle ${report.bundle?.id || '?'}`);
   console.log(`  transporte: ${report.bundle?.transportComplete ? 'COMPLETO' : 'INCOMPLETO'} · modo ${report.bundle?.mode || '?'}`);
-  console.log(`  mudanças: ${summary.transportChanges || 0} · telas: ${summary.screens || 0} · aplicadas: ${summary.applied || 0} · testadas: ${summary.tested || 0} · smoke: ${summary.smoked || 0} · pendentes: ${summary.pending || 0} · bloqueadas: ${summary.blocked || 0} · a criar: ${summary['to-create'] || 0}\n`);
+  console.log(`  mudanças: ${summary.transportChanges || 0} · telas: ${summary.screens || 0} · aplicadas: ${summary.applied || 0} · testadas: ${summary.tested || 0} · smoke CI: ${summary.smokedCi || 0} · smoke staging: ${summary.smokedStaging || 0} · validadas em produção: ${summary.validated || 0} · pendentes: ${summary.pending || 0} · bloqueadas: ${summary.blocked || 0} · a criar: ${summary['to-create'] || 0}\n`);
 
   console.log('ARQUIVOS MODIFICADOS NO DESIGN');
   if (!report.transportChanges?.length) console.log('  (nenhuma mudança de bytes)');
@@ -213,7 +213,7 @@ if (args.includes('--check-lifecycle')) {
   const source = valueOf('--source');
   const module = valueOf('--module');
   const minimum = valueOf('--minimum') || 'anchored';
-  const order = ['blocked', 'to-create', 'review', 'received', 'anchored', 'compared', 'applied', 'tested', 'validated'];
+  const order = ['blocked', 'to-create', 'review', 'received', 'anchored', 'compared', 'applied', 'tested', 'smoked-ci', 'smoked-staging', 'validated'];
   if (!source && !module) {
     console.error('✗ --check-lifecycle exige --source ou --module; o legado não é bloqueado globalmente.');
     process.exit(2);

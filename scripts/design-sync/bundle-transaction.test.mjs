@@ -312,8 +312,8 @@ console.log('\n=== estados exigem recibos reais e invalidam em cascata por hash 
   check('screenshot alterado invalida só o smoke', applied.lifecycleState === 'tested' && !applied.smoked);
 
   // ADR 0390 — `host` do smoke: enum fechado (producao · staging-ct100 · ci). Controle negativo
-  // primeiro (valor fora do enum não vira recibo), depois o host `ci` levando a VALIDADA — o
-  // estado que ficou 0/93 por construção enquanto só produção contava.
+  // primeiro (valor fora do enum não vira recibo), depois o host `ci` provando só aquele
+  // ambiente. Produção precisa de recibo próprio.
   let hostInvalidoRejeitado = false;
   try {
     execFileSync(process.execPath, [
@@ -337,9 +337,32 @@ console.log('\n=== estados exigem recibos reais e invalidam em cascata por hash 
   applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
   const reciboCi = JSON.parse(readFileSync(ledgerPath, 'utf8')).applications
     .find((item) => item.source === 'officeimpresso-page.jsx' && item.target === target)?.smokes?.at(-1);
-  check('ADR 0390: smoke com host ci grava o host no recibo e leva a VALIDADA',
-    applied.lifecycleState === 'validated' && applied.smoked && reciboCi?.host === 'ci' && reciboCi?.tenant === 1,
+  check('smoke com host ci grava o recibo mas NÃO declara produção validada',
+    applied.lifecycleState === 'smoked-ci' && applied.smoked && !applied.validated && reciboCi?.host === 'ci' && reciboCi?.tenant === 1,
     JSON.stringify(reciboCi));
+  check('cadeia de prova carrega bundle/source/map/target/test/deploy/screenshot por tela',
+    applied.applicationEvidence?.proofChain?.bundleId
+      && /^[a-f0-9]{64}$/.test(applied.applicationEvidence.proofChain.sourceSha256 || '')
+      && /^[a-f0-9]{64}$/.test(applied.applicationEvidence.proofChain.mapSha256 || '')
+      && /^[a-f0-9]{64}$/.test(applied.applicationEvidence.proofChain.targetSha256 || '')
+      && applied.applicationEvidence.proofChain.testOutputSha256.every((sha) => /^[a-f0-9]{64}$/.test(sha))
+      && applied.applicationEvidence.proofChain.deploySha.includes('b'.repeat(40))
+      && applied.applicationEvidence.proofChain.smokeScreenshotSha256.every((sha) => /^[a-f0-9]{64}$/.test(sha))
+      && applied.applicationEvidence.proofChain.productionValidated === false,
+    JSON.stringify(applied.applicationEvidence?.proofChain));
+
+  execFileSync(process.execPath, [
+    STATUS, '--root', root,
+    '--record-smoke', 'officeimpresso-page.jsx', '--target', target, '--route', '/officeimpresso/logs',
+    '--deploy-sha', 'c'.repeat(40), '--screenshot', 'memory/evidence/officeimpresso-smoke.png', '--tenant', '1',
+    '--host', 'producao',
+  ], { encoding: 'utf8' });
+  recorded = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'));
+  applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
+  check('somente smoke de produção leva a VALIDADA',
+    applied.lifecycleState === 'validated' && applied.validated
+      && applied.applicationEvidence?.proofChain?.productionValidated === true,
+    JSON.stringify(applied));
 
   const mapPath = join(root, 'memory/requisitos/Officeimpresso/logs.map.json');
   const changedMap = JSON.parse(readFileSync(mapPath, 'utf8'));

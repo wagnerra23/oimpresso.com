@@ -19,9 +19,53 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * NULL e alvo é decisão de negócio — derivar do histórico produziria um número que
  * ninguém escolheu, contra o qual um farol vermelho não significa nada.
  */
+/**
+ * Tenant fictício por construção (ADR 0358), resolvido pelo trait `WithSeededTenant` que já
+ * vive no `Tests\TestCase` — ele SKIPA com mensagem acionável se o seed não rodou, em vez de
+ * estourar FK no meio do teste. biz=4 é proibido sem exceção; biz=1 é empresa real.
+ */
 function bizPeriodos(): int
 {
-    return 98;
+    return (int) test()->seededTenant()->id;
+}
+
+/**
+ * O adversário do caso cross-tenant, resolvido por CONSULTA — nunca por id escrito à mão.
+ *
+ * Medido no `.github/actions/pest-mysql-setup`: o CI semeia biz=1, biz=2 e biz=98, e declara
+ * o biz=2 como "FV-F2 — Tier 0 cross-tenant". O 99 (SUPPORT_CLIENT_TENANT_ID) NÃO é semeado
+ * lá; existe no CT 100, que é clone de produção. Era exatamente daí que vinha o defeito:
+ * somar 1 ao canônico dá 99 — que existe no CT 100 e não no CI. Verde de um lado, FK
+ * violation do outro, e a diferença invisível em qualquer leitura do teste.
+ *
+ * Sem um segundo business não há com quem colidir, e isso NÃO é o mesmo que "não colidiu":
+ * o caso é PULADO em vez de passar por vacuidade.
+ */
+function bizPeriodosAlheio(): int
+{
+    // Preferência: o CLIENTE fictício do trait — o papel cross-tenant canônico. A constante
+    // é lida pela CLASSE que usa o trait: em PHP 8.4, `Trait::CONST` direto é erro de RUNTIME
+    // ("Cannot access trait constant directly"), e o `php -l` NÃO pega, porque é sintaxe válida.
+    $outro = \App\Business::withoutGlobalScopes()
+        ->whereKey(\Tests\TestCase::SUPPORT_CLIENT_TENANT_ID)
+        ->value('id');
+
+    // Ausente (o CI não o semeia): o menor business que não seja o seeded NEM tenant REAL.
+    // biz=1 é a WR2 Sistemas e biz=4 é a ROTA LIVRE — as duas proibidas em teste, e no CT 100
+    // a base é clone de produção que não se limpa entre runs. `orderBy` porque sem ordem
+    // explícita a escolha é indefinida e o teste vira flaky por construção.
+    $outro ??= \App\Business::withoutGlobalScopes()
+        ->whereNotIn('id', [bizPeriodos(), 1, 4])
+        ->orderBy('id')
+        ->value('id');
+
+    if ($outro === null) {
+        \PHPUnit\Framework\Assert::markTestSkipped(
+            'Sem um segundo business para o caso cross-tenant — pular é honesto; passar seria vacuidade.'
+        );
+    }
+
+    return (int) $outro;
 }
 
 function criaMetaPeriodo(string $nome, string $unidade = 'R$'): Meta
@@ -116,7 +160,7 @@ it('é idempotente — rodar duas vezes não duplica o período da mesma janela'
 
 it('não configura meta de OUTRO business (Tier 0 cross-tenant)', function () {
     $alheia = Meta::withoutGlobalScopes()->create([
-        'business_id'    => bizPeriodos() + 1,
+        'business_id'    => bizPeriodosAlheio(),
         'slug'           => 'periodo-alheia-'.uniqid(),
         'nome'           => 'Faturamento mensal',
         'unidade'        => 'R$',
