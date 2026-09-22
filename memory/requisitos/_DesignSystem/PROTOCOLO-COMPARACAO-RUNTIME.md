@@ -323,16 +323,39 @@ desfecho muda com o fix aplicado.
 
 ### O caso que obriga esta seção a existir (medido 2026-09-22)
 
-`governance/design/targets/medidas/Manufacturing--Recipes/resultado.json` carrega
-`compare.veredito = "IGUAL"`. Abrindo as células desse mesmo arquivo: `rows[0..3]` são `IGUAL` e
-`rows[4..12]` são **`SEM-DADO`** — **4 medidas de 13**, com as regiões principais (cabeçalho,
-filtros, KPIs, lista) saindo com o motivo *"região só existe de um lado"*.
+`governance/design/targets/medidas/Manufacturing--Recipes/resultado.json` (`medidoEm`
+2026-09-18) carrega `compare.veredito = "IGUAL"`. Abrindo o mesmo arquivo, o rótulo sobreviveu a
+**duas** condições que deveriam tê-lo barrado:
 
-O rótulo agregado do topo **não distingue "bateu" de "não foi medido"**. Quem lesse só ele
-declararia fidelidade com 9 células cegas — é a [LC-13](../../LICOES_CODE.md) (verde por
-não-execução) no eixo design. Nenhum comparador automático resolve isso sozinho: a separação entre
-*medido e igual* e *não medido* é o trabalho da matriz abaixo.
+| campo | valor | por que deveria ter barrado |
+|---|---|---|
+| `compare.rows[*]` | `IGUAL` 4 · **`SEM-DADO` 9** (de 13) | as regiões principais — cabeçalho, filtros, KPIs, lista — saem com *"região só existe de um lado"* |
+| `compare.sameTheme` | **`false`** | este protocolo exige **mesmo tema nos dois lados**; sem isso o veredito não vale |
+
+O rótulo agregado do topo **não distingue "bateu" de "não foi medido"** — e não se auto-invalida
+quando a pré-condição falha. Quem lesse só ele declararia fidelidade com 9 células cegas e temas
+diferentes: é a [LC-13](../../LICOES_CODE.md) (verde por não-execução) no eixo design. Nenhum
+comparador automático resolve isso sozinho; separar *medido e igual* de *não medido* é o trabalho
+da matriz abaixo.
 _(Medição levantada pela sessão da Fabricação; recibo em `Manufacturing/Recipes-visual-comparison.md`.)_
+
+### Linha zero da matriz — IDENTIDADE DA VIEW, antes de qualquer dimensão
+
+Antes de comparar o que quer que seja, a matriz responde: **os dois lados são a MESMA tela?** Não é
+uma dimensão entre outras — é **pré-condição**, e o `design-diff` já a trata assim
+(`scripts/design/design-diff.mjs`, *"D0 — IDENTIDADE DA VIEW (pré-condição, não dimensão)"*,
+com `⛔ NÃO MEDI — identidade da view não provada`; o modo lote emite
+`avisoD0: "sem contrato — identidade da view NÃO provada (âncora pode servir outra tela)"`).
+
+**O sinal existe e é ignorado** — e é isso que esta linha conserta. Caso medido em 2026-09-22: uma
+rodada do `Manufacturing/Index` saiu com `token: manufacturing`, que no shell monta a aba
+**Receitas**, enquanto a produção mostrava **Ordens de produção** — o driver derivava a rota do
+`source` do hub do módulo, não da âncora resolvida. O veredito tinha **aparência inteiramente
+válida**; só foi pego porque o token fica gravado no `resultado.json`.
+
+Medir a tela errada não devolve erro: devolve **número plausível sobre outra coisa**. Por isso o
+`D0` é a linha `T00` da matriz, e enquanto ela não estiver `ACEITO` **nenhuma outra linha conta** —
+um `IGUAL` abaixo de um `D0` não provado é medição de outra tela.
 
 ### A quem se aplica — o denominador, para não cobrar o impossível
 
@@ -418,8 +441,10 @@ parecer pronta:
 
 | Para marcar | Exige |
 |---|---|
+| qualquer linha | a linha `T00` (identidade da view) `ACEITO` — senão o veredito é de outra tela |
 | `ACEITO` | veredito `IGUAL`, **ou** uma diferença aprovada com quem aprovou e quando |
 | `ACEITO` | evidência anexada — sem ela o estado não vale |
+| `ACEITO` | a medição que o sustenta tem `sameTheme: true` — tema diferente invalida o veredito |
 | `FORA DE ESCOPO APROVADO` | quem aprovou, data e motivo |
 | `BLOQUEADO` | o que falta e de quem é a próxima decisão |
 
@@ -450,6 +475,7 @@ pronta e não é.
 ```text
 Tela: <nome e rota>
 Fonte oficial: <caminho/URL e revisão>
+Identidade da view (T00): PROVADA | NÃO PROVADA     Mesmo tema: sim | não
 Itens inventariados: <n>   Aceitos: <n>   Fora de escopo aprovados: <n>
 Pendentes: <lista ou nenhum>      Bloqueados: <lista ou nenhum>
 Não medidos: <lista ou nenhum>
