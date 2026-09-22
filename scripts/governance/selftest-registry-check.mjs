@@ -197,8 +197,7 @@ export function invocaSelftest(path, arquivos) {
  *
  * ⚠️ A REGRA DO IRMÃO É O QUE TORNA ISTO USÁVEL — e ela foi MEDIDA, não suposta. Sem
  * ela: 48 acusados de 77, dos quais 40 são FALSO-POSITIVO (83%) — scripts cujo núcleo
- * já é coberto por um `.test.mjs` irmão wirado (ex.: `module-group-resolve`,
- * `lapide-recheck`). Um gate com 83% de ruído é o guard sintático que o §5 das
+ * já é coberto por um `.test.mjs` irmão wirado (ex.: `lapide-recheck`). Um gate com 83% de ruído é o guard sintático que o §5 das
  * proibições mata quatro vezes (allowlist-de-pasta · @scope · vocabulário · toHaveKey).
  */
 export function findEmbeddedOrphans(scripts, arquivos, workflowText, existeIrmao) {

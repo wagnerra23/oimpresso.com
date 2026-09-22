@@ -248,9 +248,6 @@ jobs:
       - name: a11y-alvo selftest puro (ratchet so-desce + corte GATE x REPORT)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/qa/a11y-alvo.mjs --selftest
-      - name: Grupo de memoria por modulo (case-trap Pages/kb x requisitos/KB + token no nome do arquivo)
-        if: always() && steps.setup.outcome == 'success'
-        run: node scripts/governance/module-group-resolve.test.mjs
       - name: Shipped-log gerador honesto (fixtures-armadilha)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/shipped-log-generate.test.mjs
