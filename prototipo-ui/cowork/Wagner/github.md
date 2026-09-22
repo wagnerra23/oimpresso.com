@@ -3,6 +3,16 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-22T19:25:52Z
+tree: c32d02b73672
+branch: main
+
+### Updated in this project
+- **Piloto do processo executado de ponta a ponta:** thread `hrm/01` (dono [CC]) — aba Presença saiu do `TABS` do HRM (D1), rota `hrm-presenca` vira aviso "Presença agora é do Ponto", fila do Painel aponta pro Ponto; `hrm-page.jsx?v=hrm10d1`; recibo `cowork-inbox/hrm/playbook/_saida-01.md`. Local era byte-idêntico ao `main` antes da edição (32.777 B).
+- **Endereços pós-ADR 0397 corrigidos na fonte** nos 13 playbooks (`design-docs/cowork-inbox/` → `cowork/Wagner/cowork-inbox/` · `prototipo-ui/contrato/` → `governance/design/contracts/` · process-docs → `memory/reference/prototipo-ui/` · `ancora.mjs` → `scripts/design/`). `_saida-*` do Code não tocados (3 restaurados após erro meu).
+- ⚠️ **Playbooks atrás da produção:** HRM 02/03 (`Essentials/Licencas/Index.tsx`, `Essentials/Tipos.tsx`) e Ponto 10 (selfie já fora do build) entregues **sem `_saida`** — placar os mostra `pendente`. Pacote agora é do CI (`cowork-bundle.yml`); não gero nem aviso.
+
+## Sync anterior
 date: 2026-09-21T16:18:00Z
 tree: 19ff53c88491
 branch: main

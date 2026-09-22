@@ -5,7 +5,7 @@ autor: "[CC]"
 criado: 2026-09-08
 base: wagnerra23/oimpresso.com@main (árvore 0d159eb84a10 · lida 2026-09-08 17:09 UTC)
 constituicao: CONSTITUICAO-COWORK.md (C1–C12) + memory/proibicoes.md
-destino_no_main: prototipo-ui/design-docs/cowork-inbox/governance/playbook/
+destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/governance/playbook/
 ---
 
 # SINCRONIZAR Governança — playbook
@@ -34,7 +34,7 @@ destino_no_main: prototipo-ui/design-docs/cowork-inbox/governance/playbook/
 | `DsRollout` | 32.411 B | ✅ | ✅ 8.618 B | ✕ | ✕ | **✕** |
 | `QualidadeIa` | 20.788 B | ✅ | **✕** | ✕ | ✕ | **✕** |
 
-**Três lacunas de máquina:** `casos.md` **1 de 9** · contrato **0 de 9** (as **duas** pastas medidas hoje: `prototipo-ui/contrato/` = 31 vigentes, `design-docs/contrato-cowork/` = 3 em estágio; **nenhum** de governança nas duas — o meu nunca desceu) · e2e **0 de 17 specs**.
+**Três lacunas de máquina:** `casos.md` **1 de 9** · contrato **0 de 9** (as **duas** pastas medidas hoje: `governance/design/contracts/` = 31 vigentes, `design-docs/contrato-cowork/` = 3 em estágio; **nenhum** de governança nas duas — o meu nunca desceu) · e2e **0 de 17 specs**.
 
 ## 2 · Threads
 
@@ -50,7 +50,7 @@ destino_no_main: prototipo-ui/design-docs/cowork-inbox/governance/playbook/
 **03 é frente, não thread:** 8 `casos.md` num PR reprova no `casos-gate` G-2 (`1 seção = 1 PR`, prosa é o que conta). E `Dashboard.tsx` sozinho tem **42 KB** — estoura o teto de 40 KB de leitura antes de escrever a primeira linha. Ordem proposta pela ficha, do menor para o maior: `Policies` (4,9 KB) → `Audit` (8,4) → `DriftAlerts` (8,6) → `Custos` (13,9) → `QualidadeIa` (20,8) → `ModuleGrades/Index` (22,3) → `Show` (28,8) → `Dashboard` (42,3, **fatiar por seção**).
 
 ## 2-bis · ESTADO — derivado, nunca escrito
-`node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/governance/playbook/00-INDICE.md --root . --proximo`
+`node scripts/qa/placar-indice.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/governance/playbook/00-INDICE.md --root . --proximo`
 Render esperado: `Governança: entregue 0 de 5 · próximo 3 · bloqueada 1`.
 
 ## 3 · Abertura de thread (colar como 1ª mensagem — sessão limpa)
@@ -90,11 +90,11 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
   ],
   "threads": [
     { "id": "01", "titulo": "Descer o contrato de governanca pra contrato-cowork (estagio; cobre 5 de 9, declarado)", "dono": "CL", "vaga": 1, "arquivo": "01-contrato-desce.md",
-      "prefixo": ["prototipo-ui/design-docs/contrato-cowork/governance.contract.json"],
-      "nao_toca": ["prototipo-ui/contrato/", ".github/workflows/contrato-de-tela.yml", "resources/js/Pages/governance/", "Modules/Governance/"],
+      "prefixo": ["prototipo-ui/cowork/Wagner/contrato/governance.contract.json"],
+      "nao_toca": ["governance/design/contracts/", ".github/workflows/contrato-de-tela.yml", "resources/js/Pages/governance/", "Modules/Governance/"],
       "provas": [
-        { "tipo": "arquivo", "path": "prototipo-ui/design-docs/contrato-cowork/governance.contract.json" },
-        { "tipo": "contem", "path": "prototipo-ui/design-docs/contrato-cowork/governance.contract.json", "padrao": "cobertura_parcial" }
+        { "tipo": "arquivo", "path": "prototipo-ui/cowork/Wagner/contrato/governance.contract.json" },
+        { "tipo": "contem", "path": "prototipo-ui/cowork/Wagner/contrato/governance.contract.json", "padrao": "cobertura_parcial" }
       ] },
     { "id": "02", "titulo": "Rede: 2 specs E2E (dashboard + policies toggle)", "dono": "CL", "vaga": 1, "arquivo": "02-rede-e2e.md",
       "prefixo": ["e2e/governance-dashboard.spec.ts", "e2e/governance-policies.spec.ts"],

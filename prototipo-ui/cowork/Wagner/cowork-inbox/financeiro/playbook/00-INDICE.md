@@ -10,7 +10,7 @@ granularidade: secao (decisão [W] 2026-09-13)
 ---
 # Financeiro — Unificado · fila de seções
 
-> **Leia este arquivo + a thread da sua vez.** Read-order no `main`: `prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md` → `FRESCOR-PRODUCAO-vs-PROTOTIPO.md` → `PRE-FLIGHT-TELA.md` → `Pages/Financeiro/Unificado/Index.charter.md` + `.casos.md`.
+> **Leia este arquivo + a thread da sua vez.** Read-order no `main`: `memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md` → `FRESCOR-PRODUCAO-vs-PROTOTIPO.md` → `PRE-FLIGHT-TELA.md` → `Pages/Financeiro/Unificado/Index.charter.md` + `.casos.md`.
 
 ## 🚧 ALVO NÃO MEDIDO — este pacote ainda NÃO é um EXPORT
 O protocolo exige **10 blocos**, e o bloco 2 (a11y do alvo) e o 3 (medição) saem de **sondar o protótipo servido**: tema dark, após `__oiLazyDone`, **duas leituras iguais** de `querySelectorAll('*').length`, `getComputedStyle` (nunca a classe declarada), com caso de sanidade de valor conhecido antes de qualquer veredito. **Eu não inspeciono o protótipo deste lado** — então o que segue é **LEVANTAR + fila**, não pedido de pixel.

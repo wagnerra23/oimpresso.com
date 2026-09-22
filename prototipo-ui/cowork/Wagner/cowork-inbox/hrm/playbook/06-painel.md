@@ -3,7 +3,7 @@ sessao: "06"
 titulo: Painel do HRM — Page
 dono: "[CL]"
 base: 159e572dd448
-prefixo: resources/js/Pages/Essentials/Painel.tsx OU Painel/Index.tsx (+ charter/casos) · DashboardController.php (@hrmDashboard apenas) · prototipo-ui/contrato/essentials-painel.contract.json
+prefixo: resources/js/Pages/Essentials/Painel.tsx OU Painel/Index.tsx (+ charter/casos) · DashboardController.php (@hrmDashboard apenas) · governance/design/contracts/essentials-painel.contract.json
 nao_toca: @essentialsDashboard · @getUserSalesTargets · AttendanceController · Pages/Essentials/** · AppShellV2 · DS
 depende: thread 09 (os cards de presença apontam pro Ponto, não a essentials_attendances) — vaga 2. Caminho = resources/js/Pages/Essentials/ (a árvore respondeu). Irmã golden: Essentials/Metas.tsx (#6869)
 ---

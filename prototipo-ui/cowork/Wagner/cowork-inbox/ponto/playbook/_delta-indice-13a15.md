@@ -1,6 +1,6 @@
 ---
 tipo: delta de índice (não é thread — não tem _saida)
-para: prototipo-ui/design-docs/cowork-inbox/ponto/playbook/00-INDICE.md
+para: prototipo-ui/cowork/Wagner/cowork-inbox/ponto/playbook/00-INDICE.md
 base_do_indice: e86130722de1 (§7 diz sha e86130722de1 · gerado 2026-09-06)
 medido_em: 2b4a3ec3b48a (2026-09-09)
 ---
@@ -62,7 +62,7 @@ Alvo do protótipo colhido do DOM (T1 estável por aba: 907–1062 nós, dark, 1
   "nao_toca": [
    "${PAGES}/_components/",
    "Modules/Ponto/",
-   "prototipo-ui/contrato/ponto-painel.contract.json"
+   "governance/design/contracts/ponto-painel.contract.json"
   ],
   "depende_threads": [
    "ds-atomos/01",
@@ -108,7 +108,7 @@ Alvo do protótipo colhido do DOM (T1 estável por aba: 907–1062 nós, dark, 1
    },
    {
     "tipo": "arquivo",
-    "path": "prototipo-ui/contrato/ponto-espelho.contract.json",
+    "path": "governance/design/contracts/ponto-espelho.contract.json",
     "guarda": true,
     "nota": "PRESERVAÇÃO — contrato vigente manda mais que o alvo"
    }

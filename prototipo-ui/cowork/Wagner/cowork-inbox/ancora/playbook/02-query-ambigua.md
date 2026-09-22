@@ -3,14 +3,14 @@ sessao: "02"
 titulo: query ambígua deixa de sortear charter (candidatos + exit 2)
 dono: "[CL]"
 base: 752041ac450d
-prefixo: prototipo-ui/ancora.mjs
+prefixo: scripts/design/ancora.mjs
 nao_toca: resources/js/Pages/** · .claude/hooks/** · scripts/**
 depende: "01 (mesmo arquivo — remedir o sha antes de escrever)"
 ---
 # 02 · o `✓` que é sorteio
 
 ## A · IDENTIDADE (ancoragem dupla)
-- **âncora (código):** `prototipo-ui/ancora.mjs` :: `norm()` + o loop `for (const cf of charters)` dentro de `resolveAncora`, e o `return { ok:false, motivo:'sem charter pra essa tela …' }`.
+- **âncora (código):** `scripts/design/ancora.mjs` :: `norm()` + o loop `for (const cf of charters)` dentro de `resolveAncora`, e o `return { ok:false, motivo:'sem charter pra essa tela …' }`.
 - **oráculo:** os 24 charters de `resources/js/Pages/Ponto/**` (21 com `related_prototype`, medidos neste turno) — provam a ambiguidade sem precisar de leitura de conteúdo.
 
 ## B · NÃO INVENTAR
@@ -35,7 +35,7 @@ O mesmo vale pra qualquer query de módulo (`Cliente`, `Fiscal`, `Financeiro`) e
 7. `--selftest` verde. PLACAR no corpo do PR.
 
 ## 4-ter · EXECUÇÃO
-- **ARQUIVOS A EDITAR:** `prototipo-ui/ancora.mjs` — **só este**.
+- **ARQUIVOS A EDITAR:** `scripts/design/ancora.mjs` — **só este**.
 - **REUSAR:** `norm`, `frontmatter`, `walk`, `raizesDePages`, a estrutura de retorno (`{ok, query, charter, telaViva, ancoras, repoRoot, aviso}`) — acrescentar `candidatos` e `forca` é aditivo.
 - **CRIAR:** nada.
 - **NÃO TOCAR:** charters, hooks, workflows, `--list`.
@@ -49,4 +49,4 @@ O mesmo vale pra qualquer query de módulo (`Cliente`, `Fiscal`, `Financeiro`) e
 - **quebra:** se o loop já coleta candidatos, **não execute** — reporte e pare.
 
 ## PROVA
-`prototipo-ui/ancora.mjs` contém `candidatos` + `BITE ambiguidade` + `CONTROLE ambiguidade` · `--selftest` verde · `_saida-02.md`.
+`scripts/design/ancora.mjs` contém `candidatos` + `BITE ambiguidade` + `CONTROLE ambiguidade` · `--selftest` verde · `_saida-02.md`.

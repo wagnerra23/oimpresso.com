@@ -10,7 +10,7 @@ depende: —
 # 03 · `shared/Toolbar.tsx` — o que produção **não** tem
 
 ## A · IDENTIDADE (ancoragem dupla)
-- **alvo (layout, read-only):** `prototipo-ui/cowork/ponto-ui.jsx` :: `Barra` — e as 7 barras já migradas em `ponto-telas.jsx`/`ponto-fechamento.jsx`.
+- **alvo (layout, read-only):** `prototipo-ui/cowork/Wagner/ponto-ui.jsx` :: `Barra` — e as 7 barras já migradas em `ponto-telas.jsx`/`ponto-fechamento.jsx`.
 - **âncora (código):** **não existe receptor** — `shared/` tem `PageFilters.tsx` (**2.764 B**, sha `309d6e537180`), que é **outra coisa**: chips de filtro ativo + grid de campos + "Limpar tudo". Leia-o **só** para não duplicar comportamento.
 - **NÃO ler:** `Pages/**`.
 

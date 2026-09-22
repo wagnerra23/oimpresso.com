@@ -3,7 +3,7 @@ sessao: "05"
 titulo: Turnos — Page
 dono: "[CL]"
 base: 159e572dd448
-prefixo: resources/js/Pages/Essentials/Turnos.tsx OU Turnos/Index.tsx (+ charter/casos) · ShiftController.php · prototipo-ui/contrato/essentials-turnos.contract.json · e2e/essentials-turnos.spec.ts · lane essentials-pest.yml
+prefixo: resources/js/Pages/Essentials/Turnos.tsx OU Turnos/Index.tsx (+ charter/casos) · ShiftController.php · governance/design/contracts/essentials-turnos.contract.json · e2e/essentials-turnos.spec.ts · lane essentials-pest.yml
 nao_toca: AttendanceController (cede ao Ponto — thread 09) · Pages/Essentials/** · DS
 depende: thread 09 (ADR 0014 emendada — Shift = horário contratual, Ponto dono das batidas) · RESÍDUO 3 (destroy) — vaga 2. Caminho = resources/js/Pages/Essentials/ (a árvore respondeu). Irmã golden: Essentials/Metas.tsx (#6869)
 ---

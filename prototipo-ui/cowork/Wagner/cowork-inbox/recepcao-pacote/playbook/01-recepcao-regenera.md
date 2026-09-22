@@ -32,4 +32,4 @@ Um verificador de recepção, chamado pelo `GATE` (nome literal a conferir: `.gi
 - A canonicalização de `bundleId`/`manifestSha256` divergir da do gerador → **pare**: a verdade é a do `GERADOR`, e um verificador com canonicalização própria produz falso-positivo em massa (já aconteceu: o predicado absoluto de órfãos dava ~90% de falso-positivo antes de virar delta).
 
 ## NÃO é
-Não é regenerar o pacote de hoje (isso é humano, com os arquivos em disco). Não é mexer em `prototipo-ui/cowork/**`. Não é criar exceção pro R1.
+Não é regenerar o pacote de hoje (isso é humano, com os arquivos em disco). Não é mexer em `prototipo-ui/cowork/Wagner/**`. Não é criar exceção pro R1.

@@ -13,7 +13,7 @@ depende: thread 04 · W1
 As 6 verificações do painel (Art. 66 · Art. 71 · Art. 59 · NSR · jornada aberta · ativo sem PIS) só têm sentido **por competência** — sem o estado da competência (W1) não há "mês a apontar". Por isso espera a 04.
 
 ## Alvo de layout (medido 04/09 — 910 nós)
-**3 seções nesta ordem:** `.pt-nota.danger` (2) · `.pt-kpis` (**6 KPIs** = as 6 verificações) · `SECTION.pt-card` (2) · 1 tabela (6 `th`) · 28 botões · 0 campos. Fonte: `prototipo-ui/cowork/ponto-fechamento.jsx` (`Conformidade`, função `achados(mes)` — a apuração das violações do protótipo, **referência de regra, não de código**).
+**3 seções nesta ordem:** `.pt-nota.danger` (2) · `.pt-kpis` (**6 KPIs** = as 6 verificações) · `SECTION.pt-card` (2) · 1 tabela (6 `th`) · 28 botões · 0 campos. Fonte: `prototipo-ui/cowork/Wagner/ponto-fechamento.jsx` (`Conformidade`, função `achados(mes)` — a apuração das violações do protótipo, **referência de regra, não de código**).
 
 ## Leis
 - Cada apontamento cita o artigo **literal**; sem artigo, não é apontamento.

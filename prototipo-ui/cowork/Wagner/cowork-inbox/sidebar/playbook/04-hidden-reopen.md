@@ -14,7 +14,7 @@ depende: 01 (a11y do alvo corrigida antes de exportar) · RESÍDUO-3
 (Nota de honestidade: a busca global por `SidebarReopenHandle` voltou **bounded** — o veredito de ausência no shell vem de ler `AppShellV2.tsx` e o tipo, não do zero-match.)
 
 ## B · Alvo (o protótipo responde *como*)
-`prototipo-ui/cowork/sidebar.jsx:590-601` + `app.jsx:660-673, 950-962` + `styles.css:5219-5245`:
+`prototipo-ui/cowork/Wagner/sidebar.jsx:590-601` + `app.jsx:660-673, 950-962` + `styles.css:5219-5245`:
 - `SidebarReopenHandle` = `button.sb-reopen-handle`, `title="Mostrar sidebar (⌘⇧\\)"`, `aria-label="Mostrar sidebar"`, chevron 12px `currentColor` stroke 2.2 — **um ícone e um nome acessível**, não um `div`.
 - CSS: `position: fixed`, `top: 50%`, largura que cresce de ~20px pra 26px no hover, sombra `2px 0 8px oklch(0 0 0 / .06)`.
 - No mobile (≤768px) a alça é escondida junto com `.sb-collapse-handle` — no drawer ela não faz sentido (`styles.css:5266-5267`).

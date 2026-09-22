@@ -3,7 +3,7 @@ sessao: "08"
 titulo: PUXAR Painel + Espelho (as 2 telas com contrato) → protótipo
 dono: "[CC] read-only → build"
 base: e86130722de1
-prefixo: prototipo-ui/cowork/ponto-page.jsx (Painel · Espelho index/show/imprimir vivem aqui) · oimpresso.com.html (bump ?v=)
+prefixo: prototipo-ui/cowork/Wagner/ponto-page.jsx (Painel · Espelho index/show/imprimir vivem aqui) · oimpresso.com.html (bump ?v=)
 nao_toca: resources/js/Pages/** (produção é o dono) · ponto-telas.jsx · ponto-data.jsx · ponto-mobile.jsx (threads 09/10) · contratos
 depende: — (vaga 1). W9 (navegação) não bloqueia: sem resposta, a divergência é declarada, não resolvida.
 ---
@@ -26,4 +26,4 @@ Produção 🔵 à frente: `Dashboard/Index.tsx` (20 KB, 4 `data-contract`, poll
 - Diff exigir mudar a Page viva → não é desta thread; pedido de 1 arquivo com UC do `casos.md` da tela.
 
 ## Prova
-- `_saida-08.md` (diff 2 sentidos · sha · divergência W9 declarada) · `ponto-page.jsx` no espelho `prototipo-ui/cowork/` com os átomos puxados
+- `_saida-08.md` (diff 2 sentidos · sha · divergência W9 declarada) · `ponto-page.jsx` no espelho `prototipo-ui/cowork/Wagner/` com os átomos puxados

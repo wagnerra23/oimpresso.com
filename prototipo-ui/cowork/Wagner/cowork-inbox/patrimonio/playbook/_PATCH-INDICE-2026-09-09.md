@@ -7,7 +7,7 @@ base_lida: f8e6e02876fc
 ---
 # PATCH do índice do Patrimônio — 2026-09-09 (delta, não substituição)
 
-> ⚠️ **A pasta local é cache e está atrás.** Local: **7** arquivos. `main`: **24** (`prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/`), com `07`–`13` e 10 `_saida-*`. **Não mande a pasta local descer** — sobrescreveria o índice de 22.024 B, as duas erratas do [CL] de 08/09 e as saídas. O que desce é **este patch** + os 7 `NN-*.md` novos.
+> ⚠️ **A pasta local é cache e está atrás.** Local: **7** arquivos. `main`: **24** (`prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/`), com `07`–`13` e 10 `_saida-*`. **Não mande a pasta local descer** — sobrescreveria o índice de 22.024 B, as duas erratas do [CL] de 08/09 e as saídas. O que desce é **este patch** + os 7 `NN-*.md` novos.
 
 ## Onde aplicar
 1. **§2 · tabela de threads** — acrescentar 7 linhas (abaixo).
@@ -56,13 +56,13 @@ base_lida: f8e6e02876fc
     "dono": "CL",
     "vaga": 1,
     "arquivo": "14-provas-flat-09-10-11.md",
-    "prefixo": ["prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/00-INDICE.md"],
+    "prefixo": ["prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md"],
     "nao_toca": ["resources/js/", "Modules/AssetManagement/"],
     "nota_provas": "thread de RECONCILIACAO: nao escreve codigo de app. Corrige 3 paths de prova (Alocacoes/Manutencoes/Configuracoes) para o layout flat que esta em producao, igual ja se fez para Bens em 08/09. Prova = o placar deixar de dizer 'pendente · arquivo ausente' para tela viva.",
     "provas": [
-      { "tipo": "contem", "path": "prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/00-INDICE.md", "padrao": "Pages/Patrimonio/Alocacoes.tsx" },
-      { "tipo": "contem", "path": "prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/00-INDICE.md", "padrao": "Pages/Patrimonio/Manutencoes.tsx" },
-      { "tipo": "contem", "path": "prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/00-INDICE.md", "padrao": "Pages/Patrimonio/Configuracoes.tsx" },
+      { "tipo": "contem", "path": "prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md", "padrao": "Pages/Patrimonio/Alocacoes.tsx" },
+      { "tipo": "contem", "path": "prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md", "padrao": "Pages/Patrimonio/Manutencoes.tsx" },
+      { "tipo": "contem", "path": "prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md", "padrao": "Pages/Patrimonio/Configuracoes.tsx" },
       { "tipo": "arquivo", "path": "resources/js/Pages/Patrimonio/_shared/PatrimonioSubNav.tsx", "guarda": true }
     ]
   },

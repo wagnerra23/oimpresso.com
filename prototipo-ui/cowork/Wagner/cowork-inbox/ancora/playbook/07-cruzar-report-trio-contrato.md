@@ -41,7 +41,7 @@ Colhidos dos workflows/hooks do `main` neste turno — `.claude/workflows/migrac
 **`scripts/qa/prototipo-readiness.mjs`: não confirmei neste turno** — a busca saiu **bounded** (314 de 400 arquivos, budget 10 s, 83 arquivos acima de 512 KB não varridos) e **busca truncada não prova ausência** (é a minha regra de 09/09, e hoje eu quase repeti a inversa: o listador de árvore **não indexa `.mjs`**, deu 0 de 17.005 para `^scripts/.*\.mjs$`, e os arquivos **leem normal** por caminho direto). Se ele existe, é ele o primeiro da lista.
 
 ## 4 · ⚠️ Defeito de caminho no PRÓPRIO playbook da âncora (conserte antes das threads 01–03)
-O `00-INDICE.md` desta pasta declara `ALVO: prototipo-ui/ancora.mjs` (**49.089 B**) e as 3 threads têm `prefixo: ["prototipo-ui/ancora.mjs"]` com todas as provas nesse caminho. **O leitor real não é esse arquivo.** Medido agora:
+O `00-INDICE.md` desta pasta declara `ALVO: scripts/design/ancora.mjs` (**49.089 B**) e as 3 threads têm `prefixo: ["scripts/design/ancora.mjs"]` com todas as provas nesse caminho. **O leitor real não é esse arquivo.** Medido agora:
 - `.claude/hooks/post-merge-ui-smoke-required.mjs:316` → `import(join(REPO,'scripts','design','ancora.mjs'))`, e `:318` degrada com *"import de scripts/design/ancora.mjs falhou"*.
 - `post-merge-ui-smoke-required.test.mjs:175` → `existsSync(join(REPO_REAL,'scripts','design','ancora.mjs'))`.
 - `block-ancora-no-olho.mjs:84`, `charter-validate.mjs:117`, os 3 workflows e a skill `refutador-gt-g5` **todos** mandam `node scripts/design/ancora.mjs`.

@@ -10,9 +10,9 @@ depende: ds-atomos 01 (Card badge/note/flush) · ds-atomos 02 (KpiCard variant=f
 # 13 · Painel — a forma do protótipo na Page real
 
 ## A · IDENTIDADE (ancoragem dupla)
-- **alvo (layout, read-only):** `prototipo-ui/cowork/ponto-page.jsx` — aba **Painel**, T1 estável **959 nós** (dark, duas leituras iguais), **largura de referência 1280px**.
+- **alvo (layout, read-only):** `prototipo-ui/cowork/Wagner/ponto-page.jsx` — aba **Painel**, T1 estável **959 nós** (dark, duas leituras iguais), **largura de referência 1280px**.
 - **âncora (código):** `resources/js/Pages/Ponto/Dashboard/Index.tsx` — **20.313 B**, sha `19c5ad41dc7c`. Símbolos: `DashboardIndex` (:183) · `NotaFechamento` (:131) · `ApprovalRow` (:487).
-- **oráculo (NÃO é leitura de abertura):** `Index.charter.md` (3.097 B) · `Index.casos.md` · `PontoDashboardContratoTest.php` (28 KB) · `prototipo-ui/contrato/ponto-painel.contract.json`.
+- **oráculo (NÃO é leitura de abertura):** `Index.charter.md` (3.097 B) · `Index.casos.md` · `PontoDashboardContratoTest.php` (28 KB) · `governance/design/contracts/ponto-painel.contract.json`.
 - **NÃO ler:** `_components/{PresenceStrip,ActivityFeed,AlertInbox}.tsx` — **ficam como estão** nesta thread.
 - **contrato vigente:** `ponto-painel` — trava seções e copy no CI. **Se o alvo abaixo contradiz o contrato, o contrato manda e você para.**
 - **persona:** Wagner (escritório, 1440) e Larissa (balcão, 1280).

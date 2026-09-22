@@ -146,12 +146,5 @@ Enquanto o gate atual (recusa por ref literal) estiver vigente, o **host do Wagn
 O `--compare` desta área é **medição órfã**: aborta com *"exige um snapshot.json existente"*. O A3 precisa de um job que **gere e versione o snapshot** por seção — sem isso, T7 segue não-afirmável por ninguém.
 
 
-## Anexos do PR-A8 — REMOVIDOS em 2026-09-09 (eram cópia de máquina envelhecendo)
-
-Este arquivo carregava o `playbook.schema.json` e o `placar-indice.mjs` **inteiros, inline** (A8.1 e A8.2, geradas de cópias locais em 2026-09-06). As duas eram **máquina do repo em cache** — e envelheceram: o `main` de hoje (lido 2026-09-09) já tem `constituicao`/`nota_caminho` no topo do schema, `custo`/`afeta` em `decisoes` e `descobrirIndices` no placar (#7063 + #7071). Descer estes anexos **desfaria os dois** — foi o defeito que recusou o handoff (3) e o bundle v2, e o playbook `patrimonio` reprovando contra a versão velha foi o controle positivo.
-
-**A fonte é o `main`, e só ele:**
-- `prototipo-ui/design-docs/cowork-inbox/_schema/playbook.schema.json`
-- `prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs`
-
-O PR-A8 continua igual: **estende** `scripts/qa/placar.mjs` com `--indice` reusando o que já está lá. Nada a colar daqui — quem executa lê os dois arquivos no `main` no turno. Ver §6-bis do `COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md` (lote fecha por inclusão; máquina do repo invalida o lote).
+## PR-A8 · estado em 2026-09-22 (lido no `main` a378c9bf)
+**Feito pelo [CL].** Dono do código: `scripts/qa/placar-indice.mjs` (lógica) + flag `--indice`/`--todos`/`--thread`/`--proximo`/`--md` em `scripts/qa/placar.mjs` · bite-test `scripts/qa/placar-indice.test.mjs` (48 casos) · workflow `.github/workflows/placar-de-lista.yml` (advisory, sem `--check` — corpus de 12 módulos/61 threads nasceria vermelho; promoção futura só por DELTA) · modo thread em `.claude/commands/onda.md`. Os anexos A8.1/A8.2 que moravam aqui **foram apagados**: eram um segundo dono do mesmo script, e o do `main` já os superou (migração de endereço da ADR 0397, NÃO MEDIDA para provas de recibo, integridade de grafo). **Não recriar schema/script do lado Cowork** — a ADR 0397 D3 tira máquina de dentro de `prototipo-ui/`.

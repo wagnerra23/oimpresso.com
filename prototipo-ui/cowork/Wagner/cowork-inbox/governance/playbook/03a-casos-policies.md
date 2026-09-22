@@ -24,7 +24,7 @@ ler      resources/js/Pages/governance/Policies.charter.md 3.675 B
 molde    resources/js/Pages/governance/DsRollout.casos.md  8.618 B  ← o ÚNICO casos.md do
          módulo. Copie a FORMA (numeração de UC, como cita teste, como marca backlog).
          NÃO edite este arquivo.
-contrato prototipo-ui/contrato/governance-cockpit.contract.json (desce na thread 01)
+contrato governance/design/contracts/governance-cockpit.contract.json (desce na thread 01)
          → a copy literal dos UC sai DELE, não de paráfrase
 NÃO ler  Dashboard.tsx · ModuleGradeService.php · os outros 7 .tsx
 ```

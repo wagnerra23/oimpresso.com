@@ -5,7 +5,7 @@ autor: "[CC]"
 criado: 2026-09-08
 base: wagnerra23/oimpresso.com@main (árvore cb475c0ca2f4 · lida 2026-09-08 11:25 UTC)
 constituicao: CONSTITUICAO-COWORK.md (C1–C12) + memory/proibicoes.md
-destino_no_main: prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/
+destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/
 ---
 
 # SINCRONIZAR Patrimônio — playbook
@@ -44,7 +44,7 @@ O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Ti
 **A ordem não é gosto:** 01 vem primeiro porque é multi-tenant em produção — Tier 0 fura antes de qualquer verniz.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
-`node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/patrimonio/playbook/00-INDICE.md --root . --proximo`
+`node scripts/qa/placar-indice.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md --root . --proximo`
 Render esperado: `Patrimônio: entregue 0 de 6 · próximo 5 · bloqueada 1`.
 
 ## 3 · Abertura de thread (colar como 1ª mensagem — sessão limpa)
@@ -71,7 +71,7 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
   "modulo": "Patrimonio",
   "sha": "cb475c0ca2f4",
   "gerado": "2026-09-08",
-  "absorve": ["prototipo-ui/COLAR-NO-CODE-patrimonio-ondas.md"],
+  "absorve": ["prototipo-ui/cowork/Wagner/COLAR-NO-CODE-patrimonio-ondas.md"],
   "constituicao": "CONSTITUICAO-COWORK.md",
   "decisoes": [
     { "id": "D-ENDERECO", "pergunta": "Patrimonio e modulo proprio (Pages/Patrimonio/**) ou secao do Estoque (Pages/Estoque/Patrimonio/**)? ADR 0180 x ADR 0182 x SCOPE bloqueado-escopo.", "respondida": false, "destrava": ["06"], "custo": "44 arquivos / 20 PRs" },

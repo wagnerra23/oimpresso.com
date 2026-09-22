@@ -56,7 +56,7 @@ O `sync/` deste projeto está congelado em **2026-09-07** enquanto o build andou
       "dono": "CL",
       "arquivo": "01-recepcao-regenera.md",
       "prefixo": ["scripts/design-sync", ".github/workflows"],
-      "nao_toca": ["prototipo-ui/cowork/**", "resources/js/**", "memory/**"],
+      "nao_toca": ["prototipo-ui/cowork/Wagner/**", "resources/js/**", "memory/**"],
       "depende_threads": [],
       "depende_decisoes": ["D-RECEPCAO-FALHA", "D-QUEM-REGENERA"],
       "nota_provas": "prova e EXECUCAO com recibo antes/depois — nao 'o arquivo contem a string'",

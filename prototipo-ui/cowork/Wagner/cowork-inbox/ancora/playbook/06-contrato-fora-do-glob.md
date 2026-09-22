@@ -10,9 +10,9 @@ reescrita: 2026-09-13 — a versão de 11/09 partia de premissa FALSA
 # 06 · Cobertura de Contrato de Tela — 35 para 188
 
 ## ⚠️ Errata da versão anterior desta thread (leia antes)
-A v1 (11/09) dizia: *"`prototipo-ui/contrato/` tem 34 arquivos … e um `financeiro-unificado.intent.json` fora do glob"*. **As duas afirmações são falsas.** Medido em `ffe69844cb71`:
+A v1 (11/09) dizia: *"`governance/design/contracts/` tem 34 arquivos … e um `financeiro-unificado.intent.json` fora do glob"*. **As duas afirmações são falsas.** Medido em `ffe69844cb71`:
 
-- **`prototipo-ui/contrato/` não existe.** Os contratos moram em **`governance/design/contracts/`**.
+- **`governance/design/contracts/` não existe.** Os contratos moram em **`governance/design/contracts/`**.
 - **Não existe `financeiro-unificado.intent.json`** em nenhum lugar da árvore (filtro `contract\.json$|contrato/` sobre 16.569 arquivos → 39 hits; nenhum é esse).
 
 Causa: eu citei caminho de memória e tratei a citação como medição. Não procure o arquivo — ele nunca esteve lá.

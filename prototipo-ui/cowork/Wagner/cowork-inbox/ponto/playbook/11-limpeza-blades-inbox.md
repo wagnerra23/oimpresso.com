@@ -3,7 +3,7 @@ sessao: "11"
 titulo: Limpeza — 26 blades mortas + nav legado + inbox residual (+ /ponto/react se W8 = remover)
 dono: "[CL]"
 base: e86130722de1
-prefixo: Modules/Ponto/Resources/views/** EXCETO reports/ · prototipo-ui/design-docs/cowork-inbox/ponto-dashboard/ · Modules/Ponto/Http/routes.php (SÓ a rota /react, SÓ se W8 = remover) · resources/js/Pages/Ponto/Welcome.* (idem)
+prefixo: Modules/Ponto/Resources/views/** EXCETO reports/ · prototipo-ui/cowork/Wagner/cowork-inbox/ponto-dashboard/ · Modules/Ponto/Http/routes.php (SÓ a rota /react, SÓ se W8 = remover) · resources/js/Pages/Ponto/Welcome.* (idem)
 nao_toca: Resources/views/reports/espelho-pdf.blade.php (VIVA — PDF do imprimir) · Resources/lang/ · resources/js/Pages/Ponto/** (fora do Welcome) · Tests/
 depende: W8 só para a parte /react; o resto pode abrir agora — vaga 1
 ---
@@ -12,7 +12,7 @@ depende: W8 só para a parte /react; o resto pode abrir agora — vaga 1
 ## Medido nesta sha
 - **27 blades** em `Modules/Ponto/Resources/views/` (aprovacoes 2 · banco-horas 2 · colaboradores 2 · configuracoes 2 · dashboard 1 · escalas 4 · espelho 2 · importacoes 3 · intercorrencias 5 · layouts 1 · relatorios 1 · reports 1). **0 `return view(`** nos 12 controllers; **21 `Inertia::render`**. Logo 26 são mortas; **`reports/espelho-pdf.blade.php` é a exceção** (PDF de `EspelhoController@imprimir` — **não verifiquei** o `loadView`; verificar antes de qualquer `rm`).
 - `layouts/module.blade.php` = topnav legado de 10 itens (AdminLTE/FontAwesome) — nenhum controller o renderiza.
-- `prototipo-ui/design-docs/cowork-inbox/ponto-dashboard/Index.casos.md` — cópia do que já vive em `Pages/Ponto/Dashboard/Index.casos.md` (27 KB, evoluído). Resíduo.
+- `prototipo-ui/cowork/Wagner/cowork-inbox/ponto-dashboard/Index.casos.md` — cópia do que já vive em `Pages/Ponto/Dashboard/Index.casos.md` (27 KB, evoluído). Resíduo.
 - `/ponto/react` → `Ponto/Welcome` (closure, charter `draft` desde 07/2026 com pendência "piloto fica ou sai?"; `WelcomeContratoTest` existe). **W8.**
 
 ## Passo a passo
