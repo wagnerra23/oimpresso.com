@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-21**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-22**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **11/13** métricas medidas · floor full-suite = **276**.
+- Scorecard: **11/13** métricas medidas · floor full-suite = **275**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -146,13 +146,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **414** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 363 · superseded: 25 · proposto: 13 · deprecated: 11 · rascunho: 1 · recusado: 1.
+- **415** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 364 · superseded: 25 · proposto: 13 · deprecated: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 221 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 228 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -376,6 +376,13 @@ lente: [construir]
 - ~~2026-09-21 — EMENDA da lápide 2026-07-29 (claim de ausência no eixo ROTA): os donos de *"esta rota tem gate?"* não são os que ela lista — e a máquina que já sabia disso estava no repo, com bite-test~~
 - ~~2026-09-21 — Tirar o `/i` do detector do `rm`, e isentar `docker exec`/`ssh … rm` por PREFIXO — duas propostas minhas ao #7613, ambas refutadas por medição da autora~~
 - ~~2026-09-21 — REINCIDÊNCIA da LC-24 num 2º instrumento: o auto-canário do `memory-health` decidia com UMA amostra, e o conserto de 2026-08-13 nunca chegou nele~~
+- ~~2026-09-21 — Inventei a HORA de uma medição DENTRO da nota que existe para marcar medição caduca — e os 3 números verdadeiros ao lado autenticaram o falso~~
+- ~~2026-09-21 — Disparar a regeneração de baseline do VRT: o mecanismo ainda FUNCIONA, e a prática tinha sido aposentada no mesmo dia (ADR 0409)~~
+- ~~2026-09-21 — Arbitrary variant (`min-[…]`/`max-[…]`) no `className` de componente cujas variantes usam `sm:`/`lg:` — MEDIDO INERTE duas vezes, com CI verde~~
+- ~~2026-09-21 — EMENDA da lápide 2026-09-18 (opcache): o eixo **ASSET BUILDADO** — `git rev-parse HEAD` em prod diz o CÓDIGO, não o ARTEFATO servido~~
+- ~~2026-09-22 — EMENDA da lápide 2026-07-28 (`toContain` message-as-needle): na forma NEGADA o assert não é "fraco", ele está **MORTO** — e 9 dos vivos são Tier 0~~
+- ~~2026-09-22 — Promover o `brl-scan` a required pela superfície MENSAGEM DE COMMIT (MEDIDO: 100% de FP na janela pós-gate — e a premissa que motivou o pedido estava errada)~~
+- ~~2026-09-22 — O zero de um medidor tem TRÊS causas, não duas: a terceira é CORPUS ANACRÔNICO, e ela não aparece em nenhuma lápide anterior~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -386,14 +393,14 @@ lente: [construir]
 
 ## Rastro
 
-- **547** handoffs · **760** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **554** handoffs · **765** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-22-cobertura-modular-funil-design`
+  - `2026-09-22-buracos-prototipo-producao`
   - `2026-09-21-zero-baseline-tier0`
-  - `2026-09-21-auditoria-baselines-tolerancia`
-  - `2026-09-18-triagem-uc-orfaos-de-lane`
-  - `2026-09-16-token-pares-revogacao`
-  - `2026-09-16-session-protocolo-ultimo-importado`
-  - `2026-09-16-recepcao-pacote-e-dois-universos`
+  - `2026-09-21-kpi-grid-breakpoint-e-tres-erros-de-medicao`
+  - `2026-09-21-incidente-auto-merge-espontaneo`
+  - `2026-09-21-design-pipeline-sem-falso-verde`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-21 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-22 · deriva das fontes canônicas, não as substitui._
