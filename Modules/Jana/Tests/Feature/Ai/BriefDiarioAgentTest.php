@@ -325,7 +325,7 @@ it('R-COPI-202-003 — Tier 0 cross-tenant: 5 Tools(biz=98) NUNCA expoem dados d
         );
 
         foreach ($marcadores as $marcador) {
-            expect($json)->not->toContain($marcador, "Tool {$nome} vazou '{$marcador}' de biz=99");
+            expect(str_contains($json, $marcador))->toBeFalse("Tool {$nome} vazou '{$marcador}' de biz=99");
         }
 
         $daVitima[$nome] = $data;

@@ -234,10 +234,7 @@ it('fio usável: criar OS → recepcao → entregue → imprimir, sem role mecan
         foreach (['actions' => $actions, 'gate' => $gate] as $nome => $r) {
             $raw = mb_strtolower(json_encode($r->json(), JSON_UNESCAPED_UNICODE));
             foreach (['locação', 'locacao', 'caçamba', 'cacamba'] as $proibida) {
-                expect($raw)->not->toContain(
-                    $proibida,
-                    "payload {$nome} no passo {$actionKey} não pode conter '{$proibida}'"
-                );
+                expect(str_contains($raw, $proibida))->toBeFalse("payload {$nome} no passo {$actionKey} não pode conter '{$proibida}'");
             }
         }
 

@@ -135,7 +135,7 @@ it('woocommerce_api_settings do biz=1 NÃO aparece em SELECT do biz=99', functio
 
         // biz=99 NÃO deve trazer o settings do biz=1 (ou não existe, ou tem outro valor)
         if ($bizOutroTenant !== null) {
-            expect($bizOutroTenant)->not->toContain($tokenFake, 'VAZAMENTO TIER 0: token API biz=1 visível no settings do biz=99!');
+            expect(str_contains($bizOutroTenant, $tokenFake))->toBeFalse('VAZAMENTO TIER 0: token API biz=1 visível no settings do biz=99!');
         } else {
             expect($bizOutroTenant)->toBeNull();
         }

@@ -179,11 +179,8 @@ it('UC-CV-07 controle-negativo — catalogo de OUTRO business nunca chega a pagi
 
         $payload = json_encode($resposta->viewData('page')['props'] ?? [], JSON_UNESCAPED_UNICODE) ?: '';
 
-        expect($payload)->not->toContain(
-            $marcadorAlheio,
-            'Vazamento cross-tenant Tier 0 (ADR 0093): material de outro business apareceu no ' .
-            'payload da página. Ver SDD §6 CU-CV-09 item 2.'
-        );
+        expect(str_contains($payload, $marcadorAlheio))->toBeFalse('Vazamento cross-tenant Tier 0 (ADR 0093): material de outro business apareceu no ' .
+            'payload da página. Ver SDD §6 CU-CV-09 item 2.');
     } finally {
         Material::withoutGlobalScopes()->where('id', $material->id)->forceDelete();
     }

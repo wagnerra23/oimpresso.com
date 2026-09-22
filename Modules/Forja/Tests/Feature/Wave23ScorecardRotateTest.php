@@ -380,7 +380,7 @@ it('McpTokenIssuer::rotate raw NÃO é logado em info-level (defesa em profundid
     // O raw token NÃO deve aparecer em nenhum log capturado
     foreach ($logs as $entry) {
         $serialized = $entry['message'] . ' ' . json_encode($entry['context'] ?? []);
-        expect($serialized)->not->toContain($raw, 'raw token jamais pode aparecer em log estruturado');
+        expect(str_contains($serialized, $raw))->toBeFalse('raw token jamais pode aparecer em log estruturado');
     }
 
     // Cleanup
