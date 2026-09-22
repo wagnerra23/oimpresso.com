@@ -54,6 +54,10 @@ jobs:
   tests:
     name: governance script tests (advisory)
     runs-on: ubuntu-latest
+    # `actions: read` so para o ultimo step: ele le da API quais steps DESTE job falharam.
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -1398,3 +1402,15 @@ jobs:
       - name: replica-inconsistencias — bite-test (20 asserts · ESLint indisponível vira NÃO MEDIDO)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/replica-inconsistencias.mjs --selftest
+      - name: ci-steps-falhos — bite-test (lista os falhos do job certo, NAO MEDIDO quando nao le)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/ci-steps-falhos.mjs --selftest
+      # ULTIMO step, de proposito: 216 dos steps acima rodam com always(), entao um vermelho nao
+      # pula os outros — mas o check aparece como um vermelho unico. Este step escreve no summary
+      # QUAIS falharam. Sai 0 sempre (o veredito ja foi dado); sem API/token diz NAO MEDIDO.
+      - name: Resumo — quais steps falharam (step summary)
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          JOB_NAME: governance script tests (advisory)
+        run: node scripts/governance/ci-steps-falhos.mjs

@@ -6,7 +6,7 @@ name: SDD Scorecard (advisory)
 #
 # 3 sinais sobre governance/sdd-scorecard.json + governance/sdd-scorecard-baseline.json:
 #   1. determinismo — 2 runs do agregador = output idêntico (diff vazio)
-#   2. staleness    — scorecard commitado ≠ medição atual (rodar e commitar)
+#   2. staleness    — scorecard commitado ≠ medição atual (o DONO regenera: sdd-scorecard-publish.yml)
 #   3. ratchet      — métrica ARMADA (armed:true no baseline) regrediu vs baseline
 #                     → piorar exige editar o baseline em diff visível no PR
 #
@@ -189,7 +189,11 @@ jobs:
           if git diff --exit-code governance/sdd-scorecard.json; then
             echo "scorecard commitado em dia com a medição atual"
           else
-            echo "::warning::governance/sdd-scorecard.json commitado está DEFASADO — rode 'node scripts/governance/sdd-scorecard.mjs' e commite o resultado"
+            # NÃO mandar "rode local e commite": o floor vem de governance/nightly-floor.json,
+            # gitignored e materializado só no CI a partir da branch órfã (step acima). Rodado
+            # na máquina de alguém, a métrica do floor sai not_yet_measured e o commit regride
+            # o scorecard. O dono do arquivo é o sdd-scorecard-publish.yml (§5 2026-09-05).
+            echo "::warning::governance/sdd-scorecard.json commitado está DEFASADO. Não regenere à mão (sem o floor da branch governance/nightly-floor a métrica sai not_yet_measured) — o dono é o sdd-scorecard-publish.yml, que regenera após o merge em main; para forçar: gh workflow run sdd-scorecard-publish.yml"
             exit 1
           fi
 
