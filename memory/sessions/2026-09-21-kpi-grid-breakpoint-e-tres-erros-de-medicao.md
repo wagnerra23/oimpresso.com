@@ -17,6 +17,22 @@ prs:
 
 # O grid de KPIs, a dívida que não existia, e três erros de medição
 
+## TL;DR
+
+O chip mandava consertar a **anatomia** do card de KPI. Re-medida na tela viva com canário, ela já
+estava fechada desde 2026-09-03 — **24 de 26 campos idênticos**. Obedecer teria reescrito código
+correto, e uma sessão irmã quase o fez no mesmo dia, pela mesma tabela desatualizada.
+
+O que existia era **outro eixo, nunca medido**: o breakpoint do grid (3 de 6 viewports divergiam),
+que é a queixa literal de [W] — *"quantidade de colunas de kpi"*. Fechado por réplica local
+`JanaKpiGrid` sobre o primitivo `<Grid>`; [W] confirmou na tela.
+
+**Duas tentativas mais simples saíram INERTES com o CI inteiro verde** (o Tailwind 4 emite
+arbitrários antes dos nomeados), e quem as pegou foi a **bancada com canário**, não a leitura.
+No caminho errei **três vezes a mesma classe** — medir a propriedade errada — e a pior virou
+afirmação publicada ao dono. O `ciclo-adversary` derrubou a **classe** de uma lápide antes de ela
+virar canon.
+
 ## O que o chip pedia, e por que obedecer teria sido errado
 
 O chip descrevia três itens de dívida na anatomia do card de KPI: rótulo sans 11px (a âncora é
@@ -105,6 +121,11 @@ a mesma sonda.
 - **O hook `block-sonda-que-mente` me barrou duas vezes**, nas duas com razão: `jq` não existe
   nesta máquina (o monitor teria ficado mudo) e pedir `mergeStateStatus` sem `state`. E o
   `memory-schema` barrou o frontmatter deste próprio log (`hour` com intervalo).
+- ⚠️ **E cometi a LC-22 ao escrever este log**, depois de a ter citado o dia todo: rodei o
+  `validate.mjs`, vi `rc=0` e dei por validado — mas o CI roda **dois** validadores, e o outro
+  (`validate-memory-schema.sh`) cobre **seções do corpo**, não frontmatter. Faltava o `## TL;DR`,
+  e só o check vermelho me contou. Um consumidor não substitui o outro quando cada um responde a
+  uma pergunta diferente.
 
 ## O adversário derrubou a classe de uma lápide
 
