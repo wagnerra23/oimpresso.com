@@ -4,7 +4,8 @@ component: resources/js/Pages/Manufacturing/Settings.tsx
 owner: wagner
 status: draft
 parent_module: Manufacturing
-related_prototype: prototipo-ui/cowork/Wagner/manufacturing-producao.jsx
+# 2026-09-22 [W]: fonte = handoff_fabricacao do Felipe. Caminho COMPLETO de proposito - bundle_source resolve por BASENAME (ancora.mjs:512) e ha 3 copias de manufacturing-page.jsx no staging.
+related_prototype: prototipo-ui/cowork/Felipe/manufacturing-producao.jsx
 related_us: [US-MANU-003]
 runbook: memory/requisitos/Manufacturing/RUNBOOK-settings.md
 casos: resources/js/Pages/Manufacturing/Settings.casos.md
