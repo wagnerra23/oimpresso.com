@@ -66,6 +66,9 @@ jobs:
       - name: Fact-anchor Check T (versoes derivaveis · fixtures boa/ruim · proposal fatos-derivaveis)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/fact-anchor.test.mjs
+      - name: 'BRL scan · contrato de execucao (bite: base invalida MORDE, range limpo LIBERA, vazio declara nao-medicao; mutante sem pipefail volta a ficar mudo)'
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/brl-scan-workflow.test.mjs
 
       - name: Retorno Code -> Design §10.2 (3 canais · advisory + bite/release)
         if: always() && steps.setup.outcome == 'success'
