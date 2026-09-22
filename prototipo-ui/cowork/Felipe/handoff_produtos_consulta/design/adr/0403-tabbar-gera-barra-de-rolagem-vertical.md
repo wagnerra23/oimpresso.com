@@ -32,5 +32,5 @@ interna ao `<nav>`, um pai com `overflow: hidden` não a remove.
 
 ## Referências
 
-- `_ds/office-impresso-atual-d7f88676-…/_ds_bundle.js` — `TabBar`.
+- `_ds/wagner-office-impresso-design-system-49a36f76-…/_ds_bundle.js` — `TabBar`. (O caminho citado na medição original, `_ds/office-impresso-atual-d7f88676-…`, foi apagado em 21/09/2026.)
 - `design/LAUDO-conferencia-consulta-produtos.md` — achado de regressão.

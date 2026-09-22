@@ -12,7 +12,7 @@
 (() => {
 const { useState, useMemo, useRef, useEffect } = React;
 const I = window.I;
-const ds = () => window.OfficeImpressoDesignSystem_49a36f || {};
+const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 
 const G = () => window.MFG;
 

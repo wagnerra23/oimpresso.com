@@ -8,7 +8,7 @@
 (() => {
 const { useState, useMemo } = React;
 const I = window.I;
-const ds = () => window.OfficeImpressoDesignSystem_49a36f || {};
+const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 
 function MfgInsumosView({ recipes, onAbrirReceita }) {
   const { Drawer, DrawerSection, Button, StatusBadge, EmptyState } = ds();

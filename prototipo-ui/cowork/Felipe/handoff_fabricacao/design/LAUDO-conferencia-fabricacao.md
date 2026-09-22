@@ -9,7 +9,7 @@
 | **Como rodou** | `design/Fabricacao - Guia de Producao.html` no navegador, viewport **914 × 540 px**, tema **claro**, React 18.3.1 + Babel 7.29.0 |
 | **Especificação** | `README.md` (raiz do pacote) · `contexto/SDD-tela-fabricacao-v1.0.md` |
 | **Telas irmãs** | `resources/js/Pages/Manufacturing/Index.tsx` (existe no alvo) · Compras · Produtos · Estoque |
-| **Design system** | WAGNER Office Impresso — tokens `.cockpit` de `_ds/office-impresso-design-system-019dd02f-…/colors_and_type.css` |
+| **Design system** | WAGNER Office Impresso — tokens `.cockpit` de `_ds/wagner-office-impresso-design-system-49a36f76-…/colors_and_type.css` |
 | **Plataforma alvo** | Cockpit desktop ≥ 1280px (declarado em `Index.charter.md` L28) |
 | **Tarefas conferidas** | 8 (§5) |
 | **Data** | 2026-09-01 · **Avaliador:** Claude (sessão de handoff) |

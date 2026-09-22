@@ -405,7 +405,8 @@ achei quatro divergências e uma ausência.
 1. Item "Consulta de Produtos (V2)" da sidebar (`data.jsx`) e a rota `prod-consulta-v2` (`app.jsx`).
 2. O `<iframe>` — que é um contorno declarado, e o `app.jsx` diz na L69 que este shell não usa mais
    iframes.
-3. O contorno `_ds/office-impresso-design-system-019dd02f…/`, se nada mais depender dele.
+3. ~~O contorno `_ds/office-impresso-design-system-019dd02f…/`~~ — **feito em 21/09/2026**: as três
+   pastas de DS viraram uma (`_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/`) e o shim de alias foi **removido de vez** (noite de 21/09): as páginas leem o nome que o bundle publica.
 4. `Consulta de Produtos.dc.html` — **não apagar** sem sua ordem: é o protótipo oficial de onde as
    melhorias saíram, e serve de referência durante a implementação.
 

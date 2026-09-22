@@ -530,8 +530,8 @@
     return (
       <div className="os-page om-page" data-screen-label="01 Caixa unificada" data-testid="caixa-unif-page">
       <div className="os-page-h">
-        <div className="os-page-h-l" data-comment-anchor="09922f4ed2-div-431-9">
-          <h1 data-comment-anchor="0940f70354-h1-532-11">Atendimento
+        <div className="os-page-h-l">
+          <h1>Atendimento
 </h1>
           <p>{headerSub}</p>
         </div>
@@ -597,7 +597,7 @@
                       <b>Filtros</b>
                       <button className="om-x sm" onClick={() => setFiltersOpen(false)} aria-label="Fechar">✕</button>
                     </div>
-                    <div className="om-flt-group" data-comment-anchor="309344561e-select-555-13">
+                    <div className="om-flt-group">
                       <small>Status</small>
                       <div className="om-flt-pills">
                         {STATUSES.map((s) =>
@@ -617,7 +617,7 @@
                         <button className={"om-flt-pill" + (filter === "all" ? " sel" : "")}
                         onClick={() => {setFilter("all");setAccFilter("all");}}
                         data-testid="caixa-unif-channel-chip-all">
-                          Todos <em data-comment-anchor="2ac6cd0e54-em-491-29">{counts.all}</em>
+                          Todos <em>{counts.all}</em>
                         </button>
                         {CHANNELS.map((ch) => {
                           const isComing = ch.status === "em breve";
@@ -793,7 +793,7 @@
               <small>Tente outro filtro ou limpe a busca.</small>
             </div> :
 
-            <ul className="om-list" data-comment-anchor="79cf23bb54-ul-694-13">
+            <ul className="om-list">
               {filteredConvs.map((c) => {
                 const acc = ACC_BY_ID[c.account];
                 const ch = CHAN_BY_ID[acc?.channel];
@@ -848,7 +848,7 @@
                 <div className="om-thread-h-text">
                   <b>{conv.name}</b>
                   <small>
-                    <span className="om-chip" style={{ "--chip-hue": convChannel.hue, borderColor: `oklch(0.85 0.06 ${convChannel.hue})`, color: `oklch(0.35 0.10 ${convChannel.hue})` }} data-comment-anchor="c31fbbe4f0-span-639-21">
+                    <span className="om-chip" style={{ "--chip-hue": convChannel.hue, borderColor: `oklch(0.85 0.06 ${convChannel.hue})`, color: `oklch(0.35 0.10 ${convChannel.hue})` }}>
                       {convChannel.short} · {convAcc.label}
                     </span>
                     <span className="om-sep">·</span>
@@ -911,7 +911,7 @@
                         <span className="om-internal-tag">Nota interna</span>
                         <small>{m.time} · só a equipe vê</small>
                       </div>
-                      <div className="om-internal-t" data-comment-anchor="4245f49d9f-div-720-23">{renderText(m.t)}</div>
+                      <div className="om-internal-t">{renderText(m.t)}</div>
                     </div> :
 
                   <div className={"om-bub " + (m.who === "me" ? "me" : "them") + " ch-" + convChannel.id}>
@@ -1041,11 +1041,11 @@
                   aria-label={internalMode ? "Modo nota interna ativo (⌘⇧N pra voltar)" : "Alternar pra nota interna (⌘⇧N)"}
                   aria-pressed={internalMode}
                   title="Resposta cliente / Nota interna (⌘⇧N)"
-                  data-testid="caixa-unif-mode-toggle" data-comment-anchor="81e3904704-button-801-19">
+                  data-testid="caixa-unif-mode-toggle">
                     {internalMode ?
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg> :
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7" /><path d="M20 18v-2a4 4 0 0 0-4-4H4" /></svg>}
-                    <span className="om-tool-hint" data-comment-anchor="3300cab192-span-824-21">{internalMode ? "Nota interna" : "Resposta"} <kbd>⌘⇧N</kbd></span>
+                    <span className="om-tool-hint">{internalMode ? "Nota interna" : "Resposta"} <kbd>⌘⇧N</kbd></span>
                   </button>
                   <button className="om-tool-btn" onClick={() => {setShowTpl((v) => !v);setShowMacros(false);}}
                   aria-label="Templates do canal (⌘T)" title="Templates" disabled={internalMode}>
@@ -1074,7 +1074,7 @@
         {conv && ctxDrawerOpen &&
           <>
           <div className="om-backdrop" onClick={() => setCtxDrawerOpen(false)} />
-          <aside className="om-drawer om-ctx-drawer" data-comment-anchor="b9c6f94e89-div-862-13">
+          <aside className="om-drawer om-ctx-drawer">
             <header className="om-drawer-h">
               <div><h2>Contexto</h2><p>{conv.name}{conv.company ? " · " + conv.company : ""}</p></div>
               <button className="om-x" onClick={() => setCtxDrawerOpen(false)} aria-label="Fechar">✕</button>

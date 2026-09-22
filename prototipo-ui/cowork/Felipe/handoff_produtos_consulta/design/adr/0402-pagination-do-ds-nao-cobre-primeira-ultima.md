@@ -38,5 +38,5 @@ padrão. Duas telas já precisaram do mesmo desvio (Contatos em produção e Pro
 
 ## Referências
 
-- `_ds/office-impresso-atual-d7f88676-…/_ds_bundle.js` — `Pagination`.
+- `_ds/wagner-office-impresso-design-system-49a36f76-…/_ds_bundle.js` — `Pagination`. (O caminho citado na medição original, `_ds/office-impresso-atual-d7f88676-…`, foi apagado em 21/09/2026.)
 - `design/CHECKLIST-15D-consulta-produtos.md` Anexo A, AP2.

@@ -33,7 +33,7 @@ isso é o que torna a Fabricação a exceção, não o contrário.
 **A afirmação "não consome nenhum componente do DS" é da própria família, verbatim:**
 *"**Nenhum componente compilado do DS é consumido** por esta família: `_ds_bundle.js` não é
 carregado. Só os tokens de `colors_and_type.css`."* — `handoff_fabricacao/design/README.md` L87-88.
-Conferência independente: `grep -n "_ds_bundle\|OfficeImpressoDesignSystem_49a36f"` em
+Conferência independente: `grep -n "_ds_bundle\|OfficeImpressoPontoWR2DesignSystem_019dd0"` em
 `handoff_fabricacao/design/` e nos `manufacturing-*.jsx` da raiz volta **0 ocorrência de import**
 (a única linha que casa é a frase acima, no README).
 

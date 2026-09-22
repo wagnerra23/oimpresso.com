@@ -24,7 +24,7 @@ Levantamento original, antes da execução.
 
 Não são tela e não entram: `funcoes-perms.jsx` L105-107 (catálogo de permissões `manufatura`), `icons.jsx` (primitivo de ícone), `handoff_fabricacao/design/adr/*` e os `.md` de conferência.
 
-**Ponto de partida:** zero componente do DS consumido — `grep "_ds_bundle|OfficeImpressoDesignSystem_49a36f"` nas duas árvores volta 0 import.
+**Ponto de partida:** zero componente do DS consumido — `grep "_ds_bundle|OfficeImpressoPontoWR2DesignSystem_019dd0"` nas duas árvores volta 0 import.
 
 ---
 

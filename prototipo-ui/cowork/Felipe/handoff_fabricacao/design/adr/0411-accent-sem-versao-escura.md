@@ -63,6 +63,6 @@ borda e anel** no tema escuro; texto que precisa de destaque usa `--text` com pe
 
 ## Referências
 
-- `_ds/office-impresso-design-system-019dd02f-…/colors_and_type.css` L274-341
+- `_ds/wagner-office-impresso-design-system-49a36f76-…/colors_and_type.css` L274-341 (espelho único desde 21/09/2026)
 - `design/LAUDO-conferencia-fabricacao.md` §4
 - `contexto/pauta-design-system.md`

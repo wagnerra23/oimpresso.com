@@ -70,7 +70,7 @@ function VendasModule({ initialSub, pdv }) {
     <div className="vendas-module vendas-module-no-subnav">
       {/* Sub-nav agora é EM PÁGINA (VdModNav), abaixo do page header de cada tela
            — [W] 2026-06-11 "page header fica abaixo do header". */}
-      <div className="vm-body" data-comment-anchor="4a676990e2-div-63-7">{body}</div>
+      <div className="vm-body">{body}</div>
       {pdvOpen && <VendasPDVOverlay onClose={() => setPdvOpen(false)} />}
     </div>);
 

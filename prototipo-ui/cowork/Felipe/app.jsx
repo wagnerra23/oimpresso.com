@@ -882,7 +882,7 @@ function App() {
     const CRM_VIEW = { "crm": "painel", "crm-painel": "painel", "crm-leads": "leads", "crm-followups": "acompanhamentos", "crm-campanhas": "campanhas", "crm-logins": "logins", "crm-comissoes": "comissoes", "crm-chamadas": "chamadas", "crm-relatorios": "relatorios", "crm-modelo": "modelo", "crm-propostas": "propostas", "crm-marketplace": "marketplace", "crm-pedidos": "pedidos", "crm-taxonomias": "taxonomias", "crm-config": "config" };
     content = CRM_VIEW[route] ? <window.CrmBladePage view={CRM_VIEW[route]} /> : <ModuleStub routeId={route} />;
   }else
-  if (route === "inbox") content = <window.InboxPage data-comment-anchor="0aa4565a1c-small-841-23" />;else
+  if (route === "inbox") content = <window.InboxPage />;else
   if (route === "equipe") content = <window.EquipePage />;else
   if (route === "kb") content = <window.KBPage />;else
   if (route === "documentacao") content = <window.DocumentacaoPage />;else
