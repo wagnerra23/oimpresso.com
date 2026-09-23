@@ -103,7 +103,6 @@ function Abas({ tipo, contagens }: { tipo: Tipo; contagens: Record<Tipo, number>
 }
 
 function Lista({ tipo, linhas, onEditar }: { tipo: Tipo; linhas?: Linha[]; onEditar: (id: number) => void }) {
-
   const lista = linhas ?? [];
   const [erro, setErro] = useState<string | null>(null);
 
