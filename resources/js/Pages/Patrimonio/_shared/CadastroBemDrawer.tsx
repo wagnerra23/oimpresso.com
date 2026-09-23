@@ -132,6 +132,7 @@ export default function CadastroBemDrawer({ aberto, onClose, locais, categorias,
   const [f, setF] = useState<FormCadastroBem>(() => vazio(locais, categorias));
   const [erros, setErros] = useState<Record<string, string>>({});
   const [enviando, setEnviando] = useState(false);
+  const semCategoria = Object.keys(categorias).length === 0;
 
   // Reabrir começa do zero — um cadastro não herda o rascunho do anterior.
   useEffect(() => {
@@ -206,6 +207,17 @@ export default function CadastroBemDrawer({ aberto, onClose, locais, categorias,
                 <Campo id="cb-categoria" rotulo="Categoria" erro={erros.categoriaId}>
                   <Opcoes id="cb-categoria" valor={f.categoriaId} onChange={(v) => set('categoriaId', v)}
                     opcoes={categorias} placeholder="Escolha a categoria" invalido={!!erros.categoriaId} />
+                  {semCategoria ? (
+                    // Empresa sem NENHUMA categoria de ativo: a categoria é obrigatória (Blade e
+                    // protótipo), então sem isto o cadastro fica impossível e mudo. Medido em prod
+                    // biz=1 em 2026-09-23 (`opcoes.categorias = []`). O cadastro de categoria é a
+                    // página Blade `/taxonomies?type=asset` (200, página inteira — medido), que só
+                    // era alcançável pela navegação Blade antiga.
+                    <small className="text-muted-foreground" data-testid="sem-categoria">
+                      Nenhuma categoria de ativo cadastrada.{' '}
+                      <a href="/taxonomies?type=asset" className="underline">Cadastrar categorias</a>
+                    </small>
+                  ) : null}
                 </Campo>
                 <Campo id="cb-local" rotulo="Local" erro={erros.localId}>
                   <Opcoes id="cb-local" valor={f.localId} onChange={(v) => set('localId', v)}

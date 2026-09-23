@@ -123,6 +123,9 @@ last_run: "2026-09-23"
   `unit_price=1234,56`, `quantity=2` e a data no formato do negócio, e o banco grava
   `unit_price = 1234.5600`, `quantity = 2.0000`, no business da sessão, com código gerado pelo
   servidor e a garantia (início + N meses) quando informada. Form incompleto não posta.
+  Empresa **sem nenhuma categoria de ativo** (caso real de biz=1, medido em 2026-09-23): o drawer
+  diz "Nenhuma categoria de ativo cadastrada" e aponta `/taxonomies?type=asset`, em vez de
+  travar o cadastro sem explicação.
 - **Teste (dupla prova — REGRA MESTRE de valor/estoque):**
   - caminho 1 — `tests/js/patrimonio-cadastro-bem.test.tsx`: as strings exatas do payload,
     e o drawer real postando o que o serializador monta;
