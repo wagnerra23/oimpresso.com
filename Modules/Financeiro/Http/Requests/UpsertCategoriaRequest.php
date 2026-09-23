@@ -20,7 +20,9 @@ class UpsertCategoriaRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        // Gate principal: CategoriaController::__construct (can:financeiro.lancamentos.create).
+        // Re-check aqui = defesa em profundidade (mesmo padrão do StoreTituloRequest).
+        return $this->user()?->can('financeiro.lancamentos.create') ?? false;
     }
 
     public function rules(): array

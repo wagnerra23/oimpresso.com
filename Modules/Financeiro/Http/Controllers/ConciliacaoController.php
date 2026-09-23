@@ -49,6 +49,17 @@ use Modules\Financeiro\Services\FinanceiroAuditLogger;
  */
 class ConciliacaoController extends Controller
 {
+    /**
+     * Gate de permissão (Camada 3 Spatie). Até 2026-09-23 este controller não
+     * verificava permissão nenhuma — rota e FormRequest só exigiam login.
+     * O escopo por business_id segue no corpo dos métodos; isto fecha o acesso
+     * DENTRO da empresa. Admin#{biz} passa pelo Gate::before (AuthServiceProvider).
+     */
+    public function __construct()
+    {
+        $this->middleware('can:financeiro.conciliacao.manage');
+    }
+
     public function index(Request $request): Response
     {
         $businessId = (int) session('user.business_id');

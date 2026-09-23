@@ -5,8 +5,15 @@ irmaos: charter ao lado (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-09-23"
 ---
+
+> ℹ️ **`last_run` 2026-09-11 → 2026-09-23 (G-6) — FIN-1: o que mudou na tela foi só FORMA.**
+> O [#7767](https://github.com/wagnerra23/oimpresso.com/pull/7767) trocou em `Index.tsx` a paleta fixa (`stone-*`/`emerald-*`/`rose-*`/`bg-white`)
+> pelos tokens do tema, o rótulo do primário ("Novo lançamento" → "Novo título") e o do export ("Exportar PDF" → "PDF" com ícone).
+> Zero handler, prop, rota, cálculo ou formatador alterado (nenhuma linha com `brl`/`toFixed`/`pct_rl`/`delta_pct` fora de `className`).
+> Nenhum UC abaixo cita esses rótulos ou cores; o UC-DRE-04 (períodos desativados) segue igual. **Nenhum UC foi reexecutado**:
+> o bump registra *trio reconciliado com a tela nesta data*, mesmo tratamento das entradas abaixo.
 
 > ℹ️ **`last_run` 2026-08-17 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
