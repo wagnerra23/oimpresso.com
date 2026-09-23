@@ -33,13 +33,13 @@ Visão da estrutura contábil BR (plano de contas hierárquico, ~47 entries seed
 - KPI strip `FinStatStrip`: total de contas + contagem por tipo (receita/despesa/ativo/passivo+patrim.).
 - Filtro por tipo (radiogroup client-side) + busca por código/nome (`useMemo` client-side).
 - Empty state com instrução de seed quando o business ainda não tem plano.
-- Header canon `<PageHeader>` v3.8 + `FinanceiroSubNav` + primary "Nova conta" → `/financeiro/plano-contas/create`.
+- Header canon `<PageHeader>` v3.8 + `FinanceiroSubNav` + primary "Novo título" → `/financeiro/unificado/novo` (FIN-6, 2026-09-23: igual ao protótipo e às outras telas do Financeiro; o primário anterior, "Nova conta", apontava para `/financeiro/plano-contas/create`, rota que não existe — 404 medido em prod).
 
 ---
 
 ## Non-Goals — Features (NÃO faz)
 - ❌ NÃO altera cálculo de valor, saldo ou estoque — é cadastro/estrutura contábil, sem efeito financeiro.
-- ❌ NÃO cria/edita/exclui conta nesta Page (index é read-only; o Controller só tem `index`; "Nova conta" navega pra rota `create` não coberta por este charter).
+- ❌ NÃO cria/edita/exclui conta nesta Page (index é read-only; o Controller só tem `index`). O primário "Novo título" cria um **título** no Unificado (`/financeiro/unificado/novo`), não uma conta do plano — a tela segue read-only para o plano de contas.
 - ❌ NÃO lança nem baixa títulos.
 - ❌ NÃO cruza dados entre businesses — query filtra por `business_id` (session `user.business_id`), plano é seedado por tenant; nunca cross-tenant.
 
