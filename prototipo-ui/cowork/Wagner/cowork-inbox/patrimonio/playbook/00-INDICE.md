@@ -468,22 +468,22 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
         "resources/js/",
         "Modules/AssetManagement/"
       ],
-      "nota_provas": "thread de RECONCILIACAO: nao escreve codigo de app. Corrige 3 paths de prova (Alocacoes/Manutencoes/Configuracoes) para o layout flat que esta em producao, igual ja se fez para Bens em 08/09. Prova = o placar deixar de dizer 'pendente · arquivo ausente' para tela viva.",
+      "nota_provas": "thread de RECONCILIACAO: nao escreve codigo de app. Corrige 3 paths de prova (Alocacoes/Manutencoes/Configuracoes) para o layout flat que esta em producao, igual ja se fez para Bens em 08/09. Prova = o placar deixar de dizer 'pendente · arquivo ausente' para tela viva. ERRATA 2026-09-23: as 3 provas eram `contem` do caminho flat no indice inteiro, e ja passavam antes da execucao porque a thread 16 cita `Pages/Patrimonio/Alocacoes.tsx`. Agora sao `nao_contem` do caminho em SUBPASTA, que so aparece nas provas de 09/10/11: a thread 14 so fica verde quando esses 3 paths saem de la.",
       "provas": [
         {
-          "tipo": "contem",
+          "tipo": "nao_contem",
           "path": "prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md",
-          "padrao": "Pages/Patrimonio/Alocacoes.tsx"
+          "padrao": "Pages/Patrimonio/Alocacoes/Index.tsx"
         },
         {
-          "tipo": "contem",
+          "tipo": "nao_contem",
           "path": "prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md",
-          "padrao": "Pages/Patrimonio/Manutencoes.tsx"
+          "padrao": "Pages/Patrimonio/Manutencoes/Index.tsx"
         },
         {
-          "tipo": "contem",
+          "tipo": "nao_contem",
           "path": "prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md",
-          "padrao": "Pages/Patrimonio/Configuracoes.tsx"
+          "padrao": "Pages/Patrimonio/Configuracoes/Index.tsx"
         },
         {
           "tipo": "arquivo",
