@@ -4,8 +4,15 @@ casos: Impostos & obrigações · /financeiro/impostos
 irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-06-10"
+last_run: "2026-09-23"
 ---
+
+> ℹ️ **`last_run` 2026-06-10 → 2026-09-23 (G-6) — FIN-3: o que mudou na tela foi só FORMA.**
+> O [#7776](https://github.com/wagnerra23/oimpresso.com/pull/7776) trocou em `Index.tsx` as cores dos selos de status (mesmos rótulos:
+> "a vencer" · "paga" · "atrasada"), o tamanho/tom dos KPIs, o raio/borda das seções, o título ("&" → "e") e acrescentou o primário
+> "Novo título" (só navega). Zero cálculo, prop, rota ou handler alterado: o "Lançar a pagar" (`POST /financeiro/impostos/lancar`) e o
+> aviso de estimativa seguem idênticos. Nenhum UC cita as cores ou tamanhos trocados. **Nenhum UC foi reexecutado**: o bump registra
+> *trio reconciliado com a tela nesta data*.
 
 # Casos de uso — /financeiro/impostos (F2 PR-2)
 
