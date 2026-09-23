@@ -392,7 +392,7 @@ it('aba=balancete: conta-folha com código só de dígitos não derruba o balanc
     // agregador estourava TypeError sob strict_types. Os outros casos deste arquivo PULAM com
     // balancete vazio, por isso nunca exercitaram o defeito.
     //
-    // Tenant fictício 98 (ADR 0358), nunca o Business::first() — no CT 100 a base é clone de
+    // Tenant fictício 98 (ADR 0358), nunca o primeiro business do banco — no CT 100 a base é clone de
     // produção. `fin_titulos` não aceita DELETE, então tudo roda em transação desfeita.
     $business = $this->seededTenant();
     $user = User::where('business_id', $business->id)->first();
