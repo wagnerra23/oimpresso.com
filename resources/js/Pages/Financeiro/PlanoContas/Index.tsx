@@ -148,7 +148,8 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
           <div className="min-w-0">
             <div className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-dim)] font-medium whitespace-nowrap">Plano de contas</div>
             <div className="text-[length:var(--fs-5)] font-semibold mt-0.5 whitespace-nowrap">
-              Receita Federal/DCASP · {niveis} {niveis === 1 ? 'nível' : 'níveis'}
+              {/* Plano vazio não tem profundidade: "0 níveis" (1ª captura) lia como defeito. */}
+              Receita Federal/DCASP · {niveis === 0 ? 'sem contas' : `${niveis} ${niveis === 1 ? 'nível' : 'níveis'}`}
             </div>
           </div>
           <div className="ml-auto shrink-0 fin-search-wrap">
