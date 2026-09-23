@@ -31,7 +31,10 @@ entregue 1 de 1 prova do índice · 5 de 18 UC do F1 cobertos · ausentes os out
 
 - Não copiei o charter/casos completos do [CC] (`../Index.charter.md`, 18 UC): Non-Goals e
   Anti-hooks são decisão [W], e UC sem teste que o cite reprova o casos-gate.
-- Não mexi no whitelist `type` (`in:page,post,banner`, pedido §3.b) — é decisão [W] (fase 3).
+- Não mexi no whitelist `type`. ⚠️ Corrigido depois de escrito: o pedido §3.b (e a 1ª versão deste
+  recibo) dizia que Store/Update validavam `in:page,post,banner` — **não validavam**, o #5992 já os
+  alinhara. Sobrava só o `DeleteCmsPageRequest`, sem uso; [W] decidiu remover `post`/`banner` e isso
+  foi no #7869.
 - Não rodei o Pest no CT 100: o checkout de lá fica atrás do `main` e não se dá `git pull`
   sem combinar. O veredito vem da lane `verticais-pest` no PR.
 - Smoke em produção (R1) fica para depois do merge, que é do [W].

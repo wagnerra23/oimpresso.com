@@ -30,7 +30,7 @@ US-CMS-004 do [SPEC](SPEC.md).
 |---|---|---|---|
 | **1** | Lista `Admin/Content/Index.tsx` + `index()` → `Inertia::render` + contrato UC-CMS-01/02/03/20/21 | `page/index.blade.php` (fica órfã; delete na F5) | este PR |
 | 2 | Editor em drawer PT-02 (`create/edit`), derivação de `meta_description` no servidor (R7) | `page/create`, `page/edit` | pendente |
-| 3 | `destroy` recusa `layout` preenchido no servidor (UC-CMS-09) + fix do whitelist `type` (pedido §3.b) | — | pendente · decisão [W] no whitelist |
+| 3 | `destroy` recusa `layout` preenchido no servidor (UC-CMS-09) | — | pendente · o whitelist `type` saiu antes, no #7869 (decisão [W] 2026-09-23) |
 | 4 | Detalhes do site (`SettingsController`) | `settings/index` + 8 partials | pendente |
 | 5 | Cutover: apagar Blades órfãs + charter `live` com screenshot [W2] | todas acima | pendente |
 
