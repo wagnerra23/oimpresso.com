@@ -79,7 +79,7 @@ lifecycle: ativo
 | `dup-detector-gate.yml` | pr+manual | `memory/decisions/0331-anti-duplicacao-work-claim-gate.md` +2 | Dup detector (advisory · L3 anti-duplicação de trabalho entre sessões paralelas · arquivo hot-path em PR aberto sem Dedup-ack · proposta anti-duplicacao-work-claim-gate) |
 | `e2e-gate.yml` | pr+manual | `memory/decisions/0339-promocao-soberana-3-gates-ratchet-ds-required-emenda-0336.md` +6 | E2E Playwright (UCs críticos) — G-3 |
 | `eslint-gate.yml` | pr+push+manual | `memory/decisions/0338-ds-lint-eixo-valor-token-fecha-por-forma.md` +10 | ESLint 9 (ADR 0209) |
-| `essentials-pest.yml` | pr+push+manual | `memory/requisitos/Essentials/RUNBOOK-licencas.md` +6 | Essentials · Pest (MySQL) |
+| `essentials-pest.yml` | pr+push+manual | `memory/requisitos/Essentials/RUNBOOK-licencas.md` +7 | Essentials · Pest (MySQL) |
 | `estoque-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +14 | Estoque · Pest (MySQL) — movimentação de saldo (venda/compra/devolução) roda no MySQL real; skip no sqlite = verde mente |
 | `exposicao-tier0-sentinel.yml` | cron+manual | `memory/requisitos/_Governanca/programa-ondas/onda-1-sells/1.5-catraca-sentinela.md` +1 | Exposição Tier-0 — sentinela de cadência (Onda 0c · débito Tier-0 por tela dinheiro/estoque/PII/fiscal × cobertura de comportamento · cron semanal + tendência + issue dur… |
 | `fin-hero-gate.yml` | pr+push+manual | (só sessão/handoff · 1) | Fin Hero Gate — KPI hero claro (anti-regressão Onda 28) |
@@ -170,7 +170,7 @@ lifecycle: ativo
 | `typecheck-gate.yml` | pr+push+manual | — | TypeScript (ratchet vs baseline) — catraca de erros do `tsc --noEmit` por par arquivo\|codigoTS vs config/typecheck-baseline.json. Congela o debito atual e reprova so REGR… |
 | `ui-architecture-gate.yml` | pr+push+manual | `memory/decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md` +12 | UI architecture gate |
 | `verticais-pest.yml` | pr+push+manual | `memory/requisitos/Repair/SPEC.md` +2 | Verticais · Pest (MySQL) — ComunicacaoVisual/Repair/Vestuario rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde |
-| `visual-regression.yml` | pr+manual | `memory/decisions/0411-snapshot-de-pixel-fora-do-passo-3-da-0409.md` +142 | Visual Regression (Pest 4 Browser) |
+| `visual-regression.yml` | pr+manual | `memory/decisions/0411-snapshot-de-pixel-fora-do-passo-3-da-0409.md` +143 | Visual Regression (Pest 4 Browser) |
 | `whatsapp-pest.yml` | pr+push+manual | `memory/08-handoff.md` +1 | Whatsapp · Pest (MySQL) |
 | `xss-content-gate.yml` | pr+push | — | XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo) |
 
