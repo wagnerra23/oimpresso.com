@@ -1874,12 +1874,17 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         {/* FIN-8: no protótipo a busca fica na MESMA linha dos filtros; aqui ela caía para a linha de
             baixo por 8px (itens 1233px + 7 gaps de 10px numa barra de 1295px, medido em prod a 1610px —
             as contagens dos chips mudam com o dado). A direita passa a ocupar o que sobra e a busca
-            encolhe de 240 até 160px antes de quebrar. Escopo local: o CSS .fin-toolbar-r é compartilhado. */}
-        <div className="fin-toolbar-r flex-1 min-w-0 justify-end">
+            encolhe de 240 até 160px antes de quebrar. Escopo local: o CSS .fin-toolbar-r é compartilhado.
+            SEM `min-w-0` no bloco: com ele o bloco encolhia abaixo do conteúdo e a linha TRANSBORDAVA em
+            vez de quebrar — a busca cobria o seletor de plano e a densidade saía da tela (medido no
+            fluxo selecionar-lote do visual-regression, 1280 e 1440). O `min-w-0` vai no <input>, que
+            tem largura mínima própria e vazava do contorno da busca. */}
+        <div className="fin-toolbar-r flex-1 justify-end">
           <div className="fin-search-wrap !w-auto flex-1 min-w-[160px] max-w-[240px]">
             <Search className="h-3.5 w-3.5" aria-hidden="true" />
             <input
               id="fin-search-input"
+              className="min-w-0"
               placeholder="Filtrar nesta lista…"
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
