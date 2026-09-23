@@ -468,29 +468,8 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
         "resources/js/",
         "Modules/AssetManagement/"
       ],
-      "nota_provas": "thread de RECONCILIACAO: nao escreve codigo de app. Corrige 3 paths de prova (Alocacoes/Manutencoes/Configuracoes) para o layout flat que esta em producao, igual ja se fez para Bens em 08/09. Prova = o placar deixar de dizer 'pendente · arquivo ausente' para tela viva. ERRATA 2026-09-23: as 3 provas eram `contem` do caminho flat no indice inteiro, e ja passavam antes da execucao porque a thread 16 cita `Pages/Patrimonio/Alocacoes.tsx`. Agora sao `nao_contem` do caminho em SUBPASTA, que so aparece nas provas de 09/10/11: a thread 14 so fica verde quando esses 3 paths saem de la.",
-      "provas": [
-        {
-          "tipo": "nao_contem",
-          "path": "prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md",
-          "padrao": "Pages/Patrimonio/Alocacoes/Index.tsx"
-        },
-        {
-          "tipo": "nao_contem",
-          "path": "prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md",
-          "padrao": "Pages/Patrimonio/Manutencoes/Index.tsx"
-        },
-        {
-          "tipo": "nao_contem",
-          "path": "prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md",
-          "padrao": "Pages/Patrimonio/Configuracoes/Index.tsx"
-        },
-        {
-          "tipo": "arquivo",
-          "path": "resources/js/Pages/Patrimonio/_shared/PatrimonioSubNav.tsx",
-          "guarda": true
-        }
-      ]
+      "nota_provas": "thread de RECONCILIACAO: nao escreve codigo de app. Corrige 3 paths de prova (Alocacoes/Manutencoes/Configuracoes) para o layout flat que esta em producao, igual ja se fez para Bens em 08/09. Prova = o placar deixar de dizer 'pendente · arquivo ausente' para tela viva. ERRATA 2026-09-23: provas = [] de proposito. Qualquer prova contem/nao_contem sobre ESTE indice e autorreferente: o padrao fica escrito na propria prova, entao `contem` passa sempre (as 3 originais ja passavam antes da execucao) e `nao_contem` nunca passa (medido: com as 3 provas de 09/10/11 corrigidas, seguia vermelha). Como a 04 e a 15, a 14 conta como feita pelo _saida-14.md; o efeito observavel e 09/10/11 deixarem de acusar \"arquivo ausente\" no placar.",
+      "provas": []
     },
     {
       "id": "15",
