@@ -16,6 +16,20 @@ import { Textarea } from '@/Components/ui/textarea';
 
 export type Tipo = 'page' | 'blog' | 'testimonial';
 
+interface ItemDestaque {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+/** Registro `feature` da home — o que o FeatureGrid de `/` mostra (fase 2b). */
+export interface Destaques {
+  id: number | null;
+  title: string;
+  description: string;
+  content: ItemDestaque[];
+}
+
 export interface Editando {
   id: number;
   titulo: string;
@@ -26,10 +40,12 @@ export interface Editando {
   publicada: boolean;
   layout: string | null;
   imagem_url: string | null;
+  destaques: Destaques | null;
 }
 
 const BASE = '/cms/cms-page';
 const LIMITE_SEO = 160;
+const MAX_DESTAQUES = 12;
 
 function rotulos(tipo: Tipo, layout: string | null) {
   if (tipo === 'testimonial') return { titulo: 'Nome de quem depõe', corpo: 'Depoimento', imagem: 'Foto' };
@@ -56,17 +72,30 @@ export default function Editor({ tipo, item, aberto, onFechar }: Props) {
     is_enabled: item?.publicada ?? true,
     type: tipo,
     feature_image: null as File | null,
+    destaques: item?.destaques ?? null,
   });
+
+  function mudarItem(i: number, campo: keyof ItemDestaque, valor: string) {
+    const d = form.data.destaques;
+    if (!d) return;
+    form.setData('destaques', { ...d, content: d.content.map((c, k) => (k === i ? { ...c, [campo]: valor } : c)) });
+  }
 
   function salvar(e: FormEvent) {
     e.preventDefault();
     const opcoes = { forceFormData: true, preserveScroll: true, onSuccess: onFechar };
     if (item) {
       // PUT com arquivo precisa de method spoofing: multipart não viaja em PUT real.
-      form.transform((d) => ({ ...d, is_enabled: d.is_enabled ? 1 : '', _method: 'put' }));
+      // O servidor já grava `meta[feature]` por CmsPageMeta::updateOrCreateMetaForPage.
+      form.transform(({ destaques, ...d }) => ({
+        ...d,
+        is_enabled: d.is_enabled ? 1 : '',
+        _method: 'put',
+        ...(destaques ? { meta: { feature: destaques } } : {}),
+      }));
       form.post(`${BASE}/${item.id}`, opcoes);
     } else {
-      form.transform((d) => ({ ...d, is_enabled: d.is_enabled ? 1 : '' }));
+      form.transform(({ destaques: _d, ...d }) => ({ ...d, is_enabled: d.is_enabled ? 1 : '' }));
       form.post(BASE, opcoes);
     }
   }
@@ -127,11 +156,37 @@ export default function Editor({ tipo, item, aberto, onFechar }: Props) {
             <Label htmlFor="is_enabled">{form.data.is_enabled ? 'Publicada' : 'Rascunho'}</Label>
           </div>
 
-          {item?.layout === 'home' && (
-            <p className="rounded-md border px-3 py-2 text-xs text-muted-foreground">
-              Os blocos de destaques e segmentos da página inicial ainda são editados na{' '}
-              <a className="underline" href={`${BASE}/${item.id}/edit?type=${tipo}`}>tela anterior</a>.
-            </p>
+          {form.data.destaques && (
+            <fieldset className="flex flex-col gap-3 rounded-md border p-3" data-contract="cms.content.destaques">
+              <legend className="px-1 text-sm font-medium">Destaques da página inicial</legend>
+              <p className="text-xs text-muted-foreground">
+                É a grade de recursos do site. Item sem título não aparece; ícone é um emoji.
+              </p>
+              <Input aria-label="Título da seção" value={form.data.destaques.title}
+                onChange={(e) => form.setData('destaques', { ...form.data.destaques!, title: e.target.value })} />
+              <Textarea aria-label="Texto da seção" rows={2} value={form.data.destaques.description}
+                onChange={(e) => form.setData('destaques', { ...form.data.destaques!, description: e.target.value })} />
+              {form.data.destaques.content.map((c, i) => (
+                <div key={i} className="grid grid-cols-[3.5rem_1fr_auto] items-start gap-2">
+                  <Input aria-label={`Ícone do destaque ${i + 1}`} value={c.icon} onChange={(e) => mudarItem(i, 'icon', e.target.value)} />
+                  <div className="flex flex-col gap-1">
+                    <Input aria-label={`Título do destaque ${i + 1}`} value={c.title} onChange={(e) => mudarItem(i, 'title', e.target.value)} />
+                    <Textarea aria-label={`Descrição do destaque ${i + 1}`} rows={2} value={c.description}
+                      onChange={(e) => mudarItem(i, 'description', e.target.value)} />
+                  </div>
+                  <Button type="button" variant="ghost" size="sm" aria-label={`Remover destaque ${i + 1}`}
+                    onClick={() => form.setData('destaques', { ...form.data.destaques!, content: form.data.destaques!.content.filter((_, k) => k !== i) })}>
+                    Remover
+                  </Button>
+                </div>
+              ))}
+              {form.data.destaques.content.length < MAX_DESTAQUES && (
+                <Button type="button" variant="outline" size="sm" className="self-start"
+                  onClick={() => form.setData('destaques', { ...form.data.destaques!, content: [...form.data.destaques!.content, { icon: '✨', title: '', description: '' }] })}>
+                  Adicionar destaque
+                </Button>
+              )}
+            </fieldset>
           )}
 
           <div className="flex justify-end gap-2 pt-2">

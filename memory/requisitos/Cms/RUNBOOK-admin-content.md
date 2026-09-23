@@ -29,8 +29,8 @@ US-CMS-004 do [SPEC](SPEC.md).
 | Fase | Entrega | Blade que morre | Status |
 |---|---|---|---|
 | **1** | Lista `Admin/Content/Index.tsx` + `index()` → `Inertia::render` + contrato UC-CMS-01/02/03/20/21 | `page/index.blade.php` (fica órfã; delete na F5) | #7865 |
-| **2** | Editor em drawer PT-02 (`_components/Editor.tsx`), derivação de `meta_description` no servidor (R7) + UC-CMS-04/05/22/23 | `page/create` (sem link; delete na F5) | este PR |
-| 2b | Blocos `feature`/`industry` da página inicial no drawer (R4, UC-CMS-08) | `page/edit` + `partials/{features,industries}` | pendente — até lá o drawer linka a Blade só para `layout=home` |
+| **2** | Editor em drawer PT-02 (`_components/Editor.tsx`), derivação de `meta_description` no servidor (R7) + UC-CMS-04/05/22/23 | `page/create` (sem link; delete na F5) | #7871 |
+| **2b** | Destaques (`feature`) da home no drawer **e ligados à `/`** (caminho A, [W] 2026-09-23) + UC-CMS-08/24/25 | `page/edit` + `partials/features` (sem link; delete na F5) | este PR · `industry` fora: a home nova não tem seção de segmentos (decisão [W]) |
 | 3 | `destroy` recusa `layout` preenchido no servidor (UC-CMS-09) | — | pendente · o whitelist `type` saiu antes, no #7869 (decisão [W] 2026-09-23) |
 | 4 | Detalhes do site (`SettingsController`) | `settings/index` + 8 partials | pendente |
 | 5 | Cutover: apagar Blades órfãs + charter `live` com screenshot [W2] | todas acima | pendente |
@@ -70,3 +70,18 @@ US-CMS-004 do [SPEC](SPEC.md).
 - **Aviso de endereço** ao mudar o título de página livre (A2) — o 404 do link antigo é real (R9).
 - **Não entrou:** prévia computador/celular do F1, blocos da home (2b), ações em lote, arrasto de ordem.
   O corpo é `textarea` de HTML — TinyMCE só com decisão [W] (F1 §6).
+
+## Fase 2b — destaques da home (caminho A)
+
+- **Achado que mudou o plano:** o painel gravava `feature`/`industry` como JSON, mas a home Inertia
+  (`FeatureGrid.tsx`) procurava chaves `feature_N_title` que **ninguém grava** — o site sempre caiu no
+  texto fixo do componente, e editar no painel não mudava nada em oimpresso.com. `industry` não aparece
+  na home nova. [W] escolheu ligar a home ao painel (A).
+- **Produção medida (2026-09-23, leitura):** o `feature` da home (página 3) é o seed do UltimatePOS
+  de 2022-10-20, em inglês, nunca editado. A migration `2026_09_23_180000_…` troca **só esse seed**
+  pelo texto que o site já mostra (cópia literal do fallback — conferida item a item: 8/8 iguais,
+  título e texto da seção iguais). Conteúdo editado fica intocado. Site idêntico antes→depois.
+- `FeatureGrid` lê o registro `feature` (título, texto, itens com título); cai no fallback se não houver.
+  Ícone em classe FontAwesome do seed vira ✨ em vez de aparecer como texto.
+- **Efeito colateral declarado:** a home antiga `/old` (Blade) desenha o ícone como `<i class>`
+  FontAwesome — com emoji ela perde os ícones dos destaques. É o fallback legado; morre na fase 5.

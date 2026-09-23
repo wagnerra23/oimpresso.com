@@ -82,6 +82,29 @@ class CmsPageController extends Controller
             'publicada' => (bool) $p->is_enabled,
             'layout' => $p->layout,
             'imagem_url' => $p->feature_image_url,
+            // Fase 2b — só a home tem destaques (R4); é o que o FeatureGrid da `/` mostra.
+            'destaques' => $p->layout === 'home' ? $this->buildDestaquesPayload($p->id) : null,
+        ];
+    }
+
+    /** Registro `feature` da home, no formato que `CmsPageMeta::updateOrCreateMetaForPage` grava. */
+    private function buildDestaquesPayload(int $pageId): array
+    {
+        $meta = CmsPageMeta::where('cms_page_id', $pageId)->where('meta_key', 'feature')->first();
+        $j = $meta ? (json_decode((string) $meta->meta_value, true) ?: []) : [];
+
+        return [
+            'id' => $meta?->id,
+            'title' => (string) ($j['title'] ?? ''),
+            'description' => (string) ($j['description'] ?? ''),
+            'content' => collect($j['content'] ?? [])
+                ->map(fn ($c) => [
+                    'icon' => (string) ($c['icon'] ?? ''),
+                    'title' => (string) ($c['title'] ?? ''),
+                    'description' => (string) ($c['description'] ?? ''),
+                ])
+                ->values()
+                ->all(),
         ];
     }
 

@@ -13,7 +13,7 @@ last_run_ci: "_pendente_ — o trio nasce na thread Cms/01. O veredito por UC en
 
 > **Âncora:** UC-CMS-01/02/03 e regras R3/R6/A1 do F1 do Cowork
 > (`prototipo-ui/cowork/Wagner/cowork-inbox/cms/CMS-F1-2026-08-19.md` §2/§3). UC-CMS-20/21 são
-> da fase 1 (a lista); UC-CMS-04/05/22/23 são da fase 2 (o editor), sobre R2/R5/R7/A2. Os demais 15 UC do F1 (blocos da home,
+> da fase 1 (a lista); UC-CMS-04/05/22/23 são da fase 2 (o editor), sobre R2/R5/R7/A2; UC-CMS-08/24/25 da fase 2b (destaques da home, R4). Os demais 15 UC do F1 (segmentos `industry`,
 > exclusão no servidor, lote, demo, formulário público) entram com as fases 2b–4 do RUNBOOK — não estão
 > declarados aqui porque ainda não têm teste que os cite.
 
@@ -107,5 +107,35 @@ Status: 🧪
 **Dado** uma página com descrição escrita à mão
 **Quando** ela é salva por um caminho que não envia o campo (a tela anterior)
 **Então** a descrição continua a mesma; se o campo vier vazio de propósito, é derivada do conteúdo.
+
+Status: 🧪
+
+---
+
+## UC-CMS-08 · Só a página inicial tem destaques · `must`
+
+**Dado** a página inicial e uma página livre
+**Quando** abro cada uma no drawer
+**Então** a inicial traz a seção de destaques (título, texto e itens) e a livre não (R4).
+
+Status: 🧪
+
+---
+
+## UC-CMS-24 · Salvar os destaques muda a home pública · `must`
+
+**Dado** a página inicial aberta no drawer
+**Quando** mudo um destaque e salvo
+**Então** o registro `feature` que a home de `/` lê é regravado — sem criar um segundo registro.
+
+Status: 🧪
+
+---
+
+## UC-CMS-25 · A virada não troca o site nem apaga edição · `must` `[T0]`
+
+**Dado** o registro de destaques ainda com o conteúdo de instalação em inglês
+**Quando** a migration da fase 2b roda
+**Então** ele passa a ser o texto que o site já mostrava; e se alguém já tinha editado, nada muda.
 
 Status: 🧪

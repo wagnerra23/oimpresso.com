@@ -196,3 +196,78 @@ it('UC-CMS-22 · o drawer recebe a linha pedida, e só por partial reload', func
         ->get(ROTA_CMS.'?type=page&editar='.$p->id)
         ->assertInertia(fn (AssertableInertia $pg) => $pg->missing('editando'));
 });
+
+// ── Fase 2b · destaques da página inicial (caminho A, [W] 2026-09-23) ────────
+
+it('UC-CMS-08 · só a página inicial traz os destaques para o drawer', function () {
+    $home = CmsPage::create(['type' => 'page', 'title' => 'Contrato cms01 home', 'content' => 'x', 'layout' => 'home']);
+    $livre = CmsPage::create(['type' => 'page', 'title' => 'Contrato cms01 sem destaques', 'content' => 'x']);
+    \Modules\Cms\Entities\CmsPageMeta::create(['cms_page_id' => $home->id, 'meta_key' => 'feature',
+        'meta_value' => json_encode(['title' => 'Seção', 'description' => '', 'content' => [['icon' => '📦', 'title' => 'Estoque', 'description' => 'd']]])]);
+
+    $editor = function (int $id) {
+        $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+
+        return test()->actingAs(cmsUsuario('cms_superadmin_test'))->get(ROTA_CMS.'?type=page&editar='.$id, [
+            'X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => (string) $versao,
+            'X-Inertia-Partial-Data' => 'editando', 'X-Inertia-Partial-Component' => 'Admin/Content/Index',
+        ])->json('props.editando');
+    };
+
+    try {
+        expect($editor($home->id)['destaques']['content'][0]['title'])->toBe('Estoque')
+            ->and($editor($livre->id)['destaques'])->toBeNull();
+    } finally {
+        \Modules\Cms\Entities\CmsPageMeta::where('cms_page_id', $home->id)->delete();
+    }
+});
+
+it('UC-CMS-24 · salvar os destaques grava o registro que a home pública lê', function () {
+    $home = CmsPage::create(['type' => 'page', 'title' => 'Contrato cms01 home grava', 'content' => 'x', 'layout' => 'home']);
+    $meta = \Modules\Cms\Entities\CmsPageMeta::create(['cms_page_id' => $home->id, 'meta_key' => 'feature', 'meta_value' => '{}']);
+
+    try {
+        $this->actingAs(cmsUsuario('cms_superadmin_test'))->put(ROTA_CMS.'/'.$home->id, [
+            'type' => 'page', 'title' => 'Contrato cms01 home grava', 'content' => 'x', 'is_enabled' => 1,
+            'meta' => ['feature' => ['id' => $meta->id, 'title' => 'Tudo num lugar', 'description' => 'texto',
+                'content' => [['icon' => '🧾', 'title' => 'NF-e', 'description' => 'emite']]]],
+        ])->assertSessionHasNoErrors();
+
+        $gravado = json_decode((string) $meta->fresh()->meta_value, true);
+
+        expect($gravado['title'])->toBe('Tudo num lugar')
+            ->and($gravado['content'][0]['title'])->toBe('NF-e')
+            ->and(\Modules\Cms\Entities\CmsPageMeta::where('cms_page_id', $home->id)->count())->toBe(1);
+    } finally {
+        \Modules\Cms\Entities\CmsPageMeta::where('cms_page_id', $home->id)->delete();
+    }
+});
+
+it('UC-CMS-25 · a migration troca só o seed em inglês, e deixa conteúdo editado em paz', function () {
+    $homeId = DB::table('cms_pages')->where('type', 'page')->where('layout', 'home')->value('id');
+    if ($homeId === null) {
+        $this->markTestSkipped('sem página layout=home no ambiente.');
+    }
+
+    $migration = require base_path('Modules/Cms/Database/Migrations/2026_09_23_180000_cms_home_destaques_troca_seed_pelo_conteudo_do_site.php');
+    $seed = json_encode(['id' => '2', 'title' => 'Features to skyrocket 🚀 your business growth', 'description' => '<p>x</p>',
+        'content' => [['icon' => 'fas fa-cloud', 'title' => 'Access Anywhere!', 'description' => 'd']]]);
+    $editado = json_encode(['title' => 'Escrito pelo Wagner', 'content' => [['icon' => '✨', 'title' => 'Access Anywhere!', 'description' => 'd']]]);
+    $gravado = fn () => json_decode((string) DB::table('cms_page_metas')->where('cms_page_id', $homeId)->where('meta_key', 'feature')->value('meta_value'), true);
+
+    // Escrita dentro de transação revertida: o banco do CT 100 persiste entre runs (§5 2026-09-18).
+    DB::beginTransaction();
+    try {
+        DB::table('cms_page_metas')->updateOrInsert(['cms_page_id' => $homeId, 'meta_key' => 'feature'], ['meta_value' => $seed]);
+        $migration->up();
+        expect($gravado()['title'])->toBe('Oito módulos. Uma plataforma.')
+            ->and(count($gravado()['content']))->toBe(8)
+            ->and($gravado()['content'][0]['icon'])->toBe('📐');
+
+        DB::table('cms_page_metas')->where('cms_page_id', $homeId)->where('meta_key', 'feature')->update(['meta_value' => $editado]);
+        $migration->up();
+        expect($gravado()['title'])->toBe('Escrito pelo Wagner');
+    } finally {
+        DB::rollBack();
+    }
+});
