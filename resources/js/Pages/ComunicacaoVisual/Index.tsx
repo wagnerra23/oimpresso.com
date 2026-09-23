@@ -80,9 +80,12 @@ interface ServerResult {
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const NUM = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 3 });
 
+// Sem crypto.randomUUID: fora de secure context (http:// no IP da rede do balcão)
+// ele é undefined e derrubava o render inicial — tela branca, sem mensagem.
+let seqItem = 0;
 function novoItem(): ItemUI {
   return {
-    id: crypto.randomUUID(),
+    id: `i${++seqItem}`,
     material_id: null,
     descricao: '',
     largura_m: 1,
@@ -94,6 +97,9 @@ function novoItem(): ItemUI {
 
 /** Fórmula canônica espelhada do OrcamentoCalculator (preview no cliente).
  *  area_m2 = largura × altura × qtd ; subtotal = area × preço/m². */
+function itemOk(i: ItemUI): boolean {
+  return i.largura_m > 0 && i.altura_m > 0 && i.quantidade >= 1 && i.preco_unitario_m2 > 0;
+}
 function areaDe(item: ItemUI): number {
   return Math.max(0, item.largura_m) * Math.max(0, item.altura_m) * Math.max(0, item.quantidade);
 }
@@ -143,9 +149,11 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
     [subtotalLocal, desconto, extras],
   );
 
-  const temItemValido = itens.some(
-    (i) => i.largura_m > 0 && i.altura_m > 0 && i.quantidade >= 1 && i.preco_unitario_m2 > 0,
-  );
+  // TODAS as linhas: o servidor recusa o orçamento inteiro por causa de uma só
+  // (com `some`, uma peça boa liberava o botão e a linha vazia voltava 422).
+  const temItemValido = itens.length > 0 && itens.every(itemOk);
+  // Marca a linha que está segurando o botão — só quando há outra linha pronta.
+  const algumOk = itens.some(itemOk);
 
   // Confere no servidor (authoritative): o backend recalcula área/subtotal/total
   // e respeita business_id. Se bater com o preview local, dá confiança pra Larissa.
@@ -233,7 +241,7 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
             )}
 
             {/* Cabeçalho das colunas (>= md) */}
-            <div className="hidden gap-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground md:grid md:grid-cols-12">
+            <div aria-hidden="true" className="hidden gap-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground md:grid md:grid-cols-12">
               <span className="md:col-span-3">Material</span>
               <span className="md:col-span-3">Descrição</span>
               <span className="md:col-span-1">Larg. (m)</span>
@@ -276,8 +284,10 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
 
                   {/* Descrição */}
                   <div className="col-span-2 md:col-span-3">
-                    <Label className="text-xs md:hidden">Descrição</Label>
+                    <Label htmlFor={`desc-${item.id}`} className="text-xs md:hidden">Descrição</Label>
                     <Input
+                      id={`desc-${item.id}`}
+                      aria-label="Descrição da peça"
                       value={item.descricao}
                       onChange={(e) => patchItem(item.id, { descricao: e.target.value })}
                       placeholder="Ex: Banner fachada loja"
@@ -286,8 +296,10 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
 
                   {/* Largura */}
                   <div className="md:col-span-1">
-                    <Label className="text-xs md:hidden">Largura (m)</Label>
+                    <Label htmlFor={`larg-${item.id}`} className="text-xs md:hidden">Largura (m)</Label>
                     <Input
+                      id={`larg-${item.id}`}
+                      aria-label="Largura em metros"
                       type="number"
                       inputMode="decimal"
                       min={0}
@@ -299,8 +311,10 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
 
                   {/* Altura */}
                   <div className="md:col-span-1">
-                    <Label className="text-xs md:hidden">Altura (m)</Label>
+                    <Label htmlFor={`alt-${item.id}`} className="text-xs md:hidden">Altura (m)</Label>
                     <Input
+                      id={`alt-${item.id}`}
+                      aria-label="Altura em metros"
                       type="number"
                       inputMode="decimal"
                       min={0}
@@ -312,8 +326,10 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
 
                   {/* Quantidade */}
                   <div className="md:col-span-1">
-                    <Label className="text-xs md:hidden">Qtd</Label>
+                    <Label htmlFor={`qtd-${item.id}`} className="text-xs md:hidden">Qtd</Label>
                     <Input
+                      id={`qtd-${item.id}`}
+                      aria-label="Quantidade de peças"
                       type="number"
                       inputMode="numeric"
                       min={1}
@@ -327,8 +343,11 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
 
                   {/* Preço/m² */}
                   <div className="md:col-span-1">
-                    <Label className="text-xs md:hidden">Preço por m²</Label>
+                    <Label htmlFor={`preco-${item.id}`} className="text-xs md:hidden">Preço por m²</Label>
                     <Input
+                      id={`preco-${item.id}`}
+                      aria-label="Preço por metro quadrado"
+                      aria-invalid={algumOk && !itemOk(item) ? true : undefined}
                       type="number"
                       inputMode="decimal"
                       min={0}
