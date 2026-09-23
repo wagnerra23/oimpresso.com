@@ -41,9 +41,9 @@ class CmsPageController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Lista do conteúdo do site (Inertia `Admin/Content/Index`).
      *
-     * @return Response
+     * @return \Inertia\Response
      */
     public function index(Request $request)
     {
