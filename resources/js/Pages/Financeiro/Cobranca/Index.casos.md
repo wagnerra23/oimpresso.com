@@ -5,8 +5,16 @@ irmaos: charter ao lado (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-09-23"
 ---
+
+> ℹ️ **`last_run` 2026-09-11 → 2026-09-23 (G-6) — FIN-5: o que mudou na tela foi só FORMA do cabeçalho e do funil.**
+> Em `Index.tsx`: título "Cobrança" sem o sufixo " · Boletos e PIX"; o subtítulo passa a ser o contexto do protótipo
+> ("Mês Ano · Empresa" + filtros ativos) no lugar de "N em aberto · gestão de remessa…"; "Resumir mês", "Gateways" e
+> "Remessa/Retorno" saem do menu ⋯ e ficam visíveis ao lado de "Nova cobrança" — mesmos handlers. O título do funil
+> nomeia o mês ("Funil de cobrança · setembro 2026"), derivado de `today`, a data do servidor. Zero cálculo, prop, rota
+> ou handler alterado. O E2E `CobrancaIndexTest` (UC-COB-02) foi **reescrito** para o rótulo novo, não desligado.
+> **Nenhum UC foi reexecutado**: o bump registra que o trio foi reconciliado contra o `.tsx` novo.
 
 > ℹ️ **`last_run` 2026-08-17 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —

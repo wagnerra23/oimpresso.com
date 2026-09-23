@@ -66,3 +66,26 @@ mantê-la no espelho, apagá-la, ou declarar qual das duas o Cowork ainda edita.
 | Filtros por tipo, gateway, conta e origem | `Index.tsx:287-381` cobre os filtros do protótipo (`pg-cobranca-page.jsx:211-259`), com a mesma persistência em `localStorage` (mesmo namespace), e acrescenta o intervalo de vencimento, pedido por [W] em 2026-06-29 e anotado no próprio arquivo (`Index.tsx:319`). | Nada — vivo à frente. |
 | Tabela de cobranças | `Index.tsx:382-471` tem a tabela do protótipo (`pg-cobranca-page.jsx:261-327`): linha inteira abre o drawer, mesmas colunas, e o estado vazio distingue o caso "filtro de gateway" do caso "filtro comum" (`Index.tsx:400`, componente em `:501-515`) — o mesmo par de causas do protótipo (`:411-435`). | Nada — paridade. |
 | Drawer da cobrança | `_components/DrawerCobranca.tsx` repete a estrutura do protótipo (`pg-cobranca-page.jsx:436-533`): cabeçalho, origem, dados principais, render condicional por tipo, erro e linha do tempo. O rodapé é que difere: o protótipo oferece cinco ações (`:519-527` — baixar PDF, link de segunda via, copiar BR Code, estornar, cancelar) e o vivo mantém só "Copiar BR Code". | Nada — decisão registrada. `DrawerCobranca.tsx:118-123` nomeia as quatro ações removidas e a razão de cada uma: sem endpoint de PDF de boleto no controller, sem rota de estorno, e o cancelamento existente aponta para o model legado, não para a cobrança desta tela. O charter reforça duas delas como Non-Goal. A condição de reabertura já está escrita: reentram quando o endpoint existir — e aí, por mexerem em dinheiro, sob dupla confirmação e tabela antes→depois. |
+
+## FIN-5 — o que fechou em 2026-09-23 (onda 5 do RUNBOOK-paridade-ondas)
+
+A tabela acima é de 2026-09-06 e usava **"vivo à frente"** como veredito. Esse rótulo foi revogado por
+[W] em 2026-09-18: no eixo forma a divergência é **dívida a fechar**, e o protótipo é o lado que manda.
+Reclassificado e fechado nesta onda:
+
+| Parte | Antes (06/09) | FIN-5 |
+|---|---|---|
+| Título | "Cobrança · Boletos e PIX" | **"Cobrança"**, como no protótipo (`:148-150`) |
+| Subtítulo | "N em aberto · gestão de remessa/retorno + gateways" | contexto do protótipo (`:118-124`): "Mês Ano · Empresa" + gateway/tipo filtrados. O mês vem de `today` (data do servidor), não do relógio do navegador |
+| Ações do cabeçalho | "Resumir mês", "Gateways", "Remessa/Retorno" escondidas no ⋯ da sub-nav | **visíveis** ao lado de "Nova cobrança", como no protótipo (`:151-159`) — mesmos handlers |
+| Título do funil | "Funil de cobrança · mês corrente" | "Funil de cobrança · setembro 2026", como no protótipo (`:381`) |
+
+**Paleta:** o protótipo usa as mesmas classes `stone`/`emerald`/`rose`/`violet`/`bg-white` que a produção
+(280 ocorrências no `pg-cobranca-page.jsx`, zero `var(--)`), e o charter lista essas cores como as semânticas
+da tela (linha 74). Não há troca de cor nesta onda — seria afastar a tela do protótipo.
+
+**Fica como está, com razão:**
+- "Protesto · 30d+ (Onda 5)" × "30d+": o sufixo avisa que o protesto não tem job real (Non-Goal do charter).
+- Sub-textos dos KPIs com dado que o backend não manda (ticket médio, "próximo vencimento amanhã",
+  "14 títulos prontos"): ticket é **conta de valor** (regra mestre) e os outros exigem dado novo — decisão [W].
+- "Exportar" e as 4 ações do rodapé do drawer: decisões registradas acima ("botões honestos").

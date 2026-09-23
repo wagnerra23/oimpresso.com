@@ -406,7 +406,14 @@ it('UC-COB-02 · render — o funil de 5 etapas chega à tela e concorda com o K
 
     // 4 das 5 etapas têm rótulo único (a seta faz parte do texto); "Em aberto" colide com a
     // aba e com o KPI, então vai pelo probe estrutural abaixo.
-    $page->assertSee('Funil de cobrança · mês corrente')
+    // FIN-5 (2026-09-23): o título do funil nomeia o mês, como no protótipo
+    // (pg-cobranca-page.jsx:381 "Funil de cobrança · maio 2026"). Reescrito, não desligado
+    // (UI-0029: no eixo forma o protótipo ganha do teste). O mês sai de `today()` do app — a
+    // mesma data que o controller manda em `today` e da qual a tela deriva o rótulo.
+    $meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto',
+        'setembro', 'outubro', 'novembro', 'dezembro'];
+    $hoje = \Carbon\CarbonImmutable::today();
+    $page->assertSee('Funil de cobrança · '.$meses[$hoje->month - 1].' '.$hoje->year)
         ->assertSee('→ Lembrete')->assertSee('→ Cobrança ativa')
         ->assertSee('→ Vencidos +5d')->assertSee('→ Protesto');
 
