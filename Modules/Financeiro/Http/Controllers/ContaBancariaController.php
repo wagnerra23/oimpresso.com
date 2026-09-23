@@ -26,6 +26,17 @@ use Modules\Financeiro\Strategies\CnabDirectStrategy;
  */
 class ContaBancariaController extends Controller
 {
+    /**
+     * Gate de permissão (Camada 3 Spatie). Até 2026-09-23 este controller não
+     * verificava permissão nenhuma — rota e FormRequest só exigiam login.
+     * O escopo por business_id segue no corpo dos métodos; isto fecha o acesso
+     * DENTRO da empresa. Admin#{biz} passa pelo Gate::before (AuthServiceProvider).
+     */
+    public function __construct()
+    {
+        $this->middleware('can:financeiro.contas_bancarias.manage');
+    }
+
 
     // Bancos gateway-only (sem CNAB tradicional). Asaas continua selecionável
     // como conta destino aqui — a credencial é cadastrada em
