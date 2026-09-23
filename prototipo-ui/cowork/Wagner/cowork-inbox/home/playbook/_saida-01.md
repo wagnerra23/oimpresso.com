@@ -57,3 +57,11 @@ roda esse `--check`.
   `padroes-tela/`, no `pt-conformance.mjs` e nas 82 declarações de PT que o gate confere hoje.
   O que **não** é opção: trocar charter a charter para a numeração do espelho — cada troca
   avermelha o `pt-conformance`.
+
+## 5 · Desfecho (2026-09-23, mesmo dia)
+
+[W] decidiu: **o catálogo do repo é o dono do código `PT-0X`.** A thread 01 ganhou
+`bloqueio` no `00-INDICE.md` e o placar passou a `bloqueada 1`. Os dois pontos da §4
+ficam assim: a prova errada do índice deixa de cobrar (thread descartada), e a numeração
+do DS espelhado (PT-04 Modal / PT-05 Dashboard) é a que diverge — alinhá-la é trabalho do
+lado Cowork, não de charter.
