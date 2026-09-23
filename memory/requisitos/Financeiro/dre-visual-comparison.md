@@ -363,3 +363,11 @@ render: *"falta css"*.
    recebeu `meta.business_id = 0` (o usuário é da empresa 1 no banco). Depois de passar por `/home`, veio 1.
    Causa provável: nenhuma rota do Financeiro passa pelo `SetSessionData` (`route:list` de produção, 2026-09-23).
    Não vaza dado de outra empresa — a tela fica vazia.
+
+### Referência visual regerada — aviso "Categorias não mapeadas" (2026-09-23)
+
+- **[W] aprovou** a captura nova do `Financeiro/Dre` (run 35892889756). A única diferença para a
+  anterior é o aviso "Categorias não mapeadas hierarquicamente… Configurar plano de contas →" no topo,
+  que o #7789 (de-para conta → linha da DRE) passou a mostrar quando o plano não tem mapeamento — o
+  caso do tenant de teste. A referência estava desatualizada desde o #7789 porque aquele PR só mexeu
+  em backend e o gate visual não comparou o DRE nele (6,6% acima de τ_alto em todo PR de escopo global).

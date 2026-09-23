@@ -125,10 +125,44 @@ export function diffCitaMaquina(diff, maquinas) {
  */
 const OPCOES_COM_VALOR = new Set(['-C', '-c', '--git-dir', '--work-tree', '--namespace', '--exec-path']);
 
-/** Divide o comando em segmentos independentes (`;` `&&` `||` `|`). */
+/**
+ * Tira do comando o que NAO e comando: o corpo de heredoc e o texto entre aspas com espaco.
+ *
+ * MEDIDO em 2026-09-23 (revisao adversarial do #7824, corpus de transcripts): 77,7% dos commits
+ * reais passam a mensagem por heredoc (`git commit -F - <<'EOF'`). Sem esta limpeza, palavra da
+ * MENSAGEM virava argumento: `--all` na mensagem ligava o `-a` a toa (85 comandos) e `--` ligava o
+ * "pathspec explicito" (105), caso em que o hook regenera e NAO estagia. Foi assim que o inventario
+ * entrou "certo" no #7794: a mensagem dele continha `--all`.
+ *
+ * Aspas SEM espaco ficam (so perdem as aspas), para `git add "a.md"` continuar sendo lido; aspas
+ * COM espaco viram um marcador neutro — o hook nao interpreta path com espaco (limite declarado).
+ */
+export function limpaComando(cmd) {
+  const out = [];
+  let fim = null;
+  for (const linha of String(cmd || '').split(/\r?\n/)) {
+    if (fim !== null) {
+      if (linha.trim() === fim) fim = null;              // terminador do heredoc
+      continue;                                          // corpo do heredoc: nao e comando
+    }
+    const m = linha.match(/<<-?\s*(['"]?)([A-Za-z_][A-Za-z0-9_]*)\1/);
+    if (m) { fim = m[2]; out.push(linha.slice(0, m.index)); continue; }
+    out.push(linha);
+  }
+  return out.join('\n').replace(/"([^"]*)"|'([^']*)'/g, (_, a, b) => {
+    const v = a !== undefined ? a : b;
+    return v === '' || /\s/.test(v) ? ' __TEXTO__ ' : v;
+  });
+}
+
+/**
+ * Divide o comando em segmentos independentes (`;` `&&` `||` `|` e QUEBRA DE LINHA).
+ * A quebra de linha entrou em 2026-09-23: `git add x` numa linha e `git commit` na seguinte
+ * (776 comandos no corpus, ~14% dos commits) nao era nem reconhecido como commit.
+ */
 export function segmentos(cmd) {
   if (typeof cmd !== 'string' || !cmd) return [];
-  return cmd.split(/\|\||&&|[;&|]/).map((s) => s.trim()).filter(Boolean);
+  return limpaComando(cmd).split(/\|\||&&|[;&|\n]/).map((s) => s.trim()).filter(Boolean);
 }
 
 /** Args do subcomando `commit` neste segmento, ou `null` se o segmento nao for um git commit. */

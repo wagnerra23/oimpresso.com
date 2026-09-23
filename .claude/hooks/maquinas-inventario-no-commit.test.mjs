@@ -23,7 +23,7 @@ import {
   ehGitCommit, temPathspecExplicito, levaWorkingTree, tocaCoberto, COBERTOS,
   ehDocDoCorpus, tokensDe, tokensDasMaquinas, diffCitaMaquina, DOCS_GERADOS,
   RX_ARQUIVO, RX_CRASE, RX_PASTA, pathsQueMudamOMapa,
-  pathsTocados, indicesAfetados, argsDosAddsAntes, statusDoPorcelain,
+  pathsTocados, indicesAfetados, argsDosAddsAntes, statusDoPorcelain, limpaComando,
 } from './maquinas-inventario-no-commit.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'maquinas-inventario-no-commit.mjs');
@@ -632,6 +632,39 @@ console.log('add + commit na mesma chamada:');
   writeFileSync(join(dir, 'memory/requisitos/Foo/PLANO-onda.md'), PLANO);
   roda(dir, 'git add -A && git commit -m x');
   ok(stageado(dir).includes(PLANOS) && checkIdx(dir, 'plans-index.mjs') === 0, 'PASSO 3: `git add -A` + commit enxerga o plano novo');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// ---------------------------------------------------------------- (N+3) as FORMAS medidas no corpus
+// Os casos acima usam `-m x`, a forma conveniente pro teste — e foi assim que dois defeitos
+// passaram (revisao adversarial 2026-09-23). Estes usam as formas que o agente real usa, com a
+// proporcao medida no corpus de transcripts: heredoc na mensagem 77,7% · add na mesma chamada
+// 84,8% · add e commit em LINHAS separadas ~14%.
+console.log('formas reais (heredoc / quebra de linha):');
+const HEREDOC = (antes) => antes + "git commit -q -F - <<'EOF'\nfix: algo com --all e -- no texto\n\nCo-Authored-By: X <x@y>\nEOF";
+{
+  ok(!levaWorkingTree(HEREDOC('')), 'HEREDOC: `--all` na MENSAGEM nao liga o -a');
+  ok(!temPathspecExplicito(HEREDOC('')), 'HEREDOC: `--` na MENSAGEM nao vira pathspec explicito');
+  ok(ehGitCommit(HEREDOC('')), 'HEREDOC: o commit continua reconhecido');
+  ok(ehGitCommit('git add x.md\ngit commit -m y'), 'QUEBRA DE LINHA: commit na linha seguinte e reconhecido');
+  ok(JSON.stringify(argsDosAddsAntes('git add x.md\ngit commit -m y')) === JSON.stringify(['x.md']), 'QUEBRA DE LINHA: o add da linha anterior e lido');
+  ok(levaWorkingTree('git commit -am "msg"') && !levaWorkingTree('git commit -m "use --all aqui"'), 'aspas: flag real conta, texto entre aspas nao');
+  ok(JSON.stringify(argsDosAddsAntes('git add "a.md" && git commit -m x')) === JSON.stringify(['a.md']), 'aspas sem espaco: o path continua lido');
+  ok(!limpaComando(HEREDOC('')).includes('Co-Authored-By'), 'o corpo do heredoc sai do comando');
+  ok(!ehGitCommit("cat <<'EOF'\ngit commit -m x\nEOF"), 'NEG: `git commit` DENTRO de heredoc nao e comando');
+}
+{
+  const dir = sandboxIdx();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira') + '\n' + US('US-FOO-002', 'Segunda'));
+  const r = roda(dir, HEREDOC('git add memory/requisitos/Foo/SPEC.md && '));
+  ok(stageado(dir).includes(BACKLOG) && !/NAO estagiei/.test(r.stderr), 'E2E HEREDOC: regenera E estagia (a mensagem nao desliga o estagio)');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxIdx();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira') + '\n' + US('US-FOO-002', 'Segunda'));
+  roda(dir, 'git add memory/requisitos/Foo/SPEC.md\ngit commit -m x');
+  ok(stageado(dir).includes(BACKLOG), 'E2E QUEBRA DE LINHA: add e commit em linhas separadas regeneram o backlog');
   rmSync(dir, { recursive: true, force: true });
 }
 
