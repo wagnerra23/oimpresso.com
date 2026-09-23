@@ -215,7 +215,7 @@ Cobertura conferida: **21/21**. O `UnificadoController` e irmãos renderizam 19 
 | **4** | `Conciliacao/Index` | `TelaConciliacao` | ✅ | 🔴 **valor** | 13 UC já com prova — melhor base do módulo |
 | **5** | `Cobranca/Index` | `cobranca-page.jsx` | ❌ gerar | 🔴 **valor** | fronteira com PaymentGateway — escopo a confirmar |
 | **6** | `PlanoContas/Index` | `TelaPContas` ⚠️ | ❌ gerar | 🟡 | **depende da decisão [W] de §4.3** |
-| **7** | `ProvaViva` | HTML primitivos | ❌ gerar | 🟡 | 2 UC sem prova |
+| ~~**7**~~ | ~~`ProvaViva`~~ | ~~HTML primitivos~~ | — | — | **Onda removida por decisão [W] 2026-09-23** (*"não pode seguir com a FIN-7 da Prova Viva, isso não existe"*). Nenhuma paridade será feita. O código segue no repo (rota `financeiro.prova-viva.index`, `ProvaViva.tsx` + charter/casos, `ProvaVivaController` + 2 testes) — destino dele é outra decisão [W], não desta série. |
 | **8** | `Unificado/Index` | `financeiro-page.jsx` | ✅ | 🔴 **valor** | maior (3090 ln), 9 UC sem prova, é a tela que a Eliana abre toda manhã · **por último, decisão [W] 2026-09-23** (maior raio do módulo) |
 | **9** | as 13 sem âncora | Padrão de Tela + DS | n/a | 🟡 | conformidade PT-01/PT-04, em lote por PT — **não** repintura |
 
