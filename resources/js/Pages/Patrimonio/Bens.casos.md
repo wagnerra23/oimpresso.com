@@ -98,6 +98,22 @@ last_run: "2026-09-11"
 
 ---
 
+## UC-BENS-04 · Nenhuma ação da lista leva a uma página em branco
+
+- **Persona:** quem opera o patrimônio — clica num ícone esperando um formulário.
+- **Aceite:** Dado a lista com um bem e **todas** as permissões ligadas (criar, editar, excluir,
+  manutenção) · Quando a tela renderiza — cheia ou vazia · Então **nenhum** `href` aponta pra
+  `create`/`edit` de bem, alocação ou manutenção; e o **excluir** (que funciona, via
+  `router.delete`) continua na linha.
+- **Teste:** `tests/js/patrimonio-sem-link-para-modal.test.tsx` — 2 `it()` citando `UC-BENS-04`.
+- **Regressão que defende:** afordância falsa. MEDIDO em prod (biz=1, 2026-09-23): os endpoints `create`/`edit` do módulo só respondem sob `request()->ajax()` — numa navegação direta devolveram **200 com 0 bytes** (fragmento de modal jQuery, sem `@extends`). Até esta data a tela tinha 5 links
+  pra lá: "Novo ativo", o CTA do vazio, alocar, manutenção e editar. O controle positivo (a linha
+  renderizou + o excluir está lá) impede o caso de passar porque a tabela nem apareceu.
+  **Bite-test (provado 2026-09-23):** com o `Bens.tsx` anterior, os 2 casos caem listando os hrefs.
+- **Status: 🧪** — verde no vitest local pós-conserto; lane de CI a confirmar no PR.
+
+---
+
 ## Dívida declarada — `Alocado` não é número auditado
 
 ⚠️ Não é UC porque **não é comportamento que esta onda defende** — é defeito herdado que ela
@@ -130,6 +146,9 @@ expressão (`AssetController::baseAssetsQuery`), lida pelos dois ramos.
 - [BACKLOG] Seleção em lote exporta a seleção e manda os selecionados pra manutenção.
 - [BACKLOG] O usuário escolhe as colunas visíveis e a densidade, e a escolha sobrevive ao reload.
 - [BACKLOG] Criar e editar bem acontecem em drawer, sem sair da lista.
+- [BACKLOG] Alocar e mandar pra manutenção a partir da linha, em drawer — hoje não há caminho
+  pela UI (os formulários só existem como fragmento de modal servido sob `ajax()`). Escrita de
+  QUANTIDADE: REGRA MESTRE Tier 0.
 - [BACKLOG] `permitted_locations()` restringe a listagem, e nenhum parâmetro de query a afrouxa.
   (Hoje o código faz isso — aplica a restrição **antes** dos filtros do usuário —, mas nenhum
   teste defende; virou visível quando o fixture sem `access_all_locations` zerou a lista.)

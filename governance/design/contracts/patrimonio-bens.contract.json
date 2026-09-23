@@ -37,9 +37,7 @@
         "Alocado",
         "Valor",
         "Garantia",
-        "Situação",
-        "Alocar recurso",
-        "Enviar pra manutenção"
+        "Situação"
       ]
     }
   ],
@@ -58,6 +56,7 @@
     "LOTE `Exportar seleção` — o prototipo (:392-396) tem `BulkBar` com 2 acoes. Non-Goal declarado: sem endpoint hoje.",
     "BUSCA `Buscar bem, código, série...` — o prototipo poe a busca no HEADER DO MODULO (:827), fora da aba; a tela poe no `DataTable` com outro texto (`Buscar bem, código, modelo, série...`). Sao lugares diferentes, nao so palavras diferentes.",
     "COLUNA DE VALOR — declarei `Valor` (o rotulo da ancora, :287), e ele casa na tela porque `Valor unitário` o contem. ⚠️ MAS O DADO DIVERGE: o prototipo soma `valor × qtd` (valor total da linha); a tela mostra o valor UNITARIO. O charter poe o total sob a REGRA MESTRE de valor (prova por 2 caminhos + antes→depois pro [W]), entao a tela ficou no unitario de proposito. O gate NAO pega essa divergencia — ela e de dado, nao de string. Registrado aqui pra nao passar por acordo.",
-    "seção `subnav` — copy VAZIA de proposito. A sub-navegacao DERIVA de `shell.menu`; o charter proibe declarar a lista aqui, e o prototipo desenha 7 abas das quais 2 (`Garantias`, `Auditoria`) nao tem rota (`D-GARANTIAS`/`D-AUDITORIA`). Pinar rotulo aqui criaria uma segunda fonte pra mesma lista."
+    "seção `subnav` — copy VAZIA de proposito. A sub-navegacao DERIVA de `shell.menu`; o charter proibe declarar a lista aqui, e o prototipo desenha 7 abas das quais 2 (`Garantias`, `Auditoria`) nao tem rota (`D-GARANTIAS`/`D-AUDITORIA`). Pinar rotulo aqui criaria uma segunda fonte pra mesma lista.",
+    "ACOES DE LINHA `Alocar recurso` · `Enviar pra manutenção` (e `Editar bem`) — o prototipo (:305-306) as desenha por linha e ate 2026-09-23 as duas primeiras ENTRAVAM neste contrato. SAIRAM da tela, e por isso sairam daqui: os destinos (`/asset/allocation/create`, `/asset/asset-maintenance/create`, `/asset/assets/{id}/edit`) so respondem sob `request()->ajax()` e devolveram 200 com 0 bytes numa navegacao direta (medido em prod, biz=1) — as views sao fragmentos de modal jQuery. Link pra pagina em branco e afordancia falsa: mesmo achado e mesmo tratamento da irma Alocacoes (`patrimonio-alocacoes.contract.json`). Trazer os formularios como drawer e escrita de VALOR e QUANTIDADE (REGRA MESTRE Tier 0) — quando entrar, as duas strings voltam pra secao `tabela`."
   ]
 }
