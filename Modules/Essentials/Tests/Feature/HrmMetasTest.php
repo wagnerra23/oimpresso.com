@@ -153,10 +153,18 @@ function hmInertiaVersion(): string
     return file_exists($manifest) ? md5_file($manifest) : '1';
 }
 
-/** Headers do partial reload que força o `Inertia::defer` do `paginator` a resolver. */
+/**
+ * Headers do partial reload que força o `Inertia::defer` do `paginator` a resolver.
+ *
+ * São os headers que o NAVEGADOR manda (@inertiajs/core 3.x, getHeaders): `X-Requested-With`
+ * vai em TODA visita Inertia. Sem ele o teste passava verde enquanto a tela real ficava no
+ * skeleton — o controller desviava para o JSON do DataTables (medido no staging 2026-09-23).
+ */
 function hmHeadersPaginator(): array
 {
     return [
+        'X-Requested-With' => 'XMLHttpRequest',
+        'Accept' => 'text/html, application/xhtml+xml',
         'X-Inertia' => 'true',
         'X-Inertia-Version' => hmInertiaVersion(),
         'X-Inertia-Partial-Data' => 'paginator',

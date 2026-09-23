@@ -73,6 +73,14 @@
     "baseline": "it_Financeiro_Impostos_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Financeiro/Dre",
+    "source": "Financeiro/Dre",
+    "component": "Financeiro/Dre/Index",
+    "route": "/financeiro/dre",
+    "anchor": "DRE / Relatórios",
+    "baseline": "it_Financeiro_Dre_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Governance/Dashboard",
     "source": "governance/Dashboard",
     "component": "governance/Dashboard",

@@ -1020,9 +1020,12 @@ export function pathspecsParaBase(pathsDaRef) {
  * o gate cobrando do autor o trabalho de terceiro. É a lápide §5 2026-08-24, e o
  * `casos-coverage-guard` já adotou a mesma separação ("não pode reprovar por isso").
  *
- * No CI nada afrouxa: `pull_request` faz checkout do merge ref, então HEAD já contém `main` e
- * o merge-base É o tip. O ganho é local — e é também parar de DEPENDER desse detalhe do
- * checkout, que este repo já catalogou como armadilha (§5 2026-09-02, merge ref × ref cru).
+ * No CI nada afrouxa: `pull_request` faz checkout do merge ref, então HEAD contém `main` —
+ * mas o `main` DO INSTANTE em que o merge ref foi calculado. ⚠️ Errata 2026-09-23: a frase
+ * original dizia "o merge-base É o tip", e não é sob fila — no PR #7766 o merge ref saiu às
+ * 12:03:58, o job rodou às 12:21 e `origin/main` já tinha 23 scorecards novos; o irmão
+ * `screen-grades-ratchet`, que comparava com a ponta, acusou 18 deles. O ganho do merge-base
+ * vale no CI também — e é parar de DEPENDER desse detalhe do checkout (§5 2026-09-02).
  */
 function refDeComparacao() {
   try {

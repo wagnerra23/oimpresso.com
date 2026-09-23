@@ -29,7 +29,7 @@ Wagner (dono) e Eliana (financeiro) respondem **"deu lucro este mês?"** em <60s
 3. **Toggle período Mês/Trim/Ano/12m** — F1 entrega só Mês funcional; outros renderizam disabled (`opacity-50`) com tooltip "Em breve" (US-FIN-DRE-PERIODOS backlog).
 4. **Export PDF + Excel inline** — botões no header do Card, geração via `dompdf` + `maatwebsite/excel` (já no projeto).
 5. **Cards bottom contexto** — Margem operacional (com meta 12% hardcode F1, US-FIN-DRE-META backlog config tenant) + Top 3 categorias de receita (mesma query do DRE_TEMPLATE — sem duplicar SQL).
-6. **Topnav contextual módulo** — 7 botões espelhando Unificado (Buscar ⌘K · Resumir mês · Fechamento · Apresentar · Conciliar · Plano de contas · Novo lançamento) — copy-paste inline em F1 (US-FIN-TOPNAV-COMPONENT backlog).
+6. **Topnav contextual módulo** — 7 botões espelhando Unificado (Buscar ⌘K · Resumir mês · Fechamento · Apresentar · Conciliar · Plano de contas · Novo título) — copy-paste inline em F1 (US-FIN-TOPNAV-COMPONENT backlog). — _rótulo trocado de "Novo lançamento" para "Novo título" em 2026-09-23 (FIN-1), pela forma do protótipo (UI-0029) e igual ao Financeiro/Dashboard._
 
 ## Non-goals (F1)
 
