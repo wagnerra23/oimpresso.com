@@ -1,0 +1,57 @@
+# Scorecard de tela — primeira medição (thread 11 do playbook Prontidão, 2026-09-23).
+# Método SCREEN-GRADE (memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md), passos 0+1 do
+# agente screen-qa-specialist. ⚠️ NOTA DE LEITURA DE CÓDIGO: .tsx + charter + casos + controller,
+# SEM browser de prod, SEM E2E/axe/smoke (passos 2-4 fora desta thread). Nenhuma dimensão foi
+# medida em runtime; cada uma cita arquivo:linha. Persona peso uniforme (wagner = power user,
+# personas-por-modulo.yml §Notas), nota = média das 16 dims arredondada.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Forja/Trabalho/Index
+path: Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.tsx
+archetype: list
+persona: wagner
+nota: 77
+nivel: "Advanced"
+baseline_anterior: 77   # ratchet — primeira medição, baseline = a própria nota
+peso_real: 1.0
+source: leitura-codigo-thread11-prontidao-2026-09-23
+graded_at: "2026-09-23"
+resumo: "Lista única de todas as mcp_tasks (Lista/Quadro sobre a mesma query), KPI que filtra, 6 agrupamentos, ordem, papel, favoritos/pin/visões em localStorage e vista inteira na URL com partial reload. Perde em: 1º paint afirma 'Nenhum issue casa com o filtro' e KPIs 0 enquanto tasks/kpis deferidos carregam; busca sem label; X de remover visão é role=button aninhado num <button>; router.get sem estado de erro."
+dimensoes: { density: 86, discoverability: 80, speed_to_task: 80, error_recovery: 70, cognitive_load: 72, aesthetic_usability: 80, affordance: 76, brand_confidence: 76, mobile_fit: 72, a11y_wcag: 72, i18n_ptbr: 84, performance_perceived: 72, information_hierarchy: 80, microcopy: 80, internal_consistency: 78, preflight_conformance: 80 }
+evidencias:
+  density: "Index.tsx:302-307 toggle densidade; TrabalhoLista.tsx:13 fj-row densa com slots de dado real"
+  discoverability: "Index.tsx:283 'clique filtra a lista e o quadro'; Index.tsx:315-319 painel Papéis (ForjaRunbook)"
+  speed_to_task: "Index.tsx:156-165 partial reload only:[tasks,kpis,filtros,agents]; mas Index.tsx:46-47 sem atalhos j/k/↵ (declarado)"
+  error_recovery: "Index.tsx:161-164 router.get sem onError; Index.tsx:102-110 localStorage tolerante"
+  cognitive_load: "Index.tsx:258-384 três barras (frentebar · toolbar · filterbar2) com 6 grupos, 6 ordens, papéis, visões"
+  aesthetic_usability: "Index.tsx:10-23 réplica do forja-page.jsx view trabalho (ADR 0388)"
+  affordance: "Index.tsx:270-272 KPI Total é <button disabled> (afordância sem ação); Index.tsx:273-282 KPIs com aria-pressed"
+  brand_confidence: "Index.charter.md:7 status draft"
+  mobile_fit: "cowork-forja-bundle.css:290,300 @media 1100/720 — não medido em viewport"
+  a11y_wcag: "Index.tsx:413 role=status aria-live; mas Index.tsx:352-353 input de busca só com placeholder; Index.tsx:374-381 span role=button dentro de <button> (interativo aninhado)"
+  i18n_ptbr: "Index.tsx:413 e TrabalhoLista.tsx:186 'issues'/'issue' em inglês no rótulo"
+  performance_perceived: "TrabalhoController.php:87-93 tasks/kpis/frentes/agents deferidos; Index.tsx sem <Deferred> (guard só por default-destructure, InertiaDeferredFrontendGuardTest.php:56) → TrabalhoLista.tsx:184-186 'Nenhum issue casa com o filtro' e KPIs 0 no 1º paint"
+  information_hierarchy: "Index.tsx:262-284 frente-note → KPIs → controles → lista → totalbar"
+  microcopy: "Index.tsx:343-347 placeholder diz o que a busca de fato faz (sem DSL falsa)"
+  internal_consistency: "Index.tsx:32-47 ausências vs protótipo declaradas; Index.tsx:112-117 props titulo/subtitle/statuses não lidas"
+  preflight_conformance: "charter v7 + casos 15 UC todos 🧪 (Index.casos.md:20-110); defer backend"
+gaps:
+  - dim: "Performance-perceived"
+    best_of_class: "Linear: skeleton de linhas e KPIs até a resposta — o empty state só depois de medir"
+    fix: "Embrulhar lista/quadro e KPIs em <Deferred data={['tasks','kpis']} fallback={skeleton}>; hoje o 1º paint afirma 'Nenhum issue casa com o filtro' com zero filtro aplicado"
+    esforco: baixo
+    origin: thread11-prontidao-2026-09-23
+  - dim: "A11y-WCAG"
+    best_of_class: "GitHub Issues: campo de busca com <label> (visível ou sr-only) e chips com botão de remover separado"
+    fix: "aria-label no input de busca; tirar o span role=button de dentro do <button> da visão (dois botões irmãos)"
+    esforco: baixo
+    origin: thread11-prontidao-2026-09-23
+  - dim: "Error-recovery"
+    best_of_class: "Notion: falha de filtro mantém a lista anterior com banner 'não foi possível atualizar · tentar de novo'"
+    fix: "onError no router.get de aplicar() com banner + retry; hoje falha de partial reload é silenciosa"
+    esforco: baixo
+    origin: thread11-prontidao-2026-09-23
+  - dim: "Cognitive-load"
+    best_of_class: "Linear: agrupar/ordenar/filtrar num único menu 'Display' em vez de três barras sempre abertas"
+    fix: "Avaliar com [W] colapsar Ordem/Densidade/Visões num popover Display (decisão de layout — protótipo é soberano na forma, UI-0029)"
+    esforco: medio
+    origin: thread11-prontidao-2026-09-23

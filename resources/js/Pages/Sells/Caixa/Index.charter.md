@@ -35,19 +35,22 @@ Caixa do dia — resumo financeiro por forma de pagamento + **por origem** (Balc
 ## Goals — Features (faz · v1 Cowork canon)
 
 - AppShellV2 sidebar dark (260px) + `.sells-cowork` wrapper escopa CSS verbatim do prototype + `.vc-page` Cowork canon (já em sells-cowork.css linha 4171+)
-- Header com h1 "Caixa do dia" + subtitle "Conferência por forma de pagamento, sangrias e fechamento" + date picker (`vc-date`) + ghost "Imprimir Z" + primary "Fechar caixa" → navega `/cash-register/close-register/{id}` legacy
+- Header com h1 "Caixa do dia" + subtitle "Conferência por forma de pagamento, sangrias e fechamento" + date picker (`vc-date`) + ghost "Imprimir Z" (abre `/cash-register/register-details` legacy em nova aba) + primary só com `close_cash_register`: "Fechar caixa" com caixa aberto → `/cash-register/close-register/{id}` legacy; "Abrir caixa" sem caixa aberto → `/cash-register/create` legacy
+  - _Reconciliado 2026-09-23 (decisão [W]: "o caixa segue o código atual"). Antes: primary "Fechar caixa" sempre visível e "Imprimir Z" placeholder._
 - 4 KPI hero cards (`os-kpis` Cowork canon):
   - Faturado no dia (BRL + count vendas)
-  - Esperado em caixa (BRL · dinheiro + sangrias)
-  - Conferido (BRL · contagem física)
-  - Diferença (color verde/vermelha/amarela · `os-kpi-alert` quando |diff| > 0.01 · "ok/falta/sobra")
+  - Vendas em dinheiro (BRL · linha `cash` de `porFormaPagamento`)
+  - Caixa (aberto/fechado · `#id` do registro aberto do usuário no business)
+  - Origens hoje (quantidade de origens com venda no dia)
+  - _Reconciliado 2026-09-23 (decisão [W]). Antes: Esperado em caixa · Conferido · Diferença — o código não tem; ficam para a Onda 6+1 (`[BACKLOG]` no casos.md)._
 - Grid 4 cards `vc-grid` (2 colunas · card "Movimentos" full-row):
   1. **Por forma de pagamento** — table 4-col (Forma + icon + label · Compensação · Vendas · Total) + tfoot total bruto
   2. **Por origem** — Section `vc-card vc-card-source` (canon Cowork A1 KB-9.75):
      - Loop em `bySource` (filtrado `count > 0`): cada linha mostra dot color + label PT-BR + count vendas + soma final_total
      - Barra de progresso (`vc-src-bar`) com width = pct do faturamento do dia
      - Meta linha mostra "% do faturamento do dia"
-     - Quando `g.id === 'oficina'` E há items com `os_ref`: até 3 links `↗ #OS-NNNN` clicáveis disparam `window.dispatchEvent(new CustomEvent('oimpresso:open-venda', { detail: { venda_id: v.id } }))` → Sells/Index listener abre drawer SaleSheet cross-módulo (Onda 4 commit `e40289010`)
+     - Quando `g.id === 'oficina'` E há items com `os_ref`: até 3 links `↗ #OS-NNNN` clicáveis navegam para `/sells?open=<id>` → Sells/Index detecta o `?open` na montagem e abre o drawer SaleSheet
+       - _Reconciliado 2026-09-23 (decisão [W]). Antes: disparava `CustomEvent('oimpresso:open-venda')`._
   3. Movimentos do caixa — render somente leitura (placeholder Onda 6+1: integrar sangria/suprimento read-write)
   4. Conferência física — render somente leitura (placeholder Onda 6+1: substituir legacy modal)
 - Backend endpoint REST canon: `GET /vendas/caixa` (Inertia render) + props pré-agregadas pelo controller (`SellController@inertiaCaixa` ou novo método)
@@ -62,7 +65,7 @@ Caixa do dia — resumo financeiro por forma de pagamento + **por origem** (Balc
 - ❌ Edição inline de movimentos (sangria/suprimento) — preserva legacy modal `/cash-register/close-register/{id}` (Onda 6+1 substitui)
 - ❌ Histórico de caixas fechados — vai pra `/cash-register/close-register/{id}` legacy ou `/financeiro/caixa` (ADR 0183 PR D já entrega)
 - ❌ Fechamento de caixa propriamente dito — CTA "Fechar caixa" navega legacy
-- ❌ Impressão Z — placeholder ghost (Onda 6+2)
+- ❌ Impressão Z própria — por ora "Imprimir Z" reaproveita `/cash-register/register-details` legacy (Onda 6+2 substitui) · _reconciliado 2026-09-23 (decisão [W])_
 - ❌ Substituir `/cash-register/*` Blade legacy — coexiste durante esta wave (rollback trivial)
 
 ---
@@ -80,7 +83,7 @@ Caixa do dia — resumo financeiro por forma de pagamento + **por origem** (Balc
 ## Anti-hooks (proibido)
 
 - ❌ Cor crua Tailwind dentro do TSX — usar `.sells-cowork .vc-page` + tokens `--vd-src-*` já escopados em sells-cowork.css (linha 7346+)
-- ❌ Modal/Dialog dentro da Page — link OS dispara CustomEvent (loose coupling cross-módulo)
+- ❌ Modal/Dialog dentro da Page — link OS navega para `/sells?open=<id>` (a venda abre na Sells/Index) · _reconciliado 2026-09-23 (decisão [W]); antes dizia "dispara CustomEvent"_
 - ❌ Query SQL no frontend — `bySource`/`byPayment` vem agregado do controller (defesa Tier 0)
 - ❌ Bypass global scope `business_id` — todo `where()` repete explicitamente (defesa em profundidade Tier 0)
 - ❌ `direct_sell.create` necessário — só `direct_sell.view` (Caixa é leitura · fechamento real vai pro legacy gate `close_cash_register`)

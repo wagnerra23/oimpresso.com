@@ -1,0 +1,61 @@
+# Primeira medição (thread 08 do playbook "Prontidão", 2026-09-23) — agente screen-qa-specialist,
+# só passos 0 (Pré-Flight) e 1 (Nota). Nota 16-dim é LLM-as-judge por LEITURA DE CÓDIGO
+# (.tsx + charter + controller na árvore 317e1b4ec33) — SEM browser de prod, SEM E2E/axe/smoke.
+# Persona "wagner" (tela só superadmin — permissao jana.superadmin, charter tier A):
+# pesos 1× em todas as dimensões ⇒ nota = média simples arredondada das 16.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Jana/Plataforma
+path: resources/js/Pages/Jana/Plataforma.tsx
+archetype: list
+persona: wagner
+nota: 75
+nivel: "Advanced"
+baseline_anterior: 75   # ratchet — primeira medição (= a própria nota)
+peso_real: 0.85   # apoio raro (só superadmin) — modula urgência, não a nota (SCREEN-GRADE-METODO §1)
+source: prontidao-thread08-leitura-codigo-2026-09-23
+graded_at: "2026-09-23"
+resumo: "Visão de plataforma honesta (listagem crua declarada, contagens de instalação derivadas do disco, botões destrutivos só com can('superadmin') real e confirmação), duas DataTable shared; perde em performance/escala (lista cross-business inteira eager, página única, sem busca/filtro por empresa), cards de contagem hand-roll em vez do KpiCard shared e rótulos em inglês/enum cru."
+dimensoes: { density: 78, discoverability: 72, speed_to_task: 72, error_recovery: 74, cognitive_load: 74, aesthetic_usability: 74, affordance: 76, brand_confidence: 78, mobile_fit: 70, a11y_wcag: 72, i18n_ptbr: 82, performance_perceived: 66, information_hierarchy: 76, microcopy: 78, internal_consistency: 80, preflight_conformance: 74 }
+evidencias:
+  density: "Plataforma.tsx:126-179 — 3 seções: 2 DataTable + grid de 4 contagens"
+  discoverability: "Plataforma.tsx:130,137 — showSearch={false} nas duas tabelas; nenhum filtro por business"
+  speed_to_task: "Plataforma.tsx:61 umaPagina — lista cross-business inteira numa página; achar 1 cliente = rolar"
+  error_recovery: "Plataforma.tsx:183-202 — Dialog de confirmação antes de update/uninstall; uninstall irreversível com 1 clique de confirmação (sem digitar nome); rota GET (196)"
+  cognitive_load: "Plataforma.tsx:139-144,173-176 — notas técnicas (sum/count/groupBy, jana_*) aceitáveis pra superadmin"
+  aesthetic_usability: "Plataforma.tsx:159 cards rounded-[10px] arbitrários; 137 rowState archived pra nunca apurada"
+  affordance: "Plataforma.tsx:170 'Desinstalar módulo' variant=destructive; 167 botões só nascem com podeOperar"
+  brand_confidence: "Plataforma.tsx:139-144 — declara a pendência de agregação em vez de inventar total"
+  mobile_fit: "Plataforma.tsx:137 — tabela de 5 colunas; Grid min='sm' (152) responsivo"
+  a11y_wcag: "Plataforma.tsx:69 h3 sem h2 na página (título vem do shell); 160-161 <b>/<small> sem semântica de rótulo/valor"
+  i18n_ptbr: "Plataforma.tsx:54-58 datas dd/mm; 154-155 rótulos 'migrations'/'seeders' em inglês; 92 enum origem cru (seed, chat_ia)"
+  performance_perceived: "SuperadminController.php:75-78 get() de todas as metas de clientes + 138-141 glob/include no render; sem Inertia::defer/paginação server-side"
+  information_hierarchy: "Plataforma.tsx:129,136 subtítulos com contagem ('N metas em M empresas')"
+  microcopy: "Plataforma.tsx:186-190 descrição do rollback clara e específica"
+  internal_consistency: "Plataforma.tsx:23 DataTable shared; 111-124 header/drawer iguais às irmãs"
+  preflight_conformance: "charter status: draft (Plataforma.charter.md:6); cards de contagem hand-roll (158-163) existindo Components/shared/KpiCard.tsx; arbitrários text-[13.5px]/[10.5px]/rounded-[10px]"
+gaps:
+  - dim: "Performance-perceived"
+    best_of_class: "Stripe Dashboard (lista de contas conectadas): paginação cursor server-side + busca"
+    fix: "SuperadminController@metas: 'metasDeClientes' => Inertia::defer(...) e paginar no servidor quando crescer; hoje a lista inteira vai eager"
+    esforco: medio
+    origin: prontidao-thread08-2026-09-23
+  - dim: "Discoverability"
+    best_of_class: "Vercel Teams: busca + filtro por projeto/time na visão cross-org"
+    fix: "Ligar showSearch na tabela 'Metas de clientes' (filtro local por empresa/#id — é recorte de exibição, não agregação, não fere o Non-Goal)"
+    esforco: baixo
+    origin: prontidao-thread08-2026-09-23
+  - dim: "Error-recovery"
+    best_of_class: "GitHub (delete repository): digitar o nome pra confirmar ação irreversível"
+    fix: "Confirmação de 'Desinstalar' (Plataforma.tsx:183-202) exigir digitar 'jana' antes de habilitar o botão"
+    esforco: baixo
+    origin: prontidao-thread08-2026-09-23
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4: KpiCard/KpiGrid shared"
+    fix: "Trocar os 4 cards hand-roll (Plataforma.tsx:152-164) por KpiGrid/KpiCard; tirar rounded-[10px] e tamanhos arbitrários"
+    esforco: baixo
+    origin: prontidao-thread08-2026-09-23
+  - dim: "I18n-PT-BR"
+    best_of_class: "Shopify admin: rótulos traduzidos, enum mapeado pra texto de produto"
+    fix: "Rótulos 'migrations'/'seeders' → 'migrações'/'seeds'; mapear origem seed/chat_ia (Plataforma.tsx:92). Copy pinada no contrato ⇒ [W]"
+    esforco: baixo
+    origin: prontidao-thread08-2026-09-23
