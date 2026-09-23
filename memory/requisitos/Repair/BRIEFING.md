@@ -2,9 +2,9 @@
 id: requisitos-repair-briefing
 module: Repair
 status: shared-infra
-updated_at: "2026-09-15"
-distilled_at: "2026-09-15"
-distilled_by: "agente (re-leitura manual dos docs novos do módulo; `jana:distill-module-truth` não rodou — PHP indisponível no ambiente do agente e a execução dele segue gate [W]/CT100, ADR 0291 D-E)"
+updated_at: "2026-09-23"
+distilled_at: "2026-09-23"
+distilled_by: "agente (2026-09-23: re-leitura manual restrita ao que o #7780 mudou em `DeviceModels/Index`; antes, 2026-09-15: re-leitura manual dos docs novos do módulo; `jana:distill-module-truth` não rodou — PHP indisponível no ambiente do agente e a execução dele segue gate [W]/CT100, ADR 0291 D-E)"
 ---
 
 # BRIEFING — Repair (verdade destilada)
@@ -28,7 +28,7 @@ Ordens de serviço como infraestrutura compartilhada entre verticais (`OficinaAu
 - O `base_path()` fora do bootstrap que quebrava o `Wave18RepairSaturationTest` foi corrigido em #6240 (2026-08-25); `SPEC.md` US-REPA-002 ainda diz `_pendente_` — SPEC atrás do código (precedência: teste > SPEC), correção pendente.
 
 ## Última mudança
-2026-09-09..15 — onda de FORMA do `Dashboard/Index` sob [ADR UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md) (protótipo soberano no eixo forma). A F1 do MWART foi feita — [RUNBOOK-repair-dashboard.md](RUNBOOK-repair-dashboard.md) —, o que derrubou o bloqueio que o UC-RDSH-03 citava (*"mexer no `.tsx` exige RUNBOOK do Dashboard, que não existe"*). Charter, `casos.md` e teste mudaram no MESMO PR: UC-RDSH-02 virou controle negativo do KPI antigo e UC-RDSH-03 acompanhou o painel de aparelhos que parou de vir vazio. As duas linhas que o [gap-spec](repair-dashboard-gap.md) marcava como *"decidir — construir ou rejeitar por escrito"* têm resposta escrita lá. Antes: 2026-09-04..06 — onda MWART das Configurações (Inertia, #6779), `Settings/Index` no PageHeader canon (#6814), primeiro E2E + a11y do módulo (#6878), contrato executável das telas (#6882/#6883/#6884/#6887) e revogação de GUARDs fantasmas no charter `JobSheet/Index` (#6874). Antes: perf D-14 partial reload em `DeviceModels/Index` e `Repair/Index` (telas MWART/Inertia; #3901, 2026-07-06) e o draft de charter da OS (#4123, 2026-07-12).
+2026-09-23 — `DeviceModels/Index` saiu do skeleton eterno ([#7780](https://github.com/wagnerra23/oimpresso.com/pull/7780)). O `DeviceModelController@index` tinha `if ($request->ajax())` antes do `Inertia::render`, e as props `models`/`kpis` vêm por `Inertia::defer`; o cliente Inertia v3 manda `X-Requested-With` em toda visita, então o partial reload recebia o JSON do DataTables do Blade legado. A flag `mwart.repair_device_models_index` está ligada para biz=1 em produção, logo a lista estava quebrada lá. Guarda `&& ! $request->inertia()`; o `dmParcial` do `DeviceModelsContratoTest` passou a mandar os headers reais e mordeu 5 casos contra o controller antigo (UC-DMIDX-04..08). Antes: 2026-09-09..15 — onda de FORMA do `Dashboard/Index` sob [ADR UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md) (protótipo soberano no eixo forma). A F1 do MWART foi feita — [RUNBOOK-repair-dashboard.md](RUNBOOK-repair-dashboard.md) —, o que derrubou o bloqueio que o UC-RDSH-03 citava (*"mexer no `.tsx` exige RUNBOOK do Dashboard, que não existe"*). Charter, `casos.md` e teste mudaram no MESMO PR: UC-RDSH-02 virou controle negativo do KPI antigo e UC-RDSH-03 acompanhou o painel de aparelhos que parou de vir vazio. As duas linhas que o [gap-spec](repair-dashboard-gap.md) marcava como *"decidir — construir ou rejeitar por escrito"* têm resposta escrita lá. Antes: 2026-09-04..06 — onda MWART das Configurações (Inertia, #6779), `Settings/Index` no PageHeader canon (#6814), primeiro E2E + a11y do módulo (#6878), contrato executável das telas (#6882/#6883/#6884/#6887) e revogação de GUARDs fantasmas no charter `JobSheet/Index` (#6874). Antes: perf D-14 partial reload em `DeviceModels/Index` e `Repair/Index` (telas MWART/Inertia; #3901, 2026-07-06) e o draft de charter da OS (#4123, 2026-07-12).
 
 ## Proveniência (destilado de)
 

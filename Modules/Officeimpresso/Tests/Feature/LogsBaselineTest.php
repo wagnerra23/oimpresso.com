@@ -310,6 +310,33 @@ it('UC-LOGS-10 · a flag ON NÃO afrouxa a guarda de acesso', function () {
     $user->forceDelete();
 });
 
+it('UC-LOGS-14 · no partial reload do navegador a lista adiada chega — não o JSON do DataTables', function () {
+    $business = $this->seededTenant();
+    $user = actingAsOiLeitor($this, $business->id);
+    $alvo = criaMaquinaOi($this, $business->id, ['hostname' => $this->oiMarcador . 'PARCIAL']);
+
+    forcaFlagV2($this, true);
+
+    // Os headers que o NAVEGADOR manda (@inertiajs/core 3.x, getHeaders): `X-Requested-With`
+    // vai em TODA visita Inertia, e é o header que `request()->ajax()` lê. Sem a guarda
+    // `! $request->inertia()` no controller, este pedido caía no ramo DataTables e a tela
+    // ficava no skeleton para sempre (medido no staging em 2026-09-23).
+    $r = $this->withHeaders([
+        'X-Requested-With' => 'XMLHttpRequest',
+        'Accept' => 'text/html, application/xhtml+xml',
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => (string) app(App\Http\Middleware\HandleInertiaRequests::class)->version(request()),
+        'X-Inertia-Partial-Component' => 'Officeimpresso/Logs/Index',
+        'X-Inertia-Partial-Data' => 'maquinas',
+    ])->get('/officeimpresso/licenca_log?q=' . $this->oiMarcador . 'PARCIAL');
+
+    $r->assertOk();
+    expect($r->json('component'))->toBe('Officeimpresso/Logs/Index');
+    expect(collect($r->json('props.maquinas'))->pluck('licenca_id')->all())->toContain($alvo);
+
+    $user->forceDelete();
+});
+
 it('UC-TL-07 · com a flag ON a timeline responde Inertia com a máquina', function () {
     $business = $this->seededTenant();
     $user = actingAsOiLeitor($this, $business->id);
