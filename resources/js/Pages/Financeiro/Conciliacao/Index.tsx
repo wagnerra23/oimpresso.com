@@ -12,6 +12,7 @@ import { type ReactNode, type FormEvent, useState } from 'react';
 import { Upload, Check, X, Search, Inbox, RotateCcw } from 'lucide-react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
+import { Stack } from '@/Components/layout';
 import { Checkbox } from '@/Components/ui/checkbox';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -72,9 +73,9 @@ interface KpiItem {
 
 function KpiFaixa({ itens }: { itens: KpiItem[] }) {
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[11px] shadow-[var(--sh-1)] overflow-hidden flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-[var(--border)]">
+    <Stack gap={0} className="bg-[var(--surface)] border border-[var(--border)] rounded-[11px] shadow-[var(--sh-1)] overflow-hidden sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-[var(--border)]">
       {itens.map((k) => (
-        <div key={k.rotulo} className="flex-1 px-5 py-4 flex flex-col">
+        <Stack key={k.rotulo} gap={0} className="flex-1 px-5 py-4">
           <small className="text-[length:var(--fs-1)] tracking-widest font-medium text-[var(--text-dim)]">
             {k.rotulo}
           </small>
@@ -82,9 +83,9 @@ function KpiFaixa({ itens }: { itens: KpiItem[] }) {
             {k.valor}
           </b>
           <span className="mt-2 text-[length:var(--fs-2)] text-[var(--text-dim)]">{k.dica}</span>
-        </div>
+        </Stack>
       ))}
-    </div>
+    </Stack>
   );
 }
 
