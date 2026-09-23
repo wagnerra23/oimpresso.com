@@ -5,12 +5,10 @@ use Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
 
-// Hub stub Sprint 2 (Wagner 2026-05-26): rota raiz renderiza Index.tsx
-// existente como hub "em construção" listando 4 áreas (Orçamentos/OS/
-// Materiais/Apontamentos). Substitui o dropdown legacy do DataController
-// que apontava pra URLs /comunicacao-visual/admin/* não existentes (404).
-// Sprint 2 entrega telas Inertia próprias — até lá, hub stub +
-// acesso direto via APIs /comunicacao-visual/api/*.
+// Rota raiz do módulo: renderiza Index.tsx — calculadora de orçamento por m²
+// (US-COMVIS-001) + cartões "em breve" das outras áreas. Nasceu em 2026-05-26
+// como hub stub no lugar do dropdown legacy do DataController, que apontava
+// pra URLs /comunicacao-visual/admin/* inexistentes (404).
 Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
     ->prefix('comunicacao-visual')
     ->group(function () {
