@@ -30,10 +30,10 @@
  */
 import { useMemo, useState, type ReactNode } from 'react';
 import { Head } from '@inertiajs/react';
-import { Plus, Trash2, Calculator, ServerCog, Ruler, Clock } from 'lucide-react';
+import { Plus, Trash2, Calculator, ServerCog, Ruler, Clock, Printer } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -213,12 +213,14 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
     <>
       <Head title="Comunicação Visual — Orçamento por m²" />
 
+      {/* Header canon (ADR 0189/0190): traz o próprio padding, por isso fica FORA do bloco p-6. */}
+      <PageHeader
+        leading={<Printer className="h-5 w-5 text-primary" aria-hidden="true" />}
+        title="Comunicação Visual"
+        subtitle={`Orçamento por m² pra ${bizName} — banner, lona, adesivo, fachada. Calcule na hora, sem abrir o Excel.`}
+      />
+
       <div className="space-y-6 p-6">
-        <PageHeader
-          icon="printer"
-          title="Comunicação Visual"
-          description={`Orçamento por m² pra ${bizName} — banner, lona, adesivo, fachada. Calcule na hora, sem abrir o Excel.`}
-        />
 
         {/* Calculadora — o valor real da tela */}
         <Card>
