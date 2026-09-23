@@ -2,9 +2,9 @@
 id: requisitos-jana-briefing
 module: Jana
 status: producao
-updated_at: "2026-09-15"
-distilled_at: "2026-09-15"
-distilled_by: jana:distill-module-truth
+updated_at: "2026-09-23"
+distilled_at: "2026-09-23"
+distilled_by: "manual [C] — redestilação PARCIAL (2026-09-23): só §Gaps e §Última mudança re-lidos contra o que o #7863 mudou (thread 04 do playbook jana — permissão provada por teste). O resto do corpo segue no retrato de 2026-09-15 do `jana:distill-module-truth`, que não rodou: o destilador depende do CT 100, cujo banco de staging estava fora nesta data. Gatilho: o `distiller_freshness` do sdd-scorecard acusou a porta 8d atrás do código do módulo."
 ---
 
 # BRIEFING — Jana (verdade destilada)
@@ -23,8 +23,11 @@ O módulo Jana é a camada de IA do oimpresso, proporcionando um chat com memór
 - Melhoria necessária em `context_recall`, que está abaixo do alvo.
 - Necessidade de aperfeiçoar a gestão de dados nas telas da Plataforma, que atualmente apresentam tabelas de meta vazias.
 - Aumentar a cobertura de testes para reduzir falsos-positivos.
+- `jana.chat` e `jana.metas.manage` estão declaradas no registry e **não travam nenhuma rota** (medido 2026-09-23): quem tem `jana.access` conversa e grava meta. Os testes `IaPermissaoGrupoTest` e `MetasPermissaoTest` provam esse limite e quebram quando a trava existir.
 
 ## Última mudança
+Thread 04 do playbook (2026-09-23, #7863): a camada de permissão ganhou prova por teste em `Modules/Jana/Tests/Feature/Http/` — o grupo `/ia` barra as 4 telas sem `jana.access` e nenhuma rota `jana.*` escapa dele; meta de outro business não chega no Painel, nem pra `jana.superadmin`; custo de IA não aparece no payload do Painel; conversa de outro usuário do mesmo business dá 403 no GET e no PATCH.
+
 Onda 7 de paridade inventário↔tela no lote Crm+Jana+Forja (2026-09-08), junto com o drawer da meta absorvendo `metas/show` e `fontes/show`, o comando artisan que revoga o scope `admin_only` concedido antes do filtro, e a correção do pós-login — o ramo `jana.access` mandava admin pra um Painel vazio. Antes disso, em 2026-09-03, a tela de superadmin substituiu o Blade anterior e as fronteiras de Governance/MCP foram reorganizadas.
 
 ## Proveniência (destilado de)
