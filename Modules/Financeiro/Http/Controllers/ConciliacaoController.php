@@ -106,6 +106,11 @@ class ConciliacaoController extends Controller
             $linhas = $linhas->concat($api)->sortByDesc('data_movimento')->values();
         }
 
+        // FIN-4b (2026-09-23): a coluna "Sistema" do protótipo mostra o título
+        // vinculado/sugerido. Leitura só de exibição — nada é criado nem editado
+        // (Automation Anti-hook do charter: "Não cria/edita Titulo").
+        $linhas = $this->anexarTitulos($businessId, $linhas);
+
         $stats = $this->statsConsolidados($businessId);
 
         // ContaBancaria.nome é accessor que lê de Account.name (eager load needed)
@@ -117,6 +122,10 @@ class ConciliacaoController extends Controller
         return Inertia::render('Financeiro/Conciliacao/Index', [
             'linhas' => $linhas,
             'stats' => $stats,
+            // FIN-4b: "Período" + "Total no extrato" do protótipo. Agregado das DUAS
+            // origens, todas as situações — mesmo universo dos 4 contadores de `stats`,
+            // não a fila filtrada/limitada a 200. Deferido (RUNBOOK-inertia-defer-pattern).
+            'resumo' => Inertia::defer(fn () => $this->resumoExtrato($businessId)),
             'contas' => $contas,
             'filters' => [
                 'incluir_resolvidos' => $incluirResolvidos,
@@ -193,6 +202,87 @@ class ConciliacaoController extends Controller
         }
 
         return $stats;
+    }
+
+    /**
+     * FIN-4b: anexa a cada linha o resumo do título vinculado (sugerido ou conciliado),
+     * pra coluna "Sistema" do protótipo. Uma query só (whereIn), business-scoped.
+     * Linha sem título, ou com título de outro business/excluído, recebe `titulo => null`.
+     */
+    private function anexarTitulos(int $businessId, \Illuminate\Support\Collection $linhas): \Illuminate\Support\Collection
+    {
+        $ids = $linhas->pluck('titulo_id')->filter()->unique()->values();
+
+        $titulos = $ids->isEmpty()
+            ? collect()
+            // Titulo aplica BusinessScope + SoftDeletes; where explícito = defesa em profundidade.
+            : Titulo::where('business_id', $businessId)
+                ->whereIn('id', $ids)
+                ->get(['id', 'numero', 'tipo', 'cliente_descricao', 'valor_total', 'vencimento'])
+                ->keyBy('id');
+
+        return $linhas->map(function (array $l) use ($titulos) {
+            $t = $l['titulo_id'] !== null ? $titulos->get($l['titulo_id']) : null;
+            $l['titulo'] = $t === null ? null : [
+                'id'          => (int) $t->id,
+                'numero'      => $t->numero,
+                'tipo'        => $t->tipo,
+                'descricao'   => $t->cliente_descricao,
+                'valor_total' => round((float) $t->getAttribute('valor_total'), 2),
+                'vencimento'  => $t->vencimento?->toDateString(),
+            ];
+
+            return $l;
+        })->values();
+    }
+
+    /**
+     * FIN-4b: período e totais do extrato — as DUAS origens, todas as situações
+     * (mesmo universo de `statsConsolidados`). Sinal igual ao que a tela mostra:
+     * OFX já guarda valor com sinal; API guarda positivo + tipo, e `D` vira negativo
+     * (mesma regra de `normalizeApi`). Arredondado a 2 casas.
+     *
+     * @return array{periodo_inicio: ?string, periodo_fim: ?string, entradas: float, saidas: float, linhas: int}
+     */
+    private function resumoExtrato(int $businessId): array
+    {
+        $ofx = BankStatementLine::where('business_id', $businessId)
+            ->toBase()
+            ->selectRaw('MIN(data_movimento) AS ini, MAX(data_movimento) AS fim, COUNT(*) AS n')
+            ->selectRaw('COALESCE(SUM(CASE WHEN valor > 0 THEN valor ELSE 0 END), 0) AS entradas')
+            ->selectRaw('COALESCE(SUM(CASE WHEN valor < 0 THEN valor ELSE 0 END), 0) AS saidas')
+            ->first();
+
+        $ini = $ofx->ini;
+        $fim = $ofx->fim;
+        $entradas = (float) $ofx->entradas;
+        $saidas = (float) $ofx->saidas;
+        $n = (int) $ofx->n;
+
+        if ($this->apiConciliavel()) {
+            $api = DB::table('fin_extrato_lancamentos')
+                ->where('business_id', $businessId)
+                ->selectRaw('MIN(data) AS ini, MAX(data) AS fim, COUNT(*) AS n')
+                ->selectRaw("COALESCE(SUM(CASE WHEN tipo = 'D' THEN 0 ELSE ABS(valor) END), 0) AS entradas")
+                ->selectRaw("COALESCE(SUM(CASE WHEN tipo = 'D' THEN -ABS(valor) ELSE 0 END), 0) AS saidas")
+                ->first();
+
+            if ((int) $api->n > 0) {
+                $ini = $ini === null ? $api->ini : min($ini, $api->ini);
+                $fim = $fim === null ? $api->fim : max($fim, $api->fim);
+            }
+            $entradas += (float) $api->entradas;
+            $saidas += (float) $api->saidas;
+            $n += (int) $api->n;
+        }
+
+        return [
+            'periodo_inicio' => $ini !== null ? substr((string) $ini, 0, 10) : null,
+            'periodo_fim'    => $fim !== null ? substr((string) $fim, 0, 10) : null,
+            'entradas'       => round($entradas, 2),
+            'saidas'         => round($saidas, 2),
+            'linhas'         => $n,
+        ];
     }
 
     /**

@@ -1,6 +1,7 @@
 # 08 — Handoff (índice)
 
 - [2026-09-23 11:40 BRT — **Financeiro: gates, sessão e de-para da DRE**](handoffs/2026-09-23-1140-financeiro-gates-sessao-dre-depara.md) (5 PRs mergeados · 19 rotas com gate · SetSessionData no grupo · install deriva 17 permissões · dre_linha sem dado · classificação da WR2 com [E])
+- [2026-09-23 14:30 BRT — **--omission acusava mudança de assinatura de função: C3 + C4**](handoffs/2026-09-23-1430-omission-assinatura-funcao-c3-c4.md) (âncora ^[-] anulava o C1 · teste por família · invariante de SYMBOL_RES armado no dono · lápide §5 + rec LC-30 · #7788 e #7792 mergeados)
 - [2026-09-23 07:29 BRT — **Máquinas de governança como microsserviços: 8 PRs**](handoffs/2026-09-23-0729-maquinas-governanca-microsservicos-8-prs.md) (hook-bites por oportunidade · inventário lê PHP · hook compara conteúdo inteiro · resumo de steps falhos · 2 órfãos apagados · 2 recs no ledger)
 - [2026-09-22 15:36 BRT — **Lacunas da revisão de fluxos fechadas**](handoffs/2026-09-22-1536-lacunas-revisao-fluxos-fechadas.md) (17→0 · contrato do deploy com RELEASE+4 BITE · zero selftests órfãos · execução viva estrita sem baseline passou)
 - [2026-09-22 14:55 BRT — **Revisão executável dos fluxos e máquinas, sem baseline local**](handoffs/2026-09-22-1455-revisao-fluxos-maquinas-sem-baseline.md) (5 fluxos descobertos · 6 máquinas citadas · 0 path fantasma · 17 lacunas declaradas · enforcement medido na API viva)
