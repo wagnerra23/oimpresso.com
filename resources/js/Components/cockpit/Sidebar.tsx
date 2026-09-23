@@ -1204,9 +1204,15 @@ function SidebarUserMenu({
   // Estado da cascata: qual sub-menu está ativo (null = só painel principal)
   const [activeSub, setActiveSub] = useState<'superadmin' | 'disponivel' | 'aparencia' | 'vibes' | null>(null);
 
+  // Sair pede confirmação inline antes de encerrar (protótipo `sidebar.jsx` confSair).
+  const [confirmaSair, setConfirmaSair] = useState(false);
+
   // Reset cascade quando fechar o menu
   useEffect(() => {
-    if (!open) setActiveSub(null);
+    if (!open) {
+      setActiveSub(null);
+      setConfirmaSair(false);
+    }
   }, [open]);
 
   // Suprime warning de superExpanded não-usado (mantido por compat)
@@ -1319,10 +1325,48 @@ function SidebarUserMenu({
           <span className="label">Central de ajuda</span>
         </a>
         <div className="um-sep" />
-        <a href="/logout" className="um-item">
-          <LogOut size={14} className="ic" />
-          <span className="label">Sair</span>
-        </a>
+        {confirmaSair ? (
+          // Confirmação INLINE no próprio menu — sem modal (canon do Cockpit).
+          // "Encerrar" é o logout REAL: o mesmo `GET /logout` → LoginController@logout
+          // que o layout legado usa (header.blade.php). Continua sendo <a>, então
+          // funciona sem JS. O protótipo faz `window.location.reload()` só porque lá
+          // não há auth — stand-in declarado no playbook, não comportamento alvo.
+          <div role="group" aria-label="Encerrar a sessão?" style={{ padding: '8px 10px 10px' }}>
+            <p style={{ margin: '0 0 8px', fontSize: 12, color: 'var(--sb-text-dim)' }}>
+              Encerrar a sessão?
+            </p>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <a
+                href="/logout"
+                className="um-item"
+                style={{
+                  flex: '1 1 auto', width: 'auto', justifyContent: 'center',
+                  border: '1px solid var(--sb-border)', borderRadius: 6,
+                  color: 'oklch(0.62 0.20 25)',
+                }}
+              >
+                <LogOut size={14} className="ic" />
+                <span className="label" style={{ flex: '0 0 auto' }}>Encerrar</span>
+              </a>
+              <button
+                type="button"
+                className="um-item"
+                onClick={() => setConfirmaSair(false)}
+                style={{
+                  flex: '1 1 auto', width: 'auto', justifyContent: 'center',
+                  border: '1px solid var(--sb-border)', borderRadius: 6,
+                }}
+              >
+                <span className="label" style={{ flex: '0 0 auto' }}>Cancelar</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button type="button" className="um-item" onClick={() => setConfirmaSair(true)}>
+            <LogOut size={14} className="ic" />
+            <span className="label">Sair</span>
+          </button>
+        )}
       </div>
 
       {/* SUBPAINEL CASCATA — desliza da direita quando activeSub != null */}
