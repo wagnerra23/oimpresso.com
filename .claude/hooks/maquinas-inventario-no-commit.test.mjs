@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 import {
   ehGitCommit, temPathspecExplicito, levaWorkingTree, tocaCoberto, COBERTOS,
   ehDocDoCorpus, tokensDe, tokensDasMaquinas, diffCitaMaquina, DOCS_GERADOS,
-  RX_ARQUIVO, RX_CRASE, RX_PASTA,
+  RX_ARQUIVO, RX_CRASE, RX_PASTA, pathsQueMudamOMapa,
 } from './maquinas-inventario-no-commit.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'maquinas-inventario-no-commit.mjs');
@@ -345,6 +345,110 @@ function sandboxDoc() {
   writeFileSync(join(dir, 'memory/requisitos/X/SPEC.md'), 'base\nagora `deadlink-gate`\n');
   roda(dir, 'git commit -am x');
   ok(conteudo(dir) === 'indice NOVO\n', 'DOC MORDE: -a considera doc do working tree');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// ---------------------------------------------------------------- (N) passo 2: SUPERFICIE.md
+// Usa o GERADOR REAL (`module-surface.mjs` + `page-path.mjs`, copiados para o sandbox): o que
+// esta sob teste e a decisao "este commit envelheceu o mapa de qual modulo", e so o gerador de
+// verdade responde isso — um fake provaria o fake.
+console.log('superficie (passo 2):');
+const TAB = String.fromCharCode(9);
+ok(JSON.stringify(pathsQueMudamOMapa('A' + TAB + 'Modules/Foo/x.php\nM' + TAB + 'Modules/Foo/y.php\nD' + TAB + 'Modules/Bar/z.php\n'))
+  === JSON.stringify(['Modules/Foo/x.php', 'Modules/Bar/z.php']), 'so A e D mudam o mapa (M nao)');
+ok(pathsQueMudamOMapa('').length === 0, 'diff vazio: nada');
+
+const RAIZ_REPO = join(dirname(fileURLToPath(import.meta.url)), '../..');
+const SUP = (m) => `memory/requisitos/${m}/SUPERFICIE.md`;
+
+function sandboxSup() {
+  const dir = mkdtempSync(join(tmpdir(), 'modsurf-'));
+  const g = (args) => execFileSync('git', args, { cwd: dir, stdio: 'ignore' });
+  g(['init', '-q']); g(['config', 'user.email', 't@t']); g(['config', 'user.name', 't']);
+  for (const rel of ['scripts/governance/module-surface.mjs', 'scripts/qa/page-path.mjs']) {
+    mkdirSync(join(dir, dirname(rel)), { recursive: true });
+    writeFileSync(join(dir, rel), readFileSync(join(RAIZ_REPO, rel)));
+  }
+  for (const m of ['Foo', 'Bar']) {
+    mkdirSync(join(dir, `Modules/${m}/Http/Controllers`), { recursive: true });
+    mkdirSync(join(dir, `memory/requisitos/${m}`), { recursive: true });
+    writeFileSync(join(dir, `Modules/${m}/module.json`), JSON.stringify({ name: m, providers: [`X${m}`] }));
+    writeFileSync(join(dir, `Modules/${m}/Http/Controllers/A.php`), '<?php\n');
+  }
+  g(['add', '-A']);
+  for (const m of ['Foo', 'Bar']) execFileSync('node', ['scripts/governance/module-surface.mjs', m, '--write'], { cwd: dir, stdio: 'ignore' });
+  g(['add', '-A']); g(['commit', '-qm', 'base']);
+  return dir;
+}
+const checkSup = (dir, m) => spawnSync('node', ['scripts/governance/module-surface.mjs', m, '--check'], { cwd: dir }).status;
+
+{
+  const dir = sandboxSup();
+  ok(checkSup(dir, 'Foo') === 0 && checkSup(dir, 'Bar') === 0, 'controle: sandbox nasce sem drift');
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/B.php'), '<?php\n');
+  execFileSync('git', ['add', '--', 'Modules/Foo/Http/Controllers/B.php'], { cwd: dir, stdio: 'ignore' });
+  ok(checkSup(dir, 'Foo') === 1, 'controle positivo: arquivo novo deixa Foo com drift');
+  const r = roda(dir, 'git commit -m x');
+  ok(stageado(dir).includes(SUP('Foo')), 'MORDE: arquivo novo regenera e estagia a SUPERFICIE do modulo');
+  ok(checkSup(dir, 'Foo') === 0, 'MORDE: depois do hook o --check do modulo fica verde');
+  ok(!stageado(dir).includes(SUP('Bar')), 'ESCOPO: modulo nao tocado nao entra');
+  ok(/REGENEREI e ESTAGIEI/.test(r.stderr), 'avisa o que fez');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxSup();
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/A.php'), '<?php // editado\n');
+  execFileSync('git', ['add', '--', 'Modules/Foo/Http/Controllers/A.php'], { cwd: dir, stdio: 'ignore' });
+  const antes = readFileSync(join(dir, SUP('Foo')), 'utf8');
+  const r = roda(dir, 'git commit -m x');
+  ok(readFileSync(join(dir, SUP('Foo')), 'utf8') === antes && !r.stderr, 'SILENCIO: so edicao nao toca o mapa');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxSup();
+  // drift HERDADO em Bar: arquivo commitado sem regenerar
+  writeFileSync(join(dir, 'Modules/Bar/Http/Controllers/Z.php'), '<?php\n');
+  execFileSync('git', ['add', '-A'], { cwd: dir, stdio: 'ignore' });
+  execFileSync('git', ['commit', '-qm', 'drift herdado'], { cwd: dir, stdio: 'ignore' });
+  ok(checkSup(dir, 'Bar') === 1, 'controle: Bar ficou com drift herdado');
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/B.php'), '<?php\n');
+  execFileSync('git', ['add', '--', 'Modules/Foo/Http/Controllers/B.php'], { cwd: dir, stdio: 'ignore' });
+  roda(dir, 'git commit -m x');
+  ok(stageado(dir).includes(SUP('Foo')) && !stageado(dir).includes(SUP('Bar')), 'HERDADO: drift de outro modulo nao entra no commit alheio');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxSup();
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/B.php'), '<?php\n');
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/SOLTO.php'), '<?php\n');   // nao rastreado
+  execFileSync('git', ['add', '--', 'Modules/Foo/Http/Controllers/B.php'], { cwd: dir, stdio: 'ignore' });
+  const antes = readFileSync(join(dir, SUP('Foo')), 'utf8');
+  const r = roda(dir, 'git commit -m x');
+  ok(readFileSync(join(dir, SUP('Foo')), 'utf8') === antes && !stageado(dir).includes(SUP('Foo')), 'LIMITE: arquivo nao rastreado no modulo => nao grava mapa que o CI nao ve');
+  ok(/NAO regenerei/.test(r.stderr), 'LIMITE: e avisa por que pulou');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxSup();
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/B.php'), '<?php\n');
+  execFileSync('git', ['add', '--', 'Modules/Foo/Http/Controllers/B.php'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m x -- Modules/Foo/Http/Controllers/B.php');
+  ok(checkSup(dir, 'Foo') === 0 && !stageado(dir).includes(SUP('Foo')) && /NAO estagiei/.test(r.stderr), 'PATHSPEC: regenera mas nao estagia');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxSup();
+  execFileSync('git', ['rm', '-q', '--', 'Modules/Foo/Http/Controllers/A.php'], { cwd: dir, stdio: 'ignore' });
+  roda(dir, 'git commit -m x');
+  ok(stageado(dir).includes(SUP('Foo')) && checkSup(dir, 'Foo') === 0, 'MORDE: git rm tambem regenera');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxSup();
+  writeFileSync(join(dir, 'README.md'), 'x\n');
+  execFileSync('git', ['add', '--', 'README.md'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m x');
+  ok(!stageado(dir).includes(SUP('Foo')) && !stageado(dir).includes(SUP('Bar')) && !r.stderr, 'SILENCIO: arquivo fora de modulo nao faz nada');
   rmSync(dir, { recursive: true, force: true });
 }
 
