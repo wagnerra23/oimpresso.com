@@ -50,11 +50,14 @@
  * sem renames mostra as linhas; `--no-renames` garante isso para rename puro.
  */
 
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const INDICE = 'memory/reference/MAQUINAS-INVENTARIO.md';
 const GERADOR = 'scripts/governance/maquinas-inventario.mjs';
+const GERADOR_SUPERFICIE = 'scripts/governance/module-surface.mjs';
 
 /** Prefixos que o inventario de fato varre — derivados do proprio gerador, nao adivinhados. */
 export const COBERTOS = [
@@ -206,7 +209,7 @@ function lerStdin() {
   }
 }
 
-function main() {
+async function main() {
   const raw = lerStdin();
   let cmd = '';
   try {
@@ -218,6 +221,13 @@ function main() {
   if (!ehGitCommit(cmd)) return 0;          // 0ms no caso comum
 
   const cwd = process.cwd();
+  passoInventario(cmd, cwd);
+  await passoSuperficie(cmd, cwd);
+  return 0;
+}
+
+/** Passo 1 — o indice de maquinas (o comportamento original deste hook, intacto). */
+function passoInventario(cmd, cwd) {
   if (!existsSync(GERADOR)) return 0;       // fora do repo / checkout parcial: fail-open
 
   // --- filtro BARATO: o commit toca path que o inventario cobre?
@@ -289,6 +299,113 @@ function main() {
   return 0;
 }
 
+/**
+ * Passo 2 — a SUPERFICIE.md de cada modulo (`module-surface.mjs`), estendido em 2026-09-23.
+ *
+ * POR QUE: o `module-surface --all --check` reprova QUALQUER PR aberto quando um
+ * modulo esta com drift — nao so o PR que o causou. Medido em 2026-09-23: #7761 e #7762 criaram
+ * `.casos.md` em Essentials sem regerar, e #7765 e #7780 (que nao tocavam aquele mapa) ficaram
+ * vermelhos por isso. O conserto e o mesmo do passo 1: quem muda o insumo regenera o derivado.
+ *
+ * FILTRO BARATO: a superficie depende so de QUAIS paths existem (o gerador nao le conteudo para
+ * montar o mapa). Logo so importa o commit que CRIA ou APAGA arquivo (`A`/`D` com
+ * `--no-renames`, que desdobra rename em D+A). Editar arquivo existente custa ~0ms.
+ *
+ * QUEM DECIDE e o `--check` do modulo, que compara o CONTEUDO INTEIRO. Quais modulos medir
+ * vem do proprio gerador (`modulosAfetados`, que le as mesmas raizes do `coletar`): o hook nao
+ * tem lista propria de raizes, porque lista escrita a mao apodrece.
+ *
+ * ESCOPO: so regenera modulo que ESTE commit tocou. Drift herdado de outro modulo nao entra no
+ * commit alheio — foi o que tive de desfazer a mao no #7780.
+ *
+ * LIMITES DECLARADOS (o hook pula e avisa, nunca grava um mapa que o CI nao reproduz):
+ *   · arquivo NAO RASTREADO sob as raizes do modulo: o gerador le `--others`, entao ele
+ *     entraria no mapa sem entrar no commit;
+ *   · `git commit -a` com arquivo APAGADO sem `git rm`: o indice ainda o lista, o commit nao.
+ * O aviso sai em stderr com exit 0; o efeito que importa (gravar + estagiar) nao depende dele.
+ */
+export function pathsQueMudamOMapa(nameStatus) {
+  const out = [];
+  for (const linha of String(nameStatus || '').split(/\r?\n/)) {
+    const partes = linha.split(String.fromCharCode(9));
+    if (partes.length === 2 && (partes[0] === 'A' || partes[0] === 'D') && partes[1].trim()) out.push(partes[1].trim());
+  }
+  return out;
+}
+
+async function passoSuperficie(cmd, cwd) {
+  if (!existsSync(GERADOR_SUPERFICIE)) return;             // sandbox/checkout parcial: fail-open
+  let staged = '';
+  let wt = '';
+  try {
+    staged = git(['diff', '--cached', '--name-status', '--no-renames'], cwd);
+    if (levaWorkingTree(cmd)) wt = git(['diff', '--name-status', '--no-renames'], cwd);
+  } catch {
+    return;                                               // git falhou: nao invento estado
+  }
+  const paths = pathsQueMudamOMapa(staged + '\n' + wt);
+  if (!paths.length) return;                              // so edicao: o mapa nao muda
+
+  let ms;
+  try {
+    ms = await import(pathToFileURL(resolve(cwd, GERADOR_SUPERFICIE)).href);
+  } catch {
+    return;
+  }
+  let mods = [];
+  try { mods = ms.modulosAfetados(paths); } catch { return; }
+  if (!mods.length) return;
+
+  let soltos = [];
+  try { soltos = git(['ls-files', '--others', '--exclude-standard'], cwd).split(/\r?\n/).filter(Boolean); } catch { return; }
+  const apagadosSoNoDisco = pathsQueMudamOMapa(wt).filter((p) => !existsSync(p));
+  const explicito = temPathspecExplicito(cmd);
+
+  for (const mod of mods) {
+    const alvo = `memory/requisitos/${mod}/SUPERFICIE.md`;
+    let exige = false;
+    try { exige = ms.isSurfaceRequired(mod); } catch { /* sem opiniao: so segue se o arquivo existir */ }
+    if (!existsSync(alvo) && !exige) continue;            // modulo sem opt-in: nao cria arquivo
+
+    const doMod = (lista) => lista.filter((p) => ms.modulosAfetados([p]).includes(mod));
+    const soltosDoMod = doMod(soltos);
+    const fantasmas = doMod(apagadosSoNoDisco);
+    if (soltosDoMod.length || fantasmas.length) {
+      const motivo = soltosDoMod.length
+        ? soltosDoMod.length + ' arquivo(s) nao rastreado(s) sob o modulo (ex.: ' + soltosDoMod.slice(0, 2).join(', ') + ')'
+        : 'arquivo apagado sem `git rm` num commit -a (ex.: ' + fantasmas.slice(0, 2).join(', ') + ')';
+      console.error('[module-surface] NAO regenerei ' + alvo + ': ' + motivo + '.\n' +
+        '  O mapa sairia diferente do que o CI ve. Resolva (add ou .gitignore / git rm) e rode:\n' +
+        '  node ' + GERADOR_SUPERFICIE + ' ' + mod + ' --write');
+      continue;
+    }
+
+    const check = spawnSync('node', [GERADOR_SUPERFICIE, mod, '--check'], { cwd, encoding: 'utf8', timeout: 120000 });
+    if (check.status === 0) continue;                     // fresco: SILENCIO
+    if (check.status !== 1 || !String(check.stderr || '').includes('DRIFT em')) continue;  // nao medi: fail-open
+
+    const w = spawnSync('node', [GERADOR_SUPERFICIE, mod, '--write'], { cwd, encoding: 'utf8', timeout: 120000 });
+    if (w.status !== 0) {
+      console.error('[module-surface] o --write de ' + mod + ' falhou; commit segue com ' + alvo + ' stale.');
+      continue;
+    }
+    if (explicito) {
+      console.error('[module-surface] REGENEREI ' + alvo + ' (o commit cria/apaga arquivo do modulo).\n' +
+        '  Seu commit tem pathspec explicito, entao NAO estagiei — inclua o arquivo voce mesmo.');
+      continue;
+    }
+    try {
+      git(['add', '--', alvo], cwd);
+    } catch {
+      console.error('[module-surface] regenerei, mas o `git add` falhou. Estagie a mao: ' + alvo);
+      continue;
+    }
+    console.error('[module-surface] REGENEREI e ESTAGIEI ' + alvo + '.\n' +
+      '  Motivo: este commit cria ou apaga arquivo de ' + mod + ', e o mapa do modulo divergia da arvore.\n' +
+      '  Sem isso o `module-surface --all --check` reprova este PR e todo PR aberto depois dele.');
+  }
+}
+
 if (process.argv[1] && process.argv[1].endsWith('maquinas-inventario-no-commit.mjs')) {
-  process.exit(main());
+  main().then((rc) => process.exit(rc), () => process.exit(0));   // fail-open ate no erro inesperado
 }

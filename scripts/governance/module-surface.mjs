@@ -365,24 +365,61 @@ function isSurfaceRequired(mod) {
   }
 }
 
+/**
+ * AS RAIZES de um módulo — fonte única de "que paths pertencem a este módulo". O `coletar`
+ * anda por elas para montar a SUPERFICIE, e o hook `maquinas-inventario-no-commit` as usa para
+ * decidir QUAIS SUPERFICIE um commit pode ter envelhecido. Separar as duas perguntas em dois
+ * lugares seria a lista escrita à mão que apodrece — por isso as duas leem daqui.
+ *   · `dirs`     — walk recursivo;
+ *   · `prefixos` — semente CLASSE B (arquivo exato OU dir);
+ *   · `exatos`   — arquivos avulsos que entram só se existirem (o SCOPE, ADR 0375).
+ */
+function raizesDoModulo(mod) {
+  if (mod === CONTEXTO_GERAL) return { dirs: [...RAIZES_GERAIS], prefixos: [], exatos: [] };
+  const core = CORE_APP_MODULES[mod];
+  return {
+    dirs: [`Modules/${mod}`, ...nsDoModulo(mod).map((ns) => `resources/js/Pages/${ns}`)],
+    prefixos: core ? [...core.prefixos] : [],
+    exatos: [`memory/requisitos/${mod}/SCOPE.md`],
+  };
+}
+
+// Sem literal de barra invertida: ela colapsa quando o arquivo é escrito por heredoc (LC-26).
+const BARRA_INVERTIDA = String.fromCharCode(92);
+
+/** `path` cai sob `raiz` (igual a ela, ou dentro dela)? Por PREFIXO, então vale para arquivo apagado. */
+function sobRaiz(path, raiz) {
+  const r = String(raiz).split(BARRA_INVERTIDA).join('/').replace(/\/+$/, '');
+  const p = String(path).split(BARRA_INVERTIDA).join('/');
+  return p === r || p.startsWith(`${r}/`);
+}
+
+/**
+ * Módulos cujas raízes contêm algum destes paths. Responde por PREFIXO (não por pertença no
+ * índice) porque o chamador pergunta também sobre arquivo APAGADO, que já não está no índice.
+ */
+function modulosAfetados(paths) {
+  const lista = (Array.isArray(paths) ? paths : []).map(String);
+  if (!lista.length) return [];
+  return listarModulos().filter((mod) => {
+    const r = raizesDoModulo(mod);
+    const raizes = [...r.dirs, ...r.prefixos, ...r.exatos];
+    return lista.some((p) => raizes.some((raiz) => sobRaiz(p, raiz)));
+  });
+}
+
 /** Coleta os arquivos do módulo (código + telas) e agrupa por papel. */
 function coletar(mod) {
-  const core = CORE_APP_MODULES[mod];
-  const pagesNs = nsDoModulo(mod); // namespaces Inertia reais (≠ nome do módulo em alguns)
+  const { dirs, prefixos, exatos } = raizesDoModulo(mod);
   // As telas do módulo podem morar em DOIS lugares durante a migração para `Modules/<X>/`
-  // (2026-08-12): ainda no núcleo (`resources/js/Pages/<ns>`) ou já dentro do módulo. O
-  // `walk('Modules/<Mod>')` acima já pega as internas; este segundo walk pega as que ainda
-  // não migraram. Enquanto a migração é faseada, os dois casos coexistem — e o inventário
-  // precisa mostrar o módulo INTEIRO nos dois estados, senão fica cego no meio do caminho.
+  // (2026-08-12): ainda no núcleo (`resources/js/Pages/<ns>`) ou já dentro do módulo. Por isso
+  // `dirs` traz as duas raízes — o inventário mostra o módulo INTEIRO nos dois estados.
+  // ADR 0375: o SCOPE do modulo saiu de Modules/<X>/ pra memory/requisitos/<X>/ — entra em
+  // `exatos` e só conta se existir.
   const files = [...new Set([
-    ...(mod === CONTEXTO_GERAL ? RAIZES_GERAIS.flatMap((p) => walk(p)) : walk(`Modules/${mod}`)),
-    ...(mod === CONTEXTO_GERAL ? [] : pagesNs.flatMap((ns) => walk(`resources/js/Pages/${ns}`))),
-    ...(core ? expandirPrefixos(core.prefixos) : []),
-    // ADR 0375: o SCOPE do modulo saiu de Modules/<X>/ pra memory/requisitos/<X>/.
-    // O inventario segue o contrato onde ele estiver — senao o modulo aparece SEM
-    // seu proprio SCOPE, que e o oposto do que este inventario existe pra mostrar.
-    ...(mod === CONTEXTO_GERAL ? [] : (existsSync(join(ROOT, 'memory', 'requisitos', mod, 'SCOPE.md'))
-      ? [`memory/requisitos/${mod}/SCOPE.md`] : [])),
+    ...dirs.flatMap((p) => walk(p)),
+    ...expandirPrefixos(prefixos),
+    ...exatos.filter((p) => existsSync(join(ROOT, p))),
   ])].sort();
   const grupos = PAPEIS.map((p) => ({ ...p, files: /** @type {string[]} */ ([]) }));
   const outros = [];
@@ -801,4 +838,7 @@ export {
   manifestExigeSuperficie,
   colisoesDeCasing,
   pathsSobRaiz,
+  raizesDoModulo,
+  modulosAfetados,
+  listarModulos,
 };
