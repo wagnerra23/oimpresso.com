@@ -1,0 +1,57 @@
+# Scorecard de tela — screen-qa-specialist, passos 0 (Pré-Flight) e 1 (Nota) apenas.
+# NOTA DE LEITURA DE CÓDIGO: .tsx + charter + controller lidos em 2026-09-23 (base 317e1b4ec33).
+# Sem browser de prod nesta passagem — nenhuma dimensão foi medida em runtime.
+# E2E / axe / smoke (passos 2-4) ficaram fora desta thread (playbook prontidao 09).
+screen: Patrimonio/Configuracoes
+path: resources/js/Pages/Patrimonio/Configuracoes.tsx
+archetype: config             # formulário de configuração de módulo (Configuracoes.charter.md:310)
+golden: n/a
+persona: misto                # sem `personas_alvo` no charter e sem entrada patrimonio/assetmanagement em personas-por-modulo.yml → pesos iguais
+nota: 78
+nivel: "Advanced"
+baseline_anterior: 78         # primeira medição — ratchet parte daqui
+peso_real: 1.0                # não aplicado à nota (método §1)
+source: screen-qa-prontidao-09-2026-09-23
+graded_at: "2026-09-23"
+medicao: leitura-de-codigo
+preflight:
+  charter: "draft (Configuracoes.charter.md:295)"
+  casos: resources/js/Pages/Patrimonio/Configuracoes.casos.md
+  controller: "Modules/AssetManagement/Http/Controllers/AssetSettingsController.php:41 index() → Inertia::render :92"
+  componentes: "só @/Components/ui (Button/Card/Checkbox/Input/Label/Skeleton/Switch/Textarea) + layout (Configuracoes.tsx:42-50)"
+  tokens: "v4 semânticos — zero blue-*/hex"
+resumo: "Formulário curto e correto no ponto que importa: o payload omite a chave `enable_*` desmarcada para não quebrar o `$request->has()` do backend. Usuários deferidos, templates revelados pelo interruptor. Perde em recuperação de erro (form.errors nunca renderiza), em jargão de processo vazando para o usuário e em semântica de grupo nos destinatários."
+dimensoes: { density: 80, discoverability: 80, speed_to_task: 78, error_recovery: 64, cognitive_load: 80, aesthetic_usability: 80, affordance: 80, brand_confidence: 80, mobile_fit: 78, a11y_wcag: 72, i18n_ptbr: 84, performance_perceived: 86, information_hierarchy: 80, microcopy: 70, internal_consistency: 78, preflight_conformance: 80 }
+evidencias:
+  density: "4 prefixos em Grid auto-fill + 2 cards de notificação (Configuracoes.tsx:308-337, 348-443)"
+  discoverability: "tags disponíveis vindas do backend por bloco (Configuracoes.tsx:128-140, 355, 408)"
+  speed_to_task: "um submit só no fim do form, com estado 'Salvando…' (Configuracoes.tsx:447-450)"
+  error_recovery: "form.errors não é lido em lugar nenhum do arquivo (grep 0 ocorrências) — erro de validação por campo não aparece; sucesso/erro geral depende do toast global de flash (app.tsx:41-48); sem aviso de alteração não salva"
+  cognitive_load: "campos de template só aparecem com o interruptor ligado (Configuracoes.tsx:390-396, 432-438)"
+  aesthetic_usability: "Card + Switch + Label canon, textarea mono para HTML (Configuracoes.tsx:212-217)"
+  affordance: "interruptor com rótulo clicável e explicação do efeito de desligar (Configuracoes.tsx:373-387)"
+  brand_confidence: "aviso 'Mudar o prefixo não renumera o que já existe' (Configuracoes.tsx:302-305)"
+  mobile_fit: "Grid min='lg' reflowa entre 1280 e 1440 sem media query (Configuracoes.tsx:306-308)"
+  a11y_wcag: "'Destinatários' é <Label> sem htmlFor sobre um grupo de checkboxes — deveria ser fieldset/legend (Configuracoes.tsx:358); sem <Head title> (Configuracoes.tsx:275); inputs com Label/htmlFor (Configuracoes.tsx:115-122)"
+  i18n_ptbr: "rótulos PT-BR; placeholder repete o rótulo (Configuracoes.tsx:120)"
+  performance_perceived: "usuarios via Inertia::defer (AssetSettingsController.php:129) com EsqueletoDestinatarios (Configuracoes.tsx:142-150, 360)"
+  information_hierarchy: "Prefixos → Notificações → Salvar, na ordem do Blade (Configuracoes.tsx:295-452)"
+  microcopy: "texto ao usuário final cita processo interno: 'Esta onda não traz editor visual — ver Non-Goals do charter' (Configuracoes.tsx:220-221)"
+  internal_consistency: "mesma subnav/data-contract das irmãs (Configuracoes.tsx:281-290)"
+  preflight_conformance: "transform preserva o contrato has() do store() sem tocar no controller (Configuracoes.tsx:250-269; AssetSettingsController.php:117-123)"
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Stripe Settings: erro inline sob o campo + banner de alterações não salvas com Descartar/Salvar"
+    fix: "Renderizar form.errors[campo] sob cada Input; usar form.isDirty para banner de não salvo e form.recentlySuccessful para confirmação local"
+    esforco: baixo
+    origin: "Configuracoes.tsx:230-272 (form.errors ausente)"
+  - dim: "Microcopy"
+    best_of_class: "Notion: ajuda de campo fala do efeito para o usuário, nunca do roadmap interno"
+    fix: "Trocar 'Esta onda não traz editor visual — ver Non-Goals do charter' por 'Use HTML simples; as tags acima são substituídas no envio'"
+    esforco: baixo
+    origin: "Configuracoes.tsx:219-222"
+  - dim: "A11y-WCAG"
+    best_of_class: "GOV.UK: grupo de checkboxes em fieldset com legend (WCAG 1.3.1)"
+    fix: "Envolver ListaDeDestinatarios em <fieldset><legend>Destinatários</legend>; title='Configurações · Patrimônio' no AppShellV2"
+    esforco: baixo
+    origin: "Configuracoes.tsx:358, 275"
