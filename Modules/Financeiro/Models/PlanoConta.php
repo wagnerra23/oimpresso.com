@@ -28,8 +28,14 @@ class PlanoConta extends Model
 
     protected $fillable = [
         'business_id', 'codigo', 'nome', 'tipo', 'nivel',
-        'parent_id', 'natureza', 'aceita_lancamento', 'protegido', 'ativo',
+        'parent_id', 'natureza', 'dre_linha', 'aceita_lancamento', 'protegido', 'ativo',
     ];
+
+    /**
+     * Linhas da DRE aceitas em `dre_linha` (de-para explícito; NULL = segue o prefixo
+     * do código). `fora` = a conta não entra na DRE. Consumido por DreService.
+     */
+    public const DRE_LINHAS = ['receita_bruta', 'deducoes', 'custos', 'despesas', 'fora'];
 
     protected $casts = [
         'aceita_lancamento' => 'boolean',

@@ -190,7 +190,13 @@ function dmSessao(int $businessId, int $userId): void
  */
 function dmParcial(string $componente, string $partial): array
 {
+    // `X-Requested-With` + `Accept` são o que o NAVEGADOR manda (@inertiajs/core 3.x,
+    // getHeaders, sem condição). Sem eles este helper passava verde enquanto a lista
+    // real ficava no skeleton: o `ajax()` do controller desviava para o DataTables
+    // (medido no staging em 2026-09-23).
     return [
+        'X-Requested-With' => 'XMLHttpRequest',
+        'Accept' => 'text/html, application/xhtml+xml',
         'X-Inertia' => 'true',
         'X-Inertia-Version' => (string) app(App\Http\Middleware\HandleInertiaRequests::class)->version(request()),
         'X-Inertia-Partial-Component' => $componente,

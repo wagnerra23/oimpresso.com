@@ -71,7 +71,12 @@ class LicencaLogController extends Controller
             $business_id = $request->query('business_id') ?: null;
         }
 
-        if ($request->ajax()) {
+        // `! $request->inertia()`: o cliente Inertia v3 manda `X-Requested-With` em TODA
+        // visita (@inertiajs/core getHeaders), e é o header que `ajax()` lê. Sem esta
+        // perna, o partial reload das props adiadas caía no JSON do DataTables e a lista
+        // ficava no skeleton para sempre (medido no staging em 2026-09-23). O DataTables
+        // do Blade legado não manda `X-Inertia`, então segue neste ramo.
+        if ($request->ajax() && ! $request->inertia()) {
             $query = LicencaLog::query();
 
             if ($business_id !== null) {
