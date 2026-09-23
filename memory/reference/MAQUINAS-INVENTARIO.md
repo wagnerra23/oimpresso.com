@@ -649,7 +649,7 @@ lifecycle: ativo
 | `protection-drift.mjs` | agente, ci, script | 🔴 disco | selftest | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +49 | drift de branch protection + watchdog de staleness (GT-G4, |
 | `pt-conformance.mjs` | ci, npm, script | 🟢 só lê | bite-log | `memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md` +24 | VERIFICA que uma tela que DECLARA "herda PT-0X" tem de fato a |
 | `rag-status-vocab-check.mjs` | ci | 🟢 só lê | — | `memory/licoes-rejeitadas.md` +1 | detecta documento que ENTRA no índice do RAG mas |
-| `reconcile-triplet.mjs` | ci, script | 🔴 disco | test | `memory/requisitos/_DesignSystem/RESPEITAR-PROTOTIPO.md` +12 | gate de PARIDADE POR SETOR (3-way charter↔protótipo↔produção). |
+| `reconcile-triplet.mjs` | ci, script | 🔴 disco | test | `memory/requisitos/_DesignSystem/RESPEITAR-PROTOTIPO.md` +13 | gate de PARIDADE POR SETOR (3-way charter↔protótipo↔produção). |
 | `ref-integrity.mjs` | ci, script | 🟢 só lê | — | `memory/requisitos/Governance/SPEC.md` +2 | sentinela ADVISORY de integridade referencial rota↔código |
 | `refutacao-recibo.mjs` | agente | 🟢 só lê | test | (só sessão/handoff · 1) | extrai o RECIBO de uma evidência de refutação GT-G5. |
 | `refuter-canary-check.mjs` | agente, script | 🟢 só lê | selftest + test | `.claude/skills/reguas-do-sistema/SKILL.md` +1 | anti-Goodhart do LAYER DE AGENTE (chip orq-anti-goodhart · |
