@@ -1,0 +1,61 @@
+# Primeira medição (thread 08 do playbook "Prontidão", 2026-09-23) — agente screen-qa-specialist,
+# só passos 0 (Pré-Flight) e 1 (Nota). Nota 16-dim é LLM-as-judge por LEITURA DE CÓDIGO
+# (.tsx + charter + controller na árvore 317e1b4ec33) — SEM browser de prod, SEM E2E/axe/smoke.
+# Persona "misto" (dono/gestor; personas-por-modulo.yml jana.primary = depends_on_business):
+# pesos 1× em todas as dimensões ⇒ nota = média simples arredondada das 16.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Jana/Alertas
+path: resources/js/Pages/Jana/Alertas.tsx
+archetype: list
+persona: misto
+nota: 76
+nivel: "Advanced"
+baseline_anterior: 76   # ratchet — primeira medição (= a própria nota)
+peso_real: 1.0
+source: prontidao-thread08-leitura-codigo-2026-09-23
+graded_at: "2026-09-23"
+resumo: "Lista de desvios sobre DataTable + EmptyState shared, conta 100% do servidor (AlertaService::calcular), dots de severidade por token semântico e linha urgent pra alta; perde por não exibir o status novo|lido que já chega no payload, ação única escondida num kebab, rodapé com jargão de código (AlertaService::avaliar, data_ini) e props eager sem defer."
+dimensoes: { density: 80, discoverability: 76, speed_to_task: 74, error_recovery: 68, cognitive_load: 70, aesthetic_usability: 78, affordance: 72, brand_confidence: 78, mobile_fit: 70, a11y_wcag: 74, i18n_ptbr: 84, performance_perceived: 72, information_hierarchy: 78, microcopy: 74, internal_consistency: 82, preflight_conformance: 78 }
+evidencias:
+  density: "Alertas.tsx:95-171 — 7 colunas em DataTable shared, paginador de 1 página (233)"
+  discoverability: "Alertas.tsx:207-224 — chips todas/alta/média/baixa + contagem '{n} disparando · corte em X%'; AlertaLinha.status (53) chega e não é renderizado"
+  speed_to_task: "Alertas.tsx:155-168 — única ação ('Abrir a meta') atrás de kebab = 2 cliques"
+  error_recovery: "charter §Anti-hooks — sem silenciar/config (US-COPI-061); Alertas.tsx:164-166 sai pra Blade via <a href> (saída do SPA)"
+  cognitive_load: "Alertas.tsx:256-261 — nota cita AlertaService::avaliar, data_ini/data_fim, múltiplos do corte"
+  aesthetic_usability: "Alertas.tsx:111 desvio colorido por sinal; 240 rowState urgent na severidade alta"
+  affordance: "Alertas.tsx:157 kebab com 1 item só; chips com aria-pressed (215)"
+  brand_confidence: "Alertas.tsx:246-251 — EmptyState success 'Nenhum desvio acima do corte' com o corte e a contagem reais"
+  mobile_fit: "Alertas.tsx:95-171 — 7 colunas, sem colapso responsivo declarado; fontes 10.5px/11.5px"
+  a11y_wcag: "Alertas.tsx:157 aria-label no kebab; 121 dot aria-hidden + texto; 208 role=group; tamanhos 10.5px/11px (102,120,256)"
+  i18n_ptbr: "Alertas.tsx:73 decimal com vírgula; 74-77 dd/mm/aaaa; 64 'média' com acento no rótulo"
+  performance_perceived: "AlertasController.php:31 notifications()->get() + 40-41 listar() eager, sem Inertia::defer/<Deferred>"
+  information_hierarchy: "Alertas.tsx:99-104 meta+slug; desvio 2ª coluna; urgent na alta"
+  microcopy: "Alertas.tsx:148 'in-app' (anglicismo) na coluna 'Chegou por'; 222 contador claro"
+  internal_consistency: "Alertas.tsx:23-24 DataTable + EmptyState shared; 175-199 header/drawer iguais às irmãs"
+  preflight_conformance: "charter status: draft (Alertas.charter.md:6); tokens bg-destructive/warning/info (66-70); arbitrários text-[10.5px]/[11.5px]/size-[7px] (102,120,121,256)"
+gaps:
+  - dim: "Discoverability"
+    best_of_class: "Linear Inbox: não-lido em negrito + ponto azul, filtro 'não lidos'"
+    fix: "Renderizar AlertaLinha.status (já no payload, Alertas.tsx:53): peso/indicador em 'novo'; não é recálculo, é exibição (charter Goals cita novo|lido)"
+    esforco: baixo
+    origin: prontidao-thread08-2026-09-23
+  - dim: "Speed-to-task"
+    best_of_class: "Datadog Monitors: a linha inteira é clicável e leva ao monitor"
+    fix: "Com um único destino, tornar o nome da meta (Alertas.tsx:101) um <a href='/ia/metas/{id}'> nativo e dispensar o kebab (manter <a>, nunca <Link> — Blade)"
+    esforco: baixo
+    origin: prontidao-thread08-2026-09-23
+  - dim: "Cognitive-load"
+    best_of_class: "Stripe: explicação da regra em linguagem do negócio, com link 'como calculamos'"
+    fix: "Nota de rodapé (Alertas.tsx:256-261) sem nomes de símbolo PHP; detalhe técnico em popover. Copy pinada no contrato jana-alertas ⇒ [W]"
+    esforco: baixo
+    origin: prontidao-thread08-2026-09-23
+  - dim: "Performance-perceived"
+    best_of_class: "Linear: defer + skeleton de tabela"
+    fix: "AlertasController@index: 'alertas' => Inertia::defer(...) + <Deferred> com skeleton do DataTable"
+    esforco: baixo
+    origin: prontidao-thread08-2026-09-23
+  - dim: "Error-recovery"
+    best_of_class: "PagerDuty: silenciar/snooze por alerta com efeito no servidor"
+    fix: "Depende de US-COPI-061 (persistir config/silêncio) — fora do escopo da tela até o servidor honrar"
+    esforco: alto
+    origin: prontidao-thread08-2026-09-23

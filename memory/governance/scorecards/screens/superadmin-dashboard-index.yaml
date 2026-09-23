@@ -1,0 +1,61 @@
+# Scorecard screen-grade 16-dim — thread 13 do playbook "Prontidão" (passos 0+1 do screen-qa-specialist).
+# NOTA DE LEITURA DE CÓDIGO: dada lendo .tsx + charter + controller, SEM browser de prod
+# (sem screenshot, sem axe, sem medição de perf). Passos 2-4 (E2E/axe/smoke) ficaram fora desta thread.
+# Primeira medição: baseline_anterior = a própria nota. Ratchet: a nota não cai sem aprovação [W].
+screen: superadmin/Dashboard/Index
+path: Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx
+archetype: dashboard
+persona: wagner
+nota: 75
+nivel: "Advanced"
+baseline_anterior: 75   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: prontidao-thread13-2026-09-23
+graded_at: "2026-09-23"
+metodo: "leitura de codigo (tsx+charter+controller) — sem browser"
+preflight:
+  charter: Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.charter.md (status live, smoke 2026-08-19 no frontmatter)
+  casos: Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.casos.md
+  controller: Modules/Superadmin/Http/Controllers/SuperadminController.php:27 (index, 5 props Inertia::defer L54-66)
+  prototipo: prototipo-ui/cowork/Wagner/superadmin-page.jsx → ViewVisao()
+  persona_fonte: memory/requisitos/_DesignSystem/personas-por-modulo.yml:91 (superadmin → primary wagner) + charter L42 (1440px)
+resumo: "Pulso da plataforma com segmented de período por partial reload, 5 props deferidas com skeleton por bloco e MRR que denuncia fonte indisponível. Perde por cobrir 4 das 10 seções do F1, cor crua no KPI 'ok', gráfico de barras sem equivalente textual e charter descrevendo um MRR 'sem preço' que o código não tem mais."
+dimensoes: { density: 70, discoverability: 74, speed_to_task: 78, error_recovery: 72, cognitive_load: 80, aesthetic_usability: 74, affordance: 76, brand_confidence: 74, mobile_fit: 74, a11y_wcag: 66, i18n_ptbr: 86, performance_perceived: 84, information_hierarchy: 76, microcopy: 78, internal_consistency: 68, preflight_conformance: 62 }
+evidencia:
+  density: "Index.charter.md:108 — 4 das 10 seções do F1 (funil, churn, receita por pacote, fila vencendo ausentes)"
+  discoverability: "Index.tsx:121-141 — segmented visível com a janela dita em texto (L140)"
+  speed_to_task: "Index.tsx:112-115 — troca de período recarrega só statsPeriodo/janela/periodo"
+  error_recovery: "Index.tsx:201-207 — MRR diz 'fonte de cobrança indisponível'; vazios de tendência/recentes L232-235, L266-267"
+  cognitive_load: "Index.tsx:185-194 — cada KPI traz a nota de origem do número"
+  aesthetic_usability: "Index.tsx:143 — grid 1/2/4 de KPIs; barras com último mês destacado L241"
+  affordance: "Index.tsx:122-138 — botões do segmented com aria-pressed; linhas de recentes não levam ao negócio (L278-288)"
+  brand_confidence: "Index.tsx:19-21 — Card/Skeleton/PageHeader do DS"
+  mobile_fit: "Index.tsx:143 — grid-cols-1 base; tabela de recentes sem overflow-x (L269)"
+  a11y_wcag: "Index.tsx:240-244 — barras são divs com só title=, sem texto acessível; Index.tsx:245 text-[10.5px]"
+  i18n_ptbr: "Index.tsx:74 e L227 — plural PT-BR (mês/meses, negócio/negócios); moeda pt-BR L70-71"
+  performance_perceived: "SuperadminController.php:54-66 — 5 Inertia::defer; Index.tsx:144-166 <Deferred> com esqueleto por bloco"
+  information_hierarchy: "Index.tsx:143-167 — KPIs → tendência → recentes"
+  microcopy: "Index.tsx:206-211 — nota do MRR explica o zero em vez de só mostrar o valor zerado"
+  internal_consistency: "Index.tsx:74 — plural() local duplica o de ../_components/assinatura.tsx:25; tabela hand-roll L269"
+  preflight_conformance: "Index.tsx:83 — text-emerald-600 cru; Index.charter.md:61-65 descreve MRR 'N vigentes sem preço' que o tsx (L206-211) não implementa"
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4: estado positivo via token semântico (success), não paleta crua — o tema claro/escuro vem de graça"
+    fix: "tom 'ok' do Kpi (Index.tsx:83) → token de sucesso do DS; reconciliar Index.charter.md:61-65 com o MRR atual (fonte rb_subscriptions, SuperadminDashboardService.php:149-219) — corrigir o perdedor no mesmo PR"
+    esforco: baixo
+    origin: prontidao-thread13-2026-09-23
+  - dim: "Density"
+    best_of_class: "Baremetrics/ChartMogul: funil trial→pago, churn com motivo e receita por plano na mesma tela de pulso, cada um com query real"
+    fix: "SA-O1b: funil, churn 30d com motivos (depende de cancel_reason), receita por pacote e fila 'vencendo ou vencido' — só com query real, nunca mock (UC-SADASH-05)"
+    esforco: alto
+    origin: prontidao-thread13-2026-09-23
+  - dim: "A11y-WCAG"
+    best_of_class: "Stripe Dashboard: gráfico acompanhado de valor textual por ponto (tooltip focável + tabela sr-only)"
+    fix: "Barras (Index.tsx:240-244) ganham role='img'/aria-label por ponto ou tabela sr-only com label+valor; subir 10.5px pra token da escala"
+    esforco: baixo
+    origin: prontidao-thread13-2026-09-23
+  - dim: "Internal-consistency"
+    best_of_class: "Linear: helpers compartilhados num módulo só — o plural nunca diverge entre telas irmãs"
+    fix: "Importar plural de ../_components/assinatura (como Pacotes/Negócios/Assinaturas) em vez da cópia local Index.tsx:74"
+    esforco: baixo
+    origin: prontidao-thread13-2026-09-23
