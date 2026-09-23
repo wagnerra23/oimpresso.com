@@ -21,6 +21,10 @@ base_lida: wagnerra23/oimpresso.com@main 1061dbf2e
 ## Por que os casos não viraram UC
 O casos-gate (G-2) exige que todo `## UC-` seja citado por um teste em `tests/`, `Modules/`, `app/` ou `e2e/`. O prefixo desta thread é só `resources/js/Pages/Documentacao/`, e ali teste não conta. Declarar os UC agora criaria 5 órfãos num gate required, ou stubs `fixme` que só provam presença (LC-11). Os ids `UC-PROGDOC-01..05` ficam reservados. A thread 02 os declara junto com os testes.
 
+## ⚠️ Conflito do índice com a máquina: o charter não pode vir antes do `.tsx`
+O `charter.schema.json` exige `component:` apontando pra um `.tsx` em `Pages/`, e a catraca `charter-refs` (`charter_refs_broken <= teto`, teto 0) exige que esse arquivo **exista**. O `Programa.tsx` é `nao_toca` desta thread e só nasce na 02. Resultado: o CI do PR marca 1 ref quebrada (`fm:component`). O gate é **advisory** desde a ADR 0314, então não bloqueia o merge, mas a catraca sai de 0 para 1 até a 02 entrar. Subir o teto é proibido.
+Para [W] decidir: (a) aceitar o vermelho advisory até a 02, (b) juntar as threads 01 e 02 (o trio nasce com o `.tsx`), ou (c) autorizar esta thread a criar um `Programa.tsx` mínimo, fora do prefixo.
+
 ## Para [W] (o charter lista em "Perguntas abertas")
 1. **De onde vem o estado de execução da onda.** A D.2 do plano diz *tasks MCP*; o `## Status vivo` do mesmo plano diz "D0 em execução"; a Blade lê o segundo e um teste verde trava isso. A thread 02 precisa desta resposta antes de nascer.
 2. Placement do porte: Inertia própria ou manter a Blade, que já lê o plano em runtime.
