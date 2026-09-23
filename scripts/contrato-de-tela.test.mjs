@@ -505,6 +505,26 @@ export const keep = 1;
   }
 }
 
+// 6h. C1 por FAMÍLIA — as rotas (`route()` e `Route::`) também têm de reaparecer no `+`.
+//     O 6b só cobria `export`; foi por cobrir uma família só que a âncora da família
+//     `function` passou (6f). Aqui cada família restante ganha o seu caso "movido → exit 0".
+const NL = String.fromCharCode(10); // sem barra invertida: escrita por script colapsa o par (LC-26)
+for (const [fam, antes, depois] of [
+  ['route()', "const u = route('fin.conciliacao.index');" + NL, "const url = route('fin.conciliacao.index', { page: 2 });" + NL],
+  ['Route::', "Route::get('/fin/conciliacao', [C::class, 'index']);" + NL, "Route::get('/fin/conciliacao', [C::class, 'index'])->name('x');" + NL],
+]) {
+  const root = repoOmissao('contrato-omis-fam-');
+  if (!root) { console.log(`[SKIP] C1 família ${fam} (git indisponível)`); continue; }
+  writeFileSync(join(root, 'tela', 'x.ts'), antes);
+  git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'base']);
+  writeFileSync(join(root, 'tela', 'x.ts'), depois);
+  git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'mexe na linha']);
+  const r = node(root, ['--omission', 'HEAD~1', '--alvo', 'tela']);
+  check(`C1 família ${fam}: linha alterada com o mesmo símbolo → exit 0`,
+    r.status === 0 && /reaparece no diff/.test(out(r)), out(r));
+  drop(root);
+}
+
 // 7. --map --check POSITIVO — fonte existe + seção ancorada → exit 0.
 {
   const root = mkdtempSync(join(tmpdir(), 'contrato-map-'));
