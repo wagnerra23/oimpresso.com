@@ -1784,6 +1784,14 @@ Ocorrência da **LC-08**.
 
 - **⚠️ NÃO virar gate.** O conserto, se houver, é no **dono** — fazer o aviso existente chegar ao agente —, nunca um detector novo, que seria a [LC-19](LICOES_CODE.md) dentro da correção. E não se arma nada aqui: o canal certo não foi medido (prescrever sem medir é a [LC-15](LICOES_CODE.md)), a evidência de não-chegada é n=1 mais inferência de corpus, e esta é a 1ª ocorrência deste vetor ([ADR 0344](decisions/0344-two-strikes-cobre-processo.md)). Achado menor, registrado e não consertado por estar fora do escopo: o texto do próprio aviso diz *"(§5 2026-07-27, 2 ocorrencias)"*, número que envelheceu dentro do hook.
 
+### 2026-09-23 — C1 do `--omission` ("reaparece no `+` não é omissão") nasceu INERTE para a família `function`, e o bite-test dele exercitava outra família
+
+- **O limite (variante também proibida):** correção que **estende o escopo de varredura** de uma lista de predicados (aqui: passar a testar o `+`, não só o `-`) não se dá por entregue sem conferir **cada** predicado da lista contra o escopo novo. Âncora, prefixo e lookbehind que eram corretos no escopo antigo viram filtro silencioso no novo. E o bite-test da correção cobre **uma instância por família**, ou declara quais famílias ficaram fora. Uma instância da família mais fácil (`export`, sem âncora) prova só aquela família. Mesma raiz da §5 2026-08-03 (*consertar um comprimento da família e não medir os irmãos*), agora no eixo **escopo da varredura** em vez de **forma da regex**.
+
+- **⚠️ NÃO virar gate:** o predicado (*"este predicado ainda casa no escopo novo?"*) depende de saber qual escopo cada regex vai enfrentar, e isso não é derivável do texto. A forma sintática (acusar regex ancorada em `^[-]`) reprovaria a âncora legítima, que existiu certa por 3 meses. É a família de guard sintático que este §5 já enterrou várias vezes. A defesa que fica é concreta e mora no dono: no #7788, o `contrato-de-tela.test.mjs` passou a ter **um caso de C1 para cada família que acusa** (`export` no 6b, `function` no 6f, `route()` e `Route::` no 6h). Uma mutação que ancora a família em `^[-]` derruba **só o caso daquela família**, e isso foi provado para `function`, `route()` e `Route::`. ⚠️ Ele roda na lane `contrato-de-tela`, que é advisory — pela convenção do ledger, isso não conta como defesa mecânica da classe. Esta é a 1ª ocorrência deste vetor ([ADR 0344](decisions/0344-two-strikes-cobre-processo.md)).
+
+- Ocorrência da **LC-30**.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
