@@ -1,0 +1,62 @@
+# Scorecard de tela — screen-qa-specialist, passos 0 (Pré-Flight) e 1 (Nota) apenas.
+# NOTA DE LEITURA DE CÓDIGO: .tsx + charter + controller lidos em 2026-09-23 (base 317e1b4ec33).
+# Sem browser de prod nesta passagem — nenhuma dimensão foi medida em runtime.
+# E2E / axe / smoke (passos 2-4) ficaram fora desta thread (playbook prontidao 09).
+screen: Patrimonio/Alocacoes
+path: resources/js/Pages/Patrimonio/Alocacoes.tsx
+archetype: list               # PT-01 Lista (Alocacoes.charter.md:21)
+golden: n/a
+persona: misto                # sem `personas_alvo` no charter e sem entrada patrimonio/assetmanagement em personas-por-modulo.yml → pesos iguais
+nota: 78
+nivel: "Advanced"
+baseline_anterior: 78         # primeira medição — ratchet parte daqui
+peso_real: 1.0                # não aplicado à nota (método §1)
+source: screen-qa-prontidao-09-2026-09-23
+graded_at: "2026-09-23"
+medicao: leitura-de-codigo
+preflight:
+  charter: "draft (Alocacoes.charter.md:6) — Non-Goals/Anti-hooks proposta [CC] pendente de [W]"
+  casos: resources/js/Pages/Patrimonio/Alocacoes.casos.md
+  controller: "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php:61 index() → Inertia::render :150"
+  componentes: "DataTable + EmptyState + Segmented/Skeleton/Badge/Button de @/Components/ui (Alocacoes.tsx:41-50)"
+  tokens: "v4 semânticos via Badge variants — zero blue-*/hex"
+resumo: "Leitura pura honesta: recusou as ações de linha porque os forms são AJAX-only e explica por quê no próprio arquivo. Recorte Ativas/Devolvidas/Todas no servidor, prazo vencido decidido no servidor, estados de linha. Perde por drift com o charter (que ainda promete ações por linha), tabela de 1500px no monitor de 1280 e ausência de título de página e de contadores da subnav."
+dimensoes: { density: 80, discoverability: 76, speed_to_task: 72, error_recovery: 74, cognitive_load: 80, aesthetic_usability: 80, affordance: 80, brand_confidence: 80, mobile_fit: 66, a11y_wcag: 76, i18n_ptbr: 90, performance_perceived: 86, information_hierarchy: 80, microcopy: 84, internal_consistency: 72, preflight_conformance: 76 }
+evidencias:
+  density: "11 colunas com largura declarada (Alocacoes.tsx:146-251)"
+  discoverability: "Segmented de situação + busca server-side (Alocacoes.tsx:288-293, 367-368)"
+  speed_to_task: "tela de consulta; único caminho de escrita é o botão 'Devoluções' (Alocacoes.tsx:333-335)"
+  error_recovery: "nenhuma escrita na tela — nada a recuperar; sem estado de erro de defer (Alocacoes.tsx:352)"
+  cognitive_load: "vazio filtrado ≠ vazio absoluto, considerando o recorte default 'ativas' (Alocacoes.tsx:312-316)"
+  aesthetic_usability: "SeloSituacao com dot em 4 estados (Alocacoes.tsx:126-140)"
+  affordance: "não renderiza ações que levariam a página em branco — decisão medida (Alocacoes.tsx:23-35; AssetAllocationController.php:315, 388)"
+  brand_confidence: "Devolvido mantido com a dívida Tier 0 declarada (Alocacoes.tsx:67-71; Alocacoes.charter.md:97-106)"
+  mobile_fit: "minTableWidth=1500 (Alocacoes.tsx:374) contra o alvo de 1280 do charter (Alocacoes.charter.md:119-120) — rolagem horizontal garantida no monitor do piloto"
+  a11y_wcag: "Segmented com aria-label (Alocacoes.tsx:289); sem <Head title> (Alocacoes.tsx:319, AppShellV2 sem title)"
+  i18n_ptbr: "Intl pt-BR para quantidade (Alocacoes.tsx:111-113); rótulos PT-BR"
+  performance_perceived: "alocacoes via Inertia::defer (AssetAllocationController.php:169) + partial reload only:['alocacoes','filtros'] (Alocacoes.tsx:276-281)"
+  information_hierarchy: "identificação à esquerda: código → bem → alocado a → datas (Alocacoes.tsx:146-196)"
+  microcopy: "'indeterminado' para prazo nulo, 'Entregue por', situação 'Devolvida em parte' (Alocacoes.tsx:136, 194, 233)"
+  internal_consistency: "não passa `badges` à subnav enquanto Bens e Painel passam (Alocacoes.tsx:344 vs Bens.tsx:549, Index.tsx:379); recebe permissoes.alocar/editar/excluir e não usa (Alocacoes.tsx:99-104); botão 'Devoluções' duplica a aba ghost `revocation` da própria subnav"
+  preflight_conformance: "charter Goals ainda lista 'editar · devolver · excluir' por linha (Alocacoes.charter.md:50-51) e o .tsx as removeu — charter e código divergem"
+gaps:
+  - dim: "Mobile-fit"
+    best_of_class: "Stripe Payments list: colunas secundárias viram detalhe expandido; a tabela cabe no viewport"
+    fix: "Reduzir minTableWidth para 1280 (alvo do próprio charter) — Motivo e Entregue por são candidatos a colapsar em linha secundária da célula Bem"
+    esforco: medio
+    origin: "Alocacoes.tsx:374 · Alocacoes.charter.md:119-120"
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Spec-Kit: spec e implementação reconciliadas no mesmo PR"
+    fix: "Atualizar Goals do charter para 'leitura pura; ações de linha adiadas porque os forms são AJAX-only' (o que o .tsx já faz) — precedência: o perdedor é o charter"
+    esforco: baixo
+    origin: "Alocacoes.charter.md:50-51 · Alocacoes.tsx:23-35"
+  - dim: "Internal-consistency"
+    best_of_class: "Linear: toda view irmã mostra contagem na aba pelo mesmo mecanismo"
+    fix: "Passar abas_contadores (Inertia::defer no controller) como Bens/Painel; remover props de permissão não usadas; decidir se o botão 'Devoluções' duplica a aba"
+    esforco: baixo
+    origin: "Alocacoes.tsx:99-104, 334, 344 · Bens.tsx:549"
+  - dim: "A11y-WCAG"
+    best_of_class: "GOV.UK: <title> único por página (WCAG 2.4.2)"
+    fix: "title='Alocações · Patrimônio' no AppShellV2"
+    esforco: baixo
+    origin: "Alocacoes.tsx:319 · AppShellV2.tsx:517"

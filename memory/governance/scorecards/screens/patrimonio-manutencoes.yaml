@@ -1,0 +1,62 @@
+# Scorecard de tela — screen-qa-specialist, passos 0 (Pré-Flight) e 1 (Nota) apenas.
+# NOTA DE LEITURA DE CÓDIGO: .tsx + charter + controller lidos em 2026-09-23 (base 317e1b4ec33).
+# Sem browser de prod nesta passagem — nenhuma dimensão foi medida em runtime.
+# E2E / axe / smoke (passos 2-4) ficaram fora desta thread (playbook prontidao 09).
+screen: Patrimonio/Manutencoes
+path: resources/js/Pages/Patrimonio/Manutencoes.tsx
+archetype: list               # PT-01 Lista (Manutencoes.charter.md:545)
+golden: n/a
+persona: misto                # sem `personas_alvo` no charter e sem entrada patrimonio/assetmanagement em personas-por-modulo.yml → pesos iguais
+nota: 77
+nivel: "Advanced"
+baseline_anterior: 77         # primeira medição — ratchet parte daqui
+peso_real: 1.0                # não aplicado à nota (método §1)
+source: screen-qa-prontidao-09-2026-09-23
+graded_at: "2026-09-23"
+medicao: leitura-de-codigo
+preflight:
+  charter: "draft (Manutencoes.charter.md:530)"
+  casos: resources/js/Pages/Patrimonio/Manutencoes.casos.md
+  controller: "Modules/AssetManagement/Http/Controllers/AssetMaitenanceController.php:103 index() → Inertia::render :262"
+  componentes: "DataTable + EmptyState + Alert/Badge/Select/Skeleton de @/Components/ui (Manutencoes.tsx:38-45); ações de linha hand-roll (Manutencoes.tsx:190-210)"
+  tokens: "v4 semânticos via Badge variants e text-destructive — zero blue-*/hex"
+resumo: "Paridade com o Blade (10 colunas, 3 filtros, busca) e um ganho real: o aviso de escopo para quem só vê as próprias manutenções. Perde pelo 'editar' que aponta para rota AJAX-only (página em branco), pelo window.confirm, pelas ações hand-roll copiadas de Bens e por jargão de permissão no texto do alerta."
+dimensoes: { density: 82, discoverability: 78, speed_to_task: 70, error_recovery: 70, cognitive_load: 80, aesthetic_usability: 80, affordance: 66, brand_confidence: 80, mobile_fit: 70, a11y_wcag: 72, i18n_ptbr: 86, performance_perceived: 86, information_hierarchy: 82, microcopy: 76, internal_consistency: 72, preflight_conformance: 76 }
+evidencias:
+  density: "10 colunas do Blade com largura declarada, Bem fluida (Manutencoes.tsx:221-317)"
+  discoverability: "3 filtros + busca + subnav derivada (Manutencoes.tsx:381-414, 498-499, 451)"
+  speed_to_task: "'editar' leva a destino que não renderiza fora de AJAX (ver affordance); excluir funciona via router.delete (Manutencoes.tsx:185)"
+  error_recovery: "window.confirm nomeando código e bem, sem desfazer (Manutencoes.tsx:181-183)"
+  cognitive_load: "vazio distingue 'nenhuma' de 'nenhuma sua' (Manutencoes.tsx:479-488)"
+  aesthetic_usability: "status/prioridade como Badge com dot, linha em andamento realçada (Manutencoes.tsx:117-147, 502-504)"
+  affordance: "editar → /asset/asset-maintenance/{id}/edit (Manutencoes.tsx:191); AssetMaitenanceController::edit() só retorna view em `if (request()->ajax())` (AssetMaitenanceController.php:395) e asset_maintenance/edit.blade.php é fragmento modal sem @extends"
+  brand_confidence: "aviso de escopo restrito — o Blade filtrava calado (Manutencoes.tsx:457-470)"
+  mobile_fit: "minTableWidth=1280 com rolagem no wrapper; ações na 1ª coluna (Manutencoes.tsx:224-230, 505)"
+  a11y_wcag: "sem <Head title> (Manutencoes.tsx:435); alvos 28px h-7 w-7 (Manutencoes.tsx:194, 206); label/htmlFor nos filtros e sr-only nas ações (Manutencoes.tsx:197, 353)"
+  i18n_ptbr: "rótulos vêm do backend em PT (status_label/prioridade_label); 'todas' minúsculo (Manutencoes.tsx:364)"
+  performance_perceived: "manutencoes via Inertia::defer (AssetMaitenanceController.php:283) + EsqueletoTabela (Manutencoes.tsx:418-427)"
+  information_hierarchy: "alerta de escopo acima da tabela e visível no vazio (Manutencoes.tsx:454-470)"
+  microcopy: "AlertDescription expõe o slug técnico `asset.view_own_maintenance` ao usuário final (Manutencoes.tsx:465)"
+  internal_consistency: "ações de linha reescritas à mão iguais às de Bens (Manutencoes.tsx:190-210 vs Bens.tsx:148-203); filtros sem data-contract enquanto Bens tem (Manutencoes.tsx:472 vs Bens.tsx:552); subnav sem badges"
+  preflight_conformance: "Select com sentinela TODAS (§5 2026-06-29) (Manutencoes.tsx:334); hand-roll de botão e window.confirm"
+gaps:
+  - dim: "Affordance"
+    best_of_class: "Linear: editar abre o painel na própria lista, independente do tipo de request"
+    fix: "O 'editar' aponta para fragmento modal AJAX-only. Esconder até o edit virar drawer React (mesma recusa de Alocacoes.tsx:23-35), com teste de GET não-AJAX no href"
+    esforco: medio
+    origin: "Manutencoes.tsx:191 · AssetMaitenanceController.php:395"
+  - dim: "Microcopy"
+    best_of_class: "Stripe: mensagem de permissão diz o que o usuário pode fazer, nunca o nome interno da permissão"
+    fix: "Trocar 'Seu perfil tem asset.view_own_maintenance' por 'Seu perfil permite ver apenas as manutenções em que você é responsável ou autor'"
+    esforco: baixo
+    origin: "Manutencoes.tsx:463-467"
+  - dim: "Error-recovery"
+    best_of_class: "Gmail/Linear: excluir + 'Desfazer' no toast"
+    fix: "AlertDialog do DS no lugar de window.confirm"
+    esforco: baixo
+    origin: "Manutencoes.tsx:182"
+  - dim: "Internal-consistency"
+    best_of_class: "Shopify Polaris: um componente de ação de linha para o app inteiro"
+    fix: "Extrair ação de linha compartilhada com Bens para _shared/ (ou Button size icon do DS); data-contract nos filtros; title no AppShellV2"
+    esforco: baixo
+    origin: "Manutencoes.tsx:190-210, 435, 472 · Bens.tsx:148-203"

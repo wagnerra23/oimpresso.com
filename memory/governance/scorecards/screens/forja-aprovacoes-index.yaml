@@ -1,0 +1,57 @@
+# Scorecard de tela — primeira medição (thread 11 do playbook Prontidão, 2026-09-23).
+# Método SCREEN-GRADE (memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md), passos 0+1 do
+# agente screen-qa-specialist. ⚠️ NOTA DE LEITURA DE CÓDIGO: .tsx + charter + casos + controller,
+# SEM browser de prod, SEM E2E/axe/smoke (passos 2-4 fora desta thread). Nenhuma dimensão foi
+# medida em runtime; cada uma cita arquivo:linha. Persona peso uniforme (wagner = power user,
+# personas-por-modulo.yml §Notas), nota = média das 16 dims arredondada.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Forja/Aprovacoes/Index
+path: Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.tsx
+archetype: list        # mesa master-detail (fila à esquerda, artefato à direita)
+persona: wagner
+nota: 81
+nivel: "Advanced"
+baseline_anterior: 81   # ratchet — primeira medição, baseline = a própria nota
+peso_real: 1.0
+source: leitura-codigo-thread11-prontidao-2026-09-23
+graded_at: "2026-09-23"
+resumo: "Mesa de decisão com número-herói, fila ordenada por espera, verbos derivados do FSM, atalhos a/d/x + J/K e desfazer real (janela de 6s antes do POST). Perde em: 1º paint mostra 'Fila zerada' enquanto a fila deferida carrega (sem <Deferred data=fila>), e o endpoint de decisão responde JSON cru a um router.post do Inertia (hipótese não medida: a mensagem 409/422 do backend não chega ao onError)."
+dimensoes: { density: 84, discoverability: 82, speed_to_task: 88, error_recovery: 72, cognitive_load: 82, aesthetic_usability: 82, affordance: 84, brand_confidence: 76, mobile_fit: 74, a11y_wcag: 76, i18n_ptbr: 90, performance_perceived: 72, information_hierarchy: 88, microcopy: 88, internal_consistency: 78, preflight_conformance: 80 }
+evidencias:
+  density: "Index.tsx:473-610 fila + painel lado a lado; Index.tsx:613-695 placar 8 colunas"
+  discoverability: "Index.tsx:383-391 dicas <kbd> dos atalhos no herói; Index.tsx:600-604 atalho no próprio botão"
+  speed_to_task: "Index.tsx:338-363 a/d/x decidem e j/k andam na fila, sem sequestrar tecla em INPUT/TEXTAREA"
+  error_recovery: "Index.tsx:49-56+697-705 desfazer real (antes do POST); Index.tsx:313-321 trava de motivo; mas AprovacoesController.php:85-138 devolve response()->json (404/409/422/200) a router.post (Index.tsx:268-282)"
+  cognitive_load: "Index.tsx:379-382 número-herói único; Index.tsx:462-469 empty state explicativo"
+  aesthetic_usability: "Index.tsx:18-23 markup 1:1 do protótipo forja-aprova.jsx (ADR 0388)"
+  affordance: "Index.tsx:583-606 botões com verbo + kbd; Index.tsx:392-401 alerta de handoff é <button>"
+  brand_confidence: "Index.charter.md:7 status draft — gate visual [W] não fechado"
+  mobile_fit: "cowork-forja-bundle.css:950 .ap-mesa vira 1 coluna <1000px; placar 8 colunas sem tratamento estreito verificado (não medido em viewport)"
+  a11y_wcag: "Index.tsx:481-491 listbox/option + aria-selected + Enter/Espaço; Index.tsx:456 role=alert; Index.tsx:699 aria-live; mas Index.tsx:356-360 atalhos de 1 letra sem desligar (WCAG 2.1.4) e Index.tsx:637 <th /> vazio"
+  i18n_ptbr: "vocabulário ADR 0368 §6 (admitir/parquear/recusar), Index.tsx:27-31"
+  performance_perceived: "AprovacoesController.php:67-75 tudo deferido, mas fila/contagem sem <Deferred> (só aoVivo/placar, Index.tsx:407,613) → default fila=[] faz Index.tsx:462 renderizar 'Fila zerada' no 1º paint"
+  information_hierarchy: "Index.tsx:377-403 herói → faixa ao vivo → mesa → placar"
+  microcopy: "Index.tsx:319 e 562-565 explicam o porquê do motivo; Index.tsx:505-509 title do SLA"
+  internal_consistency: "Index.tsx:25-43 três divergências deliberadas declaradas; Index.charter.md:69-71 PageHeader canon saiu (item de inconsistência, ADR 0388 D-2)"
+  preflight_conformance: "charter + casos (8 UC, todos 🧪 — Index.casos.md:25-61); defer backend; Index.tsx:158-167 oklch literais declarados como design do protótipo"
+gaps:
+  - dim: "Performance-perceived"
+    best_of_class: "Linear: skeleton de linha enquanto a lista carrega — o estado 'vazio' só aparece depois de a resposta chegar, então vazio nunca mente"
+    fix: "Embrulhar a mesa em <Deferred data={['fila','contagem']} fallback={skeleton}>; hoje o default fila=[] faz o 1º paint afirmar 'Fila zerada' e o herói mostrar 0"
+    esforco: baixo
+    origin: thread11-prontidao-2026-09-23
+  - dim: "Error-recovery"
+    best_of_class: "Stripe Dashboard: erro de ação volta como mensagem inline no mesmo lugar do botão, com o texto do servidor"
+    fix: "HIPÓTESE (não medida em runtime): decidir() responde JSON cru a router.post; confirmar com smoke e, se confirmado, responder back()->withErrors() (ou usar fetch/axios) pra que o 409/422 do TaskCrudService chegue ao setErro"
+    esforco: medio
+    origin: thread11-prontidao-2026-09-23
+  - dim: "A11y-WCAG"
+    best_of_class: "Gmail: atalhos de 1 caractere podem ser desligados nas configurações (WCAG 2.1.4 Character Key Shortcuts)"
+    fix: "Oferecer desligar os atalhos a/d/x/j/k ou exigir foco na mesa; rotular a 8ª coluna do placar (th vazio) com texto sr-only"
+    esforco: baixo
+    origin: thread11-prontidao-2026-09-23
+  - dim: "Brand-confidence"
+    best_of_class: "Linear: tela promovida a live após aprovação visual"
+    fix: "Fechar gate visual [W] (charter status draft → live, ADR 0107/0114)"
+    esforco: baixo
+    origin: thread11-prontidao-2026-09-23
