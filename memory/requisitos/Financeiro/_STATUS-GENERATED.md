@@ -16,7 +16,7 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 59 |
+| US no SPEC | 60 |
 | CU no SDD | 16 |
 | Telas (.tsx) | 21 |
 | Telas com `casos.md` | 21 |
@@ -98,6 +98,7 @@ authority: generated
 | US-FIN-065 | `todo` | Elevar tela Unificado/Novo a ≥70 (form unificado real de cobrança) |
 | US-FIN-066 | `todo` | Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor) |
 | US-FIN-067 | `todo` | Elevar tela Advisor/Login a ≥70 (DS v4 roxo + @/ui + charter) |
+| US-FIN-069 | `todo` | Baseline de pixel do DRE (#7767) não reproduz o render do CI — visual-regression |
 
 ## UC por status
 
