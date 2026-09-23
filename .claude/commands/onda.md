@@ -82,6 +82,9 @@ ls "prototipo-ui/cowork/Wagner/cowork-inbox/$MOD/playbook/$NN"-*.md
 | `em curso` | já tem `_saida-NN.md` | **retomar/validar**, não recomeçar — outra sessão passou por aqui |
 | `bloqueada` | `bloqueio` declarado no índice | decisão [W]. Não desbloqueie sozinho |
 | `feito` | provas verdes + `_saida` + deps feitas | nada a fazer |
+| `proximo` **(sem recibo)** | todas as provas já verdes, só falta o `_saida` | **NÃO execute.** Quase sempre a thread já foi entregue e o recibo sumiu ou nunca foi escrito. Ache o PR que entregou (`git log -S '<padrão da prova>' -- <path>` no `main`); se o original existiu, **restaure-o byte a byte** do histórico (`git log --diff-filter=D -- '*_saida-NN.md'`); só na falta dele escreva recibo retroativo citando o PR |
+
+> **Antes de escrever recibo, desconfie da prova.** Se o padrão da prova já existia no `main` **antes** do índice ser escrito (`git log --reverse -S` mostra commit anterior à data do índice), ela não prova a entrega — não escreva recibo, reporte. Caso real em 2026-09-23: Patrimônio/05 pedia um comando novo, e a prova só checava uma chave de config que existia desde maio.
 
 **As Leis que o modo thread não afrouxa:** 1 thread = 1 prefixo (Lei 1) · estado só em `_saida` (Lei 2) · 1 PR por thread (Lei 3) · o `nao_toca` do índice é o bloco B "não inventar" (Lei 4).
 
