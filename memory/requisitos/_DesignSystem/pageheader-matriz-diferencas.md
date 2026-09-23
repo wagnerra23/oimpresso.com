@@ -1,6 +1,20 @@
 ---
 id: requisitos-design-system-pageheader-matriz-diferencas
+status: accepted-historical
+lifecycle: arquivado
+arquivado_em: "2026-09-23"
+arquivado_por: "decisão [W] 2026-09-23 (D-PH-0923, item 4 — cowork-inbox/pageheader/PEDIDO-PAGEHEADER-DECISOES-W-2026-09-23.md)"
+superseded_by: ["0189-pageheader-canon-v3-1-cadastro-roxo", "resources/js/Components/PageHeader/PageHeader.tsx (canon v3.8)"]
+morreu_porque: "F10 (h1 16px) e F13 (ui-sans-serif forçado inline) contradizem o canon v3.8 — PageHeader.tsx:150 renderiza o h1 em text-[22px] e não força fontFamily (herda IBM Plex do shell). Medido em 2026-09-23. NÃO usar como checklist de revisão nem como fonte da skill pageheader-canon."
 ---
+
+> ⚠️ **ARQUIVADO em 2026-09-23 — decisão [W] (D-PH-0923).** Este documento **não é mais fonte** de revisão de PR
+> nem da skill `pageheader-canon`. Fonte viva: [ADR 0189](../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md)
+> (+ emendas v3.2–v3.8) e o componente `resources/js/Components/PageHeader/PageHeader.tsx`.
+> **Por que morreu (medido 2026-09-23):** **F10** abaixo manda h1 `text-base` (16px) e o componente usa
+> `text-[22px]` (`PageHeader.tsx:150`); **F13** manda forçar `ui-sans-serif` inline e o componente não define
+> `fontFamily` — herda IBM Plex do shell. O corpo abaixo fica **intacto** como registro datado do que era verdade
+> em 2026-05-21/25 (append-only da memória); não o "atualize" — ele é história.
 
 # PageHeader Canon — Matriz de Diferenças Técnicas e Pontos Permitidos
 
