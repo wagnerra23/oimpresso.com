@@ -1,0 +1,62 @@
+# Scorecard de tela — screen-qa-specialist, passos 0 (Pré-Flight) e 1 (Nota) apenas.
+# NOTA DE LEITURA DE CÓDIGO: .tsx + charter + controller lidos em 2026-09-23 (base 317e1b4ec33).
+# Sem browser de prod nesta passagem — nenhuma dimensão foi medida em runtime.
+# E2E / axe / smoke (passos 2-4) ficaram fora desta thread (playbook prontidao 09).
+screen: Patrimonio/Bens
+path: resources/js/Pages/Patrimonio/Bens.tsx
+archetype: list               # PT-01 Lista (Bens.charter.md:167)
+golden: n/a
+persona: misto                # sem `personas_alvo` no charter e sem entrada patrimonio/assetmanagement em personas-por-modulo.yml → pesos iguais
+nota: 75
+nivel: "Advanced"
+baseline_anterior: 75         # primeira medição — ratchet parte daqui
+peso_real: 1.0                # não aplicado à nota (método §1)
+source: screen-qa-prontidao-09-2026-09-23
+graded_at: "2026-09-23"
+medicao: leitura-de-codigo
+preflight:
+  charter: "draft (Bens.charter.md:152) — Non-Goals/Anti-hooks são proposta [CC] pendente de [W]"
+  casos: resources/js/Pages/Patrimonio/Bens.casos.md
+  controller: "Modules/AssetManagement/Http/Controllers/AssetController.php:80 index() → Inertia::render :270"
+  componentes: "DataTable + EmptyState + @/Components/ui (Bens.tsx:34-41); botões de ação por linha hand-roll (Bens.tsx:148-203)"
+  tokens: "v4 semânticos (text-destructive, bg-destructive/10, Badge variants) — zero blue-*/hex"
+resumo: "Lista PT-01 sólida: DataTable canon, bens deferidos com skeleton, 4 filtros na URL, dois vazios distintos. O gap é de afordância: 4 dos 5 destinos de ação (alocar, manutenção, editar, 'Novo ativo'/'Cadastrar o primeiro bem') apontam para métodos que só respondem AJAX — navegação direta cai em página em branco."
+dimensoes: { density: 84, discoverability: 78, speed_to_task: 62, error_recovery: 66, cognitive_load: 78, aesthetic_usability: 80, affordance: 55, brand_confidence: 80, mobile_fit: 70, a11y_wcag: 72, i18n_ptbr: 88, performance_perceived: 86, information_hierarchy: 80, microcopy: 80, internal_consistency: 72, preflight_conformance: 74 }
+evidencias:
+  density: "11 colunas com geometria declarada, nome fluido (Bens.tsx:263-388)"
+  discoverability: "4 filtros visíveis + busca server-side + subnav derivada do menu (Bens.tsx:457-500, 549, 580)"
+  speed_to_task: "ações de linha levam a destinos que não renderizam fora de AJAX (ver affordance) — a tarefa principal a partir da lista não se completa"
+  error_recovery: "excluir via window.confirm nomeando o bem, sem desfazer (Bens.tsx:219-222)"
+  cognitive_load: "vazio sem filtro ≠ vazio filtrado (Bens.tsx:518-524, 558-581)"
+  aesthetic_usability: "Badge com dot, tabular/mono em números (Bens.tsx:278, 337, 359)"
+  affordance: "alocar → /asset/allocation/create (Bens.tsx:228) cai em AssetAllocationController.php:315 `if (request()->ajax())`; manutenção → AssetMaitenanceController.php:305; editar → AssetController.php:552; 'Novo ativo' e CTA do vazio → AssetController.php:484 — as 5 views são fragmentos modal sem @extends (asset/create, asset/edit, asset_allocation/create, asset_maintenance/create)"
+  brand_confidence: "Alocado mantido com a dívida Tier 0 declarada, não escondida (Bens.tsx:61-65; Bens.charter.md:244-255)"
+  mobile_fit: "minTableWidth=1280 com rolagem no wrapper (Bens.tsx:584); ações na 1ª coluna (Bens.tsx:266-271)"
+  a11y_wcag: "sem <Head title>: AppShellV2 sem prop title (Bens.tsx:527; AppShellV2.tsx:517); alvos de 28px h-7 w-7 (Bens.tsx:165); sr-only e label/htmlFor nos filtros (Bens.tsx:170, 426-433)"
+  i18n_ptbr: "Intl pt-BR para moeda e quantidade (Bens.tsx:116-122); 'todas' minúsculo no Select (Bens.tsx:437)"
+  performance_perceived: "bens via Inertia::defer (AssetController.php:307) + EsqueletoTabela com Skeleton (Bens.tsx:504-513)"
+  information_hierarchy: "header → subnav → filtros → tabela (Bens.tsx:532-588)"
+  microcopy: "confirmação nomeia o bem e o código (Bens.tsx:219); emptyMessage orienta a ação (Bens.tsx:581)"
+  internal_consistency: "IconeAcao/BotaoAcao hand-roll duplicados em Manutencoes.tsx:190-210; 'Novo ativo' aqui vs 'Adicionar recurso' no Painel (Index.tsx:360)"
+  preflight_conformance: "botões de ação montados à mão em vez de <Button variant='ghost' size='icon'> (Bens.tsx:159-201); window.confirm em vez de AlertDialog (Bens.tsx:219)"
+gaps:
+  - dim: "Affordance"
+    best_of_class: "Linear: a ação de linha abre o painel lateral na própria lista — o destino nunca depende do tipo de request"
+    fix: "Os 5 destinos de escrita (alocar, manutenção, editar, novo, CTA do vazio) são fragmentos modal AJAX-only. Enquanto os forms não viram drawer React, esconder essas ações — a irmã Alocacoes já fez exatamente essa recusa (Alocacoes.tsx:23-35). Criar teste que faz GET não-AJAX em cada href e exige página não-vazia"
+    esforco: medio
+    origin: "Bens.tsx:228, 235, 243, 539, 566 · AssetController.php:484, 552 · AssetAllocationController.php:315 · AssetMaitenanceController.php:305"
+  - dim: "Error-recovery"
+    best_of_class: "Gmail/Linear: excluir sem modal bloqueante + 'Desfazer' no toast"
+    fix: "Trocar window.confirm por AlertDialog de @/Components/ui (foco preso, texto do DS, estilo coerente)"
+    esforco: baixo
+    origin: "Bens.tsx:219-222"
+  - dim: "A11y-WCAG"
+    best_of_class: "GOV.UK: todo template define <title> único (WCAG 2.4.2)"
+    fix: "Passar title='Bens · Patrimônio' ao AppShellV2 (hoje só o Painel passa); ampliar alvo de ação para ≥32px ou usar Button size icon do DS"
+    esforco: baixo
+    origin: "Bens.tsx:165, 527 · Index.tsx:288"
+  - dim: "Internal-consistency"
+    best_of_class: "Shopify Polaris: IndexTable rowActions — um componente de ação de linha para o app inteiro"
+    fix: "Extrair a ação de linha para _shared/ (ou usar Button do DS) e remover a cópia em Manutencoes.tsx; unificar copy de criação com o Painel"
+    esforco: baixo
+    origin: "Bens.tsx:148-203 · Manutencoes.tsx:190-210"
