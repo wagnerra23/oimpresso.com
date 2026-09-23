@@ -432,9 +432,19 @@ console.log('\n=== fail-closed: partes, base, hash, path e dry-run ===');
   put(root, 'prototipo-ui/cowork/Wagner/velho/sub/sobra.md', 'arquivo nunca gerenciado\n');
   put(root, 'prototipo-ui/cowork/Wagner/.gitignore', 'regra local\n');
   put(root, 'prototipo-ui/design-system/canon-sentinela.css', 'não tocar no DS\n');
+  // Recibos do Code commitados DEPOIS do export do Cowork (o caso de 2026-09-23, handoff 32).
+  put(root, 'prototipo-ui/cowork/Wagner/cowork-inbox/placar/playbook/_saida-01.md', 'recibo do Code\n');
+  put(root, 'prototipo-ui/cowork/Wagner/cowork-inbox/placar/playbook/_saida-02a.md', 'recibo do Code, sufixo\n');
+  // CONTROLES: só o recibo é poupado — não o que parece com ele fora do lugar certo.
+  put(root, 'prototipo-ui/cowork/Wagner/cowork-inbox/placar/playbook/_rascunho.md', 'não é recibo\n');
+  put(root, 'prototipo-ui/cowork/Wagner/cowork-inbox/placar/_saida-01.md', 'fora de playbook/\n');
+  put(root, 'prototipo-ui/cowork/Wagner/velho/_saida-01.md', 'fora de cowork-inbox/\n');
+  // Recibo que o pacote TAMBÉM traz: a versão do pacote vence.
+  put(root, 'prototipo-ui/cowork/Wagner/cowork-inbox/sidebar/playbook/_saida-03.md', 'versão local\n');
   const after = sourceSnapshot('v2');
   after.delete('removido.js');
   after.set('cowork-inbox/novo.md', Buffer.from('playbook novo\n'));
+  after.set('cowork-inbox/sidebar/playbook/_saida-03.md', Buffer.from('versão do Cowork\n'));
   const m2 = manifestFor(after, m1, 'tree');
   const parts = partsFor(m2, after);
   const sobra = join(root, 'prototipo-ui/cowork/Wagner/velho/sub/sobra.md');
@@ -450,6 +460,14 @@ console.log('\n=== fail-closed: partes, base, hash, path e dry-run ===');
   check('árvore completa atualiza conteúdo', readFileSync(join(root, 'prototipo-ui/cowork/Wagner/styles.css'), 'utf8').includes('v2'));
   check('poda não alcança DS canônico', readFileSync(join(root, 'prototipo-ui/design-system/canon-sentinela.css'), 'utf8') === 'não tocar no DS\n');
   check('poda preserva guarda local .gitignore', existsSync(join(root, 'prototipo-ui/cowork/Wagner/.gitignore')));
+  const W = (rel) => join(root, 'prototipo-ui/cowork/Wagner', rel);
+  check('BITE: poda poupa _saida do Code fora do pacote', existsSync(W('cowork-inbox/placar/playbook/_saida-01.md')));
+  check('poda poupa _saida com sufixo de letra', existsSync(W('cowork-inbox/placar/playbook/_saida-02a.md')));
+  check('CONTROLE: poda apaga arquivo não-recibo no mesmo playbook', !existsSync(W('cowork-inbox/placar/playbook/_rascunho.md')));
+  check('CONTROLE: poda apaga _saida fora de playbook/', !existsSync(W('cowork-inbox/placar/_saida-01.md')));
+  check('CONTROLE: poda apaga _saida fora de cowork-inbox/', !existsSync(W('velho/_saida-01.md')));
+  check('recibo que o pacote traz: a versão do pacote vence',
+    readFileSync(W('cowork-inbox/sidebar/playbook/_saida-03.md'), 'utf8') === 'versão do Cowork\n');
   const m3 = manifestFor(after, m2, 'tree');
   await applyBundleTransaction({ root, parts: partsFor(m3, after) });
   check('reimportação regenerada de árvore é idempotente', !existsSync(sobra));
