@@ -157,7 +157,7 @@
     "resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx|no-restricted-syntax": 10,
     "resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx|jsx-a11y/no-static-element-interactions": 1,
     "resources/js/Pages/Financeiro/Cobranca/_components/atoms.tsx|no-restricted-syntax": 12,
-    "resources/js/Pages/Financeiro/Conciliacao/Index.tsx|no-restricted-syntax": 18,
+    "resources/js/Pages/Financeiro/Conciliacao/Index.tsx|no-restricted-syntax": 4,
     "resources/js/Pages/Financeiro/Dashboard/Index.tsx|no-restricted-syntax": 3,
     "resources/js/Pages/Financeiro/Dashboard/Index.tsx|jsx-a11y/click-events-have-key-events": 4,
     "resources/js/Pages/Financeiro/Dashboard/Index.tsx|jsx-a11y/no-static-element-interactions": 4,
