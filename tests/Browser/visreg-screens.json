@@ -65,6 +65,14 @@
     "baseline": "it_Financeiro_ContasBancarias_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Financeiro/Conciliacao",
+    "source": "Financeiro/Conciliacao",
+    "component": "Financeiro/Conciliacao/Index",
+    "route": "/financeiro/conciliacao",
+    "anchor": "Importar extrato OFX",
+    "baseline": "it_Financeiro_Conciliacao_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Financeiro/Fluxo",
     "source": "Financeiro/Fluxo",
     "component": "Financeiro/Fluxo/Index",
@@ -87,6 +95,14 @@
     "route": "/financeiro/plano-contas",
     "anchor": "TOTAL DE CONTAS",
     "baseline": "it_Financeiro_PlanoContas_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Financeiro/Cobranca",
+    "source": "Financeiro/Cobranca",
+    "component": "Financeiro/Cobranca/Index",
+    "route": "/financeiro/cobranca",
+    "anchor": "Pago no mês",
+    "baseline": "it_Financeiro_Cobranca_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
     "screen": "Governance/Dashboard",
