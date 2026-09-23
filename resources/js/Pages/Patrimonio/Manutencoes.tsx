@@ -32,7 +32,7 @@
 // Layout por PRIMITIVOS (ADR 0253) — `Stack`/`Inline`, nunca `<div className="flex">` solto.
 
 import { Deferred, router } from '@inertiajs/react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
 import DataTable, { type EstadoDaLinha } from '@/Components/shared/DataTable';
@@ -165,9 +165,13 @@ function SeloGarantia({ garantia }: { garantia: Garantia | null }) {
 }
 
 /**
- * Ações de linha — as MESMAS duas do Blade (`index()` `:214`): editar e excluir.
+ * Ação de linha — só EXCLUIR. O Blade (`index()` `:214`) tinha também editar, e ele SAIU em
+ * 2026-09-23: `AssetMaitenanceController::edit` só responde sob `ajax()` e devolveu 200 com
+ * 0 bytes numa navegação direta (medido em prod, biz=1) — a view é fragmento de modal jQuery.
+ * O link abria página em branco: afordância falsa, o mesmo achado da irmã `Alocacoes.tsx`.
+ * Editar volta quando o formulário virar drawer (`[BACKLOG]` do casos).
  *
- * Elas aparecem para TODA linha, sem `can()`, porque é isso que o Blade faz — o módulo não
+ * Excluir aparece para TODA linha, sem `can()`, porque é isso que o Blade faz — o módulo não
  * declara permissão de escrita de manutenção, e inventar um gate aqui seria decidir produto
  * dentro do `.tsx`. O resíduo (quem tem só `view_own` pode editar a de outro) está declarado
  * no charter e no §9 do RUNBOOK: é decisão de [W], não conserto silencioso.
@@ -187,15 +191,6 @@ function AcoesDaLinha({ manutencao }: { manutencao: Manutencao }) {
 
   return (
     <Inline gap={1}>
-      <a
-        href={`/asset/asset-maintenance/${manutencao.id}/edit`}
-        title={`Editar manutenção — ${manutencao.bem}`}
-        onClick={(e) => e.stopPropagation()}
-        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
-      >
-        <Pencil size={14} aria-hidden="true" />
-        <span className="sr-only">Editar manutenção — {manutencao.bem}</span>
-      </a>
       <button
         type="button"
         title={`Excluir manutenção — ${manutencao.bem}`}

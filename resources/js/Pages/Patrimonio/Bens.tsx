@@ -21,20 +21,31 @@
 //     que o Blade já mostrava;
 //   • sem seleção em lote — as duas ações em lote do protótipo não têm endpoint hoje.
 //
-// Nada disso é regressão vs. o Blade: tudo que a tela legada mostrava está aqui, incluindo
-// as quatro ações de linha.
+// Nada disso é regressão vs. o Blade na LISTAGEM: tudo que a tela legada mostrava está aqui.
+//
+// ─── Por que NÃO há "Novo ativo", alocar, manutenção nem editar ─────────────────────
+//
+// MEDIDO em produção (biz=1, 2026-09-23), não presumido: `AssetController::{create,edit}`,
+// `AssetAllocationController::create` e `AssetMaitenanceController::create` só respondem
+// dentro de `if (request()->ajax())` — fora dele caem no fim e devolvem **200 com 0 bytes**.
+// E as views são FRAGMENTOS de modal jQuery (`<div class="modal-dialog">`), feitas pra
+// serem injetadas na lista Blade que não existe mais. Um `<a href>` pra lá abre página em
+// branco — afordância falsa, a mesma que a irmã `Alocacoes.tsx` já tinha medido e retirado.
+// Trazer esses formulários pra cá é converter em drawer React, e isso é escrita de VALOR e
+// QUANTIDADE: REGRA MESTRE Tier 0, outra onda (`[BACKLOG]` do casos).
+//
+// Excluir FICA: `router.delete` no `destroy`, que funciona fora de modal.
 //
 // Layout por PRIMITIVOS (ADR 0253) — `Stack`/`Inline`, nunca `<div className="flex gap-4">`
 // solto; o `layout-primitives-guard` é catraca e reprova adotante novo.
 
 import { Deferred, router } from '@inertiajs/react';
-import { Eye, Pencil, Plus, Trash2, Wrench } from 'lucide-react';
+import { Eye, Trash2 } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
 import DataTable, { type EstadoDaLinha } from '@/Components/shared/DataTable';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Badge } from '@/Components/ui/badge';
-import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Skeleton } from '@/Components/ui/skeleton';
@@ -145,33 +156,6 @@ function SeloGarantia({ garantia }: { garantia: Garantia | null }) {
   );
 }
 
-function IconeAcao({
-  href,
-  titulo,
-  perigo,
-  children,
-}: {
-  href: string;
-  titulo: string;
-  perigo?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <a
-      href={href}
-      title={titulo}
-      onClick={(e) => e.stopPropagation()}
-      className={
-        'inline-flex h-7 w-7 items-center justify-center rounded-md border border-transparent hover:border-border ' +
-        (perigo ? 'text-destructive hover:bg-destructive/10' : 'text-muted-foreground hover:text-foreground')
-      }
-    >
-      {children}
-      <span className="sr-only">{titulo}</span>
-    </a>
-  );
-}
-
 function BotaoAcao({
   titulo,
   perigo,
@@ -203,14 +187,14 @@ function BotaoAcao({
 }
 
 /**
- * Ações por linha — as MESMAS quatro do Blade, cada uma pra rota que já existe. A ordem é a
- * do protótipo (`:305`): alocar · manutenção · editar · excluir, destrutiva por último.
+ * Ação por linha — só EXCLUIR. Alocar, mandar pra manutenção e editar saíram em 2026-09-23:
+ * os três apontavam pra endpoints que só respondem sob `ajax()` e abriam página em branco
+ * (ver o docblock do topo do arquivo). Botão que parece agir e não age é afordância falsa.
  *
- * Excluir é a única escrita da tela e usa `router.delete` com confirmação: o `destroy` é uma
- * rota `resource` (verbo DELETE), então link `<a>` não a alcançaria — botão que parece
- * excluir e não exclui é afordância falsa. Tirá-la seria regressão vs. o Blade, que a tinha.
+ * Excluir usa `router.delete` com confirmação: o `destroy` é uma rota `resource` (verbo
+ * DELETE), então link `<a>` não a alcançaria.
  *
- * `stopPropagation` em todas porque a linha inteira é clicável.
+ * `stopPropagation` porque a linha inteira é clicável.
  */
 function AcoesDaLinha({ bem, permissoes }: { bem: Bem; permissoes: Props['permissoes'] }) {
   const excluir = () => {
@@ -224,27 +208,6 @@ function AcoesDaLinha({ bem, permissoes }: { bem: Bem; permissoes: Props['permis
 
   return (
     <Inline gap={1}>
-      {bem.alocavel && bem.quantidade - bem.alocado > 0 ? (
-        <IconeAcao href={`/asset/allocation/create?asset_id=${bem.id}`} titulo={`Alocar recurso — ${bem.nome}`}>
-          <Plus size={14} aria-hidden="true" />
-        </IconeAcao>
-      ) : null}
-
-      {permissoes.manutencao ? (
-        <IconeAcao
-          href={`/asset/asset-maintenance/create?asset_id=${bem.id}`}
-          titulo={`Enviar pra manutenção — ${bem.nome}`}
-        >
-          <Wrench size={14} aria-hidden="true" />
-        </IconeAcao>
-      ) : null}
-
-      {permissoes.editar ? (
-        <IconeAcao href={`/asset/assets/${bem.id}/edit`} titulo={`Editar — ${bem.nome}`}>
-          <Pencil size={14} aria-hidden="true" />
-        </IconeAcao>
-      ) : null}
-
       {permissoes.excluir ? (
         <BotaoAcao titulo={`Excluir — ${bem.nome}`} perigo onClick={excluir}>
           <Trash2 size={14} aria-hidden="true" />
@@ -533,18 +496,11 @@ export default function Bens({ abas_contadores, bens, filtros, opcoes, permissoe
           <PageHeader
             title="Bens"
             subtitle="O patrimônio da empresa: o que a casa tem, onde está e com quem"
-            actions={
-              permissoes.criar ? (
-                <Button size="sm" asChild>
-                  <a href="/asset/assets/create">Novo ativo</a>
-                </Button>
-              ) : undefined
-            }
           />
         </div>
 
-        {/* `hidePrimary`: o primary do menu ("Novo ativo") já está no header acima —
-            repeti-lo na barra de abas daria dois botões idênticos lado a lado. */}
+        {/* `hidePrimary`: o menu do módulo não declara mais primary (o "Novo ativo" abria o
+            fragmento de modal cru — `DataController`, 2026-09-23); fica por defesa. */}
         <div data-contract="subnav">
           <PatrimonioSubNav active="assets" hidePrimary badges={abas_contadores ?? undefined} />
         </div>
@@ -560,13 +516,6 @@ export default function Bens({ abas_contadores, bens, filtros, opcoes, permissoe
                 icon="boxes"
                 title="Nenhum bem cadastrado ainda"
                 description="O patrimônio começa pelo que já está na casa. Cadastre um bem e ele passa a aparecer aqui com valor, garantia e alocação."
-                action={
-                  permissoes.criar ? (
-                    <Button asChild>
-                      <a href="/asset/assets/create">Cadastrar o primeiro bem</a>
-                    </Button>
-                  ) : undefined
-                }
               />
             ) : bens ? (
               <DataTable<Bem>

@@ -9,8 +9,8 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-manutencoes.md
 tier: B
-charter_version: 1
-last_validated: "2026-09-08"
+charter_version: 2
+last_validated: "2026-09-23"
 ---
 
 # Page Charter — Patrimonio/Manutencoes (DRAFT)
@@ -43,8 +43,9 @@ manutenção"), não aqui.
 - **Aviso de escopo restrito**: quem tem apenas `asset.view_own_maintenance` lê, acima da
   tabela, que a lista mostra só onde ele é responsável. **Ganho real sobre o Blade**, que
   filtrava calado — e o filtro já existia no servidor (`index()` `:73`).
-- **Ações de linha do Blade**: editar (modal Blade) e excluir (com confirmação nomeando a
-  manutenção).
+- **Ação de linha**: excluir (com confirmação nomeando a manutenção). O editar do Blade
+  **saiu em 2026-09-23**: `edit` só responde sob `ajax()` e devolveu 200 com 0 bytes numa
+  navegação direta (medido em prod, biz=1) — o link abria página em branco.
 - **Realce da linha em andamento** (`rowState: 'urgent'`), como o protótipo faz.
 - Sub-navegação do módulo via `_shared/PatrimonioSubNav`, com `hidePrimary`.
 
@@ -65,9 +66,11 @@ manutenção"), não aqui.
   título a pagar no Financeiro — é dinheiro, pede a REGRA MESTRE de VALOR, não cabe em migração
   de tela.
 - ❌ **Criar manutenção a partir daqui.** O Blade não tem botão de criar nesta listagem e o
-  fluxo nasce em Bens (`/asset/asset-maintenance/create?asset_id=N`). Pôr um CTA aqui inventaria
-  fluxo.
-- ❌ **Edição inline / modal React.** O `edit` segue Blade nesta onda.
+  fluxo nascia em Bens (`/asset/asset-maintenance/create?asset_id=N`). Desde 2026-09-23 nem lá:
+  o destino é fragmento de modal servido só sob `ajax()`, e a ação saiu de Bens. Pôr um CTA
+  aqui inventaria fluxo.
+- ❌ **Edição inline / modal React.** O `edit` segue Blade nesta onda — e, sendo fragmento de
+  modal sem página própria, a tela **não linka** pra ele.
 
 ## Anti-hooks (NÃO faz automaticamente)
 

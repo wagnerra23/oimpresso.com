@@ -78,6 +78,19 @@ last_run: "2026-09-11"
 
 ---
 
+## UC-MANU-04 · O editar não leva a uma página em branco
+
+- **Persona:** quem acompanha a fila de manutenção e quer corrigir um registro.
+- **Aceite:** Dado a lista com uma manutenção · Quando a tela renderiza · Então **nenhum**
+  `href` aponta pra `/asset/asset-maintenance/{id}/edit`; e o **excluir** continua na linha.
+- **Teste:** `tests/js/patrimonio-sem-link-para-modal.test.tsx` — `it()` citando `UC-MANU-04`.
+- **Regressão que defende:** afordância falsa. MEDIDO em prod (biz=1, 2026-09-23): os endpoints `create`/`edit` do módulo só respondem sob `request()->ajax()` — numa navegação direta devolveram **200 com 0 bytes** (fragmento de modal jQuery, sem `@extends`). O ícone de lápis abria página em
+  branco. **Bite-test (provado 2026-09-23):** com o `Manutencoes.tsx` anterior, o caso cai
+  listando `/asset/asset-maintenance/12/edit`.
+- **Status: 🧪** — verde no vitest local pós-conserto; lane de CI a confirmar no PR.
+
+---
+
 ## `[BACKLOG]` — o que o protótipo desenha e esta onda não entrega
 
 Prosa sem id de propósito: **vira UC quando existir teste que o cite** (G-2).
@@ -91,6 +104,8 @@ Prosa sem id de propósito: **vira UC quando existir teste que o cite** (G-2).
   corrente daria número que mente. Pede agregação no servidor.
 - `[BACKLOG]` Ação **"Concluir"** — sem endpoint, e o efeito declarado (criar título a pagar no
   Financeiro) é dinheiro.
+- `[BACKLOG]` **Editar (e criar) manutenção em drawer** — hoje não há caminho pela UI: `create`
+  e `edit` só existem como fragmento de modal servido sob `ajax()` (UC-MANU-04).
 - `[BACKLOG]` **Escopo de escrita por dono** — `edit`/`update`/`destroy` filtram só por
   `business_id`. Não é regressão desta tela; é decisão de produto pendente de [W], e a
   permissão para isso não existe no módulo.

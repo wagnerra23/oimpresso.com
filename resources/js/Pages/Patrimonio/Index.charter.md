@@ -18,8 +18,8 @@ alcance:
   menu_hook: Modules/AssetManagement/Http/Controllers/DataController.php::modifyAdminMenu
   pacote: assetmanagement_module      # superadmin_package
 tier: B
-charter_version: 1
-last_validated: "2026-09-08"
+charter_version: 2
+last_validated: "2026-09-23"
 ---
 
 # Page Charter — Patrimonio/Index (Painel do Patrimônio)
@@ -64,6 +64,12 @@ o que está parado ou sem cobertura de garantia.**
   no backend. A sub-navegação **deriva** do `shell.menu` e por isso simplesmente não as mostra —
   decisão da tela de Bens, que a fundou (*"renderizar aba que não navega é afordância falsa"*).
   Bloqueios `D-GARANTIAS` e `D-AUDITORIA`.
+- ❌ **Não oferece "Adicionar recurso" nem o primary "+ Novo ativo" do menu** — os dois saíram
+  em 2026-09-23. O destino (`/asset/assets/create`) só responde sob `ajax()`: numa navegação
+  direta devolveu 200 com 0 bytes, e pelo `<Link>` do Inertia abriu o fragmento de modal jQuery
+  cru no diálogo de resposta inválida (medido em prod, biz=1). O "Alocar recurso" fica porque
+  aponta pra LISTA de alocações, que navega. O cadastro volta como drawer (REGRA MESTRE — valor
+  e quantidade), em outra onda.
 
 ## UX Targets
 
