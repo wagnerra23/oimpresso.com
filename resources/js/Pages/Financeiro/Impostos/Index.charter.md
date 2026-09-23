@@ -12,6 +12,7 @@ related_us: [US-FIN-062]
 smoke: "2026-07-02 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; Inertia page servida com sessão real). Antes: 2026-07-01 render completo (KPIs/guias/calendário) sob sessão matriz biz=0."
 related_prototype: prototipo-ui/cowork/Wagner/financeiro-telas-extras.jsx
 related_prototype_nota: '(TelaImpostos), aprovado [W] 2026-06-10 (PACOTE-FINANCEIRO-F2 PR-2)'
+related_visual_comparison: memory/requisitos/Financeiro/impostos-visual-comparison.md
 tier: B
 charter_version: 1
 ---
@@ -62,7 +63,7 @@ Simples Nacional (regime caixa) costurada ao caixa unificado — sem fingir ser 
 
 - Cabe em 1280px (Larissa) sem scroll horizontal; coluna lateral colapsa pra 1 col <1100px.
 - AppShellV2 + wrapper `.fin-cowork` (vocabulário visual do módulo, mesmo padrão do DRE).
-- 0 erros JS console; zero cor crua (status pills via tokens semânticos do @theme).
+- 0 erros JS console; zero cor crua (status pills via tokens semânticos do tema: `--warn`/`--warn-soft`, `--pos`/`--pos-soft`, `--neg`/`--neg-soft`, como o protótipo — trocados em 2026-09-23 na FIN-3: o par anterior `bg-warning/10 text-warning-foreground` media contraste 1,57:1 no tema escuro).
 
 ---
 
