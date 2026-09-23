@@ -197,3 +197,31 @@ reporta, o humano classifica.
 `h1` diz "Projeção **35** dias" e o KPI diz "PROJEÇÃO **30** DIAS" — parece inconsistência de
 copy, **não é**: o `Index.charter.md` documenta os dois números no campo `smoke` de 2026-07-06
 (*"4 KPIs (Saldo hoje · Projeção 30d · Pior dia previsto · Margem mínima)"*). Decidido, não defeito.
+
+---
+
+## FIN-0a · paridade re-medida com o Design System carregado — 2026-09-23 [CL]
+
+Mesma sonda e mesmas condições da seção homônima em
+[`dre-visual-comparison.md`](dre-visual-comparison.md) (DS resolvido por `servirEspelho`, tema `dark`,
+DOM estável). Prod `/financeiro/fluxo`, empresa 1 × design rota `fin-fluxo`. A aba **Projetado**
+projeta a partir de hoje, então o recorte "julho de 2026" só se aplica à aba Realizado.
+
+### O "1 KPI no design" de 2026-09-08 não se reproduz
+
+Com o DS carregado, o protótipo renderiza os **4 indicadores** (Saldo hoje · Projeção 30 dias ·
+Pior dia previsto · Margem mínima), o gráfico e a tabela "Próximos eventos". A divergência
+estrutural registrada acima vinha do render sem DS. **A pergunta "manter os 4 ou retirar 3" deixa de existir.**
+
+### Veredito por dimensão
+
+| Dimensão | Prod | Design | Veredito |
+|---|---|---|---|
+| Nº de indicadores | 4 | 4 | **IGUAL** |
+| Alinhamento dos indicadores | `start` | `start` | **IGUAL** |
+| Tamanho do valor do indicador | 28 · 22 · 22 · 22 px | 28 px nos 4 | **DÍVIDA A FECHAR** (o comparador só confere o 1º indicador e disse "igual"; o dado cru mostra a diferença) |
+| h1 | "Fluxo de caixa · Projeção 35 dias" | "Financeiro · Fluxo de caixa" | **DÍVIDA A FECHAR** (rótulo) |
+| Botão principal no cabeçalho | ausente | "Novo título" | **DÍVIDA A FECHAR** |
+| "Próximos eventos" | `div` | `table` de 7 colunas | **DÍVIDA A FECHAR** (estrutura) |
+| Gráfico | — | — | **NÃO MEDIDO**: o marcador de papel não achou a raiz das barras em nenhum dos lados |
+| Cor do texto | — | — | **NÃO MEDIDO** (mesma limitação da sonda descrita no DRE) |
