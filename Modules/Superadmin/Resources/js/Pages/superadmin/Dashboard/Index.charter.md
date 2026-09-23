@@ -58,11 +58,21 @@ O que a tela entrega **hoje** (medido no smoke de 2026-08-19, não prometido):
 - Vocabulário PT-BR fechado: negócio, assinatura, pacote, MRR, trial. O enum do banco
   **nunca** aparece na tela (mapa no RUNBOOK §2).
 
-**O MRR diz por que está zero.** A regra R1 conta só recorrência vigente e paga; quando o
-total dá zero o card distingue as duas causas possíveis — "nenhuma assinatura recorrente
-vigente" × "N assinaturas vigentes sem preço no pacote". Sem isso o card parece quebrado, que
-é o estado real de hoje: **nenhum dos pacotes tem preço cadastrado** (medido em prod
-2026-08-19 — 13 vigentes, 13 sem preço).
+**O MRR diz de onde vem o número.** O valor sai da cobrança recorrente
+(`SubscriptionRepository::mrrBaselineCached`, UC-SADASH-06), e o rodapé do card diz o que o
+sustenta: quantas assinaturas ativas e quantas foram canceladas em 30 dias; quando dá zero,
+"nenhuma assinatura ativa na cobrança recorrente"; e quando a fonte não pôde ser lida, diz
+isso em vez de mostrar zero.
+
+> **Corrigido em 2026-09-23:** este parágrafo prometia, até aqui, que o card distinguia
+> "nenhuma assinatura recorrente vigente" × "N assinaturas vigentes sem preço no pacote". Esse
+> aviso existiu na SA-O1b (#5955, 2026-08-19) e **saiu de propósito** no #5981 (2026-08-20),
+> quando o MRR trocou de fonte — de `packages`/`subscriptions` (licenciamento legado, todo com
+> preço 0) para `rb_plans`/`rb_subscriptions`. Na fonte nova "sem preço no pacote" não descreve
+> nenhum estado real, então o ramo foi trocado pelo de fonte indisponível. O charter não
+> acompanhou; o caso UC-SADASH-06 e o `.tsx` acompanharam. Achado no scorecard da thread 13 do
+> playbook Prontidão (PR #7757). A medição de 2026-08-19 (13 vigentes, 13 sem preço) continua
+> verdadeira sobre a tabela legada — ver "Em aberto" abaixo.
 
 Alvo do F1 ainda **não** entregue — está aqui pra não se perder, não como promessa cumprida:
 
