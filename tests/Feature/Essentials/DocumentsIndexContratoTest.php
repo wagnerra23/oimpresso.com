@@ -15,6 +15,7 @@ use Spatie\Permission\PermissionRegistrar;
  * UC-EDOC-01 `[T0]` — a lista de memos mostra o meu e o compartilhado comigo, e mais nada.
  * UC-EDOC-02        — criar memo grava no tenant da sessão e volta pra aba Memos.
  * UC-EDOC-03        — remover só apaga item próprio.
+ * UC-EDOC-04 `[T0]` — remover apaga junto os compartilhamentos, só no tenant da sessão.
  *
  * Os UC derivam do charter (`Index.charter.md`) + do controller real, nunca do protótipo.
  * Trio: resources/js/Pages/Essentials/Documents/{Index.charter.md,Index.casos.md}
@@ -166,4 +167,37 @@ it('UC-EDOC-03 · remover apaga o item próprio e recusa em silêncio o de terce
     // Controle positivo: o mesmo endpoint de fato apaga quando o item é meu.
     $this->delete("/essentials/document/{$meu}")->assertStatus(302);
     expect(DB::table('essentials_documents')->where('id', $meu)->exists())->toBeFalse();
+});
+
+it('UC-EDOC-04 · remover o item próprio apaga junto os compartilhamentos dele, e só dentro do tenant da sessão', function () {
+    $adversario = $this->seededSupportClientTenant(); // biz=99 fictício
+    $tag = 'EDOC04-'.uniqid();
+
+    $meu = edocMemo(EDOC_BIZ, $this->eUser->id, "$tag-meu");
+    // Autoria MINHA no outro tenant: só o filtro de business_id do destroy o protege.
+    $outroTenant = edocMemo((int) $adversario->id, $this->eUser->id, "$tag-outro-tenant");
+
+    $share = fn (int $docId, string $tipo, int $valor) => DB::table('essentials_document_shares')->insert([
+        'document_id' => $docId, 'value_type' => $tipo, 'value' => $valor,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $share($meu, 'user', (int) $this->eOutro->id);
+    $share($meu, 'role', 1);
+    $share($outroTenant, 'user', (int) $this->eOutro->id);
+
+    $sharesDe = fn (int $docId) => DB::table('essentials_document_shares')->where('document_id', $docId)->count();
+
+    // Pré-condição anti-vácuo: os compartilhamentos existem antes da exclusão.
+    expect($sharesDe($meu))->toBe(2);
+    expect($sharesDe($outroTenant))->toBe(1);
+
+    // Tier 0: o id do outro tenant não é alcançável pela sessão do 98.
+    $this->delete("/essentials/document/{$outroTenant}")->assertStatus(302);
+    expect(DB::table('essentials_documents')->where('id', $outroTenant)->exists())->toBeTrue();
+    expect($sharesDe($outroTenant))->toBe(1);
+
+    // Contrato: apagar o meu leva os compartilhamentos junto — nada de linha órfã.
+    $this->delete("/essentials/document/{$meu}")->assertStatus(302);
+    expect(DB::table('essentials_documents')->where('id', $meu)->exists())->toBeFalse();
+    expect($sharesDe($meu))->toBe(0);
 });
