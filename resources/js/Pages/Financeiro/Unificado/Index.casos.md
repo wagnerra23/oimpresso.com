@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-09-06"
+last_run: "2026-09-23"
 last_run_ci: "0 UC executado — UC-FUNI-01..04 nascem neste PR; veredito pendente da lane PHP / Pest (Financeiro · MySQL)"
 sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 ---
@@ -23,6 +23,8 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 
 ---
 
+> ℹ️ **`last_run` 2026-09-06 → 2026-09-23 (G-6) — FIN-8, só FORMA.** Quatro toques em `Index.tsx`, nenhum de comportamento: `uppercase` no botão do cabeçalho ordenável (o preflight do Tailwind zerava o text-transform herdado do `th`); a busca volta à linha dos filtros (encolhe 240→160px antes de quebrar); placeholder "Buscar lançamento…" → "Filtrar nesta lista…"; rótulo da paleta "Novo lançamento" → "Novo título". Zero handler, zero prop, zero query. **Nenhum UC foi reexecutado**; o bump reconcilia o trio com a tela nesta data.
+>
 > ℹ️ **`last_run` 2026-08-08 → 2026-09-06 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Index.tsx` (+ 5 `_components/*`) foi o atributo **`data-contract="<id>"`** no elemento raiz de
 > região (header-acoes · kpis · filter-pills-toolbar · tabela-linhas · aprovacao-de-pagamento · drawer-detalhe, mais periodbar-personalizado · dialogo-de-baixa · anexos-no-drawer · ocr-boleto · combobox-contraparte-no-novo-titulo nos componentes) — a âncora estável que o `<tela>.map.json` declara em `vivo.ancora`

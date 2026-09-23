@@ -1541,6 +1541,10 @@ export function SidebarFooter({
           className="sb-user-btn"
           type="button"
           onClick={() => setOpenUser((v) => !v)}
+          // Nome acessível explícito: sem ele o botão só tem nome quando `nome`/`cargo` vêm
+          // preenchidos — com usuário sem nome (o tenant de teste, 2026-09-23) o axe acusa
+          // button-name CRITICAL. O rótulo contém o nome visível (WCAG 2.5.3 label-in-name).
+          aria-label={nome ? `${nome} — menu da conta` : 'Menu da conta'}
           aria-haspopup="menu"
           aria-expanded={openUser}
         >

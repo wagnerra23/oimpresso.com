@@ -13,6 +13,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, Deferred } from '@inertiajs/react';
+import { useBusiness, usePageProps } from '@/Hooks/usePageProps';
 import {
   useCallback, useEffect, useMemo, useRef, useState, type ReactNode,
 } from 'react';
@@ -66,6 +67,15 @@ const FUNIL_FALLBACK: CobrancaFunil = {
   protesto: { qtd: 0, desc: '30d+ (Onda 5)' },
   mandatos_cancelados: 0,
 };
+
+const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+// "2026-09-23" → "Setembro 2026" (só lê a string; sem Date, sem fuso).
+function mesAnoDe(iso: string): string {
+  const [ano, mes] = iso.split('-');
+  const nome = MESES[Number(mes) - 1] ?? '';
+  return nome ? `${nome.charAt(0).toUpperCase()}${nome.slice(1)} ${ano}` : iso;
+}
 
 function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], filtros, isSaasBusiness, today }: Props) {
   // Hotfix Inertia::defer first paint: kpis/funil podem ser undefined até resolver.
@@ -162,9 +172,21 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
     return () => document.removeEventListener('keydown', onKey);
   }, [drawer, novaOpen, remessaOpen, cheatOpen, aiOpen, focusIdx, filtered]);
 
-  // breadcrumb dinâmico
+  // FIN-5 (2026-09-23): o subtítulo segue o protótipo (pg-cobranca-page.jsx:118-124) — contexto
+  // "Mês Ano · Empresa" + filtros ativos. A localização (Financeiro › Cobrança) já vem da sub-nav.
+  // O mês sai de `today`, a data do SERVIDOR (a mesma que monta funil e KPIs), não do relógio do
+  // navegador — na virada do mês os dois poderiam discordar.
+  // Nome da empresa: MESMA fonte da sidebar (`shell.cockpit.businessNome`) com o `business.name` da
+  // sessão só de reserva — idioma de `Patrimonio/Index.tsx:248-259`, que mediu o da sessão chegando
+  // VAZIO no ambiente de teste (a 1ª captura desta tela saiu "Junho 2026" sem a empresa, igual).
+  // Os dois hooks são chamados sempre (Rules of Hooks). Sem default: não se afirma tenant alheio.
+  const shell = usePageProps().shell as ({ cockpit?: { businessNome?: string } } | undefined);
+  const nomeDoShell = shell?.cockpit?.businessNome ?? null;
+  const nomeDaSessao = useBusiness()?.name ?? null;
+  const businessName = nomeDoShell ?? nomeDaSessao ?? '';
+  const mesAno = mesAnoDe(today);
   const breadcrumb = useMemo(() => {
-    const parts = ['Financeiro', 'Cobrança'];
+    const parts = [businessName ? `${mesAno} · ${businessName}` : mesAno];
     if (gatewayFilter !== 'all' && DRIVERS[gatewayFilter as keyof typeof DRIVERS]) {
       parts.push(DRIVERS[gatewayFilter as keyof typeof DRIVERS].nome);
     }
@@ -173,7 +195,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
       if (tp) parts.push(tp.label);
     }
     return parts.join(' · ');
-  }, [gatewayFilter, tipoFilter]);
+  }, [gatewayFilter, tipoFilter, mesAno, businessName]);
 
   // KPI #4 contextual
   const kpiContextual = useMemo(() => {
@@ -195,22 +217,24 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
           (ADR 0190) — o shim FinanceiroPrimaryButton emitia `.os-btn primary`, cuja
           única regra no CSS servido é escopada `.sells-cowork` → nunca casava. */}
       <div className="fin-curadoria vendas-aplus">
-        <PageHeader
-          title="Cobrança"
-          suffix=" · Boletos e PIX"
-          subtitle={<>{kpis.aberto.qtd} em aberto · gestão de remessa/retorno + gateways</>}
-        >
-          {/* Children = Zona R custom: SubNav 12 ghosts + extraOverflow + Primary */}
+        {/* FIN-5: título e ações como no protótipo (pg-cobranca-page.jsx:148-160) — "Cobrança" sem
+            sufixo; "Resumir mês", "Gateways" e "Remessa/Retorno" VISÍVEIS ao lado do primário, não mais
+            escondidos no ⋯ da sub-nav. Mesmos handlers de antes. */}
+        <PageHeader title="Cobrança" subtitle={breadcrumb}>
           <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
-            <FinanceiroSubNav
-              active="cobranca"
-              hidePrimary
-              extraOverflowItems={[
-                { key: 'resumir',  label: 'Resumir mês',     icon: <span>✦</span>,         onClick: () => setAiOpen(true),                            title: 'Resumir cobranças deste mês — IA' },
-                { key: 'gateways', label: 'Gateways',        icon: <Settings size={13} />, onClick: () => router.visit('/settings/payment-gateways'), title: 'Configurar gateways' },
-                { key: 'remessa',  label: 'Remessa/Retorno', icon: <Upload size={13} />,   onClick: () => setRemessaOpen(true) },
-              ]}
-            />
+            <FinanceiroSubNav active="cobranca" hidePrimary />
+            <Btn variant="outline" onClick={() => setAiOpen(true)} title="Resumir cobranças deste mês — IA">
+              <span aria-hidden="true">✦</span>
+              Resumir mês
+            </Btn>
+            <Btn variant="outline" onClick={() => router.visit('/settings/payment-gateways')} title="Configurar gateways">
+              <Settings size={13} />
+              Gateways
+            </Btn>
+            <Btn variant="outline" onClick={() => setRemessaOpen(true)}>
+              <Upload size={13} />
+              Remessa/Retorno
+            </Btn>
             <PageHeaderPrimary label="Nova cobrança" onClick={() => setNovaOpen(true)} />
           </div>
         </PageHeader>
@@ -219,7 +243,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
       {/* FUNIL */}
       <div className="px-6 pt-5">
         <Deferred data="funil" fallback={<div className="h-[100px] bg-white border border-stone-200 rounded-md pg-skel" />}>
-          <FunnelStrip funil={funil ?? FUNIL_FALLBACK} />
+          <FunnelStrip funil={funil ?? FUNIL_FALLBACK} mesAno={mesAno} />
         </Deferred>
       </div>
 

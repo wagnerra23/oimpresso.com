@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **415** arquivos · **400** números únicos · máx **0410**
-- **ADRs ATIVOS (lifecycle ativo): 369** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 365 · superseded 25 · proposto 12 · deprecated 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 369 · substituido 25 · arquivado 21
+- **416** arquivos · **401** números únicos · máx **0411**
+- **ADRs ATIVOS (lifecycle ativo): 370** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 366 · superseded 25 · proposto 12 · deprecated 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 370 · substituido 25 · arquivado 21
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (415)
+## Todas as ADRs (416)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -453,3 +453,4 @@ _(nenhuma)_
 | 0408 | aceito | ativo | decision | Medição de paridade protótipo×prod pode ser AGENDADA e advisory — o que a 0290 r |
 | 0409 | aceito | ativo | decision | Zero baseline de tolerância — conformidade absoluta e dívida acordada por toque |
 | 0410 | aceito | ativo | decision | Ratificação do zero baseline no funil de design e validação exclusiva em produçã |
+| 0411 | aceito | ativo | decision | Snapshot de pixel do VRT fica fora do passo 3 da ADR 0409 — referência de regres |
