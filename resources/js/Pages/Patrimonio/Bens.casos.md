@@ -116,8 +116,8 @@ last_run: "2026-09-11"
 
 ## UC-BENS-05 · Cadastrar bem pelo drawer grava valor e quantidade exatamente como digitados
 
-- **Persona:** quem cadastra o patrimônio — digita "1.234,56" e espera ver R$ 1.234,56, não
-  R$ 123.456 nem R$ 1,23.
+- **Persona:** quem cadastra o patrimônio — digita "1.234,56" e espera ver gravado exatamente
+  esse valor, não cem vezes mais nem cem vezes menos.
 - **Aceite:** Dado o drawer "Adicionar recurso" com nome, categoria, local, data, valor
   `1.234,56` e quantidade `2` · Quando o usuário clica "Cadastrar bem" · Então o POST leva
   `unit_price=1234,56`, `quantity=2` e a data no formato do negócio, e o banco grava

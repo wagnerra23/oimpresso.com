@@ -30,7 +30,7 @@ import { Switch } from '@/Components/ui/switch';
 import { NumericInputPtBR } from '@/Components/ui/numeric-input-ptbr';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
-import { Grid, Stack } from '@/Components/layout';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import { montarPayloadCadastro, validarCadastroBem, type FormCadastroBem } from './cadastroBem';
 
 interface Props {
@@ -242,13 +242,13 @@ export default function CadastroBemDrawer({ aberto, onClose, locais, categorias,
                   <NumericInputPtBR id="cb-dep" value={f.depreciacao ?? 0} precision={2}
                     onChange={(n) => set('depreciacao', n === 0 ? null : n)} />
                 </Campo>
-                <div className="flex items-end gap-3 pb-1">
+                <Inline gap={3} align="end" className="pb-1">
                   <Switch id="cb-alocavel" checked={f.alocavel} onCheckedChange={(v) => set('alocavel', v)} />
                   <Stack gap={0}>
                     <Label htmlFor="cb-alocavel">É atribuível?</Label>
                     <small className="text-muted-foreground">Se atribuível, o bem pode ser alocado a um colaborador.</small>
                   </Stack>
-                </div>
+                </Inline>
               </Grid>
             </Secao>
 
