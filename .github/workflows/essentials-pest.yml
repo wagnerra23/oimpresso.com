@@ -29,6 +29,7 @@ on:
     paths:
       - 'Modules/Essentials/**'
       - 'tests/Feature/Calculo/CalculoValorPayrollTest.php'
+      - 'tests/Feature/Essentials/**'
       - 'resources/js/Pages/Essentials/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/essentials-pest.yml'
@@ -68,6 +69,7 @@ jobs:
             essentials:
               - 'Modules/Essentials/**'
               - 'tests/Feature/Calculo/CalculoValorPayrollTest.php'
+              - 'tests/Feature/Essentials/**'
               - 'resources/js/Pages/Essentials/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/essentials-pest.yml'
@@ -112,6 +114,7 @@ jobs:
             Modules/Essentials/Tests/Feature/SalesTargetShiftCrossTenantTest.php \
             Modules/Essentials/Tests/Feature/HrmExclusaoGuardaTest.php \
             Modules/Essentials/Tests/Feature/HrmLicencaTest.php \
+            tests/Feature/Essentials/RemindersIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/SalesTargetFaixaValidacaoTest.php \
             Modules/Essentials/Tests/Feature/HrmMetasTest.php \
             Modules/Essentials/Tests/Feature/AttendanceImportMultiTenantTest.php \
