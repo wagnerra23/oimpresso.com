@@ -281,6 +281,7 @@ module: Essentials
 ## Casos (contrato UC) — 7
 
 - [Index.casos.md](../../../resources/js/Pages/Essentials/Documents/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Essentials/Knowledge/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Essentials/Licencas/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Essentials/Messages/Index.casos.md)
 - [Metas.casos.md](../../../resources/js/Pages/Essentials/Metas.casos.md)

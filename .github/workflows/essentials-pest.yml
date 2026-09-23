@@ -122,6 +122,7 @@ jobs:
             tests/Feature/Essentials/DocumentsIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/AttendanceImportMultiTenantTest.php \
             Modules/Essentials/Tests/Feature/HrmTiposIndexTest.php \
+            tests/Feature/Essentials/KnowledgeIndexContratoTest.php \
             tests/Feature/Calculo/CalculoValorPayrollTest.php
 
 
