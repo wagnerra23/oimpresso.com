@@ -22,10 +22,17 @@ linhas. Quebrei em 5 fases no `memory/requisitos/Cms/RUNBOOK-admin-content.md`; 
   `Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php`, ligado na lane `verticais-pest.yml`
   (trigger + `paths-filter` + run-set).
 
+## Fase 2 (PR empilhado sobre o da fase 1)
+
+Criar/editar num drawer PT-02 (`Admin/Content/_components/Editor.tsx`), `meta_description` vazia
+derivada no servidor (R7), rótulos por tipo/layout (R2/R5), aviso de endereço ao mudar o título
+(A2). UC-CMS-04/05/22/23 no mesmo teste de contrato. Blocos da home ficam para a fase 2b.
+
 ## Placar
 
-entregue 1 de 1 prova do índice · 5 de 18 UC do F1 cobertos · ausentes os outros 13 UC do F1
-(editor, exclusão recusada no servidor, lote, demo, formulário público) por serem das fases 2–4.
+entregue 1 de 1 prova do índice · fase 1: 5 UC · fase 2: +4 UC (UC-CMS-04/05 do F1 + 22/23 novos) ·
+ausentes os demais UC do F1 (blocos da home, exclusão recusada no servidor, lote, demo, formulário
+público) por serem das fases 2b–4.
 
 ## Não fiz (e por quê)
 

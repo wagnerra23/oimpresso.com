@@ -13,8 +13,8 @@ last_run_ci: "_pendente_ — o trio nasce na thread Cms/01. O veredito por UC en
 
 > **Âncora:** UC-CMS-01/02/03 e regras R3/R6/A1 do F1 do Cowork
 > (`prototipo-ui/cowork/Wagner/cowork-inbox/cms/CMS-F1-2026-08-19.md` §2/§3). UC-CMS-20/21 são
-> desta fase (a lista) e derivam das mesmas regras. Os demais 15 UC do F1 (editor, exclusão no
-> servidor, lote, demo, formulário público) entram com as fases 2–4 do RUNBOOK — não estão
+> da fase 1 (a lista); UC-CMS-04/05/22/23 são da fase 2 (o editor), sobre R2/R5/R7/A2. Os demais 15 UC do F1 (blocos da home,
+> exclusão no servidor, lote, demo, formulário público) entram com as fases 2b–4 do RUNBOOK — não estão
 > declarados aqui porque ainda não têm teste que os cite.
 
 ---
@@ -66,5 +66,46 @@ Status: 🧪
 **Quando** abro a aba Blog e a aba Páginas
 **Então** ela aparece só em Blog, com endereço `/c/blog/<slug>-<id>`; e um `?type=` fora do
 domínio abre Páginas em vez de mostrar enum cru.
+
+Status: 🧪
+
+---
+
+## UC-CMS-04 · Criar sem título não grava nada · `must`
+
+**Dado** o drawer de criação aberto
+**Quando** salvo sem título
+**Então** o erro aparece no campo título e nenhuma linha é criada.
+
+Status: 🧪
+
+---
+
+## UC-CMS-05 · Descrição vazia vem do conteúdo · `must`
+
+**Dado** um conteúdo HTML longo e a descrição para buscadores vazia
+**Quando** salvo
+**Então** a descrição gravada são os 160 primeiros caracteres do conteúdo em texto puro — sem tag
+e sem o corpo de `<script>` (R7).
+
+Status: 🧪
+
+---
+
+## UC-CMS-22 · O drawer recebe a linha pedida, e só quando pede · `must`
+
+**Dado** uma página de sistema em rascunho
+**Quando** clico em Editar
+**Então** o drawer recebe conteúdo, layout e situação dela — e a carga normal da lista não traz o editor.
+
+Status: 🧪
+
+---
+
+## UC-CMS-23 · Editar sem mexer na descrição preserva a digitada · `must`
+
+**Dado** uma página com descrição escrita à mão
+**Quando** ela é salva por um caminho que não envia o campo (a tela anterior)
+**Então** a descrição continua a mesma; se o campo vier vazio de propósito, é derivada do conteúdo.
 
 Status: 🧪

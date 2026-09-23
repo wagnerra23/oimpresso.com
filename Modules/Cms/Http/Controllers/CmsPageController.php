@@ -61,7 +61,45 @@ class CmsPageController extends Controller
             'tipo' => $tipo,
             'contagens' => collect(self::TIPOS)->mapWithKeys(fn ($t) => [$t => (int) ($contagens[$t] ?? 0)]),
             'paginas' => Inertia::defer(fn () => $this->buildListaPayload($tipo)),
+            // Fase 2 — o drawer de edição pede este prop por partial reload (?editar=id).
+            // `optional`: nunca calculado na carga inicial, só quando a tela o solicita.
+            'editando' => Inertia::optional(fn () => $this->buildEditorPayload((int) $request->get('editar'), $tipo)),
         ]);
+    }
+
+    /** O que o drawer precisa pra editar uma linha. `layout` decide rótulos e blocos (R4/R5). */
+    private function buildEditorPayload(int $id, string $tipo): ?array
+    {
+        $p = CmsPage::where('type', $tipo)->find($id);
+
+        return $p === null ? null : [
+            'id' => $p->id,
+            'titulo' => $p->title,
+            'conteudo' => (string) $p->content,
+            'meta_description' => (string) $p->meta_description,
+            'tags' => (string) $p->tags,
+            'prioridade' => $p->priority,
+            'publicada' => (bool) $p->is_enabled,
+            'layout' => $p->layout,
+            'imagem_url' => $p->feature_image_url,
+        ];
+    }
+
+    /**
+     * R7 — `meta_description` vazia recebe os 160 primeiros caracteres do conteúdo em texto
+     * puro. Vivia no JS da Blade (e lia um campo que a Blade nem tinha); agora é do servidor.
+     */
+    private function derivarMeta(?string $meta, ?string $conteudo): ?string
+    {
+        if (trim((string) $meta) !== '') {
+            return $meta;
+        }
+
+        // strip_tags tira a TAG mas deixa o corpo de <script>/<style> — isso não vai pra busca.
+        $semCodigo = preg_replace('#<(script|style)\b[^>]*>.*?</\1>#is', '', (string) $conteudo);
+        $texto = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags((string) $semCodigo), ENT_QUOTES, 'UTF-8')));
+
+        return $texto === '' ? null : mb_substr($texto, 0, 160);
     }
 
     /** Domínio real de `cms_pages.type` — nav.blade.php + CmsController (pedido [CC] §3.b). */
@@ -126,6 +164,8 @@ class CmsPageController extends Controller
             $input = $request->only(['title', 'content', 'meta_description',
                 'tags', 'priority', 'type',
             ]);
+
+            $input['meta_description'] = $this->derivarMeta($input['meta_description'] ?? null, $input['content'] ?? null);
 
             $input['created_by'] = $request->session()->get('user.id');
 
@@ -274,6 +314,14 @@ class CmsPageController extends Controller
             ]);
 
             $page = CmsPage::findOrFail($id);
+
+            // R7 — derivada do conteúdo final (o enviado, ou o gravado se não veio). Se a
+            // requisição NÃO trouxe o campo (a Blade de edição não tem), vale a meta gravada:
+            // `only()` omite chave ausente, e derivar por cima apagaria meta digitada antes.
+            $input['meta_description'] = $this->derivarMeta(
+                array_key_exists('meta_description', $input) ? $input['meta_description'] : $page->meta_description,
+                $input['content'] ?? $page->content,
+            );
 
             if ($request->hasFile('feature_image')) {
                 $input['feature_image'] = $this->commonUtil->uploadFile($request, 'feature_image', 'cms', 'image');

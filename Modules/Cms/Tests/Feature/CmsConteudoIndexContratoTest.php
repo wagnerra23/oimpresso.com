@@ -129,3 +129,70 @@ it('UC-CMS-21 · tipo fora do domínio cai em page e a aba de blog só lista blo
         ->and($blog['endereco'])->toBe('/c/blog/contrato-cms01-post-'.$blog['id'])
         ->and($pagina)->toBeNull();
 });
+
+// ── Fase 2 · editor em drawer (RUNBOOK-admin-content.md) ─────────────────────
+
+it('UC-CMS-04 · criar sem título devolve erro no campo e não grava nada', function () {
+    $antes = CmsPage::count();
+
+    $this->actingAs(cmsUsuario('cms_superadmin_test'))
+        ->post(ROTA_CMS, ['type' => 'page', 'content' => 'Contrato cms01 sem titulo'])
+        ->assertSessionHasErrors('title');
+
+    expect(CmsPage::count())->toBe($antes);
+});
+
+it('UC-CMS-05 · descrição vazia vira os 160 primeiros caracteres do conteúdo em texto puro', function () {
+    $longo = '<p>Olá <b>mundo</b></p><script>x()</script>'.str_repeat(' palavra', 60);
+
+    $this->actingAs(cmsUsuario('cms_superadmin_test'))
+        ->post(ROTA_CMS, ['type' => 'page', 'title' => 'Contrato cms01 meta', 'content' => $longo, 'meta_description' => ''])
+        ->assertSessionHasNoErrors();
+
+    $meta = (string) CmsPage::where('title', 'Contrato cms01 meta')->value('meta_description');
+
+    expect(mb_strlen($meta))->toBe(160)
+        ->and(str_starts_with($meta, 'Olá mundo'))->toBeTrue()
+        ->and(str_contains($meta, '<'))->toBeFalse()
+        ->and(str_contains($meta, 'x()'))->toBeFalse();
+});
+
+it('UC-CMS-23 · editar sem enviar a descrição preserva a que já estava gravada', function () {
+    $p = CmsPage::create(['type' => 'page', 'title' => 'Contrato cms01 preserva', 'content' => 'corpo novo', 'is_enabled' => 1, 'meta_description' => 'digitada à mão']);
+
+    // A Blade de edição não tem o campo: a requisição chega SEM a chave.
+    $this->actingAs(cmsUsuario('cms_superadmin_test'))
+        ->put(ROTA_CMS.'/'.$p->id, ['type' => 'page', 'title' => 'Contrato cms01 preserva', 'content' => 'outro corpo', 'is_enabled' => 1])
+        ->assertSessionHasNoErrors();
+
+    expect($p->fresh()->meta_description)->toBe('digitada à mão');
+
+    // E vazia de propósito → deriva do conteúdo enviado.
+    $this->actingAs(cmsUsuario('cms_superadmin_test'))
+        ->put(ROTA_CMS.'/'.$p->id, ['type' => 'page', 'title' => 'Contrato cms01 preserva', 'content' => 'outro corpo', 'meta_description' => ''])
+        ->assertSessionHasNoErrors();
+
+    expect($p->fresh()->meta_description)->toBe('outro corpo');
+});
+
+it('UC-CMS-22 · o drawer recebe a linha pedida, e só por partial reload', function () {
+    $p = CmsPage::create(['type' => 'page', 'title' => 'Contrato cms01 editor', 'content' => '<p>corpo</p>', 'is_enabled' => 0, 'layout' => 'home']);
+
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $parcial = $this->actingAs(cmsUsuario('cms_superadmin_test'))->get(ROTA_CMS.'?type=page&editar='.$p->id, [
+        'X-Inertia' => 'true',
+        'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia-Version' => (string) $versao,
+        'X-Inertia-Partial-Data' => 'editando',
+        'X-Inertia-Partial-Component' => 'Admin/Content/Index',
+    ])->assertOk();
+
+    expect($parcial->json('props.editando.conteudo'))->toBe('<p>corpo</p>')
+        ->and($parcial->json('props.editando.layout'))->toBe('home')
+        ->and($parcial->json('props.editando.publicada'))->toBeFalse();
+
+    // Carga inicial NÃO calcula o editor (Inertia::optional).
+    $this->actingAs(cmsUsuario('cms_superadmin_test'))
+        ->get(ROTA_CMS.'?type=page&editar='.$p->id)
+        ->assertInertia(fn (AssertableInertia $pg) => $pg->missing('editando'));
+});

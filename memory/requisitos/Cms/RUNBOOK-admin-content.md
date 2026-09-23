@@ -28,8 +28,9 @@ US-CMS-004 do [SPEC](SPEC.md).
 
 | Fase | Entrega | Blade que morre | Status |
 |---|---|---|---|
-| **1** | Lista `Admin/Content/Index.tsx` + `index()` → `Inertia::render` + contrato UC-CMS-01/02/03/20/21 | `page/index.blade.php` (fica órfã; delete na F5) | este PR |
-| 2 | Editor em drawer PT-02 (`create/edit`), derivação de `meta_description` no servidor (R7) | `page/create`, `page/edit` | pendente |
+| **1** | Lista `Admin/Content/Index.tsx` + `index()` → `Inertia::render` + contrato UC-CMS-01/02/03/20/21 | `page/index.blade.php` (fica órfã; delete na F5) | #7865 |
+| **2** | Editor em drawer PT-02 (`_components/Editor.tsx`), derivação de `meta_description` no servidor (R7) + UC-CMS-04/05/22/23 | `page/create` (sem link; delete na F5) | este PR |
+| 2b | Blocos `feature`/`industry` da página inicial no drawer (R4, UC-CMS-08) | `page/edit` + `partials/{features,industries}` | pendente — até lá o drawer linka a Blade só para `layout=home` |
 | 3 | `destroy` recusa `layout` preenchido no servidor (UC-CMS-09) | — | pendente · o whitelist `type` saiu antes, no #7869 (decisão [W] 2026-09-23) |
 | 4 | Detalhes do site (`SettingsController`) | `settings/index` + 8 partials | pendente |
 | 5 | Cutover: apagar Blades órfãs + charter `live` com screenshot [W2] | todas acima | pendente |
@@ -54,3 +55,18 @@ US-CMS-004 do [SPEC](SPEC.md).
   `verticais-pest.yml` (o módulo entrou no trigger e no `paths-filter` junto, senão a lane pula).
 - Smoke pós-deploy (R1): `https://oimpresso.com/cms/cms-page?type=page` logado como superadmin →
   a lista carrega (não fica no esqueleto) e as três abas trocam.
+
+## Fase 2 — o que muda e o que NÃO muda
+
+- **Criar e editar abrem um drawer lateral** na própria lista (PT-02). Editar pede o prop
+  `editando` por partial reload (`?editar=id`) — `Inertia::optional`, nunca calculado na carga.
+- **R7 no servidor.** As Blades nunca tiveram campo de `meta_description` (o JS delas lia um
+  `textarea` inexistente), então tudo que o painel criou nasceu sem descrição. Agora `store`/`update`
+  derivam os 160 primeiros caracteres do conteúdo em texto puro — sem o corpo de `<script>`/`<style>`,
+  que `strip_tags` sozinho deixaria passar.
+- **Update sem a chave `meta_description` preserva a gravada** (UC-CMS-23). `only()` omite chave
+  ausente; derivar por cima apagaria meta digitada à mão — é o caminho da Blade de edição, que segue viva.
+- **Rótulos por tipo** (R2: depoimento = nome/depoimento/foto) e por layout (R5: `home`/`contact` = Descrição).
+- **Aviso de endereço** ao mudar o título de página livre (A2) — o 404 do link antigo é real (R9).
+- **Não entrou:** prévia computador/celular do F1, blocos da home (2b), ações em lote, arrasto de ordem.
+  O corpo é `textarea` de HTML — TinyMCE só com decisão [W] (F1 §6).
