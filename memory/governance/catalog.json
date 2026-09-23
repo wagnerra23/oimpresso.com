@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 723,
-    "edges": 1014,
+    "nodes": 724,
+    "edges": 1015,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 124,
+      "adr": 125,
       "component": 384,
       "api": 74
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 108,
       "migratesTo": 1,
       "supersedes": 24,
-      "supersedesPartially": 57,
+      "supersedesPartially": 58,
       "supersededBy": 28
     },
     "dangling": 0
@@ -920,6 +920,13 @@
       "type": "adr",
       "num": "0410",
       "slug": "0410-ratificacao-zero-baseline-no-funil-design",
+      "exists": true
+    },
+    {
+      "id": "adr:0411",
+      "type": "adr",
+      "num": "0411",
+      "slug": "0411-snapshot-de-pixel-fora-do-passo-3-da-0409",
       "exists": true
     },
     {
@@ -6502,6 +6509,12 @@
     {
       "from": "adr:0410",
       "to": "adr:0390",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0411",
+      "to": "adr:0409",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },
