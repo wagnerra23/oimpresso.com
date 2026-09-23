@@ -12,9 +12,9 @@ cliente. Plano gravado no dono do módulo, [`RUNBOOK-paridade-ondas.md` §12](..
 FIN-0a (medir DRE e Fluxo) → FIN-0b (CSS) → FIN-0c (prova de valor) → FIN-1 DRE → FIN-2 Fluxo.
 Comparação na empresa 1, **julho de 2026**, sem gravar dado.
 
-**Agora:** aguardando [W] autorizar a FIN-0a e decidir a ordem da §6; o Design responde o pedido em
+**Agora:** §6 reordenada (DRE primeiro, [W] 2026-09-23) e **FIN-0a medida** — resultado no RUNBOOK §12.5. DRE e Fluxo estão "prod atrás"; próxima etapa é a FIN-0b (CSS). O Design responde o pedido em
 [`CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md`](CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md)
-(KPIs do Fluxo, subtítulo do gráfico, âncora da ProvaViva).
+(subtítulo do gráfico do Fluxo, âncora da ProvaViva). ⚠️ Para abrir o protótipo, use `servirEspelho` (ADR 0401): `python -m http.server` não resolve `_ds/` e o render sai sem o Design System.
 
 ---
 

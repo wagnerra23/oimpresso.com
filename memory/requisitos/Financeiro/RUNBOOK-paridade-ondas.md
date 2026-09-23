@@ -374,11 +374,18 @@ apresentada ao [W] como tabela antes→depois.
 ### 12.4 Perguntas abertas [W]
 
 1. ~~**Ordem**~~ — **decidido [W] 2026-09-23:** DRE primeiro, Unificado por último; §6 reordenada.
-2. **Fluxo:** se o design de fato mostra 1 KPI e a produção 4 — manter os 4 (o Design acrescenta ao
-   protótipo) ou retirar 3?
+2. ~~**Fluxo:** 1 KPI × 4~~ — **caiu na FIN-0a**: com o DS carregado, o protótipo tem os 4.
 3. **Charter do DRE:** atualiza o charter para o código atual, ou o código volta ao charter?
 4. **ProvaViva:** `n/a (herda PT-0X)` ou nova âncora?
 5. ~~**FIN-0a**~~ — **autorizada [W] 2026-09-23.**
+
+### 12.5 Resultado da FIN-0a — medido em 2026-09-23
+
+- **"Falta CSS" era o servidor.** Os presets `python -m http.server` do `.claude/launch.json` (e o `cowork-jana-2` citado no §11) não resolvem `_ds/<slug>/` e o protótipo renderiza sem o Design System, sem erro visível. O servidor correto é `servirEspelho` (`scripts/design/design-diff-lote.mjs`, ADR 0401 E2). Por isso os `*.proto-baseline.json` do módulo e as medições de 2026-09-08 do DRE e do Fluxo **não valem**: o baseline do DRE tem 1 elemento de conteúdo por célula.
+- **DRE:** estrutura igual. Dívidas para a FIN-1: 1ª coluna monoespaçada e rótulo "Novo título". O "12m só na prod" não se reproduz.
+- **Fluxo:** o protótipo tem os 4 indicadores. **A pergunta 2 da §12.4 cai.** Dívidas: tamanho do valor, h1, botão primário e "Próximos eventos" como tabela.
+- **Defeitos de comportamento (não são layout, vão para tarefa própria):** trocar de aba no DRE perde o período; sessão sem empresa deixa o DRE vazio (nenhuma rota do Financeiro passa pelo `SetSessionData`); e **11 rotas que gravam exigem só usuário logado**, sem permissão do Financeiro: categorias (4), conciliação (4: `upload`, `match`, `ignorar`, `reabrir`), `contas-bancarias/{id}` (upsert), `contas-pagar/{id}/pagar` e `contas-receber/{id}/boleto`. Medido: 13 rotas de escrita sem `can:` no `route:list` de produção; 2 delas (atualizar assinatura, cancelar fatura) verificam a permissão dentro do método; nas 11 restantes nem o controller nem o FormRequest verificam (os `authorize()` devolvem só `user() !== null`). Os dados ficam restritos à empresa da sessão (sem vazamento entre empresas).
+- **FIN-0b (CSS) segue necessária** para as duas telas: a direção medida é "prod atrás".
 
 O pedido ao Design está em
 [`CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md`](../../reference/prototipo-ui/CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md).

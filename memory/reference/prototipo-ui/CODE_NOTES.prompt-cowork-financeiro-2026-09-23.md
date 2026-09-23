@@ -25,9 +25,9 @@ por onda. Comparação na empresa 1, período **julho de 2026** (o último mês 
 
 | # | Tela | Ponto | Pedido |
 |---|---|---|---|
-| 1 | Fluxo | O código de `TelaFluxo` tem 4 KPIs (Saldo hoje · Projeção 30 dias · Pior dia previsto · Margem mínima), mas a medição de 2026-09-08 viu 1 KPI renderizado. O Code vai medir de novo antes de mexer | Confirmar qual é a intenção do protótipo: 4 KPIs, como a produção, ou 1? Se forem 4, garantir que o render mostra os 4 |
+| 1 | Fluxo | ~~4 KPIs no código × 1 medido em 2026-09-08~~ — **resolvido pelo Code na FIN-0a (2026-09-23)**: com o DS carregado o protótipo mostra os 4; a medição antiga rodou sem o DS | Nada a fazer |
 | 2 | Fluxo | O subtítulo do gráfico diz "barras = movimento líquido do dia" (`:126`), mas as barras desenham o **saldo**; o `moveBar` (`:145`) é calculado e nunca desenhado | Corrigir o subtítulo, ou desenhar as barras de movimento de fato |
-| 3 | DRE | Seletor Mês/Trimestre/Ano/12m: só "Mês" funciona na produção | Manter os outros 3 como desabilitados "Em breve", igual à produção |
+| 3 | DRE | ~~Seletor Mês/Trimestre/Ano/12m~~ — **medido na FIN-0a**: com o DS carregado o protótipo já mostra os 4, com 3 desabilitados, igual à produção | Nada a fazer |
 | 4 | ProvaViva | O charter aponta um HTML de `legado/financeiro-prova-viva/` removido no #7445 | Dizer se existe desenho atual para essa tela, ou se ela segue só o Padrão de Tela |
 | 5 | PlanoContas, Relatórios | Há `TelaPContas` e `financeiro-relatorios.jsx` no protótipo, mas nenhum charter os declara como âncora | Dizer se são o desenho oficial dessas telas (a decisão final de ancorar é [W], tela a tela) |
 
