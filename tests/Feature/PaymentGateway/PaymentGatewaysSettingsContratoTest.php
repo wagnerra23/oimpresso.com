@@ -169,9 +169,9 @@ it('UC-PGSET-01 abre a tela e a credencial do PROPRIO business aparece na lista 
 // ─────────────────────────────────────────────────────────────────────────────
 
 it('UC-PGSET-02 [T0] credencial de OUTRO business nao aparece, e a propria aparece (controle positivo)', function () {
-    if (! \App\Business::find(PGSET_ADVERSARIO)) {
-        $this->markTestSkipped('Lane sem tenant 99 (adversario fictício, ADR 0358) — cross-tenant não exercitável.');
-    }
+    // Cria o adversário 99 se a lane não o semeou (o seed só traz 1/2/98). Sem isto
+    // o caso [T0] saía SKIP — verde sem provar isolamento. Reverte com a transação.
+    $this->seededSupportClientTenant();
 
     $propria = pgsetCriar(PGSET_TENANT);
     $alheia = pgsetCriar(PGSET_ADVERSARIO, ['nome_display' => 'CT PGSET ALHEIA ' . uniqid()]);
@@ -207,9 +207,9 @@ it('UC-PGSET-03 toggle inverte ativo nos dois sentidos e persiste no banco', fun
 // ─────────────────────────────────────────────────────────────────────────────
 
 it('UC-PGSET-04 [T0] toggle em credencial de outro business devolve 404 e nao altera o registro', function () {
-    if (! \App\Business::find(PGSET_ADVERSARIO)) {
-        $this->markTestSkipped('Lane sem tenant 99 (adversario fictício, ADR 0358) — cross-tenant não exercitável.');
-    }
+    // Cria o adversário 99 se a lane não o semeou (o seed só traz 1/2/98). Sem isto
+    // o caso [T0] saía SKIP — verde sem provar isolamento. Reverte com a transação.
+    $this->seededSupportClientTenant();
 
     $alheia = pgsetCriar(PGSET_ADVERSARIO, ['ativo' => true]);
 
@@ -259,9 +259,8 @@ it('UC-PGSET-06 KPIs sobem exatamente pelo que o business ganhou (fail = ativa e
     pgsetCriar(PGSET_TENANT, ['ativo' => false, 'health_status' => 'down'], $usados);
 
     // Ruído de outro business: não pode mexer em nenhum contador do 98.
-    if (\App\Business::find(PGSET_ADVERSARIO)) {
-        pgsetCriar(PGSET_ADVERSARIO, ['ativo' => true, 'health_status' => 'down']);
-    }
+    $this->seededSupportClientTenant();
+    pgsetCriar(PGSET_ADVERSARIO, ['ativo' => true, 'health_status' => 'down']);
 
     $depois = ($this->recarregar)('kpis')['kpis'] ?? [];
 
