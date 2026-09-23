@@ -21,6 +21,12 @@ base_lida: wagnerra23/oimpresso.com@main 1061dbf2e
 - `Index.casos.md` — o `[BACKLOG]` da placa foi atualizado com o fato datado; **não** virou UC,
   porque não há teste de render que o cite (G-2).
 
+- **PageHeader (exigência do gate, ADR 0409)** — tocar Show/Create/Edit acordou a dívida do
+  header antigo (`pageheader-migration-guard`: "alterar a unidade exige a cura no mesmo PR").
+  As 3 telas migraram de `@/Components/shared/PageHeader` para o canon `@/Components/PageHeader`
+  (`description`→`subtitle`, `action`→`actions`; o `icon="car"` saiu, pois o canon não tem esse
+  slot — igual às migrações do Financeiro). Baseline da dívida 68 → 65.
+
 ## Provas
 1. `git grep -c MercosulPlate resources/js/Pages/OficinaAuto/Vehicles/*.tsx` → 3 em cada uma das 4 telas.
 2. `Index.tsx` sem `{v.vehicle_number ?? v.plate}` como conteúdo de célula (resta só no

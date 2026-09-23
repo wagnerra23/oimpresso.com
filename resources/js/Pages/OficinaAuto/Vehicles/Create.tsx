@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import MercosulPlate from '@/Components/shared/MercosulPlate';
 import { Inline } from '@/Components/layout';
 
@@ -158,9 +158,8 @@ export default function VehiclesCreate({ vehicleTypes }: Props) {
       <div className="px-4 py-6 max-w-3xl mx-auto">
         <PageHeader
           title="Novo veículo"
-          description="Cadastro V0 — campos completos (CRLV/FIPE em Sprint 5+)"
-          icon="car"
-          action={
+          subtitle="Cadastro V0 — campos completos (CRLV/FIPE em Sprint 5+)"
+          actions={
             <Link href="/oficina-auto/veiculos">
               <Button variant="ghost">
                 <ArrowLeft className="size-4 mr-1" />

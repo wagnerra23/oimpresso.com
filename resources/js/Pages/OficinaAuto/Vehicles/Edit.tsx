@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import MercosulPlate from '@/Components/shared/MercosulPlate';
 
 interface Vehicle {
@@ -99,9 +99,8 @@ export default function VehiclesEdit({ vehicle, vehicleTypes }: Props) {
       <div className="px-4 py-6 max-w-3xl mx-auto">
         <PageHeader
           title={`Editar ${vehicle.plate}`}
-          description="Atualizar dados do veículo"
-          icon="car"
-          action={
+          subtitle="Atualizar dados do veículo"
+          actions={
             <Link href={`/oficina-auto/veiculos/${vehicle.id}`}>
               <Button variant="ghost">
                 <ArrowLeft className="size-4 mr-1" />
