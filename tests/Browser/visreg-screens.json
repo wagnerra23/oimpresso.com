@@ -73,6 +73,14 @@
     "baseline": "it_Financeiro_Impostos_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Financeiro/Fluxo",
+    "source": "Financeiro/Fluxo",
+    "component": "Financeiro/Fluxo/Index",
+    "route": "/financeiro/fluxo",
+    "anchor": "Fluxo de caixa",
+    "baseline": "it_Financeiro_Fluxo_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Financeiro/Dre",
     "source": "Financeiro/Dre",
     "component": "Financeiro/Dre/Index",
