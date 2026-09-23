@@ -16,38 +16,82 @@
 // Selftest: node .claude/hooks/commit-discipline-check.mjs --selftest
 
 import { spawnSync } from 'node:child_process';
+import { readFileSync, statSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+// O parser de comando e o do hook irmao — UM parser so, nao um terceiro (LC-19). Ele ja trata
+// comando composto, quebra de linha, heredoc da mensagem e o `git add` que vem antes do commit.
+import { ehGitCommit, segmentos, argsDosAddsAntes, levaWorkingTree } from './maquinas-inventario-no-commit.mjs';
+
+// ── POR QUE O PARSER MUDOU (medido 2026-09-23, corpus de transcripts) ─────────────
+// Ate esta data as tres regex abaixo ancoravam em `^\s*git`: o commit so era visto se fosse a
+// PRIMEIRA coisa do comando. De 5.561 comandos reais de commit, este hook reconhecia 51 — CEGO
+// em 99,1%, porque o agente quase sempre faz `cd …` ou `git add … &&` antes. O aviso de PII
+// (CPF/CNPJ no diff) e o de tamanho praticamente nunca rodaram. E, quando rodavam, mediam so o
+// que ja estava no stage — nunca o que o `git add` do mesmo comando ia estagiar. O aviso de
+// force push, que lia o comando inteiro, disparava com texto (heredoc, string): 6 falsos.
 
 /** é git commit/add/push? (só esses ativam o check). */
 export function isGitWriteCmd(cmd) {
-  return /^\s*git\s+(commit|add|push)\b/.test(String(cmd || ''));
+  return segmentos(String(cmd || '')).some((s) => /^git\s+(?:-C\s+\S+\s+)?(commit|add|push)\b/.test(s));
 }
 
-/** force push SEM --force-with-lease? → aviso. */
+/** force push SEM --force-with-lease? → aviso. So o segmento de push conta, nunca texto. */
 export function isUnsafeForcePush(cmd) {
-  return /git\s+push\b.*--force\b/.test(cmd) && !/--force-with-lease/.test(cmd);
+  return segmentos(String(cmd || '')).some((s) => /^git\s+(?:-C\s+\S+\s+)?push\b.*--force\b/.test(s) && !/--force-with-lease/.test(s));
 }
 
-/** é git commit? (dispara os checks de diff staged). */
+/** é git commit? (dispara os checks de diff) — em qualquer posicao do comando. */
 export function isCommit(cmd) {
-  return /^\s*git\s+commit\b/.test(String(cmd || ''));
+  return ehGitCommit(String(cmd || ''));
 }
 
-/** linhas inseridas no diff staged (null se não mediu). */
-export function stagedInsertions(cwd) {
-  const r = spawnSync('git', ['diff', '--cached', '--shortstat'], { encoding: 'utf8', cwd: cwd || undefined });
-  const m = /(\d+) insertion/.exec(r.stdout || '');
-  return m ? parseInt(m[1], 10) : null;
-}
-
-/** diff staged contém CPF/CNPJ formatado? (possível PII — LGPD). */
+/** diff contém CPF/CNPJ formatado? (possível PII — LGPD). */
 export function hasPiiPattern(text) {
   return /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/.test(text) || /\b\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}\b/.test(text);
 }
 
-export function stagedDiffHasPii(cwd) {
-  const r = spawnSync('git', ['diff', '--cached'], { encoding: 'utf8', cwd: cwd || undefined, maxBuffer: 32 * 1024 * 1024 });
-  return hasPiiPattern(r.stdout || '');
+const TUDO = ['-A', '--all', '.', ':/', '-u', '--update'];
+const MAX_NOVO = 2 * 1024 * 1024;   // arquivo novo maior que isso nao entra na medicao (binario/gerado)
+
+/**
+ * O diff que ESTE commit vai levar: o stage de agora + o que o `git add` do mesmo comando vai
+ * estagiar (ou o working tree, no `commit -a`). Arquivo novo entra com o conteudo inteiro como
+ * linha adicionada. `{ texto, insercoes }`; lanca se o git falhar (o chamador e fail-open).
+ */
+export function diffDoCommit(cmd, cwd) {
+  const git = (args) => {
+    const r = spawnSync('git', args, { encoding: 'utf8', cwd: cwd || undefined, maxBuffer: 64 * 1024 * 1024 });
+    if (r.status !== 0) throw new Error('git ' + args[0] + ' falhou');
+    return r.stdout || '';
+  };
+  const adds = argsDosAddsAntes(cmd);
+  const addTudo = adds.some((a) => TUDO.includes(a));
+  const soRastreados = adds.includes('-u') || adds.includes('--update') || (!adds.length && levaWorkingTree(cmd));
+  const specs = adds.filter((a) => !a.startsWith('-'));
+  let texto;
+  let novos = [];
+  if (addTudo || levaWorkingTree(cmd)) {
+    texto = git(['diff', 'HEAD', '--no-color']);                       // stage + working tree rastreado
+    if (!soRastreados) novos = git(['ls-files', '--others', '--exclude-standard']).split(/\r?\n/).filter(Boolean);
+  } else if (specs.length) {
+    // o que ja esta no stage FORA dos paths do add + a versao que o add vai levar desses paths
+    texto = git(['diff', '--cached', '--no-color', '--', '.', ...specs.map((s) => ':(exclude)' + s)])
+      + git(['diff', 'HEAD', '--no-color', '--', ...specs]);
+    novos = git(['ls-files', '--others', '--exclude-standard', '--', ...specs]).split(/\r?\n/).filter(Boolean);
+  } else {
+    texto = git(['diff', '--cached', '--no-color']);
+  }
+  for (const f of novos) {
+    try {
+      const abs = resolve(cwd || '.', f);
+      if (statSync(abs).size > MAX_NOVO) continue;
+      // a quebra FINAL nao e uma linha (sem isto, 400 linhas contavam 401 — o `--shortstat` diz 400)
+      texto += '\n' + readFileSync(abs, 'utf8').replace(/\r?\n$/, '').split(/\r?\n/).map((l) => '+' + l).join('\n');
+    } catch { /* sumiu entre o ls-files e a leitura */ }
+  }
+  const insercoes = texto.split(/\r?\n/).filter((l) => l.startsWith('+') && !l.startsWith('+++')).length;
+  return { texto, insercoes };
 }
 
 /** avisos aplicáveis (puros exceto os medidores de git, injetáveis pro teste). */
@@ -93,9 +137,13 @@ async function main() {
     } catch { process.exit(0); }
     if (!isGitWriteCmd(cmd)) process.exit(0);
 
-    const measured = isCommit(cmd)
-      ? { insertions: stagedInsertions(cwd), pii: stagedDiffHasPii(cwd) }
-      : {};
+    let measured = {};
+    if (isCommit(cmd)) {
+      try {
+        const d = diffDoCommit(cmd, cwd);
+        measured = { insertions: d.insercoes, pii: hasPiiPattern(d.texto) };
+      } catch { measured = {}; }                        // git falhou: nao meço, nao aviso (fail-open)
+    }
     const warnings = buildWarnings(cmd, measured);
     if (warnings.length) process.stdout.write('\n' + warnings.join('\n\n') + '\n\n');
     process.exit(0);
