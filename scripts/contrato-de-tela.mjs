@@ -29,6 +29,9 @@
 //                             nos arquivos-alvo; todo símbolo/rota/teste REMOVIDO que não for citado na
 //                             justificativa (commits da branch + --notes <arquivo>) = FALHA.
 //                             Inverte a fonte: diff→handoff, nunca handoff→diff.
+//   --check-symbol-res        Invariante da Catraca 3 (C4): toda família de SYMBOL_RES casa a linha
+//                             "-" e a "+" com o MESMO símbolo (senão o C1 fica inerte pra ela).
+//                             Também roda no início de todo --omission, que se recusa a seguir.
 //
 // Node puro (fs + git via execSync), sem deps, sem npm ci. Exit 0 = limpo, 1 = falha (>=1).
 // Self-test: node scripts/contrato-de-tela.test.mjs
@@ -436,6 +439,9 @@ function resolveContract(file, ctxStr) {
 // MEDIÇÃO VÁLIDA (corpus VIVO, pós C1+C2) — 300 commits de squash, janela 2026-09-15..09-22:
 //   46 tocam Pages|Modules (escopo do --alvo)   ·   21 DISPARAM O DETECT (gatilho real)
 //   2 acusados de 21 = 9,5%   ·   2 acusações   (`SparkArea` num revert; `VariacoesTab`)
+//   ⚠️ ERRATA 2026-09-23: o `VariacoesTab` era FALSO-POSITIVO — mudança de assinatura que o
+//   C1 não pegava por causa da âncora da família `function` (ver C3 em SYMBOL_RES). Com o C3
+//   ele sai; esta janela NÃO foi recontada — a medição do C3 abaixo usa outra (09-17..09-23).
 // Reproduzir: para cada commit `c` de `git log origin/main --no-merges`, aplicar o predicado a
 // `git diff --unified=0 c~1 c -- resources/js/Pages Modules` + `git log c~1..c --format=%B`, e
 // contar sobre os que casam a regex do `detect` (lida do YAML, não redigitada).
@@ -451,17 +457,51 @@ function resolveContract(file, ctxStr) {
 // some numa tela é JSX/copy/bloco, não símbolo exportado. Ligar ali seria gate-carimbo.
 // Por isso o CI o roda sobre a árvore de telas/módulos, não sobre os alvos de contrato.
 const SYMBOL_RES = [
-  { fam: 'export', acusa: true, re: /export\s+(?:default\s+)?(?:async\s+)?(?:function|const|class)\s+([A-Za-z0-9_]+)/ },
-  { fam: 'function', acusa: true, re: /^[-]\s*(?:async\s+)?function\s+([A-Za-z0-9_]+)\s*\(/ },
-  { fam: 'route()', acusa: true, re: /route\(\s*["'`]([\w.]+)["'`]/ },
-  { fam: 'Route::', acusa: true, re: /Route::[a-z]+\(\s*["'`]([^"'`]+)["'`]/ },
+  { fam: 'export', acusa: true, amostra: ['export function Sparkline() {', 'Sparkline'], re: /export\s+(?:default\s+)?(?:async\s+)?(?:function|const|class)\s+([A-Za-z0-9_]+)/ },
+  // C3 (2026-09-23) — a âncora era `^[-]`: a regex nunca casava linha `+`, então `readded`
+  // (C1) nunca recebia função e toda mudança de ASSINATURA virava omissão (PR #7784:
+  // acrescentar `resumo` às props de `FinanceiroConciliacao`). A âncora fica — é o que impede
+  // casar `function` no meio de expressão — mas aceita os dois prefixos; quem decide
+  // removido × reaparece é o loop, pelo prefixo da linha. As outras 3 famílias não têm âncora.
+  // MEDIDO (mesma receita do bloco acima; detect lido do YAML; squash commits de origin/main):
+  //   300 commits (09-17..09-23): 21 disparam · ANTES 2 acusações/2 commits → DEPOIS 1/1
+  //   1500 commits (08-24..09-23): 199 disparam · ANTES 43/11 → DEPOIS 37/7
+  //   as 6 que somem são TODAS mudança de assinatura, conferidas uma a uma no diff:
+  //   VariacoesTab · Painel · Contrapartidas · GraficosVendas · Acervo · Pilula (6/6 FP).
+  { fam: 'function', acusa: true, amostra: ['function FinanceiroConciliacao({ linhas }: Props) {', 'FinanceiroConciliacao'], re: /^[-+]\s*(?:async\s+)?function\s+([A-Za-z0-9_]+)\s*\(/ },
+  { fam: 'route()', acusa: true, amostra: ["const u = route('fin.conciliacao.index');", 'fin.conciliacao.index'], re: /route\(\s*["'`]([\w.]+)["'`]/ },
+  { fam: 'Route::', acusa: true, amostra: ["Route::get('/fin/conciliacao', [C::class, 'index']);", '/fin/conciliacao'], re: /Route::[a-z]+\(\s*["'`]([^"'`]+)["'`]/ },
   // C2 — a DESCRIÇÃO de um teste não é um símbolo: é prosa, e exigir a frase inteira no
   // commit é absurdo por construção. Media 53 das 152 acusações (34,9%) e a amostra é toda
   // ruído: renomear "gold-set … >= 20 perguntas" para ">= 30" é o trabalho legítimo daquele
   // PR e virava falha. Segue DETECTADA (o relatório informa) e não acusa.
-  { fam: 'it/test/describe', acusa: false, re: /\b(?:it|test|describe)\(\s*["'`]([^"'`]+)["'`]/ },
+  { fam: 'it/test/describe', acusa: false, amostra: ["it('gold-set tem 30 perguntas', () => {});", 'gold-set tem 30 perguntas'], re: /\b(?:it|test|describe)\(\s*["'`]([^"'`]+)["'`]/ },
 ];
+// C4 (2026-09-23) — o INVARIANTE que o C3 revelou, armado no dono: `checkOmission` usa as MESMAS
+// regexes no `-` (removed) e no `+` (readded); qualquer predicado que case um prefixo e não o
+// outro anula o C1 para aquela família em silêncio. Cada família declara uma `amostra`
+// ([corpo da linha, símbolo esperado]) e aqui se exige: casa `-corpo` E `+corpo`, com o MESMO
+// símbolo. Família nova sem `amostra` FALHA — é o que pega a 6ª família, que casos de teste
+// escritos à mão por família não pegam. Roda no início de todo `--omission` e no modo
+// `--check-symbol-res` (selftest).
+function checkSymbolRes({ quiet = false } = {}) {
+  let fail = 0;
+  for (const { fam, re, amostra } of SYMBOL_RES) {
+    if (!Array.isArray(amostra) || amostra.length !== 2) { err(`SYMBOL_RES "${fam}" sem \`amostra\` [corpo, símbolo] — o invariante -/+ não pode ser provado`); fail++; continue; }
+    const [corpo, esperado] = amostra;
+    const menos = ('-' + corpo).match(re)?.[1];
+    const mais = ('+' + corpo).match(re)?.[1];
+    if (menos !== esperado || mais !== esperado) {
+      err(`SYMBOL_RES "${fam}" assimétrico: "-" → ${JSON.stringify(menos ?? null)} · "+" → ${JSON.stringify(mais ?? null)} (esperado ${JSON.stringify(esperado)}) — o C1 fica inerte pra esta família`);
+      fail++;
+    } else if (!quiet) ok(`SYMBOL_RES "${fam}" casa "-" e "+" com o mesmo símbolo`);
+  }
+  return fail;
+}
+
 function checkOmission(base = 'origin/main', alvos, notesFile) {
+  const inv = checkSymbolRes({ quiet: true });
+  if (inv) { err(`invariante de SYMBOL_RES quebrado — --omission não roda com família cega`); return inv; }
   const pathArgs = (alvos && alvos.length) ? '-- ' + alvos.map(a => `"${a}"`).join(' ') : '';
   const diff = git(`diff --unified=0 ${base}...HEAD ${pathArgs}`);
   if (diff === null) { err(`git diff falhou (base ${base} existe?)`); return 1; }
@@ -723,13 +763,15 @@ function main() {
     let alvos = alvoFlag ? alvoFlag.split(',') : null;
     if (!alvos && contractFlag) alvos = loadContract(contractFlag).alvo;
     fail += checkOmission(base, alvos, argVal('--notes'));
+  } else if (a.includes('--check-symbol-res')) {
+    fail += checkSymbolRes();
   } else if (a.includes('--resolve')) {
     fail += resolveContract(argVal('--resolve'), argVal('--ctx'));
   } else if (a.includes('--map')) {
     fail += buildMap(a.includes('--check'));
     if (!a.includes('--check')) process.exit(0); // --map informativo: só a tabela, sem resumo
   } else {
-    log('uso: node scripts/contrato-de-tela.mjs [--preflight [base] | --contract <f.json> | --omission [base] (--alvo a,b | --contract-alvo f.json) [--notes f] | --map [--check] | --anti-tautologia | --resolve <f.json> --ctx <cliente:biz=N,tela:X,…>]');
+    log('uso: node scripts/contrato-de-tela.mjs [--preflight [base] | --contract <f.json> | --omission [base] (--alvo a,b | --contract-alvo f.json) [--notes f] | --map [--check] | --anti-tautologia | --check-symbol-res | --resolve <f.json> --ctx <cliente:biz=N,tela:X,…>]');
     process.exit(2);
   }
   if (fail) { log(`\n❌ ${fail} falha(s).`); process.exit(1); }

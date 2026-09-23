@@ -158,6 +158,7 @@ jobs:
       # `SYMBOL_RES`. Número válido, corpus VIVO (300 commits de squash, 2026-09-15..09-22):
       #   21 commits disparam este detect (a população que o gate REALMENTE vê)
       #    2 acusados = 9,5%, 2 acusações  (`SparkArea` num revert; `VariacoesTab`)
+      #   ⚠️ errata 2026-09-23: `VariacoesTab` era falso-positivo (C3 no docblock de SYMBOL_RES).
       # A taxa é sobre o `detect`, não sobre "toca Pages|Modules": aquele é o escopo do --alvo,
       # o INSUMO do predicado, e é 2,2× maior (46 × 21) — contar ali mede o que o gate não vê.
       #
