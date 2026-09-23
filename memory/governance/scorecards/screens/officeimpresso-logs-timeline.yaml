@@ -1,0 +1,52 @@
+# Scorecard gerado pelo screen-qa-specialist (passos 0 Pré-Flight + 1 Nota) — thread 12 Prontidão.
+# Método "SCREEN-GRADE" 16-dim, LLM-as-judge. NOTA DE LEITURA DE CÓDIGO: .tsx + charter + casos +
+# controller, SEM browser de prod (tela atrás da flag useV2OfficeimpressoLogs; render real não medido).
+# Primeira medição: baseline_anterior = nota. E2E/axe/smoke (passos 2-4) fora desta thread.
+screen: Officeimpresso/Logs/Timeline
+path: Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx
+archetype: detail
+persona: wagner
+persona_nota: "Charter §Missão: 'a pergunta que o suporte faz' (time interno WR2). Officeimpresso não está em personas-por-modulo.yml e o charter não declara personas_alvo — slug 'wagner' (interno/superadmin) é o mais próximo disponível."
+nota: 74
+nivel: "Advanced"
+baseline_anterior: 74   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: prontidao-thread12-2026-09-23
+graded_at: "2026-09-23"
+evidencia_tipo: leitura-de-codigo
+resumo: "PT-07 como página de leitura: cabeçalho diz quem é a máquina e o estado atual sem rolar, logs em Inertia::defer com skeleton, EmptyState explicativo, parser de metadata tolerante a string JSON, nota da permissão que falta. Perde na coluna 'Status HTTP' que reusa o kind licenca_no_acesso (qualquer >=400 vira tom 'bloqueada'), no Voltar que descarta os filtros da lista, na tabela hand-roll e em duration 0ms exibido como '—'."
+dimensoes: { density: 76, discoverability: 70, speed_to_task: 78, error_recovery: 66, cognitive_load: 78, aesthetic_usability: 74, affordance: 70, brand_confidence: 74, mobile_fit: 70, a11y_wcag: 70, i18n_ptbr: 86, performance_perceived: 76, information_hierarchy: 78, microcopy: 78, internal_consistency: 70, preflight_conformance: 76 }
+evidencias:
+  density: "5 colunas, até 200 linhas com contagem no título (Timeline.tsx:113-114,139-143)"
+  discoverability: "Sem filtro/busca no recorte de 200 (por design, charter §Non-Goals); nenhuma ação na tela (Timeline.tsx:98-105)"
+  speed_to_task: "Estado atual da máquina no header, legível sem rolar (Timeline.tsx:81-85,100)"
+  error_recovery: "Status HTTP reusa kind licenca_no_acesso: 500 de servidor aparece com o tom de 'bloqueada' (Timeline.tsx:154-158) — erro de infra se confunde com bloqueio de licença; Voltar vai para a lista sem os filtros de origem (Timeline.tsx:102)"
+  cognitive_load: "Uma pergunta só, 5 colunas, recorte declarado no h2 (Timeline.tsx:112-115)"
+  aesthetic_usability: "Card + StatusBadge + Skeleton do DS (Timeline.tsx:109,100,121-125)"
+  affordance: "Botão Voltar com asChild Link (Timeline.tsx:101-103); linhas com hover sem ação (Timeline.tsx:148)"
+  brand_confidence: "Zero cor crua; estados via StatusBadge (Timeline.tsx:100,154,162)"
+  mobile_fit: "5 colunas com overflow-x-auto (Timeline.tsx:135) — folgado a 1280 conforme charter §UX targets"
+  a11y_wcag: "aria-busy no skeleton (Timeline.tsx:121); h2 da seção (Timeline.tsx:112); <th> sem scope; status HTTP transmitido só pelo tom da badge"
+  i18n_ptbr: "Copy PT-BR; data d/m/Y H:i:s (Timeline.tsx:52-57)"
+  performance_perceived: "logs em Inertia::defer, maquina eager (1 linha) — LicencaLogController.php:417-425; limite 200 no servidor (LicencaLogController.php:411)"
+  information_hierarchy: "Header (quem/estado) → feed; nota de permissão no rodapé (Timeline.tsx:183-188)"
+  microcopy: "EmptyState explica que a máquina existe mas o Delphi nunca chamou (Timeline.tsx:130-133); nota nomeia a permissão exata que falta (Timeline.tsx:185-186)"
+  internal_consistency: "Tabela <table> hand-roll (Timeline.tsx:136), não o componente de feed/timeline do PT-07"
+  preflight_conformance: "Charter + casos ao lado; anti-hooks cumpridos (metadata string|objeto Timeline.tsx:64-76; logs defer; 404 preservado no controller). Casos sem veredito ✅"
+gaps:
+  - dim: "error_recovery"
+    best_of_class: "Sentry/Datadog: código HTTP com semântica própria (2xx/4xx/5xx em tons distintos), nunca confundido com estado de negócio"
+    fix: "Status HTTP usa kind licenca_no_acesso com value 'bloqueada' para qualquer >=400 (Timeline.tsx:154-158): um 500 do servidor lê como licença bloqueada. Kind/tom próprio para faixa HTTP."
+    esforco: baixo
+  - dim: "discoverability"
+    best_of_class: "Linear: 'voltar' restaura a view exata de onde se veio (filtros, scroll)"
+    fix: "Voltar é Link fixo para /officeimpresso/licenca_log (Timeline.tsx:102) e descarta os filtros da lista; usar history back ou propagar a query de origem"
+    esforco: baixo
+  - dim: "internal_consistency"
+    best_of_class: "GitHub audit log: feed de eventos com componente de timeline reusado em toda tela de histórico"
+    fix: "Feed é <table> hand-roll (Timeline.tsx:136-176); adotar o componente canônico do PT-07 Feed/Timeline"
+    esforco: medio
+  - dim: "microcopy"
+    best_of_class: "Stripe logs: duração 0ms é mostrada como '0 ms', ausência é que vira '—'"
+    fix: "log.duration_ms ? ... : '—' trata 0 como ausente (Timeline.tsx:171); testar null explicitamente"
+    esforco: baixo
