@@ -65,6 +65,14 @@
     "baseline": "it_Financeiro_ContasBancarias_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Financeiro/Impostos",
+    "source": "Financeiro/Impostos",
+    "component": "Financeiro/Impostos/Index",
+    "route": "/financeiro/impostos",
+    "anchor": "Guias do período",
+    "baseline": "it_Financeiro_Impostos_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Governance/Dashboard",
     "source": "governance/Dashboard",
     "component": "governance/Dashboard",
