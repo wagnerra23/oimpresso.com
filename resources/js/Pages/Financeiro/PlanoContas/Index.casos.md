@@ -5,8 +5,14 @@ irmaos: charter ao lado (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-08-31"
+last_run: "2026-09-23"
 ---
+
+> ℹ️ **`last_run` 2026-08-31 → 2026-09-23 (G-6) — FIN-6: o que mudou na tela foi só FORMA.** Título "Financeiro · Plano de contas",
+> primário "Novo título" (o "Nova conta" anterior levava a uma rota inexistente, 404), lista num cartão único com a busca
+> dentro, árvore com "└" e selo de tipo em pílula — como o `TelaPContas` do protótipo, por decisão [W] 2026-09-23.
+> KPIs, abas por tipo e colunas seguem as mesmas; zero prop, rota ou cálculo alterado. **Nenhum UC foi reexecutado**:
+> o bump registra que o trio foi reconciliado contra o `.tsx` novo.
 
 # Casos de uso — /financeiro/plano-contas
 

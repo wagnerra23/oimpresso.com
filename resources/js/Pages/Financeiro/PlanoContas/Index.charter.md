@@ -2,7 +2,9 @@
 id: resources-js-pages-financeiro-plano-contas-index-charter
 page: /financeiro/plano-contas
 component: resources/js/Pages/Financeiro/PlanoContas/Index.tsx
-related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/Wagner/financeiro-telas-extras.jsx
+related_prototype_nota: '(TelaPContas) — decisão [W] 2026-09-23 (RUNBOOK-paridade-ondas §4.3): segue o protótipo SÓ NA FORMA; mantém KPIs, abas por tipo e as colunas Natureza/Aceita lanç./Protegido. Antes: n/a (herda PT-01 Lista).'
+related_visual_comparison: memory/requisitos/Financeiro/planocontas-visual-comparison.md
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

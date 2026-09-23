@@ -14,6 +14,8 @@ import { router } from '@inertiajs/react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import FinStatStrip, { FinStat } from '@/Pages/Financeiro/_shared/FinStatStrip';
+import { useBusiness, usePageProps } from '@/Hooks/usePageProps';
+import { Inline } from '@/Components/layout';
 
 interface PlanoConta {
   id: number;
@@ -42,13 +44,16 @@ interface Props {
   stats: Stats;
 }
 
-const TIPO_COLOR: Record<PlanoConta['tipo'], string> = {
-  ativo:      'text-success-fg bg-success-soft',
-  passivo:    'text-destructive-fg bg-destructive-soft',
-  patrimonio: 'text-blue-700 bg-blue-50',
-  receita:    'text-success-fg bg-success-soft',
-  despesa:    'text-destructive-fg bg-destructive-soft',
-  custo:      'text-amber-700 bg-amber-50',
+// FIN-6 (2026-09-23): selo de tipo no formato do protótipo (TelaPContas,
+// financeiro-telas-extras.jsx:636-641) — pílula com ponto, tokens do tema. O protótipo só desenha
+// Receita/Despesa; os outros 4 tipos do plano BR seguem a mesma forma com o tom mais próximo.
+const TIPO_SELO: Record<PlanoConta['tipo'], { chip: string; ponto: string; rotulo: string }> = {
+  receita:    { chip: 'bg-[var(--pos-soft)] text-[var(--pos)]',   ponto: 'bg-[var(--pos)]',       rotulo: 'Receita' },
+  ativo:      { chip: 'bg-[var(--pos-soft)] text-[var(--pos)]',   ponto: 'bg-[var(--pos)]',       rotulo: 'Ativo' },
+  despesa:    { chip: 'bg-[var(--neg-soft)] text-[var(--neg)]',   ponto: 'bg-[var(--neg)]',       rotulo: 'Despesa' },
+  passivo:    { chip: 'bg-[var(--neg-soft)] text-[var(--neg)]',   ponto: 'bg-[var(--neg)]',       rotulo: 'Passivo' },
+  custo:      { chip: 'bg-[var(--warn-soft)] text-[var(--warn)]', ponto: 'bg-[var(--warn)]',      rotulo: 'Custo' },
+  patrimonio: { chip: 'bg-[var(--bg-2)] text-[var(--text-dim)]',  ponto: 'bg-[var(--text-mute)]', rotulo: 'Patrimônio' },
 };
 
 function FinanceiroPlanoContas({ planos, stats }: Props) {
@@ -66,20 +71,33 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
     });
   }, [planos, busca, tipoFilter]);
 
+  // Profundidade real do plano deste negócio (o protótipo mostra "… · 2 níveis").
+  const niveis = useMemo(() => planos.reduce((m, p) => Math.max(m, p.nivel), 0), [planos]);
+
+  // Nome da empresa: mesma fonte da sidebar, com o da sessão de reserva (idioma de
+  // Patrimonio/Index.tsx:248-259 — o da sessão chega vazio em ambiente de teste).
+  const shell = usePageProps().shell as ({ cockpit?: { businessNome?: string } } | undefined);
+  const nomeDoShell = shell?.cockpit?.businessNome ?? null;
+  const nomeDaSessao = useBusiness()?.name ?? null;
+  const empresa = nomeDoShell ?? nomeDaSessao ?? '';
+
   return (
     <div className="fin-curadoria vendas-aplus">
       {/* Onda 18 — header canon paridade Unificado */}
       {/* Wave 4 (2026-05-25): migrado pra <PageHeader> canon v3.8 */}
+      {/* FIN-6: título "Financeiro · Plano de contas" e primário "Novo título" = protótipo e padrão
+          das outras telas do Financeiro. O primário anterior, "Nova conta", navegava para
+          /financeiro/plano-contas/create — rota que NÃO existe (404 medido em prod, 2026-09-23). */}
       <PageHeader
-        title="Plano de Contas"
-        suffix=" · Estrutura contábil BR"
-        subtitle={<>{stats.total} contas hierárquicas (Receita Federal/DCASP) — Eliana classifica lançamentos pelo plano</>}
+        title="Financeiro"
+        suffix=" · Plano de contas"
+        subtitle={empresa ? `${empresa} · caixa unificado` : 'caixa unificado'}
       >
         <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
           <FinanceiroSubNav active="plano-contas" hidePrimary />
           <PageHeaderPrimary
-            label="Nova conta"
-            onClick={() => router.visit('/financeiro/plano-contas/create')}
+            label="Novo título"
+            onClick={() => router.visit('/financeiro/unificado/novo')}
           />
         </div>
       </PageHeader>
@@ -120,10 +138,20 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
           ))}
         </div>
 
-        <span className="fin-filter-sep" />
+      </div>
 
-        <div className="fin-toolbar-r">
-          <div className="fin-search-wrap">
+      {/* FIN-6: cartão único do protótipo (TelaPContas :599-613) — título do cartão + busca à direita.
+          "Importar", "+ Nova" e "editar" do protótipo ficam FORA: o backend não tem essas ações
+          (Routes/web.php só declara plano-contas.index). Botão sem ação seria promessa falsa. */}
+      <div className="mt-3 bg-[var(--surface)] border border-[var(--border)] rounded-[11px] shadow-[var(--sh-1)] overflow-hidden">
+        <Inline gap={3} align="center" className="px-5 py-3 border-b border-[var(--border)]">
+          <div className="min-w-0">
+            <div className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-dim)] font-medium whitespace-nowrap">Plano de contas</div>
+            <div className="text-[length:var(--fs-5)] font-semibold mt-0.5 whitespace-nowrap">
+              Receita Federal/DCASP · {niveis} {niveis === 1 ? 'nível' : 'níveis'}
+            </div>
+          </div>
+          <div className="ml-auto shrink-0 fin-search-wrap">
             <Search size={13} aria-hidden="true" />
             <input
               placeholder="Buscar por código ou nome…"
@@ -131,52 +159,63 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
               onChange={(e) => setBusca(e.target.value)}
             />
           </div>
-        </div>
-      </div>
-
-      {/* Tabela hierárquica */}
-      <div className="mt-3 rounded-md border border-stone-200 overflow-hidden">
-        <table className="w-full text-[13px]">
+        </Inline>
+        <table className="w-full text-[length:var(--fs-3)]">
           <thead>
-            <tr className="text-[10px] uppercase tracking-widest text-stone-500 border-b border-stone-200 bg-stone-50/40">
-              <th className="px-3 py-2 text-left font-medium w-[110px]">Código</th>
-              <th className="px-3 py-2 text-left font-medium">Conta</th>
-              <th className="px-3 py-2 text-left font-medium w-[110px]">Tipo</th>
-              <th className="px-3 py-2 text-left font-medium w-[80px]">Natureza</th>
-              <th className="px-3 py-2 text-center font-medium w-[100px]">Aceita lanç.</th>
-              <th className="px-3 py-2 text-center font-medium w-[80px]">Protegido</th>
+            <tr className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-dim)] border-b border-[var(--border)] bg-[var(--bg-2)]">
+              <th className="pl-6 pr-2 py-2 text-left font-medium w-[120px]">Código</th>
+              <th className="px-2 py-2 text-left font-medium">Conta</th>
+              <th className="px-2 py-2 text-left font-medium w-[120px]">Tipo</th>
+              <th className="px-2 py-2 text-left font-medium w-[80px]">Natureza</th>
+              <th className="px-2 py-2 text-center font-medium w-[100px]">Aceita lanç.</th>
+              <th className="pl-2 pr-6 py-2 text-center font-medium w-[80px]">Protegido</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((p) => (
-              <tr key={p.id} className="border-b border-stone-100 hover:bg-stone-50/50">
-                <td className="px-3 py-1.5 font-mono text-stone-700 tabular-nums" style={{ paddingLeft: 12 + (p.nivel - 1) * 16 }}>
+              <tr
+                key={p.id}
+                className={`border-b border-[var(--border-2)] hover:bg-[var(--bg-2)] ${p.nivel === 1 ? 'bg-[var(--bg-2)]' : ''}`}
+              >
+                <td className="pl-6 pr-2 py-2 font-mono text-[length:var(--fs-2)] text-[var(--text-dim)] tabular-nums">
                   {p.codigo}
                 </td>
-                <td className="px-3 py-1.5">
-                  <span style={{ fontWeight: p.nivel <= 2 ? 600 : 400 }}>{p.nome}</span>
-                </td>
-                <td className="px-3 py-1.5">
-                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium ${TIPO_COLOR[p.tipo]}`}>
-                    {p.tipo}
+                <td className="px-2 py-2" style={{ paddingLeft: 12 + (p.nivel - 1) * 18 }}>
+                  <span
+                    className={
+                      p.nivel === 1
+                        ? 'font-semibold text-[var(--text)]'
+                        : p.nivel === 2
+                          ? 'font-medium text-[var(--text)]'
+                          : 'text-[var(--text-dim)]'
+                    }
+                  >
+                    {p.nivel > 1 && <span className="text-[var(--text-mute)] mr-1.5" aria-hidden="true">└</span>}
+                    {p.nome}
                   </span>
                 </td>
-                <td className="px-3 py-1.5 text-stone-500 text-[12px]">{p.natureza}</td>
-                <td className="px-3 py-1.5 text-center">
+                <td className="px-2 py-2">
+                  <span className={`inline-flex items-center gap-1 text-[length:var(--fs-2)] font-medium px-2 py-0.5 rounded-full ${TIPO_SELO[p.tipo].chip}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${TIPO_SELO[p.tipo].ponto}`} aria-hidden="true" />
+                    {TIPO_SELO[p.tipo].rotulo}
+                  </span>
+                </td>
+                <td className="px-2 py-2 text-[var(--text-dim)] text-[length:var(--fs-2)]">{p.natureza}</td>
+                <td className="px-2 py-2 text-center">
                   {p.aceita_lancamento ? (
-                    <FileText size={14} className="text-success inline" aria-label="Aceita lançamento" />
+                    <FileText size={14} className="text-[var(--pos)] inline" aria-label="Aceita lançamento" />
                   ) : (
-                    <span className="text-stone-300 text-[11px]">—</span>
+                    <span className="text-[var(--text-mute)] text-[length:var(--fs-2)]">—</span>
                   )}
                 </td>
-                <td className="px-3 py-1.5 text-center">
-                  {p.protegido && <Lock size={13} className="text-amber-600 inline" aria-label="Conta protegida" />}
+                <td className="pl-2 pr-6 py-2 text-center">
+                  {p.protegido && <Lock size={13} className="text-[var(--warn)] inline" aria-label="Conta protegida" />}
                 </td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-stone-500">
+                <td colSpan={6} className="py-12 text-center text-[var(--text-dim)]">
                   {planos.length === 0
                     ? 'Plano de contas ainda não seedado pra este business. Rode `php artisan tinker --execute=\"(new \\Modules\\Financeiro\\Database\\Seeders\\PlanoContasBrSeeder)->run({biz_id});\"` no SSH.'
                     : 'Nenhuma conta com os filtros atuais.'}
