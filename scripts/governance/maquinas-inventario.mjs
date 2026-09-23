@@ -182,7 +182,11 @@ const rankDoc = (rel) =>
 // tokens viram chaves. As tabelas consultam depois. Assim a enumeração das máquinas
 // continua morando numa seção só (a que imprime a tabela) — sem lista paralela pra
 // drifar, que é como um índice deste tipo apodrece.
-const RX_ARQUIVO = /[\w.-]+\.(?:mjs|js|cjs|yml|yaml|json)/g;
+// Ordem das extensões importa: em regex JS a 1ª alternativa que casa vence, e com `js`
+// antes de `json` o path `governance/foo-baseline.json` virava o token `foo-baseline.js`
+// e o baseline nunca contava como citado fora de crase. `json` vem antes de `js`, e o
+// `\b` final impede `foo.jsonl`/`foo.jsx` de virarem `foo.json`/`foo.js`.
+const RX_ARQUIVO = /[\w.-]+\.(?:json|mjs|cjs|js|yaml|yml)\b/g;
 const RX_CRASE = /`([a-z0-9][\w.-]*)`/gi;
 const RX_PASTA = /(?:skills|agents)\/([\w.-]+)/g;
 

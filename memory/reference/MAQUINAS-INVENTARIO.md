@@ -766,52 +766,52 @@ lifecycle: ativo
 | Arquivo | Leitor | Documento | `_meta` / propósito |
 |---|---|---|---|
 | `governance/a11y-alvo-baseline.json` | script | — | (baseline/estado) |
-| `governance/adr-alias-map.json` | agente, ci, script | `memory/08-handoff.md` +4 | (baseline/estado) |
-| `governance/adr-collisions-baseline.json` | script | — | Colisões de número de ADR — catraca anti-bifurcação (só encolhe). O detector já existia (adr-index-generate.mjs lista as colisões desde sempre); este … |
-| `governance/adr-tombstones.json` | ci, script | `memory/licoes-rejeitadas.md` +2 | (baseline/estado) |
-| `governance/anchor-entry-baseline.json` | ci, script | `memory/decisions/proposals/2026-07-02-baseline-tamper-guard-required.md` +3 | anchor entry/covers GRANDFATHER — US legadas isentas (ratchet só-desce · ADR 0275 advisory→required por calendário) |
-| `governance/blade-migration-baseline.json` | script | — | Censo de migração Blade→React — catraca só-desce por escopo (ADR 0277 contrato de completude) |
-| `governance/charter-refs-baseline.json` | ci, script | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +2 | (baseline/estado) |
-| `governance/cron-vermelho-esperado.json` | script | `memory/08-handoff.md` +2 | (baseline/estado) |
-| `governance/deadlink-baseline.json` | ci, script | `memory/decisions/0347-deadlink-gate-required-emenda-0314.md` +6 | (baseline/estado) |
-| `governance/dependency-direction-baseline.json` | ci, script | — | (baseline/estado) |
-| `governance/doc-id-index.json` | ci, script | `memory/decisions/0351-sdd-from-source.md` +37 | (baseline/estado) |
-| `governance/doneness-baseline.json` | ci, script | — | doneness GRANDFATHER — conflitos status×âncora legados isentos (ratchet só-desce · ADR 0302/0275 advisory→required por calendário) |
-| `governance/ds-ledger.json` | ci, script | `memory/decisions/proposals/2026-08-01-reverter-0364-trio-colocado-opcao-b.md` +2 | (baseline/estado) |
-| `governance/dup-hot-paths.json` | ci, script | — | (baseline/estado) |
-| `governance/ghost-rename-map.json` | agente, script | `memory/requisitos/_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md` +9 | (baseline/estado) |
-| `governance/hue-canon.json` | agente, ci, script | — | Fonte única do hue primário universal (US-GOV-052 P32). O hue vivia em 3 mapas divergentes — pageheader-canon chegou a ter check aprovando o 145 morto… |
-| `governance/jana-ragas-baseline.json` | ci | `memory/requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md` +2 | Baseline RAGAS canary Jana — recriado via workflow_dispatch jana-ragas-canary.yml (US-COPI-116). Não editar à mão; usar update_baseline=true no dispat… |
-| `governance/jana-ragas-real-baseline.json` | agente, script | `memory/decisions/0318-ragas-eval-real-mata-tautologia-ct100-staging.md` +8 | (baseline/estado) |
-| `governance/ledger-checkpoints.json` | script | — | (baseline/estado) |
-| `governance/module-coupling-baseline.json` | ci, script | — | (baseline/estado) |
-| `governance/module-table-coupling-baseline.json` | script | — | (baseline/estado) |
-| `governance/multi-tenant-global-model-contract.json` | php | — | (baseline/estado) |
-| `governance/multi-tenant-scope-baseline.json` | php | `memory/decisions/proposals/2026-09-02-mcp-para-forja-item-4-ondas.md` +2 | (baseline/estado) |
-| `governance/prod-flags.json` | ci, script | `memory/requisitos/_DesignSystem/SPEC.md` +4 | (baseline/estado) |
-| `governance/required-checks-baseline.json` | agente, ci, script | `memory/decisions/0361-errata-0354-teammcp-pest-required-nunca-executado.md` +82 | Required checks de main CONGELADOS — GT-G4 (plano 2026-06-12 §2 GARANTIDA) |
-| `governance/reseed-meilisearch-manifest.json` | — | `memory/requisitos/_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md` | (baseline/estado) |
-| `governance/route-hits.json` | script | `memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md` +12 | (baseline/estado) |
-| `governance/sdd-scorecard-baseline.json` | agente, ci, script | `memory/requisitos/_Governanca/roadmap/P13-promover-gt-g3-required.md` +3 | SDD scorecard baseline v1 — meta-catraca GT-G3 (plano 2026-06-12 §2 GARANTIDA + §4 Semanas 1-2) |
-| `governance/sdd-scorecard.json` | agente, ci, script | `memory/decisions/0303-anchor-lint-wired-testado-sa-a2-bis.md` +25 | (baseline/estado) |
-| `governance/sdd-verification-ledger.json` | agente, ci, script | `memory/decisions/0319-product-truth-stream-adversario-modulo-analise.md` +4 | (baseline/estado) |
-| `governance/uc-lane-baseline.json` | ci, script | — | (baseline/estado) |
-| `config/a11y-baseline.json` | ci, script | — | (baseline/estado) |
-| `config/css-size-baseline.json` | ci, script | `memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md` +1 | (baseline/estado) |
-| `config/design-identity-baseline.json` | ci, script | — | (baseline/estado) |
-| `config/ds-handoff-baseline.json` | script | — | (baseline/estado) |
-| `config/eslint-baseline.json` | ci, script | `memory/decisions/0254-design-identity-grade-deterministico.md` +14 | (baseline/estado) |
-| `config/handoff-integrity-baseline.json` | ci, script | `memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md` | (baseline/estado) |
-| `config/pageheader-shared-baseline.json` | agente, script | `memory/requisitos/_DesignSystem/MANUAL-CSS-JS.md` +1 | (baseline/estado) |
-| `config/stylelint-baseline.json` | ci, script | `memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md` | (baseline/estado) |
-| `config/typecheck-baseline.json` | ci, script | — | Catraca: congela o débito atual de tsc e falha só em REGRESSÃO. Débito cai quando o arquivo for tocado — não fazer backfill em massa (proibicoes §5 20… |
-| `config/ui-lint-baseline.json` | ci | `memory/decisions/0209-eslint-9-flat-config.md` +5 | (baseline/estado) |
-| `scripts/casos-coverage-baseline.json` | ci, script | `memory/decisions/proposals/2026-08-04-templates-8-artefatos-ANEXO.md` +11 | casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado) |
-| `scripts/casos-test-results.json` | agente, ci, script | `memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md` +4 | casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste) |
-| `scripts/domain-dict-baseline.json` | ci, script | (só sessão/handoff · 1) | dominio:check (ADR 0264 G-4 — dicionário de domínio ⇔ enum de migration + código, Salto #3) |
-| `scripts/layout-primitives-baseline.json` | ci, script | (só sessão/handoff · 1) | Contagem de flex/grid solto POR ARQUIVO. Gate falha se um arquivo AUMENTAR ou se arquivo novo nascer com flex/grid solto. |
-| `scripts/no-mock-baseline.json` | ci, script | (só sessão/handoff · 2) | Contagem por REGRA. Gate falha so se uma regra AUMENTAR vs este baseline. |
-| `scripts/perf-static-baseline.json` | script | `memory/governance/AUDITORIA-PERFORMANCE-2026-07.md` +2 | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
-| `scripts/reuse-duplicates-baseline.json` | agente, ci, script | `memory/decisions/0272-arvore-componentes-canonica.md` +2 | (baseline/estado) |
+| `governance/adr-alias-map.json` | agente, ci, script | `memory/decisions/0359-errata-0358-numero-0101-nao-virou-inequivoco.md` +10 | (baseline/estado) |
+| `governance/adr-collisions-baseline.json` | script | `memory/governance/shipped/CYCLE-08.md` +1 | Colisões de número de ADR — catraca anti-bifurcação (só encolhe). O detector já existia (adr-index-generate.mjs lista as colisões desde sempre); este … |
+| `governance/adr-tombstones.json` | ci, script | `memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md` +7 | (baseline/estado) |
+| `governance/anchor-entry-baseline.json` | ci, script | `memory/requisitos/Arquivos/SPEC.md` +10 | anchor entry/covers GRANDFATHER — US legadas isentas (ratchet só-desce · ADR 0275 advisory→required por calendário) |
+| `governance/blade-migration-baseline.json` | script | (só sessão/handoff · 1) | Censo de migração Blade→React — catraca só-desce por escopo (ADR 0277 contrato de completude) |
+| `governance/charter-refs-baseline.json` | ci, script | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +4 | (baseline/estado) |
+| `governance/cron-vermelho-esperado.json` | script | `memory/requisitos/Infra/RUNBOOK-acesso-ct100.md` +8 | (baseline/estado) |
+| `governance/deadlink-baseline.json` | ci, script | `memory/decisions/0347-deadlink-gate-required-emenda-0314.md` +10 | (baseline/estado) |
+| `governance/dependency-direction-baseline.json` | ci, script | `memory/audits/2026-09-21-baselines-de-tolerancia.md` | (baseline/estado) |
+| `governance/doc-id-index.json` | ci, script | `memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md` +44 | (baseline/estado) |
+| `governance/doneness-baseline.json` | ci, script | `memory/audits/2026-09-21-baselines-de-tolerancia.md` | doneness GRANDFATHER — conflitos status×âncora legados isentos (ratchet só-desce · ADR 0302/0275 advisory→required por calendário) |
+| `governance/ds-ledger.json` | ci, script | `memory/requisitos/Governance/RUNBOOK-ds-rollout.md` +7 | (baseline/estado) |
+| `governance/dup-hot-paths.json` | ci, script | `memory/decisions/0331-anti-duplicacao-work-claim-gate.md` +1 | (baseline/estado) |
+| `governance/ghost-rename-map.json` | agente, script | `memory/decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md` +16 | (baseline/estado) |
+| `governance/hue-canon.json` | agente, ci, script | `.claude/skills/pageheader-canon/SKILL.md` +1 | Fonte única do hue primário universal (US-GOV-052 P32). O hue vivia em 3 mapas divergentes — pageheader-canon chegou a ter check aprovando o 145 morto… |
+| `governance/jana-ragas-baseline.json` | ci | `memory/requisitos/_Governanca/roadmap/P12-decay-real-ragas-recall.md` +10 | Baseline RAGAS canary Jana — recriado via workflow_dispatch jana-ragas-canary.yml (US-COPI-116). Não editar à mão; usar update_baseline=true no dispat… |
+| `governance/jana-ragas-real-baseline.json` | agente, script | `memory/decisions/0318-ragas-eval-real-mata-tautologia-ct100-staging.md` +17 | (baseline/estado) |
+| `governance/ledger-checkpoints.json` | script | (só sessão/handoff · 1) | (baseline/estado) |
+| `governance/module-coupling-baseline.json` | ci, script | `memory/audits/2026-09-21-baselines-de-tolerancia.md` +1 | (baseline/estado) |
+| `governance/module-table-coupling-baseline.json` | script | `memory/audits/2026-09-21-baselines-de-tolerancia.md` | (baseline/estado) |
+| `governance/multi-tenant-global-model-contract.json` | php | (só sessão/handoff · 1) | (baseline/estado) |
+| `governance/multi-tenant-scope-baseline.json` | php | `memory/decisions/proposals/2026-09-02-mcp-para-forja-item-4-ondas.md` +4 | (baseline/estado) |
+| `governance/prod-flags.json` | ci, script | `memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md` +11 | (baseline/estado) |
+| `governance/required-checks-baseline.json` | agente, ci, script | `memory/decisions/0361-errata-0354-teammcp-pest-required-nunca-executado.md` +170 | Required checks de main CONGELADOS — GT-G4 (plano 2026-06-12 §2 GARANTIDA) |
+| `governance/reseed-meilisearch-manifest.json` | — | `memory/requisitos/_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md` +5 | (baseline/estado) |
+| `governance/route-hits.json` | script | `memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md` +22 | (baseline/estado) |
+| `governance/sdd-scorecard-baseline.json` | agente, ci, script | `memory/requisitos/_Governanca/roadmap/P13-promover-gt-g3-required.md` +30 | SDD scorecard baseline v1 — meta-catraca GT-G3 (plano 2026-06-12 §2 GARANTIDA + §4 Semanas 1-2) |
+| `governance/sdd-scorecard.json` | agente, ci, script | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +54 | (baseline/estado) |
+| `governance/sdd-verification-ledger.json` | agente, ci, script | `memory/decisions/0319-product-truth-stream-adversario-modulo-analise.md` +44 | (baseline/estado) |
+| `governance/uc-lane-baseline.json` | ci, script | `memory/audits/2026-09-21-baselines-de-tolerancia.md` +1 | (baseline/estado) |
+| `config/a11y-baseline.json` | ci, script | `memory/requisitos/_DesignSystem/adr/ui/0032-alvo-de-toque-erp-denso-1280.md` +1 | (baseline/estado) |
+| `config/css-size-baseline.json` | ci, script | `memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md` +4 | (baseline/estado) |
+| `config/design-identity-baseline.json` | ci, script | `memory/decisions/0254-design-identity-grade-deterministico.md` +1 | (baseline/estado) |
+| `config/ds-handoff-baseline.json` | script | `memory/reference/prototipo-ui/CODE_NOTES.handoff-ds-2026-09-17-recusado-por-r4.md` | (baseline/estado) |
+| `config/eslint-baseline.json` | ci, script | `memory/decisions/0254-design-identity-grade-deterministico.md` +36 | (baseline/estado) |
+| `config/handoff-integrity-baseline.json` | ci, script | `memory/requisitos/_DesignSystem/SPEC.md` +2 | (baseline/estado) |
+| `config/pageheader-shared-baseline.json` | agente, script | `memory/requisitos/_DesignSystem/MANUAL-CSS-JS.md` +6 | (baseline/estado) |
+| `config/stylelint-baseline.json` | ci, script | `memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md` +4 | (baseline/estado) |
+| `config/typecheck-baseline.json` | ci, script | `memory/audits/2026-09-21-baselines-de-tolerancia.md` | Catraca: congela o débito atual de tsc e falha só em REGRESSÃO. Débito cai quando o arquivo for tocado — não fazer backfill em massa (proibicoes §5 20… |
+| `config/ui-lint-baseline.json` | ci | `memory/decisions/0209-eslint-9-flat-config.md` +19 | (baseline/estado) |
+| `scripts/casos-coverage-baseline.json` | ci, script | `memory/decisions/0403-errata-0402-denominador-ja-inclui-pages-de-modulo.md` +23 | casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado) |
+| `scripts/casos-test-results.json` | agente, ci, script | `memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md` +16 | casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste) |
+| `scripts/domain-dict-baseline.json` | ci, script | `memory/requisitos/OficinaAuto/RUNBOOK-erradicacao-locacao.md` +3 | dominio:check (ADR 0264 G-4 — dicionário de domínio ⇔ enum de migration + código, Salto #3) |
+| `scripts/layout-primitives-baseline.json` | ci, script | `memory/requisitos/_DesignSystem/CHANGELOG.md` +3 | Contagem de flex/grid solto POR ARQUIVO. Gate falha se um arquivo AUMENTAR ou se arquivo novo nascer com flex/grid solto. |
+| `scripts/no-mock-baseline.json` | ci, script | `memory/LICOES_CODE.md` +3 | Contagem por REGRA. Gate falha so se uma regra AUMENTAR vs este baseline. |
+| `scripts/perf-static-baseline.json` | script | `memory/governance/AUDITORIA-PERFORMANCE-2026-07.md` +3 | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
+| `scripts/reuse-duplicates-baseline.json` | agente, ci, script | `memory/decisions/0272-arvore-componentes-canonica.md` +4 | (baseline/estado) |
 
 > Total baselines JSON em governance/+config/+scripts: 48 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
