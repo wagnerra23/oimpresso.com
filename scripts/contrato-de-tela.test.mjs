@@ -455,6 +455,56 @@ function repoOmissao(nome) {
   }
 }
 
+// 6f. C3 POSITIVO — assinatura de função (sem `export`) alterada: a linha sai no `-` e
+//     volta no `+` com o MESMO nome → não é omissão → exit 0. Até 2026-09-23 a regex da
+//     família `function` era ancorada em `^[-]`, nunca casava o `+`, e C1 não valia pra ela:
+//     acrescentar um parâmetro virava "removido SEM justificativa" (PR #7784).
+{
+  const root = repoOmissao('contrato-omis-assin-');
+  if (!root) console.log('[SKIP] C3 assinatura alterada (git indisponível)');
+  else {
+    writeFileSync(join(root, 'tela', 'x.tsx'),
+      `function FinanceiroConciliacao({ linhas, filters }: Props) {
+  return null;
+}
+`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'base']);
+    writeFileSync(join(root, 'tela', 'x.tsx'),
+      `function FinanceiroConciliacao({ linhas, filters, resumo }: Props) {
+  return null;
+}
+`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'acrescenta prop na tela']);
+    const r = node(root, ['--omission', 'HEAD~1', '--alvo', 'tela']);
+    check('C3 assinatura de função alterada → exit 0 (reaparece no +, não é omissão)',
+      r.status === 0 && /reaparece no diff/.test(out(r)), out(r));
+    drop(root);
+  }
+}
+
+// 6g. C3 CONTROLE NEGATIVO — função (sem `export`) removida de vez → AINDA acusa → exit 1.
+//     Prova que abrir a âncora pro `+` não desligou a família.
+{
+  const root = repoOmissao('contrato-omis-fnsumiu-');
+  if (!root) console.log('[SKIP] C3 controle negativo (git indisponível)');
+  else {
+    writeFileSync(join(root, 'tela', 'x.tsx'),
+      `function helperInterno(a) {
+  return a;
+}
+export const keep = 1;
+`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'base']);
+    writeFileSync(join(root, 'tela', 'x.tsx'), `export const keep = 1;
+`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'mexe na tela sem citar nada']);
+    const r = node(root, ['--omission', 'HEAD~1', '--alvo', 'tela']);
+    check('C3 controle negativo: função sumiu de vez → exit 1',
+      r.status === 1 && /removido "helperInterno" SEM/.test(out(r)), out(r));
+    drop(root);
+  }
+}
+
 // 7. --map --check POSITIVO — fonte existe + seção ancorada → exit 0.
 {
   const root = mkdtempSync(join(tmpdir(), 'contrato-map-'));

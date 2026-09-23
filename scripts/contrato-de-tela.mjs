@@ -452,7 +452,17 @@ function resolveContract(file, ctxStr) {
 // Por isso o CI o roda sobre a árvore de telas/módulos, não sobre os alvos de contrato.
 const SYMBOL_RES = [
   { fam: 'export', acusa: true, re: /export\s+(?:default\s+)?(?:async\s+)?(?:function|const|class)\s+([A-Za-z0-9_]+)/ },
-  { fam: 'function', acusa: true, re: /^[-]\s*(?:async\s+)?function\s+([A-Za-z0-9_]+)\s*\(/ },
+  // C3 (2026-09-23) — a âncora era `^[-]`: a regex nunca casava linha `+`, então `readded`
+  // (C1) nunca recebia função e toda mudança de ASSINATURA virava omissão (PR #7784:
+  // acrescentar `resumo` às props de `FinanceiroConciliacao`). A âncora fica — é o que impede
+  // casar `function` no meio de expressão — mas aceita os dois prefixos; quem decide
+  // removido × reaparece é o loop, pelo prefixo da linha. As outras 3 famílias não têm âncora.
+  // MEDIDO (mesma receita do bloco acima; detect lido do YAML; squash commits de origin/main):
+  //   300 commits (09-17..09-23): 21 disparam · ANTES 2 acusações/2 commits → DEPOIS 1/1
+  //   1500 commits (08-24..09-23): 199 disparam · ANTES 43/11 → DEPOIS 37/7
+  //   as 6 que somem são TODAS mudança de assinatura, conferidas uma a uma no diff:
+  //   VariacoesTab · Painel · Contrapartidas · GraficosVendas · Acervo · Pilula (6/6 FP).
+  { fam: 'function', acusa: true, re: /^[-+]\s*(?:async\s+)?function\s+([A-Za-z0-9_]+)\s*\(/ },
   { fam: 'route()', acusa: true, re: /route\(\s*["'`]([\w.]+)["'`]/ },
   { fam: 'Route::', acusa: true, re: /Route::[a-z]+\(\s*["'`]([^"'`]+)["'`]/ },
   // C2 — a DESCRIÇÃO de um teste não é um símbolo: é prosa, e exigir a frase inteira no
