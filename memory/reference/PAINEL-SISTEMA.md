@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-22**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-23**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -47,7 +47,7 @@ lente: [construir]
 | Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-15 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
-| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-09-15 |
+| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-09-23 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-08-01 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-08-11 |
 | Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
@@ -131,13 +131,13 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 146 workflows por classe
+### Censo — 147 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 110 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 111 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 25 | agent-cost-per-pr, agent-pr-outcomes, baseline-folga, briefing-code-staleness, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -147,12 +147,12 @@ lente: [construir]
 ## Decisões (ADRs)
 
 - **415** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 364 · superseded: 25 · proposto: 13 · deprecated: 11 · rascunho: 1 · recusado: 1.
+- Por status: aceito: 365 · superseded: 25 · proposto: 12 · deprecated: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 228 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 234 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -383,6 +383,12 @@ lente: [construir]
 - ~~2026-09-22 — EMENDA da lápide 2026-07-28 (`toContain` message-as-needle): na forma NEGADA o assert não é "fraco", ele está **MORTO** — e 9 dos vivos são Tier 0~~
 - ~~2026-09-22 — Promover o `brl-scan` a required pela superfície MENSAGEM DE COMMIT (MEDIDO: 100% de FP na janela pós-gate — e a premissa que motivou o pedido estava errada)~~
 - ~~2026-09-22 — O zero de um medidor tem TRÊS causas, não duas: a terceira é CORPUS ANACRÔNICO, e ela não aparece em nenhuma lápide anterior~~
+- ~~2026-09-22 — EMENDA da lápide 2026-06-30 (âncora por NOME/PASTA): o mesmo predicado voltou num detector NOVO — e o falso-positivo saiu do CI e virou ORDEM DE DELEÇÃO do dono~~
+- ~~2026-09-22 — Medi dependência npm por IMPORT ESTÁTICO num teste que resolve por `createRequire` — verde local, vermelho no CI, e a lane declara 4× que não instala nada~~
+- ~~2026-09-22 — EMENDA da lápide 2026-07-29 (fail-open que vira frase falsa): o dead man's switch dos hooks acusou 52 mortos com um corpus sem trabalho — 3ª vez no MESMO instrumento, cada conserto fechando só o comprimento que doeu~~
+- ~~2026-09-22 — Propor QUEBRAR um job de CI afirmando que "um step vermelho esconde os outros" sem ler o `if:` dos steps (216 de 220 rodavam com always())~~
+- ~~2026-09-23 — EMENDA da lápide 2026-07-27 (stash pop por posição): o aviso ARMADO sai em stderr com `exit 0` — fica gravado no transcript e, pelo que o corpus mostra, não chega ao agente~~
+- ~~2026-09-23 — C1 do `--omission` ("reaparece no `+` não é omissão") nasceu INERTE para a família `function`, e o bite-test dele exercitava outra família~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -393,14 +399,14 @@ lente: [construir]
 
 ## Rastro
 
-- **554** handoffs · **765** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **557** handoffs · **767** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-22-revisao-fluxos-maquinas-sem-baseline`
+  - `2026-09-22-lacunas-revisao-fluxos-fechadas`
   - `2026-09-22-cobertura-modular-funil-design`
   - `2026-09-22-buracos-prototipo-producao`
   - `2026-09-21-zero-baseline-tier0`
   - `2026-09-21-kpi-grid-breakpoint-e-tres-erros-de-medicao`
-  - `2026-09-21-incidente-auto-merge-espontaneo`
-  - `2026-09-21-design-pipeline-sem-falso-verde`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-22 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-23 · deriva das fontes canônicas, não as substitui._
