@@ -64,6 +64,11 @@ abstract class FinanceiroTestCase extends TestCase
             'financeiro.contas_bancarias.manage',
             'financeiro.conciliacao.manage',
             'financeiro.relatorios.view',
+            // Gates adicionados em 2026-09-23 (PermissaoRotasContratoTest):
+            'financeiro.lancamentos.create',
+            'financeiro.extrato.view',
+            'financeiro.contas_pagar.pagar',
+            'financeiro.contas_receber.create',
         ];
 
         foreach ($perms as $name) {
