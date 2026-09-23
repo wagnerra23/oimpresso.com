@@ -859,11 +859,15 @@ class DreService
             ->select('id', 'codigo')
             ->get();
 
-        $porCodigo = [];
+        // LISTA de pares, não mapa indexado pelo código: chave de array PHP numérica ("1", "3")
+        // vira INT, e aí `str_starts_with` estoura TypeError sob strict_types e o `===` contra a
+        // string nunca casa. É o defeito que derruba o `montarBalancete` em produção (plano BR
+        // tem as raízes "1".."5"); medido em 2026-09-23 lendo o balancete da empresa 1.
+        $comMovimento = [];
         foreach ($contas as $c) {
             $d = $diretos->get($c->id);
             if ($d !== null) {
-                $porCodigo[(string) $c->codigo] = ['qtd' => (int) $d->qtd, 'saldo' => (float) $d->saldo];
+                $comMovimento[] = ['codigo' => (string) $c->codigo, 'qtd' => (int) $d->qtd, 'saldo' => (float) $d->saldo];
             }
         }
 
@@ -872,7 +876,8 @@ class DreService
             $codigo = (string) $c->codigo;
             $qtd = 0;
             $saldo = 0.0;
-            foreach ($porCodigo as $cod => $mov) {
+            foreach ($comMovimento as $mov) {
+                $cod = $mov['codigo'];
                 if ($cod === $codigo || str_starts_with($cod, $codigo.'.')) {
                     $qtd += $mov['qtd'];
                     $saldo += $mov['saldo'];

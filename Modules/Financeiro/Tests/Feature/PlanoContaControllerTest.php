@@ -330,10 +330,13 @@ function planoContaMovimento($test): array
  */
 function planoContaFixtureMovimento(int $businessId, int $userId): array
 {
-    $marca = planoContaMarca();
-    $pai = planoContaSeed($businessId, "9.9.{$marca}", 'FIN6B Pai', ['aceita_lancamento' => false, 'tipo' => 'receita', 'natureza' => 'credito']);
-    $f1 = planoContaSeed($businessId, "9.9.{$marca}.01", 'FIN6B Filha 1', ['tipo' => 'receita', 'natureza' => 'credito']);
-    $f2 = planoContaSeed($businessId, "9.9.{$marca}.02", 'FIN6B Filha 2', ['tipo' => 'despesa', 'natureza' => 'debito']);
+    // Código do PAI só com dígitos, de propósito: é o formato das raízes do plano BR ("1".."5"),
+    // e chave de array PHP numérica vira INT — o que derrubava o cálculo com TypeError em
+    // `str_starts_with` (medido no balancete de produção, 2026-09-23). Com "9.9.X" o defeito passava.
+    $raiz = '9'.random_int(1000000, 9999999);
+    $pai = planoContaSeed($businessId, $raiz, 'FIN6B Pai', ['aceita_lancamento' => false, 'tipo' => 'receita', 'natureza' => 'credito']);
+    $f1 = planoContaSeed($businessId, "{$raiz}.01", 'FIN6B Filha 1', ['tipo' => 'receita', 'natureza' => 'credito']);
+    $f2 = planoContaSeed($businessId, "{$raiz}.02", 'FIN6B Filha 2', ['tipo' => 'despesa', 'natureza' => 'debito']);
 
     planoContaTitulo($businessId, $userId, $f1, 'receber', 100.00);
     planoContaTitulo($businessId, $userId, $f1, 'receber', 50.00);
