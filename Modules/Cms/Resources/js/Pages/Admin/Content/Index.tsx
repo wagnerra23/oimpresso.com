@@ -20,7 +20,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 
 import type { Tipo } from './_components/Editor';
@@ -61,30 +61,13 @@ function ConteudoIndex({ tipo, contagens, paginas, editando }: Props) {
 
   return (
     <div className="pb-8">
+      {/* PageHeader canon v3 (ADR 0189/0190): abas na Zona C, primary na Zona R. */}
       <PageHeader
         title="Conteúdo do site"
-        moduleNav
-        description="O que está no ar em oimpresso.com — páginas, blog e depoimentos"
-        action={
-          <Button onClick={() => setDrawer(null)}>{NOVO[tipo]}</Button>
-        }
+        subtitle="O que está no ar em oimpresso.com — páginas, blog e depoimentos"
+        subnav={<Abas tipo={tipo} contagens={contagens} />}
+        actions={<PageHeaderPrimary label={NOVO[tipo]} onClick={() => setDrawer(null)} />}
       />
-
-      <nav className="flex gap-1 px-6 pt-4" aria-label="Tipo de conteúdo" data-contract="cms.content.abas">
-        {(Object.keys(ROTULO) as Tipo[]).map((t) => (
-          <Link
-            key={t}
-            href={`${BASE}?type=${t}`}
-            aria-current={t === tipo ? 'page' : undefined}
-            className={
-              'rounded-md px-3 py-1.5 text-sm ' +
-              (t === tipo ? 'bg-muted font-medium' : 'text-muted-foreground hover:bg-muted/60')
-            }
-          >
-            {ROTULO[t]} <span className="tabular-nums text-muted-foreground">{contagens[t] ?? 0}</span>
-          </Link>
-        ))}
-      </nav>
 
       <div className="px-6 pt-3" data-contract="cms.content.lista">
         <Deferred data="paginas" fallback={<Skeleton className="h-64 w-full" />}>
@@ -99,7 +82,28 @@ function ConteudoIndex({ tipo, contagens, paginas, editando }: Props) {
   );
 }
 
+function Abas({ tipo, contagens }: { tipo: Tipo; contagens: Record<Tipo, number> }) {
+  return (
+    <nav className="flex gap-1" aria-label="Tipo de conteúdo" data-contract="cms.content.abas">
+      {(Object.keys(ROTULO) as Tipo[]).map((t) => (
+        <Link
+          key={t}
+          href={`${BASE}?type=${t}`}
+          aria-current={t === tipo ? 'page' : undefined}
+          className={
+            'rounded-md px-3 py-1.5 text-sm ' +
+            (t === tipo ? 'bg-muted font-medium' : 'text-muted-foreground hover:bg-muted/60')
+          }
+        >
+          {ROTULO[t]} <span className="tabular-nums text-muted-foreground">{contagens[t] ?? 0}</span>
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 function Lista({ tipo, linhas, onEditar }: { tipo: Tipo; linhas?: Linha[]; onEditar: (id: number) => void }) {
+
   const lista = linhas ?? [];
   const [erro, setErro] = useState<string | null>(null);
 
