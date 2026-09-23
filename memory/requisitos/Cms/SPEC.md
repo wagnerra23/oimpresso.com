@@ -85,12 +85,15 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Pra** parar de depender do Blade `cms::page.create`
 **Implementado em:** _parcial_ · `Modules/Cms/Http/Controllers/CmsPageController.php` · `Modules/Cms/Resources/js/Pages/Admin/Content/Index.tsx` · verificado@1061dbf2e (2026-09-23) — fase 1 da thread Cms/01: a LISTA é Inertia; criar/editar seguem Blade. O módulo é dono das próprias páginas (sob Pages/Admin do próprio módulo, não na árvore raiz de Pages) e o RUNBOOK é RUNBOOK-admin-content.md — fases 2–5 lá
 
-**Acceptance:**
-- Page Inertia em `resources/js/Pages/Cms/Pages/Index.tsx` + `Create.tsx` + `Edit.tsx`
-- Editor rich-text (TipTap ou similar — alinhar com `_DesignSystem`)
-- Charter `Index.charter.md` ao lado da .tsx
-- RUNBOOK em `memory/requisitos/Cms/RUNBOOK-pages-crud.md`
-- Pest 5+ fixtures (`store`, `update`, `destroy`, autorização, isolamento)
+**Testado em:** `Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php`
+
+**Critérios de aceite:**
+- Lista, criação e edição do conteúdo do site em Inertia, dentro do próprio módulo (a Page nasceu
+  sob Pages/Admin/Content do Cms, não na árvore raiz — reconciliado 2026-09-23 com a thread Cms/01)
+- Corpo em HTML com sanitização no render público; editor rico (TipTap ou similar) só com decisão [W]
+  — o F1 do Cowork aposentou o TinyMCE
+- Charter e casos ao lado da .tsx; RUNBOOK em RUNBOOK-admin-content.md
+- Pest de contrato cobrindo acesso (superadmin × resto), `store`, `update`, `destroy` e a ordem da lista
 
 **Effort:** ~12h (gate visual F1.5 + MWART 5 fases)
 
