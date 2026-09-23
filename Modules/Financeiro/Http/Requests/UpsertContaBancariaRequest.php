@@ -12,7 +12,9 @@ class UpsertContaBancariaRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        // Gate principal: ContaBancariaController::__construct (can:financeiro.contas_bancarias.manage).
+        // Re-check aqui = defesa em profundidade (mesmo padrão do StoreTituloRequest).
+        return $this->user()?->can('financeiro.contas_bancarias.manage') ?? false;
     }
 
     public function rules(): array
