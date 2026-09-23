@@ -26,7 +26,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { lerZip, extrairZip, crc32, nomeSeguro } from './zip-reader.mjs';
 import { createManifest } from './bundle-contract.mjs';
-import { acharRaiz, auditarPacote, classificar, listarRelativos, decidirDono, ignoradosPeloRepo, pathNoEspelho, normalizarEolComoGit, religarRefs } from './receber-handoff.mjs';
+import { acharRaiz, auditarPacote, classificar, listarRelativos, decidirDono, ignoradosPeloRepo, pathNoEspelho, normalizarEolComoGit, religarRefs, linhasDePoda } from './receber-handoff.mjs';
 
 let falhas = 0;
 const ok = (cond, nome) => {
@@ -246,6 +246,22 @@ export function selftest() {
     'MORDE: pagina em outra pasta resolve pelo proprio diretorio');
   ok(religarRefs(pag, 'outra-pasta', 'prototipo-ui/cowork/Felipe/outra-pasta', alvosDs).trocas === 0,
     'SOLTA: mesmo nome em outra pasta nao e o arquivo removido');
+
+  // linhasDePoda: o que a poda de arvore imprime tem de chegar ao [6]/[7] (2026-09-23: o delta
+  // dizia `-0` e a aplicacao apagou 3 `_saida`, porque a saida do aplicador era descartada).
+  const saidaAplicador = [
+    '  ✓ BUNDLE v2 VALIDADO (dry-run)',
+    '  ✂ PODA: 1 arquivo(s) do espelho fora do manifesto removido(s)',
+    '     ✂ velho/sobra.md',
+    '  ⬜ RECIBO PRESERVADO: 1 _saida do Code fora do pacote (o Cowork ainda não os reexportou)',
+    '     ⬜ cowork-inbox/placar/playbook/_saida-01.md',
+    '  ⬜ 2 remoção(ões) de _ds/ IGNORADA(S) — dono é o projeto Design System (#7096), não este export.',
+    '  id: abc · modo delta',
+  ].join('\n');
+  const poda = linhasDePoda(saidaAplicador);
+  ok(poda.length === 4, `MORDE: as 4 linhas de poda/preservacao chegam ao relatorio (vieram ${poda.length})`);
+  ok(!poda.some((l) => /_ds\/|id: abc|VALIDADO/.test(l)), 'SOLTA: outras linhas do aplicador nao entram');
+  ok(linhasDePoda('').length === 0 && linhasDePoda(undefined).length === 0, 'saida vazia -> nenhuma linha');
 
   console.log(`\n  ${falhas === 0 ? 'OK' : 'FALHAS: ' + falhas}\n`);
   if (falhas) process.exit(1);

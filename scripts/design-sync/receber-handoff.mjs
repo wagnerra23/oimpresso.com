@@ -397,6 +397,11 @@ export function jaEsteveNoEspelho(pathRepo, hashZip, { repo = REPO, limite = 40 
   return null;
 }
 
+/** Linhas que a poda de árvore imprime (bundle-transaction.mjs): o que apagou e o que poupou. */
+export function linhasDePoda(out) {
+  return String(out || '').split('\n').filter((l) => /^\s+(✂|⬜ RECIBO PRESERVADO|⬜ cowork-inbox\/)/.test(l));
+}
+
 function roda(script, args) {
   try {
     const out = execFileSync(process.execPath, [join(REPO, script), ...args], {
@@ -666,6 +671,11 @@ function principal() {
   const d = roda('scripts/design-sync/aplicar-payload.mjs', [...partes, '--owner', DONO, '--dry', '--require-complete-shell']);
   console.log(`\n  [6] VALIDAR      ${d.ok ? 'dry-run VALIDADO' : 'REPROVADO'}`);
   if (!d.ok) { console.error(d.out); morre('o aplicador recusou o lote no dry-run'); }
+  // A poda da árvore não entra no DELTA do [5] (só conta o que o pacote declara). O que ela vai
+  // apagar ou poupar tem de aparecer AQUI, antes do --apply — em 2026-09-23 o delta dizia `-0` e
+  // a aplicação apagou 3 `_saida` do Code.
+  const podaDry = linhasDePoda(d.out);
+  if (podaDry.length) console.log(podaDry.join('\n'));
 
   // 7. APLICAR
   if (!aplicar) {
@@ -689,6 +699,8 @@ function principal() {
   if (!a.ok) { console.error(a.out); morre('o aplicador falhou na promocao (transacao atomica: nada mudou)'); }
   console.log(`\n  [7] APLICAR      PROMOVIDO ATOMICAMENTE`);
   console.log(`${a.out.split('\n').filter((l) => /id:|transporte:/.test(l)).join('\n')}`);
+  const podaApply = linhasDePoda(a.out);
+  if (podaApply.length) console.log(podaApply.join('\n'));
 
   // 8. REGISTRAR A RODADA — sem isto o `--sla` segue lendo a ÚLTIMA rodada de `--compare`, que
   //    pode ser de semanas atrás, e reporta um denominador CONGELADO. Medido 2026-09-17: o
