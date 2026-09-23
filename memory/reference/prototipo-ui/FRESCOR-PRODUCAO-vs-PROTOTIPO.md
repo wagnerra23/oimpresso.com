@@ -41,6 +41,15 @@ fecha a violação de charter e é o que o cliente já elogiou) → colapso resp
 linha por grid, fecha promessa do charter) → `_form/VehicleForm` compartilhado (uma correção fecha
 Create e Edit) → `Deferred` no Index e no Show → decisões de KPI/rail/máscara.
 
+## Quadro (Financeiro · DRE e Fluxo — 2026-09-23)
+
+Medido com a mesma sonda nos dois lados e o DS resolvido por `servirEspelho` (ADR 0401). Detalhe e método em [`dre-visual-comparison.md`](../../requisitos/Financeiro/dre-visual-comparison.md) e [`fluxo-visual-comparison.md`](../../requisitos/Financeiro/fluxo-visual-comparison.md), seções *FIN-0a*.
+
+| Tela / camada | Protótipo (export) | Produção viva | Frescor | O design precisa saber |
+|---|---|---|---|---|
+| **Financeiro/Dre/Index** | `financeiro-telas-extras.jsx` `TelaDRE` | `Dre/Index.tsx` | 🟠 **ATRÁS, pouco** | Estrutura igual (h1, seletor de período, 6 colunas). Prod deve convergir em 2 pontos: 1ª coluna monoespaçada e rótulo "Novo título". A cor do primário (L 0,55 × 0,70) é fundação, não desta tela. |
+| **Financeiro/Fluxo/Index** | `financeiro-telas-extras.jsx` `TelaFluxo` | `Fluxo/Index.tsx` | 🟠 **ATRÁS** | Mesmos 4 indicadores. Prod deve convergir: tamanho do valor (28 px nos 4), h1, botão primário no cabeçalho e "Próximos eventos" como tabela. |
+
 ## Como o design usa isto
 1. Antes de exportar uma tela 🔵, **leia o estado vivo no `main`** (`resources/js/Pages/<Mod>/`) — o export local é fotocópia que envelhece (PORTÃO 1 do `STATUS.md`).
 2. Telas 🟠 são as que valem export novo (produção precisa do design).
