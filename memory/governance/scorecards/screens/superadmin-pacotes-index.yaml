@@ -1,0 +1,56 @@
+# Scorecard screen-grade 16-dim — thread 13 do playbook "Prontidão" (passos 0+1 do screen-qa-specialist).
+# NOTA DE LEITURA DE CÓDIGO: dada lendo .tsx + charter + controller, SEM browser de prod
+# (sem screenshot, sem axe, sem medição de perf). Passos 2-4 (E2E/axe/smoke) ficaram fora desta thread.
+# Primeira medição: baseline_anterior = a própria nota. Ratchet: a nota não cai sem aprovação [W].
+screen: superadmin/Pacotes/Index
+path: Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx
+archetype: grid-cards
+persona: wagner
+nota: 77
+nivel: "Advanced"
+baseline_anterior: 77   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: prontidao-thread13-2026-09-23
+graded_at: "2026-09-23"
+metodo: "leitura de codigo (tsx+charter+controller) — sem browser"
+preflight:
+  charter: Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.charter.md (status draft)
+  casos: Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.casos.md
+  controller: Modules/Superadmin/Http/Controllers/PackagesController.php:60 (index, can('superadmin') + Inertia::defer)
+  prototipo: prototipo-ui/cowork/Wagner/superadmin-page.jsx → ViewPacotes()
+  persona_fonte: memory/requisitos/_DesignSystem/personas-por-modulo.yml:91 (superadmin → primary wagner) + charter L38 (1440px)
+resumo: "Grade de cards somente-leitura, correta no que importa: 0=ilimitado resolvido num lugar só, plural PT-BR por mapa, defer+skeleton, EmptyState e PageHeader canônicos, contagem de assinantes sem N+1. Perde por não ter ação nenhuma (FormDrawer declarado como SA-O4d), card inativo sinalizado só por opacidade e tamanhos de fonte arbitrários."
+dimensoes: { density: 78, discoverability: 70, speed_to_task: 72, error_recovery: 70, cognitive_load: 82, aesthetic_usability: 78, affordance: 68, brand_confidence: 78, mobile_fit: 78, a11y_wcag: 70, i18n_ptbr: 90, performance_perceived: 82, information_hierarchy: 78, microcopy: 84, internal_consistency: 78, preflight_conformance: 76 }
+evidencia:
+  density: "Index.tsx:146-201 — pacote inteiro num card (preço, 4 limites, trial, módulos, assinantes)"
+  discoverability: "Index.tsx:95-107 — só a grade; sem busca/filtro (charter L64 Non-Goal: não pagina)"
+  speed_to_task: "Index.tsx:138-143 — comparação lado a lado; nenhuma ação a partir do card"
+  error_recovery: "Index.tsx:124-135 — EmptyState explica consequência; tela é leitura, sem fluxo de erro"
+  cognitive_load: "Index.tsx:91-93 — limite() centraliza '0 = ilimitado'"
+  aesthetic_usability: "Index.tsx:113 e 138 — grid sm:2/xl:3 com gap-4, skeleton do mesmo formato"
+  affordance: "Index.tsx:146-201 — card não clica e não tem kebab (charter L101-105: FormDrawer/kebab ausentes)"
+  brand_confidence: "Index.tsx:26-30 — Card/Badge/Skeleton/PageHeader/EmptyState do DS"
+  mobile_fit: "Index.tsx:138 — grid colapsa pra 1 coluna abaixo de sm"
+  a11y_wcag: "Index.tsx:148 — inativo = opacity-60 (reduz contraste de todo o texto); Index.tsx:152 — h3 sem h2 acima"
+  i18n_ptbr: "Index.tsx:67-82 — plural por mapa (meses/anos), nunca concatenando 's'"
+  performance_perceived: "PackagesController.php:68 — Inertia::defer; Index.tsx:101 <Deferred> + GridEsqueleto"
+  information_hierarchy: "Index.tsx:161-168 — preço em text-2xl, limites e módulos abaixo"
+  microcopy: "Index.tsx:130 — vazio diz a consequência ('nenhum negócio consegue assinar')"
+  internal_consistency: "Index.tsx:31 — plural() compartilhado com Negócios/Assinaturas via _components/assinatura"
+  preflight_conformance: "Index.tsx:194-195 — text-[11px] arbitrário; charter status draft (Index.charter.md:7)"
+gaps:
+  - dim: "Affordance"
+    best_of_class: "Stripe Billing → Products: cada card de preço abre o detalhe e tem ações (editar/arquivar/duplicar) no próprio card, sem trocar de tela"
+    fix: "SA-O4d: FormDrawer novo/editar/duplicar + kebab no card — exige REGRA MESTRE de valor (escreve price) e decisão [W] do RUNBOOK §5.1 antes"
+    esforco: alto
+    origin: prontidao-thread13-2026-09-23
+  - dim: "A11y-WCAG"
+    best_of_class: "Linear: item arquivado ganha rótulo textual + ícone, não só esmaecimento — o estado é lido, não inferido do contraste"
+    fix: "Trocar opacity-60 do card inativo (Index.tsx:148) por fundo/borda muted mantendo texto em contraste AA; badge 'inativo' já existe e basta"
+    esforco: baixo
+    origin: prontidao-thread13-2026-09-23
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4: escala tipográfica por token (text-xs/text-sm), sem px arbitrário"
+    fix: "text-[11px] (Index.tsx:194-195) → token da escala; levar charter a live após smoke de prod"
+    esforco: baixo
+    origin: prontidao-thread13-2026-09-23
