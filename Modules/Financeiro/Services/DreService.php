@@ -809,6 +809,84 @@ class DreService
     }
 
     /**
+     * Movimento do mês por conta do plano — colunas "Lanç. mês" e "Saldo mês" da tela
+     * Plano de contas (FIN-6b, protótipo `TelaPContas`).
+     *
+     * MESMA BASE do balancete e do DRE: `fin_titulos` por `competencia_mes`, sem cancelados
+     * e sem apagados, mês resolvido por `resolverPeriodo('mes', …)`. Diferenças DELIBERADAS
+     * em relação ao `montarBalancete`, e é por elas que este método existe:
+     *  - CONTA os títulos (Lanç. mês), além de somar;
+     *  - o saldo tem SINAL pelo tipo do título — receber soma, pagar subtrai — como o
+     *    protótipo mostra (receita +, despesa −);
+     *  - a conta pai soma TUDO que está abaixo dela, inclusive título lançado direto nela.
+     *    O balancete só propaga folhas (`aceita_lancamento`) e deixaria esse valor de fora.
+     *  - conta INATIVA também alimenta o total do pai: o dinheiro lançado nela existiu.
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): business_id 1º arg, where explícito.
+     *
+     * @return array{mes: string, mes_label: string, contas: array<int, array{lancamentos: int, saldo: float}>}
+     *         `contas` indexado pelo id da conta; conta sem movimento fica FORA do mapa.
+     */
+    public function movimentoMesPorConta(int $businessId, ?string $anchorMes = null): array
+    {
+        [$inicio, , $label] = $this->resolverPeriodo('mes', $anchorMes);
+        $mes = $inicio->format('Y-m');
+
+        $diretos = DB::table('fin_titulos')
+            ->where('business_id', $businessId)
+            ->whereNull('deleted_at')
+            ->where('status', '!=', 'cancelado')
+            ->where('competencia_mes', $mes)
+            ->whereNotNull('plano_conta_id')
+            ->select(
+                'plano_conta_id',
+                DB::raw('COUNT(*) AS qtd'),
+                DB::raw("SUM(CASE WHEN tipo = 'pagar' THEN -valor_total ELSE valor_total END) AS saldo"),
+            )
+            ->groupBy('plano_conta_id')
+            ->get()
+            ->keyBy('plano_conta_id');
+
+        if ($diretos->isEmpty()) {
+            return ['mes' => $mes, 'mes_label' => $label, 'contas' => []];
+        }
+
+        // Todas as contas do negócio (inclusive inativas): o id → código é o que liga o título
+        // à árvore, e a árvore é o prefixo do código (1 ⊃ 1.1 ⊃ 1.1.01).
+        $contas = DB::table('fin_planos_conta')
+            ->where('business_id', $businessId)
+            ->whereNull('deleted_at')
+            ->select('id', 'codigo')
+            ->get();
+
+        $porCodigo = [];
+        foreach ($contas as $c) {
+            $d = $diretos->get($c->id);
+            if ($d !== null) {
+                $porCodigo[(string) $c->codigo] = ['qtd' => (int) $d->qtd, 'saldo' => (float) $d->saldo];
+            }
+        }
+
+        $saida = [];
+        foreach ($contas as $c) {
+            $codigo = (string) $c->codigo;
+            $qtd = 0;
+            $saldo = 0.0;
+            foreach ($porCodigo as $cod => $mov) {
+                if ($cod === $codigo || str_starts_with($cod, $codigo.'.')) {
+                    $qtd += $mov['qtd'];
+                    $saldo += $mov['saldo'];
+                }
+            }
+            if ($qtd > 0) {
+                $saida[(int) $c->id] = ['lancamentos' => $qtd, 'saldo' => round($saldo, 2)];
+            }
+        }
+
+        return ['mes' => $mes, 'mes_label' => $label, 'contas' => $saida];
+    }
+
+    /**
      * Balancete de Verificação Gerencial — lista hierárquica do plano de contas
      * com saldo acumulado por código (somando filhos pros pais).
      *
