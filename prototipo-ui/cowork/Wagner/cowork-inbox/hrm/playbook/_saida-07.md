@@ -59,6 +59,26 @@ ao Ponto), elas continuam nas Configurações do HRM ou migram para as configura
 Enquanto a thread 09 não desagenda o cron `pos:autoClockOutUser`, quem ainda as lê é o clock-in web
 do Essentials. Movê-las antes da 09 quebraria esse leitor.
 
+**Respondida por [W] em 2026-09-23: "as 5 chaves de presença migram para o Ponto".**
+
+O que isso implica, medido com `git grep` no `main` 1061dbf2e, sem código de teste:
+- **Leitores vivos das 5 chaves fora das Configurações:**
+  - `Modules/Essentials/Http/Controllers/AttendanceController.php`
+  - `Modules/Connector/Http/Controllers/Api/AttendanceController.php` (**API**, fora do HRM)
+  - `Modules/Essentials/Utils/EssentialsUtil.php` (8 usos)
+  - `Modules/Essentials/Providers/EssentialsServiceProvider.php` (cron)
+  - `clock_in_clock_out_modal.blade.php`
+- **O destino não é vazio.** O Ponto já tem tolerância própria (`Modules/Ponto/Config/config.php`,
+  `configuracoes/index.blade.php`, `ApuracaoService.php`). Migrar é **fundir** com o que o Ponto já
+  tem, não criar 5 chaves novas lá. A decisão sobre o que fazer quando os dois valores divergirem por
+  business fica para quem executar, e esse caso tem de ser **medido antes**.
+- **Sequência:** a remoção das Configurações do HRM (Page + `validate()`) só entra **junto ou depois**
+  da thread 09, que tira o clock-in web do Essentials. Antes disso, os leitores acima ficariam sem
+  valor. O Connector API precisa de dono na 09, porque não está no prefixo dela hoje.
+- **Execução fora desta thread:** a 07 não tem prefixo, e o `EssentialsSettingsController` está no
+  `nao_toca` dela. O trabalho vai para a thread 09 (a ampliar no índice) ou para uma thread nova. Quem
+  mantém o índice decide qual.
+
 ## Descobertas
 1. **A premissa "12 campos" está velha.** Nem o espelho, nem o Cowork vivo, nem o histórico do repo
    têm 12. O título da thread no índice (`12 campos × 10 chaves`) deveria virar `10 × 10`. Não editei
