@@ -4,8 +4,22 @@ casos: Conciliação bancária · /financeiro/conciliacao
 irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-02"
+last_run: "2026-09-23"
 ---
+
+> ℹ️ **`last_run` 2026-08-02 → 2026-09-23 (G-6) — FIN-4a: o que mudou na tela foi só FORMA.**
+> Em `Index.tsx`: cores dos selos de status e da tabela passaram a tokens do tema (fim da cor crua que o charter proíbe),
+> os 4 KPIs viraram um cartão único no formato do protótipo (mesmos rótulos `PENDENTES`/`SUGERIDOS`/`CONCILIADOS`/`IGNORADOS`,
+> mesmos contadores, ainda em `<small>`/`<b>` que o E2E lê), o título virou "Financeiro · Conciliação" e entrou o primário
+> "Novo título" (só navega). Zero cálculo, prop, rota ou handler alterado: upload, confirmar, ignorar, reabrir e o filtro de
+> resolvidos seguem idênticos. Ordem e conteúdo das colunas da tabela não mudaram. **Nenhum UC foi reexecutado**: o bump
+> registra que o trio foi reconciliado contra o `.tsx` novo, não um veredito novo.
+>
+> **FIN-4b (mesmo dia):** a tabela ganhou os grupos de colunas "Extrato bancário" × "Sistema oimpresso";
+> a coluna de índice 4 deixou de ser "Tipo" (o tipo foi para baixo da descrição) e passou a ser
+> "Título", com o resumo do título vinculado (UC-FCC-15). As colunas lidas pelo E2E (1 origem · 3 valor
+> · 5 status) e os botões de cada linha não mudaram; o "criar título" da linha pendente é link, não botão.
+> A faixa de KPIs ganhou "Período" e "Total no extrato" (UC-FCC-14), vindos da prop deferida `resumo`.
 
 # Casos de uso — /financeiro/conciliacao
 
@@ -190,6 +204,30 @@ Status: 🧪 (`ConciliacaoLeExtratoApiTest::test_match_api_respeita_business_id_
 O UPDATE de match filtra por `business_id` da sessão. Uma linha pertencente a outro business
 permanece intocada (`status` segue nulo).
 **Pronto quando:** após o POST cross-tenant, `status` da linha do outro business continua nulo.
+
+## UC-FCC-14 — O resumo do extrato soma as duas origens com o sinal da tela
+Status: 🧪 (`ConciliacaoResumoTituloTest` — *"resumo soma as duas origens com o sinal que a tela mostra"* · nasce em 2026-09-23, FIN-4b; ainda sem run)
+Fonte: KPIs "Período" e "Total no extrato" do protótipo (`TelaConciliacao`, `financeiro-telas-extras.jsx`).
+A prop deferida `resumo` traz período (menor e maior data) e entradas/saídas do extrato das
+**duas** origens, **todas** as situações — o mesmo universo dos 4 contadores de `stats`, não a
+fila filtrada nem o limite de 200 da lista. Sinal igual ao da tela: OFX já vem com sinal; API
+`tipo = D` vira negativo. Linha excluída (soft delete) fica fora.
+**Pronto quando:** o total bate por dois caminhos — soma à mão das fixtures **e** soma dos
+`valor` que a tela recebe em `props.linhas` pras mesmas linhas (regra mestre de valor).
+
+## UC-FCC-15 — Linha com título vinculado chega com o resumo do título
+Status: 🧪 (`ConciliacaoResumoTituloTest` — *"linha sugerida chega com o resumo do título vinculado"* · nasce em 2026-09-23; ainda sem run)
+Fonte: coluna "Sistema" do protótipo, que mostra o título casado ao lado da linha do extrato.
+Cada linha de `props.linhas` ganha `titulo` (id, número, tipo, descrição, valor, vencimento)
+quando tem `titulo_id`; sem vínculo, `titulo = null`. Leitura só de exibição — a tela segue sem
+criar nem editar título (Automation Anti-hook do charter).
+**Pronto quando:** a linha sugerida traz o título certo e a linha sem vínculo traz `null`.
+
+## UC-FCC-16 — Resumo e título de outro business ficam fora `[T0]`
+Status: 🧪 (`ConciliacaoResumoTituloTest` — *"Tier 0: extrato e título de outro business ficam fora"* · nasce em 2026-09-23; ainda sem run)
+Linhas de extrato de outro business não entram no `resumo`, e uma linha que aponte para
+título de outro business recebe `titulo = null` (ADR 0093).
+**Pronto quando:** o resumo não se move com as linhas do outro business e o título dele não é anexado.
 
 ---
 
