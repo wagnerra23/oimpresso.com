@@ -138,3 +138,16 @@ design, junto da "atrasada" do Impostos. Os demais selos passam AA nos dois tema
 
 **Valor:** nenhuma expressão de valor mudou (`stats.*`, `brl(l.valor)`, `match_score`) — só a
 classe em volta. Leitura "antes" em produção (empresa 1): 4 contadores em 0 e tabela vazia.
+
+## FIN-4b — dados que a forma do protótipo pedia (2026-09-23)
+
+Backend no #7783, tela neste PR.
+
+| Dimensão | Protótipo | FIN-4a | FIN-4b | Veredito |
+|---|---|---|---|---|
+| KPI "Período" | presente | ausente | presente (prop deferida `resumo`) | IGUAL |
+| KPI "Total no extrato" | entradas + saídas | ausente | entradas + saídas, duas origens, todas as situações | IGUAL |
+| Extrato × Sistema | grade em duas metades | tabela de 7 colunas | tabela com dois grupos de colunas; a metade "Sistema" mostra o título vinculado | IGUAL na forma (segue `<table>`: o E2E lê as colunas por índice) |
+| Ação "Criar" na linha sem match | botão | ausente | link "criar título" para `/financeiro/unificado/novo` | IGUAL na afordância; é link porque só navega (a tela não cria título — Automation Anti-hook do charter) |
+| Rótulo "Aceitar" | "Aceitar" | "Confirmar" | "Confirmar" | DÍVIDA A FECHAR — rótulo fixado pelo E2E e pelo charter ("Confirmar match"); trocar é copy de contrato, decisão [W] |
+| Valor da linha sem "R$" e com sinal "+/−" | presente | `brl()` | `brl()` | DÍVIDA A FECHAR — é formatação de número, cai na regra de valor; fica para decisão |

@@ -7,7 +7,7 @@
 // Hierarquia visual canon: fin-curadoria + os-page-h + fin-stats + tabela.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { useForm, router } from '@inertiajs/react';
+import { useForm, router, Deferred, Link } from '@inertiajs/react';
 import { type ReactNode, type FormEvent, useState } from 'react';
 import { Upload, Check, X, Search, Inbox, RotateCcw } from 'lucide-react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
@@ -30,6 +30,26 @@ interface Linha {
   titulo_id: number | null;
   match_score: number | null;
   source_file: string | null;
+  // FIN-4b: resumo do título vinculado (sugerido/conciliado) — coluna "Sistema" do protótipo.
+  titulo: TituloResumo | null;
+}
+
+interface TituloResumo {
+  id: number;
+  numero: string | null;
+  tipo: string | null;
+  descricao: string | null;
+  valor_total: number;
+  vencimento: string | null;
+}
+
+// FIN-4b: prop DEFERIDA — período + entradas/saídas das duas origens, todas as situações.
+interface ResumoExtrato {
+  periodo_inicio: string | null;
+  periodo_fim: string | null;
+  entradas: number;
+  saidas: number;
+  linhas: number;
 }
 
 interface Stats {
@@ -44,10 +64,16 @@ interface Props {
   stats: Stats;
   contas: { id: number; nome: string }[];
   filters: { incluir_resolvidos: boolean };
+  resumo?: ResumoExtrato;
 }
 
 const brl = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+
+// "2026-07-10" → "10/07/2026" (só reordena a string; sem Date, sem fuso).
+const dataBR = (iso: string | null) => (iso ? iso.slice(0, 10).split('-').reverse().join('/') : '—');
+
+const KPI_ESPERA = <span className="text-[var(--text-mute)]">…</span>;
 
 // FIN-4a: selos em tokens do tema (o charter proíbe cor crua `bg-COR-NNN`), no formato do
 // protótipo (TelaConciliacao): pílula com ponto, `--sunken`=`--bg-2` · `--text-2`=`--text-dim` ·
@@ -89,7 +115,7 @@ function KpiFaixa({ itens }: { itens: KpiItem[] }) {
   );
 }
 
-function FinanceiroConciliacao({ linhas, stats, contas, filters }: Props) {
+function FinanceiroConciliacao({ linhas, stats, contas, filters, resumo }: Props) {
   const [busca, setBusca] = useState('');
 
   const uploadForm = useForm<{ arquivo: File | null; conta_bancaria_id: string }>({
@@ -161,12 +187,40 @@ function FinanceiroConciliacao({ linhas, stats, contas, filters }: Props) {
         </div>
       </PageHeader>
 
+      {/* FIN-4b: "Período" abre e "Total no extrato" fecha a faixa, como no protótipo. Os dois
+          vêm da prop deferida `resumo` (mesmo universo dos contadores); os 4 contadores seguem
+          os da produção — `SUGERIDOS` fica, embora o protótipo o mostre como dica. */}
       <KpiFaixa
         itens={[
+          {
+            rotulo: 'PERÍODO',
+            valor: (
+              <Deferred data="resumo" fallback={KPI_ESPERA}>
+                <span className="text-[length:var(--fs-5)]">
+                  {resumo?.periodo_inicio ? `${dataBR(resumo.periodo_inicio)} → ${dataBR(resumo.periodo_fim)}` : 'sem extrato'}
+                </span>
+              </Deferred>
+            ),
+            tom: 'text-[var(--text)]',
+            dica: 'datas do extrato importado',
+          },
           { rotulo: 'PENDENTES', valor: stats.pendentes, tom: 'text-[var(--warn)]', dica: 'linhas sem match automático' },
           { rotulo: 'SUGERIDOS', valor: stats.sugeridos, tom: 'text-[var(--text)]', dica: 'match fuzzy proposto' },
           { rotulo: 'CONCILIADOS', valor: stats.conciliados, tom: 'text-[var(--pos)]', dica: 'aprovados pelo usuário' },
           { rotulo: 'IGNORADOS', valor: stats.ignorados, tom: 'text-[var(--text-dim)]', dica: 'marcados pra fora do fluxo' },
+          {
+            rotulo: 'TOTAL NO EXTRATO',
+            valor: (
+              <Deferred data="resumo" fallback={KPI_ESPERA}>
+                <span className="block text-[length:var(--fs-5)] leading-tight">
+                  <span className="block text-[var(--pos)]">+ {brl(resumo?.entradas ?? 0)}</span>
+                  <span className="block text-[var(--neg)]">{brl(resumo?.saidas ?? 0)}</span>
+                </span>
+              </Deferred>
+            ),
+            tom: '',
+            dica: 'entradas e saídas, todas as situações',
+          },
         ]}
       />
 
@@ -253,12 +307,25 @@ function FinanceiroConciliacao({ linhas, stats, contas, filters }: Props) {
       <div className="mt-3 bg-[var(--surface)] border border-[var(--border)] rounded-[11px] shadow-[var(--sh-1)] overflow-hidden">
         <table className="w-full text-[13px]">
           <thead>
+            {/* FIN-4b: as duas metades do protótipo (Extrato × Sistema) como grupos de colunas.
+                Continua <table>: o E2E UC-FCC-10 lê as linhas por `tbody tr` e as colunas por índice
+                (1 origem · 3 valor · 5 status) — o índice 4, antes "Tipo", virou "Título". */}
+            <tr className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-dim)] border-b border-[var(--border)]">
+              <th colSpan={4} className="px-3 py-2.5 text-left font-medium">
+                Extrato bancário
+                <span className="ml-2 normal-case tracking-normal text-[length:var(--fs-2)] text-[var(--text-mute)]">· {filtradas.length} de {linhas.length} · banco + OFX</span>
+              </th>
+              <th colSpan={3} className="px-3 py-2.5 text-left font-medium border-l border-[var(--border)]">
+                Sistema oimpresso
+                <span className="ml-2 normal-case tracking-normal text-[length:var(--fs-2)] text-[var(--text-mute)]">· match sugerido (0,7·valor + 0,3·data)</span>
+              </th>
+            </tr>
             <tr className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-dim)] border-b border-[var(--border)] bg-[var(--bg-2)]">
               <th className="px-3 py-2 text-left font-medium w-[100px]">Data</th>
               <th className="px-3 py-2 text-center font-medium w-[80px]">Origem</th>
               <th className="px-3 py-2 text-left font-medium">Descrição</th>
               <th className="px-3 py-2 text-right font-medium w-[120px]">Valor</th>
-              <th className="px-3 py-2 text-center font-medium w-[100px]">Tipo</th>
+              <th className="px-3 py-2 text-left font-medium border-l border-[var(--border)]">Título</th>
               <th className="px-3 py-2 text-center font-medium w-[110px]">Status</th>
               <th className="px-3 py-2 text-right font-medium w-[140px]">Ações</th>
             </tr>
@@ -289,15 +356,41 @@ function FinanceiroConciliacao({ linhas, stats, contas, filters }: Props) {
                   </span>
                 </td>
                 <td className="px-3 py-2">
-                  <div className="truncate max-w-[400px]">{l.descricao}</div>
-                  {l.source_file && (
-                    <div className="text-[length:var(--fs-1)] text-[var(--text-mute)]">{l.source_file}</div>
-                  )}
+                  <div className="truncate max-w-[320px] font-medium text-[var(--text)]">{l.descricao}</div>
+                  <div className="text-[length:var(--fs-1)] text-[var(--text-mute)]">
+                    {l.tipo}
+                    {l.source_file ? ` · ${l.source_file}` : ''}
+                  </div>
                 </td>
                 <td className="px-3 py-2 text-right font-mono tabular-nums">
                   <span className={l.valor < 0 ? 'fin-num-neg' : 'fin-num-pos'}>{brl(l.valor)}</span>
                 </td>
-                <td className="px-3 py-2 text-center text-[length:var(--fs-2)] text-[var(--text-dim)]">{l.tipo}</td>
+                <td className="px-3 py-2 border-l border-[var(--border)]">
+                  {l.titulo ? (
+                    <>
+                      <div className="truncate max-w-[260px] font-medium text-[var(--text)]">
+                        {l.titulo.descricao ?? `Título #${l.titulo.id}`}
+                      </div>
+                      <div className="text-[length:var(--fs-1)] text-[var(--text-mute)] font-mono tabular-nums">
+                        {l.titulo.numero ?? `#${l.titulo.id}`} · venc {dataBR(l.titulo.vencimento)} · {brl(l.titulo.valor_total)}
+                      </div>
+                    </>
+                  ) : l.status === 'ignorado' ? (
+                    <span className="text-[length:var(--fs-2)] text-[var(--text-dim)]">Fora da fila — não entra nos pendentes.</span>
+                  ) : l.status === 'pendente' ? (
+                    // FIN-4b: o "Criar" do protótipo só NAVEGA — a tela não cria título (Automation
+                    // Anti-hook do charter). Link, não botão: é navegação, e a linha pendente segue
+                    // com um único botão ("Ignorar"), que é o que o E2E confere.
+                    <span className="text-[length:var(--fs-2)] text-[var(--text-dim)] italic">
+                      Sem título correspondente —{' '}
+                      <Link href="/financeiro/unificado/novo" className="not-italic font-medium text-[var(--accent)] hover:underline">
+                        criar título
+                      </Link>
+                    </span>
+                  ) : (
+                    <span className="text-[var(--text-mute)]">—</span>
+                  )}
+                </td>
                 <td className="px-3 py-2 text-center">
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[length:var(--fs-2)] font-medium whitespace-nowrap ${STATUS_CLR[l.status].chip}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${STATUS_CLR[l.status].ponto}`} aria-hidden="true" />

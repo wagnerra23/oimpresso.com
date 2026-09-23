@@ -14,6 +14,12 @@ last_run: "2026-09-23"
 > "Novo título" (só navega). Zero cálculo, prop, rota ou handler alterado: upload, confirmar, ignorar, reabrir e o filtro de
 > resolvidos seguem idênticos. Ordem e conteúdo das colunas da tabela não mudaram. **Nenhum UC foi reexecutado**: o bump
 > registra que o trio foi reconciliado contra o `.tsx` novo, não um veredito novo.
+>
+> **FIN-4b (mesmo dia):** a tabela ganhou os grupos de colunas "Extrato bancário" × "Sistema oimpresso";
+> a coluna de índice 4 deixou de ser "Tipo" (o tipo foi para baixo da descrição) e passou a ser
+> "Título", com o resumo do título vinculado (UC-FCC-15). As colunas lidas pelo E2E (1 origem · 3 valor
+> · 5 status) e os botões de cada linha não mudaram; o "criar título" da linha pendente é link, não botão.
+> A faixa de KPIs ganhou "Período" e "Total no extrato" (UC-FCC-14), vindos da prop deferida `resumo`.
 
 # Casos de uso — /financeiro/conciliacao
 
