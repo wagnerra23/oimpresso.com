@@ -7,6 +7,7 @@ use App\Utils\ModuleUtil;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -120,10 +121,18 @@ class DocumentController extends Controller
         $document = Document::where('business_id', $businessId)->find($id);
 
         if ($document && $document->user_id === $userId) {
+            // Charter: remover apaga junto os compartilhamentos (UC-EDOC-04). O $document
+            // já veio filtrado por business_id, então o document_id é do tenant da sessão;
+            // o global scope do DocumentShare (via parent) reforça. Shares antes do doc:
+            // o scope resolve o tenant pelo parent, que precisa ainda existir.
+            DB::transaction(function () use ($document) {
+                DocumentShare::where('document_id', $document->id)->delete();
+                $document->delete();
+            });
+
             if ($document->type === 'document') {
                 Storage::delete('documents/' . $document->name);
             }
-            $document->delete();
         }
 
         return back()->with('success', __('lang_v1.deleted_success'));
