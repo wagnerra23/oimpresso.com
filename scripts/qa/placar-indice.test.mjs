@@ -270,6 +270,44 @@ ok(/entregue 1 de 1/.test(r.out) && !/fonte desatualizada/.test(r.out), 'CONTROL
 /* ── 16. O eixo A6 (tela) não regrediu — o A8 pluga, não substitui ───────────────────── */
 ok(!existsSync(join(TMP, 'x')) && cli(['--dir', join(TMP, 'nao-existe')]).rc === 2, 'A6 intacto: o eixo de tela segue saindo 2 em diretório inexistente');
 
+/* ── 17. `sem recibo`: provas verdes sem _saida saem do balde do "nunca começou" ─────── */
+// Por que existe: HRM 02/03 e Patrimônio 01/02/03 estão EM PRODUÇÃO e o placar os mostrava
+// como `proximo` — indistinguíveis de quem nunca começou. É assim que playbook envelhece sem
+// ninguém ver. O estado é DITO à parte e NUNCA vira `entregue` (Lei 2).
+const srVerde = { 'a.txt': 'x', 'b.txt': 'ok' };
+const sr = root({ indice: IDX(provas2), saidas: [], arquivos: srVerde });
+r = cli(['--root', sr, '--todos']);
+ok(/\(sem recibo\)/.test(r.out), 'BITE: provas verdes sem _saida → a thread é marcada `sem recibo`');
+ok(/entregue 0 de 1/.test(r.out), 'BITE: `sem recibo` NÃO conta como entregue — a Lei 2 fica intacta');
+ok(/1 sem recibo \(01\)/.test(r.out), 'BITE: o relato DIZ quantas e QUAIS, à parte do entregue');
+
+r = cli(['--root', root({ indice: IDX(provas2), saidas: ['01'], arquivos: srVerde }), '--todos']);
+ok(/entregue 1 de 1/.test(r.out) && !/sem recibo/.test(r.out),
+  'BITE: com o _saida presente a MESMA thread vira `feito` — o medidor discrimina');
+
+// a.txt AUSENTE: uma prova vermelha derruba pra `pendente`, e o motivo é nomeado
+r = cli(['--root', root({ indice: IDX(provas2), saidas: [], arquivos: { 'b.txt': 'ok' } }), '--todos']);
+// A spec da thread diz "cai para `pendente`". MEDIDO: o motor dá `proximo` — e esse eixo é
+// PRÉ-EXISTENTE e ortogonal à cor da prova (`proximo` = executável; `pendente` = travada por
+// dependência/decisão). Forçar `pendente` aqui mudaria o veredito dos casos 3 e T5, que é
+// exatamente o PARAR SE da thread. O que a BITE precisa garantir é o que importa: prova
+// vermelha NUNCA vira `sem recibo`. A divergência de vocabulário está declarada no _saida.
+ok(!/sem recibo/.test(r.out) && /\[proximo/.test(r.out),
+  'BITE: prova vermelha NUNCA vira `sem recibo` (segue `proximo`, eixo pré-existente)');
+ok(/a\.txt/.test(r.out), 'BITE: o relato NOMEIA a prova que reprovou');
+
+r = cli(['--root', root({ indice: IDX([]), saidas: [] }), '--todos']);
+ok(!/sem recibo/.test(r.out),
+  'CONTROLE: 0 provas explícitas NUNCA vira `sem recibo` — sem evidência de entrega, verde é só ausência de quem reprove');
+
+r = cli(['--root', root({ indice: IDX([{ tipo: 'execucao', path: 'r.json', testes: ['t'] }]), saidas: [] }), '--todos']);
+ok(!/sem recibo/.test(r.out),
+  'CONTROLE: prova NÃO MEDIDA impede `sem recibo` — fail-closed nos dois lados, igual ao `feito`');
+
+// O veredito do --check é o MESMO do caso 3 (LEI 2): rc=1. `sem recibo` fica FORA do `fecha`.
+ok(cli(['--root', sr, '--todos', '--check']).rc === 1,
+  'CONTROLE: `sem recibo` NÃO muda o veredito do --check — segue mordendo por dívida real (idem caso 3)');
+
 rmSync(TMP, { recursive: true, force: true });
 console.log(`\n${fails ? `${fails} FALHA(S)` : 'todos os casos passaram'}`);
 process.exit(fails ? 1 : 0);
