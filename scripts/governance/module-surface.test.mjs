@@ -19,6 +19,8 @@ import {
   manifestExigeSuperficie,
   colisoesDeCasing,
   pathsSobRaiz,
+  raizesDoModulo,
+  modulosAfetados,
 } from './module-surface.mjs';
 
 /** Primeira regra de PAPEIS que casa (mesma ordem do gerador). */
@@ -340,4 +342,27 @@ test('regressão silent-cap: módulo vivo em prod com active ausente (Financeiro
   // Antes do fix, SÓ active===1 exigia → Financeiro/NfeBrasil/Whatsapp/Fiscal/PaymentGateway (active
   // ausente, ativação per-business ADR 0093) eram pulados no --all --check em silêncio (§5 no-silent-caps).
   assert.equal(isSurfaceRequired('Financeiro'), true);
+});
+
+test('raizesDoModulo: _Geral usa as raízes gerais; Classe B traz a semente; namespace divergente entra', () => {
+  assert.deepEqual(raizesDoModulo('_Geral'), { dirs: [...RAIZES_GERAIS], prefixos: [], exatos: [] });
+  const sells = raizesDoModulo('Sells');
+  assert.ok(sells.prefixos.includes('app/Http/Controllers/SellController.php'));
+  assert.ok(raizesDoModulo('AssetManagement').dirs.includes('resources/js/Pages/Patrimonio'));
+  assert.deepEqual(raizesDoModulo('Repair').exatos, ['memory/requisitos/Repair/SCOPE.md']);
+});
+
+test('modulosAfetados: responde por PREFIXO — vale também para arquivo apagado (fora do índice)', () => {
+  // O hook de commit pergunta sobre `git rm`: o path já saiu do índice, então pertença não serve.
+  assert.deepEqual(modulosAfetados(['Modules/Repair/Esse/Arquivo/NaoExiste.php']), ['Repair']);
+  assert.deepEqual(modulosAfetados(['resources/js/Pages/Patrimonio/Qualquer.tsx']), ['AssetManagement']);
+  assert.ok(modulosAfetados(['app/Http/Controllers/SellController.php']).includes('Sells'));
+  assert.deepEqual(modulosAfetados(['resources/js/Components/X.tsx']), ['_Geral']);
+});
+
+test('modulosAfetados: fora de qualquer raiz não afeta ninguém (controle negativo)', () => {
+  assert.deepEqual(modulosAfetados(['README.md', 'memory/requisitos/Repair/SPEC.md']), []);
+  assert.deepEqual(modulosAfetados([]), []);
+  // Prefixo de NOME não é prefixo de pasta: `Modules/RepairX` não é `Modules/Repair`.
+  assert.ok(!modulosAfetados(['Modules/RepairX/a.php']).includes('Repair'));
 });
