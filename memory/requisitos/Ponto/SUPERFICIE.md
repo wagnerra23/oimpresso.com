@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 216 arquivos em 18 papéis.
+**Total mapeado:** 191 arquivos em 18 papéis.
 
 ## Controllers — 13
 
@@ -108,33 +108,8 @@ module: Ponto
 - [config.php](../../../Modules/Ponto/Config/config.php)
 - [retention.php](../../../Modules/Ponto/Config/retention.php)
 
-## Views (Blade) — 26
+## Views (Blade) — 1
 
-- [_tabela.blade.php](../../../Modules/Ponto/Resources/views/aprovacoes/_tabela.blade.php)
-- [index.blade.php](../../../Modules/Ponto/Resources/views/aprovacoes/index.blade.php)
-- [index.blade.php](../../../Modules/Ponto/Resources/views/banco-horas/index.blade.php)
-- [show.blade.php](../../../Modules/Ponto/Resources/views/banco-horas/show.blade.php)
-- [edit.blade.php](../../../Modules/Ponto/Resources/views/colaboradores/edit.blade.php)
-- [index.blade.php](../../../Modules/Ponto/Resources/views/colaboradores/index.blade.php)
-- [index.blade.php](../../../Modules/Ponto/Resources/views/configuracoes/index.blade.php)
-- [reps.blade.php](../../../Modules/Ponto/Resources/views/configuracoes/reps.blade.php)
-- [index.blade.php](../../../Modules/Ponto/Resources/views/dashboard/index.blade.php)
-- [_form.blade.php](../../../Modules/Ponto/Resources/views/escalas/_form.blade.php)
-- [create.blade.php](../../../Modules/Ponto/Resources/views/escalas/create.blade.php)
-- [edit.blade.php](../../../Modules/Ponto/Resources/views/escalas/edit.blade.php)
-- [index.blade.php](../../../Modules/Ponto/Resources/views/escalas/index.blade.php)
-- [index.blade.php](../../../Modules/Ponto/Resources/views/espelho/index.blade.php)
-- [show.blade.php](../../../Modules/Ponto/Resources/views/espelho/show.blade.php)
-- [create.blade.php](../../../Modules/Ponto/Resources/views/importacoes/create.blade.php)
-- [index.blade.php](../../../Modules/Ponto/Resources/views/importacoes/index.blade.php)
-- [show.blade.php](../../../Modules/Ponto/Resources/views/importacoes/show.blade.php)
-- [_form.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/_form.blade.php)
-- [create.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/create.blade.php)
-- [edit.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/edit.blade.php)
-- [index.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/index.blade.php)
-- [show.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/show.blade.php)
-- [module.blade.php](../../../Modules/Ponto/Resources/views/layouts/module.blade.php)
-- [index.blade.php](../../../Modules/Ponto/Resources/views/relatorios/index.blade.php)
 - [espelho-pdf.blade.php](../../../Modules/Ponto/Resources/views/reports/espelho-pdf.blade.php)
 
 ## Telas (Inertia/React) — 21
