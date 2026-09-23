@@ -21,7 +21,7 @@ regra: PEDIDO, não inventário. Estado é derivado (§2-bis). Nunca em prototip
 |---|---|---|
 | 1 Alertas fiscais | **feita** | `AlertasFiscais.tsx` + `Cockpit.tsx:23` |
 | 2 Linha por teclado | **feita nas 2 telas** | `Cockpit.tsx:605` · `Nfe.tsx:231`/`:316` · `UC-FCKP-11` · PR #6707 |
-| **3 Paginação `.fx-pager`** | **DE PÉ** | `Pagination` = **0 hit** em `Pages/Fiscal/` → thread 02 |
+| 3 Paginação `.fx-pager` | **feita** (PR #6711, 04/09) | `Cockpit.tsx:721` `.fx-pager` `data-contract="paginacao-notas"` · `UC-FCKP-09` · lane `fiscal-cockpit-paginacao-gate` → recibo `_saida-02.md` |
 | 4 Sparklines ⛔[W]2 | **feita** | `RibbonSpark.tsx` + `Cockpit.tsx:29` |
 | 5 Tipo + densidade ⛔[W]1 | **feita nas 3 telas** | `DensidadeToggle` em `Cockpit:24` · `Nfe:25` · `Nfse:20` |
 | 6 DF-e lote ⛔[W]3 | **feita** | `Dfe.tsx:381` `data-contract="lote-dfe"` · modal `:607` · *"definitiva por nota"* `:659` · UC 07..10 verdes |
@@ -33,6 +33,8 @@ regra: PEDIDO, não inventário. Estado é derivado (§2-bis). Nunca em prototip
 | §8.2 rede | **E2E = 0** | 17 specs em `e2e/`, nenhum fiscal → thread 01 |
 
 **Emitir as 10 ondas de novo seria pedir 9 PRs por trabalho já mergeado.** Detalhe e provas: `_saida-03.md`.
+
+> **Errata 2026-09-23 — a onda 3 também estava feita.** Em 08/09 esta linha dizia *"DE PÉ · `Pagination` = 0 hit"*. A busca procurou a palavra errada: a paginação entrou pelo #6711 em **04/09**, com nomes PT-BR (`pagina`/`porPagina`), e nunca usou `Pagination` — que, aliás, não existe como componente do DS. Logo foram **10 das 10** ondas, não 9. Medição e gate rodado: `_saida-02.md`.
 
 ## 1 · LEVANTAR — 4 denominadores
 **D1 rota:** `Modules/Fiscal/Routes/web.php` — 7 telas (cockpit · NF-e/NFC-e · NFS-e · DF-e · Eventos · Config · SPED).
