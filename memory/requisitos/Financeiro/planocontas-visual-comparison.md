@@ -37,3 +37,9 @@ porta local; produção em `/financeiro/plano-contas`, empresa 1).
   (prova por dois caminhos + antes→depois). FIN-6b.
 - **"Importar", "+ Nova" e "editar"** do protótipo — o backend só tem `plano-contas.index`. Sem rota, o botão
   seria promessa falsa; entram quando existirem as ações.
+
+## Captura de referência aprovada
+
+- **2026-09-23 — [W] aprovou** a captura do `Financeiro/PlanoContas` (run 35875465025, commit `659d0c4e2`),
+  versão com "sem contas" no cartão. O tenant de teste não tem plano cadastrado, então a imagem cobre
+  cabeçalho, KPIs, abas e o cartão vazio; árvore e selos de tipo ficam para a Regra 0 em produção.
