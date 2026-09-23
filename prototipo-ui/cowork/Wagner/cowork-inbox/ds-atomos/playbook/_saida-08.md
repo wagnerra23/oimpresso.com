@@ -27,9 +27,9 @@ para travar o par soft e proibir `text-*-foreground` e `variant: 'destructive'` 
 
 ## 3 · Não feito (declarado)
 
-- `secondary` (`bg-secondary`, cinza) e `outline` ficaram. `bg-secondary` ainda é um fill
-  neutro; a decisão [W] de 2026-09-01 fala do fill **sólido colorido** e do `destructive`, e
-  "apague X autoriza X" (guarda do 00-INDICE). Migrar `secondary → neutral` é pergunta aberta.
+- ~~`secondary` ficou~~ — **resolvido no mesmo PR**: [W] 2026-09-23, *"secondary vira neutral
+  também"*. As 9 entradas `secondary` (fill cinza `bg-secondary`) viraram `neutral`
+  (`bg-muted text-muted-foreground border-border`). `outline` fica — não tem fill.
 - Não rodei vitest/typecheck local (worktree sem `node_modules`); o tipo `Variant` é derivado do
   `badgeVariants`, então variante inexistente quebraria o typecheck do CI.
 

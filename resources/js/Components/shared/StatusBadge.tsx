@@ -40,9 +40,9 @@ import type { VariantProps } from 'class-variance-authority';
  * 2026-09-23 — AP7 aplicado no mapa inteiro (decisão [W] 2026-09-01, playbook
  * `ds-atomos` thread 08): as 36 entradas `variant:'default'` + `className:'bg-<tom> …'`
  * viraram a variante soft do tom (`success`/`warning`/`info`), e as 19 `destructive`
- * (fill vermelho) viraram `danger` (par soft). `secondary`/`outline` ficaram como estavam —
- * fora do escopo da decisão. `animate-pulse` do ápice de severidade é movimento, não fill,
- * e continua.
+ * (fill vermelho) viraram `danger` (par soft). As 9 `secondary` (fill cinza `bg-secondary`)
+ * viraram `neutral` ([W] 2026-09-23, no mesmo PR). `outline` fica: não tem fill.
+ * `animate-pulse` do ápice de severidade é movimento, não fill, e continua.
  */
 type Variant = NonNullable<VariantProps<typeof badgeVariants>['variant']>;
 
@@ -51,21 +51,21 @@ type StatusEntry = { variant: Variant; label: string; className?: string };
 const mappings: Record<string, Record<string, StatusEntry>> = {
   intercorrencia: {
     rascunho:  { variant: 'outline',     label: 'Rascunho' },
-    pendente:  { variant: 'secondary',   label: 'Pendente' },
+    pendente:  { variant: 'neutral',     label: 'Pendente' },
     aprovada:  { variant: 'success',     label: 'Aprovada' },
     rejeitada: { variant: 'danger',      label: 'Rejeitada' },
     aplicada:  { variant: 'info',        label: 'Aplicada' },
     cancelada: { variant: 'outline',     label: 'Cancelada' },
   },
   aprovacao: {
-    pendente:  { variant: 'secondary',   label: 'Pendente' },
+    pendente:  { variant: 'neutral',     label: 'Pendente' },
     aprovada:  { variant: 'success',     label: 'Aprovada' },
     rejeitada: { variant: 'danger',      label: 'Rejeitada' },
     aprovada_em_lote: { variant: 'success', label: 'Lote OK' },
   },
   prioridade: {
     baixa:   { variant: 'outline',     label: 'Baixa' },
-    normal:  { variant: 'secondary',   label: 'Normal' },
+    normal:  { variant: 'neutral',     label: 'Normal' },
     alta:    { variant: 'danger',      label: 'Alta' },
     urgente: { variant: 'danger',      label: 'Urgente', className: 'animate-pulse' },
   },
@@ -86,8 +86,8 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
    */
   documento: {
     draft:      { variant: 'outline',   label: 'Rascunho' },
-    pending:    { variant: 'secondary', label: 'Pendente' },
-    ordered:    { variant: 'secondary', label: 'Solicitado' },
+    pending:    { variant: 'neutral',   label: 'Pendente' },
+    ordered:    { variant: 'neutral',   label: 'Solicitado' },
     partial:    { variant: 'warning',   label: 'Parcial' },
     received:   { variant: 'success',   label: 'Recebido' },
     final:      { variant: 'success',   label: 'Final' },
@@ -112,27 +112,27 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     rascunho:   { variant: 'warning',   label: 'Rascunho' },
   },
   os: {
-    ordered:    { variant: 'secondary', label: 'Solicitado' },
+    ordered:    { variant: 'neutral',   label: 'Solicitado' },
     packed:     { variant: 'info',      label: 'Embalado' },
     shipped:    { variant: 'info',      label: 'Enviado' },
     delivered:  { variant: 'success',   label: 'Entregue' },
     cancelled:  { variant: 'outline',   label: 'Cancelado' },
   },
   payment: {
-    pending:        { variant: 'secondary',   label: 'Pendente' },
+    pending:        { variant: 'neutral',     label: 'Pendente' },
     partial:        { variant: 'warning',     label: 'Parcial' },
     paid:           { variant: 'success',     label: 'Pago' },
     due:            { variant: 'danger',      label: 'Vencido' },
     overdue:        { variant: 'danger',      label: 'Atrasado' },
   },
   financeiro_titulo: {
-    aberto:    { variant: 'secondary',   label: 'Aberto' },
+    aberto:    { variant: 'neutral',     label: 'Aberto' },
     parcial:   { variant: 'warning',     label: 'Parcial' },
     quitado:   { variant: 'success',     label: 'Quitado' },
     cancelado: { variant: 'outline',     label: 'Cancelado' },
   },
   importacao: {
-    pendente:    { variant: 'secondary', label: 'Pendente' },
+    pendente:    { variant: 'neutral',   label: 'Pendente' },
     processando: { variant: 'info',      label: 'Processando' },
     sucesso:     { variant: 'success',   label: 'Sucesso' },
     erro:        { variant: 'danger',      label: 'Erro' },
