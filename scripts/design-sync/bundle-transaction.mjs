@@ -423,11 +423,22 @@ export function vereditoDsRequires(r) {
   return linhas;
 }
 
+/**
+ * Recibo de thread escrito pelo CODE dentro do espelho: `cowork-inbox/<tema>/playbook/_saida-NN.md`.
+ * É o único arquivo do espelho cujo autor é o Code (o placar-de-lista lê daqui). Ele faz ida e
+ * volta: o Cowork recebe e reexporta. No intervalo entre o commit do Code e o próximo export do
+ * Cowork, ele NÃO está no pacote — e a poda de árvore o apagava. Medido 2026-09-23 no import do
+ * handoff (32): 3 `_saida` do placar, commitados no #7741, sumiram com o relatório dizendo `-0`.
+ */
+export const RECIBO_CODE_RE = /^cowork-inbox\/[^/]+\/playbook\/_saida-\d+[a-z]?\.md$/;
+
 function writeAndVerifyTarget({ root, staged, manifest, buffers, previous, permiteEscreverDs = false }) {
   // Só uma árvore completa autoriza poda de arquivos nunca gerenciados pelo manifesto.
   // Manifestos antigos/de shell não provam ausência de playbooks da conta.
   if (manifest.mirrorScope === 'tree') {
     const allowed = new Set(manifest.files.filter((file) => file.role !== 'preview-cache').map((file) => file.path));
+    const podados = [];
+    const preservados = [];
     function prune(dir, prefix = '') {
       for (const item of readdirSync(dir, { withFileTypes: true })) {
         const rel = prefix ? `${prefix}/${item.name}` : item.name;
@@ -436,10 +447,26 @@ function writeAndVerifyTarget({ root, staged, manifest, buffers, previous, permi
         if (item.isDirectory()) {
           prune(abs, rel);
           if (readdirSync(abs).length === 0) rmdirSync(abs);
-        } else if (item.name !== '.gitignore' && !allowed.has(rel)) rmSync(abs, { force: true });
+        } else if (item.name !== '.gitignore' && !allowed.has(rel)) {
+          // Se o pacote TRAZ o recibo, ele está em `allowed` e a versão do pacote vence. Só o que o
+          // pacote não traz fica — ausência no export não é decisão do Cowork de apagar.
+          if (RECIBO_CODE_RE.test(rel)) { preservados.push(rel); continue; }
+          rmSync(abs, { force: true });
+          podados.push(rel);
+        }
       }
     }
     prune(staged.cowork);
+    // A poda NÃO entra em `changes.deleted` (é o espelho, não o pacote), então o delta do relatório
+    // não a conta. Sem estas linhas, "-0" convivia com arquivo apagado.
+    if (podados.length) {
+      console.log(`  ✂ PODA: ${podados.length} arquivo(s) do espelho fora do manifesto removido(s)`);
+      for (const rel of podados) console.log(`     ✂ ${rel}`);
+    }
+    if (preservados.length) {
+      console.log(`  ⬜ RECIBO PRESERVADO: ${preservados.length} _saida do Code fora do pacote (o Cowork ainda não os reexportou)`);
+      for (const rel of preservados) console.log(`     ⬜ ${rel}`);
+    }
   }
   const effectiveDeleted = new Set(manifest.changes.deleted);
   if (manifest.mode === 'snapshot' && previous) {
