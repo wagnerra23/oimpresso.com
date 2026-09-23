@@ -116,8 +116,12 @@ const VISAO_ROTA = '/dashboard-legacy';
  * Ordem canônica das âncoras, na ordem do fonte — a MESMA que
  * `governance/design/contracts/dashboard-visao-geral.contract.json` declara e que o
  * gate `contrato-de-tela` lê no `.tsx`. Aqui ela é conferida contra o DOM.
+ *
+ * `pendencias` entrou no contrato com o painel do #6763 e esta lista não acompanhou — em produção
+ * (empresa com pendência) a subsequência reprovava. Ele é condicional como o `graficos`: some
+ * quando não há o que listar, por isso NÃO está nas obrigatórias do UC-DASH-17.
  */
-const VISAO_ANCORAS_CANON = ['cabecalho', 'kpis', 'contrapartidas', 'graficos', 'grades'];
+const VISAO_ANCORAS_CANON = ['cabecalho', 'kpis', 'contrapartidas', 'pendencias', 'graficos', 'grades'];
 
 /**
  * Sinal de PRONTIDÃO. Ver o título não prova que o corpo montou. As 4 âncoras
@@ -141,7 +145,13 @@ JS;
  */
 const VISAO_JS_ANCORAS = <<<'JS'
 (() => {
-  const nodes = [...document.querySelectorAll('[data-contract]')];
+  // Só as âncoras DA TELA. O shell (AppShellV2) também carrega `data-contract` na sidebar —
+  // sb-modos/sb-topo/sb-corpo/sb-rodape/sb-alcas, desde o #7212 — e ler o documento inteiro
+  // misturava o contrato do shell com o da tela (UC-DASH-17 vermelho, medido 2026-09-23).
+  // O recorte é o <main> do shell, não o prefixo `sb-`: nome é convenção, contêiner é estrutura.
+  const main = document.querySelector('main.main-body');
+  if (!main) return 'SEM-MAIN';
+  const nodes = [...main.querySelectorAll('[data-contract]')];
   if (nodes.length === 0) return 'NENHUMA-ANCORA';
   return nodes.map((n) => n.getAttribute('data-contract')).join('>');
 })()

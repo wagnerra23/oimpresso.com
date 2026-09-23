@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Models\PlanoConta;
+use Modules\Financeiro\Services\DreService;
 
 /**
  * Plano de Contas — tela dedicada (Onda 18 #48, 2026-05-19).
@@ -61,6 +62,10 @@ class PlanoContaController extends Controller
         return Inertia::render('Financeiro/PlanoContas/Index', [
             'planos' => $planos,
             'stats' => $stats,
+            // FIN-6b — "Lanç. mês" e "Saldo mês" (protótipo TelaPContas). Deferido: é
+            // agregado sobre fin_titulos, e a lista não deve esperar por ele. Mesma base
+            // de competência do DRE/balancete (DreService::movimentoMesPorConta).
+            'movimento' => Inertia::defer(fn () => app(DreService::class)->movimentoMesPorConta($businessId)),
         ]);
     }
 }

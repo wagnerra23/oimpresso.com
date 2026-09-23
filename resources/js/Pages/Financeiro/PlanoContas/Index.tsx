@@ -10,12 +10,13 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { type ReactNode, useMemo, useState } from 'react';
 import { Lock, FileText, Search, BookOpen } from 'lucide-react';
-import { router } from '@inertiajs/react';
+import { Deferred, router } from '@inertiajs/react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import FinStatStrip, { FinStat } from '@/Pages/Financeiro/_shared/FinStatStrip';
 import { useBusiness, usePageProps } from '@/Hooks/usePageProps';
 import { Inline } from '@/Components/layout';
+import { brlNoSign } from '@/Pages/Financeiro/Cobranca/_lib/cobranca-shared';
 
 interface PlanoConta {
   id: number;
@@ -39,9 +40,19 @@ interface Stats {
   custo: number;
 }
 
+/** FIN-6b — movimento do mês por conta (DreService::movimentoMesPorConta). Competência,
+ *  sem cancelados; saldo com sinal (receber +, pagar −); conta pai soma tudo abaixo dela.
+ *  Conta sem movimento não vem no mapa. */
+interface Movimento {
+  mes: string;
+  mes_label: string;
+  contas: Record<number, { lancamentos: number; saldo: number }>;
+}
+
 interface Props {
   planos: PlanoConta[];
   stats: Stats;
+  movimento?: Movimento; // deferida: undefined até o 2º request
 }
 
 // FIN-6 (2026-09-23): selo de tipo no formato do protótipo (TelaPContas,
@@ -56,7 +67,46 @@ const TIPO_SELO: Record<PlanoConta['tipo'], { chip: string; ponto: string; rotul
   patrimonio: { chip: 'bg-[var(--bg-2)] text-[var(--text-dim)]',  ponto: 'bg-[var(--text-mute)]', rotulo: 'Patrimônio' },
 };
 
-function FinanceiroPlanoContas({ planos, stats }: Props) {
+/**
+ * As duas células de movimento do mês (FIN-6b), no formato do protótipo (TelaPContas :646-656):
+ * quantidade ou "—"; saldo com sinal (+ verde / − neutro), sem "R$", ou "—" quando zero.
+ * `mov === undefined` = prop deferida ainda não chegou; `null` = conta sem movimento no mês.
+ */
+function MovimentoCelulas({ mov }: { mov: { lancamentos: number; saldo: number } | null | undefined }) {
+  if (mov === undefined) {
+    return (
+      <>
+        <td className="px-2 py-2 text-right text-[var(--text-mute)]" aria-busy="true">…</td>
+        <td className="px-2 py-2 text-right text-[var(--text-mute)]" aria-busy="true">…</td>
+      </>
+    );
+  }
+  const qtd = mov?.lancamentos ?? 0;
+  const saldo = mov?.saldo ?? 0;
+  return (
+    <>
+      <td className="px-2 py-2 text-right tabular-nums text-[var(--text-dim)]">
+        {qtd > 0 ? qtd : <span className="text-[var(--text-mute)]">—</span>}
+      </td>
+      <td
+        className={`px-2 py-2 text-right tabular-nums font-medium ${
+          saldo === 0 ? 'text-[var(--text-mute)]' : saldo > 0 ? 'text-[var(--pos)]' : 'text-[var(--text)]'
+        }`}
+      >
+        {saldo === 0 ? (
+          '—'
+        ) : (
+          <>
+            <span className="text-[var(--text-dim)] mr-0.5">{saldo > 0 ? '+' : '−'}</span>
+            {brlNoSign(Math.abs(saldo))}
+          </>
+        )}
+      </td>
+    </>
+  );
+}
+
+function FinanceiroPlanoContas({ planos, stats, movimento }: Props) {
   const [busca, setBusca] = useState('');
   const [tipoFilter, setTipoFilter] = useState<PlanoConta['tipo'] | 'all'>('all');
 
@@ -151,6 +201,11 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
               {/* Plano vazio não tem profundidade: "0 níveis" (1ª captura) lia como defeito. */}
               Receita Federal/DCASP · {niveis === 0 ? 'sem contas' : `${niveis} ${niveis === 1 ? 'nível' : 'níveis'}`}
             </div>
+            <Deferred data="movimento" fallback={<div className="text-[length:var(--fs-2)] text-[var(--text-mute)] mt-0.5">carregando movimento do mês…</div>}>
+              <div className="text-[length:var(--fs-2)] text-[var(--text-dim)] mt-0.5">
+                Lanç. e saldo de {movimento?.mes_label ?? ''} · por competência, sem cancelados
+              </div>
+            </Deferred>
           </div>
           <div className="ml-auto shrink-0 fin-search-wrap">
             <Search size={13} aria-hidden="true" />
@@ -167,6 +222,9 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
               <th className="pl-6 pr-2 py-2 text-left font-medium w-[120px]">Código</th>
               <th className="px-2 py-2 text-left font-medium">Conta</th>
               <th className="px-2 py-2 text-left font-medium w-[120px]">Tipo</th>
+              {/* FIN-6b — as duas colunas do protótipo (TelaPContas :625-626), logo depois de Tipo. */}
+              <th className="px-2 py-2 text-right font-medium w-[80px]">Lanç. mês</th>
+              <th className="px-2 py-2 text-right font-medium w-[140px]">Saldo mês</th>
               <th className="px-2 py-2 text-left font-medium w-[80px]">Natureza</th>
               <th className="px-2 py-2 text-center font-medium w-[100px]">Aceita lanç.</th>
               <th className="pl-2 pr-6 py-2 text-center font-medium w-[80px]">Protegido</th>
@@ -201,6 +259,7 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
                     {TIPO_SELO[p.tipo].rotulo}
                   </span>
                 </td>
+                <MovimentoCelulas mov={movimento === undefined ? undefined : (movimento.contas[p.id] ?? null)} />
                 <td className="px-2 py-2 text-[var(--text-dim)] text-[length:var(--fs-2)]">{p.natureza}</td>
                 <td className="px-2 py-2 text-center">
                   {p.aceita_lancamento ? (
@@ -216,7 +275,7 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-[var(--text-dim)]">
+                <td colSpan={8} className="py-12 text-center text-[var(--text-dim)]">
                   {planos.length === 0
                     ? 'Plano de contas ainda não seedado pra este business. Rode `php artisan tinker --execute=\"(new \\Modules\\Financeiro\\Database\\Seeders\\PlanoContasBrSeeder)->run({biz_id});\"` no SSH.'
                     : 'Nenhuma conta com os filtros atuais.'}

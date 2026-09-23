@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia;
 use Modules\Financeiro\Models\Titulo;
 use Spatie\Permission\Models\Permission;
@@ -383,4 +384,54 @@ it('não dispara mutação em GET /dre?aba=balanco|balancete (read-only puro)', 
 
     $tituloCountAfter = Titulo::query()->count();
     expect($tituloCountAfter)->toBe($tituloCountBefore);
+});
+
+it('aba=balancete: conta-folha com código só de dígitos não derruba o balancete (TypeError → 500)', function () {
+    // Medido em produção em 2026-09-23: a aba Balancete da empresa 1 dava 500. Código de conta
+    // só com dígitos ("1", "3", …) vira chave INT no array de folhas, e o str_starts_with do
+    // agregador estourava TypeError sob strict_types. Os outros casos deste arquivo PULAM com
+    // balancete vazio, por isso nunca exercitaram o defeito.
+    //
+    // Tenant fictício 98 (ADR 0358), nunca o primeiro business do banco — no CT 100 a base é clone de
+    // produção. `fin_titulos` não aceita DELETE, então tudo roda em transação desfeita.
+    $business = $this->seededTenant();
+    $user = User::where('business_id', $business->id)->first();
+    if (! $user) {
+        $this->markTestSkipped("Sem user no business {$business->id}.");
+    }
+
+    DB::beginTransaction();
+    try {
+        $codigo = '9'.random_int(1000000, 9999999); // só dígitos, de propósito
+        $conta = (int) DB::table('fin_planos_conta')->insertGetId([
+            'business_id' => $business->id, 'codigo' => $codigo, 'nome' => 'Folha numerica',
+            'tipo' => 'receita', 'nivel' => 1, 'parent_id' => null, 'natureza' => 'credito',
+            'aceita_lancamento' => true, 'protegido' => false, 'ativo' => true,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        // Conta PAI (não-folha): é o laço dos pais que percorre as folhas com str_starts_with.
+        // Sem ao menos um pai o laço não roda, o defeito não dispara e o teste ficaria verde à toa.
+        DB::table('fin_planos_conta')->insert([
+            'business_id' => $business->id, 'codigo' => '9.9.P'.random_int(100000, 999999), 'nome' => 'Pai qualquer',
+            'tipo' => 'receita', 'nivel' => 1, 'parent_id' => null, 'natureza' => 'credito',
+            'aceita_lancamento' => false, 'protegido' => false, 'ativo' => true,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('fin_titulos')->insert([
+            'business_id' => $business->id, 'numero' => 'BAL-'.uniqid(), 'tipo' => 'receber',
+            'status' => 'aberto', 'valor_total' => 123.45, 'valor_aberto' => 123.45, 'moeda' => 'BRL',
+            'emissao' => now()->toDateString(), 'vencimento' => now()->toDateString(),
+            'competencia_mes' => now()->format('Y-m'), 'plano_conta_id' => $conta,
+            'origem' => 'manual', 'origem_id' => random_int(600000, 699999), 'created_by' => $user->id,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $linhas = collect(app(\Modules\Financeiro\Services\DreService::class)
+            ->montarBalancete($business->id, 'mes')['linhas'])->keyBy('codigo');
+
+        expect($linhas->has($codigo))->toBeTrue();
+        expect((float) $linhas[$codigo]['saldo'])->toBe(123.45);
+    } finally {
+        DB::rollBack();
+    }
 });

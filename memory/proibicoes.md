@@ -1788,6 +1788,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** correção que **estende o escopo de varredura** de uma lista de predicados (aqui: passar a testar o `+`, não só o `-`) não se dá por entregue sem conferir **cada** predicado da lista contra o escopo novo. Âncora, prefixo e lookbehind que eram corretos no escopo antigo viram filtro silencioso no novo. E o bite-test da correção cobre **uma instância por família**, ou declara quais ficaram fora. Uma instância da família mais fácil (`export`, sem âncora) prova só aquela família. Mesma raiz da §5 2026-08-03 (*consertar um comprimento da família e não medir os irmãos*), agora no eixo **escopo da varredura** em vez de **forma da regex**. É também a **3ª falha do mesmo #7691**: as outras duas estão na §5 2026-09-22 (*"O zero de um medidor tem TRÊS causas"*) e na errata de corpus do docblock.
 
+### 2026-09-23 — EMENDA da lápide 2026-08-20 (sondar o git com a mudança não commitada): o eixo HOOK — um PreToolUse decidia pelo índice ANTES do `git add` do próprio comando, e os testes dele nunca usaram a forma real
+
+- **O limite (variante também proibida):** hook PreToolUse que decide por estado que o comando interceptado ainda vai mudar (índice git, arquivos, env) considera os segmentos **anteriores** do mesmo comando — separados também por quebra de linha — e tira do comando o que é texto (corpo de heredoc, string entre aspas). E o teste de um hook usa **as formas medidas no corpus**, com a proporção ao lado, não a forma conveniente para o teste. Corolário: consertar um hook que lê o índice obriga a medir os irmãos que leem o índice.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
