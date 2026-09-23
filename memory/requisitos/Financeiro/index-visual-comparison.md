@@ -111,3 +111,30 @@ A coluna **Origem** (chip Banco/OFX) e as colunas de workflow que a Fase 1 da
 [ADR 0236](../../decisions/0236-extrato-conciliacao-modelo-unificado.md) trouxe são
 exatamente o que o protótipo **não** tem. A prod está à frente por decisão registrada;
 o protótipo é que está atrás. **Nada a corrigir na produção por conta desta divergência.**
+
+---
+
+## FIN-4a — layout do protótipo, só forma (2026-09-23)
+
+Onda do [RUNBOOK-paridade-ondas](RUNBOOK-paridade-ondas.md) §6 (Conciliação = 4ª). Âncora:
+`TelaConciliacao` em `prototipo-ui/cowork/Wagner/financeiro-telas-extras.jsx`, servida com o DS
+carregado (`servirEspelho`, ADR 0401).
+
+| Dimensão | Protótipo | Produção antes | FIN-4a | Veredito |
+|---|---|---|---|---|
+| Título | "Financeiro · Conciliação" | "Conciliação · OFX bancário" | igual ao protótipo; "OFX bancário" vai pro subtítulo | IGUAL |
+| Primário | "Novo título" | nenhum | "Novo título" (só navega para `/financeiro/unificado/novo`) | IGUAL |
+| Faixa de KPIs | cartão único, divisões verticais, valor `--fs-8` | 4 cartões `fin-stat` | cartão único no formato do protótipo, **com os 4 contadores da produção** | IGUAL na forma |
+| KPIs "Período" e "Total no extrato" | presentes | ausentes | ausentes | DÍVIDA A FECHAR — FIN-4b (dado novo + soma de valor na tela) |
+| Selo de status | pílula com ponto, tokens | retângulo com borda, cor crua (`stone`/`amber`) | pílula com ponto, tokens; texto segue o status da produção | IGUAL na forma |
+| Cor crua | — | 16 usos (charter proíbe) | 0 | IGUAL |
+| Lista em duas colunas Extrato × Sistema | presente | tabela de 7 colunas | tabela de 7 colunas | DÍVIDA A FECHAR — FIN-4b (resumo do título vem do backend; ação "Criar" é nova) |
+
+**Contraste medido** (tokens resolvidos em produção no tema escuro = arquivo gerado; claro pelo
+arquivo gerado): selo "sugerido" `--warn`/`--warn-soft` = **5,94:1** escuro · **3,71:1** claro.
+O par é o do protótipo (UI-0029: forma é dele), então fica — e vai como dívida do tema claro para o
+design, junto da "atrasada" do Impostos. Os demais selos passam AA nos dois temas
+(`--text-dim`/`--bg-2` 5,42 claro · 6,80 escuro; `--pos`/`--pos-soft` 5,03 · 5,52).
+
+**Valor:** nenhuma expressão de valor mudou (`stats.*`, `brl(l.valor)`, `match_score`) — só a
+classe em volta. Leitura "antes" em produção (empresa 1): 4 contadores em 0 e tabela vazia.

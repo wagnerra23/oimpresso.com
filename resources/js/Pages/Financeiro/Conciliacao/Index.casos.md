@@ -4,8 +4,16 @@ casos: Conciliação bancária · /financeiro/conciliacao
 irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-02"
+last_run: "2026-09-23"
 ---
+
+> ℹ️ **`last_run` 2026-08-02 → 2026-09-23 (G-6) — FIN-4a: o que mudou na tela foi só FORMA.**
+> Em `Index.tsx`: cores dos selos de status e da tabela passaram a tokens do tema (fim da cor crua que o charter proíbe),
+> os 4 KPIs viraram um cartão único no formato do protótipo (mesmos rótulos `PENDENTES`/`SUGERIDOS`/`CONCILIADOS`/`IGNORADOS`,
+> mesmos contadores, ainda em `<small>`/`<b>` que o E2E lê), o título virou "Financeiro · Conciliação" e entrou o primário
+> "Novo título" (só navega). Zero cálculo, prop, rota ou handler alterado: upload, confirmar, ignorar, reabrir e o filtro de
+> resolvidos seguem idênticos. Ordem e conteúdo das colunas da tabela não mudaram. **Nenhum UC foi reexecutado**: o bump
+> registra que o trio foi reconciliado contra o `.tsx` novo, não um veredito novo.
 
 # Casos de uso — /financeiro/conciliacao
 
