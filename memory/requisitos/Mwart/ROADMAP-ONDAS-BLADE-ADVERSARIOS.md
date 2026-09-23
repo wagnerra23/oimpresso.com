@@ -86,6 +86,7 @@ A armadilha que a rota fecha:
 - **Já vivo em React:** `/cliente` drawer 760px + abas anexos/vendas/pagamentos/assinaturas (fix 2026-06-08).
 - **Critério de desligamento:** `resource('contacts')` redireciona pra `/cliente` nos 6 tipos; ledger e import portados; `contact/*.blade` lápide.
 - **Dependência:** leve sobre Onda 1 (a venda referencia cliente). Pode rodar em paralelo.
+- 📄 Plano de layout Code × Design (2026-09-23): [ONDA-2-CLIENTES-PLANO.md](ONDA-2-CLIENTES-PLANO.md)
 
 ### Onda 3 — Produtos & catálogo `domínio D` · parcial · ≈55 fn
 - **Adversário [CD]:** Linear (densidade) + Shopify Admin (produto) — grade densa navegável por teclado + editor de produto com variações que não vira formulário infinito. Régua: **cadastrar uma variação sem medo**.
