@@ -40,14 +40,7 @@
 // DOM renderizado, não aqui.
 
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-
-// O menu do usuário lê o tema via `useTheme` → `usePage` (auth.user.ui_theme).
-// No app o shell está SEMPRE dentro do <App> do Inertia; aqui não há, então o
-// contexto é simulado com o mínimo que o hook lê. Não altera o que este arquivo mede.
-vi.mock('@inertiajs/react', () => ({
-  usePage: () => ({ props: { auth: { user: { ui_theme: 'dark' } } } }),
-}));
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { CompanyPicker, SidebarFooter } from '@/Components/cockpit/Sidebar';
 import type { BusinessOpt } from '@/Components/cockpit/shared';

@@ -131,3 +131,35 @@ describe('Aparência — escolher muda o estado e o ✓ acompanha', () => {
     expect(screen.getByRole('button', { name: /apar[eê]ncia/i }).textContent).toContain('escuro');
   });
 });
+
+describe('abrir o menu NÃO mexe no tema (regressão pega pelo VRT, estado=dark)', () => {
+  // `ui_theme` null na prop + `.dark` já aplicado pelo servidor/anti-flash. É o
+  // caso do usuário sem preferência salva que tem `oi.theme=dark` no localStorage,
+  // e é o que o VRT monta no estado `dark`. A 1ª versão deste PR montava o
+  // useTheme junto com o menu (sempre montado); o efeito dele, com modo null,
+  // re-sincronizava com o SO (claro) e tirava o `.dark`: 5 telas saíram claras.
+  it('com ui_theme null e .dark aplicado, abrir o menu mantém dark e o trigger diz escuro', () => {
+    temaGuardado = null;
+    document.documentElement.classList.add('dark');
+    document.documentElement.setAttribute('data-theme', 'auto');
+    render(
+      <div className="cockpit">
+        <SidebarFooter
+          nome="Wagner Rocha"
+          email="wagner@oimpresso.com.br"
+          cargo="Administrador"
+          iniciais="WR"
+          superadminItems={[]}
+          userMenuItems={[]}
+        />
+      </div>,
+    );
+
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: /wagner rocha/i }));
+
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(screen.getByRole('button', { name: /apar[eê]ncia/i }).textContent).toContain('escuro');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});

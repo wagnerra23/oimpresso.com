@@ -1201,10 +1201,16 @@ function SidebarUserMenu({
     localStorage.setItem(LS.SUPER_EXPANDED, superExpanded ? '1' : '0');
   }, [superExpanded]);
 
-  // Tema: UMA instância do useTheme (dono = users.ui_theme) serve o trigger E o
-  // subpainel. Duas instâncias teriam `effective` independentes — o trigger não
-  // veria a escolha feita no subpainel até o próximo reload.
-  const { effective: temaEfetivo, setTheme } = useTheme();
+  // Tema mostrado no trigger: lido do DOM (o que o anti-flash/servidor aplicou) e
+  // atualizado pela escolha feita no subpainel. NÃO monta o useTheme aqui: o menu
+  // está sempre montado, e o efeito de montagem do hook, com `ui_theme` null,
+  // re-sincroniza com o SO e TIRA o `.dark` que o servidor aplicou. O VRT pegou isso
+  // (estado=dark virou claro em 5 telas, diff 74–85%). O hook só monta com a
+  // cascata aberta, como já era no main.
+  const [temaEfetivo, setTemaEfetivo] = useState<'light' | 'dark'>(lerTemaDoDom);
+  useEffect(() => {
+    if (open) setTemaEfetivo(lerTemaDoDom());
+  }, [open]);
 
   // Estado da cascata: qual sub-menu está ativo (null = só painel principal)
   const [activeSub, setActiveSub] = useState<'superadmin' | 'disponivel' | 'aparencia' | 'vibes' | null>(null);
@@ -1376,7 +1382,7 @@ function SidebarUserMenu({
         </div>
       )}
 
-      {activeSub === 'aparencia' && <ThemeSubpanel efetivo={temaEfetivo} onTema={setTheme} />}
+      {activeSub === 'aparencia' && <ThemeSubpanel onEscolha={setTemaEfetivo} />}
 
       {activeSub === 'vibes' && vibe !== undefined && onVibe && (
         <VibesSubpanel vibe={vibe} onVibe={onVibe} />
@@ -1462,20 +1468,21 @@ function vibeAccent(vibe: Vibe): string {
 
 // ── ThemeSubpanel — plug do useTheme no subpainel Aparência (UI-0011) ─
 
-function ThemeSubpanel({
-  efetivo,
-  onTema,
-}: {
-  efetivo: 'light' | 'dark';
-  onTema: (t: 'light' | 'dark') => void;
-}) {
+function lerTemaDoDom(): 'light' | 'dark' {
+  if (typeof document === 'undefined') return 'dark';
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}
+
+function ThemeSubpanel({ onEscolha }: { onEscolha: (t: 'light' | 'dark') => void }) {
+  const { effective, setTheme } = useTheme();
   // Duas opções, Escuro primeiro — protótipo `sidebar.jsx` TEMAS (dark é o padrão do
   // projeto, [W] 2026-06-03). A opção "Sistema" saiu do menu: quem tem
   // `ui_theme = null` continua seguindo o SO até escolher.
   // O ✓ segue o tema EFETIVO, não o `mode`: o `mode` vem de `auth.user.ui_theme`
   // (prop) e o setTheme persiste por fetch sem reload do Inertia — ele fica velho
   // até a próxima visita, e o ✓ ficava no tema antigo depois do clique.
-  const atual = efetivo;
+  // `effective` é da MESMA instância que chama setTheme, então acompanha o clique.
+  const atual = effective;
   const options: Array<{
     key: 'light' | 'dark';
     label: string;
@@ -1499,7 +1506,10 @@ function ThemeSubpanel({
             key={o.key}
             type="button"
             className={`um-item um-cascade-trigger ${active ? 'active' : ''}`}
-            onClick={() => onTema(o.key)}
+            onClick={() => {
+              setTheme(o.key);
+              onEscolha(o.key);
+            }}
             aria-pressed={active}
             title={o.desc}
           >
