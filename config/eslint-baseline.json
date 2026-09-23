@@ -166,7 +166,7 @@
     "resources/js/Pages/Financeiro/Dre/_components/BalanceteView.tsx|no-restricted-syntax": 22,
     "resources/js/Pages/Financeiro/Dre/_components/BalancoView.tsx|no-restricted-syntax": 34,
     "resources/js/Pages/Financeiro/Extrato/Index.tsx|jsx-a11y/label-has-associated-control": 2,
-    "resources/js/Pages/Financeiro/Fluxo/Index.tsx|no-restricted-syntax": 64,
+    "resources/js/Pages/Financeiro/Fluxo/Index.tsx|no-restricted-syntax": 3,
     "resources/js/Pages/Financeiro/Fluxo/Index.tsx|react-hooks/exhaustive-deps": 1,
     "resources/js/Pages/Financeiro/Impostos/Index.tsx|no-restricted-syntax": 1,
     "resources/js/Pages/Financeiro/PlanoContas/Index.tsx|no-restricted-syntax": 8,
