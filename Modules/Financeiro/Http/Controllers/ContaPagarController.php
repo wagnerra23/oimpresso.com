@@ -17,6 +17,18 @@ use Modules\Financeiro\Models\TituloBaixa;
  */
 class ContaPagarController extends Controller
 {
+    /**
+     * Gate de permissão (Camada 3 Spatie). Até 2026-09-23 este controller não
+     * verificava permissão nenhuma — rota e FormRequest só exigiam login.
+     * O escopo por business_id segue no corpo dos métodos; isto fecha o acesso
+     * DENTRO da empresa. Admin#{biz} passa pelo Gate::before (AuthServiceProvider).
+     */
+    public function __construct()
+    {
+        $this->middleware('can:financeiro.contas_pagar.view')->only('index');
+        $this->middleware('can:financeiro.contas_pagar.pagar')->only('pagar');
+    }
+
 
     public function index(Request $request): Response|\Illuminate\Http\Response
     {

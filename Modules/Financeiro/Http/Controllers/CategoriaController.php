@@ -25,6 +25,20 @@ use Modules\Financeiro\Models\PlanoConta;
  */
 class CategoriaController extends Controller
 {
+    /**
+     * Gate de permissão (Camada 3 Spatie). Até 2026-09-23 este controller não
+     * verificava permissão nenhuma — rota e FormRequest só exigiam login.
+     * O escopo por business_id segue no corpo dos métodos; isto fecha o acesso
+     * DENTRO da empresa. Admin#{biz} passa pelo Gate::before (AuthServiceProvider).
+     */
+    public function __construct()
+    {
+        $this->middleware('can:financeiro.dashboard.view')->only('index');
+        // Não existe permission própria de categoria: criar/editar categoria é
+        // parte de lançar título, então segue a permission de lançamento.
+        $this->middleware('can:financeiro.lancamentos.create')->except('index');
+    }
+
 
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
