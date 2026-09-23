@@ -49,7 +49,7 @@ roda esse `--check`.
 ## 4 · O que fica aberto (não é desta thread)
 
 - **A prova do `00-INDICE.md` (`nao_contem "PT-04 Dashboard"`) está errada** e segue
-  reprovando — o placar continua marcando 01 como `proximo`. O índice é do Cowork; a
+  reprovando — com este recibo o placar marca 01 como `em curso`, e não fecha. O índice é do Cowork; a
   correção é marcar a thread com `bloqueio`/descartada lá, não editar o charter.
 - **A divergência de numeração entre o DS espelhado (PT-04 Modal / PT-05 Dashboard) e o
   catálogo do repo (PT-04 Dashboard / PT-05 Kanban)** é o achado real. Qual catálogo é o
