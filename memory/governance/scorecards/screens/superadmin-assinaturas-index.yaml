@@ -1,0 +1,56 @@
+# Scorecard screen-grade 16-dim — thread 13 do playbook "Prontidão" (passos 0+1 do screen-qa-specialist).
+# NOTA DE LEITURA DE CÓDIGO: dada lendo .tsx + charter + controller, SEM browser de prod
+# (sem screenshot, sem axe, sem medição de perf). Passos 2-4 (E2E/axe/smoke) ficaram fora desta thread.
+# Primeira medição: baseline_anterior = a própria nota. Ratchet: a nota não cai sem aprovação [W].
+screen: superadmin/Assinaturas/Index
+path: Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx
+archetype: list
+persona: wagner
+nota: 77
+nivel: "Advanced"
+baseline_anterior: 77   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: prontidao-thread13-2026-09-23
+graded_at: "2026-09-23"
+metodo: "leitura de codigo (tsx+charter+controller) — sem browser"
+preflight:
+  charter: Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.charter.md (status draft)
+  casos: Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.casos.md
+  controller: Modules/Superadmin/Http/Controllers/SuperadminSubscriptionsController.php:48 (index, defer L65-67, paginate(20) L212)
+  prototipo: prototipo-ui/cowork/Wagner/superadmin-page.jsx → ViewAssinaturas()
+  persona_fonte: memory/requisitos/_DesignSystem/personas-por-modulo.yml:91 (superadmin → primary wagner) + charter L39 (1440px)
+resumo: "A mais completa das quatro: KPIs com recorte declarado, 3 filtros preservados, ordenação server-side com aria-sort, kebab DS e gaveta Sheet que diz o efeito antes de aplicar. Perde na recuperação de erro — o useForm não exibe erro de validação — e nas datas digitadas como texto livre dd/mm/aaaa."
+dimensoes: { density: 80, discoverability: 76, speed_to_task: 76, error_recovery: 62, cognitive_load: 80, aesthetic_usability: 76, affordance: 80, brand_confidence: 78, mobile_fit: 70, a11y_wcag: 72, i18n_ptbr: 88, performance_perceived: 82, information_hierarchy: 78, microcopy: 86, internal_consistency: 76, preflight_conformance: 70 }
+evidencia:
+  density: "Index.tsx:414-423 — vigência fundida início→fim com trial embaixo; 6 colunas + ações L382-389"
+  discoverability: "Index.tsx:180-218 — filtros pacote/status/criada em + Limpar"
+  speed_to_task: "Index.tsx:155-156 — ordenar por cabeçalho; kebab por linha L481-499"
+  error_recovery: "Index.tsx:552-563 — status/vigencia via useForm sem renderizar .errors; falha de validação some sem aviso"
+  cognitive_load: "Index.tsx:290-294 — KPI 'Vencidas ou canceladas' declara as bloqueadas fora da conta"
+  aesthetic_usability: "Index.tsx:282 — grid de 4 KPIs; gaveta em Sheet L568"
+  affordance: "Index.tsx:330-336 — cabeçalho ordenável é <button>; kebab com aria-label L485"
+  brand_confidence: "Index.tsx:23-46 — Card/Badge/Button/Input/Label/Textarea/DropdownMenu/Sheet do DS"
+  mobile_fit: "Index.tsx:381 — overflow-x-auto; Sheet w-full sm:max-w-md L569"
+  a11y_wcag: "Index.tsx:331 — aria-sort; L580 e L594 — <Label> sem htmlFor (o select tem aria-label próprio); L486 glifo '⋯' como conteúdo do botão"
+  i18n_ptbr: "Index.tsx:105-120 — status e períodos PT-BR, enum nunca exposto; moeda pt-BR L134"
+  performance_perceived: "SuperadminSubscriptionsController.php:65-67 — defer; Index.tsx:175 e L221 <Deferred> com skeleton"
+  information_hierarchy: "Index.tsx:174-240 — KPIs → filtros → tabela, ancorados por data-contract"
+  microcopy: "Index.tsx:521-537 — cada ação diz o efeito; L663 'Esticar o fim prorroga o acesso sem gerar cobrança nova'"
+  internal_consistency: "Index.tsx:47 — Select/plural/tomDaAssinatura compartilhados com Negócios"
+  preflight_conformance: "Index.tsx:629-656 — datas como Input texto dd/mm/aaaa sem máscara/DatePicker; text-[11px] recorrente (L271, L397); charter draft L7"
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Stripe Dashboard: erro de validação aparece inline no campo da gaveta e o painel fica aberto com o que foi digitado"
+    fix: "Renderizar status.errors / vigencia.errors por campo (Index.tsx:552-563, 577-666) e um aviso geral no SheetFooter quando o servidor recusar a transição"
+    esforco: baixo
+    origin: prontidao-thread13-2026-09-23
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear/Stripe: campo de data com seletor e máscara — impossível digitar data inválida"
+    fix: "Trocar os 3 Input texto (Index.tsx:629-656) pelo DatePicker/máscara do DS, mantendo o formato que o /superadmin/update-subscription espera"
+    esforco: medio
+    origin: prontidao-thread13-2026-09-23
+  - dim: "A11y-WCAG"
+    best_of_class: "shadcn/Radix: Label associado ao controle por htmlFor/id; botão de ícone com ícone svg + aria-label"
+    fix: "Ligar Label↔select (Index.tsx:580, 594) via id; trocar o glifo '⋯' (L486) pelo ícone MoreHorizontal do DS mantendo o aria-label"
+    esforco: baixo
+    origin: prontidao-thread13-2026-09-23
