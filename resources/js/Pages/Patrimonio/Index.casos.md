@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOOK-patr
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-09-23"
 ---
 
 > ℹ️ **`last_run` 2026-09-09 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
