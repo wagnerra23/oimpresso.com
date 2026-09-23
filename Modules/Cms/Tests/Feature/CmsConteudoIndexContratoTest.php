@@ -1,0 +1,131 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Business;
+use App\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Inertia\Testing\AssertableInertia;
+use Modules\Cms\Entities\CmsPage;
+
+uses(Tests\TestCase::class);
+
+// @covers-us US-CMS-004
+
+/**
+ * Contrato da lista `/cms/cms-page` — thread Cms/01, fase 1 (Blade → Inertia).
+ *
+ * Os UCs vêm do contrato, não do código:
+ *   Modules/Cms/Resources/js/Pages/Admin/Content/Index.casos.md
+ *   prototipo-ui/cowork/Wagner/cowork-inbox/cms/CMS-F1-2026-08-19.md §2/§3
+ *
+ * `cms_pages` é global (sem business_id — ADR 0093 §superadmin). O tenant 98 só dá o
+ * `business_id` do usuário de teste. ⚠️ SKIP em SQLite: leia assertions, não "0 failed" (LC-13).
+ */
+beforeEach(function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: o painel do CMS requer schema MySQL UltimatePOS.');
+    }
+    if (! Schema::hasTable('cms_pages') || ! Schema::hasTable('business')) {
+        $this->markTestSkipped('Schema ausente — rode migrations primeiro.');
+    }
+
+    // O middleware `superadmin` compara o USERNAME com constants.administrator_usernames.
+    config(['constants.administrator_usernames' => 'cms_superadmin_test']);
+});
+
+afterEach(function () {
+    CmsPage::where('title', 'like', 'Contrato cms01 %')->delete();
+});
+
+const BIZ_CMS = 98;
+const ROTA_CMS = '/cms/cms-page';
+
+function cmsUsuario(string $username): User
+{
+    Business::firstOrCreate(['id' => BIZ_CMS], ['name' => 'Tenant fictício cms', 'currency_id' => 1]);
+
+    return User::firstOrCreate(['username' => $username], [
+        'email' => $username.'@test.local',
+        'password' => bcrypt('secret'),
+        'business_id' => BIZ_CMS,
+        'first_name' => 'Cms',
+        'last_name' => 'Teste',
+    ]);
+}
+
+function cmsLista(string $tipo): array
+{
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+
+    $resposta = test()->actingAs(cmsUsuario('cms_superadmin_test'))->get(ROTA_CMS.'?type='.$tipo, [
+        'X-Inertia' => 'true',
+        // O browser real manda os DOIS (lápide §5 2026-09-08): sem este header o teste
+        // passaria num controller que se desvia por request()->ajax().
+        'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia-Version' => (string) $versao,
+        'X-Inertia-Partial-Data' => 'paginas',
+        'X-Inertia-Partial-Component' => 'Admin/Content/Index',
+    ]);
+
+    $resposta->assertOk();
+
+    return (array) $resposta->json('props.paginas');
+}
+
+it('UC-CMS-01 · a lista responde Inertia com a ordem de priority e vazio no fim', function () {
+    CmsPage::create(['type' => 'page', 'title' => 'Contrato cms01 sem ordem', 'content' => 'x', 'is_enabled' => 1, 'priority' => null]);
+    CmsPage::create(['type' => 'page', 'title' => 'Contrato cms01 segunda', 'content' => 'x', 'is_enabled' => 1, 'priority' => 2]);
+    CmsPage::create(['type' => 'page', 'title' => 'Contrato cms01 primeira', 'content' => 'x', 'is_enabled' => 0, 'priority' => 1]);
+
+    $this->actingAs(cmsUsuario('cms_superadmin_test'))
+        ->get(ROTA_CMS.'?type=page')
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $p) => $p->component('Admin/Content/Index')->where('tipo', 'page'));
+
+    $titulos = collect(cmsLista('page'))->pluck('titulo')->filter(fn ($t) => str_starts_with($t, 'Contrato cms01'))->values()->all();
+
+    expect($titulos)->toBe(['Contrato cms01 primeira', 'Contrato cms01 segunda', 'Contrato cms01 sem ordem']);
+});
+
+it('UC-CMS-02 · usuário sem superadmin é barrado enquanto o superadmin passa', function () {
+    $barrado = $this->actingAs(cmsUsuario('cms_admin_negocio_test'))->get(ROTA_CMS);
+    expect($barrado->getStatusCode())->toBeIn([302, 403]);
+
+    $this->actingAs(cmsUsuario('cms_superadmin_test'))->get(ROTA_CMS)->assertOk();
+});
+
+it('UC-CMS-03 · visitante sem sessão vai para o login', function () {
+    $this->get(ROTA_CMS)->assertRedirect();
+});
+
+it('UC-CMS-20 · a linha diz situação, sistema e descrição sem enum cru', function () {
+    CmsPage::create(['type' => 'page', 'title' => 'Contrato cms01 sistema', 'content' => 'x', 'is_enabled' => 1, 'layout' => 'home', 'meta_description' => '']);
+    CmsPage::create(['type' => 'page', 'title' => 'Contrato cms01 livre', 'content' => 'x', 'is_enabled' => 0, 'meta_description' => 'descrição']);
+
+    $linhas = collect(cmsLista('page'))->keyBy('titulo');
+
+    expect($linhas['Contrato cms01 sistema']['sistema'])->toBeTrue()
+        ->and($linhas['Contrato cms01 sistema']['sem_descricao'])->toBeTrue()
+        ->and($linhas['Contrato cms01 sistema']['publicada'])->toBeTrue()
+        ->and($linhas['Contrato cms01 livre']['sistema'])->toBeFalse()
+        ->and($linhas['Contrato cms01 livre']['sem_descricao'])->toBeFalse()
+        ->and($linhas['Contrato cms01 livre']['publicada'])->toBeFalse()
+        ->and($linhas['Contrato cms01 livre']['endereco'])->toBe('/c/page/contrato-cms01-livre');
+});
+
+it('UC-CMS-21 · tipo fora do domínio cai em page e a aba de blog só lista blog', function () {
+    CmsPage::create(['type' => 'blog', 'title' => 'Contrato cms01 post', 'content' => 'x', 'is_enabled' => 1]);
+
+    $this->actingAs(cmsUsuario('cms_superadmin_test'))
+        ->get(ROTA_CMS.'?type=banner')
+        ->assertInertia(fn (AssertableInertia $p) => $p->where('tipo', 'page'));
+
+    $blog = collect(cmsLista('blog'))->firstWhere('titulo', 'Contrato cms01 post');
+    $pagina = collect(cmsLista('page'))->firstWhere('titulo', 'Contrato cms01 post');
+
+    expect($blog)->not->toBeNull()
+        ->and($blog['endereco'])->toBe('/c/blog/contrato-cms01-post-'.$blog['id'])
+        ->and($pagina)->toBeNull();
+});

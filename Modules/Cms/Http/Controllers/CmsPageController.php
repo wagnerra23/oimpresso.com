@@ -47,14 +47,51 @@ class CmsPageController extends Controller
      */
     public function index(Request $request)
     {
-        $post_type = $request->get('type', 'page');
+        // Thread Cms/01 — a lista sai do Blade (cms::page.index) e vira Inertia.
+        // create/edit seguem Blade nesta fase (RUNBOOK-admin-content.md §Fases).
+        // Tipo fora do domínio cai em `page`: a tela nunca mostra enum cru (A1 do F1).
+        $tipo = in_array($request->get('type'), self::TIPOS, true) ? $request->get('type') : 'page';
 
-        $pages = CmsPage::where('type', $post_type)
-                    ->orderBy('priority', 'asc')
-                    ->get();
+        $contagens = CmsPage::whereIn('type', self::TIPOS)
+            ->selectRaw('type, COUNT(*) as total')
+            ->groupBy('type')
+            ->pluck('total', 'type');
 
-        return view('cms::page.index')
-            ->with(compact('pages', 'post_type'));
+        return Inertia::render('Admin/Content/Index', [
+            'tipo' => $tipo,
+            'contagens' => collect(self::TIPOS)->mapWithKeys(fn ($t) => [$t => (int) ($contagens[$t] ?? 0)]),
+            'paginas' => Inertia::defer(fn () => $this->buildListaPayload($tipo)),
+        ]);
+    }
+
+    /** Domínio real de `cms_pages.type` — nav.blade.php + CmsController (pedido [CC] §3.b). */
+    private const TIPOS = ['page', 'blog', 'testimonial'];
+
+    /**
+     * Linhas da lista. `priority` asc com vazio no fim (R6) — o `orderBy` cru do Blade
+     * punha NULL primeiro no MySQL.
+     */
+    private function buildListaPayload(string $tipo): array
+    {
+        return CmsPage::where('type', $tipo)
+            ->orderByRaw('priority IS NULL, priority ASC')
+            ->get()
+            ->map(fn (CmsPage $p) => [
+                'id' => $p->id,
+                'titulo' => $p->title,
+                'prioridade' => $p->priority,
+                'publicada' => (bool) $p->is_enabled,
+                // R3: layout preenchido = página de sistema, sem excluir.
+                'sistema' => ! empty($p->layout),
+                'sem_descricao' => trim((string) $p->meta_description) === '',
+                'criada_em' => optional($p->created_at)->toIso8601String(),
+                'endereco' => match ($tipo) {
+                    'page' => '/c/page/'.$p->slug,
+                    'blog' => '/c/blog/'.$p->slug.'-'.$p->id,
+                    default => null,
+                },
+            ])
+            ->all();
     }
 
     /**

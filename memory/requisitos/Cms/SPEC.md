@@ -83,7 +83,7 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Como** admin (Wagner/Maiara)
 **Quero** criar/editar páginas via UI moderna React
 **Pra** parar de depender do Blade `cms::page.create`
-**Implementado em:** _pendente_ — migração MWART não iniciada; CRUD admin segue Blade (`cms::page.*` via CmsPageController) e não existe Page Inertia de admin do Cms
+**Implementado em:** _parcial_ · `Modules/Cms/Http/Controllers/CmsPageController.php` · `Modules/Cms/Resources/js/Pages/Admin/Content/Index.tsx` · verificado@1061dbf2e (2026-09-23) — fase 1 da thread Cms/01: a LISTA é Inertia; criar/editar seguem Blade. O módulo é dono das próprias páginas (`Modules/Cms/Resources/js/Pages/Admin/**`, não `resources/js/Pages/Cms/**`) e o RUNBOOK é `RUNBOOK-admin-content.md` — fases 2–5 lá
 
 **Acceptance:**
 - Page Inertia em `resources/js/Pages/Cms/Pages/Index.tsx` + `Create.tsx` + `Edit.tsx`
