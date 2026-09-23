@@ -1,0 +1,56 @@
+# Scorecard screen-grade 16-dim — thread 13 do playbook "Prontidão" (passos 0+1 do screen-qa-specialist).
+# NOTA DE LEITURA DE CÓDIGO: dada lendo .tsx + charter + controller, SEM browser de prod
+# (sem screenshot, sem axe, sem medição de perf). Passos 2-4 (E2E/axe/smoke) ficaram fora desta thread.
+# Primeira medição: baseline_anterior = a própria nota. Ratchet: a nota não cai sem aprovação [W].
+screen: superadmin/Negocios/Index
+path: Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.tsx
+archetype: list
+persona: wagner
+nota: 74
+nivel: "Advanced"
+baseline_anterior: 74   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: prontidao-thread13-2026-09-23
+graded_at: "2026-09-23"
+metodo: "leitura de codigo (tsx+charter+controller) — sem browser"
+preflight:
+  charter: Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.charter.md (status draft)
+  casos: Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.casos.md
+  controller: Modules/Superadmin/Http/Controllers/BusinessController.php:56 (index, defer L76-80, paginate(20) L188)
+  prototipo: prototipo-ui/cowork/Wagner/superadmin-page.jsx → ViewNegocios()
+  persona_fonte: memory/requisitos/_DesignSystem/personas-por-modulo.yml:91 (superadmin → primary wagner) + charter L38 (1440px)
+resumo: "Lista de atendimento forte no caminho feliz: '/' foca a busca com debounce, 4 filtros que se preservam na query string, paginação no servidor e drawer de detalhe como estado da lista com esc. Perde em acessibilidade — linha clicável sem teclado e drawer hand-roll sem focus trap — e diverge do Sheet que a tela irmã Assinaturas já usa."
+dimensoes: { density: 76, discoverability: 78, speed_to_task: 82, error_recovery: 72, cognitive_load: 76, aesthetic_usability: 74, affordance: 70, brand_confidence: 74, mobile_fit: 70, a11y_wcag: 58, i18n_ptbr: 88, performance_perceived: 82, information_hierarchy: 76, microcopy: 82, internal_consistency: 66, preflight_conformance: 66 }
+evidencia:
+  density: "Index.tsx:327-332 — 6 colunas com linha secundária (#id·cidade, e-mail) L345-354"
+  discoverability: "Index.tsx:219-248 — busca + 4 filtros + Limpar condicional"
+  speed_to_task: "Index.tsx:135-146 — '/' foca a busca; L149-159 debounce 300ms"
+  error_recovery: "Index.tsx:302-311 — vazio distingue 'sem cadastro' de 'sem resultado' citando o termo; drawer 'não encontrado' L465-472"
+  cognitive_load: "Index.tsx:197-210 — trocar um filtro preserva os demais"
+  aesthetic_usability: "Index.tsx:438-460 — barra de uso com corte 70/90%, sem barra quando ilimitado"
+  affordance: "Index.tsx:337-341 — linha clicável só por mouse (cursor-pointer, sem tabIndex/role)"
+  brand_confidence: "Index.tsx:23-29 — Card/Badge/Input/Button/Skeleton/PageHeader/EmptyState do DS"
+  mobile_fit: "Index.tsx:323 — overflow-x-auto na tabela; drawer w-[min(460px,92vw)] L399"
+  a11y_wcag: "Index.tsx:337-341 — tr onClick sem teclado; L391-405 dialog hand-roll sem focus trap nem retorno de foco; L220-226 busca só com placeholder, sem aria-label"
+  i18n_ptbr: "Index.tsx:371 — plural 'negócio/negócios'; filtros com rótulos PT-BR L105-125"
+  performance_perceived: "BusinessController.php:76-80 — defer; Index.tsx:252 <Deferred> com skeleton; partial reload only:['negocios','filtros'] L208"
+  information_hierarchy: "Index.tsx:494-545 — drawer em 4 seções na ordem do contrato"
+  microcopy: "Index.tsx:501-505 — diz por que o valor não aparece em vez de mostrar valor errado"
+  internal_consistency: "Index.tsx:387-405 — drawer hand-roll enquanto Assinaturas/Index.tsx:568 usa Sheet do DS"
+  preflight_conformance: "Index.tsx:443 — bg-amber-500 cru; Index.charter.md:91-114 — 4 dívidas de paridade F1 abertas; charter draft L7"
+gaps:
+  - dim: "A11y-WCAG"
+    best_of_class: "Linear/GitHub: linha de lista é elemento focável (link/button) — Enter abre o detalhe, setas navegam, o drawer prende o foco e devolve à linha ao fechar"
+    fix: "Tornar a célula-nome um <button>/link que chama onAbrir (Index.tsx:337-349); trocar Casca/Scrim (L387-405) por Sheet do DS (focus trap + retorno de foco); aria-label='Buscar negócio' no Input L220"
+    esforco: medio
+    origin: prontidao-thread13-2026-09-23
+  - dim: "Internal-consistency"
+    best_of_class: "Stripe Dashboard: um único componente de painel lateral em todas as listas do admin"
+    fix: "Drawer via SheetContent como em Assinaturas/Index.tsx:568, mantendo o estado por ?negocio= (partial reload)"
+    esforco: medio
+    origin: prontidao-thread13-2026-09-23
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4: severidade de uso via token (warning/destructive), não paleta crua"
+    fix: "bg-amber-500 (Index.tsx:443) → token de aviso; fechar as dívidas de paridade F1 (tabela 5+seleção, paginação) conforme decisão [W] registrada no charter L112-114"
+    esforco: medio
+    origin: prontidao-thread13-2026-09-23
