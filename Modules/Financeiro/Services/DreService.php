@@ -985,44 +985,33 @@ class DreService
             ->pluck('total', 'plano_conta_id')
             ->toArray();
 
-        // ───────── Mapas auxiliares: code→saldo folha + code→conta ─────────
-        $saldoPorCodigo = []; // 'codigo' => saldo (folhas iniciais)
-        $contaPorCodigo = []; // 'codigo' => stdClass conta
+        // ───────── Saldo de cada conta = o lançado NELA + tudo abaixo dela ─────────
+        // Até 2026-09-23 só as contas marcadas `aceita_lancamento` (folhas) alimentavam os pais,
+        // e o título lançado direto numa conta NÃO-folha sumia do balancete. Medido em produção
+        // na empresa 1: os 108 títulos de setembro estão na 1.2.1, marcada como não-folha, e a
+        // aba mostrava o mês zerado. Aprovado por [W] (regra mestre de valor): o pai soma tudo
+        // abaixo dele, como o Plano de contas (DreService::movimentoMesPorConta) já faz.
+        //
+        // LISTA de pares, não mapa indexado pelo código: chave de array numérica ("1", "3") vira
+        // INT e quebra o str_starts_with sob strict_types (o 500 corrigido no #7831).
+        $diretos = [];
         foreach ($contas as $c) {
-            $contaPorCodigo[$c->codigo] = $c;
-            $saldoFolha = (float) ($somasFolhas[$c->id] ?? 0.0);
-            $saldoPorCodigo[$c->codigo] = round($saldoFolha, 2);
-        }
-
-        // ───────── Agregar pros pais (totalizar nível 1, 2, 3 a partir de 4) ─────────
-        // Estratégia: pra cada conta NÃO-folha, somar saldos das filhas via
-        // prefix string. Ex: nivel=1 codigo='3' soma todas com codigo LIKE '3.%'
-        // mas que sejam folhas (não dupla contagem).
-        // Caminho mais simples: identificar folhas (aceita_lancamento) e propagar
-        // pra ancestrais via string prefix.
-        $folhas = [];
-        foreach ($contas as $c) {
-            if ($c->aceita_lancamento) {
-                $folhas[$c->codigo] = $saldoPorCodigo[$c->codigo];
+            $valor = (float) ($somasFolhas[$c->id] ?? 0.0);
+            if (abs($valor) >= 0.005) {
+                $diretos[] = ['codigo' => (string) $c->codigo, 'valor' => $valor];
             }
         }
 
-        // Pra cada conta NÃO-folha, soma folhas cujo código comece com "{codigo}."
+        $saldoPorId = [];
         foreach ($contas as $c) {
-            if ($c->aceita_lancamento) {
-                continue; // folha já tem saldo direto
-            }
-            $sum = 0.0;
-            $prefix = $c->codigo.'.';
-            foreach ($folhas as $codigoFolha => $valor) {
-                // (string): código só de dígitos ("1", "3") vira chave INT no array — sem o cast
-                // o str_starts_with estoura TypeError sob strict_types e a aba Balancete dá 500
-                // (medido em produção, empresa 1, 2026-09-23).
-                if (str_starts_with((string) $codigoFolha, $prefix)) {
-                    $sum += $valor;
+            $codigo = (string) $c->codigo;
+            $soma = 0.0;
+            foreach ($diretos as $d) {
+                if ($d['codigo'] === $codigo || str_starts_with($d['codigo'], $codigo.'.')) {
+                    $soma += $d['valor'];
                 }
             }
-            $saldoPorCodigo[$c->codigo] = round($sum, 2);
+            $saldoPorId[$c->id] = round($soma, 2);
         }
 
         // ───────── Materializar linhas ─────────
@@ -1032,7 +1021,7 @@ class DreService
         $creditoTotal = 0.0;
 
         foreach ($contas as $c) {
-            $saldo = (float) ($saldoPorCodigo[$c->codigo] ?? 0.0);
+            $saldo = (float) ($saldoPorId[$c->id] ?? 0.0);
 
             // Skip: saldo 0 e (se for não-folha) sem filhos com movimentação.
             // Folhas com saldo 0 também pulam pra reduzir ruído.
@@ -1058,13 +1047,13 @@ class DreService
                 'is_folha'   => (bool) $c->aceita_lancamento,
             ];
 
-            // Totaliza apenas folhas pra não duplicar (ancestrais agregam folhas)
-            if ($c->aceita_lancamento) {
-                if ($tipoSaldo === 'D') {
-                    $debitoTotal += $saldo;
-                } else {
-                    $creditoTotal += $saldo;
-                }
+            // Totais: cada título entra UMA vez, pela conta onde foi lançado (o valor DIRETO dela),
+            // nunca pelo saldo agregado — senão o pai contaria de novo o que já está nas filhas.
+            $direto = (float) ($somasFolhas[$c->id] ?? 0.0);
+            if ($tipoSaldo === 'D') {
+                $debitoTotal += $direto;
+            } else {
+                $creditoTotal += $direto;
             }
         }
 
