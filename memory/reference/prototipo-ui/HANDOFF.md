@@ -5,7 +5,20 @@
 
 ---
 
-## Estado atual: 2026-09-23 — Onda 2 Clientes: plano Code × Design gravado
+## Estado atual: 2026-09-23 — Financeiro passa na frente de Clientes
+
+[W] decidiu começar pelo **Financeiro**: ninguém o usa ainda, e Clientes é a única família em uso por
+cliente. Plano gravado no dono do módulo, [`RUNBOOK-paridade-ondas.md` §12](../../requisitos/Financeiro/RUNBOOK-paridade-ondas.md):
+FIN-0a (medir DRE e Fluxo) → FIN-0b (CSS) → FIN-0c (prova de valor) → FIN-1 DRE → FIN-2 Fluxo.
+Comparação na empresa 1, **julho de 2026**, sem gravar dado.
+
+**Agora:** aguardando [W] autorizar a FIN-0a e decidir a ordem da §6; o Design responde o pedido em
+[`CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md`](CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md)
+(KPIs do Fluxo, subtítulo do gráfico, âncora da ProvaViva).
+
+---
+
+## Estado anterior: 2026-09-23 — Onda 2 Clientes: plano Code × Design gravado
 
 Clientes é a família que [W] já pôs em produção: as 7 telas de Cliente rodam em React para todos os
 tenants (`governance/prod-flags.json`). Plano em etapas (F0 testes → F1 conserto do Import → L1 layout

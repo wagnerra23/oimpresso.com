@@ -320,3 +320,64 @@ O protótipo abre em `http://localhost:5577/oimpresso.com.html` (preview `cowork
 ---
 
 _Criado em 2026-08-18. Retrato datado: os números do §1 envelhecem por construção — re-rode o §11 em vez de editá-los._
+
+---
+
+## 12. Revisão de 2026-09-23 — plano do workflow e decisões [W] do dia (append; não reordena a §6)
+
+> Saída do workflow `migracao-layout-em-ondas` em modo plano (run `wf_dd49566d-08b`, base
+> `origin/main` `798d7406fbb`), conferida pelo `[CL]`. Este manual continua sendo o **único** plano de
+> ondas do Financeiro (§10); o que vem abaixo é delta, não plano paralelo. Irmão para Clientes:
+> [`ONDA-2-CLIENTES-PLANO.md`](../Mwart/ONDA-2-CLIENTES-PLANO.md).
+
+### 12.1 Decisões [W] registradas hoje
+
+- **O Financeiro começa antes de Clientes.** Clientes é a única família em uso por cliente; [W]
+  prefere não mexer nela primeiro ([W] 2026-09-23: *"ainda estou cético em deixar fazer isso"*).
+- **Ninguém usa o Financeiro ainda.** Só a empresa 1 tem dados, e são do próprio [W], desatualizados
+  ([W] 2026-09-23). Logo as entradas Financeiro do `governance/prod-flags.json` que apontam biz=4
+  (seed **manual** de 2026-06-30, não derivado) **não** descrevem uso real.
+- **Comparação na empresa 1, período de julho de 2026, sem gravar nada** ([W] 2026-09-23: *"usa
+  julho, não precisa gravar nada"*). Medido no mesmo dia, só leitura: 39.121 títulos ativos, 35.348
+  baixas, título mais recente em 2026-07-02, 0 títulos `SEEDER_DEMO`. O `FinanceiroDemoSeeder`
+  **não** roda na empresa 1 (ele já recusa por `protected_business_ids`; a trava fica).
+
+### 12.2 O que o run achou e muda a leitura deste manual
+
+| Achado | Evidência | Efeito |
+|---|---|---|
+| A troca de layout do Financeiro **não tem flag**: chega a todo business com `financeiro_module` no deploy | nenhum `mwart.financeiro_*` em `config/mwart.php` | reversão = `git revert` do `.tsx`; como ninguém usa, o risco de uso é baixo, o de **valor exibido** continua |
+| `fin-card`/`fin-ink`/`fin-sysbtn` não existem em `resources/css` | `grep -c fin-card resources/css/cowork-canon-financeiro-bundle.css` = 0; `prototipo-ui/cowork/Wagner/financeiro.css` = 2 | porte do CSS **inteiro** (§8, lição F3) em PR próprio antes de qualquer `.tsx` que use essas classes |
+| Paths-filter da lane `financeiro-pest.yml` só cobre `Impostos/Index.tsx` entre as Pages | L84-107 | PR que toque só `Dre/Index.tsx` ou `Fluxo/Index.tsx` sai verde **sem rodar teste** — consertar antes da onda |
+| Fluxo: o código do protótipo tem 4 KPIs, a medição de runtime de 2026-09-08 viu 1 | `financeiro-telas-extras.jsx` `TelaFluxo` × `fluxo-visual-comparison.md` §Onda 7 | **AMBÍGUO**, não se fecha por leitura — medir de novo antes de ondear o Fluxo |
+| `ProvaViva.charter.md` aponta âncora removida no #7445 | charter `related_prototype` | decisão [W]: `n/a (herda PT-0X)` ou nova âncora |
+| Charter do DRE contradiz o código (anti-hooks `os-page-h` e "proíbe `Card`") | `Dre/Index.charter.md:55-56` × `Dre/Index.tsx`, `BalancoView.tsx:54` | corrigir o perdedor no mesmo PR da onda; qual lado perde é [W] |
+
+### 12.3 Etapas propostas (uma por execução, cada uma com aprovação [W])
+
+| Etapa | O que é | Toca `.tsx`? |
+|---|---|---|
+| **FIN-0a** | Fechar a Onda 0 (§4) **só para DRE e Fluxo**: diagnosticar o "3 design systems no shell" que invalida os proto-baselines; `design-diff --probe` prod×protótipo nas duas telas, empresa 1, **julho 2026**, mesmo tema e viewport; resolver o 1×4 KPIs do Fluxo e o "12m" do DRE por medição; linha do Financeiro no `FRESCOR-PRODUCAO-vs-PROTOTIPO.md` | não |
+| **FIN-0b** | Porte do CSS inteiro do bundle Financeiro (só se FIN-0a mostrar "prod atrás") | não |
+| **FIN-0c** | Prova de valor: pôr `Dre/**` e `Fluxo/Index.tsx` no paths-filter da lane e um teste novo, tenant 98 (+99 de verdade), que prenda os números que a tela exibe | não |
+| **FIN-1** | **DRE** — só formata valores (cálculo no `DreService`); se FIN-0a medir paridade, a onda só trava o estado | sim, se "prod atrás" |
+| **FIN-2** | **Fluxo** — depende de FIN-0a e da decisão sobre os KPIs; a tela **calcula** valores (`Fluxo/Index.tsx:84,149,189,270`), então cálculo byte-idêntico | sim |
+| FIN-3+ | Impostos → Conciliação/Cobrança → Unificado → Onda 9 | — |
+
+**Prova de valor de toda onda de tela (regra mestre, dois caminhos):** (1) `git diff` vazio em
+`Modules/Financeiro/{Services,Http,Entities}` e a lane com a mesma contagem de assertions;
+(2) lista ordenada dos números exibidos em **julho de 2026 na empresa 1**, antes e depois, idêntica —
+apresentada ao [W] como tabela antes→depois.
+
+### 12.4 Perguntas abertas [W]
+
+1. **Ordem:** a §6 põe o Unificado como Onda 1 e o DRE como Onda 4. O run recomenda **DRE primeiro**
+   (só formata, menor risco) e Unificado por último. Autoriza reordenar a §6?
+2. **Fluxo:** se o design de fato mostra 1 KPI e a produção 4 — manter os 4 (o Design acrescenta ao
+   protótipo) ou retirar 3?
+3. **Charter do DRE:** atualiza o charter para o código atual, ou o código volta ao charter?
+4. **ProvaViva:** `n/a (herda PT-0X)` ou nova âncora?
+5. Autoriza a **FIN-0a** (só medição e documentos) como próxima execução?
+
+O pedido ao Design está em
+[`CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md`](../../reference/prototipo-ui/CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md).
