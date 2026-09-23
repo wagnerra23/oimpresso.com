@@ -293,7 +293,7 @@ class CmsPageController extends Controller
      * @param  int  $id
      * @return Response
      */
-    public function destroy($id)
+    public function destroy(\Modules\Cms\Http\Requests\DeleteCmsPageRequest $request, $id)
     {
         //check if app is in demo & disable action
         $notAllowedInDemo = $this->commonUtil->notAllowedInDemo();

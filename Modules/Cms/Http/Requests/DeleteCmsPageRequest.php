@@ -42,9 +42,11 @@ class DeleteCmsPageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // type vem como query string ou form input. Whitelist espelha
-            // StoreCmsPageRequest pra simetria — qualquer type fora vira 422.
-            'type' => ['nullable', 'string', Rule::in(['page', 'post', 'banner'])],
+            // type vem como query string ou form input. Whitelist = domínio real do
+            // módulo (page · blog · testimonial), o mesmo de Store/UpdateCmsPageRequest
+            // desde o #5992. `post`/`banner` saíram por decisão [W] 2026-09-23: nenhuma
+            // consulta do módulo os lê — qualquer type fora vira 422.
+            'type' => ['nullable', 'string', Rule::in(['page', 'blog', 'testimonial'])],
         ];
     }
 
@@ -54,7 +56,7 @@ class DeleteCmsPageRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'type.in' => 'Tipo inválido pra remoção. Use page, post ou banner.',
+            'type.in' => 'Tipo inválido. Use página, blog ou depoimento.',
         ];
     }
 }
