@@ -811,6 +811,14 @@
       "promote_by": "2026-11-01",
       "anchor": "PR-A8 do plano COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md (pedido [W] 2026-09-05, 'SINCRONIZAR <Mod>', §12 do protocolo). Sinal de custo declarado no plano: 'hoje o placar e por tela; o Code terminou a lista inteira? nao tem maquina'. A logica veio do git (4f51a9ec781^) — a ponte que o plano manda ler no main foi removida pela ADR 0397 (#7224), que proibe o endereco dela (D1 arvore minima · D3 maquina fora do prototipo · D5 design-docs nao e cemiterio). Recibo: memory/reference/prototipo-ui/CODE_NOTES.errata-pr-a8-fonte-removida-pela-0397-2026-09-17.md",
       "promote_by_razao": "FP medido ANTES de ligar, no corpus real (2026-09-17): 12 modulos · 61 threads · 0 fechando. Por isso o job NAO roda --check: nasceria vermelho nos 12 e ficaria, que e o gate-de-teatro invertido (§5 2026-07-28, o caso do mcp:tasks:unassigned com FAIL>=5 e 31 tasks). A causa do 0 e do CORPUS e foi medida — so 4 de 61 threads tem _saida, porque os playbooks sao planos em andamento. O medidor discrimina: o bite-test tem controle positivo onde uma thread CHEGA a feito, e apagar uma prova a derruba (aceite T5). Quando valer ligar o veredito, o predicado tem de ser DELTA (o PR piorou o placar?), nunca absoluto — lapide §5 2026-08-24."
+    },
+    "paymentgateway-pest.yml": {
+      "nome": "PaymentGateway · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-12-23",
+      "anchor": "tests/Feature/PaymentGateway/ nao rodava em lane nenhuma (medido 2026-09-23): test-lane-coverage acusa o modulo PaymentGateway com 45 de 48 arquivos de teste fora de lane, e a modules-pest.yml roda em sqlite, onde o contrato pularia (skip sai exit 0, LC-13). Nasce com PaymentGatewaysSettingsContratoTest (UC-PGSET-01..07, tela /settings/payment-gateways, credenciais de gateway Tier 0): isolamento por business na lista e no toggle, config_json nunca no payload. MySQL porque o teste precisa do schema UltimatePOS e do tenant 98 (ADR 0358); o adversario 99 e criado pelo proprio teste.",
+      "promote_by_razao": "Nasce advisory (ADR 0275): area sem execucao conhecida, promocao so com mordida provada (ADR 0336), flip de [W]. Sem continue-on-error de proposito (lapide 2026-07-09). Na promocao: reinserir synchronize nos types antes do flip (lapide 2026-08-08) e re-postar branch protection so via gh api --input com arquivo UTF-8 sem BOM (o nome tem U+00B7)."
     }
   }
 }

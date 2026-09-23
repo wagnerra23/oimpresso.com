@@ -45,7 +45,12 @@ class SalesTargetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        // `! request()->inertia()`: o cliente Inertia v3 manda `X-Requested-With` em TODA
+        // visita (@inertiajs/core getHeaders), e é o header que `ajax()` lê. Sem esta
+        // perna, o partial reload da prop adiada caía no JSON do DataTables e a lista
+        // ficava no skeleton para sempre (medido no staging em 2026-09-23). O DataTables
+        // do Blade legado não manda `X-Inertia`, então segue neste ramo.
+        if (request()->ajax() && ! request()->inertia()) {
             $user_id = request()->session()->get('user.id');
 
             $users = User::where('business_id', $business_id)

@@ -27,7 +27,10 @@ class StoreBaixaRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Permissão fina via middleware can:financeiro.{contas_pagar|contas_receber}.baixar
+        // Em 2026-09-23 nenhuma rota injeta este Request (só testes o instanciam),
+        // e nenhuma rota tinha o middleware `can:…baixar` que este comentário citava
+        // até então. Quem passar a usá-lo tem de pôr o gate no controller — este
+        // authorize() não verifica permissão.
         return $this->user() !== null;
     }
 

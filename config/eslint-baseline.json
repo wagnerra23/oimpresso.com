@@ -162,7 +162,7 @@
     "resources/js/Pages/Financeiro/Dashboard/Index.tsx|jsx-a11y/click-events-have-key-events": 4,
     "resources/js/Pages/Financeiro/Dashboard/Index.tsx|jsx-a11y/no-static-element-interactions": 4,
     "resources/js/Pages/Financeiro/Dashboard/Index.tsx|jsx-a11y/label-has-associated-control": 3,
-    "resources/js/Pages/Financeiro/Dre/Index.tsx|no-restricted-syntax": 50,
+    "resources/js/Pages/Financeiro/Dre/Index.tsx|no-restricted-syntax": 3,
     "resources/js/Pages/Financeiro/Dre/_components/BalanceteView.tsx|no-restricted-syntax": 22,
     "resources/js/Pages/Financeiro/Dre/_components/BalancoView.tsx|no-restricted-syntax": 34,
     "resources/js/Pages/Financeiro/Extrato/Index.tsx|jsx-a11y/label-has-associated-control": 2,

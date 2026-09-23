@@ -128,25 +128,26 @@ function TabSwitcher({ aba }: { aba: AbaAtiva }) {
 
   return (
     <div className="px-6 pt-3 pb-1">
-      <div className="inline-flex bg-stone-100/80 rounded-md p-0.5 border border-stone-200">
+      {/* FIN-1 (2026-09-23): paleta fixa → tokens do tema (mesmo mapa do card abaixo). */}
+      <div className="inline-flex bg-[var(--bg-2)] rounded-md p-0.5 border border-[var(--border)]">
         {items.map((it) => (
           <button
             key={it.id}
             type="button"
             onClick={() => trocaAba(it.id)}
             className={
-              'h-8 px-4 rounded text-[12.5px] flex items-center gap-2 transition tabular-nums ' +
+              'h-8 px-4 rounded text-[length:var(--fs-3)] flex items-center gap-2 transition tabular-nums ' +
               (aba === it.id
-                ? 'bg-white shadow-sm font-medium text-stone-900'
-                : 'text-stone-600 hover:text-stone-800')
+                ? 'bg-[var(--surface)] shadow-sm font-medium text-[var(--text)]'
+                : 'text-[var(--text-dim)] hover:text-[var(--text)]')
             }
             aria-pressed={aba === it.id}
           >
             <span>{it.label}</span>
             <span
               className={
-                'text-[10px] uppercase tracking-wider ' +
-                (aba === it.id ? 'text-stone-500' : 'text-stone-400')
+                'text-[length:var(--fs-1)] uppercase tracking-wider ' +
+                (aba === it.id ? 'text-[var(--text-dim)]' : 'text-[var(--text-mute)]')
               }
             >
               {it.hint}
@@ -193,7 +194,7 @@ function FinanceiroDre({
         subtitle={<>{meta.periodo_label} · {meta.business_name} · caixa unificado</>}
       >
         <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
-          {/* ADR 0180 Fase 5 refine — botões features → ⋯ Mais; primary `Novo lançamento` separado */}
+          {/* ADR 0180 Fase 5 refine — botões features → ⋯ Mais; primary `Novo título` separado */}
           <FinanceiroSubNav
             active="dre"
             hidePrimary
@@ -216,8 +217,11 @@ function FinanceiroDre({
               },
             ]}
           />
+          {/* FIN-1 (2026-09-23): rótulo "Novo título" = protótipo (TelaDRE / financeiro-page.jsx:224)
+              e o mesmo do Financeiro/Dashboard, que já aponta pro mesmo destino. Medido na FIN-0a
+              (dre-visual-comparison.md). Só o rótulo muda; destino e comportamento iguais. */}
           <PageHeaderPrimary
-            label="Novo lançamento"
+            label="Novo título"
             onClick={() => router.visit('/financeiro/unificado/novo')}
           />
         </div>
@@ -253,21 +257,27 @@ function FinanceiroDre({
         </div>
       )}
 
-      {/* Card grande — Demonstração de Resultado hierárquica */}
+      {/* Card grande — Demonstração de Resultado hierárquica.
+          FIN-1 (2026-09-23): paleta fixa stone-* / bg-white trocada pelos tokens do tema, espelhando
+          TelaDRE (financeiro-telas-extras.jsx:455-530). Medido na FIN-0a: o cartão saía BRANCO no
+          tema escuro. Apelidos do protótipo (styles.css:6269-6274) → nome vigente na produção:
+          --sunken=--bg-2 · --hairline=--border-2 · --text-2=--text-dim · --text-3/4=--text-mute.
+          `.fin-card`/`.fin-sysbtn`/`.fin-ink` não existem no CSS da produção: reproduzidos com
+          utilitários (financeiro.css:777-783 e :1903-1910). Só className — valores e formatadores intactos. */}
       <div className="px-6 pt-4">
-        <div className="bg-white border border-stone-200 rounded-md shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b border-stone-200 flex items-center gap-3">
+        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[11px] shadow-[var(--sh-1)] overflow-hidden">
+          <div className="px-5 py-3 border-b border-[var(--border)] flex items-center gap-3">
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-widest text-stone-500 font-medium whitespace-nowrap">
+              <div className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-dim)] font-medium whitespace-nowrap">
                 Demonstração de Resultado
               </div>
-              <div className="text-[16px] font-semibold mt-0.5 whitespace-nowrap">
+              <div className="text-[length:var(--fs-5)] font-semibold mt-0.5 whitespace-nowrap">
                 {meta.periodo_label}
               </div>
             </div>
             <div className="ml-auto flex items-center gap-2">
               {/* Pill toggle Mês/Trimestre/Ano/12m — só Mês funcional F1 (Q4). */}
-              <div className="inline-flex bg-stone-100/80 rounded-md p-0.5 border border-stone-200">
+              <div className="inline-flex bg-[var(--bg-2)] rounded-md p-0.5 border border-[var(--border)]">
                 {(['Mês', 'Trimestre', 'Ano', '12m'] as const).map((p) => {
                   const ativo = p === 'Mês' && periodoTab === 'mes';
                   const disabled = p !== 'Mês';
@@ -277,8 +287,10 @@ function FinanceiroDre({
                       type="button"
                       disabled={disabled}
                       title={disabled ? 'Em breve' : undefined}
-                      className={`h-7 px-3 rounded text-[12.5px] ${
-                        ativo ? 'bg-white shadow-sm font-medium' : 'text-stone-600'
+                      className={`h-7 px-3 rounded text-[length:var(--fs-3)] ${
+                        ativo
+                          ? 'bg-[var(--surface)] shadow-sm font-medium text-[var(--text)]'
+                          : 'text-[var(--text-dim)]'
                       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       {p}
@@ -288,22 +300,22 @@ function FinanceiroDre({
               </div>
               <a
                 href="/financeiro/dre/export-pdf"
-                className="h-8 px-3 rounded-md border border-stone-200 text-[12.5px] text-stone-700 hover:bg-stone-50 inline-flex items-center"
+                className="h-[30px] px-3 rounded-[7px] border border-[var(--border)] bg-[var(--surface)] text-[length:var(--fs-3)] font-medium text-[var(--text-dim)] hover:bg-[var(--bg-2)] hover:text-[var(--text)] hover:border-[var(--text-mute)] inline-flex items-center gap-1.5 whitespace-nowrap"
               >
-                Exportar PDF
+                <Download size={13} aria-hidden="true" /> PDF
               </a>
               <a
                 href="/financeiro/dre/export-xlsx"
-                className="h-8 px-3 rounded-md border border-stone-200 text-[12.5px] text-stone-700 hover:bg-stone-50 inline-flex items-center"
+                className="h-[30px] px-3 rounded-[7px] border border-[var(--border)] bg-[var(--surface)] text-[length:var(--fs-3)] font-medium text-[var(--text-dim)] hover:bg-[var(--bg-2)] hover:text-[var(--text)] hover:border-[var(--text-mute)] inline-flex items-center gap-1.5 whitespace-nowrap"
               >
                 Excel
               </a>
             </div>
           </div>
 
-          <table className="w-full text-[12.5px] tabular-nums">
+          <table className="w-full text-[length:var(--fs-3)] tabular-nums">
             <thead>
-              <tr className="text-[10px] uppercase tracking-widest text-stone-500 border-b border-stone-200 bg-stone-50/40">
+              <tr className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-dim)] border-b border-[var(--border)] bg-[var(--bg-2)]">
                 <th className="pl-6 pr-2 py-2 text-left font-medium">Conta</th>
                 <th className="px-2 py-2 text-right font-medium w-[140px]">
                   {shortMesAno(meta.periodo_label)}
@@ -320,26 +332,26 @@ function FinanceiroDre({
               {linhas.map((l, i) => {
                 if (l.type === 'h') {
                   return (
-                    <tr key={i} className="border-b border-stone-100">
-                      <td className="pl-6 pr-2 py-2 font-medium text-stone-900">
+                    <tr key={i} className="border-b border-[var(--border-2)]">
+                      <td className="pl-6 pr-2 py-2 font-medium text-[var(--text)]">
                         {l.label}
                       </td>
                       <td className="px-2 py-2 text-right font-semibold">
                         {brlNoSign(l.v)}
                       </td>
-                      <td className="px-2 py-2 text-right text-stone-500">
+                      <td className="px-2 py-2 text-right text-[var(--text-dim)]">
                         {l.pct_rl.toFixed(1)}%
                       </td>
-                      <td className="px-2 py-2 text-right text-stone-500">
+                      <td className="px-2 py-2 text-right text-[var(--text-dim)]">
                         {brlNoSign(l.prev)}
                       </td>
                       <td
                         className={`px-2 py-2 text-right ${
                           l.delta_pct > 0
-                            ? 'text-success'
+                            ? 'text-[var(--pos)]'
                             : l.delta_pct < 0
-                              ? 'text-destructive'
-                              : 'text-stone-400'
+                              ? 'text-[var(--neg)]'
+                              : 'text-[var(--text-mute)]'
                         }`}
                       >
                         {l.delta_pct > 0 ? '+' : ''}
@@ -352,38 +364,38 @@ function FinanceiroDre({
                 if (l.type === 'i') {
                   const positive = l.v >= 0;
                   return (
-                    <tr key={i} className="border-b border-stone-100 row-hover">
+                    <tr key={i} className="border-b border-[var(--border-2)] row-hover">
                       <td
-                        className="pl-6 pr-2 py-1.5 text-stone-600"
+                        className="pl-6 pr-2 py-1.5 text-[var(--text-dim)]"
                         style={{ paddingLeft: 24 + l.indent * 16 }}
                       >
                         {l.label}
                       </td>
-                      <td className="px-2 py-1.5 text-right text-stone-700">
+                      <td className="px-2 py-1.5 text-right text-[var(--text)]">
                         {brlNoSign(l.v)}
                       </td>
-                      <td className="px-2 py-1.5 text-right text-stone-400">
+                      <td className="px-2 py-1.5 text-right text-[var(--text-mute)]">
                         {l.pct_rl.toFixed(1)}%
                       </td>
-                      <td className="px-2 py-1.5 text-right text-stone-400">
+                      <td className="px-2 py-1.5 text-right text-[var(--text-mute)]">
                         {brlNoSign(l.prev)}
                       </td>
                       <td
-                        className={`px-2 py-1.5 text-right text-[11.5px] ${
+                        className={`px-2 py-1.5 text-right text-[length:var(--fs-2)] ${
                           l.delta_pct > 0
-                            ? 'text-success'
+                            ? 'text-[var(--pos)]'
                             : l.delta_pct < 0
-                              ? 'text-destructive'
-                              : 'text-stone-400'
+                              ? 'text-[var(--neg)]'
+                              : 'text-[var(--text-mute)]'
                         }`}
                       >
                         {l.delta_pct > 0 ? '+' : ''}
                         {l.delta_pct.toFixed(0)}%
                       </td>
                       <td className="pl-2 pr-6 py-1.5">
-                        <div className="h-1 bg-stone-100 rounded-full overflow-hidden">
+                        <div className="h-1 bg-[var(--bg-2)] rounded-full overflow-hidden">
                           <div
-                            className={`h-full ${positive ? 'bg-emerald-400' : 'bg-rose-400'}`}
+                            className={`h-full ${positive ? 'bg-[var(--pos)]' : 'bg-[var(--neg)]'}`}
                             style={{
                               width: `${Math.min(100, Math.abs(l.pct_rl) * 3)}%`,
                             }}
@@ -398,8 +410,12 @@ function FinanceiroDre({
                 return (
                   <tr
                     key={i}
-                    className={`border-y-2 border-stone-200 ${
-                      l.highlight ? 'bg-stone-900 text-white' : 'bg-stone-50'
+                    className={`border-y-2 border-[var(--border)] ${
+                      // .fin-ink do protótipo (financeiro.css:777-778): não há token equivalente
+                      // na produção, então os dois valores vêm literais, com a variante do tema escuro.
+                      l.highlight
+                        ? 'bg-[oklch(0.24_0.012_80)] dark:bg-[oklch(0.32_0.014_80)] text-white'
+                        : 'bg-[var(--bg-2)]'
                     }`}
                   >
                     <td
@@ -408,26 +424,26 @@ function FinanceiroDre({
                       {l.label}
                     </td>
                     <td
-                      className={`px-2 py-2.5 text-right font-bold text-[14px] ${
+                      className={`px-2 py-2.5 text-right font-bold text-[length:var(--fs-4)] ${
                         l.highlight
                           ? 'text-white'
                           : positive
-                            ? 'text-success'
-                            : 'text-destructive'
+                            ? 'text-[var(--pos)]'
+                            : 'text-[var(--neg)]'
                       }`}
                     >
                       {brlNoSign(l.v)}
                     </td>
                     <td
                       className={`px-2 py-2.5 text-right font-medium ${
-                        l.highlight ? 'text-stone-300' : 'text-stone-600'
+                        l.highlight ? 'text-[var(--text-mute)]' : 'text-[var(--text-dim)]'
                       }`}
                     >
                       {l.pct_rl.toFixed(1)}%
                     </td>
                     <td
                       className={`px-2 py-2.5 text-right ${
-                        l.highlight ? 'text-stone-400' : 'text-stone-600'
+                        l.highlight ? 'text-[var(--text-mute)]' : 'text-[var(--text-dim)]'
                       }`}
                     >
                       {brlNoSign(l.prev)}
@@ -435,9 +451,9 @@ function FinanceiroDre({
                     <td
                       className={`px-2 py-2.5 text-right font-semibold ${
                         l.delta_pct > 0
-                          ? 'text-emerald-400'
+                          ? 'text-[var(--pos)]'
                           : l.delta_pct < 0
-                            ? 'text-rose-400'
+                            ? 'text-[var(--neg)]'
                             : ''
                       }`}
                     >
@@ -455,57 +471,57 @@ function FinanceiroDre({
 
       {/* Bottom grid 2-col — Margem operacional + Top categorias receita */}
       <div className="px-6 mt-4 mb-4 grid grid-cols-2 gap-4">
-        <div className="bg-white border border-stone-200 rounded-md shadow-sm p-5">
-          <div className="text-[10px] uppercase tracking-widest text-stone-500 font-medium">
+        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[11px] shadow-[var(--sh-1)] p-5">
+          <div className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-dim)] font-medium">
             Margem operacional
           </div>
-          <div className="mt-1 text-[28px] font-semibold tracking-tight tabular-nums">
+          <div className="mt-1 text-[length:var(--fs-8)] font-semibold tracking-tight tabular-nums">
             {margem_operacional.atual_pct.toFixed(1)}%
           </div>
-          <div className="mt-2 text-[11.5px] text-stone-500">
+          <div className="mt-2 text-[length:var(--fs-2)] text-[var(--text-dim)]">
             vs <span className="tabular-nums">{margem_operacional.prev_pct.toFixed(1)}%</span>{' '}
             em {meta.periodo_label_prev.toLowerCase()} ·{' '}
             <span
               className={`font-medium ${
-                margem_operacional.delta_pp >= 0 ? 'text-success' : 'text-destructive'
+                margem_operacional.delta_pp >= 0 ? 'text-[var(--pos)]' : 'text-[var(--neg)]'
               }`}
             >
               {margem_operacional.delta_pp >= 0 ? '+' : ''}
               {margem_operacional.delta_pp.toFixed(1)}pp
             </span>
           </div>
-          <div className="mt-4 h-2 bg-stone-100 rounded-full overflow-hidden">
+          <div className="mt-4 h-2 bg-[var(--bg-2)] rounded-full overflow-hidden">
             <div
-              className="h-full bg-stone-900"
+              className="h-full bg-[var(--accent)]"
               style={{
                 width: `${Math.max(0, Math.min(100, margem_operacional.atual_pct))}%`,
               }}
             />
           </div>
-          <div className="mt-1.5 flex justify-between text-[10.5px] text-stone-400">
+          <div className="mt-1.5 flex justify-between text-[length:var(--fs-1)] text-[var(--text-mute)]">
             <span>0%</span>
             <span>meta {margem_operacional.meta_pct.toFixed(0)}%</span>
             <span>100%</span>
           </div>
         </div>
 
-        <div className="bg-white border border-stone-200 rounded-md shadow-sm p-5">
-          <div className="text-[10px] uppercase tracking-widest text-stone-500 font-medium">
+        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[11px] shadow-[var(--sh-1)] p-5">
+          <div className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-dim)] font-medium">
             Top categorias receita · {meta.periodo_label.toLowerCase()}
           </div>
           <div className="mt-3 space-y-2.5">
             {top_categorias_receita.map((c) => (
               <div key={c.label}>
-                <div className="flex items-baseline justify-between text-[12.5px]">
-                  <span className="text-stone-700">{c.label}</span>
+                <div className="flex items-baseline justify-between text-[length:var(--fs-3)]">
+                  <span className="text-[var(--text)]">{c.label}</span>
                   <span className="tabular-nums font-medium">
                     {brl(c.valor)}{' '}
-                    <span className="text-stone-400">· {c.pct.toFixed(0)}%</span>
+                    <span className="text-[var(--text-mute)]">· {c.pct.toFixed(0)}%</span>
                   </span>
                 </div>
-                <div className="mt-1 h-1 bg-stone-100 rounded-full overflow-hidden">
+                <div className="mt-1 h-1 bg-[var(--bg-2)] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-emerald-500"
+                    className="h-full bg-[var(--pos)]"
                     style={{ width: `${c.pct}%` }}
                   />
                 </div>
