@@ -6,7 +6,7 @@
 // Rodar: node scripts/contrato-de-tela.test.mjs — exit 0 = todos passam, exit 1 = regressão.
 
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -453,6 +453,108 @@ function repoOmissao(nome) {
       r.status === 1 && /helperDoTeste/.test(out(r)), out(r));
     drop(root);
   }
+}
+
+// 6f. C3 POSITIVO — assinatura de função (sem `export`) alterada: a linha sai no `-` e
+//     volta no `+` com o MESMO nome → não é omissão → exit 0. Até 2026-09-23 a regex da
+//     família `function` era ancorada em `^[-]`, nunca casava o `+`, e C1 não valia pra ela:
+//     acrescentar um parâmetro virava "removido SEM justificativa" (PR #7784).
+{
+  const root = repoOmissao('contrato-omis-assin-');
+  if (!root) console.log('[SKIP] C3 assinatura alterada (git indisponível)');
+  else {
+    writeFileSync(join(root, 'tela', 'x.tsx'),
+      `function FinanceiroConciliacao({ linhas, filters }: Props) {
+  return null;
+}
+`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'base']);
+    writeFileSync(join(root, 'tela', 'x.tsx'),
+      `function FinanceiroConciliacao({ linhas, filters, resumo }: Props) {
+  return null;
+}
+`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'acrescenta prop na tela']);
+    const r = node(root, ['--omission', 'HEAD~1', '--alvo', 'tela']);
+    check('C3 assinatura de função alterada → exit 0 (reaparece no +, não é omissão)',
+      r.status === 0 && /reaparece no diff/.test(out(r)), out(r));
+    drop(root);
+  }
+}
+
+// 6g. C3 CONTROLE NEGATIVO — função (sem `export`) removida de vez → AINDA acusa → exit 1.
+//     Prova que abrir a âncora pro `+` não desligou a família.
+{
+  const root = repoOmissao('contrato-omis-fnsumiu-');
+  if (!root) console.log('[SKIP] C3 controle negativo (git indisponível)');
+  else {
+    writeFileSync(join(root, 'tela', 'x.tsx'),
+      `function helperInterno(a) {
+  return a;
+}
+export const keep = 1;
+`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'base']);
+    writeFileSync(join(root, 'tela', 'x.tsx'), `export const keep = 1;
+`);
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'mexe na tela sem citar nada']);
+    const r = node(root, ['--omission', 'HEAD~1', '--alvo', 'tela']);
+    check('C3 controle negativo: função sumiu de vez → exit 1',
+      r.status === 1 && /removido "helperInterno" SEM/.test(out(r)), out(r));
+    drop(root);
+  }
+}
+
+// 6h. C1 por FAMÍLIA — as rotas (`route()` e `Route::`) também têm de reaparecer no `+`.
+//     O 6b só cobria `export`; foi por cobrir uma família só que a âncora da família
+//     `function` passou (6f). Aqui cada família restante ganha o seu caso "movido → exit 0".
+const NL = String.fromCharCode(10); // sem barra invertida: escrita por script colapsa o par (LC-26)
+for (const [fam, antes, depois] of [
+  ['route()', "const u = route('fin.conciliacao.index');" + NL, "const url = route('fin.conciliacao.index', { page: 2 });" + NL],
+  ['Route::', "Route::get('/fin/conciliacao', [C::class, 'index']);" + NL, "Route::get('/fin/conciliacao', [C::class, 'index'])->name('x');" + NL],
+]) {
+  const root = repoOmissao('contrato-omis-fam-');
+  if (!root) { console.log(`[SKIP] C1 família ${fam} (git indisponível)`); continue; }
+  writeFileSync(join(root, 'tela', 'x.ts'), antes);
+  git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'base']);
+  writeFileSync(join(root, 'tela', 'x.ts'), depois);
+  git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'mexe na linha']);
+  const r = node(root, ['--omission', 'HEAD~1', '--alvo', 'tela']);
+  check(`C1 família ${fam}: linha alterada com o mesmo símbolo → exit 0`,
+    r.status === 0 && /reaparece no diff/.test(out(r)), out(r));
+  drop(root);
+}
+
+// 6i. C4 — invariante de SYMBOL_RES (toda família casa "-" e "+" com o mesmo símbolo).
+//     Positivo no script real; negativos numa CÓPIA MUTADA do script (o CLI de fora, não um
+//     helper — LC-15). Cada mutação reproduz uma forma do defeito do C3.
+{
+  const r = node(tmpdir(), ['--check-symbol-res']);
+  check('C4 invariante SYMBOL_RES no script real → exit 0', r.status === 0 && !/assimétrico/.test(out(r)), out(r));
+}
+function scriptMutado(nome, de, para) {
+  const dir = mkdtempSync(join(tmpdir(), nome));
+  const src = readFileSync(SCRIPT, 'utf8');
+  if (src.split(de).length !== 2) throw new Error(`mutação "${nome}": âncora não é única`);
+  writeFileSync(join(dir, 'contrato-de-tela.mjs'), src.replace(de, para));
+  writeFileSync(join(dir, 'auditar-intencao-fluxo.mjs'), readFileSync(join(__dirname, 'auditar-intencao-fluxo.mjs'), 'utf8'));
+  return dir;
+}
+const runMut = (dir, args) => spawnSync('node', [join(dir, 'contrato-de-tela.mjs'), '--root', dir, ...args], { encoding: 'utf8' });
+for (const [nome, de, para, sinal] of [
+  // (a) o próprio defeito do C3: âncora só no "-".
+  ['contrato-mut-ancora-', "re: /^[-+]\\s*(?:async", "re: /^[-]\\s*(?:async", /"function" assimétrico/],
+  // (b) família sem amostra (a 6ª família futura nasce assim).
+  ['contrato-mut-semamostra-', `amostra: ["const u = route('fin.conciliacao.index');", 'fin.conciliacao.index'], `, '', /"route\(\)" sem `amostra`/],
+]) {
+  const dir = scriptMutado(nome, de, para);
+  const r = runMut(dir, ['--check-symbol-res']);
+  check(`C4 controle negativo (${nome}) → exit 1`, r.status === 1 && sinal.test(out(r)), out(r));
+  // e o --omission se recusa a rodar com família cega (não vira verde mudo).
+  const o = runMut(dir, ['--omission', 'HEAD', '--alvo', 'x']);
+  check(`C4 --omission recusa rodar com invariante quebrado (${nome}) → exit 1`,
+    o.status === 1 && /invariante de SYMBOL_RES quebrado/.test(out(o)), out(o));
+  drop(dir);
 }
 
 // 7. --map --check POSITIVO — fonte existe + seção ancorada → exit 0.
