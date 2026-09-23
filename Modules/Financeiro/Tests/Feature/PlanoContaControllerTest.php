@@ -85,6 +85,15 @@ function planoContaAtor(): array
         test()->markTestSkipped('Tabela fin_planos_conta ausente (migration do Financeiro não rodou).');
     }
 
+    // Desde o #7766 (2026-09-23) /financeiro/plano-contas exige financeiro.dashboard.view.
+    // O ator é o 1º usuário do tenant 98, que no seed do CI NÃO tem o papel Admin#98 —
+    // sem conceder aqui, os 4 UCs recebem 403 em vez de medir a tela.
+    \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'financeiro.dashboard.view', 'guard_name' => 'web']);
+    if (! $user->hasPermissionTo('financeiro.dashboard.view')) {
+        $user->givePermissionTo('financeiro.dashboard.view');
+    }
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
     return [$user, $business];
 }
 
