@@ -158,7 +158,6 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
     () => arred(subtotalLocal - arred(Math.max(0, desconto), 2) + arred(Math.max(0, extras), 2), 2),
     [subtotalLocal, desconto, extras],
   );
-  const totalNegativo = totalLocal < 0;
 
   const temItemValido = itens.some(
     (i) => i.largura_m > 0 && i.altura_m > 0 && i.quantidade >= 1 && i.preco_unitario_m2 > 0,
@@ -448,7 +447,7 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
                     {BRL.format(totalLocal)}
                   </span>
                 </div>
-                {totalNegativo && (
+                {totalLocal < 0 && (
                   <p className="text-xs text-destructive">
                     O desconto está maior que o valor do orçamento — o total fica negativo.
                   </p>
