@@ -200,22 +200,24 @@ Oito passos. O que muda entre ondas é a tela, nunca a receita.
 
 Critério: âncora primeiro (só se pode comparar quem tem fonte), risco Tier 0 dita o ritmo, telas sem âncora fecham em lote por Padrão de Tela.
 
+> **Reordenada em 2026-09-23 por decisão [W]** (*"pode reordenar, DRE primeiro"*): DRE passa a Onda 1 e o Unificado vai por último. Ordem anterior (1 Unificado · 2 Fluxo · 3 Conciliação · 4 DRE · 5 Impostos · 6 PlanoContas · 7 Cobrança · 8 ProvaViva) preservada no git. Motivo em §12.
+
 Cobertura conferida: **21/21**. O `UnificadoController` e irmãos renderizam 19 pages; `Advisor/Dashboard` e `Advisor/Login` vêm dos controllers próprios em `Http/Controllers/Advisor/`. 8 telas em ondas nomeadas + 13 na Onda 9 = 21.
 
 | Onda | Tela | Fonte | Baseline proto | Risco | Por que nesta posição |
 |---:|---|---|:---:|---|---|
 | **0** | — (fundação) | — | — | — | sem ela o passo 2 não roda em nenhuma das 7 |
-| **1** | `Unificado/Index` | `financeiro-page.jsx` | ✅ | 🔴 **valor** | maior (3090 ln), 9 UC sem prova, é a tela que a Eliana abre toda manhã |
+| **1** | `Dre/Index` | `TelaDRE` | ✅ | 🔴 **valor** | visual-comparison 80d — o mais stale do módulo · **1ª por decisão [W] 2026-09-23** (só formata; cálculo no `DreService`) |
 | **2** | `Fluxo/Index` | `TelaFluxo` | ✅ | 🔴 **valor** (projeção/saldo) | visual-comparison 53d stale |
-| **3** | `Conciliacao/Index` | `TelaConciliacao` | ✅ | 🔴 **valor** | 13 UC já com prova — melhor base do módulo |
-| **4** | `Dre/Index` | `TelaDRE` | ✅ | 🔴 **valor** | visual-comparison 80d — o mais stale do módulo |
-| **5** | `Impostos/Index` | `TelaImpostos` | ✅ | 🔴 **valor + fiscal** | 2 UC sem prova |
+| **3** | `Impostos/Index` | `TelaImpostos` | ✅ | 🔴 **valor + fiscal** | 2 UC sem prova |
+| **4** | `Conciliacao/Index` | `TelaConciliacao` | ✅ | 🔴 **valor** | 13 UC já com prova — melhor base do módulo |
+| **5** | `Cobranca/Index` | `cobranca-page.jsx` | ❌ gerar | 🔴 **valor** | fronteira com PaymentGateway — escopo a confirmar |
 | **6** | `PlanoContas/Index` | `TelaPContas` ⚠️ | ❌ gerar | 🟡 | **depende da decisão [W] de §4.3** |
-| **7** | `Cobranca/Index` | `cobranca-page.jsx` | ❌ gerar | 🔴 **valor** | fronteira com PaymentGateway — escopo a confirmar |
-| **8** | `ProvaViva` | HTML primitivos | ❌ gerar | 🟡 | 2 UC sem prova |
+| **7** | `ProvaViva` | HTML primitivos | ❌ gerar | 🟡 | 2 UC sem prova |
+| **8** | `Unificado/Index` | `financeiro-page.jsx` | ✅ | 🔴 **valor** | maior (3090 ln), 9 UC sem prova, é a tela que a Eliana abre toda manhã · **por último, decisão [W] 2026-09-23** (maior raio do módulo) |
 | **9** | as 13 sem âncora | Padrão de Tela + DS | n/a | 🟡 | conformidade PT-01/PT-04, em lote por PT — **não** repintura |
 
-`Relatorios/Index` está hoje na **Onda 9**. Se a decisão [W] do §4.3 disser que ele segue o `TelaDRE`, ele passa para a Onda 4 — é o único item cuja onda muda conforme aquela decisão.
+`Relatorios/Index` está hoje na **Onda 9**. Se a decisão [W] do §4.3 disser que ele segue o `TelaDRE`, ele passa para a Onda 1 (junto do DRE) — é o único item cuja onda muda conforme aquela decisão.
 
 ### 6.1 Onda que NÃO deve existir — Boletos
 
@@ -231,8 +233,8 @@ Antes de criar comparativo novo numa onda, procure o que já existe — três n�
 
 | Onda | Arquivo a atualizar | Pegadinha |
 |---|---|---|
-| 3 · Conciliação | `index-visual-comparison.md` | o nome diz "index", mas o campo `tela:` dele é `/financeiro/conciliacao` |
-| 1 · Unificado | `financeiro-unificado-visual-comparison.md` **+** `unificado-3-lentes-visual-comparison.md` | são **dois**, mais o `unificado-gap.md` e o `unificado.map.json` |
+| 4 · Conciliação | `index-visual-comparison.md` | o nome diz "index", mas o campo `tela:` dele é `/financeiro/conciliacao` |
+| 8 · Unificado | `financeiro-unificado-visual-comparison.md` **+** `unificado-3-lentes-visual-comparison.md` | são **dois**, mais o `unificado-gap.md` e o `unificado.map.json` |
 | 9 · Caixa | `caixa-visual-comparison.md` | compara contra **Blade do core** (`resources/views/cash_register/index.blade.php`), não contra protótipo — eixo MWART, não paridade-Cowork |
 
 Não há dívida MWART **dentro** do módulo: `Modules/Financeiro/Resources/views/` tem 3 blades e nenhum é tela concorrente (`index`, `layouts/master`, `pdf/dre` — este último gera PDF).
@@ -371,13 +373,12 @@ apresentada ao [W] como tabela antes→depois.
 
 ### 12.4 Perguntas abertas [W]
 
-1. **Ordem:** a §6 põe o Unificado como Onda 1 e o DRE como Onda 4. O run recomenda **DRE primeiro**
-   (só formata, menor risco) e Unificado por último. Autoriza reordenar a §6?
+1. ~~**Ordem**~~ — **decidido [W] 2026-09-23:** DRE primeiro, Unificado por último; §6 reordenada.
 2. **Fluxo:** se o design de fato mostra 1 KPI e a produção 4 — manter os 4 (o Design acrescenta ao
    protótipo) ou retirar 3?
 3. **Charter do DRE:** atualiza o charter para o código atual, ou o código volta ao charter?
 4. **ProvaViva:** `n/a (herda PT-0X)` ou nova âncora?
-5. Autoriza a **FIN-0a** (só medição e documentos) como próxima execução?
+5. ~~**FIN-0a**~~ — **autorizada [W] 2026-09-23.**
 
 O pedido ao Design está em
 [`CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md`](../../reference/prototipo-ui/CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md).
