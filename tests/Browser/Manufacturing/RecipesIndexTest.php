@@ -266,7 +266,13 @@ it('UC-RECIPE-01 · render — a tela monta autenticada com os 4 KPIs e a grade'
         ->assertSee('Margem');
 
     // Busca do §4.2 — o placeholder ensina o atalho que o caso do `/` exercita.
-    $page->assertSee('Buscar receita por nome, SKU, categoria');
+    // O texto vive no ATRIBUTO `placeholder` do <input>, e `assertSee` só lê o texto da página:
+    // a asserção antiga nunca podia passar (medido no visual-regression do #7807, 2026-09-23).
+    // Lê o atributo pelo `aria-label` estável; a copy vem do contrato de tela, linha 30.
+    $placeholder = (string) $page->script(
+        "(() => document.querySelector('input[aria-label=\"Buscar receita\"]')?.getAttribute('placeholder') ?? 'AUSENTE')()"
+    );
+    expect($placeholder)->toStartWith('Buscar receita por nome, SKU, categoria');
 
     $page->assertNoConsoleLogs();
 })->with([[1280, 800], [1440, 900]]);
