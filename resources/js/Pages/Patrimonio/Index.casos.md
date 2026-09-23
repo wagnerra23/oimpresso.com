@@ -176,9 +176,10 @@ last_run: "2026-09-11"
 ## UC-PAT-09 · O painel não oferece cadastro que abre página em branco
 - **Persona:** Larissa (opera a tela) — clica em "Adicionar recurso" esperando um formulário.
 - **Aceite:** Dado o usuário **com** permissão de criar · Quando o painel renderiza · Então o
-  header **não** linka pra `/asset/assets/create`, e o "Alocar recurso" aponta pra **lista**
-  (`/asset/allocation`); e o menu do módulo, se declarar `primary`, aponta pra rota que devolve
-  página de verdade.
+  header **não** linka pra `/asset/assets/create`; o "Adicionar recurso" aponta pra
+  `/asset/assets?novo=1` (abre o drawer de cadastro — UC-BENS-05) e o "Alocar recurso" pra
+  **lista** (`/asset/allocation`); e o menu do módulo, se declarar `primary`, aponta pra rota
+  que devolve página de verdade.
 - **Teste:** `tests/js/patrimonio-sem-link-para-modal.test.tsx` (`describe('UC-PAT-09 …')`) +
   `Modules/AssetManagement/Tests/Feature/MenuGhostsContratoTest.php` (`it()` citando `UC-PAT-09`,
   tenant 98, GET real sem header ajax).

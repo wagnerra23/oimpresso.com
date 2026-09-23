@@ -310,3 +310,131 @@ it('UC-BENS-01: o espelho — o adversário vê o bem DELE e não o do dono (con
         bensContratoLimpar();
     }
 });
+
+/*
+ * UC-BENS-05 — o cadastro pelo drawer grava VALOR e QUANTIDADE exatamente como digitados.
+ *
+ * REGRA MESTRE Tier 0 (valor/estoque): dupla confirmação por dois caminhos independentes.
+ *   • Caminho 1: `tests/js/patrimonio-cadastro-bem.test.tsx` fixa as STRINGS que o drawer
+ *     monta (`cadastroBem.ts::montarPayloadCadastro`) — ex.: 1.234,56 digitado → "1234,56".
+ *   • Caminho 2 (ESTE): posta essas MESMAS strings no `store()` real — `StoreAssetRequest` +
+ *     `AssetService::criar` + `Util::num_uf`/`uf_date` — e lê o que o BANCO gravou.
+ * Só os ids de categoria/local diferem dos do vitest (são fixture de cada ambiente); as
+ * strings de valor, quantidade, data e garantia são as mesmas, caractere por caractere.
+ *
+ * A linha `1234567,8` existe porque é o caso em que um separador de milhar mal lido
+ * multiplica o valor — o incidente ROTA LIVRE de 2026-06-05 foi exatamente esse eixo.
+ */
+function bensCadastroUsuario(int $businessId): User
+{
+    $user = bensContratoUsuario($businessId);
+    $role = Role::where('name', 'bens-contrato#'.$businessId)->first();
+    $role?->givePermissionTo(Permission::firstOrCreate(['name' => 'asset.create', 'guard_name' => 'web']));
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    return $user->fresh();
+}
+
+function bensCadastroLimpar(): void
+{
+    $ids = Asset::where('name', 'like', 'BENS-CTR-CAD-%')->pluck('id');
+    if ($ids->isNotEmpty()) {
+        DB::table('asset_warranties')->whereIn('asset_id', $ids)->delete();
+        Asset::whereIn('id', $ids)->forceDelete();
+    }
+    bensContratoLimpar();
+}
+
+it('UC-BENS-05: o store() grava o valor e a quantidade que o drawer posta, sem ler milhar como decimal', function (string $valorPostado, string $qtdPostada, string $valorGravado, string $qtdGravada) {
+    $biz = $this->seededTenant();
+    $bizId = (int) $biz->id;
+    $user = bensCadastroUsuario($bizId);
+    $nome = 'BENS-CTR-CAD-'.uniqid();
+
+    try {
+        bensContratoAssinaturaLiberada();
+        $local = DB::table('business_locations')->where('business_id', $bizId)->value('id');
+
+        $resposta = test()
+            ->actingAs($user)
+            ->withSession([
+                'user.business_id' => $bizId,
+                'user.id' => $user->id,
+                'user' => ['business_id' => $bizId, 'id' => $user->id],
+                // `uf_date` lê daqui. O drawer converte o ISO pra este formato antes do POST.
+                'business.date_format' => 'd/m/Y',
+            ])
+            ->post('/asset/assets', [
+                // As strings do caminho 1 (vitest) — ver o docblock.
+                'asset_code' => '',
+                'name' => $nome,
+                'location_id' => $local,
+                'model' => 'D60',
+                'serial_no' => 'SN-1',
+                'purchase_date' => '10/09/2026',
+                'purchase_type' => 'owned',
+                'unit_price' => $valorPostado,
+                'quantity' => $qtdPostada,
+                'depreciation' => '10',
+                'description' => '',
+                'is_allocatable' => '1',
+                'start_dates' => ['10/09/2026'],
+                'months' => ['12'],
+                'additional_cost' => ['0'],
+                'additional_note' => ['Contrato RC-1'],
+            ]);
+
+        // O `store()` redireciona SEMPRE — inclusive quando falha, com `status.success = false`.
+        // Por isso o status HTTP não prova nada sozinho: o flash e o banco provam.
+        $resposta->assertRedirect();
+        expect((bool) session('status.success'))->toBeTrue();
+
+        $bem = Asset::where('name', $nome)->first();
+        expect($bem)->not->toBeNull();
+        expect((int) $bem->business_id)->toBe($bizId);
+        expect((string) $bem->unit_price)->toBe($valorGravado);
+        expect((string) $bem->quantity)->toBe($qtdGravada);
+        expect((string) $bem->depreciation)->toBe('10.0000');
+        expect((string) $bem->purchase_date)->toStartWith('2026-09-10');
+        expect((int) $bem->is_allocatable)->toBe(1);
+        expect((int) $bem->created_by)->toBe($user->id);
+        // Código gerado pelo servidor (o drawer manda vazio de propósito).
+        expect((string) $bem->asset_code)->not->toBe('');
+
+        $garantia = DB::table('asset_warranties')->where('asset_id', $bem->id)->first();
+        expect($garantia)->not->toBeNull();
+        expect((string) $garantia->start_date)->toStartWith('2026-09-10');
+        expect((string) $garantia->end_date)->toStartWith('2027-09-10');
+        expect((float) $garantia->additional_cost)->toBe(0.0);
+        expect($garantia->additional_note)->toBe('Contrato RC-1');
+    } finally {
+        bensCadastroLimpar();
+    }
+})->with([
+    'valor com centavos, quantidade inteira' => ['1234,56', '2', '1234.5600', '2.0000'],
+    'valor na casa do milhão, quantidade fracionada' => ['1234567,8', '1,5', '1234567.8000', '1.5000'],
+]);
+
+it('UC-BENS-05: a tela recebe o formato de data do negócio que o drawer usa pra montar o POST', function () {
+    $biz = $this->seededTenant();
+    $user = bensContratoUsuario((int) $biz->id);
+
+    try {
+        bensContratoAssinaturaLiberada();
+
+        test()
+            ->actingAs($user)
+            ->withSession([
+                'user.business_id' => (int) $biz->id,
+                'user' => ['business_id' => (int) $biz->id, 'id' => $user->id],
+                'business.date_format' => 'm/d/Y',
+            ])
+            ->get('/asset/assets')
+            ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+                ->component('Patrimonio/Bens')
+                ->where('formato_data', 'm/d/Y')
+            );
+    } finally {
+        bensContratoLimpar();
+    }
+});

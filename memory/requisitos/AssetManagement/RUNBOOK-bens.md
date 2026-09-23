@@ -77,7 +77,7 @@ paginação + a sub-navegação compartilhada.
 | **Total somado** no rodapé (`Σ valor × qtd`, protótipo `:400`) | é número de **VALOR** ⇒ REGRA MESTRE Tier 0 (`proibicoes.md`): exige prova por dois caminhos independentes + antes→depois apresentado ao [W]. Somar só a página seria falso; somar o conjunto filtrado é número novo que ninguém auditou. O valor **por linha** entra (é o que o Blade já mostrava). |
 | Seleção em lote + BulkBar (slot 4 do PT-01) | as duas ações do protótipo ("Exportar seleção", "Enviar pra manutenção" em lote) não têm endpoint hoje. Anunciar botão sem destino é afordância falsa. |
 | Colunas configuráveis, densidade, export CSV | fora do que o backend serve hoje; nenhuma delas é regressão vs. o Blade. |
-| Drawer de criar/editar (slot 6) | `create`/`edit` seguem Blade nesta onda. O botão "Novo ativo" aponta pra rota Blade existente — link real, não `#`. |
+| Drawer de criar/editar (slot 6) | **Criar entregue em 2026-09-23** (`_shared/CadastroBemDrawer.tsx`, posta no `store()` existente — UC-BENS-05). _Até então_ o botão "Novo ativo" apontava pra `create` Blade, que só responde sob `ajax()` e dava página em branco (medido em prod). **Editar** segue sem caminho de UI. |
 
 **Regressão vs. o Blade: nenhuma pretendida.** O Blade mostrava ação por linha
 (alocar / manutenção / editar / excluir), imagem, garantia e "n em manutenção" — tudo
@@ -88,7 +88,7 @@ isso entra. O que o Blade tinha e não entra: nada.
 | Estado | O que aparece |
 |---|---|
 | **loading** | skeleton de tabela via `<Deferred fallback>` — header e sub-navegação já pintados |
-| **vazio (nenhum bem)** | empty state com CTA "Cadastrar o primeiro bem" (só se `permissoes.criar`) |
+| **vazio (nenhum bem)** | empty state com CTA "Adicionar o primeiro recurso" que abre o drawer (só se `permissoes.criar`) |
 | **vazio por filtro/busca** | mensagem contextual do `DataTable` (`emptyMessage`), distinta do vazio real |
 | **erro** | 403 do gate é página de erro do framework, não estado de tela; falha de rede é do router do Inertia |
 | **sucesso** | tabela + paginação server-side |

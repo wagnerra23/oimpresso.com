@@ -23,7 +23,13 @@
 //
 // Nada disso é regressão vs. o Blade na LISTAGEM: tudo que a tela legada mostrava está aqui.
 //
-// ─── Por que NÃO há "Novo ativo", alocar, manutenção nem editar ─────────────────────
+// ─── Cadastro: drawer "Adicionar recurso" (2026-09-23) ──────────────────────────────
+//
+// Cadastrar bem acontece em drawer, sem sair da lista (`_shared/CadastroBemDrawer.tsx`,
+// desenho do `BemForm` do protótipo). Abre pelo botão do header, pelo CTA do vazio e por
+// `?novo=1` na URL — é assim que o "Adicionar recurso" do Painel chega aqui.
+//
+// ─── Por que NÃO há alocar, manutenção nem editar ────────────────────────────────────
 //
 // MEDIDO em produção (biz=1, 2026-09-23), não presumido: `AssetController::{create,edit}`,
 // `AssetAllocationController::create` e `AssetMaitenanceController::create` só respondem
@@ -40,17 +46,20 @@
 // solto; o `layout-primitives-guard` é catraca e reprova adotante novo.
 
 import { Deferred, router } from '@inertiajs/react';
+import { useState } from 'react';
 import { Eye, Trash2 } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
 import DataTable, { type EstadoDaLinha } from '@/Components/shared/DataTable';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Stack, Inline } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
+import CadastroBemDrawer from './_shared/CadastroBemDrawer';
 import type { ColumnDef } from '@tanstack/react-table';
 
 /* ─── Contrato com o backend ──────────────────────────────────────────────────── */
@@ -113,6 +122,8 @@ interface Props {
     categorias: Record<string, string>;
     tipos_compra: Record<string, string>;
   };
+  /** `business.date_format` — o drawer de cadastro converte a data pra ele antes do POST. */
+  formato_data: string;
   permissoes: {
     criar: boolean;
     editar: boolean;
@@ -475,7 +486,25 @@ function EsqueletoTabela() {
   );
 }
 
-export default function Bens({ abas_contadores, bens, filtros, opcoes, permissoes }: Props) {
+/** `?novo=1` abre o cadastro — é o destino do "Adicionar recurso" do Painel. */
+function pedidoDeCadastroNaUrl(): boolean {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('novo') === '1';
+}
+
+export default function Bens({ abas_contadores, bens, filtros, opcoes, formato_data, permissoes }: Props) {
+  const [cadastroAberto, setCadastroAberto] = useState(() => permissoes.criar && pedidoDeCadastroNaUrl());
+
+  const fecharCadastro = () => {
+    setCadastroAberto(false);
+    // Tira o `novo=1` da URL: recarregar a página não deve reabrir o cadastro.
+    if (pedidoDeCadastroNaUrl()) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('novo');
+      window.history.replaceState(window.history.state, '', url.toString());
+    }
+  };
+
   // Distingue "não há bem nenhum" de "não há bem PARA ESTE RECORTE" — são dois vazios
   // diferentes, e oferecer "cadastre o primeiro bem" a quem só filtrou demais é ruído.
   const temFiltroAtivo = Boolean(
@@ -496,6 +525,11 @@ export default function Bens({ abas_contadores, bens, filtros, opcoes, permissoe
           <PageHeader
             title="Bens"
             subtitle="O patrimônio da empresa: o que a casa tem, onde está e com quem"
+            actions={
+              permissoes.criar ? (
+                <Button size="sm" onClick={() => setCadastroAberto(true)}>Adicionar recurso</Button>
+              ) : undefined
+            }
           />
         </div>
 
@@ -516,6 +550,11 @@ export default function Bens({ abas_contadores, bens, filtros, opcoes, permissoe
                 icon="boxes"
                 title="Nenhum bem cadastrado ainda"
                 description="O patrimônio começa pelo que já está na casa. Cadastre um bem e ele passa a aparecer aqui com valor, garantia e alocação."
+                action={
+                  permissoes.criar ? (
+                    <Button onClick={() => setCadastroAberto(true)}>Adicionar o primeiro recurso</Button>
+                  ) : undefined
+                }
               />
             ) : bens ? (
               <DataTable<Bem>
@@ -536,6 +575,16 @@ export default function Bens({ abas_contadores, bens, filtros, opcoes, permissoe
           </Deferred>
         </div>
       </Stack>
+      {permissoes.criar ? (
+        <CadastroBemDrawer
+          aberto={cadastroAberto}
+          onClose={fecharCadastro}
+          locais={opcoes.locais}
+          categorias={opcoes.categorias}
+          tiposCompra={opcoes.tipos_compra}
+          formatoData={formato_data}
+        />
+      ) : null}
     </AppShellV2>
   );
 }

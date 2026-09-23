@@ -328,13 +328,11 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
                  · busca    placeholder literal do contrato → `/asset/assets?q=`. O índice de
                             Bens LÊ `q` (`AssetController:271` e `:385`): a busca navega.
                  · alocar   `Button variant=ghost`, perm `allocate`.
-                 · novo     `Button variant=primary`, perm `create`. ⚠️ AUSENTE DE PROPÓSITO
-                            desde 2026-09-23: o destino (`/asset/assets/create`) só responde
-                            sob `ajax()` e devolveu 200 com 0 bytes numa navegação direta
-                            (medido em prod, biz=1) — página em branco. Volta quando o
-                            formulário virar drawer (escrita de valor/quantidade: REGRA
-                            MESTRE, outra onda). O primary "Novo ativo" do menu saiu pelo
-                            mesmo motivo (`DataController`).
+                 · novo     `Button variant=primary`, perm `create` → `/asset/assets?novo=1`,
+                            que abre o drawer de cadastro na lista de Bens. NÃO aponta pra
+                            `/asset/assets/create`: aquele endpoint só responde sob `ajax()`
+                            (200 com 0 bytes numa navegação direta, medido em prod biz=1 em
+                            2026-09-23) — foi o link que ficou em branco até o drawer existir.
 
                DESVIO DECLARADO no destino do `alocar` — o contrato fixa copy, variante e
                permissão, não a rota. O destino óbvio (`/asset/allocation/create`) NÃO serve:
@@ -360,6 +358,11 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
                 <Button variant="ghost" size="sm" asChild>
                   <a href="/asset/allocation">Alocar recurso</a>
                 </Button>
+                {pode.criar ? (
+                  <Button size="sm" asChild>
+                    <a href="/asset/assets?novo=1">Adicionar recurso</a>
+                  </Button>
+                ) : null}
               </Inline>
             }
             /* `-mx-6` NÃO é enfeite, e remover reintroduz o defeito: o canon tem `px-6`
