@@ -42,6 +42,9 @@ e de **sync API do banco** — e deixar o usuário conciliá-las com títulos ab
   com `match_score` **calculado** (`0.7·valor + 0.3·proximidade-de-data`) — ver `UC-FCC-04`
 - Confirmar match (conciliar) / Ignorar linha — grava na tabela de origem correta
 - Busca client-side por descrição
+- Resumo do extrato (prop deferida `resumo`): período + entradas/saídas das duas origens,
+  todas as situações — ver `UC-FCC-14` (FIN-4b, 2026-09-23)
+- Resumo do título vinculado em cada linha (`linhas[].titulo`), só exibição — ver `UC-FCC-15`
 
 ---
 

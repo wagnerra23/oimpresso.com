@@ -191,6 +191,30 @@ O UPDATE de match filtra por `business_id` da sessão. Uma linha pertencente a o
 permanece intocada (`status` segue nulo).
 **Pronto quando:** após o POST cross-tenant, `status` da linha do outro business continua nulo.
 
+## UC-FCC-14 — O resumo do extrato soma as duas origens com o sinal da tela
+Status: 🧪 (`ConciliacaoResumoTituloTest` — *"resumo soma as duas origens com o sinal que a tela mostra"* · nasce em 2026-09-23, FIN-4b; ainda sem run)
+Fonte: KPIs "Período" e "Total no extrato" do protótipo (`TelaConciliacao`, `financeiro-telas-extras.jsx`).
+A prop deferida `resumo` traz período (menor e maior data) e entradas/saídas do extrato das
+**duas** origens, **todas** as situações — o mesmo universo dos 4 contadores de `stats`, não a
+fila filtrada nem o limite de 200 da lista. Sinal igual ao da tela: OFX já vem com sinal; API
+`tipo = D` vira negativo. Linha excluída (soft delete) fica fora.
+**Pronto quando:** o total bate por dois caminhos — soma à mão das fixtures **e** soma dos
+`valor` que a tela recebe em `props.linhas` pras mesmas linhas (regra mestre de valor).
+
+## UC-FCC-15 — Linha com título vinculado chega com o resumo do título
+Status: 🧪 (`ConciliacaoResumoTituloTest` — *"linha sugerida chega com o resumo do título vinculado"* · nasce em 2026-09-23; ainda sem run)
+Fonte: coluna "Sistema" do protótipo, que mostra o título casado ao lado da linha do extrato.
+Cada linha de `props.linhas` ganha `titulo` (id, número, tipo, descrição, valor, vencimento)
+quando tem `titulo_id`; sem vínculo, `titulo = null`. Leitura só de exibição — a tela segue sem
+criar nem editar título (Automation Anti-hook do charter).
+**Pronto quando:** a linha sugerida traz o título certo e a linha sem vínculo traz `null`.
+
+## UC-FCC-16 — Resumo e título de outro business ficam fora `[T0]`
+Status: 🧪 (`ConciliacaoResumoTituloTest` — *"Tier 0: extrato e título de outro business ficam fora"* · nasce em 2026-09-23; ainda sem run)
+Linhas de extrato de outro business não entram no `resumo`, e uma linha que aponte para
+título de outro business recebe `titulo = null` (ADR 0093).
+**Pronto quando:** o resumo não se move com as linhas do outro business e o título dele não é anexado.
+
 ---
 
 ---
