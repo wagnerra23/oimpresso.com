@@ -12,7 +12,8 @@
 // Bundle CSS: resources/css/cowork-payment-gateway-bundle.css (regra Wagner 2026-05-18 bundle inteiro).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { router, Deferred, usePage } from '@inertiajs/react';
+import { router, Deferred } from '@inertiajs/react';
+import { useBusiness, usePageProps } from '@/Hooks/usePageProps';
 import {
   useCallback, useEffect, useMemo, useRef, useState, type ReactNode,
 } from 'react';
@@ -175,7 +176,14 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
   // "Mês Ano · Empresa" + filtros ativos. A localização (Financeiro › Cobrança) já vem da sub-nav.
   // O mês sai de `today`, a data do SERVIDOR (a mesma que monta funil e KPIs), não do relógio do
   // navegador — na virada do mês os dois poderiam discordar.
-  const businessName = (usePage().props as { business?: { name?: string | null } }).business?.name ?? '';
+  // Nome da empresa: MESMA fonte da sidebar (`shell.cockpit.businessNome`) com o `business.name` da
+  // sessão só de reserva — idioma de `Patrimonio/Index.tsx:248-259`, que mediu o da sessão chegando
+  // VAZIO no ambiente de teste (a 1ª captura desta tela saiu "Junho 2026" sem a empresa, igual).
+  // Os dois hooks são chamados sempre (Rules of Hooks). Sem default: não se afirma tenant alheio.
+  const shell = usePageProps().shell as ({ cockpit?: { businessNome?: string } } | undefined);
+  const nomeDoShell = shell?.cockpit?.businessNome ?? null;
+  const nomeDaSessao = useBusiness()?.name ?? null;
+  const businessName = nomeDoShell ?? nomeDaSessao ?? '';
   const mesAno = mesAnoDe(today);
   const breadcrumb = useMemo(() => {
     const parts = [businessName ? `${mesAno} · ${businessName}` : mesAno];
