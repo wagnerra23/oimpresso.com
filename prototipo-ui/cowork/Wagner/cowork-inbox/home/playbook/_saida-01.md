@@ -60,8 +60,18 @@ roda esse `--check`.
 
 ## 5 · Desfecho (2026-09-23, mesmo dia)
 
-[W] decidiu: **o catálogo do repo é o dono do código `PT-0X`.** A thread 01 ganhou
-`bloqueio` no `00-INDICE.md` e o placar passou a `bloqueada 1`. Os dois pontos da §4
-ficam assim: a prova errada do índice deixa de cobrar (thread descartada), e a numeração
-do DS espelhado (PT-04 Modal / PT-05 Dashboard) é a que diverge — alinhá-la é trabalho do
-lado Cowork, não de charter.
+[W] decidiu: **o catálogo do repo é o dono do código `PT-0X`.** A thread 01 está
+**descartada** — não executar; reabrir só com decisão [W] nova. A numeração do DS
+espelhado (PT-04 Modal / PT-05 Dashboard) é a que diverge; alinhá-la é trabalho do lado
+Cowork, não de charter.
+
+**O `bloqueio` no `00-INDICE.md` NÃO é escrito deste lado.** O índice mora no espelho,
+que é build-only: o check required `espelho — mexeu depois de verificar` reprova edição à
+mão depois da verificação (foi o que o #7843 fez com o índice do Patrimônio, e o `main`
+ficou vermelho até o #7855 reescrever a mesma mudança no Cowork). A marca de descartada
+nasce no Cowork e desce pelo próximo handoff. Até lá o placar segue mostrando 01 como
+`em curso`, e isso é o estado honesto. Texto pronto para o Cowork:
+
+```json
+"bloqueio": "DESCARTADA por decisao [W] 2026-09-23 — o catalogo do repo (memory/requisitos/_DesignSystem/padroes-tela/ + pt-conformance.mjs) e o dono do codigo PT-0X: PT-04 = Dashboard, PT-05 = Kanban. O charter ja esta certo; a troca avermelha o pt-conformance (ver _saida-01.md). Nao executar; reabrir so com decisao [W] nova."
+```
