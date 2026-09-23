@@ -127,14 +127,17 @@ function fcrResumo($test): array
     $manifestPath = public_path('build-inertia/manifest.json');
     $version = file_exists($manifestPath) ? md5_file($manifestPath) : '1';
 
-    $resp = $test->withHeaders([
+    // Headers POR REQUISIÇÃO (2º argumento do get), nunca withHeaders(): withHeaders persiste no
+    // test case e fazia as chamadas SEGUINTES também saírem como partial reload de `resumo` — o
+    // props.linhas voltava vazio e o caso reprovava por instrumento, não por comportamento.
+    $resp = $test->get('/financeiro/conciliacao', [
         'X-Inertia'                   => 'true',
         'X-Inertia-Version'           => $version,
         'X-Inertia-Partial-Component' => 'Financeiro/Conciliacao/Index',
         'X-Inertia-Partial-Data'      => 'resumo',
         'X-Requested-With'            => 'XMLHttpRequest',
         'Accept'                      => 'text/html',
-    ])->get('/financeiro/conciliacao');
+    ]);
 
     $resp->assertOk();
     $resumo = $resp->json('props.resumo');
@@ -200,7 +203,8 @@ it('UC-FCC-15 · linha sugerida chega com o resumo do título vinculado', functi
     $com = $linhas->get($pfx.'sugerida');
     expect($com['titulo'])->toBeArray();
     expect($com['titulo']['id'])->toBe($tituloId);
-    expect($com['titulo']['valor_total'])->toBe(150.0);
+    // O JSON devolve 150 (inteiro) para 150.0 — compara o NÚMERO, não o tipo.
+    expect((float) $com['titulo']['valor_total'])->toBe(150.0);
     expect($com['titulo']['vencimento'])->toBe('2026-07-10');
     expect($com['titulo']['descricao'])->toBe($pfx.'Cliente');
 
