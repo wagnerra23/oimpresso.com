@@ -12,7 +12,7 @@ import {
   ArrowRightLeft, Banknote, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
   Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
   Factory, FileSearch, FileSpreadsheet, FileText, Folder, FolderKanban, HandCoins, Hash, Home, Inbox, Keyboard, LifeBuoy, LogOut,
-  MessageCircle, Monitor, Moon, Package, PackageCheck, Palette, Plug, Receipt,
+  MessageCircle, Moon, Package, PackageCheck, Palette, Plug, Receipt,
   RefreshCw, Rocket, Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
   TrendingUp, UserCog, Users, Utensils, User, Vault, Wallet, Wrench,
   type LucideIcon,
@@ -1201,6 +1201,11 @@ function SidebarUserMenu({
     localStorage.setItem(LS.SUPER_EXPANDED, superExpanded ? '1' : '0');
   }, [superExpanded]);
 
+  // Tema: UMA instância do useTheme (dono = users.ui_theme) serve o trigger E o
+  // subpainel. Duas instâncias teriam `effective` independentes — o trigger não
+  // veria a escolha feita no subpainel até o próximo reload.
+  const { effective: temaEfetivo, setTheme } = useTheme();
+
   // Estado da cascata: qual sub-menu está ativo (null = só painel principal)
   const [activeSub, setActiveSub] = useState<'superadmin' | 'disponivel' | 'aparencia' | 'vibes' | null>(null);
 
@@ -1281,6 +1286,9 @@ function SidebarUserMenu({
         >
           <Moon size={14} className="ic" />
           <span className="label">Aparência</span>
+          {/* Valor atual no trigger (protótipo `sidebar.jsx` — `um-vibe-cur`). Reusa a
+              classe `.kbd` do .um-item: mono 10.5px apagado, sem CSS novo. */}
+          <span className="kbd">{temaEfetivo === 'dark' ? 'escuro' : 'claro'}</span>
           <ChevronRight size={12} className="um-cascade-arrow" />
         </button>
 
@@ -1368,7 +1376,7 @@ function SidebarUserMenu({
         </div>
       )}
 
-      {activeSub === 'aparencia' && <ThemeSubpanel />}
+      {activeSub === 'aparencia' && <ThemeSubpanel efetivo={temaEfetivo} onTema={setTheme} />}
 
       {activeSub === 'vibes' && vibe !== undefined && onVibe && (
         <VibesSubpanel vibe={vibe} onVibe={onVibe} />
@@ -1454,17 +1462,28 @@ function vibeAccent(vibe: Vibe): string {
 
 // ── ThemeSubpanel — plug do useTheme no subpainel Aparência (UI-0011) ─
 
-function ThemeSubpanel() {
-  const { mode, setTheme } = useTheme();
-  // mode: 'light' | 'dark' | null (sistema)
+function ThemeSubpanel({
+  efetivo,
+  onTema,
+}: {
+  efetivo: 'light' | 'dark';
+  onTema: (t: 'light' | 'dark') => void;
+}) {
+  // Duas opções, Escuro primeiro — protótipo `sidebar.jsx` TEMAS (dark é o padrão do
+  // projeto, [W] 2026-06-03). A opção "Sistema" saiu do menu: quem tem
+  // `ui_theme = null` continua seguindo o SO até escolher.
+  // O ✓ segue o tema EFETIVO, não o `mode`: o `mode` vem de `auth.user.ui_theme`
+  // (prop) e o setTheme persiste por fetch sem reload do Inertia — ele fica velho
+  // até a próxima visita, e o ✓ ficava no tema antigo depois do clique.
+  const atual = efetivo;
   const options: Array<{
-    key: 'light' | 'dark' | null;
+    key: 'light' | 'dark';
     label: string;
+    desc: string;
     Icon: typeof Sun;
   }> = [
-    { key: 'light', label: 'Claro', Icon: Sun },
-    { key: 'dark', label: 'Escuro', Icon: Moon },
-    { key: null, label: 'Sistema', Icon: Monitor },
+    { key: 'dark', label: 'Escuro', desc: 'Padrão do balcão', Icon: Moon },
+    { key: 'light', label: 'Claro', desc: 'Escritório, luz alta', Icon: Sun },
   ];
 
   return (
@@ -1474,17 +1493,29 @@ function ThemeSubpanel() {
         <span>Aparência</span>
       </div>
       {options.map((o) => {
-        const active = mode === o.key;
+        const active = atual === o.key;
         return (
           <button
-            key={String(o.key)}
+            key={o.key}
             type="button"
             className={`um-item um-cascade-trigger ${active ? 'active' : ''}`}
-            onClick={() => setTheme(o.key)}
+            onClick={() => onTema(o.key)}
             aria-pressed={active}
+            title={o.desc}
           >
             <o.Icon size={14} className="ic" />
-            <span className="label">{o.label}</span>
+            <span className="label">
+              {o.label}
+              <span style={{
+                display: 'block',
+                fontSize: '10.5px',
+                color: 'var(--text-mute)',
+                marginTop: 2,
+                lineHeight: 1.2,
+              }}>
+                {o.desc}
+              </span>
+            </span>
             {active && <Check size={14} className="um-cascade-arrow" style={{ opacity: 1, color: 'var(--accent)' }} />}
           </button>
         );
