@@ -73,6 +73,14 @@
     "baseline": "it_Financeiro_Dre_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Financeiro/Cobranca",
+    "source": "Financeiro/Cobranca",
+    "component": "Financeiro/Cobranca/Index",
+    "route": "/financeiro/cobranca",
+    "anchor": "Pago no mês",
+    "baseline": "it_Financeiro_Cobranca_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Governance/Dashboard",
     "source": "governance/Dashboard",
     "component": "governance/Dashboard",
