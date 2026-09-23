@@ -1,0 +1,57 @@
+# Nota 16-dim LLM-as-judge (metodo SCREEN-GRADE) — NAO editar a mao.
+# Primeira medicao da tela (thread 07 do playbook Prontidao, 2026-09-23). A tela nasceu
+# no HRM-O7 PR-9 e nao existe no baseline seed de 2026-05-30.
+# NOTA DE LEITURA DE CODIGO: .tsx + charter + casos + controller + teste. NAO houve smoke
+# em prod nem browser nesta medicao — nenhuma dimensao foi observada em runtime.
+# Agregacao: media simples das 16 dimensoes (sem peso de persona aplicado).
+# baseline_anterior = nota (ancora inicial do ratchet; nao cai sem aprovacao humana).
+screen: Essentials/Tipos
+path: resources/js/Pages/Essentials/Tipos.tsx
+archetype: list
+persona: kamila-martinho   # personas-por-modulo.yml:77-78 (essentials.primary)
+nota: 75
+nivel: "Advanced"
+baseline_anterior: 75   # ratchet — primeira medicao; nota nao cai abaixo disto sem aprovacao
+peso_real: 1.0
+source: screen-grade-2026-09-23-leitura-codigo
+graded_at: "2026-09-23"
+resumo: "Melhor recuperacao de erro do modulo: a exclusao bloqueada le o 422 real por fetch (nao router.delete, que engoliria o blocked_by) e mantem o dialogo aberto dizendo quantas licencas travam (Tipos.tsx:86-127, 239-247; controller :283-284), com 'sem limite' em vez de zero fabricado (Tipos.tsx:55-56) e estado vazio que ensina por onde comecar (Tipos.tsx:172-178). O que segura a nota: o mesmo achado de LEITURA da irma Metas — `if (request()->ajax())` sem `! request()->inertia()` (EssentialsLeaveTypeController.php:56) com `tipos` deferido (:75) e o cliente Inertia mandando X-Requested-With em toda visita (node_modules/@inertiajs/core/dist/index.js:2955, v3.6.1); o teste do partial (HrmTiposIndexTest.php:90-93) nao manda esse header, entao seria verde com a tela presa no skeleton. Nao medido em prod. Alem disso, cabecalho e tabela hand-roll (sem PageHeader nem DataTable), botoes de icone de 28px e tabela sem caption."
+dimensoes: { density: 80, discoverability: 74, speed_to_task: 72, error_recovery: 86, cognitive_load: 82, aesthetic_usability: 78, affordance: 72, brand_confidence: 78, mobile_fit: 72, a11y_wcag: 72, i18n_ptbr: 88, performance_perceived: 40, information_hierarchy: 80, microcopy: 88, internal_consistency: 68, preflight_conformance: 68 }
+evidencias:
+  density: "tabela compacta de 4-5 colunas, tabular-nums nos numeros (Tipos.tsx:182-228)"
+  discoverability: "contagem na toolbar (Tipos.tsx:150-157); sem busca — aceitavel para dezenas de tipos, como o proprio cabecalho declara (Tipos.tsx:9-12)"
+  speed_to_task: "criar e editar saem para o Blade legado por <a href> (Tipos.tsx:161, 204) — coexistencia F5 declarada como Non-Goal (charter:79-80), mas custa uma troca de pagina"
+  error_recovery: "422 com blocked_by mantem o dialogo aberto com a mensagem que traz a contagem (Tipos.tsx:112-119, 243-244; EssentialsLeaveTypeController.php:283-284; lang pt :62); falha de rede tem toast proprio (Tipos.tsx:122-124)"
+  cognitive_load: "subtitulo diz a regra do dominio em uma frase (Tipos.tsx:142-144)"
+  aesthetic_usability: "tokens (bg-muted/30, divide-border, hover:bg-accent/30), zero cor crua (Tipos.tsx:183, 192-194)"
+  affordance: "editar/excluir so por icone em botao h-7 w-7 = 28px (Tipos.tsx:202, 213), abaixo do alvo de toque de 44px"
+  brand_confidence: "h1 hand-roll com icone (Tipos.tsx:135-146) em vez do PageHeader canonico"
+  mobile_fit: "overflow-x-auto + max-w-6xl (Tipos.tsx:131, 181); cabe a 1280"
+  a11y_wcag: "aria-label nos botoes de icone (Tipos.tsx:205, 214); porem <table> sem <caption> nem scope nos <th> (Tipos.tsx:182-190), icone do h1 sem aria-hidden (Tipos.tsx:139), alvos de 28px"
+  i18n_ptbr: "PT-BR em toda a tela; mensagem de bloqueio vem de lang/pt (Modules/Essentials/Resources/lang/pt/lang.php:62)"
+  performance_perceived: "Deferred + Skeleton previstos (Tipos.tsx:168; EssentialsLeaveTypeController.php:75), mas o ramo ajax() sem ! request()->inertia() (EssentialsLeaveTypeController.php:56) engoliria o partial reload do `tipos`. Achado de leitura, nao medido em prod."
+  information_hierarchy: "tipo em destaque, limite e pedidos alinhados a direita (Tipos.tsx:195-198)"
+  microcopy: "'sem limite' nunca vira 0 (Tipos.tsx:54-56); estado vazio sugere Ferias e Licenca medica (Tipos.tsx:174-177); titulo do dialogo muda para 'Nao da para excluir este tipo' (Tipos.tsx:240)"
+  internal_consistency: "tabela <table> hand-roll + cabecalho hand-roll, divergindo da irma Metas (DataTable + PageHeader); o proprio cabecalho diz que imita Holidays/Index (Tipos.tsx:9-12)"
+  preflight_conformance: "cumpre os anti-hooks (fetch no delete, null != 0 — charter:87-89); nao aplica a guarda `ajax() && ! inertia()` padrao da casa (EssentialsLeaveController.php:95, lapide §5 2026-09-08); AlertDialogAction recolorido por className (Tipos.tsx:259) em vez de variante"
+gaps:
+  - dim: "Performance-perceived"
+    best_of_class: "Padrao da casa (EssentialsLeaveController.php:95): `if (request()->ajax() && ! request()->inertia())` — o DataTables legado so responde a XHR que nao e Inertia"
+    fix: "Acrescentar `&& ! request()->inertia()` em EssentialsLeaveTypeController.php:56 e fazer os headers do partial em HrmTiposIndexTest.php:90-93 incluir `X-Requested-With: XMLHttpRequest`. CONFIRMAR em runtime antes (smoke biz=1 em /hrm/leave-type) — a nota e de leitura."
+    esforco: baixo
+    origin: screen-grade-2026-09-23
+  - dim: "Internal-consistency"
+    best_of_class: "Bling / irma Essentials/Metas: DataTable compartilhada + PageHeader"
+    fix: "Trocar o <table> e o <header> hand-roll (Tipos.tsx:134-146, 182-228) por PageHeader + DataTable (caption obrigatorio vem de graca). Toca .tsx: exige gate visual [W] (R2/R7)."
+    esforco: medio
+    origin: screen-grade-2026-09-23
+  - dim: "A11y-WCAG"
+    best_of_class: "WCAG 2.2 SC 2.5.8 (alvo >= 24px, 44px recomendado) + tabela com caption/scope"
+    fix: "Botoes de icone h-7 w-7 (Tipos.tsx:202, 213) para size='icon' do DS; caption sr-only e scope='col' nos <th>; aria-hidden no icone do h1 (Tipos.tsx:139)."
+    esforco: baixo
+    origin: screen-grade-2026-09-23
+  - dim: "Speed-to-task"
+    best_of_class: "Linear: criar/editar item de cadastro curto em dialogo na propria lista"
+    fix: "Create/edit ainda sao Blade legado (Tipos.tsx:161, 204). E Non-Goal declarado do charter (:79-80) — so vira trabalho com PR e charter proprios, decisao [W]."
+    esforco: medio
+    origin: screen-grade-2026-09-23

@@ -87,10 +87,15 @@ function walk(dir, match, acc = []) {
   return acc;
 }
 
-/** slug de scorecard a partir do path relativo do .tsx (mesma convenção do vital-signs/seed). */
-function scorecardSlug(relTsx) {
+/**
+ * slug de scorecard a partir do path relativo do .tsx.
+ * O `.` entra na classe junto com a barra: `kb/Index.v2` vira `kb-index-v2`, que é o nome do
+ * arquivo real. Sem ele o slug saía `kb-index.v2` e a tela aparecia sem scorecard tendo um
+ * (medido 2026-09-23: é a única Page com ponto no nome).
+ */
+export function scorecardSlug(relTsx) {
   return pageNamespacePath(relTsx).replace(/\.tsx$/, '')
-    .replace(/[\\/]/g, '-').toLowerCase();
+    .replace(/[\\/.]/g, '-').toLowerCase();
 }
 
 export function coleta(root = ROOT) {
