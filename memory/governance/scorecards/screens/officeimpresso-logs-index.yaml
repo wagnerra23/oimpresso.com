@@ -1,0 +1,56 @@
+# Scorecard gerado pelo screen-qa-specialist (passos 0 Pré-Flight + 1 Nota) — thread 12 Prontidão.
+# Método "SCREEN-GRADE" 16-dim, LLM-as-judge. NOTA DE LEITURA DE CÓDIGO: .tsx + charter + casos +
+# controller, SEM browser de prod (tela atrás da flag useV2OfficeimpressoLogs; render real não medido).
+# Primeira medição: baseline_anterior = nota. E2E/axe/smoke (passos 2-4) fora desta thread.
+screen: Officeimpresso/Logs/Index
+path: Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx
+archetype: list
+persona: wagner
+persona_nota: "Charter §Missão: 'dar ao suporte' (time interno WR2). Officeimpresso não está em personas-por-modulo.yml e o charter não declara personas_alvo — slug 'wagner' (interno/superadmin) é o mais próximo disponível; não é persona de cliente."
+nota: 75
+nivel: "Advanced"
+baseline_anterior: 75   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: prontidao-thread12-2026-09-23
+graded_at: "2026-09-23"
+evidencia_tipo: leitura-de-codigo
+resumo: "PT-01 bem executado no esqueleto: PageHeader canon, KPIs e lista em Inertia::defer com skeleton, dois EmptyState (com/sem filtro), bloqueio por Button+AlertDialog (anti-hook do GET-que-muda-estado respeitado), Select com sentinela __all__. Perde em tabela hand-roll de 10 colunas sem sort/paginação, payload sem limite no controller e chips de filtro montados com Button + glifo ✕."
+dimensoes: { density: 78, discoverability: 72, speed_to_task: 76, error_recovery: 78, cognitive_load: 72, aesthetic_usability: 76, affordance: 74, brand_confidence: 76, mobile_fit: 62, a11y_wcag: 70, i18n_ptbr: 86, performance_perceived: 70, information_hierarchy: 76, microcopy: 80, internal_consistency: 70, preflight_conformance: 80 }
+evidencias:
+  density: "4 KPIs + toolbar + 10 colunas numa tela (Index.tsx:124-129; MaquinasTable.tsx:83-92)"
+  discoverability: "Filtros por empresa/equipamento/HD só existem como link dentro da célula (MaquinasTable.tsx:100-146); não há controle visível na toolbar (Index.tsx:132-161)"
+  speed_to_task: "Busca debounce 300ms com partial reload only:[maquinas,filters] (Index.tsx:78-92); ação de bloqueio a 2 cliques (MaquinasTable.tsx:210-241)"
+  error_recovery: "Vazio com filtro traz ação 'Limpar filtros' (Index.tsx:167-173); confirmação AlertDialog com Cancelar (MaquinasTable.tsx:249-260)"
+  cognitive_load: "10 colunas, duas de estado lado a lado ('Estado no último login' × 'Estado atual') sem legenda da diferença (MaquinasTable.tsx:90-91)"
+  aesthetic_usability: "Card + KpiCard + StatusBadge do DS (Index.tsx:125-128,163; MaquinasTable.tsx:190-207)"
+  affordance: "Nome da empresa/máquina/HD como link-filtro com title (MaquinasTable.tsx:100-104); chip removível é Button com texto '✕' (Index.tsx:157-159)"
+  brand_confidence: "Zero cor crua: estados via StatusBadge kinds licenca/licenca_no_acesso (StatusBadge.tsx:195,203)"
+  mobile_fit: "10 colunas com overflow-x-auto interno (MaquinasTable.tsx:79); charter aceita scroll interno a 1280 mas não há colapso/priorização de coluna"
+  a11y_wcag: "aria-label na busca e no Select (Index.tsx:138,142), aria-busy no skeleton (Index.tsx:207); chip '✕' sem aria-label de remoção; <th> sem scope"
+  i18n_ptbr: "Copy toda PT-BR; data d/m/Y H:i:s sem locale do browser (MaquinasTable.tsx:53-58)"
+  performance_perceived: "defer + skeleton (Index.tsx:123,165; LicencaLogController.php:204-205), MAS buildMaquinasPayload faz ->get() sem limite/paginação (LicencaLogController.php:291)"
+  information_hierarchy: "KPIs → toolbar → tabela; KPIs globais não seguem filtro (por design, charter §Non-Goals)"
+  microcopy: "Diálogo explica o raio do desbloqueio de empresa ('TODAS as máquinas', MaquinasTable.tsx:218); rótulo '(cadastro)' preservado (MaquinasTable.tsx:179)"
+  internal_consistency: "Tabela hand-roll <table> em vez da DataTable/PT-01 compartilhada (MaquinasTable.tsx:80)"
+  preflight_conformance: "Charter + casos ao lado, PT-01 declarado, anti-hooks cumpridos (SelectItem sentinela Index.tsx:61,146; defer; bloqueio sem href). Casos todos 🧪 sem veredito (Index.casos.md:31-49)"
+gaps:
+  - dim: "performance_perceived"
+    best_of_class: "Linear: lista virtualizada/paginada — o servidor nunca manda o universo inteiro, o cliente pede a janela visível"
+    fix: "buildMaquinasPayload faz ->get() de todas as máquinas + enriquecimento por log (LicencaLogController.php:291); paginar (cursor) ou limitar no servidor. Toca controller — decisão [W], preserva paridade."
+    esforco: medio
+  - dim: "internal_consistency"
+    best_of_class: "Stripe Dashboard: uma única tabela de lista (sort por coluna, densidade, header fixo) reusada em todo o produto"
+    fix: "MaquinasTable é <table> hand-roll (MaquinasTable.tsx:80) sem sort nem header sticky; migrar para a DataTable canônica do PT-01"
+    esforco: medio
+  - dim: "mobile_fit"
+    best_of_class: "Linear: colunas com prioridade — as de baixo valor somem primeiro e o detalhe vai pro painel lateral"
+    fix: "10 colunas só com overflow-x-auto (MaquinasTable.tsx:79); definir colunas prioritárias a 1280 (Versão/IP/Location colapsáveis) sem remover campo da paridade"
+    esforco: medio
+  - dim: "a11y_wcag"
+    best_of_class: "GitHub filter chips: botão de remover com aria-label 'Remover filtro X' e foco devolvido ao campo"
+    fix: "Chips são Button com texto '{rotulo} ✕' (Index.tsx:157-159) — o leitor de tela anuncia o glifo; usar ícone com aria-label de remoção. <th> sem scope=col (MaquinasTable.tsx:83-92)"
+    esforco: baixo
+  - dim: "discoverability"
+    best_of_class: "Linear: todo filtro aplicável por clique na célula também existe no menu de filtros da toolbar"
+    fix: "Filtro por empresa/equipamento/HD só é alcançável clicando na célula (MaquinasTable.tsx:100-146); expor na toolbar (Index.tsx:132)"
+    esforco: medio

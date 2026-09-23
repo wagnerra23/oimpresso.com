@@ -1,0 +1,53 @@
+# Primeira medição da tela (thread 06 · playbook Prontidão · 2026-09-23).
+# Agente screen-qa-specialist, só passos 0 (Pré-Flight) e 1 (Nota). E2E/axe/smoke FORA.
+# ⚠️ NOTA DE LEITURA DE CÓDIGO: .tsx + charter + controller lidos em árvore 317e1b4ec33.
+#    Prod NÃO foi aberto (sem browser nesta thread) — nenhuma dimensão veio de render.
+# Nota = média simples (arredondada) das 16 dimensões (peso de persona 1×: tela de conta, persona misto —
+# todo usuário logado edita o próprio perfil).
+screen: User/Perfil
+path: resources/js/Pages/User/Perfil.tsx
+archetype: form
+persona: misto
+nota: 74
+nivel: "Advanced"
+baseline_anterior: 74   # ratchet — primeira medição; nota não cai abaixo disto sem aprovação
+peso_real: 0.85
+source: screen-qa-thread06-prontidao-2026-09-23
+graded_at: "2026-09-23"
+medicao: leitura-de-codigo   # prod não aberto
+resumo: "Form de conta com PageHeader canon, 4 abas client-side e useForm/isDirty; perde em recuperação (erro 'geral' do servidor nunca aparece, erro em outra aba invisível), affordance ('Remover' foto não remove no servidor) e a11y das abas."
+dimensoes: { density: 76, discoverability: 74, speed_to_task: 76, error_recovery: 60, cognitive_load: 78, aesthetic_usability: 78, affordance: 64, brand_confidence: 80, mobile_fit: 74, a11y_wcag: 64, i18n_ptbr: 82, performance_perceived: 80, information_hierarchy: 76, microcopy: 76, internal_consistency: 72, preflight_conformance: 72 }
+evidencia:
+  density: "Grid 3 colunas em cards de seção (Perfil.tsx:338, 401, 433)"
+  discoverability: "Subnav de 4 abas no PageHeader (Perfil.tsx:282-307); campos personalizados com label da empresa (Perfil.tsx:475-490)"
+  speed_to_task: "Primary 'Salvar alterações' no header, desabilitado quando limpo (Perfil.tsx:309-317); some na aba Segurança"
+  error_recovery: "onError sempre diz 'Confira os campos destacados' (Perfil.tsx:256), mas o erro 'geral' do catch (UserController.php:272) não é renderizado em lugar nenhum; erros só de first_name/email, na aba Conta — salvando da aba 'info' o erro fica invisível; sem aviso de alteração não salva ao sair"
+  cognitive_load: "Seções curtas com título e descrição (Perfil.tsx:162-185)"
+  aesthetic_usability: "Cards consistentes, avatar com iniciais de fallback (Perfil.tsx:237-280, 368)"
+  affordance: "'Remover' foto só limpa o preview e seta profile_photo=null (Perfil.tsx:376-388); o controller só chama uploadMedia (UserController.php:263) — a foto do servidor não sai e volta no próximo load"
+  brand_confidence: "PageHeader canon + PageHeaderPrimary roxo (Perfil.tsx:13, 311, 321); charter:33"
+  mobile_fit: "max-w-5xl + grids md:/lg: (Perfil.tsx:320, 336); subnav com overflow-x-auto (Perfil.tsx:283)"
+  a11y_wcag: "Abas são <button> com aria-current='page' (Perfil.tsx:289-294) — deveria ser tablist/tab/aria-selected; obrigatório marcado só com '*' visual, sem aria-required (Perfil.tsx:149); confirmação de senha sem slot de erro (Perfil.tsx:549)"
+  i18n_ptbr: "PT-BR em labels/placeholders, máscaras BR nos placeholders (Perfil.tsx:435-441, 503-515)"
+  performance_perceived: "Props pequenas eager (form do próprio usuário); preview de foto imediato por createObjectURL (Perfil.tsx:244-249)"
+  information_hierarchy: "Subtítulo nome·email (Perfil.tsx:324-328); LGPD na aba bancária (Perfil.tsx:518-521)"
+  microcopy: "Toasts curtos (Perfil.tsx:255, 264), mas 'Confira os campos destacados' mente quando nada está destacado"
+  internal_consistency: "Subnav hand-roll com text-[12.5px] (Perfil.tsx:294) em vez do PageHeaderTabs compartilhado (usado em Arquivos/Index.tsx:1357); SectionCard/Field locais (Perfil.tsx:127-185)"
+  preflight_conformance: "Charter draft (charter:8); PageHeader canon, não o deprecado (charter:60); só @/Components/ui + layout primitives (Perfil.tsx:12-19)"
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "GitHub Settings: erro de servidor em banner no topo do form e contagem de erros por aba/seção — o mecanismo é o erro seguir o usuário até onde ele está"
+    fix: "Renderizar form.errors.geral num Alert; marcar a aba que contém campo com erro (badge na subnav) e trocar pra ela no onError"
+    esforco: medio
+  - dim: "Affordance"
+    best_of_class: "Google Account: 'Remover foto' é ação que persiste, com confirmação"
+    fix: "Enviar flag remove_photo e apagar a media no perfilUpdate — ou esconder 'Remover' quando a foto veio do servidor (decisão [W], toca controller)"
+    esforco: medio
+  - dim: "A11y-WCAG"
+    best_of_class: "Radix Tabs / WAI-ARIA APG Tabs: role=tablist + aria-selected + setas"
+    fix: "Trocar a subnav por Tabs do DS (ou PageHeaderTabs) com semântica de tab; aria-required nos obrigatórios"
+    esforco: baixo
+  - dim: "Internal-consistency"
+    best_of_class: "Shopify Polaris: um componente de abas por app"
+    fix: "Usar PageHeaderTabs em vez do subnav hand-roll com text-[12.5px]"
+    esforco: baixo
