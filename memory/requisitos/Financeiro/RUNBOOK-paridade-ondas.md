@@ -391,3 +391,12 @@ apresentada ao [W] como tabela antes→depois.
 
 O pedido ao Design está em
 [`CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md`](../../reference/prototipo-ui/CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md).
+
+### 12.6 Resultado da FIN-9 (Onda 9, as 13 sem âncora) — medido em 2026-09-23
+
+**Fecha por medição, sem mudança de tela.** A onda é conformidade de Padrão de Tela, não repintura (§6).
+
+- **`pt-conformance.mjs`:** 83 telas declarantes no repo, **0 divergências**. Das 13 da Onda 9, **4 declaram PT** e as 4 passam: `Categorias`, `ContasPagar` e `ContasReceber` (PT-01) e `Dashboard` (PT-04).
+- **As outras 9 não declaram PT, e fica assim.** Os charters delas explicam o `n/a` (portal do contador, tela de auth, formulário de cobrança, seletor de 2 cartões, relatório com abas). O classificador de sinais (`lib/pt-signatures.mjs`) é raso demais para decidir por elas: chama de "lista" o formulário de `AssinaturaAtualizar` e o seletor do `Unificado/Novo`. Declarar PT por esse sinal seria só contar string (o *count-pump* que o próprio `pt-conformance` foi feito para impedir).
+- **`reconcile-triplet.mjs` nas 3 listas PT-01:** acusou 4 slots (Toolbar "busca" nas três e Drawer em `Categorias`). **Os 4 são falso-positivo, conferidos no código e no texto do charter:** nenhum charter pede busca (Contas a pagar/receber pedem filtros de status em botões, e eles existem; em `Categorias` a palavra "filtros" está numa frase sobre relatórios), e `Categorias` usa o `CategoriaSheet`, componente próprio que o detector não reconhece.
+- **Defeito do instrumento, registrado e não consertado aqui:** `reconcile-triplet --module=Financeiro --tela=Categorias` (sem `/Index`) procura `Categorias.tsx`, não acha, compara vazio com vazio e responde **CONFORME** em todos os slots. O `--all` não cai nisso, porque parte dos charters que existem.

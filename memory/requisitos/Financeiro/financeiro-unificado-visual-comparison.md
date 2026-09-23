@@ -428,3 +428,11 @@ Medido no DOM da prod × protótipo (`financeiro-page.jsx` / `financeiro-app.jsx
 | Paleta de comandos | "Novo lançamento" | "Novo título" (igual ao botão do header) | DÍVIDA A FECHAR | trocado |
 
 Fora desta onda: os 8 sinais da rodada anterior (acima) seguem com a classificação registrada lá.
+
+### Captura de referência aprovada (FIN-8)
+
+- **2026-09-23 — [W] aprovou** a captura do `Financeiro/Unificado` (run 35879132734, commit `bde9e543f`,
+  mergeada no #7806): tela principal + 5 estados isolados, já com o conserto do transbordo da busca.
+  Resíduo declarado: o fluxo `selecionar-lote · compact` seguia acima de τ_alto (2,17%) — mistura as
+  mudanças intencionais (maiúsculas, placeholder) com a grade de KPIs que veio do main; fluxos só se
+  regeneram no update global, que não cabe no timeout do job.
