@@ -6,7 +6,7 @@
 // Rodar: node scripts/contrato-de-tela.test.mjs — exit 0 = todos passam, exit 1 = regressão.
 
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -523,6 +523,38 @@ for (const [fam, antes, depois] of [
   check(`C1 família ${fam}: linha alterada com o mesmo símbolo → exit 0`,
     r.status === 0 && /reaparece no diff/.test(out(r)), out(r));
   drop(root);
+}
+
+// 6i. C4 — invariante de SYMBOL_RES (toda família casa "-" e "+" com o mesmo símbolo).
+//     Positivo no script real; negativos numa CÓPIA MUTADA do script (o CLI de fora, não um
+//     helper — LC-15). Cada mutação reproduz uma forma do defeito do C3.
+{
+  const r = node(tmpdir(), ['--check-symbol-res']);
+  check('C4 invariante SYMBOL_RES no script real → exit 0', r.status === 0 && !/assimétrico/.test(out(r)), out(r));
+}
+function scriptMutado(nome, de, para) {
+  const dir = mkdtempSync(join(tmpdir(), nome));
+  const src = readFileSync(SCRIPT, 'utf8');
+  if (src.split(de).length !== 2) throw new Error(`mutação "${nome}": âncora não é única`);
+  writeFileSync(join(dir, 'contrato-de-tela.mjs'), src.replace(de, para));
+  writeFileSync(join(dir, 'auditar-intencao-fluxo.mjs'), readFileSync(join(__dirname, 'auditar-intencao-fluxo.mjs'), 'utf8'));
+  return dir;
+}
+const runMut = (dir, args) => spawnSync('node', [join(dir, 'contrato-de-tela.mjs'), '--root', dir, ...args], { encoding: 'utf8' });
+for (const [nome, de, para, sinal] of [
+  // (a) o próprio defeito do C3: âncora só no "-".
+  ['contrato-mut-ancora-', "re: /^[-+]\\s*(?:async", "re: /^[-]\\s*(?:async", /"function" assimétrico/],
+  // (b) família sem amostra (a 6ª família futura nasce assim).
+  ['contrato-mut-semamostra-', `amostra: ["const u = route('fin.conciliacao.index');", 'fin.conciliacao.index'], `, '', /"route\(\)" sem `amostra`/],
+]) {
+  const dir = scriptMutado(nome, de, para);
+  const r = runMut(dir, ['--check-symbol-res']);
+  check(`C4 controle negativo (${nome}) → exit 1`, r.status === 1 && sinal.test(out(r)), out(r));
+  // e o --omission se recusa a rodar com família cega (não vira verde mudo).
+  const o = runMut(dir, ['--omission', 'HEAD', '--alvo', 'x']);
+  check(`C4 --omission recusa rodar com invariante quebrado (${nome}) → exit 1`,
+    o.status === 1 && /invariante de SYMBOL_RES quebrado/.test(out(o)), out(o));
+  drop(dir);
 }
 
 // 7. --map --check POSITIVO — fonte existe + seção ancorada → exit 0.
