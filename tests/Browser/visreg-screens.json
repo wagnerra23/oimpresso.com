@@ -97,6 +97,14 @@
     "baseline": "it_Financeiro_Dre_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Financeiro/PlanoContas",
+    "source": "Financeiro/PlanoContas",
+    "component": "Financeiro/PlanoContas/Index",
+    "route": "/financeiro/plano-contas",
+    "anchor": "TOTAL DE CONTAS",
+    "baseline": "it_Financeiro_PlanoContas_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Financeiro/Cobranca",
     "source": "Financeiro/Cobranca",
     "component": "Financeiro/Cobranca/Index",

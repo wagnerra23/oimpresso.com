@@ -169,7 +169,6 @@
     "resources/js/Pages/Financeiro/Fluxo/Index.tsx|no-restricted-syntax": 3,
     "resources/js/Pages/Financeiro/Fluxo/Index.tsx|react-hooks/exhaustive-deps": 1,
     "resources/js/Pages/Financeiro/Impostos/Index.tsx|no-restricted-syntax": 1,
-    "resources/js/Pages/Financeiro/PlanoContas/Index.tsx|no-restricted-syntax": 8,
     "resources/js/Pages/Financeiro/PlanoContas/Index.tsx|no-useless-escape": 2,
     "resources/js/Pages/Financeiro/ProvaViva.tsx|no-restricted-syntax": 2,
     "resources/js/Pages/Financeiro/Relatorios/Index.tsx|jsx-a11y/label-has-associated-control": 2,

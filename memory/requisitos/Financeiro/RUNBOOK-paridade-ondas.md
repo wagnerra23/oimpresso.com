@@ -95,7 +95,7 @@ A subnav do protótipo foi lida no runtime em `http://localhost:5577/oimpresso.c
 | Fluxo de caixa | `financeiro-telas-extras.jsx` → `TelaFluxo` | `Fluxo/Index.tsx` | ✅ declarada |
 | Conciliação | `financeiro-telas-extras.jsx` → `TelaConciliacao` | `Conciliacao/Index.tsx` | ✅ declarada |
 | DRE / Relatórios | `financeiro-telas-extras.jsx` → `TelaDRE` | `Dre/Index.tsx` (+ `Relatorios/Index.tsx`?) | ✅ no Dre · ❌ **n/a** no Relatorios |
-| Plano de contas | `financeiro-telas-extras.jsx` → `TelaPContas` | `PlanoContas/Index.tsx` | ❌ **n/a** — divergência, ver §4.3 |
+| Plano de contas | `financeiro-telas-extras.jsx` → `TelaPContas` | `PlanoContas/Index.tsx` | ✅ declarada em 2026-09-23 (decisão [W], §4.3) |
 | Impostos & obrigações | `financeiro-telas-extras.jsx` → `TelaImpostos` | `Impostos/Index.tsx` | ✅ declarada |
 | Cobrança | `prototipos/payment-gateway-ui/cobranca-page.jsx` | `Cobranca/Index.tsx` | ✅ declarada |
 | Prova Viva | `Financeiro - Prova Viva (primitivos).html` | `ProvaViva.tsx` | ✅ declarada |
@@ -151,6 +151,8 @@ O gate reporta `prototipo_sha salvo='sha256:3c66ba0f55fe' · atual='sha256:944a1
 |---|---|---|
 | `PlanoContas/Index` | `n/a (herda PT-01 Lista)` | `window.TelaPContas` |
 | `Relatorios/Index` | `n/a (bespoke, não casa PT)` | a aba "DRE / Relatórios" |
+
+> **Decidido em 2026-09-23 por [W] — `PlanoContas/Index` segue o `TelaPContas`, só na forma.** Pergunta feita com os dois lados medidos (protótipo: cartão único, árvore, colunas Lanç. mês/Saldo mês; produção: 5 KPIs, abas por tipo, colunas Natureza/Aceita lanç./Protegido). Resposta: *"Seguir o protótipo (forma)"*. O charter passa a apontar a âncora no mesmo PR da FIN-6. Ficam **mantidos** os KPIs, as abas e as 3 colunas da produção; "Lanç. mês" e "Saldo mês" (soma de valor, regra mestre) viram FIN-6b. `Relatorios/Index` **não** entrou nesta pergunta e segue em aberto.
 
 Isto **não é** automaticamente um erro do charter — pode ser decisão declarada de não seguir aquele protótipo. Mas é divergência entre dois artefatos canônicos, e a regra de precedência manda **corrigir o perdedor no mesmo PR**. Como envolve escolher a fonte de design de uma tela, é **decisão [W]**, não conserto silencioso.
 
@@ -213,7 +215,7 @@ Cobertura conferida: **21/21**. O `UnificadoController` e irmãos renderizam 19 
 | **4** | `Conciliacao/Index` | `TelaConciliacao` | ✅ | 🔴 **valor** | 13 UC já com prova — melhor base do módulo |
 | **5** | `Cobranca/Index` | `cobranca-page.jsx` | ❌ gerar | 🔴 **valor** | fronteira com PaymentGateway — escopo a confirmar |
 | **6** | `PlanoContas/Index` | `TelaPContas` ⚠️ | ❌ gerar | 🟡 | **depende da decisão [W] de §4.3** |
-| **7** | `ProvaViva` | HTML primitivos | ❌ gerar | 🟡 | 2 UC sem prova |
+| ~~**7**~~ | ~~`ProvaViva`~~ | ~~HTML primitivos~~ | — | — | **Onda removida por decisão [W] 2026-09-23** (*"não pode seguir com a FIN-7 da Prova Viva, isso não existe"*). Nenhuma paridade será feita. O código segue no repo (rota `financeiro.prova-viva.index`, `ProvaViva.tsx` + charter/casos, `ProvaVivaController` + 2 testes) — destino dele é outra decisão [W], não desta série. |
 | **8** | `Unificado/Index` | `financeiro-page.jsx` | ✅ | 🔴 **valor** | maior (3090 ln), 9 UC sem prova, é a tela que a Eliana abre toda manhã · **por último, decisão [W] 2026-09-23** (maior raio do módulo) |
 | **9** | as 13 sem âncora | Padrão de Tela + DS | n/a | 🟡 | conformidade PT-01/PT-04, em lote por PT — **não** repintura |
 
