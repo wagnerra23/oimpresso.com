@@ -146,6 +146,27 @@ describe('UC-BENS-05 · o drawer envia o que o serializador monta', () => {
     expect(screen.getByText('Escolha a categoria.')).toBeTruthy();
   });
 
+  it('UC-BENS-05: empresa sem categoria de ativo — o drawer diz e aponta pra onde cadastrar (e não posta)', () => {
+    render(
+      <CadastroBemDrawer aberto onClose={() => {}} locais={{ 3: 'Matriz' }} categorias={{}}
+        tiposCompra={{ owned: 'Próprio' }} formatoData="d/m/Y" />,
+    );
+    const aviso = screen.getByTestId('sem-categoria');
+    expect(aviso.textContent).toContain('Nenhuma categoria de ativo cadastrada.');
+    expect(aviso.querySelector('a')?.getAttribute('href')).toBe('/taxonomies?type=asset');
+    fireEvent.change(screen.getByLabelText('Nome do recurso'), { target: { value: 'Plotter de corte' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Cadastrar bem' }));
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it('UC-BENS-05: com categoria disponível, o aviso de "sem categoria" não aparece', () => {
+    render(
+      <CadastroBemDrawer aberto onClose={() => {}} locais={{ 3: 'Matriz' }} categorias={{ 7: 'Máquinas' }}
+        tiposCompra={{ owned: 'Próprio' }} formatoData="d/m/Y" />,
+    );
+    expect(screen.queryByTestId('sem-categoria')).toBeNull();
+  });
+
   it('UC-BENS-05: com o form válido, posta em /asset/assets com FormData e o valor digitado em pt-BR vira "1234,56"', () => {
     render(
       <CadastroBemDrawer aberto onClose={() => {}} locais={{ 3: 'Matriz' }} categorias={{ 7: 'Máquinas' }}
