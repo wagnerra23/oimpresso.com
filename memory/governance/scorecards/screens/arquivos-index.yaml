@@ -1,0 +1,58 @@
+# Primeira medição da tela (thread 06 · playbook Prontidão · 2026-09-23).
+# Agente screen-qa-specialist, só passos 0 (Pré-Flight) e 1 (Nota). E2E/axe/smoke FORA.
+# ⚠️ NOTA DE LEITURA DE CÓDIGO: .tsx + charter + controller lidos em árvore 317e1b4ec33.
+#    Prod NÃO foi aberto (sem browser nesta thread) — nenhuma dimensão veio de render.
+# Nota = média simples (arredondada) das 16 dimensões (peso de persona 1× em todas: a persona é
+# wagner/eliana, power user admin, sem entrada própria em personas-por-modulo.yml).
+screen: Arquivos/Index
+path: resources/js/Pages/Arquivos/Index.tsx
+archetype: list
+persona: wagner
+persona_secundaria: eliana
+nota: 74
+nivel: "Advanced"
+baseline_anterior: 74   # ratchet — primeira medição; nota não cai abaixo disto sem aprovação
+peso_real: 0.85
+source: screen-qa-thread06-prontidao-2026-09-23
+graded_at: "2026-09-23"
+medicao: leitura-de-codigo   # prod não aberto
+resumo: "Lista PT-01 densa com 4 vistas (acervo/retenção/cofre/trilha), defer por vista e skeleton; perde em recuperação (vazio filtrado = vazio real), carga cognitiva (jargão de código na copy pra Eliana) e strings sem acento na Retenção."
+dimensoes: { density: 82, discoverability: 72, speed_to_task: 76, error_recovery: 66, cognitive_load: 62, aesthetic_usability: 78, affordance: 72, brand_confidence: 78, mobile_fit: 70, a11y_wcag: 70, i18n_ptbr: 72, performance_perceived: 84, information_hierarchy: 80, microcopy: 68, internal_consistency: 72, preflight_conformance: 74 }
+evidencia:
+  density: "DataTable com 7 colunas de largura fixa + chips com contagem por bucket (Index.tsx:469, 1377-1391; charter:158-168)"
+  discoverability: "4 abas com badge (Index.tsx:1357-1365) e busca (Index.tsx:838); único filtro é bucket — sem filtro por disco/vencimento"
+  speed_to_task: "Baixar só-ícone direto na linha (Index.tsx:710-724); troca de filtro/aba é router.get completo (Index.tsx:1276-1277)"
+  error_recovery: "Acervo devolve o MESMO EmptyState 'Nenhum arquivo guardado ainda.' com filtro/busca ativos (Index.tsx:821-826) — charter exige estado filtrada-vazia (charter:122); a Trilha distingue (Index.tsx:858-868)"
+  cognitive_load: "Notas de rodapé expõem DownloadController, Storage::url, HasArquivos, arquivos:retention-cleanup, Crypt::encryptString (Index.tsx:898, 1407-1412, 1438-1445, 1478-1484) — persona secundária Eliana é financeiro, não dev"
+  aesthetic_usability: "Bundle .arq-* aplicado (chip/lista/file/dono) + plate do glyph (Index.tsx:423, 492, 844; charter:149-157)"
+  affordance: "Chips são <button> sem estado exposto além de classe (Index.tsx:1378-1391); ícone de download com aria-label (Index.tsx:721)"
+  brand_confidence: "Tokens + StatusBadge; danger soft em vez de destructive sólido (Index.tsx:543)"
+  mobile_fit: "Tabela com min-width 1020 e rolagem horizontal (Index.tsx:849) — cabe em 1280 com a sidebar, conforme UX Target (charter:119-120)"
+  a11y_wcag: "Chips de filtro sem aria-pressed (Index.tsx:1378, 1455-1467); caption na tabela (Index.tsx:836, 878); glyph aria-hidden (Index.tsx:484-492)"
+  i18n_ptbr: "Subtítulos da Retenção sem acento: 'medindo a retencao…', 'nao foi possivel medir' (Index.tsx:1296-1298); title={b} mostra a chave em inglês do bucket (Index.tsx:1385)"
+  performance_perceived: "Só a prop da vista aberta é registrada, via Inertia::defer (ArquivosAdminController.php:141-154); TabelaSkeleton em cada Deferred (Index.tsx:810-818, 1396, 1419, 1433, 1473); resumo eager"
+  information_hierarchy: "Subtítulo muda por vista e conta o que decide ação (Index.tsx:1295-1312); prazo acompanhado da lei (leiDe, Index.tsx:356)"
+  microcopy: "Empty-states bons (Index.tsx:825, 866, 968), mas jargão de código e strings sem acento no mesmo nível de copy"
+  internal_consistency: "KpiRetencao hand-roll (Index.tsx:925-952) em vez do KpiCard compartilhado; chips .arq-chip próprios (Index.tsx:423)"
+  preflight_conformance: "Charter draft com pendências abertas (charter:5, 169-179: disco 88×104, screenshot [W], reclassificação); bundle copiado por seção (charter:34-41); rota com can:arquivos.access (Routes/web.php:37)"
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Linear: vazio-filtrado diz 'nenhum resultado para <filtro>' + ação 'limpar filtros' — o mecanismo é separar a causa do vazio"
+    fix: "Acervo(): se filtros.bucket || filtros.q, renderizar EmptyState de filtro com botão que chama irPara({bucket:null,q:null}); o vazio real fica só sem filtro (espelhar Trilha, Index.tsx:858)"
+    esforco: baixo
+  - dim: "Cognitive-load"
+    best_of_class: "Stripe Dashboard: copy de produto na tela, nome técnico só em 'Saiba mais'/tooltip — o mecanismo é camada progressiva"
+    fix: "Reescrever as 3 notas de rodapé e a nota do disco em linguagem de comportamento; nomes de classe/comando vão pra title ou link do RUNBOOK"
+    esforco: baixo
+  - dim: "i18n-PT-BR"
+    best_of_class: "Nubank: revisão de copy como gate — zero string sem acento"
+    fix: "Acentuar 'retenção'/'não foi possível' em Index.tsx:1296-1298; trocar title={b} por BUCKET_PT (Index.tsx:1385)"
+    esforco: baixo
+  - dim: "A11y-WCAG"
+    best_of_class: "GitHub Primer SegmentedControl/ToggleButton: estado ativo via aria-pressed, não só cor"
+    fix: "aria-pressed={ativo} nos chips de bucket e de ação da trilha"
+    esforco: baixo
+  - dim: "Internal-consistency"
+    best_of_class: "Shopify Polaris: um componente de métrica pra app inteiro"
+    fix: "Trocar KpiRetencao pelo KpiCard compartilhado (já usado em Backup/Index) com tone"
+    esforco: medio
