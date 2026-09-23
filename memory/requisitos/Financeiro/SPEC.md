@@ -1959,3 +1959,26 @@ DoD: nota ≥70 + ratchet verde. Backend-only na aparência (tela de auth) — c
 - [x] `BridgeExpenseToTitulosCommandTest` deixa de emitir SQLSTATE 42S22
 - [x] Teste sai da quarentena `.github/financeiro-pest-quarantine.list` (a lista encolhe 25 → 24)
 - [ ] Rodado na lane `financeiro-pest` (CI) — o veredito final é da lane, não do CT 100
+
+### US-FIN-069 · Baseline de pixel do DRE (#7767) não reproduz o render do CI — visual-regression vermelho em todo PR de escopo global
+
+> owner: wagner · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — US `todo`: a baseline `it_Financeiro_Dre_bate_com_a_baseline_de_pixel__núcleo_6_.snap` do #7767 segue divergindo do render do CI.
+
+**Sintoma (medido 2026-09-23):** o step `Pixel-diff afetadas/núcleo-6` do `visual-regression` reprova `Financeiro/Dre` com **6,6251% > τ_alto 2%**, em PR que não toca Financeiro (#7780, run 35869233045, head `453f2d36d`). Todo PR que rodar o gate com escopo global cai nisso.
+
+**Diagnóstico (medido, não deduzido):** baseline e render do CI decodificados com `scripts/tests/snap-diff.mjs` a partir do `financeiro-dre.html` do artefato `pixel-diff-views` — **29,65% dos pixels, Δmax=255** (conteúdo, não rasterização). A baseline commitada pelo **#7767** (FIN-1, `9282263e8`) foi fotografada em OUTRO ambiente:
+- baseline: tenant **"Oimpresso Matriz"**, sidebar em inglês (Overview/Contacts/Products/Reports), **sem** banner;
+- CI: tenant **"Tenant Visual Regression"**, sidebar em PT (Visão geral/Contatos/Vendas/Relatórios), **com** o banner *"Categorias não mapeadas hierarquicamente… DRE mostra valores zerados"*.
+
+**Controles:** #7794, #7787 e #7765 aparecem verdes no gate, mas rodaram `SCOPE: none` — não executaram o DRE, não valem como controle. O `main` não teve run do `visual-regression` desde o #7767.
+
+**Duas perguntas em aberto (decisão de quem fez o #7767 / [W]):**
+1. O banner de categorias não mapeadas no tenant de teste é o comportamento esperado da tela, ou é defeito do seed do tenant de teste / da tela?
+2. De onde a baseline do #7767 foi gerada (não foi o modo update do CI)?
+
+**Não fazer:** regenerar a baseline só pra ficar verde — ADR 0409 (snapshot não decide sozinho) e §5 2026-09-21 (regeneração de baseline aposentada como conserto).
+
+**Critério de pronto:** `Financeiro/Dre` passa no `Pixel-diff núcleo-6` numa run com escopo global, com a causa das duas perguntas acima respondida no PR que resolver. Obs.: em 2026-09-23 o `visual-regression` estava fora da lista de required — o dono dessa resposta é `governance/required-checks-baseline.json`; o vermelho aparece em todo PR afetado.
