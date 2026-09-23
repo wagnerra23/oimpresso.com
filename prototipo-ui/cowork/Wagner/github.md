@@ -3,6 +3,25 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-23T17:54:31Z
+tree: 4dc1176f68df
+branch: main
+
+### Updated in this project
+- **Triagem do `cowork-inbox/`:** 47 soltos → 31 apagados (feitos/superados/histórico, conferidos no `main`), 13 abertos viraram playbook (`jana` 03–04 · `comunicacao-visual` · `cms` · `programa-doc` · `acessos` · `notificacoes` · `ds-atomos` 06 AP7 · `governance` 06 Trilha D · `home` 01), + `pageheader` (6) · `oficina-auto` · `frescor`. Raiz: só `PEDIDO-CL-onda11-precompilar-jsx.md` (decisão [W]).
+- **Visão geral alinhada ao charter v6:** `dash-legacy-page.jsx?v=dl14` sem aba "Fluxo de caixa", sem "Exportar CSV", sem "Lançar pagamento" no drawer, sem link pro Blade.
+- ⚠️ `_ds/` local ainda com os 8 tokens velhos (medido) — refresh do binding [W] não chegou.
+
+## Sync anterior (2026-09-23 17:00)
+date: 2026-09-23T17:00:46Z
+tree: ae3c4d92b479
+branch: main
+
+### Updated in this project
+- **FRESCOR 🔵 Atendimento/CaixaUnificada — nada a puxar:** protótipo (`inbox-*.jsx`) já cobre tudo da viva (`Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx`); medição 18/09 IGUAL. Caminho do FRESCOR está errado (não é `resources/js/Pages/Atendimento/`).
+- **Cliente · Endereços puxado da produção** (`_drawer/EnderecosEntregaList.tsx`, US-CRM-078 f2): editar, remover (exceto principal), CEP→autopreenche, UF por lista, flag entrega = nota fiscal. `clientes-page.jsx/css?v=end1`.
+
+## Sync anterior (2026-09-22)
 date: 2026-09-22T19:25:52Z
 tree: c32d02b73672
 branch: main
