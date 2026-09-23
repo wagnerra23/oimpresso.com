@@ -53,6 +53,12 @@ class IndexController extends Controller
                 'businessName' => $businessName,
                 'userName'     => optional(auth()->user())->nome_exibicao,
             ],
+
+            // UC-JPERM-02/03 — o SERVIDOR diz o que o usuário pode; a tela só lê.
+            // A trava de verdade é o `can:` das rotas de escrita (routes.php); estas
+            // flags existem pra tela não oferecer o que o servidor vai recusar.
+            'podeConversar'      => (bool) $request->user()?->can('jana.chat'),
+            'podeGerenciarMetas' => (bool) $request->user()?->can('jana.metas.manage'),
         ]);
     }
 
