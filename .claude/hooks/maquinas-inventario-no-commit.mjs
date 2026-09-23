@@ -331,6 +331,7 @@ async function main() {
   passoInventario(cmd, cwd, pend);
   await passoSuperficie(cmd, cwd, pend);
   passoIndices(cmd, cwd, pend);
+  await passoStatus(cmd, cwd, pend);
   return 0;
 }
 
@@ -623,6 +624,103 @@ function passoIndices(cmd, cwd, pend = { ns: '', entrando: new Set() }) {
     }
     console.error('[indices] REGENEREI e ESTAGIEI ' + ix.saida + ' (indice de ' + ix.nome + ').\n' +
       '  Motivo: este commit toca o que alimenta o indice, e o arquivo divergia do gerador.\n' +
+      '  Se o diff for maior que o seu toque, o excedente e DRIFT HERDADO de commits que nao regeneraram.');
+  }
+}
+
+/**
+ * Passo 4 — o `_STATUS-GENERATED.md` de cada módulo (`requisitos-status.mjs`), 2026-09-23.
+ *
+ * POR QUE: o status é a cadeia US (SPEC) → CU (SDD) → UC (casos) → teste, derivada. Quem mexe
+ * num elo sem regenerar deixa o arquivo drifado — medido no dia: o do Financeiro estava drifado
+ * no `main`, e o Governance Gate reprova o PR que tocar o módulo.
+ *
+ * DOIS CAMINHOS DE ENTRADA, os dois perguntados ao PRÓPRIO gerador (o hook não tem lista):
+ *   · path do módulo (SPEC, SDD, `_telas/`, bases de Pages) → `modulosDoStatus`;
+ *   · TESTE: o corpus de testes é global, e um teste só muda o status do módulo cujo UC ele cita.
+ *     Os UC saem das linhas que o commit muda nesses testes (adicionadas ou removidas; teste
+ *     novo entra inteiro), pelo regex canônico `scripts/lib/uc-regex.mjs` → `modulosComUC`.
+ * Só módulo que JÁ tem `_STATUS-GENERATED.md`: o hook não cria arquivo.
+ *
+ * CUSTO: cada `--check` custa 2–4 s (o gerador varre todos os testes do repo), por isso o filtro
+ * tem de acertar o módulo — rodar os 18 a cada commit daria perto de 1 minuto.
+ *
+ * LIMITE DECLARADO: o gerador lê o DISCO. Mudança não estagiada num insumo do módulo, que não
+ * vai no commit, entra no status regenerado — o mesmo limite do passo 1.
+ */
+async function passoStatus(cmd, cwd, pend = { ns: '', entrando: new Set() }) {
+  const GER = 'scripts/governance/requisitos-status.mjs';
+  if (!existsSync(resolve(cwd, GER))) return;               // sandbox/checkout parcial: fail-open
+  let ns = '';
+  try {
+    ns = git(['diff', '--cached', '--name-status', '--no-renames'], cwd);
+    if (levaWorkingTree(cmd)) ns += '\n' + git(['diff', '--name-status', '--no-renames'], cwd);
+  } catch {
+    return;                                                 // git falhou: nao invento estado
+  }
+  const paths = pathsTocados(ns + '\n' + pend.ns);
+  if (!paths.length) return;
+
+  let rs;
+  let uc;
+  try {
+    rs = await import(pathToFileURL(resolve(cwd, GER)).href);
+    uc = await import(pathToFileURL(resolve(cwd, 'scripts/lib/uc-regex.mjs')).href);
+  } catch {
+    return;
+  }
+  const mods = new Set();
+  try { for (const m of rs.modulosDoStatus(paths)) mods.add(m); } catch { return; }
+
+  const testes = paths.filter((p) => { try { return rs.ehTesteDaCadeia(p); } catch { return false; } });
+  if (testes.length) {
+    let diff = '';
+    try {
+      diff = git(['diff', '--cached', '--no-renames', '-U0', '--', ...testes], cwd);
+      const rastreados = testes.filter((t) => !pend.entrando.has(t));
+      if (rastreados.length && (levaWorkingTree(cmd) || argsDosAddsAntes(cmd).length)) {
+        diff += '\n' + git(['diff', '--no-renames', '-U0', '--', ...rastreados], cwd);
+      }
+      for (const t of testes.filter((x) => pend.entrando.has(x))) {
+        try { diff += '\n' + readFileSync(resolve(cwd, t), 'utf8').split(/\r?\n/).map((l) => '+' + l).join('\n'); } catch { /* sumiu */ }
+      }
+    } catch {
+      diff = '';                                            // sem diff legivel: so o caminho por path
+    }
+    const ids = new Set();
+    for (const l of diff.split(/\r?\n/)) {
+      if (!/^[+-]/.test(l) || /^(\+\+\+|---)( |$)/.test(l)) continue;
+      for (const m of l.matchAll(uc.ucScanRe())) ids.add(m[0].toUpperCase());
+    }
+    try { for (const m of rs.modulosComUC([...ids])) mods.add(m); } catch { /* fica so o que ja achou */ }
+  }
+  if (!mods.size) return;
+
+  const explicito = temPathspecExplicito(cmd);
+  for (const mod of [...mods].sort()) {
+    const alvo = `memory/requisitos/${mod}/_STATUS-GENERATED.md`;
+    const check = spawnSync('node', [GER, mod, '--check'], { cwd, encoding: 'utf8', timeout: 120000 });
+    if (check.status === 0) continue;                       // fresco: SILENCIO
+    if (check.status !== 1 || !String(check.stdout || '').includes('DRIFADO')) continue;   // nao medi: fail-open
+
+    const w = spawnSync('node', [GER, mod, '--write'], { cwd, encoding: 'utf8', timeout: 120000 });
+    if (w.status !== 0) {
+      console.error('[status] o --write de ' + mod + ' falhou; commit segue com ' + alvo + ' stale.');
+      continue;
+    }
+    if (explicito) {
+      console.error('[status] REGENEREI ' + alvo + ' (o commit toca a cadeia do modulo).\n' +
+        '  Seu commit tem pathspec explicito, entao NAO estagiei — inclua o arquivo voce mesmo.');
+      continue;
+    }
+    try {
+      git(['add', '--', alvo], cwd);
+    } catch {
+      console.error('[status] regenerei, mas o `git add` falhou. Estagie a mao: ' + alvo);
+      continue;
+    }
+    console.error('[status] REGENEREI e ESTAGIEI ' + alvo + '.\n' +
+      '  Motivo: este commit mexe na cadeia US → CU → UC → teste de ' + mod + ', e o status divergia.\n' +
       '  Se o diff for maior que o seu toque, o excedente e DRIFT HERDADO de commits que nao regeneraram.');
   }
 }

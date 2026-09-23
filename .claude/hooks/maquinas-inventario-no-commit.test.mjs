@@ -668,6 +668,73 @@ const HEREDOC = (antes) => antes + "git commit -q -F - <<'EOF'\nfix: algo com --
   rmSync(dir, { recursive: true, force: true });
 }
 
+// ---------------------------------------------------------------- (N+4) passo 4: _STATUS-GENERATED
+// Gerador REAL (`requisitos-status.mjs` e o que ele importa), num repo com um modulo `Foo` que
+// JA tem status (opt-in) e um `Bar` que NAO tem (o hook nao pode criar arquivo novo).
+console.log('status (passo 4):');
+const STATUS = (m) => `memory/requisitos/${m}/_STATUS-GENERATED.md`;
+function sandboxStatus() {
+  const dir = mkdtempSync(join(tmpdir(), 'status-'));
+  const g = (args) => execFileSync('git', args, { cwd: dir, stdio: 'ignore' });
+  g(['init', '-q']); g(['config', 'user.email', 't@t']); g(['config', 'user.name', 't']);
+  for (const rel of ['scripts/governance/requisitos-status.mjs', 'scripts/governance/module-surface.mjs', 'scripts/qa/page-path.mjs', 'scripts/lib/uc-regex.mjs']) {
+    mkdirSync(join(dir, dirname(rel)), { recursive: true });
+    writeFileSync(join(dir, rel), readFileSync(join(RAIZ_REPO, rel)));
+  }
+  for (const m of ['Foo', 'Bar']) {
+    mkdirSync(join(dir, `memory/requisitos/${m}`), { recursive: true });
+    mkdirSync(join(dir, `resources/js/Pages/${m}`), { recursive: true });
+    writeFileSync(join(dir, `memory/requisitos/${m}/SPEC.md`), `# SPEC ${m}\n\n` + US(`US-${m.toUpperCase()}-001`, 'Primeira'));
+    writeFileSync(join(dir, `resources/js/Pages/${m}/Index.tsx`), 'export default function Index() { return null }\n');
+    writeFileSync(join(dir, `resources/js/Pages/${m}/Index.casos.md`), `# Casos\n\n| UC | Caso |\n|---|---|\n| UC-${m.toUpperCase()}-01 | lista |\n`);
+  }
+  execFileSync('node', ['scripts/governance/requisitos-status.mjs', 'Foo', '--write'], { cwd: dir, stdio: 'ignore' });   // SO o Foo
+  g(['add', '-A']); g(['commit', '-qm', 'base']);
+  return dir;
+}
+const checkSt = (dir, m) => spawnSync('node', ['scripts/governance/requisitos-status.mjs', m, '--check'], { cwd: dir }).status;
+{
+  const dir = sandboxStatus();
+  ok(checkSt(dir, 'Foo') === 0, 'controle: o status do Foo nasce fresco');
+  mkdirSync(join(dir, 'tests/Feature'), { recursive: true });
+  writeFileSync(join(dir, 'tests/Feature/FooTest.php'), "<?php\nit('UC-FOO-01: lista os itens', function () { expect(true)->toBeTrue(); });\n");
+  ok(checkSt(dir, 'Foo') === 1, 'controle positivo: teste novo citando o UC deixa o status do Foo drifado');
+  const r = roda(dir, 'git add tests/Feature/FooTest.php && git commit -m x');
+  ok(stageado(dir).includes(STATUS('Foo')) && checkSt(dir, 'Foo') === 0, 'MORDE TESTE: teste que cita UC do modulo regenera e estagia o status dele');
+  ok(!existsSync(join(dir, STATUS('Bar'))), 'OPT-IN: modulo sem status (Bar) nao ganha arquivo');
+  ok(/\[status\] REGENEREI e ESTAGIEI/.test(r.stderr), 'avisa o que fez');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxStatus();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira') + '\n' + US('US-FOO-002', 'Segunda'));
+  roda(dir, HEREDOC('git add memory/requisitos/Foo/SPEC.md && '));
+  ok(stageado(dir).includes(STATUS('Foo')) && checkSt(dir, 'Foo') === 0, 'MORDE SPEC: US nova no SPEC regenera o status (forma heredoc)');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxStatus();
+  mkdirSync(join(dir, 'tests/Feature'), { recursive: true });
+  writeFileSync(join(dir, 'tests/Feature/ZzzTest.php'), "<?php\nit('UC-ZZZ-01: de ninguem', function () {});\n");
+  const r = roda(dir, 'git add tests/Feature/ZzzTest.php && git commit -m x');
+  ok(!stageado(dir).includes(STATUS('Foo')) && !/\[status\]/.test(r.stderr), 'NEG TESTE: teste citando UC de nenhum modulo nao dispara nada');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxStatus();
+  writeFileSync(join(dir, 'memory/requisitos/Bar/SPEC.md'), '# SPEC Bar\n\n' + US('US-BAR-001', 'Primeira') + '\n' + US('US-BAR-002', 'Segunda'));
+  const r = roda(dir, 'git add memory/requisitos/Bar/SPEC.md && git commit -m x');
+  ok(!existsSync(join(dir, STATUS('Bar'))) && !/\[status\]/.test(r.stderr), 'OPT-IN: SPEC de modulo sem status nao cria arquivo');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxStatus();
+  writeFileSync(join(dir, 'README.md'), 'x\n');
+  const r = roda(dir, 'git add README.md && git commit -m x');
+  ok(!stageado(dir).includes(STATUS('Foo')) && !/\[status\]/.test(r.stderr), 'SILENCIO: arquivo fora da cadeia nao faz nada');
+  rmSync(dir, { recursive: true, force: true });
+}
+
 console.log('');
 if (falhas) { console.error('FALHOU: ' + falhas + ' assert(s)'); process.exit(1); }
 console.log('maquinas-inventario-no-commit: morde quando ha drift, silencia quando fresco, fail-open sempre.');
