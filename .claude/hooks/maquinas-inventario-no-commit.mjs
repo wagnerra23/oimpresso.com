@@ -223,6 +223,7 @@ async function main() {
   const cwd = process.cwd();
   passoInventario(cmd, cwd);
   await passoSuperficie(cmd, cwd);
+  passoIndices(cmd, cwd);
   return 0;
 }
 
@@ -403,6 +404,116 @@ async function passoSuperficie(cmd, cwd) {
     console.error('[module-surface] REGENEREI e ESTAGIEI ' + alvo + '.\n' +
       '  Motivo: este commit cria ou apaga arquivo de ' + mod + ', e o mapa do modulo divergia da arvore.\n' +
       '  Sem isso o `module-surface --all --check` reprova este PR e todo PR aberto depois dele.');
+  }
+}
+
+/**
+ * Passo 3 — indices GLOBAIS derivados de documento (estendido em 2026-09-23).
+ *
+ * POR QUE: no mesmo dia, dois indices gerados envelheceram no `main` porque quem mudou o
+ * insumo nao regenerou, e o Governance Gate reprovou o PR seguinte (#7799): o backlog nao
+ * contava a US nova, e o indice de planos nao listava o plano da Onda 2 (#7746). O conserto
+ * e o mesmo dos passos 1 e 2: quem muda o insumo regenera o derivado.
+ *
+ * Cada entrada diz QUAL gerador, QUAL arquivo ele grava e QUAIS paths o alimentam. O filtro
+ * e deliberadamente MAIS LARGO que o gerador (so decide se vale pagar a medicao); quem decide
+ * e o `--check` do proprio gerador, que compara o arquivo INTEIRO. Indice fresco = silencio.
+ *
+ * DRIFT HERDADO: estes indices sao um arquivo so para o repo inteiro, entao a regeneracao
+ * traz tambem o que outros commits deixaram de regenerar — igual ao passo 1, e a mensagem diz.
+ *
+ * `ler(path, rev)` e injetado para o filtro ser testavel sem git.
+ */
+export const INDICES = [
+  {
+    nome: 'backlog',
+    gerador: 'scripts/governance/tasks-index-generate.mjs',
+    saida: 'memory/requisitos/_BACKLOG-GENERATED.md',
+    marca: 'drift',
+    // o gerador le TODO memory/requisitos/<Mod>/SPEC.md (blocos US + linha de metadados)
+    toca: (p) => /^memory\/requisitos\/[^/]+\/SPEC\.md$/.test(p),
+  },
+  {
+    nome: 'planos',
+    gerador: 'scripts/governance/plans-index.mjs',
+    saida: 'memory/requisitos/_processo/PLANS-INDEX-GENERATED.md',
+    marca: 'DESATUALIZADO',
+    // REGISTRADO = `.md` com bloco `## Status vivo` em memory/requisitos/** ou memory/sessions/**;
+    // PENDENTE = `.md` de nome *plan* em memory/requisitos/**. O bloco pode ter sido posto OU
+    // tirado neste commit, entao olha a versao atual e a do HEAD.
+    toca: (p, ler) => {
+      if (!p.endsWith('.md')) return false;
+      if (!p.startsWith('memory/requisitos/') && !p.startsWith('memory/sessions/')) return false;
+      if (p === 'memory/requisitos/_processo/PLANS-INDEX-GENERATED.md' || p === 'memory/requisitos/_processo/PLANS-INDEX.md') return false;
+      if (p.startsWith('memory/requisitos/') && /plan/i.test(p.split('/').pop())) return true;
+      return ['', 'HEAD'].some((rev) => String(ler(p, rev) || '').includes('Status vivo'));
+    },
+  },
+];
+
+/** Paths tocados pelo commit, qualquer status (M conta: estes indices leem CONTEUDO). */
+export function pathsTocados(nameStatus) {
+  const out = [];
+  for (const linha of String(nameStatus || '').split(/\r?\n/)) {
+    const partes = linha.split(String.fromCharCode(9));
+    if (partes.length === 2 && /^[AMDT]$/.test(partes[0]) && partes[1].trim()) out.push(partes[1].trim());
+  }
+  return out;
+}
+
+/** Quais indices este conjunto de paths pode ter envelhecido. Puro, testavel. */
+export function indicesAfetados(paths, ler) {
+  return INDICES.filter((ix) => paths.some((p) => {
+    try { return ix.toca(p, ler); } catch { return false; }
+  }));
+}
+
+function passoIndices(cmd, cwd) {
+  let ns = '';
+  try {
+    ns = git(['diff', '--cached', '--name-status', '--no-renames'], cwd);
+    if (levaWorkingTree(cmd)) ns += '\n' + git(['diff', '--name-status', '--no-renames'], cwd);
+  } catch {
+    return;                                               // git falhou: nao invento estado
+  }
+  const paths = pathsTocados(ns);
+  if (!paths.length) return;
+  const ler = (p, rev) => {
+    try {
+      return rev ? git(['show', `${rev}:${p}`], cwd) : readFileSync(resolve(cwd, p), 'utf8');
+    } catch {
+      return '';                                          // arquivo novo (sem HEAD) ou apagado
+    }
+  };
+  const alvos = indicesAfetados(paths, ler).filter((ix) => existsSync(resolve(cwd, ix.gerador)));
+  if (!alvos.length) return;
+  const explicito = temPathspecExplicito(cmd);
+
+  for (const ix of alvos) {
+    const check = spawnSync('node', [ix.gerador, '--check'], { cwd, encoding: 'utf8', timeout: 120000 });
+    if (check.status === 0) continue;                     // fresco: SILENCIO
+    const saidaCheck = String(check.stdout || '') + String(check.stderr || '');
+    if (check.status !== 1 || !saidaCheck.includes(ix.marca)) continue;   // nao medi: fail-open
+
+    const w = spawnSync('node', [ix.gerador, '--write'], { cwd, encoding: 'utf8', timeout: 120000 });
+    if (w.status !== 0) {
+      console.error('[indices] o --write do indice de ' + ix.nome + ' falhou; commit segue com ' + ix.saida + ' stale.');
+      continue;
+    }
+    if (explicito) {
+      console.error('[indices] REGENEREI ' + ix.saida + ' (o commit toca o que o alimenta).\n' +
+        '  Seu commit tem pathspec explicito, entao NAO estagiei — inclua o arquivo voce mesmo.');
+      continue;
+    }
+    try {
+      git(['add', '--', ix.saida], cwd);
+    } catch {
+      console.error('[indices] regenerei, mas o `git add` falhou. Estagie a mao: ' + ix.saida);
+      continue;
+    }
+    console.error('[indices] REGENEREI e ESTAGIEI ' + ix.saida + ' (indice de ' + ix.nome + ').\n' +
+      '  Motivo: este commit toca o que alimenta o indice, e o arquivo divergia do gerador.\n' +
+      '  Se o diff for maior que o seu toque, o excedente e DRIFT HERDADO de commits que nao regeneraram.');
   }
 }
 

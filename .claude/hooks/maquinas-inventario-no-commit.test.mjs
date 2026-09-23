@@ -23,6 +23,7 @@ import {
   ehGitCommit, temPathspecExplicito, levaWorkingTree, tocaCoberto, COBERTOS,
   ehDocDoCorpus, tokensDe, tokensDasMaquinas, diffCitaMaquina, DOCS_GERADOS,
   RX_ARQUIVO, RX_CRASE, RX_PASTA, pathsQueMudamOMapa,
+  pathsTocados, indicesAfetados,
 } from './maquinas-inventario-no-commit.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'maquinas-inventario-no-commit.mjs');
@@ -449,6 +450,124 @@ const checkSup = (dir, m) => spawnSync('node', ['scripts/governance/module-surfa
   execFileSync('git', ['add', '--', 'README.md'], { cwd: dir, stdio: 'ignore' });
   const r = roda(dir, 'git commit -m x');
   ok(!stageado(dir).includes(SUP('Foo')) && !stageado(dir).includes(SUP('Bar')) && !r.stderr, 'SILENCIO: arquivo fora de modulo nao faz nada');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// ---------------------------------------------------------------- (N+1) passo 3: indices globais
+console.log('indices (passo 3):');
+{
+  const T = String.fromCharCode(9);
+  ok(JSON.stringify(pathsTocados('A' + T + 'a.md\nM' + T + 'b.md\nD' + T + 'c.md\nR100' + T + 'x' + T + 'y\n'))
+    === JSON.stringify(['a.md', 'b.md', 'c.md']), 'pathsTocados: A/M/D contam (estes indices leem conteudo)');
+  const semConteudo = () => '';
+  const nomes = (ps, ler = semConteudo) => indicesAfetados(ps, ler).map((i) => i.nome).join(',');
+  ok(nomes(['memory/requisitos/Foo/SPEC.md']) === 'backlog', 'SPEC de modulo alimenta o backlog');
+  ok(nomes(['memory/requisitos/Foo/sub/SPEC.md']) === '', 'SPEC fora do 1o nivel NAO e lido pelo gerador');
+  ok(nomes(['memory/requisitos/Foo/PLANO-onda.md']) === 'planos', 'arquivo *plan* em requisitos alimenta o indice de planos');
+  ok(nomes(['memory/sessions/2026-09-23-x.md'], () => '## Status vivo\n') === 'planos', 'Status vivo em sessions alimenta planos');
+  ok(nomes(['memory/sessions/2026-09-23-x.md'], (p, rev) => (rev === 'HEAD' ? '## Status vivo\n' : '')) === 'planos',
+    'bloco REMOVIDO neste commit (so no HEAD) tambem alimenta planos');
+  ok(nomes(['memory/reference/qualquer.md', 'README.md']) === '', 'controle negativo: doc que nao alimenta nenhum indice');
+  // Espelha o `SELF` do plans-index.mjs: so os DOIS arquivos do proprio indice de planos ficam de
+  // fora. (O `_BACKLOG-GENERATED.md` nao e excluido pelo gerador — com "Status vivo" no texto ele
+  // seria contado — entao o filtro tambem nao o exclui; afirmar o contrario seria testar a minha
+  // opiniao, nao o gerador.)
+  ok(nomes(['memory/requisitos/_processo/PLANS-INDEX-GENERATED.md', 'memory/requisitos/_processo/PLANS-INDEX.md'], () => '## Status vivo') === '',
+    'os arquivos do proprio indice de planos nao realimentam o filtro');
+  ok(nomes(['memory/requisitos/_BACKLOG-GENERATED.md']) === '', 'o backlog gerado nao e SPEC nem plano: nao dispara nada');
+}
+
+const US = (id, titulo) => `### ${id} · ${titulo}\n\n> owner: — · priority: p2 · status: todo · type: story\n\nCorpo.\n`;
+const PLANO = '# Plano X\n\n## Status vivo\n\n- **status:** ativo\n- **owner:** W\n- **criado:** 2026-09-23 · **reviewed_at:** 2026-09-23\n';
+
+function sandboxIdx() {
+  const dir = mkdtempSync(join(tmpdir(), 'indices-'));
+  const g = (args) => execFileSync('git', args, { cwd: dir, stdio: 'ignore' });
+  g(['init', '-q']); g(['config', 'user.email', 't@t']); g(['config', 'user.name', 't']);
+  for (const rel of ['scripts/governance/tasks-index-generate.mjs', 'scripts/governance/plans-index.mjs']) {
+    mkdirSync(join(dir, dirname(rel)), { recursive: true });
+    writeFileSync(join(dir, rel), readFileSync(join(RAIZ_REPO, rel)));
+  }
+  mkdirSync(join(dir, 'memory/requisitos/Foo'), { recursive: true });
+  mkdirSync(join(dir, 'memory/requisitos/_processo'), { recursive: true });
+  mkdirSync(join(dir, 'memory/sessions'), { recursive: true });
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira'));
+  for (const gen of ['tasks-index-generate.mjs', 'plans-index.mjs']) {
+    execFileSync('node', ['scripts/governance/' + gen, '--write'], { cwd: dir, stdio: 'ignore' });
+  }
+  g(['add', '-A']); g(['commit', '-qm', 'base']);
+  return dir;
+}
+const BACKLOG = 'memory/requisitos/_BACKLOG-GENERATED.md';
+const PLANOS = 'memory/requisitos/_processo/PLANS-INDEX-GENERATED.md';
+const checkIdx = (dir, gen) => spawnSync('node', ['scripts/governance/' + gen, '--check'], { cwd: dir }).status;
+
+{
+  const dir = sandboxIdx();
+  ok(checkIdx(dir, 'tasks-index-generate.mjs') === 0 && checkIdx(dir, 'plans-index.mjs') === 0, 'controle: sandbox nasce sem drift');
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira') + '\n' + US('US-FOO-002', 'Segunda'));
+  execFileSync('git', ['add', '--', 'memory/requisitos/Foo/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  ok(checkIdx(dir, 'tasks-index-generate.mjs') === 1, 'controle positivo: US nova deixa o backlog com drift');
+  const r = roda(dir, 'git commit -m x');
+  ok(stageado(dir).includes(BACKLOG) && checkIdx(dir, 'tasks-index-generate.mjs') === 0, 'MORDE: US nova regenera e estagia o backlog');
+  ok(!stageado(dir).includes(PLANOS), 'ESCOPO: indice que o commit nao alimenta fica de fora');
+  ok(/REGENEREI e ESTAGIEI/.test(r.stderr), 'avisa o que fez');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxIdx();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo — texto editado\n\n' + US('US-FOO-001', 'Primeira'));
+  execFileSync('git', ['add', '--', 'memory/requisitos/Foo/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  const antes = readFileSync(join(dir, BACKLOG), 'utf8');
+  const r = roda(dir, 'git commit -m x');
+  ok(readFileSync(join(dir, BACKLOG), 'utf8') === antes && !stageado(dir).includes(BACKLOG) && !r.stderr,
+    'SILENCIO: SPEC editado sem mudar US paga a medicao e nao grava nada');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxIdx();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/PLANO-onda.md'), PLANO);
+  execFileSync('git', ['add', '--', 'memory/requisitos/Foo/PLANO-onda.md'], { cwd: dir, stdio: 'ignore' });
+  ok(checkIdx(dir, 'plans-index.mjs') === 1, 'controle positivo: plano novo deixa o indice de planos com drift');
+  roda(dir, 'git commit -m x');
+  ok(stageado(dir).includes(PLANOS) && checkIdx(dir, 'plans-index.mjs') === 0, 'MORDE: plano novo regenera e estagia o indice de planos');
+  ok(!stageado(dir).includes(BACKLOG), 'ESCOPO: backlog nao entra quando nenhum SPEC mudou');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxIdx();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira') + '\n' + US('US-FOO-002', 'Segunda'));
+  execFileSync('git', ['add', '--', 'memory/requisitos/Foo/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m x -- memory/requisitos/Foo/SPEC.md');
+  ok(checkIdx(dir, 'tasks-index-generate.mjs') === 0 && !stageado(dir).includes(BACKLOG) && /NAO estagiei/.test(r.stderr),
+    'PATHSPEC: regenera mas nao estagia');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  // FAIL-OPEN: gerador que QUEBRA (exit 2) nao e "drift". Se o hook confundisse os dois, rodaria o
+  // --write de um gerador quebrado e estagiaria o que saisse dele. Este fake grava LIXO no --write
+  // justamente para o assert ver isso acontecer.
+  const dir = sandboxIdx();
+  const antes = readFileSync(join(dir, BACKLOG), 'utf8');
+  writeFileSync(join(dir, 'scripts/governance/tasks-index-generate.mjs'), [
+    "import { writeFileSync } from 'node:fs';",
+    "if (process.argv.includes('--check')) { console.error('TypeError: quebrei'); process.exit(2); }",
+    "if (process.argv.includes('--write')) writeFileSync('" + BACKLOG + "', 'LIXO\\n');",
+  ].join('\n'));
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira') + '\n' + US('US-FOO-002', 'Segunda'));
+  execFileSync('git', ['add', '--', 'memory/requisitos/Foo/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  roda(dir, 'git commit -m x');
+  ok(readFileSync(join(dir, BACKLOG), 'utf8') === antes && !stageado(dir).includes(BACKLOG),
+    'FAIL-OPEN: gerador quebrado (exit 2) nao e drift — nada e gravado nem estagiado');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxIdx();
+  mkdirSync(join(dir, 'memory/reference'), { recursive: true });
+  writeFileSync(join(dir, 'memory/reference/x.md'), 'nada\n');
+  execFileSync('git', ['add', '--', 'memory/reference/x.md'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m x');
+  ok(!stageado(dir).includes(BACKLOG) && !stageado(dir).includes(PLANOS) && !r.stderr, 'SILENCIO: doc fora dos insumos nao faz nada');
   rmSync(dir, { recursive: true, force: true });
 }
 
