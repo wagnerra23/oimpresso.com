@@ -35,12 +35,12 @@ O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Ti
 | 02 | **Trava de saldo na alocação** | ~9 KB | ~35 ln | 3 | 2 | 0 | **CABE** |
 | 03 | **Guarda `asset.view` no índice** | ~4 KB | ~8 ln | 2 | 2 | 0 | **CABE** |
 | 04 | **Remedir D1/D5 e os não-lidos** (frente 0) | ~25 KB | 0 | 0 | — | 0 | **CABE** (medição) |
-| 05 | **Job de retenção LGPD** `assetmanagement:retention-purge` | ~6 KB | ~120 ln | 3 | 2 | 0¹ | **CABE** |
+| 05 | ~~**Job de retenção LGPD** `assetmanagement:retention-purge`~~ | — | — | 0 | — | — | **DESCARTADA** ¹ |
 | 06 | **A UI inteira — 46 arquivos** | — | — | 0 | — | **1** | **BLOQUEADA** |
 
-¹ [W] 10 decide **quando ligar em canary**, não se o código nasce — o próprio doc de 04/09 diz "o código pode nascer já". Nasce com `enabled=false`.
+¹ **DESCARTADA por decisão [W] (2026-09-23).** A thread contradiz a lápide §5 2026-07-27 (`memory/licoes-rejeitadas.md`): *"em um sistema ERP não pode apagar o PII"*, e o controle é por permissão de acesso (Spatie), não por retenção. A lápide proíbe varredura automática por TTL que apague ou anonimize dado de negócio "sob qualquer nome (retention purge, expurgo, poda, anonimização agendada, 'limpeza LGPD')". O argumento de 04/09 ("o código pode nascer já") caiu junto, porque o que morreu foi a intenção de ter a varredura, não só a de ligá-la. O `retention.php` segue como está (`enabled=false`), e o direito ao esquecimento sob demanda (Art. 18 §VI) continua sendo o caminho vivo. Reabrir exige decisão [W] nova e explícita.
 
-**Vaga 1:** 01 ∥ 03 ∥ 04 (prefixos disjuntos). **Vaga 2:** 02 (toca o mesmo Service da 01) ∥ 05.
+**Vaga 1:** 01 ∥ 03 ∥ 04 (prefixos disjuntos). **Vaga 2:** 02 (toca o mesmo Service da 01). _(05 descartada — nota ¹.)_
 **A ordem não é gosto:** 01 vem primeiro porque é multi-tenant em produção — Tier 0 fura antes de qualquer verniz.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
@@ -75,7 +75,7 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
   "constituicao": "CONSTITUICAO-COWORK.md",
   "decisoes": [
     { "id": "D-ENDERECO", "pergunta": "Patrimonio e modulo proprio (Pages/Patrimonio/**) ou secao do Estoque (Pages/Estoque/Patrimonio/**)? ADR 0180 x ADR 0182 x SCOPE bloqueado-escopo.", "respondida": false, "destrava": ["06"], "custo": "44 arquivos / 20 PRs" },
-    { "id": "D-CANARY-LGPD", "pergunta": "Quando ligar assetmanagement:retention-purge em canary? (nao bloqueia escrever o job com enabled=false)", "respondida": false, "afeta": ["05"] }
+    { "id": "D-CANARY-LGPD", "pergunta": "Quando ligar assetmanagement:retention-purge em canary? (nao bloqueia escrever o job com enabled=false)", "respondida": true, "resposta": "Nunca. [W] 2026-09-23: thread 05 descartada pela licoes-rejeitadas 2026-07-27 (ERP nao apaga PII; controle por permissao, nao por retencao).", "afeta": ["05"] }
   ],
   "threads": [
     { "id": "01", "titulo": "Tenant na subconsulta de revoke (vazamento Tier 0)", "dono": "CL", "vaga": 1, "arquivo": "01-tenant-subquery-revoke.md",
@@ -99,6 +99,7 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "nota_provas": "thread de MEDICAO: nao escreve codigo. Prova = _saida-04.md com veredito por defeito (confirmado com linha / nao existe / ja corrigido).",
       "provas": [] },
     { "id": "05", "titulo": "Job de retencao LGPD (nasce com enabled=false)", "dono": "CL", "vaga": 2, "arquivo": "05-retencao-lgpd.md",
+      "bloqueio": "DESCARTADA por decisao [W] 2026-09-23 — licoes-rejeitadas 2026-07-27: ERP nao apaga PII; varredura por TTL proibida sob qualquer nome. Nao executar; reabrir so com decisao [W] nova.",
       "prefixo": ["Modules/AssetManagement/Console/Commands/", "Modules/AssetManagement/Config/retention.php", "Modules/AssetManagement/Tests/Feature/LgpdComplianceTest.php"],
       "nao_toca": ["Modules/AssetManagement/Services/", "Modules/AssetManagement/Http/"],
       "afeta_decisoes": ["D-CANARY-LGPD"],
