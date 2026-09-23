@@ -1,0 +1,59 @@
+# Scorecard de tela — primeira medição (thread 11 do playbook Prontidão, 2026-09-23).
+# Método SCREEN-GRADE (memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md), passos 0+1 do
+# agente screen-qa-specialist. ⚠️ NOTA DE LEITURA DE CÓDIGO: .tsx + charter + casos + controller,
+# SEM browser de prod, SEM E2E/axe/smoke (passos 2-4 fora desta thread). Nenhuma dimensão foi
+# medida em runtime; cada uma cita arquivo:linha. Persona peso uniforme (wagner = power user,
+# personas-por-modulo.yml §Notas), nota = média das 16 dims arredondada.
+# Escopo: o shell Cockpit.tsx + a aba de pouso /forja (Triagem, ForjaTriage.tsx). As outras abas
+# (backlog/quadro/changelog/mcp/handoffs/integrador/saude) são componentes filhos não notados aqui.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: team-mcp/Forja/Cockpit
+path: Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.tsx
+archetype: other       # shell de abas do hub Forja (pouso = Triagem)
+persona: wagner
+nota: 77
+nivel: "Advanced"
+baseline_anterior: 77   # ratchet — primeira medição, baseline = a própria nota
+peso_real: 1.0
+source: leitura-codigo-thread11-prontidao-2026-09-23
+graded_at: "2026-09-23"
+resumo: "Shell único de 8 abas sob <ForjaHub>, cada aba com <Deferred> e fallback próprio; Triagem com J/K/Enter e dossiê (agente propõe, [W] aprova), tokens semânticos DS v6. Perde em: cabeçalho @memcofre stale (permissão e lista de abas), fallbacks em texto 'Carregando…' em vez de skeleton (exceto handoffs), linhas da Triagem sem foco/role (seleção só visual) e padding condicional por aba."
+dimensoes: { density: 78, discoverability: 76, speed_to_task: 80, error_recovery: 72, cognitive_load: 80, aesthetic_usability: 78, affordance: 74, brand_confidence: 72, mobile_fit: 74, a11y_wcag: 72, i18n_ptbr: 86, performance_perceived: 80, information_hierarchy: 78, microcopy: 80, internal_consistency: 70, preflight_conformance: 76 }
+evidencias:
+  density: "ForjaTriage.tsx:128-190 linha única ID · tipo · título · módulo · papel · Analisar"
+  discoverability: "Cockpit.charter.md:30-36 Triagem saiu do topnav (Onda 2) mas segue landing /forja (routes.php:267)"
+  speed_to_task: "ForjaTriage.tsx:82-110 J/K/Enter; ForjaTriage.tsx:176-184 Analisar abre dossiê"
+  error_recovery: "ForjaTriage.tsx:199-206 onResolved + reload parcial; sem estado de erro quando o defer falha (Cockpit.tsx:115-150)"
+  cognitive_load: "Cockpit.tsx:111-113 um intro por aba, sem duplicar texto de abertura"
+  aesthetic_usability: "Cockpit.tsx:80-104 padding alinhado ao protótipo nas abas-réplica"
+  affordance: "ForjaTriage.tsx:133-139 linha <div> sem tabIndex/role — só selecionável por J/K; Cockpit.charter.md:57-62 'Novo issue' sem fluxo de criação"
+  brand_confidence: "Cockpit.charter.md:8 status draft; aba MCP mockada por design (Cockpit.charter.md:66)"
+  mobile_fit: "ForjaTriage.tsx:163,170 módulo/papel hidden abaixo de sm — não medido em viewport"
+  a11y_wcag: "ForjaTriage.tsx:136 só aria-current na linha; Cockpit.tsx:70-74 fallback sem aria-busy/role=status; ForjaTriage.tsx:143,150 text-[10px]/[11px]"
+  i18n_ptbr: "copy PT-BR; 'issue' em 'Novo issue' (Cockpit.charter.md:57)"
+  performance_perceived: "Cockpit.tsx:115-150 <Deferred> por aba; só handoffs tem skeleton (Cockpit.tsx:141), o resto é texto 'Carregando…'"
+  information_hierarchy: "ForjaHub fixo + aba; Triagem abre com texto-âncora ForjaTriage.tsx:114-120"
+  microcopy: "ForjaTriage.tsx:192-197 explica a fila e que nada vira oficial sem [W]"
+  internal_consistency: "Cockpit.tsx:8 'permissao: copiloto.mcp.usage.all' vs jana.mcp.usage.all (Cockpit.charter.md:26 errata); Cockpit.tsx:6-7 lista de abas caducada; Cockpit.tsx:102-104 padding condicional por aba declarado pendente"
+  preflight_conformance: "charter tier A + casos (UC-FORJA-03/08/10 ⬜, demais 🧪 — Cockpit.casos.md:109-174); ForjaTriage.tsx:47-53 badges 100% tokens semânticos"
+gaps:
+  - dim: "Internal-consistency"
+    best_of_class: "Stripe docs: metadado de página gerado/validado contra a fonte, nunca prosa que apodrece"
+    fix: "Atualizar o cabeçalho @memcofre de Cockpit.tsx (permissão jana.mcp.usage.all; abas atuais) — ou derivá-lo do charter"
+    esforco: baixo
+    origin: thread11-prontidao-2026-09-23
+  - dim: "A11y-WCAG"
+    best_of_class: "Linear Triage: linhas são itens focáveis (roving tabindex) com aria-selected, e J/K move o foco real"
+    fix: "Dar role=option/tabIndex às linhas da Triagem e mover o foco com J/K; fallback de loading com role=status"
+    esforco: baixo
+    origin: thread11-prontidao-2026-09-23
+  - dim: "Performance-perceived"
+    best_of_class: "Vercel dashboard: skeleton com a forma do conteúdo por aba"
+    fix: "Trocar o loading() textual (Cockpit.tsx:70-74) por skeletons por aba, como já existe o HandoffsSkeleton"
+    esforco: baixo
+    origin: thread11-prontidao-2026-09-23
+  - dim: "Brand-confidence"
+    best_of_class: "Linear: tela promovida a live após aprovação visual"
+    fix: "Fechar gate visual [W] (charter draft → live)"
+    esforco: baixo
+    origin: thread11-prontidao-2026-09-23

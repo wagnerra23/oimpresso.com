@@ -1,0 +1,61 @@
+# Primeira medição (thread 08 do playbook "Prontidão", 2026-09-23) — agente screen-qa-specialist,
+# só passos 0 (Pré-Flight) e 1 (Nota). Nota 16-dim é LLM-as-judge por LEITURA DE CÓDIGO
+# (.tsx + charter + controller na árvore 317e1b4ec33) — SEM browser de prod, SEM E2E/axe/smoke.
+# Persona "misto" (dono/gestor; personas-por-modulo.yml jana.primary = depends_on_business):
+# pesos 1× em todas as dimensões ⇒ nota = média simples arredondada das 16.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Jana/Acoes
+path: resources/js/Pages/Jana/Acoes.tsx
+archetype: list
+persona: misto
+nota: 74
+nivel: "Advanced"
+baseline_anterior: 74   # ratchet — primeira medição (= a própria nota)
+peso_real: 1.0
+source: prontidao-thread08-leitura-codigo-2026-09-23
+graded_at: "2026-09-23"
+resumo: "Fila HITL honesta (tudo que afirma número vem de AcaoHitlService::fila, aprovar reusa JanaAcaoModal, recibo mostra o texto gravado), só @/Components/ui + primitivos de layout; perde em carga cognitiva e microcopy por expor nomes de rota/tabela/business_id ao usuário final, sem defer/skeleton, tabela hand-roll no Dialog do recibo e tamanhos arbitrários (text-[10.5px]) no lugar de tokens de tipo."
+dimensoes: { density: 76, discoverability: 76, speed_to_task: 74, error_recovery: 70, cognitive_load: 64, aesthetic_usability: 76, affordance: 76, brand_confidence: 78, mobile_fit: 70, a11y_wcag: 72, i18n_ptbr: 80, performance_perceived: 70, information_hierarchy: 74, microcopy: 70, internal_consistency: 78, preflight_conformance: 76 }
+evidencias:
+  density: "Acoes.tsx:124-157 — um Card por ação em coluna, sem tabela (charter §UX targets)"
+  discoverability: "Acoes.tsx:101-107 — chips sugeridas/aprovadas com contagem; aria-pressed"
+  speed_to_task: "Acoes.tsx:149 — 1 clique 'Revisar…' abre JanaAcaoModal (mesma rota do Painel)"
+  error_recovery: "charter §Non-Goals — sem recusar/desfazer aprovação; Acoes.tsx:112-123 empty state só distingue aba, não falha de carga"
+  cognitive_load: "Acoes.tsx:90-98 e 161-164 — Alert e rodapé citam jana.acoes.previa, jana_acao_aprovacoes, business_id, controller/service/tinker pro dono"
+  aesthetic_usability: "Acoes.tsx:125 — card aprovado em bg-muted/40; hierarquia título→prévia→chip"
+  affordance: "Acoes.tsx:136 — Badge info/secondary envio×leitura; 146 'Ver o recibo' ghost"
+  brand_confidence: "Acoes.tsx:91 — 'Aprovar registra a decisão. Nada é enviado.' (copy que não promete disparo — charter §Anti-hooks)"
+  mobile_fit: "Acoes.tsx:127 — Inline justify=between sem breakpoint; fontes 10.5px/11px (131,143)"
+  a11y_wcag: "Acoes.tsx:101 role=group aria-label; 179-192 tabela do recibo sem <th>/caption; textos 10.5px"
+  i18n_ptbr: "Acoes.tsx:55 toLocaleString pt-BR; 56 JSON.stringify expõe objeto cru no recibo; 104 rótulo = chave em minúscula"
+  performance_perceived: "AcaoHitlController.php:46-47 — 'acoes' eager (fila() monta prévia das 5), sem Inertia::defer nem <Deferred>/skeleton"
+  information_hierarchy: "Acoes.tsx:129-137 — título + key mono + prévia + alcance; recibo à direita (140-153)"
+  microcopy: "Acoes.tsx:137 '{n} destinatário(s), um por cliente'; 108 'prévia e alcance vêm do servidor' é nota de dev, não de usuário"
+  internal_consistency: "Acoes.tsx:72-85 JanaAreaHeader+JanaConfigDrawer iguais às irmãs; 168 JanaAcaoModal reusado do Painel"
+  preflight_conformance: "charter status: draft (Acoes.charter.md:6); imports só @/Components/ui/@/Components/layout; Acoes.tsx:129,131,133,143,178 text-[13px]/[10.5px]/[11px] arbitrários; casos.md presente"
+gaps:
+  - dim: "Cognitive-load"
+    best_of_class: "Stripe (Radar review queue): o aviso fala da consequência pro operador ('nada é cobrado até você aprovar'), e o detalhe técnico mora na doc, não na tela"
+    fix: "Reescrever Alert (Acoes.tsx:90-98) e nota de rodapé (161-164) em linguagem de dono; mover nomes de rota/tabela/business_id pra tooltip 'detalhes técnicos' ou pro RUNBOOK. Copy é contrato (jana-acoes.contract.json) ⇒ mudança exige [W]"
+    esforco: baixo
+    origin: prontidao-thread08-2026-09-23
+  - dim: "Performance-perceived"
+    best_of_class: "Linear: shell imediato + lista streamada com skeleton"
+    fix: "AcaoHitlController@index: 'acoes' => Inertia::defer(fn () => $hitl->fila($businessId)) + <Deferred data=\"acoes\" fallback={skeleton de 5 cards}> (RUNBOOK-inertia-defer-pattern)"
+    esforco: baixo
+    origin: prontidao-thread08-2026-09-23
+  - dim: "Error-recovery"
+    best_of_class: "GitHub PR review: aprovar tem 'dismiss review' — decisão reversível com trilha"
+    fix: "Recusar/desfazer é Non-Goal do charter v1 (tabela já prevê status 'recusada'); abrir como decisão [W], não task automática"
+    esforco: medio
+    origin: prontidao-thread08-2026-09-23
+  - dim: "A11y-WCAG"
+    best_of_class: "Stripe: tabela chave/valor com <th scope=row> e fonte ≥12px"
+    fix: "Tabela do recibo (Acoes.tsx:179-192) com <th scope='row'> na chave + caption sr-only; trocar text-[10.5px]/[11px] por token de tipo do DS"
+    esforco: baixo
+    origin: prontidao-thread08-2026-09-23
+  - dim: "I18n-PT-BR"
+    best_of_class: "Notion: valores estruturados renderizados como pares legíveis, nunca JSON cru"
+    fix: "fmtValor (Acoes.tsx:56) formatar objeto/array como lista chave: valor; rótulos dos chips com inicial maiúscula ('Sugeridas', 'Aprovadas')"
+    esforco: baixo
+    origin: prontidao-thread08-2026-09-23

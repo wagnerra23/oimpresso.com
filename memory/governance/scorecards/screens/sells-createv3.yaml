@@ -1,0 +1,72 @@
+# Scorecard de tela — Sells/CreateV3 (primeira medição, thread 10 do playbook "Prontidão").
+# Método SCREEN-GRADE (memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md), 16 dim × persona.
+# A nota 16-dim é LLM-as-judge (agente screen-qa, passos 0-1) — NÃO editar à mão.
+# ⚠️ NOTA DE LEITURA DE CÓDIGO: sem browser de prod nesta rodada (E2E/axe/smoke = passos 2-4, fora
+# da thread). Evidência = .tsx + _components/v3 + charter + casos + controller, na árvore 317e1b4ec33.
+# Ponderação Larissa (framework-15-dimensoes.md, total 34) + Pré-Flight peso 1 ⇒ denominador 35.
+# Persona usada só como perfil (1280px, balcão) — nenhum dado do biz=4.
+screen: Sells/CreateV3
+path: resources/js/Pages/Sells/CreateV3.tsx
+archetype: form
+persona: larissa
+nota: 81
+nivel: "Advanced"
+baseline_anterior: 81   # ratchet — nota não cai abaixo disto sem aprovação (1ª medição)
+peso_real: 0.85         # preview de design, não grava (charter §Mission) — modula urgência, não a nota
+source: screen-qa-thread10-prontidao-2026-09-23
+graded_at: "2026-09-23"
+medicao: leitura-de-codigo
+resumo: "Preview de design do cadastro de venda (4 passos + coluna de fechamento, 6 drawers/modais em _components/v3): tokens v4 limpos (0 cores cruas de paleta), microcopy honesta, FSM fail-secure e alerta de linha inválida específico; perde em busca de produto só-mouse e sem rótulo acessível, alvos de toque ~34px, h1/tabela/primitivos hand-roll fora do PageHeader/DataTable canon, e charter ainda draft com conflito 'não calcula × calcula' aberto."
+dimensoes: { density: 84, discoverability: 80, speed_to_task: 72, error_recovery: 84, cognitive_load: 80, aesthetic_usability: 84, affordance: 80, brand_confidence: 85, mobile_fit: 72, a11y_wcag: 72, i18n_ptbr: 92, performance_perceived: 85, information_hierarchy: 86, microcopy: 88, internal_consistency: 74, preflight_conformance: 78 }
+evidencias:
+  density: "Grid de itens com 30 colunas configuráveis (colunas-dominio.ts; CreateV3.tsx:230-237) + finalizador sticky (CreateV3.tsx:1011)"
+  discoverability: "4 passos numerados (<Passo n>) CreateV3.tsx:365-712; 'Colunas (n)…' é texto sublinhado pontilhado, não botão visível (CreateV3.tsx:460-466)"
+  speed_to_task: "Dropdown da busca sem onKeyDown/setas/Enter (grep onKeyDown = 0 no .tsx) e escolher abre modal de lançamento (CreateV3.tsx:483) — mouse obrigatório no fluxo mais repetido"
+  error_recovery: "Aviso por linha inválida com a causa (CreateV3.tsx:652-662), 'Desfazer' ao trocar cliente (CreateV3.tsx:1156-1190), papel faltante dito (CreateV3.tsx:1053); toast de undo sem Escape/auto-fechar (0 setTimeout/useEffect)"
+  cognitive_load: "Passos 3 e 4 em gaveta com resumo (CreateV3.tsx:675-712); faixa de preview no topo (CreateV3.tsx:1076-1084)"
+  aesthetic_usability: "Plate de fechamento como único bloco de peso (CreateV3.tsx:813-815), color-mix sobre token"
+  affordance: "Células editáveis como <input> com borda (CreateV3.tsx:568-584); toggle com caractere '▾' cru (CreateV3.tsx:402)"
+  brand_confidence: "Pill V3 + faixa honesta 'Preview de design — não é a tela de produção' (CreateV3.tsx:1079)"
+  mobile_fit: "Tabela overflow-x min-w-[560px] (CreateV3.tsx:510); campo py-[7px] ≈34px < 44px de toque; 2 colunas só em lg (CreateV3.tsx:1097)"
+  a11y_wcag: "Busca de produto só com placeholder, sem Label/aria-label (CreateV3.tsx:472-476); resultados não são listbox; 25 usos de texto 10,5-11,5px; positivos: aria-expanded (398, 955), aria-label por célula (573), sr-only (629), role=status (1176)"
+  i18n_ptbr: "parseBR/brl/fmtBR/submitSafe (_components/v3/numeros.ts), inputMode=decimal (CreateV3.tsx:571), copy 100% PT"
+  performance_perceived: "Cena estática sem query (SellsV3Controller.php:36-47); useMemo + Map porSku (CreateV3.tsx:237); não medido em runtime"
+  information_hierarchy: "Total 20px mono no finalizador (CreateV3.tsx:1015) + 'Falta receber' em warning (1026-1029)"
+  microcopy: "'Escolher não adiciona direto — abre o lançamento…' (CreateV3.tsx:501); 'Exige o papel X' (1053); 'Há item com dado inválido — corrija antes de fechar.' (1058)"
+  internal_consistency: "h1 hand-roll imitando PageHeader (CreateV3.tsx:1088-1090), <table> hand-roll em vez de DataTable, primitivos locais Sec/Pill/Chip (_components/v3/primitivos.tsx) — cópia local deliberada (charter §Fronteira), mas diverge do canon"
+  preflight_conformance: "Charter status: draft; Non-Goal 'Não calcula' em CONFLITO ABERTO com o porte; Anti-hooks e Contrato visual pendentes (CreateV3.charter.md); casos 4 ✅ / 38 🧪; 0 cores cruas de paleta no .tsx+v3"
+gaps:
+  - dim: "Speed-to-task"
+    best_of_class: "Linear command menu: setas + Enter no resultado, Esc fecha — sem tirar a mão do teclado"
+    fix: "Busca de produto como combobox (Command/listbox) com ArrowUp/Down/Enter/Esc; Enter abre o LancarItem já focado na quantidade"
+    esforco: medio
+  - dim: "A11y WCAG"
+    best_of_class: "GOV.UK Design System: todo campo com <label> visível ou aria-label; resultados anunciados (aria-live)"
+    fix: "Label/aria-label na busca (CreateV3.tsx:472), role=listbox/option nos achados + aria-activedescendant; subir textos 10,5-11,5px de conteúdo para ≥12px"
+    esforco: baixo
+  - dim: "Mobile fit"
+    best_of_class: "Shopify POS: alvos de toque ≥44px e linha de item em cartão no estreito"
+    fix: "Célula editável e botões de ação com min-h-11 no breakpoint < sm; linha de item vira cartão abaixo de sm em vez de scroll horizontal"
+    esforco: medio
+  - dim: "Internal-consistency"
+    best_of_class: "Shopify Polaris: 1 header canon (Page) e 1 tabela de recurso em toda tela"
+    fix: "Usar PageHeader canon no lugar do h1 hand-roll (CreateV3.tsx:1088) e avaliar DataTable/Input do DS nas células — decisão de [L] (tela é dele; cópia local foi deliberada)"
+    esforco: medio
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Stripe: contrato de tela fechado antes do porte (API/UX spec aprovada)"
+    fix: "[L] decidir o conflito 'Não calcula' × cálculo no preview e [W] preencher Anti-hooks + Contrato visual; promover charter draft→live só depois"
+    esforco: baixo
+  - dim: "Error recovery"
+    best_of_class: "Gmail: toast de desfazer com auto-dismiss e Esc"
+    fix: "Toast de undo (CreateV3.tsx:1176) fechar sozinho após ~6s e por Esc"
+    esforco: baixo
+
+# ───────── Onda 0b (ADR 0320): comportamento/valor AO LADO da UX — não entra na nota ─────────
+casos_coverage:
+  fonte: resources/js/Pages/Sells/CreateV3.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  status_contados: { verde: 4, sem_veredito: 38 }   # grep 'Status:** ✅|🧪' no casos.md, 2026-09-23
+d1_calculo:
+  aplica: true
+  nivel: "🟡"          # calcula no front (calculo-item.ts, numeros.ts) mas NÃO grava — risco contido pela ausência de store()
+  provas: { property: false, golden: false, cross_check: false }   # nenhum tests/js cita calculo-item/numeros
