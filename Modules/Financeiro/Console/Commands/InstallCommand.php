@@ -5,6 +5,7 @@ namespace Modules\Financeiro\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Modules\Financeiro\Database\Seeders\PlanoContasBrSeeder;
+use Modules\Financeiro\Http\Controllers\DataController;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -32,22 +33,23 @@ class InstallCommand extends Command
 
     protected $description = 'Instala o módulo Financeiro em um (ou todos os) businesses';
 
-    /** Lista canônica das 13 permissões do módulo */
-    private array $perms = [
-        'financeiro.access',
-        'financeiro.dashboard.view',
-        'financeiro.contas_receber.view',
-        'financeiro.contas_receber.create',
-        'financeiro.contas_receber.baixar',
-        'financeiro.contas_pagar.view',
-        'financeiro.contas_pagar.create',
-        'financeiro.contas_pagar.pagar',
-        'financeiro.caixa.view',
-        'financeiro.contas_bancarias.manage',
-        'financeiro.conciliacao.manage',
-        'financeiro.relatorios.view',
-        'financeiro.relatorios.share',
-    ];
+    /**
+     * Permissões do módulo — DERIVADAS de DataController::user_permissions(), a fonte
+     * que o cadastro de papéis (/roles) lê. Até 2026-09-23 esta classe tinha uma
+     * cópia escrita à mão com 13 nomes enquanto o DataController cadastrava 17
+     * (faltavam lancamentos.create, titulo.aprovar, extrato.view e advisor.grant —
+     * medido rodando o comando no tenant 98: 4 criadas, 13 já existentes). Derivar
+     * fecha o drift: permission nova entra num lugar só.
+     *
+     * @return list<string>
+     */
+    private function perms(): array
+    {
+        return array_values(array_map(
+            fn (array $p) => (string) $p['value'],
+            (new DataController())->user_permissions()
+        ));
+    }
 
     public function handle(): int
     {
@@ -94,13 +96,13 @@ class InstallCommand extends Command
     private function ensurePermissionsExist(): void
     {
         $criadas = 0;
-        foreach ($this->perms as $name) {
+        foreach ($this->perms() as $name) {
             $p = Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web']);
             if ($p->wasRecentlyCreated) {
                 $criadas++;
             }
         }
-        $this->line("[perms] {$criadas} permissões criadas / " . (count($this->perms) - $criadas) . ' já existentes');
+        $this->line("[perms] {$criadas} permissões criadas / " . (count($this->perms()) - $criadas) . ' já existentes');
     }
 
     private function resolveBusinessIds(): array
@@ -139,13 +141,13 @@ class InstallCommand extends Command
         }
 
         $atribuidas = 0;
-        foreach ($this->perms as $name) {
+        foreach ($this->perms() as $name) {
             if (! $role->hasPermissionTo($name)) {
                 $role->givePermissionTo($name);
                 $atribuidas++;
             }
         }
-        $this->line("[role]  Admin#$businessId: $atribuidas permissões atribuídas / " . (count($this->perms) - $atribuidas) . ' já tinha');
+        $this->line("[role]  Admin#$businessId: $atribuidas permissões atribuídas / " . (count($this->perms()) - $atribuidas) . ' já tinha');
 
         // 2. Ativa financeiro_module nos packages com subscription ativa
         $pkgIds = DB::table('subscriptions')

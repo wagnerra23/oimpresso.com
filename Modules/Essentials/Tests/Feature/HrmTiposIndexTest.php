@@ -83,15 +83,28 @@ function tiposCriarTipo(int $bizId, string $nome, ?int $max = null, ?string $int
     ]);
 }
 
+/**
+ * Headers que o NAVEGADOR manda numa visita Inertia (@inertiajs/core 3.x, getHeaders).
+ * `X-Requested-With` vai em TODA visita — sem ele o teste passava verde enquanto a tela real
+ * ficava no skeleton, porque o controller desviava para o JSON do DataTables (staging 2026-09-23).
+ */
+function tiposHeadersNavegador(array $extra = []): array
+{
+    return array_merge([
+        'X-Requested-With' => 'XMLHttpRequest',
+        'Accept' => 'text/html, application/xhtml+xml',
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => tiposInertiaVersion(),
+    ], $extra);
+}
+
 /** Resolve o `Inertia::defer` de `tipos` — no first render a prop nem existe. */
 function tiposPayload($test): array
 {
-    $response = $test->withHeaders([
-        'X-Inertia' => 'true',
-        'X-Inertia-Version' => tiposInertiaVersion(),
+    $response = $test->withHeaders(tiposHeadersNavegador([
         'X-Inertia-Partial-Data' => 'tipos',
         'X-Inertia-Partial-Component' => 'Essentials/Tipos',
-    ])->get('/hrm/leave-type');
+    ]))->get('/hrm/leave-type');
 
     $response->assertStatus(200);
 
@@ -101,10 +114,7 @@ function tiposPayload($test): array
 // ── Render ──────────────────────────────────────────────────────────────────────
 
 it('UC-TIPOS-01: a lista responde 200 e renderiza o componente Inertia Essentials/Tipos', function () {
-    $response = $this->withHeaders([
-        'X-Inertia' => 'true',
-        'X-Inertia-Version' => tiposInertiaVersion(),
-    ])->get('/hrm/leave-type');
+    $response = $this->withHeaders(tiposHeadersNavegador())->get('/hrm/leave-type');
 
     $response->assertStatus(200);
     expect($response->json('component'))->toBe('Essentials/Tipos');
