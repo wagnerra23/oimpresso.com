@@ -352,7 +352,10 @@ function SortableHeader({
       <button
         type="button"
         onClick={onClick}
-        className={`inline-flex items-center gap-1 ${alignRight ? 'justify-end w-full' : ''} ${active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'} cursor-pointer select-none transition-colors`}
+        // FIN-8 (2026-09-23): `uppercase` explícito — o preflight do Tailwind põe text-transform:none
+        // em <button>, e por isso as 5 colunas ordenáveis saíam em caixa mista enquanto as outras 4 (e o
+        // protótipo inteiro, financeiro-page.jsx) ficam em MAIÚSCULAS. Medido no DOM, prod × protótipo.
+        className={`inline-flex items-center gap-1 uppercase ${alignRight ? 'justify-end w-full' : ''} ${active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'} cursor-pointer select-none transition-colors`}
         aria-label={`Ordenar por ${label}`}
       >
         <span>{label}</span>
@@ -1868,12 +1871,16 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           </SelectContent>
         </Select>
 
-        <div className="fin-toolbar-r">
-          <div className="fin-search-wrap">
+        {/* FIN-8: no protótipo a busca fica na MESMA linha dos filtros; aqui ela caía para a linha de
+            baixo por 8px (itens 1233px + 7 gaps de 10px numa barra de 1295px, medido em prod a 1610px —
+            as contagens dos chips mudam com o dado). A direita passa a ocupar o que sobra e a busca
+            encolhe de 240 até 160px antes de quebrar. Escopo local: o CSS .fin-toolbar-r é compartilhado. */}
+        <div className="fin-toolbar-r flex-1 min-w-0 justify-end">
+          <div className="fin-search-wrap !w-auto flex-1 min-w-[160px] max-w-[240px]">
             <Search className="h-3.5 w-3.5" aria-hidden="true" />
             <input
               id="fin-search-input"
-              placeholder="Buscar lançamento…"
+              placeholder="Filtrar nesta lista…"
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && aplicar({ busca })}
@@ -2731,7 +2738,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         <CommandList>
           <CommandEmpty>Sem resultados.</CommandEmpty>
           <CommandGroup heading="Ações">
-            <CommandItem onSelect={() => { setPaletteOpen(false); setCreateTipo('receber'); }}>Novo lançamento</CommandItem>
+            <CommandItem onSelect={() => { setPaletteOpen(false); setCreateTipo('receber'); }}>Novo título</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/conciliacao'); }}>Conciliar extrato (OFX)</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/relatorios'); }}>DRE / Relatórios</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/plano-contas'); }}>Plano de contas</CommandItem>
