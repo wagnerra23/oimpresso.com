@@ -386,7 +386,100 @@ if (IS_MAIN && args.includes('--selftest')) {
   process.exit(f === 0 ? 0 : 1);
 }
 
+/**
+ * COBERTO = citado como ÂNCORA, não mencionado em prosa (correção 2026-07-26).
+ *
+ * A 1ª versão usava `src.includes(id)`. O agent da corrida do BulkEdit testou o gaming e
+ * reportou honestamente: *"bastaria citar o id na prosa pra lacuna sumir do painel — fiz,
+ * vi fechar, desfiz"*. Um `includes` cru transforma o painel em **presence-gate**: escrever
+ * o id num parágrafo qualquer "fecha" a lacuna sem contrato nenhum. É a família L-24
+ * (presença ≠ correção), a mesma que este projeto mata desde 2026-07-01.
+ *
+ * Âncora estrutural aceita — as formas MEDIDAS no corpus, não supostas:
+ *   · linha de TABELA        → `| UC-X-01 | … | CU-PROD-06 | …`  (rastreabilidade)
+ *   · campo de frontmatter   → `related_us: [US-PROD-023]` / `us:` / `âncora:`
+ *   · declaração de Âncora   → `> **Âncora:** \`CU-PROD-14\` …`  ← forma REAL dos casos.md
+ *                              (blockquote, bullet ou linha nua; id entre backticks ou não)
+ * Menção solta em parágrafo NÃO cobre — e é isso que impede o painel de mentir.
+ *
+ * ⚠️ A 1ª versão desta regra só aceitava BULLET (`- **Âncora:**`) e deu falso-positivo em 3 CU
+ * (`CU-PROD-08/14/15`): o corpus usa BLOCKQUOTE (`> **Âncora:**`). Medido contra os arquivos
+ * reais antes de fechar — o padrão vem do que o projeto escreve, não do que eu imaginei.
+ */
+export function citadoComoAncora(src, id) {
+  const esc = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(
+    // Linha de tabela: só conta se a linha for de RASTREABILIDADE — 1º campo é um id
+    // (UC-/US-/CU-). Sem isso, o id citado em QUALQUER coluna de QUALQUER tabela vira
+    // âncora: o agent da corrida dos fluxos Blade gamificou sem querer (citou US-PROD-025
+    // numa tabela de contexto e a US saiu do backlog sem contrato), pegou comparando o
+    // backlog antes/depois, e reportou. A linha `| UC-PBULK-01 | … | CU-PROD-06 |` segue
+    // valendo pro CU — porque ELA começa com id, então é rastreabilidade de verdade.
+    `(^\\|\\s*\`?(UC|US|CU)-[A-Z0-9]{2,10}-\\d{2,4}\`?\\s*\\|[^\\n]*\\b${esc}\\b)`
+    + `|(^\\s*(related_us|us|ancora|âncora|covers|cobre)\\s*:[^\\n]*\\b${esc}\\b)` // frontmatter
+    + `|(^\\s*[>\\-*\\s]*\\*\\*(Âncora|Ancora|Cobre|Covers)[^\\n]*\\b${esc}\\b)`,  // declaração
+    'im',
+  ).test(src);
+}
+
+// ── perguntas para o hook de commit ──────────────────────────────────────────
+// O `maquinas-inventario-no-commit` regenera o `_STATUS-GENERATED.md` do módulo quando o commit
+// muda algo que alimenta a cadeia. Quais módulos medir sai DAQUI, das mesmas raízes que o
+// relatório varre — o hook não tem lista própria (lista escrita à mão apodrece).
+
+/** Módulos que JÁ têm `_STATUS-GENERATED.md` commitado (opt-in: o hook não cria arquivo novo). */
+export function modulosComStatus() {
+  let ents; try { ents = readdirSync(join(ROOT, 'memory', 'requisitos'), { withFileTypes: true }); } catch { return []; }
+  return ents.filter((e) => e.isDirectory() && existsSync(join(ROOT, 'memory', 'requisitos', e.name, '_STATUS-GENERATED.md')))
+    .map((e) => e.name).sort();
+}
+
+/** O path cai sob uma raiz do relatório do módulo? SPEC, SDD, `_telas/` ou uma base de Pages. */
+export function pathAlimentaStatus(mod, p) {
+  const r = `memory/requisitos/${mod}/`;
+  if (p === r + 'SPEC.md') return true;
+  if (p.startsWith(r + 'SDD') && p.endsWith('.md') && !p.slice(r.length).includes('/')) return true;
+  if (p.startsWith(r + '_telas/')) return true;
+  return basesDePages(mod).some((b) => p === b || p.startsWith(b + '/'));
+}
+
+/**
+ * É arquivo que o `listarTestes()` deste gerador lê? Mesmas raízes (`tests/`, `e2e/`,
+ * `Modules/<X>/Tests/`) e mesmas extensões — é o que decide se um commit pode ter mudado
+ * o status via teste.
+ */
+export function ehTesteDaCadeia(p) {
+  const s = String(p || '');
+  const ext = ['.php', '.ts', '.tsx', '.js', '.mjs'].some((e) => s.endsWith(e));
+  if (!ext) return false;
+  if (s.startsWith('tests/') || s.startsWith('e2e/')) return true;
+  const partes = s.split('/');
+  return partes[0] === 'Modules' && partes.length > 3 && partes[2] === 'Tests';
+}
+
+/** Módulos (com status) cujo relatório estes paths alimentam diretamente. */
+export function modulosDoStatus(paths) {
+  const ps = (Array.isArray(paths) ? paths : []).map(String);
+  if (!ps.length) return [];
+  return modulosComStatus().filter((m) => ps.some((p) => pathAlimentaStatus(m, p)));
+}
+
+/**
+ * Módulos (com status) cujos casos declaram algum destes UC. É o caminho do TESTE: o corpus de
+ * testes é global, e um teste só muda o status do módulo cujo UC ele cita.
+ */
+export function modulosComUC(ids) {
+  const alvo = new Set((Array.isArray(ids) ? ids : []).map((x) => String(x).toUpperCase()));
+  if (!alvo.size) return [];
+  return modulosComStatus().filter((m) => casosDoModulo(m).some((c) => extrairUC(c.src).some((id) => alvo.has(id))));
+}
+
 // ── relatório ─────────────────────────────────────────────────────────────────
+// Só roda chamado direto. ANTES deste `if`, importar o módulo executava o relatório inteiro
+// com `mod = null` (varria todos os testes e imprimia ~50 linhas) — o guard IS_MAIN de cima
+// só protegia o selftest. Bloco SEM reindentação de propósito: diff mínimo num gerador que
+// um gate required consome; a saída pela linha de comando é byte a byte a mesma.
+if (IS_MAIN) {
 const mod = IS_MAIN ? args.find((a) => !a.startsWith('--')) : null;
 if (IS_MAIN && !mod) { console.log('uso: requisitos-status.mjs <Modulo> [--write|--check]'); process.exit(0); }
 
@@ -433,41 +526,6 @@ const telasSemCasos = telas.filter((t) => !casos.some((c) => c.tela === t));
  * Não é gate novo nem régua nova — é a MESMA lacuna medindo conteúdo em vez de existência.
  */
 const casosSemUC = casos.filter((c) => extrairUC(c.src).length === 0);
-/**
- * COBERTO = citado como ÂNCORA, não mencionado em prosa (correção 2026-07-26).
- *
- * A 1ª versão usava `src.includes(id)`. O agent da corrida do BulkEdit testou o gaming e
- * reportou honestamente: *"bastaria citar o id na prosa pra lacuna sumir do painel — fiz,
- * vi fechar, desfiz"*. Um `includes` cru transforma o painel em **presence-gate**: escrever
- * o id num parágrafo qualquer "fecha" a lacuna sem contrato nenhum. É a família L-24
- * (presença ≠ correção), a mesma que este projeto mata desde 2026-07-01.
- *
- * Âncora estrutural aceita — as formas MEDIDAS no corpus, não supostas:
- *   · linha de TABELA        → `| UC-X-01 | … | CU-PROD-06 | …`  (rastreabilidade)
- *   · campo de frontmatter   → `related_us: [US-PROD-023]` / `us:` / `âncora:`
- *   · declaração de Âncora   → `> **Âncora:** \`CU-PROD-14\` …`  ← forma REAL dos casos.md
- *                              (blockquote, bullet ou linha nua; id entre backticks ou não)
- * Menção solta em parágrafo NÃO cobre — e é isso que impede o painel de mentir.
- *
- * ⚠️ A 1ª versão desta regra só aceitava BULLET (`- **Âncora:**`) e deu falso-positivo em 3 CU
- * (`CU-PROD-08/14/15`): o corpus usa BLOCKQUOTE (`> **Âncora:**`). Medido contra os arquivos
- * reais antes de fechar — o padrão vem do que o projeto escreve, não do que eu imaginei.
- */
-export function citadoComoAncora(src, id) {
-  const esc = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(
-    // Linha de tabela: só conta se a linha for de RASTREABILIDADE — 1º campo é um id
-    // (UC-/US-/CU-). Sem isso, o id citado em QUALQUER coluna de QUALQUER tabela vira
-    // âncora: o agent da corrida dos fluxos Blade gamificou sem querer (citou US-PROD-025
-    // numa tabela de contexto e a US saiu do backlog sem contrato), pegou comparando o
-    // backlog antes/depois, e reportou. A linha `| UC-PBULK-01 | … | CU-PROD-06 |` segue
-    // valendo pro CU — porque ELA começa com id, então é rastreabilidade de verdade.
-    `(^\\|\\s*\`?(UC|US|CU)-[A-Z0-9]{2,10}-\\d{2,4}\`?\\s*\\|[^\\n]*\\b${esc}\\b)`
-    + `|(^\\s*(related_us|us|ancora|âncora|covers|cobre)\\s*:[^\\n]*\\b${esc}\\b)` // frontmatter
-    + `|(^\\s*[>\\-*\\s]*\\*\\*(Âncora|Ancora|Cobre|Covers)[^\\n]*\\b${esc}\\b)`,  // declaração
-    'im',
-  ).test(src);
-}
 const cobreAncorado = (id) => casos.some((k) => citadoComoAncora(k.src, id));
 
 const cuSemUC = cu.filter((c) => !cobreAncorado(c.id));
@@ -572,3 +630,4 @@ if (args.includes('--check')) {
   process.exit(0);
 }
 console.log(saida);
+}

@@ -694,7 +694,7 @@ lifecycle: ativo
 |---|---|---|---|---|---|
 | `charter-signal.mjs` | script | 🟢 só lê | — | — | FONTE ÚNICA da regra "o charter tem sinal de prod?". |
 | `delecao-legitima.mjs` | script | 🟢 só lê | — | — | "o item sumiu: foi REMOÇÃO legítima ou FUGA da catraca?" |
-| `uc-regex.mjs` | ci, script | 🟢 só lê | test | `memory/proibicoes.md` +10 | 7 · coletor do manifesto) que DEVIAM ser iguais e drifaram: em 2026-06-22 o guard foi |
+| `uc-regex.mjs` | agente, ci, script | 🟢 só lê | test | `memory/proibicoes.md` +10 | 7 · coletor do manifesto) que DEVIAM ser iguais e drifaram: em 2026-06-22 o guard foi |
 
 ### 5.14 `scripts/memory-schemas/` — 1
 
