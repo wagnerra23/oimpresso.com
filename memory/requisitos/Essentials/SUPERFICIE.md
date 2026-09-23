@@ -282,6 +282,7 @@ module: Essentials
 
 - [Index.casos.md](../../../resources/js/Pages/Essentials/Licencas/Index.casos.md)
 - [Metas.casos.md](../../../resources/js/Pages/Essentials/Metas.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Essentials/Reminders/Index.casos.md)
 - [Tipos.casos.md](../../../resources/js/Pages/Essentials/Tipos.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Essentials/Todo/Index.casos.md)
 

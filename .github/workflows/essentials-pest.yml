@@ -115,6 +115,7 @@ jobs:
             tests/Feature/Essentials/TodoIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/HrmExclusaoGuardaTest.php \
             Modules/Essentials/Tests/Feature/HrmLicencaTest.php \
+            tests/Feature/Essentials/RemindersIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/SalesTargetFaixaValidacaoTest.php \
             Modules/Essentials/Tests/Feature/HrmMetasTest.php \
             Modules/Essentials/Tests/Feature/AttendanceImportMultiTenantTest.php \
