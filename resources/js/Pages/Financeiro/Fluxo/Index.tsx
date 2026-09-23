@@ -18,6 +18,7 @@ import { router } from '@inertiajs/react';
 import { useMemo, type ReactNode } from 'react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
+import { Stack } from '@/Components/layout';
 
 // FIN-2 (2026-09-23): forma do TelaFluxo / FinFluxoRealizado do protótipo
 // (financeiro-telas-extras.jsx:49-220 · financeiro-relatorios.jsx). Medido na FIN-0a e de
@@ -40,7 +41,7 @@ interface KpiItem {
 function KpiFaixa({ itens }: { itens: KpiItem[] }) {
   return (
     <div className="px-6 pt-4">
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[11px] shadow-[var(--sh-1)] overflow-hidden flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-[var(--border)]">
+      <Stack gap={0} className="bg-[var(--surface)] border border-[var(--border)] rounded-[11px] shadow-[var(--sh-1)] overflow-hidden sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-[var(--border)]">
         {itens.map((k) => (
           <div key={k.rotulo} className={`flex-1 px-5 py-4 ${k.escuro ? FIN_INK : ''}`}>
             <div
@@ -66,7 +67,7 @@ function KpiFaixa({ itens }: { itens: KpiItem[] }) {
             </div>
           </div>
         ))}
-      </div>
+      </Stack>
     </div>
   );
 }
