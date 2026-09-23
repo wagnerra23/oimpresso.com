@@ -75,125 +75,198 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
 ## Fonte da máquina (o `placar-indice.mjs` lê o bloco abaixo)
 ```json
 {
- "modulo": "ds-atomos",
- "sha": "2b4a3ec3b48a",
- "gerado": "2026-09-09",
- "nota_caminho": "reemitido em 2026-09-09 (v2): alvo remedido pos-limpeza dos spacers · largura 1280px declarada · guardas de metodo. Leitura do main em 2026-09-09T10:53Z.",
- "variaveis": {
-  "UI": "resources/js/Components/ui",
-  "SH": "resources/js/Components/shared",
-  "ALVO": "prototipo-ui/cowork"
- },
- "decisoes": [
-  {
-   "id": "D-KPI-LABEL",
-   "pergunta": "KPI-filtro: label em accent 13.3px/400 (bundle, look CRM) OU 11px/600 uppercase muted (ADR 0110 + shared/KpiCard)? Aditivo nao resolve o canon.",
-   "respondida": false,
-   "afeta": ["02"]
+  "modulo": "ds-atomos",
+  "sha": "2b4a3ec3b48a",
+  "gerado": "2026-09-09",
+  "nota_caminho": "reemitido em 2026-09-09 (v2): alvo remedido pos-limpeza dos spacers · largura 1280px declarada · guardas de metodo. Leitura do main em 2026-09-09T10:53Z.",
+  "variaveis": {
+    "UI": "resources/js/Components/ui",
+    "SH": "resources/js/Components/shared",
+    "ALVO": "prototipo-ui/cowork"
   },
-  {
-   "id": "D-GRADE",
-   "pergunta": "Tabela densa vira DataGrid no cliente ou segue LengthAwarePaginator no servidor? (W11)",
-   "respondida": false,
-   "afeta": ["04"],
-   "destrava": ["04"]
-  }
- ],
- "threads": [
-  {
-   "id": "01",
-   "titulo": "ui/card.tsx — badge · note · flush",
-   "dono": "CL",
-   "arquivo": "01-card-anatomia.md",
-   "vaga": 3,
-   "prefixo": [
-    "${UI}/card.tsx"
-   ],
-   "nao_toca": [
-    "resources/js/Pages/**",
-    "${SH}/**"
-   ],
-   "depende_threads": [],
-   "depende_decisoes": [],
-   "provas": [
-    { "tipo": "contem", "path": "${UI}/card.tsx", "padrao": "badge" },
-    { "tipo": "contem", "path": "${UI}/card.tsx", "padrao": "flush" },
-    { "tipo": "execucao", "path": "${UI}/card.tsx", "testes": ["npm run test -- card"], "nota": "Card sem as props novas renderiza markup identico ao de 733033864088 (guarda de default)" }
-   ]
-  },
-  {
-   "id": "02",
-   "titulo": "shared/KpiCard.tsx — variant=filter",
-   "dono": "CL",
-   "arquivo": "02-kpicard-filter.md",
-   "vaga": 3,
-   "prefixo": [
-    "${SH}/KpiCard.tsx"
-   ],
-   "nao_toca": [
-    "resources/js/Pages/**",
-    "${UI}/**"
-   ],
-   "depende_threads": [],
-   "depende_decisoes": [],
-   "nota_provas": "tone default/success/warning/danger/info tem de sobreviver sem variant — e a guarda de Backup e Financeiro/Unificado",
-   "provas": [
-    { "tipo": "contem", "path": "${SH}/KpiCard.tsx", "padrao": "filter" },
-    { "tipo": "arquivo", "path": "resources/js/Pages/Backup/Index.tsx", "guarda": true },
-    { "tipo": "execucao", "path": "${SH}/KpiCard.tsx", "testes": ["npm run test -- KpiCard"], "nota": "sem variant preserva os 5 tones; Backup e Financeiro/Unificado sem diff" }
-   ]
-  },
-  {
-   "id": "03",
-   "titulo": "shared/Toolbar.tsx — CRIAR (3 zonas)",
-   "dono": "CL",
-   "arquivo": "03-toolbar-criar.md",
-   "vaga": 4,
-   "prefixo": [
-    "${SH}/Toolbar.tsx"
-   ],
-   "nao_toca": [
-    "${SH}/PageFilters.tsx",
-    "resources/js/Pages/**"
-   ],
-   "depende_threads": [],
-   "depende_decisoes": [],
-   "nota_provas": "alvo medido a 1280px: 1215x71px, 6 filhos, uma faixa — remedido depois da limpeza dos 7 spans pt-sp",
-   "provas": [
-    { "tipo": "arquivo", "path": "${SH}/Toolbar.tsx" },
-    { "tipo": "contem", "path": "${SH}/Toolbar.tsx", "padrao": "right" },
-    { "tipo": "arquivo", "path": "${SH}/PageFilters.tsx", "guarda": true },
-    { "tipo": "execucao", "path": "${SH}/Toolbar.tsx", "testes": ["npm run test -- Toolbar"], "nota": "3 zonas left/center/right; PageFilters intacto" }
-   ]
-  },
-  {
-   "id": "04",
-   "titulo": "tabela densa",
-   "dono": "CL",
-   "arquivo": "04-tabela-densa.md",
-   "prefixo": [],
-   "nao_toca": [],
-   "depende_threads": [
-    "01"
-   ],
-   "depende_decisoes": [
-    "D-GRADE"
-   ],
-   "bloqueio": "D-GRADE — decisao de W (DataGrid no cliente x paginator no servidor)",
-   "provas": []
-  },
-  {
-   "id": "05",
-   "titulo": "StatusBadge kinds",
-   "dono": "CC",
-   "arquivo": "05-statusbadge-kinds.md",
-   "prefixo": [],
-   "nao_toca": [],
-   "depende_threads": [],
-   "depende_decisoes": [],
-   "bloqueio": "nao medida — shared/StatusBadge.tsx (17.674 B) nao foi recortado; e minha, nao do CL",
-   "provas": []
-  }
- ]
+  "decisoes": [
+    {
+      "id": "D-KPI-LABEL",
+      "pergunta": "KPI-filtro: label em accent 13.3px/400 (bundle, look CRM) OU 11px/600 uppercase muted (ADR 0110 + shared/KpiCard)? Aditivo nao resolve o canon.",
+      "respondida": false,
+      "afeta": [
+        "02"
+      ]
+    },
+    {
+      "id": "D-GRADE",
+      "pergunta": "Tabela densa vira DataGrid no cliente ou segue LengthAwarePaginator no servidor? (W11)",
+      "respondida": false,
+      "afeta": [
+        "04"
+      ],
+      "destrava": [
+        "04"
+      ]
+    }
+  ],
+  "threads": [
+    {
+      "id": "01",
+      "titulo": "ui/card.tsx — badge · note · flush",
+      "dono": "CL",
+      "arquivo": "01-card-anatomia.md",
+      "vaga": 3,
+      "prefixo": [
+        "${UI}/card.tsx"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/**",
+        "${SH}/**"
+      ],
+      "depende_threads": [],
+      "depende_decisoes": [],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${UI}/card.tsx",
+          "padrao": "badge"
+        },
+        {
+          "tipo": "contem",
+          "path": "${UI}/card.tsx",
+          "padrao": "flush"
+        },
+        {
+          "tipo": "execucao",
+          "path": "${UI}/card.tsx",
+          "testes": [
+            "npm run test -- card"
+          ],
+          "nota": "Card sem as props novas renderiza markup identico ao de 733033864088 (guarda de default)"
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "titulo": "shared/KpiCard.tsx — variant=filter",
+      "dono": "CL",
+      "arquivo": "02-kpicard-filter.md",
+      "vaga": 3,
+      "prefixo": [
+        "${SH}/KpiCard.tsx"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/**",
+        "${UI}/**"
+      ],
+      "depende_threads": [],
+      "depende_decisoes": [],
+      "nota_provas": "tone default/success/warning/danger/info tem de sobreviver sem variant — e a guarda de Backup e Financeiro/Unificado",
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${SH}/KpiCard.tsx",
+          "padrao": "filter"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Backup/Index.tsx",
+          "guarda": true
+        },
+        {
+          "tipo": "execucao",
+          "path": "${SH}/KpiCard.tsx",
+          "testes": [
+            "npm run test -- KpiCard"
+          ],
+          "nota": "sem variant preserva os 5 tones; Backup e Financeiro/Unificado sem diff"
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "titulo": "shared/Toolbar.tsx — CRIAR (3 zonas)",
+      "dono": "CL",
+      "arquivo": "03-toolbar-criar.md",
+      "vaga": 4,
+      "prefixo": [
+        "${SH}/Toolbar.tsx"
+      ],
+      "nao_toca": [
+        "${SH}/PageFilters.tsx",
+        "resources/js/Pages/**"
+      ],
+      "depende_threads": [],
+      "depende_decisoes": [],
+      "nota_provas": "alvo medido a 1280px: 1215x71px, 6 filhos, uma faixa — remedido depois da limpeza dos 7 spans pt-sp",
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "${SH}/Toolbar.tsx"
+        },
+        {
+          "tipo": "contem",
+          "path": "${SH}/Toolbar.tsx",
+          "padrao": "right"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${SH}/PageFilters.tsx",
+          "guarda": true
+        },
+        {
+          "tipo": "execucao",
+          "path": "${SH}/Toolbar.tsx",
+          "testes": [
+            "npm run test -- Toolbar"
+          ],
+          "nota": "3 zonas left/center/right; PageFilters intacto"
+        }
+      ]
+    },
+    {
+      "id": "04",
+      "titulo": "tabela densa",
+      "dono": "CL",
+      "arquivo": "04-tabela-densa.md",
+      "prefixo": [],
+      "nao_toca": [],
+      "depende_threads": [
+        "01"
+      ],
+      "depende_decisoes": [
+        "D-GRADE"
+      ],
+      "bloqueio": "D-GRADE — decisao de W (DataGrid no cliente x paginator no servidor)",
+      "provas": []
+    },
+    {
+      "id": "05",
+      "titulo": "StatusBadge kinds",
+      "dono": "CC",
+      "arquivo": "05-statusbadge-kinds.md",
+      "prefixo": [],
+      "nao_toca": [],
+      "depende_threads": [],
+      "depende_decisoes": [],
+      "bloqueio": "nao medida — shared/StatusBadge.tsx (17.674 B) nao foi recortado; e minha, nao do CL",
+      "provas": []
+    },
+    {
+      "id": "08",
+      "titulo": "StatusBadge: tirar o fill sólido (AP7) — decisão [W] 2026-09-01",
+      "dono": "CL",
+      "arquivo": "08-statusbadge-ap7.md",
+      "prefixo": [
+        "resources/js/Components/shared/StatusBadge.tsx"
+      ],
+      "nao_toca": [
+        "resources/js/Components/ui/badge.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "nao_contem",
+          "path": "resources/js/Components/shared/StatusBadge.tsx",
+          "padrao": "className: 'bg-success text-success-foreground hover:bg-success/90'"
+        }
+      ]
+    }
+  ]
 }
 ```

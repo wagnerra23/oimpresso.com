@@ -2030,8 +2030,8 @@ button:where(.sb-item, .um-item, .sb-dd-i, .sb-dd-foot){ font-size: inherit; }
 .os-page-h-l h1{
   margin: 0;
   font-size: var(--fs-7); /* 22px */
-  font-weight: 700;
-  letter-spacing: -0.025em;
+  font-weight: 600; /* [W] 2026-09-23: peso do DS (era 700 do repo) */
+  letter-spacing: -0.015em;
   line-height: 1.2;
   text-wrap: balance;
   color: var(--text);
@@ -2039,7 +2039,7 @@ button:where(.sb-item, .um-item, .sb-dd-i, .sb-dd-foot){ font-size: inherit; }
 .os-page-h-l h1 .suffix{ font-weight: 600; color: var(--text-mute); letter-spacing: -0.015em; }
 .os-page-h-l p{
   margin: 2px 0 0;
-  font-size: var(--fs-3); /* 12.5px */
+  font-size: 12px; /* [W] 2026-09-23: 12px da produção (era 12.5) */
   max-width: 60ch; text-wrap: pretty;
   color: var(--text-mute);
   font-variant-numeric: tabular-nums;

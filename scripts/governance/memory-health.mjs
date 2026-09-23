@@ -880,8 +880,13 @@ function checkAdrVivoMasProposto() {
   // não código. Eles listam os arquivos do pacote Cowork, e um pacote com ADRs PRÓPRIAS do
   // protótipo (pasta design/adr/, numeradas como as do repo) casava a regex de citação abaixo
   // e acusava as ADRs homônimas do repo (falso positivo, PR #7620, 2026-09-21).
+  // O ledger de frescor do espelho é o mesmo tipo de dado: registra cada path do pacote importado.
+  // Um pacote com um playbook `01-adr-<numero>.md` casava a regex de citação e acusava a ADR
+  // homônima do repo (PR #7840, 2026-09-23) — mesma classe, mesmo conserto. Não escreva o número
+  // aqui: este arquivo está no corpus, e o comentário passaria a ser a citação.
   const isCode = (rel) => /\.(mjs|js|ts|php|json)$/.test(rel) && !rel.includes('.memory-health-baseline')
-    && !rel.replace(/\\/g, '/').startsWith('scripts/design-sync/state/');
+    && !rel.replace(/\\/g, '/').startsWith('scripts/design-sync/state/')
+    && !rel.replace(/\\/g, '/').endsWith('scripts/governance/.cowork-freshness-ledger.json');
   const corpusFiles = [
     ...listFiles('scripts', isCode),
     ...(exists('.github/workflows') ? listFiles('.github/workflows', (p) => /\.ya?ml$/.test(p)) : []),

@@ -1197,7 +1197,7 @@
   border: 1px solid var(--border); border-radius: var(--radius-sm);
   background: var(--surface); color: var(--text); outline: none;
 }
-.cli-addr-f input:focus{ border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.cli-addr-f select{height:30px;padding:0 6px;font:12.5px/1 var(--font-sans);border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);outline:none}.cli-addr-f select:focus,.cli-addr-f input:focus{ border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
 .cli-addr-f.cep{ flex: 0 0 120px; }
 .cli-addr-f.cep input{ font-family: var(--font-mono); }
 .cli-addr-f.num{ flex: 0 0 90px; }
@@ -1355,3 +1355,16 @@
 .cli-sem-doc{ font-size: 11px; color: var(--text-mute); font-style: italic; }
 
 .cli-papel-extra{ margin-left: 6px; font-size: 10px; padding: 1px 6px; border-radius: 999px; background: color-mix(in oklch, var(--accent) 10%, transparent); color: var(--accent); font-weight: 600; }
+
+/* Endereços · paridade produção (EnderecosEntregaList US-CRM-078 f2, lido 2026-09-23) */
+.cli-addr-help{margin:-2px 0 8px;font:12px/1.45 var(--font-sans);color:var(--text-mute);text-wrap:pretty}
+.cli-addr-acts{display:flex;gap:4px;flex:0 0 auto}
+.cli-addr-copy:hover{color:var(--text);border-color:var(--text-mute)}
+.cli-addr-copy.danger:hover{color:var(--danger,oklch(0.6 0.2 25));border-color:currentColor}
+.cli-addr-card.is-editing{border-color:var(--accent)}
+.cli-addr-cepst{font:11px/1.3 var(--font-sans);color:var(--text-mute)}
+.cli-addr-cepst.nf{color:var(--warn,oklch(0.72 0.15 75))}
+.cli-addr-chk{display:flex;align-items:center;gap:8px;font:12.5px/1.3 var(--font-sans);color:var(--text-dim);cursor:pointer;margin-top:4px}
+.cli-addr-chk input{accent-color:var(--accent);width:14px;height:14px}
+.cli-addr-erro{margin:6px 0 0;font:12px/1.4 var(--font-sans);color:var(--danger,oklch(0.6 0.2 25))}
+.cli-addr-form > .cli-addr-fact{margin-top:10px;justify-content:flex-end}

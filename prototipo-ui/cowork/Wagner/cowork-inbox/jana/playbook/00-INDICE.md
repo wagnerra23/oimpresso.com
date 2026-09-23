@@ -31,12 +31,28 @@
       "titulo": "Painel: o tier Pro governa brief, análises e ações",
       "dono": "CL",
       "ficha": "01-painel.gating-pro.md",
-      "prefixo": ["feat/jana-painel-gating-pro"],
-      "nao_toca": ["resources/js/Pages/Jana/Chat.tsx"],
+      "prefixo": [
+        "feat/jana-painel-gating-pro"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Jana/Chat.tsx"
+      ],
       "provas": [
-        { "tipo": "contem", "path": "${COCKPIT}", "padrao": "O brief diário é do plano Pro" },
-        { "tipo": "contem", "path": "${COCKPIT}", "padrao": "As 5 análises são do plano Pro" },
-        { "tipo": "contem", "path": "${CASOS}", "padrao": "UC-JPAIN-28" }
+        {
+          "tipo": "contem",
+          "path": "${COCKPIT}",
+          "padrao": "O brief diário é do plano Pro"
+        },
+        {
+          "tipo": "contem",
+          "path": "${COCKPIT}",
+          "padrao": "As 5 análises são do plano Pro"
+        },
+        {
+          "tipo": "contem",
+          "path": "${CASOS}",
+          "padrao": "UC-JPAIN-28"
+        }
       ]
     },
     {
@@ -44,16 +60,96 @@
       "titulo": "Painel sem histórico mostra um estado de página, não 6 caixas vazias",
       "dono": "CL",
       "ficha": "02-painel.estado-vazio.md",
-      "prefixo": ["feat/jana-painel-estado-vazio"],
-      "nao_toca": ["resources/js/Pages/Jana/Index.tsx"],
+      "prefixo": [
+        "feat/jana-painel-estado-vazio"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Jana/Index.tsx"
+      ],
       "provas": [
-        { "tipo": "contem", "path": "${COCKPIT}", "padrao": "A Jana ainda não tem histórico pra analisar" },
-        { "tipo": "contem", "path": "${CASOS}", "padrao": "UC-JPAIN-29" }
+        {
+          "tipo": "contem",
+          "path": "${COCKPIT}",
+          "padrao": "A Jana ainda não tem histórico pra analisar"
+        },
+        {
+          "tipo": "contem",
+          "path": "${CASOS}",
+          "padrao": "UC-JPAIN-29"
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "titulo": "Jana/Pro: tirar os style={{}} inline (cores → tokens/classes)",
+      "dono": "CL",
+      "ficha": "03-pro.sem-inline.md",
+      "prefixo": [
+        "resources/js/Pages/Jana/Pro.tsx",
+        "resources/css/cockpit.css"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Jana/Index.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "nao_contem",
+          "path": "resources/js/Pages/Jana/Pro.tsx",
+          "padrao": "style={{ color: PROOF_MUTE }}"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "resources/js/Pages/Jana/Pro.tsx",
+          "padrao": "style={{ background: BUB_JANA }}"
+        }
+      ]
+    },
+    {
+      "id": "04",
+      "titulo": "Permissão da Jana provada por teste (6 Pest do emenda de casos)",
+      "dono": "CL",
+      "ficha": "04-permissao.testes.md",
+      "prefixo": [
+        "Modules/Jana/Tests/Feature/Http/"
+      ],
+      "nao_toca": [
+        "resources/js/"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Jana/Tests/Feature/Http/IaPermissaoGrupoTest.php"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Jana/Tests/Feature/Http/MetasPermissaoTest.php"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Jana/Tests/Feature/Http/CustosVazamentoTest.php"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Jana/Tests/Feature/Http/ConversaAcessoTest.php"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Jana/Tests/Feature/Http/MemoriaPermissaoTest.php"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Jana/Tests/Feature/Http/ProPreviewPermissaoTest.php"
+        }
       ]
     }
   ]
 }
 ```
+
+## Threads 03–04 (acrescentadas 2026-09-23 pela triagem dos soltos)
+
+- **03** absorve `JANA-PRO-SEM-INLINE-2026-08-26.md` (movido para `../`). Medido @ebe1fc8be7e4: `Pro.tsx` ainda tem 13 `style={{}}` (linhas 239–295).
+- **04** absorve `JANA-CASOS-EMENDA-PERMISSAO-2026-08-27.md` (movido para `../`). Medido: busca por `IaPermissaoGrupo|MetasPermissao|CustosVazamento|ConversaAcesso` em `Modules/Jana/Tests` → **0**. Se os testes existirem com outro nome/pasta, corrigir as provas, não criar duplicata.
 
 ## As provas, e por que são estas
 

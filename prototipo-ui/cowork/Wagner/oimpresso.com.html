@@ -16,7 +16,7 @@
      que apagou 10 arquivos do DS (as 4 fontes inclusive). [CL] 2026-09-17 armou a recusa do lote
      por ref literal; o freshness não perde nada (rowsDoBundle já tira `_ds/**` do denominador). -->
 <script>window.__OI_DS_BASE__=location.pathname.indexOf('/prototipo-ui/cowork/')>-1?'../../design-system/':'_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/';document.write('<link rel="stylesheet" href="'+window.__OI_DS_BASE__+'colors_and_type.css"/>')</script>
-<link rel="stylesheet" href="styles.css?v=ph25s"/>
+<link rel="stylesheet" href="styles.css?v=ph26d"/>
 <!-- DS VIVO · camada de DOMÍNIO (origins/stage/sla/canal/kpi/kind/vip) — companion do git (#4097),
      canon verbatim. Carrega DEPOIS do ds-v6 pra vencer os literais antigos; aposenta o ds-v6. -->
 <script>document.write('<link rel="stylesheet" href="'+window.__OI_DS_BASE__+'cockpit_domains.css"/>')</script>
@@ -58,7 +58,7 @@
 <link rel="stylesheet" href="jana-telas-novas.css?v=jn2"/>
 <link rel="stylesheet" href="modulo-padrao.css?v=mp6su"/>
 <link rel="stylesheet" href="pg-styles.css?v=dark1"/>
-<link rel="stylesheet" href="clientes-page.css?v=ph5w" media="print" onload="this.media='all'"/>
+<link rel="stylesheet" href="clientes-page.css?v=end3" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="cliente-drawer760.css?v=cd2" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="cliente-telas.css?v=2" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="oficina-os-page.css?v=ofx3" media="print" onload="this.media='all'"/>
@@ -168,7 +168,7 @@
 <!-- fsm-stepper antes de os-page: define window.osFsmStage/OiFsmStepper, dependência da rota inicial ("os") -->
 <script type="text/oi-lazy" data-src="fsm-stepper.jsx"></script>
 <script type="text/oi-lazy" data-src="os-page.jsx?v=ph1u"></script>
-<script type="text/oi-lazy" data-src="clientes-page.jsx?v=ph3u"></script>
+<script type="text/oi-lazy" data-src="clientes-page.jsx?v=end3"></script>
 <script type="text/oi-lazy" data-src="cliente-drawer760.jsx?v=cd1twp"></script>
 <script type="text/oi-lazy" data-src="cliente-import.jsx"></script>
 <script type="text/oi-lazy" data-src="cliente-form.jsx"></script>
@@ -220,8 +220,8 @@
 <script type="text/oi-lazy" data-src="manufacturing-print.jsx?v=mfg12"></script>
 <script type="text/oi-lazy" data-src="manufacturing-insumos.jsx?v=mfg12"></script>
 <script type="text/oi-lazy" data-src="manufacturing-page.jsx?v=mfg12tps"></script>
-<!-- Dashboard legado reconstruído (Blade /dashboard-legacy?legacy=1 → PT-05) -->
-<script type="text/oi-lazy" data-src="dash-legacy-page.jsx?v=dl13"></script>
+<!-- Visão geral (/dashboard-legacy → Inertia Home/Index · PT-05; Blade removido no charter v5) -->
+<script type="text/oi-lazy" data-src="dash-legacy-page.jsx?v=dl14"></script>
 <!-- Módulo Forja — desenvolvimento de software conectado ao MCP (funde projects+teammcp) -->
 <script type="text/oi-lazy" data-src="forja-data.jsx?v=fj9"></script>
 <!-- Onda 1 (1 arquivo por tela): fundação + 1 arquivo por view/overlay; o shell só roteia -->
