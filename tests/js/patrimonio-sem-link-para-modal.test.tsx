@@ -28,7 +28,7 @@
 // @see resources/js/Pages/Patrimonio/Index.casos.md (UC-PAT-09)
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 
 vi.mock('@/Layouts/AppShellV2', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@inertiajs/react', () => ({
@@ -108,6 +108,38 @@ describe('UC-BENS-04 · Bens não linka pra formulário que só existe como moda
     expect(screen.getByText('Nenhum bem cadastrado ainda')).toBeTruthy();
     expect(hrefsSoAjax()).toEqual([]);
   });
+
+  it('UC-BENS-05: "Adicionar o primeiro recurso" e "Adicionar recurso" abrem o drawer de cadastro na própria tela', () => {
+    render(
+      <Bens
+        bens={paginator([]) as any}
+        filtros={{}}
+        opcoes={{ locais: { 3: 'Matriz' }, categorias: { 7: 'Máquinas' }, tipos_compra: { owned: 'Próprio' } }}
+        formato_data="d/m/Y"
+        permissoes={{ criar: true, editar: true, excluir: true, manutencao: true }}
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Cadastrar bem' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar o primeiro recurso' }));
+    expect(screen.getByRole('button', { name: 'Cadastrar bem' })).toBeTruthy();
+    expect(screen.getByRole('dialog').textContent).toContain('Código gerado pelo prefixo do módulo');
+  });
+
+  it('UC-BENS-05: sem permissão de criar, nenhum botão de cadastro aparece', () => {
+    render(
+      <Bens
+        bens={paginator([]) as any}
+        filtros={{}}
+        opcoes={{ locais: {}, categorias: {}, tipos_compra: {} }}
+        formato_data="d/m/Y"
+        permissoes={{ criar: false, editar: false, excluir: false, manutencao: false }}
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Adicionar recurso' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Adicionar o primeiro recurso' })).toBeNull();
+  });
 });
 
 describe('UC-MANU-04 · Manutenções não linka pro editar que só existe como modal', () => {
@@ -145,7 +177,7 @@ describe('UC-MANU-04 · Manutenções não linka pro editar que só existe como 
 });
 
 describe('UC-PAT-09 · Painel não oferece cadastro que abre página em branco', () => {
-  it('UC-PAT-09: com permissão de criar, o header não linka pra /asset/assets/create — e o "Alocar recurso" (lista) fica', () => {
+  it('UC-PAT-09: com permissão de criar, o header não linka pra /asset/assets/create — "Adicionar recurso" abre o drawer, "Alocar recurso" vai pra lista', () => {
     render(
       <PainelPatrimonio
         {...({
@@ -165,6 +197,11 @@ describe('UC-PAT-09 · Painel não oferece cadastro que abre página em branco',
       (a) => a.textContent?.trim() === 'Alocar recurso',
     );
     expect(alocar?.getAttribute('href')).toBe('/asset/allocation');
+    // O cadastro voltou em 2026-09-23 — pelo drawer da lista de Bens, não pelo endpoint só-ajax.
+    const adicionar = [...document.querySelectorAll<HTMLAnchorElement>('a[href]')].find(
+      (a) => a.textContent?.trim() === 'Adicionar recurso',
+    );
+    expect(adicionar?.getAttribute('href')).toBe('/asset/assets?novo=1');
     expect(hrefsSoAjax()).toEqual([]);
   });
 });
