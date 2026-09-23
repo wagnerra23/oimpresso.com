@@ -1788,10 +1788,6 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** correção que **estende o escopo de varredura** de uma lista de predicados (aqui: passar a testar o `+`, não só o `-`) não se dá por entregue sem conferir **cada** predicado da lista contra o escopo novo. Âncora, prefixo e lookbehind que eram corretos no escopo antigo viram filtro silencioso no novo. E o bite-test da correção cobre **uma instância por família**, ou declara quais ficaram fora. Uma instância da família mais fácil (`export`, sem âncora) prova só aquela família. Mesma raiz da §5 2026-08-03 (*consertar um comprimento da família e não medir os irmãos*), agora no eixo **escopo da varredura** em vez de **forma da regex**. É também a **3ª falha do mesmo #7691**: as outras duas estão na §5 2026-09-22 (*"O zero de um medidor tem TRÊS causas"*) e na errata de corpus do docblock.
 
-- **⚠️ Por que NÃO armado agora, com o motivo real:** o invariante que mataria a classe **dentro do dono** é decidível mecanicamente. A regra seria: *cada regex de `SYMBOL_RES` casa `-X` se e só se casa `+X`*. `SYMBOL_RES` é uma constante de 5 entradas, e esse assert pegaria também uma 6ª família futura, que os casos escritos à mão por família (6b/6f/6h) **não** pegam. Não foi armado por escolha, não por impossibilidade. Esta é a 1ª ocorrência deste vetor ([ADR 0344](decisions/0344-two-strikes-cobre-processo.md)), e hoje o script não exporta `SYMBOL_RES` (roda `main()` ao ser importado), então o assert pede uma refatoração que não cabe no PR do conserto. Os casos por família vivem no `contrato-de-tela.test.mjs`, que roda na lane `contrato-de-tela`, advisory. Pela convenção do ledger, isso não conta como defesa mecânica da classe.
-
-- Ocorrência da **LC-30**.
-
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
