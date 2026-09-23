@@ -36,6 +36,13 @@ import type { VariantProps } from 'class-variance-authority';
  *
  * Derivar fecha a porta: variante nova no DS passa a existir aqui no mesmo commit, e variante
  * removida de lá quebra AQUI, em vez de virar string morta.
+ *
+ * 2026-09-23 — AP7 aplicado no mapa inteiro (decisão [W] 2026-09-01, playbook
+ * `ds-atomos` thread 08): as 36 entradas `variant:'default'` + `className:'bg-<tom> …'`
+ * viraram a variante soft do tom (`success`/`warning`/`info`), e as 19 `destructive`
+ * (fill vermelho) viraram `danger` (par soft). `secondary`/`outline` ficaram como estavam —
+ * fora do escopo da decisão. `animate-pulse` do ápice de severidade é movimento, não fill,
+ * e continua.
  */
 type Variant = NonNullable<VariantProps<typeof badgeVariants>['variant']>;
 
@@ -45,22 +52,22 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
   intercorrencia: {
     rascunho:  { variant: 'outline',     label: 'Rascunho' },
     pendente:  { variant: 'secondary',   label: 'Pendente' },
-    aprovada:  { variant: 'default',     label: 'Aprovada',  className: 'bg-success text-success-foreground hover:bg-success/90' },
-    rejeitada: { variant: 'destructive', label: 'Rejeitada' },
-    aplicada:  { variant: 'default',     label: 'Aplicada',  className: 'bg-info text-info-foreground hover:bg-info/90' },
+    aprovada:  { variant: 'success',     label: 'Aprovada' },
+    rejeitada: { variant: 'danger',      label: 'Rejeitada' },
+    aplicada:  { variant: 'info',        label: 'Aplicada' },
     cancelada: { variant: 'outline',     label: 'Cancelada' },
   },
   aprovacao: {
     pendente:  { variant: 'secondary',   label: 'Pendente' },
-    aprovada:  { variant: 'default',     label: 'Aprovada',  className: 'bg-success text-success-foreground hover:bg-success/90' },
-    rejeitada: { variant: 'destructive', label: 'Rejeitada' },
-    aprovada_em_lote: { variant: 'default', label: 'Lote OK', className: 'bg-success text-success-foreground' },
+    aprovada:  { variant: 'success',     label: 'Aprovada' },
+    rejeitada: { variant: 'danger',      label: 'Rejeitada' },
+    aprovada_em_lote: { variant: 'success', label: 'Lote OK' },
   },
   prioridade: {
     baixa:   { variant: 'outline',     label: 'Baixa' },
     normal:  { variant: 'secondary',   label: 'Normal' },
-    alta:    { variant: 'destructive', label: 'Alta' },
-    urgente: { variant: 'destructive', label: 'Urgente', className: 'animate-pulse' },
+    alta:    { variant: 'danger',      label: 'Alta' },
+    urgente: { variant: 'danger',      label: 'Urgente', className: 'animate-pulse' },
   },
   /**
    * `documento` — `transactions.status` de pedido de venda, ordem de compra e requisição.
@@ -81,10 +88,10 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     draft:      { variant: 'outline',   label: 'Rascunho' },
     pending:    { variant: 'secondary', label: 'Pendente' },
     ordered:    { variant: 'secondary', label: 'Solicitado' },
-    partial:    { variant: 'default',   label: 'Parcial',   className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
-    received:   { variant: 'default',   label: 'Recebido',  className: 'bg-success text-success-foreground hover:bg-success/90' },
-    final:      { variant: 'default',   label: 'Final',     className: 'bg-success text-success-foreground hover:bg-success/90' },
-    completed:  { variant: 'default',   label: 'Concluído', className: 'bg-success text-success-foreground hover:bg-success/90' },
+    partial:    { variant: 'warning',   label: 'Parcial' },
+    received:   { variant: 'success',   label: 'Recebido' },
+    final:      { variant: 'success',   label: 'Final' },
+    completed:  { variant: 'success',   label: 'Concluído' },
     cancelled:  { variant: 'outline',   label: 'Cancelado' },
   },
   /**
@@ -97,44 +104,45 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
   // Manufacturing — situação da ordem de produção (US-MANU-004, handoff §4.5).
   // `mfg_is_final` é booleano no banco; o domínio nomeia os dois estados que a tela mostra.
   producao: {
-    finalizada: { variant: 'default',   label: 'Finalizada', className: 'bg-success text-success-foreground hover:bg-success/90' },
+    finalizada: { variant: 'success',   label: 'Finalizada' },
     // Âmbar, não cinza: o protótipo pinta o rascunho com `.mfg-pill.warn` (o `.ok` é a
     // finalizada). UI-0029 — o protótipo é soberano na FORMA. Só ficou legível depois da
-    // UI-0033: com o par `warning` quebrado o texto dava 1,25:1; agora dá 7,72:1.
-    rascunho:   { variant: 'default',   label: 'Rascunho',  className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
+    // UI-0033: com o par `warning` quebrado o texto dava 1,25:1; em 2026-09-03 dava 7,72:1
+    // (medido no FILL sólido, que saiu em 2026-09-23 — ver nota AP7 no fim do docblock do tipo).
+    rascunho:   { variant: 'warning',   label: 'Rascunho' },
   },
   os: {
     ordered:    { variant: 'secondary', label: 'Solicitado' },
-    packed:     { variant: 'default',   label: 'Embalado',  className: 'bg-info text-info-foreground hover:bg-info/90' },
-    shipped:    { variant: 'default',   label: 'Enviado',   className: 'bg-info text-info-foreground hover:bg-info/90' },
-    delivered:  { variant: 'default',   label: 'Entregue',  className: 'bg-success text-success-foreground hover:bg-success/90' },
+    packed:     { variant: 'info',      label: 'Embalado' },
+    shipped:    { variant: 'info',      label: 'Enviado' },
+    delivered:  { variant: 'success',   label: 'Entregue' },
     cancelled:  { variant: 'outline',   label: 'Cancelado' },
   },
   payment: {
     pending:        { variant: 'secondary',   label: 'Pendente' },
-    partial:        { variant: 'default',     label: 'Parcial',    className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
-    paid:           { variant: 'default',     label: 'Pago',       className: 'bg-success text-success-foreground hover:bg-success/90' },
-    due:            { variant: 'destructive', label: 'Vencido' },
-    overdue:        { variant: 'destructive', label: 'Atrasado' },
+    partial:        { variant: 'warning',     label: 'Parcial' },
+    paid:           { variant: 'success',     label: 'Pago' },
+    due:            { variant: 'danger',      label: 'Vencido' },
+    overdue:        { variant: 'danger',      label: 'Atrasado' },
   },
   financeiro_titulo: {
     aberto:    { variant: 'secondary',   label: 'Aberto' },
-    parcial:   { variant: 'default',     label: 'Parcial',   className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
-    quitado:   { variant: 'default',     label: 'Quitado',   className: 'bg-success text-success-foreground hover:bg-success/90' },
+    parcial:   { variant: 'warning',     label: 'Parcial' },
+    quitado:   { variant: 'success',     label: 'Quitado' },
     cancelado: { variant: 'outline',     label: 'Cancelado' },
   },
   importacao: {
     pendente:    { variant: 'secondary', label: 'Pendente' },
-    processando: { variant: 'default',   label: 'Processando', className: 'bg-info text-info-foreground' },
-    sucesso:     { variant: 'default',   label: 'Sucesso',     className: 'bg-success text-success-foreground' },
-    erro:        { variant: 'destructive', label: 'Erro' },
+    processando: { variant: 'info',      label: 'Processando' },
+    sucesso:     { variant: 'success',   label: 'Sucesso' },
+    erro:        { variant: 'danger',      label: 'Erro' },
   },
   nfse: {
     rascunho:    { variant: 'outline',     label: 'Rascunho' },
-    processando: { variant: 'default',     label: 'Processando', className: 'bg-info text-info-foreground hover:bg-info/90' },
-    emitida:     { variant: 'default',     label: 'Emitida',     className: 'bg-success text-success-foreground hover:bg-success/90' },
+    processando: { variant: 'info',        label: 'Processando' },
+    emitida:     { variant: 'success',     label: 'Emitida' },
     cancelada:   { variant: 'outline',     label: 'Cancelada' },
-    erro:        { variant: 'destructive', label: 'Erro' },
+    erro:        { variant: 'danger',      label: 'Erro' },
   },
   rep: {
     REP_P: { variant: 'outline', label: 'REP-P' },
@@ -143,46 +151,46 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
   },
   // Onda 1 PR D 2026-05-26 — status de Vehicle (OficinaAuto). Frota Martinho.
   vehicle: {
-    active:         { variant: 'default',     label: 'Ativo',           className: 'bg-success text-success-foreground hover:bg-success/90' },
-    in_service:     { variant: 'default',     label: 'Em serviço',      className: 'bg-info text-info-foreground hover:bg-info/90' },
-    awaiting_parts: { variant: 'default',     label: 'Aguardando peças', className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
+    active:         { variant: 'success',     label: 'Ativo' },
+    in_service:     { variant: 'info',        label: 'Em serviço' },
+    awaiting_parts: { variant: 'warning',     label: 'Aguardando peças' },
     inactive:       { variant: 'outline',     label: 'Inativo' },
-    written_off:    { variant: 'destructive', label: 'Baixado' },
+    written_off:    { variant: 'danger',      label: 'Baixado' },
   },
   ads_destination: {
-    blocked:        { variant: 'destructive', label: 'Bloqueado' },
-    pending_wagner: { variant: 'default',     label: 'Aguardando você', className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
-    brain_b:        { variant: 'default',     label: 'Brain B',          className: 'bg-info text-info-foreground hover:bg-info/90' },
-    brain_a:        { variant: 'default',     label: 'Brain A',          className: 'bg-success text-success-foreground hover:bg-success/90' },
+    blocked:        { variant: 'danger',      label: 'Bloqueado' },
+    pending_wagner: { variant: 'warning',     label: 'Aguardando você' },
+    brain_b:        { variant: 'info',        label: 'Brain B' },
+    brain_a:        { variant: 'success',     label: 'Brain A' },
     queued:         { variant: 'outline',     label: 'Na fila' },
   },
   // Ramp de severidade de 4 níveis SEM token "orange" (Onda M1): colapsa nos 3
   // semânticos (success→warning→destructive); o ÁPICE (Crítico) pulsa pra ficar
   // visualmente distinto do Alto. Ambos vermelhos, label reforça. DS-puro.
   ads_risco: {
-    Baixo:   { variant: 'default',     label: 'Risco Baixo',   className: 'bg-success text-success-foreground hover:bg-success/90' },
-    Médio:   { variant: 'default',     label: 'Risco Médio',   className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
-    Alto:    { variant: 'destructive', label: 'Risco Alto' },
-    Crítico: { variant: 'destructive', label: 'Risco Crítico', className: 'animate-pulse' },
+    Baixo:   { variant: 'success',     label: 'Risco Baixo' },
+    Médio:   { variant: 'warning',     label: 'Risco Médio' },
+    Alto:    { variant: 'danger',      label: 'Risco Alto' },
+    Crítico: { variant: 'danger',      label: 'Risco Crítico', className: 'animate-pulse' },
   },
   mcp_status: {
-    ok:             { variant: 'default',     label: 'ok',             className: 'bg-success text-success-foreground hover:bg-success/90' },
-    denied:         { variant: 'default',     label: 'denied',         className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
-    error:          { variant: 'destructive', label: 'error' },
-    quota_exceeded: { variant: 'destructive', label: 'quota_exceeded' },
+    ok:             { variant: 'success',     label: 'ok' },
+    denied:         { variant: 'warning',     label: 'denied' },
+    error:          { variant: 'danger',      label: 'error' },
+    quota_exceeded: { variant: 'danger',      label: 'quota_exceeded' },
   },
   // Admin Center (Centro de Operações) — semáforo green/yellow/red dos health
   // snapshots + estado online/offline de infra. Substitui bg-(green|amber|red)-100
   // inline repetido 6x no Admin/Index.tsx (tokenização DS, ADR UI-0013).
   admin_health: {
-    green:   { variant: 'default',     label: 'green',   className: 'bg-success text-success-foreground hover:bg-success/90' },
-    yellow:  { variant: 'default',     label: 'yellow',  className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
-    red:     { variant: 'destructive', label: 'red' },
+    green:   { variant: 'success',     label: 'green' },
+    yellow:  { variant: 'warning',     label: 'yellow' },
+    red:     { variant: 'danger',      label: 'red' },
     unknown: { variant: 'outline',     label: 'unknown' },
   },
   admin_reachable: {
-    online:  { variant: 'default',     label: 'online',  className: 'bg-success text-success-foreground hover:bg-success/90' },
-    offline: { variant: 'destructive', label: 'offline' },
+    online:  { variant: 'success',     label: 'online' },
+    offline: { variant: 'danger',      label: 'offline' },
   },
   // Officeimpresso — estado de licença desktop (Onda 1 da migração React,
   // memory/requisitos/Officeimpresso/RUNBOOK-logs.md §4). Substitui as pills
@@ -193,16 +201,16 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
   // duas pills visualmente parecidas e o de empresa é o mais grave (derruba o
   // cliente inteiro, não uma máquina). O label carrega a diferença.
   licenca: {
-    ativa:              { variant: 'default',     label: 'Ativa', className: 'bg-success text-success-foreground hover:bg-success/90' },
-    maquina_bloqueada:  { variant: 'destructive', label: 'Máquina bloqueada' },
-    empresa_bloqueada:  { variant: 'destructive', label: 'Empresa bloqueada' },
+    ativa:              { variant: 'success',     label: 'Ativa' },
+    maquina_bloqueada:  { variant: 'danger',      label: 'Máquina bloqueada' },
+    empresa_bloqueada:  { variant: 'danger',      label: 'Empresa bloqueada' },
   },
   // Estado da licença NO MOMENTO do último acesso logado — eixo diferente do
   // `licenca` (que é o estado ATUAL). Tri-estado: sem log nenhum, a tela mostra
   // travessão em vez de badge; ver a pegadinha 5 do RUNBOOK.
   licenca_no_acesso: {
-    liberada:  { variant: 'default',     label: 'Liberada', className: 'bg-success text-success-foreground hover:bg-success/90' },
-    bloqueada: { variant: 'destructive', label: 'Bloqueada' },
+    liberada:  { variant: 'success',     label: 'Liberada' },
+    bloqueada: { variant: 'danger',      label: 'Bloqueada' },
   },
   // Prazo de guarda de um arquivo (Modules/Arquivos · US-ARQ-013). Três estados, e a
   // escolha do vocabulário é do protótipo, não minha: ele usa PRAZO (No prazo · Vencendo ·
