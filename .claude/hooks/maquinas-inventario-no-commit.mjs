@@ -32,10 +32,22 @@
  * (Ate 2026-09-22 este comentario dizia que o `--check` comparava "fidelidade total". Era falso:
  * o `--check` compara so os nomes das maquinas. Por isso o hook deixou de usa-lo.)
  *
- * LIMITE DECLARADO: o filtro de path continua o mesmo (so dispara em commit que toca maquina).
- * Editar documento sem tocar maquina muda a coluna Documento e NAO regenera ali — o drift vem
- * no proximo commit que tocar maquina. Ampliar o filtro faria ~toda edicao de memory/ pagar
- * os ~6,5s do gerador.
+ * COMMIT SO DE DOCUMENTO (2026-09-23): a coluna Documento e derivada das CITACOES em `.md`
+ * de `memory/**`, `docs/**` e `.claude/**` — editar doc sem tocar maquina tambem envelhece o
+ * indice. Ate esta data o hook ignorava esse caso ("ampliar o filtro faria toda edicao de
+ * memory/ pagar os ~6,5s"). O filtro agora e o MESMO sinal do gerador: so paga a medicao se
+ * as linhas ADICIONADAS ou REMOVIDAS do `.md` carregam o token de alguma maquina do indice,
+ * tokenizadas pelos 3 regex do gerador (copiados abaixo; o bite-test compara com a fonte).
+ * Doc que nao cita maquina segue custando ~0ms. `CLAUDE.md` dispara sempre: os `@imports`
+ * dele decidem a precedencia (rank) da coluna inteira.
+ * MEDIDO (2026-09-23, 70 commits do main — clone raso, e o que havia): 29 commits so de doc;
+ * rodando o gerador no pai e no commit de cada um, 16 mudaram o indice. O filtro dispara em 20:
+ * pega os 16 (0 falso-negativo) e paga ~6,5s a toa em 4, que saem em silencio (indice fresco).
+ * Os 9 que ele pula de fato nao mudavam o indice.
+ *
+ * LIMITE DECLARADO: o filtro olha o DIFF, nao a arvore — mudanca que altera o desempate sem
+ * mencionar maquina nas linhas tocadas (ex.: renomear um doc citador) so e pega quando o diff
+ * sem renames mostra as linhas; `--no-renames` garante isso para rename puro.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -50,6 +62,58 @@ export const COBERTOS = [
   'scripts/governance/',
   '.github/workflows/',
 ];
+
+/** Corpus de documento que alimenta a coluna Documento (espelha o `corpusDocs` do gerador). */
+export const DOCS_GERADOS = new Set([
+  'memory/reference/MAQUINAS-INVENTARIO.md',
+  '.claude/hooks/_HOOKS-INDEX.md',
+  '.claude/skills/_SKILLS-INDEX.md',
+  'memory/governance/AUTOMATIONS.md',
+  'memory/reference/PAINEL-SISTEMA.md',
+]);
+export function ehDocDoCorpus(p) {
+  const s = String(p || '');
+  if (DOCS_GERADOS.has(s) || !s.endsWith('.md')) return false;
+  return s.startsWith('memory/') || s.startsWith('docs/');
+}
+
+/** Copia literal dos 3 regex do gerador (`maquinas-inventario.mjs`). O bite-test acusa drift. */
+export const RX_ARQUIVO = /[\w.-]+\.(?:mjs|js|cjs|yml|yaml|json)/g;
+export const RX_CRASE = /`([a-z0-9][\w.-]*)`/gi;
+export const RX_PASTA = /(?:skills|agents)\/([\w.-]+)/g;
+
+/** Tokens que o gerador extrairia deste texto. */
+export function tokensDe(texto) {
+  const t = new Set();
+  const s = String(texto || '');
+  for (const m of s.matchAll(RX_ARQUIVO)) t.add(m[0]);
+  for (const m of s.matchAll(RX_CRASE)) t.add(m[1]);
+  for (const m of s.matchAll(RX_PASTA)) t.add(m[1]);
+  return t;
+}
+
+/** Nomes pelos quais cada maquina do indice pode ser citada: nome, basename e nome nu com hifen. */
+export function tokensDasMaquinas(indice) {
+  const t = new Set();
+  for (const m of String(indice || '').matchAll(/^\| `([^`]+)`/gm)) {
+    const nome = m[1];
+    const base = nome.split('/').pop();
+    t.add(nome); t.add(base);
+    const nu = base.replace(/\.(mjs|js|cjs|yml|yaml|json|md)$/, '');
+    if (nu.includes('-')) t.add(nu);
+  }
+  return t;
+}
+
+/** O diff (formato unificado) toca, em linha adicionada ou removida, o token de alguma maquina? */
+export function diffCitaMaquina(diff, maquinas) {
+  if (!maquinas || !maquinas.size) return false;
+  for (const linha of String(diff || '').split('\n')) {
+    if (!/^[+-]/.test(linha) || /^(\+\+\+|---)( |$)/.test(linha)) continue;
+    for (const tok of tokensDe(linha.slice(1))) if (maquinas.has(tok)) return true;
+  }
+  return false;
+}
 
 /**
  * TOKENIZACAO em vez de mega-regex. Motivo medido: o regex unico errava `git -C /repo commit`
@@ -117,6 +181,23 @@ function git(args, cwd) {
   return execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
 }
 
+/** Commit so de documento: dispara quando o diff do `.md` cita maquina (ou quando toca `CLAUDE.md`). */
+function docTocaMaquina(cmd, paths, cwd) {
+  if (paths.includes('CLAUDE.md')) return true;
+  const docs = [...new Set(paths.filter(ehDocDoCorpus))];
+  if (!docs.length) return false;
+  let diff = '';
+  try {
+    diff = git(['diff', '--cached', '--no-renames', '-U0', '--', ...docs], cwd);
+    if (levaWorkingTree(cmd)) diff += git(['diff', '--no-renames', '-U0', '--', ...docs], cwd);
+  } catch {
+    return false;                           // git falhou: nao invento estado
+  }
+  let indice = '';
+  try { indice = readFileSync(INDICE, 'utf8'); } catch { return true; }   // sem indice: regenera
+  return diffCitaMaquina(diff, tokensDasMaquinas(indice));
+}
+
 function lerStdin() {
   try {
     return readFileSync(0, 'utf8');
@@ -149,7 +230,7 @@ function main() {
   } catch {
     return 0;                               // git falhou: nao invento estado
   }
-  if (!tocaCoberto(paths)) return 0;        // nao paga a medicao
+  if (!tocaCoberto(paths) && !docTocaMaquina(cmd, paths, cwd)) return 0;   // nao paga a medicao
 
   // --- so agora o passo CARO: quem decide e a medicao da arvore, nunca a presenca no diff.
   // Compara o CONTEUDO INTEIRO (saida do gerador × arquivo), nao so a cobertura. Ate 2026-09-22
@@ -182,7 +263,7 @@ function main() {
   const explicito = temPathspecExplicito(cmd);
   if (explicito) {
     console.error(
-      '[maquinas-inventario] REGENEREI ' + INDICE + ' (estava stale e o commit toca maquina).\n' +
+      '[maquinas-inventario] REGENEREI ' + INDICE + ' (estava stale e o commit toca maquina ou doc que a cita).\n' +
       '  Seu commit tem pathspec explicito, entao NAO estagiei — inclua o indice voce mesmo.'
     );
     return 0;
@@ -198,6 +279,7 @@ function main() {
   console.error(
     '[maquinas-inventario] REGENEREI e ESTAGIEI ' + INDICE + '.\n' +
     '  Motivo: este commit toca maquina (.claude/ · scripts/governance/ · .github/workflows/)\n' +
+    '  ou um documento que cita maquina (a coluna Documento deriva das citacoes),\n' +
     '  e o conteudo do indice divergia da arvore. Derivado com dono acompanha a mudanca do insumo.\n' +
     '  Se o diff do indice for maior que o seu toque, o excedente e DRIFT HERDADO: commits\n' +
     '  anteriores que nao regeneraram, ou documentos editados sem tocar maquina (a coluna\n' +

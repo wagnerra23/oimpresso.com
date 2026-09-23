@@ -122,8 +122,10 @@ byte** com o que o gerador produz agora, ele **regenera o inventário e o coloca
 commit. Desde 2026-09-22 a comparação é do conteúdo inteiro — antes era só a lista de nomes, e as
 colunas derivadas (quem chama, quem lê, qual documento cita) envelheciam sem ninguém ver.
 
-Limite: editar só documento não dispara o hook, então a coluna Documento pode atrasar até o próximo
-commit que tocar máquina — e aí ela entra junto, como drift herdado.
+Desde 2026-09-23 o hook também dispara em commit que só mexe em documento (`memory/**`, `docs/**`,
+`CLAUDE.md`), mas só quando as linhas adicionadas ou removidas citam alguma máquina — o mesmo sinal
+que alimenta a coluna Documento. Até essa data, editar só documento deixava a coluna atrasada até o
+próximo commit que tocasse máquina.
 
 ⚠️ **A pegadinha que custa caro aqui é o `git add -A`.** Rodar uma ferramenta de governança "só pra
 espiar um número" pode produzir artefato derivado como efeito colateral; com `-A`, ele entra no seu
