@@ -64,6 +64,11 @@ abstract class FinanceiroTestCase extends TestCase
             'financeiro.contas_bancarias.manage',
             'financeiro.conciliacao.manage',
             'financeiro.relatorios.view',
+            // Gates adicionados em 2026-09-23 (PermissaoRotasContratoTest):
+            'financeiro.lancamentos.create',
+            'financeiro.extrato.view',
+            'financeiro.contas_pagar.pagar',
+            'financeiro.contas_receber.create',
         ];
 
         foreach ($perms as $name) {
@@ -79,6 +84,21 @@ abstract class FinanceiroTestCase extends TestCase
                 }
             }
         }
+
+        // O seed do CI (pest-mysql-setup) NÃO cria o papel Admin#<biz> — o bloco acima
+        // vira no-op e o usuário autenticado fica sem permissão nenhuma. Até 2026-09-23
+        // isso passava despercebido porque conciliação/extrato/contas não tinham gate
+        // (#7766 fechou). Dar direto ao usuário do teste torna o "actAsAdmin" verdadeiro
+        // nos dois ambientes; onde ele já é Admin, o Gate::before já liberava tudo.
+        if ($this->admin && ! $this->admin->hasRole("Admin#{$businessId}")) {
+            foreach ($perms as $name) {
+                if (! $this->admin->hasPermissionTo($name)) {
+                    $this->admin->givePermissionTo($name);
+                }
+            }
+        }
+
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
     protected function inertiaGet(string $url, array $queryParams = [])
