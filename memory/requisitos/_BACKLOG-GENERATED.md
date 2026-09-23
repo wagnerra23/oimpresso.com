@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **933 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **934 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -13,7 +13,7 @@
 | [`Sells`](#sells) | 57 | 0 | 0 | 0 | 57 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Governance`](#governance) | 47 | 0 | 0 | 3 | 44 |
-| [`Financeiro`](#financeiro) | 45 | 0 | 0 | 0 | 45 |
+| [`Financeiro`](#financeiro) | 46 | 0 | 0 | 0 | 46 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
 | [`NfeBrasil`](#nfebrasil) | 26 | 0 | 0 | 6 | 20 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
@@ -436,6 +436,7 @@
 - **US-FIN-061** — Otimizar LCP das telas núcleo (Financeiro/Unificado + Sells) — verificar prod real + reduzir bundle JS _(`p2`)_
 - **US-FIN-064** — Redirect ContasReceber/ContasPagar → Unificado (deprecação) _(`p2`)_
 - **US-FIN-065** — Elevar tela Unificado/Novo a ≥70 (form unificado real de cobrança) _(`p2`)_
+- **US-FIN-069** — Baseline de pixel do DRE (#7767) não reproduz o render do CI — visual-regression vermelho em todo PR de escopo global _(`p2` · @wagner)_
 - **US-FIN-025** — Onda 6 — Cleanup colunas legacy + remover redirects 301 _(`p3` · @wagner)_
 - **US-FIN-042** — Backfill cliente_descricao biz=1 - 52 fin_titulos pre-Onda-Edit NULL _(`p3`)_
 - **US-FIN-066** — Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor) _(`p3`)_
