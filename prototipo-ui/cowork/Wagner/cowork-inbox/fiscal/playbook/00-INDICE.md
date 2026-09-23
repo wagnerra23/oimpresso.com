@@ -12,7 +12,7 @@ regra: PEDIDO, não inventário. Estado é derivado (§2-bis). Nunca em prototip
 
 # SINCRONIZAR Fiscal — playbook
 
-> **Absorve e CORRIGE** `COLAR-NO-CODE-fiscal-notafiscal-ondas.md` (03/09, 10 ondas · 36,8 KB). Medido em 08/09: **9 das 10 ondas estão feitas em produção** e **as 5 decisões ⛔ [W] foram respondidas pelo código**. Sobra **1 onda de UI** (paginação) e **1 lacuna de rede** (E2E = 0).
+> **Absorve e CORRIGE** `COLAR-NO-CODE-fiscal-notafiscal-ondas.md` (03/09, 10 ondas · 36,8 KB). Medido em 08/09: **9 das 10 ondas estão feitas em produção** e **as 5 decisões ⛔ [W] foram respondidas pelo código**. Sobra **1 onda de UI** (paginação) e **1 lacuna de rede** (E2E = 0). *(Errata 2026-09-23: a paginação já estava feita pelo #6711 em 04/09 — eram **10 das 10**; ver §0 e `_saida-02.md`. A lacuna de rede fechou pela thread 01.)*
 > **Leis do módulo:** as 6 do `§0` do arquivo-ponte continuam valendo (motor fiscal não se toca · ledger append-only · lei citada literal · `501` nunca é sucesso · 🔴 sozinho no PR). Não recopiadas.
 
 ## 0 · O que a medição derrubou
@@ -47,15 +47,15 @@ regra: PEDIDO, não inventário. Estado é derivado (§2-bis). Nunca em prototip
 | # | thread | dono | prefixo | vaga | arquivo |
 |---|---|---|---|---|---|
 | 01 | Rede: 2 specs E2E (cockpit + NF-e), derivados dos contratos existentes | [CL] | `e2e/fiscal-cockpit.spec.ts` · `e2e/fiscal-nfe.spec.ts` | 1 | `01-rede-e2e.md` |
-| 02 | Paginação `.fx-pager` — a única onda de UI viva | [CL] | `Pages/Fiscal/Cockpit.tsx` (+ `CockpitController` **se** o corte for server-side) | 1 | `02-paginacao.md` |
+| 02 | Paginação `.fx-pager` — **já feita pelo #6711** (04/09), recibo retroativo `_saida-02.md` | [CL] | `Pages/Fiscal/Cockpit.tsx` (+ `CockpitController` **se** o corte for server-side) | 1 | `02-paginacao.md` |
 | ~~03~~ | ~~Aferição~~ | [CC] | — | — | **FEITA** → `_saida-03.md` |
 | ~~04 05 06~~ | ~~DF-e lote · Config · Procedência~~ | — | — | — | **mortas**: respondidas pelo código (§0) |
 
 **Vaga 1:** 01 ∥ 02 (prefixos disjuntos). Nenhuma outra thread — e não se inventa terceira para o playbook parecer cheio.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
-`node scripts/qa/placar-indice.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/00-INDICE.md --root . --proximo`
-Render esperado: `Fiscal: entregue 1 de 3 · próximo 2 · bloqueada 0` — **PRÓXIMO: 01 · 02.**
+`node scripts/qa/placar.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/00-INDICE.md --proximo`
+Render medido em 2026-09-23: `Fiscal: entregue 3 de 3 · próximo 0 · em curso 0 · pendente 0 · bloqueada 0` — **nenhum executável**. *(Em 08/09 esta linha esperava `entregue 1 de 3 · próximo 2`, e o comando apontava `placar-indice.mjs` direto — ele é a lógica, não a entrada, e rodado sozinho não imprime nada.)*
 
 ## 3 · Abertura de thread (colar como 1ª mensagem — sessão limpa)
 ```
