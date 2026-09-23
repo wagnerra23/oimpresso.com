@@ -932,7 +932,10 @@ class DreService
             $sum = 0.0;
             $prefix = $c->codigo.'.';
             foreach ($folhas as $codigoFolha => $valor) {
-                if (str_starts_with($codigoFolha, $prefix)) {
+                // (string): código só de dígitos ("1", "3") vira chave INT no array — sem o cast
+                // o str_starts_with estoura TypeError sob strict_types e a aba Balancete dá 500
+                // (medido em produção, empresa 1, 2026-09-23).
+                if (str_starts_with((string) $codigoFolha, $prefix)) {
                     $sum += $valor;
                 }
             }
