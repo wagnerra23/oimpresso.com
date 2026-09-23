@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 351 arquivos em 22 papéis.
+**Total mapeado:** 353 arquivos em 22 papéis.
 
 ## Controllers — 25
 
@@ -139,7 +139,7 @@ module: Financeiro
 - [api.php](../../../Modules/Financeiro/Routes/api.php)
 - [web.php](../../../Modules/Financeiro/Routes/web.php)
 
-## Migrations (schema) — 27
+## Migrations (schema) — 28
 
 - [2026_04_24_140001_create_fin_planos_conta_table.php](../../../Modules/Financeiro/Database/Migrations/2026_04_24_140001_create_fin_planos_conta_table.php)
 - [2026_04_24_140002_create_fin_categorias_table.php](../../../Modules/Financeiro/Database/Migrations/2026_04_24_140002_create_fin_categorias_table.php)
@@ -168,6 +168,7 @@ module: Financeiro
 - [2026_06_01_000001_add_external_id_unique_to_fin_extrato_lancamentos.php](../../../Modules/Financeiro/Database/Migrations/2026_06_01_000001_add_external_id_unique_to_fin_extrato_lancamentos.php)
 - [2026_06_03_120000_add_forma_pagamento_to_fin_titulos.php](../../../Modules/Financeiro/Database/Migrations/2026_06_03_120000_add_forma_pagamento_to_fin_titulos.php)
 - [2026_06_04_120000_add_conta_bancaria_id_to_fin_titulos.php](../../../Modules/Financeiro/Database/Migrations/2026_06_04_120000_add_conta_bancaria_id_to_fin_titulos.php)
+- [2026_09_23_150000_add_dre_linha_to_fin_planos_conta.php](../../../Modules/Financeiro/Database/Migrations/2026_09_23_150000_add_dre_linha_to_fin_planos_conta.php)
 
 ## Seeders — 3
 
@@ -299,9 +300,9 @@ module: Financeiro
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Index.casos.md)
 - [Novo.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.casos.md)
 
-## Testes (Pest) — 87
+## Testes (Pest) — 88
 
-- 82 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
+- 83 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
 - 1 em [Modules/Financeiro/Tests/Feature/Advisor/](../../../Modules/Financeiro/Tests/Feature/Advisor)
 - 4 em [Modules/Financeiro/Tests/Unit/](../../../Modules/Financeiro/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
