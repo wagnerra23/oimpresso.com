@@ -52,7 +52,7 @@ impreciso para a NFS-e (o escopo existe, com outro nome). Não corrigido: fora d
 
 | prova | estado |
 |---|---|
-| `Cockpit.tsx` contém `Pagination` | ❌ **e vai continuar** — o termo está errado, não a tela. Conserto é do lado que emite o índice: trocar o padrão para `fx-pager` (ou `paginacao-notas`). |
+| `Cockpit.tsx` contém `fx-pager` | ✅ `:721` — a prova era `Pagination` (falso-negativo: a tela usa `pagina`/`porPagina`); trocada no índice neste mesmo PR, com `nota` datada no §5 |
 | guarda: `Cockpit.tsx` contém `onKeyDown` | ✅ `:605` |
 | guarda: `Cockpit.casos.md` existe | ✅ |
 

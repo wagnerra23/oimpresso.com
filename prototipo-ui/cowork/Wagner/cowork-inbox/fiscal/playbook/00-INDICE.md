@@ -114,7 +114,7 @@ Terminou: escreva _saida-NN.md e pare.
       "prefixo": ["resources/js/Pages/Fiscal/Cockpit.tsx", "Modules/Fiscal/Http/Controllers/CockpitController.php"],
       "nao_toca": ["resources/js/Pages/Fiscal/_components/", "resources/js/Pages/Fiscal/_lib/", "resources/js/Pages/Fiscal/Nfe.tsx"],
       "provas": [
-        { "tipo": "contem", "path": "resources/js/Pages/Fiscal/Cockpit.tsx", "padrao": "Pagination" },
+        { "tipo": "contem", "path": "resources/js/Pages/Fiscal/Cockpit.tsx", "padrao": "fx-pager", "nota": "era \"Pagination\" — falso-negativo: a tela pagina com nomes PT-BR (pagina/porPagina); trocado 2026-09-23" },
         { "tipo": "contem", "path": "resources/js/Pages/Fiscal/Cockpit.tsx", "padrao": "onKeyDown", "guarda": true },
         { "tipo": "arquivo", "path": "resources/js/Pages/Fiscal/Cockpit.casos.md", "guarda": true, "nota": "43.511 B — ESTENDER, nunca recriar" }
       ] },
