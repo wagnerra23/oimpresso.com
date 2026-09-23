@@ -436,6 +436,9 @@ function resolveContract(file, ctxStr) {
 // MEDIÇÃO VÁLIDA (corpus VIVO, pós C1+C2) — 300 commits de squash, janela 2026-09-15..09-22:
 //   46 tocam Pages|Modules (escopo do --alvo)   ·   21 DISPARAM O DETECT (gatilho real)
 //   2 acusados de 21 = 9,5%   ·   2 acusações   (`SparkArea` num revert; `VariacoesTab`)
+//   ⚠️ ERRATA 2026-09-23: o `VariacoesTab` era FALSO-POSITIVO — mudança de assinatura que o
+//   C1 não pegava por causa da âncora da família `function` (ver C3 em SYMBOL_RES). Com o C3
+//   ele sai; esta janela NÃO foi recontada — a medição do C3 abaixo usa outra (09-17..09-23).
 // Reproduzir: para cada commit `c` de `git log origin/main --no-merges`, aplicar o predicado a
 // `git diff --unified=0 c~1 c -- resources/js/Pages Modules` + `git log c~1..c --format=%B`, e
 // contar sobre os que casam a regex do `detect` (lida do YAML, não redigitada).
