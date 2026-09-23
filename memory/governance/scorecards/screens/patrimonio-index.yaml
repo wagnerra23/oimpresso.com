@@ -1,0 +1,62 @@
+# Scorecard de tela — screen-qa-specialist, passos 0 (Pré-Flight) e 1 (Nota) apenas.
+# NOTA DE LEITURA DE CÓDIGO: .tsx + charter + controller lidos em 2026-09-23 (base 317e1b4ec33).
+# Sem browser de prod nesta passagem — nenhuma dimensão foi medida em runtime.
+# E2E / axe / smoke (passos 2-4) ficaram fora desta thread (playbook prontidao 09).
+screen: Patrimonio/Index
+path: resources/js/Pages/Patrimonio/Index.tsx
+archetype: dashboard          # PT-04 Dashboard (charter Index.charter.md:522)
+golden: n/a                   # método §6: falta golden de dashboard
+persona: misto                # sem `personas_alvo` no charter e sem entrada patrimonio/assetmanagement em personas-por-modulo.yml → pesos iguais
+nota: 80
+nivel: "Advanced"
+baseline_anterior: 80         # primeira medição — ratchet parte daqui
+peso_real: 1.0                # não aplicado à nota (método §1: tela de apoio modula urgência, não a nota)
+source: screen-qa-prontidao-09-2026-09-23
+graded_at: "2026-09-23"
+medicao: leitura-de-codigo
+preflight:
+  charter: "draft (Index.charter.md:442) — Non-Goals de produto pendentes de [W]"
+  casos: resources/js/Pages/Patrimonio/Index.casos.md
+  controller: "Modules/AssetManagement/Http/Controllers/AssetController.php:642 dashboard()"
+  componentes: "só @/Components/ui + shared/KpiGrid/KpiCard/EmptyState + layout (Index.tsx:14-24)"
+  tokens: "v4 semânticos (bg-success/warning/destructive/muted) — zero blue-*/hex (Index.tsx:78-83)"
+resumo: "Painel PT-04 bem resolvido: 5 props deferidas com skeleton, números sem fonte mostram `—` em vez de zero, estado vazio em todo painel. Perde pontos pelo CTA 'Adicionar recurso' que aponta para rota que só responde AJAX (página em branco por navegação direta), pelo 'Alocar recurso' sem gate de permissão e por esqueleto hand-roll."
+dimensoes: { density: 82, discoverability: 80, speed_to_task: 78, error_recovery: 76, cognitive_load: 82, aesthetic_usability: 82, affordance: 70, brand_confidence: 82, mobile_fit: 72, a11y_wcag: 78, i18n_ptbr: 90, performance_perceived: 88, information_hierarchy: 84, microcopy: 82, internal_consistency: 74, preflight_conformance: 82 }
+evidencias:
+  density: "4 KPIs + 3 análises + 3 ações numa página (Index.tsx:455-481, 509-610, 622-666)"
+  discoverability: "chips Garantia crítica/Em manutenção/Alocados + bloco 'O que fazer primeiro' com CTA por linha (Index.tsx:431-445, 634-662)"
+  speed_to_task: "busca no header navega para /asset/assets?q= (Index.tsx:346-354); CTA de criar leva a página em branco (ver affordance)"
+  error_recovery: "não há estado de erro se a prop deferida falhar — só fallback de carregamento (Index.tsx:399, 453, 527)"
+  cognitive_load: "resumo em prosa derivado dos mesmos números dos KPIs (Index.tsx:399-418)"
+  aesthetic_usability: "Card/Badge/KpiCard canon; barras proporcionais simples (Index.tsx:128-140)"
+  affordance: "'Adicionar recurso' → /asset/assets/create (Index.tsx:360); AssetController::create() só retorna view dentro de `if ($request->ajax())` (AssetController.php:484) e asset/create.blade.php é fragmento modal sem @extends → página em branco por navegação direta"
+  brand_confidence: "honestidade de número: valor residual e custo mostram `—` e explicam por quê (Index.tsx:464-466, 596-599)"
+  mobile_fit: "Grid cols={3} fixo nas análises e header com input w-56 + 3 ações (Index.tsx:352, 509) — sem prova medida de 1280"
+  a11y_wcag: "Head title via AppShellV2 title (Index.tsx:288); busca com aria-label e role=search (Index.tsx:346-350); barras sem role/aria-valuenow (Index.tsx:135-137)"
+  i18n_ptbr: "toLocaleString pt-BR em moeda, quantidade e data (Index.tsx:61-65, 241-246)"
+  performance_perceived: "5 props Inertia::defer (AssetController.php:666-670) com <Deferred> + esqueleto em cada bloco"
+  information_hierarchy: "eyebrow de contexto → header → subnav → resumo → KPIs → análises → ações (Index.tsx:305-666)"
+  microcopy: "descrições dizem a origem do número ('valor unitário × quantidade', 'bem sem registro não conta como vencido') (Index.tsx:518, 549)"
+  internal_consistency: "Esqueleto próprio com div bg-muted animate-pulse (Index.tsx:85-93) enquanto as irmãs usam @/Components/ui/skeleton (Bens.tsx:40); CTA 'Adicionar recurso' aqui vs 'Novo ativo' em Bens (Bens.tsx:539); PilulaFrescor é <button> cru (Index.tsx:228)"
+  preflight_conformance: "charter draft + casos + data-contract por seção (Index.tsx:290-672); tokens v4; um hand-roll de skeleton"
+gaps:
+  - dim: "Affordance"
+    best_of_class: "Linear: todo 'New issue' abre o mesmo composer por atalho, rota ou botão — nunca um destino morto"
+    fix: "'Adicionar recurso' aponta para rota AJAX-only (AssetController.php:484). Até o form migrar (D-FORMS), apontar para a lista de Bens ou esconder o CTA — mesma recusa que o próprio 'Alocar recurso' já fez (Index.tsx:334-340)"
+    esforco: baixo
+    origin: "Index.tsx:360 · AssetController.php:484 · Alocacoes.tsx:25-31 (mesmo padrão já medido na irmã)"
+  - dim: "Internal-consistency"
+    best_of_class: "Shopify Polaris: SkeletonBodyText único, nenhuma tela desenha o próprio"
+    fix: "Trocar Esqueleto (div animate-pulse) por <Skeleton> de @/Components/ui; PilulaFrescor por <Button variant='outline' size='sm'>; alinhar copy do CTA de criação com Bens"
+    esforco: baixo
+    origin: "Index.tsx:85-93, 228 · Bens.tsx:40, 539"
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Stripe Dashboard: ação de escrita só renderiza com a permissão do usuário"
+    fix: "'Alocar recurso' renderiza sem checar permissão — o contrato Cowork declara perm `allocate` para o elemento; expor `pode.alocar` no controller e condicionar (Index.tsx:355-357)"
+    esforco: baixo
+    origin: "Index.tsx:326-333, 355"
+  - dim: "Error-recovery"
+    best_of_class: "Notion: bloco que falhou mostra 'Não foi possível carregar — tentar de novo' no lugar"
+    fix: "Estado de erro por bloco deferido com retry via router.reload({only:[...]}); hoje só há fallback de carregamento"
+    esforco: medio
+    origin: "Index.tsx:399, 453, 527, 550, 577"
