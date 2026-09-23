@@ -1,0 +1,57 @@
+# Nota 16-dim LLM-as-judge (metodo SCREEN-GRADE) — NAO editar a mao.
+# Primeira medicao da tela (thread 07 do playbook Prontidao, 2026-09-23). A tela nasceu
+# na Onda 9 do EXPORT-HRM-2026-09-04 e nao existe no baseline seed de 2026-05-30.
+# NOTA DE LEITURA DE CODIGO: .tsx + charter + casos + controller + teste. NAO houve smoke
+# em prod nem browser nesta medicao — nenhuma dimensao foi observada em runtime.
+# Agregacao: media simples das 16 dimensoes (sem peso de persona aplicado).
+# baseline_anterior = nota (ancora inicial do ratchet; nao cai sem aprovacao humana).
+screen: Essentials/Metas
+path: resources/js/Pages/Essentials/Metas.tsx
+archetype: list
+persona: kamila-martinho   # personas-por-modulo.yml:77-78 (essentials.primary)
+nota: 76
+nivel: "Advanced"
+baseline_anterior: 76   # ratchet — primeira medicao; nota nao cai abaixo disto sem aprovacao
+peso_real: 1.0
+source: screen-grade-2026-09-23-leitura-codigo
+graded_at: "2026-09-23"
+resumo: "PT-01 fiel no esqueleto (AppShellV2 + PageHeader + DataTable compartilhada com caption, Deferred + Skeleton) e disciplinado no eixo de valor: nenhuma aritmetica de comissao, envio como texto pt-BR de 2 casas (Metas.tsx:223-244), campos do POST identicos ao Blade, e um Alert que declara que a apuracao nao acontece aqui. O que derruba a nota e um achado de LEITURA, nao medido em runtime: o index tem o ramo legado `if (request()->ajax())` SEM a segunda perna `! request()->inertia()` (SalesTargetController.php:48), e o cliente Inertia instalado manda `X-Requested-With: XMLHttpRequest` em toda visita (node_modules/@inertiajs/core/dist/index.js:2955, v3.6.1) — o partial reload que traz o `paginator` deferido cairia no JSON do DataTables. E exatamente a assinatura da lapide §5 2026-09-08 (skeleton eterno, CI verde), e o teste da tela monta os headers do partial SEM `X-Requested-With` (HrmMetasTest.php:160-163). Segundo freio: faixa recusada pelo SalesTargetFaixaValidator volta como redirect (SalesTargetController.php:210), o Inertia trata como sucesso, o onSuccess fecha o dialogo (Metas.tsx:250) e o erro sai so num toast — o que o usuario digitou se perde."
+dimensoes: { density: 80, discoverability: 76, speed_to_task: 78, error_recovery: 55, cognitive_load: 80, aesthetic_usability: 80, affordance: 80, brand_confidence: 80, mobile_fit: 68, a11y_wcag: 80, i18n_ptbr: 92, performance_perceived: 40, information_hierarchy: 80, microcopy: 86, internal_consistency: 86, preflight_conformance: 70 }
+evidencias:
+  density: "DataTable com 7 colunas, larguras fixas e mono nos numeros (Metas.tsx:94-154)"
+  discoverability: "busca server-side ?q= via showSearch/initialSearch (Metas.tsx:187-189); botao muda de rotulo 'Definir meta'/'Editar faixas' (Metas.tsx:150)"
+  speed_to_task: "edicao de faixas num Dialog por linha, sem trocar de pagina (Metas.tsx:147-151, 197)"
+  error_recovery: "falha de validacao = back()->with('status') (SalesTargetController.php:210-213) -> onSuccess fecha o dialogo (Metas.tsx:250); erro so via toast global (resources/js/app.tsx:75); sem erro por faixa ancorado no campo"
+  cognitive_load: "Alert explica o escopo (cadastra meta, nao apura) e a base com/sem imposto (Metas.tsx:166-175)"
+  aesthetic_usability: "componentes 100% @/Components/ui + Badge secondary/outline, zero cor crua (Metas.tsx:32-46, 137-141)"
+  affordance: "acao por linha com icone + texto (Metas.tsx:148-151); remover faixa com aria-label (Metas.tsx:297-304)"
+  brand_confidence: "PageHeader canonico com titulo e subtitulo (Metas.tsx:159-162)"
+  mobile_fit: "linha de faixa no dialogo e Inline de 3 inputs flex-1 + botao sem quebra responsiva (Metas.tsx:272-305); colunas fixas somam ~830px + nome — cabe a 1280, aperta abaixo"
+  a11y_wcag: "caption obrigatorio no DataTable (Metas.tsx:186); Label htmlFor em cada input (Metas.tsx:274-295); icones aria-hidden (Metas.tsx:149, 303)"
+  i18n_ptbr: "todo label/placeholder/mensagem em PT-BR; valores via formatDecimalPtBR (Metas.tsx:81-82)"
+  performance_perceived: "defer + Skeleton previstos (Metas.tsx:179; SalesTargetController.php:85), mas o ramo ajax() sem ! request()->inertia() (SalesTargetController.php:48) engoliria o partial reload — cliente manda X-Requested-With (node_modules/@inertiajs/core/dist/index.js:2955). Achado de leitura, nao medido em prod."
+  information_hierarchy: "nome em destaque, numeros alinhados a direita, situacao em Badge (Metas.tsx:98, 103-141)"
+  microcopy: "'sem meta' + travessao em vez de zero fabricado (Metas.tsx:83, 140); descricao do dialogo explica sobreposicao (Metas.tsx:259-262)"
+  internal_consistency: "PT-01 Lista: PageHeader + DataTable shared + Deferred, como o charter manda (Metas.charter.md:88)"
+  preflight_conformance: "cumpre anti-hooks de valor e Tier 0 (charter:50-77), mas nao aplica a guarda `ajax() && ! inertia()` que e padrao da casa desde EssentialsLeaveController.php:95 (lapide §5 2026-09-08)"
+gaps:
+  - dim: "Performance-perceived"
+    best_of_class: "Padrao da casa (EssentialsLeaveController.php:95): o ramo legado do DataTables so responde a XHR que NAO e Inertia — `if (request()->ajax() && ! request()->inertia())`"
+    fix: "Acrescentar `&& ! request()->inertia()` em SalesTargetController.php:48 e fazer hmHeadersPaginator() (HrmMetasTest.php:160-163) mandar `X-Requested-With: XMLHttpRequest` como o cliente real. Antes de consertar, CONFIRMAR em runtime (smoke biz=1 da rota /hrm/sales-target) — a nota aqui e de leitura."
+    esforco: baixo
+    origin: screen-grade-2026-09-23
+  - dim: "Error-recovery"
+    best_of_class: "Linear/Stripe: dialogo de edicao permanece aberto com o erro ancorado na linha que o causou; o que foi digitado nao se perde"
+    fix: "O validador ja diz QUAL faixa e POR QUE; hoje isso chega como toast e o dialogo fecha (onSuccess em Metas.tsx:250 dispara no redirect). Ou o servidor devolve erro de validacao (errors) nesse caminho, ou o front so fecha quando flash.success — e renderiza a mensagem dentro do dialogo."
+    esforco: medio
+    origin: screen-grade-2026-09-23
+  - dim: "Mobile-fit"
+    best_of_class: "Conta Azul: linha de faixa de comissao empilha os campos no telefone"
+    fix: "Inline das faixas (Metas.tsx:272) sem wrap; em telas estreitas os 3 inputs + lixeira espremem. Grid responsivo (1 coluna < sm) resolve sem tocar no contrato do POST."
+    esforco: baixo
+    origin: screen-grade-2026-09-23
+  - dim: "Preflight-conformance"
+    best_of_class: "Lapide §5 2026-09-08: tela com prop deferida + ramo ajax() legado = assinatura de skeleton eterno"
+    fix: "Mesmo conserto do gap de performance; o casos.md (UC-METAS-07) ja defende o ramo legado — acrescentar um UC que prove que o partial Inertia com X-Requested-With recebe o paginator, nao o JSON do DataTables."
+    esforco: baixo
+    origin: screen-grade-2026-09-23

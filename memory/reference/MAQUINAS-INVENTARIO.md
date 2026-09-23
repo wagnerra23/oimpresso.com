@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 146 (47 contexts required)
+## 1. Workflows / Gates de CI — 147 (47 contexts required)
 
 > `Invocador` = gatilho `on:` do YAML · `Documento` = doc canônico de maior precedência que o cita.
 > **Evidência não é derivável aqui** (medido: 0 de 123): o `gate-selftest` prova que o SCRIPT morde,
@@ -134,6 +134,7 @@ lifecycle: ativo
 | `pageheader-gate.yml` | pr+push+manual | `memory/decisions/0395-pageheader-ratchet-required-emenda-0314.md` +18 | PageHeader migration guard (F4 · congela header antigo) |
 | `pageheader-tabs-fidelity-gate.yml` | pr+push+manual | (só sessão/handoff · 1) | PageHeaderTabs Fidelity — aba ativa fiel ao protótipo (radius 0 · accent · font 600) |
 | `patrimonio-painel-gate.yml` | pr+push+manual | `memory/requisitos/AssetManagement/RUNBOOK-patrimonio-index.md` +1 | Patrimonio Painel — header (selo de frescor + linha de contexto) e numeros sem fonte |
+| `paymentgateway-pest.yml` | pr+push+manual | — | PaymentGateway · Pest (MySQL) |
 | `phpstan-baseline-regen.yml` | manual | — | PHPStan baseline regen (manual) |
 | `phpstan-gate.yml` | pr+push | `memory/decisions/0208-larastan-baseline-ratchet.md` +10 | PHPStan / Larastan (ADR 0208) |
 | `placar-de-lista.yml` | pr+manual | — | placar-de-lista (advisory) — PR-A8 do protocolo de export: o placar da LISTA. O A6 responde 'esta TELA foi entregue?'; este responde 'o Code terminou a LISTA inteira?' po… |

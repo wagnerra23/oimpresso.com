@@ -112,11 +112,14 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-essentials-junit.xml \
             Modules/Essentials/Tests/Feature/SalesTargetShiftCrossTenantTest.php \
+            tests/Feature/Essentials/TodoIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/HrmExclusaoGuardaTest.php \
             Modules/Essentials/Tests/Feature/HrmLicencaTest.php \
+            tests/Feature/Essentials/RemindersIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/SalesTargetFaixaValidacaoTest.php \
             tests/Feature/Essentials/MessagesIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/HrmMetasTest.php \
+            tests/Feature/Essentials/DocumentsIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/AttendanceImportMultiTenantTest.php \
             Modules/Essentials/Tests/Feature/HrmTiposIndexTest.php \
             tests/Feature/Calculo/CalculoValorPayrollTest.php

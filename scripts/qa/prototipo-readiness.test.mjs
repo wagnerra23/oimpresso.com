@@ -5,7 +5,7 @@
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { relatedPrototype, temPrototipoReal, contaUCs, classifica, coleta } from './prototipo-readiness.mjs';
+import { relatedPrototype, temPrototipoReal, contaUCs, classifica, coleta, scorecardSlug } from './prototipo-readiness.mjs';
 
 let fails = 0;
 const check = (n, c, extra = '') => { console.log(`${c ? '[OK]' : '[FAIL]'} ${n}${c ? '' : '  → ' + extra}`); if (!c) fails++; };
@@ -41,6 +41,10 @@ check('sem protótipo real → SEM-ANCORA (não é alvo)', classifica({ prototip
 // Counterfactual central: casos.md SEM UC não compra "pronta" (presença ≠ contrato — L-24).
 check('casos.md presente mas 0 UC → NÃO pronta', classifica({ prototipoReal: true, temTsx: true, temCasosComUC: false, temScorecard: true }) !== 'pronta');
 
+// 4b. slug do scorecard: ponto vira hífen como a barra; o resto não muda.
+check('slug troca o ponto: kb/Index.v2 → kb-index-v2', scorecardSlug('resources/js/Pages/kb/Index.v2.tsx') === 'kb-index-v2', scorecardSlug('resources/js/Pages/kb/Index.v2.tsx'));
+check('CONTROLE: slug sem ponto igual a antes', scorecardSlug('resources/js/Pages/Essentials/Todo/Index.tsx') === 'essentials-todo-index', scorecardSlug('resources/js/Pages/Essentials/Todo/Index.tsx'));
+
 // 5. Integração das DUAS raízes de Pages. Este é o caso que falhava no corpus real:
 // Superadmin e Officeimpresso vivem em Modules/<X>/Resources/js/Pages e sumiam da fila.
 const fixtureRoot = mkdtempSync(join(tmpdir(), 'proto-readiness-'));
@@ -63,6 +67,12 @@ try {
   put('Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.charter.md', charter('Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx', 'prototipo-ui/cowork/Wagner/officeimpresso-page.jsx'));
   put('Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.casos.md', casos);
 
+  // Page com ponto no nome: o scorecard real se chama `kb-index-v2.yaml` (2026-09-23).
+  put('resources/js/Pages/kb/Index.v2.tsx', 'export default function Index() {}\n');
+  put('resources/js/Pages/kb/Index.v2.charter.md', charter('resources/js/Pages/kb/Index.v2.tsx', 'prototipo-ui/cowork/Wagner/kb-page.jsx'));
+  put('resources/js/Pages/kb/Index.v2.casos.md', casos);
+  put('memory/governance/scorecards/screens/kb-index-v2.yaml', 'score: 90\n');
+
   put('memory/governance/scorecards/screens/core-index.yaml', 'score: 90\n');
   put('memory/governance/scorecards/screens/superadmin-dashboard-index.yaml', 'score: 90\n');
   // Officeimpresso fica deliberadamente sem scorecard para provar que aparece como 1-ciclo.
@@ -73,7 +83,8 @@ try {
   check('raiz modular Superadmin é descoberta e fica pronta', byTela.get('superadmin/Dashboard/Index')?.modulo === 'Superadmin' && byTela.get('superadmin/Dashboard/Index')?.status === 'pronta');
   check('raiz modular Officeimpresso não some e acusa scorecard faltante', byTela.get('Officeimpresso/Logs/Index')?.modulo === 'Officeimpresso' && byTela.get('Officeimpresso/Logs/Index')?.status === '1-ciclo' && byTela.get('Officeimpresso/Logs/Index')?.falta.includes('scorecard'));
   check('arquivo físico modular é preservado na fila', byTela.get('superadmin/Dashboard/Index')?.arquivo.startsWith('Modules/Superadmin/'));
-  check('fixture contém exatamente core + 2 módulos', rows.length === 3, `obtido=${rows.length}`);
+  check('BITE: Page com ponto no nome casa o scorecard com hífen', byTela.get('kb/Index.v2')?.status === 'pronta', JSON.stringify(byTela.get('kb/Index.v2')));
+  check('fixture contém exatamente 2 core + 2 módulos', rows.length === 4, `obtido=${rows.length}`);
 } finally {
   rmSync(fixtureRoot, { recursive: true, force: true });
 }

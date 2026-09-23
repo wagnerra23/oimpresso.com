@@ -15,6 +15,17 @@
  *      que decide por FATO (o `path:` do scorecard) e não por heurística.
  * NÃO cobertos: renomear o scorecard, e isentar via `SCREEN_RATCHET_ALLOW_REGRESSION`.
  *
+ * O QUE O PR MUDOU se mede contra o MERGE-BASE, não contra a ponta de `origin/main`
+ * (§5 2026-09-15, eixo BASE-DE-PR). Comparar a árvore do PR com a ponta fazia todo
+ * scorecard nascido em `main` DEPOIS do fork aparecer como "deletado" — e toda nota
+ * que `main` subiu depois aparecer como "regressão". Medido em 2026-09-23 no PR #7766:
+ * o merge ref foi calculado às 12:03:58, o job esperou 17 min na fila, buscou
+ * `origin/main` às 12:21 e acusou 18 scorecards que o PR nunca tocou. Nem o merge ref
+ * do `pull_request` protege — a fila basta. Por isso:
+ *   - deleção  = `git diff --diff-filter=D <merge-base>` (o que ESTE PR apagou);
+ *   - regressão = nota(PR) < nota(origin/main), SÓ em scorecard presente nos dois lados
+ *     E alterado pelo PR vs o merge-base (o que o PR não tocou é herdado de `main`).
+ *
  * Regra (catraca = nota só sobe):
  *   - nota(PR) <  nota(main)   → REGRESSÃO → bloqueia
  *   - nota(PR) >= nota(main)   → ok (subiu ou estável)
@@ -62,10 +73,26 @@ function notaInMain(relPath) {
 import { classificarDelecoes } from '../lib/delecao-legitima.mjs';
 export { classificarDelecoes };
 
-/** Lista os scorecards que existem na ref de base. */
-function scorecardsNaBase() {
+/** Merge-base entre BASE_REF e HEAD, ou null se não deu pra calcular (→ cego, exit 1). */
+function mergeBase() {
   try {
-    const out = execSync(`git ls-tree -r --name-only ${BASE_REF} -- ${REL}/`, {
+    const mb = execSync(`git merge-base ${BASE_REF} HEAD`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    return mb || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Scorecards que o PR mudou vs o merge-base, filtrados por status git (`D` = apagados,
+ * `d` minúsculo = tudo MENOS apagado). Compara o merge-base com o WORKING TREE (sem
+ * `HEAD`), pra valer também localmente com mudança não-commitada (§5 2026-08-20).
+ * `--no-renames`: rename vira D+A e o D segue acusável — renomear continua fora da
+ * cobertura, como o cabeçalho declara. null = o git falhou (não-medi ≠ nada mudou).
+ */
+function mudadosVsMergeBase(mb, filtro) {
+  try {
+    const out = execSync(`git diff --no-renames --diff-filter=${filtro} --name-only ${mb} -- ${REL}/`, {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     });
@@ -75,10 +102,10 @@ function scorecardsNaBase() {
   }
 }
 
-/** Conteúdo do scorecard na ref de base (pra ler o `path:` do que foi deletado). */
-function textoNaBase(f) {
+/** Conteúdo do scorecard numa ref (o merge-base) — pra ler o `path:` do que foi deletado. */
+function textoNaRef(ref, f) {
   try {
-    return execSync(`git show ${BASE_REF}:${REL}/${f}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    return execSync(`git show ${ref}:${REL}/${f}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
   } catch {
     return '';
   }
@@ -137,6 +164,45 @@ if (process.argv.includes('--selftest')) {
     try { rmSync(tmp, { recursive: true, force: true }); } catch { /* tmp */ }
   }
 
+  // Eixo BASE-DE-PR (PR #7766, 2026-09-23): branch ATRASADA — `main` ganhou scorecard e
+  // subiu nota DEPOIS do fork. Comparar com a ponta acusava as duas coisas; o PR não fez nenhuma.
+  console.log('\n[E2E] branch atrasada vs main que andou (merge-base, não a ponta)');
+  const tmp2 = mkdtempSync(join(tmpdir(), 'ratchet-fork-'));
+  const sh2 = (c) => execSync(c, { cwd: tmp2, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  try {
+    mkdirSync(join(tmp2, REL), { recursive: true });
+    mkdirSync(join(tmp2, 'p'), { recursive: true });
+    writeFileSync(join(tmp2, REL, 'a.yaml'), 'screen: A\npath: p/A.tsx\nnota: 80\n');
+    writeFileSync(join(tmp2, REL, 'b.yaml'), 'screen: B\npath: p/B.tsx\nnota: 74\n');
+    for (const t of ['A', 'B', 'C']) writeFileSync(join(tmp2, 'p', `${t}.tsx`), 'x'); // C.tsx vivo, SEM scorecard ainda
+    sh2('git init -q . && git config user.email t@t && git config user.name t');
+    sh2('git add -A && git commit -qm fork && git branch -f pr');
+    // `main` anda: nasce c.yaml (tela C já viva) e a nota de A sobe 80→90.
+    writeFileSync(join(tmp2, REL, 'c.yaml'), 'screen: C\npath: p/C.tsx\nnota: 70\n');
+    writeFileSync(join(tmp2, REL, 'a.yaml'), 'screen: A\npath: p/A.tsx\nnota: 90\n');
+    sh2('git add -A && git commit -qm main-andou && git branch -f base');
+    sh2('git checkout -q pr'); // PR parado no fork: sem c.yaml, A ainda com 80
+    const rodar2 = () => {
+      try {
+        execSync(`node "${join(ROOT, 'scripts', 'qa', 'screen-grades-ratchet.mjs')}"`, {
+          cwd: tmp2, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+          env: { ...process.env, SCREEN_RATCHET_BASE_REF: 'base', SCREEN_RATCHET_ALLOW_REGRESSION: '' },
+        });
+        return 0;
+      } catch (e) { return e.status ?? 1; }
+    };
+    ok(rodar2() === 0, 'E2E CN: branch atrasada que NÃO apaga nada → exit 0 (c.yaml nasceu em main, A subiu em main)');
+    rmSync(join(tmp2, REL, 'b.yaml'));
+    sh2('git add -A && git commit -qm apaga-b');
+    ok(rodar2() === 1, 'E2E BITE: mesma branch atrasada APAGA b.yaml com B.tsx vivo → exit 1');
+    sh2('git revert --no-edit HEAD');
+    writeFileSync(join(tmp2, REL, 'a.yaml'), 'screen: A\npath: p/A.tsx\nnota: 60\n');
+    sh2('git add -A && git commit -qm baixa-a');
+    ok(rodar2() === 1, 'E2E BITE: branch atrasada que ALTERA a.yaml e fica abaixo de main → exit 1');
+  } finally {
+    try { rmSync(tmp2, { recursive: true, force: true }); } catch { /* tmp */ }
+  }
+
   console.log(falhas ? `\n✗ selftest: ${falhas} falha(s)` : '\n✓ selftest: tudo verde');
   process.exit(falhas ? 1 : 0);
 }
@@ -147,9 +213,18 @@ if (!existsSync(DIR)) {
 }
 
 const files = readdirSync(DIR).filter((f) => f.endsWith('.yaml'));
+
+// O que ESTE PR mudou, medido contra o merge-base (ver cabeçalho — a ponta mente).
+const MB = mergeBase();
+const deletados = MB ? mudadosVsMergeBase(MB, 'D') : null;
+const alteradosLista = MB ? mudadosVsMergeBase(MB, 'd') : null;
+const cego = deletados === null || alteradosLista === null;
+const alterados = new Set(alteradosLista ?? []);
+
 const regress = [];
 let novas = 0,
-  ok = 0;
+  ok = 0,
+  herdadas = 0;
 
 for (const f of files) {
   const cur = parseNota(readFileSync(join(DIR, f), 'utf8'));
@@ -159,32 +234,35 @@ for (const f of files) {
     novas++;
     continue;
   }
-  if (cur < base) regress.push({ file: f, base, cur, delta: cur - base });
-  else ok++;
+  if (cur >= base) ok++;
+  // O PR não tocou este scorecard: a nota "menor" é a de antes do fork, quem subiu foi `main`.
+  else if (!cego && !alterados.has(f)) herdadas++;
+  else regress.push({ file: f, base, cur, delta: cur - base });
 }
 
 // ── Vetor 2: deleção de scorecard com a tela ainda VIVA ──────────────────────
-const naBase = scorecardsNaBase();
+// Universo = o que ESTE PR apagou vs o merge-base, não a diferença de árvore contra a ponta.
 let del = { fuga: [], legitimas: 0, semPath: 0 };
-if (naBase !== null) {
+if (!cego) {
   del = classificarDelecoes({
-    naBase,
+    naBase: deletados,
     noPr: files,
-    pathDe: (f) => parsePath(textoNaBase(f)),
+    pathDe: (f) => parsePath(textoNaRef(MB, f)),
     tsxVivo: (p) => existsSync(join(ROOT, p)),
   });
 }
 
-const sufixoDel = naBase === null
+const sufixoDel = cego
   ? ' · ⛔ deleções NÃO medidas'
   : ` · 🗑 ${del.legitimas} deleção(ões) legítima(s)${del.fuga.length ? ` · 🚨 ${del.fuga.length} suspeita(s)` : ''}`;
+const sufixoHerd = herdadas ? ` · ↪ ${herdadas} subiu/subiram em main depois do fork (herdado)` : '';
 
-console.log(`\nCatraca screen-grade · ${files.length} telas · ✅ ${ok} ok/subiu · ✨ ${novas} novas · 🔻 ${regress.length} regrediram${sufixoDel}`);
+console.log(`\nCatraca screen-grade · ${files.length} telas · ✅ ${ok} ok/subiu · ✨ ${novas} novas · 🔻 ${regress.length} regrediram${sufixoDel}${sufixoHerd}`);
 
-if (naBase === null) {
-  // Não consegui listar a base: não posso afirmar que nada foi deletado.
-  console.error(`\n⛔ CEGO no vetor de deleção: não consegui listar ${REL}/ em ${BASE_REF} (falta fetch? shallow?).`);
-  console.error('   O eixo de NOTA acima foi medido; o de DELEÇÃO não — e "não medi" ≠ "nada sumiu".');
+if (cego) {
+  // Não consegui calcular o que o PR mudou: não posso afirmar que nada foi deletado.
+  console.error(`\n⛔ CEGO: não consegui calcular o merge-base com ${BASE_REF} ou o diff de ${REL}/ (falta fetch? shallow?).`);
+  console.error('   Deleção não medida, e regressão de nota não pôde ser separada de herança — "não medi" ≠ "nada sumiu".');
   process.exit(1);
 }
 

@@ -9,7 +9,7 @@ base: wagnerra23/oimpresso.com@main 701f40c6ec66 (lido 2026-09-22 19:33 UTC)
 
 **Por que existe:** o `placar-de-lista` diz `0 de 61`, e há entrega em produção sem recibo: `Essentials/Licencas/Index.tsx` (`EssentialsLeaveController.php:191`) e `Essentials/Tipos.tsx` (`EssentialsLeaveTypeController.php:73`) cumprem as threads HRM 02 e 03, e não existe `_saida` para nenhuma das duas. O instrumento mede papelada, não entrega. Resultado: o Code não sabe o que sobra, e o Cowork reescreve tela que já está pronta.
 
-**2 threads. Abrir com `/onda placar --thread 01` (diretório é minúsculo).** A 02 conserta o próprio `/onda`, que hoje não acha índice nenhum no modo thread.
+**3 threads, nesta ordem: 02 → 01 → 03.** Abrir com `/onda placar --thread NN` (diretório minúsculo). A 02 conserta o próprio `/onda`; a 01 faz o placar contar entrega real; a 03 corrige o doc que toda sessão de design lê primeiro.
 
 ```json
 {
@@ -31,6 +31,13 @@ base: wagnerra23/oimpresso.com@main 701f40c6ec66 (lido 2026-09-22 19:33 UTC)
       "provas": [
         { "tipo": "nao_contem", "path": ".claude/commands/onda.md", "padrao": "--thread $NN" },
         { "tipo": "contem", "path": ".claude/commands/onda.md", "padrao": "PARE" }
+      ] },
+    { "id": "03", "titulo": "COWORK-ESTRUTURA-E-TELAS.md: 3 regras mortas saem da ROTINA", "dono": "CL", "arquivo": "03-rotina-cowork-desatualizada.md",
+      "prefixo": ["memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md"],
+      "nao_toca": ["scripts/", ".github/", "prototipo-ui/"],
+      "provas": [
+        { "tipo": "contem", "path": "memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md", "padrao": "cowork-bundle.yml" },
+        { "tipo": "contem", "path": "memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md", "padrao": "receber-handoff" }
       ] }
   ]
 }

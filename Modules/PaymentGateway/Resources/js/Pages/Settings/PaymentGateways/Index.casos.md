@@ -33,16 +33,73 @@ last_run: "2026-09-11"
 > data*), não afirmação de re-run.
 ---
 
+## Casos com id (promovidos do backlog em 2026-09-23)
+
+> **Fonte de cada UC:** charter (§Goals + §Automation Anti-hooks) **cruzado** com o controller real `PaymentGatewaysController@index` (`Inertia::render('Settings/PaymentGateways/Index')` + `defer` de `gateways`/`kpis`) e `@toggle`. Nenhum UC vem do protótipo.
+>
+> **Prefixo `UC-PGSET-`, não `UC-PG-`:** o `CnabRetorno.casos.md` irmão também anuncia promoção a `UC-PG-NN`; dois donos com o mesmo id fazem a prova de um creditar o outro (§5 2026-09-04). Prefixo por tela evita a colisão.
+>
+> **Teste:** `tests/Feature/PaymentGateway/PaymentGatewaysSettingsContratoTest.php` — tenant fictício **98**, adversário **99** ([ADR 0358]), nunca biz=4; nenhuma chamada a API de gateway; cada caso negativo tem controle positivo ao lado.
+>
+> ⚖️ **Onde roda, e com que força** (medido 2026-09-23): **nenhuma lane de PR** executa este arquivo — `test-lane-coverage` e `.github/ci-sqlite-pest.list` não o listam (o módulo inteiro está fora das lanes: 45 de 48 arquivos órfãos). Ele entra no **nightly CT 100** via `phpunit.xml` (`./tests/Feature` recursivo) + `scripts/tests/shards-plan.mjs`. Sem lane de PR não há veredito por PR — por isso todo status abaixo é 🧪 **sem veredito**.
+
+## UC-PGSET-01 · Abrir a tela e ver as credenciais do próprio business
+- **Persona:** Wagner (superadmin) — abre `/settings/payment-gateways` para conferir o que está configurado.
+- **Aceite:** Dado uma credencial do business da sessão · Quando abro a tela e a lista (prop deferida `gateways`) carrega · Então o componente é `Settings/PaymentGateways/Index` e a credencial aparece com o apelido, o driver e o estado `ativo` dela.
+- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-01 abre a tela e a credencial do PROPRIO business aparece…`
+- **Regressão que defende:** lista vazia/quebrada na tela de config (ninguém consegue gerir gateway).
+- **Status: 🧪** sem veredito — pendente do nightly CT 100.
+
+## UC-PGSET-02 · `[T0]` Credencial de outro business nunca aparece na lista
+- **Persona:** Wagner — vê só as credenciais do próprio business ([ADR 0093]).
+- **Aceite:** Dado uma credencial no business 98 e outra no 99 · Quando o 98 carrega a lista · Então a própria aparece (controle positivo) e a alheia não.
+- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-02 [T0] …`
+- **Regressão que defende:** vazamento cross-tenant de credencial de cobrança.
+- **Status: 🧪** sem veredito.
+
+## UC-PGSET-03 · Toggle inverte `ativo` e persiste
+- **Persona:** Wagner — confirma o toggle no modal Trust L3 para ligar/desligar um gateway.
+- **Aceite:** Dado uma credencial ativa · Quando `POST …/{id}/toggle` · Então a resposta traz `ativo=false` e o banco grava `false`; um segundo toggle volta a `true`.
+- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-03 …`
+- **Regressão que defende:** toggle que responde mas não persiste (gateway "desligado" que continua emitindo).
+- **Status: 🧪** sem veredito.
+
+## UC-PGSET-04 · `[T0]` Toggle cross-tenant devolve 404 e não altera o registro
+- **Persona:** Wagner — não consegue ligar/desligar credencial de outro business, nem por id direto.
+- **Aceite:** Dado uma credencial ativa do business 99 · Quando o 98 faz `POST …/{id}/toggle` · Então 404 e a credencial alheia continua `ativo=true`.
+- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-04 [T0] …`
+- **Regressão que defende:** IDOR de escrita em credencial de cobrança de outro tenant.
+- **Status: 🧪** sem veredito.
+
+## UC-PGSET-05 · O payload da lista nunca carrega `config_json`
+- **Persona:** Wagner — a tela mostra apelido/driver/estado, nunca o segredo do gateway (charter §Anti-hooks).
+- **Aceite:** Dado uma credencial com `config_json` contendo um marcador inerte · Quando a lista carrega · Então o apelido está no payload (controle positivo) e o marcador não.
+- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-05 …`
+- **Regressão que defende:** segredo de gateway (api_key/client_secret) exposto no Inertia payload.
+- **Status: 🧪** sem veredito.
+
+## UC-PGSET-06 · KPIs contam só o business da sessão
+- **Persona:** Wagner — os cards "ativos / health / total" refletem só o business dele.
+- **Aceite:** Dado +1 ativa ok, +1 ativa não-ok, +1 inativa não-ok no 98 (e ruído no 99) · Quando recarrego `kpis` · Então `ativos` sobe 2, `total` sobe 3, `fail` sobe 1 (fail = ativa **e** health ≠ ok).
+- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-06 …`
+- **Regressão que defende:** KPI contando outro tenant ou contando inativa como falha.
+- **Status: 🧪** sem veredito. `cobs_hoje` não é asserido por valor (fica no backlog).
+
+## UC-PGSET-07 · Abrir a tela é read-only
+- **Persona:** Wagner — abrir a tela não cria credencial nem dispara cobrança (charter §Anti-hooks).
+- **Aceite:** Dado as contagens de `payment_gateway_credentials` e `cobrancas` · Quando renderizo a tela e recarrego `gateways` e `kpis` · Então as duas contagens não mudam.
+- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-07 …`
+- **Regressão que defende:** efeito colateral de escrita no GET.
+- **Status: 🧪** sem veredito.
+
+---
+
 ## Backlog de casos (sem id — entram quando um teste citar o UC-id)
 
 > Regra G-2: UC declarado em heading `## UC-*` sem teste que o cite = órfão → quebra `casos-gate`. Mantidos como bullets até o id ser wired no teste correspondente.
 
-- **[BACKLOG · 🧪 tem teste] GET é read-only puro** — Dado a rota `/settings/payment-gateways` · Quando faço GET · Então nenhuma mutação ocorre (nem cria credencial nem dispara cobrança). _Coberto por `PaymentGatewaysControllerTest::não dispara mutação em GET (read-only puro)` — falta citar `UC-PG-` no teste._
-- **[BACKLOG · 🧪 tem teste] Toggle inverte `ativo` do credential** — Dado uma credencial ativa · Quando confirmo o toggle (Trust L3) · Então `ativo` inverte e a lista recarrega. _Coberto por `...ControllerTest::toggle endpoint inverte ativo`._
-- **[BACKLOG · 🧪 tem teste · Tier 0] Toggle cross-tenant devolve 404** — Dado credencial de biz=99 · Quando biz=1 tenta togglar · Então 404 (não vaza credencial de outro business — [ADR 0093]). _Coberto por `...ControllerTest::cross-tenant toggle: 404`._
-- **[BACKLOG · 🧪 tem teste · Tier 0] Credencial respeita `business_id` global scope** — biz=2 não enxerga credencial de biz=1. _Coberto por `...ControllerTest::Tier 0 IRREVOGÁVEL respeita business_id global scope`._
-- **[BACKLOG · 🧪 tem teste] 3 KPIs no partial reload** — ativos / health fail / cobranças hoje chegam via `Deferred` no shape esperado. _Coberto por `...ControllerTest::expõe 3 KPIs no partial reload`._
-- **[BACKLOG · 🧪 tem teste] Lista gateways do business + warn deprecated** — PesaPal aparece com label `warn`. _Coberto por `...ControllerTest::lista gateways + warn deprecated PesaPal`._
+- **[BACKLOG · 🧪 tem teste] Lista gateways do business + warn deprecated** — PesaPal aparece com label `warn`. _Coberto por `...ControllerTest::lista gateways + warn deprecated PesaPal` (arquivo órfão de lane, biz=1). Não promovido: o `warn` é copy do controller, sem segunda fonte no charter._
+- **[BACKLOG] KPI `cobs_hoje` por valor** — cobranças criadas hoje no business. Precisa fixture de `cobrancas`; não asserido por valor no UC-PGSET-06.
 - **[BACKLOG · 🧪 tem teste] Novo gateway (wizard) cria credencial Inter sandbox** — e rejeita duplicata `(business_id, gateway_key, ambiente)`, rejeita conta de outro business (Tier 0), valida enum de `gateway_key`. _Coberto por `PaymentGatewaysControllerStoreTest` (4 casos)._
 - **[BACKLOG · ⬜ sem teste] Health check on-demand atualiza `health_status`** — Dado botão "Testar todos" / "Rodar agora" · Quando aciono · Então o endpoint atualiza `health_status`/`latencia`/`last_check` no DB. _Charter prevê Pest GUARD `health-check endpoint atualiza health_status` mas o teste ainda não existe — candidato a UC + Pest._
 - **[BACKLOG · ⬜ sem teste · UI] Ações de linha não-wired** — os botões por-linha `RefreshCw` (rodar health check) e `MoreHorizontal` (mais ações) não têm `onClick` (Index.tsx:248 (verificado@d4afe95),250). Candidato a UC E2E quando forem ligados.
@@ -52,6 +109,7 @@ last_run: "2026-09-11"
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-09-23 · [CL] Prontidão thread 05: 5 bullets do backlog + 2 anti-hooks do charter promovidos a `UC-PGSET-01..07`, citados por `tests/Feature/PaymentGateway/PaymentGatewaysSettingsContratoTest.php` (tenant 98). Health check, ações de linha, wizard e warn PesaPal seguem no backlog.
 - 2026-07-03 · [CC] criado no Passo 3 do programa de ondas (régua por tela), complementando a CAPTERRA-FICHA. Débito exposto = **UC-traceability** (0 UC-id apesar de baseline Feature forte); a nota de UX (80 Advanced) coexiste com comportamento tested-mas-não-traçado.
 
 [template-onda-modulo]: ../../../../../memory/requisitos/_Governanca/programa-ondas/template-onda-modulo.md
