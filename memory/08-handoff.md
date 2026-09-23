@@ -1,5 +1,6 @@
 # 08 — Handoff (índice)
 
+- [2026-09-23 14:08 BRT — **Deploy decide leve × completo pelo último deploy OK**](handoffs/2026-09-23-1408-deploy-base-ultimo-deploy-ok.md) (#7820 mergeado · base = último run push com conclusion=success, não event.before · `--status success` da API devolve índice de 28/08 · 7/61 runs viram completo · deploy do merge já pegou o #7810 cancelado)
 - [2026-09-23 16:53 BRT — **Prontidão: fechamento, visual das telas prontas sem escopo**](handoffs/2026-09-23-1653-prontidao-fechamento-visual-pendente.md) (#7796 · #7800 · #7803 no main · achados: #7808 e #7814 merged, #7810 aberto · aplicar visual aguarda decisão [W] · MCP fora)
 - [2026-09-23 11:40 BRT — **Financeiro: gates, sessão e de-para da DRE**](handoffs/2026-09-23-1140-financeiro-gates-sessao-dre-depara.md) (5 PRs mergeados · 19 rotas com gate · SetSessionData no grupo · install deriva 17 permissões · dre_linha sem dado · classificação da WR2 com [E])
 - [2026-09-23 14:36 BRT — **Prontidão: 31 telas blindadas, 59→90 prontas**](handoffs/2026-09-23-1436-prontidao-blindagem-31-telas.md) (17 PRs das threads 01–13 no main · Caixa segue o código por decisão [W] · lane nova PaymentGateway · #7796 e #7800 ainda abertos · MCP fora do ar no fechamento)
