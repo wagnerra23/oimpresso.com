@@ -76,12 +76,14 @@ class DreService
             'label'         => 'Receita operacional bruta',
             'kind'          => 'rec',
             'codigo_prefix' => '3.1.01.',
+            'dre_linha'     => 'receita_bruta',
             'tipo'          => 'receita',
             'key'           => 'h_rec_bruta',
         ],
         [
             'type'          => 'i_group',
             'codigo_prefix' => '3.1.01.',
+            'dre_linha'     => 'receita_bruta',
             'tipo'          => 'receita',
             'indent'        => 1,
         ],
@@ -90,6 +92,7 @@ class DreService
             'label'         => '(−) Deduções',
             'kind'          => 'ded',
             'codigo_prefix' => '3.1.02.',
+            'dre_linha'     => 'deducoes',
             'tipo'          => 'receita',
             'sign'          => -1,
             'key'           => 'h_deducoes',
@@ -97,6 +100,7 @@ class DreService
         [
             'type'          => 'i_group',
             'codigo_prefix' => '3.1.02.',
+            'dre_linha'     => 'deducoes',
             'tipo'          => 'receita',
             'sign'          => -1,
             'indent'        => 1,
@@ -112,6 +116,7 @@ class DreService
             'label'         => '(−) Custos diretos',
             'kind'          => 'ded',
             'codigo_prefix' => '4.',
+            'dre_linha'     => 'custos',
             'tipo'          => 'despesa',
             'sign'          => -1,
             'key'           => 'h_custos',
@@ -119,6 +124,7 @@ class DreService
         [
             'type'          => 'i_group',
             'codigo_prefix' => '4.',
+            'dre_linha'     => 'custos',
             'tipo'          => 'despesa',
             'sign'          => -1,
             'indent'        => 1,
@@ -134,6 +140,7 @@ class DreService
             'label'         => '(−) Despesas operacionais',
             'kind'          => 'ded',
             'codigo_prefix' => '5.',
+            'dre_linha'     => 'despesas',
             'tipo'          => 'despesa',
             'sign'          => -1,
             'key'           => 'h_despesas',
@@ -141,6 +148,7 @@ class DreService
         [
             'type'          => 'i_group',
             'codigo_prefix' => '5.',
+            'dre_linha'     => 'despesas',
             'tipo'          => 'despesa',
             'sign'          => -1,
             'indent'        => 1,
@@ -218,6 +226,7 @@ class DreService
                 'fin_planos_conta.codigo AS plano_codigo',
                 'fin_planos_conta.nome AS plano_nome',
                 'fin_planos_conta.tipo AS plano_tipo',
+                'fin_planos_conta.dre_linha AS plano_dre_linha',
                 DB::raw('SUM(fin_titulos.valor_total) AS total'),
             )
             ->groupBy(
@@ -227,6 +236,7 @@ class DreService
                 'fin_planos_conta.codigo',
                 'fin_planos_conta.nome',
                 'fin_planos_conta.tipo',
+                'fin_planos_conta.dre_linha',
             )
             ->get();
 
@@ -347,6 +357,10 @@ class DreService
         }
 
         foreach ($rows as $r) {
+            // De-para explícito conta como mapeado (inclusive `fora`: foi decidido).
+            if (($r->plano_dre_linha ?? null) !== null && $r->plano_dre_linha !== '') {
+                return false;
+            }
             $codigo = (string) ($r->plano_codigo ?? '');
             if ($codigo === '') {
                 continue;
@@ -379,8 +393,8 @@ class DreService
 
             if ($type === 'h') {
                 $sign = (int) ($tpl['sign'] ?? 1);
-                $valAtual = $this->somarPorPrefix($rowsAtual, $tpl['codigo_prefix'], $tpl['tipo']) * $sign;
-                $valPrev = $this->somarPorPrefix($rowsPrev, $tpl['codigo_prefix'], $tpl['tipo']) * $sign;
+                $valAtual = $this->somarPorPrefix($rowsAtual, $tpl['codigo_prefix'], $tpl['tipo'], $tpl['dre_linha']) * $sign;
+                $valPrev = $this->somarPorPrefix($rowsPrev, $tpl['codigo_prefix'], $tpl['tipo'], $tpl['dre_linha']) * $sign;
 
                 $linhas[] = [
                     'type'  => 'h',
@@ -396,7 +410,7 @@ class DreService
             } elseif ($type === 'i_group') {
                 $sign = (int) ($tpl['sign'] ?? 1);
                 $indent = (int) ($tpl['indent'] ?? 1);
-                $items = $this->itemsPorPrefix($rowsAtual, $rowsPrev, $tpl['codigo_prefix'], $tpl['tipo'], $sign);
+                $items = $this->itemsPorPrefix($rowsAtual, $rowsPrev, $tpl['codigo_prefix'], $tpl['tipo'], $sign, $tpl['dre_linha']);
 
                 foreach ($items as $it) {
                     $linhas[] = [
@@ -436,16 +450,11 @@ class DreService
      * plano_tipo = $tipo (receita/despesa). Tratamento de NULL plano_tipo
      * cai pra `tipo` do título (receber/pagar).
      */
-    private function somarPorPrefix(\Illuminate\Support\Collection $rows, string $prefix, string $tipo): float
+    private function somarPorPrefix(\Illuminate\Support\Collection $rows, string $prefix, string $tipo, string $dreLinha): float
     {
         $sum = 0.0;
         foreach ($rows as $r) {
-            $codigo = (string) ($r->plano_codigo ?? '');
-            if ($codigo === '' || ! str_starts_with($codigo, $prefix)) {
-                continue;
-            }
-            // Validação de tipo: plano_tipo (do plano_conta) OU fallback titulo_tipo
-            if (! $this->planoCasaTipo($r, $tipo)) {
+            if (! $this->rowPertenceALinha($r, $prefix, $tipo, $dreLinha)) {
                 continue;
             }
             $sum += (float) $r->total;
@@ -460,19 +469,16 @@ class DreService
      *
      * @return array<int, array{label: string, v: float, prev: float}>
      */
-    private function itemsPorPrefix(\Illuminate\Support\Collection $rowsAtual, \Illuminate\Support\Collection $rowsPrev, string $prefix, string $tipo, int $sign): array
+    private function itemsPorPrefix(\Illuminate\Support\Collection $rowsAtual, \Illuminate\Support\Collection $rowsPrev, string $prefix, string $tipo, int $sign, string $dreLinha): array
     {
         $buckets = [];
 
-        $append = function (\Illuminate\Support\Collection $rows, string $field) use ($prefix, $tipo, $sign, &$buckets): void {
+        $append = function (\Illuminate\Support\Collection $rows, string $field) use ($prefix, $tipo, $sign, $dreLinha, &$buckets): void {
             foreach ($rows as $r) {
+                if (! $this->rowPertenceALinha($r, $prefix, $tipo, $dreLinha)) {
+                    continue;
+                }
                 $codigo = (string) ($r->plano_codigo ?? '');
-                if ($codigo === '' || ! str_starts_with($codigo, $prefix)) {
-                    continue;
-                }
-                if (! $this->planoCasaTipo($r, $tipo)) {
-                    continue;
-                }
                 $label = (string) ($r->plano_nome ?? '(sem categoria)');
                 $key = $codigo.'|'.$label;
                 if (! isset($buckets[$key])) {
@@ -491,6 +497,29 @@ class DreService
         usort($list, fn ($a, $b) => abs($b['v']) <=> abs($a['v']));
 
         return $list;
+    }
+
+    /**
+     * A row entra nesta linha da DRE?
+     *
+     * 1. De-para explícito (`fin_planos_conta.dre_linha`, decisão [W] 2026-09-23):
+     *    quando preenchido, é a ÚNICA regra — a conta cai exatamente na linha
+     *    declarada (`fora` = em nenhuma). Prefixo e tipo não são consultados.
+     * 2. Sem de-para (NULL): regra original — prefixo do código + tipo do plano.
+     */
+    private function rowPertenceALinha(object $r, string $prefix, string $tipo, string $dreLinha): bool
+    {
+        $explicita = $r->plano_dre_linha ?? null;
+        if ($explicita !== null && $explicita !== '') {
+            return $explicita === $dreLinha;
+        }
+
+        $codigo = (string) ($r->plano_codigo ?? '');
+        if ($codigo === '' || ! str_starts_with($codigo, $prefix)) {
+            return false;
+        }
+
+        return $this->planoCasaTipo($r, $tipo);
     }
 
     /**
@@ -590,7 +619,7 @@ class DreService
      */
     private function topCategoriasReceita(\Illuminate\Support\Collection $rowsAtual, float $baseRL): array
     {
-        $items = $this->itemsPorPrefix($rowsAtual, collect(), '3.1.01.', 'receita', 1);
+        $items = $this->itemsPorPrefix($rowsAtual, collect(), '3.1.01.', 'receita', 1, 'receita_bruta');
 
         $top = array_slice($items, 0, 3);
 
