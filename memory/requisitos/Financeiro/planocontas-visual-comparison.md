@@ -33,8 +33,9 @@ porta local; produção em `/financeiro/plano-contas`, empresa 1).
 
 ## Fica para depois (depende de backend)
 
-- **"Lanç. mês" e "Saldo mês"** — soma de lançamentos por conta no mês: dado novo e **regra de valor**
-  (prova por dois caminhos + antes→depois). FIN-6b.
+- ~~**"Lanç. mês" e "Saldo mês"**~~ — **feitas na FIN-6b (2026-09-23)**: `DreService::movimentoMesPorConta`, prop
+  deferida `movimento`, colunas logo depois de "Tipo" como no protótipo. Competência igual ao DRE, sem cancelados;
+  saldo com sinal (receber +, pagar −); pai soma tudo abaixo dele. Provas: `UC-FPC-05..07`.
 - **"Importar", "+ Nova" e "editar"** do protótipo — o backend só tem `plano-contas.index`. Sem rota, o botão
   seria promessa falsa; entram quando existirem as ações.
 
