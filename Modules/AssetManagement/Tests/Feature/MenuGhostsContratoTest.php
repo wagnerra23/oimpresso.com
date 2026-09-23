@@ -83,6 +83,12 @@ function menuGhostsUsuario(int $businessId): User
  */
 function menuGhostsDoModulo(User $user, int $businessId): array
 {
+    return menuEntryDoModulo($user, $businessId)['ghosts'] ?? [];
+}
+
+/** A entry inteira do modulo no `shell.menu` (label, primary, ghosts), pelo consumidor real. */
+function menuEntryDoModulo(User $user, int $businessId): array
+{
     test()->actingAs($user);
     session(['user.business_id' => $businessId, 'business.id' => $businessId]);
 
@@ -98,7 +104,7 @@ function menuGhostsDoModulo(User $user, int $businessId): array
         .'modulo mudou sem atualizar LABEL_MODULO no PatrimonioSubNav.tsx'
     );
 
-    return $entry['ghosts'] ?? [];
+    return $entry;
 }
 
 it('os rotulos das abas sao os que [W] decidiu em 2026-09-09 -- "Bens" e "Manutencoes"', function () {
@@ -170,6 +176,48 @@ it('Garantias e Auditoria NAO aparecem enquanto nao tiverem rota (D-GARANTIAS / 
             ->and($chaves)->not->toContain('garantias')
             ->and($chaves)->not->toContain('audit')
             ->and($chaves)->not->toContain('auditoria');
+    } finally {
+        $user->forceDelete();
+    }
+});
+
+/*
+ * UC-PAT-09 (Pages/Patrimonio/Index.casos.md) -- o 8o link do achado da thread 09 do
+ * playbook Prontidao. O primary "+ Novo ativo" apontava pra `/asset/assets/create`, e
+ * `AssetController::create` so responde sob `request()->ajax()`: numa navegacao direta
+ * devolveu 200 com 0 bytes, e pelo `<Link>` do Inertia abriu o fragmento de modal jQuery
+ * cru no dialogo de resposta invalida -- os dois medidos em prod (biz=1, 2026-09-23).
+ *
+ * O assert NAO fixa "sem primary": fixa que, SE houver primary, ele abre pagina de verdade.
+ * Quando o cadastro virar drawer e o primary voltar apontando pra uma rota que renderiza,
+ * este teste continua verde sem ninguem mexer nele. Mede pelo GET REAL, sem header ajax --
+ * o mesmo pedido que um clique com o botao do meio (nova aba) faz.
+ */
+it('UC-PAT-09: o primary do menu, se existir, abre pagina -- nao o corpo vazio de um endpoint so-ajax', function () {
+    $biz = $this->seededTenant();
+    $user = menuGhostsUsuario($biz->id);
+
+    try {
+        $entry = menuEntryDoModulo($user, $biz->id);
+        $primary = $entry['primary'] ?? null;
+
+        if ($primary === null) {
+            // O estado desde 2026-09-23. Assert explicito pra o caso nao sair "sem assertion".
+            expect($entry)->not->toHaveKey('primary');
+
+            return;
+        }
+
+        $resposta = test()
+            ->actingAs($user)
+            ->withSession([
+                'user.business_id' => $biz->id,
+                'user' => ['business_id' => $biz->id, 'id' => $user->id],
+            ])
+            ->get($primary['href']);
+
+        expect($resposta->getStatusCode())->toBe(200);
+        expect(trim((string) $resposta->getContent()))->not->toBe('');
     } finally {
         $user->forceDelete();
     }

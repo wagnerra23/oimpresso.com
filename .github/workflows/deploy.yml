@@ -58,7 +58,7 @@ jobs:
       frontend_changed: ${{ steps.diff.outputs.frontend_changed }}
       # runtime_changed=false → o push NÃO tocou nada que roda em produção.
       # Nesse caso o site NÃO entra em maintenance (job sync-light). Ver o passo
-      # "Classifica o push" abaixo pra a lista de paths e o porquê do fail-safe.
+      # "Classifica o run" abaixo (scripts/deploy/classifica-push.sh) pra a lista de paths e o fail-safe.
       runtime_changed: ${{ steps.diff.outputs.runtime_changed }}
       # Hash do composer.lock DESTE commit, calculado no runner (que já tem o
       # checkout). O deploy compara com o hash do servidor ANTES do pull pra
@@ -68,74 +68,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # precisa do commit `before` pra diff de frontend
+          fetch-depth: 0   # precisa do SHA do último deploy bem-sucedido (base da classificação)
 
-      - name: Detecta se resources/js|css mudou neste push
+      - name: Classifica o run — o que mudou desde o ÚLTIMO DEPLOY BEM-SUCEDIDO
         id: diff
-        run: |
-          # Exclui *.md (charter.md/casos.md ficam sob resources/js/ por convenção, ADR 0264)
-          # — não rebuildam bundle Vite, então não devem marcar frontend_changed. Sem o
-          # exclude, uma PR só-de-casos disparava frontend_changed=true e o gate de hash
-          # de bundle no smoke dava falso-positivo (hash idêntico = "publicação não chegou").
-          if [ "${{ github.event_name }}" = "push" ] && \
-             [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
-            if git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" -- resources/js resources/css ':(exclude)*.md' | grep -q .; then
-              echo "frontend_changed=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "frontend_changed=false" >> "$GITHUB_OUTPUT"
-            fi
-          else
-            echo "frontend_changed=unknown" >> "$GITHUB_OUTPUT"
-          fi
-          echo "frontend_changed = $(grep frontend_changed "$GITHUB_OUTPUT" | cut -d= -f2)"
-
-          # ── runtime_changed: o push mexeu em algo que RODA em produção? ────────
-          # Medido 2026-08-12 nos 27 últimos deploys bem-sucedidos: 14 (52%) puseram
-          # o site em 503 por ~1min sem tocar UMA linha servida em produção — eram
-          # .github/, .claude/, scripts/ e governance/*.json. Esses agora vão pelo
-          # job `sync-light` (git reset, sem maintenance).
-          #
-          # FAIL-SAFE: qualquer dúvida (outro evento, git diff falhou, grep com erro
-          # real) resolve pra TRUE = deploy completo. Só o caso PROVADO "todo arquivo
-          # do push casa a lista abaixo" vira caminho leve. Errar pra TRUE custa 30s
-          # de 503; errar pra FALSE serviria código sem cache clear/OPcache reset.
-          #
-          # Por que cada path NÃO é runtime (e mesmo assim CHEGA ao servidor, via o
-          # `git reset --hard` do sync-light — só não exige maintenance/composer/cache):
-          #   .github/     → roda no runner do GitHub, nunca no Hostinger
-          #   .claude/     → config de agente (lida sob demanda por artisan)
-          #   scripts/     → invocado por Process/CLI a cada uso, sem restart
-          #   governance/  → JSON de baseline lido por request pelo Modules/Governance
-          #   tests/ docs/ memory/ prototipo-ui/ *.md + dotfiles de raiz
-          NAO_RUNTIME='^(\.github/|\.claude/|scripts/|governance/|tests/|docs/|memory/|prototipo-ui/|\.gitattributes$|\.gitignore$|\.editorconfig$|CODEOWNERS$)|\.md$'
-          RUNTIME_CHANGED=true
-          if [ "${{ github.event_name }}" = "push" ] && \
-             [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
-            if MUDADOS=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}"); then
-              # UM grep só (não dois em pipeline): com dois, um erro real do primeiro
-              # (rc=2) daria entrada vazia pro segundo → rc=1 → "nada sobrou" → caminho
-              # leve por FALHA. Com um só, o rc é inequívoco. (§5 2026-08-11: vazio de
-              # comando que pode falhar não é evidência de ausência.)
-              set +e
-              SOBRA=$(printf '%s\n' "$MUDADOS" | grep -vE "$NAO_RUNTIME")
-              GREP_RC=$?
-              set -e
-              if [ "$GREP_RC" -gt 1 ]; then
-                echo "::warning::grep falhou (rc=$GREP_RC) — assumindo runtime_changed=true"
-              elif [ -z "$SOBRA" ]; then
-                RUNTIME_CHANGED=false
-              fi
-            else
-              echo "::warning::git diff falhou — assumindo runtime_changed=true"
-            fi
-          fi
-          echo "runtime_changed=$RUNTIME_CHANGED" >> "$GITHUB_OUTPUT"
-          if [ "$RUNTIME_CHANGED" = "false" ]; then
-            echo "→ nada de runtime neste push: SYNC LEVE (site NÃO sai do ar)"
-          else
-            echo "→ runtime mudou: DEPLOY COMPLETO (maintenance). Arquivos que decidiram:"
-            printf '%s\n' "${SOBRA:-<evento sem diff>}" | head -20
-          fi
+        # A base NÃO é `github.event.before`. A concurrency `deploy-production` cancela
+        # o run pendente a cada push novo; com a base no push anterior, um push com
+        # migration cancelado seguido de um push só-docs ia pelo sync leve (sem migrate)
+        # e publicava código sem schema — incidente 2026-09-23 (#7789, 500 em
+        # /financeiro/dre). O script compara contra o headSha do último run `push` com
+        # conclusion=success e é fail-closed (dúvida ⇒ deploy completo). Contrato e
+        # mutações: scripts/governance/deploy-classifica-push.test.mjs.
+        #
+        # Medido 2026-08-12 nos 27 últimos deploys bem-sucedidos: 14 (52%) puseram o
+        # site em 503 por ~1min sem tocar UMA linha servida em produção — por isso o
+        # caminho leve existe. Errar pra TRUE custa ~30s de 503; errar pra FALSE serve
+        # código sem migrate/cache clear/OPcache reset.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          RUN_ID: ${{ github.run_id }}
+        run: bash scripts/deploy/classifica-push.sh
 
       - name: Hash do composer.lock alvo (decide se o deploy precisa de composer install)
         id: lock

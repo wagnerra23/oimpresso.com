@@ -1,6 +1,7 @@
 # 08 — Handoff (índice)
 
 - [2026-09-23 16:53 BRT — **Essentials: excluir documento apaga os compartilhamentos**](handoffs/2026-09-23-1653-essentials-documento-exclui-compartilhamentos.md) (UC-EDOC-04 vermelho→verde no CI · #7814 mergeado · prod: 0 compartilhamentos, 0 órfãos · vermelho do DRE é da US-FIN-069 · CT 100 e MCP fora do ar)
+- [2026-09-23 16:53 BRT — **Prontidão: fechamento, visual das telas prontas sem escopo**](handoffs/2026-09-23-1653-prontidao-fechamento-visual-pendente.md) (#7796 · #7800 · #7803 no main · achados: #7808 e #7814 merged, #7810 aberto · aplicar visual aguarda decisão [W] · MCP fora)
 - [2026-09-23 11:40 BRT — **Financeiro: gates, sessão e de-para da DRE**](handoffs/2026-09-23-1140-financeiro-gates-sessao-dre-depara.md) (5 PRs mergeados · 19 rotas com gate · SetSessionData no grupo · install deriva 17 permissões · dre_linha sem dado · classificação da WR2 com [E])
 - [2026-09-23 14:36 BRT — **Prontidão: 31 telas blindadas, 59→90 prontas**](handoffs/2026-09-23-1436-prontidao-blindagem-31-telas.md) (17 PRs das threads 01–13 no main · Caixa segue o código por decisão [W] · lane nova PaymentGateway · #7796 e #7800 ainda abertos · MCP fora do ar no fechamento)
 - [2026-09-23 14:30 BRT — **--omission acusava mudança de assinatura de função: C3 + C4**](handoffs/2026-09-23-1430-omission-assinatura-funcao-c3-c4.md) (âncora ^[-] anulava o C1 · teste por família · invariante de SYMBOL_RES armado no dono · lápide §5 + rec LC-30 · #7788 e #7792 mergeados)

@@ -4,7 +4,7 @@
 > Fonte única: o plano é a verdade, este índice é derivado ([ADR 0256](../../decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)). Execução mora no MCP via `parent_plan` ([ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md)). Frescor/órfão = sentinela `plan-health` (memory-health Check J).
 
 ## Saúde (derivada)
-- **8** planos registrados (com `## Status vivo`) · **26** pendentes de backfill (arquivo *plan* sem bloco)
+- **8** planos registrados (com `## Status vivo`) · **27** pendentes de backfill (arquivo *plan* sem bloco)
 - reviewed_at preenchido: **5/8** · vinculados a MCP (`parent_plan`): **5/8**
 - Por status: proposto 4 · ativo 3 · (vazio) 1
 - Inconsistências de schema: 4 — ver final
@@ -21,7 +21,7 @@
 | [OBSERVABILITY — Jana](../Jana/OBSERVABILITY.md) | Jana | proposto | W/C | 2026-07-28 | — | um caso real observado percorre trace → avaliação → revisão  |
 | [Plano — Atendimento Automático (WhatsApp / Caixa Unificada)](../Whatsapp/PLANO-ATENDIMENTO-AUTOMATICO.md) | Whatsapp | ativo | W | 2026-06-20 | `plano-atendimento-automatico` | E1+E3 com ≥5 clientes pagando JANA Pro (espelha gates da ADR |
 
-## Pendentes de `## Status vivo` (26) — backfill dirigido pela sentinela
+## Pendentes de `## Status vivo` (27) — backfill dirigido pela sentinela
 | Plano | Módulo |
 |---|---|
 | [DEPRECATION-PLAN — ADS](../ADS/DEPRECATION-PLAN.md) | ADS |
@@ -35,6 +35,7 @@
 | [Fase 1 — Conciliação passa a enxergar o extrato da API](../Financeiro/PLANO-FASE1-CONCILIACAO-LE-EXTRATO-API.md) | Financeiro |
 | [Fase 2 — Migração de dados: unificar extrato OFX → tabela canônica](../Financeiro/PLANO-FASE2-MIGRACAO-EXTRATO-UNIFICADO.md) | Financeiro |
 | [Plano Detalhado — Módulo Financeiro](../Financeiro/PLANO_DETALHADO.md) | Financeiro |
+| [Comparativo visual — Financeiro · Plano de contas (FIN-6)](../Financeiro/planocontas-visual-comparison.md) | Financeiro |
 | [Plano de Testes Fiscal — Ondas 1-7](../Fiscal/PLANO-TESTES-FISCAL.md) | Fiscal |
 | [Plano de migração das 82 auto-mems → git/MCP (ADR 0061)](../Infra/PLANO-MIGRACAO-AUTOMEM.md) | Infra |
 | [Plano · Profissionalizar acesso do time (proteger fonte + controlar no](../Infra/PLANO-profissionalizar-acesso-time.md) | Infra |

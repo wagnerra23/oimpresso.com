@@ -272,6 +272,9 @@ jobs:
       - name: Deploy workflow (build → artefato → SHA → smoke · RELEASE + 4 BITE)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/deploy-workflow.test.mjs
+      - name: Deploy — classificação por último deploy OK (push cancelado não esconde migration · RELEASE + 6 BITE)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/deploy-classifica-push.test.mjs
       - name: Revisão dos fluxos (paths executáveis existem · sem baseline)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/revisar-fluxos.mjs --check

@@ -110,8 +110,7 @@ class DataController extends Controller
             Menu::modify('admin-sidebar-menu', function ($menu) use ($background_color) {
                 // ADR 0180 Fase 4 Wave E — AssetManagement é ghost virtual de
                 // Estoque no grupo canon `operar` v3. Sem `shortcut` (acoplado em
-                // Estoque); `primary` = "Novo ativo" (criação via AssetController
-                // create); `ghosts` = Painel + Bens + Alocações + Devoluções +
+                // Estoque); sem `primary` (ver abaixo); `ghosts` = Painel + Bens + Alocações + Devoluções +
                 // Manutenções + Configurações (sub-views gestão de patrimônio).
                 //
                 // RÓTULOS: "Bens" e "Manutenções" por decisão [W] de 2026-09-09, que
@@ -130,11 +129,13 @@ class DataController extends Controller
                                 'icon'    => 'fas fa fa-boxes',
                                 'active'  => request()->segment(1) == 'asset',
                                 'style'   => 'background-color:'.$background_color,
-                                'primary' => [
-                                    'label'    => 'Novo ativo',
-                                    'href'     => '/asset/assets/create',
-                                    'shortcut' => 'N',
-                                ],
+                                // SEM `primary` desde 2026-09-23. Ele era "Novo ativo" ->
+                                // `/asset/assets/create`, e `AssetController::create` so
+                                // responde sob `ajax()`: o `<Link>` do Inertia recebia o
+                                // fragmento de modal jQuery cru (resposta nao-Inertia) e a
+                                // navegacao direta, 200 com 0 bytes -- medido em prod, biz=1.
+                                // Volta quando o cadastro virar drawer (Bens.casos.md BACKLOG).
+                                // Trava: MenuGhostsContratoTest ("o primary ... abre pagina").
                                 'ghosts'  => [
                                     ['key' => 'dashboard',         'label' => 'Painel',         'href' => '/asset/dashboard'],
                                     ['key' => 'assets',            'label' => 'Bens',           'href' => '/asset/assets'],
