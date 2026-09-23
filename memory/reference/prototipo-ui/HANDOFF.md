@@ -5,7 +5,23 @@
 
 ---
 
-## Estado atual: 2026-08-20 — protótipo do Ponto desce pro espelho + 19 telas ancoradas (#6046)
+## Estado atual: 2026-09-23 — Onda 2 Clientes: plano Code × Design gravado
+
+Clientes é a família que [W] já pôs em produção: as 7 telas de Cliente rodam em React para todos os
+tenants (`governance/prod-flags.json`). Plano em etapas (F0 testes → F1 conserto do Import → L1 layout
+Map + Import → L2 Create/Edit → L3 Index) em
+[`ONDA-2-CLIENTES-PLANO.md`](../../requisitos/Mwart/ONDA-2-CLIENTES-PLANO.md).
+
+**Agora:** aguardando [W] aprovar a F0 (voltar os testes de Cliente para lane de PR) e o Design ajustar
+o protótipo — pedido em [`CODE_NOTES.prompt-cowork-onda2-clientes-2026-09-23.md`](CODE_NOTES.prompt-cowork-onda2-clientes-2026-09-23.md)
+(importação parcial que não existe, copy de CEP no mapa, cabeçalho das telas utilitárias).
+
+**Defeito em produção achado no caminho:** no Import em React, o erro de importação não aparece para o
+usuário (sucesso aparece). Entra na F1.
+
+---
+
+## Estado anterior: 2026-08-20 — protótipo do Ponto desce pro espelho + 19 telas ancoradas (#6046)
 
 **Mergeado em `main`** (`f02102261d` · 122 pass · 0 falha). Os 8 arquivos do protótipo do Ponto eram
 **LIVE-ONLY** — só existiam no projeto Cowork. Desceram por `get_file` → `cowork-mirror-freshness
