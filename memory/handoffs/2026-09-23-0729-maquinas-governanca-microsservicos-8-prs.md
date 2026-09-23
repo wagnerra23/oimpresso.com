@@ -1,17 +1,17 @@
 ---
-date: 2026-09-23
-time: "07:29"
+date: "2026-09-23"
+time: "07:29 BRT"
 slug: maquinas-governanca-microsservicos-8-prs
 tldr: "Análise do fluxo de máquinas de governança como microsserviços → 8 PRs mergeados (hook-bites por oportunidade, inventário lê PHP, hook compara conteúdo inteiro, resumo de steps falhos, 2 órfãos apagados, 2 recs no ledger)."
-decided_by: "[W]"
-cycle: "n/d (MCP indisponível)"
+decided_by: [W]
+cycle: null
 prs: [7729, 7730, 7733, 7734, 7735, 7737, 7738, 7740]
 next_steps:
   - "deadlink-baseline tem dois escritores — decidir dono único"
   - "hook do inventário não dispara em commit só de documento (gap declarado)"
   - "baseline-folga usa git add -u (pode estagiar arquivo alheio) — medir antes de mexer"
   - "risco de design-smoke-ci declarado, não consertado"
-related_adrs: ["0256", "0344", "0224"]
+related_adrs: [0256-knowledge-survival-meia-vida-catraca-sentinela, 0344-two-strikes-cobre-processo]
 ---
 
 # Máquinas de governança vistas como microsserviços — 8 PRs
