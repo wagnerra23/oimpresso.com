@@ -83,7 +83,7 @@ Antes: cada handoff era um zip flat despejado em pastas espalhadas (`prototipos/
 | `*.charter.md` | canon `resources/js/Pages/<Mod>/<Tela>.charter.md` | contrato vivo — você lê/atualiza, não duplica |
 | `*.casos.md` | canon (ao lado do charter) | casos de uso |
 | sessão/análise `.md` (raciocínio) | **destilar** resumo no charter/SPEC; raw fica no workspace de origem | conhecimento = canon, não dump |
-| process docs (STATUS/CODE_NOTES/PROTOCOL…) | já são canon em `memory/reference/prototipo-ui/` | não re-exportar — a [ADR 0397](../../decisions/0397-prototipo-ui-arvore-unica-cowork-e-design-system.md) D3 tirou máquina e process doc de dentro de `prototipo-ui/` |
+| process docs (STATUS/CODE_NOTES/PROTOCOL…) | já são canon em `memory/reference/prototipo-ui/` | não re-exportar — a [ADR 0397](../../decisions/0397-prototipo-minimo-por-dono-e-ds-direto.md) D3 tirou máquina e process doc de dentro de `prototipo-ui/` |
 | `memory/**` do export | **ignorar** (canon é o repo/MCP) | fonte única de memória |
 | ADRs | canon `memory/decisions/` | não duplicar |
 | PNG/screenshot/dupes/`.bak` | descartar (transporte) | derivado/lixo |
