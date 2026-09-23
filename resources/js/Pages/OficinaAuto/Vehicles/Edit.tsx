@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 import PageHeader from '@/Components/shared/PageHeader';
+import MercosulPlate from '@/Components/shared/MercosulPlate';
 
 interface Vehicle {
   id: number;
@@ -122,7 +123,8 @@ export default function VehiclesEdit({ vehicle, vehicleTypes }: Props) {
                 required
                 aria-invalid={!!errors.plate}
               />
-              {errors.plate && <p className="text-sm text-destructive mt-1">{errors.plate}</p>}
+              {data.plate.trim() && <MercosulPlate plate={data.plate.trim()} size="sm" className="mt-2" />}
+              {errors.plate &&<p className="text-sm text-destructive mt-1">{errors.plate}</p>}
             </div>
             <div>
               <Label htmlFor="secondary_plate">Placa secundária (cavalo+reboque)</Label>
@@ -133,6 +135,9 @@ export default function VehiclesEdit({ vehicle, vehicleTypes }: Props) {
                 maxLength={10}
                 aria-invalid={!!errors.secondary_plate}
               />
+              {data.secondary_plate.trim() && (
+                <MercosulPlate plate={data.secondary_plate.trim()} size="sm" className="mt-2" />
+              )}
               {errors.secondary_plate && (
                 <p className="text-sm text-destructive mt-1">{errors.secondary_plate}</p>
               )}

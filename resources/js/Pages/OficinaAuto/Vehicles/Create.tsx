@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 import PageHeader from '@/Components/shared/PageHeader';
+import MercosulPlate from '@/Components/shared/MercosulPlate';
 import { Inline } from '@/Components/layout';
 
 interface Props {
@@ -204,6 +205,7 @@ export default function VehiclesCreate({ vehicleTypes }: Props) {
                   <span className="ml-1">Buscar</span>
                 </Button>
               </Inline>
+              {data.plate.trim() && <MercosulPlate plate={data.plate.trim()} size="sm" className="mt-2" />}
               {errors.plate && <p className="text-sm text-destructive mt-1">{errors.plate}</p>}
               {lookupFeedback && (
                 <p
@@ -231,6 +233,9 @@ export default function VehiclesCreate({ vehicleTypes }: Props) {
                 maxLength={10}
                 aria-invalid={!!errors.secondary_plate}
               />
+              {data.secondary_plate.trim() && (
+                <MercosulPlate plate={data.secondary_plate.trim()} size="sm" className="mt-2" />
+              )}
               {errors.secondary_plate && (
                 <p className="text-sm text-destructive mt-1">{errors.secondary_plate}</p>
               )}
