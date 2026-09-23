@@ -88,10 +88,11 @@ ok(diffCitaMaquina('+usa o `deadlink-gate` aqui\n', maq), 'cita: crase com nome 
 ok(diffCitaMaquina('-removi deadlink-gate.yml\n', maq), 'cita: linha REMOVIDA tambem conta');
 ok(diffCitaMaquina('+ver .claude/skills/brief-first/SKILL.md\n', maq), 'cita: forma skills/<nome>');
 ok(diffCitaMaquina('+lê `foo-baseline.json`\n', maq), 'cita: baseline em crase');
-// ESPELHO, nao correcao: no RX_ARQUIVO do gerador a alternativa `js` vence `json`, entao
-// `governance/foo-baseline.json` vira o token `foo-baseline.js` e NAO conta como citacao — nem
-// no gerador, nem aqui. O hook reproduz o gerador de proposito; consertar e no gerador.
-ok(!diffCitaMaquina('+lê governance/foo-baseline.json\n', maq), 'ESPELHO: path .json fora de crase nao conta (igual ao gerador)');
+// ESPELHO do gerador: ate 2026-09-23 a alternativa `js` vencia `json` no RX_ARQUIVO e
+// `governance/foo-baseline.json` virava o token `foo-baseline.js` (nao contava). Consertado no
+// gerador (json antes de js + \b final); o hook reproduz, entao o path fora de crase CONTA.
+ok(diffCitaMaquina('+lê governance/foo-baseline.json\n', maq), 'ESPELHO: path .json fora de crase conta (igual ao gerador)');
+ok(!diffCitaMaquina('+lê governance/foo-baseline.jsonl\n', maq), 'NEG cita: .jsonl nao vira .json (\\b final)');
 ok(!diffCitaMaquina('+texto sobre o deadlink-gate solto\n', maq), 'NEG cita: nome nu SOLTO nao conta (gerador tambem nao)');
 ok(!diffCitaMaquina(' contexto com `deadlink-gate`\n', maq), 'NEG cita: linha de contexto nao conta');
 ok(!diffCitaMaquina('+++ b/memory/x-deadlink-gate.yml.md\n', maq), 'NEG cita: cabecalho +++ nao conta');

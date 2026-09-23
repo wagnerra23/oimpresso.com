@@ -78,7 +78,7 @@ export function ehDocDoCorpus(p) {
 }
 
 /** Copia literal dos 3 regex do gerador (`maquinas-inventario.mjs`). O bite-test acusa drift. */
-export const RX_ARQUIVO = /[\w.-]+\.(?:mjs|js|cjs|yml|yaml|json)/g;
+export const RX_ARQUIVO = /[\w.-]+\.(?:json|mjs|cjs|js|yaml|yml)\b/g;
 export const RX_CRASE = /`([a-z0-9][\w.-]*)`/gi;
 export const RX_PASTA = /(?:skills|agents)\/([\w.-]+)/g;
 
