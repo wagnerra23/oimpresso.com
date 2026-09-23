@@ -23,7 +23,7 @@ import {
   ehGitCommit, temPathspecExplicito, levaWorkingTree, tocaCoberto, COBERTOS,
   ehDocDoCorpus, tokensDe, tokensDasMaquinas, diffCitaMaquina, DOCS_GERADOS,
   RX_ARQUIVO, RX_CRASE, RX_PASTA, pathsQueMudamOMapa,
-  pathsTocados, indicesAfetados,
+  pathsTocados, indicesAfetados, argsDosAddsAntes, statusDoPorcelain,
 } from './maquinas-inventario-no-commit.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'maquinas-inventario-no-commit.mjs');
@@ -568,6 +568,70 @@ const checkIdx = (dir, gen) => spawnSync('node', ['scripts/governance/' + gen, '
   execFileSync('git', ['add', '--', 'memory/reference/x.md'], { cwd: dir, stdio: 'ignore' });
   const r = roda(dir, 'git commit -m x');
   ok(!stageado(dir).includes(BACKLOG) && !stageado(dir).includes(PLANOS) && !r.stderr, 'SILENCIO: doc fora dos insumos nao faz nada');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// ---------------------------------------------------------------- (N+2) `git add` no MESMO comando
+// O hook roda ANTES do shell: em `git add X && git commit` ele via o stage vazio. Medido no corpus
+// de transcripts: 84,1% dos commits tem esse formato. Estes casos provam os 3 passos nele.
+console.log('add + commit na mesma chamada:');
+{
+  ok(JSON.stringify(argsDosAddsAntes('git add -- a.md b.md && git commit -m x')) === JSON.stringify(['--', 'a.md', 'b.md']), 'le os args do add anterior');
+  ok(JSON.stringify(argsDosAddsAntes('git commit -m x && git add a.md')) === '[]', 'add DEPOIS do commit nao conta');
+  ok(JSON.stringify(argsDosAddsAntes('git -C /r add "a.md" ; git commit -m x')) === JSON.stringify(['a.md']), 'aceita -C e tira aspas');
+  ok(JSON.stringify(argsDosAddsAntes('echo "git add x" && git commit -m y')) === '[]', 'mencao em string de outro comando nao conta');
+  const T = String.fromCharCode(9);
+  const p = statusDoPorcelain('?? novo.md\n M velho.md\n D apagado.md\n?? "com espaco.md"\n');
+  ok(p.ns === ['A' + T + 'novo.md', 'M' + T + 'velho.md', 'D' + T + 'apagado.md'].join('\n'), 'porcelain: ?? vira A, D vira D, resto M');
+  ok(p.entrando.has('novo.md') && p.entrando.size === 1, 'porcelain: path citado nao e interpretado (limite declarado)');
+  ok(statusDoPorcelain('?? novo.md\n', { incluiNaoRastreados: false }).ns === '', 'add -u nao leva arquivo nao rastreado');
+}
+{
+  // passo 1 (inventario)
+  const dir = sandbox({ staleInicial: true });
+  mkdirSync(join(dir, '.claude/hooks'), { recursive: true });
+  writeFileSync(join(dir, '.claude/hooks/novo.mjs'), '// x\n');
+  roda(dir, 'git add -- .claude/hooks/novo.mjs && git commit -m x');   // NADA estagiado antes
+  ok(conteudo(dir) === 'indice NOVO\n' && stageado(dir).includes(INDICE), 'PASSO 1: add+commit na mesma chamada regenera e estagia o inventario');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandbox({ staleInicial: true });
+  writeFileSync(join(dir, 'README.md'), 'x\n');
+  roda(dir, 'git add README.md && git commit -m x');
+  ok(conteudo(dir) === 'indice velho\n' && !stageado(dir).includes(INDICE), 'PASSO 1 controle: add de arquivo nao coberto segue em silencio');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  // passo 2 (superficie): o arquivo novo que o add leva NAO e "solto"
+  const dir = sandboxSup();
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/B.php'), '<?php\n');
+  const r = roda(dir, 'git add Modules/Foo/Http/Controllers/B.php && git commit -m x');
+  ok(stageado(dir).includes(SUP('Foo')) && checkSup(dir, 'Foo') === 0 && !/NAO regenerei/.test(r.stderr),
+    'PASSO 2: add+commit na mesma chamada regenera a SUPERFICIE (e o arquivo que entra nao conta como solto)');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxSup();
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/B.php'), '<?php\n');
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/SOLTO.php'), '<?php\n');
+  const r = roda(dir, 'git add Modules/Foo/Http/Controllers/B.php && git commit -m x');
+  ok(!stageado(dir).includes(SUP('Foo')) && /NAO regenerei/.test(r.stderr), 'PASSO 2 controle: o solto que o add NAO leva continua barrando');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  // passo 3 (indices)
+  const dir = sandboxIdx();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira') + '\n' + US('US-FOO-002', 'Segunda'));
+  roda(dir, 'git add memory/requisitos/Foo/SPEC.md && git commit -m x');
+  ok(stageado(dir).includes(BACKLOG) && checkIdx(dir, 'tasks-index-generate.mjs') === 0, 'PASSO 3: add+commit na mesma chamada regenera o backlog');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxIdx();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/PLANO-onda.md'), PLANO);
+  roda(dir, 'git add -A && git commit -m x');
+  ok(stageado(dir).includes(PLANOS) && checkIdx(dir, 'plans-index.mjs') === 0, 'PASSO 3: `git add -A` + commit enxerga o plano novo');
   rmSync(dir, { recursive: true, force: true });
 }
 

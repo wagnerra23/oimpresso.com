@@ -184,15 +184,87 @@ function git(args, cwd) {
   return execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
 }
 
+/**
+ * O `git add` que vem ANTES do commit no MESMO comando (2026-09-23).
+ *
+ * O hook e PreToolUse: roda antes do shell executar o comando inteiro. Em `git add X && git
+ * commit`, quando ele olha o indice o `add` ainda nao aconteceu — ele via o stage VAZIO e nao
+ * fazia nada. MEDIDO no corpus de transcripts (1913 arquivos, 5535 comandos com `git commit`):
+ * 4657 (84,1%) tem o `git add` na mesma chamada. Ou seja, os tres passos deste hook ficavam
+ * inertes em 84% dos commits reais — e os indices envelheciam com o hook "instalado".
+ *
+ * Por isso os passos passaram a somar, ao que ja esta no stage, o que esses `add` vao estagiar.
+ * O estado de cada arquivo sai do `git status --porcelain` (nao de adivinhar pelo nome).
+ * LIMITE DECLARADO: pathspec com espaco/aspas complexas nao e interpretado; nesse caso o hook
+ * volta ao comportamento antigo (ve so o stage), nunca inventa arquivo.
+ */
+export function argsDosAddsAntes(cmd) {
+  const out = [];
+  for (const s of segmentos(cmd)) {
+    if (argsDoCommit(s) !== null) break;                // so os `add` ANTES do commit
+    const t = String(s).split(/\s+/).filter(Boolean);
+    if (t[0] !== 'git') continue;
+    let i = 1;
+    while (i < t.length && t[i].startsWith('-')) i += OPCOES_COM_VALOR.has(t[i]) ? 2 : 1;
+    if (t[i] !== 'add') continue;
+    for (const a of t.slice(i + 1)) out.push(a.replace(/^['"]|['"]$/g, ''));
+  }
+  return out;
+}
+
+/** Converte a saida do `git status --porcelain` em linhas `STATUS<TAB>path` + os nao rastreados. */
+export function statusDoPorcelain(porcelain, { incluiNaoRastreados = true } = {}) {
+  const TAB = String.fromCharCode(9);
+  const linhas = [];
+  const entrando = new Set();
+  for (const l of String(porcelain || '').split(/\r?\n/)) {
+    if (l.length < 4) continue;
+    const xy = l.slice(0, 2);
+    const p = l.slice(3).trim();
+    if (!p || p.startsWith('"')) continue;              // path citado (espaco/unicode): nao interpreto
+    if (xy === '??') {
+      if (!incluiNaoRastreados) continue;
+      linhas.push('A' + TAB + p); entrando.add(p);
+    } else if (xy.includes('D')) linhas.push('D' + TAB + p);
+    else linhas.push('M' + TAB + p);
+  }
+  return { ns: linhas.join('\n'), entrando };
+}
+
+/** O que os `git add` deste comando vao estagiar. `{ ns, entrando, docs }` — vazio se nao ha add. */
+function pendentesDoAdd(cmd, cwd) {
+  const vazio = { ns: '', entrando: new Set() };
+  const args = argsDosAddsAntes(cmd);
+  if (!args.length) return vazio;
+  const tudo = args.some((a) => ['-A', '--all', '.', ':/', '-u', '--update'].includes(a));
+  const specs = args.filter((a) => !a.startsWith('-'));
+  if (!tudo && !specs.length) return vazio;
+  const soRastreados = args.includes('-u') || args.includes('--update');
+  try {
+    const por = git(['status', '--porcelain', '--untracked-files=all', '--no-renames', ...(tudo ? [] : ['--', ...specs])], cwd);
+    return statusDoPorcelain(por, { incluiNaoRastreados: !soRastreados });
+  } catch {
+    return vazio;                                       // git falhou: fico so com o stage
+  }
+}
+
 /** Commit so de documento: dispara quando o diff do `.md` cita maquina (ou quando toca `CLAUDE.md`). */
-function docTocaMaquina(cmd, paths, cwd) {
+function docTocaMaquina(cmd, paths, cwd, pend = { entrando: new Set() }) {
   if (paths.includes('CLAUDE.md')) return true;
   const docs = [...new Set(paths.filter(ehDocDoCorpus))];
   if (!docs.length) return false;
   let diff = '';
   try {
     diff = git(['diff', '--cached', '--no-renames', '-U0', '--', ...docs], cwd);
-    if (levaWorkingTree(cmd)) diff += git(['diff', '--no-renames', '-U0', '--', ...docs], cwd);
+    // working tree: o `-a` OU o `git add` do mesmo comando vao levar estas mudancas
+    const rastreados = docs.filter((d) => !pend.entrando.has(d));
+    if (rastreados.length && (levaWorkingTree(cmd) || argsDosAddsAntes(cmd).length)) {
+      diff += git(['diff', '--no-renames', '-U0', '--', ...rastreados], cwd);
+    }
+    // arquivo NOVO que o add vai estagiar nao tem diff: o conteudo inteiro e linha adicionada
+    for (const d of docs.filter((x) => pend.entrando.has(x))) {
+      try { diff += '\n' + readFileSync(resolve(cwd, d), 'utf8').split(/\r?\n/).map((l) => '+' + l).join('\n'); } catch { /* sumiu */ }
+    }
   } catch {
     return false;                           // git falhou: nao invento estado
   }
@@ -221,14 +293,15 @@ async function main() {
   if (!ehGitCommit(cmd)) return 0;          // 0ms no caso comum
 
   const cwd = process.cwd();
-  passoInventario(cmd, cwd);
-  await passoSuperficie(cmd, cwd);
-  passoIndices(cmd, cwd);
+  const pend = pendentesDoAdd(cmd, cwd);    // o que o `git add` deste mesmo comando vai estagiar
+  passoInventario(cmd, cwd, pend);
+  await passoSuperficie(cmd, cwd, pend);
+  passoIndices(cmd, cwd, pend);
   return 0;
 }
 
-/** Passo 1 — o indice de maquinas (o comportamento original deste hook, intacto). */
-function passoInventario(cmd, cwd) {
+/** Passo 1 — o indice de maquinas. */
+function passoInventario(cmd, cwd, pend = { ns: '', entrando: new Set() }) {
   if (!existsSync(GERADOR)) return 0;       // fora do repo / checkout parcial: fail-open
 
   // --- filtro BARATO: o commit toca path que o inventario cobre?
@@ -241,7 +314,8 @@ function passoInventario(cmd, cwd) {
   } catch {
     return 0;                               // git falhou: nao invento estado
   }
-  if (!tocaCoberto(paths) && !docTocaMaquina(cmd, paths, cwd)) return 0;   // nao paga a medicao
+  paths = paths.concat(pathsTocados(pend.ns));
+  if (!tocaCoberto(paths) && !docTocaMaquina(cmd, paths, cwd, pend)) return 0;   // nao paga a medicao
 
   // --- so agora o passo CARO: quem decide e a medicao da arvore, nunca a presenca no diff.
   // Compara o CONTEUDO INTEIRO (saida do gerador × arquivo), nao so a cobertura. Ate 2026-09-22
@@ -334,7 +408,7 @@ export function pathsQueMudamOMapa(nameStatus) {
   return out;
 }
 
-async function passoSuperficie(cmd, cwd) {
+async function passoSuperficie(cmd, cwd, pend = { ns: '', entrando: new Set() }) {
   if (!existsSync(GERADOR_SUPERFICIE)) return;             // sandbox/checkout parcial: fail-open
   let staged = '';
   let wt = '';
@@ -344,7 +418,7 @@ async function passoSuperficie(cmd, cwd) {
   } catch {
     return;                                               // git falhou: nao invento estado
   }
-  const paths = pathsQueMudamOMapa(staged + '\n' + wt);
+  const paths = pathsQueMudamOMapa(staged + '\n' + wt + '\n' + pend.ns);
   if (!paths.length) return;                              // so edicao: o mapa nao muda
 
   let ms;
@@ -359,6 +433,8 @@ async function passoSuperficie(cmd, cwd) {
 
   let soltos = [];
   try { soltos = git(['ls-files', '--others', '--exclude-standard'], cwd).split(/\r?\n/).filter(Boolean); } catch { return; }
+  // o que o `git add` deste mesmo comando vai estagiar deixa de ser "solto": vai entrar no commit
+  soltos = soltos.filter((p) => !pend.entrando.has(p));
   const apagadosSoNoDisco = pathsQueMudamOMapa(wt).filter((p) => !existsSync(p));
   const explicito = temPathspecExplicito(cmd);
 
@@ -468,7 +544,7 @@ export function indicesAfetados(paths, ler) {
   }));
 }
 
-function passoIndices(cmd, cwd) {
+function passoIndices(cmd, cwd, pend = { ns: '', entrando: new Set() }) {
   let ns = '';
   try {
     ns = git(['diff', '--cached', '--name-status', '--no-renames'], cwd);
@@ -476,7 +552,7 @@ function passoIndices(cmd, cwd) {
   } catch {
     return;                                               // git falhou: nao invento estado
   }
-  const paths = pathsTocados(ns);
+  const paths = pathsTocados(ns + '\n' + pend.ns);
   if (!paths.length) return;
   const ler = (p, rev) => {
     try {
