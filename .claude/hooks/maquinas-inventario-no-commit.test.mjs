@@ -21,6 +21,8 @@ import { fileURLToPath } from 'node:url';
 
 import {
   ehGitCommit, temPathspecExplicito, levaWorkingTree, tocaCoberto, COBERTOS,
+  ehDocDoCorpus, tokensDe, tokensDasMaquinas, diffCitaMaquina, DOCS_GERADOS,
+  RX_ARQUIVO, RX_CRASE, RX_PASTA,
 } from './maquinas-inventario-no-commit.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'maquinas-inventario-no-commit.mjs');
@@ -59,6 +61,43 @@ ok(!tocaCoberto(['README.md', 'app/Models/User.php']), 'NEG: path nao coberto');
 ok(!tocaCoberto([]), 'NEG: lista vazia');
 ok(!tocaCoberto(null), 'NEG: null nao explode');
 ok(COBERTOS.length === 3, 'COBERTOS tem os 3 prefixos derivados do gerador');
+
+// ---------------------------------------------------------------- (1b) commit so de documento
+console.log('commit so de documento (nucleo):');
+// Os regex e a lista de gerados sao COPIA do gerador. Se o gerador mudar e o hook nao, o hook
+// passa a olhar tokens que o gerador ja nao conta (ou o contrario) — o assert abaixo acusa.
+const GERADOR_SRC = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../../scripts/governance/maquinas-inventario.mjs'), 'utf8');
+for (const [nome, rx] of [['RX_ARQUIVO', RX_ARQUIVO], ['RX_CRASE', RX_CRASE], ['RX_PASTA', RX_PASTA]]) {
+  ok(GERADOR_SRC.includes('const ' + nome + ' = ' + String(rx) + ';'), 'SYNC: ' + nome + ' identico ao do gerador');
+}
+for (const g of DOCS_GERADOS) ok(GERADOR_SRC.includes("'" + g + "'"), 'SYNC: gerado ' + g + ' tambem e excluido no gerador');
+
+ok(ehDocDoCorpus('memory/requisitos/X/SPEC.md'), 'corpus: memory/**.md');
+ok(ehDocDoCorpus('docs/guia.md'), 'corpus: docs/**.md');
+ok(!ehDocDoCorpus('memory/reference/MAQUINAS-INVENTARIO.md'), 'NEG corpus: o proprio indice nao conta');
+ok(!ehDocDoCorpus('memory/x.json'), 'NEG corpus: nao-.md');
+ok(!ehDocDoCorpus('README.md'), 'NEG corpus: README na raiz nao e corpus');
+
+const IND = '| `deadlink-gate.yml` | pr |\n| `governance/foo-baseline.json` | x |\n| `brief-first` | A |\n| `ci` | x |\n';
+const maq = tokensDasMaquinas(IND);
+ok(maq.has('deadlink-gate.yml') && maq.has('deadlink-gate'), 'maquinas: nome e nome nu com hifen');
+ok(maq.has('foo-baseline.json'), 'maquinas: basename do baseline');
+ok(maq.has('ci') && !maq.has('c'), 'maquinas: nome sem hifen entra so inteiro');
+
+ok(diffCitaMaquina('+usa o `deadlink-gate` aqui\n', maq), 'cita: crase com nome nu');
+ok(diffCitaMaquina('-removi deadlink-gate.yml\n', maq), 'cita: linha REMOVIDA tambem conta');
+ok(diffCitaMaquina('+ver .claude/skills/brief-first/SKILL.md\n', maq), 'cita: forma skills/<nome>');
+ok(diffCitaMaquina('+lê `foo-baseline.json`\n', maq), 'cita: baseline em crase');
+// ESPELHO, nao correcao: no RX_ARQUIVO do gerador a alternativa `js` vence `json`, entao
+// `governance/foo-baseline.json` vira o token `foo-baseline.js` e NAO conta como citacao — nem
+// no gerador, nem aqui. O hook reproduz o gerador de proposito; consertar e no gerador.
+ok(!diffCitaMaquina('+lê governance/foo-baseline.json\n', maq), 'ESPELHO: path .json fora de crase nao conta (igual ao gerador)');
+ok(!diffCitaMaquina('+texto sobre o deadlink-gate solto\n', maq), 'NEG cita: nome nu SOLTO nao conta (gerador tambem nao)');
+ok(!diffCitaMaquina(' contexto com `deadlink-gate`\n', maq), 'NEG cita: linha de contexto nao conta');
+ok(!diffCitaMaquina('+++ b/memory/x-deadlink-gate.yml.md\n', maq), 'NEG cita: cabecalho +++ nao conta');
+ok(!diffCitaMaquina('+nada de maquina aqui\n', maq), 'NEG cita: doc sem maquina');
+ok(!diffCitaMaquina('+`deadlink-gate`\n', new Set()), 'NEG cita: indice vazio nao dispara');
+ok(tokensDe('`a-b` x.mjs agents/z').size === 3, 'tokensDe: as 3 formas');
 
 // ---------------------------------------------------------------- (2) CLI de fora, em sandbox
 function sandbox({ staleInicial, comGerador = true }) {
@@ -231,6 +270,80 @@ console.log('CLI de fora (sandbox):');
   roda(dir, 'git commit -m x');
   ok(conteudo(dir) === 'indice velho\n' && !stageado(dir).includes(INDICE),
     'NAO-MEDICAO: saida vazia do gerador -> indice NAO e sobrescrito com nada');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// COMMIT SO DE DOC: sandbox com indice que lista uma maquina real
+function sandboxDoc() {
+  const dir = sandbox({ staleInicial: true });
+  writeFileSync(join(dir, INDICE), '| `deadlink-gate.yml` | pr |\n');
+  mkdirSync(join(dir, 'memory/requisitos/X'), { recursive: true });
+  return dir;
+}
+
+// MORDE: doc que passa a citar maquina -> regenera e estagia
+{
+  const dir = sandboxDoc();
+  writeFileSync(join(dir, 'memory/requisitos/X/SPEC.md'), 'o gate `deadlink-gate` cobre isto\n');
+  execFileSync('git', ['add', '--', 'memory/requisitos/X/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m "so doc"');
+  ok(conteudo(dir) === 'indice NOVO\n' && stageado(dir).includes(INDICE), 'DOC MORDE: doc cita maquina -> regenera e estagia');
+  ok(/documento que cita maquina/.test(r.stderr), 'DOC MORDE: a mensagem nomeia o motivo documento');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// MORDE: doc que DEIXA de citar (arquivo removido) -> linhas removidas contam
+{
+  const dir = sandboxDoc();
+  writeFileSync(join(dir, 'memory/requisitos/X/SPEC.md'), 'ver deadlink-gate.yml\n');
+  execFileSync('git', ['add', '-A'], { cwd: dir, stdio: 'ignore' });
+  execFileSync('git', ['commit', '-qm', 'base'], { cwd: dir, stdio: 'ignore' });
+  execFileSync('git', ['rm', '-q', '--', 'memory/requisitos/X/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  roda(dir, 'git commit -m "remove doc"');
+  ok(conteudo(dir) === 'indice NOVO\n', 'DOC MORDE: remover doc citador tambem regenera');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// NEG: doc que nao cita maquina -> nem roda o gerador
+{
+  const dir = sandboxDoc();
+  writeFileSync(join(dir, 'memory/requisitos/X/SPEC.md'), 'texto sem maquina nenhuma\n');
+  execFileSync('git', ['add', '--', 'memory/requisitos/X/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m x');
+  ok(r.stderr === '' && !conteudo(dir).includes('NOVO'), 'DOC NEG: doc sem maquina -> silencio, gerador nao roda');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// NEG: doc cita maquina mas indice ja FRESCO -> silencio
+{
+  const dir = sandboxDoc();
+  rmSync(join(dir, 'STALE'));
+  writeFileSync(join(dir, 'memory/requisitos/X/SPEC.md'), 'o gate `deadlink-gate`\n');
+  execFileSync('git', ['add', '--', 'memory/requisitos/X/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m x');
+  ok(r.stderr === '' && !stageado(dir).includes(INDICE), 'DOC NEG: indice fresco -> silencio (nao e presence-gate)');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// MORDE: CLAUDE.md sempre (os @imports decidem o rank da coluna)
+{
+  const dir = sandboxDoc();
+  writeFileSync(join(dir, 'CLAUDE.md'), '@memory/x.md\n');
+  execFileSync('git', ['add', '--', 'CLAUDE.md'], { cwd: dir, stdio: 'ignore' });
+  roda(dir, 'git commit -m x');
+  ok(conteudo(dir) === 'indice NOVO\n', 'DOC MORDE: CLAUDE.md dispara sempre');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// MORDE: -a leva doc so do working tree
+{
+  const dir = sandboxDoc();
+  writeFileSync(join(dir, 'memory/requisitos/X/SPEC.md'), 'base\n');
+  execFileSync('git', ['add', '-A'], { cwd: dir, stdio: 'ignore' });
+  execFileSync('git', ['commit', '-qm', 'base'], { cwd: dir, stdio: 'ignore' });
+  writeFileSync(join(dir, 'memory/requisitos/X/SPEC.md'), 'base\nagora `deadlink-gate`\n');
+  roda(dir, 'git commit -am x');
+  ok(conteudo(dir) === 'indice NOVO\n', 'DOC MORDE: -a considera doc do working tree');
   rmSync(dir, { recursive: true, force: true });
 }
 
