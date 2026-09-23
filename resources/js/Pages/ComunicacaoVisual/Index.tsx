@@ -80,16 +80,6 @@ interface ServerResult {
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const NUM = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 3 });
 
-/** Espelha round($n, $casas, PHP_ROUND_HALF_UP) do OrcamentoCalculator: meio pra longe do zero.
- *  O toPrecision(15) tira o resíduo binário antes de arredondar — sem ele 1,005 × 100 dá
- *  100,4999… e o centavo sai pra baixo, enquanto o PHP (que faz o mesmo pré-arredondamento)
- *  sobe. */
-function arred(n: number, casas: number): number {
-  const fator = 10 ** casas;
-  const deslocado = Number((Math.abs(n) * fator).toPrecision(15));
-  return (Math.sign(n) * Math.round(deslocado)) / fator;
-}
-
 function novoItem(): ItemUI {
   return {
     id: crypto.randomUUID(),
@@ -112,6 +102,16 @@ function areaDe(item: ItemUI): number {
 }
 function subtotalDe(item: ItemUI): number {
   return arred(areaDe(item) * arred(Math.max(0, item.preco_unitario_m2), 2), 2);
+}
+
+/** Espelha round($n, $casas, PHP_ROUND_HALF_UP) do OrcamentoCalculator: meio pra longe do zero.
+ *  O toPrecision(15) tira o resíduo binário antes de arredondar — sem ele 1,005 × 100 dá
+ *  100,4999… e o centavo sai pra baixo, enquanto o PHP (que faz o mesmo pré-arredondamento)
+ *  sobe. */
+function arred(n: number, casas: number): number {
+  const fator = 10 ** casas;
+  const deslocado = Number((Math.abs(n) * fator).toPrecision(15));
+  return (Math.sign(n) * Math.round(deslocado)) / fator;
 }
 
 export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar = false }: Props) {
