@@ -474,5 +474,13 @@
     "route": "/stock-transfers/create?v=2",
     "anchor": "Nova transferência de estoque",
     "baseline": "it_StockTransfer_Create_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+    },
+  {
+    "screen": "ComunicacaoVisual",
+    "source": "ComunicacaoVisual",
+    "component": "ComunicacaoVisual/Index",
+    "route": "/comunicacao-visual",
+    "anchor": "Calculadora de m²",
+    "baseline": "it_ComunicacaoVisual_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
