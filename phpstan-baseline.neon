@@ -8719,12 +8719,6 @@ parameters:
 			path: Modules/Ponto/Config/config.php
 
 		-
-			message: '#^Class Modules\\Essentials\\Entities\\EssentialsUserShiftHistory not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: Modules/Ponto/Config/config.php
-
-		-
 			message: '#^Parameter \#1 \$string of function str_pad expects string, int\<1, max\> given\.$#'
 			identifier: argument.type
 			count: 1
