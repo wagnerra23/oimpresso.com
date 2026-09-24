@@ -367,7 +367,6 @@ class DataController extends Controller
                                 ['key' => 'colaboradores','label' => 'Colaboradores',  'href' => '/users'],
                                 ['key' => 'leave',        'label' => 'Solicitações',   'href' => '/hrm/leave'],
                                 ['key' => 'leave-type',   'label' => 'Tipos de Folga', 'href' => '/hrm/leave-type'],
-                                ['key' => 'attendance',   'label' => 'Presença',       'href' => '/hrm/attendance'],
                                 ['key' => 'holiday',      'label' => 'Feriados',       'href' => '/hrm/holiday'],
                                 ['key' => 'payroll',      'label' => 'Folha',          'href' => '/hrm/payroll'],
                                 ['key' => 'settings',     'label' => 'Configurações',  'href' => '/hrm/settings'],
