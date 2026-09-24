@@ -8,8 +8,9 @@ import * as React from 'react';
  *   - `borderBottomColor: 'var(--border)'` inline (linha divisora dark-aware · token)
  *   - `pt-6 px-6 pb-3.5` (24/24/14 espelha Vendas canon Cowork)
  *   - `min-h-[60px] flex items-center gap-4` (3 zonas L/C/R)
- *   - H1 `text-[22px] font-bold tracking-tight leading-snug` (peso Vendas)
+ *   - H1 `text-[22px] font-semibold tracking-[-0.015em] leading-snug` (600 · token do DS)
  *          + `color: var(--text, var(--foreground))` inline (token do DS · warm-aware)
+ *          `titleWeight="bold"` (700) é opt-in — ver a prop.
  *   - Subtitle `text-xs text-muted-foreground tabular-nums`
  *
  * Histórico de iterações:
@@ -26,6 +27,9 @@ import * as React from 'react';
  *                      (/ia, dark): h1 `oklch(0.965 0.004 240)` FRIO contra corpo de tela
  *                      warm (`--text` = `oklch(0.94 0.005 90)`; 339 elementos em hue 90
  *                      × 284 em hue 240 na mesma tela). Fallback p/ portal — ver o h1.
+ *   h1 600 (2026-09-23): default do peso passa de 700 para 600 e `tracking-tight`
+ *                      (-0.025em) vira `-0.015em` — decisão [W] D-PH-0923, que supersede
+ *                      o "peso Vendas" do v3.2. Protótipo já atualizado (`.os-page-h-l`).
  *
  * Refs: ADR 0189 amendment v3.2-v3.8, ADR 0190 (primary roxo universal).
  *
@@ -57,12 +61,18 @@ export interface PageHeaderProps {
    */
   leading?: React.ReactNode;
   /**
-   * OPT-IN (2026-09-21): peso do `<h1>`. Default `'bold'` (700) — as 41 telas que
-   * não declaram renderizam exatamente como antes, mesmo contrato dos opt-in
-   * `leading` e `below` acima.
+   * Peso do `<h1>`. Default `'semibold'` (600, token do DS `colors_and_type.css`
+   * `h1 { font-weight: 600 }`) desde 2026-09-23 — decisão [W] D-PH-0923 ("h1 600"),
+   * registrada em `prototipo-ui/cowork/Wagner/cowork-inbox/pageheader/`.
+   * `'bold'` (700) segue disponível como opt-in explícito.
    *
-   * POR QUE existe, e por que NÃO virou mudança do default: as duas âncoras
-   * DISCORDAM entre si, e este componente só pode servir uma delas.
+   * ⚠️ O texto abaixo é o registro DATADO de 2026-09-21, quando a prop nasceu como
+   * opt-in com default `'bold'`. Ele fica como histórico; o argumento "mudar o
+   * default reverteria a decisão do #1477" foi resolvido por quem tinha a soberania:
+   * [W] decidiu o 600 para todas as telas em 2026-09-23.
+   *
+   * (2026-09-21) POR QUE existia, e por que então NÃO virou mudança do default: as
+   * duas âncoras DISCORDAVAM entre si, e este componente só podia servir uma delas.
    *
    *   - Vendas (`vendas-page.jsx` §`.os-head-l h1`) declara **700** em duas
    *     regras, e a que vence por especificidade é a de `financeiro.css:1727`
@@ -87,8 +97,9 @@ export interface PageHeaderProps {
    * impõe a forma de uma tela às outras: o caminho é réplica local", ADR 0388
    * §D-1, como o `JanaKpiCard` fez).
    *
-   * Portanto: quem tem âncora que herda o token do DS passa `'semibold'`; quem
-   * segue a âncora de Vendas não passa nada. Sem opt-in, zero pixel muda.
+   * (2026-09-21) Na época: quem herdava o token do DS passava `'semibold'`; quem
+   * seguia a âncora de Vendas não passava nada. Desde 2026-09-23 é o inverso: o
+   * padrão é 600 e quem quiser 700 passa `titleWeight="bold"`.
    */
   titleWeight?: 'bold' | 'semibold';
   /** Título principal · entidade da página. Ex: "Clientes", "Cobrança". */
@@ -132,7 +143,7 @@ export function PageHeader({
   below,
   children,
   className = '',
-  titleWeight = 'bold',
+  titleWeight = 'semibold',
 }: PageHeaderProps) {
   return (
     <header
@@ -148,8 +159,8 @@ export function PageHeader({
                detecta por varredura de texto, e `font-${titleWeight}` montado por
                interpolação não geraria nenhuma das duas no CSS final. */
             className={`text-[22px] ${
-              titleWeight === 'semibold' ? 'font-semibold' : 'font-bold'
-            } tracking-tight text-foreground leading-snug`}
+              titleWeight === 'bold' ? 'font-bold' : 'font-semibold'
+            } tracking-[-0.015em] text-foreground leading-snug`}
             /* Cor pelo token do DS (`--text`), não pelo `--foreground` do shadcn.
                MEDIDO em prod (/ia, dark, computed style) antes da mudança:
                  h1  → oklch(0.965 0.004 240)   ← shadcn, branco FRIO

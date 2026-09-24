@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-23**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-24**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -31,12 +31,12 @@ lente: [construir]
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-08-03 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-08-12 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-09-07 |
-| Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-05 |
+| Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-24 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-09-07 |
-| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-09-15 |
+| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-09-24 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-09-15 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-15 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-15 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-24 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-09-15 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-09-07 |
@@ -44,7 +44,7 @@ lente: [construir]
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-09-15 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-09-07 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-15 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-24 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-09-23 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **11/13** métricas medidas · floor full-suite = **275**.
+- Scorecard: **11/13** métricas medidas · floor full-suite = **278**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -146,13 +146,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **415** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 365 · superseded: 25 · proposto: 12 · deprecated: 11 · rascunho: 1 · recusado: 1.
+- **417** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 366 · superseded: 25 · proposto: 13 · deprecated: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 234 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 235 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -389,6 +389,7 @@ lente: [construir]
 - ~~2026-09-22 — Propor QUEBRAR um job de CI afirmando que "um step vermelho esconde os outros" sem ler o `if:` dos steps (216 de 220 rodavam com always())~~
 - ~~2026-09-23 — EMENDA da lápide 2026-07-27 (stash pop por posição): o aviso ARMADO sai em stderr com `exit 0` — fica gravado no transcript e, pelo que o corpus mostra, não chega ao agente~~
 - ~~2026-09-23 — C1 do `--omission` ("reaparece no `+` não é omissão") nasceu INERTE para a família `function`, e o bite-test dele exercitava outra família~~
+- ~~2026-09-23 — EMENDA da lápide 2026-08-20 (sondar o git com a mudança não commitada): o eixo HOOK — um PreToolUse decidia pelo índice ANTES do `git add` do próprio comando, e os testes dele nunca usaram a forma real~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -399,14 +400,14 @@ lente: [construir]
 
 ## Rastro
 
-- **557** handoffs · **767** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **566** handoffs · **768** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-23-serie-financeiro-layout-fin6b-balancete`
   - `2026-09-22-revisao-fluxos-maquinas-sem-baseline`
   - `2026-09-22-lacunas-revisao-fluxos-fechadas`
   - `2026-09-22-cobertura-modular-funil-design`
   - `2026-09-22-buracos-prototipo-producao`
   - `2026-09-21-zero-baseline-tier0`
-  - `2026-09-21-kpi-grid-breakpoint-e-tres-erros-de-medicao`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-23 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-24 · deriva das fontes canônicas, não as substitui._
