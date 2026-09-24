@@ -7,14 +7,12 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Modules\Essentials\Entities\Document;
-use Modules\Essentials\Entities\EssentialsAttendance;
 use Modules\Essentials\Entities\KnowledgeBase;
 use Modules\Essentials\Entities\ToDo;
 use Modules\Essentials\Policies\DocumentPolicy;
 use Modules\Essentials\Policies\KnowledgeBasePolicy;
 use Modules\Essentials\Policies\ToDoPolicy;
 use App\Utils\ModuleUtil;
-use Illuminate\Console\Scheduling\Schedule;
 
 class EssentialsServiceProvider extends ServiceProvider
 {
@@ -46,31 +44,10 @@ class EssentialsServiceProvider extends ServiceProvider
                 $view->with(compact('__is_essentials_enabled'));
             });
 
-            view::composer(['essentials::layouts.partials.header_part'], function ($view) {
-                $is_employee_allowed = false;
-                $clock_in = null;
-    
-                $module_util = new ModuleUtil();
-                if ($module_util->isModuleInstalled('Essentials')) {
-                    $business_id = session()->get('user.business_id');
-    
-                    //Check if employee are allowed or not to enter own attendance.
-                    $is_employee_allowed = auth()->user()->can('essentials.allow_users_for_attendance_from_web');
-    
-                    //Check if clocked in or not.
-                    $clock_in = EssentialsAttendance::where('essentials_attendances.business_id', $business_id)
-                                    ->leftjoin('essentials_shifts as es', 'es.id', '=', 'essentials_attendances.essentials_shift_id')
-                                    ->where('user_id', auth()->user()->id)
-                                    ->whereNull('clock_out_time')
-                                    ->select([
-                                        'clock_in_time', 'es.name as shift_name', 'es.start_time', 'es.end_time',
-                                    ])
-                                    ->first();
-                }
-    
-                $view->with(compact('is_employee_allowed', 'clock_in'));
-            });
-        
+            // O composer do botão de entrada/saída do cabeçalho saiu junto com o botão: a jornada
+            // é do Ponto (D1 [W] 2026-09-05; ADR 0014 emenda). Ele fazia uma query em
+            // essentials_attendances a cada página renderizada.
+
             view::composer(['essentials::attendance.clock_in_clock_out_modal',
             'essentials::attendance.create', ], function ($view) {
                 $util = new \App\Utils\Util();
@@ -100,14 +77,9 @@ class EssentialsServiceProvider extends ServiceProvider
 
     public function registerScheduleCommands()
     {
-        $env = config('app.env');
-        //schedule command for auto clock out user
-        if ($env === 'live') {
-            $this->app->booted(function () {
-                $schedule = $this->app->make(Schedule::class);
-                $schedule->command('pos:autoClockOutUser')->everyThirtyMinutes();
-            });
-        }
+        // `pos:autoClockOutUser` DESAGENDADO (ADR 0014 emenda, D1 [W] 2026-09-05): a presença web
+        // cedeu ao Ponto, e jornada congelada com o cron vivo fecharia marcação que ninguém mais
+        // abre. O command continua registrado (roda sob demanda); só o agendamento saiu.
     }
 
     /**

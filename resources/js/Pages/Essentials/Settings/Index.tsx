@@ -10,7 +10,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { Clock, Hash, MapPin, Save, Settings as SettingsIcon, Target } from 'lucide-react';
+import { Hash, Save, Settings as SettingsIcon, Target } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -23,11 +23,6 @@ interface Settings {
   leave_instructions: string;
   payroll_ref_no_prefix: string;
   essentials_todos_prefix: string;
-  grace_before_checkin: string;
-  grace_after_checkin: string;
-  grace_before_checkout: string;
-  grace_after_checkout: string;
-  is_location_required: boolean;
   calculate_sales_target_commission_without_tax: boolean;
 }
 
@@ -54,7 +49,7 @@ export default function SettingsIndex({ settings }: Props) {
             <SettingsIcon size={22} /> Configurações
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Prefixos, janelas de tolerância do ponto e preferências do módulo.
+            Prefixos, instruções de afastamento e preferências do módulo.
           </p>
         </header>
 
@@ -120,51 +115,7 @@ export default function SettingsIndex({ settings }: Props) {
             </CardContent>
           </Card>
 
-          {/* Grace period */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Clock size={16} /> Tolerâncias de ponto (minutos)
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Janela permitida antes/depois do horário esperado de entrada e saída.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="g-before-in" className="text-xs">Antes de entrar</Label>
-                <Input
-                  id="g-before-in"
-                  value={form.data.grace_before_checkin}
-                  onChange={(e) => form.setData('grace_before_checkin', e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="g-after-in" className="text-xs">Depois de entrar</Label>
-                <Input
-                  id="g-after-in"
-                  value={form.data.grace_after_checkin}
-                  onChange={(e) => form.setData('grace_after_checkin', e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="g-before-out" className="text-xs">Antes de sair</Label>
-                <Input
-                  id="g-before-out"
-                  value={form.data.grace_before_checkout}
-                  onChange={(e) => form.setData('grace_before_checkout', e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="g-after-out" className="text-xs">Depois de sair</Label>
-                <Input
-                  id="g-after-out"
-                  value={form.data.grace_after_checkout}
-                  onChange={(e) => form.setData('grace_after_checkout', e.target.value)}
-                />
-              </div>
-            </CardContent>
-          </Card>
+          {/* Tolerâncias de ponto: aposentadas em 2026-09-24 — a jornada é do Ponto (ADR 0014 emenda). */}
 
           {/* Flags */}
           <Card>
@@ -172,21 +123,6 @@ export default function SettingsIndex({ settings }: Props) {
               <CardTitle className="text-base">Comportamentos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-start gap-3">
-                <Switch
-                  id="sw-location"
-                  checked={form.data.is_location_required}
-                  onCheckedChange={(v) => form.setData('is_location_required', v)}
-                />
-                <div>
-                  <Label htmlFor="sw-location" className="flex items-center gap-1 cursor-pointer">
-                    <MapPin size={12} /> Exigir localidade no ponto
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Colaborador deve selecionar loja ao bater ponto.
-                  </p>
-                </div>
-              </div>
               <div className="flex items-start gap-3">
                 <Switch
                   id="sw-sales"

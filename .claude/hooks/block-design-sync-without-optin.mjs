@@ -90,6 +90,38 @@ export function classifyDesignSync(toolName, toolInput = {}) {
   return { isDesignSync: true, method, isWrite, reason };
 }
 
+// ── RETORNO do Code ao Cowork: a única escrita que dispensa opt-in ─────────────
+// [W] 2026-09-24: "quando for gerar um retorno já use o upload designsync". O sentido Code ->
+// Cowork do ciclo (recibo `_saida`, errata de playbook, restauração em `cowork-inbox/`) não
+// existia como passo, e cada mudança do Code no espelho era desfeita ou derrubava o gate
+// "espelho — mexeu depois de verificar" no retorno seguinte (#7843, #7866, e o import (35), que
+// ia podar 12 arquivos do #7847). O retorno agora sobe pelo DesignSync, mas SÓ neste canal:
+//   · projeto de TELAS (não o Design System — ADR 0315 segue valendo pra ele);
+//   · todo path sob `cowork-inbox/` (o canal de PEDIDO/RECIBO; telas `*.jsx`/CSS não entram);
+//   · path literal, sem curinga e sem `..`; nenhuma deleção;
+//   · no write_files, conteúdo por `localPath` (sai do disco — ADR 0374, nunca transcrito).
+// Fora disso, tudo continua exigindo o opt-in explícito abaixo. Quem diz O QUE subir é o
+// `scripts/design-sync/pendentes-cowork.mjs --plano`.
+export const RETORNO_PROJECT_ID = '019dcfd3-6ef2-7ee6-8512-b1b0e5544e58';
+const pathDoRetorno = (p) => typeof p === 'string' && p.startsWith('cowork-inbox/')
+  && !p.includes('*') && !p.split('/').includes('..') && !p.includes('\\');
+
+export function isRetornoCoworkInbox(toolInput = {}) {
+  const i = toolInput || {};
+  if (i.projectId !== RETORNO_PROJECT_ID) return false;
+  if (i.method === 'finalize_plan') {
+    const writes = Array.isArray(i.writes) ? i.writes : [];
+    const deletes = Array.isArray(i.deletes) ? i.deletes : [];
+    return writes.length > 0 && deletes.length === 0 && writes.every(pathDoRetorno);
+  }
+  if (i.method === 'write_files') {
+    const files = Array.isArray(i.files) ? i.files : [];
+    return files.length > 0 && files.every((f) => f && pathDoRetorno(f.path)
+      && typeof f.localPath === 'string' && f.localPath.length > 0 && f.data === undefined);
+  }
+  return false;
+}
+
 // ── Opt-in (exige INTENÇÃO de publicar, não menção — furo #2 fechado) ─────────
 // Discutir/perguntar sobre a feature NÃO arma escrita. Arma só: (a) o comando /design-sync,
 // ou (b) nomear a feature (design-sync / claude.ai/design) JUNTO de um verbo de publicar.
@@ -187,6 +219,7 @@ async function main() {
     const c = classifyDesignSync(p.tool_name || '', p.tool_input || {});
     if (!c.isDesignSync) process.exit(0); // não é DesignSync → segue
     if (!c.isWrite) process.exit(0); // método de leitura → inspeção livre
+    if (isRetornoCoworkInbox(p.tool_input || {})) process.exit(0); // retorno do Code (ver acima)
     if (hasValidOptIn()) process.exit(0); // Wagner autorizou (flag/env/arquivo)
 
     process.stderr.write(denyMessage(c.method) + '\n');
