@@ -28,6 +28,8 @@ on:
     branches: [main]
     paths:
       - 'Modules/Essentials/**'
+      - 'Modules/Connector/Routes/api.php'
+      - 'Modules/Connector/Http/Controllers/Api/AttendanceController.php'
       - 'tests/Feature/Calculo/CalculoValorPayrollTest.php'
       - 'tests/Feature/Essentials/**'
       - 'resources/js/Pages/Essentials/**'
@@ -68,6 +70,8 @@ jobs:
           filters: |
             essentials:
               - 'Modules/Essentials/**'
+              - 'Modules/Connector/Routes/api.php'
+              - 'Modules/Connector/Http/Controllers/Api/AttendanceController.php'
               - 'tests/Feature/Calculo/CalculoValorPayrollTest.php'
               - 'tests/Feature/Essentials/**'
               - 'resources/js/Pages/Essentials/**'
@@ -121,6 +125,7 @@ jobs:
             Modules/Essentials/Tests/Feature/HrmMetasTest.php \
             tests/Feature/Essentials/DocumentsIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/AttendanceImportMultiTenantTest.php \
+            Modules/Essentials/Tests/Feature/HrmPresencaCedeAoPontoTest.php \
             Modules/Essentials/Tests/Feature/HrmTiposIndexTest.php \
             tests/Feature/Essentials/KnowledgeIndexContratoTest.php \
             tests/Feature/Calculo/CalculoValorPayrollTest.php

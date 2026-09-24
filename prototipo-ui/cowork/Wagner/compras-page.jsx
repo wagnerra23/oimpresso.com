@@ -644,7 +644,7 @@ function DrawerView({ p, tab, setTab, stageIdx, close }) {
             {p.products ? (
               <table className="items-tbl">
                 <thead><tr>
-                  <th scope="col">Produto</th><th scope="col" className="num">Qtd</th><th scope="col" className="num">Custo unit.</th><th scope="col" className="num">Total</th><th scope="col" className="num">Venda</th><th scope="col" className="num">Margem</th>
+                  <th scope="col">Produto</th><th scope="col" className="num">Qtd</th><th scope="col" className="num">Custo unit.</th><th scope="col" className="num">Total</th><th scope="col" className="num">Venda</th>
                 </tr></thead>
                 <tbody>
                   {p.products.map((it, i) => (
@@ -654,7 +654,6 @@ function DrawerView({ p, tab, setTab, stageIdx, close }) {
                       <td className="num">{fmt(it.net)}{it.disc > 0 && <small style={{ textAlign: "right", color: "var(--cmp-ok)" }}>−{it.disc}%</small>}</td>
                       <td className="num"><b>{fmt(it.total)}</b></td>
                       <td className="num">{fmt(it.sellPrice)}</td>
-                      <td className="num" style={{ color: "var(--cmp-ok)", fontWeight: 600 }}>+{it.margin}%</td>
                     </tr>
                   ))}
                 </tbody>
