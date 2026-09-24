@@ -118,6 +118,11 @@ class DataController extends Controller
                     ],
                     'ghosts'   => [
                         ['key' => 'lista', 'label' => 'Lista', 'href' => '/compras'],
+                        // Fornecedores = a lista que ja existe no cadastro de contatos
+                        // (contacts type=supplier). Decisao [W] 2026-09-24, thread 03
+                        // do playbook Compras: atalho, nao tela propria — a ficha do
+                        // fornecedor (scorecard C11) segue segurada no SPEC.
+                        ['key' => 'fornecedores', 'label' => 'Fornecedores', 'href' => '/cliente?type=supplier'],
                     ],
                 ]
             )->order(45);
