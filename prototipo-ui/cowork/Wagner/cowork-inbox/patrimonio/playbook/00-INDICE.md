@@ -48,14 +48,14 @@ O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Ti
 | **10** | **Manutenções** — carrega o D1 | ~8 KB | ~220 ln | 2 | 2 | 0 | **CABE** · não corrige o D1 |
 | **11** | **Configurações** | ~5 KB | ~150 ln | 2 | 2 | 0 | **CABE** · menor da frente |
 | **12** | **Garantias** — tela nova, dado existente | ~6 KB | ~200 ln | 2 | 2 | **1** | **BLOQUEADA** por D-GARANTIAS |
-| **13** | **Auditoria** | — | — | 0 | — | **1** | **BLOQUEADA** por D-AUDITORIA |
+| **13** | **Auditoria** — deep-link p/ `Modules/Auditoria` | ~6 KB | ~45 ln | 2 | 1 | 0 | **CABE** · D-AUDITORIA respondida (ADR 0414) |
 | **14** | Provas de 09/10/11 apontam subpasta; o `main` é flat | ~22 KB | ~12 ln (JSON) | 1 | — | 0 | **CABE** · 1ª |
 | **15** | As 8 chamadas de view que não têm arquivo | ~12 KB | 0 | 0 | — | 0 | **CABE** (medição) |
 | **16** | Revogações entram na aba de Alocações | ~11 KB | ~120 ln | 3 | — | 0 | **CABE** · atrás da 15 |
-| 17 | Bens — formulário (create/edit/show) | ~21 KB | ~260 ln | 2 | — | **1** | **BLOQUEADA** por D-FORMS |
-| 18 | Alocações — formulário | ~15 KB | ~220 ln | 2 | — | **1** | **BLOQUEADA** por D-FORMS |
-| 19 | Manutenções — formulário | ~19 KB | ~220 ln | 2 | — | **1** | **BLOQUEADA** por D-FORMS |
-| 20 | Configurações — formulário | ~18 KB | ~160 ln | 2 | — | **1** | **BLOQUEADA** por D-FORMS |
+| 17 | Bens — formulário (create/edit/show) | ~21 KB | ~260 ln | 2 | — | 0 | **CABE** · atrás da 16 · D-FORMS respondida (ADR 0414) |
+| 18 | Alocações — formulário | ~15 KB | ~220 ln | 2 | — | 0 | **CABE** · atrás da 16 · D-FORMS respondida (ADR 0414) |
+| 19 | Manutenções — formulário | ~19 KB | ~220 ln | 2 | — | 0 | **CABE** · atrás da 16 · D-FORMS respondida (ADR 0414) |
+| 20 | Configurações — formulário | ~18 KB | ~160 ln | 2 | — | 0 | **CABE** · atrás da 16 · D-FORMS respondida (ADR 0414) |
 
 A ficha 05 registra a invalidação do pedido antigo pela decisão canônica de 27/07.
 
@@ -106,7 +106,7 @@ resíduo histórico foi resolvido pelo SCOPE (`asset.*`); o item 10 foi descarta
 canônica, não é uma pergunta de quando ligar. O bloco abaixo preserva o retrato original.
 
 ## 6 · RESÍDUO HISTÓRICO — levantamento com D-ENDERECO respondida em 08/09
-**1** ~~Módulo próprio ou seção do Estoque?~~ **RESPONDIDA [W] 2026-09-08** → `Pages/Patrimonio/**`, módulo próprio ([ADR 0394](../../../../../memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md)) · **2** prefixo de permissão: `asset.*` (código) ou `assetmanagement.*` (SCOPE)? · **3** custo de manutenção entra (não há coluna)? · **4** Garantias é tela ou filtro de Bens? · **5** Auditoria é aba daqui ou do `Modules/Auditoria`? · **6** depreciação: linear ou SAC, com que fonte contábil? (a coluna já existe e é gravada, mas nunca calculada) · **7** baixa/disposal: `status` ou tabela própria? (hoje "dar baixa" = **deletar o bem**) · **8** transferência entre locais: transação ou edição do `location_id`? · **9** QR + scan mobile entra ou vira Non-Goal escrito? · **10** quando ligar o purge LGPD em canary? · **11** placa veicular: Patrimônio e Oficina falam do mesmo veículo?
+**1** ~~Módulo próprio ou seção do Estoque?~~ **RESPONDIDA [W] 2026-09-08** → `Pages/Patrimonio/**`, módulo próprio ([ADR 0394](../../../../../memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md)) · **2** prefixo de permissão: `asset.*` (código) ou `assetmanagement.*` (SCOPE)? · **3** custo de manutenção entra (não há coluna)? · **4** Garantias é tela ou filtro de Bens? · **5** ~~Auditoria é aba daqui ou do `Modules/Auditoria`?~~ **RESPONDIDA [W] 2026-09-24** → deep-link para o `Modules/Auditoria` filtrado ([ADR 0414](../../../../../memory/decisions/0414-patrimonio-auditoria-deep-link-e-formularios-em-drawer-react.md)) · **6** depreciação: linear ou SAC, com que fonte contábil? (a coluna já existe e é gravada, mas nunca calculada) · **7** baixa/disposal: `status` ou tabela própria? (hoje "dar baixa" = **deletar o bem**) · **8** transferência entre locais: transação ou edição do `location_id`? · **9** QR + scan mobile entra ou vira Non-Goal escrito? · **10** quando ligar o purge LGPD em canary? · **11** placa veicular: Patrimônio e Oficina falam do mesmo veículo?
 
 Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º módulo** com o mesmo achado (CRM, Repair, HRM, Patrimônio). Vira pedido do DS, não onda daqui.
 
@@ -143,22 +143,24 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
     {
       "id": "D-AUDITORIA",
       "pergunta": "Auditoria do Patrimonio e aba deste modulo ou deep-link para o Modules/Auditoria ja filtrado? (RESIDUO 5). Duplicar cria dois donos do mesmo tema.",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "13"
-      ]
+      ],
+      "resposta": "deep-link para /auditoria?subject_type=<Asset> (Modules/Auditoria segue dono unico) — [W] 2026-09-24; ADR 0414"
     },
     {
       "id": "D-FORMS",
       "pergunta": "As sub-telas de escrita (create/edit/show) dos 4 CRUDs do Patrimonio migram para React (drawer PT-02, fonte patrimonio-forms.jsx) ou seguem Blade como Non-Goal permanente? Hoje os 5 charters declaram Non-Goal COM motivo — sem resposta [W], as threads 17-20 nao abrem.",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "17",
         "18",
         "19",
         "20"
       ],
-      "custo": "4 PRs de ~200-260 ln + 8 views Blade retiradas"
+      "custo": "4 PRs de ~200-260 ln + 8 views Blade retiradas",
+      "resposta": "migram para drawers React (PT-02, fonte patrimonio-forms.jsx), mesmo caminho do cadastro do #7832 — [W] 2026-09-24; ADR 0414. A opcao Blade deixou de existir: as views create/edit devolvem 200 com 0 bytes (Bens.charter.md)."
     }
   ],
   "threads": [
@@ -443,17 +445,28 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
     {
       "id": "13",
       "titulo": "Auditoria — aba daqui ou do Modules/Auditoria?",
-      "dono": "W",
+      "dono": "CL",
       "arquivo": "13-auditoria-bloqueada.md",
-      "prefixo": [],
-      "nao_toca": [
-        "*"
+      "prefixo": [
+        "Modules/AssetManagement/Http/Controllers/DataController.php",
+        "Modules/AssetManagement/Tests/Feature/MenuGhostsContratoTest.php"
       ],
-      "bloqueio": "Decisao [W] 5 do RESIDUO: o Modules/Auditoria ja e dono da trilha por-registro; abrir uma segunda aqui cria dois donos do mesmo tema (LC-19). A opcao barata e deep-link para a tela dele ja filtrada por subject_type=Asset — e ai nao ha tela a construir.",
+      "nao_toca": [
+        "resources/js/Pages/Patrimonio/_shared/",
+        "Modules/Auditoria/"
+      ],
       "depende_decisoes": [
         "D-AUDITORIA"
       ],
-      "provas": []
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Http/Controllers/DataController.php",
+          "padrao": "'key'   => 'auditoria'"
+        }
+      ],
+      "vaga": 1,
+      "nota_provas": "D-AUDITORIA respondida 2026-09-24 (ADR 0414): ghost auditoria no DataController -> /auditoria?subject_type=<Asset>, gated pelas camadas do proprio Modules/Auditoria. PR #7916."
     },
     {
       "id": "14",
@@ -543,7 +556,6 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "depende_decisoes": [
         "D-FORMS"
       ],
-      "bloqueio": "D-FORMS — os charters declaram create/edit/show como Non-Goal COM motivo. Nao executar antes da resposta [W].",
       "provas": []
     },
     {
@@ -565,7 +577,6 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "depende_decisoes": [
         "D-FORMS"
       ],
-      "bloqueio": "D-FORMS",
       "provas": []
     },
     {
@@ -587,7 +598,6 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "depende_decisoes": [
         "D-FORMS"
       ],
-      "bloqueio": "D-FORMS — e o controller do D1 (&& onde deveria ser ||, 6 sitios). Registrar, nao corrigir aqui.",
       "provas": []
     },
     {
@@ -609,7 +619,6 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "depende_decisoes": [
         "D-FORMS"
       ],
-      "bloqueio": "D-FORMS",
       "provas": []
     }
   ]

@@ -3,6 +3,42 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-24T18:55:00Z
+tree: 07036a68a049
+branch: main
+
+### Updated in this project
+- **Fichas `ds-atomos/04-tabela-densa.md` e `05-statusbadge-kinds.md` escritas** (âncoras lidas inteiras: `shared/DataTable.tsx` 19.800 B · `shared/StatusBadge.tsx` 15.840 B). Índice: 04 e 05 sem bloqueio, provas estruturais + execução; 05 passa a [CL].
+
+## Sync anterior (2026-09-24 18:47)
+date: 2026-09-24T18:47:26Z
+tree: d0687563b004
+branch: main
+
+### Updated in this project
+- **`ponto/09` fechada (`_saida-09.md`, 11/11 telas medidas):** Intercorrências ganhou filtros Estado/Tipo + vazio em 2 casos + confirmação ao submeter/cancelar (`ponto-telas.jsx?v=pt29int`). Importações, Configurações e Escalas/Form já batiam ou estavam à frente; enums divergentes de BH e Importações declarados como pergunta.
+
+## Sync anterior (2026-09-24 18:44)
+date: 2026-09-24T18:44:16Z
+tree: (main após 8752fa20775a — 14 commits)
+branch: main
+
+### Updated in this project
+- **8 recibos novos do Code conferidos** (compras 03/04 · hrm 06/10 · pageheader 01/06 · patrimonio 13/16) — já estavam no projeto, iguais ao `main`.
+- **`ponto/00-INDICE.md` atualizado pelo `_DECISOES-W-2026-09-24.md`** (ADR 0413): W1–W4 e W7 respondidas; 04, 05 e 12 viram [CL] e destravadas; 05 sem dependência. Abertas W8 · W9 · W10.
+
+## Sync anterior (2026-09-24 17:51)
+date: 2026-09-24T17:51:36Z
+tree: 8752fa20775a
+branch: main
+
+### Updated in this project
+- **Retornos do Code (22 `_saida` novos) já estavam no projeto.** `RESIDUO-6` marcada respondida no índice do `hrm` ([W]: as 5 chaves migram para o Ponto — registrado no `_saida-07a` do Code).
+- **`ponto/09` parcial:** Escalas sem "Remover" quando há vínculo (`Em uso por N colaborador(es)` + `data-testid` da produção); Relatórios já honesto com os 501. Recibo como `_parcial-09.md` (não `_saida`) para a thread seguir aberta no placar.
+- **`ponto/09` · Aprovações puxada de `Pages/Ponto/Aprovacoes/Index.tsx` (lido inteiro, 2026-09-24T18:01Z):** 6 KPIs-filtro por estado, filtro Prioridade, "impacta apuração", Ver sempre, confirmar antes de aprovar, Modal de rejeição com motivo 5–500. `ponto-telas.jsx?v=pt27apr`.
+- **`ponto/09` · Colaboradores + Banco de horas lidos inteiros (2026-09-24T18:05Z):** Colaboradores ganhou estado vazio em 2 casos + ajuda literal dos switches (`?v=pt28col`); máscara CPF/PIS confirmada como protótipo→produção. Banco de horas sem mudança — enum `tipo` real (`CREDITO_HE…PAGAMENTO`) diverge do mock `origem`; pergunta registrada.
+
+## Sync anterior (2026-09-24 13:03)
 date: 2026-09-24T13:03:05Z
 tree: 68e071305601
 branch: main

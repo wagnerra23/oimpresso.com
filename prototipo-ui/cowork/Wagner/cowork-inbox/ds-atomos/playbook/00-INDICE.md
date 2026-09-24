@@ -54,8 +54,8 @@ Exportar o alvo anterior seria exportar 3,18 com selo de aprovação (§5-bis). 
 | **01** | `ui/card.tsx` — `badge` · `note` · `flush` | 1 arquivo | leitura **1.987 B** · escrita ~60 ln · 3 símbolos · 0 decisões | **CABE** |
 | **02** | `shared/KpiCard.tsx` — `variant="filter"` | 1 arquivo | leitura **11.135 B** · escrita ~70 ln · 3 símbolos · 0 decisões | **CABE** |
 | **03** | `shared/Toolbar.tsx` — CRIAR (3 zonas) | 1 arquivo | leitura **2.764 B** (`PageFilters`, só p/ não duplicar) · escrita ~90 ln · 2 símbolos · 0 | **CABE** |
-| 04 | tabela densa | — | — | **BLOQUEADA** por `D-GRADE` |
-| 05 | `StatusBadge` kinds | — | 17.674 B **não recortados** | **NÃO MEDIDA** |
+| 04 | tabela densa | `${SH}/DataTable.tsx` | aguarda ficha | **DECIDIDA** — `D-GRADE` = servidor ([W] 2026-09-24) · falta a ficha |
+| 05 | `StatusBadge` kinds | `${SH}/StatusBadge.tsx` | aguarda ficha | **MEDIDA e DECIDIDA** — `D-SB-KINDS` ([W] 2026-09-24) · falta a ficha |
 
 **Ordem:** 01 → 02 → 03 são independentes (3 PRs paralelos). 04 só depois de `D-GRADE`. 05 exige eu recortar o `StatusBadge` antes — é minha, não do [CL].
 
@@ -78,7 +78,7 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
   "modulo": "ds-atomos",
   "sha": "2b4a3ec3b48a",
   "gerado": "2026-09-09",
-  "nota_caminho": "reemitido em 2026-09-09 (v2): alvo remedido pos-limpeza dos spacers · largura 1280px declarada · guardas de metodo. Leitura do main em 2026-09-09T10:53Z.",
+  "nota_caminho": "reemitido em 2026-09-09 (v2): alvo remedido pos-limpeza dos spacers · largura 1280px declarada · guardas de metodo. Leitura do main em 2026-09-09T10:53Z. | 2026-09-24 [W]+Code: D-GRADE e D-SB-KINDS respondidas; 04/05 aguardam ficha.",
   "variaveis": {
     "UI": "resources/js/Components/ui",
     "SH": "resources/js/Components/shared",
@@ -96,13 +96,27 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
     {
       "id": "D-GRADE",
       "pergunta": "Tabela densa vira DataGrid no cliente ou segue LengthAwarePaginator no servidor? (W11)",
-      "respondida": false,
+      "respondida": true,
       "afeta": [
         "04"
       ],
       "destrava": [
         "04"
-      ]
+      ],
+      "resposta": "SERVIDOR — mantem LengthAwarePaginator. [W] 2026-09-24. A 04 vira prop ADITIVA density=\"dense\" no shared/DataTable.tsx (que ja pagina no servidor via paginator Inertia; 11 telas consumidoras, default inalterado). Nenhum controller muda. Medido em 4807395dc: 66 arquivos PHP com ->paginate( · 43 Pages leem last_page · 128 Pages com <table> cru · ui/table.tsx inexistente."
+    },
+    {
+      "id": "D-SB-KINDS",
+      "respondida": true,
+      "afeta": [
+        "05"
+      ],
+      "destrava": [
+        "05"
+      ],
+      "pergunta": "Quais kinds do StatusBadge do DS entram no shared/StatusBadge de producao?",
+      "resposta": "sla + atendimento + frescor, SEM token novo — [W] 2026-09-24. Mapeados nos tons soft que ja existem em ui/badge (success/warning/danger/info/neutral, AP7 da thread 08 vence o fill solido do espelho) + props rel e tone. FORA: fiscal (FiscalStatusBadge e fonte unica — REGISTRY_DS_COMPONENTES, 5 consumidores) e tipo PJ/PF (exigiria --color-tipo-pj/-pf, 0 no repo).",
+      "emenda": "[W] 2026-09-24: cores próprias do DS para canais e SLA; Atrasado ≠ Vencido. Usa tokens que JÁ existem (--sla-*, --canal-*-tint/-fg em semantic.tokens.json:198–223) — continua sem token novo."
     }
   ],
   "threads": [
@@ -222,31 +236,97 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
     },
     {
       "id": "04",
-      "titulo": "tabela densa",
+      "titulo": "shared/DataTable.tsx — density=\"dense\" aditivo (D-GRADE: servidor)",
       "dono": "CL",
       "arquivo": "04-tabela-densa.md",
-      "prefixo": [],
-      "nao_toca": [],
+      "prefixo": [
+        "${SH}/DataTable.tsx",
+        "tests/js/datatable-density.test.tsx"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/**",
+        "resources/js/Components/ui/**"
+      ],
       "depende_threads": [
         "01"
       ],
       "depende_decisoes": [
         "D-GRADE"
       ],
-      "bloqueio": "D-GRADE — decisao de W (DataGrid no cliente x paginator no servidor)",
-      "provas": []
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${SH}/DataTable.tsx",
+          "padrao": "density"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "tests/js/datatable-density.test.tsx"
+        },
+        {
+          "tipo": "execucao",
+          "path": "${SH}/DataTable.tsx",
+          "testes": [
+            "npm run test -- datatable-density"
+          ],
+          "nota": "default byte-idêntico; dense com os números da §Alvo"
+        }
+      ]
     },
     {
       "id": "05",
-      "titulo": "StatusBadge kinds",
-      "dono": "CC",
+      "titulo": "shared/StatusBadge.tsx — kinds sla · frescor · atendimento + rel/tone (tokens --sla-*/--canal-* existentes)",
+      "dono": "CL",
       "arquivo": "05-statusbadge-kinds.md",
-      "prefixo": [],
-      "nao_toca": [],
+      "prefixo": [
+        "${SH}/StatusBadge.tsx",
+        "tests/js/statusbadge-kinds.test.tsx"
+      ],
+      "nao_toca": [
+        "resources/js/Components/ui/badge.tsx",
+        "resources/js/Pages/**",
+        "resources/css/**"
+      ],
       "depende_threads": [],
-      "depende_decisoes": [],
-      "bloqueio": "nao medida — shared/StatusBadge.tsx (17.674 B) nao foi recortado; e minha, nao do CL",
-      "provas": []
+      "depende_decisoes": [
+        "D-SB-KINDS"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${SH}/StatusBadge.tsx",
+          "padrao": "frescor:"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "${SH}/StatusBadge.tsx",
+          "padrao": "tipo-pj",
+          "guarda": true
+        },
+        {
+          "tipo": "arquivo",
+          "path": "tests/js/statusbadge-kinds.test.tsx"
+        },
+        {
+          "tipo": "execucao",
+          "path": "${SH}/StatusBadge.tsx",
+          "testes": [
+            "npm run test -- statusbadge-kinds"
+          ],
+          "nota": "13 chaves literais do DS; kinds antigos sem diff"
+        },
+        {
+          "tipo": "contem",
+          "path": "${SH}/StatusBadge.tsx",
+          "padrao": "--sla-expired"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "${SH}/StatusBadge.tsx",
+          "padrao": "canal-email-bg",
+          "guarda": true
+        }
+      ]
     },
     {
       "id": "08",
