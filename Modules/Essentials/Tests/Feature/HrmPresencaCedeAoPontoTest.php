@@ -30,6 +30,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * Tier 0 (ADR 0093 + ADR 0358): tenant de teste 98, nunca biz=4. DatabaseTransactions.
  *
  * @group hrm
+ * @covers-us US-ESS-014
  */
 const HPC_BIZ = 98;
 

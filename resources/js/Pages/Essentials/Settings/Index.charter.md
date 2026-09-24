@@ -8,6 +8,7 @@ owner: wagner
 status: draft
 last_validated: "2026-07-11"
 parent_module: Essentials
+related_us: [US-ESS-014]
 related_adrs: [114, 101, 93]
 tier: B
 charter_version: 1
