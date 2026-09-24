@@ -274,6 +274,25 @@ Então recebe `403 Unauthorized`
 
 ---
 
+### US-ESS-014 · Configurações do módulo por business (admin)
+
+**Implementado em:** `Modules/Essentials/Http/Controllers/EssentialsSettingsController.php` (`edit`, `update`) · `resources/js/Pages/Essentials/Settings/Index.tsx` (+ `Index.charter.md`) · `Modules/Essentials/Routes/web.php`
+
+**Testado em:** `Modules/Essentials/Tests/Feature/HrmPresencaCedeAoPontoTest.php` (UC-HRM-PRES-05)
+
+**Como** administrador do business
+**Quero** definir os prefixos de referência (tarefas, folha, afastamentos), as instruções de afastamento e se a meta de vendas é apurada sem impostos
+**Para** que os documentos e o cálculo do módulo sigam a regra do meu negócio
+
+**Regras:**
+
+- Grava em `business.essentials_settings` (JSON) do próprio business, e só o admin vê e edita.
+- Desde 2026-09-24 ([ADR 0014](../../decisions/0014-essentials-pontowr2-integracao.md) emenda) **não** configura tolerância de marcação nem exigência de localização: as 5 chaves de presença foram aposentadas, porque a jornada é do Ponto e lá a lei já fixa as duas coisas. Um save desta tela não grava mais essas chaves.
+
+**DoD:** o save grava as chaves vivas e não grava as aposentadas, e a tela não as entrega no payload.
+
+---
+
 ## Cobertura de testes Pest (2026-05-16 Wave Massive)
 
 | Arquivo | Casos | Pré-req |

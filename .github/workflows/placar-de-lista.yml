@@ -37,9 +37,12 @@ on:
     branches: [main]
     paths:
       - 'prototipo-ui/cowork/Wagner/cowork-inbox/**/playbook/**'
+      # Recibo em QUALQUER path: o #7224 apagou 16 em `design-docs/`, fora do gatilho acima.
+      - '**/_saida-*.md'
       - 'scripts/qa/placar-indice.mjs'
       - 'scripts/qa/placar-indice.test.mjs'
       - 'scripts/qa/placar.mjs'
+      - 'scripts/qa/placar-recibos.test.mjs'
       - '.github/workflows/placar-de-lista.yml'
   workflow_dispatch:
 
@@ -57,6 +60,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # 2 = o merge ref e o 1º pai dele (a base). O passo do recibo compara HEAD^1..HEAD.
+          fetch-depth: 2
 
       - uses: actions/setup-node@v4
         with:
@@ -96,3 +102,20 @@ jobs:
             const meu = antigos.find((c) => c.body && c.body.includes(MARCA));
             if (meu) await github.rest.issues.updateComment({ owner, repo, comment_id: meu.id, body });
             else await github.rest.issues.createComment({ owner, repo, issue_number, body });
+
+      # ── RECIBO APAGADO (incidente #7842 · #7844, 2026-09-23) ────────────────────────────────────────────────────
+      # Sem o `_saida`, uma thread já mergeada volta a `proximo` e o /onda manda outra sessão
+      # refazê-la. Medido no histórico do main: 2 commits apagaram recibo (#7224: 21, #7445: 27),
+      # os dois como perda, e nos 48 commits que tocaram `_saida` a guarda acusa só esses 2.
+      # O predicado é por CONTEÚDO: mudança de pasta e cópia idêntica noutro path passam.
+      # HEAD^1..HEAD = base..merge ref (checkout de pull_request), idioma do visual-regression
+      # (§5 2026-09-15: nunca `pull_request.base.sha`, que congela). Último passo de propósito:
+      # o comentário do placar sai mesmo quando este passo reprova.
+      # Saída consciente: label `recibo-apagado-ok` (thread removida do índice de propósito).
+      # ADVISORY como o resto deste job (ADR 0275) — promover a required é flip [W] (ADR 0336).
+      - name: Bite-test da guarda de recibo (9 casos)
+        run: node scripts/qa/placar-recibos.test.mjs
+
+      - name: Nenhum recibo `_saida` apagado sem recolocar o mesmo conteúdo
+        if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'recibo-apagado-ok')
+        run: node scripts/qa/placar.mjs --recibos-perdidos --base HEAD^1 --head HEAD
