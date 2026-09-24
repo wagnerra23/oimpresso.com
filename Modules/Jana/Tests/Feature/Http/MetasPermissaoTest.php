@@ -20,10 +20,9 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * biz B — nem pra quem tem `jana.superadmin` (que só abre as metas de PLATAFORMA, nulas).
  * `SuperadminMetasCrossTenantTest` cobre o `MetasController`; aqui o alvo é o PAINEL.
  *
- * ── UC-JPERM-03 fecha como LIMITE MEDIDO: `jana.metas.manage` (risk medium) é aplicada
- * em ZERO lugares — `StoreMetaRequest`/`UpdateMetaRequest::authorize()` só exigem estar
- * logado, e o Painel não recebe `podeGerenciarMetas`. Medido 2026-09-23. A trava é
- * decisão [W]; o caso abaixo QUEBRA quando ela nascer.
+ * ── UC-JPERM-03 — a trava foi LIGADA em 2026-09-23 ([W]). Até ali `jana.metas.manage`
+ * (risk medium) estava aplicada em ZERO lugares e o caso era um LIMITE MEDIDO. Agora as
+ * rotas de escrita de meta, período e fonte exigem a permissão; ler segue com `jana.access`.
  *
  * TENANT: 98 × 2 adversário (seed do pest-mysql-setup). NUNCA biz=4, NUNCA biz=1.
  */
@@ -120,19 +119,27 @@ it('UC-JPERM-05 · Tier 0 — jana.superadmin logado em 98 também não vê a me
     expect($ids)->not->toContain($this->alheia);
 })->group('tier0');
 
-it('UC-JPERM-03 · LIMITE MEDIDO: hoje jana.metas.manage NÃO trava a escrita — quando a trava existir, este caso DEVE quebrar', function () {
+it('UC-JPERM-03 · sem jana.metas.manage, meta é leitura: as 4 escritas do UC dão 403', function () {
     expect($this->user->can('jana.metas.manage'))->toBeFalse();
 
-    // Corpo inválido de propósito: sem trava, a FormRequest roda e devolve erro de
-    // validação (302) — nada é gravado. Com trava, a resposta vira 403 antes disso.
+    $this->post(route('jana.metas.store'), [])->assertStatus(403);
+    $this->patch(route('jana.metas.update', $this->minha), ['nome' => 'x'])->assertStatus(403);
+    $this->post(route('jana.metas.reapurar', $this->minha))->assertStatus(403);
+    $this->patch(route('jana.fontes.update', $this->minha), [])->assertStatus(403);
+
+    // A leitura segue: o Painel abre COM a meta e diz à tela que ela não gerencia.
+    expect(metaPermIdsNoPainel($this))->toContain($this->minha);
+    $this->get(route('jana.index'))->assertInertia(fn ($page) => $page->where('podeGerenciarMetas', false));
+})->group('tier0');
+
+it('UC-JPERM-03 · com jana.metas.manage a trava deixa passar, e a tela recebe a flag', function () {
+    $this->user->givePermissionTo('jana.metas.manage');
+    $this->user->forgetCachedPermissions();
+
+    // Corpo inválido de propósito: passou da trava = chegou na validação (302 + erro),
+    // e nada foi gravado.
     $this->post(route('jana.metas.store'), [])
         ->assertStatus(302)
         ->assertSessionHasErrors('slug');
-    $this->patch(route('jana.metas.update', $this->minha), ['nome' => ''])
-        ->assertStatus(302)
-        ->assertSessionHasErrors('nome');
-
-    // A leitura segue (parte do UC que já vale) e a tela ainda não recebe a flag.
-    expect(metaPermIdsNoPainel($this))->toContain($this->minha);
-    $this->get(route('jana.index'))->assertInertia(fn ($page) => $page->missing('podeGerenciarMetas'));
+    $this->get(route('jana.index'))->assertInertia(fn ($page) => $page->where('podeGerenciarMetas', true));
 })->group('tier0');

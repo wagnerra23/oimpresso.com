@@ -24,13 +24,11 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * "não é 403" com a permissão. Este arquivo cobre o delta que o UC pede: as QUATRO
  * telas, 200 no positivo (anti-vácuo contra 500) e nenhuma rota escapando do grupo.
  *
- * ── UC-JPERM-02 fecha como LIMITE MEDIDO, não verde
- * MEDIDO 2026-09-23: `jana.chat` está declarada em `Resources/permissions.php` e aplicada
- * em ZERO lugares — nem middleware, nem `SendChatMessageRequest::authorize()` (que só
- * exige estar logado), nem prop `podeConversar` no Painel. Qual a trava e o rollout pros
- * funcionários é decisão [W]; o caso abaixo prova o estado atual e QUEBRA quando a
- * trava nascer — aí troque-o pelo UC completo (403 sem / 200 com). Mesmo idioma do
- * UC-MEM-08 em `MemoriaPermissaoTest.php`.
+ * ── UC-JPERM-02 — a trava foi LIGADA em 2026-09-23 ([W]: "liga a trava do jana.chat")
+ * Até ali `jana.chat` estava declarada e aplicada em ZERO rotas; o caso deste arquivo era
+ * um LIMITE MEDIDO (302 de validação sem a permissão). Agora `can:jana.chat` está nas rotas
+ * de escrita do chat, e o Painel entrega `podeConversar`. A tela da conversa (GET) segue
+ * aberta com `jana.access` — ler o próprio histórico não é conversar.
  *
  * TENANT: 98 (ADR 0358). NUNCA biz=4, NUNCA biz=1.
  */
@@ -130,28 +128,40 @@ it('UC-JPERM-01 · nenhuma rota nomeada jana.* sob /ia escapa do can:jana.access
     expect($escaparam)->toBe([]);
 })->group('tier0');
 
-it('UC-JPERM-02 · LIMITE MEDIDO: hoje jana.chat NÃO trava o envio — quando a trava existir, este caso DEVE quebrar', function () {
-    iaPermConcede($this->user, 'jana.access');
-    expect($this->user->can('jana.chat'))->toBeFalse();
-
-    $id = DB::table('jana_conversas')->insertGetId([
+/** Conversa própria em biz 98 — o alvo do POST não pode ser o motivo do 403. */
+function iaPermConversa(User $u): int
+{
+    return (int) DB::table('jana_conversas')->insertGetId([
         'business_id' => IAPERM_BIZ,
-        'user_id' => $this->user->id,
-        'titulo' => 'conversa do limite UC-JPERM-02',
+        'user_id' => $u->id,
+        'titulo' => 'conversa do UC-JPERM-02',
         'status' => 'ativa',
         'iniciada_em' => now(),
         'created_at' => now(),
         'updated_at' => now(),
     ]);
+}
 
-    // Corpo VAZIO de propósito: sem trava, a FormRequest valida e reprova `content`
-    // (302 + erro) — nenhuma mensagem gravada, nenhum LLM chamado. Com trava, vira 403.
+it('UC-JPERM-02 · só com jana.access: vê o Painel, NÃO conversa (403) e a tela sabe disso', function () {
+    iaPermConcede($this->user, 'jana.access');
+    $id = iaPermConversa($this->user);
+
+    $this->post(route('jana.conversas.mensagens.store', $id), ['content' => 'oi'])->assertStatus(403);
+    $this->post(route('jana.conversas.store'))->assertStatus(403);
+    // Anti-vácuo contra "403 por outro motivo": o Painel da MESMA pessoa abre.
+    $this->get(route('jana.index'))
+        ->assertStatus(200)
+        ->assertInertia(fn ($page) => $page->where('podeConversar', false));
+})->group('tier0');
+
+it('UC-JPERM-02 · com jana.chat a trava deixa passar, e a tela recebe podeConversar=true', function () {
+    iaPermConcede($this->user, 'jana.access', 'jana.chat');
+    $id = iaPermConversa($this->user);
+
+    // Corpo VAZIO de propósito: prova que passou da trava (chegou na validação, 302 +
+    // erro em `content`) sem gravar mensagem nem chamar LLM.
     $this->post(route('jana.conversas.mensagens.store', $id), [])
         ->assertStatus(302)
         ->assertSessionHasErrors('content');
-
-    // O Painel abre e ainda não diz à tela se o usuário pode conversar.
-    $this->get(route('jana.index'))
-        ->assertStatus(200)
-        ->assertInertia(fn ($page) => $page->missing('podeConversar'));
+    $this->get(route('jana.index'))->assertInertia(fn ($page) => $page->where('podeConversar', true));
 })->group('tier0');
