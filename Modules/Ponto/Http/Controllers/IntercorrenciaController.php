@@ -169,9 +169,10 @@ class IntercorrenciaController extends Controller
      * O `abort_unless` de RASCUNHO **não muda** — é a âncora do `CU-PONTO-05`
      * (*"só rascunho é editável"*) e vale igual na versão React.
      *
-     * A Blade `pontowr2::intercorrencias.edit` NÃO foi apagada de propósito: ela
-     * vira fóssil como as outras 25 do módulo, e é o **contrato de paridade** que
-     * permite conferir esta migração campo a campo. Apagar é outro escopo.
+     * A Blade `pontowr2::intercorrencias.edit` ficou no repo até 2026-09-23 como
+     * **contrato de paridade** desta migração; saiu com as outras mortas do módulo
+     * na limpeza da thread 11 do playbook Ponto. Para conferir campo a campo:
+     * `git show 1061dbf2e:Modules/Ponto/Resources/views/intercorrencias/edit.blade.php`.
      */
     public function edit(Request $request, $id): Response
     {
