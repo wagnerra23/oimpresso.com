@@ -6,7 +6,8 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Edit, Plus } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import MercosulPlate from '@/Components/shared/MercosulPlate';
 import VehicleStatusBadge, { type VehicleStatus } from './_components/VehicleStatusBadge';
 import ServiceOrderStatusBadge from '../ServiceOrders/_components/ServiceOrderStatusBadge';
 
@@ -48,10 +49,11 @@ export default function VehiclesShow({ vehicle }: Props) {
       <div className="px-4 py-6 max-w-5xl mx-auto">
         <PageHeader
           title={vehicle.plate}
-          description={vehicle.secondary_plate ? `+ ${vehicle.secondary_plate} (reboque)` : 'Veículo cadastrado'}
-          icon="car"
-          action={
+          subtitle={vehicle.secondary_plate ? `+ ${vehicle.secondary_plate} (reboque)` : 'Veículo cadastrado'}
+          actions={
             <div className="flex items-center gap-2">
+              <MercosulPlate plate={vehicle.plate} size="md" />
+              {vehicle.secondary_plate && <MercosulPlate plate={vehicle.secondary_plate} size="md" />}
               {vehicle.current_status && (
                 <VehicleStatusBadge status={vehicle.current_status} />
               )}

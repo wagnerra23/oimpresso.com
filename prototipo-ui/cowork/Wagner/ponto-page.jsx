@@ -331,8 +331,8 @@ function EspelhoShow({ colabId, mes, setMes, onVoltar, avisar }) {
   const comp = D.comp(mes);
   const [dias, setDias] = useState(() => D.dias(mes, colabId));
   const [diaFoco, setDiaFoco] = useState(null);
-  const [modo, setModo] = useState(() => { try { return localStorage.getItem("oimpresso.ponto.espelho.modo") || "tabela"; } catch (e) { return "tabela"; } });
-  useEffect(() => { try { localStorage.setItem("oimpresso.ponto.espelho.modo", modo); } catch (e) {} }, [modo]);
+  // Tabela é o default e NÃO persiste: o documento abre sempre na tabela (Show.casos.md, BACKLOG deliberado).
+  const [modo, setModo] = useState("tabela");
   useEffect(() => { setDias(D.dias(mes, colabId)); setDiaFoco(null); }, [mes, colabId]);
   const t = D.totaisEspelho(dias);
 
@@ -404,7 +404,7 @@ function EspelhoShow({ colabId, mes, setMes, onVoltar, avisar }) {
         </Nota>}
 
       <Card contrato="espelho-apuracao-diaria" icon="calendar" titulo={"Apuração diária — " + comp.extenso} sub={dias.length + " dias apurados"}
-        acao={<window.CliSeg ariaLabel="Modo de visão" value={modo} onChange={setModo} options={[{ key: "tabela", label: "Tabela" }, { key: "grade", label: "Grade do mês" }]} />}>
+        acao={<span data-contract="espelho-modo-visao"><window.CliSeg ariaLabel="Modo de visão" value={modo} onChange={setModo} options={[{ key: "tabela", label: "Tabela" }, { key: "grade", label: "Grade do mês" }]} /></span>}>
         {modo === "grade" ? <GradeMes dias={dias} mes={mes} onDia={setDiaFoco} /> :
         <Tabela cols={[{ l: "Data", w: "78px" }, { l: "Previsto", w: "104px" }, { l: "Realizado", w: "104px" }, { l: "Marcações" }, { l: "Atraso", num: true }, { l: "HE", num: true }, { l: "BH (+/−)", num: true }, { l: "Estado", w: "120px" }]}>
           {dias.map((d) => {

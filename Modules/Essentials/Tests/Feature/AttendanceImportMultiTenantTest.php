@@ -206,7 +206,11 @@ it('entrada sem saída entra (marcação aberta é válida) e não colide com ou
     expect(marcacoesDe($this->userProprio))->toBe(2);
 });
 
-it('ponta a ponta pelo POST /hrm/import-attendance: linha boa entra, linha cross-tenant volta no relatório', function () {
+it('POST /hrm/import-attendance cedeu ao Ponto: 301 para /ponto/importacoes e nada entra (ADR 0014 emenda)', function () {
+    // Até 2026-09-24 este caso provava o import ponta a ponta pelo HTTP (1 linha entrava, a
+    // cross-tenant voltava no relatório). A presença web cedeu ao Ponto (D1 [W] 2026-09-05): a
+    // rota virou 301 e o service deixou de ter porta HTTP. Os casos acima seguem provando o
+    // service; este prova que a MESMA planilha, pelo caminho antigo, não grava mais nada.
     Storage::fake('local');
 
     // Admin#{tenant} → passa o gate de permissão do controller, isolando o teste no
@@ -235,21 +239,11 @@ it('ponta a ponta pelo POST /hrm/import-attendance: linha boa entra, linha cross
         'attendance' => UploadedFile::fake()->createWithContent('presenca.csv', $csv),
     ]);
 
-    $resposta->assertRedirect();
+    $resposta->assertStatus(301)->assertRedirect('/ponto/importacoes');
 
-    // Com QUEUE_CONNECTION=sync (o do CI) o Job roda inline e o relatório volta na sessão.
-    $relatorio = session('import_presenca_relatorio');
-
-    if ($relatorio === null) {
-        // Conexão assíncrona: o teste não pode afirmar sobre o resultado sem worker.
-        $this->markTestSkipped('QUEUE_CONNECTION assíncrona — o Job não roda inline neste ambiente.');
-    }
-
-    expect($relatorio['inseridas'])->toBe(1)
-        ->and($relatorio['recusadas'])->toHaveCount(1);
-
-    expect(marcacoesDe($this->userProprio))->toBe(1);
-    // A prova Tier 0 no caminho HTTP real.
+    // Antes da emenda, a linha própria entrava (1). Agora nenhuma entra, em nenhum tenant.
+    expect(session('import_presenca_relatorio'))->toBeNull();
+    expect(marcacoesDe($this->userProprio))->toBe(0);
     expect(marcacoesDe($this->userEstranho))->toBe(0);
 });
 

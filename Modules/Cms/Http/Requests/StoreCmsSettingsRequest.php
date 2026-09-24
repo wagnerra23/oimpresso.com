@@ -38,8 +38,19 @@ class StoreCmsSettingsRequest extends FormRequest
             'logo'              => ['nullable', 'file', 'image', 'max:5120'],
 
             // Conteúdo textual livre.
-            'faqs'              => ['nullable', 'string'],
-            'statistics'        => ['nullable', 'string'],
+            // ARRAYS, não strings (corrigido 2026-09-23, thread Cms/01 fase 4a): o formulário
+            // sempre mandou `faqs[i][question]`, `statistics[content][i][stats]`, `contact_us[i][num]`…
+            // A regra `string` recusava o payload inteiro — salvar os detalhes do site falhava
+            // desde 2026-05-16 (prod: nenhuma chave gravada desde 2022, então ninguém viu).
+            'faqs'              => ['nullable', 'array', 'max:20'],
+            'faqs.*.question'   => ['nullable', 'string', 'max:2000'],
+            'faqs.*.answer'     => ['nullable', 'string', 'max:5000'],
+            'statistics'        => ['nullable', 'array'],
+            'statistics.tagline' => ['nullable', 'string', 'max:500'],
+            'statistics.description' => ['nullable', 'string', 'max:2000'],
+            'statistics.content' => ['nullable', 'array', 'max:10'],
+            'statistics.content.*.stats' => ['nullable', 'string', 'max:100'],
+            'statistics.content.*.title' => ['nullable', 'string', 'max:200'],
             'meta_tags'         => ['nullable', 'string'],
 
             // Snippets injetados na página — risco XSS mitigado pelo Blade {!! !!}
@@ -51,9 +62,14 @@ class StoreCmsSettingsRequest extends FormRequest
 
             // Widgets / contatos (PII redactor aplica em logs no controller).
             'chat_widget'       => ['nullable', 'string', 'max:8000'],
-            'contact_us'        => ['nullable', 'string'],
-            'mail_us'           => ['nullable', 'string'],
-            'follow_us'         => ['nullable', 'string'],
+            'contact_us'        => ['nullable', 'array', 'max:5'],
+            'contact_us.*.label' => ['nullable', 'string', 'max:100'],
+            'contact_us.*.num'  => ['nullable', 'string', 'max:30'],
+            'mail_us'           => ['nullable', 'array', 'max:5'],
+            'mail_us.*.label'   => ['nullable', 'string', 'max:100'],
+            'mail_us.*.email'   => ['nullable', 'string', 'max:191'],
+            'follow_us'         => ['nullable', 'array'],
+            'follow_us.*'       => ['nullable', 'string', 'max:500'],
             'notifiable_email'  => ['nullable', 'string', 'max:500'],
 
             // Botões/chat estruturados.

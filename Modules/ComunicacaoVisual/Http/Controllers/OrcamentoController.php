@@ -132,6 +132,12 @@ class OrcamentoController extends Controller
     /**
      * Validação centralizada usada por calcular() e store().
      * Retorna array validado pronto para o Service.
+     *
+     * É o ÚNICO contrato de payload destes endpoints (largura_m, altura_m, preco_unitario_m2,
+     * desconto, extras). Existia uma CalcularOrcamentoRequest com outro contrato (largura_mm,
+     * preco_m2 obrigatório, desconto_tipo/valor) que ninguém usava; plugá-la aqui dava 422 em
+     * todo cálculo da tela. Removida em 2026-09-23 (refino R5) — se um dia virar FormRequest,
+     * ela nasce destas regras, não daquelas.
      */
     private function validarPayload(Request $request): array
     {
