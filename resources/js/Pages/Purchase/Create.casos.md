@@ -105,6 +105,7 @@ decisão do dono, com chip aberto.
 | UC-PURCRE-05 | 1 célula = 1 `variation_id`, num POST único | must `[V0]` | RUNBOOK §4 · charter Goals | `Wave2CreateInertiaTest` | 🧪 estrutural · na lane |
 | UC-PURCRE-06 | Dropdown de filiais respeita `permitted_locations` | must `[T0]` | RUNBOOK §10 · charter R-PUR-002 | `Wave2CreateBaselineTest` | 🧪 estrutural · na lane |
 | UC-PURCRE-07 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §10 | `Wave2CreateInertiaTest` | 🧪 estrutural · na lane |
+| UC-PURCRE-08 | Salvar aceita a data que a própria tela manda (`datetime-local`, ISO) | must | charter Goals (1 POST único) · smoke prod 2026-09-24 | `PurchaseDataIsoTest` | 🧪 comportamento · na lane |
 
 ---
 
@@ -257,6 +258,24 @@ decisão do dono, com chip aberto.
   revela no segundo tenant.
 - **Status: 🧪 estrutural · na lane** — o contrato aqui *é* a ausência de um literal no arquivo, então o
   presence-gate seria o instrumento certo. Só que ele tambem nao roda: instrumento certo, nunca acionado.
+
+---
+
+## UC-PURCRE-08 · Salvar aceita a data que a própria tela manda · `must`
+
+- **Persona:** quem compra pela tela React — Larissa (biz=4) no canary da grade.
+- **Aceite:** Dado uma empresa com `date_format` = `d/m/Y` · Quando a tela envia `transaction_date`
+  como o `<input type="datetime-local">` produz (`2026-09-24 14:37` ou `2026-09-24T14:37`) · Então o
+  back converte para `2026-09-24 14:37:00` e **não** estoura. E o formato da empresa
+  (`24/09/2026 14:37`, o que a Blade manda) continua valendo.
+- **Teste:** [`PurchaseDataIsoTest`](../../../../tests/Feature/Purchase/PurchaseDataIsoTest.php).
+- **Contrato:** charter Goals (a compra sai num POST único) + smoke em prod biz=1 de 2026-09-24:
+  a grade montou 4 linhas certas e o `store()` caiu em Carbon *"Trailing data"* no `uf_date()` —
+  **nenhuma** compra salva pela tela React passava em empresa com data brasileira. Os testes de
+  `store()` já existentes mandavam a data no formato da empresa, por isso ficavam verdes.
+- **Regressão que defende:** o front e o back discordando do formato da data, sem teste que use o
+  formato do front.
+- **Status: 🧪 comportamento · na lane** — exercita o conversor que `store()` e `update()` chamam.
 
 ---
 
