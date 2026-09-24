@@ -983,18 +983,35 @@ export function ledgerEntry(rows, dateIso, meta = {}) {
  *
  * @returns {{data:string|null, hash:string|null}} `data:null` = nenhuma rodada mediu.
  */
+/**
+ * Instante (ms UTC) de uma data ISO — o ÚNICO jeito de ordenar datas neste arquivo.
+ *
+ * Comparar ISO como STRING só é ordem temporal quando os dois lados têm o MESMO offset e a
+ * mesma precisão. Aqui não têm: `git log --format=%cI` devolve o fuso do COMMITTER
+ * (`2026-09-23T16:51:18-03:00`) e o ledger grava UTC (`2026-09-23T18:35:43.756Z`). Por string,
+ * `"…16:51:18-03:00" > "…18:35:43.756Z"` é FALSO; no tempo real o commit (19:51Z) é POSTERIOR.
+ * Foi assim que o #7852 passou no `--unverified --check` e o main ficou vermelho depois do
+ * squash (commit reescrito em UTC). `null` = sem data ou ilegível — quem chama decide o que
+ * isso significa, nunca uma comparação que devolve `false` em silêncio.
+ */
+export function instante(iso) {
+  if (iso == null || iso === '') return null;
+  const t = Date.parse(iso);
+  return Number.isNaN(t) ? null : t;
+}
+
 export function ultimaVerificacaoDe(entries, cowork) {
   const runs = (Array.isArray(entries) ? entries : []).filter((e) => Array.isArray(e.verified));
   let melhor = null, hash = null;
-  for (const r of runs) if (r.verified.includes(cowork) && (!melhor || r.date > melhor)) {
+  for (const r of runs) if (r.verified.includes(cowork) && (!melhor || instante(r.date) > instante(melhor))) {
     melhor = r.date; hash = (r.verifiedHash || {})[cowork] || null;
   }
   // Mudança de namespace invalida a prova anterior sem fabricar uma nova. O arquivo volta
   // honestamente a NUNCA VERIFICADO até o próximo compare/bundle do novo endereço.
   const invalidacoes = (Array.isArray(entries) ? entries : [])
     .filter((e) => Array.isArray(e.invalidated) && e.invalidated.includes(cowork));
-  const ultimaInvalidacao = invalidacoes.reduce((d, e) => (!d || e.date > d ? e.date : d), null);
-  if (ultimaInvalidacao && (!melhor || ultimaInvalidacao > melhor)) return { data: null, hash: null };
+  const ultimaInvalidacao = invalidacoes.reduce((d, e) => (!d || instante(e.date) > instante(d) ? e.date : d), null);
+  if (ultimaInvalidacao && (!melhor || instante(ultimaInvalidacao) > instante(melhor))) return { data: null, hash: null };
   return { data: melhor, hash };
 }
 
@@ -1025,8 +1042,12 @@ export function unverifiedSince(entries, arquivos, provaBundle = null) {
 
     const { data: verificadoEm, hash: hashVerificado } = ultimaVerificacaoDe(entries, a.cowork);
     if (!verificadoEm) { nuncaVerificado.push(a.cowork); continue; }
-    // sem data de commit não se afirma nada (arquivo novo não-commitado): não é achado
-    const commitouDepois = a.lastCommitIso && a.lastCommitIso > verificadoEm;
+    // sem data de commit não se afirma nada (arquivo novo não-commitado): não é achado.
+    // Comparação por INSTANTE, nunca por string — ver `instante()`. Data presente mas
+    // ilegível (de qualquer lado) cai no CONSERVADOR: conta como "depois" e o hash decide,
+    // em vez de um NaN > x = false virar verde mudo.
+    const tCommit = instante(a.lastCommitIso), tVerif = instante(verificadoEm);
+    const commitouDepois = !!a.lastCommitIso && (tCommit == null || tVerif == null || tCommit > tVerif);
     // CONTEÚDO é o desempate. Sem hash gravado (ledger antigo) cai no comportamento de antes,
     // que é o conservador: data sozinha. Com hash, merge/squash/rebase param de gritar.
     const conteudoMudou = hashVerificado == null || a.hashAtual == null
