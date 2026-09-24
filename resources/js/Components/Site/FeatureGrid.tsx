@@ -72,6 +72,42 @@ const FALLBACK_FEATURES: Feature[] = [
   },
 ];
 
+interface Destaques {
+  titulo: string | null;
+  descricao: string | null;
+  itens: Feature[] | null;
+}
+
+/**
+ * Registro `feature` da página `layout=home` — o que o painel do CMS grava (thread Cms/01
+ * fase 2b): `{ title, description, content: [{ icon, title, description }] }`.
+ *
+ * Ícone em classe FontAwesome (`fas fa-cloud`, herança do seed do UltimatePOS) não é emoji:
+ * desenhado aqui viraria o TEXTO "fas fa-cloud". Cai no ✨.
+ */
+function extractDestaques(page?: CmsPage | null): Destaques | null {
+  const meta = page?.pageMeta ?? page?.page_meta ?? null;
+  const bruto = meta?.find((m) => m?.meta_key === 'feature')?.meta_value;
+  if (!bruto) return null;
+  try {
+    const j = JSON.parse(bruto) as { title?: string; description?: string; content?: Partial<Feature>[] };
+    const itens = (j.content ?? [])
+      .filter((c) => c && typeof c.title === 'string' && c.title.trim() !== '')
+      .map((c) => ({
+        title: c.title as string,
+        description: c.description ?? '',
+        icon: !c.icon || c.icon.includes('fa-') ? '✨' : c.icon,
+      }));
+    return {
+      titulo: j.title?.trim() || null,
+      descricao: j.description?.trim() || null,
+      itens: itens.length > 0 ? itens : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 function extractFeaturesFromMeta(page?: CmsPage | null): Feature[] | null {
   if (!page) return null;
   const meta = page.pageMeta ?? page.page_meta ?? null;
@@ -93,7 +129,8 @@ function extractFeaturesFromMeta(page?: CmsPage | null): Feature[] | null {
 
 export default function FeatureGrid({ page }: FeatureGridProps) {
   const reduceMotion = useReducedMotion();
-  const features = extractFeaturesFromMeta(page) ?? FALLBACK_FEATURES;
+  const destaques = extractDestaques(page);
+  const features = destaques?.itens ?? extractFeaturesFromMeta(page) ?? FALLBACK_FEATURES;
 
   return (
     <section id="recursos" className="py-20 sm:py-28">
@@ -103,10 +140,11 @@ export default function FeatureGrid({ page }: FeatureGridProps) {
             Tudo num lugar
           </span>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Oito módulos. Uma plataforma.
+            {destaques?.titulo ?? 'Oito módulos. Uma plataforma.'}
           </h2>
           <p className="mt-4 text-base text-muted-foreground">
-            Pare de pular entre 5 sistemas pra fechar o mês. Do orçamento à entrega — o oimpresso integra a operação de ponta a ponta.
+            {destaques?.descricao ??
+              'Pare de pular entre 5 sistemas pra fechar o mês. Do orçamento à entrega — o oimpresso integra a operação de ponta a ponta.'}
           </p>
         </div>
 

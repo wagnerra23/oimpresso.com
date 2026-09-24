@@ -9,6 +9,7 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 use Modules\Cms\Entities\CmsSiteDetail;
 use Modules\Cms\Http\Requests\StoreCmsSettingsRequest;
 use App\Support\Privacy\PiiRedactor;
@@ -36,18 +37,48 @@ class SettingsController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Detalhes do site. Thread Cms/01 fase 4a: Inertia `Admin/SiteDetails/Index` com as seções
+     * Aplicação, Contato, Redes sociais e Integrações. Estatísticas, FAQs, Chat e Botões seguem na
+     * Blade (`?legado=1`) até a fase 4b — a gravação é por chave, então salvar uma não apaga a outra.
      *
-     * @return Response
+     * @return \Inertia\Response|\Illuminate\Contracts\View\View
      */
     public function index()
     {
-        $business_id = request()->session()->get('user.business_id');
+        if (! request()->boolean('legado')) {
+            return Inertia::render('Admin/SiteDetails/Index', [
+                'detalhes' => Inertia::defer(fn () => $this->buildDetalhesPayload()),
+            ]);
+        }
+
         $details = CmsSiteDetail::getSiteDetails();
         $logo = CmsSiteDetail::getValue('logo', false);
 
         return view('cms::settings.index')
             ->with(compact('details', 'logo'));
+    }
+
+    /** Só as chaves das seções já migradas; formato = o que o Model grava (S1). */
+    private function buildDetalhesPayload(): array
+    {
+        $d = CmsSiteDetail::getSiteDetails();
+        $lista = fn ($v, int $n, array $campos) => collect(range(0, $n - 1))
+            ->map(fn ($i) => collect($campos)->mapWithKeys(fn ($c) => [$c => (string) ($v[$i][$c] ?? '')])->all())
+            ->all();
+
+        return [
+            'notifiable_email' => (string) ($d['notifiable_email'] ?? ''),
+            'logo_url' => optional(CmsSiteDetail::getValue('logo', false))->logo_url,
+            'contact_us' => $lista($d['contact_us'] ?? [], 3, ['label', 'num']),
+            'mail_us' => $lista($d['mail_us'] ?? [], 2, ['label', 'email']),
+            'follow_us' => collect(['facebook', 'instagram', 'linkedin', 'twitter', 'youtube'])
+                ->mapWithKeys(fn ($r) => [$r => (string) ($d['follow_us'][$r] ?? '')])->all(),
+            'google_analytics' => (string) ($d['google_analytics'] ?? ''),
+            'fb_pixel' => (string) ($d['fb_pixel'] ?? ''),
+            'custom_js' => (string) ($d['custom_js'] ?? ''),
+            'custom_css' => (string) ($d['custom_css'] ?? ''),
+            'meta_tags' => (string) ($d['meta_tags'] ?? ''),
+        ];
     }
 
     /**
@@ -109,7 +140,7 @@ class SettingsController extends Controller
             return redirect()
                 ->action([\Modules\Cms\Http\Controllers\SettingsController::class, 'index'])
                 ->with('status', $output);
-        } catch (Exception $e) {
+        } catch (\Exception $e) { // era `Exception` sem barra: no namespace do módulo não casava nada
             DB::rollBack();
             // D7.a LGPD — exception message pode conter email/telefone (settings carregam contact_us/mail_us).
             \Log::emergency('[cms.settings.error] '.$this->piiRedactor->redact(

@@ -169,7 +169,7 @@ lifecycle: ativo
 | `tier0-guards-advisory.yml` | pr+push | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +3 | Tier-0 guards (WithoutGlobalScopes + BusinessId) |
 | `typecheck-gate.yml` | pr+push+manual | — | TypeScript (ratchet vs baseline) — catraca de erros do `tsc --noEmit` por par arquivo\|codigoTS vs config/typecheck-baseline.json. Congela o debito atual e reprova so REGR… |
 | `ui-architecture-gate.yml` | pr+push+manual | `memory/decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md` +12 | UI architecture gate |
-| `verticais-pest.yml` | pr+push+manual | `memory/requisitos/Repair/SPEC.md` +2 | Verticais · Pest (MySQL) — ComunicacaoVisual/Repair/Vestuario rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde |
+| `verticais-pest.yml` | pr+push+manual | `memory/requisitos/Repair/SPEC.md` +4 | Verticais · Pest (MySQL) — ComunicacaoVisual/Repair/Vestuario rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde |
 | `visual-regression.yml` | pr+manual | `memory/decisions/0411-snapshot-de-pixel-fora-do-passo-3-da-0409.md` +144 | Visual Regression (Pest 4 Browser) |
 | `whatsapp-pest.yml` | pr+push+manual | `memory/08-handoff.md` +1 | Whatsapp · Pest (MySQL) |
 | `xss-content-gate.yml` | pr+push | — | XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo) |
@@ -190,7 +190,7 @@ lifecycle: ativo
 | `block-bom-encoding.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +3 | PreToolUse:Write\|Edit\|MultiEdit (PORTE cross-plataforma do .ps1). |
 | `block-brl-values-in-memory.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | — | `memory/decisions/0407-regra-brl-protege-valor-de-cliente-no-canon-nao-numero-em-artefato.md` +15 | BLOQUEIA Write/Edit/MultiEdit que introduza valor BRL |
 | `block-claim-without-evidence.mjs` | PreToolUse(Bash) | test | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +9 | PreToolUse:Bash (PORTE cross-plataforma do .ps1). |
-| `block-design-sync-without-optin.mjs` | PreToolUse(DesignSync) UserPromptSubmit(*) | test | `memory/decisions/0315-design-sync-claude-design-vs-cowork-charter.md` +8 | claude.ai/design NÃO é fonte de design canônica. |
+| `block-design-sync-without-optin.mjs` | PreToolUse(DesignSync) UserPromptSubmit(*) | test | `memory/decisions/0315-design-sync-claude-design-vs-cowork-charter.md` +9 | claude.ai/design NÃO é fonte de design canônica. |
 | `block-destructive.mjs` | PreToolUse(Bash) | test + hook-bites | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +69 | PreToolUse:Bash (PORTE cross-plataforma do .ps1). |
 | `block-edit-authority-generated.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test | `memory/licoes-rejeitadas.md` | PreToolUse:Write\|Edit\|MultiEdit. |
 | `block-figma-without-optin.mjs` | PreToolUse(mcp__.*figma.*\|mcp__.*__(use_figma\|get_desig…) UserPromptSubmit(*) | test | `memory/decisions/0315-design-sync-claude-design-vs-cowork-charter.md` +9 | Figma NÃO é fonte de design (block determinístico por tool_name). |
@@ -516,7 +516,7 @@ lifecycle: ativo
 | `render-proto-baseline.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +15 | o DESIGN vira BASELINE versionado (roubo #7 da pesquisa de mercado, |
 | `style-fingerprint.mjs` | agente, ci, script | 🟢 só lê | — | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +20 | comparador EXAUSTIVO de estilo protótipo × produção, como MECANISMO. |
 
-### 5.8 `scripts/design-sync/` — 18
+### 5.8 `scripts/design-sync/` — 19
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -533,6 +533,7 @@ lifecycle: ativo
 | `gerar-payload-partes.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0389-emenda-0374-escrita-do-espelho-quando-o-get-file-volta-inline.md` +18 | emite snapshot/delta Design v2 em partes de até 256 KiB. |
 | `payload-dependency-graph.mjs` | script | 🟢 só lê | test | (só sessão/handoff · 1) | Grafo estático das dependências LOCAIS alcançáveis a partir de um shell HTML. |
 | `pedido.mjs` | agente, npm, script | 🔴 disco | — | `.claude/commands/onda.md` +2 | PR-A7 do protocolo de export: o PEDIDO DE SEÇÃO vira DERIVADO. |
+| `pendentes-cowork.mjs` | agente, script | 🔴 disco | test | `memory/decisions/0412-retorno-canon-mergeado-ao-cowork-dispensa-opt-in-emenda-0315.md` +1 | o sentido Code -> Cowork do ciclo: o que o espelho tem e o Cowork NÃO tem. |
 | `receber-handoff.mjs` | script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +11 | recebe o ZIP de handoff do Cowork e o transforma em import validado. |
 | `recibos-ci.mjs` | ci, script | 🟢 só lê | — | — | grava recibo de TESTE (ADR 0384 D-5) em massa a partir de lanes de CI. |
 | `smoke-consumir.mjs` | ci | 🔴 disco | — | `memory/decisions/0390-emenda-0384-smoke-em-ambiente-controlado.md` +2 | transporta o smoke renderizado no CI até o recibo do Design Sync. |

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Validator;
+use Modules\Cms\Http\Requests\DeleteCmsPageRequest;
 use Modules\Cms\Http\Requests\StoreCmsPageRequest;
 use Modules\Cms\Http\Requests\SubmitContactFormRequest;
 use Modules\Cms\Http\Requests\UpdateCmsPageRequest;
@@ -146,3 +147,24 @@ it('023. Store e Update aceitam os três tipos do domínio do módulo', function
     $update = Validator::make(['type' => $tipo], (new UpdateCmsPageRequest)->rules());
     expect($update->fails())->toBeFalse("UpdateCmsPageRequest recusou o tipo {$tipo}");
 })->with(['page', 'blog', 'testimonial']);
+
+/**
+ * `post` e `banner` saíram do whitelist por decisão [W] 2026-09-23 — nenhuma consulta do
+ * módulo os lê. Os três FormRequests de página recusam os dois e aceitam o domínio real.
+ * A metade negativa é o que discrimina: o whitelist antigo do Delete aceitava `post`.
+ */
+it('024. Store, Update e Delete recusam post e banner e aceitam o domínio', function () {
+    foreach ([new StoreCmsPageRequest, new UpdateCmsPageRequest, new DeleteCmsPageRequest] as $req) {
+        $classe = class_basename($req);
+
+        foreach (['post', 'banner'] as $fora) {
+            $v = Validator::make(['title' => 'x', 'type' => $fora], $req->rules());
+            expect($v->errors()->has('type'))->toBeTrue("{$classe} aceitou o tipo {$fora}");
+        }
+
+        foreach (['page', 'blog', 'testimonial'] as $dentro) {
+            $v = Validator::make(['title' => 'x', 'type' => $dentro], $req->rules());
+            expect($v->errors()->has('type'))->toBeFalse("{$classe} recusou o tipo {$dentro}");
+        }
+    }
+});

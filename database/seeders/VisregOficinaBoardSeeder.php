@@ -79,6 +79,17 @@ class VisregOficinaBoardSeeder extends Seeder
     private const NOTES_MARK = 'VISREG-BOARD';
 
     /**
+     * ID EXPLÍCITO de UM dos veículos acima (não auto-increment): as rotas
+     * `/oficina-auto/veiculos/{id}` e `/{id}/edit` do visreg-screens.json precisam de id
+     * estável — mesmo idioma do VisregPontoSeeder (900001). Reusa um veículo que o fixture
+     * JÁ cria (o último, logo já era o de maior id): nenhum dado novo aparece em outra tela,
+     * e a ordem `id desc` da lista de Veículos continua a mesma.
+     */
+    public const VEICULO_ID = 900201;
+
+    public const VEICULO_PLACA = 'VRGB606';
+
+    /**
      * 1 OS por coluna do quadro — cobre as 6 colunas e as 6 contagens de KPI.
      * `overdue` só na primeira: KPI "Urgentes" = 1, determinístico (data no passado).
      *
@@ -160,14 +171,23 @@ class VisregOficinaBoardSeeder extends Seeder
             }
 
             // SUPERADMIN: fixture de gate visual — o global scope de business não vale no seeder.
-            $vehicle = Vehicle::withoutGlobalScopes()->firstOrCreate(
-                ['business_id' => self::BIZ_SELF, 'plate' => $spec['plate']],
-                [
+            $vehicle = Vehicle::withoutGlobalScopes()
+                ->where('business_id', self::BIZ_SELF)
+                ->where('plate', $spec['plate'])
+                ->first();
+            if ($vehicle === null) {
+                $vehicle = new Vehicle();
+                $vehicle->forceFill(array_filter([
+                    // `id` não é fillable — forceFill só pra fixar o id do VEICULO_PLACA.
+                    'id'               => $spec['plate'] === self::VEICULO_PLACA ? self::VEICULO_ID : null,
+                    'business_id'      => self::BIZ_SELF,
+                    'plate'            => $spec['plate'],
                     'contact_id'       => $contactId,
                     'vehicle_type'     => $spec['tipo'],
                     'mileage_at_entry' => $spec['km'],
-                ],
-            );
+                ], static fn ($v) => $v !== null));
+                $vehicle->save();
+            }
 
             // SUPERADMIN: idem. `current_stage_id` pode ser gravado no CREATE — o
             // GuardsFsmTransitions só engancha `updating`, e ServiceOrder nem usa o trait
