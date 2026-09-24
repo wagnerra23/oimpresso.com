@@ -11,14 +11,25 @@ const U = () => window.PontoUI;
 
 // ═══════════════════════════ 1. APROVAÇÕES ═══════════════════════════
 function Aprovacoes({ avisar, onVerIntercorrencia, rows, setRows }) {
-  const { Card, Tabela, Vazio, PillIntercorrencia, PillPrioridade, Legal, usePagina, Pager, Ic } = U();
+  const { Card, Kpi, Tabela, Vazio, PillIntercorrencia, PillPrioridade, Legal, usePagina, Pager, Ic } = U();
   const D = P();
+  const M = (window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {}).Modal;
   const [estado, setEstado] = useState("PENDENTE");
   const [tipo, setTipo] = useState("");
+  const [prio, setPrio] = useState("");
+  const [aprovar, setAprovar] = useState(null);   // Aprovacoes/Index.tsx: AlertDialog antes de aprovar
+  const [rejeitar, setRejeitar] = useState(null); // Aprovacoes/Index.tsx: Dialog com motivo 5–500
+  const [motivo, setMotivo] = useState("");
+  const ORDEM = ["PENDENTE", "APROVADA", "REJEITADA", "APLICADA", "RASCUNHO", "CANCELADA"];
+  const TOM = { PENDENTE: "warn", APROVADA: "ok", REJEITADA: "neg", APLICADA: "acc" };
+  const ICO = { PENDENTE: "clock", APROVADA: "check", REJEITADA: "alert", APLICADA: "check", RASCUNHO: "list", CANCELADA: "alert" };
+  const cont = (e) => rows.filter((r) => r.estado === e).length;
+  const filtrando = !!(estado || tipo || prio);
+  const limpar = () => { setEstado(""); setTipo(""); setPrio(""); };
   const [marcadas, setMarcadas] = useState([]);
   const [motivoLote, setMotivoLote] = useState("");
 
-  const lista = rows.filter((i) => (!estado || i.estado === estado) && (!tipo || i.tipo === tipo));
+  const lista = rows.filter((i) => (!estado || i.estado === estado) && (!tipo || i.tipo === tipo) && (!prio || i.prioridade === prio));
   const pg = usePagina(lista.length, 20); // 20/pág = contrato do charter Aprovacoes/Index (Goals)
   const pagina = pg.fatia(lista);
   const selecionaveis = pagina.filter((i) => i.estado === "PENDENTE").map((i) => i.id);
@@ -30,21 +41,25 @@ function Aprovacoes({ avisar, onVerIntercorrencia, rows, setRows }) {
     avisar(marcadas.length + (ok ? " intercorrências aprovadas em lote — apuração será reprocessada." : " intercorrências rejeitadas com o mesmo motivo."), ok ? "ok" : "warn");
     setMarcadas([]); setMotivoLote("");
   };
-  const decidir = (id, ok) => {
-    if (!ok) {
-      const motivo = window.prompt("Motivo da rejeição (mínimo 5 caracteres):");
-      if (motivo === null) return;
-      if (motivo.trim().length < 5) { avisar("O motivo da rejeição precisa de pelo menos 5 caracteres — o solicitante recebe este texto.", "warn"); return; }
-      setRows((rs) => rs.map((r) => r.id === id ? { ...r, estado: "REJEITADA", motivo_rejeicao: motivo.trim(), aprovador: "Wagner Ramos", aprovado_em: "20/08/2026 09:12" } : r));
-      avisar("Intercorrência rejeitada — o solicitante recebe o motivo.", "warn");
-      return;
-    }
-    setRows((rs) => rs.map((r) => r.id === id ? { ...r, estado: "APROVADA", aprovador: "Wagner Ramos", aprovado_em: "20/08/2026 09:12" } : r));
-    avisar("Intercorrência aprovada — a apuração do dia será reprocessada.", "ok");
+  const confirmarAprovar = () => {
+    const a = aprovar;
+    setRows((rs) => rs.map((r) => r.id === a.id ? { ...r, estado: "APROVADA", aprovador: "Wagner Ramos", aprovado_em: "20/08/2026 09:12" } : r));
+    avisar("Intercorrência " + (a.codigo || "") + " aprovada — a apuração do dia será reprocessada.", "ok");
+    setAprovar(null);
+  };
+  const confirmarRejeitar = () => {
+    if (motivo.trim().length < 5) { avisar("O motivo da rejeição precisa de pelo menos 5 caracteres — o solicitante recebe este texto.", "warn"); return; }
+    const a = rejeitar;
+    setRows((rs) => rs.map((r) => r.id === a.id ? { ...r, estado: "REJEITADA", motivo_rejeicao: motivo.trim(), aprovador: "Wagner Ramos", aprovado_em: "20/08/2026 09:12" } : r));
+    avisar("Intercorrência " + (a.codigo || "") + " rejeitada — o solicitante recebe o motivo.", "warn");
+    setRejeitar(null); setMotivo("");
   };
 
   return (
     <>
+      <div className="pt-kpis" data-contract="aprovacoes-kpis-estado">
+        {ORDEM.map((e) => <Kpi key={e} label={D.ESTADOS_INTERC[e] || e} valor={cont(e)} tom={TOM[e] || ""} icon={ICO[e]} ativo={estado === e} onClick={() => setEstado(estado === e ? "" : e)} />)}
+      </div>
       <window.PtBarra>
         <window.PtEscolha label={"Estado"} value={estado} onChange={(e) => setEstado(e.target.value)}>
             <option value="">Todos</option>
@@ -54,7 +69,12 @@ function Aprovacoes({ avisar, onVerIntercorrencia, rows, setRows }) {
             <option value="">Todos</option>
             {Object.entries(D.TIPOS_INTERC).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </window.PtEscolha>
-        <window.PtBtn  onClick={() => { setEstado(""); setTipo(""); }}>Limpar</window.PtBtn>
+        <window.PtEscolha label={"Prioridade"} value={prio} onChange={(e) => setPrio(e.target.value)}>
+            <option value="">Todas</option>
+            <option value="URGENTE">Urgente</option>
+            <option value="NORMAL">Normal</option>
+          </window.PtEscolha>
+        {filtrando && <window.PtBtn onClick={limpar}>Limpar</window.PtBtn>}
         
         <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{lista.filter((i) => i.estado === "PENDENTE").length} pendentes no filtro · selecione para decidir em lote</span>
       </window.PtBarra>
@@ -62,8 +82,10 @@ function Aprovacoes({ avisar, onVerIntercorrencia, rows, setRows }) {
       <Card contrato="aprovacoes-fila-de-aprovacoes" icon="check" titulo="Fila de aprovações" sub={"(" + lista.length + (lista.length === 1 ? " item" : " itens") + ")"}>
         <Tabela cols={[{ l: <input type="checkbox" checked={todasMarcadas} disabled={selecionaveis.length === 0} title="Selecionar os pendentes desta página"
             onChange={(e) => setMarcadas(e.target.checked ? [...new Set([...marcadas, ...selecionaveis])] : marcadas.filter((id) => !selecionaveis.includes(id)))} />, w: "34px" },
-          { l: "Colaborador" }, { l: "Tipo" }, { l: "Data / intervalo" }, { l: "Estado" }, { l: "Prioridade" }, { l: "Ação", num: true, w: "196px" }]}>
-          {lista.length === 0 && <Vazio icon="check" colSpan={7}>Nenhuma intercorrência encontrada com esse filtro.</Vazio>}
+          { l: "Colaborador" }, { l: "Tipo" }, { l: "Data / intervalo" }, { l: "Estado" }, { l: "Prioridade" }, { l: "Ação", num: true, w: "236px" }]}>
+          {lista.length === 0 && (filtrando
+            ? <Vazio icon="check" colSpan={7} variante="filtered" titulo="Nenhum resultado" acao={<window.PtBtn onClick={limpar}>Limpar filtros</window.PtBtn>}>Nenhuma intercorrência com esses filtros.</Vazio>
+            : <Vazio icon="check" colSpan={7} variante="first" titulo="Caixa vazia">Quando os colaboradores submeterem solicitações, elas aparecem aqui.</Vazio>)}
           {pagina.map((a) => {
             const c = D.colab(a.colaborador_config_id);
             const marc = marcadas.includes(a.id);
@@ -74,19 +96,18 @@ function Aprovacoes({ avisar, onVerIntercorrencia, rows, setRows }) {
                     title={a.estado === "PENDENTE" ? "Selecionar" : "Só pendentes entram no lote"} />
                 </td>
                 <td><b>{c.nome}</b><small>{c.matricula} · {c.cargo}</small></td>
-                <td>{D.TIPOS_INTERC[a.tipo]}</td>
+                <td>{D.TIPOS_INTERC[a.tipo]}{a.impacta_apuracao && <small className="pt-warnt">impacta apuração</small>}</td>
                 <td><span className="mono">{a.data}</span><small>{a.dia_todo ? "Dia todo" : a.intervalo_inicio ? a.intervalo_inicio + " – " + a.intervalo_fim : "—"}</small></td>
                 <td><PillIntercorrencia estado={a.estado} /></td>
                 <td><PillPrioridade p={a.prioridade} /></td>
                 <td className="num">
-                  {a.estado === "PENDENTE" ? (
-                    <span style={{ display: "inline-flex", gap: 6 }}>
-                      <window.PtBtn primary onClick={() => decidir(a.id, true)}>Aprovar</window.PtBtn>
-                      <window.PtBtn danger onClick={() => decidir(a.id, false)}>Rejeitar</window.PtBtn>
-                    </span>
-                  ) : (
-                    <window.PtBtn  onClick={() => onVerIntercorrencia(a.id)}>Ver</window.PtBtn>
-                  )}
+                  <span style={{ display: "inline-flex", gap: 6 }}>
+                    <window.PtBtn onClick={() => onVerIntercorrencia(a.id)}>Ver</window.PtBtn>
+                    {a.estado === "PENDENTE" && <>
+                      <window.PtBtn primary onClick={() => setAprovar(a)}>Aprovar</window.PtBtn>
+                      <window.PtBtn danger onClick={() => { setRejeitar(a); setMotivo(""); }}>Rejeitar</window.PtBtn>
+                    </>}
+                  </span>
                 </td>
               </tr>
             );
@@ -103,6 +124,19 @@ function Aprovacoes({ avisar, onVerIntercorrencia, rows, setRows }) {
           <window.PtBtn danger onClick={() => decidirLote(false)}>Rejeitar {marcadas.length}</window.PtBtn>
           <window.PtBtn  onClick={() => { setMarcadas([]); setMotivoLote(""); }}>Limpar seleção</window.PtBtn>
         </div>}
+      {aprovar && M && (() => { const c = D.colab(aprovar.colaborador_config_id); return (
+        <M open onClose={() => setAprovar(null)} title="Aprovar intercorrência" width={460}
+          footer={<><window.PtBtn onClick={() => setAprovar(null)}>Cancelar</window.PtBtn><window.PtBtn primary onClick={confirmarAprovar}>Aprovar</window.PtBtn></>}>
+          Confirma a aprovação de <b>{aprovar.codigo || "rascunho"}</b> de <b>{c.nome}</b>?
+          {aprovar.impacta_apuracao && <p className="pt-warnt" style={{ marginTop: 8 }}>Esta intercorrência <b>impacta a apuração</b> — os minutos de trabalho do dia serão ajustados.</p>}
+        </M>); })()}
+      {rejeitar && M && (() => { const c = D.colab(rejeitar.colaborador_config_id); return (
+        <M open onClose={() => { setRejeitar(null); setMotivo(""); }} title="Rejeitar intercorrência" width={480}
+          footer={<><window.PtBtn onClick={() => { setRejeitar(null); setMotivo(""); }}>Cancelar</window.PtBtn><window.PtBtn danger onClick={confirmarRejeitar}>Rejeitar</window.PtBtn></>}>
+          <p style={{ marginBottom: 10 }}><b>{rejeitar.codigo || "rascunho"}</b> de <b>{c.nome}</b>. Informe o motivo — o colaborador é notificado.</p>
+          <window.PtTexto label={"Motivo da rejeição"} req wide maxLength={500} value={motivo} onChange={(e) => setMotivo(e.target.value)}
+            placeholder="Ex.: anexo ilegível, pedido duplicado…" help={<>{motivo.length}/500 · mínimo 5 caracteres</>} />
+        </M>); })()}
       <Legal />
     </>
   );
@@ -170,7 +204,11 @@ function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
   const D = P();
   const { Card, Tabela, Vazio, PillIntercorrencia, PillPrioridade, Nota, usePagina, Pager, Ic } = U();
   const ds = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
-  const pg = usePagina(rows.length, 25); // 25/pág = contrato do charter Intercorrencias/Index (Goals)
+  const [fEst, setFEst] = useState("");
+  const [fTipo, setFTipo] = useState("");
+  const filtrando = !!(fEst || fTipo);
+  const lista = rows.filter((r) => (!fEst || r.estado === fEst) && (!fTipo || r.tipo === fTipo));
+  const pg = usePagina(lista.length, 25); // 25/pág = contrato do charter Intercorrencias/Index (Goals)
   const [nova, setNova] = useState(false);
   const [editando, setEditando] = useState(null);
   const sel = rows.find((r) => r.id === foco) || null;
@@ -229,10 +267,10 @@ function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
       <>
         {sel.estado === "RASCUNHO" && <>
           <window.PtBtn  onClick={() => { setEditando(sel); onFoco(null); }}>Editar</window.PtBtn>
-          <window.PtBtn primary onClick={() => { mudarEstado(sel.id, "PENDENTE", "Submetida — está na fila de aprovações.", "ok"); onFoco(null); }}>Submeter para aprovação</window.PtBtn>
+          <window.PtBtn primary onClick={() => { if (!window.confirm("Submeter esta intercorrência para aprovação?")) return; mudarEstado(sel.id, "PENDENTE", "Submetida — está na fila de aprovações.", "ok"); onFoco(null); }}>Submeter para aprovação</window.PtBtn>
         </>}
         {(sel.estado === "RASCUNHO" || sel.estado === "PENDENTE") &&
-          <window.PtBtn danger onClick={() => { mudarEstado(sel.id, "CANCELADA", "Intercorrência cancelada.", "warn"); onFoco(null); }}>Cancelar</window.PtBtn>}
+          <window.PtBtn danger onClick={() => { if (!window.confirm("Cancelar esta intercorrência? A ação não é reversível.")) return; mudarEstado(sel.id, "CANCELADA", "Intercorrência cancelada.", "warn"); onFoco(null); }}>Cancelar</window.PtBtn>}
       </>
     );
     if (!Drawer) return null;
@@ -243,7 +281,16 @@ function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
   return (
     <>
       <window.PtBarra>
-        <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{rows.length} registros no business · rascunho edita e submete; aprovada não volta atrás.</span>
+        <window.PtEscolha label={"Estado"} value={fEst} onChange={(e) => setFEst(e.target.value)}>
+            <option value="">Todos os estados</option>
+            {Object.entries(D.ESTADOS_INTERC).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </window.PtEscolha>
+        <window.PtEscolha label={"Tipo"} value={fTipo} onChange={(e) => setFTipo(e.target.value)}>
+            <option value="">Todos os tipos</option>
+            {Object.entries(D.TIPOS_INTERC).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </window.PtEscolha>
+        {filtrando && <window.PtBtn onClick={() => { setFEst(""); setFTipo(""); }}>Limpar</window.PtBtn>}
+        <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{lista.length} de {rows.length} registros · rascunho edita e submete; aprovada não volta atrás.</span>
         
         <window.PtBtn primary onClick={() => setNova(true)}><Ic name="plus" />Nova intercorrência</window.PtBtn>
       </window.PtBarra>
@@ -253,10 +300,12 @@ function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
           <FormIntercorrencia registro={editando} onSalvar={salvar} onCancelar={() => { setNova(false); setEditando(null); }} />
         </Card>}
 
-      <Card contrato="intercorrencias-intercorrencias" icon="alert" titulo="Intercorrências" sub={"(" + rows.length + (rows.length === 1 ? " item" : " itens") + ")"}>
+      <Card contrato="intercorrencias-intercorrencias" icon="alert" titulo="Intercorrências" sub={"(" + lista.length + (lista.length === 1 ? " item" : " itens") + ")"}>
         <Tabela cols={[{ l: "Código", w: "128px" }, { l: "Colaborador" }, { l: "Tipo" }, { l: "Data" }, { l: "Estado" }, { l: "Prioridade" }, { l: "Ação", num: true, w: "88px" }]}>
-          {rows.length === 0 && <Vazio colSpan={7}>Nenhuma intercorrência registrada ainda.</Vazio>}
-          {pg.fatia(rows).map((i) => {
+          {lista.length === 0 && (filtrando
+            ? <Vazio colSpan={7} variante="filtered" titulo="Nenhum resultado" acao={<window.PtBtn onClick={() => { setFEst(""); setFTipo(""); }}>Limpar filtros</window.PtBtn>}>Nenhuma intercorrência com esses filtros.</Vazio>
+            : <Vazio colSpan={7} variante="first" titulo="Sem intercorrências" acao={<window.PtBtn primary onClick={() => setNova(true)}>Criar primeira</window.PtBtn>}>Colaboradores podem submeter pelo app, ou você cria manualmente.</Vazio>)}
+          {pg.fatia(lista).map((i) => {
             const c = D.colab(i.colaborador_config_id);
             return (
               <tr key={i.id} className="hit" onClick={() => onFoco(i.id)}>
@@ -435,10 +484,7 @@ function Escalas({ avisar }) {
                     // O motivo é TEXTO NA CÉLULA, não tooltip: botão `disabled` não emite hover nem
                     // recebe foco, então o Tooltip do DS seria inalcançável ([W]: "com o motivo escrito").
                     return n > 0
-                      ? <span className="pt-dim" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                          <window.PtBtn danger disabled>Remover</window.PtBtn>
-                          <small>{n === 1 ? "1 colaborador vinculado" : n + " colaboradores vinculados"} — desvincule antes</small>
-                        </span>
+                      ? <span className="pt-dim" data-testid={"escala-" + e.id + "-remover-bloqueado"}>Em uso por {n} {n === 1 ? "colaborador" : "colaboradores"}</span>
                       : <window.PtBtn danger onClick={() => setRemover(e)}>Remover</window.PtBtn>;
                   })()}
                 </span>
@@ -572,7 +618,12 @@ function Colaboradores({ avisar, onVerEspelho }) {
       </window.PtBarra>
       <Card contrato="colaboradores-colaboradores" icon="database" titulo="Colaboradores" sub={"(" + lista.length + " encontrados)"}>
         <Tabela cols={[{ l: "Matrícula", w: "92px" }, { l: "Nome" }, { l: "CPF / PIS" }, { l: "Escala" }, { l: "Último ponto" }, { l: "Saldo BH", num: true }, { l: "Controla ponto" }, { l: "Banco de horas" }, { l: "Ação", num: true, w: "180px" }]}>
-          {lista.length === 0 && <Vazio icon="search" colSpan={9}>{busca ? <>Nenhum colaborador encontrado para “{q}”.</> : "Nenhum colaborador com esse filtro."}</Vazio>}
+          {lista.length === 0 && (rows.length === 0
+            ? <Vazio icon="database" colSpan={9} variante="first" titulo="Nenhum colaborador cadastrado">Cadastre colaboradores no HRM — eles aparecem aqui automaticamente para a configuração de ponto.</Vazio>
+            : <Vazio icon="search" colSpan={9} variante="filtered" titulo="Nenhum colaborador encontrado"
+                acao={<window.PtBtn onClick={() => { setQ(""); setEscala(""); setStatus("todos"); }}>{busca ? "Limpar busca" : "Limpar filtros"}</window.PtBtn>}>
+                {busca ? <>Nenhum resultado para “{q}”. Tente outro termo ou limpe a busca.</> : "Nenhum colaborador com esse filtro."}
+              </Vazio>)}
           {pg.fatia(lista).map((c) => {
             const bh = (D.BH_SALDOS.find((s) => s.colaborador_config_id === c.id) || {}).saldo_minutos;
             const up = c.controla_ponto ? ultimoPonto(c.id) : null;
@@ -634,8 +685,8 @@ function ColaboradorForm({ colaborador, onSalvar, onCancelar }) {
               <window.PtCampo label={"Desligamento"} help={<>Deixar em branco se ativo.</>} value={f.desligamento} onChange={set("desligamento")} placeholder="dd/mm/aaaa" />
             </div>
             <div className="pt-cols">
-              <window.PtCheck checked={!!f.controla_ponto} onChange={set("controla_ponto")} label={<><b>Controla ponto</b> — registra marcações</>} />
-              <window.PtCheck checked={!!f.usa_banco_horas} onChange={set("usa_banco_horas")} label={<><b>Usa banco de horas</b></>} />
+              <window.PtCheck checked={!!f.controla_ponto} onChange={set("controla_ponto")} label={<><b>Controla ponto</b> — bate ponto e participa da apuração CLT</>} />
+              <window.PtCheck checked={!!f.usa_banco_horas} onChange={set("usa_banco_horas")} label={<><b>Usa banco de horas</b> — HE e débitos acumulam no banco. Exige escala com banco de horas ativo</>} />
             </div>
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
               <window.PtBtn  onClick={onCancelar}>Cancelar</window.PtBtn>

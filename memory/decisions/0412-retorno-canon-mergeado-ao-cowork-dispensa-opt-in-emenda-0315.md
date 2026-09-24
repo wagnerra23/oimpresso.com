@@ -3,7 +3,7 @@ slug: 0412-retorno-canon-mergeado-ao-cowork-dispensa-opt-in-emenda-0315
 number: 412
 title: "Retorno de canon já mergeado ao projeto Cowork de telas dispensa opt-in (emenda à 0315)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

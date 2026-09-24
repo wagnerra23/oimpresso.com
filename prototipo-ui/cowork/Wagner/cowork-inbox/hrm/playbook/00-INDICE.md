@@ -32,11 +32,11 @@ Denominadores: **D1** `Modules/Essentials/Routes/web.php` `prefix('hrm')` · **D
 | `/settings` GET+POST | `Essentials/Settings/Index` | `Essentials/Settings/Index.tsx` | `settings/partials/*` | — | produção React 🔵 | 07 (puxar) |
 | `/holiday` (resource) | `Essentials/Holidays/Index` | `Essentials/Holidays/Index.tsx` + charter | `dashboard/holidays` | — | produção React 🔵 | 08 (puxar) |
 | `/attendance` (resource) + 10 rotas | — | — | `attendance/*` (14) | #6798 mergeado · **[W] D1: cede ao Ponto** · cron `pos:autoClockOutUser` em `EssentialsServiceProvider.php:108` · ponteiro `Modules/Ponto/Config/config.php:136` | **sai do HRM** | 09 |
-| `/payroll` (resource) + 9 rotas · `essentials/allowance-deduction` | — | — | `payroll/*` (14) | **[W] D2: folha completa → ADR própria** | **bloqueada** | 10 |
+| `/payroll` (resource) + 9 rotas · `essentials/allowance-deduction` | — | — | `payroll/*` (14) | **[W] D2: folha completa → ADR-mãe ratificada 2026-09-24 (PR #7920)** | **bloqueada** (sem Page até motor) | 10 |
 | nav → `TaxonomyController?type=hrm_department` · `hrm_designation` | (core) | — | core | — | **sem aba no protótipo** | 01 |
 | — (protótipo tem aba **Turnos**; `nav_hrm` não a lista) | | | | | divergência declarada | 05 |
 
-Também medido nesta sha: `.claude/commands/onda.md` **não existe** (PR-A7 não feito → abertura colada à mão) · os planos `memory/sessions/2026-09-05-{como-integrar-ponto-hrm,arte-folha-encargos-br}.md` citados pela emenda [W] e reafirmados no #6876 **não existem** (1 hit no repo inteiro = o próprio PEDIDO se citando; [CL] confirmou em a88c66a) · `whats-active` **morto** (HTTP 000 medido pelo [CL] em 05/09) — substituto: `gh pr list --state open` cruzado com os arquivos a tocar.
+Também medido nesta sha: `.claude/commands/onda.md` **não existe** (PR-A7 não feito → abertura colada à mão) · os planos `memory/sessions/2026-09-05-{como-integrar-ponto-hrm,arte-folha-encargos-br}.md` citados pela emenda [W] **não existiam** em a88c66a — **aterrissaram no #6877 (2026-09-05)**; a ADR-mãe da folha veio no #6881 (corrigido em 2026-09-24, _saida-10) · `whats-active` **morto** (HTTP 000 medido pelo [CL] em 05/09) — substituto: `gh pr list --state open` cruzado com os arquivos a tocar.
 
 ## 2 · Threads — ordem · dono · prefixo (Lei 1) · dependência
 
@@ -51,7 +51,7 @@ Também medido nesta sha: `.claude/commands/onda.md` **não existe** (PR-A7 não
 | 07 | Configurações — PUXAR (12 campos × 10 chaves) | [CC] read-only → [CL] se gap | nada; se gap, `Pages/Essentials/Settings/Index.tsx` | — | 1 |
 | 08 | Feriados — PUXAR (ler `Holidays/Index.tsx`) | [CC] read-only | nada; se gap, build daqui | — | 1 |
 | 09 | Presença SAI do HRM → Ponto dono da jornada | [W] + [CL] | `memory/decisions/0014-*.md` (emenda) · `Routes/web.php` (11 rotas) · **`Providers/EssentialsServiceProvider.php` (:108 desagendar cron)** · **`Modules/Ponto/Config/config.php` (:136 ponteiro morto)** | D1 · D3 | 2 |
-| 10 | Folha — BLOQUEADA (ADR própria) | [W] | fora deste playbook | D2 | — |
+| 10 | Folha — BLOQUEADA (ADR-mãe ratificada 2026-09-24; sem Page até o motor) | [W] | fora deste playbook | D2 | — |
 | 11 | Fim do topnav Blade + limpeza O8 | [CL] | `layouts/nav_hrm.blade.php` · `partials/sidebar_hrm.blade.php` · blades `leave/* leave_type/* sales_targets/* dashboard/hrm_dashboard` | 02 · 03 · 05 · 06 + screenshot [W2] | 3 |
 
 **Âncora de implementação para toda Page nova = a irmã golden `resources/js/Pages/Essentials/Metas.tsx` (#6869)** — mesmo pacote de 8 peças (tsx · charter com frontmatter `component:`/`runbook:` · casos · `contrato/essentials-<tela>.contract.json` gerado pelo `criar-tela.mjs` · Pest `Hrm<Tela>Test.php` · `e2e/essentials-<tela>.spec.ts` · `RUNBOOK-<tela>.md` · lane em `essentials-pest.yml`). Alvo de layout continua o protótipo medido (`prototipo-ui/cowork/Wagner/hrm-*.jsx`, campo `related_prototype` do charter).
@@ -81,7 +81,7 @@ Leia nesta ordem, do main, nunca de cópia local:
 2. prototipo-ui/cowork/Wagner/cowork-inbox/hrm/playbook/00-INDICE.md           ← §1 estados · §2 seu prefixo · §7 fonte
 3. prototipo-ui/cowork/Wagner/cowork-inbox/hrm/playbook/NN-<sua-thread>.md     ← escopo · alvo · dado · prova
 4. prototipo-ui/cowork/Wagner/cowork-inbox/hrm/PEDIDO-CL-hrm.md §"Emenda 2026-09-05 [W]" ← D1/D2/D3.
-   AVISO: os 2 planos de memory/sessions/ que ela manda ler NÃO EXISTEM no main (medido 159e572d e a88c66a). Não bloqueie neles.
+   Os 2 planos de memory/sessions/ que ela manda ler existem no main desde o #6877 (2026-09-05).
 5. resources/js/Pages/Essentials/Metas.tsx + Metas.charter.md                ← a irmã golden: o pacote que sua Page tem de repetir
 6. memory/reference/prototipo-ui/PRE-FLIGHT-TELA.md · memory/proibicoes.md · memory/LICOES_CC.md
 7. os arquivos da âncora listados na sua thread
@@ -121,9 +121,9 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
     { "id": "RESIDUO-3", "pergunta": "ShiftController::destroy ainda responde 200 sem apagar turno com vínculo?", "respondida": false, "destrava": ["05"] },
     { "id": "RESIDUO-4", "pergunta": "DataTablePro do DS (th sem scope/semântica em 3 módulos): pedido de DS próprio?", "respondida": false },
     { "id": "RESIDUO-5", "pergunta": "Metas no protótipo mostra apuração excluída da produção por caminho de VALOR: tirar ou selar 'fora desta onda'?", "respondida": false, "destrava": ["04"] },
-    { "id": "RESIDUO-6", "pergunta": "As 5 chaves de presença do Settings do HRM (grace_before/after_checkin/checkout + is_location_required): ficam em /hrm/settings ou migram para o Ponto (dono da jornada desde D1)?", "respondida": false, "origem": "_saida-07.md (2026-09-24)" },
+    { "id": "RESIDUO-6", "pergunta": "As 5 chaves de presença do Settings do HRM (grace_before/after_checkin/checkout + is_location_required): ficam em /hrm/settings ou migram para o Ponto (dono da jornada desde D1)?", "respondida": true, "resposta": "[W] 2026-09-23 disse migrar; na execução da 09 (2026-09-24, [W]) virou APOSENTAR sem migrar — no Ponto a lei fixa as duas (CLT Art. 58 §1º; REP-P Portaria 671). Executado: EssentialsSettingsController.php:25 + HrmPresencaCedeAoPontoTest UC-HRM-PRES-05", "origem": "_saida-07.md · _saida-07a.md · _saida-09.md item 6 · _saida-10.md" },
     { "id": "D1", "pergunta": "Presença web × Ponto", "respondida": true, "resposta": "cede ao Ponto — dono único da jornada (2026-09-05)", "destrava": ["09"] },
-    { "id": "D2", "pergunta": "Folha gerencial × completa", "respondida": true, "resposta": "completa com encargos → projeto com ADR própria (2026-09-05)" },
+    { "id": "D2", "pergunta": "Folha gerencial × completa", "respondida": true, "resposta": "completa com encargos → projeto com ADR própria (2026-09-05). ADR-mãe memory/decisions/proposals/2026-09-05-folha-com-encargos-modelo-e-fronteira.md ratificada por [W] 2026-09-24 (flip no PR #7920; merge = ato)" },
     { "id": "D3", "pergunta": "Licença aprovada bloqueia marcação?", "respondida": true, "resposta": "sim; guard nasce no Ponto; bloquear = impedir criação (append-only)" }
   ],
   "threads": [
@@ -195,8 +195,8 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
       ] },
     { "id": "10", "titulo": "Folha — BLOQUEADA (D2 → projeto com ADR própria)", "dono": "W", "arquivo": "10-folha-bloqueada.md",
       "prefixo": [], "nao_toca": ["Modules/Essentials/Http/Controllers/PayrollController.php"],
-      "bloqueio": "D2: folha completa com encargos exige ADR própria e gate de VALOR (proibicoes.md); nenhuma Page até a ADR existir",
-      "provas": [], "nota_provas": "quando a ADR nova existir, entra aqui {tipo:contem, path:<ADR>, padrao:'0014'}" },
+      "bloqueio": "ADR-mãe ratificada (D2, [W] 2026-09-24, PR #7920). Nenhuma Page até existirem modelo de verba + motor (§9 da ADR, passos 2-5); insumo do Ponto ainda sem dado em prod",
+      "provas": [ { "tipo": "contem", "path": "memory/decisions/proposals/2026-09-05-folha-com-encargos-modelo-e-fronteira.md", "padrao": "status: aceito", "nota": "ratificação [W]; a ADR cita a 0014 em related" } ], "nota_provas": "_saida-10.md registra a decisão; o rótulo transitório 'folha gerencial' segue pendente [W]" },
     { "id": "11", "titulo": "Fim do topnav Blade + limpeza O8", "dono": "CL", "vaga": 3, "arquivo": "11-topnav-legado.md",
       "prefixo": ["Modules/Essentials/Resources/views/layouts/nav_hrm.blade.php", "Modules/Essentials/Resources/views/layouts/partials/sidebar_hrm.blade.php", "Modules/Essentials/Resources/views/leave/", "Modules/Essentials/Resources/views/leave_type/", "Modules/Essentials/Resources/views/sales_targets/", "Modules/Essentials/Resources/views/dashboard/hrm_dashboard.blade.php"],
       "nao_toca": ["Modules/Essentials/Resources/views/attendance/", "Modules/Essentials/Resources/views/payroll/", "Modules/Essentials/Routes/web.php"],
