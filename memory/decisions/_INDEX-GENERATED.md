@@ -7,7 +7,7 @@
 ## Resumo
 - **418** arquivos · **403** números únicos · máx **0413**
 - **ADRs ATIVOS (lifecycle ativo): 373** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 367 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
+- Por status: aceito 368 · superseded 25 · proposto 12 · deprecated 11 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 373 · substituido 25 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -437,7 +437,7 @@ _(nenhuma)_
 | 0392 | aceito | ativo | decision | Fronteira do Governance por audiência — o enforcement vive na CONCESSÃO da permi |
 | 0393 | aceito | ativo | decision | Governança da empresa aparece no fluxo de trabalho, não em tela própria — emenda |
 | 0394 | aceito | ativo | decision | Endereço de UI do Patrimônio é `Pages/Patrimonio/**` — módulo próprio, não seção |
-| 0395 | proposto | ativo | decision | Emenda à 0314 — `PageHeader · ratchet` vira required: 2 telas novas adotaram o h |
+| 0395 | aceito | ativo | decision | Emenda à 0314 — `PageHeader · ratchet` vira required: 2 telas novas adotaram o h |
 | 0396 | superseded | substituido | decision | Protótipo tem uma fonte ativa, transporte build-only e caminhos literais |
 | 0397 | aceito | ativo | decision | Protótipo mínimo por dono, máquinas fora do artefato e Design System direto |
 | 0398 | aceito | ativo | decision | O espelho Cowork recebe a árvore da conta, documentação incluída (emenda à 0397  |
