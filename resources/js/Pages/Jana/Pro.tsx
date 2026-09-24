@@ -45,17 +45,21 @@ interface Props {
 // Os semânticos (`--pos`, `--accent-soft`, `--bubble-them`, `--color-*`) têm par de tema e
 // não servem aqui: no claro o verde escurece sobre fundo escuro e a bolha embranquece.
 // Fonte dos valores: resources/css/tokens/semantic.tokens.json → cockpit.surface.
-const PROOF_BG = 'var(--sb-bg)'
-const PROOF_INK = 'var(--sb-text-hi)'
-const PROOF_MUTE = 'var(--sb-text-dim)'
-const BUB_THEM = 'var(--sb-active)'
-const PROOF_OVERLAY = 'radial-gradient(120% 80% at 100% 0%, var(--sb-accent-glow), transparent 60%)'
-const BUB_JANA = 'var(--sb-accent-soft)'
-const NUM_POS = 'var(--sb-pos)'
-// Gradiente do avatar e halo do marcador — mesmos tokens dark-fixos, extraídos aqui em vez
-// de literais no JSX (lá eles escapam do lint `ds/no-inline-raw-color`, que casa Literal).
-const AVATAR_BG = 'linear-gradient(135deg, var(--sb-accent), var(--sb-accent-2))'
-const NUM_POS_RING = '0 0 0 3px var(--sb-pos-glow)'
+//
+// Eram 13 atributos `style` inline (thread 03 do playbook Jana). Viraram classes Tailwind que
+// apontam para os MESMOS tokens — a cor resolvida não muda, só sai do `style`. As classes
+// ficam aqui, e não em `cockpit.css`, por custo medido: `resources/css/**` o `ui-impact.mjs`
+// classifica como `fundacao-visual` → escopo GLOBAL; `Pro.tsx` sozinho fica `targeted`.
+// `color:` explícito onde o Tailwind teria de adivinhar o tipo do `var()`.
+const PROOF_SURFACE = 'bg-[color:var(--sb-bg)] text-[color:var(--sb-text-hi)]'
+const PROOF_MUTE = 'text-[color:var(--sb-text-dim)]'
+const PROOF_OVERLAY = 'bg-[radial-gradient(120%_80%_at_100%_0%,var(--sb-accent-glow),transparent_60%)]'
+const BUB_THEM = 'bg-[color:var(--sb-active)]'
+const BUB_JANA = 'bg-[color:var(--sb-accent-soft)]'
+const PROOF_RULE = 'border-[color:var(--sb-border)]'
+const NUM_POS = 'text-[color:var(--sb-pos)]'
+const NUM_POS_DOT = 'bg-[color:var(--sb-pos)] shadow-[0_0_0_3px_var(--sb-pos-glow)]'
+const AVATAR_BG = 'bg-[linear-gradient(135deg,var(--sb-accent),var(--sb-accent-2))]'
 
 const fmtBRL = (n: number) =>
   new Intl.NumberFormat('pt-BR', {
@@ -234,65 +238,48 @@ function ProPage({ plan, pricing, proof }: Props) {
             </div>
 
             {/* Hero direita — card de prova (Jana lendo dados reais) */}
-            <div
-              className="relative flex flex-col gap-3 overflow-hidden rounded-lg p-5 shadow-md"
-              style={{ background: PROOF_BG, color: PROOF_INK }}
-            >
-              <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: PROOF_OVERLAY }} />
+            <div className={`relative flex flex-col gap-3 overflow-hidden rounded-lg p-5 shadow-md ${PROOF_SURFACE}`}>
+              <div aria-hidden className={`pointer-events-none absolute inset-0 ${PROOF_OVERLAY}`} />
               <div className="relative flex items-center gap-[9px]">
                 <span
-                  className="grid size-[26px] flex-none place-items-center rounded-full text-xs font-bold text-white"
-                  style={{ background: AVATAR_BG }}
+                  className={`grid size-[26px] flex-none place-items-center rounded-full text-xs font-bold text-white ${AVATAR_BG}`}
                 >
                   J
                 </span>
                 <b className="text-[13px]">Jana</b>
-                <small className="ml-auto flex items-center gap-[5px] text-[11px]" style={{ color: PROOF_MUTE }}>
-                  <span
-                    className="size-1.5 rounded-full"
-                    style={{ background: NUM_POS, boxShadow: NUM_POS_RING }}
-                  />
+                <small className={`ml-auto flex items-center gap-[5px] text-[11px] ${PROOF_MUTE}`}>
+                  <span className={`size-1.5 rounded-full ${NUM_POS_DOT}`} />
                   lendo seu ERP
                 </small>
               </div>
 
               <div
-                className="relative max-w-[90%] self-end rounded-md rounded-br-[2px] px-[13px] py-2.5 text-[13px] leading-[1.5]"
-                style={{ background: BUB_THEM }}
+                className={`relative max-w-[90%] self-end rounded-md rounded-br-[2px] px-[13px] py-2.5 text-[13px] leading-[1.5] ${BUB_THEM}`}
               >
                 Jana, como foi meu faturamento esse mês?
               </div>
 
               <div
-                className="relative max-w-[90%] self-start rounded-md rounded-bl-[2px] px-[13px] py-2.5 text-[13px] leading-[1.5]"
-                style={{ background: BUB_JANA }}
+                className={`relative max-w-[90%] self-start rounded-md rounded-bl-[2px] px-[13px] py-2.5 text-[13px] leading-[1.5] ${BUB_JANA}`}
               >
                 Maio fechou acima de abril. Veja pelos 3 ângulos:
-                <div className="mt-[9px] flex gap-3.5 border-t pt-[9px]" style={{ borderColor: 'var(--sb-border)' }}>
+                <div className={`mt-[9px] flex gap-3.5 border-t pt-[9px] ${PROOF_RULE}`}>
                   <div className="flex flex-col">
-                    <small className="text-[9.5px] uppercase tracking-[0.08em]" style={{ color: PROOF_MUTE }}>
-                      Bruto
-                    </small>
+                    <small className={`text-[9.5px] uppercase tracking-[0.08em] ${PROOF_MUTE}`}>Bruto</small>
                     <b className="font-mono text-sm tabular-nums text-white">{fmtBRL(proof.bruto)}</b>
                   </div>
                   <div className="flex flex-col">
-                    <small className="text-[9.5px] uppercase tracking-[0.08em]" style={{ color: PROOF_MUTE }}>
-                      Líquido
-                    </small>
+                    <small className={`text-[9.5px] uppercase tracking-[0.08em] ${PROOF_MUTE}`}>Líquido</small>
                     <b className="font-mono text-sm tabular-nums text-white">{fmtBRL(proof.liquido)}</b>
                   </div>
                   <div className="flex flex-col">
-                    <small className="text-[9.5px] uppercase tracking-[0.08em]" style={{ color: PROOF_MUTE }}>
-                      Caixa
-                    </small>
-                    <b className="font-mono text-sm tabular-nums" style={{ color: NUM_POS }}>
-                      {fmtBRL(proof.caixa)}
-                    </b>
+                    <small className={`text-[9.5px] uppercase tracking-[0.08em] ${PROOF_MUTE}`}>Caixa</small>
+                    <b className={`font-mono text-sm tabular-nums ${NUM_POS}`}>{fmtBRL(proof.caixa)}</b>
                   </div>
                 </div>
               </div>
 
-              <div className="relative mt-0.5 flex items-center gap-[7px] text-[11px]" style={{ color: PROOF_MUTE }}>
+              <div className={`relative mt-0.5 flex items-center gap-[7px] text-[11px] ${PROOF_MUTE}`}>
                 <Check className="size-[13px] text-primary" strokeWidth={2} />
                 Números reais das suas tabelas — sem planilha, sem integração.
               </div>
