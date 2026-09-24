@@ -23,8 +23,13 @@ use Modules\NFSe\Models\NfseEmissao;
  *   real na tela irmã (/fiscal/nfe), inclusive a janela legal de cancelamento.
  *
  * TIER 0
- *   Ambos os modelos carregam HasBusinessScope (ADR 0093): as queries aqui são
- *   escopadas por business automaticamente e NÃO usam withoutGlobalScopes.
+ *   Os dois modelos têm escopo global por business (ADR 0093), com traits DIFERENTES:
+ *   `NfeEmissao` usa `App\Concerns\HasBusinessScope`; `NfseEmissao` usa
+ *   `Modules\NFSe\Models\Concerns\NfseBusinessScope`, do próprio módulo NFSe. As
+ *   queries aqui NÃO usam withoutGlobalScopes.
+ *   ⚠️ Os dois filtram a partir de `session('user.business_id')` e, SEM sessão (CLI,
+ *   job), não filtram nada. Este serviço só é seguro chamado de request web
+ *   autenticada; fora dela, tem que receber o business explícito.
  */
 class NotasUnifiedService
 {

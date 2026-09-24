@@ -21,6 +21,7 @@
     "Financeiro/Dre/Index",
     "Financeiro/Fluxo/Index",
     "Financeiro/Impostos/Index",
+    "Financeiro/PlanoContas/Index",
     "Financeiro/ProvaViva",
     "Financeiro/Unificado/Index",
     "Fiscal/Cockpit",
@@ -133,5 +134,5 @@
       ]
     }
   ],
-  "total": 94
+  "total": 95
 }

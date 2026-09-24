@@ -39,9 +39,9 @@ it('027.01 DeleteCmsPageRequest aceita type vazio (delete sem filtro)', function
     expect($v->fails())->toBeFalse();
 });
 
-it('027.02 DeleteCmsPageRequest aceita type whitelisted (page/post/banner)', function () {
+it('027.02 DeleteCmsPageRequest aceita type whitelisted (page/blog/testimonial)', function () {
     $rules = (new DeleteCmsPageRequest)->rules();
-    foreach (['page', 'post', 'banner'] as $tipo) {
+    foreach (['page', 'blog', 'testimonial'] as $tipo) {
         $v = Validator::make(['type' => $tipo], $rules);
         expect($v->fails())->toBeFalse("type {$tipo} deveria ser aceito");
     }

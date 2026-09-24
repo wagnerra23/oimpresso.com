@@ -33,6 +33,22 @@ class AttendanceController extends ApiController
     }
 
     /**
+     * Presença cedida ao Ponto (D1 [W] 2026-09-05; ADR 0014 emenda).
+     *
+     * `get-attendance`, `clock-in` e `clock-out` apontam pra cá: 410 Gone e não 404, pra quem
+     * integra saber que o endpoint saiu de propósito e para onde foi. A marcação agora é do
+     * módulo Ponto (REP-P, com geolocalização obrigatória, Portaria 671).
+     */
+    public function cedidoAoPonto()
+    {
+        return response()->json([
+            'success' => false,
+            'msg'     => 'A presença saiu do HRM: marque o ponto pelo módulo Ponto.',
+            'destino' => '/ponto',
+        ], 410);
+    }
+
+    /**
      * Get Attendance
      *
      * @urlParam user_id required id of the user Example: 1

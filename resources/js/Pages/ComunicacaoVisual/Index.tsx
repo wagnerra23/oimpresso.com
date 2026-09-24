@@ -30,10 +30,10 @@
  */
 import { useMemo, useState, type ReactNode } from 'react';
 import { Head } from '@inertiajs/react';
-import { Plus, Trash2, Calculator, ServerCog, Ruler, Clock } from 'lucide-react';
+import { Plus, Trash2, Calculator, ServerCog, Ruler, Clock, Printer } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -80,9 +80,12 @@ interface ServerResult {
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const NUM = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 3 });
 
+// Sem crypto.randomUUID: fora de secure context (http:// no IP da rede do balcão)
+// ele é undefined e derrubava o render inicial — tela branca, sem mensagem.
+let seqItem = 0;
 function novoItem(): ItemUI {
   return {
-    id: crypto.randomUUID(),
+    id: `i${++seqItem}`,
     material_id: null,
     descricao: '',
     largura_m: 1,
@@ -94,11 +97,27 @@ function novoItem(): ItemUI {
 
 /** Fórmula canônica espelhada do OrcamentoCalculator (preview no cliente).
  *  area_m2 = largura × altura × qtd ; subtotal = area × preço/m². */
+function itemOk(i: ItemUI): boolean {
+  return i.largura_m > 0 && i.altura_m > 0 && i.quantidade >= 1 && i.preco_unitario_m2 > 0;
+}
 function areaDe(item: ItemUI): number {
-  return Math.max(0, item.largura_m) * Math.max(0, item.altura_m) * Math.max(0, item.quantidade);
+  // Área arredondada a 3 casas e subtotal a 2, POR ITEM — é o que o servidor faz. Somar o
+  // float bruto dava diferença de centavo em quantidade alta e jogava a conferência no
+  // "vale este" sem motivo.
+  return arred(Math.max(0, item.largura_m) * Math.max(0, item.altura_m) * Math.max(0, item.quantidade), 3);
 }
 function subtotalDe(item: ItemUI): number {
-  return areaDe(item) * Math.max(0, item.preco_unitario_m2);
+  return arred(areaDe(item) * arred(Math.max(0, item.preco_unitario_m2), 2), 2);
+}
+
+/** Espelha round($n, $casas, PHP_ROUND_HALF_UP) do OrcamentoCalculator: meio pra longe do zero.
+ *  O toPrecision(15) tira o resíduo binário antes de arredondar — sem ele 1,005 × 100 dá
+ *  100,4999… e o centavo sai pra baixo, enquanto o PHP (que faz o mesmo pré-arredondamento)
+ *  sobe. */
+function arred(n: number, casas: number): number {
+  const fator = 10 ** casas;
+  const deslocado = Number((Math.abs(n) * fator).toPrecision(15));
+  return (Math.sign(n) * Math.round(deslocado)) / fator;
 }
 
 export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar = false }: Props) {
@@ -135,17 +154,22 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
 
   // Totais do preview client-side (feedback instantâneo enquanto digita).
   const subtotalLocal = useMemo(
-    () => itens.reduce((acc, i) => acc + subtotalDe(i), 0),
+    () => arred(itens.reduce((acc, i) => acc + subtotalDe(i), 0), 2),
     [itens],
   );
+  // SEM clamp em zero: o servidor não clampa (total = subtotal − desconto + extras), então
+  // desconto maior que o orçamento mostrava R$ 0,00 aqui e um negativo no "vale este".
+  // Melhor mostrar o negativo e dizer por quê.
   const totalLocal = useMemo(
-    () => Math.max(0, subtotalLocal - Math.max(0, desconto) + Math.max(0, extras)),
+    () => arred(subtotalLocal - arred(Math.max(0, desconto), 2) + arred(Math.max(0, extras), 2), 2),
     [subtotalLocal, desconto, extras],
   );
 
-  const temItemValido = itens.some(
-    (i) => i.largura_m > 0 && i.altura_m > 0 && i.quantidade >= 1 && i.preco_unitario_m2 > 0,
-  );
+  // TODAS as linhas: o servidor recusa o orçamento inteiro por causa de uma só
+  // (com `some`, uma peça boa liberava o botão e a linha vazia voltava 422).
+  const temItemValido = itens.length > 0 && itens.every(itemOk);
+  // Marca a linha que está segurando o botão — só quando há outra linha pronta.
+  const algumOk = itens.some(itemOk);
 
   // Confere no servidor (authoritative): o backend recalcula área/subtotal/total
   // e respeita business_id. Se bater com o preview local, dá confiança pra Larissa.
@@ -205,12 +229,14 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
     <>
       <Head title="Comunicação Visual — Orçamento por m²" />
 
+      {/* Header canon (ADR 0189/0190): traz o próprio padding, por isso fica FORA do bloco p-6. */}
+      <PageHeader
+        leading={<Printer className="h-5 w-5 text-primary" aria-hidden="true" />}
+        title="Comunicação Visual"
+        subtitle={`Orçamento por m² pra ${bizName} — banner, lona, adesivo, fachada. Calcule na hora, sem abrir o Excel.`}
+      />
+
       <div className="space-y-6 p-6">
-        <PageHeader
-          icon="printer"
-          title="Comunicação Visual"
-          description={`Orçamento por m² pra ${bizName} — banner, lona, adesivo, fachada. Calcule na hora, sem abrir o Excel.`}
-        />
 
         {/* Calculadora — o valor real da tela */}
         <Card>
@@ -233,7 +259,7 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
             )}
 
             {/* Cabeçalho das colunas (>= md) */}
-            <div className="hidden gap-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground md:grid md:grid-cols-12">
+            <div aria-hidden="true" className="hidden gap-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground md:grid md:grid-cols-12">
               <span className="md:col-span-3">Material</span>
               <span className="md:col-span-3">Descrição</span>
               <span className="md:col-span-1">Larg. (m)</span>
@@ -276,8 +302,10 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
 
                   {/* Descrição */}
                   <div className="col-span-2 md:col-span-3">
-                    <Label className="text-xs md:hidden">Descrição</Label>
+                    <Label htmlFor={`desc-${item.id}`} className="text-xs md:hidden">Descrição</Label>
                     <Input
+                      id={`desc-${item.id}`}
+                      aria-label="Descrição da peça"
                       value={item.descricao}
                       onChange={(e) => patchItem(item.id, { descricao: e.target.value })}
                       placeholder="Ex: Banner fachada loja"
@@ -286,8 +314,10 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
 
                   {/* Largura */}
                   <div className="md:col-span-1">
-                    <Label className="text-xs md:hidden">Largura (m)</Label>
+                    <Label htmlFor={`larg-${item.id}`} className="text-xs md:hidden">Largura (m)</Label>
                     <Input
+                      id={`larg-${item.id}`}
+                      aria-label="Largura em metros"
                       type="number"
                       inputMode="decimal"
                       min={0}
@@ -299,8 +329,10 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
 
                   {/* Altura */}
                   <div className="md:col-span-1">
-                    <Label className="text-xs md:hidden">Altura (m)</Label>
+                    <Label htmlFor={`alt-${item.id}`} className="text-xs md:hidden">Altura (m)</Label>
                     <Input
+                      id={`alt-${item.id}`}
+                      aria-label="Altura em metros"
                       type="number"
                       inputMode="decimal"
                       min={0}
@@ -312,8 +344,10 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
 
                   {/* Quantidade */}
                   <div className="md:col-span-1">
-                    <Label className="text-xs md:hidden">Qtd</Label>
+                    <Label htmlFor={`qtd-${item.id}`} className="text-xs md:hidden">Qtd</Label>
                     <Input
+                      id={`qtd-${item.id}`}
+                      aria-label="Quantidade de peças"
                       type="number"
                       inputMode="numeric"
                       min={1}
@@ -327,8 +361,11 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
 
                   {/* Preço/m² */}
                   <div className="md:col-span-1">
-                    <Label className="text-xs md:hidden">Preço por m²</Label>
+                    <Label htmlFor={`preco-${item.id}`} className="text-xs md:hidden">Preço por m²</Label>
                     <Input
+                      id={`preco-${item.id}`}
+                      aria-label="Preço por metro quadrado"
+                      aria-invalid={algumOk && !itemOk(item) ? true : undefined}
                       type="number"
                       inputMode="decimal"
                       min={0}
@@ -431,6 +468,11 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
                     {BRL.format(totalLocal)}
                   </span>
                 </div>
+                {totalLocal < 0 && (
+                  <p className="text-xs text-destructive">
+                    O desconto está maior que o valor do orçamento — o total fica negativo.
+                  </p>
+                )}
                 {conferido && (
                   <p className="flex items-center gap-1.5 text-xs">
                     {Math.abs(conferido.total - totalLocal) < 0.01 ? (
