@@ -5,10 +5,15 @@
 @include('essentials::layouts.nav_hrm')
 <section class="content-header">
     <h1>@lang('essentials::lang.payroll')
+        <small>@lang('essentials::lang.payroll_gerencial')</small>
     </h1>
 </section>
 <!-- Main content -->
 <section class="content">
+    {{-- ADR folha-com-encargos (ratificada 2026-09-24, #7920) §3: a tela diz que não declara. --}}
+    <div class="callout callout-info" role="note" data-testid="payroll-gerencial-aviso">
+        <p>@lang('essentials::lang.payroll_gerencial_aviso')</p>
+    </div>
     <div class="row">
         <div class="col-md-12">
             <div class="nav-tabs-custom">

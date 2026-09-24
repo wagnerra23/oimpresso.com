@@ -108,6 +108,8 @@ return [
     'within_current_month' => 'Within current month',
     'within_current_fy' => 'Within current financial year',
     'payroll' => 'Payroll',
+    'payroll_gerencial' => 'management',
+    'payroll_gerencial_aviso' => 'Management payroll: adds earnings and subtracts deductions. It does not calculate INSS, IRRF, FGTS, 13th salary or vacation pay, and declares nothing to eSocial. Taxes and filings stay with your accountant.',
     'all_payrolls' => 'All Payrolls',
     'proceed' => 'Proceed',
     'month_year' => 'Month/Year',

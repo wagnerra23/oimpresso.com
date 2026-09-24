@@ -108,6 +108,8 @@ return [
     'within_current_month' => 'No mês atual',
     'within_current_fy' => 'No exercício financeiro atual',
     'payroll' => 'Folha de pagamento',
+    'payroll_gerencial' => 'gerencial',
+    'payroll_gerencial_aviso' => 'Folha gerencial: soma ganhos e subtrai deduções. Não calcula INSS, IRRF, FGTS, 13º nem férias, e não declara nada ao eSocial. Os encargos e as guias continuam com o seu contador.',
     'all_payrolls' => 'Todas as folhas de pagamento',
     'proceed' => 'Continuar',
     'month_year' => 'Mês ano',
