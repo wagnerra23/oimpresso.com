@@ -14,9 +14,9 @@ charter_version: 1
 related_us: [US-CMS-004]
 ---
 
-# Page Charter — /cms/cms-page (DRAFT · fase 1 = lista)
+# Page Charter — /cms/cms-page (DRAFT · fases 1–2b = lista + editor + destaques)
 
-> **Status:** draft. A lista é Inertia desde a thread Cms/01; criar/editar ainda são Blade.
+> **Status:** draft. Lista, editor e destaques da home são Inertia (thread Cms/01, fases 1–2b).
 > Casos: [`Index.casos.md`](Index.casos.md) · RUNBOOK: `memory/requisitos/Cms/RUNBOOK-admin-content.md`.
 > O charter **completo** proposto pelo [CC] (Non-Goals, Anti-hooks, 15 regras) está em
 > `prototipo-ui/cowork/Wagner/cowork-inbox/cms/Index.charter.md` e **aguarda [W]** — Non-Goals e
@@ -34,6 +34,9 @@ o que é rascunho, o que é página de sistema e o que não tem descrição de b
 - Selos em PT-BR: Publicada / Rascunho · Página de sistema · Sem descrição de busca.
 - Endereço público da linha (página e blog).
 - Excluir só em página livre; página de sistema mostra "Fixa".
+- Criar/editar em drawer lateral (PT-02), rótulos por tipo e layout, descrição para buscadores
+  derivada no servidor quando vazia, aviso de endereço ao mudar o título.
+- Destaques da página inicial editáveis no drawer — e são os que a home de `/` mostra.
 
 ## Pendências antes de `status: live`
 

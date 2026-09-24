@@ -9,12 +9,13 @@
 // RUNBOOK: memory/requisitos/Cms/RUNBOOK-admin-content.md
 // Âncora de design: prototipo-ui/cowork/Wagner/cowork-inbox/cms/CMS-F1-2026-08-19.md (PT-01)
 //
-// Esta fase é a LISTA. Criar/editar seguem no Blade (links abaixo) até a fase 2 do RUNBOOK;
-// excluir chama o `destroy` que já existe (ele responde JSON e só aceita requisição ajax).
+// Fase 1 = a LISTA; fase 2 = criar/editar num drawer PT-02 (./_components/Editor.tsx) sem
+// sair da tela. Excluir chama o `destroy` que já existe (responde JSON e só aceita ajax).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
+import Editor, { type Editando } from './_components/Editor';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -22,7 +23,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 
-type Tipo = 'page' | 'blog' | 'testimonial';
+import type { Tipo } from './_components/Editor';
 
 interface Linha {
   id: number;
@@ -39,6 +40,8 @@ interface Props {
   tipo: Tipo;
   contagens: Record<Tipo, number>;
   paginas?: Linha[];
+  /** Só chega por partial reload (?editar=id) — ver `abrirEdicao`. */
+  editando?: Editando | null;
 }
 
 // A1 do F1: nada de enum cru na interface.
@@ -46,7 +49,16 @@ const ROTULO: Record<Tipo, string> = { page: 'Páginas', blog: 'Blog', testimoni
 const NOVO: Record<Tipo, string> = { page: 'Nova página', blog: 'Nova publicação', testimonial: 'Novo depoimento' };
 const BASE = '/cms/cms-page';
 
-function ConteudoIndex({ tipo, contagens, paginas }: Props) {
+function ConteudoIndex({ tipo, contagens, paginas, editando }: Props) {
+  // `false` = fechado · `null` = criando · número = editando essa linha.
+  const [drawer, setDrawer] = useState<false | null | number>(false);
+
+  function abrirEdicao(id: number) {
+    router.reload({ data: { editar: id }, only: ['editando'], onSuccess: () => setDrawer(id) });
+  }
+
+  const item = typeof drawer === 'number' && editando?.id === drawer ? editando : null;
+
   return (
     <div className="pb-8">
       {/* PageHeader canon v3 (ADR 0189/0190): abas na Zona C, primary na Zona R. */}
@@ -54,14 +66,18 @@ function ConteudoIndex({ tipo, contagens, paginas }: Props) {
         title="Conteúdo do site"
         subtitle="O que está no ar em oimpresso.com — páginas, blog e depoimentos"
         subnav={<Abas tipo={tipo} contagens={contagens} />}
-        actions={<PageHeaderPrimary label={NOVO[tipo]} href={`${BASE}/create?type=${tipo}`} />}
+        actions={<PageHeaderPrimary label={NOVO[tipo]} onClick={() => setDrawer(null)} />}
       />
 
       <div className="px-6 pt-3" data-contract="cms.content.lista">
         <Deferred data="paginas" fallback={<Skeleton className="h-64 w-full" />}>
-          <Lista tipo={tipo} linhas={paginas} />
+          <Lista tipo={tipo} linhas={paginas} onEditar={abrirEdicao} />
         </Deferred>
       </div>
+
+      {/* `key` remonta o form a cada item: useForm só lê os valores iniciais uma vez. */}
+      <Editor key={`${tipo}-${item?.id ?? 'novo'}`} tipo={tipo} item={item}
+        aberto={drawer === null || item !== null} onFechar={() => setDrawer(false)} />
     </div>
   );
 }
@@ -86,7 +102,7 @@ function Abas({ tipo, contagens }: { tipo: Tipo; contagens: Record<Tipo, number>
   );
 }
 
-function Lista({ tipo, linhas }: { tipo: Tipo; linhas?: Linha[] }) {
+function Lista({ tipo, linhas, onEditar }: { tipo: Tipo; linhas?: Linha[]; onEditar: (id: number) => void }) {
   const lista = linhas ?? [];
   const [erro, setErro] = useState<string | null>(null);
 
@@ -152,8 +168,8 @@ function Lista({ tipo, linhas }: { tipo: Tipo; linhas?: Linha[] }) {
                   {l.criada_em ? new Date(l.criada_em).toLocaleDateString('pt-BR') : '—'}
                 </td>
                 <td className="px-4 py-2 text-right whitespace-nowrap">
-                  <Button variant="ghost" size="sm" asChild>
-                    <a href={`${BASE}/${l.id}/edit?type=${tipo}`}>Editar</a>
+                  <Button variant="ghost" size="sm" onClick={() => onEditar(l.id)}>
+                    Editar
                   </Button>
                   {l.sistema ? (
                     <span className="px-2 text-xs text-muted-foreground" title="Página de sistema não pode ser excluída">

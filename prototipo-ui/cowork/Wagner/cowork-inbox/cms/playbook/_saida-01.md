@@ -22,10 +22,23 @@ linhas. Quebrei em 5 fases no `memory/requisitos/Cms/RUNBOOK-admin-content.md`; 
   `Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php`, ligado na lane `verticais-pest.yml`
   (trigger + `paths-filter` + run-set).
 
+## Fase 2 (PR empilhado sobre o da fase 1)
+
+Criar/editar num drawer PT-02 (`Admin/Content/_components/Editor.tsx`), `meta_description` vazia
+derivada no servidor (R7), rótulos por tipo/layout (R2/R5), aviso de endereço ao mudar o título
+(A2). UC-CMS-04/05/22/23 no mesmo teste de contrato. Blocos da home ficam para a fase 2b.
+
+## Fase 2b (caminho A, [W] 2026-09-23)
+
+Destaques da home editáveis no drawer **e ligados à `/`**: o `FeatureGrid` lia chaves que ninguém
+gravava. Migration troca só o seed em inglês (medido em produção) pelo texto que o site já mostra —
+site idêntico. UC-CMS-08/24/25. `industry` fica fora (a home nova não tem a seção).
+
 ## Placar
 
-entregue 1 de 1 prova do índice · 5 de 18 UC do F1 cobertos · ausentes os outros 13 UC do F1
-(editor, exclusão recusada no servidor, lote, demo, formulário público) por serem das fases 2–4.
+entregue 1 de 1 prova do índice · fase 1: 5 UC · fase 2: +4 UC (UC-CMS-04/05 do F1 + 22/23 novos) · fase 2b: +3 UC (08 do F1 + 24/25) ·
+ausentes os demais UC do F1 (segmentos da home, exclusão recusada no servidor, lote, demo, formulário
+público) por serem das fases 3–4.
 
 ## Não fiz (e por quê)
 
