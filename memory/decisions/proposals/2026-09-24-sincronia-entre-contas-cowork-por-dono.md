@@ -126,6 +126,20 @@ Vale para qualquer resposta da §4: as duas máquinas que hoje só enxergam o [W
 - **O que dá segurança é o lock por tela**, e ele funciona com duas pastas: cada conta segue
   importando só para a sua, e o lock diz qual das cópias é a fonte daquela tela.
 
+## 6.1 · Resposta do [F] sobre a pasta dele (2026-09-24)
+
+[F], textual: *"São trabalhos meus, Maiara. Consulta de produtos tem alguns detalhes que quero
+mesclar na tela nova do protótipo, por isso ela existe."* Logo, os arquivos de fora da Fabricação
+na pasta `cowork/Felipe/` (ex.: `erp-shell-v2/`, `handoff_produtos_consulta/`) **não são cópia
+velha do [W]**: no lock inicial, as telas deles apontam para a pasta do [F].
+
+Dos **111** arquivos que diferem fora da Fabricação, **17** tiveram commit na pasta do [W] depois
+do último commit na do [F]. ⚠️ Data de commit é data de **import**, não de edição no Cowork, então
+isso indica candidatos, não prova de versão mais nova. Esses 17 foram entregues ao [F] em pacote,
+para ele subir no próprio Cowork. **Não** foram copiados para `cowork/Felipe/` no repo: o próximo
+retorno da conta dele sobrescreveria a cópia com a versão do Cowork dele (§5 2026-09-24,
+edição à mão no espelho).
+
 ## 7 · Trocar de tela
 
 Pegar uma tela nova = um PR que muda a linha dela no lock para a pasta de quem vai mexer. Devolver
