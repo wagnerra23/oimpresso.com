@@ -1,7 +1,7 @@
 ---
 page: /manufacturing/v2/report
 component: resources/js/Pages/Manufacturing/Report.tsx
-owner: wagner
+owner: maiara
 status: draft
 parent_module: Manufacturing
 # 2026-09-22 [W]: fonte = handoff_fabricacao do Felipe. Caminho COMPLETO de proposito - bundle_source resolve por BASENAME (ancora.mjs:512) e ha 3 copias de manufacturing-page.jsx no staging.

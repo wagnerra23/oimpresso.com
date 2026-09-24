@@ -8,7 +8,7 @@ related_prototype: prototipo-ui/cowork/Felipe/manufacturing-producao.jsx
 bundle_source: manufacturing-page.jsx  # 2026-09-09 [C]: porte REVERSO — `manufacturing-page.jsx:2` declara "Espelho de Modules/Manufacturing"; o gap-spec de 06/09 mede o prototipo ATRAS do vivo nos KPIs. Fonte de bundle, NAO design aprovado (§5 2026-08-28).
 page_id: manufacturing-index
 status: draft
-owner: wagner
+owner: maiara
 created: 2026-05-16
 wave: J
 runbook: memory/requisitos/Manufacturing/RUNBOOK-producao.md
