@@ -503,6 +503,10 @@ class UiLintCommand extends Command
             'resources/js/Pages/Home/Index.tsx',
             'resources/js/Pages/Jana/Index.tsx',
             'resources/js/Pages/Patrimonio/Index.tsx',
+            // Pages/Documentacao/Index.tsx (capa de /documentacao — PT-03 Detalhe, leitura de UM
+            // documento com rail e sumário, sem tabela; o charter declara o PT, e o nome
+            // `Index` é só a rota raiz da superfície. US-DOC-001, 2026-09-24.)
+            'resources/js/Pages/Documentacao/Index.tsx',
             'Modules/PaymentGateway/Resources/js/Pages/Settings/Index.tsx',
             'resources/js/Pages/Modules/Index.tsx',
         ];
