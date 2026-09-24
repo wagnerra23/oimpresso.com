@@ -25,8 +25,8 @@ Leia só isto, nesta ordem:
 | **01** | ui/card.tsx — badge · note · flush | CL | `01-card-anatomia.md` | — | — |
 | **02** | shared/KpiCard.tsx — variant=filter | CL | `02-kpicard-filter.md` | — | — |
 | **03** | shared/Toolbar.tsx — CRIAR (3 zonas) | CL | `03-toolbar-criar.md` | — | — |
-| **04** | tabela densa | CL | — | thread 01 · decisão D-GRADE | BLOQUEADA |
-| **05** | StatusBadge kinds | CC | — | — | BLOQUEADA |
+| **04** | shared/DataTable.tsx — density="dense" aditivo (D-GRADE: servidor) | CL | `04-tabela-densa.md` | — | — |
+| **05** | shared/StatusBadge.tsx — kinds sla · frescor · atendimento + rel/tone | CL | `05-statusbadge-kinds.md` | — | — |
 | **08** | StatusBadge: tirar o fill sólido (AP7) — decisão [W] 2026-09-01 | CL | `08-statusbadge-ap7.md` | — | — |
 
 > "Estado escrito" é só o que dá pra ver em disco (`_saida` / `bloqueio`). O estado real é **derivado** pelo `placar`; na dúvida, ele vence.

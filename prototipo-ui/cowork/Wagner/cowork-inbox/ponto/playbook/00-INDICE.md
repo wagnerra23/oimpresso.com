@@ -49,15 +49,15 @@ Só `.md` roteia (DesignSync `get_file` → `--export-from <dir>`); fonte da má
 | 01 | Rede mínima: E2E de fumaça (3 telas âncora) | [CL] | `e2e/ponto-*.spec.ts` | — | 1 |
 | 02 | Desamarrar UC ⛓ (docblock → `it('UC-…')`) | [CL] | `Modules/Ponto/Tests/Feature/**` · coluna Teste/Status dos 21 `casos.md` | — | 1 |
 | 03 | a11y: sinal não-cor na divergência + mobile-fit | [CL] | `Pages/Ponto/Espelho/{Index,Show}.tsx` · `_components/MonthHeatmap.tsx` | 01 | 2 |
-| 04 | Fechamento da competência — **BLOQUEADA** | [W] | — | W1–W4 | — |
-| 05 | Conformidade CLT — **BLOQUEADA** | [W] | — | 04 · W1–W4 | — |
+| 04 | Fechamento da competência (ADR 0413: PR 1 migration + guard → PR 2 tela) | [CL] | — | — | — |
+| 05 | Conformidade CLT — read-only, independente do fechamento (D0) | [CL] | — | — | — |
 | 06 | REP-P sem selfie: 7 rotas → `MobileMarcacaoController` + app do colaborador + fila | [CL] | `Http/routes.php` (bloco API) · `Api/MobileMarcacaoController.php` · `Pages/Ponto/Mobile/**` · `contrato/ponto-rep-p.contract.json` | W10 | 2 |
 | 07 | Contratos 4/4 → `required` | [CL] | `governance/design/contracts/ponto-{fechamento,rep-p}.contract.json` · gate | 04 · 05 · 06 | 3 |
 | 08 | PUXAR Painel + Espelho (as 2 com contrato) → protótipo | [CC] | `prototipo-ui/cowork/Wagner/ponto-page.jsx` | — | 1 |
 | 09 | PUXAR as 11 telas restantes → protótipo | [CC] | `ponto-telas.jsx` · `ponto-data.jsx` · `ponto-ui.jsx` | 10 | 2 |
 | 10 | Build: REP-P do protótipo **sem selfie** (ADR 0383) | [CC] | `ponto-mobile.jsx` · `ponto-data.jsx` (só bloco mobile) · host bump | — | 1 |
 | 11 | Limpeza: 26 blades mortas + nav legado + inbox residual (+ `/react` se W8) | [CL] | `Modules/Ponto/Resources/views/**` **exceto `reports/`** · `cowork-inbox/ponto-dashboard/` · `routes.php` (só se W8) | W8 só para `/react` | 1 |
-| 12 | Relatórios legais AFD/AFDT/AEJ — **BLOQUEADA** | [W] | — | W7 | — |
+| 12 | Relatórios legais AFD → AEJ (1 por PR; `afdt` sai do catálogo no PR do AFD) | [CL] | — | — | — |
 
 **Vaga 1:** 01 ∥ 02 ∥ 08 ∥ 10 ∥ 11 · **Vaga 2:** 03 ∥ 06 ∥ 09 · **Vaga 3:** 07. Lei 1 respeitada: 09 só abre depois de 10 porque ambas tocariam `ponto-data.jsx`.
 **Âncora de implementação** (Page nova = 06 apenas): irmã golden **`Pages/Ponto/Espelho/Show.tsx`** (24 KB, 5 `data-contract`, `EspelhoContratoTest` 20 KB, contrato `ponto-espelho`) — o pacote do Ponto é tsx · charter · casos · contrato · `*ContratoTest` · lane `ponto-pest.yml` · e2e. Alvo de layout = protótipo medido (`ponto-mobile.jsx`, 991 nós em 04/09).
@@ -106,12 +106,13 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
 | **VERIFICAR** | prova = caminho (`e2e/ponto-*.spec.ts`, `sr-only` em `MonthHeatmap.tsx` — hoje 0) | thread 02 não tem prova de arquivo honesta → prova implícita + nº do `casos:report` no `_saida` · **2 provas já verdadeiras hoje (PDF vivo · controller sem selfie) faziam 06 e 11 nascerem "em curso"** → viraram `guarda: true` (preservação: conta para feito, nunca para em curso) | CI/T7/`casos:report` não visíveis | landing: JSON embutido, pasta inteira desce |
 
 ## 6 · RESÍDUO Ponto — fila de decisão [W]
-1. **W1** Estado da competência: tabela nova `ponto_competencias` ou derivado das apurações? (trava 04·05)
-2. **W2** Permissão do fechamento: `ponto.fechamento.manage` nova ou reusa `ponto.configuracoes.manage`?
-3. **W3** Exceções assinadas: onde persistem? bloqueiam AFD?
-4. **W4** Reabrir competência fechada: com auditoria ou definitivo?
+> Atualizado 2026-09-24 pelo `_DECISOES-W-2026-09-24.md` do Code (ADR 0413, PR #7913). Abertas: **W8 · W9 · W10**.
+1. ~~**W1** Estado da competência~~ → tabela nova `ponto_competencias`, gravada uma vez (ADR 0413)
+2. ~~**W2** Permissão do fechamento~~ → `ponto.fechar` própria (D1 · ADR 0413)
+3. ~~**W3** Exceções assinadas~~ → na linha da competência; **não bloqueiam AFD** (ADR 0413)
+4. ~~**W4** Reabrir competência~~ → não existe na v1; correção por anulação com trilha (D1 · ADR 0413)
 5. ~~W5 GPS ruim~~ → **respondida por ADR 0383** (recusa >500 m; geofence sinaliza). ~~W6 copy da selfie~~ → **morta** (sem selfie; e a base legal citada era errada).
-6. **W7** Ordem de AFD/AFDT/AEJ em `ReportService` (trava 12).
+6. ~~**W7** Ordem dos relatórios legais~~ → **AFD → AEJ**; AFDT sai da exportação, importação legada fica (ADR 0413)
 7. **W8** `/ponto/react` (Welcome, piloto `draft` desde 07/2026): manter ou remover? (parte da 11)
 8. **W9** Navegação do protótipo: 13 abas de área (seu canon 2026-06-22) × `PontoSubNav` 5+⋯ (ADR 0182, produção). Qual vale? Sem resposta, 08/09 puxam átomos e **declaram** a divergência.
 9. **W10** Ratificar o escopo reescrito do REP-P: 3 telas do colaborador (bater · meu espelho · justificar) + fila do gestor, **sem selfie**, 7 rotas → `MobileMarcacaoController` (trava 06).
@@ -122,93 +123,414 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
   "modulo": "Ponto",
   "sha": "e86130722de1",
   "gerado": "2026-09-06",
-  "absorve": ["COLAR-NO-CODE-ponto-ondas.md (2026-09-04)", "prototipo-ui/cowork/Wagner/cowork-inbox/ponte/COLAR-NO-CODE-ponto.md", "prototipo-ui/cowork/Wagner/cowork-inbox/ponte/_pedido-CL-ponto-teste-pratico.md"],
-  "variaveis": { "PAGES": "resources/js/Pages/Ponto", "COWORK": "prototipo-ui/cowork/Wagner" },
+  "absorve": [
+    "COLAR-NO-CODE-ponto-ondas.md (2026-09-04)",
+    "prototipo-ui/cowork/Wagner/cowork-inbox/ponte/COLAR-NO-CODE-ponto.md",
+    "prototipo-ui/cowork/Wagner/cowork-inbox/ponte/_pedido-CL-ponto-teste-pratico.md"
+  ],
+  "variaveis": {
+    "PAGES": "resources/js/Pages/Ponto",
+    "COWORK": "prototipo-ui/cowork/Wagner"
+  },
   "decisoes": [
-    { "id": "W1", "pergunta": "Estado da competência: tabela ponto_competencias ou derivado das apurações?", "respondida": false, "destrava": ["04", "05"] },
-    { "id": "W2", "pergunta": "Permissão do fechamento: nova ou reusa ponto.configuracoes.manage?", "respondida": false, "destrava": ["04"] },
-    { "id": "W3", "pergunta": "Exceções assinadas: onde persistem? bloqueiam AFD?", "respondida": false, "destrava": ["04"] },
-    { "id": "W4", "pergunta": "Reabrir competência fechada: com auditoria ou definitivo?", "respondida": false, "destrava": ["04"] },
-    { "id": "W5", "pergunta": "REP-P com GPS ruim: bater mesmo assim?", "respondida": true, "resposta": "ADR 0383: accuracy > 500 m recusa (422); geofence sinaliza, não bloqueia" },
-    { "id": "W6", "pergunta": "Copy da selfie (LGPD)", "respondida": true, "resposta": "morta — ADR 0383: sem selfie; base legal Art. 5º II + Art. 11, não Art. 9º" },
-    { "id": "W7", "pergunta": "Ordem de AFD/AFDT/AEJ em ReportService", "respondida": false, "destrava": ["12"] },
-    { "id": "W8", "pergunta": "/ponto/react (Welcome piloto): manter ou remover?", "respondida": false },
-    { "id": "W9", "pergunta": "Navegação do protótipo: 13 abas de área × PontoSubNav 5+⋯ (ADR 0182)?", "respondida": false },
-    { "id": "W10", "pergunta": "Ratificar escopo REP-P sem selfie: 3 telas + fila, 7 rotas → MobileMarcacaoController", "respondida": false, "destrava": ["06"] }
+    {
+      "id": "W1",
+      "pergunta": "Estado da competência: tabela ponto_competencias ou derivado das apurações?",
+      "respondida": true,
+      "destrava": [
+        "04",
+        "05"
+      ],
+      "resposta": "tabela ponto_competencias gravada uma vez — ADR 0413"
+    },
+    {
+      "id": "W2",
+      "pergunta": "Permissão do fechamento: nova ou reusa ponto.configuracoes.manage?",
+      "respondida": true,
+      "destrava": [
+        "04"
+      ],
+      "resposta": "ponto.fechar própria — D1 / ADR 0413"
+    },
+    {
+      "id": "W3",
+      "pergunta": "Exceções assinadas: onde persistem? bloqueiam AFD?",
+      "respondida": true,
+      "destrava": [
+        "04"
+      ],
+      "resposta": "bloqueios na linha da competência; não bloqueiam AFD — ADR 0413"
+    },
+    {
+      "id": "W4",
+      "pergunta": "Reabrir competência fechada: com auditoria ou definitivo?",
+      "respondida": true,
+      "destrava": [
+        "04"
+      ],
+      "resposta": "sem Reabrir na v1 — D1 / ADR 0413"
+    },
+    {
+      "id": "W5",
+      "pergunta": "REP-P com GPS ruim: bater mesmo assim?",
+      "respondida": true,
+      "resposta": "ADR 0383: accuracy > 500 m recusa (422); geofence sinaliza, não bloqueia"
+    },
+    {
+      "id": "W6",
+      "pergunta": "Copy da selfie (LGPD)",
+      "respondida": true,
+      "resposta": "morta — ADR 0383: sem selfie; base legal Art. 5º II + Art. 11, não Art. 9º"
+    },
+    {
+      "id": "W7",
+      "pergunta": "Ordem de AFD/AFDT/AEJ em ReportService",
+      "respondida": true,
+      "destrava": [
+        "12"
+      ],
+      "resposta": "AFD → AEJ; AFDT sai da exportação — ADR 0413"
+    },
+    {
+      "id": "W8",
+      "pergunta": "/ponto/react (Welcome piloto): manter ou remover?",
+      "respondida": false
+    },
+    {
+      "id": "W9",
+      "pergunta": "Navegação do protótipo: 13 abas de área × PontoSubNav 5+⋯ (ADR 0182)?",
+      "respondida": false
+    },
+    {
+      "id": "W10",
+      "pergunta": "Ratificar escopo REP-P sem selfie: 3 telas + fila, 7 rotas → MobileMarcacaoController",
+      "respondida": false,
+      "destrava": [
+        "06"
+      ]
+    }
   ],
   "threads": [
-    { "id": "01", "titulo": "Rede mínima: E2E de fumaça das 3 telas âncora", "dono": "CL", "vaga": 1, "arquivo": "01-rede-e2e.md",
-      "prefixo": ["e2e/ponto-dashboard.spec.ts", "e2e/ponto-espelho.spec.ts", "e2e/ponto-espelho-show.spec.ts"],
-      "nao_toca": ["${PAGES}/", "Modules/Ponto/", "e2e/global-setup.ts"],
+    {
+      "id": "01",
+      "titulo": "Rede mínima: E2E de fumaça das 3 telas âncora",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "01-rede-e2e.md",
+      "prefixo": [
+        "e2e/ponto-dashboard.spec.ts",
+        "e2e/ponto-espelho.spec.ts",
+        "e2e/ponto-espelho-show.spec.ts"
+      ],
+      "nao_toca": [
+        "${PAGES}/",
+        "Modules/Ponto/",
+        "e2e/global-setup.ts"
+      ],
       "provas": [
-        { "tipo": "um_de", "paths": ["e2e/ponto-dashboard.spec.ts", "e2e/ponto-smoke.spec.ts"] },
-        { "tipo": "arquivo", "path": "e2e/ponto-espelho.spec.ts" }
-      ] },
-    { "id": "02", "titulo": "Desamarrar UC ⛓ (docblock → it('UC-…'))", "dono": "CL", "vaga": 1, "arquivo": "02-uc-desamarrar.md",
-      "prefixo": ["Modules/Ponto/Tests/Feature/", "${PAGES}/**/*.casos.md (só colunas Teste/Status/last_run)"],
-      "nao_toca": ["${PAGES}/**/*.tsx", "${PAGES}/**/*.charter.md", "Modules/Ponto/Services/", "Modules/Ponto/Http/"],
-      "provas": [], "nota_provas": "prova = _saida-02.md com o número do casos:report antes/depois (0 UC ⛓ é a meta); zero assertion nova" },
-    { "id": "03", "titulo": "a11y: sinal não-cor na divergência + mobile-fit", "dono": "CL", "vaga": 2, "arquivo": "03-a11y-divergencia.md",
-      "prefixo": ["${PAGES}/Espelho/Index.tsx", "${PAGES}/Espelho/Show.tsx", "${PAGES}/_components/MonthHeatmap.tsx"],
-      "nao_toca": ["governance/design/contracts/ponto-espelho.contract.json", "Modules/Ponto/"],
-      "depende_threads": ["01"],
-      "provas": [ { "tipo": "contem", "path": "${PAGES}/_components/MonthHeatmap.tsx", "padrao": "sr-only", "nota": "hoje 0 ocorrências em Pages/Ponto/** — texto para leitor de tela no dia em DIVERGENCIA" } ] },
-    { "id": "04", "titulo": "Fechamento da competência — BLOQUEADA", "dono": "W", "arquivo": "04-fechamento-bloqueada.md",
-      "prefixo": [], "nao_toca": ["Modules/Ponto/Services/ApuracaoService.php"], "depende_decisoes": ["W1", "W2", "W3", "W4"],
-      "bloqueio": "W1–W4 sem resposta; abrir é inventar lei (competência, permissão, exceções, reabertura)",
-      "provas": [], "nota_provas": "quando destravar: {arquivo ${PAGES}/Fechamento/Index.tsx} + {json_com_chaves contrato/ponto-fechamento.contract.json} + {contem routes.php 'fechamento'}" },
-    { "id": "05", "titulo": "Painel de Conformidade CLT — BLOQUEADA", "dono": "W", "arquivo": "05-conformidade-bloqueada.md",
-      "prefixo": [], "nao_toca": [], "depende_threads": ["04"], "depende_decisoes": ["W1"],
-      "bloqueio": "depende do estado da competência (W1) e da thread 04",
-      "provas": [] },
-    { "id": "06", "titulo": "REP-P sem selfie: 7 rotas → MobileMarcacaoController + app do colaborador + fila do gestor", "dono": "CL", "vaga": 2, "arquivo": "06-rep-p.md",
-      "prefixo": ["Modules/Ponto/Http/routes.php (só o bloco 2 · /ponto/api)", "Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php", "${PAGES}/Mobile/", "governance/design/contracts/ponto-rep-p.contract.json", "Modules/Ponto/Tests/Feature/Wave28MobileMarcacaoTest.php (estender)"],
-      "nao_toca": ["Modules/Ponto/Services/MarcacaoService.php", "Modules/Ponto/Services/NsrService.php", "Modules/Ponto/Database/"],
-      "depende_decisoes": ["W10"],
+        {
+          "tipo": "um_de",
+          "paths": [
+            "e2e/ponto-dashboard.spec.ts",
+            "e2e/ponto-smoke.spec.ts"
+          ]
+        },
+        {
+          "tipo": "arquivo",
+          "path": "e2e/ponto-espelho.spec.ts"
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "titulo": "Desamarrar UC ⛓ (docblock → it('UC-…'))",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "02-uc-desamarrar.md",
+      "prefixo": [
+        "Modules/Ponto/Tests/Feature/",
+        "${PAGES}/**/*.casos.md (só colunas Teste/Status/last_run)"
+      ],
+      "nao_toca": [
+        "${PAGES}/**/*.tsx",
+        "${PAGES}/**/*.charter.md",
+        "Modules/Ponto/Services/",
+        "Modules/Ponto/Http/"
+      ],
+      "provas": [],
+      "nota_provas": "prova = _saida-02.md com o número do casos:report antes/depois (0 UC ⛓ é a meta); zero assertion nova"
+    },
+    {
+      "id": "03",
+      "titulo": "a11y: sinal não-cor na divergência + mobile-fit",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "03-a11y-divergencia.md",
+      "prefixo": [
+        "${PAGES}/Espelho/Index.tsx",
+        "${PAGES}/Espelho/Show.tsx",
+        "${PAGES}/_components/MonthHeatmap.tsx"
+      ],
+      "nao_toca": [
+        "governance/design/contracts/ponto-espelho.contract.json",
+        "Modules/Ponto/"
+      ],
+      "depende_threads": [
+        "01"
+      ],
       "provas": [
-        { "tipo": "nao_contem", "path": "Modules/Ponto/Http/routes.php", "padrao": "abort(501, 'Implementar em MarcacaoApiController::marcar')", "nota": "a rota /ponto/api/marcar aponta pro controller, não pra closure" },
-        { "tipo": "contem", "path": "Modules/Ponto/Http/routes.php", "padrao": "MobileMarcacaoController" },
-        { "tipo": "um_de", "paths": ["${PAGES}/Mobile/Index.tsx", "${PAGES}/Mobile/Marcar.tsx"] },
-        { "tipo": "json_com_chaves", "path": "governance/design/contracts/ponto-rep-p.contract.json", "chaves": ["alvo", "secoes"] },
-        { "tipo": "nao_contem", "path": "Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php", "padrao": "selfie", "guarda": true, "nota": "PRESERVAÇÃO — GUARD LGPD da ADR 0383; o Wave28 já falha se voltar" }
-      ] },
-    { "id": "07", "titulo": "Contratos 4/4 → required", "dono": "CL", "vaga": 3, "arquivo": "07-contratos-required.md",
-      "prefixo": ["governance/design/contracts/ponto-fechamento.contract.json", "governance/design/contracts/ponto-rep-p.contract.json", "gate de contrato (onde o repo declara required)"],
-      "nao_toca": ["governance/design/contracts/ponto-painel.contract.json", "governance/design/contracts/ponto-espelho.contract.json"],
-      "depende_threads": ["04", "05", "06"],
+        {
+          "tipo": "contem",
+          "path": "${PAGES}/_components/MonthHeatmap.tsx",
+          "padrao": "sr-only",
+          "nota": "hoje 0 ocorrências em Pages/Ponto/** — texto para leitor de tela no dia em DIVERGENCIA"
+        }
+      ]
+    },
+    {
+      "id": "04",
+      "titulo": "Fechamento da competência",
+      "dono": "CL",
+      "arquivo": "04-fechamento-bloqueada.md",
+      "prefixo": [],
+      "nao_toca": [
+        "Modules/Ponto/Services/ApuracaoService.php"
+      ],
+      "depende_decisoes": [
+        "W1",
+        "W2",
+        "W3",
+        "W4"
+      ],
+      "provas": [],
+      "nota_provas": "quando destravar: {arquivo ${PAGES}/Fechamento/Index.tsx} + {json_com_chaves contrato/ponto-fechamento.contract.json} + {contem routes.php 'fechamento'}",
+      "nota_destravar": "PR 1 = migration ponto_competencias + guard append-only (sem UI) → PR 2 = tela + contrato ponto-fechamento (ADR 0413)",
+      "nota_dono": "era [W] enquanto W1–W4/W7 estavam abertas; ADR 0413 (2026-09-24) respondeu — vira execução [CL]"
+    },
+    {
+      "id": "05",
+      "titulo": "Painel de Conformidade CLT",
+      "dono": "CL",
+      "arquivo": "05-conformidade-bloqueada.md",
+      "prefixo": [],
+      "nao_toca": [],
+      "depende_threads": [],
+      "depende_decisoes": [],
+      "provas": [],
+      "nota_dono": "era [W] enquanto W1–W4/W7 estavam abertas; ADR 0413 (2026-09-24) respondeu — vira execução [CL]"
+    },
+    {
+      "id": "06",
+      "titulo": "REP-P sem selfie: 7 rotas → MobileMarcacaoController + app do colaborador + fila do gestor",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "06-rep-p.md",
+      "prefixo": [
+        "Modules/Ponto/Http/routes.php (só o bloco 2 · /ponto/api)",
+        "Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php",
+        "${PAGES}/Mobile/",
+        "governance/design/contracts/ponto-rep-p.contract.json",
+        "Modules/Ponto/Tests/Feature/Wave28MobileMarcacaoTest.php (estender)"
+      ],
+      "nao_toca": [
+        "Modules/Ponto/Services/MarcacaoService.php",
+        "Modules/Ponto/Services/NsrService.php",
+        "Modules/Ponto/Database/"
+      ],
+      "depende_decisoes": [
+        "W10"
+      ],
       "provas": [
-        { "tipo": "arquivo", "path": "governance/design/contracts/ponto-fechamento.contract.json" },
-        { "tipo": "arquivo", "path": "governance/design/contracts/ponto-rep-p.contract.json" }
-      ] },
-    { "id": "08", "titulo": "PUXAR Painel + Espelho (as 2 com contrato) → protótipo", "dono": "CC", "vaga": 1, "arquivo": "08-puxar-painel-espelho.md",
-      "prefixo": ["${COWORK}/ponto-page.jsx", "${COWORK}/oimpresso.com.html"],
-      "nao_toca": ["${PAGES}/", "${COWORK}/ponto-telas.jsx", "${COWORK}/ponto-data.jsx", "${COWORK}/ponto-mobile.jsx"],
-      "provas": [], "nota_provas": "read-only + build: prova = _saida-08.md com o diff nos dois sentidos (Dashboard/Index.tsx e Espelho/{Index,Show}.tsx × ponto-page.jsx) e a divergência W9 declarada" },
-    { "id": "09", "titulo": "PUXAR as 11 telas restantes → protótipo", "dono": "CC", "vaga": 2, "arquivo": "09-puxar-11-telas.md",
-      "prefixo": ["${COWORK}/ponto-telas.jsx", "${COWORK}/ponto-data.jsx", "${COWORK}/ponto-ui.jsx", "${COWORK}/oimpresso.com.html"],
-      "nao_toca": ["${PAGES}/", "${COWORK}/ponto-mobile.jsx", "${COWORK}/ponto-fechamento.jsx"],
-      "depende_threads": ["10"],
-      "provas": [], "nota_provas": "prova = _saida-09.md com tabela tela × átomos puxados × divergência declarada (11 linhas)" },
-    { "id": "10", "titulo": "Build: REP-P do protótipo sem selfie (ADR 0383)", "dono": "CC", "vaga": 1, "arquivo": "10-build-mobile-sem-selfie.md",
-      "prefixo": ["${COWORK}/ponto-mobile.jsx", "${COWORK}/ponto-data.jsx (só o bloco mobile)", "${COWORK}/oimpresso.com.html"],
-      "nao_toca": ["${COWORK}/ponto-page.jsx", "${COWORK}/ponto-telas.jsx", "${COWORK}/android-frame.jsx"],
+        {
+          "tipo": "nao_contem",
+          "path": "Modules/Ponto/Http/routes.php",
+          "padrao": "abort(501, 'Implementar em MarcacaoApiController::marcar')",
+          "nota": "a rota /ponto/api/marcar aponta pro controller, não pra closure"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/Ponto/Http/routes.php",
+          "padrao": "MobileMarcacaoController"
+        },
+        {
+          "tipo": "um_de",
+          "paths": [
+            "${PAGES}/Mobile/Index.tsx",
+            "${PAGES}/Mobile/Marcar.tsx"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/contracts/ponto-rep-p.contract.json",
+          "chaves": [
+            "alvo",
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php",
+          "padrao": "selfie",
+          "guarda": true,
+          "nota": "PRESERVAÇÃO — GUARD LGPD da ADR 0383; o Wave28 já falha se voltar"
+        }
+      ]
+    },
+    {
+      "id": "07",
+      "titulo": "Contratos 4/4 → required",
+      "dono": "CL",
+      "vaga": 3,
+      "arquivo": "07-contratos-required.md",
+      "prefixo": [
+        "governance/design/contracts/ponto-fechamento.contract.json",
+        "governance/design/contracts/ponto-rep-p.contract.json",
+        "gate de contrato (onde o repo declara required)"
+      ],
+      "nao_toca": [
+        "governance/design/contracts/ponto-painel.contract.json",
+        "governance/design/contracts/ponto-espelho.contract.json"
+      ],
+      "depende_threads": [
+        "04",
+        "05",
+        "06"
+      ],
       "provas": [
-        { "tipo": "nao_contem", "path": "${COWORK}/ponto-mobile.jsx", "padrao": "selfie" },
-        { "tipo": "nao_contem", "path": "${COWORK}/ponto-mobile.jsx", "padrao": "Art. 9" }
-      ] },
-    { "id": "11", "titulo": "Limpeza: blades mortas + nav legado + inbox residual (+ /react se W8)", "dono": "CL", "vaga": 1, "arquivo": "11-limpeza-blades-inbox.md",
-      "prefixo": ["Modules/Ponto/Resources/views/ (exceto reports/)", "prototipo-ui/cowork/Wagner/cowork-inbox/ponto-dashboard/", "Modules/Ponto/Http/routes.php (só a rota /react, só se W8 = remover)"],
-      "nao_toca": ["Modules/Ponto/Resources/views/reports/espelho-pdf.blade.php", "Modules/Ponto/Resources/lang/", "${PAGES}/"],
+        {
+          "tipo": "arquivo",
+          "path": "governance/design/contracts/ponto-fechamento.contract.json"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "governance/design/contracts/ponto-rep-p.contract.json"
+        }
+      ]
+    },
+    {
+      "id": "08",
+      "titulo": "PUXAR Painel + Espelho (as 2 com contrato) → protótipo",
+      "dono": "CC",
+      "vaga": 1,
+      "arquivo": "08-puxar-painel-espelho.md",
+      "prefixo": [
+        "${COWORK}/ponto-page.jsx",
+        "${COWORK}/oimpresso.com.html"
+      ],
+      "nao_toca": [
+        "${PAGES}/",
+        "${COWORK}/ponto-telas.jsx",
+        "${COWORK}/ponto-data.jsx",
+        "${COWORK}/ponto-mobile.jsx"
+      ],
+      "provas": [],
+      "nota_provas": "read-only + build: prova = _saida-08.md com o diff nos dois sentidos (Dashboard/Index.tsx e Espelho/{Index,Show}.tsx × ponto-page.jsx) e a divergência W9 declarada"
+    },
+    {
+      "id": "09",
+      "titulo": "PUXAR as 11 telas restantes → protótipo",
+      "dono": "CC",
+      "vaga": 2,
+      "arquivo": "09-puxar-11-telas.md",
+      "prefixo": [
+        "${COWORK}/ponto-telas.jsx",
+        "${COWORK}/ponto-data.jsx",
+        "${COWORK}/ponto-ui.jsx",
+        "${COWORK}/oimpresso.com.html"
+      ],
+      "nao_toca": [
+        "${PAGES}/",
+        "${COWORK}/ponto-mobile.jsx",
+        "${COWORK}/ponto-fechamento.jsx"
+      ],
+      "depende_threads": [
+        "10"
+      ],
+      "provas": [],
+      "nota_provas": "prova = _saida-09.md com tabela tela × átomos puxados × divergência declarada (11 linhas)"
+    },
+    {
+      "id": "10",
+      "titulo": "Build: REP-P do protótipo sem selfie (ADR 0383)",
+      "dono": "CC",
+      "vaga": 1,
+      "arquivo": "10-build-mobile-sem-selfie.md",
+      "prefixo": [
+        "${COWORK}/ponto-mobile.jsx",
+        "${COWORK}/ponto-data.jsx (só o bloco mobile)",
+        "${COWORK}/oimpresso.com.html"
+      ],
+      "nao_toca": [
+        "${COWORK}/ponto-page.jsx",
+        "${COWORK}/ponto-telas.jsx",
+        "${COWORK}/android-frame.jsx"
+      ],
       "provas": [
-        { "tipo": "ausente", "path": "Modules/Ponto/Resources/views/layouts/module.blade.php" },
-        { "tipo": "ausente", "path": "Modules/Ponto/Resources/views/dashboard/index.blade.php" },
-        { "tipo": "ausente", "path": "prototipo-ui/cowork/Wagner/cowork-inbox/ponto-dashboard/Index.casos.md" },
-        { "tipo": "arquivo", "path": "Modules/Ponto/Resources/views/reports/espelho-pdf.blade.php", "guarda": true, "nota": "PRESERVAÇÃO — a única blade viva (PDF do espelho) tem de sobreviver" }
-      ] },
-    { "id": "12", "titulo": "Relatórios legais AFD/AFDT/AEJ — BLOQUEADA", "dono": "W", "arquivo": "12-relatorios-legais-bloqueada.md",
-      "prefixo": [], "nao_toca": ["Modules/Ponto/Http/Controllers/RelatorioController.php"], "depende_decisoes": ["W7"],
-      "bloqueio": "W7: ordem de implementação em ReportService; 7 chaves seguem abort(501) e 501 nunca é sucesso",
-      "provas": [] }
+        {
+          "tipo": "nao_contem",
+          "path": "${COWORK}/ponto-mobile.jsx",
+          "padrao": "selfie"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "${COWORK}/ponto-mobile.jsx",
+          "padrao": "Art. 9"
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "titulo": "Limpeza: blades mortas + nav legado + inbox residual (+ /react se W8)",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "11-limpeza-blades-inbox.md",
+      "prefixo": [
+        "Modules/Ponto/Resources/views/ (exceto reports/)",
+        "prototipo-ui/cowork/Wagner/cowork-inbox/ponto-dashboard/",
+        "Modules/Ponto/Http/routes.php (só a rota /react, só se W8 = remover)"
+      ],
+      "nao_toca": [
+        "Modules/Ponto/Resources/views/reports/espelho-pdf.blade.php",
+        "Modules/Ponto/Resources/lang/",
+        "${PAGES}/"
+      ],
+      "provas": [
+        {
+          "tipo": "ausente",
+          "path": "Modules/Ponto/Resources/views/layouts/module.blade.php"
+        },
+        {
+          "tipo": "ausente",
+          "path": "Modules/Ponto/Resources/views/dashboard/index.blade.php"
+        },
+        {
+          "tipo": "ausente",
+          "path": "prototipo-ui/cowork/Wagner/cowork-inbox/ponto-dashboard/Index.casos.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Ponto/Resources/views/reports/espelho-pdf.blade.php",
+          "guarda": true,
+          "nota": "PRESERVAÇÃO — a única blade viva (PDF do espelho) tem de sobreviver"
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "titulo": "Relatórios legais AFD/AFDT/AEJ",
+      "dono": "CL",
+      "arquivo": "12-relatorios-legais-bloqueada.md",
+      "prefixo": [],
+      "nao_toca": [
+        "Modules/Ponto/Http/Controllers/RelatorioController.php"
+      ],
+      "depende_decisoes": [
+        "W7"
+      ],
+      "provas": [],
+      "nota_destravar": "1 relatório por PR, AFD primeiro; a chave afdt sai do catálogo no PR do AFD (ADR 0413)",
+      "nota_dono": "era [W] enquanto W1–W4/W7 estavam abertas; ADR 0413 (2026-09-24) respondeu — vira execução [CL]"
+    }
   ]
 }
 ```
