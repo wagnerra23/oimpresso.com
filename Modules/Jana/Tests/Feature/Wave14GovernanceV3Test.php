@@ -29,7 +29,7 @@ uses(Tests\TestCase::class);
  *
  *  D8.a throttle:
  *   011. routes.php Jana group declara throttle:120,1
- *   012. routes.php mensagens.stream declara throttle:60,1 (custo LLM)
+ *   012. rotas de mensagem declaram throttle:60,1 (custo LLM) — lido do registry de rotas
  *
  * Multi-tenant Tier 0 (ADR 0093) — FormRequests não tocam DB; validação pura.
  * OTel zero-cost quando disabled (default test env) — não dispara sampler.
@@ -161,10 +161,14 @@ it('011. routes.php Jana group declara throttle:120,1', function () {
     expect($source)->toContain("'throttle:120,1'");
 });
 
-it('012. routes.php mensagens.stream declara throttle:60,1', function () {
-    $source = file_get_contents(base_path('Modules/Jana/Http/routes.php'));
-
+it('012. rotas de mensagem (chamam LLM) declaram throttle:60,1', function () {
     // Throttle agressivo nas rotas que chamam LLM (custo + latência).
-    expect($source)->toContain("->middleware('throttle:60,1')");
-    expect($source)->toContain('jana.conversas.mensagens.stream');
+    // Oráculo = registry vivo de rotas, não grep do routes.php: o grep quebrou em
+    // 2026-09-23 só porque a rota ganhou `can:jana.chat` no MESMO ->middleware([...]),
+    // com o throttle intacto — mudança de formato, não de comportamento.
+    foreach (['jana.conversas.mensagens.store', 'jana.conversas.mensagens.stream'] as $nome) {
+        $rota = \Illuminate\Support\Facades\Route::getRoutes()->getByName($nome);
+        expect($rota)->not->toBeNull("rota {$nome} sumiu");
+        expect($rota->gatherMiddleware())->toContain('throttle:60,1');
+    }
 });

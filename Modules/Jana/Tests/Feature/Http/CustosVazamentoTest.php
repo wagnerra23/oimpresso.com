@@ -73,6 +73,14 @@ beforeEach(function () {
     ]);
 });
 
+
+// Limpa o cache do Spatie DEPOIS também: a permissão criada aqui some no rollback da
+// transação, e um cache que sobrevive a ela vira `PermissionDoesNotExist`/FK no teste
+// SEGUINTE (outro arquivo). Medido 2026-09-24 no CT 100 com a seleção da lane Jana.
+afterEach(function () {
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+});
+
 it('CONTROLE: a sonda de chave pega um custo aninhado (valor conhecido antes do veredito)', function () {
     $chaves = custosChaves(['a' => ['b' => ['custo_ia_brl' => 1]], 'metas' => []]);
 
