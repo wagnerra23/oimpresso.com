@@ -22,7 +22,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 21
+charter_version: 22
 permissao: whatsapp.access
 states: [default, dark]  # gate L2 — sync com tests/Browser/visreg-states.json (hotspot: 15 fixes visuais jun-jul/2026, 2º maior re-trabalho do mês)
 smoke: "2026-07-10 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; https://oimpresso.com/atendimento/caixa-unificada: header 'Atendimento · 2 contas ativas · 2 filas · 475 abertas', lista 477 conversas reais, ChannelHealthBanner vivo 'WhatsApp — Jana está fora do ar + Reconectar canal' (US-WA-308), topnav Templates/Filas/Canais/Broadcast/Guia/+Nova conversa; 0 erro console pós-reload com tracking ativo)."
@@ -53,6 +53,7 @@ smoke: "2026-07-10 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; h
 | 2026-06-18 | **RECUSADO** | **`workspace-3` como padrão universal.** Só primitivo opcional pras telas mestre→corpo→aside (CRM, OS, atendimento). Forçar em cadastro/dashboard = anti-padrão (decisão [W], confirmada pelo design). |
 | 2026-06-18 | **RECUSADO** | **Trocar Cowork por Figma como ponte.** Figma só vale pro design SYSTEM e só com designer humano (não há). Caminho: DS-como-contrato + gerar-na-stack. Ver `memory/sessions/2026-06-18-arte-ponte-design-producao.md`. |
 | 2026-06-18 | **APLICADO** | **Reconectar canal via QR in-place** (port do design Cowork · `inbox-page.jsx` "Modal Reconectar"). O botão "Reconectar" do banner de saúde abre modal com o **QR REAL do backend** (reusa `atendimento.channels.connect`/`status`, gate `whatsapp.settings.manage` — NÃO a matriz fake do protótipo). Canal Meta Cloud = sem QR (token/webhook). **1º piloto da catraca Contrato de Tela** (contrato abaixo · gate ✅ passou). |
+| 2026-09-23 | **APLICADO** | **Título "Atendimento" 14px → 22px** (`var(--fs-7)`, 600, tracking -0.015em — âncora `styles.css` `.os-page-h-l h1`). Decisão [W] D-PH-0923, playbook PageHeader/06. **Exceção explícita à LEI "não repintar" de 2026-06-18, só para o h1**: a mudança de computed style é deliberada (medida 14px→22px), não deriva. Aplicado em 2026-09-24. Não adota o `<PageHeader>` canon (padding/altura mudariam o header da tela de 3 colunas). |
 
 ---
 
