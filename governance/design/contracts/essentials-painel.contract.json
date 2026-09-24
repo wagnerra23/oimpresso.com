@@ -1,0 +1,28 @@
+{
+  "_nota": "Contrato de tela GERADO por criar-tela.mjs junto com o PT-04 Dashboard de Essentials/Painel (2026-09-24). Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`, no mesmo job que já varre todos os *.contract.json. As seções são as do ARQUÉTIPO e as âncoras data-contract correspondentes já nascem no .tsx — âncora e ordem são wiring do agente. A COPY não: veja _pendente_w.",
+  "tela": "Essentials/Painel",
+  "fonte": "prototipo-ui/cowork/Wagner/hrm-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Essentials/Painel.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": []
+    },
+    {
+      "id": "kpis",
+      "copy": []
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "kpis"
+  ],
+  "_pendente_w": [
+    "COPY DE CADA SEÇÃO — hoje todas as `copy` estão vazias, e o gate passa sem exigir string nenhuma. A copy literal que o design exige é decisão [W] (how-trabalhar.md §Pedido de tela: \"`## Contrato visual` (copy literal + ordem)\"). Preencha seção a seção conforme os TODO do .tsx forem virando texto real — cada string vira match exato no alvo.",
+    "ESTADOS — `estados` foi omitido de propósito (empty/loading/erro dependem do domínio, não do arquétipo). Declare quando a tela tiver os estados de verdade.",
+    "seção `cabecalho` — PageHeader — identidade do painel. Copy pendente.",
+    "seção `kpis` — a KpiGrid com os agregados. Copy pendente."
+  ]
+}

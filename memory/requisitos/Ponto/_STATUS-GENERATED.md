@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 14 |
+| US no SPEC | 15 |
 | CU no SDD | 14 |
 | Telas (.tsx) | 21 |
 | Telas com `casos.md` | 21 |
-| UC declarados | 73 |
-| UC com teste que os cita | 72 |
+| UC declarados | 75 |
+| UC com teste que os cita | 74 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -46,6 +46,7 @@ authority: generated
 | US-PONTO-011 | `todo` | Fechar o append-only do ledger de banco de horas |
 | US-PONTO-013 | `todo` | Consertar as duas telas que nao persistem |
 | US-PONTO-014 | `todo` | Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; |
+| US-PONTO-015 | `todo` | Fechamento de competência — as restrições existem, a tela e o domínio não |
 
 ## UC por status
 
@@ -53,7 +54,6 @@ authority: generated
 |---|---|---|
 | UC-01 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-02 | BancoHoras/Index | 🧪 aguarda veredito da lane |
-| UC-APROV-01 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-BHIDX-01 | BancoHoras/Index | 🧪 aguarda veredito da lane |
 | UC-BHIDX-02 | BancoHoras/Index | 🧪 aguarda veredito da lane |
 | UC-BHIDX-03 | BancoHoras/Index | 🧪 aguarda veredito da lane |
@@ -71,11 +71,14 @@ authority: generated
 | UC-COLEDT-02 | Colaboradores/Edit | 🧪 aguarda veredito da lane |
 | UC-COLIDX-01 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-COLIDX-02 | Colaboradores/Index | 🧪 aguarda veredito da lane |
+| UC-COLIDX-03 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-ESCF-01 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-ESCF-02 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-ESCF-03 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-ESCIDX-01 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESCIDX-02 | Escalas/Index | 🧪 aguarda veredito da lane |
+| UC-ESCIDX-03 | Escalas/Index | 🧪 aguarda veredito da lane |
+| UC-ESCIDX-04 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-01 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-02 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-03 | Espelho/Index | 🧪 aguarda veredito da lane |
