@@ -321,7 +321,12 @@ class Util
             return \Carbon::parse(str_replace('T', ' ', $date))->format('Y-m-d H:i:s');
         }
 
-        return $this->uf_date($date, true);
+        // O docblock legado do uf_date() diz "@return strin" (typo); tipa aqui pra o
+        // PHPStan nao propagar a classe inexistente.
+        /** @var string|null $convertida */
+        $convertida = $this->uf_date($date, true);
+
+        return $convertida;
     }
 
     /**

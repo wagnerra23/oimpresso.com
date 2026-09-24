@@ -43,5 +43,8 @@ it('UC-PURCRE-08 · o formato da empresa (o que a Blade manda) continua valendo'
 it('UC-PURCRE-08 · controle — o uf_date() cru estoura com o ISO; é o defeito que o conversor fecha', function () {
     // Se isto parar de estourar, o formato da empresa mudou e o teste acima deixou de provar
     // alguma coisa: ele passaria sem o conversor.
-    expect(fn () => (new Util())->uf_date('2026-09-24 14:37', true))->toThrow(\Throwable::class);
+    // Classe concreta, não interface: o toThrow() só trata como tipo o que passa em
+    // class_exists — com \Throwable ele compara a MENSAGEM com "\Throwable" e reprova.
+    // InvalidFormatException do Carbon estende \InvalidArgumentException.
+    expect(fn () => (new Util())->uf_date('2026-09-24 14:37', true))->toThrow(\InvalidArgumentException::class);
 });
