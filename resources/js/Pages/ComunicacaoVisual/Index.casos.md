@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a fórmula do m² e o isolamento por business são o que não pode mudar — a tela vai ganhar OS, materiais e apontamento por cima disso, e nenhum deles pode afrouxar o cálculo nem o escopo.
 owner: wagner
-last_run: "2026-07-28"
+last_run: "2026-09-23"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane Pest ComunicacaoVisual"
 ---
 
