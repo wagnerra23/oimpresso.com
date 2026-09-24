@@ -22,13 +22,13 @@ charter_version: 1
 ---
 
 ## Mission
-Permitir que o admin do business configure prefixos de referência (tarefas, folha, afastamentos), o texto de instruções de afastamento, as janelas de tolerância do ponto (grace periods de entrada/saída) e dois comportamentos (exigir localidade no ponto; calcular meta de vendas sem impostos). Tudo salvo no JSON `essentials_settings` do business.
+Permitir que o admin do business configure prefixos de referência (tarefas, folha, afastamentos), o texto de instruções de afastamento e o comportamento de calcular meta de vendas sem impostos. Tudo salvo no JSON `essentials_settings` do business.
 
 ---
 
 ## Goals — Features (faz)
-- Formulário em cards agrupados: Prefixos, Instruções de afastamento, Tolerâncias de ponto (4 campos em minutos), Comportamentos (2 switches).
-- Campos: `essentials_todos_prefix`, `leave_ref_no_prefix`, `payroll_ref_no_prefix`, `leave_instructions`, `grace_before/after_checkin/checkout`, `is_location_required`, `calculate_sales_target_commission_without_tax`.
+- Formulário em cards agrupados: Prefixos, Instruções de afastamento, Comportamentos (1 switch).
+- Campos: `essentials_todos_prefix`, `leave_ref_no_prefix`, `payroll_ref_no_prefix`, `leave_instructions`, `calculate_sales_target_commission_without_tax`.
 - Submete via `POST /hrm/settings` (`useForm`), com toasts de sucesso/erro.
 - Prefixo de tarefas alimenta o `task_id` gerado em `ToDoController@store`.
 
@@ -38,7 +38,7 @@ Permitir que o admin do business configure prefixos de referência (tarefas, fol
 - ❌ NÃO altera settings de outro business — `authorizeAdmin($businessId)` e persistência em `Business::findOrFail($businessId)` (multi-tenant Tier 0).
 - ❌ NÃO é acessível a não-admin — apenas admin do business vê/edita.
 - ❌ NÃO configura módulos/pacotes por business (isso é superadmin; ver ADR 0093 §3 camadas) — inferência pendente de Wagner.
-- ❌ NÃO valida coerência das tolerâncias entre si (só limites de string).
+- ❌ NÃO configura tolerância de marcação nem exigência de localização ([W] 2026-09-24, ADR 0014 emenda). As 5 chaves `grace_before/after_checkin/checkout` e `is_location_required` foram aposentadas: a jornada é do Ponto, onde a lei já fixa as duas coisas (Art. 58 §1º CLT; REP-P com geolocalização obrigatória, Portaria 671). Um save desta tela não grava mais essas chaves.
 
 ---
 
