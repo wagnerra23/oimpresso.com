@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-09-23T20:13:21.982Z",
-    "count": 67,
+    "generated_at": "2026-09-24T14:12:31.330Z",
+    "count": 64,
     "adr": "0409 — divida transitoria, nao tolerancia",
     "note": "DIVIDA TRANSITORIA do PageHeader antigo (shared/PageHeader), nao selo de conformidade. Estar nesta lista ADIA a cura; nao perdoa: tocar a tela reprova o gate (ADR 0409). A lista so DESCE — o --write recusa crescimento. Meta: zero, e entao este arquivo e apagado."
   },
@@ -45,9 +45,6 @@
     "resources/js/Pages/Nfse/Index.tsx",
     "resources/js/Pages/Nfse/Show.tsx",
     "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
-    "resources/js/Pages/OficinaAuto/Vehicles/Create.tsx",
-    "resources/js/Pages/OficinaAuto/Vehicles/Edit.tsx",
-    "resources/js/Pages/OficinaAuto/Vehicles/Show.tsx",
     "resources/js/Pages/Ponto/Welcome.tsx",
     "resources/js/Pages/Produto/StockHistory.tsx",
     "resources/js/Pages/Purchase/Create.tsx",

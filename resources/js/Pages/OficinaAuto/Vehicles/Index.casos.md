@@ -75,4 +75,8 @@ related_cu: [CU-OFI-02, CU-OFI-15]
 - `[BACKLOG]` A coluna de OS abertas por veículo chega por carga adiada (prop cara) e não trava a
   primeira pintura.
 - `[BACKLOG]` A placa é apresentada no padrão visual brasileiro (diferencial de UX registrado pelo
-  charter após feedback do cliente) — sem prova automatizada.
+  charter após feedback do cliente) — sem prova automatizada. Em 2026-09-23 a coluna passou a
+  renderizar a placa pelo componente compartilhado (antes era texto puro, contra o anti-padrão do
+  charter), com a placa secundária ao lado e o número interno como rótulo secundário; o mesmo
+  componente entrou no cabeçalho do Show e como prévia nos forms Create/Edit. Continua `[BACKLOG]`
+  até um teste de render citar o UC.
