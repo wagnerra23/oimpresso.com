@@ -6,9 +6,9 @@
 
 ## Resumo
 - **416** arquivos · **401** números únicos · máx **0411**
-- **ADRs ATIVOS (lifecycle ativo): 370** ← resposta única a "quantos ADRs ativos"
+- **ADRs ATIVOS (lifecycle ativo): 371** ← resposta única a "quantos ADRs ativos"
 - Por status: aceito 366 · superseded 25 · proposto 12 · deprecated 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 370 · substituido 25 · arquivado 21
+- Por lifecycle: ativo 371 · substituido 25 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -50,7 +50,7 @@ _(nenhuma)_
 | 0010 | superseded | substituido | decision | Sistema de memória do projeto (CLAUDE.md + /memory/) |
 | 0011 | aceito | ativo | decision | Alinhamento com o padrão Jana (UltimatePOS) |
 | 0013 | aceito | arquivado | decision | Ecossistema de Módulos: Inventário, Categorias e Padrões |
-| 0014 | aceito | arquivado | decision | Integração PontoWR2 × Essentials (HRM) |
+| 0014 | aceito | ativo | decision | Integração PontoWR2 × Essentials (HRM) |
 | 0015 | aceito | arquivado | decision | Connector: API Gateway para Integrações Externas |
 | 0016 | aceito | arquivado | decision | Plano de Otimização e Roadmap PontoWR2 |
 | 0017 | aceito | ativo | decision | Officeimpresso restaurado da 3.7 como módulo Superadmin exclusivo |
