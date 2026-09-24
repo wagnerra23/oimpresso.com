@@ -12,6 +12,7 @@ import KpiCard from '@/Components/shared/KpiCard';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Grid, Inline, Stack } from '@/Components/layout';
 
 interface Periodo { id: number; inicio: string; fim: string }
 interface Licenca extends Periodo { tipo: string }
@@ -34,13 +35,17 @@ const ir = (href: string) => router.visit(href);
 
 function Linha({ t, s, v }: { t: ReactNode; s?: ReactNode; v?: ReactNode }) {
   return (
-    <li className="flex items-center justify-between gap-3 py-2">
-      <span className="flex min-w-0 flex-col">
-        <span className="text-sm font-medium">{t}</span>
-        {s && <span className="text-xs text-muted-foreground">{s}</span>}
-      </span>
-      {v !== undefined && <span className="shrink-0 text-sm tabular-nums">{v}</span>}
-    </li>
+    <Inline asChild align="center" justify="between" gap={3}>
+      <li className="py-2">
+        <Stack asChild gap={0} className="min-w-0">
+          <span>
+            <span className="text-sm font-medium">{t}</span>
+            {s && <span className="text-xs text-muted-foreground">{s}</span>}
+          </span>
+        </Stack>
+        {v !== undefined && <span className="shrink-0 text-sm tabular-nums">{v}</span>}
+      </li>
+    </Inline>
   );
 }
 
@@ -87,7 +92,7 @@ function Conteudo({ is_admin, painel }: { is_admin: boolean; painel?: PainelData
         </KpiGrid>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+      <Grid fit="md" gap={4} className="mt-4">
         <Bloco titulo="O que fazer primeiro">
           <Linha t="Marcações e jornada" s="a jornada é do Ponto — feche lá as marcações em aberto"
             v={<Button variant="ghost" size="sm" onClick={() => ir('/ponto')}>Abrir no Ponto</Button>} />
@@ -116,7 +121,7 @@ function Conteudo({ is_admin, painel }: { is_admin: boolean; painel?: PainelData
             {!p.setores.length && <Vazio texto="Nenhum colaborador cadastrado." />}
           </Bloco>
         )}
-      </div>
+      </Grid>
     </>
   );
 }
