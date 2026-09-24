@@ -5,9 +5,15 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do atendente + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela concentra a conversa com o cliente de TODOS os canais — se o isolamento por business ou o ACL canal=fila falhar, um tenant lê a conversa do outro. É o comportamento durável que nenhum refactor pode perder.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-09-24"
 ---
 
+> ℹ️ **`last_run` 2026-09-11 → 2026-09-24 (G-6), e de novo o que mudou NÃO foi comportamento.**
+> O toque em `Index.tsx` no [#7910](https://github.com/wagnerra23/oimpresso.com/pull/7910) (PageHeader/06, decisão [W] D-PH-0923) troca a
+> **classe do `<h1>Atendimento</h1>`** (`text-[14px]` → `text-[length:var(--fs-7)] tracking-[-0.015em]`) e acrescenta um comentário.
+> Mesma copy, mesmo elemento, zero handler, zero prop, zero JSX estrutural. Nenhum UC deste arquivo afirma tamanho
+> ou peso do título. **Nenhum UC foi reexecutado**; o bump segue o sentido do #6913/#7224 (trio reconciliado com a tela nesta data).
+>
 > ℹ️ **`last_run` 2026-08-24 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
 > o path do protótipo (`prototipo-ui/cowork/…` → `prototipo-ui/cowork/Wagner/…`, topologia por dono da ADR 0397).
