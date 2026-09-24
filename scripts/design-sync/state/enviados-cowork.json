@@ -1,6 +1,10 @@
 {
   "_nota": "Arquivos que o Code subiu ao Cowork (DesignSync) e que o bundle ativo ainda não trouxe de volta. Escrito por pendentes-cowork.mjs; o receber-handoff limpa o que o retorno confirmar.",
   "enviados": {
+    "cowork-inbox/ancora/playbook/_saida-02.md": {
+      "sha256": "362462d11a8baa9d8c49ccb17efebcdd483c59a84ab0085de89f67974bb64445",
+      "em": "2026-09-24T18:38:08.343Z"
+    },
     "cowork-inbox/cms/playbook/_saida-01.md": {
       "sha256": "28b1e0e9c8e67eb0fcfbed950daad893a03d53c54c43dd5afec0eb3816cdb597",
       "em": "2026-09-24T17:36:55.048Z"
@@ -49,6 +53,10 @@
       "sha256": "9276ad56b5fe4ea863a68f978a7ee1f43dd8a7fb477a9054a82e764f292a58a8",
       "em": "2026-09-24T17:36:55.048Z"
     },
+    "cowork-inbox/pageheader/playbook/_saida-01.md": {
+      "sha256": "57f528402b447cd9eecc6eb7dc616178aff8e5b276680bfd1007eae572809daa",
+      "em": "2026-09-24T18:38:08.343Z"
+    },
     "cowork-inbox/pageheader/playbook/_saida-02.md": {
       "sha256": "e01229436dd02fabc199d063d337c58429d138d656d449020f81d509f123260a",
       "em": "2026-09-24T17:36:55.048Z"
@@ -60,6 +68,10 @@
     "cowork-inbox/pageheader/playbook/_saida-04.md": {
       "sha256": "c9613da7538fb6f34e08bfb661594dbb1c76e65590fd089019068ea9caa67b33",
       "em": "2026-09-24T17:36:55.048Z"
+    },
+    "cowork-inbox/pageheader/playbook/_saida-05.md": {
+      "sha256": "fee3536cbc29fa3dd8f8007c380b90035e5cb7f52a1b891271b7ed5728c2c81a",
+      "em": "2026-09-24T18:38:08.343Z"
     },
     "cowork-inbox/patrimonio/playbook/_saida-08.md": {
       "sha256": "dc63510a8009095a2ab096eedb7ad77a89264a881a5e1f995e02f8cd3fc58261",
@@ -76,6 +88,10 @@
     "cowork-inbox/patrimonio/playbook/_saida-11.md": {
       "sha256": "46766cc870195f1707df30d2de192c6bde35affbcf485acd0594c74b4a457ca8",
       "em": "2026-09-24T17:36:55.048Z"
+    },
+    "cowork-inbox/patrimonio/playbook/_saida-13.md": {
+      "sha256": "21a35178ef10ce9721e332691d930e3668a3f348194b13ee4e438a1b396f738b",
+      "em": "2026-09-24T18:38:08.343Z"
     },
     "cowork-inbox/patrimonio/playbook/_saida-15.md": {
       "sha256": "9ab175b024c8012298d6c99fd058c6046bf9fa4f73f2406ecc6038534784074d",
