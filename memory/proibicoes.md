@@ -1792,6 +1792,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** hook PreToolUse que decide por estado que o comando interceptado ainda vai mudar (índice git, arquivos, env) considera os segmentos **anteriores** do mesmo comando — separados também por quebra de linha — e tira do comando o que é texto (corpo de heredoc, string entre aspas). E o teste de um hook usa **as formas medidas no corpus**, com a proporção ao lado, não a forma conveniente para o teste. Corolário: consertar um hook que lê o índice obriga a medir os irmãos que leem o índice.
 
+### 2026-09-24 — EMENDA da lápide 2026-08-05 (merge sem conflito ≠ artefato válido): editei à mão um arquivo do ESPELHO que o playbook manda editar, e o cruzamento com um import travou um required em todos os PRs
+
+- **O limite (variante também proibida):** editar **à mão** arquivo sob `prototipo-ui/cowork/**` — índice de playbook incluído — sem levar a mesma edição ao Cowork (o caminho do #7887: escrita via DesignSync com opt-in [W], e depois re-verificação). Arquivo **novo** (um `_saida-NN.md`) não arma o cruzamento, porque o gate trata "nunca verificado" como não bloqueante; **editar arquivo já verificado**, sim. Corolário de método: antes de mergear um PR que edita o espelho, rodar `node scripts/governance/cowork-mirror-freshness.mjs --unverified --check` **contra o `main` atualizado**, não só contra a base do branch; o verde da base velha não diz nada sobre o registro que chegou depois.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
