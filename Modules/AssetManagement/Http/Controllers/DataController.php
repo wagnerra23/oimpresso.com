@@ -109,7 +109,7 @@ class DataController extends Controller
         }
 
         // Aba "Auditoria" = DEEP-LINK para o Modules/Auditoria ja filtrado nos bens
-        // (ADR 0413, decisao [W] 2026-09-24). Nao e tela deste modulo: o dono da trilha
+        // (ADR 0414, decisao [W] 2026-09-24). Nao e tela deste modulo: o dono da trilha
         // por-registro e o Modules/Auditoria (ADR 0127). So aparece quando a tela de
         // destino ABRE para este usuario -- mesmas camadas do gate de
         // Modules/Auditoria/Http/Controllers/DataController::modifyAdminMenu (rota
@@ -164,7 +164,7 @@ class DataController extends Controller
     }
 
     /**
-     * Ghost "Auditoria" (ADR 0413): link para /auditoria filtrado por subject_type=Asset,
+     * Ghost "Auditoria" (ADR 0414): link para /auditoria filtrado por subject_type=Asset,
      * ou null quando a tela de destino nao abriria para este usuario.
      *
      * @return array{key: string, label: string, href: string}|null

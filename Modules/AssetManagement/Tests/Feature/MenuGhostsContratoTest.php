@@ -31,7 +31,7 @@ uses(Tests\TestCase::class);
  * (bloqueios D-GARANTIAS / D-AUDITORIA no `Bens.charter.md:81`). O 4o cenario abaixo
  * defende justamente a AUSENCIA delas -- "renderizar aba que nao navega e afordancia
  * falsa". Quando a decisao sair, ela entra pelo `DataController` e este teste muda junto.
- * ATUALIZADO 2026-09-24: D-AUDITORIA saiu (ADR 0413) -- a Auditoria entra como deep-link
+ * ATUALIZADO 2026-09-24: D-AUDITORIA saiu (ADR 0414) -- a Auditoria entra como deep-link
  * para o Modules/Auditoria; so a Garantias segue ausente.
  *
  * ADR 0358: tenant canonico de teste e o FICTICIO 98 (`seededTenant()`). Nunca biz=1/biz=4.
@@ -148,7 +148,7 @@ it('todo ghost aponta para uma rota que existe -- aba que nao navega e afordanci
 
     try {
         $ghosts = menuGhostsDoModulo($user, $biz->id);
-        // 6 do modulo + o deep-link "Auditoria" quando o Modules/Auditoria abre (ADR 0413).
+        // 6 do modulo + o deep-link "Auditoria" quando o Modules/Auditoria abre (ADR 0414).
         expect(count($ghosts))->toBeIn([6, 7]);
 
         // Resolve o href contra o roteador REAL em vez de comparar com uma lista escrita
@@ -182,7 +182,7 @@ it('Garantias NAO aparece enquanto nao tiver rota (D-GARANTIAS)', function () {
 });
 
 /*
- * D-AUDITORIA (ADR 0413, [W] 2026-09-24): a aba "Auditoria" NAO e tela deste modulo. E
+ * D-AUDITORIA (ADR 0414, [W] 2026-09-24): a aba "Auditoria" NAO e tela deste modulo. E
  * deep-link para o Modules/Auditoria (dono da trilha, ADR 0127) ja filtrado por
  * subject_type=Asset. Os dois cenarios cobrem os dois lados do gate: com o modulo de
  * destino instalado a aba aparece e aponta pro filtro certo; sem ele, some -- aba que
