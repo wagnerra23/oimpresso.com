@@ -49,21 +49,12 @@ class DataController extends Controller
                 'label' => 'Compras: visualizar cockpit + lista',
                 'default' => false,
             ],
-            [
-                'value' => 'compras.create',
-                'label' => 'Compras: criar compra manual',
-                'default' => false,
-            ],
-            [
-                'value' => 'compras.edit',
-                'label' => 'Compras: editar compra (status, lines, payments)',
-                'default' => false,
-            ],
-            [
-                'value' => 'compras.delete',
-                'label' => 'Compras: excluir compra',
-                'default' => false,
-            ],
+            // compras.create / compras.edit / compras.delete SAIRAM do catálogo
+            // (decisão [W] 2026-09-24, thread 04 do playbook Compras): pela
+            // convergência C1 o CRUD vive em /purchases e é gateado por
+            // purchase.* — nenhum código checava as três. A caixinha no /roles
+            // prometia um poder que não existia. compras.import_xml fica: é o
+            // gate previsto da importação DF-e (US-COM-003, Wave 6).
             [
                 'value' => 'compras.import_xml',
                 'label' => 'Compras: importar XML DF-e como compra',
@@ -118,6 +109,11 @@ class DataController extends Controller
                     ],
                     'ghosts'   => [
                         ['key' => 'lista', 'label' => 'Lista', 'href' => '/compras'],
+                        // Fornecedores = a lista que ja existe no cadastro de contatos
+                        // (contacts type=supplier). Decisao [W] 2026-09-24, thread 03
+                        // do playbook Compras: atalho, nao tela propria — a ficha do
+                        // fornecedor (scorecard C11) segue segurada no SPEC.
+                        ['key' => 'fornecedores', 'label' => 'Fornecedores', 'href' => '/cliente?type=supplier'],
                     ],
                 ]
             )->order(45);

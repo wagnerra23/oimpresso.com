@@ -332,7 +332,13 @@ export default function CaixaUnificadaIndex({
         {/* Sem ícone-caixa — canon Cowork `os-page-h-l` é só título + subtítulo. */}
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
           <div className="min-w-0">
-            <h1 className="font-semibold text-[14px] leading-tight truncate">Atendimento</h1>
+            {/* Título 22px pelo token do DS (`--fs-7`) — decisão [W] D-PH-0923 (2026-09-23),
+                playbook PageHeader/06; medido 14px × 22px no protótipo em 2026-09-08
+                (CaixaUnificadaV4-visual-comparison.md, D4 DIVERGE). Tracking -0.015em vem
+                da mesma âncora (`styles.css` `.os-page-h-l h1`). Não adota o
+                `<PageHeader>` canon: ele traz `pt-6 px-6 pb-3.5` + `min-h-[60px]` + borda,
+                o que mudaria a altura do header de uma tela de altura fixa (3 colunas). */}
+            <h1 className="font-semibold text-[length:var(--fs-7)] tracking-[-0.015em] leading-tight truncate">Atendimento</h1>
             <p className="text-[12.5px] text-muted-foreground truncate">
               {headerSub}
             </p>
