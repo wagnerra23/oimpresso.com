@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 use App\Utils\Util;
 
-uses(Tests\TestCase::class);
+// Sem uses(TestCase): o tests/Pest.php já o aplica a tests/Feature — declarar de novo
+// derruba a suíte inteira ("Test case [Tests\TestCase] can not be used").
 
 /**
  * UC-PURCRE-08 — salvar aceita a data que a própria tela manda.

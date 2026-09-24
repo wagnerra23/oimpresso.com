@@ -309,8 +309,10 @@ class Util
      * diferente de Y-m-d. Medido em prod biz=1 em 2026-09-24 (smoke da grade, thread 05
      * do playbook Compras). Nao mexe em valor nem em estoque.
      *
+     * Devolve no formato 'Y-m-d H:i:s'.
+     *
      * @param  string  $date
-     * @return string|null 'Y-m-d H:i:s'
+     * @return string|null
      */
     public function uf_datetime_input($date)
     {
