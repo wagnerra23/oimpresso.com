@@ -122,7 +122,9 @@ it('UC-JPERM-08 · o PREVIEW admin de outro business é 403 pro dono do negócio
     // Desde a ADR 0414 quem morde é o MIDDLEWARE (`can:jana.superadmin`), antes do
     // controller: o corpo não traz mais o `tenant_violation` do `user_type`, que
     // segue no controller como segunda defesa (coberta pelo caso do próprio business).
-    expect($resp->json('error'))->not->toBe('tenant_violation');
+    // (Corpo lido como texto: o 403 do middleware não é JSON, e `->json()` nele
+    // relança a AuthorizationException em vez de responder.)
+    expect($resp->getContent())->not->toContain('tenant_violation');
 })->group('tier0');
 
 it('UC-JPERM-08 · o preview do PRÓPRIO business abre pra quem tem a permissão', function () {
