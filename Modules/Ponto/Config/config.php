@@ -133,7 +133,6 @@ return [
     'ultimatepos' => [
         'user_model'            => \App\User::class,          // padrão UltimatePOS
         'business_model'        => \App\Business::class,      // multi-empresa
-        'essentials_user_model' => \Modules\Essentials\Entities\EssentialsUserShiftHistory::class,
         'usar_business_scope'   => true,
     ],
 ];
