@@ -7,6 +7,11 @@ authors: ["W", "C"]
 
 Base: `origin/main` 4807395dc.
 
+## TL;DR
+[W] decidiu D-GRADE = paginação no servidor (a 04 vira `density="dense"` aditivo no `shared/DataTable`) e
+D-SB-KINDS = `sla`/`atendimento`/`frescor` no StatusBadge sem token novo. As threads 04 e 05 seguem sem
+executar: faltam as fichas do Cowork, e a gravação do índice no Cowork aguarda opt-in [W].
+
 ## Placar na abertura
 `node scripts/qa/placar.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/ds-atomos/playbook/00-INDICE.md`
 → `entregue 1 de 6 · em curso 3 · bloqueada 2`. A 08 está feita (#7849). 01·02·03 aparecem "em curso"
