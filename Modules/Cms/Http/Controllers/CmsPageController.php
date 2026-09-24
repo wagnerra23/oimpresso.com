@@ -416,6 +416,17 @@ class CmsPageController extends Controller
                 $page = CmsPage::where('type', $post_type)
                         ->findOrFail($id);
 
+                // R3 / UC-CMS-09 — página de sistema (layout home/contact) não se exclui. A tela
+                // já esconde o botão; a recusa mora AQUI porque a rota aceita qualquer chamador.
+                if (! empty($page->layout)) {
+                    Log::warning('cms.page.delete_recusado', ['page_id' => (int) $page->id, 'layout' => $page->layout]);
+
+                    return response()->json([
+                        'success' => false,
+                        'msg' => 'Página de sistema não pode ser excluída.',
+                    ], 422);
+                }
+
                 // D9.a OTel — instrumenta delete (operação destrutiva crítica).
                 OtelHelper::spanBiz('cms.page.delete', function () use ($page) {
                     if (! empty($page->feature_image_path) && file_exists($page->feature_image_path)) {
@@ -445,7 +456,8 @@ class CmsPageController extends Controller
             ));
 
                 $output = ['success' => false,
-                    'msg' => '__("messages.something_went_wrong")',
+                    // Antes era a string literal '__("messages.something_went_wrong")' — ia crua pra tela.
+                    'msg' => __('messages.something_went_wrong'),
                 ];
             }
 

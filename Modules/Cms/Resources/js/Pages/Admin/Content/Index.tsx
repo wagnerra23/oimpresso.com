@@ -127,11 +127,12 @@ function Lista({ tipo, linhas, onEditar }: { tipo: Tipo; linhas?: Linha[]; onEdi
       method: 'DELETE',
       headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': token, Accept: 'application/json' },
     });
-    const corpo = resp.ok ? await resp.json().catch(() => null) : null;
-    if (corpo?.success) {
+    // 422 também traz JSON (página de sistema recusada no servidor) — ler antes de desistir.
+    const corpo = await resp.json().catch(() => null);
+    if (resp.ok && corpo?.success) {
       router.reload({ only: ['paginas', 'contagens'] });
     } else {
-      setErro('Não foi possível excluir. Nada foi alterado.');
+      setErro(corpo?.msg ? `${corpo.msg} Nada foi alterado.` : 'Não foi possível excluir. Nada foi alterado.');
     }
   }
 

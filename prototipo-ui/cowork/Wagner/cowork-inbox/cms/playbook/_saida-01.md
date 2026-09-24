@@ -34,11 +34,14 @@ Destaques da home editáveis no drawer **e ligados à `/`**: o `FeatureGrid` lia
 gravava. Migration troca só o seed em inglês (medido em produção) pelo texto que o site já mostra —
 site idêntico. UC-CMS-08/24/25. `industry` fica fora (a home nova não tem a seção).
 
+## Fase 3
+
+`destroy` recusa página de sistema no servidor (422) e a lista mostra a mensagem. UC-CMS-09/10.
+
 ## Placar
 
-entregue 1 de 1 prova do índice · fase 1: 5 UC · fase 2: +4 UC (UC-CMS-04/05 do F1 + 22/23 novos) · fase 2b: +3 UC (08 do F1 + 24/25) ·
-ausentes os demais UC do F1 (segmentos da home, exclusão recusada no servidor, lote, demo, formulário
-público) por serem das fases 3–4.
+entregue 1 de 1 prova do índice · fase 1: 5 UC · fase 2: +4 UC (UC-CMS-04/05 do F1 + 22/23 novos) · fase 2b: +3 UC (08 do F1 + 24/25) · fase 3: +2 UC (09/10 do F1) ·
+ausentes os demais UC do F1 (segmentos da home, lote, demo, formulário público) — fase 4 e além.
 
 ## Não fiz (e por quê)
 

@@ -33,7 +33,7 @@ o que é rascunho, o que é página de sistema e o que não tem descrição de b
   (vazio no fim).
 - Selos em PT-BR: Publicada / Rascunho · Página de sistema · Sem descrição de busca.
 - Endereço público da linha (página e blog).
-- Excluir só em página livre; página de sistema mostra "Fixa".
+- Excluir só em página livre; página de sistema mostra "Fixa" — e a rota recusa (422) quem tentar direto.
 - Criar/editar em drawer lateral (PT-02), rótulos por tipo e layout, descrição para buscadores
   derivada no servidor quando vazia, aviso de endereço ao mudar o título.
 - Destaques da página inicial editáveis no drawer — e são os que a home de `/` mostra.
@@ -41,5 +41,5 @@ o que é rascunho, o que é página de sistema e o que não tem descrição de b
 ## Pendências antes de `status: live`
 
 - [ ] [W] aprova Non-Goals + Anti-hooks do charter completo do [CC]
-- [ ] Fases 2–5 do RUNBOOK (editor, recusa de exclusão no servidor, detalhes do site, cutover)
+- [ ] Fases 4–5 do RUNBOOK (detalhes do site, cutover)
 - [ ] [W2] aprova screenshot 1280/1440 em produção
