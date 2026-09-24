@@ -101,10 +101,23 @@ function itemOk(i: ItemUI): boolean {
   return i.largura_m > 0 && i.altura_m > 0 && i.quantidade >= 1 && i.preco_unitario_m2 > 0;
 }
 function areaDe(item: ItemUI): number {
-  return Math.max(0, item.largura_m) * Math.max(0, item.altura_m) * Math.max(0, item.quantidade);
+  // Área arredondada a 3 casas e subtotal a 2, POR ITEM — é o que o servidor faz. Somar o
+  // float bruto dava diferença de centavo em quantidade alta e jogava a conferência no
+  // "vale este" sem motivo.
+  return arred(Math.max(0, item.largura_m) * Math.max(0, item.altura_m) * Math.max(0, item.quantidade), 3);
 }
 function subtotalDe(item: ItemUI): number {
-  return areaDe(item) * Math.max(0, item.preco_unitario_m2);
+  return arred(areaDe(item) * arred(Math.max(0, item.preco_unitario_m2), 2), 2);
+}
+
+/** Espelha round($n, $casas, PHP_ROUND_HALF_UP) do OrcamentoCalculator: meio pra longe do zero.
+ *  O toPrecision(15) tira o resíduo binário antes de arredondar — sem ele 1,005 × 100 dá
+ *  100,4999… e o centavo sai pra baixo, enquanto o PHP (que faz o mesmo pré-arredondamento)
+ *  sobe. */
+function arred(n: number, casas: number): number {
+  const fator = 10 ** casas;
+  const deslocado = Number((Math.abs(n) * fator).toPrecision(15));
+  return (Math.sign(n) * Math.round(deslocado)) / fator;
 }
 
 export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar = false }: Props) {
@@ -141,11 +154,14 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
 
   // Totais do preview client-side (feedback instantâneo enquanto digita).
   const subtotalLocal = useMemo(
-    () => itens.reduce((acc, i) => acc + subtotalDe(i), 0),
+    () => arred(itens.reduce((acc, i) => acc + subtotalDe(i), 0), 2),
     [itens],
   );
+  // SEM clamp em zero: o servidor não clampa (total = subtotal − desconto + extras), então
+  // desconto maior que o orçamento mostrava R$ 0,00 aqui e um negativo no "vale este".
+  // Melhor mostrar o negativo e dizer por quê.
   const totalLocal = useMemo(
-    () => Math.max(0, subtotalLocal - Math.max(0, desconto) + Math.max(0, extras)),
+    () => arred(subtotalLocal - arred(Math.max(0, desconto), 2) + arred(Math.max(0, extras), 2), 2),
     [subtotalLocal, desconto, extras],
   );
 
@@ -452,6 +468,11 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
                     {BRL.format(totalLocal)}
                   </span>
                 </div>
+                {totalLocal < 0 && (
+                  <p className="text-xs text-destructive">
+                    O desconto está maior que o valor do orçamento — o total fica negativo.
+                  </p>
+                )}
                 {conferido && (
                   <p className="flex items-center gap-1.5 text-xs">
                     {Math.abs(conferido.total - totalLocal) < 0.01 ? (
