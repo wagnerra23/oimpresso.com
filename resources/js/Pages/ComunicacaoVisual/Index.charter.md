@@ -19,14 +19,30 @@ Larissa-equivalente — dona/operadora gráfica pequena (1-5 funcionários, ~R$ 
 
 ## Objetivo desta página
 
-Landing/dashboard do vertical ComVis. Mostra 3 widgets críticos:
-1. Orçamentos pendentes aprovação cliente (CTA: lembrar via WhatsApp)
-2. OS em produção (PCP Kanban miniatura — consome Repair shared)
-3. Apontamentos do dia (m² produzido + drift médio)
+Calculadora de orçamento por m² do vertical ComVis (US-COMVIS-001 · P0). É o que a tela faz hoje:
+
+1. **Peças do orçamento** — linhas com material (catálogo do business), descrição, largura × altura × qtd e R$/m²; área e subtotal por peça calculados na hora.
+2. **Ajustes gerais** — um campo manual de acabamento/instalação/entrega e um de desconto, ambos em R$.
+3. **Prévia × oficial** — o total da tela é prévia; o botão "Conferir no servidor" chama `POST /comunicacao-visual/api/calcular` e o valor do servidor é o oficial (UC-CV-01).
+4. **"Em breve nesta tela"** — 3 cartões honestos (Ordens de serviço · Materiais · Apontamentos), sem ação.
+
+Contrato comportamental: [`Index.casos.md`](Index.casos.md).
 
 ## Estado atual
 
-🟡 **Stub Sprint 2** — UI Inertia ainda não ativada. Sprint 1 entregou só API JSON. Quando ROTA LIVRE/Gold piloto reportar dor real (ADR 0105), Wagner ativa MWART completo F1→F5.
+Tela Inertia **no ar** (`Index.tsx`), servida pela rota `comunicacao-visual.index`. Não é stub.
+
+- ⚠️ A rota hoje entrega **só `bizName`**: `materiais` e `podeCriar` nunca chegam, então o seletor de material fica em "Sem catálogo" mesmo com catálogo semeado — UC-CV-07 (vermelho esperado). O conserto é no backend da rota, fora deste arquivo.
+- Salvar orçamento e enviar PDF ainda não existem na UI (a API `POST …/api/orcamentos` existe).
+
+## Próximo (não está na tela — não assuma que está)
+
+Os 3 widgets que este charter descrevia até 2026-09-23 **não existem na tela**; ficam como próximo, cada um na sua US:
+
+- Orçamentos pendentes de aprovação do cliente — depende de salvar orçamento (UC-CV-11)
+- CRUD de materiais — US-COMVIS-002
+- OS em produção / PCP em miniatura — US-COMVIS-003
+- Apontamentos do dia (m² produzido + drift) — US-COMVIS-004
 
 ## Anti-padrões (Tier 0)
 
@@ -36,12 +52,12 @@ Landing/dashboard do vertical ComVis. Mostra 3 widgets críticos:
 
 ## Fase MWART aplicável
 
-- F1.5 visual-comparison: aguarda ativação
-- F2 backend baseline: ✅ API JSON pronta
-- F3 frontend: 🟡 stub
-- F4 QA: aguarda
-- F5 cutover: aguarda piloto
+- F2 backend baseline: ✅ API JSON (`/comunicacao-visual/api/*`)
+- F3 frontend: ✅ calculadora no ar — os 3 widgets do "Próximo" não
+- F4 QA: parcial — trio completo (charter · casos · teste), UC-CV-07 vermelho esperado
+- F5 cutover: aguarda piloto (ADR 0105)
 
 ## Wave histórica
 
 - Wave 25 (2026-05-16): charter criado pra fundação MWART futura.
+- 2026-09-23: Objetivo/Estado reescritos pro que a tela faz (playbook comunicacao-visual thread 01, R7). Até aqui se declarava stub com UI não ativada e listava 3 widgets inexistentes.
