@@ -5,12 +5,10 @@ use Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
 
-// Hub stub Sprint 2 (Wagner 2026-05-26): rota raiz renderiza Index.tsx
-// existente como hub "em construção" listando 4 áreas (Orçamentos/OS/
-// Materiais/Apontamentos). Substitui o dropdown legacy do DataController
-// que apontava pra URLs /comunicacao-visual/admin/* não existentes (404).
-// Sprint 2 entrega telas Inertia próprias — até lá, hub stub +
-// acesso direto via APIs /comunicacao-visual/api/*.
+// Rota raiz do módulo: renderiza Index.tsx — calculadora de orçamento por m²
+// (US-COMVIS-001) + cartões "em breve" das outras áreas. Nasceu em 2026-05-26
+// como hub stub no lugar do dropdown legacy do DataController, que apontava
+// pra URLs /comunicacao-visual/admin/* inexistentes (404).
 Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
     ->prefix('comunicacao-visual')
     ->group(function () {
@@ -22,8 +20,41 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
                 abort(403, 'Sem permissão Comunicação Visual (comvis.orcamento.view ou comvis.os.view).');
             }
 
+            // Catálogo do business pra calculadora (UC-CV-07 / CU-CV-09): escolher o material
+            // preenche o preço/m². Até 2026-09-23 esta rota passava só `bizName` e o seletor
+            // ficava sempre em "Sem catálogo", mesmo com o MaterialSeeder rodado.
+            //
+            // EAGER, não Inertia::defer, de propósito: (1) é um catálogo curto, 1 query por
+            // business; (2) deferido, o 1º paint receberia `materiais` vazio e mostraria o aviso
+            // "você ainda não tem materiais" — falso — até o 2º request; (3) o contrato
+            // ContratoTelaOrcamentoTest lê o payload inicial da página.
+            //
+            // business_id EXPLÍCITO além do global scope do Material: aquele scope não filtra
+            // nada quando a sessão não tem business (`if ($businessId !== null)`), e aqui a
+            // falha segura é catálogo vazio, nunca o de todos (ADR 0093).
+            $businessId = session('user.business_id') ?? session('business.id');
+            $materiais = $businessId === null
+                ? collect()
+                : \Modules\ComunicacaoVisual\Entities\Material::ativos()
+                    ->where('comvis_materiais.business_id', $businessId)
+                    ->orderBy('categoria')
+                    ->orderBy('nome')
+                    ->get(['id', 'nome', 'categoria', 'unidade', 'preco_venda_m2'])
+                    ->map(fn ($m) => [
+                        'id'             => $m->id,
+                        'nome'           => $m->nome,
+                        'categoria'      => $m->categoria,
+                        'unidade'        => $m->unidade,
+                        // A tela faz BRL.format(preco_venda_m2): número, não string decimal.
+                        'preco_venda_m2' => (float) $m->preco_venda_m2,
+                    ])
+                    ->values();
+
             return Inertia::render('ComunicacaoVisual/Index', [
-                'bizName' => session('business.name', 'oimpresso'),
+                'bizName'   => session('business.name', 'oimpresso'),
+                'materiais' => $materiais,
+                'podeCriar' => auth()->user()->can('superadmin')
+                    || auth()->user()->can('comvis.orcamento.create'),
             ]);
         })->name('comunicacao-visual.index');
     });

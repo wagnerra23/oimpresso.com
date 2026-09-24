@@ -398,8 +398,10 @@ class CmsPageController extends Controller
     /**
      * Remove the specified resource from storage.
      *
+     * Só responde a ajax: JSON de sucesso/erro, ou 422 quando a página é de sistema (R3).
+     *
      * @param  int  $id
-     * @return Response
+     * @return \Illuminate\Http\JsonResponse|array<string, mixed>|mixed
      */
     public function destroy($id)
     {
