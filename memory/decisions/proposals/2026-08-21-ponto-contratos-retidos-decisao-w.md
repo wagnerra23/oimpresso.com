@@ -1,8 +1,10 @@
 ---
 proposal_id: ponto-contratos-retidos
-status: open
+status: accepted
 created: 2026-08-21
 proposed_by: claude-code
+decided_at: '2026-09-14'
+adr: 0413-ponto-fechamento-competencia-conformidade-relatorios-legais
 decided_by: wagner
 title: "Ponto — os 2 contratos retidos (`ponto-fechamento`, `ponto-rep-p`): o que falta é decisão, não código"
 module: Ponto
@@ -98,3 +100,7 @@ estão (Cowork) e manter esta proposta como o registro de que a lacuna é conhec
 vermelho permanente treina o time a ignorar gate — custo maior que a ausência do contrato.
 
 Refs: decisão [W] 2026-08-21 (opção B) · PRs #6113 · #6114 · #6115 · Portaria MTP 671/2021
+
+---
+
+**Ratificação:** [W] em 2026-09-14 — "sim aceito as 5" (D0–D4, playbook `29-decisoes-retidas-default.md` / `30-pedido-retidos-aprovado.md`). Complementada por [W] em 2026-09-24 (W1 tabela `ponto_competencias` · W3 bloqueios não bloqueiam AFD · W7 AFD → AEJ, AFDT sai da exportação). Consolidado em [ADR 0413](../0413-ponto-fechamento-competencia-conformidade-relatorios-legais.md).
