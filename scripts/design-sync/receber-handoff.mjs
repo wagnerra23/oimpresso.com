@@ -55,7 +55,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { extrairZip } from './zip-reader.mjs';
 import { roleForPath, validateManifest } from './bundle-contract.mjs';
-import { pathsForOwner } from './bundle-transaction.mjs';
+import { pathsForOwner, RECIBO_CODE_RE } from './bundle-transaction.mjs';
 import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
 import { pendentesDoRepo } from './pendentes-cowork.mjs';
 // PASSO 0 do painel. O dono da pergunta "de quem e este handoff" e o protocolo.config:
@@ -685,13 +685,16 @@ function principal() {
   // desfazia: o #7866 foi sobrescrito, e o import (35) ia podar 12 arquivos que o #7847 [W+C]
   // restaurou. O caminho certo é SUBIR antes do retorno (`pendentes-cowork.mjs --plano` +
   // DesignSync); isto aqui é a rede de segurança para quando esse passo foi esquecido.
-  // Recibo `_saida` não entra no conflito: a poda o preserva (RECIBO_CODE_RE), então nada se perde.
+  // Só sai do conflito o que a PODA de fato preserva — e quem diz isso é a própria regra dela
+  // (RECIBO_CODE_RE, importada, nunca copiada). A 1ª versão dispensava todo `_saida-*` e a
+  // simulação de 2026-09-24 pegou o furo: `_saida-06-bens.md` não casa `_saida-NN[a].md`, a poda
+  // o apagou, e esta trava tinha deixado passar. Duas definições de "recibo" = a mais larga mente.
   let conflitosRetorno = [];
   if (DONO === 'Wagner') {
     let pend = [];
     try { pend = pendentesDoRepo(REPO); } catch (e) { morre(`[6b] ${e.message}`, 2); }
     conflitosRetorno = pend.filter((p) => {
-      if (p.recibo) return false;
+      if (RECIBO_CODE_RE.test(p.rel)) return false;
       const z = naArvore(p.rel);
       return z === null || sha(z) !== p.sha;
     });
