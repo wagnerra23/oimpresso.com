@@ -1151,8 +1151,8 @@
     },
     {
       "path": "cowork-inbox/fiscal/playbook/00-INDICE.md",
-      "bytes": 11119,
-      "sha256": "6b8f5ce1d11770f2bdbcb28dd9d54bf970f17c13ce4f5a00057f9bcdda19d2d9",
+      "bytes": 12157,
+      "sha256": "e6280726440d98c8e731befa1a37db6313509ca7a73de0c81826cd563dfb6836",
       "role": "cowork-source"
     },
     {
@@ -1445,8 +1445,8 @@
     },
     {
       "path": "cowork-inbox/jana/playbook/00-INDICE.md",
-      "bytes": 8514,
-      "sha256": "37cf42044afe0d40ea020bdd263504e7b7cde383ff7c313beacebb0246336de2",
+      "bytes": 8894,
+      "sha256": "374e8b3456a490b79fa919ad693661d22806bbe4d305de13eedd15471c167c6e",
       "role": "cowork-source"
     },
     {
@@ -1805,8 +1805,8 @@
     },
     {
       "path": "cowork-inbox/patrimonio/playbook/00-INDICE.md",
-      "bytes": 10545,
-      "sha256": "d3e7011541e408360a83ce776d481419518339958ba715c0d460828b823ac007",
+      "bytes": 30181,
+      "sha256": "07c3564b1ba85c36a159b87503f4eef89910edbeaf07a6e9d2a90cf59deba472",
       "role": "cowork-source"
     },
     {
@@ -4596,10 +4596,10 @@
   ],
   "missing": [],
   "mirrorScope": "tree",
-  "bundleId": "fa289f8b70330448871ce9ecaaba8c3c568b39b8441354f926337f1352037ccc",
-  "baseBundleId": "d2a29f9856487439a429236d53df3416c9ef4659d691124ec0cf47197c18d5cf",
+  "bundleId": "baefcc2a1ce00099863a67756ddd9f4346444b41661bc43941d42cb6c9b89415",
+  "baseBundleId": "fa289f8b70330448871ce9ecaaba8c3c568b39b8441354f926337f1352037ccc",
   "mode": "delta",
-  "generatedAt": "2026-09-23T19:39:21.393Z",
+  "generatedAt": "2026-09-24T12:47:32.974Z",
   "dsRequires": {
     "owner": "Wagner",
     "slug": "office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac",
@@ -4652,27 +4652,16 @@
   },
   "totals": {
     "files": 765,
-    "bytes": 10060392
+    "bytes": 10081446
   },
   "changes": {
-    "added": [
-      "cowork-inbox/ancora/playbook/_SESSAO-FRIA.md",
-      "cowork-inbox/compras/playbook/_SESSAO-FRIA.md",
-      "cowork-inbox/financeiro/playbook/_SESSAO-FRIA.md",
-      "cowork-inbox/fiscal/playbook/_SESSAO-FRIA.md",
-      "cowork-inbox/hrm/playbook/_SESSAO-FRIA.md",
-      "cowork-inbox/patrimonio/playbook/_SESSAO-FRIA.md",
-      "cowork-inbox/placar/playbook/_SESSAO-FRIA.md",
-      "cowork-inbox/recepcao-pacote/playbook/_SESSAO-FRIA.md",
-      "cowork-inbox/shell-usermenu/playbook/_SESSAO-FRIA.md",
-      "cowork-inbox/sidebar/playbook/_SESSAO-FRIA.md"
-    ],
+    "added": [],
     "modified": [
-      "cowork-inbox/patrimonio/playbook/00-INDICE.md",
-      "oimpresso.com.html",
-      "planilhas-page.jsx"
+      "cowork-inbox/fiscal/playbook/00-INDICE.md",
+      "cowork-inbox/jana/playbook/00-INDICE.md",
+      "cowork-inbox/patrimonio/playbook/00-INDICE.md"
     ],
     "deleted": [],
-    "unchanged": 752
+    "unchanged": 762
   }
 }
