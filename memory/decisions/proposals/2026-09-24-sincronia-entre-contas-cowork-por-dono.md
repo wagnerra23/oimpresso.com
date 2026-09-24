@@ -150,3 +150,21 @@ e a outra fica na pasta de quem a fez, ignorada, sem ser apagada.
 
 Prova exigida no PR: `pendentes-cowork.mjs --conta w` com saída idêntica à de hoje (controle), e
 `--conta felipe` listando os pendentes do espelho do [F] contra `state/Felipe/active-bundle.json`.
+
+## 8 · [F] passa a trabalhar só no Code (2026-09-24)
+
+[F], textual: *"Eu vou usar somente o code, não quero ficar indo e vindo."* A decisão de parar de
+usar o Claude Design é dela, e a ADR 0282 já permite: o Code gera e altera o protótipo. O que muda
+é a regra da pasta, e essa parte é governança:
+
+- Hoje `prototipo-ui/cowork/Felipe/` é **cópia de leitura** do projeto `telasFelipe` (ADR 0374).
+  Editar ali à mão aciona o gate `espelho — mexeu depois de verificar` (§5 2026-09-24).
+- Se [F] trabalha só no Code, a pasta deixa de ser cópia e passa a ser **a fonte** das telas dela.
+
+| # | decisão | de quem | opções |
+|---|---|---|---|
+| D4 | onde mora o protótipo de quem trabalha só no Code? | [W] | (a) a pasta `cowork/Felipe/` vira fonte: sai do controle de espelho e o projeto `telasFelipe` fica aposentado · (b) pasta nova fora de `cowork/`, e `cowork/Felipe/` fica congelada como histórico |
+
+Antes de trocar, uma última leitura do `telasFelipe` (já autorizada pelo `/design-login` de [F],
+numa sessão local) traz a versão mais recente para o repo, para nada ficar para trás. Os 17
+arquivos do [W] da §6.1 entram na pasta de [F] no mesmo PR que aplicar a D4, não antes.
