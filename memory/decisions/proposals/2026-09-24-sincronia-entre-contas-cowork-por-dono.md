@@ -106,9 +106,33 @@ Vale para qualquer resposta da §4: as duas máquinas que hoje só enxergam o [W
   projectId e `enviados-cowork.json` por conta (`state/Felipe/enviados-cowork.json`). Para a conta
   `felipe`, o `--plano` só relata: o upload é feito pelo login do [F], porque o DesignSync daqui
   não vê aquela conta.
-- **Mapa de donos** (só se D2 = (a)): um arquivo de dados com `glob → conta dona`
-  (ex.: `manufacturing-*` → `felipe`), lido pelas duas máquinas para saber o que propagar. Sem ele,
-  "quem é dono" viraria heurística por data, que é o que o pedido proíbe.
+- **Quem é dono de cada tela:** ~~um arquivo novo `glob → conta dona`~~. **Correção
+  (2026-09-24, mesma sessão):** esse arquivo seria máquina paralela ([LC-19](../../LICOES_CODE.md)).
+  O dono já existe: `scripts/design/design-lock.mjs`, que declara por tela o `prototype_path` (com
+  a pasta da conta) e o `content_hash` em `governance/design/design-lock.json`. O script está em
+  `main`, mas o arquivo de lock **ainda não foi criado**. Medido em `origin/main` (`--ambiguidade`):
+  **40 de 46** telas que declaram `-page.jsx` têm 2+ candidatos com conteúdo diferente, e a
+  ferramenta escolhe o primeiro da varredura (alfabética, a pasta do [F]). O mapa de donos é
+  **popular esse lock**, não criar outro.
+
+## 6 · Uma pasta ou duas: medido, não opinado
+
+- **Uma pasta não é mais segura.** O import de árvore completa **poda** do espelho da conta tudo o
+  que não veio no pacote (`bundle-transaction.mjs`, `mirrorScope === 'tree'`). Com uma pasta só,
+  um retorno da conta do [F] apagaria os arquivos que só o [W] tem, e vice-versa: hoje são
+  **597** só na do [W] e **186** só na do [F]. Faria falta uma poda por dono, que não existe.
+- **Duas pastas também não resolvem sozinhas.** As 40 telas ambíguas acima já leem a fonte errada
+  em silêncio.
+- **O que dá segurança é o lock por tela**, e ele funciona com duas pastas: cada conta segue
+  importando só para a sua, e o lock diz qual das cópias é a fonte daquela tela.
+
+## 7 · Trocar de tela
+
+Pegar uma tela nova = um PR que muda a linha dela no lock para a pasta de quem vai mexer. Devolver
+= outro PR. Como todo merge já passa por aprovação humana (R10), a autorização é a revisão desse
+PR: tela hoje declarada na pasta do [W] precisa do "ok" dele; esta é a **proposta**, não regra em
+vigor. O lock não impede ninguém de editar a tela no próprio Cowork. Ele decide qual versão vale,
+e a outra fica na pasta de quem a fez, ignorada, sem ser apagada.
 
 Prova exigida no PR: `pendentes-cowork.mjs --conta w` com saída idêntica à de hoje (controle), e
 `--conta felipe` listando os pendentes do espelho do [F] contra `state/Felipe/active-bundle.json`.
