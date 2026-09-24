@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import MercosulPlate from '@/Components/shared/MercosulPlate';
 import VehicleStatusBadge, { type VehicleStatus } from './_components/VehicleStatusBadge';
 import ServiceOrderRichSheet from '../ProducaoOficina/_components/ServiceOrderRichSheet';
 
@@ -395,12 +396,15 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
                                 aria-label="Veículo com OS atrasada"
                               />
                             )}
-                            {v.vehicle_number ?? v.plate}
-                            {v.vehicle_number && v.plate && (
-                              <span className="ml-1 text-xs text-muted-foreground/70 font-normal">
-                                ({v.plate})
-                              </span>
-                            )}
+                            <span className="inline-flex items-center gap-1.5 align-middle">
+                              <MercosulPlate plate={v.plate} size="sm" />
+                              {v.secondary_plate && <MercosulPlate plate={v.secondary_plate} size="sm" />}
+                              {v.vehicle_number && (
+                                <span className="text-xs text-muted-foreground font-normal">
+                                  {v.vehicle_number}
+                                </span>
+                              )}
+                            </span>
                           </td>
                           <td className="px-3 py-2.5 text-xs text-muted-foreground">
                             {v.capacity_m3 != null ? `${Number(v.capacity_m3)}m³` : '—'}

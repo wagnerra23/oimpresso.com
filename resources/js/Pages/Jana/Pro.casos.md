@@ -4,7 +4,7 @@ casos: Jana Pro · paywall/upgrade · /ia/pro
 irmaos: Pro.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-26"
+last_run: "2026-09-23"
 ---
 
 # Casos de uso — /ia/pro (Jana Pro paywall)
@@ -18,6 +18,13 @@ last_run: "2026-08-26"
 > que o Controller entrega e o **isolamento Tier 0**. Estados de CTA, atalhos de teclado, layout
 > 1280px e tokens de cor são **visual-only** (Pest não morde; ficam ⬜ manual/visreg).
 
+> **Revalidação 2026-09-23 — PR #7862 (playbook Jana thread 03), head `5c4f00ea6`.** O diff do
+> `Pro.tsx` troca os 13 `style` inline do card de prova por classes que apontam para os mesmos
+> tokens `--sb-*`. Nenhum UC desta tela fala de cor ou de `style`, e nenhum caminho de
+> comportamento mudou (`voltar`, `activate`, atalhos e props intactos). UC-PRO-07:
+> `tests/jana-pro-voltar.test.tsx` rodou neste head na lane "Jana · histórico de conversas",
+> **4 de 4**. Cor computada antes→depois: 13 de 13 idênticas (corpo do PR). Status inalterados.
+>
 > **Revalidação 2026-08-26 — PR #6298 (DS onda 1), head `b011221e50`.** O diff do `Pro.tsx` só
 > troca constante de cor crua por `var(--sb-*)`; nenhum UC desta tela fala de cor.
 >
