@@ -27,6 +27,12 @@ base_lida: wagnerra23/oimpresso.com@main 1061dbf2e
   (`description`→`subtitle`, `action`→`actions`; o `icon="car"` saiu, pois o canon não tem esse
   slot — igual às migrações do Financeiro). Baseline da dívida 68 → 65.
 
+- **Contrato visual (visual-regression)** — as 4 telas não tinham contrato. Com o pedido [W]
+  de 2026-09-24 (*"Pode fazer sim"*, exigido pela ADR 0411), entraram 4 entradas em
+  `tests/Browser/visreg-screens.json` + 4 `.snap` tirados no runner canônico em modo update
+  filtrado (run 36010104309, `4 passed`). O `VRGB606` do `VisregOficinaBoardSeeder` ganhou id
+  fixo 900201 (rota estável de Show/Edit). Nenhuma outra baseline foi tocada.
+
 ## Provas
 1. `git grep -c MercosulPlate resources/js/Pages/OficinaAuto/Vehicles/*.tsx` → 3 em cada uma das 4 telas.
 2. `Index.tsx` sem `{v.vehicle_number ?? v.plate}` como conteúdo de célula (resta só no
