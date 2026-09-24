@@ -41,7 +41,7 @@
 // Exit: 0 = continua | 2 = bloqueia (stderr vira razão pro Claude)
 
 import { stdin } from 'node:process';
-import { hasValidOptIn } from './block-design-sync-without-optin.mjs';
+import { hasValidOptIn, optInInstrucao } from './block-design-sync-without-optin.mjs';
 
 // ── Nome(s) da skill-alvo ──────────────────────────────────────────────────────
 // A tool `Skill` recebe o nome resolvido em `skill` (ex.: "design-sync" ou, se vier
@@ -71,8 +71,8 @@ function denyMessage(skillName) {
     'A fonte de design canônica é o protótipo Cowork (prototipo-ui/) + Design System em git (SSOT)',
     '+ charter da tela.',
     '',
-    'Se você REALMENTE quer sincronizar de propósito: diga "design-sync" explícito no chat',
-    '(ou OIMPRESSO_DESIGN_SYNC_OK=1, ou crie .design-sync-allow na raiz) e invoque de novo.',
+    ...optInInstrucao(),
+    'Depois invoque de novo.',
     'Uso legítimo previsto = vitrine read-mostly A PARTIR do DS git aprovado; nunca o inverso.',
   ].join('\n');
 }
