@@ -2,6 +2,7 @@
   "resources/js/Components/shared/DataTable.tsx": 1,
   "resources/js/Pages/Auditoria/Index.tsx": 1,
   "resources/js/Pages/Cliente/_show/SalesTab.tsx": 1,
+  "resources/js/Pages/Documentacao/Index.tsx": 1,
   "resources/js/Pages/Essentials/Knowledge/Index.tsx": 1,
   "resources/js/Pages/Essentials/Knowledge/Show.tsx": 1,
   "resources/js/Pages/Essentials/Todo/Index.tsx": 1,
