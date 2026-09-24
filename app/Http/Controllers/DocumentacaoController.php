@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View as ViewFacade;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 
 /**
@@ -163,7 +165,15 @@ class DocumentacaoController extends Controller
         return implode(', ', $rotulos) . ' e ' . $ultimo;
     }
 
-    public function index(Request $request): View
+    /**
+     * Capa — Inertia desde a US-DOC-001 (onda 2b). Mesmas fontes da Blade: o Guia lido do
+     * disco a cada acesso, convertido em HTML AQUI (o cliente não roda parser de markdown) e o
+     * rail derivado do frontmatter. Só a camada de render mudou.
+     *
+     * `escopo` substitui o `View::share` pra esta tela: Inertia não enxerga variável
+     * compartilhada de Blade. As outras rotas ainda são Blade e seguem lendo o share.
+     */
+    public function index(Request $request): InertiaResponse
     {
         $caminho = base_path(self::FONTE);
 
@@ -176,14 +186,16 @@ class DocumentacaoController extends Controller
 
         [$html, $sumario] = $this->comSumario($this->paraHtml($markdown));
 
-        return view('documentacao.index', [
+        return Inertia::render('Documentacao/Index', [
             'html' => $html,
             'sumario' => $sumario,
             'fonte' => self::FONTE,
+            'blob' => self::BLOB . self::FONTE,
             'atualizadoEm' => $this->dataDoFrontmatter($markdown),
             'buscaDisponivel' => $this->corpusDisponivel(),
             'nav' => $this->navegacao($this->lenteAtiva($request)),
             'atual' => null,   // a capa não é item do rail; é a rota raiz
+            'escopo' => ['tipos' => self::TIPOS_DOC, 'prosa' => self::escopoEmProsa()],
         ]);
     }
 

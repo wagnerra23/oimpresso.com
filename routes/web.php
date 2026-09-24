@@ -1166,14 +1166,8 @@ Route::middleware(['auth'])->group(function () {
         [\App\Http\Controllers\UserPreferencesController::class, 'updateSidebarCollapsed']
     )->name('user.preferences.sidebar');
 
-    // Documentação do sistema — renderiza memory/GUIA-DO-SISTEMA.md em runtime.
-    // Só `auth`: é leitura pura, não depende de business_id nem de SetSessionData.
-    // NÃO usa /docs de propósito: aquele caminho já é servido por arquivo estático
-    // no servidor, que tem precedência sobre rota do Laravel — a rota nunca seria
-    // alcançada e o usuário veria a página velha.
-    Route::get('/documentacao',
-        [\App\Http\Controllers\DocumentacaoController::class, 'index']
-    )->name('documentacao');
+    // Documentação do sistema: a capa (/documentacao) migrou pra Inertia e mora no grupo de
+    // stack completo logo abaixo deste. As rotas daqui ainda são Blade (US-DOC-001, em ondas).
 
     // Busca no acervo — usa o FULLTEXT que JÁ existe em `mcp_memory_documents`
     // (índice `mcp_md_fulltext_idx`), a tabela sincronizada do git por webhook.
@@ -1214,6 +1208,24 @@ Route::middleware(['auth'])->group(function () {
         [\App\Http\Controllers\DocumentacaoController::class, 'documento']
     )->where('slug', '[A-Za-z0-9._:/-]+')->name('documentacao.documento');
 });
+
+// Documentação do sistema — capa em Inertia (US-DOC-001, onda 2b). Renderiza
+// memory/GUIA-DO-SISTEMA.md em runtime.
+//
+// Stack COMPLETO, não mais `auth`-only: o AppShellV2 lê o menu e o cockpit de shared props
+// que vêm da SESSÃO (SetSessionData + AdminSidebarMenu), precedente da rota /modulos logo
+// abaixo. Consequência aceita por [W] em 2026-08-06 (AR-DOC-050): quem não tem business em
+// sessão deixa de ler a documentação. Até 2026-09-24 este comentário dizia "só `auth`, leitura
+// pura, não depende de business_id" — verdade para a Blade, falsa a partir daqui.
+//
+// NÃO usa /docs de propósito: aquele caminho já é servido por arquivo estático no servidor,
+// que tem precedência sobre rota do Laravel — a rota nunca seria alcançada.
+Route::middleware(['web', 'setData', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->group(function () {
+        Route::get('/documentacao',
+            [\App\Http\Controllers\DocumentacaoController::class, 'index']
+        )->name('documentacao');
+    });
 
 // Gerenciador de Módulos — substituto React do /manage-modules (AdminLTE quebrado).
 // Precisa de SetSessionData p/ ter business_id + is_admin na sessão, e

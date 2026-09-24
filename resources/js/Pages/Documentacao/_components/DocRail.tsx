@@ -10,17 +10,22 @@ import type { Navegacao } from './tipos';
  * buraco (AR-DOC-012). Nunca recalcular aqui a partir de `nav_order`.
  *
  * `atual` null = a capa (ou o Programa): nenhum item vem ativo (AR-DOC-007 · AR-DOC-066).
+ *
+ * Sem corpus a busca NÃO é oferecida (AR-DOC-006): uma caixa que só devolve "indisponível"
+ * é convite a erro. A Blade mostrava a caixa sempre — aqui ela segue o contrato.
  */
 export default function DocRail({
   nav,
   atual,
   termo = '',
   escopoProsa,
+  buscaDisponivel = true,
 }: {
   nav: Navegacao;
   atual: string | null;
   termo?: string;
   escopoProsa: string;
+  buscaDisponivel?: boolean;
 }) {
   const [q, setQ] = useState(termo);
 
@@ -31,6 +36,7 @@ export default function DocRail({
 
   return (
     <aside className="doc-rail" aria-label="Documentos">
+      {buscaDisponivel && (
       <form role="search" onSubmit={buscar}>
         <input
           type="search"
@@ -42,6 +48,7 @@ export default function DocRail({
           aria-label={`Buscar em ${escopoProsa}`}
         />
       </form>
+      )}
 
       <div className="doc-nav">
         <Link as="button" href="/documentacao" className={atual === null ? 'on' : undefined}
