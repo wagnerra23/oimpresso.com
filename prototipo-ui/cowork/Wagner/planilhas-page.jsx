@@ -202,7 +202,7 @@ function Editor({ sheet, onVoltar, fala }) {
       <div className="pl-grid-wrap">
         <table className="pl-grid">
           <thead>
-            <tr><th className="pl-gc" /> {COLS.map((c) => <th key={c} style={{ width: LARG[c] || 92 }} className={sel[0] === c ? "on" : ""}>{c}</th>)}</tr>
+            <tr><th className="pl-gc" />{COLS.map((c) => <th key={c} style={{ width: LARG[c] || 92 }} className={sel[0] === c ? "on" : ""}>{c}</th>)}</tr>
           </thead>
           <tbody>
             {Array.from({ length: linhas }, (_, i) => i + 1).map((r) => (
