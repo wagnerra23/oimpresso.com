@@ -300,6 +300,36 @@ class Util
     }
 
     /**
+     * Data+hora vinda de formulario. Aceita ISO — o que o <input type="datetime-local">
+     * das telas Inertia produz ('Y-m-d H:i', 'Y-m-d\TH:i', com ou sem segundos) — e,
+     * fora disso, cai no uf_date() com o formato da empresa (o que a Blade legada manda).
+     *
+     * Por que existe: Purchase/Create.tsx e Edit.tsx mandam ISO, e o store/update passava
+     * direto pelo uf_date() -> Carbon "Trailing data" em toda empresa com date_format
+     * diferente de Y-m-d. Medido em prod biz=1 em 2026-09-24 (smoke da grade, thread 05
+     * do playbook Compras). Nao mexe em valor nem em estoque.
+     *
+     * Devolve no formato 'Y-m-d H:i:s'.
+     *
+     * @param  string  $date
+     * @return string|null
+     */
+    public function uf_datetime_input($date)
+    {
+        $date = trim((string) $date);
+        if (preg_match('/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?$/', $date) === 1) {
+            return \Carbon::parse(str_replace('T', ' ', $date))->format('Y-m-d H:i:s');
+        }
+
+        // O docblock legado do uf_date() diz "@return strin" (typo); tipa aqui pra o
+        // PHPStan nao propagar a classe inexistente.
+        /** @var string|null $convertida */
+        $convertida = $this->uf_date($date, true);
+
+        return $convertida;
+    }
+
+    /**
      * Converts time in business format to mysql format
      *
      * @param  string  $time

@@ -544,7 +544,7 @@ class PurchaseController extends Controller
             $transaction_data['created_by'] = $user_id;
             $transaction_data['type'] = 'purchase';
             $transaction_data['payment_status'] = 'due';
-            $transaction_data['transaction_date'] = $this->productUtil->uf_date($transaction_data['transaction_date'], true);
+            $transaction_data['transaction_date'] = $this->productUtil->uf_datetime_input($transaction_data['transaction_date']);
 
             //upload document
             $transaction_data['document'] = $this->transactionUtil->uploadFile($request, 'document', 'documents');
@@ -1093,7 +1093,7 @@ class PurchaseController extends Controller
             //Reverse exchage rate and save
             //$update_data['exchange_rate'] = number_format(1 / $update_data['exchange_rate'], 2);
 
-            $update_data['transaction_date'] = $this->productUtil->uf_date($update_data['transaction_date'], true);
+            $update_data['transaction_date'] = $this->productUtil->uf_datetime_input($update_data['transaction_date']);
 
             //unformat input values
             $update_data['total_before_tax'] = $this->productUtil->num_uf($update_data['total_before_tax'], $currency_details) * $exchange_rate;

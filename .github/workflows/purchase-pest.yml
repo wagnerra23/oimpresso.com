@@ -42,6 +42,7 @@ on:
       # que carrega os DOIS escopos de business da lista. Sem este gatilho, mexer nele não
       # dispararia o teste dele — gate mudo com cara de cobertura.
       - 'app/Utils/TransactionUtil.php'
+      - 'app/Utils/Util.php'
       # `permitted_locations()` mora aqui e é o mecanismo do UC-PURIDX-03.
       - 'app/User.php'
       - 'resources/js/Pages/Purchase/**'
@@ -84,6 +85,7 @@ jobs:
               - 'tests/Feature/Purchase/**'
               - 'app/Http/Controllers/PurchaseController.php'
               - 'app/Utils/TransactionUtil.php'
+              - 'app/Utils/Util.php'
               - 'app/User.php'
               - 'resources/js/Pages/Purchase/**'
               - 'database/schema/mysql-schema.sql'
@@ -192,7 +194,8 @@ jobs:
             tests/Feature/Purchase/Wave2CreateBaselineTest.php \
             tests/Feature/Purchase/Wave2CreateInertiaTest.php \
             tests/Feature/Purchase/IndexPageTest.php \
-            tests/Feature/Purchase/ShowPageTest.php
+            tests/Feature/Purchase/ShowPageTest.php \
+            tests/Feature/Purchase/PurchaseDataIsoTest.php
 
       # A lane emite JUnit e o sumário conta `assertions` por arquivo — o corpus do LC-13.
       # Aqui só REPORTA (if: always()).
