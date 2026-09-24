@@ -92,4 +92,6 @@ ls "prototipo-ui/cowork/Wagner/cowork-inbox/$MOD/playbook/$NN"-*.md
 
 **O recibo é o `_saida-NN.md`** — sem ele a thread **não** conta como entregue, mesmo com o PR mergeado. Isso não é burocracia: é a Lei 2 por construção, e o placar a aplica sem pedir licença.
 
+**O retorno sobe ao Cowork na mesma sessão** ([W] 2026-09-24). Escrito o `_saida` (e qualquer outra mudança sua em `cowork-inbox/`), rode `node scripts/design-sync/pendentes-cowork.mjs --plano` e suba os `writes` pelo DesignSync (`finalize_plan` + `write_files` com `localPath`), depois `--registrar-envio <os mesmos paths>` e commite o `scripts/design-sync/state/enviados-cowork.json`. O hook libera esse canal sem opt-in; tela ou CSS fora de `cowork-inbox/` aparecem em `fora_do_canal` e **não** sobem sem o [W]. Sem esse passo, o próximo retorno do Cowork chega sem o seu trabalho e o import o recusa.
+
 > **`--thread NN` recorta o RELATO, não a avaliação.** O placar avalia o índice inteiro e só então filtra — o estado de uma thread depende das dependências dela, e recortar antes faria `feito` mentir.
