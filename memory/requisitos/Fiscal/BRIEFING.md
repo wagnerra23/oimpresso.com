@@ -3,8 +3,8 @@ id: requisitos-fiscal-briefing
 module: Fiscal
 status: parcial
 updated_at: "2026-09-15"
-distilled_at: "2026-09-15"
-distilled_by: jana:distill-module-truth
+distilled_at: "2026-09-24"
+distilled_by: "manual [C] — redestilação PARCIAL (2026-09-24): o único evento no código do módulo desde a destilação de 2026-09-15 (`jana:distill-module-truth`) é o PR #7873, que só corrige o docblock do `NotasUnifiedService` (nome do trait de escopo da NFS-e + aviso de que os escopos só filtram com sessão) — sem mudança de comportamento, e o corpo deste BRIEFING não cita esse docblock. O corpo NÃO foi re-lido e segue o retrato de 2026-09-15. Gatilho: distiller_freshness do sdd-scorecard acusou a porta >7d atrás do código."
 ---
 
 # BRIEFING — Fiscal (verdade destilada)

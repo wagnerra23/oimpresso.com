@@ -41,20 +41,118 @@ class CmsPageController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Lista do conteúdo do site (Inertia `Admin/Content/Index`).
      *
-     * @return Response
+     * @return \Inertia\Response
      */
     public function index(Request $request)
     {
-        $post_type = $request->get('type', 'page');
+        // Thread Cms/01 — a lista sai do Blade (cms::page.index) e vira Inertia.
+        // create/edit seguem Blade nesta fase (RUNBOOK-admin-content.md §Fases).
+        // Tipo fora do domínio cai em `page`: a tela nunca mostra enum cru (A1 do F1).
+        $tipo = in_array($request->get('type'), self::TIPOS, true) ? $request->get('type') : 'page';
 
-        $pages = CmsPage::where('type', $post_type)
-                    ->orderBy('priority', 'asc')
-                    ->get();
+        $contagens = CmsPage::whereIn('type', self::TIPOS)
+            ->selectRaw('type, COUNT(*) as total')
+            ->groupBy('type')
+            ->pluck('total', 'type');
 
-        return view('cms::page.index')
-            ->with(compact('pages', 'post_type'));
+        return Inertia::render('Admin/Content/Index', [
+            'tipo' => $tipo,
+            'contagens' => collect(self::TIPOS)->mapWithKeys(fn ($t) => [$t => (int) ($contagens[$t] ?? 0)]),
+            'paginas' => Inertia::defer(fn () => $this->buildListaPayload($tipo)),
+            // Fase 2 — o drawer de edição pede este prop por partial reload (?editar=id).
+            // `optional`: nunca calculado na carga inicial, só quando a tela o solicita.
+            'editando' => Inertia::optional(fn () => $this->buildEditorPayload((int) $request->get('editar'), $tipo)),
+        ]);
+    }
+
+    /** O que o drawer precisa pra editar uma linha. `layout` decide rótulos e blocos (R4/R5). */
+    private function buildEditorPayload(int $id, string $tipo): ?array
+    {
+        $p = CmsPage::where('type', $tipo)->find($id);
+
+        return $p === null ? null : [
+            'id' => $p->id,
+            'titulo' => $p->title,
+            'conteudo' => (string) $p->content,
+            'meta_description' => (string) $p->meta_description,
+            'tags' => (string) $p->tags,
+            'prioridade' => $p->priority,
+            'publicada' => (bool) $p->is_enabled,
+            'layout' => $p->layout,
+            'imagem_url' => $p->feature_image_url,
+            // Fase 2b — só a home tem destaques (R4); é o que o FeatureGrid da `/` mostra.
+            'destaques' => $p->layout === 'home' ? $this->buildDestaquesPayload($p->id) : null,
+        ];
+    }
+
+    /** Registro `feature` da home, no formato que `CmsPageMeta::updateOrCreateMetaForPage` grava. */
+    private function buildDestaquesPayload(int $pageId): array
+    {
+        $meta = CmsPageMeta::where('cms_page_id', $pageId)->where('meta_key', 'feature')->first();
+        $j = $meta ? (json_decode((string) $meta->meta_value, true) ?: []) : [];
+
+        return [
+            'id' => $meta?->id,
+            'title' => (string) ($j['title'] ?? ''),
+            'description' => (string) ($j['description'] ?? ''),
+            'content' => collect($j['content'] ?? [])
+                ->map(fn ($c) => [
+                    'icon' => (string) ($c['icon'] ?? ''),
+                    'title' => (string) ($c['title'] ?? ''),
+                    'description' => (string) ($c['description'] ?? ''),
+                ])
+                ->values()
+                ->all(),
+        ];
+    }
+
+    /**
+     * R7 — `meta_description` vazia recebe os 160 primeiros caracteres do conteúdo em texto
+     * puro. Vivia no JS da Blade (e lia um campo que a Blade nem tinha); agora é do servidor.
+     */
+    private function derivarMeta(?string $meta, ?string $conteudo): ?string
+    {
+        if (trim((string) $meta) !== '') {
+            return $meta;
+        }
+
+        // strip_tags tira a TAG mas deixa o corpo de <script>/<style> — isso não vai pra busca.
+        $semCodigo = preg_replace('#<(script|style)\b[^>]*>.*?</\1>#is', '', (string) $conteudo);
+        $texto = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags((string) $semCodigo), ENT_QUOTES, 'UTF-8')));
+
+        return $texto === '' ? null : mb_substr($texto, 0, 160);
+    }
+
+    /** Domínio real de `cms_pages.type` — nav.blade.php + CmsController (pedido [CC] §3.b). */
+    private const TIPOS = ['page', 'blog', 'testimonial'];
+
+    /**
+     * Linhas da lista. `priority` asc com vazio no fim (R6) — o `orderBy` cru do Blade
+     * punha NULL primeiro no MySQL.
+     */
+    private function buildListaPayload(string $tipo): array
+    {
+        return CmsPage::where('type', $tipo)
+            ->orderByRaw('priority IS NULL, priority ASC')
+            ->get()
+            ->map(fn (CmsPage $p) => [
+                'id' => $p->id,
+                'titulo' => $p->title,
+                'prioridade' => $p->priority,
+                'publicada' => (bool) $p->is_enabled,
+                // R3: layout preenchido = página de sistema, sem excluir.
+                'sistema' => ! empty($p->layout),
+                'sem_descricao' => trim((string) $p->meta_description) === '',
+                'criada_em' => optional($p->created_at)->toIso8601String(),
+                'endereco' => match ($tipo) {
+                    'page' => '/c/page/'.$p->slug,
+                    'blog' => '/c/blog/'.$p->slug.'-'.$p->id,
+                    default => null,
+                },
+            ])
+            ->all();
     }
 
     /**
@@ -89,6 +187,8 @@ class CmsPageController extends Controller
             $input = $request->only(['title', 'content', 'meta_description',
                 'tags', 'priority', 'type',
             ]);
+
+            $input['meta_description'] = $this->derivarMeta($input['meta_description'] ?? null, $input['content'] ?? null);
 
             $input['created_by'] = $request->session()->get('user.id');
 
@@ -238,6 +338,14 @@ class CmsPageController extends Controller
 
             $page = CmsPage::findOrFail($id);
 
+            // R7 — derivada do conteúdo final (o enviado, ou o gravado se não veio). Se a
+            // requisição NÃO trouxe o campo (a Blade de edição não tem), vale a meta gravada:
+            // `only()` omite chave ausente, e derivar por cima apagaria meta digitada antes.
+            $input['meta_description'] = $this->derivarMeta(
+                array_key_exists('meta_description', $input) ? $input['meta_description'] : $page->meta_description,
+                $input['content'] ?? $page->content,
+            );
+
             if ($request->hasFile('feature_image')) {
                 $input['feature_image'] = $this->commonUtil->uploadFile($request, 'feature_image', 'cms', 'image');
                 //delete previous feature image from storage
@@ -290,8 +398,10 @@ class CmsPageController extends Controller
     /**
      * Remove the specified resource from storage.
      *
+     * Só responde a ajax: JSON de sucesso/erro, ou 422 quando a página é de sistema (R3).
+     *
      * @param  int  $id
-     * @return Response
+     * @return \Illuminate\Http\JsonResponse|array<string, mixed>|mixed
      */
     public function destroy($id)
     {
@@ -307,6 +417,17 @@ class CmsPageController extends Controller
 
                 $page = CmsPage::where('type', $post_type)
                         ->findOrFail($id);
+
+                // R3 / UC-CMS-09 — página de sistema (layout home/contact) não se exclui. A tela
+                // já esconde o botão; a recusa mora AQUI porque a rota aceita qualquer chamador.
+                if (! empty($page->layout)) {
+                    Log::warning('cms.page.delete_recusado', ['page_id' => (int) $page->id, 'layout' => $page->layout]);
+
+                    return response()->json([
+                        'success' => false,
+                        'msg' => 'Página de sistema não pode ser excluída.',
+                    ], 422);
+                }
 
                 // D9.a OTel — instrumenta delete (operação destrutiva crítica).
                 OtelHelper::spanBiz('cms.page.delete', function () use ($page) {
@@ -337,7 +458,8 @@ class CmsPageController extends Controller
             ));
 
                 $output = ['success' => false,
-                    'msg' => '__("messages.something_went_wrong")',
+                    // Antes era a string literal '__("messages.something_went_wrong")' — ia crua pra tela.
+                    'msg' => __('messages.something_went_wrong'),
                 ];
             }
 

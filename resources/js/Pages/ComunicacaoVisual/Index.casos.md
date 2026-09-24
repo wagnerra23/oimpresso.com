@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a fórmula do m² e o isolamento por business são o que não pode mudar — a tela vai ganhar OS, materiais e apontamento por cima disso, e nenhum deles pode afrouxar o cálculo nem o escopo.
 owner: wagner
-last_run: "2026-07-28"
+last_run: "2026-09-23"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane Pest ComunicacaoVisual"
 ---
 
@@ -58,7 +58,7 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CV-04 | Material de outro business não precifica nada | must `[T0]` | `CU-CV-03` item 4 · `CU-CV-04` | `OrcamentoCalculatorTest` · `MaterialSeederTest` | 🧪 ⏭ PR-skip |
 | UC-CV-05 | Orçamento, OS e apontamento de outro business não aparecem | must `[T0]` | `CU-CV-04` itens 1-5 | `MultiTenantTest` · `Tier0GuardTest` · `OrcamentoControllerTest` | 🧪 ⏭ PR-skip |
 | UC-CV-06 | Um operador nunca tem dois spools abertos; drift vem do servidor | must | `CU-CV-06` itens 2-6 | `ApontamentoTrackerTest` · `ApontamentoControllerTest` | 🧪 ⏭ PR-skip |
-| UC-CV-07 | A calculadora recebe o catálogo do business | must | `CU-CV-09` itens 1-3 | `ContratoTelaOrcamentoTest` | 🧪 **vermelho esperado** ⏭ PR-skip |
+| UC-CV-07 | A calculadora recebe o catálogo do business | must | `CU-CV-09` itens 1-3 | `ContratoTelaOrcamentoTest` | 🧪 verde no CT 100 (2026-09-23) ⏭ PR-skip |
 | UC-CV-08 | O rastro de auditoria não carrega PII | must `[reg]` | `CU-CV-08` itens 1-5 | `AuditTrailIntegrityTest` · `LgpdComplianceTest` | 🧪 |
 | UC-CV-09 | O substrato nasce com os campos fiscais do CNAE 1813 | should | `CU-CV-10` item 1 | `ContratoTelaOrcamentoTest` | 🧪 |
 | UC-CV-10 | O hub abre pra quem tem permissão e renderiza a calculadora | must | `CU-CV-01` itens 1-2 | `ContratoTelaOrcamentoTest` | 🧪 ⏭ PR-skip |
@@ -227,8 +227,11 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 - ⚠️ **Duas correções são válidas** — passar a prop na closure da rota **ou** a tela buscar o
   catálogo por fetch. Por isso o assert é **comportamental** (o nome do material chega ao payload),
   não acoplado ao nome da prop: assert por chave literal reprovaria arbitrariamente uma das duas.
-- **Status: 🧪 vermelho esperado ⏭ PR-skip** — **predição**, não veredito: nenhum teste rodou neste
-  PR. Se a lane noturna confirmar o vermelho, a correção é decisão de [W] (entra agora ou vira US).
+- **Status: 🧪 verde no CT 100 ⏭ PR-skip** — medido em 2026-09-23 no PR que passou o catálogo na
+  rota: `3 passed (10 assertions)` num worktree isolado no `oimpresso-staging` (MySQL real), e o
+  mutante (rota de volta à versão do `main`) derruba **só** o caso positivo, com a mensagem do
+  contrato. Não é ✅: a lane do PR roda SQLite e pula; o veredito que conta é o da full-suite noturna.
+  Até 2026-09-23 este caso era **vermelho esperado** (a rota passava só `bizName`).
 
 ---
 
@@ -329,8 +332,8 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 - **Regressão que defende:** seeder não-idempotente é o vetor clássico de duplicar catálogo a cada
   deploy — e catálogo duplicado com preços diferentes é ambiguidade de **valor** entrando pela porta
   dos fundos. O isolamento por business no seeder é o mesmo Tier 0 do UC-CV-04, na hora do onboarding.
-- ⚠️ **O catálogo semeado não chega à tela** hoje (UC-CV-07 / SDD §5.4.1) — este caso prova que ele
-  existe no banco, não que a operadora o vê.
+- ⚠️ Este caso prova que o catálogo **existe no banco**, não que a operadora o vê — quem prova a
+  tela é o UC-CV-07 (até 2026-09-23 a rota não entregava o catálogo; SDD §5.4.1).
 - **Status: 🧪 ⏭ PR-skip** — arquivo pula em SQLite; veredito da full-suite noturna.
 
 ---

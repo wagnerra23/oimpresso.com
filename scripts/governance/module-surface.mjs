@@ -251,6 +251,10 @@ const PAGES_NS = {
   // as proprias telas e o SUPERFICIE.md sai sem elas — o mesmo ponto cego que custou 26 telas
   // ao Whatsapp acima.
   AssetManagement: ['AssetManagement', 'Patrimonio'],
+  // Cms — o painel do conteúdo do site mora em `Modules/Cms/Resources/js/Pages/Admin/**`
+  // (thread Cms/01, 2026-09-23; o endereço é a prova do playbook). Dono único do namespace
+  // `Admin` medido no dia: Cms×1. As telas públicas (`Site/**`) seguem multi-reivindicadas.
+  Cms: ['Cms', 'Admin'],
 };
 
 /** Namespaces de Pages que este módulo reivindica (sempre array; homônimo é o default). */

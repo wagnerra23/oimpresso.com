@@ -5,7 +5,7 @@ title: "Integração PontoWR2 × Essentials (HRM)"
 type: adr
 status: aceito
 authority: reference
-lifecycle: arquivado
+lifecycle: ativo
 decided_at: "2026-04-21"
 decided_by: [E]
 module: pontowr2
@@ -85,3 +85,60 @@ Essentials.EssentialsLeave (aprovado)
 ---
 
 > **Referências:** ADR 0004 (bridge colaborador), ADR 0007 (banco horas ledger), Portaria MTP 671/2021
+
+---
+
+## Emenda 2026-09-05 / 2026-09-24 — a presença web do HRM cede ao Ponto ([W])
+
+> Emenda datada, registrada pela thread 09 do playbook SINCRONIZAR Hrm
+> (`prototipo-ui/cowork/Wagner/cowork-inbox/hrm/playbook/09-presenca-sai.md`). O texto acima
+> fica como estava: ele é o fato de 2026-04-21. O que muda daqui pra frente está aqui.
+
+**D1 (decidida por [W] em 2026-09-05):** o `Modules/Ponto` é o **dono único da jornada**. A
+presença web do Essentials (`essentials_attendances`: botão de entrada/saída no cabeçalho, tela
+`/hrm/attendance`, importação de planilha, API `clock-in`/`clock-out` do Connector) deixa de
+existir como caminho de registro.
+
+Isso contradiz uma consequência da versão de 2026-04-21: *"usuários do Essentials que não precisam
+de ponto REP-P continuam funcionando sem o PontoWR2"* **deixa de valer** para a presença.
+
+**D3 (decidida por [W] em 2026-09-05):** licença aprovada bloqueia a marcação e sai da conta de
+ausência. O guard nasce **no Ponto**, e "bloquear" é impedir a criação da marcação, nunca apagar
+depois (`ponto_marcacoes` é append-only, Portaria MTP 671/2021). Fica como pedido ao dono do Ponto;
+não é executado por esta emenda.
+
+**Folha:** passa a ler o Ponto (`ponto_apuracao_dia`, `ponto_banco_horas`), não
+`essentials_attendances`. A execução disso é a D2 (projeto com ADR própria).
+
+**As 5 chaves de presença das Configurações do HRM se aposentam ([W] em 2026-09-24).** São
+`grace_before_checkin`, `grace_after_checkin`, `grace_before_checkout`, `grace_after_checkout` e
+`is_location_required`. Elas **não migram** para uma configuração do Ponto, porque o Ponto já as
+cobre por lei:
+- a tolerância é a do Art. 58 §1º da CLT, 5 minutos por marcação e 10 por dia
+  (`Modules/Ponto/Config/config.php`, bloco `clt`). Uma janela por negócio acima disso seria ilegal;
+- a localização é obrigatória na marcação por celular (REP-P, Portaria 671 Anexo I §10,
+  `StoreMarcacaoRequest`). Não é opção.
+
+### Rotas do HRM → destino no Ponto
+
+| rota do HRM (antes) | agora |
+|---|---|
+| `GET /hrm/attendance` e `/hrm/attendance/{…}` (resource inteiro) | 301 → `/ponto/espelho` |
+| `POST /hrm/import-attendance` | 301 → `/ponto/importacoes` |
+| `POST /hrm/clock-in-clock-out` | 301 → `/ponto` |
+| `POST /hrm/validate-clock-in-clock-out` | 301 → `/ponto` |
+| `GET /hrm/get-attendance-by-shift` | 301 → `/ponto/espelho` |
+| `GET /hrm/get-attendance-by-date` | 301 → `/ponto/espelho` |
+| `GET /hrm/get-attendance-row/{user_id}` | 301 → `/ponto/espelho` |
+| `GET /hrm/user-attendance-summary` | 301 → `/ponto/espelho` |
+| API Connector `GET get-attendance/{user_id}` · `POST clock-in` · `POST clock-out` | 410 JSON, apontando para o Ponto |
+
+Junto, no mesmo PR:
+- desagendado o cron `pos:autoClockOutUser`. Jornada congelada com o cron vivo fecharia marcação que
+  ninguém mais abre;
+- removido o botão de entrada/saída do cabeçalho;
+- removido o ponteiro `essentials_user_model` do config do Ponto, que apontava para uma entidade do
+  lado que cede.
+
+O código do `AttendanceController` e o dado de `essentials_attendances` **não** são apagados aqui:
+migrar esse dado para o Ponto é outro PR, com dupla prova (regra de VALOR em `proibicoes.md`).

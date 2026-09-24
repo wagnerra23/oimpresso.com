@@ -387,11 +387,16 @@ function Feriados() {
   const A = useAmbiente();
   const [fer, setFer] = usePersist("fer", A.dados.fer);
   const [fLocal, setFLocal] = useState("all");
-  const [ordem, setOrdem] = useState({ col:"ini", dir:"asc" });
+  const [fDe, setFDe] = useState("");
+  const [fAte, setFAte] = useState("");
+  const [ordem, setOrdem] = useState({ col:"ini", dir:"desc" });
+  const filtrando = fLocal !== "all" || !!fDe || !!fAte;
+  const limpar = () => { setFLocal("all"); setFDe(""); setFAte(""); };
   const [form, setForm] = useState(null);
   const [aviso, setAviso] = useAviso();
 
   const rows = fer.filter((f) => fLocal === "all" || (fLocal === "todas" ? !f.local : f.local === fLocal))
+    .filter((f) => (!fDe || f.fim >= fDe) && (!fAte || f.ini <= fAte))
     .slice().sort((a, b) => {
       const s = ordem.dir === "asc" ? 1 : -1;
       if (ordem.col === "nome") return a.nome.localeCompare(b.nome, "pt-BR") * s;
@@ -428,9 +433,12 @@ function Feriados() {
           <option value="Matriz">Matriz</option>
           <option value="Filial Norte">Filial Norte</option>
         </select>
+        <input className="hrm-sel" type="date" value={fDe} max={fAte || undefined} onChange={(e) => setFDe(e.target.value)} aria-label="De" title="De"/>
+        <input className="hrm-sel" type="date" value={fAte} min={fDe || undefined} onChange={(e) => setFAte(e.target.value)} aria-label="Até" title="Até"/>
+        {filtrando && <button className="os-btn ghost" onClick={limpar}>Limpar</button>}
         <span className="usr-count">{rows.length} feriados</span>
         <span className="hrm-spacer"></span>
-        <button className="os-btn primary" disabled={!podeGerir} title={podeGerir ? null : "Só o administrador cadastra feriado"} onClick={() => setForm({})}>Novo feriado</button>
+        {podeGerir && <button className="os-btn primary" onClick={() => setForm({})}>Novo feriado</button>}
       </div>
       {rows.length ? <div className="os-table-wrap"><table className="os-table">
         <thead><tr>
@@ -438,7 +446,7 @@ function Feriados() {
           <th scope="col"><button className="mod-sort" onClick={() => ord("ini")}>Início{marca("ini")}</button></th>
           <th scope="col">Fim</th>
           <th scope="col" className="hrm-num"><button className="mod-sort" onClick={() => ord("dias")}>Dias{marca("dias")}</button></th>
-          <th scope="col">Localidade</th><th scope="col">Observação</th><th scope="col"></th>
+          <th scope="col">Localidade</th><th scope="col">Nota</th>{podeGerir && <th scope="col"><span className="sr-only">Ações</span></th>}
         </tr></thead>
         <tbody>{rows.map((f) => (
           <tr key={f.id}>
@@ -448,17 +456,17 @@ function Feriados() {
             <td className="hrm-num">{H.dias(f.ini, f.fim)}</td>
             <td>{f.local ? <Badge tone="accent">{f.local}</Badge> : <span className="hrm-meta">negócio inteiro</span>}</td>
             <td><span className="hrm-meta hrm-clamp">{f.nota || "—"}</span></td>
-            <td style={{ textAlign:"right" }}>
+            {podeGerir && <td style={{ textAlign:"right" }}>
               <span className="hrm-acoes">
-                <button className="os-btn ghost" disabled={!podeGerir} onClick={() => setForm(f)}>Editar</button>
-                <button className="os-btn ghost" disabled={!podeGerir} onClick={() => excluir(f)}>Excluir</button>
+                <button className="os-btn ghost" onClick={() => setForm(f)} aria-label={`Editar ${f.nome}`}>Editar</button>
+                <button className="os-btn ghost" onClick={() => excluir(f)} aria-label={`Excluir ${f.nome}`}>Excluir</button>
               </span>
-            </td>
+            </td>}
           </tr>))}</tbody>
       </table></div>
       : A.primeira
-        ? <Vazio variante="first" titulo="Nenhum feriado cadastrado" desc="Feriado sem localidade vale para o negócio inteiro; com localidade, só a unidade escolhida para. A escala dos turnos usa esta lista." acao={<button className="os-btn primary" disabled={!podeGerir} onClick={() => setForm({})}>Cadastrar o primeiro</button>}/>
-        : <Vazio variante="filtered" titulo="Nenhum feriado nessa localidade" desc="Feriado sem localidade vale para o negócio inteiro." acao={<button className="os-btn ghost" onClick={() => setFLocal("all")}>Ver todos</button>}/>}
+        ? <Vazio variante="first" titulo="Nenhum feriado cadastrado" desc="Feriado sem localidade vale para o negócio inteiro; com localidade, só a unidade escolhida para. A escala dos turnos usa esta lista." acao={podeGerir ? <button className="os-btn primary" onClick={() => setForm({})}>Cadastrar o primeiro</button> : null}/>
+        : <Vazio variante="filtered" titulo="Nenhum feriado nesse filtro" desc="Feriado sem localidade vale para o negócio inteiro." acao={<button className="os-btn ghost" onClick={limpar}>Limpar filtros</button>}/>}
       <p className="hrm-card-sub" style={{ marginTop:10 }}>Criar, editar e excluir é <b>só do administrador</b> — os demais veem a lista filtrada pelas localidades a que têm acesso.</p>
       {form && <F.FormFeriado item={form.id ? form : null} onClose={() => setForm(null)} onSalvar={salvar}/>}
       <Aviso msg={aviso} tone="ok"/>
