@@ -12,9 +12,9 @@ module: Cms
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Cms --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Cms/**` + `resources/js/Pages/Cms/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Cms/**` + `resources/js/Pages/Cms/**` + `resources/js/Pages/Admin/**` (namespaces Inertia `Cms`, `Admin`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Cms` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 144 arquivos em 15 papéis.
+**Total mapeado:** 150 arquivos em 17 papéis.
 
 ## Controllers — 5
 
@@ -64,13 +64,14 @@ module: Cms
 - [api.php](../../../Modules/Cms/Routes/api.php)
 - [web.php](../../../Modules/Cms/Routes/web.php)
 
-## Migrations (schema) — 5
+## Migrations (schema) — 6
 
 - [2022_08_04_143146_create_cms_pages_table.php](../../../Modules/Cms/Database/Migrations/2022_08_04_143146_create_cms_pages_table.php)
 - [2022_09_10_161849_add_layout_column_to_cms_pages_table.php](../../../Modules/Cms/Database/Migrations/2022_09_10_161849_add_layout_column_to_cms_pages_table.php)
 - [2022_09_10_163209_create_cms_site_details_table.php](../../../Modules/Cms/Database/Migrations/2022_09_10_163209_create_cms_site_details_table.php)
 - [2022_09_15_122547_create_cms_page_metas_table.php](../../../Modules/Cms/Database/Migrations/2022_09_15_122547_create_cms_page_metas_table.php)
 - [2022_09_16_130337_create_default_data_for_cms.php](../../../Modules/Cms/Database/Migrations/2022_09_16_130337_create_default_data_for_cms.php)
+- [2026_09_23_180000_cms_home_destaques_troca_seed_pelo_conteudo_do_site.php](../../../Modules/Cms/Database/Migrations/2026_09_23_180000_cms_home_destaques_troca_seed_pelo_conteudo_do_site.php)
 
 ## Seeders — 1
 
@@ -129,23 +130,33 @@ module: Cms
 - [integration.blade.php](../../../Modules/Cms/Resources/views/settings/partials/integration.blade.php)
 - [statistics.blade.php](../../../Modules/Cms/Resources/views/settings/partials/statistics.blade.php)
 
-## Telas (Inertia/React) — 4
+## Telas (Inertia/React) — 5
 
+- [Index.tsx](../../../Modules/Cms/Resources/js/Pages/Admin/Content/Index.tsx)
 - [BlogPost.tsx](../../../Modules/Cms/Resources/js/Pages/Site/BlogPost.tsx)
 - [Blogs.tsx](../../../Modules/Cms/Resources/js/Pages/Site/Blogs.tsx)
 - [Home.tsx](../../../Modules/Cms/Resources/js/Pages/Site/Home.tsx)
 - [Page.tsx](../../../Modules/Cms/Resources/js/Pages/Site/Page.tsx)
 
-## Charters (lei da tela) — 4
+## Componentes / apoio de tela — 1
 
+- [Editor.tsx](../../../Modules/Cms/Resources/js/Pages/Admin/Content/_components/Editor.tsx)
+
+## Charters (lei da tela) — 5
+
+- [Index.charter.md](../../../Modules/Cms/Resources/js/Pages/Admin/Content/Index.charter.md)
 - [BlogPost.charter.md](../../../Modules/Cms/Resources/js/Pages/Site/BlogPost.charter.md)
 - [Blogs.charter.md](../../../Modules/Cms/Resources/js/Pages/Site/Blogs.charter.md)
 - [Home.charter.md](../../../Modules/Cms/Resources/js/Pages/Site/Home.charter.md)
 - [Page.charter.md](../../../Modules/Cms/Resources/js/Pages/Site/Page.charter.md)
 
-## Testes (Pest) — 17
+## Casos (contrato UC) — 1
 
-- 17 em [Modules/Cms/Tests/Feature/](../../../Modules/Cms/Tests/Feature)
+- [Index.casos.md](../../../Modules/Cms/Resources/js/Pages/Admin/Content/Index.casos.md)
+
+## Testes (Pest) — 18
+
+- 18 em [Modules/Cms/Tests/Feature/](../../../Modules/Cms/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 39
