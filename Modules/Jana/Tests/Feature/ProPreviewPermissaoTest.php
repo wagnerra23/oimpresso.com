@@ -100,11 +100,11 @@ beforeEach(function () {
     ]);
 });
 
-it('CONTROLE: o `can()` do dono e TRUE pelo Gate::before — a ability nao e a trava', function () {
-    // Se este assert virar false, o `Gate::before` mudou e TODA permissão do ERP
-    // mudou de significado junto. Sem ele, o 403 do caso 3 poderia vir do
-    // middleware e o teste estaria medindo a trava errada.
-    expect($this->user->can('jana.superadmin'))->toBeTrue();
+it('CONTROLE: o `can()` do dono e FALSE — desde a ADR 0414 a ability E a trava', function () {
+    // Até 2026-09-24 este caso asseria `true`: o `Gate::before` liberava o dono e a
+    // trava real era o `user_type` do controller. A ADR 0414 tirou `jana.superadmin`
+    // do bypass, então agora o middleware `can:jana.superadmin` barra sozinho.
+    expect($this->user->can('jana.superadmin'))->toBeFalse();
     expect($this->user->hasPermissionTo('jana.superadmin'))->toBeFalse();
 })->group('tier0');
 
@@ -119,9 +119,10 @@ it('UC-JPERM-08 · o PREVIEW admin de outro business é 403 pro dono do negócio
     $resp = $this->get(route('jana.admin.jana_pro.preview', ['business_id' => PROPREV_BIZ_ALHEIO]));
 
     $resp->assertStatus(403);
-    // O 403 tem de ser o do CONTROLLER (tenant_violation), não um genérico:
-    // é o que prova que a defesa que mordeu foi a de `user_type`, não outra trava.
-    $resp->assertJsonPath('error', 'tenant_violation');
+    // Desde a ADR 0414 quem morde é o MIDDLEWARE (`can:jana.superadmin`), antes do
+    // controller: o corpo não traz mais o `tenant_violation` do `user_type`, que
+    // segue no controller como segunda defesa (coberta pelo caso do próprio business).
+    expect($resp->json('error'))->not->toBe('tenant_violation');
 })->group('tier0');
 
 it('UC-JPERM-08 · o preview do PRÓPRIO business abre pra quem tem a permissão', function () {

@@ -117,10 +117,13 @@ beforeEach(function () {
     ]);
 });
 
-it('CONTROLE: o dono do negócio PASSA no can(jana.superadmin) — o bypass do Gate::before está ativo', function () {
-    // Se este assert virar false, o `Gate::before` mudou e TODA permissão do ERP
-    // mudou de significado junto. Sem ele, o 403 do caso seguinte seria falso-verde.
-    expect($this->user->can('jana.superadmin'))->toBeTrue();
+it('CONTROLE: o dono do negócio NÃO passa mais no can(jana.superadmin) — ADR 0414', function () {
+    // Até 2026-09-24 este caso asseria `true` (o `Gate::before` liberava o dono em
+    // qualquer ability). A ADR 0414 tirou as permissões de plataforma do bypass; a
+    // prova de que o bypass segue vivo pro RESTO do ERP mora em
+    // tests/Feature/Roles/GateBeforePlataformaTest.php (caso CONTROLE).
+    expect($this->user->hasRole('Admin#'.SUPMETAS_BIZ_CANONICO))->toBeTrue();
+    expect($this->user->can('jana.superadmin'))->toBeFalse();
     expect($this->user->hasPermissionTo('jana.superadmin'))->toBeFalse();
 })->group('tier0');
 
