@@ -98,6 +98,16 @@ describe('PageHeaderTabs — aba ativa fiel ao protótipo (não regride)', () =>
     expect(active.className).toMatch(/\bfont-semibold\b/);
   });
 
+  // D-PH-0923 ([W] 2026-09-23): aba com 36px — `md` do `TabBar` do DS, e o que o
+  // `.cli-moduletopnav-tab` já mede (11 + 13 + 9 + 2). Vale para ativa E inativa.
+  it('altura: 36px — `h-9` numa caixa `inline-flex` (em `<a>` inline o height seria inerte)', () => {
+    const { active, inactive } = renderTabs('unificado');
+    for (const el of [active, inactive!]) {
+      expect(el.className).toMatch(/(^|\s)h-9(\s|$)/);
+      expect(el.className).toMatch(/(^|\s)inline-flex(\s|$)/);
+    }
+  });
+
   // Especificidade (não vacuoso): a aba INATIVA NÃO carrega o accent inline.
   it('aba inativa NÃO tem o underline/pill accent (só a ativa)', () => {
     const { inactive } = renderTabs('unificado');
