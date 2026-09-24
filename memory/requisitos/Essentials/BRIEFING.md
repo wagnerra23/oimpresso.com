@@ -32,7 +32,7 @@ Origem: módulo opcional UltimatePOS v6 — preservado intencionalmente como **s
 | Leave Request (ausências) | ✅ em prod | Workflow pending → approved/rejected, ActivityLog Spatie |
 | Documents + Share | ✅ em prod | Upload + share por usuário |
 | Reminder | ✅ em prod | CRUD calendário pessoal |
-| Attendance (ponto) | 🟡 legacy | Coexiste com Modules/Ponto canônico (Portaria 671/2021) — em Ponto fica trabalho novo |
+| Attendance (ponto) | ⛔ cedida ao Ponto | Desde 2026-09-24 ([ADR 0014](../../decisions/0014-essentials-pontowr2-integracao.md) emenda, D1 [W]): rotas `/hrm/attendance*` viram 301 pro Ponto, botão de entrada/saída do cabeçalho removido, API `clock-in`/`clock-out` do Connector responde 410, cron `pos:autoClockOutUser` desagendado, 5 chaves de presença das Configurações aposentadas. Dado de `essentials_attendances` ainda não migrado (PR próprio) |
 | HRM (allowance/deduction/shift/payroll) | 🟡 legacy | Backlog ADR feature-wish para evolução. O total do contracheque é recalculado no SERVIDOR desde 2026-09-05 (`PayrollTotalCalculator`); antes vinha somado do navegador. Uso real da folha: rode `SELECT business_id, COUNT(*) FROM transactions WHERE type='payroll' GROUP BY business_id` — em 2026-09-05 eram 2 registros, ambos em biz=1 e zerados |
 | Sales Target | 🟡 legacy | Pouco uso; possível candidato a desativar |
 | Holiday | ✅ em prod | Gestão de feriados por business |
