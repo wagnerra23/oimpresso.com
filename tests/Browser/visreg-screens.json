@@ -506,5 +506,13 @@
     "route": "/oficina-auto/veiculos/900201/edit",
     "anchor": "Editar VRGB606",
     "baseline": "it_OficinaAuto_Vehicles_Edit_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "ComunicacaoVisual",
+    "source": "ComunicacaoVisual",
+    "component": "ComunicacaoVisual/Index",
+    "route": "/comunicacao-visual",
+    "anchor": "Calculadora de m²",
+    "baseline": "it_ComunicacaoVisual_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
