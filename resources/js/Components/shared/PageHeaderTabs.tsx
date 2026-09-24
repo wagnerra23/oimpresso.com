@@ -110,8 +110,14 @@ interface Props {
   /**
    * Métrica da aba. `default` é a do protótipo do **Clientes**
    * (`clientes-page.css` `.cli-moduletopnav-tab`), fixada por [W] em 2026-07-14 e travada
-   * por `tests/pageHeaderTabsFidelity.spec.tsx` — **não mexa nela**: são 6 áreas
+   * por `tests/pageHeaderTabsDensity.spec.tsx` — não mexa nela sem decisão [W]: são 6 áreas
    * (Financeiro, Forja, Governança, Jana, Patrimônio, Ponto) penduradas neste componente.
+   *
+   * Em 2026-09-23 [W] decidiu **36px (DS)** para a aba (D-PH-0923, item c — também é o alvo
+   * de toque): as DUAS densidades passaram a `h-9` + `padding 0 14px` + `13px`, que é o `md`
+   * do `TabBar` do DS e o que o `.cli-moduletopnav-tab` já mede. Até então o `default` era
+   * `px-3 py-1.5 text-sm` (~30px) — registro datado, não apagado. Hoje as duas só diferem no
+   * peso da aba INATIVA (400 × 500); esse eixo não entrou na decisão e segue como estava.
    *
    * `compact` existe porque a âncora da **Jana** (`jana-merge.jsx` §`JmTabs`) pede
    * `13px/500` com `padding 0 14px`, contra os `14px/400` + `px-3` do Clientes. Divergência
@@ -130,10 +136,16 @@ interface Props {
   className?: string;
 }
 
-/** Métrica por densidade — o `default` é byte-idêntico ao que existia antes da prop. */
+/**
+ * Caixa da aba: 36px de altura (D-PH-0923, [W] 2026-09-23 — `TabBar` do DS, tamanho `md`).
+ * `inline-flex` é obrigatório: `<a>` é inline e ignora `height`, então `h-9` sozinho seria inerte.
+ */
+const TAB_BOX = 'inline-flex items-center h-9 leading-none';
+
+/** Métrica por densidade (tamanho de fonte, padding e peso da INATIVA). */
 const TAB_DENSITY: Record<'default' | 'compact', { base: string; inactive: string }> = {
-  default: { base: 'px-3 py-1.5 text-sm', inactive: 'text-muted-foreground' },
-  compact: { base: 'px-[14px] py-1.5 text-[13px]', inactive: 'text-muted-foreground font-medium' },
+  default: { base: 'px-[14px] text-[13px]', inactive: 'text-muted-foreground' },
+  compact: { base: 'px-[14px] text-[13px]', inactive: 'text-muted-foreground font-medium' },
 };
 
 export default function PageHeaderTabs({
@@ -252,13 +264,12 @@ export default function PageHeaderTabs({
                   }
                 }}
                 className={cn(
-                  // SAFE-BY-CONSTRUCTION (revisão coordenador 2026-07-10): o `inline-flex` só
-                  // entra quando ESTA tab declara `icon`. `<a>` default é inline; trocar pra
-                  // inline-flex mexe baseline/altura ~1px em TODA tela que usa PageHeaderTabs
-                  // (Clientes/Compras/Sells/Oficina) mesmo sem ícone. Condicional = zero blast
-                  // radius; sem ícone, className byte-idêntica à de origem. Badge também
-                  // exige inline-flex pra centrar o pill numérico verticalmente.
-                  ghost.icon || ghost.badge != null ? 'inline-flex items-center gap-1.5' : '',
+                  // Até 2026-09-23 o `inline-flex` só entrava com `icon`/`badge`, para não mexer
+                  // na altura de toda tela (revisão coordenador 2026-07-10). A decisão D-PH-0923
+                  // (aba 36px) mexe DE PROPÓSITO: agora a caixa é sempre `TAB_BOX`, e o gap só
+                  // entra quando há ícone ou contador a espaçar.
+                  TAB_BOX,
+                  ghost.icon || ghost.badge != null ? 'gap-1.5' : '',
                   // Fiel ao protótipo `.cli-moduletopnav-tab`: slim, RETO (sem border-radius)
                   // e `-mb-px` pra o underline da aba ativa colar/sobrepor a linha da base.
                   TAB_DENSITY[density].base,
