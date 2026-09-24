@@ -7,7 +7,7 @@
 ## Resumo
 - **420** arquivos · **405** números únicos · máx **0415**
 - **ADRs ATIVOS (lifecycle ativo): 375** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 369 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
+- Por status: aceito 370 · superseded 25 · proposto 12 · deprecated 11 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 375 · substituido 25 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -454,7 +454,7 @@ _(nenhuma)_
 | 0409 | aceito | ativo | decision | Zero baseline de tolerância — conformidade absoluta e dívida acordada por toque |
 | 0410 | aceito | ativo | decision | Ratificação do zero baseline no funil de design e validação exclusiva em produçã |
 | 0411 | aceito | ativo | decision | Snapshot de pixel do VRT fica fora do passo 3 da ADR 0409 — referência de regres |
-| 0412 | proposto | ativo | decision | Retorno de canon já mergeado ao projeto Cowork de telas dispensa opt-in (emenda  |
+| 0412 | aceito | ativo | decision | Retorno de canon já mergeado ao projeto Cowork de telas dispensa opt-in (emenda  |
 | 0413 | aceito | ativo | decision | Ponto — fechamento da competência, painel de Conformidade e relatórios legais (D |
 | 0414 | aceito | ativo | decision | Patrimônio: a Auditoria é um deep-link para o Modules/Auditoria, e os formulário |
 | 0415 | proposto | ativo | decision | Gate::before — permissão de plataforma sai do bypass do papel Admin#{empresa} |
