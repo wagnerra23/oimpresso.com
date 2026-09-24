@@ -58,7 +58,7 @@ GPS ≤ 500m · clock-skew ≤ 30s · geofence **sinaliza** (não bloqueia) · N
 ## Guard que falta, e é a lição deste ciclo
 
 O guard da **ADR 0383** lê o fonte **do Service e do Controller PHP**. Ele **não lê o protótipo do Cowork** — e foi por isso que a captura facial sobreviveu **3 semanas** numa tela que [W] ia aprovar.
-**Pedido:** estender a varredura dos termos proibidos (`selfie_base64`, `SELFIE_MIN_BYTES`, `verificarBiometria`, sufixo derivado no `dispositivo_id`) a **`prototipo-ui/cowork/**`**. Dono candidato: o `ds-guard`/`integrity-check`, que já varrem o espelho — **estender o que existe, não criar script novo** (LC-19).
+**Pedido:** estender a varredura dos termos proibidos (`selfie_base64`, `SELFIE_MIN_BYTES`, `verificarBiometria`, sufixo derivado no `dispositivo_id`) a **`prototipo-ui/cowork/Wagner/**`**. Dono candidato: o `ds-guard`/`integrity-check`, que já varrem o espelho — **estender o que existe, não criar script novo** (LC-19).
 **Generalizando:** toda ADR com cláusula *"como se reconhece violação"* precisa de varredura **nos dois lados**. Hoje o protótipo é ponto cego, e ele é o alvo que a produção copia.
 
 ---

@@ -93,24 +93,41 @@ Route::group(
         //      do fim deste arquivo. Medido antes de apagar: 0 hits no ledger
         //      governance/route-hits.json (janela 30d) e o link `/ia/chat` do
         //      próprio hub apontava pra rota inexistente.
-        Route::post('/conversas',                          'ChatController@criarConversa')->name('jana.conversas.store');
+        // ── `can:jana.chat` — CONVERSAR é permissão própria (UC-JPERM-02, [W] 2026-09-23) ──
+        // `jana.access` abre a área (e a tela da conversa, pra LER o histórico próprio);
+        // escrever — criar conversa, mandar mensagem, renomear, aceitar sugestão — exige
+        // `jana.chat`. Declarada no registry desde sempre e aplicada em ZERO rotas até aqui
+        // (medido 2026-09-23). Rollout medido em prod no mesmo dia: o único papel com
+        // `jana.access` já tinha `jana.chat` → ninguém perde acesso no deploy.
+        // Dono de negócio passa pelo `Gate::before` (Admin#{biz}), como no `jana.access`.
+        Route::post('/conversas',                          'ChatController@criarConversa')
+            ->middleware('can:jana.chat')
+            ->name('jana.conversas.store');
         // Atalho GET — link "Nova conversa" da sidebar (UX Wagner 2026-05-08).
         // Cria conversa e redireciona pro /conversas/{id}. Antes era 404.
-        Route::get('/conversas/nova',                      'ChatController@novaConversa')->name('jana.conversas.nova');
+        Route::get('/conversas/nova',                      'ChatController@novaConversa')
+            ->middleware('can:jana.chat')
+            ->name('jana.conversas.nova');
         Route::get('/conversas/{id}',                      'ChatController@show')->name('jana.conversas.show');
         Route::post('/conversas/{id}/mensagens',           'ChatController@send')
-            ->middleware('throttle:60,1')
+            ->middleware(['can:jana.chat', 'throttle:60,1'])
             ->name('jana.conversas.mensagens.store');
         // Streaming SSE — UX token-por-token (versão preferencial pelo frontend)
         // D8.a — throttle 60,1 extra (mais agressivo que group 120,1) porque
         // cada mensagem chama LLM (custo R$ + latência). 1 msg/seg sustained
         // é mais que suficiente pra UX humana e bloqueia abuso de tokens.
         Route::post('/conversas/{id}/mensagens/stream',    'ChatController@sendStream')
-            ->middleware('throttle:60,1')
+            ->middleware(['can:jana.chat', 'throttle:60,1'])
             ->name('jana.conversas.mensagens.stream');
-        Route::patch('/conversas/{id}',                    'ChatController@updateConversa')->name('jana.conversas.update');
-        Route::post('/sugestoes/{id}/escolher',            'ChatController@escolher')->name('jana.sugestoes.escolher');
-        Route::post('/sugestoes/{id}/rejeitar',            'ChatController@rejeitar')->name('jana.sugestoes.rejeitar');
+        Route::patch('/conversas/{id}',                    'ChatController@updateConversa')
+            ->middleware('can:jana.chat')
+            ->name('jana.conversas.update');
+        Route::post('/sugestoes/{id}/escolher',            'ChatController@escolher')
+            ->middleware('can:jana.chat')
+            ->name('jana.sugestoes.escolher');
+        Route::post('/sugestoes/{id}/rejeitar',            'ChatController@rejeitar')
+            ->middleware('can:jana.chat')
+            ->name('jana.sugestoes.rejeitar');
 
         // ---- Dashboard — virou a raiz `/ia` na onda 3; 301 no bloco 1.b -----
         // O route name `jana.dashboard.index` some junto. Consumidor de código
@@ -134,17 +151,27 @@ Route::group(
             'edit'    => 'jana.metas.edit',
             'update'  => 'jana.metas.update',
             'destroy' => 'jana.metas.destroy',
-        ]]);
-        Route::post('/metas/{id}/reapurar',                'MetasController@reapurar')->name('jana.metas.reapurar');
+        ]])
+            // ── `can:jana.metas.manage` — meta é LEITURA sem ela (UC-JPERM-03, [W] 2026-09-23)
+            // Ler (index/show) segue com `jana.access`; o que escreve — e os forms que só
+            // servem pra escrever — exige a permissão `medium`. Mesmo rollout medido do
+            // `jana.chat` acima: ninguém perde acesso no deploy.
+            ->middlewareFor(['create', 'store', 'edit', 'update', 'destroy'], 'can:jana.metas.manage');
+        Route::post('/metas/{id}/reapurar',                'MetasController@reapurar')
+            ->middleware('can:jana.metas.manage')
+            ->name('jana.metas.reapurar');
 
         // ---- Períodos (aninhado em meta) -----------------------------------
-        Route::resource('/metas.periodos',                 'PeriodosController', ['only' => ['store', 'update', 'destroy']]);
+        Route::resource('/metas.periodos',                 'PeriodosController', ['only' => ['store', 'update', 'destroy']])
+            ->middleware('can:jana.metas.manage');
 
         // ---- Fontes (aninhado em meta, permissão restrita) -----------------
         // FontesController migrado pra Modules/KB em Fase 3.7 (drift resolution).
         // URL mantém /copiloto/metas/{id}/fonte.
         Route::get('/metas/{id}/fonte',                    [\Modules\KB\Http\Controllers\FontesController::class, 'show'])->name('jana.fontes.show');
-        Route::patch('/metas/{id}/fonte',                  [\Modules\KB\Http\Controllers\FontesController::class, 'update'])->name('jana.fontes.update');
+        Route::patch('/metas/{id}/fonte',                  [\Modules\KB\Http\Controllers\FontesController::class, 'update'])
+            ->middleware('can:jana.metas.manage')
+            ->name('jana.fontes.update');
 
         // ---- Ações sugeridas do Painel (HITL) -------------------------------
         // Ordem 1 do `Index-visual-comparison.md`: até 2026-08-18 todo CTA da

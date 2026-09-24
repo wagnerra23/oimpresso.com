@@ -253,6 +253,55 @@ Critério de sucesso real: **uma mensagem de teste chegando** e `MAX(messages.cr
 | A5 | Renomear `WHATSMEOW_DAEMON_URL` para o hostname `whatsapp-whatsmeow` (hoje aponta para o legado `whatsapp-baileys`, mesmo IP). Cosmético, mas induz erro em diagnóstico. | backlog |
 | A6 | Atualizar a definição do agente `whatsapp-doctor` (§1): ela ainda descreve Baileys e aponta runbooks de `_archive/`. | backlog |
 
+## 10. Delta de uma 2a investigação do MESMO dia (resgatado de worktree não-commitada)
+
+> Em 2026-09-21, ao inventariar worktrees, apareceu um segundo registro deste incidente —
+> `2026-09-02-whatsapp-incident-canais-biz1-mudos-61d.md`, escrito no mesmo dia e **nunca
+> commitado**. Os fatos centrais batem com os daqui (`whatsmeow` 23×/23×, `provision_pending`
+> 3×/3×, `QR` 4×/4×), então ele NÃO virou arquivo novo — duplicar session log é proibição
+> Tier 0. Abaixo só o que era exclusivo dele, que é justamente o registro dos LIMITES da
+> medição. O original foi descartado com a worktree.
+
+**Dado exclusivo:** 210 eventos `marked_disconnected` entre 2026-06-22 e 2026-07-16 — a
+"mesma era de instabilidade" que torna os dois canais a mesma CLASSE de causa, apesar de
+datas e razões distintas.
+
+## Limite do instrumento: o que o `whatsapp_inbound_canary` verde prova (e o que não prova)
+
+**Prova:** que o caminho público HTTP está de pé — TLS → edge → rota → middleware de auth
+(`?wh=`) → controller → ACK 200 — e que o próprio cron do canário está vivo (camada 5 do
+ADR 0288: detectar que o monitor apodreceu).
+
+**NÃO prova, e é decisivo aqui:**
+
+1. **Não prova que a Meta/daemon entrega alguma coisa** — o canário é quem gera o tráfego que
+   ele mesmo mede.
+2. **Não prova que canal algum está conectado.** Ele é, *por desenho*, um `instanceName`
+   sintético (`oimpresso-webhook-canary`) que **não casa nenhum channel** e cai no ramo
+   `no_channel`. Ou seja: ele exercita o caminho de **rejeição**, nunca o de **ingestão**. Se o
+   casamento de canal quebrasse, o canário continuaria verde.
+3. **A medição que fecha o argumento:** em setembro/2026 o log tem **123 `webhook.received` e
+   123 `no_channel`** — números iguais. **100% do tráfego que chega ao webhook é do próprio
+   canário.** Zero webhook real desde julho.
+
+O canário está correto *sobre o que ele mede*; o erro seria lê-lo como "recebimento vivo".
+Ele também **falhou e alertou** 4× (últimas: 07-29, 08-12, 08-30, 09-02 12:55) — e esses
+alertas também estão com `notificado_em: null`.
+
+## NÃO MEDIDO (e por quê)
+
+- **Estado real das sessões no daemon** (`/session/status`, `/admin/users`): CT 100 inacessível.
+  Não afirmo se as sessões existem, expiraram ou foram deslogadas pelo celular.
+- **Se algum número foi banido pela Meta:** nenhum canal jamais teve `channel_health='banned'`
+  (o `distinct` sobre `channel_health_snapshots` devolve apenas `healthy` e `disconnected`), e
+  nenhum dos 210 eventos tem `ban_detected:true`. Isso é **evidência contra ban**, não prova —
+  o veredito de ban vem do daemon, que não responde.
+- **Causa do outage do CT 100 em si:** fora do escopo desta medição.
+- **Por que `WHATSMEOW_DAEMON_URL` aponta para o hostname `whatsapp-baileys`:** o valor é fato
+  medido; se é reúso deliberado da rota Traefik ou resíduo da era Baileys, **não determinei**.
+  É o passo 4 do plano.
+- **Testes (Pest/PHPStan):** não rodados — só rodam no CT 100, que está fora.
+
 ## 9. Lições
 
 - **"Sem inbound" não é um diagnóstico — é um sintoma com duas causas.** O check 8b é

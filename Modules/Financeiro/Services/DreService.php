@@ -76,12 +76,14 @@ class DreService
             'label'         => 'Receita operacional bruta',
             'kind'          => 'rec',
             'codigo_prefix' => '3.1.01.',
+            'dre_linha'     => 'receita_bruta',
             'tipo'          => 'receita',
             'key'           => 'h_rec_bruta',
         ],
         [
             'type'          => 'i_group',
             'codigo_prefix' => '3.1.01.',
+            'dre_linha'     => 'receita_bruta',
             'tipo'          => 'receita',
             'indent'        => 1,
         ],
@@ -90,6 +92,7 @@ class DreService
             'label'         => '(−) Deduções',
             'kind'          => 'ded',
             'codigo_prefix' => '3.1.02.',
+            'dre_linha'     => 'deducoes',
             'tipo'          => 'receita',
             'sign'          => -1,
             'key'           => 'h_deducoes',
@@ -97,6 +100,7 @@ class DreService
         [
             'type'          => 'i_group',
             'codigo_prefix' => '3.1.02.',
+            'dre_linha'     => 'deducoes',
             'tipo'          => 'receita',
             'sign'          => -1,
             'indent'        => 1,
@@ -112,6 +116,7 @@ class DreService
             'label'         => '(−) Custos diretos',
             'kind'          => 'ded',
             'codigo_prefix' => '4.',
+            'dre_linha'     => 'custos',
             'tipo'          => 'despesa',
             'sign'          => -1,
             'key'           => 'h_custos',
@@ -119,6 +124,7 @@ class DreService
         [
             'type'          => 'i_group',
             'codigo_prefix' => '4.',
+            'dre_linha'     => 'custos',
             'tipo'          => 'despesa',
             'sign'          => -1,
             'indent'        => 1,
@@ -134,6 +140,7 @@ class DreService
             'label'         => '(−) Despesas operacionais',
             'kind'          => 'ded',
             'codigo_prefix' => '5.',
+            'dre_linha'     => 'despesas',
             'tipo'          => 'despesa',
             'sign'          => -1,
             'key'           => 'h_despesas',
@@ -141,6 +148,7 @@ class DreService
         [
             'type'          => 'i_group',
             'codigo_prefix' => '5.',
+            'dre_linha'     => 'despesas',
             'tipo'          => 'despesa',
             'sign'          => -1,
             'indent'        => 1,
@@ -218,6 +226,7 @@ class DreService
                 'fin_planos_conta.codigo AS plano_codigo',
                 'fin_planos_conta.nome AS plano_nome',
                 'fin_planos_conta.tipo AS plano_tipo',
+                'fin_planos_conta.dre_linha AS plano_dre_linha',
                 DB::raw('SUM(fin_titulos.valor_total) AS total'),
             )
             ->groupBy(
@@ -227,6 +236,7 @@ class DreService
                 'fin_planos_conta.codigo',
                 'fin_planos_conta.nome',
                 'fin_planos_conta.tipo',
+                'fin_planos_conta.dre_linha',
             )
             ->get();
 
@@ -347,6 +357,10 @@ class DreService
         }
 
         foreach ($rows as $r) {
+            // De-para explícito conta como mapeado (inclusive `fora`: foi decidido).
+            if (($r->plano_dre_linha ?? null) !== null && $r->plano_dre_linha !== '') {
+                return false;
+            }
             $codigo = (string) ($r->plano_codigo ?? '');
             if ($codigo === '') {
                 continue;
@@ -379,8 +393,8 @@ class DreService
 
             if ($type === 'h') {
                 $sign = (int) ($tpl['sign'] ?? 1);
-                $valAtual = $this->somarPorPrefix($rowsAtual, $tpl['codigo_prefix'], $tpl['tipo']) * $sign;
-                $valPrev = $this->somarPorPrefix($rowsPrev, $tpl['codigo_prefix'], $tpl['tipo']) * $sign;
+                $valAtual = $this->somarPorPrefix($rowsAtual, $tpl['codigo_prefix'], $tpl['tipo'], $tpl['dre_linha']) * $sign;
+                $valPrev = $this->somarPorPrefix($rowsPrev, $tpl['codigo_prefix'], $tpl['tipo'], $tpl['dre_linha']) * $sign;
 
                 $linhas[] = [
                     'type'  => 'h',
@@ -396,7 +410,7 @@ class DreService
             } elseif ($type === 'i_group') {
                 $sign = (int) ($tpl['sign'] ?? 1);
                 $indent = (int) ($tpl['indent'] ?? 1);
-                $items = $this->itemsPorPrefix($rowsAtual, $rowsPrev, $tpl['codigo_prefix'], $tpl['tipo'], $sign);
+                $items = $this->itemsPorPrefix($rowsAtual, $rowsPrev, $tpl['codigo_prefix'], $tpl['tipo'], $sign, $tpl['dre_linha']);
 
                 foreach ($items as $it) {
                     $linhas[] = [
@@ -436,16 +450,11 @@ class DreService
      * plano_tipo = $tipo (receita/despesa). Tratamento de NULL plano_tipo
      * cai pra `tipo` do título (receber/pagar).
      */
-    private function somarPorPrefix(\Illuminate\Support\Collection $rows, string $prefix, string $tipo): float
+    private function somarPorPrefix(\Illuminate\Support\Collection $rows, string $prefix, string $tipo, string $dreLinha): float
     {
         $sum = 0.0;
         foreach ($rows as $r) {
-            $codigo = (string) ($r->plano_codigo ?? '');
-            if ($codigo === '' || ! str_starts_with($codigo, $prefix)) {
-                continue;
-            }
-            // Validação de tipo: plano_tipo (do plano_conta) OU fallback titulo_tipo
-            if (! $this->planoCasaTipo($r, $tipo)) {
+            if (! $this->rowPertenceALinha($r, $prefix, $tipo, $dreLinha)) {
                 continue;
             }
             $sum += (float) $r->total;
@@ -460,19 +469,16 @@ class DreService
      *
      * @return array<int, array{label: string, v: float, prev: float}>
      */
-    private function itemsPorPrefix(\Illuminate\Support\Collection $rowsAtual, \Illuminate\Support\Collection $rowsPrev, string $prefix, string $tipo, int $sign): array
+    private function itemsPorPrefix(\Illuminate\Support\Collection $rowsAtual, \Illuminate\Support\Collection $rowsPrev, string $prefix, string $tipo, int $sign, string $dreLinha): array
     {
         $buckets = [];
 
-        $append = function (\Illuminate\Support\Collection $rows, string $field) use ($prefix, $tipo, $sign, &$buckets): void {
+        $append = function (\Illuminate\Support\Collection $rows, string $field) use ($prefix, $tipo, $sign, $dreLinha, &$buckets): void {
             foreach ($rows as $r) {
+                if (! $this->rowPertenceALinha($r, $prefix, $tipo, $dreLinha)) {
+                    continue;
+                }
                 $codigo = (string) ($r->plano_codigo ?? '');
-                if ($codigo === '' || ! str_starts_with($codigo, $prefix)) {
-                    continue;
-                }
-                if (! $this->planoCasaTipo($r, $tipo)) {
-                    continue;
-                }
                 $label = (string) ($r->plano_nome ?? '(sem categoria)');
                 $key = $codigo.'|'.$label;
                 if (! isset($buckets[$key])) {
@@ -491,6 +497,29 @@ class DreService
         usort($list, fn ($a, $b) => abs($b['v']) <=> abs($a['v']));
 
         return $list;
+    }
+
+    /**
+     * A row entra nesta linha da DRE?
+     *
+     * 1. De-para explícito (`fin_planos_conta.dre_linha`, decisão [W] 2026-09-23):
+     *    quando preenchido, é a ÚNICA regra — a conta cai exatamente na linha
+     *    declarada (`fora` = em nenhuma). Prefixo e tipo não são consultados.
+     * 2. Sem de-para (NULL): regra original — prefixo do código + tipo do plano.
+     */
+    private function rowPertenceALinha(object $r, string $prefix, string $tipo, string $dreLinha): bool
+    {
+        $explicita = $r->plano_dre_linha ?? null;
+        if ($explicita !== null && $explicita !== '') {
+            return $explicita === $dreLinha;
+        }
+
+        $codigo = (string) ($r->plano_codigo ?? '');
+        if ($codigo === '' || ! str_starts_with($codigo, $prefix)) {
+            return false;
+        }
+
+        return $this->planoCasaTipo($r, $tipo);
     }
 
     /**
@@ -590,7 +619,7 @@ class DreService
      */
     private function topCategoriasReceita(\Illuminate\Support\Collection $rowsAtual, float $baseRL): array
     {
-        $items = $this->itemsPorPrefix($rowsAtual, collect(), '3.1.01.', 'receita', 1);
+        $items = $this->itemsPorPrefix($rowsAtual, collect(), '3.1.01.', 'receita', 1, 'receita_bruta');
 
         $top = array_slice($items, 0, 3);
 
@@ -780,6 +809,89 @@ class DreService
     }
 
     /**
+     * Movimento do mês por conta do plano — colunas "Lanç. mês" e "Saldo mês" da tela
+     * Plano de contas (FIN-6b, protótipo `TelaPContas`).
+     *
+     * MESMA BASE do balancete e do DRE: `fin_titulos` por `competencia_mes`, sem cancelados
+     * e sem apagados, mês resolvido por `resolverPeriodo('mes', …)`. Diferenças DELIBERADAS
+     * em relação ao `montarBalancete`, e é por elas que este método existe:
+     *  - CONTA os títulos (Lanç. mês), além de somar;
+     *  - o saldo tem SINAL pelo tipo do título — receber soma, pagar subtrai — como o
+     *    protótipo mostra (receita +, despesa −);
+     *  - a conta pai soma TUDO que está abaixo dela, inclusive título lançado direto nela.
+     *    O balancete só propaga folhas (`aceita_lancamento`) e deixaria esse valor de fora.
+     *  - conta INATIVA também alimenta o total do pai: o dinheiro lançado nela existiu.
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): business_id 1º arg, where explícito.
+     *
+     * @return array{mes: string, mes_label: string, contas: array<int, array{lancamentos: int, saldo: float}>}
+     *         `contas` indexado pelo id da conta; conta sem movimento fica FORA do mapa.
+     */
+    public function movimentoMesPorConta(int $businessId, ?string $anchorMes = null): array
+    {
+        [$inicio, , $label] = $this->resolverPeriodo('mes', $anchorMes);
+        $mes = $inicio->format('Y-m');
+
+        $diretos = DB::table('fin_titulos')
+            ->where('business_id', $businessId)
+            ->whereNull('deleted_at')
+            ->where('status', '!=', 'cancelado')
+            ->where('competencia_mes', $mes)
+            ->whereNotNull('plano_conta_id')
+            ->select(
+                'plano_conta_id',
+                DB::raw('COUNT(*) AS qtd'),
+                DB::raw("SUM(CASE WHEN tipo = 'pagar' THEN -valor_total ELSE valor_total END) AS saldo"),
+            )
+            ->groupBy('plano_conta_id')
+            ->get()
+            ->keyBy('plano_conta_id');
+
+        if ($diretos->isEmpty()) {
+            return ['mes' => $mes, 'mes_label' => $label, 'contas' => []];
+        }
+
+        // Todas as contas do negócio (inclusive inativas): o id → código é o que liga o título
+        // à árvore, e a árvore é o prefixo do código (1 ⊃ 1.1 ⊃ 1.1.01).
+        $contas = DB::table('fin_planos_conta')
+            ->where('business_id', $businessId)
+            ->whereNull('deleted_at')
+            ->select('id', 'codigo')
+            ->get();
+
+        // LISTA de pares, não mapa indexado pelo código: chave de array PHP numérica ("1", "3")
+        // vira INT, e aí `str_starts_with` estoura TypeError sob strict_types e o `===` contra a
+        // string nunca casa. É o defeito que derruba o `montarBalancete` em produção (plano BR
+        // tem as raízes "1".."5"); medido em 2026-09-23 lendo o balancete da empresa 1.
+        $comMovimento = [];
+        foreach ($contas as $c) {
+            $d = $diretos->get($c->id);
+            if ($d !== null) {
+                $comMovimento[] = ['codigo' => (string) $c->codigo, 'qtd' => (int) $d->qtd, 'saldo' => (float) $d->saldo];
+            }
+        }
+
+        $saida = [];
+        foreach ($contas as $c) {
+            $codigo = (string) $c->codigo;
+            $qtd = 0;
+            $saldo = 0.0;
+            foreach ($comMovimento as $mov) {
+                $cod = $mov['codigo'];
+                if ($cod === $codigo || str_starts_with($cod, $codigo.'.')) {
+                    $qtd += $mov['qtd'];
+                    $saldo += $mov['saldo'];
+                }
+            }
+            if ($qtd > 0) {
+                $saida[(int) $c->id] = ['lancamentos' => $qtd, 'saldo' => round($saldo, 2)];
+            }
+        }
+
+        return ['mes' => $mes, 'mes_label' => $label, 'contas' => $saida];
+    }
+
+    /**
      * Balancete de Verificação Gerencial — lista hierárquica do plano de contas
      * com saldo acumulado por código (somando filhos pros pais).
      *
@@ -873,41 +985,33 @@ class DreService
             ->pluck('total', 'plano_conta_id')
             ->toArray();
 
-        // ───────── Mapas auxiliares: code→saldo folha + code→conta ─────────
-        $saldoPorCodigo = []; // 'codigo' => saldo (folhas iniciais)
-        $contaPorCodigo = []; // 'codigo' => stdClass conta
+        // ───────── Saldo de cada conta = o lançado NELA + tudo abaixo dela ─────────
+        // Até 2026-09-23 só as contas marcadas `aceita_lancamento` (folhas) alimentavam os pais,
+        // e o título lançado direto numa conta NÃO-folha sumia do balancete. Medido em produção
+        // na empresa 1: os 108 títulos de setembro estão na 1.2.1, marcada como não-folha, e a
+        // aba mostrava o mês zerado. Aprovado por [W] (regra mestre de valor): o pai soma tudo
+        // abaixo dele, como o Plano de contas (DreService::movimentoMesPorConta) já faz.
+        //
+        // LISTA de pares, não mapa indexado pelo código: chave de array numérica ("1", "3") vira
+        // INT e quebra o str_starts_with sob strict_types (o 500 corrigido no #7831).
+        $diretos = [];
         foreach ($contas as $c) {
-            $contaPorCodigo[$c->codigo] = $c;
-            $saldoFolha = (float) ($somasFolhas[$c->id] ?? 0.0);
-            $saldoPorCodigo[$c->codigo] = round($saldoFolha, 2);
-        }
-
-        // ───────── Agregar pros pais (totalizar nível 1, 2, 3 a partir de 4) ─────────
-        // Estratégia: pra cada conta NÃO-folha, somar saldos das filhas via
-        // prefix string. Ex: nivel=1 codigo='3' soma todas com codigo LIKE '3.%'
-        // mas que sejam folhas (não dupla contagem).
-        // Caminho mais simples: identificar folhas (aceita_lancamento) e propagar
-        // pra ancestrais via string prefix.
-        $folhas = [];
-        foreach ($contas as $c) {
-            if ($c->aceita_lancamento) {
-                $folhas[$c->codigo] = $saldoPorCodigo[$c->codigo];
+            $valor = (float) ($somasFolhas[$c->id] ?? 0.0);
+            if (abs($valor) >= 0.005) {
+                $diretos[] = ['codigo' => (string) $c->codigo, 'valor' => $valor];
             }
         }
 
-        // Pra cada conta NÃO-folha, soma folhas cujo código comece com "{codigo}."
+        $saldoPorId = [];
         foreach ($contas as $c) {
-            if ($c->aceita_lancamento) {
-                continue; // folha já tem saldo direto
-            }
-            $sum = 0.0;
-            $prefix = $c->codigo.'.';
-            foreach ($folhas as $codigoFolha => $valor) {
-                if (str_starts_with($codigoFolha, $prefix)) {
-                    $sum += $valor;
+            $codigo = (string) $c->codigo;
+            $soma = 0.0;
+            foreach ($diretos as $d) {
+                if ($d['codigo'] === $codigo || str_starts_with($d['codigo'], $codigo.'.')) {
+                    $soma += $d['valor'];
                 }
             }
-            $saldoPorCodigo[$c->codigo] = round($sum, 2);
+            $saldoPorId[$c->id] = round($soma, 2);
         }
 
         // ───────── Materializar linhas ─────────
@@ -917,7 +1021,7 @@ class DreService
         $creditoTotal = 0.0;
 
         foreach ($contas as $c) {
-            $saldo = (float) ($saldoPorCodigo[$c->codigo] ?? 0.0);
+            $saldo = (float) ($saldoPorId[$c->id] ?? 0.0);
 
             // Skip: saldo 0 e (se for não-folha) sem filhos com movimentação.
             // Folhas com saldo 0 também pulam pra reduzir ruído.
@@ -943,13 +1047,13 @@ class DreService
                 'is_folha'   => (bool) $c->aceita_lancamento,
             ];
 
-            // Totaliza apenas folhas pra não duplicar (ancestrais agregam folhas)
-            if ($c->aceita_lancamento) {
-                if ($tipoSaldo === 'D') {
-                    $debitoTotal += $saldo;
-                } else {
-                    $creditoTotal += $saldo;
-                }
+            // Totais: cada título entra UMA vez, pela conta onde foi lançado (o valor DIRETO dela),
+            // nunca pelo saldo agregado — senão o pai contaria de novo o que já está nas filhas.
+            $direto = (float) ($somasFolhas[$c->id] ?? 0.0);
+            if ($tipoSaldo === 'D') {
+                $debitoTotal += $direto;
+            } else {
+                $creditoTotal += $direto;
             }
         }
 

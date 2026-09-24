@@ -429,7 +429,7 @@ it('resolve link de documento em subpasta contra a pasta dele, nao contra memory
     expect($inexistentes($errado))->not->toBe([]);
 });
 
-it('o rail e derivado do frontmatter, com ordinal da ordem visivel na lente', function () {
+it('UC-INDEX-03 · o rail e derivado do frontmatter, com ordinal da ordem visivel na lente', function () {
     // O rail não tem lista escrita à mão: sai do `nav_group`/`nav_order`/`lente`. Dois
     // defeitos que este caso existe pra pegar:
     //   1. ordinal saindo de `nav_order` em vez da ordem VISÍVEL — filtrar a lente
@@ -499,27 +499,83 @@ it('documento sem nav_group nao entra no rail', function () {
 });
 
 it('responde 200 e renderiza o conteudo do dono quando autenticado', function () {
-    // `hasTable` ANTES do query: na lane sqlite (:memory:, sem migrate) o
-    // `User::query()` lançava "no such table: users" e derrubava o caso, em vez de
-    // cair no skip que o cabeçalho deste arquivo já promete. Promessa não testada
-    // apodrece calada — e era ela que impedia o arquivo de entrar na lane.
+    // Smoke HTTP de ponta a ponta: login + stack completo de middleware (AR-DOC-050) + Inertia.
+    // `hasTable` ANTES do query: na lane sqlite (:memory:, sem migrate) o `User::query()`
+    // lançaria "no such table" em vez de cair no skip. O contrato da tela NÃO depende deste
+    // caso — quem o sustenta são UC-INDEX-01/02, que chamam o controller e sempre rodam.
     $user = Illuminate\Support\Facades\Schema::hasTable('users')
-        ? User::query()->whereNotNull('email')->first()
+        ? User::query()->whereNotNull('email')->whereNotNull('business_id')->first()
         : null;
 
     if (! $user) {
         $this->markTestSkipped('Sem users no DB — este caso não executou.');
     }
 
-    $r = $this->actingAs($user)->get('/documentacao');
+    $this->actingAs($user)->get('/documentacao')
+        ->assertOk()
+        ->assertInertia(fn (Inertia\Testing\AssertableInertia $page) => $page
+            ->component('Documentacao/Index')
+            ->where('fonte', 'memory/GUIA-DO-SISTEMA.md')
+            ->has('html')
+            ->has('nav.grupos'));
+});
 
-    expect($r->getStatusCode())->toBe(200);
+/** Props de uma resposta Inertia ANTES da serialização (sem renderizar view). */
+function docInertiaProps(Inertia\Response $r): array
+{
+    $ref = new ReflectionClass($r);
+    $props = $ref->getProperty('props');
+    $props->setAccessible(true);
+    $comp = $ref->getProperty('component');
+    $comp->setAccessible(true);
 
-    $html = $r->getContent();
-    expect($html)->toContain('memory/GUIA-DO-SISTEMA.md');   // veio do markdown, não de HTML commitado
-    expect($html)->not->toContain('slug: guia-do-sistema');  // frontmatter não vazou
-    expect($html)->toContain('<h2');                          // markdown virou HTML de verdade
-    expect($html)->toContain('documentacao/buscar');           // a busca está oferecida
+    return ['component' => $comp->getValue($r), 'props' => $props->getValue($r)];
+}
+
+it('UC-INDEX-01 · a capa entrega o Guia convertido NO SERVIDOR, com sumario e rail', function () {
+    // Chama o controller direto: roda em qualquer lane, sem sessão e sem banco. O que se prova
+    // é o contrato da camada de render (AR-DOC-001/003/004/007), não o middleware.
+    $r = (new App\Http\Controllers\DocumentacaoController)
+        ->index(Illuminate\Http\Request::create('/documentacao'));
+    ['component' => $componente, 'props' => $p] = docInertiaProps($r);
+
+    expect($componente)->toBe('Documentacao/Index');
+    expect($p['fonte'])->toBe('memory/GUIA-DO-SISTEMA.md');
+
+    // HTML de verdade, e não o markdown cru: o cliente não roda parser (AR-DOC-003).
+    expect($p['html'])->toContain('<h2');
+    expect($p['html'])->not->toContain('slug: guia-do-sistema');
+    expect(array_key_exists('markdown', $p))->toBeFalse();
+
+    // Sumário derivado dos títulos, na forma que o React consome (AR-DOC-004).
+    expect($p['sumario'])->not->toBeEmpty();
+    expect(array_keys($p['sumario'][0]))->toBe(['id', 'nivel', 'codigo', 'rotulo']);
+
+    // A capa não marca item no rail (AR-DOC-007), e o rail veio derivado.
+    expect($p['atual'])->toBeNull();
+    expect($p['nav']['grupos'])->not->toBeEmpty();
+
+    // O link do git aponta pro arquivo dono em main — a tela não hospeda cópia.
+    expect($p['blob'])->toBe('https://github.com/wagnerra23/oimpresso.com/blob/main/memory/GUIA-DO-SISTEMA.md');
+
+    // Escopo derivado de TIPOS_DOC chega como prop: Inertia não enxerga View::share.
+    $tipos = (new ReflectionClass(App\Http\Controllers\DocumentacaoController::class))->getConstant('TIPOS_DOC');
+    expect($p['escopo']['tipos'])->toBe($tipos);
+});
+
+it('UC-INDEX-02 · Guia ausente no deploy: 503 nomeando o arquivo, nunca pagina vazia', function () {
+    // Só a existência do Guia é falseada; o resto do filesystem segue real.
+    $guia = base_path('memory/GUIA-DO-SISTEMA.md');
+    Illuminate\Support\Facades\File::partialMock()
+        ->shouldReceive('exists')
+        ->andReturnUsing(fn (string $path) => $path === $guia ? false : file_exists($path));
+
+    expect(fn () => (new App\Http\Controllers\DocumentacaoController)
+        ->index(Illuminate\Http\Request::create('/documentacao')))
+        ->toThrow(
+            Symfony\Component\HttpKernel\Exception\HttpException::class,
+            'Documento fonte ausente no deploy: memory/GUIA-DO-SISTEMA.md',
+        );
 });
 
 it('o escopo que a pagina MOSTRA e derivado de TIPOS_DOC — nenhum tipo some calado', function () {

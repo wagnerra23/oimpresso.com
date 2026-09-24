@@ -154,13 +154,38 @@ return [
      */
     'notifications' => [
 
+        // ⚠️ AS DE SUCESSO NÃO TÊM CANAL — e isso é o conserto de um defeito, não zelo.
+        //
+        // O mecanismo, lido no vendor (não inferido): BackupJob.php:357 dispara
+        // `event(new BackupWasSuccessful(...))` DENTRO do `try` de
+        // Commands/BackupCommand.php (try na 56, `return SUCCESS` na 103). O canal
+        // `mail` levanta exceção, o `catch` da 104 a converte e o comando devolve
+        // `FAILURE` na 125. Ou seja: com o SMTP fora do ar, um backup que DEU CERTO
+        // sai com exit 1 — e o alarme noturno passa a ser sobre o e-mail, não sobre o
+        // backup.
+        //
+        // Medido em produção 2026-09-22: o zip do dia estava lá (01:30, 260 MB, com o
+        // MySQL dentro) e mesmo assim o log registrava
+        // `Scheduled command [... backup:run] failed with exit code [1]`. São 694
+        // falhas `535` desde 2026-06-21, TODAS às 01h (233) e 09h (43) — ou seja, só
+        // este caminho e o do `backup:monitor`; nenhuma é de e-mail de usuário.
+        //
+        // Notificar SUCESSO por e-mail não tem destinatário real (ninguém recebe há 3
+        // meses) e custa transformar o veredito do comando numa pergunta sobre SMTP.
+        // As de FALHA seguem em `mail` de propósito: quando a credencial for
+        // corrigida, o alarme volta sozinho, sem tocar neste arquivo.
+        //
+        // ⚠️ Isto NÃO conserta o SMTP. A credencial (`smtpi.kinghost.net`, usuário
+        // `no-reply@wr2.com.br`) é rotação humana — ver memory/_INDEX-SECRETS.md.
+        // Enquanto ela estiver quebrada, uma falha REAL de backup continua sem e-mail;
+        // o que muda é que ela volta a ser distinguível de uma bem-sucedida.
         'notifications' => [
             \Spatie\Backup\Notifications\Notifications\BackupHasFailedNotification::class => ['mail'],
             \Spatie\Backup\Notifications\Notifications\UnhealthyBackupWasFoundNotification::class => ['mail'],
             \Spatie\Backup\Notifications\Notifications\CleanupHasFailedNotification::class => ['mail'],
-            \Spatie\Backup\Notifications\Notifications\BackupWasSuccessfulNotification::class => ['mail'],
-            \Spatie\Backup\Notifications\Notifications\HealthyBackupWasFoundNotification::class => ['mail'],
-            \Spatie\Backup\Notifications\Notifications\CleanupWasSuccessfulNotification::class => ['mail'],
+            \Spatie\Backup\Notifications\Notifications\BackupWasSuccessfulNotification::class => [],
+            \Spatie\Backup\Notifications\Notifications\HealthyBackupWasFoundNotification::class => [],
+            \Spatie\Backup\Notifications\Notifications\CleanupWasSuccessfulNotification::class => [],
         ],
 
         /*

@@ -4,8 +4,8 @@ titulo: SINCRONIZAR Ponto — índice do playbook (fonte da máquina embutida em
 autor: "[CC]"
 criado: 2026-09-06
 base: wagnerra23/oimpresso.com@main (tree e86130722de1 · lida 2026-09-06 01:06–01:09 UTC)
-destino_no_main: prototipo-ui/design-docs/cowork-inbox/ponto/playbook/
-regra: este índice é PEDIDO (lista de threads a executar, com sha), não inventário. Ninguém escreve estado — ele é derivado (§2-bis). Nunca em prototipo-ui/cowork/ (guard R1). A pasta inteira é a unidade de descida.
+destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/ponto/playbook/
+regra: este índice é PEDIDO (lista de threads a executar, com sha), não inventário. Ninguém escreve estado — ele é derivado (§2-bis). Nunca em prototipo-ui/cowork/Wagner/ (guard R1). A pasta inteira é a unidade de descida.
 ---
 
 # SINCRONIZAR Ponto — playbook
@@ -14,7 +14,7 @@ regra: este índice é PEDIDO (lista de threads a executar, com sha), não inven
 > **Ponto é o módulo mais à frente do repo:** 21 rotas web → **21 `Inertia::render`** → 21 Pages com charter **e casos.md 21/21** · 44 testes Feature · lane `ponto-pest.yml`. Aqui SINCRONIZAR é sobretudo **PUXAR** (produção → protótipo) e **fechar rede + 3 telas que não existem** — nunca repintar tela viva.
 
 ## 0 · Landing
-Só `.md` roteia (DesignSync `get_file` → `--export-from <dir>`); fonte da máquina = 1º bloco ```json deste arquivo (§7); schema/script = anexos A8.1/A8.2 de `COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md`. Rodar: `node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/ponto/playbook/00-INDICE.md --root . --proximo`.
+Só `.md` roteia (DesignSync `get_file` → `--export-from <dir>`); fonte da máquina = 1º bloco ```json deste arquivo (§7); schema/script = anexos A8.1/A8.2 de `COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md`. Rodar: `node scripts/qa/placar-indice.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/ponto/playbook/00-INDICE.md --root . --proximo`.
 
 ## 1 · LEVANTAR — 4 denominadores · 4 sinais · 1 sha
 
@@ -52,7 +52,7 @@ Só `.md` roteia (DesignSync `get_file` → `--export-from <dir>`); fonte da má
 | 04 | Fechamento da competência — **BLOQUEADA** | [W] | — | W1–W4 | — |
 | 05 | Conformidade CLT — **BLOQUEADA** | [W] | — | 04 · W1–W4 | — |
 | 06 | REP-P sem selfie: 7 rotas → `MobileMarcacaoController` + app do colaborador + fila | [CL] | `Http/routes.php` (bloco API) · `Api/MobileMarcacaoController.php` · `Pages/Ponto/Mobile/**` · `contrato/ponto-rep-p.contract.json` | W10 | 2 |
-| 07 | Contratos 4/4 → `required` | [CL] | `prototipo-ui/contrato/ponto-{fechamento,rep-p}.contract.json` · gate | 04 · 05 · 06 | 3 |
+| 07 | Contratos 4/4 → `required` | [CL] | `governance/design/contracts/ponto-{fechamento,rep-p}.contract.json` · gate | 04 · 05 · 06 | 3 |
 | 08 | PUXAR Painel + Espelho (as 2 com contrato) → protótipo | [CC] | `prototipo-ui/cowork/Wagner/ponto-page.jsx` | — | 1 |
 | 09 | PUXAR as 11 telas restantes → protótipo | [CC] | `ponto-telas.jsx` · `ponto-data.jsx` · `ponto-ui.jsx` | 10 | 2 |
 | 10 | Build: REP-P do protótipo **sem selfie** (ADR 0383) | [CC] | `ponto-mobile.jsx` · `ponto-data.jsx` (só bloco mobile) · host bump | — | 1 |
@@ -81,12 +81,12 @@ Só `.md` roteia (DesignSync `get_file` → `--export-from <dir>`); fonte da má
 ```
 Sessão fresca. ANTES de abrir: `gh pr list --state open` × arquivos do seu prefixo (whats-active está morto — HTTP 000).
 Leia nesta ordem, do main, nunca de cópia local:
-1. prototipo-ui/design-docs/cowork-inbox/ponte/03-REGRAS-DE-PARALELISMO.md    ← Leis 1–4
-2. prototipo-ui/design-docs/cowork-inbox/ponto/playbook/00-INDICE.md          ← §1 estados · §2 seu prefixo · §7 fonte
-3. prototipo-ui/design-docs/cowork-inbox/ponto/playbook/NN-<sua-thread>.md    ← escopo · alvo · dado · prova
+1. prototipo-ui/cowork/Wagner/cowork-inbox/ponte/03-REGRAS-DE-PARALELISMO.md    ← Leis 1–4
+2. prototipo-ui/cowork/Wagner/cowork-inbox/ponto/playbook/00-INDICE.md          ← §1 estados · §2 seu prefixo · §7 fonte
+3. prototipo-ui/cowork/Wagner/cowork-inbox/ponto/playbook/NN-<sua-thread>.md    ← escopo · alvo · dado · prova
 4. memory/decisions/0383-ponto-interno-nao-coleta-biometria.md               ← lei do REP-P: sem selfie; Art. 5º II + Art. 11 (não Art. 9º)
 5. resources/js/Pages/Ponto/Espelho/Show.tsx + Show.charter.md + Show.casos.md ← a irmã golden do módulo
-6. prototipo-ui/PRE-FLIGHT-TELA.md · memory/proibicoes.md · memory/LICOES_CC.md
+6. memory/reference/prototipo-ui/PRE-FLIGHT-TELA.md · memory/proibicoes.md · memory/LICOES_CC.md
 7. os arquivos da âncora listados na sua thread
 Leis do módulo que não se renegociam: marcação append-only (Portaria MTP 671/2021) · apuração só em ReapurarDiaJob · NSR server-authoritative · artigo literal na copy legal · 501 nunca é sucesso.
 Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Não edita este índice, github.md nem memory/**.
@@ -122,7 +122,7 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
   "modulo": "Ponto",
   "sha": "e86130722de1",
   "gerado": "2026-09-06",
-  "absorve": ["COLAR-NO-CODE-ponto-ondas.md (2026-09-04)", "prototipo-ui/design-docs/cowork-inbox/ponte/COLAR-NO-CODE-ponto.md", "prototipo-ui/design-docs/cowork-inbox/ponte/_pedido-CL-ponto-teste-pratico.md"],
+  "absorve": ["COLAR-NO-CODE-ponto-ondas.md (2026-09-04)", "prototipo-ui/cowork/Wagner/cowork-inbox/ponte/COLAR-NO-CODE-ponto.md", "prototipo-ui/cowork/Wagner/cowork-inbox/ponte/_pedido-CL-ponto-teste-pratico.md"],
   "variaveis": { "PAGES": "resources/js/Pages/Ponto", "COWORK": "prototipo-ui/cowork/Wagner" },
   "decisoes": [
     { "id": "W1", "pergunta": "Estado da competência: tabela ponto_competencias ou derivado das apurações?", "respondida": false, "destrava": ["04", "05"] },
@@ -150,7 +150,7 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
       "provas": [], "nota_provas": "prova = _saida-02.md com o número do casos:report antes/depois (0 UC ⛓ é a meta); zero assertion nova" },
     { "id": "03", "titulo": "a11y: sinal não-cor na divergência + mobile-fit", "dono": "CL", "vaga": 2, "arquivo": "03-a11y-divergencia.md",
       "prefixo": ["${PAGES}/Espelho/Index.tsx", "${PAGES}/Espelho/Show.tsx", "${PAGES}/_components/MonthHeatmap.tsx"],
-      "nao_toca": ["prototipo-ui/contrato/ponto-espelho.contract.json", "Modules/Ponto/"],
+      "nao_toca": ["governance/design/contracts/ponto-espelho.contract.json", "Modules/Ponto/"],
       "depende_threads": ["01"],
       "provas": [ { "tipo": "contem", "path": "${PAGES}/_components/MonthHeatmap.tsx", "padrao": "sr-only", "nota": "hoje 0 ocorrências em Pages/Ponto/** — texto para leitor de tela no dia em DIVERGENCIA" } ] },
     { "id": "04", "titulo": "Fechamento da competência — BLOQUEADA", "dono": "W", "arquivo": "04-fechamento-bloqueada.md",
@@ -162,23 +162,23 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
       "bloqueio": "depende do estado da competência (W1) e da thread 04",
       "provas": [] },
     { "id": "06", "titulo": "REP-P sem selfie: 7 rotas → MobileMarcacaoController + app do colaborador + fila do gestor", "dono": "CL", "vaga": 2, "arquivo": "06-rep-p.md",
-      "prefixo": ["Modules/Ponto/Http/routes.php (só o bloco 2 · /ponto/api)", "Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php", "${PAGES}/Mobile/", "prototipo-ui/contrato/ponto-rep-p.contract.json", "Modules/Ponto/Tests/Feature/Wave28MobileMarcacaoTest.php (estender)"],
+      "prefixo": ["Modules/Ponto/Http/routes.php (só o bloco 2 · /ponto/api)", "Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php", "${PAGES}/Mobile/", "governance/design/contracts/ponto-rep-p.contract.json", "Modules/Ponto/Tests/Feature/Wave28MobileMarcacaoTest.php (estender)"],
       "nao_toca": ["Modules/Ponto/Services/MarcacaoService.php", "Modules/Ponto/Services/NsrService.php", "Modules/Ponto/Database/"],
       "depende_decisoes": ["W10"],
       "provas": [
         { "tipo": "nao_contem", "path": "Modules/Ponto/Http/routes.php", "padrao": "abort(501, 'Implementar em MarcacaoApiController::marcar')", "nota": "a rota /ponto/api/marcar aponta pro controller, não pra closure" },
         { "tipo": "contem", "path": "Modules/Ponto/Http/routes.php", "padrao": "MobileMarcacaoController" },
         { "tipo": "um_de", "paths": ["${PAGES}/Mobile/Index.tsx", "${PAGES}/Mobile/Marcar.tsx"] },
-        { "tipo": "json_com_chaves", "path": "prototipo-ui/contrato/ponto-rep-p.contract.json", "chaves": ["alvo", "secoes"] },
+        { "tipo": "json_com_chaves", "path": "governance/design/contracts/ponto-rep-p.contract.json", "chaves": ["alvo", "secoes"] },
         { "tipo": "nao_contem", "path": "Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php", "padrao": "selfie", "guarda": true, "nota": "PRESERVAÇÃO — GUARD LGPD da ADR 0383; o Wave28 já falha se voltar" }
       ] },
     { "id": "07", "titulo": "Contratos 4/4 → required", "dono": "CL", "vaga": 3, "arquivo": "07-contratos-required.md",
-      "prefixo": ["prototipo-ui/contrato/ponto-fechamento.contract.json", "prototipo-ui/contrato/ponto-rep-p.contract.json", "gate de contrato (onde o repo declara required)"],
-      "nao_toca": ["prototipo-ui/contrato/ponto-painel.contract.json", "prototipo-ui/contrato/ponto-espelho.contract.json"],
+      "prefixo": ["governance/design/contracts/ponto-fechamento.contract.json", "governance/design/contracts/ponto-rep-p.contract.json", "gate de contrato (onde o repo declara required)"],
+      "nao_toca": ["governance/design/contracts/ponto-painel.contract.json", "governance/design/contracts/ponto-espelho.contract.json"],
       "depende_threads": ["04", "05", "06"],
       "provas": [
-        { "tipo": "arquivo", "path": "prototipo-ui/contrato/ponto-fechamento.contract.json" },
-        { "tipo": "arquivo", "path": "prototipo-ui/contrato/ponto-rep-p.contract.json" }
+        { "tipo": "arquivo", "path": "governance/design/contracts/ponto-fechamento.contract.json" },
+        { "tipo": "arquivo", "path": "governance/design/contracts/ponto-rep-p.contract.json" }
       ] },
     { "id": "08", "titulo": "PUXAR Painel + Espelho (as 2 com contrato) → protótipo", "dono": "CC", "vaga": 1, "arquivo": "08-puxar-painel-espelho.md",
       "prefixo": ["${COWORK}/ponto-page.jsx", "${COWORK}/oimpresso.com.html"],
@@ -197,12 +197,12 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
         { "tipo": "nao_contem", "path": "${COWORK}/ponto-mobile.jsx", "padrao": "Art. 9" }
       ] },
     { "id": "11", "titulo": "Limpeza: blades mortas + nav legado + inbox residual (+ /react se W8)", "dono": "CL", "vaga": 1, "arquivo": "11-limpeza-blades-inbox.md",
-      "prefixo": ["Modules/Ponto/Resources/views/ (exceto reports/)", "prototipo-ui/design-docs/cowork-inbox/ponto-dashboard/", "Modules/Ponto/Http/routes.php (só a rota /react, só se W8 = remover)"],
+      "prefixo": ["Modules/Ponto/Resources/views/ (exceto reports/)", "prototipo-ui/cowork/Wagner/cowork-inbox/ponto-dashboard/", "Modules/Ponto/Http/routes.php (só a rota /react, só se W8 = remover)"],
       "nao_toca": ["Modules/Ponto/Resources/views/reports/espelho-pdf.blade.php", "Modules/Ponto/Resources/lang/", "${PAGES}/"],
       "provas": [
         { "tipo": "ausente", "path": "Modules/Ponto/Resources/views/layouts/module.blade.php" },
         { "tipo": "ausente", "path": "Modules/Ponto/Resources/views/dashboard/index.blade.php" },
-        { "tipo": "ausente", "path": "prototipo-ui/design-docs/cowork-inbox/ponto-dashboard/Index.casos.md" },
+        { "tipo": "ausente", "path": "prototipo-ui/cowork/Wagner/cowork-inbox/ponto-dashboard/Index.casos.md" },
         { "tipo": "arquivo", "path": "Modules/Ponto/Resources/views/reports/espelho-pdf.blade.php", "guarda": true, "nota": "PRESERVAÇÃO — a única blade viva (PDF do espelho) tem de sobreviver" }
       ] },
     { "id": "12", "titulo": "Relatórios legais AFD/AFDT/AEJ — BLOQUEADA", "dono": "W", "arquivo": "12-relatorios-legais-bloqueada.md",

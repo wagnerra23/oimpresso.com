@@ -10,9 +10,9 @@ depende: ds-atomos 01 · ds-atomos 03 (Toolbar) · thread 03 (a11y) se já abert
 # 14 · Espelho · lista — barra de filtros + tabela densa
 
 ## A · IDENTIDADE (ancoragem dupla)
-- **alvo (layout, read-only):** `prototipo-ui/cowork/ponto-page.jsx` — aba **Espelho de Ponto**, T1 estável **1015 nós**, **1280px**.
+- **alvo (layout, read-only):** `prototipo-ui/cowork/Wagner/ponto-page.jsx` — aba **Espelho de Ponto**, T1 estável **1015 nós**, **1280px**.
 - **âncora (código):** `resources/js/Pages/Ponto/Espelho/Index.tsx` — **6.955 B**, sha `5e4a3c209d3f`. Símbolo: `EspelhoIndex` (:42). **Um símbolo, arquivo pequeno: leia inteiro.**
-- **oráculo:** `Index.charter.md` (2.898 B) · `EspelhoContratoTest` · `prototipo-ui/contrato/ponto-espelho.contract.json`.
+- **oráculo:** `Index.charter.md` (2.898 B) · `EspelhoContratoTest` · `governance/design/contracts/ponto-espelho.contract.json`.
 - **NÃO ler:** `Espelho/Show.tsx` (24.831 B) — é a thread 15 · `_components/MonthHeatmap.tsx` (12.796 B) — é a thread 03.
 - **contrato vigente:** `ponto-espelho` (5 `data-contract`). Contradição ⇒ o contrato manda e você para.
 

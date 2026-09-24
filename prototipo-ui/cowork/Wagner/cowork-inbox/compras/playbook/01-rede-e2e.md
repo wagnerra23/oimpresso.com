@@ -12,7 +12,7 @@ depende: — (vaga 1). D-LANE só decide ONDE a lane mora, não bloqueia escreve
 ## A · Identidade — ancoragem dupla
 - **alvo (layout medido no protótipo, dark, T1 estável 1245 nós):** aba **Pedidos** = `.cmp-main` com 3 filhos · `table.purchases` com **9 colunas** (Ação · Compra · Fornecedor · … · Total · A pagar · NF-e) · `SortTh` com `aria-sort` **e `<button type="button">` interno** · 34 botões · drawer de detalhe com `table.items-tbl` (Produto · Qtd · Custo unit. · Total · Venda · Margem — **a coluna Margem é do protótipo e não tem fonte: ver thread 02**).
 - **âncora (código, lida em 9101f86af501):** `resources/js/Pages/Compras/Index.tsx` (28.813 B) + `components/{Drawer,AcoesDropdown,VisibilidadeColunas}.tsx` · `resources/js/Pages/Purchase/Create.tsx` (28.232 B) com `GradeMatrixInput` importado em `:26` e usado em `:459`.
-- **contratos JÁ existem e são o roteiro do spec, não o produto dele:** `prototipo-ui/contrato/compras-cockpit.contract.json` (3.946 B) e `purchase-create.contract.json` (4.272 B). Leia as seções/copy/estados declarados lá e asserte **exatamente** aquilo — spec que inventa seletor próprio duplica canon.
+- **contratos JÁ existem e são o roteiro do spec, não o produto dele:** `governance/design/contracts/compras-cockpit.contract.json` (3.946 B) e `purchase-create.contract.json` (4.272 B). Leia as seções/copy/estados declarados lá e asserte **exatamente** aquilo — spec que inventa seletor próprio duplica canon.
 - **por que esta thread existe:** `e2e/` tem **17 arquivos e nenhum de compras/purchase** (medido). É a única lacuna de código do módulo.
 
 ## B · Não inventar

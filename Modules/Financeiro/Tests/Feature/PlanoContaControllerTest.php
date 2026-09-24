@@ -85,6 +85,15 @@ function planoContaAtor(): array
         test()->markTestSkipped('Tabela fin_planos_conta ausente (migration do Financeiro não rodou).');
     }
 
+    // Desde o #7766 (2026-09-23) /financeiro/plano-contas exige financeiro.dashboard.view.
+    // O ator é o 1º usuário do tenant 98, que no seed do CI NÃO tem o papel Admin#98 —
+    // sem conceder aqui, os 4 UCs recebem 403 em vez de medir a tela.
+    \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'financeiro.dashboard.view', 'guard_name' => 'web']);
+    if (! $user->hasPermissionTo('financeiro.dashboard.view')) {
+        $user->givePermissionTo('financeiro.dashboard.view');
+    }
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
     return [$user, $business];
 }
 
@@ -252,4 +261,173 @@ it('UC-FPC-04 · o KPI conta exatamente as linhas listadas', function () {
 
         return true;
     });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FIN-6b — "Lanç. mês" e "Saldo mês" (DreService::movimentoMesPorConta).
+// REGRA MESTRE de valor (memory/proibicoes.md): o número é provado por DOIS caminhos
+// independentes — (1) valores esperados escritos à mão a partir da fixture e (2) o
+// balancete, cálculo que JÁ existia no DreService e tem a mesma base de competência.
+//
+// `fin_titulos` não aceita DELETE (regra de domínio), e a base do CT 100 persiste entre
+// runs: por isso cada caso roda dentro de transação desfeita no fim.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Título mínimo direto no banco (mesmo idioma do ConciliacaoAuditReabrirTest). */
+function planoContaTitulo(int $businessId, int $userId, ?int $planoContaId, string $tipo, float $valor, array $over = []): int
+{
+    return (int) DB::table('fin_titulos')->insertGetId(array_merge([
+        'business_id'     => $businessId,
+        'numero'          => 'FIN6B-'.uniqid(),
+        'tipo'            => $tipo,
+        'status'          => 'aberto',
+        'valor_total'     => $valor,
+        'valor_aberto'    => $valor,
+        'moeda'           => 'BRL',
+        'emissao'         => now()->toDateString(),
+        'vencimento'      => now()->toDateString(),
+        'competencia_mes' => now()->format('Y-m'),
+        'plano_conta_id'  => $planoContaId,
+        'origem'          => 'manual',
+        'origem_id'       => random_int(700000, 799999),
+        'created_by'      => $userId,
+        'created_at'      => now(),
+        'updated_at'      => now(),
+    ], $over));
+}
+
+/** Pede SÓ a prop deferida `movimento` (partial reload), como o navegador faz no 2º request. */
+function planoContaMovimento($test): array
+{
+    $manifestPath = public_path('build-inertia/manifest.json');
+    $version = file_exists($manifestPath) ? md5_file($manifestPath) : '1';
+
+    // Headers POR REQUISIÇÃO, nunca withHeaders() — ver ConciliacaoResumoTituloTest::fcrResumo.
+    $resp = $test->get('/financeiro/plano-contas', [
+        'X-Inertia'                   => 'true',
+        'X-Inertia-Version'           => $version,
+        'X-Inertia-Partial-Component' => 'Financeiro/PlanoContas/Index',
+        'X-Inertia-Partial-Data'      => 'movimento',
+        'X-Requested-With'            => 'XMLHttpRequest',
+        'Accept'                      => 'text/html',
+    ]);
+    $resp->assertOk();
+    $mov = $resp->json('props.movimento');
+    expect($mov)->toBeArray();
+
+    return $mov;
+}
+
+/**
+ * Árvore da fixture: PAI (não-folha) ⊃ F1, F2. Títulos do mês corrente:
+ *   F1: receber 100 + receber 50           → 2 lanç.,  +150
+ *       receber 999 CANCELADO               → fora
+ *       receber 40 do MÊS PASSADO           → fora
+ *       pagar 500 de OUTRO NEGÓCIO apontando pra F1 → fora (Tier 0)
+ *   F2: pagar 30                            → 1 lanç.,  −30
+ *   PAI: receber 7 lançado DIRETO no pai    → entra no pai (o balancete deixaria de fora)
+ *   PAI total: 4 lanç., 150 − 30 + 7 = +127
+ */
+function planoContaFixtureMovimento(int $businessId, int $userId): array
+{
+    // Código do PAI só com dígitos, de propósito: é o formato das raízes do plano BR ("1".."5"),
+    // e chave de array PHP numérica vira INT — o que derrubava o cálculo com TypeError em
+    // `str_starts_with` (medido no balancete de produção, 2026-09-23). Com "9.9.X" o defeito passava.
+    $raiz = '9'.random_int(1000000, 9999999);
+    $pai = planoContaSeed($businessId, $raiz, 'FIN6B Pai', ['aceita_lancamento' => false, 'tipo' => 'receita', 'natureza' => 'credito']);
+    $f1 = planoContaSeed($businessId, "{$raiz}.01", 'FIN6B Filha 1', ['tipo' => 'receita', 'natureza' => 'credito']);
+    $f2 = planoContaSeed($businessId, "{$raiz}.02", 'FIN6B Filha 2', ['tipo' => 'despesa', 'natureza' => 'debito']);
+
+    planoContaTitulo($businessId, $userId, $f1, 'receber', 100.00);
+    planoContaTitulo($businessId, $userId, $f1, 'receber', 50.00);
+    planoContaTitulo($businessId, $userId, $f1, 'receber', 999.00, ['status' => 'cancelado']);
+    planoContaTitulo($businessId, $userId, $f1, 'receber', 40.00, ['competencia_mes' => now()->subMonthNoOverflow()->format('Y-m')]);
+    planoContaTitulo($businessId, $userId, $f2, 'pagar', 30.00);
+    planoContaTitulo($businessId, $userId, $pai, 'receber', 7.00);
+
+    $outro = Business::where('id', '!=', $businessId)->first();
+    if ($outro) {
+        planoContaTitulo($outro->id, $userId, $f1, 'pagar', 500.00);
+    }
+
+    return ['pai' => $pai, 'f1' => $f1, 'f2' => $f2, 'outro' => (bool) $outro];
+}
+
+it('UC-FPC-05 · movimento do mês — conta lançamentos, saldo com sinal e soma tudo no pai', function () {
+    [$user, $business] = planoContaAtor();
+    if (! DB::getSchemaBuilder()->hasColumn('fin_titulos', 'plano_conta_id')) {
+        $this->markTestSkipped('fin_titulos sem plano_conta_id nesta base.');
+    }
+
+    DB::beginTransaction();
+    try {
+        $ids = planoContaFixtureMovimento($business->id, $user->id);
+
+        $this->actingAs($user)->withSession(['user.business_id' => $business->id]);
+        $mov = planoContaMovimento($this);
+
+        expect($mov['mes'])->toBe(now()->format('Y-m'));
+        $contas = $mov['contas'];
+
+        // CAMINHO 1 — valores esperados escritos à mão a partir da fixture (docblock acima).
+        expect($contas[$ids['f1']] ?? null)->toEqual(['lancamentos' => 2, 'saldo' => 150.0]);
+        expect($contas[$ids['f2']] ?? null)->toEqual(['lancamentos' => 1, 'saldo' => -30.0]);
+        expect($contas[$ids['pai']] ?? null)->toEqual(['lancamentos' => 4, 'saldo' => 127.0]);
+    } finally {
+        DB::rollBack();
+    }
+});
+
+it('UC-FPC-06 · movimento do mês — Tier 0: título de outro negócio não entra, nem apontando pra conta daqui', function () {
+    [$user, $business] = planoContaAtor();
+    if (! DB::getSchemaBuilder()->hasColumn('fin_titulos', 'plano_conta_id')) {
+        $this->markTestSkipped('fin_titulos sem plano_conta_id nesta base.');
+    }
+
+    DB::beginTransaction();
+    try {
+        $ids = planoContaFixtureMovimento($business->id, $user->id);
+        if (! $ids['outro']) {
+            $this->markTestSkipped('Precisa 2+ businesses pro cruzamento Tier 0.');
+        }
+
+        $contas = app(\Modules\Financeiro\Services\DreService::class)
+            ->movimentoMesPorConta($business->id)['contas'];
+
+        // O pagar de 500 do outro negócio aponta pra F1. Se o filtro de business caísse,
+        // F1 viraria 3 lançamentos e −350 — e o pai, 5 e −373.
+        expect($contas[$ids['f1']]['lancamentos'] ?? null)->toBe(2);
+        expect((float) ($contas[$ids['f1']]['saldo'] ?? 0))->toBe(150.0);
+    } finally {
+        DB::rollBack();
+    }
+});
+
+it('UC-FPC-07 · movimento do mês — CAMINHO 2: bate com o balancete nas folhas', function () {
+    [$user, $business] = planoContaAtor();
+    if (! DB::getSchemaBuilder()->hasColumn('fin_titulos', 'plano_conta_id')) {
+        $this->markTestSkipped('fin_titulos sem plano_conta_id nesta base.');
+    }
+
+    DB::beginTransaction();
+    try {
+        $ids = planoContaFixtureMovimento($business->id, $user->id);
+        $dre = app(\Modules\Financeiro\Services\DreService::class);
+
+        $movimento = $dre->movimentoMesPorConta($business->id)['contas'];
+        $balancete = collect($dre->montarBalancete($business->id, 'mes')['linhas'])->keyBy('codigo');
+        $codigos = DB::table('fin_planos_conta')->whereIn('id', [$ids['f1'], $ids['f2']])->pluck('codigo', 'id');
+
+        // O balancete é o cálculo que JÁ existia, com a mesma base (competência, sem cancelado).
+        // Ele não tem sinal nem contagem, então a comparação é pelo MÓDULO nas folhas — onde os
+        // dois têm de dar o mesmo dinheiro. (No pai eles divergem de propósito: o balancete não
+        // soma título lançado direto na conta pai; ver docblock do movimentoMesPorConta.)
+        foreach ([$ids['f1'], $ids['f2']] as $id) {
+            expect($balancete->has($codigos[$id]))->toBeTrue();
+            $doBalancete = (float) $balancete[$codigos[$id]]['saldo'];
+            expect(abs((float) $movimento[$id]['saldo']))->toBe(round(abs($doBalancete), 2));
+        }
+    } finally {
+        DB::rollBack();
+    }
 });

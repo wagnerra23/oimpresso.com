@@ -21,6 +21,9 @@ import { fileURLToPath } from 'node:url';
 
 import {
   ehGitCommit, temPathspecExplicito, levaWorkingTree, tocaCoberto, COBERTOS,
+  ehDocDoCorpus, tokensDe, tokensDasMaquinas, diffCitaMaquina, DOCS_GERADOS,
+  RX_ARQUIVO, RX_CRASE, RX_PASTA, pathsQueMudamOMapa,
+  pathsTocados, indicesAfetados, argsDosAddsAntes, statusDoPorcelain, limpaComando,
 } from './maquinas-inventario-no-commit.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'maquinas-inventario-no-commit.mjs');
@@ -60,6 +63,44 @@ ok(!tocaCoberto([]), 'NEG: lista vazia');
 ok(!tocaCoberto(null), 'NEG: null nao explode');
 ok(COBERTOS.length === 3, 'COBERTOS tem os 3 prefixos derivados do gerador');
 
+// ---------------------------------------------------------------- (1b) commit so de documento
+console.log('commit so de documento (nucleo):');
+// Os regex e a lista de gerados sao COPIA do gerador. Se o gerador mudar e o hook nao, o hook
+// passa a olhar tokens que o gerador ja nao conta (ou o contrario) — o assert abaixo acusa.
+const GERADOR_SRC = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../../scripts/governance/maquinas-inventario.mjs'), 'utf8');
+for (const [nome, rx] of [['RX_ARQUIVO', RX_ARQUIVO], ['RX_CRASE', RX_CRASE], ['RX_PASTA', RX_PASTA]]) {
+  ok(GERADOR_SRC.includes('const ' + nome + ' = ' + String(rx) + ';'), 'SYNC: ' + nome + ' identico ao do gerador');
+}
+for (const g of DOCS_GERADOS) ok(GERADOR_SRC.includes("'" + g + "'"), 'SYNC: gerado ' + g + ' tambem e excluido no gerador');
+
+ok(ehDocDoCorpus('memory/requisitos/X/SPEC.md'), 'corpus: memory/**.md');
+ok(ehDocDoCorpus('docs/guia.md'), 'corpus: docs/**.md');
+ok(!ehDocDoCorpus('memory/reference/MAQUINAS-INVENTARIO.md'), 'NEG corpus: o proprio indice nao conta');
+ok(!ehDocDoCorpus('memory/x.json'), 'NEG corpus: nao-.md');
+ok(!ehDocDoCorpus('README.md'), 'NEG corpus: README na raiz nao e corpus');
+
+const IND = '| `deadlink-gate.yml` | pr |\n| `governance/foo-baseline.json` | x |\n| `brief-first` | A |\n| `ci` | x |\n';
+const maq = tokensDasMaquinas(IND);
+ok(maq.has('deadlink-gate.yml') && maq.has('deadlink-gate'), 'maquinas: nome e nome nu com hifen');
+ok(maq.has('foo-baseline.json'), 'maquinas: basename do baseline');
+ok(maq.has('ci') && !maq.has('c'), 'maquinas: nome sem hifen entra so inteiro');
+
+ok(diffCitaMaquina('+usa o `deadlink-gate` aqui\n', maq), 'cita: crase com nome nu');
+ok(diffCitaMaquina('-removi deadlink-gate.yml\n', maq), 'cita: linha REMOVIDA tambem conta');
+ok(diffCitaMaquina('+ver .claude/skills/brief-first/SKILL.md\n', maq), 'cita: forma skills/<nome>');
+ok(diffCitaMaquina('+lê `foo-baseline.json`\n', maq), 'cita: baseline em crase');
+// ESPELHO do gerador: ate 2026-09-23 a alternativa `js` vencia `json` no RX_ARQUIVO e
+// `governance/foo-baseline.json` virava o token `foo-baseline.js` (nao contava). Consertado no
+// gerador (json antes de js + \b final); o hook reproduz, entao o path fora de crase CONTA.
+ok(diffCitaMaquina('+lê governance/foo-baseline.json\n', maq), 'ESPELHO: path .json fora de crase conta (igual ao gerador)');
+ok(!diffCitaMaquina('+lê governance/foo-baseline.jsonl\n', maq), 'NEG cita: .jsonl nao vira .json (\\b final)');
+ok(!diffCitaMaquina('+texto sobre o deadlink-gate solto\n', maq), 'NEG cita: nome nu SOLTO nao conta (gerador tambem nao)');
+ok(!diffCitaMaquina(' contexto com `deadlink-gate`\n', maq), 'NEG cita: linha de contexto nao conta');
+ok(!diffCitaMaquina('+++ b/memory/x-deadlink-gate.yml.md\n', maq), 'NEG cita: cabecalho +++ nao conta');
+ok(!diffCitaMaquina('+nada de maquina aqui\n', maq), 'NEG cita: doc sem maquina');
+ok(!diffCitaMaquina('+`deadlink-gate`\n', new Set()), 'NEG cita: indice vazio nao dispara');
+ok(tokensDe('`a-b` x.mjs agents/z').size === 3, 'tokensDe: as 3 formas');
+
 // ---------------------------------------------------------------- (2) CLI de fora, em sandbox
 function sandbox({ staleInicial, comGerador = true }) {
   const dir = mkdtempSync(join(tmpdir(), 'maqinv-'));
@@ -73,13 +114,19 @@ function sandbox({ staleInicial, comGerador = true }) {
 
   if (comGerador) {
     mkdirSync(join(dir, 'scripts/governance'), { recursive: true });
-    // gerador FALSO: --check sai 1 se existir o marcador STALE; --write regrava o indice
+    // gerador FALSO. Modo dry (sem arg) imprime o que o indice DEVERIA conter: 'indice NOVO'
+    // se existir o marcador STALE, senao repete o conteudo atual (= fresco). O `--check` sai
+    // SEMPRE 0 — cobertura completa — de proposito: o hook nao pode mais depender dele, e o
+    // caso "nomes completos, conteudo divergente" tem que morder mesmo assim. CRASH faz o
+    // dry sair 2 (fail-open); VAZIO faz ele imprimir nada (nao-medicao).
     writeFileSync(join(dir, 'scripts/governance/maquinas-inventario.mjs'), [
-      "import { existsSync, writeFileSync } from 'node:fs';",
+      "import { existsSync, readFileSync, writeFileSync } from 'node:fs';",
       "const modo = process.argv[2];",
-      "if (modo === '--check') process.exit(existsSync('STALE') ? 1 : 0);",
-      "if (modo === '--write') { writeFileSync('" + INDICE + "', 'indice NOVO\\n'); process.exit(0); }",
-      "process.exit(0);",
+      "if (modo === '--check') process.exit(0);",
+      "if (modo === '--write') { writeFileSync('" + INDICE + "', 'indice via --write\\n'); process.exit(0); }",
+      "if (existsSync('CRASH')) process.exit(2);",
+      "if (existsSync('VAZIO')) process.exit(0);",
+      "process.stdout.write(existsSync('STALE') ? 'indice NOVO\\n' : readFileSync('" + INDICE + "', 'utf8'));",
     ].join('\n'));
   }
   if (staleInicial) writeFileSync(join(dir, 'STALE'), '');
@@ -110,7 +157,7 @@ console.log('CLI de fora (sandbox):');
   execFileSync('git', ['add', '--', '.claude/hooks/novo.mjs'], { cwd: dir, stdio: 'ignore' });
   const r = roda(dir, 'git commit -m "toca maquina"');
   ok(r.status === 0, 'MORDE: exit 0 (nunca bloqueia)');
-  ok(conteudo(dir).includes('NOVO'), 'MORDE: rodou o --write');
+  ok(conteudo(dir) === 'indice NOVO\n', 'MORDE: gravou a saida do gerador (sem pagar um --write a mais)');
   ok(stageado(dir).includes(INDICE), 'MORDE: ESTAGIOU o indice');
   ok(/REGENEREI e ESTAGIEI/.test(r.stderr), 'MORDE: disse o que fez');
   ok(/DRIFT HERDADO/.test(r.stderr), 'MORDE: avisa do churn de terceiros');
@@ -125,7 +172,7 @@ console.log('CLI de fora (sandbox):');
   execFileSync('git', ['add', '--', '.claude/hooks/novo.mjs'], { cwd: dir, stdio: 'ignore' });
   const r = roda(dir, 'git commit -m x');
   ok(r.status === 0 && r.stderr === '', 'NEG: indice fresco -> silencio (nao e presence-gate)');
-  ok(!conteudo(dir).includes('NOVO'), 'NEG: fresco -> nao chamou o --write');
+  ok(conteudo(dir) === 'indice velho\n', 'NEG: fresco -> nao regravou o indice');
   ok(!stageado(dir).includes(INDICE), 'NEG: fresco -> nao estagiou');
   rmSync(dir, { recursive: true, force: true });
 }
@@ -137,7 +184,7 @@ console.log('CLI de fora (sandbox):');
   execFileSync('git', ['add', '--', 'README.md'], { cwd: dir, stdio: 'ignore' });
   const r = roda(dir, 'git commit -m x');
   ok(r.status === 0 && r.stderr === '', 'NEG: path nao coberto -> silencio');
-  ok(!conteudo(dir).includes('NOVO'), 'NEG: nao coberto -> nem rodou o --check');
+  ok(!conteudo(dir).includes('NOVO'), 'NEG: nao coberto -> nem rodou o gerador');
   rmSync(dir, { recursive: true, force: true });
 }
 
@@ -179,9 +226,512 @@ console.log('CLI de fora (sandbox):');
   writeFileSync(join(dir, '.claude/hooks/novo.mjs'), '// x\n');
   execFileSync('git', ['add', '--', '.claude/hooks/novo.mjs'], { cwd: dir, stdio: 'ignore' });
   const r = roda(dir, 'git commit -m x -- .claude/hooks/novo.mjs');
-  ok(conteudo(dir).includes('NOVO'), 'pathspec: regenerou');
+  ok(conteudo(dir) === 'indice NOVO\n', 'pathspec: regenerou');
   ok(!stageado(dir).includes(INDICE), 'pathspec: NAO estagiou');
   ok(/NAO estagiei/.test(r.stderr), 'pathspec: explicou por que nao estagiou');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// O CASO QUE MOTIVOU A MUDANCA: `--check` verde (cobertura completa) e conteudo divergente.
+// O hook antigo chamava so o `--check` e ficava em silencio aqui — foi assim que o main juntou
+// 2 linhas stale em 2026-09-22. O gerador falso deste sandbox tem `--check` sempre 0.
+{
+  const dir = sandbox({ staleInicial: true });
+  const checkVerde = spawnSync('node', ['scripts/governance/maquinas-inventario.mjs', '--check'], { cwd: dir }).status === 0;
+  mkdirSync(join(dir, '.github/workflows'), { recursive: true });
+  writeFileSync(join(dir, '.github/workflows/w.yml'), 'on: push\n');
+  execFileSync('git', ['add', '--', '.github/workflows/w.yml'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m "liga um step num workflow"');
+  ok(checkVerde, 'pre-condicao: o --check deste sandbox esta VERDE (cobertura ok)');
+  ok(conteudo(dir) === 'indice NOVO\n' && stageado(dir).includes(INDICE),
+    'MORDE: --check verde + conteudo divergente -> regenera e estagia mesmo assim');
+  ok(/REGENEREI e ESTAGIEI/.test(r.stderr), 'MORDE: avisou tambem neste caso');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// FAIL-OPEN: gerador crasha -> nao toca o indice, nao afirma nada
+{
+  const dir = sandbox({ staleInicial: true });
+  writeFileSync(join(dir, 'CRASH'), '');
+  mkdirSync(join(dir, '.claude/hooks'), { recursive: true });
+  writeFileSync(join(dir, '.claude/hooks/novo.mjs'), '// x\n');
+  execFileSync('git', ['add', '--', '.claude/hooks/novo.mjs'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m x');
+  ok(r.status === 0 && r.stderr === '' && conteudo(dir) === 'indice velho\n',
+    'FAIL-OPEN: gerador crasha -> silencio e indice intocado');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// NAO-MEDICAO: gerador sai 0 com saida VAZIA -> nao pode apagar o indice
+{
+  const dir = sandbox({ staleInicial: true });
+  writeFileSync(join(dir, 'VAZIO'), '');
+  mkdirSync(join(dir, '.claude/hooks'), { recursive: true });
+  writeFileSync(join(dir, '.claude/hooks/novo.mjs'), '// x\n');
+  execFileSync('git', ['add', '--', '.claude/hooks/novo.mjs'], { cwd: dir, stdio: 'ignore' });
+  roda(dir, 'git commit -m x');
+  ok(conteudo(dir) === 'indice velho\n' && !stageado(dir).includes(INDICE),
+    'NAO-MEDICAO: saida vazia do gerador -> indice NAO e sobrescrito com nada');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// COMMIT SO DE DOC: sandbox com indice que lista uma maquina real
+function sandboxDoc() {
+  const dir = sandbox({ staleInicial: true });
+  writeFileSync(join(dir, INDICE), '| `deadlink-gate.yml` | pr |\n');
+  mkdirSync(join(dir, 'memory/requisitos/X'), { recursive: true });
+  return dir;
+}
+
+// MORDE: doc que passa a citar maquina -> regenera e estagia
+{
+  const dir = sandboxDoc();
+  writeFileSync(join(dir, 'memory/requisitos/X/SPEC.md'), 'o gate `deadlink-gate` cobre isto\n');
+  execFileSync('git', ['add', '--', 'memory/requisitos/X/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m "so doc"');
+  ok(conteudo(dir) === 'indice NOVO\n' && stageado(dir).includes(INDICE), 'DOC MORDE: doc cita maquina -> regenera e estagia');
+  ok(/documento que cita maquina/.test(r.stderr), 'DOC MORDE: a mensagem nomeia o motivo documento');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// MORDE: doc que DEIXA de citar (arquivo removido) -> linhas removidas contam
+{
+  const dir = sandboxDoc();
+  writeFileSync(join(dir, 'memory/requisitos/X/SPEC.md'), 'ver deadlink-gate.yml\n');
+  execFileSync('git', ['add', '-A'], { cwd: dir, stdio: 'ignore' });
+  execFileSync('git', ['commit', '-qm', 'base'], { cwd: dir, stdio: 'ignore' });
+  execFileSync('git', ['rm', '-q', '--', 'memory/requisitos/X/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  roda(dir, 'git commit -m "remove doc"');
+  ok(conteudo(dir) === 'indice NOVO\n', 'DOC MORDE: remover doc citador tambem regenera');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// NEG: doc que nao cita maquina -> nem roda o gerador
+{
+  const dir = sandboxDoc();
+  writeFileSync(join(dir, 'memory/requisitos/X/SPEC.md'), 'texto sem maquina nenhuma\n');
+  execFileSync('git', ['add', '--', 'memory/requisitos/X/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m x');
+  ok(r.stderr === '' && !conteudo(dir).includes('NOVO'), 'DOC NEG: doc sem maquina -> silencio, gerador nao roda');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// NEG: doc cita maquina mas indice ja FRESCO -> silencio
+{
+  const dir = sandboxDoc();
+  rmSync(join(dir, 'STALE'));
+  writeFileSync(join(dir, 'memory/requisitos/X/SPEC.md'), 'o gate `deadlink-gate`\n');
+  execFileSync('git', ['add', '--', 'memory/requisitos/X/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m x');
+  ok(r.stderr === '' && !stageado(dir).includes(INDICE), 'DOC NEG: indice fresco -> silencio (nao e presence-gate)');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// MORDE: CLAUDE.md sempre (os @imports decidem o rank da coluna)
+{
+  const dir = sandboxDoc();
+  writeFileSync(join(dir, 'CLAUDE.md'), '@memory/x.md\n');
+  execFileSync('git', ['add', '--', 'CLAUDE.md'], { cwd: dir, stdio: 'ignore' });
+  roda(dir, 'git commit -m x');
+  ok(conteudo(dir) === 'indice NOVO\n', 'DOC MORDE: CLAUDE.md dispara sempre');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// MORDE: -a leva doc so do working tree
+{
+  const dir = sandboxDoc();
+  writeFileSync(join(dir, 'memory/requisitos/X/SPEC.md'), 'base\n');
+  execFileSync('git', ['add', '-A'], { cwd: dir, stdio: 'ignore' });
+  execFileSync('git', ['commit', '-qm', 'base'], { cwd: dir, stdio: 'ignore' });
+  writeFileSync(join(dir, 'memory/requisitos/X/SPEC.md'), 'base\nagora `deadlink-gate`\n');
+  roda(dir, 'git commit -am x');
+  ok(conteudo(dir) === 'indice NOVO\n', 'DOC MORDE: -a considera doc do working tree');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// ---------------------------------------------------------------- (N) passo 2: SUPERFICIE.md
+// Usa o GERADOR REAL (`module-surface.mjs` + `page-path.mjs`, copiados para o sandbox): o que
+// esta sob teste e a decisao "este commit envelheceu o mapa de qual modulo", e so o gerador de
+// verdade responde isso — um fake provaria o fake.
+console.log('superficie (passo 2):');
+const TAB = String.fromCharCode(9);
+ok(JSON.stringify(pathsQueMudamOMapa('A' + TAB + 'Modules/Foo/x.php\nM' + TAB + 'Modules/Foo/y.php\nD' + TAB + 'Modules/Bar/z.php\n'))
+  === JSON.stringify(['Modules/Foo/x.php', 'Modules/Bar/z.php']), 'so A e D mudam o mapa (M nao)');
+ok(pathsQueMudamOMapa('').length === 0, 'diff vazio: nada');
+
+const RAIZ_REPO = join(dirname(fileURLToPath(import.meta.url)), '../..');
+const SUP = (m) => `memory/requisitos/${m}/SUPERFICIE.md`;
+
+function sandboxSup() {
+  const dir = mkdtempSync(join(tmpdir(), 'modsurf-'));
+  const g = (args) => execFileSync('git', args, { cwd: dir, stdio: 'ignore' });
+  g(['init', '-q']); g(['config', 'user.email', 't@t']); g(['config', 'user.name', 't']);
+  for (const rel of ['scripts/governance/module-surface.mjs', 'scripts/qa/page-path.mjs']) {
+    mkdirSync(join(dir, dirname(rel)), { recursive: true });
+    writeFileSync(join(dir, rel), readFileSync(join(RAIZ_REPO, rel)));
+  }
+  for (const m of ['Foo', 'Bar']) {
+    mkdirSync(join(dir, `Modules/${m}/Http/Controllers`), { recursive: true });
+    mkdirSync(join(dir, `memory/requisitos/${m}`), { recursive: true });
+    writeFileSync(join(dir, `Modules/${m}/module.json`), JSON.stringify({ name: m, providers: [`X${m}`] }));
+    writeFileSync(join(dir, `Modules/${m}/Http/Controllers/A.php`), '<?php\n');
+  }
+  g(['add', '-A']);
+  for (const m of ['Foo', 'Bar']) execFileSync('node', ['scripts/governance/module-surface.mjs', m, '--write'], { cwd: dir, stdio: 'ignore' });
+  g(['add', '-A']); g(['commit', '-qm', 'base']);
+  return dir;
+}
+const checkSup = (dir, m) => spawnSync('node', ['scripts/governance/module-surface.mjs', m, '--check'], { cwd: dir }).status;
+
+{
+  const dir = sandboxSup();
+  ok(checkSup(dir, 'Foo') === 0 && checkSup(dir, 'Bar') === 0, 'controle: sandbox nasce sem drift');
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/B.php'), '<?php\n');
+  execFileSync('git', ['add', '--', 'Modules/Foo/Http/Controllers/B.php'], { cwd: dir, stdio: 'ignore' });
+  ok(checkSup(dir, 'Foo') === 1, 'controle positivo: arquivo novo deixa Foo com drift');
+  const r = roda(dir, 'git commit -m x');
+  ok(stageado(dir).includes(SUP('Foo')), 'MORDE: arquivo novo regenera e estagia a SUPERFICIE do modulo');
+  ok(checkSup(dir, 'Foo') === 0, 'MORDE: depois do hook o --check do modulo fica verde');
+  ok(!stageado(dir).includes(SUP('Bar')), 'ESCOPO: modulo nao tocado nao entra');
+  ok(/REGENEREI e ESTAGIEI/.test(r.stderr), 'avisa o que fez');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxSup();
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/A.php'), '<?php // editado\n');
+  execFileSync('git', ['add', '--', 'Modules/Foo/Http/Controllers/A.php'], { cwd: dir, stdio: 'ignore' });
+  const antes = readFileSync(join(dir, SUP('Foo')), 'utf8');
+  const r = roda(dir, 'git commit -m x');
+  ok(readFileSync(join(dir, SUP('Foo')), 'utf8') === antes && !r.stderr, 'SILENCIO: so edicao nao toca o mapa');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxSup();
+  // drift HERDADO em Bar: arquivo commitado sem regenerar
+  writeFileSync(join(dir, 'Modules/Bar/Http/Controllers/Z.php'), '<?php\n');
+  execFileSync('git', ['add', '-A'], { cwd: dir, stdio: 'ignore' });
+  execFileSync('git', ['commit', '-qm', 'drift herdado'], { cwd: dir, stdio: 'ignore' });
+  ok(checkSup(dir, 'Bar') === 1, 'controle: Bar ficou com drift herdado');
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/B.php'), '<?php\n');
+  execFileSync('git', ['add', '--', 'Modules/Foo/Http/Controllers/B.php'], { cwd: dir, stdio: 'ignore' });
+  roda(dir, 'git commit -m x');
+  ok(stageado(dir).includes(SUP('Foo')) && !stageado(dir).includes(SUP('Bar')), 'HERDADO: drift de outro modulo nao entra no commit alheio');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxSup();
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/B.php'), '<?php\n');
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/SOLTO.php'), '<?php\n');   // nao rastreado
+  execFileSync('git', ['add', '--', 'Modules/Foo/Http/Controllers/B.php'], { cwd: dir, stdio: 'ignore' });
+  const antes = readFileSync(join(dir, SUP('Foo')), 'utf8');
+  const r = roda(dir, 'git commit -m x');
+  ok(readFileSync(join(dir, SUP('Foo')), 'utf8') === antes && !stageado(dir).includes(SUP('Foo')), 'LIMITE: arquivo nao rastreado no modulo => nao grava mapa que o CI nao ve');
+  ok(/NAO regenerei/.test(r.stderr), 'LIMITE: e avisa por que pulou');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxSup();
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/B.php'), '<?php\n');
+  execFileSync('git', ['add', '--', 'Modules/Foo/Http/Controllers/B.php'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m x -- Modules/Foo/Http/Controllers/B.php');
+  ok(checkSup(dir, 'Foo') === 0 && !stageado(dir).includes(SUP('Foo')) && /NAO estagiei/.test(r.stderr), 'PATHSPEC: regenera mas nao estagia');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxSup();
+  execFileSync('git', ['rm', '-q', '--', 'Modules/Foo/Http/Controllers/A.php'], { cwd: dir, stdio: 'ignore' });
+  roda(dir, 'git commit -m x');
+  ok(stageado(dir).includes(SUP('Foo')) && checkSup(dir, 'Foo') === 0, 'MORDE: git rm tambem regenera');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxSup();
+  writeFileSync(join(dir, 'README.md'), 'x\n');
+  execFileSync('git', ['add', '--', 'README.md'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m x');
+  ok(!stageado(dir).includes(SUP('Foo')) && !stageado(dir).includes(SUP('Bar')) && !r.stderr, 'SILENCIO: arquivo fora de modulo nao faz nada');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// ---------------------------------------------------------------- (N+1) passo 3: indices globais
+console.log('indices (passo 3):');
+{
+  const T = String.fromCharCode(9);
+  ok(JSON.stringify(pathsTocados('A' + T + 'a.md\nM' + T + 'b.md\nD' + T + 'c.md\nR100' + T + 'x' + T + 'y\n'))
+    === JSON.stringify(['a.md', 'b.md', 'c.md']), 'pathsTocados: A/M/D contam (estes indices leem conteudo)');
+  const semConteudo = () => '';
+  const nomes = (ps, ler = semConteudo) => indicesAfetados(ps, ler).map((i) => i.nome).join(',');
+  ok(nomes(['memory/requisitos/Foo/SPEC.md']) === 'backlog', 'SPEC de modulo alimenta o backlog');
+  ok(nomes(['memory/requisitos/Foo/sub/SPEC.md']) === '', 'SPEC fora do 1o nivel NAO e lido pelo gerador');
+  ok(nomes(['memory/requisitos/Foo/PLANO-onda.md']) === 'planos', 'arquivo *plan* em requisitos alimenta o indice de planos');
+  ok(nomes(['memory/sessions/2026-09-23-x.md'], () => '## Status vivo\n') === 'planos', 'Status vivo em sessions alimenta planos');
+  ok(nomes(['memory/sessions/2026-09-23-x.md'], (p, rev) => (rev === 'HEAD' ? '## Status vivo\n' : '')) === 'planos',
+    'bloco REMOVIDO neste commit (so no HEAD) tambem alimenta planos');
+  ok(nomes(['memory/reference/qualquer.md', 'README.md']) === '', 'controle negativo: doc que nao alimenta nenhum indice');
+  // Espelha o `SELF` do plans-index.mjs: so os DOIS arquivos do proprio indice de planos ficam de
+  // fora. (O `_BACKLOG-GENERATED.md` nao e excluido pelo gerador — com "Status vivo" no texto ele
+  // seria contado — entao o filtro tambem nao o exclui; afirmar o contrario seria testar a minha
+  // opiniao, nao o gerador.)
+  ok(nomes(['memory/requisitos/_processo/PLANS-INDEX-GENERATED.md', 'memory/requisitos/_processo/PLANS-INDEX.md'], () => '## Status vivo') === '',
+    'os arquivos do proprio indice de planos nao realimentam o filtro');
+  ok(nomes(['memory/requisitos/_BACKLOG-GENERATED.md']) === '', 'o backlog gerado nao e SPEC nem plano: nao dispara nada');
+}
+
+const US = (id, titulo) => `### ${id} · ${titulo}\n\n> owner: — · priority: p2 · status: todo · type: story\n\nCorpo.\n`;
+const PLANO = '# Plano X\n\n## Status vivo\n\n- **status:** ativo\n- **owner:** W\n- **criado:** 2026-09-23 · **reviewed_at:** 2026-09-23\n';
+
+function sandboxIdx() {
+  const dir = mkdtempSync(join(tmpdir(), 'indices-'));
+  const g = (args) => execFileSync('git', args, { cwd: dir, stdio: 'ignore' });
+  g(['init', '-q']); g(['config', 'user.email', 't@t']); g(['config', 'user.name', 't']);
+  for (const rel of ['scripts/governance/tasks-index-generate.mjs', 'scripts/governance/plans-index.mjs']) {
+    mkdirSync(join(dir, dirname(rel)), { recursive: true });
+    writeFileSync(join(dir, rel), readFileSync(join(RAIZ_REPO, rel)));
+  }
+  mkdirSync(join(dir, 'memory/requisitos/Foo'), { recursive: true });
+  mkdirSync(join(dir, 'memory/requisitos/_processo'), { recursive: true });
+  mkdirSync(join(dir, 'memory/sessions'), { recursive: true });
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira'));
+  for (const gen of ['tasks-index-generate.mjs', 'plans-index.mjs']) {
+    execFileSync('node', ['scripts/governance/' + gen, '--write'], { cwd: dir, stdio: 'ignore' });
+  }
+  g(['add', '-A']); g(['commit', '-qm', 'base']);
+  return dir;
+}
+const BACKLOG = 'memory/requisitos/_BACKLOG-GENERATED.md';
+const PLANOS = 'memory/requisitos/_processo/PLANS-INDEX-GENERATED.md';
+const checkIdx = (dir, gen) => spawnSync('node', ['scripts/governance/' + gen, '--check'], { cwd: dir }).status;
+
+{
+  const dir = sandboxIdx();
+  ok(checkIdx(dir, 'tasks-index-generate.mjs') === 0 && checkIdx(dir, 'plans-index.mjs') === 0, 'controle: sandbox nasce sem drift');
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira') + '\n' + US('US-FOO-002', 'Segunda'));
+  execFileSync('git', ['add', '--', 'memory/requisitos/Foo/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  ok(checkIdx(dir, 'tasks-index-generate.mjs') === 1, 'controle positivo: US nova deixa o backlog com drift');
+  const r = roda(dir, 'git commit -m x');
+  ok(stageado(dir).includes(BACKLOG) && checkIdx(dir, 'tasks-index-generate.mjs') === 0, 'MORDE: US nova regenera e estagia o backlog');
+  ok(!stageado(dir).includes(PLANOS), 'ESCOPO: indice que o commit nao alimenta fica de fora');
+  ok(/REGENEREI e ESTAGIEI/.test(r.stderr), 'avisa o que fez');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxIdx();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo — texto editado\n\n' + US('US-FOO-001', 'Primeira'));
+  execFileSync('git', ['add', '--', 'memory/requisitos/Foo/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  const antes = readFileSync(join(dir, BACKLOG), 'utf8');
+  const r = roda(dir, 'git commit -m x');
+  ok(readFileSync(join(dir, BACKLOG), 'utf8') === antes && !stageado(dir).includes(BACKLOG) && !r.stderr,
+    'SILENCIO: SPEC editado sem mudar US paga a medicao e nao grava nada');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxIdx();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/PLANO-onda.md'), PLANO);
+  execFileSync('git', ['add', '--', 'memory/requisitos/Foo/PLANO-onda.md'], { cwd: dir, stdio: 'ignore' });
+  ok(checkIdx(dir, 'plans-index.mjs') === 1, 'controle positivo: plano novo deixa o indice de planos com drift');
+  roda(dir, 'git commit -m x');
+  ok(stageado(dir).includes(PLANOS) && checkIdx(dir, 'plans-index.mjs') === 0, 'MORDE: plano novo regenera e estagia o indice de planos');
+  ok(!stageado(dir).includes(BACKLOG), 'ESCOPO: backlog nao entra quando nenhum SPEC mudou');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxIdx();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira') + '\n' + US('US-FOO-002', 'Segunda'));
+  execFileSync('git', ['add', '--', 'memory/requisitos/Foo/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m x -- memory/requisitos/Foo/SPEC.md');
+  ok(checkIdx(dir, 'tasks-index-generate.mjs') === 0 && !stageado(dir).includes(BACKLOG) && /NAO estagiei/.test(r.stderr),
+    'PATHSPEC: regenera mas nao estagia');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  // FAIL-OPEN: gerador que QUEBRA (exit 2) nao e "drift". Se o hook confundisse os dois, rodaria o
+  // --write de um gerador quebrado e estagiaria o que saisse dele. Este fake grava LIXO no --write
+  // justamente para o assert ver isso acontecer.
+  const dir = sandboxIdx();
+  const antes = readFileSync(join(dir, BACKLOG), 'utf8');
+  writeFileSync(join(dir, 'scripts/governance/tasks-index-generate.mjs'), [
+    "import { writeFileSync } from 'node:fs';",
+    "if (process.argv.includes('--check')) { console.error('TypeError: quebrei'); process.exit(2); }",
+    "if (process.argv.includes('--write')) writeFileSync('" + BACKLOG + "', 'LIXO\\n');",
+  ].join('\n'));
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira') + '\n' + US('US-FOO-002', 'Segunda'));
+  execFileSync('git', ['add', '--', 'memory/requisitos/Foo/SPEC.md'], { cwd: dir, stdio: 'ignore' });
+  roda(dir, 'git commit -m x');
+  ok(readFileSync(join(dir, BACKLOG), 'utf8') === antes && !stageado(dir).includes(BACKLOG),
+    'FAIL-OPEN: gerador quebrado (exit 2) nao e drift — nada e gravado nem estagiado');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxIdx();
+  mkdirSync(join(dir, 'memory/reference'), { recursive: true });
+  writeFileSync(join(dir, 'memory/reference/x.md'), 'nada\n');
+  execFileSync('git', ['add', '--', 'memory/reference/x.md'], { cwd: dir, stdio: 'ignore' });
+  const r = roda(dir, 'git commit -m x');
+  ok(!stageado(dir).includes(BACKLOG) && !stageado(dir).includes(PLANOS) && !r.stderr, 'SILENCIO: doc fora dos insumos nao faz nada');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// ---------------------------------------------------------------- (N+2) `git add` no MESMO comando
+// O hook roda ANTES do shell: em `git add X && git commit` ele via o stage vazio. Medido no corpus
+// de transcripts: 84,1% dos commits tem esse formato. Estes casos provam os 3 passos nele.
+console.log('add + commit na mesma chamada:');
+{
+  ok(JSON.stringify(argsDosAddsAntes('git add -- a.md b.md && git commit -m x')) === JSON.stringify(['--', 'a.md', 'b.md']), 'le os args do add anterior');
+  ok(JSON.stringify(argsDosAddsAntes('git commit -m x && git add a.md')) === '[]', 'add DEPOIS do commit nao conta');
+  ok(JSON.stringify(argsDosAddsAntes('git -C /r add "a.md" ; git commit -m x')) === JSON.stringify(['a.md']), 'aceita -C e tira aspas');
+  ok(JSON.stringify(argsDosAddsAntes('echo "git add x" && git commit -m y')) === '[]', 'mencao em string de outro comando nao conta');
+  const T = String.fromCharCode(9);
+  const p = statusDoPorcelain('?? novo.md\n M velho.md\n D apagado.md\n?? "com espaco.md"\n');
+  ok(p.ns === ['A' + T + 'novo.md', 'M' + T + 'velho.md', 'D' + T + 'apagado.md'].join('\n'), 'porcelain: ?? vira A, D vira D, resto M');
+  ok(p.entrando.has('novo.md') && p.entrando.size === 1, 'porcelain: path citado nao e interpretado (limite declarado)');
+  ok(statusDoPorcelain('?? novo.md\n', { incluiNaoRastreados: false }).ns === '', 'add -u nao leva arquivo nao rastreado');
+}
+{
+  // passo 1 (inventario)
+  const dir = sandbox({ staleInicial: true });
+  mkdirSync(join(dir, '.claude/hooks'), { recursive: true });
+  writeFileSync(join(dir, '.claude/hooks/novo.mjs'), '// x\n');
+  roda(dir, 'git add -- .claude/hooks/novo.mjs && git commit -m x');   // NADA estagiado antes
+  ok(conteudo(dir) === 'indice NOVO\n' && stageado(dir).includes(INDICE), 'PASSO 1: add+commit na mesma chamada regenera e estagia o inventario');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandbox({ staleInicial: true });
+  writeFileSync(join(dir, 'README.md'), 'x\n');
+  roda(dir, 'git add README.md && git commit -m x');
+  ok(conteudo(dir) === 'indice velho\n' && !stageado(dir).includes(INDICE), 'PASSO 1 controle: add de arquivo nao coberto segue em silencio');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  // passo 2 (superficie): o arquivo novo que o add leva NAO e "solto"
+  const dir = sandboxSup();
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/B.php'), '<?php\n');
+  const r = roda(dir, 'git add Modules/Foo/Http/Controllers/B.php && git commit -m x');
+  ok(stageado(dir).includes(SUP('Foo')) && checkSup(dir, 'Foo') === 0 && !/NAO regenerei/.test(r.stderr),
+    'PASSO 2: add+commit na mesma chamada regenera a SUPERFICIE (e o arquivo que entra nao conta como solto)');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxSup();
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/B.php'), '<?php\n');
+  writeFileSync(join(dir, 'Modules/Foo/Http/Controllers/SOLTO.php'), '<?php\n');
+  const r = roda(dir, 'git add Modules/Foo/Http/Controllers/B.php && git commit -m x');
+  ok(!stageado(dir).includes(SUP('Foo')) && /NAO regenerei/.test(r.stderr), 'PASSO 2 controle: o solto que o add NAO leva continua barrando');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  // passo 3 (indices)
+  const dir = sandboxIdx();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira') + '\n' + US('US-FOO-002', 'Segunda'));
+  roda(dir, 'git add memory/requisitos/Foo/SPEC.md && git commit -m x');
+  ok(stageado(dir).includes(BACKLOG) && checkIdx(dir, 'tasks-index-generate.mjs') === 0, 'PASSO 3: add+commit na mesma chamada regenera o backlog');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxIdx();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/PLANO-onda.md'), PLANO);
+  roda(dir, 'git add -A && git commit -m x');
+  ok(stageado(dir).includes(PLANOS) && checkIdx(dir, 'plans-index.mjs') === 0, 'PASSO 3: `git add -A` + commit enxerga o plano novo');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// ---------------------------------------------------------------- (N+3) as FORMAS medidas no corpus
+// Os casos acima usam `-m x`, a forma conveniente pro teste — e foi assim que dois defeitos
+// passaram (revisao adversarial 2026-09-23). Estes usam as formas que o agente real usa, com a
+// proporcao medida no corpus de transcripts: heredoc na mensagem 77,7% · add na mesma chamada
+// 84,8% · add e commit em LINHAS separadas ~14%.
+console.log('formas reais (heredoc / quebra de linha):');
+const HEREDOC = (antes) => antes + "git commit -q -F - <<'EOF'\nfix: algo com --all e -- no texto\n\nCo-Authored-By: X <x@y>\nEOF";
+{
+  ok(!levaWorkingTree(HEREDOC('')), 'HEREDOC: `--all` na MENSAGEM nao liga o -a');
+  ok(!temPathspecExplicito(HEREDOC('')), 'HEREDOC: `--` na MENSAGEM nao vira pathspec explicito');
+  ok(ehGitCommit(HEREDOC('')), 'HEREDOC: o commit continua reconhecido');
+  ok(ehGitCommit('git add x.md\ngit commit -m y'), 'QUEBRA DE LINHA: commit na linha seguinte e reconhecido');
+  ok(JSON.stringify(argsDosAddsAntes('git add x.md\ngit commit -m y')) === JSON.stringify(['x.md']), 'QUEBRA DE LINHA: o add da linha anterior e lido');
+  ok(levaWorkingTree('git commit -am "msg"') && !levaWorkingTree('git commit -m "use --all aqui"'), 'aspas: flag real conta, texto entre aspas nao');
+  ok(JSON.stringify(argsDosAddsAntes('git add "a.md" && git commit -m x')) === JSON.stringify(['a.md']), 'aspas sem espaco: o path continua lido');
+  ok(!limpaComando(HEREDOC('')).includes('Co-Authored-By'), 'o corpo do heredoc sai do comando');
+  ok(!ehGitCommit("cat <<'EOF'\ngit commit -m x\nEOF"), 'NEG: `git commit` DENTRO de heredoc nao e comando');
+}
+{
+  const dir = sandboxIdx();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira') + '\n' + US('US-FOO-002', 'Segunda'));
+  const r = roda(dir, HEREDOC('git add memory/requisitos/Foo/SPEC.md && '));
+  ok(stageado(dir).includes(BACKLOG) && !/NAO estagiei/.test(r.stderr), 'E2E HEREDOC: regenera E estagia (a mensagem nao desliga o estagio)');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxIdx();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira') + '\n' + US('US-FOO-002', 'Segunda'));
+  roda(dir, 'git add memory/requisitos/Foo/SPEC.md\ngit commit -m x');
+  ok(stageado(dir).includes(BACKLOG), 'E2E QUEBRA DE LINHA: add e commit em linhas separadas regeneram o backlog');
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// ---------------------------------------------------------------- (N+4) passo 4: _STATUS-GENERATED
+// Gerador REAL (`requisitos-status.mjs` e o que ele importa), num repo com um modulo `Foo` que
+// JA tem status (opt-in) e um `Bar` que NAO tem (o hook nao pode criar arquivo novo).
+console.log('status (passo 4):');
+const STATUS = (m) => `memory/requisitos/${m}/_STATUS-GENERATED.md`;
+function sandboxStatus() {
+  const dir = mkdtempSync(join(tmpdir(), 'status-'));
+  const g = (args) => execFileSync('git', args, { cwd: dir, stdio: 'ignore' });
+  g(['init', '-q']); g(['config', 'user.email', 't@t']); g(['config', 'user.name', 't']);
+  for (const rel of ['scripts/governance/requisitos-status.mjs', 'scripts/governance/module-surface.mjs', 'scripts/qa/page-path.mjs', 'scripts/lib/uc-regex.mjs']) {
+    mkdirSync(join(dir, dirname(rel)), { recursive: true });
+    writeFileSync(join(dir, rel), readFileSync(join(RAIZ_REPO, rel)));
+  }
+  for (const m of ['Foo', 'Bar']) {
+    mkdirSync(join(dir, `memory/requisitos/${m}`), { recursive: true });
+    mkdirSync(join(dir, `resources/js/Pages/${m}`), { recursive: true });
+    writeFileSync(join(dir, `memory/requisitos/${m}/SPEC.md`), `# SPEC ${m}\n\n` + US(`US-${m.toUpperCase()}-001`, 'Primeira'));
+    writeFileSync(join(dir, `resources/js/Pages/${m}/Index.tsx`), 'export default function Index() { return null }\n');
+    writeFileSync(join(dir, `resources/js/Pages/${m}/Index.casos.md`), `# Casos\n\n| UC | Caso |\n|---|---|\n| UC-${m.toUpperCase()}-01 | lista |\n`);
+  }
+  execFileSync('node', ['scripts/governance/requisitos-status.mjs', 'Foo', '--write'], { cwd: dir, stdio: 'ignore' });   // SO o Foo
+  g(['add', '-A']); g(['commit', '-qm', 'base']);
+  return dir;
+}
+const checkSt = (dir, m) => spawnSync('node', ['scripts/governance/requisitos-status.mjs', m, '--check'], { cwd: dir }).status;
+{
+  const dir = sandboxStatus();
+  ok(checkSt(dir, 'Foo') === 0, 'controle: o status do Foo nasce fresco');
+  mkdirSync(join(dir, 'tests/Feature'), { recursive: true });
+  writeFileSync(join(dir, 'tests/Feature/FooTest.php'), "<?php\nit('UC-FOO-01: lista os itens', function () { expect(true)->toBeTrue(); });\n");
+  ok(checkSt(dir, 'Foo') === 1, 'controle positivo: teste novo citando o UC deixa o status do Foo drifado');
+  const r = roda(dir, 'git add tests/Feature/FooTest.php && git commit -m x');
+  ok(stageado(dir).includes(STATUS('Foo')) && checkSt(dir, 'Foo') === 0, 'MORDE TESTE: teste que cita UC do modulo regenera e estagia o status dele');
+  ok(!existsSync(join(dir, STATUS('Bar'))), 'OPT-IN: modulo sem status (Bar) nao ganha arquivo');
+  ok(/\[status\] REGENEREI e ESTAGIEI/.test(r.stderr), 'avisa o que fez');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxStatus();
+  writeFileSync(join(dir, 'memory/requisitos/Foo/SPEC.md'), '# SPEC Foo\n\n' + US('US-FOO-001', 'Primeira') + '\n' + US('US-FOO-002', 'Segunda'));
+  roda(dir, HEREDOC('git add memory/requisitos/Foo/SPEC.md && '));
+  ok(stageado(dir).includes(STATUS('Foo')) && checkSt(dir, 'Foo') === 0, 'MORDE SPEC: US nova no SPEC regenera o status (forma heredoc)');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxStatus();
+  mkdirSync(join(dir, 'tests/Feature'), { recursive: true });
+  writeFileSync(join(dir, 'tests/Feature/ZzzTest.php'), "<?php\nit('UC-ZZZ-01: de ninguem', function () {});\n");
+  const r = roda(dir, 'git add tests/Feature/ZzzTest.php && git commit -m x');
+  ok(!stageado(dir).includes(STATUS('Foo')) && !/\[status\]/.test(r.stderr), 'NEG TESTE: teste citando UC de nenhum modulo nao dispara nada');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxStatus();
+  writeFileSync(join(dir, 'memory/requisitos/Bar/SPEC.md'), '# SPEC Bar\n\n' + US('US-BAR-001', 'Primeira') + '\n' + US('US-BAR-002', 'Segunda'));
+  const r = roda(dir, 'git add memory/requisitos/Bar/SPEC.md && git commit -m x');
+  ok(!existsSync(join(dir, STATUS('Bar'))) && !/\[status\]/.test(r.stderr), 'OPT-IN: SPEC de modulo sem status nao cria arquivo');
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  const dir = sandboxStatus();
+  writeFileSync(join(dir, 'README.md'), 'x\n');
+  const r = roda(dir, 'git add README.md && git commit -m x');
+  ok(!stageado(dir).includes(STATUS('Foo')) && !/\[status\]/.test(r.stderr), 'SILENCIO: arquivo fora da cadeia nao faz nada');
   rmSync(dir, { recursive: true, force: true });
 }
 

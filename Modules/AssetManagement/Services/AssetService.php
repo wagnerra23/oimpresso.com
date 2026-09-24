@@ -107,7 +107,10 @@ class AssetService
                     $start_date = $this->commonUtil->uf_date($value['start_date']);
                     AssetWarranty::where('id', $key)->update([
                         'start_date' => $start_date,
-                        'end_date' => \Carbon::parse($start_date)->addMonths($value['months'])->format('Y-m-d'),
+                        // (int): o form posta o mes como TEXTO e o Carbon 3 e estrito -- `addMonths('12')`
+                        // lanca TypeError, que escapa do `catch (\Exception)` do controller (500 +
+                        // transacao aberta). Medido no CI em 2026-09-23 (BensContratoTest UC-BENS-05).
+                        'end_date' => \Carbon::parse($start_date)->addMonths((int) $value['months'])->format('Y-m-d'),
                         'additional_cost' => $this->commonUtil->num_uf($value['additional_cost']),
                         'additional_note' => $value['additional_note'],
                     ]);
@@ -185,7 +188,8 @@ class AssetService
                     $start_date = $this->commonUtil->uf_date($value);
                     $warranties[] = [
                         'start_date' => $start_date,
-                        'end_date' => \Carbon::parse($start_date)->addMonths($months[$key])->format('Y-m-d'),
+                        // (int): ver o comentario gemeo no `atualizar()` -- `addMonths('12')` lanca no Carbon 3.
+                        'end_date' => \Carbon::parse($start_date)->addMonths((int) $months[$key])->format('Y-m-d'),
                         'additional_cost' => $this->commonUtil->num_uf($request->input('additional_cost')[$key]),
                         'additional_note' => $request->input('additional_note')[$key],
                     ];

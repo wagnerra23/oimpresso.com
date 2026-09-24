@@ -8,12 +8,25 @@
 # (CI passando) é mergeável sem aprovação manual do Wagner — delegado ao Claude.
 # Ver feedback-claude-aprova-merge-verde-criticos-nao.md ("merge verde, críticos não").
 #
-# ⚠️ ENFORCEMENT: branch protection da `main` está com require_code_owner_reviews=true.
-# Este arquivo vale de verdade.
+# ⚠️ ENFORCEMENT — este arquivo NÃO afirma o próprio enforcement em presente (LC-10).
+# Quem sabe é a branch protection VIVA; leitor: `node scripts/governance/flip-required.mjs`
+# (imprime require_code_owner_reviews e enforce_admins) ou o GET de protection.
+# Fato datado 2026-09-22: o PR #7658 tocou `TEAM.md` — path COBERTO por este arquivo —
+# e mergeou com ZERO reviews (`pull_request_read get_reviews` → `[]`), pelo caminho admin.
+# Logo: code owner aqui NÃO trava quem mergeia como admin. NÃO MEDIDO: o caminho
+# não-admin — pela doc do GitHub a aprovação passa a ser exigida, mas aqui não há recibo.
+# Não leia este arquivo como trava universal nem como decoração; leia como "reviewer
+# obrigatório pra quem tem write sem admin, reviewer sugerido pro resto".
 #
-# ⚠️ TIME AINDA NÃO É COLABORADOR DO REPO. Só @wagnerra23 é dono válido hoje.
-# GitHub IGNORA code owner sem acesso de escrita. Para Eliana/Felipe/Maiara
-# virarem donos: (1) Wagner adiciona como collaborator; (2) troca `# TODO` pelo @handle.
+# ⚠️ GitHub IGNORA code owner sem acesso de ESCRITA — isso é comportamento do GitHub,
+# não estado do repo, e vale sempre.
+# Fato datado 2026-09-22 (fonte: API de collaborators, não memória): o repo tem 5
+# collaborators — @wagnerra23 (admin) e @LuizWr2, @SupportWR, @grokwr2, @felipewr2-cell
+# (write). A redação anterior desta linha dizia "TIME AINDA NÃO É COLABORADOR DO REPO,
+# só @wagnerra23 é dono válido hoje" — era verdade quando escrita (2026-06-03) e ficou
+# FALSA sem avisar, e foi ela que sustentou 3 meses de `# TODO`.
+# Handle se confere na API, nunca se adivinha do nome: @SupportWR é a **Maiara**.
+# Pra pôr alguém como dono: (1) confirmar write na API; (2) trocar `# TODO` pelo @handle.
 
 # ──────────────────────────────────────────────
 # 💰 DINHEIRO / FISCAL / RECORRÊNCIA — Wagner (Eliana futura)
@@ -27,19 +40,67 @@ memory/requisitos/RecurringBilling/ @wagnerra23
 memory/requisitos/Boleto.md         @wagnerra23
 
 # ──────────────────────────────────────────────
-# 🔒 LGPD / DADOS PESSOAIS — Wagner (Felipe futuro)
+# 🛒 VENDA — Wagner + Felipe
 # ──────────────────────────────────────────────
-Modules/Jana/                       @wagnerra23   # ex-Copiloto (rename ADR 0088) — TODO: + @<handle Felipe>
+# [W] 2026-09-21, textual: *"quem é o dono da venda então, é o Felipe"*. Registro do
+# ato em TEAM.md §3.3.1; aqui é o enforcement.
+#
+# A venda NÃO é um módulo — `Modules/Sells` não existe. São 6 paths do núcleo
+# UltimatePOS, 197 arquivos medidos em 2026-09-22 (re-rode, não cite este número):
+#   git ls-tree -r origin/main --name-only -- resources/js/Pages/Sells \
+#     app/Http/Controllers/SellController.php app/Http/Controllers/SellPosController.php \
+#     resources/views/sell resources/views/sale_pos memory/requisitos/Sells | wc -l
+#
+# Por que ela é dono-obrigatório embora `resources/js/` seja zona livre: a venda é o
+# chokepoint da regra Tier 0 "CÁLCULO DE VALOR ou ESTOQUE" (memory/proibicoes.md) — em
+# 2026-06-05 o `Util::num_uf` inflou 16 vendas do biz=4 (cliente real) antes de alguém ver.
+#
+# OS DOIS handles, de propósito: qualquer um dos dois aprova. Só @felipewr2-cell
+# travaria o [W], porque o GitHub não deixa ninguém aprovar PR próprio.
+resources/js/Pages/Sells/                   @wagnerra23 @felipewr2-cell
+app/Http/Controllers/SellController.php     @wagnerra23 @felipewr2-cell
+app/Http/Controllers/SellPosController.php  @wagnerra23 @felipewr2-cell
+resources/views/sell/                       @wagnerra23 @felipewr2-cell   # Blade legada (MWART pendente)
+resources/views/sale_pos/                   @wagnerra23 @felipewr2-cell   # Blade legada (MWART pendente)
+memory/requisitos/Sells/                    @wagnerra23 @felipewr2-cell   # SPEC · charter · casos
+
+# ──────────────────────────────────────────────
+# 🔒 LGPD / DADOS PESSOAIS — Wagner (+ Felipe em Modules/Jana/)
+# ──────────────────────────────────────────────
+# O `# TODO: + @<handle Felipe>` desta linha foi preenchido por ato do [W] em
+# 2026-09-22 ("agora preenche o TODO da Jana e do SRS"). Handle conferido na
+# fonte primária, não adivinhado do nome: @felipewr2-cell autora commits deste
+# repo com `felipewr2@gmail.com`, e o corpo deles diz "maquina Felipe" /
+# "conta felipewr2".
+# ⚠️ O [W] nomeou a JANA, não o bloco LGPD inteiro — as 5 linhas abaixo
+# seguem só com @wagnerra23 DE PROPÓSITO. Estendê-las é ato dele, não
+# "completar o que faltou" (dono inventado parece canon — TEAM.md §3.3).
+Modules/Jana/                       @wagnerra23 @felipewr2-cell   # ex-Copiloto (rename ADR 0088)
 memory/requisitos/Jana/             @wagnerra23   # docs LGPD-crítico (SPEC, PII-REDACTION, retention). Ghost-dir requisitos/Copiloto/ migrado p/ cá em 2026-07-01 (só lápides restam, sem conteúdo LGPD)
 memory/requisitos/EvolutionAgent/   @wagnerra23
 Modules/Ponto/                      @wagnerra23   # ponto eletrônico = dado pessoal (ex-PontoWr2)
 memory/requisitos/Ponto/            @wagnerra23   # docs ponto (dir canônico atual)
 memory/requisitos/PontoWr2/         @wagnerra23   # docs ponto legacy (ainda com arquivos)
 
-# ──────────────────────────────────────────────
-# 🗝️ SEGREDOS / COFRE — Wagner
-# ──────────────────────────────────────────────
-Modules/SRS/                        @wagnerra23   # ex-MemCofre, em deprecação — TODO: + @<handle Maiara> @<handle Felipe>
+# ⚰️ A seção "🗝️ SEGREDOS / COFRE" foi REMOVIDA em 2026-09-22, por ato do [W]
+# ("tira a regra do SRS, o módulo não existe mais"). Ela tinha UMA regra —
+# `Modules/SRS/` —, fóssil do rename `MemCofre`→`SRS` (#3559, 2026-07-01), cujo
+# módulo foi deletado depois. NÃO recriar: ressuscitar o SRS é proibido
+# (§5 2026-07-29); os sucessores são `Modules/KB`, `Modules/Jana` e
+# `Modules/Governance`.
+#
+# ⚠️ E o que a remoção NÃO tirou, porque nunca existiu: medido em 2026-09-22,
+# ZERO regras deste arquivo casavam path de segredo/cofre/credencial — o nome
+# da seção prometia mais do que ela entregava. Quem de fato governa segredo é
+# o Vaultwarden ([ADR 0044]) + `_INDEX-SECRETS.md` + o gitleaks do CI, não
+# reviewer obrigatório aqui. Se um path de segredo tiver que exigir review, é
+# regra NOVA com path REAL — não a volta desta.
+#   git show origin/main:.github/CODEOWNERS | sed 's/#.*//' | grep -vE '^\s*$' \
+#     | grep -icE 'secret|vault|cofre|credential|\.env'     # controle: 'Modules/' > 0
+#
+# ⚠️ Consequência mecânica, declarada e NÃO consertada aqui: @SupportWR (Maiara)
+# ficou com ZERO regras — esta era a única dela. Pôr a Maiara como dona de algo
+# é ato do [W], não conserto de passagem (dono inventado parece canon).
 
 # ──────────────────────────────────────────────
 # 🏗️ INFRA / CI / DEPLOY / GOVERNANÇA — Wagner (ninguém mergeia sem ele)
@@ -53,6 +114,12 @@ TEAM.md                             @wagnerra23
 
 # ──────────────────────────────────────────────
 # LIVRE (sem owner obrigatório) — PR verde mergeável sem Wagner:
-#   resources/js/ (frontend) · Modules/Cms (landing) · demais Modules/ ·
+#   resources/js/ (frontend) — EXCETO `resources/js/Pages/Sells/` ·
+#   Modules/Cms (landing) · demais Modules/ ·
 #   memory/sessions/ · memory/handoffs/ · memory/requisitos não-críticos · etc.
+#
+# ⚠️ A venda SAIU da zona livre em 2026-09-22 (seção 🛒 acima): além de
+# `Pages/Sells/`, saíram `resources/views/sell/`, `resources/views/sale_pos/` e
+# `memory/requisitos/Sells/`. Este parágrafo é o único lugar do arquivo que
+# enumerava a zona livre — recortá-la aqui é parte do ato, não zelo.
 # ──────────────────────────────────────────────

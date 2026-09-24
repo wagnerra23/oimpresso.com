@@ -182,7 +182,11 @@ const rankDoc = (rel) =>
 // tokens viram chaves. As tabelas consultam depois. Assim a enumeração das máquinas
 // continua morando numa seção só (a que imprime a tabela) — sem lista paralela pra
 // drifar, que é como um índice deste tipo apodrece.
-const RX_ARQUIVO = /[\w.-]+\.(?:mjs|js|cjs|yml|yaml|json)/g;
+// Ordem das extensões importa: em regex JS a 1ª alternativa que casa vence, e com `js`
+// antes de `json` o path `governance/foo-baseline.json` virava o token `foo-baseline.js`
+// e o baseline nunca contava como citado fora de crase. `json` vem antes de `js`, e o
+// `\b` final impede `foo.jsonl`/`foo.jsx` de virarem `foo.json`/`foo.js`.
+const RX_ARQUIVO = /[\w.-]+\.(?:json|mjs|cjs|js|yaml|yml)\b/g;
 const RX_CRASE = /`([a-z0-9][\w.-]*)`/gi;
 const RX_PASTA = /(?:skills|agents)\/([\w.-]+)/g;
 
@@ -538,6 +542,11 @@ const grepAmplo = (pattern) => {
 // exemplo, e o script passou a se ver como invocado por este arquivo). É o
 // auto-silenciamento já catalogado — o mecanismo casando com o próprio texto.
 const SELF_REL = 'scripts/governance/maquinas-inventario.mjs';
+// O bite-test deste gerador também DOCUMENTA — cita nomes de baseline/script para asserir
+// sobre a tabela. Contado como fonte, ele vira "leitor"/"invocador" de tudo que testa e o
+// assert passa a medir o próprio texto (medido 2026-09-22: os 3 baselines do teste da coluna
+// Leitor viraram `script` por causa dele). Mesma exclusão do SELF_REL, mesmo motivo.
+const SELF_TEST_REL = 'scripts/governance/maquinas-inventario.test.mjs';
 
 // ── eixo RISCO da família `scripts` (gate D2 da Trilha D) ────────────────────
 // Só "escreve em disco", medido por CHAMADA DE API — não por prosa. O
@@ -568,7 +577,7 @@ const invocadorDe = (rel, file) => {
   for (const [kind, arr] of FONTES_INVOC) {
     for (const a of arr) {
       if (a.rel === rel) continue;
-      if (a.rel === SELF_REL) continue; // documenta, não invoca (ver nota acima)
+      if (a.rel === SELF_REL || a.rel === SELF_TEST_REL) continue; // documenta, não invoca (ver nota acima)
       if (a.rel === testRel) { soTeste = true; continue; }
       if (!a.txt.includes(file)) continue;
       if (citaOScript(a.txt, file, testFile)) kinds.add(kind);
@@ -689,11 +698,46 @@ const leitorDe = (rel) => {
   const kinds = new Set();
   for (const [kind, arr] of FONTES_INVOC) {
     for (const a of arr) {
-      if (a.rel === rel || a.rel === SELF_REL) continue;
+      if (a.rel === rel || a.rel === SELF_REL || a.rel === SELF_TEST_REL) continue;
       if (a.txt.includes(rel) || a.txt.includes(base)) kinds.add(kind);
     }
   }
+  if (kinds.size === 0) {
+    // Fallback PHP — o mesmo buraco que o `invocadorDe` já fecha para script. As fontes
+    // acima são workflows, package.json, `.claude/**` e `scripts/**`; um baseline lido por
+    // TESTE PHP (Pest de arquitetura) caía em `—` e era listado como estado morto.
+    // Medido 2026-09-22: `multi-tenant-scope-baseline.json` e `multi-tenant-global-model-
+    // contract.json` são lidos por `tests/Feature/Architecture/MultiTenantScopeArchitectureTest.php`
+    // (lane required `multi-tenant-gate.yml`) e saíam como "nenhum consumidor".
+    // Só conta leitura em LITERAL de string: o nome também aparece em docblock de Model e
+    // migration ("Registrado em governance/…json > allowlist"), e comentário não é leitor.
+    const r = leitorPhpDe(rel);
+    if (r === null) return '?'; // não medido — não afirmar ausência
+    if (r) kinds.add('php');
+  }
   return kinds.size ? [...kinds].sort().join(', ') : '—';
+};
+
+/**
+ * `true` se algum `.php` versionado cita `rel` DENTRO de um literal de string ('…' ou "…");
+ * `false` se nenhum; `null` se a varredura falhou.
+ */
+export function citaEmLiteralPhp(texto, rel) {
+  const esc = rel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`['"][^'"\\n]*${esc}['"]`).test(texto);
+}
+const leitorPhpDe = (rel) => {
+  let r;
+  try {
+    r = execFileSync('git', ['grep', '-l', '-F', '-e', rel, '--', '*.php'],
+      { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (e) {
+    if (e.status === 1) return false;
+    return null;
+  }
+  return r.split('\n').filter(Boolean).some((f) => {
+    try { return citaEmLiteralPhp(readFileSync(join(ROOT, f), 'utf8'), rel); } catch { return false; }
+  });
 };
 P('| Arquivo | Leitor | Documento | `_meta` / propósito |');
 P('|---|---|---|---|');

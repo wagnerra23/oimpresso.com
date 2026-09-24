@@ -47,12 +47,12 @@ Mostrar **fluxo de caixa em duas óticas** (Projetado dia-a-dia próximos 35d + 
 - 4 KPI cards: **Saldo hoje** (soma `ContaBancaria.saldo_cached`), **Projeção 30 dias** (com delta vs hoje + tone emerald/rose), **Pior dia previsto** (tone amber), **Margem mínima** (R$ [redacted Tier 0] hardcode F1)
 - KPI "Saldo hoje" mostra caption com nome da conta principal (+ "outras N" se >1 conta)
 - Gráfico de barras 35 dias com linha tracejada amber pra margem mínima
-- Barras coloridas por estado:
-  - `bg-stone-300` (passado, histórico -2d)
-  - `bg-stone-900` (hoje)
-  - `bg-stone-700` (futuro)
-  - `bg-amber-500` (qualquer dia abaixo da margem mínima — alerta visual)
-- Hover na barra: tooltip com `data_label · saldo_acumulado` em fundo `bg-stone-900`
+- Barras coloridas por estado (tokens do tema desde a FIN-2, 2026-09-23 — antes `stone-300/900/700` e `amber-500`, que não seguiam o tema):
+  - `var(--border)` (passado, histórico -2d)
+  - `var(--accent)` (hoje)
+  - `var(--text-mute)` (futuro)
+  - `!bg-[var(--warn)]` (qualquer dia abaixo da margem mínima — alerta visual; mesma condição e mesmo `!important`)
+- Hover na barra: tooltip com `data_label · saldo_acumulado` no tom escuro `.fin-ink` do protótipo
 - Tabela "Próximos eventos" (7 dias adiante) com colunas: data | seta ↓/↑ (kind) | descrição | contraparte | categoria | valor | saldo acumulado
 - Setas `↓ emerald` (recebimento) / `↑ rose` (pagamento) com fundo colorido
 - Valor com sinal `+`/`−` formatado BRL com `tabular-nums`

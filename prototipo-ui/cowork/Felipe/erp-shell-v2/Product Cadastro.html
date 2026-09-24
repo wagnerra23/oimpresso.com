@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<title>Cadastro de Produto — Oimpresso ERP</title>
+<style>
+  :root{
+    --bg:#f6f4ef;--paper:#fff;--ink:#1a1917;--ink-2:#5b574f;--ink-3:#8b8580;
+    --line:#e5e0d3;--line-2:#efeae0;
+    --accent:#1f3a5f;--accent-soft:#eaf0f7;--accent-2:#173049;
+    --ok:#1f6d3a;--ok-soft:#e6f1e8;
+    --warn:#a35a00;--warn-soft:#fbf0dc;
+    --err:#9a2d2d;--err-soft:#fbe9e9;
+    --radius:6px;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:13.5px/1.45 ui-sans-serif,system-ui,-apple-system,sans-serif}
+  button,input,select,textarea{font:inherit}
+
+  /* HEADER */
+  .topbar{background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:10px 24px;position:sticky;top:0;z-index:10}
+  .crumbs{font-size:11.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em}
+  .crumbs b{color:var(--ink-2)}
+  .topbar h1{margin:0;font-size:17px;font-weight:600;letter-spacing:-.01em}
+  .topbar .id{font-family:var(--mono);font-size:11px;color:var(--ink-3);padding:2px 7px;border:1px solid var(--line);border-radius:4px}
+  .topbar .sp{flex:1}
+  .btn{border:1px solid var(--line);background:#fff;padding:6px 13px;border-radius:5px;font-size:12.5px;color:var(--ink);cursor:pointer}
+  .btn:hover{border-color:#c5beae;background:#fbf9f3}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .btn.primary:hover{background:var(--accent-2)}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+  .btn.ghost:hover{background:var(--line-2)}
+  .btn.sm{padding:3px 8px;font-size:11.5px}
+  .save-group{display:flex;gap:0}
+  .save-group .primary{border-radius:5px 0 0 5px}
+  .save-group .more{border-radius:0 5px 5px 0;border-left:1px solid #2a4870;padding:6px 8px;background:var(--accent);color:#fff}
+  .save-group .more:hover{background:var(--accent-2)}
+
+  /* LAYOUT */
+  .shell{display:grid;grid-template-columns:220px 1fr 320px;gap:0;min-height:calc(100vh - 56px)}
+
+  /* NAV LATERAL */
+  .nav{background:#fbf9f3;border-right:1px solid var(--line);padding:14px 0}
+  .nav h4{margin:0 14px 8px;font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+  .nav a{display:flex;align-items:center;gap:10px;padding:8px 14px;color:var(--ink-2);text-decoration:none;font-size:13px;border-left:2px solid transparent;cursor:pointer}
+  .nav a:hover{background:#fff;color:var(--ink)}
+  .nav a.active{background:#fff;color:var(--accent);border-left-color:var(--accent);font-weight:600}
+  .nav a .n{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;background:var(--line-2);color:var(--ink-2);font-size:10.5px;border-radius:99px;font-family:var(--mono);font-weight:700}
+  .nav a.active .n{background:var(--accent);color:#fff}
+  .nav a .badge{margin-left:auto;font-size:10px;color:var(--err);background:var(--err-soft);padding:1px 5px;border-radius:99px;font-weight:600}
+  .nav a.done .n{background:var(--ok);color:#fff}
+
+  /* MAIN */
+  .main{padding:24px 28px;max-width:780px;overflow:auto}
+  .panel{display:none}
+  .panel.active{display:block;animation:fade .15s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:none}}
+  .panel-head{margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line-2)}
+  .panel-head h2{margin:0 0 3px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+  .panel-head p{margin:0;color:var(--ink-2);font-size:12.5px}
+
+  /* FORM */
+  .row{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-bottom:14px}
+  .f{display:flex;flex-direction:column;gap:5px}
+  .f-12{grid-column:span 12}.f-8{grid-column:span 8}.f-6{grid-column:span 6}.f-4{grid-column:span 4}.f-3{grid-column:span 3}.f-2{grid-column:span 2}
+  label{font-size:11.5px;color:var(--ink-2);font-weight:600;text-transform:uppercase;letter-spacing:.03em;display:flex;align-items:center;gap:5px}
+  label .req{color:var(--err);font-size:10px}
+  label .hint{font-size:10px;color:var(--ink-3);font-weight:400;text-transform:none;letter-spacing:0;margin-left:auto}
+  input[type=text],input[type=number],input[type=date],select,textarea{background:#fff;border:1px solid var(--line);border-radius:5px;padding:7px 10px;font-size:13.5px;color:var(--ink);outline:none;font-family:inherit;width:100%}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  input.mono{font-family:var(--mono);font-size:13px}
+  textarea{min-height:80px;resize:vertical;font-family:inherit;line-height:1.5}
+  .input-group{display:flex}
+  .input-group input{border-radius:5px 0 0 5px}
+  .input-group .suffix{background:#fbf9f3;border:1px solid var(--line);border-left:none;border-radius:0 5px 5px 0;padding:7px 10px;font-size:12px;color:var(--ink-3);font-family:var(--mono);display:flex;align-items:center;gap:4px}
+  .input-group .suffix.btn{cursor:pointer;color:var(--accent)}
+  .input-group .suffix.btn:hover{background:var(--line-2)}
+  .help{font-size:11px;color:var(--ink-3);margin-top:-2px}
+
+  .check{display:flex;align-items:center;gap:8px;padding:8px 11px;background:#fff;border:1px solid var(--line);border-radius:5px;cursor:pointer}
+  .check input{width:14px;height:14px;accent-color:var(--accent);cursor:pointer}
+  .check b{font-size:12.5px;font-weight:600}
+  .check small{color:var(--ink-3);font-size:11px;display:block;margin-top:1px;font-weight:400}
+  .check label{flex:1;text-transform:none;letter-spacing:0;color:var(--ink);cursor:pointer}
+
+  /* CARDS DENTRO DE PAINEL */
+  .card{background:#fff;border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:14px}
+  .card-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line-2)}
+  .card-head h3{margin:0;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .card-head h3 .badge-num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;background:var(--accent);color:#fff;font-size:10.5px;border-radius:99px;font-family:var(--mono);font-weight:700}
+  .card-head small{font-size:11px;color:var(--ink-3)}
+
+  /* SEGMENTED */
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:5px;overflow:hidden;background:#fff}
+  .seg button{border:none;background:transparent;padding:6px 12px;font-size:12px;color:var(--ink-2);cursor:pointer;border-right:1px solid var(--line)}
+  .seg button:last-child{border-right:none}
+  .seg button.active{background:var(--accent);color:#fff;font-weight:600}
+  .seg button:hover:not(.active){background:#fbf9f3;color:var(--ink)}
+
+  /* CHIPS */
+  .chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:var(--accent-soft);color:var(--accent);border:1px solid #c9d6e8;border-radius:99px;font-size:11.5px;font-weight:600}
+  .chip button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;padding:0;display:flex;align-items:center}
+  .chip button:hover{color:var(--err)}
+  .chip-add{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:transparent;color:var(--ink-2);border:1px dashed var(--line);border-radius:99px;font-size:11.5px;cursor:pointer}
+  .chip-add:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+
+  /* IMAGE DROP */
+  .img-drop{border:2px dashed var(--line);border-radius:6px;padding:24px;text-align:center;background:#fbf9f3;cursor:pointer;transition:border-color .15s,background .15s}
+  .img-drop:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .img-drop .ic{font-size:28px;color:var(--ink-3);line-height:1;margin-bottom:6px}
+  .img-drop b{display:block;font-size:13px;font-weight:600;margin-bottom:3px}
+  .img-drop small{color:var(--ink-3);font-size:11px}
+
+  /* TABLES INLINE */
+  table.t{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.t th{text-align:left;padding:7px 8px;background:#fbf9f3;border-bottom:1px solid var(--line);font-weight:600;color:var(--ink-2);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em}
+  table.t td{padding:5px 8px;border-bottom:1px solid var(--line-2)}
+  table.t td input{padding:4px 7px;font-size:12.5px}
+  table.t tr:last-child td{border-bottom:none}
+  table.t .num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+
+  /* MATRIZ VARIAÇÕES */
+  .var-matrix{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:5px;margin-top:10px}
+  .var-matrix th{background:#fbf9f3;border-bottom:1px solid var(--line);border-right:1px solid var(--line-2);padding:8px 10px;font-size:11px;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+  .var-matrix th:first-child{position:sticky;left:0;z-index:2}
+  .var-matrix td{padding:5px;border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
+  .var-matrix td:first-child{background:#fbf9f3;font-weight:600;font-size:12px;padding:8px 12px;position:sticky;left:0;border-right:1px solid var(--line)}
+  .var-matrix input{padding:4px 7px;font-size:12px;width:80px}
+
+  /* PREVIEW (lateral direita) */
+  .preview{background:#fbf9f3;border-left:1px solid var(--line);padding:20px;overflow:auto;position:sticky;top:56px;height:calc(100vh - 56px)}
+  .preview h4{margin:0 0 12px;font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+  .preview .live-warn{font-size:11px;color:var(--warn);background:var(--warn-soft);border:1px solid #f1d499;padding:5px 9px;border-radius:4px;margin-bottom:12px}
+
+  /* card preview = igual ao do picker */
+  .pcard{background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden;position:relative}
+  .pcard .img{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:600;color:#fff;letter-spacing:-.02em;position:relative}
+  .pcard .img .cat-mini{position:absolute;top:6px;left:6px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,255,255,.85);color:var(--ink);padding:2px 7px;border-radius:99px}
+  .pcard .info{padding:9px 11px}
+  .pcard .info b{font-size:13px;font-weight:600;line-height:1.3;text-wrap:pretty;display:block}
+  .pcard .info small{font-size:10.5px;color:var(--ink-3);font-family:var(--mono)}
+  .pcard .footer{display:flex;align-items:flex-end;justify-content:space-between;padding:8px 11px;border-top:1px solid var(--line-2);background:#fbf9f3}
+  .pcard .price{font-family:var(--mono);font-size:13.5px;font-weight:700}
+  .pcard .price small{display:block;font-size:9.5px;color:var(--ink-3);font-family:ui-sans-serif;font-weight:400}
+  .pcard .lead{font-size:10.5px;color:var(--ink-2);text-align:right}
+  .pcard .lead b{display:block;font-weight:600;font-size:11.5px;color:var(--ink)}
+
+  /* RESUMO PREVIEW */
+  .summary{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:5px;padding:11px 13px;font-size:12px}
+  .summary .ln{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--line-2)}
+  .summary .ln:last-child{border-bottom:none;padding-top:7px;margin-top:4px;border-top:1px solid var(--line);font-weight:600}
+  .summary .ln span:first-child{color:var(--ink-3)}
+  .summary .ln span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .summary .ln.margin span:last-child{color:var(--ok);font-weight:700}
+
+  .preview-actions{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+
+  /* CALC margem */
+  .calc{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:8px;align-items:end;background:var(--accent-soft);border:1px solid #c9d6e8;border-radius:6px;padding:12px;margin-top:8px}
+  .calc .op{font-size:18px;color:var(--accent);font-weight:600;padding-bottom:7px;text-align:center}
+  .calc label{color:var(--accent)}
+  .calc input{border-color:#c9d6e8;background:#fff}
+  .calc input:focus{border-color:var(--accent)}
+
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+const CAT_COLORS = {
+  "Comunicação Visual":"#c97a3a","Vestuário":"#3a4a5e","Impressão Digital":"#1f5a8a",
+  "Brindes":"#7a3a5e","Acabamento":"#4a6a3a","Adesivos":"#a85a1f","":"#8b8580"
+};
+
+const fmt = (n)=> isNaN(n)||n===null||n===""||n===undefined ? "R$ 0,00" : "R$ "+Number(n).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+
+// ─── TABS DEFINITIONS ───
+const TABS = [
+  { id:"id",      title:"Identificação",    desc:"Nome, código, categoria, marca" },
+  { id:"media",   title:"Imagens & descrição", desc:"Como aparece pro cliente" },
+  { id:"stock",   title:"Estoque & local",   desc:"Quantidades, alertas, prateleira" },
+  { id:"price",   title:"Preços",            desc:"Custo, margem, tabelas por grupo" },
+  { id:"fiscal",  title:"Fiscal",            desc:"NCM, CFOP, CEST, tributação" },
+  { id:"variants",title:"Variações",         desc:"Tamanho, cor — só p/ tipo variável" },
+  { id:"bom",     title:"Composição",        desc:"Insumos — só p/ tipo combo" },
+  { id:"advanced",title:"Avançado",          desc:"Peso, prazo, campos custom" },
+];
+
+function App(){
+  const [tab, setTab] = useState("id");
+
+  // ─── STATE ───
+  const [p, setP] = useState({
+    name:"", sku:"", barcodeType:"C128",
+    type:"single", // single | variable | combo
+    cat:"Comunicação Visual", subcat:"", brand:"",
+    unit:"un", subUnits:["m²"], secondaryUnit:"",
+    description:"",
+    // estoque
+    manageStock:true, alertQty:5, locations:["Matriz"], racks:{Matriz:{rack:"",row:"",pos:""}},
+    // preços
+    cost:0, marginPct:40, price:0, priceCalcDir:"cost-to-price",
+    priceGroups:{ "Balcão":0, "Varejo":0, "Atacado":0 },
+    // fiscal
+    ncm:"", cfop:"5102", cest:"", origin:"0", icmsCst:"00", icmsAliq:0, ipiCst:"99", pisCst:"01", cofinsCst:"01", serviceCode:"",
+    // variações
+    variants:{ attrs:[{name:"Cor",values:["Preto","Branco"]},{name:"Tamanho",values:["P","M","G"]}] },
+    // bom
+    bom:[{ id:"PROD-200", name:"Lona 380gr", qty:6, unit:"m²", cost:8.50 }],
+    // avançado
+    weight:"", prepTime:"", warranty:"", expiryPeriod:""
+  });
+
+  const set = (k, v) => setP(prev => ({ ...prev, [k]: v }));
+
+  // ─── CALC margem ───
+  const recalc = (field, val) => {
+    val = parseFloat(val) || 0;
+    const next = { ...p, [field]: val };
+    if (field === "cost") next.price = +(val * (1 + p.marginPct/100)).toFixed(2);
+    else if (field === "marginPct") next.price = +(p.cost * (1 + val/100)).toFixed(2);
+    else if (field === "price"){
+      next.marginPct = p.cost > 0 ? +(((val/p.cost) - 1) * 100).toFixed(1) : 0;
+    }
+    setP(next);
+  };
+
+  // ─── COMPLETUDE por aba ───
+  const status = useMemo(() => ({
+    id: p.name.trim().length > 2,
+    media: p.description.trim().length > 5,
+    stock: p.manageStock ? p.alertQty >= 0 : true,
+    price: p.cost > 0 && p.price > 0,
+    fiscal: p.ncm.length >= 8,
+    variants: p.type !== "variable" || p.variants.attrs.length > 0,
+    bom: p.type !== "combo" || p.bom.length > 0,
+    advanced: true,
+  }), [p]);
+
+  // ─── PREVIEW ───
+  const totalCostBOM = useMemo(() => p.bom.reduce((s,i)=> s + (i.qty * i.cost), 0), [p.bom]);
+  const initials = (p.name || "??").split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+
+  return (
+    <>
+      {/* TOPBAR */}
+      <div className="topbar">
+        <div className="crumbs"><span>ERP</span> · <span>Produtos</span> · <b>Cadastrar</b></div>
+        <h1>{p.name || "Novo produto"}</h1>
+        <span className="id">{p.sku || "SKU automático"}</span>
+        <div className="sp"></div>
+        <button className="btn ghost">Cancelar</button>
+        <button className="btn">Salvar e novo</button>
+        <div className="save-group">
+          <button className="btn primary">Salvar produto</button>
+          <button className="more" title="Mais opções">▾</button>
+        </div>
+      </div>
+
+      <div className="shell">
+
+        {/* NAV LATERAL */}
+        <aside className="nav">
+          <h4>Cadastro</h4>
+          {TABS.filter(t =>
+            (t.id !== "variants" || p.type === "variable") &&
+            (t.id !== "bom" || p.type === "combo")
+          ).map((t, i) => (
+            <a key={t.id} className={`${tab===t.id?'active':''} ${status[t.id]?'done':''}`} onClick={() => setTab(t.id)}>
+              <span className="n">{i+1}</span>
+              <span>{t.title}</span>
+              {!status[t.id] && t.id !== "advanced" && <span className="badge">!</span>}
+            </a>
+          ))}
+        </aside>
+
+        {/* MAIN PANEL */}
+        <main className="main">
+
+          {/* ── IDENTIFICAÇÃO ── */}
+          <section className={`panel ${tab==='id'?'active':''}`}>
+            <div className="panel-head">
+              <h2>Identificação</h2>
+              <p>Como o produto é catalogado internamente e encontrado na busca.</p>
+            </div>
+
+            <div className="card">
+              <div className="card-head"><h3><span className="badge-num">1</span> Tipo de produto</h3><small>Define formulário e estoque</small></div>
+              <div className="seg" style={{width:"100%"}}>
+                {[
+                  ["single","● Simples","SKU único"],
+                  ["variable","◆ Variável","Tamanho/cor → matriz de SKUs"],
+                  ["combo","▣ Composto","Receita / ficha técnica"]
+                ].map(([v,l,d]) => (
+                  <button key={v} className={p.type===v?'active':''} onClick={()=>set('type',v)} style={{flex:1, padding:"10px 12px", textAlign:"left"}}>
+                    <div style={{fontWeight:600,fontSize:13}}>{l}</div>
+                    <small style={{opacity:.7,fontSize:11,fontWeight:400}}>{d}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-head"><h3><span className="badge-num">2</span> Dados básicos</h3></div>
+              <div className="row">
+                <div className="f f-8"><label>Nome do produto <span className="req">*</span></label>
+                  <input type="text" value={p.name} onChange={e=>set('name',e.target.value)} placeholder="Ex: Banner lona 380gr 3×2m"/>
+                </div>
+                <div className="f f-4"><label>SKU <span className="hint">auto se vazio</span></label>
+                  <input type="text" className="mono" value={p.sku} onChange={e=>set('sku',e.target.value)} placeholder="PROD-018"/>
+                </div>
+                <div className="f f-6"><label>Categoria</label>
+                  <select value={p.cat} onChange={e=>set('cat',e.target.value)}>
+                    {Object.keys(CAT_COLORS).filter(k=>k).map(c=><option key={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div className="f f-6"><label>Subcategoria</label>
+                  <select value={p.subcat} onChange={e=>set('subcat',e.target.value)}>
+                    <option value="">— selecione —</option><option>Banners</option><option>Lonas</option><option>Faixas</option>
+                  </select>
+                </div>
+                <div className="f f-6"><label>Marca</label>
+                  <input type="text" value={p.brand} onChange={e=>set('brand',e.target.value)} placeholder="Ex: Coral"/>
+                </div>
+                <div className="f f-6"><label>Tipo de código de barras</label>
+                  <select value={p.barcodeType} onChange={e=>set('barcodeType',e.target.value)}>
+                    <option value="C128">CODE 128 (padrão)</option><option value="C39">CODE 39</option><option value="EAN13">EAN-13</option><option value="EAN8">EAN-8</option><option value="UPC">UPC-A</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-head"><h3><span className="badge-num">3</span> Unidades</h3><small>Como vende</small></div>
+              <div className="row">
+                <div className="f f-4"><label>Unidade principal <span className="req">*</span></label>
+                  <select value={p.unit} onChange={e=>set('unit',e.target.value)}>
+                    <option>un</option><option>m²</option><option>m</option><option>kg</option><option>milheiro</option><option>cento</option>
+                  </select>
+                </div>
+                <div className="f f-8"><label>Subunidades relacionadas <span className="hint">conversões</span></label>
+                  <div className="chips" style={{padding:"6px 8px",background:"#fff",border:"1px solid var(--line)",borderRadius:5,minHeight:34}}>
+                    {p.subUnits.map(u=>(<span key={u} className="chip">{u}<button>×</button></span>))}
+                    <button className="chip-add">+ adicionar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ── MEDIA ── */}
+          <section className={`panel ${tab==='media'?'active':''}`}>
+            <div className="panel-head"><h2>Imagens & descrição</h2><p>O que o cliente vê na vitrine e no balcão.</p></div>
+
+            <div className="card">
+              <div className="card-head"><h3><span className="badge-num">1</span> Imagem principal</h3><small>aspecto 1:1 · até 5 MB</small></div>
+              <div className="img-drop">
+                <div className="ic">⊞</div>
+                <b>Arraste ou clique pra enviar</b>
+                <small>PNG ou JPG · usado no picker, etiquetas e catálogo</small>
+              </div>
+              <div className="help" style={{marginTop:8}}>Enquanto não houver imagem, o produto aparece como placeholder colorido por categoria.</div>
+            </div>
+
+            <div className="card">
+              <div className="card-head"><h3><span className="badge-num">2</span> Descrição</h3></div>
+              <div className="row">
+                <div className="f f-12">
+                  <label>Descrição comercial <span className="hint">aparece em orçamentos, vitrine, NFS-e</span></label>
+                  <textarea value={p.description} onChange={e=>set('description',e.target.value)} placeholder="Descreva o produto pro cliente — material, acabamento, prazo padrão."></textarea>
+                </div>
+                <div className="f f-12"><label>Folder/PDF técnico <span className="hint">opcional</span></label>
+                  <input type="text" placeholder="Anexar arquivo..." disabled style={{background:"#fbf9f3",color:"var(--ink-3)"}}/>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ── ESTOQUE ── */}
+          <section className={`panel ${tab==='stock'?'active':''}`}>
+            <div className="panel-head"><h2>Estoque & localização</h2><p>Quantidades, alertas e onde guardar.</p></div>
+
+            <div className="card">
+              <div className="card-head"><h3><span className="badge-num">1</span> Gestão</h3></div>
+              <div className="row">
+                <div className="f f-12">
+                  <div className="check" onClick={()=>set('manageStock',!p.manageStock)} style={{cursor:"pointer"}}>
+                    <input type="checkbox" checked={p.manageStock} readOnly/>
+                    <label>
+                      <b>Gerenciar estoque deste produto</b>
+                      <small>Desmarcar pra serviços ou itens com estoque infinito (ex: hora de mão-de-obra).</small>
+                    </label>
+                  </div>
+                </div>
+                {p.manageStock && (
+                  <div className="f f-4"><label>Alerta de quantidade <span className="hint">mínimo</span></label>
+                    <input type="number" value={p.alertQty} onChange={e=>set('alertQty',e.target.value)}/>
+                  </div>
+                )}
+                <div className="f f-4"><label>Não vendável</label>
+                  <div className="check"><input type="checkbox"/><label><b>Bloquear venda</b><small>Pra insumos internos</small></label></div>
+                </div>
+                <div className="f f-4"><label>Controle de IMEI / nº série</label>
+                  <div className="check"><input type="checkbox"/><label><b>Rastreável</b><small>Pra eletrônicos</small></label></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-head"><h3><span className="badge-num">2</span> Locais de negócio</h3><small>onde fica fisicamente</small></div>
+              <div className="chips" style={{marginBottom:10}}>
+                <span className="chip">Matriz<button>×</button></span>
+                <button className="chip-add">+ filial</button>
+              </div>
+              <table className="t">
+                <thead><tr><th>Local</th><th>Prateleira</th><th>Linha</th><th>Posição</th></tr></thead>
+                <tbody>
+                  <tr><td><b>Matriz</b></td>
+                    <td><input type="text" placeholder="A"/></td>
+                    <td><input type="text" placeholder="3"/></td>
+                    <td><input type="text" placeholder="12"/></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* ── PREÇOS ── */}
+          <section className={`panel ${tab==='price'?'active':''}`}>
+            <div className="panel-head"><h2>Preços</h2><p>Custo, margem e tabelas por grupo de cliente.</p></div>
+
+            <div className="card">
+              <div className="card-head"><h3><span className="badge-num">1</span> Cálculo custo → margem → venda</h3><small>edite qualquer campo, os outros recalculam</small></div>
+              <div className="calc">
+                <div className="f">
+                  <label>Custo unitário</label>
+                  <div className="input-group">
+                    <input type="number" step="0.01" value={p.cost} onChange={e=>recalc('cost',e.target.value)}/>
+                    <span className="suffix">R$</span>
+                  </div>
+                </div>
+                <div className="op">×</div>
+                <div className="f">
+                  <label>Margem alvo</label>
+                  <div className="input-group">
+                    <input type="number" step="0.5" value={p.marginPct} onChange={e=>recalc('marginPct',e.target.value)}/>
+                    <span className="suffix">%</span>
+                  </div>
+                </div>
+                <div className="op">=</div>
+                <div className="f">
+                  <label>Preço de venda</label>
+                  <div className="input-group">
+                    <input type="number" step="0.01" value={p.price} onChange={e=>recalc('price',e.target.value)}/>
+                    <span className="suffix">R$/{p.unit}</span>
+                  </div>
+                </div>
+              </div>
+              {p.type === "combo" && (
+                <div className="help" style={{marginTop:10,padding:"7px 10px",background:"var(--warn-soft)",border:"1px solid #f1d499",borderRadius:4,color:"var(--warn)"}}>
+                  ⓘ Como este é um produto <b>composto</b>, o custo calculado pela ficha técnica é <b>{fmt(totalCostBOM)}</b>. Você pode sobrescrever acima ou usar o custo da composição.
+                </div>
+              )}
+            </div>
+
+            <div className="card">
+              <div className="card-head"><h3><span className="badge-num">2</span> Tabelas de preço por grupo</h3><small>se vazio, usa preço de venda</small></div>
+              <table className="t">
+                <thead><tr><th>Grupo de cliente</th><th>Preço</th><th>Δ vs. padrão</th><th></th></tr></thead>
+                <tbody>
+                  {Object.entries(p.priceGroups).map(([g, v]) => {
+                    const diff = v && p.price ? ((v/p.price - 1) * 100).toFixed(1) : null;
+                    return (
+                      <tr key={g}>
+                        <td><b>{g}</b></td>
+                        <td><input type="number" step="0.01" value={v} onChange={e=>set('priceGroups',{...p.priceGroups,[g]:parseFloat(e.target.value)||0})} className="num"/></td>
+                        <td className="num" style={{color:diff>0?'var(--ok)':diff<0?'var(--err)':'var(--ink-3)'}}>{diff ? (diff>0?'+':'') + diff + "%" : '—'}</td>
+                        <td><button className="btn sm ghost">remover</button></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <button className="btn sm" style={{marginTop:10}}>+ adicionar grupo</button>
+            </div>
+
+            <div className="card">
+              <div className="card-head"><h3><span className="badge-num">3</span> Tributação aplicada no preço</h3></div>
+              <div className="row">
+                <div className="f f-6"><label>Tipo de imposto no preço</label>
+                  <select><option value="exclusive">Exclusivo — imposto soma</option><option value="inclusive">Inclusivo — imposto já dentro</option></select>
+                </div>
+                <div className="f f-6"><label>Alíquota agregada</label>
+                  <div className="input-group"><input type="number" defaultValue="18"/><span className="suffix">%</span></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ── FISCAL ── */}
+          <section className={`panel ${tab==='fiscal'?'active':''}`}>
+            <div className="panel-head"><h2>Fiscal (Brasil)</h2><p>NCM, CFOP e regras de tributação. Obrigatório pra emitir NF-e / NFS-e.</p></div>
+
+            <div className="card">
+              <div className="card-head"><h3><span className="badge-num">1</span> Classificação</h3></div>
+              <div className="row">
+                <div className="f f-4"><label>NCM <span className="req">*</span></label>
+                  <div className="input-group">
+                    <input type="text" className="mono" value={p.ncm} onChange={e=>set('ncm',e.target.value)} placeholder="00000000" maxLength="10"/>
+                    <span className="suffix btn">⌕ buscar</span>
+                  </div>
+                  <div className="help">8 dígitos · Receita Federal</div>
+                </div>
+                <div className="f f-4"><label>CFOP padrão saída</label>
+                  <select value={p.cfop} onChange={e=>set('cfop',e.target.value)}>
+                    <option value="5102">5102 — Venda dentro do estado</option>
+                    <option value="6102">6102 — Venda fora do estado</option>
+                    <option value="5101">5101 — Venda de produção</option>
+                    <option value="5933">5933 — Prestação de serviço</option>
+                  </select>
+                </div>
+                <div className="f f-4"><label>CEST <span className="hint">se substituição tributária</span></label>
+                  <input type="text" className="mono" value={p.cest} onChange={e=>set('cest',e.target.value)} placeholder="00.000.00" maxLength="9"/>
+                </div>
+                <div className="f f-4"><label>Origem da mercadoria</label>
+                  <select value={p.origin} onChange={e=>set('origin',e.target.value)}>
+                    <option value="0">0 — Nacional</option><option value="1">1 — Importação direta</option><option value="2">2 — Importação adquirida</option><option value="3">3 — Nacional com conteúdo importado &gt;40%</option><option value="5">5 — Nacional c/ conteúdo importado ≤40%</option>
+                  </select>
+                </div>
+                <div className="f f-8"><label>Código municipal de serviço <span className="hint">NFS-e — se aplicável</span></label>
+                  <div className="input-group">
+                    <input type="text" className="mono" value={p.serviceCode} onChange={e=>set('serviceCode',e.target.value)} placeholder="13.05 — Composição gráfica"/>
+                    <span className="suffix btn">⌕ LC 116</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-head"><h3><span className="badge-num">2</span> Tributação por imposto</h3><small>regime: Simples Nacional</small></div>
+              <table className="t">
+                <thead><tr><th>Imposto</th><th>CST/CSOSN</th><th>Alíquota</th><th>Base cálc.</th><th>Observação</th></tr></thead>
+                <tbody>
+                  <tr><td><b>ICMS</b></td>
+                    <td><select className="mono"><option>101 — Simples c/ permissão crédito</option><option>102 — Simples s/ permissão</option><option>00 — Tributada integralmente</option></select></td>
+                    <td><input type="number" className="num" defaultValue="18"/></td>
+                    <td><input type="number" className="num" defaultValue="100"/></td>
+                    <td><input type="text" placeholder="-"/></td>
+                  </tr>
+                  <tr><td><b>IPI</b></td>
+                    <td><select className="mono"><option>99 — Outras saídas</option><option>53 — Saída não tributada</option></select></td>
+                    <td><input type="number" className="num" defaultValue="0"/></td>
+                    <td>—</td>
+                    <td>—</td>
+                  </tr>
+                  <tr><td><b>PIS</b></td>
+                    <td><select className="mono"><option>01 — Tributável alíquota básica</option><option>49 — Outras operações de saída</option></select></td>
+                    <td><input type="number" className="num" defaultValue="1.65"/></td><td>—</td><td>—</td>
+                  </tr>
+                  <tr><td><b>COFINS</b></td>
+                    <td><select className="mono"><option>01 — Tributável alíquota básica</option></select></td>
+                    <td><input type="number" className="num" defaultValue="7.6"/></td><td>—</td><td>—</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="card" style={{background:"var(--warn-soft)",border:"1px solid #f1d499"}}>
+              <h3 style={{margin:0,fontSize:13,color:"var(--warn)"}}>ⓘ Reforma tributária 2026</h3>
+              <p style={{margin:"6px 0 0",fontSize:12,color:"var(--ink-2)"}}>A partir de 2026, ICMS/IPI/PIS/COFINS são substituídos progressivamente por <b>CBS</b> (federal) e <b>IBS</b> (estadual+municipal). Os campos acima continuam preenchidos até a transição completa em 2033.</p>
+            </div>
+          </section>
+
+          {/* ── VARIAÇÕES ── */}
+          <section className={`panel ${tab==='variants'?'active':''}`}>
+            <div className="panel-head"><h2>Variações</h2><p>Atributos que multiplicam o produto em N SKUs (ex: cor × tamanho).</p></div>
+
+            {p.variants.attrs.map((a, ai) => (
+              <div className="card" key={ai}>
+                <div className="card-head"><h3><span className="badge-num">{ai+1}</span> Atributo: {a.name}</h3>
+                  <button className="btn sm ghost">remover</button>
+                </div>
+                <div className="row">
+                  <div className="f f-4"><label>Nome do atributo</label>
+                    <input type="text" defaultValue={a.name}/>
+                  </div>
+                  <div className="f f-8"><label>Valores possíveis</label>
+                    <div className="chips" style={{padding:"6px 8px",background:"#fff",border:"1px solid var(--line)",borderRadius:5,minHeight:34}}>
+                      {a.values.map(v => <span key={v} className="chip">{v}<button>×</button></span>)}
+                      <button className="chip-add">+ adicionar valor</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <button className="btn">+ adicionar outro atributo</button>
+
+            {/* MATRIZ */}
+            <div className="card" style={{marginTop:14}}>
+              <div className="card-head"><h3><span className="badge-num">★</span> Matriz de SKUs</h3>
+                <small>{p.variants.attrs.length === 2 ? `${p.variants.attrs[0].values.length}×${p.variants.attrs[1].values.length} = ${p.variants.attrs[0].values.length * p.variants.attrs[1].values.length} SKUs` : "ajuste atributos"}</small>
+              </div>
+              {p.variants.attrs.length === 2 && (
+                <div className="var-matrix">
+                  <table className="t">
+                    <thead><tr><th>{p.variants.attrs[0].name} \ {p.variants.attrs[1].name}</th>
+                      {p.variants.attrs[1].values.map(v=><th key={v}>{v}</th>)}
+                    </tr></thead>
+                    <tbody>
+                      {p.variants.attrs[0].values.map(rv=>(
+                        <tr key={rv}><td>{rv}</td>
+                          {p.variants.attrs[1].values.map(cv=>(
+                            <td key={cv}><input type="text" placeholder="—" className="mono"/></td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <div className="help" style={{marginTop:8}}>Cada célula é um SKU único. Vazio = não vende essa combinação. Preencha SKU, preço individual, código de barras opcional.</div>
+            </div>
+          </section>
+
+          {/* ── BOM (composição) ── */}
+          <section className={`panel ${tab==='bom'?'active':''}`}>
+            <div className="panel-head"><h2>Composição (ficha técnica)</h2><p>Insumos consumidos por unidade vendida. Liga em Manufacturing.</p></div>
+
+            <div className="card">
+              <div className="card-head"><h3><span className="badge-num">1</span> Insumos</h3>
+                <small>custo calc: <b style={{color:"var(--accent)",fontFamily:"var(--mono)"}}>{fmt(totalCostBOM)}</b></small>
+              </div>
+              <table className="t">
+                <thead><tr><th style={{width:"35%"}}>Produto/insumo</th><th>Qtd</th><th>Unidade</th><th>Custo unit.</th><th>Subtotal</th><th></th></tr></thead>
+                <tbody>
+                  {p.bom.map((it, i) => (
+                    <tr key={i}>
+                      <td><b style={{display:"block",fontSize:12.5}}>{it.name}</b><small style={{color:"var(--ink-3)",fontFamily:"var(--mono)"}}>{it.id}</small></td>
+                      <td><input type="number" defaultValue={it.qty} className="num"/></td>
+                      <td><span style={{fontFamily:"var(--mono)",fontSize:12}}>{it.unit}</span></td>
+                      <td><span className="num" style={{fontFamily:"var(--mono)"}}>{fmt(it.cost)}</span></td>
+                      <td className="num" style={{fontWeight:600}}>{fmt(it.qty * it.cost)}</td>
+                      <td><button className="btn sm ghost">×</button></td>
+                    </tr>
+                  ))}
+                  <tr><td colSpan="6" style={{textAlign:"center",padding:10}}>
+                    <button className="btn sm">+ adicionar insumo via picker</button>
+                  </td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="card">
+              <div className="card-head"><h3><span className="badge-num">2</span> Roteiro de produção</h3><small>vincula etapas em Manufacturing</small></div>
+              <table className="t">
+                <thead><tr><th>Etapa</th><th>Setor</th><th>Tempo estimado</th><th></th></tr></thead>
+                <tbody>
+                  <tr><td><input type="text" placeholder="Impressão"/></td><td><select><option>Plotter</option><option>Acabamento</option></select></td><td><input type="text" placeholder="30 min"/></td><td><button className="btn sm ghost">×</button></td></tr>
+                </tbody>
+              </table>
+              <button className="btn sm" style={{marginTop:8}}>+ etapa</button>
+            </div>
+          </section>
+
+          {/* ── AVANÇADO ── */}
+          <section className={`panel ${tab==='advanced'?'active':''}`}>
+            <div className="panel-head"><h2>Avançado</h2><p>Campos opcionais raramente preenchidos.</p></div>
+            <div className="card">
+              <div className="row">
+                <div className="f f-4"><label>Peso</label><div className="input-group"><input type="number" value={p.weight} onChange={e=>set('weight',e.target.value)}/><span className="suffix">kg</span></div></div>
+                <div className="f f-4"><label>Tempo preparação</label><div className="input-group"><input type="number" value={p.prepTime} onChange={e=>set('prepTime',e.target.value)}/><span className="suffix">min</span></div></div>
+                <div className="f f-4"><label>Garantia</label><select><option>—</option><option>30 dias</option><option>90 dias</option><option>1 ano</option></select></div>
+                <div className="f f-4"><label>Validade do produto</label><div className="input-group"><input type="number"/><span className="suffix">meses</span></div></div>
+                <div className="f f-4"><label>Unidade secundária</label><select><option>—</option><option>kg</option><option>cx</option></select></div>
+                <div className="f f-4"><label>Sincroniza com WooCommerce</label><div className="check"><input type="checkbox"/><label><b>Publicar online</b></label></div></div>
+              </div>
+              <div className="card-head" style={{marginTop:16}}><h3>Campos personalizados</h3><small>configurados em Admin</small></div>
+              <div className="row">
+                <div className="f f-6"><label>Cód. fornecedor</label><input type="text"/></div>
+                <div className="f f-6"><label>Tag interna</label><input type="text"/></div>
+              </div>
+            </div>
+          </section>
+
+        </main>
+
+        {/* ── PREVIEW ── */}
+        <aside className="preview">
+          <h4>Preview · como aparece no picker</h4>
+          <div className="pcard">
+            <div className="img" style={{background:CAT_COLORS[p.cat] || "#8b8580"}}>
+              <span className="cat-mini">{(p.cat || "—").split(" ")[0]}</span>
+              {initials}
+            </div>
+            <div className="info">
+              <b>{p.name || "Nome do produto"}</b>
+              <small>{p.sku || "PROD-novo"}</small>
+            </div>
+            <div className="footer">
+              <div className="price">{fmt(p.price)}<small>/{p.unit}</small></div>
+              <div className="lead"><b>{p.prepTime ? p.prepTime + " min" : "—"}</b><span>prazo</span></div>
+            </div>
+          </div>
+
+          <div className="summary">
+            <div className="ln"><span>Tipo</span><span>{p.type === "single" ? "Simples" : p.type === "variable" ? "Variável" : "Composto"}</span></div>
+            <div className="ln"><span>Custo</span><span>{fmt(p.cost)}</span></div>
+            <div className="ln margin"><span>Margem</span><span>{p.marginPct.toFixed(1)}%</span></div>
+            {p.type === "variable" && p.variants.attrs.length === 2 && (
+              <div className="ln"><span>SKUs gerados</span><span>{p.variants.attrs[0].values.length * p.variants.attrs[1].values.length}</span></div>
+            )}
+            {p.type === "combo" && (
+              <div className="ln"><span>Custo da ficha</span><span>{fmt(totalCostBOM)}</span></div>
+            )}
+            <div className="ln"><span>NCM</span><span>{p.ncm || "—"}</span></div>
+            <div className="ln"><span>Preço final</span><span>{fmt(p.price)}/{p.unit}</span></div>
+          </div>
+
+          {(!p.name || !p.ncm) && (
+            <div className="live-warn" style={{marginTop:12}}>
+              ⚠ Faltam: {[!p.name && "nome", !p.ncm && "NCM"].filter(Boolean).join(", ")}
+            </div>
+          )}
+
+          <div className="preview-actions">
+            <button className="btn sm">Visualizar etiqueta</button>
+            <button className="btn sm">Duplicar produto</button>
+            <button className="btn sm">Exportar ficha PDF</button>
+          </div>
+        </aside>
+
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

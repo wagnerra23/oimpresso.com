@@ -3,7 +3,7 @@ slug: 0409-zero-baseline-de-tolerancia-conformidade-absoluta
 number: 409
 title: "Zero baseline de tolerância — conformidade absoluta e dívida acordada por toque"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

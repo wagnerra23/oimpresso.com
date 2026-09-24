@@ -173,12 +173,12 @@ export function verificarMapa(mapa, { root = ROOT } = {}) {
   const drift = [];
   const warn = [];
   const schemaProblemas = validarSchema(mapa);
-  if (schemaProblemas.length) return { drift: schemaProblemas.map((m) => `schema: ${m}`), warn, pendentes: 0, totalPartes: 0, estaveis: 0, linhaOnly: 0, comAncoraNoArquivo: 0, semAncoraNoArquivo: 0, optOut: 0 };
+  if (schemaProblemas.length) return { drift: schemaProblemas.map((m) => `schema: ${m}`), warn, pendentes: 0, totalPartes: 0, estaveis: 0, linhaOnly: 0, comAncoraNoArquivo: 0, semAncoraNoArquivo: 0, optOut: 0, acionavel: 0, idade: null };
 
   let pendentes = 0, estaveis = 0, linhaOnly = 0;
   // decomposição do linha-only lendo o DISCO (não a declaração) — ver cabeçalho §"POR QUE O
   // RESUMO DECOMPÕE OS LINHA-ONLY": separa backfill barato de "o .tsx nem foi ancorado".
-  let comAncoraNoArquivo = 0, semAncoraNoArquivo = 0, optOut = 0;
+  let comAncoraNoArquivo = 0, semAncoraNoArquivo = 0, optOut = 0, acionavel = 0;
   if (mapa.mapping?.target && !existsSync(join(root, mapa.mapping.target))) {
     drift.push(`mapping.target não existe: ${mapa.mapping.target}`);
   }
@@ -221,6 +221,12 @@ export function verificarMapa(mapa, { root = ROOT } = {}) {
         if (optOutConsciente(p)) {
           optOut++; // decisão registrada de não ancorar — não insistir
         } else if (idsNoArquivo.length) {
+          // FILA ACIONÁVEL de verdade: tem id no arquivo E ninguém declarou opt-out. Contada
+          // AQUI, no mesmo ramo que empurra o warn, e não junto do fato-de-disco acima — senão
+          // o resumo anuncia trabalho que o próprio per-parte já decidiu não pedir (medido
+          // 2026-09-21: 148 anunciados × 0 warns emitidos, porque `vivo.ancora` é declarado em
+          // 587/587 partes e 503 declaram `false`). LC-11: relatar o que o mecanismo MEDIU.
+          acionavel++;
           const forma = idsNoArquivo.includes(p.id) ? 'vivo.ancora: true' : `vivo.ancora: "<um destes ids>"`;
           warn.push(`${tag}: ${p.vivo.arquivo} JÁ tem data-contract (${idsNoArquivo.join(', ')}) mas o map não declara vivo.ancora — declare ${forma} e trave de graça (range de linha é frágil)`);
         }
@@ -262,7 +268,54 @@ export function verificarMapa(mapa, { root = ROOT } = {}) {
     }
   }
 
-  return { drift, warn, pendentes, totalPartes: mapa.partes.length, estaveis, linhaOnly, comAncoraNoArquivo, semAncoraNoArquivo, optOut };
+  return { drift, warn, pendentes, totalPartes: mapa.partes.length, estaveis, linhaOnly, comAncoraNoArquivo, semAncoraNoArquivo, optOut, acionavel, idade: idadeDaAfirmacao(mapa, { root }) };
+}
+
+/**
+ * IDADE DA AFIRMAÇÃO ≠ idade do map (eixo novo, 2026-09-21).
+ *
+ * `map.gerado_em` é a data em que o GERADOR RODOU; as afirmações (status + ação de cada parte)
+ * vêm do `gap_fonte`, cujo frontmatter declara quando alguém MEDIU a tela viva. O delta é o
+ * frescor que o map estampa e a afirmação não tem — e ele é grande: medido no corpus em
+ * 2026-09-21, de 60 maps com as 2 datas legíveis, ZERO têm data igual à da afirmação (55 entre
+ * 8-30d, 5 acima de 61d). Reproduzir: este mesmo `--check`.
+ *
+ * POR QUE ISSO IMPORTA, com caso real: o `Financeiro/unificado.map.json` mandava `aplicar-delta`
+ * em 5 capacidades que a tela tinha desde o #3928 (2026-07-07). O map declarava `gerado_em:
+ * 2026-09-14` — 69 dias DEPOIS da entrega —, então parecia fresco; as afirmações vinham do
+ * `unificado-gap.md`, que mediu a tela em 2026-07-01, 6 dias ANTES da entrega. O `prototipo_sha`
+ * (item 3) não pega isto por construção: o protótipo não mudou, o que mudou foi a TELA, e antes
+ * do map existir. Uma sessão que obedecesse aquele map re-implementaria 5 coisas prontas.
+ *
+ * NUNCA É DRIFT, de propósito: afirmação velha não é afirmação errada. O
+ * `Compras/compras-grade-matrix.map.json` tem 83 dias de delta e a claim dele foi re-conferida
+ * no código em 2026-09-21 e SEGUE verdadeira (`GradeCol` não tem `hex`; `grep` de
+ * `hex|swatch|backgroundColor` no arquivo inteiro = 0). Reprovar por idade seria catraca sobre
+ * data — a família de gate que o §5 já enterrou. O que a idade dá é RANKING de risco: por onde
+ * começar a re-conferir.
+ *
+ * INDETERMINADO vira WARN, não silêncio (§5 2026-07-29, a mesma doutrina que este arquivo já
+ * aplica ao `prototipo_sha` logo acima): sem `gap_fonte`, ou com gap.md sem `gerado_em`, a idade
+ * não foi MEDIDA — e "não medi" não é "está em dia".
+ */
+export function idadeDaAfirmacao(mapa, { root = ROOT } = {}) {
+  // Tira aspas dos DOIS lados: no gap.md a data vem de YAML (`gerado_em: "2026-06-23"` é forma
+  // válida e `fmVal` devolve as aspas) e no map vem de JSON. Consertar só um lado deixaria o
+  // irmão exposto ao MESMO falso "NÃO MEDIDA" (§5 2026-08-03), que é defeito da sonda e não do
+  // artefato (LC-33). Medido 2026-09-21: 2 dos 7 indeterminados do corpus eram só as aspas do gap.
+  const semAspas = (v) => (v == null ? null : String(v).trim().replace(/^["']|["']$/g, '').trim() || null);
+  const mapData = semAspas(mapa?.gerado_em) ?? '';
+  const fonte = mapa?.gap_fonte;
+  const ISO = /^\d{4}-\d{2}-\d{2}$/;
+  if (!fonte) return { mapData, gapData: null, delta: null, motivo: 'map sem `gap_fonte` — origem da afirmação não declarada' };
+  if (!existsSync(join(root, fonte))) return { mapData, gapData: null, delta: null, motivo: `gap_fonte não existe: ${fonte}` };
+  let gapData = null;
+  try { gapData = fmVal(frontmatterBlock(readFileSync(join(root, fonte), 'utf8')), 'gerado_em'); } catch { /* ilegível → motivo abaixo */ }
+  gapData = semAspas(gapData);
+  if (!gapData) return { mapData, gapData: null, delta: null, motivo: `${fonte} sem \`gerado_em\` no frontmatter` };
+  if (!ISO.test(gapData) || !ISO.test(mapData)) return { mapData, gapData, delta: null, motivo: `data fora de YYYY-MM-DD (map='${mapData}' gap='${gapData}')` };
+  const d = Math.round((Date.parse(`${mapData}T00:00:00Z`) - Date.parse(`${gapData}T00:00:00Z`)) / 86400000);
+  return { mapData, gapData, delta: d, motivo: '' };
 }
 
 function escRe(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
@@ -316,7 +369,8 @@ async function main() {
   const cov = cobertura(gaps, maps, ROOT);
 
   let totalDrift = 0, totalWarn = 0, totalPendentes = 0, totalPartes = 0, totalEstaveis = 0, totalLinhaOnly = 0;
-  let totalComAncora = 0, totalSemAncora = 0, totalOptOut = 0;
+  let totalComAncora = 0, totalSemAncora = 0, totalOptOut = 0, totalAcionavel = 0;
+  const idades = []; // {rel, mapData, gapData, delta} — só as MEDIDAS; indeterminadas viram warn
   const relatorio = [];
   for (const mPath of maps) {
     const rel = relative(ROOT, mPath).replaceAll('\\', '/');
@@ -328,6 +382,11 @@ async function main() {
     totalDrift += r.drift.length; totalWarn += r.warn.length; totalPendentes += r.pendentes; totalPartes += r.totalPartes;
     totalEstaveis += r.estaveis; totalLinhaOnly += r.linhaOnly;
     totalComAncora += r.comAncoraNoArquivo; totalSemAncora += r.semAncoraNoArquivo; totalOptOut += r.optOut;
+    totalAcionavel += r.acionavel ?? 0;
+    if (r.idade) {
+      if (r.idade.delta != null) idades.push({ rel, ...r.idade });
+      else { r.warn.push(`idade da afirmação NÃO MEDIDA: ${r.idade.motivo} — as afirmações deste map vêm do gap.md, e sem a data dele não se sabe de quando elas são`); totalWarn++; }
+    }
   }
 
   const pctCobertura = cov.total ? Math.round((cov.cobertas / cov.total) * 100) : 0;
@@ -339,9 +398,24 @@ async function main() {
   if (totalLinhaOnly) {
     // decomposição: sem ela, "0/N" não distingue backfill pendente de tela ainda não ancorada.
     console.log(`  · ${totalLinhaOnly} linha-only (frágil: refactor desloca linhas em silêncio) — dos quais:`);
-    console.log(`    - ${totalComAncora} com data-contract JÁ no vivo.arquivo → fila ACIONÁVEL: declare vivo.ancora e trave de graça`);
+    console.log(`    - ${totalComAncora} com data-contract JÁ no vivo.arquivo (fato de disco) — dos quais ${totalAcionavel} sem opt-out declarado → fila ACIONÁVEL${totalAcionavel ? ': declare vivo.ancora e trave de graça' : ' VAZIA (os outros já declararam `vivo.ancora: false`; nada a pedir)'}`);
     console.log(`    - ${totalSemAncora} sem NENHUM data-contract no vivo.arquivo → declarar exige ANTES ancorar o .tsx (mudança de UI, gate próprio); não há o que declarar aqui hoje`);
     if (totalOptOut) console.log(`    - ${totalOptOut} com 'vivo.ancora: false' explícito (opt-out consciente — registrado no map, sem nudge)`);
+  }
+  if (idades.length) {
+    // Distribuição SEMPRE impressa (nada se esconde atrás de um threshold), e a listagem é os
+    // 5 mais velhos — presentação, não veredito: idade nunca reprova (ver idadeDaAfirmacao).
+    const b = { '0': 0, '1-7': 0, '8-30': 0, '31-60': 0, '61+': 0, 'neg': 0 };
+    for (const i of idades) {
+      if (i.delta < 0) b.neg++; else if (i.delta === 0) b['0']++;
+      else if (i.delta <= 7) b['1-7']++; else if (i.delta <= 30) b['8-30']++;
+      else if (i.delta <= 60) b['31-60']++; else b['61+']++;
+    }
+    console.log(`idade da afirmação (map.gerado_em − gap_fonte.gerado_em): ${idades.length} map(s) medido(s)`);
+    console.log(`  · mesmo dia ${b['0']} · 1-7d ${b['1-7']} · 8-30d ${b['8-30']} · 31-60d ${b['31-60']} · 61+d ${b['61+']}${b.neg ? ` · map mais VELHO que o gap ${b.neg}` : ''}`);
+    const top = [...idades].sort((x, y) => y.delta - x.delta).slice(0, 5);
+    console.log(`  · os 5 de afirmação mais velha (por onde re-conferir primeiro — idade não é erro):`);
+    for (const i of top) console.log(`    - ${String(i.delta).padStart(3)}d  ${i.rel}  (gap ${i.gapData} → map ${i.mapData})`);
   }
   if (cov.semMap.length) {
     console.log(`\ngap.md SEM map.json correspondente (candidatos a 'node scripts/design/gerar-map.mjs <gap.md>'):`);
@@ -372,7 +446,7 @@ async function main() {
   // saída existente chegando onde alguém olha. Best-effort: falhar aqui nunca muda o veredito.
   publicarResumo({
     maps: maps.length, cov, pctCobertura, charters: charters.length,
-    totalEstaveis, ancoraveis, totalLinhaOnly, totalComAncora, totalSemAncora, totalOptOut,
+    totalEstaveis, ancoraveis, totalLinhaOnly, totalComAncora, totalSemAncora, totalOptOut, totalAcionavel, idades,
     totalDrift, totalPendentes,
   });
 
@@ -389,7 +463,9 @@ export function publicarResumo(d, destino = process.env.GITHUB_STEP_SUMMARY) {
     `| Fora do denominador (\`map_json: n/a\` declarado no gap.md) | ${d.cov.semMapPorDesenho?.length ?? 0} |`,
     `| Alcance amplo (charters com \`.map.json\`) | ${d.maps}/${d.charters} |`,
     `| Âncora estável (\`data-contract\` no vivo) | ${d.totalEstaveis}/${d.ancoraveis} partes |`,
-    `| └ linha-only COM \`data-contract\` no arquivo (fila acionável) | ${d.totalComAncora} |`,
+    `| └ linha-only COM \`data-contract\` no arquivo (fato de disco) | ${d.totalComAncora} |`,
+    `| └ └ fila ACIONÁVEL (sem \`vivo.ancora: false\` declarado) | ${d.totalAcionavel ?? 0} |`,
+    `| Afirmação mais velha (\`map.gerado_em\` − \`gap_fonte.gerado_em\`) | ${(d.idades?.length ? Math.max(...d.idades.map((i) => i.delta)) : '—')}d |`,
     `| └ linha-only SEM \`data-contract\` no arquivo (ancorar o \`.tsx\` primeiro) | ${d.totalSemAncora} |`,
     `| Drift (âncora quebrada / sha stale / schema) | ${d.totalDrift} |`,
     `| Âncoras \`TODO\` pendentes (não é drift) | ${d.totalPendentes} |`, '',

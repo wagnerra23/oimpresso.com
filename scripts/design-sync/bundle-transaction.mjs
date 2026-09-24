@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { payloadDependencyGraph, normalizePayloadPath } from './payload-dependency-graph.mjs';
 import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
 import {
-  changesDigest, createManifest, manifestDigest, roleForPath, sha256,
+  aplicarRefDs, changesDigest, createManifest, manifestDigest, roleForPath, sha256,
   validateBundleParts, validateManifest,
 } from './bundle-contract.mjs';
 import { buildManifest as detectarTelas } from '../../scripts/design/detectar-telas.mjs';
@@ -235,7 +235,7 @@ function currentEvidenceRecord({ root, source, target, manifest, ledger, compari
     return !!repoEvidence(root, smoke.screenshot, smoke.screenshotSha256);
   }) : [];
 
-  return { record, targetSha256, compared, comparisonEvidence, application, tests, smokes };
+  return { record, sourceSha256: sourceFile.sha256, targetSha256, compared, comparisonEvidence, application, tests, smokes };
 }
 
 export async function buildApplicationReport({ root, stagedCowork, manifest, previousReport = null, applicationLedger = null }) {
@@ -255,9 +255,21 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
     // tela que É derivável (UC do `.casos.md` → veredito em `scripts/casos-test-results.json`).
     const tested = applied && (evidence?.tests.length || 0) > 0;
     const smoked = tested && (evidence?.smokes.length || 0) > 0;
+    // Smoke de CI/staging prova que a tela renderizou naquele ambiente. Só produção fecha
+    // o funil: chamar CI de `validated` escondia precisamente a etapa que ainda faltava.
+    // Recibos legados sem `host` continuam sendo produção porque esse era o único host
+    // aceito antes da ADR 0390 (mesma regra de compatibilidade de currentEvidenceRecord).
+    const productionSmokes = smoked
+      ? evidence.smokes.filter((smoke) => smoke.host === undefined || smoke.host === 'producao')
+      : [];
+    const ciSmokes = smoked ? evidence.smokes.filter((smoke) => smoke.host === 'ci') : [];
+    const stagingSmokes = smoked ? evidence.smokes.filter((smoke) => smoke.host === 'staging-ct100') : [];
+    const validated = productionSmokes.length > 0;
     const lifecycleState = app.state === 'blocked' || app.state === 'to-create'
       ? app.state
-      : smoked ? 'validated'
+      : validated ? 'validated'
+      : stagingSmokes.length ? 'smoked-staging'
+      : ciSmokes.length ? 'smoked-ci'
       : tested ? 'tested'
       : applied ? 'applied'
       : evidence?.compared ? 'compared'
@@ -274,14 +286,27 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
       compared: !!evidence?.compared,
       tested,
       smoked,
+      validated,
       applicationEvidence: evidence ? {
         comparison: evidence.comparisonEvidence,
         application: evidence.application,
         tests: evidence.tests,
         smokes: evidence.smokes,
         targetSha256: evidence.targetSha256,
+        proofChain: {
+          bundleId: manifest.bundleId,
+          sourceSha256: evidence.sourceSha256,
+          mapSha256: evidence.comparisonEvidence?.mapSha256 || null,
+          targetSha256: evidence.targetSha256,
+          testOutputSha256: evidence.tests.map((test) => test.outputSha256),
+          deploySha: evidence.smokes.map((smoke) => smoke.deploySha),
+          smokeScreenshotSha256: evidence.smokes.map((smoke) => smoke.screenshotSha256),
+          productionValidated: validated,
+        },
       } : null,
       nextAction: lifecycleState === 'validated' ? 'aplicação, teste e smoke válidos para os hashes atuais'
+        : lifecycleState === 'smoked-ci' ? 'smoke de CI registrado; executar e registrar smoke no deploy de produção'
+        : lifecycleState === 'smoked-staging' ? 'smoke de staging registrado; executar e registrar smoke no deploy de produção'
         : lifecycleState === 'tested' ? 'registrar smoke com rota, deploy, screenshot e host (producao · staging-ct100 · ci — ADR 0390)'
         : lifecycleState === 'applied' ? 'executar teste pelo registrador para produzir recibo verificável'
         : lifecycleState === 'compared' ? 'aplicar no alvo e registrar evidência durável'
@@ -334,6 +359,9 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
       screens: screens.length,
       tested: screens.filter((screen) => screen.tested).length,
       smoked: screens.filter((screen) => screen.smoked).length,
+      smokedCi: screens.filter((screen) => screen.lifecycleState === 'smoked-ci').length,
+      smokedStaging: screens.filter((screen) => screen.lifecycleState === 'smoked-staging').length,
+      validated: screens.filter((screen) => screen.lifecycleState === 'validated').length,
       lifecycle: byLifecycle,
       ...byState,
     },
@@ -395,11 +423,22 @@ export function vereditoDsRequires(r) {
   return linhas;
 }
 
+/**
+ * Recibo de thread escrito pelo CODE dentro do espelho: `cowork-inbox/<tema>/playbook/_saida-NN.md`.
+ * É o único arquivo do espelho cujo autor é o Code (o placar-de-lista lê daqui). Ele faz ida e
+ * volta: o Cowork recebe e reexporta. No intervalo entre o commit do Code e o próximo export do
+ * Cowork, ele NÃO está no pacote — e a poda de árvore o apagava. Medido 2026-09-23 no import do
+ * handoff (32): 3 `_saida` do placar, commitados no #7741, sumiram com o relatório dizendo `-0`.
+ */
+export const RECIBO_CODE_RE = /^cowork-inbox\/[^/]+\/playbook\/_saida-\d+[a-z]?\.md$/;
+
 function writeAndVerifyTarget({ root, staged, manifest, buffers, previous, permiteEscreverDs = false }) {
   // Só uma árvore completa autoriza poda de arquivos nunca gerenciados pelo manifesto.
   // Manifestos antigos/de shell não provam ausência de playbooks da conta.
   if (manifest.mirrorScope === 'tree') {
     const allowed = new Set(manifest.files.filter((file) => file.role !== 'preview-cache').map((file) => file.path));
+    const podados = [];
+    const preservados = [];
     function prune(dir, prefix = '') {
       for (const item of readdirSync(dir, { withFileTypes: true })) {
         const rel = prefix ? `${prefix}/${item.name}` : item.name;
@@ -408,10 +447,26 @@ function writeAndVerifyTarget({ root, staged, manifest, buffers, previous, permi
         if (item.isDirectory()) {
           prune(abs, rel);
           if (readdirSync(abs).length === 0) rmdirSync(abs);
-        } else if (item.name !== '.gitignore' && !allowed.has(rel)) rmSync(abs, { force: true });
+        } else if (item.name !== '.gitignore' && !allowed.has(rel)) {
+          // Se o pacote TRAZ o recibo, ele está em `allowed` e a versão do pacote vence. Só o que o
+          // pacote não traz fica — ausência no export não é decisão do Cowork de apagar.
+          if (RECIBO_CODE_RE.test(rel)) { preservados.push(rel); continue; }
+          rmSync(abs, { force: true });
+          podados.push(rel);
+        }
       }
     }
     prune(staged.cowork);
+    // A poda NÃO entra em `changes.deleted` (é o espelho, não o pacote), então o delta do relatório
+    // não a conta. Sem estas linhas, "-0" convivia com arquivo apagado.
+    if (podados.length) {
+      console.log(`  ✂ PODA: ${podados.length} arquivo(s) do espelho fora do manifesto removido(s)`);
+      for (const rel of podados) console.log(`     ✂ ${rel}`);
+    }
+    if (preservados.length) {
+      console.log(`  ⬜ RECIBO PRESERVADO: ${preservados.length} _saida do Code fora do pacote (o Cowork ainda não os reexportou)`);
+      for (const rel of preservados) console.log(`     ⬜ ${rel}`);
+    }
   }
   const effectiveDeleted = new Set(manifest.changes.deleted);
   if (manifest.mode === 'snapshot' && previous) {
@@ -469,7 +524,7 @@ function writeAndVerifyTarget({ root, staged, manifest, buffers, previous, permi
   const aplicarTransform = (path, buffer) => {
     const t = transformPorPath.get(path);
     if (!t) return buffer;
-    return Buffer.from(buffer.toString('utf8').split(t.de).join(t.para), 'utf8');
+    return Buffer.from(aplicarRefDs(buffer.toString('utf8'), t.de, t.para), 'utf8');
   };
 
   const escritasRecusadas = [];

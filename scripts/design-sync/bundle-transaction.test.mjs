@@ -312,8 +312,8 @@ console.log('\n=== estados exigem recibos reais e invalidam em cascata por hash 
   check('screenshot alterado invalida só o smoke', applied.lifecycleState === 'tested' && !applied.smoked);
 
   // ADR 0390 — `host` do smoke: enum fechado (producao · staging-ct100 · ci). Controle negativo
-  // primeiro (valor fora do enum não vira recibo), depois o host `ci` levando a VALIDADA — o
-  // estado que ficou 0/93 por construção enquanto só produção contava.
+  // primeiro (valor fora do enum não vira recibo), depois o host `ci` provando só aquele
+  // ambiente. Produção precisa de recibo próprio.
   let hostInvalidoRejeitado = false;
   try {
     execFileSync(process.execPath, [
@@ -337,9 +337,32 @@ console.log('\n=== estados exigem recibos reais e invalidam em cascata por hash 
   applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
   const reciboCi = JSON.parse(readFileSync(ledgerPath, 'utf8')).applications
     .find((item) => item.source === 'officeimpresso-page.jsx' && item.target === target)?.smokes?.at(-1);
-  check('ADR 0390: smoke com host ci grava o host no recibo e leva a VALIDADA',
-    applied.lifecycleState === 'validated' && applied.smoked && reciboCi?.host === 'ci' && reciboCi?.tenant === 1,
+  check('smoke com host ci grava o recibo mas NÃO declara produção validada',
+    applied.lifecycleState === 'smoked-ci' && applied.smoked && !applied.validated && reciboCi?.host === 'ci' && reciboCi?.tenant === 1,
     JSON.stringify(reciboCi));
+  check('cadeia de prova carrega bundle/source/map/target/test/deploy/screenshot por tela',
+    applied.applicationEvidence?.proofChain?.bundleId
+      && /^[a-f0-9]{64}$/.test(applied.applicationEvidence.proofChain.sourceSha256 || '')
+      && /^[a-f0-9]{64}$/.test(applied.applicationEvidence.proofChain.mapSha256 || '')
+      && /^[a-f0-9]{64}$/.test(applied.applicationEvidence.proofChain.targetSha256 || '')
+      && applied.applicationEvidence.proofChain.testOutputSha256.every((sha) => /^[a-f0-9]{64}$/.test(sha))
+      && applied.applicationEvidence.proofChain.deploySha.includes('b'.repeat(40))
+      && applied.applicationEvidence.proofChain.smokeScreenshotSha256.every((sha) => /^[a-f0-9]{64}$/.test(sha))
+      && applied.applicationEvidence.proofChain.productionValidated === false,
+    JSON.stringify(applied.applicationEvidence?.proofChain));
+
+  execFileSync(process.execPath, [
+    STATUS, '--root', root,
+    '--record-smoke', 'officeimpresso-page.jsx', '--target', target, '--route', '/officeimpresso/logs',
+    '--deploy-sha', 'c'.repeat(40), '--screenshot', 'memory/evidence/officeimpresso-smoke.png', '--tenant', '1',
+    '--host', 'producao',
+  ], { encoding: 'utf8' });
+  recorded = JSON.parse(readFileSync(join(root, 'scripts/design-sync/state/application-report.json'), 'utf8'));
+  applied = recorded.screens.find((screen) => screen.source === 'officeimpresso-page.jsx' && screen.target === target);
+  check('somente smoke de produção leva a VALIDADA',
+    applied.lifecycleState === 'validated' && applied.validated
+      && applied.applicationEvidence?.proofChain?.productionValidated === true,
+    JSON.stringify(applied));
 
   const mapPath = join(root, 'memory/requisitos/Officeimpresso/logs.map.json');
   const changedMap = JSON.parse(readFileSync(mapPath, 'utf8'));
@@ -409,9 +432,19 @@ console.log('\n=== fail-closed: partes, base, hash, path e dry-run ===');
   put(root, 'prototipo-ui/cowork/Wagner/velho/sub/sobra.md', 'arquivo nunca gerenciado\n');
   put(root, 'prototipo-ui/cowork/Wagner/.gitignore', 'regra local\n');
   put(root, 'prototipo-ui/design-system/canon-sentinela.css', 'não tocar no DS\n');
+  // Recibos do Code commitados DEPOIS do export do Cowork (o caso de 2026-09-23, handoff 32).
+  put(root, 'prototipo-ui/cowork/Wagner/cowork-inbox/placar/playbook/_saida-01.md', 'recibo do Code\n');
+  put(root, 'prototipo-ui/cowork/Wagner/cowork-inbox/placar/playbook/_saida-02a.md', 'recibo do Code, sufixo\n');
+  // CONTROLES: só o recibo é poupado — não o que parece com ele fora do lugar certo.
+  put(root, 'prototipo-ui/cowork/Wagner/cowork-inbox/placar/playbook/_rascunho.md', 'não é recibo\n');
+  put(root, 'prototipo-ui/cowork/Wagner/cowork-inbox/placar/_saida-01.md', 'fora de playbook/\n');
+  put(root, 'prototipo-ui/cowork/Wagner/velho/_saida-01.md', 'fora de cowork-inbox/\n');
+  // Recibo que o pacote TAMBÉM traz: a versão do pacote vence.
+  put(root, 'prototipo-ui/cowork/Wagner/cowork-inbox/sidebar/playbook/_saida-03.md', 'versão local\n');
   const after = sourceSnapshot('v2');
   after.delete('removido.js');
   after.set('cowork-inbox/novo.md', Buffer.from('playbook novo\n'));
+  after.set('cowork-inbox/sidebar/playbook/_saida-03.md', Buffer.from('versão do Cowork\n'));
   const m2 = manifestFor(after, m1, 'tree');
   const parts = partsFor(m2, after);
   const sobra = join(root, 'prototipo-ui/cowork/Wagner/velho/sub/sobra.md');
@@ -427,6 +460,14 @@ console.log('\n=== fail-closed: partes, base, hash, path e dry-run ===');
   check('árvore completa atualiza conteúdo', readFileSync(join(root, 'prototipo-ui/cowork/Wagner/styles.css'), 'utf8').includes('v2'));
   check('poda não alcança DS canônico', readFileSync(join(root, 'prototipo-ui/design-system/canon-sentinela.css'), 'utf8') === 'não tocar no DS\n');
   check('poda preserva guarda local .gitignore', existsSync(join(root, 'prototipo-ui/cowork/Wagner/.gitignore')));
+  const W = (rel) => join(root, 'prototipo-ui/cowork/Wagner', rel);
+  check('BITE: poda poupa _saida do Code fora do pacote', existsSync(W('cowork-inbox/placar/playbook/_saida-01.md')));
+  check('poda poupa _saida com sufixo de letra', existsSync(W('cowork-inbox/placar/playbook/_saida-02a.md')));
+  check('CONTROLE: poda apaga arquivo não-recibo no mesmo playbook', !existsSync(W('cowork-inbox/placar/playbook/_rascunho.md')));
+  check('CONTROLE: poda apaga _saida fora de playbook/', !existsSync(W('cowork-inbox/placar/_saida-01.md')));
+  check('CONTROLE: poda apaga _saida fora de cowork-inbox/', !existsSync(W('velho/_saida-01.md')));
+  check('recibo que o pacote traz: a versão do pacote vence',
+    readFileSync(W('cowork-inbox/sidebar/playbook/_saida-03.md'), 'utf8') === 'versão do Cowork\n');
   const m3 = manifestFor(after, m2, 'tree');
   await applyBundleTransaction({ root, parts: partsFor(m3, after) });
   check('reimportação regenerada de árvore é idempotente', !existsSync(sobra));

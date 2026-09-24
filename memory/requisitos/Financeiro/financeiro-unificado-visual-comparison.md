@@ -415,3 +415,24 @@ protótipo, não divergência.
 **Não medido nesta sessão** (e "não medido" não é "sem divergência"): Fluxo · Conciliação ·
 DRE · ProvaViva · RecurringBilling/Index. As âncoras de Fluxo/Conciliação/DRE
 (`financeiro-telas-extras.jsx`) estão provadas SYNC; falta o render pareado.
+
+## FIN-8 (2026-09-23) — forma: cabeçalhos, busca, placeholder, paleta
+
+Medido no DOM da prod × protótipo (`financeiro-page.jsx` / `financeiro-app.jsx`), mesmo tema:
+
+| Item | Prod antes | Protótipo | Veredito | Conserto |
+|---|---|---|---|---|
+| Cabeçalhos ordenáveis (Vencimento, Lançamento, Contraparte, Status, Valor) | caixa mista — `text-transform: none` no `<button>` (preflight do Tailwind) | MAIÚSCULAS, como as outras 4 colunas | DÍVIDA A FECHAR | `uppercase` no botão do `SortableHeader` |
+| Busca da toolbar | quebrava para a linha de baixo: itens 1233px + 7 gaps de 10px = 1303px numa barra de 1295px (a 1610px de viewport; varia com as contagens dos chips) | na mesma linha dos filtros | DÍVIDA A FECHAR | `fin-toolbar-r` ocupa o que sobra e a busca encolhe 240→160px antes de quebrar — escopo **local** (o CSS `.fin-toolbar-r` é compartilhado com o Plano de contas) |
+| Placeholder da busca | "Buscar lançamento…" | "Filtrar nesta lista…" (`financeiro-app.jsx:457`) | DÍVIDA A FECHAR | trocado |
+| Paleta de comandos | "Novo lançamento" | "Novo título" (igual ao botão do header) | DÍVIDA A FECHAR | trocado |
+
+Fora desta onda: os 8 sinais da rodada anterior (acima) seguem com a classificação registrada lá.
+
+### Captura de referência aprovada (FIN-8)
+
+- **2026-09-23 — [W] aprovou** a captura do `Financeiro/Unificado` (run 35879132734, commit `bde9e543f`,
+  mergeada no #7806): tela principal + 5 estados isolados, já com o conserto do transbordo da busca.
+  Resíduo declarado: o fluxo `selecionar-lote · compact` seguia acima de τ_alto (2,17%) — mistura as
+  mudanças intencionais (maiúsculas, placeholder) com a grade de KPIs que veio do main; fluxos só se
+  regeneram no update global, que não cabe no timeout do job.

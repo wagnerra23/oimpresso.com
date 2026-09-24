@@ -42,5 +42,68 @@ check('E2E: non-git → exit 0 silencioso', runHook('npm run build').status === 
 check('E2E: stdin vazio → exit 0 (fail-open)', spawnSync(process.execPath, [HOOK], { input: '', encoding: 'utf8' }).status === 0);
 check('E2E: JSON inválido → exit 0 (fail-open, NUNCA trava sessão)', spawnSync(process.execPath, [HOOK], { input: '{lixo', encoding: 'utf8' }).status === 0);
 
+// ── formas REAIS (2026-09-23): o hook reconhecia 51 de 5.561 commits do corpus ───────
+// As regex ancoravam em `^\s*git`, e os testes acima so usavam `git commit -m x` no inicio do
+// comando — a forma conveniente pro teste, 0,9% do uso real. Estes usam as formas medidas.
+check('isCommit: depois de cd/add na mesma chamada', isCommit('cd /repo && git add a.md && git commit -m x') && isCommit('git add a\ngit commit -m x'));
+check('isCommit: heredoc na mensagem', isCommit("git add a && git commit -q -F - <<'EOF'\nfix: x\nEOF"));
+check('isCommit NEG: `git commit` dentro de heredoc nao e comando', !isCommit("cat <<'EOF'\ngit commit -m x\nEOF"));
+check('isUnsafeForcePush: depois de outro comando', isUnsafeForcePush('git fetch && git push --force'));
+check('isUnsafeForcePush NEG: texto da mensagem nao e push', !isUnsafeForcePush("git commit -F - <<'EOF'\nnunca use git push --force\nEOF"));
+check('isGitWriteCmd: commit depois de cd', isGitWriteCmd('cd /x && git commit -m y'));
+
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+const CPF_FAKE = '123.456.789-09'; // pii-allowlist (CPF sintetico fixture)
+function repo() {
+  const dir = mkdtempSync(join(tmpdir(), 'cdc-'));
+  const g = (...a) => spawnSync('git', a, { cwd: dir, encoding: 'utf8' });
+  g('init', '-q'); g('config', 'user.email', 't@t'); g('config', 'user.name', 't');
+  writeFileSync(join(dir, 'base.txt'), 'base\n'); g('add', '-A'); g('commit', '-qm', 'base');
+  return { dir, g };
+}
+const linhas = (n) => Array.from({ length: n }, (_, i) => 'linha ' + i).join('\n') + '\n';
+{
+  const { dir } = repo();
+  writeFileSync(join(dir, 'dados.txt'), 'cliente ' + CPF_FAKE + '\n');
+  const r = runHook('git add dados.txt && git commit -m x', dir);
+  check('E2E PII: arquivo que o add da MESMA chamada leva e medido', r.status === 0 && /PII/.test(r.stdout));
+}
+{
+  const { dir } = repo();
+  writeFileSync(join(dir, 'dados.txt'), 'cliente ' + CPF_FAKE + '\n');
+  writeFileSync(join(dir, 'outro.txt'), 'nada\n');
+  const r = runHook('git add outro.txt && git commit -m x', dir);
+  check('E2E PII controle: o que o add NAO leva nao conta', r.status === 0 && !/PII/.test(r.stdout));
+}
+{
+  const { dir, g } = repo();
+  writeFileSync(join(dir, 'dados.txt'), 'cliente ' + CPF_FAKE + '\n'); g('add', 'dados.txt');
+  const r = runHook('cd ' + dir + ' && git commit -m x', dir);
+  check('E2E PII: ja estagiado + commit depois de cd', /PII/.test(r.stdout));
+}
+{
+  const { dir } = repo();
+  writeFileSync(join(dir, 'base.txt'), 'base\ncliente ' + CPF_FAKE + '\n');
+  const r = runHook('git commit -am x', dir);
+  check('E2E PII: commit -a mede o working tree rastreado', /PII/.test(r.stdout));
+}
+{
+  const { dir } = repo();
+  writeFileSync(join(dir, 'grande.txt'), linhas(400));
+  const r = runHook("git add -A && git commit -F - <<'EOF'\nfeat: grande\nEOF", dir);
+  check('E2E TAMANHO: 400 linhas via `add -A` + heredoc avisam', /400 linhas/.test(r.stdout));
+}
+{
+  const { dir } = repo();
+  writeFileSync(join(dir, 'pequeno.txt'), linhas(10));
+  const r = runHook('git add pequeno.txt && git commit -m x', dir);
+  check('E2E TAMANHO controle: 10 linhas nao avisam', !/linhas/.test(r.stdout));
+}
+{
+  const r = runHook('git add a && git commit -m x', join(tmpdir(), 'nao-existe-cdc-' + Date.now()));
+  check('E2E fail-open: git falha (cwd inexistente) → exit 0 sem aviso', r.status === 0 && !r.stdout.trim());
+}
+
 console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — porte .mjs classifica avisos (force/300/PII), advisory SEMPRE exit 0; fail-open provado (E2E).');
 process.exit(fails ? 1 : 0);

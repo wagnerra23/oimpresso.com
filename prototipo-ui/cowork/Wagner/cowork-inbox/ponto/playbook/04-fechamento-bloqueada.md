@@ -3,7 +3,7 @@ sessao: "04"
 titulo: Fechamento da competência — BLOQUEADA (W1–W4)
 dono: "[W]"
 base: e86130722de1
-prefixo: nenhum até W1–W4. Quando destravar: Modules/Ponto/Http/routes.php (rota nova) · Http/Controllers/FechamentoController.php · Database/Migrations (se W1 = tabela) · resources/js/Pages/Ponto/Fechamento/** · prototipo-ui/contrato/ponto-fechamento.contract.json · Tests/Feature/FechamentoContratoTest.php
+prefixo: nenhum até W1–W4. Quando destravar: Modules/Ponto/Http/routes.php (rota nova) · Http/Controllers/FechamentoController.php · Database/Migrations (se W1 = tabela) · resources/js/Pages/Ponto/Fechamento/** · governance/design/contracts/ponto-fechamento.contract.json · Tests/Feature/FechamentoContratoTest.php
 nao_toca: Services/ApuracaoService.php (consolidar CARIMBA, não recalcula — UC-PTF-05) · ponto_marcacoes (append-only) · Jobs/ReapurarDiaJob.php
 depende: W1 · W2 · W3 · W4
 ---
@@ -19,7 +19,7 @@ Não existe rota nem Page de fechamento no `main` (medido em `routes.php`: 10 gr
 - Número sem lei não entra na tela: artigo literal.
 
 ## Alvo de layout (já medido, 04/09 — 997 nós)
-`.pt-body` com **5 seções nesta ordem**: `.pt-toolbar` (5 filhos) · `.pt-passos` (4 passos — a trilha) · `.pt-cols-2` (2) · `SECTION.pt-card` (2) · `.pt-legal` (1) · 2 tabelas (7 `th`, com `scope="col"`) · 30 botões · 1 campo. Fonte: `prototipo-ui/cowork/ponto-fechamento.jsx` (`Fechamento`). A11y do alvo já corrigida no build (aria-live, th scope).
+`.pt-body` com **5 seções nesta ordem**: `.pt-toolbar` (5 filhos) · `.pt-passos` (4 passos — a trilha) · `.pt-cols-2` (2) · `SECTION.pt-card` (2) · `.pt-legal` (1) · 2 tabelas (7 `th`, com `scope="col"`) · 30 botões · 1 campo. Fonte: `prototipo-ui/cowork/Wagner/ponto-fechamento.jsx` (`Fechamento`). A11y do alvo já corrigida no build (aria-live, th scope).
 
 ## Quando destravar (ordem)
 ```

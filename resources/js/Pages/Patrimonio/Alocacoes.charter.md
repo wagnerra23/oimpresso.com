@@ -9,8 +9,8 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-alocacoes.md
 tier: B
-charter_version: 1
-last_validated: "2026-09-08"
+charter_version: 2
+last_validated: "2026-09-23"
 ---
 
 # Page Charter — Patrimonio/Alocacoes (DRAFT)
@@ -46,8 +46,11 @@ o módulo existe pra dar.
   · **Devolvidas** (voltou tudo) · **Todas**.
 - Por linha: código, bem + modelo, quem recebeu, quem entregou, categoria, data de alocação,
   prazo, quantidade, quantidade devolvida, motivo e a situação.
-- Ações por linha, cada uma pra rota que já existe: editar · devolver · excluir — desenhadas
-  conforme o que a alocação permite (o que já voltou por inteiro não se devolve de novo).
+- **Nenhuma ação por linha.** ⚠️ Corrigido em 2026-09-23: esta linha prometia editar · devolver
+  · excluir, mas a tela nunca os renderizou — `AssetAllocationController::{create,edit}` só
+  respondem sob `ajax()` (fragmento de modal jQuery), e o `.tsx` documenta a retirada no
+  topo. O caminho de escrita que funciona é o botão **Devoluções** do header, que navega pra
+  aba própria (`/asset/revocation`, view de verdade).
 - Sub-navegação do módulo **derivada** de `shell.menu`, nunca declarada aqui.
 - Estados: cheia · filtrada-vazia · vazia · carregando (esqueleto do defer) · sem-permissão
   (403 do gate de assinatura).

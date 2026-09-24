@@ -95,7 +95,7 @@ A subnav do protótipo foi lida no runtime em `http://localhost:5577/oimpresso.c
 | Fluxo de caixa | `financeiro-telas-extras.jsx` → `TelaFluxo` | `Fluxo/Index.tsx` | ✅ declarada |
 | Conciliação | `financeiro-telas-extras.jsx` → `TelaConciliacao` | `Conciliacao/Index.tsx` | ✅ declarada |
 | DRE / Relatórios | `financeiro-telas-extras.jsx` → `TelaDRE` | `Dre/Index.tsx` (+ `Relatorios/Index.tsx`?) | ✅ no Dre · ❌ **n/a** no Relatorios |
-| Plano de contas | `financeiro-telas-extras.jsx` → `TelaPContas` | `PlanoContas/Index.tsx` | ❌ **n/a** — divergência, ver §4.3 |
+| Plano de contas | `financeiro-telas-extras.jsx` → `TelaPContas` | `PlanoContas/Index.tsx` | ✅ declarada em 2026-09-23 (decisão [W], §4.3) |
 | Impostos & obrigações | `financeiro-telas-extras.jsx` → `TelaImpostos` | `Impostos/Index.tsx` | ✅ declarada |
 | Cobrança | `prototipos/payment-gateway-ui/cobranca-page.jsx` | `Cobranca/Index.tsx` | ✅ declarada |
 | Prova Viva | `Financeiro - Prova Viva (primitivos).html` | `ProvaViva.tsx` | ✅ declarada |
@@ -152,6 +152,8 @@ O gate reporta `prototipo_sha salvo='sha256:3c66ba0f55fe' · atual='sha256:944a1
 | `PlanoContas/Index` | `n/a (herda PT-01 Lista)` | `window.TelaPContas` |
 | `Relatorios/Index` | `n/a (bespoke, não casa PT)` | a aba "DRE / Relatórios" |
 
+> **Decidido em 2026-09-23 por [W] — `PlanoContas/Index` segue o `TelaPContas`, só na forma.** Pergunta feita com os dois lados medidos (protótipo: cartão único, árvore, colunas Lanç. mês/Saldo mês; produção: 5 KPIs, abas por tipo, colunas Natureza/Aceita lanç./Protegido). Resposta: *"Seguir o protótipo (forma)"*. O charter passa a apontar a âncora no mesmo PR da FIN-6. Ficam **mantidos** os KPIs, as abas e as 3 colunas da produção; "Lanç. mês" e "Saldo mês" (soma de valor, regra mestre) viram FIN-6b. `Relatorios/Index` **não** entrou nesta pergunta e segue em aberto.
+
 Isto **não é** automaticamente um erro do charter — pode ser decisão declarada de não seguir aquele protótipo. Mas é divergência entre dois artefatos canônicos, e a regra de precedência manda **corrigir o perdedor no mesmo PR**. Como envolve escolher a fonte de design de uma tela, é **decisão [W]**, não conserto silencioso.
 
 ### 4.4 Gerar os 3 proto-baseline que faltam
@@ -200,22 +202,24 @@ Oito passos. O que muda entre ondas é a tela, nunca a receita.
 
 Critério: âncora primeiro (só se pode comparar quem tem fonte), risco Tier 0 dita o ritmo, telas sem âncora fecham em lote por Padrão de Tela.
 
+> **Reordenada em 2026-09-23 por decisão [W]** (*"pode reordenar, DRE primeiro"*): DRE passa a Onda 1 e o Unificado vai por último. Ordem anterior (1 Unificado · 2 Fluxo · 3 Conciliação · 4 DRE · 5 Impostos · 6 PlanoContas · 7 Cobrança · 8 ProvaViva) preservada no git. Motivo em §12.
+
 Cobertura conferida: **21/21**. O `UnificadoController` e irmãos renderizam 19 pages; `Advisor/Dashboard` e `Advisor/Login` vêm dos controllers próprios em `Http/Controllers/Advisor/`. 8 telas em ondas nomeadas + 13 na Onda 9 = 21.
 
 | Onda | Tela | Fonte | Baseline proto | Risco | Por que nesta posição |
 |---:|---|---|:---:|---|---|
 | **0** | — (fundação) | — | — | — | sem ela o passo 2 não roda em nenhuma das 7 |
-| **1** | `Unificado/Index` | `financeiro-page.jsx` | ✅ | 🔴 **valor** | maior (3090 ln), 9 UC sem prova, é a tela que a Eliana abre toda manhã |
+| **1** | `Dre/Index` | `TelaDRE` | ✅ | 🔴 **valor** | visual-comparison 80d — o mais stale do módulo · **1ª por decisão [W] 2026-09-23** (só formata; cálculo no `DreService`) |
 | **2** | `Fluxo/Index` | `TelaFluxo` | ✅ | 🔴 **valor** (projeção/saldo) | visual-comparison 53d stale |
-| **3** | `Conciliacao/Index` | `TelaConciliacao` | ✅ | 🔴 **valor** | 13 UC já com prova — melhor base do módulo |
-| **4** | `Dre/Index` | `TelaDRE` | ✅ | 🔴 **valor** | visual-comparison 80d — o mais stale do módulo |
-| **5** | `Impostos/Index` | `TelaImpostos` | ✅ | 🔴 **valor + fiscal** | 2 UC sem prova |
+| **3** | `Impostos/Index` | `TelaImpostos` | ✅ | 🔴 **valor + fiscal** | 2 UC sem prova |
+| **4** | `Conciliacao/Index` | `TelaConciliacao` | ✅ | 🔴 **valor** | 13 UC já com prova — melhor base do módulo |
+| **5** | `Cobranca/Index` | `cobranca-page.jsx` | ❌ gerar | 🔴 **valor** | fronteira com PaymentGateway — escopo a confirmar |
 | **6** | `PlanoContas/Index` | `TelaPContas` ⚠️ | ❌ gerar | 🟡 | **depende da decisão [W] de §4.3** |
-| **7** | `Cobranca/Index` | `cobranca-page.jsx` | ❌ gerar | 🔴 **valor** | fronteira com PaymentGateway — escopo a confirmar |
-| **8** | `ProvaViva` | HTML primitivos | ❌ gerar | 🟡 | 2 UC sem prova |
+| ~~**7**~~ | ~~`ProvaViva`~~ | ~~HTML primitivos~~ | — | — | **Onda removida por decisão [W] 2026-09-23** (*"não pode seguir com a FIN-7 da Prova Viva, isso não existe"*). Nenhuma paridade será feita. O código segue no repo (rota `financeiro.prova-viva.index`, `ProvaViva.tsx` + charter/casos, `ProvaVivaController` + 2 testes) — destino dele é outra decisão [W], não desta série. |
+| **8** | `Unificado/Index` | `financeiro-page.jsx` | ✅ | 🔴 **valor** | maior (3090 ln), 9 UC sem prova, é a tela que a Eliana abre toda manhã · **por último, decisão [W] 2026-09-23** (maior raio do módulo) |
 | **9** | as 13 sem âncora | Padrão de Tela + DS | n/a | 🟡 | conformidade PT-01/PT-04, em lote por PT — **não** repintura |
 
-`Relatorios/Index` está hoje na **Onda 9**. Se a decisão [W] do §4.3 disser que ele segue o `TelaDRE`, ele passa para a Onda 4 — é o único item cuja onda muda conforme aquela decisão.
+`Relatorios/Index` está hoje na **Onda 9**. Se a decisão [W] do §4.3 disser que ele segue o `TelaDRE`, ele passa para a Onda 1 (junto do DRE) — é o único item cuja onda muda conforme aquela decisão.
 
 ### 6.1 Onda que NÃO deve existir — Boletos
 
@@ -231,8 +235,8 @@ Antes de criar comparativo novo numa onda, procure o que já existe — três n�
 
 | Onda | Arquivo a atualizar | Pegadinha |
 |---|---|---|
-| 3 · Conciliação | `index-visual-comparison.md` | o nome diz "index", mas o campo `tela:` dele é `/financeiro/conciliacao` |
-| 1 · Unificado | `financeiro-unificado-visual-comparison.md` **+** `unificado-3-lentes-visual-comparison.md` | são **dois**, mais o `unificado-gap.md` e o `unificado.map.json` |
+| 4 · Conciliação | `index-visual-comparison.md` | o nome diz "index", mas o campo `tela:` dele é `/financeiro/conciliacao` |
+| 8 · Unificado | `financeiro-unificado-visual-comparison.md` **+** `unificado-3-lentes-visual-comparison.md` | são **dois**, mais o `unificado-gap.md` e o `unificado.map.json` |
 | 9 · Caixa | `caixa-visual-comparison.md` | compara contra **Blade do core** (`resources/views/cash_register/index.blade.php`), não contra protótipo — eixo MWART, não paridade-Cowork |
 
 Não há dívida MWART **dentro** do módulo: `Modules/Financeiro/Resources/views/` tem 3 blades e nenhum é tela concorrente (`index`, `layouts/master`, `pdf/dre` — este último gera PDF).
@@ -320,3 +324,79 @@ O protótipo abre em `http://localhost:5577/oimpresso.com.html` (preview `cowork
 ---
 
 _Criado em 2026-08-18. Retrato datado: os números do §1 envelhecem por construção — re-rode o §11 em vez de editá-los._
+
+---
+
+## 12. Revisão de 2026-09-23 — plano do workflow e decisões [W] do dia (append; não reordena a §6)
+
+> Saída do workflow `migracao-layout-em-ondas` em modo plano (run `wf_dd49566d-08b`, base
+> `origin/main` `798d7406fbb`), conferida pelo `[CL]`. Este manual continua sendo o **único** plano de
+> ondas do Financeiro (§10); o que vem abaixo é delta, não plano paralelo. Irmão para Clientes:
+> [`ONDA-2-CLIENTES-PLANO.md`](../Mwart/ONDA-2-CLIENTES-PLANO.md).
+
+### 12.1 Decisões [W] registradas hoje
+
+- **O Financeiro começa antes de Clientes.** Clientes é a única família em uso por cliente; [W]
+  prefere não mexer nela primeiro ([W] 2026-09-23: *"ainda estou cético em deixar fazer isso"*).
+- **Ninguém usa o Financeiro ainda.** Só a empresa 1 tem dados, e são do próprio [W], desatualizados
+  ([W] 2026-09-23). Logo as entradas Financeiro do `governance/prod-flags.json` que apontam biz=4
+  (seed **manual** de 2026-06-30, não derivado) **não** descrevem uso real.
+- **Comparação na empresa 1, período de julho de 2026, sem gravar nada** ([W] 2026-09-23: *"usa
+  julho, não precisa gravar nada"*). Medido no mesmo dia, só leitura: 39.121 títulos ativos, 35.348
+  baixas, título mais recente em 2026-07-02, 0 títulos `SEEDER_DEMO`. O `FinanceiroDemoSeeder`
+  **não** roda na empresa 1 (ele já recusa por `protected_business_ids`; a trava fica).
+
+### 12.2 O que o run achou e muda a leitura deste manual
+
+| Achado | Evidência | Efeito |
+|---|---|---|
+| A troca de layout do Financeiro **não tem flag**: chega a todo business com `financeiro_module` no deploy | nenhum `mwart.financeiro_*` em `config/mwart.php` | reversão = `git revert` do `.tsx`; como ninguém usa, o risco de uso é baixo, o de **valor exibido** continua |
+| `fin-card`/`fin-ink`/`fin-sysbtn` não existem em `resources/css` | `grep -c fin-card resources/css/cowork-canon-financeiro-bundle.css` = 0; `prototipo-ui/cowork/Wagner/financeiro.css` = 2 | porte do CSS **inteiro** (§8, lição F3) em PR próprio antes de qualquer `.tsx` que use essas classes |
+| Paths-filter da lane `financeiro-pest.yml` só cobre `Impostos/Index.tsx` entre as Pages | L84-107 | PR que toque só `Dre/Index.tsx` ou `Fluxo/Index.tsx` sai verde **sem rodar teste** — consertar antes da onda |
+| Fluxo: o código do protótipo tem 4 KPIs, a medição de runtime de 2026-09-08 viu 1 | `financeiro-telas-extras.jsx` `TelaFluxo` × `fluxo-visual-comparison.md` §Onda 7 | **AMBÍGUO**, não se fecha por leitura — medir de novo antes de ondear o Fluxo |
+| `ProvaViva.charter.md` aponta âncora removida no #7445 | charter `related_prototype` | decisão [W]: `n/a (herda PT-0X)` ou nova âncora |
+| Charter do DRE contradiz o código (anti-hooks `os-page-h` e "proíbe `Card`") | `Dre/Index.charter.md:55-56` × `Dre/Index.tsx`, `BalancoView.tsx:54` | corrigir o perdedor no mesmo PR da onda; qual lado perde é [W] |
+
+### 12.3 Etapas propostas (uma por execução, cada uma com aprovação [W])
+
+| Etapa | O que é | Toca `.tsx`? |
+|---|---|---|
+| **FIN-0a** | Fechar a Onda 0 (§4) **só para DRE e Fluxo**: diagnosticar o "3 design systems no shell" que invalida os proto-baselines; `design-diff --probe` prod×protótipo nas duas telas, empresa 1, **julho 2026**, mesmo tema e viewport; resolver o 1×4 KPIs do Fluxo e o "12m" do DRE por medição; linha do Financeiro no `FRESCOR-PRODUCAO-vs-PROTOTIPO.md` | não |
+| **FIN-0b** | Porte do CSS inteiro do bundle Financeiro (só se FIN-0a mostrar "prod atrás") | não |
+| **FIN-0c** | Prova de valor: pôr `Dre/**` e `Fluxo/Index.tsx` no paths-filter da lane e um teste novo, tenant 98 (+99 de verdade), que prenda os números que a tela exibe | não |
+| **FIN-1** | **DRE** — só formata valores (cálculo no `DreService`); se FIN-0a medir paridade, a onda só trava o estado | sim, se "prod atrás" |
+| **FIN-2** | **Fluxo** — depende de FIN-0a e da decisão sobre os KPIs; a tela **calcula** valores (`Fluxo/Index.tsx:84,149,189,270`), então cálculo byte-idêntico | sim |
+| FIN-3+ | Impostos → Conciliação/Cobrança → Unificado → Onda 9 | — |
+
+**Prova de valor de toda onda de tela (regra mestre, dois caminhos):** (1) `git diff` vazio em
+`Modules/Financeiro/{Services,Http,Entities}` e a lane com a mesma contagem de assertions;
+(2) lista ordenada dos números exibidos em **julho de 2026 na empresa 1**, antes e depois, idêntica —
+apresentada ao [W] como tabela antes→depois.
+
+### 12.4 Perguntas abertas [W]
+
+1. ~~**Ordem**~~ — **decidido [W] 2026-09-23:** DRE primeiro, Unificado por último; §6 reordenada.
+2. ~~**Fluxo:** 1 KPI × 4~~ — **caiu na FIN-0a**: com o DS carregado, o protótipo tem os 4.
+3. **Charter do DRE:** atualiza o charter para o código atual, ou o código volta ao charter?
+4. **ProvaViva:** `n/a (herda PT-0X)` ou nova âncora?
+5. ~~**FIN-0a**~~ — **autorizada [W] 2026-09-23.**
+
+### 12.5 Resultado da FIN-0a — medido em 2026-09-23
+
+- **"Falta CSS" era o servidor.** Os presets `python -m http.server` do `.claude/launch.json` (e o `cowork-jana-2` citado no §11) não resolvem `_ds/<slug>/` e o protótipo renderiza sem o Design System, sem erro visível. O servidor correto é `servirEspelho` (`scripts/design/design-diff-lote.mjs`, ADR 0401 E2). Por isso os `*.proto-baseline.json` do módulo e as medições de 2026-09-08 do DRE e do Fluxo **não valem**: o baseline do DRE tem 1 elemento de conteúdo por célula.
+- **DRE:** estrutura igual. Dívidas para a FIN-1: 1ª coluna monoespaçada e rótulo "Novo título". O "12m só na prod" não se reproduz.
+- **Fluxo:** o protótipo tem os 4 indicadores. **A pergunta 2 da §12.4 cai.** Dívidas: tamanho do valor, h1, botão primário e "Próximos eventos" como tabela. _Errata 2026-09-23 (FIN-2): "Próximos eventos como tabela" não era dívida — a produção já usa `<table>`; a sonda viu o estado vazio (sem título desde 2026-07-02). Detalhe em `fluxo-visual-comparison.md`._
+- **Defeitos de comportamento (não são layout, vão para tarefa própria):** trocar de aba no DRE perde o período; sessão sem empresa deixa o DRE vazio (nenhuma rota do Financeiro passa pelo `SetSessionData`); e **11 rotas que gravam exigem só usuário logado**, sem permissão do Financeiro: categorias (4), conciliação (4: `upload`, `match`, `ignorar`, `reabrir`), `contas-bancarias/{id}` (upsert), `contas-pagar/{id}/pagar` e `contas-receber/{id}/boleto`. Medido: 13 rotas de escrita sem `can:` no `route:list` de produção; 2 delas (atualizar assinatura, cancelar fatura) verificam a permissão dentro do método; nas 11 restantes nem o controller nem o FormRequest verificam (os `authorize()` devolvem só `user() !== null`). Os dados ficam restritos à empresa da sessão (sem vazamento entre empresas).
+- **FIN-0b (CSS) segue necessária** para as duas telas: a direção medida é "prod atrás".
+
+O pedido ao Design está em
+[`CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md`](../../reference/prototipo-ui/CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md).
+
+### 12.6 Resultado da FIN-9 (Onda 9, as 13 sem âncora) — medido em 2026-09-23
+
+**Fecha por medição, sem mudança de tela.** A onda é conformidade de Padrão de Tela, não repintura (§6).
+
+- **`pt-conformance.mjs`:** 83 telas declarantes no repo, **0 divergências**. Das 13 da Onda 9, **4 declaram PT** e as 4 passam: `Categorias`, `ContasPagar` e `ContasReceber` (PT-01) e `Dashboard` (PT-04).
+- **As outras 9 não declaram PT, e fica assim.** Os charters delas explicam o `n/a` (portal do contador, tela de auth, formulário de cobrança, seletor de 2 cartões, relatório com abas). O classificador de sinais (`lib/pt-signatures.mjs`) é raso demais para decidir por elas: chama de "lista" o formulário de `AssinaturaAtualizar` e o seletor do `Unificado/Novo`. Declarar PT por esse sinal seria só contar string (o *count-pump* que o próprio `pt-conformance` foi feito para impedir).
+- **`reconcile-triplet.mjs` nas 3 listas PT-01:** acusou 4 slots (Toolbar "busca" nas três e Drawer em `Categorias`). **Os 4 são falso-positivo, conferidos no código e no texto do charter:** nenhum charter pede busca (Contas a pagar/receber pedem filtros de status em botões, e eles existem; em `Categorias` a palavra "filtros" está numa frase sobre relatórios), e `Categorias` usa o `CategoriaSheet`, componente próprio que o detector não reconhece.
+- **Defeito do instrumento, registrado e não consertado aqui:** `reconcile-triplet --module=Financeiro --tela=Categorias` (sem `/Index`) procura `Categorias.tsx`, não acha, compara vazio com vazio e responde **CONFORME** em todos os slots. O `--all` não cai nisso, porque parte dos charters que existem.

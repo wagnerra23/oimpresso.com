@@ -75,9 +75,15 @@ it('DataController.modifyAdminMenu chama isModuleInstalled com nome novo (não l
 
         expect($content)
             // FALHA AQUI SIGNIFICA: {$path} deveria chamar isModuleInstalled('{$names['new']}')
-            ->toContain("isModuleInstalled('{$names['new']}')")
-            ->not->toContain("isModuleInstalled('{$names['legacy']}')",
-                "{$path} NÃO deveria chamar isModuleInstalled com nome legacy '{$names['legacy']}' — sidebar quebra silenciosa.");
+            ->toContain("isModuleInstalled('{$names['new']}')");
+
+        // ⚠️ Separado do encadeamento acima de propósito: `->not->toContain($needle, $msg)`
+        // NÃO asseria nada. `toContain` é variádico (`mixed ...$needles`), então a mensagem
+        // virava um 2º needle; o positivo passava a lançar sempre; e o `not->`, que passa
+        // justamente quando o positivo lança, ficava verdadeiro com ou sem o needle.
+        expect(str_contains($content, "isModuleInstalled('{$names['legacy']}')"))->toBeFalse(
+            "{$path} NÃO deveria chamar isModuleInstalled com nome legacy '{$names['legacy']}' — sidebar quebra silenciosa."
+        );
     }
 });
 

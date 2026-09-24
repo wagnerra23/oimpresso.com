@@ -9,7 +9,7 @@ alvo_medido: NAO
 ---
 # Rodapé do usuário — 3 threads
 
-> **Leia só este arquivo + a thread da sua vez.** Não precisa da conversa. Read-order no `main`: `prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md` → `FRESCOR-PRODUCAO-vs-PROTOTIPO.md` → `PRE-FLIGHT-TELA.md` → `Layouts/AppShellV2.charter.md`.
+> **Leia só este arquivo + a thread da sua vez.** Não precisa da conversa. Read-order no `main`: `memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md` → `FRESCOR-PRODUCAO-vs-PROTOTIPO.md` → `PRE-FLIGHT-TELA.md` → `Layouts/AppShellV2.charter.md`.
 >
 > ⚠️ **Este pacote NÃO é um EXPORT de layout.** Não há ALVO medido (sonda de protótipo com dupla leitura) neste ciclo — logo **não tem os 10 blocos** e não autoriza mexer em pixel. É pedido de **comportamento**: três controles do menu do usuário que, no vivo, prometem e não entregam. Layout do menu: **não tocar**.
 

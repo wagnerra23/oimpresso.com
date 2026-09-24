@@ -7,12 +7,12 @@ base: 752041ac450d
 # ancora · playbook
 
 ## Objeto
-`prototipo-ui/ancora.mjs` (**49.089 B**, lido neste turno em `752041ac450d`) é o dono da resolução de âncora; `design-coverage`, `ancora-guard`, `integrity-check` e o hook `post-merge-ui-smoke-required` derivam dele. Auditei os **vínculos** (charter → arquivo de design) e achei **3 defeitos** e **1 limite estrutural**. Nada aqui é sobre o princípio da ferramenta — o princípio está certo (âncora computada do charter, `n/a` classificado como declaração, frescor num eixo separado do conteúdo, selftest com controle negativo). O que está errado é o vínculo chegar ao leitor.
+`scripts/design/ancora.mjs` (**49.089 B**, lido neste turno em `752041ac450d`) é o dono da resolução de âncora; `design-coverage`, `ancora-guard`, `integrity-check` e o hook `post-merge-ui-smoke-required` derivam dele. Auditei os **vínculos** (charter → arquivo de design) e achei **3 defeitos** e **1 limite estrutural**. Nada aqui é sobre o princípio da ferramenta — o princípio está certo (âncora computada do charter, `n/a` classificado como declaração, frescor num eixo separado do conteúdo, selftest com controle negativo). O que está errado é o vínculo chegar ao leitor.
 
 **Não rodei `node`** (sem execução no Cowork): tudo abaixo é leitura de código + conferência dos valores declarados contra os arquivos que existem no `main`. Nenhum veredito de `--selftest`/`--list` é afirmado.
 
 ## Lei desta pasta
-> **ADITIVO OU NADA, E EM SÉRIE.** As 3 threads escrevem no **mesmo arquivo** (`prototipo-ui/ancora.mjs`) — logo **não são paralelas**: 01 → 02 → 03, cada uma **remedindo o sha antes de escrever**. Nenhuma muda a API pública (`frontmatter`, `repoTsx`, `mockupJsx`, `ehAncoraIlegitima`, `desasparValor`, `ehDeclaracaoNa`, `caminhoDaAncora`, `tokenDeArquivo`, `simbolosCitados`, `defeitosDaAncora`, `entradasDoLedger`, `ultimaRodada`, `frescorDoEspelho`, `resolveAncora`) — o hook `post-merge-ui-smoke-required.mjs:316-322` importa `caminhoDaAncora`/`ehDeclaracaoNa` e **degrada em silêncio** se o import quebrar.
+> **ADITIVO OU NADA, E EM SÉRIE.** As 3 threads escrevem no **mesmo arquivo** (`scripts/design/ancora.mjs`) — logo **não são paralelas**: 01 → 02 → 03, cada uma **remedindo o sha antes de escrever**. Nenhuma muda a API pública (`frontmatter`, `repoTsx`, `mockupJsx`, `ehAncoraIlegitima`, `desasparValor`, `ehDeclaracaoNa`, `caminhoDaAncora`, `tokenDeArquivo`, `simbolosCitados`, `defeitosDaAncora`, `entradasDoLedger`, `ultimaRodada`, `frescorDoEspelho`, `resolveAncora`) — o hook `post-merge-ui-smoke-required.mjs:316-322` importa `caminhoDaAncora`/`ehDeclaracaoNa` e **degrada em silêncio** se o import quebrar.
 
 ## O que medi (denominador)
 - **189** charters em `resources/js/Pages/**/*.charter.md`.
@@ -41,9 +41,9 @@ Um único charter do corpus medido resolve isso, e resolve bem:
 ## Threads
 | # | thread | prefixo | veredito |
 |---|---|---|---|
-| **01** | perna do bundle resolve no `LUGAR_FIXO` sem `--staging` (D1) | `prototipo-ui/ancora.mjs` | **CABE** |
-| **02** | query ambígua deixa de sortear: candidatos + exit 2 (D2) | `prototipo-ui/ancora.mjs` | **CABE** · depende 01 (mesmo arquivo) |
-| **03** | `--list` prova o arquivo e mede o fallback `component` (D3) | `prototipo-ui/ancora.mjs` | **CABE** · depende 02 (mesmo arquivo) |
+| **01** | perna do bundle resolve no `LUGAR_FIXO` sem `--staging` (D1) | `scripts/design/ancora.mjs` | **CABE** |
+| **02** | query ambígua deixa de sortear: candidatos + exit 2 (D2) | `scripts/design/ancora.mjs` | **CABE** · depende 01 (mesmo arquivo) |
+| **03** | `--list` prova o arquivo e mede o fallback `component` (D3) | `scripts/design/ancora.mjs` | **CABE** · depende 02 (mesmo arquivo) |
 | — | formato `arquivo :: símbolo :: faixa` no `related_prototype` | — | **BLOQUEADA** por `D-SIMBOLO` ([W]) |
 
 ## O que este playbook NÃO resolve
@@ -62,7 +62,7 @@ Li em `752041ac450d`; a última busca do turno já respondeu de `7742b9621c32`. 
  "sha": "752041ac450d",
  "gerado": "2026-09-09",
  "variaveis": {
-  "ALVO": "prototipo-ui/ancora.mjs",
+  "ALVO": "scripts/design/ancora.mjs",
   "FIXO": "prototipo-ui/cowork/Wagner"
  },
  "decisoes": [
@@ -94,13 +94,13 @@ Li em `752041ac450d`; a última busca do turno já respondeu de `7742b9621c32`. 
    "titulo": "perna do bundle resolve no LUGAR_FIXO sem --staging",
    "dono": "CL",
    "arquivo": "01-bundle-sem-staging.md",
-   "prefixo": ["prototipo-ui/ancora.mjs"],
-   "nao_toca": ["resources/js/Pages/**", ".claude/hooks/**", "scripts/governance/**", "prototipo-ui/cowork/**"],
+   "prefixo": ["scripts/design/ancora.mjs"],
+   "nao_toca": ["resources/js/Pages/**", ".claude/hooks/**", "scripts/governance/**", "prototipo-ui/cowork/Wagner/**"],
    "depende_threads": [],
    "depende_decisoes": [],
    "provas": [
-    { "tipo": "contem", "path": "prototipo-ui/ancora.mjs", "padrao": "LUGAR_FIXO", "nota": "a constante já existe; a thread passa a usá-la na perna do bundle" },
-    { "tipo": "contem", "path": "prototipo-ui/ancora.mjs", "padrao": "BITE bundle sem staging" },
+    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "LUGAR_FIXO", "nota": "a constante já existe; a thread passa a usá-la na perna do bundle" },
+    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "BITE bundle sem staging" },
     { "tipo": "contem", "path": ".claude/hooks/post-merge-ui-smoke-required.mjs", "padrao": "caminhoDaAncora", "guarda": true },
     { "tipo": "arquivo", "path": "prototipo-ui/cowork/Wagner/repair-page.jsx", "guarda": true }
    ]
@@ -110,15 +110,15 @@ Li em `752041ac450d`; a última busca do turno já respondeu de `7742b9621c32`. 
    "titulo": "query ambigua deixa de sortear charter",
    "dono": "CL",
    "arquivo": "02-query-ambigua.md",
-   "prefixo": ["prototipo-ui/ancora.mjs"],
+   "prefixo": ["scripts/design/ancora.mjs"],
    "nao_toca": ["resources/js/Pages/**", ".claude/hooks/**", "scripts/**"],
    "depende_threads": ["01"],
    "depende_decisoes": [],
    "nota_provas": "mesmo arquivo da 01 — remedir o sha antes de escrever",
    "provas": [
-    { "tipo": "contem", "path": "prototipo-ui/ancora.mjs", "padrao": "candidatos" },
-    { "tipo": "contem", "path": "prototipo-ui/ancora.mjs", "padrao": "BITE ambiguidade" },
-    { "tipo": "contem", "path": "prototipo-ui/ancora.mjs", "padrao": "CONTROLE ambiguidade" }
+    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "candidatos" },
+    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "BITE ambiguidade" },
+    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "CONTROLE ambiguidade" }
    ]
   },
   {
@@ -126,15 +126,15 @@ Li em `752041ac450d`; a última busca do turno já respondeu de `7742b9621c32`. 
    "titulo": "--list prova o arquivo e mede o fallback component",
    "dono": "CL",
    "arquivo": "03-list-prova-arquivo.md",
-   "prefixo": ["prototipo-ui/ancora.mjs"],
+   "prefixo": ["scripts/design/ancora.mjs"],
    "nao_toca": ["scripts/governance/**", "resources/js/Pages/**"],
    "depende_threads": ["02"],
    "depende_decisoes": [],
    "nota_provas": "a remoção do fallback component fica atrás de D-COMPONENT; a thread entrega o campo medido e o número",
    "provas": [
-    { "tipo": "contem", "path": "prototipo-ui/ancora.mjs", "padrao": "existe" },
-    { "tipo": "contem", "path": "prototipo-ui/ancora.mjs", "padrao": "BITE list: fonte que nao abre" },
-    { "tipo": "contem", "path": "prototipo-ui/ancora.mjs", "padrao": "hasSource", "guarda": true, "nota": "consumidor design-coverage lê este campo — não pode desaparecer" }
+    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "existe" },
+    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "BITE list: fonte que nao abre" },
+    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "hasSource", "guarda": true, "nota": "consumidor design-coverage lê este campo — não pode desaparecer" }
    ]
   }
  ]

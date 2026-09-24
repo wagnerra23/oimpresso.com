@@ -9,7 +9,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { matchDestructive, normalizeCmd, statements, alvosRmRf, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete, ehStatementInerte } from './block-destructive.mjs';
+import { matchDestructive, normalizeCmd, statements, alvosRmRf, blockMessage, avisoStashPop, consomeTopoPorPosicao, avisoPushDelete, ehStatementInerte, ehToolRm, removeHeredocDeDado } from './block-destructive.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'block-destructive.mjs');
 let fails = 0;
@@ -19,7 +19,13 @@ const check = (name, cond) => { console.log((cond ? '[OK]   ' : '[FAIL] ') + nam
 const BLOCK = [
   ['rm -rf em path de trabalho', 'rm -rf src/'],
   ['rm -rf no meio de pipeline (;)', 'cd x; rm -rf Modules/'],
-  ['RM -RF maiúsculo (PS -match era case-insensitive)', 'RM -RF app/'],
+  // ⚠️ Este NÃO é herança decorativa do porte .ps1. MEDIDO no Git Bash/Windows
+  // (NTFS case-insensitive) em 2026-09-21: `command -v RM` → /usr/bin/RM e
+  // `RM --version` → "rm (GNU coreutils) 8.32". `RM -RF app/` APAGA aqui.
+  // Quem propuser tirar o `/i` do detector alegando "POSIX é case-sensitive":
+  // a premissa vale em Linux/macOS e não vale nesta plataforma. Rode os dois
+  // comandos acima antes.
+  ['RM -RF maiúsculo (executa mesmo — NTFS é case-insensitive)', 'RM -RF app/'],
   ['git push --force', 'git push --force origin main'],
   ['git push -f', 'git push -f'],
   ['git push --force-with-lease (exige confirmação Wagner)', 'git push origin main --force-with-lease'],
@@ -225,13 +231,56 @@ check('BITE rm: whitelist sobrevive a um `cd` antes (era o FP dos 19)',
   matchDestructive('cd /repo && rm -rf node_modules') === null);
 check('BITE rm: idem com `;`', matchDestructive('cd /repo; rm -rf /tmp/scratch') === null);
 check('BITE rm: idem em bloco multi-linha', matchDestructive('cd /repo\nrm -rf public/build-inertia') === null);
-// Prosa: com a isenção por ALVO, a frase que continua depois do path vira "alvo"
-// e não casa a whitelist → bloqueia. É FP conhecido e ACEITO (medido: 1 em 153k,
-// e era prosa minha). O caminho é passar a mensagem por ARQUIVO, não afrouxar.
-check('CN rm: prosa multi-palavra citando um rm whitelisted BLOQUEIA (FP aceito do multi-arg)',
-  matchDestructive('git commit -F - <<EOF\nex: `cd x && rm -rf node_modules` bloqueia hoje\nEOF')?.key === 'rm-rf-perigoso');
-check('CN rm: prosa com o rm no MEIO da frase segue bloqueando (FP pré-existente)',
-  matchDestructive('git commit -F - <<EOF\ntexto citando rm -rf node_modules aqui\nEOF')?.key === 'rm-rf-perigoso');
+// ── HEREDOC de DADO: prosa deixou de ser statement ([W] 2026-09-21) ───────────
+// FATO DATADO, não apagar: até 2026-09-21 estes dois casos BLOQUEAVAM, e o
+// bloqueio estava registrado aqui como "FP conhecido e ACEITO (medido: 1 em
+// 153k)", com o remédio "passar a mensagem por ARQUIVO, não afrouxar".
+// O que mudou não é a tolerância ao FP — é o DIAGNÓSTICO. A causa não era a
+// isenção por alvo ("a frase depois do path vira alvo"); era o FATIADOR, que
+// quebrava o corpo do heredoc em `\n` e promovia uma linha de PROSA a statement.
+// `removeHeredocDeDado` conserta isso sem tocar a whitelist de alvos.
+// Medido antes de aplicar: AFROUXOU 23/23 no corpus, APERTOU **0**, e 0 dos 23
+// sem heredoc. Pedido de [W] 2026-09-21 ("arruma o heredoc").
+check('BITE heredoc: prosa multi-palavra citando um rm whitelisted PASSA (era FP)',
+  matchDestructive('git commit -F - <<EOF\nex: `cd x && rm -rf node_modules` bloqueia hoje\nEOF') === null);
+check('BITE heredoc: prosa com o rm no MEIO da frase PASSA (era FP pré-existente)',
+  matchDestructive('git commit -F - <<EOF\ntexto citando rm -rf node_modules aqui\nEOF') === null);
+check('BITE heredoc: prosa com alvo FORA da whitelist também passa (é dado, não alvo)',
+  matchDestructive("cat > doc.md <<'EOF'\nprosa citando rm -rf /etc/passwd\nEOF") === null);
+
+// CONTROLES NEGATIVOS do heredoc — corpo que alimenta EXECUTOR é CÓDIGO, não dado.
+// Sem estes, "ignorar heredoc" abriria `bash <<EOF … EOF` inteiro.
+check('CN heredoc: `bash` lendo do stdin segue BLOQ',
+  matchDestructive("bash <<'EOF'\nrm -rf /etc/passwd\nEOF")?.key === 'rm-rf-perigoso');
+check('CN heredoc: `sh` lendo do stdin segue BLOQ',
+  matchDestructive('sh <<EOF\nrm -rf /var/www\nEOF')?.key === 'rm-rf-perigoso');
+check('CN heredoc: `cat <<EOF | sh` segue BLOQ',
+  matchDestructive("cat <<'EOF' | sh\nrm -rf /etc/passwd\nEOF")?.key === 'rm-rf-perigoso');
+check('CN heredoc: `ssh prod <<EOF` segue BLOQ (filesystem remoto é real)',
+  matchDestructive("ssh prod <<'EOF'\nrm -rf /var/www\nEOF")?.key === 'rm-rf-perigoso');
+check('CN heredoc: `| tailscale ssh … docker exec -i … sh` segue BLOQ',
+  matchDestructive("cat <<'EOF' | tailscale ssh root@ct100 'docker exec -i c sh'\nrm -rf /etc\nEOF")?.key === 'rm-rf-perigoso');
+check('CN heredoc: `xargs rm -rf` alimentado por heredoc segue BLOQ',
+  matchDestructive("cat <<'EOF' | xargs rm -rf\n/etc\nEOF")?.key === 'rm-rf-perigoso');
+// FORA do heredoc: o parser não pode engolir comando real vizinho
+check('CN heredoc: comando real DEPOIS do fecho segue BLOQ',
+  matchDestructive("cat > x <<'EOF'\ntexto\nEOF\nrm -rf /etc/passwd")?.key === 'rm-rf-perigoso');
+check('CN heredoc: comando real ANTES do heredoc segue BLOQ',
+  matchDestructive("rm -rf /etc/passwd && cat > x <<'EOF'\ntexto\nEOF")?.key === 'rm-rf-perigoso');
+check('CN heredoc: comando real ENTRE dois heredocs segue BLOQ',
+  matchDestructive("cat > a <<'E1'\ntexto\nE1\nrm -rf /etc/passwd\ncat > b <<'E2'\ntexto\nE2")?.key === 'rm-rf-perigoso');
+check('CN heredoc: SEM fecho não vira dado (não se inventa fronteira)',
+  matchDestructive("cat > x <<'EOF'\nrm -rf /etc/passwd")?.key === 'rm-rf-perigoso');
+// o transformador, isolado
+check('removeHeredocDeDado: descarta corpo de dado e preserva o fecho',
+  !/prosa/.test(removeHeredocDeDado("cat > x <<'EOF'\nprosa\nEOF")) &&
+  /EOF/.test(removeHeredocDeDado("cat > x <<'EOF'\nprosa\nEOF")));
+check('removeHeredocDeDado: PRESERVA corpo quando o abridor executa',
+  /codigo/.test(removeHeredocDeDado("bash <<'EOF'\ncodigo\nEOF")));
+check('removeHeredocDeDado: comando sem heredoc sai idêntico',
+  removeHeredocDeDado('rm -rf /etc') === 'rm -rf /etc');
+check('removeHeredocDeDado: `<<-` com tabulação também é reconhecido',
+  !/prosa/.test(removeHeredocDeDado("cat > x <<-'EOF'\n\tprosa\n\tEOF")));
 
 // CONTROLES NEGATIVOS — o que a isenção por statement NÃO pode liberar
 check('CN rm: alvo FORA da whitelist segue bloqueado, mesmo depois de um cd',
@@ -240,14 +289,47 @@ check('CN rm: FECHA falso-negativo — 1º rm whitelisted não cobre o 2º perig
   matchDestructive('rm -rf /tmp/a && rm -rf src/')?.key === 'rm-rf-perigoso');
 check('CN rm: idem com o perigoso em outra linha',
   matchDestructive('rm -rf node_modules\nrm -rf /etc')?.key === 'rm-rf-perigoso');
-check('CN rm: whitelist exige o rm no INÍCIO do statement (sudo não é isento)',
-  matchDestructive('sudo rm -rf vendor')?.key === 'rm-rf-perigoso');
+// ── §POSIÇÃO (2026-09-21): a isenção deixa de exigir `rm` no 1º token ───────
+// Era: `sudo rm -rf vendor` BLOQUEAVA, embora `vendor` esteja na whitelist e
+// `rm -rf vendor` passe. O motivo era só a âncora `^rm` do extrator. Medido no
+// corpus: 5 comandos com TODOS os alvos já whitelisted bloqueavam por isso,
+// todos `docker exec … rm /tmp/*.php` — trabalho normal de sonda no CT 100.
+// Isto NÃO afrouxa o que importa: o veredito continua vindo de alvoIsento()
+// sobre CADA alvo (os 4 CN abaixo), e a vacuidade do xargs segue fechada.
+check('POSIÇÃO: `sudo rm -rf vendor` isenta — o alvo é que decide, não a posição',
+  matchDestructive('sudo rm -rf vendor') === null);
+check('POSIÇÃO: `docker exec c rm /tmp/x.php` isenta (o caso real do corpus)',
+  matchDestructive('docker exec c rm /tmp/x.php') === null);
+check('POSIÇÃO: `timeout 200 rm /tmp/x` isenta',
+  matchDestructive('timeout 200 rm /tmp/x') === null);
+check('CN POSIÇÃO: prefixo NÃO isenta alvo de fora (`sudo rm /etc/passwd`)',
+  matchDestructive('sudo rm /etc/passwd')?.key === 'rm-rf-perigoso');
+check('CN POSIÇÃO: idem em container (`docker exec c rm /etc/passwd`)',
+  matchDestructive('docker exec c rm /etc/passwd')?.key === 'rm-rf-perigoso');
+check('CN POSIÇÃO: multi-arg com 1 alvo de fora segue bloqueando mesmo com prefixo',
+  matchDestructive('docker exec c rm /tmp/a src/b')?.key === 'rm-rf-perigoso');
+check('CN POSIÇÃO: `ssh host rm -rf /var/www` NÃO é isento — alvo remoto é alvo',
+  matchDestructive('ssh prod rm -rf /var/www')?.key === 'rm-rf-perigoso');
 check('CN rm: statement terminando nas flags (xargs) segue bloqueando — sem `$` viraria falso-NEGATIVO',
   matchDestructive('xargs -a lista.txt rm -rf')?.key === 'rm-rf-perigoso');
 check('CN rm: `xargs ... rm -f` no fim do statement segue bloqueando (comportamento de hoje preservado)',
   matchDestructive('cd /x\nxargs -a /tmp/l.txt -r rm -f\necho fim')?.key === 'rm-rf-perigoso');
-check('CN rm: `rm -rf` dentro de padrão de grep NÃO bloqueia (o `|` é alternação)',
-  matchDestructive('git show HEAD:x.mjs | grep -nE "design|rm -rf|wipe" | head -5') === null);
+// ⚠️ REGRESSÃO CONHECIDA E MEDIDA, assumida ao fechar o `rm` sem flag ([W]
+// 2026-09-21). Até então este caso PASSAVA: com o detector exigindo `-[rRf]+`,
+// o `rm -rf|` dentro do padrão não casava (o `|` não é `\s` nem fim). Sem a
+// exigência de flag, `|rm ` casa — o `|` está em `[\s;&|]`.
+// O FP é ESTREITO, e isso foi medido antes de aceitar: só atinge o `rm` logo
+// após `|` ou como token solto. Seguem PASSANDO (medidos):
+//     grep -n "rm " arquivo          · grep -rn "rm -rf" scripts/
+//     echo "use rm pra limpar"       · git log | grep "rm"
+// Custo no corpus: classe C = 53 de 563 comandos que passam a bloquear (9,4%).
+// Caminho pra quem esbarrar: passar o padrão por arquivo/variável, que é o
+// mesmo remédio do FP de prosa em `git commit -F` documentado no §MULTI-ARG.
+check('CN rm: `rm` após `|` num padrão de grep BLOQUEIA (regressão aceita do rm-sem-flag)',
+  matchDestructive('git show HEAD:x.mjs | grep -nE "design|rm -rf|wipe" | head -5')?.key === 'rm-rf-perigoso');
+check('CN rm: o FP é ESTREITO — `rm` dentro de aspas sem `|` antes segue passando',
+  matchDestructive('grep -n "rm " .claude/hooks/block-destructive.mjs') === null
+  && matchDestructive('grep -rn "rm -rf" scripts/') === null);
 check('E2E rm: cd + whitelist → exit 0', runHook(j('cd /repo && rm -rf node_modules')) === 0);
 check('E2E rm: cd + alvo fora da whitelist → exit 2', runHook(j('cd /repo && rm -rf src/')) === 2);
 
@@ -272,8 +354,97 @@ check('CN multi-arg: aspas envolventes não quebram o casamento',
   matchDestructive('rm -rf "/tmp/dir com espaco"') === null);
 
 // as duas decisões que a medição sustenta (mexer nelas exige re-medir)
-check('DECISÃO: flags `-rf` LITERAL — `rm -f /tmp/x` segue BLOQUEANDO (como hoje)',
-  matchDestructive('rm -f /tmp/x')?.key === 'rm-rf-perigoso');
+//
+// §FLAG-SET — a isenção vale pelo CONJUNTO de flags ([W] 2026-09-21).
+//
+// HISTÓRICO (fato datado, não apagar): até 2026-09-21 a isenção casava o
+// literal `-rf`, aceitando exatamente o par ORDENADO `(r|R)(f|F)`. Efeito:
+// `rm -rf`, `rm -fr` e `rm -Rf` — o MESMO comando pro SO — saíam daqui com
+// vereditos diferentes, e o menos destrutivo (`-f`) bloqueava enquanto o mais
+// destrutivo (`-rf`) passava. Medido e fechado por decisão do [W].
+//
+// HOJE, sobre o MESMO alvo isento, os 13 pontos: (sem flag) passa por não
+// casar o detector; TODAS as combinações de `r|R|f|F` passam por serem isentas.
+// Em alvo NÃO isento, as 12 com flag BLOQUEIAM — medido antes e depois, zero
+// mudou ali. Só a isenção afrouxou, e só onde a whitelist já autorizava.
+//
+// ⚠️ MEDIDO (a intuição erra aqui): NÃO existe variante "sem o R" por classe
+// de caracteres. Como o regex tem `/i`, `-[rf]+` e `-[rRf]+` são EQUIVALENTES
+// neste ponto. O `R` vem do flag, não da classe — rode os dois mutantes antes
+// de supor que diferem.
+const isento = (c) => matchDestructive(c) === null;
+const bloqueia = (c) => matchDestructive(c)?.key === 'rm-rf-perigoso';
+check('FLAG-SET: as 12 combinações de r/R/f/F isentam em alvo whitelisted',
+  ['-f', '-r', '-R', '-F', '-rf', '-rF', '-Rf', '-RF', '-fr', '-fR', '-Fr', '-FR']
+    .every((f) => isento(`rm ${f} /tmp/x`)));
+check('FLAG-SET/ORDEM: `-fr` e `-fR` isentam igual a `-rf` (mesmo cmd pro SO)',
+  isento('rm -fr /tmp/x') && isento('rm -fR /tmp/x') && isento('rm -rf /tmp/x'));
+check('FLAG-SET/CAIXA: `-Rf` e `-RF` isentam igual a `-rf`',
+  isento('rm -Rf /tmp/x') && isento('rm -RF /tmp/x'));
+check('FLAG-SET: flags SEPARADAS em alvo isento também isentam (`rm -f -r /tmp/x`)',
+  isento('rm -f -r /tmp/x'));
+// ── CN: o afrouxamento é SÓ na isenção. A proteção real não cedeu em nada. ──
+check('CN FLAG-SET: em alvo NÃO isento, as 12 combinações seguem BLOQUEANDO',
+  ['-f', '-r', '-R', '-F', '-rf', '-rF', '-Rf', '-RF', '-fr', '-fR', '-Fr', '-FR']
+    .every((f) => bloqueia(`rm ${f} /etc/passwd`)));
+check('CN FLAG-SET: flags separadas NÃO isentam alvo de fora (`rm -f -r /etc`)',
+  bloqueia('rm -f -r /etc'));
+check('CN FLAG-SET: multi-arg com 1 alvo fora segue bloqueando, agora também com `-f`',
+  bloqueia('rm -f /tmp/a src/b'));
+check('CN FLAG-SET: travessia `..` segue bloqueando, agora também com `-f`',
+  bloqueia('rm -f node_modules/../../etc'));
+check('CN FLAG-SET: `xargs … rm -f` (alvo vem de arquivo) segue BLOQUEANDO',
+  bloqueia('xargs -a lista.txt rm -f'));
+check('CN FLAG-SET: `rm -f` sem alvo nenhum NÃO é isento (vacuidade seria buraco)',
+  bloqueia('cd /x\nrm -f\necho fim'));
+// E2E pelo CLI de fora (processo real + stdin JSON), não só o helper: é o
+// chokepoint que a sessão atravessa. Controle positivo do harness logo acima,
+// na linha do `rm -rf Modules/` → exit 2.
+check('E2E FLAG-SET: `rm -f /tmp/x` isento → exit 0', runHook(j('rm -f /tmp/x')) === 0);
+check('E2E FLAG-SET: `rm -fr /tmp/x` (ordem invertida) isento → exit 0',
+  runHook(j('rm -fr /tmp/x')) === 0);
+check('E2E FLAG-SET: `rm -f /etc/passwd` → exit 2 (proteção real intacta)',
+  runHook(j('rm -f /etc/passwd')) === 2);
+
+// ── §ESCOPO rm(1): a categoria deixa de exigir FLAG ([W] 2026-09-21) ────────
+// Único ponto do arquivo onde uma mudança ADICIONA bloqueio. Medido antes:
+// 561 distintos / 563 ocorrências passam a bloquear, 89,9% deles rm(1) real.
+check('ESCOPO: `rm arquivo.txt` sem flag BLOQUEIA (era invisível até 2026-09-21)',
+  bloqueia('rm arquivo.txt'));
+check('ESCOPO: `rm /etc/passwd` sem flag BLOQUEIA',
+  bloqueia('rm /etc/passwd'));
+check('ESCOPO: `cd x && rm y.txt` — vale por statement, não só no início',
+  bloqueia('cd x && rm y.txt'));
+check('ESCOPO: alvo isento segue passando sem flag (`rm /tmp/x`)',
+  isento('rm /tmp/x'));
+// ── ehToolRm: `<tool> rm` NÃO é rm(1). Sem isto, 183 `git rm` no corpus. ────
+check('TOOL-RM: `git rm` não é rm(1) — passa',
+  isento('git rm arquivo.txt') && isento('git rm -q x.php'));
+check('TOOL-RM: `git rm -r dir/` passa — corrige FP PRÉ-EXISTENTE (18 no corpus)',
+  isento('git rm -r dir/'));
+check('TOOL-RM: docker/svn/hg/kubectl rm também',
+  isento('docker rm cont') && isento('docker rm -f cont')
+  && isento('svn rm x') && isento('kubectl rm pod'));
+check('CN TOOL-RM: o rm(1) DEPOIS de um tool-rm no mesmo statement ainda conta',
+  bloqueia('git status && rm src/x.php'));
+check('CN ESCOPO: `rm` dentro de outra palavra não casa (npm, charm, term)',
+  isento('npm run build') && isento('charm x') && isento('term rm-less'));
+check('ehToolRm isolado: reconhece o tool, não a palavra solta',
+  ehToolRm('git rm x') === true && ehToolRm('rm x') === false
+  && ehToolRm('docker rm c') === true && ehToolRm('gitrm x') === false);
+
+// ── FP CONHECIDO E ACEITO do `/i` no detector (2026-09-21) ─────────────────
+// O idioma `const RM = 'r' + 'm'` — que as sessões usam para escrever SOBRE o
+// hook sem disparar o hook — é acusado, porque `RM` entre espaços casa sob
+// `/i`. Medido: 4 de 559 (0,7%), concentrado em quem mexe neste arquivo.
+// Fica ASSERTADO de propósito: é custo declarado, não surpresa. O remédio NÃO
+// é tirar o `/i` (ver o comentário do assert 'RM -RF maiúsculo' acima —
+// `RM` executa de verdade no Git Bash/Windows); é escrever o identificador de
+// outro jeito, ex. `const R_M` ou montar por charCode.
+check('FP aceito: o idioma `const RM = ...` dispara o detector (custo do /i)',
+  matchDestructive(`node -e "const RM = 'r' + 'm'; console.log(RM)"`)?.key === 'rm-rf-perigoso');
+check('CN do FP: `RM` COLADO noutro token não dispara (não é palavra solta)',
+  matchDestructive('node -e "const xRMy = 1"') === null);
 check('DECISÃO: `$var` dentro de prefixo isento segue isento (temp-dir dinâmico)',
   matchDestructive('rm -rf /tmp/$SESSION') === null);
 check('CN: `$var` FORA de prefixo isento bloqueia (proteção vem de graça)',

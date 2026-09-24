@@ -110,7 +110,7 @@ Medido por [CC] **agora** (árvore `32af4af112a4`, 18:27Z): filtro `^sync/|bundl
 - **D0** rota `/ponto/conformidade` read-only · **D1** `ponto.fechar` próprio, **sem "Reabrir"** · **D2** a palavra **"assinada" sai**, o ato continua com nome e data · **D3** recusar = **`ORIGEM_ANULACAO`** (precedente, não escolha) · **D4** **AFD/AEJ fora** do fechamento.
 - **R2 cumprida no mesmo turno:** 4 das 5 mudaram o protótipo e estão **medidas no render** (`/Reabrir/` ausente · `/assinad/i` **zero** na tela · `ORIGEM_ANULACAO` presente · passo 4 = *"AFD / AEJ — em Relatórios"*).
 - **Pedido executável:** thread **30**, 5 PRs em ordem de risco crescente; os 2 contratos retidos entram **junto das telas**.
-- **O que sobra para o [CL] em canon:** virar a proposal para `accepted` (bloco de frontmatter na thread 30) e estender o guard da ADR 0383 ao `prototipo-ui/cowork/**`.
+- **O que sobra para o [CL] em canon:** virar a proposal para `accepted` (bloco de frontmatter na thread 30) e estender o guard da ADR 0383 ao `prototipo-ui/cowork/Wagner/**`.
 
 **O que eu não fiz, e segue valendo:** não escrevi os 2 contratos antes da tela (vermelho permanente) e não tratei "sem receptor" como lacuna de engenharia — era bloqueio de produto, com dono e data.
 

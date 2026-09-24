@@ -36,7 +36,7 @@
     mk(4815, 'Escola Aurora', 'Faixa 4×1m', 'paid', 'Carlos Souza', 540, 'archived'),
   ];
   ReactDOM.createRoot(document.getElementById('root')).render(
-    h(DataTablePro, { columns, rows, height: 300, selectable: true, onRowClick: () => {}, defaultSort: { key: 'valor', dir: 'desc' } })
+    h(DataTablePro, { columns, rows, caption: 'Títulos financeiros por vencimento', height: 300, selectable: true, onRowClick: () => {}, defaultSort: { key: 'valor', dir: 'desc' } })
   );
 </script>
 </body>

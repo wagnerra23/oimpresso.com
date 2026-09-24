@@ -1335,6 +1335,12 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **⚠️ 3ª OCORRÊNCIA (mesmo dia, ~2h depois) — a HIPÓTESE que esta lápide declara acima está MEDIDA e CONFIRMADA, no sub-caso COUNT.** O marcador era `HIPÓTESE, não medido` para estender a limite (2) ao `conclusion` de check-run. Medido: li `zero check-runs no meu SHA` como *"o `synchronize` ainda não disparou"* enquanto o `state` dizia `closed` / `merged:true` — o #7347 mergeou às 19:40:05Z e o meu commit foi pushado às **19:40:29Z**, 24s depois, numa branch cujo PR já estava fechado. Confirma-se a limite (2) e confirma-se que ela **vale para número, não só para sentinela**: `total_count: 0` lê naturalmente como *"ainda não"* e, diferente de `unknown`, **não se anuncia** — que é exatamente o *"indistinguíveis pelo valor"* já escrito acima, agora com instância. **⚠️ ERRATA DO MEU PRÓPRIO RASCUNHO, e é o mais importante desta entrada:** eu ia registrar que a regra positiva **(1)** — *"peça estado e derivado na mesma chamada"* — **não seria executável** neste sub-caso, e que *"uma sessão futura que tentar vai travar"*. **É FALSO, medido com o comando literal da própria regra:** `gh pr view 7347 --json state,mergeStateStatus` devolve `{"state":"MERGED","mergeStateStatus":"UNKNOWN"}` — uma chamada, estado e derivado, e o número do PR estava na minha mão. Afirmação de **impossibilidade de medir** em canon é a §5 2026-09-01: não produz vermelho, produz **silêncio**, e instrui desistência sobre algo que funciona. O defeito real é mais modesto: **perguntei ao commit uma pergunta de PR** — `repos/{owner}/{repo}/commits/{sha}/check-runs` devolve `["check_runs","total_count"]` e 0 hits do literal `state`, porque quem tem o estado (o PR) e quem foi consultado (o commit) são objetos diferentes. **Resíduo que sobrevive e é real:** em SHA pushado **pós-merge** o eixo commit não tem PR a resolver (`commits/4532077a/pulls` = vazio), logo o objeto a interrogar é o PR. **Terceira observação, sobre por que durou 3 sondas:** o ref remoto **de fato** havia avançado (`git ls-remote` = `4532077a`), então a história errada vinha corroborada por evidência verdadeira. **Agravante registrado, não amaciado:** citei esta lápide na minha própria mensagem **um passo antes** de cometê-la — mesmo formato da emenda §5 2026-09-05 (*o aviso estava no arquivo que eu editava no mesmo PR*), e mede o teto da defesa cultural melhor que qualquer contagem. **Segue NÃO ARMADO pela razão JÁ ESCRITA acima, não por uma mais forte:** a perna 2 custaria chamada de rede num `PreToolUse`, que esta lápide já precificou (4.975 / 2.032). **Consequência real:** o main ficou com o hook e sem o índice (`--check` exit 1 · índice citando o hook 0×, controle positivo `modulo-preflight-warning` 1×), consertado no [#7351](https://github.com/wagnerra23/oimpresso.com/pull/7351). Fechamento submetido ao `ciclo-adversary` **antes** de virar canon: veredito **REJECT**, 3 das 7 claims derrubadas por medição (a inexequibilidade, a "superfície nova" e a "razão mais forte"), todas corrigidas acima.
 
+- **⚠️ ERRATA 2026-09-21 (mesmo dia, horas depois) — o "NÃO ARMADO" acima CADUCOU, e o candidato foi armado com OUTRO NÚMERO.** O texto acima fica (append-only, e era honesto na hora). O par que esta lápide registrou como **"P6 candidato, medido e não armado"** foi **ARMADO como `P7`** em [#7610](https://github.com/wagnerra23/oimpresso.com/pull/7610) (`e48889899eb`), a pedido de [W]. ⚠️ **Cuidado com o nome:** o slot `P6` do `block-sonda-que-mente` ficou, no mesmo dia, com um par **diferente** — revspec MSYS com path iniciado em ponto, [#7581](https://github.com/wagnerra23/oimpresso.com/pull/7581) (`9961289d7bb`). Quem ler "P6" aqui e for procurar no hook acha outra coisa.
+
+- **⚠️ O bloqueio que esta lápide PRECIFICOU deixou de existir — e não por alguém aceitar o custo.** A razão escrita acima era *"a perna 2 custaria chamada de rede num `PreToolUse`"* (4.975 comandos pedindo derivado · 2.032 sem estado). O P7 **trocou a perna 2 por uma SINTÁTICA** — *o comando pediu `state` na MESMA invocação?* —, que não toca a rede e custa zero; o docblock dele diz isso com todas as letras (*"foi o que destravou este par, que estava barrado justamente por custo"*). **O limite que isto acrescenta:** quando uma lápide recusa armar por **CUSTO de uma perna**, o que expira não é o gap — é **a perna**. Reabrir é procurar uma 2ª perna mais barata, nunca aceitar a cara. Vale para toda recusa cuja razão escrita seja custo, rede, dependência ou latência.
+
+- **⚠️ Recibo de que morde, e do dano de não ter escrito esta errata antes.** Em 2026-09-21 o P7 **bloqueou de verdade** um laço que pedia `mergeStateStatus` sozinho dentro de `st=$(...)` — exatamente o cenário desta lápide; e o `porque` do par cita o quase-incidente irmão (*"quase fez um loop de merge tentar mergear um PR que o [W] já havia mergeado"*). O dano da omissão também está medido: [W] leu esta lápide e mandou *"arma o P6 que você mediu e deixou registrado"* — ordem para **construir o que já existia**, que é a [LC-19](LICOES_CODE.md) esperando acontecer. É a §5 2026-09-03 na veia (*lápide que declara um GAP tem prazo de validade implícito*), desta vez com o dono como vítima. O ledger **não** drifou: o `Gate:` da LC-08 já registrava `P6 ARMADO` e `P7 ARMADO` no mesmo dia. Quem drifou foi **só** esta lápide — canon que ninguém releu depois de mexer na máquina que ela descrevia.
+
 ### 2026-09-15 — EMENDA da lápide 2026-08-08 (promover required renomeando o job): o par candidato foi ARMADO — 5º eixo do `required-always-run`, FP 0 em 60 commits
 
 - **O limite (variante também proibida — emenda da lápide de 2026-08-08, mesma família):** segue proibido promover check a required mudando o `name:` do job ou o gatilho na mesma leva **sem** rodar `gh pr update-branch` nos PRs abertos no mesmo trabalho. O que esta emenda acrescenta é que a regra **deixou de ser só escrita**: o 5º eixo do `required-always-run.mjs` compara os contexts EMITIDOS na base × no head e acusa o required que passa a nascer com nome novo. E não re-propor detector paralelo para esta classe — o dono existe, já parseia os dois lados (workflows + baseline) e a mãe já o nomeava como dono natural ([LC-19](LICOES_CODE.md)).
@@ -1615,6 +1621,176 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
   **abrir o dono antes de afirmar**, e ele estava a um `grep` de distância.
 
 Ocorrência da **LC-08**. Ocorrência da **LC-10**.
+
+### 2026-09-21 — Tirar o `/i` do detector do `rm`, e isentar `docker exec`/`ssh … rm` por PREFIXO — duas propostas minhas ao #7613, ambas refutadas por medição da autora
+
+- **O limite (variantes também proibidas).** **(a)** Não re-propor tirar, afrouxar ou condicionar
+  o `/i` da categoria `rm-rf-perigoso` com o argumento de case-sensitivity do POSIX — a premissa
+  não vale nesta plataforma, e há mutante que derruba os **dois** asserts (o da proteção real e o
+  do FP) para quem tentar. Vale a generalização: afirmação sobre comportamento de **shell, SO ou
+  filesystem** se resolve **rodando o comando na plataforma onde o código roda**, e o recibo
+  carrega o `uname -s` — porque a condição não é *"Windows"*, é *"MSYS sobre NTFS"*, e quem ler
+  num Mac daqui a seis meses vai achar que o comentário está errado. **(b)** Não isentar `rm` por
+  **prefixo de execução remota ou containerizada** (`docker exec`, `docker run`, `ssh`,
+  `tailscale`, `kubectl exec`) — sob nenhum nome. O que decide continua sendo o **alvo**, via
+  `alvoIsento()`, e é isso que faz `/tmp/` passar e `/var/www` bloquear no mesmo prefixo.
+  **(c)** O FP dos 4 fica como **custo declarado e inevitável**, com assert fixando-o. O remédio
+  é de quem escreve a sonda — `const R_M`, ou montar por charCode —, nunca mexer no flag.
+
+- **⚠️ NÃO virar gate.** Nada aqui pede máquina nova: a defesa contra (a) já é o par de asserts
+  mais o mutante, e contra (b) é o `alvoIsento()` que já existe, com controle negativo fixado. O
+  que faltou nas duas propostas não era gate, era **rodar o comando antes de recomendar** —
+  em (a) o `command -v`, em (b) o controle do mesmo prefixo com alvo fora da whitelist.
+
+Ocorrência da **LC-09**.
+
+### 2026-09-21 — REINCIDÊNCIA da LC-24 num 2º instrumento: o auto-canário do `memory-health` decidia com UMA amostra, e o conserto de 2026-08-13 nunca chegou nele
+
+- **O limite (variante também proibida).** Ao consertar uma classe de defeito **dentro de um
+  instrumento**, perguntar **quem mais implementa aquela mesma regra** — e dizer o número, com a
+  varredura contada. Havendo 2+ implementações, o conserto não termina na que doeu: ou as outras são
+  consertadas no MESMO PR, ou passam a **chamar uma só**. Regra duplicada **diverge por construção** —
+  a cópia não tocada envelhece em silêncio e reaparece meses depois com cara de defeito novo. Vale
+  para query repetida em dois lugares, validação espelhada em front e back, limiar escrito em YAML e
+  em código, e parser reimplementado ao lado do dono. Corolário de diagnóstico, porque é o que
+  encurta a investigação: **diante do alarme de um instrumento, pergunte se existe irmão que faz a
+  mesma pergunta** — se existir e ele estiver saudável, a diferença entre os dois É a causa.
+
+- **⚠️ Sobre virar gate — e o que mudou SEM virar gate.** O gate de CLASSE segue **banido por
+  construção**, e a [LC-24](LICOES_CODE.md) já declara por quê: *"esta fonte pode estar atrasada?"*
+  não se decide por sintaxe, e acusar toda leitura única é a família de guard sintático que este §5
+  já enterrou. O que mudou é estrutural, não mecânico: a regra existia em **2 implementações** e
+  passa a existir em **1** — medido,
+  `git grep -l -e '--event schedule' <ref> -- '*.mjs' '*.yml' '*.sh' '*.js' '*.php'` devolve
+  `memory-health.yml` + `cron-watchdog.mjs` em `main` e só o segundo com o conserto. Um **terceiro**
+  instrumento seguiria exposto, então `Gate:` continua `none` e a classe segue alarmando — leitura
+  correta da convenção, não pendência escondida. ⚠️ E os 6 asserts novos rodam no `--selftest` do
+  dono, na lane `governance-script-tests`, que **não estava** na união dos 47 contexts required
+  (medido 2026-09-21) — logo, pela convenção do cabeçalho do ledger, isso **não** conta como defesa
+  mecânica.
+
+Ocorrência da **LC-24**.
+
+### 2026-09-21 — Inventei a HORA de uma medição DENTRO da nota que existe para marcar medição caduca — e os 3 números verdadeiros ao lado autenticaram o falso
+
+- **O limite (variante também proibida).** **(a)** Número de **TEMPO** — hora, duração, *"há N
+  dias"*, *"por N semanas"*, *"desde que"* — só entra em doc canônico **calculado ou citado de
+  fonte** (`mergedAt`, `%cd`/`%ad` de commit com o eixo declarado, timestamp de log, aritmética de
+  datas explicitada); nunca reconstruído de plausibilidade. Quando a fonte **não registra** aquele
+  campo, o honesto é dizer que não registra — foi o conserto aplicado aqui. **(b)** E o teste
+  barato, que é o que esta lápide acrescenta: **número verdadeiro ao lado não autentica o
+  vizinho.** Antes de fechar parágrafo que mistura medidos e não-medidos, reler **cada** número
+  perguntando *"de onde ESTE veio?"*; quando a resposta for *"parece razoável"*, ele sai ou ganha a
+  ressalva explícita. Vale para hora, contagem, percentual, nota e nome de arquivo.
+
+- **⚠️ NÃO virar gate, e as razões são medidas, não tímidas.** O gate óbvio da classe **já está
+  medido e reprovado** e o campo `Gate:` da LC-08 registra isso — detector de *"afirmação sem
+  evidência"* deu **130 FP**, e ampliar o corpus do `fact-anchor` deu **~64% FP**; não re-propor.
+  A forma sintática específica (acusar menção de hora sem fonte ao lado) reprovaria os
+  **legítimos**, que são a maioria **neste mesmo arquivo** — é a família de guard sintático que
+  este §5 já enterrou (allowlist-de-pasta 06-30 · guard `@scope` 07-09 · vocabulário 130 FP
+  07-16 · `toHaveKey` 100% FP 07-26 · `toContain` 07-28 · par usuário/senha 08-02 · `jq` 08-11 ·
+  variante Radix 08-25). E o predicado verdadeiro — *"de onde veio este número?"* — é
+  **semântico por construção** ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md):
+  semântico = advisory). Por [ADR 0344](decisions/0344-two-strikes-cobre-processo.md) também não
+  se codifica: não chegou a prod. **O que pegou foi releitura própria do texto já publicado**, e
+  não máquina nenhuma — isso é dado, não desculpa.
+
+Ocorrência da **LC-08**.
+
+### 2026-09-21 — Disparar a regeneração de baseline do VRT: o mecanismo ainda FUNCIONA, e a prática tinha sido aposentada no mesmo dia (ADR 0409)
+
+- **O limite (variante também proibida):** antes de disparar comando ou workflow que **PRODUZ artefato canônico** — baseline, snapshot, manifesto, índice, scorecard —, conferir se decisão recente aposentou a prática (`decisions-search`, ou listar os ADRs de maior número). **Mecanismo que ainda funciona NÃO é evidência de que a prática ainda é canônica:** o canon anda por ADR e a máquina anda por PR, e o vão entre os dois é exatamente onde este erro mora — quanto mais nova a decisão, maior o vão. Aqui ele tinha menos de 24h, e nada no repo impedia o disparo: o workflow estava lá, íntegro, com a receita documentada no próprio comentário. Vale pra todo mecanismo que sobrevive à decisão que o aposentou, e é o **inverso** da §5 2026-09-03 (*lápide que declara um GAP tem prazo de validade*): lá o canon envelhece contra o mundo, aqui a máquina envelhece contra o canon.
+
+### 2026-09-21 — Arbitrary variant (`min-[…]`/`max-[…]`) no `className` de componente cujas variantes usam `sm:`/`lg:` — MEDIDO INERTE duas vezes, com CI verde
+
+- **O limite (variante também proibida):** não fechar breakpoint por arbitrary variant no `className` de um componente cujas variantes emitam `sm:`/`lg:`/`md:` para a **mesma propriedade** — vale para `grid-cols`, `col-span`, `gap`, `text-`, qualquer família que o `cva`/`colsMap` do compartilhado já cubra. Também proibido "resolver" por `!important`: reconstrói o problema com dívida. O caminho é **réplica local** (ADR 0388 §D-1) sem o `colsMap` competindo — aí sobra `grid-cols-2` (base, sem media query) contra `min-[1101px]:grid-cols-4` (dentro da media), e a ordem passa a funcionar a favor. Reproduzir o veredito: buildar e comparar os offsets dos dois seletores **no mesmo arquivo**.
+
+### 2026-09-21 — EMENDA da lápide 2026-09-18 (opcache): o eixo **ASSET BUILDADO** — `git rev-parse HEAD` em prod diz o CÓDIGO, não o ARTEFATO servido
+
+- **O limite (variante também proibida):** não tratar `git rev-parse HEAD` em produção como prova de que a mudança está no ar. Ele responde *"qual código o servidor tem"*, nunca *"qual artefato ele serve"* — e para front-end quem decide é o **bundle**. Antes de declarar pronto, ou de diagnosticar uma tela errada como regressão, conferir os **dois**: o SHA **e** o artefato, baixando o CSS/JS público e procurando o **seletor escapado** que a mudança introduz (`.min-\[1101px\]\:grid-cols-4`, não a media query solta — `max-width:1100px` aparece em CSS de módulos que nada têm a ver).
+
+### 2026-09-22 — EMENDA da lápide 2026-07-28 (`toContain` message-as-needle): na forma NEGADA o assert não é "fraco", ele está **MORTO** — e 9 dos vivos são Tier 0
+
+- **⚠️ ERRATA DO MEU PRÓPRIO CONSERTO, e é o que esta lápide tem de próprio:** ao corrigir, achei o irmão pré-existente `->not->toContain('testing', '<mensagem>')` no mesmo arquivo e o descrevi, no commit E num comentário que **mergeei para o main**, como *"benigno — só acrescenta 'e também não contém essa frase', que é sempre verdade"*. **É FALSO.** Eu apliquei De Morgan a uma API que não o implementa. Lido no vendor, dois pontos que decidem: `Mixins/Expectation.php:184` — `toContain` **itera os needles e asserta cada um**, então `toContain($a, $msg)` lança **sempre**, porque a mensagem nunca está no haystack; e `Expectations/OppositeExpectation.php:770-784` — o `not->` roda o positivo dentro de um `try` e **passa quando ele lança**. Composto: `not->toContain($a, $msg)` **passa sempre, com ou sem `$a`**. O check do needle é inteiramente descartado.
+
+- **O limite (variante também proibida):** a regra da mãe (*assert que carrega mensagem não usa matcher variádico*) vale igual — o que muda é a **gravidade e o sintoma**. Na forma positiva o defeito é **barulhento** (vermelho imediato, apontando pro lado errado). Na forma **negada** ele é **silencioso e terminal**: o assert vira `true` constante. Corolário que generaliza para além do Pest: quando um matcher variádico é embrulhado por um combinador que inverte **o resultado da chamada inteira** (e não cada termo), acrescentar um termo impossível **desliga a asserção**, não a endurece. Antes de confiar em `not->`/`never`/`refute` sobre matcher multi-termo, ler como o combinador é implementado — De Morgan é a intuição errada aqui.
+
+- **⚠️ Uma sonda minha saiu inválida e fica registrada:** tentei provar o comportamento instanciando `new \Pest\Expectation(...)` fora do contexto de teste. O **controle negativo falhou junto** (o caso que deveria passar, com o needle ausente, também levantou `AssertionError`), o que prova que o harness não servia. Descartei o resultado em vez de usá-lo — a prova que vale é a leitura dos dois trechos de vendor acima.
+
+- **⚠️ O `Gate: none` da LC-31 pode ser REABERTO, e agora com número.** Ele diz que a forma óbvia está proibida porque separar "mensagem" de "needle" é critério **textual** (o irmão `toHaveKey` deu 100% FP), e que *"se um dia virar máquina, o predicado tem que ser a **aridade declarada do matcher**"*. A aridade **é** derivável: `grep` em `Mixins/Expectation.php` devolve exatamente **dois** variádicos (`toContain`, `toContainEqual`). E a medição acima parte a população em duas com perfis opostos: o predicado **`->not->` + matcher variádico + ≥2 argumentos** tem **18 hits, 18 deles defeito real** — FP **0** medido, **sem julgar prosa** (desde que o medidor pule comentário); já o mesmo predicado na forma positiva tem **106 hits majoritariamente legítimos** (`toContain('required','string','min:10')`) e continua proibido. **Não armado aqui:** armar é ato do [W], o escopo deste PR é o registro, e o `--selftest` teria de nascer com fixture boa/ruim. Fica medido para quem armar.
+
+⚠️ **Residual de registro, declarado e NÃO consertado por mim:** o contador derivado da LC-31 lê **base:1 + 1 rec**. A reincidência de **2026-09-05** foi registrada como texto **dentro do parêntese da linha `Ocorrências:`**, não como bullet `- **rec**` — que é a forma que o derivador conta. Ou seja, o número que a máquina imprime está **abaixo** do que o próprio corpo da LC descreve. Não reescrevi o registro de outra sessão: aponto o fato aqui para quem decidir normalizar (é conversão de forma, o fato datado se preserva).
+
+Ocorrência da **LC-31**.
+
+### 2026-09-22 — Promover o `brl-scan` a required pela superfície MENSAGEM DE COMMIT (MEDIDO: 100% de FP na janela pós-gate — e a premissa que motivou o pedido estava errada)
+
+- **O limite (variantes também proibidas):** **(a)** não promover o `brl-scan` a required pela superfície **mensagem de commit** — nem o job inteiro, nem um job separado só pra ela — **sem re-rodar a contagem acima**; e não apresentar a taxa de disparo como taxa de FP. Reabrir exige a medição refeita na janela do dia, não o argumento (verdadeiro e insuficiente) de que vazamento em commit só sai reescrevendo história. **(b)** não "resolver" o FP isentando **inline code** (crase) nem vocabulário de meta-discussão (`scan`, `gate`, `lápide`): isentar crase abre bypass trivial — basta escrever o valor entre crases — e o vocabulário é a família de guard sintático que este §5 já enterrou 8× (allowlist-de-pasta 06-30 · guard `@scope` 07-09 · vocabulário **130 FP** 07-16 · `toHaveKey` **100% FP** 07-26 · `toContain` 07-28 · par usuário/senha 08-02 · `jq` 08-11 · variante Radix 08-25). **(c)** e o limite de método, que é o mais reutilizável: **medição de FP é por SUPERFÍCIE, nunca por gate.** Um job que varre N superfícies tem N taxas, e a do arquivo não diz nada sobre a da mensagem — herdar o número de uma para decidir sobre a outra é medir a propriedade errada com o nome certo. Antes de citar "o FP deste gate", dizer **de qual superfície** ele é.
+
+- **⚠️ O que esta lápide NÃO diz — e o defeito REAL que a medição encontrou no caminho.** Ela não diz que estava tudo bem. O job tinha um **fail-open**: `run:` sem `shell:` roda em `bash -e {0}` — com `-e`, **sem** `-o pipefail` —, e num pipeline o `rc` é do último comando, então base inválida matava o `git log` e entregava **stdin vazio** ao scanner, que reportava zero achados e saía 0. **Step verde sem ter lido uma linha.** Medido com o comando real: `bash -e` → `rc 0` (verde mudo) × `bash -euo pipefail` → `rc 128` (falha visível). O step `--base` nunca teve o furo (não é pipe: o scanner resolve o range e sai 2 quando a base não existe) — a assimetria vivia **dentro do mesmo job**, e a superfície da classe no repo era **2 de 2** steps com `| node` em workflows, ambos ali. Consertado no [#7680](https://github.com/wagnerra23/oimpresso.com/pull/7680): os 2 steps ganharam `set -euo pipefail`, `BASE_SHA` vazio passou a **se declarar** (`exit 2` = não-medi, o contrato do `ds-mirror-drift`) em vez de virar verde, e nasceu bite-test que **executa** o `run` extraído do YAML num sandbox git hermético, com **controle de mutação** (sem pipefail o verde mudo volta — prova que o assert mede o pipefail, não outra coisa). FP do conserto: **0** nos três caminhos. `js-yaml` foi evitado **por medição** — não está em `dependencies` nem `devDependencies` e a lane não roda `npm ci`, então importar daria `ERR_MODULE_NOT_FOUND`: seria o próprio defeito que o arquivo existe pra impedir. Corrigido junto o escopo declarado no `gates-registry`, que dizia `commit subjects` enquanto o step varre a mensagem inteira desde 2026-08-20 — ponteiro podre de 33 dias.
+
+- **⚠️ Resíduo declarado, que é decisão [W] e não minha:** o `promote_by: 2026-09-30` da entrada `brl-scan.yml` no `gates-registry` ficou **intocado**. Ele vence 8 dias depois desta lápide, e quem for decidir o flip deve ler o número acima — está registrado no cabeçalho do gate e no `anchor` do registry, os dois donos do tema. Esta lápide não antecipa a decisão: ela garante que ela não seja tomada sem o número.
+
+Ocorrência da **LC-13**.
+
+### 2026-09-22 — O zero de um medidor tem TRÊS causas, não duas: a terceira é CORPUS ANACRÔNICO, e ela não aparece em nenhuma lápide anterior
+
+- **O limite (variante também proibida):** diante de um medidor que devolve **zero**, não concluir antes de separar **três** causas — predicado cego · superfície parada · **corpus anacrônico** (o alvo nasceu depois do último elemento do corpus). O binário *"bruto>0 ⇒ predicado / bruto==0 ⇒ superfície"* é **insuficiente**: `bruto>0` pode vir inteiro dos paths antigos enquanto os que importam são mudos por data. A terceira causa se checa com uma linha — `git log --diff-filter=A --format=%cd -1 -- <alvo>` contra a data do elemento mais recente do corpus. E o corolário que vale além deste gate: **antes de medir num corpus derivado de `git log --merges`, conferir se o repo ainda PRODUZ merges** — sob squash-only aquele corpus congela numa data e segue respondendo, com cara de atual.
+
+- **⚠️ Agravante, e é o que torna esta cara de repetir:** o diagnóstico errado **não foi near-miss** — chegou ao [W] por escrito, como conclusão, com número ao lado; e o número corrigido **foi mergeado** ([#7691](https://github.com/wagnerra23/oimpresso.com/pull/7691)) antes de a errata existir. Duas vezes na mesma sessão eu quase descartei o gate por razões opostas (cego, depois ruidoso), e nas duas o que faltava era justificar o escopo. Pior: eu **descobri** o squash-only na hora do merge, ao tomar `Merge commits are not allowed on this repository`, e não voltei para questionar o corpus — os dois fatos estavam na minha mão, a uma pergunta de distância.
+
+- **⚠️ NÃO virar gate:** o predicado — *"o corpus em que você mediu ainda é produzido?"* — depende de saber qual corpus alimenta qual afirmação, e não é derivável do texto do comando; é semântico ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)). A forma sintática (acusar `git log --merges` num repo squash-only) reprovaria o uso legítimo — ler história antiga é exatamente para isso que ela serve. E não cito o campo `Gate:` da LC-08 como recusa: aquele marcador é regex sobre o corpo da LC e afirma que *alguma* forma óbvia caiu, nunca que **esta** caiu (errata §5 2026-09-15). O que fecha é a linha de `--diff-filter=A` acima.
+
+Ocorrência da **LC-08**.
+
+### 2026-09-22 — EMENDA da lápide 2026-06-30 (âncora por NOME/PASTA): o mesmo predicado voltou num detector NOVO — e o falso-positivo saiu do CI e virou ORDEM DE DELEÇÃO do dono
+
+- **O limite (variantes também proibidas):** **(a)** o da mãe, intacto; **(b)** saída de detector heurístico **não se entrega a humano como lista de ação** sem o caveat de conferência **por item** — e o caveat nasce junto com o detector, não depois do primeiro FP; **(c)** detector cujo docblock **nega** ser o que ele é: a versão pré-fix afirmava *"Não é guard sintático de nome: o predicado é PROVENIÊNCIA POR CAMINHO"* enquanto o universo era `filter(f => DS_RE.test(f))` — nome puro. Frase que dispensa a objeção **sem medir** é pior que a ausência dela, porque desarma quem revisaria (é [LC-15](LICOES_CODE.md) dentro da própria classe).
+
+- **⚠️ E a razão que publiquei para RECUSAR também estava errada — duas vezes, em canon.** A recusa foi certa; a justificativa, não:
+  - escrevi que *"o `venda-v3` é a âncora viva de `Sells/CreateV3`"*. **Falso:** `node scripts/design/ancora.mjs Sells/CreateV3` resolve **`prototipo-ui/cowork/Felipe/venda-v3.jsx`** — outra árvore, outro dono; nenhum charter declara `cowork/Wagner/venda-v3`.
+  - escrevi que um critério alternativo (*"token em `:root` = fundação"*) **falhara no controle positivo**, com `colors_and_type.css` medindo `tokensRoot = 0`. **Era a sonda que estava cega:** `indexOf(':root')` casou uma **menção dentro de um comentário** (linha 12) e parou antes do seletor real (linha 44). Sem comentários, o critério **discrimina** — canônico 245 tokens/**128** em `:root`; o FP 13/**0**; `ds-galerias/tokens.css` 139/**102**. O descarte legítimo existe e é outro: falso-**negativo** (`ds-galerias/design-system.css` mede 26/**0** e ainda pode ser cópia).
+
+  As duas frases entraram em `main` em dois sites, uma delas como *"fica registrado pra ninguém re-tentar"* — **instrução de desistência baseada em medição falsa** (§5 2026-09-01). Corrigidas por errata datada, não apagadas. Quem as pegou foi o **`ciclo-adversary`**, rodado antes de a lição virar ledger; ele derrubou 3 de 7 fatos do meu fechamento, inclusive o incremento que eu alegava para abrir lápide própria em vez desta emenda.
+
+### 2026-09-22 — Medi dependência npm por IMPORT ESTÁTICO num teste que resolve por `createRequire` — verde local, vermelho no CI, e a lane declara 4× que não instala nada
+
+- **O limite (variante também proibida).** Não afirmar **"não depende de npm" / "só usa builtins" / "roda em qualquer lane"** a partir de grep de `import` estático. A pergunta é sobre **resolução de módulo**, e a varredura tem de cobrir as três portas — ou não é varredura, é amostra. E a forma positiva não é grep nenhuma: **rode o arquivo num ambiente SEM `node_modules`** (outro diretório, `NODE_PATH` vazio, ou o próprio runner), que é o ambiente do consumidor. Generaliza para além de npm: sempre que a pergunta for *"isso funciona no ambiente X?"*, meça **em X ou num ambiente que o reproduza** — medir no seu responde sobre o seu. É a §5 2026-08-07 (literal de path absoluto numa plataforma só) e a 2026-07-26 (ESM×CJS em contextos diferentes) no eixo **dependência instalada**.
+
+- **⚠️ Candidato a máquina — NOMEADO, FP NÃO MEDIDO, não armado.** Diferente do eixo semântico da LC-08 (cujo gate óbvio já está **medido e reprovado** — 130 FP no detector de vocabulário; ~64% FP ao ampliar o corpus do `fact-anchor`), este sub-caso é **determinístico**: *"este arquivo resolve algum pacote não-builtin e não-relativo, por qualquer das três portas?"* se decide lendo o arquivo. O dono a **estender** já existe e já é o dono do tema — o [`selftest-registry-check.mjs`](../scripts/governance/selftest-registry-check.mjs), que varre exatamente esses arquivos e **já fala de dependência npm na mensagem**; abrir detector novo seria [LC-19](LICOES_CODE.md) dentro da correção. Não se arma aqui porque o FP não foi medido (regra "LIGUE A MÁQUINA" item 4) e porque é **1ª ocorrência deste vetor** ([ADR 0344](decisions/0344-two-strikes-cobre-processo.md): conserta, não codifica). Medir antes: contar, nos `*.test.mjs` e nos `--selftest` embutidos do corpus, quantos resolvem pacote fora de `node:`/relativo pelas três portas, e quantos deles já rodam numa lane que instala — o FP é o segundo número.
+
+### 2026-09-22 — EMENDA da lápide 2026-07-29 (fail-open que vira frase falsa): o dead man's switch dos hooks acusou 52 mortos com um corpus sem trabalho — 3ª vez no MESMO instrumento, cada conserto fechando só o comprimento que doeu
+
+- **O limite (variante também proibida).** Proteção contra "não consegui medir" num dead man's switch não se ancora na **contagem de insumos** (`length === 0`) nem no **relógio** do corpus: a pergunta é se houve **oportunidade** de o sinal aparecer. Para hooks `PreToolUse`, oportunidade é **chamada de ferramenta**; aqui a unidade virou a contagem de `tool_use` no corpus, somada entre sessões. E a **assimetria** fica: evidência **positiva** (o hook emitiu) vale com qualquer amostra; evidência **negativa** (zero entrega) só vale acima do piso. ⚠️ Isso **não** é receita geral para todo watchdog — cada instrumento tem a sua unidade de oportunidade (um cron tem janela de agendamento, um detector de drift tem commits no alvo), e prescrever uma só é o erro que a 1ª versão cometeu.
+
+- **⚠️ NÃO virar gate — reavaliado, não herdado.** Três ocorrências no mesmo instrumento pesam a favor de máquina, então a pergunta foi refeita: a defesa que cabe **é** no dono, e agora ela existe com mutantes mortos. Um detector genérico (acusar `length === 0` em guarda, ou heartbeat sem piso) seria critério sintático e reprovaria o uso legítimo, onde vazio é a pergunta certa — família de guard sintático já enterrada várias vezes neste arquivo, e sem FP medido.
+
+### 2026-09-22 — Propor QUEBRAR um job de CI afirmando que "um step vermelho esconde os outros" sem ler o `if:` dos steps (216 de 220 rodavam com always())
+
+- **O limite (variante também proibida).** Não afirmar comportamento de **execução** de pipeline — o que roda depois de uma falha, o que é pulado, o que bloqueia — a partir da **estrutura** (contagem de steps, de jobs, de linhas). A resposta está nas condições (`if:`, `continue-on-error`, `needs:`, `strategy.fail-fast`, `concurrency.cancel-in-progress`), e elas sobrescrevem o default do runner. Corolário que generaliza: **antes de propor reestruturar um mecanismo, meça o defeito que a reestruturação conserta** — se ele não existe, a proposta só tem custo. E quando o dono manda executar uma recomendação sua, o primeiro ato é re-medir a premissa dela; executar sem isso é pagar o custo do erro duas vezes.
+
+- **⚠️ NÃO virar gate.** O gate óbvio da LC-08 já está **medido e reprovado** (130 FP no detector de vocabulário; ~64% FP ao ampliar o corpus do `fact-anchor`) — não re-propor. O predicado desta instância (*"esta afirmação sobre execução leu as condições?"*) é semântico ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)). O que pegou foi re-medir a premissa no momento de executar — e isso é disciplina, não máquina.
+
+### 2026-09-23 — EMENDA da lápide 2026-07-27 (stash pop por posição): o aviso ARMADO sai em stderr com `exit 0` — fica gravado no transcript e, pelo que o corpus mostra, não chega ao agente
+
+- **⚠️ O que está medido e o que é inferência.** Medido: o disparo, o conteúdo, o canal (`stderr` + `exit 0`) e a ausência no meu `tool_result`. Inferência, e marcada assim: que isso vale em geral. A base é o corpus — em **0 de 40** attachments de aviso com SHA no topo o assistente citou aquele SHA sem que um `tool_result` anterior o tivesse mostrado. O binário do harness é nativo e não foi inspecionado; o canal que de fato chega ao modelo **não foi medido**, então esta lápide não prescreve um.
+
+- **⚠️ ERRATA DO MEU PRÓPRIO RASCUNHO, pega pelo `ciclo-adversary` antes do canon.** Eu ia registrar que o [`hook-bites`](../scripts/governance/hook-bites.mjs) **contava** esses avisos como "entrega" e por isso inflava a saúde do hook. **É o inverso, medido:** as sondas dele não enxergam `"stderr":"[`; na janela de 14 dias, **2.209** das ocorrências são o canal de **bloqueio** e **100** avisos ficam **fora** da conta. O que sobra de verdadeiro, ainda como hipótese e em outro eixo: duas sondas dele contam canais (`systemMessage`, `permissionDecisionReason` em `allow`) que a documentação descreve como indo ao **usuário**, não ao modelo. Também caiu a minha classificação do aviso como falso-positivo: ele não era — o ramo perigoso só não se realizou porque o push criou entry.
+
+- **⚠️ Um risco que a mãe não nomeia, e é maior que a corrida.** Encadeado com `;` e com os erros silenciados (`-q 2>/dev/null`), se o `git stash -u` **falhar** — lock de índice, por exemplo — o `pop` roda assim mesmo e consome a entry de outra sessão, sem uma linha de erro. A janela de corrida entre push e pop existe; esta é pior, porque não precisa de concorrência nenhuma.
+
+- **O limite (variante também proibida).** Não declarar uma defesa **advisory** como ARMADA a partir de provas que só medem a **emissão**: o critério é a mensagem **chegar a quem ela avisa**. Vale para todo hook que escreve em `stderr` e sai com `exit 0`. A população não está medida: **25** hooks `.mjs` escrevem em `stderr`, **incluindo este** (`git grep -l 'stderr.write' -- '.claude/hooks/*.mjs'` sem `.test.`, 2026-09-23, de 53) — mas esse número mistura quem escreve e **bloqueia** (`exit 2`, que chega) com quem escreve e **segue** (`exit 0`); quantos são do segundo tipo não foi contado, e a generalização segue hipótese até ser. E a regra positiva da mãe fica mais estreita: consumir estado global por posição continua proibido, e **também** encadear o consumo com `;` depois de um passo cujo erro foi silenciado — use `&&`, e deixe o erro aparecer.
+
+- **⚠️ NÃO virar gate.** O conserto, se houver, é no **dono** — fazer o aviso existente chegar ao agente —, nunca um detector novo, que seria a [LC-19](LICOES_CODE.md) dentro da correção. E não se arma nada aqui: o canal certo não foi medido (prescrever sem medir é a [LC-15](LICOES_CODE.md)), a evidência de não-chegada é n=1 mais inferência de corpus, e esta é a 1ª ocorrência deste vetor ([ADR 0344](decisions/0344-two-strikes-cobre-processo.md)). Achado menor, registrado e não consertado por estar fora do escopo: o texto do próprio aviso diz *"(§5 2026-07-27, 2 ocorrencias)"*, número que envelheceu dentro do hook.
+
+### 2026-09-23 — C1 do `--omission` ("reaparece no `+` não é omissão") nasceu INERTE para a família `function`, e o bite-test dele exercitava outra família
+
+- **O limite (variante também proibida):** correção que **estende o escopo de varredura** de uma lista de predicados (aqui: passar a testar o `+`, não só o `-`) não se dá por entregue sem conferir **cada** predicado da lista contra o escopo novo. Âncora, prefixo e lookbehind que eram corretos no escopo antigo viram filtro silencioso no novo. E o bite-test da correção cobre **uma instância por família**, ou declara quais ficaram fora. Uma instância da família mais fácil (`export`, sem âncora) prova só aquela família. Mesma raiz da §5 2026-08-03 (*consertar um comprimento da família e não medir os irmãos*), agora no eixo **escopo da varredura** em vez de **forma da regex**. É também a **3ª falha do mesmo #7691**: as outras duas estão na §5 2026-09-22 (*"O zero de um medidor tem TRÊS causas"*) e na errata de corpus do docblock.
+
+### 2026-09-23 — EMENDA da lápide 2026-08-20 (sondar o git com a mudança não commitada): o eixo HOOK — um PreToolUse decidia pelo índice ANTES do `git add` do próprio comando, e os testes dele nunca usaram a forma real
+
+- **O limite (variante também proibida):** hook PreToolUse que decide por estado que o comando interceptado ainda vai mudar (índice git, arquivos, env) considera os segmentos **anteriores** do mesmo comando — separados também por quebra de linha — e tira do comando o que é texto (corpo de heredoc, string entre aspas). E o teste de um hook usa **as formas medidas no corpus**, com a proporção ao lado, não a forma conveniente para o teste. Corolário: consertar um hook que lê o índice obriga a medir os irmãos que leem o índice.
 
 ## Sempre fazer
 

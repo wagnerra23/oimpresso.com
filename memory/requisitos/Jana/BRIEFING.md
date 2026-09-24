@@ -2,30 +2,30 @@
 id: requisitos-jana-briefing
 module: Jana
 status: producao
-updated_at: "2026-09-15"
-distilled_at: "2026-09-15"
+updated_at: "2026-09-24"
+distilled_at: "2026-09-24"
 distilled_by: jana:distill-module-truth
 ---
 
 # BRIEFING — Jana (verdade destilada)
 
 ## Estado atual
-O módulo Jana é a camada de IA do oimpresso, proporcionando um chat com memória persistente, brief diário, sugestões de metas e avaliações. Está em produção e sua qualidade é monitorada via avaliações específicas, com recente atualização em permissões e estrutura de telas. A nova tela de superadmin foi implementada em 2026-09-03 e as fronteiras do código foram reorganizadas, enquanto o código MCP permanece no módulo.
+O módulo Jana atua como a camada de IA do oimpresso, fornecendo chat com memória persistente, brief diário, sugestões de metas e avaliações. Em produção, ele mantém qualidade controlada por avaliações sistemáticas. A recente atualização incluiu a implementação de uma nova tela de superadmin e reorganização das fronteiras de código; o código MCP continua no módulo.
 
 ## Capacidades
-- Chat com memória persistente utilizando `MemoriaContrato` e `MeilisearchDriver`.
-- Diversos agents disponíveis para funções como clarificação e sugestões de metas.
-- Brief diário automatizado e mecanismo de decisão via `HitlEscalationService`.
-- Avaliações constantes (RAGAS) e canary em CI, junto com monitoramento via telemetria.
-- Telas Inertia implementadas (Index, Chat, Memoria, Alertas, Acoes, Pro, Plataforma).
+- Implementação de chat com memória persistente, integrando `MemoriaContrato` e `MeilisearchDriver`.
+- Disponibilidade de diversos agents para clarificação e sugestões de metas.
+- Geração automatizada de brief diário e decisão via `HitlEscalationService`.
+- Avaliações regulares (RAGAS), CI canary e telemetria em funcionamento.
+- Telas Inertia implementadas: Index, Chat, Memoria, Alertas, Ações, Pro, Plataforma.
 
 ## Gaps
-- Melhoria necessária em `context_recall`, que está abaixo do alvo.
-- Necessidade de aperfeiçoar a gestão de dados nas telas da Plataforma, que atualmente apresentam tabelas de meta vazias.
-- Aumentar a cobertura de testes para reduzir falsos-positivos.
+- Necessidade de melhorar a função de `context_recall`, que opera abaixo do ideal.
+- Aperfeiçoamento na gestão de dados nas telas da Plataforma, onde tabelas de meta atualmente aparecem vazias.
+- Aumento na cobertura de testes para minimizar falsos-positivos.
 
 ## Última mudança
-Onda 7 de paridade inventário↔tela no lote Crm+Jana+Forja (2026-09-08), junto com o drawer da meta absorvendo `metas/show` e `fontes/show`, o comando artisan que revoga o scope `admin_only` concedido antes do filtro, e a correção do pós-login — o ramo `jana.access` mandava admin pra um Painel vazio. Antes disso, em 2026-09-03, a tela de superadmin substituiu o Blade anterior e as fronteiras de Governance/MCP foram reorganizadas.
+Em 2026-09-21 e 2026-09-22 o Painel (`/ia`) foi reaproximado da âncora de design: grade de Análises em 3 colunas (#7638), grade e card de META como réplica da âncora (#7646), ritmo vertical de 18px (#7653), KPIs quebrando no breakpoint da âncora (#7655), gráficos da âncora (#7678) e o h1 a 600 por réplica local (#7681). O tier Pro passou a governar brief, análises e ações do Painel (#7587), e business sem histórico vê um estado de página em vez de 6 caixas vazias (#7591). Antes disso, em 2026-09-08, a onda 7 de paridade do lote Crm+Jana+Forja; e em 2026-09-03 a tela de superadmin substituiu o Blade anterior.
 
 ## Proveniência (destilado de)
 
@@ -38,6 +38,10 @@ Onda 7 de paridade inventário↔tela no lote Crm+Jana+Forja (2026-09-08), junto
 - audit `requisitos/Jana/AUDITORIA-design-as-code-token-driven-2026-06-22.md` — AUDITORIA-design-as-code-token-driven-2026-06-22.md
 - audit `requisitos/Jana/AUDITORIA-fidelidade-anti-drift-codegen-2026-06-22.md` — AUDITORIA-fidelidade-anti-drift-codegen-2026-06-22.md
 - audit `requisitos/Jana/AUDITORIA-reconciliacao-tripla-analise-por-setor-2026-06-22.md` — AUDITORIA-reconciliacao-tripla-analise-por-setor-2026-06-22.md
+- handoff `handoffs/2026-09-21-1730-grade-analises-3-colunas-e-a-tabela-que-mentia.md` (2026-09-21) — 2026-09-21-1730-grade-analises-3-colunas-e-a-tabela-que-mentia.md
+- handoff `handoffs/2026-09-21-1815-ponteiros-de-fechamento-no-doc-de-paridade-da-jana.md` (2026-09-21) — 2026-09-21-1815-ponteiros-de-fechamento-no-doc-de-paridade-da-jana.md
+- session `sessions/2026-09-18-triagem-uc-orfaos-de-lane.md` (2026-09-18) — 2026-09-18-triagem-uc-orfaos-de-lane.md
+- handoff `handoffs/2026-09-15-1915-distiller-freshness-uniao-e-floor-zero.md` (2026-09-15) — 2026-09-15-1915-distiller-freshness-uniao-e-floor-zero.md
 - session `sessions/2026-09-08-onda7-paridade-crm-jana-forja.md` (2026-09-08) — 2026-09-08-onda7-paridade-crm-jana-forja.md
 - handoff `handoffs/2026-09-08-0924-onda7-lote-crm-jana-forja.md` (2026-09-08) — 2026-09-08-0924-onda7-lote-crm-jana-forja.md
 - handoff `handoffs/2026-09-07-0810-descida-inline-0389-jana-cowork-sem-disco.md` (2026-09-07) — 2026-09-07-0810-descida-inline-0389-jana-cowork-sem-disco.md
@@ -54,6 +58,3 @@ Onda 7 de paridade inventário↔tela no lote Crm+Jana+Forja (2026-09-08), junto
 - handoff `handoffs/2026-09-02-2140-jana-abas-alertas-acoes-plataforma.md` (2026-09-02) — 2026-09-02-2140-jana-abas-alertas-acoes-plataforma.md
 - session `sessions/2026-08-31-jana-p0-vazamento-e-d0-identidade-view.md` (2026-08-31) — 2026-08-31-jana-p0-vazamento-e-d0-identidade-view.md
 - handoff `handoffs/2026-08-31-1054-jana-p0-tier0-faxina-e-d0-identidade.md` (2026-08-31) — 2026-08-31-1054-jana-p0-tier0-faxina-e-d0-identidade.md
-- session `sessions/2026-08-18-visreg-manifesto-cobertura-vs-escalonamento.md` (2026-08-18) — 2026-08-18-visreg-manifesto-cobertura-vs-escalonamento.md
-- session `sessions/2026-08-17-jana-chat-gaps-do-card-tres-ja-existiam.md` (2026-08-17) — 2026-08-17-jana-chat-gaps-do-card-tres-ja-existiam.md
-- handoff `handoffs/2026-08-17-1810-jana-instrumentos-que-calam-e-o-outage.md` (2026-08-17) — 2026-08-17-1810-jana-instrumentos-que-calam-e-o-outage.md

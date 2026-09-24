@@ -10,7 +10,7 @@ depende: "15"
 # 16 · a fusão da thread 09 ficou pela metade
 
 ## A · IDENTIDADE (ancoragem dupla)
-- **alvo (layout, read-only):** `prototipo-ui/cowork/patrimonio-page.jsx` (**58.265 B**) — a aba **Alocações**, onde alocar e revogar são **uma** tela.
+- **alvo (layout, read-only):** `prototipo-ui/cowork/Wagner/patrimonio-page.jsx` (**58.265 B**) — a aba **Alocações**, onde alocar e revogar são **uma** tela.
 - **âncora (código):** `RevokeAllocatedAssetController.php:108` — `return view('assetmanagement::asset_revocation.index');`. Do outro lado, `AssetAllocationController.php:150` já devolve `Inertia::render('Patrimonio/Alocacoes')`.
 - **receptor que já existe:** `resources/js/Pages/Patrimonio/Alocacoes.tsx` (**14.994 B**) + `Alocacoes.charter.md` + `Alocacoes.casos.md`.
 - **Blade que sai de cena:** `Resources/views/asset_revocation/index.blade.php` (**3.540 B**). O `create.blade.php` (3.599 B) da mesma pasta **fica** — é escrita, e escrita é `D-FORMS`.

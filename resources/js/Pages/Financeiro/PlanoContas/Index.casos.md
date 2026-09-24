@@ -5,8 +5,14 @@ irmaos: charter ao lado (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-08-31"
+last_run: "2026-09-23"
 ---
+
+> ℹ️ **`last_run` 2026-08-31 → 2026-09-23 (G-6) — FIN-6: o que mudou na tela foi só FORMA.** Título "Financeiro · Plano de contas",
+> primário "Novo título" (o "Nova conta" anterior levava a uma rota inexistente, 404), lista num cartão único com a busca
+> dentro, árvore com "└" e selo de tipo em pílula — como o `TelaPContas` do protótipo, por decisão [W] 2026-09-23.
+> KPIs, abas por tipo e colunas seguem as mesmas; zero prop, rota ou cálculo alterado. **Nenhum UC foi reexecutado**:
+> o bump registra que o trio foi reconciliado contra o `.tsx` novo.
 
 # Casos de uso — /financeiro/plano-contas
 
@@ -69,6 +75,33 @@ Charter em **draft**. Tela de CONSULTA de cadastro contábil (~47 entries DCASP 
 
 > O `FinStatStrip` no topo é lido como resumo do que está logo abaixo. Se as duas contagens divergirem, o número mente — e mente sobre o vocabulário que classifica todo lançamento do módulo.
 
+## UC-FPC-05 — Lanç. mês e Saldo mês por conta, somando tudo no pai `[must]` `[V0]`
+
+**Dado** títulos do mês corrente (competência) lançados em contas do plano
+**Então** cada conta mostra a **quantidade** de títulos e o **saldo com sinal** — receber soma, pagar subtrai
+**E** a conta pai mostra a soma de tudo que está abaixo dela, **inclusive** título lançado direto nela
+**E** título **cancelado** ou de **outro mês** não entra.
+- **Teste:** `PlanoContaControllerTest.php` — `it('UC-FPC-05 · movimento do mês — conta lançamentos, saldo com sinal e soma tudo no pai')` (pede só a prop deferida `movimento`, como o navegador)
+- **Status: ⬜** (teste escrito e citando o id; aguarda o manifesto)
+
+> Regra mestre de valor: os números esperados foram escritos à mão a partir da fixture (caminho 1). O caminho 2 é o UC-FPC-07.
+
+## UC-FPC-06 — Título de outro negócio nunca entra no movimento `[must]` `[T0]`
+
+**Dado** um título de outro negócio apontando para uma conta deste negócio
+**Então** ele não entra na quantidade nem no saldo.
+- **Teste:** `PlanoContaControllerTest.php` — `it('UC-FPC-06 · movimento do mês — Tier 0: título de outro negócio não entra, nem apontando pra conta daqui')`
+- **Status: ⬜** (teste escrito e citando o id; aguarda o manifesto)
+
+## UC-FPC-07 — O saldo das folhas bate com o balancete `[must]` `[V0]`
+
+**Dado** a mesma fixture do UC-FPC-05
+**Então** o saldo de cada conta-folha, em módulo, é igual ao do balancete do DRE (`DreService::montarBalancete`), que já existia e usa a mesma base de competência.
+- **Teste:** `PlanoContaControllerTest.php` — `it('UC-FPC-07 · movimento do mês — CAMINHO 2: bate com o balancete nas folhas')`
+- **Status: ⬜** (teste escrito e citando o id; aguarda o manifesto)
+
+> No pai os dois divergem de propósito: o balancete só propaga folhas e deixaria de fora o título lançado direto na conta pai.
+
 ## Backlog de casos (sem id — entram quando tiverem teste)
 - **[BACKLOG] Badge de tipo e natureza D/C** — cada conta mostra tipo (receita/despesa/ativo/passivo+patrim.) e natureza débito/crédito.
 - **[BACKLOG] Conta protegida sinaliza cadeado e não é editável aqui** — index é read-only (o Controller só tem `index`).
@@ -80,6 +113,7 @@ Charter em **draft**. Tela de CONSULTA de cadastro contábil (~47 entries DCASP 
 > Os quatro primeiros são **visuais ou client-side** — a prova deles é E2E/Browser, não Controller. Ficam sem id de propósito: promover sem a prova certa é o que o G-2 existe pra impedir.
 
 ## Trilha do tempo
+- 2026-09-23 · [CC] **FIN-6b** — colunas "Lanç. mês" e "Saldo mês" do protótipo `TelaPContas` (decisão [W] da FIN-6: ficaram para esta onda por serem regra de valor). `UC-FPC-05..07` nascem com o teste. Base de competência igual à do DRE; saldo com sinal pelo tipo do título; pai soma tudo abaixo dele.
 - 2026-08-31 · [CC] **4 casos saem do backlog e ganham id** (`UC-FPC-01..04`) + `PlanoContaControllerTest` que os cita. Motivo: era a única tela **viva** do sistema a uma peça de fechar o ciclo (`ciclo-completo.mjs` — as outras duas da lista estão `deprecated`, e o casos.md delas registra que investir contrato em tela que vai morrer é dívida). Âncora achada na R-FIN-009, que declarava `_lacuna_` e pedia cobertura. Metade da R-FIN-009 (o seed) **fica aberta e declarada** no backlog.
 - 2026-08-17 · [CC] criado no espelho Cowork. Achado: a tela é o vocabulário que classifica TODO lançamento (o filtro de plano da Unificada depende dela) e está sem uma única prova.
 

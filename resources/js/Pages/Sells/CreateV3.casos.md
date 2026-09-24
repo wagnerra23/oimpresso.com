@@ -563,7 +563,7 @@ próprio, fora deste PR.
 - **Quando** o drawer fecha,
 - **Então** o fechamento mostra **quantas** (`{n}x`), **de que tipo**, e cada parcela com **número/total, vencimento e valor** — mais um atalho `Editar parcelas` que devolve o controle ao drawer.
 
-Derivado da âncora de design [`sells-create.jsx:429-445`](../../../../prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx),
+Derivado da âncora de design [`sells-create.jsx:429-445`](https://github.com/wagnerra23/oimpresso.com/blob/bdf6d07e3/prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx),
 declarada em `related_prototype` — não do `.tsx` (§5 tautológico).
 
 **O defeito que este UC fecha, relatado por [W] com print em 2026-08-26:** gerar parcelas
@@ -668,7 +668,7 @@ zero** (nunca negativo) e a tela sinaliza o preenchimento como erro — sobra s�
 - **Quando** o operador olha a tela,
 - **Então** encontra os **8 campos** de classificação fiscal (grupo · NCM · CEST · CFOP · origem · cód. de fábrica · GTIN · cBenef), o acordeão com a coluna **Valor**, o **total do item**, os **9 impostos** (incluindo IBS e CBS da reforma) e as seções **Importação** e **Descrição na NF-e**.
 
-Derivado da âncora [`sells-item-detail.jsx`](../../../../prototipo-ui/cowork/Felipe/venda-v3/sells-item-detail.jsx),
+Derivado da âncora [`sells-item-detail.jsx`](https://github.com/wagnerra23/oimpresso.com/blob/bdf6d07e3/prototipo-ui/cowork/Felipe/venda-v3/sells-item-detail.jsx),
 não do `.tsx` (§5 tautológico). O gap foi medido campo a campo antes de escrever: produção tinha
 **5 campos** de classificação e uma tabela **estática de 3 colunas**, sem valor, sem total e sem
 expandir.

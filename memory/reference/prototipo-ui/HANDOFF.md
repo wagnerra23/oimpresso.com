@@ -5,7 +5,36 @@
 
 ---
 
-## Estado atual: 2026-08-20 — protótipo do Ponto desce pro espelho + 19 telas ancoradas (#6046)
+## Estado atual: 2026-09-23 — Financeiro passa na frente de Clientes
+
+[W] decidiu começar pelo **Financeiro**: ninguém o usa ainda, e Clientes é a única família em uso por
+cliente. Plano gravado no dono do módulo, [`RUNBOOK-paridade-ondas.md` §12](../../requisitos/Financeiro/RUNBOOK-paridade-ondas.md):
+FIN-0a (medir DRE e Fluxo) → FIN-0b (CSS) → FIN-0c (prova de valor) → FIN-1 DRE → FIN-2 Fluxo.
+Comparação na empresa 1, **julho de 2026**, sem gravar dado.
+
+**Agora:** §6 reordenada (DRE primeiro, [W] 2026-09-23) e **FIN-0a medida** — resultado no RUNBOOK §12.5. DRE e Fluxo estão "prod atrás"; próxima etapa é a FIN-0b (CSS). O Design responde o pedido em
+[`CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md`](CODE_NOTES.prompt-cowork-financeiro-2026-09-23.md)
+(subtítulo do gráfico do Fluxo, âncora da ProvaViva). ⚠️ Para abrir o protótipo, use `servirEspelho` (ADR 0401): `python -m http.server` não resolve `_ds/` e o render sai sem o Design System.
+
+---
+
+## Estado anterior: 2026-09-23 — Onda 2 Clientes: plano Code × Design gravado
+
+Clientes é a família que [W] já pôs em produção: as 7 telas de Cliente rodam em React para todos os
+tenants (`governance/prod-flags.json`). Plano em etapas (F0 testes → F1 conserto do Import → L1 layout
+Map + Import → L2 Create/Edit → L3 Index) em
+[`ONDA-2-CLIENTES-PLANO.md`](../../requisitos/Mwart/ONDA-2-CLIENTES-PLANO.md).
+
+**Agora:** aguardando [W] aprovar a F0 (voltar os testes de Cliente para lane de PR) e o Design ajustar
+o protótipo — pedido em [`CODE_NOTES.prompt-cowork-onda2-clientes-2026-09-23.md`](CODE_NOTES.prompt-cowork-onda2-clientes-2026-09-23.md)
+(importação parcial que não existe, copy de CEP no mapa, cabeçalho das telas utilitárias).
+
+**Defeito em produção achado no caminho:** no Import em React, o erro de importação não aparece para o
+usuário (sucesso aparece). Entra na F1.
+
+---
+
+## Estado anterior: 2026-08-20 — protótipo do Ponto desce pro espelho + 19 telas ancoradas (#6046)
 
 **Mergeado em `main`** (`f02102261d` · 122 pass · 0 falha). Os 8 arquivos do protótipo do Ponto eram
 **LIVE-ONLY** — só existiam no projeto Cowork. Desceram por `get_file` → `cowork-mirror-freshness

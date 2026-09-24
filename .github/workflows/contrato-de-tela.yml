@@ -95,6 +95,9 @@ jobs:
             echo "relevant=false" >> "${GITHUB_OUTPUT}"
             echo "→ nada relevante mudou: SKIP-AS-PASS (gate verde sem rodar; mesma cobertura de antes)."
           fi
+          # Exportada pro step de omissão consumir a MESMA base (não recalcular: duas bases
+          # divergem em silêncio, e a lógica de base viva acima já é a certa · §5 2026-09-15).
+          echo "base=${base}" >> "${GITHUB_OUTPUT}"
 
       - name: Setup Node
         if: steps.detect.outputs.relevant == 'true'
@@ -143,6 +146,41 @@ jobs:
       - name: Anti-tautologia (contrato deriva da âncora, não da tela)
         if: steps.detect.outputs.relevant == 'true'
         run: node scripts/contrato-de-tela.mjs --anti-tautologia
+
+      # Catraca 3 INVERTIDA — pega o que o handoff OMITIU, sem depender de alguém declarar
+      # item a item. Ligada em 2026-09-22 (onda P do PARIDADE-area-jana). Estava órfã desde
+      # que nasceu: existia no script, no package.json e no self-test, e nenhum workflow a
+      # chamava — "máquina que existe e ninguém invoca é bug, não neutralidade" (proibicoes.md,
+      # LIGUE A MÁQUINA item 2).
+      #
+      # FP MEDIDO ANTES de ligar (item 4 da mesma regra). ⚠️ A medição do #7691 descrevia OUTRO
+      # universo e foi corrigida no mesmo dia — a errata, com as 3 causas, está no docblock de
+      # `SYMBOL_RES`. Número válido, corpus VIVO (300 commits de squash, 2026-09-15..09-22):
+      #   21 commits disparam este detect (a população que o gate REALMENTE vê)
+      #    2 acusados = 9,5%, 2 acusações  (`SparkArea` num revert; `VariacoesTab`)
+      #   ⚠️ errata 2026-09-23: `VariacoesTab` era falso-positivo (C3 no docblock de SYMBOL_RES).
+      # A taxa é sobre o `detect`, não sobre "toca Pages|Modules": aquele é o escopo do --alvo,
+      # o INSUMO do predicado, e é 2,2× maior (46 × 21) — contar ali mede o que o gate não vê.
+      #
+      # ESCOPO do --alvo: a árvore de telas/módulos, NÃO os `alvo[]` dos contratos. Sobre os 40
+      # paths de contrato o modo é CEGO — mas a leitura "a superfície é parada" estava errada:
+      # 23 dos 40 nasceram DEPOIS do corpus em que foram medidos. Ver errata no docblock.
+      #
+      # ⚠️ COBERTURA PARCIAL, declarada: este `detect` casa `resources/js/Pages/**`, não
+      # `Modules/**` (fora o ChannelsController). PR que só toca `Modules/` não dispara este
+      # step. Ampliar o `detect` mudaria o disparo de TODOS os steps do job — é outro intent.
+      #
+      # SEM `continue-on-error`/`|| true`, de propósito: advisory significa *não bloqueia o
+      # merge*, nunca *não pode ficar vermelho* (§5 2026-07-09). Em 2026-09-22 este workflow
+      # não constava de `governance/required-checks-baseline.json` (união classic_protection ∪
+      # rulesets = 47 contexts, nenhum casando). Esse é um fato datado: quem precisar saber o
+      # enforcement de HOJE lê o baseline, que é o dono — não esta linha (LC-10).
+      - name: Omissão — símbolo/rota removido sem justificativa
+        if: steps.detect.outputs.relevant == 'true'
+        run: |
+          set -euo pipefail
+          node scripts/contrato-de-tela.mjs --omission "${{ steps.detect.outputs.base }}" \
+            --alvo "resources/js/Pages,Modules"
 
       - name: Intenção de fluxo (bloqueante — rota legada = vermelho)
         if: steps.detect.outputs.relevant == 'true'

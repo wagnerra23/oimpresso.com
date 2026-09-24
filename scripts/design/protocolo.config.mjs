@@ -95,13 +95,28 @@ export const CONTAS = {
     usadaPor: ['[F] Felipe', '[M] Maiara', '[L] Luiz'],
     papel: 'conta da equipe — telas desenhadas fora da conta do dono ([W] 2026-09-11)',
     alcancavel: false,         // ⚠ invisível deste lado: outra conta, outro login
-    espelhada: false,          // não há espelho no repo, e isso está CORRETO
-    projetos: [],              // nenhum ID conhecido aqui — ver "PRA ATIVAR" abaixo
+    espelhada: true,           // espelho em prototipo-ui/cowork/Felipe/ (ADR 0405) — ativado 2026-09-21
+    projetos: ['telasFelipe'], // ID informado pelo [F] em 2026-09-21 (URL do projeto no Cowork)
+    // DESIGN SYSTEM DESTA CONTA — o MESMO DS do [W], não outro ([F] 2026-09-21, textual: "O Design
+    // system que informei é o mesmo que do Wagner. Puxo as atualizações direto do main do git, então
+    // eles estão sincronizados. O ID é diferente porque importei o DS na minha conta").
+    //   · `49a36f76-…` é a CÓPIA na conta do [F]; `DESIGN_SYSTEM_PROJECT_ID` (`019dd02f-…`) é o
+    //     projeto do [W]. Mesmo conteúdo, dois endereços: não é divergência, e não há o que decidir.
+    //   · a fonte dos dois é o git (`prototipo-ui/design-system/`): o DS desta conta PUXA do `main`,
+    //     não é espelhado PARA o repo. Por isso não entra em PROJETOS (lá todo projeto tem pasta
+    //     espelho, e o `--procedencia` e o `--de-quem` a leem).
+    //   · conferido pelo Code no pacote de 2026-09-18: o bundle do `019dd02f` é o do `49a36f76`
+    //     byte a byte (9.354 linhas) + 11 linhas de alias do nome global antigo.
+    dsCopia: { id: '49a36f76-2672-43f6-b955-c6cbb52f7f86', nome: 'WAGNER Office Impresso — Design System', mesmoDsQue: 'designSystem', fonte: 'git main (prototipo-ui/design-system/)' },
     // Titular x usuários é distinção OPERACIONAL, não burocracia: quem exporta o handoff é
     // quem tem o login, e só o titular consegue. [W] 2026-09-11: "conta do Felipe (usada pelo
     // Felipe, Maiara e o Luiz)".
     //
-    // PRA ATIVAR (o que falta, exatamente):
+    // ATIVADO em 2026-09-21: o [F] informou o ID pela URL do projeto
+    // ("PROTÓTIPO OFICIAL - PRODUTO UNIFICADO V2"), e a rota ZIP passou a escrever no espelho do
+    // dono liberado. O roteiro abaixo fica como registro de como se chegou aqui.
+    //
+    // PRA ATIVAR (o que faltava, exatamente):
     //   1. o projectId do projeto de telas dessa conta — NINGUÉM deste lado consegue descobrir:
     //      o DesignSync autentica como [W], então a conta do [F] é invisível POR CONSTRUÇÃO.
     //      list_projects vazio sobre ela não é evidência de nada.
@@ -118,6 +133,10 @@ export const CONTAS = {
 export const PROJETOS = {
   cowork:       { id: COWORK_PROJECT_ID,        nome: 'Oimpresso ERP Comunicação Visual', papel: 'telas',  listado: false, conta: 'w', espelho: 'prototipo-ui/cowork/Wagner/' },
   designSystem: { id: DESIGN_SYSTEM_PROJECT_ID, nome: 'Office Impresso — Design System',   papel: 'ds',     listado: true,  conta: 'w', espelho: 'prototipo-ui/design-system/' },
+  // Projeto de telas da conta do Felipe (usada por [F]/[M]/[L]). ID informado pelo [F] em
+  // 2026-09-21. `listado: false` pelo mesmo motivo do `cowork`: projeto de telas não aparece em
+  // `list_projects` (que só lista design system), e a conta nem é visível deste lado.
+  telasFelipe:  { id: '2e7d3640-825c-4c09-ac52-17c8469f3b91', nome: 'PROTÓTIPO OFICIAL - PRODUTO UNIFICADO V2', papel: 'telas', listado: false, conta: 'felipe', espelho: 'prototipo-ui/cowork/Felipe/' },
 };
 
 // ── PATHS FIXOS (as âncoras do protocolo dependem destes — RUNBOOK Fase −1) ─────
@@ -372,6 +391,15 @@ export const FASES = [
       'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --apply    # + promove',
       'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --conta w  # exigido se o PASSO 0 der indeterminado',
       'selftest: node scripts/design-sync/receber-handoff.test.mjs',
+      '# [RETORNO Code -> Cowork] ([W] 2026-09-24: "quando for gerar um retorno ja use o upload designsync")',
+      '#   Todo PR que muda o espelho (recibo _saida, errata de playbook, restauracao em cowork-inbox/) SOBE',
+      '#   ao Cowork na mesma sessao, antes do proximo retorno. O criterio e o hash do espelho x bundle ativo,',
+      '#   e o hook libera sem opt-in SO o canal cowork-inbox/ (sem delete, conteudo por localPath).',
+      '#   Rede de seguranca: o receber-handoff [6b] RECUSA retorno que apagaria/sobrescreveria um pendente.',
+      'node scripts/design-sync/pendentes-cowork.mjs --plano                   # o que subir (writes + localDir)',
+      'DesignSync.finalize_plan(projectId, writes, deletes=[], localDir) -> write_files(localPath=rel)',
+      'node scripts/design-sync/pendentes-cowork.mjs --registrar-envio <rels>  # grava sha + data; commite o state',
+      'selftest: node scripts/design-sync/pendentes-cowork.test.mjs',
       '# [ROTA PRINCIPAL] bundle v2 — snapshot inicial; depois delta por manifesto anterior',
       '# ⚠ A EMISSAO DESTE BUNDLE NAO TEM DONO NEM AUTOMACAO (medido 2026-08-31, contado):',
       '#   os UNICOS invocadores de `gerar-payload-partes` no repo sao o .test.mjs e o workflow que roda',
@@ -729,6 +757,14 @@ function selftest() {
     if (B.veredito !== "indeterminado") fails.push("de-quem: CONTROLE NEGATIVO falhou — id so no cache _ds/ virou veredito de dono");
     if (C.veredito !== "nao-vinculada") fails.push("de-quem: material sem id conhecido nao deu nao-vinculada");
     if (D.veredito !== "vinculada" || D.projeto !== "cowork") fails.push("de-quem: id FORA do cache devia vencer o cache");
+    // dsCopia: o pacote que ficou so com a COPIA do DS (id fora de PROJETOS) tem de cair em
+    // indeterminado (resolvido por --conta), nunca em nao-vinculada; e o id da copia, mesmo
+    // fora do cache, nunca vira dono.
+    const contasC = { ...contas, f: { id: "f", espelhada: true, dsCopia: { id: "ID-COPIA", mesmoDsQue: "designSystem" } } };
+    const E = deQuemEhOHandoff(["_ds/ds-ID-COPIA/styles.css", "vendas-page.jsx"], projs, contasC);
+    const F = deQuemEhOHandoff(["ID-COPIA/app.jsx"], projs, contasC);
+    if (E.veredito !== "indeterminado") fails.push("de-quem: cache so com a copia do DS (dsCopia) nao deu indeterminado");
+    if (F.veredito === "vinculada") fails.push("de-quem: CONTROLE NEGATIVO falhou — id da copia do DS virou dono do material");
   }
 
   const scripts = scriptsReferenciados();
@@ -834,6 +870,7 @@ function procedencia() {
       + (c.alcancavel ? 'alcançável daqui' : '⚠ INVISÍVEL daqui (outra conta)')
       + (c.espelhada ? ' · espelhada' : ' · sem espelho'));
     for (const k of c.projetos) console.log('          └─ ' + PROJETOS[k].espelho.padEnd(30) + PROJETOS[k].id + '  "' + PROJETOS[k].nome + '"');
+    if (c.dsCopia) console.log('          └─ ' + ('DS = ' + c.dsCopia.mesmoDsQue + ' (cópia) ').padEnd(30) + c.dsCopia.id + '  "' + c.dsCopia.nome + '" · fonte: ' + c.dsCopia.fonte);
   }
   console.log(''); console.log('RESUMO (' + entradas.length + ' telas com charter):');
   for (const [k, v] of [...porClasse.entries()].sort((a, b) => b[1] - a[1])) {
@@ -884,6 +921,15 @@ export function deQuemEhOHandoff(paths, projetos = PROJETOS, contas = CONTAS) {
   for (const [chave, p] of Object.entries(projetos)) {
     if (rel.some((x) => x.includes(p.id))) achados.push({ projeto: chave, id: p.id, conta: p.conta });
   }
+  // A COPIA do DS numa conta (`CONTAS.<c>.dsCopia`) tem id proprio, fora de PROJETOS. Medido
+  // 2026-09-21: o pacote do [F], depois de ficar com UM DS so (o `49a36f76`), nao trazia mais
+  // nenhum id de PROJETOS e caia em "nao-vinculada" — onde `--conta` nao vale. A copia e o
+  // mesmo DS: entra aqui SO como cache (`ehCopiaDs`), nunca como dono do material.
+  for (const c of Object.values(contas)) {
+    const d = c && c.dsCopia;
+    if (d && d.id && rel.some((x) => x.includes(d.id)))
+      achados.push({ projeto: d.mesmoDsQue || "designSystem", id: d.id, conta: null, ehCopiaDs: true });
+  }
 
   // camada 2 — sobreposicao com cada espelho (indicio, nunca veredito sozinho)
   const placar = [];
@@ -898,7 +944,7 @@ export function deQuemEhOHandoff(paths, projetos = PROJETOS, contas = CONTAS) {
     // O cache `_ds/<slug>-<uuid>/` do projeto de TELAS carrega o id do projeto de DS. Entao
     // "achei o id do DS" NAO quer dizer "este material E o DS" — quer dizer "este material
     // CONSOME o DS". Dono = o id que aparece FORA do cache.
-    const forasDoCache = achados.filter((a) => rel.some((x) => x.includes(a.id) && !x.includes("_ds/")));
+    const forasDoCache = achados.filter((a) => !a.ehCopiaDs && rel.some((x) => x.includes(a.id) && !x.includes("_ds/")));
     if (forasDoCache.length) {
       const e = forasDoCache[0];
       return { veredito: "vinculada", conta: e.conta, projeto: e.projeto,

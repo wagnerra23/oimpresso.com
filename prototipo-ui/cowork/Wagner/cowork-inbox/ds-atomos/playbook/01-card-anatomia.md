@@ -10,7 +10,7 @@ depende: —
 # 01 · `ui/card.tsx` — três props que faltam pro card virar Widget
 
 ## A · IDENTIDADE (ancoragem dupla)
-- **alvo (layout, read-only):** `prototipo-ui/cowork/ponto-ui.jsx` :: `Card` — o que ele monta hoje sobre o `Widget` do bundle.
+- **alvo (layout, read-only):** `prototipo-ui/cowork/Wagner/ponto-ui.jsx` :: `Card` — o que ele monta hoje sobre o `Widget` do bundle.
 - **âncora (código):** `resources/js/Components/ui/card.tsx` — **1.987 B**, sha `733033864088`. Arquivo inteiro cabe; leia-o todo.
 - **NÃO ler:** `Pages/Ponto/**` (28 arquivos) · `shared/KpiCard.tsx` — oráculo, não leitura.
 - **arquétipo:** primitivo de moldura. **persona:** todas.

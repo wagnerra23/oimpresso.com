@@ -10,7 +10,7 @@ depende: —
 # 02 · `shared/KpiCard.tsx` — a variante de filtro, sem tocar no tom semântico
 
 ## A · IDENTIDADE (ancoragem dupla)
-- **alvo (layout, read-only):** `prototipo-ui/cowork/ponto-ui.jsx` :: `Kpi` (ramo `onClick`) e `ponto-page.jsx` :: os 6 tiles de `.pt-kpis`.
+- **alvo (layout, read-only):** `prototipo-ui/cowork/Wagner/ponto-ui.jsx` :: `Kpi` (ramo `onClick`) e `ponto-page.jsx` :: os 6 tiles de `.pt-kpis`.
 - **âncora (código):** `resources/js/Components/shared/KpiCard.tsx` — **11.135 B**, sha `670b3f645b9b`. Símbolos: `KpiCard` (:81), `kpiCardVariants` (:29), `iconContainerVariants` (:52).
 - **Leia o arquivo todo** — ele carrega ADR 0110 e uma errata de 2026-08-27 em comentário; **essa história manda mais que este pedido** em qualquer conflito de tipografia.
 - **NÃO ler:** `Pages/Ponto/Dashboard/Index.tsx` (20.313 B) · `_components/*` — oráculo.

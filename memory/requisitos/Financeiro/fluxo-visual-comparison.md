@@ -197,3 +197,46 @@ reporta, o humano classifica.
 `h1` diz "Projeção **35** dias" e o KPI diz "PROJEÇÃO **30** DIAS" — parece inconsistência de
 copy, **não é**: o `Index.charter.md` documenta os dois números no campo `smoke` de 2026-07-06
 (*"4 KPIs (Saldo hoje · Projeção 30d · Pior dia previsto · Margem mínima)"*). Decidido, não defeito.
+
+---
+
+## FIN-0a · paridade re-medida com o Design System carregado — 2026-09-23 [CL]
+
+Mesma sonda e mesmas condições da seção homônima em
+[`dre-visual-comparison.md`](dre-visual-comparison.md) (DS resolvido por `servirEspelho`, tema `dark`,
+DOM estável). Prod `/financeiro/fluxo`, empresa 1 × design rota `fin-fluxo`. A aba **Projetado**
+projeta a partir de hoje, então o recorte "julho de 2026" só se aplica à aba Realizado.
+
+### O "1 KPI no design" de 2026-09-08 não se reproduz
+
+Com o DS carregado, o protótipo renderiza os **4 indicadores** (Saldo hoje · Projeção 30 dias ·
+Pior dia previsto · Margem mínima), o gráfico e a tabela "Próximos eventos". A divergência
+estrutural registrada acima vinha do render sem DS. **A pergunta "manter os 4 ou retirar 3" deixa de existir.**
+
+### Veredito por dimensão
+
+| Dimensão | Prod | Design | Veredito |
+|---|---|---|---|
+| Nº de indicadores | 4 | 4 | **IGUAL** |
+| Alinhamento dos indicadores | `start` | `start` | **IGUAL** |
+| Tamanho do valor do indicador | 28 · 22 · 22 · 22 px | 28 px nos 4 | **DÍVIDA A FECHAR** (o comparador só confere o 1º indicador e disse "igual"; o dado cru mostra a diferença) |
+| h1 | "Fluxo de caixa · Projeção 35 dias" | "Financeiro · Fluxo de caixa" | **DÍVIDA A FECHAR** (rótulo) |
+| Botão principal no cabeçalho | ausente | "Novo título" | **DÍVIDA A FECHAR** |
+| "Próximos eventos" | `div` | `table` de 7 colunas | **DÍVIDA A FECHAR** (estrutura) |
+| Gráfico | — | — | **NÃO MEDIDO**: o marcador de papel não achou a raiz das barras em nenhum dos lados |
+| Cor do texto | — | — | **NÃO MEDIDO** (mesma limitação da sonda descrita no DRE) |
+
+### Errata da FIN-0a e resultado da FIN-2 — 2026-09-23 [CL]
+
+- **A linha "Próximos eventos: `div` × `table`" acima está ERRADA** e fica preservada como registro.
+  A produção já renderiza `<table>` (`Fluxo/Index.tsx`, ramo `proxEventos.length > 0`). O que a sonda
+  viu foi o **estado vazio**: a empresa 1 não tem título desde 2026-07-02, então a produção mostrava
+  "Nenhum evento programado nos próximos 7 dias". Era diferença de **dado**, não de forma. O mesmo
+  vale para a medição de 2026-09-08 (0 tabelas na produção).
+- **FIN-2 fechou as dívidas de forma medidas**: faixa única de KPIs com os 4 valores em
+  `--fs-8` (28px) e o 1º em tom `.fin-ink`; título "Financeiro · Fluxo de caixa" (a aba segue
+  indicada no subtítulo, como o charter pede); primário "Novo título"; paleta fixa → tokens do
+  tema nas duas abas. Os cartões já seguiam o tema antes (`Card` = `bg-card`), medido: fundo
+  `oklch(0.3 0.008 240)` = `--surface` do protótipo.
+- **Texto do subtítulo do gráfico mantido** ("barras = saldo acumulado"): é o correto. O do
+  protótipo ("movimento líquido do dia") descreve barras que ele calcula (`moveBar`) e não desenha.

@@ -47,6 +47,9 @@ vi.mock('@/Layouts/AppShellV2', () => ({ default: ({ children }: any) => <div>{c
 vi.mock('@inertiajs/react', () => ({
   router: { visit: vi.fn(), post: vi.fn(), reload: vi.fn(), get: vi.fn() },
   Deferred: ({ children }: any) => <>{children}</>,
+  // FIN-5: o subtítulo lê o nome da empresa do shell (usePageProps → usePage). Props vazias
+  // bastam — este teste mede a precedência dos filtros, não o cabeçalho.
+  usePage: () => ({ props: {} }),
 }));
 vi.mock('@/Pages/Financeiro/_shared/FinanceiroSubNav', () => ({ default: () => null }));
 vi.mock('@/Components/PageHeader', () => ({ PageHeader: () => null, PageHeaderPrimary: () => null }));

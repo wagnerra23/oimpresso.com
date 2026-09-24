@@ -1,11 +1,12 @@
 // FunnelStrip.tsx — funil 5 etapas + chip lateral mandato cancelado
 import { brl, cn, type CobrancaFunil } from '../_lib/cobranca-shared';
 
-export default function FunnelStrip({ funil }: { funil: CobrancaFunil }) {
+// FIN-5: `mesAno` ("Setembro 2026") nomeia o mês como no protótipo; sem ele, cai no texto antigo.
+export default function FunnelStrip({ funil, mesAno }: { funil: CobrancaFunil; mesAno?: string }) {
   return (
     <div className="border border-stone-200 bg-white rounded-md overflow-hidden">
       <div className="px-3.5 py-1.5 text-[10px] uppercase tracking-widest font-medium text-stone-500 border-b border-stone-100 flex items-center justify-between">
-        <span>Funil de cobrança · mês corrente</span>
+        <span>Funil de cobrança · {mesAno ? mesAno.toLowerCase() : 'mês corrente'}</span>
         {funil.mandatos_cancelados > 0 && (
           <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border bg-destructive-soft text-destructive-fg border-destructive/20">
             <span className="w-1 h-1 rounded-full bg-destructive" />

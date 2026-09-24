@@ -12,7 +12,7 @@ import {
   ArrowRightLeft, Banknote, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
   Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
   Factory, FileSearch, FileSpreadsheet, FileText, Folder, FolderKanban, HandCoins, Hash, Home, Inbox, Keyboard, LifeBuoy, LogOut,
-  MessageCircle, Monitor, Moon, Package, PackageCheck, Palette, Plug, Receipt,
+  MessageCircle, Moon, Package, PackageCheck, Palette, Plug, Receipt,
   RefreshCw, Rocket, Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
   TrendingUp, UserCog, Users, Utensils, User, Vault, Wallet, Wrench,
   type LucideIcon,
@@ -1201,12 +1201,29 @@ function SidebarUserMenu({
     localStorage.setItem(LS.SUPER_EXPANDED, superExpanded ? '1' : '0');
   }, [superExpanded]);
 
+  // Tema mostrado no trigger: lido do DOM (o que o anti-flash/servidor aplicou) e
+  // atualizado pela escolha feita no subpainel. NÃO monta o useTheme aqui: o menu
+  // está sempre montado, e o efeito de montagem do hook, com `ui_theme` null,
+  // re-sincroniza com o SO e TIRA o `.dark` que o servidor aplicou. O VRT pegou isso
+  // (estado=dark virou claro em 5 telas, diff 74–85%). O hook só monta com a
+  // cascata aberta, como já era no main.
+  const [temaEfetivo, setTemaEfetivo] = useState<'light' | 'dark'>(lerTemaDoDom);
+  useEffect(() => {
+    if (open) setTemaEfetivo(lerTemaDoDom());
+  }, [open]);
+
   // Estado da cascata: qual sub-menu está ativo (null = só painel principal)
   const [activeSub, setActiveSub] = useState<'superadmin' | 'disponivel' | 'aparencia' | 'vibes' | null>(null);
 
+  // Sair pede confirmação inline antes de encerrar (protótipo `sidebar.jsx` confSair).
+  const [confirmaSair, setConfirmaSair] = useState(false);
+
   // Reset cascade quando fechar o menu
   useEffect(() => {
-    if (!open) setActiveSub(null);
+    if (!open) {
+      setActiveSub(null);
+      setConfirmaSair(false);
+    }
   }, [open]);
 
   // Suprime warning de superExpanded não-usado (mantido por compat)
@@ -1281,6 +1298,9 @@ function SidebarUserMenu({
         >
           <Moon size={14} className="ic" />
           <span className="label">Aparência</span>
+          {/* Valor atual no trigger (protótipo `sidebar.jsx` — `um-vibe-cur`). Reusa a
+              classe `.kbd` do .um-item: mono 10.5px apagado, sem CSS novo. */}
+          <span className="kbd">{temaEfetivo === 'dark' ? 'escuro' : 'claro'}</span>
           <ChevronRight size={12} className="um-cascade-arrow" />
         </button>
 
@@ -1319,10 +1339,48 @@ function SidebarUserMenu({
           <span className="label">Central de ajuda</span>
         </a>
         <div className="um-sep" />
-        <a href="/logout" className="um-item">
-          <LogOut size={14} className="ic" />
-          <span className="label">Sair</span>
-        </a>
+        {confirmaSair ? (
+          // Confirmação INLINE no próprio menu — sem modal (canon do Cockpit).
+          // "Encerrar" é o logout REAL: o mesmo `GET /logout` → LoginController@logout
+          // que o layout legado usa (header.blade.php). Continua sendo <a>, então
+          // funciona sem JS. O protótipo faz `window.location.reload()` só porque lá
+          // não há auth — stand-in declarado no playbook, não comportamento alvo.
+          <div role="group" aria-label="Encerrar a sessão?" style={{ padding: '8px 10px 10px' }}>
+            <p style={{ margin: '0 0 8px', fontSize: 12, color: 'var(--sb-text-dim)' }}>
+              Encerrar a sessão?
+            </p>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <a
+                href="/logout"
+                className="um-item"
+                style={{
+                  flex: '1 1 auto', width: 'auto', justifyContent: 'center',
+                  border: '1px solid var(--sb-border)', borderRadius: 6,
+                  color: 'oklch(0.62 0.20 25)',
+                }}
+              >
+                <LogOut size={14} className="ic" />
+                <span className="label" style={{ flex: '0 0 auto' }}>Encerrar</span>
+              </a>
+              <button
+                type="button"
+                className="um-item"
+                onClick={() => setConfirmaSair(false)}
+                style={{
+                  flex: '1 1 auto', width: 'auto', justifyContent: 'center',
+                  border: '1px solid var(--sb-border)', borderRadius: 6,
+                }}
+              >
+                <span className="label" style={{ flex: '0 0 auto' }}>Cancelar</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button type="button" className="um-item" onClick={() => setConfirmaSair(true)}>
+            <LogOut size={14} className="ic" />
+            <span className="label">Sair</span>
+          </button>
+        )}
       </div>
 
       {/* SUBPAINEL CASCATA — desliza da direita quando activeSub != null */}
@@ -1368,7 +1426,7 @@ function SidebarUserMenu({
         </div>
       )}
 
-      {activeSub === 'aparencia' && <ThemeSubpanel />}
+      {activeSub === 'aparencia' && <ThemeSubpanel onEscolha={setTemaEfetivo} />}
 
       {activeSub === 'vibes' && vibe !== undefined && onVibe && (
         <VibesSubpanel vibe={vibe} onVibe={onVibe} />
@@ -1454,17 +1512,29 @@ function vibeAccent(vibe: Vibe): string {
 
 // ── ThemeSubpanel — plug do useTheme no subpainel Aparência (UI-0011) ─
 
-function ThemeSubpanel() {
-  const { mode, setTheme } = useTheme();
-  // mode: 'light' | 'dark' | null (sistema)
+function lerTemaDoDom(): 'light' | 'dark' {
+  if (typeof document === 'undefined') return 'dark';
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}
+
+function ThemeSubpanel({ onEscolha }: { onEscolha: (t: 'light' | 'dark') => void }) {
+  const { effective, setTheme } = useTheme();
+  // Duas opções, Escuro primeiro — protótipo `sidebar.jsx` TEMAS (dark é o padrão do
+  // projeto, [W] 2026-06-03). A opção "Sistema" saiu do menu: quem tem
+  // `ui_theme = null` continua seguindo o SO até escolher.
+  // O ✓ segue o tema EFETIVO, não o `mode`: o `mode` vem de `auth.user.ui_theme`
+  // (prop) e o setTheme persiste por fetch sem reload do Inertia — ele fica velho
+  // até a próxima visita, e o ✓ ficava no tema antigo depois do clique.
+  // `effective` é da MESMA instância que chama setTheme, então acompanha o clique.
+  const atual = effective;
   const options: Array<{
-    key: 'light' | 'dark' | null;
+    key: 'light' | 'dark';
     label: string;
+    desc: string;
     Icon: typeof Sun;
   }> = [
-    { key: 'light', label: 'Claro', Icon: Sun },
-    { key: 'dark', label: 'Escuro', Icon: Moon },
-    { key: null, label: 'Sistema', Icon: Monitor },
+    { key: 'dark', label: 'Escuro', desc: 'Padrão do balcão', Icon: Moon },
+    { key: 'light', label: 'Claro', desc: 'Escritório, luz alta', Icon: Sun },
   ];
 
   return (
@@ -1474,17 +1544,32 @@ function ThemeSubpanel() {
         <span>Aparência</span>
       </div>
       {options.map((o) => {
-        const active = mode === o.key;
+        const active = atual === o.key;
         return (
           <button
-            key={String(o.key)}
+            key={o.key}
             type="button"
             className={`um-item um-cascade-trigger ${active ? 'active' : ''}`}
-            onClick={() => setTheme(o.key)}
+            onClick={() => {
+              setTheme(o.key);
+              onEscolha(o.key);
+            }}
             aria-pressed={active}
+            title={o.desc}
           >
             <o.Icon size={14} className="ic" />
-            <span className="label">{o.label}</span>
+            <span className="label">
+              {o.label}
+              <span style={{
+                display: 'block',
+                fontSize: '10.5px',
+                color: 'var(--text-mute)',
+                marginTop: 2,
+                lineHeight: 1.2,
+              }}>
+                {o.desc}
+              </span>
+            </span>
             {active && <Check size={14} className="um-cascade-arrow" style={{ opacity: 1, color: 'var(--accent)' }} />}
           </button>
         );
@@ -1541,6 +1626,10 @@ export function SidebarFooter({
           className="sb-user-btn"
           type="button"
           onClick={() => setOpenUser((v) => !v)}
+          // Nome acessível explícito: sem ele o botão só tem nome quando `nome`/`cargo` vêm
+          // preenchidos — com usuário sem nome (o tenant de teste, 2026-09-23) o axe acusa
+          // button-name CRITICAL. O rótulo contém o nome visível (WCAG 2.5.3 label-in-name).
+          aria-label={nome ? `${nome} — menu da conta` : 'Menu da conta'}
           aria-haspopup="menu"
           aria-expanded={openUser}
         >

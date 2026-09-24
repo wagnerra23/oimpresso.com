@@ -1,0 +1,137 @@
+name: PaymentGateway · Pest (MySQL)
+
+# Lane do PaymentGateway: a tela /settings/payment-gateways (credenciais de gateway,
+# Tier 0 — segredo e isolamento por business).
+#
+# POR QUE existe (medido 2026-09-23): `node scripts/governance/test-lane-coverage.mjs`
+# acusa o módulo PaymentGateway com 45 de 48 arquivos de teste fora de qualquer lane, e
+# nenhum workflow roda tests/Feature/PaymentGateway/. A `modules-pest.yml` roda em sqlite
+# e pula teste que precisa do schema MySQL — lá o contrato sairia skip, exit 0, verde sem
+# provar nada (LC-13). Sem esta lane, os UC-PGSET-01..07 nascem sem veredito e o G-7 do
+# casos-gate nunca os promove.
+#
+# Cobre hoje: tests/Feature/PaymentGateway/ (PaymentGatewaysSettingsContratoTest —
+# tenant 98 x adversário 99 criado pelo próprio teste via seededSupportClientTenant(),
+# DatabaseTransactions, nenhuma chamada a API externa de gateway).
+#
+# Estrutura copiada de backup-pest.yml (mesmo setup MySQL, skip-as-pass, sumário JUnit).
+# Não é lane paralela a nada: é área que não tinha dono.
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno via dorny/paths-filter.
+  #
+  # ⚠️ `types` SEM `synchronize` é o padrão vigente dos advisory desde o #6622: a lane não
+  # re-roda a cada push do mesmo PR — para reexecutar, use o workflow_dispatch acima. QUEM
+  # FOR PROMOVER ESTA LANE A REQUIRED tem de reinserir `synchronize` ANTES do flip
+  # (lápide 2026-08-08 · RUNBOOK-branch-protection §Promoção).
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/PaymentGateway/**'
+      - 'tests/Feature/PaymentGateway/**'
+      - 'tests/Support/WithSeededTenant.php'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/paymentgateway-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: paymentgateway-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (PaymentGateway · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do PaymentGateway (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            paymentgateway:
+              - 'Modules/PaymentGateway/**'
+              - 'tests/Feature/PaymentGateway/**'
+              - 'tests/Support/WithSeededTenant.php'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/paymentgateway-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do domínio mudou)
+        if: steps.changes.outputs.paymentgateway == 'false'
+        run: echo "✅ Sem mudanças no PaymentGateway — skip-as-pass."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
+        if: steps.changes.outputs.paymentgateway == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (root view sem build do front)
+        if: steps.changes.outputs.paymentgateway == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (PaymentGateway · MySQL)
+        if: steps.changes.outputs.paymentgateway == 'true'
+        # phpunit.xml aponta DB_CONNECTION=sqlite sem force="true", então a env daqui vence e
+        # a suíte roda no MySQL semeado pela action (dona dos tenants 1/2/98). O teste usa
+        # DatabaseTransactions — o seed sobrevive.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-paymentgateway-junit.xml \
+            tests/Feature/PaymentGateway/
+
+      # A régua honesta é `assertions`, NÃO "0 failed": skip sai exit 0 (LC-13).
+      - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-paymentgateway-junit.xml --out test-results/pest-paymentgateway-junit-summary.json || true
+
+      - name: Upload sumário JUnit (pest-paymentgateway-junit-summary)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-paymentgateway-junit-summary
+          path: test-results/pest-paymentgateway-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload JUnit (PaymentGateway · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.paymentgateway == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-paymentgateway-junit
+          path: test-results/pest-paymentgateway-junit.xml
+          retention-days: 14

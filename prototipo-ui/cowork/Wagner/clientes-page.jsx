@@ -947,11 +947,25 @@ function CustomerView({ onResumo, papeisOutros = {} }) {
   );
 }
 
-// ── Endereços do cliente (cards + adicionar inline) ──
+// ── Endereços do cliente (cards + adicionar/editar/remover inline) ──
+// Paridade com produção: resources/js/Pages/Cliente/_drawer/EnderecosEntregaList.tsx (US-CRM-078 fase 2,
+// lido no main 2026-09-23) — editar, remover (exceto o principal), CEP preenche logradouro/bairro/cidade/UF,
+// UF por lista, marcar entrega = endereço usado na nota fiscal (NF-e <entrega>).
+const CLI_UF_LISTA = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
+const CLI_CEP_MOCK = {
+  "01310100": { logradouro: "Avenida Paulista", bairro: "Bela Vista", cidade: "São Paulo", uf: "SP" },
+  "88010400": { logradouro: "Rua Felipe Schmidt", bairro: "Centro", cidade: "Florianópolis", uf: "SC" },
+  "89201000": { logradouro: "Rua do Príncipe", bairro: "Centro", cidade: "Joinville", uf: "SC" },
+};
+const cliMaskCep = (v) => { const d = String(v || "").replace(/\D/g, "").slice(0, 8); return d.length > 5 ? d.slice(0, 5) + "-" + d.slice(5) : d; };
+const CLI_ADDR_VAZIO = { label: "", cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "", entrega: false };
+
 function CliEnderecoSection({ client }) {
   const [addrs, setAddrs] = useStateC(() => (client.addresses || []).map((a) => ({ ...a })));
-  const [adding, setAdding] = useStateC(false);
-  const [form, setForm] = useStateC({ label: "", cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "SP" });
+  const [editing, setEditing] = useStateC(null); // null | "new" | id
+  const [form, setForm] = useStateC(CLI_ADDR_VAZIO);
+  const [cepSt, setCepSt] = useStateC(null); // null | "busy" | "nf"
+  const [erro, setErro] = useStateC(null);
   const [copied, setCopied] = useStateC(null);
 
   const copyAddr = (a) => {
@@ -960,41 +974,83 @@ function CliEnderecoSection({ client }) {
     setCopied(a.id); setTimeout(() => setCopied((c) => (c === a.id ? null : c)), 1600);
   };
   const setEntrega = (id) => setAddrs((prev) => prev.map((a) => ({ ...a, entrega: a.id === id })));
-  const saveNew = () => {
-    if (!form.logradouro.trim() || !form.cidade.trim()) return;
-    const id = "ad-new-" + Date.now();
-    setAddrs((prev) => [...prev, { ...form, id, label: form.label.trim() || "Adicional", principal: prev.length === 0, entrega: prev.length === 0 }]);
-    setAdding(false);
-    setForm({ label: "", cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "SP" });
+  const abrirNovo = () => { setForm(CLI_ADDR_VAZIO); setErro(null); setCepSt(null); setEditing("new"); };
+  const abrirEdicao = (a) => { setForm({ ...CLI_ADDR_VAZIO, ...a, cep: cliMaskCep(a.cep) }); setErro(null); setCepSt(null); setEditing(a.id); };
+  const cancelar = () => { setEditing(null); setForm(CLI_ADDR_VAZIO); setErro(null); setCepSt(null); };
+  const remover = (a) => {
+    if (a.principal) return;
+    if (!window.confirm(`Remover o endereço "${a.label}"?`)) return;
+    setAddrs((prev) => {
+      const rest = prev.filter((x) => x.id !== a.id);
+      return a.entrega && rest.length ? rest.map((x) => ({ ...x, entrega: !!x.principal })) : rest;
+    });
+    if (editing === a.id) cancelar();
   };
+  const buscarCep = () => {
+    const d = form.cep.replace(/\D/g, "");
+    if (d.length !== 8) return;
+    setCepSt("busy");
+    setTimeout(() => {
+      const r = CLI_CEP_MOCK[d];
+      if (!r) { setCepSt("nf"); return; }
+      setForm((f) => ({ ...f, logradouro: r.logradouro || f.logradouro, bairro: r.bairro || f.bairro, cidade: r.cidade || f.cidade, uf: r.uf || f.uf }));
+      setCepSt(null);
+    }, 450);
+  };
+  const salvar = () => {
+    if (!form.logradouro.trim() || !form.cidade.trim() || !form.uf) { setErro("Preencha logradouro, cidade e UF — a nota fiscal exige os campos separados."); return; }
+    const dados = { ...form, cep: cliMaskCep(form.cep), label: form.label.trim() || "Adicional" };
+    setAddrs((prev) => {
+      let next;
+      if (editing === "new") next = [...prev, { ...dados, id: "ad-new-" + Date.now(), principal: prev.length === 0, entrega: prev.length === 0 || dados.entrega }];
+      else next = prev.map((a) => (a.id === editing ? { ...a, ...dados } : a));
+      const alvo = editing === "new" ? next[next.length - 1].id : editing;
+      return dados.entrega ? next.map((a) => ({ ...a, entrega: a.id === alvo })) : next;
+    });
+    cancelar();
+  };
+  const campo = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
   return (
     <div className="cli-section">
       <div className="cli-section-title cli-addr-head">
         Endereços
-        <button className="cli-addr-add" onClick={() => setAdding((v) => !v)}>
-          <I.plus size={12}/> Adicionar
-        </button>
+        {editing === null && (
+          <button className="cli-addr-add" onClick={abrirNovo}>
+            <I.plus size={12}/> Adicionar
+          </button>
+        )}
       </div>
+      <p className="cli-addr-help">Endereços estruturados além do principal. Marque qual é o de entrega — é o que vai na nota fiscal.</p>
 
-      {addrs.length === 0 && !adding && (
+      {addrs.length === 0 && editing === null && (
         <div className="cli-addr-empty"><I.mapPin size={14}/> Nenhum endereço cadastrado. Adicione para usar na entrega de vendas.</div>
       )}
 
       <div className="cli-addr-list">
         {addrs.map((a) => (
-          <div key={a.id} className={`cli-addr-card${a.entrega ? " is-entrega" : ""}`}>
+          <div key={a.id} className={`cli-addr-card${a.entrega ? " is-entrega" : ""}${editing === a.id ? " is-editing" : ""}`}>
             <div className="cli-addr-top">
               <div className="cli-addr-tags">
                 <span className="cli-addr-label"><I.mapPin size={11}/> {a.label}</span>
-                {a.principal && <span className="cli-addr-flag principal">Cadastro</span>}
+                {a.principal && <span className="cli-addr-flag principal">Principal</span>}
                 {a.entrega
-                  ? <span className="cli-addr-flag entrega">Entrega padrão</span>
+                  ? <span className="cli-addr-flag entrega">Entrega · nota fiscal</span>
                   : <button className="cli-addr-setentrega" onClick={() => setEntrega(a.id)}>Usar p/ entrega</button>}
               </div>
-              <button className="cli-addr-copy" onClick={() => copyAddr(a)} title="Copiar endereço">
-                {copied === a.id ? <I.check size={13}/> : <I.copy size={13}/>}
-              </button>
+              <div className="cli-addr-acts">
+                <button className="cli-addr-copy" onClick={() => copyAddr(a)} title="Copiar endereço" aria-label={"Copiar endereço " + a.label}>
+                  {copied === a.id ? <I.check size={13}/> : <I.copy size={13}/>}
+                </button>
+                <button className="cli-addr-copy" onClick={() => abrirEdicao(a)} title="Editar" aria-label={"Editar endereço " + a.label}>
+                  <I.pencil size={13}/>
+                </button>
+                {!a.principal && (
+                  <button className="cli-addr-copy danger" onClick={() => remover(a)} title="Remover" aria-label={"Remover endereço " + a.label}>
+                    {I.trash ? <I.trash size={13}/> : "✕"}
+                  </button>
+                )}
+              </div>
             </div>
             <div className="cli-addr-line">{a.logradouro}, <strong>{a.numero}</strong>{a.complemento ? ` · ${a.complemento}` : ""}</div>
             <div className="cli-addr-sub">
@@ -1006,27 +1062,41 @@ function CliEnderecoSection({ client }) {
         ))}
       </div>
 
-      {adding && (
-        <div className="cli-addr-form">
+      {editing !== null && (
+        <div className="cli-addr-form" role="group" aria-label={editing === "new" ? "Novo endereço" : "Editar endereço"}>
           <div className="cli-addr-frow">
-            <label className="cli-addr-f cep"><span>CEP</span><input value={form.cep} onChange={(e) => setForm({ ...form, cep: e.target.value })} placeholder="00000-000"/></label>
-            <label className="cli-addr-f rotulo"><span>Rótulo</span><input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder="Entrega, Filial…"/></label>
+            <label className="cli-addr-f cep"><span>CEP</span>
+              <input value={form.cep} inputMode="numeric" onChange={(e) => { setCepSt(null); setForm({ ...form, cep: cliMaskCep(e.target.value) }); }} onBlur={buscarCep} placeholder="00000-000"/>
+              {cepSt === "busy" && <small className="cli-addr-cepst" aria-live="polite">Buscando CEP…</small>}
+              {cepSt === "nf" && <small className="cli-addr-cepst nf" aria-live="polite">CEP não encontrado — preencha à mão.</small>}
+            </label>
+            <label className="cli-addr-f rotulo"><span>Rótulo</span><input value={form.label} onChange={campo("label")} placeholder="Matriz, Filial Centro, Obra"/></label>
           </div>
           <div className="cli-addr-frow">
-            <label className="cli-addr-f log"><span>Logradouro</span><input value={form.logradouro} onChange={(e) => setForm({ ...form, logradouro: e.target.value })} placeholder="Rua / Avenida"/></label>
-            <label className="cli-addr-f num"><span>Número</span><input value={form.numero} onChange={(e) => setForm({ ...form, numero: e.target.value })} placeholder="nº"/></label>
+            <label className="cli-addr-f logr"><span>Logradouro</span><input value={form.logradouro} onChange={campo("logradouro")} placeholder="Rua / Avenida"/></label>
+            <label className="cli-addr-f num"><span>Número</span><input value={form.numero} onChange={campo("numero")} placeholder="nº"/></label>
           </div>
           <div className="cli-addr-frow">
-            <label className="cli-addr-f comp"><span>Complemento</span><input value={form.complemento} onChange={(e) => setForm({ ...form, complemento: e.target.value })} placeholder="Sala, bloco…"/></label>
-            <label className="cli-addr-f bairro"><span>Bairro</span><input value={form.bairro} onChange={(e) => setForm({ ...form, bairro: e.target.value })} placeholder="Bairro"/></label>
+            <label className="cli-addr-f comp"><span>Complemento</span><input value={form.complemento} onChange={campo("complemento")} placeholder="Sala, bloco…"/></label>
+            <label className="cli-addr-f bairro"><span>Bairro</span><input value={form.bairro} onChange={campo("bairro")} placeholder="Bairro"/></label>
           </div>
           <div className="cli-addr-frow">
-            <label className="cli-addr-f cidade"><span>Cidade</span><input value={form.cidade} onChange={(e) => setForm({ ...form, cidade: e.target.value })} placeholder="Cidade"/></label>
-            <label className="cli-addr-f uf"><span>UF</span><input value={form.uf} maxLength={2} onChange={(e) => setForm({ ...form, uf: e.target.value.toUpperCase() })} placeholder="UF"/></label>
-            <div className="cli-addr-fact">
-              <button className="cli-addr-cancel" onClick={() => setAdding(false)}>Cancelar</button>
-              <button className="cli-addr-save" onClick={saveNew}><I.check size={12}/> Salvar</button>
-            </div>
+            <label className="cli-addr-f cidade"><span>Cidade</span><input value={form.cidade} onChange={campo("cidade")} placeholder="Cidade"/></label>
+            <label className="cli-addr-f uf"><span>UF</span>
+              <select value={form.uf} onChange={campo("uf")}>
+                <option value="">UF</option>
+                {CLI_UF_LISTA.map((u) => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </label>
+          </div>
+          <label className="cli-addr-chk">
+            <input type="checkbox" checked={!!form.entrega} onChange={(e) => setForm({ ...form, entrega: e.target.checked })}/>
+            Usar como endereço de entrega (nota fiscal)
+          </label>
+          {erro && <p className="cli-addr-erro" role="alert">{erro}</p>}
+          <div className="cli-addr-fact">
+            <button className="cli-addr-cancel" onClick={cancelar}>Cancelar</button>
+            <button className="cli-addr-save" onClick={salvar}><I.check size={12}/> Salvar endereço</button>
           </div>
         </div>
       )}

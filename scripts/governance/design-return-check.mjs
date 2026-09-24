@@ -124,7 +124,8 @@ function changedFromCli(args) {
   const head = valueAfter(args, '--head') || 'HEAD';
   try {
     if (/^0+$/.test(base)) {
-      return execFileSync('git', ['ls-tree', '-r', '--name-only', head], { encoding: 'utf8' });
+      // maxBuffer: a árvore inteira passou do default de 1 MiB em 2026-09-21 (ENOBUFS).
+      return execFileSync('git', ['ls-tree', '-r', '--name-only', head], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
     }
     return execFileSync('git', ['diff', '--name-only', base, head], { encoding: 'utf8' });
   } catch (error) {

@@ -3,7 +3,7 @@ id: resources-js-pages-produto-selling-prices-charter
 page: /products/add-selling-prices/{id}
 component: resources/js/Pages/Produto/SellingPrices.tsx
 page_id: produto-tabela-preco
-related_prototype: prototipo-ui/cowork/Felipe/produto-preco-especial/produto-preco-especial.html
+related_prototype: "n/a (protótipo retirado do repo em 2026-09-21 — não veio no pacote Produto Unificado V2 do Felipe; histórico em bdf6d07e3:prototipo-ui/cowork/Felipe/produto-preco-especial/)"
 owner: wagner
 status: draft
 last_validated: "2026-07-16"
@@ -59,7 +59,7 @@ criada fora daqui; esta tela só a seleciona e precifica. Um produto tem **N tab
 > **exceção**. **(2) Preço definido por produto** — **sem %**; o cliente digita o valor do produto
 > **naquela tabela**; a célula digitada **é o preço**, não um desvio; célula não digitada usa o
 > **preço base**. Decidido por [F] 2026-07-16 sob o critério *"a melhor usabilidade ganha — o legado
-> Delphi não entra"*. Protótipo navegável: [`prototipo-ui/cowork/Felipe/produto-preco-especial/`](../../../../prototipo-ui/cowork/Felipe/produto-preco-especial/produto-preco-especial.html).
+> Delphi não entra"*. Protótipo navegável: [`produto-preco-especial.html`](https://github.com/wagnerra23/oimpresso.com/blob/bdf6d07e3/prototipo-ui/cowork/Felipe/produto-preco-especial/produto-preco-especial.html) _(retirado do repo em 2026-09-21 — não veio no pacote Produto Unificado V2 do Felipe; o link é do histórico)_.
 >
 > ⚠️ **A v3 dizia só "a lista É uma regra" — meia-verdade, corrigida na v3** (4º corte de [F]:
 > *"nem sempre o cliente define o valor do produto na tabela por porcentagem, muitas vezes ele

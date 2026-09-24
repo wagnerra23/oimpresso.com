@@ -48,25 +48,99 @@
  * Exit: 0 = ok · 1 = insumo/validação reprovou (inclui PASSO 0 não liberado) · 2 = erro de uso.
  */
 import { readFileSync, existsSync, mkdtempSync, mkdirSync, writeFileSync, readdirSync, rmSync } from 'node:fs';
-import { join, dirname, relative, resolve } from 'node:path';
+import { join, dirname, relative, resolve, posix } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { extrairZip } from './zip-reader.mjs';
 import { roleForPath, validateManifest } from './bundle-contract.mjs';
+import { pathsForOwner, RECIBO_CODE_RE } from './bundle-transaction.mjs';
 import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
+import { pendentesDoRepo } from './pendentes-cowork.mjs';
 // PASSO 0 do painel. O dono da pergunta "de quem e este handoff" e o protocolo.config:
 // importo a funcao dele em vez de reimplementar (LC-19 — maquina paralela ao dono).
 import { deQuemEhOHandoff, CONTAS, PROJETOS } from '../design/protocolo.config.mjs';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(AQUI, '..', '..');
-const ATIVO = join(REPO, 'scripts/design-sync/state/active-bundle.json');
 const SNAPSHOT_DS = join(REPO, 'prototipo-ui/design-system');
 const ENTRY = 'oimpresso.com.html';
 
 const sha = (buf) => createHash('sha256').update(buf).digest('hex');
+
+/**
+ * O que o git faz com `* text=auto eol=lf`: arquivo sem byte NUL nos primeiros 8000 bytes e
+ * texto, e todo CRLF vira LF (CR solto fica). Devolve o MESMO buffer quando nada muda — quem
+ * chama compara por identidade pra nao reescrever a toa. Por byte, sem decodificar: um texto
+ * que nao seja UTF-8 valido passa intacto.
+ */
+export function normalizarEolComoGit(buf) {
+  if (buf.subarray(0, 8000).includes(0)) return buf;
+  if (!buf.includes(Buffer.from([13, 10]))) return buf;
+  const out = Buffer.allocUnsafe(buf.length);
+  let n = 0;
+  for (let i = 0; i < buf.length; i++) {
+    if (buf[i] === 13 && buf[i + 1] === 10) continue;
+    out[n++] = buf[i];
+  }
+  return out.subarray(0, n);
+}
+/** Sha dos arquivos de `design-system/` (bytes crus, como o R4 compara). */
+function hashesDoDs(listar = listarRelativos) {
+  const mapa = new Map();
+  for (const rel of listar(SNAPSHOT_DS)) {
+    const h = sha(readFileSync(join(SNAPSHOT_DS, ...rel.split('/'))));
+    if (!mapa.has(h)) mapa.set(h, `prototipo-ui/design-system/${rel}`);
+  }
+  return mapa;
+}
+
+/**
+ * Troca, nos atributos `href="…"`/`src="…"` de `texto`, toda ref que resolve (a partir de
+ * `dirDoArquivo`, no lote) para uma chave de `alvos` pelo path relativo ao destino no repo.
+ * `alvos`: Map<relNoLote, pathNoRepo>. `dirNoRepo`: pasta onde o arquivo pousa no repo.
+ * Pura — exportada pro teste.
+ */
+export function religarRefs(texto, dirDoArquivo, dirNoRepo, alvos) {
+  let trocas = 0;
+  const saida = texto.replace(/((?:href|src)=")([^"]+)"/g, (inteiro, attr, valor) => {
+    if (/^(?:[a-z]+:|\/\/|#|\/)/i.test(valor)) return inteiro;
+    const corte = valor.search(/[?#]/);
+    const semQuery = corte >= 0 ? valor.slice(0, corte) : valor;
+    const sufixo = corte >= 0 ? valor.slice(corte) : '';
+    const alvoNoLote = posix.normalize(posix.join(dirDoArquivo, semQuery));
+    const destino = alvos.get(alvoNoLote);
+    if (!destino) return inteiro;
+    trocas++;
+    return `${attr}${posix.relative(dirNoRepo, destino)}${sufixo}"`;
+  });
+  return { texto: saida, trocas };
+}
+
+/** Passo [4d]: remove do lote o que ja existe byte a byte no DS e religa as refs. */
+function religarAoDs(raiz, dono) {
+  const ds = hashesDoDs();
+  const alvos = new Map();
+  for (const rel of listarRelativos(raiz)) {
+    if (rel.startsWith('_ds/')) continue;
+    const destino = ds.get(sha(readFileSync(join(raiz, ...rel.split('/')))));
+    if (destino) alvos.set(rel, destino);
+  }
+  if (!alvos.size) return { removidos: [], paginas: 0 };
+  for (const rel of alvos.keys()) rmSync(join(raiz, ...rel.split('/')), { force: true });
+  const raizNoRepo = pathsForOwner(dono).cowork;
+  let paginas = 0;
+  for (const rel of listarRelativos(raiz)) {
+    if (rel.startsWith('_ds/') || !/\.(html|jsx|js|css)$/i.test(rel)) continue;
+    const abs = join(raiz, ...rel.split('/'));
+    const dir = posix.dirname(rel) === '.' ? '' : posix.dirname(rel);
+    const r = religarRefs(readFileSync(abs, 'utf8'), dir, posix.join(raizNoRepo, dir), alvos);
+    if (r.trocas) { writeFileSync(abs, r.texto); paginas++; }
+  }
+  return { removidos: [...alvos], paginas };
+}
+
 const arg = (nome, padrao = null) => {
   const i = process.argv.indexOf(nome);
   return i >= 0 && process.argv[i + 1] && !process.argv[i + 1].startsWith('--') ? process.argv[i + 1] : padrao;
@@ -113,11 +187,10 @@ export function listarRelativos(raiz, listar = readdirSync) {
 
 /** Path do repo onde um path LÓGICO do bundle pousaria. Mesma regra de `espelho()` no passo [3]
  *  e de `targetForLogical` na transação — extraída daqui pra poder ser testada sem fs. */
-export function pathNoEspelho(rel, papel = roleForPath(rel)) {
+export function pathNoEspelho(rel, papel = roleForPath(rel), dono = 'Wagner') {
   if (papel === 'preview-cache') return `prototipo-ui/design-system/${dsRuntimeRelPath(rel)}`;
-  const base = papel === 'design-doc'
-    ? 'prototipo-ui/cowork/Wagner/handoffs'
-    : 'prototipo-ui/cowork/Wagner';
+  const raizDono = pathsForOwner(dono).cowork;
+  const base = papel === 'design-doc' ? `${raizDono}/handoffs` : raizDono;
   return `${base}/${rel}`;
 }
 
@@ -183,8 +256,12 @@ function checkIgnoreGit(paths) {
  *  E o buraco não era cosmético: o `espelho()` abaixo escreve em `prototipo-ui/cowork/Wagner`
  *  HARDCODED. Um handoff exportado de outra conta entrava por aqui e pousava no espelho do
  *  Wagner — que é exatamente o "espelho ganha arquivo órfão" que o `--de-quem` foi escrito pra
- *  impedir. A conta do [F] tem `espelhada: false` e projeto nenhum em PROJETOS: não há espelho
- *  pra receber, logo não há importação possível por esta rota.
+ *  impedir. A conta do [F] tinha `espelhada: false` e projeto nenhum em PROJETOS: não havia
+ *  espelho pra receber, logo não havia importação possível por esta rota.
+ *
+ *  ATUALIZAÇÃO 2026-09-21: a conta do [F] ganhou projeto em PROJETOS (`telasFelipe`, espelho
+ *  `prototipo-ui/cowork/Felipe/`), e o destino passou a sair da conta liberada (`DONO` no fluxo
+ *  principal → `pathsForOwner`). O parágrafo acima fica como registro do porquê do portão.
  *
  *  O 3º VEREDITO É INALCANÇÁVEL DE OUTRO JEITO, e é por isso que `--conta` existe: o
  *  `deQuemEhOHandoff` procura o UUID do projeto num PATH, e o zip do Cowork nomeia a raiz pelo
@@ -238,8 +315,8 @@ export function decidirDono(dono, contaDeclarada, contas = CONTAS, projetos = PR
     const c = contas[contaDeclarada];
     return {
       ok: false, conta: null, exigeDeclaracao: true,
-      motivo: `conta "${contaDeclarada}" (${c.dono}) nao tem espelho no repo — esta rota escreve em `
-        + `prototipo-ui/cowork/Wagner, entao importar aqui criaria arquivo orfao no espelho de outro dono`,
+      motivo: `conta "${contaDeclarada}" (${c.dono}) nao tem espelho no repo — registre um projeto dela `
+        + `em PROJETOS (com a chave espelho) antes; importar sem isso criaria arquivo orfao no espelho de outro dono`,
     };
   }
   return {
@@ -321,6 +398,11 @@ export function jaEsteveNoEspelho(pathRepo, hashZip, { repo = REPO, limite = 40 
   return null;
 }
 
+/** Linhas que a poda de árvore imprime (bundle-transaction.mjs): o que apagou e o que poupou. */
+export function linhasDePoda(out) {
+  return String(out || '').split('\n').filter((l) => /^\s+(✂|⬜ RECIBO PRESERVADO|⬜ cowork-inbox\/)/.test(l));
+}
+
 function roda(script, args) {
   try {
     const out = execFileSync(process.execPath, [join(REPO, script), ...args], {
@@ -341,6 +423,10 @@ function principal() {
   // 1. EXTRAIR (efêmero por padrão)
   const destino = arg('--out') || mkdtempSync(join(tmpdir(), 'oi-handoff-'));
   mkdirSync(destino, { recursive: true });
+  // Rascunho da ferramenta (lista do live-only, sync regerado) NUNCA dentro da extracao. Medido
+  // 2026-09-21 (zip V5): o zip veio SEM a pasta `project/`, a raiz do projeto virou o proprio
+  // `destino`, e o `_live-only.json` gravado ali entrou no lote e foi promovido pro espelho.
+  const rascunho = mkdtempSync(join(tmpdir(), 'oi-handoff-aux-'));
   const entradas = extrairZip(readFileSync(zip), destino);
   console.log(`\n  [1] EXTRAIR      ${entradas.length} arquivo(s) - CRC-32 conferido em todos`);
   console.log(`                   ${destino}`);
@@ -348,6 +434,22 @@ function principal() {
   const raiz = acharRaiz(destino);
   if (!raiz) morre(`nao achei ${ENTRY} na arvore extraida - este ZIP nao e um handoff do Cowork`);
   console.log(`                   raiz do projeto: ${relative(destino, raiz) || '.'}`);
+
+  // 1b. FIM DE LINHA — o repo e `* text=auto eol=lf` (.gitattributes). O Cowork exporta parte
+  //     da arvore em CRLF: medido 2026-09-21, 112 arquivos do pacote do [F] (todo `erp-shell-v2/`)
+  //     identicos ao espelho SEM o CR. Sem normalizar aqui, o gerador carimbava o sha COM CR, o
+  //     delta via o arquivo como inalterado (nao viajava) e o staging ficava com a versao LF do
+  //     espelho → `estado-alvo diverge no staging: erp-shell-v2/app.jsx` e o lote inteiro recusado.
+  //     E o mesmo arquivo que o git gravaria: normalizar antes de medir e medir o que vai pousar.
+  let eolNormalizados = 0;
+  for (const rel of listarRelativos(raiz)) {
+    const abs = join(raiz, ...rel.split('/'));
+    const atual = readFileSync(abs);
+    const lf = normalizarEolComoGit(atual);
+    if (lf !== atual) { writeFileSync(abs, lf); eolNormalizados++; }
+  }
+  console.log(`\n  [1b] EOL        ${eolNormalizados ? `${eolNormalizados} arquivo(s) de texto CRLF -> LF (regra do .gitattributes)` : 'nada - nenhum texto em CRLF'}`);
+
 
   // 0. DE QUEM E — PASSO 0 do painel, fail-closed ANTES de medir ou escrever qualquer byte.
   //    Fica DEPOIS do [1] no numero porque a arvore precisa existir pra ser classificada, mas e o
@@ -400,15 +502,29 @@ function principal() {
     console.log(`                   -> por isso o pacote e ignorado e o bundle e REGERADO abaixo.`);
   }
 
+  // DONO DO LOTE — sai da conta que o PASSO 0 liberou, e decide TODOS os destinos abaixo:
+  // espelho, estado da última importação e o `--owner` do gerador e do aplicador.
+  // Até 2026-09-21 só o gerador recebia o dono; validar/aplicar rodavam com o default (Wagner),
+  // e um zip da conta do Felipe teria pousado no espelho do Wagner (PR #7620 esbarrou nisso).
+  const DONO = decisao.conta === 'felipe' ? 'Felipe' : 'Wagner';
+  const PATHS_DONO = pathsForOwner(DONO);
+  const ATIVO_DONO = join(REPO, ...PATHS_DONO.state.split('/'), 'active-bundle.json');
+  const COWORK_DONO = PATHS_DONO.cowork;
+  console.log(`\n  [2b] DONO        ${DONO} -> ${COWORK_DONO}/ · estado em ${PATHS_DONO.state}/`);
+
   // 3. DIREÇÃO (zip x espelho x manifesto ativo)
-  if (!existsSync(ATIVO)) morre('nao ha bundle ativo em scripts/design-sync/state/');
-  const ativo = JSON.parse(readFileSync(ATIVO, 'utf8'));
+  // Sem bundle ativo: pro Wagner é estado quebrado (sempre houve importação); pra outra conta é a
+  // PRIMEIRA importação — tudo entra como novo, e o manifesto gerado vira a base da próxima.
+  if (!existsSync(ATIVO_DONO) && DONO === 'Wagner') morre('nao ha bundle ativo em scripts/design-sync/state/');
+  const primeira = !existsSync(ATIVO_DONO);
+  if (primeira) console.log(`                   primeira importacao desta conta - sem bundle ativo, tudo entra como novo`);
+  const ativo = primeira ? { files: [] } : JSON.parse(readFileSync(ATIVO_DONO, 'utf8'));
   const porPathAtivo = new Map(ativo.files.map((f) => [f.path, f.sha256]));
   const espelho = (rel) => {
     const papel = roleForPath(rel);
     const alvo = papel === 'preview-cache'
       ? join(SNAPSHOT_DS, ...dsRuntimeRelPath(rel).split('/'))
-      : join(REPO, papel === 'design-doc' ? 'prototipo-ui/cowork/Wagner/handoffs' : 'prototipo-ui/cowork/Wagner', ...rel.split('/'));
+      : join(REPO, ...pathNoEspelho(rel, papel, DONO).split('/'));
     return existsSync(alvo) ? readFileSync(alvo) : null;
   };
   const contagem = {};
@@ -433,7 +549,7 @@ function principal() {
   for (const rel of novos) {
     const papel = roleForPath(rel);
     if (papel === 'preview-cache') continue; // dono e o projeto DS; resolvido por regra no passo [4]
-    const pathRepo = `${papel === 'design-doc' ? 'prototipo-ui/cowork/Wagner/handoffs' : 'prototipo-ui/cowork/Wagner'}/${rel}`;
+    const pathRepo = pathNoEspelho(rel, papel, DONO);
     const z = naArvore(rel);
     const commit = z && jaEsteveNoEspelho(pathRepo, sha(z));
     if (commit) regressoes.push({ rel, commit });
@@ -463,14 +579,18 @@ function principal() {
   // (876 x 808 no ciclo de 10/09). O `--sla-live-only` ja recusa comparar escopos diferentes e
   // vai dizer "denominador mudou" na 1a rodada por esta rota. E o comportamento certo — inventar
   // entradas de diretorio pra casar o numero seria fabricar o denominador.
-  const listaPath = join(destino, '_live-only.json');
+  // O medidor de frescor (`cowork-mirror-freshness`) conhece só o espelho do Wagner. Pra outra
+  // conta, medir aqui compararia o zip dela com a pasta errada — pulo e digo, em vez de medir torto.
+  const listaPath = join(rascunho, '_live-only.json');
   writeFileSync(listaPath, JSON.stringify({ paths: listarRelativos(raiz) }));
   // Ledger so no --apply: medicao de run exploratorio nao vira registro.
-  const lo = roda('scripts/governance/cowork-mirror-freshness.mjs',
-    ['--live-only', listaPath, ...(aplicar ? ['--ledger'] : [])]);
+  const lo = DONO === 'Wagner'
+    ? roda('scripts/governance/cowork-mirror-freshness.mjs', ['--live-only', listaPath, ...(aplicar ? ['--ledger'] : [])])
+    : { ok: true, out: '', pulado: true };
   const resumo = (lo.out.match(/\((\d+) de (\d+) paths\)/) || []);
   const telas = (lo.out.match(/prot[oó]tipo de tela \((\d+)\)/) || [])[1];
-  console.log(`\n  [3c] LIVE-ONLY   ${resumo[1] ?? '?'} de ${resumo[2] ?? '?'} paths do export nunca desceram pro espelho`);
+  if (lo.pulado) console.log(`\n  [3c] LIVE-ONLY   pulado - o medidor de frescor so conhece o espelho do Wagner (conta ${DONO})`);
+  else console.log(`\n  [3c] LIVE-ONLY   ${resumo[1] ?? '?'} de ${resumo[2] ?? '?'} paths do export nunca desceram pro espelho`);
   if (telas !== undefined) {
     console.log(`                   destes, prototipo de TELA: ${telas}${telas === '0' ? ' (o resto e dotfile, interno do _ds e copia de repo)' : ' <- candidatos reais a versionar'}`);
   }
@@ -514,20 +634,32 @@ function principal() {
     console.log(`\n  [4b] IGNORADOS   ${ignorados.size} arquivo(s) fora por .gitignore do repo - nao podem existir no espelho`);
     for (const rel of [...ignorados].sort()) {
       rmSync(join(raiz, ...rel.split('/')), { force: true });
-      console.log(`                   ${rel}  -> ${pathNoEspelho(rel)}`);
+      console.log(`                   ${rel}  -> ${pathNoEspelho(rel, roleForPath(rel), DONO)}`);
     }
     console.log(`                   nao e perda: o espelho ja nao os tinha. Versiona-los reabre o #7224/#7314 ([W]).`);
   } else {
     console.log(`\n  [4b] IGNORADOS   nada - todo path do export pode existir no espelho`);
   }
 
+  // 4d. JA NO DS — arquivo do lote com os MESMOS BYTES de um arquivo de `design-system/` e a
+  //     duplicata que o `cowork-ssot-guard` R4 recusa. No Cowork cada projeto tem a sua copia e
+  //     ali nao e repetido; no repo o DS e um so. Ate 2026-09-21 isso era resolvido A MAO a cada
+  //     importacao (#7620: tirar `erp-shell-v2/styles.css` + `tweaks-panel.jsx` e religar 3
+  //     paginas). Recuo a mao repete no proximo run — virou regra (§5 2026-08-02).
+  const religados = religarAoDs(raiz, DONO);
+  if (religados.removidos.length) {
+    console.log(`\n  [4d] JA NO DS    ${religados.removidos.length} arquivo(s) identico(s) ao design-system saem do lote; ${religados.paginas} pagina(s) religada(s)`);
+    for (const [rel, ds] of religados.removidos) console.log(`                   ${rel}  -> ${ds}`);
+  } else {
+    console.log(`\n  [4d] JA NO DS    nada - nenhum arquivo do lote repete o design-system`);
+  }
+
   // 5. REGERAR pelo gerador CANÔNICO
-  const outSync = join(destino, '_sync-regerado');
+  const outSync = join(rascunho, '_sync-regerado');
   // `--owner` vem da conta que o PASSO 0 liberou — quem chama sabe de quem e o lote; o path da
   // arvore extraida (tmpdir) nao diz. Sem isto o gerador sai `owner: "project"` (medido).
-  const donoDoLote = decisao.conta === 'felipe' ? 'Felipe' : 'Wagner';
   const g = roda('scripts/design-sync/gerar-payload-partes.mjs',
-    ['--root', raiz, '--out', outSync, '--previous', ATIVO, '--full-tree', '--owner', donoDoLote]);
+    ['--root', raiz, '--out', outSync, ...(primeira ? [] : ['--previous', ATIVO_DONO]), '--full-tree', '--owner', DONO]);
   if (!g.ok) { console.error(g.out); morre('o gerador canonico falhou'); }
   console.log(`\n  [5] REGERAR      ${((g.out.match(/BUNDLE v2: \w+/) || [''])[0] || '').trim()}`);
   console.log(`                   ${((g.out.match(/DELTA:.*/) || [''])[0] || '').trim()}`);
@@ -537,14 +669,54 @@ function principal() {
   if (!partes.length) morre('o gerador nao emitiu partes');
 
   // 6. VALIDAR
-  const d = roda('scripts/design-sync/aplicar-payload.mjs', [...partes, '--dry', '--require-complete-shell']);
+  const d = roda('scripts/design-sync/aplicar-payload.mjs', [...partes, '--owner', DONO, '--dry', '--require-complete-shell']);
   console.log(`\n  [6] VALIDAR      ${d.ok ? 'dry-run VALIDADO' : 'REPROVADO'}`);
   if (!d.ok) { console.error(d.out); morre('o aplicador recusou o lote no dry-run'); }
+  // A poda da árvore não entra no DELTA do [5] (só conta o que o pacote declara). O que ela vai
+  // apagar ou poupar tem de aparecer AQUI, antes do --apply — em 2026-09-23 o delta dizia `-0` e
+  // a aplicação apagou 3 `_saida` do Code.
+  const podaDry = linhasDePoda(d.out);
+  if (podaDry.length) console.log(podaDry.join('\n'));
+
+  // 6b. RETORNO DO CODE — o que o repo tem e ESTE retorno não trouxe.
+  //
+  // [W] 2026-09-24: o sentido Code -> Cowork não existia como passo. Toda mudança do Code no
+  // espelho (errata de índice, restauração, recibo) ficava só no repo, e o retorno seguinte a
+  // desfazia: o #7866 foi sobrescrito, e o import (35) ia podar 12 arquivos que o #7847 [W+C]
+  // restaurou. O caminho certo é SUBIR antes do retorno (`pendentes-cowork.mjs --plano` +
+  // DesignSync); isto aqui é a rede de segurança para quando esse passo foi esquecido.
+  // Só sai do conflito o que a PODA de fato preserva — e quem diz isso é a própria regra dela
+  // (RECIBO_CODE_RE, importada, nunca copiada). A 1ª versão dispensava todo `_saida-*` e a
+  // simulação de 2026-09-24 pegou o furo: `_saida-06-bens.md` não casa `_saida-NN[a].md`, a poda
+  // o apagou, e esta trava tinha deixado passar. Duas definições de "recibo" = a mais larga mente.
+  let conflitosRetorno = [];
+  if (DONO === 'Wagner') {
+    let pend = [];
+    try { pend = pendentesDoRepo(REPO); } catch (e) { morre(`[6b] ${e.message}`, 2); }
+    conflitosRetorno = pend.filter((p) => {
+      if (RECIBO_CODE_RE.test(p.rel)) return false;
+      const z = naArvore(p.rel);
+      return z === null || sha(z) !== p.sha;
+    });
+    if (conflitosRetorno.length) {
+      console.log(`\n  [6b] RETORNO     ${conflitosRetorno.length} arquivo(s) que o Code mudou e este retorno NAO traz - aplicar apagaria/sobrescreveria:`);
+      for (const c of conflitosRetorno) console.log(`                   ${c.motivo === 'fora-do-bundle' ? '+' : '~'} ${c.rel}${c.enviado ? '  (enviado ao Cowork, mas o retorno e anterior ao envio)' : ''}`);
+    } else {
+      console.log(`\n  [6b] RETORNO     ok - todo conteudo do Code no espelho veio neste retorno (ou e recibo preservado)`);
+    }
+  }
 
   // 7. APLICAR
   if (!aplicar) {
     console.log(`\n  [7] APLICAR      nao pedido - rode de novo com --apply pra promover.\n`);
     return;
+  }
+  if (conflitosRetorno.length && !tem('--descartar-local')) {
+    morre(`recuso promover: ${conflitosRetorno.length} arquivo(s) do Code no espelho nao vieram neste retorno (ver [6b]).\n`
+      + `    O caminho certo: suba ao Cowork e gere o retorno de novo —\n`
+      + `      node scripts/design-sync/pendentes-cowork.mjs --plano   (DesignSync finalize_plan/write_files)\n`
+      + `      node scripts/design-sync/pendentes-cowork.mjs --registrar-envio <paths>\n`
+      + `    Se o Cowork esta CERTO e a mudanca do repo deve morrer: repita com --descartar-local.`);
   }
   if (regressoes.length && !tem('--permitir-regressao')) {
     // A recusa e fail-closed de proposito (o caso (a) do [3b] reverte o espelho em silencio),
@@ -559,10 +731,12 @@ function principal() {
       + `      · pacote POSTERIOR ao estado ativo -> caso (b), espelho editado aqui: o pacote prevalece\n`
       + `        (ADR 0404) — repita com --permitir-regressao, que neste caso e o caminho CERTO.`);
   }
-  const a = roda('scripts/design-sync/aplicar-payload.mjs', [...partes, '--require-complete-shell']);
+  const a = roda('scripts/design-sync/aplicar-payload.mjs', [...partes, '--owner', DONO, '--require-complete-shell']);
   if (!a.ok) { console.error(a.out); morre('o aplicador falhou na promocao (transacao atomica: nada mudou)'); }
   console.log(`\n  [7] APLICAR      PROMOVIDO ATOMICAMENTE`);
   console.log(`${a.out.split('\n').filter((l) => /id:|transporte:/.test(l)).join('\n')}`);
+  const podaApply = linhasDePoda(a.out);
+  if (podaApply.length) console.log(podaApply.join('\n'));
 
   // 8. REGISTRAR A RODADA — sem isto o `--sla` segue lendo a ÚLTIMA rodada de `--compare`, que
   //    pode ser de semanas atrás, e reporta um denominador CONGELADO. Medido 2026-09-17: o
@@ -572,11 +746,18 @@ function principal() {
   //    neutralidade (CLAUDE.md §LIGUE A MÁQUINA, item 2). A entrada é datada com o `generatedAt`
   //    do bundle, nunca com a hora da leitura — quem garante isso é o próprio `--ledger`, que
   //    RECUSA bundle sem `generatedAt` em vez de inventar frescor.
+  if (DONO !== 'Wagner') {
+    console.log(`\n  [8] REGISTRAR    pulado - o ledger de frescor so conhece o espelho do Wagner (conta ${DONO})\n`);
+    return;
+  }
   const reg = roda('scripts/governance/cowork-mirror-freshness.mjs', ['--compare-bundle', '--ledger']);
   const linha = (reg.out.match(/✓ sync:.*/) || [''])[0].trim();
   console.log(`\n  [8] REGISTRAR    ${reg.ok ? linha || 'rodada registrada' : 'FALHOU - o --sla vai seguir lendo a rodada anterior'}`);
   if (!reg.ok) console.log(`                   ${reg.out.split('\n').filter(Boolean).slice(-1)[0] || ''}`);
   else console.log(`                   ledger de frescor atualizado - commite scripts/governance/.cowork-freshness-ledger.json\n`);
+  // 8b. O que o retorno confirmou sai do registro de enviados (o arquivo voltou a bater com o bundle).
+  const lim = roda('scripts/design-sync/pendentes-cowork.mjs', ['--limpar-confirmados']);
+  console.log(`  [8b] ENVIADOS    ${lim.ok ? lim.out.trim() : 'FALHOU - ' + lim.out.split('\n').filter(Boolean).slice(-1)[0]}`);
 }
 
 // Só executa quando chamado DIRETO: o `.test.mjs` importa `acharRaiz`/`auditarPacote`/

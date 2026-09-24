@@ -4,13 +4,13 @@
 
 ## 1) ⚠️ CORREÇÃO DURA — `ALVO` e todos os `prefixo`/`provas` das threads 01–03
 
-`prototipo-ui/ancora.mjs` **não é o arquivo que os consumidores carregam**. Medido em `c1f77b029185`: `.claude/hooks/post-merge-ui-smoke-required.mjs:316` importa `scripts/design/ancora.mjs` (e `:318` degrada citando esse caminho), `post-merge-ui-smoke-required.test.mjs:175` faz `existsSync` nele, e `block-ancora-no-olho.mjs:84`, `charter-validate.mjs:117`, os 3 workflows e a skill `refutador-gt-g5` todos mandam `node scripts/design/ancora.mjs`.
+`scripts/design/ancora.mjs` **não é o arquivo que os consumidores carregam**. Medido em `c1f77b029185`: `.claude/hooks/post-merge-ui-smoke-required.mjs:316` importa `scripts/design/ancora.mjs` (e `:318` degrada citando esse caminho), `post-merge-ui-smoke-required.test.mjs:175` faz `existsSync` nele, e `block-ancora-no-olho.mjs:84`, `charter-validate.mjs:117`, os 3 workflows e a skill `refutador-gt-g5` todos mandam `node scripts/design/ancora.mjs`.
 
 ```json
 { "variaveis": { "ALVO": "scripts/design/ancora.mjs", "FIXO": "prototipo-ui/cowork/Wagner" } }
 ```
 
-Nas threads **01, 02 e 03**: trocar `prefixo` e o `path` de toda `prova` de `prototipo-ui/ancora.mjs` → `scripts/design/ancora.mjs`, **remedindo o sha e o tamanho** (os 49.089 B eram do caminho antigo). **Nenhuma das três executa antes desta correção** — iam editar arquivo que ninguém importa. Defeito meu: registrei a mudança de casa em 14/09 e não corrigi este índice.
+Nas threads **01, 02 e 03**: trocar `prefixo` e o `path` de toda `prova` de `scripts/design/ancora.mjs` → `scripts/design/ancora.mjs`, **remedindo o sha e o tamanho** (os 49.089 B eram do caminho antigo). **Nenhuma das três executa antes desta correção** — iam editar arquivo que ninguém importa. Defeito meu: registrei a mudança de casa em 14/09 e não corrigi este índice.
 
 ## 2) `threads[]` — acrescentar
 
@@ -21,7 +21,7 @@ Nas threads **01, 02 e 03**: trocar `prefixo` e o `path` de toda `prova` de `pro
   "dono": "CL",
   "arquivo": "07-cruzar-report-trio-contrato.md",
   "prefixo": ["_saida-07.md"],
-  "nao_toca": ["resources/js/Pages/**", "memory/**", "governance/**", "prototipo-ui/cowork/**"],
+  "nao_toca": ["resources/js/Pages/**", "memory/**", "governance/**", "prototipo-ui/cowork/Wagner/**"],
   "depende_threads": [],
   "depende_decisoes": [],
   "nota_provas": "e EXECUCAO com exit code e numeros; nenhum script novo — os donos ja existem",

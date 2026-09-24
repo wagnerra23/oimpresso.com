@@ -395,3 +395,31 @@ it('UC-PAT-01: bem SEM garantia de outra empresa não entra nos baldes de garant
         assetDashboardTenantLimpar();
     }
 });
+
+/**
+ * Rotas `show` mortas saem do registro — e o DELETE na mesma URI fica.
+ *
+ * O QUE DEFENDE: os 4 `show()` de assets, allocation, revocation e asset-maintenance
+ * devolviam `view('assetmanagement::show')`, view que não existe em nenhum caminho do
+ * módulo. Medido no runtime do CT 100 (`_saida-15.md` do playbook do Patrimônio): as 4
+ * chamadas estouravam `View [show] not found` para qualquer usuário logado que digitasse a
+ * URL, e nenhum link da UI chegava nelas. `Routes/web.php` passou a declarar
+ * `->except(['show'])` nos 4 resources.
+ *
+ * ORÁCULO: o registro vivo (`Route::has`), não a leitura do arquivo de rotas.
+ * CONTROLE: `destroy` na MESMA URI segue registrado — `Bens.tsx` e `Manutencoes.tsx`
+ * excluem por `router.delete` nela, e `except(['show'])` não pode levá-lo junto. E
+ * `asset.settings.show` segue registrado de propósito: as sub-telas de settings dependem
+ * da decisão D-FORMS, então este teste também falha se alguém tirar essa rota sem ela.
+ */
+it('rotas show mortas de assets/allocation/revocation/asset-maintenance não estão registradas', function () {
+    foreach (['assets.show', 'allocation.show', 'revocation.show', 'asset-maintenance.show'] as $nome) {
+        expect(\Route::has($nome))->toBeFalse("Rota {$nome} não deveria estar registrada (view inexistente)");
+    }
+});
+
+it('CONTROLE: destroy na mesma URI e asset.settings.show continuam registrados', function () {
+    foreach (['assets.destroy', 'allocation.destroy', 'revocation.destroy', 'asset-maintenance.destroy', 'asset.settings.show'] as $nome) {
+        expect(\Route::has($nome))->toBeTrue("Rota {$nome} deveria continuar registrada");
+    }
+});

@@ -64,7 +64,7 @@
 // quiser mesmo a superfície de hover cinza do shadcn — `hover:bg-accent` escrito
 // pensando "accent = roxo" entrega CINZA.
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useId, useMemo, useState, type ReactNode } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
@@ -86,7 +86,7 @@ import { Link } from '@inertiajs/react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
-import KpiGrid from '@/Components/shared/KpiGrid';
+import JanaKpiGrid from './JanaKpiGrid';
 import JanaKpiCard from './JanaKpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 import { BriefValorSkeleton, KpiCardSkeleton, SparklineSkeleton } from './JanaCockpitSkeleton';
@@ -225,6 +225,115 @@ export function SectionTitle({
 }
 
 // Card de análise (título + ícone + pill opcional + valor grande + corpo).
+/**
+ * Curva do sparkline de análise — o `Sparkline` da âncora (`chat-jana.jsx:271`, que o
+ * `jana-merge.jsx` consome via `AnaliseCard`), portado.
+ *
+ * O que a âncora faz e a produção NÃO fazia — medido em 2026-09-21 com a mesma sonda nos dois
+ * lados (`Index-visual-comparison.md` §Rodada MEDIDA de 2026-09-21 — GRÁFICOS, itens G1-G11):
+ *  - traça CURVA Bézier (`Q`/`T`), não poligonal reta;
+ *  - preenche a ÁREA sob a curva com gradiente do tom positivo (0.26 → 0);
+ *  - declara `vector-effect="non-scaling-stroke"`.
+ *
+ * O `vector-effect` é o item caro, e não é preciosismo: com `preserveAspectRatio="none"` o traço
+ * é deformado pela escala do viewBox. Medido na produção: escala x=8,971 · y=1, e o traço ocupava
+ * **13,46px na horizontal contra 1,5px na vertical** (razão 8,97×, por `isPointInStroke`). Não
+ * saltava aos olhos porque a série de biz=1 é plana — os 30 pontos tinham um único valor de y —,
+ * e linha horizontal não exibe deformação. Apareceria no primeiro tenant com série variável.
+ *
+ * `useId` no gradiente porque id de `<defs>` é global no documento. A âncora usa id fixo
+ * (`jcSparkGrad`) e tem uma instância só; aqui, duas instâncias colidiriam e a segunda herdaria
+ * o preenchimento da primeira.
+ *
+ * ⚠️ A COR vem de `text-success` (token da produção, `oklch(0.68 0.13 162)`), não do literal da
+ * âncora (`--pos`, `oklch(0.76 0.18 150)`). O papel semântico é o mesmo; o valor difere, e isso é
+ * dívida de **Fundações** (UI-0013) — mexer no token muda a tela inteira e é decisão [W], não
+ * deste porte.
+ */
+/**
+ * Trilho e preenchimento das barras horizontais de análise — as duas famílias da âncora
+ * (`chat-jana.css` §`.jc-bar-track` e §`.jc-bk-bar`), medidas em 2026-09-21
+ * (`Index-visual-comparison.md` §Rodada de GRÁFICOS, itens G17-G22).
+ *
+ * As duas têm `height: 7px` na âncora; a produção usava `h-1.5` (6px). O que as separa é o
+ * PREENCHIMENTO: `.jc-bar-track > div` usa `linear-gradient(90deg, var(--accent-hi), var(--accent))`,
+ * enquanto `.jc-bk-bar > div` recebe a cor por faixa, do dado.
+ *
+ * ⚠️ O gradiente é derivado do TOKEN, não de literal. A produção não tem `--accent-hi`, e criar
+ * token é decisão [W]; então o tom claro sai do próprio `--color-primary` com o delta de
+ * luminosidade que foi MEDIDO na âncora (+0.06 em L). Conferido no runtime: a expressão abaixo
+ * resolve para `linear-gradient(90deg, oklch(0.76 0.15 295), oklch(0.7 0.15 295))`, que é
+ * exatamente o que o protótipo renderiza. `var(--primary)` NÃO resolve nesta base (devolve
+ * transparente) — o Tailwind v4 expõe as cores do `@theme` como `--color-*`.
+ */
+const TRILHO_BARRA = 'h-[7px] overflow-hidden rounded-full bg-muted';
+
+const PREENCHIMENTO_GRADIENTE =
+  'linear-gradient(90deg, oklch(from var(--color-primary) calc(l + 0.06) c h), var(--color-primary))';
+
+/**
+ * Escala de severidade dos buckets de inadimplência — a âncora pinta CADA faixa de uma cor
+ * (`getJanaData().analises[inad].buckets`: `--warn` → mix(warn,neg) → `--neg` → `--text-3`),
+ * enquanto a produção pintava as quatro de `bg-destructive`. A leitura que se perdia é a de que
+ * atraso maior não é "mais do mesmo vermelho": a faixa mais velha sai da escala quente e vira
+ * cinza, porque `>365d` é candidata a baixa, não a cobrança — é o que o próprio card já diz no
+ * rodapé da âncora.
+ *
+ * Os tons vêm dos tokens desta base, não dos literais da âncora: o papel semântico é o mesmo e o
+ * valor difere, o que é dívida de Fundações (UI-0013) e não deste porte.
+ */
+const CORES_BUCKET = [
+  'var(--color-warning)',
+  'color-mix(in oklch, var(--color-warning) 70%, var(--color-destructive))',
+  'var(--color-destructive)',
+  'var(--color-muted-foreground)',
+] as const;
+
+function SparkArea({ dados }: { dados: number[] }) {
+  const gid = useId();
+  const w = 280;
+  const h = 60;
+  const min = Math.min(...dados);
+  const max = Math.max(...dados);
+  const norm = (v: number) => (max === min ? 0.5 : (v - min) / (max - min));
+  // série de 1 ponto: `w/(n-1)` daria Infinity e o path sairia NaN. A âncora tem esse buraco
+  // (ela nunca recebe série curta); aqui degrada para um ponto em x=0 em vez de sumir com a curva.
+  const xStep = dados.length > 1 ? w / (dados.length - 1) : 0;
+  const pts = dados.map((v, i) => [i * xStep, h - 4 - norm(v) * (h - 10)] as const);
+  let d = `M ${pts[0]![0]} ${pts[0]![1]}`;
+  for (let i = 1; i < pts.length; i++) {
+    const [x0, y0] = pts[i - 1]!;
+    const [x1, y1] = pts[i]!;
+    const cx = (x0 + x1) / 2;
+    d += ` Q ${cx} ${y0}, ${cx} ${(y0 + y1) / 2} T ${x1} ${y1}`;
+  }
+  const area = `${d} L ${w} ${h} L 0 ${h} Z`;
+
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      preserveAspectRatio="none"
+      className="h-[60px] w-full"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="currentColor" stopOpacity="0.26" />
+          <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#${gid})`} />
+      <path
+        d={d}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
 function AnalysisCard({
   icon,
   title,
@@ -382,7 +491,6 @@ export default function JanaCockpit({
   const topDevedor = insightsAggregates.topDevedor;
 
   const sparkline = coworkAggregates?.sparkline ?? [];
-  const sparkMax = Math.max(...sparkline, 1);
   const sparkSum = sparkline.reduce((a, b) => a + b, 0);
 
   const firstName = userName?.split(' ')[0] || 'você';
@@ -549,7 +657,28 @@ export default function JanaCockpit({
   }
 
   return (
-    <div className="space-y-4">
+    /* Ritmo vertical entre seções = **18px**, o da âncora. Medido em 2026-09-21 (Chrome,
+       2560, dark, os dois lados na mesma janela), comparando o espaço VISUAL entre blocos
+       consecutivos — não a propriedade isolada, que engana quando há padding no meio:
+
+         de → para              âncora   prod (antes)
+         brief → kpis             18        16
+         kpis → metas             18        16
+         metas → h2 Análises       6        16      ← vai pro outro lado; ver `mb-1.5` no Index
+         h2 → grade               10        10  ✅
+         grade → h2 Ações         18        16
+         h2 → ações               10        10  ✅
+
+       Na âncora o 18px não vem de um container: cada seção declara o seu
+       (`.jc-brief`, `.jc-kpis`, `.jc-grid`, `.jc-acoes` — 4 ocorrências em
+       `chat-jana.css`). Aqui fica no `space-y`, que é o idioma desta tela e produz o
+       mesmo espaçamento com uma declaração em vez de quatro.
+
+       ⚠️ Os `h2` continuam em 10px e isso é da âncora, não descuido: o `space-y` gera
+       `:where(.space-y-* > :not(:last-child))`, de especificidade **0**, então o `mb-2.5`
+       do `SectionTitle` vence sem `!important` — exatamente como a `.jc-h2` (`margin: 6px
+       0 10px`) vence o ritmo do `.jc-page`. */
+    <div className="space-y-[18px]">
       {/* Header do cockpit — REMOVIDO na onda de fusão (2026-08-07, US-COPI-148).
           Era a SEGUNDA barra da tela: identidade (Jana · Analista IA + business +
           biz) e ações (Atualizado / Configurar / Exportar) duplicavam o que já
@@ -811,7 +940,13 @@ export default function JanaCockpit({
           cálculo a mês-calendário para casar a palavra antiga — mexeria, e aí
           vale a regra mestre de VALOR (dupla prova + antes→depois). É decisão
           [W], registrada no `Index.casos.md` §UC-JPAIN-14. */}
-      <KpiGrid cols={4} className="gap-2.5">
+      {/* O grid é réplica local (`JanaKpiGrid`), não o `KpiGrid` compartilhado: a
+          `.jc-kpis` da âncora quebra em 1100px e o `colsMap` do shared quebra em 1024/640,
+          e arbitrary variant no `className` dele sai INERTE (o Tailwind 4 emite os
+          arbitrários ANTES dos nomeados, então `lg:` vence). Os offsets medidos e as três
+          faixas divergentes estão no docblock do componente e no `Index.casos.md`
+          §UC-JPAIN-34. */}
+      <JanaKpiGrid>
         {carregandoCockpit ? (
           <KpiCardSkeleton label="Receita 30 dias" />
         ) : (
@@ -860,7 +995,7 @@ export default function JanaCockpit({
           icon="trending-up"
           delta={deltaTicket !== null ? { value: deltaTicket, label: '7d' } : null}
         />
-      </KpiGrid>
+      </JanaKpiGrid>
 
       {/* Metas entram AQUI — posição da âncora. Ver §R5 de
           `memory/requisitos/Jana/Index-visual-comparison.md`. */}
@@ -887,8 +1022,28 @@ export default function JanaCockpit({
         )}
       </SectionTitle>
 
+      {/* Grade das análises — RÉPLICA LOCAL da `.jc-grid` da âncora.
+          Medido em 2026-09-21 (Chrome, mesma janela, viewport 2560, dark, container
+          2237px nos DOIS lados): âncora `repeat(3, 1fr)` + `gap: 12px`; prod estava
+          em 2 colunas + 16px. Fonte: `prototipo-ui/cowork/Wagner/chat-jana.css`
+          §"── Análises ──" — re-localize com
+          `grep -n "jc-grid" prototipo-ui/cowork/Wagner/chat-jana.css`.
+
+          ⚠️ Os BREAKPOINTS são os da âncora, não os do Tailwind. Ela quebra em
+          `max-width: 1100px` (→2) e `max-width: 760px` (→1); o `lg:` daqui era 1024px
+          e nunca chegava a 3. As `min-[761px]`/`min-[1101px]` são a tradução exata
+          dessas duas queries — usar `lg:`/`xl:` aproximaria, e aproximar num
+          breakpoint é o que fazia a prod parar em 2 colunas no monitor de 1280px
+          da ROTA LIVRE, onde a âncora já mostra 3.
+
+          ⚠️ O `margin-bottom` NÃO entra aqui de propósito: o 16px da prod vem do
+          `space-y-4` do container da página (medido — a className da grade não
+          declara margem), logo ele rege TODAS as seções (KPIs, Metas, Ações). A
+          âncora usa 18px. Convergir isso é mudança de ritmo vertical da tela
+          inteira, não da grade — fica medido e declarado, não corrigido de
+          passagem. */}
       {pro ? (
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 min-[761px]:grid-cols-2 min-[1101px]:grid-cols-3">
         {/* Inadimplência buckets.
             `big` herda `text-foreground`; só o NEGATIVO vira vermelho — senão
             R$ 0,00 aparece em vermelho afirmando alerta sobre ausência de dado.
@@ -905,16 +1060,20 @@ export default function JanaCockpit({
           onClick={abrirInad}
         >
           <div className="flex flex-col gap-2">
-            {Object.entries(ageingBuckets).map(([label, v]) => (
+            {Object.entries(ageingBuckets).map(([label, v], i) => (
               <div key={label} className="flex flex-col gap-1">
                 <div className="flex items-baseline justify-between text-xs">
                   <span className="text-muted-foreground">{label}</span>
                   <b className="font-semibold tabular-nums text-foreground">{fmtShort(v)}</b>
                 </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                <div className={TRILHO_BARRA}>
                   <div
-                    className="h-full rounded-full bg-destructive"
-                    style={{ width: ageingTotal > 0 ? `${(v / ageingTotal) * 100}%` : '0%' }}
+                    className="h-full rounded-full"
+                    style={{
+                      width: ageingTotal > 0 ? `${(v / ageingTotal) * 100}%` : '0%',
+                      // escala de severidade por faixa, como a âncora — não um vermelho só
+                      background: CORES_BUCKET[Math.min(i, CORES_BUCKET.length - 1)],
+                    }}
                   />
                 </div>
               </div>
@@ -947,16 +1106,9 @@ export default function JanaCockpit({
           ) : sparkline.length === 0 ? (
             <div className="py-2 text-xs text-muted-foreground">Sem histórico</div>
           ) : (
-            <div className="text-primary">
-              <svg viewBox={`0 0 ${sparkline.length * 4} 40`} preserveAspectRatio="none" className="h-10 w-full">
-                <polyline
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  points={sparkline.map((v, i) => `${i * 4},${40 - (v / sparkMax) * 38 - 1}`).join(' ')}
-                />
-              </svg>
-              <div className="flex justify-between text-[10px] text-muted-foreground">
+            <div className="text-success">
+              <SparkArea dados={sparkline} />
+              <div className="flex justify-between text-[10.5px] text-muted-foreground">
                 <span>D-{sparkline.length}</span>
                 <span>hoje</span>
               </div>
@@ -986,10 +1138,13 @@ export default function JanaCockpit({
                     </span>
                     <b className="font-semibold tabular-nums text-foreground">{fmtShort(c.total)}</b>
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                  <div className={TRILHO_BARRA}>
                     <div
-                      className="h-full rounded-full bg-primary"
-                      style={{ width: topClientesTotal > 0 ? `${(c.total / topClientesTotal) * 100}%` : '0%' }}
+                      className="h-full rounded-full"
+                      style={{
+                        width: topClientesTotal > 0 ? `${(c.total / topClientesTotal) * 100}%` : '0%',
+                        backgroundImage: PREENCHIMENTO_GRADIENTE,
+                      }}
                     />
                   </div>
                 </div>
@@ -1020,10 +1175,13 @@ export default function JanaCockpit({
                       {methodsTotal > 0 ? Math.round((m.total / methodsTotal) * 100) : 0}%
                     </b>
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                  <div className={TRILHO_BARRA}>
                     <div
-                      className="h-full rounded-full bg-success"
-                      style={{ width: methodsTotal > 0 ? `${(m.total / methodsTotal) * 100}%` : '0%' }}
+                      className="h-full rounded-full"
+                      style={{
+                        width: methodsTotal > 0 ? `${(m.total / methodsTotal) * 100}%` : '0%',
+                        backgroundImage: PREENCHIMENTO_GRADIENTE,
+                      }}
                     />
                   </div>
                 </div>
@@ -1123,7 +1281,19 @@ export default function JanaCockpit({
               A caixa alta vem do CSS do `SectionTitle` (`uppercase`), igual à `.jc-h2`. */}
           <SectionTitle icon={<Lightbulb size={14} />}>Ações que Jana sugere</SectionTitle>
 
-          <Card>
+          {/* `py-0 gap-0` sobrescreve o `py-6 gap-6` do `Card` canon (`ui/card.tsx:29`)
+              para casar a `.jc-acoes` da âncora, que é `padding: 0` + `overflow: hidden`
+              (`chat-jana.css` §"── Ações sugeridas ──").
+
+              ⚠️ Qual dos dois é a dívida VISUAL, medido em 2026-09-21: o `gap-6` é
+              INERTE aqui — o `Card` tem UM filho só (o `CardContent`), e gap sem
+              segundo filho não separa nada. Quem produzia o respiro de 24px no topo
+              e na base, que a âncora não tem, é o `py-6`. A rodada de 2026-09-07
+              registrou "ações · gap · normal × 24px": a medição estava certa, mas o
+              `gap` era o sintoma legível, não a causa. Zero os dois porque a âncora
+              tem os dois zerados — e `gap: normal` em flex É `0px`, então o par não
+              reabre como divergência na próxima rodada. */}
+          <Card className="gap-0 py-0">
             <CardContent className="flex flex-col divide-y divide-border p-0">
               {acoes.map((a) => (
                 <div key={a.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-3.5 p-3.5">

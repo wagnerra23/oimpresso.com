@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-20**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-24**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -31,12 +31,12 @@ lente: [construir]
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-08-03 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-08-12 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-09-07 |
-| Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-05 |
+| Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-24 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-09-07 |
-| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-09-15 |
+| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-09-24 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-09-15 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-15 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-15 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-24 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-09-15 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-09-07 |
@@ -44,10 +44,10 @@ lente: [construir]
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-09-15 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-09-07 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-15 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-24 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
-| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-09-15 |
+| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-09-23 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-08-01 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-08-11 |
 | Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **11/13** métricas medidas · floor full-suite = **275**.
+- Scorecard: **11/13** métricas medidas · floor full-suite = **278**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -131,13 +131,13 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 146 workflows por classe
+### Censo — 147 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 110 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 111 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 25 | agent-cost-per-pr, agent-pr-outcomes, baseline-folga, briefing-code-staleness, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -146,13 +146,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **412** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 362 · superseded: 25 · proposto: 12 · deprecated: 11 · rascunho: 1 · recusado: 1.
+- **417** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 366 · superseded: 25 · proposto: 13 · deprecated: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 212 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 235 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -367,6 +367,29 @@ lente: [construir]
 - ~~2026-09-18 — Alarmar/reprovar o `design-smoke-ci` quando `count=0` (o step summary JÁ diz — e `cancelled` não é `success`)~~
 - ~~2026-09-18 — Dois smokes de UI passaram medindo BYTECODE DE 10 DIAS ATRÁS (`opcache.validate_timestamps = Off`) — e o cerco de hash não pega isso~~
 - ~~2026-09-18 — A SONDA DE CONFERÊNCIA era invalidada pela própria remoção que ela deveria conferir (e circulou entre 4 sessões)~~
+- ~~2026-09-21 — EMENDA da lápide de 2026-09-18 (sonda de conferência auto-invalidada): o **irmão** do mesmo bloco `merge=union` repetiu o vetor em 2d 19h — e o conserto que ela prescreve falhou UMA vez, com o aviso 7 linhas acima da violação~~
+- ~~2026-09-18 — Rótulo de veredito que INVERTE a direção da contagem ao lado dele (e a tese que eu ia registrar junto caiu na própria medição)~~
+- ~~2026-09-18 — "Autocorreção" com sonda MAIS FROUXA que a original: ampliei o padrão pra conferir, ele casou pelo OUTRO termo, e eu retratei uma leitura que estava CERTA~~
+- ~~2026-09-21 — `grep -iF` ABORTA (SIGABRT, rc=134) neste ambiente: saída vazia que parece "não achei", e a causa que me deram estava errada~~
+- ~~2026-09-21 — RECIBO-INSTÂNCIA da emenda 2026-09-03 ("um dono não é O dono"): 3ª violação da mesma regra — o dono deste eixo estava INDEXADO, e nenhuma das duas sessões o consultou~~
+- ~~2026-09-21 — EMENDA da lápide 2026-08-19 (par de barra colapsa no transporte): o vetor foi a RESTAURAÇÃO, e o braço PHP do candidato a gate deixou de ser imensurável — está medido e CEGO~~
+- ~~2026-09-21 — EMENDA da lápide 2026-07-29 (claim de ausência no eixo ROTA): os donos de *"esta rota tem gate?"* não são os que ela lista — e a máquina que já sabia disso estava no repo, com bite-test~~
+- ~~2026-09-21 — Tirar o `/i` do detector do `rm`, e isentar `docker exec`/`ssh … rm` por PREFIXO — duas propostas minhas ao #7613, ambas refutadas por medição da autora~~
+- ~~2026-09-21 — REINCIDÊNCIA da LC-24 num 2º instrumento: o auto-canário do `memory-health` decidia com UMA amostra, e o conserto de 2026-08-13 nunca chegou nele~~
+- ~~2026-09-21 — Inventei a HORA de uma medição DENTRO da nota que existe para marcar medição caduca — e os 3 números verdadeiros ao lado autenticaram o falso~~
+- ~~2026-09-21 — Disparar a regeneração de baseline do VRT: o mecanismo ainda FUNCIONA, e a prática tinha sido aposentada no mesmo dia (ADR 0409)~~
+- ~~2026-09-21 — Arbitrary variant (`min-[…]`/`max-[…]`) no `className` de componente cujas variantes usam `sm:`/`lg:` — MEDIDO INERTE duas vezes, com CI verde~~
+- ~~2026-09-21 — EMENDA da lápide 2026-09-18 (opcache): o eixo **ASSET BUILDADO** — `git rev-parse HEAD` em prod diz o CÓDIGO, não o ARTEFATO servido~~
+- ~~2026-09-22 — EMENDA da lápide 2026-07-28 (`toContain` message-as-needle): na forma NEGADA o assert não é "fraco", ele está **MORTO** — e 9 dos vivos são Tier 0~~
+- ~~2026-09-22 — Promover o `brl-scan` a required pela superfície MENSAGEM DE COMMIT (MEDIDO: 100% de FP na janela pós-gate — e a premissa que motivou o pedido estava errada)~~
+- ~~2026-09-22 — O zero de um medidor tem TRÊS causas, não duas: a terceira é CORPUS ANACRÔNICO, e ela não aparece em nenhuma lápide anterior~~
+- ~~2026-09-22 — EMENDA da lápide 2026-06-30 (âncora por NOME/PASTA): o mesmo predicado voltou num detector NOVO — e o falso-positivo saiu do CI e virou ORDEM DE DELEÇÃO do dono~~
+- ~~2026-09-22 — Medi dependência npm por IMPORT ESTÁTICO num teste que resolve por `createRequire` — verde local, vermelho no CI, e a lane declara 4× que não instala nada~~
+- ~~2026-09-22 — EMENDA da lápide 2026-07-29 (fail-open que vira frase falsa): o dead man's switch dos hooks acusou 52 mortos com um corpus sem trabalho — 3ª vez no MESMO instrumento, cada conserto fechando só o comprimento que doeu~~
+- ~~2026-09-22 — Propor QUEBRAR um job de CI afirmando que "um step vermelho esconde os outros" sem ler o `if:` dos steps (216 de 220 rodavam com always())~~
+- ~~2026-09-23 — EMENDA da lápide 2026-07-27 (stash pop por posição): o aviso ARMADO sai em stderr com `exit 0` — fica gravado no transcript e, pelo que o corpus mostra, não chega ao agente~~
+- ~~2026-09-23 — C1 do `--omission` ("reaparece no `+` não é omissão") nasceu INERTE para a família `function`, e o bite-test dele exercitava outra família~~
+- ~~2026-09-23 — EMENDA da lápide 2026-08-20 (sondar o git com a mudança não commitada): o eixo HOOK — um PreToolUse decidia pelo índice ANTES do `git add` do próprio comando, e os testes dele nunca usaram a forma real~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -377,14 +400,14 @@ lente: [construir]
 
 ## Rastro
 
-- **540** handoffs · **758** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **566** handoffs · **768** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
-  - `2026-09-18-triagem-uc-orfaos-de-lane`
-  - `2026-09-16-token-pares-revogacao`
-  - `2026-09-16-session-protocolo-ultimo-importado`
-  - `2026-09-16-recepcao-pacote-e-dois-universos`
-  - `2026-09-16-poda-worktrees-e-token-fora-do-disco`
-  - `2026-09-16-paridade-bundle-por-conta`
+  - `2026-09-23-serie-financeiro-layout-fin6b-balancete`
+  - `2026-09-22-revisao-fluxos-maquinas-sem-baseline`
+  - `2026-09-22-lacunas-revisao-fluxos-fechadas`
+  - `2026-09-22-cobertura-modular-funil-design`
+  - `2026-09-22-buracos-prototipo-producao`
+  - `2026-09-21-zero-baseline-tier0`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-20 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-24 · deriva das fontes canônicas, não as substitui._

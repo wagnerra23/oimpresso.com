@@ -58,7 +58,7 @@ jobs:
       frontend_changed: ${{ steps.diff.outputs.frontend_changed }}
       # runtime_changed=false → o push NÃO tocou nada que roda em produção.
       # Nesse caso o site NÃO entra em maintenance (job sync-light). Ver o passo
-      # "Classifica o push" abaixo pra a lista de paths e o porquê do fail-safe.
+      # "Classifica o run" abaixo (scripts/deploy/classifica-push.sh) pra a lista de paths e o fail-safe.
       runtime_changed: ${{ steps.diff.outputs.runtime_changed }}
       # Hash do composer.lock DESTE commit, calculado no runner (que já tem o
       # checkout). O deploy compara com o hash do servidor ANTES do pull pra
@@ -68,74 +68,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # precisa do commit `before` pra diff de frontend
+          fetch-depth: 0   # precisa do SHA do último deploy bem-sucedido (base da classificação)
 
-      - name: Detecta se resources/js|css mudou neste push
+      - name: Classifica o run — o que mudou desde o ÚLTIMO DEPLOY BEM-SUCEDIDO
         id: diff
-        run: |
-          # Exclui *.md (charter.md/casos.md ficam sob resources/js/ por convenção, ADR 0264)
-          # — não rebuildam bundle Vite, então não devem marcar frontend_changed. Sem o
-          # exclude, uma PR só-de-casos disparava frontend_changed=true e o gate de hash
-          # de bundle no smoke dava falso-positivo (hash idêntico = "publicação não chegou").
-          if [ "${{ github.event_name }}" = "push" ] && \
-             [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
-            if git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" -- resources/js resources/css ':(exclude)*.md' | grep -q .; then
-              echo "frontend_changed=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "frontend_changed=false" >> "$GITHUB_OUTPUT"
-            fi
-          else
-            echo "frontend_changed=unknown" >> "$GITHUB_OUTPUT"
-          fi
-          echo "frontend_changed = $(grep frontend_changed "$GITHUB_OUTPUT" | cut -d= -f2)"
-
-          # ── runtime_changed: o push mexeu em algo que RODA em produção? ────────
-          # Medido 2026-08-12 nos 27 últimos deploys bem-sucedidos: 14 (52%) puseram
-          # o site em 503 por ~1min sem tocar UMA linha servida em produção — eram
-          # .github/, .claude/, scripts/ e governance/*.json. Esses agora vão pelo
-          # job `sync-light` (git reset, sem maintenance).
-          #
-          # FAIL-SAFE: qualquer dúvida (outro evento, git diff falhou, grep com erro
-          # real) resolve pra TRUE = deploy completo. Só o caso PROVADO "todo arquivo
-          # do push casa a lista abaixo" vira caminho leve. Errar pra TRUE custa 30s
-          # de 503; errar pra FALSE serviria código sem cache clear/OPcache reset.
-          #
-          # Por que cada path NÃO é runtime (e mesmo assim CHEGA ao servidor, via o
-          # `git reset --hard` do sync-light — só não exige maintenance/composer/cache):
-          #   .github/     → roda no runner do GitHub, nunca no Hostinger
-          #   .claude/     → config de agente (lida sob demanda por artisan)
-          #   scripts/     → invocado por Process/CLI a cada uso, sem restart
-          #   governance/  → JSON de baseline lido por request pelo Modules/Governance
-          #   tests/ docs/ memory/ prototipo-ui/ *.md + dotfiles de raiz
-          NAO_RUNTIME='^(\.github/|\.claude/|scripts/|governance/|tests/|docs/|memory/|prototipo-ui/|\.gitattributes$|\.gitignore$|\.editorconfig$|CODEOWNERS$)|\.md$'
-          RUNTIME_CHANGED=true
-          if [ "${{ github.event_name }}" = "push" ] && \
-             [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
-            if MUDADOS=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}"); then
-              # UM grep só (não dois em pipeline): com dois, um erro real do primeiro
-              # (rc=2) daria entrada vazia pro segundo → rc=1 → "nada sobrou" → caminho
-              # leve por FALHA. Com um só, o rc é inequívoco. (§5 2026-08-11: vazio de
-              # comando que pode falhar não é evidência de ausência.)
-              set +e
-              SOBRA=$(printf '%s\n' "$MUDADOS" | grep -vE "$NAO_RUNTIME")
-              GREP_RC=$?
-              set -e
-              if [ "$GREP_RC" -gt 1 ]; then
-                echo "::warning::grep falhou (rc=$GREP_RC) — assumindo runtime_changed=true"
-              elif [ -z "$SOBRA" ]; then
-                RUNTIME_CHANGED=false
-              fi
-            else
-              echo "::warning::git diff falhou — assumindo runtime_changed=true"
-            fi
-          fi
-          echo "runtime_changed=$RUNTIME_CHANGED" >> "$GITHUB_OUTPUT"
-          if [ "$RUNTIME_CHANGED" = "false" ]; then
-            echo "→ nada de runtime neste push: SYNC LEVE (site NÃO sai do ar)"
-          else
-            echo "→ runtime mudou: DEPLOY COMPLETO (maintenance). Arquivos que decidiram:"
-            printf '%s\n' "${SOBRA:-<evento sem diff>}" | head -20
-          fi
+        # A base NÃO é `github.event.before`. A concurrency `deploy-production` cancela
+        # o run pendente a cada push novo; com a base no push anterior, um push com
+        # migration cancelado seguido de um push só-docs ia pelo sync leve (sem migrate)
+        # e publicava código sem schema — incidente 2026-09-23 (#7789, 500 em
+        # /financeiro/dre). O script compara contra o headSha do último run `push` com
+        # conclusion=success e é fail-closed (dúvida ⇒ deploy completo). Contrato e
+        # mutações: scripts/governance/deploy-classifica-push.test.mjs.
+        #
+        # Medido 2026-08-12 nos 27 últimos deploys bem-sucedidos: 14 (52%) puseram o
+        # site em 503 por ~1min sem tocar UMA linha servida em produção — por isso o
+        # caminho leve existe. Errar pra TRUE custa ~30s de 503; errar pra FALSE serve
+        # código sem migrate/cache clear/OPcache reset.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          RUN_ID: ${{ github.run_id }}
+        run: bash scripts/deploy/classifica-push.sh
 
       - name: Hash do composer.lock alvo (decide se o deploy precisa de composer install)
         id: lock
@@ -396,7 +351,42 @@ jobs:
           /tmp/ssh_exec.sh "cd $RDIR && rm -f .git/index.lock .git/refs/heads/main.lock 2>&1; echo OK"
           /tmp/ssh_exec.sh "cd $RDIR && php artisan up 2>&1 || rm -f storage/framework/down 2>&1; echo OK"
 
-      - name: Backup (arquivos + DB) com rotação (mantém 5 mais recentes)
+      - name: Snapshot pré-deploy dos ARQUIVOS (não é backup de banco) — rotação 5
+        # ⚠️ O nome anterior era "Backup (arquivos + DB)" e NÃO havia dump de banco
+        # nenhum aqui — só este `tar`. Quem lesse o nome concluía que o `migrate
+        # --force` logo abaixo tinha rede de proteção neste passo. Não tinha.
+        #
+        # QUEM protege o banco (o dono de verdade, já existente e MEDIDO em
+        # 2026-09-22): `spatie/laravel-backup`, agendado no app/Console/Kernel.php
+        # (`backup:run` 01:30, `backup:clean` 01:00, `backup:monitor` 09:00). Ele
+        # inclui o MySQL (config/backup.php `source.databases: ['mysql']`) e grava em
+        # public/uploads/UltimatePOS/ (config/backup.php `name` + config/filesystems
+        # `local.root = public_path('uploads')`). Conferido na origem: 7 zips diários,
+        # o mais recente 2026-09-22 01:30, 260 MB.
+        #
+        # ⚠️ O log de produção mostra `backup:run` saindo com exit 1 TODA noite, mas o
+        # zip do dia ESTÁ lá: o que falha é a NOTIFICAÇÃO (SMTP 535 em
+        # no-reply@wr2.com.br), depois do backup pronto. É alarme falso que mascara
+        # falha real — conserto é outro PR, fora do intent deste.
+        #
+        # POR QUE AS DUAS EXCLUSÕES NOVAS (medido em produção, 2026-09-22):
+        #   • `.git` = 1,6 GB — redundante com o GitHub, e o tar vive no MESMO disco,
+        #     então não é disaster recovery; é ponto de rollback. Pior: são packfiles
+        #     já comprimidos, o caso mais caro possível pro gzip.
+        #   • `public/uploads/UltimatePOS` = ~1,6 GB — são os 7 zips do spatie. Era
+        #     backup comprimindo backup, todo deploy.
+        # Efeito medido no servidor, mesmo comando, escrita real em disco:
+        #   antes  3,4 GB / 303–309 s  (3 runs reais: jobs 106471614408, 106462583275,
+        #                               106478607559 — 78% do job de deploy inteiro)
+        #   depois  584 MB /      66 s
+        # O job de deploy sai de ~390 s para ~150 s. Como `concurrency:
+        # deploy-production` serializa, essa é a seção que CRIA a fila: em 2026-09-21 a
+        # espera até o build chegou a 34 min, com 13 deploys ocupando ~83 min de slot.
+        # Também derruba o disco retido de ~17 GB (5 × 3,4) para ~2,9 GB.
+        #
+        # ⚠️ O path do spatie é literal aqui. Se `config/backup.php` `name` ou o root do
+        # disco `local` mudarem, esta exclusão para de casar e o tar volta a 5 min —
+        # degrada devagar, não quebra.
         if: ${{ inputs.skip_backup != 'true' }}
         run: |
           TS=$(date +%Y%m%d-%H%M)
@@ -406,9 +396,11 @@ jobs:
               --exclude='node_modules' \
               --exclude='vendor' \
               --exclude='storage/logs' \
+              --exclude='.git' \
+              --exclude='public/uploads/UltimatePOS' \
               . 2>&1 | tail -3 &&
             ls -lh ~/backup-predeploy-${TS}.tar.gz &&
-            echo '=== rotação: removendo backups além dos 5 mais recentes ===' &&
+            echo '=== rotação: removendo snapshots além dos 5 mais recentes ===' &&
             ls -t ~/backup-predeploy-*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm -v || true
           "
 
@@ -445,15 +437,59 @@ jobs:
           DOWN="php artisan down --secret='$SECRET' --retry=60 --refresh=15"
           /tmp/ssh_exec.sh "cd $RDIR && ( $DOWN --render='errors::503' || $DOWN ) || true"
 
-      - name: Git pull — branch main (apenas código-fonte; bundles vêm do runner)
+      - name: Git reset no SHA DESTE run — o mesmo commit que buildou os bundles
+        # ⚠️ Aqui havia um reset contra o tip vivo (`origin/main`), e era a causa MEDIDA
+        # de produção servir CÓDIGO NOVO com ASSETS ANTIGOS. O job `build` faz checkout
+        # de ${{ github.sha }} (o commit que disparou a run) e é DESSE commit que saem os
+        # bundles publicados no passo "Publicar bundles buildados no runner". Apontar o
+        # fonte pro tip publicava um par descasado — fonte de um commit, bundle de outro.
+        # Como o Inertia resolve a página pelo manifest, o browser recebia o JS antigo
+        # enquanto o PHP novo já mandava as props novas.
+        #
+        # MEDIDO em 2026-09-21 (53 runs no dia; 13 chegaram a publicar):
+        #   • 11 dos 13 terminaram com fonte != commit dos bundles;
+        #   • em 4 deles o intervalo tinha mudança real em resources/js — janelas de
+        #     52min, 38min, 22min e 6min com produção servindo o híbrido;
+        #   • em 13/13 o sha do build AVANÇA na ordem de conclusão dos deploys, logo
+        #     pinar no próprio SHA não faz produção andar pra trás.
+        # O job irmão `sync-light` já pinava no SHA do run, pela razão que o comentário
+        # dele explica. Este passo ficou de fora daquele conserto.
+        #
+        # SEM o "pula se a main andou" que o sync-light tem: lá o skip é inócuo (aquele
+        # job não publica bundle nenhum), aqui ele estrangularia o deploy sempre que o
+        # commit seguinte fosse de docs — esses não criam run (paths-ignore memory/**,
+        # **.md, prototipo-ui/**), então ninguém publicaria o código. Publicar o próprio
+        # SHA converge sozinho: o run enfileirado mais novo traz a main adiante com o
+        # bundle dele.
         run: |
           /tmp/ssh_exec.sh "
             cd $RDIR &&
             git fetch origin &&
             git checkout main &&
-            git reset --hard origin/main &&
+            git reset --hard ${{ github.sha }} &&
             git log --oneline -3
           "
+
+      - name: Prova de que fonte e bundle são do MESMO commit
+        # Guard determinístico do invariante acima: se alguém reapontar este reset pro
+        # tip vivo, este assert cai. Roda AINDA em maintenance ON — falhar aqui mantém o
+        # 503 gracioso em vez de expor o par descasado ao usuário.
+        #
+        # SSH mudo NÃO vira acusação: HEAD ilegível é ausência de medição, e a mensagem
+        # diz isso em vez de afirmar um descasamento que ninguém mediu.
+        run: |
+          SRV=$(/tmp/ssh_exec.sh "cd $RDIR && git rev-parse HEAD" | tr -d '\r\n')
+          echo "fonte no servidor:  ${SRV:-<nao lido>}"
+          echo "commit dos bundles: ${{ github.sha }}"
+          if [ -z "$SRV" ]; then
+            echo "::error::NÃO consegui ler o HEAD do servidor (SSH). Isto não é evidência de par descasado — é ausência de medição. Falhando fail-closed, ainda em maintenance."
+            exit 1
+          fi
+          if [ "$SRV" != "${{ github.sha }}" ]; then
+            echo "::error::fonte ($SRV) != commit que buildou os bundles (${{ github.sha }}). Produção serviria código de um commit com assets de outro — a janela que o passo anterior existe pra fechar."
+            exit 1
+          fi
+          echo "✅ fonte e bundle do mesmo commit"
 
       - name: Composer install (produção)
         # NÃO usar --no-dev: Faker é usado em prod (incidente 2026-04-25, tela branca Inertia "null.component").

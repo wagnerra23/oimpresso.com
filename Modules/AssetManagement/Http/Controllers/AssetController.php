@@ -294,6 +294,12 @@ class AssetController extends Controller
                 'categorias' => $asset_category,
                 'tipos_compra' => $purchase_types,
             ],
+            // Formato de data do negocio: o `store()` grava `purchase_date` e a data da
+            // garantia via `Util::uf_date`, que faz `createFromFormat(business.date_format)`.
+            // O drawer de cadastro converte o ISO do <input type=date> pra este formato
+            // antes de postar -- ISO cru faz o createFromFormat lancar. Mesmo contrato da
+            // tela de Licencas (`Pages/Essentials/Licencas/Index.tsx::paraFormatoDoNegocio`).
+            'formato_data' => (string) session('business.date_format', 'd/m/Y'),
             'permissoes' => [
                 'criar' => auth()->user()->can('asset.create'),
                 'editar' => auth()->user()->can('asset.update'),
@@ -518,17 +524,6 @@ class AssetController extends Controller
         return redirect()
             ->action([\Modules\AssetManagement\Http\Controllers\AssetController::class, 'index'])
             ->with('status', $output);
-    }
-
-    /**
-     * Show the specified resource.
-     *
-     * @param  int  $id
-     * @return Response
-     */
-    public function show($id)
-    {
-        return view('assetmanagement::show');
     }
 
     /**

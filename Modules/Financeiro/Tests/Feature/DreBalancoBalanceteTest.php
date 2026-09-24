@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia;
 use Modules\Financeiro\Models\Titulo;
 use Spatie\Permission\Models\Permission;
@@ -290,9 +291,10 @@ it('aba=balancete: SUM hierárquico — saldo do pai >= soma das folhas com mesm
                     $somaFolhas += $saldoFolha;
                 }
             }
-            $delta = abs((float) $linha['saldo'] - $somaFolhas);
-            expect($delta)->toBeLessThan(0.01,
-                "Pai {$linha['codigo']} ({$linha['nome']}) saldo {$linha['saldo']} != SUM folhas prefix '{$prefix}' = {$somaFolhas}");
+            // `>=` (o nome do caso sempre disse isso): desde 2026-09-23 o pai soma também o que
+            // foi lançado direto nele e em filhas não-folha (aprovado por [W], regra mestre de
+            // valor). A igualdade com as folhas só vale quando não há lançamento fora delas.
+            expect((float) $linha['saldo'])->toBeGreaterThanOrEqual($somaFolhas - 0.01);
         }
     });
 });
@@ -383,4 +385,128 @@ it('não dispara mutação em GET /dre?aba=balanco|balancete (read-only puro)', 
 
     $tituloCountAfter = Titulo::query()->count();
     expect($tituloCountAfter)->toBe($tituloCountBefore);
+});
+
+it('aba=balancete: conta-folha com código só de dígitos não derruba o balancete (TypeError → 500)', function () {
+    // Medido em produção em 2026-09-23: a aba Balancete da empresa 1 dava 500. Código de conta
+    // só com dígitos ("1", "3", …) vira chave INT no array de folhas, e o str_starts_with do
+    // agregador estourava TypeError sob strict_types. Os outros casos deste arquivo PULAM com
+    // balancete vazio, por isso nunca exercitaram o defeito.
+    //
+    // Tenant fictício 98 (ADR 0358), nunca o primeiro business do banco — no CT 100 a base é clone de
+    // produção. `fin_titulos` não aceita DELETE, então tudo roda em transação desfeita.
+    $business = $this->seededTenant();
+    $user = User::where('business_id', $business->id)->first();
+    if (! $user) {
+        $this->markTestSkipped("Sem user no business {$business->id}.");
+    }
+
+    DB::beginTransaction();
+    try {
+        $codigo = '9'.random_int(1000000, 9999999); // só dígitos, de propósito
+        $conta = (int) DB::table('fin_planos_conta')->insertGetId([
+            'business_id' => $business->id, 'codigo' => $codigo, 'nome' => 'Folha numerica',
+            'tipo' => 'receita', 'nivel' => 1, 'parent_id' => null, 'natureza' => 'credito',
+            'aceita_lancamento' => true, 'protegido' => false, 'ativo' => true,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        // Conta PAI (não-folha): é o laço dos pais que percorre as folhas com str_starts_with.
+        // Sem ao menos um pai o laço não roda, o defeito não dispara e o teste ficaria verde à toa.
+        DB::table('fin_planos_conta')->insert([
+            'business_id' => $business->id, 'codigo' => '9.9.P'.random_int(100000, 999999), 'nome' => 'Pai qualquer',
+            'tipo' => 'receita', 'nivel' => 1, 'parent_id' => null, 'natureza' => 'credito',
+            'aceita_lancamento' => false, 'protegido' => false, 'ativo' => true,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('fin_titulos')->insert([
+            'business_id' => $business->id, 'numero' => 'BAL-'.uniqid(), 'tipo' => 'receber',
+            'status' => 'aberto', 'valor_total' => 123.45, 'valor_aberto' => 123.45, 'moeda' => 'BRL',
+            'emissao' => now()->toDateString(), 'vencimento' => now()->toDateString(),
+            'competencia_mes' => now()->format('Y-m'), 'plano_conta_id' => $conta,
+            'origem' => 'manual', 'origem_id' => random_int(600000, 699999), 'created_by' => $user->id,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $linhas = collect(app(\Modules\Financeiro\Services\DreService::class)
+            ->montarBalancete($business->id, 'mes')['linhas'])->keyBy('codigo');
+
+        expect($linhas->has($codigo))->toBeTrue();
+        expect((float) $linhas[$codigo]['saldo'])->toBe(123.45);
+    } finally {
+        DB::rollBack();
+    }
+});
+
+it('aba=balancete: título lançado em conta NÃO-folha entra na conta, nos pais e no total', function () {
+    // Medido em produção em 2026-09-23 (empresa 1): os títulos de setembro estão numa conta
+    // marcada `aceita_lancamento = false`, e o balancete mostrava o mês ZERADO — só folhas
+    // alimentavam os pais. Correção aprovada por [W] (regra mestre de valor).
+    //
+    // CAMINHO 1 — valores escritos à mão a partir desta fixture:
+    //   R (raiz, não-folha) ⊃ M (não-folha) ⊃ F (folha)
+    //   títulos do mês: 200,00 em M (NÃO-folha) · 50,00 em F · 999,00 CANCELADO em M
+    //   esperado: M = 250,00 · R = 250,00 · F = 50,00 · total crédito = 250,00 (cada título 1x)
+    // CAMINHO 2 — o movimentoMesPorConta (FIN-6b), cálculo independente que já soma tudo abaixo
+    //   de cada conta: tem de bater em módulo nas TRÊS contas, inclusive nos pais.
+    //
+    // Tenant fictício 98 (ADR 0358). `fin_titulos` não aceita DELETE: transação desfeita.
+    $business = $this->seededTenant();
+    $user = User::where('business_id', $business->id)->first();
+    if (! $user) {
+        $this->markTestSkipped("Sem user no business {$business->id}.");
+    }
+
+    DB::beginTransaction();
+    try {
+        $raiz = '8'.random_int(1000000, 9999999);
+        $conta = function (string $codigo, bool $folha) use ($business): int {
+            return (int) DB::table('fin_planos_conta')->insertGetId([
+                'business_id' => $business->id, 'codigo' => $codigo, 'nome' => 'Bal '.$codigo,
+                'tipo' => 'receita', 'nivel' => substr_count($codigo, '.') + 1, 'parent_id' => null,
+                'natureza' => 'credito', 'aceita_lancamento' => $folha, 'protegido' => false,
+                'ativo' => true, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+        };
+        $titulo = function (int $contaId, float $valor, string $status = 'aberto') use ($business, $user): void {
+            DB::table('fin_titulos')->insert([
+                'business_id' => $business->id, 'numero' => 'BALNF-'.uniqid(), 'tipo' => 'receber',
+                'status' => $status, 'valor_total' => $valor, 'valor_aberto' => $valor, 'moeda' => 'BRL',
+                'emissao' => now()->toDateString(), 'vencimento' => now()->toDateString(),
+                'competencia_mes' => now()->format('Y-m'), 'plano_conta_id' => $contaId,
+                'origem' => 'manual', 'origem_id' => random_int(500000, 599999), 'created_by' => $user->id,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+        };
+
+        $dre = app(\Modules\Financeiro\Services\DreService::class);
+        $creditoAntes = (float) $dre->montarBalancete($business->id, 'mes')['totais']['credito'];
+
+        $r = $conta($raiz, false);
+        $m = $conta("{$raiz}.1", false);
+        $f = $conta("{$raiz}.1.1", true);
+        $titulo($m, 200.00);
+        $titulo($f, 50.00);
+        $titulo($m, 999.00, 'cancelado');
+
+        $bal = $dre->montarBalancete($business->id, 'mes');
+        $linhas = collect($bal['linhas'])->keyBy('codigo');
+
+        // CAMINHO 1
+        expect((float) ($linhas[$raiz]['saldo'] ?? 0))->toBe(250.0);
+        expect((float) ($linhas["{$raiz}.1"]['saldo'] ?? 0))->toBe(250.0);
+        expect((float) ($linhas["{$raiz}.1.1"]['saldo'] ?? 0))->toBe(50.0);
+
+        // Totais: o tenant pode ter outros títulos no mês, então mede-se o DELTA desta fixture.
+        // Cada título entra UMA vez: +250,00 exatos. Se o pai contasse de novo, viria +500 ou +750.
+        expect(round((float) $bal['totais']['credito'] - $creditoAntes, 2))->toBe(250.0);
+
+        // CAMINHO 2
+        $mov = $dre->movimentoMesPorConta($business->id)['contas'];
+        foreach ([$r, $m, $f] as $id) {
+            $codigo = DB::table('fin_planos_conta')->where('id', $id)->value('codigo');
+            expect(abs((float) $mov[$id]['saldo']))->toBe((float) $linhas[$codigo]['saldo']);
+        }
+    } finally {
+        DB::rollBack();
+    }
 });

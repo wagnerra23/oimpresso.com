@@ -407,6 +407,45 @@ export function precisaConfirmar(cron, consulta, nowMs) {
 }
 
 /**
+ * PORTA DE HEARTBEAT DE **UM** CRON — para o auto-canário single-cron que este arquivo
+ * generaliza (`memory-health.yml`, ADR 0317 §2).
+ *
+ * Por que existe (2026-09-21): o canário fazia a MESMA pergunta, com a MESMA query
+ * (`run list --workflow X --event schedule --status completed --limit 1`), mas decidia
+ * com UMA amostra — e portanto nunca recebeu o conserto de 2026-08-13 descrito acima.
+ * Em 21/09, na run 35611023564, ele leu `2026-08-28T20:57:39Z` e acusou "cron MORTO há
+ * 23 dias" com a cron viva (última agendada 1d antes, 20/09).
+ *
+ * Medido no dia: 6 falsos-positivos em 4394 runs de PR desde 01/07 (nascimento do
+ * canário, 786f75f6cee) — 21/09 leu 28/08 · 26/08 leu 16/07 · 20/08 leu 27/07 · 18/08
+ * leu 26/07 (os outros 2, de 20/07, falharam antes de imprimir). Denominador:
+ *   gh api "repos/{owner}/{repo}/actions/workflows/290947446/runs?per_page=1\
+ *     &event=pull_request&created=>=2026-07-01" --jq .total_count
+ * Nos 4, a data lida ocupa a posição `dias+1` na lista filtrada —
+ * e como a cron é diária, isso é CONSEQUÊNCIA da cadência, não evidência de paginação:
+ * a resposta inteira era um retrato velho, igual ao caso de 08-13. Refutadas por
+ * medição no mesmo dia: registro de workflow duplicado (a API lista 1 só), ordenação
+ * (`per_page=100` vem monotônica), re-run (attempt=1), e token/escopo (defeito dessas
+ * classes seria determinístico — não 6 em milhares com o mesmo `GITHUB_TOKEN`).
+ *
+ * ⚠️ Difere do laço principal em UM ponto, de propósito: aqui `bootstrap` TAMBÉM paga
+ * re-consulta. No watchdog ele é 🟡 informativo; no canário ele sai VERDE (exit 0),
+ * então um retrato velho o bastante para preceder a 1ª run agendada viraria fail-open —
+ * a doença da lápide 2026-07-29. O custo no caso saudável segue ZERO: quem tem run
+ * fresca não re-consulta.
+ *
+ * `limiteDias` é do CHAMADOR (o canário usa 8), e não a cadência: quem define política
+ * é quem alarma. Aqui só se decide se vale gastar leitura extra antes de responder.
+ */
+export function confirmarHeartbeat(consultar, file, limiteDias, nowMs, tentativas = CONFIRMACOES) {
+  const fresca = (a) => a && a.ok === true && a.at
+    && Math.floor((nowMs - new Date(a.at).getTime()) / 86400000) <= limiteDias;
+  const amostras = [consultar(file)];
+  while (amostras.length < tentativas && !fresca(melhorAmostra(amostras))) amostras.push(consultar(file));
+  return { ...melhorAmostra(amostras), leituras: amostras.length };
+}
+
+/**
  * FIAÇÃO dos eixos 1 e 3 — pura de propósito, recebendo `consultar` por parâmetro.
  *
  * Antes, este laço vivia solto no corpo do script e NENHUM assert o alcançava: a
@@ -581,6 +620,34 @@ function reportarEntrega(r) {
   if (!r.parados.length) { console.log(`✓ nenhum artefato de estado além do limite.`); return 0; }
   console.error(`\n✗ ${r.parados.length} artefato(s) de estado parado(s) além do limite. Este eixo mede IDADE, não autoria — ele não sabe se o artefato tem escritor automático. Ao investigar, o achado cai num dos 3 casos: (a) cron que rodava e parou de ENTREGAR → conserta a entrega; (b) artefato CURADO À MÃO cuja revisão envelheceu → re-cura, ou aposenta quem o consome; (c) mecanismo inteiro parado → aposenta com lápide. Como distinguir: varra os escritores do path (quem faz write nele) — sem escritor, não é (a). Precedente 2026-07-26 (os 5 scorecards do Governance v4): varredura contada achou ZERO escritores — os crons de 06:05/07:00 apenas LEEM —, então NÃO era (a). [W] decidiu (b): revisar os 5 (#4822). Conferir "quem escreve neste path" é o passo que separa os 3 casos.`);
   return 1;
+}
+
+// ── heartbeat de UM cron: porta do auto-canário do memory-health (2026-09-21) ─
+// Imprime em stdout a data ISO da última run agendada CONFIRMADA (vazio = bootstrap
+// real). A política (quantos dias são demais) é do chamador. Sai != 0 quando não
+// conseguiu medir, para o chamador falhar fechado em vez de ler vazio como "sem run"
+// — o colapso que a lápide 2026-07-29 catalogou.
+if (EH_MAIN && ARGS.has('--heartbeat')) {
+  const argv = process.argv.slice(2);
+  const file = argv[argv.indexOf('--heartbeat') + 1] || '';
+  const iLim = argv.indexOf('--limite-dias');
+  const limite = iLim >= 0 ? Number(argv[iLim + 1]) : NaN;
+  if (!file || file.startsWith('--') || !Number.isFinite(limite) || limite <= 0) {
+    console.error('uso: cron-watchdog.mjs --heartbeat <workflow.yml> --limite-dias <N>');
+    process.exit(2);
+  }
+  const r = confirmarHeartbeat(lastScheduledRun, file, limite, Date.now());
+  if (r.ok !== true) {
+    console.error(`⛔ NÃO MEDIDO: não consegui perguntar pela última run agendada de ${file} `
+      + "(gh ausente/sem auth/sem 'actions:read'/API fora). Ausência de medição não é estado do cron.");
+    process.exit(3);
+  }
+  if (r.leituras > 1) {
+    console.error(`   ↻ ${r.leituras - 1} re-consulta(s): 1ª amostra suspeita — o índice do GitHub `
+      + 'pode servir retrato velho (ver cabeçalho deste arquivo).');
+  }
+  console.log(r.at || '');
+  process.exit(0);
 }
 
 // ── selftest: o núcleo morde e libera (fixture ruim + fixture boa) ───────────
@@ -854,6 +921,36 @@ if (EH_MAIN && ARGS.has('--selftest')) {
   const avCego = avaliarCrons([wfsCaso[1]], () => { nCego++; return { ok: false }; }, NOW_CASO);
   ok(nCego === CONFIRMACOES && avCego.cego.length === 1 && resumoLiveness(avCego.estados).exit === 1,
     'cegueira persistente segue ⛔ + exit 1 (a lápide 2026-07-29 continua de pé)');
+
+  // ── HEARTBEAT DE UM CRON: o falso-positivo do canário, com os dados REAIS ──────
+  // run 35611023564 (2026-09-21T14:23:13Z) leu 28/08 e acusou "MORTO há 23 dias"
+  // enquanto a última run agendada de verdade era 20/09 (1 dia antes).
+  const NOW_CAN = Date.parse('2026-09-21T14:23:13Z');
+  const CAN_STALE = { ok: true, at: '2026-08-28T20:57:39Z', conclusion: 'success' }; // o que o CI leu
+  const CAN_FRESCO = { ok: true, at: '2026-09-20T13:38:29Z', conclusion: 'success' }; // a verdade
+  const LIM_CAN = 8; // o limiar do canário — política do chamador, não da cadência
+
+  let nCan = 0;
+  const hbFlapa = confirmarHeartbeat(() => (++nCan === 1 ? CAN_STALE : CAN_FRESCO), 'memory-health.yml', LIM_CAN, NOW_CAN);
+  ok(hbFlapa.at === CAN_FRESCO.at && hbFlapa.leituras === 2,
+    'MORDE O FALSO-POSITIVO: 1ª amostra de 23d desmentida pela 2ª → devolve 20/09 (canário fica VERDE)');
+
+  let nCanPers = 0;
+  const hbMorto = confirmarHeartbeat(() => { nCanPers++; return CAN_STALE; }, 'memory-health.yml', LIM_CAN, NOW_CAN);
+  ok(hbMorto.at === CAN_STALE.at && nCanPers === CONFIRMACOES,
+    'LIBERA O ALARME REAL: todas as amostras velhas → devolve a velha (cron morto de fato segue derrubando)');
+
+  let nCanOk = 0;
+  confirmarHeartbeat(() => { nCanOk++; return CAN_FRESCO; }, 'memory-health.yml', LIM_CAN, NOW_CAN);
+  ok(nCanOk === 1, 'CUSTO ZERO: amostra fresca não paga re-consulta (o caso de 4388 das 4394 runs)');
+
+  ok(confirmarHeartbeat(() => ({ ok: false }), 'memory-health.yml', LIM_CAN, NOW_CAN).ok === false,
+    'CEGO: não medir devolve ok=false → o canário falha fechado, nunca lê vazio como "sem run"');
+
+  let nBoot = 0;
+  const hbBoot = confirmarHeartbeat(() => (++nBoot === 1 ? { ok: true, at: '' } : CAN_FRESCO), 'memory-health.yml', LIM_CAN, NOW_CAN);
+  ok(hbBoot.at === CAN_FRESCO.at,
+    'BOOTSTRAP paga re-consulta (divergência deliberada do laço principal: no canário ele sai VERDE)');
 
   console.log(falhas ? `\n✗ selftest: ${falhas} falha(s)` : '\n✓ selftest: núcleo morde e libera certo');
   process.exit(falhas ? 1 : 0);

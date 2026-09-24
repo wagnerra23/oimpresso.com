@@ -14,11 +14,19 @@
 :where(#app) :focus:not(:focus-visible){outline:none}
 
 /* ── 4 · Alvo de toque ≥44px nas personas tablet/celular (Técnico Repair, ponto mobile) ── */
-@media (pointer:coarse){:where(#app) button,:where(#app) a[role="button"],:where(#app) [role="tab"],:where(#app) select,:where(#app) input[type="checkbox"]{min-height:44px}
-:where(#app) input[type="checkbox"]{min-width:44px}}
+/* ⚠️ `min-width` JUNTO com `min-height` (2026-09-21). Até aqui a regra setava só a
+   ALTURA, e alvo tem duas dimensões: num botão redondo/ícone de 13-16px isso
+   produzia um OVAL de 13×44 — alto o bastante pra passar num censo de altura e
+   estreito demais pra dedo nenhum. Medido no semáforo da vistoria
+   (`.ofx-tl`, oficina-os): 13×44 com a regra antiga. A ADR UI-0032 §10.7 nomeia
+   essa tela como a pior do corpus (12 alvos de 14×13), e a persona ali é mecânico
+   em chão de oficina — o caso que o piso de 44 existe pra proteger.
+   Botão largo não é afetado (já passa de 44); quem muda é só o pequeno.
+   Em linha apertada o `min-width` vira piso de encolhimento do flex e a linha pode
+   quebrar — é a consequência honesta do piso, e só vale em modo toque. */
+@media (pointer:coarse){:where(#app) button,:where(#app) a[role="button"],:where(#app) [role="tab"],:where(#app) select,:where(#app) input[type="checkbox"]{min-height:44px;min-width:44px}}
 /* Mesmo piso ligado à mão pelo Tweak "Alvo de toque" (ver no desktop o que o tablet entrega). */
-:where([data-toque="tablet"] #app) button,:where([data-toque="tablet"] #app) a[role="button"],:where([data-toque="tablet"] #app) [role="tab"],:where([data-toque="tablet"] #app) select,:where([data-toque="tablet"] #app) input[type="checkbox"]{min-height:44px}
-:where([data-toque="tablet"] #app) input[type="checkbox"]{min-width:44px}
+:where([data-toque="tablet"] #app) button,:where([data-toque="tablet"] #app) a[role="button"],:where([data-toque="tablet"] #app) [role="tab"],:where([data-toque="tablet"] #app) select,:where([data-toque="tablet"] #app) input[type="checkbox"]{min-height:44px;min-width:44px}
 
 /* ── 5 · Densidade como um interruptor só (herda do shell, não por tela) ── */
 :where(#app) [data-dense="compacto"] table td,:where(#app) [data-dense="compacto"] table th{padding-block:4px}

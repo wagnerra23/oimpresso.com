@@ -10,7 +10,7 @@ depende: ds-atomos 01 · ds-atomos 03
 # 15 · Aprovações — fila, seleção em lote e o motivo
 
 ## A · IDENTIDADE (ancoragem dupla)
-- **alvo (layout, read-only):** `prototipo-ui/cowork/ponto-telas.jsx` — aba **Aprovações**, T1 estável **912 nós**, **1280px**.
+- **alvo (layout, read-only):** `prototipo-ui/cowork/Wagner/ponto-telas.jsx` — aba **Aprovações**, T1 estável **912 nós**, **1280px**.
 - **âncora (código):** `resources/js/Pages/Ponto/Aprovacoes/Index.tsx` — **23.762 B**, sha `6dc451b3c541`. Símbolo: `AprovacoesIndex` (:119). Imports já presentes: `KpiGrid` · `KpiCard` · `PageFilters` · `StatusBadge` · `EmptyState` · `BulkActionBar` · `Textarea` · `Label`.
 - **oráculo:** `Index.charter.md` (3.237 B) · `AprovacaoTest`.
 - **NÃO ler:** `Intercorrencias/**` (48 KB somados).

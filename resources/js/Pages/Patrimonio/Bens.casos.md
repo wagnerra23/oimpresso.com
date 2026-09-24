@@ -4,7 +4,7 @@ irmaos: Bens.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOOK-bens.
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-09-23"
 ---
 
 # Casos de Uso & Aceite — Patrimonio/Bens
@@ -98,6 +98,47 @@ last_run: "2026-09-11"
 
 ---
 
+## UC-BENS-04 · Nenhuma ação da lista leva a uma página em branco
+
+- **Persona:** quem opera o patrimônio — clica num ícone esperando um formulário.
+- **Aceite:** Dado a lista com um bem e **todas** as permissões ligadas (criar, editar, excluir,
+  manutenção) · Quando a tela renderiza — cheia ou vazia · Então **nenhum** `href` aponta pra
+  `create`/`edit` de bem, alocação ou manutenção; e o **excluir** (que funciona, via
+  `router.delete`) continua na linha.
+- **Teste:** `tests/js/patrimonio-sem-link-para-modal.test.tsx` — 2 `it()` citando `UC-BENS-04`.
+- **Regressão que defende:** afordância falsa. MEDIDO em prod (biz=1, 2026-09-23): os endpoints `create`/`edit` do módulo só respondem sob `request()->ajax()` — numa navegação direta devolveram **200 com 0 bytes** (fragmento de modal jQuery, sem `@extends`). Até esta data a tela tinha 5 links
+  pra lá: "Novo ativo", o CTA do vazio, alocar, manutenção e editar. O controle positivo (a linha
+  renderizou + o excluir está lá) impede o caso de passar porque a tabela nem apareceu.
+  **Bite-test (provado 2026-09-23):** com o `Bens.tsx` anterior, os 2 casos caem listando os hrefs.
+- **Status: 🧪** — verde no vitest local pós-conserto; lane de CI a confirmar no PR.
+
+---
+
+## UC-BENS-05 · Cadastrar bem pelo drawer grava valor e quantidade exatamente como digitados
+
+- **Persona:** quem cadastra o patrimônio — digita "1.234,56" e espera ver gravado exatamente
+  esse valor, não cem vezes mais nem cem vezes menos.
+- **Aceite:** Dado o drawer "Adicionar recurso" com nome, categoria, local, data, valor
+  `1.234,56` e quantidade `2` · Quando o usuário clica "Cadastrar bem" · Então o POST leva
+  `unit_price=1234,56`, `quantity=2` e a data no formato do negócio, e o banco grava
+  `unit_price = 1234.5600`, `quantity = 2.0000`, no business da sessão, com código gerado pelo
+  servidor e a garantia (início + N meses) quando informada. Form incompleto não posta.
+  Empresa **sem nenhuma categoria de ativo** (caso real de biz=1, medido em 2026-09-23): o drawer
+  diz "Nenhuma categoria de ativo cadastrada" e aponta `/taxonomies?type=asset`, em vez de
+  travar o cadastro sem explicação.
+- **Teste (dupla prova — REGRA MESTRE de valor/estoque):**
+  - caminho 1 — `tests/js/patrimonio-cadastro-bem.test.tsx`: as strings exatas do payload,
+    e o drawer real postando o que o serializador monta;
+  - caminho 2 — `BensContratoTest.php`, `it()` citando `UC-BENS-05`: posta as MESMAS strings
+    no `store()` real (tenant 98) e lê o banco, incluindo o caso `1234567,8` (milhar).
+- **Regressão que defende:** separador de milhar lido como decimal (ou o contrário) — o
+  incidente ROTA LIVRE de 2026-06-05 (valor ×100k por float cru lido pelo `num_uf`). E data
+  ISO crua no `uf_date`, que lança e vira "algo deu errado".
+- **Status: 🧪** — caminho 1 verde no vitest local (8/8); caminho 2 roda na lane
+  `assetmanagement-pest` no CI.
+
+---
+
 ## Dívida declarada — `Alocado` não é número auditado
 
 ⚠️ Não é UC porque **não é comportamento que esta onda defende** — é defeito herdado que ela
@@ -129,7 +170,10 @@ expressão (`AssetController::baseAssetsQuery`), lida pelos dois ramos.
 - [BACKLOG] O rodapé soma o valor total do recorte, com a prova dupla que a REGRA MESTRE exige.
 - [BACKLOG] Seleção em lote exporta a seleção e manda os selecionados pra manutenção.
 - [BACKLOG] O usuário escolhe as colunas visíveis e a densidade, e a escolha sobrevive ao reload.
-- [BACKLOG] Criar e editar bem acontecem em drawer, sem sair da lista.
+- [BACKLOG] Editar bem acontece em drawer, sem sair da lista (criar já acontece — UC-BENS-05).
+- [BACKLOG] Alocar e mandar pra manutenção a partir da linha, em drawer — hoje não há caminho
+  pela UI (os formulários só existem como fragmento de modal servido sob `ajax()`). Escrita de
+  QUANTIDADE: REGRA MESTRE Tier 0.
 - [BACKLOG] `permitted_locations()` restringe a listagem, e nenhum parâmetro de query a afrouxa.
   (Hoje o código faz isso — aplica a restrição **antes** dos filtros do usuário —, mas nenhum
   teste defende; virou visível quando o fixture sem `access_all_locations` zerou a lista.)

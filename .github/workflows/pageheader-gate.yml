@@ -33,6 +33,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # ADR 0409 — o guard cruza a divida com os arquivos TOCADOS no diff, e
+          # resolve a base por `merge-base origin/<base> HEAD`. Com checkout raso
+          # (default 1) nao ha `origin/main` nem historia: o merge-base falha, o
+          # guard sai 2 (NAO MEDI) e o job reprova sem nada estar errado no codigo.
+          # Medido em 2026-09-22 no #7722: exit 2 com a mensagem de nao-medicao.
+          # Mesmo valor que o multi-tenant-gate usa pelo mesmo motivo.
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -46,7 +54,14 @@ jobs:
         if: failure()
         run: |
           echo ""
-          echo "❌ Uma tela NOVA adotou o PageHeader ANTIGO (@/Components/shared/PageHeader)."
+          echo "❌ O PageHeader ratchet reprovou. Tres causas possiveis — a mensagem"
+          echo "   do guard acima diz qual foi:"
+          echo ""
+          echo "  (1) tela NOVA adotando o header antigo (@/Components/shared/PageHeader);"
+          echo "  (2) tela com divida registrada foi TOCADA neste PR — ADR 0409: a lista"
+          echo "      ADIA a cura, nao perdoa, entao tocar exige migrar no mesmo PR;"
+          echo "  (3) exit 2 = NAO MEDI (sem git/base/diff) — nao e defeito do codigo,"
+          echo "      e o gate se recusando a declarar conformidade sem ter medido."
           echo ""
           echo "O header antigo está em migração (F4) — não ganha adotantes novos."
           echo "Tela nova usa o canon: import PageHeader from '@/Components/PageHeader' (v3.8 · ADR 0189/0190)."

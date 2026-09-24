@@ -2,7 +2,7 @@
   "ledger": [
     {
       "screen": "Jana",
-      "note": "24 arquivo(s)",
+      "note": "25 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -145,7 +145,7 @@
     },
     {
       "screen": "Patrimonio",
-      "note": "6 arquivo(s)",
+      "note": "8 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -422,8 +422,8 @@
   "progressPct": 37,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "85de95180",
-  "generatedAt": "2026-09-20T13:40:43.777Z",
+  "measuredAgainstSha": "08d559063",
+  "generatedAt": "2026-09-24T14:41:45.807Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

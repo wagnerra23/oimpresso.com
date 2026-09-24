@@ -12,6 +12,7 @@ import AppShellV2 from '@/Layouts/AppShellV2'
 import { Link } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Grid } from '@/Components/layout/grid'
 import { Badge } from '@/Components/ui/badge'
 import EmptyState from '@/Components/shared/EmptyState'
 import { MessageSquare, TrendingUp, TrendingDown, Minus, Sparkles, Settings, Download, Target } from 'lucide-react'
@@ -164,11 +165,17 @@ function MetaCard({ meta, onOpen }: { meta: Meta; onOpen: (meta: Meta, periodo: 
       aria-label={`Abrir a meta ${meta.nome}`}
       className="w-full rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-    <Card className="relative h-full overflow-hidden transition-colors hover:border-primary/40">
+    {/* `gap-2 py-3` sobrescreve o `gap-6 py-6` do `Card` do DS: a ancora `.jm-meta`
+          declara `gap:8px` e `padding:12px 13px`. Medido em 2026-09-21: o card da prod
+          tinha 236px de altura contra 122px da ancora, e 48px disso era so o `py-6`.
+          `rounded-xl` do Card ja bate com o `border-radius:12px` da ancora. */}
+    <Card className="gap-2 py-3 relative h-full overflow-hidden transition-colors hover:border-primary/40">
       {/* Farol lateral */}
       <div className={`absolute left-0 top-0 h-full w-1 ${FAROL_CLASSES[farol]}`} aria-hidden="true" />
 
-      <CardHeader className="pb-2 pl-5">
+      {/* `px-[13px]`: a ancora `.jm-meta` tem `padding:12px 13px`. O `pl-5` (20px) existia
+          por causa do farol lateral (`w-1` = 4px); 13px ainda deixa 9px de folga. */}
+      <CardHeader className="px-[13px] pb-0">
         {/* 3 filhos no MESMO flex, sem wrapper novo: o título leva `flex-1` e
             empurra período + unidade pro canto direito. Um `<div>` agrupando os
             dois últimos seria um flex/grid solto A MAIS neste arquivo, e o
@@ -185,9 +192,13 @@ function MetaCard({ meta, onOpen }: { meta: Meta; onOpen: (meta: Meta, periodo: 
         </div>
       </CardHeader>
 
-      <CardContent className="pl-5 space-y-3">
+      <CardContent className="px-[13px] space-y-2">
+          {/* `.jm-meta-v b` da ancora: `font-family:var(--font-mono)`, `font-size:20px`,
+                `font-weight:700`, `font-variant-numeric:tabular-nums`. A prod estava em sans
+                24/600 — medido nos dois lados em 2026-09-21. `font-mono` aqui resolve pra
+                "IBM Plex Mono", a MESMA familia da ancora (medido no computed style). */}
         {realizado !== null ? (
-          <div className="text-2xl font-semibold tabular-nums">
+          <div className="font-mono text-[20px] font-bold tabular-nums">
             {formatValue(realizado, meta.unidade)}
             {/* `jm-meta-v` da âncora: `<b>{atual}</b><small>de {alvo}</small>` — o alvo é a
                 régua do número e vive na MESMA linha, um degrau abaixo. `<small>` inline
@@ -353,7 +364,40 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
               instante em que ele subiu. Corrigido junto, não depois.
               Sem `p-6`/`shrink-0`: agora está DENTRO do cockpit, que já vive em
               `px-6 pt-6`. */}
-        <div className="space-y-6 pt-6">
+        {/* `mb-1.5` (6px) — esta seção é a ÚNICA que foge do ritmo de 18px, e foge na
+            âncora também: medido em 2026-09-21, `.jm-metas` → `h2` de Análises é **6px**
+            lá, contra 16px aqui. Sem este `mb`, o `space-y-[18px]` do cockpit a levaria
+            para 18px e trocaria um erro de 10px por um de 12px, no sentido oposto.
+            Vence o container sem `!important` porque o `space-y` gera `:where(...)`,
+            de especificidade 0.
+
+            ⚠️ O comentário do #7653 dizia aqui "o `pt-6` FICA, e é dívida declarada" —
+            era verdade NAQUELE PR, cujo pedido era só o `margin-bottom`, e deixou de ser
+            neste: o padding saiu logo abaixo. O fato datado fica; a afirmação em presente
+            se corrige no mesmo PR que a torna falsa (regra de precedência).
+
+            Sem `pt-6`: o ritmo ENTRE seções já vem do container (`space-y` do pai), e o
+            padding somava por cima. MEDIDO em 2026-09-21 (staging, dark, 1440): do fim
+            dos KPIs até o TEXTO de "METAS ATIVAS" eram **46px** — 16 da margem do bloco
+            anterior + 24 deste `pt-6` + 6 do `mt-1.5` do h2.
+
+            ⚠️ ERRATA (2026-09-21, pós-deploy): este comentário dizia que a âncora tinha
+            **24px** ali (18 de ritmo + 6 do h2) e que os dois consertos fechariam em "24
+            exatos". **Os dois números estavam errados, e o erro é meu** (#7653): eu SOMEI
+            18 + 6 em vez de medir. MEDIDO na âncora renderizada, o trecho é **18px** —
+            tanto até a CAIXA quanto até o TEXTO, porque o `margin-top: 6px` do `.jc-h2`
+            **COLAPSA** com a margem do pai (primeiro filho, e a `.jm-metas` não tem
+            padding-top nem border para barrar o colapso). Foi exatamente o `pt-6` daqui
+            que barrava o colapso do lado de cá e fazia o 6 aparecer somado.
+
+            O desfecho não muda e ficou certo: medido em prod depois dos dois merges, o
+            trecho dá **18px**, igual à âncora. Os dois consertos continuam complementares;
+            só o alvo era 18, não 24.
+
+            O comentário mais antigo justificava o `pt-6` com "agora está DENTRO do
+            cockpit, que já vive em px-6 pt-6": valia quando o bloco ficava no FIM da
+            página, e deixou de valer quando ele subiu pra logo após os KPIs. */}
+        <div className="space-y-6 mb-1.5">
           {/* Cabeçalho de METAS — UMA linha, como a âncora `jana-merge.jsx` §`JmMetasSecao`:
               `<h2 class="jc-h2"><JcIcon name="target"/> METAS ATIVAS <span class="jm-per">…`,
               com os controles no `jm-per` (`margin-left:auto`). Âncora de SÍMBOLO:
@@ -444,6 +488,20 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
               O valor NÃO é repetido em prosa aqui de propósito — o
               `PainelContratoTest` casa a string literal do atributo, e um
               comentário que a contém satisfaz o teste sozinho (LC-11). */}
+          {/* A `.jm-metas-grid` da ancora e `repeat(auto-fit,minmax(232px,1fr))` com `gap:10px`,
+                e o dono disso aqui e o `Grid` (ADR 0253), que ja expoe `auto-fit` por TOKEN —
+                o docblock dele e explicito: "largura minima vem de token, nao de px solto no
+                call-site". Por isso NAO se escreve a classe crua, mesmo sendo mais literal.
+
+                Residual DECLARADO: `fit="sm"` e 14rem (224px) e `gap={2}` e 8px, contra 232px
+                e 10px da ancora. Medido no container de 1117px: a ancora da 4 colunas de
+                271,8px e este da 4 colunas de 273,2px — **1,4px de diferenca (0,5%)**, e o
+                numero de colunas, que e o que [W] enxerga, e o MESMO. Fechar os 1,4px exigiria
+                token novo no DS, que e decisao [W], nao desta tela.
+
+                Nao se traduz `auto-fit` para breakpoint fixo: aproximar num breakpoint E a
+                divergencia, nao uma traducao dela (licao do UC-JPAIN-31, na grade de Analises).
+                Antes daqui a prod tinha 3 colunas de 361,7px com gap 16px. */}
           {metas.length === 0 ? (
             <Card data-contract="painel-metas-vazio" className="border-dashed">
               <EmptyState
@@ -461,7 +519,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
               />
             </Card>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <Grid fit="sm" gap={2}>
               {metas.map(meta => (
                 <MetaCard
                   key={meta.id}
@@ -469,7 +527,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                   onOpen={(m, periodo) => setMetaAberta({ meta: m, periodo })}
                 />
               ))}
-            </div>
+            </Grid>
           )}
         </div>
 

@@ -125,6 +125,40 @@ Visível, rastreável, atribuído — **não** um campo "justificativa" que o r�
 
 O dano real do handoff stale é **omissão** (some um símbolo/rota/teste que o handoff nunca citou). Isso **já tem dono**: o padrão `infra-contract-required` (PR-body section + `evidence-override`). A adoção **estende o escopo desse gate** pros arquivos-alvo de design-port, em vez de criar um terceiro mecanismo. _(diff→handoff, nunca handoff→diff — inverte a fonte pra pegar o omitido.)_
 
+**Ligado no CI em 2026-09-22** (advisory, step `Omissão — símbolo/rota removido sem justificativa` no `contrato-de-tela.yml`). Antes disso o modo era órfão: existia no script, no `package.json` (`contrato:omission`) e no self-test, e **nenhum workflow o chamava** — o caso que `proibicoes.md` §LIGUE A MÁQUINA item 2 chama de bug, não de neutralidade.
+
+O FP foi medido **antes** de ligar (item 4 da mesma regra). A medição original, que sustentou o [#7691](https://github.com/wagnerra23/oimpresso.com/pull/7691), dizia — e fica registrada porque cada número dela é reproduzível:
+
+| cenário | merges acusados | taxa de disparo | acusações |
+|---|---|---|---|
+| como estava | 22 | 16,3% | 152 |
+| + C1 (descontar movidos) | 17 | 12,6% | 100 |
+| + C2 (tirar descrição de teste) | 15 | 11,1% | 99 |
+| **C1 + C2 — o que foi ligado** | **11** | **8,1%** | **48** |
+
+> ⚠️ **ERRATA 2026-09-22 (mesmo dia) — a tabela acima descreve OUTRO universo.** Ela erra em três eixos, todos medidos:
+>
+> 1. **Corpus morto.** Ela veio de `git log --merges`, que no `main` só enxerga até **2026-06-08**: desde então o repo é squash-only (*linear history*, §3 do [RUNBOOK-branch-protection](../Infra/RUNBOOK-branch-protection.md)), e **4.905** commits posteriores são invisíveis a `--merges`. A *data* da medição era 09-22; o *corpus*, abr–jun.
+> 2. **Escopo anacrônico.** Os 35 contratos ativos nasceram **todos em 2026-09-11**, e **23 dos 40** `alvo[]` (57,5%) não existiam em 2026-06-08 — medir o escopo dos contratos contra aquele corpus era mudo **por anacronismo**, não por a superfície ser parada.
+> 3. **Denominador errado.** A taxa saiu sobre *"toca `Pages|Modules`"*, que é o escopo do `--alvo` (o **insumo**). O que o gate vê é o `detect` do job, mais estreito: no mesmo corpus, **291** PRs, **173** tocam `Pages|Modules`, e só **72** disparam o `detect`.
+>
+> **Número válido — corpus VIVO, pós C1+C2** (300 commits de squash, janela **2026-09-15 .. 09-22**): **46** tocam `Pages|Modules`, **21 disparam o `detect`** (a população de gatilho), **2 acusados = 9,5%**, 2 acusações (`SparkArea` num revert e `VariacoesTab`).
+>
+> Reproduzir: para cada commit `c` de `git log origin/main --no-merges`, aplicar o predicado a `git diff --unified=0 c~1 c -- resources/js/Pages Modules` + `git log c~1..c --format=%B`, contando sobre os que casam a regex do `detect` (lida do YAML, não redigitada). ⚠️ **`c^` não funciona**: em `execSync` no Windows o shell é o `cmd.exe`, onde `^` é o caractere de escape — o parent some, o diff fica vazio, e o zero parece resultado.
+>
+> **O que a errata NÃO muda:** C1 e C2 seguem certas pelo mérito (símbolo movido não é omissão; descrição de teste não é símbolo), e o bite-test com controle negativo continua provando as duas. Muda a **taxa** e o universo que ela descreve.
+
+As duas causas de ruído, ambas corrigidas no script (docblock de `SYMBOL_RES`):
+
+- **C1 — símbolo MOVIDO não é omissão.** O modo se chama omissão; símbolo que reaparece no `+` do mesmo diff foi movido de arquivo ou renomeado junto, e o autor não tem por que citá-lo. Eram 52 das 152 (34,2%), falso-positivo por construção.
+- **C2 — descrição de `it()` não é símbolo.** É prosa: exigir a frase inteira no commit é absurdo, e a amostra era toda ruído (renomear `"gold-set … >= 20 perguntas"` para `">= 30"` era o trabalho daquele PR e virava falha). Eram 53 das 152 (34,9%). Segue **detectada** — o relatório informa — e não acusa.
+
+Cada correção tem no `contrato-de-tela.test.mjs` o caso que ela conserta **e** o controle negativo que prova que ela não desligou a catraca (`C1 controle negativo: sumiu de vez → exit 1`, `C2 controle negativo: símbolo some junto → exit 1`). Provado por mutação: desligando C1, o caso 6b falha; desligando C2, o 6d falha.
+
+⚠️ **O escopo é o que decide se este modo morde.** Sobre os `alvo[]` dos contratos (os ~40 paths declarados) ele é **cego**: na janela medida houve 172 linhas removidas ali e **zero** casaram qualquer regex, porque o que some numa tela é JSX, copy e bloco de UI — não símbolo exportado. Por isso o CI o roda sobre a árvore de telas/módulos. ⚠️ **Mas a leitura "a superfície é parada" estava errada** e é a armadilha a não repetir: um zero tem **três** causas incompatíveis — predicado cego, superfície parada e **corpus anacrônico** (aqui, 23 dos 40 alvos nasceram depois do último elemento do corpus). Separá-las exige medir a **população bruta** (`git diff` contando as linhas `-`), nunca só o que o predicado capturou.
+
+⚠️ **Cobertura parcial, declarada:** o `detect` do job casa `resources/js/Pages/**`, não `Modules/**` (fora um controller específico). PR que só toca `Modules/` não dispara o step. Ampliar o `detect` mudaria o disparo de **todos** os steps do job — é outro intent, não foi feito aqui.
+
 ---
 
 ## 3. As 3 condições inegociáveis (senão é teatro — veredito dos adversários)

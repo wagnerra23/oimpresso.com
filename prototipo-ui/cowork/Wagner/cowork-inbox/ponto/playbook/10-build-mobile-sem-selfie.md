@@ -3,7 +3,7 @@ sessao: "10"
 titulo: Build — REP-P do protótipo SEM selfie (ADR 0383)
 dono: "[CC]"
 base: e86130722de1
-prefixo: prototipo-ui/cowork/ponto-mobile.jsx · ponto-data.jsx (só o bloco mobile/REP-P) · oimpresso.com.html (bump)
+prefixo: prototipo-ui/cowork/Wagner/ponto-mobile.jsx · ponto-data.jsx (só o bloco mobile/REP-P) · oimpresso.com.html (bump)
 nao_toca: ponto-page.jsx · ponto-telas.jsx · android-frame.jsx · resources/js/Pages/**
 depende: — (vaga 1). Antecede a 06 (o alvo do REP-P tem de estar limpo antes de virar pedido) e a 09 (Lei 1 em ponto-data.jsx).
 ---
@@ -23,5 +23,5 @@ depende: — (vaga 1). Antecede a 06 (o alvo do REP-P tem de estar limpo antes d
 Átomos de `ponto-ui.jsx` (`Card · Tabela scope=col · Vazio · Pill · Nota`) · tokens do DS · sem emoji · sem cor crua.
 
 ## Prova (PLACAR confere)
-- `prototipo-ui/cowork/ponto-mobile.jsx` **não** contém `selfie` nem `Art. 9`
+- `prototipo-ui/cowork/Wagner/ponto-mobile.jsx` **não** contém `selfie` nem `Art. 9`
 - `_saida-10.md` com nós antes/depois e a lista do que saiu

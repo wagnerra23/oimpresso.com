@@ -28,7 +28,10 @@ on:
     branches: [main]
     paths:
       - 'Modules/Essentials/**'
+      - 'Modules/Connector/Routes/api.php'
+      - 'Modules/Connector/Http/Controllers/Api/AttendanceController.php'
       - 'tests/Feature/Calculo/CalculoValorPayrollTest.php'
+      - 'tests/Feature/Essentials/**'
       - 'resources/js/Pages/Essentials/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/essentials-pest.yml'
@@ -67,7 +70,10 @@ jobs:
           filters: |
             essentials:
               - 'Modules/Essentials/**'
+              - 'Modules/Connector/Routes/api.php'
+              - 'Modules/Connector/Http/Controllers/Api/AttendanceController.php'
               - 'tests/Feature/Calculo/CalculoValorPayrollTest.php'
+              - 'tests/Feature/Essentials/**'
               - 'resources/js/Pages/Essentials/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/essentials-pest.yml'
@@ -110,12 +116,18 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-essentials-junit.xml \
             Modules/Essentials/Tests/Feature/SalesTargetShiftCrossTenantTest.php \
+            tests/Feature/Essentials/TodoIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/HrmExclusaoGuardaTest.php \
             Modules/Essentials/Tests/Feature/HrmLicencaTest.php \
+            tests/Feature/Essentials/RemindersIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/SalesTargetFaixaValidacaoTest.php \
+            tests/Feature/Essentials/MessagesIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/HrmMetasTest.php \
+            tests/Feature/Essentials/DocumentsIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/AttendanceImportMultiTenantTest.php \
+            Modules/Essentials/Tests/Feature/HrmPresencaCedeAoPontoTest.php \
             Modules/Essentials/Tests/Feature/HrmTiposIndexTest.php \
+            tests/Feature/Essentials/KnowledgeIndexContratoTest.php \
             tests/Feature/Calculo/CalculoValorPayrollTest.php
 
 

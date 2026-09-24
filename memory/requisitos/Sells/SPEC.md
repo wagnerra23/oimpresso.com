@@ -1278,7 +1278,7 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 **Contrato de não-regressão (o que esta US promete NÃO fazer):** enquanto `status != done`, nenhum PR desta US pode tocar `resources/js/Pages/Sells/Create.tsx`, `app/Http/Controllers/SellPosController.php` nem componentes que a tela viva consome. Quebrar isso é quebrar o motivo de a tela existir.
 
 - Charter: [`CreateV3.charter.md`](../../../resources/js/Pages/Sells/CreateV3.charter.md) · casos: [`CreateV3.casos.md`](../../../resources/js/Pages/Sells/CreateV3.casos.md) · RUNBOOK: [RUNBOOK-create-v3.md](RUNBOOK-create-v3.md)
-- Âncora de design: `prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx` _(repontado 2026-09-15 — a âncora anterior `prototipo-ui/design-oimpresso/04-modulos/vendas/sells-create.jsx` nunca versionado no repo; dono: `resources/js/Pages/Sells/CreateV3.charter.md`)_
+- Âncora de design: `prototipo-ui/cowork/Felipe/venda-v3.jsx` (seção `sells-create.jsx`) _(repontado 2026-09-21 — o espelho do Felipe passou a ser o pacote "Produto Unificado V2", onde a Venda V3 veio num arquivo só: `venda-v3.jsx`, seção `sells-create.jsx`, exporta `window.VendaV3Create`. A âncora anterior `venda-v3/sells-create.jsx` segue no histórico em [bdf6d07e3](https://github.com/wagnerra23/oimpresso.com/blob/bdf6d07e3/prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx); dono: `resources/js/Pages/Sells/CreateV3.charter.md`)_ _(histórico: repontado 2026-09-15 — a âncora anterior `prototipo-ui/design-oimpresso/04-modulos/vendas/sells-create.jsx` nunca versionado no repo; dono: `resources/js/Pages/Sells/CreateV3.charter.md`)_
 - Landado em [#5356](https://github.com/wagnerra23/oimpresso.com/pull/5356) — [L] não mergeia sozinho ([F] ou [W] aprova).
 
 ---

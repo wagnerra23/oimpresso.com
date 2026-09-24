@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 63 |
+| US no SPEC | 65 |
 | CU no SDD | 0 |
 | Telas (.tsx) | 7 |
 | Telas com `casos.md` | 7 |
-| UC declarados | 81 |
-| UC com teste que os cita | 81 |
+| UC declarados | 97 |
+| UC com teste que os cita | 95 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -57,6 +57,8 @@ authority: generated
 | `US-COPI-141` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Chat declara tools READ-ONLY (a capacidade — atrás de flag) |
 | `US-COPI-142` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Flip da flag chat_tools + medição antes/depois (decisão [W]) |
 | `US-COPI-144` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Modelo forte no chat (JANA_CHAT_MODEL cirúrgico) — mecanismo |
+| `US-COPI-149` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — `tasks-create` afirma sucesso e o dado morre no próximo depl |
+| `US-COPI-150` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Meta criada pelo caminho MANUAL nasce órfã — sem alvo, e por |
 
 ### Backlog — NÃO é lacuna
 
@@ -117,6 +119,8 @@ authority: generated
 | UC-10 | Chat | 🧪 aguarda veredito da lane |
 | UC-11 | Chat | 🧪 aguarda veredito da lane |
 | UC-12 | Chat | 🧪 aguarda veredito da lane |
+| UC-16 | Index | 📝 sem_teste |
+| UC-29 | Index | 📝 sem_teste |
 | UC-ACAO-00 | Acoes | 🧪 aguarda veredito da lane |
 | UC-ACAO-01 | Acoes | 🧪 aguarda veredito da lane |
 | UC-ACAO-02 | Acoes | 🧪 aguarda veredito da lane |
@@ -162,6 +166,20 @@ authority: generated
 | UC-JPAIN-18 | Index | 🧪 aguarda veredito da lane |
 | UC-JPAIN-19 | Index | 🧪 aguarda veredito da lane |
 | UC-JPAIN-20 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-21 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-22 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-23 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-24 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-25 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-26 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-27 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-28 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-29 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-30 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-31 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-32 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-33 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-34 | Index | 🧪 aguarda veredito da lane |
 | UC-JPERM-07 | Memoria | 🧪 aguarda veredito da lane |
 | UC-JPERM-08 | Pro | 🧪 aguarda veredito da lane |
 | UC-MEM-01 | Memoria | 🧪 aguarda veredito da lane |

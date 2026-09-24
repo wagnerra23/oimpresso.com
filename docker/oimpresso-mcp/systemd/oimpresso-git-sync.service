@@ -1,0 +1,17 @@
+[Unit]
+Description=Pull latest oimpresso main + write deploy SHA + trigger mcp:sync-memory
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/oimpresso-mcp/code
+# 1) fetch atualiza origin/main ref. 2) grava o SHA de main pro DeployDriftChecker
+#    (ADR 0216) ANTES do pull/sync — assim mesmo se o pull der drift ou o sync
+#    sofrer OOM (status=137), o arquivo reflete o que main REALMENTE e. O webhook
+#    GitHub so chega na Hostinger; CT 100 se mantem sozinho via este timer.
+# 3) pull --ff-only avanca o HEAD deployado (pode falhar em drift = sinal correto).
+# 4) sync indexa memory/ (passo pesado, as vezes OOM — nao gateia o SHA acima).
+ExecStart=/bin/bash -c "/usr/bin/git fetch origin main && /usr/bin/git rev-parse origin/main > /opt/oimpresso-mcp/storage/app/deploy-latest-main-sha.txt; /usr/bin/git pull --ff-only origin main && /usr/bin/docker exec oimpresso-mcp php artisan mcp:sync-memory --reason=cron"
+StandardOutput=journal
+StandardError=journal

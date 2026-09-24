@@ -26,7 +26,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { lerZip, extrairZip, crc32, nomeSeguro } from './zip-reader.mjs';
 import { createManifest } from './bundle-contract.mjs';
-import { acharRaiz, auditarPacote, classificar, listarRelativos, decidirDono, ignoradosPeloRepo, pathNoEspelho } from './receber-handoff.mjs';
+import { acharRaiz, auditarPacote, classificar, listarRelativos, decidirDono, ignoradosPeloRepo, pathNoEspelho, normalizarEolComoGit, religarRefs, linhasDePoda } from './receber-handoff.mjs';
 
 let falhas = 0;
 const ok = (cond, nome) => {
@@ -181,6 +181,9 @@ export function selftest() {
   ok(decidirDono(naoVin, 'w', contasT, projsT).motivo.includes('--conta NAO vale aqui'), 'MORDE: e diz por que nao cede');
   // CONTROLE NEGATIVO do par: se decidirDono virasse "nao pra tudo", os 5 SOLTA caem juntos.
   ok(decidirDono(vinc, 'outra', contasT, projsT).ok === true, 'SOLTA: vinculada ignora --conta irrelevante (nao virou nao-pra-tudo)');
+  // Uma 2a conta COM espelho passa a ser aceita — o registro e que decide, nao um `if` por nome.
+  const projsF = { ...projsT, telasF: { conta: 'outra', espelho: 'prototipo-ui/cowork/Felipe/' } };
+  ok(decidirDono(indet, 'outra', contasT, projsF).ok === true, 'SOLTA: conta que ganha espelho em PROJETOS passa a importar');
 
   // -- ignoradosPeloRepo (o que o .gitignore proibe NAO entra no manifesto) --------
   // Injetor FAKE de proposito: acoplar ao .gitignore real faria o caso mudar de veredito quando
@@ -191,6 +194,17 @@ export function selftest() {
     'MAPA: path de tela pousa no espelho do Wagner');
   ok(pathNoEspelho('_ds/x/colors_and_type.css', 'preview-cache').startsWith('prototipo-ui/design-system/'),
     'MAPA: preview-cache pousa no design-system (dsRuntimeRelPath)');
+  // Conta do Felipe (2026-09-21): o destino sai do DONO do lote. Antes era hardcoded Wagner, e um
+  // zip do Felipe teria pousado no espelho do Wagner.
+  ok(pathNoEspelho('app.jsx', undefined, 'Felipe') === 'prototipo-ui/cowork/Felipe/app.jsx',
+    'MAPA: path de tela do dono Felipe pousa no espelho do Felipe');
+  ok(pathNoEspelho('app.jsx', undefined, 'Wagner') === 'prototipo-ui/cowork/Wagner/app.jsx',
+    'MAPA: dono Wagner explicito continua no espelho do Wagner (controle negativo)');
+  ok(pathNoEspelho('_ds/x/colors_and_type.css', 'preview-cache', 'Felipe').startsWith('prototipo-ui/design-system/'),
+    'MAPA: preview-cache do Felipe tambem pousa no DS unico, nunca no espelho dele');
+  let donoInvalido = false;
+  try { pathNoEspelho('app.jsx', undefined, 'Outro'); } catch { donoInvalido = true; }
+  ok(donoInvalido, 'MORDE: dono fora de Wagner/Felipe recusa em vez de escrever num lugar inventado');
 
   const ign = ignoradosPeloRepo(['inbox-photo-c1.png', 'inbox-page.jsx', 'app.jsx'], soPng);
   ok(ign.has('inbox-photo-c1.png'), 'MORDE: png que o .gitignore exclui sai do export');
@@ -208,6 +222,46 @@ export function selftest() {
   try { ignoradosPeloRepo(['app.jsx'], () => { throw new Error('git sumiu'); }); }
   catch { propagou = true; }
   ok(propagou, 'MORDE: falha do check-ignore propaga (nao vira "0 ignorados")');
+
+  // EOL (2026-09-21): o Cowork exporta `erp-shell-v2/` em CRLF; o repo e `text=auto eol=lf`.
+  // Sem normalizar, 112 arquivos identicos ao espelho derrubavam o lote no staging.
+  const crlf = Buffer.from('a\r\nb\r\n', 'utf8');
+  ok(normalizarEolComoGit(crlf).toString('utf8') === 'a\nb\n', 'MORDE: texto CRLF vira LF, como o git gravaria');
+  const lf = Buffer.from('a\nb\n', 'utf8');
+  ok(normalizarEolComoGit(lf) === lf, 'SOLTA: texto ja em LF volta o MESMO buffer (nada a reescrever)');
+  ok(normalizarEolComoGit(Buffer.from('a\rb', 'utf8')).toString('utf8') === 'a\rb', 'SOLTA: CR solto fica (git so converte CRLF)');
+  const bin = Buffer.from([0x89, 0x50, 0x00, 0x0d, 0x0a, 0x01]);
+  ok(normalizarEolComoGit(bin) === bin, 'SOLTA: binario (NUL no inicio) nunca e tocado');
+
+  // [4d] JA NO DS (2026-09-21): religacao que o #7620 fez a mao vira regra.
+  const alvosDs = new Map([['erp-shell-v2/styles.css', 'prototipo-ui/design-system/public/cowork-preview/erp-shell-v2/styles.css']]);
+  const pag = '<link rel="stylesheet" href="styles.css?v=2"/><link href="outro.css"/><a href="https://x/styles.css">';
+  const rl = religarRefs(pag, 'erp-shell-v2', 'prototipo-ui/cowork/Felipe/erp-shell-v2', alvosDs);
+  ok(rl.trocas === 1 && rl.texto.includes('href="../../../design-system/public/cowork-preview/erp-shell-v2/styles.css?v=2"'),
+    'MORDE: ref ao arquivo que saiu do lote passa a apontar pro DS (query preservada)');
+  ok(rl.texto.includes('href="outro.css"') && rl.texto.includes('href="https://x/styles.css"'),
+    'SOLTA: ref a outro arquivo e URL absoluta ficam como estao');
+  const raizPag = religarRefs('<script src="erp-shell-v2/styles.css"></script>', '', 'prototipo-ui/cowork/Felipe', alvosDs);
+  ok(raizPag.texto.includes('src="../../design-system/public/cowork-preview/erp-shell-v2/styles.css"'),
+    'MORDE: pagina em outra pasta resolve pelo proprio diretorio');
+  ok(religarRefs(pag, 'outra-pasta', 'prototipo-ui/cowork/Felipe/outra-pasta', alvosDs).trocas === 0,
+    'SOLTA: mesmo nome em outra pasta nao e o arquivo removido');
+
+  // linhasDePoda: o que a poda de arvore imprime tem de chegar ao [6]/[7] (2026-09-23: o delta
+  // dizia `-0` e a aplicacao apagou 3 `_saida`, porque a saida do aplicador era descartada).
+  const saidaAplicador = [
+    '  ✓ BUNDLE v2 VALIDADO (dry-run)',
+    '  ✂ PODA: 1 arquivo(s) do espelho fora do manifesto removido(s)',
+    '     ✂ velho/sobra.md',
+    '  ⬜ RECIBO PRESERVADO: 1 _saida do Code fora do pacote (o Cowork ainda não os reexportou)',
+    '     ⬜ cowork-inbox/placar/playbook/_saida-01.md',
+    '  ⬜ 2 remoção(ões) de _ds/ IGNORADA(S) — dono é o projeto Design System (#7096), não este export.',
+    '  id: abc · modo delta',
+  ].join('\n');
+  const poda = linhasDePoda(saidaAplicador);
+  ok(poda.length === 4, `MORDE: as 4 linhas de poda/preservacao chegam ao relatorio (vieram ${poda.length})`);
+  ok(!poda.some((l) => /_ds\/|id: abc|VALIDADO/.test(l)), 'SOLTA: outras linhas do aplicador nao entram');
+  ok(linhasDePoda('').length === 0 && linhasDePoda(undefined).length === 0, 'saida vazia -> nenhuma linha');
 
   console.log(`\n  ${falhas === 0 ? 'OK' : 'FALHAS: ' + falhas}\n`);
   if (falhas) process.exit(1);

@@ -20,6 +20,9 @@ class RouteErrorBoundary extends React.Component {
     this.setState({ esperando: false });
     console.error("Route crash:", err, info);
   }
+  // O tick da fila só re-renderiza (a tela vira componente real quando chega); remontar por tick
+  // destruía o estado da tela a cada ~24 arquivos. Só um boundary em erro se reinicia no tick.
+  componentDidUpdate(prev) {if (prev.tick !== this.props.tick && this.state.err && !this.state.esperando) this.setState({ err: null });}
   componentWillUnmount() {clearTimeout(this._timer);}
   render() {
     if (this.state.esperando) {
@@ -948,7 +951,7 @@ function App() {
         <Header company={company} route={route} onSelectRoute={handleSelectRoute}
         prodType={prodType} onProdType={setProdType}
         chatTab={janaTab} onChatTab={setChatTab} />
-        <div className="main-body"><RouteErrorBoundary key={route + ":" + tick}><RouteSlot>{content}</RouteSlot></RouteErrorBoundary></div>
+        <div className="main-body"><RouteErrorBoundary key={route} tick={tick}><RouteSlot>{content}</RouteSlot></RouteErrorBoundary></div>
       </main>
       {showLaravel && <LaravelPanel onClose={() => setShowLaravel(false)} />}
       {window.CommandPalette &&

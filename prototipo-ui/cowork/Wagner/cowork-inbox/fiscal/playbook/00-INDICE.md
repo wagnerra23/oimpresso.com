@@ -5,14 +5,14 @@ autor: "[CC]"
 criado: 2026-09-08
 revisado: 2026-09-08 rev.2 — após a thread 03 (aferição). 4 das 6 threads da rev.1 morreram; ver `_saida-03.md`
 base: wagnerra23/oimpresso.com@main (árvores 11eff17f13db · 99530522729d, lidas 2026-09-08 11:09 e 11:19 UTC)
-destino_no_main: prototipo-ui/design-docs/cowork-inbox/fiscal/playbook/
+destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/
 constituicao: CONSTITUICAO-COWORK.md (C1–C12) + memory/proibicoes.md — citadas, não copiadas
-regra: PEDIDO, não inventário. Estado é derivado (§2-bis). Nunca em prototipo-ui/cowork/ (guard R1).
+regra: PEDIDO, não inventário. Estado é derivado (§2-bis). Nunca em prototipo-ui/cowork/Wagner/ (guard R1).
 ---
 
 # SINCRONIZAR Fiscal — playbook
 
-> **Absorve e CORRIGE** `COLAR-NO-CODE-fiscal-notafiscal-ondas.md` (03/09, 10 ondas · 36,8 KB). Medido em 08/09: **9 das 10 ondas estão feitas em produção** e **as 5 decisões ⛔ [W] foram respondidas pelo código**. Sobra **1 onda de UI** (paginação) e **1 lacuna de rede** (E2E = 0).
+> **Absorve e CORRIGE** `COLAR-NO-CODE-fiscal-notafiscal-ondas.md` (03/09, 10 ondas · 36,8 KB). Medido em 08/09: **9 das 10 ondas estão feitas em produção** e **as 5 decisões ⛔ [W] foram respondidas pelo código**. Sobra **1 onda de UI** (paginação) e **1 lacuna de rede** (E2E = 0). *(Errata 2026-09-23: a paginação já estava feita pelo #6711 em 04/09 — eram **10 das 10**; ver §0 e `_saida-02.md`. A lacuna de rede fechou pela thread 01.)*
 > **Leis do módulo:** as 6 do `§0` do arquivo-ponte continuam valendo (motor fiscal não se toca · ledger append-only · lei citada literal · `501` nunca é sucesso · 🔴 sozinho no PR). Não recopiadas.
 
 ## 0 · O que a medição derrubou
@@ -21,7 +21,7 @@ regra: PEDIDO, não inventário. Estado é derivado (§2-bis). Nunca em prototip
 |---|---|---|
 | 1 Alertas fiscais | **feita** | `AlertasFiscais.tsx` + `Cockpit.tsx:23` |
 | 2 Linha por teclado | **feita nas 2 telas** | `Cockpit.tsx:605` · `Nfe.tsx:231`/`:316` · `UC-FCKP-11` · PR #6707 |
-| **3 Paginação `.fx-pager`** | **DE PÉ** | `Pagination` = **0 hit** em `Pages/Fiscal/` → thread 02 |
+| 3 Paginação `.fx-pager` | **feita** (PR #6711, 04/09) | `Cockpit.tsx:721` `.fx-pager` `data-contract="paginacao-notas"` · `UC-FCKP-09` · lane `fiscal-cockpit-paginacao-gate` → recibo `_saida-02.md` |
 | 4 Sparklines ⛔[W]2 | **feita** | `RibbonSpark.tsx` + `Cockpit.tsx:29` |
 | 5 Tipo + densidade ⛔[W]1 | **feita nas 3 telas** | `DensidadeToggle` em `Cockpit:24` · `Nfe:25` · `Nfse:20` |
 | 6 DF-e lote ⛔[W]3 | **feita** | `Dfe.tsx:381` `data-contract="lote-dfe"` · modal `:607` · *"definitiva por nota"* `:659` · UC 07..10 verdes |
@@ -34,6 +34,8 @@ regra: PEDIDO, não inventário. Estado é derivado (§2-bis). Nunca em prototip
 
 **Emitir as 10 ondas de novo seria pedir 9 PRs por trabalho já mergeado.** Detalhe e provas: `_saida-03.md`.
 
+> **Errata 2026-09-23 — a onda 3 também estava feita.** Em 08/09 esta linha dizia *"DE PÉ · `Pagination` = 0 hit"*. A busca procurou a palavra errada: a paginação entrou pelo #6711 em **04/09**, com nomes PT-BR (`pagina`/`porPagina`), e nunca usou `Pagination` — que, aliás, não existe como componente do DS. Logo foram **10 das 10** ondas, não 9. Medição e gate rodado: `_saida-02.md`.
+
 ## 1 · LEVANTAR — 4 denominadores
 **D1 rota:** `Modules/Fiscal/Routes/web.php` — 7 telas (cockpit · NF-e/NFC-e · NFS-e · DF-e · Eventos · Config · SPED).
 **D2 nav legado:** emissão segue em `NfeBrasil/Transactions` — fila 🔴, fora deste pacote.
@@ -45,26 +47,26 @@ regra: PEDIDO, não inventário. Estado é derivado (§2-bis). Nunca em prototip
 | # | thread | dono | prefixo | vaga | arquivo |
 |---|---|---|---|---|---|
 | 01 | Rede: 2 specs E2E (cockpit + NF-e), derivados dos contratos existentes | [CL] | `e2e/fiscal-cockpit.spec.ts` · `e2e/fiscal-nfe.spec.ts` | 1 | `01-rede-e2e.md` |
-| 02 | Paginação `.fx-pager` — a única onda de UI viva | [CL] | `Pages/Fiscal/Cockpit.tsx` (+ `CockpitController` **se** o corte for server-side) | 1 | `02-paginacao.md` |
+| 02 | Paginação `.fx-pager` — **já feita pelo #6711** (04/09), recibo retroativo `_saida-02.md` | [CL] | `Pages/Fiscal/Cockpit.tsx` (+ `CockpitController` **se** o corte for server-side) | 1 | `02-paginacao.md` |
 | ~~03~~ | ~~Aferição~~ | [CC] | — | — | **FEITA** → `_saida-03.md` |
 | ~~04 05 06~~ | ~~DF-e lote · Config · Procedência~~ | — | — | — | **mortas**: respondidas pelo código (§0) |
 
 **Vaga 1:** 01 ∥ 02 (prefixos disjuntos). Nenhuma outra thread — e não se inventa terceira para o playbook parecer cheio.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
-`node scripts/qa/placar-indice.mjs --indice prototipo-ui/design-docs/cowork-inbox/fiscal/playbook/00-INDICE.md --root . --proximo`
-Render esperado: `Fiscal: entregue 1 de 3 · próximo 2 · bloqueada 0` — **PRÓXIMO: 01 · 02.**
+`node scripts/qa/placar.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/00-INDICE.md --proximo`
+Render medido em 2026-09-23: `Fiscal: entregue 3 de 3 · próximo 0 · em curso 0 · pendente 0 · bloqueada 0` — **nenhum executável**. *(Em 08/09 esta linha esperava `entregue 1 de 3 · próximo 2`, e o comando apontava `placar-indice.mjs` direto — ele é a lógica, não a entrada, e rodado sozinho não imprime nada.)*
 
 ## 3 · Abertura de thread (colar como 1ª mensagem — sessão limpa)
 ```
 Sessão fresca. ANTES de abrir: gh pr list --state open e cruze com os arquivos do seu prefixo.
 Leia nesta ordem, do main:
-1. prototipo-ui/design-docs/cowork-inbox/ponte/03-REGRAS-DE-PARALELISMO.md   ← Leis 1–4
-2. prototipo-ui/CONSTITUICAO-COWORK.md                                       ← C1–C12
+1. prototipo-ui/cowork/Wagner/cowork-inbox/ponte/03-REGRAS-DE-PARALELISMO.md   ← Leis 1–4
+2. memory/reference/prototipo-ui/CONSTITUICAO-COWORK.md                                       ← C1–C12
 3. .../fiscal/playbook/00-INDICE.md  §0 · §1 · §2                            ← o que JÁ está feito
 4. .../fiscal/playbook/NN-<sua-thread>.md                                    ← escopo · recorte · prova
 5. .../fiscal/playbook/_saida-03.md                                          ← a medição que matou 9 ondas
-6. o §0 (leis do módulo) de prototipo-ui/COLAR-NO-CODE-fiscal-notafiscal-ondas.md
+6. o §0 (leis do módulo) de prototipo-ui/cowork/Wagner/COLAR-NO-CODE-fiscal-notafiscal-ondas.md
 7. os RECORTES nomeados na sua thread (arquivo :: símbolo :: faixa) — e SÓ eles
 AVISO: os blocos 1 e 1-bis do arquivo-ponte estão VENCIDOS. Não abra PR por onda de lá.
 Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md.
@@ -92,7 +94,7 @@ Terminou: escreva _saida-NN.md e pare.
   "modulo": "Fiscal",
   "sha": "99530522729d",
   "gerado": "2026-09-08",
-  "absorve": ["prototipo-ui/COLAR-NO-CODE-fiscal-notafiscal-ondas.md"],
+  "absorve": ["prototipo-ui/cowork/Wagner/COLAR-NO-CODE-fiscal-notafiscal-ondas.md"],
   "decisoes": [
     { "id": "D-TIPO", "pergunta": "Select de tipo + densidade em NF-e/NFS-e", "respondida": true, "resposta": "codigo: DensidadeToggle em Cockpit.tsx:24, Nfe.tsx:25, Nfse.tsx:20" },
     { "id": "D-SPARK", "pergunta": "As 3 sparklines do ribbon entram?", "respondida": true, "resposta": "codigo: RibbonSpark em Cockpit.tsx:29" },
@@ -103,24 +105,24 @@ Terminou: escreva _saida-NN.md e pare.
   "threads": [
     { "id": "01", "titulo": "Rede: 2 specs E2E (cockpit + NF-e)", "dono": "CL", "vaga": 1, "arquivo": "01-rede-e2e.md",
       "prefixo": ["e2e/fiscal-cockpit.spec.ts", "e2e/fiscal-nfe.spec.ts"],
-      "nao_toca": ["resources/js/Pages/Fiscal/", "Modules/Fiscal/", "prototipo-ui/contrato/fiscal-cockpit.contract.json", "prototipo-ui/contrato/fiscal-nfe.contract.json"],
+      "nao_toca": ["resources/js/Pages/Fiscal/", "Modules/Fiscal/", "governance/design/contracts/fiscal-cockpit.contract.json", "governance/design/contracts/fiscal-nfe.contract.json"],
       "provas": [
         { "tipo": "arquivo", "path": "e2e/fiscal-cockpit.spec.ts" },
         { "tipo": "arquivo", "path": "e2e/fiscal-nfe.spec.ts" },
-        { "tipo": "arquivo", "path": "prototipo-ui/contrato/fiscal-cockpit.contract.json", "guarda": true },
+        { "tipo": "arquivo", "path": "governance/design/contracts/fiscal-cockpit.contract.json", "guarda": true },
         { "tipo": "contem", "path": "resources/js/Pages/Fiscal/Cockpit.tsx", "padrao": "onKeyDown", "guarda": true, "nota": "UC-FCKP-11 nao pode sumir num PR de rede" }
       ] },
     { "id": "02", "titulo": "Paginacao .fx-pager no Cockpit", "dono": "CL", "vaga": 1, "arquivo": "02-paginacao.md",
       "prefixo": ["resources/js/Pages/Fiscal/Cockpit.tsx", "Modules/Fiscal/Http/Controllers/CockpitController.php"],
       "nao_toca": ["resources/js/Pages/Fiscal/_components/", "resources/js/Pages/Fiscal/_lib/", "resources/js/Pages/Fiscal/Nfe.tsx"],
       "provas": [
-        { "tipo": "contem", "path": "resources/js/Pages/Fiscal/Cockpit.tsx", "padrao": "Pagination" },
+        { "tipo": "contem", "path": "resources/js/Pages/Fiscal/Cockpit.tsx", "padrao": "fx-pager", "nota": "era \"Pagination\" — falso-negativo: a tela pagina com nomes PT-BR (pagina/porPagina); trocado 2026-09-23" },
         { "tipo": "contem", "path": "resources/js/Pages/Fiscal/Cockpit.tsx", "padrao": "onKeyDown", "guarda": true },
         { "tipo": "arquivo", "path": "resources/js/Pages/Fiscal/Cockpit.casos.md", "guarda": true, "nota": "43.511 B — ESTENDER, nunca recriar" }
       ] },
     { "id": "03", "titulo": "Afericao read-only (FEITA)", "dono": "CC", "vaga": 1, "arquivo": "03-afericao.md",
       "prefixo": [], "nao_toca": ["resources/js/Pages/Fiscal/", "Modules/Fiscal/"],
-      "provas": [ { "tipo": "arquivo", "path": "prototipo-ui/design-docs/cowork-inbox/fiscal/playbook/_saida-03.md" } ],
+      "provas": [ { "tipo": "arquivo", "path": "prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/_saida-03.md" } ],
       "nota_provas": "matou as threads 04/05/06 da rev.1 e fechou as 5 decisoes [W] com caminho e linha" }
   ]
 }

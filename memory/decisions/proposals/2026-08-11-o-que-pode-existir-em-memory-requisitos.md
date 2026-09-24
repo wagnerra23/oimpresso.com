@@ -19,7 +19,7 @@ relates_to:
 ls -d Modules/*/ | wc -l                                    # 32 módulos reais
 ls -d memory/requisitos/*/ | wc -l                          # 79 pastas
 node scripts/governance/knowledge-drift.mjs | head -14      # o batimento: "75 módulos"
-node scripts/governance/module-group-resolve.mjs --all      # papéis resolvidos por pasta
+node scripts/governance/module-group-resolve.mjs --all      # papéis resolvidos por pasta (script removido em 2026-09-22)
 ```
 
 Medido em `origin/main`, 2026-08-11, clone completo (`--is-shallow-repository` = false).
@@ -58,7 +58,7 @@ Nenhum discrimina. O melhor reprova 40% das áreas legítimas — `Infra`, `Mcp`
 
 `SCOPE.md` foi testado e **não existe em nenhuma das 72** (ele ainda mora em `Modules/<X>/`; o [#5568](https://github.com/wagnerra23/oimpresso.com/pull/5568) é que está movendo) — zero poder discriminante hoje.
 
-E o dono existente, [`module-group-resolve.mjs`](../../../scripts/governance/module-group-resolve.mjs), mostra por quê:
+E o dono existente na época, `module-group-resolve.mjs` (removido em 2026-09-22 por não ter consumidor), mostrava por quê:
 
 ```
 BI          1/10        Orcamento   1/10

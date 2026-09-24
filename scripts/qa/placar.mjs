@@ -65,7 +65,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, resolve, join, basename, relative, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { agregarIndices, descobrirIndices, emitirMdIndice, emitirTextoIndice } from './placar-indice.mjs';
+import { agregarIndices, descobrirIndices, emitirMdIndice, emitirTextoIndice, recibosPerdidos, NaoMedi as NaoMediIndice } from './placar-indice.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
@@ -95,6 +95,22 @@ export function entreguesDe(medida) {
 export function placarDeTela({ slug, alvo, declaracao, render = null }) {
   const ids = Object.keys((alvo && alvo.secoes) || {}).sort();
   if (!ids.length) throw new NaoMedi(`${slug}: alvo sem nenhuma seção — "0 de 0" não é 100%`);
+
+  // O alvo e DERIVADO do `<slug>.secoes.json`, e o denominador sai do ALVO (`ids`, acima). Se a
+  // declaracao tem secao que o alvo nao carrega, o denominador esta DEFASADO e publicar
+  // "entregue X de Y" afirma uma cobertura que ninguem mediu. MEDIDO em 2026-09-22 com a
+  // declaracao em 10 e o alvo em 9: saia `entregue 9 de 9` + `cobertura cumulativa 9 de 9
+  // (100%)`, exit 0 -- 100% sobre denominador errado, e a 10a secao invisivel.
+  //
+  // NAO e o mesmo predicado do secao-check (la o GATE acusa o PR, exit 1). Aqui o placar RECUSA
+  // publicar um numero que nao sabe computar -- acao diferente, nao um 2o oraculo da mesma regra
+  // (§5 2026-07-09). E a doutrina de sempre: "nao medi" nunca vira veredito (§5 2026-07-29), que
+  // e exactamente o que a linha acima ja faz com "0 de 0".
+  const declaradasTopo = Object.keys(declaracao || {}).filter((k) => !k.startsWith('_'));
+  const faltamNoAlvo = declaradasTopo.filter((id) => !ids.includes(id));
+  if (faltamNoAlvo.length) {
+    throw new NaoMedi(`${slug}: alvo DEFASADO -- ${slug}.secoes.json declara ${faltamNoAlvo.map((x) => `"${x}"`).join(' · ')} que o .alvo.json nao carrega. "entregue X de ${ids.length}" seria percentual sobre denominador errado; re-rode \`npm run alvo:medir\``);
+  }
 
   // Sem --render o lado medido é o próprio alvo (o que a sonda achou no espelho servido).
   // COM --render, o lado medido é o render e o alvo vira só o denominador.
@@ -253,6 +269,43 @@ function emitirTexto(r) {
 
 /* ── CLI ────────────────────────────────────────────────────────────────────────────────── */
 function main() {
+  // Recibo apagado (incidente #7842 · #7844, 2026-09-23). `--base` é obrigatório: sem ele não há diff a medir, e
+  // "0 apagados" sem diff seria verde por não-execução (LC-13).
+  if (flag('--recibos-perdidos')) {
+    const base = val('--base');
+    const head = val('--head', 'HEAD');
+    if (!base) throw new NaoMediIndice('--recibos-perdidos exige --base <ref>');
+    let raw;
+    try {
+      raw = execFileSync('git', ['diff', '--raw', '-z', '--no-abbrev', '-M', base, head],
+        { cwd: resolve(val('--root', ROOT)), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 256 * 1024 * 1024 });
+    } catch (e) {
+      throw new NaoMediIndice(`git diff ${base} ${head} falhou (rc=${e.status}): ${String(e.stderr || '').trim().split('\n')[0]}`);
+    }
+    // Blobs de `_saida` que existem na árvore FINAL, em qualquer path: recibo que ainda existe
+    // noutro lugar não foi perdido. `ls-tree -z` pelo mesmo motivo do `diff -z` (acento no path).
+    let arvore;
+    try {
+      arvore = execFileSync('git', ['ls-tree', '-r', '-z', '--full-tree', head],
+        { cwd: resolve(val('--root', ROOT)), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 256 * 1024 * 1024 });
+    } catch (e) {
+      throw new NaoMediIndice(`git ls-tree ${head} falhou (rc=${e.status}): ${String(e.stderr || '').trim().split('\n')[0]}`);
+    }
+    const blobsNoHead = new Set(arvore.split('\0').filter((l) => /(^|\/)_saida-[^/]*\.md$/.test(l.split('\t')[1] || ''))
+      .map((l) => l.split('\t')[0].split(' ')[2]));
+    const perdidos = recibosPerdidos(raw, blobsNoHead);
+    const total = raw.split('\0').filter((t) => t.startsWith(':')).length;
+    if (!perdidos.length) {
+      console.log(`recibos: nenhum _saida apagado sem recolocar o mesmo conteúdo (${total} arquivo(s) no diff ${base}..${head}).`);
+      return 0;
+    }
+    console.error(`recibos APAGADOS: ${perdidos.length} _saida some(m) neste diff e o conteúdo não reaparece em outro path:`);
+    for (const p of perdidos) console.error(`  - ${p}`);
+    console.error('\nSem o recibo, a thread volta a `proximo` e outra sessão refaz o trabalho. Mova com `git mv`'
+      + ' (mudança de pasta passa) ou restaure. Deleção proposital (thread saiu do índice): label `recibo-apagado-ok`.');
+    return 1;
+  }
+
   // PR-A8 — placar da LISTA. `--indice <00-INDICE.md>` para um módulo, `--todos` para somar,
   // `--thread NN` recorta uma thread (é o que o `/onda --thread` do A7 consome).
   if (flag('--indice') || flag('--todos')) {

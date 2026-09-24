@@ -65,6 +65,54 @@
     "baseline": "it_Financeiro_ContasBancarias_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Financeiro/Impostos",
+    "source": "Financeiro/Impostos",
+    "component": "Financeiro/Impostos/Index",
+    "route": "/financeiro/impostos",
+    "anchor": "Guias do período",
+    "baseline": "it_Financeiro_Impostos_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Financeiro/Conciliacao",
+    "source": "Financeiro/Conciliacao",
+    "component": "Financeiro/Conciliacao/Index",
+    "route": "/financeiro/conciliacao",
+    "anchor": "Importar extrato OFX",
+    "baseline": "it_Financeiro_Conciliacao_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Financeiro/Fluxo",
+    "source": "Financeiro/Fluxo",
+    "component": "Financeiro/Fluxo/Index",
+    "route": "/financeiro/fluxo",
+    "anchor": "Fluxo de caixa",
+    "baseline": "it_Financeiro_Fluxo_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Financeiro/Dre",
+    "source": "Financeiro/Dre",
+    "component": "Financeiro/Dre/Index",
+    "route": "/financeiro/dre",
+    "anchor": "DRE / Relatórios",
+    "baseline": "it_Financeiro_Dre_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Financeiro/PlanoContas",
+    "source": "Financeiro/PlanoContas",
+    "component": "Financeiro/PlanoContas/Index",
+    "route": "/financeiro/plano-contas",
+    "anchor": "TOTAL DE CONTAS",
+    "baseline": "it_Financeiro_PlanoContas_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Financeiro/Cobranca",
+    "source": "Financeiro/Cobranca",
+    "component": "Financeiro/Cobranca/Index",
+    "route": "/financeiro/cobranca",
+    "anchor": "Pago no mês",
+    "baseline": "it_Financeiro_Cobranca_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Governance/Dashboard",
     "source": "governance/Dashboard",
     "component": "governance/Dashboard",
@@ -426,5 +474,45 @@
     "route": "/stock-transfers/create?v=2",
     "anchor": "Nova transferência de estoque",
     "baseline": "it_StockTransfer_Create_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "OficinaAuto/Vehicles/Index",
+    "source": "OficinaAuto/Vehicles",
+    "component": "OficinaAuto/Vehicles/Index",
+    "route": "/oficina-auto/veiculos",
+    "anchor": "VRGB606",
+    "baseline": "it_OficinaAuto_Vehicles_Index_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "OficinaAuto/Vehicles/Show",
+    "source": "OficinaAuto/Vehicles/Show",
+    "component": "OficinaAuto/Vehicles/Show",
+    "route": "/oficina-auto/veiculos/900201",
+    "anchor": "Dados do veículo",
+    "baseline": "it_OficinaAuto_Vehicles_Show_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "OficinaAuto/Vehicles/Create",
+    "source": "OficinaAuto/Vehicles/Create",
+    "component": "OficinaAuto/Vehicles/Create",
+    "route": "/oficina-auto/veiculos/create",
+    "anchor": "Novo veículo",
+    "baseline": "it_OficinaAuto_Vehicles_Create_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "OficinaAuto/Vehicles/Edit",
+    "source": "OficinaAuto/Vehicles/Edit",
+    "component": "OficinaAuto/Vehicles/Edit",
+    "route": "/oficina-auto/veiculos/900201/edit",
+    "anchor": "Editar VRGB606",
+    "baseline": "it_OficinaAuto_Vehicles_Edit_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "ComunicacaoVisual",
+    "source": "ComunicacaoVisual",
+    "component": "ComunicacaoVisual/Index",
+    "route": "/comunicacao-visual",
+    "anchor": "Calculadora de m²",
+    "baseline": "it_ComunicacaoVisual_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]

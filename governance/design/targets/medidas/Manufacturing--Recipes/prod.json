@@ -1,6 +1,19 @@
 {
   "url": "https://staging.oimpresso.com/manufacturing/recipe",
-  "theme": "auto",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 7
+  },
+  "theme": "light",
   "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Manufacturing 0 receita s · 0 ordem s de produção · custo recalculado pelo preço atual dos ingredientes Nova receita Receitas 0 Insumos Ordens de produção 0 Relatório Configurações Custo médio / unidade R$ 0,00 média das 0 receita s Margem abaixo de 45% 0 preço de venda desatualizado Desperdício ≥ 8% 0 revisar plotagem / encaixe Produção do mês 0 0 rascunho s em aberto Todas Receita ↑ Categoria ⇵ ⇵ Quantidade ⇵ Custo total ⇵ Custo unitário ⇵ Venda ⇵ Margem Nenhuma receita encontrada Ajuste a busca, troque a categoria ou limpe o filtro de KPI. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
   "roles": {
     "kpi": {
@@ -17,6 +30,51 @@
     "primary": null,
     "filterRows": null,
     "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
       {
         "nome": "cabecalho",
         "classes": {
@@ -88,6 +146,7 @@
         }
       },
       "atalhos": []
-    }
+    },
+    "chart": null
   }
 }

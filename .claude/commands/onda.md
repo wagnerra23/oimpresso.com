@@ -50,13 +50,28 @@ Os 9 itens do bloco D são o DoD, e o item 6 (**placar**) vai no corpo do PR: `e
 Nem toda onda é seção de tela. Quando o trabalho é uma **thread de playbook** (`SINCRONIZAR <Mod>`), o que abre a sessão é o `NN-*.md` da thread, não o pedido de seção. Mesmo princípio do §2-quater: a sessão **nasce lida**.
 
 ```bash
-# 1. O estado da thread — DERIVADO do repo (provas + _saida), ninguém escreve
-node scripts/qa/placar.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/$1/playbook/00-INDICE.md --thread $NN --proximo
+# 0. RESOLVER os argumentos. O harness entrega $1 $2 $3 — a variavel $NN NAO existe.
+#    `/onda <Modulo> --thread <NN>`  =>  $1=<Modulo>  $2=--thread  $3=<NN>
+#    O diretorio do playbook e MINUSCULO (hrm, ponto, placar): normalize antes de montar.
+MOD=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+NN="$3"
+IDX="prototipo-ui/cowork/Wagner/cowork-inbox/$MOD/playbook/00-INDICE.md"
 
-# 2. Os 2 arquivos que a sessão abre ANTES de qualquer Edit
+# 1. PORTAO — sem indice no main, a sessao NAO improvisa.
+test -f "$IDX" || { echo "NAO MEDI: indice '$MOD' ausente no main - o pacote do Cowork nao foi importado. Nada executado."; exit 1; }
+
+# 2. O estado da thread — DERIVADO do repo (provas + _saida), ninguém escreve
+node scripts/qa/placar.mjs --indice "$IDX" --thread "$NN" --proximo
+
+# 3. Os 2 arquivos que a sessão abre ANTES de qualquer Edit
 #    (o NN-*.md é o pedido; o 00-INDICE.md é o contrato — prefixo, nao_toca, deps, decisões)
-ls prototipo-ui/cowork/Wagner/cowork-inbox/$1/playbook/$NN-*.md
+ls "prototipo-ui/cowork/Wagner/cowork-inbox/$MOD/playbook/$NN"-*.md
 ```
+
+> **Se o passo 1 imprimir `NÃO MEDI`, PARE.** Responda só essa linha e encerre: não rode outro
+> módulo, não varra os 13, não escolha uma thread no lugar da pedida. Índice ausente é **falta de
+> import**, não convite a improvisar — e improvisar é pior que falhar, porque devolve um relatório
+> plausível sobre outra coisa. Peça o handoff do Cowork e pare.
 
 **Leia o estado antes de executar** — ele diz se a thread sequer é sua para pegar:
 
@@ -67,9 +82,16 @@ ls prototipo-ui/cowork/Wagner/cowork-inbox/$1/playbook/$NN-*.md
 | `em curso` | já tem `_saida-NN.md` | **retomar/validar**, não recomeçar — outra sessão passou por aqui |
 | `bloqueada` | `bloqueio` declarado no índice | decisão [W]. Não desbloqueie sozinho |
 | `feito` | provas verdes + `_saida` + deps feitas | nada a fazer |
+| `proximo` **(sem recibo)** | todas as provas já verdes, só falta o `_saida` | **NÃO execute.** Quase sempre a thread já foi entregue e o recibo sumiu ou nunca foi escrito. Ache o PR que entregou (`git log -S '<padrão da prova>' -- <path>` no `main`); se o original existiu, **restaure-o byte a byte** do histórico (`git log --diff-filter=D -- '*_saida-NN.md'`); só na falta dele escreva recibo retroativo citando o PR |
+
+> **Antes de escrever recibo, desconfie da prova.** Se o padrão da prova já existia no `main` **antes** do índice ser escrito (`git log --reverse -S` mostra commit anterior à data do índice), ela não prova a entrega — não escreva recibo, reporte. Caso real em 2026-09-23: Patrimônio/05 pedia um comando novo, e a prova só checava uma chave de config que existia desde maio.
+
+> **O índice (`00-INDICE.md`) e o resto do playbook são do Cowork — não edite no espelho.** Achou prova com caminho errado, thread que deve ser descartada, errata? Registre no **seu `_saida-NN.md`** (o único arquivo do espelho cujo autor é o Code) e diga no corpo do PR. Editar o índice no espelho derruba o check **required** "espelho — mexeu depois de verificar" no `main` para **todos** os PRs, até alguém reescrever no Cowork e reimportar. Aconteceu 2× em 2026-09-23 (#7843, #7866), e mais dois PRs abertos repetiam (#7856, #7863). Se a correção no índice não puder esperar, peça ao [W] o opt-in de escrita no Cowork e faça a mudança **lá**; ela desce no próximo import.
 
 **As Leis que o modo thread não afrouxa:** 1 thread = 1 prefixo (Lei 1) · estado só em `_saida` (Lei 2) · 1 PR por thread (Lei 3) · o `nao_toca` do índice é o bloco B "não inventar" (Lei 4).
 
 **O recibo é o `_saida-NN.md`** — sem ele a thread **não** conta como entregue, mesmo com o PR mergeado. Isso não é burocracia: é a Lei 2 por construção, e o placar a aplica sem pedir licença.
+
+**O retorno sobe ao Cowork na mesma sessão** ([W] 2026-09-24). Escrito o `_saida` (e qualquer outra mudança sua em `cowork-inbox/`), rode `node scripts/design-sync/pendentes-cowork.mjs --plano` e suba os `writes` pelo DesignSync (`finalize_plan` + `write_files` com `localPath`), depois `--registrar-envio <os mesmos paths>` e commite o `scripts/design-sync/state/enviados-cowork.json`. O hook libera esse canal sem opt-in; tela ou CSS fora de `cowork-inbox/` aparecem em `fora_do_canal` e **não** sobem sem o [W]. Sem esse passo, o próximo retorno do Cowork chega sem o seu trabalho e o import o recusa.
 
 > **`--thread NN` recorta o RELATO, não a avaliação.** O placar avalia o índice inteiro e só então filtra — o estado de uma thread depende das dependências dela, e recortar antes faria `feito` mentir.

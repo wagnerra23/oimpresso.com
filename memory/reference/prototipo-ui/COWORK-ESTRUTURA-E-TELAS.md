@@ -18,19 +18,23 @@ Você (Cowork) tem que **adotar a estrutura nova + reconstruir** como exporta:
 1. Pegue a tela no **FRESCOR** (🟠 = desenvolver · 🔵 = puxe o vivo, não refaça · ⚪ = espera [W]).
 2. Leia o **charter** dela no `main` → o que a tela é + seus **dados/props/estado**.
 3. Desenvolva → exporte o **build** pro `cowork/`.
-4. **AO FECHAR O CICLO, REGENERE O PACOTE.** É a regra de **saída** — sem ela o ciclo não tem como descer:
+4. **AO FECHAR O CICLO, AVISE [W] PARA BAIXAR O ZIP DO PROJETO.** É a regra de **saída** — é por ela que o ciclo desce:
 
    ```
-   node scripts/design-sync/gerar-payload-partes.mjs --root <dir-do-projeto> --out sync/ --previous sync/bundle.manifest.json
+   node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --conta w          # mede + valida
+   node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --conta w --apply  # + promove
    ```
 
-   Suba `sync/bundle.manifest.json` + as partes. O recibo do ciclo é o manifesto do bundle;
-   `.md` não viaja no pacote nem cria uma segunda árvore no protótipo ([ADR 0396](../../../memory/decisions/0396-prototipo-fonte-unica-build-sem-canon-sombra.md)).
-   > **Por que é você, e não uma máquina do repo:** o gerador só roda de onde os arquivos estão em disco — [`gerar-payload-partes.mjs`](../../../scripts/design-sync/gerar-payload-partes.mjs) declara no cabeçalho *"NÃO roda do lado do agente consumidor"*, porque lá o conteúdo chegaria pelo contexto do agente, e escrever de lá é transcrição (proibida — ADR 0374). Sem pacote fresco, a descida cai na rota arquivo-a-arquivo, que esquece css/js por natureza. A **forma** do pacote (tamanho de parte, digest, delta × snapshot) já está acordada em [`CODE_NOTES.prompt-cowork-payload-gerador-2026-08-22.md`](CODE_NOTES.prompt-cowork-payload-gerador-2026-08-22.md) — nada muda nela.
+   Quem roda é o **Code**, num PR — você não roda gerador nenhum. O import **sincroniza com `/PURGE`**:
+   o que não estiver no zip **some do espelho**, então o zip é o **estado da conta**, nunca um incremento.
+   O **pacote em partes** deixou de ser tarefa sua: é gerado no **CI**, a cada push em
+   `prototipo-ui/cowork/Wagner/**` ([`cowork-bundle.yml`](../../../.github/workflows/cowork-bundle.yml)),
+   e esse workflow **não commita nada** — nada entra no espelho por aquela porta.
+   `.md` **viaja** no pacote, desde que viva **dentro de um dono** (R3 do guard, decisão [W] 2026-09-13).
 5. Pendência sua → `COWORK_NOTES.md` "📥 Pendentes"; leia o retorno do Code em `CODE_NOTES.md` + `FRESCOR`.
 6. **Nunca**: memória própria · despejo de sessão · transporte (PNG/dupes) · duplicar charter/process-doc.
-> As máquinas **dão erro antes de escrever** se houver `.md`/canon no lote, conteúdo
-> byte-idêntico em dois paths, bundle datado ou protótipo ativo fora do lugar.
+> As máquinas **dão erro antes de escrever**. As regras vigentes estão em
+> §"A máquina que protege isso" — aqui não se restateia o que o guard sabe melhor.
 
 ## Por que mudou
 Antes: cada handoff era um zip flat despejado em pastas espalhadas (`prototipos/<tela>/`) + cópia da memória → **bagunça, sem diff, fonte stale, duplicação**. Agora: **1 fonte da verdade com histórico**, memória única canônica, e um canal que te diz onde a produção já te passou.
@@ -79,7 +83,7 @@ Antes: cada handoff era um zip flat despejado em pastas espalhadas (`prototipos/
 | `*.charter.md` | canon `resources/js/Pages/<Mod>/<Tela>.charter.md` | contrato vivo — você lê/atualiza, não duplica |
 | `*.casos.md` | canon (ao lado do charter) | casos de uso |
 | sessão/análise `.md` (raciocínio) | **destilar** resumo no charter/SPEC; raw fica no workspace de origem | conhecimento = canon, não dump |
-| process docs (STATUS/CODE_NOTES/PROTOCOL…) | já são canon em `prototipo-ui/` root | não re-exportar |
+| process docs (STATUS/CODE_NOTES/PROTOCOL…) | já são canon em `memory/reference/prototipo-ui/` | não re-exportar — a [ADR 0397](../../decisions/0397-prototipo-minimo-por-dono-e-ds-direto.md) D3 tirou máquina e process doc de dentro de `prototipo-ui/` |
 | `memory/**` do export | **ignorar** (canon é o repo/MCP) | fonte única de memória |
 | ADRs | canon `memory/decisions/` | não duplicar |
 | PNG/screenshot/dupes/`.bak` | descartar (transporte) | derivado/lixo |
@@ -106,9 +110,11 @@ Cada tela tem um **charter** (`<Tela>.charter.md`) = o contrato: missão, goals/
 > Já existem — **use, não crie doc novo** (anti-scatter).
 
 ## A máquina que protege isso (nunca mais acontece)
-[`scripts/governance/cowork-ssot-guard.mjs`](../../../scripts/governance/cowork-ssot-guard.mjs) (roda no `design-memory-gate.yml`) **dá erro** se: `.md` no `cowork/` · bundle datado `cowork-*` · protótipo ativo fora do `cowork/` · dois arquivos rastreados com os mesmos bytes. O allowlist transitório está zerado.
+[`scripts/governance/cowork-ssot-guard.mjs`](../../../scripts/governance/cowork-ssot-guard.mjs) (roda no `design-memory-gate.yml`) **dá erro** quando alguma das 4 regras cai: **R1** a raiz do protótipo contém somente as duas áreas autorizadas · **R2** `cowork/` contém somente os dois donos, nenhum arquivo solto · **R3** `.md` vive **dentro** de um dono — deixou de ser proibido por decisão [W] 2026-09-13 · **R4** zero bytes duplicados **dentro** de cada dono (contas diferentes podem ter bytes iguais).
 
 ---
 _O passo 4 da ROTINA (regenerar o pacote) entrou em **2026-09-01**. O pedido já existia desde 2026-08-22 em `CODE_NOTES.prompt-*`, mas a medição daquele dia mostrou que **nenhum** dos 6 documentos do read-order do Cowork o mencionava — a instrução estava fora do caminho que a sessão de design percorre. Sintoma que a denunciou: `sync/bundle.manifest.json` congelado em 2026-08-24T22:49Z, com 3 ciclos de design fechados fora dele._
+
+_Em **2026-09-22** o passo 4 foi reescrito: ele mandava VOCÊ regenerar o pacote à mão afirmava que `.md` não viaja no pacote, e atribuía a geração dele à pessoa em vez de a uma máquina do repo. As três afirmações já estavam mortas no `main` — o pacote é gerado pelo CI (`cowork-bundle.yml`, push em `cowork/Wagner/**`), o `.md` é permitido dentro de um dono (guard R3, [W] 2026-09-13) e a descida é o zip importado pelo Code (`receber-handoff --zip … --conta w`). Como é o 1º documento do read-order de toda sessão de design, quem o seguia errava por ele._
 
 _Origem: handoff 2026-06-23 + red-team adversarial da integração de memória. Pareado com a [ADR-proposta SSOT](../../../memory/decisions/proposals/2026-06-23-prototipo-ssot-unico-com-historico.md) (método) e [`FRESCOR-PRODUCAO-vs-PROTOTIPO.md`](FRESCOR-PRODUCAO-vs-PROTOTIPO.md) (frescor por-tela)._

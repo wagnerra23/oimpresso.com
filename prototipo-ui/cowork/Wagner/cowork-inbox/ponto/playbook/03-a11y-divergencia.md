@@ -4,7 +4,7 @@ titulo: a11y — sinal não-cor na divergência + mobile-fit do dia a dia
 dono: "[CL]"
 base: e86130722de1
 prefixo: resources/js/Pages/Ponto/Espelho/Index.tsx · Espelho/Show.tsx · _components/MonthHeatmap.tsx
-nao_toca: prototipo-ui/contrato/ponto-espelho.contract.json (copy/ordem são lei) · Modules/Ponto/** · os 4 data-contract do Show fora do escopo
+nao_toca: governance/design/contracts/ponto-espelho.contract.json (copy/ordem são lei) · Modules/Ponto/** · os 4 data-contract do Show fora do escopo
 depende: thread 01 feita (rede antes de tocar UI) — vaga 2
 ---
 # 03 · a11y não-cor + mobile-fit

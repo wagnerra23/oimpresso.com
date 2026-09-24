@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 59 |
+| US no SPEC | 60 |
 | CU no SDD | 16 |
 | Telas (.tsx) | 21 |
 | Telas com `casos.md` | 21 |
-| UC declarados | 112 |
-| UC com teste que os cita | 95 |
+| UC declarados | 118 |
+| UC com teste que os cita | 101 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -98,6 +98,7 @@ authority: generated
 | US-FIN-065 | `todo` | Elevar tela Unificado/Novo a ≥70 (form unificado real de cobrança) |
 | US-FIN-066 | `todo` | Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor) |
 | US-FIN-067 | `todo` | Elevar tela Advisor/Login a ≥70 (DS v4 roxo + @/ui + charter) |
+| US-FIN-069 | `todo` | Baseline de pixel do DRE (#7767) não reproduz o render do CI — visual-regression |
 
 ## UC por status
 
@@ -171,6 +172,9 @@ authority: generated
 | UC-FCC-11 | Conciliacao/Index | 🧪 aguarda veredito da lane |
 | UC-FCC-12 | Conciliacao/Index | 🧪 aguarda veredito da lane |
 | UC-FCC-13 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-14 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-15 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-16 | Conciliacao/Index | 🧪 aguarda veredito da lane |
 | UC-FCX-01 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-FCX-02 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-FCX-03 | Caixa/Index | 🧪 aguarda veredito da lane |
@@ -187,6 +191,9 @@ authority: generated
 | UC-FPC-02 | PlanoContas/Index | 🧪 aguarda veredito da lane |
 | UC-FPC-03 | PlanoContas/Index | 🧪 aguarda veredito da lane |
 | UC-FPC-04 | PlanoContas/Index | 🧪 aguarda veredito da lane |
+| UC-FPC-05 | PlanoContas/Index | 🧪 aguarda veredito da lane |
+| UC-FPC-06 | PlanoContas/Index | 🧪 aguarda veredito da lane |
+| UC-FPC-07 | PlanoContas/Index | 🧪 aguarda veredito da lane |
 | UC-FUNI-01 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-FUNI-02 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-FUNI-03 | Unificado/Index | 🧪 aguarda veredito da lane |

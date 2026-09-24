@@ -16,6 +16,7 @@
 import { chromium } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
+import { selectSmokeRoutes } from './select-routes.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const cfg = JSON.parse(fs.readFileSync(path.join(HERE, 'routes.json'), 'utf8'));
@@ -35,18 +36,8 @@ const log = (...a) => console.log('[smoke]', ...a);
 
 // ── quais rotas smokar ──────────────────────────────────────────────────────
 // __MANUAL__ → todas · __NAV__ → só nav_critical · lista de .tsx → nav_critical + as
-// rotas cujo `source` está na lista (precisão quando dá, robustez sempre).
-function selectRoutes() {
-  const changed = SCREENS.split(',').map((s) => s.trim()).filter(Boolean);
-  const manual = SCREENS === '__MANUAL__';
-  const navOnly = SCREENS === '__NAV__';
-  return cfg.routes.filter((r) => {
-    if (manual) return true;
-    if (r.nav_critical) return true;
-    if (navOnly) return false;
-    return r.source && changed.includes(r.source);
-  });
-}
+// rotas cujo `source` está na lista. Page sem rota declarada é NÃO MEDIDO e falha; abrir
+// só as nav_critical não prova a tela que disparou o workflow.
 
 async function login(context) {
   if (!USER || !PASS) return false;
@@ -147,9 +138,27 @@ function appendReview(source, label, res) {
 }
 
 async function run() {
-  const routes = selectRoutes();
+  const selection = selectSmokeRoutes(cfg.routes, SCREENS);
+  const routes = selection.routes;
   log(`SCREENS=${SCREENS} → ${routes.length} rota(s):`, routes.map((r) => r.label).join(', '));
   fs.mkdirSync(OUT, { recursive: true });
+
+  if (selection.unmatched.length) {
+    const summaryPath = path.join(OUT, `smoke-${RUN_ID}.md`);
+    const lines = [
+      `# Smoke visual pós-deploy — run ${RUN_ID}`,
+      '',
+      '- **veredito geral:** NÃO MEDIDO',
+      '- **motivo:** Page/componente alterado sem rota exata em `scripts/screen-smoke/routes.json`',
+      '',
+      ...selection.unmatched.map((source) => `- \`${source}\``),
+      '',
+    ];
+    fs.writeFileSync(summaryPath, lines.join('\n'));
+    if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n'));
+    console.error(`[smoke] ::error::NAO MEDIDO: ${selection.unmatched.length} arquivo(s) alterado(s) sem rota exata. O fallback nav_critical não prova essas telas: ${selection.unmatched.join(', ')}`);
+    process.exit(1);
+  }
 
   const browser = await chromium.launch();
   const context = await browser.newContext({ locale: 'pt-BR', ignoreHTTPSErrors: false });

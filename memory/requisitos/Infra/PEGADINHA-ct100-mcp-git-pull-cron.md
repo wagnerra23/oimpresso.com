@@ -127,6 +127,135 @@ Com isso o CT 100 fica **auto-suficiente** (gera seu próprio sinal "o que é ma
 - ⚠️ **OOM no `mcp:sync-memory` (status=137, ~2×/dia):** pré-existente, separado deste fix (o SHA agora é gravado ANTES do passo que mata). Vale investigar limite de memória do container / chunking da indexação.
 - ⚠️ **Unit systemd não versionada:** `oimpresso-git-sync.{service,timer}` vivem só no host (criadas ad-hoc 2026-05-12, agora editadas ad-hoc). Um rebuild do CT 100 via bootstrap perde o fix. Mover a definição da unit pro `docker/oimpresso-mcp/scripts/bootstrap-ct100*.sh` (ou systemd unit no repo) pra durabilidade real.
 
+## 2026-09-21 — 3ª ocorrência: o timer estava `active` e **não disparava há 38 dias**
+
+**Sintoma.** `deploy-latest-main-sha.txt` congelado em `0404b631aa39` (2026-08-13 21:23Z),
+**1698 commits** atrás do tip. Mesmo arquivo, mesma classe do incidente de 2026-05-29 —
+e de novo achado por acaso, não por alarme.
+
+**O que enganava.** `systemctl is-active oimpresso-git-sync.timer` → `active`;
+`is-enabled` → `enabled`; `SubState` → `waiting`. Tudo **declaração**. E o campo de
+runtime que eu consultei primeiro, `NextElapseUSecRealtime`, vinha **vazio** — o que me
+levou a concluir "o timer morreu". **Estava errado, e a razão vale mais que o caso:**
+este timer é **monotônico** (`OnBootSec` + `OnUnitActiveSec`), e timer monotônico não
+preenche o campo *Realtime* — o campo certo é **`NextElapseUSecMonotonic`**. Pedir o
+campo errado devolve vazio com cara de resposta (§5 2026-07-17, *deduzir quem-roda* — há **8**
+lápides nessa data, e a convenção canônica é citar por **data + apelido**, nunca por data só).
+
+⚠️ **E ERREI UMA SEGUNDA VEZ NO MESMO CAMPO — fica registrado, não apagado.** Ao "corrigir"
+a primeira leitura, escrevi que o timer *"rearmou com `NEXT` a ~38 dias no futuro
+(`NextElapseUSecMonotonic = 1month 1w 18h`)"*. **Também falso**, por duas razões que só
+aparecem quando se fecha a aritmética: **(a)** `NextElapseUSecMonotonic` é timestamp
+**ABSOLUTO desde o boot**, não "daqui a tanto"; **(b)** aquele valor foi colhido **DEPOIS**
+do meu restart, e eu o apresentei como o estado de **antes**. A conta fecha e desmente:
+
+| medida (2026-09-21) | valor |
+|---|---|
+| boot do host | `2026-08-14 10:43:41` |
+| uptime | `3284111s` = **38,0 dias** |
+| `NextElapseUSecMonotonic` | `1month 1w 18h 25min 11.039463s` = **3.300.911 s** = **38,2050 dias** após o boot (⚠️ no systemd `1month` = **2629800 s** = 30,4375 d, **não 31 d**) |
+| = em relógio de parede | `boot + 3.300.911 s` = **2026-09-21 15:38:52**, contra o `NEXT` medido de `15:37:49` — Δ **63 s**, que é o intervalo entre as duas leituras |
+| ✅ **verificação CONSTANTE-LIVRE** (a que dispensa saber quanto vale "month") | `NextElapse − uptime` = `3.300.911 − 3.284.111` = **16.800 s = 4,667 h**, contra o `4h 38min left` que o `list-timers` imprimiu — fecha sem nenhuma constante de calendário |
+
+⚠️ **A 1ª redação desta errata escreveu `≈ 38,77 dias` e ao lado `= 2026-09-21 15:37`, afirmando
+que "a conta fecha".** As duas linhas eram **mutuamente exclusivas por 13h31m**: 38,77 d implica
+`1month = 31 d`, constante que o systemd não usa. Eu publiquei o número **sem fazer a subtração**
+— dentro do parágrafo que registra o erro de não medir. Fica registrado (§5 2026-07-30: cometer
+a própria classe ao registrá-la). A linha da verificação constante-livre acima existe porque ela
+estava à mão desde o começo e não foi usada.
+
+Ou seja: aquele número diz *"daqui a ~6h"*, não *"daqui a 38 dias"*. **Pedir o sabor errado
+do campo** (Realtime num timer monotônico) e **ler mal o sabor certo** (absoluto como
+relativo) são o mesmo erro em dois passos — e os dois viraram afirmação publicada antes de
+serem medidos.
+
+**O que sobra medido, e é o que sustenta o diagnóstico.** O host rebootou em **14/ago
+10:43:41** (`-- Boot 2498b72c… --` no journal do timer). A partir daí:
+
+| evidência | valor | imune ao restart? |
+|---|---|---|
+| journal do timer | `Aug 14 10:43:42 Started …` e **nenhuma linha** até o meu restart de hoje | ✅ é history |
+| `deploy-latest-main-sha.txt` | congelado desde `2026-08-13 19:50:01 -03` | ✅ é mtime de disco |
+| `LastTriggerUSecMonotonic` | **0** | ⚠️ **NÃO** — só foi lido às `12:38:51Z`, **depois** do restart de `12:37:48Z`; nunca foi lido antes. **Não sustenta sozinho**, e está aqui só como consistente com as duas de cima |
+
+As duas primeiras — e só elas — sustentam: **o timer nunca disparou em 38 dias**, embora `is-active` dissesse
+`active` e `SubState` dissesse `waiting`. Ficou *armado e mudo* — nunca falhou, nunca
+alarmou, nunca rodou.
+
+⚠️ **A CAUSA do não-disparo NÃO foi isolada, e é de propósito que ela não está escrita
+aqui como fato.** A hipótese natural — `OnUnitActiveSec` ancora na última ativação do
+serviço, e `ActiveEnterTimestamp` dele está **vazio**, logo o agendamento ficou sem âncora
+— é *consistente* com o medido, mas **não foi provada**: nada explica, sob essa hipótese,
+o `OnBootSec=2min` ter deixado de disparar às 10:45 daquele dia. Registrar a hipótese como
+desfecho seria dar à próxima sessão uma instrução que eu não medi (§5 2026-09-04).
+
+**O que foi feito (2026-09-21 09:37Z).** `systemctl restart oimpresso-git-sync.timer` +
+um disparo manual. **Consequência medida, não declarada:** o arquivo foi reescrito com
+`254cf5f0027b`, mtime `09:37:50`, e `list-timers` passou a mostrar `NEXT Mon 2026-09-21
+15:37:49` (em ~6h — o `override.conf` trocou os 5min originais por `OnUnitActiveSec=6h`).
+
+**Pendente, e é decisão [W] porque é config de servidor fora do git** (a unit vive em
+`/etc/systemd/system/`, não versionada — Tier 0 §Ambiente): o restart cura até o próximo
+reboot, não a classe. O conserto durável **recomendado** é trocar `OnUnitActiveSec` por
+**`OnCalendar=*:0/5` + `Persistent=true`** — e a recomendação **não depende** da hipótese
+não-provada acima: agendamento de relógio rearma por si, sem ancorar numa ativação
+anterior e sem depender do uptime, então é robusto qualquer que tenha sido a causa. Quem
+executar, meça a **consequência** (mtime do arquivo mudando sozinho em < 10min), nunca o
+`is-active` — foi exatamente ele que mentiu por 38 dias.
+
+**Defesa que JÁ foi instalada, do lado do consumidor** (essa é minha e está no git): o
+`staging-freshness-sentinel.sh` passou a **descartar a referência quando o arquivo está
+stale** (`STAGING_MAIN_SHA_MAX_AGE_S`, default 6h) e cair no `ls-remote`, em vez de só
+tratar o caso *vazio*. Com isso a sentinela de staging fica correta **mesmo que este
+timer morra de novo** — e o `main_src` no status JSON diz de qual porta veio a
+referência. O buraco a montante (o `DeployDriftChecker` da ADR 0216 lê o **mesmo**
+arquivo e não tem essa guarda) segue **aberto e declarado**, fora do escopo daquele PR.
+
+### Desfecho 2026-09-21 — o timer foi consertado na CLASSE, e a unit virou versionada
+
+**O que mudou.** `OnBootSec=2min` + `OnUnitActiveSec=5min` (mais o `override.conf` que trocava os
+5min por 6h) → **`OnCalendar=00/6:00:00` + `Persistent=true`**. Os dois anteriores são
+**monotônicos** e ancoram na última ativação do serviço; `OnCalendar` é relógio de parede, rearma
+por si e não depende de ancoragem nem do uptime — por isso vale **qualquer que tenha sido** a
+causa do não-disparo, que continua não isolada.
+
+**A unit agora é VERSIONADA** em [`docker/oimpresso-mcp/systemd/`](../../../docker/oimpresso-mcp/systemd/),
+com receita de aplicação, seção de verificação e histórico. Fecha o **DR-06** desta auditoria de
+ops. O host recebe cópia; conferido byte-a-byte por `sha256` (repo == host).
+
+**O `override.conf` foi NEUTRALIZADO, não apagado** — o conteúdo saiu, o arquivo ficou explicando
+o que vivia ali e por quê. Apagar esconderia a história, e o hook `block-destructive` barra
+remoção de config em prod, corretamente.
+
+**Consequência medida logo após aplicar** (o campo *Realtime*, que num timer monotônico vinha
+vazio por construção, agora está preenchido — é a assinatura de que virou relógio):
+
+| medida | antes | depois |
+|---|---|---|
+| `NextElapseUSecRealtime` | *(vazio)* | `Mon 2026-09-21 12:00:00 -03` |
+| `Persistent` | — | `yes` |
+| `list-timers` NEXT / LEFT | `-` / `-` | `12:00:00` / `29min left` |
+| diretivas efetivas | `OnBootSec` + `OnUnitActiveSec` | só `OnCalendar` + `Persistent` |
+
+⚠️ **A CADÊNCIA DE 6h FOI MANTIDA DE PROPÓSITO, e o pendente de voltar à curta NÃO foi cumprido.**
+O [handoff de 2026-08-12](../../handoffs/2026-08-12-1026-extensao-mcp-loop-sync-git-sha.md) deixou
+escrito *"voltar o timer de 6h pra cadência curta — 6h é contenção, não cura"*. **Metade da cura
+chegou:** o churn de CPU que motivou a contenção **acabou** (meilisearch medido hoje em **0,13%**,
+contra os 100,3% do #5663). **A outra metade não:** o run de hoje 09:37 morreu com `status=137`
+(SIGKILL/OOM) aos **10min25s** — o `mcp:sync-memory` não completa. Encurtar agora trocaria churn
+de CPU por churn de OOM. **Reabrir exige um run com `Result=success`**, e o OOM do sync é achado
+novo, fora do escopo deste conserto.
+
+**Backup, para reverter:** `/root/ct100-backups/timer-pre-oncalendar-20260921/` (`timer.bak`,
+`override.conf.bak`, `service.bak`) — restaurar, `daemon-reload`, `restart`.
+
+**O consumidor foi realinhado junto.** O `STAGING_MAIN_SHA_MAX_AGE_S` do
+[`staging-freshness-sentinel.sh`](../../../docker/oimpresso-staging/staging-freshness-sentinel.sh)
+era 6h, derivado dos *"/5min"* que a **doc** declarava (5min × 72) em vez da cadência **medida**.
+Com produtor de 6h, teto igual à cadência descartaria a referência **válida** no fim de cada
+janela. Agora é **7h** = 6h + 1h de folga, e o E2E prova os dois lados: arquivo de 6h →
+`main_src=arquivo`; de 39d → `main_src=ls-remote`.
+
 ## Histórico
 
 - **2026-05-12 14:08 BRT:** último sync OK (gerado por trigger desconhecido — provavelmente webhook que funcionou)

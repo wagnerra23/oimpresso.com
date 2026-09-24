@@ -20,6 +20,8 @@ export interface DataTableProRow {
 export interface DataTableProProps {
   columns: DataTableProColumn[];
   rows: DataTableProRow[];
+  /** Nome acessível da tabela, num `<caption>` visualmente oculto. */
+  caption?: string;
   /** Altura da área de rolagem (header fixo). Default 440. */
   height?: number;
   density?: 'comfortable' | 'compact';

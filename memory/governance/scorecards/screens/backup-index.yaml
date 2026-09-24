@@ -1,0 +1,55 @@
+# Primeira medição da tela (thread 06 · playbook Prontidão · 2026-09-23).
+# Agente screen-qa-specialist, só passos 0 (Pré-Flight) e 1 (Nota). E2E/axe/smoke FORA.
+# ⚠️ NOTA DE LEITURA DE CÓDIGO: .tsx + charter + controller lidos em árvore 317e1b4ec33.
+#    Prod NÃO foi aberto. E mais: o render Inertia desta tela nasce DESLIGADO
+#    (config/mwart.php:39-42, MWART_BACKUP_INDEX default false; BackUpController.php:42) —
+#    se a flag estiver off em prod, /backup serve o Blade legado e esta nota NÃO descreve
+#    o que o usuário vê hoje.
+# Nota = média simples (arredondada) das 16 dimensões (peso de persona 1×: persona wagner/superadmin).
+screen: Backup/Index
+path: resources/js/Pages/Backup/Index.tsx
+archetype: list
+persona: wagner
+nota: 77
+nivel: "Advanced"
+baseline_anterior: 77   # ratchet — primeira medição; nota não cai abaixo disto sem aprovação
+peso_real: 0.85
+source: screen-qa-thread06-prontidao-2026-09-23
+graded_at: "2026-09-23"
+medicao: leitura-de-codigo   # prod não aberto; flag mwart.backup_index default off
+resumo: "Responde 'tenho backup de hoje?' em KPIs + alerta de destino, com defer e skeleton; perde em recuperação/a11y: exclusão por GET, confirmação via window.confirm nativo, motivo de desabilitado só em title, e KPI 'Último backup' mostra só a hora."
+dimensoes: { density: 80, discoverability: 80, speed_to_task: 84, error_recovery: 66, cognitive_load: 80, aesthetic_usability: 74, affordance: 76, brand_confidence: 78, mobile_fit: 72, a11y_wcag: 66, i18n_ptbr: 84, performance_perceived: 84, information_hierarchy: 78, microcopy: 84, internal_consistency: 74, preflight_conformance: 72 }
+evidencia:
+  density: "KPI row de 4 + tabela de 6 colunas (Index.tsx:87-148, 174-193)"
+  discoverability: "Uma ação primária no PageHeader (Index.tsx:163-169); card de cron copiável (Index.tsx:253-280)"
+  speed_to_task: "Goal do charter (≤2s, charter:26-27) atendido pelos KPIs Último backup + Agendamento (Index.tsx:175-192); Baixar em 1 clique (Index.tsx:126-134)"
+  error_recovery: "Excluir dispara router.get (Index.tsx:84) numa rota GET (routes/web.php:1028) — ação destrutiva por GET; último backup protegido (Index.tsx:82, 138); flash status tratado pelo shell (HandleInertiaRequests.php:99-117)"
+  cognitive_load: "Tela curta, sem filtro (charter:71), alertas explicam o risco (Index.tsx:197-225)"
+  aesthetic_usability: "Confirmações em window.confirm nativo (Index.tsx:77, 83) quebram o visual; card de cron hand-roll em div com borda (Index.tsx:254)"
+  affordance: "Botões desabilitados explicam o motivo só por title (Index.tsx:129-130, 138-139)"
+  brand_confidence: "Button primary canon, Alert destructive, zero gradiente do Blade (charter:119)"
+  mobile_fit: "Grid min=sm nos KPIs (Index.tsx:174); linha de cron com overflow-x (Index.tsx:261); tabela sem minTableWidth declarado"
+  a11y_wcag: "title em botão disabled não chega a leitor de tela (Index.tsx:129-130, 138-139); 'Baixar'/'Excluir' repetidos por linha sem o nome do arquivo no nome acessível (Index.tsx:126-143); caption na tabela (Index.tsx:246)"
+  i18n_ptbr: "PT-BR em toda copy; data pt-BR (Index.tsx:45-46); idade humana (Index.tsx:48-54)"
+  performance_perceived: "backups sob Inertia::defer (BackUpController.php:105) + Skeleton (Index.tsx:229)"
+  information_hierarchy: "KPI 'Último backup' usa fmtData(...).slice(-5) = só HH:MM (Index.tsx:177) — a data some do valor principal; alerta 'todos os negócios' sempre visível antes do de destino (Index.tsx:197-215)"
+  microcopy: "Copy forte e honesta: 'Backup no mesmo servidor não é backup', 'Não tem lixeira e não tem volta' (Index.tsx:83, 208)"
+  internal_consistency: "window.confirm em vez do AlertDialog do DS; download por window.location (Index.tsx:131)"
+  preflight_conformance: "Charter draft (charter:9); decisão [W] de restringir a superadmin ainda não implementada — controller segue can('backup') (charter:101-104; BackUpController.php:37); Inertia atrás de flag default off (config/mwart.php:39-42)"
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "GitHub: ação destrutiva é DELETE/POST com confirmação digitada — o mecanismo é o verbo HTTP não-idempotente + fricção proporcional"
+    fix: "Trocar a rota delete por DELETE /backup/{file} e router.delete na tela; manter guarda do último arquivo"
+    esforco: medio
+  - dim: "A11y-WCAG"
+    best_of_class: "Stripe: motivo de desabilitado em texto visível/Tooltip acessível, ações de linha com contexto no aria-label"
+    fix: "aria-label={`Baixar ${b.file_name}`}/Excluir; motivo de disabled em Tooltip do DS ou texto sob o botão, não title"
+    esforco: baixo
+  - dim: "Internal-consistency"
+    best_of_class: "Linear: um único Dialog de confirmação no app inteiro"
+    fix: "Substituir window.confirm (Index.tsx:77, 83) pelo AlertDialog de @/Components/ui"
+    esforco: baixo
+  - dim: "Information-hierarchy"
+    best_of_class: "Vercel Deployments: 'há 3 h' como valor e data absoluta como detalhe"
+    fix: "KPI 'Último backup' com a idade como value e a data completa na description (Index.tsx:177-178)"
+    esforco: baixo

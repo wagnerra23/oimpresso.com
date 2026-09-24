@@ -4,7 +4,7 @@ page: /ia
 component: resources/js/Pages/Jana/Index.tsx
 related_visual_comparison: memory/requisitos/Jana/Index-visual-comparison.md
 related_prototype: prototipo-ui/cowork/Wagner/jana-merge.jsx
-states: [default]  # gate L2 — o `default` desta tela é semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o `JanaKpiCard` em `emphasis` do "A receber vencido" entre em baseline; sync com tests/Browser/visreg-states.json
+states: [default, dark, empty]  # gate L2 — `default`: biz=1 semeado com UMA venda VENCIDA (routes/web.php `$seedJanaVisregFlow`), pra que o `JanaKpiCard` em `emphasis` do "A receber vencido" entre em baseline. `dark`: mesmo biz=1 + flag do VisregStateMiddleware — fecha o eixo de TEMA que faltava (o `default` é LIGHT; a sidebar é preta nos dois modos por UI-0023, então ela não indica tema). `empty`: biz=98 (VisregEmptyTenantSeeder, vazio por construção, ADR 0358) — é o ÚNICO render que exercita o estado vazio de página do UC-JPAIN-29, porque no biz=1 `sellKpis.total > 0` e `semHistorico` nunca é true. Sync com tests/Browser/visreg-states.json (o visreg-states-lint falha se divergirem)
 owner: wagner
 status: live
 last_validated: "2026-09-18"
@@ -18,7 +18,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
 runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
-charter_version: 23
+charter_version: 24
 permissao: jana.access
 ---
 
@@ -242,6 +242,79 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
 `brief-first` (Tier A) · `multi-tenant-patterns` (Tier A) · `inertia-defer-default` (Tier B) · `mwart-process` (Tier A)
 
 ## Charter version log
+
+- **v25 (2026-09-21)** — **a divergência de PESO que a v17 deixou aberta FECHOU, por réplica
+  local — e o fundamento que faltava está medido: as duas âncoras discordam entre si.** A v17
+  estabeleceu o alvo (prod 700 -> âncora 600) e a `Index.casos.md` já prescrevia o caminho
+  ("componente compartilhado não impõe a forma de uma tela às outras", ADR 0388 §D-1). O que esta
+  rodada acrescenta é a medição do OUTRO lado: a âncora de **Vendas** declara **700**
+  explicitamente, em duas regras — `styles.css:4772` (0-1-1) e `financeiro.css:1727` (0-3-1, a que
+  vence por especificidade) —, e o comentário de `styles.css:4765` diz, textual, *"`.os-head` —
+  mesmo CANON do PageHeader"*: aquele protótipo foi escrito PARA casar com o componente. O 700 do
+  `PageHeader` é, portanto, decisão [W] datada e **ainda válida** (PR #1477, 2026-05-25, *"prefiro
+  o mesmo peso do sells"* — referência re-medida hoje e ainda 700), não desvio acidental. Mudá-la
+  alinharia **42** telas ao peso que a Jana quer. Conserto: prop opt-in `titleWeight` no
+  `PageHeader` (mesmo contrato de `leading`/`below` — sem a prop, nada muda), default `'bold'`,
+  e só o `JanaAreaHeader` declara `'semibold'`; as outras **41** telas não mudam um pixel.
+  UC-JPAIN-30, com mordida provada por duas mutações (uma por perna: some o opt-in -> cai o assert
+  da Jana; muda o default -> cai o controle negativo que protege as demais). Teste:
+  `tests/janaAreaHeaderParidade.spec.tsx`. **Computed style MEDIDO** (2026-09-21, browser real + CSS do projeto gerado pelo entry
+  de verdade, Tailwind v4.3.3): com a prop **600**, sem a prop **700**, e `font-size` **22px nos
+  dois** — a paridade de tamanho não foi tocada. A medição é necessária porque no v4 a regra é
+  indireta (`font-weight: var(--font-weight-semibold)`) e só o browser resolve. Controle positivo
+  no mesmo turno (`folhaCarregou: true`), e a className veio extraída do fonte, não digitada.
+  ⚠️ Não é a tela `/ia` logada inteira: smoke autenticado não foi feito (302 sem sessão). O `<h1>` segue FORA dos 9
+  seletores do `governance/design/targets/jana--index.alvo.json` — resíduo declarado, não fechado.
+
+- **v24 (2026-09-21)** — **os 3 estados do gate L2 existem, e a medição expôs um PONTO CEGO que
+  nenhuma das duas ondas tinha visto.**
+
+  **O que passou a existir** (`#7616` + modo update run `35610507942`, escopo `["Jana"]`):
+
+  | estado | tenant | o que o render PROVA |
+  |---|---|---|
+  | `default` | biz=1 | já existia — é **LIGHT** (ver ⚠️ abaixo) |
+  | **`dark`** | biz=1 + flag | a onda 01 no tema escuro: upsell do brief com `Ver Jana Pro`, selo `plano Grátis`, e o h2 `ANÁLISES PRINCIPAIS` **sem** a sub-linha de drill |
+  | **`empty`** | **biz=98** (vazio por construção) | a onda 02 em runtime: a copy literal do UC-JPAIN-29, `Ir para a Conversa`, o corpo sumindo inteiro — e **METAS de pé ao lado**, que é o invariante dos eixos separados |
+
+  O `empty` é o primeiro render **real** do estado vazio: no biz=1 o `$seedJanaVisregFlow` semeia uma
+  venda vencida, `sellKpis.total > 0`, e `semHistorico` nunca é `true`. Até aqui o UC-JPAIN-29 só
+  tinha prova em jsdom.
+
+  ⚠️ **O `default` é LIGHT, não dark** — medido no render. A sidebar é preta nos **dois** modos
+  ([UI-0023](../../../../memory/requisitos/_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)),
+  então ela **não indica tema**; quem indica é o conteúdo. Eu quase classifiquei o snapshot antigo
+  como "dark" e declarei um eixo fechado que não estava.
+
+  ### ⛔ PONTO CEGO da baseline: as ABAS não entram em snapshot nenhum
+
+  **Medido:** `JanaSubNav.tsx` faz `if (!janaItem?.ghosts?.length) return null;`. As abas vêm de
+  `shell.menu[].ghosts`, servidos pelo `DataController`; no tenant do visreg o grupo `ia` não os
+  tem, então o SubNav **retorna `null`**. As **6 abas** que a âncora desenha
+  (`jana-merge.jsx` §`JmTabs`: Painel · Conversa · Alertas · Ações · Memória · Plataforma)
+  **não aparecem em `default`, `dark` nem `empty`**.
+
+  **Isto é pré-existente, não regressão das ondas** — a baseline anterior também não as tinha. Mas
+  a consequência é dura e fica declarada: **o gate L2 desta tela não cobre a barra de abas**, e
+  quem ler um snapshot verde não pode concluir que a subnav está sã. A `v21` travou a métrica da
+  aba por `density="compact"` num **spec jsdom** (`pageHeaderTabsDensity`), não por pixel — e é
+  por isso que a divergência não acusou em lugar nenhum.
+
+  ⚠️ **Não consertei**: fazer o seed do visreg produzir `ghosts` mexe no `ShellMenuBuilder`/
+  `DataController` e muda o render de **todas** as telas que declaram estado, não só a Jana. É onda
+  própria, com decisão [W] — não carona num PR de charter.
+
+  ### A âncora foi confirmada pela PORTA VIVA, não pelo charter
+
+  Até aqui eu vinha lendo `related_prototype` direto do frontmatter — que é a fonte que o próprio
+  charter declara, e portanto circular. Rodado `node scripts/design/ancora.mjs Jana/Index`:
+
+  > `âncora ✓: [related_prototype (charter)] prototipo-ui/cowork/Wagner/jana-merge.jsx`
+  > `✓ frescor: verificado contra o Cowork vivo em 2026-09-21T10:43:20Z — fala DESTE arquivo`
+
+  ⚠️ E ela emite uma ressalva que o charter não carregava: **`cobertura: o espelho NÃO cobre o vivo
+  — 4 arquivo(s) de 734 existem lá e nunca desceram`**. O ✓ de frescor fala **daquele arquivo**;
+  não prova que a fonte da tela está toda no espelho.
 
 - **v23 (2026-09-21)** — **business sem histórico vê UM estado de página, não 6 caixas vazias.**
   ONDA 02 do mesmo playbook (`cowork-inbox/jana/playbook/02-painel.estado-vazio.md`). Um arquivo,

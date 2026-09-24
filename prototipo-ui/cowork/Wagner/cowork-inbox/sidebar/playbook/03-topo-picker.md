@@ -3,7 +3,7 @@ sessao: "03"
 titulo: Seção TOPO — paridade do CompanyPicker e o slot de alerta que o protótipo não tem
 dono: "[CC]"
 base: af09f7c3a0fd
-prefixo: prototipo-ui/cowork/sidebar.jsx (só o bloco do topo) · prototipo-ui/cowork/data.jsx
+prefixo: prototipo-ui/cowork/Wagner/sidebar.jsx (só o bloco do topo) · prototipo-ui/cowork/Wagner/data.jsx
 nao_toca: app.jsx · styles.css · Components/cockpit/**
 depende: 01 (mesmo arquivo — Lei 1: vaga 2, nunca em paralelo) · RESÍDUO-4
 ---
@@ -33,7 +33,7 @@ depende: 01 (mesmo arquivo — Lei 1: vaga 2, nunca em paralelo) · RESÍDUO-4
 
 ## Execução
 ```
-ARQUIVOS A EDITAR : prototipo-ui/cowork/sidebar.jsx (bloco .sb-top) · prototipo-ui/cowork/data.jsx (estado do certificado, se RESÍDUO-4 = real)
+ARQUIVOS A EDITAR : prototipo-ui/cowork/Wagner/sidebar.jsx (bloco .sb-top) · prototipo-ui/cowork/Wagner/data.jsx (estado do certificado, se RESÍDUO-4 = real)
 PASSO A PASSO     : 1) diff nos dois sentidos → tabela no _saida  2) aplicar só o que a tabela justificar
                     3) slot conforme RESÍDUO-4  4) conferir que o rail não ganha o alerta (não cabe em 56px — decidir e dizer)
 PARAR SE          : (a) 01 não estiver fechada (mesmo arquivo)  (b) RESÍDUO-4 sem resposta → entregar só a tabela do diff

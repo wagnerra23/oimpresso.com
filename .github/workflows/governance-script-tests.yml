@@ -54,6 +54,10 @@ jobs:
   tests:
     name: governance script tests (advisory)
     runs-on: ubuntu-latest
+    # `actions: read` so para o ultimo step: ele le da API quais steps DESTE job falharam.
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -66,6 +70,9 @@ jobs:
       - name: Fact-anchor Check T (versoes derivaveis · fixtures boa/ruim · proposal fatos-derivaveis)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/fact-anchor.test.mjs
+      - name: 'BRL scan · contrato de execucao (bite: base invalida MORDE, range limpo LIBERA, vazio declara nao-medicao; mutante sem pipefail volta a ficar mudo)'
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/brl-scan-workflow.test.mjs
 
       - name: Retorno Code -> Design §10.2 (3 canais · advisory + bite/release)
         if: always() && steps.setup.outcome == 'success'
@@ -109,6 +116,21 @@ jobs:
       - name: §5 derive bite-test (corta arqueologia, NUNCA come limite · lapide de 2 eixos)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/sec5-derive.mjs --selftest
+      # O design-lock nasceu em 2026-09-22 (#7709) e entrou em main SEM invocador — o
+      # `selftest-registry-check` o acusou: "ORFAO EMBUTIDO: implementa --selftest e nenhum
+      # workflow o roda". Script sem invocador e bug, nao neutralidade (proibicoes.md
+      # §Sempre-fazer #2). Ligado AQUI, e nao num job required, de proposito: step hard-fail
+      # dentro de required e bloqueio de merge sem flip [W] (o umbrella documenta o caso do
+      # #4826). Este job e advisory — medido contra a uniao classic+ruleset dos 47 required,
+      # "governance script tests" nao casa nenhum.
+      # O selftest defende os 2 controles do FALSO-POSITIVO de 2026-09-22: o eixo `fora`
+      # classificava copia de DS por NOME de arquivo e quase custou a delecao de um override
+      # de contraste WCAG AA. Se alguem reintroduzir o nome como criterio de ACHADO, cai aqui.
+      # Nao precisa de npm: o script importa so builtins (node:fs/os/path/crypto/url), que e
+      # o contrato deste job — ele nao instala nada.
+      - name: design-lock bite-test (DS unico por CONTEUDO · fonte ambigua · lock invalido · NAO MEDI)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design/design-lock.mjs --selftest
       # O auto-aperto de baseline ESCREVE em arquivo de catraca — se o medidor de direcao
       # errar, ele grandfathera divida em vez de travar ganho, que e o Gap-2 do tamper-guard.
       # Por isso o bite-test dele roda em PR (aqui), nao so no cron semanal que o invoca:
@@ -137,6 +159,21 @@ jobs:
       # Fixtures do falso-positivo REAL de 2026-08-04: main parado a noite toda + rajada de
       # 2 commits -> a formula antiga (head - served) devolvia 14.4h e alarmava com o servidor
       # 3min atras. A fixture "a formula ANTIGA teria alarmado" impede a regressao voltar.
+      # Sentinela de frescor do checkout de STAGING (host CT 100, cron horario). O
+      # --selftest dela existia desde 2026-07-17 e NINGUEM o invocava: `git grep` em
+      # .github/, scripts/, package.json e .claude/ devolvia rc=1 (zero). Maquina que
+      # existe e ninguem invoca e bug, nao neutralidade -- e o custo ficou visivel em
+      # 2026-09-21, quando a sentinela passou 39 dias medindo contra uma referencia de
+      # main congelada (o produtor dela, `oimpresso-git-sync.timer`, parou de disparar
+      # apos um reboot) sem que nada avermelhasse. Os asserts cobrem os dois nucleos
+      # PUROS -- `avaliar_frescor` e `referencia_confiavel` -- incluindo a borda do
+      # descarte e o controle negativo "referencia podre torna `fresco` inalcancavel".
+      # Aqui e nao em workflow novo porque este job JA e o dono de "bite-test de script"
+      # (ADR 0298: estender o dono, nunca abrir paralelo).
+      # Sem o guard de `steps.setup` de proposito: e bash puro, nao usa node nem deps.
+      - name: Staging freshness · bite-test (referencia podre e DESCARTADA · borda do TTL · fresco alcancavel)
+        if: always()
+        run: bash docker/oimpresso-staging/staging-freshness-sentinel.sh --selftest
       - name: MCP drift · lag mede HA QUANTO TEMPO o servidor deve (nao a distancia entre commits)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/mcp-drift-sentinel.mjs --selftest
@@ -157,14 +194,18 @@ jobs:
       #  (1) bite-test — prova que o lint SABE reprovar (Lei C). Exercita o CLI de fora,
       #      nao so o helper exportado (§5 2026-07-30 / 2026-08-14).
       #  (2) --check --baseline — no-new-lie: grandfathera os 42 legados e morde id NOVO.
-      #      Sem --baseline daria exit 1 hoje; renomear os 42 em lote esta proibido por
-      #      §5 2026-07-12 (acordaria o G-6 de frescor em 8 arquivos).
+      #      Em 2026-08-23 o --check cru dava exit 1 (42 ids legados) e renomear em lote
+      #      estava proibido por §5 2026-07-12. Os 42 foram consertados desde entao: em
+      #      2026-09-22 o --check cru mede `0 fora do formato` e o baseline chegou a
+      #      `grandfathered: []`. Pela ADR 0409 ("ao chegar a zero, o arquivo de tolerancia
+      #      e apagado e o gate passa a operar somente pelo criterio absoluto") ele foi
+      #      extinto e este step roda sem tolerancia nenhuma.
       - name: uc-id-lint bite-test (morde prefixo longo/2-segmentos/digito, libera UC-KBV2-01 e prosa)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/qa/uc-id-lint.test.mjs
-      - name: uc-id-lint · id NOVO fora do formato (no-new-lie · legado grandfatherado)
+      - name: uc-id-lint · criterio ABSOLUTO (baseline extinto — ADR 0409)
         if: always() && steps.setup.outcome == 'success'
-        run: node scripts/qa/uc-id-lint.mjs --check --baseline governance/uc-id-baseline.json
+        run: node scripts/qa/uc-id-lint.mjs --check
       # ── uc-lane-coverage (pedido [CC] 2026-08-23) ─────────────────────────────────
       # A lane `ponto-pest.yml` roda 11 arquivos de uma allowlist; o modulo tem 37. Os 26
       # de fora sao "verde impossivel": existem, podem estar vermelhos ha meses, e nenhum
@@ -207,9 +248,6 @@ jobs:
       - name: a11y-alvo selftest puro (ratchet so-desce + corte GATE x REPORT)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/qa/a11y-alvo.mjs --selftest
-      - name: Grupo de memoria por modulo (case-trap Pages/kb x requisitos/KB + token no nome do arquivo)
-        if: always() && steps.setup.outcome == 'success'
-        run: node scripts/governance/module-group-resolve.test.mjs
       - name: Shipped-log gerador honesto (fixtures-armadilha)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/shipped-log-generate.test.mjs
@@ -228,6 +266,18 @@ jobs:
       - name: Fluxo do sistema (DORA + Flow do repo inteiro · CFR/recuperacao/WIP/adocao mordem por fixture · nao-medido nunca vira 0)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/fluxo-sistema.test.mjs
+      - name: Revisão dos fluxos (documento, máquina, wiring e prova · sem baseline)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/revisar-fluxos.test.mjs
+      - name: Deploy workflow (build → artefato → SHA → smoke · RELEASE + 4 BITE)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/deploy-workflow.test.mjs
+      - name: Deploy — classificação por último deploy OK (push cancelado não esconde migration · RELEASE + 6 BITE)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/deploy-classifica-push.test.mjs
+      - name: Revisão dos fluxos (paths executáveis existem · sem baseline)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/revisar-fluxos.mjs --check
       - name: Agent cost per PR (custo USD por PR · join 2-sinais morde/libera · item #7 grade-das-reguas)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/agent-cost-per-pr.test.mjs
@@ -716,6 +766,12 @@ jobs:
       - name: receber-handoff morde (zip/CRC/zip-slip/pacote velho/3 pontos · hermético)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/receber-handoff.test.mjs
+      # Sentido Code -> Cowork do ciclo ([W] 2026-09-24). O critério (hash do espelho × bundle ativo)
+      # decide o que o Cowork não tem; se ele errar, o receber-handoff deixa passar retorno que apaga
+      # trabalho do Code (o caso do import 35: 12 arquivos do #7847).
+      - name: pendentes-cowork morde (fora do bundle · hash difere · enviado · _ds/ fora)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/pendentes-cowork.test.mjs
       # Import do bundle Cowork (Fase -1). O `--selftest` do script roda no design-memory-gate e
       # cobre SO `decidirSwap` — funcao pura. Aqui entra o que ele nao alcanca: `acharBundleRoot`
       # (o bug 2026-07-01, que aninhava o slug inteiro, estava sem UM teste) e o contrato de
@@ -1346,3 +1402,24 @@ jobs:
       - name: worktree-janitor — nunca apaga worktree VIVA (13 casos)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/worktree-janitor.mjs --selftest
+      - name: lote-resumo-ci — bite-test (21 asserts · sem --check o resumo nunca reprova)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design/lote-resumo-ci.mjs --selftest
+      - name: ds-report — bite-test (7 asserts · filtro ds/* + controle negativo)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/ds-report.mjs --selftest
+      - name: replica-inconsistencias — bite-test (20 asserts · ESLint indisponível vira NÃO MEDIDO)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/replica-inconsistencias.mjs --selftest
+      - name: ci-steps-falhos — bite-test (lista os falhos do job certo, NAO MEDIDO quando nao le)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/ci-steps-falhos.mjs --selftest
+      # ULTIMO step, de proposito: 216 dos steps acima rodam com always(), entao um vermelho nao
+      # pula os outros — mas o check aparece como um vermelho unico. Este step escreve no summary
+      # QUAIS falharam. Sai 0 sempre (o veredito ja foi dado); sem API/token diz NAO MEDIDO.
+      - name: Resumo — quais steps falharam (step summary)
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          JOB_NAME: governance script tests (advisory)
+        run: node scripts/governance/ci-steps-falhos.mjs

@@ -14,11 +14,12 @@ const { Badge, Card, Row, Seg, Nota, Kpis, Busca, Drawer, Sec, KV, Tabela, Pagin
 const TABS = [
   { id:"hrm",           label:"Painel" },
   { id:"hrm-licencas",  label:"Licenças",   n:(s) => s.pend },
-  { id:"hrm-presenca",  label:"Presença",   n:(s) => s.dados.pre.filter((p) => !p.sai).length },
   { id:"hrm-turnos",    label:"Turnos",     n:(s) => s.dados.tur.length },
   { id:"hrm-folha",     label:"Folha de pagamento" },
   { id:"hrm-feriados",  label:"Feriados",   n:(s) => s.dados.fer.length },
   { id:"hrm-metas",     label:"Metas de venda" },
+  { id:"hrm-departamentos", label:"Departamentos", n:(s) => new Set(s.dados.emp.map((e) => e.setor)).size },
+  { id:"hrm-cargos",    label:"Cargos",     n:(s) => new Set(s.dados.emp.map((e) => e.cargo)).size },
   { id:"hrm-config",    label:"Configurações" },
 ];
 const tipoNome = (id) => (H.TIPOS.find((t) => t.id === id) || {}).nome || "—";
@@ -54,8 +55,8 @@ function Painel({ lic }) {
     ...(abertos.length && verTodos ? [{
       id:"pre", urg:abertos.length > 2,
       t:`${abertos.length} marcações sem saída registrada`,
-      s:"turno fixo fecha automático; flexível fica aberto para sempre",
-      go:"hrm-presenca", cta:"Ver presença",
+      s:"a jornada é do Ponto — feche lá as marcações em aberto",
+      go:"ponto", cta:"Abrir no Ponto",
     }] : []),
     ...(loteAberto && A.pode("gerir_folha") ? [{
       id:"folha", urg:true,
@@ -386,11 +387,16 @@ function Feriados() {
   const A = useAmbiente();
   const [fer, setFer] = usePersist("fer", A.dados.fer);
   const [fLocal, setFLocal] = useState("all");
-  const [ordem, setOrdem] = useState({ col:"ini", dir:"asc" });
+  const [fDe, setFDe] = useState("");
+  const [fAte, setFAte] = useState("");
+  const [ordem, setOrdem] = useState({ col:"ini", dir:"desc" });
+  const filtrando = fLocal !== "all" || !!fDe || !!fAte;
+  const limpar = () => { setFLocal("all"); setFDe(""); setFAte(""); };
   const [form, setForm] = useState(null);
   const [aviso, setAviso] = useAviso();
 
   const rows = fer.filter((f) => fLocal === "all" || (fLocal === "todas" ? !f.local : f.local === fLocal))
+    .filter((f) => (!fDe || f.fim >= fDe) && (!fAte || f.ini <= fAte))
     .slice().sort((a, b) => {
       const s = ordem.dir === "asc" ? 1 : -1;
       if (ordem.col === "nome") return a.nome.localeCompare(b.nome, "pt-BR") * s;
@@ -427,9 +433,12 @@ function Feriados() {
           <option value="Matriz">Matriz</option>
           <option value="Filial Norte">Filial Norte</option>
         </select>
+        <input className="hrm-sel" type="date" value={fDe} max={fAte || undefined} onChange={(e) => setFDe(e.target.value)} aria-label="De" title="De"/>
+        <input className="hrm-sel" type="date" value={fAte} min={fDe || undefined} onChange={(e) => setFAte(e.target.value)} aria-label="Até" title="Até"/>
+        {filtrando && <button className="os-btn ghost" onClick={limpar}>Limpar</button>}
         <span className="usr-count">{rows.length} feriados</span>
         <span className="hrm-spacer"></span>
-        <button className="os-btn primary" disabled={!podeGerir} title={podeGerir ? null : "Só o administrador cadastra feriado"} onClick={() => setForm({})}>Novo feriado</button>
+        {podeGerir && <button className="os-btn primary" onClick={() => setForm({})}>Novo feriado</button>}
       </div>
       {rows.length ? <div className="os-table-wrap"><table className="os-table">
         <thead><tr>
@@ -437,7 +446,7 @@ function Feriados() {
           <th scope="col"><button className="mod-sort" onClick={() => ord("ini")}>Início{marca("ini")}</button></th>
           <th scope="col">Fim</th>
           <th scope="col" className="hrm-num"><button className="mod-sort" onClick={() => ord("dias")}>Dias{marca("dias")}</button></th>
-          <th scope="col">Localidade</th><th scope="col">Observação</th><th scope="col"></th>
+          <th scope="col">Localidade</th><th scope="col">Nota</th>{podeGerir && <th scope="col"><span className="sr-only">Ações</span></th>}
         </tr></thead>
         <tbody>{rows.map((f) => (
           <tr key={f.id}>
@@ -447,19 +456,89 @@ function Feriados() {
             <td className="hrm-num">{H.dias(f.ini, f.fim)}</td>
             <td>{f.local ? <Badge tone="accent">{f.local}</Badge> : <span className="hrm-meta">negócio inteiro</span>}</td>
             <td><span className="hrm-meta hrm-clamp">{f.nota || "—"}</span></td>
-            <td style={{ textAlign:"right" }}>
+            {podeGerir && <td style={{ textAlign:"right" }}>
               <span className="hrm-acoes">
-                <button className="os-btn ghost" disabled={!podeGerir} onClick={() => setForm(f)}>Editar</button>
-                <button className="os-btn ghost" disabled={!podeGerir} onClick={() => excluir(f)}>Excluir</button>
+                <button className="os-btn ghost" onClick={() => setForm(f)} aria-label={`Editar ${f.nome}`}>Editar</button>
+                <button className="os-btn ghost" onClick={() => excluir(f)} aria-label={`Excluir ${f.nome}`}>Excluir</button>
               </span>
-            </td>
+            </td>}
           </tr>))}</tbody>
       </table></div>
       : A.primeira
-        ? <Vazio variante="first" titulo="Nenhum feriado cadastrado" desc="Feriado sem localidade vale para o negócio inteiro; com localidade, só a unidade escolhida para. A escala dos turnos usa esta lista." acao={<button className="os-btn primary" disabled={!podeGerir} onClick={() => setForm({})}>Cadastrar o primeiro</button>}/>
-        : <Vazio variante="filtered" titulo="Nenhum feriado nessa localidade" desc="Feriado sem localidade vale para o negócio inteiro." acao={<button className="os-btn ghost" onClick={() => setFLocal("all")}>Ver todos</button>}/>}
+        ? <Vazio variante="first" titulo="Nenhum feriado cadastrado" desc="Feriado sem localidade vale para o negócio inteiro; com localidade, só a unidade escolhida para. A escala dos turnos usa esta lista." acao={podeGerir ? <button className="os-btn primary" onClick={() => setForm({})}>Cadastrar o primeiro</button> : null}/>
+        : <Vazio variante="filtered" titulo="Nenhum feriado nesse filtro" desc="Feriado sem localidade vale para o negócio inteiro." acao={<button className="os-btn ghost" onClick={limpar}>Limpar filtros</button>}/>}
       <p className="hrm-card-sub" style={{ marginTop:10 }}>Criar, editar e excluir é <b>só do administrador</b> — os demais veem a lista filtrada pelas localidades a que têm acesso.</p>
       {form && <F.FormFeriado item={form.id ? form : null} onClose={() => setForm(null)} onSalvar={salvar}/>}
+      <Aviso msg={aviso} tone="ok"/>
+    </>
+  );
+}
+
+// ═══════════════════════ DEPARTAMENTOS · CARGOS ═══════════════════════
+// Taxonomia do core (TaxonomyController?type=hrm_department | hrm_designation), como no nav_hrm do main.
+// Lista inicial = os setores/cargos que os colaboradores já usam; nada inventado além disso.
+function Taxonomia({ tipo }) {
+  const A = useAmbiente();
+  const dep = tipo === "departamento";
+  const campo = dep ? "setor" : "cargo";
+  const rot = dep ? { um:"departamento", uns:"departamentos", Um:"Departamento" } : { um:"cargo", uns:"cargos", Um:"Cargo" };
+  const podeGerir = A.pode(dep ? "gerir_departamento" : "gerir_cargo") && !A.demo;
+  const base = [...new Set(A.dados.emp.map((e) => e[campo]))].map((nome, i) => ({ id:i + 1, nome, desc:"" }));
+  const [itens, setItens] = usePersist(dep ? "deptos" : "cargos", base);
+  const [novo, setNovo] = useState("");
+  const [edit, setEdit] = useState(null);
+  const [aviso, setAviso] = useAviso();
+  const uso = (nome) => A.dados.emp.filter((e) => e[campo] === nome).length;
+  const existe = (nome, id) => itens.some((x) => x.id !== id && x.nome.toLowerCase() === nome.toLowerCase());
+  const adicionar = (e) => {
+    e.preventDefault();
+    const nome = novo.trim();
+    if (!nome || existe(nome)) { setAviso(nome ? `Já existe um ${rot.um} “${nome}”.` : `Dê um nome ao ${rot.um}.`); return; }
+    setItens((xs) => [...xs, { id:Math.max(0, ...xs.map((x) => x.id)) + 1, nome, desc:"" }]);
+    setNovo(""); setAviso(`${rot.Um} “${nome}” criado.`);
+  };
+  const salvar = (e) => {
+    e.preventDefault();
+    const nome = edit.nome.trim();
+    if (!nome || existe(nome, edit.id)) { setAviso(nome ? `Já existe um ${rot.um} “${nome}”.` : "O nome não pode ficar vazio."); return; }
+    setItens((xs) => xs.map((x) => x.id === edit.id ? { ...edit, nome } : x));
+    setEdit(null); setAviso(`${rot.Um} “${nome}” salvo.`);
+  };
+  const excluir = (x) => {
+    if (!window.confirm(`Excluir o ${rot.um} “${x.nome}”?`)) return;
+    setItens((xs) => xs.filter((y) => y.id !== x.id)); setAviso(`${rot.Um} “${x.nome}” excluído.`);
+  };
+  return (
+    <>
+      <form className="hrm-toolbar" onSubmit={adicionar}>
+        <input className="hrm-sel" value={novo} onChange={(e) => setNovo(e.target.value)} placeholder={`Nome do novo ${rot.um}`} aria-label={`Nome do novo ${rot.um}`} disabled={!podeGerir}/>
+        <button className="os-btn primary" type="submit" disabled={!podeGerir} title={podeGerir ? null : `Só o administrador cadastra ${rot.um}`}>Adicionar</button>
+        <span className="hrm-spacer"></span>
+        <span className="usr-count">{itens.length} {rot.uns}</span>
+      </form>
+      {itens.length ? <div className="os-table-wrap"><table className="os-table">
+        <thead><tr><th scope="col">{rot.Um}</th><th scope="col">Descrição</th><th scope="col" className="hrm-num">Colaboradores</th><th scope="col"><span className="sr-only">Ações</span></th></tr></thead>
+        <tbody>{itens.map((x) => { const n = uso(x.nome); return (
+          <tr key={x.id}>
+            <td className="hrm-name">{edit && edit.id === x.id
+              ? <form onSubmit={salvar} style={{ display:"flex", gap:6 }}>
+                  <input className="hrm-sel" autoFocus value={edit.nome} onChange={(e) => setEdit({ ...edit, nome:e.target.value })} aria-label={`Novo nome do ${rot.um}`}/>
+                  <button className="os-btn primary" type="submit">Salvar</button>
+                  <button className="os-btn ghost" type="button" onClick={() => setEdit(null)}>Cancelar</button>
+                </form>
+              : x.nome}</td>
+            <td><span className="hrm-meta">{x.desc || "—"}</span></td>
+            <td className="hrm-num">{n}</td>
+            <td style={{ textAlign:"right" }}>
+              <span className="hrm-acoes">
+                <button className="os-btn ghost" disabled={!podeGerir} onClick={() => setEdit(x)} aria-label={`Editar ${x.nome}`}>Editar</button>
+                <button className="os-btn ghost" disabled={!podeGerir || n > 0} title={n > 0 ? `${n} colaborador${n === 1 ? "" : "es"} usa${n === 1 ? "" : "m"} este ${rot.um} — troque antes de excluir` : null} onClick={() => excluir(x)} aria-label={`Excluir ${x.nome}`}>Excluir</button>
+              </span>
+            </td>
+          </tr>); })}</tbody>
+      </table></div>
+      : <Vazio variante="first" titulo={`Nenhum ${rot.um} cadastrado`} desc={dep ? "Departamento agrupa colaboradores por área — Comercial, Produção, Financeiro." : "Cargo é a função do colaborador — aparece no contracheque e nos relatórios."}/>}
+      <p className="hrm-card-sub" style={{ marginTop:10 }}>{rot.Um} em uso não se exclui — mude os colaboradores antes.</p>
       <Aviso msg={aviso} tone="ok"/>
     </>
   );
@@ -483,6 +562,7 @@ function HrmPage({ view = "hrm" }) {
     din:(v) => demo ? "R$ ••••" : H.brl(v),
     dados:{
       lic:licAmb,
+      emp:primeira ? [] : H.EMP,
       pre:primeira ? [] : H.PRE,
       tur:primeira ? [] : H.TUR,
       fer:primeira ? [] : H.FER,
@@ -497,12 +577,14 @@ function HrmPage({ view = "hrm" }) {
 
   const body =
     view === "hrm-licencas" ? <Licencas lic={licAmb} setLic={setLic} /> :
-    view === "hrm-presenca" ? <X.Presenca /> :
+    view === "hrm-presenca" ? <Vazio variante="done" titulo="Presença agora é do Ponto" desc="Marcações, espelho e banco de horas vivem no módulo Ponto, dono único da jornada." acao={<button className="os-btn primary" onClick={() => go("ponto")}>Abrir Ponto</button>}/> :
     view === "hrm-turnos" ? <X.Turnos /> :
     view === "hrm-folha" ? <X.Folha /> :
     view === "hrm-feriados" ? <Feriados /> :
     view === "hrm-metas" ? <X.Metas /> :
     view === "hrm-config" ? <X.Config /> :
+    view === "hrm-departamentos" ? <Taxonomia tipo="departamento" /> :
+    view === "hrm-cargos" ? <Taxonomia tipo="cargo" /> :
     <Painel lic={licAmb} />;
 
   return (

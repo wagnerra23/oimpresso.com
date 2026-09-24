@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **414** arquivos · **399** números únicos · máx **0409**
-- **ADRs ATIVOS (lifecycle ativo): 368** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 363 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 368 · substituido 25 · arquivado 21
+- **417** arquivos · **402** números únicos · máx **0412**
+- **ADRs ATIVOS (lifecycle ativo): 372** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 366 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 372 · substituido 25 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (414)
+## Todas as ADRs (417)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -50,7 +50,7 @@ _(nenhuma)_
 | 0010 | superseded | substituido | decision | Sistema de memória do projeto (CLAUDE.md + /memory/) |
 | 0011 | aceito | ativo | decision | Alinhamento com o padrão Jana (UltimatePOS) |
 | 0013 | aceito | arquivado | decision | Ecossistema de Módulos: Inventário, Categorias e Padrões |
-| 0014 | aceito | arquivado | decision | Integração PontoWR2 × Essentials (HRM) |
+| 0014 | aceito | ativo | decision | Integração PontoWR2 × Essentials (HRM) |
 | 0015 | aceito | arquivado | decision | Connector: API Gateway para Integrações Externas |
 | 0016 | aceito | arquivado | decision | Plano de Otimização e Roadmap PontoWR2 |
 | 0017 | aceito | ativo | decision | Officeimpresso restaurado da 3.7 como módulo Superadmin exclusivo |
@@ -451,4 +451,7 @@ _(nenhuma)_
 | 0406 | aceito | ativo | decision | O que 'último importado' decide, e o que ele não decide (emenda aditiva à 0404) |
 | 0407 | aceito | ativo | decision | A regra BRL protege valor de CLIENTE no canon — não todo número com R$ no repo |
 | 0408 | aceito | ativo | decision | Medição de paridade protótipo×prod pode ser AGENDADA e advisory — o que a 0290 r |
-| 0409 | proposto | ativo | decision | Zero baseline de tolerância — conformidade absoluta e dívida acordada por toque |
+| 0409 | aceito | ativo | decision | Zero baseline de tolerância — conformidade absoluta e dívida acordada por toque |
+| 0410 | aceito | ativo | decision | Ratificação do zero baseline no funil de design e validação exclusiva em produçã |
+| 0411 | aceito | ativo | decision | Snapshot de pixel do VRT fica fora do passo 3 da ADR 0409 — referência de regres |
+| 0412 | proposto | ativo | decision | Retorno de canon já mergeado ao projeto Cowork de telas dispensa opt-in (emenda  |

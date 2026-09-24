@@ -4,7 +4,7 @@ casos: Jana Painel · metas ativas · farol server-side · cockpit deferido · /
 irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · governance/design/contracts/jana-painel.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-21"
+last_run: "2026-09-22"
 ---
 
 # Casos de uso — /ia (Painel da Jana)
@@ -1656,3 +1656,435 @@ ficha já declarava.
 **Teste:** `tests/janaPainelEstadoVazio.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
 ⚠️ O `eslint` **não cobre `tests/`** (`File ignored because no matching configuration was
 supplied`), então "N arquivos analisados" naquele diretório não é "N verificados".
+
+## UC-JPAIN-30 — o h1 da área herda o peso do token do DS (600), sem mover o canon das outras
+
+Status: 🧪 (`npx vitest run tests/janaAreaHeaderParidade.spec.tsx` → **6 passed** jsdom local,
+2026-09-21, com mordida provada por **duas** mutações, uma por perna; vira ✅ quando o manifesto
+`casos-results` aterrissar)
+
+**Fonte:** âncora `prototipo-ui/cowork/Wagner/jana-merge.jsx` → `CliPageHead`, que **não declara
+peso** e herda `prototipo-ui/design-system/colors_and_type.css:373`
+(`h1 { font-size: var(--fs-7); font-weight: 600 }`, `--fs-7: 22px` em `:148`). Frescor da âncora
+conferido no dia: `node scripts/design/ancora.mjs Jana/Index` → *"verificado contra o Cowork vivo
+em 2026-09-21T10:43:20Z"*.
+
+Fecha a dívida que a errata de 2026-09-18 (acima) deixou aberta: **tamanho já estava igual
+(22px = 22px); o peso divergia, prod 700 × âncora 600.**
+
+**Por que réplica local, e não mudar o default do canon** — a errata já prescrevia o caminho
+("componente compartilhado não impõe a forma de uma tela às outras", ADR 0388 §D-1); o que esta
+rodada acrescenta é o **fundamento medido**, que faltava. As duas âncoras **discordam entre si**:
+
+| âncora | declara peso? | valor | onde |
+|---|---|---|---|
+| **Vendas** (`vendas-page.jsx` §`.os-head-l h1`) | sim, explícito | **700** | `styles.css:4772` (0-1-1) e `financeiro.css:1727` (0-3-1, **a que vence**) |
+| **Jana** (`jana-merge.jsx` → `CliPageHead`) | não — herda o DS | **600** | `colors_and_type.css:373` |
+
+O comentário de `styles.css:4765` diz, textual, *"`.os-head` — mesmo CANON do PageHeader"*: o
+protótipo de Vendas foi escrito **para** casar com o componente. E o 700 do default é decisão [W]
+datada — **PR #1477** (2026-05-25), textual *"prefiro o mesmo peso do sells, pode criar v3.2"*.
+Re-medida em 2026-09-21: `/sells` **continua 700**, logo a premissa **não caducou** (ao contrário
+do 19px da Jana, que caducou no #7224). Mudar o default reverteria essa decisão e alinharia **42**
+telas ao peso que a Jana quer — a imposição que o canon proíbe.
+
+**Conserto:** prop opt-in `titleWeight` no `PageHeader` (idioma que o componente já usa em
+`leading` e `below`: *"sem a prop, nada muda"*), com default `'bold'`. Só o `JanaAreaHeader`
+declara `titleWeight="semibold"`. As outras **41** telas não passam a prop e **não mudam um pixel**.
+
+**Mordida provada (canário de 2 pernas, cada uma no seu lado):**
+
+| mutação | esperado | obtido |
+|---|---|---|
+| remover `titleWeight="semibold"` do `JanaAreaHeader` | cai o assert da Jana | `AssertionError: h1 da Jana deveria ser 600` · 1 failed / 5 passed |
+| trocar o default do canon para `'semibold'` | cai o **controle negativo** | `AssertionError: default do canon deveria seguir 700` · 1 failed / 5 passed |
+
+Os dois mutantes foram restaurados a partir de cópia byte-exata, com `sha256sum` conferido antes e
+depois (§5 2026-09-21 — restauração não sai de transformação reversa).
+
+**COMPUTED STYLE — medido no browser em 2026-09-21.** O assert do vitest prova a **classe**
+(jsdom não carrega CSS); o computed foi medido à parte, num browser real, com o CSS do projeto
+gerado pelo entry de verdade (`npx @tailwindcss/cli -i resources/css/inertia.css`, 742 KB,
+Tailwind v4.3.3). Importa porque no v4 a regra é indireta — `.font-semibold { font-weight:
+var(--font-weight-semibold) }` —, então só o browser resolve o valor final:
+
+| `<h1>` | `font-weight` | `font-size` |
+|---|---|---|
+| com `titleWeight="semibold"` (Jana) | **600** | 22px |
+| sem a prop (canon, as outras 41) | **700** | 22px |
+
+O `font-size` fica **22px nos dois** — a paridade de tamanho que já existia **não foi tocada**.
+A className testada foi **extraída do fonte** por regex (as duas resoluções do ternário), não
+digitada à mão. Controle positivo no mesmo turno: `folhaCarregou: true` — sem ele, um computed
+"600" poderia ser o default do user-agent com a folha ausente, que é medir nada (§5 2026-08-01).
+
+⚠️ **O que este UC NÃO prova.** A medição acima é do `<h1>` com a className real + o CSS real do
+projeto — **não é a tela `/ia` logada inteira**, onde uma regra de maior especificidade poderia
+(em tese) sobrescrever. **Smoke autenticado NÃO foi feito:** `/ia` devolve 302 sem sessão, como o UC-29 já
+registra. A prova de que o browser computa 600 é o visreg (esta tela está em
+`tests/Browser/visreg-screens.json`) e o `<h1>` continua **fora** dos 9 seletores do
+`governance/design/targets/jana--index.alvo.json` — ver §Resíduo no PR.
+
+**Teste:** `tests/janaAreaHeaderParidade.spec.tsx` (vitest/jsdom — roda local, não é lane Pest).
+---
+
+## UC-JPAIN-31 — a grade das análises é RÉPLICA da `.jc-grid`: 3 colunas, gap 12px, breakpoints da âncora
+
+> ⚠️ **Este UC nasceu 30 e virou 31 — 2ª colisão de id nesta tela, mesmo mecanismo do UC-JPAIN-27.**
+> Medi unicidade em `origin/main` e vi ocupados até 29; a sessão irmã do `h1` mediu no mesmo dia,
+> viu o mesmo, e abriu o [#7637](https://github.com/wagnerra23/oimpresso.com/pull/7637) com o 30
+> antes de mim. Ela ofereceu ceder; **cedi eu**, porque o PR dela já estava aberto e reverter id em
+> PR publicado custa mais que renumerar em árvore local. A nota do UC-JPAIN-27 já dizia a lição
+> com todas as letras — *"a checagem responde pelo INSTANTE, e o id só está de fato livre quando o
+> PR entra"* — e ela se confirmou **13 dias depois**, com 5 sessões na mesma tela. Não é "conferir
+> melhor": é que a conferência não pode ser conclusiva num repo com sessões paralelas.
+
+Status: 🧪 (`npx vitest run tests/janaGradeAnalisesReplica.spec.tsx` → **6 passed** jsdom local,
+2026-09-21, com mordida provada por mutação; vira ✅ quando o manifesto `casos-results` aterrissar)
+
+**Fonte:** âncora `.jc-grid` e `.jc-acoes` em `prototipo-ui/cowork/Wagner/chat-jana.css`
+§"── Análises ──" e §"── Ações sugeridas ──" — âncora de SÍMBOLO
+(`grep -n "jc-grid" prototipo-ui/cowork/Wagner/chat-jana.css`). Precedência de FORMA:
+protótipo > teste > casos > charter > SPEC
+([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)),
+sob [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1.
+
+| eixo | âncora | tela viva (antes) | agora |
+|---|---|---|---|
+| colunas (>1100px) | **3** | 2 (`lg:grid-cols-2`) | **3** (`min-[1101px]:grid-cols-3`) |
+| colunas (761–1100px) | **2** | 2 | **2** (`min-[761px]:grid-cols-2`) |
+| colunas (≤760px) | **1** | 1 | **1** (`grid-cols-1`) |
+| gap | **12px** | 16px (`gap-4`) | **12px** (`gap-3`) |
+| `.jc-acoes` padding | **0** | 24px 0 (`py-6` do `Card`) | **0** (`py-0`) |
+
+**Medido em runtime, não deduzido** (2026-09-21, Chrome, mesma janela, viewport 2560, dark nos dois
+lados, container **2237px idêntico** ⇒ a diferença não vinha de largura disponível): âncora
+`737.656px × 3` · prod `1110.5px × 2`. Aplicadas a className nova **e** as regras do CSS compilado
+ao DOM da prod, ela devolveu `737.656px 737.672px 737.672px` — o mesmo valor da âncora — e reverteu
+limpo. Canário rodado **nos dois lados** antes de concluir.
+
+**Por que `min-[761px]`/`min-[1101px]` e não `lg:`/`xl:`.** A âncora quebra em `max-width: 1100px`
+e `max-width: 760px`; `lg:` é 1024px e `xl:` é 1280px. Com `lg:` a prod parava em 2 colunas no
+monitor de **1280px** da ROTA LIVRE, onde a âncora já mostra 3 — aproximar num breakpoint É a
+divergência, não uma tradução dela. As duas regras foram **provadas no CSS compilado** (com
+controle positivo e negativo), porque classe que o Tailwind não gera é correção inerte:
+`@media (min-width:1101px){.min-\[1101px\]\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}`.
+
+⚠️ **O `gap: 24px` das Ações era o sintoma, não a causa.** Medido: o `Card` tem **UM** filho, e gap
+sem segundo filho não separa nada. Quem produzia o respiro de 24px é o `py-6` do `Card` canon
+(`ui/card.tsx:29`). A rodada de 2026-09-07 mediu certo e nomeou a propriedade inerte; zerei os dois
+porque a âncora tem os dois zerados e porque `gap: normal` em flex **é** `0px`.
+
+⚠️ **O `margin-bottom` (18px na âncora × 16px na prod) NÃO entra neste UC.** Medido: o 16px vem do
+`space-y-4` do container da página — a className da grade não declara margem —, logo rege **todas**
+as seções (KPIs, Metas, Análises, Ações). É ritmo vertical da tela, não da grade; convergir ali é
+decisão [W], não conserto de passagem.
+
+⚠️ **Consequência declarada:** com 3 colunas o card de análise cai de **1110,5px → ~737,7px**
+(−33,6% naquela viewport). O sparkline de Faturamento é `preserveAspectRatio="none"`, então a curva
+**comprime horizontalmente** (altura travada em 40px). A sessão irmã que mede os gráficos foi
+avisada **antes** de medir, para carimbar os números dela como "medidos em grade de 2 colunas".
+
+**Teste:** `tests/janaGradeAnalisesReplica.spec.tsx` (vitest/jsdom — roda local, não é lane Pest),
+6 casos: 1 de controle positivo/negativo do detector + 5 de contrato, incluindo o ramo **sem Pro**
+(onde a âncora mostra upsell e não pode haver grade). Mordida provada: restaurar `gap-4
+lg:grid-cols-2` derruba **2** asserts — um por ausência da nova, outro por presença da antiga —, e
+remover `py-0 gap-0` derruba **1**. Arquivo restaurado com **hash conferido** após a mutação
+(`96dff22f8a951e5f` antes e depois), para nenhum mutante sobreviver no diff.
+## UC-JPAIN-34 — o grid de KPIs quebra no breakpoint da ÂNCORA, não no do shared
+
+Status: 🧪 (a lógica do assert foi rodada em PHP no CT 100 contra o arquivo real —
+**extrator 4/4** (pega a linha de código, ignora `//` e `*`) e **asserts 5/5**, 2026-09-21; a
+suite `PHP / Pest (Jana · MySQL)` completa é a lane do CI, e o veredito vira ✅ quando o
+manifesto `casos-results` aterrissar — o G-7 lê o manifesto commitado, não esta linha.
+⚠️ A **primeira** versão deste caso FALHOU na lane (run 35630130145): o assert media o
+arquivo e pegou `grid-cols-1` do próprio docblock — presence-gate sobre prosa, consertado
+passando a medir a LINHA do `<Grid>`.)
+
+**Origem:** chip de 2026-09-21 pedindo pra fechar a dívida visual do KPI. A dívida que o chip
+descrevia (rótulo sans 11px, caixa de ícone 36×36, valor 22 × 24px) **não existia mais** — foi
+fechada em 2026-09-03 pela Onda 2 ([#6662](https://github.com/wagnerra23/oimpresso.com/pull/6662)),
+e a re-medição desta data confirma **24 de 26 campos idênticos**. O que a re-medição achou foi
+OUTRA coisa, num eixo que nenhuma rodada anterior tinha medido: o **responsivo**.
+
+### O que foi medido (tela viva, não bancada)
+
+Staging autenticado (`/_visreg-login`), `/ia`, dark × dark, mesma sonda ad-hoc nos dois lados,
+**canário acusando em ambos** (padding forçado a 40px ⇒ a sonda muda de veredito). D0: o lado
+design declara `data-screen-label="Jana — Painel"`; o lado prod está em `/ia` com `.cockpit`.
+
+| viewport | âncora `.jc-kpis` | produção `KpiGrid cols={4}` | |
+|---|---|---|---|
+| 1440 | 4 col · card 276px | 4 col · card 276px | ✅ |
+| 1280 | 4 col · card 287px | 4 col · card 287px | ✅ |
+| 1080 | **2 col · card 483px** | **4 col · card 237px** | ❌ |
+| 1050 | **2 col · card 468px** | **4 col · card 229px** | ❌ |
+| 900 | 2 col · card 393px | 2 col · card 393px | ✅ |
+| 600 | **2 col · card 279px** | **1 col · card 552px** | ❌ |
+
+**A causa:** a `.jc-kpis` é `repeat(4, 1fr)` e quebra em `@media (max-width: 1100px)` para
+`repeat(2, 1fr)` (`chat-jana.css:139` e `:444`) — **sem degrau de mobile**. O `colsMap[4]` do
+`KpiGrid` compartilhado é `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`, ou seja quebra em 1024 e
+de novo em 640. Sobravam duas faixas: **1024–1100** (4 col onde a âncora põe 2) e **<640**
+(1 col onde a âncora põe 2).
+
+### O conserto — réplica local do grid, e **duas tentativas mais simples foram REFUTADAS antes**
+
+O que entrou foi `_components/JanaKpiGrid.tsx`, réplica da `.jc-kpis` sobre o primitivo
+`<Grid cols={2}>` (ADR 0253), com o degrau pelo `className`. O que chega ao DOM — extraído do
+render, não escrito à mão — é `grid grid-cols-2 gap-2.5 min-[1101px]:grid-cols-4`.
+
+O primitivo funciona onde o `KpiGrid` não funcionava por uma razão específica: as variantes
+do `<Grid>` são **simples** (`grid-cols-2`, sem `sm:`/`lg:`), então não há variant nomeado
+emitido depois do arbitrário pra vencer dele. O `gap` dele só tem inteiros (a âncora pede
+10px = `gap-2.5`), então o gap vem pelo `className`, substituindo o default via `twMerge`. O caminho óbvio — passar um arbitrary variant no `className` do
+`KpiGrid` compartilhado — foi tentado **duas vezes e saiu INERTE nas duas**, e o registro fica
+aqui porque a próxima sessão vai ter a mesma ideia:
+
+| tentativa | offset da classe | offset do concorrente | resultado |
+|---|---|---|---|
+| `max-[1100px]:grid-cols-2` | `.max-[1100px]:grid-cols-2` @264896 | `.lg:grid-cols-4` @271781 | `lg` vence → 4 col em 1080px |
+| `min-[1101px]:grid-cols-4` | `.min-[1101px]:grid-cols-4` @264997 | `.lg:grid-cols-2` @271756 | `lg` vence → 4 col em 1080px |
+
+**A causa é do Tailwind 4, e é geral:** ele emite os variants **arbitrários** (`min-[…]`,
+`max-[…]`) **antes** dos nomeados (`sm:`, `lg:`). Como a especificidade é a mesma, vence quem vem
+depois — ou seja, sempre o `colsMap`. Enquanto o `colsMap` estiver no meio, **arbitrary variant
+naquele `className` é decoração**: passa em typecheck, lint e CI, e não move um pixel (LC-30).
+
+Sem o `colsMap` competindo sobra `grid-cols-2` (base, sem media query) contra
+`min-[1101px]:grid-cols-4` (dentro da media) — e aí a ordem funciona a favor. Reproduzir: buildar
+e comparar os offsets dos dois seletores no mesmo `build-inertia/assets/app-*.css`.
+
+⚠️ **Como a segunda tentativa foi pega:** pela bancada, não pela leitura. O canário (remover a
+classe e re-medir) devolveu **o mesmo número**, que é a assinatura de classe inerte. Uma
+verificação por leitura de CSS teria aprovado as duas — e a primeira "prova de ordem" que escrevi
+estava medindo `max-width: 1100px` de **CSS legado** (`.sells-cowork`, `.fin-cowork`), não a
+utility. Proxy plausível lido como alvo.
+
+**Por que réplica local e não mexer no `colsMap`:** o `KpiGrid` serve 37 telas com o degrau
+PT-04, e a forma da Jana não se impõe ao resto do ERP — a mesma razão que fez o `JanaKpiCard`
+nascer réplica em vez de ajuste no `KpiCard`
+([ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1),
+e que o `SectionTitle` seguiu em 2026-09-18. É o terceiro precedente desta mesma tela.
+
+### A prova (bancada com o CSS buildado, controle antes × depois)
+
+| viewport | âncora | antes (`KpiGrid cols={4}`) | depois (`JanaKpiGrid`) |
+|---|---|---|---|
+| 1440 | 4 | 4 | **4** ✅ |
+| 1280 | 4 | 4 | **4** ✅ |
+| 1080 | 2 | 4 | **2** ✅ |
+| 1050 | 2 | 4 | **2** ✅ |
+| 900 | 2 | 2 | **2** ✅ |
+| 600 | 2 | 1 | **2** ✅ |
+
+**6/6 batendo**, e o controle **discrimina**: em 3 viewports o markup antigo e o novo dão números
+diferentes na mesma página — sem isso, "6/6 igual" seria compatível com uma bancada cega.
+
+### ⚠️ O que ficou MEDIDO E ABERTO — `margin-bottom` 18 × 16
+
+A `.jc-kpis` tem `margin-bottom: 18px`; em produção o espaço é **16px**, e ele **não vem de uma
+classe no grid** — vem do `space-y-4` do container pai (medido no DOM: `gridMarginBottom: 16px`,
+`paiClasses: "space-y-4"`, `irmaoMarginTop: 0px`). Uma utility `mb-[18px]` no grid seria
+**inerte**: a regra do pai tem especificidade `(0,2,0)` contra `(0,1,0)` da utility.
+
+Fechar isso exige tocar o `space-y-4`, que governa o espaçamento de **todas** as seções da tela
+— fora do raio deste PR, e território de chips irmãos vivos (grade de Análises, gráficos, Metas).
+Fica medido e declarado, não consertado. Diferença de 2px entre seções.
+> ⚠️ **FECHADO por OUTRA sessão enquanto este PR esperava, e a minha análise do conserto
+> estava ERRADA** — `UC-JPAIN-33` ([#7653](https://github.com/wagnerra23/oimpresso.com/pull/7653),
+> 2026-09-21). Eu medi certo *de onde vinha* em produção (o `space-y-4` do container) e concluí
+> errado *como se fecha*: escrevi que exigiria tocar o container e o espaçamento de todas as
+> seções. A medição deles na **âncora** mostra o oposto — lá o 18px **não vem de um container,
+> vem de cada seção** — e por isso o conserto coube por seção, sem raio nas vizinhas.
+> Medir a produção não substitui medir a âncora: eu parei na primeira.
+
+
+### As duas "divergências" que a medição DISSOLVEU
+
+Não são dívida, e o registro existe pra ninguém as reabrir:
+
+1. **`smallPx` do 1º card** (âncora 11px × prod ausente) — é **dado**: o card `Receita 30 dias`
+   não recebe sub no staging, enquanto a âncora traz `-68% vs mai/25`. Os cards 2 e 3 têm sub de
+   11px nos dois lados.
+2. **altura 95,5 × 91,5** (4px) — decompõe em `+6` e `−2`, nenhum dos dois de forma:
+   **+6** porque o card 2 da âncora está em `emph` (valor 28px, `--fs-8`) por ter vencido
+   **diferente de zero**, enquanto no staging o saldo vencido é **zero** e o `emphasis`
+   corretamente não dispara; **−2** pela
+   borda de 1px que o **meu render do espelho não pintou** (`--border` vazio ali — ver limite
+   abaixo). ⚠️ Isto **refuta** a causa registrada em 2026-09-03 (*"line-height do `small`
+   herdado do body de cada bancada"*): o `<small>` tem `line-height: 16.5px` **idêntico** nos
+   dois lados, medido por decomposição da altura em parcelas.
+
+### ⚠️ Limite desta rodada, declarado
+
+No render do espelho o `colors_and_type.css` carregou com **0 regras** e os tokens `--surface`,
+`--border` e `--text-3` ficaram vazios. Logo **cor de fundo, cor de borda e cor de texto do lado
+design NÃO foram medidas** — e por isso não entram em veredito nenhum acima. Os 24 campos que
+deram IGUAL são geométricos e tipográficos, e nenhum depende desses três tokens (`--r-2`,
+`--fs-7` e `--mono` resolveram normalmente). O `cowork-mirror-freshness --sla` dá
+**⬜ INCONCLUSIVO** no dia: `--compare` completo (708/708 sync) e 4 arquivos do vivo fora do
+espelho, todos config/meta (`.gitignore`, `.thumbnail`, 2 JSON do `_ds/`).
+
+**Teste:** `Modules/Jana/Tests/Feature/PainelContratoTest.php` — `UC-JPAIN-34`. O assert mede **a linha do `<Grid>`**, nunca o arquivo: o docblock do
+componente cita `grid-cols-2`, `grid-cols-1` e `min-[1101px]` ao explicar as tentativas
+refutadas, e um `toContain` sobre o arquivo passaria pela **prosa** (LC-11) — contado,
+`grid-cols-2` aparece 5× no arquivo e **0× em código**. O extrator tem bite-test próprio
+(pega a linha de código, ignora `//` e `*`). O **perdedor foi corrigido no
+mesmo PR**: o extrator `painelKpisDoGrid` casava `<KpiGrid…</KpiGrid>` e passou a casar
+`<JanaKpiGrid>`; sem isso ele devolveria `[]` e o **UC-JPAIN-18 ficaria verde por não achar
+nada** — LC-11 na forma silenciosa, que é exatamente o risco que o docblock daquele extrator já
+declarava. As 3 fixtures do bite-test dele e o par de proveniência vieram junto.
+
+⚠️ Ele trava a **declaração**, não o motor de CSS: media query não é avaliada num teste que lê o
+`.tsx`. O comportamento por viewport está na tabela acima, medido em bancada com o CSS buildado;
+o par visual é do `visual-regression`.
+
+---
+
+## UC-JPAIN-33 — o ritmo vertical entre seções é o da âncora: 18px, e 6px na única que foge
+
+Status: 🧪 (`npx vitest run tests/janaRitmoVerticalReplica.spec.tsx` → **3 passed** jsdom local,
+2026-09-21, mordida provada por mutação nos dois lados; vira ✅ quando o manifesto
+`casos-results` aterrissar)
+
+**Fonte:** `chat-jana.css` — na âncora o 18px **não vem de um container**, vem de cada seção
+(`grep -n "margin-bottom: 18px" prototipo-ui/cowork/Wagner/chat-jana.css` → 4 hits: `.jc-brief`,
+`.jc-kpis`, `.jc-grid`, `.jc-acoes`). Precedência de FORMA: protótipo > teste > casos > charter >
+SPEC ([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)),
+sob [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1.
+
+**Medido pelo espaço VISUAL entre blocos** (`top` do próximo − `bottom` do atual), não pela
+propriedade isolada — que engana quando há padding no meio. Chrome, 2560, dark, os dois lados na
+mesma janela, 2026-09-21:
+
+| de → para | âncora | prod (antes) | agora |
+|---|---|---|---|
+| brief → kpis | **18** | 16 | **18** |
+| kpis → METAS | **18** | 16 | **18** |
+| METAS → h2 Análises | **6** | 16 | **6** |
+| h2 → grade | 10 | 10 | 10 |
+| grade → h2 Ações | **18** | 16 | **18** |
+| h2 Ações → ações | 10 | 10 | 10 |
+
+**6 de 6 transições comparáveis** batem depois da mudança.
+
+⚠️ **METAS foge do ritmo, e foge na âncora também.** Sem o `mb-1.5` (6px) no wrapper, o
+`space-y-[18px]` levaria a seção de 16 → 18px e **trocaria um erro de 10px por um de 12px, no
+sentido oposto** — a correção "óbvia" (só trocar o container) piora essa transição.
+
+⚠️ **Os `h2` continuam em 10px e isso é da âncora, não descuido.** O `space-y` gera
+`:where(.space-y-* > :not(:last-child))`, de especificidade **0** (lido no CSS servido em
+produção), então o `mb-2.5` do `SectionTitle` vence sem `!important` — o mesmo que a `.jc-h2`
+(`margin: 6px 0 10px`) faz contra o ritmo do `.jc-page`.
+
+⚠️ **A primeira prova de runtime saiu ERRADA, e o erro vale mais que o acerto.** Injetei as regras
+num `<style>` **fora de `@layer`** e medi `h2 → conteúdo` indo de 10 para **18px** — ia concluir que
+a mudança quebrava duas transições certas. A regra do `space-y` do app vive em **`@layer
+utilities`**, e CSS fora de layer vence qualquer coisa dentro de layer **independente de
+especificidade**. Refeita a injeção dentro de `@layer utilities`, o `h2` fica em 10px e as 6
+transições batem. **Simulação de cascata que não reproduz a CAMADA mede outra cascata.**
+
+**Teste:** `tests/janaRitmoVerticalReplica.spec.tsx` (vitest/jsdom), 3 casos: 1 de controle
+positivo/negativo do detector + 2 de contrato (o container no `JanaCockpit`, o `mb-1.5` no
+`Index`). Mordida provada nos dois lados: devolver `space-y-4` derruba 1 assert; tirar o `mb-1.5`
+derruba outro. Arquivos restaurados por **cópia byte-exata com hash conferido**
+(`51569a0f85b18de5` / `1eab367a29757d85`).
+
+⚠️ **Armadilha do próprio teste, registrada porque custou uma rodada vermelha:** o `vi.mock` do
+`JanaCockpit` (necessário para renderizar a Page e alcançar o wrapper de METAS) sofre **hoisting** e
+vale para o arquivo inteiro — o caso que mede o container real precisa de `vi.importActual`, senão
+assere a className do **stub** e passa por engano.
+
+**Dívida vizinha, medida e NÃO consertada aqui:** o `pt-6` do mesmo wrapper. Do último KPI até o
+**texto** "METAS ATIVAS" são **46px** em prod (16 + 24 + 6). É *padding*, não margem, e o bloco é
+de outro chip.
+
+> ⚠️ **ERRATA 2026-09-21 (pós-deploy) — o alvo da âncora aqui era 18px, não 24, e o erro é meu.**
+> Este parágrafo dizia *"contra **24px** na âncora (18 + 6)"* e *"os dois juntos dão **24
+> exatos**"*. **Eu SOMEI em vez de medir**: 18 de ritmo + 6 do `mt-1.5` do h2. Medido na âncora
+> renderizada (2560, dark), o trecho é **18px** — e o mesmo **18** até a CAIXA e até o TEXTO,
+> porque o `margin-top` do `.jc-h2` **COLAPSA** com a do pai (primeiro filho, e a `.jm-metas` não
+> tem padding-top nem border para barrar o colapso). Ironia útil: era o `pt-6` do lado de cá que
+> barrava o colapso e fazia o 6 aparecer somado — por isso a conta "fechava" enquanto o defeito
+> existia.
+>
+> **O desfecho ficou certo**: medido em prod após os dois merges, o trecho dá **18px**, igual à
+> âncora. O que estava errado era só o alvo declarado.
+>
+> ⚠️ **E o número errado não ficou só aqui:** eu o passei à sessão de METAS, que o usou como alvo
+> no comentário do `Index.tsx` — corrigido no mesmo PR desta errata. É a lápide §5 2026-08-10 na
+> prática (*citar canon não é medir*), com o agravante de que o canon citado era meu.
+
+## UC-JPAIN-32 — a grade e o card de META replicam a `.jm-metas-grid` / `.jm-meta`: 4 colunas, card compacto, valor em mono 20/700
+
+Status: 🧪 (`npx vitest run tests/janaGradeMetasReplica.spec.tsx` → **9 passed** jsdom local,
+2026-09-21, com mordida provada por **5 mutantes válidos**; vira ✅ quando o manifesto
+`casos-results` aterrissar)
+
+**Fonte:** âncora `.jm-metas-grid`, `.jm-meta` e `.jm-meta-v b` em
+`prototipo-ui/cowork/Wagner/jana-merge.css` — âncora de SÍMBOLO
+(`grep -n "jm-metas-grid" prototipo-ui/cowork/Wagner/jana-merge.css`). Precedência de FORMA:
+protótipo > teste > casos > charter > SPEC
+([ADR UI-0029](../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)),
+sob [ADR 0388](../../../../memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md) §D-1.
+
+**Medido em runtime, não deduzido** (2026-09-21, staging autenticado, dark nos dois lados,
+viewport 1440×900, container da grade **1117px idêntico** ⇒ a diferença não vinha de largura
+disponível). O dado existia: prod tinha **5 metas ativas**, e o staging recebeu fixture
+equivalente — foi o que destravou esta medição, registrada em
+[`Index-visual-comparison.md`](../../../../memory/requisitos/Jana/Index-visual-comparison.md).
+
+| eixo | âncora | tela viva (antes) | agora |
+|---|---|---|---|
+| colunas (container 1117px) | **4** (271,8px) | 3 (361,7px) | **4** (273,2px) |
+| regra da grade | `auto-fit minmax(232px,1fr)` | `sm:grid-cols-2 xl:grid-cols-3` | `<Grid fit="sm">` (auto-fit por token) |
+| gap da grade | **10px** | 16px (`gap-4`) | **8px** (`gap={2}`) |
+| altura do card | **122px** | 236px | **198px** |
+| padding do card | **12px 13px** | 24px 0 (`py-6` + `px-6 pl-5`) | **12px 13px** (`py-3` + `px-[13px]`) |
+| gap interno | **8px** | 24px (`gap-6`) | **8px** (`gap-2`) |
+| ritmo do conteúdo | 8px | 12px (`space-y-3`) | **8px** (`space-y-2`) |
+| valor | **mono 20px/700** | sans 24px/600 | **mono 20px/700** |
+| `border-radius` | 12px | 12px (`rounded-xl`) | inalterado ✅ |
+
+**Por que `<Grid fit="sm">` e não a classe crua `minmax(232px,1fr)`.** O dono de grade auto-fit
+neste repo é o [`Components/layout/grid.tsx`](../../../Components/layout/grid.tsx) (ADR 0253), e o
+docblock dele é explícito: *"largura mínima vem de token (enum), não de px solto no call-site"*.
+Escrever a classe crua seria mais literal e **menos correto** — é autorar paralelo a um dono que
+existe, e o `Grid` já é consumido na própria área (`Jana/Plataforma.tsx`, `JanaMetaDrawer.tsx`).
+**Residual declarado:** `fit="sm"` é 14rem (224px) contra 232px, e `gap={2}` é 8px contra 10px —
+medido, dá **4 colunas de 273,2px** contra 271,8px da âncora, **1,4px (0,5%)**, e o número de
+colunas, que é o que se enxerga, é o **mesmo**. Fechar os 1,4px exigiria **token novo no DS**, que é
+decisão [W], não desta tela.
+
+**⚠️ O que este UC NÃO fecha, e é residual DECLARADO:** o card fica em **198px** contra os **122px**
+da âncora. A diferença é **conteúdo que a âncora não tem**, não forma — medido no DOM: o
+**Sparkline** (32px + 8 de gap) e o **Badge de unidade** no header (22px) somam ~62 dos ~76px
+restantes. Removê-los é decisão de **produto**, não de réplica visual, e por isso não entra aqui.
+
+**Pronto quando:** a grade renderiza `grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]` + `gap-2`; o
+card renderiza `gap-2 py-3` (não `gap-6 py-6`); header e conteúdo usam `px-[13px]` (não `px-6 pl-5`);
+o conteúdo usa `space-y-2`; e o valor usa `font-mono text-[20px] font-bold tabular-nums` (não
+`text-2xl font-semibold`).
+
+**Mordida provada por mutação** (2026-09-21, restauração conferida por **hash sha256** em todas, e
+**controle positivo rodado antes** — íntegro = 9 passed):
+
+| mutante | resultado |
+|---|---|
+| `fit="sm"` → `min="sm"` (auto-fill em vez de auto-fit) | 1 failed |
+| `gap={2}` → `gap={4}` | 1 failed |
+| card `gap-2 py-3` → `gap-6 py-6` | 1 failed |
+| valor `font-mono text-[20px] font-bold` → `text-2xl font-semibold` | 1 failed |
+| conteúdo `px-[13px] space-y-2` → `pl-5 space-y-3` | 2 failed |
+
+⚠️ Um 6º mutante — trocar `<Grid>` por `<div className="grid …">` — devolveu **saída vazia**, e isso
+**não é mordida**: o `</Grid>` fica órfão, o build quebra e nenhum teste roda. Está registrado aqui
+porque `0 failed` e "não rodou" são indistinguíveis por exit code, e o que separa os dois é o
+**controle positivo** (§5 2026-09-16).
+
+**Onde:** [`tests/janaGradeMetasReplica.spec.tsx`](../../../../tests/janaGradeMetasReplica.spec.tsx),
+9 casos (6 de contrato + 3 de controle negativo, ADR 0258). jsdom não computa classe Tailwind, então
+o que se assere é a **classe** — que é o que o bundle traduz. O efeito em px foi provado à parte, no
+DOM da prod, aplicando as classes reais e medindo antes→depois.
+

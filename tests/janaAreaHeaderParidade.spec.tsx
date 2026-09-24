@@ -119,3 +119,44 @@ describe('UC-JPAIN-19 · barra de abas em faixa própria abaixo do header (parid
     expect(sub?.textContent).not.toContain('Atualizado');
   });
 });
+
+// UC-JPAIN-30 — o h1 da área Jana tem peso 600, e o opt-in NÃO vaza pro canon.
+//
+// A âncora da Jana (`jana-merge.jsx` → `CliPageHead`) não declara peso e herda o token
+// do DS (`colors_and_type.css:373` `h1 { font-weight: 600 }`, `--fs-7: 22px`). O default
+// do `PageHeader` canon ERA 700 até 2026-09-23 (desde então 600, D-PH-0923) e seguia OUTRA âncora — a de Vendas, que declara 700 em
+// `financeiro.css:1727` (regra que vence por especificidade, 0-3-1). Duas âncoras que
+// discordam; o componente serve as duas por opt-in, não por mudança de default.
+//
+// ⚠️ LIMITE DESTE TESTE, declarado: jsdom não carrega o CSS do Tailwind, então
+// `getComputedStyle(h1).fontWeight` aqui NÃO resolve a classe — devolveria o default do
+// user-agent, e assertar sobre ele seria medir a propriedade errada (§5 2026-07-16). O que
+// este teste prova é que o componente RENDERIZA a classe certa no DOM (comportamento, não
+// texto do arquivo — LC-11). Que o browser COMPUTA 600 é prova de runtime, e mora no
+// `governance/design/targets/jana--index.alvo.json` §`header_titulo` + no visreg.
+describe('UC-JPAIN-30 · peso do h1: 600 (token do DS) na Jana e no canon', () => {
+  it('UC-JPAIN-30: o h1 da área Jana renderiza font-semibold, nunca font-bold', () => {
+    const { h1 } = renderHeader();
+    expect(h1.classList.contains('font-semibold'), 'h1 da Jana deveria ser 600 (token do DS)').toBe(true);
+    expect(h1.classList.contains('font-bold'), 'h1 da Jana não pode carregar o 700 da âncora de Vendas').toBe(false);
+  });
+
+  // Reescrito em 2026-09-23 (thread PageHeader/04): até ali esta perna travava o default
+  // em 700 (âncora de Vendas, PR #1477). [W] decidiu o 600 para todas as telas (D-PH-0923),
+  // e pela cadeia do eixo FORMA (UI-0029) o teste que fixou a forma antiga é reescrito,
+  // nunca desabilitado. Agora ela protege as DUAS pontas do contrato novo.
+  it('UC-JPAIN-30 (canon): sem a prop o h1 é 600; `titleWeight="bold"` é o opt-in do 700', async () => {
+    const { PageHeader } = await import('@/Components/PageHeader');
+    const semProp = render(<PageHeader title="Clientes" />).container.querySelector('h1');
+    if (!semProp) throw new Error('PageHeader não renderizou h1');
+    expect(semProp.classList.contains('font-semibold'), 'default do canon deveria ser 600 (D-PH-0923)').toBe(true);
+    expect(semProp.classList.contains('font-bold')).toBe(false);
+    expect(semProp.classList.contains('tracking-[-0.015em]'), 'tracking do h1 deveria ser -0.015em').toBe(true);
+    expect(semProp.classList.contains('tracking-tight')).toBe(false);
+
+    const optIn = render(<PageHeader title="Vendas" titleWeight="bold" />).container.querySelector('h1');
+    if (!optIn) throw new Error('PageHeader não renderizou h1 com opt-in');
+    expect(optIn.classList.contains('font-bold'), 'opt-in bold deveria render 700').toBe(true);
+    expect(optIn.classList.contains('font-semibold')).toBe(false);
+  });
+});

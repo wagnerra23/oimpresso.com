@@ -29,6 +29,9 @@
 //                             nos arquivos-alvo; todo símbolo/rota/teste REMOVIDO que não for citado na
 //                             justificativa (commits da branch + --notes <arquivo>) = FALHA.
 //                             Inverte a fonte: diff→handoff, nunca handoff→diff.
+//   --check-symbol-res        Invariante da Catraca 3 (C4): toda família de SYMBOL_RES casa a linha
+//                             "-" e a "+" com o MESMO símbolo (senão o C1 fica inerte pra ela).
+//                             Também roda no início de todo --omission, que se recusa a seguir.
 //
 // Node puro (fs + git via execSync), sem deps, sem npm ci. Exit 0 = limpo, 1 = falha (>=1).
 // Self-test: node scripts/contrato-de-tela.test.mjs
@@ -50,7 +53,10 @@ const ok = (...a) => console.log('OK ' + a.join(' '));
 const warn = (...a) => console.log('! ' + a.join(' '));
 
 function git(args, opts = {}) {
-  try { return execSync(`git ${args}`, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], ...opts }).trim(); }
+  // maxBuffer: com o default (1 MiB) o `git ls-files` do repo inteiro estourou em 2026-09-21,
+  // o catch devolvia '' e o preflight acusava "worktree órfão (0 arquivos)" — não-medição lida
+  // como acusação (LC-33).
+  try { return execSync(`git ${args}`, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 * 1024 * 1024, ...opts }).trim(); }
   catch { return null; }
 }
 
@@ -412,30 +418,125 @@ function resolveContract(file, ctxStr) {
 }
 
 // ── Catraca 3: omissão (inverte a fonte) ──────────────────────────────────────
+//
+// ⚠️ ERRATA 2026-09-22 (mesmo dia, pós-merge do #7691) — A MEDIÇÃO ORIGINAL DESCREVIA OUTRO
+// UNIVERSO. Ela dizia: "231 merges de PR do main, 135 tocam a superfície, 22 acusados (16,3%)
+// → 11 (8,1%) com C1+C2". Esse texto fica registrado porque é o que sustentou o PR, e cada
+// número dele é reproduzível — mas ele erra em TRÊS eixos, todos medidos:
+//
+//   (1) CORPUS MORTO. `git log --merges` no main só enxerga até 2026-06-08: desde então o repo
+//       é squash-only (linear history · RUNBOOK-branch-protection.md:35), e 4.905 commits
+//       posteriores são invisíveis a `--merges`. A DATA da medição era 09-22; o CORPUS era
+//       abr–jun. (A sessão descobriu o squash-only ao tomar "Merge commits are not allowed"
+//       no próprio merge e não voltou para questionar o corpus.)
+//   (2) ESCOPO ANACRÔNICO. Os 35 contratos ativos nasceram TODOS em 2026-09-11, e 23 dos 40
+//       `alvo[]` (57,5%) não existiam em 2026-06-08 — medir o escopo dos contratos contra
+//       aquele corpus era mudo por construção, não por a superfície ser parada.
+//   (3) DENOMINADOR ERRADO. A taxa foi calculada sobre "toca Pages|Modules", que é o escopo do
+//       `--alvo` (o INSUMO). O que o gate de fato vê é o `detect` do workflow, mais estreito.
+//       No corpus de merges: 291 PRs, 173 tocam Pages|Modules, só 72 disparam o detect.
+//
+// MEDIÇÃO VÁLIDA (corpus VIVO, pós C1+C2) — 300 commits de squash, janela 2026-09-15..09-22:
+//   46 tocam Pages|Modules (escopo do --alvo)   ·   21 DISPARAM O DETECT (gatilho real)
+//   2 acusados de 21 = 9,5%   ·   2 acusações   (`SparkArea` num revert; `VariacoesTab`)
+//   ⚠️ ERRATA 2026-09-23: o `VariacoesTab` era FALSO-POSITIVO — mudança de assinatura que o
+//   C1 não pegava por causa da âncora da família `function` (ver C3 em SYMBOL_RES). Com o C3
+//   ele sai; esta janela NÃO foi recontada — a medição do C3 abaixo usa outra (09-17..09-23).
+// Reproduzir: para cada commit `c` de `git log origin/main --no-merges`, aplicar o predicado a
+// `git diff --unified=0 c~1 c -- resources/js/Pages Modules` + `git log c~1..c --format=%B`, e
+// contar sobre os que casam a regex do `detect` (lida do YAML, não redigitada).
+// ⚠️ `c^` NÃO funciona: em `execSync` no Windows o shell é o cmd.exe, onde `^` é o caractere de
+// escape — o parent some, o diff fica vazio e o zero parece resultado. Use `c~1`.
+//
+// O que NÃO muda com a errata: as duas correções abaixo (C1/C2) seguem certas pelo mérito —
+// símbolo movido não é omissão, e descrição de teste não é símbolo — e o bite-test com controle
+// negativo continua provando as duas. O que muda é a TAXA e o universo que ela descreve.
+//
+// ⚠️ Escopo importa mais que o predicado: sobre os `alvo[]` dos contratos (40 paths estreitos)
+// o modo é CEGO — 172 linhas removidas na janela, ZERO casando qualquer regex, porque o que
+// some numa tela é JSX/copy/bloco, não símbolo exportado. Ligar ali seria gate-carimbo.
+// Por isso o CI o roda sobre a árvore de telas/módulos, não sobre os alvos de contrato.
 const SYMBOL_RES = [
-  /export\s+(?:default\s+)?(?:async\s+)?(?:function|const|class)\s+([A-Za-z0-9_]+)/,
-  /^[-]\s*(?:async\s+)?function\s+([A-Za-z0-9_]+)\s*\(/,
-  /route\(\s*["'`]([\w.]+)["'`]/,
-  /Route::[a-z]+\(\s*["'`]([^"'`]+)["'`]/,
-  /\b(?:it|test|describe)\(\s*["'`]([^"'`]+)["'`]/,
+  { fam: 'export', acusa: true, amostra: ['export function Sparkline() {', 'Sparkline'], re: /export\s+(?:default\s+)?(?:async\s+)?(?:function|const|class)\s+([A-Za-z0-9_]+)/ },
+  // C3 (2026-09-23) — a âncora era `^[-]`: a regex nunca casava linha `+`, então `readded`
+  // (C1) nunca recebia função e toda mudança de ASSINATURA virava omissão (PR #7784:
+  // acrescentar `resumo` às props de `FinanceiroConciliacao`). A âncora fica — é o que impede
+  // casar `function` no meio de expressão — mas aceita os dois prefixos; quem decide
+  // removido × reaparece é o loop, pelo prefixo da linha. As outras 3 famílias não têm âncora.
+  // MEDIDO (mesma receita do bloco acima; detect lido do YAML; squash commits de origin/main):
+  //   300 commits (09-17..09-23): 21 disparam · ANTES 2 acusações/2 commits → DEPOIS 1/1
+  //   1500 commits (08-24..09-23): 199 disparam · ANTES 43/11 → DEPOIS 37/7
+  //   as 6 que somem são TODAS mudança de assinatura, conferidas uma a uma no diff:
+  //   VariacoesTab · Painel · Contrapartidas · GraficosVendas · Acervo · Pilula (6/6 FP).
+  { fam: 'function', acusa: true, amostra: ['function FinanceiroConciliacao({ linhas }: Props) {', 'FinanceiroConciliacao'], re: /^[-+]\s*(?:async\s+)?function\s+([A-Za-z0-9_]+)\s*\(/ },
+  { fam: 'route()', acusa: true, amostra: ["const u = route('fin.conciliacao.index');", 'fin.conciliacao.index'], re: /route\(\s*["'`]([\w.]+)["'`]/ },
+  { fam: 'Route::', acusa: true, amostra: ["Route::get('/fin/conciliacao', [C::class, 'index']);", '/fin/conciliacao'], re: /Route::[a-z]+\(\s*["'`]([^"'`]+)["'`]/ },
+  // C2 — a DESCRIÇÃO de um teste não é um símbolo: é prosa, e exigir a frase inteira no
+  // commit é absurdo por construção. Media 53 das 152 acusações (34,9%) e a amostra é toda
+  // ruído: renomear "gold-set … >= 20 perguntas" para ">= 30" é o trabalho legítimo daquele
+  // PR e virava falha. Segue DETECTADA (o relatório informa) e não acusa.
+  { fam: 'it/test/describe', acusa: false, amostra: ["it('gold-set tem 30 perguntas', () => {});", 'gold-set tem 30 perguntas'], re: /\b(?:it|test|describe)\(\s*["'`]([^"'`]+)["'`]/ },
 ];
+// C4 (2026-09-23) — o INVARIANTE que o C3 revelou, armado no dono: `checkOmission` usa as MESMAS
+// regexes no `-` (removed) e no `+` (readded); qualquer predicado que case um prefixo e não o
+// outro anula o C1 para aquela família em silêncio. Cada família declara uma `amostra`
+// ([corpo da linha, símbolo esperado]) e aqui se exige: casa `-corpo` E `+corpo`, com o MESMO
+// símbolo. Família nova sem `amostra` FALHA — é o que pega a 6ª família, que casos de teste
+// escritos à mão por família não pegam. Roda no início de todo `--omission` e no modo
+// `--check-symbol-res` (selftest).
+function checkSymbolRes({ quiet = false } = {}) {
+  let fail = 0;
+  for (const { fam, re, amostra } of SYMBOL_RES) {
+    if (!Array.isArray(amostra) || amostra.length !== 2) { err(`SYMBOL_RES "${fam}" sem \`amostra\` [corpo, símbolo] — o invariante -/+ não pode ser provado`); fail++; continue; }
+    const [corpo, esperado] = amostra;
+    const menos = ('-' + corpo).match(re)?.[1];
+    const mais = ('+' + corpo).match(re)?.[1];
+    if (menos !== esperado || mais !== esperado) {
+      err(`SYMBOL_RES "${fam}" assimétrico: "-" → ${JSON.stringify(menos ?? null)} · "+" → ${JSON.stringify(mais ?? null)} (esperado ${JSON.stringify(esperado)}) — o C1 fica inerte pra esta família`);
+      fail++;
+    } else if (!quiet) ok(`SYMBOL_RES "${fam}" casa "-" e "+" com o mesmo símbolo`);
+  }
+  return fail;
+}
+
 function checkOmission(base = 'origin/main', alvos, notesFile) {
+  const inv = checkSymbolRes({ quiet: true });
+  if (inv) { err(`invariante de SYMBOL_RES quebrado — --omission não roda com família cega`); return inv; }
   const pathArgs = (alvos && alvos.length) ? '-- ' + alvos.map(a => `"${a}"`).join(' ') : '';
   const diff = git(`diff --unified=0 ${base}...HEAD ${pathArgs}`);
   if (diff === null) { err(`git diff falhou (base ${base} existe?)`); return 1; }
-  const removed = new Set();
+  // C1 — o modo se chama OMISSÃO. Símbolo que reaparece no `+` do MESMO diff não foi omitido:
+  // foi movido de arquivo ou renomeado junto, e o autor não tem por que citá-lo. Media 52 das
+  // 152 acusações (34,2%), falso-positivo por construção. Por isso o `+` é varrido igual ao `-`.
+  // Sem `break` no loop de regexes: fiel ao original, que testa todas (uma linha pode casar mais
+  // de uma família). Conferido em 2026-09-22 — com e sem short-circuit o corpus dá o mesmo número.
+  const removed = new Map();   // nome -> família que o detectou
+  const readded = new Set();
   for (const line of diff.split('\n')) {
-    if (!line.startsWith('-') || line.startsWith('---')) continue;
-    for (const re of SYMBOL_RES) { const m = line.match(re); if (m) removed.add(m[1]); }
+    if (line.startsWith('---') || line.startsWith('+++')) continue;
+    const saiu = line.startsWith('-');
+    const entrou = line.startsWith('+');
+    if (!saiu && !entrou) continue;
+    for (const { re, fam } of SYMBOL_RES) {
+      const m = line.match(re);
+      if (!m) continue;
+      if (saiu) { if (!removed.has(m[1])) removed.set(m[1], fam); }
+      else readded.add(m[1]);
+    }
   }
   let just = git(`log ${base}..HEAD --format=%B`) || '';
   if (notesFile && existsSync(resolve(ROOT, notesFile))) just += '\n' + readFileSync(resolve(ROOT, notesFile), 'utf8');
-  let fail = 0;
+  let fail = 0, mudos = 0;
   if (!removed.size) { ok(`nenhum símbolo/rota/teste removido nos arquivos-alvo`); return 0; }
-  for (const sym of removed) {
-    if (just.includes(sym)) ok(`removido "${sym}" — justificado`);
-    else { err(`removido "${sym}" SEM justificativa (cite no PR/handoff ou --notes)`); fail++; }
+  for (const [sym, fam] of removed) {
+    if (readded.has(sym)) { ok(`removido "${sym}" — reaparece no diff (movido/renomeado), não é omissão`); continue; }
+    if (just.includes(sym)) { ok(`removido "${sym}" — justificado`); continue; }
+    if (!SYMBOL_RES.find(s => s.fam === fam).acusa) {
+      warn(`removido "${sym}" (${fam}) — detectado, família não acusa`); mudos++; continue;
+    }
+    err(`removido "${sym}" SEM justificativa (cite no PR/handoff ou --notes)`); fail++;
   }
+  if (mudos) log(`  (${mudos} detecção(ões) de família que não acusa — ver SYMBOL_RES, C2)`);
   return fail;
 }
 
@@ -662,13 +763,15 @@ function main() {
     let alvos = alvoFlag ? alvoFlag.split(',') : null;
     if (!alvos && contractFlag) alvos = loadContract(contractFlag).alvo;
     fail += checkOmission(base, alvos, argVal('--notes'));
+  } else if (a.includes('--check-symbol-res')) {
+    fail += checkSymbolRes();
   } else if (a.includes('--resolve')) {
     fail += resolveContract(argVal('--resolve'), argVal('--ctx'));
   } else if (a.includes('--map')) {
     fail += buildMap(a.includes('--check'));
     if (!a.includes('--check')) process.exit(0); // --map informativo: só a tabela, sem resumo
   } else {
-    log('uso: node scripts/contrato-de-tela.mjs [--preflight [base] | --contract <f.json> | --omission [base] (--alvo a,b | --contract-alvo f.json) [--notes f] | --map [--check] | --anti-tautologia | --resolve <f.json> --ctx <cliente:biz=N,tela:X,…>]');
+    log('uso: node scripts/contrato-de-tela.mjs [--preflight [base] | --contract <f.json> | --omission [base] (--alvo a,b | --contract-alvo f.json) [--notes f] | --map [--check] | --anti-tautologia | --check-symbol-res | --resolve <f.json> --ctx <cliente:biz=N,tela:X,…>]');
     process.exit(2);
   }
   if (fail) { log(`\n❌ ${fail} falha(s).`); process.exit(1); }

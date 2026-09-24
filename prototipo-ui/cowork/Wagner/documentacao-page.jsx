@@ -390,6 +390,39 @@ const D = [
     "Recibo de teste sem saída zero não existe; smoke sem sha de deploy e screenshot não existe.",
     "Números desta página são de medição citada, não de leitura minha — quem afirma é quem rodou o comando."]}]},
 
+{ id:"tec-maquinas", grp:"tec", nav:"Máquinas — o mapa", title:"Máquinas — quem roda, com que entrada, e o que deixa de recibo",
+  sub:"O desenho das duas esteiras: a de cá mede e monta o pacote; a de lá aplica e fecha com recibo. Cada caixa é um script com nome — e o que não tem script não tem dono.",
+  type:"reference", auth:"derivado", upd:"2026-09-22", git:".github/workflows/design-memory-gate.yml",
+  rel:["ADR 0256 — derivado e enforçado sobrevive","ADR 0384 — ciclo de vida por tela no ledger","ADR 0387 — recibo do pacote no github.md"],
+  blocks:[
+  {k:"alert",tone:"warn",title:"Desenho dos nomes já publicados — não é leitura nova do main",body:"Este mapa redesenha o que as páginas <b>Fluxo do DS → tela</b>, <b>Aplicação (6 fases)</b> e o protocolo de export já declaram, com as datas que eles carregam (18/09/2026, árvore <code>c89bb2abe985</code>). O dono do texto do protocolo é <b>local deste projeto Cowork</b> (<code>COLAR-NO-CODE-PROTOCOLO-COWORK-EXPORT.md</code>) — o link do cabeçalho aponta pro workflow que roda as guardas, não pro protocolo. <b>Não reli a árvore do <code>main</code> pra montar o desenho</b> — se um flag ou caminho divergir, o script no repo manda. Flag e caminho se confirmam por leitura direta, nunca de memória."},
+  {k:"h2",t:"Esteira de cá — medir e montar o pacote"},
+  {k:"maq",label:"Lado Design ([CC]) — 4 portas, 3 sem máquina",lanes:[
+    {fase:"MAPA",t:"Denominador",gate:"none",ent:"o host <code>oimpresso.com.html</code> (todo <code>link</code>/<code>src</code>/<code>data-src</code>) + <code>app.jsx</code> (tabela de rotas)",maq:["leitura na hora — sem script"],sai:"resposta <b>no chat</b>; mapa é comando, nunca arquivo (ADR 0256)"},
+    {fase:"ALVO",t:"Medir",gate:"none",ent:"protótipo servido, tema dark, após <code>__oiLazyDone</code>",maq:["sonda read-only","duas leituras iguais de querySelectorAll('*').length","getComputedStyle"],sai:"medida citada no pedido — classe declarada não vale como veredito"},
+    {fase:"EXPORT",t:"Pedido",gate:"none",ent:"medida daqui + charter/casos do <code>main</code> (ancoragem dupla)",maq:["playbook em cowork-inbox/&lt;mod&gt;/playbook/"],sai:"1 thread = 1 seção = 1 PR ≤300 linhas, passando no teste do estranho"},
+    {fase:"Pacote",t:"Montar",gate:"none",ent:"os arquivos <b>em disco</b> — por isso não roda deste lado",maq:["gerar-payload-partes.mjs --root &lt;dir&gt; --out sync/ --previous sync/bundle.manifest.json"],sai:"<code>bundle.manifest.json</code> + partes + recibo <code>bundle regenerado (&lt;data&gt; · N arquivos)</code> no <code>github.md</code> (ADR 0387)"}],
+   legend:[["none","a régua é o pedido, não o CI"]]},
+  {k:"p",t:"As três primeiras portas <b>não têm máquina</b>: são leitura, medição e escrita de pedido. É a assimetria que explica por que o erro deste lado é sempre o mesmo — afirmar sem medir no turno."},
+  {k:"h2",t:"Esteira de lá — aplicar e fechar com recibo"},
+  {k:"maq",label:"Lado Code ([CL]) — 6 fases, cada uma com máquina e recibo",lanes:[
+    {fase:"−1",t:"Importar",gate:"req",ent:"partes + <code>bundle.manifest.json</code>",maq:["receber-handoff","+ 6 irmãs"],sai:"espelho em <code>prototipo-ui/cowork/&lt;dono&gt;/</code> — move a fase −1, <b>e mais nada</b>"},
+    {fase:"0/0.5",t:"Detectar",gate:"self",ent:"<code>&lt;modulo&gt;-page.jsx</code> do espelho + <code>Pages/&lt;Mod&gt;/&lt;Tela&gt;.tsx</code> + charter",maq:["scripts/design/detectar-telas.mjs","--selftest (sentinela ALIAS↔charter)"],sai:"par tela↔protótipo; <b>sem par a tela não entra na esteira</b>"},
+    {fase:"1",t:"Mapear e comparar",gate:"req",ent:"o par detectado",maq:["style-fingerprint","design-diff","gerar-map"],sai:"<code>map.json</code> com <code>prototipo_sha</code> + <code>target_sha</code> · recibo <code>--mark-compared</code>"},
+    {fase:"3/4",t:"Aplicar",gate:"adv",ent:"<code>map.json</code> fresco — <b>sha velho aborta (exit 3)</b>",maq:["consumir-map","contrato-de-tela.mjs"],sai:"<code>.tsx</code> versionado no <code>main</code> · recibo <code>--mark-applied</code>"},
+    {fase:"4",t:"Preflight e teste",gate:"req",ent:"a tela aplicada + casos do charter",maq:["ds-guard","cowork-ssot-guard","anchor-content-check","Vite build"],sai:"recibo <code>--run-test</code> — <b>só saída zero prova</b>; nome de teste não vira recibo"},
+    {fase:"5",t:"Fechar o loop",gate:"adv",ent:"prod deployada",maq:["status.mjs --record-smoke","design-code-map-check"],sai:"rota + sha do deploy + screenshot em <code>state/smokes/</code> ⇒ tela <b>validated</b>"}],
+   legend:[["req","barra o merge"],["adv","fica vermelho e não barra"],["self","sentinela no design-memory-gate"]]},
+  {k:"p",t:"O estado da tela (<code>anchored → compared → applied → tested → validated</code>) é <b>derivado desses recibos</b> — ninguém escreve estado. Mudança de hash invalida os recibos dependentes e recua a tela ao último estado ainda provado: é assim que aprovação caduca sozinha em vez de mentir."},
+  {k:"h2",t:"Guardas que rodam em paralelo, a cada PR"},
+  {k:"table",head:["Guarda","O que barra","O que NÃO cobre"],rows:[
+    ["<code>cowork-ssot-guard.mjs</code>","R1 raiz de <code>prototipo-ui/</code> só com <code>cowork/</code> + <code>design-system/</code> · R2 <code>cowork/</code> só com os donos · R3 <code>.md</code> permitido <b>dentro</b> de um dono · R4 zero bytes duplicados","dupe <code>?v=</code> e host único — <b>regra minha, não máquina</b>"],
+    ["<code>cowork-mirror-freshness.mjs</code>","<code>--absent-local</code> (host declara o que o espelho não tem) · <code>--check-orfaos</code> em DELTA (espelho tem o que o host não declara) · <code>--check-refs</code>","rota do <code>app.jsx</code> sem componente (C6) — ponto cego <b>declarado</b>, sem dono"],
+    ["<code>ds-guard</code> · <code>ds:report</code>","cor crua, radius fora do token, não-conformância com o DS","composição: usar <code>div</code> onde havia <code>DS.Button</code> passa"],
+    ["<code>prototipo-readiness.mjs</code>","prontidão é máquina: trio (<code>.tsx</code> + charter + casos com UC) + scorecard","qualidade do caso de uso — só a presença"],
+    ["<code>design-code-map-check --check --strict</code>","<code>map.json</code> com <code>prototipo_sha</code> vencido (rc=1)","é <b>advisory</b>: vermelho e passa"]]},
+  {k:"alert",tone:"danger",title:"O ato de aplicar não tem gate required",body:"Os required protegem as <b>bordas</b> — âncora, DS, nota de tela, casos, build. Contrato-de-tela, visual-regression, placar, a11y, design-memory e map são <b>advisory</b> (medição de [CL] no dono <code>governance/required-checks-baseline.json</code>, 18/09). Detalhe e números na página <i>Aplicação na tela (6 fases)</i>."}]},
+
 { id:"tec-qa", grp:"tec", nav:"Qualidade & CI", title:"Qualidade — o que o CI cobra de verdade",
   sub:"Pest v4 nos testes, baselines pra dívida existente, guards pra doutrina. A régua não é opinião: é script com nome.",
   type:"runbook", auth:"canonical", upd:"2026-07-28", git:"package.json",
@@ -494,6 +527,9 @@ const LENTES=[["operar","Operar",["start","dominio","fluxo","corpus"]],
  ["construir","Construir",["start","dominio","tec","gov","corpus"]],
  ["tudo","Tudo",ORDER]];
 
+// Rótulo do gate — uma fonte só, pra lane e legenda não divergirem.
+const GATE={req:"required",adv:"advisory",self:"selftest",none:"sem gate"};
+
 function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
 function hi(txt,q){if(!q)return esc(txt);const i=txt.toLowerCase().indexOf(q.toLowerCase());if(i<0)return esc(txt);
  return esc(txt.slice(0,i))+"<mark>"+esc(txt.slice(i,i+q.length))+"</mark>"+esc(txt.slice(i+q.length))}
@@ -528,6 +564,26 @@ function Blocks({ doc }){
        <ul>{s.items.map((it,k2)=><li key={k2} dangerouslySetInnerHTML={{__html:it}} />)}</ul>
       </li>))}
     </ol>
+   </div>);
+  if(b.k==="maq")return (
+   <div className="doc-maq" key={i}><div className="doc-fsm-h">{b.label}</div>
+    <ol className="doc-maq-r">
+     {b.lanes.map((l,j)=>(
+      <li className="doc-maq-l" key={j}>
+       <div className="doc-maq-h"><span className="doc-maq-f">{l.fase}</span><b>{l.t}</b>
+        <span className={"doc-maq-g "+(l.gate||"none")}>{GATE[l.gate]||GATE.none}</span></div>
+       <div className="doc-maq-row">
+        <div className="doc-maq-c"><em>entrada</em><span dangerouslySetInnerHTML={{__html:l.ent}} /></div>
+        <span className="doc-maq-arr" aria-hidden="true"></span>
+        <div className="doc-maq-c maq"><em>máquina</em>
+         <div className="doc-maq-chips">{l.maq.map((m,k2)=><code key={k2} dangerouslySetInnerHTML={{__html:m}} />)}</div></div>
+        <span className="doc-maq-arr" aria-hidden="true"></span>
+        <div className="doc-maq-c"><em>recibo · saída</em><span dangerouslySetInnerHTML={{__html:l.sai}} /></div>
+       </div>
+      </li>))}
+    </ol>
+    {b.legend&&<div className="doc-maq-leg">{b.legend.map(([g,t])=>
+      <span key={g}><i className={"doc-maq-g "+g}>{GATE[g]}</i>{t}</span>)}</div>}
    </div>);
   if(b.k==="alert")return (
    <div className="doc-note" key={i}>{DS.Alert

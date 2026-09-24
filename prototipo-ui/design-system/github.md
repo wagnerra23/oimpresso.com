@@ -4,7 +4,108 @@ repo: wagnerra23/oimpresso.com
 branch: main
 path: (repo inteiro — foco em resources/css, resources/js, memory/, prototipo-ui/, scripts/)
 
+### Conferencia por blob-sha (2026-09-18T21:25Z)
+
+Refeita a pedido de [W], desta vez por **sha1 do git** (`blob <n>\0` + bytes), nao por tamanho — tamanho igual nao prova conteudo igual.
+
+⚠️ **A primeira sonda estava errada e o caso de sanidade pegou**: o NUL do cabecalho saiu escapado como dois caracteres e os 179 arquivos deram "divergentes", inclusive o arquivo de controle contra ele mesmo. Corrigida e revalidada (controle positivo bate · controle negativo falha) antes de qualquer veredito.
+
+**Resultado sobre os 232 arquivos da pasta: 226 identicos por blob-sha.** Os 6 restantes foram resolvidos um a um:
+
+| arquivo | veredito |
+| --- | --- |
+| `github.md` | esperado — e este recibo, escrito deste lado |
+| `Norte/Norte - Fluxo do Caminhao.html` | **IDENTICO** (`98bd88af93b3`) |
+| `public/cowork-preview/erp-shell-v2/Producao Oficina - Tela.html` | **IDENTICO** (`1fa3c0fd9efe`) |
+| `assets/brand/logo-full.svg` | mesmo desenho, bytes diferentes (−56 B) |
+| `uploads/office_impresso.svg` | mesmo desenho, bytes diferentes (−56 B) |
+| `uploads/logo do office sozinha.svg` | mesmo desenho, bytes diferentes (−171 B) |
+
+**Os dois com acento no nome: medidos por desvio.** O leitor recusa caminho com acento decomposto ("disallowed characters"), entao copiei cada um para um caminho ASCII temporario, tirei o sha e apaguei a copia. Os dois batem exatamente com o `main`. **O conserto duravel e do lado de la: renomear na pasta compartilhada para ASCII** (`Caminhao`, `Producao`) e atualizar as referencias — nome com acento tambem quebra em zip, em CI e em Windows; aqui so apareceu primeiro.
+
+**Os 3 SVG: identicos em conteudo, medido por assinatura estrutural.** Extraido de cada arquivo local e conferido contra o texto do `main`:
+
+| | `logo-full` | `office_impresso` | `sozinha` |
+| --- | --- | --- | --- |
+| `<path>` / `<polygon>` / `<g>` | 54 · 13 · 5 | 54 · 13 · 5 | 0 · 11 · 1 |
+| `viewBox` | `6 263 700 192` | `0 0 718 718` | `0 0 2.7008932 2.4217153` |
+| sha10 da geometria (`d` + `points`) | `a637cfbb40` | `a637cfbb40` | `b0ca40905a` |
+
+Os 12 fills batem um a um nos dois primeiros, os 8 no terceiro, e os dois logos grandes tem a MESMA geometria — exatamente como no `main`, onde eles diferem so nos atributos do `<svg>`. **A diferenca e o transporte da importacao, que reescreve o prologo `<?xml ?>` e come as quebras de linha.** Refazer a copia repete o mesmo caminho; o byte-a-byte desses 3 so fecha se a pasta gravar os SVG ja na serializacao normalizada.
+
+### Pedido para a pasta compartilhada (Felipe × Wagner)
+
+1. **Renomear** `Norte - Fluxo do Caminhão.html` e `Produção Oficina - Tela.html` para ASCII, com as referencias.
+2. **Normalizar a serializacao dos 3 SVG** (ou distribui-los como `.png`/embutidos), para que o byte feche nos dois lados.
+
+Com esses dois, a proxima conferencia fecha 232/232 — menos o `github.md`, que e recibo local por definicao.
+
+**Nao coberto por esta conferencia:** trabalho nao commitado do outro lado e PR de design aberto — o `main` de hoje e tudo que a medicao enxerga.
+
+## Melhorias trazidas para o DS (2026-09-18T21:45Z) — DIVERGEM DA PASTA
+
+⚠️ **Estes 7 arquivos deixaram de ser cópia byte-a-byte de `prototipo-ui/design-system/`.** São a primeira mudança autoral deste lado depois da importação; **precisam subir para a pasta compartilhada** (Felipe × Wagner), senão o próximo puxão as apaga.
+
+**Origem do pedido:** o projeto *PROTÓTIPO OFICIAL — PRODUTO UNIFICADO V2* (`2e7d3640…`) tem, no `_ds/`, um bind deste DS no estado de **2026-09-09** e, dentro dele, **um único componente**: `DataTable`. Comparado com o `DataTable` de hoje (alias de `DataGrid`), sobrava uma perda real.
+
+**Correção da minha própria leitura, medida:** na primeira passada eu disse que o `DataGrid` tinha perdido `selectedIds`/`onToggleRow`/`onToggleAll`, `sortKey`/`sortDir`/`onSort` e `state:'selected'`. **Errado** — li o `.d.ts` e concluí do contrato. O `DataGrid.jsx` implementa os três desde a fusão (`controlledSel`, `controlledSort`, `row.state === 'selected'` na linha do `isSel`). Quem mentia era o contrato, não o código.
+
+**A perda real era UMA: `caption`.** O alias repassava o prop, o `DataGrid` não lia ninguém — o nome acessível da tabela sumia sem erro.
+
+### O que mudou
+
+- **`DataGrid.jsx`** — passa a aceitar `caption` e renderizar `<caption>` visualmente oculto (só quando informado: sem o prop, o markup não muda em byte nenhum). Os `<th>` ganharam `scope="col"` (WCAG H63 — explicitação, não conserto).
+- **`DataGrid.d.ts`** — o contrato passa a declarar o que o código já fazia: `caption`, `pagination`, `resizable`, `height`, `selectedIds`/`onToggleRow`/`onToggleAll`, `sortKey`/`sortDir`/`onSort`, `density: 'comfortable'` e `state: 'selected'`. Um `.d.ts` que esconde metade da API foi exatamente o que me fez errar o diagnóstico acima.
+- **`DataTable.d.ts`** — `caption` volta como **obrigatório**, como era em 09/09 e como é no vivo.
+- **`DataTablePro.d.ts`** — `caption` opcional.
+- **Os 3 cards** (`DataGrid.html`, `DataTable.html`, `DataTablePro.html`) passam `caption`. O do `DataTable` importa mais que os outros: sem ele, a vitrine seria a primeira a violar o contrato obrigatório que ela mesma publica — e a tabela do card seguiria sem nome acessível, que é o defeito que a mudança veio corrigir. Pego pelo verificador, não por mim.
+
+**São 7 arquivos divergentes da pasta**, não 5.
+
+### Efeito no protótipo
+
+Com isso, o *PRODUTO UNIFICADO V2* pode revincular este DS **sem reescrever tela nenhuma**: `caption`, seleção controlada e ordenação controlada continuam valendo. Muda o que a fusão de fato mudou — a tabela ganha paginação e header fixo.
+
 ## Last sync
+
+date: 2026-09-18T21:20:00Z
+tree: `8d0265305ce6`
+origem: **`prototipo-ui/design-system/` no `main`** — a pasta compartilhada Felipe × Wagner. Instrucao de [W] 2026-09-18: *"Tem que ser tudo de la. Nao pode ser nada de outra pasta"*.
+
+### O que foi feito
+
+Espelho inteiro trazido da pasta: **232 arquivos** copiados sobre a raiz deste projeto (mesmo layout, prefixo removido). Nada foi editado a mao depois da copia.
+
+- `check_design_system`: **49 componentes · 63 cards · 7 templates · 245 tokens · sem issues**. Namespace passou a ser `OfficeImpressoPontoWR2DesignSystem_019dd0` (o da pasta) — os aliases e os cards de la ja apontam pra ele, entao nada precisou ser reescrito.
+- **8 componentes que faltavam aqui entraram**: `ColumnManager`, `DataGrid`, `Kebab`, `PresenterMode`, `Segmented`, `Timeline`, `Toolbar`, `Widget` — os mesmos 8 que estavam com [W] desde 09/09. A pendencia "restaurar ou registrar a remocao" esta **fechada por esta instrucao**.
+- **Limpeza R4 concluida deste lado:** removidas as 13 copias locais de `ds-base.js`/`support.js` nos 7 templates (os `.dc.html` da pasta apontam pra `../_shared/`). `templates/oficina-auto/support.js` ficou — e arquivo proprio, referenciado por `./support.js`.
+
+### Medido antes de sobrescrever — o que este projeto tinha de diferente
+
+Comparacao por tamanho, arquivo a arquivo, antes da copia. **Onde a pasta e mais nova** (e a razao de varios arquivos de la serem menores):
+
+- `DataTable.jsx` 638 B · `DataTablePro.jsx` 647 B · `KpiFilterCard.jsx` 389 B **sao ALIAS** de `DataGrid` e de `KpiCard variant="filter"` ("fusao 2026-08", `NOTAS_INTERNAS.md`). Aqui eram implementacoes separadas de 7.577 / 8.156 / 2.556 B — linhagem antiga, nao trabalho perdido.
+- `TabBar` (2.462 → 6.890 B) e `PageHeader` (2.577 → 3.743 B) chegaram com o contrato de 31/08: `...rest` no `<nav>`, `ariaLabel`/`pad`/`size`/`off`/`icon`/`inset`; e `leading`/`context`/`freshness`/`freshnessRel`. Os 7 templates vieram junto, ja consumindo isso.
+- `Input` (4.263 → 7.003), `KpiCard` (6.360 → 8.796), `PeriodBar` (5.249 → 5.634), `Pagination` (5.617 → 5.665), `styles.css` (417 → 1.366, ganhou as regras `.ds-tabbar`), fontes reais do IBM Plex Sans 400/500/600/700.
+
+⚠️ **Onde este projeto estava a frente e a copia SOBRESCREVEU** — registrar, porque some da tela:
+
+| arquivo | aqui (antes) | da pasta | o que se perde |
+| --- | ---: | ---: | --- |
+| `components/StatusBadge/StatusBadge.jsx` | 11.140 B | 6.942 B | os **15 dominios** do sync de 09/09 caem para **11** — saem `producao`, `arquivo_prazo`, `ajuste_estoque`, `transferencia_estoque`, mais os pares `soft-*` e o dot ligado por padrao (3a perna do AP7) |
+| `colors_and_type.css` | 20.948 B | 19.917 B | contagem de tokens caiu de **267 para 245**. A v1.3.0 esta la (a pasta a recebeu em 16/09, PR #7456), mas os 22 de diferenca nao foram identificados um a um |
+| `cockpit_domains.css` | 6.154 B | 5.705 B | provavelmente os **8 tokens de cockpit** aplicados aqui em 09/09 (`--bubble-*`, `--thread-bg-*`, `--plate-*`) |
+| `components/AppSidebar/AppSidebar.jsx` | 25.803 B | 24.322 B | possivelmente **PLATAFORMA/Forja** ([W] 2026-09-08) — nao conferido linha a linha |
+| `components/DataTable/DataTable.d.ts` | 2.540 B | 1.025 B | `caption` obrigatorio + `scope="col"` (sync de 09/09) |
+
+Isso e **medicao, nao decisao**: a instrucao foi explicita e a pasta e o canon compartilhado. Se algum desses itens tiver de voltar, o caminho e refaze-lo **na pasta** (Felipe × Wagner) e puxar de novo — nao editar aqui.
+
+### Pendencias herdadas da pasta (o `github.md` de la, preservado abaixo)
+
+- **Reexport pendente:** as correcoes de ponteiro (§4) estao no vivo de la, nao no `main`.
+- **Codigo morto em `--preview-ds`** (linha 2143) e a **divida de ledger LC-08** seguem abertos.
+
+## Sync anterior (recibo da pasta, 2026-09-17)
 
 date: 2026-09-17T12:39:00Z
 commit: be67e5c4defc245290fbe6940c77dacb807b5133 (merge do PR #7465 — pacote 4 importado)

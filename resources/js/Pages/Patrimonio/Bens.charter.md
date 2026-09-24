@@ -9,8 +9,8 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
 tier: B
-charter_version: 1
-last_validated: "2026-09-08"
+charter_version: 3
+last_validated: "2026-09-23"
 ---
 
 # Page Charter — Patrimonio/Bens (DRAFT)
@@ -40,7 +40,8 @@ last_validated: "2026-09-08"
 
 Mostrar o patrimônio da empresa como lista operável: o que a casa tem, onde está, com quem
 está alocado, quanto vale por unidade e se está em garantia ou em manutenção. É a tela de
-partida do módulo — de onde se alcança alocar, mandar pra manutenção, editar e excluir.
+partida do módulo: dela se **cadastra** bem (drawer) e se **exclui**. Editar, alocar e mandar
+pra manutenção ainda não — ver os Non-Goals.
 
 ## Goals — Features (faz)
 
@@ -51,8 +52,15 @@ partida do módulo — de onde se alcança alocar, mandar pra manutenção, edit
 - Por linha: código, imagem (quando há), nome + modelo, categoria, local, quantidade,
   quantidade alocada, **valor unitário**, janela de garantia com dias restantes, data de
   compra e situação (operando / N em manutenção).
-- Ações por linha, cada uma pra rota que já existe: alocar · enviar pra manutenção ·
-  editar · excluir — desenhadas conforme a permissão do usuário.
+- **Cadastro em drawer** ("Adicionar recurso", desenho do `BemForm` do protótipo): abre pelo
+  botão do header, pelo CTA do vazio e por `?novo=1` (destino do "Adicionar recurso" do
+  Painel). Posta no `store()` que já existia — sem backend novo. Valor e quantidade saem como
+  `1234,56` (vírgula decimal, sem milhar) pro `num_uf`, e a data no `business.date_format`
+  pro `uf_date`; a dupla prova da REGRA MESTRE é UC-BENS-05 (vitest do payload + Pest do que o
+  banco gravou). Desvios do protótipo declarados no topo de `_shared/CadastroBemDrawer.tsx`.
+- Ação por linha: **excluir** (`router.delete` no `destroy`, com confirmação nomeando o bem),
+  conforme a permissão do usuário. (Até 2026-09-23 havia também alocar · manutenção · editar —
+  ver o Non-Goal abaixo, que diz por que saíram.)
 - Sub-navegação do módulo **derivada** de `shell.menu` (`DataController::modifyAdminMenu`),
   nunca declarada aqui.
 - Estados: cheia · filtrada-vazia · vazia · carregando (skeleton do `Inertia::defer`) ·
@@ -72,8 +80,16 @@ partida do módulo — de onde se alcança alocar, mandar pra manutenção, edit
 - ❌ NÃO faz seleção em lote nem BulkBar — as duas ações em lote do protótipo (exportar
   seleção, mandar pra manutenção) não têm endpoint hoje.
 - ❌ NÃO exporta CSV, não imprime, não configura colunas nem densidade.
-- ❌ NÃO cria nem edita bem: `create`/`edit` seguem Blade nesta onda; os botões apontam pra
-  essas rotas reais.
+- ❌ NÃO edita, aloca nem manda pra manutenção — e **não oferece botão** pra isso. (Criar
+  voltou em 2026-09-23 pelo drawer — ver Goals.) Até
+  2026-09-23 a tela tinha "Novo ativo", o CTA do vazio e três ícones por linha apontando pra
+  `create`/`edit` Blade. **Medido em prod (biz=1):** os quatro endpoints só respondem sob
+  `request()->ajax()` e devolveram 200 com **0 bytes** numa navegação direta — as views são
+  fragmentos de modal jQuery da lista Blade que não existe mais. Link pra página em branco é
+  afordância falsa; saíram, como já tinham saído da irmã Alocacoes. Voltar exige drawer React,
+  que é escrita de valor e quantidade (REGRA MESTRE Tier 0) — `[BACKLOG]` do casos.
+- ❌ NÃO aceita código de ativo digitado no cadastro: o Blade aceitava, o protótipo não. O
+  drawer segue o protótipo e manda vazio — o serviço gera pelo prefixo + sequência.
 - ❌ NÃO cruza tenants — `Asset` não tem global scope, o filtro por `business_id` é manual
   ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md), Tier 0).
 - ❌ NÃO afrouxa `permitted_locations()` por parâmetro de query: é restrição de permissão,

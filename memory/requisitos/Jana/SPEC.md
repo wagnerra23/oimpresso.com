@@ -2162,3 +2162,130 @@ e prova a afirmação escolhida · nenhum `git commit` executado dentro do conta
 
 **Refs:** [PR #7366](https://github.com/wagnerra23/oimpresso.com/pull/7366) · [PR #7369](https://github.com/wagnerra23/oimpresso.com/pull/7369) ·
 [ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md) · classe **LC-15** (mecanismo anuncia saída que não implementa).
+
+### US-COPI-150 · Meta criada pelo caminho MANUAL nasce órfã — sem alvo, e por isso muda para sempre
+
+> owner: — · priority: p1 · status: done · type: story
+> blocked_by: —
+
+**Implementado em:** [`Modules/Jana/Http/Requests/StoreMetaRequest.php`](../../../Modules/Jana/Http/Requests/StoreMetaRequest.php) · [`Modules/Jana/Http/Controllers/MetasController.php`](../../../Modules/Jana/Http/Controllers/MetasController.php) · [`resources/js/Pages/Jana/_components/JanaMetaNovaDrawer.tsx`](../../../resources/js/Pages/Jana/_components/JanaMetaNovaDrawer.tsx) — o request passa a aceitar alvo + janela, o `store` cria o `MetaPeriodo` junto, e a gaveta do Painel pede esses campos
+
+**Testado em:** [`Modules/Jana/Tests/Feature/MetaNasceComAlvoTest.php`](../../../Modules/Jana/Tests/Feature/MetaNasceComAlvoTest.php) — 7 casos. ⚠️ **Executados de fato no CT 100** (MySQL real, tenant 98): `Tests: 7 passed (25 assertions)`. As **25 assertions** são o que separa execução de skip — `0 failed` nunca prova que rodou (§5 2026-07-24 · LC-13). Mordida provada por mutação: desligando o `if ($request->temAlvo())` do `store`, **3 failed**, com verificação de que a troca entrou no disco antes de ler o resultado. Front: [`tests/janaMetaNovaAlvo.spec.tsx`](../../../tests/janaMetaNovaAlvo.spec.tsx) — 7 casos (5 de contrato + 2 de controle negativo), 3 mutantes, 3 mordidas
+
+**DoD:**
+
+- [x] `StoreMetaRequest` aceita `valor_alvo`, `data_ini`, `data_fim`, `tipo_periodo` e `trajetoria`, com as regras **idênticas** às do `StorePeriodoRequest`
+- [x] `required_with` amarra os três obrigatórios: alvo sem janela e janela sem alvo são **recusados**, e nada é criado
+- [x] `MetasController@store` cria o `MetaPeriodo` junto quando o alvo vem inteiro
+- [x] `periodoAtual` resolve numa janela que contém hoje — é o que dá barra e `% do alvo` ao card
+- [x] o período nasce no **mesmo business** da meta (Tier 0 via parent)
+- [x] `JanaMetaNovaDrawer` pede alvo + janela, com a janela pré-sugerida pelo tipo, e **trava o botão** sem alvo
+- [x] o drawer **avisa** que a fonte se configura fora dele (residual declarado, não escondido)
+- [x] payload SEM alvo continua criando a meta — o Blade legado não quebra (retrocompatibilidade)
+- [x] testes rodados **no CT 100** (MySQL real, tenant 98) com assertions > 0, e mordida provada por mutação
+
+⚠️ **Fora do DoD, por decisão:** criar a `MetaFonte`. Não existe UI para ela (US-COPI-040), e
+inventar um campo de SQL na gaveta seria pior que o buraco.
+
+**Origem:** sessão 2026-09-21. [W] relatou *"Metas e kpi não renderizam corretos"* no Painel. A investigação
+começou pela forma (e havia divergência real, fechada na US irmã), mas o que ele via tinha **outra metade**.
+
+**O que foi medido, em produção:** as 5 metas do tenant estão `ativo=1` e têm **ZERO período, ZERO apuração
+e ZERO fonte**. Espelhado o estado no staging e medido o DOM, os 5 cards saem **idênticos**:
+
+```
+"<nome> | <unidade> | Aguardando apuração…"
+temValor: false · temBarra: false · temProjecao: false · temPeriodo: false
+todosIguais: true · altura do card: 134px
+```
+
+Sem `periodo_atual` não há alvo; sem alvo não há barra, não há `% do alvo` e não há projeção.
+
+**A causa — assimetria entre os dois caminhos de criação, lida nos dois controllers:**
+
+| | `ChatController@escolher` (IA) | `MetasController@store` (manual) |
+|---|---|---|
+| `Meta` | ✅ | ✅ |
+| `MetaPeriodo` (o alvo) | ✅ | ❌ |
+| `MetaFonte` (de onde vem o número) | ✅ | ❌ |
+| dispara `ApurarMetaJob` | ✅ | ❌ |
+
+As 5 metas têm `origem = manual`. **E não era descuido do controller:** o `StoreMetaRequest` aceitava apenas
+`slug`, `nome`, `unidade`, `tipo_agregacao` e `business_id` — **não existia campo de alvo**. Criar uma meta
+completa por ali era impossível.
+
+**Descartado por medição:** não vieram de seed. Varredura no repo inteiro (incluindo dotfiles) pelos 5 slugs
+devolveu **zero** ocorrências; a única — `ticket-medio` — é id de pergunta no `golden-questions.yaml`, e os
+nomes só aparecem em testes de Sells como rótulo de KPI.
+
+**O fluxo real é de 3 telas, e nada leva da primeira às outras:**
+
+1. `POST /ia/metas` → identidade
+2. `POST /ia/metas/{id}/periodos` → o alvo (`PeriodosController`)
+3. `PATCH /ia/metas/{id}/fonte` → a query (`FontesController`, em `Modules\KB`, faz `updateOrCreate`)
+
+E o caminho **mais novo** tinha o mesmo buraco: o `JanaMetaNovaDrawer` postava para `/ia/metas` com **zero
+menções** a alvo, período ou fonte na interface. Entregava uma meta que já nascia em "Aguardando apuração…".
+
+**Veredito:** não é cadastro interrompido pelo usuário — é o desenho do fluxo. Toda meta criada manualmente
+nascia, por construção, sem alvo.
+
+**O que esta US fecha:** o eixo do **ALVO**. O `StoreMetaRequest` aceita `valor_alvo`, `data_ini`, `data_fim`,
+`tipo_periodo` e `trajetoria` — regras **idênticas** às do `StorePeriodoRequest`, porque alimentam a mesma
+tabela e divergir faria a validação depender da porta de entrada. `required_with` amarra os três entre si: ou
+vem o alvo inteiro, ou não vem nada — meia-declaração é o estado quebrado que isto existe para impedir.
+
+**`nullable`, e não `required`, por retrocompatibilidade medida:** o form Blade legado
+(`metas/create.blade.php`) manda só os 4 campos de identidade, e torná-los obrigatórios devolveria 422 para
+ele. O drawer manda o alvo sempre. O cutover do Blade é o PR-4 do RUNBOOK-metas §9.4.
+
+⚠️ **O que esta US NÃO fecha, e é residual DECLARADO — a `MetaFonte`.** Sem fonte a meta **não apura**, e o
+próprio `buildMetasPayload` já dizia isso (*"`null` = meta sem fonte gravada, que é estado REAL: sem fonte a
+meta não apura"*). Não se cria fonte aqui porque **não existe UI para ela em lugar nenhum**: a tela
+`copiloto::fontes.show` é **somente-leitura** e declara, no próprio corpo, que *"o editor com prévia do
+resultado antes de salvar é a **US-COPI-040**"*. A rota `PATCH` existe e funciona, mas nenhuma tela a usa.
+Inventar um campo de SQL na gaveta seria pior que o buraco — o que ela faz é **avisar** que a fonte fica fora,
+e isso é testado.
+
+⚠️ **E o que esta US não alcança: as 5 metas que JÁ existem.** Elas continuam órfãs até alguém preencher
+período e fonte. O backfill é trabalho de outra sessão (comandos `ConfigurarPeriodosMetaCommand`,
+`ConfigurarFontesMetaCommand`, `BackfillApuracoesCommand`, em curso em 2026-09-21) — a divisão combinada é:
+**esta US cuida do futuro, o backfill cuida do passado.** Sem o backfill, as 5 seguem mudas; sem esta US, a
+sexta nasce quebrada.
+
+**Não medido:** *por que* as 5 nasceram sem período. `origem=manual` diz **como** foram criadas, não por que
+pararam na etapa 1. O `activity_log` (o Model tem `LogsActivity`) responderia *quando* e *por quem*, mas o SSH
+da Hostinger não completou em 5 tentativas nesta sessão. Isso **não muda a causa**, que está estabelecida no
+código — muda só a atribuição.
+
+**⚠️ ERRATA — o "não medido" acima foi MEDIDO (forense de prod, 2026-09-21).** O bloco anterior dizia
+que o `activity_log` responderia *quando* e *por quem*, mas que o SSH da Hostinger não completou. Ele
+completou na 6ª tentativa, e o resultado **fortalece** o diagnóstico em vez de mudá-lo:
+
+| evidência | medida |
+|---|---|
+| criação das 5 | **2026-09-07**, todas pelo mesmo user (id 635) |
+| ritmo | a 1ª às 20:32:42; as **4 seguintes em 6 segundos** (20:35:51 → 20:35:57) |
+| `activity_log` (`log_name=jana_meta`) | exatamente **5 linhas**, todas `created` — **nenhuma** `updated` |
+| `jana_meta_periodos` | **`AUTO_INCREMENT = 1`**, 0 linhas |
+| `jana_meta_fontes` | **`AUTO_INCREMENT = 1`**, 0 linhas |
+| `jana_meta_apuracoes` | **`AUTO_INCREMENT = 1`**, 0 linhas |
+| `jana_metas` | `AUTO_INCREMENT = 6`, 5 linhas — nenhuma meta deletada |
+
+**O `AUTO_INCREMENT = 1` nas três tabelas filhas é a prova mais dura desta US.** Ele significa que elas
+**nunca receberam um único INSERT** — não é que período e fonte foram criados e depois apagados; é que
+**nunca existiram**. Isso elimina, por medição e não por argumento, as duas hipóteses alternativas que
+sobravam:
+
+- **"alguém apagou"** — refutada: um `DELETE` deixaria o contador acima do número de linhas, como
+  acontece em `jana_metas` (AI=6 para 5 linhas).
+- **"o usuário começou a completar e parou"** — refutada: o `activity_log` tem só `created`, **zero**
+  `updated`, e as tabelas filhas estão zeradas desde a origem.
+
+**O ritmo de 6 segundos** para as 4 últimas mostra alguém criando em sequência pelo formulário — e
+parando ali, porque **ali acabava o que o formulário permitia fazer**. É exatamente o comportamento
+esperado de um fluxo cuja primeira etapa não pede alvo e não sinaliza que faltam outras duas.
+
+⚠️ **O que continua não medido:** *por que* aquele usuário não percorreu as etapas 2 e 3. A resposta
+provável está no próprio desenho (nada as indica), mas isso é inferência sobre intenção, não medição —
+e fica como tal.

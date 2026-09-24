@@ -323,3 +323,51 @@ Uma primeira leitura acusou *"o design tem Demonstrativo/Balanço/Balancete e a 
 (Financeiro · Cobrança · Assinaturas…) em vez das tabs internas da tela. Medindo os botões
 do `main`, a prod tem os 3 relatórios **e** os 4 períodos. Medir o seletor errado devolve um
 veredito plausível — o pior tipo de erro (§5 2026-07-16).
+
+---
+
+## FIN-0a · paridade re-medida com o Design System carregado — 2026-09-23 [CL]
+
+Mesma sonda (`design-diff.mjs --probe`, 11.415 caracteres nos dois lados) · tema `dark` nos dois ·
+DOM estável em 3 leituras seguidas antes de medir. Prod `/financeiro/dre?periodo=mes&anchor=2026-07`,
+empresa 1 (conferido: `meta.business_id = 1`) × design rota `fin-dre` servida por
+`servirEspelho` (`scripts/design/design-diff-lote.mjs`), que resolve `_ds/<slug>/` para
+`prototipo-ui/design-system/` (ADR 0401 E2). Saúde do lado design: **0 folhas vazias, 0 tokens mortos, 71 folhas**.
+
+### Por que a medição de 2026-09-08 e o proto-baseline de 2026-09-16 não valem
+
+Servido por `python -m http.server` (o que os presets de `.claude/launch.json` fazem), o shell pede
+`_ds/<slug>/_ds_bundle.js` e o CSS do DS e recebe **404**. O protótipo renderiza sem o DS, sem erro
+visível: o `CliSeg` retorna `null` quando `window.OfficeImpressoPontoWR2DesignSystem_019dd0.Segmented`
+não existe, e o seletor de período some. O `dre.proto-baseline.json` tem **1** elemento de conteúdo
+da tela (a aba "Demonstrativo DRE") em cada célula; o resto é moldura. Reportado por [W] olhando o
+render: *"falta css"*.
+
+### Veredito por dimensão
+
+| Dimensão | Prod | Design | Veredito |
+|---|---|---|---|
+| h1 | "Financeiro · DRE / Relatórios", 22px/700 | idem | **IGUAL** |
+| Seletor de período | Mês · Trimestre · Ano · 12m (3 desabilitados) | idem, com o DS carregado | **IGUAL** — o "12m só na prod" de 09-08 não se reproduz |
+| Tabela | 6 colunas, alinhamento esq/dir idêntico, largura ±0,4 p.p. | idem | **IGUAL** |
+| 1ª coluna (Conta) | fonte proporcional | **monoespaçada** | **DÍVIDA A FECHAR** (FIN-1) |
+| Botão principal — rótulo | "Novo lançamento" | "Novo título" | **DÍVIDA A FECHAR** (copy; protótipo manda — UI-0029) |
+| Botão principal — cor | roxo L=0,55 | roxo L=0,70 | fundação, **não é FIN-1**: 0,55 é o roxo universal da ADR 0190; mudar vale para toda tela. Serviu de canário: a sonda pegou a diferença conhecida |
+| Cor do texto das células | — | — | **NÃO MEDIDO**: na prod os tokens (`--accent`, `--pos`…) vivem no `.cockpit`, não no `:root`; a verificação de saúde da sonda lê o `:root` |
+| D1 rede | trocar aba = XHR `?aba=balanco`, sem recarga | — | **ok** |
+
+### Defeitos de comportamento achados no caminho (não são layout)
+
+1. **Trocar de aba perde o período.** `?anchor=2026-07&periodo=mes` → `?aba=balanco`: quem via julho volta ao mês atual.
+2. **Sessão sem empresa ⇒ DRE vazio.** Abrindo `/financeiro/dre` direto numa sessão ainda não populada, a página
+   recebeu `meta.business_id = 0` (o usuário é da empresa 1 no banco). Depois de passar por `/home`, veio 1.
+   Causa provável: nenhuma rota do Financeiro passa pelo `SetSessionData` (`route:list` de produção, 2026-09-23).
+   Não vaza dado de outra empresa — a tela fica vazia.
+
+### Referência visual regerada — aviso "Categorias não mapeadas" (2026-09-23)
+
+- **[W] aprovou** a captura nova do `Financeiro/Dre` (run 35892889756). A única diferença para a
+  anterior é o aviso "Categorias não mapeadas hierarquicamente… Configurar plano de contas →" no topo,
+  que o #7789 (de-para conta → linha da DRE) passou a mostrar quando o plano não tem mapeamento — o
+  caso do tenant de teste. A referência estava desatualizada desde o #7789 porque aquele PR só mexeu
+  em backend e o gate visual não comparou o DRE nele (6,6% acima de τ_alto em todo PR de escopo global).

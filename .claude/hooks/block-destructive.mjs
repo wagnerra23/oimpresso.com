@@ -83,8 +83,64 @@ function juntaContinuacoes(cmd) {
  *
  * @returns {string[]} statements normalizados, sem vazios
  */
+// ── HEREDOC: o corpo é DADO, menos quando alimenta um EXECUTOR ([W] 2026-09-21) ─
+//
+// O `split(/\n/)` abaixo transformava CADA linha do corpo de um heredoc num
+// "statement". Num `cat > doc.md <<'EOF' … EOF` que escreve prosa, a linha de
+// TEXTO virava comando e o detector acusava a prosa — o hook impedia escrever
+// sobre o próprio hook. Mesma família do #7586 (que resolveu o caso `echo`),
+// pela porta do heredoc.
+//
+// ⚠️ Heredoc NÃO é inerte por construção: `bash <<EOF … EOF` EXECUTA o corpo.
+// Por isso a isenção é decidida pelo comando que CONSOME o stdin, não pela
+// presença do heredoc — tratar todo corpo como dado abriria `bash`/`sh`/`ssh`
+// inteiros, que é o oposto do que este guard existe pra fazer.
+//
+// MEDIDO ANTES de aplicar (2026-09-21) — 1848 jsonl · 161.242 blocos tool_use:
+//   · AFROUXOU 23 distintos / 23 ocorrências · APERTOU **0**
+//   · dos 23, **0 sem heredoc** (a mudança não alcança mais nada por acidente);
+//     abridores: `cat >`, `git commit -F -`, `tee`, `gh pr … --body-file`
+//   · 7 controles negativos de executor (`bash`, `sh`, `cat|sh`, `ssh`,
+//     `tailscale`+`docker exec`, `python3`, `xargs`) seguem BLOQ
+//   · 14 bordas com alvo FORA da whitelist (`/etc/passwd`, pra o veredito vir
+//     do parser e não da isenção de alvo): 14/14 conforme esperado, incluindo
+//     comando real ANTES, DEPOIS e no MEIO de heredocs, e heredoc sem fecho.
+const CONSOME_STDIN_EXECUTANDO =
+  /(^|[\s;&|(])(sh|bash|zsh|ksh|dash|ash|fish|python3?|node|perl|ruby|php|psql|mysql|sqlite3?|ssh|tailscale|docker|podman|kubectl|xargs|eval|source)(\s|$)/i;
+
+/**
+ * Descarta o CORPO de heredocs cujo abridor NÃO executa stdin, preservando o
+ * delimitador de fecho. Heredoc sem fecho não é tocado — não se inventa
+ * fronteira sobre entrada malformada.
+ * @returns {string} o comando com os corpos de DADO removidos
+ */
+export function removeHeredocDeDado(cmd) {
+  const linhas = String(cmd || '').split(/\r?\n/);
+  const saida = [];
+  for (let i = 0; i < linhas.length; i++) {
+    const linha = linhas[i];
+    saida.push(linha);
+    // `<<EOF`, `<<-EOF`, `<<'EOF'`, `<<"EOF"` — o ÚLTIMO da linha é o que vale
+    const abre = [...linha.matchAll(/<<-?\s*(['"]?)([A-Za-z_][A-Za-z0-9_]*)\1/g)].pop();
+    if (!abre) continue;
+    const delim = abre[2];
+    let fim = -1;
+    for (let j = i + 1; j < linhas.length; j++) {
+      if (linhas[j].trim() === delim) { fim = j; break; }
+    }
+    if (fim < 0) continue;                       // sem fecho: não mexe
+    if (CONSOME_STDIN_EXECUTANDO.test(linha)) {  // corpo é CÓDIGO: preserva
+      for (let j = i + 1; j <= fim; j++) saida.push(linhas[j]);
+    } else {
+      saida.push(delim);                          // corpo é DADO: descarta
+    }
+    i = fim;
+  }
+  return saida.join('\n');
+}
+
 export function statements(cmd) {
-  return juntaContinuacoes(cmd)
+  return juntaContinuacoes(removeHeredocDeDado(cmd))
     .split(/\r?\n|;|&&|\|\|/)
     .map(normalizeCmd)
     .filter(Boolean);
@@ -125,9 +181,108 @@ export function statements(cmd) {
 //   FP conhecido e aceito — o caminho é passar a mensagem por arquivo
 //   (`git commit -F` / `gh pr create --body-file`), não afrouxar o guard.
 //
-// ⚠️ Duas decisões que a medição sustenta, e que NÃO se refazem sem re-medir:
-//   · flags `-rf` LITERAL (não `-[rRf]+`): aceitar `-f` sozinho isentaria
-//     `rm -f /tmp/x`, que hoje BLOQUEIA — seriam 43 comandos afrouxados.
+// ── ESCOPO rm(1): a categoria deixa de exigir FLAG ([W] 2026-09-21) ─────────
+//
+// Antes o detector exigia `-[rRf]+`, então `rm arquivo.txt` — sem flag — não
+// era visto por ninguém. É a forma menos destrutiva (não pega diretório, falha
+// em read-only), mas apaga trabalho não-commitado igual. Fechado a pedido do
+// [W]: "fecha o rm sem flag também".
+//
+// ⚠️ Isto APERTA o guard: é o único ponto deste arquivo onde uma mudança
+// ADICIONA bloqueio. O custo foi medido ANTES — 1846/1846 jsonl · 160.895
+// blocos tool_use Bash/PowerShell:
+//
+//   APERTOU  561 distintos / 563 ocorrências   AFROUXOU 18 / 18
+//
+//   O que passa a bloquear, por classe:
+//     B) rm(1) de verdade ......... 505 / 506  (90,5%)  ← o alvo da mudança
+//     C) `rm` dentro de string .....  ~52 / ~53 ( 9,4%)  ← FP, ver abaixo
+//     A) `<tool> rm` residual ......    ~4 /  ~4 ( 0,7%)  ← FP
+//   O que deixa de bloquear: 32, TODOS lidos e benignos —
+//     18 `git rm -r`/`-f` (FP pré-existente, ver ehToolRm: `git rm` nunca foi
+//     rm(1) e é reversível) + 14 `docker exec … rm /tmp/*` (§POSIÇÃO abaixo).
+//
+// ⚠️ O 9,9% de FP é um PISO, não uma medida — e isso importa pra quem ler o
+// número. 47% do universo apertado é comando MULTI-LINHA, onde o `rm` pode
+// estar em heredoc, template literal ou string de outra linguagem; nenhuma
+// heurística de aspas alcança isso. Duas medições independentes (esta sessão e
+// uma sessão irmã, eixos diferentes) deram 9,4% e 12,2% pra mesma classe — a
+// diferença É a fatia que cada heurística alcança. O que está medido com
+// confiança é o TOTAL (≈560) e a classe B; a partição do resto é estimativa.
+//
+// ── POSIÇÃO: a isenção não exige mais `rm` como 1º token (2026-09-21) ───────
+// `sudo rm -rf vendor` e `docker exec c rm /tmp/x` bloqueavam embora o alvo
+// esteja na whitelist — só porque o extrator ancorava em `^rm`. Medidos 5 no
+// corpus, todos `docker exec … rm /tmp/*.php` (sonda no CT 100). Corrigido em
+// alvosRmRf; os 4 CN do §POSIÇÃO no test provam que prefixo não isenta alvo de
+// fora, inclusive remoto.
+// ⚠️ NÃO estendi ehToolRm pra `docker exec`/`ssh … rm`, embora sugerido: o
+// alvo remoto é um filesystem REAL, e `ssh prod rm -rf /var/www` é exatamente
+// o que o guard existe pra pegar. O caso legítimo (alvo reconstruível) já é
+// resolvido pelo §POSIÇÃO, sem abrir a porta do alvo arbitrário.
+//
+// O `<tool> rm` sai pela isenção, e isso NÃO é zelo: sem ele, o mesmo corpus
+// acusaria 183 `git rm` (24,6% de tudo). Medido nas duas versões.
+//
+// ⚠️ REGRESSÃO ASSUMIDA, declarada porque ela desfaz parte do #7586 (do mesmo
+// dia): `… | grep -nE "a|rm -rf|b"` volta a bloquear, porque `|rm ` casa e o
+// `|` está em `[\s;&|]`. O FP é ESTREITO e foi medido antes de aceitar — só
+// pega `rm` logo após `|` ou como token solto. Seguem passando:
+//     grep -n "rm " arquivo    ·  grep -rn "rm -rf" scripts/
+//     echo "use rm pra limpar" ·  git log | grep "rm"
+// Remédio pra quem esbarrar: padrão por arquivo/variável — o mesmo do FP de
+// prosa em `git commit -F` já documentado no §MULTI-ARG.
+//
+// ── FLAG-SET: a isenção casa o CONJUNTO de flags ([W] 2026-09-21) ───────────
+//
+// HISTÓRICO, fato datado — não apagar. Até 2026-09-21 a isenção casava o
+// literal `-rf`, e o efeito não correspondia a nada no SO. Enunciado exato do
+// que ela aceitava: **o par ORDENADO `(r|R)(f|F)`**. Sobre o MESMO alvo isento:
+//     passavam  : (sem flag) · -rf · -rF · -Rf · -RF
+//     BLOQUEAVAM: -f · -r · -R · -F · -fr · -fR · -Fr · -FR
+// Duas propriedades, e só a 1ª tinha justificativa registrada:
+//   1. VALE de destrutividade — o mais destrutivo (`-rf`) passava, o menos
+//      destrutivo (`-f`) bloqueava, e o sem-flag passava. A justificativa era
+//      a contagem de 09-16 ("43 comandos afrouxados"), que media QUANTIDADE,
+//      não RISCO.
+//   2. ORDEM e CAIXA das flags — `rm -rf`, `rm -fr` e `rm -Rf` são o MESMO
+//      comando pro SO e saíam daqui com vereditos diferentes. Artefato da
+//      forma do literal (posicional + `/i`), nunca decisão de ninguém.
+//
+// HOJE: `-[rRf]+`, igual ao detector — a isenção vale por CONJUNTO de flags.
+//
+// ⚠️ Isto AFROUXA um guardrail Tier-0 e foi decisão explícita do [W]
+// (2026-09-21: "alinha o regex, pode fechar o vale") — não é efeito colateral,
+// exatamente como o afrouxamento de 2026-09-16 no topo deste bloco.
+//
+// MEDIDO ANTES de aplicar — 1846/1846 jsonl · 160.799 blocos tool_use
+// Bash/PowerShell:
+//   · 64 distintos / 65 ocorrências afrouxadas · APERTOU **0** (a whitelist de
+//     ALVOS não mudou, então alinhar só pode SUBTRAIR bloqueio).
+//   · Os 64 lidos um a um: 62 são `/tmp/*` (sonda, `.bak`, `.b64`, JUnit, lint
+//     temporário) e 2 removem o SYMLINK `vendor` antes de recriá-lo — que é o
+//     uso em que a forma não-recursiva é a correta. Zero alvo perigoso.
+//   · Em alvo NÃO isento (`/etc/passwd`): **zero** dos 13 pontos de flag mudou
+//     — todos seguem bloqueando. Só a ISENÇÃO afrouxou, e só onde a whitelist
+//     já autorizava.
+//   · Bordas preservadas: vacuidade (`rm -rf` sem alvo), `xargs … rm`,
+//     multi-arg com 1 alvo fora, travessia `..`, `$var` FORA de prefixo isento.
+//   · Bordas que mudam, e são coerentes: `rm -f -r /tmp/x` (flags separadas)
+//     passa — é o mesmo comando que `rm -rf /tmp/x`, que já passava; e
+//     `rm -f /tmp/$X` passa, que é a 2ª decisão abaixo aplicada também ao `-f`.
+//
+// Reproduz: node -e "import('./.claude/hooks/block-destructive.mjs').then(
+//   m=>['','-f ','-r ','-R ','-F ','-rf ','-rF ','-Rf ','-RF ','-fr ','-fR ',
+//   '-Fr ','-FR '].forEach(f=>console.log((f||'(sem flag)').padEnd(11),
+//   m.matchDestructive('r'+'m '+f+'/tmp/x')?'BLOQ':'passa')))"
+//   (troque /tmp/x por /etc/passwd: TODOS com flag bloqueiam, antes e depois.)
+//
+// Os 13 pontos e as bordas estão nos asserts §FLAG-SET de
+// `block-destructive.test.mjs`. ⚠️ E não suponha que `-[rf]+` seria uma
+// variante "sem o R": MEDIDO — com o `/i` presente, `-[rf]+` e `-[rRf]+` são
+// equivalentes aqui. O `R` vem do flag, não da classe.
+//
+// ⚠️ Decisão que a medição sustenta, e que NÃO se refaz sem re-medir:
 //   · alvo NÃO-VERIFICÁVEL (`$var`, glob) dentro de prefixo whitelisted
 //     (`rm -rf /tmp/$X`) segue ISENTO: bloqueá-lo mede **0** no corpus e criaria
 //     FP em temp-dir dinâmico. Fora de prefixo whitelisted, `$X` já bloqueia
@@ -175,9 +330,15 @@ const RM_WHITELIST_ALVOS = [
  * @returns {string[]|null} null = o statement não é um `rm -rf`
  */
 export function alvosRmRf(stmt) {
-  const m = /^rm\s+-rf(\s+|$)/i.exec(String(stmt || ''));
+  // O `rm` pode NAO ser o 1o token do statement: `docker exec c rm /tmp/x`,
+  // `timeout 200 rm /tmp/x`, `sudo rm /tmp/x`. Ancorar em `^rm` deixava esses
+  // FORA da isencao mesmo com alvo whitelisted — medido: 5 casos no corpus,
+  // todos `docker exec … rm /tmp/*.php`. Achar em qualquer posicao NAO
+  // afrouxa o que importa: o veredito segue vindo de alvoIsento() sobre CADA
+  // alvo, e `xargs … rm -rf` continua com alvos=[] (vacuidade nao isenta).
+  const m = /(^|[\s;&|])rm(\s+|$)/i.exec(String(stmt || ''));
   if (!m) return null;
-  const toks = String(stmt).slice(m[0].length).match(/"[^"]*"|'[^']*'|\S+/g) || [];
+  const toks = String(stmt).slice(m.index + m[0].length).match(/"[^"]*"|'[^']*'|\S+/g) || [];
   const alvos = [];
   for (let t of toks) {
     if (/^(\||&|;|\d*>|<|>>)/.test(t)) break;   // operador de shell → acabou o rm
@@ -199,20 +360,51 @@ function rmIsento(stmt) {
   return alvos.every(alvoIsento);
 }
 
+/**
+ * `git rm` / `docker rm` / `svn rm` NAO sao o rm(1) do shell: o subcomando
+ * pertence a outra ferramenta, tem semantica propria e — no caso do git —
+ * e reversivel (o arquivo fica staged; `git checkout` restaura).
+ *
+ * MEDIDO: sem esta exclusao, abrir o detector pro rm sem flag acusaria 183
+ * ocorrencias de `git rm` no corpus (24,6% de tudo que passaria a bloquear).
+ */
+export const ehToolRm = (stmt) =>
+  /(^|[\s;&|])(git|docker|docker-compose|podman|kubectl|svn|hg|cargo|helm)\s+rm(\s|$)/i
+    .test(String(stmt || ''));
+
 /** categorias proibidas — ordem determinística (primeiro match dá a mensagem). */
 const PADROES = [
   {
+    // A key continua `rm-rf-perigoso` de propósito: ela é citada na mensagem de
+    // bloqueio e em docs/handoffs, e renomeá-la quebraria essas referências sem
+    // ganho. O ESCOPO é que mudou — hoje a categoria é "qualquer rm(1)".
     key: 'rm-rf-perigoso',
     // `(\s|$)` em vez de `\s+`: isolado, um statement pode TERMINAR nas flags —
     // `xargs -a lista.txt rm -rf` é rm recursivo com os alvos vindos do arquivo.
     // No blob isso casava por acidente (o espaço vinha do comando SEGUINTE); sem
     // o `$`, fatiar trocaria um falso-positivo por um falso-NEGATIVO. Delta da
     // mudança de regex sozinha, medido no blob: 0.
-    regex: /(^|[\s;&|])rm\s+-[rRf]+(\s|$)/i,
+    // FLAG deixou de ser exigida em 2026-09-21 ([W]) — ver §ESCOPO rm(1).
+    //
+    // ⚠️ O `/i` FICA, e não é herança decorativa do porte .ps1. Foi proposto
+    // tirá-lo com o argumento "shell POSIX é case-sensitive, `RM` daria
+    // command not found, logo `/i` só gera FP". A premissa é verdadeira em
+    // Linux/macOS e FALSA na plataforma onde este hook roda. MEDIDO no Git
+    // Bash/Windows (NTFS case-insensitive), 2026-09-21:
+    //     command -v RM   →  /usr/bin/RM
+    //     RM --version    →  rm (GNU coreutils) 8.32     (executa!)
+    // Ou seja, `RM -rf src/` apaga de verdade aqui. O assert 'RM -RF
+    // maiúsculo' no test protege caso real, não fantasma.
+    // CUSTO ACEITO do `/i`: o idioma `const RM = 'r' + 'm'` — que as sessões
+    // usam pra escrever SOBRE o hook sem disparar o hook — passa a ser
+    // acusado. Medido: 4 de 559 (0,7%), concentrado em quem mexe neste
+    // arquivo. Há assert fixando esse FP, pra ele não virar surpresa.
+    regex: /(^|[\s;&|])rm(\s|$)/i,
     // Isenção por STATEMENT e por ALVO — ver §MULTI-ARG / RM_WHITELIST_ALVOS.
+    // `<tool> rm` (git/docker/…) não é rm(1) e sai pela isenção — ver ehToolRm.
     porStatement: true,
-    razao: 'rm -rf pode apagar trabalho não commitado / config / dados de prod',
-    sugestao: 'use rm com path específico, ou whitelist: /tmp/, node_modules, vendor, storage/framework/{views,cache}, public/build*',
+    razao: 'rm pode apagar trabalho não commitado / config / dados de prod — sem -r não pega diretório, mas pega o arquivo',
+    sugestao: 'alvo reconstruível (whitelist: /tmp/, node_modules, vendor, storage/framework/{views,cache}, public/build*); OU `git rm` se o arquivo é versionado (fica staged, reversível); OU peça ao Wagner',
   },
   {
     key: 'git-force-push',
@@ -343,7 +535,7 @@ export function matchDestructive(cmd) {
   // superfície de avaliação — nada que hoje passa pode passar a bloquear.
   const executaveis = stmts.filter((s) => !ehStatementInerte(s));
   const todosInertes = stmts.length > 0 && executaveis.length === 0;
-  const isento = (p, alvo) => p.key === 'rm-rf-perigoso' && rmIsento(alvo);
+  const isento = (p, alvo) => p.key === 'rm-rf-perigoso' && (rmIsento(alvo) || ehToolRm(alvo));
   for (const p of PADROES) {
     // a isenção acompanha a escala: por statement ela vale só pro statement que
     // a ganhou; no blob (comportamento legado das demais) vale pro comando todo.

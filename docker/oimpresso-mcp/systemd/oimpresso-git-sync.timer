@@ -1,0 +1,40 @@
+# oimpresso-git-sync.timer — mantém o checkout do MCP (CT 100) sincronizado com main.
+#
+# ⚠️ ESTE ARQUIVO É A FONTE. O host recebe cópia (receita no RUNBOOK ao lado).
+# Versionado em 2026-09-21 fechando o DR-06 da AUDITORIA-OPS-DR-2026-07
+# ("Versionar systemd units do CT100 — hoje ad-hoc no host").
+#
+# POR QUE OnCalendar E NÃO OnUnitActiveSec (o conserto de 2026-09-21):
+# A versão anterior usava `OnBootSec=2min` + `OnUnitActiveSec=5min` (mais um
+# override que trocava os 5min por 6h). Os dois são MONOTÔNICOS e ancoram na
+# última ATIVAÇÃO do serviço — e quando essa âncora não existe, o próximo
+# disparo é calculado contra o uptime e pode ir parar muito longe. Medido: após
+# o reboot de 2026-08-14 10:43 o timer foi iniciado (`Started …` no journal) e
+# NUNCA disparou — `LastTriggerUSecMonotonic=0`, 38 dias, com `is-active` dizendo
+# `active` e `SubState` dizendo `waiting` o tempo todo. Consequência: o
+# `deploy-latest-main-sha.txt` ficou congelado em `0404b631aa39` (13/ago), 1698
+# commits atrás, cegando o `DeployDriftChecker` (ADR 0216) e servindo referência
+# podre à sentinela de frescor do staging.
+# `OnCalendar` é relógio de parede: rearma sozinho, não ancora em ativação
+# anterior e não depende do uptime. `Persistent=true` cobre disparo perdido
+# (host desligado na hora) rodando no boot seguinte.
+#
+# ⚠️ A CADÊNCIA DE 6h É DELIBERADA — NÃO baixe sem medir primeiro.
+# Ela veio do #5663 (2026-08-12) como CONTENÇÃO: com 5min, o `mcp:sync-memory`
+# (o 4º passo do .service) recomeçava antes de terminar e punha o Meilisearch em
+# 100,3% de CPU contínuo. O churn de CPU FOI CURADO (medido 2026-09-21:
+# meilisearch 0,13%), mas o pré-requisito para voltar à cadência curta ainda NÃO
+# está cumprido: o run de 2026-09-21 09:37 morreu com `status=137` (SIGKILL/OOM)
+# aos 10min25s. Enquanto o sync não COMPLETAR, encurtar o intervalo só troca o
+# churn de CPU por churn de OOM. Reabrir isso exige medir um run que termine com
+# `Result=success`.
+[Unit]
+Description=Run oimpresso-git-sync a cada 6h (OnCalendar — rearma sozinho)
+
+[Timer]
+OnCalendar=00/6:00:00
+Persistent=true
+Unit=oimpresso-git-sync.service
+
+[Install]
+WantedBy=timers.target

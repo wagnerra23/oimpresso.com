@@ -16,7 +16,7 @@
      que apagou 10 arquivos do DS (as 4 fontes inclusive). [CL] 2026-09-17 armou a recusa do lote
      por ref literal; o freshness não perde nada (rowsDoBundle já tira `_ds/**` do denominador). -->
 <script>window.__OI_DS_BASE__=location.pathname.indexOf('/prototipo-ui/cowork/')>-1?'../../design-system/':'_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/';document.write('<link rel="stylesheet" href="'+window.__OI_DS_BASE__+'colors_and_type.css"/>')</script>
-<link rel="stylesheet" href="styles.css?v=ph25s"/>
+<link rel="stylesheet" href="styles.css?v=ph26d"/>
 <!-- DS VIVO · camada de DOMÍNIO (origins/stage/sla/canal/kpi/kind/vip) — companion do git (#4097),
      canon verbatim. Carrega DEPOIS do ds-v6 pra vencer os literais antigos; aposenta o ds-v6. -->
 <script>document.write('<link rel="stylesheet" href="'+window.__OI_DS_BASE__+'cockpit_domains.css"/>')</script>
@@ -58,7 +58,7 @@
 <link rel="stylesheet" href="jana-telas-novas.css?v=jn2"/>
 <link rel="stylesheet" href="modulo-padrao.css?v=mp6su"/>
 <link rel="stylesheet" href="pg-styles.css?v=dark1"/>
-<link rel="stylesheet" href="clientes-page.css?v=ph5w" media="print" onload="this.media='all'"/>
+<link rel="stylesheet" href="clientes-page.css?v=end3" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="cliente-drawer760.css?v=cd2" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="cliente-telas.css?v=2" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="oficina-os-page.css?v=ofx3" media="print" onload="this.media='all'"/>
@@ -71,7 +71,7 @@
 <link rel="stylesheet" href="superadmin-page.css?v=sa14" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="modulos-page.css?v=md5" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="officeimpresso-page.css?v=oi5" media="print" onload="this.media='all'"/>
-<link rel="stylesheet" href="documentacao-page.css?v=doc12" media="print" onload="this.media='all'"/>
+<link rel="stylesheet" href="documentacao-page.css?v=doc13" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="programa-doc-page.css?v=pd4" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="cms-page.css?v=cms5" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="connector-page.css?v=cnx8" media="print" onload="this.media='all'"/>
@@ -143,7 +143,7 @@
 
 <script type="text/babel" src="tweaks-panel.jsx"></script>
 <script type="text/babel" src="icons.jsx?v=ic3"></script>
-<script type="text/babel" src="data.jsx?v=sb20"></script>
+<script type="text/babel" src="data.jsx?v=sb21hrm"></script>
 <script type="text/babel" src="data-os.jsx"></script>
 <script type="text/babel" src="data-clientes.jsx"></script>
 <script type="text/babel" src="data-people.jsx"></script>
@@ -168,7 +168,7 @@
 <!-- fsm-stepper antes de os-page: define window.osFsmStage/OiFsmStepper, dependência da rota inicial ("os") -->
 <script type="text/oi-lazy" data-src="fsm-stepper.jsx"></script>
 <script type="text/oi-lazy" data-src="os-page.jsx?v=ph1u"></script>
-<script type="text/oi-lazy" data-src="clientes-page.jsx?v=ph3u"></script>
+<script type="text/oi-lazy" data-src="clientes-page.jsx?v=end3"></script>
 <script type="text/oi-lazy" data-src="cliente-drawer760.jsx?v=cd1twp"></script>
 <script type="text/oi-lazy" data-src="cliente-import.jsx"></script>
 <script type="text/oi-lazy" data-src="cliente-form.jsx"></script>
@@ -220,8 +220,8 @@
 <script type="text/oi-lazy" data-src="manufacturing-print.jsx?v=mfg12"></script>
 <script type="text/oi-lazy" data-src="manufacturing-insumos.jsx?v=mfg12"></script>
 <script type="text/oi-lazy" data-src="manufacturing-page.jsx?v=mfg12tps"></script>
-<!-- Dashboard legado reconstruído (Blade /dashboard-legacy?legacy=1 → PT-05) -->
-<script type="text/oi-lazy" data-src="dash-legacy-page.jsx?v=dl13"></script>
+<!-- Visão geral (/dashboard-legacy → Inertia Home/Index · PT-05; Blade removido no charter v5) -->
+<script type="text/oi-lazy" data-src="dash-legacy-page.jsx?v=dl14"></script>
 <!-- Módulo Forja — desenvolvimento de software conectado ao MCP (funde projects+teammcp) -->
 <script type="text/oi-lazy" data-src="forja-data.jsx?v=fj9"></script>
 <!-- Onda 1 (1 arquivo por tela): fundação + 1 arquivo por view/overlay; o shell só roteia -->
@@ -269,7 +269,7 @@
 <script type="text/oi-lazy" data-src="pg-shell-adapters.jsx"></script>
 <script type="text/oi-lazy" data-src="pg-vendas-integration.jsx"></script>
 <!-- Módulo Compras (migrado de Compras.html) -->
-<script type="text/oi-lazy" data-src="compras-page.jsx?v=cmp9a11y"></script>
+<script type="text/oi-lazy" data-src="compras-page.jsx?v=cmp9a11y-b"></script>
 <!-- Módulo Estoque · movimentações (blades stock_adjustment/* e stock_transfer/*) -->
 <script type="text/oi-lazy" data-src="estoque-data.jsx?v=est4"></script>
 <script type="text/oi-lazy" data-src="estoque-forms.jsx?v=est4"></script>
@@ -324,9 +324,9 @@
 <script type="text/oi-lazy" data-src="superadmin-page.jsx?v=sa14k"></script>
 <script type="text/oi-lazy" data-src="modulos-page.jsx?v=md4k"></script>
 <script type="text/oi-lazy" data-src="officeimpresso-page.jsx?v=oi6k"></script>
-<script type="text/oi-lazy" data-src="documentacao-page.jsx?v=doc20"></script>
+<script type="text/oi-lazy" data-src="documentacao-page.jsx?v=doc22"></script>
 <!-- Módulo Spreadsheet — import de /spreadsheet/sheets (árvore de pastas + editor) -->
-<script type="text/oi-lazy" data-src="planilhas-page.jsx?v=pl1y"></script>
+<script type="text/oi-lazy" data-src="planilhas-page.jsx?v=pl1z"></script>
 <script type="text/oi-lazy" data-src="programa-doc-page.jsx?v=pd4"></script>
 <!-- Módulo Site (CMS) — espelho do Modules/Cms do git (páginas · blog · depoimentos · detalhes) -->
 <script type="text/oi-lazy" data-src="cms-extras.jsx?v=cms3"></script>
@@ -344,14 +344,14 @@
 <script type="text/oi-lazy" data-src="ponto-telas.jsx?v=pt26sp"></script>
 <script type="text/oi-lazy" data-src="android-frame.jsx?v=af2a11y"></script>
 <script type="text/oi-lazy" data-src="ponto-fechamento.jsx?v=pt26sp"></script>
-<script type="text/oi-lazy" data-src="ponto-mobile.jsx?v=pt20btn"></script>
-<script type="text/oi-lazy" data-src="ponto-page.jsx?v=pt26sp"></script>
-<!-- Módulo HRM (Essentials/hrm do main): licenças · presença web · turnos · folha · feriados · metas · configurações -->
-<script type="text/oi-lazy" data-src="hrm-data.jsx?v=hrm8"></script>
+<script type="text/oi-lazy" data-src="ponto-mobile.jsx?v=pt20btn-b"></script>
+<script type="text/oi-lazy" data-src="ponto-page.jsx?v=pt26sp-c"></script>
+<!-- Módulo HRM (Essentials/hrm do main): licenças · turnos · folha · feriados · metas · departamentos · cargos · configurações (presença → Ponto) -->
+<script type="text/oi-lazy" data-src="hrm-data.jsx?v=hrm10tax"></script>
 <script type="text/oi-lazy" data-src="hrm-ui.jsx?v=hrm9a11y"></script>
 <script type="text/oi-lazy" data-src="hrm-forms.jsx?v=hrm8"></script>
 <script type="text/oi-lazy" data-src="hrm-extras.jsx?v=hrm9a11y"></script>
-<script type="text/oi-lazy" data-src="hrm-page.jsx?v=hrm9a11y"></script>
+<script type="text/oi-lazy" data-src="hrm-page.jsx?v=hrm11fer"></script>
 <!-- Módulo Essenciais (Essentials/nav_essentials do main): tarefas · documentos · memorandos · lembretes · mensagens -->
 <script type="text/oi-lazy" data-src="essenciais-data.jsx?v=ess6"></script>
 <script type="text/oi-lazy" data-src="essenciais-extras.jsx?v=ess6"></script>
@@ -380,7 +380,7 @@
 <script type="text/oi-lazy" data-src="arquivos-data.jsx?v=arq5"></script>
 <script type="text/oi-lazy" data-src="arquivos-page.jsx?v=arq5tup"></script>
 <script type="text/babel" src="command-palette.jsx?v=cmdk2"></script>
-<script type="text/babel" src="app.jsx?v=eb28"></script>
+<script type="text/babel" src="app.jsx?v=eb29"></script>
 <!-- QA: probe de conformância DS (gated ?qa=1 · invisível pro cliente) — camada 2 da matriz anti-regressão -->
 <!-- Carga diferida dos módulos: o shell (sidebar + rota inicial) pinta primeiro; os ~130
      arquivos de módulo entram em segundo plano, na mesma ordem, sem mudar 1 arquivo = 1 tela. -->

@@ -47,6 +47,7 @@ last_run: "2026-08-20"
 | UC-LOGS-08 | Com a flag OFF a tela continua servindo Blade | must | `LogsBaselineTest` | 🧪 |
 | UC-LOGS-09 | Com a flag ON a tela responde Inertia com filtros e permissões | must | `LogsBaselineTest` | 🧪 |
 | UC-LOGS-10 | A flag ON não afrouxa a guarda de acesso | must `[sec]` | `LogsBaselineTest` | 🧪 |
+| UC-LOGS-14 | No partial reload do navegador a lista adiada chega, não o JSON do DataTables | must `[bug]` | `LogsBaselineTest` | 🧪 |
 
 ---
 
@@ -186,6 +187,20 @@ e roda na primeira linha, então o `if (! podeVerTodasEmpresas())` do escopo nun
 **E** com o HD sozinho as duas voltam.
 **Por quê:** composição só está provada se o par for MAIS estreito que cada filtro sozinho —
 sem o segundo caso, um AND quebrado que ignorasse a empresa passaria despercebido.
+
+## UC-LOGS-14 · A lista adiada chega no partial reload do navegador · `must [bug]`
+
+**Status:** 🧪 — teste escrito; roda na lane do módulo.
+
+**Dado** a flag ligada e uma máquina que casa a busca
+**Quando** o navegador pede a prop adiada `maquinas` num partial reload — com os headers que o
+`@inertiajs/core` 3.x manda em toda visita, incluindo `X-Requested-With: XMLHttpRequest`
+**Então** a resposta é Inertia (`Officeimpresso/Logs/Index`) e `maquinas` traz a máquina
+**E não** o JSON do DataTables do Blade legado.
+
+**Por quê:** o `request()->ajax()` lê exatamente esse header. Sem a guarda `! $request->inertia()`
+o pedido parcial caía no ramo DataTables e a tela ficava no skeleton para sempre — medido no
+staging em 2026-09-23, com o controller antes do conserto. Mesma classe da lápide §5 2026-09-08.
 
 ## `[BACKLOG]` — comportamento real, ainda sem teste que o cite
 

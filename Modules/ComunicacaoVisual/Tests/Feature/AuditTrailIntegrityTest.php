@@ -56,19 +56,15 @@ it('Apontamento.getActivitylogOptions() retorna LogOptions namespaced comvis.apo
 it('Orcamento whitelist logOnly NÃO inclui contato_id (PII reference) nem observacoes (free-text)', function () {
     $opts = (new Orcamento())->getActivitylogOptions();
 
-    expect($opts->logAttributes)->not->toContain('contato_id',
-        'contato_id é PII reference — não logar em activity_log');
-    expect($opts->logAttributes)->not->toContain('observacoes',
-        'observacoes pode conter PII free-text — não logar');
+    expect(in_array('contato_id', $opts->logAttributes, true))->toBeFalse('contato_id é PII reference — não logar em activity_log');
+    expect(in_array('observacoes', $opts->logAttributes, true))->toBeFalse('observacoes pode conter PII free-text — não logar');
 });
 
 it('Apontamento whitelist logOnly NÃO inclui observacoes nem operador_id', function () {
     $opts = (new Apontamento())->getActivitylogOptions();
 
-    expect($opts->logAttributes)->not->toContain('observacoes',
-        'observacoes pode conter PII free-text — não logar');
-    expect($opts->logAttributes)->not->toContain('operador_id',
-        'operador_id é PII reference — log captura via causer Spatie automaticamente');
+    expect(in_array('observacoes', $opts->logAttributes, true))->toBeFalse('observacoes pode conter PII free-text — não logar');
+    expect(in_array('operador_id', $opts->logAttributes, true))->toBeFalse('operador_id é PII reference — log captura via causer Spatie automaticamente');
 });
 
 it('whitelist logOnly cobre campos críticos de negócio (status/totais/datas)', function () {

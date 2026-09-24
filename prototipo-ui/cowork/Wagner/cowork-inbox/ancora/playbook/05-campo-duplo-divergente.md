@@ -2,7 +2,7 @@
 thread: "05"
 modulo: ancora
 dono: "[CL]"
-prefixo: prototipo-ui/ancora.mjs
+prefixo: scripts/design/ancora.mjs
 depende: ["04", "D-PRECEDENCIA"]
 base: remedir antes de escrever
 ---
@@ -27,8 +27,8 @@ Quatro telas do Fiscal declaram **dois caminhos diferentes**:
 4. **Precedência não é invenção sua:** enquanto `D-PRECEDENCIA` estiver aberta, mantenha a ordem atual e só **declare** o conflito.
 
 ## Prova (execução)
-- `node prototipo-ui/ancora.mjs Fiscal/Config` → cita `fiscal-subpages.jsx` **e** `fiscal-page.jsx`, com `conflito`.
-- **Controle positivo obrigatório:** `node prototipo-ui/ancora.mjs Cliente/Index` (que tem `related` + `bundle` apontando **o mesmo** `clientes-page.jsx`) → `conflito: false`. Sem esse caso, "achei 4 conflitos" pode ser o detector marcando tudo.
+- `node scripts/design/ancora.mjs Fiscal/Config` → cita `fiscal-subpages.jsx` **e** `fiscal-page.jsx`, com `conflito`.
+- **Controle positivo obrigatório:** `node scripts/design/ancora.mjs Cliente/Index` (que tem `related` + `bundle` apontando **o mesmo** `clientes-page.jsx`) → `conflito: false`. Sem esse caso, "achei 4 conflitos" pode ser o detector marcando tudo.
 - `--list --json` → os 4 do Fiscal com `conflito:true`; o número total entra no `_saida-05.md`.
 
 ## Parar se

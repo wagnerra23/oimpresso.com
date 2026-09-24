@@ -181,6 +181,33 @@ if (app()->environment(['local', 'testing', 'staging'])) {
             return;
         }
 
+        // METAS — a seção que o `default` fotografava VAZIA. Medido 2026-09-21: este lever
+        // semeia a venda vencida e ZERO metas, e nenhum dos 9 seeders `Visreg*` semeia meta
+        // (`rg -l -e jana_metas -e MetaPeriodo -e 'Entities.Meta' database/seeders/` → rc=1,
+        // com controle positivo em `business_id` → 18). Como o `Index.tsx` decide por
+        // `metas.length === 0` e cai no MESMO card `painel-metas-vazio` do estado `empty`,
+        // o `default` era indistinguível do `empty` naquela seção — e regressão em card,
+        // grade, farol ou projeção não tinha baseline pra quebrar.
+        //
+        // ⚠️ ANTES do early-return do `$jaExiste` abaixo, e isso é load-bearing: aquele
+        // return sai quando a venda vencida já existe, então metas penduradas depois dele
+        // só seriam semeadas na PRIMEIRA execução. As duas fixtures são independentes e
+        // cada uma tem a própria idempotência.
+        //
+        // Por que AQUI e não no step "Seed demo tenant" do workflow: semear metas
+        // globalmente as faria aparecer também no L1 (`PixelBaselineTest`), cuja baseline
+        // da Jana já existe — regravar baseline pra acomodar fixture nova é a inversão que
+        // o §5 de 2026-08-26 proíbe, e é a mesma razão registrada logo abaixo pro
+        // `$seedJanaVisregFlow` não entrar no `/_visreg-login`. Vivendo no lever, a fixture
+        // alcança só `default` e `dark` do L2 (o `empty` é excluído no call-site, que é
+        // biz=98) e é desfeita pelo `visregLimparFixturesDeEstado()`.
+        //
+        // O guard de tenant é explícito de propósito: o seeder é biz=1 por construção
+        // (⛔ nunca 98, que é o tenant do estado `empty`; ⛔ nunca 4, cliente real).
+        if ($businessId === \Database\Seeders\VisregJanaMetasSeeder::BUSINESS_ID) {
+            app(\Database\Seeders\VisregJanaMetasSeeder::class)->run();
+        }
+
         $invoiceNo = 'VISREG-JANA-OVERDUE-001';
 
         $jaExiste = \Illuminate\Support\Facades\DB::table('transactions')
@@ -1139,14 +1166,8 @@ Route::middleware(['auth'])->group(function () {
         [\App\Http\Controllers\UserPreferencesController::class, 'updateSidebarCollapsed']
     )->name('user.preferences.sidebar');
 
-    // Documentação do sistema — renderiza memory/GUIA-DO-SISTEMA.md em runtime.
-    // Só `auth`: é leitura pura, não depende de business_id nem de SetSessionData.
-    // NÃO usa /docs de propósito: aquele caminho já é servido por arquivo estático
-    // no servidor, que tem precedência sobre rota do Laravel — a rota nunca seria
-    // alcançada e o usuário veria a página velha.
-    Route::get('/documentacao',
-        [\App\Http\Controllers\DocumentacaoController::class, 'index']
-    )->name('documentacao');
+    // Documentação do sistema: a capa (/documentacao) migrou pra Inertia e mora no grupo de
+    // stack completo logo abaixo deste. As rotas daqui ainda são Blade (US-DOC-001, em ondas).
 
     // Busca no acervo — usa o FULLTEXT que JÁ existe em `mcp_memory_documents`
     // (índice `mcp_md_fulltext_idx`), a tabela sincronizada do git por webhook.
@@ -1187,6 +1208,24 @@ Route::middleware(['auth'])->group(function () {
         [\App\Http\Controllers\DocumentacaoController::class, 'documento']
     )->where('slug', '[A-Za-z0-9._:/-]+')->name('documentacao.documento');
 });
+
+// Documentação do sistema — capa em Inertia (US-DOC-001, onda 2b). Renderiza
+// memory/GUIA-DO-SISTEMA.md em runtime.
+//
+// Stack COMPLETO, não mais `auth`-only: o AppShellV2 lê o menu e o cockpit de shared props
+// que vêm da SESSÃO (SetSessionData + AdminSidebarMenu), precedente da rota /modulos logo
+// abaixo. Consequência aceita por [W] em 2026-08-06 (AR-DOC-050): quem não tem business em
+// sessão deixa de ler a documentação. Até 2026-09-24 este comentário dizia "só `auth`, leitura
+// pura, não depende de business_id" — verdade para a Blade, falsa a partir daqui.
+//
+// NÃO usa /docs de propósito: aquele caminho já é servido por arquivo estático no servidor,
+// que tem precedência sobre rota do Laravel — a rota nunca seria alcançada.
+Route::middleware(['web', 'setData', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+    ->group(function () {
+        Route::get('/documentacao',
+            [\App\Http\Controllers\DocumentacaoController::class, 'index']
+        )->name('documentacao');
+    });
 
 // Gerenciador de Módulos — substituto React do /manage-modules (AdminLTE quebrado).
 // Precisa de SetSessionData p/ ter business_id + is_admin na sessão, e

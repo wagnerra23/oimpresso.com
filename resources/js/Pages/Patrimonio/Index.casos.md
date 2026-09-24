@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOOK-patr
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-09-23"
 ---
 
 > ℹ️ **`last_run` 2026-09-09 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -170,6 +170,24 @@ last_run: "2026-09-11"
   **Bite-test (provado 2026-09-09):** trocar `name="calendar"` por um nome inexistente derruba
   o caso — `lucide-circle` no lugar de `lucide-calendar`.
 - **Status: 🧪** — idem UC-PAT-02.
+
+---
+
+## UC-PAT-09 · O painel não oferece cadastro que abre página em branco
+- **Persona:** Larissa (opera a tela) — clica em "Adicionar recurso" esperando um formulário.
+- **Aceite:** Dado o usuário **com** permissão de criar · Quando o painel renderiza · Então o
+  header **não** linka pra `/asset/assets/create`; o "Adicionar recurso" aponta pra
+  `/asset/assets?novo=1` (abre o drawer de cadastro — UC-BENS-05) e o "Alocar recurso" pra
+  **lista** (`/asset/allocation`); e o menu do módulo, se declarar `primary`, aponta pra rota
+  que devolve página de verdade.
+- **Teste:** `tests/js/patrimonio-sem-link-para-modal.test.tsx` (`describe('UC-PAT-09 …')`) +
+  `Modules/AssetManagement/Tests/Feature/MenuGhostsContratoTest.php` (`it()` citando `UC-PAT-09`,
+  tenant 98, GET real sem header ajax).
+- **Regressão que defende:** afordância falsa, **duas** vezes na mesma tela. MEDIDO em prod (biz=1, 2026-09-23): os endpoints `create`/`edit` do módulo só respondem sob `request()->ajax()` — numa navegação direta devolveram **200 com 0 bytes** (fragmento de modal jQuery, sem `@extends`). O
+  "Adicionar recurso" abria página em branco e o primary "+ Novo ativo" do menu, por ser `<Link>`
+  do Inertia, abria o fragmento cru no diálogo de resposta inválida — ambos medidos em prod.
+  **Bite-test (provado 2026-09-23):** com o `Index.tsx` anterior, o caso de render cai.
+- **Status: 🧪** — render verde no vitest local; o Pest roda na lane do módulo no CI.
 
 ---
 

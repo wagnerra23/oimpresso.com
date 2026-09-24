@@ -1,6 +1,6 @@
-// dash-legacy-page.jsx — reconstrução React do dashboard Blade legado (`/dashboard-legacy?legacy=1`).
+// dash-legacy-page.jsx — Visão geral (`/dashboard-legacy` → Inertia Home/Index). O Blade saiu no charter v5 (2026-08-28).
 // Fonte: resources/views/home/index.blade.php + home/partials/* + public/js/home.js + HomeController@indexLegacy.
-// Ficha: cowork-inbox/FICHA-BL-home-index.md · arquétipo PT-05 · persona Wagner.
+// Arquétipo PT-05 · persona Wagner. Alinhado 2026-09-23 às decisões do charter v6: 8 abas, sem CSV, sem "Lançar pagamento" no drawer, sem link pro Blade.
 // Decisões aplicadas: hero = Líquido · período default = mês corrente · 4 grades no topo, resto em abas.
 (() => {
 const { useState, useMemo } = React;
@@ -22,7 +22,7 @@ const kpiSet = (p) => { const t = TOTAIS[p] || TOTAIS.mes; return { ...t, net: t
 const SERIE_30 = [8.2,11.4,9.6,14.2,12.8,6.1,0,10.4,13.6,12.2,15.8,14.1,7.4,0,11.9,16.2,14.8,13.1,17.4,15.2,8.8,0,12.6,18.1,16.4,15.9,19.2,17.8,9.4,14.8];
 const SERIE_FY = [186,204,241,228,262,254,289,276,312,298,334,312].map((v, i) => ({ label: ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"][i], value: v }));
 
-// ── Grades (9 fontes do Blade) ──
+// ── Grades (8 abas — "Fluxo de caixa" saiu: sem fonte no Blade, decisão registrada no charter v4) ──
 const COL_VENC_VENDA = [
   { key: "nf", label: "Nota", mono: true, sortable: true, width: 110 },
   { key: "cliente", label: "Cliente", sortable: true },
@@ -75,12 +75,6 @@ const COL_EXPEDICAO = [
   { key: "cliente", label: "Cliente" },
   { key: "entrega", label: "Entrega", mono: true, width: 120 },
   { key: "status", label: "Situação", width: 140 },
-];
-const COL_CAIXA = [
-  { key: "data", label: "Data", mono: true, sortable: true, width: 110 },
-  { key: "conta", label: "Conta" },
-  { key: "descricao", label: "Descrição" },
-  { key: "valor", label: "Crédito", align: "right", sortable: true, width: 130 },
 ];
 
 const B = (kind, value) => { const S = NS().StatusBadge; return S ? React.createElement(S, { kind, value }) : value; };
@@ -147,14 +141,6 @@ const GRADES = {
       { id: "exp-1236", nf: "NF 1236", cliente: "TechPro Sistemas", entrega: "20/08", status: B("os", "em_producao") },
       { id: "exp-1233", nf: "NF 1233", cliente: "Mercado União", entrega: "20/08", status: B("os", "concluida") },
       { id: "exp-1230", nf: "NF 1230", cliente: "Posto BR Centro", entrega: "21/08", status: B("os", "em_producao") },
-    ] },
-  "caixa": { label: "Fluxo de caixa", count: 9, cols: COL_CAIXA, perm: "account.access",
-    rows: () => [
-      { id: "cx-1", data: "18/08", conta: "Banco Inter", descricao: "Recebimento NF 1236", valor: brl(3240) },
-      { id: "cx-2", data: "18/08", conta: "Caixa loja", descricao: "Venda balcão · dinheiro", valor: brl(480) },
-      { id: "cx-3", data: "17/08", conta: "Banco Inter", descricao: "Pix Acme Comércio", valor: brl(12480) },
-      { id: "cx-4", data: "17/08", conta: "Banco do Brasil", descricao: "Boleto TechPro", valor: brl(8760) },
-      { id: "cx-5", data: "16/08", conta: "Caixa loja", descricao: "Venda balcão · cartão", valor: brl(1920) },
     ] },
 };
 
@@ -233,7 +219,7 @@ function DashLegacyPage() {
 
       <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "10px 0 12px", flexWrap: "wrap" }}>
         <PeriodBar value={periodo} onChange={setPeriodo} label="Período" />
-        <span style={{ ...META, whiteSpace: "nowrap" }}>Substitui o antigo <b style={{ fontWeight: 600 }}>Home</b> (Blade) — <a href="/dashboard-legacy?legacy=1" title="resources/views/home/index.blade.php · name home.legacy" style={{ color: "var(--accent)", textDecoration: "none", borderBottom: "1px solid color-mix(in oklch, var(--accent) 40%, transparent)" }}>/dashboard-legacy?legacy=1</a> · atualizado agora</span>
+        <span style={{ ...META, whiteSpace: "nowrap" }}>atualizado agora</span>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 8, marginLeft: "auto" }}>
           <div style={{ width: 150 }}>
             <Select label="Loja" value={loja} onChange={(e) => setLoja(e.target.value)}>
@@ -336,7 +322,6 @@ function DashLegacyPage() {
                   onRowClick={(row) => setDetalhe({ grade: grade.label, row })} />
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "8px 14px", borderTop: "1px solid var(--border)" }}>
                   <span style={META}>{grade.rows().length} de {grade.count} linhas · clique para abrir o detalhe</span>
-                  <Button variant="ghost" size="sm">Exportar CSV</Button>
                 </div>
               </React.Fragment>
             ) : null}
@@ -353,7 +338,6 @@ function DashLegacyPage() {
       <Drawer open={!!detalhe} onClose={() => setDetalhe(null)} title={detalhe ? (detalhe.row.nf || detalhe.row.num || detalhe.row.produto || detalhe.row.data) : ""}
         subtitle={detalhe ? detalhe.grade : ""} badge={detalhe && detalhe.row.state === "urgent" ? "urgente" : null}
         footer={<div style={{ display: "flex", gap: 8 }}>
-          <Button variant="primary" size="sm">Lançar pagamento</Button>
           <Button variant="ghost" size="sm" onClick={() => setDetalhe(null)}>Fechar</Button>
         </div>}>
         {detalhe ? (

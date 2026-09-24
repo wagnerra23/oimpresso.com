@@ -16,7 +16,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { type ReactNode } from 'react';
 import { Calendar, Check, FileText, Receipt } from 'lucide-react';
-import { PageHeader } from '@/Components/PageHeader';
+import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 
@@ -71,11 +71,14 @@ const brlK = (v: number) => {
 // Defensivo: aceita date-only E datetime legacy (corta o timestamp antes de formatar).
 const dataBr = (d: string) => (d ? d.slice(0, 10).split('-').reverse().slice(0, 2).join('/') : '—');
 
-// Status pill — tons semânticos calmos via tokens do @theme (zero cor crua).
+// Status pill — tokens do protótipo (IMP_STATUS, financeiro-telas-extras.jsx:671-675).
+// FIN-3 (2026-09-23): o par anterior (`bg-warning/10 text-warning-foreground`) punha texto
+// quase preto (0,20) sobre o cartão escuro — contraste MEDIDO 1,57:1 no tema escuro. Com
+// `--warn` sobre `--warn-soft`: 5,96:1 (paga 5,57 · atrasada 4,28, como o protótipo desenha).
 const GUIA_STATUS: Record<GuiaStatus, { label: string; cls: string }> = {
-  a_vencer: { label: 'a vencer', cls: 'bg-warning/10 text-warning-foreground' },
-  paga: { label: 'paga', cls: 'bg-success/10 text-success-foreground' },
-  atrasada: { label: 'atrasada', cls: 'bg-destructive/10 text-destructive' },
+  a_vencer: { label: 'a vencer', cls: 'text-[var(--warn)] bg-[var(--warn-soft)]' },
+  paga: { label: 'paga', cls: 'text-[var(--pos)] bg-[var(--pos-soft)]' },
+  atrasada: { label: 'atrasada', cls: 'text-[var(--neg)] bg-[var(--neg-soft)]' },
 };
 
 function CardSection({ icon: Icon, title, extra, children }: {
@@ -85,12 +88,14 @@ function CardSection({ icon: Icon, title, extra, children }: {
   children: ReactNode;
 }) {
   return (
-    <section className="border border-border rounded-lg bg-card overflow-hidden">
+    // FIN-3: raio 8 px e sem borda externa, como o protótipo renderiza (medido: section
+    // 8px · 0px); a separação vem do fundo --surface sobre a página.
+    <section className="rounded-[8px] bg-card overflow-hidden">
       <Inline asChild gap={2} className="px-4 h-10 border-b border-border">
         <header>
-        <Icon size={13} className="text-muted-foreground" aria-hidden />
+        <Icon size={13} className="text-[var(--text-mute)]" aria-hidden />
         <b className="text-[12.5px] font-semibold">{title}</b>
-          {extra && <span className="ml-auto text-[11.5px] text-muted-foreground">{extra}</span>}
+          {extra && <span className="ml-auto text-[11.5px] text-[var(--text-mute)]">{extra}</span>}
         </header>
       </Inline>
       {children}
@@ -107,29 +112,34 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
     <div className="fin-curadoria">
       <PageHeader
         title="Financeiro"
-        suffix=" · Impostos & obrigações"
+        suffix=" · Impostos e obrigações"
         subtitle={<>{periodLabel}{businessName ? ` · ${businessName}` : ''} · estimativa Simples Nacional</>}
       >
         <Inline gap={1} className="flex-shrink-0 gap-1.5 ml-auto">
           <FinanceiroSubNav active="impostos" hidePrimary />
+          {/* FIN-3: primário "Novo título" = protótipo e DRE/Fluxo/Dashboard (só navega). */}
+          <PageHeaderPrimary
+            label="Novo título"
+            onClick={() => router.visit('/financeiro/unificado/novo')}
+          />
         </Inline>
       </PageHeader>
 
       {/* 3 KPIs — a recolher no mês · próxima obrigação · % receita com NF */}
       <Grid cols={3} gap={3} className="px-6 pt-4 max-[1100px]:grid-cols-1">
-        <div className="border border-border rounded-lg bg-card px-5 py-4">
-          <div className="text-[10.5px] uppercase tracking-widest text-muted-foreground font-medium">A recolher</div>
-          <div className="mt-1 text-[length:var(--fs-8,28px)] leading-none font-semibold tracking-tight font-mono tabular-nums">{brl(kpis.a_recolher.valor)}</div>
+        <div className="border border-border rounded-lg bg-card shadow-[var(--sh-1)] px-5 py-4">
+          <div className="text-[10.5px] uppercase tracking-widest text-[var(--text-mute)] font-semibold">A recolher</div>
+          <div className="mt-1 text-[length:var(--fs-7,22px)] leading-none font-semibold tracking-tight font-mono tabular-nums">{brl(kpis.a_recolher.valor)}</div>
           <div className="mt-2 text-[11.5px] text-muted-foreground">{kpis.a_recolher.qtd} guia(s) em aberto</div>
         </div>
-        <div className="border border-border rounded-lg bg-card px-5 py-4">
-          <div className="text-[10.5px] uppercase tracking-widest text-muted-foreground font-medium">Próxima obrigação</div>
-          <div className="mt-1 text-[length:var(--fs-8,28px)] leading-none font-semibold tracking-tight tabular-nums">{kpis.proxima ? dataBr(kpis.proxima.vencimento) : '—'}</div>
+        <div className="border border-border rounded-lg bg-card shadow-[var(--sh-1)] px-5 py-4">
+          <div className="text-[10.5px] uppercase tracking-widest text-[var(--text-mute)] font-semibold">Próxima obrigação</div>
+          <div className="mt-1 text-[length:var(--fs-7,22px)] leading-none font-semibold tracking-tight tabular-nums">{kpis.proxima ? dataBr(kpis.proxima.vencimento) : '—'}</div>
           <div className="mt-2 text-[11.5px] text-muted-foreground truncate">{kpis.proxima ? kpis.proxima.nome : 'nada em aberto'}</div>
         </div>
-        <div className="border border-border rounded-lg bg-card px-5 py-4">
-          <div className="text-[10.5px] uppercase tracking-widest text-muted-foreground font-medium">Receita com NF</div>
-          <div className="mt-1 text-[length:var(--fs-8,28px)] leading-none font-semibold tracking-tight font-mono tabular-nums">{kpis.pct_com_nf}%</div>
+        <div className="border border-border rounded-lg bg-card shadow-[var(--sh-1)] px-5 py-4">
+          <div className="text-[10.5px] uppercase tracking-widest text-[var(--text-mute)] font-semibold">Receita com NF</div>
+          <div className="mt-1 text-[length:var(--fs-7,22px)] leading-none font-semibold tracking-tight font-mono tabular-nums">{kpis.pct_com_nf}%</div>
           <div className="mt-2 text-[11.5px] text-muted-foreground">
             {kpis.sem_nf_qtd === 0 ? 'todos os títulos com NF ✓' : `${kpis.sem_nf_qtd} título(s) sem NF vinculada`}
           </div>
@@ -141,7 +151,7 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
         <CardSection icon={Receipt} title="Guias do período" extra="estimado + lançadas no caixa (6 meses)">
           <table className="w-full text-[12.5px]">
             <thead>
-              <tr className="text-left text-[10.5px] uppercase tracking-wider text-muted-foreground">
+              <tr className="text-left text-[10.5px] uppercase tracking-wider text-[var(--text-mute)]">
                 <th className="px-4 py-2 font-medium">Guia</th>
                 <th className="px-2 py-2 font-medium">Competência</th>
                 <th className="px-2 py-2 font-medium">Venc.</th>
@@ -157,7 +167,7 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
                   <tr key={g.id} className="border-t border-border">
                     <td className="px-4 py-2.5">
                       <div className="font-medium">{g.nome}</div>
-                      <div className="text-[11.5px] text-muted-foreground">{g.det}{g.estimado && ' · estimado'}</div>
+                      <div className="text-[11.5px] text-[var(--text-mute)]">{g.det}{g.estimado && ' · estimado'}</div>
                     </td>
                     <td className="px-2 py-2.5 text-muted-foreground">{g.competencia_label}</td>
                     <td className="px-2 py-2.5 font-mono tabular-nums">{dataBr(g.vencimento)}</td>

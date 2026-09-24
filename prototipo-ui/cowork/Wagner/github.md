@@ -3,6 +3,68 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-24T13:03:05Z
+tree: 68e071305601
+branch: main
+
+### Updated in this project
+- **5 threads CC fechadas com `_saida`:** `hrm/07` (10 chaves = 10, 0 gap; nova decisão `RESIDUO-6`) · `compras/02` (coluna Margem saiu; Venda também sem fonte) · `ponto/10` (comentários sem `selfie`/`Art. 9`) · `ponto/08` (âncoras 9/9, modo de visão sem persistência) · `governance/04` (`ModuleGrades/Show` não existe mais; pergunta `D-GOV-ROLLOUT`).
+- **Achado para o Code:** `Pages/Ponto/RepP.charter.md` + `.casos.md` no `main` ainda pedem selfie (contra ADR 0383).
+
+## Sync anterior (2026-09-24 12:54)
+date: 2026-09-24T12:54:35Z
+tree: 68e071305601
+branch: main
+
+### Updated in this project
+- **Retornos do Code puxados:** 32 `_saida-*.md` novos do `main` (ds-atomos 01–03 #7251–7253 · compras 01 · fiscal 01 · governance 01/02/03a · sidebar 04–06 · shell-usermenu 03 · recepcao-pacote 01 · patrimonio 11 recibos · ponto 01–03 · hrm 02/03 · jana 01/02 · ancora 01). Export anterior pousou byte-igual.
+- **`jana/playbook/00-INDICE.md`:** mantida a versão local — o `main` aponta `Tests/Feature/Http/ProPreviewPermissaoTest.php`, que não existe; o real é `Tests/Feature/ProPreviewPermissaoTest.php`.
+- **Thread `hrm/08` Feriados (CC) feita:** filtro De/Até + Limpar, ordem desc, ações ocultas p/ não-admin, coluna "Nota" — puxados de `Pages/Essentials/Holidays/Index.tsx`. `hrm-page.jsx?v=hrm11fer`; recibo `cowork-inbox/hrm/playbook/_saida-08.md`.
+- **Planilha:** whitespace no `<tr>` do cabeçalho removido (`planilhas-page.jsx?v=pl1z`).
+
+## Sync anterior (2026-09-23 17:54)
+date: 2026-09-23T17:54:31Z
+tree: 4dc1176f68df
+branch: main
+
+### Updated in this project
+- **Triagem do `cowork-inbox/`:** 47 soltos → 31 apagados (feitos/superados/histórico, conferidos no `main`), 13 abertos viraram playbook (`jana` 03–04 · `comunicacao-visual` · `cms` · `programa-doc` · `acessos` · `notificacoes` · `ds-atomos` 06 AP7 · `governance` 06 Trilha D · `home` 01), + `pageheader` (6) · `oficina-auto` · `frescor`. Raiz: só `PEDIDO-CL-onda11-precompilar-jsx.md` (decisão [W]).
+- **Visão geral alinhada ao charter v6:** `dash-legacy-page.jsx?v=dl14` sem aba "Fluxo de caixa", sem "Exportar CSV", sem "Lançar pagamento" no drawer, sem link pro Blade.
+- ⚠️ `_ds/` local ainda com os 8 tokens velhos (medido) — refresh do binding [W] não chegou. → **resolvido 2026-09-23:** bundle/manifest recopiados, 245 tokens.
+
+## Sync anterior (2026-09-23 17:00)
+date: 2026-09-23T17:00:46Z
+tree: ae3c4d92b479
+branch: main
+
+### Updated in this project
+- **FRESCOR 🔵 Atendimento/CaixaUnificada — nada a puxar:** protótipo (`inbox-*.jsx`) já cobre tudo da viva (`Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx`); medição 18/09 IGUAL. Caminho do FRESCOR está errado (não é `resources/js/Pages/Atendimento/`).
+- **Cliente · Endereços puxado da produção** (`_drawer/EnderecosEntregaList.tsx`, US-CRM-078 f2): editar, remover (exceto principal), CEP→autopreenche, UF por lista, flag entrega = nota fiscal. `clientes-page.jsx/css?v=end1`.
+
+## Sync anterior (2026-09-22)
+date: 2026-09-22T19:25:52Z
+tree: c32d02b73672
+branch: main
+
+### Updated in this project
+- **Piloto do processo executado de ponta a ponta:** thread `hrm/01` (dono [CC]) — aba Presença saiu do `TABS` do HRM (D1), rota `hrm-presenca` vira aviso "Presença agora é do Ponto", fila do Painel aponta pro Ponto; `hrm-page.jsx?v=hrm10d1`; recibo `cowork-inbox/hrm/playbook/_saida-01.md`. Local era byte-idêntico ao `main` antes da edição (32.777 B).
+- **Endereços pós-ADR 0397 corrigidos na fonte** nos 13 playbooks (`design-docs/cowork-inbox/` → `cowork/Wagner/cowork-inbox/` · `prototipo-ui/contrato/` → `governance/design/contracts/` · process-docs → `memory/reference/prototipo-ui/` · `ancora.mjs` → `scripts/design/`). `_saida-*` do Code não tocados (3 restaurados após erro meu).
+- ⚠️ **Playbooks atrás da produção:** HRM 02/03 (`Essentials/Licencas/Index.tsx`, `Essentials/Tipos.tsx`) e Ponto 10 (selfie já fora do build) entregues **sem `_saida`** — placar os mostra `pendente`. Pacote agora é do CI (`cowork-bundle.yml`); não gero nem aviso.
+
+## Sync anterior
+date: 2026-09-21T16:18:00Z
+tree: 19ff53c88491
+branch: main
+
+### Updated in this project
+- **Ondas 01 e 02 do playbook da Jana fecharam em código:** #7587 (gating Pro — brief/análises/ações governados por `jana.pro`) e #7591 (estado vazio de página), mergeadas em 21/09, com **UC-JPAIN-28** e **UC-JPAIN-29** citados por spec. **Não re-despachar** — eu havia lido `estado: "aberta"` do índice como pendência; esse campo é ignorado pelo consumidor (Lei 2: estado é DERIVADO).
+- 🔴 **Defeito meu, consertado: `cowork-inbox/jana/playbook/00-INDICE.md` emitia `"ondas"` com `"estado"`.** O consumidor (`scripts/qa/placar-indice.mjs`, `validarIndice()`) exige **`threads`** com **`provas`**; como ele avalia os 13 índices num `map`, o meu lançava `NaoMedi` e **derrubava a medição dos outros 12** (`rc=2`, `placar-de-lista` vermelho no `main` desde 11:09:45Z). Os outros 12 módulos já usavam `threads` — o desvio era só meu.
+- **Índice reemitido no formato do consumidor:** 2 threads (`01` · `02`), **5 provas estruturais** (`contem`), zero prova de recibo ⇒ zero `NÃO MEDIDA`. Cada padrão foi **verificado por `arquivo:linha` no `main` neste turno**: `JanaCockpit.tsx:730` · `:1089` · `:535` e `Index.casos.md:1437` · `:1549`. Descartei `pro={pro}` como prova — já existia antes das ondas (`Index.tsx:289`), ficaria verde sem entrega.
+- ⚠️ **Não escrevi `_saida-01.md`/`_saida-02.md`** (o recibo é de quem executa): sem eles o placar deriva `em curso`/`pendente`, não `feito` — fabricá-los seria escrever o dado que o medidor consome, a via recusada no §4.1 da devolutiva.
+- **Achado de [CL] anotado pro próximo ciclo:** `EmptyState` não tem `variant="first"` (só `default|search|error|success`) — a ficha 02 pediu errado, caiu no `default`.
+- ⚠️ **Ciclo fechado SEM pacote regenerado** (`cowork-inbox/jana/playbook/00-INDICE.md` · `github.md`). `node scripts/design-sync/gerar-payload-partes.mjs --root <dir> --out sync/ --previous sync/bundle.manifest.json`. Não roda daqui (ADR 0374) — **não afirmo que regenerei**; item 9 do DoD fecha só quando alguém com os arquivos em disco rodar.
+
+## Sync anterior
 date: 2026-09-18T10:36:16Z
 tree: c89bb2abe985 (andou desde aec265b545d0 — ~24 h)
 branch: main

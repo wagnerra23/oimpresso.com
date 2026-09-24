@@ -3,7 +3,7 @@ sessao: "03"
 titulo: Tipos de licença — Page
 dono: "[CL]"
 base: 159e572dd448
-prefixo: resources/js/Pages/Essentials/Tipos.tsx OU Tipos/Index.tsx (+ charter/casos) · EssentialsLeaveTypeController.php (@index · @store · @update) · prototipo-ui/contrato/essentials-tipos.contract.json · e2e/essentials-tipos.spec.ts · lane essentials-pest.yml
+prefixo: resources/js/Pages/Essentials/Tipos.tsx OU Tipos/Index.tsx (+ charter/casos) · EssentialsLeaveTypeController.php (@index · @store · @update) · governance/design/contracts/essentials-tipos.contract.json · e2e/essentials-tipos.spec.ts · lane essentials-pest.yml
 nao_toca: @destroy (fechado no #6789: 422 + blocked_by) · EssentialsLeaveController · Pages/Essentials/** · DS
 depende: — (vaga 1). Caminho = resources/js/Pages/Essentials/ (a árvore respondeu; flat × pasta = criar-tela.mjs). Irmã golden: Essentials/Metas.tsx (#6869)
 ---
