@@ -31,6 +31,8 @@ uses(Tests\TestCase::class);
  * (bloqueios D-GARANTIAS / D-AUDITORIA no `Bens.charter.md:81`). O 4o cenario abaixo
  * defende justamente a AUSENCIA delas -- "renderizar aba que nao navega e afordancia
  * falsa". Quando a decisao sair, ela entra pelo `DataController` e este teste muda junto.
+ * ATUALIZADO 2026-09-24: D-AUDITORIA saiu (ADR 0413) -- a Auditoria entra como deep-link
+ * para o Modules/Auditoria; so a Garantias segue ausente.
  *
  * ADR 0358: tenant canonico de teste e o FICTICIO 98 (`seededTenant()`). Nunca biz=1/biz=4.
  *
@@ -146,7 +148,8 @@ it('todo ghost aponta para uma rota que existe -- aba que nao navega e afordanci
 
     try {
         $ghosts = menuGhostsDoModulo($user, $biz->id);
-        expect($ghosts)->toHaveCount(6);
+        // 6 do modulo + o deep-link "Auditoria" quando o Modules/Auditoria abre (ADR 0413).
+        expect(count($ghosts))->toBeIn([6, 7]);
 
         // Resolve o href contra o roteador REAL em vez de comparar com uma lista escrita
         // aqui: uma lista aqui seria um segundo dono do mesmo fato, que e o defeito que o
@@ -162,21 +165,75 @@ it('todo ghost aponta para uma rota que existe -- aba que nao navega e afordanci
     }
 });
 
-it('Garantias e Auditoria NAO aparecem enquanto nao tiverem rota (D-GARANTIAS / D-AUDITORIA)', function () {
+it('Garantias NAO aparece enquanto nao tiver rota (D-GARANTIAS)', function () {
     $biz = $this->seededTenant();
     $user = menuGhostsUsuario($biz->id);
 
     try {
         $chaves = collect(menuGhostsDoModulo($user, $biz->id))->pluck('key');
 
-        // O prototipo desenha as duas (`patrimonio-page.jsx:839-840`) e o contrato de tela
-        // as lista. Nenhuma tem rota; renderiza-las seria afordancia falsa. Este assert cai
-        // no dia em que a rota nascer -- e ai a aba deve mesmo entrar.
+        // O prototipo desenha a aba (`patrimonio-page.jsx:839`) e ela nao tem rota:
+        // renderiza-la seria afordancia falsa. Cai no dia em que D-GARANTIAS sair.
         expect($chaves)->not->toContain('warranty')
-            ->and($chaves)->not->toContain('garantias')
-            ->and($chaves)->not->toContain('audit')
-            ->and($chaves)->not->toContain('auditoria');
+            ->and($chaves)->not->toContain('garantias');
     } finally {
+        $user->forceDelete();
+    }
+});
+
+/*
+ * D-AUDITORIA (ADR 0413, [W] 2026-09-24): a aba "Auditoria" NAO e tela deste modulo. E
+ * deep-link para o Modules/Auditoria (dono da trilha, ADR 0127) ja filtrado por
+ * subject_type=Asset. Os dois cenarios cobrem os dois lados do gate: com o modulo de
+ * destino instalado a aba aparece e aponta pro filtro certo; sem ele, some -- aba que
+ * da 403 ou 404 seria afordancia falsa.
+ */
+it('Auditoria aparece como deep-link para /auditoria filtrado em Asset quando o modulo esta instalado', function () {
+    if (! Illuminate\Support\Facades\Route::has('auditoria.index')) {
+        $this->markTestSkipped('Modules/Auditoria sem rota neste ambiente');
+    }
+    $biz = $this->seededTenant();
+    $user = menuGhostsUsuario($biz->id);
+    $tinha = DB::table('system')->where('key', 'auditoria_version')->exists();
+    if (! $tinha) {
+        DB::table('system')->insert(['key' => 'auditoria_version', 'value' => '1.0']);
+    }
+
+    try {
+        $auditoria = collect(menuGhostsDoModulo($user, $biz->id))->firstWhere('key', 'auditoria');
+
+        expect($auditoria)->not->toBeNull('com o Modules/Auditoria instalado a aba deveria aparecer');
+        expect($auditoria['label'])->toBe('Auditoria');
+        expect($auditoria['href'])->toBe(
+            '/auditoria?subject_type='.rawurlencode(Modules\AssetManagement\Entities\Asset::class)
+        );
+
+        // O filtro do link e o que o AuditEntryService aceita (whitelist + um valor).
+        parse_str((string) parse_url($auditoria['href'], PHP_URL_QUERY), $query);
+        $filtros = app(Modules\Auditoria\Services\AuditEntryService::class)->normalizeFilters($query);
+        expect($filtros)->toBe(['subject_type' => Modules\AssetManagement\Entities\Asset::class]);
+    } finally {
+        if (! $tinha) {
+            DB::table('system')->where('key', 'auditoria_version')->delete();
+        }
+        $user->forceDelete();
+    }
+});
+
+it('Auditoria NAO aparece quando o Modules/Auditoria nao esta instalado', function () {
+    $biz = $this->seededTenant();
+    $user = menuGhostsUsuario($biz->id);
+    $antes = DB::table('system')->where('key', 'auditoria_version')->first();
+    DB::table('system')->where('key', 'auditoria_version')->delete();
+
+    try {
+        $chaves = collect(menuGhostsDoModulo($user, $biz->id))->pluck('key');
+
+        expect($chaves)->not->toContain('auditoria');
+    } finally {
+        if ($antes) {
+            DB::table('system')->insert((array) $antes);
+        }
         $user->forceDelete();
     }
 });

@@ -4,6 +4,8 @@ namespace Modules\AssetManagement\Http\Controllers;
 
 use App\Utils\ModuleUtil;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Route;
+use Modules\AssetManagement\Entities\Asset;
 use Menu;
 
 class DataController extends Controller
@@ -106,8 +108,17 @@ class DataController extends Controller
             $background_color = '#2e97bf !important';
         }
 
+        // Aba "Auditoria" = DEEP-LINK para o Modules/Auditoria ja filtrado nos bens
+        // (ADR 0413, decisao [W] 2026-09-24). Nao e tela deste modulo: o dono da trilha
+        // por-registro e o Modules/Auditoria (ADR 0127). So aparece quando a tela de
+        // destino ABRE para este usuario -- mesmas camadas do gate de
+        // Modules/Auditoria/Http/Controllers/DataController::modifyAdminMenu (rota
+        // existe + modulo no pacote + auditoria.view); sem isso seria aba que da 403.
+        // `subject_type` aceita UM valor (AuditEntryService::list faz where =): `Asset`.
+        $ghost_auditoria = $this->ghostAuditoria($module_util, $business_id);
+
         if ($is_asset_enabled && (auth()->user()->can('superadmin') || auth()->user()->can('asset.view') || auth()->user()->can('asset.view_own_maintenance') || auth()->user()->can('asset.view_all_maintenance'))) {
-            Menu::modify('admin-sidebar-menu', function ($menu) use ($background_color) {
+            Menu::modify('admin-sidebar-menu', function ($menu) use ($background_color, $ghost_auditoria) {
                 // ADR 0180 Fase 4 Wave E — AssetManagement é ghost virtual de
                 // Estoque no grupo canon `operar` v3. Sem `shortcut` (acoplado em
                 // Estoque); sem `primary` (ver abaixo); `ghosts` = Painel + Bens + Alocações + Devoluções +
@@ -143,12 +154,43 @@ class DataController extends Controller
                                     ['key' => 'revocation',        'label' => 'Devoluções',     'href' => '/asset/revocation'],
                                     ['key' => 'asset-maintenance', 'label' => 'Manutenções',    'href' => '/asset/asset-maintenance'],
                                     ['key' => 'settings',          'label' => 'Configurações',  'href' => '/asset/settings'],
+                                    ...($ghost_auditoria ? [$ghost_auditoria] : []),
                                 ],
                             ]
                         )
                 ->order(87);
             });
         }
+    }
+
+    /**
+     * Ghost "Auditoria" (ADR 0413): link para /auditoria filtrado por subject_type=Asset,
+     * ou null quando a tela de destino nao abriria para este usuario.
+     *
+     * @return array{key: string, label: string, href: string}|null
+     */
+    private function ghostAuditoria(ModuleUtil $module_util, $business_id): ?array
+    {
+        if (! Route::has('auditoria.index')) {
+            return null;
+        }
+
+        $user = auth()->user();
+        $is_superadmin = $user->can('superadmin');
+
+        $modulo_ativo = $is_superadmin
+            ? $module_util->isModuleInstalled('Auditoria')
+            : (bool) $module_util->hasThePermissionInSubscription($business_id, 'auditoria_module', 'superadmin_package');
+
+        if (! $modulo_ativo || ! ($is_superadmin || $user->can('auditoria.view'))) {
+            return null;
+        }
+
+        return [
+            'key'   => 'auditoria',
+            'label' => 'Auditoria',
+            'href'  => '/auditoria?subject_type='.rawurlencode(Asset::class),
+        ];
     }
 
     /**
