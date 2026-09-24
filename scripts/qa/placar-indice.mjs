@@ -428,3 +428,40 @@ export function emitirTextoIndice(r, { proximo = false } = {}) {
       : 'PRÓXIMO: nenhum executável — consulte dependências e decisões acima');
   }
 }
+
+// ── RECIBO APAGADO — o PR não pode sumir com um `_saida` (incidente #7842 · #7844, 2026-09-23) ─────────────────
+// Medido no histórico inteiro do main em 2026-09-23: só 2 commits apagaram `_saida`, e os dois
+// foram PERDA — o #7224 (16, ao remover `design-docs/`) e o #7445 (27, na poda do import antes
+// do RECIBO_CODE_RE). Em nenhum dos dois o mesmo conteúdo reapareceu no mesmo commit. Sem o
+// recibo, a thread já mergeada volta a `proximo` e o `/onda` manda outra sessão refazê-la.
+//
+// O predicado é por CONTEÚDO (blob), não por nome: `git mv`, mudança de pasta e reorganização
+// que recoloca o mesmo arquivo passam; só acusa o recibo cujo blob não sobrevive no diff.
+// Deletar de propósito existe (thread removida do índice) — por isso o gate tem saída por label.
+export const RECIBO_ARQUIVO_RE = /(^|\/)_saida-[^/]*\.md$/;
+
+/**
+ * `raw` = saída de `git diff --raw -z --no-abbrev -M <base> <head>`. Formato -z: cada entrada é
+ * `:modoA modoB blobA blobB STATUS\0path\0` e, em R/C, um segundo `path\0`. O -z importa: sem
+ * ele o git põe entre aspas e escapa path com acento, e a regex deixaria de casar em silêncio.
+ * Devolve os paths de `_saida` apagados cujo blob não reaparece como destino de A/M/R/C NEM
+ * existe em outro path da árvore final (`blobsNoHead`): recibo que já tinha cópia idêntica noutro
+ * lugar não foi perdido. Medido nos 48 commits do main que tocaram `_saida` (2026-09-23): acusa
+ * 2 — o #7224 (21) e o #7445 (27) — e os dois são perda real. Zero falso-positivo no histórico.
+ */
+export function recibosPerdidos(raw, blobsNoHead = new Set()) {
+  const tok = raw.split('\0');
+  const entradas = [];
+  for (let i = 0; i < tok.length; i++) {
+    if (!tok[i].startsWith(':')) continue;
+    const [, , src, dst, st] = tok[i].slice(1).split(' ');
+    const status = st[0];
+    const paths = (status === 'R' || status === 'C') ? [tok[i + 1], tok[i + 2]] : [tok[i + 1]];
+    i += paths.length;
+    entradas.push({ src, dst, status, paths });
+  }
+  const ficam = new Set([...blobsNoHead, ...entradas.filter((e) => 'AMRC'.includes(e.status)).map((e) => e.dst)]);
+  return entradas
+    .filter((e) => e.status === 'D' && RECIBO_ARQUIVO_RE.test(e.paths[0]) && !ficam.has(e.src))
+    .map((e) => e.paths[0]);
+}
