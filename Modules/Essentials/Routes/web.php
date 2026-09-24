@@ -66,20 +66,19 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
         Route::get('/settings', [Modules\Essentials\Http\Controllers\EssentialsSettingsController::class, 'edit']);
         Route::post('/settings', [Modules\Essentials\Http\Controllers\EssentialsSettingsController::class, 'update']);
 
-        Route::post('/import-attendance', [Modules\Essentials\Http\Controllers\AttendanceController::class, 'importAttendance']);
-        Route::resource('/attendance', 'Modules\Essentials\Http\Controllers\AttendanceController');
-        Route::post('/clock-in-clock-out', [Modules\Essentials\Http\Controllers\AttendanceController::class, 'clockInClockOut']);
-
-        Route::post('/validate-clock-in-clock-out', [Modules\Essentials\Http\Controllers\AttendanceController::class, 'validateClockInClockOut']);
-
-        Route::get('/get-attendance-by-shift', [Modules\Essentials\Http\Controllers\AttendanceController::class, 'getAttendanceByShift']);
-        Route::get('/get-attendance-by-date', [Modules\Essentials\Http\Controllers\AttendanceController::class, 'getAttendanceByDate']);
-        Route::get('/get-attendance-row/{user_id}', [Modules\Essentials\Http\Controllers\AttendanceController::class, 'getAttendanceRow']);
-
-        Route::get(
-            '/user-attendance-summary',
-            [Modules\Essentials\Http\Controllers\AttendanceController::class, 'getUserAttendanceSummary']
-        );
+        // Presença web do HRM CEDE ao Ponto (D1 [W] 2026-09-05; ADR 0014 emenda). As 11 rotas de
+        // attendance viram 301 para o destino no Ponto, pra não deixar link morto em quem guardou
+        // favorito ou tem a tela antiga aberta. O AttendanceController NÃO é apagado aqui: o dado
+        // de essentials_attendances migra em PR próprio (dupla prova, proibicoes.md VALOR).
+        Route::permanentRedirect('/import-attendance', '/ponto/importacoes');
+        Route::permanentRedirect('/attendance', '/ponto/espelho');
+        Route::permanentRedirect('/attendance/{qualquer}', '/ponto/espelho')->where('qualquer', '.*');
+        Route::permanentRedirect('/clock-in-clock-out', '/ponto');
+        Route::permanentRedirect('/validate-clock-in-clock-out', '/ponto');
+        Route::permanentRedirect('/get-attendance-by-shift', '/ponto/espelho');
+        Route::permanentRedirect('/get-attendance-by-date', '/ponto/espelho');
+        Route::permanentRedirect('/get-attendance-row/{user_id}', '/ponto/espelho');
+        Route::permanentRedirect('/user-attendance-summary', '/ponto/espelho');
 
         Route::get('/location-employees', [Modules\Essentials\Http\Controllers\PayrollController::class, 'getEmployeesBasedOnLocation']);
         Route::get('/my-payrolls', [Modules\Essentials\Http\Controllers\PayrollController::class, 'getMyPayrolls']);
