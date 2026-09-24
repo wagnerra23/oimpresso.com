@@ -766,6 +766,12 @@ jobs:
       - name: receber-handoff morde (zip/CRC/zip-slip/pacote velho/3 pontos · hermético)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/receber-handoff.test.mjs
+      # Sentido Code -> Cowork do ciclo ([W] 2026-09-24). O critério (hash do espelho × bundle ativo)
+      # decide o que o Cowork não tem; se ele errar, o receber-handoff deixa passar retorno que apaga
+      # trabalho do Code (o caso do import 35: 12 arquivos do #7847).
+      - name: pendentes-cowork morde (fora do bundle · hash difere · enviado · _ds/ fora)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/design-sync/pendentes-cowork.test.mjs
       # Import do bundle Cowork (Fase -1). O `--selftest` do script roda no design-memory-gate e
       # cobre SO `decidirSwap` — funcao pura. Aqui entra o que ele nao alcanca: `acharBundleRoot`
       # (o bug 2026-07-01, que aninhava o slug inteiro, estava sem UM teste) e o contrato de

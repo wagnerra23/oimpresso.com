@@ -95,9 +95,12 @@ Route::middleware(['throttle:120,1', 'log.delphi', 'auth:api', 'timezone'])->pre
     Route::get('active-subscription', [Modules\Connector\Http\Controllers\Api\SuperadminController::class, 'getActiveSubscription']);
     Route::get('packages', [Modules\Connector\Http\Controllers\Api\SuperadminController::class, 'getPackages']);
 
-    Route::get('get-attendance/{user_id}', [Modules\Connector\Http\Controllers\Api\AttendanceController::class, 'getAttendance']);
-    Route::post('clock-in', [Modules\Connector\Http\Controllers\Api\AttendanceController::class, 'clockin']);
-    Route::post('clock-out', [Modules\Connector\Http\Controllers\Api\AttendanceController::class, 'clockout']);
+    // Presença do Essentials CEDE ao Ponto (D1 [W] 2026-09-05; ADR 0014 emenda): os 3 endpoints
+    // respondem 410 apontando pro Ponto. Os métodos antigos do controller ficam (o dado de
+    // essentials_attendances migra em PR próprio).
+    Route::get('get-attendance/{user_id}', [Modules\Connector\Http\Controllers\Api\AttendanceController::class, 'cedidoAoPonto']);
+    Route::post('clock-in', [Modules\Connector\Http\Controllers\Api\AttendanceController::class, 'cedidoAoPonto']);
+    Route::post('clock-out', [Modules\Connector\Http\Controllers\Api\AttendanceController::class, 'cedidoAoPonto']);
     Route::get('holidays', [Modules\Connector\Http\Controllers\Api\AttendanceController::class, 'getHolidays']);
     Route::post('update-password', [Modules\Connector\Http\Controllers\Api\UserController::class, 'updatePassword']);
     Route::post('forget-password', [Modules\Connector\Http\Controllers\Api\UserController::class, 'forgetPassword']);

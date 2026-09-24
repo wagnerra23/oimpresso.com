@@ -342,11 +342,11 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "depende_threads": [
         "07"
       ],
-      "nota_provas": "o prototipo funde 2 rotas numa aba; fundir a ROTA e decisao [W].",
+      "nota_provas": "o prototipo funde 2 rotas numa aba; fundir a ROTA e decisao [W]. ERRATA 2026-09-23 (thread 14): o caminho da prova era `Alocacoes/Index.tsx` (subpasta) e o arquivo mergeado e `Alocacoes.tsx` (flat), conferido por git ls-tree no main. A prova NUNCA passaria, e o placar marcava 'arquivo ausente' para uma tela em producao. Mesmo conserto da errata de 08/09 na thread 08 (Bens).",
       "provas": [
         {
           "tipo": "arquivo",
-          "path": "resources/js/Pages/Patrimonio/Alocacoes/Index.tsx"
+          "path": "resources/js/Pages/Patrimonio/Alocacoes.tsx"
         },
         {
           "tipo": "contem",
@@ -371,11 +371,11 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "depende_threads": [
         "07"
       ],
-      "nota_provas": "D1 vive em 6 sitios deste controller (&& onde deveria ser ||). NAO corrigir aqui: registrar.",
+      "nota_provas": "D1 vive em 6 sitios deste controller (&& onde deveria ser ||). NAO corrigir aqui: registrar. ERRATA 2026-09-23 (thread 14): o caminho da prova era `Manutencoes/Index.tsx` (subpasta) e o arquivo mergeado e `Manutencoes.tsx` (flat), conferido por git ls-tree no main. A prova NUNCA passaria, e o placar marcava 'arquivo ausente' para uma tela em producao. Mesmo conserto da errata de 08/09 na thread 08 (Bens).",
       "provas": [
         {
           "tipo": "arquivo",
-          "path": "resources/js/Pages/Patrimonio/Manutencoes/Index.tsx"
+          "path": "resources/js/Pages/Patrimonio/Manutencoes.tsx"
         },
         {
           "tipo": "contem",
@@ -400,11 +400,11 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "depende_threads": [
         "07"
       ],
-      "nota_provas": "retention.php e da thread 05, BARRADA pela lapide 5 de 2026-07-27.",
+      "nota_provas": "retention.php e da thread 05, BARRADA pela lapide 5 de 2026-07-27. ERRATA 2026-09-23 (thread 14): o caminho da prova era `Configuracoes/Index.tsx` (subpasta) e o arquivo mergeado e `Configuracoes.tsx` (flat), conferido por git ls-tree no main. A prova NUNCA passaria, e o placar marcava 'arquivo ausente' para uma tela em producao. Mesmo conserto da errata de 08/09 na thread 08 (Bens).",
       "provas": [
         {
           "tipo": "arquivo",
-          "path": "resources/js/Pages/Patrimonio/Configuracoes/Index.tsx"
+          "path": "resources/js/Pages/Patrimonio/Configuracoes.tsx"
         },
         {
           "tipo": "contem",
