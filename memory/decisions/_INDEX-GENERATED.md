@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **417** arquivos · **402** números únicos · máx **0412**
-- **ADRs ATIVOS (lifecycle ativo): 372** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 366 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 372 · substituido 25 · arquivado 20
+- **418** arquivos · **403** números únicos · máx **0413**
+- **ADRs ATIVOS (lifecycle ativo): 373** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 367 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 373 · substituido 25 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (417)
+## Todas as ADRs (418)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -455,3 +455,4 @@ _(nenhuma)_
 | 0410 | aceito | ativo | decision | Ratificação do zero baseline no funil de design e validação exclusiva em produçã |
 | 0411 | aceito | ativo | decision | Snapshot de pixel do VRT fica fora do passo 3 da ADR 0409 — referência de regres |
 | 0412 | proposto | ativo | decision | Retorno de canon já mergeado ao projeto Cowork de telas dispensa opt-in (emenda  |
+| 0413 | aceito | ativo | decision | Patrimônio: a Auditoria é um deep-link para o Modules/Auditoria, e os formulário |
