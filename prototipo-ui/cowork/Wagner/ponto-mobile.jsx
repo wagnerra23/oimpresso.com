@@ -3,7 +3,7 @@
 // MobileMarcacaoController + MobileMarcacaoService: tipos ENTRADA/SAIDA/ALMOCO_INICIO/ALMOCO_FIM,
 // SEM biometria (ADR 0383, aceita/ativa, ratificada [W] 2026-08-28 · PR #6393 −111/+51): o ponto
 // interno não coleta, não trafega e não deriva dado biométrico — dado sensível, LGPD Art. 5º II +
-// Art. 11 (a citação do Art. 9º que circulava no projeto está errada). Anti-fraude = GPS ≤ 500m,
+// Art. 11 (a base legal que circulava antes no projeto estava errada). Anti-fraude = GPS ≤ 500m,
 // drift de relógio ≤ 30s, geofence que NÃO bloqueia (marca revisão humana), device_uuid,
 // resposta com NSR + hash truncado. Persona: Técnico Repair, alvos ≥ 44px.
 // Expõe window.PontoMobile.
@@ -18,7 +18,7 @@ const TIPOS = [
   { id: "ALMOCO_FIM", label: "Retorno almoço", hint: "volta do intervalo" },
   { id: "SAIDA", label: "Saída", hint: "fim da jornada" },
 ];
-const LIMITES = { accuracy_max: 500, drift_max: 30, geofence_raio: 1000 }; // selfie_min_kb REMOVIDO — era o SELFIE_MIN_BYTES que a ADR 0383 deletou
+const LIMITES = { accuracy_max: 500, drift_max: 30, geofence_raio: 1000 }; // limite de tamanho de imagem REMOVIDO junto com a biometria (ADR 0383)
 
 // Colaborador logado no app: o técnico externo (marcação em obra é o caso difícil).
 const EU = 6;
