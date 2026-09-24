@@ -138,7 +138,7 @@
         },
         {
           "tipo": "arquivo",
-          "path": "Modules/Jana/Tests/Feature/Http/ProPreviewPermissaoTest.php"
+          "path": "Modules/Jana/Tests/Feature/ProPreviewPermissaoTest.php"
         }
       ]
     }
@@ -150,6 +150,7 @@
 
 - **03** absorve `JANA-PRO-SEM-INLINE-2026-08-26.md` (movido para `../`). Medido @ebe1fc8be7e4: `Pro.tsx` ainda tem 13 `style={{}}` (linhas 239–295).
 - **04** absorve `JANA-CASOS-EMENDA-PERMISSAO-2026-08-27.md` (movido para `../`). Medido: busca por `IaPermissaoGrupo|MetasPermissao|CustosVazamento|ConversaAcesso` em `Modules/Jana/Tests` → **0**. Se os testes existirem com outro nome/pasta, corrigir as provas, não criar duplicata.
+  - 🔧 **Corrigido pelo [C] em 2026-09-23 (execução da thread):** o UC-JPERM-08 já estava provado em `Modules/Jana/Tests/Feature/ProPreviewPermissaoTest.php` (fora de `Http/`, criado no #6430 em 2026-08-28). A prova passou a apontar pra lá — nenhum duplicado criado. **O Cowork precisa replicar esta correção na cópia dele**, senão o próximo import com `/PURGE` a desfaz.
 
 ## As provas, e por que são estas
 

@@ -20,10 +20,12 @@ use Inertia\Response;
  *   - leave_ref_no_prefix, leave_instructions
  *   - payroll_ref_no_prefix
  *   - essentials_todos_prefix (usado em ToDoController::store)
- *   - grace_before_checkin, grace_after_checkin
- *   - grace_before_checkout, grace_after_checkout
- *   - is_location_required (bool)
  *   - calculate_sales_target_commission_without_tax (bool)
+ *
+ * APOSENTADAS em 2026-09-24 ([W]; ADR 0014 emenda): grace_before_checkin, grace_after_checkin,
+ * grace_before_checkout, grace_after_checkout e is_location_required. Eram da presença web, que
+ * cedeu ao Ponto — e no Ponto a lei já fixa as duas coisas (tolerância do Art. 58 §1º CLT;
+ * geolocalização obrigatória no REP-P, Portaria 671). Não migram para configuração do Ponto.
  */
 class EssentialsSettingsController extends Controller
 {
@@ -48,11 +50,6 @@ class EssentialsSettingsController extends Controller
                 'leave_instructions'                            => $settings['leave_instructions']    ?? '',
                 'payroll_ref_no_prefix'                         => $settings['payroll_ref_no_prefix'] ?? '',
                 'essentials_todos_prefix'                       => $settings['essentials_todos_prefix'] ?? '',
-                'grace_before_checkin'                          => $settings['grace_before_checkin']  ?? '',
-                'grace_after_checkin'                           => $settings['grace_after_checkin']   ?? '',
-                'grace_before_checkout'                         => $settings['grace_before_checkout'] ?? '',
-                'grace_after_checkout'                          => $settings['grace_after_checkout']  ?? '',
-                'is_location_required'                          => ! empty($settings['is_location_required']),
                 'calculate_sales_target_commission_without_tax' => ! empty($settings['calculate_sales_target_commission_without_tax']),
             ],
         ]);
@@ -68,16 +65,10 @@ class EssentialsSettingsController extends Controller
             'leave_instructions'                            => 'nullable|string|max:4000',
             'payroll_ref_no_prefix'                         => 'nullable|string|max:32',
             'essentials_todos_prefix'                       => 'nullable|string|max:32',
-            'grace_before_checkin'                          => 'nullable|string|max:10',
-            'grace_after_checkin'                           => 'nullable|string|max:10',
-            'grace_before_checkout'                         => 'nullable|string|max:10',
-            'grace_after_checkout'                          => 'nullable|string|max:10',
-            'is_location_required'                          => 'boolean',
             'calculate_sales_target_commission_without_tax' => 'boolean',
         ]);
 
-        // Normaliza flags para int (compat com código legado que lê `? 1 : 0`)
-        $validated['is_location_required'] = ! empty($validated['is_location_required']) ? 1 : 0;
+        // Normaliza flag para int (compat com código legado que lê `? 1 : 0`)
         $validated['calculate_sales_target_commission_without_tax'] = ! empty($validated['calculate_sales_target_commission_without_tax']) ? 1 : 0;
 
         $business = Business::findOrFail($businessId);
