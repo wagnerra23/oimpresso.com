@@ -3,7 +3,7 @@ slug: 0395-pageheader-ratchet-required-emenda-0314
 number: 395
 title: "Emenda à 0314 — `PageHeader · ratchet` vira required: 2 telas novas adotaram o header antigo e mergearam verdes em 5 dias"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
