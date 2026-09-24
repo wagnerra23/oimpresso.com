@@ -192,17 +192,6 @@ class RevokeAllocatedAssetController extends Controller
     }
 
     /**
-     * Show the specified resource.
-     *
-     * @param  int  $id
-     * @return Response
-     */
-    public function show($id)
-    {
-        return view('assetmanagement::show');
-    }
-
-    /**
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
