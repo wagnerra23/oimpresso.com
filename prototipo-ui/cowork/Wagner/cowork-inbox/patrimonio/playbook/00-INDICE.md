@@ -11,11 +11,17 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/
 # SINCRONIZAR Patrimônio — playbook
 
 > **Absorve** `COLAR-NO-CODE-patrimonio-ondas.md` (que vira ponteiro de 2 KB). Primeiro módulo emitido pelo fluxo do §13 — **ficha antes de escrever**.
-> **O módulo é 100% Blade:** 6 `Route::resource` sob o prefixo `asset`, **zero `Inertia::render`**, e a busca por `(?i)(patrimonio|asset)` em `resources/js/Pages/` bateu **0 de 794**. Nenhuma tela React existe — e nenhuma nasce antes da decisão D-ENDERECO.
+> **O módulo é 100% Blade:** 6 `Route::resource` sob o prefixo `asset`, **zero `Inertia::render`**, e a busca por `(?i)(patrimonio|asset)` em `resources/js/Pages/` bateu **0 de 794**. Nenhuma tela React existe. A D-ENDERECO **foi respondida** em 2026-09-08 (`Pages/Patrimonio/**`, ADR 0394) — as telas passam a nascer pelo MWART da ADR 0104, uma thread por tela.
+
+## 0-bis · Restauração de 2026-09-23
+
+Este índice voltou ao estado de 2026-09-14 (`ba8e812d6`, 23.052 B), com o patch de 09/09 aplicado por cima. Entre 16/09 e 23/09 o `main` carregava uma versão de 9,5 KB, a emissão original de 08/09. Ela chegou pelo import do #7422, que trouxe a pasta local do Cowork, e é exatamente a descida que o patch de 09/09 mandava evitar. Com isso sumiram as threads 07–13, a resposta da D-ENDERECO (ADR 0394) e os recibos `_saida-06-*` e `_saida-07`, restaurados junto com este índice.
+
+**O que NÃO voltou:** as provas `execucao`/`revisao`/`comparacao` de 01–04 e 07, que apontavam para `design-docs/.../recibos/*.json`. Esses JSON não existem em nenhum commit do repo, e a ADR 0397 D7 diz que prova antiga não atravessa mudança de endereço. As provas `contem`/`arquivo` dessas threads continuam valendo.
 
 ## 0 · O passo 0 (RELER) mudou o pedido de 04/09
 
-- **D1 caiu.** O `&&` na permissão do `AssetMaitenanceController` **não se reconfirmou**: as 40 ocorrências que li nos controllers são `! (can('superadmin') || hasThePermissionInSubscription(...))`, o padrão UltimatePOS. **Não vira PR** → thread 04 remede.
+- ~~**D1 caiu.**~~ ⚠️ **ERRATA [CL] 2026-09-08 — D1 NÃO caiu; esta linha estava errada.** O texto original dizia que o `&&` *"não se reconfirmou"*, citando 40 ocorrências do padrão `! (can('superadmin') || hasThePermissionInSubscription(...))`. A varredura de 04/09 leu o padrão **majoritário** e concluiu sobre o arquivo que é a **exceção**. Medido por varredura contada na thread 04: `superadmin ||` aparece **18× em 5 arquivos** e **0×** no `AssetMaitenanceController`; o padrão com `&&` aparece **7×, todas nele**. Confirmado independentemente aqui: o arquivo (15.724 B, `rc=0`) **não contém a string `superadmin`**, e suas guardas são `! ((can('asset.view_all_maintenance') && can('asset.view_own_maintenance')) || …)` em `:63`, `:208`, `:243`, `:286`, `:322`. O `&&` exige **as duas** permissões, então quem tem só `view_own_maintenance` — o técnico — é bloqueado das próprias manutenções. **D1 vive, em 6 sítios**, e volta a ser candidato a PR. Recibo: `_saida-04.md` ([PR #7009](https://github.com/wagnerra23/oimpresso.com/pull/7009)).
 - **D4 ganhou linha exata, e é pior do que estava escrito.** `AssetAllocationService.php:112`: a subconsulta `SELECT SUM(...) FROM asset_transactions AS AR WHERE (AR.asset_id=assets.id AND AR.transaction_type='revoke')` **não filtra `business_id`**, enquanto a consulta externa filtra (`:107`). → **thread 01**.
 
 O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Tier 0 ganhou endereço.
@@ -35,33 +41,72 @@ O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Ti
 | 02 | **Trava de saldo na alocação** | ~9 KB | ~35 ln | 3 | 2 | 0 | **CABE** |
 | 03 | **Guarda `asset.view` no índice** | ~4 KB | ~8 ln | 2 | 2 | 0 | **CABE** |
 | 04 | **Remedir D1/D5 e os não-lidos** (frente 0) | ~25 KB | 0 | 0 | — | 0 | **CABE** (medição) |
-| 05 | ~~**Job de retenção LGPD** `assetmanagement:retention-purge`~~ | — | — | 0 | — | — | **DESCARTADA** ¹ |
-| 06 | **A UI inteira — 46 arquivos** | — | — | 0 | — | **1** | **BLOQUEADA** |
+| 05 | **Retenção automática descartada** | — | 0 | 0 | — | 0 | **NÃO EXECUTAR** |
+| **07** | **Painel** — cria o `_shared` da frente | ~6 KB | ~180 ln | 3 | 2 | 0 | **CABE** · 1ª da frente |
+| **08** | **Bens** — o CRUD principal | ~9 KB | ~250 ln | 2 | 2 | 0 | **CABE** · atrás da 07 |
+| **09** | **Alocações** — funde `allocation`+`revocation` | ~12 KB | ~280 ln | 3 | 3 | **1** | **CABE** se a fusão for só de tela |
+| **10** | **Manutenções** — carrega o D1 | ~8 KB | ~220 ln | 2 | 2 | 0 | **CABE** · não corrige o D1 |
+| **11** | **Configurações** | ~5 KB | ~150 ln | 2 | 2 | 0 | **CABE** · menor da frente |
+| **12** | **Garantias** — tela nova, dado existente | ~6 KB | ~200 ln | 2 | 2 | **1** | **BLOQUEADA** por D-GARANTIAS |
+| **13** | **Auditoria** | — | — | 0 | — | **1** | **BLOQUEADA** por D-AUDITORIA |
+| **14** | Provas de 09/10/11 apontam subpasta; o `main` é flat | ~22 KB | ~12 ln (JSON) | 1 | — | 0 | **CABE** · 1ª |
+| **15** | As 8 chamadas de view que não têm arquivo | ~12 KB | 0 | 0 | — | 0 | **CABE** (medição) |
+| **16** | Revogações entram na aba de Alocações | ~11 KB | ~120 ln | 3 | — | 0 | **CABE** · atrás da 15 |
+| 17 | Bens — formulário (create/edit/show) | ~21 KB | ~260 ln | 2 | — | **1** | **BLOQUEADA** por D-FORMS |
+| 18 | Alocações — formulário | ~15 KB | ~220 ln | 2 | — | **1** | **BLOQUEADA** por D-FORMS |
+| 19 | Manutenções — formulário | ~19 KB | ~220 ln | 2 | — | **1** | **BLOQUEADA** por D-FORMS |
+| 20 | Configurações — formulário | ~18 KB | ~160 ln | 2 | — | **1** | **BLOQUEADA** por D-FORMS |
 
-¹ **DESCARTADA por decisão [W] (2026-09-23).** A thread contradiz a lápide §5 2026-07-27 (`memory/licoes-rejeitadas.md`): *"em um sistema ERP não pode apagar o PII"*, e o controle é por permissão de acesso (Spatie), não por retenção. A lápide proíbe varredura automática por TTL que apague ou anonimize dado de negócio "sob qualquer nome (retention purge, expurgo, poda, anonimização agendada, 'limpeza LGPD')". O argumento de 04/09 ("o código pode nascer já") caiu junto, porque o que morreu foi a intenção de ter a varredura, não só a de ligá-la. O `retention.php` segue como está (`enabled=false`), e o direito ao esquecimento sob demanda (Art. 18 §VI) continua sendo o caminho vivo. Reabrir exige decisão [W] nova e explícita.
+A ficha 05 registra a invalidação do pedido antigo pela decisão canônica de 27/07.
 
-**Vaga 1:** 01 ∥ 03 ∥ 04 (prefixos disjuntos). **Vaga 2:** 02 (toca o mesmo Service da 01). _(05 descartada — nota ¹.)_
+**Backend (01-05):** consultar o placar para validar os recibos de 01, 03 e 04; 02 depende da validação de 01; 05 foi retirada pela lápide §5.
+**Frente de UI (07-13), aberta pela ADR 0394:** a **07** vai sozinha — ela cria o `_shared/PatrimonioSubNav.tsx` que as outras importam, e errar ali custa seis telas. Depois **08 ∥ 09 ∥ 10** (prefixos disjuntos), então **11**. A **12** espera D-GARANTIAS e a **13**, D-AUDITORIA.
+**Patch de 09/09 (14-20):** 14 → 15 → 16. As 17–20 não abrem sem `D-FORMS`: os charters das 5 telas declaram `create`/`edit`/`show` como Non-Goal com motivo, então emitir PR ali antes da resposta seria pedido contra o próprio charter.
 **A ordem não é gosto:** 01 vem primeiro porque é multi-tenant em produção — Tier 0 fura antes de qualquer verniz.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
-`node scripts/qa/placar-indice.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md --root . --proximo`
-Render esperado: `Patrimônio: entregue 0 de 6 · próximo 5 · bloqueada 1`.
+`node scripts/qa/placar.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md --proximo`
+
+> **Atualizado em 2026-09-23:** o comando acima substitui o antigo `prototipo-ui/design-docs/cowork-inbox/_scripts/placar-indice.mjs`, que saiu do repo com a `design-docs/` (#7224, ADR 0397).
+
+⚠️ **ERRATA [CL] 2026-09-08 — o comando e o render esperado estavam ambos errados.**
+- **Caminho:** era `node scripts/qa/placar-indice.mjs`, que **não existe no repo**. Esse é o *destino sugerido* da ponte, escrito no docblock do próprio script — não um caminho vivo. O script mora em `prototipo-ui/design-docs/cowork-inbox/_scripts/`. (O irmão `ponto/playbook` herda o mesmo ponteiro podre.)
+- **Render:** era `Patrimônio: entregue 0 de 6 · próximo 5 · bloqueada 1`. O formato real do `resumo` inclui `em curso` e `pendente`, e o `modulo` do §7 é `Patrimonio`, sem acento. O `próximo 5` só saía por causa do typo `depende_thread` (o placar lê `depende_threads`), que apagava a dependência 02→01.
+
+**Não decore o número: rode o comando.** O estado é derivado por construção — qualquer valor escrito aqui apodrece no primeiro merge.
 
 ## 3 · Abertura de thread (colar como 1ª mensagem — sessão limpa)
 ```
 Sessão fresca. ANTES de abrir: gh pr list --state open e cruze com os arquivos do seu prefixo.
 Leia, do main: (1) CONSTITUICAO-COWORK.md — C1–C12, citada e não copiada
-(2) este índice §1/§2/§7  (3) o seu NN-*.md  (4) memory/requisitos/Patrimonio/SCOPE.md
-(5) a faixa de linhas da sua ÂNCORA — e SÓ ela.
-NÃO leia: as 17 views Blade, os 9 Pest inteiros, patrimonio-page.jsx (é alvo de UI, e a UI está bloqueada).
-Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o _saida e pare.
+(2) este índice §1/§2/§7  (3) o seu NN-*.md  (4) memory/requisitos/AssetManagement/SCOPE.md
+    ^ ERRATA 08/09: era "requisitos/Patrimonio/SCOPE.md", que NAO EXISTE. O modulo
+      e AssetManagement; nao ha diretorio Patrimonio em memory/requisitos/.
+(5) a ÂNCORA e seus chamadores/consumidores: rota, middleware, request/controller,
+    Service e resposta/tela. Prefixo restringe escrita, não leitura necessária.
+(6) os _saida-NN.md das threads JÁ FECHADAS desta pasta, e em especial o campo
+    `invalida:` de cada um. É por ali que uma thread corrige o plano das outras —
+    e sem este passo o canal só existe de quem escreve, nunca de quem recebe.
+Evite leitura integral das 17 views e dos 9 Pest; confira os trechos do fluxo e dos testes.
+O patrimonio-page.jsx é alvo de UI —
+não leia numa thread de backend; nas threads de tela (frente 06) ele é a fonte visual.
+Você escreve no prefixo e na sua saída/recibo. Achado que invalida tarefa irmã exige
+reconciliar a ficha e o JSON do índice no mesmo fechamento, antes de novo dispatch.
 ```
 
 ## 4 · VERIFICAR
-Thread `feito` = `_saida-NN.md` + provas verdes lendo o `main`. **Reusar, não recriar:** os 9 Pest do módulo (`CrossTenantAssetTest`, `MultiTenantIsolationTest` e `LgpdComplianceTest` são os oráculos das threads 01, 02 e 05) · `AssetService`/`AssetAllocationService` · `OtelHelper::spanBiz` · `AssetUtil`.
+Thread `feito` exige saída, provas estruturais, dependências e recibo dos testes exigidos,
+vinculado aos hashes atuais. Contrato: [README do placar](../../_scripts/README-placar.md).
+Saídas antigas sem recibo ficam para validação; isso não desfaz os PRs anteriores.
+Reusar os testes e serviços existentes; prova de presença não comprova execução.
 
-## 6 · RESÍDUO — as 11 decisões de [W] (travam 46 dos 66 arquivos)
-**1** Módulo próprio (`Pages/Patrimonio/**`) ou seção do Estoque? ADR 0180 × 0182 × SCOPE `bloqueado-escopo` — **trava 44 arquivos / 20 PRs** · **2** prefixo de permissão: `asset.*` (código) ou `assetmanagement.*` (SCOPE)? · **3** custo de manutenção entra (não há coluna)? · **4** Garantias é tela ou filtro de Bens? · **5** Auditoria é aba daqui ou do `Modules/Auditoria`? · **6** depreciação: linear ou SAC, com que fonte contábil? (a coluna já existe e é gravada, mas nunca calculada) · **7** baixa/disposal: `status` ou tabela própria? (hoje "dar baixa" = **deletar o bem**) · **8** transferência entre locais: transação ou edição do `location_id`? · **9** QR + scan mobile entra ou vira Non-Goal escrito? · **10** quando ligar o purge LGPD em canary? · **11** placa veicular: Patrimônio e Oficina falam do mesmo veículo?
+**Reconciliação de 08/09:** 02 passa a ler o fluxo HTTP e distinguir saldo livre de alocado;
+05 não é trabalho executável; `depende_threads` foi corrigido também no JSON. O item 2 do
+resíduo histórico foi resolvido pelo SCOPE (`asset.*`); o item 10 foi descartado pela regra
+canônica, não é uma pergunta de quando ligar. O bloco abaixo preserva o retrato original.
+
+## 6 · RESÍDUO HISTÓRICO — levantamento com D-ENDERECO respondida em 08/09
+**1** ~~Módulo próprio ou seção do Estoque?~~ **RESPONDIDA [W] 2026-09-08** → `Pages/Patrimonio/**`, módulo próprio ([ADR 0394](../../../../../memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md)) · **2** prefixo de permissão: `asset.*` (código) ou `assetmanagement.*` (SCOPE)? · **3** custo de manutenção entra (não há coluna)? · **4** Garantias é tela ou filtro de Bens? · **5** Auditoria é aba daqui ou do `Modules/Auditoria`? · **6** depreciação: linear ou SAC, com que fonte contábil? (a coluna já existe e é gravada, mas nunca calculada) · **7** baixa/disposal: `status` ou tabela própria? (hoje "dar baixa" = **deletar o bem**) · **8** transferência entre locais: transação ou edição do `location_id`? · **9** QR + scan mobile entra ou vira Non-Goal escrito? · **10** quando ligar o purge LGPD em canary? · **11** placa veicular: Patrimônio e Oficina falam do mesmo veículo?
 
 Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º módulo** com o mesmo achado (CRM, Repair, HRM, Patrimônio). Vira pedido do DS, não onda daqui.
 
@@ -69,45 +114,504 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
 ```json
 {
   "modulo": "Patrimonio",
+  "modulo_codigo": "AssetManagement",
   "sha": "cb475c0ca2f4",
   "gerado": "2026-09-08",
-  "absorve": ["prototipo-ui/cowork/Wagner/COLAR-NO-CODE-patrimonio-ondas.md"],
+  "absorve": [
+    "prototipo-ui/COLAR-NO-CODE-patrimonio-ondas.md"
+  ],
   "constituicao": "CONSTITUICAO-COWORK.md",
   "decisoes": [
-    { "id": "D-ENDERECO", "pergunta": "Patrimonio e modulo proprio (Pages/Patrimonio/**) ou secao do Estoque (Pages/Estoque/Patrimonio/**)? ADR 0180 x ADR 0182 x SCOPE bloqueado-escopo.", "respondida": false, "destrava": ["06"], "custo": "44 arquivos / 20 PRs" },
-    { "id": "D-CANARY-LGPD", "pergunta": "Quando ligar assetmanagement:retention-purge em canary? (nao bloqueia escrever o job com enabled=false)", "respondida": true, "resposta": "Nunca. [W] 2026-09-23: thread 05 descartada pela licoes-rejeitadas 2026-07-27 (ERP nao apaga PII; controle por permissao, nao por retencao).", "afeta": ["05"] }
+    {
+      "id": "D-ENDERECO",
+      "pergunta": "Patrimonio e modulo proprio (Pages/Patrimonio/**) ou secao do Estoque (Pages/Estoque/Patrimonio/**)? ADR 0180 x ADR 0182 x SCOPE bloqueado-escopo.",
+      "respondida": true,
+      "resposta": "Pages/Patrimonio/** (modulo proprio) — [W] 2026-09-04, ratificado 2026-09-08; ADR 0394; SCOPE.md migracao_ui liberado",
+      "destrava": [
+        "06"
+      ],
+      "custo": "44 arquivos / 20 PRs"
+    },
+    {
+      "id": "D-GARANTIAS",
+      "pergunta": "Garantias e tela propria ou filtro da tela de Bens? (RESIDUO 4). A tabela asset_warranties existe e ja e lida pelo dashboard; o prototipo desenhou aba propria.",
+      "respondida": false,
+      "destrava": [
+        "12"
+      ]
+    },
+    {
+      "id": "D-AUDITORIA",
+      "pergunta": "Auditoria do Patrimonio e aba deste modulo ou deep-link para o Modules/Auditoria ja filtrado? (RESIDUO 5). Duplicar cria dois donos do mesmo tema.",
+      "respondida": false,
+      "destrava": [
+        "13"
+      ]
+    },
+    {
+      "id": "D-FORMS",
+      "pergunta": "As sub-telas de escrita (create/edit/show) dos 4 CRUDs do Patrimonio migram para React (drawer PT-02, fonte patrimonio-forms.jsx) ou seguem Blade como Non-Goal permanente? Hoje os 5 charters declaram Non-Goal COM motivo — sem resposta [W], as threads 17-20 nao abrem.",
+      "respondida": false,
+      "destrava": [
+        "17",
+        "18",
+        "19",
+        "20"
+      ],
+      "custo": "4 PRs de ~200-260 ln + 8 views Blade retiradas"
+    }
   ],
   "threads": [
-    { "id": "01", "titulo": "Tenant na subconsulta de revoke (vazamento Tier 0)", "dono": "CL", "vaga": 1, "arquivo": "01-tenant-subquery-revoke.md",
-      "prefixo": ["Modules/AssetManagement/Services/AssetAllocationService.php", "Modules/AssetManagement/Tests/Feature/CrossTenantAssetTest.php"],
-      "nao_toca": ["Modules/AssetManagement/Http/Controllers/", "resources/js/"],
+    {
+      "id": "01",
+      "titulo": "Tenant na subconsulta de revoke (vazamento Tier 0)",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "01-tenant-subquery-revoke.md",
+      "prefixo": [
+        "Modules/AssetManagement/Services/AssetAllocationService.php",
+        "Modules/AssetManagement/Tests/Feature/CrossTenantAssetTest.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Http/Controllers/",
+        "resources/js/"
+      ],
       "provas": [
-        { "tipo": "contem", "path": "Modules/AssetManagement/Services/AssetAllocationService.php", "padrao": "AR.business_id" },
-        { "tipo": "contem", "path": "Modules/AssetManagement/Tests/Feature/CrossTenantAssetTest.php", "padrao": "quantidadeDisponivel" }
-      ] },
-    { "id": "02", "titulo": "Trava de saldo na alocacao", "dono": "CL", "vaga": 2, "arquivo": "02-trava-de-saldo.md",
-      "prefixo": ["Modules/AssetManagement/Services/AssetAllocationService.php", "Modules/AssetManagement/Http/Requests/StoreAssetAllocationRequest.php", "Modules/AssetManagement/Tests/Feature/Wave27AssetManagementPolishTest.php"],
-      "nao_toca": ["Modules/AssetManagement/Services/AssetMaintenanceService.php"],
-      "depende_thread": ["01"],
-      "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Services/AssetAllocationService.php", "padrao": "quantidadeDisponivel" }] },
-    { "id": "03", "titulo": "Guarda asset.view no indice", "dono": "CL", "vaga": 1, "arquivo": "03-guarda-asset-view.md",
-      "prefixo": ["Modules/AssetManagement/Http/Controllers/AssetController.php", "Modules/AssetManagement/Tests/Feature/SmokeRoutesTest.php"],
-      "nao_toca": ["Modules/AssetManagement/Services/", "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php"],
-      "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Http/Controllers/AssetController.php", "padrao": "asset.view" }] },
-    { "id": "04", "titulo": "Remedir D1/D5 e os nao-lidos (frente 0)", "dono": "CL", "vaga": 1, "arquivo": "04-remedir-frente-0.md",
-      "prefixo": [], "nao_toca": ["*"],
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Services/AssetAllocationService.php",
+          "padrao": "AR.business_id"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Tests/Feature/CrossTenantAssetTest.php",
+          "padrao": "quantidadeDisponivel"
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "titulo": "Trava de saldo na alocacao",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "02-trava-de-saldo.md",
+      "prefixo": [
+        "Modules/AssetManagement/Services/AssetAllocationService.php",
+        "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php",
+        "Modules/AssetManagement/Tests/Feature/Wave27AssetManagementPolishTest.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Services/AssetMaintenanceService.php"
+      ],
+      "depende_threads": [
+        "01"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "Modules/AssetManagement/Services/AssetAllocationService.php"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php"
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "titulo": "Guarda asset.view no indice",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "03-guarda-asset-view.md",
+      "prefixo": [
+        "Modules/AssetManagement/Http/Controllers/AssetController.php",
+        "Modules/AssetManagement/Tests/Feature/SmokeRoutesTest.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Services/",
+        "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php"
+      ],
+      "nota_provas": "ERRATA 2026-09-08: o padrao era \"asset.view\", que ja passava ANTES do trabalho por casar prefixo com asset.view_all_maintenance (AssetController.php:145, linha que so desenha botao). Prova de carimbo. Trocado por can('asset.view'), medido com controle positivo: nao passa hoje, passa quando a guarda entrar.",
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Http/Controllers/AssetController.php",
+          "padrao": "can('asset.view')"
+        }
+      ]
+    },
+    {
+      "id": "04",
+      "titulo": "Remedir D1/D5 e os nao-lidos (frente 0)",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "04-remedir-frente-0.md",
+      "prefixo": [],
+      "nao_toca": [
+        "*"
+      ],
       "nota_provas": "thread de MEDICAO: nao escreve codigo. Prova = _saida-04.md com veredito por defeito (confirmado com linha / nao existe / ja corrigido).",
-      "provas": [] },
-    { "id": "05", "titulo": "Job de retencao LGPD (nasce com enabled=false)", "dono": "CL", "vaga": 2, "arquivo": "05-retencao-lgpd.md",
-      "bloqueio": "DESCARTADA por decisao [W] 2026-09-23 — licoes-rejeitadas 2026-07-27: ERP nao apaga PII; varredura por TTL proibida sob qualquer nome. Nao executar; reabrir so com decisao [W] nova.",
-      "prefixo": ["Modules/AssetManagement/Console/Commands/", "Modules/AssetManagement/Config/retention.php", "Modules/AssetManagement/Tests/Feature/LgpdComplianceTest.php"],
-      "nao_toca": ["Modules/AssetManagement/Services/", "Modules/AssetManagement/Http/"],
-      "afeta_decisoes": ["D-CANARY-LGPD"],
-      "provas": [{ "tipo": "contem", "path": "Modules/AssetManagement/Config/retention.php", "padrao": "enabled" }] },
-    { "id": "06", "titulo": "A UI inteira — 46 arquivos", "dono": "W", "arquivo": "06-ui-bloqueada.md",
-      "prefixo": [], "nao_toca": ["resources/js/Pages/"],
-      "bloqueio": "D-ENDERECO: migracao_ui bloqueado-escopo esta escrito no main. Errar o endereco = refazer 12 arquivos. Nenhuma Page nasce antes da ADR.",
-      "depende_decisoes": ["D-ENDERECO"], "provas": [] }
+      "provas": []
+    },
+    {
+      "id": "05",
+      "titulo": "Retencao automatica descartada",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "05-retencao-lgpd.md",
+      "prefixo": [],
+      "nao_toca": [
+        "Modules/AssetManagement/Services/",
+        "Modules/AssetManagement/Http/"
+      ],
+      "bloqueio": "Descartada em memory/proibicoes.md (2026-07-27), corroborada por _saida-04.md. Nao executar.",
+      "provas": []
+    },
+    {
+      "id": "07",
+      "titulo": "Painel do Patrimonio — consome o _shared (ja no main)",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "07-painel.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Index.tsx",
+        "Modules/AssetManagement/Http/Controllers/AssetController.php"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Patrimonio/_shared/",
+        "Modules/AssetManagement/Services/",
+        "Modules/Auditoria/"
+      ],
+      "nota_provas": "ERRATA 2026-09-08 [CL]: esta thread NAO cria mais o _shared. O PatrimonioSubNav ja esta no main (PR #7035, mergeado 17:42Z) porque [W] mandou a tela de Bens fundar o compartilhado. Ela agora CONSOME o _shared, que virou nao_toca. Ele DERIVA as abas de shell.menu (DataController::modifyAdminMenu) e nao declara lista propria: sao 6 ghosts vivos, nao as 7 do prototipo.",
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Index.tsx"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Index.charter.md"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Http/Controllers/AssetController.php",
+          "padrao": "Inertia::render('Patrimonio/Index'"
+        }
+      ]
+    },
+    {
+      "id": "08",
+      "titulo": "Bens — o CRUD principal",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "08-bens.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Bens.tsx",
+        "Modules/AssetManagement/Http/Controllers/AssetController.php"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Patrimonio/_shared/"
+      ],
+      "nota_provas": "ERRATA 2026-09-08 [CL], DOIS consertos medidos. (1) O caminho da prova era `Bens/Index.tsx` (subpasta) e o arquivo mergeado e `Bens.tsx` (flat) — a prova NUNCA passaria, e o placar marcava 'pendente · arquivo ausente' para uma tela que esta em producao. (2) `depende_threads: [07]` caiu: a dependencia era o _shared, que a propria thread de Bens fundou (PR #7035). O estado correto desta thread e EM CURSO, nao feito: o `index()` migrou, mas `create`/`edit`/`show` seguem Blade — Non-Goal declarado no charter, com motivo. A guarda can('asset.view') do PR #7008 sobreviveu a migracao (SmokeRoutesTest: 7 passed, identico ao baseline) e segue fora das provas, porque ja passava antes e seria carimbo.",
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Bens.tsx"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Http/Controllers/AssetController.php",
+          "padrao": "Inertia::render('Patrimonio/Bens'"
+        }
+      ]
+    },
+    {
+      "id": "09",
+      "titulo": "Alocacoes — funde allocation + revocation numa aba",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "09-alocacoes.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Alocacoes/",
+        "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php",
+        "Modules/AssetManagement/Http/Controllers/RevokeAllocatedAssetController.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Services/AssetAllocationService.php"
+      ],
+      "depende_threads": [
+        "07"
+      ],
+      "nota_provas": "o prototipo funde 2 rotas numa aba; fundir a ROTA e decisao [W]. ERRATA 2026-09-23 (thread 14): o caminho da prova era `Alocacoes/Index.tsx` (subpasta) e o arquivo mergeado e `Alocacoes.tsx` (flat), conferido por git ls-tree no main. A prova NUNCA passaria, e o placar marcava 'arquivo ausente' para uma tela em producao. Mesmo conserto da errata de 08/09 na thread 08 (Bens).",
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Alocacoes.tsx"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php",
+          "padrao": "Inertia::render"
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "titulo": "Manutencoes — e o D1 que ainda vive",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "10-manutencoes.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Manutencoes/",
+        "Modules/AssetManagement/Http/Controllers/AssetMaitenanceController.php"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Patrimonio/_shared/"
+      ],
+      "depende_threads": [
+        "07"
+      ],
+      "nota_provas": "D1 vive em 6 sitios deste controller (&& onde deveria ser ||). NAO corrigir aqui: registrar. ERRATA 2026-09-23 (thread 14): o caminho da prova era `Manutencoes/Index.tsx` (subpasta) e o arquivo mergeado e `Manutencoes.tsx` (flat), conferido por git ls-tree no main. A prova NUNCA passaria, e o placar marcava 'arquivo ausente' para uma tela em producao. Mesmo conserto da errata de 08/09 na thread 08 (Bens).",
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Manutencoes.tsx"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Http/Controllers/AssetMaitenanceController.php",
+          "padrao": "Inertia::render"
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "titulo": "Configuracoes — prefixos e notificacoes",
+      "dono": "CL",
+      "vaga": 3,
+      "arquivo": "11-configuracoes.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Configuracoes/",
+        "Modules/AssetManagement/Http/Controllers/AssetSettingsController.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Config/retention.php"
+      ],
+      "depende_threads": [
+        "07"
+      ],
+      "nota_provas": "retention.php e da thread 05, BARRADA pela lapide 5 de 2026-07-27. ERRATA 2026-09-23 (thread 14): o caminho da prova era `Configuracoes/Index.tsx` (subpasta) e o arquivo mergeado e `Configuracoes.tsx` (flat), conferido por git ls-tree no main. A prova NUNCA passaria, e o placar marcava 'arquivo ausente' para uma tela em producao. Mesmo conserto da errata de 08/09 na thread 08 (Bens).",
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Configuracoes.tsx"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Http/Controllers/AssetSettingsController.php",
+          "padrao": "Inertia::render"
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "titulo": "Garantias — tela nova sobre dado que ja existe",
+      "dono": "CL",
+      "vaga": 3,
+      "arquivo": "12-garantias.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Garantias/",
+        "Modules/AssetManagement/Routes/web.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Http/Controllers/AssetController.php"
+      ],
+      "depende_threads": [
+        "07"
+      ],
+      "depende_decisoes": [
+        "D-GARANTIAS"
+      ],
+      "nota_provas": "asset_warranties EXISTE (1 migration) e ja e lida no dashboard; falta rota e tela.",
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Garantias/Index.tsx"
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "titulo": "Auditoria — aba daqui ou do Modules/Auditoria?",
+      "dono": "W",
+      "arquivo": "13-auditoria-bloqueada.md",
+      "prefixo": [],
+      "nao_toca": [
+        "*"
+      ],
+      "bloqueio": "Decisao [W] 5 do RESIDUO: o Modules/Auditoria ja e dono da trilha por-registro; abrir uma segunda aqui cria dois donos do mesmo tema (LC-19). A opcao barata e deep-link para a tela dele ja filtrada por subject_type=Asset — e ai nao ha tela a construir.",
+      "depende_decisoes": [
+        "D-AUDITORIA"
+      ],
+      "provas": []
+    },
+    {
+      "id": "14",
+      "titulo": "Provas de 09/10/11 apontam subpasta; o main e flat",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "14-provas-flat-09-10-11.md",
+      "prefixo": [
+        "prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/00-INDICE.md"
+      ],
+      "nao_toca": [
+        "resources/js/",
+        "Modules/AssetManagement/"
+      ],
+      "nota_provas": "thread de RECONCILIACAO: nao escreve codigo de app. Corrige 3 paths de prova (Alocacoes/Manutencoes/Configuracoes) para o layout flat que esta em producao, igual ja se fez para Bens em 08/09. Prova = o placar deixar de dizer 'pendente · arquivo ausente' para tela viva. ERRATA 2026-09-23: provas = [] de proposito. Qualquer prova contem/nao_contem sobre ESTE indice e autorreferente: o padrao fica escrito na propria prova, entao `contem` passa sempre (as 3 originais ja passavam antes da execucao) e `nao_contem` nunca passa (medido: com as 3 provas de 09/10/11 corrigidas, seguia vermelha). Como a 04 e a 15, a 14 conta como feita pelo _saida-14.md; o efeito observavel e 09/10/11 deixarem de acusar \"arquivo ausente\" no placar.",
+      "provas": []
+    },
+    {
+      "id": "15",
+      "titulo": "As 8 chamadas de view que nao tem arquivo",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "15-views-fantasma.md",
+      "prefixo": [],
+      "nao_toca": [
+        "*"
+      ],
+      "depende_threads": [
+        "14"
+      ],
+      "nota_provas": "thread de MEDICAO: nao escreve codigo. Prova = _saida-15.md com veredito por sitio (alcancavel e quebra / inalcancavel / ja coberto por outra view).",
+      "provas": []
+    },
+    {
+      "id": "16",
+      "titulo": "Revogacoes entram na aba de Alocacoes",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "16-revogacoes-na-aba.md",
+      "prefixo": [
+        "Modules/AssetManagement/Http/Controllers/RevokeAllocatedAssetController.php",
+        "resources/js/Pages/Patrimonio/Alocacoes.tsx",
+        "Modules/AssetManagement/Tests/Feature/SmokeRoutesTest.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Services/AssetAllocationService.php",
+        "resources/js/Pages/Patrimonio/_shared/"
+      ],
+      "depende_threads": [
+        "15"
+      ],
+      "nota_provas": "fundir a ROTA e decisao [W] (nota da thread 09). Esta thread NAO funde rota: mantem GET asset/revocation e faz o index dele devolver a MESMA Page de Alocacoes com a visao de revogacao — a fusao e de TELA.",
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Http/Controllers/RevokeAllocatedAssetController.php",
+          "padrao": "Inertia::render('Patrimonio/Alocacoes'"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "Modules/AssetManagement/Http/Controllers/RevokeAllocatedAssetController.php",
+          "padrao": "asset_revocation.index"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Patrimonio/Alocacoes.tsx",
+          "guarda": true
+        }
+      ]
+    },
+    {
+      "id": "17",
+      "titulo": "Bens — formulario (create/edit/show)",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "17-bens-form.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Bens.tsx",
+        "Modules/AssetManagement/Http/Controllers/AssetController.php"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Patrimonio/_shared/"
+      ],
+      "depende_threads": [
+        "16"
+      ],
+      "depende_decisoes": [
+        "D-FORMS"
+      ],
+      "bloqueio": "D-FORMS — os charters declaram create/edit/show como Non-Goal COM motivo. Nao executar antes da resposta [W].",
+      "provas": []
+    },
+    {
+      "id": "18",
+      "titulo": "Alocacoes — formulario",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "18-alocacoes-form.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Alocacoes.tsx",
+        "Modules/AssetManagement/Http/Controllers/AssetAllocationController.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Services/AssetAllocationService.php"
+      ],
+      "depende_threads": [
+        "16"
+      ],
+      "depende_decisoes": [
+        "D-FORMS"
+      ],
+      "bloqueio": "D-FORMS",
+      "provas": []
+    },
+    {
+      "id": "19",
+      "titulo": "Manutencoes — formulario",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "19-manutencoes-form.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Manutencoes.tsx",
+        "Modules/AssetManagement/Http/Controllers/AssetMaitenanceController.php"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Patrimonio/_shared/"
+      ],
+      "depende_threads": [
+        "16"
+      ],
+      "depende_decisoes": [
+        "D-FORMS"
+      ],
+      "bloqueio": "D-FORMS — e o controller do D1 (&& onde deveria ser ||, 6 sitios). Registrar, nao corrigir aqui.",
+      "provas": []
+    },
+    {
+      "id": "20",
+      "titulo": "Configuracoes — formulario",
+      "dono": "CL",
+      "vaga": 3,
+      "arquivo": "20-config-form.md",
+      "prefixo": [
+        "resources/js/Pages/Patrimonio/Configuracoes.tsx",
+        "Modules/AssetManagement/Http/Controllers/AssetSettingsController.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Config/retention.php"
+      ],
+      "depende_threads": [
+        "16"
+      ],
+      "depende_decisoes": [
+        "D-FORMS"
+      ],
+      "bloqueio": "D-FORMS",
+      "provas": []
+    }
   ]
 }
 ```
