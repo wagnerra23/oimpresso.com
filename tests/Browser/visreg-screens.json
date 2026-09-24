@@ -476,6 +476,38 @@
     "baseline": "it_StockTransfer_Create_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "OficinaAuto/Vehicles/Index",
+    "source": "OficinaAuto/Vehicles",
+    "component": "OficinaAuto/Vehicles/Index",
+    "route": "/oficina-auto/veiculos",
+    "anchor": "VRGB606",
+    "baseline": "it_OficinaAuto_Vehicles_Index_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "OficinaAuto/Vehicles/Show",
+    "source": "OficinaAuto/Vehicles/Show",
+    "component": "OficinaAuto/Vehicles/Show",
+    "route": "/oficina-auto/veiculos/900201",
+    "anchor": "Dados do veículo",
+    "baseline": "it_OficinaAuto_Vehicles_Show_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "OficinaAuto/Vehicles/Create",
+    "source": "OficinaAuto/Vehicles/Create",
+    "component": "OficinaAuto/Vehicles/Create",
+    "route": "/oficina-auto/veiculos/create",
+    "anchor": "Novo veículo",
+    "baseline": "it_OficinaAuto_Vehicles_Create_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "OficinaAuto/Vehicles/Edit",
+    "source": "OficinaAuto/Vehicles/Edit",
+    "component": "OficinaAuto/Vehicles/Edit",
+    "route": "/oficina-auto/veiculos/900201/edit",
+    "anchor": "Editar VRGB606",
+    "baseline": "it_OficinaAuto_Vehicles_Edit_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "ComunicacaoVisual",
     "source": "ComunicacaoVisual",
     "component": "ComunicacaoVisual/Index",
