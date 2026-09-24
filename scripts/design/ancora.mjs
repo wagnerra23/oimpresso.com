@@ -1126,7 +1126,7 @@ async function selftest() {
 
   const cAmb = cli('Dashboard/Index');
   const saidaAmb = `${cAmb.stdout}${cAmb.stderr}`;
-  t('BITE CLI: query ambígua SAI 2 — não escolhe',
+  t('BITE ambiguidade (CLI): query ambígua SAI 2 — não escolhe',
     cAmb.status === 2);
   t('BITE CLI: query ambígua LISTA os candidatos (2+)',
     (saidaAmb.match(/\.charter\.md/g) || []).length >= 2);
@@ -1157,12 +1157,12 @@ async function selftest() {
 
   // Os dois CONTROLES — o que resolvia antes tem que seguir resolvendo, exit 0.
   const cForte = cli('/financeiro/unificado');
-  t('CONTROLE CLI: match FORTE segue resolvendo, exit 0',
+  t('CONTROLE ambiguidade (CLI): match FORTE segue resolvendo, exit 0',
     cForte.status === 0 && /ÂNCORA da tela/.test(cForte.stdout));
   // Força 1 (substring no meio: não é `page`, não é path inteiro, não é sufixo) e ÚNICO.
   // Se a recusa vazasse pro caso de UM candidato só, este cai.
   const cFraco = cli('Financeiro/Conc');
-  t('CONTROLE CLI: 1 match FRACO e único ainda resolve, exit 0',
+  t('CONTROLE ambiguidade (CLI): 1 match FRACO e único ainda resolve, exit 0',
     cFraco.status === 0 && /Conciliacao\/Index\.charter\.md/.test(cFraco.stdout));
   // ...e agora DIZ que foi fraco. O par completa o de cima: aquele prova que resolve; este,
   // que não resolve calado. Provado por mutação em 2026-09-09 (apagar o bloco deixa vermelho).
