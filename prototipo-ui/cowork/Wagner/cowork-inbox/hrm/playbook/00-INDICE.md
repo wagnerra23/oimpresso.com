@@ -121,6 +121,7 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
     { "id": "RESIDUO-3", "pergunta": "ShiftController::destroy ainda responde 200 sem apagar turno com vínculo?", "respondida": false, "destrava": ["05"] },
     { "id": "RESIDUO-4", "pergunta": "DataTablePro do DS (th sem scope/semântica em 3 módulos): pedido de DS próprio?", "respondida": false },
     { "id": "RESIDUO-5", "pergunta": "Metas no protótipo mostra apuração excluída da produção por caminho de VALOR: tirar ou selar 'fora desta onda'?", "respondida": false, "destrava": ["04"] },
+    { "id": "RESIDUO-6", "pergunta": "As 5 chaves de presença do Settings do HRM (grace_before/after_checkin/checkout + is_location_required): ficam em /hrm/settings ou migram para o Ponto (dono da jornada desde D1)?", "respondida": false, "origem": "_saida-07.md (2026-09-24)" },
     { "id": "D1", "pergunta": "Presença web × Ponto", "respondida": true, "resposta": "cede ao Ponto — dono único da jornada (2026-09-05)", "destrava": ["09"] },
     { "id": "D2", "pergunta": "Folha gerencial × completa", "respondida": true, "resposta": "completa com encargos → projeto com ADR própria (2026-09-05)" },
     { "id": "D3", "pergunta": "Licença aprovada bloqueia marcação?", "respondida": true, "resposta": "sim; guard nasce no Ponto; bloquear = impedir criação (append-only)" }
