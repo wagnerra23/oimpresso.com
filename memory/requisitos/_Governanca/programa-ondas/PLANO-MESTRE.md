@@ -60,7 +60,7 @@ related_adrs:
 | 6.3 Régua telas Fiscal | (template) | — | ✅ 7 scorecards (Nfe UX 84 · Sped UX 68 **d1 aplica ✔** cross_check/golden✘ · casos 0% G-2; 4 agents) (#3761) | ~3h (4 agents) |
 | 6.4 Catraca+sentinela Fiscal | (template) | — | ✅ emergente — verificado 2026-07-03: ratchet bloqueia `fiscal-sped` 68→50 (exit 1 · "PR bloqueado"); sentinela `exposicao-tier0` cobre telas fiscal-Tier0 (peso 3); casos-gate vê 7 casos.md (débito −13) (sem gate novo) | ~1h |
 | **Passo 5 — SDD por módulo** (transversal · [W] "pode fazer" 2026-07-27) | [passo-5-sdd-por-modulo.md](passo-5-sdd-por-modulo.md) | — | 🔜 Onda 1 = Fiscal · Compras · Ponto (3 sessões paralelas) | custo do chip **não medido** (a Onda 1 é a medição) |
-| **Trilha D — documentação técnica e operacional** ([W] 2026-08-05) | § Trilha D deste plano | [US-INFRA-048](../../Infra/SPEC.md#us-infra-048--ativar-a-documentação-técnica-e-operacional-ponta-a-ponta) · `parent_plan=programa-ondas` | 🟡 D0 em execução — 2/5 AC fechados, 3 parciais (resíduo nomeado na US); gate travado em "plano ligado ao MCP" por credencial ausente desde 2026-08-05 | cadência contínua, 1 achado acionável por vez |
+| **Trilha D — documentação técnica e operacional** ([W] 2026-08-05 · ciclo completo 2026-08-06) | § Trilha D deste plano | [US-INFRA-048](../../Infra/SPEC.md#us-infra-048--ativar-a-documentação-técnica-e-operacional-ponta-a-ponta) · `parent_plan=programa-ondas` | 🟡 D0 em execução — 2/5 AC fechados, 3 parciais (resíduo nomeado na US); gate travado em "plano ligado ao MCP" por credencial ausente desde 2026-08-05 | cadência contínua, 1 achado acionável por vez |
 | **Onda 7 — Paridade protótipo↔produção** ([W] 2026-09-08: *"todos módulos deveriam estar sincronizado"*) | [7a método](onda-7-paridade-prototipo/7a-inventario-e-metodo.md) · [7b lote Crm+Jana+Forja](onda-7-paridade-prototipo/7b-lote-crm-jana-forja.md) | ⚠️ tasks a criar | 🟡 **1º lote fechado em 2026-09-08** — 7 PRs em paralelo por módulo ([#6971](https://github.com/wagnerra23/oimpresso.com/pull/6971)–[#6977](https://github.com/wagnerra23/oimpresso.com/pull/6977)): naquele fechamento o `parityLinked` saiu de **18** e os vínculos quebrados ficaram em **0**. Estado de HOJE: `node scripts/qa/design-coverage.mjs` — este doc **não** repete a contagem viva (§5 2026-07-17). ⚠️ **O eixo que andou é VÍNCULO DECLARADO, não paridade MEDIDA**: o passo 5 do 7a (`design-diff --probe` nos dois lados) segue aberto, e o 7b registra — datado e com o comando — por que não rodou no lote Crm+Jana+Forja. Eixo distinto da 0d (aquela é Blade↔React) | 7a ~3h; por tela ~1-2h (medição runtime) |
 
 > Onda 3 (Financeiro) **encaixa no `_Roadmap_Faturamento.md`** por [ADR 0320](../../../decisions/0320-programa-ondas-regua-correcao.md) (T6 — Faturamento é canon macro; correção transversal ancora lá, status vivo aqui). Não é doc paralelo. Mesmo padrão valerá pra NfeBrasil/RecurringBilling.
@@ -127,10 +127,13 @@ Cada onda de módulo roda estes 4 passos, reusando ferramentas que já existem:
 
 ## Trilha D — documentação técnica e operacional
 
-> [W] autorizou esta trilha em 2026-08-05 a partir das **máquinas que já existiam**. Ela não
-> cria índice, roadmap, agente, gate ou cópia HTML. Reusa o inventário derivado, os donos
-> documentais, o MCP, o workflow `documentacao-tecnica` e a rota humana
-> [`/documentacao`](https://oimpresso.com/documentacao).
+> [W] autorizou esta trilha em 2026-08-05 a partir das **máquinas que já existiam** e ratificou o
+> **ciclo completo** em 2026-08-06. Ela não cria índice, roadmap, agente, gate ou cópia HTML. Reusa
+> o inventário derivado, os donos documentais, o MCP, o workflow `documentacao-tecnica` e a rota
+> humana [`/documentacao`](https://oimpresso.com/documentacao).
+>
+> O programa não é "escrever documentação" — é manter um sistema que **mede, traduz, publica,
+> opera, detecta drift e aprende**.
 
 ### D.1 Objetivo e fronteira
 
@@ -181,6 +184,21 @@ integrações → legado**. Uma onda pode avançar só até o próximo bloqueio 
 paralelo para esconder dependência.
 
 ### D.4 Ciclo de uma unidade de trabalho
+
+```mermaid
+flowchart LR
+    A["1. Descobrir<br/>máquina, hook, MCP, módulo ou fluxo"] --> B["2. Medir o estado real<br/>inventário, código e probes"]
+    B --> C["3. Classificar e localizar o dono"]
+    C --> D["4. Priorizar o gap<br/>criticidade e impacto"]
+    D --> E["5. Documentar no dono existente"]
+    E --> F["6. Validar tecnicamente<br/>fonte, links e arquitetura"]
+    F --> G["7. Validar operacionalmente<br/>executar o runbook"]
+    G --> H["8. Publicar<br/>PR, merge e /documentacao"]
+    H --> I["9. Operar e observar"]
+    I --> J["10. Incidente ou drift"]
+    J --> K["11. Aprender e corrigir<br/>runbook, lição ou decisão"]
+    K --> B
+```
 
 1. **Descobrir:** a máquina, o hook, o MCP, o módulo ou o fluxo que entra nesta volta.
 2. **Medir o estado real:** abrir fonte/configuração, executar inventário/probe e guardar o ID estável.
