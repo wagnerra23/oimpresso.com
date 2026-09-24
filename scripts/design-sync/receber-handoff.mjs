@@ -57,6 +57,7 @@ import { extrairZip } from './zip-reader.mjs';
 import { roleForPath, validateManifest } from './bundle-contract.mjs';
 import { pathsForOwner } from './bundle-transaction.mjs';
 import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
+import { pendentesDoRepo } from './pendentes-cowork.mjs';
 // PASSO 0 do painel. O dono da pergunta "de quem e este handoff" e o protocolo.config:
 // importo a funcao dele em vez de reimplementar (LC-19 — maquina paralela ao dono).
 import { deQuemEhOHandoff, CONTAS, PROJETOS } from '../design/protocolo.config.mjs';
@@ -677,10 +678,42 @@ function principal() {
   const podaDry = linhasDePoda(d.out);
   if (podaDry.length) console.log(podaDry.join('\n'));
 
+  // 6b. RETORNO DO CODE — o que o repo tem e ESTE retorno não trouxe.
+  //
+  // [W] 2026-09-24: o sentido Code -> Cowork não existia como passo. Toda mudança do Code no
+  // espelho (errata de índice, restauração, recibo) ficava só no repo, e o retorno seguinte a
+  // desfazia: o #7866 foi sobrescrito, e o import (35) ia podar 12 arquivos que o #7847 [W+C]
+  // restaurou. O caminho certo é SUBIR antes do retorno (`pendentes-cowork.mjs --plano` +
+  // DesignSync); isto aqui é a rede de segurança para quando esse passo foi esquecido.
+  // Recibo `_saida` não entra no conflito: a poda o preserva (RECIBO_CODE_RE), então nada se perde.
+  let conflitosRetorno = [];
+  if (DONO === 'Wagner') {
+    let pend = [];
+    try { pend = pendentesDoRepo(REPO); } catch (e) { morre(`[6b] ${e.message}`, 2); }
+    conflitosRetorno = pend.filter((p) => {
+      if (p.recibo) return false;
+      const z = naArvore(p.rel);
+      return z === null || sha(z) !== p.sha;
+    });
+    if (conflitosRetorno.length) {
+      console.log(`\n  [6b] RETORNO     ${conflitosRetorno.length} arquivo(s) que o Code mudou e este retorno NAO traz - aplicar apagaria/sobrescreveria:`);
+      for (const c of conflitosRetorno) console.log(`                   ${c.motivo === 'fora-do-bundle' ? '+' : '~'} ${c.rel}${c.enviado ? '  (enviado ao Cowork, mas o retorno e anterior ao envio)' : ''}`);
+    } else {
+      console.log(`\n  [6b] RETORNO     ok - todo conteudo do Code no espelho veio neste retorno (ou e recibo preservado)`);
+    }
+  }
+
   // 7. APLICAR
   if (!aplicar) {
     console.log(`\n  [7] APLICAR      nao pedido - rode de novo com --apply pra promover.\n`);
     return;
+  }
+  if (conflitosRetorno.length && !tem('--descartar-local')) {
+    morre(`recuso promover: ${conflitosRetorno.length} arquivo(s) do Code no espelho nao vieram neste retorno (ver [6b]).\n`
+      + `    O caminho certo: suba ao Cowork e gere o retorno de novo —\n`
+      + `      node scripts/design-sync/pendentes-cowork.mjs --plano   (DesignSync finalize_plan/write_files)\n`
+      + `      node scripts/design-sync/pendentes-cowork.mjs --registrar-envio <paths>\n`
+      + `    Se o Cowork esta CERTO e a mudanca do repo deve morrer: repita com --descartar-local.`);
   }
   if (regressoes.length && !tem('--permitir-regressao')) {
     // A recusa e fail-closed de proposito (o caso (a) do [3b] reverte o espelho em silencio),
@@ -719,6 +752,9 @@ function principal() {
   console.log(`\n  [8] REGISTRAR    ${reg.ok ? linha || 'rodada registrada' : 'FALHOU - o --sla vai seguir lendo a rodada anterior'}`);
   if (!reg.ok) console.log(`                   ${reg.out.split('\n').filter(Boolean).slice(-1)[0] || ''}`);
   else console.log(`                   ledger de frescor atualizado - commite scripts/governance/.cowork-freshness-ledger.json\n`);
+  // 8b. O que o retorno confirmou sai do registro de enviados (o arquivo voltou a bater com o bundle).
+  const lim = roda('scripts/design-sync/pendentes-cowork.mjs', ['--limpar-confirmados']);
+  console.log(`  [8b] ENVIADOS    ${lim.ok ? lim.out.trim() : 'FALHOU - ' + lim.out.split('\n').filter(Boolean).slice(-1)[0]}`);
 }
 
 // Só executa quando chamado DIRETO: o `.test.mjs` importa `acharRaiz`/`auditarPacote`/
