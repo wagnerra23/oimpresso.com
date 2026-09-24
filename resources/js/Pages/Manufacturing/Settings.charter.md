@@ -1,5 +1,5 @@
 ---
-page: /manufacturing/v2/settings
+page: /manufacturing/settings
 component: resources/js/Pages/Manufacturing/Settings.tsx
 owner: maiara
 status: draft
@@ -42,7 +42,7 @@ na própria tela, o que cada trava faz na operação.
 - Botão "Atualizar" só habilita quando algo mudou (R-24) — e desabilita durante o envio
 - Rodapé com a versão do módulo (`System::getProperty('manufacturing_version')`)
 - Cartão "Integrações" com 3 ponteiros reais: Produtos (`/products`) · Compras (`/purchases`) ·
-  Fila de produção (`/manufacturing/v2/production`)
+  Fila de produção (`/manufacturing/production`)
 - Mesma aba do módulo que as outras telas v2
 
 ## Non-Goals — Features (NÃO faz)
