@@ -13,8 +13,7 @@ last_run_ci: "_pendente_ — o trio nasce na thread Cms/01. O veredito por UC en
 
 > **Âncora:** UC-CMS-01/02/03 e regras R3/R6/A1 do F1 do Cowork
 > (`prototipo-ui/cowork/Wagner/cowork-inbox/cms/CMS-F1-2026-08-19.md` §2/§3). UC-CMS-20/21 são
-> da fase 1 (a lista); UC-CMS-04/05/22/23 são da fase 2 (o editor), sobre R2/R5/R7/A2; UC-CMS-08/24/25 da fase 2b (destaques da home, R4). Os demais 15 UC do F1 (segmentos `industry`,
-> exclusão no servidor, lote, demo, formulário público) entram com as fases 2b–4 do RUNBOOK — não estão
+> da fase 1 (a lista); UC-CMS-04/05/22/23 são da fase 2 (o editor), sobre R2/R5/R7/A2; UC-CMS-08/24/25 da fase 2b (destaques da home, R4); UC-CMS-09/10 da fase 3 (exclusão, R3/R11). Os demais 15 UC do F1 (segmentos `industry`, lote, demo, formulário público) entram com as fases 2b–4 do RUNBOOK — não estão
 > declarados aqui porque ainda não têm teste que os cite.
 
 ---
@@ -137,5 +136,25 @@ Status: 🧪
 **Dado** o registro de destaques ainda com o conteúdo de instalação em inglês
 **Quando** a migration da fase 2b roda
 **Então** ele passa a ser o texto que o site já mostrava; e se alguém já tinha editado, nada muda.
+
+Status: 🧪
+
+---
+
+## UC-CMS-09 · A rota recusa excluir página de sistema · `must` `[T0]`
+
+**Dado** uma página de sistema (layout de contato ou inicial)
+**Quando** alguém chama a exclusão dela direto na rota, sem passar pela tela
+**Então** recebe 422 e a página continua existindo (R3).
+
+Status: 🧪
+
+---
+
+## UC-CMS-10 · Página livre é excluída e o evento fica registrado · `must`
+
+**Dado** uma página livre
+**Quando** a excluo
+**Então** ela deixa de existir e o log registra `cms.page.deleted` com o id dela (R11).
 
 Status: 🧪

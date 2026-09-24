@@ -271,3 +271,30 @@ it('UC-CMS-25 · a migration troca só o seed em inglês, e deixa conteúdo edit
         DB::rollBack();
     }
 });
+
+// ── Fase 3 · exclusão recusada no servidor ───────────────────────────────────
+
+function cmsExcluir(int $id)
+{
+    return test()->actingAs(cmsUsuario('cms_superadmin_test'))
+        ->deleteJson(ROTA_CMS.'/'.$id.'?type=page', [], ['X-Requested-With' => 'XMLHttpRequest']);
+}
+
+it('UC-CMS-09 · a rota recusa excluir página de sistema, mesmo sem passar pela tela', function () {
+    $sistema = CmsPage::create(['type' => 'page', 'title' => 'Contrato cms01 contato', 'content' => 'x', 'layout' => 'contact']);
+
+    cmsExcluir($sistema->id)->assertStatus(422)->assertJson(['success' => false]);
+
+    expect(CmsPage::find($sistema->id))->not->toBeNull();
+});
+
+it('UC-CMS-10 · página livre é excluída e o evento fica no log', function () {
+    \Illuminate\Support\Facades\Log::spy();
+    $livre = CmsPage::create(['type' => 'page', 'title' => 'Contrato cms01 apagar', 'content' => 'x']);
+
+    cmsExcluir($livre->id)->assertOk()->assertJson(['success' => true]);
+
+    expect(CmsPage::find($livre->id))->toBeNull();
+    \Illuminate\Support\Facades\Log::shouldHaveReceived('info')
+        ->withArgs(fn ($msg, $ctx = []) => $msg === 'cms.page.deleted' && ($ctx['page_id'] ?? null) === $livre->id);
+});

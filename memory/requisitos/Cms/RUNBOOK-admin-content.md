@@ -30,8 +30,8 @@ US-CMS-004 do [SPEC](SPEC.md).
 |---|---|---|---|
 | **1** | Lista `Admin/Content/Index.tsx` + `index()` → `Inertia::render` + contrato UC-CMS-01/02/03/20/21 | `page/index.blade.php` (fica órfã; delete na F5) | #7865 |
 | **2** | Editor em drawer PT-02 (`_components/Editor.tsx`), derivação de `meta_description` no servidor (R7) + UC-CMS-04/05/22/23 | `page/create` (sem link; delete na F5) | #7871 |
-| **2b** | Destaques (`feature`) da home no drawer **e ligados à `/`** (caminho A, [W] 2026-09-23) + UC-CMS-08/24/25 | `page/edit` + `partials/features` (sem link; delete na F5) | este PR · `industry` fora: a home nova não tem seção de segmentos (decisão [W]) |
-| 3 | `destroy` recusa `layout` preenchido no servidor (UC-CMS-09) | — | pendente · o whitelist `type` saiu antes, no #7869 (decisão [W] 2026-09-23) |
+| **2b** | Destaques (`feature`) da home no drawer **e ligados à `/`** (caminho A, [W] 2026-09-23) + UC-CMS-08/24/25 | `page/edit` + `partials/features` (sem link; delete na F5) | #7874 · `industry` fora: a home nova não tem seção de segmentos (decisão [W]) |
+| **3** | `destroy` recusa `layout` preenchido no servidor (UC-CMS-09) + exclusão livre logada (UC-CMS-10) | — | este PR · o whitelist `type` saiu antes, no #7869 (decisão [W] 2026-09-23) |
 | 4 | Detalhes do site (`SettingsController`) | `settings/index` + 8 partials | pendente |
 | 5 | Cutover: apagar Blades órfãs + charter `live` com screenshot [W2] | todas acima | pendente |
 
@@ -85,3 +85,11 @@ US-CMS-004 do [SPEC](SPEC.md).
   Ícone em classe FontAwesome do seed vira ✨ em vez de aparecer como texto.
 - **Efeito colateral declarado:** a home antiga `/old` (Blade) desenha o ícone como `<i class>`
   FontAwesome — com emoji ela perde os ícones dos destaques. É o fallback legado; morre na fase 5.
+
+## Fase 3 — a recusa mora no servidor
+
+- `destroy` recusa página com `layout` preenchido (home/contact) com **422** e `success:false`, e loga
+  `cms.page.delete_recusado`. A tela já escondia o botão; a rota aceitava qualquer chamador.
+- A lista mostra a mensagem do servidor quando a exclusão é recusada (o `fetch` lia o JSON só em 2xx).
+- De carona, no mesmo método: a mensagem de erro genérico era a string literal
+  `'__("messages.something_went_wrong")'` e ia crua para a tela.
