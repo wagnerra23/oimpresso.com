@@ -64,6 +64,7 @@ Servir como **cockpit operacional de Compras** entregando 4 KPIs (a pagar / em t
 - ❌ **NÃO substitui `/purchases` legacy via 301** — C1 inverte direção: `/purchases` é canônico Inertia React (Wave 2 B5 piloto MWART), `/compras` é cockpit complementar. Coexistem
 - ❌ **NÃO usa session storage** pra filtros — query string (`?stage=...&q=...`) anti-hook charter
 - ❌ **NÃO mock data** — se backend retornar `null/[]`, UI mostra empty state real (não inventa números)
+- ❌ **NÃO tem aba nem ficha própria de Fornecedores** — decisão [W] 2026-09-24 (thread 03 do playbook Compras, D-FORN): fornecedor é `contacts type=supplier`, e o menu Compras ganha o atalho `Fornecedores → /cliente?type=supplier` (ghost no `DataController`), que é a lista que já existe. A ficha do fornecedor (histórico, prazo médio, ruptura = supplier scorecard C11) segue **segurada** no `SPEC.md` §9
 
 ---
 
