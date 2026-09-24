@@ -38,10 +38,16 @@ site idêntico. UC-CMS-08/24/25. `industry` fica fora (a home nova não tem a se
 
 `destroy` recusa página de sistema no servidor (422) e a lista mostra a mensagem. UC-CMS-09/10.
 
+## Fase 4a
+
+Detalhes do site em Inertia (Aplicação, Contato, Redes, Integrações); validação dos detalhes
+corrigida — recusava o formato que o próprio formulário mandava. UC-CMSD-01/02/07/09. As outras 4
+seções seguem em `?legado=1` até a 4b.
+
 ## Placar
 
-entregue 1 de 1 prova do índice · fase 1: 5 UC · fase 2: +4 UC (UC-CMS-04/05 do F1 + 22/23 novos) · fase 2b: +3 UC (08 do F1 + 24/25) · fase 3: +2 UC (09/10 do F1) ·
-ausentes os demais UC do F1 (segmentos da home, lote, demo, formulário público) — fase 4 e além.
+entregue 1 de 1 prova do índice · fase 1: 5 UC · fase 2: +4 UC (UC-CMS-04/05 do F1 + 22/23 novos) · fase 2b: +3 UC (08 do F1 + 24/25) · fase 3: +2 UC (09/10 do F1) · fase 4a: +4 UC dos detalhes do site (01/02/07 do [CC] + 09) ·
+ausentes os demais UC do F1 (segmentos da home, lote, demo, formulário público, e 4 seções dos detalhes do site) — fase 4b e além.
 
 ## Não fiz (e por quê)
 

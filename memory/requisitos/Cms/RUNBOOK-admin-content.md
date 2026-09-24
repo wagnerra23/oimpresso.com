@@ -31,8 +31,9 @@ US-CMS-004 do [SPEC](SPEC.md).
 | **1** | Lista `Admin/Content/Index.tsx` + `index()` → `Inertia::render` + contrato UC-CMS-01/02/03/20/21 | `page/index.blade.php` (fica órfã; delete na F5) | #7865 |
 | **2** | Editor em drawer PT-02 (`_components/Editor.tsx`), derivação de `meta_description` no servidor (R7) + UC-CMS-04/05/22/23 | `page/create` (sem link; delete na F5) | #7871 |
 | **2b** | Destaques (`feature`) da home no drawer **e ligados à `/`** (caminho A, [W] 2026-09-23) + UC-CMS-08/24/25 | `page/edit` + `partials/features` (sem link; delete na F5) | #7874 · `industry` fora: a home nova não tem seção de segmentos (decisão [W]) |
-| **3** | `destroy` recusa `layout` preenchido no servidor (UC-CMS-09) + exclusão livre logada (UC-CMS-10) | — | este PR · o whitelist `type` saiu antes, no #7869 (decisão [W] 2026-09-23) |
-| 4 | Detalhes do site (`SettingsController`) | `settings/index` + 8 partials | pendente |
+| **3** | `destroy` recusa `layout` preenchido no servidor (UC-CMS-09) + exclusão livre logada (UC-CMS-10) | — | #7879 · o whitelist `type` saiu antes, no #7869 (decisão [W] 2026-09-23) |
+| **4a** | Detalhes do site em Inertia: Aplicação · Contato · Redes · Integrações + validação corrigida + UC-CMSD-01/02/07/09 | — (Blade segue em `?legado=1`) | este PR |
+| 4b | Estatísticas · Perguntas frequentes · Chat · Botões; fim do `?legado=1` | `settings/index` + 8 partials | pendente |
 | 5 | Cutover: apagar Blades órfãs + charter `live` com screenshot [W2] | todas acima | pendente |
 
 ## Fase 1 — o que muda e o que NÃO muda
@@ -93,3 +94,17 @@ US-CMS-004 do [SPEC](SPEC.md).
 - A lista mostra a mensagem do servidor quando a exclusão é recusada (o `fetch` lia o JSON só em 2xx).
 - De carona, no mesmo método: a mensagem de erro genérico era a string literal
   `'__("messages.something_went_wrong")'` e ia crua para a tela.
+
+## Fase 4a — detalhes do site (4 de 8 seções)
+
+- **Bug de produção achado antes de escrever a tela:** o `StoreCmsSettingsRequest` (desde 2026-05-16)
+  validava `contact_us`, `mail_us`, `follow_us`, `statistics` e `faqs` como **string**, mas o formulário
+  sempre mandou **listas** (`contact_us[0][num]`…). Salvar os detalhes do site falhava por inteiro.
+  Ninguém viu porque ninguém salvou: em produção, **nenhuma chave foi gravada desde 2022** (medido
+  2026-09-23). As regras viraram `array` com limites por item.
+- A gravação é **por chave** (`createOrUpdateSiteDetails` = `updateOrCreate` por `site_key`), então a
+  tela nova envia só as chaves dela e não apaga as seções que ficaram na Blade. Travado no UC-CMSD-02.
+- `index()` renderiza Inertia; `?legado=1` devolve a Blade até a 4b.
+- De carona no mesmo controller: `catch (Exception $e)` sem barra não casava nada no namespace do
+  módulo — erro no save deixava a transação aberta e sem log.
+- **Não entrou:** Estatísticas, Perguntas frequentes, Chat, Botões (4b); validação de telefone BR (S5).
