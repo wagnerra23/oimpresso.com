@@ -45,6 +45,7 @@ on:
       # mexer na FSM não dispararia o teste dela — gate mudo com cara de
       # cobertura (a pegadinha que o sells-pest.yml documenta no próprio paths:).
       - 'app/Http/Controllers/RoleController.php'
+      - 'app/Providers/AuthServiceProvider.php'
       - 'app/Http/Controllers/SalesCommissionAgentController.php'
       - 'app/Http/Middleware/AdminSidebarMenu.php'
       - 'resources/views/sales_commission_agent/**'
@@ -91,6 +92,7 @@ jobs:
           filters: |
             acessos:
               - 'app/Http/Controllers/RoleController.php'
+              - 'app/Providers/AuthServiceProvider.php'
               - 'app/Http/Controllers/SalesCommissionAgentController.php'
               - 'app/Http/Middleware/AdminSidebarMenu.php'
               - 'resources/views/sales_commission_agent/**'

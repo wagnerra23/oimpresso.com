@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **419** arquivos · **404** números únicos · máx **0414**
-- **ADRs ATIVOS (lifecycle ativo): 374** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 369 · superseded 25 · proposto 12 · deprecated 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 374 · substituido 25 · arquivado 20
+- **420** arquivos · **405** números únicos · máx **0415**
+- **ADRs ATIVOS (lifecycle ativo): 375** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 369 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 375 · substituido 25 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (419)
+## Todas as ADRs (420)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -457,3 +457,4 @@ _(nenhuma)_
 | 0412 | proposto | ativo | decision | Retorno de canon já mergeado ao projeto Cowork de telas dispensa opt-in (emenda  |
 | 0413 | aceito | ativo | decision | Ponto — fechamento da competência, painel de Conformidade e relatórios legais (D |
 | 0414 | aceito | ativo | decision | Patrimônio: a Auditoria é um deep-link para o Modules/Auditoria, e os formulário |
+| 0415 | proposto | ativo | decision | Gate::before — permissão de plataforma sai do bypass do papel Admin#{empresa} |
