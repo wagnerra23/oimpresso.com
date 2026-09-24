@@ -13,6 +13,8 @@ import {
   classifyDesignSync,
   isDesignSyncOptInPrompt,
   hasValidOptIn,
+  isRetornoCoworkInbox,
+  RETORNO_PROJECT_ID,
   READ_METHODS,
 } from './block-design-sync-without-optin.mjs';
 
@@ -96,6 +98,23 @@ check('E2E: tool Write → exit 0 (não é DesignSync)', runHook({ hook_event_na
 
 // método futuro desconhecido SEM opt-in → exit 2 (default-deny end-to-end)
 check('E2E: método futuro sem opt-in → exit 2 (default-deny)', runHook({ hook_event_name: 'PreToolUse', tool_name: 'DesignSync', tool_input: { method: 'sync_everything_v2' } }).code === 2);
+
+// ── RETORNO do Code ao Cowork (sem opt-in, só em cowork-inbox/) ─────────────
+const P = RETORNO_PROJECT_ID;
+const DS_ID = '019dd02f-d2d0-7ba6-a57f-24b3ddd073ac';
+const rec = 'cowork-inbox/placar/playbook/_saida-01.md';
+check('RETORNO: finalize_plan em cowork-inbox/ libera', isRetornoCoworkInbox({ method: 'finalize_plan', projectId: P, writes: [rec], deletes: [] }));
+check('RETORNO: write_files por localPath libera', isRetornoCoworkInbox({ method: 'write_files', projectId: P, files: [{ path: rec, localPath: rec }] }));
+check('CONTROLE: tela fora de cowork-inbox/ NÃO libera', !isRetornoCoworkInbox({ method: 'finalize_plan', projectId: P, writes: [rec, 'clientes-page.jsx'], deletes: [] }));
+check('CONTROLE: com deleção NÃO libera', !isRetornoCoworkInbox({ method: 'finalize_plan', projectId: P, writes: [rec], deletes: ['cowork-inbox/x.md'] }));
+check('CONTROLE: curinga NÃO libera', !isRetornoCoworkInbox({ method: 'finalize_plan', projectId: P, writes: ['cowork-inbox/**'], deletes: [] }));
+check('CONTROLE: `..` NÃO libera', !isRetornoCoworkInbox({ method: 'finalize_plan', projectId: P, writes: ['cowork-inbox/../styles.css'], deletes: [] }));
+check('CONTROLE: projeto do Design System NÃO libera', !isRetornoCoworkInbox({ method: 'finalize_plan', projectId: DS_ID, writes: [rec], deletes: [] }));
+check('CONTROLE: conteúdo inline (data) NÃO libera', !isRetornoCoworkInbox({ method: 'write_files', projectId: P, files: [{ path: rec, data: 'x' }] }));
+check('CONTROLE: plano vazio NÃO libera', !isRetornoCoworkInbox({ method: 'finalize_plan', projectId: P, writes: [], deletes: [] }));
+check('CONTROLE: delete_files NÃO libera', !isRetornoCoworkInbox({ method: 'delete_files', projectId: P, paths: [rec] }));
+check('E2E: retorno em cowork-inbox/ sem opt-in → exit 0', runHook({ hook_event_name: 'PreToolUse', tool_name: 'DesignSync', tool_input: { method: 'finalize_plan', projectId: P, writes: [rec], deletes: [] } }).code === 0);
+check('E2E: tela sem opt-in → exit 2 (segue bloqueada)', runHook({ hook_event_name: 'PreToolUse', tool_name: 'DesignSync', tool_input: { method: 'finalize_plan', projectId: P, writes: ['clientes-page.jsx'], deletes: [] } }).code === 2);
 
 console.log('');
 if (fails === 0) {

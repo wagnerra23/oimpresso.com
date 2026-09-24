@@ -516,7 +516,7 @@ lifecycle: ativo
 | `render-proto-baseline.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +15 | o DESIGN vira BASELINE versionado (roubo #7 da pesquisa de mercado, |
 | `style-fingerprint.mjs` | agente, ci, script | 🟢 só lê | — | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +20 | comparador EXAUSTIVO de estilo protótipo × produção, como MECANISMO. |
 
-### 5.8 `scripts/design-sync/` — 18
+### 5.8 `scripts/design-sync/` — 19
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -533,6 +533,7 @@ lifecycle: ativo
 | `gerar-payload-partes.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0389-emenda-0374-escrita-do-espelho-quando-o-get-file-volta-inline.md` +18 | emite snapshot/delta Design v2 em partes de até 256 KiB. |
 | `payload-dependency-graph.mjs` | script | 🟢 só lê | test | (só sessão/handoff · 1) | Grafo estático das dependências LOCAIS alcançáveis a partir de um shell HTML. |
 | `pedido.mjs` | agente, npm, script | 🔴 disco | — | `.claude/commands/onda.md` +2 | PR-A7 do protocolo de export: o PEDIDO DE SEÇÃO vira DERIVADO. |
+| `pendentes-cowork.mjs` | agente, script | 🔴 disco | test | `.claude/commands/onda.md` | o sentido Code -> Cowork do ciclo: o que o espelho tem e o Cowork NÃO tem. |
 | `receber-handoff.mjs` | script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +11 | recebe o ZIP de handoff do Cowork e o transforma em import validado. |
 | `recibos-ci.mjs` | ci, script | 🟢 só lê | — | — | grava recibo de TESTE (ADR 0384 D-5) em massa a partir de lanes de CI. |
 | `smoke-consumir.mjs` | ci | 🔴 disco | — | `memory/decisions/0390-emenda-0384-smoke-em-ambiente-controlado.md` +2 | transporta o smoke renderizado no CI até o recibo do Design Sync. |
