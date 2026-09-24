@@ -51,6 +51,7 @@ import {
   refsParaDeletado,
   orfaosNaAdicao,
   unverifiedSince,
+  ultimaVerificacaoDe,
   SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
 
@@ -1172,6 +1173,34 @@ check('mesmo número → mesmo veredito (independe de --check)',
       ], null);
       check('BITE unverifiedSince: SEM bundle o mesmo arquivo volta a morder (ausencia != prova)',
         rSem.mexidoDepois.length === 1 && rSem.mexidoDepois[0].cowork === 'app.jsx', JSON.stringify(rSem.mexidoDepois));
+    }
+    // ── FUSO DO COMMITTER (2026-09-24) ───────────────────────────────────────────
+    // `git log --format=%cI` traz o offset do committer; o ledger grava UTC. Comparar como
+    // STRING dizia "16:51-03:00 < 18:35Z" e deixava passar um commit 19:51Z POSTERIOR a
+    // verificacao (caso real: #7852 passou no gate, o main ficou vermelho apos o squash).
+    {
+      const Lf = [{ date: '2026-09-23T18:35:43.756Z', verified: ['cowork-inbox/home/playbook/00-INDICE.md'],
+        verifiedHash: { 'cowork-inbox/home/playbook/00-INDICE.md': 'H_VERIF' } }];
+      const rFuso = unverifiedSince(Lf, [
+        // 16:51-03:00 = 19:51Z, POSTERIOR a 18:35Z, hash mudou => TEM de morder
+        { cowork: 'cowork-inbox/home/playbook/00-INDICE.md', lastCommitIso: '2026-09-23T16:51:18-03:00', hashAtual: 'H_NOVO' },
+      ]);
+      check('BITE unverifiedSince: commit com offset -03:00 POSTERIOR em tempo real a verificacao MORDE',
+        rFuso.mexidoDepois.length === 1 && rFuso.mexidoDepois[0].cowork === 'cowork-inbox/home/playbook/00-INDICE.md',
+        JSON.stringify(rFuso));
+      // controle negativo: 15:00-03:00 = 18:00Z, ANTERIOR a 18:35Z => libera (por string seria o mesmo; aqui prova o outro sentido)
+      const rAntes = unverifiedSince(Lf, [
+        { cowork: 'cowork-inbox/home/playbook/00-INDICE.md', lastCommitIso: '2026-09-23T15:00:00-03:00', hashAtual: 'H_NOVO' },
+      ]);
+      check('unverifiedSince: commit -03:00 ANTERIOR em tempo real a verificacao LIBERA',
+        rAntes.mexidoDepois.length === 0 && rAntes.ok === 1, JSON.stringify(rAntes));
+      // e a escolha da ULTIMA verificacao tambem e por instante, nao por string
+      const uv = ultimaVerificacaoDe([
+        { date: '2026-09-23T21:00:00-03:00', verified: ['x.jsx'] }, // 00:00Z do dia 24 — a mais recente
+        { date: '2026-09-23T23:00:00.000Z', verified: ['x.jsx'] },
+      ], 'x.jsx');
+      check('ultimaVerificacaoDe: escolhe a mais recente por instante (offset misto)',
+        uv.data === '2026-09-23T21:00:00-03:00', JSON.stringify(uv));
     }
     const e2 = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC', repoHash: 'H1' }], '2026-08-17T00:00:00.000Z');
     check('ledgerEntry: grava `verifiedHash` path->hash (insumo do desempate)',
