@@ -5,13 +5,13 @@ dono: "[CL]"
 medido_em: 2026-09-24
 base_medida: 723d2b1e6 (origin/main fresco)
 arquivos_de_producao_tocados: 1
-invalida: "nada — a D-AUDITORIA foi respondida pela ADR 0413; a opção (b) da ficha foi a escolhida"
+invalida: "nada — a D-AUDITORIA foi respondida pela ADR 0414; a opção (b) da ficha foi a escolhida"
 ---
 
 # 13 · Saída — a aba "Auditoria" leva ao Modules/Auditoria, já filtrada nos bens
 
 ## Decisão que destravou
-**D-AUDITORIA → deep-link** ([W] 2026-09-24, [ADR 0413](../../../../../../memory/decisions/0413-patrimonio-auditoria-deep-link-e-formularios-em-drawer-react.md), PR #7912).
+**D-AUDITORIA → deep-link** ([W] 2026-09-24, [ADR 0414](../../../../../../memory/decisions/0414-patrimonio-auditoria-deep-link-e-formularios-em-drawer-react.md), PR #7912).
 O `Modules/Auditoria` segue como dono único da trilha por registro (ADR 0127). Esta thread não cria tela, tabela nem `RevertService`.
 
 ## O que mudou
