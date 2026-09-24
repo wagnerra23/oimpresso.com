@@ -3,7 +3,7 @@ proposal_id: folha-com-encargos-modelo-e-fronteira
 slug: 2026-09-05-folha-com-encargos-modelo-e-fronteira
 title: "Folha com encargos — o modelo de verba, a fronteira do que não declaramos, e como construir"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
