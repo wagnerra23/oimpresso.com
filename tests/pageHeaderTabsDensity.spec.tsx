@@ -2,7 +2,8 @@
 //
 // Âncoras, e são DUAS porque o componente serve mais de um dono:
 //   · default → protótipo do CLIENTES, `.cli-moduletopnav-tab` (`clientes-page.css`),
-//     fixado por [W] em 2026-07-14 — `14px/400`, `px-3`.
+//     fixado por [W] em 2026-07-14 — `14px/400`, `px-3`. Desde 2026-09-23 (D-PH-0923,
+//     aba 36px do DS) é `13px/400`, `padding 0 14px`, `h-9` — as DUAS densidades têm 36px.
 //   · compact → âncora da JANA, `jana-merge.jsx` §`JmTabs` — `13px/500`, `padding 0 14px`.
 //     Divergência medida e registrada em `memory/requisitos/Jana/Index-visual-comparison.md`.
 //
@@ -65,17 +66,22 @@ describe('detector — controle positivo e negativo (ADR 0258)', () => {
 });
 
 describe('UC-JPAIN-26 — density', () => {
-  it('o DEFAULT não se mexe — é o protótipo do Clientes, e serve 5 outras áreas', () => {
-    // Este é o caso que o `pageHeaderTabsFidelity.spec` NÃO fazia. Sem ele, trocar o
-    // default por `compact` passa em TODO o resto da suíte — medido.
+  it('o DEFAULT tem a métrica D-PH-0923 — 36px, 13px, padding 14px — e serve 5 outras áreas', () => {
+    // Este é o caso que o `pageHeaderTabsFidelity.spec` NÃO fazia. Sem ele, trocar a métrica
+    // do default passa em TODO o resto da suíte — medido em 2026-09-18.
+    // Reescrito em 2026-09-23 (D-PH-0923): antes travava `text-sm` + `px-3` (~30px).
     const { ativa, inativa } = abas();
     for (const el of [ativa, inativa]) {
-      expect(temClasse(el, 'text-sm'), 'default perdeu text-sm').toBe(true);
-      expect(temClasse(el, 'px-3'), 'default perdeu px-3').toBe(true);
-      expect(temClasse(el, 'text-[13px]'), 'default virou compact').toBe(false);
-      expect(temClasse(el, 'px-[14px]'), 'default virou compact').toBe(false);
+      expect(temClasse(el, 'h-9'), 'default perdeu os 36px').toBe(true);
+      expect(temClasse(el, 'inline-flex'), 'sem inline-flex o h-9 é inerte num <a>').toBe(true);
+      expect(temClasse(el, 'text-[13px]'), 'default perdeu os 13px').toBe(true);
+      expect(temClasse(el, 'px-[14px]'), 'default perdeu o padding 14px').toBe(true);
+      expect(temClasse(el, 'text-sm'), 'default voltou para 14px').toBe(false);
+      expect(temClasse(el, 'px-3'), 'default voltou para px-3').toBe(false);
+      expect(temClasse(el, 'py-1.5'), 'padding vertical brigaria com a altura fixa').toBe(false);
     }
-    // A inativa do default NÃO carrega peso — quem tem peso é a ativa.
+    // A inativa do default NÃO carrega peso — quem tem peso é a ativa. É o único eixo em
+    // que default e compact ainda diferem; D-PH-0923 não decidiu sobre ele.
     expect(temClasse(inativa, 'font-medium')).toBe(false);
   });
 
@@ -86,8 +92,10 @@ describe('UC-JPAIN-26 — density', () => {
     expect(semProp).toBe(comDefault);
   });
 
-  it('COMPACT entrega a métrica da âncora da Jana: 13px, padding 14px, inativa 500', () => {
+  it('COMPACT entrega a métrica da âncora da Jana: 36px, 13px, padding 14px, inativa 500', () => {
     const { inativa } = abas('compact');
+    expect(temClasse(inativa, 'h-9')).toBe(true);
+    expect(temClasse(inativa, 'inline-flex')).toBe(true);
     expect(temClasse(inativa, 'text-[13px]')).toBe(true);
     expect(temClasse(inativa, 'px-[14px]')).toBe(true);
     expect(temClasse(inativa, 'font-medium')).toBe(true);
