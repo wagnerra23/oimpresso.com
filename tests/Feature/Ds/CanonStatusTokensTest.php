@@ -62,15 +62,30 @@ test('EmptyState — variantes search/success consomem info/success token', func
         ->not->toContain('text-emerald-600');
 });
 
-test('StatusBadge — mapa de status app-wide consome success/warning/info (não emerald/amber/blue/orange)', function () use ($shared) {
+// 2026-09-23 — reescrito (não desabilitado): até aqui este teste EXIGIA o fill sólido
+// (`bg-success text-success-foreground …`), que é o AP7 do PRE-MERGE-UI. A decisão [W]
+// 2026-09-01 (playbook ds-atomos thread 08) tirou o fill; o teste passa a travar o par SOFT.
+test('StatusBadge — mapa de status app-wide usa variantes SOFT (AP7), sem fill sólido nem paleta crua', function () use ($shared) {
     $src = file_get_contents($shared . '/StatusBadge.tsx');
-    expect($src)
-        ->toContain('bg-success text-success-foreground hover:bg-success/90')
-        ->toContain('bg-warning text-warning-foreground hover:bg-warning/90')
-        ->toContain('bg-info text-info-foreground hover:bg-info/90')
-        // ramp de severidade: orange "Risco Alto" virou destructive; Crítico pulsa (ápice distinto)
-        ->toContain("Alto:    { variant: 'destructive', label: 'Risco Alto' }")
-        ->toContain("Crítico: { variant: 'destructive', label: 'Risco Crítico', className: 'animate-pulse' }")
+    // Só o CÓDIGO: o docblock do tipo cita a forma antiga (`text-success-foreground`) como
+    // história, e um `not->toContain` sobre o arquivo cru reprovaria por um comentário.
+    $code = preg_replace(['~/\*.*?\*/~s', '~^\s*//.*$~m'], '', $src);
+    expect($code)
+        ->toContain("variant: 'success'")
+        ->toContain("variant: 'warning'")
+        ->toContain("variant: 'info'")
+        ->toContain("variant: 'danger'")
+        // o fill sólido (AP7) saiu do mapa: nem className de fill, nem variante destructive
+        ->not->toContain('text-success-foreground')
+        ->not->toContain('text-warning-foreground')
+        ->not->toContain('text-info-foreground')
+        ->not->toContain("variant: 'destructive'")
+        // o fill cinza também saiu ([W] 2026-09-23): estado neutro é `neutral`, não `secondary`
+        ->toContain("variant: 'neutral'")
+        ->not->toContain("variant: 'secondary'")
+        // ramp de severidade: Alto e Crítico no par soft; Crítico pulsa (ápice distinto)
+        ->toContain("Alto:    { variant: 'danger',      label: 'Risco Alto' }")
+        ->toContain("Crítico: { variant: 'danger',      label: 'Risco Crítico', className: 'animate-pulse' }")
         ->not->toContain('bg-orange-600')
         ->not->toContain('bg-emerald-600')
         ->not->toContain('bg-amber-600')
