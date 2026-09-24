@@ -27,12 +27,6 @@
             </a>
         </li>
 
-        <li class="{{ $request->segment(2) == 'attendance' ? 'active active-sub' : '' }}">
-            <a href="{{action([\Modules\Essentials\Http\Controllers\AttendanceController::class, 'index'])}}">
-                <i class="fa fa-check-square-o"></i>
-                <span class="title">@lang('essentials::lang.attendance')</span>
-            </a>
-        </li>
         @can('essentials.add_allowance_and_deduction')
         <li class="{{ $request->segment(2) == 'allowance-deduction' ? 'active active-sub' : '' }}">
             <a href="{{action([\Modules\Essentials\Http\Controllers\EssentialsAllowanceAndDeductionController::class, 'index'])}}">
