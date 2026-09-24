@@ -1,5 +1,5 @@
 ---
-page: /manufacturing/v2/insumos
+page: /manufacturing/insumos
 component: resources/js/Pages/Manufacturing/Insumos.tsx
 owner: maiara
 status: draft

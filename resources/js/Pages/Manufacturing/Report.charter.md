@@ -1,5 +1,5 @@
 ---
-page: /manufacturing/v2/report
+page: /manufacturing/report
 component: resources/js/Pages/Manufacturing/Report.tsx
 owner: maiara
 status: draft
