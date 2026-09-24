@@ -80,6 +80,14 @@ beforeEach(function () {
     ]);
 });
 
+
+// Limpa o cache do Spatie DEPOIS também: a permissão criada aqui some no rollback da
+// transação, e um cache que sobrevive a ela vira `PermissionDoesNotExist`/FK no teste
+// SEGUINTE (outro arquivo). Medido 2026-09-24 no CT 100 com a seleção da lane Jana.
+afterEach(function () {
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+});
+
 it('UC-JPERM-06 · GET e PATCH da conversa de outro usuário do mesmo business dão o MESMO 403', function () {
     $alheia = convAcessoCria((int) $this->outro->id, 'TITULO-ORIGINAL-DO-OUTRO');
 

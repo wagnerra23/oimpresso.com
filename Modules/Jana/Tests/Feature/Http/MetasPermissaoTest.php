@@ -93,6 +93,14 @@ beforeEach(function () {
     $this->alheia = metaPermCria(METAPERM_BIZ_ALHEIO, 'CANARIO-META-'.METAPERM_BIZ_ALHEIO);
 });
 
+
+// Limpa o cache do Spatie DEPOIS também: a permissão criada aqui some no rollback da
+// transação, e um cache que sobrevive a ela vira `PermissionDoesNotExist`/FK no teste
+// SEGUINTE (outro arquivo). Medido 2026-09-24 no CT 100 com a seleção da lane Jana.
+afterEach(function () {
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+});
+
 it('UC-JPERM-05 · Tier 0 — o Painel de biz 98 não traz meta de outro business', function () {
     $ids = metaPermIdsNoPainel($this);
 

@@ -76,6 +76,14 @@ beforeEach(function () {
     ]);
 });
 
+
+// Limpa o cache do Spatie DEPOIS também: a permissão criada aqui some no rollback da
+// transação, e um cache que sobrevive a ela vira `PermissionDoesNotExist`/FK no teste
+// SEGUINTE (outro arquivo). Medido 2026-09-24 no CT 100 com a seleção da lane Jana.
+afterEach(function () {
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+});
+
 it('CONTROLE: o Gate::before não libera este usuário — sem isso nada abaixo mede permissão', function () {
     expect($this->user->can('jana.access'))->toBeFalse();
     expect($this->user->can('jana.chat'))->toBeFalse();
