@@ -843,20 +843,12 @@ function SidebarGroup({
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
       >
-        <ChevronDown
-          size={10}
-          className="chev"
-          style={{
-            transform: expanded ? 'rotate(0)' : 'rotate(-90deg)',
-            transition: 'transform 150ms',
-          }}
-        />
         {GroupIcon && (
           <GroupIcon
             size={12}
             className="sb-group-ic"
             aria-hidden="true"
-            style={hue !== undefined ? { color: `oklch(0.65 0.15 ${hue})` } : undefined}
+            style={hue !== undefined ? { color: `oklch(0.65 0.14 ${hue})` } : undefined}
           />
         )}
         {!GroupIcon && hue !== undefined && <span className="sb-group-dot" aria-hidden="true" />}
@@ -867,6 +859,16 @@ function SidebarGroup({
         {typeof total === 'number' && total > 0 && (
           <span className="sb-group-n">{total}</span>
         )}
+        {/* Seta por último, como no protótipo (MenuGroup): o rótulo tem
+            flex:1, então contador e seta vão pra direita. Playbook sidebar/08. */}
+        <ChevronDown
+          size={10}
+          className="chev"
+          style={{
+            transform: expanded ? 'rotate(0)' : 'rotate(-90deg)',
+            transition: 'transform 150ms',
+          }}
+        />
       </button>
       {expanded && <div className="sb-group-body">{children}</div>}
     </div>

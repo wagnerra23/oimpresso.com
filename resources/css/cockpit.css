@@ -1995,13 +1995,13 @@
   padding: 6px 10px;
   background: transparent;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: 4px; /* protótipo .sb-group-h (era --radius-sm = 6px) — sidebar/08 */
   cursor: pointer;
   font-family: var(--font-sans);
   font-size: var(--fs-1);
   font-weight: 600;
   letter-spacing: 0.06em; /* = 0.6px do design (era .08em sobre 10.5px) */
-  color: var(--sb-text-dim);
+  color: var(--sb-text); /* protótipo .sb-group-h (era --sb-text-dim) — sidebar/08 */
   text-transform: uppercase;
   text-align: left;
   transition: background 120ms, color 120ms;
@@ -2016,6 +2016,7 @@
   opacity: 0.7;
   flex: 0 0 auto;
 }
+.cockpit .sb-group-h .sb-group-l { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* protótipo .sb-group-l: contador e seta vão pra direita — sidebar/08 */
 /* título do grupo: claro só no hover — não persiste quando aberto */
 
 /* Inline accordion body — items renderizam direto abaixo do header
@@ -2344,7 +2345,7 @@
   color: oklch(0.46 0.10 var(--gh, 220));
 }
 .cockpit[data-theme="dark"] .sb-group[style*="--gh"] .sb-group-h .sb-group-l {
-  color: oklch(0.78 0.08 var(--gh, 220));
+  color: oklch(0.72 0.09 var(--gh, 220));
 }
 
 /* ── Modo RAIL (56px ícone-only) ───────────────────────────────────────── */
