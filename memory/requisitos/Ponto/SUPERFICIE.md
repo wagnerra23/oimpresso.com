@@ -14,9 +14,9 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 196 arquivos em 18 papéis.
+**Total mapeado:** 197 arquivos em 18 papéis.
 
-## Controllers — 13
+## Controllers — 14
 
 - [MobileMarcacaoController.php](../../../Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php)
 - [AprovacaoController.php](../../../Modules/Ponto/Http/Controllers/AprovacaoController.php)
@@ -27,6 +27,7 @@ module: Ponto
 - [DataController.php](../../../Modules/Ponto/Http/Controllers/DataController.php)
 - [EscalaController.php](../../../Modules/Ponto/Http/Controllers/EscalaController.php)
 - [EspelhoController.php](../../../Modules/Ponto/Http/Controllers/EspelhoController.php)
+- [FechamentoController.php](../../../Modules/Ponto/Http/Controllers/FechamentoController.php)
 - [ImportacaoController.php](../../../Modules/Ponto/Http/Controllers/ImportacaoController.php)
 - [InstallController.php](../../../Modules/Ponto/Http/Controllers/InstallController.php)
 - [IntercorrenciaController.php](../../../Modules/Ponto/Http/Controllers/IntercorrenciaController.php)
