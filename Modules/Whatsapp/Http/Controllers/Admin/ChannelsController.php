@@ -17,6 +17,7 @@ use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Http\Requests\ChannelRequest;
 use Modules\Whatsapp\Http\Requests\GrantChannelUserRequest;
+use Modules\Whatsapp\Services\Drivers\WhatsmeowDriver;
 
 /**
  * ChannelsController — CRUD omnichannel (ADR 0135 Fase 0).
@@ -815,9 +816,9 @@ class ChannelsController extends Controller
                 return response()->json(['state' => 'unknown', 'http' => $r->status()]);
             }
 
-            $snap = $r->json();
-            $connected = (bool) ($snap['Connected'] ?? false);
-            $loggedIn = (bool) ($snap['LoggedIn'] ?? false);
+            $snap = WhatsmeowDriver::parseSessionStatus($r->json());
+            $connected = $snap['connected'];
+            $loggedIn = $snap['loggedIn'];
 
             $state = match (true) {
                 $connected && $loggedIn => 'connected',
