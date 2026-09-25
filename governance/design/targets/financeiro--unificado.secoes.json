@@ -1,0 +1,119 @@
+{
+  "_": "Seção 07 (drawer do lançamento) do Financeiro/Unificado — thread 00 do playbook `cowork-inbox/financeiro` (2026-09-25). Rota do protótipo por `--rota financeiro` (app.jsx roteia por localStorage `oimpresso.route`) e drawer aberto por `--clicar \"tbody tr.row-hover\"` (1ª linha da tabela). Seletores COLHIDOS do DOM do espelho servido por `alvo.mjs --mapa <url> --rota financeiro --clicar \"tbody tr.row-hover\" --raiz <sel> --quieto-ms 1500` nas 5 regiões filhas de `aside.fin-dw2` (header · hero · abas · corpo · rodapé), servido por `servirEstatico` (render-proto-baseline.mjs, dono da rota `/_ds/`) — com `python -m http.server` os tokens do DS não resolvem (`--surface` vazio) e a árvore sai com 1 filho a menos. Âncoras por classe/posição extrema, não `nth-child` do meio. Seções 01–06 e a aba IA NÃO entram: o índice do playbook as declara não medidas, e a aba IA exige um 2º clique.",
+  "dw-painel": {
+    "seletor": "aside.fin-dw2",
+    "campos": [
+      "width",
+      "fontFamily",
+      "backgroundColor",
+      "borderLeftWidth",
+      "display"
+    ],
+    "dado": "sem dado de servidor — `Sheet open={!!selected}`; abre/fecha no cliente (Index.tsx:2047)"
+  },
+  "dw-header": {
+    "seletor": "aside.fin-dw2 > div:first-child",
+    "campos": [
+      "height",
+      "padding",
+      "gap",
+      "borderBottomWidth",
+      "display"
+    ],
+    "dado": "`lancamentos` — UnificadoController@index (L303), `Titulo::query()->where('business_id', sessão)` paginado; o drawer é a linha `selected = lancamentos.find(id)` (Index.tsx:1521), sem request próprio: `kind` · `id` · descrição · conferido/editado"
+  },
+  "dw-fechar": {
+    "seletor": "aside.fin-dw2 .fin-dw-close",
+    "campos": [
+      "width",
+      "height",
+      "borderRadius",
+      "backgroundColor",
+      "color"
+    ],
+    "dado": "sem dado de servidor — `onOpenChange` do Sheet (Esc)"
+  },
+  "dw-nav": {
+    "seletor": "aside.fin-dw2 .fin-dw-nav",
+    "campos": [
+      "height",
+      "borderTopWidth",
+      "borderRadius",
+      "display",
+      "gap"
+    ],
+    "dado": "sem dado de servidor — posição de `selected` na lista `lancamentos` já carregada (J/K)"
+  },
+  "dw-hero": {
+    "seletor": "aside.fin-dw2 > div:nth-child(2)",
+    "campos": [
+      "padding",
+      "backgroundImage",
+      "backgroundColor",
+      "borderBottomWidth"
+    ],
+    "dado": "`lancamentos` — UnificadoController@index (L303), `Titulo::query()->where('business_id', sessão)` paginado; o drawer é a linha `selected = lancamentos.find(id)` (Index.tsx:1521), sem request próprio: `valor` · `kind` · status/liquidado; delta vs média dos pares da mesma contraparte calculado no cliente"
+  },
+  "dw-abas": {
+    "seletor": "aside.fin-dw2 > nav.fin-drawer-tabs",
+    "campos": [
+      "height",
+      "padding",
+      "gap",
+      "borderBottomWidth",
+      "display"
+    ],
+    "dado": "sem dado de servidor — `drawerTab` é estado da Page; badge de comentários de `comments.countFor(selected.id)` (TituloComment, endpoint próprio do controller L976)"
+  },
+  "dw-corpo": {
+    "seletor": "aside.fin-dw2 > div.overflow-y-auto",
+    "campos": [
+      "padding",
+      "overflowY",
+      "display"
+    ],
+    "dado": "`lancamentos` — UnificadoController@index (L303), `Titulo::query()->where('business_id', sessão)` paginado; o drawer é a linha `selected = lancamentos.find(id)` (Index.tsx:1521), sem request próprio + lentes que buscam sob demanda: comentários (TituloComment, L976), auditoria (Activity, L1074), baixas (`fin_titulo_baixas`, L1257) — todos com business_id da sessão"
+  },
+  "dw-veredito": {
+    "seletor": "aside.fin-dw2 .fin-verdict",
+    "campos": [
+      "borderRadius",
+      "padding",
+      "backgroundColor",
+      "color"
+    ],
+    "dado": "DERIVADO no cliente de `selected` (status × vencimento × valor pago) — sem endpoint"
+  },
+  "dw-lente": {
+    "seletor": "aside.fin-dw2 section.fin-lens.py-4",
+    "campos": [
+      "padding",
+      "borderTopWidth",
+      "backgroundColor",
+      "borderRadius"
+    ],
+    "dado": "mesmas fontes do dw-corpo; a lente é só moldura — nenhum dado próprio"
+  },
+  "dw-rodape": {
+    "seletor": "aside.fin-dw2 > div:last-child",
+    "campos": [
+      "height",
+      "padding",
+      "gap",
+      "borderTopWidth",
+      "display"
+    ],
+    "dado": "sem dado de servidor além de `selected` (`nfe_numero` decide o botão Ver NFe); ações chamam rotas do UnificadoController"
+  },
+  "dw-rodape-botao": {
+    "seletor": "aside.fin-dw2 .fin-foot-icon-btn",
+    "campos": [
+      "height",
+      "borderTopWidth",
+      "borderRadius",
+      "backgroundColor",
+      "color"
+    ],
+    "dado": "sem dado de servidor — botão de ação (recibo client-side `printReciboTitulo(selected)`, Ver NFe → /fiscal/nfe)"
+  }
+}

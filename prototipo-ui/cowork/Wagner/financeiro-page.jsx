@@ -892,6 +892,7 @@
       </td>
       <td className={`pl-2 pr-4 ${dens.py} text-right`} onClick={(e) => e.stopPropagation()}>
         <div className="inline-flex items-center gap-1">
+          <span className="fin-dw-spacer" />
           {!settled &&
             <button
               onClick={() => onMark(row.id)}
@@ -1540,11 +1541,11 @@
     return (
       <>
       <div onClick={onClose} className="fixed inset-0 z-40 bg-black/20" />
-      <aside className="fixed top-0 right-0 z-50 h-screen w-[560px] max-w-[92vw] bg-[var(--surface)] border-l border-[var(--border)] drawer-shown flex flex-col fin-drawer-wide">
+      <aside className="fixed top-0 right-0 z-50 h-screen w-[560px] max-w-[92vw] bg-[var(--surface)] border-l border-[var(--border)] drawer-shown flex flex-col fin-drawer-wide fin-dw2" role="dialog" aria-label="Detalhe do lançamento">
         <div className="px-5 h-14 flex items-center gap-3 border-b border-[var(--border)]">
           <DirIcon kind={row.kind} status={row.status} size={16} />
           <div className="flex-1 min-w-0">
-            <div className="text-[length:var(--fs-2)] uppercase tracking-widest text-[var(--text-2)] font-medium flex items-center gap-2">
+            <div className="fin-dw-eyebrow text-[length:var(--fs-2)] uppercase tracking-widest text-[var(--text-2)] font-medium flex items-center gap-2">
               {isIn ? "A receber" : "A pagar"} · <CopyVal text={row.id}>{row.id}</CopyVal>
               {isConferido && <span className="fin-conf-pill-inline">✓ conferido</span>}
               {hasEdits && <span className="fin-edit-pill-inline">✎ editado</span>}
@@ -1564,7 +1565,7 @@
               </button>
             </div>
             }
-          <button onClick={onClose} className="w-8 h-8 grid place-items-center rounded text-[var(--text-2)] hover:bg-[var(--sunken)]">
+          <button onClick={onClose} aria-label="Fechar (Esc)" className="fin-dw-close grid place-items-center">
             <I.X size={16} />
           </button>
         </div>
@@ -1650,8 +1651,8 @@
         <window.CliTabs className="fin-drawer-tabs" ariaLabel="Abas do lançamento" pad={18} size="sm"
           active={tab} onChange={setTab}
           tabs={[
-            { key: "detalhes", label: <>Detalhes{commentsCount > 0 && <span className="fin-drawer-tab-ct">💬 {commentsCount}</span>}{hasEdits && <span className="fin-drawer-tab-tag" title="Lançamento editado">·</span>}</> },
-            { key: "ia", label: "✦ IA" }]} />
+            { key: "detalhes", label: <>Detalhes{commentsCount > 0 && <span className="fin-drawer-tab-ct" aria-label={`${commentsCount} comentários`}>{commentsCount}</span>}{hasEdits && <span className="fin-drawer-tab-tag" title="Lançamento editado">·</span>}</> },
+            { key: "ia", label: <span className="fin-dw-tab-ic"><I.Sparkles size={12} />IA</span> }]} />
 
         <div className="flex-1 overflow-y-auto nice-scroll px-5 pb-5 pt-0.5 space-y-0 text-[length:var(--fs-4)]">
           {tab === "detalhes" && <>
@@ -1779,6 +1780,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
             <span>Recibo</span>
           </button>
+          <span className="fin-dw-spacer" />
           {!settled &&
             <button
               onClick={() => onMark(row.id)}

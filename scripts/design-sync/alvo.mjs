@@ -52,6 +52,14 @@
 //                                      e sub-telas não existiam nele (thread 15 do playbook da sidebar).
 //                                      Os dois vão pro JSON (`viewport`/`sb_mode`) SÓ quando usados, e o
 //                                      `secao-check` os repassa: a proveniência é parte da medida.
+//   --rota <r>                         (com --mapa ou --alvo) grava `oimpresso.route` no localStorage ANTES
+//                                      da navegação — o protótipo roteia por ele (app.jsx:516), não por URL.
+//                                      Sem ele o espelho abre na rota default (`chat`) e a tela-alvo nem monta.
+//   --clicar <seletor>                 (com --mapa ou --alvo) depois da página estável, clica no 1º elemento
+//                                      do seletor e espera estabilizar DE NOVO antes de medir. Existe porque
+//                                      o drawer do Financeiro (thread 07) só entra no DOM após clicar numa linha.
+//                                      Seletor que não casa → exit 2 (NÃO MEDI), nunca "seção ausente".
+//                                      Os dois vão pro JSON (`rota`/`clicar`) SÓ quando usados.
 //   --selftest                         Partes puras (serialização estável · args). Sem browser.
 //   --selftest --browser               Bite-test real: 2 runs byte-idênticos + injeção muda.
 //
@@ -304,7 +312,7 @@ export function parseViewport(v) {
   return m ? { width: Number(m[1]), height: Number(m[2]) } : null;
 }
 
-async function abrirPagina(url, { viewport = null, sbMode = null } = {}) {
+async function abrirPagina(url, { viewport = null, sbMode = null, rota = null } = {}) {
   let chromium;
   try { ({ chromium } = await import('@playwright/test')); }
   catch { throw Object.assign(new Error('@playwright/test indisponível — rode `npm ci` (e `npm run e2e:install`)'), { naoMedi: true }); }
@@ -317,8 +325,20 @@ async function abrirPagina(url, { viewport = null, sbMode = null } = {}) {
       try { localStorage.setItem('oimpresso.sb.mode', m); localStorage.setItem('oimpresso.sidebar.mode', m); } catch { /* sem storage */ }
     }, sbMode);
   }
+  if (rota) {
+    await page.addInitScript((r) => { try { localStorage.setItem('oimpresso.route', r); } catch { /* sem storage */ } }, rota);
+  }
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   return { browser, page };
+}
+
+/** Clica no 1º elemento do seletor e re-estabiliza. Não casou = NÃO MEDI (nunca "seção ausente"). */
+async function clicarEEstabilizar(page, clicar, { quietoMs = 400 } = {}) {
+  if (!clicar) return null;
+  const el = await page.$(clicar);
+  if (!el) throw Object.assign(new Error(`--clicar: "${clicar}" não casou nenhum elemento — sem o clique a seção-alvo não existe`), { naoMedi: true });
+  await el.click();
+  return esperarEstavel(page, { quietoMs });
 }
 
 /* ── modos ──────────────────────────────────────────────────────────────────────────────── */
@@ -326,6 +346,7 @@ async function rodarMapa(url, raiz, sumir = null, quietoMs = 400, opcoes = {}) {
   const { browser, page } = await abrirPagina(url, opcoes);
   try {
     await esperarEstavel(page, { sumir, quietoMs });
+    await clicarEEstabilizar(page, opcoes.clicar, { quietoMs });
     if (raiz) await page.evaluate((r) => { window.__ALVO_RAIZ = r; }, raiz);
     const mapa = await page.evaluate(MAPA_PROBE_SOURCE);
     // stdout only — mapa é COMANDO, não arquivo (ADR 0256 · L-42).
@@ -333,11 +354,12 @@ async function rodarMapa(url, raiz, sumir = null, quietoMs = 400, opcoes = {}) {
   } finally { await browser.close(); }
 }
 
-async function medirAlvo({ url, tela, secoes, injetar, sumir = null, quietoMs = 400, viewport = null, sbMode = null }) {
+async function medirAlvo({ url, tela, secoes, injetar, sumir = null, quietoMs = 400, viewport = null, sbMode = null, rota = null, clicar = null }) {
   const probe = sondaCanonica();
-  const { browser, page } = await abrirPagina(url, { viewport, sbMode });
+  const { browser, page } = await abrirPagina(url, { viewport, sbMode, rota });
   try {
-    const nos = await esperarEstavel(page, { sumir, quietoMs });
+    let nos = await esperarEstavel(page, { sumir, quietoMs });
+    if (clicar) nos = await clicarEEstabilizar(page, clicar, { quietoMs });
     if (injetar) {
       const mexeu = await page.evaluate((sel) => {
         const el = document.querySelector(sel);
@@ -362,6 +384,8 @@ async function medirAlvo({ url, tela, secoes, injetar, sumir = null, quietoMs = 
       tela, url, nos_totais: nos, aguardou_sumir: sumir, quieto_ms: quietoMs,
       ...(viewport ? { viewport: `${viewport.width}x${viewport.height}` } : {}),
       ...(sbMode ? { sb_mode: sbMode } : {}),
+      ...(rota ? { rota } : {}),
+      ...(clicar ? { clicar } : {}),
       base, secoes: medidoSecoes, ausentes: [],
     };
   } finally { await browser.close(); }
@@ -505,6 +529,20 @@ async function selftest(comBrowser) {
     const g = await medirAlvo({ url: urlF, tela: 'fixture-fases', secoes, quietoMs: 1500 });
     ok('--quieto-ms 1500 mede o estado final de carga em fases (3 filhos)', g.secoes.cartao.filhos === 3 && g.quieto_ms === 1500,
       `filhos=${g.secoes.cartao.filhos}`);
+
+    // --clicar: a seção só existe depois do clique (drawer do Financeiro, thread 07)
+    const fc = join(tmpdir(), `alvo-fixture-clique-${process.pid}.html`);
+    writeFileSync(fc, FIXTURE + `<button class="abre" onclick="const d=document.createElement('aside');d.className='gaveta';d.innerHTML='<p></p><p></p>';document.body.appendChild(d)">abrir</button>`);
+    const urlC = 'file://' + fc.split(String.fromCharCode(92)).join('/');
+    const semClique = await medirAlvo({ url: urlC, tela: 'fixture-clique', secoes: { gaveta: { seletor: '.gaveta' } } });
+    const comClique = await medirAlvo({ url: urlC, tela: 'fixture-clique', secoes: { gaveta: { seletor: '.gaveta' } }, clicar: '.abre' });
+    ok('--clicar faz a seção existir (sem clique ausente · com clique 2 filhos)',
+      semClique.secoes.gaveta.ausente === true && comClique.secoes.gaveta.filhos === 2 && comClique.clicar === '.abre',
+      `sem=${JSON.stringify(semClique.secoes.gaveta.ausente)} com=${comClique.secoes.gaveta.filhos}`);
+    let rcC = null;
+    try { await medirAlvo({ url: urlC, tela: 'fixture-clique', secoes, clicar: '.nao-existe' }); rcC = 'mediu'; }
+    catch (e) { rcC = e.naoMedi ? 'naoMedi' : 'falhou'; }
+    ok('--clicar em seletor que não casa → NÃO MEDI (exit 2)', rcC === 'naoMedi', `rc=${rcC}`);
   }
 
   for (const c of checks) console.log(`${c.ok ? 'ok  ' : 'X   '}${c.nome}${c.detalhe ? ' — ' + c.detalhe : ''}`);
@@ -521,12 +559,14 @@ async function main() {
   const viewport = val('--viewport') ? parseViewport(val('--viewport')) : null;
   if (val('--viewport') && !viewport) { console.error(`--viewport: esperado <largura>x<altura> (ex.: 1440x900), recebi "${val('--viewport')}"`); return 2; }
   const sbMode = val('--sb-mode') || null;
+  const rota = val('--rota') || null;
+  const clicar = val('--clicar') || null;
   if (sbMode && !SB_MODOS.includes(sbMode)) { console.error(`--sb-mode: esperado ${SB_MODOS.join('|')}, recebi "${sbMode}"`); return 2; }
 
   if (flag('--mapa')) {
     const url = val('--mapa');
     if (!url) { console.error('uso: --mapa <url> [--raiz <seletor>] [--aguardar-sumir <seletor>]'); return 2; }
-    await rodarMapa(url, val('--raiz'), val('--aguardar-sumir'), Number(val('--quieto-ms', 400)), { viewport, sbMode });
+    await rodarMapa(url, val('--raiz'), val('--aguardar-sumir'), Number(val('--quieto-ms', 400)), { viewport, sbMode, rota, clicar });
     return 0;
   }
 
@@ -535,7 +575,7 @@ async function main() {
     if (!url || !tela || !arq) { console.error('uso: --alvo <url> --tela <slug> --secoes <arq.json> [--injetar-falha <sel>] [--aguardar-sumir <sel>] [--saida <arq>]'); return 2; }
     if (!existsSync(arq)) { console.error(`--secoes: arquivo não encontrado: ${arq}`); return 2; }
     const secoes = JSON.parse(readFileSync(arq, 'utf8'));
-    const medido = await medirAlvo({ url, tela, secoes, injetar: val('--injetar-falha'), sumir: val('--aguardar-sumir'), quietoMs: Number(val('--quieto-ms', 400)), viewport, sbMode });
+    const medido = await medirAlvo({ url, tela, secoes, injetar: val('--injetar-falha'), sumir: val('--aguardar-sumir'), quietoMs: Number(val('--quieto-ms', 400)), viewport, sbMode, rota, clicar });
     // --saida: grava FORA do destino canônico. Existe pro `secao-check` (PR-A3) medir um render
     // sem sobrescrever o alvo versionado — medir não pode ter o efeito colateral de re-baselinar.
     const saida = val('--saida');

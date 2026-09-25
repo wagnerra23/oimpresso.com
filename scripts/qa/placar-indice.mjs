@@ -122,6 +122,8 @@ export function resolverPath(p, variaveis = {}) {
   const out = String(p ?? '').replace(/\$\{([A-Z0-9_]+)\}/g, (_, k) => {
     const v = variaveis[k];
     if (v === null || v === undefined) { indefinida = true; return '${' + k + '}'; }
+    // Lista não tem como virar UM path: qual elemento? Escolher seria chute — NÃO MEDI em voz alta.
+    if (Array.isArray(v)) throw new NaoMedi(`variável ${k} é lista e não pode compor path (\${${k}})`);
     return String(v).replace(/\/$/, '');
   });
   if (!indefinida && !pathSeguro(out)) throw new NaoMedi(`path resolvido fora do repositório: ${out}`);
@@ -144,6 +146,12 @@ export function avaliarProva(prova, ctx) {
     const achado = alts.find((a) => ctx.existe(a.path));
     return { ok: !!achado, path: achado ? achado.path : alts[0].path, migrado: migs[0] || undefined,
       motivo: achado ? '' : `nenhum de ${alts.map((a) => a.path).join(' | ')}` };
+  }
+  // Prova estrutural sem `path` é dívida de DADO da fonte (o Cowork escreveu só `exige`, em prosa —
+  // índice do Financeiro, 2026-09-25). Não se mede e não se inventa path: NÃO MEDIDA nomeada, como
+  // o `semSucessor` abaixo. Deixar cair no resolverPath derrubava o placar dos 12 índices com exit 2.
+  if (typeof prova.path !== 'string' || !prova.path.trim()) {
+    return { ok: false, naoMedida: true, path: '', motivo: `prova "${tipo}" sem "path" (só "exige" em prosa) — corrigir a prova na fonte (Cowork)` };
   }
   const { path, indefinida, migrado, semSucessor } = resolverPath(prova.path ?? '', ctx.variaveis);
   if (indefinida) return { ok: false, indefinida: true, path, motivo: 'variável não decidida' };
@@ -192,8 +200,13 @@ export function validarIndice(indice) {
     if (decisoes.has(d.id)) throw new NaoMedi(`decisão duplicada: ${d.id}`);
     decisoes.add(d.id);
   }
+  // Variável pode ser path OU lista de paths (o índice do Financeiro, 2026-09-25, declara
+  // `CSS` e `PROTOTIPO` como listas). Lista vale se TODO elemento é path seguro — um só fora
+  // do repo reprova igual ao caso escalar.
   for (const [k, v] of Object.entries(indice.variaveis || {})) {
-    if (v !== null && v !== undefined && !pathSeguro(v)) throw new NaoMedi(`variável ${k} fora do repositório: ${v}`);
+    if (v === null || v === undefined) continue;
+    const itens = Array.isArray(v) ? v : [v];
+    if (!itens.length || !itens.every(pathSeguro)) throw new NaoMedi(`variável ${k} fora do repositório: ${v}`);
   }
   for (const t of indice.threads) {
     if (!t || !t.id) throw new NaoMedi('thread sem id');

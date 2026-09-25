@@ -109,6 +109,18 @@ const decFantasma = { modulo: 'M', threads: [{ id: '01', provas: [], depende_dec
 ok(cli(['--root', root({ indice: decFantasma }), '--todos']).rc === 2, 'INTEGRIDADE: decisão inexistente → 2');
 const varFora = { modulo: 'M', variaveis: { UI: '../fora' }, threads: [{ id: '01', provas: [] }] };
 ok(cli(['--root', root({ indice: varFora }), '--todos']).rc === 2, 'INTEGRIDADE: variável apontando pra fora do repo → 2');
+// Variável-LISTA (índice do Financeiro, 2026-09-25): válida se todo item é path seguro.
+const varLista = { modulo: 'M', variaveis: { CSS: ['a.css', 'b/c.css'] }, threads: [{ id: '01', provas: [] }] };
+ok(cli(['--root', root({ indice: varLista }), '--todos']).rc === 0, 'INTEGRIDADE: variável-lista de paths seguros → mede (0)');
+const varListaFora = { modulo: 'M', variaveis: { CSS: ['a.css', '../fora.css'] }, threads: [{ id: '01', provas: [] }] };
+ok(cli(['--root', root({ indice: varListaFora }), '--todos']).rc === 2, 'INTEGRIDADE: lista com UM item fora do repo → 2');
+const varListaEmPath = { modulo: 'M', variaveis: { CSS: ['a.css'] }, threads: [{ id: '01', provas: [{ tipo: 'arquivo', path: '${CSS}' }] }] };
+ok(cli(['--root', root({ indice: varListaEmPath }), '--todos']).rc === 2, 'INTEGRIDADE: lista usada em ${VAR} → NÃO MEDI (2), nunca chute de elemento');
+// Prova estrutural SEM path (só `exige` em prosa): NÃO MEDIDA da thread — não derruba o corpus inteiro.
+const semPath = root({ indice: IDX([{ tipo: 'arquivo', exige: 'o alvo existe' }]), saidas: ['01'] });
+r = cli(['--root', semPath, '--todos', '--check']);
+ok(r.rc === 0, 'SEM PATH: prova "arquivo" sem path NÃO derruba o placar (exit 0) nem morde o --check');
+ok(/entregue 0 de 1/.test(r.out) && /sem "path"/.test(r.out), 'SEM PATH: fail-closed (não é feito) e o motivo é NOMEADO');
 
 /* ── 7. DEPENDÊNCIA e DECISÃO travam o `PRÓXIMO:` ────────────────────────────────────── */
 const cadeia = {
