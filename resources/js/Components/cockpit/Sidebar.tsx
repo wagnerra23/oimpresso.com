@@ -1261,6 +1261,16 @@ function SidebarMenuRail({
 
 // ── SidebarUserMenu (popup completo: perfil/disponivel/aparencia/etc) ──
 
+/** Presenças do protótipo (`sidebar.jsx` PRESENCAS) — ids iguais ao enum de
+ *  `UserPreferencesController::PRESENCAS`. */
+const PRESENCAS = [
+  { id: 'disponivel', label: 'Disponível', cor: 'oklch(0.72 0.18 145)' },
+  { id: 'ocupado', label: 'Ocupado', cor: 'oklch(0.62 0.20 25)' },
+  { id: 'ausente', label: 'Ausente', cor: 'oklch(0.75 0.15 75)' },
+  { id: 'invisivel', label: 'Invisível', cor: 'oklch(0.55 0.01 280)' },
+] as const;
+type PresencaId = (typeof PRESENCAS)[number]['id'];
+
 function SidebarUserMenu({
   open,
   onClose,
@@ -1315,6 +1325,35 @@ function SidebarUserMenu({
   useEffect(() => {
     if (open) setTemaEfetivo(lerTemaDoDom());
   }, [open]);
+
+  // Presença (thread 13 · decisão [W] 2026-09-25): lida de `auth.user.ui_presence`
+  // e gravada em `POST /user/preferences/presence` — a mesma forma do tema
+  // (`useTheme.ts`). Otimista: o ponto muda na hora; falha de rede só significa
+  // que não persiste entre sessões. Ninguém consome a presença ainda.
+  const presencaInicial = (usePage().props as { auth?: { user?: { ui_presence?: string } | null } })
+    .auth?.user?.ui_presence;
+  const [presenca, setPresenca] = useState<PresencaId>(
+    PRESENCAS.some((p) => p.id === presencaInicial) ? (presencaInicial as PresencaId) : 'disponivel',
+  );
+  const pres = PRESENCAS.find((p) => p.id === presenca) ?? PRESENCAS[0];
+  const escolherPresenca = (id: PresencaId) => {
+    setPresenca(id);
+    const token =
+      (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+    fetch('/user/preferences/presence', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-CSRF-TOKEN': token,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({ presence: id }),
+    }).catch(() => {
+      /* silencia — ver comentário acima */
+    });
+  };
 
   // Estado da cascata: qual sub-menu está ativo (null = só painel principal)
   const [activeSub, setActiveSub] = useState<'superadmin' | 'disponivel' | 'aparencia' | 'vibes' | null>(null);
@@ -1389,9 +1428,10 @@ function SidebarUserMenu({
         >
           <span
             className="um-status"
-            style={{ background: 'oklch(0.72 0.18 145)' }}
+            aria-hidden="true"
+            style={{ background: pres.cor }}
           />
-          <span className="label">Disponível</span>
+          <span className="label">{pres.label}</span>
           <ChevronRight size={12} className="um-cascade-arrow" />
         </button>
 
@@ -1537,12 +1577,25 @@ function SidebarUserMenu({
       {activeSub === 'disponivel' && (
         <div className="user-menu-sub">
           <div className="um-sub-h">
-            <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: 'oklch(0.72 0.18 145)' }} />
+            <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: pres.cor }} />
             <span>Status</span>
           </div>
-          <div className="um-item"><span className="um-status" style={{ background: 'oklch(0.72 0.18 145)' }} /> <span className="label">Disponível</span></div>
-          <div className="um-item"><span className="um-status" style={{ background: 'oklch(0.78 0.15 80)' }} /> <span className="label">Ausente</span></div>
-          <div className="um-item"><span className="um-status" style={{ background: 'oklch(0.55 0.20 25)' }} /> <span className="label">Não perturbe</span></div>
+          {PRESENCAS.map((p) => {
+            const active = presenca === p.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                className={`um-item ${active ? 'active' : ''}`}
+                aria-pressed={active}
+                onClick={() => escolherPresenca(p.id)}
+              >
+                <span className="um-status" aria-hidden="true" style={{ background: p.cor }} />
+                <span className="label">{p.label}</span>
+                {active && <Check size={14} className="um-cascade-arrow" style={{ opacity: 1, color: 'var(--accent)' }} />}
+              </button>
+            );
+          })}
         </div>
       )}
 

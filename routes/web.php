@@ -1162,6 +1162,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/user/preferences/theme',
         [\App\Http\Controllers\UserPreferencesController::class, 'updateTheme']
     )->name('user.preferences.theme');
+    Route::post('/user/preferences/presence',
+        [\App\Http\Controllers\UserPreferencesController::class, 'updatePresence']
+    )->name('user.preferences.presence');
     Route::post('/user/preferences/sidebar',
         [\App\Http\Controllers\UserPreferencesController::class, 'updateSidebarCollapsed']
     )->name('user.preferences.sidebar');

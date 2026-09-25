@@ -2,6 +2,8 @@ import type { PageProps as InertiaPageProps } from '@inertiajs/core';
 
 export type ThemeMode = 'light' | 'dark' | null; // null = segue sistema
 
+export type Presence = 'disponivel' | 'ocupado' | 'ausente' | 'invisivel';
+
 export interface AuthenticatedUser {
   id: number;
   name: string;
@@ -10,6 +12,7 @@ export interface AuthenticatedUser {
   is_admin: boolean;
   ui_theme: ThemeMode;
   ui_sidebar_collapsed: boolean;
+  ui_presence?: Presence;
 }
 
 export interface Business {
