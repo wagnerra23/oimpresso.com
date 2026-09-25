@@ -343,6 +343,7 @@ jobs:
             Modules/Ponto/Tests/Feature/DashboardTest.php \
             Modules/Ponto/Tests/Feature/ModuleManagerTest.php \
             Modules/Ponto/Tests/Feature/MultiTenantAppendOnlyTest.php \
+            Modules/Ponto/Tests/Feature/CompetenciaAppendOnlyTest.php \
             Modules/Ponto/Tests/Feature/ObservabilityTest.php \
             Modules/Ponto/Tests/Feature/TelasNavegacaoTest.php \
             Modules/Ponto/Tests/Feature/Wave26SaturationTest.php \
