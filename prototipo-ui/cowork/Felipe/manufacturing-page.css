@@ -2,14 +2,16 @@
    Espelha Modules/Manufacturing/Resources/views/recipe/*. Escopado em .mfg-root.
 
    ONDA A (2026-09-08) — 23 elementos passaram a vir do bundle compilado do DS
-   (window.OfficeImpressoDesignSystem_49a36f). Saíram deste arquivo: abas, KPIs, pílulas
+   (window.OfficeImpressoPontoWR2DesignSystem_019dd0). Saíram deste arquivo: abas, KPIs, pílulas
    de estado, estado vazio, barra de seleção, drawer, modal, toast, paginação, barra de
    progresso, checkbox/switch, erro inline, marcas de corte, mira, cota e tiras de prova.
    As 4 sombras/scrim em rgba(0,0,0,…) foram embora com eles.
 
+   ONDA B (2026-09-23) — saíram também a tabela (.mfg-table*/.mfg-tr/.mfg-th → DataGrid), a busca
+   (.mfg-s → SearchInput), a barra (.mfg-bar → Toolbar), os botões de adicionar (.mfg-add → Button)
+   e os cartões de Configurações (.mfg-card → Widget).
+
    O QUE CONTINUA AQUI É CONTORNO DECLARADO, não decisão de estilo:
-   .mfg-table*  a tabela — DataTable sem header fixo/min-width, Pro sem estado controlado (B-01)
-   .mfg-s       a busca — Input do DS sem ref, ícone e onKeyDown (B-02)
    .mfg-inp     campos numéricos — Input do DS sem min/max/step (B-04)
    .mfg-crumb   a trilha — Breadcrumb do DS só navega por href (B-07)
    .mfg-chip    chips de escolha — FilterChip do DS é pílula de filtro com ✕ (B-08)
@@ -21,48 +23,30 @@
 
 .mfg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 20px 4px}
 
-.mfg-bar{display:flex;align-items:center;gap:10px;padding:12px 20px}
-.mfg-s{position:relative;flex:1;max-width:460px;display:flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:6px;background:var(--surface);padding:0 10px;height:32px}
-.mfg-s input{flex:1;border:0;background:none;outline:none;color:var(--text);font-size:12.5px}
-.mfg-s .ic{color:var(--text-mute);flex:none}
 .mfg-chips{display:flex;gap:6px;flex-wrap:wrap}
 .mfg-chip{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:4px 11px;font-size:11.5px;cursor:pointer}
 .mfg-chip:hover{color:var(--text)}
 .mfg-chip.act{border-color:var(--accent);color:var(--accent);background:color-mix(in oklch,var(--accent) 8%,transparent)}
 
 .mfg-tablewrap{flex:1;min-height:0;overflow:auto;padding:0 20px 24px}
-.mfg-table{min-width:960px;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
-.mfg-tr{display:grid;grid-template-columns:34px minmax(240px,2.2fr) 1fr 108px 120px 118px 96px 92px;align-items:center;gap:10px;padding:0 12px;min-height:44px;border-bottom:1px solid var(--border)}
-.mfg-tr:last-child{border-bottom:0;border-radius:0 0 8px 8px}
-.mfg-thead{background:var(--bg-2);min-height:34px;position:sticky;top:0;z-index:2;border-radius:8px 8px 0 0}
-.mfg-th{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-mute)}
-.mfg-th.r,.mfg-td.r{text-align:right;justify-self:end}
-.mfg-row{cursor:pointer}
-.mfg-row:hover{background:var(--bg-2)}
-.mfg-row.sel{background:color-mix(in oklch,var(--accent) 7%,transparent)}
-.mfg-name{display:flex;flex-direction:column;gap:1px;min-width:0}
-.mfg-name b{font-weight:600;font-size:12.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mfg-sku{font-family:var(--font-mono,ui-monospace,monospace);font-size:10.5px;color:var(--text-mute)}
-.mfg-cat{font-size:11.5px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mfg-cat i{font-style:normal;color:var(--text-mute)}
 .mfg-num{font-family:var(--font-mono,ui-monospace,monospace);font-size:12px;font-variant-numeric:tabular-nums;color:var(--text)}
 .mfg-num.dim{color:var(--text-dim)}
 .mfg-u{color:var(--text-mute);font-size:10.5px;margin-left:3px}
 .mfg-sec{padding:16px 0 4px;display:flex;align-items:center;gap:8px}
-.mfg-sec span{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-mute)}
+.mfg-sec span{font:600 10.5px/1.4 var(--font-sans);letter-spacing:.05em;text-transform:uppercase;color:var(--text-mute)} /* [DS] DrawerSection h4, Drawer.jsx L66 */
 .mfg-sec .ln{flex:1;height:1px;background:var(--border)}
 .mfg-grp{border:1px solid var(--border);border-radius:8px;margin-top:8px;overflow:hidden}
 .mfg-grp-h{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-2);border-bottom:1px solid var(--border)}
-.mfg-grp-h b{font-size:12px;color:var(--text)}
-.mfg-grp-h .v{margin-left:auto;font-family:var(--font-mono,ui-monospace,monospace);font-size:12px;color:var(--text)}
-.mfg-ing{display:grid;grid-template-columns:1fr 96px 92px 96px;gap:10px;align-items:center;padding:7px 12px;border-bottom:1px solid var(--border);font-size:12px}
+.mfg-grp-h b{font-size:12.5px;font-weight:600;color:var(--text)} /* [DS] DataGrid GridCell primary, DataGrid.jsx L29 */
+.mfg-grp-h .v{margin-left:auto;font-family:var(--font-mono,ui-monospace,monospace);font-size:12px;color:var(--text)} /* [DS] mono 12px = GridCell mono, DataGrid.jsx L34 */
+.mfg-ing{display:grid;grid-template-columns:1fr 96px 92px 96px;gap:10px;align-items:center;padding:7px 12px;border-bottom:1px solid var(--border);font-size:12.5px} /* [DS] corpo da grade, DataGrid.jsx L167 */
 .mfg-ing:last-child{border-bottom:0}
 .mfg-ing .n{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mfg-ing .n small{display:block;font-family:var(--font-mono,ui-monospace,monospace);font-size:10px;color:var(--text-mute)}
-.mfg-ing .m{font-family:var(--font-mono,ui-monospace,monospace);font-variant-numeric:tabular-nums;text-align:right;color:var(--text-dim)}
+.mfg-ing .n small{display:block;font-family:var(--font-mono,ui-monospace,monospace);font-size:10.5px;color:var(--text-mute)}
+.mfg-ing .m{font-family:var(--font-mono,ui-monospace,monospace);font-size:12px;font-variant-numeric:tabular-nums;text-align:right;color:var(--text-dim)}
 .mfg-ing .m.tot{color:var(--text)}
 .mfg-tot{display:grid;grid-template-columns:1fr auto;gap:6px 16px;margin-top:12px;border:1px solid var(--border);border-radius:8px;padding:12px 14px;background:var(--bg-2)}
-.mfg-tot dt{font-size:12px;color:var(--text-dim)}
+.mfg-tot dt{font-size:12.5px;color:var(--text-dim)}
 .mfg-tot dd{margin:0;font-family:var(--font-mono,ui-monospace,monospace);font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--text);text-align:right}
 .mfg-tot .big dt{font-weight:600;color:var(--text)}
 .mfg-tot .big dd{font-size:15px;font-weight:600;color:var(--accent)}
@@ -71,25 +55,22 @@
 .mfg-note code{font-family:var(--font-mono,ui-monospace,monospace);font-size:10.5px;background:var(--bg-2);padding:1px 4px;border-radius:3px}
 
 /* ── Tabelas variantes ── */
-.mfg-table.op{min-width:1100px}
-.mfg-table.op .mfg-tr{grid-template-columns:96px 120px 130px minmax(220px,1fr) 110px 120px 110px 108px}
-.mfg-table.ins{min-width:900px}
-.mfg-table.ins .mfg-tr{grid-template-columns:minmax(240px,1fr) 120px 140px 130px 100px 160px}
-.mfg-table.rep{min-width:940px}
-.mfg-table.rep .mfg-tr{grid-template-columns:minmax(240px,1fr) 80px 130px 130px 130px 150px}
 .mfg-foot{margin:10px 2px 0;font-size:11.5px;color:var(--text-dim)}
 .mfg-foot b{color:var(--text);font-family:var(--font-mono,ui-monospace,monospace)}
 
 /* ── Campos ── */
 .mfg-fld{display:flex;flex-direction:column;gap:4px;margin-top:10px}
-.mfg-fld>span{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-mute)}
-.mfg-fld small{font-size:10.5px;color:var(--text-mute)}
-.mfg-inp{width:100%;height:32px;border:1px solid var(--border);border-radius:6px;background:var(--bg-2);color:var(--text);padding:0 9px;font-family:inherit;font-size:12.5px;font-weight:400;line-height:1;outline:none}
+/* [DS] rótulo, ajuda e campo transcritos do Input (fonte viva Input.jsx L10, L13, L53-63, L64-66).
+   Contorno porque o Input não aceita min/max/step (L65); os números são os dele, não da tela. */
+.mfg-fld>span{font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-mute)}
+.mfg-fld small{margin-top:4px;font:400 11.5px/1.4 var(--font-sans);color:var(--text-mute)}
+.mfg-inp{width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:var(--radius-md,6px);background:var(--surface);color:var(--text);padding:7px 10px;font:13px/1.4 var(--font-sans);outline:none;transition:border-color .15s,box-shadow .15s}
 textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
-.mfg-inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklch,var(--accent) 22%,transparent)}
-.mfg-inp:disabled{opacity:.55;cursor:not-allowed}
-.mfg-inp.sel{height:26px;font-size:11px;padding:0 4px;background:var(--surface)}
-.mfg-inp.num{width:82px;height:26px;text-align:right;font-family:var(--font-mono,ui-monospace,monospace);font-size:11.5px;padding:0 6px}
+.mfg-inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.mfg-inp:disabled{opacity:.55;filter:saturate(.6);cursor:not-allowed}
+/* [TELA] .sel/.num: variante compacta dentro da linha de ingrediente (26px). O DS não tem campo compacto. */
+.mfg-inp.sel{height:26px;font-size:11.5px;line-height:1;padding:0 4px}
+.mfg-inp.num{width:82px;height:26px;text-align:right;font-family:var(--font-mono,ui-monospace,monospace);font-size:11.5px;line-height:1;padding:0 6px}
 .mfg-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .mfg-link{background:none;border:0;padding:0;color:var(--accent);cursor:pointer;font:inherit;text-decoration:underline;text-underline-offset:2px}
 .mfg-filters{display:flex;align-items:flex-end;gap:12px;padding:12px 20px;flex-wrap:wrap}
@@ -101,7 +82,7 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-crumb button{background:none;border:0;color:var(--accent);cursor:pointer;font:inherit}
 .mfg-crumb b{color:var(--text);font-weight:600}
 .mfg-crumb .sp{flex:1}
-.mfg-crumb-meta{font-size:11px;color:var(--text-mute)}
+.mfg-crumb-meta{font-size:11.5px;color:var(--text-mute)}
 .mfg-ed-cols{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;padding:8px 20px 20px;align-items:start}
 @media (max-width:1080px){.mfg-ed-cols{grid-template-columns:1fr}}
 .mfg-ed-main{min-width:0}
@@ -112,52 +93,47 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-ing.mfg-ing5{grid-template-columns:minmax(180px,1fr) 130px 92px 100px 76px}
 .mfg-ing.mfg-ing6{grid-template-columns:minmax(200px,1fr) 92px 132px 104px 96px 34px}
 .mfg-ed-main{overflow-x:auto}
-.mfg-ed-main .mfg-grp,.mfg-ed-main .mfg-pick,.mfg-ed-main .mfg-add.mfg-block{min-width:680px}
-.mfg-ing-h{background:var(--bg-2);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-mute)}
+.mfg-ed-main .mfg-grp,.mfg-ed-main .mfg-pick{min-width:680px}
+.mfg-ing-h{background:var(--bg-2);font:600 10px/1.2 var(--font-sans);letter-spacing:.05em;text-transform:uppercase;color:var(--text-mute)} /* [DS] cabeçalho da grade, DataGrid.jsx L126 */
 .mfg-ing-h .m{text-align:right}
 .mfg-ing.falta{background:color-mix(in oklch,var(--warn) 7%,transparent)}
 .mfg-ing .m.bad{color:var(--neg)}
 .mfg-ing .m em{font-style:normal}
 .mfg-grp-h .mfg-mini{margin-left:8px}
-.mfg-mini{background:none;border:1px solid var(--border);border-radius:5px;width:22px;height:22px;color:var(--text-mute);cursor:pointer;font-size:11px;line-height:1}
+.mfg-mini{background:none;border:1px solid var(--border);border-radius:5px;width:22px;height:22px;color:var(--text-mute);cursor:pointer;font-size:11.5px;line-height:1}
 .mfg-mini.danger:hover{color:var(--neg);border-color:color-mix(in oklch,var(--neg) 40%,transparent)}
-.mfg-add{display:inline-flex;align-items:center;gap:6px;margin:8px 12px 10px;background:none;border:1px dashed var(--border);border-radius:6px;padding:5px 11px;color:var(--text-dim);font-size:11.5px;cursor:pointer}
-.mfg-add:hover{color:var(--accent);border-color:var(--accent)}
-.mfg-add.mfg-block{display:flex;justify-content:center;width:calc(100% - 0px);margin:12px 0 0}
 .mfg-pick{margin:8px 12px 12px;border:1px solid var(--accent);border-radius:8px;padding:8px;background:var(--bg-2)}
-.mfg-s.sm{height:28px;max-width:none}
-.mfg-pick-x{background:none;border:0;color:var(--text-mute);font-size:10px;cursor:pointer;font-family:var(--font-mono,ui-monospace,monospace)}
 .mfg-pick-list{display:flex;flex-direction:column;margin-top:6px;max-height:220px;overflow:auto}
 .mfg-pick-list.row{flex-direction:row;flex-wrap:wrap;gap:6px}
 .mfg-pick-i{display:flex;align-items:center;gap:10px;background:none;border:0;border-radius:6px;padding:6px 8px;text-align:left;cursor:pointer;color:var(--text)}
 .mfg-pick-i:hover{background:var(--surface)}
-.mfg-pick-i .n{flex:1;font-size:12px}
-.mfg-pick-i .n small,.mfg-pick-i .c small{display:block;font-size:10px;color:var(--text-mute);font-family:var(--font-mono,ui-monospace,monospace)}
+.mfg-pick-i .n{flex:1;font-size:12.5px}
+.mfg-pick-i .n small,.mfg-pick-i .c small{display:block;font-size:10.5px;color:var(--text-mute);font-family:var(--font-mono,ui-monospace,monospace)}
 .mfg-pick-i .c{font-family:var(--font-mono,ui-monospace,monospace);font-size:12px;text-align:right}
 .mfg-pick-empty{margin:8px 12px;font-size:11.5px;color:var(--text-mute)}
 
 /* ── Configurações ── */
 .mfg-cfg{padding:12px 20px 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;align-items:start}
-.mfg-card{border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:4px 16px 18px}
-.mfg-int{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;font-size:12px;color:var(--text-dim);line-height:1.5}
+.mfg-int{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;font-size:12.5px;color:var(--text-dim);line-height:1.5}
 .mfg-int b{color:var(--text)}
 
 /* ── Ordenação / paginação ── */
-.mfg-th.sort{background:none;border:0;padding:0;cursor:pointer;text-align:inherit;font:inherit;letter-spacing:.07em;text-transform:uppercase;font-size:10px;color:var(--text-mute)}
-.mfg-th.sort:hover{color:var(--text)}
-.mfg-th.sort.act{color:var(--accent)}
-.mfg-th.sort .ind{margin:0 3px;font-family:var(--font-mono,ui-monospace,monospace)}
 
 .mfg-sim{display:flex;align-items:center;gap:12px;margin-top:10px}
 .mfg-sim input[type=range]{flex:1;accent-color:var(--accent)}
-.mfg-sim b{font-family:var(--font-mono,ui-monospace,monospace);font-size:14px;min-width:52px;text-align:right;color:var(--text)}
+.mfg-sim b{font-family:var(--font-mono,ui-monospace,monospace);font-size:13.5px;min-width:52px;text-align:right;color:var(--text)}
 .mfg-sim b.up{color:var(--warn)}.mfg-sim b.down{color:var(--pos)}
 .mfg-sim span{font-size:11.5px;color:var(--text-dim);min-width:150px;text-align:right}
 
 /* ── Hosts dos componentes do DS (onda A · 2026-09-08) ────────────────────────
    Só posicionamento/gap. Cor, fonte, raio e sombra vêm do componente compilado. */
-.mfg-tabs-host{padding:0 20px;background:var(--surface)}
-.mfg-pag-host{margin-top:10px}
+/* Moldura da grade: transcrita do template PT-01 (Pt01Lista.dc.html, slot 4 — div em volta do DataGrid). */
+.mfg-grid{border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.mfg-s-host{width:360px;max-width:100%}
+.mfg-pick-s{display:flex;align-items:center;gap:8px}
+.mfg-pick-s>:first-child{flex:1;min-width:0}
+.mfg-add-host{padding:8px 12px 10px}
+.mfg-add-block{margin-top:12px}
 .mfg-form{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 .mfg-form .mfg-row2{margin:0}
 .mfg-form .mfg-fld{margin-top:0}
@@ -167,54 +143,52 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-pct{display:flex;align-items:center;justify-content:flex-end;gap:8px}
 .mfg-pct-bar{display:block;width:64px}
 
-/* ── Ficha técnica impressa (PT-07) ── */
-.mfg-print-host{display:none}
-@media print{
-  @page{size:A4;margin:0}
-  html.cockpit,body{background:#fff}
-  body>*{display:none!important}
-  body>.mfg-print-host{display:block!important}
-  .mfg-sheet{position:relative;padding:20mm 16mm 16mm;color:#111;font-size:10pt;line-height:1.4;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .mfg-sheet h1,.mfg-sheet h2,.mfg-sheet p,.mfg-sheet b,.mfg-sheet small,.mfg-sheet span,.mfg-sheet dt,.mfg-sheet dd,.mfg-sheet th,.mfg-sheet td{color:#111}
+/* ── Ficha técnica (PT-07) — conteúdo da folha do PresenterMode ──
+ O palco, o papel, a paginação e o @media print são do DS (PresenterMode.jsx L14-35).
+ Aqui fica só o miolo da folha, que agora aparece na tela E no papel.
+ [TELA] @page A4 margem 0: o PresenterMode não declara @page e a folha dele tem 210mm;
+ com a margem padrão do navegador a folha não caberia na página. */
+@media print{@page{size:A4;margin:0}}
+.mfg-sheet{position:relative;padding:20mm 16mm 16mm;color:#111;font-size:10pt;line-height:1.4;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.mfg-sheet h1,.mfg-sheet h2,.mfg-sheet p,.mfg-sheet b,.mfg-sheet small,.mfg-sheet span,.mfg-sheet dt,.mfg-sheet dd,.mfg-sheet th,.mfg-sheet td{color:#111}
 
-  .mfg-reg-host{display:block;width:12mm;height:12mm;color:#111;flex:none;margin-top:1mm}
-  .mfg-reg-host svg{width:100%;height:100%}
-  .mfg-sheet-cotas small{font-size:7.5pt;color:#666}
-  .mfg-sheet-h{display:flex;gap:8mm;align-items:flex-start;border-bottom:1pt solid #111;padding-bottom:5mm}
-  .mfg-sheet-h .id{flex:1;min-width:0}
-  .mfg-sheet-h h1{margin:1mm 0 1.5mm;font-size:18pt;font-weight:600;line-height:1.15;letter-spacing:-.01em}
-  .mfg-sheet-h p{margin:0;font-size:9pt;color:#555}
-  .eyebrow{font-size:7pt;letter-spacing:.16em;text-transform:uppercase;color:#666}
-  .mfg-sheet-h .stamp{margin:0;display:grid;gap:2mm;min-width:46mm}
-  .mfg-sheet-h .stamp dt{font-size:6.5pt;letter-spacing:.12em;text-transform:uppercase;color:#777}
-  .mfg-sheet-h .stamp dd{margin:.3mm 0 0;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5pt}
+.mfg-sheet .mfg-reg-host{display:block;width:12mm;height:12mm;color:#111;flex:none;margin-top:1mm}
+.mfg-sheet .mfg-reg-host svg{width:100%;height:100%}
+.mfg-sheet-cotas small{font-size:7.5pt;color:#666}
+.mfg-sheet-h{display:flex;gap:8mm;align-items:flex-start;border-bottom:1pt solid #111;padding-bottom:5mm}
+.mfg-sheet-h .id{flex:1;min-width:0}
+.mfg-sheet-h h1{margin:1mm 0 1.5mm;font-size:18pt;font-weight:600;line-height:1.15;letter-spacing:-.01em}
+.mfg-sheet-h p{margin:0;font-size:9pt;color:#555}
+.mfg-sheet .eyebrow{font-size:7pt;letter-spacing:.16em;text-transform:uppercase;color:#666}
+.mfg-sheet-h .stamp{margin:0;display:grid;gap:2mm;min-width:46mm}
+.mfg-sheet-h .stamp dt{font-size:6.5pt;letter-spacing:.12em;text-transform:uppercase;color:#777}
+.mfg-sheet-h .stamp dd{margin:.3mm 0 0;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5pt}
 
-  .mfg-sheet-cotas{display:flex;gap:6mm;margin:6mm 0 2mm}
-  .mfg-sheet-cotas .cota{flex:1;display:flex;flex-direction:column;gap:.8mm}
-  .mfg-sheet-cotas .l{font-size:6.5pt;letter-spacing:.12em;text-transform:uppercase;color:#777}
+.mfg-sheet-cotas{display:flex;gap:6mm;margin:6mm 0 2mm}
+.mfg-sheet-cotas .cota{flex:1;display:flex;flex-direction:column;gap:.8mm}
+.mfg-sheet-cotas .l{font-size:6.5pt;letter-spacing:.12em;text-transform:uppercase;color:#777}
 
-  .mfg-sheet-t{width:100%;border-collapse:collapse;margin-top:6mm}
-  .mfg-sheet-t thead th{font-size:6.5pt;letter-spacing:.12em;text-transform:uppercase;text-align:left;border-bottom:.8pt solid #111;padding:2mm 1.5mm;color:#111;font-weight:600}
-  .mfg-sheet-t tbody{page-break-inside:avoid}
-  .mfg-sheet-t tr.grp th{font-size:8pt;letter-spacing:.06em;text-transform:uppercase;text-align:left;background:#f0eeeb;border-top:.4pt solid #111;border-bottom:.3pt solid #999;padding:1.6mm}
-  .mfg-sheet-t td{border-bottom:.3pt solid #ccc;padding:1.5mm;font-size:9pt}
-  .mfg-sheet-t .r{text-align:right}
-  .mfg-sheet-t .dim{color:#666}
-  .mfg-sheet-t .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5pt;font-variant-numeric:tabular-nums}
-  .mfg-sheet-t .eq{font-size:7pt;color:#777}
-  .mfg-sheet-t th.sep{width:22mm}
-  .mfg-sheet-t .box{display:inline-block;width:5mm;height:5mm;border:.5pt solid #111}
+.mfg-sheet-t{width:100%;border-collapse:collapse;margin-top:6mm}
+.mfg-sheet-t thead th{font-size:6.5pt;letter-spacing:.12em;text-transform:uppercase;text-align:left;border-bottom:.8pt solid #111;padding:2mm 1.5mm;color:#111;font-weight:600}
+.mfg-sheet-t tbody{page-break-inside:avoid}
+.mfg-sheet-t tr.grp th{font-size:8pt;letter-spacing:.06em;text-transform:uppercase;text-align:left;background:#f0eeeb;border-top:.4pt solid #111;border-bottom:.3pt solid #999;padding:1.6mm}
+.mfg-sheet-t td{border-bottom:.3pt solid #ccc;padding:1.5mm;font-size:9pt}
+.mfg-sheet-t .r{text-align:right}
+.mfg-sheet-t .dim{color:#666}
+.mfg-sheet-t .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5pt;font-variant-numeric:tabular-nums}
+.mfg-sheet-t .eq{font-size:7pt;color:#777}
+.mfg-sheet-t th.sep{width:22mm}
+.mfg-sheet-t .box{display:inline-block;width:5mm;height:5mm;border:.5pt solid #111}
 
-  .mfg-sheet-close{display:flex;gap:10mm;align-items:flex-end;margin-top:7mm;page-break-inside:avoid}
-  .mfg-sheet-close .assina{flex:1}
-  .mfg-sheet-close .ass{margin-top:6mm}
-  .mfg-sheet-close .ass i{display:block;border-bottom:.5pt solid #111;height:0}
-  .mfg-sheet-close .ass span{display:block;margin-top:1mm;font-size:7pt;letter-spacing:.06em;text-transform:uppercase;color:#777}
-  .mfg-sheet-close .obs{margin:5mm 0 0;font-size:7.5pt;color:#666;max-width:88mm}
-  .mfg-sheet-t.tot{width:74mm;margin:0}
-  .mfg-sheet-t.tot td{border-bottom:.3pt solid #ccc;font-size:9pt;padding:1.4mm 0}
-  .mfg-sheet-t.tot .big td{font-weight:700;font-size:12pt;border-top:.9pt solid #111;border-bottom:0;padding-top:2mm}
+.mfg-sheet-close{display:flex;gap:10mm;align-items:flex-end;margin-top:7mm;page-break-inside:avoid}
+.mfg-sheet-close .assina{flex:1}
+.mfg-sheet-close .ass{margin-top:6mm}
+.mfg-sheet-close .ass i{display:block;border-bottom:.5pt solid #111;height:0}
+.mfg-sheet-close .ass span{display:block;margin-top:1mm;font-size:7pt;letter-spacing:.06em;text-transform:uppercase;color:#777}
+.mfg-sheet-close .obs{margin:5mm 0 0;font-size:7.5pt;color:#666;max-width:88mm}
+.mfg-sheet-t.tot{width:74mm;margin:0}
+.mfg-sheet-t.tot td{border-bottom:.3pt solid #ccc;font-size:9pt;padding:1.4mm 0}
+.mfg-sheet-t.tot .big td{font-weight:700;font-size:12pt;border-top:.9pt solid #111;border-bottom:0;padding-top:2mm}
 
-  .mfg-sheet-f{display:flex;align-items:center;gap:4mm;margin-top:8mm;border-top:.3pt solid #bbb;padding-top:3mm;font-size:7.5pt;color:#555}
-  .mfg-sheet-f span{margin-left:auto;font-family:"IBM Plex Mono",ui-monospace,monospace}
-}
+.mfg-sheet-f{display:flex;align-items:center;gap:4mm;margin-top:8mm;border-top:.3pt solid #bbb;padding-top:3mm;font-size:7.5pt;color:#555}
+.mfg-sheet-f span{margin-left:auto;font-family:"IBM Plex Mono",ui-monospace,monospace}

@@ -213,6 +213,11 @@ caso (botão-ícone que abre menu) repete em toda tela de lista.
 **Teste de aceite:** `<Button icon aria-haspopup="menu" aria-expanded={open} />` renderiza os dois
 atributos no DOM.
 
+**Segundo caso (23/09/2026, Fabricação).** Os botões ✕ de remover grupo e ingrediente
+(`manufacturing-recipe.jsx`, `.mfg-mini`) precisam de `aria-label="Remover grupo …"` e `title`.
+Com `Button icon` o nome acessível viraria "✕". Ficaram como `<button>` local na onda B. Com dois
+casos, o item cumpre a regra do P2 e pode subir para **P1**.
+
 ## Resolvido, registrado como aprendizado
 
 `DropdownMenu` **acrescenta um caret próprio** quando `trigger` é um nó (só a forma
@@ -743,6 +748,9 @@ desacordo com a implementação, não pedido de recurso.
 
 ## ~~`StatusBadge kind="documento"` não tem estado terminal `finalizada`~~  ·  ✅ RESOLVIDO NA ORIGEM (2026-09-08)
 
+> ⚠️ **REABERTO em 23/09/2026.** O domínio `producao` não existe mais na origem. Ver
+> *"Regressão na origem: `StatusBadge` perdeu `producao` e os tons `soft-*`"*, no fim desta pauta.
+
 **O DS respondeu melhor que a proposta.** Em vez de acrescentar `finalizada` ao `documento`,
 criou o domínio próprio `producao` — `finalizada: ['Finalizada','soft-success']` e
 `rascunho: ['Rascunho','soft-warning']` (bundle L6537-6540). Fabricação passou a usar
@@ -855,6 +863,9 @@ não-negociável".
 
 ## Erro meu, corrigido: usei tom SÓLIDO em StatusBadge de estado  ·  ✅ CORRIGIDO NA TELA (2026-09-08)
 
+> ⚠️ **REABERTO em 23/09/2026.** Os tons `soft-*` saíram da origem; a tela voltou ao sólido
+> porque é o único tom genérico com cor que o componente ainda tem. Ver o item de 23/09 no fim.
+
 Não é proposta ao DS — é registro de desvio meu, para não repetir.
 
 **O que fiz de errado na onda A.** As pílulas de faixa de margem (3 usos: `manufacturing-page.jsx`
@@ -898,3 +909,127 @@ compensando no `borderBottom`. **P2:** o sintoma está coberto, mas 1px de scrol
 faixa de navegação é armadilha para quem usa roda do mouse ou trackpad sobre as abas.
 
 **Teste de aceite:** `n.scrollHeight === n.clientHeight` no `nav[aria-label="Sub-navegação"]`.
+
+
+---
+
+## Regressão na origem: `StatusBadge` perdeu `producao` e os tons `soft-*`  ·  D (defeito de origem) · pergunta ao Wagner
+
+**Estado atual, medido em 23/09/2026.**
+- `components/StatusBadge/StatusBadge.d.ts` (fonte viva) L17-22: o `StatusTone` é
+  `success | warning | danger | info | neutral | outline | sla-* | canal-* | fresc-* | tipo-*`.
+  Não há `soft-*`. L3-14: o `StatusKind` tem 11 domínios, sem `producao`.
+- `_ds/wagner-…49a36f76…/_ds_bundle.js` (espelho regenerado em 21/09): busca por
+  `soft-success` e `arquivo_prazo` volta **0**. Busca por `producao` só acha a sidebar (L980) e o
+  `em_producao` do domínio `os` (L7493).
+- Em 08/09 os dois existiam no bundle que a página carregava (`producao` em L6537-6540 e
+  `soft-*` em L6404-6427, registrados nesta pauta e no handoff da Fabricação §21). **Não medi** se
+  saíram da origem ou se aquele bundle de 08/09 tinha conteúdo que nunca esteve na origem. Medir
+  isso exige o histórico do projeto do DS ou do repo.
+
+**Consequência, sem erro no console.** `StatusBadge.jsx` L97-99 cai em `outline` para tom ou
+domínio desconhecido. Até a onda A de 23/09 a Fabricação mostrava as 3 pílulas de margem
+transparentes, sem cor, e a situação da ordem em minúsculas ("rascunho").
+
+**Contorno na tela (onda A, 23/09).** Margem com `tone="success|warning|danger"`; situação da
+ordem com `kind="documento"` + `tone` + `label` (d.ts L34-35 prevê isso para status não mapeado).
+
+**A tensão que precisa de decisão.** O guia (AP7) manda fundo tintado 5–10% + dot + texto colorido,
+*"nunca bg-fill sólido"*. O componente hoje só oferece suave nos tons de domínio (`sla-*`,
+`fresc-*`, `canal-*`, `tipo-*`). Os tons genéricos com cor são todos sólidos (L12-15). Não há
+combinação que cumpra o AP7 e o docblock ao mesmo tempo. Usar `fresc-*` pintaria margem com a cor de
+recência de CRM, que a própria pauta registra reprovando contraste no claro.
+
+**Pergunta ao Wagner.** (a) Voltar `soft-success/warning/danger` e o domínio `producao` ao
+componente; ou (b) declarar que o sólido vale para faixa numérica e o AP7 vale só para estado. Até a
+resposta, a tela fica no sólido, que é valor do DS aplicado como está.
+
+**Teste de aceite (a):** `/'soft-success'/.test(String(window.OfficeImpressoPontoWR2DesignSystem_019dd0.StatusBadge))` → `true`.
+
+
+## `DataGrid`: nome da caixa de seleção usa o `id` da linha  ·  P1
+
+**Estado atual, medido em 23/09/2026.** `components/DataGrid/DataGrid.jsx` (fonte viva) L210:
+`aria-label={'Selecionar ' + row.id}`. Não há prop para o rótulo.
+
+**Onde dói.** Na lista de receitas da Fabricação o leitor de tela lê "Selecionar 3". Antes da
+onda B lia "Selecionar Banner lona 440g". Regressão de acessibilidade aceita para usar a peça do DS.
+
+**Proposta.** `rowLabel?: (row) => string` no `DataGrid`, com o `id` como fallback. **P1**: toda
+grade selecionável do ERP tem `id` numérico.
+
+**Teste de aceite:** `<DataGrid selectable rowLabel={(r) => r.cells.name.primary} …/>` renderiza
+`aria-label="Selecionar Banner lona 440g"`.
+
+
+## `DataGrid`: `onRowClick` vale para todas as linhas  ·  P2
+
+**Estado atual.** `DataGrid.jsx` L201-204: com `onRowClick`, **toda** linha ganha
+`role="button"`, `tabIndex=0` e cursor de clique. Não dá para marcar uma linha como não clicável.
+
+**Onde dói.** Na aba Insumos, o insumo sem receita não tem o que abrir. Ele recebe foco e cursor,
+e o clique não faz nada (a tela ignora no handler).
+
+**Proposta.** Respeitar `row.clickable === false`. **P2**: primeiro caso.
+
+**Teste de aceite:** linha com `clickable: false` não tem `role` nem `tabIndex`.
+
+
+## `ToolbarSearch`: a tecla mostrada não funciona  ·  D (defeito de origem)
+
+**Estado atual.** `components/Toolbar/Toolbar.jsx` (fonte viva) L59-72: `kbd` só desenha o
+`<kbd>`. Não há `focusKey`, `inputRef` nem `aria-label`. O template PT-01 passa `kbd: '/'`,
+então o índice canônico anuncia um atalho que não existe. O `SearchInput` (`Input.jsx` L83) faz
+o mesmo desenho **e** liga o atalho.
+
+**Contorno na tela.** A Fabricação usa `SearchInput` dentro do `Toolbar` (onda B, 23/09).
+
+**Proposta.** `ToolbarSearch` reusar o `useFocusKey` do `Input`, ou o PT-01 trocar para
+`SearchInput`. **D**: o componente mostra uma promessa que não cumpre.
+
+**Teste de aceite:** no PT-01, apertar `/` fora de campo põe o foco na busca.
+
+
+## `Segmented` limita a 5 opções  ·  observação, sem proposta
+
+A Fabricação usa `Segmented` no filtro de categoria (Todas + 3 categorias, derivadas das receitas).
+O d.ts declara 2–5. Registrado para quem acrescentar a 5ª categoria saber que a 6ª pede outra peça.
+
+
+### Atualização 24/09/2026: medido no repo (`oimpresso.com`, cópia local)
+
+A pergunta de 23/09 muda de forma. O defeito é de **sincronização git → projeto do DS**, não de origem.
+
+- **`resources/js/Components/ui/badge.tsx` L25-33:** `success`/`warning`/`danger`/`info` são o par
+  SUAVE (`bg-*-soft text-*-fg border-*/20`). O comentário registra a "Onda M1", o #2641.
+  `neutral` = muted.
+- **`resources/js/Components/shared/StatusBadge.tsx`:**
+  - L24-40: o tipo de variante passou a ser **derivado** do `badgeVariants` (26/08). O comentário
+    conta 49 entradas em fill sólido, o que é AP7 violado na camada compartilhada.
+  - L292: `dot` ligado por padrão.
+  - L227 (`arquivo_prazo`), L242 (`ajuste_estoque`) e L263 (`transferencia_estoque`): migrados
+    para o par suave, citando o #6268 e o #6325 (*"`danger` é o par SOFT, `destructive` é o fill"*).
+- **Mesmo arquivo, L99-104:** o domínio `producao` existe no repo (US-MANU-004), mas ainda em fill
+  sólido (`bg-success`; rascunho `bg-warning`), com a justificativa UI-0029, que dá ao protótipo a
+  forma. É um dos 49 que o próprio arquivo chama de erro e ainda não migrou.
+- **Projeto do DS, `components/StatusBadge/StatusBadge.jsx` L12-15:** `success/warning/danger` são
+  sólidos (`bg: var(--color-*)`, `fg: #fff`). Não há `producao`, `arquivo_prazo`, `transferencia_estoque`
+  nem `dot` nos tons genéricos. **O projeto do DS está atrás do repo** nesse componente.
+- **Repo, `Pages/Manufacturing/Recipes.tsx` L345 e `Insumos.tsx` L292:** a margem é `.mfg-pill ok/warn/bad`
+  local, com fundo 8% e borda 30% (`cowork-manufacturing-bundle.css` L71-74). Já é suave, só que fora do
+  componente.
+- **Não medi:** a origem dos `soft-*` que o bundle de 08/09 tinha. A cópia local não traz o histórico git.
+
+**Conclusão:** a margem é faixa de estado, e o repo (SSOT) decide suave: `variant="success|warning|danger"`.
+O protótipo não consegue pintar suave com o componente do DS vinculado sem inventar cor. Então continua
+sólido, que é o valor do DS aplicado como está, até o Wagner puxar o `StatusBadge` do git para o
+projeto do DS.
+
+**Pedido ao Wagner:**
+1. Regenerar o `StatusBadge` do projeto do DS a partir de `shared/StatusBadge.tsx` + `ui/badge.tsx`
+   do repo: tons suaves, `dot` e os domínios `producao`, `arquivo_prazo`, `ajuste_estoque` e
+   `transferencia_estoque`.
+2. Migrar o `producao` do repo (L99-104) para o par suave, como os outros domínios de estado.
+
+**Teste de aceite:** no projeto do DS, `<StatusBadge tone="success" label="62%"/>` renderiza fundo
+`--color-success-soft`, texto `--color-success-fg` e dot.

@@ -1,33 +1,262 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-09-22T01:31:07.064Z",
+  "generatedAt": "2026-09-25T13:23:19.398Z",
   "bundle": {
-    "id": "3c43b8539b056c95cfc550f536b945b413d5d0b21ec9f8f3a002dad3ff6433a7",
-    "baseId": "a5de78c2e1fa46b7186a3b182791e69de7c1ccd800f4544aad25646c421a2414",
+    "id": "a6e43d1820e89f76d20e9824b027d61fb4c7e00acc87a091132084a380aaee37",
+    "baseId": "3c43b8539b056c95cfc550f536b945b413d5d0b21ec9f8f3a002dad3ff6433a7",
     "mode": "delta",
     "source": "cowork:oimpresso.com.html",
     "transportComplete": true
   },
   "summary": {
-    "transportChanges": 1,
-    "screens": 178,
+    "transportChanges": 33,
+    "screens": 177,
     "tested": 0,
     "smoked": 0,
+    "smokedCi": 0,
+    "smokedStaging": 0,
+    "validated": 0,
     "lifecycle": {
       "anchored": 154,
-      "to-create": 21,
-      "blocked": 3
+      "to-create": 19,
+      "blocked": 3,
+      "review": 1
     },
     "pending": 154,
-    "to-create": 21,
-    "blocked": 3
+    "to-create": 19,
+    "blocked": 3,
+    "review": 1
   },
   "transportChanges": [
     {
-      "path": "_live-only.json",
+      "path": "_export-baseline.json",
+      "change": "added",
+      "bytes": 802,
+      "sha256": "349ac91cb870f66f6c49a808ed02629f86f37efa72498bd81ff35a7bf7131aca",
+      "role": "cowork-source"
+    },
+    {
+      "path": "CLAUDE.md",
+      "change": "modified",
+      "bytes": 17825,
+      "sha256": "cf00f107f5f23a2310a3de01204f5cd78647952de86c0616ec4e51a7834ecbda",
+      "role": "cowork-source"
+    },
+    {
+      "path": "conferir-ds.mjs",
+      "change": "added",
+      "bytes": 13689,
+      "sha256": "3d70443db0998c2f0b933843ef25ab24a7984fbfb7daebd1b23cf4a00b35c562",
+      "role": "cowork-source"
+    },
+    {
+      "path": "conferir-export.cowork.js",
+      "change": "added",
+      "bytes": 13660,
+      "sha256": "40de641d9dbf15d3fcef89206f842ea081a127dced55115ec484e306efa2aff9",
+      "role": "cowork-source"
+    },
+    {
+      "path": "conferir-export.mjs",
+      "change": "modified",
+      "bytes": 14223,
+      "sha256": "6a6e44562ad1933cee1731219a64e1659498e76fb374d58103dbe51d918e2435",
+      "role": "cowork-source"
+    },
+    {
+      "path": "handoff_fabricacao/design/04-modulos/manufacturing/css/manufacturing.css",
       "change": "deleted",
-      "bytes": 39346,
-      "sha256": "80b2e307534b81fcc50221a2783f02436484a656a008e547b636d0610fe4031f",
+      "bytes": 21119,
+      "sha256": "c5e8fdc311b53a2ee613f1ff78199625041d1810a99caf8a6e78ff034ea9d0a6",
+      "role": "cowork-source"
+    },
+    {
+      "path": "handoff_fabricacao/design/Fabricacao - Guia de Producao.html",
+      "change": "modified",
+      "bytes": 4881,
+      "sha256": "7baad3ea7fc2621e6e1ebe3800c322b6d1dbe863758ffbbb2bcf73ad121a4b69",
+      "role": "cowork-source"
+    },
+    {
+      "path": "handoff_fabricacao/design/LAUDO-conferencia-fabricacao.md",
+      "change": "modified",
+      "bytes": 13731,
+      "sha256": "0faeb325c59d6b111ad1c08c1d5a3ee5b3fb9448baf333d681787c6aa1bd4aba",
+      "role": "cowork-source"
+    },
+    {
+      "path": "handoff_fabricacao/design/manufacturing-insumos.jsx",
+      "change": "deleted",
+      "bytes": 5340,
+      "sha256": "c5721cbce08812a6d93f8a7d749d9a401d380c4d11d7a4708cde64707c26fe7b",
+      "role": "cowork-source"
+    },
+    {
+      "path": "handoff_fabricacao/design/manufacturing-page.jsx",
+      "change": "deleted",
+      "bytes": 20722,
+      "sha256": "f33f504638a019db98379561371d0c602be58bb953df241d4bf08e0546ae44d0",
+      "role": "cowork-source"
+    },
+    {
+      "path": "handoff_fabricacao/design/manufacturing-print.jsx",
+      "change": "deleted",
+      "bytes": 6500,
+      "sha256": "092923230d674f4961c35cb943a81ad9ed54b4a84527540e65ff0017a9264afa",
+      "role": "cowork-source"
+    },
+    {
+      "path": "handoff_fabricacao/design/manufacturing-producao.jsx",
+      "change": "deleted",
+      "bytes": 21002,
+      "sha256": "cd84347a8742fe3dc405dbaff45ab83240c0d7fafa38870a50bd52d574ee5c00",
+      "role": "cowork-source"
+    },
+    {
+      "path": "handoff_fabricacao/design/manufacturing-recipe.jsx",
+      "change": "deleted",
+      "bytes": 15341,
+      "sha256": "a7e8e5a696c0fba8fb640dae7160ca10bac4e2615fa147df1f78a5c24a5a4a58",
+      "role": "cowork-source"
+    },
+    {
+      "path": "handoff_fabricacao/README.md",
+      "change": "modified",
+      "bytes": 87345,
+      "sha256": "25db136bdf86739da1d2e33f608f736222b936921aa784d4065a5cce2151381f",
+      "role": "cowork-source"
+    },
+    {
+      "path": "importado_telas/clientes/clientes-ds-base.jsx",
+      "change": "added",
+      "bytes": 3217,
+      "sha256": "49fff924c806492bbd783c924d39882cc8a42d9dad359b0b136b1210793e160e",
+      "role": "cowork-source"
+    },
+    {
+      "path": "importado_telas/clientes/Oimpresso ERP - Clientes.html",
+      "change": "modified",
+      "bytes": 3129,
+      "sha256": "13f8a4dba216a5979f603c31abc9c5c7fddaa7225b2873a17a1e1ad4af1a21fa",
+      "role": "cowork-source"
+    },
+    {
+      "path": "importado_telas/ds-galerias/design-system.css",
+      "change": "deleted",
+      "bytes": 62618,
+      "sha256": "89d1a7e349a1b845d525b687df0a3ab32ffd5a5f0cee1c891530e71d3d072129",
+      "role": "cowork-source"
+    },
+    {
+      "path": "importado_telas/ds-galerias/styles.css",
+      "change": "deleted",
+      "bytes": 194409,
+      "sha256": "b9e68a2dad5223ebe49dbc7fcce5edf737336f4e7844a8f40a40e02bf1162da1",
+      "role": "cowork-source"
+    },
+    {
+      "path": "importado_telas/ds-galerias/tokens.css",
+      "change": "deleted",
+      "bytes": 7492,
+      "sha256": "05eaa449464e7222d186870314bfbd9f3d9565c98dd7454db4aef6e986430397",
+      "role": "cowork-source"
+    },
+    {
+      "path": "manufacturing-insumos.jsx",
+      "change": "modified",
+      "bytes": 6168,
+      "sha256": "c8408a2ba628064b6bd91390530ce7c8bd531305b7faff67f10a0d6e82ece032",
+      "role": "cowork-source"
+    },
+    {
+      "path": "manufacturing-page.css",
+      "change": "modified",
+      "bytes": 14881,
+      "sha256": "1260de019b2571ea3dfb1cf6671c74407b0272a9045260e0862e92ecf3a65233",
+      "role": "cowork-source"
+    },
+    {
+      "path": "manufacturing-page.jsx",
+      "change": "modified",
+      "bytes": 20997,
+      "sha256": "1f74d4976b0b61845dd1d6d007e7cb4c666b3e8e27cada989242ec616e0a9582",
+      "role": "cowork-source"
+    },
+    {
+      "path": "manufacturing-print.jsx",
+      "change": "modified",
+      "bytes": 7338,
+      "sha256": "1a9ef3d042344e2e2be84afd8baa5e292145f3fcffeb752b150b34d2f0bbda43",
+      "role": "cowork-source"
+    },
+    {
+      "path": "manufacturing-producao.jsx",
+      "change": "modified",
+      "bytes": 22160,
+      "sha256": "fadd7df0b882304808102bb1a8962cfc5179e8a0c0c5359a859298a47ad96d71",
+      "role": "cowork-source"
+    },
+    {
+      "path": "manufacturing-recipe.jsx",
+      "change": "modified",
+      "bytes": 15895,
+      "sha256": "0e90ee5c0b27328914a7022c73163026daf31a8f21d4c978b820e74aed1393e5",
+      "role": "cowork-source"
+    },
+    {
+      "path": "para-o-claude-design-do-wagner/conferir-export.mjs",
+      "change": "added",
+      "bytes": 13636,
+      "sha256": "50d7bbd9f6b4ac0c98202e03dce4baad4fe34ec3e99208f9133be34c95d7fb8a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "para-o-claude-design-do-wagner/LEIA-ME.md",
+      "change": "added",
+      "bytes": 4802,
+      "sha256": "e6ec0fdc04d93607f64e67a398a36291202e9f51c3a287479776f670b58e8a4c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "para-o-claude-design-do-wagner/pre-export.md",
+      "change": "added",
+      "bytes": 7595,
+      "sha256": "3fc2a15bbd4d999d20fc4c000750c9c138a2fc7dcf0aa18485dca40dc8e86909",
+      "role": "cowork-source"
+    },
+    {
+      "path": "para-o-projeto-do-ds/LEIA-ME.md",
+      "change": "added",
+      "bytes": 1704,
+      "sha256": "82b564b0f2fe56d047093501c4c106c18e9ca36cd9d74e9d07ec6111e1cd0e07",
+      "role": "cowork-source"
+    },
+    {
+      "path": "pauta-design-system.md",
+      "change": "modified",
+      "bytes": 62977,
+      "sha256": "5bd5448fd0e4154b827928c299a0c88c178f24082e772f33211ac4785ecf0139",
+      "role": "cowork-source"
+    },
+    {
+      "path": "plano-ondas-fabricacao-v2.md",
+      "change": "modified",
+      "bytes": 22725,
+      "sha256": "5a10c2e5177d6d5415b6ea12cf6da373e48b80a4ea5f93ec94a22af59983e2e8",
+      "role": "cowork-source"
+    },
+    {
+      "path": "pre-export-ds.md",
+      "change": "added",
+      "bytes": 7742,
+      "sha256": "fd6ae8bc24c88defb26dc878c9bbbb8d7d1bb429921ce64bfd1c7d1fd7c9729d",
+      "role": "cowork-source"
+    },
+    {
+      "path": "pre-export.md",
+      "change": "modified",
+      "bytes": 10224,
+      "sha256": "fe4df8c320dc6420683adda19dbc01cbcf01bf4eee6dcf2eee89ca0e52afc5f3",
       "role": "cowork-source"
     }
   ],
@@ -44,6 +273,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -59,6 +289,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -74,6 +305,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -89,6 +321,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -104,6 +337,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -119,6 +353,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -134,6 +369,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -149,6 +385,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -164,6 +401,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -179,23 +417,25 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "cms-page.jsx",
       "bundleChange": "unchanged",
-      "target": "—",
-      "module": null,
-      "mapping": "registro a-criar",
-      "comparison": "A-CRIAR",
-      "lifecycleState": "to-create",
-      "applicationState": "to-create",
+      "target": "Modules/Cms/Resources/js/Pages/Admin/Content/Index.tsx",
+      "module": "Cms",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
-      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "cobranca-recorrente-page.jsx",
@@ -209,6 +449,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -224,6 +465,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -239,6 +481,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -254,6 +497,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -269,6 +513,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -284,6 +529,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -299,6 +545,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -314,6 +561,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -329,6 +577,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -344,6 +593,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -359,6 +609,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -374,6 +625,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -389,6 +641,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -404,6 +657,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -419,23 +673,25 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "documentacao-page.jsx",
       "bundleChange": "unchanged",
-      "target": "—",
-      "module": null,
-      "mapping": "registro a-criar",
-      "comparison": "A-CRIAR",
-      "lifecycleState": "to-create",
-      "applicationState": "to-create",
+      "target": "resources/js/Pages/Documentacao/Index.tsx",
+      "module": "Documentacao",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
-      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "equipe-page.jsx",
@@ -449,6 +705,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -464,6 +721,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -479,6 +737,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -494,6 +753,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -509,6 +769,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -524,6 +785,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -539,6 +801,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -554,6 +817,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -569,6 +833,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -584,6 +849,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -599,6 +865,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -614,6 +881,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -629,6 +897,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -644,6 +913,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -659,6 +929,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -674,6 +945,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -689,6 +961,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -704,6 +977,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -719,6 +993,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -734,6 +1009,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -749,6 +1025,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
@@ -764,6 +1041,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -779,6 +1057,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -794,6 +1073,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -809,6 +1089,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -824,6 +1105,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -839,6 +1121,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -854,6 +1137,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -869,6 +1153,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -884,6 +1169,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -899,6 +1185,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -914,6 +1201,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -929,6 +1217,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -944,6 +1233,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -959,6 +1249,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -974,6 +1265,23 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "financeiro-telas-extras.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Financeiro/PlanoContas/Index.tsx",
+      "module": "Financeiro",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -989,6 +1297,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1004,6 +1313,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1019,6 +1329,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1034,6 +1345,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1049,6 +1361,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1064,6 +1377,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1079,6 +1393,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1094,6 +1409,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1109,6 +1425,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1124,6 +1441,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1139,6 +1457,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1154,6 +1473,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1169,6 +1489,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1184,6 +1505,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1199,6 +1521,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1214,6 +1537,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -1229,6 +1553,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1244,6 +1569,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1259,6 +1585,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1274,83 +1601,24 @@
       "compared": false,
       "tested": false,
       "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
-      "source": "handoff_fabricacao/design/manufacturing-insumos.jsx",
-      "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Manufacturing/Insumos.tsx",
-      "module": "Manufacturing",
-      "mapping": "charter.component",
-      "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "handoff_fabricacao/design/manufacturing-page.jsx",
-      "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Manufacturing/Index.tsx",
-      "module": "Manufacturing",
-      "mapping": "charter.component",
-      "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
-      "source": "handoff_fabricacao/design/manufacturing-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "deleted",
       "target": "resources/js/Pages/Manufacturing/Recipes.tsx",
       "module": "Manufacturing",
       "mapping": "charter.component",
-      "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
+      "comparison": "SOURCE-REMOVED",
+      "lifecycleState": "review",
+      "applicationState": "review",
       "compared": false,
       "tested": false,
       "smoked": false,
       "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
-      "source": "handoff_fabricacao/design/manufacturing-producao.jsx",
-      "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Manufacturing/Report.tsx",
-      "module": "Manufacturing",
-      "mapping": "charter.component",
-      "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
-    },
-    {
-      "source": "handoff_fabricacao/design/manufacturing-producao.jsx",
-      "bundleChange": "unchanged",
-      "target": "resources/js/Pages/Manufacturing/Settings.tsx",
-      "module": "Manufacturing",
-      "mapping": "charter.component",
-      "comparison": "SEMANTICO",
-      "lifecycleState": "anchored",
-      "applicationState": "pending",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+      "nextAction": "revisar o alvo React; remoção no Design nunca apaga produto automaticamente"
     },
     {
       "source": "hrm-extras.jsx",
@@ -1364,6 +1632,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1379,6 +1648,23 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "hrm-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Essentials/Painel.tsx",
+      "module": "Essentials",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1394,6 +1680,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1409,6 +1696,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1424,6 +1712,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1439,6 +1728,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1454,6 +1744,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1469,6 +1760,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1484,6 +1776,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1499,6 +1792,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1514,6 +1808,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1529,6 +1824,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1544,6 +1840,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1559,6 +1856,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1574,6 +1872,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1589,12 +1888,13 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "manufacturing-insumos.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Manufacturing/Insumos.tsx",
       "module": "Manufacturing",
       "mapping": "charter.component",
@@ -1604,12 +1904,13 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "manufacturing-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Manufacturing/Index.tsx",
       "module": "Manufacturing",
       "mapping": "charter.component",
@@ -1619,12 +1920,13 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "manufacturing-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Manufacturing/Recipes.tsx",
       "module": "Manufacturing",
       "mapping": "charter.component",
@@ -1634,12 +1936,29 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "manufacturing-producao.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
+      "target": "resources/js/Pages/Manufacturing/Index.tsx",
+      "module": "Manufacturing",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "manufacturing-producao.jsx",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Manufacturing/Report.tsx",
       "module": "Manufacturing",
       "mapping": "charter.component",
@@ -1649,12 +1968,13 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "manufacturing-producao.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/Manufacturing/Settings.tsx",
       "module": "Manufacturing",
       "mapping": "charter.component",
@@ -1664,6 +1984,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1679,6 +2000,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1694,6 +2016,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -1709,6 +2032,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1724,6 +2048,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1739,6 +2064,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1754,6 +2080,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1769,6 +2096,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1784,6 +2112,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1799,6 +2128,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1814,6 +2144,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1829,6 +2160,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1844,6 +2176,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -1859,6 +2192,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -1874,6 +2208,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1889,6 +2224,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1904,6 +2240,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1919,6 +2256,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1934,6 +2272,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1949,6 +2288,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1964,6 +2304,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1979,6 +2320,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -1994,6 +2336,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2009,6 +2352,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2024,6 +2368,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2039,6 +2384,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2054,6 +2400,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2069,6 +2416,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2084,6 +2432,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2099,6 +2448,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2114,6 +2464,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2129,6 +2480,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2144,6 +2496,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2159,6 +2512,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2174,6 +2528,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2189,6 +2544,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2204,6 +2560,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2219,6 +2576,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2234,6 +2592,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2249,6 +2608,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2264,6 +2624,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2279,6 +2640,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2294,6 +2656,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2309,6 +2672,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2324,6 +2688,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2339,6 +2704,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2354,6 +2720,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2369,6 +2736,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2384,6 +2752,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2399,6 +2768,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2414,6 +2784,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2429,6 +2800,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2444,6 +2816,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2459,6 +2832,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2474,6 +2848,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2489,6 +2864,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2504,6 +2880,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2519,6 +2896,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2534,6 +2912,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2549,6 +2928,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2564,6 +2944,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2579,6 +2960,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2594,6 +2976,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2609,6 +2992,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
@@ -2624,6 +3008,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2639,6 +3024,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2654,6 +3040,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2669,6 +3056,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2684,6 +3072,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
@@ -2699,6 +3088,7 @@
       "compared": false,
       "tested": false,
       "smoked": false,
+      "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     }
@@ -2763,6 +3153,12 @@
       "bytes": 19917,
       "sha256": "11a6648f85539eb644160998d3ae87a2dd4a8ceffa2e07b7bc09c4f6f72e5369",
       "role": "preview-cache"
+    },
+    {
+      "path": "_export-baseline.json",
+      "bytes": 802,
+      "sha256": "349ac91cb870f66f6c49a808ed02629f86f37efa72498bd81ff35a7bf7131aca",
+      "role": "cowork-source"
     },
     {
       "path": "_leitura/ancora-copia-2026-09-10.mjs",
@@ -2892,8 +3288,8 @@
     },
     {
       "path": "CLAUDE.md",
-      "bytes": 15508,
-      "sha256": "8f3857ee7bc6f0616ebecb506ecc6f7923f1842d82a45d741ddd7aea2b8eb036",
+      "bytes": 17825,
+      "sha256": "cf00f107f5f23a2310a3de01204f5cd78647952de86c0616ec4e51a7834ecbda",
       "role": "cowork-source"
     },
     {
@@ -3041,9 +3437,21 @@
       "role": "cowork-source"
     },
     {
+      "path": "conferir-ds.mjs",
+      "bytes": 13689,
+      "sha256": "3d70443db0998c2f0b933843ef25ab24a7984fbfb7daebd1b23cf4a00b35c562",
+      "role": "cowork-source"
+    },
+    {
+      "path": "conferir-export.cowork.js",
+      "bytes": 13660,
+      "sha256": "40de641d9dbf15d3fcef89206f842ea081a127dced55115ec484e306efa2aff9",
+      "role": "cowork-source"
+    },
+    {
       "path": "conferir-export.mjs",
-      "bytes": 12622,
-      "sha256": "829f14eaed9bf06a05ca032a7c378788ede803a3c8bba10ee23582668c5fa0e9",
+      "bytes": 14223,
+      "sha256": "6a6e44562ad1933cee1731219a64e1659498e76fb374d58103dbe51d918e2435",
       "role": "cowork-source"
     },
     {
@@ -3851,12 +4259,6 @@
       "role": "cowork-source"
     },
     {
-      "path": "handoff_fabricacao/design/04-modulos/manufacturing/css/manufacturing.css",
-      "bytes": 21119,
-      "sha256": "c5e8fdc311b53a2ee613f1ff78199625041d1810a99caf8a6e78ff034ea9d0a6",
-      "role": "cowork-source"
-    },
-    {
       "path": "handoff_fabricacao/design/adr/0410-text-mute-reprova-aa-em-rotulo.md",
       "bytes": 3501,
       "sha256": "60dbf78530e1da5a4466a904202a528447ed8d43faa03d52e8b9f11127759ba2",
@@ -3888,50 +4290,20 @@
     },
     {
       "path": "handoff_fabricacao/design/Fabricacao - Guia de Producao.html",
-      "bytes": 3393,
-      "sha256": "a169c2569873b9a5f02cec7588cc1eda669e1b8b64eca7bbb48ed54e20115eaa",
+      "bytes": 4881,
+      "sha256": "7baad3ea7fc2621e6e1ebe3800c322b6d1dbe863758ffbbb2bcf73ad121a4b69",
       "role": "cowork-source"
     },
     {
       "path": "handoff_fabricacao/design/LAUDO-conferencia-fabricacao.md",
-      "bytes": 13628,
-      "sha256": "d98304e18e337b315c9bbc83700d4bc0a0ea2b7deb62c4d779653deabf062f65",
+      "bytes": 13731,
+      "sha256": "0faeb325c59d6b111ad1c08c1d5a3ee5b3fb9448baf333d681787c6aa1bd4aba",
       "role": "cowork-source"
     },
     {
       "path": "handoff_fabricacao/design/manufacturing-app.jsx",
       "bytes": 2464,
       "sha256": "ad80903540dac3931e256862f29eff431ff810d5d1940619235b2d66e60d3533",
-      "role": "cowork-source"
-    },
-    {
-      "path": "handoff_fabricacao/design/manufacturing-insumos.jsx",
-      "bytes": 5340,
-      "sha256": "c5721cbce08812a6d93f8a7d749d9a401d380c4d11d7a4708cde64707c26fe7b",
-      "role": "cowork-source"
-    },
-    {
-      "path": "handoff_fabricacao/design/manufacturing-page.jsx",
-      "bytes": 20722,
-      "sha256": "f33f504638a019db98379561371d0c602be58bb953df241d4bf08e0546ae44d0",
-      "role": "cowork-source"
-    },
-    {
-      "path": "handoff_fabricacao/design/manufacturing-print.jsx",
-      "bytes": 6500,
-      "sha256": "092923230d674f4961c35cb943a81ad9ed54b4a84527540e65ff0017a9264afa",
-      "role": "cowork-source"
-    },
-    {
-      "path": "handoff_fabricacao/design/manufacturing-producao.jsx",
-      "bytes": 21002,
-      "sha256": "cd84347a8742fe3dc405dbaff45ab83240c0d7fafa38870a50bd52d574ee5c00",
-      "role": "cowork-source"
-    },
-    {
-      "path": "handoff_fabricacao/design/manufacturing-recipe.jsx",
-      "bytes": 15341,
-      "sha256": "a7e8e5a696c0fba8fb640dae7160ca10bac4e2615fa147df1f78a5c24a5a4a58",
       "role": "cowork-source"
     },
     {
@@ -3942,8 +4314,8 @@
     },
     {
       "path": "handoff_fabricacao/README.md",
-      "bytes": 73681,
-      "sha256": "d66b52919fb4b79f3cdea61a0f42d22ca251623422076fac8621c046f790e32c",
+      "bytes": 87345,
+      "sha256": "25db136bdf86739da1d2e33f608f736222b936921aa784d4065a5cce2151381f",
       "role": "cowork-source"
     },
     {
@@ -4271,6 +4643,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "importado_telas/clientes/clientes-ds-base.jsx",
+      "bytes": 3217,
+      "sha256": "49fff924c806492bbd783c924d39882cc8a42d9dad359b0b136b1210793e160e",
+      "role": "cowork-source"
+    },
+    {
       "path": "importado_telas/clientes/clientes-icons.jsx",
       "bytes": 8398,
       "sha256": "681a801bae084bc1aabc58dad2b56f1e4314b5fc86ca5d5886c1ad2228bdba74",
@@ -4326,8 +4704,8 @@
     },
     {
       "path": "importado_telas/clientes/Oimpresso ERP - Clientes.html",
-      "bytes": 2923,
-      "sha256": "43d5b2db752cc940ea07ee249ff916a6149c79d57da096ce3e051af31b803a48",
+      "bytes": 3129,
+      "sha256": "13f8a4dba216a5979f603c31abc9c5c7fddaa7225b2873a17a1e1ad4af1a21fa",
       "role": "cowork-source"
     },
     {
@@ -4367,12 +4745,6 @@
       "role": "cowork-source"
     },
     {
-      "path": "importado_telas/ds-galerias/design-system.css",
-      "bytes": 62618,
-      "sha256": "89d1a7e349a1b845d525b687df0a3ab32ffd5a5f0cee1c891530e71d3d072129",
-      "role": "cowork-source"
-    },
-    {
       "path": "importado_telas/ds-galerias/ds-v6-gabarito-vendas.html",
       "bytes": 24849,
       "sha256": "fbe684e36d7ace611f04438243561a1c3b76d0766c461ef0f2faf2e63f3d0ae6",
@@ -4394,18 +4766,6 @@
       "path": "importado_telas/ds-galerias/ds-v6-showcase.html",
       "bytes": 26089,
       "sha256": "a6a222fe273997fac9d6d7a6c66b4e7c21270b3379d617342cbdbc23d5cbbe6b",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/ds-galerias/styles.css",
-      "bytes": 194409,
-      "sha256": "b9e68a2dad5223ebe49dbc7fcce5edf737336f4e7844a8f40a40e02bf1162da1",
-      "role": "cowork-source"
-    },
-    {
-      "path": "importado_telas/ds-galerias/tokens.css",
-      "bytes": 7492,
-      "sha256": "05eaa449464e7222d186870314bfbd9f3d9565c98dd7454db4aef6e986430397",
       "role": "cowork-source"
     },
     {
@@ -4632,38 +4992,38 @@
     },
     {
       "path": "manufacturing-insumos.jsx",
-      "bytes": 6019,
-      "sha256": "b4c78897c3c7de566759d3010705ab419c6d61e274d8b13470f48a0ca8322e9e",
+      "bytes": 6168,
+      "sha256": "c8408a2ba628064b6bd91390530ce7c8bd531305b7faff67f10a0d6e82ece032",
       "role": "cowork-source"
     },
     {
       "path": "manufacturing-page.css",
-      "bytes": 16526,
-      "sha256": "c92bc7661b9aaf6e5f3ff43b3e5d6618831d1b3fdf18be3d2404ca32b91c064b",
+      "bytes": 14881,
+      "sha256": "1260de019b2571ea3dfb1cf6671c74407b0272a9045260e0862e92ecf3a65233",
       "role": "cowork-source"
     },
     {
       "path": "manufacturing-page.jsx",
-      "bytes": 21823,
-      "sha256": "5c057cd1f8a26535489061e5df0122d90731946f67a241dd6e0b0c426dcf5d26",
+      "bytes": 20997,
+      "sha256": "1f74d4976b0b61845dd1d6d007e7cb4c666b3e8e27cada989242ec616e0a9582",
       "role": "cowork-source"
     },
     {
       "path": "manufacturing-print.jsx",
-      "bytes": 6835,
-      "sha256": "cf732cd48d170e857f2d6930281ed2cbd29415134d63526bafaf964dc03c220d",
+      "bytes": 7338,
+      "sha256": "1a9ef3d042344e2e2be84afd8baa5e292145f3fcffeb752b150b34d2f0bbda43",
       "role": "cowork-source"
     },
     {
       "path": "manufacturing-producao.jsx",
-      "bytes": 22676,
-      "sha256": "5c1c692bce46808f916ad45f2a1db9b806e289027741a7f1a6ec6ef1c5fe9aeb",
+      "bytes": 22160,
+      "sha256": "fadd7df0b882304808102bb1a8962cfc5179e8a0c0c5359a859298a47ad96d71",
       "role": "cowork-source"
     },
     {
       "path": "manufacturing-recipe.jsx",
-      "bytes": 15690,
-      "sha256": "25b344a4fc6120d353fde9704682e1f4b0387c7ee286f3dcc23ef7e230ddaa29",
+      "bytes": 15895,
+      "sha256": "0e90ee5c0b27328914a7022c73163026daf31a8f21d4c978b820e74aed1393e5",
       "role": "cowork-source"
     },
     {
@@ -4835,6 +5195,30 @@
       "role": "cowork-source"
     },
     {
+      "path": "para-o-claude-design-do-wagner/conferir-export.mjs",
+      "bytes": 13636,
+      "sha256": "50d7bbd9f6b4ac0c98202e03dce4baad4fe34ec3e99208f9133be34c95d7fb8a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "para-o-claude-design-do-wagner/LEIA-ME.md",
+      "bytes": 4802,
+      "sha256": "e6ec0fdc04d93607f64e67a398a36291202e9f51c3a287479776f670b58e8a4c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "para-o-claude-design-do-wagner/pre-export.md",
+      "bytes": 7595,
+      "sha256": "3fc2a15bbd4d999d20fc4c000750c9c138a2fc7dcf0aa18485dca40dc8e86909",
+      "role": "cowork-source"
+    },
+    {
+      "path": "para-o-projeto-do-ds/LEIA-ME.md",
+      "bytes": 1704,
+      "sha256": "82b564b0f2fe56d047093501c4c106c18e9ca36cd9d74e9d07ec6111e1cd0e07",
+      "role": "cowork-source"
+    },
+    {
       "path": "patch-cores-consulta-produtos.md",
       "bytes": 16948,
       "sha256": "a82aba270e2c86bdea4587004d58d4e95098f80a5baf9cbf6a22a6966c3f5c9a",
@@ -4866,8 +5250,8 @@
     },
     {
       "path": "pauta-design-system.md",
-      "bytes": 54949,
-      "sha256": "1988953a26b4ec7e1b61ff73de6ecb2a33c50d4906b42d2b4ca56cae8f68ffe2",
+      "bytes": 62977,
+      "sha256": "5bd5448fd0e4154b827928c299a0c88c178f24082e772f33211ac4785ecf0139",
       "role": "cowork-source"
     },
     {
@@ -4956,8 +5340,8 @@
     },
     {
       "path": "plano-ondas-fabricacao-v2.md",
-      "bytes": 21245,
-      "sha256": "379c95cde68049b4a8e530e578a1d590578394e1d6399c513a3c1356c5d6542c",
+      "bytes": 22725,
+      "sha256": "5a10c2e5177d6d5415b6ea12cf6da373e48b80a4ea5f93ec94a22af59983e2e8",
       "role": "cowork-source"
     },
     {
@@ -5003,9 +5387,15 @@
       "role": "cowork-source"
     },
     {
+      "path": "pre-export-ds.md",
+      "bytes": 7742,
+      "sha256": "fd6ae8bc24c88defb26dc878c9bbbb8d7d1bb429921ce64bfd1c7d1fd7c9729d",
+      "role": "cowork-source"
+    },
+    {
       "path": "pre-export.md",
-      "bytes": 6136,
-      "sha256": "587ebf8ff599d48b1b362aef53e29e6833cdb36e838c8e5ee86d2b0145c5fd52",
+      "bytes": 10224,
+      "sha256": "fe4df8c320dc6420683adda19dbc01cbcf01bf4eee6dcf2eee89ca0e52afc5f3",
       "role": "cowork-source"
     },
     {

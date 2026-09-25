@@ -1,13 +1,18 @@
 // manufacturing-page.jsx — módulo Manufacturing dentro do shell Cockpit V2.
-// Espelho de Modules/Manufacturing: Receitas (ficha técnica/BOM), Ordens de produção,
-// Relatório e Configurações. Dados em manufacturing-data.jsx (window.MFG); CRUD da receita
-// em manufacturing-recipe.jsx; produção/relatório/config em manufacturing-producao.jsx.
+// Quatro abas: Receitas (ficha técnica/BOM), Ordens de produção, Relatório e Configurações.
+// Dados em manufacturing-data.jsx (window.MFG); CRUD da receita em manufacturing-recipe.jsx;
+// produção/relatório/config em manufacturing-producao.jsx.
 // CSS em manufacturing-page.css (escopo .mfg-root). Expõe window.ManufacturingPage.
 //
-// ADERÊNCIA AO DS (onda A, 2026-09-08): a moldura, os KPIs, os overlays, a paginação, a
-// barra de seleção, o estado vazio, a etiqueta de margem e o toast vêm do bundle compilado
-// window.OfficeImpressoPontoWR2DesignSystem_019dd0. O que continua local está declarado no handoff:
-// a tabela (B-01), a busca com atalho "/" (B-02), os chips de categoria (B-08).
+// ADERÊNCIA AO DS (onda A, 2026-09-08; onda B, 2026-09-23): moldura, KPIs, overlays, barra de
+// seleção, estado vazio, etiqueta de margem, toast, e agora a grade (DataGrid com ordenação,
+// seleção e página controladas), a barra (Toolbar + SearchInput com "/" via focusKey), o filtro
+// de categoria (Segmented) e o carregamento (Skeleton) vêm do bundle compilado
+// window.OfficeImpressoPontoWR2DesignSystem_019dd0.
+// [TELA] SearchInput e não ToolbarSearch (que o PT-01 usa): o kbd do ToolbarSearch é só visual
+// (Toolbar.jsx L59-72), o atalho "/" que a tela já tinha pararia de funcionar.
+// [TELA] Segmented aceita 2–5 opções (Segmented.d.ts); hoje são 4 (Todas + 3 categorias). Uma
+// quinta categoria nova ainda cabe; a sexta pede outra peça.
 (() => {
 const { useState, useMemo, useEffect, useRef } = React;
 const I = window.I;
@@ -31,7 +36,8 @@ function useFilaDoLoader() {
   }, []);
 }
 function Aguardando({ o_que }) {
-  return <p className="mfg-note" style={{ padding: "24px 20px" }}>Carregando {o_que}…</p>;
+  const { Skeleton } = ds();
+  return <div role="status" aria-label={"Carregando " + o_que} style={{ padding: "16px 20px" }}>{Skeleton && <Skeleton variant="row" count={4} />}</div>;
 }
 
 const ABAS = [
@@ -44,7 +50,7 @@ const ABAS = [
 
 function ManufacturingPage({ initialView }) {
   useFilaDoLoader();
-  const { PageHeader, TabBar, Button, KpiCard, KpiFilterCard, Pagination, BulkBar, EmptyState, StatusBadge, Modal, Toast } = ds();
+  const { PageHeader, TabBar, Button, KpiCard, KpiFilterCard, BulkBar, EmptyState, StatusBadge, Modal, Toast, DataGrid, Toolbar, SearchInput, Segmented } = ds();
   const MFG = window.MFG;
   const { fmt, num, custos } = MFG;
   const [aba, setAba] = useState(initialView || "receitas");
@@ -67,19 +73,9 @@ function ManufacturingPage({ initialView }) {
   const [confirma, setConfirma] = useState(null); // receita a excluir
   const [imprimir, setImprimir] = useState(null);
   const [toast, setToast] = useState(null);
-  const buscaRef = useRef(null);
   const aviso = (t) => { setToast(t); setTimeout(() => setToast(null), 2600); };
 
   const linhas = useMemo(() => recipes.map((r) => ({ r, c: custos(r) })), [recipes, custos]);
-  // Esc dos overlays é do DS (Drawer/Modal têm o próprio handler). Aqui fica só o atalho "/".
-  useEffect(() => {
-    const onKey = (e) => {
-      const emCampo = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || ""));
-      if (e.key === "/" && !emCampo && aba === "receitas") { e.preventDefault(); buscaRef.current && buscaRef.current.focus(); }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [aba]);
   const CATS = useMemo(() => ["Todas", ...Array.from(new Set(recipes.map((r) => r.cat)))], [recipes]);
   const CHAVES = { name: (l) => l.r.name.toLowerCase(), cat: (l) => l.r.cat + l.r.sub, qtd: (l) => l.c.qtdLiq, total: (l) => l.c.total, unit: (l) => l.c.unit, venda: (l) => l.r.venda, margem: (l) => l.c.margem };
   const filtradas = useMemo(() => {
@@ -96,20 +92,21 @@ function ManufacturingPage({ initialView }) {
   const POR_PAG = 10;
   const nPags = Math.max(1, Math.ceil(filtradas.length / POR_PAG));
   const pagina = Math.min(pag, nPags);
-  const visiveis = filtradas.slice((pagina - 1) * POR_PAG, pagina * POR_PAG);
   const ordenar = (k) => { setOrd((o) => ({ k, dir: o.k === k && o.dir === "asc" ? "desc" : "asc" })); setPag(1); };
-  const Th = ({ k, children, r: right }) => (
-    <button className={"mfg-th sort" + (right ? " r" : "") + (ord.k === k ? " act" : "")} onClick={() => ordenar(k)}>
-      {right && <span className="ind">{ord.k === k ? (ord.dir === "asc" ? "↑" : "↓") : "⇵"}</span>}{children}
-      {!right && <span className="ind">{ord.k === k ? (ord.dir === "asc" ? "↑" : "↓") : "⇵"}</span>}
-    </button>
-  );
+  const COLS = [
+    { key: "name", label: "Receita", sortable: true },
+    { key: "cat", label: "Categoria", sortable: true },
+    { key: "qtd", label: "Quantidade", align: "right", mono: true, sortable: true },
+    { key: "total", label: "Custo total", align: "right", mono: true, sortable: true },
+    { key: "unit", label: "Custo unitário", align: "right", mono: true, sortable: true },
+    { key: "venda", label: "Venda", align: "right", mono: true, sortable: true },
+    { key: "margem", label: "Margem", align: "right", sortable: true },
+  ];
 
   const magra = linhas.filter(({ c }) => c.margem < 45).length;
   const perda = linhas.filter(({ r }) => r.waste >= 8).length;
   const custoMed = linhas.length ? linhas.reduce((s, l) => s + l.c.unit, 0) / linhas.length : 0;
   const toggle = (id) => setSel((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
-  const allSel = filtradas.length > 0 && filtradas.every(({ r }) => sel.includes(r.id));
   const aberta = linhas.find(({ r }) => r.id === openId);
 
   // ── Ações ──
@@ -193,9 +190,9 @@ function ManufacturingPage({ initialView }) {
   }));
 
   return (
-    <div className="mfg-root" data-screen-label={"Manufacturing · " + (ABAS.find((a) => a.id === aba) || {}).l}>
+    <div className="mfg-root" data-screen-label={"Fabricação · " + (ABAS.find((a) => a.id === aba) || {}).l}>
       <PageHeader
-        title="Manufacturing"
+        title="Fabricação"
         stats={[
           { value: recipes.length, label: "receitas" },
           { value: producoes.length, label: "ordens de produção · custo recalculado pelo preço atual dos ingredientes" },
@@ -206,9 +203,7 @@ function ManufacturingPage({ initialView }) {
         </>}
       />
 
-      <div className="mfg-tabs-host">
-        <TabBar tabs={abasVisiveis} active={aba} onChange={setAba} />
-      </div>
+      <TabBar tabs={abasVisiveis} active={aba} onChange={setAba} inset={20} />
 
       {aba === "receitas" && (
         <>
@@ -224,41 +219,34 @@ function ManufacturingPage({ initialView }) {
               description={rascunhos + " rascunho" + (rascunhos === 1 ? "" : "s") + " em aberto"} />
           </div>
 
-          <div className="mfg-bar">
-            <div className="mfg-s">
-              <I.search size={14} className="ic" />
-              <input ref={buscaRef} placeholder="Buscar receita por nome, SKU, categoria…  (tecla /)" value={q} onChange={(e) => { setQ(e.target.value); setPag(1); }} />
-            </div>
-            <div className="mfg-chips">
-              {CATS.map((c) => <button key={c} className={"mfg-chip" + (cat === c ? " act" : "")} aria-pressed={cat === c} onClick={() => setCat(c)}>{c}</button>)}
-            </div>
-          </div>
+          <Toolbar tone="transparent"
+            left={<>
+              <div className="mfg-s-host">
+                <SearchInput placeholder="Buscar receita por nome, SKU, categoria…" value={q} onChange={(e) => { setQ(e.target.value); setPag(1); }} />
+              </div>
+              <Segmented size="sm" ariaLabel="Categoria" value={cat} onChange={(v) => { setCat(v); setPag(1); }}
+                options={CATS.map((c) => ({ value: c, label: c }))} />
+            </>} />
 
           <div className="mfg-tablewrap">
             {filtradas.length > 0 && (
-              <div className="mfg-table">
-                <div className="mfg-tr mfg-thead">
-                  <input type="checkbox" checked={allSel} onChange={() => setSel(allSel ? [] : filtradas.map(({ r }) => r.id))} aria-label="Selecionar todas" />
-                  <Th k="name">Receita</Th>
-                  <Th k="cat">Categoria</Th>
-                  <Th k="qtd" r>Quantidade</Th>
-                  <Th k="total" r>Custo total</Th>
-                  <Th k="unit" r>Custo unitário</Th>
-                  <Th k="venda" r>Venda</Th>
-                  <Th k="margem" r>Margem</Th>
-                </div>
-                {visiveis.map(({ r, c }) => (
-                  <div key={r.id} className={"mfg-tr mfg-row" + (sel.includes(r.id) ? " sel" : "")} onClick={() => setOpenId(r.id)}>
-                    <input type="checkbox" checked={sel.includes(r.id)} onClick={(e) => e.stopPropagation()} onChange={() => toggle(r.id)} aria-label={"Selecionar " + r.name} />
-                    <span className="mfg-name"><b>{r.name}</b><span className="mfg-sku">{r.sku} · {r.grupos.reduce((s, g) => s + g.itens.length, 0)} ingredientes</span></span>
-                    <span className="mfg-cat">{r.cat} <i>/ {r.sub}</i></span>
-                    <span className="mfg-num r">{r.subUn ? num(c.qtdLiq * r.subFator, 2) : num(c.qtdLiq, 2)}<span className="mfg-u">{r.subUn || r.un}</span></span>
-                    <span className="mfg-num r">{fmt(c.total)}</span>
-                    <span className="mfg-num r">{fmt(c.unit)}</span>
-                    <span className="mfg-num dim r">{fmt(r.venda)}</span>
-                    <span className="r"><StatusBadge tone={c.margem >= 55 ? "soft-success" : c.margem >= 45 ? "soft-warning" : "soft-danger"} label={num(c.margem, 0) + "%"} /></span>
-                  </div>
-                ))}
+              <div className="mfg-grid">
+                <DataGrid caption="Receitas" totalLabel="receitas" columns={COLS}
+                  rows={filtradas.map(({ r, c }) => ({
+                    id: r.id,
+                    cells: {
+                      name: { primary: r.name, sub: r.sku + " · " + r.grupos.reduce((s, g) => s + g.itens.length, 0) + " ingredientes" },
+                      cat: r.cat + " / " + r.sub,
+                      qtd: (r.subUn ? num(c.qtdLiq * r.subFator, 2) : num(c.qtdLiq, 2)) + " " + (r.subUn || r.un),
+                      total: fmt(c.total), unit: fmt(c.unit), venda: fmt(r.venda),
+                      margem: <StatusBadge tone={c.margem >= 55 ? "success" : c.margem >= 45 ? "warning" : "danger"} label={num(c.margem, 0) + "%"} />,
+                    },
+                  }))}
+                  sortKey={ord.k} sortDir={ord.dir} onSort={ordenar}
+                  selectable selectedIds={sel} onToggleRow={(id) => toggle(id)}
+                  onToggleAll={(on) => setSel(on ? filtradas.map(({ r }) => r.id) : [])}
+                  onRowClick={(row) => setOpenId(row.id)}
+                  page={pagina} onPageChange={setPag} pageSize={POR_PAG} pageSizeOptions={[POR_PAG]} />
               </div>
             )}
             {filtradas.length === 0 && (
@@ -266,11 +254,6 @@ function ManufacturingPage({ initialView }) {
                 title="Nenhuma receita encontrada"
                 description="Ajuste a busca, troque a categoria ou limpe o filtro de KPI."
                 action={<Button size="sm" onClick={() => { setQ(""); setCat("Todas"); setKpi(null); }}>Limpar filtros</Button>} />
-            )}
-            {filtradas.length > POR_PAG && (
-              <div className="mfg-pag-host">
-                <Pagination page={pagina} pageCount={nPags} onChange={setPag} total={filtradas.length} pageSize={POR_PAG} />
-              </div>
             )}
           </div>
 
@@ -307,7 +290,7 @@ function ManufacturingPage({ initialView }) {
       {aberta && <RecipeDrawer r={aberta.r} c={aberta.c} perms={perms} settings={settings}
         onClose={() => setOpenId(null)}
         onEdit={() => { setOpenId(null); setTela({ tipo: "receita-edit", id: aberta.r.id }); }}
-        onImprimir={(semCusto) => setImprimir({ itens: [aberta], semCusto })}
+        onImprimir={(semCusto) => { setOpenId(null); setImprimir({ itens: [aberta], semCusto }); }}
         onProduzir={() => { setOpenId(null); setTela({ tipo: "op-form", id: null }); }} />}
 
       <Modal open={!!confirma} onClose={() => setConfirma(null)} title="Excluir receita" width={400}
@@ -321,6 +304,7 @@ function ManufacturingPage({ initialView }) {
         </>}
       </Modal>
 
+      {/* [TELA] um overlay por vez: Drawer e PresenterMode escutam Esc no document; com os dois abertos o Esc fecha o de baixo. Abrir a impressão fecha o drawer. */}
       {imprimir && FichaPrint && <FichaPrint itens={imprimir.itens} semCusto={imprimir.semCusto} onDone={() => setImprimir(null)} />}
 
       {opAberta && ProducaoDrawer && <ProducaoDrawer op={producoes.find((p) => p.id === opAberta)} recipes={recipes}

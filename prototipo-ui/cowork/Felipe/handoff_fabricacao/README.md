@@ -104,7 +104,7 @@ venda desatualizado), qual está com **desperdício alto** (encaixe/plotagem rui
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────┐
-│ PageHeader  "Manufacturing"                        [+ Nova receita]        │  h≥44px
+│ PageHeader  "Fabricação"                           [+ Nova receita]        │  h≥44px
 │ 8 receitas · 6 ordens de produção · custo recalculado …                    │
 ├────────────────────────────────────────────────────────────────────────────┤
 │ Receitas ⁸ │ Insumos │ Ordens de produção ⁶·¹ │ Relatório │ Configurações  │  abas
@@ -114,34 +114,36 @@ venda desatualizado), qual está com **desperdício alto** (encaixe/plotagem rui
 │ │ R$ 64,08   │ │ 1          │ │ 2          │ │ 5          │  filtro         │  gap 10
 │ └────────────┘ └────────────┘ └────────────┘ └────────────┘               │
 ├────────────────────────────────────────────────────────────────────────────┤
-│ [🔍 Buscar receita…  (tecla /)]   Todas · Comunicação visual · Têxtil · …  │  toolbar
+│ Toolbar: [🔍 SearchInput  /]   Segmented: Todas │ Com. visual │ Têxtil │ … │  toolbar
 ├────────────────────────────────────────────────────────────────────────────┤
-│ ☐ │ RECEITA        │ CATEGORIA │ QTD │ CUSTO TOT │ CUSTO UN │ VENDA │ MARG │  thead sticky
+│ DataGrid ☐ │ RECEITA │ CATEGORIA │ QTD │ CUSTO TOT │ CUSTO UN │ VENDA │ MARG│  thead sticky
 │ ☐ │ Banner lona…   │ Com.vis.  │14,40│ R$ 148,72 │ R$ 14,87 │ 62,00 │ 76%  │  linha 44px
 │ …10 por página                                                             │
 ├────────────────────────────────────────────────────────────────────────────┤
-│ 1–10 de 8            ‹ 1 2 ›                                               │  paginação
+│ rodapé do DataGrid: N–M de T · ‹ 1 2 ›                                     │  paginação
 └────────────────────────────────────────────────────────────────────────────┘
    ▲ seleção acende a BulkBar sticky no rodapé (imprimir fichas · atualizar preço)
 ```
 
-Medidas `[TELA]` — todas em `design/04-modulos/manufacturing/css/manufacturing.css`:
+> **Atualizado em 24/09/2026 (onda D).** Até a onda B esta tabela media a grade local `.mfg-table`,
+> que saiu. As linhas da grade agora são do `DataGrid` e não se escrevem aqui: se citam.
+
+Medidas. Procedência por linha: **[DS]** fonte viva, **[TPL]** template PT-01, **[TELA]** `manufacturing-page.css` (raiz).
 
 | Elemento | Valor | Onde |
 |---|---|---|
-| Altura de linha da tabela | `min-height: 44px` | `.mfg-tr` |
-| Cabeçalho da tabela | `min-height: 34px`, `position: sticky; top: 0` | `.mfg-thead` |
-| Largura mínima da tabela | `960px` receitas · `1100px` ordens · `900px` insumos · `940px` relatório | `.mfg-table[.op/.ins/.rep]` |
-| Grade de colunas (receitas) | `34px minmax(240px,2.2fr) 1fr 108px 120px 118px 96px 92px` | `.mfg-tr` |
-| Padding horizontal do módulo | `20px` | `.mfg-tabs`, `.mfg-bar`, `.mfg-tablewrap` |
-| Drawer | `width: min(680px, 94vw)`, colado à direita | `.mfg-drw` |
-| Modal | `width: min(520px, 94vw)`, `max-height: 88vh`, raio `12px` | `.mfg-modal` |
-| Modal de confirmação | `width: min(400px, 92vw)` | `.mfg-modal.sm` |
-| Editor: coluna lateral | `320px` fixa, `sticky top: 0` | `.mfg-ed-cols`, `.mfg-ed-side` |
-| Campo | altura `32px`, raio `6px`; campo numérico em linha `26px` | `.mfg-inp`, `.mfg-inp.num` |
+| Grade (4 tabelas) | cabeçalho fixo, altura e padding das células **do componente** | **[DS]** `DataGrid.jsx` L126 (th), L167 (corpo) |
+| Moldura da grade | `1px solid var(--border)` · `var(--radius-lg)` · `overflow:hidden` · `var(--surface)` · `0 1px 2px rgba(0,0,0,.04)` | **[TPL]** `Pt01Lista.dc.html` slot 4 → `.mfg-grid` |
+| Largura mínima da grade | **não medi.** O `DataGrid.d.ts` não declara `minWidth` e as larguras antigas (960/1100/900/940) saíram com a `.mfg-table` | — |
+| Busca | largura `360px`, `max-width:100%` | **[TELA]** `.mfg-s-host` |
+| Recuo das abas | `inset={20}` | **[DS]** `TabBar.d.ts` L43 |
+| Padding horizontal do conteúdo | `20px` | **[TELA]** `.mfg-tablewrap` |
+| Drawer e Modal | largura e scrim **do componente** | **[DS]** `Drawer`, `Modal` |
+| Editor: coluna lateral | `320px` fixa, `sticky top: 0` | **[TELA]** `.mfg-ed-cols`, `.mfg-ed-side` |
+| Campo local | `13px/1.4`, padding `7px 10px` (valores do `Input`); campo compacto em linha `26px` | **[DS]** `Input.jsx` L53-63 · **[TELA]** `.mfg-inp.num`/`.sel` (ver §22.4) |
 
 **Breakpoints** `[TELA]` `[FECHADA]`: um só — `max-width: 1080px` colapsa o editor de duas
-colunas para uma (`.mfg-ed-cols`). Abaixo disso as tabelas rolam na horizontal dentro de
+colunas para uma (`.mfg-ed-cols`). Abaixo disso as grades rolam na horizontal dentro de
 `.mfg-tablewrap` (`overflow: auto`); a plataforma alvo é **cockpit desktop ≥1280px**, mesma
 declaração do charter atual `[DS]` (`resources/js/Pages/Manufacturing/Index.charter.md` L28).
 
@@ -175,9 +177,10 @@ O subtotal do grupo é **derivado** (`Σ quantidade × preço × multiplicador`)
 | Relatório | `relatorio` | — | nunca |
 | Configurações | `config` | — | nunca |
 
-Aba ativa: `TabBar` do DS (`_ds_bundle.js` L6605). Sublinhado `2px solid var(--accent)`,
-rótulo `var(--text)` peso 600 — **e fundo `color-mix(in oklch, var(--accent-soft) 50%, transparent)`**
-(L6645-6648). `[DS]`
+Aba ativa: `TabBar` do DS, com `inset={20}` e sem `<div>` em volta (§22.1, A2-3). Sublinhado `2px solid var(--accent)`,
+rótulo `var(--text)` peso 600 — **e fundo `color-mix(in oklch, var(--accent-soft) 50%, transparent)`**. `[DS]`
+Os números de linha do bundle que esta seção citava (L6605, L6645-6648) são de 08/09 e **não foram
+remedidos** no espelho de 21/09: não usar como endereço.
 
 ⚠️ **Tensão medida, aplicada como está.** Até 2026-09-07 esta ficha dizia "Nunca pill-active",
 citando o guia do DS (§Layout rules: "Tabs underline-active in primary, never pill-active"). O
@@ -189,16 +192,16 @@ fundo aqui, nem por dentro do componente.
 
 | Elemento | Detalhe |
 |---|---|
-| Busca | um campo, casa em nome + SKU + categoria + subcategoria (`.toLowerCase().includes`). Atalho `/` foca; `/` digitado dentro de campo não é atalho. Placeholder: `Buscar receita por nome, SKU, categoria…  (tecla /)` |
-| Chips de categoria | derivados das categorias presentes + `Todas` na frente. Seleção única `[TELA]` |
+| Busca | `SearchInput` do DS dentro de `Toolbar tone="transparent"`. Casa em nome + SKU + categoria + subcategoria (`.toLowerCase().includes`). Atalho `/` pelo `focusKey` padrão do componente `[DS]` (`Input.jsx` L83); `/` digitado dentro de campo não é atalho. Placeholder: `Buscar receita por nome, SKU, categoria…` |
+| Filtro de categoria | `Segmented size="sm" ariaLabel="Categoria"`: categorias presentes + `Todas` na frente, seleção única. O componente aceita 2–5 opções; hoje são 4 `[TELA]` |
 | KPI 1 · Custo médio / unidade | leitura, **não filtra**. Média aritmética do custo unitário das receitas exibidas |
 | KPI 2 · Margem abaixo de 45% | **filtro liga/desliga**; mostra só receitas com margem `< 45` |
 | KPI 3 · Desperdício ≥ 8% | **filtro liga/desliga**; mostra só receitas com `waste ≥ 8` |
 | KPI 4 · Produção do mês | leitura. Conta ordens finalizadas; sublinha nº de rascunhos |
-| Ordenação | clique no cabeçalho alterna asc/desc; indicador `⇵` inativo, `↑`/`↓` ativo; ordenar volta para a página 1 |
-| Paginação | 10 por página, só aparece com mais de 10 resultados; mostra `1–10 de 24` |
-| Seleção | checkbox por linha + "selecionar todas" (todas as **filtradas**, não só as visíveis) |
-| Clique na linha | abre o drawer da receita. Clique no checkbox **não** abre (`stopPropagation`) |
+| Ordenação | `DataGrid` controlado (`sortKey`/`sortDir`/`onSort`): clique no cabeçalho alterna asc/desc, indicador do componente; ordenar volta para a página 1 `[TELA]` |
+| Paginação | rodapé do `DataGrid`, `pageSize={10}`, `pageSizeOptions={[10]}` |
+| Seleção | caixa por linha + "selecionar todas" (`onToggleAll` marca todas as **filtradas**, não só as visíveis). Nome da caixa: "Selecionar {id}" (`DataGrid.jsx` L210), regressão aceita, na pauta |
+| Clique na linha | `onRowClick` abre o drawer da receita. Clique na caixa **não** abre (o componente cuida) |
 | Vazio | `Nenhuma receita encontrada` + `Ajuste a busca, troque a categoria ou limpe o filtro de KPI.` |
 
 **Coluna Quantidade — a declaração obrigatória:** quando a receita tem sub-unidade de saída
@@ -237,7 +240,8 @@ Nota obrigatória no corpo, texto verbatim `[TELA]`:
 
 Tabela de insumos com: nome, código, custo/unidade, estoque, **nº de receitas que o usam** e
 **maior peso** (% do custo total da receita em que ele mais pesa). Insumo sem receita mostra
-`—` e `sem receita`, e **não é clicável**.
+`—` e `sem receita`, e **não abre nada**. Ele ainda recebe foco e cursor de clique do `DataGrid`
+(`onRowClick` vale para todas as linhas, `DataGrid.jsx` L201-204): regressão aceita, na pauta.
 
 Clique abre drawer com um **simulador**: `input[type=range]` de `-30%` a `+60%`, passo `5`,
 default `+10%`. Para cada receita afetada: consumo convertido para a unidade base, custo unitário
@@ -265,7 +269,7 @@ Rodapé: `Custo de produção do período R$ X · lançado como entrada de estoq
 
 ### 4.7 · Aba Configurações
 
-Três cartões `[FECHADA]`:
+Três cartões `[FECHADA]`, cada um um `Widget title="…"` do DS:
 
 1. **Configurações do módulo** — prefixo da referência (texto), `Bloquear edição da quantidade de
    ingrediente` (switch), `Atualizar preço do produto ao finalizar produção` (switch), rodapé com
@@ -273,6 +277,8 @@ Três cartões `[FECHADA]`:
 2. **Permissões (simulação)** — 4 chips que ligam/desligam `ver`, `criar`, `editar`, `prod`. É
    ferramenta do protótipo para conferir os estados; **no app real este cartão não existe** — as
    permissões vêm do backend. Contorno declarado.
+
+   O rodapé do cartão 1 diz "Fabricação v{versão}" (§22.5).
 3. **Integrações** — três linhas de texto com link: Produtos, Compras, Fila de produção/OS.
 
 ---
@@ -391,14 +397,16 @@ Duas variantes da mesma folha, uma decisão de negócio cada:
 | **Via de produção** | bancada / chão de fábrica | **sem nenhum valor de compra**; a coluna de custo vira caixa de conferência (`Separado ☐`) e o destaque passa a ser `N itens · separar tudo na bancada` |
 
 Anatomia (A4, margem 0, conteúdo `20mm 16mm 16mm`): marcas de corte nos 4 cantos ·
-mira de registro · cabeçalho com eyebrow `Office Impresso · Manufacturing` (+ ` · via de
+mira de registro · cabeçalho com eyebrow `Office Impresso · Fabricação` (+ ` · via de
 produção`) · carimbo (Receita / Produto / Emitida em) · **cotas** com linha de medida (lote,
 rendimento líquido, sub-unidade, custo) · tabela agrupada por grupo de ingredientes ·
 assinaturas (Produção / Conferido por) · tira CMYK + escada de cinza · rodapé com SKU.
 
 Impressão em **lote**: a barra de seleção imprime N fichas de uma vez, uma folha por receita.
-Mecanismo: portal no `<body>` + `@media print` que esconde `body > *` e mostra só
-`.mfg-print-host`; `window.print()` 120ms após montar, `afterprint` fecha.
+Mecanismo **[DS]** (desde 24/09): portal no `<body>` com o `PresenterMode`. Ele mostra uma folha
+por receita (`pages={n}`), navega entre elas (← →), imprime com P ou com o botão "Imprimir" e fecha
+com Esc ou "Sair". O `@media print` é o dele. Detalhe e props na §22.5. O `window.print()` automático
+e o `afterprint` saíram.
 Texto obrigatório no pé da folha: `Ficha de uso interno — não é documento fiscal.`
 
 ---
@@ -433,14 +441,23 @@ Texto obrigatório no pé da folha: `Ficha de uso interno — não é documento 
 | Tipografia | `--font-sans` (IBM Plex Sans) · `--font-mono` (IBM Plex Mono) |
 | Raio | `--radius-sm` 6px (campo, botão) · 8px (cartão, tabela, grupo) · 10px (lateral do editor, cartão de config) · 12px (modal) |
 
-Regras aplicadas `[TELA]`:
+Regras aplicadas `[TELA]` (recontadas em 24/09, onda D):
 
-- Cor **sempre** por token ou `color-mix(in oklch, var(--token) N%, transparent)`. Tinta de pílula
-  e de linha usa 7–8%; borda de pílula 30%; anel de KPI selecionado 35%.
-- Espaçamento na grade 4/8 (exceções medidas: `7px`, `9px`, `11px`, `13px` em padding de campo e
-  KPI — herdadas do protótipo, listadas no CHECKLIST Anexo A).
+- Cor **sempre** por token ou `color-mix(in oklch, var(--token) N%, transparent)`. Pílula, KPI e
+  grade vêm do componente. A pílula de margem hoje sai **sólida** (`StatusBadge` do projeto do DS
+  L12-15), e o alvo é o par suave do repo (§22.5 e a pauta).
+- Tamanho de fonte na escala do guia (10.5 / 11.5 / 12.5 / 13.5 / 15) ou citado de componente com
+  linha. Tabela completa na §22.4. O padding `7px 10px` do campo local é do `Input` `[DS]`.
 - Número **sempre** `font-variant-numeric: tabular-nums` + `--font-mono`.
-- Uppercase tracked (`.07em`–`.09em`, 10px) só em rótulo de coluna, de campo e eyebrow de seção.
+- Uppercase tracked só em rótulo de campo (10.5px · 600 · .04em, `Input.jsx` L10), cabeçalho de
+  linha (10px · 600 · .05em, `DataGrid.jsx` L126) e eyebrow de seção (10.5px · 600 · .05em,
+  `Drawer.jsx` L66).
+
+**Contagem de 24/09 [TELA]:** vêm do DS `PageHeader`, `TabBar`, `KpiCard`, `KpiFilterCard`, `Toolbar`,
+`SearchInput`, `Segmented`, `DataGrid`, `BulkBar`, `EmptyState`, `Skeleton`, `StatusBadge`, `Button`,
+`Drawer`, `DrawerSection`, `Modal`, `Toast`, `Input`, `Select`, `Textarea`, `Checkbox`, `Switch`,
+`DatePicker`, `Progress`, `Alert`, `Tooltip`, `Widget`, `PresenterMode` e os 4 print-craft
+(`RegistrationMark`, `ProofFrame`, `Dimension`, `ProofStrip`). O que continua local está na §19.4.
 
 **Três exceções de cor crua, todas declaradas** (nenhuma é decorativa):
 
@@ -452,7 +469,7 @@ Regras aplicadas `[TELA]`:
    não escritos pela tela. O DS continua sem token de scrim e de sombra elevada — o item segue
    na pauta, mas já não é exceção desta tela. **Conferir:** `grep -n "rgba(0,0,0" manufacturing-page.css`
    volta 0.
-2. Bloco `@media print` inteiro em 11 cinzas (`#fff` `#000` `#111` `#555` `#666` `#777` `#999`
+2. Miolo da folha `.mfg-sheet*` (fora do `@media print` desde 24/09) em 11 cinzas (`#fff` `#000` `#111` `#555` `#666` `#777` `#999`
    `#bbb` `#ccc` `#ddd` `#f0eeeb`): **papel não tem tema.** O cockpit não publica paleta de
    impressão. → ADR `0413`.
 3. `#00AEEF #EC008C #FFF200 #231F20` na tira do rodapé da ficha: são as **quatro tintas de
@@ -549,19 +566,26 @@ filtro ou densidade no alvo, a chave é `oimpresso.manufacturing.<coisa>` e a ch
 | Arquivo | Papel |
 |---|---|
 | `design/Fabricacao - Guia de Producao.html` | **Manifesto**: cascata de CSS + ordem de dependência do JS. Zero estilo, zero componente, zero dado dentro dele |
-| `design/manufacturing-data.jsx` | Fonte única de dado e **de cálculo** (`custos`, `consumoOP`, `usosDoInsumo`, `fmt`, `num`, `fmtDate`) → `window.MFG` |
-| `design/icons.jsx` | Primitivo de ícone → `window.I`. Espelho de 22 glifos; o alvo usa lucide inteiro (contorno) |
-| `design/manufacturing-page.jsx` | A tela: abas, KPIs, consulta, seleção, drawer da receita → `window.ManufacturingPage` |
-| `design/manufacturing-recipe.jsx` | Modal "Nova receita", busca de insumo, editor de ingredientes, campo (`MfgCampo`) |
-| `design/manufacturing-producao.jsx` | Lista de ordens, formulário, drawer da ordem, relatório, configurações |
-| `design/manufacturing-insumos.jsx` | Impacto reverso do insumo + simulador de variação |
-| `design/manufacturing-print.jsx` | Folha de prova PT-07 (com custo / via de produção), impressão em lote |
+> **Procedência dos arquivos de tela (22/09/2026).** Os seis `.jsx` de tela e dado vivem na **raiz
+> do projeto**, não nesta pasta: a página-guia os carrega por `../../`. A cópia que existia em
+> `design/` foi apagada — ela havia divergido da raiz em 5 dos 6 arquivos (estado pré-onda-A).
+> Os caminhos `design/…` na tabela abaixo descrevem o **papel** de cada arquivo; o endereço é a
+> raiz. Exceção: `design/manufacturing-app.jsx`, que é do pacote e só existe aqui.
+
+| `manufacturing-data.jsx` (raiz) | Fonte única de dado e **de cálculo** (`custos`, `consumoOP`, `usosDoInsumo`, `fmt`, `num`, `fmtDate`) → `window.MFG` |
+| `icons.jsx` (raiz) | Primitivo de ícone → `window.I`. Espelho de 22 glifos; o alvo usa lucide inteiro (contorno) |
+| `manufacturing-page.jsx` (raiz) | A tela: abas, KPIs, consulta, seleção, drawer da receita → `window.ManufacturingPage` |
+| `manufacturing-recipe.jsx` (raiz) | Modal "Nova receita", busca de insumo, editor de ingredientes, campo (`MfgCampo`) |
+| `manufacturing-producao.jsx` (raiz) | Lista de ordens, formulário, drawer da ordem, relatório, configurações |
+| `manufacturing-insumos.jsx` (raiz) | Impacto reverso do insumo + simulador de variação |
+| `manufacturing-print.jsx` (raiz) | Folha de prova PT-07 (com custo / via de produção), impressão em lote pelo `PresenterMode` |
 | `design/manufacturing-app.jsx` | **Contorno do pacote**: shell mínimo, troca de tema, stub de `__go`, único ponto de mount. Não é portado |
+| `manufacturing-page.css` (raiz) | Camada 4 — todo o CSS da família, escopo `.mfg-root`. A cópia em `04-modulos/` foi apagada em 22/09/2026 (era pré-onda-A) |
 | `design/styles.css` | Camada 0 — folha do shell cockpit, cópia verbatim. Não editar |
 | `design/_ds/…/colors_and_type.css` | Camada 0 — tokens do DS, cópia verbatim. Não editar |
 | `design/02-shell/css/otimiza-ondas.css` | Camada 2 — thead fixo, tabular-nums, foco visível, toque 44px. Cópia verbatim |
 | `design/02-shell/css/guia-standalone.css` | Camada 2 — **só do pacote**: moldura para abrir fora do cockpit |
-| `design/04-modulos/manufacturing/css/manufacturing.css` | Camada 4 — todo o CSS da família (`.mfg-*`), cópia verbatim |
+| ~~`design/04-modulos/manufacturing/css/manufacturing.css`~~ | **Apagado em 22/09/2026** (ver a linha de `manufacturing-page.css`). Linha mantida só para quem procurar o nome antigo |
 | `design/adr/041*.md` | Os 4 defeitos de DS, com medição |
 | `design/LAUDO-conferencia-fabricacao.md` | Conferência datada: veredito, placar, achados, contraste |
 | `design/CHECKLIST-15D-fabricacao.md` | Score ponderado por persona + regras binárias |
@@ -577,8 +601,8 @@ na primeira carga: React 18.3.1, ReactDOM, Babel 7.29.0 e as fontes IBM Plex vê
 
 - O tema (claro/escuro) troca na barra do topo — é do pacote, não da tela.
 - `/` foca a busca; `esc` fecha overlay.
-- **Imprimir:** `Ctrl/Cmd+P` a partir de "Ficha com custo" ou "Via de produção" — a folha PT-07 é
-  A4 e sai sem o chrome.
+- **Imprimir:** "Ficha com custo" ou "Via de produção" abrem o modo de apresentação do DS; `P` ou o
+  botão "Imprimir" mandam para a impressora, `Esc` fecha. A folha PT-07 é A4 e sai sem o chrome.
 - O bundle de componentes do DS (`_ds_bundle.js`) **é obrigatório** desde a onda A: a família lê
   `window.OfficeImpressoPontoWR2DesignSystem_019dd0` em todos os cinco arquivos de tela. No
   protótipo ele já é carregado por `oimpresso.com.html`, do espelho único
@@ -840,25 +864,30 @@ para a pauta como pedido de aceitar ISO local, não como bug.
 
 ### 19.4 · O que continua local — contorno declarado, nunca decisão de estilo
 
+> **Recontado em 24/09/2026 (onda D).** As linhas riscadas saíram nas ondas A–C de 23/09 (§22).
+> Não reintroduzir.
+
 Cada linha tem o motivo **medido** e o item da auditoria. Não substituir por componente do DS
 sem que a lacuna abaixo seja fechada primeiro.
 
 | Fica | Por quê | Item |
 |---|---|---|
-| `.mfg-table` ×4 | `DataTable` sem cabeçalho fixo e sem largura mínima (a tela usa `position:sticky` e `min-width` 960/1100/900/940); `DataTablePro` não aceita ordenação/seleção controladas | B-01 |
-| `.mfg-s` (busca ×3) | `Input` sem `ref` (atalho `/` = R-04), sem slot de ícone, sem `onKeyDown` (Enter escolhe o primeiro insumo) | B-02 |
-| `.mfg-inp` numéricos (9 campos) | `Input` não tem `min`/`max`/`step` — o passo de 0,001 do ingrediente e o teto de 100% do desperdício se perderiam | B-04 |
+| ~~`.mfg-table` ×4~~ | **Saiu (onda B):** `DataGrid` controlado. O motivo antigo estava errado: o `DataGrid` tem cabeçalho fixo e estado controlado | ~~B-01~~ |
+| ~~`.mfg-s` (busca ×3)~~ | **Saiu (onda B):** `SearchInput`. O `Input` expõe `inputRef`, `icon`, `kbd`, `focusKey` e `onKeyDown` (`Input.jsx` L65, L83) | ~~B-02~~ |
+| `.mfg-inp` numéricos (9 campos) | `Input` não tem `min`/`max`/`step` (`Input.jsx` L65 não repassa props) — o passo de 0,001 do ingrediente e o teto de 100% do desperdício se perderiam. Valores alinhados ao `Input` na onda C (§22.4) | B-04 |
 | `.mfg-crumb` ×2 | `Breadcrumb` só aceita `href`; a volta do editor é por estado | B-07 |
-| `.mfg-chip` ×3 usos | `FilterChip` é pílula de filtro ativo com ✕, não seletor de escolha | B-08 |
+| `.mfg-chip` (permissões, 4 chips) | `FilterChip` é pílula de filtro ativo com ✕, não seletor de escolha. O filtro de categoria **saiu** para `Segmented` (onda B) | B-08 |
+| `.mfg-mini` (✕ de remover) | `Button` não repassa `aria-label`/`title` (`Button.jsx` L6); o ✕ perderia o nome "Remover grupo …" | pauta |
 | `.mfg-grp`/`.mfg-ing` | grade de ingredientes editável, 4 variantes — sem equivalente no DS | C-03 |
 | `.mfg-sim` | não há `Slider` no DS; `Progress` é leitura | C-04 |
-| `.mfg-foot` ×2 | `DataTable` não tem slot de rodapé | C-06 |
+| `.mfg-foot` ×2 | Rodapé com texto de soma do período. **Não medi** se o `DataGrid` aceita slot de rodapé além da paginação | C-06 |
 | `.mfg-tot` ×4 | não há `KeyValue`/`SummaryList` no DS | C-07 |
-| 11 cinzas do `@media print` | o cockpit não publica paleta de impressão | C-08 / ADR 0413 |
+| 11 cinzas do miolo da folha | o cockpit não publica paleta de impressão. O palco e o `@media print` já são do `PresenterMode` | C-08 / ADR 0413 |
+| `@media print{@page{size:A4;margin:0}}` | o `PresenterMode` não declara `@page`, e a folha dele tem 210 mm (§22.5) | [TELA] |
 | `window.I` (22 glyphs) | espelho do DS; o produto usa Lucide inteiro | C-09 |
 
 **Ganhos de acessibilidade que não vieram de componente [TELA]:** `aria-pressed` nos chips de
-categoria e de permissão; `aria-label` nos campos numéricos e nos botões ✕ da grade;
+permissão (o de categoria agora é do `Segmented`); `aria-label` nos campos numéricos e nos botões ✕ da grade;
 `aria-label` + `aria-valuetext` no slider da aba Insumos.
 
 ### 19.5 · A folha PT-07 precisa ser impressa antes de fechar
@@ -1001,6 +1030,8 @@ Duas tocam esta família.
 
 ### 21.1 · `StatusBadge` ganhou o domínio `producao` — B-03 fechado
 
+> ⚠️ **Superado pela §22.1 (23/09/2026).** O domínio não existe mais no DS. Não aplicar esta seção.
+
 `[DS]` bundle L6537-6540: `producao: { finalizada: ['Finalizada','soft-success'], rascunho:
 ['Rascunho','soft-warning'] }`. Entraram junto `arquivo_prazo`, `ajuste_estoque` e
 `transferencia_estoque` — nenhum usado aqui.
@@ -1040,6 +1071,8 @@ mas o rótulo continua ocupando o dobro do que deveria.
 
 ### 21.3 · Desvio meu corrigido junto: tom sólido em badge de estado
 
+> ⚠️ **Superado pela §22.1 (23/09/2026).** Os tons `soft-*` não existem mais no DS. Não aplicar.
+
 As 3 pílulas de faixa de margem saíram da onda A com `tone="success|warning|danger"` — que é
 **fill sólido** (`bg: var(--color-success)`, `fg: '#fff'`, L6297-6310). O AP7 do guia manda o
 oposto: fundo tintado 5–10% + dot + texto colorido, *"nunca bg-fill sólido nem pastel"*.
@@ -1051,3 +1084,141 @@ oposto: fundo tintado 5–10% + dot + texto colorido, *"nunca bg-fill sólido ne
 ### 21.4 · Sem efeito aqui
 
 `Skeleton` (+516 ch, shimmer) não é usado pela família.
+
+
+---
+
+## §22 · Ondas A e B de 23/09/2026
+
+`[FECHADA]`: lista completa do que mudou. Nenhum item fora dela foi tocado. **[DS]** citado da
+fonte viva (`/projects/49a36f76…/components/…`), salvo onde diz "espelho" · **[TELA]** decidido
+aqui · **[TPL]** transcrito do template PT-01.
+
+### 22.1 · Onda A: 4 correções de uso
+
+| # | Está | Deve ficar | Conferir |
+|---|---|---|---|
+| A2-1 | margem com `tone="soft-*"` (cai em `outline`, sem cor, `StatusBadge.jsx` L97-99 espelho) | `tone="success"` (≥ 55%) · `"warning"` (≥ 45%) · `"danger"`, mais `label` | a pílula de 82% é verde cheia |
+| A2-2 | situação com `kind="producao"` (não existe, `StatusBadge.d.ts` L3-14) | `kind="documento"` + `tone="success"`/`"outline"` + `label="Finalizada"`/`"Rascunho"` (d.ts L34-35) | aba Ordens mostra "Rascunho" com maiúscula |
+| A2-3 | `TabBar` dentro de `<div>` com `padding: 0 20px` | `<TabBar … inset={20} />`, sem wrapper (`TabBar.d.ts` L43; guia: *"nunca num `<div>` em volta"*) | a borda inferior da faixa vai de ponta a ponta |
+| A2-4 | título `"Manufacturing"` | `"Fabricação"` | o `h1` lê "Fabricação" |
+
+Consequência da A2-1, **declarada e em pergunta ao Wagner**: o sólido contraria o AP7 do guia. O
+componente não oferece tom genérico suave hoje. Ver `pauta-design-system.md`, item de 23/09.
+**Não** usar `fresc-*` nem transcrever cor.
+
+Não entrou na A2-4: o rodapé "Manufacturing v{versão}" em Configurações. Ele continua como está até
+a Maiara decidir.
+
+### 22.2 · Onda B: 6 peças do DS no lugar de markup local
+
+| # | Estava | Ficou | Conferir |
+|---|---|---|---|
+| B2-1 | 4 tabelas `.mfg-table` em grid CSS | `DataGrid` com `sortKey`/`sortDir`/`onSort`, `selectedIds`/`onToggleRow`/`onToggleAll`, `onRowClick`, `page`/`onPageChange`, `pageSize={10}`, `pageSizeOptions={[10]}`, `caption` (`DataGrid.d.ts`). Relatório e Insumos com `pagination={false}` | clicar em "Custo total" ordena; o cabeçalho fica fixo ao rolar |
+| B2-2 | moldura da tabela no CSS da tela | `<div>` em volta com `border: 1px solid var(--border)`, `border-radius: var(--radius-lg)`, `overflow: hidden`, `background: var(--surface)`, `box-shadow: 0 1px 2px rgba(0,0,0,.04)` **[TPL]** `Pt01Lista.dc.html` slot 4 | — |
+| B2-3 | busca `.mfg-s` + `keydown` global para "/" | `Toolbar tone="transparent"` + `SearchInput` (`focusKey="/"` padrão, `Input.jsx` L83) | apertar `/` fora de campo foca a busca |
+| B2-4 | chips de categoria `.mfg-chip` | `Segmented size="sm" ariaLabel="Categoria"` (2–5 opções) | ← e → trocam a categoria |
+| B2-5 | cartões `.mfg-card` + `.mfg-sec` em Configurações | `Widget title="…"` | os três cartões têm cabeçalho com borda |
+| B2-6 | `.mfg-add` (botão tracejado) e "Carregando…" em `<p>` | `Button size="sm"`; `Skeleton variant="row" count={4}` dentro de `role="status"` | — |
+
+A busca de insumo no editor também virou `SearchInput` (`autoFocus`, `focusKey={null}`,
+`kbd="esc"`, `onKeyDown` para Enter/Esc) + `Button` "Cancelar".
+
+**Decisões [TELA] desta onda:**
+1. `SearchInput`, não o `ToolbarSearch` do PT-01: a tecla do `ToolbarSearch` é só desenho
+   (`Toolbar.jsx` L59-72). Com ele o "/" deixaria de funcionar.
+2. Os ✕ `.mfg-mini` continuam `<button>` local: o `Button` não repassa `aria-label`/`title`
+   (`Button.jsx` L6).
+
+**Regressões aceitas, na pauta:**
+- a caixa de seleção da linha se chama "Selecionar {id}" (`DataGrid.jsx` L210);
+- insumo sem receita recebe foco e cursor de clique (`DataGrid.jsx` L201-204).
+
+**Não fazer:** não recriar a tabela local para recuperar o nome da caixa de seleção. Não acrescentar
+`onKeyDown` próprio para "/". Não trocar `Segmented` por chips quando a lista passar de 5: isso
+volta como pergunta.
+
+### 22.3 · Testes de aceite
+
+1. `document.querySelectorAll('.mfg-root table caption').length` na aba Receitas → `1`, texto "Receitas".
+2. Nenhum `.mfg-table`, `.mfg-tr`, `.mfg-s`, `.mfg-card` no DOM da família.
+3. `grep -n '"soft-' manufacturing-*.jsx` → 0 · `grep -n 'kind="producao"' manufacturing-*.jsx` → 0.
+4. `nav[aria-label="Sub-navegação"]` sem pai `.mfg-tabs-host`, e `paddingInline` = `20px`.
+
+
+### 22.4 · Onda C: valores dos contornos alinhados ao DS (23/09/2026)
+
+`[FECHADA]`. Só `manufacturing-page.css`, e fora do `@media print`. Os contornos continuam locais
+pelo motivo já declarado. Mudou só o número, agora **citado** do componente que o DS usa para o
+mesmo papel. **[DS]** = fonte viva, com linha.
+
+| Classe | Estava | Ficou | Fonte |
+|---|---|---|---|
+| `.mfg-fld>span` (rótulo) | 10px · peso 400 · .07em | 10.5px · 600 · .04em · maiúsculas · `--text-mute` | `Input.jsx` L10 |
+| `.mfg-fld small` (ajuda) | 10.5px | `400 11.5px/1.4` · margem 4px | `Input.jsx` L13 |
+| `.mfg-inp` (campo) | 32px fixo · `0 9px` · 12.5px · fundo `--bg-2` | `13px/1.4` · `7px 10px` · `--radius-md` · fundo `--surface` · transição .15s | `Input.jsx` L53-63 |
+| `.mfg-inp:focus` | halo `accent` 22% | `0 0 0 3px var(--accent-soft)` | `Input.jsx` L64-66 |
+| `.mfg-inp:disabled` | opacidade .55 | .55 + `saturate(.6)` | `Input.jsx` L60 |
+| `.mfg-sec span` (eyebrow) | 10px · .09em | `600 10.5px/1.4` · .05em | `Drawer.jsx` L66 (DrawerSection) |
+| `.mfg-ing-h` (cabeçalho de linha) | 10px · .06em | `600 10px/1.2` · .05em | `DataGrid.jsx` L126 |
+| `.mfg-ing` (corpo) | 12px | 12.5px | `DataGrid.jsx` L167 |
+| `.mfg-grp-h b` | 12px · 400 | 12.5px · 600 | `DataGrid.jsx` L29 |
+| mono 12px (`.mfg-num`, `.mfg-ing .m`, `.mfg-grp-h .v`, `.mfg-pick-i .c`) | 12px | **mantido** 12px | `DataGrid.jsx` L34 (GridCell mono) |
+
+Fora da escala e sem componente-fonte: foram para o degrau mais próximo da escala do guia
+(10.5 / 11.5 / 12.5 / 13.5), **[TELA]**. São eles: `.mfg-tot dt`, `.mfg-int` e `.mfg-pick-i .n`
+(12 → 12.5); `.mfg-crumb-meta`, `.mfg-mini` e `.mfg-inp.sel` (11 → 11.5); os códigos mono
+`small` (10 → 10.5); `.mfg-sim b` (14 → 13.5).
+
+`[TELA]` `.mfg-inp.sel`/`.num` continuam em 26px: é campo compacto dentro da linha de
+ingrediente, e o DS não tem campo compacto. **Não** aplicar a altura do `Input` neles.
+
+**Teste de aceite:** fora do `@media print`, todo `font-size` do arquivo está na escala do guia ou
+tem comentário `[DS]` com arquivo e linha.
+
+
+### 22.5 · Nome, impressão e margem (24/09/2026)
+
+**Nome [TELA, Maiara 24/09]:** o módulo se chama **Fabricação** em todo texto visível. Nenhuma
+palavra em inglês. No protótipo mudaram o título, o `data-screen-label`, o rodapé de Configurações
+("Fabricação v{versão}") e o eyebrow da ficha ("Office Impresso · Fabricação").
+**Diff no repo, medido 24/09:** `resources/js/Pages/Manufacturing/{Recipes,Insumos,Report,Settings,Index}.tsx`
+ainda mostram "Manufacturing" no `<h1>` (Recipes L146, Insumos L108, Report L85, Settings L73), no
+`aria-label` do nav, no `title` e no `breadcrumbItems`. Settings L149 também mostra "Manufacturing v…",
+e `_components/FichaPrint.tsx` L56 também. Todos passam a ler "Fabricação". Rota e nome de arquivo não
+mudam: são código, não texto.
+Teste: `grep -rn "Manufacturing" resources/js/Pages/Manufacturing --include=*.tsx` sem ocorrência em
+string JSX, `title`, `aria-label` ou `label`.
+
+**Impressão [DS, Maiara 24/09: "siga o DS"]:** as fichas abrem no `PresenterMode` (projeto do DS,
+`components/PresenterMode/PresenterMode.jsx` L37-146). Props: `open`, `onClose`, `pages={n}`,
+`paper="A4"`, `orientation="portrait"`, `title` = "Ficha técnica com custo" ou "Via de produção",
+`subtitle` = "{n} receita(s)" e, na via de produção, "· sem valores de compra". Como `children`, a
+render-fn `(i) => <Folha …/>`.
+Saem da tela: o `window.print()` 120 ms após montar, o `afterprint` e o bloco CSS
+`body>*{display:none}` + `.mfg-print-host`. O miolo da folha (`.mfg-sheet*`) saiu do `@media print`,
+porque agora aparece na tela também. Fica `@media print{@page{size:A4;margin:0}}` **[TELA]**: o
+componente não declara `@page` e a folha tem 210 mm.
+**Bloqueio no repo, medido 24/09 com 2 métodos:** o `PresenterMode` **não existe** em
+`resources/js/Components/`. (1) Busca por conteúdo `PresenterMode|ds-presenter|window.print(` em
+`resources/js/Components`: 0 ocorrência, busca completa, sem estouro de tempo. (2) Listagem de nomes com
+filtro `[Pp]resent|[Pp]rint`, profundidade 3: vazia. Não medi fora de `Components/`: a busca em
+`resources/js` inteiro estourou o tempo. Até o componente existir no repo, o `FichaPrint.tsx` atual
+continua. **Não** recriar o `PresenterMode` dentro do módulo.
+**[TELA] Um overlay por vez:** "Ficha com custo" e "Via de produção" fecham o Drawer da receita antes de
+abrir o `PresenterMode`. Os dois escutam Esc no `document`, e com ambos abertos o Esc fechava o Drawer
+por baixo e deixava a impressão aberta ([RUNTIME], verificação de 24/09).
+Teste: no protótipo, "Ficha com custo" fecha o drawer e abre o palco escuro sem abrir o diálogo do
+navegador; `P` imprime; um único `Esc` fecha e `body.ds-presenting` some.
+
+**Margem: ver a pauta, item "Regressão na origem…", atualizado em 24/09.** Resumo medido: no repo,
+`StatusBadge` com `variant: 'success'|'warning'|'danger'` rende o par **suave**
+(`ui/badge.tsx` L25-33: `bg-*-soft` + `text-*-fg` + `border-*/20`) com dot (`StatusBadge.tsx` L292).
+No projeto do DS, os mesmos nomes rendem **sólido** (`StatusBadge.jsx` L12-15). No repo, a tela de
+margem usa `StatusBadge variant="success|warning|danger"`. **Não** usar `.mfg-pill` nem
+`bg-success` sólido.
+
+**Esc pela barra de seleção, medido 24/09:** "Imprimir fichas" (BulkBar) não tem conflito de Esc. O
+`BulkBar` não escuta teclado: o projeto do DS `components/BulkBar/BulkBar.jsx` não tem `keydown` nem
+`Escape`. A tela também não: `manufacturing-page.jsx` volta 0 para `Escape|keydown`. Nesse caminho, o
+único ouvinte é o do `PresenterMode`.

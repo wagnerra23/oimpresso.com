@@ -79,21 +79,19 @@ function MfgNovaReceita({ recipes, onClose, onCreate }) {
 }
 
 // ── Busca de insumo (get-ingredient-row) ──
-// [B-02] local: depende de ref (foco ao abrir) e onKeyDown (Enter escolhe o primeiro,
-// Esc cancela). O Input do DS não expõe nenhum dos dois.
+// Onda B (2026-09-23): SearchInput do DS — ele expõe inputRef, autoFocus e onKeyDown
+// (Input.jsx L65, fonte viva). focusKey desligado: o "/" global é da lista de receitas.
 function BuscaInsumo({ onPick, onCancel }) {
   const { INSUMOS, fmt } = G();
   const [q, setQ] = useState("");
-  const ref = useRef(null);
-  useEffect(() => { ref.current && ref.current.focus(); }, []);
+  const { SearchInput, Button } = ds();
   const res = INSUMOS.filter((i) => (i.n + " " + i.sku).toLowerCase().includes(q.trim().toLowerCase())).slice(0, 7);
   return (
     <div className="mfg-pick">
-      <div className="mfg-s sm">
-        <I.search size={13} className="ic" />
-        <input ref={ref} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar insumo por nome ou SKU…"
+      <div className="mfg-pick-s">
+        <SearchInput autoFocus focusKey={null} kbd="esc" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar insumo por nome ou SKU…"
           onKeyDown={(e) => { if (e.key === "Escape") onCancel(); if (e.key === "Enter" && res[0]) onPick(res[0]); }} />
-        <button className="mfg-pick-x" onClick={onCancel}>esc</button>
+        <Button size="sm" onClick={onCancel}>Cancelar</Button>
       </div>
       <div className="mfg-pick-list">
         {res.map((i) => (
@@ -154,6 +152,7 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
                   <b>{g.g}</b>
                   <span className="mfg-grp-n">{g.itens.length}</span>
                   <span className="v">{fmt(sub)}</span>
+                  {/* [TELA] .mfg-mini fica local: o Button do DS não repassa aria-label/title (Button.jsx L6) e o ✕ perderia o nome "Remover grupo …" */}
                   {podeEditar && <button className="mfg-mini danger" onClick={() => delGrupo(gi)} title="Remover grupo" aria-label={"Remover grupo " + g.g}>✕</button>}
                 </div>
                 <div className="mfg-ing mfg-ing6 mfg-ing-h">
@@ -187,7 +186,7 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
                 {g.itens.length === 0 && <p className="mfg-pick-empty">Grupo sem ingredientes.</p>}
                 {podeEditar && (addIn === gi
                   ? <BuscaInsumo onPick={(ins) => addItem(gi, ins)} onCancel={() => setAddIn(null)} />
-                  : <button className="mfg-add" onClick={() => setAddIn(gi)}><I.plus size={12} /> Ingrediente em {g.g}</button>)}
+                  : <div className="mfg-add-host"><Button size="sm" onClick={() => setAddIn(gi)}><I.plus size={12} /> Ingrediente em {g.g}</Button></div>)}
               </div>
             );
           })}
@@ -199,9 +198,9 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
                     <button key={n} className="mfg-chip" onClick={() => addGrupo(n)}>{n}</button>
                   ))}
                 </div>
-                <button className="mfg-add" onClick={() => setNovoGrupo(false)}>Cancelar</button>
+                <div className="mfg-add-host"><Button size="sm" onClick={() => setNovoGrupo(false)}>Cancelar</Button></div>
               </div>
-            : <button className="mfg-add mfg-block" onClick={() => setNovoGrupo(true)}><I.plus size={12} /> Novo grupo de ingredientes</button>)}
+            : <div className="mfg-add-block"><Button onClick={() => setNovoGrupo(true)} style={{ width: "100%" }}><I.plus size={12} /> Novo grupo de ingredientes</Button></div>)}
         </div>
 
         <aside className="mfg-ed-side">

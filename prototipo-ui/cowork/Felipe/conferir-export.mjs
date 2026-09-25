@@ -44,7 +44,10 @@ const texto = (p) => readFileSync(p, 'utf8');
 const bytes = (p) => statSync(p).size;
 
 // Código do protótipo = tudo que roda, menos o espelho do DS (que é cópia da fonte viva).
-const arquivosCodigo = todos.filter((p) => CODIGO.has(extname(p).toLowerCase()) && !rel(p).startsWith('_ds/'));
+// O próprio porteiro cita os nomes das pastas apagadas (teste 7) e o namespace (teste 4):
+// varrer a si mesmo faria o teste reprovar sempre.
+const EU = /^conferir-export\.(mjs|cowork\.js)$/;
+const arquivosCodigo = todos.filter((p) => CODIGO.has(extname(p).toLowerCase()) && !rel(p).startsWith('_ds/') && !EU.test(basename(p)));
 const arquivosMd = todos.filter((p) => extname(p).toLowerCase() === '.md');
 
 // ─────────────────────────────────────────────────────────────── 1. espelho único
@@ -106,7 +109,9 @@ if (NS) {
 }
 
 // ─────────────────────────────────── 5. espelho igual à linha de base da regeneração
-const pBase = join(dirDs, '_export-baseline.json');
+// A nota de tamanhos mora na RAIZ, não em _ds/: _ds/ é cópia do design system, e nota do
+// projeto dentro dela se perde na próxima regeneração.
+const pBase = join(ROOT, '_export-baseline.json');
 if (espelho && ESCREVER_BASELINE) {
   const alvos = ['_ds_bundle.js', '_ds_manifest.json', 'colors_and_type.css', 'styles.css', 'cockpit_domains.css',
     'support.js', '_adherence.oxlintrc.json',
@@ -121,7 +126,7 @@ if (espelho && ESCREVER_BASELINE) {
 } else if (!espelho) {
   // já reprovou no 1
 } else if (!existsSync(pBase)) {
-  falha(5, 'espelho bate com a linha de base', '_ds/_export-baseline.json não existe — rode com --baseline logo após regenerar o espelho');
+  falha(5, 'espelho bate com a linha de base', '_export-baseline.json não existe na raiz — rode com --baseline logo após regenerar o espelho');
 } else {
   const b = JSON.parse(texto(pBase));
   const difs = [];
@@ -162,6 +167,28 @@ if (espelho) {
   }
   if (achados.length) falha(7, 'sem caminho para espelho apagado', achados.join(' · '));
   else ok(7, 'sem caminho para espelho apagado', 'nenhum em código (os .md podem citar como histórico)');
+}
+
+// ── 11. página que monta tela do DS tem de carregar o bundle (senão abre EM BRANCO)
+if (NS) {
+  const faltando = [];
+  for (const p of todos.filter((f) => extname(f) === '.html' && !rel(f).startsWith('_ds/'))) {
+    const t = texto(p);
+    const carregados = [...t.matchAll(/<script[^>]+src=["']([^"']+)["']/g)].map((x) => x[1]);
+    if (carregados.some((u) => /_ds_bundle\.js/.test(u))) continue;
+    // Quais .jsx locais esta página carrega, e algum deles lê o namespace?
+    const consumidores = [];
+    for (const u of carregados) {
+      if (/^(https?:|data:|\/\/)/.test(u)) continue;
+      if (!/\.jsx?$/.test(u)) continue;
+      const alvo = resolve(dirname(p), u.split('?')[0]);
+      if (!existsSync(alvo)) continue;
+      if (texto(alvo).includes(NS)) consumidores.push(u);
+    }
+    if (consumidores.length) faltando.push(`${rel(p)} carrega ${consumidores.length} arquivo(s) que leem ${NS} (${consumidores.slice(0, 3).join(', ')}) e nenhum _ds_bundle.js`);
+  }
+  faltando.length ? falha(11, 'página que usa o DS carrega o bundle', faltando.join(' | ') + ' — a tela abre em branco e o console não acusa')
+                  : ok(11, 'página que usa o DS carrega o bundle', 'nenhuma página órfã');
 }
 
 // ─────────────────────────────── 8. toda referência local de HTML existe no pacote
