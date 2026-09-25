@@ -2948,3 +2948,12 @@ Ocorrência da **LC-08**.
 - **NÃO virar gate novo:** o gate existe, é required e mordeu corretamente. O que falta é decidir a doutrina: ou o índice de playbook sai do espelho, ou as threads passam a editá-lo pelo Cowork. É decisão [W], registrada aqui como pendente, não resolvida.
 
 - Ocorrência da **LC-22**.
+
+### 2026-09-25 — Troquei um token pra passar um gate e não re-medi: `var(--primary)` não existe neste app (o nome é `--color-primary`)
+- **O que aconteceu:** no acabamento do drawer do Financeiro ([#7970](https://github.com/wagnerra23/oimpresso.com/pull/7970)), a 1ª versão usava `var(--accent)` e eu a **medi** injetada na aba de produção (roxo correto). O `foundation-guard` barrou as 4 redefinições de `--accent*`; troquei os usos por `var(--primary)`, supondo o nome do shadcn. **Aqui o Tailwind v4 expõe `--color-primary`; `--primary` volta VAZIO.** Com isso as variáveis `--fin-edit-*` ficaram inválidas e a regra-dona caiu no fallback azul-escuro antigo — "Editar campos" quase invisível no tema escuro — e a aba IA perdeu o roxo.
+- **Por que passou:** stylelint, foundation-guard, cor-crua e o build do Vite verdes — nenhum deles sabe se uma variável CSS **existe**. A única linha que o gate me obrigou a mudar foi a única que não passou pela mesma sonda de produção.
+- **O que pegou:** smoke pós-deploy no DOM de produção medindo `getComputedStyle(...).color` e o valor da variável, não o screenshot. Conserto trocando por `var(--color-primary)`, validado antes por injeção na aba de prod (`oklch(0.7 0.15 295)`, o mesmo roxo do botão Recebi).
+- **O limite (variante também proibida):** mudança exigida por gate **depois** da medição volta pela **mesma** sonda antes do commit — vale pra troca de token, seletor ou valor. E nome de variável CSS se confirma no runtime (`getComputedStyle(el).getPropertyValue('--x')` não-vazio), nunca pelo nome que a biblioteca usa em outro projeto.
+- **NÃO virar gate agora:** "esta `var(--x)` resolve?" só é decidível no runtime com o CSS inteiro carregado; um lint estático sobre nomes seria a família de guard sintático já enterrada várias vezes. 1ª ocorrência deste vetor ([ADR 0344](decisions/0344-two-strikes-cobre-processo.md)).
+
+- Ocorrência da **LC-30**.

@@ -737,14 +737,14 @@
 .dark [role="dialog"].fin-cowork .fin-drawer-tabs { background: var(--bg-2); border-bottom-color: var(--border); }
 .dark [role="dialog"].fin-cowork .fin-drawer-tab { color: var(--text-dim); }
 .dark [role="dialog"].fin-cowork .fin-drawer-tab.on { background: var(--surface); color: var(--text); }
-.dark [role="dialog"].fin-cowork .fin-drawer-tab-ai { color: var(--primary); }
+.dark [role="dialog"].fin-cowork .fin-drawer-tab-ai { color: var(--color-primary); }
 /* "Editar campos": a regra-dona (fin-output.css) usa !important com cor clara crua; ela lê estas
-   variáveis com o valor antigo como fallback, então aqui só se troca a variável. --primary é o roxo
-   dark que o shadcn já resolve por html.dark (medido: oklch(0.7 0.15 295) no botão Recebi). */
+   variáveis com o valor antigo como fallback, então aqui só se troca a variável. --color-primary é o roxo
+   dark do tema (Tailwind v4 expõe --color-primary; --primary NÃO existe aqui — medido em prod 2026-09-25: vazio, e o fallback azul antigo voltava) (medido: oklch(0.7 0.15 295) no botão Recebi). */
 .dark [role="dialog"].fin-cowork .fin-edit-btn {
-  --fin-edit-border: color-mix(in oklab, var(--primary) 45%, transparent);
-  --fin-edit-fg: var(--primary);
-  --fin-edit-hover: color-mix(in oklab, var(--primary) 12%, transparent);
+  --fin-edit-border: color-mix(in oklab, var(--color-primary) 45%, transparent);
+  --fin-edit-fg: var(--color-primary);
+  --fin-edit-hover: color-mix(in oklab, var(--color-primary) 12%, transparent);
 }
 /* O painel IA ganha .fin-curadoria (Index.tsx) pra que as regras descendentes de
  * fin-ia.css alcancem o portal; aqui o par dark dos --fin-* dele e sem o gradiente claro. */
