@@ -24,7 +24,7 @@
 // Reusa endpoints backend do legacy: POST /atendimento/inbox/{id}/send,
 // PATCH /atendimento/inbox/{id}, etc — sem duplicar contrato.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { router, Deferred, Head } from '@inertiajs/react';
 import { Centrifuge } from 'centrifuge';
 import { ChevronDown, Loader2, MessageSquareText, Sparkles } from 'lucide-react';
@@ -67,6 +67,13 @@ import type {
   CustomerContext,
   UnhealthyChannel,
 } from './_components/helpers';
+
+// Recorte do shared `shell` só com as contagens do menu lateral. Inertia ≥3 faz
+// deep-merge de chave pedida com ponto (core `mergeProps` → `nestedTopKeys`) e o
+// servidor devolve SÓ `shell.sidebar_counts` (medido 2026-09-25) — o menu não é
+// recalculado nem apagado. Sem isto o badge "Atendimento" só mudava com F5, porque
+// toda recarga desta tela é parcial e `shell` nunca vinha junto.
+const SIDEBAR_COUNTS = 'shell.sidebar_counts';
 
 interface Props {
   /** D-14 perf: defer no backend — undefined até auto-fetch async resolver. */
@@ -169,13 +176,13 @@ export default function CaixaUnificadaIndex({
 
       if (thread && incomingConvId === thread.id) {
         router.reload({
-          only: ['messages', 'thread', 'conversations', 'stats'],
+          only: ['messages', 'thread', 'conversations', 'stats', SIDEBAR_COUNTS],
           preserveScroll: true,
           preserveState: true,
         });
       } else {
         router.reload({
-          only: ['conversations', 'stats'],
+          only: ['conversations', 'stats', SIDEBAR_COUNTS],
           preserveScroll: true,
           preserveState: true,
         });
@@ -197,32 +204,50 @@ export default function CaixaUnificadaIndex({
     const interval = setInterval(() => {
       if (document.visibilityState !== 'visible') return;
       const only = thread
-        ? ['messages', 'thread', 'conversations', 'stats']
-        : ['conversations', 'stats'];
+        ? ['messages', 'thread', 'conversations', 'stats', SIDEBAR_COUNTS]
+        : ['conversations', 'stats', SIDEBAR_COUNTS];
       router.reload({ only, preserveScroll: true, preserveState: true });
     }, 5000);
     return () => clearInterval(interval);
   }, [thread?.id]);
 
+  // Conversas abertas nesta sessão de lista: o servidor já zerou o unread delas,
+  // mas a lista NÃO é rebuscada ao trocar thread (D-14). Sem isto o contador
+  // ficava na tela até o próximo reload da lista ([W] 2026-09-25: "marca mas não
+  // na hora"). Toda lista nova que chega do servidor é a verdade → limpa o override.
+  const [abertasAgora, setAbertasAgora] = useState<ReadonlySet<number>>(() => new Set());
+  useEffect(() => { setAbertasAgora(new Set()); }, [conversations]);
+  const conversationsVisiveis = useMemo(() => {
+    const pag = conversations as Paginated<CaixaUnifConversation> | undefined;
+    if (!pag || abertasAgora.size === 0) return pag;
+    return {
+      ...pag,
+      data: pag.data.map((c) => (abertasAgora.has(c.id) && c.unread_count > 0 ? { ...c, unread_count: 0 } : c)),
+    };
+  }, [conversations, abertasAgora]);
+
   function selectThread(id: number) {
     // Polish V2 §5 — no mobile, abrir conversa salta pra tab Thread
     setMobileView('thread');
+    setAbertasAgora((prev) => new Set(prev).add(id));
     // Mesma estratégia perf do Inbox legacy: `conversations` NÃO precisa rebuscar
     // ao trocar thread — só thread+messages no `only:[]`.
+    //
+    // Filtros vêm da URL ATUAL, não das props: aba/filtro recarregam só
+    // `conversations`+`stats`, então `statusFilter` e cia ficam congelados no valor
+    // do carregamento inicial. Montar a query pelas props mandava `tab=all` e
+    // descartava fila/24h/tags/ordem → abrir conversa em "Não lidas" perdia o
+    // filtro ([W] 2026-09-25, reproduzido: ?tab=unread → ?tab=all&thread=561).
+    const params = Object.fromEntries(new URLSearchParams(window.location.search));
     router.get(
       route('atendimento.caixa-unificada.index'),
-      {
-        // Wave 2 F1 — usa `tab` (7-valor) em vez de `status` (4-valor)
-        tab: statusFilter,
-        channel: channelTypeFilter ?? undefined,
-        account_id: accountFilter ?? undefined,
-        q: q || undefined,
-        thread: id,
-      },
+      { ...params, thread: id },
       {
         preserveScroll: true,
         preserveState: true,
-        only: ['thread', 'messages', 'customerContext'],
+        // SIDEBAR_COUNTS: o servidor acabou de zerar o unread desta conversa →
+        // o número "Atendimento" do menu lateral precisa baixar junto.
+        only: ['thread', 'messages', 'customerContext', SIDEBAR_COUNTS],
       },
     );
   }
@@ -485,7 +510,7 @@ export default function CaixaUnificadaIndex({
           )}
         >
           <ConversationListV4
-            conversations={conversations as Paginated<CaixaUnifConversation>}
+            conversations={conversationsVisiveis as Paginated<CaixaUnifConversation>}
             channels={availableChannels ?? []}
             accounts={availableAccounts ?? []}
             channelTypeFilter={channelTypeFilter}
