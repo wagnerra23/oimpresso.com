@@ -14,7 +14,7 @@ import { Link } from '@inertiajs/react';
 export type CmsTipo = 'page' | 'blog' | 'testimonial';
 export type CmsAba = CmsTipo | 'detalhes';
 
-export const ROTULO_TIPO: Record<CmsTipo, string> = { page: 'Páginas', blog: 'Blog', testimonial: 'Depoimentos' };
+const ROTULO_TIPO: Record<CmsTipo, string> = { page: 'Páginas', blog: 'Blog', testimonial: 'Depoimentos' };
 
 const ABAS: { chave: CmsAba; rotulo: string; href: string }[] = [
   { chave: 'page', rotulo: ROTULO_TIPO.page, href: '/cms/cms-page?type=page' },

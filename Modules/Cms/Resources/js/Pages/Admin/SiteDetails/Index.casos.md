@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a tela de onde o site público tira contatos, redes e códigos de medição. Salvar uma seção não pode apagar as outras — e até 2026-09-23 salvar nem funcionava, porque a validação recusava o formato que o próprio formulário mandava.
 owner: wagner
-last_run: "2026-09-24"
+last_run: "2026-09-25"
 last_run_ci: "_pendente_ — o trio nasce na fase 4a da thread Cms/01. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪, nunca ✅."
 ---
 
@@ -57,3 +57,5 @@ sempre enviou
 texto nessas chaves e recusava o formulário inteiro.)
 
 Status: 🧪
+
+- **[BACKLOG] Navegação entre as telas do Cms** — as abas *Páginas · Blog · Depoimentos · Detalhes do site* (`Admin/_shared/CmsAbas.tsx`) são o único caminho até `/cms/site-details`: o item CMS mora na cascata Superadmin do rodapé, que não mostra sub-telas. É comportamento do cliente (link Inertia), sem teste que o cite — vira UC quando um E2E abrir a aba.
