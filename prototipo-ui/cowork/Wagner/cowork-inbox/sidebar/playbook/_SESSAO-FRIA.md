@@ -5,7 +5,7 @@
 ## Prompt de abertura — cole no chip novo, trocando só o NN
 
 ```
-/onda sidebar --thread 07
+/onda sidebar --thread 09
 ```
 > O diretório é **`sidebar`** (literal). Não use o nome do módulo (`Sidebar`): o `/onda` só passa o argumento pra minúsculo.
 
@@ -28,12 +28,17 @@ Leia só isto, nesta ordem:
 | **04** | Modo hidden + SidebarReopenHandle → promover pro vivo | CL | `04-hidden-reopen.md` | thread 01 | tem _saida |
 | **05** | Ghosts × ADR 0180 — emenda ou reversão | W | `05-ghosts-adr-0180.md` | — | tem _saida |
 | **06** | Contrato de tela do shell + gates | CL | `06-contrato-e-gates.md` | — | tem _saida |
-| **07** | ALVO — medir protótipo × vivo (read-only) | CL | `07-alvo-medir.md` | 06 | — |
-| **08** | Cabeçalho do grupo: seta à direita + cor/raio | CL | `08-cabecalho-grupo.md` | 07 | — |
+| **07** | ALVO — medir protótipo × vivo (read-only) | CL | `07-alvo-medir.md` | 06 | tem _saida |
+| **08** | Cabeçalho do grupo: seta à direita + cor/raio | CL | `08-cabecalho-grupo.md` | 07 | tem _saida |
+| **15** | Máquina: alvo.mjs mede expanded/hidden (∥ 09) | CL | `15-alvo-expanded.md` | 07 | — |
+| **16** | Charter + casos do Sidebar (∥ 09) | CL | `16-charter-sidebar.md` | 07 | — |
 | **09** | Item ativo: aria-current + grupo abre sozinho | CL | `09-item-ativo.md` | 07 · 08 | — |
 | **10** | Sub-telas: promover a ativa + mostrar menos | CL | `10-ghosts.md` | 07 · 09 | — |
 | **11** | Rail: ícone do grupo + grupo ativo + dica fixa | CL | `11-rail.md` | 07 · 10 | — |
 | **12** | Rodapé: valor do modo + Buscar tela ⌘K + tirar ⌘/ morto | CL | `12-rodape.md` | 07 · 11 | — |
+| **13** | Presença clicável e persistida | CL | `13-presenca.md` | 07 · 12 | — |
+| **14** | Ícone por sub-tela | CL | `14-ghost-icone.md` | 07 · 10 · 13 | — |
 
+> **Paralelo permitido agora:** 09 ∥ 15 ∥ 16 (15 e 16 não tocam `Sidebar.tsx`). 10–14 seguem seriais.
 > "Estado escrito" é só o que dá pra ver em disco (`_saida` / `bloqueio`). O estado real é **derivado** pelo `placar`; na dúvida, ele vence.
 > Dono **W** = decisão/merge do Wagner, não abre chip de [CL]. Dono **CC** = volta pro Cowork.
