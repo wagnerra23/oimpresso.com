@@ -17,7 +17,7 @@ import { Input } from '@/Components/ui/input';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Inline } from '@/Components/layout/inline';
 import { Stack } from '@/Components/layout/stack';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
 import { Link } from '@inertiajs/react';
 import '../../../css/cowork-manufacturing-bundle.css';
@@ -165,22 +165,17 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           fica de FORA de propósito: nesta tela o custo é o `final_total` GRAVADO, nunca
           recalculado (US-MANU-004 + RUNBOOK-producao.md §1). Copiar a copy literal poria uma
           afirmação FALSA na tela — o rodapé já diz a verdade ("custo congelado na data"). */}
+      {/* Header canon (ADR 0409: tocar a tela acorda a dívida do header antigo). Sem ícone,
+          como o protótipo (`manufacturing-page.jsx` `.os-page-h`: título · subtítulo · primário). */}
       <PageHeader
-        icon="factory"
         title="Produção"
-        description={
+        subtitle={
           recipes_count === undefined
             ? 'Ordens de produção do módulo de Fabricação.'
             : `${recipes_count} receita${recipes_count === 1 ? '' : 's'} · ` +
               `${summary?.total_count ?? 0} ordens de produção`
         }
-        action={
-          <Button asChild>
-            <a href={CREATE_ROUTE}>
-              <Plus className="mr-2 h-4 w-4" /> Nova produção
-            </a>
-          </Button>
-        }
+        actions={<PageHeaderPrimary label="Nova produção" href={CREATE_ROUTE} />}
       />
 
       {/* Barra de abas do módulo — MESMA das 4 telas irmãs (Recipes/Report/Settings/Insumos).
