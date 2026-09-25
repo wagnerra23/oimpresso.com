@@ -1,0 +1,29 @@
+{
+  "_nota": "Contrato de Tela do Fechamento da competência (thread 04 do playbook Ponto · ADR 0413). Schema: governance/design/contracts/contract.schema.json (ADR 0286). A copy é a do protótipo onde a tela a mantém; as diferenças conscientes estão em memory/requisitos/Ponto/RUNBOOK-fechamento.md §4.",
+  "tela": "Ponto/Fechamento/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/ponto-fechamento.jsx",
+  "_nota_fonte": "Fonte = `Fechamento` em ponto-fechamento.jsx. Fora da v1 por decisão registrada no RUNBOOK §4: card de totais (soma de horas), bloqueio de NSR, tabela de divergências por colaborador e o estado intermediário 'consolidada' (a ADR 0413 W1 define um único ato persistido).",
+  "alvo": ["resources/js/Pages/Ponto/Fechamento/Index.tsx"],
+
+  "secoes": [
+    {
+      "id": "fechamento-acoes",
+      "copy": ["Competência", "Situação", "Aberta", "Fechada", "Fechar aceitando os bloqueios", "Fechar competência", "Ir para Relatórios"]
+    },
+    {
+      "id": "fechamento-passos",
+      "_papel": "a trilha — o último passo diz que o arquivo fiscal NÃO sai daqui (ADR 0413 D4)",
+      "copy": ["Pré-checagem", "Fechar competência", "AFD / AEJ — em Relatórios"]
+    },
+    {
+      "id": "fechamento-pre-checagem",
+      "copy": ["Pré-checagem do fechamento", "Bloqueio", "Grau", "Ação", "bloqueia", "conferir"]
+    },
+    {
+      "id": "fechamento-legal",
+      "copy": ["Fechamento não apaga histórico", "Portaria MTP 671/2021"]
+    }
+  ],
+
+  "ordem": ["fechamento-acoes", "fechamento-passos", "fechamento-pre-checagem", "fechamento-legal"]
+}
