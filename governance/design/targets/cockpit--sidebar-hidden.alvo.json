@@ -1,0 +1,87 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OIMPRESSO MATRIZ · biz=164 · v1404 legacy migrado J Jana Analista IA Atualizado 09:42 plano Pro Configurar Exportar Painel Conversa 3 Alertas 3 Ações Memória Plataforma Brief diário · 14/maio/2026 IA Bom dia, Wagner. Maio até hoje somou R$ 47.150 (vs R$ 145k em maio/25 — -68% · investigar sazonalidade ou causa estrutural). R$ 4.535.636 em 4.255 títulos vencidos (excluído lixo de saldos virtuais e parcelas agrupadas). Top 20 clientes concentram R$ 2.142k (~47%) da inadimplência. Ação sugerida HOJE: 8 clientes \"ouro\" (LTV >R$ 50k) estão >90d sem comprar — score reativação alto. Posso disparar régua HITL? Anomalia detectada: ticket médio caiu de R$ 2.430 para R$ 1.890 (-22%) — 4 meses consecutivos. Margem mantida (preço por m³ estável) → indica mix de produto mudando (mais caçambas pequenas/curtas). Disparar régua 8 clientes Ver top 20 devedores Investigar queda ticket médio Por que -68% MoM? RECEITA MÊS R$ 47k -68% vs mai/25 A RECEBER VENCIDO R$ 4,5M 4.255 títulos · 76% inadimplência TICKET MÉDIO R$ 1.890 -22% em 4m METAS ATIVAS mai/2026 abr/2026 mar/2026 Farol Cadastro Nova meta Jana Pro Conversar com a Jana Faturamento mensal mai/2026 R$ 47k de R$ 145k 32 % do alvo R$ 61k no fechamento Recuperação de vencidos mai/2026 R$ 212k de R$ 400k 53 % do alvo R$ 276k no fechamento Ticket médio mai/2026 R$ 1.890 de R$ 2.400 79 % do alvo R$ 1.859 no fechamento (tendência) Novos clientes mai/2026 34 de 30 113 % do alvo 44 no fechamento Margem de contribuição mai/2026 Aguardando apuração… alvo 38% ANÁLISES PRINCIPAIS clique num card pra ver de onde vem o número Inadimplência Top 20 devedores CRÍTICO R$ 4.535.636 0–30d R$ 1.1M 30–90d R$ 818k 90–365d R$ 1.8M >365d R$ 770k Top 1: VARGAS LEANDRO R$ 385k (246 parcelas) Faturamento Curva 24 meses QUEDA R$ 107M mai/24 mai/26 Melhor mês: nov/24 R$ 1.19M · Pico sazonal: out-fev Concentração Top clientes Pareto OK 8.856 clientes Top 10 24% Top 50 55% Top 100 73% 4.500 one-shot (~51%) · cauda longa saudável Churn ouro LTV alto inativos REATIVAR 8 clientes CONSTRUFERRO IND. LTV R$ 87k · 124d EXTREMA SOLDAS LTV R$ 71k · 98d CAPITAL CARGAS LTV R$ 62k · 112d Cohort 2024: retenção 35% (target 60%) · drift alto Métodos de pagamento Participação de cada forma R$ 1.24M Dinheiro 38% Pix 27% Cheque 18% Cartão 11% Boleto 6% Cheque ainda é 18% do recebido — a rotina de depósito da Larissa é terça e quinta AÇÕES QUE JANA SUGERE Régua de cobrança · 8 clientes >90d sem contato Potencial recuperação: R$ 287k · HITL aprovação a cada mensagem Revisar régua Reativação · 8 clientes \"ouro\" inativos LTV combinado R$ 612k · oferta de retorno personalizada Revisar proposta Limpeza · 2.470 títulos candidatos a baixa R$ 770k incobráveis >365d · liberar dashboard Revisar recorte",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "painel-cta-conversar"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 73,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5550/"
+  },
+  "nos_totais": 729,
+  "quieto_ms": 2000,
+  "sb_mode": "hidden",
+  "secoes": {
+    "sb-modos": {
+      "ausente": true,
+      "nos": 0,
+      "seletor": "aside.sb"
+    },
+    "sb-reabrir": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 3.18,
+        "texto": "oklch(0.58 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.195171
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "0px 6px 6px 0px",
+        "color": "oklch(0.58 0.005 90)",
+        "height": "64px",
+        "opacity": "1",
+        "width": "18px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "svg"
+      ],
+      "rect": {
+        "h": 64,
+        "w": 18
+      },
+      "seletor": ".sb-reopen-handle",
+      "truncado": false
+    }
+  },
+  "tela": "cockpit/_sidebar-hidden",
+  "url": "http://127.0.0.1:5550/"
+}

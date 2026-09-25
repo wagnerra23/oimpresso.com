@@ -43,6 +43,15 @@
 //                                      fica estável por 400 ms em CADA fase; só a janela longa separa
 //                                      "parou" de "parou entre duas fases". Medido 2026-09-06: com 400 ms
 //                                      o mesmo comando deu 719 nós num run e 1011 no seguinte.
+//   --viewport <L>x<A>                 (com --mapa ou --alvo) viewport da medição; default 1280x900.
+//   --sb-mode expanded|rail|hidden     (com --mapa ou --alvo) grava o modo da sidebar no localStorage
+//                                      ANTES da navegação — nas DUAS chaves: `oimpresso.sb.mode` (vivo,
+//                                      AppShellV2) e `oimpresso.sidebar.mode` (protótipo, app.jsx:572).
+//                                      Sem ele o browser limpo cai no auto-rail ≤1280px (UI-0030) e o
+//                                      alvo da sidebar só tinha o RAIL — cabeçalho de grupo, item ativo
+//                                      e sub-telas não existiam nele (thread 15 do playbook da sidebar).
+//                                      Os dois vão pro JSON (`viewport`/`sb_mode`) SÓ quando usados, e o
+//                                      `secao-check` os repassa: a proveniência é parte da medida.
 //   --selftest                         Partes puras (serialização estável · args). Sem browser.
 //   --selftest --browser               Bite-test real: 2 runs byte-idênticos + injeção muda.
 //
@@ -287,21 +296,34 @@ async function esperarEstavel(page, { sumir = null, quietoMs = 400 } = {}) {
   throw Object.assign(new Error(`DOM não ficou quieto por ${quietoMs} ms em ${25 + precisa} leituras — medida seria retrato de meio-caminho`), { naoMedi: true });
 }
 
-async function abrirPagina(url) {
+export const SB_MODOS = ['expanded', 'rail', 'hidden'];
+
+/** `"1440x900"` → `{ width: 1440, height: 900 }`; qualquer outra forma → `null` (o CLI recusa). */
+export function parseViewport(v) {
+  const m = /^(\d{3,4})x(\d{3,4})$/.exec(String(v || ''));
+  return m ? { width: Number(m[1]), height: Number(m[2]) } : null;
+}
+
+async function abrirPagina(url, { viewport = null, sbMode = null } = {}) {
   let chromium;
   try { ({ chromium } = await import('@playwright/test')); }
   catch { throw Object.assign(new Error('@playwright/test indisponível — rode `npm ci` (e `npm run e2e:install`)'), { naoMedi: true }); }
   let browser;
   try { browser = await chromium.launch(); }
   catch (e) { throw Object.assign(new Error(`chromium não instalado: ${e.message.slice(0, 160)}`), { naoMedi: true }); }
-  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const page = await browser.newPage({ viewport: viewport || { width: 1280, height: 900 } });
+  if (sbMode) {
+    await page.addInitScript((m) => {
+      try { localStorage.setItem('oimpresso.sb.mode', m); localStorage.setItem('oimpresso.sidebar.mode', m); } catch { /* sem storage */ }
+    }, sbMode);
+  }
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   return { browser, page };
 }
 
 /* ── modos ──────────────────────────────────────────────────────────────────────────────── */
-async function rodarMapa(url, raiz, sumir = null, quietoMs = 400) {
-  const { browser, page } = await abrirPagina(url);
+async function rodarMapa(url, raiz, sumir = null, quietoMs = 400, opcoes = {}) {
+  const { browser, page } = await abrirPagina(url, opcoes);
   try {
     await esperarEstavel(page, { sumir, quietoMs });
     if (raiz) await page.evaluate((r) => { window.__ALVO_RAIZ = r; }, raiz);
@@ -311,9 +333,9 @@ async function rodarMapa(url, raiz, sumir = null, quietoMs = 400) {
   } finally { await browser.close(); }
 }
 
-async function medirAlvo({ url, tela, secoes, injetar, sumir = null, quietoMs = 400 }) {
+async function medirAlvo({ url, tela, secoes, injetar, sumir = null, quietoMs = 400, viewport = null, sbMode = null }) {
   const probe = sondaCanonica();
-  const { browser, page } = await abrirPagina(url);
+  const { browser, page } = await abrirPagina(url, { viewport, sbMode });
   try {
     const nos = await esperarEstavel(page, { sumir, quietoMs });
     if (injetar) {
@@ -335,7 +357,13 @@ async function medirAlvo({ url, tela, secoes, injetar, sumir = null, quietoMs = 
       if (s.ausente) continue;
       s.contraste = derivarContraste(s.estilo && s.estilo.color, s.fundoCadeia);
     }
-    return { tela, url, nos_totais: nos, aguardou_sumir: sumir, quieto_ms: quietoMs, base, secoes: medidoSecoes, ausentes: [] };
+    // viewport/sb_mode só entram quando usados: alvo medido sem eles fica byte-idêntico ao de antes.
+    return {
+      tela, url, nos_totais: nos, aguardou_sumir: sumir, quieto_ms: quietoMs,
+      ...(viewport ? { viewport: `${viewport.width}x${viewport.height}` } : {}),
+      ...(sbMode ? { sb_mode: sbMode } : {}),
+      base, secoes: medidoSecoes, ausentes: [],
+    };
   } finally { await browser.close(); }
 }
 
@@ -363,6 +391,11 @@ async function selftest(comBrowser) {
     JSON.stringify(estavel({ b: 1, a: { d: 2, c: 3 } })) === '{"a":{"c":3,"d":2},"b":1}');
   ok('serializar() é idempotente',
     serializar({ x: [3, 1] }) === serializar(estavel({ x: [3, 1] })));
+  // thread 15 da sidebar: --viewport recusa forma torta em vez de medir com default calado
+  ok('parseViewport("1440x900") → 1440×900', JSON.stringify(parseViewport('1440x900')) === '{"width":1440,"height":900}');
+  ok('parseViewport recusa forma torta (1440 · 1440x · abcx900 · vazio)',
+    [parseViewport('1440'), parseViewport('1440x'), parseViewport('abcx900'), parseViewport('')].every((v) => v === null));
+  ok('SB_MODOS são os 3 modos do shell', SB_MODOS.join(',') === 'expanded,rail,hidden');
   try { ok('sondaCanonica() lê o contrato público do design-diff', sondaCanonica().length > 1000); }
   catch (e) { ok('sondaCanonica() lê o contrato público do design-diff', false, e.message); }
 
@@ -485,10 +518,15 @@ async function selftest(comBrowser) {
 async function main() {
   if (flag('--selftest')) return selftest(flag('--browser'));
 
+  const viewport = val('--viewport') ? parseViewport(val('--viewport')) : null;
+  if (val('--viewport') && !viewport) { console.error(`--viewport: esperado <largura>x<altura> (ex.: 1440x900), recebi "${val('--viewport')}"`); return 2; }
+  const sbMode = val('--sb-mode') || null;
+  if (sbMode && !SB_MODOS.includes(sbMode)) { console.error(`--sb-mode: esperado ${SB_MODOS.join('|')}, recebi "${sbMode}"`); return 2; }
+
   if (flag('--mapa')) {
     const url = val('--mapa');
     if (!url) { console.error('uso: --mapa <url> [--raiz <seletor>] [--aguardar-sumir <seletor>]'); return 2; }
-    await rodarMapa(url, val('--raiz'), val('--aguardar-sumir'), Number(val('--quieto-ms', 400)));
+    await rodarMapa(url, val('--raiz'), val('--aguardar-sumir'), Number(val('--quieto-ms', 400)), { viewport, sbMode });
     return 0;
   }
 
@@ -497,7 +535,7 @@ async function main() {
     if (!url || !tela || !arq) { console.error('uso: --alvo <url> --tela <slug> --secoes <arq.json> [--injetar-falha <sel>] [--aguardar-sumir <sel>] [--saida <arq>]'); return 2; }
     if (!existsSync(arq)) { console.error(`--secoes: arquivo não encontrado: ${arq}`); return 2; }
     const secoes = JSON.parse(readFileSync(arq, 'utf8'));
-    const medido = await medirAlvo({ url, tela, secoes, injetar: val('--injetar-falha'), sumir: val('--aguardar-sumir'), quietoMs: Number(val('--quieto-ms', 400)) });
+    const medido = await medirAlvo({ url, tela, secoes, injetar: val('--injetar-falha'), sumir: val('--aguardar-sumir'), quietoMs: Number(val('--quieto-ms', 400)), viewport, sbMode });
     // --saida: grava FORA do destino canônico. Existe pro `secao-check` (PR-A3) medir um render
     // sem sobrescrever o alvo versionado — medir não pode ter o efeito colateral de re-baselinar.
     const saida = val('--saida');

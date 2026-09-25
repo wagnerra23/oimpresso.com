@@ -1,0 +1,41 @@
+{
+  "_": "Seções da sidebar no modo EXPANDED (thread 15 do playbook `cowork-inbox/sidebar`, 2026-09-25). Medido com `--viewport 1440x900 --sb-mode expanded` — o `alvo.mjs` grava o modo no localStorage antes da navegação; sem isso o browser limpo cai no auto-rail ≤1280px e cabeçalho de grupo, item e sub-telas nem existem. Seletores COLHIDOS do DOM do espelho por `alvo.mjs --mapa http://127.0.0.1:5550/ --raiz aside --quieto-ms 2000 --viewport 1440x900 --sb-mode expanded` (filhos: sb-top · sb-cert · sb-body · sb-user-wrap · sb-collapse-handle; 9 `.sb-group-h`). Mesmas 5 âncoras do contrato + as 2 que só existem aqui (grupo e cabeçalho de grupo).",
+  "sb-modos": {
+    "seletor": "aside.sb"
+  },
+  "sb-topo": {
+    "seletor": "aside.sb > .sb-top"
+  },
+  "sb-corpo": {
+    "seletor": "aside.sb > .sb-body"
+  },
+  "sb-rodape": {
+    "seletor": "aside.sb > .sb-user-wrap"
+  },
+  "sb-alcas": {
+    "seletor": "aside.sb > .sb-collapse-handle",
+    "campos": [
+      "width",
+      "height",
+      "color",
+      "backgroundColor",
+      "borderRadius",
+      "opacity"
+    ]
+  },
+  "sb-grupo": {
+    "seletor": "aside.sb .sb-group"
+  },
+  "sb-grupo-h": {
+    "seletor": "aside.sb .sb-group-h",
+    "campos": [
+      "color",
+      "fontSize",
+      "fontWeight",
+      "letterSpacing",
+      "textTransform",
+      "borderRadius",
+      "height"
+    ]
+  }
+}

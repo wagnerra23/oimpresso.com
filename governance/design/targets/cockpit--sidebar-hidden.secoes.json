@@ -1,0 +1,17 @@
+{
+  "_": "Sidebar no modo HIDDEN (thread 15 do playbook `cowork-inbox/sidebar`, 2026-09-25). Medido com `--sb-mode hidden` (viewport default 1280x900). No protótipo o `aside` NÃO é renderizado nesse modo (app.jsx:924) e aparece só a alça `.sb-reopen-handle` (app.jsx:931, sidebar.jsx:762). O alvo afirma as DUAS coisas: `sb-modos` ausente e `sb-reabrir` presente — uma sidebar que não somisse, ou uma alça que não aparecesse, diverge.",
+  "sb-modos": {
+    "seletor": "aside.sb"
+  },
+  "sb-reabrir": {
+    "seletor": ".sb-reopen-handle",
+    "campos": [
+      "width",
+      "height",
+      "color",
+      "backgroundColor",
+      "borderRadius",
+      "opacity"
+    ]
+  }
+}

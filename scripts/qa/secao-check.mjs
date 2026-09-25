@@ -153,6 +153,10 @@ async function medirVia(alvo, url) {
   // a proveniência do alvo é parte da medida: sem as MESMAS flags não se reproduz o arquivo
   if (alvo.aguardou_sumir) args.push('--aguardar-sumir', alvo.aguardou_sumir);
   if (alvo.quieto_ms) args.push('--quieto-ms', String(alvo.quieto_ms));
+  // thread 15 da sidebar: o modo e o viewport também são proveniência — sem eles o render
+  // cairia no auto-rail de 1280 e o alvo do expanded seria comparado contra um rail.
+  if (alvo.viewport) args.push('--viewport', alvo.viewport);
+  if (alvo.sb_mode) args.push('--sb-mode', alvo.sb_mode);
 
   // spawn ASSÍNCRONO de propósito: no modo --servir-espelho o servidor roda NESTE processo, e
   // `spawnSync` travaria o event loop — o subprocesso pediria a página e ninguém responderia.
