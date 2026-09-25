@@ -16,7 +16,7 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 15 |
+| US no SPEC | 16 |
 | CU no SDD | 14 |
 | Telas (.tsx) | 21 |
 | Telas com `casos.md` | 21 |
@@ -29,6 +29,7 @@ authority: generated
 |---|---|
 | `US-PONTO-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Relogio web pra registrar entrada/saida (REP-P) |
 | `US-PONTO-012` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Corrigir os atributos fantasma do modulo (4 instancias) |
+| `US-PONTO-016` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Painel de Conformidade CLT da competência (somente leitura) |
 
 ### Backlog — NÃO é lacuna
 
