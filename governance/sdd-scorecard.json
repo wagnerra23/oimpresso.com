@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 278,
+      "value": 275,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "e229db4663e7484e",
+        "floor_files_hash": "260c37bf379b3d21",
         "runs": [
-          {
-            "sha": "c3c53f75",
-            "ts": "20260922-020001",
-            "failed": 446,
-            "errors": 351,
-            "skipped": 2265,
-            "all_shards_measured": true
-          },
           {
             "sha": "e49b761e",
             "ts": "20260923-020001",
@@ -93,15 +85,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "68e07130",
             "ts": "20260924-020001",
             "failed": 437,
             "errors": 352,
             "skipped": 2275,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260925-020001",
+            "failed": 483,
+            "errors": 360,
+            "skipped": 2288,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260924-020001",
+        "computed_at": "20260925-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -204,7 +204,7 @@
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 8,
+      "value": 9,
       "unit": "portas atrás dos eventos (>7d vs doc OU código mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -213,7 +213,7 @@
         "portas": 80,
         "carimbadas": 14,
         "sem_carimbo": 66,
-        "stale": 8,
+        "stale": 9,
         "oldest_distilled_at": "2026-09-06",
         "datadas_por_codigo": 14
       },
@@ -234,15 +234,22 @@
     },
     "drift_alarms": {
       "status": "measured",
-      "value": 0,
+      "value": 6,
       "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
-        "reds": [],
+        "reds": [
+          "anchor_coverage: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-08-29T02:58:52Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "n_quarantine: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-08-29T02:58:52Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "sqlite_corruptors: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-08-29T02:58:52Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "ghost_count: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-08-29T02:58:52Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "front_door_coverage: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-08-29T02:58:52Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "distiller_freshness: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-08-29T02:58:52Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)"
+        ],
         "warns": 0,
-        "verdict": "green"
+        "verdict": "red"
       },
       "stream": "GT"
     },
