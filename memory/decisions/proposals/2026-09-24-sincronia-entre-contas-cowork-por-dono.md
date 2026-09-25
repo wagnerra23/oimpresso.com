@@ -168,3 +168,70 @@ usar o Claude Design é dela, e a ADR 0282 já permite: o Code gera e altera o p
 Antes de trocar, uma última leitura do `telasFelipe` (já autorizada pelo `/design-login` de [F],
 numa sessão local) traz a versão mais recente para o repo, para nada ficar para trás. Os 17
 arquivos do [W] da §6.1 entram na pasta de [F] no mesmo PR que aplicar a D4, não antes.
+
+## 9 · Respostas do [W] (2026-09-25)
+
+Fonte: [W] 2026-09-25, no chat da sessão Code. As respostas escolhidas estão abaixo, com a frase
+dele entre aspas onde houve texto livre.
+
+| # | resposta | fonte |
+|---|---|---|
+| D2 | **(a)** a Fabricação passa a existir no projeto Cowork do [W] | [W] 2026-09-25, *"D2 → (a)"* |
+| D3 | **(a)** o upload de tela ao projeto do [W] continua com opt-in [W] a cada vez; a ADR 0412 D2 fica intacta e não há emenda | [W] 2026-09-25: escolheu (b) e, no mesmo dia, trocou para (a) (*"flip"*, confirmado como "D3 para (a)") |
+| D4 | **(c), fora das opções da §8:** *"todos devem ficar junto"*, esclarecido como **tudo no Cowork do [W]**. O time (Felipe, Maiara, Luiz) passa a trabalhar dentro do projeto Cowork do [W], sem conta separada | [W] 2026-09-25, texto livre + opção escolhida |
+| D1 | sem resposta do [F] até esta data; não registrada | — |
+
+### 9.1 · O que as respostas implicam (fatos medidos, não decisões novas)
+
+Medido em `origin/main` `1743f005a`, 2026-09-25:
+
+- **A premissa da §2 de que a conta `felipe` é inalcançável deixa de pesar:** com todos no projeto
+  do [W], o DesignSync desta sessão (que autentica como [W]) alcança o projeto de trabalho.
+- **A conta `felipe` é usada por três pessoas:** `protocolo.config.mjs`, `CONTAS.felipe.usadaPor`
+  = `[F] Felipe`, `[M] Maiara`, `[L] Luiz`. A D4 (c) move os três.
+- **ADR 0412 está `aceito`** (não mais `proposto`, como a §2 dizia). Com a D3 (a), ela fica como
+  está: tela `*.jsx`/CSS sobe com opt-in [W] (D2 da 0412). Nenhuma ADR de emenda.
+- **Tamanho da migração:** hoje há **186** arquivos só em `cowork/Felipe/` e **117** arquivos
+  presentes nas duas pastas com conteúdo diferente (7 deles são da Fabricação; `manufacturing-page.css`
+  também difere e faltava na tabela da §2). A pasta `cowork/Wagner/` tem **601** arquivos que só
+  ela tem (597 em `1d68b53a`; os 4 a mais são governança do [W] vinda do #7930 e do #7931).
+- **As 40 de 46 telas ambíguas** (`design-lock.mjs --ambiguidade`) deixam de ter dois candidatos
+  quando houver uma pasta só. Ainda assim, elas precisam do lock para declarar qual versão vale
+  durante a migração.
+
+### 9.2 · Pontos em aberto que a D4 (c) cria (não decididos aqui)
+
+1. **Acesso:** o [F], a [M] e o [L] precisam de acesso ao projeto Cowork do [W]. Isso é
+   configuração de conta no Claude Design, feita pelo [W], não pelo Code.
+2. **Ordem da migração:** antes de desligar, é preciso uma última leitura do `telasFelipe`, feita
+   pelo login do [F] (§8). Depois, subir ao projeto do [W] as telas cujo dono é a equipe (186 +
+   as divergentes que forem da equipe). Por fim, congelar `cowork/Felipe/` como histórico e marcar
+   `CONTAS.felipe`/`PROJETOS.telasFelipe` como aposentados no `protocolo.config.mjs`.
+3. **Qual versão vale nas 117 divergentes:** decisão por tela via lock (§5), não por data. A regra
+   do dono (§1) segue: tela da equipe fica com a versão da equipe.
+4. **§5 (PR de código):** com uma conta só, o `--conta felipe` do `pendentes-cowork.mjs` e o
+   segundo job do `cowork-bundle.yml` podem não ser mais necessários. A extensão da §5 é refeita
+   depois do item 2, e não antes.
+5. **[F] só no Code (§8):** trabalhar só no Code continua permitido (ADR 0282). O que ele gerar
+   entra pela pasta `cowork/Wagner/` do projeto único e sobe ao Cowork com o opt-in [W] da D3 (a).
+
+### 9.3 · Dono por usuário, autorizado pelo [W] (2026-09-25)
+
+[W] 2026-09-25, textual: *"eu vou autorizar a tela para cada usuario. isso é mais confiavel, cada
+arquivo tem seu dono no git"*.
+
+Com uma conta só (D4 c), a pasta deixa de dizer quem é o dono. O dono passa a ser **o usuário**
+(W, F, M, L), **declarado no git, tela a tela**, e cada atribuição é autorizada pelo [W]. A §7
+("Trocar de tela") deixa de ser proposta e vira a regra: pegar ou devolver uma tela é um PR que
+muda o dono dela, e o merge do [W] é a autorização.
+
+Consequência para as outras peças:
+
+- **Onde fica o dono:** o dono canônico já é o `design-lock.json` (§5), e não se cria um arquivo
+  paralelo. O lock hoje registra caminho + hash, não usuário. Acrescentar o campo de dono nele é
+  parte do PR de código.
+- **D3 (a):** não há isenção. Todo envio de tela ao projeto do [W] passa pelo opt-in dele, e é
+  isso que torna confiável o dono declarado no git: o [W] autoriza a atribuição (PR) e autoriza o
+  envio (opt-in).
+
+A promoção desta proposta a ADR aceita é ato do [W] (merge = ratificação).
