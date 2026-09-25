@@ -6,7 +6,7 @@
  "ancora": "prototipo-ui/cowork/Wagner/financeiro-page.jsx",
  "prototipo_sha": "4f51a9ec781962b72744cc93c8a1e28d60d346ae",
  "shell": ".",
- "gerado_em": "2026-09-16T12:52:06.813Z",
+ "gerado_em": "2026-09-25T19:15:55.750Z",
  "celulas": {
   "1280|light": {
    "tema": "light",
@@ -135,8 +135,8 @@
      "linhas": 1,
      "overflowX": false,
      "fontSize": "22px",
-     "fontWeight": "700",
-     "letterSpacing": "-0.55px",
+     "fontWeight": "600",
+     "letterSpacing": "-0.33px",
      "lineHeight": "26.4px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
@@ -1391,7 +1391,7 @@
      "w": 80,
      "h": 15,
      "xnorm": 0.07,
-     "ynorm": 0.35,
+     "ynorm": 0.34,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -2343,7 +2343,7 @@
      "w": 63,
      "h": 15,
      "xnorm": 0.36,
-     "ynorm": 0.55,
+     "ynorm": 0.54,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -2928,7 +2928,7 @@
     {
      "tag": "span",
      "texto": "Banner 3×1m — show local · #V-7831",
-     "w": 215,
+     "w": 216,
      "h": 18,
      "xnorm": 0.24,
      "ynorm": 0.66,
@@ -3071,7 +3071,7 @@
      "w": 69,
      "h": 17,
      "xnorm": 0.15,
-     "ynorm": 0.7,
+     "ynorm": 0.69,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "11.5px",
@@ -3407,7 +3407,7 @@
      "w": 112,
      "h": 19,
      "xnorm": 0.77,
-     "ynorm": 0.78,
+     "ynorm": 0.77,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -3656,7 +3656,7 @@
     {
      "tag": "span",
      "texto": "Faixa aniversário 5×0.7m",
-     "w": 144,
+     "w": 145,
      "h": 18,
      "xnorm": 0.24,
      "ynorm": 0.86,
@@ -3743,7 +3743,7 @@
      "w": 38,
      "h": 18,
      "xnorm": 0.11,
-     "ynorm": 0.9,
+     "ynorm": 0.89,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "12.5px",
@@ -3799,7 +3799,7 @@
      "w": 161,
      "h": 18,
      "xnorm": 0.24,
-     "ynorm": 0.9,
+     "ynorm": 0.89,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "12.5px",
@@ -3883,7 +3883,7 @@
      "w": 267,
      "h": 18,
      "xnorm": 0.24,
-     "ynorm": 0.94,
+     "ynorm": 0.93,
      "linhas": 1,
      "overflowX": true,
      "fontSize": "12.5px",
@@ -4023,7 +4023,7 @@
      "w": 38,
      "h": 18,
      "xnorm": 0.11,
-     "ynorm": 0.98,
+     "ynorm": 0.97,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "12.5px",
@@ -4079,7 +4079,7 @@
      "w": 155,
      "h": 18,
      "xnorm": 0.24,
-     "ynorm": 0.98,
+     "ynorm": 0.97,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "12.5px",
@@ -4835,7 +4835,7 @@
      "w": 50,
      "h": 15,
      "xnorm": 0.37,
-     "ynorm": 1.23,
+     "ynorm": 1.22,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -5199,7 +5199,7 @@
      "w": 69,
      "h": 17,
      "xnorm": 0.15,
-     "ynorm": 1.38,
+     "ynorm": 1.37,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "11.5px",
@@ -5690,7 +5690,7 @@
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 1220,
-     "banda": 71
+     "banda": 70
     },
     {
      "side": "Top",
@@ -5753,28 +5753,28 @@
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 1180,
-     "banda": 111
+     "banda": 110
     },
     {
      "side": "Bottom",
      "w": 2,
      "color": "oklch(0.55 0.15 295)",
      "span": 100,
-     "banda": 111
+     "banda": 110
     },
     {
      "side": "Top",
      "w": 1,
      "color": "oklab(0.837 0.0114107 -0.0211903)",
      "span": 320,
-     "banda": 129
+     "banda": 128
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklab(0.837 0.0114107 -0.0211903)",
      "span": 320,
-     "banda": 279
+     "banda": 278
     },
     {
      "side": "Left",
@@ -5795,14 +5795,14 @@
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 200,
-     "banda": 129
+     "banda": 128
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 200,
-     "banda": 279
+     "banda": 278
     },
     {
      "side": "Left",
@@ -5823,7 +5823,7 @@
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 1180,
-     "banda": 291
+     "banda": 290
     },
     {
      "side": "Left",
@@ -5844,28 +5844,28 @@
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 360,
-     "banda": 300
+     "banda": 299
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 360,
-     "banda": 336
+     "banda": 335
     },
     {
      "side": "Top",
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 40,
-     "banda": 305
+     "banda": 304
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 40,
-     "banda": 331
+     "banda": 330
     },
     {
      "side": "Left",
@@ -5886,28 +5886,28 @@
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 80,
-     "banda": 305
+     "banda": 304
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 80,
-     "banda": 331
+     "banda": 330
     },
     {
      "side": "Top",
      "w": 1,
      "color": "oklch(0.55 0.15 295)",
      "span": 40,
-     "banda": 305
+     "banda": 304
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.55 0.15 295)",
      "span": 40,
-     "banda": 331
+     "banda": 330
     },
     {
      "side": "Left",
@@ -5928,28 +5928,28 @@
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 60,
-     "banda": 305
+     "banda": 304
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 60,
-     "banda": 331
+     "banda": 330
     },
     {
      "side": "Top",
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 100,
-     "banda": 305
+     "banda": 304
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 100,
-     "banda": 331
+     "banda": 330
     },
     {
      "side": "Top",
@@ -6040,7 +6040,7 @@
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 120,
-     "banda": 357
+     "banda": 356
     },
     {
      "side": "Bottom",
@@ -6068,14 +6068,14 @@
      "w": 1,
      "color": "oklch(0.55 0.17 150 / 0.22)",
      "span": 60,
-     "banda": 489
+     "banda": 488
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.55 0.17 150 / 0.22)",
      "span": 60,
-     "banda": 509
+     "banda": 508
     },
     {
      "side": "Left",
@@ -6096,14 +6096,14 @@
      "w": 1,
      "color": "oklch(0.58 0.21 25 / 0.22)",
      "span": 80,
-     "banda": 523
+     "banda": 522
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.58 0.21 25 / 0.22)",
      "span": 80,
-     "banda": 543
+     "banda": 542
     },
     {
      "side": "Left",
@@ -6124,21 +6124,21 @@
      "w": 1,
      "color": "oklch(0.55 0.17 150 / 0.22)",
      "span": 80,
-     "banda": 591
+     "banda": 590
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.55 0.17 150 / 0.22)",
      "span": 80,
-     "banda": 611
+     "banda": 610
     },
     {
      "side": "Top",
      "w": 1,
      "color": "oklch(0.63 0.16 68 / 0.2)",
      "span": 120,
-     "banda": 698
+     "banda": 697
     },
     {
      "side": "Bottom",
@@ -6166,7 +6166,7 @@
      "w": 1,
      "color": "oklch(0.63 0.16 68 / 0.22)",
      "span": 80,
-     "banda": 771
+     "banda": 770
     },
     {
      "side": "Bottom",
@@ -6201,7 +6201,7 @@
      "w": 1,
      "color": "oklch(0.65 0.01 80 / 0.22)",
      "span": 80,
-     "banda": 934
+     "banda": 933
     },
     {
      "side": "Left",
@@ -6307,7 +6307,7 @@
      "gap": "2px",
      "span": 1180,
      "filhos": 9,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -6317,7 +6317,7 @@
      "gap": "6px",
      "span": 100,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -6327,7 +6327,7 @@
      "gap": "6px",
      "span": 120,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -6337,7 +6337,7 @@
      "gap": "6px",
      "span": 140,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -6347,7 +6347,7 @@
      "gap": "6px",
      "span": 180,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -6357,7 +6357,7 @@
      "gap": "normal",
      "span": 1220,
      "filhos": 5,
-     "banda": 111
+     "banda": 110
     },
     {
      "display": "grid",
@@ -6367,7 +6367,7 @@
      "gap": "12px",
      "span": 1180,
      "filhos": 5,
-     "banda": 129
+     "banda": 128
     },
     {
      "display": "flex",
@@ -6377,7 +6377,7 @@
      "gap": "2px",
      "span": 320,
      "filhos": 4,
-     "banda": 129
+     "banda": 128
     },
     {
      "display": "flex",
@@ -6387,7 +6387,7 @@
      "gap": "2px",
      "span": 200,
      "filhos": 3,
-     "banda": 129
+     "banda": 128
     },
     {
      "display": "flex",
@@ -6397,7 +6397,7 @@
      "gap": "10px 16px",
      "span": 1180,
      "filhos": 3,
-     "banda": 291
+     "banda": 290
     },
     {
      "display": "flex",
@@ -6407,7 +6407,7 @@
      "gap": "8px",
      "span": 460,
      "filhos": 2,
-     "banda": 300
+     "banda": 299
     },
     {
      "display": "grid",
@@ -6417,7 +6417,7 @@
      "gap": "2px",
      "span": 360,
      "filhos": 4,
-     "banda": 300
+     "banda": 299
     },
     {
      "display": "flex",
@@ -6427,7 +6427,7 @@
      "gap": "8px",
      "span": 240,
      "filhos": 4,
-     "banda": 305
+     "banda": 304
     },
     {
      "display": "flex",
@@ -6437,7 +6437,7 @@
      "gap": "4px",
      "span": 380,
      "filhos": 6,
-     "banda": 305
+     "banda": 304
     },
     {
      "display": "flex",
@@ -6447,7 +6447,7 @@
      "gap": "8px",
      "span": 1220,
      "filhos": 8,
-     "banda": 345
+     "banda": 344
     },
     {
      "display": "inline-flex",
@@ -6477,7 +6477,7 @@
      "gap": "5px",
      "span": 120,
      "filhos": 3,
-     "banda": 357
+     "banda": 356
     },
     {
      "display": "flex",
@@ -6487,7 +6487,7 @@
      "gap": "5px",
      "span": 100,
      "filhos": 2,
-     "banda": 357
+     "banda": 356
     },
     {
      "display": "flex",
@@ -6517,7 +6517,7 @@
      "gap": "6px",
      "span": 220,
      "filhos": 2,
-     "banda": 396
+     "banda": 395
     },
     {
      "display": "flex",
@@ -6547,7 +6547,7 @@
      "gap": "4px",
      "span": 100,
      "filhos": 2,
-     "banda": 520
+     "banda": 519
     },
     {
      "display": "flex",
@@ -6557,7 +6557,7 @@
      "gap": "4px",
      "span": 80,
      "filhos": 2,
-     "banda": 520
+     "banda": 519
     },
     {
      "display": "flex",
@@ -6567,7 +6567,7 @@
      "gap": "4px",
      "span": 60,
      "filhos": 2,
-     "banda": 838
+     "banda": 837
     },
     {
      "display": "flex",
@@ -7175,8 +7175,8 @@
      "linhas": 1,
      "overflowX": false,
      "fontSize": "22px",
-     "fontWeight": "700",
-     "letterSpacing": "-0.55px",
+     "fontWeight": "600",
+     "letterSpacing": "-0.33px",
      "lineHeight": "26.4px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
@@ -7824,14 +7824,14 @@
      "lineHeight": "15.225px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.72 0.16 25)",
-     "bgEfetivo": "oklab(0.3588 0.0168613 0.00350839)",
-     "bgProprio": "oklab(0.3588 0.0168613 0.00350839)",
+     "color": "oklch(0.74 0.19 25)",
+     "bgEfetivo": "oklab(0.3616 0.0206678 0.00528339)",
+     "bgProprio": "oklab(0.3616 0.0206678 0.00528339)",
      "bgImage": "none",
      "radius": "99px",
      "borderW": "0px",
-     "borderColor": "oklch(0.72 0.16 25)",
-     "boxShadow": "oklab(0.72 0.145009 0.0676189 / 0.3) 0px 0px 0px 1px inset",
+     "borderColor": "oklch(0.74 0.19 25)",
+     "boxShadow": "oklab(0.74 0.172198 0.0802975 / 0.3) 0px 0px 0px 1px inset",
      "padding": "1px 7px 1px 7px",
      "opacity": "1",
      "transform": "none",
@@ -7852,13 +7852,13 @@
      "lineHeight": "29.4px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.72 0.16 25)",
+     "color": "oklch(0.74 0.19 25)",
      "bgEfetivo": "oklch(0.26 0.006 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.72 0.16 25)",
+     "borderColor": "oklch(0.74 0.19 25)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -7880,13 +7880,13 @@
      "lineHeight": "10.5px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.72 0.16 25)",
+     "color": "oklch(0.74 0.19 25)",
      "bgEfetivo": "oklch(0.26 0.006 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.72 0.16 25)",
+     "borderColor": "oklch(0.74 0.19 25)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -8020,13 +8020,13 @@
      "lineHeight": "10.5px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.74 0.14 150)",
+     "color": "oklch(0.76 0.18 150)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.74 0.14 150)",
+     "borderColor": "oklch(0.76 0.18 150)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -8132,13 +8132,13 @@
      "lineHeight": "10.5px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.74 0.14 150)",
+     "color": "oklch(0.76 0.18 150)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.74 0.14 150)",
+     "borderColor": "oklch(0.76 0.18 150)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -8188,13 +8188,13 @@
      "lineHeight": "15.341px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.72 0.16 25)",
+     "color": "oklch(0.74 0.19 25)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.72 0.16 25)",
+     "borderColor": "oklch(0.74 0.19 25)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -8272,13 +8272,13 @@
      "lineHeight": "10.5px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.74 0.14 150)",
+     "color": "oklch(0.76 0.18 150)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.74 0.14 150)",
+     "borderColor": "oklch(0.76 0.18 150)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -8431,7 +8431,7 @@
      "w": 80,
      "h": 15,
      "xnorm": 0.07,
-     "ynorm": 0.35,
+     "ynorm": 0.34,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -9383,7 +9383,7 @@
      "w": 63,
      "h": 15,
      "xnorm": 0.36,
-     "ynorm": 0.55,
+     "ynorm": 0.54,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -9504,13 +9504,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.74 0.14 150)",
+     "color": "oklch(0.76 0.18 150)",
      "bgEfetivo": "oklch(0.34 0.11 150)",
      "bgProprio": "oklch(0.34 0.11 150)",
      "bgImage": "none",
      "radius": "9999px",
      "borderW": "1px",
-     "borderColor": "oklch(0.74 0.14 150 / 0.22)",
+     "borderColor": "oklch(0.76 0.18 150 / 0.22)",
      "boxShadow": "none",
      "padding": "1px 6px 1px 6px",
      "opacity": "1",
@@ -9560,13 +9560,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.72 0.16 25)",
+     "color": "oklch(0.74 0.19 25)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.72 0.16 25)",
+     "borderColor": "oklch(0.74 0.19 25)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -9700,13 +9700,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.72 0.16 25)",
+     "color": "oklch(0.74 0.19 25)",
      "bgEfetivo": "oklch(0.36 0.12 25)",
      "bgProprio": "oklch(0.36 0.12 25)",
      "bgImage": "none",
      "radius": "9999px",
      "borderW": "1px",
-     "borderColor": "oklch(0.72 0.16 25 / 0.22)",
+     "borderColor": "oklch(0.74 0.19 25 / 0.22)",
      "boxShadow": "none",
      "padding": "1px 6px 1px 6px",
      "opacity": "1",
@@ -9968,7 +9968,7 @@
     {
      "tag": "span",
      "texto": "Banner 3×1m — show local · #V-7831",
-     "w": 215,
+     "w": 216,
      "h": 18,
      "xnorm": 0.24,
      "ynorm": 0.66,
@@ -10064,13 +10064,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.74 0.14 150)",
+     "color": "oklch(0.76 0.18 150)",
      "bgEfetivo": "oklch(0.34 0.11 150)",
      "bgProprio": "oklch(0.34 0.11 150)",
      "bgImage": "none",
      "radius": "9999px",
      "borderW": "1px",
-     "borderColor": "oklch(0.74 0.14 150 / 0.22)",
+     "borderColor": "oklch(0.76 0.18 150 / 0.22)",
      "boxShadow": "none",
      "padding": "1px 6px 1px 6px",
      "opacity": "1",
@@ -10111,7 +10111,7 @@
      "w": 69,
      "h": 17,
      "xnorm": 0.15,
-     "ynorm": 0.7,
+     "ynorm": 0.69,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "11.5px",
@@ -10447,7 +10447,7 @@
      "w": 112,
      "h": 19,
      "xnorm": 0.77,
-     "ynorm": 0.78,
+     "ynorm": 0.77,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -10456,13 +10456,13 @@
      "lineHeight": "15.225px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.8 0.13 75)",
-     "bgEfetivo": "oklch(0.8 0.13 75 / 0.08)",
-     "bgProprio": "oklch(0.8 0.13 75 / 0.08)",
+     "color": "oklch(0.82 0.16 75)",
+     "bgEfetivo": "oklch(0.82 0.16 75 / 0.08)",
+     "bgProprio": "oklch(0.82 0.16 75 / 0.08)",
      "bgImage": "none",
      "radius": "999px",
      "borderW": "1px",
-     "borderColor": "oklch(0.8 0.13 75 / 0.2)",
+     "borderColor": "oklch(0.82 0.16 75 / 0.2)",
      "boxShadow": "none",
      "padding": "1px 8px 1px 8px",
      "opacity": "1",
@@ -10680,13 +10680,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.8 0.13 75)",
+     "color": "oklch(0.82 0.16 75)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.8 0.13 75)",
+     "borderColor": "oklch(0.82 0.16 75)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -10696,7 +10696,7 @@
     {
      "tag": "span",
      "texto": "Faixa aniversário 5×0.7m",
-     "w": 144,
+     "w": 145,
      "h": 18,
      "xnorm": 0.24,
      "ynorm": 0.86,
@@ -10764,13 +10764,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.8 0.13 75)",
+     "color": "oklch(0.82 0.16 75)",
      "bgEfetivo": "oklch(0.37 0.11 70)",
      "bgProprio": "oklch(0.37 0.11 70)",
      "bgImage": "none",
      "radius": "9999px",
      "borderW": "1px",
-     "borderColor": "oklch(0.8 0.13 75 / 0.22)",
+     "borderColor": "oklch(0.82 0.16 75 / 0.22)",
      "boxShadow": "none",
      "padding": "1px 6px 1px 6px",
      "opacity": "1",
@@ -10783,7 +10783,7 @@
      "w": 38,
      "h": 18,
      "xnorm": 0.11,
-     "ynorm": 0.9,
+     "ynorm": 0.89,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "12.5px",
@@ -10820,13 +10820,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.8 0.13 75)",
+     "color": "oklch(0.82 0.16 75)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.8 0.13 75)",
+     "borderColor": "oklch(0.82 0.16 75)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -10839,7 +10839,7 @@
      "w": 161,
      "h": 18,
      "xnorm": 0.24,
-     "ynorm": 0.9,
+     "ynorm": 0.89,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "12.5px",
@@ -10923,7 +10923,7 @@
      "w": 267,
      "h": 18,
      "xnorm": 0.24,
-     "ynorm": 0.94,
+     "ynorm": 0.93,
      "linhas": 1,
      "overflowX": true,
      "fontSize": "12.5px",
@@ -11063,7 +11063,7 @@
      "w": 38,
      "h": 18,
      "xnorm": 0.11,
-     "ynorm": 0.98,
+     "ynorm": 0.97,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "12.5px",
@@ -11100,13 +11100,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.8 0.13 75)",
+     "color": "oklch(0.82 0.16 75)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.8 0.13 75)",
+     "borderColor": "oklch(0.82 0.16 75)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -11119,7 +11119,7 @@
      "w": 155,
      "h": 18,
      "xnorm": 0.24,
-     "ynorm": 0.98,
+     "ynorm": 0.97,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "12.5px",
@@ -11875,7 +11875,7 @@
      "w": 50,
      "h": 15,
      "xnorm": 0.37,
-     "ynorm": 1.23,
+     "ynorm": 1.22,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -12239,7 +12239,7 @@
      "w": 69,
      "h": 17,
      "xnorm": 0.15,
-     "ynorm": 1.38,
+     "ynorm": 1.37,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "11.5px",
@@ -12556,13 +12556,13 @@
      "lineHeight": "18.125px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.74 0.14 150)",
+     "color": "oklch(0.76 0.18 150)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.74 0.14 150)",
+     "borderColor": "oklch(0.76 0.18 150)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -12730,7 +12730,7 @@
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 1220,
-     "banda": 71
+     "banda": 70
     },
     {
      "side": "Top",
@@ -12793,28 +12793,28 @@
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 1180,
-     "banda": 111
+     "banda": 110
     },
     {
      "side": "Bottom",
      "w": 2,
      "color": "oklch(0.7 0.15 295)",
      "span": 100,
-     "banda": 111
+     "banda": 110
     },
     {
      "side": "Top",
      "w": 1,
      "color": "oklab(0.4264 0.0121743 -0.0378925)",
      "span": 320,
-     "banda": 129
+     "banda": 128
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklab(0.4264 0.0121743 -0.0378925)",
      "span": 320,
-     "banda": 279
+     "banda": 278
     },
     {
      "side": "Left",
@@ -12835,14 +12835,14 @@
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 200,
-     "banda": 129
+     "banda": 128
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 200,
-     "banda": 279
+     "banda": 278
     },
     {
      "side": "Left",
@@ -12863,7 +12863,7 @@
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 1180,
-     "banda": 291
+     "banda": 290
     },
     {
      "side": "Left",
@@ -12884,28 +12884,28 @@
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 360,
-     "banda": 300
+     "banda": 299
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 360,
-     "banda": 336
+     "banda": 335
     },
     {
      "side": "Top",
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 40,
-     "banda": 305
+     "banda": 304
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 40,
-     "banda": 331
+     "banda": 330
     },
     {
      "side": "Left",
@@ -12926,28 +12926,28 @@
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 80,
-     "banda": 305
+     "banda": 304
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 80,
-     "banda": 331
+     "banda": 330
     },
     {
      "side": "Top",
      "w": 1,
      "color": "oklch(0.7 0.15 295)",
      "span": 40,
-     "banda": 305
+     "banda": 304
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.7 0.15 295)",
      "span": 40,
-     "banda": 331
+     "banda": 330
     },
     {
      "side": "Left",
@@ -12968,28 +12968,28 @@
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 60,
-     "banda": 305
+     "banda": 304
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 60,
-     "banda": 331
+     "banda": 330
     },
     {
      "side": "Top",
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 100,
-     "banda": 305
+     "banda": 304
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 100,
-     "banda": 331
+     "banda": 330
     },
     {
      "side": "Top",
@@ -13080,7 +13080,7 @@
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 120,
-     "banda": 357
+     "banda": 356
     },
     {
      "side": "Bottom",
@@ -13106,126 +13106,126 @@
     {
      "side": "Top",
      "w": 1,
-     "color": "oklch(0.74 0.14 150 / 0.22)",
+     "color": "oklch(0.76 0.18 150 / 0.22)",
      "span": 60,
-     "banda": 489
+     "banda": 488
     },
     {
      "side": "Bottom",
      "w": 1,
-     "color": "oklch(0.74 0.14 150 / 0.22)",
+     "color": "oklch(0.76 0.18 150 / 0.22)",
      "span": 60,
-     "banda": 509
+     "banda": 508
     },
     {
      "side": "Left",
      "w": 1,
-     "color": "oklch(0.74 0.14 150 / 0.22)",
+     "color": "oklch(0.76 0.18 150 / 0.22)",
      "span": 20,
      "banda": 1165
     },
     {
      "side": "Right",
      "w": 1,
-     "color": "oklch(0.74 0.14 150 / 0.22)",
+     "color": "oklch(0.76 0.18 150 / 0.22)",
      "span": 20,
      "banda": 1217
     },
     {
      "side": "Top",
      "w": 1,
-     "color": "oklch(0.72 0.16 25 / 0.22)",
+     "color": "oklch(0.74 0.19 25 / 0.22)",
      "span": 80,
-     "banda": 523
+     "banda": 522
     },
     {
      "side": "Bottom",
      "w": 1,
-     "color": "oklch(0.72 0.16 25 / 0.22)",
+     "color": "oklch(0.74 0.19 25 / 0.22)",
      "span": 80,
-     "banda": 543
+     "banda": 542
     },
     {
      "side": "Left",
      "w": 1,
-     "color": "oklch(0.72 0.16 25 / 0.22)",
+     "color": "oklch(0.74 0.19 25 / 0.22)",
      "span": 20,
      "banda": 1165
     },
     {
      "side": "Right",
      "w": 1,
-     "color": "oklch(0.72 0.16 25 / 0.22)",
+     "color": "oklch(0.74 0.19 25 / 0.22)",
      "span": 20,
      "banda": 1239
     },
     {
      "side": "Top",
      "w": 1,
-     "color": "oklch(0.74 0.14 150 / 0.22)",
+     "color": "oklch(0.76 0.18 150 / 0.22)",
      "span": 80,
-     "banda": 591
+     "banda": 590
     },
     {
      "side": "Bottom",
      "w": 1,
-     "color": "oklch(0.74 0.14 150 / 0.22)",
+     "color": "oklch(0.76 0.18 150 / 0.22)",
      "span": 80,
-     "banda": 611
+     "banda": 610
     },
     {
      "side": "Top",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.2)",
+     "color": "oklch(0.82 0.16 75 / 0.2)",
      "span": 120,
-     "banda": 698
+     "banda": 697
     },
     {
      "side": "Bottom",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.2)",
+     "color": "oklch(0.82 0.16 75 / 0.2)",
      "span": 120,
      "banda": 717
     },
     {
      "side": "Left",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.2)",
+     "color": "oklch(0.82 0.16 75 / 0.2)",
      "span": 20,
      "banda": 983
     },
     {
      "side": "Right",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.2)",
+     "color": "oklch(0.82 0.16 75 / 0.2)",
      "span": 20,
      "banda": 1095
     },
     {
      "side": "Top",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.22)",
+     "color": "oklch(0.82 0.16 75 / 0.22)",
      "span": 80,
-     "banda": 771
+     "banda": 770
     },
     {
      "side": "Bottom",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.22)",
+     "color": "oklch(0.82 0.16 75 / 0.22)",
      "span": 80,
      "banda": 791
     },
     {
      "side": "Left",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.22)",
+     "color": "oklch(0.82 0.16 75 / 0.22)",
      "span": 20,
      "banda": 1165
     },
     {
      "side": "Right",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.22)",
+     "color": "oklch(0.82 0.16 75 / 0.22)",
      "span": 20,
      "banda": 1243
     },
@@ -13241,7 +13241,7 @@
      "w": 1,
      "color": "oklch(0.58 0.005 90 / 0.22)",
      "span": 80,
-     "banda": 934
+     "banda": 933
     },
     {
      "side": "Left",
@@ -13347,7 +13347,7 @@
      "gap": "2px",
      "span": 1180,
      "filhos": 9,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -13357,7 +13357,7 @@
      "gap": "6px",
      "span": 100,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -13367,7 +13367,7 @@
      "gap": "6px",
      "span": 120,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -13377,7 +13377,7 @@
      "gap": "6px",
      "span": 140,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -13387,7 +13387,7 @@
      "gap": "6px",
      "span": 180,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -13397,7 +13397,7 @@
      "gap": "normal",
      "span": 1220,
      "filhos": 5,
-     "banda": 111
+     "banda": 110
     },
     {
      "display": "grid",
@@ -13407,7 +13407,7 @@
      "gap": "12px",
      "span": 1180,
      "filhos": 5,
-     "banda": 129
+     "banda": 128
     },
     {
      "display": "flex",
@@ -13417,7 +13417,7 @@
      "gap": "2px",
      "span": 320,
      "filhos": 4,
-     "banda": 129
+     "banda": 128
     },
     {
      "display": "flex",
@@ -13427,7 +13427,7 @@
      "gap": "2px",
      "span": 200,
      "filhos": 3,
-     "banda": 129
+     "banda": 128
     },
     {
      "display": "flex",
@@ -13437,7 +13437,7 @@
      "gap": "10px 16px",
      "span": 1180,
      "filhos": 3,
-     "banda": 291
+     "banda": 290
     },
     {
      "display": "flex",
@@ -13447,7 +13447,7 @@
      "gap": "8px",
      "span": 460,
      "filhos": 2,
-     "banda": 300
+     "banda": 299
     },
     {
      "display": "grid",
@@ -13457,7 +13457,7 @@
      "gap": "2px",
      "span": 360,
      "filhos": 4,
-     "banda": 300
+     "banda": 299
     },
     {
      "display": "flex",
@@ -13467,7 +13467,7 @@
      "gap": "8px",
      "span": 240,
      "filhos": 4,
-     "banda": 305
+     "banda": 304
     },
     {
      "display": "flex",
@@ -13477,7 +13477,7 @@
      "gap": "4px",
      "span": 380,
      "filhos": 6,
-     "banda": 305
+     "banda": 304
     },
     {
      "display": "flex",
@@ -13487,7 +13487,7 @@
      "gap": "8px",
      "span": 1220,
      "filhos": 8,
-     "banda": 345
+     "banda": 344
     },
     {
      "display": "inline-flex",
@@ -13517,7 +13517,7 @@
      "gap": "5px",
      "span": 120,
      "filhos": 3,
-     "banda": 357
+     "banda": 356
     },
     {
      "display": "flex",
@@ -13527,7 +13527,7 @@
      "gap": "5px",
      "span": 100,
      "filhos": 2,
-     "banda": 357
+     "banda": 356
     },
     {
      "display": "flex",
@@ -13557,7 +13557,7 @@
      "gap": "6px",
      "span": 220,
      "filhos": 2,
-     "banda": 396
+     "banda": 395
     },
     {
      "display": "flex",
@@ -13587,7 +13587,7 @@
      "gap": "4px",
      "span": 100,
      "filhos": 2,
-     "banda": 520
+     "banda": 519
     },
     {
      "display": "flex",
@@ -13597,7 +13597,7 @@
      "gap": "4px",
      "span": 80,
      "filhos": 2,
-     "banda": 520
+     "banda": 519
     },
     {
      "display": "flex",
@@ -13607,7 +13607,7 @@
      "gap": "4px",
      "span": 60,
      "filhos": 2,
-     "banda": 838
+     "banda": 837
     },
     {
      "display": "flex",
@@ -14265,12 +14265,12 @@
      "tag": "span",
      "texto": "IA",
      "w": 162,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.03,
      "ynorm": 0.14,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14293,12 +14293,12 @@
      "tag": "span",
      "texto": "Visão geral",
      "w": 159,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.03,
      "ynorm": 0.18,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14326,7 +14326,7 @@
      "ynorm": 0.18,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14349,12 +14349,12 @@
      "tag": "span",
      "texto": "Atendimento",
      "w": 162,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.03,
-     "ynorm": 0.22,
+     "ynorm": 0.21,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14376,15 +14376,15 @@
     {
      "tag": "span",
      "texto": "Cadastro",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
      "ynorm": 0.26,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -14405,12 +14405,12 @@
      "tag": "span",
      "texto": "Clientes",
      "w": 149,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.29,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14438,7 +14438,7 @@
      "ynorm": 0.29,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14461,12 +14461,12 @@
      "tag": "span",
      "texto": "Produtos",
      "w": 149,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.33,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14494,7 +14494,7 @@
      "ynorm": 0.33,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14573,12 +14573,12 @@
      "tag": "span",
      "texto": "Fabricação",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.36,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14600,15 +14600,15 @@
     {
      "tag": "span",
      "texto": "Comercial",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
-     "ynorm": 0.4,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
+     "ynorm": 0.41,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -14629,12 +14629,12 @@
      "tag": "span",
      "texto": "CRM",
      "w": 149,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.44,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14662,7 +14662,7 @@
      "ynorm": 0.44,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14741,12 +14741,12 @@
      "tag": "span",
      "texto": "Vendas",
      "w": 149,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.47,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14771,10 +14771,10 @@
      "w": 28,
      "h": 17,
      "xnorm": 0.15,
-     "ynorm": 0.47,
+     "ynorm": 0.48,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14827,7 +14827,7 @@
      "w": 28,
      "h": 17,
      "xnorm": 0.15,
-     "ynorm": 0.47,
+     "ynorm": 0.48,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "9.5px",
@@ -14853,12 +14853,12 @@
      "tag": "span",
      "texto": "Oficina Auto",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.51,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14881,12 +14881,12 @@
      "tag": "span",
      "texto": "Vestuário",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.55,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14908,15 +14908,15 @@
     {
      "tag": "span",
      "texto": "Finanças",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
      "ynorm": 0.59,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -14937,12 +14937,12 @@
      "tag": "span",
      "texto": "Caixa",
      "w": 149,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.62,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14970,7 +14970,7 @@
      "ynorm": 0.62,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -14993,12 +14993,12 @@
      "tag": "span",
      "texto": "Financeiro",
      "w": 149,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.66,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "500",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15026,7 +15026,7 @@
      "ynorm": 0.66,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "500",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15110,7 +15110,7 @@
      "ynorm": 0.69,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15133,12 +15133,12 @@
      "tag": "span",
      "texto": "Fluxo de caixa",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.7,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15163,38 +15163,38 @@
      "w": 243,
      "h": 34,
      "xnorm": 0.01,
-     "ynorm": 0.72,
-     "linhas": 1,
-     "overflowX": false,
-     "fontSize": "13px",
-     "fontWeight": "400",
-     "letterSpacing": "normal",
-     "lineHeight": "normal",
-     "textTransform": "none",
-     "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.8 0.008 295)",
-     "bgEfetivo": "oklch(0.21 0.025 295)",
-     "bgProprio": "none",
-     "bgImage": "none",
-     "radius": "6px",
-     "borderW": "0px",
-     "borderColor": "oklch(0.8 0.008 295)",
-     "boxShadow": "none",
-     "padding": "0px 10px 0px 18px",
-     "opacity": "1",
-     "transform": "none",
-     "display": "flex"
-    },
-    {
-     "tag": "span",
-     "texto": "Conciliação",
-     "w": 187,
-     "h": 17,
-     "xnorm": 0.04,
      "ynorm": 0.73,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
+     "fontWeight": "400",
+     "letterSpacing": "normal",
+     "lineHeight": "normal",
+     "textTransform": "none",
+     "fontFamily": "IBM Plex Sans",
+     "color": "oklch(0.8 0.008 295)",
+     "bgEfetivo": "oklch(0.21 0.025 295)",
+     "bgProprio": "none",
+     "bgImage": "none",
+     "radius": "6px",
+     "borderW": "0px",
+     "borderColor": "oklch(0.8 0.008 295)",
+     "boxShadow": "none",
+     "padding": "0px 10px 0px 18px",
+     "opacity": "1",
+     "transform": "none",
+     "display": "flex"
+    },
+    {
+     "tag": "span",
+     "texto": "Conciliação",
+     "w": 187,
+     "h": 18,
+     "xnorm": 0.04,
+     "ynorm": 0.74,
+     "linhas": 1,
+     "overflowX": false,
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15219,10 +15219,10 @@
      "w": 243,
      "h": 34,
      "xnorm": 0.01,
-     "ynorm": 0.76,
+     "ynorm": 0.77,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15245,12 +15245,12 @@
      "tag": "span",
      "texto": "DRE / Relatórios",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.77,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15278,7 +15278,7 @@
      "ynorm": 0.8,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15301,12 +15301,12 @@
      "tag": "span",
      "texto": "Plano de contas",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.81,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15334,7 +15334,7 @@
      "ynorm": 0.84,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15357,12 +15357,12 @@
      "tag": "span",
      "texto": "Impostos e obrigações",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.85,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15441,12 +15441,12 @@
      "tag": "span",
      "texto": "Cobrança",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.91,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15469,12 +15469,12 @@
      "tag": "span",
      "texto": "Cobrança Recorrente",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.95,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15496,15 +15496,15 @@
     {
      "tag": "span",
      "texto": "Fiscal",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
      "ynorm": 0.99,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -15524,15 +15524,15 @@
     {
      "tag": "span",
      "texto": "Produção",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
-     "ynorm": 1.06,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
+     "ynorm": 1.07,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -15555,10 +15555,10 @@
      "w": 243,
      "h": 34,
      "xnorm": 0.01,
-     "ynorm": 1.08,
+     "ynorm": 1.09,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15581,12 +15581,12 @@
      "tag": "span",
      "texto": "Ordens de Serviço",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.09,
+     "ynorm": 1.1,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15609,12 +15609,12 @@
      "tag": "span",
      "texto": "Comunicação Visual",
      "w": 170,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.13,
+     "ynorm": 1.14,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15637,12 +15637,12 @@
      "tag": "span",
      "texto": "Assistência técnica",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 1.17,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15664,15 +15664,15 @@
     {
      "tag": "span",
      "texto": "Estoque",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
-     "ynorm": 1.21,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
+     "ynorm": 1.22,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -15693,12 +15693,12 @@
      "tag": "span",
      "texto": "Compras",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.24,
+     "ynorm": 1.25,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15721,12 +15721,12 @@
      "tag": "span",
      "texto": "Movimentações",
      "w": 149,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.28,
+     "ynorm": 1.29,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15751,10 +15751,10 @@
      "w": 28,
      "h": 17,
      "xnorm": 0.15,
-     "ynorm": 1.28,
+     "ynorm": 1.29,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15779,7 +15779,7 @@
      "w": 28,
      "h": 17,
      "xnorm": 0.15,
-     "ynorm": 1.28,
+     "ynorm": 1.29,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "9.5px",
@@ -15805,12 +15805,12 @@
      "tag": "span",
      "texto": "Patrimônio",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 1.32,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15832,15 +15832,15 @@
     {
      "tag": "span",
      "texto": "RH",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
-     "ynorm": 1.36,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
+     "ynorm": 1.37,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -15863,10 +15863,10 @@
      "w": 243,
      "h": 34,
      "xnorm": 0.01,
-     "ynorm": 1.38,
+     "ynorm": 1.39,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15889,12 +15889,12 @@
      "tag": "span",
      "texto": "Ponto",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.39,
+     "ynorm": 1.4,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15917,12 +15917,12 @@
      "tag": "span",
      "texto": "HRM",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 1.43,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15945,12 +15945,12 @@
      "tag": "span",
      "texto": "Essenciais",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 1.47,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -15972,15 +15972,15 @@
     {
      "tag": "span",
      "texto": "Sistema",
-     "w": 172,
-     "h": 13,
-     "xnorm": 0.02,
+     "w": 166,
+     "h": 14,
+     "xnorm": 0.03,
      "ynorm": 1.51,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -15999,42 +15999,14 @@
     },
     {
      "tag": "span",
-     "texto": "10",
-     "w": 11,
-     "h": 13,
-     "xnorm": 0.15,
-     "ynorm": 1.51,
-     "linhas": 1,
-     "overflowX": false,
-     "fontSize": "9.5px",
-     "fontWeight": "500",
-     "letterSpacing": "normal",
-     "lineHeight": "normal",
-     "textTransform": "uppercase",
-     "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.65 0.01 80)",
-     "bgEfetivo": "oklch(0.21 0.025 295)",
-     "bgProprio": "none",
-     "bgImage": "none",
-     "radius": "0px",
-     "borderW": "0px",
-     "borderColor": "oklch(0.65 0.01 80)",
-     "boxShadow": "none",
-     "padding": "0px 0px 0px 0px",
-     "opacity": "1",
-     "transform": "none",
-     "display": "block"
-    },
-    {
-     "tag": "span",
      "texto": "Auditoria",
      "w": 170,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.54,
+     "ynorm": 1.55,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -16062,7 +16034,7 @@
      "ynorm": 1.57,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -16085,12 +16057,12 @@
      "tag": "span",
      "texto": "Voz do Cliente",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 1.58,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -16113,12 +16085,12 @@
      "tag": "span",
      "texto": "Suporte",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.61,
+     "ynorm": 1.62,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -16141,12 +16113,12 @@
      "tag": "span",
      "texto": "Usuários",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.65,
+     "ynorm": 1.66,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -16171,10 +16143,10 @@
      "w": 243,
      "h": 34,
      "xnorm": 0.01,
-     "ynorm": 1.68,
+     "ynorm": 1.69,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -16197,12 +16169,12 @@
      "tag": "span",
      "texto": "Preferências",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.69,
+     "ynorm": 1.7,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -16225,12 +16197,12 @@
      "tag": "span",
      "texto": "Configurações",
      "w": 165,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 1.73,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -16253,12 +16225,12 @@
      "tag": "span",
      "texto": "Relatórios",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.76,
+     "ynorm": 1.77,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -16281,12 +16253,12 @@
      "tag": "span",
      "texto": "Arquivos",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.8,
+     "ynorm": 1.81,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -16311,10 +16283,10 @@
      "w": 243,
      "h": 34,
      "xnorm": 0.01,
-     "ynorm": 1.83,
+     "ynorm": 1.84,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -16337,12 +16309,12 @@
      "tag": "span",
      "texto": "Base de Conhecimento",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.84,
+     "ynorm": 1.85,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -16365,12 +16337,40 @@
      "tag": "span",
      "texto": "Planilhas",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.88,
+     "ynorm": 1.89,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
+     "fontWeight": "400",
+     "letterSpacing": "normal",
+     "lineHeight": "normal",
+     "textTransform": "none",
+     "fontFamily": "IBM Plex Sans",
+     "color": "oklch(0.8 0.008 295)",
+     "bgEfetivo": "oklch(0.21 0.025 295)",
+     "bgProprio": "none",
+     "bgImage": "none",
+     "radius": "0px",
+     "borderW": "0px",
+     "borderColor": "oklch(0.8 0.008 295)",
+     "boxShadow": "none",
+     "padding": "0px 0px 0px 0px",
+     "opacity": "1",
+     "transform": "none",
+     "display": "block"
+    },
+    {
+     "tag": "span",
+     "texto": "Governança",
+     "w": 154,
+     "h": 18,
+     "xnorm": 0.04,
+     "ynorm": 1.92,
+     "linhas": 1,
+     "overflowX": false,
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -16392,15 +16392,15 @@
     {
      "tag": "span",
      "texto": "Plataforma",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
-     "ynorm": 1.92,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
+     "ynorm": 1.97,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -16511,8 +16511,8 @@
      "linhas": 1,
      "overflowX": false,
      "fontSize": "22px",
-     "fontWeight": "700",
-     "letterSpacing": "-0.55px",
+     "fontWeight": "600",
+     "letterSpacing": "-0.33px",
      "lineHeight": "26.4px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
@@ -18940,7 +18940,7 @@
     {
      "tag": "span",
      "texto": "Banner 3×1m — show local · #V-7831",
-     "w": 215,
+     "w": 216,
      "h": 18,
      "xnorm": 0.36,
      "ynorm": 0.71,
@@ -18971,7 +18971,7 @@
      "w": 50,
      "h": 15,
      "xnorm": 0.51,
-     "ynorm": 0.72,
+     "ynorm": 0.71,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -18999,7 +18999,7 @@
      "w": 53,
      "h": 18,
      "xnorm": 0.69,
-     "ynorm": 0.72,
+     "ynorm": 0.71,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "12.5px",
@@ -19643,7 +19643,7 @@
      "w": 41,
      "h": 17,
      "xnorm": 0.27,
-     "ynorm": 0.92,
+     "ynorm": 0.91,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "11.5px",
@@ -19668,7 +19668,7 @@
     {
      "tag": "span",
      "texto": "Faixa aniversário 5×0.7m",
-     "w": 144,
+     "w": 145,
      "h": 18,
      "xnorm": 0.36,
      "ynorm": 0.91,
@@ -19923,7 +19923,7 @@
      "w": 45,
      "h": 30,
      "xnorm": 0.55,
-     "ynorm": 0.99,
+     "ynorm": 0.98,
      "linhas": 2,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -20623,7 +20623,7 @@
      "w": 50,
      "h": 15,
      "xnorm": 0.47,
-     "ynorm": 1.2,
+     "ynorm": 1.19,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -21155,7 +21155,7 @@
      "w": 57,
      "h": 15,
      "xnorm": 0.46,
-     "ynorm": 1.4,
+     "ynorm": 1.39,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -21323,7 +21323,7 @@
      "w": 38,
      "h": 18,
      "xnorm": 0.24,
-     "ynorm": 1.48,
+     "ynorm": 1.47,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "12.5px",
@@ -21379,7 +21379,7 @@
      "w": 181,
      "h": 18,
      "xnorm": 0.36,
-     "ynorm": 1.48,
+     "ynorm": 1.47,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "12.5px",
@@ -21749,7 +21749,7 @@
     {
      "side": "Left",
      "w": 2,
-     "color": "oklch(0.65 0.14 145)",
+     "color": "oklch(0.55 0.15 295)",
      "span": 40,
      "banda": 8
     },
@@ -21765,7 +21765,7 @@
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 1180,
-     "banda": 71
+     "banda": 70
     },
     {
      "side": "Top",
@@ -21828,21 +21828,21 @@
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 1140,
-     "banda": 111
+     "banda": 110
     },
     {
      "side": "Bottom",
      "w": 2,
      "color": "oklch(0.55 0.15 295)",
      "span": 100,
-     "banda": 111
+     "banda": 110
     },
     {
      "side": "Top",
      "w": 1,
      "color": "oklab(0.837 0.0114107 -0.0211903)",
      "span": 300,
-     "banda": 129
+     "banda": 128
     },
     {
      "side": "Bottom",
@@ -21870,7 +21870,7 @@
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 200,
-     "banda": 129
+     "banda": 128
     },
     {
      "side": "Bottom",
@@ -22122,7 +22122,7 @@
      "w": 1,
      "color": "oklch(0.9 0.004 90)",
      "span": 120,
-     "banda": 439
+     "banda": 438
     },
     {
      "side": "Top",
@@ -22143,7 +22143,7 @@
      "w": 1,
      "color": "oklch(0.55 0.17 150 / 0.22)",
      "span": 60,
-     "banda": 540
+     "banda": 539
     },
     {
      "side": "Bottom",
@@ -22171,7 +22171,7 @@
      "w": 1,
      "color": "oklch(0.58 0.21 25 / 0.22)",
      "span": 80,
-     "banda": 574
+     "banda": 573
     },
     {
      "side": "Bottom",
@@ -22199,7 +22199,7 @@
      "w": 1,
      "color": "oklch(0.55 0.17 150 / 0.22)",
      "span": 80,
-     "banda": 642
+     "banda": 641
     },
     {
      "side": "Bottom",
@@ -22241,14 +22241,14 @@
      "w": 1,
      "color": "oklch(0.63 0.16 68 / 0.22)",
      "span": 80,
-     "banda": 822
+     "banda": 821
     },
     {
      "side": "Bottom",
      "w": 1,
      "color": "oklch(0.63 0.16 68 / 0.22)",
      "span": 80,
-     "banda": 843
+     "banda": 842
     },
     {
      "side": "Left",
@@ -22269,7 +22269,7 @@
      "w": 1,
      "color": "oklch(0.65 0.01 80 / 0.22)",
      "span": 80,
-     "banda": 965
+     "banda": 964
     },
     {
      "side": "Bottom",
@@ -22372,7 +22372,7 @@
      "gap": "10px",
      "span": 240,
      "filhos": 2,
-     "banda": 618
+     "banda": 621
     },
     {
      "display": "flex",
@@ -22382,7 +22382,17 @@
      "gap": "7px",
      "span": 240,
      "filhos": 2,
-     "banda": 788
+     "banda": 791
+    },
+    {
+     "display": "flex",
+     "dir": "row",
+     "justify": "normal",
+     "align": "center",
+     "gap": "10px",
+     "span": 240,
+     "filhos": 4,
+     "banda": 1723
     },
     {
      "display": "flex",
@@ -22432,7 +22442,7 @@
      "gap": "2px",
      "span": 1140,
      "filhos": 9,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -22442,7 +22452,7 @@
      "gap": "6px",
      "span": 100,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -22452,7 +22462,7 @@
      "gap": "6px",
      "span": 120,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -22462,7 +22472,7 @@
      "gap": "6px",
      "span": 140,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -22472,7 +22482,7 @@
      "gap": "6px",
      "span": 180,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -22482,7 +22492,7 @@
      "gap": "normal",
      "span": 1180,
      "filhos": 5,
-     "banda": 111
+     "banda": 110
     },
     {
      "display": "grid",
@@ -22492,7 +22502,7 @@
      "gap": "12px",
      "span": 1140,
      "filhos": 5,
-     "banda": 129
+     "banda": 128
     },
     {
      "display": "flex",
@@ -22502,7 +22512,7 @@
      "gap": "2px",
      "span": 300,
      "filhos": 4,
-     "banda": 129
+     "banda": 128
     },
     {
      "display": "flex",
@@ -22512,7 +22522,7 @@
      "gap": "2px",
      "span": 200,
      "filhos": 3,
-     "banda": 129
+     "banda": 128
     },
     {
      "display": "flex",
@@ -22612,7 +22622,7 @@
      "gap": "8px",
      "span": 280,
      "filhos": 2,
-     "banda": 447
+     "banda": 446
     },
     {
      "display": "grid",
@@ -22622,7 +22632,7 @@
      "gap": "2px",
      "span": 60,
      "filhos": 2,
-     "banda": 447
+     "banda": 446
     },
     {
      "display": "flex",
@@ -22632,7 +22642,7 @@
      "gap": "6px",
      "span": 220,
      "filhos": 2,
-     "banda": 447
+     "banda": 446
     },
     {
      "display": "flex",
@@ -22642,7 +22652,7 @@
      "gap": "8px",
      "span": 120,
      "filhos": 2,
-     "banda": 541
+     "banda": 540
     },
     {
      "display": "flex",
@@ -22652,7 +22662,7 @@
      "gap": "8px",
      "span": 320,
      "filhos": 2,
-     "banda": 541
+     "banda": 540
     },
     {
      "display": "inline-flex",
@@ -22662,7 +22672,7 @@
      "gap": "4px",
      "span": 100,
      "filhos": 2,
-     "banda": 571
+     "banda": 570
     },
     {
      "display": "flex",
@@ -22672,7 +22682,7 @@
      "gap": "4px",
      "span": 80,
      "filhos": 2,
-     "banda": 571
+     "banda": 570
     },
     {
      "display": "flex",
@@ -22718,7 +22728,7 @@
    "compostos": [
     {
      "tag": "aside",
-     "texto": "OIOimpresso MatrizCert vence em breve12 dias restantesIA3Visão geralG DAtendimento6Cadastro3ClientesG CProdutos12G PFabricação3Comercial4CRM14G RVendas19G VOficina Auto1Vestuário1Finanças4CaixaG XFinanceiro11G FFluxo de caixaConciliaçãoDRE / RelatóriosPlano de contasImpostos e obrigações⋯mais 6Cobrança1Cobrança Recorrente3Fiscal1Fiscal6Produção3Ordens de ServiçoComunicação VisualAssistência técnica7Estoque3Compras4Movimentações6G EPatrimônio4RH3PontoHRM7Essenciais6Sistema10AuditoriaVoz do ClienteSuporte1Usuários3PreferênciasConfigurações11Relatórios4Arquivos3Base de ConhecimentoPlanilhas1Plataforma4WRWagner RochaAdministrador",
+     "texto": "OIOimpresso MatrizCert vence em breve12 dias restantesIA3Visão geralG DAtendimento6Cadastro3ClientesG CProdutos12G PFabricação3Comercial4CRM14G RVendas19G VOficina Auto1Vestuário1Finanças4CaixaG XFinanceiro11G FFluxo de caixaConciliaçãoDRE / RelatóriosPlano de contasImpostos e obrigações⋯mais 6Cobrança1Cobrança Recorrente3Fiscal1Fiscal6Produção3Ordens de ServiçoComunicação VisualAssistência técnica7Estoque3Compras4Movimentações6G EPatrimônio4RH3PontoHRM8Essenciais6Sistema11AuditoriaVoz do ClienteSuporte1Usuários3PreferênciasConfigurações11Relatórios4Arquivos3Base de ConhecimentoPlanilhas1Governança4Plataforma1WRWagner RochaAdministrador",
      "w": 260,
      "h": 900,
      "xnorm": 0,
@@ -22969,7 +22979,7 @@
     {
      "tag": "button",
      "texto": "Cadastro3",
-     "svgs": 1
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -22989,7 +22999,7 @@
     {
      "tag": "button",
      "texto": "Comercial4",
-     "svgs": 1
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -23014,7 +23024,7 @@
     {
      "tag": "button",
      "texto": "Finanças4",
-     "svgs": 1
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -23069,7 +23079,7 @@
     {
      "tag": "button",
      "texto": "Fiscal1",
-     "svgs": 1
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -23079,7 +23089,7 @@
     {
      "tag": "button",
      "texto": "Produção3",
-     "svgs": 1
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -23099,7 +23109,7 @@
     {
      "tag": "button",
      "texto": "Estoque3",
-     "svgs": 1
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -23119,7 +23129,7 @@
     {
      "tag": "button",
      "texto": "RH3",
-     "svgs": 1
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -23128,7 +23138,7 @@
     },
     {
      "tag": "button",
-     "texto": "HRM7",
+     "texto": "HRM8",
      "svgs": 1
     },
     {
@@ -23138,8 +23148,8 @@
     },
     {
      "tag": "button",
-     "texto": "Sistema10",
-     "svgs": 1
+     "texto": "Sistema11",
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -23193,8 +23203,13 @@
     },
     {
      "tag": "button",
-     "texto": "Plataforma4",
+     "texto": "Governança4",
      "svgs": 1
+    },
+    {
+     "tag": "button",
+     "texto": "Plataforma1",
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -23565,12 +23580,12 @@
      "tag": "span",
      "texto": "IA",
      "w": 162,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.03,
      "ynorm": 0.14,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -23593,12 +23608,12 @@
      "tag": "span",
      "texto": "Visão geral",
      "w": 159,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.03,
      "ynorm": 0.18,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -23626,7 +23641,7 @@
      "ynorm": 0.18,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -23649,12 +23664,12 @@
      "tag": "span",
      "texto": "Atendimento",
      "w": 162,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.03,
-     "ynorm": 0.22,
+     "ynorm": 0.21,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -23676,15 +23691,15 @@
     {
      "tag": "span",
      "texto": "Cadastro",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
      "ynorm": 0.26,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -23705,12 +23720,12 @@
      "tag": "span",
      "texto": "Clientes",
      "w": 149,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.29,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -23738,7 +23753,7 @@
      "ynorm": 0.29,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -23761,12 +23776,12 @@
      "tag": "span",
      "texto": "Produtos",
      "w": 149,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.33,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -23794,7 +23809,7 @@
      "ynorm": 0.33,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -23873,12 +23888,12 @@
      "tag": "span",
      "texto": "Fabricação",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.36,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -23900,15 +23915,15 @@
     {
      "tag": "span",
      "texto": "Comercial",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
-     "ynorm": 0.4,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
+     "ynorm": 0.41,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -23929,12 +23944,12 @@
      "tag": "span",
      "texto": "CRM",
      "w": 149,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.44,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -23962,7 +23977,7 @@
      "ynorm": 0.44,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24041,12 +24056,12 @@
      "tag": "span",
      "texto": "Vendas",
      "w": 149,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.47,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24071,10 +24086,10 @@
      "w": 28,
      "h": 17,
      "xnorm": 0.15,
-     "ynorm": 0.47,
+     "ynorm": 0.48,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24127,7 +24142,7 @@
      "w": 28,
      "h": 17,
      "xnorm": 0.15,
-     "ynorm": 0.47,
+     "ynorm": 0.48,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "9.5px",
@@ -24153,12 +24168,12 @@
      "tag": "span",
      "texto": "Oficina Auto",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.51,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24181,12 +24196,12 @@
      "tag": "span",
      "texto": "Vestuário",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.55,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24208,15 +24223,15 @@
     {
      "tag": "span",
      "texto": "Finanças",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
      "ynorm": 0.59,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -24237,12 +24252,12 @@
      "tag": "span",
      "texto": "Caixa",
      "w": 149,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.62,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24270,7 +24285,7 @@
      "ynorm": 0.62,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24293,12 +24308,12 @@
      "tag": "span",
      "texto": "Financeiro",
      "w": 149,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.66,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "500",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24326,7 +24341,7 @@
      "ynorm": 0.66,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "500",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24410,7 +24425,7 @@
      "ynorm": 0.69,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24433,12 +24448,12 @@
      "tag": "span",
      "texto": "Fluxo de caixa",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.7,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24463,38 +24478,38 @@
      "w": 243,
      "h": 34,
      "xnorm": 0.01,
-     "ynorm": 0.72,
-     "linhas": 1,
-     "overflowX": false,
-     "fontSize": "13px",
-     "fontWeight": "400",
-     "letterSpacing": "normal",
-     "lineHeight": "normal",
-     "textTransform": "none",
-     "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.8 0.008 295)",
-     "bgEfetivo": "oklch(0.21 0.025 295)",
-     "bgProprio": "none",
-     "bgImage": "none",
-     "radius": "6px",
-     "borderW": "0px",
-     "borderColor": "oklch(0.8 0.008 295)",
-     "boxShadow": "none",
-     "padding": "0px 10px 0px 18px",
-     "opacity": "1",
-     "transform": "none",
-     "display": "flex"
-    },
-    {
-     "tag": "span",
-     "texto": "Conciliação",
-     "w": 187,
-     "h": 17,
-     "xnorm": 0.04,
      "ynorm": 0.73,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
+     "fontWeight": "400",
+     "letterSpacing": "normal",
+     "lineHeight": "normal",
+     "textTransform": "none",
+     "fontFamily": "IBM Plex Sans",
+     "color": "oklch(0.8 0.008 295)",
+     "bgEfetivo": "oklch(0.21 0.025 295)",
+     "bgProprio": "none",
+     "bgImage": "none",
+     "radius": "6px",
+     "borderW": "0px",
+     "borderColor": "oklch(0.8 0.008 295)",
+     "boxShadow": "none",
+     "padding": "0px 10px 0px 18px",
+     "opacity": "1",
+     "transform": "none",
+     "display": "flex"
+    },
+    {
+     "tag": "span",
+     "texto": "Conciliação",
+     "w": 187,
+     "h": 18,
+     "xnorm": 0.04,
+     "ynorm": 0.74,
+     "linhas": 1,
+     "overflowX": false,
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24519,10 +24534,10 @@
      "w": 243,
      "h": 34,
      "xnorm": 0.01,
-     "ynorm": 0.76,
+     "ynorm": 0.77,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24545,12 +24560,12 @@
      "tag": "span",
      "texto": "DRE / Relatórios",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.77,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24578,7 +24593,7 @@
      "ynorm": 0.8,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24601,12 +24616,12 @@
      "tag": "span",
      "texto": "Plano de contas",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.81,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24634,7 +24649,7 @@
      "ynorm": 0.84,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24657,12 +24672,12 @@
      "tag": "span",
      "texto": "Impostos e obrigações",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.85,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24741,12 +24756,12 @@
      "tag": "span",
      "texto": "Cobrança",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.91,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24769,12 +24784,12 @@
      "tag": "span",
      "texto": "Cobrança Recorrente",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 0.95,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24796,15 +24811,15 @@
     {
      "tag": "span",
      "texto": "Fiscal",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
      "ynorm": 0.99,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -24824,15 +24839,15 @@
     {
      "tag": "span",
      "texto": "Produção",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
-     "ynorm": 1.06,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
+     "ynorm": 1.07,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -24855,10 +24870,10 @@
      "w": 243,
      "h": 34,
      "xnorm": 0.01,
-     "ynorm": 1.08,
+     "ynorm": 1.09,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24881,12 +24896,12 @@
      "tag": "span",
      "texto": "Ordens de Serviço",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.09,
+     "ynorm": 1.1,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24909,12 +24924,12 @@
      "tag": "span",
      "texto": "Comunicação Visual",
      "w": 170,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.13,
+     "ynorm": 1.14,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24937,12 +24952,12 @@
      "tag": "span",
      "texto": "Assistência técnica",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 1.17,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -24964,15 +24979,15 @@
     {
      "tag": "span",
      "texto": "Estoque",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
-     "ynorm": 1.21,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
+     "ynorm": 1.22,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -24993,12 +25008,12 @@
      "tag": "span",
      "texto": "Compras",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.24,
+     "ynorm": 1.25,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25021,12 +25036,12 @@
      "tag": "span",
      "texto": "Movimentações",
      "w": 149,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.28,
+     "ynorm": 1.29,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25051,10 +25066,10 @@
      "w": 28,
      "h": 17,
      "xnorm": 0.15,
-     "ynorm": 1.28,
+     "ynorm": 1.29,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25079,7 +25094,7 @@
      "w": 28,
      "h": 17,
      "xnorm": 0.15,
-     "ynorm": 1.28,
+     "ynorm": 1.29,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "9.5px",
@@ -25105,12 +25120,12 @@
      "tag": "span",
      "texto": "Patrimônio",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 1.32,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25132,15 +25147,15 @@
     {
      "tag": "span",
      "texto": "RH",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
-     "ynorm": 1.36,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
+     "ynorm": 1.37,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -25163,10 +25178,10 @@
      "w": 243,
      "h": 34,
      "xnorm": 0.01,
-     "ynorm": 1.38,
+     "ynorm": 1.39,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25189,12 +25204,12 @@
      "tag": "span",
      "texto": "Ponto",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.39,
+     "ynorm": 1.4,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25217,12 +25232,12 @@
      "tag": "span",
      "texto": "HRM",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 1.43,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25245,12 +25260,12 @@
      "tag": "span",
      "texto": "Essenciais",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 1.47,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25272,15 +25287,15 @@
     {
      "tag": "span",
      "texto": "Sistema",
-     "w": 172,
-     "h": 13,
-     "xnorm": 0.02,
+     "w": 166,
+     "h": 14,
+     "xnorm": 0.03,
      "ynorm": 1.51,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -25299,42 +25314,14 @@
     },
     {
      "tag": "span",
-     "texto": "10",
-     "w": 11,
-     "h": 13,
-     "xnorm": 0.15,
-     "ynorm": 1.51,
-     "linhas": 1,
-     "overflowX": false,
-     "fontSize": "9.5px",
-     "fontWeight": "500",
-     "letterSpacing": "normal",
-     "lineHeight": "normal",
-     "textTransform": "uppercase",
-     "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.58 0.005 90)",
-     "bgEfetivo": "oklch(0.21 0.025 295)",
-     "bgProprio": "none",
-     "bgImage": "none",
-     "radius": "0px",
-     "borderW": "0px",
-     "borderColor": "oklch(0.58 0.005 90)",
-     "boxShadow": "none",
-     "padding": "0px 0px 0px 0px",
-     "opacity": "1",
-     "transform": "none",
-     "display": "block"
-    },
-    {
-     "tag": "span",
      "texto": "Auditoria",
      "w": 170,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.54,
+     "ynorm": 1.55,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25362,7 +25349,7 @@
      "ynorm": 1.57,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25385,12 +25372,12 @@
      "tag": "span",
      "texto": "Voz do Cliente",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 1.58,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25413,12 +25400,12 @@
      "tag": "span",
      "texto": "Suporte",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.61,
+     "ynorm": 1.62,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25441,12 +25428,12 @@
      "tag": "span",
      "texto": "Usuários",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.65,
+     "ynorm": 1.66,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25471,10 +25458,10 @@
      "w": 243,
      "h": 34,
      "xnorm": 0.01,
-     "ynorm": 1.68,
+     "ynorm": 1.69,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25497,12 +25484,12 @@
      "tag": "span",
      "texto": "Preferências",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.69,
+     "ynorm": 1.7,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25525,12 +25512,12 @@
      "tag": "span",
      "texto": "Configurações",
      "w": 165,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
      "ynorm": 1.73,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25553,12 +25540,12 @@
      "tag": "span",
      "texto": "Relatórios",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.76,
+     "ynorm": 1.77,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25581,12 +25568,12 @@
      "tag": "span",
      "texto": "Arquivos",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.8,
+     "ynorm": 1.81,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25611,10 +25598,10 @@
      "w": 243,
      "h": 34,
      "xnorm": 0.01,
-     "ynorm": 1.83,
+     "ynorm": 1.84,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25637,12 +25624,12 @@
      "tag": "span",
      "texto": "Base de Conhecimento",
      "w": 187,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.84,
+     "ynorm": 1.85,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25665,12 +25652,40 @@
      "tag": "span",
      "texto": "Planilhas",
      "w": 171,
-     "h": 17,
+     "h": 18,
      "xnorm": 0.04,
-     "ynorm": 1.88,
+     "ynorm": 1.89,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "13px",
+     "fontSize": "13.5px",
+     "fontWeight": "400",
+     "letterSpacing": "normal",
+     "lineHeight": "normal",
+     "textTransform": "none",
+     "fontFamily": "IBM Plex Sans",
+     "color": "oklch(0.8 0.008 295)",
+     "bgEfetivo": "oklch(0.21 0.025 295)",
+     "bgProprio": "none",
+     "bgImage": "none",
+     "radius": "0px",
+     "borderW": "0px",
+     "borderColor": "oklch(0.8 0.008 295)",
+     "boxShadow": "none",
+     "padding": "0px 0px 0px 0px",
+     "opacity": "1",
+     "transform": "none",
+     "display": "block"
+    },
+    {
+     "tag": "span",
+     "texto": "Governança",
+     "w": 154,
+     "h": 18,
+     "xnorm": 0.04,
+     "ynorm": 1.92,
+     "linhas": 1,
+     "overflowX": false,
+     "fontSize": "13.5px",
      "fontWeight": "400",
      "letterSpacing": "normal",
      "lineHeight": "normal",
@@ -25692,15 +25707,15 @@
     {
      "tag": "span",
      "texto": "Plataforma",
-     "w": 177,
-     "h": 13,
-     "xnorm": 0.02,
-     "ynorm": 1.92,
+     "w": 171,
+     "h": 14,
+     "xnorm": 0.03,
+     "ynorm": 1.97,
      "linhas": 1,
      "overflowX": false,
-     "fontSize": "10px",
+     "fontSize": "10.5px",
      "fontWeight": "600",
-     "letterSpacing": "0.6px",
+     "letterSpacing": "0.63px",
      "lineHeight": "normal",
      "textTransform": "uppercase",
      "fontFamily": "IBM Plex Sans",
@@ -25811,8 +25826,8 @@
      "linhas": 1,
      "overflowX": false,
      "fontSize": "22px",
-     "fontWeight": "700",
-     "letterSpacing": "-0.55px",
+     "fontWeight": "600",
+     "letterSpacing": "-0.33px",
      "lineHeight": "26.4px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
@@ -26124,14 +26139,14 @@
      "lineHeight": "15.225px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.72 0.16 25)",
-     "bgEfetivo": "oklab(0.3588 0.0168613 0.00350839)",
-     "bgProprio": "oklab(0.3588 0.0168613 0.00350839)",
+     "color": "oklch(0.74 0.19 25)",
+     "bgEfetivo": "oklab(0.3616 0.0206678 0.00528339)",
+     "bgProprio": "oklab(0.3616 0.0206678 0.00528339)",
      "bgImage": "none",
      "radius": "99px",
      "borderW": "0px",
-     "borderColor": "oklch(0.72 0.16 25)",
-     "boxShadow": "oklab(0.72 0.145009 0.0676189 / 0.3) 0px 0px 0px 1px inset",
+     "borderColor": "oklch(0.74 0.19 25)",
+     "boxShadow": "oklab(0.74 0.172198 0.0802975 / 0.3) 0px 0px 0px 1px inset",
      "padding": "1px 7px 1px 7px",
      "opacity": "1",
      "transform": "none",
@@ -26152,13 +26167,13 @@
      "lineHeight": "29.4px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.72 0.16 25)",
+     "color": "oklch(0.74 0.19 25)",
      "bgEfetivo": "oklch(0.26 0.006 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.72 0.16 25)",
+     "borderColor": "oklch(0.74 0.19 25)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -26180,13 +26195,13 @@
      "lineHeight": "10.5px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.72 0.16 25)",
+     "color": "oklch(0.74 0.19 25)",
      "bgEfetivo": "oklch(0.26 0.006 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.72 0.16 25)",
+     "borderColor": "oklch(0.74 0.19 25)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -26320,13 +26335,13 @@
      "lineHeight": "10.5px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.74 0.14 150)",
+     "color": "oklch(0.76 0.18 150)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.74 0.14 150)",
+     "borderColor": "oklch(0.76 0.18 150)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -26432,13 +26447,13 @@
      "lineHeight": "10.5px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.74 0.14 150)",
+     "color": "oklch(0.76 0.18 150)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.74 0.14 150)",
+     "borderColor": "oklch(0.76 0.18 150)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -26488,13 +26503,13 @@
      "lineHeight": "15.341px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.72 0.16 25)",
+     "color": "oklch(0.74 0.19 25)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.72 0.16 25)",
+     "borderColor": "oklch(0.74 0.19 25)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -26572,13 +26587,13 @@
      "lineHeight": "10.5px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.74 0.14 150)",
+     "color": "oklch(0.76 0.18 150)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.74 0.14 150)",
+     "borderColor": "oklch(0.76 0.18 150)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -27776,13 +27791,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.74 0.14 150)",
+     "color": "oklch(0.76 0.18 150)",
      "bgEfetivo": "oklch(0.34 0.11 150)",
      "bgProprio": "oklch(0.34 0.11 150)",
      "bgImage": "none",
      "radius": "9999px",
      "borderW": "1px",
-     "borderColor": "oklch(0.74 0.14 150 / 0.22)",
+     "borderColor": "oklch(0.76 0.18 150 / 0.22)",
      "boxShadow": "none",
      "padding": "1px 6px 1px 6px",
      "opacity": "1",
@@ -27832,13 +27847,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.72 0.16 25)",
+     "color": "oklch(0.74 0.19 25)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.72 0.16 25)",
+     "borderColor": "oklch(0.74 0.19 25)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -27972,13 +27987,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.72 0.16 25)",
+     "color": "oklch(0.74 0.19 25)",
      "bgEfetivo": "oklch(0.36 0.12 25)",
      "bgProprio": "oklch(0.36 0.12 25)",
      "bgImage": "none",
      "radius": "9999px",
      "borderW": "1px",
-     "borderColor": "oklch(0.72 0.16 25 / 0.22)",
+     "borderColor": "oklch(0.74 0.19 25 / 0.22)",
      "boxShadow": "none",
      "padding": "1px 6px 1px 6px",
      "opacity": "1",
@@ -28240,7 +28255,7 @@
     {
      "tag": "span",
      "texto": "Banner 3×1m — show local · #V-7831",
-     "w": 215,
+     "w": 216,
      "h": 18,
      "xnorm": 0.36,
      "ynorm": 0.71,
@@ -28271,7 +28286,7 @@
      "w": 50,
      "h": 15,
      "xnorm": 0.51,
-     "ynorm": 0.72,
+     "ynorm": 0.71,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -28299,7 +28314,7 @@
      "w": 53,
      "h": 18,
      "xnorm": 0.69,
-     "ynorm": 0.72,
+     "ynorm": 0.71,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "12.5px",
@@ -28336,13 +28351,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.74 0.14 150)",
+     "color": "oklch(0.76 0.18 150)",
      "bgEfetivo": "oklch(0.34 0.11 150)",
      "bgProprio": "oklch(0.34 0.11 150)",
      "bgImage": "none",
      "radius": "9999px",
      "borderW": "1px",
-     "borderColor": "oklch(0.74 0.14 150 / 0.22)",
+     "borderColor": "oklch(0.76 0.18 150 / 0.22)",
      "boxShadow": "none",
      "padding": "1px 6px 1px 6px",
      "opacity": "1",
@@ -28728,13 +28743,13 @@
      "lineHeight": "15.225px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.8 0.13 75)",
-     "bgEfetivo": "oklch(0.8 0.13 75 / 0.08)",
-     "bgProprio": "oklch(0.8 0.13 75 / 0.08)",
+     "color": "oklch(0.82 0.16 75)",
+     "bgEfetivo": "oklch(0.82 0.16 75 / 0.08)",
+     "bgProprio": "oklch(0.82 0.16 75 / 0.08)",
      "bgImage": "none",
      "radius": "999px",
      "borderW": "1px",
-     "borderColor": "oklch(0.8 0.13 75 / 0.2)",
+     "borderColor": "oklch(0.82 0.16 75 / 0.2)",
      "boxShadow": "none",
      "padding": "1px 8px 1px 8px",
      "opacity": "1",
@@ -28943,7 +28958,7 @@
      "w": 41,
      "h": 17,
      "xnorm": 0.27,
-     "ynorm": 0.92,
+     "ynorm": 0.91,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "11.5px",
@@ -28952,13 +28967,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.8 0.13 75)",
+     "color": "oklch(0.82 0.16 75)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.8 0.13 75)",
+     "borderColor": "oklch(0.82 0.16 75)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -28968,7 +28983,7 @@
     {
      "tag": "span",
      "texto": "Faixa aniversário 5×0.7m",
-     "w": 144,
+     "w": 145,
      "h": 18,
      "xnorm": 0.36,
      "ynorm": 0.91,
@@ -29036,13 +29051,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.8 0.13 75)",
+     "color": "oklch(0.82 0.16 75)",
      "bgEfetivo": "oklch(0.37 0.11 70)",
      "bgProprio": "oklch(0.37 0.11 70)",
      "bgImage": "none",
      "radius": "9999px",
      "borderW": "1px",
-     "borderColor": "oklch(0.8 0.13 75 / 0.22)",
+     "borderColor": "oklch(0.82 0.16 75 / 0.22)",
      "boxShadow": "none",
      "padding": "1px 6px 1px 6px",
      "opacity": "1",
@@ -29092,13 +29107,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.8 0.13 75)",
+     "color": "oklch(0.82 0.16 75)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.8 0.13 75)",
+     "borderColor": "oklch(0.82 0.16 75)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -29223,7 +29238,7 @@
      "w": 45,
      "h": 30,
      "xnorm": 0.55,
-     "ynorm": 0.99,
+     "ynorm": 0.98,
      "linhas": 2,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -29372,13 +29387,13 @@
      "lineHeight": "16.675px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Mono",
-     "color": "oklch(0.8 0.13 75)",
+     "color": "oklch(0.82 0.16 75)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.8 0.13 75)",
+     "borderColor": "oklch(0.82 0.16 75)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -29923,7 +29938,7 @@
      "w": 50,
      "h": 15,
      "xnorm": 0.47,
-     "ynorm": 1.2,
+     "ynorm": 1.19,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -30455,7 +30470,7 @@
      "w": 57,
      "h": 15,
      "xnorm": 0.46,
-     "ynorm": 1.4,
+     "ynorm": 1.39,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "10.5px",
@@ -30623,7 +30638,7 @@
      "w": 38,
      "h": 18,
      "xnorm": 0.24,
-     "ynorm": 1.48,
+     "ynorm": 1.47,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "12.5px",
@@ -30679,7 +30694,7 @@
      "w": 181,
      "h": 18,
      "xnorm": 0.36,
-     "ynorm": 1.48,
+     "ynorm": 1.47,
      "linhas": 1,
      "overflowX": false,
      "fontSize": "12.5px",
@@ -30828,13 +30843,13 @@
      "lineHeight": "18.125px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "oklch(0.74 0.14 150)",
+     "color": "oklch(0.76 0.18 150)",
      "bgEfetivo": "oklch(0.3 0.008 240)",
      "bgProprio": "none",
      "bgImage": "none",
      "radius": "0px",
      "borderW": "0px",
-     "borderColor": "oklch(0.74 0.14 150)",
+     "borderColor": "oklch(0.76 0.18 150)",
      "boxShadow": "none",
      "padding": "0px 0px 0px 0px",
      "opacity": "1",
@@ -31049,7 +31064,7 @@
     {
      "side": "Left",
      "w": 2,
-     "color": "oklch(0.65 0.14 145)",
+     "color": "oklch(0.7 0.15 295)",
      "span": 40,
      "banda": 8
     },
@@ -31065,7 +31080,7 @@
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 1180,
-     "banda": 71
+     "banda": 70
     },
     {
      "side": "Top",
@@ -31128,21 +31143,21 @@
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 1140,
-     "banda": 111
+     "banda": 110
     },
     {
      "side": "Bottom",
      "w": 2,
      "color": "oklch(0.7 0.15 295)",
      "span": 100,
-     "banda": 111
+     "banda": 110
     },
     {
      "side": "Top",
      "w": 1,
      "color": "oklab(0.4264 0.0121743 -0.0378925)",
      "span": 300,
-     "banda": 129
+     "banda": 128
     },
     {
      "side": "Bottom",
@@ -31170,7 +31185,7 @@
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 200,
-     "banda": 129
+     "banda": 128
     },
     {
      "side": "Bottom",
@@ -31422,7 +31437,7 @@
      "w": 1,
      "color": "oklch(0.34 0.008 240)",
      "span": 120,
-     "banda": 439
+     "banda": 438
     },
     {
      "side": "Top",
@@ -31441,126 +31456,126 @@
     {
      "side": "Top",
      "w": 1,
-     "color": "oklch(0.74 0.14 150 / 0.22)",
+     "color": "oklch(0.76 0.18 150 / 0.22)",
      "span": 60,
-     "banda": 540
+     "banda": 539
     },
     {
      "side": "Bottom",
      "w": 1,
-     "color": "oklch(0.74 0.14 150 / 0.22)",
+     "color": "oklch(0.76 0.18 150 / 0.22)",
      "span": 60,
      "banda": 560
     },
     {
      "side": "Left",
      "w": 1,
-     "color": "oklch(0.74 0.14 150 / 0.22)",
+     "color": "oklch(0.76 0.18 150 / 0.22)",
      "span": 20,
      "banda": 1369
     },
     {
      "side": "Right",
      "w": 1,
-     "color": "oklch(0.74 0.14 150 / 0.22)",
+     "color": "oklch(0.76 0.18 150 / 0.22)",
      "span": 20,
      "banda": 1421
     },
     {
      "side": "Top",
      "w": 1,
-     "color": "oklch(0.72 0.16 25 / 0.22)",
+     "color": "oklch(0.74 0.19 25 / 0.22)",
      "span": 80,
-     "banda": 574
+     "banda": 573
     },
     {
      "side": "Bottom",
      "w": 1,
-     "color": "oklch(0.72 0.16 25 / 0.22)",
+     "color": "oklch(0.74 0.19 25 / 0.22)",
      "span": 80,
      "banda": 594
     },
     {
      "side": "Left",
      "w": 1,
-     "color": "oklch(0.72 0.16 25 / 0.22)",
+     "color": "oklch(0.74 0.19 25 / 0.22)",
      "span": 20,
      "banda": 1369
     },
     {
      "side": "Right",
      "w": 1,
-     "color": "oklch(0.72 0.16 25 / 0.22)",
+     "color": "oklch(0.74 0.19 25 / 0.22)",
      "span": 20,
      "banda": 1443
     },
     {
      "side": "Top",
      "w": 1,
-     "color": "oklch(0.74 0.14 150 / 0.22)",
+     "color": "oklch(0.76 0.18 150 / 0.22)",
      "span": 80,
-     "banda": 642
+     "banda": 641
     },
     {
      "side": "Bottom",
      "w": 1,
-     "color": "oklch(0.74 0.14 150 / 0.22)",
+     "color": "oklch(0.76 0.18 150 / 0.22)",
      "span": 80,
      "banda": 662
     },
     {
      "side": "Top",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.2)",
+     "color": "oklch(0.82 0.16 75 / 0.2)",
      "span": 120,
      "banda": 749
     },
     {
      "side": "Bottom",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.2)",
+     "color": "oklch(0.82 0.16 75 / 0.2)",
      "span": 120,
      "banda": 768
     },
     {
      "side": "Left",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.2)",
+     "color": "oklch(0.82 0.16 75 / 0.2)",
      "span": 20,
      "banda": 1187
     },
     {
      "side": "Right",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.2)",
+     "color": "oklch(0.82 0.16 75 / 0.2)",
      "span": 20,
      "banda": 1299
     },
     {
      "side": "Top",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.22)",
+     "color": "oklch(0.82 0.16 75 / 0.22)",
      "span": 80,
-     "banda": 822
+     "banda": 821
     },
     {
      "side": "Bottom",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.22)",
+     "color": "oklch(0.82 0.16 75 / 0.22)",
      "span": 80,
-     "banda": 843
+     "banda": 842
     },
     {
      "side": "Left",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.22)",
+     "color": "oklch(0.82 0.16 75 / 0.22)",
      "span": 20,
      "banda": 1369
     },
     {
      "side": "Right",
      "w": 1,
-     "color": "oklch(0.8 0.13 75 / 0.22)",
+     "color": "oklch(0.82 0.16 75 / 0.22)",
      "span": 20,
      "banda": 1447
     },
@@ -31569,7 +31584,7 @@
      "w": 1,
      "color": "oklch(0.58 0.005 90 / 0.22)",
      "span": 80,
-     "banda": 965
+     "banda": 964
     },
     {
      "side": "Bottom",
@@ -31672,7 +31687,7 @@
      "gap": "10px",
      "span": 240,
      "filhos": 2,
-     "banda": 618
+     "banda": 621
     },
     {
      "display": "flex",
@@ -31682,7 +31697,17 @@
      "gap": "7px",
      "span": 240,
      "filhos": 2,
-     "banda": 788
+     "banda": 791
+    },
+    {
+     "display": "flex",
+     "dir": "row",
+     "justify": "normal",
+     "align": "center",
+     "gap": "10px",
+     "span": 240,
+     "filhos": 4,
+     "banda": 1723
     },
     {
      "display": "flex",
@@ -31732,7 +31757,7 @@
      "gap": "2px",
      "span": 1140,
      "filhos": 9,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -31742,7 +31767,7 @@
      "gap": "6px",
      "span": 100,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -31752,7 +31777,7 @@
      "gap": "6px",
      "span": 120,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -31762,7 +31787,7 @@
      "gap": "6px",
      "span": 140,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -31772,7 +31797,7 @@
      "gap": "6px",
      "span": 180,
      "filhos": 2,
-     "banda": 75
+     "banda": 74
     },
     {
      "display": "flex",
@@ -31782,7 +31807,7 @@
      "gap": "normal",
      "span": 1180,
      "filhos": 5,
-     "banda": 111
+     "banda": 110
     },
     {
      "display": "grid",
@@ -31792,7 +31817,7 @@
      "gap": "12px",
      "span": 1140,
      "filhos": 5,
-     "banda": 129
+     "banda": 128
     },
     {
      "display": "flex",
@@ -31802,7 +31827,7 @@
      "gap": "2px",
      "span": 300,
      "filhos": 4,
-     "banda": 129
+     "banda": 128
     },
     {
      "display": "flex",
@@ -31812,7 +31837,7 @@
      "gap": "2px",
      "span": 200,
      "filhos": 3,
-     "banda": 129
+     "banda": 128
     },
     {
      "display": "flex",
@@ -31912,7 +31937,7 @@
      "gap": "8px",
      "span": 280,
      "filhos": 2,
-     "banda": 447
+     "banda": 446
     },
     {
      "display": "grid",
@@ -31922,7 +31947,7 @@
      "gap": "2px",
      "span": 60,
      "filhos": 2,
-     "banda": 447
+     "banda": 446
     },
     {
      "display": "flex",
@@ -31932,7 +31957,7 @@
      "gap": "6px",
      "span": 220,
      "filhos": 2,
-     "banda": 447
+     "banda": 446
     },
     {
      "display": "flex",
@@ -31942,7 +31967,7 @@
      "gap": "8px",
      "span": 120,
      "filhos": 2,
-     "banda": 541
+     "banda": 540
     },
     {
      "display": "flex",
@@ -31952,7 +31977,7 @@
      "gap": "8px",
      "span": 320,
      "filhos": 2,
-     "banda": 541
+     "banda": 540
     },
     {
      "display": "inline-flex",
@@ -31962,7 +31987,7 @@
      "gap": "4px",
      "span": 100,
      "filhos": 2,
-     "banda": 571
+     "banda": 570
     },
     {
      "display": "flex",
@@ -31972,7 +31997,7 @@
      "gap": "4px",
      "span": 80,
      "filhos": 2,
-     "banda": 571
+     "banda": 570
     },
     {
      "display": "flex",
@@ -32018,7 +32043,7 @@
    "compostos": [
     {
      "tag": "aside",
-     "texto": "OIOimpresso MatrizCert vence em breve12 dias restantesIA3Visão geralG DAtendimento6Cadastro3ClientesG CProdutos12G PFabricação3Comercial4CRM14G RVendas19G VOficina Auto1Vestuário1Finanças4CaixaG XFinanceiro11G FFluxo de caixaConciliaçãoDRE / RelatóriosPlano de contasImpostos e obrigações⋯mais 6Cobrança1Cobrança Recorrente3Fiscal1Fiscal6Produção3Ordens de ServiçoComunicação VisualAssistência técnica7Estoque3Compras4Movimentações6G EPatrimônio4RH3PontoHRM7Essenciais6Sistema10AuditoriaVoz do ClienteSuporte1Usuários3PreferênciasConfigurações11Relatórios4Arquivos3Base de ConhecimentoPlanilhas1Plataforma4WRWagner RochaAdministrador",
+     "texto": "OIOimpresso MatrizCert vence em breve12 dias restantesIA3Visão geralG DAtendimento6Cadastro3ClientesG CProdutos12G PFabricação3Comercial4CRM14G RVendas19G VOficina Auto1Vestuário1Finanças4CaixaG XFinanceiro11G FFluxo de caixaConciliaçãoDRE / RelatóriosPlano de contasImpostos e obrigações⋯mais 6Cobrança1Cobrança Recorrente3Fiscal1Fiscal6Produção3Ordens de ServiçoComunicação VisualAssistência técnica7Estoque3Compras4Movimentações6G EPatrimônio4RH3PontoHRM8Essenciais6Sistema11AuditoriaVoz do ClienteSuporte1Usuários3PreferênciasConfigurações11Relatórios4Arquivos3Base de ConhecimentoPlanilhas1Governança4Plataforma1WRWagner RochaAdministrador",
      "w": 260,
      "h": 900,
      "xnorm": 0,
@@ -32269,7 +32294,7 @@
     {
      "tag": "button",
      "texto": "Cadastro3",
-     "svgs": 1
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -32289,7 +32314,7 @@
     {
      "tag": "button",
      "texto": "Comercial4",
-     "svgs": 1
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -32314,7 +32339,7 @@
     {
      "tag": "button",
      "texto": "Finanças4",
-     "svgs": 1
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -32369,7 +32394,7 @@
     {
      "tag": "button",
      "texto": "Fiscal1",
-     "svgs": 1
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -32379,7 +32404,7 @@
     {
      "tag": "button",
      "texto": "Produção3",
-     "svgs": 1
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -32399,7 +32424,7 @@
     {
      "tag": "button",
      "texto": "Estoque3",
-     "svgs": 1
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -32419,7 +32444,7 @@
     {
      "tag": "button",
      "texto": "RH3",
-     "svgs": 1
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -32428,7 +32453,7 @@
     },
     {
      "tag": "button",
-     "texto": "HRM7",
+     "texto": "HRM8",
      "svgs": 1
     },
     {
@@ -32438,8 +32463,8 @@
     },
     {
      "tag": "button",
-     "texto": "Sistema10",
-     "svgs": 1
+     "texto": "Sistema11",
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -32493,8 +32518,13 @@
     },
     {
      "tag": "button",
-     "texto": "Plataforma4",
+     "texto": "Governança4",
      "svgs": 1
+    },
+    {
+     "tag": "button",
+     "texto": "Plataforma1",
+     "svgs": 2
     },
     {
      "tag": "button",
@@ -32689,5 +32719,5 @@
    ]
   }
  },
- "render_sha256": "e939895f2358cac70f08ad3cb7cbab2a32e04ec25d5b67d059ad00030e0b682e"
+ "render_sha256": "15560e302ea866d376e34486f05386d071028f381eca40b811268c1b024403e4"
 }

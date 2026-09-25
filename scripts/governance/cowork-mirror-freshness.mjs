@@ -1376,15 +1376,26 @@ export function resolveRefSegura(valor, base = '') {
 
 export function previewDsPlan(shellHtml, root = ROOT) {
   if (!shellHtml) return { erro: 'sem shell — não dá pra derivar o id do design system', arquivos: [] };
-  // o id sai dos próprios <link>/<script> do shell
-  const ids = [...new Set([...String(shellHtml).matchAll(/_ds\/([^/"]+)\//g)].map((m) => m[1]))];
+  // o id sai dos próprios <link>/<script> do shell — NUNCA da prosa. Medido em 2026-09-25: desde
+  // o handoff 36 (#7889) o shell explica em COMENTÁRIO HTML por que as refs a `_ds/` não são
+  // literais, e o regex antigo lia essa prosa como id — "achei 3" com UM design system real,
+  // derrubando o render de todos os 9 baselines. Tirar comentário não afrouxa a checagem de 1 DS:
+  // comentário não carrega nada no browser, então não é ref.
+  const shell = String(shellHtml).replace(/<!--[\s\S]*?-->/g, '');
+  const ids = [...new Set([...shell.matchAll(/_ds\/([^/"'\s]+)\//g)].map((m) => m[1]))];
   if (ids.length !== 1) return { erro: `esperava 1 design system no shell, achei ${ids.length}`, arquivos: [] };
   const id = ids[0];
   if (!/^[a-z0-9][a-z0-9._-]*$/i.test(id) || id === '.' || id === '..') {
     return { erro: `id inseguro do design system no shell: "${id}"`, arquivos: [] };
   }
   const seguro = resolveRefSegura;
-  const refsShell = [...new Set([...String(shellHtml).matchAll(/_ds\/[^/"]+\/([^"?]+)/g)].map((m) => m[1]))];
+  // Duas formas de ref: a LITERAL (`href="_ds/<id>/x.css"`) e a RUNTIME do handoff 36
+  // (`window.__OI_DS_BASE__+'x.css'`, base resolvida no browser). Sem a 2ª, o plano sai vazio e o
+  // render não injeta o DS que o shell de fato carrega.
+  const refsShell = [...new Set([
+    ...[...shell.matchAll(/_ds\/[^/"'\s]+\/([^"'?]+)/g)].map((m) => m[1]),
+    ...[...shell.matchAll(/__OI_DS_BASE__\s*\+\s*['"]([^'"?]+)/g)].map((m) => m[1]),
+  ])];
   const querUsar = refsShell.map((ref) => seguro(ref));
   const inseguraShell = refsShell.find((_, index) => !querUsar[index]);
   if (inseguraShell) return { erro: `referência insegura no shell do preview: "${inseguraShell}"`, arquivos: [] };
