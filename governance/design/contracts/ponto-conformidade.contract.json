@@ -1,0 +1,36 @@
+{
+  "_nota": "Contrato de tela da Conformidade CLT (thread 05). Gerado por criar-tela.mjs (PT-04) e ajustado às seções do protótipo: nota → KPIs → tabela. A copy literal é decisão [W] — nasce vazia.",
+  "tela": "Ponto/Conformidade",
+  "fonte": "prototipo-ui/cowork/Wagner/ponto-fechamento.jsx",
+  "alvo": [
+    "resources/js/Pages/Ponto/Conformidade.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": []
+    },
+    {
+      "id": "nota",
+      "copy": []
+    },
+    {
+      "id": "kpis",
+      "copy": []
+    },
+    {
+      "id": "casos",
+      "copy": []
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "nota",
+    "kpis",
+    "casos"
+  ],
+  "_pendente_w": [
+    "COPY DE CADA SEÇÃO — decisão [W] (how-trabalhar.md §Pedido de tela).",
+    "ESTADOS — com-apontamento / limpo / nao-medido ainda não declarados."
+  ]
+}
