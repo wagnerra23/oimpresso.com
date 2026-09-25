@@ -1,0 +1,115 @@
+name: "Cockpit Sidebar jsdom Gate — os 9 specs vitest que defendem a sidebar do AppShellV2"
+
+# POR QUE ESTA LANE EXISTE
+#
+# `resources/js/Components/cockpit/Sidebar.tsx` tinha 9 specs vitest/jsdom (49 casos)
+# e NENHUMA lane os rodava. Medido em 2026-09-25 no repo inteiro:
+#
+#   git grep -e sidebarSair -e sidebarMenuSemantics -e sidebarAparencia \
+#            -e "tests/js/sidebar-" -- .github/ package.json      → 0 ocorrências
+#
+# Nenhuma lane roda `vitest run` sem argumento (cada uma aponta os próprios specs), então
+# spec fora de workflow é verde-por-não-execução (LC-13): pior que teste ausente, porque
+# parece cobertura.
+#
+# O custo disso foi medido: o #7960 (presença no menu do rodapé) pôs um `usePage()` cru no
+# `SidebarUserMenu`. Os specs que montam o `SidebarFooter` fora do contexto Inertia passaram
+# a lançar "usePage must be used within the Inertia component" (6 de 49 vermelhos em
+# `sidebarSair` + `sidebarMenuSemantics`), e o PR mergeou VERDE. O conserto veio no #7962.
+#
+# POR QUE LANE PRÓPRIA E NÃO EXTENSÃO DE OUTRA
+#   - `ui-architecture-gate.yml` dispara em `Components/cockpit/**`, mas é Pest filesystem
+#     e roda em TODO PR (sem `paths:` no pull_request). Pôr `npm ci` + vitest lá pagaria o
+#     custo em todo PR e misturaria duas stacks num check só.
+#   - Nenhuma das ~20 lanes vitest existentes cobre a casca do cockpit: cada uma é o HOME
+#     dos specs jsdom de uma área (`forja-jsdom-gate` da Forja, `jana-conversas-gate` da
+#     Jana). Esta é o HOME da sidebar do AppShellV2, no mesmo molde.
+#
+# Os arquivos SOB TESTE entram no gatilho junto com os specs (§5 2026-08-02): sem isso,
+# mexer na sidebar não acorda o teste que a defende. `synchronize` no gatilho pelo mesmo
+# motivo da forja-jsdom-gate: o defeito que esta lane pega entra num push, não só no
+# `opened`.
+#
+# Enforcement (classe/terminal) mora em `scripts/governance/gates-registry.json`; o que
+# bloqueia merge mora em `governance/required-checks-baseline.json`. Esta lane não afirma
+# o próprio enforcement — quem afirma é o dono (LC-10).
+#
+# Comando local (vitest não é Pest; roda fora do CT 100 sem violar a ADR 0062):
+#   npx vitest run tests/sidebarSair.spec.tsx tests/sidebarMenuSemantics.spec.tsx \
+#     tests/sidebarAparencia.spec.tsx tests/Feature/Sidebar/presenca.spec.tsx \
+#     tests/js/sidebar-atalho-render.test.tsx tests/js/sidebar-ghosts-teto.test.tsx \
+#     tests/js/sidebar-item-ativo.test.tsx tests/js/sidebar-plataforma-forja.test.tsx \
+#     tests/js/sidebar-rail.test.tsx
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    paths:
+      # Sob teste — a casca do cockpit (Sidebar.tsx e os módulos que ela importa).
+      - 'resources/js/Components/cockpit/**'
+      # Os specs, o setup do jsdom e este workflow.
+      - 'tests/sidebarSair.spec.tsx'
+      - 'tests/sidebarMenuSemantics.spec.tsx'
+      - 'tests/sidebarAparencia.spec.tsx'
+      - 'tests/Feature/Sidebar/presenca.spec.tsx'
+      - 'tests/js/sidebar-*.test.tsx'
+      - 'tests/js/setup.ts'
+      - '.github/workflows/cockpit-sidebar-jsdom-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Components/cockpit/**'
+      - 'tests/sidebarSair.spec.tsx'
+      - 'tests/sidebarMenuSemantics.spec.tsx'
+      - 'tests/sidebarAparencia.spec.tsx'
+      - 'tests/Feature/Sidebar/presenca.spec.tsx'
+      - 'tests/js/sidebar-*.test.tsx'
+      - 'tests/js/setup.ts'
+
+concurrency:
+  group: cockpit-sidebar-jsdom-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  cockpit-sidebar-jsdom:
+    name: Cockpit · specs jsdom da sidebar (menu do rodapé · Sair · aparência · presença · rail)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+
+      # UMA invocação, UM XML — o `junit-lanes.mjs` deriva esta lane sozinho pelo par
+      # (`--outputFile` no comando × `path:` do artifact). Não há lista a manter.
+      - name: specs jsdom da sidebar (vitest/jsdom)
+        run: |
+          npx vitest run \
+            tests/sidebarSair.spec.tsx \
+            tests/sidebarMenuSemantics.spec.tsx \
+            tests/sidebarAparencia.spec.tsx \
+            tests/Feature/Sidebar/presenca.spec.tsx \
+            tests/js/sidebar-atalho-render.test.tsx \
+            tests/js/sidebar-ghosts-teto.test.tsx \
+            tests/js/sidebar-item-ativo.test.tsx \
+            tests/js/sidebar-plataforma-forja.test.tsx \
+            tests/js/sidebar-rail.test.tsx \
+            --reporter=default \
+            --reporter=junit \
+            --outputFile=test-results/vitest-cockpit-sidebar-jsdom-junit.xml
+
+      # `!cancelled()` e não `success()`: o veredito VERMELHO é o que precisa ficar registrado.
+      - name: Upload JUnit
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-cockpit-sidebar-jsdom-junit
+          path: test-results/vitest-cockpit-sidebar-jsdom-junit.xml
+          retention-days: 14
+          if-no-files-found: error
