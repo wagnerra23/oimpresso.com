@@ -144,6 +144,39 @@ it('aceita Ghost com key kebab-case com hífens', function () {
     expect($ghost->key)->toBe('plano-contas');
 });
 
+// ── Ícone por sub-tela (thread 14 do playbook da sidebar) ──────────────────
+
+it('Ghost sem icon mantém o shape de 3 chaves (quem não declara não muda)', function () {
+    $ghost = new SidebarGhost('pagar', 'Pagar', '/financeiro?tab=pagar');
+
+    expect($ghost->toArray())->toBe([
+        'key' => 'pagar', 'label' => 'Pagar', 'href' => '/financeiro?tab=pagar',
+    ]);
+});
+
+it('Ghost com icon serializa a 4ª chave', function () {
+    $ghost = new SidebarGhost('pedidos', 'Pedido de venda', '/sells/pedidos', 'orders');
+
+    expect($ghost->toArray())->toBe([
+        'key' => 'pedidos', 'label' => 'Pedido de venda', 'href' => '/sells/pedidos', 'icon' => 'orders',
+    ]);
+});
+
+it('icon do Ghost chega no item serializado', function () {
+    $item = new SidebarMenuItem(
+        label:  'Vendas',
+        href:   '/sells',
+        group:  SidebarGroup::Financas,
+        ghosts: [new SidebarGhost('nova', 'Adicionar venda', '/sells/create', 'plus')],
+    );
+
+    expect($item->toArray()['ghosts'][0]['icon'])->toBe('plus');
+});
+
+it('rejeita Ghost com icon fora do kebab-case', function () {
+    new SidebarGhost('foo', 'Foo', '/foo', 'Plus Icon');
+})->throws(InvalidArgumentException::class, 'icon must be kebab-case');
+
 it('rejeita Ghost com label vazio', function () {
     new SidebarGhost('foo', '', '/foo');
 })->throws(InvalidArgumentException::class, 'label cannot be empty');

@@ -127,7 +127,7 @@ export interface ShellMenuItem {
    * o total como contador no slot direito do item.
    * Ver ADR UI-0028 (protótipo soberano na FORMA).
    */
-  ghosts?: Array<{ key?: string; label: string; href: string }>;
+  ghosts?: Array<{ key?: string; label: string; href: string; icon?: string }>;
   children?: ShellMenuItem[];
 }
 

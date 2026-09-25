@@ -629,3 +629,5 @@ Modules/Forja/Tests/Feature/CredentialShapesTest.php
 Modules/Cms/Tests/Feature/FormRequestValidationTest.php
 # Presença da sidebar (thread 13): rota + enum TS×PHP. sqlite-safe — monta users sintética quando não há schema.
 tests/Feature/Sidebar/PresencaPreferenciaTest.php
+# Contrato v2 do item de sidebar (SidebarMenuItem/Ghost/PrimaryAction) — objeto de valor puro, sem banco. Não rodava em lane nenhuma até a thread 14 (ícone do ghost).
+tests/Feature/Sidebar/SidebarMenuItemContractTest.php
