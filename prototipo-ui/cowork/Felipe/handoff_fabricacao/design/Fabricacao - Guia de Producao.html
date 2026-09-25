@@ -28,25 +28,42 @@
 
 <!-- ══ CAMADA 3 · PADRÕES DE TELA — vazia nesta tela (ver design/README.md §CSS) ══ -->
 
-<!-- ══ CAMADA 4 · MÓDULO ══ -->
-<link rel="stylesheet" href="04-modulos/manufacturing/css/manufacturing.css">
+<!-- ══ CAMADA 4 · MÓDULO ══
+     Vem da RAIZ (../../manufacturing-page.css) — é o CSS que os arquivos de tela declaram no
+     cabeçalho, escopo .mfg-root. A cópia que vivia em 04-modulos/ era o estado pré-onda-A
+     (21.032 ch × 16.534 da raiz) e foi apagada em 22/09/2026, junto com as cópias dos .jsx. -->
+<link rel="stylesheet" href="../../manufacturing-page.css">
 </head>
 <body>
 <div id="app"></div>
+
+<!-- ══ CAMADA 0 · BUNDLE COMPILADO DO DS — obrigatório desde a onda A ══
+     Os arquivos de tela consomem Drawer, Button, StatusBadge, PageHeader, KpiCard, Input,
+     Select, Textarea, Checkbox, Switch, Modal e os 4 print-craft de
+     window.OfficeImpressoPontoWR2DesignSystem_019dd0. Sem esta tag a página abre EM BRANCO e o
+     console não acusa (o erro do createRoot não é capturado) — foi o defeito P-2, medido em
+     22/09/2026.
+     Conferir (o filtro importa: o bundle publica uma chave interna __errors além dos componentes):
+     Object.keys(window.OfficeImpressoPontoWR2DesignSystem_019dd0).filter(k => !k.startsWith('__')).length === 58 -->
+<script src="../../../../design-system/_ds_bundle.js"></script>
 
 <!-- runtime: versões PINADAS com integrity SRI (mesmos hashes do protótipo) -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-<!-- ordem = dependência (cada arquivo publica em window no fim; escopos Babel não se falam) -->
+<!-- ordem = dependência (cada arquivo publica em window no fim; escopos Babel não se falam).
+     Os cinco arquivos de tela vêm da RAIZ do projeto (../../) — é o protótipo válido, o mesmo
+     que o shell carrega. A cópia que vivia nesta pasta foi apagada em 22/09/2026: duas cópias
+     da mesma tela divergiram em 5 dos 6 arquivos (defeito P-1 do plano-ondas-fabricacao-v2).
+     manufacturing-app.jsx continua local — é o shim de mount do pacote, não existe na raiz. -->
 <script type="text/babel" src="../../manufacturing-data.jsx"></script>  <!-- 1. dados + cálculo -->
 <script type="text/babel" src="../../icons.jsx"></script>               <!-- 2. primitivo: window.I -->
-<script type="text/babel" src="manufacturing-recipe.jsx"></script><!-- 3. peças -->
-<script type="text/babel" src="manufacturing-insumos.jsx"></script>
-<script type="text/babel" src="manufacturing-producao.jsx"></script>
-<script type="text/babel" src="manufacturing-print.jsx"></script>
-<script type="text/babel" src="manufacturing-page.jsx"></script>  <!-- 4. a tela -->
+<script type="text/babel" src="../../manufacturing-recipe.jsx"></script><!-- 3. peças -->
+<script type="text/babel" src="../../manufacturing-insumos.jsx"></script>
+<script type="text/babel" src="../../manufacturing-producao.jsx"></script>
+<script type="text/babel" src="../../manufacturing-print.jsx"></script>
+<script type="text/babel" src="../../manufacturing-page.jsx"></script>  <!-- 4. a tela -->
 <script type="text/babel" src="manufacturing-app.jsx"></script>   <!-- 5. mount -->
 </body>
 </html>

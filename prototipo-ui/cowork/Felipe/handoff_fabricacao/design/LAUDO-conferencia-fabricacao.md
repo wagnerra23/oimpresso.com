@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Tela** | Família Fabricação: consulta de receitas, drawer, editor de ingredientes, insumos (impacto reverso), ordens de produção, formulário de ordem, relatório, configurações, ficha PT-07 |
-| **Arquivos** | `design/manufacturing-{data,page,recipe,insumos,producao,print}.jsx` · `design/04-modulos/manufacturing/css/manufacturing.css` |
+| **Arquivos** | `manufacturing-{data,page,recipe,insumos,producao,print}.jsx` **na raiz do projeto** (a cópia em `design/` foi apagada em 22/09/2026; a página-guia carrega por `../../`) · `design/04-modulos/manufacturing/css/manufacturing.css` |
 | **Como rodou** | `design/Fabricacao - Guia de Producao.html` no navegador, viewport **914 × 540 px**, tema **claro**, React 18.3.1 + Babel 7.29.0 |
 | **Especificação** | `README.md` (raiz do pacote) · `contexto/SDD-tela-fabricacao-v1.0.md` |
 | **Telas irmãs** | `resources/js/Pages/Manufacturing/Index.tsx` (existe no alvo) · Compras · Produtos · Estoque |

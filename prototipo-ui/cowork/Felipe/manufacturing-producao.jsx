@@ -3,16 +3,16 @@
 // Espelha production/index|create|show|report.blade.php e settings/index.blade.php.
 // Expõe window.MfgProducaoView, window.MfgProducaoForm, window.MfgRelatorio, window.MfgConfig.
 //
-// ADERÊNCIA AO DS (onda A): Drawer, Button, Input, Select, Textarea, Checkbox, Switch,
-// DatePicker, StatusBadge, Progress, Alert, Tooltip, Pagination e EmptyState do bundle
-// compilado. Continuam locais e declarados no handoff: a tabela (B-01), os campos numéricos
-// com passo (B-04), a trilha (B-07), os chips de permissão (B-08), o rodapé de total (C-06)
-// e o quadro de custo (C-07).
+// ADERÊNCIA AO DS (onda A; onda B 2026-09-23): Drawer, Button, Input, Select, Textarea,
+// Checkbox, Switch, DatePicker, StatusBadge, Progress, Alert, Tooltip, EmptyState, DataGrid
+// (ordens e relatório) e Widget (cartões de Configurações) do bundle compilado. Continuam locais
+// e declarados no handoff: os campos numéricos com passo (B-04), a trilha (B-07), os chips de
+// permissão (B-08), o rodapé de total (C-06) e o quadro de custo (C-07).
 //
-// ATUALIZAÇÃO DO DS (2026-09-08): a situação da ordem usa `kind="producao"` — o domínio
-// entrou no StatusBadge nesta versão, com `finalizada`/`rascunho` (bundle L6537-6540). O
-// contorno tone+label saiu. Rascunho é ÂMBAR por decisão do DS: ele adotou a forma que este
-// protótipo já pintava em `.mfg-pill.warn` (comentário do componente cita UI-0029).
+// Situação da ordem (medido 23/09/2026): o StatusBadge NÃO tem kind "producao" — ausente do
+// StatusKind em StatusBadge.d.ts L3-14 (fonte viva) e do _ds_bundle.js (grep "producao" só acha
+// a sidebar, L980). A nota anterior daqui citava "bundle L6537-6540" e não se confirma. Por isso
+// tone+label, que o d.ts L34-35 prevê para status que o mapa não conhece.
 (() => {
 const { useState, useMemo } = React;
 const I = window.I;
@@ -29,7 +29,7 @@ const fromISO = (s) => { if (!s) return null; const [y, m, d] = s.split("-").map
 
 // ── Lista de ordens de produção ──
 function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
-  const { Select, Checkbox, DatePicker, StatusBadge, Pagination, EmptyState, Tooltip, Button } = ds();
+  const { Select, Checkbox, DatePicker, StatusBadge, DataGrid, EmptyState, Tooltip, Button } = ds();
   const { LOCAIS, consumoOP, fmt, num, fmtDate } = G();
   const [local, setLocal] = useState("Todos");
   const [de, setDe] = useState("2026-08-01");
@@ -49,14 +49,17 @@ function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
   const POR_PAG = 10;
   const nPags = Math.max(1, Math.ceil(linhas.length / POR_PAG));
   const pagina = Math.min(pag, nPags);
-  const visiveis = linhas.slice((pagina - 1) * POR_PAG, pagina * POR_PAG);
   const ordenar = (k) => { setOrd((o) => ({ k, dir: o.k === k && o.dir === "asc" ? "desc" : "asc" })); setPag(1); };
-  const Th = ({ k, children, r: right }) => (
-    <button className={"mfg-th sort" + (right ? " r" : "") + (ord.k === k ? " act" : "")} onClick={() => ordenar(k)}>
-      {right && <span className="ind">{ord.k === k ? (ord.dir === "asc" ? "↑" : "↓") : "⇵"}</span>}{children}
-      {!right && <span className="ind">{ord.k === k ? (ord.dir === "asc" ? "↑" : "↓") : "⇵"}</span>}
-    </button>
-  );
+  const COLS = [
+    { key: "data", label: "Data", mono: true, sortable: true },
+    { key: "ref", label: "Referência", mono: true, sortable: true },
+    { key: "local", label: "Local", sortable: true },
+    { key: "produto", label: "Produto", sortable: true },
+    { key: "qtd", label: "Qtd", align: "right", mono: true, sortable: true },
+    { key: "total", label: "Custo total", align: "right", mono: true, sortable: true },
+    { key: "unit", label: "Custo unit.", align: "right", mono: true, sortable: true },
+    { key: "sit", label: "Situação", align: "right", sortable: true },
+  ];
 
   return (
     <>
@@ -74,26 +77,24 @@ function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
 
       <div className="mfg-tablewrap">
         {linhas.length > 0 && (
-          <div className="mfg-table op">
-            <div className="mfg-tr mfg-thead">
-              <Th k="data">Data</Th><Th k="ref">Referência</Th><Th k="local">Local</Th>
-              <Th k="produto">Produto</Th><Th k="qtd" r>Qtd</Th><Th k="total" r>Custo total</Th>
-              <Th k="unit" r>Custo unit.</Th><Th k="sit" r>Situação</Th>
-            </div>
-            {visiveis.map(({ op, c }) => (
-              <div className="mfg-tr mfg-row" key={op.id} onClick={() => onOpen(op.id)}>
-                <span className="mfg-num dim">{fmtDate(op.data)}</span>
-                <span className="mfg-sku">{op.ref}</span>
-                <span className="mfg-cat">{op.local}</span>
-                <span className="mfg-name"><b>{c.r ? c.r.name : "—"}</b><span className="mfg-sku">{c.linhas.length} ingredientes · {op.por}</span></span>
-                <span className="mfg-num r">{num(op.qtd, 2)}<span className="mfg-u">{c.r ? c.r.un : ""}</span></span>
-                <span className="mfg-num r">{fmt(c.total)}{c.congelado != null && (
-                  <Tooltip content="custo congelado na data da produção"><span className="mfg-u" tabIndex={0}>fix</span></Tooltip>
-                )}</span>
-                <span className="mfg-num dim r">{fmt(c.unit)}</span>
-                <span className="r"><StatusBadge kind="producao" value={op.final ? "finalizada" : "rascunho"} /></span>
-              </div>
-            ))}
+          <div className="mfg-grid">
+            <DataGrid caption="Ordens de produção" totalLabel="ordens" columns={COLS}
+              rows={linhas.map(({ op, c }) => ({
+                id: op.id,
+                cells: {
+                  data: fmtDate(op.data), ref: op.ref, local: op.local,
+                  produto: { primary: c.r ? c.r.name : "—", sub: c.linhas.length + " ingredientes · " + op.por },
+                  qtd: num(op.qtd, 2) + " " + (c.r ? c.r.un : ""),
+                  total: <>{fmt(c.total)}{c.congelado != null && (
+                    <Tooltip content="custo congelado na data da produção"><span className="mfg-u" tabIndex={0}>fix</span></Tooltip>
+                  )}</>,
+                  unit: fmt(c.unit),
+                  sit: <StatusBadge kind="documento" value={op.final ? "finalizada" : "rascunho"} tone={op.final ? "success" : "outline"} label={op.final ? "Finalizada" : "Rascunho"} />,
+                },
+              }))}
+              sortKey={ord.k} sortDir={ord.dir} onSort={ordenar}
+              onRowClick={(row) => onOpen(row.id)}
+              page={pagina} onPageChange={setPag} pageSize={POR_PAG} pageSizeOptions={[POR_PAG]} />
           </div>
         )}
         {linhas.length === 0 && (
@@ -101,11 +102,6 @@ function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
             title="Nenhuma produção no período"
             description="Amplie o intervalo, troque o local ou desligue o filtro de finalizadas."
             action={<Button size="sm" onClick={() => { setDe("2026-01-01"); setAte("2026-12-31"); setLocal("Todos"); setSoFinal(false); }}>Ampliar para o ano</Button>} />
-        )}
-        {linhas.length > POR_PAG && (
-          <div className="mfg-pag-host">
-            <Pagination page={pagina} pageCount={nPags} onChange={setPag} total={linhas.length} pageSize={POR_PAG} />
-          </div>
         )}
         {linhas.length > 0 && <p className="mfg-foot">{linhas.length} ordens · custo do período <b>{fmt(totalPeriodo)}</b> · ordens finalizadas mostram o custo congelado na data</p>}
       </div>
@@ -266,7 +262,7 @@ function MfgProducaoDrawer({ op, recipes, onClose, onEdit }) {
 
 // ── Relatório de produção (/manufacturing/report) ──
 function MfgRelatorio({ producoes, recipes }) {
-  const { DatePicker, Checkbox, Progress, EmptyState, Button } = ds();
+  const { DatePicker, Checkbox, Progress, EmptyState, Button, DataGrid } = ds();
   const { consumoOP, fmt, num } = G();
   const [de, setDe] = useState("2026-08-01");
   const [ate, setAte] = useState("2026-08-31");
@@ -294,24 +290,27 @@ function MfgRelatorio({ producoes, recipes }) {
       </div>
       <div className="mfg-tablewrap">
         {linhas.length > 0 && (
-          <div className="mfg-table rep">
-            <div className="mfg-tr mfg-thead">
-              <span className="mfg-th">Produto</span><span className="mfg-th r">Ordens</span><span className="mfg-th r">Quantidade</span>
-              <span className="mfg-th r">Custo total</span><span className="mfg-th r">Custo médio</span><span className="mfg-th r">% do período</span>
-            </div>
-            {linhas.map((l) => (
-              <div className="mfg-tr" key={l.name}>
-                <span className="mfg-name"><b>{l.name}</b></span>
-                <span className="mfg-num dim r">{l.ordens}</span>
-                <span className="mfg-num r">{num(l.qtd, 2)}<span className="mfg-u">{l.un}</span></span>
-                <span className="mfg-num r">{fmt(l.custo)}</span>
-                <span className="mfg-num dim r">{fmt(l.qtd > 0 ? l.custo / l.qtd : 0)}</span>
-                <span className="mfg-pct">
-                  <span className="mfg-pct-bar"><Progress variant="bar" value={tot ? l.custo / tot * 100 : 0} max={100} /></span>
-                  <span className="mfg-num dim">{num(tot ? l.custo / tot * 100 : 0, 0)}%</span>
-                </span>
-              </div>
-            ))}
+          <div className="mfg-grid">
+            <DataGrid caption="Relatório de produção" pagination={false}
+              columns={[
+                { key: "produto", label: "Produto" },
+                { key: "ordens", label: "Ordens", align: "right", mono: true },
+                { key: "qtd", label: "Quantidade", align: "right", mono: true },
+                { key: "custo", label: "Custo total", align: "right", mono: true },
+                { key: "medio", label: "Custo médio", align: "right", mono: true },
+                { key: "pct", label: "% do período", align: "right" },
+              ]}
+              rows={linhas.map((l) => ({
+                id: l.name,
+                cells: {
+                  produto: l.name, ordens: l.ordens, qtd: num(l.qtd, 2) + " " + l.un,
+                  custo: fmt(l.custo), medio: fmt(l.qtd > 0 ? l.custo / l.qtd : 0),
+                  pct: <span className="mfg-pct">
+                    <span className="mfg-pct-bar"><Progress variant="bar" value={tot ? l.custo / tot * 100 : 0} max={100} /></span>
+                    <span className="mfg-num dim">{num(tot ? l.custo / tot * 100 : 0, 0)}%</span>
+                  </span>,
+                },
+              }))} />
           </div>
         )}
         {linhas.length === 0 && (
@@ -328,14 +327,13 @@ function MfgRelatorio({ producoes, recipes }) {
 
 // ── Configurações + permissões (settings/index) ──
 function MfgConfig({ settings, setSettings, perms, setPerms }) {
-  const { Button, Input, Switch } = ds();
+  const { Button, Input, Switch, Widget } = ds();
   const { SETTINGS } = G();
   const [s, setS] = useState(settings);
   const dirty = JSON.stringify(s) !== JSON.stringify(settings);
   return (
     <div className="mfg-cfg">
-      <div className="mfg-card">
-        <div className="mfg-sec"><span>Configurações do módulo</span><span className="ln" /></div>
+      <Widget title="Configurações do módulo">
         <div className="mfg-form" style={{ maxWidth: 260 }}>
           <Input label="Prefixo da referência" help="usado na numeração das ordens de produção"
             value={s.prefix} onChange={(e) => setS({ ...s, prefix: e.target.value })} />
@@ -349,14 +347,13 @@ function MfgConfig({ settings, setSettings, perms, setPerms }) {
             sublabel="propaga o custo unitário calculado para a ficha do produto." />
         </div>
         <div className="mfg-ed-f mfg-inline">
-          <span className="mfg-crumb-meta">Manufacturing v{SETTINGS.versao}</span>
+          <span className="mfg-crumb-meta">Fabricação v{SETTINGS.versao}</span>
           <span className="sp" />
           <Button variant="primary" disabled={!dirty} onClick={() => setSettings(s)}>Atualizar</Button>
         </div>
-      </div>
+      </Widget>
 
-      <div className="mfg-card">
-        <div className="mfg-sec"><span>Permissões (simulação)</span><span className="ln" /></div>
+      <Widget title="Permissões (simulação)">
         <p className="mfg-note">Espelha <code>mfg.receita</code> (ver/criar/editar) e <code>mfg.prod</code>. Sem permissão o botão não aparece — nunca aparece desabilitado.</p>
         {/* [B-08] chips locais: o FilterChip do DS é pílula de filtro ativo com ✕, não seletor */}
         <div className="mfg-chips">
@@ -364,16 +361,15 @@ function MfgConfig({ settings, setSettings, perms, setPerms }) {
             <button key={k} className={"mfg-chip" + (perms[k] ? " act" : "")} aria-pressed={!!perms[k]} onClick={() => setPerms({ ...perms, [k]: !perms[k] })}>{l}</button>
           ))}
         </div>
-      </div>
+      </Widget>
 
-      <div className="mfg-card">
-        <div className="mfg-sec"><span>Integrações</span><span className="ln" /></div>
+      <Widget title="Integrações">
         <ul className="mfg-int">
           <li><b>Produtos</b> — a receita pertence a uma variação; o custo calculado alimenta a composição. <button className="mfg-link" onClick={() => window.__go && window.__go("produtos")}>abrir Produtos</button></li>
           <li><b>Compras</b> — salvar nota de insumo recalcula todas as receitas que usam o item. <button className="mfg-link" onClick={() => window.__go && window.__go("compras")}>abrir Compras</button></li>
           <li><b>Fila de produção / OS</b> — a ordem finalizada entra na fila do chão de fábrica. <button className="mfg-link" onClick={() => window.__go && window.__go("fila")}>abrir Fila</button></li>
         </ul>
-      </div>
+      </Widget>
     </div>
   );
 }

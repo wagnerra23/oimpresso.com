@@ -1,0 +1,22 @@
+{
+  "gerado": "2026-09-21",
+  "espelho": "_ds/wagner-office-impresso-design-system-49a36f76-2672-43f6-b955-c6cbb52f7f86/",
+  "bundleBytes": 349364,
+  "namespace": "OfficeImpressoPontoWR2DesignSystem_019dd0",
+  "arquivos": {
+    "_ds_bundle.js": 349364,
+    "_ds_manifest.json": 48728,
+    "colors_and_type.css": 19917,
+    "styles.css": 1366,
+    "cockpit_domains.css": 5705,
+    "support.js": 57224,
+    "_adherence.oxlintrc.json": 37581,
+    "assets/fonts/ibm-plex-sans-400.woff2": 63020,
+    "assets/fonts/ibm-plex-sans-500.woff2": 66740,
+    "assets/fonts/ibm-plex-sans-600.woff2": 67060,
+    "assets/fonts/ibm-plex-sans-700.woff2": 63012,
+    "assets/fonts/ibm-plex-mono-400.woff2": 14708,
+    "assets/fonts/ibm-plex-mono-500.woff2": 14888,
+    "assets/fonts/ibm-plex-mono-600.woff2": 15620
+  }
+}

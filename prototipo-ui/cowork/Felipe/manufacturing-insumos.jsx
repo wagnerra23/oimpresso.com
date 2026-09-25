@@ -4,14 +4,17 @@
 // ADERÊNCIA AO DS (onda A): Drawer, StatusBadge e Button do bundle compilado. O drawer
 // agora prende o foco e fecha no Esc por conta própria — antes o Esc desta tela não
 // funcionava (o listener global vivia em manufacturing-page.jsx e não conhecia este estado).
-// Continuam locais e declarados: a busca (B-02), o slider de simulação (C-04), a tabela (B-01).
+// Onda B (2026-09-23): a busca virou SearchInput dentro de Toolbar e a tabela virou DataGrid.
+// Continua local e declarado: o slider de simulação (C-04 — o manifest do DS não lista slider).
+// [TELA] linha de insumo sem receita também recebe foco/cursor do DataGrid (onRowClick vale para
+// todas as linhas); o clique nela não abre nada.
 (() => {
 const { useState, useMemo } = React;
 const I = window.I;
 const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 
 function MfgInsumosView({ recipes, onAbrirReceita }) {
-  const { Drawer, DrawerSection, Button, StatusBadge, EmptyState } = ds();
+  const { Drawer, DrawerSection, Button, StatusBadge, EmptyState, DataGrid, Toolbar, SearchInput } = ds();
   const { INSUMOS, usosDoInsumo, fmt, num } = window.MFG;
   const [q, setQ] = useState("");
   const [sku, setSku] = useState(null);
@@ -28,34 +31,36 @@ function MfgInsumosView({ recipes, onAbrirReceita }) {
 
   return (
     <>
-      <div className="mfg-bar">
-        <div className="mfg-s">
-          <I.search size={14} className="ic" />
-          <input placeholder="Buscar insumo por nome ou SKU…" value={q} onChange={(e) => setQ(e.target.value)} />
-        </div>
-        <span className="mfg-crumb-meta">clique num insumo para ver quem sobe de custo quando o preço muda</span>
-      </div>
+      <Toolbar tone="transparent"
+        left={<>
+          <div className="mfg-s-host">
+            <SearchInput placeholder="Buscar insumo por nome ou SKU…" value={q} onChange={(e) => setQ(e.target.value)} />
+          </div>
+          <span className="mfg-crumb-meta">clique num insumo para ver quem sobe de custo quando o preço muda</span>
+        </>} />
 
       <div className="mfg-tablewrap">
         {linhas.length > 0 && (
-          <div className="mfg-table ins">
-            <div className="mfg-tr mfg-thead">
-              <span className="mfg-th">Insumo</span><span className="mfg-th">Código</span>
-              <span className="mfg-th r">Custo</span><span className="mfg-th r">Estoque</span>
-              <span className="mfg-th r">Receitas</span><span className="mfg-th r">Maior peso</span>
-            </div>
-            {linhas.map(({ i, n, peso }) => (
-              <div className={"mfg-tr" + (n ? " mfg-row" : "")} key={i.sku} onClick={() => n && setSku(i.sku)}>
-                <span className="mfg-name"><b>{i.n}</b></span>
-                <span className="mfg-sku">{i.sku}</span>
-                <span className="mfg-num r">{fmt(i.c)}<span className="mfg-u">/ {i.u}</span></span>
-                <span className="mfg-num dim r">{num(i.est, 0)}<span className="mfg-u">{i.u}</span></span>
-                <span className="mfg-num r">{n || "—"}</span>
-                <span className="r">{n
-                  ? <StatusBadge tone={peso >= 50 ? "soft-danger" : peso >= 25 ? "soft-warning" : "soft-success"} label={num(peso, 0) + "% do custo"} />
-                  : <span className="mfg-cat">sem receita</span>}</span>
-              </div>
-            ))}
+          <div className="mfg-grid">
+            <DataGrid caption="Insumos" pagination={false}
+              columns={[
+                { key: "n", label: "Insumo" },
+                { key: "sku", label: "Código", mono: true },
+                { key: "c", label: "Custo", align: "right", mono: true },
+                { key: "est", label: "Estoque", align: "right", mono: true },
+                { key: "rec", label: "Receitas", align: "right", mono: true },
+                { key: "peso", label: "Maior peso", align: "right" },
+              ]}
+              rows={linhas.map(({ i, n: nr, peso }) => ({
+                id: i.sku,
+                cells: {
+                  n: i.n, sku: i.sku, c: fmt(i.c) + " / " + i.u, est: num(i.est, 0) + " " + i.u, rec: nr || "—",
+                  peso: nr
+                    ? <StatusBadge tone={peso >= 50 ? "danger" : peso >= 25 ? "warning" : "success"} label={num(peso, 0) + "% do custo"} />
+                    : "sem receita",
+                },
+              }))}
+              onRowClick={(row) => { const l = linhas.find((x) => x.i.sku === row.id); if (l && l.n) setSku(row.id); }} />
           </div>
         )}
         {linhas.length === 0 && (
@@ -94,7 +99,7 @@ function MfgInsumosView({ recipes, onAbrirReceita }) {
                   <span className="m">{num(u.qtd, u.qtd < 1 ? 3 : 2)} {u.base}</span>
                   <span className="m">{fmt(u.unitAtual)}</span>
                   <span className="m tot">{fmt(u.unitNovo)}</span>
-                  <span className="m"><StatusBadge tone={u.margemNova >= 55 ? "soft-success" : u.margemNova >= 45 ? "soft-warning" : "soft-danger"} label={num(u.margemNova, 0) + "%"} /></span>
+                  <span className="m"><StatusBadge tone={u.margemNova >= 55 ? "success" : u.margemNova >= 45 ? "warning" : "danger"} label={num(u.margemNova, 0) + "%"} /></span>
                 </div>
               ))}
             </div>

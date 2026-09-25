@@ -7,12 +7,17 @@
 // (tira CMYK + tira de densidade). Saíram daqui as 4 tintas de processo em hex
 // (#00AEEF #EC008C #FFF200 #231F20) e a escada de cinza calculada em runtime.
 //
+// IMPRESSÃO PELO DS (24/09/2026, decisão da Maiara: "siga o DS"): as folhas abrem no
+// PresenterMode (palco + folha A4 real + zoom + ← → + P imprime + Esc sai, @media print
+// embutido — PresenterMode.jsx L1-35, fonte viva). Saíram daqui o window.print() automático
+// após 120 ms, o afterprint e o bloco "body>* display:none" do CSS da tela. O portal no <body>
+// fica: no print o DS esconde por visibility, e um ancestral oculto ainda ocuparia espaço.
+//
 // CONTORNO DECLARADO: os quatro pintam por token de tela e o cockpit não publica paleta
 // de impressão (ADR 0413, C-08). ProofFrame entra com grid={false} — a grade de prova é
 // ruído sobre papel. Esta folha precisa ser IMPRESSA e conferida antes de fechar a onda:
 // se o token não sobreviver ao @media print, o resultado é a medição, não um ajuste aqui.
 (() => {
-const { useEffect } = React;
 const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 
 function Folha({ r, c, semCusto, hoje }) {
@@ -29,7 +34,7 @@ function Folha({ r, c, semCusto, hoje }) {
       <header className="mfg-sheet-h">
         <span className="mfg-reg-host"><RegistrationMark size={26} strokeWidth={0.7} /></span>
         <div className="id">
-          <span className="eyebrow">Office Impresso · Manufacturing{semCusto ? " · via de produção" : ""}</span>
+          <span className="eyebrow">Office Impresso · Fabricação{semCusto ? " · via de produção" : ""}</span>
           <h1>{r.name}</h1>
           <p>{r.cat} / {r.sub} · {nIng} ingredientes em {r.grupos.length} grupos</p>
         </div>
@@ -111,17 +116,16 @@ function Folha({ r, c, semCusto, hoje }) {
 }
 
 function MfgFichaPrint({ itens, semCusto, onDone }) {
-  useEffect(() => {
-    const fim = () => onDone && onDone();
-    window.addEventListener("afterprint", fim);
-    const t = setTimeout(() => window.print(), 120);
-    return () => { window.removeEventListener("afterprint", fim); clearTimeout(t); };
-  }, []);
+  const { PresenterMode } = ds();
   const hoje = new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  if (!PresenterMode) return null;
+  const n = itens.length;
   return ReactDOM.createPortal(
-    <div className="mfg-print-host">
-      {itens.map(({ r, c }) => <Folha key={r.id} r={r} c={c} semCusto={semCusto} hoje={hoje} />)}
-    </div>, document.body);
+    <PresenterMode open onClose={onDone} pages={n} paper="A4" orientation="portrait"
+      title={semCusto ? "Via de produção" : "Ficha técnica com custo"}
+      subtitle={n + (n > 1 ? " receitas" : " receita") + (semCusto ? " · sem valores de compra" : "")}>
+      {(i) => <Folha r={itens[i].r} c={itens[i].c} semCusto={semCusto} hoje={hoje} />}
+    </PresenterMode>, document.body);
 }
 
 window.MfgFichaPrint = MfgFichaPrint;

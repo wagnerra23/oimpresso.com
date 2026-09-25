@@ -9,13 +9,33 @@
   Quem implementa lê a ficha da tela (§2), vê a lista de blocos e lê só esses blocos. Item novo em
   um bloco atualiza **só a ficha daquele bloco** e sobe a versão dele. Blocos não cobertos estão
   declarados no §1.
-- `pre-export.md` + `conferir-export.mjs` — **o porteiro do pacote.** Dez testes de máquina que
-  reprovam o zip antes de ele sair: espelho único em `_ds/`, namespace lido do cabeçalho
-  `@ds-bundle` do bundle, ausência de alias, código lendo só o nome publicado, espelho igual à
-  linha de base, pesos de fonte distintos, caminhos mortos, referências locais, duplicatas e
-  CRLF medido por byte. `node conferir-export.mjs .` antes de exportar e de novo na importação;
-  `--baseline` **só** logo após regenerar o espelho da fonte viva. Teste novo entra com a seção
-  de mesmo número no `pre-export.md`, nunca sozinho.
+- `pre-export.md` + `conferir-export.mjs` + `conferir-export.cowork.js` + `_export-baseline.json`
+  — **o porteiro do pacote, e ele é obrigatório.** Onze testes de máquina que reprovam o zip
+  antes de ele sair: espelho único em `_ds/`, namespace lido do cabeçalho `@ds-bundle` do
+  bundle, ausência de alias, código lendo só o nome publicado, espelho igual à linha de base,
+  pesos de fonte distintos, caminhos mortos, referências locais, **página que monta tela do DS
+  carregando o `_ds_bundle.js`** (sem ele a tela abre em branco e o console não acusa),
+  duplicatas e CRLF medido por byte. A nota de tamanhos (`_export-baseline.json`) mora na **raiz**, nunca dentro de `_ds/`
+  — `_ds/` é cópia do DS e nota nossa lá dentro se perde na próxima regeneração.
+
+  **Antes de QUALQUER export daqui — inclusive em chat novo, inclusive depois de uma mudança
+  pequena — rodar as dez etapas** do `conferir-export.cowork.js` (um `run_script` por etapa;
+  a chamada exata está no `pre-export.md`, seção "Como usar"). Dez chamadas, sempre todas;
+  parar no meio é não conferir. Reprovou: consertar e rodar de novo, ou dizer à usuária qual
+  teste reprovou e por que vai assim mesmo — nunca exportar em silêncio. No Code, a mesma
+  conferência é `node conferir-export.mjs .` na importação. `--baseline` **só** logo após
+  regenerar o espelho da fonte viva. Teste novo entra com a seção de mesmo número no
+  `pre-export.md`, nunca sozinho.
+- `pre-export-ds.md` + `conferir-ds.mjs` — **o porteiro do export do MEU DS** (depois de
+  puxar as atualizações do DS do Wagner). Doze testes sobre a fonte, não sobre o consumidor:
+  manifest e bundle únicos na raiz, cabeçalho `@ds-bundle` coerente com o manifest, bundle
+  publicando exatamente o catálogo, sem alias, `sourcePath` e `.d.ts` de todo componente,
+  CSS global não-stub, fontes com pesos distintos, templates abrindo, e o DS sem caminho do
+  espelho do protótipo. **Os dois arquivos moram na raiz do projeto do DS** — foram escritos
+  aqui porque não dá para gravar em outro projeto; copiar para lá. No DS, **diferença de
+  tamanho não é defeito, é o pull**: o teste 10 lista o que mudou e `--baseline` grava o
+  recibo depois de conferido. Não misturar com o porteiro do protótipo: quatro testes de lá
+  descrevem o consumidor e não valem aqui.
 - `pauta-design-system.md` — propostas de prop, defeitos de origem do DS e contornos em pé.
   Classificação P1 (propor já) / P2 (esperar segundo caso) / D (defeito).
 - `recomendacoes-outras-telas.md` — o que pertence a Orçamento/PDV, Cadastro, RH e Compras,
@@ -162,6 +182,13 @@ e nunca com a cópia local:
 - `grep` em caminho cross-project (`/projects/…`) **devolve vazio mesmo com o termo presente** —
   nunca usar como prova de ausência. Cross-project é `read_file`.
 - `local_grep` que estoura o tempo **não é ausência** — o próprio retorno diz "results are incomplete".
+- **Estado visual em documento oculto não é estado da tela.** Na prévia,
+  `document.visibilityState` pode ser `"hidden"`, e aí o relógio de animação não avança:
+  `getAnimations()` fica em `currentTime: 0` · `playState: "running"` para sempre e toda
+  propriedade **transicionada** congela no valor inicial. Sintoma típico: "o indicador não
+  acompanha o clique" quando `aria-current` e o `style` inline já mudaram. Antes de chamar isso
+  de defeito, ler o que **não** transiciona (atributo, inline, `aria-*`) e medir o relógio em
+  duas leituras. Procedência `[RUNTIME]`.
 - **Quebra de linha não se mede lendo texto.** O leitor de arquivo entrega o conteúdo já
   normalizado, então "li e está em LF" é cegueira da ferramenta, não medição. LF/CRLF só por
   byte (`0x0D 0x0A`) — é o teste 10 do `conferir-export.mjs`.
