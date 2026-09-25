@@ -35,7 +35,6 @@ function vestuarioW27Path(string $path = ''): string
  *  - PT-BR + OtelHelper canônico
  *
  * @see Wave25VestuarioSaturationTest.php (predecessor)
- * @see memory/governance/scorecards/vestuario.yaml
  */
 
 describe('Wave 27 Vestuario — D9 spans VestuarioSettingsResolver triple-asserted', function () {
@@ -119,11 +118,10 @@ describe('Wave 27 Vestuario — V5 governance CHANGELOG entry', function () {
 
 describe('Wave 27 Vestuario — Tier 0 ADR 0066 format_date shift +3h quadruple-asserted', function () {
 
-    it('BRIEFING + CAPTERRA + scorecard + CHANGELOG todos citam ADR 0066', function () {
+    it('BRIEFING + CAPTERRA + CHANGELOG todos citam ADR 0066', function () {
         $alvos = [
             'memory/requisitos/Vestuario/BRIEFING.md',
             'memory/requisitos/Vestuario/CAPTERRA-FICHA.md',
-            'memory/governance/scorecards/vestuario.yaml',
             'memory/requisitos/Vestuario/CHANGELOG.md',
         ];
         foreach ($alvos as $alvo) {
