@@ -291,6 +291,12 @@ jobs:
         # dívida pré-existente — medido 2026-08-23, nunca executado por lane nenhuma
         # (`modules-pest.yml` não cobre Ponto). Conserto é chip à parte, mesma política
         # do `ModuleManagerTest`.
+        # AfdLeiaute671ContratoTest (2026-09-25): o importador AFD só lia o leiaute 1510/2009.
+        # Contra o parser de main (sha idêntico ao do CT 100): 3 failed · 1 passed · 12
+        # assertions — o 671 (tipos 3/7, trailer, assinatura) caía inteiro em erro. Com o
+        # conserto: 4 passed (8/4/3/3 assertions) junto de ImportacaoShow + Wave26 +
+        # Observability = 41 passed · 158 assertions · 0 skipped. Transação revertida:
+        # zero linha de REP/usuário/importação/marcação sobrando no tenant 98 (conferido).
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
@@ -305,6 +311,7 @@ jobs:
             Modules/Ponto/Tests/Feature/ImportacaoIndexContratoTest.php \
             Modules/Ponto/Tests/Feature/ImportacaoCreateContratoTest.php \
             Modules/Ponto/Tests/Feature/ImportacaoShowContratoTest.php \
+            Modules/Ponto/Tests/Feature/AfdLeiaute671ContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php \
             Modules/Ponto/Tests/Feature/LicencaAbonaDiaContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaEditContratoTest.php \
