@@ -192,6 +192,24 @@ last_run: "2026-09-24"
 
 ---
 
+## UC-CXU-17 · "Marcar todas como lidas" zera só o que o atendente enxerga
+- **Persona:** atendente com `whatsapp.access` e uma pilha de conversas antigas marcadas como não lidas.
+- **Aceite:** Dado conversas com não lidas no meu canal, num canal sem acesso meu e em outro business · Quando uso "Marcar todas como lidas" no menu de status · Então só as conversas do canal que eu enxergo zeram o contador; as outras ficam intactas. Não manda recibo de leitura ao WhatsApp (o recibo sai quando a conversa é aberta de fato).
+- **Teste:** `Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php` — `UC-CXU-17 · R-WA-CAIXA-UNIF-016 — marcar todas como lidas zera só o que o usuário enxerga (ACL + Tier 0)`.
+- **Regressão que defende:** pedido [W] 2026-09-25 ("tem como marcar todas como lida?", com o menu mostrando ~17 mil não lidas). Os dois controles negativos (canal sem ACL, outro business) impedem que o atalho vire um UPDATE sem escopo.
+- **Status: 🧪** — criado 2026-09-25, aguardando o veredito da lane sqlite.
+
+---
+
+## UC-CXU-18 · Abrir a conversa avisa o WhatsApp que as mensagens foram lidas
+- **Persona:** cliente do outro lado, que espera ver os ticks azuis quando o atendente lê.
+- **Aceite:** Dado uma conversa whatsmeow com mensagens recebidas não lidas · Quando o atendente abre a conversa · Então o contador zera e, depois da resposta, o daemon recebe `POST /chat/markread` com o JID do chat e os ids **só das mensagens recebidas**; e Dado uma conversa sem não lidas · Então nenhum recibo é enviado.
+- **Teste:** `Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php` — `UC-CXU-18 · R-WA-CAIXA-UNIF-017 — abrir conversa com não lidas manda recibo de leitura ao WhatsApp (só as recebidas)` + `UC-CXU-18 · controle — conversa sem não lidas não manda recibo nenhum`.
+- **Regressão que defende:** relato [W] 2026-09-25 "não está marcando as mensagens lidas … marca, mas não na hora": o oimpresso só zerava o contador interno e nunca chamava `/chat/markread` (varredura `git grep markread` = 0), então o "lido" só chegava ao cliente quando alguém abria o WhatsApp no aparelho.
+- **Status: 🧪** — criado 2026-09-25, aguardando o veredito da lane sqlite.
+
+---
+
 ## Backlog (prosa honesta — sem UC até ganhar teste que o cite)
 
 O charter descreve estes comportamentos e eles existem na tela, mas **não têm teste** hoje —

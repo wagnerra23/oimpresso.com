@@ -1090,3 +1090,91 @@ it('UC-CXU-15 · R-WA-CAIXA-UNIF-014 — media_inbound_24h filtra pela relação
     expect($filtered['data'])->toHaveCount(1)
         ->and($filtered['data'][0]['id'])->toBe($convMedia->id);
 });
+
+// ============================================================================
+// [W] 2026-09-25 — "não está marcando as mensagens lidas … marca, mas não na hora"
+// ============================================================================
+
+it('UC-CXU-17 · R-WA-CAIXA-UNIF-016 — marcar todas como lidas zera só o que o usuário enxerga (ACL + Tier 0)', function () {
+    $chVisivel = cuctMakeChannel(98, 'caixa-unif-017-visivel-uuid');
+    $chSemAcesso = cuctMakeChannel(98, 'caixa-unif-017-sem-acesso-uuid');
+    $chOutroBiz = cuctMakeChannel(99, 'caixa-unif-017-outro-biz-uuid');
+
+    $visivel = cuctMakeConv(98, $chVisivel->id);
+    $semAcesso = cuctMakeConv(98, $chSemAcesso->id);
+    $outroBiz = cuctMakeConv(99, $chOutroBiz->id);
+    foreach ([[$visivel, 4], [$semAcesso, 7], [$outroBiz, 5]] as [$conv, $n]) {
+        \DB::table('conversations')->where('id', $conv->id)->update(['unread_count' => $n]);
+    }
+
+    cuctSetUserAndGrant(98, 10, [$chVisivel->id]);
+
+    $resp = (new CaixaUnificadaController())->marcarTodasLidas(cuctPostRequest('/atendimento/caixa-unificada/marcar-todas-lidas'));
+
+    expect($resp->getData(true))->toBe(['ok' => true, 'conversas' => 1]);
+    $unread = fn ($c) => (int) \DB::table('conversations')->where('id', $c->id)->value('unread_count');
+    expect($unread($visivel))->toBe(0);
+    // controle negativo: canal sem ACL e outro business ficam intactos
+    expect($unread($semAcesso))->toBe(7);
+    expect($unread($outroBiz))->toBe(5);
+});
+
+it('UC-CXU-18 · R-WA-CAIXA-UNIF-017 — abrir conversa com não lidas manda recibo de leitura ao WhatsApp (só as recebidas)', function () {
+    config([
+        'whatsapp.whatsmeow.daemon_url' => 'https://whatsapp-whatsmeow.test',
+        'whatsapp.whatsmeow.request_timeout' => 5,
+    ]);
+    \Illuminate\Support\Facades\Http::fake([
+        '*/chat/markread' => \Illuminate\Support\Facades\Http::response(['code' => 200, 'success' => true], 200),
+    ]);
+
+    $ch = cuctMakeChannel(98, 'caixa-unif-018-uuid');
+    $ch->config_json = ['whatsmeow_user_token' => 'token-fake-018'];
+    $ch->save();
+    $conv = cuctMakeConv(98, $ch->id);
+    \DB::table('conversations')->where('id', $conv->id)->update([
+        'customer_external_id' => '554899990000@s.whatsapp.net',
+        'unread_count' => 2,
+    ]);
+    foreach ([['inbound', 'IN-A'], ['outbound', 'OUT-B'], ['inbound', 'IN-C']] as [$dir, $id]) {
+        \DB::table('messages')->insert([
+            'business_id' => 98, 'conversation_id' => $conv->id, 'direction' => $dir,
+            'provider' => 'whatsmeow', 'provider_message_id' => $id, 'type' => 'text',
+            'status' => $dir === 'inbound' ? 'received' : 'sent',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+    cuctSetUserAndGrant(98, 10, [$ch->id]);
+
+    cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['thread' => $conv->id]));
+    app()->terminate(); // o recibo sai depois da resposta (afterResponse)
+
+    expect((int) \DB::table('conversations')->where('id', $conv->id)->value('unread_count'))->toBe(0);
+    \Illuminate\Support\Facades\Http::assertSent(function ($req) {
+        $ids = $req['Id'] ?? [];
+        sort($ids);
+        return str_ends_with($req->url(), '/chat/markread')
+            && $req->header('Token')[0] === 'token-fake-018'
+            && $req['Chat'] === '554899990000@s.whatsapp.net'
+            && $ids === ['IN-A', 'IN-C']; // mensagem nossa (outbound) nunca entra
+    });
+});
+
+it('UC-CXU-18 · controle — conversa sem não lidas não manda recibo nenhum', function () {
+    \Illuminate\Support\Facades\Http::fake();
+
+    $ch = cuctMakeChannel(98, 'caixa-unif-018b-uuid');
+    $ch->config_json = ['whatsmeow_user_token' => 'token-fake-018b'];
+    $ch->save();
+    $conv = cuctMakeConv(98, $ch->id);
+    \DB::table('conversations')->where('id', $conv->id)->update([
+        'customer_external_id' => '554899990001@s.whatsapp.net',
+        'unread_count' => 0,
+    ]);
+    cuctSetUserAndGrant(98, 10, [$ch->id]);
+
+    cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['thread' => $conv->id]));
+    app()->terminate();
+
+    \Illuminate\Support\Facades\Http::assertNothingSent();
+});

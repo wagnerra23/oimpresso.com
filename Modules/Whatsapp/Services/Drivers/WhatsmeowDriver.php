@@ -423,6 +423,34 @@ class WhatsmeowDriver implements DriverInterface
      * Cliente HTTP configurado com Token header pra user-scoped endpoints.
      */
     /**
+     * Avisa o WhatsApp que mensagens recebidas foram lidas (ticks azuis no
+     * celular do cliente). Sem isto o "lido" só chegava quando alguém abria a
+     * conversa no aparelho ([W] 2026-09-25: "marca, mas não na hora").
+     *
+     * Contrato medido no daemon (build sha256:7f2aee54, 2026-09-25):
+     * `POST /chat/markread {"Id":[...],"Chat":"<jid>"}` → 200; sem `Chat` → 400.
+     * Best-effort: falha não sobe exceção — ler no oimpresso não pode quebrar.
+     *
+     * @param  array<int, mixed>  $messageIds  provider_message_id (Info.ID do whatsmeow); não-string/vazio é descartado
+     */
+    public function markRead(Channel $channel, string $chatJid, array $messageIds): bool
+    {
+        $userToken = $this->resolveUserTokenFromChannel($channel);
+        $messageIds = array_values(array_filter($messageIds, fn ($id) => is_string($id) && $id !== ''));
+        if ($userToken === null || $chatJid === '' || $messageIds === []) {
+            return false;
+        }
+
+        try {
+            return $this->client($userToken)
+                ->post('/chat/markread', ['Id' => $messageIds, 'Chat' => $chatJid])
+                ->successful();
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
      * Lê a resposta de `GET /session/status` do WuzAPI num formato único.
      *
      * O daemon real (medido 2026-09-25, build sha256:7f2aee54) responde
