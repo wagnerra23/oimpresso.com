@@ -7,6 +7,7 @@ status: draft
 last_validated: "2026-09-25"
 parent_module: Documentacao
 related_prototype: prototipo-ui/cowork/Wagner/programa-doc-page.jsx
+related_us: [US-DOC-002]
 tier: B
 charter_version: 1
 ---
