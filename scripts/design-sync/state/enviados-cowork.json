@@ -1,25 +1,9 @@
 {
   "_nota": "Arquivos que o Code subiu ao Cowork (DesignSync) e que o bundle ativo ainda não trouxe de volta. Escrito por pendentes-cowork.mjs; o receber-handoff limpa o que o retorno confirmar.",
   "enviados": {
-    "cowork-inbox/sidebar/playbook/_saida-08.md": {
-      "sha256": "08148b4769cc6a25d94876c3ff9e165633318de007bb41508d05a14114b7ca6e",
-      "em": "2026-09-25T14:19:32.116Z"
-    },
-    "cowork-inbox/sidebar/playbook/_saida-09.md": {
-      "sha256": "da7f34bf164fe9a6776cdd6c33e75ce19cb82da1f90e216bdec6be2ceac9917e",
-      "em": "2026-09-25T14:19:32.116Z"
-    },
-    "cowork-inbox/sidebar/playbook/_saida-10.md": {
-      "sha256": "514c23a7ba5fbde054660ff250e2cdc803918c46e2d99de390fe6bf69917e994",
-      "em": "2026-09-25T14:18:52.405Z"
-    },
-    "cowork-inbox/sidebar/playbook/_saida-11.md": {
-      "sha256": "627fb3635d26fb8b8bc6a22cce7a52538e689969a82b14cae542a3d8b06fcacf",
-      "em": "2026-09-25T14:52:30.003Z"
-    },
     "cowork-inbox/sidebar/playbook/_saida-12.md": {
       "sha256": "c1d4faa18e6d66cb52c7dd71e9c89e1ffb5f0aa5c44478aa7b79b3abc8250b7c",
-      "em": "2026-09-25T16:36:46.284Z"
+      "em": "2026-09-25T16:47:04.134Z"
     }
   }
 }

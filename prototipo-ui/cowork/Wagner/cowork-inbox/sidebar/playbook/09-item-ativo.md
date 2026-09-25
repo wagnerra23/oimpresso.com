@@ -24,6 +24,9 @@ Lei 1: TODAS as threads da onda 2 escrevem `resources/js/Components/cockpit/Side
 1. `aria-current={ativo ? 'page' : undefined}` no `<a>` do item e no ghost ativo.
 2. `SidebarGroup` recebe `temAtivo` (calculado em `SidebarMenu` com `rotaAtiva` sobre os itens do grupo **e** seus ghosts) e abre quando `true`. **Não** grava no localStorage por causa disso (só clique do usuário persiste — mesma regra do auto-rail, UI-0030).
 
+## Também (sobra da 08)
+3. Contador de telas `.sb-ghost-count` e dica `.sb-kbd`: cor `--text-mute` como no protótipo (vivo usa `--sb-text-dim`) — linha **e** da `_saida-07`, que a 08 não aplicou por não estar no "Faz" dela.
+
 ## Prova
 - pré-condição: `Sidebar.tsx` contém `aria-current={ativo`.
 - fecha: `execucao` — teste novo em `tests/js/` (render com URL de um item de grupo fechado no LS → grupo aberto + `aria-current`), recibo `junit-summary.mjs`.

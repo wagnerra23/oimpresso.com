@@ -49,7 +49,7 @@ Instrumentos do protótipo que **nunca** vão pro vivo: `WipMark` · `podeVer(pa
 > **Já puxado do vivo pro protótipo neste dia ([W] escolheu):** ícone colorido no cabeçalho · borda do ativo sempre `--accent` · PLATAFORMA só Forja · cascata lateral de item com filhos. Esses **não** são pedido.
 > **Tokens `--sb-*`:** o vivo já está em hue 295, byte-igual ao protótipo — o split que a ADR 0385 registrava acabou.
 
-O que sobra, com o protótipo à frente (UI-0029: forma é do protótipo): **5 PRs de código + 1 de medição**, todos em `Sidebar.tsx` → **seriais** (Lei 1).
+O que sobra, com o protótipo à frente (UI-0029: forma é do protótipo): **7 PRs de código + 1 de medição**, todos em `Sidebar.tsx` → **seriais** (Lei 1).
 
 | # | thread | dono | seção do contrato | vaga |
 |---|---|---|---|---|
@@ -59,8 +59,17 @@ O que sobra, com o protótipo à frente (UI-0029: forma é do protótipo): **5 P
 | 10 | Sub-telas: promover a ativa + "mostrar menos" | [CL] | `sb-corpo` | 7 |
 | 11 | Rail: ícone do grupo + grupo ativo + dica fixa | [CL] | `sb-modos` | 8 |
 | 12 | Rodapé: valor do modo + "Buscar tela ⌘K" + tirar `⌘/` morto | [CL] | `sb-rodape` | 9 |
+| 15 | Máquina: `alvo.mjs` mede expanded/hidden (hoje só rail) | [CL] | todas | 6 (∥ 09) |
+| 16 | Charter + casos do Sidebar (`pedido.mjs` para em "sem charter") | [CL] | — | 6 (∥ 09) |
+| 13 | Presença clicável e persistida (padrão do `ui_theme`) | [CL] | `sb-rodape` | 10 |
+| 14 | Ícone por sub-tela (`SidebarGhost::$icon` opcional) | [CL] | `sb-corpo` | 11 |
 
-**Fica fora (sem receptor ou decisão):** presença clicável (RESIDUO-6) · ícone por sub-tela (RESIDUO-7) · 13px × 13,5px do item e 10px × 10,5px do cabeçalho (RESIDUO-8) · contador por item de grupo (só 3 contadores existem em `shell.sidebar_counts`) · "+ Adicionar empresa" navegável (a 13/09 já declarou: regra de superadmin não chega ao front) · `WipMark`/`podeVer` (instrumentos do protótipo).
+> **Retorno 2026-09-25 (lido no main f3611e548698):** **07 feita** (#7943 — `cockpit--sidebar.alvo.json` + `.secoes.json`, `secao-check` 5 conforme) · **08 feita** (#7942 — seta à direita, cor/raio/rótulo/ícone; 16 vitest verdes). As duas sem recibo `revisao`/`comparacao` (avaliador não portado, ADR 0397).
+> **O que o retorno mudou aqui:** (1) o alvo só tem o **rail** → nasce a **15** (máquina mede expanded) e as 08–10 só viram cobrança de CI depois dela · (2) `pedido.mjs --secao` para em "sem charter" → nasce a **16** · (3) `sb-rodape` sairia AUSENTE contra o vivo (`.sb-user` × `.sb-user-wrap`) → **corrigido no protótipo** (`sidebar.jsx?v=sb27` embrulha o rodapé em `.sb-user-wrap`, como o `SidebarFooter`) · (4) linha e (cor do contador) → entra na **09** · (5) flyout do rail + rótulo no tema claro → entram na **11** · (6) **errata da ficha 07:** a cor `oklch(.68 .13 h)` era do `.sb-group-dot`, que não aparece (os 9 grupos têm ícone); o delta real do ícone era só a croma .14 × .15.
+> Não mexi: chave `oimpresso.sidebar.mode` × `oimpresso.sb.mode` (origens diferentes, não quebra) · slot do certificado `button` no protótipo × `<a>` no vivo (fica dentro de `sb-topo`, não vira seção).
+
+**[W] 2026-09-25 respondeu RESIDUO-6/7/8:** presença vira real (13) · sub-tela ganha ícone (14) · tipo: o **protótipo** foi corrigido pro RAMP (`--fs-4` 13,5 no item, `--fs-1` 10,5 no cabeçalho — `styles.css?v=ph26f`), então não há pedido de tipo pro vivo.
+**Fica fora:** contador por item de grupo (só 3 contadores existem em `shell.sidebar_counts`) · "+ Adicionar empresa" navegável (a 13/09 já declarou: regra de superadmin não chega ao front) · `WipMark`/`podeVer` (instrumentos do protótipo).
 
 ## 2 · Threads — ordem · dono · prefixo (Lei 1) · dependência
 
@@ -149,7 +158,7 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
   "modulo": "Sidebar",
   "sha": "af09f7c3a0fd",
   "gerado": "2026-09-10",
-  "onda2": { "gerado": "2026-09-25", "sha": "610fff15c6ac", "threads": ["07","08","09","10","11","12"] },
+  "onda2": { "gerado": "2026-09-25", "sha": "610fff15c6ac", "threads": ["07","08","09","10","11","12","13","14","15","16"], "retorno": "07 e 08 feitas (_saida-07/08, main f3611e548698)" },
   "granularidade": "secao",
   "absorve": ["prototipo-ui/design-docs/handoff-sidebar/PEDIDO-CODE.md"],
   "variaveis": { "CKPT": "resources/js/Components/cockpit", "BUILD": "prototipo-ui/cowork/Wagner", "CT": "governance/design/contracts/cockpit-sidebar.contract.json", "REC": "prototipo-ui/cowork/Wagner/cowork-inbox/sidebar/playbook/recibos" },
@@ -159,9 +168,9 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
     { "id": "RESIDUO-2", "pergunta": "Aposentar SidebarTabs/SidebarChat/ConvRow do protótipo (UI-0011) ou selar como demo?", "respondida": true, "resposta": "remover — medido 2026-09-10: zero call sites; ChatPage/ConvTabsBar/Thread/LinkedAppsPanel também mortas; remoção dividida 01 (JSX+CSS) × 02 (estado em app.jsx)", "destrava": ["01", "02"] },
     { "id": "RESIDUO-3", "pergunta": "Modo hidden vira canon do shell (SidebarMode) ou morre nos dois lados?", "respondida": true, "resposta": "não era decisão: modo e alça são forma e o protótipo tem os dois — pela UI-0029 o shell ganha o terceiro modo.", "destrava": ["04"] },
     { "id": "RESIDUO-4", "pergunta": "Slot de alerta pós-CompanyPicker no protótipo: NfeCertBadge real ou placeholder?", "respondida": true, "resposta": "[W] 2026-09-10: importar o real (Saída A). Executado na thread 03 — 4 estados de MOCK.NFE_CERT, silencioso em ok/sem_cert.", "destrava": ["03"] },
-    { "id": "RESIDUO-6", "pergunta": "Presença (Disponível/Ocupado/Ausente/Invisível) clicável: o protótipo tem 4 estados locais; o vivo mostra 3 sem ação. Cria receptor no backend ou o protótipo volta a exibir só?", "respondida": false, "destrava": [] },
-    { "id": "RESIDUO-7", "pergunta": "Ícone por sub-tela: o protótipo desenha, ShellMenuItem.ghosts não tem campo icon. Estende SidebarGhost.php ou o protótipo tira o ícone?", "respondida": false, "destrava": [] },
-    { "id": "RESIDUO-8", "pergunta": "Tipo: protótipo usa 13px (item) e 10px (cabeçalho), fora do RAMP; o vivo usa --fs-4 13,5 e --fs-1 10,5. Pela regra 'o alvo não é sagrado' o protótipo se corrige pro RAMP — confirmar.", "respondida": false, "destrava": [] },
+    { "id": "RESIDUO-6", "pergunta": "Presença (Disponível/Ocupado/Ausente/Invisível) clicável: o protótipo tem 4 estados locais; o vivo mostra 3 sem ação. Cria receptor no backend ou o protótipo volta a exibir só?", "respondida": true, "resposta": "[W] 2026-09-25: vira real — coluna users.ui_presence no padrão do ui_theme", "destrava": ["13"] },
+    { "id": "RESIDUO-7", "pergunta": "Ícone por sub-tela: o protótipo desenha, ShellMenuItem.ghosts não tem campo icon. Estende SidebarGhost.php ou o protótipo tira o ícone?", "respondida": true, "resposta": "[W] 2026-09-25: SidebarGhost ganha icon opcional", "destrava": ["14"] },
+    { "id": "RESIDUO-8", "pergunta": "Tipo: protótipo usa 13px (item) e 10px (cabeçalho), fora do RAMP; o vivo usa --fs-4 13,5 e --fs-1 10,5. Pela regra 'o alvo não é sagrado' o protótipo se corrige pro RAMP — confirmar.", "respondida": true, "resposta": "[W] 2026-09-25: corrigido no protótipo (styles.css ph26f). Sem pedido pro vivo.", "destrava": [] },
     { "id": "RESIDUO-5", "pergunta": "O rail (56px) do alerta de certificado: o vivo não tem variante estreita e eu inventei um ícone-only. Se a 04 promover, o rail ganha o mesmo tratamento ou fica sem alerta?", "respondida": false, "destrava": ["04"] }
   ],
   "threads": [
@@ -273,7 +282,11 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
       "nao_toca": ["${BUILD}/", "app/Sidebar/", "resources/js/Layouts/AppShellV2.tsx"],
       "depende_threads": ["07","11"],
       "provas": [{"tipo":"contem","path":"${CKPT}/Sidebar.tsx","padrao":"Buscar tela"},{"tipo":"nao_contem","path":"${CKPT}/Sidebar.tsx","padrao":"<span className=\"kbd\">⌘/</span>"},{"tipo":"execucao","path":"${REC}/12-execucao.json","testes":["tests/sidebarAparencia.spec.tsx"]}],
-      "nota_estado": "onda 2 (2026-09-25) · seção sb-rodape" }
+      "nota_estado": "onda 2 (2026-09-25) · seção sb-rodape" },
+    {"id":"13", "titulo":"Presença clicável e persistida", "dono":"CL", "vaga":10,"arquivo":"13-presenca.md", "prefixo":["${CKPT}/Sidebar.tsx", "database/migrations/", "routes/web.php", "app/Http/", "tests/Feature/", "${CT}"],"nao_toca":["${BUILD}/", "app/Sidebar/"],"depende_threads":["07", "12"],"depende_decisoes":["RESIDUO-6"],"provas":[{"tipo":"contem", "path":"${CKPT}/Sidebar.tsx", "padrao":"Invisível"},{"tipo":"nao_contem", "path":"${CKPT}/Sidebar.tsx", "padrao":"Não perturbe"},{"tipo":"execucao", "path":"${REC}/13-execucao.json", "testes":["tests/Feature/"],"nota":"rota: 4 válidos, 1 inválido 422, grava users.ui_presence"}],"nota_estado":"onda 2 · decisão [W] 2026-09-25 · padrão = useTheme.ts:70 + routes/web.php:1162"},
+    {"id":"14", "titulo":"Ícone por sub-tela (SidebarGhost::$icon opcional)", "dono":"CL", "vaga":11,"arquivo":"14-ghost-icone.md", "prefixo":["app/Sidebar/SidebarGhost.php", "${CKPT}/shared.ts", "${CKPT}/Sidebar.tsx", "tests/Feature/Sidebar/"],"nao_toca":["${BUILD}/"],"depende_threads":["07", "10", "13"],"depende_decisoes":["RESIDUO-7"],"provas":[{"tipo":"contem", "path":"app/Sidebar/SidebarGhost.php", "padrao":"?string $icon"},{"tipo":"execucao", "path":"${REC}/14-execucao.json", "testes":["tests/Feature/Sidebar/SidebarMenuItemContractTest.php"]}],"nota_estado":"onda 2 · decisão [W] 2026-09-25 · 1 DataController preenchido como prova"},
+    {"id":"15", "titulo":"Máquina: alvo.mjs mede expanded/hidden", "dono":"CL", "vaga":6,"arquivo":"15-alvo-expanded.md", "prefixo":["scripts/design/", "governance/design/targets/"],"nao_toca":["${CKPT}/", "${BUILD}/"],"depende_threads":["07"],"provas":[{"tipo":"arquivo", "path":"governance/design/targets/cockpit--sidebar.alvo.json", "guarda":true},{"tipo":"revisao", "path":"${REC}/15-revisao.json", "fontes":["governance/design/targets/cockpit--sidebar.alvo.json"],"criterios":["jana--index-sem-regressao", "expanded-medido", "bite-test-sb-group-h"]}],"nota_estado":"nasce do _saida-07 §Não feito 1 · destrava a comparacao de 08/09/10"},
+    {"id":"16", "titulo":"Charter + casos do Sidebar", "dono":"CL", "vaga":6,"arquivo":"16-charter-sidebar.md", "prefixo":["resources/js/Components/cockpit/Sidebar.charter.md", "resources/js/Components/cockpit/Sidebar.casos.md"],"nao_toca":["${CKPT}/Sidebar.tsx", "${BUILD}/"],"depende_threads":["07"],"provas":[{"tipo":"arquivo", "path":"resources/js/Components/cockpit/Sidebar.charter.md"},{"tipo":"revisao", "path":"${REC}/16-revisao.json", "fontes":["resources/js/Components/cockpit/Sidebar.charter.md"],"criterios":["ancora-resolve", "pedido-secao-rc0"]}],"nota_estado":"nasce do _saida-07 §Não feito 2"}
   ]
 }
 ```

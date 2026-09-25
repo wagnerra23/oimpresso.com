@@ -337,7 +337,7 @@ body{
 /* ── Aba MENU ── */
 .sb-menu{ padding: 8px; }
 .sb-group-h{
-  font-size: 10px;
+  font-size: var(--fs-1, 10.5px);
   font-weight: 600;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -378,7 +378,7 @@ button:where(.sb-item, .um-item, .sb-dd-i, .sb-dd-foot){ font-size: inherit; }
   height: var(--row-h);
   border-radius: var(--radius-sm);
   color: var(--sb-text);
-  font-size: 13px;
+  font-size: var(--fs-4, 13.5px);
   cursor: default;
   position: relative;
 }
@@ -5072,7 +5072,7 @@ button:where(.sb-item, .um-item, .sb-dd-i, .sb-dd-foot){ font-size: inherit; }
   cursor: pointer;
   border-radius: 4px;
   user-select: none;
-  font-size: 10px;
+  font-size: var(--fs-1, 10.5px);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;

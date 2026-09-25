@@ -736,7 +736,9 @@ function Sidebar({ company, onCompany, activeRoute, onSelectRoute, mode = "expan
         <SidebarMenuRail activeRoute={activeRoute} onSelectRoute={onSelectRoute} papel={papel} showGhosts={showGhosts} /> :
         <SidebarMenu activeRoute={activeRoute} onSelectRoute={onSelectRoute} papel={papel} showGhosts={showGhosts} />}
       </div>
-      {rail ? <SidebarUserRail /> : <SidebarUser />}
+      {/* .sb-user-wrap: mesmo invólucro do vivo (SidebarFooter, data-contract="sb-rodape") — sem ele o
+          seletor "aside > .sb-user" do alvo não casa com o vivo e o sb-rodape sai AUSENTE (_saida-07). */}
+      <div className="sb-user-wrap">{rail ? <SidebarUserRail /> : <SidebarUser />}</div>
       {tip &&
       <div className="sb-rail-tip" role="presentation" style={{ top: tip.top, left: tip.left }}>{tip.texto}</div>}
 

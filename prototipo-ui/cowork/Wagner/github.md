@@ -3,6 +3,22 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-25T13:54:17Z
+tree: f3611e548698
+branch: main
+
+### Updated in this project
+- **Retorno Sidebar lido:** 07 (alvo `cockpit--sidebar`) e 08 (cabeçalho do grupo) feitas no `main`; `_saida-07/08` trazidos pro projeto. Novas threads 15 (alvo mede expanded) e 16 (charter do Sidebar); sobras da 08 entram na 09 e na 11. Protótipo: rodapé embrulhado em `.sb-user-wrap` (`sidebar.jsx?v=sb27`).
+
+## Sync anterior (2026-09-25 13:50)
+date: 2026-09-25T13:50:47Z
+tree: 034e476895cb
+branch: main
+
+### Updated in this project
+- **Playbook Sidebar onda 2** (`cowork-inbox/sidebar/playbook/` 07–14): 8 PRs seriais em `Sidebar.tsx` (1 medição + 7 código). RESIDUO-6/7/8 respondidos por [W]: presença real (13), ícone por sub-tela (14), tipo do protótipo corrigido pro RAMP (`styles.css?v=ph26f`).
+
+## Sync anterior (2026-09-25 12:33)
 date: 2026-09-25T12:33:18Z
 tree: 2e693aa3abb8
 branch: main
