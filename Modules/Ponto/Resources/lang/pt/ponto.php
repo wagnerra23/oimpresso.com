@@ -23,6 +23,7 @@ return [
         'escalas'         => 'Escalas',
         'importacoes'     => 'Importações',
         'relatorios'      => 'Relatórios',
+        'conformidade'    => 'Conformidade CLT',
         'colaboradores'   => 'Colaboradores',
         'configuracoes'   => 'Configurações',
     ],
