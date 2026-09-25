@@ -274,6 +274,51 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     completed:  { variant: 'success', label: 'Concluída' },
     final:      { variant: 'success', label: 'Concluída' },
   },
+  /**
+   * `sla` · `frescor` · `atendimento` — os três kinds que só o StatusBadge do DS tinha
+   * (decisão D-SB-KINDS, [W] 2026-09-24; playbook `ds-atomos` thread 05).
+   *
+   * Chaves e rótulos são LITERAIS do `MAP` do StatusBadge em
+   * `prototipo-ui/design-system/_ds_bundle.js`. A cor não é: o bundle nomeia os tokens como
+   * `--color-sla-*` e `--color-canal-*-soft`, que NÃO existem no app. Os que existem (e foram
+   * lidos com `getComputedStyle` dentro de `.cockpit`, light e dark, em 2026-09-25) são
+   * `--sla-{fresh,aging,late,expired}[-soft]` e `--canal-{email,ig,fb,ml}-{tint,fg}`, saída do
+   * Style Dictionary em `tokens/_generated-cockpit-{light,dark}.css`. Nenhum token novo.
+   *
+   * Forma AP7: `outline` (sem fill) + fundo tintado + texto, com o dot do `Badge` em
+   * `currentColor`. `--canal-*-bg` é o chip SÓLIDO e fica de fora de propósito.
+   * Atrasado (`late`, hue 30) e Vencido (`expired`, hue 25) têm tokens distintos — emenda [W]
+   * 2026-09-24: "pode ter cores diferentes atrasado e vencido".
+   *
+   * Os tokens vivem em `.cockpit`: fora do AppShellV2 a pílula sai sem cor. Não duplicar
+   * token para cobrir isso — reportar a tela.
+   *
+   * FORA por decisão: `fiscal` (fonte única é `FiscalStatusBadge`) e `tipo` PJ/PF (exigiria
+   * token que não existe).
+   */
+  sla: {
+    fresh:   { variant: 'outline', label: 'No prazo', className: 'bg-[var(--sla-fresh-soft)] text-[var(--sla-fresh)] border-transparent' },
+    aging:   { variant: 'outline', label: 'Vencendo', className: 'bg-[var(--sla-aging-soft)] text-[var(--sla-aging)] border-transparent' },
+    late:    { variant: 'outline', label: 'Atrasado', className: 'bg-[var(--sla-late-soft)] text-[var(--sla-late)] border-transparent' },
+    expired: { variant: 'outline', label: 'Vencido',  className: 'bg-[var(--sla-expired-soft)] text-[var(--sla-expired)] border-transparent' },
+  },
+  // Recência de compra do cliente (CRM). O DS deriva de `--color-success/-warning/-destructive`
+  // a 16% — é o par soft que as variantes do `ui/badge` já rendem.
+  frescor: {
+    recente:  { variant: 'success', label: 'recente' },
+    fresc:    { variant: 'warning', label: 'fresc' },
+    frio:     { variant: 'danger',  label: 'frio' },
+    distante: { variant: 'danger',  label: 'distante' },
+  },
+  // Canal do atendimento (inbox omnichannel). WhatsApp não tem token de canal: o DS usa o
+  // verde do SLA. É pílula soft de status, não CTA.
+  atendimento: {
+    email:        { variant: 'outline', label: 'E-mail',        className: 'bg-[var(--canal-email-tint)] text-[var(--canal-email-fg)] border-transparent' },
+    instagram:    { variant: 'outline', label: 'Instagram',     className: 'bg-[var(--canal-ig-tint)] text-[var(--canal-ig-fg)] border-transparent' },
+    facebook:     { variant: 'outline', label: 'Facebook',      className: 'bg-[var(--canal-fb-tint)] text-[var(--canal-fb-fg)] border-transparent' },
+    mercadolivre: { variant: 'outline', label: 'Mercado Livre', className: 'bg-[var(--canal-ml-tint)] text-[var(--canal-ml-fg)] border-transparent' },
+    whatsapp:     { variant: 'outline', label: 'WhatsApp',      className: 'bg-[var(--sla-fresh-soft)] text-[var(--sla-fresh)] border-transparent' },
+  },
 };
 
 interface Props {
@@ -282,23 +327,46 @@ interface Props {
   className?: string;
   /** Override label se necessário (útil quando o DB retorna string diferente). */
   label?: string;
+  /**
+   * Sufixo de tempo relativo, depois do rótulo com separador `·` (ex.: `rel="há 1 sem"` →
+   * "recente · há 1 sem"). Vale em qualquer kind. Ausente = markup de hoje, sem nó a mais.
+   */
+  rel?: string;
+  /**
+   * Sobrescreve a variante do mapa (e a `outline` do fallback). Tipado pelo `Variant` derivado
+   * do `badgeVariants`: tom fora do DS não compila. Com `tone`, a `className` de cor da entrada
+   * sai junto — ela é a cor DAQUELE tom, e somar as duas deixaria a do mapa vencer por cima.
+   */
+  tone?: Variant;
 }
 
-export default function StatusBadge({ kind, value, className, label }: Props) {
+export default function StatusBadge({ kind, value, className, label, rel, tone }: Props) {
   const dict = mappings[kind as string] ?? {};
   const entry = dict[value?.toLowerCase?.() ?? value];
+  const sufixo = rel ? (
+    <>
+      <span data-slot="status-rel-sep" aria-hidden="true" className="opacity-55">·</span>
+      <span data-slot="status-rel" className="font-normal opacity-85">{rel}</span>
+    </>
+  ) : null;
 
   if (!entry) {
     return (
-      <Badge variant="outline" dot className={cn('font-medium', className)}>
+      <Badge variant={tone ?? 'outline'} dot className={cn('font-medium', className)}>
         {label ?? toTitle(value)}
+        {sufixo}
       </Badge>
     );
   }
 
   return (
-    <Badge variant={entry.variant} dot className={cn('font-medium', entry.className, className)}>
+    <Badge
+      variant={tone ?? entry.variant}
+      dot
+      className={cn('font-medium', tone ? undefined : entry.className, className)}
+    >
       {label ?? entry.label}
+      {sufixo}
     </Badge>
   );
 }
