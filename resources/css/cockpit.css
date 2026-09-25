@@ -2448,33 +2448,27 @@
   box-shadow: 0 0 0 2px var(--sb-bg);
 }
 
-/* Tooltip via data-tip (somente no rail, hover ~600ms) */
-.cockpit .sb--rail [data-tip] { position: relative; }
-.cockpit .sb--rail [data-tip]::after {
-  content: attr(data-tip);
-  position: absolute;
-  left: calc(100% + 8px);
-  top: 50%;
+/* Dica do rail — camada FIXA montada pelo `SidebarMenuRail` (thread 11 do
+   playbook do sidebar; paridade `.sb-rail-tip` do protótipo). Antes era um
+   `[data-tip]::after` absoluto, que projetava o rótulo além da coluna e virava
+   overflow horizontal do `.sb-body` (overflow-y:auto força overflow-x:auto):
+   medido 2026-09-25, scrollWidth 224 × clientWidth 55. O `::after` saiu. */
+.cockpit .sb-rail-tip {
+  position: fixed;
   transform: translateY(-50%);
-  padding: 4px 8px;
-  background: var(--sb-bg-2);
-  color: var(--sb-text-hi);
-  border: 1px solid var(--sb-border);
-  border-radius: 4px;
+  z-index: 90;
+  pointer-events: none;
+  white-space: nowrap;
+  padding: 5px 9px;
+  border-radius: 6px;
   font-size: 11.5px;
   font-weight: 500;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 120ms 400ms;
-  z-index: 60;
+  line-height: 1.2;
+  color: var(--sb-text-hi);
+  background: var(--sb-bg-2);
+  border: 1px solid var(--sb-border);
+  box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.55);
 }
-.cockpit .sb--rail [data-tip]:hover::after {
-  opacity: 1;
-  transition-delay: 0ms;
-}
-/* Não exibir tooltip quando flyout do mesmo botão está aberto */
-.cockpit .sb--rail .sb-rail-btn.open[data-tip]::after { opacity: 0; }
 
 /* Flyout do grupo (cascata lateral quando clica no botão rail) */
 .cockpit .sb-rail-flyout {
