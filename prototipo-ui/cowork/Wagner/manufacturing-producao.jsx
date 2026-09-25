@@ -12,34 +12,39 @@ const Campo = (p) => window.MfgCampo(p);
 function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
   const { LOCAIS, consumoOP, fmt, num, fmtDate } = G();
   const [local, setLocal] = useState("Todos");
-  const [de, setDe] = useState("2026-08-01");
-  const [ate, setAte] = useState("2026-08-31");
+  const [de, setDe] = useState("");
+  const [ate, setAte] = useState("");
   const [soFinal, setSoFinal] = useState(false);
-  const [ord, setOrd] = useState({ k: "data", dir: "desc" });
-  const [pag, setPag] = useState(1);
+  // Espelho do vivo (Index.tsx): ordem fixa do servidor (data desc), sem ordenação por coluna e sem paginação.
+  // De/Até aplicam na hora (D-MFG-DATA 2026-09-25) — o vivo passa a fazer igual (playbook manufacturing/04).
+  const noIntervalo = (d) => (!de || d >= de) && (!ate || d <= ate);
 
-  const CH = { data: (l) => l.op.data, ref: (l) => l.op.ref, local: (l) => l.op.local, produto: (l) => (l.c.r ? l.c.r.name : ""), qtd: (l) => l.op.qtd, total: (l) => l.c.total, unit: (l) => l.c.unit, sit: (l) => (l.op.final ? 1 : 0) };
   const linhas = useMemo(() => {
     const base = producoes.map((op) => ({ op, c: consumoOP(op, recipes) }))
-      .filter(({ op }) => (local === "Todos" || op.local === local) && op.data >= de && op.data <= ate && (!soFinal || op.final));
-    const f = CH[ord.k] || CH.data;
-    return base.sort((a, b) => { const va = f(a), vb = f(b); const r = va > vb ? 1 : va < vb ? -1 : 0; return ord.dir === "asc" ? r : -r; });
-  }, [producoes, recipes, local, de, ate, soFinal, ord]);
+      .filter(({ op }) => (local === "Todos" || op.local === local) && noIntervalo(op.data) && (!soFinal || op.final));
+    return base.sort((a, b) => (a.op.data < b.op.data ? 1 : a.op.data > b.op.data ? -1 : 0));
+  }, [producoes, recipes, local, de, ate, soFinal]);
   const totalPeriodo = linhas.reduce((s, l) => s + l.c.total, 0);
-  const POR_PAG = 10;
-  const nPags = Math.max(1, Math.ceil(linhas.length / POR_PAG));
-  const pagina = Math.min(pag, nPags);
-  const visiveis = linhas.slice((pagina - 1) * POR_PAG, pagina * POR_PAG);
-  const ordenar = (k) => { setOrd((o) => ({ k, dir: o.k === k && o.dir === "asc" ? "desc" : "asc" })); setPag(1); };
-  const Th = ({ k, children, r: right }) => (
-    <button className={"mfg-th sort" + (right ? " r" : "") + (ord.k === k ? " act" : "")} onClick={() => ordenar(k)}>
-      {right && <span className="ind">{ord.k === k ? (ord.dir === "asc" ? "↑" : "↓") : "⇵"}</span>}{children}
-      {!right && <span className="ind">{ord.k === k ? (ord.dir === "asc" ? "↑" : "↓") : "⇵"}</span>}
-    </button>
-  );
+  // Espelho do vivo (Pages/Manufacturing/Index.tsx @2c115a5ca250): 4 KpiCards sobre o conjunto de local+período
+  // (summary do ProductionService) — "Finalizadas" liga/desliga o MESMO filtro do checkbox "Só finalizadas".
+  const noPeriodo = useMemo(() => producoes.map((op) => ({ op, c: consumoOP(op, recipes) }))
+    .filter(({ op }) => (local === "Todos" || op.local === local) && noIntervalo(op.data)), [producoes, recipes, local, de, ate]);
+  const sum = { total: noPeriodo.length, final: noPeriodo.filter((l) => l.op.final).length, valor: noPeriodo.reduce((s, l) => s + l.c.total, 0) };
+  sum.pend = sum.total - sum.final;
+  const filtrosAtivos = local !== "Todos" || soFinal || !!de || !!ate;
+  const limpar = () => { setLocal("Todos"); setDe(""); setAte(""); setSoFinal(false); };
+  const Th = ({ children, r: right }) => <span className={"mfg-th" + (right ? " r" : "")}>{children}</span>;
 
   return (
     <>
+      <div className="mfg-kpis" data-contract="kpis">
+        <div className="mfg-kpi"><span className="mfg-kpi-l"><I.layers size={12} />Total</span><span className="mfg-kpi-v">{sum.total}</span></div>
+        <button type="button" className={"mfg-kpi" + (soFinal ? " act" : "")} aria-pressed={soFinal} onClick={() => setSoFinal(!soFinal)}>
+          <span className="mfg-kpi-l"><I.check size={12} />Finalizadas</span><span className={"mfg-kpi-v" + (soFinal ? " pos" : "")}>{sum.final}</span>
+        </button>
+        <div className="mfg-kpi"><span className="mfg-kpi-l"><I.clock size={12} />Pendentes</span><span className="mfg-kpi-v">{sum.pend}</span></div>
+        <div className="mfg-kpi"><span className="mfg-kpi-l"><span className="mfg-kpi-rs" aria-hidden="true">R$</span>Valor total</span><span className="mfg-kpi-v">{fmt(sum.valor)}</span></div>
+      </div>
       <div className="mfg-filters">
         <Campo label="Local" w={180}>
           <select className="mfg-inp" value={local} onChange={(e) => setLocal(e.target.value)}>
@@ -49,6 +54,7 @@ function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
         <Campo label="De" w={140}><input className="mfg-inp" type="date" value={de} onChange={(e) => setDe(e.target.value)} /></Campo>
         <Campo label="Até" w={140}><input className="mfg-inp" type="date" value={ate} onChange={(e) => setAte(e.target.value)} /></Campo>
         <label className="mfg-check"><input type="checkbox" checked={soFinal} onChange={(e) => setSoFinal(e.target.checked)} /> Só finalizadas</label>
+        {filtrosAtivos && <button type="button" className="os-btn ghost sm" onClick={limpar}><I.x size={12} /> Limpar</button>}
         <span className="sp" />
       </div>
 
@@ -57,10 +63,10 @@ function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
           <div className="mfg-tr mfg-thead">
             <Th k="data">Data</Th><Th k="ref">Referência</Th><Th k="local">Local</Th>
             <Th k="produto">Produto</Th><Th k="qtd" r>Qtd</Th><Th k="total" r>Custo total</Th>
-            <Th k="unit" r>Custo unit.</Th><Th k="sit" r>Situação</Th>
+            <Th k="unit" r>Custo unit.</Th><Th k="sit">Situação</Th>
           </div>
-          {visiveis.map(({ op, c }) => (
-            <div className="mfg-tr mfg-row" key={op.id} onClick={() => onOpen(op.id)}>
+          {linhas.map(({ op, c }) => (
+            <div className="mfg-tr mfg-row mfg-row-ro" key={op.id}>
               <span className="mfg-num dim">{fmtDate(op.data)}</span>
               <span className="mfg-sku">{op.ref}</span>
               <span className="mfg-cat">{op.local}</span>
@@ -68,22 +74,13 @@ function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
               <span className="mfg-num r">{num(op.qtd, 2)}<span className="mfg-u">{c.r ? c.r.un : ""}</span></span>
               <span className="mfg-num r">{fmt(c.total)}{c.congelado != null && <span className="mfg-u" title="custo congelado na data da produção">fix</span>}</span>
               <span className="mfg-num dim r">{fmt(c.unit)}</span>
-              <span className="r"><span className={"mfg-pill " + (op.final ? "ok" : "warn")}>{op.final ? "Finalizada" : "Rascunho"}</span></span>
+              <span><span className={"mfg-pill " + (op.final ? "ok" : "warn")}>{op.final ? "Finalizada" : "Rascunho"}</span></span>
             </div>
           ))}
           {linhas.length === 0 && (
-            <div className="mfg-empty"><b>Nenhuma produção no período</b><span>Amplie o intervalo, troque o local ou desligue o filtro de finalizadas.</span></div>
+            <div className="mfg-empty"><b>{filtrosAtivos ? "Nenhuma produção no filtro" : "Sem produções cadastradas"}</b><span>{filtrosAtivos ? "Ajuste ou limpe os filtros pra ver mais resultados." : "Crie a primeira ordem de produção pelo botão \"Nova produção\"."}</span>{filtrosAtivos && <button type="button" className="os-btn sm" onClick={limpar}><I.x size={12} /> Limpar filtros</button>}</div>
           )}
         </div>
-        {linhas.length > POR_PAG && (
-          <div className="mfg-pag">
-            <span>{(pagina - 1) * POR_PAG + 1}–{Math.min(pagina * POR_PAG, linhas.length)} de {linhas.length}</span>
-            <span className="sp" />
-            <button disabled={pagina === 1} onClick={() => setPag(pagina - 1)}>‹</button>
-            {Array.from({ length: nPags }, (_, i) => i + 1).map((n) => <button key={n} className={n === pagina ? "act" : ""} onClick={() => setPag(n)}>{n}</button>)}
-            <button disabled={pagina === nPags} onClick={() => setPag(pagina + 1)}>›</button>
-          </div>
-        )}
         {linhas.length > 0 && <p className="mfg-foot">{linhas.length} ordens · custo do período <b>{fmt(totalPeriodo)}</b> · ordens finalizadas mostram o custo congelado na data</p>}
       </div>
     </>

@@ -3,9 +3,26 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-25T19:52:34Z
+tree: f1daa1e7ee37
+branch: main
+
+### Updated in this project
+- **Visão geral puxada do vivo** (`Pages/Home/Index.tsx` lido inteiro): KPIs já iguais; Pendências = rótulo canônico + total (sem selo), Contrapartidas "Devolução de venda · no período" (`dash-legacy-page.jsx?v=dl-vivo1`). Nada a exportar.
+- **Playbooks conferidos com `placar-indice.mjs`**: provas só estruturais; Fabricação 01–04 (5 charters → Wagner); Financeiro 00/07 mantidos + `_PATCH-INDICE-2026-09-25.md` (seletor `[role="dialog"].fin-cowork`, thread 08 tema).
+
+## Sync anterior (2026-09-25 18:47)
+date: 2026-09-25T18:47:57Z
+tree: 2c115a5ca250
+branch: main
+
+### Updated in this project
+- **Fabricação · KPIs de Ordens de produção puxados do vivo** (`Pages/Manufacturing/Index.tsx`): Total · Finalizadas (filtra = "Só finalizadas") · Pendentes · Valor total (`manufacturing-producao.jsx?v=mfg14k`, `manufacturing-page.css?v=mfg14k`). Receitas já era idêntico (`Recipes.tsx`).
+- **Financeiro · drawer refeito** (`financeiro-drawer.css?v=dw3`, escopo `.fin-dw2`) + aba IA em tokens; playbook `financeiro/07-Unificado.drawer.md` corrigido para a cascata real (6 folhas em `inertia.css`; alvo `fin-cowork.css` + `fin-ia.css`).
+
+## Sync anterior (2026-09-25 13:54)
 date: 2026-09-25T13:54:17Z
 tree: f3611e548698
-branch: main
 
 ### Updated in this project
 - **Retorno Sidebar lido:** 07 (alvo `cockpit--sidebar`) e 08 (cabeçalho do grupo) feitas no `main`; `_saida-07/08` trazidos pro projeto. Novas threads 15 (alvo mede expanded) e 16 (charter do Sidebar); sobras da 08 entram na 09 e na 11. Protótipo: rodapé embrulhado em `.sb-user-wrap` (`sidebar.jsx?v=sb27`).
