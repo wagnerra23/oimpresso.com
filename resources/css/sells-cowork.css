@@ -1,6 +1,6 @@
-/* SCOPED-OK */ - escopo .sells-cowork aplicado por scripts/scope-sells-cowork-css.py
+/* SCOPED-OK */ /* escopo .sells-cowork aplicado por scripts/scope-sells-cowork-css.py — o texto FICA em comentário (solto após o fecha-comentário virava prefixo do seletor da 1ª regra e o navegador a descartava; a linha 3 era o mesmo banner de uma 2ª rodada, que o gerador escopou como seletor). O bloco de tokens abaixo NUNCA chegou a prod por esse defeito, e segue DESLIGADO de propósito pelo seletor [data-tokens-cowork="ligado"], que nada define: medido em prod 2026-09-25 (getComputedStyle, 2 leituras), ligá-lo não muda nada no tema claro e, no escuro, deixa /sells inteira clara (fundo .26→.985, texto .94→.22 — 7361 propriedades). Os tokens chegam pelo .cockpit ancestral. Ligar exige antes reancorar o dark deste arquivo no .cockpit[data-theme] (lápide §5 2026-07-10). */
 /* SCOPED-OK */
-.sells-cowork - escopo .sells-cowork aplicado por scripts/scope-sells-cowork-css.py
+/* (2ª rodada do gerador — ver linha 1) escopo .sells-cowork aplicado por scripts/scope-sells-cowork-css.py */
 /* escopo: .sells-cowork · tokens: ds @theme (inertia.css/cockpit.css) · proibido: hex/oklch cru novo, token-def
  * ordem-alvo: layout → componentes → estados → responsivo → print (PACOTE-Q9 PR-2 padrão único) */
 /* ───────────────────── Oimpresso ERP — Sells Cowork ─────────────────────
@@ -22,7 +22,7 @@
  * produção, .sells-cowork fazendo a fonte cair em system-ui em todo browser que não tem
  * IBM Plex instalado no SO (causava prod "errada" e localhost ok).
  */
-.sells-cowork {
+.sells-cowork[data-tokens-cowork="ligado"] {
   /* Sidebar dark — espelho AppShell */
   --sb-bg:        oklch(0.21 0 0);
   --sb-bg-2:      oklch(0.18 0 0);
