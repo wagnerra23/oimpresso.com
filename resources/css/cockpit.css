@@ -2016,15 +2016,7 @@
   opacity: 0.7;
   flex: 0 0 auto;
 }
-/* Rótulo ocupa o espaço livre: contador e seta vão pra direita (protótipo
-   .sb-group-l). Sem wrapper novo — sidebar/08. */
-.cockpit .sb-group-h .sb-group-l {
-  flex: 1 1 auto;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.cockpit .sb-group-h .sb-group-l { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* protótipo .sb-group-l: contador e seta vão pra direita — sidebar/08 */
 /* título do grupo: claro só no hover — não persiste quando aberto */
 
 /* Inline accordion body — items renderizam direto abaixo do header
