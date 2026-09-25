@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a tela que diz o que está no ar no site público. Página de sistema (layout home/contact) não pode ser excluída, e a ordem da lista é a ordem do site — errar qualquer uma quebra o site sem erro nenhum na tela.
 owner: wagner
-last_run: "2026-09-23"
+last_run: "2026-09-25"
 last_run_ci: "_pendente_ — o trio nasce na thread Cms/01. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪, nunca ✅."
 ---
 
@@ -158,3 +158,5 @@ Status: 🧪
 **Então** ela deixa de existir e o log registra `cms.page.deleted` com o id dela (R11).
 
 Status: 🧪
+
+- **[BACKLOG] Navegação entre as telas do Cms** — as abas *Páginas · Blog · Depoimentos · Detalhes do site* (`Admin/_shared/CmsAbas.tsx`) são o único caminho até `/cms/site-details`: o item CMS mora na cascata Superadmin do rodapé, que não mostra sub-telas. É comportamento do cliente (link Inertia), sem teste que o cite — vira UC quando um E2E abrir a aba.

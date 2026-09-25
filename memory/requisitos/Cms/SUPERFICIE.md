@@ -14,7 +14,7 @@ module: Cms
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Cms/**` + `resources/js/Pages/Cms/**` + `resources/js/Pages/Admin/**` (namespaces Inertia `Cms`, `Admin`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Cms` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 154 arquivos em 17 papéis.
+**Total mapeado:** 155 arquivos em 17 papéis.
 
 ## Controllers — 5
 
@@ -139,9 +139,10 @@ module: Cms
 - [Home.tsx](../../../Modules/Cms/Resources/js/Pages/Site/Home.tsx)
 - [Page.tsx](../../../Modules/Cms/Resources/js/Pages/Site/Page.tsx)
 
-## Componentes / apoio de tela — 1
+## Componentes / apoio de tela — 2
 
 - [Editor.tsx](../../../Modules/Cms/Resources/js/Pages/Admin/Content/_components/Editor.tsx)
+- [CmsAbas.tsx](../../../Modules/Cms/Resources/js/Pages/Admin/_shared/CmsAbas.tsx)
 
 ## Charters (lei da tela) — 6
 
