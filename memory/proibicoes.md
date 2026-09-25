@@ -1796,6 +1796,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** editar **à mão** arquivo sob `prototipo-ui/cowork/**` — índice de playbook incluído — sem levar a mesma edição ao Cowork (o caminho do #7887: escrita via DesignSync com opt-in [W], e depois re-verificação). Arquivo **novo** (um `_saida-NN.md`) não arma o cruzamento, porque o gate trata "nunca verificado" como não bloqueante; **editar arquivo já verificado**, sim. Corolário de método: antes de mergear um PR que edita o espelho, rodar `node scripts/governance/cowork-mirror-freshness.mjs --unverified --check` **contra o `main` atualizado**, não só contra a base do branch; o verde da base velha não diz nada sobre o registro que chegou depois.
 
+### 2026-09-25 — Troquei um token pra passar um gate e não re-medi: `var(--primary)` não existe neste app (o nome é `--color-primary`)
+
+- **O limite (variante também proibida):** mudança exigida por gate **depois** da medição volta pela **mesma** sonda antes do commit — vale pra troca de token, seletor ou valor. E nome de variável CSS se confirma no runtime (`getComputedStyle(el).getPropertyValue('--x')` não-vazio), nunca pelo nome que a biblioteca usa em outro projeto.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
