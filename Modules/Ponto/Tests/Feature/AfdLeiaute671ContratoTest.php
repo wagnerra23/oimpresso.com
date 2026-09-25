@@ -30,7 +30,6 @@ use Modules\Ponto\Services\AfdParserService;
 uses(Tests\TestCase::class);
 
 const AFD671_BIZ = 98;
-const AFD671_CPF = '52998224725'; // CPF sintético (dígitos válidos), não é pessoa real
 const AFD671_PIS = '012345678919'; // 12 posições, como o 1510 grava — o parser compara literal
 
 beforeEach(function () {
@@ -48,6 +47,9 @@ beforeEach(function () {
 
     DB::beginTransaction();
 
+    // CPF gerado a cada caso (dígito verificador válido) — nunca literal no fonte (PII scan).
+    $this->cpf = afd671Cpf(afd671GerarCpf());
+
     $this->userId = DB::table('users')->insertGetId([
         'first_name' => 'AFD671 Teste', 'username' => 'afd671_' . uniqid(),
         'password'   => 'x', 'business_id' => AFD671_BIZ,
@@ -56,7 +58,7 @@ beforeEach(function () {
     // CPF gravado FORMATADO de propósito: o AFD traz 12 dígitos, o cadastro pode ter máscara.
     $this->colabId = DB::table('ponto_colaborador_config')->insertGetId([
         'business_id' => AFD671_BIZ, 'user_id' => $this->userId,
-        'cpf' => '529.982.247-25', 'pis' => AFD671_PIS,
+        'cpf' => vsprintf('%s.%s.%s-%s', str_split($this->cpf, 3)), 'pis' => AFD671_PIS,
         'controla_ponto' => 1, 'usa_banco_horas' => 0,
         'created_at' => now(), 'updated_at' => now(),
     ]);
@@ -72,6 +74,35 @@ afterEach(function () {
     }
 });
 
+/** CPF do caso corrente (o beforeEach grava; as fábricas de linha leem). */
+function afd671Cpf(?string $novo = null): string
+{
+    static $atual = '';
+    if ($novo !== null) {
+        $atual = $novo;
+    }
+
+    return $atual;
+}
+
+/** 11 dígitos com dígitos verificadores válidos, base aleatória. */
+function afd671GerarCpf(): string
+{
+    $d = [];
+    for ($i = 0; $i < 9; $i++) {
+        $d[] = random_int(0, 9);
+    }
+    foreach ([10, 11] as $peso) {
+        $soma = 0;
+        foreach ($d as $i => $v) {
+            $soma += $v * ($peso - $i);
+        }
+        $d[] = ($soma * 10) % 11 % 10;
+    }
+
+    return implode('', $d);
+}
+
 function afd671Linha(array $campos, int $tamanho): string
 {
     $linha = implode('', $campos);
@@ -82,12 +113,12 @@ function afd671Linha(array $campos, int $tamanho): string
 
 function afd671Tipo3(string $nsr, string $dh): string
 {
-    return afd671Linha([$nsr, '3', $dh, '0' . AFD671_CPF, 'ABCD'], 50);
+    return afd671Linha([$nsr, '3', $dh, '0' . afd671Cpf(), 'ABCD'], 50);
 }
 
 function afd671Tipo7(string $nsr, string $dh): string
 {
-    return afd671Linha([$nsr, '7', $dh, '0' . AFD671_CPF, $dh, '01', '0', str_repeat('a', 64)], 137);
+    return afd671Linha([$nsr, '7', $dh, '0' . afd671Cpf(), $dh, '01', '0', str_repeat('a', 64)], 137);
 }
 
 function afd671Importar($test, array $linhas): Importacao
