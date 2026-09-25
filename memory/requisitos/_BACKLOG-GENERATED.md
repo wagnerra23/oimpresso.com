@@ -30,7 +30,7 @@
 | [`ComunicacaoVisual`](#comunicacaovisual) | 18 | 0 | 0 | 0 | 18 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
-| [`Ponto`](#ponto) | 16 | 1 | 0 | 0 | 15 |
+| [`Ponto`](#ponto) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
 | [`Essentials`](#essentials) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
@@ -928,14 +928,11 @@
 ## Ponto
 
 
-### doing
-
-- **US-PONTO-016** — Painel de Conformidade CLT da competência (somente leitura) _(`p2`)_
-
 ### todo
 
 - **US-PONTO-014** — Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; 27 de 38 testes fora da allowlist) _(`p0`)_
 - **US-PONTO-015** — Fechamento de competência — as restrições existem, a tela e o domínio não _(`p2`)_
+- **US-PONTO-016** — Painel de Conformidade CLT da competência (somente leitura) _(`p2`)_
 - **US-PONTO-001** — Relogio web pra registrar entrada/saida (REP-P)
 - **US-PONTO-002** — Marcacao via REP-A (importacao AFD)
 - **US-PONTO-003** — Workflow de intercorrencia (atestado/abono/falta)
