@@ -14,19 +14,24 @@ declare(strict_types=1);
  *      um estado sem o outro, o menu grava um id que a rota recusa (ou nunca oferece um que
  *      ela aceita), e isso é silencioso: o `fetch` do menu engole o erro de propósito.
  *
- * Banco: no MySQL (CT 100) usa o tenant fictício 98 (ADR 0358). Na lane sqlite `:memory:`
- * (sem migrate) monta uma tabela `users` sintética só com as colunas que a rota toca — por
- * isso os casos 1 e 2 NÃO viram skip-as-pass lá.
+ * Banco: no MySQL (CT 100) usa o tenant fictício 98 (ADR 0358) e apaga o user criado no fim.
+ * Na lane sqlite `:memory:` (sem migrate) monta `users` sintética + as 5 tabelas do Spatie —
+ * o `HandleInertiaRequests::share()` chama `can()` em TODA request, inclusive neste POST — e
+ * derruba tudo no afterEach. Por isso os casos 1 e 2 NÃO viram skip-as-pass lá.
+ *
+ * Sem `DatabaseTransactions` de propósito: no sqlite a DDL é transacional, e o rollback
+ * desfaria o `dropIfExists` do afterEach — a `users` sintética sobreviveria e o caso seguinte
+ * cairia no ramo MySQL.
  */
 
 use App\Http\Controllers\UserPreferencesController;
 use App\User;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\PermissionRegistrar;
 
-uses(DatabaseTransactions::class);
+const TABELAS_SINTETICAS = ['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'users'];
 
 beforeEach(function () {
     if (! Schema::hasTable('users')) {
@@ -48,8 +53,37 @@ beforeEach(function () {
             $t->softDeletes();
             $t->timestamps();
         });
+        Schema::create('permissions', function (Blueprint $t) {
+            $t->bigIncrements('id');
+            $t->string('name');
+            $t->string('guard_name');
+            $t->timestamps();
+        });
+        Schema::create('roles', function (Blueprint $t) {
+            $t->bigIncrements('id');
+            $t->string('name');
+            $t->string('guard_name');
+            $t->timestamps();
+        });
+        Schema::create('model_has_permissions', function (Blueprint $t) {
+            $t->unsignedBigInteger('permission_id');
+            $t->string('model_type');
+            $t->unsignedBigInteger('model_id');
+        });
+        Schema::create('model_has_roles', function (Blueprint $t) {
+            $t->unsignedBigInteger('role_id');
+            $t->string('model_type');
+            $t->unsignedBigInteger('model_id');
+        });
+        Schema::create('role_has_permissions', function (Blueprint $t) {
+            $t->unsignedBigInteger('permission_id');
+            $t->unsignedBigInteger('role_id');
+        });
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
         $id = DB::table('users')->insertGetId(['first_name' => 'Teste', 'email' => 'presenca@teste.local']);
         $this->user = User::findOrFail($id);
+        $this->sintetico = true;
 
         return;
     }
@@ -60,6 +94,18 @@ beforeEach(function () {
 
     $biz = $this->seededTenant();                       // biz=98 fictício (ADR 0358)
     $this->user = User::factory()->create(['business_id' => $biz->id])->fresh();
+    $this->sintetico = false;
+});
+
+afterEach(function () {
+    if ($this->sintetico ?? false) {
+        foreach (TABELAS_SINTETICAS as $tbl) {
+            Schema::dropIfExists($tbl);
+        }
+    } elseif (isset($this->user)) {
+        DB::table('users')->where('id', $this->user->id)->delete();
+    }
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
 dataset('presencas validas', ['disponivel', 'ocupado', 'ausente', 'invisivel']);
