@@ -181,6 +181,9 @@ it('UC-PTF-07: a tela mostra a competência aberta, sem botão pra quem não tem
 
     app(FechamentoService::class)->fechar(FCH_BIZ, CarbonImmutable::createFromFormat('!Y-m', FCH_MES), $u->id, true);
 
+    // withHeaders() acumula no caso de teste: sem limpar, o GET abaixo herdaria os
+    // X-Inertia-Partial-* do partial reload acima e só traria `bloqueios`.
+    $this->flushHeaders();
     $depois = $this->inertiaGet('/ponto/fechamento', ['competencia' => FCH_MES]);
     expect($depois->json('props.fechada.fechada_por'))->toBe(trim($u->first_name . ' ' . $u->last_name));
 });
