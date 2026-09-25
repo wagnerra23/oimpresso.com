@@ -248,7 +248,19 @@ function DashLegacyPage() {
       ) : (
         <React.Fragment>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 8 }}>
-            <KpiCard hero label="Líquido no período" value={brl(v(k.net))} delta={D.net} deltaLabel="% vs anterior" spark={SERIE_30.slice(-12)} />
+            {/* Espelho do vivo (Pages/Home/Index.tsx · KpiHero): valor e variação na MESMA linha, só o número
+                carrega a cor do sinal; rótulo "% vs anterior" em tom secundário; sparkline decorativa de 44px. */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: 16, borderRadius: 8, border: "1px solid var(--kpi-feature-line)", background: "var(--kpi-feature-bg)", boxShadow: "var(--sh-1)" }}>
+              <span style={{ font: "600 10.5px/1.4 var(--font-sans)", letterSpacing: ".06em", textTransform: "uppercase", color: "var(--kpi-feature-fg-2)" }}>Líquido no período</span>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                <span style={{ font: "700 28px/1.1 var(--font-sans)", letterSpacing: "-.01em", fontVariantNumeric: "tabular-nums", color: "var(--kpi-feature-fg)" }}>{brl(v(k.net))}</span>
+                <span style={{ display: "inline-flex", alignItems: "baseline", gap: 4, fontSize: "11.5px" }}>
+                  <span style={{ fontWeight: 600, color: D.net >= 0 ? "var(--pos)" : "var(--neg)" }}>{D.net >= 0 ? "↗" : "↘"} {D.net >= 0 ? "+" : ""}{D.net}</span>
+                  <span style={{ color: "var(--kpi-feature-fg-2)" }}>% vs anterior</span>
+                </span>
+              </div>
+              <div style={{ marginTop: "auto", height: 44 }} aria-hidden="true"><Chart type="area" data={SERIE_30.slice(-12)} height={44} /></div>
+            </div>
             <KpiCard tone="success" label="Vendas" value={brl(v(k.total_sell))} delta={D.sell} deltaLabel="% vs anterior" description="incluindo impostos" />
             <KpiCard tone="warning" label="A receber" value={brl(v(k.invoice_due))} description={sinal(D.due) + " vs anterior · líquido de descontos de razão"} />
             <KpiCard tone="info" label="Despesas" value={brl(v(k.total_expense))} description={sinal(D.exp) + " vs anterior · lançadas no período"} />
@@ -262,7 +274,7 @@ function DashLegacyPage() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(118px, 1fr))", gap: "12px 14px" }}>
                 {[["Compras", v(k.total_purchase), "incluindo impostos"],
                   ["A pagar", v(k.purchase_due), "líquido de descontos"],
-                  ["Devolução de venda", v(k.total_sell_return), "bruto " + brlK(v(k.total_sell_return) * 1.6)],
+                  ["Devolução de venda", v(k.total_sell_return), "no período"],
                   ["Devolução de compra", v(k.total_purchase_return), "devido ao fornecedor"]].map(([label, val, sub]) => (
                   <div key={label} style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
                     <span style={{ font: "600 9.5px/1.4 var(--font-sans)", letterSpacing: ".08em", textTransform: "uppercase", color: "var(--text-mute)" }}>{label}</span>
@@ -273,18 +285,28 @@ function DashLegacyPage() {
               </div>
             </section>
             <section style={PANEL} aria-label="Pendências">
-              <h2 style={{ ...H3, marginBottom: 8 }}>Pendências</h2>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {PENDENCIAS.filter((p) => can(GRADES[p.aba].perm)).map((p, i, arr) => (
-                  <button key={p.aba} onClick={() => setAba(p.aba)} className="dl-pend" style={{
-                    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%",
-                    padding: "7px 0", background: "none", border: 0, cursor: "pointer", textAlign: "left",
-                    borderBottom: i < arr.length - 1 ? "1px solid var(--border-2)" : "0", color: "var(--text)" }}>
-                    <span style={{ fontSize: "12.5px" }}>{p.texto}</span>
-                    <StatusBadge kind={p.kind} value={p.valor} />
-                  </button>
-                ))}
+              {/* Espelho do vivo (Pages/Home/Index.tsx · PendenciasPainel): rótulo CANÔNICO da aba + o total que a aba
+                  mostra. Sem selo de severidade — "vencido" rotularia errado um conjunto que inclui o que ainda vai vencer. */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 8 }}>
+                <h2 style={H3}>Pendências</h2><span style={{ ...META, whiteSpace: "nowrap" }}>agora</span>
               </div>
+              {(() => {
+                const pend = PENDENCIAS.filter((p) => can(GRADES[p.aba].perm) && GRADES[p.aba].count > 0);
+                if (!pend.length) return <span style={{ fontSize: "12.5px", color: "var(--text-dim)" }}>Nada pendente.</span>;
+                return (
+                  <ul style={{ display: "flex", flexDirection: "column", margin: 0, padding: 0, listStyle: "none" }}>
+                    {pend.map((p, i, arr) => (
+                      <li key={p.aba} style={{ borderBottom: i < arr.length - 1 ? "1px solid var(--border-2)" : "0" }}>
+                        <button type="button" onClick={() => setAba(p.aba)} className="dl-pend" style={{
+                          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, width: "100%",
+                          padding: "7px 0", background: "none", border: 0, cursor: "pointer", textAlign: "left", color: "var(--text)", fontSize: "12.5px" }}>
+                          <span style={{ minWidth: 0 }}>{GRADES[p.aba].label}</span>
+                          <span style={{ font: "600 12.5px/1 var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>{GRADES[p.aba].count}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>);
+              })()}
             </section>
           </div>
 

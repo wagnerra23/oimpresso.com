@@ -1,14 +1,13 @@
-# Sessão fria — financeiro
+# Sessão fria — Manufacturing
 
-> 1 thread = 1 sessão nova = 1 PR. Gerado pelo [CC] em 2026-09-23 a partir do bloco json do `00-INDICE.md` (sha 2c115a5ca250, revisado 2026-09-25). Se o índice mudar, **o índice manda**, não esta folha.
+> 1 thread = 1 sessão nova = 1 PR. Gerado pelo [CC] em 2026-09-25 a partir do bloco json do `00-INDICE.md` (sha 2c115a5ca250). Se o índice mudar, **o índice manda**, não esta folha.
 
 ## Prompt de abertura — cole no chip novo, trocando só o NN
 
 ```
-/onda financeiro --thread NN
+/onda manufacturing --thread NN
 ```
-> O diretório é **`financeiro`** (literal). Não use o nome do módulo (`financeiro`): o `/onda` só passa o argumento pra minúsculo.
-
+> O diretório é **`manufacturing`** (literal). Não use o nome do módulo (`Manufacturing`) nem "fabricacao": o `/onda` só passa o argumento pra minúsculo.
 
 Leia só isto, nesta ordem:
 1. a saída do `placar` que o `/onda` imprime: se não for `proximo`, **pare** e diga por quê.
@@ -23,9 +22,10 @@ Leia só isto, nesta ordem:
 
 | # | o que faz | dono | ficha | depende de | estado escrito |
 |---|---|---|---|---|---|
-| **00** | ALVO `financeiro--unificado` (seção drawer) — **entregue, `_saida-00.md`** | CL | `07-Unificado.drawer.md` + `_PATCH-INDICE-2026-09-25.md` §00 | — | — |
-| **07** | Drawer do lançamento — acabamento + aba IA — **em execução** | CL | `07-Unificado.drawer.md` + `_PATCH-INDICE-2026-09-25.md` §07 | 00 | — |
-| **08** | Drawer segue o tema | CL | `_PATCH-INDICE-2026-09-25.md` §08 | 07 · D-FIN-DW-TEMA | — |
+| **01** | Contrato `manufacturing-index` + `data-contract` | CL | `01-contrato-index.md` | — | — |
+| **02** | Charter aponta `cowork/Wagner` | CL | `02-charter-fonte.md` | — | — |
+| **03** | Aposentar `cowork/Felipe/manufacturing-*` | CL | `03-aposentar-felipe.md` | 02 | — |
+| **04** | De/Até aplica na hora (sem blur/lupa) | CL | `04-data-aplica-na-hora.md` | — | — |
 
 > "Estado escrito" é só o que dá pra ver em disco (`_saida` / `bloqueio`). O estado real é **derivado** pelo `placar`; na dúvida, ele vence.
 > Dono **W** = decisão/merge do Wagner, não abre chip de [CL]. Dono **CC** = volta pro Cowork.

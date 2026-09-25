@@ -147,8 +147,10 @@ function ManufacturingPage({ initialView }) {
     <div className="mfg-root" data-screen-label={"Manufacturing · " + (ABAS.find((a) => a.id === aba) || {}).l}>
       <div className="os-page-h">
         <div className="os-page-h-l">
-          <h1>Manufacturing</h1>
-          <p>{recipes.length} receitas · {producoes.length} ordens de produção · custo recalculado pelo preço atual dos ingredientes</p>
+          {/* Espelho do vivo: Recipes.tsx → "Manufacturing" + custo recalculado; Index.tsx (Ordens) → "Produção", sem a 3ª parte
+              (lá o custo é o final_total GRAVADO, não recalculado). */}
+          <h1>{aba === "producao" ? "Produção" : "Manufacturing"}</h1>
+          <p>{recipes.length} receita{recipes.length === 1 ? "" : "s"} · {producoes.length} ordens de produção{aba === "producao" ? "" : " · custo recalculado pelo preço atual dos ingredientes"}</p>
         </div>
         <div className="os-page-h-r">
           {aba === "receitas" && perms.criar && <button className="os-btn primary" onClick={() => setNovaOpen(true)}><I.plus size={13} /> Nova receita</button>}

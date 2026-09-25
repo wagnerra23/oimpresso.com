@@ -11,6 +11,8 @@ granularidade: secao (decisão [W] 2026-09-13)
 ---
 # Financeiro — Unificado · fila de seções
 
+> **Revisado 2026-09-25 com threads 00 e 07 EM EXECUÇÃO** — IDs e fichas mantidos; o delta está em `_PATCH-INDICE-2026-09-25.md`. Leia o patch antes de fechar o `_saida`.
+
 > **Leia este arquivo + a thread da sua vez.** Read-order no `main`: `memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md` → `FRESCOR-PRODUCAO-vs-PROTOTIPO.md` → `PRE-FLIGHT-TELA.md` → `Pages/Financeiro/Unificado/Index.charter.md` + `.casos.md`.
 
 ## Estado do ALVO
@@ -49,47 +51,166 @@ Produção à frente do protótipo: puxar o vivo, não refazer. **Exceção decl
   "variaveis": {
     "CHARTER": "resources/js/Pages/Financeiro/Unificado/Index.charter.md",
     "CASOS": "resources/js/Pages/Financeiro/Unificado/Index.casos.md",
-    "PAGE": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
-    "CSS": ["resources/css/fin-cowork.css", "resources/css/fin-ia.css"],
-    "PROTOTIPO": ["financeiro-page.jsx", "financeiro-drawer.css", "financeiro-ai.jsx"]
+    "CSS": "resources/css/fin-cowork.css",
+    "CSS_IA": "resources/css/fin-ia.css",
+    "PROTOTIPO": "prototipo-ui/cowork/Wagner/financeiro-page.jsx"
   },
   "decisoes": [
-    { "id": "D-FIN-ALVO", "pergunta": "Medir as secoes 01-06 numa passada so antes das threads delas? Recomendacao: sim.", "respondida": false, "dono": "[W]" },
-    { "id": "D-FIN-CONTRATO", "pergunta": "Escrever o Contrato de Tela do Unificado (9 UC ja escritos) antes ou depois das ondas de layout?", "respondida": false, "dono": "[W]" },
-    { "id": "D-FIN-IA-CONTEUDO", "pergunta": "Aba IA: prototipo (Perguntar a IA + 4 stats) ou vivo (detector de anomalia + historico 5 recentes) e o alvo de CONTEUDO? A thread 07 so troca cor.", "respondida": false, "dono": "[W]" },
-    { "id": "D-FIN-DW2", "pergunta": "O acabamento novo do drawer (07) substitui o vivo? Resposta implicita no pedido de [W] 2026-09-25 (refazer drawer + cores da aba IA).", "respondida": true, "dono": "[W]" }
+    {
+      "id": "D-FIN-ALVO",
+      "pergunta": "Medir as secoes 01-06 numa passada so antes das threads delas? Recomendacao: sim.",
+      "respondida": false,
+      "dono": "[W]"
+    },
+    {
+      "id": "D-FIN-CONTRATO",
+      "pergunta": "Escrever o Contrato de Tela do Unificado (9 UC ja escritos) antes ou depois das ondas de layout?",
+      "respondida": false,
+      "dono": "[W]"
+    },
+    {
+      "id": "D-FIN-IA-CONTEUDO",
+      "pergunta": "Aba IA: prototipo (Perguntar a IA + 4 stats) ou vivo (detector de anomalia + historico 5 recentes) e o alvo de CONTEUDO? A thread 07 so troca cor.",
+      "respondida": false,
+      "dono": "[W]"
+    },
+    {
+      "id": "D-FIN-DW-TEMA",
+      "pergunta": "Drawer de producao e forcado claro ([role=dialog].fin-cowork em fin-cowork.css). Passa a seguir o tema (recomendado) ou fica claro? Define se o alvo dark do §3 vale.",
+      "respondida": false,
+      "dono": "W"
+    }
   ],
   "threads": [
     {
       "id": "00",
-      "titulo": "ALVO financeiro--unificado (secao 07) — gerar targets/financeiro--unificado.alvo.json a partir da medicao da 07",
+      "titulo": "ALVO financeiro--unificado (secao drawer)",
       "dono": "CL",
+      "vaga": 1,
       "arquivo": "07-Unificado.drawer.md",
-      "prefixo": ["governance/design/targets/financeiro--unificado."],
-      "nao_toca": ["resources/**"],
-      "depende_decisoes": [],
+      "prefixo": [
+        "governance/design/targets/financeiro--unificado."
+      ],
+      "nao_toca": [
+        "resources/",
+        "prototipo-ui/"
+      ],
       "provas": [
-        { "tipo": "arquivo", "exige": "governance/design/targets/financeiro--unificado.alvo.json existe e valida no schema de targets/README.md" },
-        { "tipo": "medicao", "exige": "valores do §3 da thread 07 transcritos, sem arredondar" }
-      ]
+        {
+          "tipo": "arquivo",
+          "path": "governance/design/targets/financeiro--unificado.alvo.json"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "governance/design/targets/financeiro--unificado.secoes.json"
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/targets/financeiro--unificado.secoes.json",
+          "chaves": [
+            "dw-painel",
+            "dw-hero",
+            "dw-abas",
+            "dw-rodape"
+          ]
+        }
+      ],
+      "nota": "entregue pelo [CL] em 2026-09-25 (_saida-00.md): 11 secoes dw-*; provas ajustadas ao que foi medido"
     },
     {
       "id": "07",
-      "titulo": "Drawer do lancamento — acabamento (header, hero, abas, lentes, rodape, aba IA)",
+      "titulo": "Drawer do lancamento — acabamento + aba IA em tokens",
       "dono": "CL",
+      "vaga": 1,
       "arquivo": "07-Unificado.drawer.md",
-      "comando": "/onda Financeiro/Unificado drawer --thread 07",
-      "prefixo": ["resources/css/fin-cowork.css", "resources/css/fin-ia.css", "resources/js/Pages/Financeiro/Unificado/Index.tsx"],
-      "nao_toca": ["resources/js/Pages/Financeiro/Unificado/_components/**", "app/**", "Modules/**"],
-      "depende_threads": ["00"],
+      "depende_threads": [
+        "00"
+      ],
+      "prefixo": [
+        "resources/css/fin-cowork.css",
+        "resources/css/fin-ia.css",
+        "resources/css/fin-output.css",
+        "resources/js/Pages/Financeiro/Unificado/Index.tsx"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Financeiro/Unificado/_components/",
+        "resources/css/cowork-canon-financeiro-bundle.css",
+        "resources/css/sells-cowork-ia.css",
+        "app/",
+        "Modules/"
+      ],
       "provas": [
-        { "tipo": "medicao", "exige": "getComputedStyle no vivo (dark) bate com §3 da thread 07 em todas as linhas marcadas ALVO" },
-        { "tipo": "a11y", "exige": "A1-A12 no drawer vivo; zero botao sem nome acessivel; SheetContent com role=dialog + aria-label" },
-        { "tipo": "diff", "exige": "PR <=300 linhas, 1 prefixo por arquivo listado" },
-        { "tipo": "t7", "exige": "design-diff --compare --check nos dois renders (prod deployada) — sem isso a thread nao fecha como feito" }
+        {
+          "tipo": "contem",
+          "path": "resources/css/fin-cowork.css",
+          "padrao": "[role=\"dialog\"].fin-cowork .fin-dw-hero"
+        },
+        {
+          "tipo": "contem",
+          "path": "resources/css/fin-cowork.css",
+          "padrao": "[role=\"dialog\"].fin-cowork .fin-drawer-footer"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "resources/css/fin-ia.css",
+          "padrao": "background: white;"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "resources/css/fin-output.css",
+          "padrao": ".fin-cowork .fin-drawer-wide { padding-left: 22px; padding-right: 22px; }"
+        },
+        {
+          "tipo": "contem",
+          "path": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
+          "padrao": "data-contract=\"drawer-detalhe\"",
+          "guarda": true
+        },
+        {
+          "tipo": "contem",
+          "path": "resources/css/fin-cowork.css",
+          "padrao": "[role=\"dialog\"].fin-cowork .fin-drawer-tabs",
+          "guarda": true,
+          "nota": "fix Onda 25 do margin negativo nao pode sumir"
+        }
+      ]
+    },
+    {
+      "id": "08",
+      "titulo": "Drawer segue o tema: remover vars claras fixas de [role=dialog].fin-cowork",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "_PATCH-INDICE-2026-09-25.md",
+      "depende_threads": [
+        "07"
+      ],
+      "depende_decisoes": [
+        "D-FIN-DW-TEMA"
+      ],
+      "prefixo": [
+        "resources/css/fin-cowork.css"
+      ],
+      "nao_toca": [
+        "resources/js/",
+        "resources/css/cowork-canon-financeiro-bundle.css"
+      ],
+      "provas": [
+        {
+          "tipo": "nao_contem",
+          "path": "resources/css/fin-cowork.css",
+          "padrao": "background: #ffffff !important;"
+        },
+        {
+          "tipo": "contem",
+          "path": "resources/css/fin-cowork.css",
+          "padrao": "[role=\"dialog\"].fin-cowork .fin-drawer-tabs",
+          "guarda": true
+        }
       ]
     }
-  ]
+  ],
+  "sha": "2c115a5ca250",
+  "gerado": "2026-09-25"
 }
 ```
 

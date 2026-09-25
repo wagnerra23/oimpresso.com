@@ -11,7 +11,7 @@ depende: ["00"]
 ---
 # 07 · Financeiro/Unificado — Drawer do lançamento (acabamento)
 
-> Execução: `/onda Financeiro/Unificado drawer --thread 07` (o `pedido.mjs` monta os 4 blocos). Antes: thread **00** tem de ter criado `governance/design/targets/financeiro--unificado.alvo.json`, senão exit 2. Teste do estranho: tudo que precisa está aqui + no `main`.
+> Execução: `/onda financeiro --thread 07` (o `pedido.mjs` monta os 4 blocos). Antes: thread **00** tem de ter criado `governance/design/targets/financeiro--unificado.alvo.json`, senão exit 2. Teste do estranho: tudo que precisa está aqui + no `main`.
 
 ## 1 · Escopo
 Só **acabamento** do drawer de detalhe (`data-contract="drawer-detalhe"`): header, hero (valor/estado), abas, lentes do corpo, rodapé de ações e **aba IA**. **Não** muda conteúdo, dados, ordem das seções, atalhos (J/K/R/Esc) nem regras de negócio. Pedido de [W] em 2026-09-25: "os acabamentos estão feios" + "aba da IA — cores dos componentes".
@@ -71,6 +71,11 @@ Ordem de `@import` = ordem de vitória (mesma especificidade, a de baixo ganha):
 6. `fin-mobile.css` (2.140 B)
 ⇒ Editar o bundle (1ª) **não vence** `fin-output`/`fin-cowork`. O override vai em **`fin-cowork.css`** (drawer) e **`fin-ia.css`** (aba IA).
 
+### 4.2b · ⚠️ Achados de produção que mudam o pedido (lidos inteiros em `fin-cowork.css` @`2c115a5ca250`)
+1. **O drawer de produção é SEMPRE claro.** O `SheetContent` renderiza em portal no `<body>` e `fin-cowork.css` (bloco "Onda 22b") força `[role="dialog"].fin-cowork { --surface:#ffffff; --text:…; background:#ffffff !important }`. O alvo do §3 foi medido **no dark** do protótipo. ⇒ **D-FIN-DW-TEMA**: o drawer passa a seguir o tema (remover o bloco de vars fixas e herdar do `.cockpit[data-theme]`) ou fica claro? Recomendação [CC]: **seguir o tema** — é a mesma classe de defeito "CLARO-NO-DARK" que `fin-cowork.css` já corrigiu em 5 pontos da página (2026-07-10).
+2. **`.fin-cowork .fin-drawer-wide` não casa no drawer.** `fin-cowork` e `fin-drawer-wide` estão no **mesmo** elemento (`Index.tsx:2057`) e ele não tem ancestral `.fin-cowork` (portal). Seletor descendente ali é regra morta — incluindo `cowork-canon-financeiro-bundle.css:4033` e `fin-output.css:751/899`; a largura real vem do Tailwind `w-[560px]`. **Seletor certo:** `[role="dialog"].fin-cowork …` (o que `fin-cowork.css` já usa) ou `.fin-cowork.fin-drawer-wide …`.
+3. Pelo mesmo motivo, `fin-ia.css` (`.fin-cowork .fin-curadoria …`) só pega dentro do drawer se houver um **segundo** wrapper `.fin-curadoria` no corpo — `Index.tsx:2697-2701` sugere que há. **Medir com `getComputedStyle` antes de editar**, não pela classe declarada.
+
 ### 4.3 · Aba IA — o vivo **não usa** `vd-ai-*`
 O protótipo renderiza `vd-ai-banner`/`vd-ai-block`/`vd-ai-stats` (`financeiro-ai.jsx` → estilos de `vendas.css`). O vivo renderiza `.fin-anomaly*` + `.fin-party-*` (+ `.fin-digest*`) de `fin-ia.css`, **com cor crua clara**:
 - `.fin-anomaly-ic{background:white}`; `.fin-anomaly-*{background:oklch(0.96 …)}`
@@ -86,7 +91,8 @@ Fonte deste lado: `financeiro-drawer.css` (escopo `.fin-dw2`, só tokens) + 5 tr
 4. aba IA: `✦` → ícone `Sparkles` 12px;
 5. espaçador antes da primária no rodapé (primária sempre à direita).
 No vivo:
-- **drawer (header/hero/lentes/rodapé)** → regras em `fin-cowork.css` sob `.fin-cowork .fin-drawer-wide` (sem inventar `.fin-dw2`); remover a regra `padding 22px` de `fin-output.css:899` (alvo = 20px) em vez de sobrescrever;
+- **drawer (header/hero/lentes/rodapé)** → regras em `fin-cowork.css` sob **`[role="dialog"].fin-cowork`** (§4.2b-2; sem inventar `.fin-dw2`); remover a regra morta `padding 22px` de `fin-output.css:899`;
+- **tema** → conforme D-FIN-DW-TEMA (§4.2b-1);
 - **aba IA** → em `fin-ia.css`, trocar `white`/`oklch(0.96 …)` por `var(--surface)`/`color-mix(in oklab, var(--warn|--neg|--pos|--accent) 8%, transparent)` e `--fin-text/--fin-line/--fin-bg-soft` por `--text`/`--border`/`--sunken` — mesmo tratamento do §3 (tinta 8% + borda 24%, sem branco, sem borda esquerda grossa).
 
 ## 6 · Átomos a reusar (não recriar)
