@@ -177,3 +177,19 @@ it('UC-CONF-07 · O painel é somente leitura (ADR 0413 D0)', function () {
 
     $this->assertSame($antes, [ApuracaoDia::withoutGlobalScopes()->count(), Colaborador::withoutGlobalScopes()->count()]);
 });
+
+it('UC-CONF-08 · A tela abre pela rota com o painel deferido', function () {
+    confPreparar();
+    $this->actAsAdmin();
+
+    $url = '/ponto/conformidade?mes=' . CONF_MES;
+    $primeiro = $this->inertiaGet($url);
+    $this->assertInertiaComponent($primeiro, 'Ponto/Conformidade');
+    $this->assertSame(CONF_MES, $primeiro->json('props.mes'));
+    $this->assertNull($primeiro->json('props.painel'), 'painel é deferido — não vai no primeiro render.');
+
+    $parcial = $this->inertiaPartialGet($url, ['painel'], 'Ponto/Conformidade');
+    $parcial->assertStatus(200);
+    $ids = collect($parcial->json('props.painel.verificacoes'))->pluck('id')->all();
+    $this->assertSame(['jornada_aberta', 'interjornada', 'intrajornada', 'he', 'nsr', 'sem_pis'], $ids);
+});

@@ -91,6 +91,10 @@ Route::group(
         Route::get('/relatorios', 'RelatorioController@index')->name('ponto.relatorios.index');
         Route::get('/relatorios/{chave}', 'RelatorioController@gerar')->name('ponto.relatorios.gerar');
 
+        // 8b. Conformidade CLT — somente leitura (ADR 0413 D0). FQCN: rule routes.md.
+        Route::get('/conformidade', [\Modules\Ponto\Http\Controllers\ConformidadeController::class, 'index'])
+            ->name('ponto.conformidade.index');
+
         // 9. Colaboradores
         Route::get('/colaboradores', 'ColaboradorController@index')->name('ponto.colaboradores.index');
         Route::get('/colaboradores/{id}/editar', 'ColaboradorController@edit')->name('ponto.colaboradores.edit');

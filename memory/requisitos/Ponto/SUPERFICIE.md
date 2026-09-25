@@ -14,15 +14,16 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 193 arquivos em 18 papéis.
+**Total mapeado:** 197 arquivos em 18 papéis.
 
-## Controllers — 13
+## Controllers — 14
 
 - [MobileMarcacaoController.php](../../../Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php)
 - [AprovacaoController.php](../../../Modules/Ponto/Http/Controllers/AprovacaoController.php)
 - [BancoHorasController.php](../../../Modules/Ponto/Http/Controllers/BancoHorasController.php)
 - [ColaboradorController.php](../../../Modules/Ponto/Http/Controllers/ColaboradorController.php)
 - [ConfiguracaoController.php](../../../Modules/Ponto/Http/Controllers/ConfiguracaoController.php)
+- [ConformidadeController.php](../../../Modules/Ponto/Http/Controllers/ConformidadeController.php)
 - [DashboardController.php](../../../Modules/Ponto/Http/Controllers/DashboardController.php)
 - [DataController.php](../../../Modules/Ponto/Http/Controllers/DataController.php)
 - [EscalaController.php](../../../Modules/Ponto/Http/Controllers/EscalaController.php)
@@ -113,7 +114,7 @@ module: Ponto
 
 - [espelho-pdf.blade.php](../../../Modules/Ponto/Resources/views/reports/espelho-pdf.blade.php)
 
-## Telas (Inertia/React) — 21
+## Telas (Inertia/React) — 22
 
 - [Index.tsx](../../../resources/js/Pages/Ponto/Aprovacoes/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Ponto/BancoHoras/Index.tsx)
@@ -122,6 +123,7 @@ module: Ponto
 - [Index.tsx](../../../resources/js/Pages/Ponto/Colaboradores/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Ponto/Configuracoes/Index.tsx)
 - [Reps.tsx](../../../resources/js/Pages/Ponto/Configuracoes/Reps.tsx)
+- [Conformidade.tsx](../../../resources/js/Pages/Ponto/Conformidade.tsx)
 - [Index.tsx](../../../resources/js/Pages/Ponto/Dashboard/Index.tsx)
 - [Form.tsx](../../../resources/js/Pages/Ponto/Escalas/Form.tsx)
 - [Index.tsx](../../../resources/js/Pages/Ponto/Escalas/Index.tsx)
@@ -145,7 +147,7 @@ module: Ponto
 - [PresenceStrip.tsx](../../../resources/js/Pages/Ponto/_components/PresenceStrip.tsx)
 - [PontoSubNav.tsx](../../../resources/js/Pages/Ponto/_shared/PontoSubNav.tsx)
 
-## Charters (lei da tela) — 21
+## Charters (lei da tela) — 22
 
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Aprovacoes/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Ponto/BancoHoras/Index.charter.md)
@@ -154,6 +156,7 @@ module: Ponto
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Colaboradores/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Configuracoes/Index.charter.md)
 - [Reps.charter.md](../../../resources/js/Pages/Ponto/Configuracoes/Reps.charter.md)
+- [Conformidade.charter.md](../../../resources/js/Pages/Ponto/Conformidade.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Dashboard/Index.charter.md)
 - [Form.charter.md](../../../resources/js/Pages/Ponto/Escalas/Form.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Escalas/Index.charter.md)
@@ -169,7 +172,7 @@ module: Ponto
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Relatorios/Index.charter.md)
 - [Welcome.charter.md](../../../resources/js/Pages/Ponto/Welcome.charter.md)
 
-## Casos (contrato UC) — 21
+## Casos (contrato UC) — 22
 
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Aprovacoes/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/BancoHoras/Index.casos.md)
@@ -178,6 +181,7 @@ module: Ponto
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Colaboradores/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Configuracoes/Index.casos.md)
 - [Reps.casos.md](../../../resources/js/Pages/Ponto/Configuracoes/Reps.casos.md)
+- [Conformidade.casos.md](../../../resources/js/Pages/Ponto/Conformidade.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Dashboard/Index.casos.md)
 - [Form.casos.md](../../../resources/js/Pages/Ponto/Escalas/Form.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Escalas/Index.casos.md)
