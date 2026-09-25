@@ -55,7 +55,7 @@ export default function Conformidade({ mes, painel }: Props) {
       <header className="os-page-h" data-contract="cabecalho">
         <div className="os-page-h-l">
           <h1>
-            Conformidade CLT <span className="text-stone-400 font-normal">· competência {mes}</span>
+            Conformidade CLT <span className="text-muted-foreground font-normal">· competência {mes}</span>
           </h1>
           <p>Somente leitura — a correção acontece no Espelho ou em Intercorrências.</p>
         </div>
