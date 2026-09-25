@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 16 |
 | CU no SDD | 14 |
-| Telas (.tsx) | 21 |
-| Telas com `casos.md` | 21 |
-| UC declarados | 75 |
-| UC com teste que os cita | 74 |
+| Telas (.tsx) | 22 |
+| Telas com `casos.md` | 22 |
+| UC declarados | 81 |
+| UC com teste que os cita | 80 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -122,6 +122,12 @@ authority: generated
 | UC-PAPR-02 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PAPR-03 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PAPR-04 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PTF-01 | Fechamento/Index | 🧪 aguarda veredito da lane |
+| UC-PTF-02 | Fechamento/Index | 🧪 aguarda veredito da lane |
+| UC-PTF-03 | Fechamento/Index | 🧪 aguarda veredito da lane |
+| UC-PTF-04 | Fechamento/Index | 🧪 aguarda veredito da lane |
+| UC-PTF-05 | Fechamento/Index | 🧪 aguarda veredito da lane |
+| UC-PTF-06 | Fechamento/Index | 🧪 aguarda veredito da lane |
 | UC-PWEL-01 | Welcome | 🧪 aguarda veredito da lane |
 | UC-RELIDX-01 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-02 | Relatorios/Index | 🧪 aguarda veredito da lane |
