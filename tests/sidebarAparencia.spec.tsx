@@ -163,3 +163,63 @@ describe('abrir o menu NÃO mexe no tema (regressão pega pelo VRT, estado=dark)
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+// Thread 12 do playbook `cowork-inbox/sidebar` — rodapé (menu da conta), forma do
+// protótipo `sidebar.jsx` UserMenu: valor do modo no trigger, "Buscar tela ⌘K" que
+// abre a MESMA paleta do atalho, e nenhum "⌘/" (tecla que nenhum listener liga).
+describe('Rodapé — modo de trabalho, Buscar tela e atalho morto', () => {
+  function abrirMenu(vibe: 'workspace' | 'daylight' | 'focus' = 'daylight') {
+    temaGuardado = 'light';
+    render(
+      <div className="cockpit">
+        <SidebarFooter
+          nome="Wagner Rocha"
+          email="wagner@oimpresso.com.br"
+          cargo="Administrador"
+          iniciais="WR"
+          superadminItems={[]}
+          userMenuItems={[]}
+          vibe={vibe}
+          onVibe={() => {}}
+        />
+      </div>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /wagner rocha/i }));
+  }
+
+  it('o trigger Modo de trabalho mostra o valor atual, e ele segue a prop', () => {
+    abrirMenu('daylight');
+    expect(screen.getByRole('button', { name: /modo de trabalho/i }).textContent).toContain('daylight');
+    cleanup();
+    abrirMenu('focus');
+    expect(screen.getByRole('button', { name: /modo de trabalho/i }).textContent).toContain('focus');
+  });
+
+  it('Buscar tela dispara o keydown ⌘K que o AppShellV2 trata e fecha o menu', () => {
+    const recebidos: KeyboardEvent[] = [];
+    const ouvinte = (e: KeyboardEvent) => recebidos.push(e);
+    window.addEventListener('keydown', ouvinte);
+    try {
+      abrirMenu();
+      const item = screen.getByRole('button', { name: /buscar tela/i });
+      expect(item.textContent).toContain('⌘K');
+      fireEvent.click(item);
+
+      expect(recebidos).toHaveLength(1);
+      const [e] = recebidos;
+      // o mesmo predicado do listener do AppShellV2: (meta || ctrl) && key 'k'
+      expect(e.metaKey || e.ctrlKey).toBe(true);
+      expect(e.key.toLowerCase()).toBe('k');
+      expect(document.querySelector('.user-menu')).toBeNull();
+    } finally {
+      window.removeEventListener('keydown', ouvinte);
+    }
+  });
+
+  it('o item Atalhos continua, mas sem o kbd ⌘/ morto', () => {
+    abrirMenu();
+    const menu = document.querySelector('.user-menu') as HTMLElement;
+    expect(within(menu).getByText('Atalhos')).toBeTruthy();
+    expect(menu.textContent).not.toContain('⌘/');
+  });
+});

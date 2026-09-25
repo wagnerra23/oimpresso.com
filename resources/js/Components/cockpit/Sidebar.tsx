@@ -1418,15 +1418,31 @@ function SidebarUserMenu({
           >
             <Palette size={14} className="ic" />
             <span className="label">Modo de trabalho</span>
+            {/* Valor atual no trigger, como Aparência acima (protótipo `um-vibe-cur`). */}
+            <span className="kbd">{vibe}</span>
             <ChevronRight size={12} className="um-cascade-arrow" />
           </button>
         )}
 
         <div className="um-sep" />
+        {/* Este item abre a MESMA CommandPalette do ⌘K: dispara o keydown que o
+            listener do AppShellV2 já trata, sem criar um segundo caminho de abertura. */}
+        <button
+          type="button"
+          className="um-item"
+          onClick={() => {
+            onClose();
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, metaKey: true, bubbles: true }));
+          }}
+        >
+          <Keyboard size={14} className="ic" />
+          <span className="label">Buscar tela</span>
+          <span className="kbd" aria-hidden="true">⌘K</span>
+        </button>
+        {/* Sem kbd "⌘/": nenhum listener liga essa tecla (o AppShellV2 liga só ⌘K e ⌘\). */}
         <a href="/business/settings#pos" className="um-item" title="Configuração de atalhos: aba POS em Settings">
           <Keyboard size={14} className="ic" />
           <span className="label">Atalhos</span>
-          <span className="kbd">⌘/</span>
         </a>
         {/* ÚNICO ponto de entrada pra /documentacao. A rota existe desde o PR do guia,
             mas NENHUM link apontava pra ela — varredura em app/**\/*.php, resources/views/
