@@ -1,4 +1,4 @@
-/* SCOPED-OK */ - escopo .fin-cowork aplicado por scripts/scope-fin-cowork-css.py
+/* SCOPED-OK */ /* escopo .fin-cowork aplicado por scripts/scope-fin-cowork-css.py — o texto FICA em comentário: solto após o fecha-comentário ele virava prefixo do seletor da 1ª regra e o navegador a descartava (a .fin-anomaly base nunca chegou a prod; medido 2026-09-25) */
 /* fin-ia.css — Cowork KB-9.75 Financeiro Onda 6 R2 IA
  *
  * Tokens visuais portados de prototipo-ui/cowork/Wagner/styles.css (Refino #2).
@@ -54,7 +54,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: white;
+  background: var(--surface, #fff);
   font-size: var(--fs-4);
   font-weight: 700;
   flex-shrink: 0;
@@ -205,7 +205,7 @@
   gap: 8px;
   width: 100%;
   padding: 10px 12px;
-  background: white;
+  background: var(--surface, #fff);
   border: 0;
   font-family: inherit;
   cursor: pointer;
@@ -236,7 +236,7 @@
   gap: 8px;
 }
 .fin-cowork .fin-curadoria .fin-digest-card {
-  background: white;
+  background: var(--surface, #fff);
   border-radius: 6px;
   padding: 8px 10px;
   display: flex;
@@ -273,7 +273,7 @@
 }
 .fin-cowork .fin-curadoria .fin-digest-top {
   flex: 1;
-  background: white;
+  background: var(--surface, #fff);
   border-radius: 6px;
   padding: 6px 10px;
   display: flex;
@@ -289,3 +289,35 @@
 .fin-cowork .fin-curadoria .fin-digest-top span { font-size: var(--fs-2); }
 .fin-cowork .fin-curadoria .fin-digest-top.in small { color: oklch(0.45 0.18 145); }
 .fin-cowork .fin-curadoria .fin-digest-top.out small { color: oklch(0.55 0.18 25); }
+
+/* ─────────────────────────────────────────────────────────────
+ * Tema dark — thread 07 do playbook financeiro (2026-09-25).
+ * As cores acima são claras cruas (oklch 0.94–0.97): no dark o card de anomalia
+ * e as tags do histórico saíam como blocos claros. Mesmo tratamento do protótipo
+ * (financeiro-drawer.css): tinta ~10% sobre o fundo + texto no token semântico.
+ * Duas formas de seletor: página (.fin-curadoria descendente) e drawer (portal,
+ * .fin-cowork.fin-curadoria no MESMO elemento).
+ * ───────────────────────────────────────────────────────────── */
+.dark .fin-cowork .fin-curadoria .fin-anomaly,
+.dark .fin-cowork.fin-curadoria .fin-anomaly {
+  background: color-mix(in oklab, currentColor 10%, transparent);
+  border-color: color-mix(in oklab, currentColor 28%, transparent);
+}
+.dark .fin-cowork .fin-curadoria .fin-anomaly-high,
+.dark .fin-cowork.fin-curadoria .fin-anomaly-high { color: var(--warn, oklch(0.82 0.16 75)); }
+.dark .fin-cowork .fin-curadoria .fin-anomaly-low,
+.dark .fin-cowork.fin-curadoria .fin-anomaly-low { color: oklch(0.80 0.09 240); }
+.dark .fin-cowork .fin-curadoria .fin-anomaly-low.fin-anomaly-sev-high,
+.dark .fin-cowork.fin-curadoria .fin-anomaly-low.fin-anomaly-sev-high { color: var(--neg, oklch(0.74 0.19 25)); }
+.dark .fin-cowork .fin-curadoria .fin-anomaly-ok,
+.dark .fin-cowork.fin-curadoria .fin-anomaly-ok { color: var(--pos, oklch(0.76 0.18 150)); }
+.dark .fin-cowork .fin-curadoria .fin-party-recent-tag.paid,
+.dark .fin-cowork.fin-curadoria .fin-party-recent-tag.paid {
+  background: color-mix(in oklab, var(--pos, oklch(0.76 0.18 150)) 14%, transparent);
+  color: var(--pos, oklch(0.76 0.18 150));
+}
+.dark .fin-cowork .fin-curadoria .fin-party-recent-tag.overdue,
+.dark .fin-cowork.fin-curadoria .fin-party-recent-tag.overdue {
+  background: color-mix(in oklab, var(--neg, oklch(0.74 0.19 25)) 14%, transparent);
+  color: var(--neg, oklch(0.74 0.19 25));
+}

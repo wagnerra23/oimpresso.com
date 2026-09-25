@@ -2258,7 +2258,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   className={'fin-drawer-tab fin-drawer-tab-ai' + (drawerTab === 'ia' ? ' on' : '')}
                   onClick={() => setDrawerTab('ia')}
                 >
-                  <span className="fin-drawer-tab-glyph" aria-hidden>✦</span>
+                  <Sparkles size={12} className="fin-drawer-tab-glyph" aria-hidden />
                   <span>IA</span>
                   {/* Onda 14 (2026-05-20): badge ! na aba IA quando há anomalia detectada
                       (ticket alto vs media historica). Permite Eliana ver alerta sem
@@ -2698,7 +2698,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   no-op por falta de markup. Wrapper `fin-curadoria` no
                   SheetContent ativa background/border de .fin-anomaly/.fin-party-history. */}
               {drawerTab === 'ia' && (
-                <div className="mt-3 px-5 text-[13px] fin-ai-panel">
+                {/* Thread 07 (2026-09-25): + `fin-curadoria` — as regras de fin-ia.css são
+                    `.fin-cowork .fin-curadoria X` (descendente) e no portal as duas classes
+                    ficam no MESMO SheetContent, então nada do detector/histórico casava. */}
+                <div className="mt-3 px-5 text-[13px] fin-ai-panel fin-curadoria">
                   <section>
                     <h3>Anomalia de valor</h3>
                     <FinAnomalyDetector

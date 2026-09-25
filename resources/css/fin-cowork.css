@@ -631,6 +631,131 @@
   background: #ffffff !important;
   color: var(--text);
 }
+
+/* ============================================================================
+ * Thread 07 do playbook financeiro (2026-09-25) — acabamento do drawer.
+ * Alvo: governance/design/targets/financeiro--unificado.alvo.json (medido no
+ * espelho) + §3 de prototipo-ui/cowork/Wagner/cowork-inbox/financeiro/playbook/
+ * 07-Unificado.drawer.md.
+ *
+ * (1) PAR DARK dos tokens do portal. O bloco acima só tinha a versão clara, então
+ *     o drawer (portal no <body>, fora do .cockpit) saía com fundo #fff e texto
+ *     claro no tema dark — medido em prod 2026-09-25: bg rgb(255,255,255) com
+ *     html.dark. NÃO remove a redeclaração (lápide §5 2026-07-10: o portal precisa
+ *     dela); dá a ela o par. Valores = os que o .cockpit[data-theme=dark] entrega à
+ *     própria página do Financeiro, medidos no mesmo dia (--surface .30 .008 240…).
+ * ============================================================================ */
+[role="dialog"].fin-cowork { font-family: var(--font-sans); }
+.dark [role="dialog"].fin-cowork {
+  --bg:          oklch(0.26 0.006 240);
+  --bg-2:        oklch(0.23 0.006 240);
+  --surface:     oklch(0.30 0.008 240);
+  --border:      oklch(0.34 0.008 240);
+  --border-2:    oklch(0.31 0.008 240);
+  --text:        oklch(0.94 0.005 90);
+  --text-dim:    oklch(0.72 0.005 90);
+  --text-mute:   oklch(0.58 0.005 90);
+  --accent:      oklch(0.70 0.15 295);
+  --accent-2:    oklch(0.74 0.15 295);
+  --accent-soft: oklch(0.33 0.09 295);
+  --accent-fg:   oklch(0.14 0.02 295);
+  --pos:         oklch(0.76 0.18 150);
+  --neg:         oklch(0.74 0.19 25);
+  --warn:        oklch(0.82 0.16 75);
+  /* --fin-* ficam fixos em :root (claros) pelo hotfix do inertia.css; no portal o
+     .fin-curadoria está no MESMO elemento, então o par dark de fin-curadoria.css
+     (seletor descendente) não alcança — declara aqui. */
+  --fin-text:      oklch(0.94 0.005 90);
+  --fin-text-mute: oklch(0.58 0.005 90);
+  --fin-line:      oklch(0.34 0.008 240);
+  --fin-bg-soft:   oklch(0.30 0.008 240);
+  background: var(--surface) !important;
+  border-left-color: var(--border);
+}
+
+/* (2) Medidas do §3 — header 56 · fechar 28×28 r6 · J/K em um grupo de 28 ·
+ *     hero 18/20/16 sem gradiente · rodapé 60 com botões todos 32. */
+[role="dialog"].fin-cowork { gap: 0; }
+[role="dialog"].fin-cowork > [data-slot="sheet-header"] {
+  min-height: 56px;
+  padding: 8px 52px 8px 20px;
+  justify-content: center;
+  gap: 2px;
+}
+[role="dialog"].fin-cowork > button.absolute:last-child {
+  top: 14px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-dim);
+  opacity: 1;
+}
+[role="dialog"].fin-cowork > button.absolute:last-child:hover { background: var(--bg-2); color: var(--text); }
+[role="dialog"].fin-cowork .fin-dw-nav {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 1px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+[role="dialog"].fin-cowork .fin-dw-nav-btn {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-dim);
+}
+[role="dialog"].fin-cowork .fin-dw-nav-btn:hover { background: var(--bg-2); color: var(--text); }
+[role="dialog"].fin-cowork .fin-dw-hero {
+  padding: 18px 20px 16px;
+  background-image: none;
+}
+[role="dialog"].fin-cowork .fin-drawer-footer {
+  min-height: 60px;
+  padding: 0 20px;
+  border-top: 1px solid var(--border);
+  align-items: center;
+  flex-wrap: nowrap;
+}
+[role="dialog"].fin-cowork .fin-drawer-footer > button { height: 32px; }
+[role="dialog"].fin-cowork .fin-drawer-footer .fin-trouble-trigger {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: var(--fs-2);
+}
+/* (3) Abas, "Editar campos" e aba IA no dark — medido em prod: barra de abas
+ *     rgb(249,248,246), aba ativa #fff, fin-edit-btn oklch(0.36 0.13 240). */
+.dark [role="dialog"].fin-cowork .fin-drawer-tabs { background: var(--bg-2); border-bottom-color: var(--border); }
+.dark [role="dialog"].fin-cowork .fin-drawer-tab { color: var(--text-dim); }
+.dark [role="dialog"].fin-cowork .fin-drawer-tab.on { background: var(--surface); color: var(--text); }
+.dark [role="dialog"].fin-cowork .fin-drawer-tab-ai { color: var(--accent); }
+.dark [role="dialog"].fin-cowork .fin-edit-btn {
+  border-color: color-mix(in oklab, var(--accent) 45%, transparent) !important;
+  color: var(--accent) !important;
+}
+.dark [role="dialog"].fin-cowork .fin-edit-btn:hover { background: color-mix(in oklab, var(--accent) 12%, transparent) !important; }
+/* O painel IA ganha .fin-curadoria (Index.tsx) pra que as regras descendentes de
+ * fin-ia.css alcancem o portal; aqui o par dark dos --fin-* dele e sem o gradiente claro. */
+.dark [role="dialog"].fin-cowork .fin-curadoria {
+  --fin-text:      oklch(0.94 0.005 90);
+  --fin-text-mute: oklch(0.58 0.005 90);
+  --fin-line:      oklch(0.34 0.008 240);
+  --fin-bg-soft:   oklch(0.30 0.008 240);
+}
+.dark [role="dialog"].fin-cowork .fin-ai-panel { background: none; }
 .fin-cowork .fin-curadoria .fin-footer-tips .spacer { flex: 1; }
 
 /* ─── Filtro por campo de data (paridade WR · 2026-06-03) ──────────────────
