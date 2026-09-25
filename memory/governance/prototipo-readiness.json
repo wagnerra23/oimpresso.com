@@ -94,6 +94,26 @@
   ],
   "ciclo": [
     {
+      "tela": "Documentacao/Index",
+      "arquivo": "resources/js/Pages/Documentacao/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/documentacao-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Essentials/Painel",
+      "arquivo": "resources/js/Pages/Essentials/Painel.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/hrm-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Manufacturing/Insumos",
       "arquivo": "resources/js/Pages/Manufacturing/Insumos.tsx",
       "modulo": "core",
@@ -134,5 +154,5 @@
       ]
     }
   ],
-  "total": 95
+  "total": 97
 }
