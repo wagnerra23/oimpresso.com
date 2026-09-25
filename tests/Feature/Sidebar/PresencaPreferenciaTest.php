@@ -98,7 +98,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    if ($this->sintetico ?? false) {
+    // Guarda de driver EXPLÍCITA: o drop só pode rodar no sqlite `:memory:`. No MySQL
+    // persistente (nightly/CT 100) derrubar `users`/`permissions` corromperia a suíte
+    // inteira — o auditor sqlite-test-corruptors cobra essa guarda literal.
+    if (DB::connection()->getDriverName() === 'sqlite' && ($this->sintetico ?? false)) {
         foreach (TABELAS_SINTETICAS as $tbl) {
             Schema::dropIfExists($tbl);
         }
