@@ -431,7 +431,7 @@ class WhatsmeowDriver implements DriverInterface
      * `POST /chat/markread {"Id":[...],"Chat":"<jid>"}` → 200; sem `Chat` → 400.
      * Best-effort: falha não sobe exceção — ler no oimpresso não pode quebrar.
      *
-     * @param  list<string>  $messageIds  provider_message_id (Info.ID do whatsmeow)
+     * @param  array<int, mixed>  $messageIds  provider_message_id (Info.ID do whatsmeow); não-string/vazio é descartado
      */
     public function markRead(Channel $channel, string $chatJid, array $messageIds): bool
     {

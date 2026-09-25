@@ -1042,7 +1042,7 @@ class CaixaUnificadaController extends Controller
     {
         $channel = $conversa->channel;
         $chatJid = (string) ($conversa->customer_external_id ?? '');
-        if ($channel === null || $channel->type !== Channel::TYPE_WHATSAPP_WHATSMEOW || ! str_contains($chatJid, '@')) {
+        if (! $channel instanceof Channel || $channel->type !== Channel::TYPE_WHATSAPP_WHATSMEOW || ! str_contains($chatJid, '@')) {
             return;
         }
 
