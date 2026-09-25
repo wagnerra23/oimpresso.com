@@ -51,7 +51,7 @@
 }
 .fin-cowork [data-density="compact"] { --row-h: 26px; }
 .fin-cowork [data-density="comfy"] {   --row-h: 34px; }
-.cockpit[data-theme="dark"] .fin-cowork {
+.cockpit[data-theme="dark"] .fin-cowork[data-tokens-cowork="ligado"] {
   --bg:        oklch(0.16 0.003 240);
   --bg-2:      oklch(0.14 0.003 240);
   --surface:   oklch(0.19 0.003 240);
@@ -1546,7 +1546,7 @@
   display: inline-flex; align-items: center; gap: 6px;
 }
 .fin-cowork .os-btn:hover { background: var(--border-2); }
-.fin-cowork .os-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.fin-cowork .os-btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
 .fin-cowork .os-btn.primary:hover { background: var(--accent-2); border-color: var(--accent-2); }
 .fin-cowork .os-btn.ghost { background: transparent; border-color: transparent; color: var(--text-dim); }
 .fin-cowork .os-btn.ghost:hover { background: var(--border-2); color: var(--text); }
