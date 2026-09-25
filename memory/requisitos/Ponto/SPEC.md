@@ -63,17 +63,17 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 ### US-PONTO-002 · Marcacao via REP-A (importacao AFD)
 
-**Implementado em:** _parcial_ · `Modules/Ponto/Services/AfdParserService.php` · `Modules/Ponto/Entities/Importacao.php` · `Modules/Ponto/Http/Controllers/ImportacaoController.php` · `Modules/Ponto/Console/Commands/ImportAfdCommand.php` · `Modules/Ponto/Tests/Feature/ImportacaoTest.php` · verificado@8af585a (2026-07-02) — parser AFDT (Portaria 671/2021) pronto, AFD legacy (1510/2009) parcial
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/AfdParserService.php` · `Modules/Ponto/Entities/Importacao.php` · `Modules/Ponto/Http/Controllers/ImportacaoController.php` · `Modules/Ponto/Console/Commands/ImportAfdCommand.php` · `Modules/Ponto/Tests/Feature/ImportacaoTest.php` · `Modules/Ponto/Tests/Feature/AfdLeiaute671ContratoTest.php` · verificado@8af585a (2026-07-02) — em 2026-09-25 o `AfdLeiaute671ContratoTest` provou que o parser só lia o leiaute 1510 (o 671 caía 100% em erro; a nota de 07-02 dizia o inverso) e ele passou a ler os dois: 1510 por PIS e 671 leiaute "004" por CPF (tipos 1/3/7/9 + assinatura). CRC-16 e hash SHA-256 do tipo 7 seguem sem validação
 
 **Como** RH,
 **quero** importar arquivo AFD/AFDT de REP-A homologado,
 **para que** marcacoes do equipamento sejam consolidadas no oimpresso sem digitacao manual.
 **Aceitacao:**
-- Suporta layouts AFD (Portaria 1.510/2009 — legacy) e AFDT (Portaria 671/2021 — atual)
+- Suporta AFD da Portaria 1.510/2009 (legado, colaborador por PIS) e AFD da Portaria 671/2021 leiaute "004" (atual, colaborador por CPF), detectados pelo formato do registro. AFDT e formato da 1510 (ADR 0413 W7)
 - Validacao de integridade: NSR sequencial, hash encadeado, faltas detectadas
 - `Modules/Ponto/Entities/Importacao` registra arquivo + checksum + linhas processadas + erros
 - Importacao idempotente (mesma AFD pode ser re-uploadada sem duplicar marcacoes)
-- **Status:** wip (parser AFDT pronto, AFD legacy parcial — ver `Importacao::ESTADO_*`)
+- **Status:** wip (leitura dos 2 leiautes pronta; validacao de CRC-16/hash encadeado pendente — ver `Importacao::ESTADO_*`)
 
 ### US-PONTO-003 · Workflow de intercorrencia (atestado/abono/falta)
 
