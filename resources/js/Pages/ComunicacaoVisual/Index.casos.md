@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a fórmula do m² e o isolamento por business são o que não pode mudar — a tela vai ganhar OS, materiais e apontamento por cima disso, e nenhum deles pode afrouxar o cálculo nem o escopo.
 owner: wagner
-last_run: "2026-09-23"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane Pest ComunicacaoVisual"
+last_run: "2026-09-25"
+last_run_ci: "2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
 ---
 
 # Casos de Uso & Aceite — Hub + Calculadora de m² (`/comunicacao-visual`)
@@ -65,10 +65,38 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CV-11 | Salvar o orçamento grava os valores do servidor, atomicamente | should | `CU-CV-05` itens 1-4 | `OrcamentoControllerTest` | 🧪 ⏭ PR-skip |
 | UC-CV-12 | O catálogo de partida nasce completo, idempotente e isolado | should | `CU-CV-07` itens 1-3 | `MaterialSeederTest` | 🧪 ⏭ PR-skip |
 
-> 🧪 **Nenhum status aqui é afirmação de verde.** Este PR não executou teste algum (CT 100/CI —
+> 🧪 **Nenhum status aqui é afirmação de verde.** O PR que criou este arquivo não executou teste algum (CT 100/CI —
 > [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). "Vermelho
 > esperado" é **predição declarada**, derivada de leitura de código com varredura contada; o
 > veredito vem da lane ([proibicoes §5](../../../../memory/proibicoes.md) 2026-07-15).
+
+## Revalidação 2026-09-25 (G-6 — a tela mudou depois do `last_run` 2026-09-23)
+
+**O que mudou no `Index.tsx`:** #7854 (header canon + R2/R3/R6) e #7868 (R4 — a **prévia**
+client-side passou a arredondar área a 3 e subtotal a 2 **por item**, `HALF_UP`, e o total ficou
+**sem clamp** em zero, com aviso quando negativo). As duas são só apresentação; nenhuma toca
+servidor, rota ou permissão.
+
+**Contrato conferido contra o #7868:** UC-CV-01 continua descrevendo a tela — o total oficial
+segue sendo o do servidor e a fórmula escrita aqui (`round` por item, `HALF_UP`, total sem piso)
+é exatamente a que a prévia passou a espelhar; antes do #7868 a prévia é que divergia do caso.
+UC-CV-02 (422) e UC-CV-03 (origem do preço) vivem no servidor e não foram tocados.
+
+**Execução (MySQL real), resultado por UC — ✅ só com prova no manifesto G-7, que não tem UC-CV:**
+
+| UC | Teste medido | Resultado |
+|----|-------------|-----------|
+| UC-CV-01 · 02 · 03 · 04 | `OrcamentoCalculatorTest` (CT 100) | 9/9 passed — cenários 1-7b |
+| UC-CV-02 · 05 · 11 | `OrcamentoControllerTest` (CT 100) | 3/4 — **1 falha**: `POST /calcular` asserta `toBe(270.0)` e recebe o inteiro `270` (tipo JSON, não valor); código servidor sem mudança desde 2026-08-12 — não medido se já falhava antes; fora deste escopo |
+| UC-CV-04 · 12 | `MaterialSeederTest` (CT 100) | 4/4 passed |
+| UC-CV-05 | `MultiTenantTest` · `Tier0GuardTest` (CT 100 **e** run 36124963011) | todos passed |
+| UC-CV-06 | `ApontamentoTrackerTest` · `ApontamentoControllerTest` (CT 100) | 5/8 · 0/4 — **não é veredito**: o `MultiTenantTest` deixa um apontamento aberto do operador 1 no banco persistente e o número da OS de teste colide em `varchar(20)` (`uq_comvis_os_business_numero`); poluição de ordem, não o contrato |
+| UC-CV-07 · 10 | `ContratoTelaOrcamentoTest` (CT 100) | **não medido**: 500 por `ViteManifestNotFoundException` no worktree de teste (sem build do front); vale o verde datado de 2026-09-23 |
+| UC-CV-08 | `AuditTrailIntegrityTest` · `LgpdComplianceTest` (CT 100) | 8/8 · 8/8 passed |
+| UC-CV-09 | `ContratoTelaOrcamentoTest` (CT 100) | passed |
+
+Por isso os status seguem 🧪: nenhum UC tem entrada no manifesto `scripts/casos-test-results.json`,
+e marcar ✅ sem ela é `status:unverified` (G-7).
 
 ---
 
