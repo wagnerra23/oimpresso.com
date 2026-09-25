@@ -7,7 +7,6 @@ parent_module: Ponto
 related_prototype: prototipo-ui/cowork/Wagner/ponto-fechamento.jsx
 related_us: [US-PONTO-016]
 related_adrs: [413, 93, 104]
-states: [com-apontamento, limpo, nao-medido]
 alcance:
   rota: /ponto/conformidade
   rota_nome: ponto.conformidade.index        # name() da rota — é o que o guard procura
