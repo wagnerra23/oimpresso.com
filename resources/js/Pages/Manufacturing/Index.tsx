@@ -11,13 +11,13 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
-import { Plus, Search, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Inline } from '@/Components/layout/inline';
 import { Stack } from '@/Components/layout/stack';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
 import { Link } from '@inertiajs/react';
 import '../../../css/cowork-manufacturing-bundle.css';
@@ -89,6 +89,15 @@ function applyFilter(current: FiltersState, patch: Partial<FiltersState>) {
   });
 }
 
+/**
+ * `aaaa-mm-dd` com ano ≥ 2000. O `<input type="date">` emite `0002-09-30`, `0020-…`, `0202-…`
+ * enquanto o ano é digitado — sem este guard cada tecla viraria um request.
+ */
+function isDataCompleta(value: string): boolean {
+  const m = /^(\d{4})-\d{2}-\d{2}$/.exec(value);
+  return !!m && Number(m[1]) >= 2000;
+}
+
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -132,11 +141,18 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
     });
   };
 
-  const applyDateRange = () => {
-    if (start && end) {
-      applyFilter(filters, { start_date: start, end_date: end });
-    } else if (!start && !end) {
+  // D-MFG-DATA ([W] 2026-09-25): o intervalo aplica AO ESCOLHER, como Local e "Só finalizadas"
+  // — sem blur e sem botão. Só dispara quando o intervalo fica válido: os dois vazios (limpa)
+  // ou os dois datas completas. Um só preenchido não aplica (mesma regra de antes).
+  // Sem debounce de propósito: o input é `type="date"`, não texto — ele só emite valor com a
+  // data inteira, e o guard de ano ≥ 2000 barra o `0002-…`/`0020-…` que sai enquanto o ano é
+  // digitado à mão. Resultado: 1 request por data escolhida, nenhum por tecla.
+  const applyDateRange = (s: string, e: string) => {
+    if (s === (filters.start_date ?? '') && e === (filters.end_date ?? '')) return; // já aplicado
+    if (!s && !e) {
       applyFilter(filters, { start_date: null, end_date: null });
+    } else if (isDataCompleta(s) && isDataCompleta(e)) {
+      applyFilter(filters, { start_date: s, end_date: e });
     }
   };
 
@@ -149,22 +165,17 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           fica de FORA de propósito: nesta tela o custo é o `final_total` GRAVADO, nunca
           recalculado (US-MANU-004 + RUNBOOK-producao.md §1). Copiar a copy literal poria uma
           afirmação FALSA na tela — o rodapé já diz a verdade ("custo congelado na data"). */}
+      {/* Header canon (ADR 0409: tocar a tela acorda a dívida do header antigo). Sem ícone,
+          como o protótipo (`manufacturing-page.jsx` `.os-page-h`: título · subtítulo · primário). */}
       <PageHeader
-        icon="factory"
         title="Produção"
-        description={
+        subtitle={
           recipes_count === undefined
             ? 'Ordens de produção do módulo de Fabricação.'
             : `${recipes_count} receita${recipes_count === 1 ? '' : 's'} · ` +
               `${summary?.total_count ?? 0} ordens de produção`
         }
-        action={
-          <Button asChild>
-            <a href={CREATE_ROUTE}>
-              <Plus className="mr-2 h-4 w-4" /> Nova produção
-            </a>
-          </Button>
-        }
+        actions={<PageHeaderPrimary label="Nova produção" href={CREATE_ROUTE} />}
       />
 
       {/* Barra de abas do módulo — MESMA das 4 telas irmãs (Recipes/Report/Settings/Insumos).
@@ -274,8 +285,10 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
                   id="mfg-op-data-inicial"
                   type="date"
                   value={start}
-                  onChange={(e) => setStart(e.target.value)}
-                  onBlur={applyDateRange}
+                  onChange={(e) => {
+                    setStart(e.target.value);
+                    applyDateRange(e.target.value, end);
+                  }}
                   className="h-9 w-[150px]"
                 />
               </label>
@@ -289,15 +302,14 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
                   id="mfg-op-data-final"
                   type="date"
                   value={end}
-                  onChange={(e) => setEnd(e.target.value)}
-                  onBlur={applyDateRange}
+                  onChange={(e) => {
+                    setEnd(e.target.value);
+                    applyDateRange(start, e.target.value);
+                  }}
                   className="h-9 w-[150px]"
                 />
               </label>
             </Stack>
-            <Button variant="outline" size="sm" onClick={applyDateRange} aria-label="Aplicar intervalo de datas">
-              <Search className="h-4 w-4" />
-            </Button>
           </Inline>
 
           {/* §4.5 — "Só finalizadas" como checkbox. O KPI "Finalizadas" continua clicável
