@@ -11,7 +11,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
-import { Plus, Search, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Checkbox } from '@/Components/ui/checkbox';
@@ -89,6 +89,15 @@ function applyFilter(current: FiltersState, patch: Partial<FiltersState>) {
   });
 }
 
+/**
+ * `aaaa-mm-dd` com ano ≥ 2000. O `<input type="date">` emite `0002-09-30`, `0020-…`, `0202-…`
+ * enquanto o ano é digitado — sem este guard cada tecla viraria um request.
+ */
+function isDataCompleta(value: string): boolean {
+  const m = /^(\d{4})-\d{2}-\d{2}$/.exec(value);
+  return !!m && Number(m[1]) >= 2000;
+}
+
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -132,11 +141,18 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
     });
   };
 
-  const applyDateRange = () => {
-    if (start && end) {
-      applyFilter(filters, { start_date: start, end_date: end });
-    } else if (!start && !end) {
+  // D-MFG-DATA ([W] 2026-09-25): o intervalo aplica AO ESCOLHER, como Local e "Só finalizadas"
+  // — sem blur e sem botão. Só dispara quando o intervalo fica válido: os dois vazios (limpa)
+  // ou os dois datas completas. Um só preenchido não aplica (mesma regra de antes).
+  // Sem debounce de propósito: o input é `type="date"`, não texto — ele só emite valor com a
+  // data inteira, e o guard de ano ≥ 2000 barra o `0002-…`/`0020-…` que sai enquanto o ano é
+  // digitado à mão. Resultado: 1 request por data escolhida, nenhum por tecla.
+  const applyDateRange = (s: string, e: string) => {
+    if (s === (filters.start_date ?? '') && e === (filters.end_date ?? '')) return; // já aplicado
+    if (!s && !e) {
       applyFilter(filters, { start_date: null, end_date: null });
+    } else if (isDataCompleta(s) && isDataCompleta(e)) {
+      applyFilter(filters, { start_date: s, end_date: e });
     }
   };
 
@@ -274,8 +290,10 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
                   id="mfg-op-data-inicial"
                   type="date"
                   value={start}
-                  onChange={(e) => setStart(e.target.value)}
-                  onBlur={applyDateRange}
+                  onChange={(e) => {
+                    setStart(e.target.value);
+                    applyDateRange(e.target.value, end);
+                  }}
                   className="h-9 w-[150px]"
                 />
               </label>
@@ -289,15 +307,14 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
                   id="mfg-op-data-final"
                   type="date"
                   value={end}
-                  onChange={(e) => setEnd(e.target.value)}
-                  onBlur={applyDateRange}
+                  onChange={(e) => {
+                    setEnd(e.target.value);
+                    applyDateRange(start, e.target.value);
+                  }}
                   className="h-9 w-[150px]"
                 />
               </label>
             </Stack>
-            <Button variant="outline" size="sm" onClick={applyDateRange} aria-label="Aplicar intervalo de datas">
-              <Search className="h-4 w-4" />
-            </Button>
           </Inline>
 
           {/* §4.5 — "Só finalizadas" como checkbox. O KPI "Finalizadas" continua clicável
