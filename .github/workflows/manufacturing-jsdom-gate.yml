@@ -1,0 +1,72 @@
+name: "Manufacturing jsdom Gate — filtro De/Até das Ordens de produção (UC-OP-06)"
+
+# POR QUE ESTA LANE EXISTE
+#
+# O UC-OP-06 (Manufacturing/Index.casos.md) é comportamento de CLIENTE: o intervalo De/Até
+# aplica ao escolher, sem botão, e não dispara request enquanto o ano é digitado à mão. Os
+# UC-OP-01..05 são de Service e rodam no Pest do módulo; este não tem nada a fazer no PHP.
+# Spec vitest commitado que nenhum workflow invoca é verde-por-não-execução (LC-13) — por isso
+# ele nasce com lane própria, no molde da `forja-jsdom-gate` / `cobranca-filtros-gate`.
+#
+# BITE-TEST antes do merge (mutação + restore byte-idêntico, hash conferido):
+#   guard de ano ≥ 2000 removido      → 1 failed (o caso da digitação à mão)
+#   applyDateRange fora do onChange   → 3 failed
+#
+# O arquivo SOB TESTE entra no gatilho junto com o spec (§5 2026-08-02): sem isso, mexer no
+# Index.tsx não acordaria o teste que o defende. `synchronize` no gatilho pelo mesmo motivo.
+#
+# Enforcement (classe/terminal) mora no `scripts/governance/gates-registry.json`; o que
+# bloqueia merge mora no `governance/required-checks-baseline.json` (LC-10).
+#
+# Comando local (vitest não é Pest; roda fora do CT 100 sem violar a ADR 0062):
+#   npx vitest run tests/js/manufacturing-index-datas.test.tsx
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    paths:
+      - 'resources/js/Pages/Manufacturing/Index.tsx'
+      - 'tests/js/manufacturing-index-datas.test.tsx'
+      - '.github/workflows/manufacturing-jsdom-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/Manufacturing/Index.tsx'
+      - 'tests/js/manufacturing-index-datas.test.tsx'
+
+concurrency:
+  group: manufacturing-jsdom-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  manufacturing-jsdom:
+    name: Manufacturing · filtro De/Até aplica ao escolher (vitest/jsdom)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+
+      - name: UC-OP-06 — De/Até aplica ao escolher (vitest/jsdom)
+        run: |
+          npx vitest run \
+            tests/js/manufacturing-index-datas.test.tsx \
+            --reporter=default \
+            --reporter=junit \
+            --outputFile=test-results/vitest-manufacturing-jsdom-junit.xml
+
+      - name: Upload JUnit (veredito por-UC — casos:results)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-manufacturing-jsdom-junit
+          path: test-results/vitest-manufacturing-jsdom-junit.xml
+          retention-days: 14
+          if-no-files-found: error
