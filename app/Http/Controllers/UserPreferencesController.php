@@ -40,7 +40,7 @@ class UserPreferencesController extends Controller
         ]);
 
         $user = $request->user();
-        abort_unless($user, 401);
+        abort_unless($user !== null, 401);
 
         $user->ui_presence = $validated['presence'];
         $user->save();
