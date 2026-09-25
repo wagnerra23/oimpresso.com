@@ -177,7 +177,7 @@ dele entre aspas onde houve texto livre.
 | # | resposta | fonte |
 |---|---|---|
 | D2 | **(a)** a Fabricação passa a existir no projeto Cowork do [W] | [W] 2026-09-25, *"D2 → (a)"* |
-| D3 | **(b)** emenda à ADR 0412 isentando de opt-in o arquivo cujo dono é a outra conta e cujo conteúdo é o mesmo do `main` | [W] 2026-09-25, opção escolhida |
+| D3 | **(a)** o upload de tela ao projeto do [W] continua com opt-in [W] a cada vez; a ADR 0412 D2 fica intacta e não há emenda | [W] 2026-09-25: escolheu (b) e, no mesmo dia, trocou para (a) (*"flip"*, confirmado como "D3 para (a)") |
 | D4 | **(c), fora das opções da §8:** *"todos devem ficar junto"*, esclarecido como **tudo no Cowork do [W]**. O time (Felipe, Maiara, Luiz) passa a trabalhar dentro do projeto Cowork do [W], sem conta separada | [W] 2026-09-25, texto livre + opção escolhida |
 | D1 | sem resposta do [F] até esta data; não registrada | — |
 
@@ -189,9 +189,8 @@ Medido em `origin/main` `1743f005a`, 2026-09-25:
   do [W], o DesignSync desta sessão (que autentica como [W]) alcança o projeto de trabalho.
 - **A conta `felipe` é usada por três pessoas:** `protocolo.config.mjs`, `CONTAS.felipe.usadaPor`
   = `[F] Felipe`, `[M] Maiara`, `[L] Luiz`. A D4 (c) move os três.
-- **ADR 0412 está `aceito`** (não mais `proposto`, como a §2 dizia). Pelo append-only, a D3 (b)
-  vira **ADR nova de emenda**, com `supersedes`/`amends` apontando a 0412. Não se edita o corpo
-  da 0412.
+- **ADR 0412 está `aceito`** (não mais `proposto`, como a §2 dizia). Com a D3 (a), ela fica como
+  está: tela `*.jsx`/CSS sobe com opt-in [W] (D2 da 0412). Nenhuma ADR de emenda.
 - **Tamanho da migração:** hoje há **186** arquivos só em `cowork/Felipe/` e **117** arquivos
   presentes nas duas pastas com conteúdo diferente (7 deles são da Fabricação; `manufacturing-page.css`
   também difere e faltava na tabela da §2). A pasta `cowork/Wagner/` tem **601** arquivos que só
@@ -214,7 +213,7 @@ Medido em `origin/main` `1743f005a`, 2026-09-25:
    segundo job do `cowork-bundle.yml` podem não ser mais necessários. A extensão da §5 é refeita
    depois do item 2, e não antes.
 5. **[F] só no Code (§8):** trabalhar só no Code continua permitido (ADR 0282). O que ele gerar
-   entra pela pasta `cowork/Wagner/` do projeto único e sobe ao Cowork pela isenção da D3.
+   entra pela pasta `cowork/Wagner/` do projeto único e sobe ao Cowork com o opt-in [W] da D3 (a).
 
 ### 9.3 · Dono por usuário, autorizado pelo [W] (2026-09-25)
 
@@ -231,8 +230,8 @@ Consequência para as outras peças:
 - **Onde fica o dono:** o dono canônico já é o `design-lock.json` (§5), e não se cria um arquivo
   paralelo. O lock hoje registra caminho + hash, não usuário. Acrescentar o campo de dono nele é
   parte do PR de código.
-- **D3 (b):** a isenção de opt-in vale para o arquivo cujo dono declarado no git **é quem está
-  enviando** e cujo conteúdo é igual ao do `main`. Arquivo sem dono declarado, ou de outro dono,
-  continua exigindo opt-in.
+- **D3 (a):** não há isenção. Todo envio de tela ao projeto do [W] passa pelo opt-in dele, e é
+  isso que torna confiável o dono declarado no git: o [W] autoriza a atribuição (PR) e autoriza o
+  envio (opt-in).
 
 A promoção desta proposta a ADR aceita é ato do [W] (merge = ratificação).
