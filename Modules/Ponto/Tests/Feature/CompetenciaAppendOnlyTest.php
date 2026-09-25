@@ -20,6 +20,8 @@ uses(PontoTestCase::class);
  *  - unicidade (business_id, mês) — um empregador fecha um mês uma vez só.
  * Defesa dupla: model (vale em qualquer driver) + trigger MySQL (vale até pra `DB::table`).
  *
+ * @covers-us US-PONTO-015
+ *
  * Tier 0 (ADR 0093): tenant fictício 98 × adversário 99 (ADR 0358). NUNCA biz=4, nunca biz=1.
  * Cada caso roda numa transação REVERTIDA: a tabela recusa DELETE por construção, então a
  * limpeza por `delete` é impossível — e no CT 100 a base persiste entre runs (§5 2026-09-18).

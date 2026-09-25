@@ -207,6 +207,16 @@ class DataController extends Controller
                             ]
                         );
 
+                        // ADR 0413: ver o fechamento é `ponto.access`; fechar exige `ponto.fechar` (na rota POST).
+                        $sub->url(
+                            route('ponto.fechamento'),
+                            __('pontowr2::ponto.menu.fechamento'),
+                            [
+                                'icon'   => 'fa fas fa-lock',
+                                'active' => request()->segment(2) == 'fechamento',
+                            ]
+                        );
+
                         $sub->url(
                             route('ponto.relatorios.index'),
                             __('pontowr2::ponto.menu.relatorios'),
@@ -256,6 +266,7 @@ class DataController extends Controller
                             ['key' => 'escalas',         'label' => 'Escalas',          'href' => '/ponto/escalas'],
                             ['key' => 'importacoes',     'label' => 'Importações',      'href' => '/ponto/importacoes'],
                             ['key' => 'relatorios',      'label' => 'Relatórios',       'href' => '/ponto/relatorios'],
+                            ['key' => 'fechamento',      'label' => 'Fechamento',       'href' => '/ponto/fechamento'],
                             ['key' => 'colaboradores',   'label' => 'Colaboradores',    'href' => '/ponto/colaboradores'],
                             ['key' => 'configuracoes',   'label' => 'Configurações',    'href' => '/ponto/configuracoes'],
                         ],

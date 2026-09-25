@@ -88,6 +88,8 @@ Route::group(
         Route::get('/importacoes/{id}/original', 'ImportacaoController@baixarOriginal')->name('ponto.importacoes.original');
 
         // Fechamento da competência (ADR 0413): permissão própria `ponto.fechar` (D1).
+        Route::get('/fechamento', [\Modules\Ponto\Http\Controllers\FechamentoController::class, 'index'])
+            ->name('ponto.fechamento');
         Route::post('/fechamento', [\Modules\Ponto\Http\Controllers\FechamentoController::class, 'store'])
             ->middleware('can:ponto.fechar')
             ->name('ponto.fechamento.store');

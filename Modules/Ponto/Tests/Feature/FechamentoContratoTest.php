@@ -21,6 +21,8 @@ uses(PontoTestCase::class);
  *  - fechar de novo é recusado — não existe reabrir (D1);
  *  - fechar NÃO altera `ponto_marcacoes` nem `ponto_apuracao_dia` (Portaria MTP 671/2021).
  *
+ * @covers-us US-PONTO-015
+ *
  * Tier 0: tenant fictício 98 × adversário 99 (ADR 0358). Transação revertida por caso
  * (`ponto_competencias` recusa DELETE). Mês 2099-07: fora de qualquer competência real.
  */
@@ -157,4 +159,28 @@ it('UC-PTF-06: POST /ponto/fechamento exige ponto.fechar: só ponto.access → 4
         ->assertRedirect()->assertSessionHasNoErrors();
     expect(DB::table('ponto_competencias')->where('business_id', FCH_BIZ)->where('competencia', FCH_MES . '-01')->value('fechada_por'))
         ->toEqual($u->id);
+});
+
+it('UC-PTF-07: a tela mostra a competência aberta, sem botão pra quem não tem ponto.fechar, e depois quem fechou', function () {
+    $u = fchUsuario();
+    Permission::firstOrCreate(['name' => 'ponto.access', 'guard_name' => 'web']);
+    $u->givePermissionTo('ponto.access');
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    session(['user.business_id' => FCH_BIZ, 'business.id' => FCH_BIZ]);
+    $this->actingAs($u);
+
+    $r = $this->inertiaGet('/ponto/fechamento', ['competencia' => FCH_MES]);
+    $this->assertInertiaComponent($r, 'Ponto/Fechamento/Index');
+    $r->assertJsonPath('props.competencia', FCH_MES)
+        ->assertJsonPath('props.fechada', null)
+        ->assertJsonPath('props.pode_fechar', false);
+
+    $p = $this->inertiaPartialGet('/ponto/fechamento?competencia=' . FCH_MES, ['bloqueios'], 'Ponto/Fechamento/Index');
+    expect(collect($p->json('props.bloqueios'))->pluck('id')->all())
+        ->toBe(['divergencia', 'intercorrencia', 'clt', 'sem_pis', 'importacao']);
+
+    app(FechamentoService::class)->fechar(FCH_BIZ, CarbonImmutable::createFromFormat('!Y-m', FCH_MES), $u->id, true);
+
+    $depois = $this->inertiaGet('/ponto/fechamento', ['competencia' => FCH_MES]);
+    expect($depois->json('props.fechada.fechada_por'))->toBe(trim($u->first_name . ' ' . $u->last_name));
 });

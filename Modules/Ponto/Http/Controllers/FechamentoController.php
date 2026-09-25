@@ -7,6 +7,9 @@ use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+use Modules\Ponto\Entities\Competencia;
 use Modules\Ponto\Services\FechamentoService;
 
 /**
@@ -17,6 +20,30 @@ class FechamentoController extends Controller
 {
     public function __construct(private FechamentoService $service)
     {
+    }
+
+    /** Ver é `ponto.access` (grupo); fechar é `ponto.fechar` — a tela só oferece o botão a quem pode. */
+    public function index(Request $request): Response
+    {
+        $businessId = (int) (session('business.id') ?: $request->user()->business_id);
+        $mes = $request->validate(['competencia' => ['nullable', 'date_format:Y-m']])['competencia'] ?? now()->format('Y-m');
+        $competencia = CarbonImmutable::createFromFormat('!Y-m', $mes);
+
+        $fechada = Competencia::query()->with('fechador:id,first_name,last_name')
+            ->where('business_id', $businessId)
+            ->where('competencia', $competencia->toDateString())
+            ->first();
+
+        return Inertia::render('Ponto/Fechamento/Index', [
+            'competencia' => $mes,
+            'pode_fechar' => $request->user()->can('ponto.fechar'),
+            'fechada'     => $fechada ? [
+                'fechada_em'        => $fechada->fechada_em->format('d/m/Y H:i'),
+                'fechada_por'       => trim(($fechada->fechador->first_name ?? '') . ' ' . ($fechada->fechador->last_name ?? '')),
+                'bloqueios_aceitos' => (int) collect($fechada->bloqueios_aceitos ?? [])->where('grave', true)->sum('n'),
+            ] : null,
+            'bloqueios'   => Inertia::defer(fn () => $this->service->preChecagem($businessId, $competencia)),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
