@@ -1,6 +1,6 @@
-/* SCOPED-OK */ - escopo .fin-cowork aplicado por scripts/scope-fin-cowork-css.py
+/* SCOPED-OK */ /* escopo .fin-cowork aplicado por scripts/scope-fin-cowork-css.py — o texto FICA em comentário (solto após o fecha-comentário virava prefixo do seletor da 1ª regra e o navegador a descartava). O bloco de tokens logo abaixo NUNCA chegou a prod por esse defeito, e segue DESLIGADO de propósito pelo seletor [data-tokens-cowork="ligado"], que nada define: medido em prod 2026-09-25 (getComputedStyle, 2 leituras), ligá-lo não muda nada no tema claro e, no escuro, troca --text .94→.22 e --surface→#fff na raiz .fin-cowork — texto escuro sobre fundo escuro em /financeiro/unificado. Os tokens chegam pelo .cockpit ancestral; no drawer (portal), pela regra da Onda 22b em fin-cowork.css. Ligar exige antes reancorar o dark deste bundle no .cockpit[data-theme] (lápide §5 2026-07-10). */
 /* ───────────────────── Oimpresso ERP — Chat v2 ───────────────────── */
-.fin-cowork {
+.fin-cowork[data-tokens-cowork="ligado"] {
   /* Sidebar dark — espelho AppShell */
   --sb-bg:        oklch(0.21 0 0);
   --sb-bg-2:      oklch(0.18 0 0);
