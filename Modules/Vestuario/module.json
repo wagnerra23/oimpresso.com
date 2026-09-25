@@ -15,7 +15,6 @@
         "bucket": "vertical_client_facing",
         "bucket_adr": "0160",
         "bucket_config": "governance/buckets/vertical_client_facing.yaml",
-        "scorecard_yaml": "memory/governance/scorecards/vestuario.yaml",
         "wave_23_saturation": true,
         "wave_25_saturation": true,
         "scoped_score_target": 90,

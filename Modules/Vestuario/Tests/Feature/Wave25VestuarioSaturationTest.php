@@ -31,7 +31,6 @@ function vestuarioW25Path(string $path = ''): string
  *  - Multi-tenant ADR 0093 + ADR 0066 format_date +3h preservado
  *  - PT-BR + sem git ops + OtelHelper canônico
  *
- * @see memory/governance/scorecards/vestuario.yaml
  * @see memory/governance/buckets/vertical_client_facing.yaml
  * @see Modules/Vestuario/Tests/Feature/LgpdComplianceTest.php (D7 core)
  * @see Modules/Vestuario/Tests/Feature/Wave23VestuarioSaturationTest.php (predecessor)
@@ -39,27 +38,10 @@ function vestuarioW25Path(string $path = ''): string
 
 describe('Wave 25 Vestuario — D7 LGPD regressão FORENSE fix', function () {
 
-    it('scorecard YAML existe em memory/governance/scorecards/vestuario.yaml', function () {
-        $path = vestuarioW25Path('memory/governance/scorecards/vestuario.yaml');
-        expect(file_exists($path))->toBeTrue(
-            'Scorecard YAML obrigatório pra ScopedScorecardEvaluator reportar D7=10 (sem isso, retorna 0 default)'
-        );
-    });
-
-    it('scorecard YAML declara D7_lgpd current=10 (RESTAURADO W25)', function () {
-        $conteudo = (string) file_get_contents(vestuarioW25Path('memory/governance/scorecards/vestuario.yaml'));
-        expect($conteudo)->toContain('D7_lgpd:');
-        // Forma canônica YAML: weight, target, current — todos 10
-        expect($conteudo)->toMatch('/D7_lgpd:\s*\{\s*weight:\s*10\s*,\s*target:\s*10\s*,\s*current:\s*10\b/');
-    });
-
-    it('scorecard YAML cita evidências D7 (4 artifacts + ESTE arquivo)', function () {
-        $conteudo = (string) file_get_contents(vestuarioW25Path('memory/governance/scorecards/vestuario.yaml'));
-        expect($conteudo)->toContain('retention.php');
-        expect($conteudo)->toContain('LgpdComplianceTest.php');
-        expect($conteudo)->toContain('VestuarioSetting.php');
-        expect($conteudo)->toContain('PII-LGPD.md');
-    });
+    // 2026-09-25: os 3 casos que exigiam `memory/governance/scorecards/vestuario.yaml`
+    // saíram junto com o arquivo — scorecard de módulo aposentado por decisão [W]
+    // (61d sem revisão; a nota que ele citava vinha do `module:grade`, aposentado
+    // pela ADR 0399). Eles mediam presença do YAML, não comportamento do módulo.
 
     it('PII-LGPD.md declara herança PiiRedactor core (não custom Vestuario)', function () {
         $piiDoc = (string) file_get_contents(vestuarioW25Path('memory/requisitos/Vestuario/PII-LGPD.md'));
@@ -103,16 +85,6 @@ describe('Wave 25 Vestuario — V1 Customer Journey expandido', function () {
         $spec = (string) file_get_contents(vestuarioW25Path('memory/requisitos/Vestuario/SPEC.md'));
         expect($spec)->toContain('US-VEST-007');
         expect($spec)->toContain('Asaas');
-    });
-
-    it('CustomerJourney persistido cita 5 capacidades em prod (W22 CAPTERRA)', function () {
-        $scorecard = (string) file_get_contents(vestuarioW25Path('memory/governance/scorecards/vestuario.yaml'));
-        // Capacidades chave do CustomerJourney ROTA LIVRE 2+ anos
-        expect($scorecard)->toContain('US-VEST-001');
-        expect($scorecard)->toContain('US-VEST-002');
-        expect($scorecard)->toContain('US-VEST-005');
-        expect($scorecard)->toContain('US-VEST-007');
-        expect($scorecard)->toContain('format_date shift +3h');
     });
 });
 
@@ -162,13 +134,11 @@ describe('Wave 25 Vestuario — V6 module.json governance bucket', function () {
     });
 
     it('Tier 0 ADR 0066 format_date shift +3h preservado (nunca regressão)', function () {
-        // Tripla validação: BRIEFING + CAPTERRA + scorecard
+        // Dupla validação: BRIEFING + CAPTERRA (o scorecard YAML saiu em 2026-09-25)
         foreach (['BRIEFING.md', 'CAPTERRA-FICHA.md'] as $doc) {
             $conteudo = (string) file_get_contents(vestuarioW25Path("memory/requisitos/Vestuario/{$doc}"));
             expect($conteudo)->toContain('ADR 0066');
         }
-        $scorecard = (string) file_get_contents(vestuarioW25Path('memory/governance/scorecards/vestuario.yaml'));
-        expect($scorecard)->toContain('0066');
     });
 });
 
