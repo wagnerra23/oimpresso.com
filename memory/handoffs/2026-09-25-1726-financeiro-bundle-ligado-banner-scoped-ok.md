@@ -6,8 +6,7 @@ tldr: "Banner SCOPED-OK descartava a 1ª regra de 5 CSS do port; e um comentári
 prs: [7972, 7973, 7974, 7975, 7977, 7978, 7980]
 decided_by: [W]
 next_steps:
-  - "Smoke pós-deploy do #7980 (CSS servido com as regras do bundle + contraste no escuro em Impostos/Conciliação)"
-  - "Cabeçalho da Conciliação espremido (uma palavra por linha) — defeito anterior, sem dono"
+  - "Replicar nas outras 11 telas do Financeiro o smoke pós-deploy feito em Impostos e Conciliação, se quiser recibo por tela"
   - "Errata no _saida-07b: a causa que valia era inertia.css:76 (`**/*.tsx`), não só a :92"
 ---
 
@@ -16,7 +15,8 @@ next_steps:
 ## Estado MCP no momento
 - `cycles-active`: nenhum cycle ativo em COPI.
 - `my-work` (@wr23): sem tasks ativas.
-- Todos os PRs da sessão mergeados por [W]; deploy do #7980 (`de3a020d0`) na fila quando este handoff foi escrito.
+- Todos os PRs da sessão mergeados por [W]. Deploy do #7980 (`de3a020d0`) concluído com sucesso. **Smoke em prod feito** (1440px): bundle no CSS servido (`inertia-CKBhpCGc.css`), tokens escuros inertes, raiz com `--text .94`; Impostos com 0 textos <3:1 nos dois temas; Conciliação com o "Importar OFX" já estilizado (30px, roxo, texto `--accent-fg`).
+- ⚠️ **Errata:** o "cabeçalho espremido" que cheguei a reportar ao [W] era artefato do painel do navegador com 800px de largura. Em 1440px o cabeçalho sai normal — não é defeito de prod.
 
 ## O que aconteceu
 1. **Banner quebrado** (`/* SCOPED-OK */ - escopo …`): o texto após o `*/` virava prefixo do seletor e o navegador
@@ -44,12 +44,12 @@ next_steps:
 Git (7 PRs mergeados) · Cowork (4 recibos enviados, registrados) · MCP via webhook deste handoff.
 
 ## Próximos passos pra retomar
-Abrir `oimpresso.com/financeiro/impostos` e `/financeiro/conciliacao` no escuro após o deploy de `de3a020d0` e conferir
-contraste + screenshot (ver frontmatter `next_steps`).
+Nada bloqueante. Se quiser recibo por tela, repetir o smoke nas outras 11 telas do Financeiro (ver frontmatter `next_steps`).
 
 ## Lições catalogadas
 - **LC-26 (2×)**: par de barra invertida colapsou em heredoc Python. Contornado com `chr(92)`/Edit.
 - **LC-08**: declarei a causa como "linha 92" no recibo #7977; a que valia era a L76. O compilador (não a leitura) mostrou.
+- **LC-08**: concluí "cabeçalho espremido, defeito anterior" medindo com viewport de 800px; em 1440px não existe. Medir no tamanho real antes de chamar de defeito.
 - **LC-23 near-miss**: comando com fallback `git checkout origin/main -- scripts/…` sobre arquivo editado — barrado pelo hook do `rm` no mesmo comando.
 
 ## Pointers detalhados
