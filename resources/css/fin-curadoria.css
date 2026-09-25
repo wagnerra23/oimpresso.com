@@ -1,4 +1,4 @@
-/* SCOPED-OK */ - escopo .fin-cowork aplicado por scripts/scope-fin-cowork-css.py
+/* SCOPED-OK */ /* escopo .fin-cowork aplicado por scripts/scope-fin-cowork-css.py — o texto FICA em comentário: solto após o fecha-comentário ele virava prefixo do seletor da 1ª regra e o navegador a descartava (medido em prod 2026-09-25) */
 /* fin-curadoria.css — Cowork KB-9.75 Financeiro Onda 5 R1 Curadoria
  *
  * Tokens visuais portados de prototipo-ui/cowork/Wagner/styles.css (Refino #1).
