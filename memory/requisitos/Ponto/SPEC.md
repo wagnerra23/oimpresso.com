@@ -322,8 +322,8 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 ### US-PONTO-015 · Fechamento de competência — as restrições existem, a tela e o domínio não
 
-> owner: — · priority: p2 · estimate: — · status: todo · type: story
-> blocked_by: decisão [W] sobre o comportamento (ver "O que falta" abaixo)
+> owner: — · priority: p2 · estimate: — · status: done · type: story
+> blocked_by: — (desbloqueada pela ADR 0413, 2026-09-24; o bloqueio original era "decisão [W] sobre o comportamento")
 
 **Implementado em:** `Modules/Ponto/Database/Migrations/2026_09_25_000001_create_ponto_competencias_table.php` · `Modules/Ponto/Entities/Competencia.php` · `Modules/Ponto/Services/FechamentoService.php` · `Modules/Ponto/Http/Controllers/FechamentoController.php` · `resources/js/Pages/Ponto/Fechamento/Index.tsx` · `Modules/Ponto/Tests/Feature/FechamentoContratoTest.php` — thread 04 do playbook, 2026-09-25. Até 2026-09-24 estava `_pendente_`: não existe tabela, entity, service, controller nem rota de fechamento. Medido no main em 2026-09-14: zero migration com fechamento, competenc ou consolid, e os 7 arquivos do módulo que citam "competência" usam a palavra como **período** (banco de horas, relatórios), não como entidade.
 

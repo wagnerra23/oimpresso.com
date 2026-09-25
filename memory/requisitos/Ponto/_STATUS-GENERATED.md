@@ -29,6 +29,7 @@ authority: generated
 |---|---|
 | `US-PONTO-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Relogio web pra registrar entrada/saida (REP-P) |
 | `US-PONTO-012` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Corrigir os atributos fantasma do modulo (4 instancias) |
+| `US-PONTO-015` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Fechamento de competência — as restrições existem, a tela e  |
 
 ### Backlog — NÃO é lacuna
 
@@ -46,7 +47,6 @@ authority: generated
 | US-PONTO-011 | `todo` | Fechar o append-only do ledger de banco de horas |
 | US-PONTO-013 | `todo` | Consertar as duas telas que nao persistem |
 | US-PONTO-014 | `todo` | Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; |
-| US-PONTO-015 | `todo` | Fechamento de competência — as restrições existem, a tela e o domínio não |
 | US-PONTO-016 | `desconhecido` | Painel de Conformidade CLT da competência (somente leitura) |
 
 ## UC por status
