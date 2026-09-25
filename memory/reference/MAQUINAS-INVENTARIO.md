@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 147 (47 contexts required)
+## 1. Workflows / Gates de CI — 148 (47 contexts required)
 
 > `Invocador` = gatilho `on:` do YAML · `Documento` = doc canônico de maior precedência que o cita.
 > **Evidência não é derivável aqui** (medido: 0 de 123): o `gate-selftest` prova que o SCRIPT morde,
@@ -53,6 +53,7 @@ lifecycle: ativo
 | `ci.yml` | pr+push+manual | `memory/decisions/0063-prevenir-composer-lock-drift.md` +43 | CI |
 | `ciclo-completo.yml` | pr+manual | `memory/requisitos/Jana/Index-visual-comparison.md` +1 | ciclo-completo (advisory) — catraca do CICLO-DE-TELA por tela: quantas telas roteadas têm o conjunto obrigatório (charter + Padrão de Tela declarado + pt-conforme via pt-… |
 | `cobranca-filtros-gate.yml` | pr+push+manual | — | Cobrança filtros gate — precedência localStorage × querystring (UC-COB-03). Trava o comportamento reescrito com prova em 2026-09-03: o servidor filtra pela querystring e … |
+| `cockpit-sidebar-jsdom-gate.yml` | pr+push+manual | — | Cockpit Sidebar jsdom — os 9 specs vitest da sidebar do AppShellV2 (menu do rodapé · Sair · aparência · presença · rail) |
 | `components-tree-guard.yml` | pr+push+manual | `memory/requisitos/_DesignSystem/CHANGELOG.md` +7 | Components tree guard (árvore canônica de Components/) |
 | `composer-lock-sync.yml` | manual | `memory/decisions/0063-prevenir-composer-lock-drift.md` +6 | Composer lock sync |
 | `compras-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +14 | Compras · Pest (MySQL) |
