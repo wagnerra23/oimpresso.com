@@ -21,8 +21,8 @@ independente do fechamento) e registrado no `_DECISOES-W-2026-09-24.md`. O placa
 | PR | conteúdo |
 |---|---|
 | [#7988](https://github.com/wagnerra23/oimpresso.com/pull/7988) | `Services/ConformidadeService.php` · `ConformidadeContratoTest` (UC-CONF-01..07) · lane `ponto-pest.yml` · US-PONTO-016 |
-| [#7994](https://github.com/wagnerra23/oimpresso.com/pull/7994) | `ConformidadeController` · rota `ponto.conformidade.index` · menu + ghost no `DataController` · `Pages/Ponto/Conformidade.tsx` + charter + casos · contrato `ponto-conformidade` · stub e2e · UC-CONF-08 |
-| este PR | `RUNBOOK-conformidade.md` · este recibo |
+| [#7994](https://github.com/wagnerra23/oimpresso.com/pull/7994) | `ConformidadeController` · rota `ponto.conformidade.index` · menu + ghost no `DataController` · `Pages/Ponto/Conformidade.tsx` + charter + casos · contrato `ponto-conformidade` · stub e2e · `RUNBOOK-conformidade.md` · UC-CONF-08 |
+| [#7995](https://github.com/wagnerra23/oimpresso.com/pull/7995) | este recibo |
 
 ## As 6 verificações
 
