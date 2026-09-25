@@ -1,5 +1,58 @@
 # Contexto do projeto — Protótipo oficial, Produto unificado (Office Impresso / oimpresso)
 
+## Onde este protótipo é editado (decisão do Felipe, 25/09/2026)
+
+**A partir de 25/09/2026 o protótipo desta pasta é editado AQUI, no repositório — não mais no
+Claude Design.** O Claude Design criou o protótipo; o Felipe o trouxe para cá, e as mudanças
+seguintes nascem nesta pasta e entram por PR. As ondas A e B da Fabricação já foram feitas deste
+lado (a última leitura do Claude Design entrou pelo PR #7944).
+
+Consequências práticas:
+
+- **O projeto do Claude Design está atrás desta pasta e não é mais fonte.** Não "atualizar" nada
+  daqui a partir de lá, e não tratar diferença entre os dois como defeito desta pasta.
+- **Não gravar nada no Claude Design** a partir desta pasta.
+- **Não reimportar por cima desta pasta** (`--export-from`, zip de handoff, bundle do Cowork): a
+  importação sobrescreve e apaga as mudanças feitas aqui. Se um dia precisar trazer algo de lá,
+  trazer só o arquivo específico, conferir o diff e decidir item a item.
+- **Ferramentas que comparam esta pasta com o Claude Design vivo** (ex.: `cowork-mirror-freshness`)
+  vão acusar diferença — é esperado. Elas foram escritas quando esta pasta era espelho de leitura.
+- **Isto vale só para `prototipo-ui/cowork/Felipe/`.** O design system (projeto do Wagner, fonte
+  viva em `resources/js/Components/{ui,shared}/`) continua regido pela seção "Como conferir
+  protótipo contra o DS", mais abaixo.
+- Correção de defeito do protótipo acontece aqui e vai no PR. Exemplo: em 25/09/2026 a moldura
+  `.mfg-grid` colidia com a regra antiga de `mockup-pages.css` e deixava uma coluna vazia à
+  direita da tabela no shell — corrigido em `manufacturing-page.css`, só neste repositório.
+
+## Pendências conhecidas em outras telas (anotado em 25/09/2026, não corrigido de propósito)
+
+**Comentário de CSS que fecha antes da hora.** Um asterisco colado numa barra dentro do texto de
+um comentário (ex.: `os-*` seguido de `/usr-*`) fecha o comentário no meio. O navegador lê o resto
+como código inválido e **descarta a primeira regra depois do cabeçalho, sem erro no console**. Na
+Fabricação isso derrubou `.mfg-root{display:flex…}` e cortava os botões das telas de edição em
+janela baixa — corrigido em `manufacturing-page.css` em 25/09/2026. As telas abaixo têm o mesmo
+defeito e ficaram para o dono de cada uma corrigir quando mexer nela. Cada arquivo tem, no topo,
+um comentário `PENDENTE` com o trecho exato, a regra perdida e como corrigir.
+
+| Arquivo | Regra que o navegador perde (medido carregando o arquivo) |
+|---|---|
+| `cms-page.css` | `.cms-page .os-page-h-l p .mono` |
+| `hrm-page.css` | `.hrm-page .os-page-h-r` |
+| `officeimpresso-page.css` | `.oi-card` |
+| `modulo-padrao.css` | `.mp-page` |
+| `financeiro.css` | `.fin-conf-pill-inline` |
+| `vendas.css` | `.vendas-aplus .vd-sla` |
+| `importado_telas/vendas/vendas.css` | `.vendas-aplus .vd-sla` (cópia do anterior) |
+| `importado_ds_git/css/inertia.css` | o bloco `@layer base` logo após o cabeçalho |
+
+O último é cópia de `resources/css/inertia.css` do **produto**, que tem o mesmo defeito. Lá o
+build Vite/Tailwind tolera: medido em 25/09/2026, o CSS servido em produção contém as regras dos
+`@import` seguintes. Não é urgente, mas vale corrigir no produto também quando alguém mexer nele.
+
+**Como achar este defeito em qualquer CSS:** percorrer o arquivo contando abertura e fecho de
+comentário; todo fecho encontrado **fora** de comentário é o sintoma. Conferir no navegador com
+`new CSSStyleSheet().replaceSync(texto)` e comparar a primeira regra carregada com a do fonte.
+
 ## Documentos de referência (ler antes de mexer na tela)
 
 - `manual-escrita-para-agente.md` — **as 10 leis de escrita de handoff para agente de código.**

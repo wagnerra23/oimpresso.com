@@ -1,3 +1,12 @@
+/* PENDENTE — anotado em 25/09/2026 (Felipe). NÃO corrigido de propósito: corrigir quando o dono
+   desta tela mexer nela.
+   Defeito: o comentário de cabeçalho logo abaixo fecha antes da hora — no trecho "jc-*" colado em "/jm-*".
+   O navegador descarta a primeira regra depois dele (no fonte: .mp-page), sem erro no
+   console. Medido carregando o arquivo no navegador: a primeira regra que ele enxerga é
+   .mp-page > .mp-header.
+   Como corrigir: separar o asterisco da barra: "jc-* / jm-*".
+   Mesmo defeito foi corrigido em manufacturing-page.css (25/09/2026). Lista completa em
+   prototipo-ui/cowork/Felipe/CLAUDE.md, seção "Pendências conhecidas em outras telas". */
 /* modulo-padrao.css — o pouco que o padrão de módulo acrescenta às classes jc-*/jm-*.
    Tudo em tokens do DS vivo (.cockpit) — zero cor crua, zero paleta paralela. */
 .mp-page{display:flex;flex-direction:column;min-width:0;overflow:hidden}

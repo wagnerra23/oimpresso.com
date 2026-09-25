@@ -1,3 +1,12 @@
+/* PENDENTE — anotado em 25/09/2026 (Felipe). NÃO corrigido de propósito: corrigir quando o dono
+   desta tela mexer nela.
+   Defeito: o comentário de cabeçalho logo abaixo fecha antes da hora — no trecho "os-*" colado em "/usr-*".
+   O navegador descarta a primeira regra depois dele (no fonte: .cms-page .os-page-h-l p .mono), sem erro no
+   console. Medido carregando o arquivo no navegador: a primeira regra que ele enxerga é
+   .cms-sub.
+   Como corrigir: separar o asterisco da barra: "os-* / usr-*".
+   Mesmo defeito foi corrigido em manufacturing-page.css (25/09/2026). Lista completa em
+   prototipo-ui/cowork/Felipe/CLAUDE.md, seção "Pendências conhecidas em outras telas". */
 /* cms-page.css — módulo Site (CMS). Espelho do Modules/Cms do git: páginas, blog,
    depoimentos e detalhes do site. Só o que o shell (os-*/usr-*) não cobre. */
 .cms-page .os-page-h-l p .mono{font-family:var(--font-mono)}
