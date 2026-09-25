@@ -601,8 +601,18 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
   // (ghost), é ela que carrega a marca — não o item pai, que só casa por prefixo.
   const ghostAtivo = ativo && ghosts.some((g) => rotaAtiva(g.href));
   const [ghostsAbertos, setGhostsAbertos] = useState(false);
-  const ghostsVisiveis = ghostsAbertos ? ghosts : ghosts.slice(0, GHOST_TETO);
-  const ghostsOcultos = ghosts.length - ghostsVisiveis.length;
+  // Espelha `GhostList` do protótipo (playbook sidebar/10): fechado, mostra o
+  // teto; se a sub-tela ATIVA ficou além dele, ela é promovida pra última vaga
+  // visível — nunca fica escondida atrás do "⋯ mais N".
+  let ghostsVisiveis = ghosts;
+  let ghostsOcultos = 0;
+  if (!ghostsAbertos && ghosts.length > GHOST_TETO) {
+    ghostsVisiveis = ghosts.slice(0, GHOST_TETO);
+    const extras = ghosts.slice(GHOST_TETO);
+    const promovido = extras.find((g) => rotaAtiva(g.href));
+    if (promovido) ghostsVisiveis = ghosts.slice(0, GHOST_TETO - 1).concat(promovido);
+    ghostsOcultos = ghosts.length - ghostsVisiveis.length;
+  }
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [popPos, setPopPos] = useState<{ top: number; left: number } | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -696,10 +706,23 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
           type="button"
           className="sb-ghost-more"
           onClick={() => setGhostsAbertos(true)}
+          aria-expanded="false"
           aria-label={`Mostrar mais ${ghostsOcultos} tela(s) de ${item.label}`}
         >
           <span className="sb-ghost-more-d" aria-hidden="true">⋯</span>
           <span>mais {ghostsOcultos}</span>
+        </button>
+      )}
+      {ativo && ghostsAbertos && ghosts.length > GHOST_TETO && (
+        <button
+          type="button"
+          className="sb-ghost-more"
+          onClick={() => setGhostsAbertos(false)}
+          aria-expanded="true"
+          aria-label={`Mostrar menos telas de ${item.label}`}
+        >
+          <span className="sb-ghost-more-d" aria-hidden="true">⌃</span>
+          <span>mostrar menos</span>
         </button>
       )}
     </>

@@ -60,7 +60,8 @@
       "id": "sb-corpo",
       "copy": [
         "Navegação principal",
-        "tela(s) de"
+        "tela(s) de",
+        "mostrar menos"
       ],
       "estados": [
         "grupo-aberto",
