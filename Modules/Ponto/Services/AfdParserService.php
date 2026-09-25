@@ -14,21 +14,22 @@ use Modules\Ponto\Entities\Marcacao;
 use Modules\Ponto\Entities\Rep;
 
 /**
- * Parser de arquivos AFD — Portaria MTP 671/2021 Anexo I.
+ * Parser de arquivos AFD nos DOIS leiautes que chegam ao Ponto, detectados pelo
+ * FORMATO de cada registro (não por flag do usuário):
  *
- * Layout posicional ISO-8859-1, line-oriented (um registro por linha). Primeiros
- * 9 chars = NSR; char 10 = tipo de registro (1..9).
+ *   - Portaria MTE 1510/2009 (legado — ADR 0413 W7 mantém a importação):
+ *     tipo 3 = NSR(9) + tipo + data DDMMAAAA(8) + hora HHMM(4) + PIS(12) — 34 posições.
+ *     Colaborador resolvido por PIS.
+ *   - Portaria MTP 671/2021 (leiaute "004", gov.br "Leiaute do Arquivo Fonte de Dados"):
+ *     tipo 3 (REP-C/REP-A) = NSR + tipo + DH "AAAA-MM-ddThh:mm:00ZZZZZ"(24) + CPF(12) + CRC-16 — 50;
+ *     tipo 7 (REP-P) = mesmas posições de DH/CPF + DH gravação + coletor + on/off + SHA-256 — 137;
+ *     tipo 1 = 302 posições (nº fabricação/INPI em 190-206); trailer = "999999999" + contadores
+ *     com o tipo "9" na posição 64; última linha = assinatura digital. Colaborador por CPF.
+ *     A hora gravada é a de parede do DH (o fuso ZZZZZ é descartado), como no 1510.
  *
- * Tipos suportados aqui:
- *   1: Cabeçalho — identifica REP/CNPJ/período
- *   2: Inclusão/alteração de empresa (não usado no app)
- *   3: Marcação (registro principal — cria Marcacao via MarcacaoService)
- *   4: Ajuste de relógio (log, não cria marcação)
- *   5: Inclusão/alteração/exclusão de empregado (log)
- *   6: Evento sensível (log)
- *   7: Retificação anterior a uma marcação
- *   8: Retificação posterior a uma marcação
- *   9: Trailer (totalizadores)
+ * Layout posicional ISO-8859-1, um registro por linha; primeiros 9 chars = NSR,
+ * char 10 = tipo (exceto o trailer 671). CRC-16 e hash SHA-256 NÃO são validados aqui.
+ * Nunca UPDATE/DELETE em ponto_marcacoes: só insere via MarcacaoService (append-only).
  */
 class AfdParserService
 {
@@ -114,11 +115,11 @@ class AfdParserService
             while (($linha = fgets($handle)) !== false) {
                 $total++;
                 $linha = mb_convert_encoding(rtrim($linha, "\r\n"), 'UTF-8', $encoding);
-                if (strlen($linha) < 10) {
-                    continue;
+                if (strlen($linha) < 10 || strpos($linha, 'ASSINATURA_DIGITAL_EM_ARQUIVO_P7S') === 0) {
+                    continue; // linha vazia/curta ou assinatura digital do REP-A/REP-P (671)
                 }
 
-                $tipoRegistro = substr($linha, 9, 1);
+                $tipoRegistro = $this->ehTrailer671($linha) ? '9' : substr($linha, 9, 1);
                 $parser = isset($this->parsers[$tipoRegistro]) ? $this->parsers[$tipoRegistro] : null;
                 if (!$parser) {
                     $erros++;
@@ -139,12 +140,14 @@ class AfdParserService
                 try {
                     $this->$parser($linha, $importacao);
                     $sucesso++;
+                } catch (CpfNaoCadastradoException $e) {
+                    $erros++;
+                    $cpf = 'CPF ' . $e->getCpfMascarado();
+                    $pisNaoCadastrados[$cpf] = ($pisNaoCadastrados[$cpf] ?? 0) + 1;
                 } catch (PisNaoCadastradoException $e) {
                     $erros++;
-                    $pis = $e->getPis();
-                    $pisNaoCadastrados[$pis] = isset($pisNaoCadastrados[$pis])
-                        ? $pisNaoCadastrados[$pis] + 1
-                        : 1;
+                    $pis = 'PIS ' . $e->getPis();
+                    $pisNaoCadastrados[$pis] = ($pisNaoCadastrados[$pis] ?? 0) + 1;
                 } catch (\Throwable $e) {
                     $erros++;
                     if (count($erroAmostras) < 20) {
@@ -186,13 +189,13 @@ class AfdParserService
             if (!empty($pisNaoCadastrados)) {
                 $linhas = [];
                 arsort($pisNaoCadastrados);
-                $linhas[] = 'PIS não cadastrados como Colaborador ('
+                $linhas[] = 'PIS/CPF não cadastrados como Colaborador ('
                     . count($pisNaoCadastrados) . ' distintos, ' . array_sum($pisNaoCadastrados) . ' marcações):';
                 foreach ($pisNaoCadastrados as $pis => $qtd) {
                     $linhas[] = "  - {$pis}: {$qtd} marcação(ões)";
                 }
                 $linhas[] = '';
-                $linhas[] = 'Cadastre esses PIS em /ponto/colaboradores e re-importe o arquivo.';
+                $linhas[] = 'Cadastre esses PIS/CPF em /ponto/colaboradores e re-importe o arquivo.';
                 $log = implode("\n", $linhas);
 
                 // Também adiciona no topo das amostras de erro (se sobrar espaço).
@@ -202,7 +205,7 @@ class AfdParserService
                         'linha' => null,
                         'nsr'   => null,
                         'tipo'  => '3',
-                        'erro'  => "PIS {$pis} não cadastrado como Colaborador ({$qtd} marcações ignoradas).",
+                        'erro'  => "{$pis} não cadastrado como Colaborador ({$qtd} marcações ignoradas).",
                     ]);
                 }
             }
@@ -272,6 +275,17 @@ class AfdParserService
      */
     protected function parseHeader($linha, Importacao $importacao)
     {
+        if (strlen($linha) >= 302 && $this->ehDataHora671(substr($linha, 226, 24))) {
+            // Leiaute 671: CNPJ/CPF 012-025, nº fabricação (REP-C) / processo (REP-A) / INPI (REP-P) 190-206.
+            $this->repAtual = $this->repDoCabecalho(
+                $importacao,
+                trim(substr($linha, 189, 17)),
+                trim(substr($linha, 11, 14)),
+                Rep::TIPO_REP_C
+            );
+            return;
+        }
+
         if (strlen($linha) < 228) {
             throw new \RuntimeException('Cabeçalho AFD muito curto (esperado >= 228 chars).');
         }
@@ -286,29 +300,46 @@ class AfdParserService
         $tipoIdent     = trim(substr($linha, 216, 3));
         $identificador = trim(substr($linha, 219, 17));
 
+        $this->repAtual = $this->repDoCabecalho(
+            $importacao,
+            $identificador,
+            $cnpj,
+            $this->inferirTipoRep($tipoIdent, $identificador)
+        );
+    }
+
+    /** Recupera (ou cria) o REP identificado no cabeçalho, no business da importação. */
+    protected function repDoCabecalho(Importacao $importacao, $identificador, $cnpj, $tipoRep)
+    {
         if ($identificador === '') {
             throw new \RuntimeException('Identificador de REP ausente no cabeçalho.');
         }
-
-        $tipoRep = $this->inferirTipoRep($tipoIdent, $identificador);
 
         $rep = Rep::where('business_id', $importacao->business_id)
             ->where('identificador', $identificador)
             ->first();
 
-        if (!$rep) {
-            $rep = Rep::create([
-                'business_id'   => $importacao->business_id,
-                'tipo'          => $tipoRep,
-                'identificador' => $identificador,
-                'descricao'     => 'REP importado via AFD ' . $importacao->id,
-                'cnpj'          => $cnpj !== '' ? $cnpj : null,
-                'ultimo_nsr'    => 0,
-                'ativo'         => true,
-            ]);
-        }
+        return $rep ?: Rep::create([
+            'business_id'   => $importacao->business_id,
+            'tipo'          => $tipoRep,
+            'identificador' => $identificador,
+            'descricao'     => 'REP importado via AFD ' . $importacao->id,
+            'cnpj'          => $cnpj !== '' ? $cnpj : null,
+            'ultimo_nsr'    => 0,
+            'ativo'         => true,
+        ]);
+    }
 
-        $this->repAtual = $rep;
+    /** "AAAA-MM-ddThh:mm:00ZZZZZ" — formato DH da Portaria 671/2021 (24 posições). */
+    protected function ehDataHora671($valor)
+    {
+        return (bool) preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4}$/', (string) $valor);
+    }
+
+    /** Trailer 671: NSR "999999999", seis contadores de 9 e o tipo "9" na posição 64. */
+    protected function ehTrailer671($linha)
+    {
+        return strlen($linha) === 64 && strpos($linha, '999999999') === 0 && $linha[63] === '9';
     }
 
     protected function parseEmpresa($linha, Importacao $importacao)
@@ -317,40 +348,55 @@ class AfdParserService
     }
 
     /**
-     * Tipo 3 — Marcação de ponto.
-     *
-     * Layout:
-     *   NSR(9) + tipo(1='3') + data(DDMMAAAA 8) + hora(HHMM 4) + PIS(12)
+     * Marcação de ponto — tipo 3 (1510 e 671) e tipo 7 (REP-P no 671).
+     * O leiaute é detectado pelo formato do campo de data/hora (ver docblock da classe).
      */
     protected function parseMarcacao($linha, Importacao $importacao)
     {
-        if (strlen($linha) < 34) {
-            throw new \RuntimeException('Registro tipo 3 curto demais.');
-        }
-
         $nsrArquivo = (int) substr($linha, 0, 9);
-        $dataStr    = substr($linha, 10, 8);  // DDMMAAAA
-        $horaStr    = substr($linha, 18, 4);  // HHMM
-        $pis        = trim(substr($linha, 22, 12));
 
-        if ($pis === '' || !preg_match('/^\d+$/', $pis)) {
-            throw new \RuntimeException("PIS inválido (NSR {$nsrArquivo}).");
+        if (strlen($linha) >= 46 && $this->ehDataHora671(substr($linha, 10, 24))) {
+            // Leiaute 671 (tipo 3 REP-C/REP-A e tipo 7 REP-P): DH 011-034 + CPF 035-046.
+            $momento = Carbon::createFromFormat('Y-m-d H:i', str_replace('T', ' ', substr($linha, 10, 16)));
+            $cpf = substr(trim(substr($linha, 34, 12)), -11);
+            if (!preg_match('/^\d{11}$/', $cpf)) {
+                throw new \RuntimeException("CPF inválido (NSR {$nsrArquivo}).");
+            }
+
+            // Cadastro pode guardar o CPF com máscara — compara só os dígitos.
+            $colaborador = Colaborador::where('business_id', $importacao->business_id)
+                ->whereRaw("REPLACE(REPLACE(cpf, '.', ''), '-', '') = ?", [$cpf])
+                ->first();
+
+            if (!$colaborador) {
+                throw new CpfNaoCadastradoException($cpf);
+            }
+        } else {
+            // Leiaute 1510/2009 (legado): data DDMMAAAA + hora HHMM + PIS.
+            if (strlen($linha) < 34) {
+                throw new \RuntimeException('Registro tipo 3 curto demais.');
+            }
+
+            $pis = trim(substr($linha, 22, 12));
+            if ($pis === '' || !preg_match('/^\d+$/', $pis)) {
+                throw new \RuntimeException("PIS inválido (NSR {$nsrArquivo}).");
+            }
+
+            $momento = Carbon::createFromFormat('dmYHi', substr($linha, 10, 8) . substr($linha, 18, 4));
+
+            $colaborador = Colaborador::where('business_id', $importacao->business_id)
+                ->where('pis', $pis)
+                ->first();
+
+            if (!$colaborador) {
+                throw new PisNaoCadastradoException($pis);
+            }
         }
 
-        $momento = Carbon::createFromFormat('dmYHi', $dataStr . $horaStr);
         if (!$momento) {
             throw new \RuntimeException("Momento inválido (NSR {$nsrArquivo}).");
         }
         $momento->second(0);
-
-        // Resolver colaborador por PIS no business da importação
-        $colaborador = Colaborador::where('business_id', $importacao->business_id)
-            ->where('pis', $pis)
-            ->first();
-
-        if (!$colaborador) {
-            throw new PisNaoCadastradoException($pis);
-        }
 
         // Dedup: mesma marcação (REP, NSR arquivo) já importada?
         if ($this->repAtual) {
@@ -398,8 +444,8 @@ class AfdParserService
 
     protected function parseRetificacaoAnterior($linha, Importacao $importacao)
     {
-        // Tipo 7 — Retificação por marcação anterior.
-        // Tratamento no app: registrar como Marcacao normal (inferencia resolve o tipo).
+        // Tipo 7 — no 671 é a marcação do REP-P (mesmas posições de DH/CPF do tipo 3);
+        // em arquivos legados era tratado como retificação. Nos dois casos vira Marcacao.
         $this->parseMarcacao($linha, $importacao);
     }
 
