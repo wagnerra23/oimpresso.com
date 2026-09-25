@@ -1298,7 +1298,11 @@ type PresencaId = (typeof PRESENCAS)[number]['id'];
  *  entrou (#7960). Fora do Inertia a presença cai em `disponivel`. A ordem de hooks é
  *  estável: o `usePage` lê o contexto ANTES de lançar, então o `useContext` roda sempre. */
 function usePresencaGuardada(): string | undefined {
-  return (usePage().props as { auth?: { user?: { ui_presence?: string } | null } }).auth?.user?.ui_presence;
+  try {
+    return (usePage().props as { auth?: { user?: { ui_presence?: string } | null } }).auth?.user?.ui_presence;
+  } catch {
+    return undefined;
+  }
 }
 
 function SidebarUserMenu({
