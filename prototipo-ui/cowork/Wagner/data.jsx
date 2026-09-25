@@ -14,7 +14,7 @@ const COMPANIES = [
 // ─── MENU completo — 36 módulos do repo wagnerra23/oimpresso.com@main ───
 // Auditoria: AUDITORIA_MODULOS.md. Cada item.id casa com a chave em MIGRATION_INFO (app.jsx).
 const MENU = [
-  // ── Shortcuts de topo (não-grupos) — [W] 2026-08: IA · Forja · Atendimento (Equipe → MAIS) ──
+  // ── Shortcuts de topo (não-grupos) — IA · Visão geral · Atendimento (ordem do vivo) ──
   { id: "chat",     icon: "chat",  label: "IA",          shortcut: true },
   { id: "dash-legacy", icon: "chart", label: "Visão geral", shortcut: true },
   { id: "inbox",    icon: "inbox", label: "Atendimento", shortcut: true },
@@ -226,18 +226,19 @@ const MENU = [
     { id: "planilhas",   icon: "grid",  label: "Planilhas", ghosts: [
       { id: "planilha-nova", icon: "plus", label: "Criar planilha" },
     ]},
-  ]},
-
-  // ── PLATAFORMA ([W] 2026-08: era "MAIS") — fechado por default ──
-  { group: "PLATAFORMA", items: [
-    { id: "tarefas",    icon: "inbox",     label: "Tarefas" },
-    { id: "equipe",     icon: "users",     label: "Equipe" },
     { id: "governance", icon: "scale",     label: "Governança", ghosts: [
       { id: "gov-politicas",  icon: "shield", label: "Políticas" },
       { id: "gov-auditoria",  icon: "audit",  label: "Auditoria" },
       { id: "gov-drift",      icon: "search", label: "Drift de escopo" },
       { id: "gov-notas",      icon: "chart",  label: "Notas dos módulos" },
     ]},
+  ]},
+
+  // ── PLATAFORMA ([W] 2026-08: era "MAIS") — fechado por default ──
+  { group: "PLATAFORMA", items: [
+    // [W] 2026-09-25: só Forja, como no vivo (Sidebar.tsx SIDEBAR_GROUPS.plataforma = ['Forja']).
+    // Governança → SISTEMA (o DataController declara group 'sistema'); Tarefas/Equipe saem da
+    // nav (no vivo o group 'equipe' cai em __hidden__) mas seguem roteáveis via FORA_DA_NAV.
     // [W] 2026-08: Forja saiu de SISTEMA → PLATAFORMA (uso só p/ programação)
     { id: "projects",   icon: "bot",       label: "Forja" },
     // [W] 2026-06-16: removidos da nav (Copiloto · MemCofre · Arquivos · Connector · Team MCP · SRS)
@@ -326,6 +327,11 @@ const ROUTE_STATE = {
 const ROUTE_STATE_LABEL = { mock: "Esqueleto — tela ainda não desenhada", stub: "Sem tela — só ficha de migração" };
 
 // Flatten p/ roteamento: grupos + ghosts + shortcuts topo + user-menu (tudo resolvível)
+// Destinos que existem mas não aparecem no sidebar (espelha o __hidden__ do vivo) — seguem no ⌘K.
+const FORA_DA_NAV = [
+  { id: "tarefas", icon: "inbox", label: "Tarefas" },
+  { id: "equipe",  icon: "users", label: "Equipe" },
+];
 function flattenMenu() {
   const out = [];
   MENU.forEach(e => {
@@ -338,6 +344,7 @@ function flattenMenu() {
       out.push({ ...e, group: null });
     }
   });
+  FORA_DA_NAV.forEach(it => out.push({ ...it, group: "PLATAFORMA" }));
   [...USER_MENU, ...FOOTER_LINKS].forEach(it => out.push({ ...it, group: "__user__" }));
   SUPERADMIN_MENU.forEach(it => {
     out.push({ ...it, group: "__super__" });
@@ -608,7 +615,7 @@ const GROUP_META = {
   "ESTOQUE":   { icon:"archive", label:"Estoque",   hue: 315,  key:"estoque",   desc:"Compras, transferências, patrimônio" },
   "RH":        { icon:"users",   label:"RH",        hue: 88,   key:"pessoas",   desc:"Ponto, colaboradores" },
   "SISTEMA":   { icon:"cog",     label:"Sistema",   hue: 245,  key:"sistema",   desc:"Auditoria, relatórios, planilhas, KB" },
-  "PLATAFORMA":{ icon:"folder",  label:"Plataforma", hue: null, key:"plataforma", desc:"Tarefas, equipe, governança e Forja" },
+  "PLATAFORMA":{ icon:"folder",  label:"Plataforma", hue: null, key:"plataforma", desc:"Forja" },
 };
 
 window.MOCK = { COMPANIES, NFE_CERT, MENU, MENU_FLAT, USER_MENU, MENU_SHORTCUTS, SHORTCUT_TO_ROUTE, SUPERADMIN_MENU, FOOTER_LINKS, SIDEBAR_COUNTS, SIDEBAR_PAPEIS, ROUTE_STATE, ROUTE_STATE_LABEL, CONV, ROUTINES, TASKS, ORIGIN_COLORS, GROUP_META, FIN_SUBNAV, FIN_SUBNAV_OVERFLOW };

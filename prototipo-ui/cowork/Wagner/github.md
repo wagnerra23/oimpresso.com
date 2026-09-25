@@ -3,6 +3,14 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-25T12:33:18Z
+tree: 2e693aa3abb8
+branch: main
+
+### Updated in this project
+- **Sidebar: 4 itens puxados do vivo** (`cockpit/Sidebar.tsx` + `cockpit.css` lidos inteiros): ícone colorido no cabeçalho do grupo · borda do item ativo sempre `--accent` · PLATAFORMA só Forja (Governança → SISTEMA; Tarefas/Equipe fora da nav, roteáveis) · cascata lateral pra item com `children`. `sidebar.jsx?v=sb26` · `data.jsx?v=sb22` · `styles.css?v=ph26e`.
+
+## Sync anterior (2026-09-24 18:55)
 date: 2026-09-24T18:55:00Z
 tree: 07036a68a049
 branch: main

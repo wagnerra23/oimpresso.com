@@ -42,6 +42,26 @@ Denominadores usados (Sidebar não tem rota própria — o denominador é **comp
 Já paritário (não mexer): drawer mobile ≤768px + hambúrguer + backdrop (`app.jsx:637-648, 963-968` × `AppShellV2`), alça `.sb-collapse-handle` com ⌘\\, modos rail/expanded, 3 contadores de `shell.sidebar_counts`.
 Instrumentos do protótipo que **nunca** vão pro vivo: `WipMark` · `podeVer(papel)`/`MOCK.SIDEBAR_PAPEIS` · `countOf`/`MOCK.SIDEBAR_COUNTS`.
 
+## 1-ter · ONDA 2 (2026-09-25) — protótipo → vivo
+
+> **Onda 1 fechada:** 01–06 têm `_saida` no `main` (04 mergeou o modo `hidden` #7209 · 05 emendou a 0180 #7186 · 06 criou `cockpit-sidebar.contract.json` + 5 âncoras `data-contract`).
+> **Base:** `Sidebar.tsx` (1.680 linhas) + `shared.ts` + `AppShellV2.tsx` + `cockpit.css` lidos inteiros em 2026-09-25 @`610fff15c6ac`.
+> **Já puxado do vivo pro protótipo neste dia ([W] escolheu):** ícone colorido no cabeçalho · borda do ativo sempre `--accent` · PLATAFORMA só Forja · cascata lateral de item com filhos. Esses **não** são pedido.
+> **Tokens `--sb-*`:** o vivo já está em hue 295, byte-igual ao protótipo — o split que a ADR 0385 registrava acabou.
+
+O que sobra, com o protótipo à frente (UI-0029: forma é do protótipo): **5 PRs de código + 1 de medição**, todos em `Sidebar.tsx` → **seriais** (Lei 1).
+
+| # | thread | dono | seção do contrato | vaga |
+|---|---|---|---|---|
+| 07 | ALVO — medir protótipo × vivo (read-only) | [CL] | todas | 4 |
+| 08 | Cabeçalho do grupo: seta à direita + cor/raio | [CL] | `sb-corpo` | 5 |
+| 09 | Item ativo: `aria-current` + grupo abre sozinho | [CL] | `sb-corpo` | 6 |
+| 10 | Sub-telas: promover a ativa + "mostrar menos" | [CL] | `sb-corpo` | 7 |
+| 11 | Rail: ícone do grupo + grupo ativo + dica fixa | [CL] | `sb-modos` | 8 |
+| 12 | Rodapé: valor do modo + "Buscar tela ⌘K" + tirar `⌘/` morto | [CL] | `sb-rodape` | 9 |
+
+**Fica fora (sem receptor ou decisão):** presença clicável (RESIDUO-6) · ícone por sub-tela (RESIDUO-7) · 13px × 13,5px do item e 10px × 10,5px do cabeçalho (RESIDUO-8) · contador por item de grupo (só 3 contadores existem em `shell.sidebar_counts`) · "+ Adicionar empresa" navegável (a 13/09 já declarou: regra de superadmin não chega ao front) · `WipMark`/`podeVer` (instrumentos do protótipo).
+
 ## 2 · Threads — ordem · dono · prefixo (Lei 1) · dependência
 
 | # | thread | dono | prefixo que escreve | depende de | vaga |
@@ -129,6 +149,7 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
   "modulo": "Sidebar",
   "sha": "af09f7c3a0fd",
   "gerado": "2026-09-10",
+  "onda2": { "gerado": "2026-09-25", "sha": "610fff15c6ac", "threads": ["07","08","09","10","11","12"] },
   "granularidade": "secao",
   "absorve": ["prototipo-ui/design-docs/handoff-sidebar/PEDIDO-CODE.md"],
   "variaveis": { "CKPT": "resources/js/Components/cockpit", "BUILD": "prototipo-ui/cowork/Wagner", "CT": "governance/design/contracts/cockpit-sidebar.contract.json", "REC": "prototipo-ui/cowork/Wagner/cowork-inbox/sidebar/playbook/recibos" },
@@ -138,6 +159,9 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
     { "id": "RESIDUO-2", "pergunta": "Aposentar SidebarTabs/SidebarChat/ConvRow do protótipo (UI-0011) ou selar como demo?", "respondida": true, "resposta": "remover — medido 2026-09-10: zero call sites; ChatPage/ConvTabsBar/Thread/LinkedAppsPanel também mortas; remoção dividida 01 (JSX+CSS) × 02 (estado em app.jsx)", "destrava": ["01", "02"] },
     { "id": "RESIDUO-3", "pergunta": "Modo hidden vira canon do shell (SidebarMode) ou morre nos dois lados?", "respondida": true, "resposta": "não era decisão: modo e alça são forma e o protótipo tem os dois — pela UI-0029 o shell ganha o terceiro modo.", "destrava": ["04"] },
     { "id": "RESIDUO-4", "pergunta": "Slot de alerta pós-CompanyPicker no protótipo: NfeCertBadge real ou placeholder?", "respondida": true, "resposta": "[W] 2026-09-10: importar o real (Saída A). Executado na thread 03 — 4 estados de MOCK.NFE_CERT, silencioso em ok/sem_cert.", "destrava": ["03"] },
+    { "id": "RESIDUO-6", "pergunta": "Presença (Disponível/Ocupado/Ausente/Invisível) clicável: o protótipo tem 4 estados locais; o vivo mostra 3 sem ação. Cria receptor no backend ou o protótipo volta a exibir só?", "respondida": false, "destrava": [] },
+    { "id": "RESIDUO-7", "pergunta": "Ícone por sub-tela: o protótipo desenha, ShellMenuItem.ghosts não tem campo icon. Estende SidebarGhost.php ou o protótipo tira o ícone?", "respondida": false, "destrava": [] },
+    { "id": "RESIDUO-8", "pergunta": "Tipo: protótipo usa 13px (item) e 10px (cabeçalho), fora do RAMP; o vivo usa --fs-4 13,5 e --fs-1 10,5. Pela regra 'o alvo não é sagrado' o protótipo se corrige pro RAMP — confirmar.", "respondida": false, "destrava": [] },
     { "id": "RESIDUO-5", "pergunta": "O rail (56px) do alerta de certificado: o vivo não tem variante estreita e eu inventei um ícone-only. Se a 04 promover, o rail ganha o mesmo tratamento ou fica sem alerta?", "respondida": false, "destrava": ["04"] }
   ],
   "threads": [
@@ -213,7 +237,43 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
           "criterios": ["secoes-conferidas-contra-o-vivo", "copy-literal-D0", "estados-declarados"],
           "nota": "quem fecha. Escreve só .contract.json + testes: revisao é válida pro contrato. Os gates PHP entram como execucao no PR que criar os testes." }
       ],
-      "nota_estado": "ORDEM INVERTIDA (2026-09-10): deixou de depender de 01/03/04 e passou a ser PRÉ-REQUISITO delas — sem o .contract.json não existe prova de comparacao, e sem comparacao nenhuma thread de build fecha. Ver 2-bis." }
+      "nota_estado": "ORDEM INVERTIDA (2026-09-10): deixou de depender de 01/03/04 e passou a ser PRÉ-REQUISITO delas — sem o .contract.json não existe prova de comparacao, e sem comparacao nenhuma thread de build fecha. Ver 2-bis." },
+    { "id": "07", "titulo": "ALVO — medir protótipo × vivo (read-only)", "dono": "CL", "vaga": 4, "arquivo": "07-alvo-medir.md",
+      "prefixo": ["governance/design/targets/"],
+      "nao_toca": ["${BUILD}/", "app/Sidebar/", "resources/js/Layouts/AppShellV2.tsx"],
+      "depende_threads": ["06"],
+      "provas": [{"tipo":"revisao","path":"${REC}/07-revisao.json","fontes":["${CT}"],"criterios":["sonda-com-caso-de-sanidade","duas-leituras-iguais","slug-conforme-targets-README"],"nota":"o arquivo de alvo em governance/design/targets/ é a entrega; slug decidido pelo README de targets"}],
+      "nota_estado": "onda 2 (2026-09-25) · seção todas" },
+    { "id": "08", "titulo": "Cabeçalho do grupo: seta à direita + cor/raio", "dono": "CL", "vaga": 5, "arquivo": "08-cabecalho-grupo.md",
+      "prefixo": ["${CKPT}/Sidebar.tsx","resources/css/cockpit.css"],
+      "nao_toca": ["${BUILD}/", "app/Sidebar/", "resources/js/Layouts/AppShellV2.tsx"],
+      "depende_threads": ["07"],
+      "provas": [{"tipo":"contem","path":"${CKPT}/Sidebar.tsx","padrao":"sb-group-n","nota":"pré-condição; ChevronDown depois do contador"},{"tipo":"comparacao","path":"${REC}/08-comparacao.json","contrato":"${CT}","fontes":["${BUILD}/sidebar.jsx","${BUILD}/styles.css"],"dimensoes":["D2","D4","D9"]}],
+      "nota_estado": "onda 2 (2026-09-25) · seção sb-corpo" },
+    { "id": "09", "titulo": "Item ativo: aria-current + grupo abre sozinho", "dono": "CL", "vaga": 6, "arquivo": "09-item-ativo.md",
+      "prefixo": ["${CKPT}/Sidebar.tsx","tests/js/"],
+      "nao_toca": ["${BUILD}/", "app/Sidebar/", "resources/js/Layouts/AppShellV2.tsx"],
+      "depende_threads": ["07","08"],
+      "provas": [{"tipo":"contem","path":"${CKPT}/Sidebar.tsx","padrao":"aria-current={ativo"},{"tipo":"execucao","path":"${REC}/09-execucao.json","testes":["tests/js/"],"nota":"grupo fechado no LS abre quando contém a rota; nada gravado no LS"}],
+      "nota_estado": "onda 2 (2026-09-25) · seção sb-corpo" },
+    { "id": "10", "titulo": "Sub-telas: promover a ativa + mostrar menos", "dono": "CL", "vaga": 7, "arquivo": "10-ghosts.md",
+      "prefixo": ["${CKPT}/Sidebar.tsx","tests/js/","${CT}"],
+      "nao_toca": ["${BUILD}/", "app/Sidebar/", "resources/js/Layouts/AppShellV2.tsx"],
+      "depende_threads": ["07","09"],
+      "provas": [{"tipo":"contem","path":"${CKPT}/Sidebar.tsx","padrao":"mostrar menos"},{"tipo":"execucao","path":"${REC}/10-execucao.json","testes":["tests/js/"]}],
+      "nota_estado": "onda 2 (2026-09-25) · seção sb-corpo" },
+    { "id": "11", "titulo": "Rail: ícone do grupo + grupo ativo + dica fixa", "dono": "CL", "vaga": 8, "arquivo": "11-rail.md",
+      "prefixo": ["${CKPT}/Sidebar.tsx","resources/css/cockpit.css"],
+      "nao_toca": ["${BUILD}/", "app/Sidebar/", "resources/js/Layouts/AppShellV2.tsx"],
+      "depende_threads": ["07","10"],
+      "provas": [{"tipo":"contem","path":"${CKPT}/Sidebar.tsx","padrao":"GROUP_ICON_MAP[g.key]"},{"tipo":"comparacao","path":"${REC}/11-comparacao.json","contrato":"${CT}","fontes":["${BUILD}/sidebar.jsx"],"dimensoes":["D2","D4","SHELL"]}],
+      "nota_estado": "onda 2 (2026-09-25) · seção sb-modos" },
+    { "id": "12", "titulo": "Rodapé: valor do modo + Buscar tela ⌘K + tirar ⌘/ morto", "dono": "CL", "vaga": 9, "arquivo": "12-rodape.md",
+      "prefixo": ["${CKPT}/Sidebar.tsx","tests/","${CT}"],
+      "nao_toca": ["${BUILD}/", "app/Sidebar/", "resources/js/Layouts/AppShellV2.tsx"],
+      "depende_threads": ["07","11"],
+      "provas": [{"tipo":"contem","path":"${CKPT}/Sidebar.tsx","padrao":"Buscar tela"},{"tipo":"nao_contem","path":"${CKPT}/Sidebar.tsx","padrao":"<span className=\"kbd\">⌘/</span>"},{"tipo":"execucao","path":"${REC}/12-execucao.json","testes":["tests/sidebarAparencia.spec.tsx"]}],
+      "nota_estado": "onda 2 (2026-09-25) · seção sb-rodape" }
   ]
 }
 ```

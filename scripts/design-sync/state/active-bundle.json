@@ -1342,6 +1342,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/governance/playbook/_DECISOES-W-2026-09-24.md",
+      "bytes": 2291,
+      "sha256": "6fdaf0e14d6129b4d090364c2a9d1980d9d0656f11bcd4a0d985c9488c4bf9f0",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/governance/playbook/_saida-01.md",
       "bytes": 9906,
       "sha256": "838b73988734fabc2d7ab06f79c2247ced87c422cfa7f5bdd7b87aa1eef6657b",
@@ -3161,14 +3167,14 @@
     },
     {
       "path": "cowork-inbox/sidebar/playbook/_SESSAO-FRIA.md",
-      "bytes": 1964,
-      "sha256": "047fe09c37072750660a340fcbf6b69babb1ea9e8ce3133c3cbfa82fa651839a",
+      "bytes": 2639,
+      "sha256": "3f5f77eb26b5dbca1e1b35a2c56afe852ae743881c35d0b6ae40b512737512c1",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/sidebar/playbook/00-INDICE.md",
-      "bytes": 26635,
-      "sha256": "6ba52a83223acf57b147380826b953875b744f25e380b0da65c3eede1e727088",
+      "bytes": 33224,
+      "sha256": "0814e81a9e97f821e289c738b9501d22adb30b03eba60914eb6ffc89e051fe23",
       "role": "cowork-source"
     },
     {
@@ -3205,6 +3211,42 @@
       "path": "cowork-inbox/sidebar/playbook/06-contrato-e-gates.md",
       "bytes": 3556,
       "sha256": "e2a9fcfcecf59cea1aa947ea6f310e2f276bdd37f08b38c28a93d57cff7f4969",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/07-alvo-medir.md",
+      "bytes": 2356,
+      "sha256": "eef32da55c293d4b19a4212c14240e9bb8455156a923717c8e6c1e339a6ac9e8",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/08-cabecalho-grupo.md",
+      "bytes": 2166,
+      "sha256": "e0c1e378e18d2523c03217cb9377a9d908db992bec86f6bf79730202429a469a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/09-item-ativo.md",
+      "bytes": 2058,
+      "sha256": "182bb30d0b79b048f9b01f7e0329f64dfd8115b24648d4697ae2dc0c7c152bc9",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/10-ghosts.md",
+      "bytes": 1979,
+      "sha256": "f635864e53aeec06148e73280e270be0b432e7dde7c651ea97439f59afa24191",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/11-rail.md",
+      "bytes": 1793,
+      "sha256": "8ee81b778209a09fb341fc12cb6adeaf846daa59cf20f6e1baf60534bdaa3d4b",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/12-rodape.md",
+      "bytes": 2067,
+      "sha256": "8cfca415b5ddce7cd7a682318b73b3bc20668f5fb3103dae6b54b5b4e1f3c8ae",
       "role": "cowork-source"
     },
     {
@@ -3383,8 +3425,8 @@
     },
     {
       "path": "data.jsx",
-      "bytes": 35299,
-      "sha256": "3574801c1b0bc3e5cd70ac3aaaa7125b7fcd1b43c74aad5e7856608576f3edf2",
+      "bytes": 35735,
+      "sha256": "60bb4ed77a8a48f6c4d5bbcb7ceb6fa74da3a61e6fe63dc0b95e4a2dc7fd167b",
       "role": "cowork-source"
     },
     {
@@ -3743,8 +3785,8 @@
     },
     {
       "path": "github.md",
-      "bytes": 125715,
-      "sha256": "9b3010209af79ba326b4d1848866baa81f5a6f1dc8fbdd42c51ffd656338c1b5",
+      "bytes": 126216,
+      "sha256": "4aa0050c1d81cb657b45a65ddab861b85e13eaa68cf2ba339c9184d01e95d90c",
       "role": "cowork-source"
     },
     {
@@ -4241,8 +4283,8 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 36271,
-      "sha256": "12da09828996d7ed8c35374031c25959db62b387097f2da7056ccea0b6cadcc0",
+      "bytes": 36268,
+      "sha256": "f7261a35d171735eab3897ee2baae274f10520d180da1ec81241219969766f0d",
       "role": "cowork-source"
     },
     {
@@ -4582,54 +4624,6 @@
       "role": "cowork-source"
     },
     {
-      "path": "resources/js/Pages/Ponto/Aprovacoes/Index.casos.md",
-      "bytes": 2321,
-      "sha256": "d78ba0b3da285cdff3741bd4531aadae73c5adb4b3a87c958609ae3b0dc2e308",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Aprovacoes/Index.charter.md",
-      "bytes": 2012,
-      "sha256": "62afd93015336060e04f6304c32a2ffc9d59ada36ad3d30f5ea312fc849db91e",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/BancoHoras/Index.casos.md",
-      "bytes": 2342,
-      "sha256": "4921b4e3eaea5200fdb933db561e2362badf4f70e90d732a96ee1d664a2710e5",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/BancoHoras/Index.charter.md",
-      "bytes": 2128,
-      "sha256": "253a360cf10059338fce79d967040339e327fa71ae99548176d3d62f6d695332",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Colaboradores/Index.casos.md",
-      "bytes": 2099,
-      "sha256": "3332725e0fda7d139e7120d636c3a1a6f6928bf11a364c938157a8faff3be95d",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Colaboradores/Index.charter.md",
-      "bytes": 2145,
-      "sha256": "1b29e21f6389f8d82b1091452d968dbbbb09b7895169fb02d161cf2ece632789",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Configuracoes/Index.casos.md",
-      "bytes": 2003,
-      "sha256": "3a21d9e895330fa5008210d5d2af42e6eb6012a42526fcd28c825af19eaae394",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Configuracoes/Index.charter.md",
-      "bytes": 2106,
-      "sha256": "b5a74412288adabe09c8cdb8a147733298cc6423837b60ebccd0e60769780ca3",
-      "role": "cowork-source"
-    },
-    {
       "path": "resources/js/Pages/Ponto/Conformidade.casos.md",
       "bytes": 2049,
       "sha256": "5378042e35185c32f15d67dfb733aa3bbb248650364458e118b0efb6aa5b8c18",
@@ -4639,42 +4633,6 @@
       "path": "resources/js/Pages/Ponto/Conformidade.charter.md",
       "bytes": 2215,
       "sha256": "98d137f5f06f4a97a22489a47d4befea9d69cb6a26980542e13f7b8d2a833c9f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Escalas/Index.casos.md",
-      "bytes": 1858,
-      "sha256": "25d5504b6340cdeb48bab03b35b4300be1125dc5205a541209b6f6190fd6115f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Escalas/Index.charter.md",
-      "bytes": 2038,
-      "sha256": "ac03ca1633a056034c89aa4963a5c4efd5f17c86fc4e7b5856c0d0ad2e0c4a41",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Espelho/Index.casos.md",
-      "bytes": 2538,
-      "sha256": "8a9118f6f67543dacd2b3cea116a251f91edc820d2b629c60abd4233c9a44039",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Espelho/Index.charter.md",
-      "bytes": 2216,
-      "sha256": "5d285f4f978e79b6a3847ab25dbb03213a6b8348c47e0bf448c930fa2b6608f9",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Espelho/Show.casos.md",
-      "bytes": 2539,
-      "sha256": "2d4e1e0bb17d186f4ad8460ef4689a7c76dc8ee2d4db3ac50c078032f5cc2216",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Espelho/Show.charter.md",
-      "bytes": 2573,
-      "sha256": "84dbda7ae95ab9f5c5af47963b03617f40180b51180266561d5c2d71730f79e1",
       "role": "cowork-source"
     },
     {
@@ -4690,18 +4648,6 @@
       "role": "cowork-source"
     },
     {
-      "path": "resources/js/Pages/Ponto/Importacoes/Index.casos.md",
-      "bytes": 2317,
-      "sha256": "6d4ad3b46c6d06e0706c5127cc599cf719f571af63073abb488d42bb1733df46",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Importacoes/Index.charter.md",
-      "bytes": 2217,
-      "sha256": "1973feeed7193ea4bee3a148e0bcb68eaaa61b6cd2fcac58016b09d56433a01f",
-      "role": "cowork-source"
-    },
-    {
       "path": "resources/js/Pages/Ponto/Index.casos.md",
       "bytes": 2401,
       "sha256": "d4631a6bdecd8d26c1aa15f57c778071e6e84eab108bd4ab9acb62d886c0aa4a",
@@ -4711,30 +4657,6 @@
       "path": "resources/js/Pages/Ponto/Index.charter.md",
       "bytes": 2544,
       "sha256": "28b25c8993e2d45f3ab7bd0693a573ad6f4d55dc29bc514a5c0b2b5393f2283d",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Intercorrencias/Index.casos.md",
-      "bytes": 2306,
-      "sha256": "3a9cbed981b5d9d9cff61e9a3773d875327bca6a5395489fd29dc53f0bf043c5",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Intercorrencias/Index.charter.md",
-      "bytes": 2380,
-      "sha256": "6080b4c89a7d50f224946585ef0128ab43cee428e30f9a8df312804c52a60256",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Relatorios/Index.casos.md",
-      "bytes": 2006,
-      "sha256": "da1f16e5649a809cdb5fde4fe0e4e2a7751fda440a0c4e5fe1022e32d59c8ca3",
-      "role": "cowork-source"
-    },
-    {
-      "path": "resources/js/Pages/Ponto/Relatorios/Index.charter.md",
-      "bytes": 2039,
-      "sha256": "52598917bea93363234149a78079ec15d0f1322948c268eb3c9462a5dbb2ce10",
       "role": "cowork-source"
     },
     {
@@ -4769,14 +4691,14 @@
     },
     {
       "path": "sidebar.jsx",
-      "bytes": 35006,
-      "sha256": "9e8a13b867e8add4c42935df64a8c8647ad407d71dcbff2b750cf7e8a0905ebf",
+      "bytes": 37328,
+      "sha256": "e6e778ff5a2c17f6ffce78eadfc17180a85c7729c5388c09163129f3a75b749f",
       "role": "cowork-source"
     },
     {
       "path": "styles.css",
-      "bytes": 222727,
-      "sha256": "53d6bc9ebb086a9fdfc7b92939e0d632c442dc0c90bfa75ba4e27279e1d4f6bb",
+      "bytes": 223485,
+      "sha256": "e5ed05af1bcead7940ed0a53dc518be8dd9122a6d64f9a5bfcf4b69075900bcd",
       "role": "cowork-source"
     },
     {
@@ -5088,10 +5010,10 @@
   ],
   "missing": [],
   "mirrorScope": "tree",
-  "bundleId": "7a79297461726f9c19aceb60617db0f543a8b4f8dee98b018ae486aec27e22af",
-  "baseBundleId": "b31651ff75d6265393ebe0ad74353424e699170e6aae68ca10f335ceba239748",
+  "bundleId": "7aa35e8f0dbdebaea89e4db26040969a604c178f881fecbddcb0855526efa4b2",
+  "baseBundleId": "7a79297461726f9c19aceb60617db0f543a8b4f8dee98b018ae486aec27e22af",
   "mode": "delta",
-  "generatedAt": "2026-09-24T19:14:06.045Z",
+  "generatedAt": "2026-09-25T12:54:09.084Z",
   "dsRequires": {
     "owner": "Wagner",
     "slug": "office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac",
@@ -5143,63 +5065,50 @@
     ]
   },
   "totals": {
-    "files": 847,
-    "bytes": 10551293
+    "files": 834,
+    "bytes": 10533098
   },
   "changes": {
     "added": [
-      "cowork-inbox/ancora/playbook/_saida-02.md",
-      "cowork-inbox/cms/playbook/_saida-01.md",
-      "cowork-inbox/compras/playbook/_saida-03.md",
-      "cowork-inbox/compras/playbook/_saida-04.md",
-      "cowork-inbox/comunicacao-visual/playbook/_saida-01.md",
-      "cowork-inbox/ds-atomos/playbook/_saida-08.md",
-      "cowork-inbox/ds-atomos/playbook/04-tabela-densa.md",
-      "cowork-inbox/ds-atomos/playbook/05-statusbadge-kinds.md",
-      "cowork-inbox/fiscal/playbook/_saida-02.md",
-      "cowork-inbox/frescor/playbook/_saida-01.md",
-      "cowork-inbox/governance/playbook/_saida-05.md",
-      "cowork-inbox/governance/playbook/_saida-06.md",
-      "cowork-inbox/home/playbook/_saida-01.md",
-      "cowork-inbox/hrm/playbook/_saida-06.md",
-      "cowork-inbox/hrm/playbook/_saida-07a.md",
-      "cowork-inbox/hrm/playbook/_saida-09.md",
-      "cowork-inbox/hrm/playbook/_saida-10.md",
-      "cowork-inbox/jana/playbook/_saida-03.md",
-      "cowork-inbox/jana/playbook/_saida-04.md",
-      "cowork-inbox/oficina-auto/playbook/_saida-01.md",
-      "cowork-inbox/pageheader/playbook/_saida-01.md",
-      "cowork-inbox/pageheader/playbook/_saida-02.md",
-      "cowork-inbox/pageheader/playbook/_saida-03.md",
-      "cowork-inbox/pageheader/playbook/_saida-04.md",
-      "cowork-inbox/pageheader/playbook/_saida-05.md",
-      "cowork-inbox/pageheader/playbook/_saida-06.md",
-      "cowork-inbox/patrimonio/playbook/_saida-08.md",
-      "cowork-inbox/patrimonio/playbook/_saida-09.md",
-      "cowork-inbox/patrimonio/playbook/_saida-10.md",
-      "cowork-inbox/patrimonio/playbook/_saida-11.md",
-      "cowork-inbox/patrimonio/playbook/_saida-13.md",
-      "cowork-inbox/patrimonio/playbook/_saida-15.md",
-      "cowork-inbox/patrimonio/playbook/_saida-16.md",
-      "cowork-inbox/ponto/playbook/_DECISOES-W-2026-09-24.md",
-      "cowork-inbox/ponto/playbook/_saida-09.md",
-      "cowork-inbox/ponto/playbook/_saida-11.md",
-      "cowork-inbox/shell-usermenu/playbook/_saida-01.md",
-      "cowork-inbox/shell-usermenu/playbook/_saida-02.md"
+      "cowork-inbox/governance/playbook/_DECISOES-W-2026-09-24.md",
+      "cowork-inbox/sidebar/playbook/07-alvo-medir.md",
+      "cowork-inbox/sidebar/playbook/08-cabecalho-grupo.md",
+      "cowork-inbox/sidebar/playbook/09-item-ativo.md",
+      "cowork-inbox/sidebar/playbook/10-ghosts.md",
+      "cowork-inbox/sidebar/playbook/11-rail.md",
+      "cowork-inbox/sidebar/playbook/12-rodape.md"
     ],
     "modified": [
-      "cowork-inbox/ds-atomos/playbook/_SESSAO-FRIA.md",
-      "cowork-inbox/ds-atomos/playbook/00-INDICE.md",
-      "cowork-inbox/hrm/playbook/00-INDICE.md",
-      "cowork-inbox/patrimonio/playbook/00-INDICE.md",
-      "cowork-inbox/ponto/playbook/00-INDICE.md",
+      "cowork-inbox/sidebar/playbook/_SESSAO-FRIA.md",
+      "cowork-inbox/sidebar/playbook/00-INDICE.md",
+      "data.jsx",
       "github.md",
       "oimpresso.com.html",
-      "ponto-telas.jsx"
+      "sidebar.jsx",
+      "styles.css"
     ],
     "deleted": [
-      "cowork-inbox/ponto-dashboard/Index.casos.md"
+      "resources/js/Pages/Ponto/Aprovacoes/Index.casos.md",
+      "resources/js/Pages/Ponto/Aprovacoes/Index.charter.md",
+      "resources/js/Pages/Ponto/BancoHoras/Index.casos.md",
+      "resources/js/Pages/Ponto/BancoHoras/Index.charter.md",
+      "resources/js/Pages/Ponto/Colaboradores/Index.casos.md",
+      "resources/js/Pages/Ponto/Colaboradores/Index.charter.md",
+      "resources/js/Pages/Ponto/Configuracoes/Index.casos.md",
+      "resources/js/Pages/Ponto/Configuracoes/Index.charter.md",
+      "resources/js/Pages/Ponto/Escalas/Index.casos.md",
+      "resources/js/Pages/Ponto/Escalas/Index.charter.md",
+      "resources/js/Pages/Ponto/Espelho/Index.casos.md",
+      "resources/js/Pages/Ponto/Espelho/Index.charter.md",
+      "resources/js/Pages/Ponto/Espelho/Show.casos.md",
+      "resources/js/Pages/Ponto/Espelho/Show.charter.md",
+      "resources/js/Pages/Ponto/Importacoes/Index.casos.md",
+      "resources/js/Pages/Ponto/Importacoes/Index.charter.md",
+      "resources/js/Pages/Ponto/Intercorrencias/Index.casos.md",
+      "resources/js/Pages/Ponto/Intercorrencias/Index.charter.md",
+      "resources/js/Pages/Ponto/Relatorios/Index.casos.md",
+      "resources/js/Pages/Ponto/Relatorios/Index.charter.md"
     ],
-    "unchanged": 801
+    "unchanged": 820
   }
 }

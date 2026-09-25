@@ -167,18 +167,59 @@ function NfeCertBadgeRail({ onSelectRoute }) {
 // e o vivo aposentou a aba Chat em 2026-05-05 (conv switcher vive em Pages/Copiloto/Chat.tsx).
 function ItemRow({ item, active, ghost, groupDot, onSelect, count, anchor, ghostCount }) {
   const Icon = I[item.icon];
+  if (item.children && item.children.length) return <ItemCascade item={item} onSelect={onSelect} />;
   return (
     <button type="button"
       className={`sb-item sb-sub${ghost ? " sb-ghost" : ""}${active ? " active" : ""}`}
       aria-current={active ? "page" : undefined}
-      onClick={onSelect}
-      style={active && groupDot ? { borderLeftColor: groupDot } : null}>
+      onClick={onSelect}>
       {Icon && <Icon className="ic" />}
       <span className="label" data-comment-anchor={anchor}>{item.label}</span>
       <WipMark routeId={item.id} />
       {count ? <span className="badge">{count}</span> : <ItemEnd routeId={item.id} ghostCount={ghostCount} />}
     </button>);
 
+}
+
+// ─── Item com filhos → cascata lateral (paridade Sidebar.tsx SidebarMenuItem hasChildren) ───
+// Botão com chevron; abre painel FIXO à direita do item (fixed pra não virar overflow do .sb-body).
+function ItemCascade({ item, onSelect }) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState(null);
+  const btn = useRef(null);
+  const pop = useRef(null);
+  const Icon = I[item.icon];
+  useEffect(() => {
+    if (!open) {setPos(null);return;}
+    const r = btn.current?.getBoundingClientRect();
+    if (r) setPos({ top: r.top, left: r.right + 4 });
+    const h = (e) => {if (btn.current?.contains(e.target) || pop.current?.contains(e.target)) return;setOpen(false);};
+    const k = (e) => {if (e.key === "Escape") {setOpen(false);btn.current?.focus();}};
+    document.addEventListener("mousedown", h);
+    document.addEventListener("keydown", k);
+    return () => {document.removeEventListener("mousedown", h);document.removeEventListener("keydown", k);};
+  }, [open]);
+  return (
+    <React.Fragment>
+      <button type="button" ref={btn} className={"sb-item sb-sub" + (open ? " is-open" : "")}
+        aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+        {Icon && <Icon className="ic" />}
+        <span className="label">{item.label}</span>
+        <I.chevR className="ic sb-item-chev" />
+      </button>
+      {open && pos &&
+      <div className="sb-item-popover" role="menu" ref={pop} aria-label={item.label} style={{ top: pos.top, left: pos.left }}>
+        {item.children.map((c) => {
+          const CI = I[c.icon];
+          return (
+            <button type="button" key={c.id} role="menuitem" className="sb-item"
+              onClick={() => {setOpen(false);(window.__selectRoute || onSelect)?.(c.id);}}>
+              {CI ? <CI className="ic" /> : <span className="ic dot" aria-hidden="true" />}
+              <span className="label">{c.label}</span>
+            </button>);
+        })}
+      </div>}
+    </React.Fragment>);
 }
 
 // Teto canon: 5 ghosts visíveis + "⋯ mais N". A tela ativa é sempre promovida
@@ -233,11 +274,15 @@ function MenuGroup({ entry, meta, items, activeRoute, onSelectRoute, showGhosts 
   const hue = hueOf(meta);
   const groupColor = hue == null ? "var(--text-mute)" : `oklch(0.72 0.09 ${hue})`;
   const groupDot = hue == null ? "var(--text-mute)" : `oklch(0.65 0.14 ${hue})`;
+  // Ícone Lucide por grupo (paridade Sidebar.tsx GROUP_ICON_MAP) — substitui o ponto quando existe.
+  const GroupIcon = meta.icon ? I[meta.icon] : null;
 
   return (
     <div className={"sb-group" + (open ? " open" : "")} style={hue == null ? null : { ["--gh"]: hue }}>
       <button type="button" className="sb-group-h" onClick={() => setOpen(!open)} aria-expanded={open}>
-        <span className="sb-group-dot" style={{ background: groupDot }} />
+        {GroupIcon ?
+        <GroupIcon className="sb-group-ic" size={12} aria-hidden="true" style={{ color: groupDot }} /> :
+        <span className="sb-group-dot" style={{ background: groupDot }} />}
         <span className="sb-group-l" style={{ color: groupColor }}>{meta.label || entry.group}</span>
         <span className="sb-group-n">{items.length}</span>
         <I.chev className="ic chev" style={{ transform: open ? "rotate(0)" : "rotate(-90deg)", transition: "transform .15s" }} />
