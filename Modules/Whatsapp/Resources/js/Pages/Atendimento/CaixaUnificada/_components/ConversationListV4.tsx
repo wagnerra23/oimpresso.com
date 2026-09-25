@@ -14,7 +14,7 @@
 
 import { useMemo, useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Check, ChevronDown, Clock, Filter, Paperclip, Search, Star, UserPlus, X } from 'lucide-react';
+import { Check, CheckCheck, ChevronDown, Clock, Filter, Paperclip, Search, Star, UserPlus, X } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -24,6 +24,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 import { Inline } from '@/Components/layout';
@@ -162,6 +163,27 @@ export default function ConversationListV4({
     );
   }
 
+  // [W] 2026-09-25 — zera o "não lida" de todas as conversas que o usuário vê.
+  // Só o contador interno (o backend explica por que não manda recibo ao WhatsApp).
+  const [marcandoTodas, setMarcandoTodas] = useState(false);
+  async function marcarTodasLidas() {
+    const total = stats?.unread ?? 0;
+    if (total <= 0 || marcandoTodas) return;
+    if (!window.confirm(`Marcar as ${total} mensagens não lidas como lidas?`)) return;
+    setMarcandoTodas(true);
+    try {
+      const csrf = (document.querySelector('meta[name=csrf-token]') as HTMLMetaElement | null)?.content || '';
+      await fetch(route('atendimento.caixa-unificada.marcar-todas-lidas'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrf },
+        credentials: 'same-origin',
+      });
+    } finally {
+      setMarcandoTodas(false);
+      router.reload({ only: ['conversations', 'stats', 'shell.sidebar_counts'] });
+    }
+  }
+
   function applyFilter(overrides: Record<string, unknown>) {
     router.get(
       route('atendimento.caixa-unificada.index'),
@@ -258,6 +280,20 @@ export default function ConversationListV4({
                   </DropdownMenuItem>
                 );
               })}
+              {(stats?.unread ?? 0) > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={marcarTodasLidas}
+                    disabled={marcandoTodas}
+                    data-testid="caixa-unif-marcar-todas-lidas"
+                    className="flex items-center gap-2 text-[12px] cursor-pointer"
+                  >
+                    <CheckCheck size={13} className="shrink-0 text-muted-foreground" aria-hidden />
+                    <span className="flex-1">Marcar todas como lidas</span>
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
 

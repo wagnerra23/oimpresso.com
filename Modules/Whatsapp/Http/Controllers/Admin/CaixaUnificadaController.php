@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Http\Controllers\Admin;
 
 use App\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,6 +20,7 @@ use Modules\Whatsapp\Entities\Tag;
 use Modules\Whatsapp\Entities\WhatsappQueue;
 use Modules\Whatsapp\Entities\WhatsappTemplate;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer;
+use Modules\Whatsapp\Services\Drivers\WhatsmeowDriver;
 
 /**
  * CaixaUnificadaController — Caixa Unificada V4 (omnichannel redesign).
@@ -121,9 +124,11 @@ class CaixaUnificadaController extends Controller
                     ->get()
                     ->map(fn (Message $m) => $this->msgToUiArray($m));
 
-                // Zera unread quando abre
+                // Zera unread quando abre + avisa o WhatsApp (ticks azuis no cliente)
                 if ($threadModel->unread_count > 0) {
+                    $naoLidas = (int) $threadModel->unread_count;
                     $threadModel->forceFill(['unread_count' => 0])->save();
+                    $this->avisarLidaNoWhatsapp($threadModel, $naoLidas);
                 }
             }
         }
@@ -1001,6 +1006,70 @@ class CaixaUnificadaController extends Controller
     // ACL canal=fila ADR 0135 + US-WA-069 fica no InboxController; aqui só replica
     // a interface por enquanto. Refactor futuro: extrair pra trait/Service).
     // ===========================================================================
+
+    /**
+     * POST /atendimento/caixa-unificada/marcar-todas-lidas — zera o contador de
+     * não lidas de todas as conversas que o usuário enxerga ([W] 2026-09-25).
+     *
+     * Só o contador interno: NÃO manda recibo de leitura ao WhatsApp. Marcar
+     * milhares de mensagens antigas como lidas no celular de cada cliente de uma
+     * vez é rajada que ninguém pediu (anti-ban) e diria ao cliente que lemos o
+     * que ninguém leu. O recibo sai quando a conversa é aberta de fato.
+     *
+     * Tier 0: escopo `business_id` + ACL por canal (mesma regra da lista).
+     */
+    public function marcarTodasLidas(Request $request): JsonResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
+
+        $query = Conversation::query()
+            ->where('business_id', $businessId)
+            ->where('unread_count', '>', 0);
+        $this->applyChannelAclFilter($query, $businessId, $userId);
+
+        $conversas = $query->update(['unread_count' => 0]);
+
+        return response()->json(['ok' => true, 'conversas' => $conversas]);
+    }
+
+    /**
+     * Recibo de leitura ao WhatsApp das últimas mensagens recebidas da conversa.
+     * Roda DEPOIS da resposta (abrir a conversa não espera o daemon) e é
+     * best-effort: falha só loga. Só whatsmeow — outros drivers não têm o endpoint.
+     */
+    protected function avisarLidaNoWhatsapp(Conversation $conversa, int $naoLidas): void
+    {
+        $channel = $conversa->channel;
+        $chatJid = (string) ($conversa->customer_external_id ?? '');
+        if ($channel === null || $channel->type !== Channel::TYPE_WHATSAPP_WHATSMEOW || ! str_contains($chatJid, '@')) {
+            return;
+        }
+
+        $ids = Message::query()
+            ->where('business_id', $conversa->business_id)
+            ->where('conversation_id', $conversa->id)
+            ->where('direction', 'inbound')
+            ->whereNotNull('provider_message_id')
+            ->orderByDesc('id')
+            ->limit(min(max($naoLidas, 1), 50))
+            ->pluck('provider_message_id')
+            ->all();
+        if ($ids === []) {
+            return;
+        }
+
+        dispatch(function () use ($channel, $chatJid, $ids, $conversa) {
+            $ok = app(WhatsmeowDriver::class)->markRead($channel, $chatJid, $ids);
+            if (! $ok) {
+                Log::warning('whatsapp.caixa.markread_falhou', [
+                    'business_id' => $conversa->business_id,
+                    'conversation_id' => $conversa->id,
+                    'mensagens' => count($ids),
+                ]);
+            }
+        })->afterResponse();
+    }
 
     protected function applyChannelAclFilter($query, int $businessId, int $userId): void
     {

@@ -168,6 +168,12 @@ Route::group([
         ->middleware('can:whatsapp.access')
         ->name('atendimento.caixa-unificada.index');
 
+    // [W] 2026-09-25 — zera o contador de não lidas das conversas que o usuário
+    // enxerga (business + ACL por canal). Não manda recibo de leitura ao WhatsApp.
+    Route::post('/caixa-unificada/marcar-todas-lidas', [CaixaUnificadaController::class, 'marcarTodasLidas'])
+        ->middleware('can:whatsapp.access')
+        ->name('atendimento.caixa-unificada.marcar-todas-lidas');
+
     // M7 fix 2026-05-28 — serve mídia via Controller (Hostinger LiteSpeed
     // bloqueia /storage/* direct serve 403). Path tem 4 partes:
     // whatsapp/<businessId>/<YYYY-MM>/<uuid>.<ext>
