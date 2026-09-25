@@ -322,10 +322,10 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 ### US-PONTO-015 · Fechamento de competência — as restrições existem, a tela e o domínio não
 
-> owner: — · priority: p2 · estimate: — · status: todo · type: story
-> blocked_by: decisão [W] sobre o comportamento (ver "O que falta" abaixo)
+> owner: — · priority: p2 · estimate: — · status: done · type: story
+> blocked_by: — (desbloqueada pela ADR 0413, 2026-09-24; o bloqueio original era "decisão [W] sobre o comportamento")
 
-**Implementado em:** _pendente_ — não existe tabela, entity, service, controller nem rota de fechamento. Medido em `origin/main` 2026-09-14: zero migration com `fechamento|competenc|consolid`, e os 7 arquivos do módulo que citam "competência" usam a palavra como **período** (banco de horas, relatórios), não como entidade.
+**Implementado em:** `Modules/Ponto/Database/Migrations/2026_09_25_000001_create_ponto_competencias_table.php` · `Modules/Ponto/Entities/Competencia.php` · `Modules/Ponto/Services/FechamentoService.php` · `Modules/Ponto/Http/Controllers/FechamentoController.php` · `resources/js/Pages/Ponto/Fechamento/Index.tsx` · `Modules/Ponto/Tests/Feature/FechamentoContratoTest.php` — thread 04 do playbook, 2026-09-25. Até 2026-09-24 estava `_pendente_`: não existe tabela, entity, service, controller nem rota de fechamento. Medido no main em 2026-09-14: zero migration com fechamento, competenc ou consolid, e os 7 arquivos do módulo que citam "competência" usam a palavra como **período** (banco de horas, relatórios), não como entidade.
 
 - **Por que esta US existe agora:** o handoff 19 do Cowork ([#7272](https://github.com/wagnerra23/oimpresso.com/pull/7272)) trouxe `ponto-fechamento.jsx` com **três decisões [W] datadas de 2026-09-14** escritas dentro do próprio design. As decisões são reais e são dele; a tela e o domínio que elas restringem **não existem**. Registrá-las aqui é o que impede que a próxima sessão as reinvente ao contrário — ou pior, que construa a tela sem elas.
 - **Estas são RESTRIÇÕES, não especificação.** Elas dizem o que o fechamento **não** faz. Nenhuma delas diz o que ele **faz** com o dado, e inventar isso seria pior que deixar em branco.
@@ -338,8 +338,12 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 | **D2** | Consolidar registra **nome + data**, **sem assinatura digital** | não prometer validade jurídica de assinatura; o registro é de autoria administrativa |
 | **D4** | O fechamento **não** gera arquivo fiscal — a geração vive em **Relatórios** | nenhum export AFD/AEJ nesta tela; ela consolida, não emite |
 
-- **O que falta, e só [W] responde:** o que "fechar" faz com as marcações da competência (bloqueia edição? marca estado? gera snapshot de apuração?); se fechar é por colaborador ou por empregador; qual permissão; e o que acontece com intercorrência que chega depois de fechado. Sem isso não há US implementável — há restrição registrada.
+- **Respondido por [W] na [ADR 0413](../../decisions/0413-ponto-fechamento-competencia-conformidade-relatorios-legais.md) (2026-09-24)** — o resto desta linha fica como registro do que estava aberto em 2026-09-14. **O que faltava, e só [W] respondia:** o que "fechar" faz com as marcações da competência (bloqueia edição? marca estado? gera snapshot de apuração?); se fechar é por colaborador ou por empregador; qual permissão; e o que acontece com intercorrência que chega depois de fechado. Sem isso não há US implementável — há restrição registrada.
 - **Fonte:** `prototipo-ui/cowork/Wagner/ponto-fechamento.jsx` (âncora de design da tela quando ela nascer) + `ponto-mobile.jsx`, que carrega a 4ª decisão do mesmo ciclo (**D3** — recusar grava anulação `ORIGEM_ANULACAO` e não altera a marcação). **D3 já está implementada** no backend (`Marcacao::ORIGEM_ANULACAO` + `anular()` + `AnularMarcacaoRequest`, e os serviços de apuração excluem os registros de anulação — 14 arquivos), então ela documenta comportamento correto existente, não trabalho pendente.
+
+**Testado em:** `Modules/Ponto/Tests/Feature/FechamentoContratoTest.php` · `Modules/Ponto/Tests/Feature/CompetenciaAppendOnlyTest.php`
+
+**DoD:** `UC-PTF-01..07` verdes na lane `ponto-pest` (casos em `resources/js/Pages/Ponto/Fechamento/Index.casos.md`, derivados da ADR 0413).
 
 **Acceptance:**
 - [ ] [W] responder "O que falta" acima — sem isso a US não sai de `todo`

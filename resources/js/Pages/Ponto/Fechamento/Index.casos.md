@@ -27,6 +27,7 @@ last_run: "2026-09-25"
 | UC-PTF-04 | Competência fechada não reabre | must | ADR 0413 D1 | `FechamentoContratoTest` · `CompetenciaAppendOnlyTest` | 🧪 |
 | UC-PTF-05 | Fechar não altera marcação nem apuração | must | ADR 0413 + Portaria MTP 671/2021 | `FechamentoContratoTest` | 🧪 |
 | UC-PTF-06 | Só quem tem `ponto.fechar` fecha | must | ADR 0413 D1 | `FechamentoContratoTest` | 🧪 |
+| UC-PTF-07 | A tela mostra a competência, esconde o fechar de quem não pode e depois quem fechou | must | ADR 0413 D1 + D2 | `FechamentoContratoTest` | 🧪 |
 
 ## UC-PTF-01 · A pré-checagem conta só o que é do próprio empregador
 - **Aceite:** Dado um dia em DIVERGENCIA e uma intercorrência pendente no tenant 98, e um dia em
@@ -63,9 +64,15 @@ last_run: "2026-09-25"
 - **Teste:** `FechamentoContratoTest` (título cita o id).
 - **Status: 🧪** — rodado no CT 100 em 2026-09-25; sem veredito de lane ainda.
 
+## UC-PTF-07 · A tela mostra a situação e quem fechou
+- **Aceite:** Dado usuário só com `ponto.access` · Quando abre `/ponto/fechamento?competencia=AAAA-MM` ·
+  Então vê a competência aberta, `pode_fechar` falso e a pré-checagem (deferred) com os 5 itens; depois
+  de fechada, vê o nome de quem fechou.
+- **Teste:** `FechamentoContratoTest` (título cita o id).
+- **Status: 🧪** — rodado no CT 100 em 2026-09-25; sem veredito de lane ainda.
+
 **[BACKLOG]:**
-- `[BACKLOG]` A tela abre pelo menu e mostra a pré-checagem da competência — entra com o `.tsx`.
-- `[BACKLOG]` Depois de fechada, a tela mostra quem fechou e só oferece Relatórios — entra com o `.tsx`.
+- `[BACKLOG]` Chego na tela pelo menu (item e ghost "Fechamento") — provar pelo clique, em e2e com sessão.
 
 ## Trilha do tempo
-- 2026-09-25 · [CL] criado na thread 04 (PR 4), UC derivados da ADR 0413.
+- 2026-09-25 · [CL] criado na thread 04 (PR 5), UC derivados da ADR 0413. UC-PTF-07 no PR 6 (rota GET).

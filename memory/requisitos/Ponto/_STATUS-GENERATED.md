@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 23 |
 | Telas com `casos.md` | 23 |
-| UC declarados | 89 |
-| UC com teste que os cita | 87 |
+| UC declarados | 90 |
+| UC com teste que os cita | 88 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -29,6 +29,7 @@ authority: generated
 |---|---|
 | `US-PONTO-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Relogio web pra registrar entrada/saida (REP-P) |
 | `US-PONTO-012` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Corrigir os atributos fantasma do modulo (4 instancias) |
+| `US-PONTO-015` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Fechamento de competência — as restrições existem, a tela e  |
 
 ### Backlog — NÃO é lacuna
 
@@ -46,7 +47,6 @@ authority: generated
 | US-PONTO-011 | `todo` | Fechar o append-only do ledger de banco de horas |
 | US-PONTO-013 | `todo` | Consertar as duas telas que nao persistem |
 | US-PONTO-014 | `todo` | Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; |
-| US-PONTO-015 | `todo` | Fechamento de competência — as restrições existem, a tela e o domínio não |
 | US-PONTO-016 | `desconhecido` | Painel de Conformidade CLT da competência (somente leitura) |
 
 ## UC por status
@@ -136,6 +136,7 @@ authority: generated
 | UC-PTF-04 | Fechamento/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-05 | Fechamento/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-06 | Fechamento/Index | 🧪 aguarda veredito da lane |
+| UC-PTF-07 | Fechamento/Index | 🧪 aguarda veredito da lane |
 | UC-PWEL-01 | Welcome | 🧪 aguarda veredito da lane |
 | UC-RELIDX-01 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-02 | Relatorios/Index | 🧪 aguarda veredito da lane |
