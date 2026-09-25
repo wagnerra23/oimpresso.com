@@ -35,6 +35,7 @@ return [
     'permissao_relatorios'     => 'Ponto — Visualizar relatórios',
     'permissao_configuracoes'  => 'Ponto — Gerenciar configurações',
     'permissao_importacoes'    => 'Ponto — Importar AFD/AFDT/CSV',
+    'permissao_fechar'         => 'Ponto — Fechar competência',
 
     'intercorrencia' => [
         'tipos' => [
