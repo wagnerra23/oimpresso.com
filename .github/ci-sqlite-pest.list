@@ -627,3 +627,5 @@ Modules/Forja/Tests/Feature/CredentialShapesTest.php
 # Cms — whitelist de `type` (page · blog · testimonial), decisão [W] 2026-09-23. O arquivo
 # existia só no phpunit.xml, fora de qualquer lane. DB-less (só Validator), sqlite-safe.
 Modules/Cms/Tests/Feature/FormRequestValidationTest.php
+# Presença da sidebar (thread 13): rota + enum TS×PHP. sqlite-safe — monta users sintética quando não há schema.
+tests/Feature/Sidebar/PresencaPreferenciaTest.php

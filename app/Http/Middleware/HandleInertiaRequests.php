@@ -71,6 +71,7 @@ class HandleInertiaRequests extends Middleware
                     'is_admin'              => (bool) $session->get('is_admin', false),
                     'ui_theme'              => $user->ui_theme,               // 'light'|'dark'|null
                     'ui_sidebar_collapsed'  => (bool) ($user->ui_sidebar_collapsed ?? false),
+                    'ui_presence'           => $user->ui_presence ?? 'disponivel', // disponivel|ocupado|ausente|invisivel
                 ] : null,
                 'can' => $user ? $this->userPermissions($user) : [],
                 // Wagner 2026-05-20: superadmin "Sign in as user" (ManageUserController::signInAsUser)
