@@ -651,6 +651,26 @@ check('mesmo número → mesmo veredito (independe de --check)',
     /referência insegura/.test(previewDsPlan('<link href="_ds/ds-ok/%2e%2e/%2e%2e/fora.css"/>').erro || ''));
 }
 
+// 2026-09-25 — o shell do handoff 36 (#7889) explica em COMENTÁRIO por que as refs a `_ds/`
+// não são literais e carrega o DS por `window.__OI_DS_BASE__+'x.css'`. O regex antigo lia a
+// prosa do comentário como id ("achei 3" com 1 DS real) e derrubava o render dos 9 baselines.
+{
+  const shell = [
+    '<!-- As refs a `_ds/` NÃO podem ser literais: `href`/`src`; tira `_ds/**` do denominador -->',
+    "<script>window.__OI_DS_BASE__=x?'../../design-system/':'_ds/ds-run1/';document.write('<link href=\"'+window.__OI_DS_BASE__+'colors_and_type.css\"/>')</script>",
+    "<script>document.write('<script src=\"'+window.__OI_DS_BASE__+'_ds_bundle.js\"><\\/script>')</script>",
+  ].join('\n');
+  const p = previewDsPlan(shell);
+  check('previewDs: prosa em comentário HTML não conta como design system', !p.erro && p.id === 'ds-run1');
+  check('previewDs: ref RUNTIME (`__OI_DS_BASE__+`) entra no plano',
+    ['colors_and_type.css', '_ds_bundle.js'].every((n) => p.arquivos.some((a) => a.nome === n)));
+  check('previewDs: nenhuma ref-lixo do string runtime entra no plano',
+    p.arquivos.every((a) => !/['"<;]/.test(a.nome)));
+  // CONTROLE: tirar comentário não afrouxa — 2 DS REAIS fora de comentário seguem reprovando.
+  check('BITE previewDs: 2 DS reais seguem erro mesmo com comentário no shell',
+    /esperava 1 design system/.test(previewDsPlan(`${shell}\n<link href="_ds/outro/y.css"/>`).erro || ''));
+}
+
 // 2ª CAMADA — o que os CSS pedem POR DENTRO (2026-08-14). Derivar o plano só do SHELL
 // deixava as FONTES de fora: o shell não menciona nenhuma, quem as pede é o
 // `colors_and_type.css` via `url('assets/fonts/…woff2')`. Medido no preview real antes do
