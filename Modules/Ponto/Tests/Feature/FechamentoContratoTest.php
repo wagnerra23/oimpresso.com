@@ -89,7 +89,7 @@ afterEach(function () {
     }
 });
 
-it('pré-checagem conta dia em DIVERGENCIA e intercorrência pendente só do próprio tenant (Tier 0)', function () {
+it('UC-PTF-01: pré-checagem conta dia em DIVERGENCIA e intercorrência pendente só do próprio tenant (Tier 0)', function () {
     $u = fchUsuario();
     $colab = fchColaborador(FCH_BIZ);
     fchDia(FCH_BIZ, $colab, FCH_MES . '-10', 'DIVERGENCIA');
@@ -106,7 +106,7 @@ it('pré-checagem conta dia em DIVERGENCIA e intercorrência pendente só do pr�
     expect(fchGraves(FCH_BIZ))->toMatchArray(['divergencia' => 1, 'intercorrencia' => 1, 'clt' => 0]);
 });
 
-it('com bloqueio grave aberto, fechar sem aceite é recusado e nada é gravado (ADR 0413 D2)', function () {
+it('UC-PTF-02: com bloqueio grave aberto, fechar sem aceite é recusado e nada é gravado (ADR 0413 D2)', function () {
     $u = fchUsuario();
     fchDia(FCH_BIZ, fchColaborador(FCH_BIZ), FCH_MES . '-10', 'DIVERGENCIA');
 
@@ -115,7 +115,7 @@ it('com bloqueio grave aberto, fechar sem aceite é recusado e nada é gravado (
     expect(DB::table('ponto_competencias')->where('business_id', FCH_BIZ)->where('competencia', FCH_MES . '-01')->exists())->toBeFalse();
 });
 
-it('fechar aceitando grava quem, quando e os bloqueios aceitos — e não toca marcação nem apuração', function () {
+it('UC-PTF-03 + UC-PTF-05: fechar aceitando grava quem, quando e os bloqueios aceitos — e não toca marcação nem apuração', function () {
     $u = fchUsuario();
     fchDia(FCH_BIZ, fchColaborador(FCH_BIZ), FCH_MES . '-10', 'DIVERGENCIA');
     $antes = [DB::table('ponto_marcacoes')->count(), DB::table('ponto_apuracao_dia')->where('estado', 'DIVERGENCIA')->count()];
@@ -128,7 +128,7 @@ it('fechar aceitando grava quem, quando e os bloqueios aceitos — e não toca m
         ->toBe($antes);
 });
 
-it('fechar o mesmo mês de novo é recusado — reabrir não existe (ADR 0413 D1)', function () {
+it('UC-PTF-04: fechar o mesmo mês de novo é recusado — reabrir não existe (ADR 0413 D1)', function () {
     $u = fchUsuario();
     $s = app(FechamentoService::class);
     $mes = CarbonImmutable::createFromFormat('!Y-m', FCH_MES);
@@ -137,7 +137,7 @@ it('fechar o mesmo mês de novo é recusado — reabrir não existe (ADR 0413 D1
     expect(fn () => $s->fechar(FCH_BIZ, $mes, $u->id, true))->toThrow(DomainException::class, 'já fechada');
 });
 
-it('POST /ponto/fechamento exige ponto.fechar: só ponto.access → 403; com ponto.fechar → grava (ADR 0413 D1)', function () {
+it('UC-PTF-06: POST /ponto/fechamento exige ponto.fechar: só ponto.access → 403; com ponto.fechar → grava (ADR 0413 D1)', function () {
     $u = fchUsuario();
     foreach (['ponto.access', 'ponto.fechar'] as $p) {
         Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);

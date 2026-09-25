@@ -104,7 +104,7 @@ it('grava a competência fechada com autor, momento e bloqueios aceitos (ADR 041
     expect(json_decode($linha->bloqueios_aceitos, true))->toHaveCount(1);
 });
 
-it('update() e save() em competência fechada lançam — não existe reabrir (ADR 0413 D1)', function () {
+it('UC-PTF-04: update() e save() em competência fechada lançam — não existe reabrir (ADR 0413 D1)', function () {
     $c = compGravar(COMP_BIZ, '2099-02-01');
 
     compModelBarra(fn () => $c->update(['bloqueios_aceitos' => []]));
@@ -117,7 +117,7 @@ it('update() e save() em competência fechada lançam — não existe reabrir (A
     $this->assertDatabaseHas('ponto_competencias', ['id' => $c->id, 'competencia' => '2099-02-01']);
 });
 
-it('delete() em competência fechada lança (ADR 0413 D1)', function () {
+it('UC-PTF-04: delete() em competência fechada lança (ADR 0413 D1)', function () {
     $c = compGravar(COMP_BIZ, '2099-03-01');
 
     compModelBarra(fn () => $c->delete());
