@@ -84,6 +84,12 @@ class DataController extends Controller
                 'label'   => __('pontowr2::ponto.permissao_importacoes'),
                 'default' => false,
             ],
+            // ADR 0413 D1: fechar competência tem permissão própria (não reusa ponto.access).
+            [
+                'value'   => 'ponto.fechar',
+                'label'   => __('pontowr2::ponto.permissao_fechar'),
+                'default' => false,
+            ],
         ];
     }
 

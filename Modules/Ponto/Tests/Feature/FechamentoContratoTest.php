@@ -9,11 +9,14 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Modules\Ponto\Services\FechamentoService;
 use Modules\Ponto\Tests\Feature\PontoTestCase;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 uses(PontoTestCase::class);
 
 /**
  * Contrato do fechamento da competência — regras da ADR 0413, não do código:
+ *  - fechar exige `ponto.fechar` (D1); `ponto.access` sozinho não basta;
  *  - bloqueio grave aberto só fecha com aceite, e os bloqueios ficam na linha (D2 + W3);
  *  - fechar de novo é recusado — não existe reabrir (D1);
  *  - fechar NÃO altera `ponto_marcacoes` nem `ponto_apuracao_dia` (Portaria MTP 671/2021).
@@ -132,4 +135,26 @@ it('fechar o mesmo mês de novo é recusado — reabrir não existe (ADR 0413 D1
     $s->fechar(FCH_BIZ, $mes, $u->id, true);
 
     expect(fn () => $s->fechar(FCH_BIZ, $mes, $u->id, true))->toThrow(DomainException::class, 'já fechada');
+});
+
+it('POST /ponto/fechamento exige ponto.fechar: só ponto.access → 403; com ponto.fechar → grava (ADR 0413 D1)', function () {
+    $u = fchUsuario();
+    foreach (['ponto.access', 'ponto.fechar'] as $p) {
+        Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
+    }
+    $u->givePermissionTo('ponto.access');
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    session(['user.business_id' => FCH_BIZ, 'business.id' => FCH_BIZ]);
+
+    $this->actingAs($u)->post('/ponto/fechamento', ['competencia' => FCH_MES, 'aceitar_bloqueios' => true])
+        ->assertForbidden();
+    expect(DB::table('ponto_competencias')->where('business_id', FCH_BIZ)->where('competencia', FCH_MES . '-01')->exists())->toBeFalse();
+
+    $u->givePermissionTo('ponto.fechar');
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $this->actingAs($u->fresh())->post('/ponto/fechamento', ['competencia' => FCH_MES, 'aceitar_bloqueios' => true])
+        ->assertRedirect()->assertSessionHasNoErrors();
+    expect(DB::table('ponto_competencias')->where('business_id', FCH_BIZ)->where('competencia', FCH_MES . '-01')->value('fechada_por'))
+        ->toEqual($u->id);
 });
