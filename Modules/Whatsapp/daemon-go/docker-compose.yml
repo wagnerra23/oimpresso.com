@@ -32,7 +32,12 @@ services:
     # Atualizar via PR explícita pós smoke test em staging.
     # Pinado 2026-06-16 (incidente #2726): `:latest` mascarava QUAL build rodava —
     # e este build NÃO implementa assinatura HMAC (ver WUZAPI_GLOBAL_HMAC_KEY abaixo).
-    image: asternic/wuzapi@sha256:86b0b26c6b778ed6805a254c023ea368d46fa8bcab615d1ee3d0343d021ee1c3
+    # Re-pinado 2026-09-25 (incidente QR "failed to Connect"): o build anterior
+    # (sha256:86b0b26c…, ~mai/2026) passou a receber `Client outdated` do WhatsApp —
+    # sessão derrubada (401 logged out) e todo /session/connect → 500. Build de
+    # 2026-09-17 conecta e gera QR (smoke direto no daemon: connect 200 + /session/qr 200).
+    # Rollback local no CT 100: tag `asternic/wuzapi:rollback-20260925`.
+    image: asternic/wuzapi@sha256:7f2aee54a6585fcc67f78dbbec41cf56e3bdab31577183cf3b97f9a78d84df66
     container_name: whatsapp-whatsmeow
     restart: unless-stopped
 
