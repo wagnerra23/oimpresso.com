@@ -56,6 +56,11 @@ class Form
         return self::render(Html::email($name, $value)->attributes(self::normalizeOptions($options)));
     }
 
+    public static function url($name, $value = null, array $options = []): HtmlString
+    {
+        return self::render(Html::input('url', $name, $value)->attributes(self::normalizeOptions($options)));
+    }
+
     public static function password($name, array $options = []): HtmlString
     {
         $el = Html::password($name)->attribute('value', '');
