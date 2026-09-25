@@ -37,7 +37,7 @@
     "theme": "dark",
     "url": "http://127.0.0.1:5550/"
   },
-  "nos_totais": 799,
+  "nos_totais": 800,
   "quieto_ms": 2000,
   "secoes": {
     "sb-alcas": {
@@ -147,7 +147,7 @@
         "sb-top",
         "sb-rail-btn",
         "sb-body",
-        "sb-user",
+        "sb-user-wrap",
         "sb-collapse-handle"
       ],
       "rect": {
@@ -170,11 +170,11 @@
         "backgroundColor": "rgba(0, 0, 0, 0)",
         "borderRadius": "0px",
         "color": "oklch(0.8 0.008 295)",
-        "display": "grid",
+        "display": "block",
         "fontSize": "13.5px",
         "fontWeight": "400",
         "gap": "normal",
-        "padding": "8px"
+        "padding": "0px"
       },
       "filhos": 1,
       "fundoCadeia": [
@@ -189,13 +189,13 @@
       ],
       "nos": 1,
       "ordemClasses": [
-        "sb-rail-btn"
+        "sb-user"
       ],
       "rect": {
         "h": 57,
         "w": 55
       },
-      "seletor": "aside.sb > .sb-user",
+      "seletor": "aside.sb > .sb-user-wrap",
       "truncado": false
     },
     "sb-topo": {
