@@ -1,28 +1,37 @@
 # Contexto do projeto — Protótipo oficial, Produto unificado (Office Impresso / oimpresso)
 
-## Onde este protótipo é editado (decisão do Felipe, 25/09/2026)
+## Onde este protótipo é editado e de onde vem (Felipe, 25/09/2026)
 
-**A partir de 25/09/2026 o protótipo desta pasta é editado AQUI, no repositório — não mais no
-Claude Design.** O Claude Design criou o protótipo; o Felipe o trouxe para cá, e as mudanças
-seguintes nascem nesta pasta e entram por PR. As ondas A e B da Fabricação já foram feitas deste
-lado (a última leitura do Claude Design entrou pelo PR #7944).
+**A fonte é o protótipo do Wagner** (`prototipo-ui/cowork/Wagner/`, que desce do projeto Cowork
+dele pelos handoffs). **Esta pasta é a cópia de trabalho do Felipe:** veio do zip do protótipo do
+Wagner e é aqui, no repositório, que o Felipe faz as alterações de design — elas entram por PR. As
+ondas A e B da Fabricação foram feitas desta forma.
 
-Consequências práticas:
+**Sincronia nos dois sentidos, para os protótipos não divergirem:**
 
-- **O projeto do Claude Design está atrás desta pasta e não é mais fonte.** Não "atualizar" nada
-  daqui a partir de lá, e não tratar diferença entre os dois como defeito desta pasta.
-- **Não gravar nada no Claude Design** a partir desta pasta.
-- **Não reimportar por cima desta pasta** (`--export-from`, zip de handoff, bundle do Cowork): a
-  importação sobrescreve e apaga as mudanças feitas aqui. Se um dia precisar trazer algo de lá,
-  trazer só o arquivo específico, conferir o diff e decidir item a item.
-- **Ferramentas que comparam esta pasta com o Claude Design vivo** (ex.: `cowork-mirror-freshness`)
-  vão acusar diferença — é esperado. Elas foram escritas quando esta pasta era espelho de leitura.
+- **Wagner → Felipe:** quando um handoff do Wagner muda arquivos que esta pasta também tem, as
+  mudanças dele são trazidas para cá **preservando as do Felipe**. As duas cópias não são
+  idênticas (esta foi reescrita com os componentes do DS nas ondas A/B), então receber é trazer o
+  comportamento e o conteúdo que ele mudou, escritos com os componentes desta pasta — não copiar o
+  arquivo dele por cima. Onde os dois mexeram no mesmo ponto, o Felipe decide.
+- **Felipe → Wagner:** o que muda aqui vai para o Wagner por um recibo `_saida-*.md` na caixa de
+  entrada dele (`prototipo-ui/cowork/Wagner/cowork-inbox/<modulo>/`), listando o que existe só
+  nesta pasta. Primeiro retorno: `cowork-inbox/manufacturing/playbook/_saida-felipe-retorno.md`.
+
+**O projeto do Felipe no Claude Design** (`2e7d3640…`, "PROTÓTIPO OFICIAL - PRODUTO UNIFICADO V2")
+tem uma importação mais antiga e **não é mais onde se trabalha** — por isso está atrás desta
+pasta. Não gravar nele e não reimportar o zip dele por cima desta pasta: isso apagaria o que foi
+feito aqui.
+
 - **Isto vale só para `prototipo-ui/cowork/Felipe/`.** O design system (projeto do Wagner, fonte
   viva em `resources/js/Components/{ui,shared}/`) continua regido pela seção "Como conferir
   protótipo contra o DS", mais abaixo.
-- Correção de defeito do protótipo acontece aqui e vai no PR. Exemplo: em 25/09/2026 a moldura
-  `.mfg-grid` colidia com a regra antiga de `mockup-pages.css` e deixava uma coluna vazia à
-  direita da tabela no shell — corrigido em `manufacturing-page.css`, só neste repositório.
+- **Fabricação:** o Wagner decidiu em 25/09/2026 (D-MFG-FONTE) que a fonte dela é a pasta dele, e
+  o playbook dele prevê aposentar os `manufacturing-*` desta pasta (thread 03). A cópia de trabalho
+  do Felipe fica ou não é decisão a combinar entre os dois (D-RET-02 no recibo de retorno).
+- Correção de defeito do protótipo acontece aqui, vai no PR e entra no próximo recibo de retorno.
+  Exemplo: em 25/09/2026 a moldura `.mfg-grid` colidia com a regra antiga de `mockup-pages.css` e
+  deixava uma coluna vazia à direita da tabela no shell — corrigido em `manufacturing-page.css`.
 
 ## Pendências conhecidas em outras telas (anotado em 25/09/2026, não corrigido de propósito)
 
