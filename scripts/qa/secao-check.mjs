@@ -157,6 +157,9 @@ async function medirVia(alvo, url) {
   // cairia no auto-rail de 1280 e o alvo do expanded seria comparado contra um rail.
   if (alvo.viewport) args.push('--viewport', alvo.viewport);
   if (alvo.sb_mode) args.push('--sb-mode', alvo.sb_mode);
+  // thread 07 do Financeiro: rota do protótipo + clique que abre o drawer também são proveniência
+  if (alvo.rota) args.push('--rota', alvo.rota);
+  if (alvo.clicar) args.push('--clicar', alvo.clicar);
 
   // spawn ASSÍNCRONO de propósito: no modo --servir-espelho o servidor roda NESTE processo, e
   // `spawnSync` travaria o event loop — o subprocesso pediria a página e ninguém responderia.

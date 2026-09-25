@@ -1,0 +1,108 @@
+{
+  "_": "Seção 07 (drawer do lançamento) do Financeiro/Unificado — thread 00 do playbook `cowork-inbox/financeiro` (2026-09-25). Rota do protótipo por `--rota financeiro` (app.jsx roteia por localStorage `oimpresso.route`) e drawer aberto por `--clicar \"tbody tr.row-hover\"` (1ª linha da tabela). Seletores COLHIDOS do DOM do espelho servido por `alvo.mjs --mapa <url> --rota financeiro --clicar \"tbody tr.row-hover\" --raiz <sel> --quieto-ms 1500` nas 5 regiões filhas de `aside.fin-dw2` (header · hero · abas · corpo · rodapé), servido por `servirEstatico` (render-proto-baseline.mjs, dono da rota `/_ds/`) — com `python -m http.server` os tokens do DS não resolvem (`--surface` vazio) e a árvore sai com 1 filho a menos. Âncoras por classe/posição extrema, não `nth-child` do meio. Seções 01–06 e a aba IA NÃO entram: o índice do playbook as declara não medidas, e a aba IA exige um 2º clique.",
+  "dw-painel": {
+    "seletor": "aside.fin-dw2",
+    "campos": [
+      "width",
+      "fontFamily",
+      "backgroundColor",
+      "borderLeftWidth",
+      "display"
+    ]
+  },
+  "dw-header": {
+    "seletor": "aside.fin-dw2 > div:first-child",
+    "campos": [
+      "height",
+      "padding",
+      "gap",
+      "borderBottomWidth",
+      "display"
+    ]
+  },
+  "dw-fechar": {
+    "seletor": "aside.fin-dw2 .fin-dw-close",
+    "campos": [
+      "width",
+      "height",
+      "borderRadius",
+      "backgroundColor",
+      "color"
+    ]
+  },
+  "dw-nav": {
+    "seletor": "aside.fin-dw2 .fin-dw-nav",
+    "campos": [
+      "height",
+      "borderTopWidth",
+      "borderRadius",
+      "display",
+      "gap"
+    ]
+  },
+  "dw-hero": {
+    "seletor": "aside.fin-dw2 > div:nth-child(2)",
+    "campos": [
+      "padding",
+      "backgroundImage",
+      "backgroundColor",
+      "borderBottomWidth"
+    ]
+  },
+  "dw-abas": {
+    "seletor": "aside.fin-dw2 > nav.fin-drawer-tabs",
+    "campos": [
+      "height",
+      "padding",
+      "gap",
+      "borderBottomWidth",
+      "display"
+    ]
+  },
+  "dw-corpo": {
+    "seletor": "aside.fin-dw2 > div.overflow-y-auto",
+    "campos": [
+      "padding",
+      "overflowY",
+      "display"
+    ]
+  },
+  "dw-veredito": {
+    "seletor": "aside.fin-dw2 .fin-verdict",
+    "campos": [
+      "borderRadius",
+      "padding",
+      "backgroundColor",
+      "color"
+    ]
+  },
+  "dw-lente": {
+    "seletor": "aside.fin-dw2 section.fin-lens.py-4",
+    "campos": [
+      "padding",
+      "borderTopWidth",
+      "backgroundColor",
+      "borderRadius"
+    ]
+  },
+  "dw-rodape": {
+    "seletor": "aside.fin-dw2 > div:last-child",
+    "campos": [
+      "height",
+      "padding",
+      "gap",
+      "borderTopWidth",
+      "display"
+    ]
+  },
+  "dw-rodape-botao": {
+    "seletor": "aside.fin-dw2 .fin-foot-icon-btn",
+    "campos": [
+      "height",
+      "borderTopWidth",
+      "borderRadius",
+      "backgroundColor",
+      "color"
+    ]
+  }
+}
