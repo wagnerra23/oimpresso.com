@@ -19,6 +19,15 @@ use RuntimeException;
  * Em MySQL há ainda os triggers `trg_ponto_competencias_no_{update,delete}` — defesa dupla.
  *
  * Multi-tenant Tier 0 ([ADR 0093]): HasBusinessScope aplica o global scope por business_id.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property \Illuminate\Support\Carbon $competencia
+ * @property int $fechada_por
+ * @property \Illuminate\Support\Carbon $fechada_em
+ * @property array<int, array{id: string, grave: bool, n: int}>|null $bloqueios_aceitos
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property-read \App\User|null $fechador
  */
 class Competencia extends Model
 {
