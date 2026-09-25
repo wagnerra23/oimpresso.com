@@ -1169,8 +1169,14 @@
     },
     {
       "path": "cowork-inbox/financeiro/playbook/00-INDICE.md",
-      "bytes": 5404,
-      "sha256": "242b45eb1dc6d23ab920044b34315be7236b4ff105f8e45b800ecfcff9f7cfb0",
+      "bytes": 6595,
+      "sha256": "d85188376a377ad0c4747601434e621d487dd109facdfe8814d47d16842aa154",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/financeiro/playbook/07-Unificado.drawer.md",
+      "bytes": 9830,
+      "sha256": "9962284e058bba401dc981100b6f831ea5e1b9801a91d374ac7c75f63dea7dc4",
       "role": "cowork-source"
     },
     {
@@ -3196,6 +3202,18 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/sidebar/playbook/_saida-12.md",
+      "bytes": 4758,
+      "sha256": "c1d4faa18e6d66cb52c7dd71e9c89e1ffb5f0aa5c44478aa7b79b3abc8250b7c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sidebar/playbook/_saida-13.md",
+      "bytes": 3886,
+      "sha256": "aee18cfce1890676bb18e22a621fdf8f05a39b7b1a0dc4a65f8c543f4ee35a8b",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/sidebar/playbook/_SESSAO-FRIA.md",
       "bytes": 3125,
       "sha256": "2382a4762c467e0e62fecdcb2493d59e57185f30b50fc7c2ef433bd17f430e37",
@@ -3598,6 +3616,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "financeiro-drawer.css",
+      "bytes": 12175,
+      "sha256": "f3273b6724e7b4722a16b11d22a57f7e4e49d29eeedc490202aa43fb0fb9ada0",
+      "role": "cowork-source"
+    },
+    {
       "path": "financeiro-icons.jsx",
       "bytes": 6514,
       "sha256": "5f66330fd33f43f62cfb11c32c582bd26ff942e7ea821abec05fa6372bcee68e",
@@ -3629,8 +3653,8 @@
     },
     {
       "path": "financeiro-page.jsx",
-      "bytes": 131326,
-      "sha256": "f61a6c58e508f4962e00cd3fe96c3ab2d2bae8519b4121525bc709fd66bb1e77",
+      "bytes": 131563,
+      "sha256": "f1ec34edfa0d206f60cc86c3e48efdc5b5fdb3216c0b5746904f14aa62a23267",
       "role": "cowork-source"
     },
     {
@@ -4337,8 +4361,8 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 36268,
-      "sha256": "fd6755fdeb0ab25018f114fe011ac1f2da756b095026bb10bb096351a38e14c6",
+      "bytes": 36360,
+      "sha256": "c7c54ae4f6fbb3987e5aa7228635b434e9ed4c2d9e6f03fab369e5be34ec20ae",
       "role": "cowork-source"
     },
     {
@@ -5064,10 +5088,10 @@
   ],
   "missing": [],
   "mirrorScope": "tree",
-  "bundleId": "d015f985825b9435cfcaf028fd0523177ab7e2e40abc331e5b769a1dcea100aa",
-  "baseBundleId": "7aa35e8f0dbdebaea89e4db26040969a604c178f881fecbddcb0855526efa4b2",
+  "bundleId": "2aad9a6876c5698242f2c338dd53e49efb66cce5e45f9ced9bedbe692efb68c3",
+  "baseBundleId": "d015f985825b9435cfcaf028fd0523177ab7e2e40abc331e5b769a1dcea100aa",
   "mode": "delta",
-  "generatedAt": "2026-09-25T16:38:07.332Z",
+  "generatedAt": "2026-09-25T18:34:37.789Z",
   "dsRequires": {
     "owner": "Wagner",
     "slug": "office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac",
@@ -5119,32 +5143,22 @@
     ]
   },
   "totals": {
-    "files": 843,
-    "bytes": 10571766
+    "files": 847,
+    "bytes": 10603935
   },
   "changes": {
     "added": [
-      "cowork-inbox/sidebar/playbook/_saida-07.md",
-      "cowork-inbox/sidebar/playbook/_saida-08.md",
-      "cowork-inbox/sidebar/playbook/_saida-09.md",
-      "cowork-inbox/sidebar/playbook/_saida-10.md",
-      "cowork-inbox/sidebar/playbook/_saida-11.md",
-      "cowork-inbox/sidebar/playbook/13-presenca.md",
-      "cowork-inbox/sidebar/playbook/14-ghost-icone.md",
-      "cowork-inbox/sidebar/playbook/15-alvo-expanded.md",
-      "cowork-inbox/sidebar/playbook/16-charter-sidebar.md"
+      "cowork-inbox/financeiro/playbook/07-Unificado.drawer.md",
+      "cowork-inbox/sidebar/playbook/_saida-12.md",
+      "cowork-inbox/sidebar/playbook/_saida-13.md",
+      "financeiro-drawer.css"
     ],
     "modified": [
-      "cowork-inbox/sidebar/playbook/_SESSAO-FRIA.md",
-      "cowork-inbox/sidebar/playbook/00-INDICE.md",
-      "cowork-inbox/sidebar/playbook/09-item-ativo.md",
-      "cowork-inbox/sidebar/playbook/11-rail.md",
-      "github.md",
-      "oimpresso.com.html",
-      "sidebar.jsx",
-      "styles.css"
+      "cowork-inbox/financeiro/playbook/00-INDICE.md",
+      "financeiro-page.jsx",
+      "oimpresso.com.html"
     ],
     "deleted": [],
-    "unchanged": 826
+    "unchanged": 840
   }
 }
