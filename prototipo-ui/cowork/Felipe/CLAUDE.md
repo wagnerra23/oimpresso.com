@@ -1,5 +1,67 @@
 # Contexto do projeto — Protótipo oficial, Produto unificado (Office Impresso / oimpresso)
 
+## Onde este protótipo é editado e de onde vem (Felipe, 25/09/2026)
+
+**A fonte é o protótipo do Wagner** (`prototipo-ui/cowork/Wagner/`, que desce do projeto Cowork
+dele pelos handoffs). **Esta pasta é a cópia de trabalho do Felipe:** veio do zip do protótipo do
+Wagner e é aqui, no repositório, que o Felipe faz as alterações de design — elas entram por PR. As
+ondas A e B da Fabricação foram feitas desta forma.
+
+**Sincronia nos dois sentidos, para os protótipos não divergirem:**
+
+- **Wagner → Felipe:** quando um handoff do Wagner muda arquivos que esta pasta também tem, as
+  mudanças dele são trazidas para cá **preservando as do Felipe**. As duas cópias não são
+  idênticas (esta foi reescrita com os componentes do DS nas ondas A/B), então receber é trazer o
+  comportamento e o conteúdo que ele mudou, escritos com os componentes desta pasta — não copiar o
+  arquivo dele por cima. Onde os dois mexeram no mesmo ponto, o Felipe decide.
+- **Felipe → Wagner:** o que muda aqui vai para o Wagner por um recibo `_saida-*.md` na caixa de
+  entrada dele (`prototipo-ui/cowork/Wagner/cowork-inbox/<modulo>/`), listando o que existe só
+  nesta pasta. Primeiro retorno: `cowork-inbox/manufacturing/playbook/_saida-felipe-retorno.md`.
+
+**O projeto do Felipe no Claude Design** (`2e7d3640…`, "PROTÓTIPO OFICIAL - PRODUTO UNIFICADO V2")
+tem uma importação mais antiga e **não é mais onde se trabalha** — por isso está atrás desta
+pasta. Não gravar nele e não reimportar o zip dele por cima desta pasta: isso apagaria o que foi
+feito aqui.
+
+- **Isto vale só para `prototipo-ui/cowork/Felipe/`.** O design system (projeto do Wagner, fonte
+  viva em `resources/js/Components/{ui,shared}/`) continua regido pela seção "Como conferir
+  protótipo contra o DS", mais abaixo.
+- **Fabricação:** o Wagner decidiu em 25/09/2026 (D-MFG-FONTE) que a fonte dela é a pasta dele, e
+  o playbook dele prevê aposentar os `manufacturing-*` desta pasta (thread 03). A cópia de trabalho
+  do Felipe fica ou não é decisão a combinar entre os dois (D-RET-02 no recibo de retorno).
+- Correção de defeito do protótipo acontece aqui, vai no PR e entra no próximo recibo de retorno.
+  Exemplo: em 25/09/2026 a moldura `.mfg-grid` colidia com a regra antiga de `mockup-pages.css` e
+  deixava uma coluna vazia à direita da tabela no shell — corrigido em `manufacturing-page.css`.
+
+## Pendências conhecidas em outras telas (anotado em 25/09/2026, não corrigido de propósito)
+
+**Comentário de CSS que fecha antes da hora.** Um asterisco colado numa barra dentro do texto de
+um comentário (ex.: `os-*` seguido de `/usr-*`) fecha o comentário no meio. O navegador lê o resto
+como código inválido e **descarta a primeira regra depois do cabeçalho, sem erro no console**. Na
+Fabricação isso derrubou `.mfg-root{display:flex…}` e cortava os botões das telas de edição em
+janela baixa — corrigido em `manufacturing-page.css` em 25/09/2026. As telas abaixo têm o mesmo
+defeito e ficaram para o dono de cada uma corrigir quando mexer nela. Cada arquivo tem, no topo,
+um comentário `PENDENTE` com o trecho exato, a regra perdida e como corrigir.
+
+| Arquivo | Regra que o navegador perde (medido carregando o arquivo) |
+|---|---|
+| `cms-page.css` | `.cms-page .os-page-h-l p .mono` |
+| `hrm-page.css` | `.hrm-page .os-page-h-r` |
+| `officeimpresso-page.css` | `.oi-card` |
+| `modulo-padrao.css` | `.mp-page` |
+| `financeiro.css` | `.fin-conf-pill-inline` |
+| `vendas.css` | `.vendas-aplus .vd-sla` |
+| `importado_telas/vendas/vendas.css` | `.vendas-aplus .vd-sla` (cópia do anterior) |
+| `importado_ds_git/css/inertia.css` | o bloco `@layer base` logo após o cabeçalho |
+
+O último é cópia de `resources/css/inertia.css` do **produto**, que tem o mesmo defeito. Lá o
+build Vite/Tailwind tolera: medido em 25/09/2026, o CSS servido em produção contém as regras dos
+`@import` seguintes. Não é urgente, mas vale corrigir no produto também quando alguém mexer nele.
+
+**Como achar este defeito em qualquer CSS:** percorrer o arquivo contando abertura e fecho de
+comentário; todo fecho encontrado **fora** de comentário é o sintoma. Conferir no navegador com
+`new CSSStyleSheet().replaceSync(texto)` e comparar a primeira regra carregada com a do fonte.
+
 ## Documentos de referência (ler antes de mexer na tela)
 
 - `manual-escrita-para-agente.md` — **as 10 leis de escrita de handoff para agente de código.**

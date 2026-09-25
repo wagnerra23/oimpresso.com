@@ -17,6 +17,9 @@
 // de impressão (ADR 0413, C-08). ProofFrame entra com grid={false} — a grade de prova é
 // ruído sobre papel. Esta folha precisa ser IMPRESSA e conferida antes de fechar a onda:
 // se o token não sobreviver ao @media print, o resultado é a medição, não um ajuste aqui.
+// MEDIDO 25/09/2026 (Felipe): com o cockpit em tema escuro os tokens NÃO sobrevivem — a folha saía
+// cinza-escuro. Ajuste feito no CSS (.mfg-sheet redefine os tokens com os valores do tema claro,
+// citados de colors_and_type.css) — ver o contorno em manufacturing-page.css e a pauta.
 (() => {
 const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 

@@ -1,3 +1,12 @@
+/* PENDENTE — anotado em 25/09/2026 (Felipe). NÃO corrigido de propósito: corrigir quando o dono
+   desta tela mexer nela.
+   Defeito: o comentário de cabeçalho logo abaixo fecha antes da hora — o primeiro comentário fecha no fim da 2ª linha dele e o título do bloco "REFINO #1" fica fora de comentário, terminando num fecho sem abertura (cópia de vendas.css da raiz).
+   O navegador descarta a primeira regra depois dele (no fonte: .vendas-aplus .vd-sla), sem erro no
+   console. Medido carregando o arquivo no navegador: a primeira regra que ele enxerga é
+   .vendas-aplus .vd-sla .vd-sla-ic.
+   Como corrigir: abrir um comentário antes do título "VENDAS · REFINO #1".
+   Mesmo defeito foi corrigido em manufacturing-page.css (25/09/2026). Lista completa em
+   prototipo-ui/cowork/Felipe/CLAUDE.md, seção "Pendências conhecidas em outras telas". */
 /* vendas.css — escopo .vd-*, .vendas-aplus, FSM venda
    Extraído de styles.css em 2026-05-18 (organização da casa) */
 

@@ -218,6 +218,67 @@ atributos no DOM.
 Com `Button icon` o nome acessível viraria "✕". Ficaram como `<button>` local na onda B. Com dois
 casos, o item cumpre a regra do P2 e pode subir para **P1**.
 
+## D · `Drawer`: o × tem uma linha só dele e empurra o título para baixo
+
+**Hoje:** `components/Drawer/Drawer.jsx` L39-51 — primeira linha do painel com `badge` + × e
+`borderBottom`, 57px de altura; o título vem num bloco separado abaixo dela. O `Sheet` do produto
+(`resources/js/Components/ui/sheet.tsx` L76) põe o × `absolute top-4 right-4` e o título no topo.
+
+**Efeito na tela:** faixa vazia de 57px no alto de todo drawer (apontado pelo Felipe, 25/09/2026).
+
+**Contorno na tela:** `manufacturing-page.css`, escopo `.mfg-root aside[role="dialog"]` — a linha
+do × vira canto absoluto, o título sobe para o topo (recuo de 58px à direita para não passar sob o
+×) e a borda desce para baixo do título. Vale para os 3 drawers da Fabricação; nenhum usa `badge`.
+
+**Proposta:** quando não há `badge`, o × vai para a linha do título (como no `Sheet`); com `badge`,
+a linha atual continua.
+
+**Teste de aceite:** abrir um drawer sem `badge` — o `<h3>` do título começa a ≤16px do topo do
+painel e o × fica na mesma linha, à direita.
+
+**Prioridade:** D — o protótipo diverge do componente do produto.
+
+---
+
+## D · `DataGrid`: calha da barra de rolagem reservada mesmo sem rolagem
+
+**Hoje:** `components/DataGrid/DataGrid.jsx` L166 — `scrollbarGutter: 'stable'` no contêiner.
+Com poucas linhas não há barra, mas a calha fica: faixa vazia de 15px só à direita da tabela
+(Relatório da Fabricação: caixa 1291px, tabela 1276px). O produto não reserva calha (nenhum
+`scrollbar-gutter` em `resources/js/Components` nem `resources/css`).
+
+**Contorno na tela:** `manufacturing-page.css`, `.mfg-root .mfg-grid div[style*="scrollbar-gutter"]`
+com `scrollbar-gutter:auto!important` (o valor é inline). Com rolagem de verdade a barra aparece.
+
+**Proposta:** `scrollbarGutter: 'auto'` no componente, ou prop para quem precisa de estabilidade.
+
+**Teste de aceite:** grade com 5 linhas e `maxHeight` 420 — largura da tabela = largura do contêiner.
+
+**Prioridade:** D.
+
+---
+
+## D · Primitivos de impressão (`ProofFrame`, `Dimension`, `ProofStrip`) pintam com o tema da tela
+
+**Hoje:** pintam por token de tela (`background: var(--surface)`, `var(--text-mute)`,
+`var(--text-dim)`). Com o cockpit em tema escuro, a folha da ficha técnica, que é papel, saía
+cinza-escuro: a moldura em `oklch(0.30 0.008 240)`, que é o `--surface` do escuro (medido em
+25/09/2026).
+
+**Contorno na tela:** `manufacturing-page.css` — `.mfg-sheet` redefine `--bg`, `--bg-2`, `--surface`,
+`--border`, `--border-2`, `--text`, `--text-dim` e `--text-mute` com os valores do `.cockpit` claro,
+transcritos de `design-system/colors_and_type.css` L278-285.
+
+**Proposta:** os primitivos print-craft (ou o `PresenterMode`, no papel) fixam a paleta clara, porque
+papel não tem tema.
+
+**Teste de aceite:** tema escuro → abrir a ficha com custo → nenhum elemento da folha com fundo
+`--surface` do escuro; moldura `#fff`.
+
+**Prioridade:** D.
+
+---
+
 ## Resolvido, registrado como aprendizado
 
 `DropdownMenu` **acrescenta um caret próprio** quando `trigger` é um nó (só a forma

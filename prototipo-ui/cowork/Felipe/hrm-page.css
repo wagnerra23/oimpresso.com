@@ -1,3 +1,12 @@
+/* PENDENTE — anotado em 25/09/2026 (Felipe). NÃO corrigido de propósito: corrigir quando o dono
+   desta tela mexer nela.
+   Defeito: o comentário de cabeçalho logo abaixo fecha antes da hora — no trecho "os-*" colado em "/usr-*".
+   O navegador descarta a primeira regra depois dele (no fonte: .hrm-page .os-page-h-r), sem erro no
+   console. Medido carregando o arquivo no navegador: a primeira regra que ele enxerga é
+   .hrm-sim.
+   Como corrigir: separar o asterisco da barra: "os-* / usr-* / cli-*".
+   Mesmo defeito foi corrigido em manufacturing-page.css (25/09/2026). Lista completa em
+   prototipo-ui/cowork/Felipe/CLAUDE.md, seção "Pendências conhecidas em outras telas". */
 /* hrm-page.css — módulo HRM (Essentials/hrm). Camada de módulo: só o que o shell
    não entrega. Tabela, botões, busca, filtros e drawer vêm do shell (os-*/usr-*/cli-*). */
 .hrm-page .os-page-h-r{display:flex;align-items:center;gap:10px}

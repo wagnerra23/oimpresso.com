@@ -28,41 +28,51 @@ const toISO = (d) => { if (!d) return ""; const p = (n) => String(n).padStart(2,
 const fromISO = (s) => { if (!s) return null; const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
 
 // ── Lista de ordens de produção ──
+// RECEBIDO DO WAGNER (25/09/2026, handoff 41 / #7979 — prototipo-ui/cowork/Wagner/manufacturing-producao.jsx):
+// a aba passou a espelhar o produto vivo (Pages/Manufacturing/Index.tsx): 4 KPIs sobre local+período
+// ("Finalizadas" liga o MESMO filtro do checkbox), datas vazias = todas, ordem fixa por data desc sem
+// ordenação por coluna nem paginação, botão Limpar com filtro ativo, estado vazio do vivo, Situação à
+// esquerda e linha que não abre detalhe. Aqui escrito com os componentes do DS desta pasta (ondas A/B):
+// KpiCard nos cartões de leitura e KpiFilterCard no que filtra, como na aba Receitas — o KpiCard do DS
+// não tem slot de ícone, então só "Finalizadas" leva ícone (no do Wagner os 4 têm).
 function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
-  const { Select, Checkbox, DatePicker, StatusBadge, DataGrid, EmptyState, Tooltip, Button } = ds();
+  const { Select, Checkbox, DatePicker, StatusBadge, DataGrid, EmptyState, Tooltip, Button, KpiCard, KpiFilterCard } = ds();
   const { LOCAIS, consumoOP, fmt, num, fmtDate } = G();
   const [local, setLocal] = useState("Todos");
-  const [de, setDe] = useState("2026-08-01");
-  const [ate, setAte] = useState("2026-08-31");
+  const [de, setDe] = useState("");
+  const [ate, setAte] = useState("");
   const [soFinal, setSoFinal] = useState(false);
-  const [ord, setOrd] = useState({ k: "data", dir: "desc" });
-  const [pag, setPag] = useState(1);
+  const noIntervalo = (d) => (!de || d >= de) && (!ate || d <= ate);
 
-  const CH = { data: (l) => l.op.data, ref: (l) => l.op.ref, local: (l) => l.op.local, produto: (l) => (l.c.r ? l.c.r.name : ""), qtd: (l) => l.op.qtd, total: (l) => l.c.total, unit: (l) => l.c.unit, sit: (l) => (l.op.final ? 1 : 0) };
-  const linhas = useMemo(() => {
-    const base = producoes.map((op) => ({ op, c: consumoOP(op, recipes) }))
-      .filter(({ op }) => (local === "Todos" || op.local === local) && op.data >= de && op.data <= ate && (!soFinal || op.final));
-    const f = CH[ord.k] || CH.data;
-    return base.sort((a, b) => { const va = f(a), vb = f(b); const r = va > vb ? 1 : va < vb ? -1 : 0; return ord.dir === "asc" ? r : -r; });
-  }, [producoes, recipes, local, de, ate, soFinal, ord]);
+  const noPeriodo = useMemo(() => producoes.map((op) => ({ op, c: consumoOP(op, recipes) }))
+    .filter(({ op }) => (local === "Todos" || op.local === local) && noIntervalo(op.data)), [producoes, recipes, local, de, ate]);
+  const linhas = useMemo(() => noPeriodo.filter(({ op }) => !soFinal || op.final)
+    .sort((a, b) => (a.op.data < b.op.data ? 1 : a.op.data > b.op.data ? -1 : 0)), [noPeriodo, soFinal]);
   const totalPeriodo = linhas.reduce((s, l) => s + l.c.total, 0);
-  const POR_PAG = 10;
-  const nPags = Math.max(1, Math.ceil(linhas.length / POR_PAG));
-  const pagina = Math.min(pag, nPags);
-  const ordenar = (k) => { setOrd((o) => ({ k, dir: o.k === k && o.dir === "asc" ? "desc" : "asc" })); setPag(1); };
+  const sum = { total: noPeriodo.length, final: noPeriodo.filter((l) => l.op.final).length, valor: noPeriodo.reduce((s, l) => s + l.c.total, 0) };
+  sum.pend = sum.total - sum.final;
+  const filtrosAtivos = local !== "Todos" || soFinal || !!de || !!ate;
+  const limpar = () => { setLocal("Todos"); setDe(""); setAte(""); setSoFinal(false); };
   const COLS = [
-    { key: "data", label: "Data", mono: true, sortable: true },
-    { key: "ref", label: "Referência", mono: true, sortable: true },
-    { key: "local", label: "Local", sortable: true },
-    { key: "produto", label: "Produto", sortable: true },
-    { key: "qtd", label: "Qtd", align: "right", mono: true, sortable: true },
-    { key: "total", label: "Custo total", align: "right", mono: true, sortable: true },
-    { key: "unit", label: "Custo unit.", align: "right", mono: true, sortable: true },
-    { key: "sit", label: "Situação", align: "right", sortable: true },
+    { key: "data", label: "Data", mono: true },
+    { key: "ref", label: "Referência", mono: true },
+    { key: "local", label: "Local" },
+    { key: "produto", label: "Produto" },
+    { key: "qtd", label: "Qtd", align: "right", mono: true },
+    { key: "total", label: "Custo total", align: "right", mono: true },
+    { key: "unit", label: "Custo unit.", align: "right", mono: true },
+    { key: "sit", label: "Situação" },
   ];
 
   return (
     <>
+      <div className="mfg-kpis" data-contract="kpis">
+        <KpiCard label="Total" value={sum.total} />
+        <KpiFilterCard label="Finalizadas" value={sum.final} icon={<I.check size={17} />} tone="emerald"
+          selected={soFinal} onClick={() => setSoFinal(!soFinal)} />
+        <KpiCard label="Pendentes" value={sum.pend} />
+        <KpiCard label="Valor total" value={fmt(sum.valor)} />
+      </div>
       <div className="mfg-filters">
         <div style={{ width: 180 }}>
           <Select label="Local" value={local} onChange={(e) => setLocal(e.target.value)}>
@@ -72,13 +82,14 @@ function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
         <div style={{ width: 150 }}><DatePicker label="De" value={fromISO(de)} onChange={(d) => setDe(toISO(d))} /></div>
         <div style={{ width: 150 }}><DatePicker label="Até" value={fromISO(ate)} onChange={(d) => setAte(toISO(d))} /></div>
         <div className="mfg-filters-chk"><Checkbox checked={soFinal} onChange={setSoFinal} label="Só finalizadas" /></div>
+        {filtrosAtivos && <div className="mfg-filters-chk"><Button variant="ghost" size="sm" onClick={limpar}><I.x size={12} /> Limpar</Button></div>}
         <span className="sp" />
       </div>
 
       <div className="mfg-tablewrap">
         {linhas.length > 0 && (
           <div className="mfg-grid">
-            <DataGrid caption="Ordens de produção" totalLabel="ordens" columns={COLS}
+            <DataGrid caption="Ordens de produção" totalLabel="ordens" columns={COLS} pagination={false}
               rows={linhas.map(({ op, c }) => ({
                 id: op.id,
                 cells: {
@@ -91,17 +102,14 @@ function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
                   unit: fmt(c.unit),
                   sit: <StatusBadge kind="documento" value={op.final ? "finalizada" : "rascunho"} tone={op.final ? "success" : "outline"} label={op.final ? "Finalizada" : "Rascunho"} />,
                 },
-              }))}
-              sortKey={ord.k} sortDir={ord.dir} onSort={ordenar}
-              onRowClick={(row) => onOpen(row.id)}
-              page={pagina} onPageChange={setPag} pageSize={POR_PAG} pageSizeOptions={[POR_PAG]} />
+              }))} />
           </div>
         )}
         {linhas.length === 0 && (
-          <EmptyState variant="no-results" icon={<I.factory size={18} />}
-            title="Nenhuma produção no período"
-            description="Amplie o intervalo, troque o local ou desligue o filtro de finalizadas."
-            action={<Button size="sm" onClick={() => { setDe("2026-01-01"); setAte("2026-12-31"); setLocal("Todos"); setSoFinal(false); }}>Ampliar para o ano</Button>} />
+          <EmptyState variant={filtrosAtivos ? "filtered" : "first"} icon={<I.factory size={18} />}
+            title={filtrosAtivos ? "Nenhuma produção no filtro" : "Sem produções cadastradas"}
+            description={filtrosAtivos ? "Ajuste ou limpe os filtros pra ver mais resultados." : "Crie a primeira ordem de produção pelo botão \"Nova produção\"."}
+            action={filtrosAtivos ? <Button size="sm" onClick={limpar}><I.x size={12} /> Limpar filtros</Button> : null} />
         )}
         {linhas.length > 0 && <p className="mfg-foot">{linhas.length} ordens · custo do período <b>{fmt(totalPeriodo)}</b> · ordens finalizadas mostram o custo congelado na data</p>}
       </div>
