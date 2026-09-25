@@ -349,7 +349,7 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 ### US-PONTO-016 · Painel de Conformidade CLT da competência (somente leitura)
 
-> owner: — · priority: p2 · estimate: — · status: doing · type: story
+> owner: — · priority: p2 · estimate: — · type: story
 
 **Implementado em:** _parcial_ · `Modules/Ponto/Services/ConformidadeService.php` · `Modules/Ponto/Tests/Feature/ConformidadeContratoTest.php` · verificado@45a6873 (2026-09-25) — falta a tela (`/ponto/conformidade`, controller, rota, Page e trio), que vem no PR 2 da thread 05
 **Testado em:** `Modules/Ponto/Tests/Feature/ConformidadeContratoTest.php`
