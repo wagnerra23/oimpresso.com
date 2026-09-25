@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-09-23"
+last_run: "2026-09-25"
 last_run_ci: "0 UC executado — UC-FUNI-01..04 nascem neste PR; veredito pendente da lane PHP / Pest (Financeiro · MySQL)"
 sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 ---
@@ -174,3 +174,7 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
   `FinanceiroPrimaryButton` (shim deletado neste PR) passou a apontar `PageHeaderPrimary`. O botão
   "Novo título" desta tela NÃO mudou (segue o fix inline de 2026-07-07). UC-F01..03 são do fluxo
   backend venda→título→caixa, intocados — seguem ✅ pelo mesmo RetencaoLoopE2ETest.
+- 2026-09-25 · [CL] revalidado (bump `last_run`): thread 07 do playbook financeiro — só acabamento do drawer.
+  Index.tsx: `.fin-ai-panel` ganha a classe `fin-curadoria` (pra fin-ia.css alcançar o portal) e o glifo ✦ da aba IA vira
+  o ícone `Sparkles`. Nenhum UC cobre a aba IA nem o ícone; UC-F01..05 e UC-FUNI-01..04 são de fluxo/backend e seguem
+  intocados (nenhum handler, prop ou texto de ação mudou).

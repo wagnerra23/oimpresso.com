@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-09-25T13:40:40.852Z",
-    "total_lines": 23655,
+    "generated_at": "2026-09-25T19:10:57.249Z",
+    "total_lines": 23805,
     "file_count": 40,
     "note": "Ratchet de tamanho — passo 1 MANUAL-CSS-JS. Cada .css só pode encolher; arquivo novo exige --write (decisão consciente / ADR).",
     "refs": [
@@ -10,7 +10,7 @@
     ]
   },
   "files": {
-    "resources/css/cockpit.css": 2653,
+    "resources/css/cockpit.css": 2647,
     "resources/css/cowork-arquivos-bundle.css": 139,
     "resources/css/cowork-canon-financeiro-bundle.css": 4915,
     "resources/css/cowork-compras-bundle.css": 182,
@@ -19,9 +19,9 @@
     "resources/css/cowork-forja-bundle.css": 1302,
     "resources/css/cowork-manufacturing-bundle.css": 390,
     "resources/css/cowork-payment-gateway-bundle.css": 257,
-    "resources/css/fin-cowork.css": 709,
+    "resources/css/fin-cowork.css": 833,
     "resources/css/fin-curadoria.css": 299,
-    "resources/css/fin-ia.css": 291,
+    "resources/css/fin-ia.css": 323,
     "resources/css/fin-mobile.css": 67,
     "resources/css/fin-output.css": 1004,
     "resources/css/fiscal-cockpit.css": 1505,

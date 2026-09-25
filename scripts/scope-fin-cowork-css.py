@@ -200,7 +200,10 @@ def scope_file(path: Path) -> str:
     first_lines = src.splitlines()[0:5]
     if any(MARKER in line for line in first_lines):
         return f"SKIP — já escopado: {path}"
-    banner = MARKER + f" - escopo .fin-cowork aplicado por scripts/scope-fin-cowork-css.py\n"
+    # O resto do banner vai DENTRO de comentário: texto solto depois de "*/" vira prefixo do
+    # seletor da 1ª regra e o navegador descarta a regra (medido 2026-09-25 em prod: a
+    # `.fin-anomaly` base do fin-ia.css nunca chegou ao CSS servido).
+    banner = MARKER + " /* escopo .fin-cowork aplicado por scripts/scope-fin-cowork-css.py */\n"
     output = banner + process(src)
     path.write_text(output, encoding="utf-8")
     return f"OK — {path} reescrito com {len(output.splitlines())} linhas."

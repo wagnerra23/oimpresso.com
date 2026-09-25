@@ -765,12 +765,12 @@
 }
 /* Botão Editar — destaque inline azul (Cowork canon, antes era variant outline genérico) */
 .fin-cowork .fin-edit-btn {
-  border-color: oklch(0.80 0.06 240) !important;
-  color: oklch(0.36 0.13 240) !important;
+  border-color: var(--fin-edit-border, oklch(0.80 0.06 240)) !important;
+  color: var(--fin-edit-fg, oklch(0.36 0.13 240)) !important;
 }
 .fin-cowork .fin-edit-btn:hover {
-  background: oklch(0.97 0.04 240) !important;
-  border-color: oklch(0.70 0.10 240) !important;
+  background: var(--fin-edit-hover, oklch(0.97 0.04 240)) !important;
+  border-color: var(--fin-edit-border, oklch(0.70 0.10 240)) !important;
 }
 /* Panel IA (wrapper da aba ✦ IA) — tinge sutilmente o fundo */
 .fin-cowork .fin-ai-panel {
