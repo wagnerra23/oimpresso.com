@@ -142,7 +142,7 @@ lifecycle: ativo
 | `placar-de-lista.yml` | pr+manual | — | placar-de-lista (advisory) — PR-A8 do protocolo de export: o placar da LISTA. O A6 responde 'esta TELA foi entregue?'; este responde 'o Code terminou a LISTA inteira?' po… |
 | `placar-de-tela.yml` | pr+manual | — | placar-de-tela (advisory) — PR-A6 do protocolo de export: computa o par entregue/alvo de cada tela com governance/design/targets/<tela>.alvo.json e comenta no PR (entregu… |
 | `plan-health-gate.yml` | pr+manual | `memory/requisitos/Brief/BRIEFING.md` +1 | Plan Health Gate (advisory · planos órfãos/podres · sentinela plan-health.mjs --check · ADR 0294 Onda 1) |
-| `ponto-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +14 | Ponto · Pest (MySQL) |
+| `ponto-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +15 | Ponto · Pest (MySQL) |
 | `pr-critic-precisao.yml` | cron+manual | — | pr-critic precisão (advisory · mede a PRÓPRIA precisão do pr-critic · taxa-de-ação dos achados: o humano mexeu no arquivo apontado depois do comentário? + first-pass + po… |
 | `pr-critic.yml` | pr+manual | `memory/decisions/proposals/2026-08-01-reverter-0364-trio-colocado-opcao-b.md` +10 | pr-critic contrato (advisory) — critic adversarial de PR ancorado em contrato: em PRs tocando resources/js/Pages/** ou Modules/**, roteia o diff pros contratos (charter/c… |
 | `prompt-injection-corpus.yml` | pr+cron+manual | `memory/decisions/proposals/2026-07-28-guardrails-superficie-jana-cliente.md` +4 | prompt-injection corpus (red-team do agente · OWASP LLM01) — invoca .claude/governance-eval/prompt-injection-corpus.mjs: alimenta aos hooks REAIS as ações induzidas por i… |
