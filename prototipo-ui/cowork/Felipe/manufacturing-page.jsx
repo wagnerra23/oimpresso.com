@@ -195,7 +195,10 @@ function ManufacturingPage({ initialView }) {
         title="Fabricação"
         stats={[
           { value: recipes.length, label: "receitas" },
-          { value: producoes.length, label: "ordens de produção · custo recalculado pelo preço atual dos ingredientes" },
+          // [TELA] 25/09/2026 (Felipe, opção A): a explicação "custo recalculado pelo preço atual dos
+          // ingredientes" saiu daqui — o PageHeader do DS corta o subtítulo em 56ch e ela já está no
+          // drawer da receita ("O custo é recalculado a cada leitura…").
+          { value: producoes.length, label: "ordens de produção" },
         ]}
         actions={<>
           {aba === "receitas" && perms.criar && <Button variant="primary" size="sm" onClick={() => setNovaOpen(true)}><I.plus size={13} /> Nova receita</Button>}

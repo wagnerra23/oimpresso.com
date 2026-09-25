@@ -7,7 +7,7 @@
    progresso, checkbox/switch, erro inline, marcas de corte, mira, cota e tiras de prova.
    As 4 sombras/scrim em rgba(0,0,0,…) foram embora com eles.
 
-   ONDA B (2026-09-23) — saíram também a tabela (.mfg-table*/.mfg-tr/.mfg-th → DataGrid), a busca
+   ONDA B (2026-09-23) — saíram também a tabela (.mfg-table* / .mfg-tr/.mfg-th → DataGrid), a busca
    (.mfg-s → SearchInput), a barra (.mfg-bar → Toolbar), os botões de adicionar (.mfg-add → Button)
    e os cartões de Configurações (.mfg-card → Widget).
 
@@ -19,6 +19,13 @@
    .mfg-foot    rodapé de total (C-06) · .mfg-tot o quadro de custo (C-07)
    @media print os 11 cinzas — o cockpit não publica paleta de impressão (C-08/ADR 0413) */
 .mfg-root{display:flex;flex-direction:column;min-height:0;flex:1}
+/* CONTORNO DECLARADO (25/09/2026, pedido do Felipe) — o PageHeader do DS não tem margem lateral
+   (PageHeader.jsx: padding '14px 0'); quem dá a margem é o envoltório, que no template PT-01 é
+   padding 0 var(--d-cpad-x,14px) (Pt01Lista.dc.html L44). Aqui não havia envoltório: o título
+   colava na borda da sidebar (x=260) enquanto abas e cartões começam a 20px (x=280). O padding
+   entra DENTRO do header para a borda de baixo seguir de ponta a ponta, como a das abas; 20px é
+   a calha do conteúdo desta tela [TELA] (--d-cpad-x não é definido neste shell). Inline → !important. */
+.mfg-root>header{padding-left:20px!important;padding-right:20px!important}
 
 
 .mfg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 20px 4px}
@@ -129,6 +136,36 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
    Só posicionamento/gap. Cor, fonte, raio e sombra vêm do componente compilado. */
 /* Moldura da grade: transcrita do template PT-01 (Pt01Lista.dc.html, slot 4 — div em volta do DataGrid). */
 .mfg-grid{border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.04)}
+/* Colisão com mockup-pages.css ("MANUFACTURING — BOM"), que dá a .mfg-grid uma grade de 2 colunas
+   (1.5fr 1fr) + margem. Aqui a moldura tem um filho só: sem este reset a 2ª coluna fica vazia à
+   direita da tabela no shell (o guia isolado não carrega mockup-pages.css e sai certo). As duas
+   folhas carregam assíncronas (media=print/onload), então a ordem não é garantida — o escopo
+   .mfg-root dá a especificidade que decide. */
+.mfg-root .mfg-grid{display:block;margin:0;gap:0}
+/* CONTORNO DECLARADO (25/09/2026, pedido do Felipe) — a DataGrid do DS reserva a calha da barra de
+   rolagem sempre (scrollbarGutter:'stable', DataGrid.jsx L166): com poucas linhas sobra uma faixa
+   vazia de 15px só à DIREITA da tabela (medido no Relatório: caixa 1291px, tabela 1276px). O
+   produto real não reserva calha (zero scrollbar-gutter em resources/js/Components e resources/css).
+   Inline no componente → só !important vence. Com rolagem de verdade a barra aparece normalmente.
+   Registrado em pauta-design-system.md. */
+.mfg-root .mfg-grid div[style*="scrollbar-gutter"]{scrollbar-gutter:auto!important}
+
+/* CONTORNO DECLARADO (25/09/2026, pedido do Felipe) — cabeçalho dos drawers da família Fabricação.
+   O Drawer do DS (Drawer.jsx L39-51) dá ao × uma linha só dele (57px, com borda) e empurra o título
+   para baixo. O Sheet do produto (resources/js/Components/ui/sheet.tsx L76) põe o × absoluto no
+   canto e o título no topo — é o que vale. Aqui a linha do × vira canto absoluto e a borda que
+   separava cabeçalho do corpo desce para baixo do título. Nenhum drawer da Fabricação usa `badge`
+   (que moraria nessa linha). Componente do DS não foi substituído. Registrado na pauta. */
+/* padding e border-bottom desses dois blocos são inline no componente → !important. */
+.mfg-root aside[role="dialog"]>div:first-child:has(>button[aria-label="Fechar"]){position:absolute;top:0;right:0;z-index:1;border-bottom:0!important}
+.mfg-root aside[role="dialog"]>div:first-child:has(>button[aria-label="Fechar"])+div{padding-right:58px!important;border-bottom:1px solid var(--border)}
+
+/* Tabela de 5 colunas DENTRO do drawer (Receitas afetadas, aba Insumos): a trilha de .mfg-ing5
+   pede 642px (180+130+92+100+76 + 4×10 de gap + 24 de padding) e a caixa do drawer de 680px tem
+   615px — com overflow:hidden a coluna Margem era cortada. Só no drawer: o formulário de ordem de
+   produção usa a mesma classe numa área de ≥680px e fica como está. 364px de colunas numéricas
+   cabem "14,40 m linear" (consumo) e "R$ 1.288,44" (custo); o nome leva o resto (~187px). */
+.mfg-root aside[role="dialog"] .mfg-ing.mfg-ing5{grid-template-columns:minmax(0,1fr) 104px 92px 96px 72px}
 .mfg-s-host{width:360px;max-width:100%}
 .mfg-pick-s{display:flex;align-items:center;gap:8px}
 .mfg-pick-s>:first-child{flex:1;min-width:0}
@@ -151,6 +188,13 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 @media print{@page{size:A4;margin:0}}
 .mfg-sheet{position:relative;padding:20mm 16mm 16mm;color:#111;font-size:10pt;line-height:1.4;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .mfg-sheet h1,.mfg-sheet h2,.mfg-sheet p,.mfg-sheet b,.mfg-sheet small,.mfg-sheet span,.mfg-sheet dt,.mfg-sheet dd,.mfg-sheet th,.mfg-sheet td{color:#111}
+/* CONTORNO DECLARADO (25/09/2026, pedido do Felipe) — papel não tem tema. ProofFrame, Dimension e
+   ProofStrip pintam por token de tela (background:var(--surface), var(--text-mute), var(--text-dim));
+   com o cockpit em tema escuro a folha inteira saía cinza-escuro (medido: moldura em
+   oklch(0.30 0.008 240) = --surface do escuro). Dentro da folha os tokens ficam SEMPRE com o valor
+   do tema claro, transcritos literalmente de .cockpit em design-system/colors_and_type.css L278-285
+   [DS] — citação, não cor inventada. Vale na tela e no @media print. Registrado na pauta. */
+.mfg-sheet{--bg:oklch(0.985 0.003 90);--bg-2:oklch(0.965 0.004 90);--surface:#ffffff;--border:oklch(0.90 0.004 90);--border-2:oklch(0.93 0.004 90);--text:oklch(0.22 0.01 80);--text-dim:oklch(0.50 0.01 80);--text-mute:oklch(0.65 0.01 80)}
 
 .mfg-sheet .mfg-reg-host{display:block;width:12mm;height:12mm;color:#111;flex:none;margin-top:1mm}
 .mfg-sheet .mfg-reg-host svg{width:100%;height:100%}
@@ -174,6 +218,9 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-sheet-t tr.grp th{font-size:8pt;letter-spacing:.06em;text-transform:uppercase;text-align:left;background:#f0eeeb;border-top:.4pt solid #111;border-bottom:.3pt solid #999;padding:1.6mm}
 .mfg-sheet-t td{border-bottom:.3pt solid #ccc;padding:1.5mm;font-size:9pt}
 .mfg-sheet-t .r{text-align:right}
+/* O total do grupo tem class="r" no JSX, mas "tr.grp th" (0,2,2) vencia ".r" (0,2,0) e o total
+   caía sob "Custo unit." em vez de alinhar com "Subtotal" (medido 25/09/2026). */
+.mfg-sheet-t tr.grp th.r{text-align:right}
 .mfg-sheet-t .dim{color:#666}
 .mfg-sheet-t .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5pt;font-variant-numeric:tabular-nums}
 .mfg-sheet-t .eq{font-size:7pt;color:#777}
