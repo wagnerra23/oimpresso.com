@@ -13,7 +13,7 @@
 // sair da tela. Excluir chama o `destroy` que já existe (responde JSON e só aceita ajax).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Deferred, Link, router } from '@inertiajs/react';
+import { Deferred, router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import Editor, { type Editando } from './_components/Editor';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -22,6 +22,7 @@ import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
+import CmsAbas from '../_shared/CmsAbas';
 
 import type { Tipo } from './_components/Editor';
 
@@ -65,7 +66,7 @@ function ConteudoIndex({ tipo, contagens, paginas, editando }: Props) {
       <PageHeader
         title="Conteúdo do site"
         subtitle="O que está no ar em oimpresso.com — páginas, blog e depoimentos"
-        subnav={<Abas tipo={tipo} contagens={contagens} />}
+        subnav={<CmsAbas ativa={tipo} contagens={contagens} />}
         actions={<PageHeaderPrimary label={NOVO[tipo]} onClick={() => setDrawer(null)} />}
       />
 
@@ -79,26 +80,6 @@ function ConteudoIndex({ tipo, contagens, paginas, editando }: Props) {
       <Editor key={`${tipo}-${item?.id ?? 'novo'}`} tipo={tipo} item={item}
         aberto={drawer === null || item !== null} onFechar={() => setDrawer(false)} />
     </div>
-  );
-}
-
-function Abas({ tipo, contagens }: { tipo: Tipo; contagens: Record<Tipo, number> }) {
-  return (
-    <nav className="flex gap-1" aria-label="Tipo de conteúdo" data-contract="cms.content.abas">
-      {(Object.keys(ROTULO) as Tipo[]).map((t) => (
-        <Link
-          key={t}
-          href={`${BASE}?type=${t}`}
-          aria-current={t === tipo ? 'page' : undefined}
-          className={
-            'rounded-md px-3 py-1.5 text-sm ' +
-            (t === tipo ? 'bg-muted font-medium' : 'text-muted-foreground hover:bg-muted/60')
-          }
-        >
-          {ROTULO[t]} <span className="tabular-nums text-muted-foreground">{contagens[t] ?? 0}</span>
-        </Link>
-      ))}
-    </nav>
   );
 }
 

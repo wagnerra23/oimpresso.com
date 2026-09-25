@@ -22,6 +22,7 @@ import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Textarea } from '@/Components/ui/textarea';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
+import CmsAbas from '../_shared/CmsAbas';
 
 interface Detalhes {
   notifiable_email: string;
@@ -69,6 +70,7 @@ function Formulario({ inicial }: { inicial: Detalhes }) {
       <PageHeader
         title="Detalhes do site"
         subtitle="Vale para o site público assim que salvar. Campo vazio esconde o bloco no site."
+        subnav={<CmsAbas ativa="detalhes" />}
         actions={<PageHeaderPrimary label={form.processing ? 'Salvando…' : 'Salvar'} onClick={() => salvar()} disabled={form.processing} />}
       />
 
