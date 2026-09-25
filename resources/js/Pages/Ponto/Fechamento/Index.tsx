@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Grid, Inline } from '@/Components/layout';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -69,7 +70,8 @@ export default function FechamentoIndex({ competencia, fechada, pode_fechar, blo
       </header>
 
       <Card data-contract="fechamento-acoes">
-        <CardContent className="flex flex-wrap items-end gap-4">
+        <CardContent>
+          <Inline gap={4} align="end" wrap>
           <div className="space-y-1.5">
             <Label htmlFor="competencia">Competência</Label>
             <Input id="competencia" type="month" value={competencia} onChange={(e) => e.target.value && trocarMes(e.target.value)} />
@@ -80,7 +82,7 @@ export default function FechamentoIndex({ competencia, fechada, pode_fechar, blo
               <Badge variant={fechada ? 'success' : 'warning'}>{fechada ? 'Fechada' : 'Aberta'}</Badge>
             </div>
           </div>
-          <div className="ml-auto flex flex-wrap gap-2">
+          <Inline gap={2} wrap className="ml-auto">
             {!fechada && pode_fechar && graves.length > 0 && (
               <Button variant="outline" onClick={() => setConfirmar(true)}>Fechar aceitando os bloqueios</Button>
             )}
@@ -95,18 +97,19 @@ export default function FechamentoIndex({ competencia, fechada, pode_fechar, blo
                 <Link href="/ponto/relatorios"><Download className="size-4" aria-hidden />Ir para Relatórios</Link>
               </Button>
             )}
-          </div>
+          </Inline>
+          </Inline>
         </CardContent>
       </Card>
 
-      <ol className="grid gap-2 sm:grid-cols-3" data-contract="fechamento-passos">
+      <Grid asChild fit="sm" gap={2} data-contract="fechamento-passos"><ol>
         {PASSOS.map((p, i) => (
           <li key={p} aria-current={i === passoAtual ? 'step' : undefined}
             className={'rounded-md border p-3 text-sm ' + (i === passoAtual ? 'border-primary' : 'border-border')}>
             <span className="font-mono text-muted-foreground mr-2">{i + 1}</span><b>{p}</b>
           </li>
         ))}
-      </ol>
+      </ol></Grid>
 
       {fechada && (
         <Card role="status">
