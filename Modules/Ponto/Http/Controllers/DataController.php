@@ -226,6 +226,15 @@ class DataController extends Controller
                             ]
                         );
 
+                        $sub->url(
+                            route('ponto.conformidade.index'),
+                            __('pontowr2::ponto.menu.conformidade'),
+                            [
+                                'icon'   => 'fa fas fa-shield-alt',
+                                'active' => request()->segment(2) == 'conformidade',
+                            ]
+                        );
+
                         if (auth()->user()->can('superadmin') || auth()->user()->can('ponto.colaboradores.manage')) {
                             $sub->url(
                                 route('ponto.colaboradores.index'),
@@ -267,6 +276,7 @@ class DataController extends Controller
                             ['key' => 'importacoes',     'label' => 'Importações',      'href' => '/ponto/importacoes'],
                             ['key' => 'relatorios',      'label' => 'Relatórios',       'href' => '/ponto/relatorios'],
                             ['key' => 'fechamento',      'label' => 'Fechamento',       'href' => '/ponto/fechamento'],
+                            ['key' => 'conformidade',    'label' => 'Conformidade',     'href' => '/ponto/conformidade'],
                             ['key' => 'colaboradores',   'label' => 'Colaboradores',    'href' => '/ponto/colaboradores'],
                             ['key' => 'configuracoes',   'label' => 'Configurações',    'href' => '/ponto/configuracoes'],
                         ],

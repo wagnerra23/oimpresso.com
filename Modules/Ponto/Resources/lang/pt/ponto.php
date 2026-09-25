@@ -24,6 +24,7 @@ return [
         'importacoes'     => 'Importações',
         'relatorios'      => 'Relatórios',
         'fechamento'      => 'Fechamento',
+        'conformidade'    => 'Conformidade CLT',
         'colaboradores'   => 'Colaboradores',
         'configuracoes'   => 'Configurações',
     ],

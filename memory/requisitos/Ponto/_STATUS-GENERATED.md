@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 16 |
 | CU no SDD | 14 |
-| Telas (.tsx) | 22 |
-| Telas com `casos.md` | 22 |
-| UC declarados | 82 |
-| UC com teste que os cita | 81 |
+| Telas (.tsx) | 23 |
+| Telas com `casos.md` | 23 |
+| UC declarados | 90 |
+| UC com teste que os cita | 88 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -73,6 +73,14 @@ authority: generated
 | UC-COLIDX-01 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-COLIDX-02 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-COLIDX-03 | Colaboradores/Index | 🧪 aguarda veredito da lane |
+| UC-CONF-01 | Conformidade | 🧪 aguarda veredito da lane |
+| UC-CONF-02 | Conformidade | 🧪 aguarda veredito da lane |
+| UC-CONF-03 | Conformidade | 📝 sem_teste |
+| UC-CONF-04 | Conformidade | 🧪 aguarda veredito da lane |
+| UC-CONF-05 | Conformidade | 🧪 aguarda veredito da lane |
+| UC-CONF-06 | Conformidade | 🧪 aguarda veredito da lane |
+| UC-CONF-07 | Conformidade | 🧪 aguarda veredito da lane |
+| UC-CONF-08 | Conformidade | 🧪 aguarda veredito da lane |
 | UC-ESCF-01 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-ESCF-02 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-ESCF-03 | Escalas/Form | 🧪 aguarda veredito da lane |
