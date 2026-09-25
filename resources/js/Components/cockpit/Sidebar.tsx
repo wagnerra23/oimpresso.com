@@ -597,6 +597,9 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
   // ATIVO, com teto de 5 + "⋯ mais N", e usa o total como contador no slot.
   const ghosts = item.ghosts ?? [];
   const ativo = rotaAtiva(item.href);
+  // Um único `aria-current="page"` por página: se a tela aberta é uma sub-tela
+  // (ghost), é ela que carrega a marca — não o item pai, que só casa por prefixo.
+  const ghostAtivo = ativo && ghosts.some((g) => rotaAtiva(g.href));
   const [ghostsAbertos, setGhostsAbertos] = useState(false);
   const ghostsVisiveis = ghostsAbertos ? ghosts : ghosts.slice(0, GHOST_TETO);
   const ghostsOcultos = ghosts.length - ghostsVisiveis.length;
@@ -668,13 +671,23 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
 
   return (
     <>
-      <a href={href} className={`sb-item sb-sub${ativo ? ' active' : ''}`}>
+      {/* aria-current espelha `ItemRow` do protótipo (playbook sidebar/09). */}
+      <a
+        href={href}
+        className={`sb-item sb-sub${ativo ? ' active' : ''}`}
+        aria-current={ativo && !ghostAtivo ? 'page' : undefined}
+      >
         <Icon size={16} strokeWidth={1.6} className="ic" />
         <span className="label">{item.label}</span>
         <ItemEnd atalho={atalho} telas={ghosts.length} />
       </a>
       {ativo && ghostsVisiveis.map((g) => (
-        <a key={g.key ?? g.href} href={g.href} className="sb-item sb-sub sb-ghost">
+        <a
+          key={g.key ?? g.href}
+          href={g.href}
+          className="sb-item sb-sub sb-ghost"
+          aria-current={rotaAtiva(g.href) ? 'page' : undefined}
+        >
           <span className="label">{g.label}</span>
         </a>
       ))}
@@ -800,6 +813,7 @@ function SidebarGroup({
   children,
   total,
   defaultOpen = false,
+  temAtivo = false,
 }: {
   groupKey: string;
   label: string;
@@ -807,6 +821,8 @@ function SidebarGroup({
   /** Nº de itens do grupo — renderizado como `.sb-group-n` (paridade protótipo). */
   total?: number;
   defaultOpen?: boolean;
+  /** O grupo contém a tela atual — abre mesmo se o usuário o fechou antes. */
+  temAtivo?: boolean;
 }) {
   // Inline accordion (não popover lateral) — Wagner 2026-05-05.
   // Persistência por grupo em LS pra não recarregar entre navegações.
@@ -815,13 +831,27 @@ function SidebarGroup({
   // grupos parecendo vazios porque ls.collapsed=true persistia mesmo com items).
   const lsKey = `oimpresso.cockpit.group.v2.${groupKey}.expanded`;
   const [expanded, setExpanded] = useState<boolean>(() => {
+    if (temAtivo) return true;
     if (typeof window === 'undefined') return defaultOpen;
     const v = localStorage.getItem(lsKey);
     return v === null ? defaultOpen : v === '1';
   });
+  // Grupo que contém a tela atual abre sozinho — `MenuGroup` do protótipo
+  // (`if (hasActive && !open) setOpen(true)`). Só o CLIQUE persiste no
+  // localStorage (mesma regra do auto-rail, UI-0030): abrir por estar na rota
+  // não sobrescreve a preferência do usuário. Playbook sidebar/09.
   useEffect(() => {
-    localStorage.setItem(lsKey, expanded ? '1' : '0');
-  }, [expanded, lsKey]);
+    if (temAtivo) setExpanded(true);
+  }, [temAtivo]);
+  const alternar = () => {
+    const proximo = !expanded;
+    setExpanded(proximo);
+    try {
+      localStorage.setItem(lsKey, proximo ? '1' : '0');
+    } catch {
+      /* storage indisponível (modo privado) — a preferência só não persiste */
+    }
+  };
 
   // Hue OKLCH por grupo (canon Cowork) — aplica no dot + label header.
   // Items não mapeados (ex. 'mais') ficam neutros (sem var --gh).
@@ -840,7 +870,7 @@ function SidebarGroup({
       <button
         type="button"
         className="sb-group-h"
-        onClick={() => setExpanded((v) => !v)}
+        onClick={alternar}
         aria-expanded={expanded}
       >
         {GroupIcon && (
@@ -991,6 +1021,9 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
           // `return entry.group !== "PLATAFORMA"`. Continua sendo preferência do
           // usuário depois do 1º clique (o localStorage vence o default).
           defaultOpen={g.key !== 'plataforma'}
+          temAtivo={(groupedItems[g.key] ?? []).some(
+            (it) => rotaAtiva(it.href) || (it.ghosts ?? []).some((gh) => rotaAtiva(gh.href))
+          )}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
             <SidebarMenuItem key={`${item.label}-${idx}`} item={item} atalhosUsaveis={atalhosUsaveis} />
