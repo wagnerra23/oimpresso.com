@@ -57,7 +57,7 @@
     },
     {
       "screen": "Cms",
-      "note": "4 arquivo(s)",
+      "note": "8 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -69,6 +69,17 @@
     {
       "screen": "ComunicacaoVisual",
       "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Documentacao",
+      "note": "5 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -244,7 +255,7 @@
     },
     {
       "screen": "Essentials",
-      "note": "16 arquivo(s)",
+      "note": "17 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -419,18 +430,18 @@
       }
     }
   ],
-  "progressPct": 37,
+  "progressPct": 38,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "08d559063",
-  "generatedAt": "2026-09-24T14:41:45.807Z",
+  "measuredAgainstSha": "396e55bd5",
+  "generatedAt": "2026-09-25T14:42:49.084Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 38,
-    "done": 14,
+    "screens": 39,
+    "done": 15,
     "references": 0
   }
 }
