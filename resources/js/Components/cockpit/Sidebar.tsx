@@ -1271,6 +1271,19 @@ const PRESENCAS = [
 ] as const;
 type PresencaId = (typeof PRESENCAS)[number]['id'];
 
+/** `auth.user.ui_presence` sem exigir o contexto Inertia. O menu do rodapé era montável
+ *  fora dele (specs `sidebarSair`/`sidebarMenuSemantics` renderizam o `SidebarFooter` puro)
+ *  e passou a lançar "usePage must be used within the Inertia component" quando a presença
+ *  entrou (#7960). Fora do Inertia a presença cai em `disponivel`. A ordem de hooks é
+ *  estável: o `usePage` lê o contexto ANTES de lançar, então o `useContext` roda sempre. */
+function usePresencaGuardada(): string | undefined {
+  try {
+    return (usePage().props as { auth?: { user?: { ui_presence?: string } | null } }).auth?.user?.ui_presence;
+  } catch {
+    return undefined;
+  }
+}
+
 function SidebarUserMenu({
   open,
   onClose,
@@ -1330,8 +1343,7 @@ function SidebarUserMenu({
   // e gravada em `POST /user/preferences/presence` — a mesma forma do tema
   // (`useTheme.ts`). Otimista: o ponto muda na hora; falha de rede só significa
   // que não persiste entre sessões. Ninguém consome a presença ainda.
-  const presencaInicial = (usePage().props as { auth?: { user?: { ui_presence?: string } | null } })
-    .auth?.user?.ui_presence;
+  const presencaInicial = usePresencaGuardada();
   const [presenca, setPresenca] = useState<PresencaId>(
     PRESENCAS.some((p) => p.id === presencaInicial) ? (presencaInicial as PresencaId) : 'disponivel',
   );
