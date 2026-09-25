@@ -22,7 +22,10 @@ PREFIX = ".sells-cowork"
 MARKER = "/* SCOPED-OK */"
 
 src = PATH.read_text(encoding="utf-8")
-if MARKER in src.splitlines()[0:5]:
+# Substring, não igualdade de linha: o banner abaixo carrega o marcador SEGUIDO de
+# comentário na mesma linha, e a igualdade não o reconheceria (escoparia de novo —
+# foi o que produziu a linha 3 quebrada de sells-cowork.css).
+if any(MARKER in line for line in src.splitlines()[0:5]):
     print("Already scoped; skipping.")
     sys.exit(0)
 
@@ -193,7 +196,10 @@ def process(s):
     return "\n".join(out_parts)
 
 
-banner = MARKER + " - escopo .sells-cowork aplicado por scripts/scope-sells-cowork-css.py\n"
+# O texto do banner FICA dentro de comentário: solto depois do fecha-comentário ele
+# virava prefixo do seletor da 1ª regra e o navegador a descartava (medido em prod
+# 2026-09-25 — o bloco de tokens .sells-cowork nunca chegou ao CSS servido).
+banner = MARKER + " /* escopo .sells-cowork aplicado por scripts/scope-sells-cowork-css.py */\n"
 output = banner + process(src)
 PATH.write_text(output, encoding="utf-8")
 print(f"OK — escrito {PATH} com {len(output.splitlines())} linhas.")
