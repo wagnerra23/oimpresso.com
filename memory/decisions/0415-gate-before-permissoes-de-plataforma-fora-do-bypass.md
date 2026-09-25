@@ -3,7 +3,7 @@ slug: 0415-gate-before-permissoes-de-plataforma-fora-do-bypass
 number: 415
 title: "Gate::before — permissão de plataforma sai do bypass do papel Admin#{empresa}"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

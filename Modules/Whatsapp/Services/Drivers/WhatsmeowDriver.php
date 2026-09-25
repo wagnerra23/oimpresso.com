@@ -199,9 +199,9 @@ class WhatsmeowDriver implements DriverInterface
             );
         }
 
-        $data = $response->json();
-        $connected = (bool) ($data['Connected'] ?? false);
-        $loggedIn = (bool) ($data['LoggedIn'] ?? false);
+        $status = self::parseSessionStatus($response->json());
+        $connected = $status['connected'];
+        $loggedIn = $status['loggedIn'];
 
         if (! $connected || ! $loggedIn) {
             return DriverHealthStatus::unhealthy(
@@ -211,7 +211,7 @@ class WhatsmeowDriver implements DriverInterface
         }
 
         return DriverHealthStatus::healthy(
-            displayPhone: $data['Jid'] ?? null,
+            displayPhone: $status['jid'],
             sessionState: 'connected',
         );
     }
@@ -306,9 +306,9 @@ class WhatsmeowDriver implements DriverInterface
         // do GET /session/qr se ainda pendente, ou mensagem "já pareado" se
         // loggedIn=true. (Débito #4 sessão 2026-05-27.)
         $statusResp = $this->client($userToken)->get('/session/status');
-        $statusData = $statusResp->json('data') ?? [];
-        $alreadyConnected = ($statusData['connected'] ?? false) === true;
-        $alreadyLoggedIn = ($statusData['loggedIn'] ?? false) === true;
+        $statusData = self::parseSessionStatus($statusResp->json());
+        $alreadyConnected = $statusData['connected'];
+        $alreadyLoggedIn = $statusData['loggedIn'];
 
         if (! $alreadyConnected) {
             // POST /session/connect (gera/refresh QR)
@@ -422,6 +422,32 @@ class WhatsmeowDriver implements DriverInterface
     /**
      * Cliente HTTP configurado com Token header pra user-scoped endpoints.
      */
+    /**
+     * Lê a resposta de `GET /session/status` do WuzAPI num formato único.
+     *
+     * O daemon real (medido 2026-09-25, build sha256:7f2aee54) responde
+     * `{"code":200,"data":{"connected":true,"loggedIn":true,"jid":"…"}}` —
+     * envelope `data` + chaves minúsculas. `ping()` e o status do controller liam
+     * `Connected`/`LoggedIn` na RAIZ: sempre false → canal pareado aparecia
+     * "desconectado" e o modal Reconectar nunca fechava. Aceita as duas grafias
+     * e com/sem envelope, pra não depender de qual build do daemon está no ar.
+     *
+     * @return array{connected: bool, loggedIn: bool, jid: ?string}
+     */
+    public static function parseSessionStatus(mixed $body): array
+    {
+        $body = is_array($body) ? $body : [];
+        $data = is_array($body['data'] ?? null) ? $body['data'] : $body;
+
+        $jid = $data['jid'] ?? $data['Jid'] ?? null;
+
+        return [
+            'connected' => (bool) ($data['connected'] ?? $data['Connected'] ?? false),
+            'loggedIn' => (bool) ($data['loggedIn'] ?? $data['LoggedIn'] ?? false),
+            'jid' => is_string($jid) && $jid !== '' ? $jid : null,
+        ];
+    }
+
     private function client(string $userToken): PendingRequest
     {
         return Http::baseUrl(config('whatsapp.whatsmeow.daemon_url'))

@@ -57,42 +57,11 @@ it('module.json declara governance.bucket fsm_n_a (C3 contract)', function () {
 // C5 Cobertura — 4 YAMLs scorecard
 // ------------------------------------------------------------------
 
-it('memory/governance/scorecards/ tem 4 YAMLs canônicos (_template + governance + auditoria + admin)', function () {
-    $dir = base_path('memory/governance/scorecards');
-    expect(is_dir($dir))->toBeTrue();
-
-    foreach (['_template.yaml', 'governance.yaml', 'auditoria.yaml', 'admin.yaml'] as $file) {
-        $path = $dir . DIRECTORY_SEPARATOR . $file;
-        expect(file_exists($path))->toBeTrue("YAML {$file} não existe");
-    }
-});
-
-it('scorecard governance.yaml tem chaves canônicas (module, slug, type, fsm_n_a, dimensions, ownership)', function () {
-    $path = base_path('memory/governance/scorecards/governance.yaml');
-    $data = Yaml::parseFile($path);
-
-    foreach (['module', 'slug', 'type', 'fsm_n_a', 'dimensions', 'ownership', 'adrs_referenciadas'] as $key) {
-        expect(array_key_exists($key, $data))->toBeTrue("governance.yaml sem chave {$key}");
-    }
-    expect($data['slug'])->toBe('governance');
-    expect($data['type'])->toBe('meta');
-    expect($data['fsm_n_a'])->toBeTrue();
-});
-
-it('scorecard auditoria.yaml lista whitelist UNREVERTIBLE 5 categorias', function () {
-    $path = base_path('memory/governance/scorecards/auditoria.yaml');
-    $data = Yaml::parseFile($path);
-
-    expect($data)->toHaveKey('unrevertibles');
-    expect($data['unrevertibles'])->toHaveCount(5);
-});
-
-it('scorecard admin.yaml declara cross_tenant_intencional=true', function () {
-    $path = base_path('memory/governance/scorecards/admin.yaml');
-    $data = Yaml::parseFile($path);
-
-    expect($data)->toHaveKey('cross_tenant_intencional');
-    expect($data['cross_tenant_intencional'])->toBeTrue();
+// 2026-09-25: os scorecards de módulo (governance, auditoria, admin, vestuario,
+// comunicacaovisual) foram aposentados por decisão [W]; só o _template.yaml fica.
+it('memory/governance/scorecards/ mantém o _template.yaml', function () {
+    $path = base_path('memory/governance/scorecards/_template.yaml');
+    expect(file_exists($path))->toBeTrue();
 });
 
 it('_template.yaml fornece estrutura referência sem dados reais', function () {

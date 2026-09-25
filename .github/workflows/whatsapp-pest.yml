@@ -152,6 +152,7 @@ jobs:
             Modules/Whatsapp/Tests/Feature/WhatsmeowHealthProbeDecisionTest.php \
             Modules/Whatsapp/Tests/Feature/WhatsmeowInboundTimezoneTest.php \
             Modules/Whatsapp/Tests/Feature/WhatsmeowReconcilerTest.php \
+            Modules/Whatsapp/Tests/Feature/WhatsmeowSessionStatusParseTest.php \
             Modules/Whatsapp/Tests/Feature/WhatsmeowSubscribeLoggedOutTest.php \
             Modules/Whatsapp/Tests/Feature/Wave23SaturationTest.php \
             Modules/Whatsapp/Tests/Feature/Wave25WhatsappSaturationTest.php \

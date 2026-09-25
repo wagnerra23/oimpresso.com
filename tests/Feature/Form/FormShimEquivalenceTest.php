@@ -34,6 +34,15 @@ it('shim Form::email renderiza input type=email', function () {
         ->toContain('required');
 });
 
+it('shim Form::url renderiza input type=url (partial follow_us do Cms)', function () {
+    $html = (string) Form::url('follow_us[facebook]', 'https://facebook.com/x', ['class' => 'form-control', 'id' => 'follow_us_fb']);
+    expect($html)
+        ->toContain('type="url"')
+        ->toContain('name="follow_us[facebook]"')
+        ->toContain('value="https://facebook.com/x"')
+        ->toContain('id="follow_us_fb"');
+});
+
 it('shim Form::password nunca renderiza value com conteudo (security)', function () {
     // Spatie renderiza value vazio como "value" (HTML5 boolean-style), laravelcollective
     // como value="" (XHTML). Funcionalmente equivalente — a invariante de seguranca que
