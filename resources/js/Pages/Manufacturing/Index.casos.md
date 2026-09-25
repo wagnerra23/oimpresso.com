@@ -5,7 +5,7 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.5 + §15.1 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-09-08"
+last_run: "2026-09-25"
 ---
 
 # Casos de Uso & Aceite — Manufacturing/Index
@@ -92,6 +92,24 @@ last_run: "2026-09-08"
 
 ---
 
+## UC-OP-06 · O intervalo de datas aplica ao escolher, sem botão
+- **Persona:** Eliana (produção) — filtra o mês e quer ver a lista mudar, como já acontece com
+  Local e "Só finalizadas".
+- **Aceite:** Dado a lista de ordens · Quando escolho De **e** Até (datas completas) · Então a
+  lista recarrega sozinha por partial reload (`only: productions, summary, filters`), sem clicar
+  em nada. Só uma das duas preenchida **não** aplica; apagar as duas volta a lista inteira;
+  digitar o ano à mão (o campo emite `0002-…`, `0020-…` no meio) **não** dispara request.
+  O botão "Aplicar intervalo de datas" não existe mais.
+- **Fonte:** decisão D-MFG-DATA ([W] 2026-09-25, delegada ao [CC]: "escolha melhor opção e
+  iguale os dois") no playbook `cowork-inbox/manufacturing/` — o protótipo já aplica ao escolher.
+- **Teste:** `tests/js/manufacturing-index-datas.test.tsx` (vitest/jsdom, lane
+  `manufacturing-jsdom-gate`). Mordida provada por mutação: sem o guard de ano → 1 failed;
+  sem aplicar no change → 3 failed.
+- **Regressão que defende:** voltar ao blur + lupa (2 gestos), ou aplicar a cada tecla do ano.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** O sufixo `fix` aparece só em ordem finalizada, com o `title` verbatim (R-21) —
@@ -112,3 +130,6 @@ last_run: "2026-09-08"
   `Modules/Manufacturing/Tests/Feature/CutoverRotasCanonicasTest.php` (9 asserts). Nenhum UC
   acima mudou de comportamento; os asserts de ROTA de Wave30/31/33 foram reapontados pro
   canônico porque o `/v2/` agora responde `RedirectController`, não o controller da tela.
+- 2026-09-25 · [C] UC-OP-06 (playbook Manufacturing thread 04, D-MFG-DATA): De/Até aplica ao
+  escolher. `last_run` bumpado porque o `.tsx` mudou — os UC-OP-01..05 são de Service e não
+  foram tocados; o UC-OP-06 roda em vitest (5 passed local, mordida provada por mutação).

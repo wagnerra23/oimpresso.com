@@ -16,7 +16,7 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 15 |
+| US no SPEC | 16 |
 | CU no SDD | 14 |
 | Telas (.tsx) | 22 |
 | Telas com `casos.md` | 22 |
@@ -47,6 +47,7 @@ authority: generated
 | US-PONTO-013 | `todo` | Consertar as duas telas que nao persistem |
 | US-PONTO-014 | `todo` | Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; |
 | US-PONTO-015 | `todo` | Fechamento de competência — as restrições existem, a tela e o domínio não |
+| US-PONTO-016 | `desconhecido` | Painel de Conformidade CLT da competência (somente leitura) |
 
 ## UC por status
 
