@@ -4,7 +4,8 @@ page: /manufacturing/production
 component: resources/js/Pages/Manufacturing/Index.tsx
 # 2026-09-22 [W]: fonte = handoff_fabricacao do Felipe. Caminho COMPLETO de proposito - bundle_source resolve por BASENAME (ancora.mjs:512) e ha 3 copias de manufacturing-page.jsx no staging.
 # 2026-09-22 [F+C]: o caminho abaixo é a RAIZ de cowork/Felipe/ — o que o shell (oimpresso.com.html) carrega e o protótipo validado. A cópia em cowork/Felipe/handoff_fabricacao/design/ é DUPLICATA (usada só pela página-guia do pacote), não a fonte.
-related_prototype: prototipo-ui/cowork/Felipe/manufacturing-producao.jsx
+# 2026-09-25 [W]: fonte unica = cowork/Wagner ("e tudo do wagner, vai ser usado so esse agora" - D-MFG-FONTE, playbook manufacturing thread 02). As 2 linhas acima viram historico.
+related_prototype: prototipo-ui/cowork/Wagner/manufacturing-producao.jsx
 bundle_source: manufacturing-page.jsx  # 2026-09-09 [C]: porte REVERSO — `manufacturing-page.jsx:2` declara "Espelho de Modules/Manufacturing"; o gap-spec de 06/09 mede o prototipo ATRAS do vivo nos KPIs. Fonte de bundle, NAO design aprovado (§5 2026-08-28).
 page_id: manufacturing-index
 status: draft
