@@ -11,8 +11,8 @@ import { usePage } from '@inertiajs/react';
 import {
   ArrowRightLeft, Banknote, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
   Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
-  Factory, FileSearch, FileSpreadsheet, FileText, Folder, FolderKanban, HandCoins, Hash, Home, Inbox, Keyboard, LifeBuoy, LogOut,
-  MessageCircle, Moon, Package, PackageCheck, Palette, Plug, Receipt,
+  Archive, Car, Factory, FileSearch, FileSpreadsheet, FileText, Folder, FolderKanban, HandCoins, Hash, Home, Inbox, Keyboard, LifeBuoy, LogOut,
+  Globe, LayoutGrid, List, MessageCircle, Moon, Pencil, Phone, Plus, Printer, Scale, Send, Truck, Upload, Package, PackageCheck, Palette, Plug, Receipt,
   RefreshCw, Rocket, Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
   TrendingUp, UserCog, Users, Utensils, User, Vault, Wallet, Wrench,
   type LucideIcon,
@@ -124,6 +124,23 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   planilha: Sheet,
   suporte: LifeBuoy,
 };
+
+/** Ícone de SUB-TELA (thread 14): o nome vem do dado (`ghost.icon`), no vocabulário do
+ *  protótipo (`data.jsx`). Diferente do `findMenuIcon`, nome desconhecido devolve `null` —
+ *  um `Hash` genérico numa sub-lista é ruído, não ícone. */
+const GHOST_ICON_MAP: Record<string, LucideIcon> = {
+  archive: Archive, audit: FileSearch, bell: Bell, book: BookOpen, car: Car, cash: Banknote,
+  chart: BarChart3, chat: MessageCircle, check: Check, clients: Users, clock: Clock, cog: Settings,
+  doc: FileText, factory: Factory, folder: Folder, globe: Globe, grid: LayoutGrid, inbox: Inbox,
+  keyboard: Keyboard, list: List, orders: ClipboardList, pencil: Pencil, phone: Phone, plug: Plug,
+  plus: Plus, print: Printer, product: Package, quote: FileSpreadsheet, receipt: Receipt,
+  refresh: RefreshCw, scale: Scale, search: Search, send: Send, shield: ShieldCheck, truck: Truck,
+  upload: Upload, user: User, users: Users, wrench: Wrench,
+};
+
+function findGhostIcon(nome?: string): LucideIcon | null {
+  return nome ? GHOST_ICON_MAP[nome] ?? null : null;
+}
 
 function findMenuIcon(label: string): LucideIcon {
   return MENU_ICON_MAP[label.trim().toLowerCase()] ?? Hash;
@@ -691,16 +708,20 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
         <span className="label">{item.label}</span>
         <ItemEnd atalho={atalho} telas={ghosts.length} />
       </a>
-      {ativo && ghostsVisiveis.map((g) => (
-        <a
-          key={g.key ?? g.href}
-          href={g.href}
-          className="sb-item sb-sub sb-ghost"
-          aria-current={rotaAtiva(g.href) ? 'page' : undefined}
-        >
-          <span className="label">{g.label}</span>
-        </a>
-      ))}
+      {ativo && ghostsVisiveis.map((g) => {
+        const GhostIcon = findGhostIcon(g.icon);
+        return (
+          <a
+            key={g.key ?? g.href}
+            href={g.href}
+            className="sb-item sb-sub sb-ghost"
+            aria-current={rotaAtiva(g.href) ? 'page' : undefined}
+          >
+            {GhostIcon && <GhostIcon size={14} strokeWidth={1.6} className="ic" aria-hidden="true" />}
+            <span className="label">{g.label}</span>
+          </a>
+        );
+      })}
       {ativo && ghostsOcultos > 0 && (
         <button
           type="button"
