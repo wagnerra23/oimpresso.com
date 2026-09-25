@@ -5,8 +5,16 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do atendente + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela concentra a conversa com o cliente de TODOS os canais — se o isolamento por business ou o ACL canal=fila falhar, um tenant lê a conversa do outro. É o comportamento durável que nenhum refactor pode perder.
 owner: wagner
-last_run: "2026-09-24"
+last_run: "2026-09-25"
 ---
+
+> ⚠️ **`last_run` 2026-09-24 → 2026-09-25 (G-6) — e DESTA vez mudou comportamento.** Diferente dos bumps
+> abaixo, o [#7948](https://github.com/wagnerra23/oimpresso.com/pull/7948) altera o que a tela faz (relato [W] 2026-09-25):
+> (1) abrir conversa passa a preservar a query da URL — antes mandava `tab=all` e perdia "Não lidas", fila, 24h, tags e ordem;
+> (2) o contador da conversa aberta zera na hora (override local até a próxima lista do servidor);
+> (3) as recargas parciais pedem `shell.sidebar_counts`, então o badge "Atendimento" do menu atualiza sem F5.
+> **Nenhum UC deste arquivo cobre essas três coisas** — os UCs são do controller e nenhum deles foi reexecutado por isso.
+> Elas entram no Backlog abaixo como prosa honesta, sem UC, até ganharem teste que as cite (G-2).
 
 > ℹ️ **`last_run` 2026-09-11 → 2026-09-24 (G-6), e de novo o que mudou NÃO foi comportamento.**
 > O toque em `Index.tsx` no [#7910](https://github.com/wagnerra23/oimpresso.com/pull/7910) (PageHeader/06, decisão [W] D-PH-0923) troca a
@@ -200,6 +208,8 @@ então não viram UC (G-2 pune UC órfão, e UC sem prova é afirmação, não c
 - [BACKLOG] Real-time: Centrifugo `omnichannel:business:{id}` + polling 5s SEMPRE em paralelo, com pausa quando a aba está inativa (US-WA-066 — cliente real cancelou contrato por mensagem perdida).
 - [BACKLOG] `preserveScroll` + `preserveState` em todo `router.reload` — sem eles a thread pula quando chega mensagem (US-WA-068).
 - [BACKLOG] Switch de conversa recarrega só `thread`+`messages` no `only:[]`, nunca a lista inteira (lição de performance D-14).
+- [BACKLOG] Abrir conversa preserva TODOS os filtros da URL atual (aba, canal, conta, fila, 24h, tags, ordem) — regressão real 2026-09-25: `?tab=unread` virava `?tab=all&thread=N`.
+- [BACKLOG] O contador da conversa aberta some da lista na hora, sem esperar a próxima atualização; e o badge "Atendimento" do menu lateral acompanha (`shell.sidebar_counts` nas recargas parciais).
 - [BACKLOG] Atalhos de teclado J/K (navegar), `/` (buscar), E (resolver), A (aguardando), ⌘⇧N (toggle Resp/Nota) — ignorando quando o foco está em input/textarea.
 - [BACKLOG] As 7 abas de status (`all`/`unread`/`assigned`/`bot`/`awaiting_human`/`resolved`/`archived`) filtram por `?tab=` e mapeiam o `?status=` legado.
 - [BACKLOG] Canal em homologação (`status != active`) vira preview-only: banner amarelo na thread, chip "em breve" na lista e composer desabilitado em modo cliente (nota interna segue permitida).
