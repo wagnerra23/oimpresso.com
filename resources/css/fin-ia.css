@@ -54,7 +54,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--surface, #fff);
+  background: var(--surface);
   font-size: var(--fs-4);
   font-weight: 700;
   flex-shrink: 0;
@@ -205,7 +205,7 @@
   gap: 8px;
   width: 100%;
   padding: 10px 12px;
-  background: var(--surface, #fff);
+  background: var(--surface);
   border: 0;
   font-family: inherit;
   cursor: pointer;
@@ -236,7 +236,7 @@
   gap: 8px;
 }
 .fin-cowork .fin-curadoria .fin-digest-card {
-  background: var(--surface, #fff);
+  background: var(--surface);
   border-radius: 6px;
   padding: 8px 10px;
   display: flex;
@@ -273,7 +273,7 @@
 }
 .fin-cowork .fin-curadoria .fin-digest-top {
   flex: 1;
-  background: var(--surface, #fff);
+  background: var(--surface);
   border-radius: 6px;
   padding: 6px 10px;
   display: flex;

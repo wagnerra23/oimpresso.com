@@ -2697,10 +2697,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   `.fin-cowork .fin-ai-panel h3 { uppercase purple 295 }` que estava
                   no-op por falta de markup. Wrapper `fin-curadoria` no
                   SheetContent ativa background/border de .fin-anomaly/.fin-party-history. */}
+              {/* Thread 07 (2026-09-25): + `fin-curadoria` no painel — as regras de fin-ia.css são
+                  `.fin-cowork .fin-curadoria X` (descendente) e no portal as duas classes ficam no
+                  MESMO SheetContent, então nada do detector/histórico casava. */}
               {drawerTab === 'ia' && (
-                {/* Thread 07 (2026-09-25): + `fin-curadoria` — as regras de fin-ia.css são
-                    `.fin-cowork .fin-curadoria X` (descendente) e no portal as duas classes
-                    ficam no MESMO SheetContent, então nada do detector/histórico casava. */}
                 <div className="mt-3 px-5 text-[13px] fin-ai-panel fin-curadoria">
                   <section>
                     <h3>Anomalia de valor</h3>
