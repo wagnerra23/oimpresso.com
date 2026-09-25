@@ -2,6 +2,17 @@
 // de shell.sidebar_counts, papel simulado, cascata Superadmin no rodapé.
 const { useState, useEffect, useRef } = React;
 
+// Tema — dark é o padrão do projeto ([W] 2026-06-03); claro segue disponível.
+// Portado de prototipo-ui/cowork/Wagner/sidebar.jsx (L13-16, L27-29) em 25/09/2026, a pedido do
+// Felipe: o item "Aparência" do menu existia aqui sem ação, e o painel Tweaks só abre dentro
+// do Claude Design — fora dele não havia como trocar o tema.
+const TEMAS = [
+{ id: "dark", label: "Escuro", desc: "Padrão do balcão" },
+{ id: "light", label: "Claro", desc: "Escritório, luz alta" }];
+const lerShell = (k, padrao) => {
+  try {return document.documentElement.dataset[k] || padrao;} catch (e) {return padrao;}
+};
+
 // Marcador de frescor do destino: link válido mas tela não desenhada (mock) ou inexistente (stub).
 function WipMark({ routeId }) {
   const st = (MOCK.ROUTE_STATE || {})[routeId];
@@ -302,6 +313,11 @@ function UserMenu({ onClose }) {
   const [sub, setSub] = useState(null);
   const go = (id) => {window.__selectRoute?.(id);onClose?.();};
   const superItems = MOCK.SUPERADMIN_MENU || [];
+  const [tema, setTema] = useState(() => lerShell("theme", "dark"));
+  // Manda no tweak do shell (dono único). Sem __setTweak não finjo que mudou.
+  const escolherTema = (id) => {
+    if (typeof window.__setTweak === "function") {window.__setTweak("theme", id);setTema(id);}
+  };
   return (
     <div className="user-menu" onClick={(e) => e.stopPropagation()}>
       <div className="user-menu-head">
@@ -343,7 +359,24 @@ function UserMenu({ onClose }) {
       }
       <div className="um-sep" />
       <div className="um-item"><span className="um-status" style={{ background: "oklch(0.72 0.18 145)" }} /> <span className="label">Disponível</span> <span className="arrow">›</span></div>
-      <div className="um-item"><I.moon className="ic" /> <span className="label">Aparência</span> <span className="arrow">›</span></div>
+      <button type="button" className={"um-item um-cascade" + (sub === "tema" ? " active" : "")}
+      aria-expanded={sub === "tema"}
+      onClick={() => setSub(sub === "tema" ? null : "tema")}>
+        <I.moon className="ic" /> <span className="label">Aparência</span> <span className="um-vibe-cur">{tema === "dark" ? "escuro" : "claro"}</span> <span className="arrow" aria-hidden="true">›</span>
+      </button>
+      {sub === "tema" &&
+      <div className="um-sub">
+          {TEMAS.map((t) =>
+        <button type="button" key={t.id} className={"um-item um-vibe" + (tema === t.id ? " active" : "")}
+        aria-pressed={tema === t.id}
+        onClick={() => escolherTema(t.id)}>
+              <I.moon className="ic" style={t.id === "light" ? { opacity: 0.45 } : null} />
+              <span className="label">{t.label}<em className="um-vibe-d">{t.desc}</em></span>
+              {tema === t.id && <I.check className="ic um-vibe-ck" />}
+            </button>
+        )}
+        </div>
+      }
       <div className="um-sep" />
       <div className="um-item" onClick={() => {onClose?.();window.__openCmdK?.();}}><I.keyboard className="ic" /> <span className="label">Buscar tela</span> <span className="kbd">⌘K</span></div>
       {(MOCK.FOOTER_LINKS || []).map((it) => {
