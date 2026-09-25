@@ -1111,8 +1111,40 @@ function SidebarMenuRail({
     setFlyout(key);
   };
 
+  // Thread 11 do playbook: a dica do rail é uma camada FIXA, não `::after`.
+  // O pseudo absoluto projetava o rótulo além da coluna e virava overflow
+  // horizontal do `.sb-body` — medido 2026-09-25 com o cockpit.css do main:
+  // scrollWidth 224 × clientWidth 55; desligando o `::after`, 55 × 55. Tirar
+  // com `overflow-x:hidden` clipava a própria dica. Mesmo padrão do flyout e
+  // do `Sidebar` do protótipo (`.sb-rail-tip`).
+  const railRef = useRef<HTMLDivElement>(null);
+  const [tip, setTip] = useState<{ texto: string; top: number; left: number } | null>(null);
+  useEffect(() => {
+    const raiz = railRef.current;
+    if (!raiz) return;
+    const mostrar = (e: Event) => {
+      const alvo = (e.target as Element | null)?.closest?.('[data-tip]');
+      if (!alvo || !raiz.contains(alvo)) { setTip(null); return; }
+      const r = alvo.getBoundingClientRect();
+      setTip({ texto: alvo.getAttribute('data-tip') ?? '', top: r.top + r.height / 2, left: r.right + 8 });
+    };
+    const esconder = (e: Event) => {
+      if ((e.target as Element | null)?.closest?.('[data-tip]')) setTip(null);
+    };
+    raiz.addEventListener('mouseover', mostrar);
+    raiz.addEventListener('mouseout', esconder);
+    raiz.addEventListener('focusin', mostrar);
+    raiz.addEventListener('focusout', esconder);
+    return () => {
+      raiz.removeEventListener('mouseover', mostrar);
+      raiz.removeEventListener('mouseout', esconder);
+      raiz.removeEventListener('focusin', mostrar);
+      raiz.removeEventListener('focusout', esconder);
+    };
+  }, []);
+
   return (
-    <div className="sb-menu-rail">
+    <div className="sb-menu-rail" ref={railRef}>
       {showIa && (
         // Wagner 2026-05-25: rail collapsed IA aponta /ia/dashboard (espelha sb-shortcut acima).
         <a
@@ -1164,15 +1196,22 @@ function SidebarMenuRail({
         const hue = SIDEBAR_GROUP_HUE[g.key];
         const railStyle = hue !== undefined ? ({ ['--gh' as never]: String(hue) } as React.CSSProperties) : undefined;
         const isOpen = flyout === g.key;
-        // Pega ícone do primeiro item do grupo (representativo)
-        const firstItem = groupedItems[g.key]?.[0];
-        const Icon = firstItem ? findMenuIcon(firstItem.label) : Hash;
+        // Thread 11 do playbook: o botão usa o ícone do GRUPO — o mesmo do
+        // cabeçalho do modo expandido (`SidebarGroup`) —, não o do 1º item.
+        // Paridade `SidebarMenuRail` do protótipo (`meta.icon`). Grupo fora do
+        // mapa cai em `Hash`, o mesmo fallback que o rail já usava.
+        const Icon = GROUP_ICON_MAP[g.key] ?? Hash;
+        // `.active` quando a tela atual está no grupo — mesmo detector
+        // (`rotaAtiva`, item ou ghost) que abre o grupo no modo expandido.
+        const temAtivo = (groupedItems[g.key] ?? []).some(
+          (it) => rotaAtiva(it.href) || (it.ghosts ?? []).some((gh) => rotaAtiva(gh.href))
+        );
         return (
           <button
             key={g.key}
             ref={(el) => { anchorRefs.current[g.key] = el; }}
             type="button"
-            className={`sb-rail-btn sb-rail-group ${isOpen ? 'open' : ''}`}
+            className={`sb-rail-btn sb-rail-group${temAtivo ? ' active' : ''}${isOpen ? ' open' : ''}`}
             data-tip={g.label}
             aria-label={g.label}
             style={railStyle}
@@ -1209,6 +1248,13 @@ function SidebarMenuRail({
           </div>
         );
       })()}
+      {/* A dica some com o flyout aberto do mesmo botão — no ::after isso
+          era `.open[data-tip]::after { opacity: 0 }`. */}
+      {tip && !flyout && (
+        <div className="sb-rail-tip" role="presentation" style={{ top: tip.top, left: tip.left }}>
+          {tip.texto}
+        </div>
+      )}
     </div>
   );
 }
