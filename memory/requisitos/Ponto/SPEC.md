@@ -346,3 +346,25 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - [ ] tela nascer pelo fluxo MWART (`criar-tela.mjs`), com `related_prototype` apontando pra `ponto-fechamento.jsx`
 - [ ] D1, D2 e D4 entrarem como **Non-Goals do charter** (viram Pest GUARD) — não como prosa solta
 - [ ] append-only preservado: fechar competência **não** altera marcação (a mesma lei que D3 já respeita — Portaria MTP 671/2021)
+
+### US-PONTO-016 · Painel de Conformidade CLT da competência (somente leitura)
+
+> owner: — · priority: p2 · estimate: — · type: story
+
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/ConformidadeService.php` · `Modules/Ponto/Tests/Feature/ConformidadeContratoTest.php` · verificado@45a6873 (2026-09-25) — falta a tela (`/ponto/conformidade`, controller, rota, Page e trio), que vem no PR 2 da thread 05
+**Testado em:** `Modules/Ponto/Tests/Feature/ConformidadeContratoTest.php`
+
+**Como** RH (Wagner no risco, Eliana na correção),
+**quero** ver, por competência, as violações que a apuração já detectou, cada uma com o artigo, o apurado, o limite e o colaborador,
+**para que** a correção aconteça antes de fechar o mês e antes de gerar AFD/AEJ.
+
+**Decisão:** [ADR 0413](../../decisions/0413-ponto-fechamento-competencia-conformidade-relatorios-legais.md) D0 — rota `/ponto/conformidade`, **somente leitura**, independente do fechamento. Fonte de design: `prototipo-ui/cowork/Wagner/ponto-fechamento.jsx` (`Conformidade`) + o `Conformidade.charter.md`/`.casos.md` do protótipo.
+
+**Aceite:**
+- [x] As 6 verificações do protótipo: jornada sem fechamento (CLT Art. 74 §2º) · interjornada (Art. 66) · intrajornada (Art. 71) · HE acima do limite diário (Art. 59) · NSR fora de sequência (Portaria MTP 671/2021 Anexo I) · colaborador ativo sem PIS
+- [x] Não reimplementa apuração: lê o que o `ApuracaoService` gravou em `ponto_apuracao_dia` (`*_violacao_minutos`, `divergencias[].chave`)
+- [x] Limites vêm de `config('pontowr2.clt.*')`, os mesmos que a apuração usa
+- [x] NSR sai como **não medido** (a apuração não expõe a sequência por colaborador; a thread proíbe query nova para suprir)
+- [x] `business_id` explícito em toda query + teste cross-tenant 98 × 99
+- [ ] Tela `/ponto/conformidade` (PR 2): KPI por verificação + tabela caso a caso + atalho para o Espelho
+- [ ] Colaborador sem PIS: [W] confirmar a base legal a citar (o protótipo diz só "bloqueia AFD e eSocial S-2230"; sem artigo, hoje entra como conferência)
