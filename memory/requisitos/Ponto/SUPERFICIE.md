@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 193 arquivos em 18 papéis.
+**Total mapeado:** 196 arquivos em 18 papéis.
 
 ## Controllers — 13
 
@@ -60,12 +60,13 @@ module: Ponto
 - [PisNaoCadastradoException.php](../../../Modules/Ponto/Services/PisNaoCadastradoException.php)
 - [ReportService.php](../../../Modules/Ponto/Services/ReportService.php)
 
-## Models / Entities — 10
+## Models / Entities — 11
 
 - [ApuracaoDia.php](../../../Modules/Ponto/Entities/ApuracaoDia.php)
 - [BancoHorasMovimento.php](../../../Modules/Ponto/Entities/BancoHorasMovimento.php)
 - [BancoHorasSaldo.php](../../../Modules/Ponto/Entities/BancoHorasSaldo.php)
 - [Colaborador.php](../../../Modules/Ponto/Entities/Colaborador.php)
+- [Competencia.php](../../../Modules/Ponto/Entities/Competencia.php)
 - [Escala.php](../../../Modules/Ponto/Entities/Escala.php)
 - [EscalaTurno.php](../../../Modules/Ponto/Entities/EscalaTurno.php)
 - [Importacao.php](../../../Modules/Ponto/Entities/Importacao.php)
@@ -88,7 +89,7 @@ module: Ponto
 
 - [PontoServiceProvider.php](../../../Modules/Ponto/Providers/PontoServiceProvider.php)
 
-## Migrations (schema) — 8
+## Migrations (schema) — 9
 
 - [2026_04_18_000001_create_ponto_colaborador_config_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000001_create_ponto_colaborador_config_table.php)
 - [2026_04_18_000002_create_ponto_reps_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000002_create_ponto_reps_table.php)
@@ -98,6 +99,7 @@ module: Ponto
 - [2026_04_18_000006_create_ponto_apuracao_dia_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000006_create_ponto_apuracao_dia_table.php)
 - [2026_04_18_000007_create_ponto_banco_horas_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000007_create_ponto_banco_horas_table.php)
 - [2026_04_18_000008_create_ponto_importacoes_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000008_create_ponto_importacoes_table.php)
+- [2026_09_25_000001_create_ponto_competencias_table.php](../../../Modules/Ponto/Database/Migrations/2026_09_25_000001_create_ponto_competencias_table.php)
 
 ## Seeders — 2
 
@@ -193,9 +195,9 @@ module: Ponto
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Relatorios/Index.casos.md)
 - [Welcome.casos.md](../../../resources/js/Pages/Ponto/Welcome.casos.md)
 
-## Testes (Pest) — 49
+## Testes (Pest) — 50
 
-- 47 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
+- 48 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
 - 2 em [Modules/Ponto/Tests/Unit/](../../../Modules/Ponto/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
