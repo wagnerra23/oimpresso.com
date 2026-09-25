@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-09-02T12:06:33.514Z",
-    "total_violations": 440,
+    "generated_at": "2026-09-25T20:13:12.850Z",
+    "total_violations": 489,
     "stylelint_version": "17.x",
     "adr": "0209",
     "note": "G5 anti-drift CSS — gêmeo do eslint-baseline. Ratchet por path+rule, falha só em delta>0."
@@ -10,21 +10,24 @@
     "resources/css/cockpit.css|color-no-hex": 15,
     "resources/css/cockpit.css|declaration-no-important": 3,
     "resources/css/cockpit.css|no-duplicate-selectors": 32,
-    "resources/css/cowork-canon-financeiro-bundle.css|color-no-hex": 62,
+    "resources/css/cowork-canon-financeiro-bundle.css|color-no-hex": 61,
     "resources/css/cowork-canon-financeiro-bundle.css|declaration-no-important": 15,
     "resources/css/cowork-canon-financeiro-bundle.css|no-duplicate-selectors": 29,
-    "resources/css/cowork-fields.css|color-no-hex": 4,
     "resources/css/cowork-documentacao-bundle.css|no-duplicate-selectors": 1,
+    "resources/css/cowork-fields.css|color-no-hex": 4,
     "resources/css/cowork-forja-bundle.css|color-no-hex": 6,
     "resources/css/cowork-forja-bundle.css|declaration-no-important": 2,
     "resources/css/cowork-forja-bundle.css|no-duplicate-selectors": 13,
+    "resources/css/cowork-manufacturing-bundle.css|color-no-hex": 46,
+    "resources/css/cowork-manufacturing-bundle.css|declaration-no-important": 2,
+    "resources/css/cowork-manufacturing-bundle.css|no-duplicate-selectors": 1,
     "resources/css/cowork-payment-gateway-bundle.css|color-no-hex": 2,
-    "resources/css/fin-cowork.css|color-no-hex": 3,
+    "resources/css/fin-cowork.css|color-no-hex": 2,
     "resources/css/fin-cowork.css|declaration-no-important": 4,
     "resources/css/fin-cowork.css|no-duplicate-selectors": 1,
     "resources/css/fin-mobile.css|declaration-no-important": 3,
     "resources/css/fin-output.css|declaration-no-important": 4,
-    "resources/css/inertia.css|CssSyntaxError": 1,
+    "resources/css/inertia.css|declaration-no-important": 2,
     "resources/css/kb.css|declaration-no-important": 1,
     "resources/css/sells-cowork-distribuicao.css|declaration-no-important": 10,
     "resources/css/sells-cowork-drafts.css|color-no-hex": 1,
@@ -42,9 +45,6 @@
     "resources/css/sells-kb975-next-action.css|declaration-no-important": 1,
     "resources/css/sells-kb975-print.css|color-no-hex": 40,
     "resources/css/sells-kb975-print.css|declaration-no-important": 28,
-    "resources/css/tokens/_generated-cockpit-light.css|color-no-hex": 3,
-    "resources/css/cowork-manufacturing-bundle.css|color-no-hex": 46,
-    "resources/css/cowork-manufacturing-bundle.css|declaration-no-important": 2,
-    "resources/css/cowork-manufacturing-bundle.css|no-duplicate-selectors": 1
+    "resources/css/tokens/_generated-cockpit-light.css|color-no-hex": 3
   }
 }

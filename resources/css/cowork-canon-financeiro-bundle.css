@@ -1546,7 +1546,7 @@
   display: inline-flex; align-items: center; gap: 6px;
 }
 .fin-cowork .os-btn:hover { background: var(--border-2); }
-.fin-cowork .os-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.fin-cowork .os-btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
 .fin-cowork .os-btn.primary:hover { background: var(--accent-2); border-color: var(--accent-2); }
 .fin-cowork .os-btn.ghost { background: transparent; border-color: transparent; color: var(--text-dim); }
 .fin-cowork .os-btn.ghost:hover { background: var(--border-2); color: var(--text); }
