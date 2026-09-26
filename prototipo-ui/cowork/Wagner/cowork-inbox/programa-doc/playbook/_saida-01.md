@@ -14,6 +14,10 @@ ausentes: nenhuma. **Non-Goals e Anti-hooks do charter vazios de propósito — 
 - Carimbo por `node scripts/governance/criar-tela.mjs Documentacao/Programa PT-04 --prototipo prototipo-ui/cowork/Wagner/programa-doc-page.jsx --rota documentacao/programa --out <rascunho>`.
   Das 5 peças geradas entraram **charter, casos e o stub e2e**. `Programa.tsx` é `nao_toca` desta
   thread e o `.contract.json` (`governance/design/contracts/`) fica para a thread 02.
+- ⚠️ **Exceção ao `nao_toca` — aprovada por [W] em 2026-09-26 (opção "A" no chat):** o esqueleto
+  `Programa.tsx` do carimbo entrou. Sem ele o `integrity-check.mjs` reprova IT2 (charter sem `.tsx`
+  irmão) e IT2b (`component:` morto), que são duros — e o merge levaria a quebra ao `main`. O stub
+  não é renderizado por nada: a rota segue Blade. A thread 02 substitui o esqueleto pela tela real.
 - ⚠️ **Exceção de prefixo declarada:** `e2e/documentacao-programa.spec.ts` está fora do prefixo
   `resources/js/Pages/Documentacao/`. Sem ele o `casos-gate` (required) reprova os 6 UCs como
   órfãos (G-2, medido: `❌ 6 violação(ões) NOVA(s)… uc-orphan`). É o stub do próprio carimbo, só

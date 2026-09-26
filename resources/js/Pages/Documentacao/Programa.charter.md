@@ -18,7 +18,7 @@ charter_version: 1
 > NÃO bespoke). Golden do arquétipo: [PT-04](../../../../memory/requisitos/_DesignSystem/padroes-tela/PT-04-Dashboard.md),
 > ainda `draft` — o ciclo-completo não fecha antes de o Design terminá-lo.
 >
-> **A `.tsx` ainda não existe** (é a thread 02 do playbook `programa-doc`). Hoje
+> **A `.tsx` é só o esqueleto do carimbo** — a tela real é a thread 02 do playbook `programa-doc`. Hoje
 > `/documentacao/programa` é **Blade** (`DocumentacaoController::programa` +
 > `resources/views/documentacao/programa.blade.php`); o contrato de paridade dela é a seção 6 da
 > [lista anti-regressão](../../../../memory/requisitos/Documentacao/ANTI-REGRESSAO-documentacao-blade.md)

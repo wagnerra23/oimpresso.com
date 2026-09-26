@@ -4,7 +4,7 @@ irmaos: Programa.charter.md (lei) · memory/requisitos/Documentacao/ANTI-REGRESS
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-25"
+last_run: "2026-09-26"
 ---
 
 # Casos de Uso & Aceite — Documentacao/Programa
@@ -16,7 +16,7 @@ last_run: "2026-09-25"
 > **Fonte dos casos**, na ordem canônica: SPEC [`US-DOC-002`](../../../../memory/requisitos/Documentacao/SPEC.md)
 > (escopo + acceptance criteria) · contrato de paridade `AR-DOC-060`–`AR-DOC-069` (comportamento da
 > tela Blade viva, confirmado em `DocumentacaoController::programa`) · [ADR 0070](../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)
-> (estado mora nas tasks MCP). **Não** o `.tsx`, que nem existe.
+> (estado mora nas tasks MCP). **Não** o `.tsx`, que é só esqueleto.
 > **Persona:** o time ([W], [F], [M], [L], [E]) — quem precisa saber em que pé está o programa sem
 > abrir cinco arquivos. Não é tela de cliente final.
 
