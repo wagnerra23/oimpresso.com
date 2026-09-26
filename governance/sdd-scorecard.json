@@ -74,16 +74,8 @@
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "260c37bf379b3d21",
+        "floor_files_hash": "580db7b65dd1d5ae",
         "runs": [
-          {
-            "sha": "e49b761e",
-            "ts": "20260923-020001",
-            "failed": 447,
-            "errors": 359,
-            "skipped": 2265,
-            "all_shards_measured": true
-          },
           {
             "sha": "68e07130",
             "ts": "20260924-020001",
@@ -93,15 +85,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "2e3f8adb",
             "ts": "20260925-020001",
             "failed": 483,
             "errors": 360,
             "skipped": 2288,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260926-020001",
+            "failed": 487,
+            "errors": 337,
+            "skipped": 2289,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260925-020001",
+        "computed_at": "20260926-020001",
         "intersection_of": 3
       },
       "stream": "FV"
