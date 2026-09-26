@@ -79,7 +79,7 @@
     },
     {
       "screen": "Documentacao",
-      "note": "5 arquivo(s)",
+      "note": "6 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -398,7 +398,7 @@
     },
     {
       "screen": "Ponto",
-      "note": "26 arquivo(s)",
+      "note": "28 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -433,8 +433,8 @@
   "progressPct": 38,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "396e55bd5",
-  "generatedAt": "2026-09-25T14:42:49.084Z",
+  "measuredAgainstSha": "4f6932dc2",
+  "generatedAt": "2026-09-26T13:49:52.640Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
