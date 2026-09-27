@@ -104,6 +104,16 @@
       ]
     },
     {
+      "tela": "Documentacao/Programa",
+      "arquivo": "resources/js/Pages/Documentacao/Programa.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/programa-doc-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Essentials/Painel",
       "arquivo": "resources/js/Pages/Essentials/Painel.tsx",
       "modulo": "core",
@@ -118,7 +128,7 @@
       "arquivo": "resources/js/Pages/Manufacturing/Insumos.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/Felipe/manufacturing-insumos.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/manufacturing-insumos.jsx",
       "falta": [
         "scorecard"
       ]
@@ -128,7 +138,7 @@
       "arquivo": "resources/js/Pages/Manufacturing/Recipes.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/Felipe/manufacturing-page.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/manufacturing-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -138,7 +148,7 @@
       "arquivo": "resources/js/Pages/Manufacturing/Report.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/Felipe/manufacturing-producao.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
       "falta": [
         "scorecard"
       ]
@@ -148,11 +158,31 @@
       "arquivo": "resources/js/Pages/Manufacturing/Settings.tsx",
       "modulo": "core",
       "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/Felipe/manufacturing-producao.jsx",
+      "prototipo": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Ponto/Conformidade",
+      "arquivo": "resources/js/Pages/Ponto/Conformidade.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/ponto-fechamento.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Ponto/Fechamento/Index",
+      "arquivo": "resources/js/Pages/Ponto/Fechamento/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/ponto-fechamento.jsx",
       "falta": [
         "scorecard"
       ]
     }
   ],
-  "total": 97
+  "total": 100
 }
