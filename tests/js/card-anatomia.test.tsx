@@ -153,3 +153,35 @@ describe("ui/card — os três slots do Widget", () => {
     expect(container.firstElementChild!.className).not.toContain("card-content")
   })
 })
+
+// ── Thread 06 · nível de cabeçalho do título do painel ──────────────────────────────────
+// O `CardTitle` de 733033864088 é um `<div>`: o título do painel não entra no esqueleto de
+// cabeçalhos, e a tela não consegue corrigir isso sem pele paralela. `as` resolve no
+// primitivo, e só quando pedido — a guarda de default acima continua exigindo o `<div>`.
+describe("ui/card — nível de cabeçalho do título (thread 06)", () => {
+  it.each(["h2", "h3"] as const)("as=%s vira cabeçalho de nível %s, com as mesmas classes e data-slot", (nivel) => {
+    const { container, getByRole } = render(<CardTitle as={nivel}>Fila de aprovações</CardTitle>)
+    const el = container.firstElementChild!
+    expect(el.tagName).toBe(nivel.toUpperCase())
+    expect(el.getAttribute("data-slot")).toBe("card-title")
+    expect(el.className).toBe("leading-none font-semibold")
+    expect(getByRole("heading", { level: Number(nivel[1]), name: "Fila de aprovações" })).toBe(el)
+  })
+
+  it("sem `as`, não há cabeçalho nenhum (default de sempre)", () => {
+    const { container, queryByRole } = render(<CardTitle>Fila de aprovações</CardTitle>)
+    expect(container.firstElementChild!.tagName).toBe("DIV")
+    expect(queryByRole("heading")).toBeNull()
+  })
+
+  it("com badge, o cabeçalho segue sendo o título inteiro e a contagem fica dentro dele", () => {
+    const { container, getByRole } = render(
+      <CardTitle as="h2" badge="12">
+        Fila de aprovações
+      </CardTitle>
+    )
+    const h2 = getByRole("heading", { level: 2 })
+    expect(h2).toBe(container.firstElementChild)
+    expect(h2.querySelector('[data-slot="card-title-badge"]')?.textContent).toBe("12")
+  })
+})

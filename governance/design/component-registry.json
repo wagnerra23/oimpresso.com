@@ -469,7 +469,9 @@
         "CardContent"
       ],
       "props": [],
-      "variant_map": {},
+      "variant_map": {
+        "CardTitle as": "h2 | h3 — nível de cabeçalho do título do painel (ds-atomos thread 06); omitido = <div> de sempre"
+      },
       "status": "mapped"
     },
     {
