@@ -226,6 +226,32 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
                 </table>
               </div>
             )}
+            {/* Charter §Goals: "Histórico paginado (50/pág)". Sem este controle o
+                servidor paginava e a tela mostrava só a 1ª página — movimentos 51+
+                ficavam inalcançáveis. Mesmo idioma do Index.tsx (saldos). */}
+            {(movimentos?.last_page ?? 1) > 1 && (
+              <div className="flex items-center justify-between border-t border-border p-3 text-xs">
+                <span className="text-muted-foreground">
+                  Página {movimentos?.current_page ?? 1} de {movimentos?.last_page ?? 1} · {movimentos?.total ?? 0} movimento(s)
+                </span>
+                <div className="flex flex-wrap gap-1">
+                  {(movimentos?.links ?? []).map((link, i) => (
+                    <Button
+                      key={i}
+                      variant={link.active ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-7 min-w-8 px-2 text-xs"
+                      disabled={!link.url}
+                      // Partial reload: só re-busca `movimentos`; o saldo do cabeçalho
+                      // não viaja de novo (charter Non-Goal: a tela não recalcula saldo).
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, only: ['movimentos'] })}
+                    >
+                      <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
             </Deferred>
           </CardContent>
         </Card>
