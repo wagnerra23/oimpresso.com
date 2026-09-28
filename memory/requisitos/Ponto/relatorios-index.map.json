@@ -1,0 +1,130 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Ponto/Relatorios/Index (/ponto/relatorios)",
+  "gap_fonte": "memory/requisitos/Ponto/relatorios-index-gap.md",
+  "prototipo_sha": "sha256:e4d0b5a3707e",
+  "gerado_em": "2026-09-28",
+  "partes": [
+    {
+      "id": "nota-de-topo-com-a-lei",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "870-872"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "prototipo-a-frente",
+      "acao": "Incorporar a nota, com o artigo literal. Copy de conformidade, sem decisão pendente.",
+      "_acionavel": true
+    },
+    {
+      "id": "filtros-de-periodo-e-colaborador",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "874-895"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
+        "linhas": "146-178",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada no vivo. `D-REL-FLUXO` = filtros globais no topo, e por R2 o wizard sai do protótipo no mesmo pacote — o campo Formato do wizard, que mostra sempre \"TXT\" mesmo para PDF (`:885`), sai junto.",
+      "_acionavel": false
+    },
+    {
+      "id": "incluir-marcacoes-anuladas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "887"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir onde a flag mora depois que o wizard sai (`D-REL-FLUXO`): filtro global ou parâmetro só dos relatórios legais. Ela chega ao gerador de AFD, que ainda é 501 (thread 12).",
+      "_acionavel": true
+    },
+    {
+      "id": "grade-de-relatorios-por-categoria",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "897-911"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
+        "linhas": "180-248",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente; o agrupamento é catch-up do protótipo (o \"PARAR SE\" da thread 25 se cumpriu).",
+      "_acionavel": false
+    },
+    {
+      "id": "relatorio-que-sai-por-colaborador",
+      "prototipo": {
+        "arquivo": "n/a",
+        "linhas": "n/a"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
+        "linhas": "191-202",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente.",
+      "_acionavel": false
+    },
+    {
+      "id": "gerar-relatorio-em-breve",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "857-866"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
+        "linhas": "224-236",
+        "ancora": false
+      },
+      "status": "prototipo-a-frente",
+      "acao": "Incorporar — `D-REL-FILA` = mantém o clique e registra, com duas condições da ata: o registro carrega `business_id` (Tier 0) e a tela diz \"pedido registrado\", não um 501 mudo. Exige persistência no backend (hoje `RelatorioController.php:102` é `abort(501)`) e emenda do Non-Goal do charter (thread 27).",
+      "_acionavel": true
+    },
+    {
+      "id": "pedidos-desta-sessao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "913-926"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "prototipo-a-frente",
+      "acao": "Incorporar junto com `D-REL-FILA`: é a superfície da fila. No vivo tem de vir do registro persistido, não de estado local.",
+      "_acionavel": true
+    },
+    {
+      "id": "rodape-legal",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "928"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "prototipo-a-frente",
+      "acao": "Incorporar — mesma copy do charter.",
+      "_acionavel": true
+    }
+  ]
+}

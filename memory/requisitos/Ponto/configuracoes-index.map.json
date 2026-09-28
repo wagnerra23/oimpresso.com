@@ -1,0 +1,100 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Ponto/Configuracoes/Index (/ponto/configuracoes)",
+  "gap_fonte": "memory/requisitos/Ponto/configuracoes-index-gap.md",
+  "prototipo_sha": "sha256:e4d0b5a3707e",
+  "gerado_em": "2026-09-28",
+  "partes": [
+    {
+      "id": "nota-somente-leitura-e-atalho-de-reps",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "993-995"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
+        "linhas": "60-71",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade de conteúdo; a posição do botão é FORMA.",
+      "_acionavel": false
+    },
+    {
+      "id": "regras-clt-e-reforma-trabalhista",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "997-1009"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
+        "linhas": "74-90",
+        "ancora": false
+      },
+      "status": "defeito-vivo",
+      "acao": "Corrigir o vivo para ler as chaves reais — é defeito, não decisão. Copy de lei literal, como o charter exige.",
+      "_acionavel": true
+    },
+    {
+      "id": "banco-de-horas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "1010-1020"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
+        "linhas": "92-102",
+        "ancora": false
+      },
+      "status": "defeito-vivo",
+      "acao": "Corrigir o vivo para ler `banco_horas.*` real.",
+      "_acionavel": true
+    },
+    {
+      "id": "rep-e-imutabilidade",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "1021-1035"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
+        "linhas": "104-122",
+        "ancora": false
+      },
+      "status": "defeito-vivo",
+      "acao": "Corrigir o vivo. Enviar `marcacao` exige estender a allowlist do controller — manter o `Arr::except` do certificado.",
+      "_acionavel": true
+    },
+    {
+      "id": "afd-e-esocial",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "1036-1046"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
+        "linhas": "124-135",
+        "ancora": false
+      },
+      "status": "defeito-vivo",
+      "acao": "Corrigir o vivo. Enviar `esocial` é decisão de allowlist: conferir se nada sensível entra.",
+      "_acionavel": true
+    },
+    {
+      "id": "ia-do-ponto",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "1047-1055"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Incorporar — `D-CFG-IA` = INCORPORA, com a condição da ata. Ver `D-CFG-IA-CAMINHO` abaixo: a condição não está satisfeita hoje.",
+      "_acionavel": true
+    }
+  ]
+}
