@@ -11,6 +11,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { cohenKappa } from './funcao-scorecard-calibracao.mjs';
+import { celulas } from '../lib/markdown-tabela.mjs';
 
 const ROUND = 'memory/reguas/2026-07-21-calibracao-funcao-scorecard-humano';
 const SEALED = `${ROUND}/gabarito-SELADO.md`;
@@ -33,11 +34,10 @@ export function parseSealedTable(markdown) {
   const out = {};
   for (const line of markdown.split(/\r?\n/)) {
     if (!/^\|\s*\d+\s*\|/.test(line)) continue;
-    // Split cru. Em 2026-09-28 (PR #8082 aberto) foi comparado com `celulas()`, que respeita o
-    // pipe escapado (`\|`): 0 das 9 linhas-item do gabarito tinham escape, parse idêntico.
-    // Escape antes de cells[3] desloca o veredito; o erro só aparece se a célula deslocada
-    // não tiver concordo/discordo/incerto — senão passa calado.
-    const cells = line.split('|').slice(1, -1).map((x) => x.trim());
+    // `celulas` respeita o pipe escapado (`\|`); com split cru, um escape antes de cells[3]
+    // deslocaria o veredito, e em silêncio se a célula vizinha tivesse uma palavra de veredito.
+    // Trocado em 2026-09-28: o gabarito não tinha escape, parse idêntico.
+    const cells = celulas(line);
     const id = cells[0];
     const raw = cells[3] || '';
     const verdict = (raw.match(/\b(concordo|discordo|incerto|n\/a)\b/i) || [])[1]?.toLowerCase();

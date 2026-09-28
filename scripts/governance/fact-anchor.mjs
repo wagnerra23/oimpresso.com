@@ -17,6 +17,8 @@
  *      (Tier 2A · emendas E1 regex `v?` + E2 só o restateado in-scope) · ADR 0256/0275.
  */
 
+import { celulas } from '../lib/markdown-tabela.mjs';
+
 /** Extrai o major de um range/constraint semver ("^13.0" → "13"; "React 19" → "19"). */
 export function majorFrom(range) {
   const m = String(range).match(/(\d+)/);
@@ -80,11 +82,10 @@ export function tabelasAfirmadasNo52(txt) {
   let col = -1;
   for (const ln of L.slice(ini, fim)) {
     if (!ln.trim().startsWith('|')) { col = -1; continue; } // saiu da tabela markdown
-    // Split cru. Em 2026-09-28 (PR #8082 aberto) foi comparado com `celulas()`, que respeita o
-    // pipe escapado (`\|`): nos 15 SDDs do Check T as duas deram as mesmas 84 afirmações, e
-    // das 15 linhas de tabela com `\|` nos docs de memory/ que têm coluna Tabela/Entidade,
-    // nenhuma estava dentro dessas tabelas. Escape antes da coluna Tabela desloca `cels[col]`.
-    const cels = ln.split('|').slice(1, -1).map((c) => c.trim());
+    // `celulas` respeita o pipe escapado (`\|`); com split cru, um escape antes da coluna
+    // Tabela deslocaria `cels[col]`. Trocado em 2026-09-28: nos 15 SDDs do Check T as duas
+    // formas davam as mesmas 84 afirmações, então a troca não mudou nenhuma saída.
+    const cels = celulas(ln);
     if (/^[-: ]+$/.test(cels.join(''))) continue;           // linha separadora
     if (col === -1) { // cabeçalho: acha a coluna "Tabela"/"Entidade"
       col = cels.findIndex((c) => /^(tabela|tabelas|entidade)$/i.test(c.replace(/[*`]/g, '').trim()));

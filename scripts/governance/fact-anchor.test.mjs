@@ -105,6 +105,14 @@ check('tabela errada na §5.3 NÃO flagra (escopo da seção)',
 // extrator puro
 check('tabelasAfirmadasNo52 devolve a base sem a coluna',
   tabelasAfirmadasNo52(sdd(['| Tabela | x |', '|---|---|', '| `fin_titulos.titulo_pai_id` | y |'])).has('fin_titulos'));
+// pipe escapado antes da coluna Tabela (2026-09-28): com split cru a célula lida seria
+// a vizinha e a tabela sumia. Monta o escape por charCode — num literal ele colapsa.
+const PIPE_ESC = String.fromCharCode(92) + '|';
+check('pipe escapado antes da coluna Tabela NÃO desloca a coluna lida',
+  tabelasAfirmadasNo52(sdd(['| Nota | Tabela |', '|---|---|', `| a ${PIPE_ESC} b | \`fin_titulos\` |`])).has('fin_titulos'));
+// controle negativo: a mesma linha sem escape dá o mesmo resultado
+check('controle: mesma linha sem escape lê a mesma tabela',
+  tabelasAfirmadasNo52(sdd(['| Nota | Tabela |', '|---|---|', '| a b | `fin_titulos` |'])).has('fin_titulos'));
 
 // ── 9. ÂNCORA DE PATH/COMANDO (docs de instrução vs árvore real) ────────────
 // Fixtures da classe medida na Fase 0 (2026-08-03). O controle negativo mais
