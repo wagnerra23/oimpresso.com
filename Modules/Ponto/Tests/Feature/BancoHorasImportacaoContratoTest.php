@@ -317,21 +317,23 @@ it('UC-BHSHOW-04 · com mais de 50 movimentos a segunda página do extrato é al
         $this->markTestSkipped('Tenant 98 não seedado nesta lane — não caio em business real (ADR 0358).');
     }
 
-    // Usuário PRÓPRIO, só com `ponto.access` (a permissão da rota — charter), e NUNCA a
-    // role Admin#98: o Gate::before libera tudo pra essa role, e a 1ª versão deste caso
-    // a deu ao primeiro user do 98 — o mesmo que o FechamentoContratoTest usa pra provar
-    // o 403 sem `ponto.fechar`. Sem RefreshDatabase, a role vazou e derrubou UC-PTF-06/07
-    // na lane (run 36472572442). Permissão direta num user novo não contamina ninguém.
-    $this->admin = bhimpNovoUser($this->business->id);
+    // Mesma receita do FechamentoContratoTest (UC-PTF-07 dá 200 nesta lane): o user
+    // SEMEADO do 98 + `ponto.access` DIRETO, e NUNCA a role Admin#98.
+    //  - Sem a role: o Gate::before libera tudo pra Admin#{biz}; a 1ª versão deste caso
+    //    a deu a esse user e derrubou UC-PTF-06/07 (run 36472572442), que provam o 403
+    //    sem `ponto.fechar`. `ponto.access` sozinho é o que o próprio Fechamento concede.
+    //  - Não um user de factory: a 2ª versão usava bhimpNovoUser + `ponto.access` e o
+    //    GET deu 403 (run 36474710700). Causa exata não isolada (CheckPontoAccess,
+    //    CheckUserLogin e Gate::before lidos, nenhum explica); a receita que já passa
+    //    na lane é a prova disponível.
+    $this->admin = User::where('business_id', $this->business->id)->orderBy('id')->first();
+    if (! $this->admin) {
+        $this->markTestSkipped('Sem user no tenant 98 — seed mínimo não rodou.');
+    }
     \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'ponto.access', 'guard_name' => 'web']);
     $this->admin->givePermissionTo('ponto.access');
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
-    session([
-        'user.business_id' => $this->business->id,
-        'user.id'          => $this->admin->id,
-        'business.id'      => $this->business->id,
-        'business.name'    => $this->business->name,
-    ]);
+    session(['user.business_id' => $this->business->id, 'business.id' => $this->business->id]);
     $this->actingAs($this->admin);
 
     $colab = bhimpCriarColaboradorComSaldo($this->business->id, $this->business->id);
