@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Reps.casos.md (a tela irmã) · RUNBOOK-config
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é um painel de compliance — o que ele afirma sobre imutabilidade e hash é o que o RH vai repetir numa fiscalização; e é a única tela do módulo que despeja a configuração do servidor no browser.
 owner: wagner
-last_run: "2026-09-08"
+last_run: "2026-09-28"
 last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
@@ -105,7 +105,7 @@ Outros `[BACKLOG]` desta tela:
 ## UC-CFGIDX-03 · O painel não afirma que assina marcações enquanto a assinatura não existe · `must`
 
 - **Persona:** o gestor de RH que mostra o painel a um fiscal como prova de conformidade.
-- **Aceite:** Dado o config do módulo sem `PONTO_ASSINAR_MARCACOES` definida · Quando abro
+- **Aceite:** Dado o config do módulo · Quando abro
   `/ponto/configuracoes` · Então a linha "Assinar marcações (ICP-Brasil)" diz **"Não"**.
 - **Teste:** `Modules/Ponto/Tests/Feature/ConfiguracaoContratoTest.php` — `UC-CFGIDX-03`.
 - **Contrato:** Portaria MTP 671/2021 (o painel é afirmação regulatória) + o estado real do sistema:
@@ -115,9 +115,7 @@ Outros `[BACKLOG]` desta tela:
   fixo, e o smoke em produção (biz=1) mostrou "Assinar marcações: Sim" ao lado de "Certificado ICP
   configurado: Não". Varredura em `origin/main`: nenhum código lê a flag nem
   `certificado_icp_path`/`certificado_icp_pass`, e nada grava `ponto_marcacoes.assinatura_digital`.
-  O default passou a ser `env('PONTO_ASSINAR_MARCACOES', false)`.
-- **Pré-condição:** o caso exige a env **não** definida no ambiente de teste — senão mediria o
-  ambiente, não o default.
-- **Quando a assinatura existir:** quem implementar liga `PONTO_ASSINAR_MARCACOES=true` no `.env` e
-  revisa este caso (ele passa a ser sobre o estado ligado, não sobre o default).
+  O valor passou a ser `false` literal (não `env()`: ligar exige implementar a assinatura).
+- **Quando a assinatura existir:** quem implementar troca a flag no config no mesmo PR e revisa
+  este caso.
 - **Status: 🧪 teste cita o UC, sem veredito de lane.**

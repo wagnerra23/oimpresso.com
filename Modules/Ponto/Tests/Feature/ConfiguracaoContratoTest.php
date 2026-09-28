@@ -175,12 +175,6 @@ it('UC-CFGIDX-03 · o painel não afirma que assina marcações enquanto a assin
     // implementada (US-PONTO-009 · GAP-PONTO-001): nenhum código lê a flag nem o certificado,
     // e `ponto_marcacoes.assinatura_digital` fica sempre NULL. Até 2026-09-28 o config trazia
     // `true` fixo e a tela afirmava "Sim".
-    //
-    // Pré-condição: o caso mede o DEFAULT do config. Se o ambiente definir a env, o caso
-    // mediria o ambiente, não o default — e passaria ou reprovaria por motivo alheio.
-    expect(getenv('PONTO_ASSINAR_MARCACOES'))->toBeFalse(
-        'PONTO_ASSINAR_MARCACOES está definida neste ambiente — o caso mede o default do config e não pode rodar com ela.'
-    );
 
     $resp = $this->inertiaGet('/ponto/configuracoes');
     $resp->assertStatus(200);
@@ -193,8 +187,8 @@ it('UC-CFGIDX-03 · o painel não afirma que assina marcações enquanto a assin
     );
     expect($rep['assinar_marcacoes'])->toBeFalse(
         'Por padrão o painel não pode afirmar que as marcações são assinadas: a assinatura ICP não '
-        . 'existe no sistema (US-PONTO-009). Quem implementar a assinatura liga pelo .env '
-        . '(PONTO_ASSINAR_MARCACOES) e revisa este caso.'
+        . 'existe no sistema (US-PONTO-009). Quem implementar a assinatura troca a flag no config '
+        . 'no mesmo PR e revisa este caso.'
     );
 });
 
