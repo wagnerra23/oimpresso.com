@@ -127,6 +127,34 @@ it('roteia parent_plan da meta-line > pra custom_fields (contrato plano-perdido 
         ->and($cand->first()['labels'])->toBeNull();
 });
 
+it('roteia a meta-line `> onda:` pra custom_fields ao lado do parent_plan (convenção task→onda · [W] 2026-09-28)', function () {
+    // A chave task→onda que o AR-DOC-069 dizia faltar: meta-line não-canônica, mesmo caminho
+    // do parent_plan. Controle: o parent_plan continua intacto (o plan-drift agrupa por ele).
+    $spec = escreverSpec($this->tmp, <<<MD
+    ### US-X-048 · Onda da Trilha D
+
+    > owner: wagner · priority: p1 · status: doing
+    > parent_plan: programa-ondas
+    > onda: D0
+
+    desc
+    MD);
+
+    $cand = $this->svc->parseSpec($spec, 'X');
+    expect($cand->first()['custom_fields'])->toBe(['parent_plan' => 'programa-ondas', 'onda' => 'D0']);
+});
+
+it('a US-INFRA-048 do SPEC real declara parent_plan=programa-ondas e onda=D0', function () {
+    // Trava a convenção NO DOC CANÔNICO, não só na fixture: reescrever a meta-line da US
+    // apaga o vínculo task→onda que a tela /documentacao/programa vai ler.
+    $cand = $this->svc->parseSpec(base_path('memory/requisitos/Infra/SPEC.md'), 'Infra')
+        ->firstWhere('task_id', 'US-INFRA-048');
+
+    expect($cand)->not->toBeNull()
+        ->and($cand['custom_fields']['parent_plan'] ?? null)->toBe('programa-ondas')
+        ->and($cand['custom_fields']['onda'] ?? null)->toBe('D0');
+});
+
 it('aceita parent_plan com `=` e junto na meta-line de owner', function () {
     $spec = escreverSpec($this->tmp, <<<MD
     ### US-X-009 · Variações de sintaxe

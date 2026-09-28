@@ -86,9 +86,10 @@ last_run: "2026-09-26"
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG]** estado **por onda** (D0–D10). Não implementável hoje: a § D.3 não tem coluna de task e
-  `parent_plan` é por plano, não por onda (`AR-DOC-069`). Falta a chave (`parent_wave` ou convenção de
-  slug por onda) — decisão de [W], porque muda convenção de task.
+- **[BACKLOG]** estado **por onda** (D0–D10). A chave que `AR-DOC-069` dizia faltar foi decidida por
+  [W] em 2026-09-28: meta-line `> onda: D<n>` na US do SPEC, que o `TaskParserService` grava em
+  `custom_fields['onda']` sem código novo (primeira: `US-INFRA-048` → `D0`). Falta a tela lê-la — vira
+  UC quando a thread 02 tiver o teste. Onda sem task marcada aparece "sem task", nunca herda status.
 - **[BACKLOG]** vista linkável na URL (`?vista=…`), proposta no rascunho do Cowork — sem fonte canônica ainda.
 
 ## Trilha do tempo
