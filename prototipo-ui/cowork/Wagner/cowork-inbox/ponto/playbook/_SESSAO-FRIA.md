@@ -53,6 +53,12 @@ Não edite 00-INDICE.md, github.md nem memory/**.
 | **30** proposal retida | 5 PRs (Conformidade → Fechamento → ValidacaoMobile → REP-P → AFD/AEJ) | **não — 5 PRs** | 29 (ratificada) | D0–D4 |
 | **31** bateria B1–B8 | recibos de comportamento | leitura + 2 dívidas | — | — |
 
+| **32** ALVO · Painel | mede o protótipo → `ponto--dashboard--index.{secoes,alvo}.json` | sim | build 28/09 importado (`.cli-ph`) | — |
+| **33** ALVO · Espelho lista | `ponto--espelho--index`, seletor estrutural (tela sem `data-contract`) | sim | idem | — |
+| **34** ALVO · Aprovações | `ponto--aprovacoes--index` | sim | idem | W15 (só para a 15) |
+
+> **2026-09-28:** 32–34 entraram na reescrita do `00-INDICE.md`. Sem elas, 13–15 saem `exit 2 NÃO MEDI`. As 17 telas restantes ganham ALVO + forma quando entrarem em vaga (W11).
+
 **Fora do Ponto:** `ds-atomos/playbook/06-widget-nivel-titulo.md` — chip próprio, dono é o primitivo (`Components/ui/card.tsx`), não o módulo.
 
 ---

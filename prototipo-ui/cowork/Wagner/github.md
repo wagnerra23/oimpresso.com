@@ -3,6 +3,16 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-28T18:35:29Z
+tree: 9672c5c828c6
+branch: main
+
+### Updated in this project
+- **Padrão único nos 12 módulos:** botões `jc-btn` = `Button` do DS (primário roxo) · aba ativa só sublinhado · TabBar rola até a aba ativa (`.ds-tabbar{position:relative}`) · header quebra em bloco (`.cli-ph`, sem teto de largura).
+- **Ponto:** `00-INDICE.md` reescrito (29 threads no §7, placar simulado `entregue 9 · próximo 13 · pendente 7`) + ALVO 32–34 (`ponto--{dashboard,espelho,aprovacoes}--index`, com `.dado`) · W15 nova.
+- **Recibos do `main` trazidos antes do export** (senão o `/PURGE` apagava): `ds-atomos/_saida-06` · `manufacturing/_saida-felipe-retorno` · `programa-doc/_saida-02`. `ds-atomos` 06 entrou no §7; `.um-vibe.active .label` → `--sb-text-hi` (achado do Felipe).
+
+## Sync anterior (2026-09-25 19:52)
 date: 2026-09-25T19:52:34Z
 tree: f1daa1e7ee37
 branch: main
