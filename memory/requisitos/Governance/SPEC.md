@@ -860,7 +860,9 @@ Os 4 vereditos que existiam respondem o **presente**: `dead` (path sumiu) · `zo
 
 > owner: wagner · priority: p3 · estimate: 1h · status: done · type: story
 
-**Implementado em:** `memory/licoes-rejeitadas.md` — decidido por [W] em 2026-09-28: opção (b1), aposentar. Foram removidos o script agent-corpus-counterfactual.mjs, o self-test dele e o scaffold .claude/governance-eval/corpus-counterfactual/ que o importava; a lápide está em licoes-rejeitadas.md §5 2026-09-28.
+**Implementado em:** `memory/licoes-rejeitadas.md` · `scripts/governance/corpus-counterfactual-aposentado.test.mjs` · verificado@99661da (2026-09-28) — decidido por [W] em 2026-09-28: opção (b1), aposentar. Foram removidos o script agent-corpus-counterfactual.mjs, o self-test dele e o scaffold de experimento que o importava. A lápide está em licoes-rejeitadas.md §5 2026-09-28, e o teste guarda a remoção.
+
+**Testado em:** [`scripts/governance/corpus-counterfactual-aposentado.test.mjs`](../../../scripts/governance/corpus-counterfactual-aposentado.test.mjs)
 
 Sobra da triagem dos 13 scripts órfãos ([PR #4834](https://github.com/wagnerra23/oimpresso.com/pull/4834), 2026-07-27): **13 → 2** sem invocador executável. Este é 1 dos 2 que exigem dono.
 

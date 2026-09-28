@@ -331,6 +331,12 @@ jobs:
       - name: funcao-scorecard outcome-probe (estatística da correlação nota↔outcome · barra CodeScene)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/funcao-scorecard-outcome-probe.test.mjs
+      # Guarda da poda de 2026-09-28 (US-GOV-056 · b1): o contrafactual de corpus segue
+      # aposentado. Falha se os arquivos removidos voltarem ou se código/config voltar a
+      # importá-los. Tem controle positivo do casador. Advisory por desenho.
+      - name: Contrafactual de corpus segue aposentado (US-GOV-056)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/corpus-counterfactual-aposentado.test.mjs
       # Braço CROSS-MODEL da grade de réguas (fraqueza "verificação same-model" 5,0 · orquestracao-adversarial).
       # Testa SÓ a lógica pura (classificarDivergencia/resumoControleNegativo/seleção/prompt-blind) — a
       # direção da divergência é o que o arm existe pra pegar; fixtures boa/ruim mordem (DERRUBA) e liberam
@@ -1078,7 +1084,7 @@ jobs:
       #     nomeado) · funcao-scorecard-humano (fecha rodada humana) · resolver-reclamacao
       #     (recebe pergunta em NL). agent-corpus-counterfactual saiu desta lista:
       #     aposentado em 2026-09-28 por [W] (US-GOV-056), junto com o scaffold
-      #     .claude/governance-eval/corpus-counterfactual/ que o importava.
+      #     de experimento que o importava.
       #   PORTA npm, NÃO CI (corpus não existe no runner — ligar aqui seria gate MUDO):
       #     hook-replay — lê `~/.claude/projects` (transcript real). É a lição do
       #     `modulo-preflight-warning`: fixture irreal engana, e job que não pode falhar
