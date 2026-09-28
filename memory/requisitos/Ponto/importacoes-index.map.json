@@ -30,7 +30,7 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Importacoes/Index.tsx",
         "linhas": "90-133",
-        "ancora": false
+        "ancora": "importacoes-historico-de-importacoes"
       },
       "status": "decidir-w",
       "acao": "Decidir se a coluna ID e a sub-linha de erro entram. Não há `D-*` para as colunas da lista (o `D-IMP-EXTRAS` é do Show). Exigiria `linhas_erro`/total no payload da lista.",
