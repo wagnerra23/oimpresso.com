@@ -73,6 +73,15 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 - `[BACKLOG]` AFD legacy (1.510/2009) está **parcial** e AFDT está **deprecated** regulatoriamente
   (substituído por AEJ, Anexo VI — US-PONTO-009, `_pendente_`). US sem código **não** vira UC agora:
   UC órfão trava o merge de quem for implementar ([proibicoes §5](../../../../../memory/proibicoes.md) 2026-07-16).
+- `[BACKLOG]` **Saber POR QUE linhas falharam** (`D-IMP-EXTRAS`, [W] 2026-09-14, ata bloco 4 linha 40;
+  emenda E2 da thread 27, no charter pelo #8095). Aceite proposto: dado um AFD processado com N linhas
+  rejeitadas, quando o RH abre a importação, então vê a amostra de erros com linha, NSR, tipo e
+  mensagem, e não precisa abrir o `.txt` para descobrir a causa. **Não é UC ainda:** em 2026-09-28 o
+  `erros_amostra` é gravado pelo job mas não está no payload do `ImportacaoController@show`, e o
+  `log` só aparece no alerta de falha (é o que o `UC-IMPSH-05` cobre). Vira UC (próximo id
+  `UC-IMPSH-06`; a thread o chamou de `UC-PONT-IMP-04`) no PR que expuser a amostra, junto do teste.
+  Nota PII: a amostra carrega linhas do AFD, que têm PIS — o teste e a tela exibem o que o job gravou,
+  e nenhum fixture usa PIS real.
 
 ---
 
