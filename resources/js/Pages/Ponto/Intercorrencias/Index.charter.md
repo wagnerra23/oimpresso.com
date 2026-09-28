@@ -40,8 +40,11 @@ Lista das intercorrências (ocorrências de ponto) do business — ausências, a
 - ❌ Não edita intercorrência inline.
   — os dois itens acima estão **ratificados** por [W] como `D-INTERC-ACOES` (ATA-DECISOES-2026-09-14,
   bloco 2, linha 23): *"Submeter sem abrir o detalhe é decisão cega, e o Show já existe pra isso."*
-  A linha da lista oferece só "Ver". Por R1 da ata, Non-Goal ratificado vira Pest GUARD — o guard
-  nasce no PR de testes da thread 27 e é citado aqui quando existir. Região no map: `acao-por-linha`
+  A linha da lista oferece só "Ver". Por R1 da ata, Non-Goal ratificado vira Pest GUARD: defendido
+  por `UC-INTIDX-04` (`Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php`, it
+  `UC-INTIDX-04 · a linha da fila só oferece Ver — não submete nem edita`), que lê o fonte da
+  `Index.tsx` e reprova rota `/submeter`, `/cancelar` ou `/edit`, qualquer `router.post|put|patch|delete`
+  e os rótulos "Editar"/"Submeter" na lista. Região no map: `acao-por-linha`
   (`memory/requisitos/Ponto/intercorrencias-index.map.json`).
 - ❌ Não mostra intercorrências de outro tenant — scope por `business_id` da sessão.
 - ❌ Não aplica efeito na apuração — é só visão de acompanhamento.
