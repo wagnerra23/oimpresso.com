@@ -60,3 +60,23 @@ Logo, pela condição de [W] (*liga/desliga por business passa pela UI canônica
 pacote/permissão, nunca por `if` no código*), o bloco pode **exibir** o estado das flags, mas
 **não** pode ganhar liga/desliga. **Pendente [W]:** se o bloco nasce só leitura (o que a tela
 inteira já é) ou espera o caminho de pacote existir. Não inventei a resposta.
+
+## Estado após o #8078 (2026-09-28)
+
+As quatro partes marcadas **"Diverge — dado quebrado"** acima foram medidas em `e4289e688` e
+continuam registradas como estavam naquele dia. O [#8078](https://github.com/wagnerra23/oimpresso.com/pull/8078)
+(mergeado 2026-09-28 20:09Z) corrigiu a leitura e as fechou. Re-medido no `Index.tsx` pós-merge:
+
+| Parte | Linhas vivas | Parâmetros vivo × protótipo | Estado |
+|---|---|---|---|
+| Regras CLT e Reforma Trabalhista | `Index.tsx:111-129` | 9 × 9 (`:997-1009`) | paridade |
+| Banco de Horas | `Index.tsx:131-146` | 7 × 7 (`:1010-1020`) | paridade |
+| REP e imutabilidade | `Index.tsx:148-176` | 7 × 7 (`:1021-1035`); `marcacao` agora chega do controller | paridade |
+| AFD e eSocial | `Index.tsx:178-193` | 7 × 7 (`:1036-1046`); `esocial` chega por allowlist | paridade |
+
+A nota somente leitura e o botão "Gerenciar REPs" moveram-se para `Index.tsx:97-107`; o
+conteúdo segue em paridade. O bloco IA do Ponto segue **ausente no vivo** (`D-CFG-IA` pendente)
+e por isso não recebe `data-contract` na thread 17.
+
+O `configuracoes-index.map.json` foi atualizado junto: status `paridade`, faixas re-medidas e
+`vivo.ancora` declarada nos quatro cards (thread 17, PR-4).

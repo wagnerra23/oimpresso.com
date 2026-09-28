@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Reps.casos.md (a tela irmã) · RUNBOOK-config
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é um painel de compliance — o que ele afirma sobre imutabilidade e hash é o que o RH vai repetir numa fiscalização; e é a única tela do módulo que despeja a configuração do servidor no browser.
 owner: wagner
-last_run: "2026-09-08"
+last_run: "2026-09-28"
 last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
@@ -24,6 +24,7 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 |----|-------------|------|--------|-------|--------|
 | UC-CFGIDX-01 | O painel não entrega ao browser a senha do certificado ICP | must `[T0]` | proibicoes (segredo) + charter §Mission (painel de leitura de *parâmetros*) | `ConfiguracaoContratoTest` | ✅ verde na lane |
 | UC-CFGIDX-02 | Todo parâmetro que o painel exibe chega da configuração real | must | `Modules/Ponto/Config/config.php` (o que a apuração usa) + charter §Goals + [US-PONTO-012](../../../../../memory/requisitos/Ponto/SPEC.md) (5ª instância) | `ConfiguracaoContratoTest` | 🧪 teste cita o UC, sem veredito |
+| UC-CFGIDX-03 | O painel não afirma que assina marcações enquanto a assinatura não existe | must | Portaria MTP 671/2021 + [US-PONTO-009](../../../../../memory/requisitos/Ponto/SPEC.md) (assinatura pendente) + `Modules/Ponto/Config/config.php` | `ConfiguracaoContratoTest` | 🧪 teste cita o UC, sem veredito |
 
 **Resolvido em 2026-09-28 — o painel lia 13 chaves que não existem** (fato datado; o registro de 2026-09-08 está no histórico do git deste arquivo)
 
@@ -97,4 +98,24 @@ Outros `[BACKLOG]` desta tela:
 - **Mordida medida (2026-09-28, por texto, dois lados):** contra o `.tsx` anterior ao conserto a
   extração acha 15 leituras e **13 sem chave no config**, as mesmas 13 do registro de 2026-09-08;
   contra o `.tsx` corrigido, 30 leituras e 0. O veredito da lane ainda não existe.
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**
+
+---
+
+## UC-CFGIDX-03 · O painel não afirma que assina marcações enquanto a assinatura não existe · `must`
+
+- **Persona:** o gestor de RH que mostra o painel a um fiscal como prova de conformidade.
+- **Aceite:** Dado o config do módulo · Quando abro
+  `/ponto/configuracoes` · Então a linha "Assinar marcações (ICP-Brasil)" diz **"Não"**.
+- **Teste:** `Modules/Ponto/Tests/Feature/ConfiguracaoContratoTest.php` — `UC-CFGIDX-03`.
+- **Contrato:** Portaria MTP 671/2021 (o painel é afirmação regulatória) + o estado real do sistema:
+  a assinatura ICP **não está implementada** ([US-PONTO-009](../../../../../memory/requisitos/Ponto/SPEC.md)
+  / GAP-PONTO-001).
+- **Regressão que defende (medida em 2026-09-28):** o config trazia `'assinar_marcacoes' => true`
+  fixo, e o smoke em produção (biz=1) mostrou "Assinar marcações: Sim" ao lado de "Certificado ICP
+  configurado: Não". Varredura em `origin/main`: nenhum código lê a flag nem
+  `certificado_icp_path`/`certificado_icp_pass`, e nada grava `ponto_marcacoes.assinatura_digital`.
+  O valor passou a ser `false` literal (não `env()`: ligar exige implementar a assinatura).
+- **Quando a assinatura existir:** quem implementar troca a flag no config no mesmo PR e revisa
+  este caso.
 - **Status: 🧪 teste cita o UC, sem veredito de lane.**

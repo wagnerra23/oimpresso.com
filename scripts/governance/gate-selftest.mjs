@@ -214,6 +214,7 @@ function runMemoryHealth(kind) {
     cpSync(join(ROOT, 'scripts', 'governance', 'fact-anchor.mjs'), join(sb, 'scripts', 'governance', 'fact-anchor.mjs')); // dep do Check T (fact-anchor)
     mkdirSync(join(sb, 'scripts', 'lib'), { recursive: true });
     cpSync(join(ROOT, 'scripts', 'lib', 'uc-regex.mjs'), join(sb, 'scripts', 'lib', 'uc-regex.mjs')); // dep do Check Z (UC aging) — import de topo, precisa existir mesmo quando o check não dispara
+    cpSync(join(ROOT, 'scripts', 'lib', 'markdown-tabela.mjs'), join(sb, 'scripts', 'lib', 'markdown-tabela.mjs')); // dep do fact-anchor (celulas, 2026-09-28) — import de topo
     return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
@@ -233,6 +234,7 @@ function runMemoryHealthUs(kind) {
     cpSync(join(ROOT, 'scripts', 'governance', 'fact-anchor.mjs'), join(sb, 'scripts', 'governance', 'fact-anchor.mjs')); // dep do Check T (fact-anchor)
     mkdirSync(join(sb, 'scripts', 'lib'), { recursive: true });
     cpSync(join(ROOT, 'scripts', 'lib', 'uc-regex.mjs'), join(sb, 'scripts', 'lib', 'uc-regex.mjs')); // dep do Check Z (UC aging) — import de topo, precisa existir mesmo quando o check não dispara
+    cpSync(join(ROOT, 'scripts', 'lib', 'markdown-tabela.mjs'), join(sb, 'scripts', 'lib', 'markdown-tabela.mjs')); // dep do fact-anchor (celulas, 2026-09-28) — import de topo
     return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
@@ -250,6 +252,7 @@ function runMemoryHealthAuthority(kind) {
     cpSync(join(ROOT, 'scripts', 'governance', 'fact-anchor.mjs'), join(sb, 'scripts', 'governance', 'fact-anchor.mjs')); // dep do Check T (fact-anchor)
     mkdirSync(join(sb, 'scripts', 'lib'), { recursive: true });
     cpSync(join(ROOT, 'scripts', 'lib', 'uc-regex.mjs'), join(sb, 'scripts', 'lib', 'uc-regex.mjs')); // dep do Check Z (UC aging) — import de topo, precisa existir mesmo quando o check não dispara
+    cpSync(join(ROOT, 'scripts', 'lib', 'markdown-tabela.mjs'), join(sb, 'scripts', 'lib', 'markdown-tabela.mjs')); // dep do fact-anchor (celulas, 2026-09-28) — import de topo
     return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
@@ -272,6 +275,7 @@ function runMemoryHealthRegistryRef(kind) {
     cpSync(join(ROOT, 'scripts', 'governance', 'fact-anchor.mjs'), join(sb, 'scripts', 'governance', 'fact-anchor.mjs')); // dep do Check T (fact-anchor)
     mkdirSync(join(sb, 'scripts', 'lib'), { recursive: true });
     cpSync(join(ROOT, 'scripts', 'lib', 'uc-regex.mjs'), join(sb, 'scripts', 'lib', 'uc-regex.mjs')); // dep do Check Z (UC aging) — import de topo, precisa existir mesmo quando o check não dispara
+    cpSync(join(ROOT, 'scripts', 'lib', 'markdown-tabela.mjs'), join(sb, 'scripts', 'lib', 'markdown-tabela.mjs')); // dep do fact-anchor (celulas, 2026-09-28) — import de topo
     return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }

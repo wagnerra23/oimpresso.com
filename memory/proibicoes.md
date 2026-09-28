@@ -1812,6 +1812,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** ao consertar um defeito de **parsing de formato** (tabela markdown, CSV, frontmatter), a regra vai para um lugar importável (`scripts/lib/`) e o conserto procura os outros parsers do mesmo formato — `grep` por `split('|')` perto de `startsWith('|')` — e diz o número. Consertar dentro do script que doeu deixa os irmãos com a versão velha. E antes de escrever helper novo, procurar se o repo já tem um: aqui ele existia na **mesma pasta**. Não é gate: a forma sintática (acusar `split('|')`) reprovaria splits legítimos fora de tabela, e a família de guard sintático já tem várias lápides medidas neste §5.
 
+### 2026-09-28 — EMENDA da lápide 2026-07-30 (`rg` não lê dotfile): a LEI dela, `rg --hidden -g '!.git/**'`, ainda é cega a arquivo de TEXTO com byte NUL — e o único cego era o único consumidor
+
+- **O limite (variante também proibida):** varredura que sustente claim de **ausência** ou de **inventário** não para na receita `rg --hidden -g '!.git/**'` da lápide-mãe. Ou acrescenta **`--binary`** (busca o arquivo binário encontrado na recursão sem precisar do `-a`), ou usa **`git grep -l`** como número de referência, que a mãe já chamava de oráculo de desempate e que aqui foi o único certo. O teste barato da mãe continua valendo e foi o que pegou este caso: **se a contagem do `rg` difere da do `git grep`, a varredura estava cega** — refaça, não interprete. Vale para `fd` e para qualquer ferramenta com heurística de binário.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
