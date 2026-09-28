@@ -5,7 +5,7 @@ irmaos: Create.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F7 + §6.
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é o único caminho de entrada de marcação vinda de REP-A — e reimportar o mesmo arquivo duas vezes duplicaria jornada.
 owner: wagner
-last_run: "2026-09-08"
+last_run: "2026-09-28"
 last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 

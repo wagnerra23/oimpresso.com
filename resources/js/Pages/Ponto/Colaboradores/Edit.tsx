@@ -82,7 +82,7 @@ export default function ColaboradorEdit({ colaborador, escalas }: Props) {
         </header>
 
         <form onSubmit={submit}>
-          <Card>
+          <Card data-contract="colaboradorform-configuracao-de-ponto">
             <CardHeader>
               <CardTitle className="text-base">Identificação</CardTitle>
               <CardDescription className="text-xs">

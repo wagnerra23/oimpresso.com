@@ -30,7 +30,7 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
         "linhas": "91-107",
-        "ancora": false
+        "ancora": "importacoes-dados-do-arquivo"
       },
       "status": "decidir-w",
       "acao": "Decidir se iniciado/concluído entram — dependem de coluna que o payload não expõe hoje. Não há `D-*` específico; o charter pede 6 campos e o vivo cumpre os 6.",
@@ -45,7 +45,7 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
         "linhas": "109-127",
-        "ancora": false
+        "ancora": "importacoes-resumo-do-processamento"
       },
       "status": "decidir-w",
       "acao": "Decidir a forma (KPI × linhas é FORMA, thread de forma). A barra de % exige o total de linhas no payload.",

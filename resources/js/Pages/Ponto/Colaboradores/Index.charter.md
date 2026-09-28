@@ -33,6 +33,14 @@ O gestor localiza colaboradores para configurar seus parâmetros de ponto. A tel
   [W] 2026-09-14; inteiros só na tela Edit), escala, flags "Ponto" e "BH". PIS ausente aparece como
   **"PIS não cadastrado"**, não como vazio: o AFD da Portaria 671/2021 é chaveado por PIS.
 - Atalho "Config" pro editar (`/ponto/colaboradores/{id}/editar`).
+- Colunas adicionais: "Último ponto" (última marcação do mês, derivada) e "Saldo BH" (com cor por sinal).
+- Filtros: escala (select) e situação — Ativos · Só quem controla ponto · **Sem PIS cadastrado** ·
+  Desligados · Todos. O "Sem PIS cadastrado" é, nas palavras de [W], *"o item de maior valor do lote
+  inteiro: sem PIS o AFD rejeita, e hoje a pessoa só descobre isso na Importação, depois do erro"*.
+  — `D-COLAB-COLUNAS`, [W] 2026-09-14 (ATA-DECISOES-2026-09-14, bloco 4, linha 39). ⚠️ **Estado em
+  2026-09-28:** a construir — o `Index.tsx` só tem a busca (`PageFilters` com 1 campo) e nenhuma das
+  2 colunas. Regiões no map: `barra-de-busca-e-filtros` e `lista-de-colaboradores`
+  (`memory/requisitos/Ponto/colaboradores-index.map.json`).
 - Empty states distintos para "sem cadastro" e "busca sem resultado".
 
 ---

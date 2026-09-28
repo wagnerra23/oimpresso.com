@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 8 |
 | Telas com `casos.md` | 12 |
-| UC declarados | 76 |
-| UC com teste que os cita | 75 |
+| UC declarados | 77 |
+| UC com teste que os cita | 76 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -42,7 +42,7 @@ authority: generated
 | US-PROD-020 | `todo` | [G-04] Governança do Produto: casos.md + revisar SPEC |
 | US-PROD-021 | `todo` | [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) |
 | US-PROD-022 | `todo` | [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mul |
-| US-PROD-023 | `todo` | [G-05] Finalizar + promover as 8 telas React do Produto (draft→live) + `can:prod |
+| US-PROD-023 | `todo` | [G-05] Finalizar + promover as **6 telas React não-cadastrais** do Produto (draf |
 | US-PROD-024 | `todo` | [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta prim |
 | US-PROD-025 | `todo` | [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV |
 | US-PROD-026 | `todo` | Fornecedores/cotação por produto (melhor preço no drawer) |
@@ -69,13 +69,14 @@ authority: generated
 | UC-PCAD-04 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-05 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-06 | Create | 🧪 aguarda veredito da lane |
-| UC-PEDIT-01 | Edit | 🧪 stub (não executa) |
-| UC-PEDIT-02 | Edit | 🧪 stub (não executa) |
+| UC-PEDIT-01 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-02 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-03 | Edit | 🧪 aguarda veredito da lane |
-| UC-PEDIT-04 | Edit | 🧪 stub (não executa) |
+| UC-PEDIT-04 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-05 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-06 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-07 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-08 | Edit | 🧪 aguarda veredito da lane |
 | UC-PFIX-01 | ajuste-estoque-relatorio (blade) | 🧪 aguarda veredito da lane |
 | UC-PFIX-02 | ajuste-estoque-relatorio (blade) | 🧪 aguarda veredito da lane |
 | UC-PFIX-03 | ajuste-estoque-relatorio (blade) | 🧪 aguarda veredito da lane |

@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F7 + §6.4 
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a ponte entre o relógio físico (REP-A homologado) e a jornada apurada — duplicar aqui infla a folha.
 owner: wagner
-last_run: "2026-09-08"
+last_run: "2026-09-28"
 last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
@@ -73,6 +73,15 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 - `[BACKLOG]` AFD legacy (1.510/2009) está **parcial** e AFDT está **deprecated** regulatoriamente
   (substituído por AEJ, Anexo VI — US-PONTO-009, `_pendente_`). US sem código **não** vira UC agora:
   UC órfão trava o merge de quem for implementar ([proibicoes §5](../../../../../memory/proibicoes.md) 2026-07-16).
+- `[BACKLOG]` **Saber POR QUE linhas falharam** (`D-IMP-EXTRAS`, [W] 2026-09-14, ata bloco 4 linha 40;
+  emenda E2 da thread 27, no charter pelo #8095). Aceite proposto: dado um AFD processado com N linhas
+  rejeitadas, quando o RH abre a importação, então vê a amostra de erros com linha, NSR, tipo e
+  mensagem, e não precisa abrir o `.txt` para descobrir a causa. **Não é UC ainda:** em 2026-09-28 o
+  `erros_amostra` é gravado pelo job mas não está no payload do `ImportacaoController@show`, e o
+  `log` só aparece no alerta de falha (é o que o `UC-IMPSH-05` cobre). Vira UC (próximo id
+  `UC-IMPSH-06`; a thread o chamou de `UC-PONT-IMP-04`) no PR que expuser a amostra, junto do teste.
+  Nota PII: a amostra carrega linhas do AFD, que têm PIS — o teste e a tela exibem o que o job gravou,
+  e nenhum fixture usa PIS real.
 
 ---
 
