@@ -14,6 +14,10 @@ related_adrs: []
 
 # Session log 2026-09-28 — doc-id-index ganhou dono do frescor
 
+## TL;DR
+
+O `governance/doc-id-index.json` estava 330 ids atrás e o `--write` não tinha invocador. O dono do frescor passou a ser o job `refresh` do `system-map.yml`, que roda `doc-id-index --refresh` todo dia; esse modo recusa regenerar quando há move pendente, porque é o sinal que o `doc-auto-relink --detect` usa. Mergeado no [#8085](https://github.com/wagnerra23/oimpresso.com/pull/8085).
+
 ## O problema
 `governance/doc-id-index.json` estava atrasado e nada o mantinha. O CI roda só o `--check-collisions`, por desenho (o docblock de 30/07 explica), e o `--write` "de consolidação" não tinha invocador. Em `origin/main` d0018abce: `--check` rc=1, faltavam 330 ids (98 stamped, 30 ADRs 0388–0417, 88 handoffs, 112 sessions e 2 removidos à mão pelo #8037), e nenhum id tinha path mudado.
 
