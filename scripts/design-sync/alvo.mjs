@@ -329,6 +329,14 @@ async function abrirPagina(url, { viewport = null, sbMode = null, rota = null } 
     await page.addInitScript((r) => { try { localStorage.setItem('oimpresso.route', r); } catch { /* sem storage */ } }, rota);
   }
   await page.goto(url, { waitUntil: 'domcontentloaded' });
+  // Mouse em ponto FIXO antes de medir. Sem isso a posição do ponteiro é do ambiente: medido em
+  // 2026-09-28, o `sb-alcas` (`.sb:hover .sb-collapse-handle{opacity:1}`) saía `opacity 0` no
+  // Chromium local (Windows) e `1` em TODAS as 9 rodadas de CI (Linux) — o secao-check acusava
+  // regressão que era só hover. O canto inferior direito fica fora da sidebar; o `--clicar`, que
+  // vem depois, leva o mouse até o alvo do clique como antes. Canário do mesmo dia: com o mouse
+  // em (20,450), sobre a sidebar, o local também passa a medir `opacity 1` — a causa era o hover.
+  const vp = page.viewportSize() || { width: 1280, height: 900 };
+  await page.mouse.move(vp.width - 1, vp.height - 1);
   return { browser, page };
 }
 

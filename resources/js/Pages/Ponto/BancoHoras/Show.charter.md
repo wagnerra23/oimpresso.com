@@ -31,6 +31,12 @@ O gestor inspeciona o saldo atual de um colaborador, o histórico completo de mo
 - Formulário de ajuste manual: minutos (±) + observação obrigatória (mín. 5 chars) → `POST /ponto/banco-horas/{colaborador}/ajuste`.
 - Histórico paginado (50/pág) de movimentos com tipo, minutos, data de referência, observação e registro.
 - Aviso explícito de append-only (o saldo é a soma dos movimentos).
+- KPIs de acordo: "Teto do acordo" (saldo máximo/mínimo em horas) e "Prazo de compensação" (meses,
+  acordo individual). É por eles que a regra de limite/expiração fica visível ao usuário (fecha a
+  pendência que estava no `Index.charter.md`). — `D-BH-KPI`, [W] 2026-09-14
+  (ATA-DECISOES-2026-09-14, bloco 4, linha 42). ⚠️ **Estado em 2026-09-28:** a construir — nem o
+  `Show.tsx` nem o `BancoHorasController` citam teto/prazo. Região no map: `kpis-do-extrato`
+  (`memory/requisitos/Ponto/banco-horas-show.map.json`).
 
 ---
 

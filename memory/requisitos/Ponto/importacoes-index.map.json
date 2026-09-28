@@ -1,0 +1,100 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Ponto/Importacoes/Index (/ponto/importacoes)",
+  "gap_fonte": "memory/requisitos/Ponto/importacoes-index-gap.md",
+  "prototipo_sha": "sha256:e4d0b5a3707e",
+  "gerado_em": "2026-09-28",
+  "partes": [
+    {
+      "id": "barra-e-acao-primaria",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "793-797"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Importacoes/Index.tsx",
+        "linhas": "63-71",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada na lista. A diferença de destino (rota × inline) é `D-PONTO-DETALHE` = ROTA PRÓPRIA: o vivo está certo e quem muda é o protótipo (R2).",
+      "_acionavel": false
+    },
+    {
+      "id": "historico-de-importacoes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "825-843"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Importacoes/Index.tsx",
+        "linhas": "90-133",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir se a coluna ID e a sub-linha de erro entram. Não há `D-*` para as colunas da lista (o `D-IMP-EXTRAS` é do Show). Exigiria `linhas_erro`/total no payload da lista.",
+      "_acionavel": true
+    },
+    {
+      "id": "data-da-importacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "837"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Importacoes/Index.tsx",
+        "linhas": "119-121",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente (o charter pede \"quando (humanizado)\").",
+      "_acionavel": false
+    },
+    {
+      "id": "ordenacao-e-paginacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "842"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Importacoes/Index.tsx",
+        "linhas": "135-156",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. O protótipo corrige a ordenação.",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "827"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Importacoes/Index.tsx",
+        "linhas": "76-88",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente; o CTA é catch-up do protótipo.",
+      "_acionavel": false
+    },
+    {
+      "id": "filtro-por-estado-e-tipo",
+      "prototipo": {
+        "arquivo": "n/a",
+        "linhas": "n/a"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "prototipo-a-frente",
+      "acao": "Incorporar — `D-IMP-FILTRO` = ENTRA (\"barato, e a lista cresce todo dia\"). Filtro de estado + tipo no controller e na tela, com partial reload.",
+      "_acionavel": true
+    }
+  ]
+}
