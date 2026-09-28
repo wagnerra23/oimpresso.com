@@ -1,0 +1,24 @@
+{
+  "_": "semente [CL] 2026-09-28 — âncoras do protótipo ponto-telas.jsx símbolo Escalas (Card contrato=\"escalas-escalas-cadastradas\"). dado lido em EscalaController.php@main c0339ceff (index: paginate(20), withCount turnos+colaboradores).",
+  "_mapa": "Conferida em 2026-09-28 por `alvo:mapa --rota pt-escalas --raiz .ponto-root` (e `--raiz '.ponto-root .pt-body'`) contra o espelho servido por `servirEstatico` (o mesmo servidor do secao-check), mais querySelectorAll de cada seletor no DOM: todos resolvem 1 nó. Rota do espelho: `pt-escalas`. Mapa: .ponto-root = div.cli-ph · nav.ds-tabbar.jm-tabs (13 abas) · div.pt-body · div. .pt-body = div (nota de carga + Nova escala) · div (Card escalas-escalas-cadastradas) · div (nota de turnos read-only). A barra e a nota não têm data-contract no protótipo — seletor estrutural por posição dentro do .pt-body.",
+  "header": {
+    "seletor": ".ponto-root > .cli-ph > header",
+    "dado": "shell — PageHeader"
+  },
+  "tabs": {
+    "seletor": ".ponto-root > nav.ds-tabbar",
+    "dado": "shell — navegação do Ponto: 13 abas de área do protótipo (W9, ADR 0418)"
+  },
+  "barra": {
+    "seletor": ".ponto-root .pt-body > div:first-child",
+    "dado": "estático — nota de carga (480 = 8h, 2.640 = 44h) + ação Nova escala → /ponto/escalas/create (D-PONTO-DETALHE)"
+  },
+  "lista": {
+    "seletor": "[data-contract=\"escalas-escalas-cadastradas\"]",
+    "dado": "EscalaController::index — paginate(20) no servidor (W11, ADR 0418): id · nome · codigo · tipo · carga_diaria_minutos · carga_semanal_minutos · permite_banco_horas · turnos_count · colaboradores_count (D-ESC-DESTROY). O horário do 1º turno na sub-linha do Nome NÃO vem no payload hoje."
+  },
+  "nota": {
+    "seletor": ".ponto-root .pt-body > div:last-child",
+    "dado": "estático — turnos são leitura nesta tela (sai quando o CRUD de turnos existir, D-ESC-TURNOS)"
+  }
+}
