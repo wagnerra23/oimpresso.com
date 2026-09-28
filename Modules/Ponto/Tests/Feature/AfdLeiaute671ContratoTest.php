@@ -121,6 +121,41 @@ function afd671Tipo7(string $nsr, string $dh): string
     return afd671Linha([$nsr, '7', $dh, '0' . afd671Cpf(), $dh, '01', '0', str_repeat('a', 64)], 137);
 }
 
+/**
+ * CRC-16/KERMIT, como manda o leiaute 671 para REP-A/REP-P (item 8). Implementação própria
+ * do teste — não chama o serviço —, ancorada no valor de verificação da norma (AFD-INT-01).
+ */
+function afd671Crc(string $dados): string
+{
+    $crc = 0;
+    foreach (str_split($dados) as $c) {
+        $crc ^= ord($c);
+        for ($b = 0; $b < 8; $b++) {
+            $crc = ($crc & 1) ? (($crc >> 1) ^ 0x8408) : ($crc >> 1);
+        }
+    }
+
+    return sprintf('%04X', $crc);
+}
+
+function afd671Tipo3ComCrc(string $nsr, string $dh): string
+{
+    $corpo = $nsr . '3' . $dh . '0' . afd671Cpf();
+
+    return afd671Linha([$corpo, afd671Crc($corpo)], 50);
+}
+
+/**
+ * Tipo 7 com hash encadeado. ⚠️ Premissa declarada: a norma lista os campos 1-7 + o hash
+ * anterior, sem dizer o separador; aqui é a concatenação crua (posições 001-073 + hash).
+ */
+function afd671Tipo7Encadeado(string $nsr, string $dh, string $anterior): string
+{
+    $corpo = $nsr . '7' . $dh . '0' . afd671Cpf() . $dh . '01' . '0';
+
+    return afd671Linha([$corpo, hash('sha256', $corpo . $anterior)], 137);
+}
+
 function afd671Importar($test, array $linhas): Importacao
 {
     $path = 'ponto/afd-contrato-671/' . uniqid() . '.txt';
@@ -199,4 +234,113 @@ it('AFD-1510-01 · legado 1510 (DDMMAAAA HHMM + PIS) segue importado pelo PIS �
 
     expect($imp->linhas_erro)->toBe(0)
         ->and(afd671Marcacoes($this))->toBe(['2026-09-24 08:00:00']);
+});
+
+/**
+ * Cabeçalho 1510 pelo Anexo I da Portaria 1510/2009 (com as alterações da 2233/2009):
+ * tipo ident 011 · CNPJ 012-025 · CEI 026-037 · razão 038-187 · nº fabricação 188-204 ·
+ * data inicial 205-212 · data final 213-220 · data geração 221-228 · hora geração 229-232.
+ */
+function afd1510Cabecalho(string $fabricacao, string $geracao): string
+{
+    return afd671Linha([
+        '000000000', '1', '1', '11222333000181', str_repeat('0', 12),
+        str_pad('EMPRESA FICTICIA AFD1510', 150), $fabricacao,
+        '24092026', '24092026', $geracao, '0900',
+    ], 232);
+}
+
+/** Trailer 1510: "999999999" + contadores dos tipos 2..5 + tipo "9" na posição 46. */
+function afd1510Trailer(): string
+{
+    return afd671Linha(['999999999', str_repeat('0', 9), '000000001', str_repeat('0', 18), '9'], 46);
+}
+
+function afd1510Marcacao(string $nsr): string
+{
+    return afd671Linha([$nsr, '3', '24092026', '0800', AFD671_PIS], 34);
+}
+
+it('AFD-1510-02 · cabeçalho 1510 identifica o REP pelo nº de fabricação (188-204) e o CNPJ (012-025)', function () {
+    $fabricacao = '00004000010000123';
+
+    afd671Importar($this, [afd1510Cabecalho($fabricacao, '25092026'), afd1510Marcacao('000000001')]);
+
+    $rep = Rep::withoutGlobalScopes()->where('business_id', AFD671_BIZ)->where('identificador', $fabricacao)->first();
+    expect($rep)->not->toBeNull()
+        ->and($rep->cnpj)->toBe('11222333000181');
+});
+
+it('AFD-1510-03 · arquivo 1510 completo (cabeçalho, marcação, trailer) conclui sem erro', function () {
+    $imp = afd671Importar($this, [
+        afd1510Cabecalho('00004000010000123', '25092026'),
+        afd1510Marcacao('000000001'),
+        afd1510Trailer(),
+    ]);
+
+    expect($imp->linhas_erro)->toBe(0)
+        ->and($imp->estado)->toBe(Importacao::ESTADO_CONCLUIDA);
+});
+
+it('AFD-1510-04 · o mesmo relógio exportado duas vezes não duplica a marcação (idempotência de reimport)', function () {
+    $fabricacao = '00004000010000123';
+
+    afd671Importar($this, [afd1510Cabecalho($fabricacao, '25092026'), afd1510Marcacao('000000001')]);
+    afd671Importar($this, [afd1510Cabecalho($fabricacao, '26092026'), afd1510Marcacao('000000001')]);
+
+    expect(afd671Marcacoes($this))->toBe(['2026-09-24 08:00:00']);
+});
+
+// ── Integridade (decisão [W] 2026-09-28): CRC-16 e hash divergentes REGISTRAM AVISO,
+//    nunca rejeitam o arquivo nem a marcação, e não mudam o estado da importação.
+
+it('AFD-INT-01 · o CRC-16 do teste bate com o valor de verificação da norma ("123456789" = 2189)', function () {
+    expect(afd671Crc('123456789'))->toBe('2189');
+});
+
+it('AFD-INT-02 · tipo 3 com CRC-16 correto importa sem aviso', function () {
+    $imp = afd671Importar($this, [afd671Tipo3ComCrc('000000001', '2026-09-24T08:00:00-0300')]);
+
+    expect($imp->linhas_erro)->toBe(0)
+        ->and($imp->estado)->toBe(Importacao::ESTADO_CONCLUIDA)
+        ->and((string) $imp->log)->not->toContain('integridade');
+});
+
+it('AFD-INT-03 · tipo 3 com CRC-16 divergente é importado assim mesmo, e o aviso fica no log', function () {
+    $linha = afd671Tipo3ComCrc('000000007', '2026-09-24T08:00:00-0300');
+    $linha = substr($linha, 0, 46) . (substr($linha, 46) === '0000' ? 'FFFF' : '0000');
+
+    $imp = afd671Importar($this, [$linha]);
+
+    expect($imp->linhas_erro)->toBe(0)
+        ->and($imp->estado)->toBe(Importacao::ESTADO_CONCLUIDA)
+        ->and(afd671Marcacoes($this))->toBe(['2026-09-24 08:00:00'])
+        ->and((string) $imp->log)->toContain('integridade')
+        ->and((string) $imp->log)->toContain('NSR 7')
+        ->and((string) $imp->log)->toContain('CRC-16');
+});
+
+it('AFD-INT-04 · hash SHA-256 que não encadeia gera aviso só no registro quebrado; as 3 marcações entram', function () {
+    $r1 = afd671Tipo7Encadeado('000000001', '2026-09-24T08:00:00-0300', '');
+    $r2 = afd671Tipo7Encadeado('000000002', '2026-09-24T12:00:00-0300', substr($r1, 73));
+    $r3 = afd671Tipo7Encadeado('000000003', '2026-09-24T13:00:00-0300', str_repeat('0', 64));
+
+    $imp = afd671Importar($this, [$r1, $r2, $r3]);
+
+    expect($imp->linhas_erro)->toBe(0)
+        ->and($imp->estado)->toBe(Importacao::ESTADO_CONCLUIDA)
+        ->and(afd671Marcacoes($this))->toHaveCount(3)
+        ->and((string) $imp->log)->toContain('NSR 3')
+        ->and((string) $imp->log)->not->toContain('NSR 2')
+        ->and((string) $imp->log)->toContain('SHA-256');
+});
+
+it('AFD-INT-05 · arquivo 1510 não tem CRC nem hash, logo não gera aviso', function () {
+    $imp = afd671Importar($this, [
+        afd1510Cabecalho('00004000010000123', '25092026'),
+        afd1510Marcacao('000000001'),
+        afd1510Trailer(),
+    ]);
+
+    expect((string) $imp->log)->not->toContain('integridade');
 });

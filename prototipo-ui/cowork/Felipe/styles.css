@@ -6601,6 +6601,19 @@ body{
 .um-cascade.active{ background:var(--sb-hover) }
 .um-sub{ margin:2px 0 4px 10px; padding-left:8px; border-left:1px solid var(--border) }
 .um-sub .um-item{ font-size:12px }
+/* Submenu Aparência (tema) — transcrito de prototipo-ui/cowork/Wagner/styles.css L6590-6595 (25/09/2026). */
+/* Os itens do submenu Aparência são <button> — zera o desenho nativo do controle. Transcrito de
+   prototipo-ui/cowork/Wagner/styles.css L355-360 e L367 (25/09/2026), só para .um-item. */
+button.um-item{appearance:none;-webkit-appearance:none;background:none;border:0;margin:0;width:100%;box-sizing:border-box;font-family:inherit;text-align:left}
+button:where(.um-item){font-size:inherit}
+.um-vibe-cur{margin-left:auto;font-family:var(--font-mono);font-size:10.5px;color:var(--text-mute)}
+.um-cascade.active .um-vibe-cur{color:var(--accent)}
+.um-vibe .label{display:flex;flex-direction:column;gap:1px;line-height:1.25}
+.um-vibe-d{font-style:normal;font-size:10.5px;color:var(--text-mute)}
+/* Diverge da cópia do Wagner (lá: var(--text)): o menu é sempre escuro (sidebar dark-fixo, UI-0023),
+   e no tema claro --text é escuro — o nome da opção ativa sumia (medido 25/09/2026). Usa o texto da sidebar. */
+.um-vibe.active .label{color:var(--sb-text-hi)}
+.um-vibe-ck{margin-left:auto;color:var(--accent);flex:0 0 auto}
 
 /* ── ⌘K (fallback quando o Command do DS não carrega) ── */
 .cmdk-scrim{ position:fixed; inset:0; z-index:9000; background:oklch(0 0 0 / .45); display:flex; align-items:flex-start; justify-content:center; padding-top:12vh }
