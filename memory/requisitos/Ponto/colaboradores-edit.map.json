@@ -15,7 +15,7 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Colaboradores/Edit.tsx",
         "linhas": "93-131",
-        "ancora": false
+        "ancora": "colaboradorform-configuracao-de-ponto"
       },
       "status": "paridade",
       "acao": "Catch-up de copy: o help do PIS (`:677`) não existe no vivo e liga esta tela à de Importações. Barato, sem decisão.",
