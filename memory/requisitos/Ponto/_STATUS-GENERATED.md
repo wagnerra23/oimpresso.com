@@ -28,7 +28,6 @@ authority: generated
 | Lacuna | O que falta escrever |
 |---|---|
 | `US-PONTO-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Relogio web pra registrar entrada/saida (REP-P) |
-| `US-PONTO-012` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Corrigir os atributos fantasma do modulo (4 instancias) |
 | `US-PONTO-015` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Fechamento de competência — as restrições existem, a tela e  |
 
 ### Backlog — NÃO é lacuna
@@ -63,6 +62,7 @@ authority: generated
 | UC-BHSHOW-02 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-03 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-CFGIDX-01 | Configuracoes/Index | 🧪 aguarda veredito da lane |
+| UC-CFGIDX-02 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CFGREP-01 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
 | UC-CFGREP-02 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
 | UC-CFGREP-03 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
