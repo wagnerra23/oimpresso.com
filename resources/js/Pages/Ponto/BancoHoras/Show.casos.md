@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o extrato é o ledger que prova o saldo — e saldo de banco de horas vira dinheiro na rescisão.
 owner: wagner
 last_run: "2026-09-28"
-last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
+last_run_ci: "2026-09-28 (PR #8077, revalidacao apos a navegacao de pagina entrar no Show.tsx): lane PHP / Pest (Ponto - MySQL) run 36474710700 no sha 7369f1e83 - UC-BHSHOW-01, 02 e 03 passaram; UC-BHSHOW-04 (novo) caiu com 403 por setup de autenticacao do proprio caso, corrigido no commit seguinte, e segue 🧪 ate a lane provar. Registro anterior, preservado: 69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
 # Casos de Uso & Aceite — Extrato de banco de horas
@@ -30,6 +30,7 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-BHSHOW-01 | Movimento gravado não pode ser alterado nem apagado | must `[V0]` `[T0]` | `CU-PONTO-09` + US-PONTO-008 | `BancoHorasImportacaoContratoTest` | ✅ verde na lane |
 | UC-BHSHOW-02 | Ajuste manual exige justificativa e vira movimento novo | must `[V0]` | `CU-PONTO-09` + US-PONTO-004 | `BancoHorasImportacaoContratoTest` | ✅ verde na lane |
 | UC-BHSHOW-03 | Extrato de colaborador de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `BancoHorasImportacaoContratoTest` | ✅ verde na lane |
+| UC-BHSHOW-04 | Com mais de 50 movimentos, a 2ª página do extrato é alcançável | must | charter §Goals ("Histórico paginado (50/pág)") | `BancoHorasImportacaoContratoTest` | 🧪 teste cita o UC, sem veredito |
 
 **[BACKLOG]:**
 
@@ -96,4 +97,27 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   tenant é o **global scope**, não o `firstOrFail`. Comentário que descreve errado a própria defesa é
   como a defesa some no refactor seguinte (SDD §9 D-5).
 - **Nota de teste:** biz=1 vs id fictício — **nunca biz=4** ([ADR 0101]).
+- **Status: 🧪 sem veredito.**
+
+---
+
+## UC-BHSHOW-04 · Com mais de 50 movimentos, a 2ª página do extrato é alcançável · `must`
+
+- **Persona:** RH conferindo o extrato de um colaborador antigo, com anos de ledger. O extrato só serve
+  como prova se **todo** movimento puder ser lido — o que não aparece na tela não é conferível.
+- **Aceite:** Dado um colaborador com **51** movimentos · Quando abro o extrato · Então vejo
+  "Página 1 de 2" com 50 linhas e um controle de página · E quando vou à página 2 · Então vejo o
+  51º movimento · E as duas páginas juntas são o extrato inteiro, sem repetição nem buraco.
+- **Teste:** `BancoHorasImportacaoContratoTest.php` — `UC-BHSHOW-04` (partial reload `movimentos`,
+  o mesmo que o botão da tela faz; tenant 98, ADR 0358).
+- **Contrato:** `Show.charter.md` §Goals — *"Histórico paginado (50/pág) de movimentos"* · §Automation
+  hooks — *"`movimentos` vem via `Inertia::defer` (paginate 50 lazy)"*.
+- **Regressão que defende:** até 2026-09-28 o servidor paginava em 50 mas a tela não tinha controle de
+  página — declarava `last_page`/`links` na interface e não os usava. Quem tinha mais de 50 movimentos via
+  só os 50 mais recentes, sem nenhum sinal de que havia mais (registro: `banco-horas-show-gap.md`,
+  "Paginação do histórico").
+- **Fora do alcance:** o controller ordena só por `created_at desc`, sem desempate por `id`. Com
+  movimentos de mesmo instante (importação em lote) a fatia de cada página não é determinística no
+  MySQL. O teste fixa `created_at` distinto para medir a paginação, não a ordenação — o desempate é
+  achado à parte, não coberto aqui.
 - **Status: 🧪 sem veredito.**

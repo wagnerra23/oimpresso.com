@@ -293,6 +293,104 @@ it('UC-BHSHOW-03 · extrato de colaborador de outro empregador dá 404 [must][T0
         ->assertStatus(404); // saldo é informação salarial — nunca vaza
 });
 
+/**
+ * Contrato: Show.charter.md §Goals — "Histórico paginado (50/pág) de movimentos"
+ * + §Automation hooks ("movimentos vem via Inertia::defer (paginate 50 lazy)").
+ *
+ * O servidor sempre paginou em 50; a tela é que não tinha controle de página e
+ * escondia do movimento 51 em diante. Este caso prova, pelo mesmo partial reload
+ * que o botão da tela faz (`only: ['movimentos']`), que a 2ª página existe, é
+ * alcançável e traz o que faltou na 1ª — e que a soma das duas é o extrato inteiro.
+ *
+ * `created_at` distinto por movimento DE PROPÓSITO: o controller ordena só por
+ * `created_at desc`, sem desempate por id; com timestamps iguais a fatia de cada
+ * página não é determinística no MySQL. O caso fixa a ordem pra medir a paginação,
+ * não a estabilidade da ordenação (que fica registrada no PR como achado à parte).
+ */
+it('UC-BHSHOW-04 · com mais de 50 movimentos a segunda página do extrato é alcançável [must]', function () {
+    bhimpPrecisaDe(['ponto_colaborador_config', 'ponto_banco_horas_movimentos']);
+
+    // Tenant canônico de teste = biz 98, fictício (ADR 0358) — não o Business::first
+    // do actAsAdmin, que no CT 100 é a WR2 (empresa real, base clone de prod).
+    $this->business = $this->seededTenant();
+    if ((int) $this->business->id !== 98) {
+        $this->markTestSkipped('Tenant 98 não seedado nesta lane — não caio em business real (ADR 0358).');
+    }
+
+    // Mesma receita do FechamentoContratoTest (UC-PTF-07 dá 200 nesta lane): o user
+    // SEMEADO do 98 + `ponto.access` DIRETO, e NUNCA a role Admin#98.
+    //  - Sem a role: o Gate::before libera tudo pra Admin#{biz}; a 1ª versão deste caso
+    //    a deu a esse user e derrubou UC-PTF-06/07 (run 36472572442), que provam o 403
+    //    sem `ponto.fechar`. `ponto.access` sozinho é o que o próprio Fechamento concede.
+    //  - Não um user de factory: a 2ª versão usava bhimpNovoUser + `ponto.access` e o
+    //    GET deu 403 (run 36474710700). Causa exata não isolada (CheckPontoAccess,
+    //    CheckUserLogin e Gate::before lidos, nenhum explica); a receita que já passa
+    //    na lane é a prova disponível.
+    $this->admin = User::where('business_id', $this->business->id)->orderBy('id')->first();
+    if (! $this->admin) {
+        $this->markTestSkipped('Sem user no tenant 98 — seed mínimo não rodou.');
+    }
+    \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'ponto.access', 'guard_name' => 'web']);
+    $this->admin->givePermissionTo('ponto.access');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    session(['user.business_id' => $this->business->id, 'business.id' => $this->business->id]);
+    $this->actingAs($this->admin);
+
+    $colab = bhimpCriarColaboradorComSaldo($this->business->id, $this->business->id);
+
+    $base = now()->subDays(60);
+    $criados = [];
+    for ($i = 0; $i < 51; $i++) {
+        $mov = new BancoHorasMovimento();
+        $mov->forceFill([
+            'business_id'           => $this->business->id,
+            'colaborador_config_id' => $colab->id,
+            'data_referencia'       => '2019-03-11',
+            'tipo'                  => BancoHorasMovimento::TIPO_CREDITO,
+            'minutos'               => 1,
+            'observacao'            => 'Fixture paginação SDD.',
+            'usuario_id'            => $this->admin->id,
+            'created_at'            => $base->copy()->addMinutes($i),
+        ])->save();
+        $criados[] = $mov->id;
+    }
+
+    // Pré-condição anti-vácuo: o extrato do colaborador tem de fato 51 linhas.
+    $this->assertSame(
+        51,
+        DB::table('ponto_banco_horas_movimentos')->where('colaborador_config_id', $colab->id)->count(),
+        'Fixture precisa montar 51 movimentos — senão não há 2ª página pra alcançar.'
+    );
+
+    $url = "/ponto/banco-horas/{$colab->id}";
+
+    $p1 = $this->inertiaPartialGet($url, ['movimentos'], 'Ponto/BancoHoras/Show');
+    $p1->assertStatus(200);
+    $m1 = $p1->json('props.movimentos');
+    $this->assertIsArray($m1, 'A passada partial tem de trazer `movimentos`.');
+    $this->assertSame(1, $m1['current_page']);
+    $this->assertSame(2, $m1['last_page'], 'Com 51 movimentos e 50/pág o extrato tem 2 páginas (charter §Goals).');
+    $this->assertSame(51, $m1['total']);
+    $this->assertCount(50, $m1['data']);
+
+    // O link "página 2" que o botão da tela segue existe e aponta pra ?page=2.
+    $urlPagina2 = collect($m1['links'])->firstWhere('label', '2')['url'] ?? null;
+    $this->assertNotNull($urlPagina2, 'A 1ª página precisa oferecer o link da 2ª.');
+    $this->assertStringContainsString('page=2', $urlPagina2);
+
+    $p2 = $this->inertiaPartialGet($url . '?page=2', ['movimentos'], 'Ponto/BancoHoras/Show');
+    $p2->assertStatus(200);
+    $m2 = $p2->json('props.movimentos');
+    $this->assertSame(2, $m2['current_page']);
+    $this->assertCount(1, $m2['data'], 'A 2ª página traz o 51º movimento — o que a tela escondia.');
+
+    // As duas páginas juntas são o extrato inteiro, sem repetição nem buraco.
+    $vistos = array_merge(array_column($m1['data'], 'id'), array_column($m2['data'], 'id'));
+    sort($vistos);
+    sort($criados);
+    $this->assertSame($criados, $vistos, 'Página 1 + página 2 = todos os 51 movimentos, cada um uma vez.');
+});
+
 // =====================================================================
 // Importacoes/Show
 // =====================================================================

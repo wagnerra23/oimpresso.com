@@ -39,6 +39,21 @@ use Illuminate\Support\Facades\Schema;
  * cego quebraria o seed inteiro na segunda execução, e com ele as lanes que o
  * compartilham).
  *
+ * SALDO DE BANCO DE HORAS (2026-09-28): `BancoHorasController@show` faz
+ * `firstOrFail` no SALDO, não no colaborador — sem esta linha a rota
+ * `/ponto/banco-horas/900001` do manifesto daria 404, o mesmo defeito do Espelho
+ * acima.
+ *
+ * LANÇAMENTOS (2026-09-28, 2ª versão): 3 movimentos com `created_at` e
+ * `data_referencia` LITERAIS. A 1ª versão deixava o ledger vazio porque a coluna
+ * "Registrado" era `diffForHumans()` ("há 3 minutos") e drifaria a foto; depois
+ * que a tela passou a mostrar data-hora ABSOLUTA, o histórico pode aparecer. O
+ * saldo é a soma do ledger (+90 −30 +15 = 75) e cada `saldo_posterior_minutos`
+ * é o acumulado — a foto não mostra saldo que o próprio ledger contradiz.
+ * `id` UUID fixo: o ledger é append-only e o id não aparece, mas literal evita
+ * que a ordem dependa de gerador. A paginação segue provada fora da foto
+ * (Pest + vitest UC-BHSHOW-04): 3 linhas não abrem 2ª página.
+ *
  * @see tests/Browser/visreg-screens.json (contrato — rota e âncora)
  * @see tests/Browser/CoreScreens/PixelBaselineTest.php
  * @see Modules/Ponto/Http/Controllers/EspelhoController.php::show
@@ -56,6 +71,26 @@ class VisregPontoSeeder extends Seeder
             return;
         }
 
+        $this->garantirColaborador();
+        $this->garantirSaldoBancoHoras();
+        $this->garantirMovimentosBancoHoras();
+    }
+
+    /**
+     * Lançamentos do extrato do 900001 (ver docblock "LANÇAMENTOS"), do mais antigo
+     * ao mais recente. `saldo_posterior` é o acumulado; a soma fecha com o saldo.
+     */
+    private const MOVIMENTOS = [
+        ['id' => '9a000001-0000-4000-8000-000000000001', 'created_at' => '2026-06-02 18:10:00', 'data_referencia' => '2026-06-02', 'tipo' => 'CREDITO', 'minutos' => 90,  'saldo_posterior' => 90, 'observacao' => 'Hora extra — fechamento de pedido'],
+        ['id' => '9a000001-0000-4000-8000-000000000002', 'created_at' => '2026-06-09 17:45:00', 'data_referencia' => '2026-06-09', 'tipo' => 'DEBITO',  'minutos' => -30, 'saldo_posterior' => 60, 'observacao' => 'Saída antecipada compensada'],
+        ['id' => '9a000001-0000-4000-8000-000000000003', 'created_at' => '2026-06-15 09:20:00', 'data_referencia' => '2026-06-12', 'tipo' => 'AJUSTE',  'minutos' => 15,  'saldo_posterior' => 75, 'observacao' => 'Ajuste manual — acordo com o colaborador'],
+    ];
+
+    /** Saldo = último `saldo_posterior` dos MOVIMENTOS. */
+    private const SALDO_MINUTOS = 75;
+
+    private function garantirColaborador(): void
+    {
         if (DB::table('ponto_colaborador_config')->where('id', self::COLABORADOR_ID)->exists()) {
             return;
         }
@@ -86,5 +121,66 @@ class VisregPontoSeeder extends Seeder
             'created_at'      => now(),
             'updated_at'      => now(),
         ]);
+    }
+
+    /** Saldo do 900001 (ver docblock "SALDO DE BANCO DE HORAS"). Idempotente. */
+    private function garantirSaldoBancoHoras(): void
+    {
+        if (! Schema::hasTable('ponto_banco_horas_saldo')) {
+            return;
+        }
+
+        // Só ancora num colaborador que existe: a FK recusaria o insert e derrubaria
+        // o seed compartilhado.
+        if (! DB::table('ponto_colaborador_config')->where('id', self::COLABORADOR_ID)->exists()) {
+            return;
+        }
+
+        if (DB::table('ponto_banco_horas_saldo')->where('colaborador_config_id', self::COLABORADOR_ID)->exists()) {
+            return;
+        }
+
+        DB::table('ponto_banco_horas_saldo')->insert([
+            'business_id'           => 1,
+            'colaborador_config_id' => self::COLABORADOR_ID,
+            'saldo_minutos'         => self::SALDO_MINUTOS,
+            'ultima_movimentacao'   => '2026-06-15',
+            'created_at'            => now(),
+            'updated_at'            => now(),
+        ]);
+    }
+
+    /** Idempotente: só semeia se o 900001 ainda não tem nenhum lançamento. */
+    private function garantirMovimentosBancoHoras(): void
+    {
+        if (! Schema::hasTable('ponto_banco_horas_movimentos')) {
+            return;
+        }
+
+        if (! DB::table('ponto_colaborador_config')->where('id', self::COLABORADOR_ID)->exists()) {
+            return;
+        }
+
+        if (DB::table('ponto_banco_horas_movimentos')->where('colaborador_config_id', self::COLABORADOR_ID)->exists()) {
+            return;
+        }
+
+        // `usuario_id` é FK NOT NULL pra users: o mesmo user do colaborador (business 1).
+        $usuarioId = DB::table('ponto_colaborador_config')->where('id', self::COLABORADOR_ID)->value('user_id');
+
+        foreach (self::MOVIMENTOS as $m) {
+            DB::table('ponto_banco_horas_movimentos')->insert([
+                'id'                      => $m['id'],
+                'business_id'             => 1,
+                'colaborador_config_id'   => self::COLABORADOR_ID,
+                'data_referencia'         => $m['data_referencia'],
+                'tipo'                    => $m['tipo'],
+                'minutos'                 => $m['minutos'],
+                'saldo_posterior_minutos' => $m['saldo_posterior'],
+                'observacao'              => $m['observacao'],
+                'usuario_id'              => $usuarioId,
+                'created_at'              => $m['created_at'],
+            ]);
+        }
     }
 }

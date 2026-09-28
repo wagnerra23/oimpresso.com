@@ -16,7 +16,7 @@ uses(PontoTestCase::class);
  * (`/ponto/intercorrencias/create`).
  *
  * Cada teste cita o UC no TÍTULO do `it()` (G-2 do casos-gate, ADR 0264):
- *   Intercorrencias/Index.casos.md  → UC-INTIDX-01..03
+ *   Intercorrencias/Index.casos.md  → UC-INTIDX-01..04 (o 04 é o GUARD de D-INTERC-ACOES)
  *   Intercorrencias/Create.casos.md → UC-INTCRE-01..03
  *
  * Os UC derivam do SDD §6.2 (CU-PONTO-05) e §6.5 (CU-PONTO-12) + US-PONTO-003 +
@@ -305,6 +305,40 @@ it('UC-INTCRE-01 · registrar uma intercorrência cria o rascunho', function () 
     );
     expect((int) DB::table('ponto_intercorrencias')->where('colaborador_config_id', $colab->id)->count())
         ->toBe($antes + 1, 'Exatamente uma intercorrência tem de ter sido criada.');
+});
+
+/**
+ * GUARD — D-INTERC-ACOES ([W] 2026-09-14, ata bloco 2): a lista NÃO submete nem edita; o Show é
+ * o dono da ação. R1 da mesma ata: Non-Goal ratificado vira Pest GUARD.
+ *
+ * Lido no fonte da página porque o comportamento é da TELA: o `index()` não manda ação nenhuma no
+ * payload, então um teste HTTP ficaria verde com os botões recolocados. É o mesmo idioma do
+ * UC-INTCRE-03 acima. Limite: URL montada por concatenação escaparia — as rotas de escrita têm as
+ * próprias defesas no servidor.
+ */
+it('UC-INTIDX-04 · a linha da fila só oferece Ver — não submete nem edita', function () {
+    $src = file_get_contents(base_path('resources/js/Pages/Ponto/Intercorrencias/Index.tsx'));
+
+    expect($src)->not->toBeFalse();
+    $texto = preg_replace('/\s+/u', ' ', (string) $src);
+
+    // Âncora positiva: sem ela, um arquivo esvaziado passaria nas negativas abaixo.
+    expect(preg_match('#href=\{`/ponto/intercorrencias/\$\{i\.id\}`\}#u', $texto))->toBe(1,
+        'A linha tem de levar ao detalhe (Show) — é por lá que se submete e se edita.'
+    );
+
+    // Negativas: nenhuma rota de ação de intercorrência a partir da lista.
+    expect(preg_match('#/ponto/intercorrencias/[^\s"\'`]*/(submeter|cancelar|edit)\b#u', $texto))->toBe(0,
+        'A lista não pode chamar submeter/cancelar/editar (D-INTERC-ACOES, [W] 2026-09-14).'
+    );
+    // Nenhuma escrita a partir da lista: só navegação (router.get / router.visit).
+    expect(preg_match('/router\s*\.\s*(post|put|patch|delete)\s*\(/u', $texto))->toBe(0,
+        'A lista é read-only: nenhuma chamada de escrita.'
+    );
+    // Nenhum rótulo de ação de escrita na linha.
+    expect(preg_match('/>\s*(Editar|Submeter)\s*</u', $texto))->toBe(0,
+        'Os botões Editar/Submeter saíram da linha em 2026-09-14 e não voltam.'
+    );
 });
 
 it('UC-INTCRE-03 · a tela não promete enviar ao RH ao salvar', function () {

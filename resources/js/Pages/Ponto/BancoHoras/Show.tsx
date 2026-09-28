@@ -23,6 +23,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import { Inline } from '@/Components/layout';
 import { cn, formatMinutes } from '@/Lib/utils';
+import { fmtDataHoraBr } from '@/Lib/datetime-br';
 
 interface Saldo {
   colaborador_id: number;
@@ -55,13 +56,13 @@ interface Props {
   movimentos?: Paginated;
 }
 
-const tipoVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  CREDITO_HE:    'default',
-  DEBITO_FOLGA:  'destructive',
-  AJUSTE_MANUAL: 'secondary',
-  EXPIRACAO:     'outline',
-  PAGAMENTO:     'outline',
-};
+/**
+ * Rótulo do link de página vindo do paginator do Laravel ("&laquo; Anterior",
+ * "Próximo &raquo;", "2") renderizado como TEXTO — o React escapa, sem sink de XSS.
+ * Só as entidades que o paginator emite são decodificadas.
+ */
+const rotuloPagina = (label: string) =>
+  label.replace(/&laquo;/g, '«').replace(/&raquo;/g, '»').replace(/&amp;/g, '&');
 
 export default function BancoHorasShow({ saldo, movimentos }: Props) {
   // Guarda defensiva (defesa dupla com o <Deferred>): movimentos é undefined no
@@ -204,7 +205,11 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
                       <tr key={m.id} className="hover:bg-accent/30">
                         <td className="p-2">{m.data_referencia ?? '—'}</td>
                         <td className="p-2">
-                          <Badge variant={tipoVariant[m.tipo] ?? 'outline'} className="text-[10px]">
+                          {/* Neutro para todo tipo, como o protótipo (ponto-telas.jsx:387, Pill tom="neutral" mono):
+                              o sinal crédito/débito é a cor dos MINUTOS, ao lado. Havia aqui um
+                              mapa de cor por tipo com chaves (CREDITO_HE, DEBITO_FOLGA…) que o
+                              enum nunca grava (CREDITO, DEBITO, AJUSTE…) — nunca casou. */}
+                          <Badge variant="outline" className="font-mono text-[10px]">
                             {m.tipo}
                           </Badge>
                         </td>
@@ -218,14 +223,42 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
                         <td className="p-2 text-muted-foreground max-w-xs truncate" title={m.observacao ?? ''}>
                           {m.observacao ?? '—'}
                         </td>
-                        <td className="p-2 text-muted-foreground" title={m.created_at ?? ''}>
-                          {m.created_at_human ?? '—'}
+                        {/* Absoluta, não "há X": o extrato é prova (quando foi lançado), e a
+                            relativa muda a cada leitura. A relativa fica no hover. */}
+                        <td className="p-2 font-mono tabular-nums text-muted-foreground" title={m.created_at_human ?? ''}>
+                          {fmtDataHoraBr(m.created_at)}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+            )}
+            {/* Charter §Goals: "Histórico paginado (50/pág)". Sem este controle o
+                servidor paginava e a tela mostrava só a 1ª página — movimentos 51+
+                ficavam inalcançáveis. Mesmo idioma do Index.tsx (saldos). */}
+            {(movimentos?.last_page ?? 1) > 1 && (
+              <Inline justify="between" className="border-t border-border p-3 text-xs">
+                <span className="text-muted-foreground">
+                  Página {movimentos?.current_page ?? 1} de {movimentos?.last_page ?? 1} · {movimentos?.total ?? 0} movimento(s)
+                </span>
+                <Inline gap={1} wrap>
+                  {(movimentos?.links ?? []).map((link, i) => (
+                    <Button
+                      key={i}
+                      variant={link.active ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-7 min-w-8 px-2 text-xs"
+                      disabled={!link.url}
+                      // Partial reload: só re-busca `movimentos`; o saldo do cabeçalho
+                      // não viaja de novo (charter Non-Goal: a tela não recalcula saldo).
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, only: ['movimentos'] })}
+                    >
+                      {rotuloPagina(link.label)}
+                    </Button>
+                  ))}
+                </Inline>
+              </Inline>
             )}
             </Deferred>
           </CardContent>
