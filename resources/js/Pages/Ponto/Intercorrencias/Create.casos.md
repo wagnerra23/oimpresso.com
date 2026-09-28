@@ -30,6 +30,15 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 
 **[BACKLOG]:**
 
+- `[BACKLOG]` **Anexar comprovante a uma intercorrência** (`D-INTERC-ANEXO`, [W] 2026-09-14, ata
+  bloco 4 linha 43; emenda E4 da thread 27). Aceite proposto: dado um atestado em PDF/JPG/PNG,
+  quando o solicitante anexa ao rascunho, então o arquivo vai para disco **privado** e fica
+  vinculado à intercorrência; só quem tem permissão de aprovação consegue baixá-lo; nenhum caminho
+  ou URL do arquivo aparece em log (atestado é dado de saúde, LGPD Art. 11). **Não é UC ainda:** em
+  2026-09-28 o `Create.tsx` não tem campo de arquivo (só a coluna `anexo_path` existe, desde a
+  migration de 2026-04-18). Um teste agora seria vermelho por construção. Vira UC (próximo id
+  `UC-INTCRE-04`; a thread o chamou de `UC-PONT-INT-07`) no PR que construir o anexo, junto do
+  teste que o cita.
 - `[BACKLOG]` A classificação por IA (`POST /ponto/intercorrencias-ai/classify`) **sugere, nunca
   decide** — o estado só muda por ação humana (SDD §5.3 F4). Vira UC quando houver um contrato
   escrito sobre o que a sugestão pode e não pode fazer; hoje afirmar isso em teste seria derivar
