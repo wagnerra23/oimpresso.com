@@ -30,7 +30,7 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
         "linhas": "119-189",
-        "ancora": false
+        "ancora": "bancohoras-saldos-por-colaborador"
       },
       "status": "divergencia-declarada",
       "acao": "Protótipo à frente na coluna Escala e no cargo; exige o dado no payload (`BancoHorasController.php:45` transforma a linha — não medido se traz escala). Decisão de forma, sem id na ata: fica para a passada de FORMA. A thread 17 grava `data-contract=\"bancohoras-saldos-por-colaborador\"`.",

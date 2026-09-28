@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 14 |
 | Telas com `casos.md` | 13 |
-| UC declarados | 70 |
-| UC com teste que os cita | 70 |
+| UC declarados | 75 |
+| UC com teste que os cita | 75 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -62,6 +62,8 @@ authority: generated
 | UC-DMIDX-04 | DeviceModels/Create | 🧪 aguarda veredito da lane |
 | UC-DMIDX-05 | DeviceModels/Index | 🧪 aguarda veredito da lane |
 | UC-DMIDX-06 | DeviceModels/Index | 🧪 aguarda veredito da lane |
+| UC-DMIDX-07 | DeviceModels/Index | 🧪 aguarda veredito da lane |
+| UC-DMIDX-08 | DeviceModels/Index | 🧪 aguarda veredito da lane |
 | UC-JSC-01 | JobSheet/Create | 🧪 aguarda veredito da lane |
 | UC-JSC-02 | JobSheet/Create | 🧪 aguarda veredito da lane |
 | UC-JSC-03 | JobSheet/Create | 🧪 aguarda veredito da lane |
@@ -90,6 +92,7 @@ authority: generated
 | UC-RDSH-02 | Dashboard/Index | 🧪 aguarda veredito da lane |
 | UC-RDSH-03 | Dashboard/Index | 🧪 aguarda veredito da lane |
 | UC-RDSH-04 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-RDSH-05 | Dashboard/Index | 🧪 aguarda veredito da lane |
 | UC-RIDX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-RIDX-02 | Index | 🧪 aguarda veredito da lane |
 | UC-RIDX-03 | Index | 🧪 aguarda veredito da lane |
@@ -118,6 +121,8 @@ authority: generated
 | UC-RSTIDX-04 | Status/Index | 🧪 aguarda veredito da lane |
 | UC-RSTIDX-05 | Status/Index | 🧪 aguarda veredito da lane |
 | UC-RSTIDX-06 | Status/Index | 🧪 aguarda veredito da lane |
+| UC-RSTIDX-07 | Status/Index | 🧪 aguarda veredito da lane |
+| UC-RSTIDX-08 | Status/Index | 🧪 aguarda veredito da lane |
 
 ---
 
