@@ -4,7 +4,7 @@ component: resources/js/Pages/Documentacao/Programa.tsx
 related_runbook: memory/requisitos/Documentacao/RUNBOOK-programa.md
 owner: wagner
 status: draft
-last_validated: "2026-09-25"
+last_validated: "2026-09-28"
 parent_module: Documentacao
 related_prototype: prototipo-ui/cowork/Wagner/programa-doc-page.jsx
 related_us: [US-DOC-002]
@@ -18,9 +18,8 @@ charter_version: 1
 > NÃO bespoke). Golden do arquétipo: [PT-04](../../../../memory/requisitos/_DesignSystem/padroes-tela/PT-04-Dashboard.md),
 > ainda `draft` — o ciclo-completo não fecha antes de o Design terminá-lo.
 >
-> **A `.tsx` é só o esqueleto do carimbo** — a tela real é a thread 02 do playbook `programa-doc`. Hoje
-> `/documentacao/programa` é **Blade** (`DocumentacaoController::programa` +
-> `resources/views/documentacao/programa.blade.php`); o contrato de paridade dela é a seção 6 da
+> **Inertia desde a thread 02** do playbook `programa-doc` (US-DOC-002): `DocumentacaoController::programa`
+> devolve props e a Blade `documentacao/programa` foi apagada. O contrato de paridade da migração é a seção 6 da
 > [lista anti-regressão](../../../../memory/requisitos/Documentacao/ANTI-REGRESSAO-documentacao-blade.md)
 > (`AR-DOC-060`–`AR-DOC-069`). Sobe de `draft` → `live` só com screenshot aprovado por [W].
 >
