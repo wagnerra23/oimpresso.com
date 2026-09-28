@@ -140,7 +140,7 @@ export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props
           </div>
         </PageFilters>
 
-        <Card>
+        <Card data-contract="intercorrencias-intercorrencias">
           <CardContent className="p-0">
             {intercorrencias.data.length === 0 ? (
               <EmptyState

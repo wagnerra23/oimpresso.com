@@ -116,7 +116,7 @@ export default function BancoHorasIndex({ saldos, totais }: Props) {
           />
         </KpiGrid>
 
-        <Card>
+        <Card data-contract="bancohoras-saldos-por-colaborador">
           <CardContent className="p-0">
             {rows.length === 0 ? (
               <EmptyState
