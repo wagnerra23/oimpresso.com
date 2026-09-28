@@ -108,7 +108,7 @@ export default function ConfiguracoesIndex({ config }: Props) {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="border-t-4 border-t-info">
+          <Card className="border-t-4 border-t-info" data-contract="configuracoes-regras-clt-reforma-trabalhista">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Clock size={16} /> CLT — tolerâncias e limites
@@ -128,7 +128,7 @@ export default function ConfiguracoesIndex({ config }: Props) {
             </CardContent>
           </Card>
 
-          <Card className="border-t-4 border-t-success">
+          <Card className="border-t-4 border-t-success" data-contract="configuracoes-banco-de-horas">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <PiggyBank size={16} /> Banco de Horas
@@ -145,7 +145,7 @@ export default function ConfiguracoesIndex({ config }: Props) {
             </CardContent>
           </Card>
 
-          <Card className="border-t-4 border-t-primary">
+          <Card className="border-t-4 border-t-primary" data-contract="configuracoes-rep-e-imutabilidade-de-marcacoes">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <ShieldCheck size={16} /> REPs e Imutabilidade
@@ -175,7 +175,7 @@ export default function ConfiguracoesIndex({ config }: Props) {
             </CardContent>
           </Card>
 
-          <Card className="border-t-4 border-t-amber-500">
+          <Card className="border-t-4 border-t-amber-500" data-contract="configuracoes-afd-importacao-esocial">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <FileSpreadsheet size={16} /> AFD & eSocial

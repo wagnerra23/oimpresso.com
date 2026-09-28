@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 23 |
 | Telas com `casos.md` | 23 |
-| UC declarados | 99 |
-| UC com teste que os cita | 94 |
+| UC declarados | 100 |
+| UC com teste que os cita | 95 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -41,7 +41,6 @@ authority: generated
 |---|---|---|
 | US-PONTO-005 | `wip` | Apuracao automatica de jornada (Art. 66 + 71 CLT) |
 | US-PONTO-006 | `backlog` | Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO) |
-| US-PONTO-009 | `backlog` | Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO) |
 | US-PONTO-010 | `backlog` | Comprovante PDF QR Code (Anexo I §5.5 Portaria 671) |
 | US-PONTO-011 | `todo` | Fechar o append-only do ledger de banco de horas |
 | US-PONTO-013 | `todo` | Consertar as duas telas que nao persistem |
@@ -63,6 +62,7 @@ authority: generated
 | UC-BHSHOW-03 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-CFGIDX-01 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CFGIDX-02 | Configuracoes/Index | 🧪 aguarda veredito da lane |
+| UC-CFGIDX-03 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CFGREP-01 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
 | UC-CFGREP-02 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
 | UC-CFGREP-03 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
