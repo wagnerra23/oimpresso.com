@@ -4,7 +4,7 @@ irmaos: Conformidade.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o escopo e as regras não mudam quando a tela ganhar coluna nova.
 owner: wagner
-last_run: "2026-09-25"
+last_run: "2026-09-28"
 ---
 
 # Casos de Uso & Aceite — Ponto/Conformidade
@@ -59,7 +59,7 @@ last_run: "2026-09-25"
 
 ## UC-CONF-09 · Sem dado, a nota explica por quê · `must`
 - **Fonte:** charter do protótipo (`prototipo-ui/cowork/Wagner/resources/js/Pages/Ponto/Conformidade.charter.md`) — *"Nenhum número inventado: sem dado, empty state que explica por quê"*. Achado do smoke em prod biz=1 de 2026-09-26: com 0 colaboradores controlados a nota dizia "Nenhuma violação apurada", lida como competência limpa.
-- **Aceite:** Dado 0 colaboradores com ponto controlado · Quando o painel abre · Então `cobertura.estado = sem_colaboradores` e a nota diz "Nenhum colaborador com controle de ponto". Dado colaborador controlado e nenhum dia apurado na competência · Então `sem_apuracao`, a nota diz "Competência sem apuração" e os KPIs da apuração saem "—". Dado ≥1 dia apurado sem violação · Então `apurado` e a nota "Nenhuma violação apurada" volta a valer. Desligado antes da competência e colaborador sem controle de ponto não contam.
+- **Aceite:** Dado 0 colaboradores com ponto controlado · Quando o painel abre · Então `cobertura.estado = sem_colaboradores` e a nota diz "Nenhum colaborador com controle de ponto". Dado colaborador controlado e nenhum dia apurado na competência · Então `sem_apuracao`, a nota diz "Competência sem apuração" e os KPIs da apuração saem "—" — o cabeçalho do card também diz "sem apuração", nunca "0 casos". Dado ≥1 dia apurado sem violação · Então `apurado` e a nota "Nenhuma violação apurada" volta a valer. Desligado antes da competência e colaborador sem controle de ponto não contam.
 - **Status: 🧪**
 
 ## Backlog de casos (sem id)
@@ -68,5 +68,6 @@ last_run: "2026-09-25"
 - **[BACKLOG]** Item "Conformidade CLT" no menu do Ponto leva à tela (alcance).
 
 ## Trilha do tempo
+- 2026-09-28 · contrato visual (`tests/Browser/visreg-screens.json`, foto do estado `sem_apuracao`) + cabeçalho do card "sem apuração" no lugar de "0 casos". Casos revalidados contra a tela. Refs: ADR 0411.
 - 2026-09-28 · UC-CONF-09 — cobertura da competência (colaboradores controlados · dias apurados) distingue os 3 estados da nota. Refs: US-PONTO-016.
 - 2026-09-25 · [CL] thread 05 — trio a partir do `criar-tela.mjs` + casos do protótipo. Refs: ADR 0413 D0 · US-PONTO-016.
