@@ -184,6 +184,14 @@ export function selftest() {
   // Uma 2a conta COM espelho passa a ser aceita — o registro e que decide, nao um `if` por nome.
   const projsF = { ...projsT, telasF: { conta: 'outra', espelho: 'prototipo-ui/cowork/Felipe/' } };
   ok(decidirDono(indet, 'outra', contasT, projsF).ok === true, 'SOLTA: conta que ganha espelho em PROJETOS passa a importar');
+  // Conta APOSENTADA ([W] 2026-09-28, conta do Felipe): a pasta dela é histórico. As DUAS portas
+  // que liberam (declarada e vinculada) têm de recusar — fechar só uma deixaria a outra aberta.
+  const contasA = { ...contasT, outra: { ...contasT.outra, espelhada: true, aposentada: { em: '2026-09-28', por: '[W]', destino: 'cowork/Wagner/' } } };
+  ok(decidirDono(indet, 'outra', contasA, projsF).ok === false, 'MORDE: --conta de conta APOSENTADA nao importa');
+  ok(decidirDono(indet, 'outra', contasA, projsF).motivo.includes('APOSENTADA'), 'MORDE: e diz que a conta foi aposentada');
+  ok(decidirDono({ ...vinc, conta: 'outra' }, null, contasA, projsF).ok === false, 'MORDE: pacote VINCULADO a conta aposentada tambem nao importa');
+  ok(!decidirDono(indet, null, contasA, projsF).motivo.includes('outra'), 'MORDE: conta aposentada sai da lista de --conta sugerida');
+  ok(decidirDono(indet, 'w', contasA, projsF).ok === true, 'SOLTA: aposentar uma conta nao fecha a do [W] (controle)');
 
   // -- ignoradosPeloRepo (o que o .gitignore proibe NAO entra no manifesto) --------
   // Injetor FAKE de proposito: acoplar ao .gitignore real faria o caso mudar de veredito quando
