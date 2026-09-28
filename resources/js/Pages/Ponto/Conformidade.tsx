@@ -132,7 +132,12 @@ export default function Conformidade({ mes, painel }: Props) {
           <CardHeader>
             <CardTitle>{sel?.titulo ?? 'Verificação'}</CardTitle>
             <CardDescription>
-              {sel?.artigo ?? 'conferência'} · {sel?.medido ? `${casos.length} ${casos.length === 1 ? 'caso' : 'casos'}` : 'não medido'}
+              {sel?.artigo ?? 'conferência'} ·{' '}
+              {!sel?.medido
+                ? 'não medido'
+                : semDado && daApuracao(sel)
+                ? 'sem apuração'
+                : `${casos.length} ${casos.length === 1 ? 'caso' : 'casos'}`}
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0 overflow-x-auto">
