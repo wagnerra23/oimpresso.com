@@ -98,7 +98,7 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
           </div>
         </PageFilters>
 
-        <Card>
+        <Card data-contract="colaboradores-colaboradores">
           <CardContent className="p-0">
             {colaboradores.data.length === 0 ? (
               <EmptyState

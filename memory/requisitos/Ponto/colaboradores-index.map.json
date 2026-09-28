@@ -30,7 +30,7 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
         "linhas": "119-178",
-        "ancora": false
+        "ancora": "colaboradores-colaboradores"
       },
       "status": "prototipo-a-frente",
       "acao": "Incorporar as 2 colunas e o estado de desligado — `D-COLAB-COLUNAS`. São dado agregado (última marcação do mês, saldo do banco de horas): mudança de payload no controller, não só de tela.",
