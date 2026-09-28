@@ -4,6 +4,7 @@ namespace Modules\Ponto\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Ponto\Entities\BancoHorasMovimento;
@@ -78,7 +79,10 @@ class BancoHorasController extends Controller
     public function show(Request $request, int $colaboradorId): Response
     {
         $saldo = BancoHorasSaldo::where('colaborador_config_id', $colaboradorId)
-            ->with('colaborador.user:id,first_name,last_name')
+            ->with([
+                'colaborador.user:id,first_name,last_name,essentials_designation_id',
+                'colaborador.escalaAtual:id,nome',
+            ])
             ->firstOrFail();
 
         // Wave 26 D6 Inertia::defer — paginate(50) movimentos lazy. Saldo header eager
@@ -92,9 +96,43 @@ class BancoHorasController extends Controller
                     optional(optional($saldo->colaborador)->user)->last_name
                 ) ?: '—',
                 'saldo_minutos'  => (int) $saldo->saldo_minutos,
+                // Cabeçalho do extrato como o protótipo (ponto-telas.jsx:370):
+                // "matrícula · cargo · escala". Cargo = cargo do HRM do usuário; nulo quando
+                // o business não usa o Essentials — a tela omite o trecho, não inventa.
+                'cargo'          => $this->cargoDoUsuario((int) $saldo->business_id, optional($saldo->colaborador)->user),
+                'escala'         => optional(optional($saldo->colaborador)->escalaAtual)->nome,
+                'atualizado_em'  => optional($saldo->updated_at)->format('Y-m-d H:i'),
+            ],
+            // KPIs "Teto do acordo" e "Prazo de compensação" (D-BH-KPI, [W] 2026-09-14):
+            // a regra de limite/expiração fica VISÍVEL. Só exibe — quem aplica é o
+            // BancoHorasService, que lê o mesmo config (Non-Goal: a tela não recalcula).
+            'acordo' => [
+                'teto_horas'  => (int) config('pontowr2.banco_horas.saldo_maximo_horas', 200),
+                'piso_horas'  => (int) config('pontowr2.banco_horas.saldo_minimo_horas', -40),
+                'prazo_meses' => (int) config('pontowr2.banco_horas.prazo_compensacao_meses', 6),
             ],
             'movimentos' => Inertia::defer(fn () => $this->buildMovimentosPagina($colaboradorId)),
         ]);
+    }
+
+    /**
+     * Cargo do HRM (Essentials): `users.essentials_designation_id` → `categories`
+     * de `hrm_designation` — o mesmo caminho do PayrollController do Essentials.
+     * `business_id` EXPLÍCITO (Tier 0, ADR 0093): `categories` é tabela core sem o
+     * global scope do Ponto, e um id de categoria de outro business não pode vazar o nome.
+     */
+    private function cargoDoUsuario(int $businessId, $user): ?string
+    {
+        if (! $user || empty($user->essentials_designation_id)) {
+            return null;
+        }
+
+        return DB::table('categories')
+            ->where('business_id', $businessId) // do SALDO (já tenant-scoped), não da sessão
+            ->where('category_type', 'hrm_designation')
+            ->whereNull('deleted_at')
+            ->where('id', $user->essentials_designation_id)
+            ->value('name');
     }
 
     /**

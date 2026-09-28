@@ -37,6 +37,9 @@ O gestor inspeciona o saldo atual de um colaborador, o histórico completo de mo
   (ATA-DECISOES-2026-09-14, bloco 4, linha 42). ⚠️ **Estado em 2026-09-28:** a construir — nem o
   `Show.tsx` nem o `BancoHorasController` citam teto/prazo. Região no map: `kpis-do-extrato`
   (`memory/requisitos/Ponto/banco-horas-show.map.json`).
+  **Construído depois, no mesmo dia** (PR da forma do extrato, empilhado no #8077): o controller
+  entrega `acordo` (teto, piso, prazo) lido de `pontowr2.banco_horas` — o mesmo config que o
+  `BancoHorasService` aplica — e a tela só exibe. Defendido por `UC-BHSHOW-05`.
 
 ---
 
