@@ -26,6 +26,7 @@
  *   node scripts/governance/doc-id-index.mjs            (dry-run: resumo + colisões)
  *   node scripts/governance/doc-id-index.mjs --json     (imprime o índice completo em JSON)
  *   node scripts/governance/doc-id-index.mjs --write    (grava governance/doc-id-index.json)
+ *   node scripts/governance/doc-id-index.mjs --refresh  (--write que recusa se houver move pendente — ver DONO DO FRESCOR)
  *   node scripts/governance/doc-id-index.mjs --check     (exit 1 se o gerado ≠ commitado, OU se houver colisão)
  *   node scripts/governance/doc-id-index.mjs --check-collisions  (CI: SÓ colisão de id — ver nota)
  *   node scripts/governance/doc-id-index.mjs --selftest  (fixture hermético)
@@ -41,6 +42,22 @@
  * regeneração em todo PR põe TODOS os PRs a conflitar neste JSON global (já observado entre os
  * PRs #5086 e #5087 no mesmo dia). Por isso: colisão MORDE no CI; frescor é ato de consolidação
  * (`--write`), como as sessions de 2026-07-28 já haviam concluído.
+ *
+ * DONO DO FRESCOR (2026-09-28): o `--write` "de consolidação" não tinha invocador. Medido em
+ * origin/main d0018abce: `--check` rc=1, faltavam 330 ids (98 stamped, 30 ADRs 0388–0417), 0 ids
+ * com path mudado. Quem LÊ o JSON para decidir algo é UM consumidor só: `doc-auto-relink --detect`
+ * (`detectMoves`, compara o índice COMMITADO × o corpus; roda dry-run no governance-script-tests).
+ * Contagem: `git grep -l doc-id-index` = 89 arquivos; os que leem o `.json` em código = 1. O custo do
+ * atraso é o `--detect` ficar CEGO para doc stampado depois do último regen e movido depois.
+ *   Dono escolhido: o job `refresh` do `system-map.yml` (cron diário, auto-PR, único escritor) roda
+ * `--refresh`. Recusado o hook de commit (estender `maquinas-inventario-no-commit`): 32 de 300
+ * commits do main mudam o CONJUNTO de docs de memory/, e todo regen reescreve o bloco `stats` —
+ * dois PRs concorrentes que regeneram conflitam por construção (já visto em #5086/#5087). Pior:
+ * regenerar no MESMO commit de um move apaga o sinal que o `--detect` precisa.
+ *   `--refresh` = `--write` que RECUSA quando algum id do índice commitado mudou de path (move
+ * pendente): esse caso é do `doc-auto-relink --detect --apply` primeiro; regenerar antes o
+ * esconderia para sempre. Recusa sai exit 0 com aviso (o regen diário não pode ficar vermelho por
+ * trabalho de outro), e o aviso vira `::warning::` no Actions.
  *   ... [--root <dir>] pra corpus alternativo (testes)
  *
  * Refs: ADR 0256 (survival, fonte única gerada) · design proposal 2026-07-23 · deadlink-gate.mjs (irmão detector).
@@ -125,6 +142,19 @@ export function buildIndex(root, scanRoots = SCAN_ROOTS) {
   };
 }
 
+/**
+ * Moves pendentes: id do índice COMMITADO cujo path atual difere. Mesmo predicado do
+ * `detectMoves` do doc-auto-relink — é o sinal que um regen apagaria.
+ */
+export function pendingMoves(committedIds, currentIds) {
+  const moves = [];
+  for (const [id, oldPath] of Object.entries(committedIds || {})) {
+    const newPath = currentIds[id];
+    if (newPath && newPath !== oldPath) moves.push({ id, from: oldPath, to: newPath });
+  }
+  return moves.sort((a, b) => a.id.localeCompare(b.id));
+}
+
 /** Serialização canônica (determinística) pro --write/--check. */
 function serialize(index) {
   return `${JSON.stringify(index, null, 2)}\n`;
@@ -183,6 +213,22 @@ function runSelftest() {
     // Controle negativo: o modo NÃO pode reprovar por drift do índice (é a razão de ele existir).
     writeFileSync(join(fixture, 'memory/reference/doc-novo-sem-indice.md'), '---\nid: doc-novo\n---\n');
     check('NÃO morde por drift do índice (só colisão importa aqui)', exitOf(fixture) === 0, { exit: exitOf(fixture) });
+
+    // Bite-test do MODO --refresh pelo CLI: regenera o drift de ADIÇÃO, recusa o de MOVE.
+    const refresh = (root) => execFileSync(process.execPath, [self, '--refresh', '--root', root], { stdio: 'pipe', env: { ...process.env, GITHUB_ACTIONS: '' } }).toString();
+    mkdirSync(join(fixture, 'governance'), { recursive: true });
+    const outFx = join(fixture, OUT);
+    writeFileSync(outFx, serialize(buildIndex(fixture)));
+    writeFileSync(join(fixture, 'memory/sessions/2026-09-28-nova.md'), '# nova\n');
+    refresh(fixture);
+    check('--refresh REGENERA drift de adição', JSON.parse(readFileSync(outFx, 'utf8')).ids['2026-09-28-nova'] === 'memory/sessions/2026-09-28-nova.md');
+    mkdirSync(join(fixture, 'memory/guia'), { recursive: true });
+    writeFileSync(join(fixture, 'memory/guia/stamped.md'), readFileSync(join(fixture, 'memory/reference/stamped.md')));
+    rmSync(join(fixture, 'memory/reference/stamped.md'));
+    const antes = readFileSync(outFx, 'utf8');
+    const saida = refresh(fixture);
+    check('MORDE: --refresh RECUSA com move pendente (índice intocado)', readFileSync(outFx, 'utf8') === antes && /move\(s\) pendente/.test(saida), saida);
+    check('pendingMoves acha o move do stamped', pendingMoves(JSON.parse(antes).ids, buildIndex(fixture).ids).some((m) => m.id === 'guia-canon' && m.to === 'memory/guia/stamped.md'));
   } finally {
     if (fixture.startsWith(tmpdir())) rmSync(fixture, { recursive: true, force: true });
   }
@@ -205,6 +251,23 @@ function main() {
   if (args.includes('--write')) {
     writeFileSync(join(root, OUT), serialize(index), 'utf8');
     console.log(`escrito ${OUT} — ${index.stats.resolved} ids, ${index.stats.unstamped} sem id, ${index.stats.collisions} colisão(ões)`);
+    return;
+  }
+
+  if (args.includes('--refresh')) {
+    const outAbs = join(root, OUT);
+    if (!existsSync(outAbs)) throw new Error(`${OUT} não existe — o primeiro índice é --write, não --refresh`);
+    const committed = JSON.parse(readFileSync(outAbs, 'utf8')).ids || {};
+    const moves = pendingMoves(committed, index.ids);
+    if (moves.length) {
+      const msg = `${OUT} NÃO regenerado: ${moves.length} move(s) pendente(s) — rode doc-auto-relink --detect --apply antes, senão o regen apaga o sinal.`;
+      console.log(process.env.GITHUB_ACTIONS ? `::warning::${msg}` : `AVISO: ${msg}`);
+      for (const m of moves) console.log(`  ${m.id}: ${m.from} -> ${m.to}`);
+      return;
+    }
+    if (readFileSync(outAbs, 'utf8') === serialize(index)) { console.log(`OK: ${OUT} já em dia.`); return; }
+    writeFileSync(outAbs, serialize(index), 'utf8');
+    console.log(`regenerado ${OUT} — ${index.stats.resolved} ids (era ${Object.keys(committed).length}), 0 move pendente`);
     return;
   }
 

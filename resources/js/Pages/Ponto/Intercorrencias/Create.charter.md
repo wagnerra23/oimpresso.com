@@ -32,6 +32,11 @@ Formulário de registro de intercorrência (ausência, consulta médica, esqueci
 - Estado da IA visível: badge "IA desligada no servidor" quando `ai_enabled=false`, alerts de sucesso/erro.
 - Submit via `useForm` → `store`; em sucesso redireciona ao `Show` como rascunho.
 - Lista de colaboradores ativos (com `controla_ponto`) vinda do controller.
+- Anexo de comprovante: PDF/JPG/PNG, tratado como dado sensível. — `D-INTERC-ANEXO`, [W] 2026-09-14
+  (ATA-DECISOES-2026-09-14, bloco 4, linha 43): *"Atestado sem anexo é intercorrência sem prova."*
+  ⚠️ **Estado em 2026-09-28:** a construir — a coluna `ponto_intercorrencias.anexo_path` existe
+  desde a migration de 2026-04-18, mas o `Create.tsx` não tem campo de arquivo. Região no map:
+  `anexo-de-comprovante` (`memory/requisitos/Ponto/intercorrencias-create.map.json`).
 
 ---
 
@@ -40,6 +45,11 @@ Formulário de registro de intercorrência (ausência, consulta médica, esqueci
 - ❌ Não aplica efeito na apuração/banco de horas no momento da criação (as flags são intenção, aplicadas depois do fluxo de aprovação).
 - ❌ Não exige IA — o form funciona sem `ai_enabled`; a IA é assistiva.
 - ❌ Não cria intercorrência pra colaborador de outro tenant — lista é scopada por `business_id`.
+- ❌ O anexo NÃO é público e NÃO entra em log — atestado é dado de saúde (dado sensível, LGPD Art. 11).
+  Armazenamento privado, acesso por permissão, desde o primeiro commit. Não é "depois a gente protege".
+  — ressalva de [W] em `D-INTERC-ANEXO` (ATA-DECISOES-2026-09-14 linha 43: *"Trata como PII desde o
+  primeiro commit"*). A revisão de [E] Eliana foi oferecida e **dispensada por agora** — não é
+  pré-requisito.
 
 ---
 
