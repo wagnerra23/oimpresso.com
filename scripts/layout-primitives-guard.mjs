@@ -8,7 +8,8 @@
 // Container/Text) e diz textual, nas Consequências:
 //   "Enforcement por lint (proibir flex solto) = ADR/PR seguinte, depois da camada +
 //    piloto."
-// A camada existe (#2371) e a tela-piloto existe (#2372, Pages/Financeiro/ProvaViva.tsx).
+// A camada existe (#2371); a tela-piloto (#2372, Pages/Financeiro/ProvaViva.tsx) foi removida
+// em 2026-09-28 por decisão [W] — o critério de pronto da ADR 0253 ficou sem tela-piloto.
 // Logo, ESTE é o "PR seguinte": o gate que impede a doença voltar — `<div className=
 // "flex …">`/`grid` solto nas TELAS em vez de compor `Stack/Inline/Grid`.
 //
@@ -55,7 +56,7 @@
 //
 // Refs: ADR 0253 (primitivos-layout · "Enforcement por lint = PR seguinte"),
 //       ADR 0209 (baseline ratchet), ADR 0240 (derivado+enforcado sobrevive),
-//       tela-piloto resources/js/Pages/Financeiro/ProvaViva.tsx.
+//       tela-piloto Financeiro/ProvaViva.tsx (#2372, removida em 2026-09-28).
 
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
