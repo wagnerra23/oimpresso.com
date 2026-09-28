@@ -9,7 +9,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router } from '@inertiajs/react';
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useState, type FormEvent, type MouseEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { Check, CheckCheck, X } from 'lucide-react';
 import {
@@ -50,6 +50,7 @@ import PageFilters from '@/Components/shared/PageFilters';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import EmptyState from '@/Components/shared/EmptyState';
 import BulkActionBar from '@/Components/shared/BulkActionBar';
+import { Inline } from '@/Components/layout/inline';
 
 interface Aprovacao {
   id: number | string;
@@ -122,6 +123,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
   const [rejectMotivo, setRejectMotivo] = useState('');
   const [processing, setProcessing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Array<number | string>>([]);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   // Guardas defensivas (defesa dupla com o <Deferred>): props deferidas são
   // undefined no first render.
@@ -211,9 +213,12 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
     );
   };
 
-  const handleBulkApprove = () => {
+  // Confirmação no diálogo do DS, não no `confirm` nativo (ata Ponto 2026-09-14, R3).
+  const handleBulkApprove = (ev: MouseEvent) => {
+    // O Action do Radix fecha o diálogo no clique; segurar aberto até a resposta mantém o botão
+    // desabilitado ("Aprovando…") e evita reenviar o lote.
+    ev.preventDefault();
     if (selectedIds.length === 0) return;
-    if (!confirm(`Aprovar ${selectedIds.length} intercorrência(s) em lote?`)) return;
     setProcessing(true);
     router.post(
       '/ponto/aprovacoes/lote',
@@ -223,6 +228,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
         onSuccess: () => {
           toast.success(`${selectedIds.length} intercorrência(s) aprovadas em lote.`);
           setSelectedIds([]);
+          setBulkOpen(false);
         },
         onError: () => toast.error('Falha no lote.'),
         onFinish: () => setProcessing(false),
@@ -497,7 +503,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
       <BulkActionBar selectedCount={selectedIds.length} onClear={() => setSelectedIds([])}>
         <Button
           size="sm"
-          onClick={handleBulkApprove}
+          onClick={() => setBulkOpen(true)}
           disabled={processing}
           className="bg-success text-white hover:bg-success/90"
         >
@@ -505,6 +511,29 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
           Aprovar selecionadas
         </Button>
       </BulkActionBar>
+
+      {/* ==================== Dialog: Aprovar em lote ==================== */}
+      <AlertDialog open={bulkOpen} onOpenChange={(o) => !o && !processing && setBulkOpen(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <Inline asChild gap={2}>
+              <AlertDialogTitle>
+                <CheckCheck size={16} className="text-success-fg" /> Aprovar em lote
+              </AlertDialogTitle>
+            </Inline>
+            <AlertDialogDescription>
+              Confirma a aprovação de <strong>{selectedIds.length}</strong>{' '}
+              {selectedIds.length === 1 ? 'intercorrência selecionada' : 'intercorrências selecionadas'}?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={processing}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkApprove} disabled={processing}>
+              {processing ? 'Aprovando…' : `Aprovar ${selectedIds.length}`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* ==================== Dialog: Aprovar ==================== */}
       <AlertDialog open={approveTarget !== null} onOpenChange={(o) => !o && setApproveTarget(null)}>

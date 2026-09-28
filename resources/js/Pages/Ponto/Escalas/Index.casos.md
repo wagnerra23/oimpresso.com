@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Form.casos.md (a tela irmã, UC-ESCF-01..03) �
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a escala é o molde da jornada — é contra ela que a apuração compara entrada, saída e intervalo. Uma escala sem turno não apura nada, e é justamente isso que a lista precisa deixar visível.
 owner: wagner
-last_run: "2026-09-08"
+last_run: "2026-09-28"
 last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
@@ -26,6 +26,7 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-ESCIDX-02 | Cada escala informa quantos turnos tem | must | charter §Goals + CLT Art. 58 | `EscalaIndexContratoTest` | ✅ verde na lane |
 | UC-ESCIDX-03 | "Remover" só aparece sem vínculo; com vínculo, o motivo com a contagem | must | `D-ESC-DESTROY` ([W] 2026-09-14) + charter §Non-Goals | `ponto-escalas-remover-vinculo.test.tsx` | 🧪 teste cita o UC, sem veredito |
 | UC-ESCIDX-04 | O servidor recusa remover escala em uso — o botão é conveniência, a rota é pública | must | `D-ESC-DESTROY` + CLT Art. 58/59 (jornada esperada) | `EscalaRemocaoContratoTest` | 🧪 teste cita o UC, sem veredito |
+| UC-ESCIDX-05 | Remover confirma no diálogo do DS e, confirmado, remove de fato | must | `D-ESC-DESTROY` ([W] 2026-09-14, R3) | `ponto-escalas-remover-vinculo.test.tsx` | 🧪 teste cita o UC, sem veredito |
 
 **[BACKLOG]** (pergunta aberta ao [W], ou contrato numa fonte só — não vira UC sem teste):
 
@@ -137,3 +138,27 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   mediu o eixo errado — vazamento de *linha*, que o `UC-ESCIDX-01` já cobre — e concluiu que não
   procedia. Procede, e o furo estava neste teste.
 - **Status: 🧪 verde no CT 100, sem veredito de lane.**
+
+---
+
+## UC-ESCIDX-05 · Remover confirma no diálogo do DS e, confirmado, remove de fato · `must`
+
+- **Persona:** o mesmo gestor do UC-ESCIDX-03, já na escala livre. Ele precisa de uma pergunta que
+  diga **o que se perde** antes de apagar, e de um botão que de fato apague quando ele confirma.
+- **Aceite:** Dada uma escala **sem** vínculo · Quando clico em "Remover" · Então abre o diálogo do
+  DS com o título **"Remover <nome>?"**, **Cancelar** e **"Remover escala"**, e nada foi removido
+  ainda. Quando confirmo · Então sai o `DELETE /ponto/escalas/{id}` daquela escala, e enquanto a
+  resposta não chega o botão fica desabilitado ("Removendo…") e o diálogo segue aberto. Quando
+  cancelo · Então o diálogo fecha sem remover. Em nenhum momento o `window.confirm` nativo é usado.
+- **Teste:** [`tests/js/ponto-escalas-remover-vinculo.test.tsx`](../../../../../tests/js/ponto-escalas-remover-vinculo.test.tsx) — `UC-ESCIDX-05`.
+- **Contrato:** `D-ESC-DESTROY` na
+  [ata 2026-09-14](../../../../../prototipo-ui/cowork/Wagner/cowork-inbox/ponto/playbook/ATA-DECISOES-2026-09-14.md)
+  — *"`window.confirm` não era pergunta — usa o dialog do DS (R3)"*. Forma do diálogo:
+  [`ponto-telas.jsx`](../../../../../prototipo-ui/cowork/Wagner/ponto-telas.jsx) (eixo FORMA ⇒
+  protótipo soberano, [ADR UI-0029](../../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
+- **Regressão que defende:** a ata registra que a 1ª versão do protótipo abriu um modal **sem botão de
+  ação**, e passou porque o ramo sem vínculo nunca rodou. Aqui o caso vai até a chamada que remove.
+  Mutação: com o `window.confirm` original de volta, os 4 casos reprovam; sem o `preventDefault` no
+  botão de confirmar (o Radix fecharia o diálogo no clique), o caso "enquanto processa" reprova.
+  O efeito no servidor da remoção sem vínculo é o `UC-ESCIDX-04` (ponta positiva).
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**
