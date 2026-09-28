@@ -112,6 +112,7 @@ import { execFileSync } from 'node:child_process';
 import { join, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { ucBlocksInCasos } from '../lib/uc-regex.mjs';
+import { celulas } from '../lib/markdown-tabela.mjs';
 
 const argv = process.argv.slice(2);
 const has = (f) => argv.includes(f);
@@ -220,16 +221,16 @@ export function citacoesEm(content) {
   // ── FORMATO 1: tabela de Rastreabilidade ─────────────────────────────────────────
   for (const linha of String(content).split('\n')) {
     if (!linha.trim().startsWith('|')) continue;
-    // Split cru. Em 2026-09-28 (PR #8082 aberto) foi comparado com `celulas()`, que respeita o
-    // pipe escapado (`\|`): 0 de 519 linhas de tabela com UC nos 179 `.casos.md` do corpus
-    // tinham escape, e as 1184 citações (tabela + bloco) saíram iguais. Lendo pelo fim, um
-    // escape na coluna Status corrompe status e teste; na coluna Teste, só o teste.
-    const cols = linha.split('|').map((c) => c.trim());
-    if (cols.length < 5) continue;
-    const uc = (/\b(UC-[A-Z0-9-]+)\b/.exec(cols[1] || '') || [])[1];
+    // `celulas` respeita o pipe escapado (`\|`) e tira as bordas, por isso os índices são
+    // 0 (UC), -1 (Status) e -2 (Teste). Com split cru, um escape em Status corrompia status e
+    // teste. Trocado em 2026-09-28: 0 de 519 linhas de UC do corpus tinham escape, e as 1184
+    // citações saíram iguais. Pressupõe `|` de fechamento (0 de 697 linhas sem ele, no mesmo dia).
+    const cols = celulas(linha);
+    if (cols.length < 3) continue;
+    const uc = (/\b(UC-[A-Z0-9-]+)\b/.exec(cols[0] || '') || [])[1];
     if (!uc) continue;
-    const status = cols[cols.length - 2];
-    const teste = cols[cols.length - 3];
+    const status = cols[cols.length - 1];
+    const teste = cols[cols.length - 2];
     if (/^-+$/.test(status)) continue;                       // linha separadora
     const nomes = [...String(teste).matchAll(nomeDeTesteRe())].map((m) => m[1]);
     naTabela.add(uc);

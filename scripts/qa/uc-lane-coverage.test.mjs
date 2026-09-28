@@ -48,6 +48,12 @@ const check = (n, c, extra = '') => {
   check('tabela: nome do teste extraído sem crase', c[0].nomes[0] === 'MeuTest', JSON.stringify(c[0]));
   check('tabela: status lido da penúltima coluna', c[0].status === '✅', c[0].status);
   check('tabela: linha sem teste não inventa nome', c[1].nomes.length === 0, JSON.stringify(c[1].nomes));
+  // pipe escapado no Status (2026-09-28): com split cru, status e teste deslocavam juntos.
+  // Monta o escape por charCode — num literal ele colapsa no transporte.
+  const esc = String.fromCharCode(92) + '|';
+  const [e] = citacoesEm(`| UC-AB-03 | caso | must | \`CU-3\` | \`MeuTest\` | ✅ a ${esc} b |`);
+  check('tabela: pipe escapado no Status não desloca Teste', e?.nomes[0] === 'MeuTest', JSON.stringify(e));
+  check('tabela: pipe escapado fica dentro do Status', e?.status === '✅ a | b', e?.status);
   check('tabela: separadora |---| ignorada', !c.some((x) => /^-+$/.test(x.status)));
   // A asserção anterior era `citacoesEm(prosa).length === 0` — um PROXY. Com o FORMATO 2
   // (cabeçalho) o UC declarado passa a aparecer como entrada `sem-teste`, então o proxy
