@@ -1041,6 +1041,7 @@ detectando.
 > owner: wagner · priority: p1 · estimate: 4h · status: doing · type: story
 > blocked_by: —
 > parent_plan: programa-ondas
+> onda: D0
 
 **Contexto.** A Trilha D do programa de ondas organiza, no mesmo ciclo, a documentação das
 máquinas existentes, hooks, MCP, CI/CD, observabilidade, módulos e fluxos operacionais. O estado
