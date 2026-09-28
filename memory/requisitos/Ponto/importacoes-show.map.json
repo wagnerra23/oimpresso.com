@@ -1,0 +1,115 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Ponto/Importacoes/Show (/ponto/importacoes/{id})",
+  "gap_fonte": "memory/requisitos/Ponto/importacoes-show-gap.md",
+  "prototipo_sha": "sha256:e4d0b5a3707e",
+  "gerado_em": "2026-09-28",
+  "partes": [
+    {
+      "id": "cabecalho-e-baixar-original",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "731-736"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
+        "linhas": "59-80",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade.",
+      "_acionavel": false
+    },
+    {
+      "id": "dados-do-arquivo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "739-759"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
+        "linhas": "91-107",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir se iniciado/concluído entram — dependem de coluna que o payload não expõe hoje. Não há `D-*` específico; o charter pede 6 campos e o vivo cumpre os 6.",
+      "_acionavel": true
+    },
+    {
+      "id": "resumo-do-processamento",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "770-785"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
+        "linhas": "109-127",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir a forma (KPI × linhas é FORMA, thread de forma). A barra de % exige o total de linhas no payload.",
+      "_acionavel": true
+    },
+    {
+      "id": "tempo-real-enquanto-processa",
+      "prototipo": {
+        "arquivo": "n/a",
+        "linhas": "n/a"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
+        "linhas": "46-52",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente. O \"PARAR SE\" da thread 24 se cumpriu: é catch-up do protótipo.",
+      "_acionavel": false
+    },
+    {
+      "id": "alerta-de-erro",
+      "prototipo": {
+        "arquivo": "n/a",
+        "linhas": "n/a"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
+        "linhas": "82-88",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir junto do diagnóstico: separar \"log de processamento\" (neutro) de \"falhou\" (alerta, só quando o estado é de falha).",
+      "_acionavel": true
+    },
+    {
+      "id": "diagnostico-do-processamento",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "760"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "prototipo-a-frente",
+      "acao": "Incorporar — `D-IMP-EXTRAS` = INCORPORA (\"sem isso a tela de importação só sabe dizer que falhou\").",
+      "_acionavel": true
+    },
+    {
+      "id": "amostra-de-erros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "761-768"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "prototipo-a-frente",
+      "acao": "Incorporar — `D-IMP-EXTRAS`. Exige o job persistir a amostra e o `show` expô-la. Mensagens de erro de linha podem carregar PIS do AFD: tratar como PII na persistência e na tela.",
+      "_acionavel": true
+    }
+  ]
+}

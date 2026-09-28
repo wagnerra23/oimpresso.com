@@ -1,0 +1,100 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Ponto/Colaboradores/Index (/ponto/colaboradores)",
+  "gap_fonte": "memory/requisitos/Ponto/colaboradores-index-gap.md",
+  "prototipo_sha": "sha256:e4d0b5a3707e",
+  "gerado_em": "2026-09-28",
+  "partes": [
+    {
+      "id": "barra-de-busca-e-filtros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "602-618"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
+        "linhas": "86-99",
+        "ancora": false
+      },
+      "status": "prototipo-a-frente",
+      "acao": "Incorporar os 2 filtros — `D-COLAB-COLUNAS` = INCORPORA tudo; o \"Sem PIS cadastrado\" é, pela ata, o item de maior valor do lote. Exige filtro no `ColaboradorController@index` (`:15-60`), não só na tela. A busca em memória do protótipo é artefato de mock: não portar (o vivo já tem debounce + servidor).",
+      "_acionavel": true
+    },
+    {
+      "id": "lista-de-colaboradores",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "619-651"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
+        "linhas": "119-178",
+        "ancora": false
+      },
+      "status": "prototipo-a-frente",
+      "acao": "Incorporar as 2 colunas e o estado de desligado — `D-COLAB-COLUNAS`. São dado agregado (última marcação do mês, saldo do banco de horas): mudança de payload no controller, não só de tela.",
+      "_acionavel": true
+    },
+    {
+      "id": "cpf-e-pis-redigidos",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "636"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
+        "linhas": "144-153",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — `D-COLAB-CPF` já está aplicado nos dois lados. O \"PARAR SE\" da thread 23 se cumpriu: o defeito era só do protótipo e já foi corrigido nele.",
+      "_acionavel": false
+    },
+    {
+      "id": "estados-vazios",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "621-626"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
+        "linhas": "103-116",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — a 3ª frase do protótipo só faz sentido quando os filtros da 1ª parte existirem; entra junto com eles.",
+      "_acionavel": false
+    },
+    {
+      "id": "paginacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "652"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
+        "linhas": "180-201",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade (25/pág é o número do charter).",
+      "_acionavel": false
+    },
+    {
+      "id": "nota-de-vinculacao-com-o-hrm",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "654-656"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
+        "linhas": "79",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — o Non-Goal \"não cadastra colaborador\" está materializado nos dois. Forma é assunto das threads de FORMA, não deste gap.",
+      "_acionavel": false
+    }
+  ]
+}
