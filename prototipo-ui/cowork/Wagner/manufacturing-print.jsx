@@ -1,18 +1,30 @@
 // manufacturing-print.jsx — ficha técnica de produção (folha de prova PT-07).
 // Aceita várias receitas (impressão em lote) e a variante "chão de fábrica" (sem custo,
 // pra não circular preço de compra na produção). Portal no <body> + @media print.
+//
+// ADERÊNCIA AO DS (onda A-23): os quatro primitivos print-craft do bundle compilado —
+// RegistrationMark (mira), ProofFrame (marcas de corte), Dimension (cota) e ProofStrip
+// (tira CMYK + tira de densidade). Saíram daqui as 4 tintas de processo em hex
+// (#00AEEF #EC008C #FFF200 #231F20) e a escada de cinza calculada em runtime.
+//
+// IMPRESSÃO PELO DS (24/09/2026, decisão da Maiara: "siga o DS"): as folhas abrem no
+// PresenterMode (palco + folha A4 real + zoom + ← → + P imprime + Esc sai, @media print
+// embutido — PresenterMode.jsx L1-35, fonte viva). Saíram daqui o window.print() automático
+// após 120 ms, o afterprint e o bloco "body>* display:none" do CSS da tela. O portal no <body>
+// fica: no print o DS esconde por visibility, e um ancestral oculto ainda ocuparia espaço.
+//
+// CONTORNO DECLARADO: os quatro pintam por token de tela e o cockpit não publica paleta
+// de impressão (ADR 0413, C-08). ProofFrame entra com grid={false} — a grade de prova é
+// ruído sobre papel. Esta folha precisa ser IMPRESSA e conferida antes de fechar a onda:
+// se o token não sobreviver ao @media print, o resultado é a medição, não um ajuste aqui.
+// MEDIDO 25/09/2026 (Felipe): com o cockpit em tema escuro os tokens NÃO sobrevivem — a folha saía
+// cinza-escuro. Ajuste feito no CSS (.mfg-sheet redefine os tokens com os valores do tema claro,
+// citados de colors_and_type.css) — ver o contorno em manufacturing-page.css e a pauta.
 (() => {
-const { useEffect } = React;
-
-const REG = (
-  <svg className="mfg-reg" viewBox="0 0 24 24" aria-hidden="true">
-    <circle cx="12" cy="12" r="6.4" fill="none" stroke="currentColor" strokeWidth=".7" />
-    <circle cx="12" cy="12" r="2.2" fill="none" stroke="currentColor" strokeWidth=".7" />
-    <path d="M12 .8v6.6M12 16.6v6.6M.8 12h6.6M16.6 12h6.6" stroke="currentColor" strokeWidth=".7" />
-  </svg>
-);
+const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 
 function Folha({ r, c, semCusto, hoje }) {
+  const { RegistrationMark, ProofFrame, Dimension, ProofStrip } = ds();
   const { bySku, multDe, fmt, num } = window.MFG;
   const nIng = r.grupos.reduce((s, g) => s + g.itens.length, 0);
   const extraLabel = r.custoTipo === "percentual" ? r.extra + "% sobre ingredientes"
@@ -20,10 +32,10 @@ function Folha({ r, c, semCusto, hoje }) {
 
   return (
     <article className="mfg-sheet">
-      <i className="cm tl" /><i className="cm tr" /><i className="cm bl" /><i className="cm br" />
+      <ProofFrame cropMarks grid={false} padding={0} radius={0}>
 
       <header className="mfg-sheet-h">
-        {REG}
+        <span className="mfg-reg-host"><RegistrationMark size={26} strokeWidth={0.7} /></span>
         <div className="id">
           <span className="eyebrow">Office Impresso · Manufacturing{semCusto ? " · via de produção" : ""}</span>
           <h1>{r.name}</h1>
@@ -37,11 +49,11 @@ function Folha({ r, c, semCusto, hoje }) {
       </header>
 
       <section className="mfg-sheet-cotas">
-        <div className="cota"><span className="l">Lote da receita</span><b>{num(r.qtd, 2)} {r.un}</b><i className="ln" /></div>
-        <div className="cota"><span className="l">Rendimento líquido</span><b>{num(c.qtdLiq, 2)} {r.un}</b><i className="ln" /><small>desperdício {num(r.waste, 0)}%</small></div>
-        {r.subUn && <div className="cota"><span className="l">Em sub-unidade</span><b>{num(c.qtdLiq * r.subFator, 2)} {r.subUn}</b><i className="ln" /></div>}
-        {!semCusto && <div className="cota hi"><span className="l">Custo por {r.un}</span><b>{fmt(c.unit)}</b><i className="ln" /><small>venda {fmt(r.venda)} · margem {num(c.margem, 1)}%</small></div>}
-        {semCusto && <div className="cota hi"><span className="l">Conferir antes de iniciar</span><b>{nIng} itens</b><i className="ln" /><small>separar tudo na bancada</small></div>}
+        <div className="cota"><span className="l">Lote da receita</span><Dimension value={num(r.qtd, 2) + " " + r.un} /></div>
+        <div className="cota"><span className="l">Rendimento líquido</span><Dimension value={num(c.qtdLiq, 2) + " " + r.un} /><small>desperdício {num(r.waste, 0)}%</small></div>
+        {r.subUn && <div className="cota"><span className="l">Em sub-unidade</span><Dimension value={num(c.qtdLiq * r.subFator, 2) + " " + r.subUn} /></div>}
+        {!semCusto && <div className="cota hi"><span className="l">Custo por {r.un}</span><Dimension value={fmt(c.unit)} /><small>venda {fmt(r.venda)} · margem {num(c.margem, 1)}%</small></div>}
+        {semCusto && <div className="cota hi"><span className="l">Conferir antes de iniciar</span><Dimension value={nIng + " itens"} /><small>separar tudo na bancada</small></div>}
       </section>
 
       <table className="mfg-sheet-t">
@@ -96,26 +108,27 @@ function Folha({ r, c, semCusto, hoje }) {
       </section>
 
       <footer className="mfg-sheet-f">
-        <div className="strip">{["#00AEEF", "#EC008C", "#FFF200", "#231F20"].map((h) => <i key={h} style={{ background: h }} />)}</div>
-        <div className="strip d">{[0, 20, 40, 60, 80, 100].map((k) => <i key={k} style={{ background: "rgb(" + (255 - k * 2.55) + "," + (255 - k * 2.55) + "," + (255 - k * 2.55) + ")" }} />)}</div>
+        <ProofStrip kind="cmyk" height={9} swatch={13} />
+        <ProofStrip kind="density" steps={6} height={9} swatch={13} />
         <span>{r.sku} · {semCusto ? "via de produção" : "custo do preço de compra atual"} · atualizado {r.atualizado}</span>
       </footer>
+
+      </ProofFrame>
     </article>
   );
 }
 
 function MfgFichaPrint({ itens, semCusto, onDone }) {
-  useEffect(() => {
-    const fim = () => onDone && onDone();
-    window.addEventListener("afterprint", fim);
-    const t = setTimeout(() => window.print(), 120);
-    return () => { window.removeEventListener("afterprint", fim); clearTimeout(t); };
-  }, []);
+  const { PresenterMode } = ds();
   const hoje = new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  if (!PresenterMode) return null;
+  const n = itens.length;
   return ReactDOM.createPortal(
-    <div className="mfg-print-host">
-      {itens.map(({ r, c }) => <Folha key={r.id} r={r} c={c} semCusto={semCusto} hoje={hoje} />)}
-    </div>, document.body);
+    <PresenterMode open onClose={onDone} pages={n} paper="A4" orientation="portrait"
+      title={semCusto ? "Via de produção" : "Ficha técnica com custo"}
+      subtitle={n + (n > 1 ? " receitas" : " receita") + (semCusto ? " · sem valores de compra" : "")}>
+      {(i) => <Folha r={itens[i].r} c={itens[i].c} semCusto={semCusto} hoje={hoje} />}
+    </PresenterMode>, document.body);
 }
 
 window.MfgFichaPrint = MfgFichaPrint;
