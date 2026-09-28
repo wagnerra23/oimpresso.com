@@ -891,9 +891,27 @@
         "PaginatorShape",
         "default"
       ],
-      "props": [],
+      "props": [
+        "columns",
+        "data",
+        "pagination",
+        "endpoint",
+        "caption",
+        "filters",
+        "searchPlaceholder",
+        "emptyMessage",
+        "rowKey",
+        "showSearch",
+        "initialSearch",
+        "rowState",
+        "onRowClick",
+        "minTableWidth",
+        "tableWrapperClassName",
+        "density"
+      ],
       "variant_map": {
-        "base": "@tanstack/react-table (DataTable.tsx:8)"
+        "base": "@tanstack/react-table (DataTable.tsx:8)",
+        "density": "prop density=\"dense\" = a tabela densa do protótipo (ds-atomos thread 04, #8045); omitido = anatomia de sempre"
       },
       "status": "mapped"
     },
@@ -906,9 +924,28 @@
         "PaginatorShape",
         "default"
       ],
-      "props": [],
+      "props": [
+        "columns",
+        "data",
+        "pagination",
+        "endpoint",
+        "caption",
+        "filters",
+        "searchPlaceholder",
+        "emptyMessage",
+        "rowKey",
+        "showSearch",
+        "initialSearch",
+        "rowState",
+        "onRowClick",
+        "minTableWidth",
+        "tableWrapperClassName",
+        "density"
+      ],
       "variant_map": {
-        "sticky/resize/densidade": "FALTA — estender"
+        "densidade": "EXISTE — prop density (ds-atomos thread 04, #8045)",
+        "sticky": "FALTA — estender (cabeçalho fixo não existe no primitivo)",
+        "resize": "FALTA — estender (thread 07 do ds-atomos bloqueada até a ADR UI-0032)"
       },
       "status": "mapped"
     },

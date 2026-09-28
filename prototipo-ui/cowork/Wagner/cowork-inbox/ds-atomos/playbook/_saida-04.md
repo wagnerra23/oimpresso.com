@@ -63,9 +63,11 @@ existiam) · `component-registry-check --check --strict` ✅ · `ds-canon-color-
 2. **Diferenças do protótipo fora do bloco C** (não inventei): `td` com `vertical-align: middle`
    (o primitivo mantém `align-top`) e `th` `sticky` com fundo `--surface`. Se virarem alvo, é
    thread nova.
-3. **`governance/design/component-registry.json`** fica parcialmente desatualizado: a 2ª entrada do
-   `DataTable` diz `"sticky/resize/densidade": "FALTA"`. Densidade passa a existir; sticky e
-   resize seguem faltando. Fora do prefixo desta thread.
+3. ~~**`governance/design/component-registry.json`** fica parcialmente desatualizado~~ —
+   **resolvido no mesmo PR**, a pedido do [W] (2026-09-28): as duas entradas do `DataTable`
+   registram a `density`, a de "DataTablePro" separa densidade (existe) de sticky e resize
+   (faltam), e o `props` lista as 16 props reais, conferidas contra a interface do componente.
+   Ficou no mesmo PR para registro e código chegarem juntos ao `main`.
 4. **Adoção:** nenhuma tela liga `dense` aqui. É uma tela por PR.
 
 ## 6 · Placar
