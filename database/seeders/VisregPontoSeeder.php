@@ -39,6 +39,15 @@ use Illuminate\Support\Facades\Schema;
  * cego quebraria o seed inteiro na segunda execução, e com ele as lanes que o
  * compartilham).
  *
+ * SALDO DE BANCO DE HORAS (2026-09-28): `BancoHorasController@show` faz
+ * `firstOrFail` no SALDO, não no colaborador — sem esta linha a rota
+ * `/ponto/banco-horas/900001` do manifesto daria 404, o mesmo defeito do Espelho
+ * acima. Saldo 0 e NENHUM movimento, de propósito: a coluna "Registrado" do
+ * extrato é `diffForHumans()` ("há 3 minutos"), relativa ao relógio do runner, e
+ * drifaria a baseline a cada run. Com o ledger vazio a foto é o estado "Sem
+ * movimentos." — e o saldo 0 é coerente com ele (o saldo é a soma do ledger).
+ * A paginação do histórico é provada fora da foto (Pest + vitest UC-BHSHOW-04).
+ *
  * @see tests/Browser/visreg-screens.json (contrato — rota e âncora)
  * @see tests/Browser/CoreScreens/PixelBaselineTest.php
  * @see Modules/Ponto/Http/Controllers/EspelhoController.php::show
@@ -56,6 +65,12 @@ class VisregPontoSeeder extends Seeder
             return;
         }
 
+        $this->garantirColaborador();
+        $this->garantirSaldoBancoHoras();
+    }
+
+    private function garantirColaborador(): void
+    {
         if (DB::table('ponto_colaborador_config')->where('id', self::COLABORADOR_ID)->exists()) {
             return;
         }
@@ -85,6 +100,32 @@ class VisregPontoSeeder extends Seeder
             'admissao'        => '2026-01-05', // literal fixo: data relativa drifaria a baseline
             'created_at'      => now(),
             'updated_at'      => now(),
+        ]);
+    }
+
+    /** Saldo do 900001 (ver docblock "SALDO DE BANCO DE HORAS"). Idempotente. */
+    private function garantirSaldoBancoHoras(): void
+    {
+        if (! Schema::hasTable('ponto_banco_horas_saldo')) {
+            return;
+        }
+
+        // Só ancora num colaborador que existe: a FK recusaria o insert e derrubaria
+        // o seed compartilhado.
+        if (! DB::table('ponto_colaborador_config')->where('id', self::COLABORADOR_ID)->exists()) {
+            return;
+        }
+
+        if (DB::table('ponto_banco_horas_saldo')->where('colaborador_config_id', self::COLABORADOR_ID)->exists()) {
+            return;
+        }
+
+        DB::table('ponto_banco_horas_saldo')->insert([
+            'business_id'           => 1,
+            'colaborador_config_id' => self::COLABORADOR_ID,
+            'saldo_minutos'         => 0,
+            'created_at'            => now(),
+            'updated_at'            => now(),
         ]);
     }
 }

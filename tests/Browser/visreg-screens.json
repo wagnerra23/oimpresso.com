@@ -409,6 +409,14 @@
     "baseline": "it_Ponto_BancoHoras_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Ponto/BancoHoras/Show",
+    "source": "Ponto/BancoHoras/Show",
+    "component": "Ponto/BancoHoras/Show",
+    "route": "/ponto/banco-horas/900001",
+    "anchor": "Sem movimentos.",
+    "baseline": "it_Ponto_BancoHoras_Show_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Ponto/Importacoes",
     "source": "Ponto/Importacoes",
     "a11y": true,
