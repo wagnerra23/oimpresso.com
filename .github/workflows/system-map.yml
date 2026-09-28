@@ -101,6 +101,11 @@ jobs:
         with: { node-version: '20' }
       - name: Regenera painel + arquitetura Jana + onboarding
         run: node scripts/governance/system-map.mjs
+      # doc-id-index: dono do frescor desde 2026-09-28 (o `--write` "de consolidação" não tinha
+      # invocador e o índice ficou 330 ids atrás). `--refresh` recusa regenerar se houver move
+      # pendente — esse sinal é do `doc-auto-relink --detect`; ver o docblock do script.
+      - name: Regenera doc-id-index (recusa se houver move pendente)
+        run: node scripts/governance/doc-id-index.mjs --refresh
       # Auto-PR (NÃO push direto): main exige PR + required checks — o push direto do bot
       # é rejeitado (GH013 "Changes must be made through a pull request"), então o
       # commit-back antigo NUNCA aterrissava e a matriz não se mantinha. Padrão copiado de
@@ -118,8 +123,9 @@ jobs:
             memory/reference/PAINEL-SISTEMA.md
             memory/requisitos/Jana/ARCHITECTURE.md
             memory/reference/ONBOARDING-AGENTE-GERADO.md
+            governance/doc-id-index.json
           commit-message: |
-            chore(matriz): regenera PAINEL + arquitetura Jana + ONBOARDING das fontes canônicas
+            chore(matriz): regenera PAINEL + arquitetura Jana + ONBOARDING + doc-id-index
 
             Índice derivado ficou stale vs as fontes (módulos/IA/ADRs/gates/scorecard). Regen
             automático pela máquina matriz (system-map.mjs). Substitui o git push direto em
@@ -132,6 +138,8 @@ jobs:
 
             `PAINEL-SISTEMA.md`, `Jana/ARCHITECTURE.md` ou `ONBOARDING-AGENTE-GERADO.md` ficaram
             desatualizados vs as fontes canônicas (módulos, IA, ADRs, gates, scorecard).
+            `governance/doc-id-index.json` entra junto quando o corpus de `memory/` mudou
+            (`doc-id-index --refresh`, que não regenera se houver move pendente).
             Esta é a "máquina que mantém" fechando o loop.
 
             Substitui o `git push` direto em main (rejeitado por branch protection — GH013)
