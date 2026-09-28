@@ -5,7 +5,7 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.5 + §15.1 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-09-25"
+last_run: "2026-09-28"
 ---
 
 # Casos de Uso & Aceite — Manufacturing/Index
@@ -133,3 +133,7 @@ last_run: "2026-09-25"
 - 2026-09-25 · [C] UC-OP-06 (playbook Manufacturing thread 04, D-MFG-DATA): De/Até aplica ao
   escolher. `last_run` bumpado porque o `.tsx` mudou — os UC-OP-01..05 são de Service e não
   foram tocados; o UC-OP-06 roda em vitest (5 passed local, mordida provada por mutação).
+- 2026-09-28 · [C] Contrato de tela `manufacturing-index` (playbook Manufacturing thread 01):
+  `data-contract` em cabecalho · abas · kpis · filtros · lista no `.tsx`, só atributos (o
+  cabeçalho ganhou um `div` wrapper porque o `PageHeader` canon não repassa atributos). Nenhum
+  UC mudou de comportamento; `last_run` bumpado porque o `.tsx` mudou.

@@ -1,0 +1,72 @@
+{
+  "_nota": "Contrato de tela das Ordens de produção (/manufacturing/production). Seções, ordem e copy literal vêm do pedido do Cowork (cowork-inbox/manufacturing/PEDIDO-MANUFACTURING-ORDENS-2026-09-25.md §'O que sobra' item 1, thread 01 do playbook), no molde do manufacturing-recipes.contract.json. Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`.",
+  "tela": "Manufacturing/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
+  "alvo": [
+    "resources/js/Pages/Manufacturing/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Produção",
+        "Nova produção"
+      ]
+    },
+    {
+      "id": "abas",
+      "copy": [
+        "Receitas",
+        "Insumos",
+        "Ordens de produção",
+        "Relatório",
+        "Configurações"
+      ]
+    },
+    {
+      "id": "kpis",
+      "copy": [
+        "Total",
+        "Finalizadas",
+        "Pendentes",
+        "Valor total"
+      ]
+    },
+    {
+      "id": "filtros",
+      "copy": [
+        "Local",
+        "De",
+        "Até",
+        "Só finalizadas",
+        "Todos os locais"
+      ]
+    },
+    {
+      "id": "lista",
+      "copy": [
+        "Data",
+        "Referência",
+        "Local",
+        "Produto",
+        "Qtd",
+        "Custo total",
+        "Custo unit.",
+        "Situação",
+        "Nenhuma produção no filtro",
+        "Sem produções cadastradas"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "abas",
+    "kpis",
+    "filtros",
+    "lista"
+  ],
+  "_pendente_w": [
+    "ESTADOS — `estados` segue omitido, como no contrato irmão: o payload vem eager (o `Inertia::defer` foi revertido nesta tela, ver charter §Próximos passos). Os dois vazios estão como copy da seção `lista`.",
+    "PARTES 'Decidir' do manufacturing-index-gap.md (ordenação por coluna, paginação, drawer de detalhe) NÃO entram: a tela não as tem, e pôr no contrato seria pinar o que não existe. O `gerar-contrato.mjs` as lista como esqueleto; a decisão construir/rejeitar é do gap.md, não deste contrato."
+  ]
+}

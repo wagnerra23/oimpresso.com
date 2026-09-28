@@ -167,23 +167,25 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           afirmação FALSA na tela — o rodapé já diz a verdade ("custo congelado na data"). */}
       {/* Header canon (ADR 0409: tocar a tela acorda a dívida do header antigo). Sem ícone,
           como o protótipo (`manufacturing-page.jsx` `.os-page-h`: título · subtítulo · primário). */}
-      <PageHeader
-        title="Produção"
-        subtitle={
-          recipes_count === undefined
-            ? 'Ordens de produção do módulo de Fabricação.'
-            : `${recipes_count} receita${recipes_count === 1 ? '' : 's'} · ` +
-              `${summary?.total_count ?? 0} ordens de produção`
-        }
-        actions={<PageHeaderPrimary label="Nova produção" href={CREATE_ROUTE} />}
-      />
+      <div data-contract="cabecalho">
+        <PageHeader
+          title="Produção"
+          subtitle={
+            recipes_count === undefined
+              ? 'Ordens de produção do módulo de Fabricação.'
+              : `${recipes_count} receita${recipes_count === 1 ? '' : 's'} · ` +
+                `${summary?.total_count ?? 0} ordens de produção`
+          }
+          actions={<PageHeaderPrimary label="Nova produção" href={CREATE_ROUTE} />}
+        />
+      </div>
 
       {/* Barra de abas do módulo — MESMA das 4 telas irmãs (Recipes/Report/Settings/Insumos).
           Esta tela nasceu na Wave J sem ela: era a única do módulo em React na época, então
           não havia pra onde navegar. Depois do cutover de 2026-09-04 o menu lateral passou a
           trazer o usuário pra cá e a tela virou BECO SEM SAÍDA — [M] reportou clicando e
           vendo a barra sumir. A aba atual é <span>, não <Link>, igual às irmãs. */}
-      <nav className="mfg-tabs" aria-label="Manufacturing">
+      <nav className="mfg-tabs" aria-label="Manufacturing" data-contract="abas">
         <Link className="mfg-tab" href="/manufacturing/recipe">
           Receitas
           {recipes_count !== undefined && <span className="mfg-tab-n">{recipes_count}</span>}
@@ -207,7 +209,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
       </nav>
 
       {/* KPI strip — "Finalizadas" e "Pendentes" filtram a lista */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" data-contract="kpis">
         <KpiCard
           label="Total"
           value={summary?.total_count ?? 0}
@@ -238,7 +240,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
       </div>
 
       {/* Slot 3 — Toolbar de filtros (local + intervalo de data) */}
-      <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+      <div className="rounded-lg border border-border bg-card p-4 space-y-3" data-contract="filtros">
         {/* Rótulos LOCAL / DE / ATÉ: o protótipo (`MfgProducaoView`) põe cada controle num
             `<Campo label=…>`, que rende `.mfg-fld > span` — 10px, caixa alta, tracking .07em,
             cor `--text-mute`. Aqui a forma é replicada com token do DS. Sem eles a barra só
@@ -337,7 +339,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
       </div>
 
       {/* Slot 5 — Tabela tokenizada */}
-      <div className="rounded-lg border border-border bg-card overflow-x-auto">
+      <div className="rounded-lg border border-border bg-card overflow-x-auto" data-contract="lista">
         {productions.length === 0 ? (
           <EmptyState
             icon="factory"
