@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 23 |
 | Telas com `casos.md` | 23 |
-| UC declarados | 98 |
-| UC com teste que os cita | 94 |
+| UC declarados | 99 |
+| UC com teste que os cita | 95 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -62,6 +62,7 @@ authority: generated
 | UC-BHSHOW-02 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-03 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-04 | BancoHoras/Show | 🧪 aguarda veredito da lane |
+| UC-BHSHOW-05 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-CFGIDX-01 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CFGIDX-02 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CFGREP-01 | Configuracoes/Reps | 🧪 aguarda veredito da lane |

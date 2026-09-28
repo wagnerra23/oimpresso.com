@@ -31,6 +31,7 @@ last_run_ci: "2026-09-28 (PR #8077, revalidacao apos a navegacao de pagina entra
 | UC-BHSHOW-02 | Ajuste manual exige justificativa e vira movimento novo | must `[V0]` | `CU-PONTO-09` + US-PONTO-004 | `BancoHorasImportacaoContratoTest` | ✅ verde na lane |
 | UC-BHSHOW-03 | Extrato de colaborador de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `BancoHorasImportacaoContratoTest` | ✅ verde na lane |
 | UC-BHSHOW-04 | Com mais de 50 movimentos, a 2ª página do extrato é alcançável | must | charter §Goals ("Histórico paginado (50/pág)") | `BancoHorasImportacaoContratoTest` | 🧪 teste cita o UC, sem veredito |
+| UC-BHSHOW-05 | Extrato mostra cargo, escala e o acordo do banco de horas; cargo de outro empregador não vaza | must `[T0]` | charter §Goals (`D-BH-KPI`) + ADR 0093 | `BancoHorasImportacaoContratoTest` | 🧪 teste cita o UC, sem veredito |
 
 **[BACKLOG]:**
 
@@ -120,4 +121,25 @@ last_run_ci: "2026-09-28 (PR #8077, revalidacao apos a navegacao de pagina entra
   movimentos de mesmo instante (importação em lote) a fatia de cada página não é determinística no
   MySQL. O teste fixa `created_at` distinto para medir a paginação, não a ordenação — o desempate é
   achado à parte, não coberto aqui.
+- **Status: 🧪 sem veredito.**
+
+---
+
+## UC-BHSHOW-05 · Extrato mostra cargo, escala e o acordo; cargo de outro empregador não vaza · `must` `[T0]`
+
+- **Persona:** RH conferindo um extrato. Sem o teto e o prazo do acordo na tela, a regra que decide
+  se o saldo vai expirar ou estourar fica invisível — e é ela que vira dinheiro na rescisão.
+- **Aceite:** Dado um colaborador com escala e cargo do HRM · Quando abro o extrato · Então vejo
+  "matrícula · cargo · escala" e os KPIs "Teto do acordo" (com o piso) e "Prazo de compensação" · E
+  quando o cargo do usuário aponta para uma categoria de **outro** empregador · Então o nome dela
+  **não** aparece.
+- **Teste:** `BancoHorasImportacaoContratoTest.php` — `UC-BHSHOW-05` (tenant 98, ADR 0358;
+  categoria alheia no business 99).
+- **Contrato:** `Show.charter.md` §Goals (`D-BH-KPI`, [W] 2026-09-14) · ADR 0093 · forma do protótipo
+  `ponto-telas.jsx:368-379`.
+- **Regressão que defende:** o cargo vem de `categories`, tabela core **sem** o global scope do Ponto.
+  Esquecer o `where('business_id', …)` no controller não quebra nada visível no tenant certo — só vaza
+  nome de cargo de outro empregador. O caso monta exatamente essa armadilha.
+- **Fora do alcance:** o **valor** do teto/prazo é o do config (`pontowr2.banco_horas`); a tela exibe,
+  não aplica. Quem expira e limita é o `BancoHorasService` (Non-Goal "não recalcula o saldo").
 - **Status: 🧪 sem veredito.**

@@ -73,8 +73,13 @@ function bhimpLimparFixtures(): void
             // DB::table de propósito (jamais em código de produção).
             DB::table('ponto_banco_horas_movimentos')->whereIn('colaborador_config_id', $ids)->delete();
             DB::table('ponto_banco_horas_saldo')->whereIn('colaborador_config_id', $ids)->delete();
-            Colaborador::withoutGlobalScopes()->whereIn('id', $ids)->delete();
+            Colaborador::withoutGlobalScopes()->whereIn('id', $ids)->forceDelete();
         }
+
+        // UC-BHSHOW-05: escala e cargo (categories) marcados. Depois do colaborador (FK da
+        // escala) e ANTES do removerBizAlheio (FK de categories pro business 99).
+        DB::table('ponto_escalas')->where('nome', 'like', BHIMP_MARCADOR . '%')->delete();
+        DB::table('categories')->where('name', 'like', BHIMP_MARCADOR . '%')->delete();
 
         DB::table('ponto_importacoes')
             ->where('nome_arquivo', 'like', BHIMP_MARCADOR . '%')
@@ -138,6 +143,39 @@ function bhimpCriarColaboradorComSaldo(int $businessId, int $userBusinessId): Co
     ])->save();
 
     return $colab;
+}
+
+/**
+ * Entra no tenant canônico de teste (biz 98, fictício — ADR 0358) com um user SEMEADO do 98
+ * e `ponto.access` DIRETO, NUNCA a role Admin#98: o Gate::before libera tudo pra essa role,
+ * e a 1ª versão do UC-BHSHOW-04 a deu a esse user e derrubou UC-PTF-06/07 (run 36472572442),
+ * que provam o 403 sem `ponto.fechar`. User de factory + `ponto.access` tomou 403 no GET
+ * (run 36474710700) — a receita do FechamentoContratoTest é a que passa nesta lane.
+ *
+ * Devolve [business, user] em vez de setar `$this->business`: a propriedade é protected e só
+ * a closure do `it()` a enxerga.
+ *
+ * @return array{0: \App\Business, 1: User}
+ */
+function bhimpEntrarNoTenant98(): array
+{
+    $business = test()->seededTenant();
+    if ((int) $business->id !== 98) {
+        test()->markTestSkipped('Tenant 98 não seedado nesta lane — não caio em business real (ADR 0358).');
+    }
+
+    $user = User::where('business_id', $business->id)->orderBy('id')->first();
+    if (! $user) {
+        test()->markTestSkipped('Sem user no tenant 98 — seed mínimo não rodou.');
+    }
+
+    \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'ponto.access', 'guard_name' => 'web']);
+    $user->givePermissionTo('ponto.access');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    session(['user.business_id' => $business->id, 'business.id' => $business->id]);
+    test()->actingAs($user);
+
+    return [$business, $user];
 }
 
 function bhimpCriarImportacao(int $businessId, int $usuarioId, array $attrs = []): Importacao
@@ -312,29 +350,7 @@ it('UC-BHSHOW-04 · com mais de 50 movimentos a segunda página do extrato é al
 
     // Tenant canônico de teste = biz 98, fictício (ADR 0358) — não o Business::first
     // do actAsAdmin, que no CT 100 é a WR2 (empresa real, base clone de prod).
-    $this->business = $this->seededTenant();
-    if ((int) $this->business->id !== 98) {
-        $this->markTestSkipped('Tenant 98 não seedado nesta lane — não caio em business real (ADR 0358).');
-    }
-
-    // Mesma receita do FechamentoContratoTest (UC-PTF-07 dá 200 nesta lane): o user
-    // SEMEADO do 98 + `ponto.access` DIRETO, e NUNCA a role Admin#98.
-    //  - Sem a role: o Gate::before libera tudo pra Admin#{biz}; a 1ª versão deste caso
-    //    a deu a esse user e derrubou UC-PTF-06/07 (run 36472572442), que provam o 403
-    //    sem `ponto.fechar`. `ponto.access` sozinho é o que o próprio Fechamento concede.
-    //  - Não um user de factory: a 2ª versão usava bhimpNovoUser + `ponto.access` e o
-    //    GET deu 403 (run 36474710700). Causa exata não isolada (CheckPontoAccess,
-    //    CheckUserLogin e Gate::before lidos, nenhum explica); a receita que já passa
-    //    na lane é a prova disponível.
-    $this->admin = User::where('business_id', $this->business->id)->orderBy('id')->first();
-    if (! $this->admin) {
-        $this->markTestSkipped('Sem user no tenant 98 — seed mínimo não rodou.');
-    }
-    \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'ponto.access', 'guard_name' => 'web']);
-    $this->admin->givePermissionTo('ponto.access');
-    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
-    session(['user.business_id' => $this->business->id, 'business.id' => $this->business->id]);
-    $this->actingAs($this->admin);
+    [$this->business, $this->admin] = bhimpEntrarNoTenant98();
 
     $colab = bhimpCriarColaboradorComSaldo($this->business->id, $this->business->id);
 
@@ -389,6 +405,70 @@ it('UC-BHSHOW-04 · com mais de 50 movimentos a segunda página do extrato é al
     sort($vistos);
     sort($criados);
     $this->assertSame($criados, $vistos, 'Página 1 + página 2 = todos os 51 movimentos, cada um uma vez.');
+});
+
+/**
+ * Contrato: Show.charter.md §Goals — KPIs "Teto do acordo" e "Prazo de compensação"
+ * (D-BH-KPI, [W] 2026-09-14) + a faixa do colaborador do protótipo (ponto-telas.jsx:370,
+ * "matrícula · cargo · escala"). ADR 0093 para o cargo.
+ *
+ * O cargo vem de `categories` (tabela core, SEM o global scope do Ponto), então o
+ * controller filtra `business_id` na mão. O caso monta a armadilha: o mesmo user apontando
+ * para uma categoria de OUTRO business não pode fazer o nome dela aparecer.
+ */
+it('UC-BHSHOW-05 · extrato traz cargo, escala e o acordo do banco de horas; cargo de outro empregador não vaza [must][T0]', function () {
+    bhimpPrecisaDe(['ponto_colaborador_config', 'ponto_escalas', 'categories']);
+
+    [$this->business, $this->admin] = bhimpEntrarNoTenant98();
+    $this->garantirBizAlheio();
+
+    $colab = bhimpCriarColaboradorComSaldo($this->business->id, $this->business->id);
+
+    $escalaId = DB::table('ponto_escalas')->insertGetId([
+        'business_id'           => $this->business->id,
+        'nome'                  => BHIMP_MARCADOR . '-Produção 5x2',
+        'codigo'                => 'BHSH5',
+        'tipo'                  => 'FIXA',
+        'carga_diaria_minutos'  => 480,
+        'carga_semanal_minutos' => 2400,
+        'permite_banco_horas'   => true,
+        'ativo'                 => 1,
+        'created_at'            => now(),
+        'updated_at'            => now(),
+    ]);
+    DB::table('ponto_colaborador_config')->where('id', $colab->id)->update(['escala_atual_id' => $escalaId]);
+
+    $categoria = fn (int $biz, string $nome) => DB::table('categories')->insertGetId([
+        'name' => BHIMP_MARCADOR . '-' . $nome, 'business_id' => $biz, 'parent_id' => 0,
+        'created_by' => $this->admin->id, 'category_type' => 'hrm_designation',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $meuCargo   = $categoria($this->business->id, 'Acabamento');
+    $cargoAlheio = $categoria(PontoTestCase::BIZ_ALHEIO_FICTICIO, 'Cargo alheio');
+
+    $userDoColab = DB::table('ponto_colaborador_config')->where('id', $colab->id)->value('user_id');
+    $url = "/ponto/banco-horas/{$colab->id}";
+
+    // (a) cargo do meu business + escala + acordo, direto no payload eager
+    DB::table('users')->where('id', $userDoColab)->update(['essentials_designation_id' => $meuCargo]);
+    $r = $this->inertiaGet($url);
+    $r->assertStatus(200);
+    $this->assertSame(BHIMP_MARCADOR . '-Acabamento', $r->json('props.saldo.cargo'));
+    $this->assertSame(BHIMP_MARCADOR . '-Produção 5x2', $r->json('props.saldo.escala'));
+    $this->assertSame(
+        ['teto_horas' => 200, 'piso_horas' => -40, 'prazo_meses' => 6],
+        $r->json('props.acordo'),
+        'Teto, piso e prazo vêm do config pontowr2.banco_horas — o mesmo que o BancoHorasService aplica.'
+    );
+
+    // (b) o MESMO user apontando para categoria de outro business: o nome não pode vazar
+    DB::table('users')->where('id', $userDoColab)->update(['essentials_designation_id' => $cargoAlheio]);
+    $r2 = $this->inertiaGet($url);
+    $r2->assertStatus(200);
+    $this->assertNull(
+        $r2->json('props.saldo.cargo'),
+        'Categoria de outro empregador não pode aparecer como cargo (ADR 0093).'
+    );
 });
 
 // =====================================================================
