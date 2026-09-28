@@ -69,14 +69,23 @@ function CardHeader({
 function CardTitle({
   className,
   badge,
+  as,
   children,
   ...props
 }: React.ComponentProps<"div"> & {
   /** Nó à DIREITA do título, na mesma linha de base (contagem, período). Encolhe por último. */
   badge?: React.ReactNode
+  /**
+   * Nível de CABEÇALHO do título do painel (playbook ds-atomos thread 06). Omitido = `<div>`,
+   * o markup de sempre — nenhum dos consumidores muda. `h2` é o título de painel sob o `h1`
+   * do PageHeader; `h3` é painel dentro de painel. Sem esta prop o título não entra no
+   * esqueleto de cabeçalhos da página, e a tela não tem como corrigir isso sozinha.
+   */
+  as?: "h2" | "h3"
 }) {
+  const Comp: React.ElementType = as ?? "div"
   return (
-    <div
+    <Comp
       data-slot="card-title"
       className={cn(
         "leading-none font-semibold",
@@ -98,7 +107,7 @@ function CardTitle({
           </span>
         </>
       )}
-    </div>
+    </Comp>
   )
 }
 
