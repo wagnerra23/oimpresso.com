@@ -27,12 +27,12 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * Este teste vive em Modules/Jana/Tests/Feature (registrado no phpunit.xml) —
  * Modules/KB não tem suite registrada, e a rota + entity Meta são de Jana.
  *
- * ADR 0093 Tier 0 IRREVOGÁVEL. ADR 0101: biz=1 vs biz=99. NUNCA biz=4.
+ * ADR 0093 Tier 0 IRREVOGÁVEL. ADR 0358: tenant 98 (fictício) vs biz=99. NUNCA biz=4, NUNCA biz=1.
  *
  * @see Modules/KB/Http/Controllers/FontesController.php
  */
 
-const FONTES_BIZ_WAGNER = 1;
+const FONTES_BIZ_WAGNER = 98; // tenant canônico FICTÍCIO (ADR 0358)
 const FONTES_BIZ_FICTICIO = 99;
 
 beforeEach(function () {
@@ -47,11 +47,11 @@ beforeEach(function () {
 
     $business = Business::find(FONTES_BIZ_WAGNER);
     if (! $business) {
-        $this->markTestSkipped('business_id=1 não encontrado — semear DB.');
+        $this->markTestSkipped('business_id=98 (tenant canônico ADR 0358) ausente — rode o seed do pest-mysql-setup.');
     }
     $user = User::where('business_id', FONTES_BIZ_WAGNER)->first();
     if (! $user) {
-        $this->markTestSkipped('Sem user em business_id=1.');
+        $this->markTestSkipped('Sem user em business_id=98.');
     }
     $this->wUser = $user;
 
@@ -95,8 +95,15 @@ beforeEach(function () {
     // o gate em vez do isolamento cross-tenant que ele existe pra provar.
     // Conceder aqui NÃO enfraquece nada: o contrato sob teste é "usuário COM acesso
     // ao módulo ainda não alcança dado de outra empresa".
+    //
+    // Idem `can:jana.metas.manage` nas escritas de meta/período/fonte (#7895, UC-JPERM-03):
+    // sem ela o 403 da trava chega ANTES do `Meta::findOrFail` e o 404 cross-tenant nunca
+    // é exercitado — o teste de isolamento fica MUDO (medido 2026-09-27: 403 vs 404). O
+    // 403 SEM a permissão é contrato separado, provado em `Http/MetasPermissaoTest.php`
+    // e no `PeriodosControllerCrossTenantTest`.
     \Spatie\Permission\Models\Permission::findOrCreate('jana.access', 'web');
-    $this->wUser->givePermissionTo('jana.access');
+    \Spatie\Permission\Models\Permission::findOrCreate('jana.metas.manage', 'web');
+    $this->wUser->givePermissionTo('jana.access', 'jana.metas.manage');
     $this->wUser->forgetCachedPermissions();
 
     $this->actingAs($this->wUser);
@@ -104,6 +111,12 @@ beforeEach(function () {
         'user.business_id' => FONTES_BIZ_WAGNER,
         'business' => ['id' => FONTES_BIZ_WAGNER, 'name' => $business->name],
     ]);
+});
+
+// A permissão criada na transação some no rollback; o cache do Spatie que sobrevive a
+// ela vira PermissionDoesNotExist/FK no teste seguinte de OUTRO arquivo (#7895).
+afterEach(function () {
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
 function fontePayload(): array
@@ -125,7 +138,7 @@ it('update cross-tenant: PATCH fonte na meta biz=99 → 404 e NÃO grava MetaFon
     expect($depois)->toBe($antes); // gate barrou a injeção de driver:sql cross-tenant
 });
 
-it('update positivo: PATCH fonte na própria meta biz=1 → 302 e grava', function () {
+it('update positivo: PATCH fonte na própria meta biz=98 → 302 e grava', function () {
     $resp = $this->patch("/ia/metas/{$this->metaWagner->id}/fonte", fontePayload());
 
     $resp->assertRedirect();

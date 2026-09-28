@@ -1,3 +1,13 @@
+/* PENDENTE — anotado em 25/09/2026 (Felipe). NÃO corrigido de propósito: corrigir quando o dono
+   desta tela mexer nela.
+   Defeito: o comentário de cabeçalho logo abaixo fecha antes da hora — no trecho o marcador SCOPED-OK escrito entre abertura e fecho de comentário dentro de outro comentário fecha o bloco maior.
+   O navegador descarta a primeira regra depois dele (no fonte: a regra @layer base logo após o cabeçalho), sem erro no
+   console. Medido carregando o arquivo no navegador: a primeira regra que ele enxerga é
+   .sells-cowork .vd-pagi.
+   Cópia de resources/css/inertia.css do produto, que tem o mesmo defeito (linhas 92/94). Lá o build Vite/Tailwind tolera: medido em 25/09/2026, o CSS servido em produção (inertia-DzM9Bnw1.css) contém 50 de 60 classes .fin-* do primeiro @import seguinte. Aqui o arquivo é servido cru, sem build.
+   Como corrigir: citar o marcador sem os delimitadores (ex.: "o marcador SCOPED-OK").
+   Mesmo defeito foi corrigido em manufacturing-page.css (25/09/2026). Lista completa em
+   prototipo-ui/cowork/Felipe/CLAUDE.md, seção "Pendências conhecidas em outras telas". */
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 /* Dark ativa por DOIS mecanismos (ADR 0281): a classe `.dark` (legado shadcn,

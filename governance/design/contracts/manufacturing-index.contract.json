@@ -1,0 +1,72 @@
+{
+  "_nota": "Contrato de tela das Ordens de produção (/manufacturing/production). Seções e copy tiradas do pedido do Cowork (cowork-inbox/manufacturing/PEDIDO-MANUFACTURING-ORDENS-2026-09-25.md §'O que sobra' item 1), que as leu do Index.tsx — não escritas pelo agente. Conferidas contra o Index.tsx do main em 2026-09-28 (depois da thread 04: sem a lupa 'Aplicar intervalo de datas', header canon). O esqueleto do gerar-contrato.mjs (derivado do manufacturing-index-gap.md) NÃO foi usado: as partes acionáveis dele são decisões abertas (ordenação, paginação, drawer), não as regiões da tela. Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`.",
+  "tela": "Manufacturing/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
+  "alvo": [
+    "resources/js/Pages/Manufacturing/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Produção",
+        "Nova produção"
+      ]
+    },
+    {
+      "id": "abas",
+      "copy": [
+        "Receitas",
+        "Insumos",
+        "Ordens de produção",
+        "Relatório",
+        "Configurações"
+      ]
+    },
+    {
+      "id": "kpis",
+      "copy": [
+        "Total",
+        "Finalizadas",
+        "Pendentes",
+        "Valor total"
+      ]
+    },
+    {
+      "id": "filtros",
+      "copy": [
+        "Local",
+        "De",
+        "Até",
+        "Só finalizadas",
+        "Todos os locais"
+      ]
+    },
+    {
+      "id": "lista",
+      "copy": [
+        "Data",
+        "Referência",
+        "Local",
+        "Produto",
+        "Qtd",
+        "Custo total",
+        "Custo unit.",
+        "Situação",
+        "Nenhuma produção no filtro",
+        "Sem produções cadastradas"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "abas",
+    "kpis",
+    "filtros",
+    "lista"
+  ],
+  "_pendente_w": [
+    "ESTADOS — `estados` omitido, como no manufacturing-recipes: o payload vem eager e o erro é 403 do controller. O empty (com e sem filtro) está declarado como copy da seção `lista`.",
+    "SUBTÍTULO — não entra na copy: é montado em runtime (contagem de receitas e ordens) e o charter §Forma proíbe a 3ª parte do subtítulo do protótipo ('custo recalculado'), que seria afirmação falsa nesta tela."
+  ]
+}

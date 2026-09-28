@@ -1800,6 +1800,14 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** mudança exigida por gate **depois** da medição volta pela **mesma** sonda antes do commit — vale pra troca de token, seletor ou valor. E nome de variável CSS se confirma no runtime (`getComputedStyle(el).getPropertyValue('--x')` não-vazio), nunca pelo nome que a biblioteca usa em outro projeto.
 
+### 2026-09-27 — Uma trava de permissão nova CALOU testes de isolamento de outro arquivo — e dois deles seguiram VERDES por vácuo
+
+- **O limite (variante também proibida):** teste que prova uma escrita **negativa** (não criou, não vazou, não apagou) precisa de uma âncora **positiva** de que a requisição chegou ao código sob teste: um efeito colateral esperado, ou, quando o próprio controller também recusa, o **motivo** da recusa. Status sozinho não serve quando duas camadas devolvem o mesmo código. Vale também para quem acrescenta uma trava: rodar a lane dos testes que passam pela rota antes de declarar pronto, com ou sem required.
+
+### 2026-09-28 — Ressuscitar o contrafactual de corpus (`agent-corpus-counterfactual.mjs` + o scaffold `.claude/governance-eval/corpus-counterfactual/`)
+
+- **O limite (variante também proibida):** não recriar o script, o harness nem o grader com outro nome, e não reabrir "o corpus ajuda?" medindo **skill contra skill** com o `CLAUDE.md` constante de fundo, que mede zero por construção. A pergunta barata que o smoke deixou é outra, **estática e sem runs**: *quanto do corpus só restateia o `CLAUDE.md`?* Se um dia valer, ela se responde por comparação de conteúdo, não por experimento com agentes. O experimento caro só se justifica com um braço **sem `CLAUDE.md`** (strip do ambiente) e com um alvo cuja lição não esteja no fundo. Isso exige decisão [W] nova e explícita.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

@@ -13,9 +13,13 @@
 //   3. Todo estado (dos dois lados) esta no vocabulario `valid_states` do manifesto.
 //   4. Nenhum charter declara `states:` SEM ter entrada no manifesto (estado sem snapshot).
 //
-// Node puro, sem deps. Exit = nº de problemas (MORDE). O step no workflow NASCE ADVISORY
-// (continue-on-error, ADR 0271/0275) → reporta sem travar merge ate 2 verdes; promover =
-// tirar o continue-on-error. Self-test (sensibilidade + especificidade, L-31):
+// Node puro, sem deps. Exit = nº de problemas (MORDE). Historia do step no workflow (fato
+// datado — o estado de hoje e o `.github/workflows/visual-regression.yml`, nao este comentario):
+// nasceu advisory (continue-on-error, ADR 0271/0275); em 2026-07-06 o continue-on-error saiu
+// por decisao [W] e a falha passou a reprovar o job; em 2026-09-28 a reprovacao mudou de lugar
+// (step `Veredito do Lint L2`, no fim do job) pra falha do lint deixar de pular a cadeia.
+// Se reprovar o job bloqueia merge e da branch protection (governance/required-checks-baseline.json).
+// Self-test (sensibilidade + especificidade, L-31):
 //   node scripts/visreg-states-lint.mjs --selftest
 //
 // Doc: tests/Browser/visreg-states.json (fonte unica) + IsolatedStatesBaselineTest.php.

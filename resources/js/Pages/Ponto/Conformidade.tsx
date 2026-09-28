@@ -34,9 +34,16 @@ interface Caso {
   detalhe: string;
 }
 
+interface Cobertura {
+  colaboradores: number;
+  dias_apurados: number;
+  /** Derivado das duas contagens no service (UC-CONF-09). */
+  estado: 'sem_colaboradores' | 'sem_apuracao' | 'apurado';
+}
+
 interface Props {
   mes: string;
-  painel?: { verificacoes: Verificacao[]; casos: Record<string, Caso[]> };
+  painel?: { verificacoes: Verificacao[]; casos: Record<string, Caso[]>; cobertura: Cobertura };
 }
 
 const diaBR = (iso: string | null) => (iso ? iso.split('-').reverse().slice(0, 2).join('/') : '—');
@@ -49,6 +56,17 @@ export default function Conformidade({ mes, painel }: Props) {
   const duras = medidas.filter((v) => v.tom === 'danger').reduce((n, v) => n + (v.total ?? 0), 0);
   const sel = verificacoes.find((v) => v.id === regra) ?? verificacoes.find((v) => (v.total ?? 0) > 0) ?? verificacoes[0];
   const casos = sel ? painel?.casos[sel.id] ?? [] : [];
+  // Sem apuração, "0 violações" seria número inventado (charter do protótipo) — KPIs saem "—".
+  const cobertura = painel?.cobertura;
+  const apurado = cobertura?.estado === 'apurado';
+  const semDado = !apurado;
+  // "Sem PIS" vem do cadastro, não da apuração: segue contado mesmo sem dia apurado.
+  const daApuracao = (v: Verificacao) => v.id !== 'sem_pis';
+  const semPis = verificacoes.find((v) => v.id === 'sem_pis')?.total ?? 0;
+  const notaSemDado =
+    cobertura?.estado === 'sem_colaboradores'
+      ? 'Nenhum colaborador com controle de ponto — sem quem apurar, não há o que verificar nesta competência.'
+      : `Competência sem apuração — ${cobertura?.colaboradores ?? 0} ${cobertura?.colaboradores === 1 ? 'colaborador' : 'colaboradores'} com ponto controlado, nenhum dia apurado em ${mes}.${semPis > 0 ? ` ${semPis} sem PIS no cadastro.` : ''}`;
 
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-4">
@@ -75,9 +93,12 @@ export default function Conformidade({ mes, painel }: Props) {
         <div
           data-contract="nota"
           role="status"
-          className={`rounded-md border p-3 text-sm ${total === 0 ? 'border-success/40 bg-success/10' : duras ? 'border-destructive/40 bg-destructive/10' : 'border-warning/40 bg-warning/10'}`}
+          data-estado={cobertura?.estado}
+          className={`rounded-md border p-3 text-sm ${semDado ? 'border-border bg-muted/30 text-muted-foreground' : total === 0 ? 'border-success/40 bg-success/10' : duras ? 'border-destructive/40 bg-destructive/10' : 'border-warning/40 bg-warning/10'}`}
         >
-          {total === 0
+          {semDado
+            ? notaSemDado
+            : total === 0
             ? 'Nenhuma violação apurada nas verificações medidas.'
             : `${total} ${total === 1 ? 'apontamento' : 'apontamentos'} na competência — ${duras} de regra dura (Art. 66 e Art. 71).`}
         </div>
@@ -90,8 +111,14 @@ export default function Conformidade({ mes, painel }: Props) {
               <KpiCard
                 key={v.id}
                 label={v.titulo}
-                value={v.medido ? v.total ?? 0 : '—'}
-                description={v.medido ? v.artigo ?? 'conferência — sem artigo citado' : 'não medido: a apuração não expõe este dado'}
+                value={v.medido && (apurado || !daApuracao(v)) ? v.total ?? 0 : '—'}
+                description={
+                  !v.medido
+                    ? 'não medido: a apuração não expõe este dado'
+                    : apurado || !daApuracao(v)
+                    ? v.artigo ?? 'conferência — sem artigo citado'
+                    : 'sem apuração na competência'
+                }
                 selected={sel?.id === v.id}
                 onClick={() => setRegra(v.id)}
               />
@@ -124,7 +151,11 @@ export default function Conformidade({ mes, painel }: Props) {
                 {casos.length === 0 && (
                   <tr>
                     <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                      {sel?.medido === false ? 'Esta verificação ainda não é medida.' : 'Nenhum caso nesta verificação.'}
+                      {sel?.medido === false
+                        ? 'Esta verificação ainda não é medida.'
+                        : semDado && sel && daApuracao(sel)
+                        ? 'Sem apuração na competência — nada a listar.'
+                        : 'Nenhum caso nesta verificação.'}
                     </td>
                   </tr>
                 )}
