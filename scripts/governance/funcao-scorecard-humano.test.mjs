@@ -8,6 +8,14 @@ test('parser lê exatamente os nove vereditos da tabela selada', () => {
   assert.deepEqual(Object.values(parseSealedTable(sealed)), ['concordo', 'discordo', 'incerto', 'n/a', 'concordo', 'discordo', 'incerto', 'n/a', 'concordo']);
 });
 
+test('pipe escapado numa célula antes do veredito não desloca a coluna (2026-09-28)', () => {
+  // O escape é montado por charCode: num literal ele colapsa no transporte.
+  const esc = String.fromCharCode(92) + '|';
+  const comEscape = sealed.replace('| 1 | A | C1 |', `| 1 | A ${esc} x | C1 |`);
+  assert.notEqual(comEscape, sealed);
+  assert.deepEqual(parseSealedTable(comEscape), parseSealedTable(sealed));
+});
+
 test('pontuação humana calcula K/9 e Cohen kappa, não só percentual', () => {
   const labels = template();
   const expected = parseSealedTable(sealed);
