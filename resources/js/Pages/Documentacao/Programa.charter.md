@@ -45,14 +45,22 @@ sozinho não cruza (SPEC `US-DOC-002`).
 
 ## Non-Goals — Features (NÃO faz)
 
-_⚠️ Pendente [W] — só [W] declara. Deixado vazio de propósito na thread 01 do playbook
-`programa-doc`; os candidatos que já circularam estão listados no recibo
-`prototipo-ui/cowork/Wagner/cowork-inbox/programa-doc/playbook/_saida-01.md`, sem atribuição
-verificada._
+_Aprovados por [W] em 2026-09-28 (chat, "aprovo"): fusão das duas listas que circulavam — a do
+trio de 2026-08-06 e a do rascunho do Cowork — mantendo só o item que um UC defende._
+
+- ❌ **Não grava nada** — não marca onda, DoD nem task pela UI; só navegação (`UC-PROGRA-04`)
+- ❌ **Não é fonte de estado** — `todo`/`doing`/`done` vem só das tasks MCP; nada escrito à mão no plano, no parser nem no `.tsx` (`UC-PROGRA-01`, ADR 0070)
+- ❌ **Não guarda cópia do plano** — lê a § Trilha D do disco a cada acesso; sem parágrafo do plano como literal de código e sem manifesto commitado (`UC-PROGRA-02`, ADR 0256)
+- ❌ **Não adivinha a estrutura** — o parse é no servidor e falha alto se o plano mudar de forma (`UC-PROGRA-05`)
+- ❌ **Não expõe tenant, host nem segredo** — conteúdo global de governança (`UC-PROGRA-06`, ADR 0093)
+- ❌ **Não cria índice, gate, agente nem roadmap novo** — a Trilha D reusa as máquinas que existem
 
 ## Automation Anti-hooks
 
-_⚠️ Pendente [W] — idem._
+- ❌ Nenhum agente deduz status de onda lendo o plano — sem MCP, a tela mostra indisponível (`UC-PROGRA-01`/`03`)
+- ❌ O parser não completa campo ausente: o que não está no plano volta vazio (`UC-PROGRA-02`)
+- ❌ A tela não abre, fecha nem cria task no MCP (`UC-PROGRA-04`)
+- ❌ A tela não dispara `documentation-loop`, `system-map` nem outro detector — o batimento roda no momento dele
 
 ## UX Targets
 
