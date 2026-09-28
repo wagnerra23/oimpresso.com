@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §6.5 (contrato)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a porta de entrada para configurar quem entra na apuração CLT — e é uma tela de BUSCA, onde o filtro de empregador é a coisa mais fácil de perder sem ninguém notar.
 owner: wagner
-last_run: "2026-09-08"
+last_run: "2026-09-28"
 last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
@@ -66,6 +66,15 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 - `[BACKLOG]` A busca por nome usa só `first_name`; sobrenome (`last_name`) não entra. Quem procura
   "Silva" não acha ninguém. Não virou UC porque o charter diz "busca por matrícula, nome ou CPF" sem
   definir o que é "nome" — é ambiguidade de contrato, e inventar a resposta seria pior que registrar.
+- `[BACKLOG]` **Achar quem não pode bater ponto por falta de PIS** (`D-COLAB-COLUNAS`, [W] 2026-09-14,
+  ata bloco 4 linha 39; emenda E1 da thread 27, no charter pelo #8095). Aceite proposto: dado que
+  existem colaboradores sem PIS cadastrado, quando o gestor escolhe a situação "Sem PIS cadastrado",
+  então a lista mostra só esses, com o aviso "PIS não cadastrado" na célula de CPF/PIS, e o gestor
+  descobre isso **antes** de a importação do AFD rejeitar a marcação. [W]: *"o item de maior valor do
+  lote inteiro"*. **Não é UC ainda:** em 2026-09-28 o `Index.tsx` só tem o filtro de busca; não há
+  filtro de situação. Vira UC (próximo id `UC-COLIDX-04`; a thread o chamou de `UC-PONT-COL-06`) no
+  PR que construir o filtro, junto do teste que o cita. Pelo `[T0]`, esse teste precisa provar que
+  o filtro não traz colaborador sem PIS de outro empregador.
 
 ---
 
@@ -145,3 +154,10 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   o operador não percebe. O caso compara os **dois** totais — com e sem busca — porque afirmar só
   "veio vazio" passaria também num cenário em que a lista está vazia por outro motivo.
 - **Status: 🧪 verde no CT 100, sem veredito de lane.**
+
+## Trilha do tempo
+- 2026-09-28 · [CL] revalidado (bump `last_run`, thread 27): a tela mudou pela última vez em
+  2026-09-15 (redação de CPF/PIS, no mesmo commit destes casos, `UC-COLIDX-03`) e o `last_run`
+  ficou em 09-08. Conferido contra o `Index.tsx` do `main`: 1 filtro (Busca) e as colunas
+  Matrícula, Nome, CPF/PIS, Escala, Ponto e BH. Nesta data entra o `[BACKLOG]` do filtro "Sem PIS
+  cadastrado". O bump afirma "trio reconciliado com a tela nesta data", não "testes rodados".
