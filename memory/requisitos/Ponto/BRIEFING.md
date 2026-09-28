@@ -2,9 +2,9 @@
 id: requisitos-ponto-briefing
 module: Ponto
 status: parcial
-updated_at: "2026-09-15"
-distilled_at: "2026-09-23"
-distilled_by: "manual [C] — redestilação PARCIAL (2026-09-23): só a linha **Frontend** de §Stack e arquitetura foi re-lida, contra a remoção das 25 Blades mortas (thread 11 do playbook). O resto do corpo segue nos retratos abaixo e NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-15): UMA seção re-lida contra conhecimento novo — §Capacidades canon/Backlog ganhou o **Fechamento de competência** a partir da US-PONTO-015, com as 3 restrições [W] de 2026-09-14 e o estado medido (domínio inexistente em `origin/main`). O RESTO do corpo NÃO foi re-lido: §Cobertura de teste e §Atributos fantasma seguem no retrato de 2026-09-05 (PR #6802), §Contratos de tela no de 2026-08-21, e as demais no de 2026-07-27 (PR #4865). Gatilho: o `distiller_freshness` do sdd-scorecard acusou a porta 10d atrás dos eventos do módulo — eu adicionei a US e não refleti aqui; re-carimbar sem re-ler seria gaming."
+updated_at: "2026-09-28"
+distilled_at: "2026-09-28"
+distilled_by: "manual [C] — redestilação PARCIAL (2026-09-28): só a linha de **importação AFD** de §Capacidades foi re-lida, contra os PRs #7992/#8011/#8024/#8036 (saiu de Wip para pronto). O resto do corpo NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-23): só a linha **Frontend** de §Stack e arquitetura foi re-lida, contra a remoção das 25 Blades mortas (thread 11 do playbook). O resto do corpo segue nos retratos abaixo e NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-15): UMA seção re-lida contra conhecimento novo — §Capacidades canon/Backlog ganhou o **Fechamento de competência** a partir da US-PONTO-015, com as 3 restrições [W] de 2026-09-14 e o estado medido (domínio inexistente em `origin/main`). O RESTO do corpo NÃO foi re-lido: §Cobertura de teste e §Atributos fantasma seguem no retrato de 2026-09-05 (PR #6802), §Contratos de tela no de 2026-08-21, e as demais no de 2026-07-27 (PR #4865). Gatilho: o `distiller_freshness` do sdd-scorecard acusou a porta 10d atrás dos eventos do módulo — eu adicionei a US e não refleti aqui; re-carimbar sem re-ler seria gaming."
 ---
 
 # BRIEFING — Modules/Ponto
@@ -87,10 +87,10 @@ Ponto eletronico CLT-compliance (Portaria MTP 671/2021) com **marcacao append-on
 - Apuracao dia (ApuracaoDia entity + service parcial)
 - AI classifier de intercorrencia (Jana sugere tipo)
 - Imutabilidade `ponto_marcacoes` via trigger MySQL
+- Importacao AFD nos 2 leiautes, detectados pelo formato do registro (estado em 2026-09-28): **671/2021** leiaute "004" (tipos 1/3/7/9 + assinatura, colaborador por CPF) e **1510/2009** (cabecalho, marcacao e trailer nas posicoes do Anexo I, colaborador pelo PIS comparado por digitos). CRC-16 e hash SHA-256 encadeado do REP-P divergentes viram **aviso** no log da importacao, nunca rejeicao (decisao [W] 2026-09-28). Contrato: `AfdLeiaute671ContratoTest` (13 casos; em 2026-09-28 executados na lane `PHP / Pest (Ponto · MySQL)` do #8024). PRs #7992 · #8011 · #8024 · #8036. ⚠️ Premissa nao confirmada: a norma nao diz o separador dos campos do hash do tipo 7 — so um AFD de REP-P real confirma
 
 🟡 **Wip:**
 - Apuracao HE 100% (feriados/domingos — Art. 7o XVI CF/88) parcial
-- Importacao AFD legacy (Portaria 1.510/2009) parser parcial
 
 ❌ **Backlog (gap auditoria 35/100):**
 - Geracao AFDT pra fiscalizacao MTE (RelatorioController estrutura pronta, gerador por implementar)
