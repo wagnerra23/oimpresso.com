@@ -15,7 +15,7 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Importacoes/Create.tsx",
         "linhas": "47-133",
-        "ancora": false
+        "ancora": "importacoes-upload-do-arquivo"
       },
       "status": "vivo-a-frente",
       "acao": "Nada no vivo. `D-PONTO-DETALHE` = ROTA PRÓPRIA (\"in-page não é alternativa\") — quem muda é o protótipo (R2); é a thread 28.",

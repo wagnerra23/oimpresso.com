@@ -71,7 +71,7 @@ export default function ImportacoesCreate() {
           </AlertDescription>
         </Alert>
 
-        <Card>
+        <Card data-contract="importacoes-upload-do-arquivo">
           <CardHeader>
             <CardTitle className="text-base">Upload do arquivo</CardTitle>
           </CardHeader>

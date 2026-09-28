@@ -32,6 +32,14 @@ Detalhe de uma importação AFD/AFDT: mostra os metadados do arquivo (nome, tipo
 - Alerta de erro com `erro_mensagem` quando o processamento falha.
 - Botão "Baixar original" → `/ponto/importacoes/{id}/original` (download do arquivo enviado).
 - Voltar pra lista.
+- Card "Diagnóstico do processamento": log bruto do job, em monoespaçado.
+- Card "Amostra de erros": as primeiras linhas rejeitadas com linha, NSR, tipo e mensagem.
+  — `D-IMP-EXTRAS`, [W] 2026-09-14 (ATA-DECISOES-2026-09-14, bloco 4, linha 40): *"Sem isso a tela de
+  importação só sabe dizer que falhou."* ⚠️ **Estado em 2026-09-28:** meio caminho. O `log` já chega
+  à tela, mas como `erro_mensagem` (`ImportacaoController@show`), e só aparece no alerta de falha,
+  não num card próprio de diagnóstico. O `erros_amostra` (coluna JSON gravada pelo job, lida pelo
+  `AfdLeiaute671ContratoTest`) não está no payload. Regiões no map: `diagnostico-do-processamento` e
+  `amostra-de-erros` (`memory/requisitos/Ponto/importacoes-show.map.json`).
 
 ---
 
