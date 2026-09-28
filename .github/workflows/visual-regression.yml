@@ -213,7 +213,16 @@ jobs:
       # ⚠️ Reprovar o job ≠ bloquear merge: o context foi DEMOVIDO de required em 2026-08-26
       # (nota completa no step `E2E de render · Patrimonio/Bens`). Quem é required vive em
       # `governance/required-checks-baseline.json` — não restatear aqui.
+      # REPROVAÇÃO MOVIDA PRO FIM (2026-09-28): sem `continue-on-error`, a falha deste step fazia
+      # TODOS os passos com `success()` implícito pularem — medido no run 36192630403 (PR #7994):
+      # 44 steps `skipped`, incluindo `Classificar impacto` e `Modo de execução`, e o `Canário`
+      # (que tem `always()`) reprovou com IMPACT/MODE vazios; o comentário no PR nomeou o
+      # Canário, não o L2. Agora o step continua (`continue-on-error`) e quem reprova o job é
+      # `Veredito do Lint L2`, depois do Canário: a reprovação do job é a MESMA, e o resto da
+      # cadeia (classificação, pixel, estados, fluxos) roda e dá o próprio veredito.
       - name: Lint L2 — charter states ⇄ manifesto
+        id: lint-l2
+        continue-on-error: true
         run: |
           node scripts/visreg-states-lint.mjs --selftest
           node scripts/visreg-states-lint.mjs
@@ -1571,6 +1580,19 @@ jobs:
             echo "✅ L5 perf budget OK (advisory · ARMADO — verde dentro dos tetos; pronto p/ promoção [W] ADR 0275 §5)."
           fi
 
+      # Onde o L2 reprova o job (ver o comentário do step `Lint L2`). Fica ANTES dos steps de
+      # falha para que `failure()` já esteja verdadeiro neles e o comentário nomeie este step.
+      - name: Veredito do Lint L2 — charter states ⇄ manifesto
+        id: veredito-l2
+        if: always() && steps.lint-l2.outcome != 'success'
+        env:
+          L2_OUTCOME: ${{ steps.lint-l2.outcome }}
+        run: |
+          echo "::error title=Lint L2::o step 'Lint L2 — charter states ⇄ manifesto' terminou em '$L2_OUTCOME' — o motivo está no log daquele step (linhas com ✗)."
+          bt='`'   # crase em variavel: o bloco fica sem barra invertida
+          echo "- Lint L2: ❌ ${bt}${L2_OUTCOME}${bt} — drift charter ${bt}states:${bt} ⇄ ${bt}tests/Browser/visreg-states.json${bt} (ou flows/sells). Detalhe no log do step." >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
       - name: Upload screenshots on failure
         if: failure() || steps.pest-browser.outputs.fail == '1'
         uses: actions/upload-artifact@v4
@@ -1593,7 +1615,8 @@ jobs:
           GRAY: ${{ steps.pixel-diff.outputs.gray }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           PASSOS: >-
-            [{"nome":"Classificar impacto visual do diff","outcome":"${{ steps.impact.outcome }}"},
+            [{"nome":"Veredito do Lint L2 — charter states ⇄ manifesto","outcome":"${{ steps.veredito-l2.outcome }}"},
+             {"nome":"Classificar impacto visual do diff","outcome":"${{ steps.impact.outcome }}"},
              {"nome":"Run Pest Browser tests","outcome":"${{ steps.pest-browser.outcome }}"},
              {"nome":"Pixel-diff afetadas/núcleo-6 (ENFORCING · double-threshold L7)","outcome":"${{ steps.pixel-diff.outcome }}"},
              {"nome":"Estados isolados matriz (ENFORCING · 6 telas)","outcome":"${{ steps.matriz-states.outcome }}"},

@@ -192,10 +192,15 @@ function ManufacturingPage({ initialView }) {
   return (
     <div className="mfg-root" data-screen-label={"Fabricação · " + (ABAS.find((a) => a.id === aba) || {}).l}>
       <PageHeader
-        title="Fabricação"
+        // D-RET-01 decidida por [W] em 2026-09-26 (comentário no #7991): espelho do vivo —
+        // Recipes.tsx → "Manufacturing" + "custo recalculado"; Index.tsx (Ordens) → "Produção", sem a
+        // 3ª parte (lá o custo é o final_total GRAVADO, não recalculado). A frase aparece INTEIRA: o
+        // corte de 56ch do PageHeader do DS é anulado em manufacturing-page.css (contorno na pauta).
+        // Substitui a opção A do Felipe (25/09), que tirava a frase de todas as abas.
+        title={aba === "producao" ? "Produção" : "Manufacturing"}
         stats={[
-          { value: recipes.length, label: "receitas" },
-          { value: producoes.length, label: "ordens de produção · custo recalculado pelo preço atual dos ingredientes" },
+          { value: recipes.length, label: recipes.length === 1 ? "receita" : "receitas" },
+          { value: producoes.length, label: "ordens de produção" + (aba === "producao" ? "" : " · custo recalculado pelo preço atual dos ingredientes") },
         ]}
         actions={<>
           {aba === "receitas" && perms.criar && <Button variant="primary" size="sm" onClick={() => setNovaOpen(true)}><I.plus size={13} /> Nova receita</Button>}

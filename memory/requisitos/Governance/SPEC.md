@@ -858,10 +858,11 @@ Os 4 vereditos que existiam respondem o **presente**: `dead` (path sumiu) · `zo
 
 ### US-GOV-056 · Decidir: `agent-corpus-counterfactual` — dar porta ou aposentar (poda de capacidade)
 
-> owner: wagner · priority: p3 · estimate: 1h · status: blocked · type: story
-> blocked_by: decisão [W] (soberania — poda de capacidade)
+> owner: wagner · priority: p3 · estimate: 1h · status: done · type: story
 
-**Implementado em:** _pendente_ — é decisão, não construção; o código a decidir já existe (`scripts/governance/agent-corpus-counterfactual.mjs`).
+**Implementado em:** `memory/licoes-rejeitadas.md` · `scripts/governance/corpus-counterfactual-aposentado.test.mjs` · verificado@99661da (2026-09-28) — decidido por [W] em 2026-09-28: opção (b1), aposentar. Foram removidos o script agent-corpus-counterfactual.mjs, o self-test dele e o scaffold de experimento que o importava. A lápide está em licoes-rejeitadas.md §5 2026-09-28, e o teste guarda a remoção.
+
+**Testado em:** [`scripts/governance/corpus-counterfactual-aposentado.test.mjs`](../../../scripts/governance/corpus-counterfactual-aposentado.test.mjs)
 
 Sobra da triagem dos 13 scripts órfãos ([PR #4834](https://github.com/wagnerra23/oimpresso.com/pull/4834), 2026-07-27): **13 → 2** sem invocador executável. Este é 1 dos 2 que exigem dono.
 

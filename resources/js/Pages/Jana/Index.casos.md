@@ -2088,3 +2088,29 @@ porque `0 failed` e "não rodou" são indistinguíveis por exit code, e o que se
 o que se assere é a **classe** — que é o que o bundle traduz. O efeito em px foi provado à parte, no
 DOM da prod, aplicando as classes reais e medindo antes→depois.
 
+
+---
+
+## UC-JPAIN-35 — a meta criada pela gaveta do Painel nasce COM alvo (e não nasce com meio alvo)
+
+Status: 🧪 (renumerado em 2026-09-27; vira ✅ quando o manifesto `casos-results` aterrissar)
+
+**Fonte:** [SPEC US-COPI-150](../../../../memory/requisitos/Jana/SPEC.md) — medido em produção em
+2026-09-21: as metas do tenant tinham zero período, e os cards do Painel saíam idênticos
+("Aguardando apuração…"). O `StoreMetaRequest` não aceitava alvo e a gaveta não o pedia. A regra
+de janela/alvo é a **mesma** do `StorePeriodoRequest`.
+
+**Pronto quando:** a gaveta envia `valor_alvo` + `data_ini` + `data_fim` + `tipo_periodo`; o
+`store` cria a `Meta` **e** o `MetaPeriodo` no mesmo business; alvo sem janela, janela sem alvo e
+`data_fim < data_ini` são recusados sem criar nada; o payload legado (só identidade) continua
+criando a meta, sem período. A `MetaFonte` fica **fora** — residual declarado na US (não há UI pra ela).
+
+**Onde:** [`Modules/Jana/Tests/Feature/MetaNasceComAlvoTest.php`](../../../../Modules/Jana/Tests/Feature/MetaNasceComAlvoTest.php)
+(7 casos, backend) · [`tests/janaMetaNovaAlvo.spec.tsx`](../../../../tests/janaMetaNovaAlvo.spec.tsx) (gaveta).
+
+> ⚠️ **Por que 35 e não 33.** Os dois testes nasceram em 2026-09-21 ([#7659](https://github.com/wagnerra23/oimpresso.com/pull/7659))
+> citando `UC-JPAIN-33`, que no mesmo dia foi dado ao ritmo vertical ([#7653](https://github.com/wagnerra23/oimpresso.com/pull/7653)).
+> Com o id duplicado, o veredito dos testes da gaveta podia ser creditado ao UC do **ritmo** (o
+> manifesto `scripts/casos-test-results.json` registrava `tests: 7` sob `UC-JPAIN-33`; o ritmo tem 3)
+> — e o caso da gaveta não existia neste arquivo. Mesma forma da §5 2026-09-04 (prova por id casado num
+> corpus global).

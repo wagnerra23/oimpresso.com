@@ -55,6 +55,9 @@ class AfdParserService
     /** @var array Contadores por tipo de registro */
     private $contadores = [];
 
+    /** @var string|null Hash do último tipo 7 (671) lido — base do encadeamento SHA-256. */
+    private $hashAnterior7 = null;
+
     /** @var MarcacaoService */
     protected $marcacoes;
 
@@ -106,20 +109,23 @@ class AfdParserService
         $erros = 0;
         $pisNaoCadastrados = []; // PIS => quantidade (para diagnóstico agregado)
         $erroAmostras = [];
+        $avisos = []; // integridade (CRC-16 / hash): registra, NÃO rejeita — decisão [W] 2026-09-28
         $encoding = config('pontowr2.afd.encoding', 'ISO-8859-1');
 
         $this->repAtual = null;
         $this->contadores = [];
+        $this->hashAnterior7 = null;
 
         try {
             while (($linha = fgets($handle)) !== false) {
                 $total++;
-                $linha = mb_convert_encoding(rtrim($linha, "\r\n"), 'UTF-8', $encoding);
+                $bruto = rtrim($linha, "\r\n"); // bytes originais (ISO-8859-1): base do CRC-16
+                $linha = mb_convert_encoding($bruto, 'UTF-8', $encoding);
                 if (strlen($linha) < 10 || strpos($linha, 'ASSINATURA_DIGITAL_EM_ARQUIVO_P7S') === 0) {
                     continue; // linha vazia/curta ou assinatura digital do REP-A/REP-P (671)
                 }
 
-                $tipoRegistro = $this->ehTrailer671($linha) ? '9' : substr($linha, 9, 1);
+                $tipoRegistro = $this->ehTrailer($linha) ? '9' : substr($linha, 9, 1);
                 $parser = isset($this->parsers[$tipoRegistro]) ? $this->parsers[$tipoRegistro] : null;
                 if (!$parser) {
                     $erros++;
@@ -129,6 +135,11 @@ class AfdParserService
                 $this->contadores[$tipoRegistro] = isset($this->contadores[$tipoRegistro])
                     ? $this->contadores[$tipoRegistro] + 1
                     : 1;
+
+                $aviso = $this->avisoIntegridade($linha, $bruto, $tipoRegistro);
+                if ($aviso !== null) {
+                    $avisos[] = $aviso;
+                }
 
                 // Se é uma marcação (tipo 3/7/8) e ainda não temos REP (arquivo sem header tipo 1),
                 // gera REP de fallback vinculado ao arquivo. Isso permite processar AFDs "parciais"
@@ -210,6 +221,18 @@ class AfdParserService
                 }
             }
 
+            if (!empty($avisos)) {
+                $linhas = ['Avisos de integridade (' . count($avisos)
+                    . ' registro(s) — importados assim mesmo, o arquivo NÃO foi rejeitado):'];
+                foreach (array_slice($avisos, 0, 20) as $aviso) {
+                    $linhas[] = '  - ' . $aviso;
+                }
+                if (count($avisos) > 20) {
+                    $linhas[] = '  … e mais ' . (count($avisos) - 20) . '.';
+                }
+                $log = ($log !== null ? $log . "\n\n" : '') . implode("\n", $linhas);
+            }
+
             $importacao->update([
                 'estado'             => $estadoFinal,
                 'linhas_total'       => $total,
@@ -234,6 +257,7 @@ class AfdParserService
                 'linhas_sucesso'               => $sucesso,
                 'linhas_erro'                  => $erros,
                 'pis_nao_cadastrados_distintos' => count($pisNaoCadastrados),
+                'avisos_integridade'           => count($avisos),
             ]);
         }
     }
@@ -268,10 +292,12 @@ class AfdParserService
     /**
      * Tipo 1 — Cabeçalho. Identifica REP e cria se não existir.
      *
-     * Layout (posições 1-based; convertido para 0-based no substr):
-     *   NSR(9) + tipo(1=1) + CNPJ(14) + CEI(12) + razão social(150)
-     *   + data inicial(DDMMAAAA 8) + data final(DDMMAAAA 8) + data geração(DDMMAAAA 8)
-     *   + hora geração(HHMMSS 6) + tipo ident REP(3) + identificador REP(17)
+     * Leiaute 1510/2009 (Anexo I, com a Portaria 2233/2009), 232 posições:
+     *   NSR 001-009 · tipo 010 · tipo ident empregador 011 · CNPJ/CPF 012-025 · CEI 026-037
+     *   · razão social 038-187 · nº fabricação do REP 188-204 · data inicial 205-212
+     *   · data final 213-220 · data geração 221-228 · hora geração 229-232.
+     * O 1510 só conhece o REP convencional, daí REP_C. O leiaute 671 (302 posições) é
+     * detectado antes, pelo campo de data e hora de geração.
      */
     protected function parseHeader($linha, Importacao $importacao)
     {
@@ -286,25 +312,15 @@ class AfdParserService
             return;
         }
 
-        if (strlen($linha) < 228) {
-            throw new \RuntimeException('Cabeçalho AFD muito curto (esperado >= 228 chars).');
+        if (strlen($linha) < 204) {
+            throw new \RuntimeException('Cabeçalho AFD muito curto (esperado 232 posições no leiaute 1510).');
         }
-
-        $cnpj          = trim(substr($linha, 10, 14));
-        // CEI = substr($linha, 24, 12)
-        // razao = substr($linha, 36, 150)
-        // data_inicial = substr($linha, 186, 8)  -- DDMMAAAA
-        // data_final   = substr($linha, 194, 8)  -- DDMMAAAA
-        // data_geracao = substr($linha, 202, 8)  -- DDMMAAAA
-        // hora_geracao = substr($linha, 210, 6)  -- HHMMSS
-        $tipoIdent     = trim(substr($linha, 216, 3));
-        $identificador = trim(substr($linha, 219, 17));
 
         $this->repAtual = $this->repDoCabecalho(
             $importacao,
-            $identificador,
-            $cnpj,
-            $this->inferirTipoRep($tipoIdent, $identificador)
+            trim(substr($linha, 187, 17)),
+            trim(substr($linha, 11, 14)),
+            Rep::TIPO_REP_C
         );
     }
 
@@ -336,10 +352,71 @@ class AfdParserService
         return (bool) preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4}$/', (string) $valor);
     }
 
-    /** Trailer 671: NSR "999999999", seis contadores de 9 e o tipo "9" na posição 64. */
-    protected function ehTrailer671($linha)
+    /**
+     * Trailer: NSR "999999999" e o tipo "9" na ÚLTIMA posição, não na 010 —
+     * 1510 = 46 posições (contadores dos tipos 2..5), 671 = 64 (tipos 2..7).
+     */
+    protected function ehTrailer($linha)
     {
-        return strlen($linha) === 64 && strpos($linha, '999999999') === 0 && $linha[63] === '9';
+        $n = strlen($linha);
+
+        return ($n === 46 || $n === 64) && strpos($linha, '999999999') === 0 && $linha[$n - 1] === '9';
+    }
+
+    /**
+     * Confere CRC-16 (671, tipos 1-5) e o encadeamento SHA-256 (671, tipo 7). Devolve o texto
+     * do aviso ou null. NUNCA lança: integridade divergente é aviso, não rejeição ([W] 2026-09-28).
+     * O 1510 não tem CRC nem hash. O 1º tipo 7 do arquivo não é conferido — o registro anterior
+     * pode estar fora do arquivo. ⚠️ Premissa: o hash é SHA-256 da concatenação crua das
+     * posições 001-073 + o hash anterior (a norma lista os campos, não o separador).
+     */
+    protected function avisoIntegridade($linha, $bruto, $tipo)
+    {
+        $eh671 = $tipo === '1'
+            ? strlen($linha) >= 302 && $this->ehDataHora671(substr($linha, 226, 24))
+            : strlen($linha) >= 34 && $this->ehDataHora671(substr($linha, 10, 24));
+        if (!$eh671) {
+            return null;
+        }
+
+        $nsr = (int) substr($linha, 0, 9);
+
+        if (in_array($tipo, ['1', '2', '3', '4', '5'], true)) {
+            $informado = strtoupper(substr($bruto, -4));
+            $calculado = self::crc16Kermit(substr($bruto, 0, -4));
+
+            return $informado === $calculado
+                ? null
+                : "NSR {$nsr} (tipo {$tipo}): CRC-16 do arquivo {$informado} ≠ calculado {$calculado}";
+        }
+
+        if ($tipo === '7' && strlen($linha) >= 137) {
+            $informado = strtolower(substr($linha, 73, 64));
+            $anterior = $this->hashAnterior7;
+            $this->hashAnterior7 = $informado;
+
+            if ($anterior === null || hash_equals(hash('sha256', substr($linha, 0, 73) . $anterior), $informado)) {
+                return null;
+            }
+
+            return "NSR {$nsr} (tipo 7): hash SHA-256 não encadeia com o registro anterior";
+        }
+
+        return null;
+    }
+
+    /** CRC-16/KERMIT (CCITT-TRUE), exigido pelo leiaute 671 — "123456789" = 2189. */
+    public static function crc16Kermit($dados)
+    {
+        $crc = 0;
+        for ($i = 0, $n = strlen($dados); $i < $n; $i++) {
+            $crc ^= ord($dados[$i]);
+            for ($b = 0; $b < 8; $b++) {
+                $crc = ($crc & 1) ? (($crc >> 1) ^ 0x8408) : ($crc >> 1);
+            }
+        }
+
+        return sprintf('%04X', $crc);
     }
 
     protected function parseEmpresa($linha, Importacao $importacao)
@@ -491,21 +568,5 @@ class AfdParserService
         ];
 
         return isset($tabela[$qtd]) ? $tabela[$qtd] : Marcacao::TIPO_SAIDA;
-    }
-
-    /**
-     * Mapeia o "tipo ident REP" do cabeçalho para o enum do domínio.
-     */
-    protected function inferirTipoRep($tipoIdent, $identificador)
-    {
-        // Heurística: Portaria 671 usa "REP-P" em texto livre; identificador de 17 chars.
-        $upper = strtoupper($tipoIdent);
-        if (strpos($upper, 'REP-P') !== false || strpos($upper, 'REPP') !== false) {
-            return Rep::TIPO_REP_P;
-        }
-        if (strpos($upper, 'REP-A') !== false || strpos($upper, 'REPA') !== false) {
-            return Rep::TIPO_REP_A;
-        }
-        return Rep::TIPO_REP_C; // convencional é o default histórico (Portaria 1510/2009)
     }
 }

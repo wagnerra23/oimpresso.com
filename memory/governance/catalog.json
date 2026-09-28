@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 724,
-    "edges": 1015,
+    "nodes": 726,
+    "edges": 1017,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 125,
-      "component": 384,
+      "component": 386,
       "api": 74
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 78,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 384,
+      "hasComponent": 386,
       "dependsOn": 116,
       "delegatesTo": 108,
       "migratesTo": 1,
@@ -3556,6 +3556,13 @@
       "desc": ""
     },
     {
+      "id": "component:Ponto/ConformidadeController",
+      "type": "component",
+      "module": "Ponto",
+      "name": "ConformidadeController",
+      "desc": "/ponto/conformidade, painel CLT só leitura (#7994)"
+    },
+    {
       "id": "component:Ponto/DashboardController",
       "type": "component",
       "module": "Ponto",
@@ -3582,6 +3589,13 @@
       "module": "Ponto",
       "name": "EspelhoController",
       "desc": ""
+    },
+    {
+      "id": "component:Ponto/FechamentoController",
+      "type": "component",
+      "module": "Ponto",
+      "name": "FechamentoController",
+      "desc": "GET/POST /ponto/fechamento, fechamento da competência, permissão ponto.fechar (#7996/#7999)"
     },
     {
       "id": "component:Ponto/ImportacaoController",
@@ -10897,6 +10911,12 @@
     },
     {
       "from": "module:Ponto",
+      "to": "component:Ponto/ConformidadeController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Ponto",
       "to": "component:Ponto/DashboardController",
       "type": "hasComponent",
       "source": "contains"
@@ -10916,6 +10936,12 @@
     {
       "from": "module:Ponto",
       "to": "component:Ponto/EspelhoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "component:Ponto/FechamentoController",
       "type": "hasComponent",
       "source": "contains"
     },

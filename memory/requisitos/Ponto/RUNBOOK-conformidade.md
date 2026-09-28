@@ -49,12 +49,13 @@ Limites: `config('pontowr2.clt.*')` — os mesmos que o `ApuracaoService` usa.
 
 - **Somente leitura** (ADR 0413 D0). Nenhum POST/PUT/DELETE nesta rota; correção vai pro Espelho ou Intercorrências.
 - **Não reimplementar apuração.** Dia sem apuração rodada não aparece — o painel não inventa.
+- **Nota sem dado explica por quê** (UC-CONF-09): `cobertura.estado` = `sem_colaboradores` (0 com ponto controlado) · `sem_apuracao` (controlados, 0 dias apurados — KPIs da apuração saem "—"; "sem PIS" segue contado, é cadastro) · `apurado`. "Nenhuma violação" só com `apurado`.
 - `business_id` explícito nas duas queries do service, além do global scope (defesa dupla, provada por bite-test).
 - Sem artigo, não é apontamento: `sem_pis` renderiza como **conferência**.
 
 ## 4. Testes
 
-`Modules/Ponto/Tests/Feature/ConformidadeContratoTest.php` (lane `ponto-pest.yml`) — UC-CONF-01..08.
+`Modules/Ponto/Tests/Feature/ConformidadeContratoTest.php` (lane `ponto-pest.yml`) — UC-CONF-01..09.
 Rodar só no CT 100.
 
 ## 5. Pendências
