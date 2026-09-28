@@ -31,8 +31,8 @@
       "id": "Manufacturing/Recipes",
       "owner": "M",
       "prototype_path": "prototipo-ui/cowork/Wagner/manufacturing-page.jsx",
-      "git_revision": "e4289e6880",
-      "content_hash": "c0ef97502e47de23a53820603843e9c07eeedd161b7fe1096cb473af30ea5397",
+      "git_revision": "f01a380f94",
+      "content_hash": "c19cc8c64ecefc276a8aeb445c4224708870147e326990209c02697bd4b17ec5",
       "accepted_by": "Maiara",
       "accepted_at": "2026-09-28"
     },
