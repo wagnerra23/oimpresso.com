@@ -114,10 +114,10 @@
   --sla-aging-dot: oklch(0.72 0.14 60);
   --sla-aging-line: oklch(0.42 0.08 60);
   --sla-aging-soft: oklch(0.275 0.05 60);
-  --sla-expired: oklch(0.84 0.16 25);
-  --sla-expired-dot: oklch(0.70 0.18 25);
-  --sla-expired-line: oklch(0.45 0.10 25);
-  --sla-expired-soft: oklch(0.30 0.06 25);
+  --sla-expired: oklch(0.72 0.17 22);
+  --sla-expired-dot: oklch(0.64 0.18 22);
+  --sla-expired-line: oklch(0.42 0.12 22);
+  --sla-expired-soft: oklch(0.31 0.11 22);
   --sla-fresh: oklch(0.84 0.13 145);
   --sla-fresh-dot: oklch(0.70 0.14 145);
   --sla-fresh-line: oklch(0.42 0.08 145);

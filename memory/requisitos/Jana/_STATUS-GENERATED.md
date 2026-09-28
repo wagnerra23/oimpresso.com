@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 7 |
 | Telas com `casos.md` | 7 |
-| UC declarados | 97 |
-| UC com teste que os cita | 95 |
+| UC declarados | 98 |
+| UC com teste que os cita | 96 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -180,6 +180,7 @@ authority: generated
 | UC-JPAIN-32 | Index | 🧪 aguarda veredito da lane |
 | UC-JPAIN-33 | Index | 🧪 aguarda veredito da lane |
 | UC-JPAIN-34 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-35 | Index | 🧪 aguarda veredito da lane |
 | UC-JPERM-07 | Memoria | 🧪 aguarda veredito da lane |
 | UC-JPERM-08 | Pro | 🧪 aguarda veredito da lane |
 | UC-MEM-01 | Memoria | 🧪 aguarda veredito da lane |

@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 725,
-    "edges": 1016,
+    "nodes": 727,
+    "edges": 1017,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 125,
+      "adr": 127,
       "component": 385,
       "api": 74
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 108,
       "migratesTo": 1,
       "supersedes": 24,
-      "supersedesPartially": 58,
+      "supersedesPartially": 59,
       "supersededBy": 28
     },
     "dangling": 0
@@ -629,6 +629,13 @@
       "exists": true
     },
     {
+      "id": "adr:0224",
+      "type": "adr",
+      "num": "0224",
+      "slug": "0224-hooks-block-vs-advisory-claude-4.8-aware",
+      "exists": true
+    },
+    {
       "id": "adr:0225",
       "type": "adr",
       "num": "0225",
@@ -927,6 +934,13 @@
       "type": "adr",
       "num": "0411",
       "slug": "0411-snapshot-de-pixel-fora-do-passo-3-da-0409",
+      "exists": true
+    },
+    {
+      "id": "adr:0416",
+      "type": "adr",
+      "num": "0416",
+      "slug": "0416-pii-redactor-arquivado-emenda-0224",
       "exists": true
     },
     {
@@ -6522,6 +6536,12 @@
     {
       "from": "adr:0411",
       "to": "adr:0409",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0416",
+      "to": "adr:0224",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },

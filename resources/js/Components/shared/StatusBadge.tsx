@@ -287,8 +287,9 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
    *
    * Forma AP7: `outline` (sem fill) + fundo tintado + texto, com o dot do `Badge` em
    * `currentColor`. `--canal-*-bg` é o chip SÓLIDO e fica de fora de propósito.
-   * Atrasado (`late`, hue 30) e Vencido (`expired`, hue 25) têm tokens distintos — emenda [W]
-   * 2026-09-24: "pode ter cores diferentes atrasado e vencido".
+   * Atrasado (`late`) e Vencido (`expired`) têm tokens distintos — emenda [W]
+   * 2026-09-24: "pode ter cores diferentes atrasado e vencido". Os valores moram em
+   * `semantic.tokens.json`; o dark de Vencido foi separado em 2026-09-28 (v1.5.0 dos tokens).
    *
    * Os tokens vivem em `.cockpit`: fora do AppShellV2 a pílula sai sem cor. Não duplicar
    * token para cobrir isso — reportar a tela.

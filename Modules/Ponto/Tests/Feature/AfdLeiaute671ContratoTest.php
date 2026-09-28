@@ -30,7 +30,7 @@ use Modules\Ponto\Services\AfdParserService;
 uses(Tests\TestCase::class);
 
 const AFD671_BIZ = 98;
-const AFD671_PIS = '012345678919'; // 12 posições, como o 1510 grava — o parser compara literal
+const AFD671_PIS = '012345678919'; // 12 posições com zero à esquerda, como o 1510 grava
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
@@ -343,4 +343,15 @@ it('AFD-INT-05 · arquivo 1510 não tem CRC nem hash, logo não gera aviso', fun
     ]);
 
     expect((string) $imp->log)->not->toContain('integridade');
+});
+
+it('AFD-1510-05 · PIS cadastrado com 11 dígitos e máscara casa com o PIS de 12 posições do AFD', function () {
+    // O Anexo I grava o PIS em 12 posições (023-034), com zero à esquerda; o PIS tem 11 dígitos
+    // e o cadastro aceita máscara. A comparação tem de ser pelos dígitos, como a do CPF.
+    DB::table('ponto_colaborador_config')->where('id', $this->colabId)->update(['pis' => '123.45678.91-9']);
+
+    $imp = afd671Importar($this, [afd1510Marcacao('000000001')]);
+
+    expect($imp->linhas_erro)->toBe(0)
+        ->and(afd671Marcacoes($this))->toBe(['2026-09-24 08:00:00']);
 });

@@ -26,13 +26,13 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * 404 antes de qualquer escrita no filho. É o gate que os FormRequests já
  * documentavam mas o controller nunca executava.
  *
- * ADR 0093 Tier 0 IRREVOGÁVEL. ADR 0101: biz=1 (Wagner WR2) vs biz=99. NUNCA biz=4.
+ * ADR 0093 Tier 0 IRREVOGÁVEL. ADR 0358: tenant 98 (fictício) vs biz=99. NUNCA biz=4, NUNCA biz=1.
  *
  * @see Modules/Jana/Http/Controllers/PeriodosController.php
  * @see Modules/Jana/Tests/Feature/EntitiesFilhasMultiTenantViaParentTest.php (harness base)
  */
 
-const PERIODOS_BIZ_WAGNER = 1;
+const PERIODOS_BIZ_WAGNER = 98; // tenant canônico FICTÍCIO (ADR 0358)
 const PERIODOS_BIZ_FICTICIO = 99;
 
 beforeEach(function () {
@@ -47,11 +47,11 @@ beforeEach(function () {
 
     $business = Business::find(PERIODOS_BIZ_WAGNER);
     if (! $business) {
-        $this->markTestSkipped('business_id=1 (Wagner WR2) não encontrado — semear DB.');
+        $this->markTestSkipped('business_id=98 (tenant canônico ADR 0358) ausente — rode o seed do pest-mysql-setup.');
     }
     $user = User::where('business_id', PERIODOS_BIZ_WAGNER)->first();
     if (! $user) {
-        $this->markTestSkipped('Sem user em business_id=1.');
+        $this->markTestSkipped('Sem user em business_id=98.');
     }
     $this->wUser = $user;
 
@@ -96,8 +96,15 @@ beforeEach(function () {
     // o gate em vez do isolamento cross-tenant que ele existe pra provar.
     // Conceder aqui NÃO enfraquece nada: o contrato sob teste é "usuário COM acesso
     // ao módulo ainda não alcança dado de outra empresa".
+    //
+    // Idem `can:jana.metas.manage` nas escritas de meta/período/fonte (#7895, UC-JPERM-03):
+    // sem ela o 403 da trava chega ANTES do `Meta::findOrFail` e o 404 cross-tenant nunca
+    // é exercitado — o teste de isolamento fica MUDO (medido 2026-09-27: 403 vs 404). O
+    // 403 SEM a permissão é contrato separado, provado em `Http/MetasPermissaoTest.php`
+    // e no caso de controle no fim deste arquivo.
     \Spatie\Permission\Models\Permission::findOrCreate('jana.access', 'web');
-    $this->wUser->givePermissionTo('jana.access');
+    \Spatie\Permission\Models\Permission::findOrCreate('jana.metas.manage', 'web');
+    $this->wUser->givePermissionTo('jana.access', 'jana.metas.manage');
     $this->wUser->forgetCachedPermissions();
 
     $this->actingAs($this->wUser);
@@ -105,6 +112,12 @@ beforeEach(function () {
         'user.business_id' => PERIODOS_BIZ_WAGNER,
         'business' => ['id' => PERIODOS_BIZ_WAGNER, 'name' => $business->name],
     ]);
+});
+
+// A permissão criada na transação some no rollback; o cache do Spatie que sobrevive a
+// ela vira PermissionDoesNotExist/FK no teste seguinte de OUTRO arquivo (#7895).
+afterEach(function () {
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
 function periodoPayload(): array
@@ -130,7 +143,7 @@ function periodoCru(int $metaId): MetaPeriodo
     ]);
 }
 
-it('store cross-tenant: POST período na meta biz=99 (autenticado biz=1) → 404 e NÃO cria', function () {
+it('store cross-tenant: POST período na meta biz=99 (autenticado biz=98) → 404 e NÃO cria', function () {
     $antes = MetaPeriodo::withoutGlobalScopes()->where('meta_id', $this->metaFicticia->id)->count();
 
     $resp = $this->post("/ia/metas/{$this->metaFicticia->id}/periodos", periodoPayload());
@@ -140,7 +153,7 @@ it('store cross-tenant: POST período na meta biz=99 (autenticado biz=1) → 404
     expect($depois)->toBe($antes); // gate barrou o INSERT cross-tenant
 });
 
-it('store positivo: POST período na própria meta biz=1 → 302 e CRIA', function () {
+it('store positivo: POST período na própria meta biz=98 → 302 e CRIA', function () {
     $resp = $this->post("/ia/metas/{$this->metaWagner->id}/periodos", periodoPayload());
 
     $resp->assertRedirect();
@@ -167,4 +180,14 @@ it('destroy cross-tenant: DELETE período de meta biz=99 → 404 e período SOBR
 
     $resp->assertNotFound();
     expect(MetaPeriodo::withoutGlobalScopes()->find($periodo->id))->not->toBeNull();
+});
+
+it('controle UC-JPERM-03: SEM jana.metas.manage, POST período na PRÓPRIA meta → 403 e NÃO cria', function () {
+    // Prova que a trava existe de fato — e, junto com o `store positivo` acima, que o
+    // 404 dos casos cross-tenant vem do gate de TENANT e não da trava de permissão.
+    $this->wUser->revokePermissionTo('jana.metas.manage');
+    $this->wUser->forgetCachedPermissions();
+
+    $this->post("/ia/metas/{$this->metaWagner->id}/periodos", periodoPayload())->assertForbidden();
+    expect(MetaPeriodo::withoutGlobalScopes()->where('meta_id', $this->metaWagner->id)->count())->toBe(0);
 });

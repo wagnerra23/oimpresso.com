@@ -407,11 +407,33 @@ export function tokenDeArquivo(valor) {
 export function caminhoDaAncora(valor, raiz = REPO_DEFAULT) {
   const cru = desasparValor(valor);
   if (cru && ehArquivo(resolve(raiz, cru))) return cru;                    // 1
+  // 1b (2026-09-28) — o formato 1 só valia com o arquivo PRESENTE. Sem ele, o valor caía no
+  // regex, que não aceita espaço nem parêntese no nome, e voltava `null` = "não nomeia
+  // arquivo". Caso real: `Financeiro/ProvaViva` aponta `…/legado/financeiro-prova-viva/
+  // Financeiro - Prova Viva (primitivos).html`, apagado pelo #7445 em 2026-09-16 — e as duas
+  // portas (o `--list` com `existe:null`, a de 1 tela com "nada a LER aqui") diziam que não
+  // havia o que abrir, quando havia um arquivo podre. É o D3 da thread 03 escapando por um
+  // formato que só "passava" enquanto o arquivo existia (ancora/_saida-03).
+  // A regra é ESTREITA de propósito: o valor INTEIRO tem forma de caminho — começa num
+  // segmento sem espaço, tem `/`, termina em extensão de design. Prosa antes (formato 3),
+  // parênteses DEPOIS da extensão (formato 2) e diretório (formato 4) não casam. Quando casa,
+  // o valor cru É o caminho declarado: devolvê-lo faz o `⚠️ NÃO ABRE` dizer qual path falhou,
+  // como o retorno final já fazia para o token limpo. Todo consumidor confere `existsSync`
+  // depois (hook, design-diff-lote, dedupe, printer), então nenhum passa a abrir o inexistente.
+  const inteiro = ehCaminhoInteiro(cru);
   const tok = tokenDeArquivo(cru);
-  if (!tok) return null;                                                   // 4
+  if (!tok) return inteiro ? cru : null;                                   // 1b · 4
   if (ehArquivo(resolve(raiz, tok))) return tok;                           // 2
   if (!tok.includes('/') && ehArquivo(resolve(raiz, LUGAR_FIXO, tok))) return `${LUGAR_FIXO}/${tok}`; // 3
-  return tok; // nomeia arquivo mas não abre — devolve o token pro ⚠️ dizer QUAL path falhou
+  return inteiro ? cru : tok; // nomeia arquivo mas não abre — devolve o path pro ⚠️ dizer QUAL falhou
+}
+
+/**
+ * O valor INTEIRO é caminho de arquivo de design (segmentos podem ter espaço/parêntese)? Puro.
+ * Escrito SEM barra invertida de propósito: ela colapsa no transporte da escrita (LC-26).
+ */
+export function ehCaminhoInteiro(cru) {
+  return /^[A-Za-z0-9_.-]+(?:[/][^/]+)+[.](?:jsx|html|css|tsx)$/i.test(String(cru ?? ''));
 }
 
 // normaliza a query da tela → tokens comparáveis
@@ -1427,6 +1449,13 @@ async function selftest() {
   await writeFile(join(fxListPages, 'Real.charter.md'), charterFx('/fx/real', 'prototipo-ui/cowork/Wagner/fx-real.jsx'), 'utf8');
   await writeFile(join(fxListPages, 'Na.charter.md'), charterFx('/fx/na', 'n/a (herda PT-01 Lista; segue o Padrão de Tela)'), 'utf8');
   await writeFile(join(fxListPages, 'NaCita.charter.md'), charterFx('/fx/na-cita', 'n/a (herda PT-01; o fx-real.jsx desenha OUTRA tela — ancorar aqui seria tautologico)'), 'utf8');
+  // 1b (2026-09-28): nome com ESPAÇO e PARÊNTESE, ausente e presente — o par que separa
+  // "não nomeia arquivo" de "nomeia e não abre". E o formato 2 ausente, que NÃO pode virar
+  // o valor cru (o parêntese vem depois da extensão, logo é prosa, não parte do nome).
+  await writeFile(join(fxList, 'prototipo-ui', 'cowork', 'Wagner', 'Fx Tela (primitivos).html'), '<!-- existe -->\n', 'utf8');
+  await writeFile(join(fxListPages, 'EspacoPodre.charter.md'), charterFx('/fx/espaco-podre', 'prototipo-ui/cowork/Wagner/legado/Fx Sumiu (primitivos).html'), 'utf8');
+  await writeFile(join(fxListPages, 'EspacoReal.charter.md'), charterFx('/fx/espaco-real', 'prototipo-ui/cowork/Wagner/Fx Tela (primitivos).html'), 'utf8');
+  await writeFile(join(fxListPages, 'Formato2.charter.md'), charterFx('/fx/formato2', 'prototipo-ui/cowork/Wagner/fx-sumiu.jsx (PT-04 Dashboard)'), 'utf8');
 
   // `listAll` so imprime — capturar o stdout e o unico jeito de assertar o JSON dela sem
   // mudar a assinatura (mudar a API publica esta proibido: o hook post-merge-ui-smoke
@@ -1457,6 +1486,25 @@ async function selftest() {
   const lNaCita = linhaFx('/fx/na-cita');
   t('CONTROLE list: n/a que CITA arquivo real na prosa segue caminho:null (nao vira ancora)',
     !!lNaCita && lNaCita.caminho === null && lNaCita.existe === null && lNaCita.isNa === true);
+  // 1b — o caso real era `Financeiro/ProvaViva` (html com espaço, apagado pelo #7445), que saía
+  // `existe:null` = "nada a abrir". Mutação que mata este BITE: voltar `if (!tok) return null`.
+  const lEspPodre = linhaFx('/fx/espaco-podre');
+  t('BITE list: nome com espaco que nao abre → existe:false com o caminho INTEIRO (nao null)',
+    !!lEspPodre && lEspPodre.existe === false
+      && lEspPodre.caminho === 'prototipo-ui/cowork/Wagner/legado/Fx Sumiu (primitivos).html');
+  // Sem este, "devolver cru sempre" deixaria o BITE verde: o mesmo formato, arquivo PRESENTE.
+  const lEspReal = linhaFx('/fx/espaco-real');
+  t('CONTROLE list: nome com espaco que abre → existe:true',
+    !!lEspReal && lEspReal.existe === true && lEspReal.caminho === 'prototipo-ui/cowork/Wagner/Fx Tela (primitivos).html');
+  // Sem este, afrouxar `ehCaminhoInteiro` (aceitar prosa depois da extensão) passaria o
+  // parêntese a fazer parte do path — a regressão que o formato 2 existe pra impedir.
+  const lF2 = linhaFx('/fx/formato2');
+  t('CONTROLE list: formato 2 ausente segue devolvendo o TOKEN, nao o valor com a prosa',
+    !!lF2 && lF2.existe === false && lF2.caminho === 'prototipo-ui/cowork/Wagner/fx-sumiu.jsx');
+  t('CONTROLE ehCaminhoInteiro: prosa antes, prosa depois e diretorio NAO casam',
+    !ehCaminhoInteiro('F1 Cowork — prototipo-ui/x.jsx') && !ehCaminhoInteiro('prototipo-ui/x.jsx (PT-04)')
+      && !ehCaminhoInteiro('prototipo-ui/cowork/venda-menu/') && !ehCaminhoInteiro('x.jsx')
+      && ehCaminhoInteiro('prototipo-ui/a b/C (d).html'));
 
   // ── BITE do bundle NO LUGAR FIXO, sem `--staging` (2026-09-09) ───────────────
   // Fixture PRÓPRIA, separada da de staging de propósito: lá o charter e o mockup têm o

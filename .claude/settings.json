@@ -184,10 +184,6 @@
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/pii-redactor.mjs"
-          },
-          {
-            "type": "command",
             "command": "node .claude/hooks/commit-discipline-check.mjs"
           },
           {

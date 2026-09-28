@@ -274,6 +274,14 @@
     "baseline": "it_Ponto_Espelho_Show_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Ponto/Conformidade",
+    "source": "Ponto/Conformidade",
+    "component": "Ponto/Conformidade",
+    "route": "/ponto/conformidade?mes=2026-06",
+    "anchor": "Competência sem apuração",
+    "baseline": "it_Ponto_Conformidade_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Ponto/Espelho/Index",
     "source": "Ponto/Espelho/Index",
     "a11y": true,

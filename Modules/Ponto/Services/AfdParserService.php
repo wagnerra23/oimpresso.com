@@ -455,14 +455,19 @@ class AfdParserService
             }
 
             $pis = trim(substr($linha, 22, 12));
-            if ($pis === '' || !preg_match('/^\d+$/', $pis)) {
+            if ($pis === '' || !preg_match('/^\d+$/', $pis) || ltrim($pis, '0') === '') {
                 throw new \RuntimeException("PIS inválido (NSR {$nsrArquivo}).");
             }
 
             $momento = Carbon::createFromFormat('dmYHi', substr($linha, 10, 8) . substr($linha, 18, 4));
 
+            // O AFD grava o PIS em 12 posições com zero à esquerda; o cadastro guarda 11 dígitos,
+            // com ou sem máscara. Compara só os dígitos, sem zeros à esquerda (como o CPF do 671).
             $colaborador = Colaborador::where('business_id', $importacao->business_id)
-                ->where('pis', $pis)
+                ->whereRaw(
+                    "TRIM(LEADING '0' FROM REPLACE(REPLACE(REPLACE(pis, '.', ''), '-', ''), ' ', '')) = ?",
+                    [ltrim($pis, '0')]
+                )
                 ->first();
 
             if (!$colaborador) {
