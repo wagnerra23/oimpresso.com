@@ -1,0 +1,173 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Superadmin 10 negócios · 5 pacotes ativos · MRR R$ 1.806 Comunicador Ver negócios Hoje Semana Mês Ano Janela rolante — encerra em 18/08/2026 Novas assinaturas R$ 8.930 14 contratos no período Novos cadastros 11 cadastro próprio + criados pelo superadmin Sem assinatura 2 cadastrou e não assinou Receita recorrente (MRR) R$ 1.806 +8,4% contra o mês anterior Trial vira assinatura últimos 90 dias Cadastraram 38 Começaram o trial 29 − 9 aqui · 76 % seguiram Usaram além do 3º dia 21 − 8 aqui · 72 % seguiram Assinaram 13 − 8 aqui · 62 % seguiram Conversão ponta a ponta: 34 % — o maior vazamento é entre o cadastro e o 3º dia de uso. Churn 30 dias 3,4 % 4 saídas em 118 assinantes Preço 2 Fechou o negócio 1 Foi pra concorrente 1 Motivo vem da resposta do cancelamento — 1 saída sem motivo declarado não entra na conta. Receita por pacote MRR R$ 1.806 Balcão R$ 378 2 pagantes · R$ 189 / mês Gráfica R$ 389 1 pagante · R$ 389 / mês Rede R$ 890 1 pagante · R$ 890 / mês Legado 2024 R$ 149 1 pagante · R$ 149 / mês Pacotes gratuitos e avulsos ficam fora do MRR — aparecem no caixa do mês, não na recorrência. Vencendo ou vencido 1 em atraso · 3 nos próximos 12 dias 14 dias em atraso Adesivo Express Balcão · Boleto não pago · vence 04/08/2026 R$ 189 Cobrar em 9 dias Fachadas Norte Gráfica · trial termina · vence 27/08/2026 R$ 389 Converter em 10 dias Grupo Sinaliza (3 lojas) Rede · Cartão (Stripe) · vence 28/08/2026 R$ 890 Ver assinatura em 12 dias ROTA LIVRE Comunicação Visual Piloto ROTA LIVRE · trial termina · vence 30/08/2026 grátis Converter Tendência mensal de vendas últimos 12 meses · R$ 30.480 em ago O que fazer primeiro 3 itens 2 negócios cadastraram e não assinaram Studio Lona e Placa & Cia, nos últimos 3 dias — o vazamento do funil está aqui. 2 trials terminam nesta semana Fachadas Norte (27/08) e ROTA LIVRE (30/08) — aviso de fim de teste sai pelo comunicador. Legado 2024 está inativo com 4 assinantes Migrar para Balcão antes de arquivar; hoje eles pagam R$ 149 por uma grade que não existe mais. Cadastros recentes Ver todos Negócio Dono Pacote Assinatura Cadastro MRR Placa & Cia biz # 195 · Fortaleza · CE Heloísa Prado — Sem assinatura 17/08/2026 — Studio Lona biz # 193 · Rio de Janeiro · RJ Vinícius Sá — Sem assinatura 16/08/2026 — Fachadas Norte biz # 190 · Manaus · AM Rita Camargo Gráfica Trial 13/08/2026 — Adesivo Express biz # 186 · Belo Horizonte · MG Tiago Prado Balcão Vencida 18/03/2026 R$ 189 Vestuário Malha Viva biz # 181 · Blumenau · SC Sérgio Kubo Gráfica Cancelada 27/01/2026 —",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 16.7,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 16.7,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 16.7,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 16.7,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.235 0.01 240)",
+          "dot": false
+        }
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 16.7,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 16.7,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "fixed",
+      "colunasDeclaradas": 0,
+      "linhas": 5,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "url": "https://staging.oimpresso.com/hrm/dashboard",
+  "saude": {
+    "folhasVazias": [
+      "app.css",
+      "vendor.css",
+      "app.css"
+    ],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 16
+  },
+  "theme": "light",
+  "assinatura": "CI Biz Visão geral Gerenciamento de usuários Contatos Produtos Reparar Vendas Relatórios Configurações Suporte Jana Sidebar Menu Collapse Sidebar Calendário Adicionar a fazer Application Tour Calculator Reparar Today's Profit 09/28/2026 Notifications CI Signed in as CI Perfil Desconectar Toggle navigation HRM Tipo de licença Licença Presença Folha de pagamento Feriado Departamentos Designações Sales Targets Configurações Minhas licenças Sem dados My sales targets Target achieved last month: Lek 0.00 Target achieved this month: Lek 0.00 Targets Commission Percent Sem dados My Payrolls Usuários 56 Departamento Total Sem dados Licenças Today Sem dados Próximo Sem dados Feriados Today Sem dados Próximo Sem dados Presença de hoje Colaborador Entrada Saída Sem dados Sales targets Exportar para CSV Exportar para Excel Imprimir Visibilidade da coluna Exportar para PDF Usuário Target achieved last month Target achieved this month Em processamento... - V6.4 | Copyright © 2026 All rights reserved. × Benefício de hoje Fechar × Entrada Saída Endereço de IP: 177.74.67.30 Relógio na nota: Nota do relógio: Enviar Fechar Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Só essenciais Aceitar tudo Tour da Aplicação Vamos passar pelo aplicativo em 7 passos rápidos ... « Anterior Próximo » Tour final",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": null,
+    "primary": {
+      "bg": "rgb(239, 239, 239)",
+      "color": "rgb(0, 0, 0)",
+      "border": "rgb(0, 0, 0)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 100,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 1,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

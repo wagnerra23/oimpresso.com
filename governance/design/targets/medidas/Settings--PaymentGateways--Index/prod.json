@@ -1,0 +1,70 @@
+{
+  "url": "https://staging.oimpresso.com/settings/payment-gateways",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo OI C Gateways de Pagamento Configurações · Pagamento Voltar Testar todos Novo gateway Credenciais ativas 0 de 0 configuradas · 0 inativas/legacy Health check 100% OK todos drivers respondendo Cobranças hoje ↗ 0 emitidas em todos drivers · clique pra ver Gateways configurados · 0 hoje 2026-09-18 Apelido Driver Ambiente Conta destino Health Ativo Nenhum gateway configurado ainda Configure pelo menos 1 driver pra emitir cobranças. Configurar primeiro gateway Drivers disponíveis ( 17 não configurado s ) IN Inter PJ boleto pix pix v mTLS · client_id+secret · cert.crt + cert.key Configurar C6 C6 Bank boleto agência + conta + código_cliente · CNAB 240 Configurar AS Asaas boleto pix cartão api_key + webhook_secret Configurar BC BCB · PIX Automático pix aut. mTLS BCB + CNPJ recebedor homologado · Resolução BCB 380/2024 Configurar SB Sicoob API boleto OAuth2 + mTLS (.pfx) · client_id+secret · convênio + carteira + modalidade Configurar PG Pagar.me boleto pix cartão secret_key + webhook_secret · HMAC SHA256 (X-Hub-Signature-256) Configurar BR Bradesco boleto agência + conta + carteira (02/04/09/21/26) + cedente CNPJ · CNAB 240 Configurar IT Itaú boleto agência + conta + DV + carteira (109/110/112/115/188) + cedente CNPJ · CNAB 240 Configurar BB Banco do Brasil boleto agência + conta + convênio CIP + carteira (17 padrão) + cedente CNPJ · CNAB 240 Configurar SA Santander boleto agência + conta + código_cliente + carteira (101 padrão) + cedente CNPJ · CNAB 240 Configurar CX Caixa boleto agência + código_cliente SIGCB + carteira (RG) + cedente CNPJ · CNAB 240 Configurar SO Sicoob boleto agência + conta + convênio + carteira (1/3) + modalidade + cedente CNPJ · CNAB 240 Configurar AI Ailos (ex-Cecred) boleto agência+DV + conta+DV + carteira (1) + convênio + cedente CNPJ · CNAB 240 Configurar SR Sicredi boleto cooperativa + posto + conta + carteira (A) + byte_id_arquivo + cedente CNPJ · CNAB 240 Configurar CR Cresol boleto cooperativa + posto + conta + carteira + cedente CNPJ · CNAB 240 Configurar BA Banrisul boleto agência + conta + carteira (1) + código_cliente + cedente CNPJ · CNAB 240 Configurar BT BTG Pactual boleto agência + conta + carteira (1=Simples PJ) + código_cliente 12 dígitos + cedente CNPJ · CNAB 240 Configurar Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": null,
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": "BUTTON",
+        "align": "center",
+        "larguraPct": 100,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 3,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 1,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

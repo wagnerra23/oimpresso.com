@@ -1,0 +1,229 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Manifesto DF-e NF-e emitidas contra o CNPJ · 3 aguardando manifestação · prazo legal 90 dias SEFAZ-SP operacional Procedência ⌘ K Notas fiscais NF-e · NFC-e 8 NFS-e 2 Eventos 5 Manifesto DF-e 3 Certificado SPED e livros Pendências 3 Histórico 3 Pendentes 3 Confirmadas 1 Desconhecidas 1 Não realizadas 1 Todas 6 Nº Emitente / chave Emitido Situação Prazo Valor 982 TechSupply Componentes Ltda 62.118.409/0001-77 12/05/2026 Pendente 83d ciência confirmar desconhecer não realizada R$ 8.420,00 1174 Lona & Cia Distribuidora 08.552.164/0001-92 28/04/2026 Pendente 68d ciência confirmar desconhecer não realizada R$ 15.300,00 745 Tintas Prisma S/A 55.901.238/0001-45 02/03/2026 Pendente 12d ciência confirmar desconhecer não realizada R$ 2.190,00 O prazo vem do valor que a SEFAZ calculou, não de 90 dias fixos no código.",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "procedencia",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "abas-dfe",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "filtros-dfe",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "tabela-dfe",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 3,
+          "snakeCru": 0
+        },
+        "exemplos": {
+          "dataBr": [
+            "12/05/2026",
+            "28/04/2026",
+            "02/03/2026"
+          ]
+        }
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 4.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 6.3,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "700",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 23.8,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "700",
+        "blocos": 3,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.4,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.1,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "600",
+        "blocos": 1,
+        "pill": {
+          "radius": "999px",
+          "borda": true,
+          "bg": "oklch(0.74 0.13 75 / 0.08)",
+          "dot": false
+        }
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": {
+          "radius": "999px",
+          "borda": true,
+          "bg": "rgba(0, 0, 0, 0)",
+          "dot": false
+        }
+      },
+      {
+        "col": 6,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 37.4,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "400",
+        "blocos": 5,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 3,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

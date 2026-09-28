@@ -1,0 +1,220 @@
+{
+  "url": "https://staging.oimpresso.com/financeiro/unificado",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo OI C Financeiro · Visão unificada Setembro 2026 · caixa unificado Caixa A receber A pagar Novo título Saldo previsto · Setembro 2026 R$ 0,00 R$ 0,00 realizado · R$ 0,00 pendente Recebido R$ 0,00 0 entradas confirmadas A receber R$ 0,00 0 títulos Pago R$ 0,00 0 saídas liquidadas A pagar R$ 0,00 0 títulos Filtrar por Vencimento Emissão Pagamento Competência setembro 2026 0 lanç. Dia Semana Mês Ano Tudo Personalizado A receber 0 Recebidas 0 A pagar 0 Pagas 0 Só atrasados 0 Arquivados Todas as contas ▾ Todo o plano de contas ◰ ▦ Vencimento ⇅ Lançamento ⇅ Contraparte ⇅ Categoria Forma Conta Baixa Status ⇅ Valor ⇅ Nenhum lançamento com os filtros atuais. Command Palette Search for a command to run... 0 lançamento s · Total entrada: R$ 0,00 · Total saída: R$ 0,00 palette buscar / navegar marcar pago/recebido favoritar linha ? Resolver 4 Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 5,
+      "tag": "BUTTON",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Saldo previsto",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": "start",
+          "valueFontPx": 28
+        },
+        {
+          "label": "RecebidoR$ 0,0",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": "start",
+          "valueFontPx": 22
+        },
+        {
+          "label": "A receberR$ 0,",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": "start",
+          "valueFontPx": 22
+        },
+        {
+          "label": "PagoR$ 0,000 s",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": "start",
+          "valueFontPx": 22
+        },
+        {
+          "label": "A pagarR$ 0,00",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": "start",
+          "valueFontPx": 22
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "header-acoes",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "kpis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "periodbar-personalizado",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "filter-pills-toolbar",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "tabela-linhas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 100,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 1,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

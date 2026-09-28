@@ -1,0 +1,56 @@
+{
+  "url": "https://staging.oimpresso.com/recurring-billing",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Cobrança recorrente 0 ATIVAS · MRR R$ 0,00 · CHURN 0 % Assinaturas 0 Planos 0 Faturas Configurações Nova assinatura MRR · receita recorrente R$ 0,00 baseline Churn este mês 0 cancelamentos taxa 0% Próxima cobrança sem cobrança próxima R$ 0,00 · 0 cobranças Retentado falhos 0 requer ação Mostrar só favoritos 0 Próxima cobrança Qualquer data Hoje Amanhã Esta semana Próx. 30 dias Personalizado Status Todas Em dia Retentando Falharam Pausadas Canceladas MRR filtrado R$ 0,00 0 ativ. de 0 0 / 0 Nada por aqui. Nenhuma assinatura com este filtro + busca. Selecione uma assinatura 1 / 4 Tour rápido 3 colunas canônicas Filtros · Lista · Drawer detalhe — tudo cabe na tela sem scroll horizontal. Não mostrar mais Anterior Próximo Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 24,
+      "weight": "600",
+      "color": "oklch(0.137 0.036 258.5)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

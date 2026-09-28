@@ -1,0 +1,134 @@
+{
+  "url": "http://127.0.0.1:34153/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 73
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Documentação Uma documentação, duas lentes — a espinha do domínio serve as duas. 23 páginas · 15 documentos no corpus (amostra local — o vivo vem do webhook) · leitura do git em 18/09/2026 , árvore ⌘K Buscar Ver fonte no git Operar 10 Construir 20 Tudo 23 Buscar na documentação Comece aqui 1 00 O mapa em uma página Domínio — as entidades 5 01 Estágio (FSM) 02 Venda 03 Ordem de serviço 04 Nota fiscal 05 Título financeiro Fluxos de operação 3 06 Uma venda 07 Um cancelamento 08 Um deploy Técnico — construir 10 09 Arquitetura & módulos 10 Dados & multi-tenant 11 Front-end & tokens 12 Contrato de tela 13 Âncoras de tela 14 Fluxo do DS → tela 15 Aplicação na tela (6 fases) 16 Máquinas — o mapa 17 Qualidade & CI 18 MCP & agentes Governança 3 19 Como decisão vira lei 20 Como o conhecimento é indexado 21 O que é observado Corpus 1 22 Buscar no corpus Programa 1 D Trilha D — documentação técnica e operacional Documentação / Comece aqui / O mapa em uma página O oimpresso em uma página ERP brasileiro multi-tenant, modular especializado por vertical: núcleo comum + módulos onde há cliente real. Construído sobre UltimatePOS v6. reference canonical atualizado 2026-08-02 memory/GUIA-DO-SISTEMA.md Este doc é mapa, não cópia Ele aponta pras fontes vivas. Se um número aqui divergir da fonte linkada, a fonte manda . Estado vivo (cycle, tasks, brief) nunca vem daqui — vem das tools MCP. As quatro camadas Camada de cima herda da de baixo e nunca contradiz . É o modelo mental que resolve 80% das dúvidas de \"onde isso mora\". Camada O que é Exemplos Governança as leis Constituição v2 · ADRs · Skills · Trust Tiers Verticais produto vendável por setor Vestuário ✅ · ComunicaçãoVisual 🟡 · OficinaAuto 🟡 Núcleo comum a todos Jana IA · Financeiro · NF-e/NFS-e · Repair (OS) · FSM Pipeline Kernel base multi-tenant UltimatePOS + Stack canônica Laravel 13.6 + PHP 8.4 · MySQL · Inertia v3 + React 19 + Tailwind 4 · Pest v4 em — lista viva no PAINEL-SISTEMA (derivada da árvore, não escrita à mão) IA: (camada A) + Agents Jana (B) + memória Meilisearch/Ollama (C) Onde roda (Tier 0 irrevogável) Ambiente O que roda Nunca Hostinger (shared) ERP web + de deploy daemons, octane, laravel/mcp, teste pesado CT 100 Proxmox FrankenPHP · Centrifugo · Meilisearch · MCP server · Ollama · testes/PHPStan — GitHub main fonte de verdade do código + — Verticais — estado Vertical CNAE Status Piloto Vestuário 4781-4/00 em produção ROTA LIVRE (Larissa, biz=4, 99% do volume) ComunicaçãoVisual 1813-0/01 em construção 6 candidatos OfficeImpresso OficinaAuto 4520-0/01 piloto LIVE (biz=164) Martinho — reparo/mecânica, nunca locação Teste automatizado usa o tenant fictício — nunca o biz=4 do cliente, nunca mais o biz=1 (a WR2, empresa real). Fonte dona deste texto: memory/GUIA-DO-SISTEMA.md · a página é o documento renderizado, não uma cópia commitada anterior — próximo Estágio (FSM) Nesta página As quatro camadas Stack canônica Onde roda (Tier 0 irrevogável) Verticais — estado tipo reference · canonical git memory/GUIA-DO-SISTEMA.md relacionados ADR 0121 — modular especializado por vertical ADR 0094 — Constituição v2 ADR 0062 — separação de runtime",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 14.7,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 27.7,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 57.7,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 4,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Governança — painel A raiz /governance redireciona para /ia · o painel vive em /governance/dashboard Base completa Fontes ausentes Sem permissão MCP superadmin · cross-tenant Painel Políticas Auditoria Drift Notas dos módulos Constituição Estado dos checks nas últimas 24 horas. As tabelas mcp_* são cross-tenant por design — exceção formal ao Tier 0, Art. 6 e 8. ADRs aguardando decisão 7 status proposto Políticas ativas 23 de 31 no catálogo Aprovações de skill 2 versões em revisão Atores registrados 14 sem revogação Ocorrências em 24 h 9 resultado diferente de concluído 80 % auto-declarado Conformidade com a Constituição O número é escrito à mão no controller — 7 ×10 + 2 ×5 + 0 —, não apurado por checagem. Enquanto for assim, a tela o rotula como declarado. Art. 1 Fonte única da verdade pleno Art. 2 Mexeu, registra pleno Art. 3 Decisão vira ADR pleno Art. 4 Skill versionada parcial Art. 5 Isolamento multi-tenant pleno Art. 6 Exceção formal declarada pleno Art. 7 Module Charter parcial Art. 8 Policy gating pendente Art. 9 Auditoria append-only pleno Art. 10 Ambiente reproduzível pleno 7 artigos plenos · 2 parciais · 1 pendente — o pendente é o gate de política, que segue em modo aviso. Scorecard SDD chega depois Carregando a seção … Saúde do ecossistema Três fontes das últimas 24 horas. Fonte não instalada nesta base aparece como travessão — nunca como zero. Jobs falhos em 24 h 3 fila do Horizon Custo de IA em 24 h R$ 41,80 tokens de entrada e saída Última narrativa 06:00 rotina diária 06:00 Três jobs de conciliação falharam de madrugada, todos no mesmo extrato do Sicredi. A fila drenou sozinha às 05:40. 05:12 Volume de chamadas ao MCP 22% acima da média para uma segunda-feira — origem é o balcão da ROTA LIVRE. 00:15 Fechamento do dia sem intercorrência: 41 vendas, 6 ordens de produção encerradas. Aguardando decisão ADRs em estado proposto, do mais recente ao mais antigo. Teto de dez — o painel é visão de topo. 0372 Fila de impressão como máquina de estados há 2 dias 0371 Retenção de anexos por módulo (LGPD Art. 16) há 3 dias 0369 Ledger de conformidade do design system há 5 dias 0368 Cotas por ator no servidor MCP há 6 dias 0367 Orçamento versionado sem clonar registro há 9 dias 0365 Catraca semântica: enum nunca aparece cru há 12 dias 0364 Escopo de anexo por negócio no DMS há 18 dias Ocorrências em 24 horas Chamadas ao servidor MCP com resultado diferente de concluído. Detalhe completo na vista de auditoria. 18:42 delphi-wr-comercial vendas.registrar Cota excedida 41 ms 17:05 jana-brain-b financeiro.conciliar Erro 2380 ms 16:58 jana-brain-b financeiro.conciliar Erro 2411 ms 15:30 app-tecnico os.anexo Negado 12 ms 14:12 claude-code memory.write Negado 8 ms 11:47 delphi-oficina — Erro 1902 ms 09:21 app-tecnico os.fechar Negado 15 ms 08:03 jana-brain-a bi.narrar Erro 3105 ms 07:14 delphi-wr-comercial estoque.baixar Cota excedida 37 ms Governança MCP Consumo cross-team do servidor MCP. A seção herda a permissão da tela de origem — jana.mcp.usage.all —, não a do painel. Hoje Ontem 7 dias 30 dias Mês anterior Carregando a seção …",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "page-header",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "aviso-rota",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "tabs",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "kpis-constituicao",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "conformidade-regua",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "card-sdd",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "saude-ecossistema",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "aguardando-decisao",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "ocorrencias-24h",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "mcp-secao",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "mcp-periodo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "url": "https://staging.oimpresso.com/repair/repair",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Ordens de Serviço Listagem MWART (Sprint 2). Port 1:1 da tela Blade — mesmos filtros, mesmos dados. Nova OS Em andamento 0 Concluídas 0 Total exibido 0 Todos os locais Todos os responsáveis null Sem ordens de serviço Crie a primeira OS pelo botão \"Nova OS\". Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 3,
+      "tag": "BUTTON",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Em andamento0",
+          "textAlign": "left",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Concluídas0",
+          "textAlign": "left",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Total exibido0",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 24,
+      "weight": "600",
+      "color": "oklch(0.137 0.036 258.5)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Gateways de Pagamento Configurações · Pagamento Voltar Testar todos Novo gateway Credenciais ativas 3 de 4 configuradas · 1 inativas/legacy Health check 1 fail BCB Pix degradado · ver detalhes Cobranças hoje ↗ 4 emitidas em todos drivers · clique pra ver 1 credencial precisa de atenção: BCB · Recebedor Pix Aut. — mTLS expira em 47 dias. Renove o certificado antes do vencimento ou cobranças PIX Automático param. Renovar mTLS Gateways configurados · 4 última sync 09:14 BRT Apelido Driver Ambiente Conta destino Health · latência Ativo Inter PJ · Operacional IN Inter PJ Produção Inter PJ · Operacional OK 240ms · hoje Inter PJ · Sandbox dev IN Inter PJ Sandbox Inter PJ · Operacional OK 312ms · ontem Asaas · Operacional AS Asaas Produção Asaas · Operacional OK 182ms · hoje BCB · Recebedor Pix Aut. mTLS expira em 47d BC BCB · PIX Automático Produção BCB · Recebedor PIX Aut. Degradado 1140ms · hoje Drivers disponíveis ( 1 não configurado ) C6 C6 Bank boleto agência + conta + código_cliente · CNAB 240 Configurar",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": null,
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 23.9,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 17.1,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 10,
+        "weight": "700",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 17.1,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 8.5,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 10.2,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 4,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

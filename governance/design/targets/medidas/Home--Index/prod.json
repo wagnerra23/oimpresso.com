@@ -1,0 +1,200 @@
+{
+  "url": "https://staging.oimpresso.com/dashboard-legacy",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Visão geral R$ 0,00 vendas · R$ 0,00 a receber · R$ 0,00 despesas Bem-vindo , CI Período Dia Semana Mês De Até Líquido no período R$ 0,00 Vendas R$ 0,00 incluindo impostos A receber R$ 0,00 líquido de descontos de razão Despesas R$ 0,00 lançadas no período Contrapartidas mesmo período Compras R$ 0,00 incluindo impostos A pagar R$ 0,00 líquido de descontos Devolução de venda R$ 0,00 no período Devolução de compra R$ 0,00 devido ao fornecedor Pendências agora Nada pendente. Vendas por dia últimos 30 dias Vendas por dia, últimos 30 dias : total de R$ 0,00 no período; maior valor em 30/08 , R$ 0,00 . Período Valor 30/08 R$ 0,00 31/08 R$ 0,00 01/09 R$ 0,00 02/09 R$ 0,00 03/09 R$ 0,00 04/09 R$ 0,00 05/09 R$ 0,00 06/09 R$ 0,00 07/09 R$ 0,00 08/09 R$ 0,00 09/09 R$ 0,00 10/09 R$ 0,00 11/09 R$ 0,00 12/09 R$ 0,00 13/09 R$ 0,00 14/09 R$ 0,00 15/09 R$ 0,00 16/09 R$ 0,00 17/09 R$ 0,00 18/09 R$ 0,00 19/09 R$ 0,00 20/09 R$ 0,00 21/09 R$ 0,00 22/09 R$ 0,00 23/09 R$ 0,00 24/09 R$ 0,00 25/09 R$ 0,00 26/09 R$ 0,00 27/09 R$ 0,00 28/09 R$ 0,00 Vendas por mês ano fiscal Vendas por mês, ano fiscal : total de R$ 0,00 no período; maior valor em jan , R$ 0,00 . Período Valor jan R$ 0,00 fev R$ 0,00 mar R$ 0,00 abr R$ 0,00 mai R$ 0,00 jun R$ 0,00 jul R$ 0,00 ago R$ 0,00 set R$ 0,00 out R$ 0,00 nov R$ 0,00 dez R$ 0,00 Vencimentos de venda Vencimentos de compra Estoque mínimo Pedidos de venda Expedições pendentes Nada em vencimentos de venda Quando houver registros nesta lista, eles aparecem aqui. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "kpis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "contrapartidas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "pendencias",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "graficos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "grades",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 52,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "700",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 48,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 30,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

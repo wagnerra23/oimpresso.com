@@ -1,0 +1,161 @@
+{
+  "url": "https://staging.oimpresso.com/asset/settings",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Configurações Prefixos de código e notificações de manutenção — valem para toda a empresa Prefixos de código Cada sequência é por empresa. Mudar o prefixo não renumera o que já existe — vale do próximo código em diante. Prefixo do código do bem Usado ao cadastrar um bem novo. Prefixo do código de alocação Usado ao alocar um bem a um colaborador. Prefixo do código de devolução Usado ao registrar a devolução de um bem alocado. Prefixo do código de manutenção Usado ao abrir uma manutenção. Bem enviado para manutenção Tags disponíveis: Destinatários CI Mr Rebecca Hand Mr Bill Weber Mr Grant Huel Mr Nicole Torphy Mr Trevion Spencer Mr Hector Bradtke Mr Thora Treutel Mr Chloe Reichel Mr Gracie Dickinson Mr Okey Mohr Mr Earlene Hamill Mr Shaylee Haley Mr Eleanora Johns Mr Celestino Jacobson Mr Camden Mraz Mr Mona Wehner Mr Bradly Barton Rotate Test RDN CA RN RL RR RI XA XB RC A B Mr Schuyler Swaniawski Mr Odell Murray Mr Helene Gutmann Mr Emmanuelle Renner Mr Brady Bayer Mr Derrick Frami Mr Jaida Erdman Mr Zaria Huels Mr Eleanore Doyle Mr Viola Raynor Mr Estella Willms Mr Freeda Breitenberg Mr Ethan Carter Mr Arianna Bins Mr Leonel Orn Mr Delphine Simonis Mr Cecilia Armstrong Mr Barney Skiles Mr Jett Johns Mr Joana Weber Mr Ima Johnston Mr Delphine Skiles Sem nenhum destinatário, esta notificação não é enviada. Enviar também por e-mail Desligado, a notificação continua chegando no sino do sistema. Manutenção atribuída a um responsável Tags disponíveis: Vai para o colaborador designado na manutenção — não tem lista própria de destinatários. Enviar também por e-mail Desligado, a notificação continua chegando no sino do sistema. Salvar configurações Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "subnav",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "prefixos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "notificacoes",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "acoes",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

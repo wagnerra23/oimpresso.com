@@ -1,0 +1,173 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Empresas licenciadas 9 empresas · 7 matrizes · 13 máquinas vivas Exportar Ver licenças Empresas licenciadas 9 2 filiais herdando config Máquinas ativas 10 handshake nos últimos 30 dias Versão obrigatória atrás 5 disponível hoje: 6.7.14 Empresas bloqueadas 1 Delphi recusa o login Saúde da ponte officeimpresso:health licencas_table_present Tabela de licenças presente licenca_logs_table_present Audit do Delphi ativo desktop_pings_24h 9 pings em 24h bloqueadas_count 3/14 licenças travadas 3 OK · 1 WARN · 0 FAIL Grupo econômico consolida na matriz Versão obrigatória, versão disponível, caminho do banco e limite de máquinas ficam na matriz — a filial herda (ADR 0020). Editar uma filial só muda o limite dela. Situação Versão 9 de 9 Empresa Versão obrigatória → disponível Máquinas Banco no servidor Último handshake WR2 Comunicação Visual biz # 1 matriz · WR2 · São Paulo · SP 6.7.14 6.7.14 4 / 6 \\\\SRV-WR2\\OI\\DADOS.FDB recente · há 12min ROTA LIVRE Comunicação Visual biz # 4 matriz · ROTA LIVRE · São Paulo · SP 6.7.12 6.7.14 8 / 8 \\\\SRV-ROTA\\OFFICE\\DADOS.FDB recente · há 3min ROTA LIVRE — Zona Leste biz # 58 filial de biz #4 · São Paulo · SP 6.7.12 6.7.14 2 / 3 herda da matriz recente · há 1h Martinho Oficina biz # 164 matriz · Martinho · Guarulhos · SP 6.7.09 6.7.14 2 / 2 C:\\OFFICE\\DADOS.FDB fresc · há 4h Grupo Sinaliza biz # 149 matriz · Sinaliza · Porto Alegre · RS 6.7.14 6.7.14 9 / 12 \\\\SINALIZA-SRV\\OI\\DADOS.FDB fresc · ontem Sinaliza — Canoas biz # 151 filial de biz #149 · Canoas · RS 6.7.14 6.7.14 3 / 4 herda da matriz fresc · há 2 dias Copiadora Central biz # 142 matriz · Copiadora · Goiânia · GO 6.5.02 6.7.14 1 / 3 \\\\CC-FILE\\OI\\DADOS.FDB frio · há 27 dias Print Ideal bloqueada biz # 158 matriz · Print Ideal · Curitiba · PR 6.7.09 6.7.14 3 / 2 \\\\PI-SRV\\OFFICE\\DADOS.FDB fresc · há 4 dias Fachadas Norte biz # 190 matriz · Fachadas · Manaus · AM 6.7.14 6.7.14 0 / 2 C:\\OI\\DADOS.FDB distante · nunca",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 19.2,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 4,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 19.2,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 19.2,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 19.2,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 19.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 3,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.68 0.13 162 / 0.16)",
+          "dot": true
+        }
+      },
+      {
+        "col": 5,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 4.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "fixed",
+      "colunasDeclaradas": 0,
+      "linhas": 9,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

@@ -1,0 +1,199 @@
+{
+  "url": "https://staging.oimpresso.com/asset/dashboard",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C CI Biz · 0 bens Patrimônio O que a empresa tem, quanto vale e quem está com o quê. Atualizado 04:48 Alocar recurso Adicionar recurso Resumo de hoje 28/09/2026, 04:48 0 bens cadastrados, 0 unidades e R$ 0,00 de patrimônio bruto. O valor residual depois da depreciação não é calculado pelo sistema ( — ). Nenhum bem com garantia vencida ou vencendo nos próximos 30 dias. Garantia crítica Em manutenção Alocados Patrimônio bruto R$ 0,00 0 unidades em 0 bens Valor residual — a regra de depreciação ainda não foi definida Alocados 0 de 0 0 unidades livres pra alocar Garantia vencida ou vencendo 0 tudo coberto Análises do módulo Patrimônio por categoria valor unitário × quantidade, por categoria Nenhum bem cadastrado O painel passa a mostrar valor assim que o primeiro bem entrar. Situação da garantia bem sem registro não conta como vencido Sem bens para avaliar A situação da garantia aparece quando houver bem cadastrado. Manutenção em aberto o que está fora de operação ou agendado Nada em manutenção Nenhuma manutenção aberta ou em andamento. O que fazer primeiro Nenhum bem com garantia vencida ou vencendo Tudo coberto nos próximos 30 dias. Ver bens 0 manutenções em aberto O que está fora de operação não aparece como disponível pra alocar. Ver manutenções 0 unidades alocáveis paradas Equipamento sem alocação não tem responsável registrado. Ver alocações Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 3,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Patrimônio bru",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Valor residual",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Alocados0 de 0",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "subnav",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "resumo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 1,
+          "snakeCru": 0
+        },
+        "exemplos": {
+          "dataBr": [
+            "28/09/2026"
+          ]
+        }
+      },
+      {
+        "nome": "kpis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "analises",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "acoes",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

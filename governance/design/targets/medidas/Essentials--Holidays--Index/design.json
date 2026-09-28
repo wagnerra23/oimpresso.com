@@ -1,0 +1,92 @@
+{
+  "url": "http://127.0.0.1:34153/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 74
+  },
+  "theme": "dark",
+  "assinatura": "OI WR HRM 7 colaboradores · 2 licença s a aprovar · folha 08/2026 em rascunho Administrador Gestor de equipe Colaborador Com dados Primeira vez Demonstração Essentials · /hrm Ponto WR2 Painel Licenças 2 Turnos 3 Folha de pagamento Feriados 6 Metas de venda Departamentos 5 Cargos 7 Configurações Colaboradores 7 5 setores Licenças pendentes 2 esperando aprovação Presentes hoje 4 3 sem saída registrada Folha 08/2026 R$ 30.881,60 lote em rascunho O que fazer primeiro · 4 pendências Fila derivada do próprio dado — licença sem resposta, marcação aberta, folha não paga, meta faltando. Licença de Júlia Ferreira sem resposta Falta justificada · começa em 20/08/2026 · 1 dia Analisar 4 marcações sem saída registrada a jornada é do Ponto — feche lá as marcações em aberto Abrir no Ponto Folha 08/2026 ainda em rascunho 6 contracheques · R$ 29.840,00 sem pagamento lançado Abrir folha Licença de Tiago Mendes sem resposta Férias · começa em 07/09/2026 · 15 dias Analisar Custo de folha por setor · 08/2026 Líquido dos contracheques da competência — ganhos menos deduções, sem encargos. Diretoria R$ 12.000,00 Comercial R$ 5.587,60 Criação R$ 4.760,00 Adm/Fin R$ 4.326,00 Produção R$ 4.208,00 Minhas licenças Larissa Andrade 02/07/2026 – 02/07/2026 ( 1 dia ) Licença médica Aprovada 06/01/2026 – 17/01/2026 ( 12 dia s ) Férias Aprovada Minhas metas de venda Vendido no mês anterior R$ 19.870,00 Vendido neste mês R$ 24.826,00 R$ 0,00 – R$ 20.000,00 1% R$ 20.000,01 – R$ 40.000,00 faixa atingida neste mês 1.5% R$ 40.000,01 – R$ 80.000,00 2.5% Próximos feriados · 6 no ano Independência todas as localidades 07/09/2026 Nossa Senhora Aparecida todas as localidades 12/10/2026 Finados todas as localidades 02/11/2026 Aniversário da cidade só Filial Norte 20/11/2026 Presença de hoje · 21/08/2026 Larissa Andrade Turno A 07:58 → — Eliana Pereira Trânsito na Marginal. 08:12 → — Júlia Ferreira Turno A 08:05 → 12:00 Tiago Mendes Turno B 13:02 → — Colaboradores por setor Comercial 2 Produção 2 Diretoria 1 Adm/Fin 1 Criação 1 Achados desta leitura do main O que a tela precisa dizer antes de virar produção — cada item tem origem no código, não é opinião. A1 A tradução PT do módulo está quebrada na cara do cliente Resources/lang/pt/lang.php traduz leave como “Sair”, all_leaves como “Todas as folhas”, attendance como “Comparecimento” e holidays como “Férias”. A tela do balcão mostra isso hoje. Esta reconstrução usa o vocabulário certo (licença · presença · feriado) e o F3 precisa corrigir as chaves. A2 Pedir licença não valida nada EssentialsLeaveController::store lê essentials_leave_type_id, start_date, end_date e reason cru — sem FormRequest. Fim antes do início passa, tipo de outro negócio passa, período vazio passa. A3 max_leave_count do tipo não é aplicado O limite existe no cadastro e aparece no resumo, mas nada bloqueia a 31ª diária de férias: a checagem não existe no store. A4 Turno e tipo de licença não têm exclusão ShiftController::destroy e EssentialsLeaveTypeController::destroy estão vazios — o registro fica pra sempre. A tela reflete isso: só editar. A5 Meta de venda aceita faixas sobrepostas saveSalesTarget grava faixa a faixa sem comparar; a consulta usa target_start<=venda<=target_end e pega a primeira — duas faixas sobrepostas viram comissão indeterminada. A6 Presença aqui não é o ponto legal Este é o clock-in/out web do Essentials (IP + geolocalização opcional). O ponto sob a Portaria MTP 671/2021 é o módulo Ponto WR2 — os dois convivem e não se conversam hoje. A7 Importar presença insere sem conferir duplicidade importAttendance valida e-mail e turno linha a linha, mas o insert final não usa a mesma checagem de sobreposição do validateClockInClockOut.",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

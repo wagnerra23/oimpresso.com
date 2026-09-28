@@ -1,0 +1,249 @@
+{
+  "url": "http://127.0.0.1:34153/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 73
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Clientes 15 cadastrados · 13 ativos · 3 com saldo Novo cliente Todos 39 Clientes 15 Fornecedores 7 Funcionários 7 Representantes 3 Outros 7 Clientes ativos 13 cadastro ativo VIPs 5 prioridade total Com saldo 3 R$ 387,20 inadimplência Sem compra 90d 1 risco churn Novos este mês 2 desde dia 1 Faturamento R$ 23,2k hoje · +12% vs ontem pra focar · global Status Tipo UF Tags Sem compra há Grupo Saldo 15 clientes encontrados Cliente ↑ Tipo Documento Cidade/UF Frescor ↕ Saldo ↕ OS ↕ Tags Última OS AP Academia Pulse VIP +55 11 98901-2233 PJ 45.678.901/0001-45 São Paulo SP recente · há 2sem — 1 vip #4804 AC Acme Comércio Ltda Inativo +55 11 98712-3344 PJ 12.345.678/0001-90 São Paulo SP recente · há 1sem R$ 145,20 R$ 120,00 a favor 2 parceiro evento #4821 AC Auto Center Júnior +55 11 96789-0011 PJ 23.456.789/0001-23 Santo André SP fresc · há 4sem — 1 — #4806 AP Auto Posto Vale +55 11 92345-6677 PJ 89.012.345/0001-67 São Bernardo do Campo SP distante · há 2m R$ 510,00 a favor 1 corporativo atacado #4814 BF Buffet Família Bloqueado +55 11 97890-1122 PJ 34.567.890/0001-34 São Paulo SP recente · há 1sem R$ 79,20 1 — #4805 CV Clínica Vida VIP +55 11 95544-1010 PJ 56.789.012/0001-34 São Paulo SP recente · há 2sem — 2 vip #4817 EA Escola Aurora +55 11 91234-5566 PJ 78.901.234/0001-56 São Paulo SP frio · há 7m — 1 — #4815 IN Imobiliária Norte VIP +55 11 95678-9900 PJ 12.345.678/0001-12 São Paulo SP fresc · há 4sem — 1 vip #4809 LB Loja Bombom +55 11 99012-3344 PJ 56.789.012/0001-56 São Paulo SP fresc · há 3sem — 1 — #4802 MU Mercado União VIP +55 11 99812-7700 PJ 67.890.123/0001-45 Guarulhos SP recente · há 2sem — 2 vip #4816 PE Padaria Estrela Novo +55 11 98712-3344 PJ 34.567.890/0001-12 São Paulo SP recente · há 2sem — 2 atacado varejo #4819 PS Pet Shop Amigo VIP Novo +55 11 94567-8899 PJ 01.234.567/0001-89 Diadema SP recente · há 2sem — 1 vip #4810 PB Posto BR Centro +55 11 97654-2200 PJ 45.678.901/0001-23 Osasco SP fresc · há 4sem — 1 — #4818 RT Restaurante Tomate +55 11 93456-7788 PF 90.123.456/0001-78 São Paulo SP fresc · há 3sem R$ 510,00 a favor 1 corporativo atacado #4812 TE TechPro Equipamentos +55 11 99812-4400 PJ 23.456.789/0001-01 São Paulo SP recente · há 1sem R$ 162,80 1 — #4820 atalhos Mostrando 1 – 15 de 15 Por página 25 50 100 « ‹ 1 / 1 › »",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 21.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "600",
+        "blocos": 4,
+        "pill": {
+          "radius": "999px",
+          "borda": false,
+          "bg": "oklch(0.58 0.12 165)",
+          "dot": false
+        }
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 4.5,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 10,
+        "weight": "700",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.5,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.2,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 12.6,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "600",
+        "blocos": 3,
+        "pill": {
+          "radius": "999px",
+          "borda": true,
+          "bg": "oklch(0.275 0.05 145)",
+          "dot": true
+        }
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 8.3,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 4.7,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.4,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "600",
+        "blocos": 1,
+        "pill": {
+          "radius": "999px",
+          "borda": true,
+          "bg": "oklch(0.275 0.07 80)",
+          "dot": false
+        }
+      },
+      {
+        "col": 8,
+        "tag": "A",
+        "align": "left",
+        "larguraPct": 7.5,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 9,
+        "tag": "BUTTON",
+        "align": "center",
+        "larguraPct": 4.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 10,
+        "tag": "BUTTON",
+        "align": "center",
+        "larguraPct": 4.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 15,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

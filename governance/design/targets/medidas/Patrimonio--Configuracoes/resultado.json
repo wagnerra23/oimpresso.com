@@ -1,0 +1,27 @@
+{
+  "id": "Patrimonio/Configuracoes",
+  "source": "patrimonio-page.jsx",
+  "target": "resources/js/Pages/Patrimonio/Configuracoes.tsx",
+  "token": "assets",
+  "frescor": "verificado 2026-09-25",
+  "contrato": "governance/design/contracts/patrimonio-configuracoes.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: assimetria estrutural: 7 x 1 copies — um lado so casou copy de shell Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de",
+    "bugs": null,
+    "shell": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/asset/settings",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-09-28T07:48:21.985Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "1c3cc84c8139e41d67aa05c9cc45054062103a4d81091c5be48720c49a07ae5e"
+}
