@@ -114,19 +114,19 @@ it('o plano que a tela do programa renderiza existe e tem a estrutura que o cont
         expect($conteudo)->toMatch('/^###\s+' . preg_quote($codigo, '/') . '\s/m');
     }
 
-    // A linha da Trilha D no Status vivo é a dona do estado de execução (ADR 0294).
-    // Se ela sumir, os cartões de onda/task somem da tela — silenciosamente.
-    expect($conteudo)->toMatch('/^\|.*Trilha D.*US-[A-Z]+-\d+/m');
+    // O ESTADO não sai mais daqui: até a US-DOC-002 a tela lia a onda de uma célula escrita à
+    // mão no `## Status vivo` (AR-DOC-068). Hoje ele vem das tasks MCP — ver UC-PROGRA-01.
 });
 
-it('a tela do programa NAO carrega a lista de estacoes escrita a mao', function () {
+it('UC-PROGRA-02 · a tela do programa NAO carrega a lista de estacoes escrita a mao', function () {
     // ESTE É O CASO QUE IMPORTA. A tela promete no rodapé que "renderiza o plano, não é
     // cópia commitada". Se alguém colar as estações/ondas na Blade pra "ficar mais
     // simples", a promessa vira mentira e a tela drifa do plano em silêncio — que é
     // exatamente o que a § Trilha D proíbe ("ponteiro > cópia").
     //
     // Bite-test: colar qualquer título de estação do plano na view quebra este caso.
-    $view = base_path('resources/views/documentacao/programa.blade.php');
+    // Desde a US-DOC-002 a tela é o Programa.tsx — a Blade foi apagada no cutover.
+    $view = base_path('resources/js/Pages/Documentacao/Programa.tsx');
     expect(file_exists($view))->toBeTrue();
 
     $blade = file_get_contents($view);
@@ -616,49 +616,143 @@ it('o escopo que a pagina MOSTRA e derivado de TIPOS_DOC — nenhum tipo some ca
     expect(Illuminate\Support\Facades\View::shared('escopoProsa'))->toBe($prosa);
 });
 
-// @covers-us US-INFRA-048
-it('a linha da Trilha D no plano continua legivel pela maquina que publica a pagina', function () {
-    // POR QUE ESTE CASO EXISTE: a célula de status da Trilha D, na tabela do `## Status
-    // vivo`, NÃO é prosa — é entrada de `execucaoDaTrilha()`, que extrai a onda com
-    // `/\bD(\d+)\b\s+em execução/u` e a US com `/\b(US-[A-Z]+-\d+)\b/`. Quem reescrever
-    // aquela célula ("D0 concluída", "em andamento", um emoji a mais no lugar errado)
-    // faz os cartões de execução SUMIREM de /documentacao/programa — e some calado: o
-    // controller devolve null de propósito ("melhor um vazio honesto que um D0
-    // fossilizado"), a página segue 200, e ninguém fica sabendo.
-    //
-    // Verificar isso relendo o markdown não vale: é o mesmo erro de achar que doc que a
-    // máquina lê se valida no olho. Este caso invoca o CONSUMIDOR REAL por reflection,
-    // contra o arquivo REAL — nunca uma cópia da regex, que ficaria verde enquanto o
-    // controller regride.
+/**
+ * Plano mínimo com as cinco estruturas que `programa()` exige (D.3–D.7). As estações e a
+ * onda têm nomes que NÃO existem no plano real — é assim que o UC-PROGRA-02 prova que o
+ * payload vem do arquivo, e não de lista escrita no código.
+ */
+function programaPlanoFixture(string $estacao = 'Estação Fixtura Alfa', bool $semD4 = false): string
+{
+    $d4 = $semD4 ? '' : "1. **{$estacao}:** corpo da estação.\n2. **Estação Fixtura Beta:** outro corpo.\n";
+
+    return "---\nlast_updated: \"2030-01-02\"\n---\n\n## Trilha D — documentação técnica e operacional\n\n"
+        . "### D.3 Ondas\n\n| Onda | Escopo | Saída | Gate |\n|---|---|---|---|\n"
+        . "| **D0 · Onda Fixtura** | escopo x | saída x | gate x |\n| **D1 · Outra Fixtura** | e | s | g |\n\n"
+        . "### D.4 Ciclo\n\n{$d4}\n"
+        . "### D.5 Caminhos\n\n| Tipo | Caminho | Responde |\n|---|---|---|\n| máquina | a → b | o quê |\n\n"
+        . "### D.6 Batimento\n\n| Momento | Máquina | Efeito |\n|---|---|---|\n| PR | gate | barra |\n\n"
+        . "### D.7 Pronto\n\n- critério fixtura um;\n- critério fixtura dois.\n\n## Próxima seção\n";
+}
+
+/** Faz `programa()` ler a fixture no lugar do plano real; o resto do filesystem segue real. */
+function programaComPlano(?string $conteudo): Inertia\Response
+{
+    $plano = base_path('memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md');
+    Illuminate\Support\Facades\File::partialMock()
+        ->shouldReceive('exists')
+        ->andReturnUsing(fn (string $path) => $path === $plano ? $conteudo !== null : file_exists($path));
+    Illuminate\Support\Facades\File::shouldReceive('get')
+        ->andReturnUsing(fn (string $path) => $path === $plano ? $conteudo : file_get_contents($path));
+
+    return (new App\Http\Controllers\DocumentacaoController)
+        ->programa(Illuminate\Http\Request::create('/documentacao/programa'));
+}
+
+/** Invoca a projeção PURA do estado (sem banco) — é o que o UC-PROGRA-01/03 exercem. */
+function programaEstado(?array $tasks, array $ondas): array
+{
     $controller = new App\Http\Controllers\DocumentacaoController;
-    $classe = new ReflectionClass($controller);
+    $m = (new ReflectionClass($controller))->getMethod('estadoDoPrograma');
+    $m->setAccessible(true);
 
-    $markdown = file_get_contents(base_path('memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md'));
-    expect($markdown)->toBeString()->not->toBeEmpty();
+    return $m->invoke($controller, $tasks, $ondas);
+}
 
-    $secao = $classe->getMethod('secaoDoPlano');
-    $secao->setAccessible(true);
-    $tabela = $classe->getMethod('linhasDeTabela');
-    $tabela->setAccessible(true);
-    $execucao = $classe->getMethod('execucaoDaTrilha');
-    $execucao->setAccessible(true);
+it('a tela do programa é Inertia e entrega a § Trilha D lida do plano real', function () {
+    ['component' => $componente, 'props' => $p] = docInertiaProps(
+        (new App\Http\Controllers\DocumentacaoController)
+            ->programa(Illuminate\Http\Request::create('/documentacao/programa'))
+    );
 
-    $ondas = $tabela->invoke($controller, $secao->invoke($controller, $markdown, 'D.3'));
-    expect($ondas)->not->toBeEmpty();   // sem ondas o próprio controller aborta 503
+    expect($componente)->toBe('Documentacao/Programa');
+    expect($p['fonte'])->toBe('memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md');
+    foreach (['ondas', 'estacoes', 'caminhos', 'batimento', 'dod'] as $bloco) {
+        expect($p[$bloco])->not->toBeEmpty("o bloco {$bloco} veio vazio do plano real");
+    }
+    expect($p['atual'])->toBeNull();   // o Programa não marca item no rail (AR-DOC-066)
+    expect($p['estado'])->toHaveKey('disponivel');
+});
 
-    $estado = $execucao->invoke($controller, $markdown, $ondas);
+// @covers-us US-INFRA-048
+it('UC-PROGRA-01 · o estado vem das tasks MCP do programa, agrupado por onda — nunca do plano', function () {
+    // A 1ª parte do gate da US-INFRA-048 é o PLANO LIGADO AO MCP. Aqui a ligação é provada no
+    // consumidor real: tasks com parent_plan=programa-ondas, marcadas com `onda:`, viram o
+    // estado de cada onda. Onda sem task fica `sem_task` — não herda estado de ninguém.
+    $ondas = [
+        ['codigo' => 'D0', 'nome' => 'a'], ['codigo' => 'D1', 'nome' => 'b'],
+        ['codigo' => 'D2', 'nome' => 'c'], ['codigo' => 'D3', 'nome' => 'd'],
+    ];
+    $e = programaEstado([
+        ['id' => 'US-X-1', 'status' => 'doing', 'onda' => 'D0'],
+        ['id' => 'US-X-2', 'status' => 'done', 'onda' => 'D0'],
+        ['id' => 'US-X-3', 'status' => 'todo', 'onda' => 'D1'],
+        ['id' => 'US-X-4', 'status' => 'done', 'onda' => 'D2'],
+        ['id' => 'US-X-5', 'status' => 'todo', 'onda' => null],
+    ], $ondas);
 
-    // A onda tem que ser LIDA. `null` aqui = cartões omitidos na página.
-    expect($estado['onda'])->not->toBeNull('a célula de status da Trilha D deixou de casar "D<n> em execução" — os cartões de /documentacao/programa somem em silêncio');
-    expect($estado['onda'])->toMatch('/^D\d+$/');
+    expect($e['disponivel'])->toBeTrue();
+    expect($e['total'])->toBe(5);
+    expect($e['ondas']['D0']['estado'])->toBe('andamento');   // task aberta vence a concluída
+    expect($e['ondas']['D1']['estado'])->toBe('fila');
+    expect($e['ondas']['D2']['estado'])->toBe('concluida');
+    expect($e['ondas']['D3']['estado'])->toBe('sem_task');
+    expect(array_column($e['semOnda'], 'id'))->toBe(['US-X-5']);
 
-    // E a onda lida tem que EXISTIR na tabela §D.3 — senão a página aponta pra uma onda
-    // fantasma, que é pior que não apontar.
-    expect($estado['posicao'])->not->toBeNull('a onda declarada no status não existe na tabela §D.3');
-    expect($estado['posicao'])->toBeGreaterThan(0);
-    expect($estado['posicao'])->toBeLessThanOrEqual($estado['total']);
-    expect($estado['onda_nome'])->not->toBeNull();
+    // E nada de status chumbado onde o SPEC proíbe: nem no .tsx nem nos parsers do plano.
+    $tsx = file_get_contents(base_path('resources/js/Pages/Documentacao/Programa.tsx'));
+    expect(str_contains($tsx, 'doing'))->toBeFalse();
+    expect(str_contains($tsx, 'em execução'))->toBeFalse();
+});
 
-    // A US da fila também sai dali: sem ela a página perde o link pro backlog canônico.
-    expect($estado['task'])->toBe('US-INFRA-048');
+it('UC-PROGRA-02 · mudar o plano muda o payload sem tocar PHP nem TSX', function () {
+    ['props' => $p] = docInertiaProps(programaComPlano(programaPlanoFixture('Estação Renomeada Gama')));
+
+    expect(array_column($p['estacoes'], 'titulo'))->toBe(['Estação Renomeada Gama', 'Estação Fixtura Beta']);
+    expect(array_column($p['ondas'], 'codigo'))->toBe(['D0', 'D1']);
+    expect($p['ondas'][0]['nome'])->toBe('Onda Fixtura');
+    expect($p['dod'])->toBe(['critério fixtura um', 'critério fixtura dois']);
+    expect($p['atualizadoEm'])->toBe('2030-01-02');
+});
+
+it('UC-PROGRA-03 · sem MCP a tela diz que não sabe — nenhuma onda ganha estado default', function () {
+    $e = programaEstado(null, [['codigo' => 'D0', 'nome' => 'a']]);
+
+    expect($e['disponivel'])->toBeFalse();
+    expect($e['ondas'])->toBe([]);
+    expect($e['total'])->toBe(0);
+});
+
+it('UC-PROGRA-04 · a tela não tem caminho de escrita', function () {
+    $tsx = file_get_contents(base_path('resources/js/Pages/Documentacao/Programa.tsx'));
+
+    foreach (['<form', 'useForm', 'router.post', 'router.put', 'router.patch', 'router.delete', 'method="post"', 'axios', 'fetch('] as $escrita) {
+        expect(str_contains($tsx, $escrita))->toBeFalse("o Programa.tsx ganhou um caminho de escrita: {$escrita}");
+    }
+});
+
+it('UC-PROGRA-05 · plano ausente no deploy dá 503 nomeando o arquivo', function () {
+    expect(fn () => programaComPlano(null))->toThrow(
+        Symfony\Component\HttpKernel\Exception\HttpException::class,
+        'Plano ausente no deploy: memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md',
+    );
+});
+
+it('UC-PROGRA-05 · subseção do plano vazia dá 503 nomeando qual, nunca tela com seção vazia', function () {
+    expect(fn () => programaComPlano(programaPlanoFixture(semD4: true)))->toThrow(
+        Symfony\Component\HttpKernel\Exception\HttpException::class,
+        'Estrutura ausente na § Trilha D do plano: D.4 estações',
+    );
+});
+
+it('UC-PROGRA-06 · o payload não carrega tenant nem segredo', function () {
+    ['props' => $p] = docInertiaProps(programaComPlano(programaPlanoFixture()));
+    $json = json_encode($p, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    expect($json)->not->toContain('business_id');
+    expect($json)->not->toMatch('/\b\d{1,3}(?:\.\d{1,3}){3}\b/');   // IP de host
+    expect($json)->not->toMatch('/(?:token|password|senha|secret)"\s*:/i');
+
+    // O estado leva só id e balde da task — nada de dono, descrição ou tenant.
+    $e = programaEstado([['id' => 'US-X-1', 'status' => 'doing', 'onda' => 'D0']], [['codigo' => 'D0', 'nome' => 'a']]);
+    expect(array_keys($e['ondas']['D0']['tasks'][0]))->toBe(['id', 'balde']);
 });
