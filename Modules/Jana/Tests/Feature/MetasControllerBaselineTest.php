@@ -182,7 +182,10 @@ it('§3 · destroy é SOFT: desativa e a linha SOBREVIVE (a UI não pode dizer "
 });
 
 it('§7 risco 2 · index NÃO filtra inativas — meta desativada continua listada', function () {
-    $this->delete("/ia/metas/{$this->metaPropria->id}");
+    // Anti-vácuo (medido 2026-09-27): sem `jana.metas.manage` a desativação dava 403 em
+    // silêncio e o caso passava VERDE listando uma meta ATIVA — sem testar "inativa".
+    $this->delete("/ia/metas/{$this->metaPropria->id}")->assertRedirect();
+    expect((bool) $this->metaPropria->fresh()->ativo)->toBeFalse();
 
     // Comportamento ATUAL declarado como risco no RUNBOOK: o index ordena por `ativo`
     // desc mas não filtra. Mudá-lo é decisão [W]; o baseline existe pra que a mudança
@@ -288,7 +291,14 @@ it('Tier 0 · reapurar cross-tenant → 404 e NENHUM job enfileirado', function 
 it('Tier 0 · store NÃO aceita business_id de outro tenant vindo do payload', function () {
     $payload = metaPayload(['business_id' => METAS_BIZ_ADVERSARIO]);
 
-    $this->post('/ia/metas', $payload);
+    $resp = $this->post('/ia/metas', $payload);
+
+    // Anti-vácuo (medido 2026-09-27): sem `jana.metas.manage` na fixture, a trava do #7895
+    // devolvia 403 ANTES do controller e o `$vazou === false` abaixo passava VERDE sem
+    // medir nada. O controller correto também responde 403 — o que separa as duas causas
+    // é a MENSAGEM do abort do próprio `MetasController::store`.
+    $resp->assertForbidden();
+    expect($resp->exception?->getMessage())->toBe('Sem permissão para criar meta em outro business.');
 
     // Contrato declarado pelo PRÓPRIO StoreMetaRequest (docblock): "se business_id veio
     // no payload, controller verifica que matcha session OU user é superadmin antes de
