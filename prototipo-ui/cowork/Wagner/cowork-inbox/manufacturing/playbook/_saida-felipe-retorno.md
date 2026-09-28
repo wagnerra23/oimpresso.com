@@ -34,9 +34,9 @@ Medido no navegador: KPIs 6 · 5 · 1 · valor total; "Finalizadas" liga o mesmo
 (6 → 5 linhas); Limpar aparece com filtro e some depois; clique na linha não abre drawer; com
 "De" = 01/09/2026 a lista esvazia e mostra o vazio "no filtro".
 
-**Não aplicado — conflito, aguarda decisão:** item 2 (título/subtítulo). Na cópia do Felipe o
-título é "Fabricação" em todas as abas e o subtítulo é só "N receitas · M ordens de produção" (a
-frase "custo recalculado…" saiu de todas as abas porque o `PageHeader` do DS corta o subtítulo em
+**Item 2 (título/subtítulo): ficou pendente em 25/09 por conflito com mudança do Felipe; aplicado em 28/09 após a decisão D-RET-01 do [W] (ver "Decisões" abaixo). Contexto do conflito:** em 25/09 a cópia do Felipe
+tinha o título "Fabricação" em todas as abas e o subtítulo só "N receitas · M ordens de produção" (a
+frase "custo recalculado…" tinha saído de todas as abas porque o `PageHeader` do DS corta o subtítulo em
 56ch; ela continua no drawer da receita). No Wagner: "Produção" na aba Ordens e "Manufacturing"
 nas demais, com a frase nas demais abas.
 
@@ -64,8 +64,15 @@ Todas medidas no navegador; detalhe nos commits do PR e em `cowork/Felipe/pauta-
   tema claro `--text` é escuro e o menu é sempre preto (UI-0023): o nome da opção ativa some. Na
   cópia do Felipe foi trocado para `var(--sb-text-hi)`.
 
-## Decisões pendentes
+## Decisões — respondidas por [W] no PR #7991 (comentário de 2026-09-28)
 
-- **D-RET-01 · Título/subtítulo da Fabricação** (item 2 acima): "Fabricação" fixo × "Produção"/
-  "Manufacturing" por aba; frase do custo fora do cabeçalho × presente nas abas que não são Ordens.
-- **D-RET-02 · Thread 03:** a cópia de trabalho do Felipe fica ou é aposentada.
+- **Principal:** a versão do Felipe é a principal da Fabricação. O porte Wagner + onda B foi
+  descartado e não subiu ao Cowork.
+- **D-RET-01 · Título/subtítulo** — decidida em 2026-09-26: **Wagner**. Aplicada na cópia do Felipe:
+  título "Produção" na aba Ordens e "Manufacturing" nas demais; subtítulo "N receitas · M ordens de
+  produção", com "· custo recalculado pelo preço atual dos ingredientes" fora da aba Ordens, **inteiro**
+  (o corte de 56ch do `PageHeader` do DS foi anulado por contorno de CSS, registrado na pauta do
+  Felipe). Rótulo da ficha impressa e rodapé de Configurações também passam a "Manufacturing".
+  Medido a 1280px e a 960px: frase inteira, sem corte.
+- **D-RET-02 · Thread 03** — a pasta `cowork/Felipe/manufacturing-*` **fica**; a thread 03
+  (aposentar) não deve ser executada.

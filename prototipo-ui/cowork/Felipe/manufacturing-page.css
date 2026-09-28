@@ -26,6 +26,12 @@
    entra DENTRO do header para a borda de baixo seguir de ponta a ponta, como a das abas; 20px é
    a calha do conteúdo desta tela [TELA] (--d-cpad-x não é definido neste shell). Inline → !important. */
 .mfg-root>header{padding-left:20px!important;padding-right:20px!important}
+/* CONTORNO DECLARADO (D-RET-01, [W] 2026-09-26) — o subtítulo precisa aparecer INTEIRO ("… · custo
+   recalculado pelo preço atual dos ingredientes" nas abas que não são Ordens). O PageHeader do DS o
+   corta em 56ch com reticências (PageHeader.jsx: maxWidth '56ch' + nowrap/ellipsis, inline → !important).
+   Aqui ele quebra linha em vez de cortar, como o os-page-h do protótipo do Wagner (medido por ele a
+   1280px: 2 linhas na aba Receitas, 1 na Ordens). Registrado na pauta. */
+.mfg-root>header p{max-width:none!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 
 
 .mfg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 20px 4px}

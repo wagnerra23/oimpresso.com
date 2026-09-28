@@ -26,9 +26,12 @@ feito aqui.
 - **Isto vale só para `prototipo-ui/cowork/Felipe/`.** O design system (projeto do Wagner, fonte
   viva em `resources/js/Components/{ui,shared}/`) continua regido pela seção "Como conferir
   protótipo contra o DS", mais abaixo.
-- **Fabricação:** o Wagner decidiu em 25/09/2026 (D-MFG-FONTE) que a fonte dela é a pasta dele, e
-  o playbook dele prevê aposentar os `manufacturing-*` desta pasta (thread 03). A cópia de trabalho
-  do Felipe fica ou não é decisão a combinar entre os dois (D-RET-02 no recibo de retorno).
+- **Fabricação:** o Wagner decidiu em 25/09/2026 (D-MFG-FONTE) que a fonte dela era a pasta dele.
+  **Revisto por [W] em 2026-09-28** (comentário no PR #7991): **a versão do Felipe é a principal da
+  Fabricação**, a pasta `manufacturing-*` daqui fica e a thread 03 (aposentar) **não será executada**.
+  O porte que o Wagner preparou do lado dele foi descartado. Na mesma revisão ele decidiu o título
+  (D-RET-01): "Produção" na aba Ordens e "Manufacturing" nas demais, com a frase do custo inteira
+  fora da aba Ordens.
 - Correção de defeito do protótipo acontece aqui, vai no PR e entra no próximo recibo de retorno.
   Exemplo: em 25/09/2026 a moldura `.mfg-grid` colidia com a regra antiga de `mockup-pages.css` e
   deixava uma coluna vazia à direita da tabela no shell — corrigido em `manufacturing-page.css`.

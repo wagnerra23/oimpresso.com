@@ -279,6 +279,28 @@ papel não tem tema.
 
 ---
 
+## D · `PageHeader`: subtítulo cortado em 56ch com reticências
+
+**Hoje:** `components/PageHeader/PageHeader.jsx` — o `<p>` do subtítulo tem `maxWidth: '56ch'`,
+`whiteSpace: 'nowrap'` e `textOverflow: 'ellipsis'`, inline. Frase maior que isso some.
+
+**Efeito na tela:** na Fabricação, [W] decidiu (D-RET-01, 2026-09-26) que o subtítulo mostra "N receitas
+· M ordens de produção · custo recalculado pelo preço atual dos ingredientes" **inteiro** — ~85
+caracteres, que o componente cortava.
+
+**Contorno na tela:** `manufacturing-page.css`, `.mfg-root>header p` com `max-width:none`,
+`white-space:normal` e sem reticências (`!important`, o valor é inline). O texto quebra linha em vez de
+cortar, como o `os-page-h` do protótipo do Wagner.
+
+**Proposta:** prop para o subtítulo quebrar linha (ou um limite maior), mantendo o corte como padrão.
+
+**Teste de aceite:** subtítulo de 85 caracteres a 960px — `scrollWidth <= clientWidth` e nenhuma
+reticência.
+
+**Prioridade:** D.
+
+---
+
 ## Resolvido, registrado como aprendizado
 
 `DropdownMenu` **acrescenta um caret próprio** quando `trigger` é um nó (só a forma
