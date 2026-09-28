@@ -26,6 +26,7 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 |----|-------------|------|--------|-------|--------|
 | UC-INTCRE-01 | Registrar uma intercorrência cria o rascunho | must | `CU-PONTO-05` + US-PONTO-003 | `IntercorrenciaContratoTest` | ✅ verde na lane (predição de vermelho caducou) |
 | UC-INTCRE-02 | A lista de colaboradores traz só os do meu empregador | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `IntercorrenciaContratoTest` | ✅ verde na lane |
+| UC-INTCRE-03 | A tela não promete enviar ao RH ao salvar | should | charter Anti-hooks + US-PONTO-003 | `IntercorrenciaContratoTest` | 🧪 sem veredito |
 
 **[BACKLOG]:**
 
@@ -97,4 +98,26 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   ([ADR 0101](../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)). O stub
   precisa existir: sem ele o INSERT morre na FK e o caso não exerce isolamento (medido na run
   30778424885).
+- **Status: 🧪 sem veredito.**
+
+---
+
+## UC-INTCRE-03 · A tela não promete enviar ao RH ao salvar · `should`
+
+- **Persona:** RH lançando a intercorrência. Se a tela diz que o registro "será submetido ao RH",
+  quem salva acha que já enviou — e a intercorrência fica parada em rascunho sem ninguém saber.
+- **Aceite:** Dado o formulário de registro · Quando leio a descrição do card "Dados da
+  ocorrência" · Então ela diz que salvar cria um **rascunho** e que submeter é feito depois, no
+  detalhe — e **não** diz que os campos serão submetidos ao RH.
+- **Teste:** `IntercorrenciaContratoTest.php` — `UC-INTCRE-03`.
+- **Contrato:** [`Create.charter.md`](Create.charter.md) Anti-hooks — *"Salvar não dispara
+  aprovação nem notifica o RH (submeter é ação separada no `Show`)"* · US-PONTO-003 (estados
+  canon). Redação a partir do protótipo `prototipo-ui/cowork/Wagner/ponto-telas.jsx`
+  (`FormIntercorrencia`).
+- **Achado que motiva (medido 2026-09-28, `origin/main` @ e4289e688):** a descrição dizia
+  *"Confirme/ajuste os campos. Eles serão submetidos ao RH para aprovação."* — o oposto do
+  charter. Registro em `memory/requisitos/Ponto/intercorrencias-create-gap.md`.
+- **Nota de escrita:** a copy vive no `.tsx` (não é prop Inertia), então o teste lê o fonte da
+  página com as quebras de linha normalizadas. Controle positivo feito antes: o mesmo regex
+  acusa a versão antiga e aceita a nova.
 - **Status: 🧪 sem veredito.**
