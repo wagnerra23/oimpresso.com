@@ -256,7 +256,9 @@ class DocumentacaoController extends Controller
             'caminhos' => $caminhos,
             'batimento' => $batimento,
             'dod' => $dod,
-            'estado' => $this->estadoDoPrograma($this->tasksDoPrograma(), $ondas),
+            // Deferred: lê `mcp_tasks` (Tier 0 — prop com consulta vai em defer). O plano, que é
+            // a matéria da tela, chega no 1º render; o estado chega logo depois.
+            'estado' => Inertia::defer(fn () => $this->estadoDoPrograma($this->tasksDoPrograma(), $ondas)),
             'buscaDisponivel' => $this->corpusDisponivel(),
             'nav' => $this->navegacao($this->lenteAtiva($request)),
             'atual' => null,   // o Programa não é item do rail (AR-DOC-066)

@@ -670,7 +670,9 @@ it('a tela do programa é Inertia e entrega a § Trilha D lida do plano real', f
         expect($p[$bloco])->not->toBeEmpty("o bloco {$bloco} veio vazio do plano real");
     }
     expect($p['atual'])->toBeNull();   // o Programa não marca item no rail (AR-DOC-066)
-    expect($p['estado'])->toHaveKey('disponivel');
+    // O estado lê mcp_tasks: vai deferred, e a callback dele devolve a projeção.
+    expect($p['estado'])->toBeInstanceOf(Inertia\DeferProp::class);
+    expect(($p['estado'])())->toHaveKey('disponivel');
 });
 
 // @covers-us US-INFRA-048

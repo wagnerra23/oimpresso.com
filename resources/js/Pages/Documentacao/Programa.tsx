@@ -18,6 +18,7 @@ import { Badge } from '@/Components/ui/badge';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import SubNav from '@/Components/shared/SubNav';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import DocRail from './_components/DocRail';
 import type { Navegacao } from './_components/tipos';
 import '../../../css/cowork-documentacao-bundle.css';
@@ -56,7 +57,8 @@ interface Props {
   caminhos: LinhaTabela[];
   batimento: LinhaTabela[];
   dod: string[];
-  estado: EstadoPrograma;
+  /** Deferred (Inertia::defer): chega DEPOIS do 1º render — `undefined` = ainda medindo. */
+  estado?: EstadoPrograma;
   buscaDisponivel: boolean;
   nav: Navegacao;
   atual: string | null;
@@ -91,7 +93,8 @@ function vistaInicial(): Vista {
 function Tabela({ cabecalho, linhas, comEstado }: {
   cabecalho: string[];
   linhas: LinhaTabela[];
-  comEstado?: EstadoPrograma;
+  /** `null` = coluna Estado presente, mas sem medição (medindo ou MCP fora) — mostra "—". */
+  comEstado?: EstadoPrograma | null;
 }) {
   return (
     <div className="overflow-x-auto">
@@ -105,14 +108,14 @@ function Tabela({ cabecalho, linhas, comEstado }: {
         </thead>
         <tbody>
           {linhas.map((l) => {
-            const estadoOnda = comEstado?.disponivel && l.codigo ? comEstado.ondas[l.codigo] : undefined;
+            const estadoOnda = comEstado && l.codigo ? comEstado.ondas[l.codigo] : undefined;
             return (
               <tr key={l.rotulo} className="border-b border-border align-top">
                 <th scope="row" className="px-3 py-2 text-left font-medium whitespace-nowrap">
                   {l.codigo ? <span className="mr-1.5 font-mono text-primary">{l.codigo}</span> : null}
                   <span className="font-normal">{l.codigo ? l.nome : l.rotulo}</span>
                 </th>
-                {comEstado ? (
+                {comEstado !== undefined ? (
                   <td className="px-3 py-2 whitespace-nowrap">
                     {estadoOnda ? (
                       <Badge variant={ROTULO_ESTADO[estadoOnda.estado].variant}>
@@ -149,7 +152,12 @@ export default function Programa({
     window.history.replaceState(window.history.state, '', url);
   };
 
-  const emAndamento = Object.entries(estado.ondas)
+  // `undefined` = a prop deferred ainda não chegou. É um 3º estado, distinto de "MCP fora"
+  // (disponivel=false): enquanto mede, a tela não afirma nem indisponibilidade.
+  const medindo = estado === undefined;
+  const medido = estado?.disponivel === true ? estado : null;
+
+  const emAndamento = Object.entries(medido?.ondas ?? {})
     .filter(([, o]) => o.estado === 'andamento')
     .map(([codigo]) => codigo);
 
@@ -164,14 +172,14 @@ export default function Programa({
             title="Programa de documentação · Trilha D"
             subtitle="Não é escrever documentação — é manter um sistema que mede, traduz, publica, opera, detecta drift e aprende."
             actions={
-              <div className="flex gap-2">
+              <Inline gap={2}>
                 <Button asChild variant="ghost" size="sm">
                   <a href="/documentacao">← Documentação</a>
                 </Button>
                 <Button asChild variant="outline" size="sm">
                   <a href={blob} target="_blank" rel="noopener noreferrer">Ver plano no git</a>
                 </Button>
-              </div>
+              </Inline>
             }
             below={<SubNav items={[...VISTAS]} value={vista} onChange={trocarVista} />}
           />
@@ -193,18 +201,18 @@ export default function Programa({
                 <KpiCard label="Estações do ciclo" value={estacoes.length} description="fecha em aprender → medir de novo" />
                 <KpiCard
                   label="Tasks do programa"
-                  value={estado.disponivel ? estado.total : '—'}
-                  description={estado.disponivel ? 'parent_plan=programa-ondas no MCP' : 'MCP indisponível — estado não medido'}
+                  value={medido ? medido.total : medindo ? '…' : '—'}
+                  description={medido ? 'parent_plan=programa-ondas no MCP' : medindo ? 'consultando o MCP' : 'MCP indisponível — estado não medido'}
                 />
                 <KpiCard
                   label="Ondas em andamento"
-                  value={estado.disponivel ? (emAndamento.length ? emAndamento.join(' · ') : 'nenhuma') : '—'}
-                  description={estado.disponivel ? 'derivado das tasks, não do plano' : 'sem MCP a tela não afirma estado'}
+                  value={medido ? (emAndamento.length ? emAndamento.join(' · ') : 'nenhuma') : medindo ? '…' : '—'}
+                  description={medido ? 'derivado das tasks, não do plano' : medindo ? 'consultando o MCP' : 'sem MCP a tela não afirma estado'}
                 />
               </KpiGrid>
             </div>
 
-            {!estado.disponivel ? (
+            {estado?.disponivel === false ? (
               <p role="status" className="rounded-md border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
                 Estado de execução indisponível: o MCP não respondeu. As ondas aparecem sem estado — a tela não inventa um.
               </p>
@@ -213,15 +221,19 @@ export default function Programa({
             {vista === 'ciclo' && (
               <section aria-labelledby="h-ciclo">
                 <h2 id="h-ciclo" className="mb-3 text-base font-semibold">O ciclo completo</h2>
-                <ol className="grid list-none gap-2.5 p-0 sm:grid-cols-2 xl:grid-cols-3">
+                <Grid min="sm" gap={3} asChild>
+                <ol className="list-none p-0">
                   {estacoes.map((e) => (
-                    <li key={e.n} className="flex flex-col gap-1 rounded-md border border-border px-3.5 py-3">
+                    <Stack key={e.n} gap={1} asChild>
+                    <li className="rounded-md border border-border px-3.5 py-3">
                       <span className="font-mono text-xs text-muted-foreground">{e.n}</span>
                       <strong className="text-sm">{e.titulo}</strong>
                       <span className="text-xs leading-relaxed text-muted-foreground">{e.corpo}</span>
                     </li>
+                    </Stack>
                   ))}
                 </ol>
+                </Grid>
                 <p className="mt-4 rounded-md border border-dashed border-border px-3.5 py-2.5 font-mono text-xs text-muted-foreground">
                   estação {estacoes.length} → estação 02 · o aprendizado reentra na medição; publicar não encerra
                 </p>
@@ -234,11 +246,11 @@ export default function Programa({
                 <Tabela
                   cabecalho={['Onda', 'Estado', 'Escopo', 'Saída no dono existente', 'Gate de saída']}
                   linhas={ondas}
-                  comEstado={estado}
+                  comEstado={medido}
                 />
-                {estado.disponivel && estado.semOnda.length > 0 ? (
+                {medido && medido.semOnda.length > 0 ? (
                   <p className="mt-3 text-xs text-muted-foreground">
-                    {estado.semOnda.length} task(s) do programa sem <code>onda:</code> declarada: {estado.semOnda.map((t) => t.id).join(', ')}
+                    {medido.semOnda.length} task(s) do programa sem <code>onda:</code> declarada: {medido.semOnda.map((t) => t.id).join(', ')}
                   </p>
                 ) : null}
               </section>
