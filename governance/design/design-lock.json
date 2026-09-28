@@ -1,0 +1,58 @@
+{
+  "_doc": "Fonte de design TRAVADA por tela: caminho completo + revisao + hash + DONO (W/F/M/L). Validado por scripts/design/design-lock.mjs --check. Dono por usuario: [W] 2026-09-25 (proposta 2026-09-24 §9.3). Pegar/devolver tela = PR que muda o owner.",
+  "design_system": {
+    "path": "prototipo-ui/design-system/colors_and_type.css",
+    "git_revision": "e4289e6880",
+    "content_hash": "8225f40b9e5baeaa6cf4331c8bf18b70f0a3551f13ccea7f5db57223491a21ef",
+    "runtime_global": "window.OfficeImpressoPontoWR2DesignSystem_019dd0",
+    "approved_by": "Wagner",
+    "approved_at": "2026-09-28"
+  },
+  "screens": [
+    {
+      "id": "Manufacturing/Index",
+      "owner": "M",
+      "prototype_path": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
+      "git_revision": "e4289e6880",
+      "content_hash": "60f5cf9f5e29c523350ad0597da94c66876383350513650e5397de88ef308e3e",
+      "accepted_by": "Maiara",
+      "accepted_at": "2026-09-28"
+    },
+    {
+      "id": "Manufacturing/Insumos",
+      "owner": "M",
+      "prototype_path": "prototipo-ui/cowork/Wagner/manufacturing-insumos.jsx",
+      "git_revision": "e4289e6880",
+      "content_hash": "c8408a2ba628064b6bd91390530ce7c8bd531305b7faff67f10a0d6e82ece032",
+      "accepted_by": "Maiara",
+      "accepted_at": "2026-09-28"
+    },
+    {
+      "id": "Manufacturing/Recipes",
+      "owner": "M",
+      "prototype_path": "prototipo-ui/cowork/Wagner/manufacturing-page.jsx",
+      "git_revision": "e4289e6880",
+      "content_hash": "c0ef97502e47de23a53820603843e9c07eeedd161b7fe1096cb473af30ea5397",
+      "accepted_by": "Maiara",
+      "accepted_at": "2026-09-28"
+    },
+    {
+      "id": "Manufacturing/Report",
+      "owner": "M",
+      "prototype_path": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
+      "git_revision": "e4289e6880",
+      "content_hash": "60f5cf9f5e29c523350ad0597da94c66876383350513650e5397de88ef308e3e",
+      "accepted_by": "Maiara",
+      "accepted_at": "2026-09-28"
+    },
+    {
+      "id": "Manufacturing/Settings",
+      "owner": "M",
+      "prototype_path": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
+      "git_revision": "e4289e6880",
+      "content_hash": "60f5cf9f5e29c523350ad0597da94c66876383350513650e5397de88ef308e3e",
+      "accepted_by": "Maiara",
+      "accepted_at": "2026-09-28"
+    }
+  ]
+}
