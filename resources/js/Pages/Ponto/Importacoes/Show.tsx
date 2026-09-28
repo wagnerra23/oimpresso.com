@@ -8,7 +8,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/ImportacoesShowTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
+import { Inline } from '@/Components/layout';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, type ReactNode } from 'react';
 import { AlertTriangle, ArrowLeft, Download, FileUp } from 'lucide-react';
@@ -56,18 +57,18 @@ export default function ImportacoesShow({ importacao: i }: Props) {
       <Head title={`Importação #${i.id}`} />
       <div className="mx-auto max-w-4xl p-6 space-y-4">
         {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>Importação #{i.id} <span className="text-stone-400 font-normal">· AFD</span></h1>
-            <p className="flex items-center gap-2">
+        <PontoAreaHeader active="importacoes" />
+        <Inline justify="between" align="center" gap={3}>
+          <div>
+            <h2 className="text-lg font-semibold">Importação #{i.id} <span className="text-stone-400 font-normal">· AFD</span></h2>
+            <p className="text-sm text-muted-foreground flex items-center gap-2">
               <Badge variant={estadoVariant[i.estado] ?? 'outline'} className="text-[10px]">
                 {(i.estado ?? '').replace('ESTADO_', '')}
               </Badge>
               <span>{i.nome_arquivo}</span>
             </p>
           </div>
-          <div className="os-page-h-r">
-            <PontoSubNav active="importacoes" hidePrimary />
+          <Inline gap={2} align="center">
             <Button variant="outline" size="sm" asChild>
               <a href="/ponto/importacoes"><ArrowLeft size={14} className="mr-1.5" /> Voltar</a>
             </Button>
@@ -76,8 +77,8 @@ export default function ImportacoesShow({ importacao: i }: Props) {
                 <Download size={14} className="mr-1.5" /> Baixar original
               </a>
             </Button>
-          </div>
-        </header>
+          </Inline>
+        </Inline>
 
         {i.erro_mensagem && (
           <Alert variant="destructive">

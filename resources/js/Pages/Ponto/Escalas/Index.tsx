@@ -26,7 +26,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { formatMinutes } from '@/Lib/utils';
 import { Inline } from '@/Components/layout/inline';
 
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import { PageHeaderPrimary } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 
@@ -77,16 +77,10 @@ export default function EscalasIndex({ escalas }: Props) {
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>Escalas <span className="text-stone-400 font-normal">· Padrões de jornada</span></h1>
-            <p>Fixa, flexível, 12x36, etc. Cada escala tem turnos por dia da semana.</p>
-          </div>
-          <div className="os-page-h-r">
-            <PontoSubNav active="escalas" hidePrimary />
-            <PageHeaderPrimary label="Nova escala" onClick={() => router.visit('/ponto/escalas/create')} />
-          </div>
-        </header>
+        <PontoAreaHeader active="escalas" />
+        <Inline gap={2} justify="end">
+          <PageHeaderPrimary label="Nova escala" onClick={() => router.visit('/ponto/escalas/create')} />
+        </Inline>
 
         <Card>
           <CardContent className="p-0">
