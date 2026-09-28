@@ -213,11 +213,17 @@ class DocumentacaoController extends Controller
      * plano, a rota falha alto (503 dizendo o que faltou) em vez de exibir tela vazia:
      * ausência de fonte é defeito, não conteúdo.
      *
-     * O ESTADO DE EXECUÇÃO (que onda está em curso, qual task) NÃO mora aqui nem na
-     * view: sai da linha da Trilha D no `## Status vivo`, que a ADR 0294 faz dona
-     * ("1 plano = 1 registro"). A fila real continua nas tasks MCP.
+     * O ESTADO DE EXECUÇÃO NÃO mora aqui, nem no plano, nem no `.tsx`: sai das tasks MCP
+     * com `parent_plan=programa-ondas` (ADR 0070), agrupadas pela meta-line `> onda: D<n>`
+     * que o TaskParserService grava em `custom_fields` (convenção [W] 2026-09-28). Até a
+     * US-DOC-002 esta rota lia a onda de uma célula ESCRITA À MÃO no `## Status vivo` do
+     * plano, enquanto o rodapé dizia ao leitor que aquilo era estado vivo — o defeito
+     * AR-DOC-068. Sem MCP, o estado volta `disponivel=false` e a tela diz que não sabe.
+     *
+     * Inertia desde a US-DOC-002 (thread 02 do playbook `programa-doc`). A rota ganhou o
+     * stack de sessão na própria declaração (routes/web.php) — o AppShellV2 precisa dele.
      */
-    public function programa(): View
+    public function programa(Request $request): InertiaResponse
     {
         $caminho = base_path(self::PLANO);
 
@@ -241,9 +247,7 @@ class DocumentacaoController extends Controller
             }
         }
 
-        $execucao = $this->execucaoDaTrilha($markdown, $ondas);
-
-        return view('documentacao.programa', [
+        return Inertia::render('Documentacao/Programa', [
             'fonte' => self::PLANO,
             'blob' => self::BLOB . self::PLANO,
             'atualizadoEm' => $this->dataDoFrontmatter($markdown),
@@ -252,10 +256,127 @@ class DocumentacaoController extends Controller
             'caminhos' => $caminhos,
             'batimento' => $batimento,
             'dod' => $dod,
-            'execucao' => $execucao,
-            'nav' => $this->navegacao($this->lenteAtiva(request())),
-            'atual' => null,
+            // Deferred: lê `mcp_tasks` (Tier 0 — prop com consulta vai em defer). O plano, que é
+            // a matéria da tela, chega no 1º render; o estado chega logo depois.
+            'estado' => Inertia::defer(fn () => $this->estadoDoPrograma($this->tasksDoPrograma(), $ondas)),
+            'buscaDisponivel' => $this->corpusDisponivel(),
+            'nav' => $this->navegacao($this->lenteAtiva($request)),
+            'atual' => null,   // o Programa não é item do rail (AR-DOC-066)
+            'escopo' => ['tipos' => self::TIPOS_DOC, 'prosa' => self::escopoEmProsa()],
         ]);
+    }
+
+    /** `parent_plan` do programa de ondas — o mesmo slug que o `## Status vivo` do plano declara. */
+    private const PARENT_PLAN = 'programa-ondas';
+
+    /**
+     * Balde humano de cada status de task. O vocabulário canônico é o do MCP; a tela só
+     * recebe o balde, nunca o status cru — e status fora da lista vira `outro`, sem palpite.
+     */
+    private const BALDE_STATUS = [
+        'backlog' => 'fila', 'todo' => 'fila',
+        'doing' => 'andamento', 'review' => 'andamento', 'blocked' => 'andamento', 'pending_approval' => 'andamento',
+        'done' => 'concluida',
+        'cancelled' => 'cancelada',
+    ];
+
+    /**
+     * As tasks do programa, lidas do MCP. `null` = NÃO MEDIDO (tabela ausente ou banco fora),
+     * que é diferente de "zero tasks" e a tela mostra diferente.
+     *
+     * `McpTask` é cross-tenant por desenho (ADR 0070 — planejamento é da plataforma), e daqui
+     * só sai `task_id`, `status` e a onda: nada de tenant, dono ou descrição.
+     *
+     * @return list<array{id:string,status:string,onda:?string}>|null
+     */
+    private function tasksDoPrograma(): ?array
+    {
+        try {
+            if (! Schema::hasTable('mcp_tasks')) {
+                return null;
+            }
+
+            $tasks = [];
+            foreach (\Modules\Jana\Entities\Mcp\McpTask::query()->get(['task_id', 'status', 'custom_fields']) as $t) {
+                $cf = is_array($t->custom_fields) ? $t->custom_fields : [];
+                // Mesma normalização do `jana:plan-drift`: vale o 1º token kebab ("programa-ondas (etapa X)" conta).
+                preg_match('/^[a-z0-9][a-z0-9-]*/i', trim((string) ($cf['parent_plan'] ?? '')), $slug);
+                if (strtolower($slug[0] ?? '') !== self::PARENT_PLAN) {
+                    continue;
+                }
+                $onda = strtoupper(trim((string) ($cf['onda'] ?? '')));
+                $tasks[] = [
+                    'id' => (string) $t->task_id,
+                    'status' => strtolower((string) $t->status),
+                    'onda' => preg_match('/^D\d+$/', $onda) === 1 ? $onda : null,
+                ];
+            }
+
+            return $tasks;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Projeta as tasks sobre as ondas do plano. PURO: recebe as tasks, não consulta nada —
+     * é o que o teste exerce.
+     *
+     * Onda sem task marcada fica `sem_task`; nunca herda estado de outra nem do plano. A
+     * ordem de precedência do estado da onda é andamento > fila > concluída, porque uma onda
+     * com qualquer task aberta ainda não terminou.
+     *
+     * @param  list<array{id:string,status:string,onda:?string}>|null  $tasks
+     */
+    private function estadoDoPrograma(?array $tasks, array $ondas): array
+    {
+        if ($tasks === null) {
+            return ['disponivel' => false, 'total' => 0, 'porBalde' => [], 'ondas' => [], 'semOnda' => []];
+        }
+
+        $porBalde = [];
+        $porOnda = [];
+        $semOnda = [];
+
+        foreach ($tasks as $t) {
+            $balde = self::BALDE_STATUS[$t['status']] ?? 'outro';
+            $porBalde[$balde] = ($porBalde[$balde] ?? 0) + 1;
+            $item = ['id' => $t['id'], 'balde' => $balde];
+
+            if ($t['onda'] === null) {
+                $semOnda[] = $item;
+            } else {
+                $porOnda[$t['onda']][] = $item;
+            }
+        }
+
+        $estadoOndas = [];
+        foreach ($ondas as $onda) {
+            $codigo = $onda['codigo'];
+            if ($codigo === null) {
+                continue;
+            }
+            $itens = $porOnda[$codigo] ?? [];
+            $baldes = array_column($itens, 'balde');
+            $estadoOndas[$codigo] = [
+                'estado' => match (true) {
+                    $itens === [] => 'sem_task',
+                    in_array('andamento', $baldes, true) => 'andamento',
+                    in_array('fila', $baldes, true) => 'fila',
+                    in_array('concluida', $baldes, true) => 'concluida',
+                    default => 'outro',
+                },
+                'tasks' => $itens,
+            ];
+        }
+
+        return [
+            'disponivel' => true,
+            'total' => count($tasks),
+            'porBalde' => $porBalde,
+            'ondas' => $estadoOndas,
+            'semOnda' => $semOnda,
+        ];
     }
 
     /**
@@ -355,43 +476,6 @@ class DocumentacaoController extends Controller
                 'corpo' => trim(preg_replace('/\s+/', ' ', $item[3])),
             ];
         }, $m);
-    }
-
-    /**
-     * Estado de execução da Trilha D, lido da linha dela no `## Status vivo`.
-     *
-     * Dona do fato: ADR 0294 (1 plano = 1 registro). Se a linha sumir ou mudar de forma,
-     * os campos voltam nulos e a view omite os cartões — melhor um vazio honesto que um
-     * "D0" fossilizado no código.
-     */
-    private function execucaoDaTrilha(string $markdown, array $ondas): array
-    {
-        $linha = null;
-
-        foreach (preg_split('/\R/', $markdown) ?: [] as $l) {
-            if (str_starts_with(trim($l), '|') && str_contains($l, 'Trilha D')) {
-                $linha = $l;
-            }
-        }
-
-        $ondaAtual = ($linha !== null && preg_match('/\bD(\d+)\b\s+em execução/u', $linha, $m) === 1)
-            ? 'D' . $m[1]
-            : null;
-
-        $posicao = null;
-        foreach ($ondas as $i => $onda) {
-            if ($onda['codigo'] === $ondaAtual) {
-                $posicao = $i + 1;
-            }
-        }
-
-        return [
-            'onda' => $ondaAtual,
-            'onda_nome' => $posicao !== null ? $ondas[$posicao - 1]['nome'] : null,
-            'posicao' => $posicao,
-            'total' => count($ondas),
-            'task' => ($linha !== null && preg_match('/\b(US-[A-Z]+-\d+)\b/', $linha, $m) === 1) ? $m[1] : null,
-        ];
     }
 
     /** Busca full-text no corpus sincronizado do git. */

@@ -1182,9 +1182,14 @@ Route::middleware(['auth'])->group(function () {
     // Programa de documentação (Trilha D) — vista estruturada do PLANO-MESTRE.
     // Mesma razão de ordem que /buscar abaixo: precisa vir ANTES de /{slug}, senão
     // "programa" casaria como nome de documento e daria 404.
+    //
+    // Inertia desde a US-DOC-002: o stack de sessão vai NA ROTA, não num grupo novo, porque
+    // mudar a rota de grupo a declararia depois do {slug} e ela viraria 404 de documento.
+    // Mesmo stack da capa (/documentacao) — o AppShellV2 lê menu e cockpit da sessão.
     Route::get('/documentacao/programa',
         [\App\Http\Controllers\DocumentacaoController::class, 'programa']
-    )->name('documentacao.programa');
+    )->middleware(['setData', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+        ->name('documentacao.programa');
 
     // Documento do acervo. Declarada DEPOIS de /buscar e /programa — sem essa ordem,
     // ambas casariam aqui primeiro e virariam 404 de "documento não encontrado".
