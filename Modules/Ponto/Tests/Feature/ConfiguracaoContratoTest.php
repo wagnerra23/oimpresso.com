@@ -11,7 +11,7 @@ uses(PontoTestCase::class);
 
 /**
  * Contrato das duas telas de configuração do Ponto:
- *   - `/ponto/configuracoes`       → Configuracoes/Index.casos.md (UC-CFGIDX-01)
+ *   - `/ponto/configuracoes`       → Configuracoes/Index.casos.md (UC-CFGIDX-01..02)
  *   - `/ponto/configuracoes/reps`  → Configuracoes/Reps.casos.md  (UC-CFGREP-01..05)
  *
  * Cada teste cita o UC no TÍTULO do `it()` — é o que o manifesto G-7 alcança.
@@ -122,12 +122,48 @@ it('UC-CFGIDX-01 · o painel de parâmetros não entrega ao browser a senha do c
     // de `toHaveKey` é o VALOR esperado, não mensagem — a armadilha que o próprio
     // `ponto-pest.yml` documenta no ratchet de 2026-08-24, e na qual esta linha caiu antes.
     //
-    // A chave escolhida é `intrajornada_minima_minutos` (Art. 71) porque ela é uma das únicas
-    // DUAS, de 15 que a tela lê, que de fato existem em `Modules/Ponto/Config/config.php` —
-    // as outras 13 são fantasma e estão registradas como [BACKLOG] no casos.md desta tela.
+    // A chave escolhida é `intrajornada_minima_minutos` (Art. 71). Em 2026-09-08 ela era uma
+    // das únicas DUAS, de 15 que a tela lia, que existiam no config; as leituras foram
+    // corrigidas em 2026-09-28 e quem garante TODAS agora é o UC-CFGIDX-02, abaixo.
     expect(array_key_exists('intrajornada_minima_minutos', (array) $clt))->toBeTrue(
-        'A intrajornada mínima (Art. 71) é um dos parâmetros que o painel promete exibir, e é '
-        . 'uma das duas chaves que a tela lê e que realmente existem na configuração.'
+        'A intrajornada mínima (Art. 71) é um dos parâmetros que o painel promete exibir.'
+    );
+});
+
+it('UC-CFGIDX-02 · todo parâmetro que o painel exibe chega da configuração real', function () {
+    $this->actAsAdmin();
+
+    // O CONTRATO é o config do módulo (é o que a apuração usa). A tela é o lado que pode
+    // mentir: até 2026-09-28 ela lia 13 chaves que o config não tem e mostrava "—"/"Não" —
+    // inclusive "imutabilidade desligada" num painel que o RH repete em fiscalização.
+    // O teste lê do `.tsx` as leituras `config.<bloco>?.<chave>` (a forma que o arquivo
+    // declara usar de propósito) e exige cada uma no payload que o controller entrega.
+    $tsx = base_path('resources/js/Pages/Ponto/Configuracoes/Index.tsx');
+    expect(is_file($tsx))->toBeTrue('A tela Configuracoes/Index.tsx tem de existir para o contrato ser medido.');
+
+    preg_match_all('/config\.(\w+)\?\.(\w+)/', (string) file_get_contents($tsx), $m, PREG_SET_ORDER);
+    $leituras = array_values(array_unique(array_map(fn ($x) => $x[1] . '.' . $x[2], $m)));
+
+    // Anti-vácuo (LC-13): se o `.tsx` mudar de forma de leitura, a regex casa zero e o laço
+    // abaixo passaria sem verificar nada. 20 é piso folgado sob as 30 leituras de hoje.
+    expect(count($leituras))->toBeGreaterThanOrEqual(20,
+        'A extração achou poucas leituras `config.<bloco>?.<chave>` no .tsx — a forma mudou e o '
+        . 'contrato deixaria de ser medido. Ajuste a regex, não o piso.'
+    );
+
+    $resp = $this->inertiaGet('/ponto/configuracoes');
+    $resp->assertStatus(200);
+    $config = (array) $resp->json('props.config');
+
+    $fantasmas = array_values(array_filter($leituras, function (string $k) use ($config) {
+        [$bloco, $chave] = explode('.', $k, 2);
+
+        return ! array_key_exists($chave, (array) ($config[$bloco] ?? []));
+    }));
+
+    expect($fantasmas)->toBe([],
+        'O painel lê parâmetros que o controller não entrega — a tela mostraria "—" ou "Não" onde '
+        . 'existe valor configurado: ' . implode(', ', $fantasmas)
     );
 });
 
