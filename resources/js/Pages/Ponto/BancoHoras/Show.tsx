@@ -20,6 +20,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Textarea } from '@/Components/ui/textarea';
+import { Inline } from '@/Components/layout';
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { cn, formatMinutes } from '@/Lib/utils';
 
@@ -61,6 +62,14 @@ const tipoVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'out
   EXPIRACAO:     'outline',
   PAGAMENTO:     'outline',
 };
+
+/**
+ * Rótulo do link de página vindo do paginator do Laravel ("&laquo; Anterior",
+ * "Próximo &raquo;", "2") renderizado como TEXTO — o React escapa, sem sink de XSS.
+ * Só as entidades que o paginator emite são decodificadas.
+ */
+const rotuloPagina = (label: string) =>
+  label.replace(/&laquo;/g, '«').replace(/&raquo;/g, '»').replace(/&amp;/g, '&');
 
 export default function BancoHorasShow({ saldo, movimentos }: Props) {
   // Guarda defensiva (defesa dupla com o <Deferred>): movimentos é undefined no
@@ -230,11 +239,11 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
                 servidor paginava e a tela mostrava só a 1ª página — movimentos 51+
                 ficavam inalcançáveis. Mesmo idioma do Index.tsx (saldos). */}
             {(movimentos?.last_page ?? 1) > 1 && (
-              <div className="flex items-center justify-between border-t border-border p-3 text-xs">
+              <Inline justify="between" className="border-t border-border p-3 text-xs">
                 <span className="text-muted-foreground">
                   Página {movimentos?.current_page ?? 1} de {movimentos?.last_page ?? 1} · {movimentos?.total ?? 0} movimento(s)
                 </span>
-                <div className="flex flex-wrap gap-1">
+                <Inline gap={1} wrap>
                   {(movimentos?.links ?? []).map((link, i) => (
                     <Button
                       key={i}
@@ -246,11 +255,11 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
                       // não viaja de novo (charter Non-Goal: a tela não recalcula saldo).
                       onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, only: ['movimentos'] })}
                     >
-                      <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                      {rotuloPagina(link.label)}
                     </Button>
                   ))}
-                </div>
-              </div>
+                </Inline>
+              </Inline>
             )}
             </Deferred>
           </CardContent>

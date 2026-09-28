@@ -312,21 +312,25 @@ it('UC-BHSHOW-04 · com mais de 50 movimentos a segunda página do extrato é al
 
     // Tenant canônico de teste = biz 98, fictício (ADR 0358) — não o Business::first
     // do actAsAdmin, que no CT 100 é a WR2 (empresa real, base clone de prod).
-    // Mesmo roteiro do actAsAdmin, só que ancorado no 98: permissões ponto.* na role
-    // Admin#98 + sessão UltimatePOS apontando pro 98 (é dela que o global scope lê).
     $this->business = $this->seededTenant();
     if ((int) $this->business->id !== 98) {
         $this->markTestSkipped('Tenant 98 não seedado nesta lane — não caio em business real (ADR 0358).');
     }
-    $this->admin = User::where('business_id', $this->business->id)->first()
-        ?? bhimpNovoUser($this->business->id);
-    $this->ensurePontoPermissions($this->business->id);
+
+    // Usuário PRÓPRIO, só com `ponto.access` (a permissão da rota — charter), e NUNCA a
+    // role Admin#98: o Gate::before libera tudo pra essa role, e a 1ª versão deste caso
+    // a deu ao primeiro user do 98 — o mesmo que o FechamentoContratoTest usa pra provar
+    // o 403 sem `ponto.fechar`. Sem RefreshDatabase, a role vazou e derrubou UC-PTF-06/07
+    // na lane (run 36472572442). Permissão direta num user novo não contamina ninguém.
+    $this->admin = bhimpNovoUser($this->business->id);
+    \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'ponto.access', 'guard_name' => 'web']);
+    $this->admin->givePermissionTo('ponto.access');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
     session([
         'user.business_id' => $this->business->id,
         'user.id'          => $this->admin->id,
         'business.id'      => $this->business->id,
         'business.name'    => $this->business->name,
-        'is_admin'         => true,
     ]);
     $this->actingAs($this->admin);
 
