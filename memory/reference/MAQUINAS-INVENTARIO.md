@@ -110,7 +110,7 @@ lifecycle: ativo
 | `infra-contract-required.yml` | pr | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +11 | Infra Contract Required |
 | `jana-conversas-gate.yml` | pr+push+manual | `memory/licoes-rejeitadas.md` +3 | Jana Conversas — histórico do chat (filtro real · J/K · ⌘⇧H · aria-live) |
 | `jana-logica-pura-pest.yml` | pr+manual | `memory/requisitos/Jana/AUDIT-GAPS-2026-08-10.md` +5 | Jana lógica pura Pest (event-time + histórico + audit-chain · funde 3 lanes Unit · ADR 0294/0295) |
-| `jana-pest.yml` | pr+push+manual | `memory/requisitos/Jana/AUDIT-GAPS-2026-08-10.md` +28 | Jana · Pest (MySQL) |
+| `jana-pest.yml` | pr+push+manual | `memory/requisitos/Jana/AUDIT-GAPS-2026-08-10.md` +29 | Jana · Pest (MySQL) |
 | `jana-ragas-canary.yml` | cron+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +17 | Jana RAGAS Canary (daily 06:00 UTC) |
 | `jana-ragas-gate.yml` | pr+cron+manual | `memory/decisions/0318-ragas-eval-real-mata-tautologia-ct100-staging.md` +23 | Jana RAGAS Eval Gate |
 | `jana-recall-eval.yml` | pr+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +6 | Jana recall-eval (mock gate · golden set determinístico · advisory → required ADR 0275 · P12 roadmap SDD) |
