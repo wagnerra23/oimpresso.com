@@ -153,10 +153,11 @@ function CliPageHead({ glyph, avatar, titulo, papel, contexto = [], atualizadoAs
   // ESTA CONTA SÓ EXISTE porque o slot de ações do DS não encolhe. Enquanto for assim,
   // a reserva é um número a revisitar se aparecer subtitle mais longo — fragilidade
   // conhecida, e a razão de a pendência do DS estar registrada.
-  const capAcoes = "max(240px, calc(100vw - 592px))";
+  // 2026-09-28: o teto acima SAIU. Agora o header quebra em bloco (modulo-padrao.css .cli-ph):
+  // título garante 320px e as ações descem inteiras quando não cabem.
   const acoesFlex = (frescor || acoes)
     ? <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
-        justifyContent: "flex-end", maxWidth: capAcoes }}>{frescor}{acoes}</div>
+        justifyContent: "flex-end" }}>{frescor}{acoes}</div>
     : undefined;
 
   // Respiro vertical do canon (`modulo-padrao.css:5`: 20px no topo do bloco inteiro;
@@ -166,7 +167,7 @@ function CliPageHead({ glyph, avatar, titulo, papel, contexto = [], atualizadoAs
   // inteiros, senão o eyebrow encosta no topo (medido: top 6px, contra 20px do canon).
   const padTop = contextoWrap ? (estreito ? 16 : 20) : 6;
   return (
-    <div style={{ padding: padTop + "px " + (padX || 0) + "px 0", marginBottom: 14 }}>
+    <div className="cli-ph" style={{ padding: padTop + "px " + (padX || 0) + "px 0", marginBottom: 14 }}>
       {eyebrowQueEnvolve}
       <PageHeader
         title={titulo}

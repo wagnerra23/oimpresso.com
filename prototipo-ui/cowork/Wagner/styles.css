@@ -6591,7 +6591,7 @@ button:where(.sb-item, .um-item, .sb-dd-i, .sb-dd-foot){ font-size: inherit; }
 .um-cascade.active .um-vibe-cur{color:var(--accent)}
 .um-vibe .label{display:flex;flex-direction:column;gap:1px;line-height:1.25}
 .um-vibe-d{font-style:normal;font-size:10.5px;color:var(--text-mute)}
-.um-vibe.active .label{color:var(--text)}
+.um-vibe.active .label{color:var(--sb-text-hi)}
 .um-vibe-ck{margin-left:auto;color:var(--accent);flex:0 0 auto}
 
 /* Dica do rail — camada fixa, fora do contexto de scroll do .sb-body */

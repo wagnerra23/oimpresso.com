@@ -49,3 +49,15 @@
 .mp-resumo p:last-of-type{margin-bottom:0}
 .mp-skel{display:flex;flex-direction:column;gap:14px;padding:16px 20px}
 .mp-acoes-h{display:flex;align-items:center;gap:8px}
+
+/* ── Padrão único de abas e header (2026-09-28, vale pra todos os módulos) ──
+   Aba ativa = só sublinhado roxo (canon DS: "never pill-active"); o TabBar pinta fundo soft
+   inline → !important. position:relative = offsetParent certo: o próprio TabBar já rola até
+   a aba ativa, mas media offsetLeft contra outro ancestral e errava o alvo. */
+.ds-tabbar{position:relative}
+.ds-tabbar>button[aria-current="page"]{background:transparent!important}
+/* Header: título garante 320px; quando as ações não cabem ao lado, descem inteiras pra
+   linha de baixo (alinhadas à direita) em vez de quebrar botão a botão. */
+.cli-ph>header{flex-wrap:wrap!important;row-gap:10px!important}
+.cli-ph>header>div:first-child{flex:1 1 320px!important}
+.cli-ph>header>div:last-child:not(:first-child){margin-left:auto}

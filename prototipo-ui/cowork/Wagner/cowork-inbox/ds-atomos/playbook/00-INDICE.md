@@ -329,6 +329,27 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
       ]
     },
     {
+      "id": "06",
+      "titulo": "Widget/CardTitle: nível de título (as h2|h3) + ícone warn anônimo",
+      "dono": "CL",
+      "arquivo": "06-widget-nivel-titulo.md",
+      "prefixo": [
+        "resources/js/Components/ui/card.tsx",
+        "tests/js/card-anatomia.test.tsx"
+      ],
+      "nao_toca": [
+        "resources/js/Components/ui/alert.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "resources/js/Components/ui/card.tsx",
+          "padrao": "as?: \"h2\" | \"h3\""
+        }
+      ],
+      "nota": "entrou no §7 em 2026-09-28 a pedido do _saida-06 (executada sem entrada no índice). Achado 2 (ícone warn) ficou para decisão [W]: no main não há primitivo que emita o ícone — defeito por consumidor (25 de ui/alert)."
+    },
+    {
       "id": "08",
       "titulo": "StatusBadge: tirar o fill sólido (AP7) — decisão [W] 2026-09-01",
       "dono": "CL",

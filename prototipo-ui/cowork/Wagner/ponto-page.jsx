@@ -9,10 +9,10 @@ const U = () => window.PontoUI;
 
 const ABAS = [
   { key: "painel", label: "Painel", icon: "chart" },
-  { key: "espelho", label: "Espelho de Ponto", icon: "calendar" },
+  { key: "espelho", label: "Espelho de ponto", icon: "calendar" },
   { key: "aprovacoes", label: "Aprovações", icon: "check" },
   { key: "intercorrencias", label: "Intercorrências", icon: "alert" },
-  { key: "banco-horas", label: "Banco de Horas", icon: "coins" },
+  { key: "banco-horas", label: "Banco de horas", icon: "coins" },
   { key: "fechamento", label: "Fechamento", icon: "lock" },
   { key: "conformidade", label: "Conformidade", icon: "shield" },
   { key: "escalas", label: "Escalas", icon: "clock" },
@@ -508,11 +508,7 @@ function PontoPage({ view }) {
           atualizadoAs={hora}
           onRefresh={() => { setHora(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })); avisar("Reapurado agora — marcações, apuração do dia e saldos.", "ok"); }}
           glyph={<window.JcIcon name="clock" />}
-          acoes={<>
-            <window.PtBtn  onClick={() => irPara("fechamento")}><window.JcIcon name="lock" className="ic" />Fechamento</window.PtBtn>
-            <window.PtBtn  onClick={() => irPara("importacoes")}><window.JcIcon name="download" className="ic" />Importar AFD</window.PtBtn>
-            <window.PtBtn primary onClick={() => irPara("intercorrencias")}><window.JcIcon name="plus" className="ic" />Nova intercorrência</window.PtBtn>
-          </>} />}
+          acoes={<window.PtBtn primary onClick={() => irPara("intercorrencias")}><window.JcIcon name="plus" className="ic" />Nova intercorrência</window.PtBtn>} />}
       {MP.Tabs && <MP.Tabs tab={aba} onTab={irPara} aria="Telas do Ponto" tabs={abas} />}
       <div className="pt-body">{corpo}</div>
       {avisoNode}
