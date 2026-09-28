@@ -50,6 +50,7 @@ import PageFilters from '@/Components/shared/PageFilters';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import EmptyState from '@/Components/shared/EmptyState';
 import BulkActionBar from '@/Components/shared/BulkActionBar';
+import { Inline } from '@/Components/layout/inline';
 
 interface Aprovacao {
   id: number | string;
@@ -515,9 +516,11 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
       <AlertDialog open={bulkOpen} onOpenChange={(o) => !o && !processing && setBulkOpen(false)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <CheckCheck size={16} className="text-success-fg" /> Aprovar em lote
-            </AlertDialogTitle>
+            <Inline asChild gap={2}>
+              <AlertDialogTitle>
+                <CheckCheck size={16} className="text-success-fg" /> Aprovar em lote
+              </AlertDialogTitle>
+            </Inline>
             <AlertDialogDescription>
               Confirma a aprovação de <strong>{selectedIds.length}</strong>{' '}
               {selectedIds.length === 1 ? 'intercorrência selecionada' : 'intercorrências selecionadas'}?
