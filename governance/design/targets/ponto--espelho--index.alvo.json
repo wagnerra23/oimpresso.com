@@ -1,0 +1,226 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR ROTA LIVRE · matriz · Agosto/2026 · 7 colaboradores no ponto Ponto Ponto eletrônico · Portaria MTP 671/2021 Atualizado 09:18 Nova intercorrência Painel Espelho de ponto Aprovações 2 Intercorrências 8 Banco de horas Fechamento Conformidade 22 Escalas Colaboradores 9 REP-P (celular) Importações Relatórios Configurações Mês de referência Julho/2026 Agosto/2026 Escala Todas Administrativo 44h Produção 5x2 Balcão flexível Plantão instalação 12x36 Estágio 30h Buscar Só com divergência 11 dias em divergência na competência Colaboradores (8 de 8 ativos) Matrícula Colaborador Escala Trabalhado HE Saldo BH Controla ponto Divergências Ação 0001 Wagner Ramos Sócio-administrador · wagner@rotalivre.com.br Administrativo 44h — — — Não — — 0007 Larissa Bueno Atendimento balcão · larissa@rotalivre.com.br Balcão flexível 105:21 05:11 06:52 Sim 2 Ver espelho 0011 Eliana Prado Financeiro · eliana@rotalivre.com.br Administrativo 44h 119:16 04:33 01:35 Sim 1 Ver espelho 0014 Felipe Andrade Acabamento · felipe@rotalivre.com.br Produção 5x2 109:27 01:43 21:08 Sim 1 Ver espelho 0018 Joana Lima Design / pré-impressão · joana@rotalivre.com.br Produção 5x2 113:47 02:12 −03:00 Sim 0 Ver espelho 0021 Marcos Teixeira Instalação externa · marcos@rotalivre.com.br Plantão instalação 12x36 160:15 04:15 — Sim 1 Ver espelho 0024 Renata Coelho Atendimento / orçamentos · renata@rotalivre.com.br Balcão flexível 105:11 05:11 −00:46 Sim 2 Ver espelho 0029 Diego Salles Impressão digital · diego@rotalivre.com.br Produção 5x2 106:00 05:38 00:00 Sim 2 Ver espelho Anterior 1 Próximo 1 – 8 de 8 colaboradores por página 10 15 25 50 100",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 73,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5550/"
+  },
+  "nos_totais": 707,
+  "quieto_ms": 2000,
+  "rota": "pt-espelho",
+  "secoes": {
+    "barra": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 73,
+        "w": 1176
+      },
+      "seletor": ".ponto-root .pt-body > div:nth-child(1)",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": ".ponto-root > .cli-ph > header",
+      "truncado": false
+    },
+    "lista": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pt-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "ponto-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "section"
+      ],
+      "rect": {
+        "h": 553,
+        "w": 1176
+      },
+      "seletor": ".ponto-root .pt-body > div:nth-child(2)",
+      "truncado": false
+    },
+    "tabs": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 13,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1224
+      },
+      "seletor": ".ponto-root > nav.ds-tabbar",
+      "truncado": true
+    }
+  },
+  "tela": "ponto--espelho--index",
+  "url": "http://127.0.0.1:5550/"
+}

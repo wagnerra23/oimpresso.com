@@ -1,0 +1,115 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Ponto/Escalas/Index (/ponto/escalas)",
+  "gap_fonte": "memory/requisitos/Ponto/escalas-index-gap.md",
+  "prototipo_sha": "sha256:e4d0b5a3707e",
+  "gerado_em": "2026-09-28",
+  "partes": [
+    {
+      "id": "barra-e-acao-primaria",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "460-464"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Escalas/Index.tsx",
+        "linhas": "65",
+        "ancora": false
+      },
+      "status": "prototipo-corrige",
+      "acao": "Protótipo corrige (D-PONTO-DETALHE, R2): navega para a rota. A nota de carga é da passada de FORMA.",
+      "_acionavel": true
+    },
+    {
+      "id": "lista-de-escalas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "465-496"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Escalas/Index.tsx",
+        "linhas": "69-171",
+        "ancora": false
+      },
+      "status": "prototipo-corrige",
+      "acao": "Protótipo corrige a ordem (o charter manda). A sub-linha do turno é protótipo à frente — forma, sem id na ata. A thread 17 grava `data-contract=\"escalas-escalas-cadastradas\"`.",
+      "_acionavel": true
+    },
+    {
+      "id": "remover-escala",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "480-512"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Escalas/Index.tsx",
+        "linhas": "47-52",
+        "ancora": false
+      },
+      "status": "gap",
+      "acao": "Gap real no vivo (D-ESC-DESTROY): trocar o `window.confirm` pelo diálogo do DS. A regra de vínculo já está nos dois lados e no servidor.",
+      "_acionavel": true
+    },
+    {
+      "id": "editar",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "479"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Escalas/Index.tsx",
+        "linhas": "119-121",
+        "ancora": false
+      },
+      "status": "prototipo-corrige",
+      "acao": "Protótipo corrige (D-PONTO-DETALHE, R2).",
+      "_acionavel": true
+    },
+    {
+      "id": "paginacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "448"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Escalas/Index.tsx",
+        "linhas": "150-164",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada.",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "467"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Escalas/Index.tsx",
+        "linhas": "72-83",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Protótipo corrige: ganha o CTA.",
+      "_acionavel": true
+    },
+    {
+      "id": "nota-de-turnos-read-only",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "497"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "A nota sai do protótipo quando o CRUD de turnos existir; até lá ela descreve o vivo corretamente. Ver `escalas-form-gap.md`.",
+      "_acionavel": true
+    }
+  ]
+}
