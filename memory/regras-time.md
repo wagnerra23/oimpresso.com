@@ -18,7 +18,7 @@
 - **E não mexe em Jana sprints LGPD**
 - **M não faz deploy produção sozinha**
 - **W deve evitar virar bottleneck** — delegar code review pra F quando puder
-- **PIIs reais (CPF/CNPJ cliente) NUNCA em PR ou commit.** Logs com `[REDACTED]`. Skill `commit-discipline` (Tier A) + `PiiRedactor` enforce automático
+- **PIIs reais (CPF/CNPJ cliente) NUNCA em PR ou commit.** Logs com `[REDACTED]`. Skill `commit-discipline` (Tier A) lembra a regra; o hook de commit `pii-redactor` está **arquivado** desde 2026-09-28 (decisão [W]) — a checagem é humana até ele voltar
 
 ## Matriz "quem pode pegar qual tipo de task"
 
