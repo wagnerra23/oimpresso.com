@@ -68,6 +68,21 @@ Com isso, o *PRODUTO UNIFICADO V2* pode revincular este DS **sem reescrever tela
 
 ## Last sync
 
+### 2026-09-28 — tokens v1.5.0 (Vencido separado de Atrasado no dark)
+
+`ds-push` a partir de `resources/css/tokens` do branch `claude/sla-late-expired-dark` (#8035):
+`cockpit_domains.css` (4 tokens `--sla-expired*` no dark) e `colors_and_type.css` (o par
+`--color-sla-expired`/`-soft` no dark). Nenhum outro valor mudou.
+
+- Validação do `ds-push`: VALOR 0. **Não cobre** `--color-sla-*`, porque o git não tem esse
+  namespace; o par foi alinhado por script aos valores de `semantic.tokens.json` e conferido por diff
+  (1 linha).
+- Antes de subir: os dois arquivos vivos foram lidos e batiam com este espelho. Depois de subir:
+  `cockpit_domains.css` relido do Cowork com os valores novos.
+- Este `github.md` **não** foi enviado ao Cowork, para não sobrescrever o diário vivo de lá.
+
+### 2026-09-18 — espelho inteiro trazido da pasta
+
 date: 2026-09-18T21:20:00Z
 tree: `8d0265305ce6`
 origem: **`prototipo-ui/design-system/` no `main`** — a pasta compartilhada Felipe × Wagner. Instrucao de [W] 2026-09-18: *"Tem que ser tudo de la. Nao pode ser nada de outra pasta"*.

@@ -240,7 +240,7 @@
   --color-sla-fresh: oklch(0.84 0.13 145);   --color-sla-fresh-soft: oklch(0.275 0.05 145);
   --color-sla-aging: oklch(0.84 0.13 60);    --color-sla-aging-soft: oklch(0.275 0.05 60);
   --color-sla-late: oklch(0.84 0.16 30);     --color-sla-late-soft: oklch(0.30 0.07 30);
-  --color-sla-expired: oklch(0.84 0.16 25);  --color-sla-expired-soft: oklch(0.30 0.06 25);
+  --color-sla-expired: oklch(0.72 0.17 22);  --color-sla-expired-soft: oklch(0.31 0.11 22);
   --color-canal-email: oklch(0.92 0.06 280); --color-canal-email-soft: oklch(0.26 0.04 280);
   --color-canal-ig: oklch(0.92 0.07 30);     --color-canal-ig-soft: oklch(0.26 0.04 30);
   --color-canal-fb: oklch(0.92 0.06 250);    --color-canal-fb-soft: oklch(0.26 0.04 250);

@@ -2,6 +2,14 @@
 
 > Gerado por `ds-token-version.mjs` a partir da superfície dos `_generated-*.css`. Semver: MAJOR=remoção · MINOR=adição/valor.
 
+## v1.5.0 — 2026-09-28  (MINOR)
+
+**Valor alterado**
+- `--sla-expired` [cockpit-dark]: `oklch(0.84 0.16 25)` → `oklch(0.72 0.17 22)`
+- `--sla-expired-soft` [cockpit-dark]: `oklch(0.30 0.06 25)` → `oklch(0.31 0.11 22)`
+- `--sla-expired-dot` [cockpit-dark]: `oklch(0.70 0.18 25)` → `oklch(0.64 0.18 22)`
+- `--sla-expired-line` [cockpit-dark]: `oklch(0.45 0.10 25)` → `oklch(0.42 0.12 22)`
+
 ## v1.4.0 — 2026-09-08  (MINOR)
 
 **Adicionados**
