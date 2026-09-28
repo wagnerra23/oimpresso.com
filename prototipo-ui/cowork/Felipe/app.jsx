@@ -727,7 +727,11 @@ function App() {
     "sbPapel": "wagner (admin)",
     "sbGhosts": true
   } /*EDITMODE-END*/;
-  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  // Tema guardado entre recargas na chave `oimpresso.theme` — a que o handoff da Fabricação cita
+  // (manufacturing-app.jsx L10) e que nenhum código gravava. O bloco EDITMODE acima segue intacto:
+  // ele é o padrão; o valor guardado só o substitui quando existe e é válido (25/09/2026).
+  const temaGuardado = (() => {try {const t = localStorage.getItem("oimpresso.theme");return t === "dark" || t === "light" ? t : null;} catch (e) {return null;}})();
+  const [tweaks, setTweak] = useTweaks(temaGuardado ? { ...TWEAK_DEFAULTS, theme: temaGuardado } : TWEAK_DEFAULTS);
 
   // Aplica vibe no <html> + variáveis CSS
   useEffectA(() => {
@@ -738,6 +742,7 @@ function App() {
     // (existia mas nunca era ligado). Dark = padrão do projeto (W 2026-06-03);
     // claro segue disponível pelo toggle → sem regressão. Roxo canon intacto.
     root.dataset.theme = tweaks.theme;
+    try {localStorage.setItem("oimpresso.theme", tweaks.theme);} catch (e) {}
 
     // ONDA 2 · alvo de toque como estado do SHELL, não prop por módulo. O CSS transversal
     // já dá >=44px em "pointer: coarse" (tablet/celular de verdade); este atributo deixa
@@ -774,6 +779,11 @@ function App() {
   };
   window.__go = handleSelectRoute;
   window.__selectRoute = handleSelectRoute;
+  // Ponte pro rodapé da sidebar (menu Aparência): o tema JÁ mora nos tweaks, que escrevem
+  // data-theme no <html>. O menu dirige ESSE estado — não um paralelo. Portado do protótipo
+  // do Wagner (app.jsx) em 25/09/2026.
+  window.__setTweak = setTweak;
+  window.__tweaks = tweaks;
 
   const handleSelectConv = (id) => {
     setActiveConvId(id);

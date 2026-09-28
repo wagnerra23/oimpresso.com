@@ -1,3 +1,12 @@
+/* PENDENTE — anotado em 25/09/2026 (Felipe). NÃO corrigido de propósito: corrigir quando o dono
+   desta tela mexer nela.
+   Defeito: o comentário de cabeçalho logo abaixo fecha antes da hora — no trecho "sa-*" colado em "/os-*".
+   O navegador descarta a primeira regra depois dele (no fonte: .oi-card), sem erro no
+   console. Medido carregando o arquivo no navegador: a primeira regra que ele enxerga é
+   .oi-card .sa-card-h h3.
+   Como corrigir: separar o asterisco da barra: "sa-* / os-* / cli-*".
+   Mesmo defeito foi corrigido em manufacturing-page.css (25/09/2026). Lista completa em
+   prototipo-ui/cowork/Felipe/CLAUDE.md, seção "Pendências conhecidas em outras telas". */
 /* officeimpresso-page.css — extras do módulo Office Impresso (licenciamento desktop Delphi).
    Só o que as classes sa-*/os-*/cli-* do shell não cobrem. Tokens do DS vivo, nada de cor crua. */
 .oi-card{margin:0 24px 16px}
