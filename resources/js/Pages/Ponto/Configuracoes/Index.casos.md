@@ -24,6 +24,7 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 |----|-------------|------|--------|-------|--------|
 | UC-CFGIDX-01 | O painel não entrega ao browser a senha do certificado ICP | must `[T0]` | proibicoes (segredo) + charter §Mission (painel de leitura de *parâmetros*) | `ConfiguracaoContratoTest` | ✅ verde na lane |
 | UC-CFGIDX-02 | Todo parâmetro que o painel exibe chega da configuração real | must | `Modules/Ponto/Config/config.php` (o que a apuração usa) + charter §Goals + [US-PONTO-012](../../../../../memory/requisitos/Ponto/SPEC.md) (5ª instância) | `ConfiguracaoContratoTest` | 🧪 teste cita o UC, sem veredito |
+| UC-CFGIDX-03 | O painel não afirma que assina marcações enquanto a assinatura não existe | must | Portaria MTP 671/2021 + [US-PONTO-009](../../../../../memory/requisitos/Ponto/SPEC.md) (assinatura pendente) + `Modules/Ponto/Config/config.php` | `ConfiguracaoContratoTest` | 🧪 teste cita o UC, sem veredito |
 
 **Resolvido em 2026-09-28 — o painel lia 13 chaves que não existem** (fato datado; o registro de 2026-09-08 está no histórico do git deste arquivo)
 
@@ -97,4 +98,26 @@ Outros `[BACKLOG]` desta tela:
 - **Mordida medida (2026-09-28, por texto, dois lados):** contra o `.tsx` anterior ao conserto a
   extração acha 15 leituras e **13 sem chave no config**, as mesmas 13 do registro de 2026-09-08;
   contra o `.tsx` corrigido, 30 leituras e 0. O veredito da lane ainda não existe.
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**
+
+---
+
+## UC-CFGIDX-03 · O painel não afirma que assina marcações enquanto a assinatura não existe · `must`
+
+- **Persona:** o gestor de RH que mostra o painel a um fiscal como prova de conformidade.
+- **Aceite:** Dado o config do módulo sem `PONTO_ASSINAR_MARCACOES` definida · Quando abro
+  `/ponto/configuracoes` · Então a linha "Assinar marcações (ICP-Brasil)" diz **"Não"**.
+- **Teste:** `Modules/Ponto/Tests/Feature/ConfiguracaoContratoTest.php` — `UC-CFGIDX-03`.
+- **Contrato:** Portaria MTP 671/2021 (o painel é afirmação regulatória) + o estado real do sistema:
+  a assinatura ICP **não está implementada** ([US-PONTO-009](../../../../../memory/requisitos/Ponto/SPEC.md)
+  / GAP-PONTO-001).
+- **Regressão que defende (medida em 2026-09-28):** o config trazia `'assinar_marcacoes' => true`
+  fixo, e o smoke em produção (biz=1) mostrou "Assinar marcações: Sim" ao lado de "Certificado ICP
+  configurado: Não". Varredura em `origin/main`: nenhum código lê a flag nem
+  `certificado_icp_path`/`certificado_icp_pass`, e nada grava `ponto_marcacoes.assinatura_digital`.
+  O default passou a ser `env('PONTO_ASSINAR_MARCACOES', false)`.
+- **Pré-condição:** o caso exige a env **não** definida no ambiente de teste — senão mediria o
+  ambiente, não o default.
+- **Quando a assinatura existir:** quem implementar liga `PONTO_ASSINAR_MARCACOES=true` no `.env` e
+  revisa este caso (ele passa a ser sobre o estado ligado, não sobre o default).
 - **Status: 🧪 teste cita o UC, sem veredito de lane.**

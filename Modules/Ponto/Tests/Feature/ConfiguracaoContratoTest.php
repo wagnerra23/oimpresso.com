@@ -11,7 +11,7 @@ uses(PontoTestCase::class);
 
 /**
  * Contrato das duas telas de configuração do Ponto:
- *   - `/ponto/configuracoes`       → Configuracoes/Index.casos.md (UC-CFGIDX-01..02)
+ *   - `/ponto/configuracoes`       → Configuracoes/Index.casos.md (UC-CFGIDX-01..03)
  *   - `/ponto/configuracoes/reps`  → Configuracoes/Reps.casos.md  (UC-CFGREP-01..05)
  *
  * Cada teste cita o UC no TÍTULO do `it()` — é o que o manifesto G-7 alcança.
@@ -164,6 +164,37 @@ it('UC-CFGIDX-02 · todo parâmetro que o painel exibe chega da configuração r
     expect($fantasmas)->toBe([],
         'O painel lê parâmetros que o controller não entrega — a tela mostraria "—" ou "Não" onde '
         . 'existe valor configurado: ' . implode(', ', $fantasmas)
+    );
+});
+
+it('UC-CFGIDX-03 · o painel não afirma que assina marcações enquanto a assinatura não existe', function () {
+    $this->actAsAdmin();
+
+    // Contrato: Portaria MTP 671/2021 — o painel é o que o RH repete numa fiscalização, e
+    // "Assinar marcações (ICP-Brasil): Sim" é afirmação regulatória. A assinatura NÃO está
+    // implementada (US-PONTO-009 · GAP-PONTO-001): nenhum código lê a flag nem o certificado,
+    // e `ponto_marcacoes.assinatura_digital` fica sempre NULL. Até 2026-09-28 o config trazia
+    // `true` fixo e a tela afirmava "Sim".
+    //
+    // Pré-condição: o caso mede o DEFAULT do config. Se o ambiente definir a env, o caso
+    // mediria o ambiente, não o default — e passaria ou reprovaria por motivo alheio.
+    expect(getenv('PONTO_ASSINAR_MARCACOES'))->toBeFalse(
+        'PONTO_ASSINAR_MARCACOES está definida neste ambiente — o caso mede o default do config e não pode rodar com ela.'
+    );
+
+    $resp = $this->inertiaGet('/ponto/configuracoes');
+    $resp->assertStatus(200);
+
+    $rep = (array) $resp->json('props.config.rep');
+
+    // Anti-vácuo (LC-13): sem a chave, `false` abaixo passaria por ausência, não por verdade.
+    expect(array_key_exists('assinar_marcacoes', $rep))->toBeTrue(
+        'A flag de assinatura tem de chegar ao painel — é ela que a linha "Assinar marcações" exibe.'
+    );
+    expect($rep['assinar_marcacoes'])->toBeFalse(
+        'Por padrão o painel não pode afirmar que as marcações são assinadas: a assinatura ICP não '
+        . 'existe no sistema (US-PONTO-009). Quem implementar a assinatura liga pelo .env '
+        . '(PONTO_ASSINAR_MARCACOES) e revisa este caso.'
     );
 });
 

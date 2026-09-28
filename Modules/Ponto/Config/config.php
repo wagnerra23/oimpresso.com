@@ -55,7 +55,12 @@ return [
     'rep' => [
         'tipos_permitidos'        => ['REP_P', 'REP_C', 'REP_A'],
         'nsr_verificar_sequencia' => true,
-        'assinar_marcacoes'       => true,       // PKCS#7 A1
+        // PKCS#7 A1. ⚠️ A assinatura NÃO está implementada (US-PONTO-009 / GAP-PONTO-001):
+        // nenhum código lê esta flag nem o certificado, e `ponto_marcacoes.assinatura_digital`
+        // fica sempre NULL. Até 2026-09-28 o default era `true`, e a tela de Configurações
+        // afirmava "Assinar marcações: Sim" sobre uma função inexistente. Default `false` diz
+        // a verdade; quem implementar a assinatura liga pelo .env. Defendido por UC-CFGIDX-03.
+        'assinar_marcacoes'       => env('PONTO_ASSINAR_MARCACOES', false),
         'certificado_icp_path'    => env('PONTO_CERT_ICP_PATH'),
         'certificado_icp_pass'    => env('PONTO_CERT_ICP_PASS'),
     ],
