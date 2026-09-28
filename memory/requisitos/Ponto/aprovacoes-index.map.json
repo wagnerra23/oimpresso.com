@@ -45,7 +45,7 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
         "linhas": "323-493",
-        "ancora": false
+        "ancora": "aprovacoes-fila-de-aprovacoes"
       },
       "status": "divergencia-declarada",
       "acao": "Vivo à frente na coluna Criada. O cargo na sub-linha é protótipo à frente e depende de o payload trazer o cargo (não medido no controller). A thread 17 grava `data-contract=\"aprovacoes-fila-de-aprovacoes\"` no card.",
