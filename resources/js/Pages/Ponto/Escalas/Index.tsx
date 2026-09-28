@@ -8,8 +8,18 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Link, router } from '@inertiajs/react';
-import type { ReactNode } from 'react';
+import { useState, type MouseEvent, type ReactNode } from 'react';
 import { Plus } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -44,11 +54,23 @@ interface Paginated {
 interface Props { escalas: Paginated; }
 
 export default function EscalasIndex({ escalas }: Props) {
-  // Remover escala é irreversível e mexe na jornada esperada de quem estiver vinculado, então pede
-  // confirmação. O guard de vínculo real vive no servidor — aqui só evito o clique acidental.
-  const removerEscala = (e: Escala) => {
-    if (!window.confirm(`Remover a escala "${e.nome}"? Esta ação não pode ser desfeita.`)) return;
-    router.delete(`/ponto/escalas/${e.id}`, { preserveScroll: true });
+  // Remover escala é irreversível, então pede confirmação — no diálogo do DS, não no
+  // `window.confirm` nativo (D-ESC-DESTROY, [W] 2026-09-14: "window.confirm não era pergunta").
+  // O guard de vínculo real vive no servidor — aqui só evito o clique acidental.
+  const [remover, setRemover] = useState<Escala | null>(null);
+  const [removendo, setRemovendo] = useState(false);
+
+  const confirmarRemocao = (ev: MouseEvent) => {
+    // O Action do Radix fecha o diálogo no clique; segurar aberto até a resposta é o que deixa o
+    // botão visivelmente desabilitado ("Removendo…") e evita o segundo clique.
+    ev.preventDefault();
+    if (!remover) return;
+    setRemovendo(true);
+    router.delete(`/ponto/escalas/${remover.id}`, {
+      preserveScroll: true,
+      onSuccess: () => setRemover(null),
+      onFinish: () => setRemovendo(false),
+    });
   };
 
   return (
@@ -134,7 +156,7 @@ export default function EscalasIndex({ escalas }: Props) {
                                 size="sm"
                                 variant="ghost"
                                 className="text-xs text-destructive hover:text-destructive"
-                                onClick={() => removerEscala(e)}
+                                onClick={() => setRemover(e)}
                               >
                                 Remover
                               </Button>
@@ -170,6 +192,25 @@ export default function EscalasIndex({ escalas }: Props) {
           </CardContent>
         </Card>
       </div>
+
+      {/* D-ESC-DESTROY — forma do protótipo (ponto-telas.jsx): "Remover <nome>?", Cancelar + Remover escala. */}
+      <AlertDialog open={remover !== null} onOpenChange={(o) => !o && !removendo && setRemover(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover {remover?.nome}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A escala sai da lista e o histórico de jornada dos meses fechados deixa de ter referência
+              de padrão. Não há colaborador vinculado a ela agora. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removendo}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={confirmarRemocao} disabled={removendo}>
+              {removendo ? 'Removendo…' : 'Remover escala'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
