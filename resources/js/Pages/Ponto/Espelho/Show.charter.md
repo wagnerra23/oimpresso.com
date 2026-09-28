@@ -42,6 +42,15 @@ Espelho de ponto mensal de um colaborador: mostra os totalizadores do mês (trab
 - ❌ Não recalcula a apuração aqui — só lê `ApuracaoDia` já materializada.
 - ❌ Não expõe colaborador de outro tenant (o `findOrFail` é scopado por `business_id`). *(inferência pendente de Wagner)*
 - ❌ Não aprova/rejeita intercorrências (isso vive em Aprovações/Intercorrências).
+- ❌ As cores da folha de prova (bloco `@media print` de `.pt-folha`) NÃO são tokens do DS e não devem
+  virar: são TINTA DE PAPEL (cinzas de impressão + amarelo de destaque de divergência). Exceção
+  declarada por [W] 2026-09-14 (`D-PRINT-TINTA`, ATA-DECISOES-2026-09-14 linha 33): *"cor de impressão
+  não é cor de tela e não deve poluir o DS"*. Isolamento: vivem SOMENTE dentro do `@media print`;
+  nenhuma delas aparece em superfície de tela. Onde isso vive hoje: no protótipo, em `ponto-page.css`
+  (8 cores cruas, todas no `@media print`); no vivo, na seção `hidden print:block` de `Show.tsx`
+  (`data-contract="espelho-folha-impressao"`, ~linha 389), que em 2026-09-28 usa só `border-black`
+  (2×) como cor — já isolada pelo `print:`. Região no map: `folha-de-impressao`
+  (`memory/requisitos/Ponto/espelho-show.map.json`).
 
 ---
 
