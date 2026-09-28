@@ -39,17 +39,22 @@ feito aqui.
 - **Como o Felipe trabalha na Fabricação daqui para a frente** (combinado em 28/09/2026):
   1. Edita os `manufacturing-*` **na pasta do Wagner** (`prototipo-ui/cowork/Wagner/`), aqui no git,
      num PR. Para ver, usa este protótipo mesmo — ele já carrega os arquivos de lá.
-  2. **Depois do merge, uma sessão com o login do Wagner sobe os arquivos para o projeto dele no
-     Claude Design** (DesignSync) e registra a volta no ledger, como no #8052. Sem essa subida, a
-     próxima atualização do espelho desfaz a mudança. Todo PR da Fabricação avisa o Wagner disso.
+  2. **Ainda no PR, antes do merge, uma sessão com o login do Wagner sobe os arquivos para o
+     projeto dele no Claude Design** (DesignSync) e registra a volta no ledger, como no #8052. Não
+     dá para deixar para depois do merge: o check **required** `espelho — mexeu depois de
+     verificar` reprova o PR enquanto o arquivo do espelho estiver mudado sem esse registro
+     (medido 2026-09-28 no PR do título "Fabricação": `--unverified --check` → `mexido-depois: 1`,
+     exit 1). Sem a subida, além disso, a próxima atualização do espelho desfaz a mudança. Todo PR
+     da Fabricação avisa o Wagner disso. _(Corrige a versão de 2026-09-28 do #8068, que dizia
+     "depois do merge" sem ter rodado o check.)_
   3. O Felipe **não tem acesso** ao projeto do Wagner no Claude Design (conta pessoal; o
      compartilhamento de lá só funciona entre membros da mesma organização, em plano Team ou
      Enterprise). Por isso a subida é sempre do lado do Wagner — não tentar gravar de uma sessão
      com o login do Felipe.
-  4. Editar a pasta do Wagner à mão **sem** a subida arma o gate do espelho ("mexeu depois de
-     verificar"). Antes de pedir merge, rodar
-     `node scripts/governance/cowork-mirror-freshness.mjs --unverified --check` contra o `main`
-     atualizado.
+  4. Para conferir se a subida já foi registrada, rodar
+     `node scripts/governance/cowork-mirror-freshness.mjs --unverified --check` **depois do
+     commit** (ele lê o que está commitado; com a mudança só no disco, sai verde sem ter medido
+     nada) e contra o `main` atualizado.
 - Correção de defeito do protótipo nas **outras** telas desta pasta acontece aqui, vai no PR e
   entra no próximo recibo de retorno. Exemplo (25/09/2026, quando a Fabricação ainda morava aqui):
   a moldura `.mfg-grid` colidia com a regra antiga de `mockup-pages.css` e deixava uma coluna vazia
