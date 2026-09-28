@@ -30,7 +30,7 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Configuracoes/Reps.tsx",
         "linhas": "140-183",
-        "ancora": false
+        "ancora": "configuracoes-reps-cadastrados"
       },
       "status": "decidir-w",
       "acao": "A coluna Ativo é catch-up do protótipo. A coluna CNPJ é decidir: o charter põe CNPJ só no formulário e o identificador já carrega o CNPJ nos 14 primeiros dígitos.",
@@ -60,7 +60,7 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Configuracoes/Reps.tsx",
         "linhas": "85-137",
-        "ancora": false
+        "ancora": "configuracoes-cadastrar-novo-rep"
       },
       "status": "paridade",
       "acao": "Nada — paridade.",

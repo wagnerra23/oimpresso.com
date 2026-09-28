@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 23 |
 | Telas com `casos.md` | 23 |
-| UC declarados | 92 |
-| UC com teste que os cita | 90 |
+| UC declarados | 93 |
+| UC com teste que os cita | 91 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
