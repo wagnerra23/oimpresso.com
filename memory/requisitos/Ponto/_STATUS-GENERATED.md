@@ -60,6 +60,7 @@ authority: generated
 | UC-BHSHOW-01 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-02 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-03 | BancoHoras/Show | 🧪 aguarda veredito da lane |
+| UC-BHSHOW-04 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-CFGIDX-01 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CFGIDX-02 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CFGIDX-03 | Configuracoes/Index | 🧪 aguarda veredito da lane |

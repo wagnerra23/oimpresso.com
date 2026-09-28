@@ -27,3 +27,22 @@ export function fmtRelative(iso: string | null): string {
     minute: '2-digit',
   });
 }
+
+/**
+ * Data-hora absoluta BR: "2026-08-19 21:30" → "19/08/2026 21:30".
+ *
+ * Parse por STRING, sem `new Date()`: o servidor já entrega o horário no fuso da empresa
+ * (ex.: `format('Y-m-d H:i')`), e passar por `Date` reaplicaria o fuso do NAVEGADOR —
+ * outro relógio na tela de quem está em outro fuso. Aceita separador espaço ou `T`
+ * e ignora segundos/fuso depois dos minutos.
+ *
+ * - `null`/vazio   → "—"
+ * - fora do padrão → devolve a string original (não inventa data)
+ */
+export function fmtDataHoraBr(ymdHi: string | null | undefined): string {
+  if (!ymdHi) return '—';
+  const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(ymdHi);
+  if (!m) return ymdHi;
+  const [, y, mo, d, h, mi] = m;
+  return `${d}/${mo}/${y} ${h}:${mi}`;
+}
