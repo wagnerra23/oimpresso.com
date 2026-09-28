@@ -90,7 +90,7 @@
     },
     {
       "screen": "Financeiro",
-      "note": "62 arquivo(s)",
+      "note": "61 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -433,8 +433,8 @@
   "progressPct": 38,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "ae08fd551",
-  "generatedAt": "2026-09-27T14:48:33.563Z",
+  "measuredAgainstSha": "649444cb8",
+  "generatedAt": "2026-09-28T17:47:07.822Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

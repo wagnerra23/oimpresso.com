@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **421** arquivos · **406** números únicos · máx **0416**
-- **ADRs ATIVOS (lifecycle ativo): 376** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 372 · superseded 25 · deprecated 11 · proposto 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 376 · substituido 25 · arquivado 20
+- **422** arquivos · **407** números únicos · máx **0417**
+- **ADRs ATIVOS (lifecycle ativo): 377** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 373 · superseded 25 · deprecated 11 · proposto 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 377 · substituido 25 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (421)
+## Todas as ADRs (422)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -459,3 +459,4 @@ _(nenhuma)_
 | 0414 | aceito | ativo | decision | Patrimônio: a Auditoria é um deep-link para o Modules/Auditoria, e os formulário |
 | 0415 | aceito | ativo | decision | Gate::before — permissão de plataforma sai do bypass do papel Admin#{empresa} |
 | 0416 | aceito | ativo | decision | Hook pii-redactor arquivado — sai do settings.json até voltar escopado à Jana |
+| 0417 | aceito | ativo | decision | Critério da tela-piloto da ADR 0253 aposentado junto com a Prova Viva |
