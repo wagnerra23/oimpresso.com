@@ -5,7 +5,7 @@ autor: "[CL]"
 data: "2026-09-28"
 base: "origin/main 8822fb6a5"
 prefixo_tocado: "governance/design/contracts/manufacturing-index.contract.json · resources/js/Pages/Manufacturing/Index.tsx"
-fora_do_prefixo: "este recibo"
+fora_do_prefixo: "este recibo · resources/js/Pages/Manufacturing/Index.casos.md (só o last_run, exigido pelo G-6)"
 ---
 # _saida-01 · Contrato `manufacturing-index`
 
@@ -46,7 +46,8 @@ decidida por esta thread.
 | sanidade: `"Custo unit."` → `"Custo unitario"` | **exit 1**, `copy ausente em "lista": "Custo unitario"`. Restaurado por cópia byte a byte, hash `bd01596cc06f` igual antes e depois, e o gate volta a exit 0 |
 | `--anti-tautologia` | 3/26 strings existem no alvo e não na fonte declarada. "Receitas" e "Insumos" estão no protótipo, em `manufacturing-page.jsx:11-12` (a barra de abas do módulo mora lá, não no `-producao.jsx`). "Todos os locais" é copy **adaptada**: o protótipo diz `Todos` (`manufacturing-producao.jsx:51`), e o vivo já dizia "Todos os locais" antes desta thread. O pedido lista essa string, então a tela não foi mexida; se o Cowork quiser igualar, é thread nova |
 | `layout-primitives-guard` | exit 0, sem regressão |
-| `casos-coverage-guard` | exit 0, nada de Manufacturing |
+| `casos-coverage-guard` | **reprovou no CI** com `stale:…/Manufacturing/Index.casos.md` (G-6: o `.tsx` mudou depois do `last_run` 2026-09-25). O exit 0 local tinha sido medido **antes do commit**, e o G-6 lê a data do `.tsx` pelo git, então via o commit antigo. Revalidado pelas 3 lanes que citam os UCs, verdes no head do PR (vitest/jsdom UC-OP-06, Pest Manufacturing, Pest MySQL UC-OP-01..05); `last_run` → 2026-09-28. Re-rodado depois do commit: exit 0 |
+| `visual-regression` (advisory) | falhou **antes** de comparar pixel (`PIXEL_OUTCOME: skipped`): `Manufacturing` não tem contrato em `tests/Browser/visreg-screens.json`. Mesma lacuna já registrada no `_saida-04` |
 | `pageheader-migration-guard` | exit 0, nenhuma adoção nova nem dívida tocada |
 | `eslint Index.tsx` | exit 0 |
 | `tsc --noEmit` | 306 erros **pré-existentes** no repo (o mesmo número do `_saida-04`), **0** em `Manufacturing/Index.tsx` |
