@@ -81,8 +81,13 @@ beforeEach(function () {
 
     // Pré-condição do gate `can:jana.access` do grupo /ia: sem ela o middleware corta
     // com 403 ANTES do controller, e o teste mediria o gate em vez do contrato.
+    // Idem `can:jana.metas.manage` nas escritas de meta (#7895, UC-JPERM-03): sem ela a
+    // trava devolve 403 antes do controller — store/update/destroy e o 404 cross-tenant
+    // não são exercitados (medido 2026-09-27). O 403 SEM a permissão é contrato separado,
+    // provado em `Http/MetasPermissaoTest.php`.
     \Spatie\Permission\Models\Permission::findOrCreate('jana.access', 'web');
-    $this->user->givePermissionTo('jana.access');
+    \Spatie\Permission\Models\Permission::findOrCreate('jana.metas.manage', 'web');
+    $this->user->givePermissionTo('jana.access', 'jana.metas.manage');
     $this->user->forgetCachedPermissions();
 
     $this->actingAs($this->user);
@@ -90,6 +95,12 @@ beforeEach(function () {
         'user.business_id' => METAS_BIZ_CANONICO,
         'business' => ['id' => METAS_BIZ_CANONICO, 'name' => $business->name],
     ]);
+});
+
+// A permissão criada na transação some no rollback; o cache do Spatie que sobrevive a
+// ela vira PermissionDoesNotExist/FK no teste seguinte de OUTRO arquivo (#7895).
+afterEach(function () {
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
 function metaCrua(int $bizId, string $tag): Meta

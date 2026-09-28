@@ -15,7 +15,7 @@ use Modules\Jana\Entities\MetaPeriodo;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
- * UC-JPAIN-33 (backend) — a meta criada pelo caminho MANUAL nasce com ALVO.
+ * UC-JPAIN-35 (backend) — a meta criada pelo caminho MANUAL nasce com ALVO.
  *
  * POR QUE EXISTE. Medido em produção em 2026-09-21: as 5 metas do tenant tinham ZERO
  * período, ZERO apuração e ZERO fonte. Os 5 cards do Painel saíam idênticos —
@@ -70,8 +70,13 @@ beforeEach(function () {
 
     // Pré-condição do gate `can:jana.access` do grupo /ia: sem ela o middleware corta
     // com 403 ANTES do controller, e o teste mediria o gate em vez do contrato.
+    // Idem `can:jana.metas.manage` nas escritas de meta (#7895, UC-JPERM-03): sem ela a
+    // trava devolve 403 antes do controller — store/update/destroy e o 404 cross-tenant
+    // não são exercitados (medido 2026-09-27). O 403 SEM a permissão é contrato separado,
+    // provado em `Http/MetasPermissaoTest.php`.
     \Spatie\Permission\Models\Permission::findOrCreate('jana.access', 'web');
-    $this->user->givePermissionTo('jana.access');
+    \Spatie\Permission\Models\Permission::findOrCreate('jana.metas.manage', 'web');
+    $this->user->givePermissionTo('jana.access', 'jana.metas.manage');
     $this->user->forgetCachedPermissions();
 
     $this->actingAs($this->user);
@@ -79,6 +84,12 @@ beforeEach(function () {
         'user.business_id' => ALVO_BIZ_CANONICO,
         'business' => ['id' => ALVO_BIZ_CANONICO, 'name' => $business->name],
     ]);
+});
+
+// A permissão criada na transação some no rollback; o cache do Spatie que sobrevive a
+// ela vira PermissionDoesNotExist/FK no teste seguinte de OUTRO arquivo (#7895).
+afterEach(function () {
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
 function payloadComAlvo(array $over = []): array
@@ -99,7 +110,7 @@ function payloadComAlvo(array $over = []): array
 // O ALVO nasce junto
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-JPAIN-33 · store com alvo cria a Meta E o MetaPeriodo', function () {
+it('UC-JPAIN-35 · store com alvo cria a Meta E o MetaPeriodo', function () {
     $payload = payloadComAlvo();
 
     $this->post('/ia/metas', $payload)->assertRedirect();
@@ -115,7 +126,7 @@ it('UC-JPAIN-33 · store com alvo cria a Meta E o MetaPeriodo', function () {
     expect($periodo->tipo_periodo)->toBe('mes');
 });
 
-it('UC-JPAIN-33 · com alvo, `periodoAtual` resolve — é o que dá barra e % do alvo ao card', function () {
+it('UC-JPAIN-35 · com alvo, `periodoAtual` resolve — é o que dá barra e % do alvo ao card', function () {
     // A janela precisa CONTER hoje: `Meta::periodoAtual` filtra por data_ini <= now <= data_fim.
     // Sem isso o card fica sem alvo mesmo tendo período gravado.
     $payload = payloadComAlvo([
@@ -130,7 +141,7 @@ it('UC-JPAIN-33 · com alvo, `periodoAtual` resolve — é o que dá barra e % d
     expect((float) $meta->periodoAtual->valor_alvo)->toBe(1500.0);
 });
 
-it('UC-JPAIN-33 · o período fica no MESMO business da meta (Tier 0, via parent)', function () {
+it('UC-JPAIN-35 · o período fica no MESMO business da meta (Tier 0, via parent)', function () {
     $payload = payloadComAlvo();
     $this->post('/ia/metas', $payload)->assertRedirect();
 
@@ -143,7 +154,7 @@ it('UC-JPAIN-33 · o período fica no MESMO business da meta (Tier 0, via parent
 // Meia-declaração é recusada — o estado quebrado não volta por outra porta
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-JPAIN-33 · alvo SEM janela é recusado (422), e nada é criado', function () {
+it('UC-JPAIN-35 · alvo SEM janela é recusado (422), e nada é criado', function () {
     $payload = payloadComAlvo();
     unset($payload['data_ini'], $payload['data_fim']);
 
@@ -152,7 +163,7 @@ it('UC-JPAIN-33 · alvo SEM janela é recusado (422), e nada é criado', functio
     expect(Meta::where('slug', $payload['slug'])->exists())->toBeFalse('criou meta com alvo pela metade');
 });
 
-it('UC-JPAIN-33 · janela SEM alvo é recusada, e nada é criado', function () {
+it('UC-JPAIN-35 · janela SEM alvo é recusada, e nada é criado', function () {
     $payload = payloadComAlvo();
     unset($payload['valor_alvo']);
 
@@ -161,7 +172,7 @@ it('UC-JPAIN-33 · janela SEM alvo é recusada, e nada é criado', function () {
     expect(Meta::where('slug', $payload['slug'])->exists())->toBeFalse('criou meta com janela sem alvo');
 });
 
-it('UC-JPAIN-33 · data_fim antes de data_ini é recusada', function () {
+it('UC-JPAIN-35 · data_fim antes de data_ini é recusada', function () {
     $payload = payloadComAlvo(['data_ini' => '2026-09-30', 'data_fim' => '2026-09-01']);
 
     $this->from('/ia')->post('/ia/metas', $payload)->assertSessionHasErrors(['data_fim']);
@@ -171,7 +182,7 @@ it('UC-JPAIN-33 · data_fim antes de data_ini é recusada', function () {
 // RETROCOMPATIBILIDADE — o Blade legado manda só identidade e NÃO pode quebrar
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-JPAIN-33 · payload SEM alvo continua criando a meta (Blade legado não quebra)', function () {
+it('UC-JPAIN-35 · payload SEM alvo continua criando a meta (Blade legado não quebra)', function () {
     // `metas/create.blade.php` manda só os 4 campos de identidade. Tornar o alvo
     // obrigatório no request devolveria 422 pra ele — por isso é `nullable` com
     // `required_with`. O cutover do Blade é o PR-4 do RUNBOOK-metas §9.4.
