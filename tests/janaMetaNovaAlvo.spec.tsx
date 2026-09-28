@@ -1,4 +1,4 @@
-// UC-JPAIN-33 — a gaveta de criar meta pede o ALVO, e não cria meta sem ele.
+// UC-JPAIN-35 — a gaveta de criar meta pede o ALVO, e não cria meta sem ele.
 //
 // @covers-us US-COPI-150
 //
@@ -57,7 +57,7 @@ function botaoCriar(): HTMLButtonElement {
   return screen.getByRole('button', { name: /criar meta/i }) as HTMLButtonElement;
 }
 
-describe('UC-JPAIN-33 — a gaveta pede o alvo', () => {
+describe('UC-JPAIN-35 — a gaveta pede o alvo', () => {
   it('mostra os campos de alvo e de janela', () => {
     abrir();
     expect(screen.getByLabelText(/valor alvo/i), 'campo de valor alvo ausente').toBeTruthy();
@@ -118,7 +118,7 @@ describe('UC-JPAIN-33 — a gaveta pede o alvo', () => {
 // ── CONTROLE NEGATIVO (ADR 0258) ────────────────────────────────────────────────────────
 // Prova que os detectores acima acusam o payload ANTIGO. Sem isto, um assert que nunca viu
 // vermelho é indistinguível de um assert que não mede nada.
-describe('UC-JPAIN-33 · controle negativo — o payload antigo seria reprovado', () => {
+describe('UC-JPAIN-35 · controle negativo — o payload antigo seria reprovado', () => {
   const ANTIGO = { nome: 'X', slug: 'x', unidade: 'R$', tipo_agregacao: 'soma' } as Record<string, unknown>;
 
   it('o payload antigo não tem alvo nem janela', () => {
