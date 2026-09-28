@@ -38,6 +38,11 @@ Lista das intercorrências (ocorrências de ponto) do business — ausências, a
 ## Non-Goals — Features (NÃO faz)
 - ❌ Não aprova/rejeita/submete a partir da lista (essas ações vivem no `Show`/Aprovações).
 - ❌ Não edita intercorrência inline.
+  — os dois itens acima estão **ratificados** por [W] como `D-INTERC-ACOES` (ATA-DECISOES-2026-09-14,
+  bloco 2, linha 23): *"Submeter sem abrir o detalhe é decisão cega, e o Show já existe pra isso."*
+  A linha da lista oferece só "Ver". Por R1 da ata, Non-Goal ratificado vira Pest GUARD — o guard
+  nasce no PR de testes da thread 27 e é citado aqui quando existir. Região no map: `acao-por-linha`
+  (`memory/requisitos/Ponto/intercorrencias-index.map.json`).
 - ❌ Não mostra intercorrências de outro tenant — scope por `business_id` da sessão.
 - ❌ Não aplica efeito na apuração — é só visão de acompanhamento.
 

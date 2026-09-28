@@ -79,6 +79,11 @@ on:
       - 'scripts/governance/design-code-map-check.mjs'
       - 'scripts/governance/design-code-map-check.test.mjs'
       - 'scripts/design/gerar-map.mjs'
+      # gerar-contrato é o dono do parsePartes que o gerar-map importa, e o parser de células
+      # mora em scripts/lib/markdown-tabela.mjs (2026-09-28). Sem estas linhas, mexer só no
+      # parser não disparava o selftest dele (§5 2026-08-02 · "gate mudo com cara de cobertura").
+      - 'scripts/design/gerar-contrato.mjs'
+      - 'scripts/lib/markdown-tabela.mjs'
       - 'scripts/design/consumir-map.mjs'
       - 'memory/requisitos/**/*.map.json'
       - 'memory/requisitos/**/*.proto-baseline.json'

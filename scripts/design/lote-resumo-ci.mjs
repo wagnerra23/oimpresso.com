@@ -46,6 +46,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { celulas } from '../lib/markdown-tabela.mjs';
 
 const DIR_MEDIDAS = 'governance/design/targets/medidas';
 const REPORT = 'scripts/design-sync/state/application-report.json';
@@ -62,25 +63,9 @@ export function linhasDeTela(md) {
     .filter((l) => l.startsWith('| ') && !/^\|\s*-{3}/.test(l) && celulas(l)[0] !== 'Tela');
 }
 
-/**
- * Fatia uma linha da tabela em células.
- * NÃO use split por `|` cru num parser de markdown: a célula Motivo carrega pipe ESCAPADO
- * (`\|`) — medido em 2026-09-18: 148 linhas do RESUMO tinham — e um `awk -F'|'` fatiou o
- * campo e deslocou a classificação inteira. O erro só apareceu porque a SOMA não fechou
- * (66 num total de 64), que é o controle barato desta função.
- */
-export function celulas(linha) {
-  const bruto = linha.split('|').slice(1, -1);
-  const out = [];
-  for (const parte of bruto) {
-    if (out.length && out[out.length - 1].endsWith('\\')) {
-      out[out.length - 1] = out[out.length - 1].slice(0, -1) + '|' + parte;
-    } else {
-      out.push(parte);
-    }
-  }
-  return out.map((s) => s.trim());
-}
+// `celulas` mora em scripts/lib/markdown-tabela.mjs desde 2026-09-28 (2º parser caiu no mesmo
+// split cru); re-exportado aqui para não mudar a API deste script.
+export { celulas };
 
 /** Vereditos contados + par (tela,fonte) distinto. A soma DEVE fechar com o total. */
 export function contarVereditos(linhas) {

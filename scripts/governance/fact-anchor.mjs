@@ -80,6 +80,10 @@ export function tabelasAfirmadasNo52(txt) {
   let col = -1;
   for (const ln of L.slice(ini, fim)) {
     if (!ln.trim().startsWith('|')) { col = -1; continue; } // saiu da tabela markdown
+    // Split cru. Em 2026-09-28 (PR #8082 aberto) foi comparado com `celulas()`, que respeita o
+    // pipe escapado (`\|`): nos 15 SDDs do Check T as duas deram as mesmas 84 afirmações, e
+    // das 15 linhas de tabela com `\|` nos docs de memory/ que têm coluna Tabela/Entidade,
+    // nenhuma estava dentro dessas tabelas. Escape antes da coluna Tabela desloca `cels[col]`.
     const cels = ln.split('|').slice(1, -1).map((c) => c.trim());
     if (/^[-: ]+$/.test(cels.join(''))) continue;           // linha separadora
     if (col === -1) { // cabeçalho: acha a coluna "Tabela"/"Entidade"

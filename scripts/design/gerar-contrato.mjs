@@ -25,6 +25,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, resolve, dirname, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { celulas } from '../lib/markdown-tabela.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, '../..');
@@ -52,13 +53,16 @@ export function ehAcionavel(acao) {
 // da seção — que varia ("Comparação por PARTE" / "Tabela de partes" / "Tabela de gaps por PARTE"
 // / nenhum). Mapeia colunas por NOME (ordem/contagem podem variar). Robusto aos 6 gap.md reais.
 const norm = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+// As células vêm de `celulas` (scripts/lib/markdown-tabela.mjs), que respeita o pipe ESCAPADO
+// (`\|`) de code-span. Até 2026-09-28 era `.split('|')` cru: em compras-grade-matrix-gap.md a
+// parte "Empty state (single)" saía com acao="—" (o valor da coluna Esforço) e a Ação real sumia.
 export function parsePartes(md) {
   const lines = md.split(/\r?\n/);
   let hdr = -1, col = null;
   for (let i = 0; i < lines.length; i++) {
     const t = lines[i].trim();
     if (!t.startsWith('|')) continue;
-    const cells = t.replace(/^\||\|$/g, '').split('|').map((c) => norm(c.replace(/\*/g, '')));
+    const cells = celulas(t).map((c) => norm(c.replace(/\*/g, '')));
     const iParte = cells.findIndex((c) => c === 'parte' || c === 'camada');
     const iAcao = cells.findIndex((c) => c === 'acao');
     if (iParte >= 0 && iAcao >= 0) {
@@ -71,7 +75,7 @@ export function parsePartes(md) {
   for (let i = hdr + 1; i < lines.length; i++) {
     const t = lines[i].trim();
     if (!t.startsWith('|')) break;                            // fim da tabela
-    const cells = t.replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+    const cells = celulas(t);
     if (/^[-: ]+$/.test((cells[col.parte] || '').replace(/\|/g, ''))) continue; // separador
     if (cells.length <= col.acao) continue;
     rows.push({
@@ -163,6 +167,21 @@ function selftest() {
   t('idDeTela: só o parêntese FINAL sai — nome com parêntese no meio sobrevive',
     idDeTela('Mod/Tela (x) Extra') === 'Mod/Tela (x) Extra');
   t('idDeTela: vazio/ausente não estoura', idDeTela(null) === '' && idDeTela(undefined) === '');
+  // BITE 2026-09-28 — pipe ESCAPADO (`\|`) dentro de code-span é conteúdo, não separador.
+  // O `\` é montado por charCode de propósito: literal com barra colapsa no transporte (LC-26).
+  const BS = String.fromCharCode(92);
+  const tabEsc = ['| Parte | Esforço | Risco | Ação |', '|---|---|---|---|',
+    `| **Empty** | se \`a ${BS}|${BS}| b\` mostra texto | baixo | Aceitar a divergência |`,
+    '| **Outra** | P | baixo | Nada |'].join('\n');
+  const pe = parsePartes(tabEsc);
+  t('pipe escapado: a Ação da linha vem da coluna Ação (não da vizinha deslocada)',
+    pe?.[0]?.acao === 'Aceitar a divergência' && pe?.[0]?.risco === 'baixo');
+  t('pipe escapado: a célula guarda o conteúdo desescapado inteiro',
+    pe?.[0]?.esforco === 'se `a || b` mostra texto');
+  const tabLimpa = '| Parte | Ação |\n|---|---|\n| **A** | Fazer X |\n| **B** | Nada |';
+  t('controle negativo: tabela sem escape segue idêntica',
+    JSON.stringify(parsePartes(tabLimpa)) === JSON.stringify([
+      { parte: 'A', acao: 'Fazer X', esforco: '', risco: '' }, { parte: 'B', acao: 'Nada', esforco: '', risco: '' }]));
   t('slug normaliza acento+parênteses', slug('Thread (mensagens)') === 'thread' && slug('Header da página') === 'header-da-pagina');
   t('ehAcionavel: "Nada (vivo à frente)"=false · "Catch-up opcional"=true',
     ehAcionavel('**Nada** (vivo à frente)') === false && ehAcionavel('**Catch-up opcional**') === true && ehAcionavel('**NÃO RESSUSCITAR**') === false);
