@@ -63,7 +63,7 @@
         "ancora": false
       },
       "status": "gap",
-      "acao": "last_page\"` = só a interface). Quem tem mais de 50 movimentos vê só os 50 primeiros. Protótipo: renderiza a lista inteira (`ponto-telas.jsx:383`). Goal do charter: 50/pág (`Show.charter.md:32`).",
+      "acao": "Gap real no vivo: navegação de página com partial reload `only: ['movimentos']`. O protótipo também corrige (ganha o `Pager`).",
       "_acionavel": true
     },
     {

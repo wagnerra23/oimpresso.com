@@ -11,10 +11,11 @@ gerado_em: 2026-09-28
 > **Origem:** thread `16-gap-aprovacoes.md` do playbook do Ponto. Decisões citadas só existem em
 > `ATA-DECISOES-2026-09-14.md` (mesma pasta do playbook).
 > **Protótipo medido nesta sha:** `ponto-telas.jsx` @ `2e3f8adb4e` (2026-09-24), símbolo `Aprovacoes`
-> (`:13-143`). As faixas que a thread cita (`:13-110`) são de 14/09 e **não valem mais**: o build de
-> 24/09 já trouxe a faixa de KPI (`:60-62`), a paginação 20/pág (`:33`) e os diálogos de aprovar e
-> rejeitar (`:127-139`). Três das cinco "divergências fechadas" da thread foram consertadas no
-> protótipo antes desta medição.
+> (`:13-143`). As faixas que a thread cita (`:13-110`) são de 14/09 e **não valem mais**: entre o build de
+> 14/09 (`056638c3fe`) e o de 24/09 entraram a faixa de KPI (`:60-62`), os diálogos de aprovar e
+> rejeitar (`:127-139`) e o alerta `impacta_apuracao` (`:99`, `:131`). A paginação 20/pág (`:33`) já
+> estava no build de 14/09. Das cinco divergências da thread, quatro (paginação, KPIs, `window.prompt`,
+> `impacta_apuracao`) já não existem no protótipo; a quinta (filtro default) era pergunta, não divergência.
 > **Vivo medido nesta sha:** `resources/js/Pages/Ponto/Aprovacoes/Index.tsx` @ `e4289e688` (592 linhas)
 > e `Modules/Ponto/Http/Controllers/AprovacaoController.php`. Toda linha abaixo saiu de `grep -n`.
 > **Régua:** o contrato vem do charter (`Aprovacoes/Index.charter.md`, `status: draft`) e do protótipo.
@@ -30,7 +31,7 @@ gerado_em: 2026-09-28
 | Diálogo de rejeitar | **Paridade.** Vivo: `Dialog` com `Textarea` 5 a 500 caracteres, contador e validação no submit (`Index.tsx:536-579`, regra em `:193`). Protótipo: `Modal` com `PtTexto` 500, contador e mínimo 5 (`ponto-telas.jsx:133-139`, regra em `:51`). | Nada. O `window.prompt` que a thread acusava já saiu do protótipo. |
 | Paginação | **Paridade.** Vivo: 20 por página no servidor (`AprovacaoController.php:71`), navegação com partial reload `only: ['aprovacoes','filtros']` (`Index.tsx:467-490`). Protótipo: `usePagina(lista.length, 20)` (`ponto-telas.jsx:33`). Charter: 20/pág (`Index.charter.md:30`). | Nada. A divergência 15 × 20 da thread foi corrigida no protótipo. |
 | Barra de lote | **Protótipo à frente, pendente de decisão.** Vivo: `BulkActionBar` só com `Aprovar selecionadas` e um `confirm()` nativo (`Index.tsx:497-507`, `:216`); a rota de lote é só de aprovação (`Modules/Ponto/Http/routes.php:47`). Protótipo: `Aprovar N` + `Rejeitar N` com motivo único obrigatório + `Limpar seleção` (`ponto-telas.jsx:118-126`). O charter só declara aprovação em lote (`Index.charter.md:34`). | **Decidir [W].** Rejeição em lote é comportamento novo (rota nova + regra de motivo único) e a ata de 14/09 não responde. Pendente, não inventado. O `confirm()` nativo do vivo é defeito independente da decisão: o DS tem diálogo, e a regra R3 da ata já tratou `window.confirm` como "não era pergunta" (D-ESC-DESTROY). |
-| Rodapé legal | **Ausente no vivo.** Protótipo: `<Legal />` (`ponto-telas.jsx:140`). No vivo, `grep -n "Legal\|Portaria"` em `Index.tsx` = 0. O Non-Goal de append-only está no charter (`Index.charter.md:43`). | Protótipo à frente. Entra com a passada de FORMA (thread 15); não é comportamento. |
+| Rodapé legal | **Ausente no vivo.** Protótipo: `<Legal />` (`ponto-telas.jsx:140`). No vivo, `grep -n "Legal"` e `grep -n "Portaria"` em `Index.tsx` dão 0 cada. O Non-Goal de append-only está no charter (`Index.charter.md:43`). | Protótipo à frente. Entra com a passada de FORMA (thread 15); não é comportamento. |
 | Estado vazio | **Paridade.** Vivo: `EmptyState` com duas variantes — "Caixa vazia" e "Nenhum resultado" com `Limpar filtros` (`Index.tsx:326-343`). Protótipo: `Vazio` `first` e `filtered` com o mesmo par de títulos (`ponto-telas.jsx:86-88`). | Nada. |
 
 ## Filtro default
