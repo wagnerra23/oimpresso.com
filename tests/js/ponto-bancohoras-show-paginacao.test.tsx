@@ -137,3 +137,20 @@ describe('coluna "Registrado" mostra data-hora ABSOLUTA, não "há X"', () => {
     expect(fmtDataHoraBr('ontem')).toBe('ontem');
   });
 });
+
+describe('badge de tipo é NEUTRO para todo tipo, como o protótipo (ponto-telas.jsx:387)', () => {
+  it('CREDITO, DEBITO, AJUSTE, EXPIRACAO e PAGAMENTO saem com o mesmo estilo neutro e mono', () => {
+    const tipos = ['CREDITO', 'DEBITO', 'AJUSTE', 'EXPIRACAO', 'PAGAMENTO'];
+    const movs = {
+      ...pagina(1, 1),
+      data: tipos.map((tipo, i) => ({ ...mov(i + 1), tipo })),
+    };
+    render(<BancoHorasShow saldo={saldo} movimentos={movs} />);
+
+    const badges = tipos.map((t) => screen.getByText(t));
+    for (const b of badges) {
+      expect(b.getAttribute('data-variant')).toBe('outline');
+      expect(b.className).toContain('font-mono');
+    }
+  });
+});

@@ -56,14 +56,6 @@ interface Props {
   movimentos?: Paginated;
 }
 
-const tipoVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  CREDITO_HE:    'default',
-  DEBITO_FOLGA:  'destructive',
-  AJUSTE_MANUAL: 'secondary',
-  EXPIRACAO:     'outline',
-  PAGAMENTO:     'outline',
-};
-
 /**
  * Rótulo do link de página vindo do paginator do Laravel ("&laquo; Anterior",
  * "Próximo &raquo;", "2") renderizado como TEXTO — o React escapa, sem sink de XSS.
@@ -213,7 +205,11 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
                       <tr key={m.id} className="hover:bg-accent/30">
                         <td className="p-2">{m.data_referencia ?? '—'}</td>
                         <td className="p-2">
-                          <Badge variant={tipoVariant[m.tipo] ?? 'outline'} className="text-[10px]">
+                          {/* Neutro para todo tipo, como o protótipo (ponto-telas.jsx:387, Pill tom="neutral" mono):
+                              o sinal crédito/débito é a cor dos MINUTOS, ao lado. Havia aqui um
+                              mapa de cor por tipo com chaves (CREDITO_HE, DEBITO_FOLGA…) que o
+                              enum nunca grava (CREDITO, DEBITO, AJUSTE…) — nunca casou. */}
+                          <Badge variant="outline" className="font-mono text-[10px]">
                             {m.tipo}
                           </Badge>
                         </td>
