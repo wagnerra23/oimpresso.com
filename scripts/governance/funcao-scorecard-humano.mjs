@@ -33,6 +33,10 @@ export function parseSealedTable(markdown) {
   const out = {};
   for (const line of markdown.split(/\r?\n/)) {
     if (!/^\|\s*\d+\s*\|/.test(line)) continue;
+    // Split cru. Em 2026-09-28 (PR #8082 aberto) foi comparado com `celulas()`, que respeita o
+    // pipe escapado (`\|`): 0 das 9 linhas-item do gabarito tinham escape, parse idêntico.
+    // Escape antes de cells[3] desloca o veredito; o erro só aparece se a célula deslocada
+    // não tiver concordo/discordo/incerto — senão passa calado.
     const cells = line.split('|').slice(1, -1).map((x) => x.trim());
     const id = cells[0];
     const raw = cells[3] || '';

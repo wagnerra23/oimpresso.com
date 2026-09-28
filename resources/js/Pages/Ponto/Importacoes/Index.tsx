@@ -71,7 +71,7 @@ export default function ImportacoesIndex({ importacoes }: Props) {
           </div>
         </header>
 
-        <Card>
+        <Card data-contract="importacoes-historico-de-importacoes">
           <CardContent className="p-0">
             {importacoes.data.length === 0 ? (
               <EmptyState

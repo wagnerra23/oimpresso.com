@@ -88,7 +88,7 @@ export default function ImportacoesShow({ importacao: i }: Props) {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
+          <Card data-contract="importacoes-dados-do-arquivo">
             <CardHeader>
               <CardTitle className="text-base">Arquivo</CardTitle>
             </CardHeader>
@@ -106,7 +106,7 @@ export default function ImportacoesShow({ importacao: i }: Props) {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card data-contract="importacoes-resumo-do-processamento">
             <CardHeader>
               <CardTitle className="text-base">Processamento</CardTitle>
             </CardHeader>

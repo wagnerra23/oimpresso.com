@@ -31,13 +31,13 @@
     },
     "saude": {
       "folhasVazias": [],
-      "nFolhas": 73,
+      "nFolhas": 74,
       "tokensMortos": []
     },
     "theme": "dark",
     "url": "http://127.0.0.1:5550/"
   },
-  "nos_totais": 800,
+  "nos_totais": 801,
   "quieto_ms": 2000,
   "secoes": {
     "sb-alcas": {
