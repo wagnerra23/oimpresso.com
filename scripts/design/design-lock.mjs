@@ -42,6 +42,7 @@
  *   node scripts/design/design-lock.mjs --ds                    # só o eixo DS único
  *   node scripts/design/design-lock.mjs --ambiguidade           # só o eixo de fonte ambígua
  *   node scripts/design/design-lock.mjs --hash <arquivo>        # sha256 de um arquivo (pra montar o lock)
+ *   node scripts/design/design-lock.mjs --dono <Mod/Tela>       # quem é o DONO da tela (W/F/M/L) ou "sem dono"
  *   node scripts/design/design-lock.mjs --selftest              # fixtures: caso BOM e caso RUIM de cada regra
  *
  * Exit: 0 = ok (ou advisory com achados) · 1 = achado sob --strict · 2 = NÃO MEDI · 3 = uso
@@ -64,6 +65,27 @@ export const DS_CANON = 'prototipo-ui/design-system/';
 
 /** Caminho do lock. */
 export const LOCK_PATH = 'governance/design/design-lock.json';
+
+/**
+ * DONO DA TELA — quem pode mexer nela. [W] 2026-09-25, textual: *"eu vou autorizar a tela para
+ * cada usuario. isso é mais confiavel, cada arquivo tem seu dono no git"* (proposta
+ * `2026-09-24-sincronia-entre-contas-cowork-por-dono.md` §9.3).
+ *
+ * Por que o dono mora AQUI e não na pasta: com todos no projeto Cowork do [W] (D4 c), a pasta
+ * deixa de dizer quem é o dono — e o DesignSync autentica como UM usuário e o pacote que desce
+ * não traz autor por arquivo, logo nenhum lado do design consegue responder "de quem é".
+ * O git responde: pegar ou devolver uma tela é um PR que muda o `owner` dela, e o merge do [W]
+ * é a autorização. Obrigatório em toda tela travada: tela no lock sem dono seria justamente o
+ * vácuo que a §9.3 fecha.
+ */
+export const DONOS = ['W', 'F', 'M', 'L'];
+
+/** Dono declarado de uma tela no lock, ou null (tela não travada / lock ausente). */
+export function donoDaTela(lock, tela) {
+  const alvo = String(tela).toLowerCase();
+  const s = (lock?.screens ?? []).find((x) => String(x?.id).toLowerCase() === alvo);
+  return s?.owner ?? null;
+}
 
 /** Extensões que contam como "arquivo de DS" para o detector de duplicata. */
 const DS_RE = /(^|\/)(design-system|tokens|colors_and_type|ds-v6)[^/]*\.(css|js|mjs)$|\/ds-v6\/[^/]+\.(css|js|mjs)$|\/ds-galerias\/[^/]+\.(css|js|mjs)$/i;
@@ -275,8 +297,11 @@ export function validarLock(lock, repoRoot = REPO_DEFAULT) {
 
   for (const [i, s] of (lock.screens ?? []).entries()) {
     const onde = `screens[${i}]${s?.id ? ` (${s.id})` : ''}`;
-    for (const campo of ['id', 'prototype_path', 'git_revision', 'content_hash', 'accepted_by', 'accepted_at']) {
+    for (const campo of ['id', 'owner', 'prototype_path', 'git_revision', 'content_hash', 'accepted_by', 'accepted_at']) {
       if (!s?.[campo]) erros.push(`${onde}.${campo} ausente`);
+    }
+    if (s?.owner && !DONOS.includes(s.owner)) {
+      erros.push(`${onde}.owner "${s.owner}" não é um dono válido (${DONOS.join('/')})`);
     }
     if (s?.prototype_path && !String(s.prototype_path).includes('/')) {
       erros.push(`${onde}.prototype_path "${s.prototype_path}" é basename — exige CAMINHO COMPLETO`);
@@ -311,6 +336,8 @@ function imprimir(repoRoot, { ds, amb, lockInfo, lockVal }) {
     console.log(`  ⛔ LOCK      ILEGÍVEL: ${lockInfo.erro}`);
   } else if (lockVal.ok) {
     console.log(`  ✓ LOCK      válido — ${(lockInfo.lock.screens ?? []).length} tela(s) travada(s), DS aprovado por ${lockInfo.lock.design_system?.approved_by}`);
+    const porDono = DONOS.map((d) => `${d}=${(lockInfo.lock.screens ?? []).filter((s) => s?.owner === d).length}`);
+    console.log(`  ▫ DONOS     ${porDono.join(' · ')}`);
   } else {
     console.log(`  ⛔ LOCK      ${lockVal.erros.length} problema(s):`);
     for (const e of lockVal.erros.slice(0, 12)) console.log(`       - ${e}`);
@@ -372,6 +399,19 @@ function main() {
     if (!f) { console.error('uso: --hash <arquivo>'); process.exit(3); }
     if (!existsSync(f)) { console.error(`⛔ NÃO MEDI — "${f}" não existe`); process.exit(2); }
     console.log(sha256(f));
+    return;
+  }
+
+  const iDono = argv.indexOf('--dono');
+  if (iDono >= 0) {
+    const tela = argv[iDono + 1];
+    if (!tela) { console.error('uso: --dono <Mod/Tela>'); process.exit(3); }
+    const li = lerLock(repoRoot);
+    if (li.existe && !li.lock) { console.error(`⛔ NÃO MEDI — lock ilegível: ${li.erro}`); process.exit(2); }
+    const dono = donoDaTela(li.lock, tela);
+    console.log(dono
+      ? `${tela}: dono ${dono}`
+      : `${tela}: sem dono declarado em ${LOCK_PATH} — a tela não está travada; pegar a tela = PR que a trava com owner`);
     return;
   }
 
@@ -513,6 +553,20 @@ function selftest() {
   v = validarLock({ design_system: { path: DS_CANON + 'x.css', git_revision: 'a', content_hash: 'b', runtime_global: 'c', approved_by: 'd', approved_at: 'e' },
     screens: [{ id: 'A/B', prototype_path: 'foo-page.jsx', git_revision: 'a', content_hash: 'b', accepted_by: 'c', accepted_at: 'd' }] }, raizA);
   t('LOCK RUIM: prototype_path por BASENAME é reprovado', !v.ok && v.erros.some((e) => /basename/.test(e)));
+
+  // ── DONO DA TELA (§9.3 da proposta 2026-09-24) ──
+  const dsOk = { path: DS_CANON + 'x.css', git_revision: 'a', content_hash: 'b', runtime_global: 'c', approved_by: 'd', approved_at: 'e' };
+  const telaBase = { id: 'Mod/Tela', prototype_path: 'prototipo-ui/cowork/Wagner/foo-page.jsx', git_revision: 'a', content_hash: 'b', accepted_by: 'Wagner', accepted_at: '2026-09-28' };
+  v = validarLock({ design_system: dsOk, screens: [telaBase] }, raizA);
+  t('DONO RUIM: tela travada SEM owner é reprovada', v.erros.some((e) => /\.owner ausente/.test(e)), `erros=${JSON.stringify(v.erros)}`);
+  v = validarLock({ design_system: dsOk, screens: [{ ...telaBase, owner: 'Felipe' }] }, raizA);
+  t('DONO RUIM: owner fora de W/F/M/L é reprovado', v.erros.some((e) => /não é um dono válido/.test(e)), `erros=${JSON.stringify(v.erros)}`);
+  v = validarLock({ design_system: dsOk, screens: [{ ...telaBase, owner: 'F' }] }, raizA);
+  t('DONO BOM: owner "F" não gera erro de dono', !v.erros.some((e) => /owner/.test(e)), `erros=${JSON.stringify(v.erros)}`);
+  const lockDono = { design_system: dsOk, screens: [{ ...telaBase, owner: 'M' }] };
+  t('DONO: donoDaTela acha o dono (case-insensitive)', donoDaTela(lockDono, 'mod/tela') === 'M');
+  t('DONO CONTROLE: tela não travada devolve null, não um dono inventado', donoDaTela(lockDono, 'Mod/Outra') === null);
+  t('DONO CONTROLE: lock ausente devolve null', donoDaTela(null, 'Mod/Tela') === null);
 
   // ── NÃO MEDI ≠ OK ──
   const vazio = mkdtempSync(join(tmpdir(), 'design-lock-e-'));
