@@ -46,7 +46,7 @@
         "req_sem_lane_total": 38,
         "behavior_known": false,
         "servido_total": 27,
-        "nao_servido_total": 74,
+        "nao_servido_total": 75,
         "servido_ledger": true,
         "anchor_stale_on": false,
         "anchor_stale_total": null,
@@ -254,10 +254,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 71,
+        "entries_aprovadas": 73,
         "max_error_rate_pct": 1.98,
-        "last_pr": 7367,
-        "last_lote": "gt-g5-lote-7367"
+        "last_pr": 8073,
+        "last_lote": "gt-g5-lote-8073"
       },
       "stream": "GT"
     }

@@ -28,7 +28,13 @@ O gestor vê o saldo de banco de horas consolidado por colaborador, com totais d
 
 ## Goals — Features (faz)
 - Lista paginada (30/pág) de saldos por colaborador, ordenada por saldo desc.
-- KPIs agregados: crédito total, débito total, nº de colaboradores com crédito, nº com débito.
+- KPIs agregados: crédito total e débito total (cada um com a contagem de colaboradores na sub-linha),
+  total de colaboradores no banco e multiplicadores de crédito/débito vigentes.
+  — `D-BH-KPI`, [W] 2026-09-14 (ATA-DECISOES-2026-09-14, bloco 4, linha 42): *"ficam os seus 4 …
+  o charter é o que está atrasado."* ⚠️ **Estado em 2026-09-28:** o `.tsx` ainda renderiza os 4
+  KPIs antigos (crédito total · débito total · nº com crédito · nº com débito, `Index.tsx:90-117`);
+  a contagem vai para a sub-linha e entram "total no banco" + "multiplicadores". Região no map:
+  `faixa-de-kpi` (`memory/requisitos/Ponto/banco-horas-index.map.json`).
 - Saldo formatado em horas:minutos, com cor por sinal (positivo/negativo).
 - Link "Movimentos" pro extrato do colaborador (`/ponto/banco-horas/{colaborador}`).
 
@@ -64,4 +70,6 @@ O gestor vê o saldo de banco de horas consolidado por colaborador, com totais d
 ## Pendências antes de `status: live`
 - [ ] Wagner aprova Non-Goals + Anti-hooks
 - [ ] Smoke visual 1280/1440 (screenshot)
-- [ ] Confirmar regra de expiração de crédito exibida ao usuário
+- [x] Regra de expiração/limite exibida ao usuário — DECIDIDO: vai no extrato (`BancoHoras/Show`),
+      como os KPIs "Teto do acordo" e "Prazo de compensação" (E3-bis da thread 27, `D-BH-KPI`,
+      ATA-DECISOES-2026-09-14 linha 42). Ver `Show.charter.md` §Goals — a construção está lá.

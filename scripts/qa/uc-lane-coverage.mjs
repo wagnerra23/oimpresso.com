@@ -220,6 +220,10 @@ export function citacoesEm(content) {
   // ── FORMATO 1: tabela de Rastreabilidade ─────────────────────────────────────────
   for (const linha of String(content).split('\n')) {
     if (!linha.trim().startsWith('|')) continue;
+    // Split cru. Em 2026-09-28 (PR #8082 aberto) foi comparado com `celulas()`, que respeita o
+    // pipe escapado (`\|`): 0 de 519 linhas de tabela com UC nos 179 `.casos.md` do corpus
+    // tinham escape, e as 1184 citações (tabela + bloco) saíram iguais. Lendo pelo fim, um
+    // escape na coluna Status corrompe status e teste; na coluna Teste, só o teste.
     const cols = linha.split('|').map((c) => c.trim());
     if (cols.length < 5) continue;
     const uc = (/\b(UC-[A-Z0-9-]+)\b/.exec(cols[1] || '') || [])[1];

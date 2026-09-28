@@ -44,6 +44,9 @@ O gestor vê todas as escalas (padrões de jornada) cadastradas — nome, códig
   item (*"a UI não expõe — confirmar com Wagner"*), que era **pergunta aberta** e foi respondida.
   A trava vive no servidor (`EscalaController@destroy` → `Escala::podeSerRemovida`); o botão é
   conveniência. Defendido por `UC-ESCIDX-03` (UI) e `UC-ESCIDX-04` (servidor).
+  A confirmação de remover usa o diálogo do DS, nunca `window.confirm` (R3 da ata: *"`window.confirm`
+  não era pergunta"*, ATA-DECISOES-2026-09-14 linha 24). Região no map: `remover-escala`
+  (`memory/requisitos/Ponto/escalas-index.map.json`).
 
 ---
 
@@ -66,4 +69,6 @@ O gestor vê todas as escalas (padrões de jornada) cadastradas — nome, códig
 ## Pendências antes de `status: live`
 - [ ] Wagner aprova Non-Goals + Anti-hooks
 - [ ] Smoke visual 1280/1440 (screenshot)
-- [ ] Definir se exclusão de escala (destroy) entra na UI e com quais guardas
+- [x] Definir se exclusão de escala (destroy) entra na UI e com quais guardas — DECIDIDO por [W]
+      2026-09-14 (`D-ESC-DESTROY`, ATA-DECISOES-2026-09-14 linha 24): entra, indisponível com vínculo e
+      com o motivo escrito. Ver o Non-Goal acima.
