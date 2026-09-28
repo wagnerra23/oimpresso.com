@@ -25,6 +25,7 @@ last_run: "2026-09-25"
 | UC-CONF-06 | NSR sai "não medido", nunca zero | must | ConformidadeContratoTest | 🧪 |
 | UC-CONF-07 | Somente leitura | must | ConformidadeContratoTest | 🧪 |
 | UC-CONF-08 | A tela abre pela rota com o painel deferido | must | ConformidadeContratoTest | 🧪 |
+| UC-CONF-09 | Sem dado, a nota explica por quê | must | ConformidadeContratoTest | 🧪 |
 
 ---
 
@@ -56,10 +57,16 @@ last_run: "2026-09-25"
 - **Aceite:** Dado usuário com `ponto.access` · Quando GET `/ponto/conformidade?mes=AAAA-MM` · Então renderiza `Ponto/Conformidade` com `mes` e, no partial reload, `painel` com as 6 verificações.
 - **Status: 🧪**
 
+## UC-CONF-09 · Sem dado, a nota explica por quê · `must`
+- **Fonte:** charter do protótipo (`prototipo-ui/cowork/Wagner/resources/js/Pages/Ponto/Conformidade.charter.md`) — *"Nenhum número inventado: sem dado, empty state que explica por quê"*. Achado do smoke em prod biz=1 de 2026-09-26: com 0 colaboradores controlados a nota dizia "Nenhuma violação apurada", lida como competência limpa.
+- **Aceite:** Dado 0 colaboradores com ponto controlado · Quando o painel abre · Então `cobertura.estado = sem_colaboradores` e a nota diz "Nenhum colaborador com controle de ponto". Dado colaborador controlado e nenhum dia apurado na competência · Então `sem_apuracao`, a nota diz "Competência sem apuração" e os KPIs da apuração saem "—". Dado ≥1 dia apurado sem violação · Então `apurado` e a nota "Nenhuma violação apurada" volta a valer. Desligado antes da competência e colaborador sem controle de ponto não contam.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id)
 
 - **[BACKLOG]** Contagem casa com o Fechamento (UC-CONF-03 do protótipo): dado N violações duras, a pré-checagem do Fechamento usa o mesmo N — chamando `ConformidadeService`, não recontando. Entra com id quando a thread 04 existir.
 - **[BACKLOG]** Item "Conformidade CLT" no menu do Ponto leva à tela (alcance).
 
 ## Trilha do tempo
+- 2026-09-28 · UC-CONF-09 — cobertura da competência (colaboradores controlados · dias apurados) distingue os 3 estados da nota. Refs: US-PONTO-016.
 - 2026-09-25 · [CL] thread 05 — trio a partir do `criar-tela.mjs` + casos do protótipo. Refs: ADR 0413 D0 · US-PONTO-016.
