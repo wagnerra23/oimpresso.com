@@ -5,7 +5,7 @@ irmaos: Reps.charter.md (lei) · Index.casos.md (a tela irmã) · RUNBOOK-config
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o identificador do REP é o que amarra cada marcação ao dispositivo que a gerou — é o campo que a fiscalização cruza, e um REP cadastrado errado contamina todo AFD gerado depois.
 owner: wagner
-last_run: "2026-09-08"
+last_run: "2026-09-28"
 last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
