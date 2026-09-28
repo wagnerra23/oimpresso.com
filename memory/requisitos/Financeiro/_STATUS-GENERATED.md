@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 60 |
 | CU no SDD | 16 |
-| Telas (.tsx) | 21 |
-| Telas com `casos.md` | 21 |
-| UC declarados | 118 |
-| UC com teste que os cita | 101 |
+| Telas (.tsx) | 20 |
+| Telas com `casos.md` | 20 |
+| UC declarados | 112 |
+| UC com teste que os cita | 95 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -210,12 +210,6 @@ authority: generated
 | UC-IMP-10 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-11 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-NOV-01 | Unificado/Novo | 📝 sem_teste |
-| UC-PV-01 | ProvaViva | 🧪 aguarda veredito da lane |
-| UC-PV-02 | ProvaViva | 🧪 aguarda veredito da lane |
-| UC-PV-03 | ProvaViva | 🧪 aguarda veredito da lane |
-| UC-PV-04 | ProvaViva | 🧪 aguarda veredito da lane |
-| UC-PV-05 | ProvaViva | 🧪 aguarda veredito da lane |
-| UC-PV-06 | ProvaViva | 🧪 aguarda veredito da lane |
 | UC-REL-01 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-REL-02 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-REL-03 | Relatorios/Index | 🧪 aguarda veredito da lane |

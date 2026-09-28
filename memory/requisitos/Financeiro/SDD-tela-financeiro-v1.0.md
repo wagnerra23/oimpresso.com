@@ -101,7 +101,7 @@ A família é **radial**: a Visão Unificada é o hub; as demais são satélites
 | `Dre/Index` · `Fluxo/Index` · `Relatorios/Index` · `Impostos/Index` | relatórios | leitura/derivação | só Impostos tem UC |
 | `Cobranca/Index` · `ContasBancarias/Index` · `Categorias/Index` · `PlanoContas/Index` · `Configuracoes/Contador` | cadastros/apoio | — | sem `casos.md` |
 | `Advisor/{Login,Dashboard}` | portal contador | acesso externo (US-FIN-037) | sem `casos.md` |
-| `AssinaturaAtualizar` · `ProvaViva` · `Dashboard/Index` | apoio / dormente | `Dashboard` é 301→Unificado | `ProvaViva` tem UC |
+| `AssinaturaAtualizar` · `Dashboard/Index` | apoio / dormente | `Dashboard` é 301→Unificado | `ProvaViva` removida em 2026-09-28 (decisão [W]) |
 
 ### 1.2 O eixo de valor (o que não pode quebrar)
 
