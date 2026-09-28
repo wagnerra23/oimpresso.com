@@ -66,6 +66,15 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 - `[BACKLOG]` A busca por nome usa só `first_name`; sobrenome (`last_name`) não entra. Quem procura
   "Silva" não acha ninguém. Não virou UC porque o charter diz "busca por matrícula, nome ou CPF" sem
   definir o que é "nome" — é ambiguidade de contrato, e inventar a resposta seria pior que registrar.
+- `[BACKLOG]` **Achar quem não pode bater ponto por falta de PIS** (`D-COLAB-COLUNAS`, [W] 2026-09-14,
+  ata bloco 4 linha 39; emenda E1 da thread 27, no charter pelo #8095). Aceite proposto: dado que
+  existem colaboradores sem PIS cadastrado, quando o gestor escolhe a situação "Sem PIS cadastrado",
+  então a lista mostra só esses, com o aviso "PIS não cadastrado" na célula de CPF/PIS, e o gestor
+  descobre isso **antes** de a importação do AFD rejeitar a marcação. [W]: *"o item de maior valor do
+  lote inteiro"*. **Não é UC ainda:** em 2026-09-28 o `Index.tsx` só tem o filtro de busca; não há
+  filtro de situação. Vira UC (próximo id `UC-COLIDX-04`; a thread o chamou de `UC-PONT-COL-06`) no
+  PR que construir o filtro, junto do teste que o cita. Pelo `[T0]`, esse teste precisa provar que
+  o filtro não traz colaborador sem PIS de outro empregador.
 
 ---
 
@@ -145,3 +154,10 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   o operador não percebe. O caso compara os **dois** totais — com e sem busca — porque afirmar só
   "veio vazio" passaria também num cenário em que a lista está vazia por outro motivo.
 - **Status: 🧪 verde no CT 100, sem veredito de lane.**
+
+## Trilha do tempo
+- 2026-09-28 · [CL] revalidado (bump `last_run`, thread 27): a tela mudou pela última vez em
+  2026-09-15 (redação de CPF/PIS, no mesmo commit destes casos, `UC-COLIDX-03`) e o `last_run`
+  ficou em 09-08. Conferido contra o `Index.tsx` do `main`: 1 filtro (Busca) e as colunas
+  Matrícula, Nome, CPF/PIS, Escala, Ponto e BH. Nesta data entra o `[BACKLOG]` do filtro "Sem PIS
+  cadastrado". O bump afirma "trio reconciliado com a tela nesta data", não "testes rodados".
