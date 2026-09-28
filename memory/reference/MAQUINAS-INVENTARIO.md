@@ -31,7 +31,7 @@ lifecycle: ativo
 | `acessos-pest.yml` | pr+push+manual | `memory/decisions/proposals/2026-09-08-lane-modules-pest-sem-mysql.md` +4 | Acessos · Pest (MySQL) |
 | `adr-index-gate.yml` | pr+manual | `memory/08-handoff.md` +3 | ADR Index Gate — ADR 0258 |
 | `adr-lint.yml` | pr+push | `memory/decisions/0063-prevenir-composer-lock-drift.md` +16 | ADR frontmatter lint |
-| `agent-cost-per-pr.yml` | cron+manual | `memory/proibicoes.md` +12 | Agent cost per PR (advisory · custo USD estimado por PR do agente · unidade = SESSÃO do JSONL local atribuída por branch==headRefName ou citação /pull/N · cobertura de AL… |
+| `agent-cost-per-pr.yml` | cron+manual | `memory/proibicoes.md` +11 | Agent cost per PR (advisory · custo USD estimado por PR do agente · unidade = SESSÃO do JSONL local atribuída por branch==headRefName ou citação /pull/N · cobertura de AL… |
 | `agent-pr-outcomes.yml` | cron+manual | `memory/08-handoff.md` +2 | Agent PR outcomes (advisory · DORA dos PRs do agente · change-failure-rate + accept-rate + time-to-merge via gh pr list · weekly schedule + dispatch · card #0 grade-das-r… |
 | `anchor-content-required.yml` | pr+push | `memory/decisions/0327-anchor-content-required-emenda-0314.md` +3 | Ancora de design nao-shell — REQUIRED (F2/F6 revisão adversarial 2026-07-08: related_prototype do charter != shell/fantasma; anchor-content-check --check hard-fail; emend… |
 | `anchor-drift.yml` | pr+cron+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +21 | Anchor Drift — lint spec↔código ADR 0273 + entry/covers (0303) + doneness (0302) + charter status:live, diff-aware no PR e full-tree no cron semanal (SA-A2/A3). Enforceme… |
@@ -102,7 +102,7 @@ lifecycle: ativo
 | `governance-filtros-gate.yml` | pr+push+manual | (só sessão/handoff · 1) | Governance filtros gate — os 4 itens de front dos GAP-SPEC de 2026-09-06 (Audit "Limpar filtros"; Policies busca local + aviso "Alternar não deixa rastro"; ModuleGrades "… |
 | `governance-gate-umbrella.yml` | pr+manual | `memory/requisitos/_Governanca/roadmap/P10-sa-a5-a6-batches-ia-fila-wagner.md` +17 | Governance Gate (umbrella) |
 | `governance-gate.yml` | pr | `memory/decisions/0147-cascade-review-defesa-drift-time-mcp.md` +57 | Governance Gate (pre-merge) |
-| `governance-script-tests.yml` | pr+manual | `memory/decisions/0315-design-sync-claude-design-vs-cowork-charter.md` +64 | Governance script tests (advisory · scripts/governance/*.test.mjs — Onda 1; inclui agent-corpus-counterfactual.test.mjs, chip C1 da grade 2026-07-17: prova por Monte Carl… |
+| `governance-script-tests.yml` | pr+manual | `memory/decisions/0315-design-sync-claude-design-vs-cowork-charter.md` +64 | Governance script tests (advisory · scripts/governance/*.test.mjs — Onda 1) |
 | `guards-meta-gate.yml` | pr+push+manual | `memory/reference/FLUXO-DESIGN.md` +1 | Guards meta-gate (vitest · casos + domínio · funde casos-meta + dominio-meta) |
 | `handoff-integrity.yml` | pr+push+manual | `memory/decisions/0400-handoff-integrity-required-emenda-0314.md` +10 | Handoff Integrity (advisory · fila ↔ prompts) |
 | `handoff-scope-guard.yml` | pr+manual | `memory/proibicoes.md` +5 | Handoff Scope Guard (files_json · escopo duro do handoff de design, ADR 0283 Fase 0) |
@@ -559,16 +559,15 @@ lifecycle: ativo
 | `ancora-adversario.eval.mjs` | ci | 🟢 só lê | — | — | o ADVERSÁRIO PERMANENTE do guarda de âncora. |
 | `design-source-of-truth.eval.mjs` | ci | 🟢 só lê | — | `memory/decisions/0299-figma-nao-e-fonte-de-design.md` | baseline ARMADO do enforcement "Figma não é fonte" (camada L5). |
 
-### 5.11 `scripts/governance/` — 119
+### 5.11 `scripts/governance/` — 118
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
 | `adr-index-generate.mjs` | agente, ci, script | 🔴 disco | test | `memory/decisions/0317-maquina-revisao-adr-quando-rever-gatilhos.md` +33 | GERADOR determinístico do índice de ADR (modelo Log4brains). |
 | `adr-proposto-parado.mjs` | ci, script | 🟢 só lê | — | `memory/decisions/0378-execucao-mcp-jana-para-forja-ondas.md` +7 | sentinela: decisão PENDENTE que ninguém vê acaba não sendo feita. |
 | `adr-supersede.mjs` | npm | 🔴 disco | — | `memory/decisions/0364-trio-de-tela-mora-em-memory-emenda-0264.md` +6 | supersessão ATÔMICA de ADR (modelo adr-tools/pyadr, ADR 0258). |
-| `agent-corpus-counterfactual.mjs` | agente | 🟢 só lê | test | `memory/requisitos/Governance/SPEC.md` +9 | QUANTO CUSTA descobrir se o corpus ajuda? |
-| `agent-cost-per-pr.mjs` | agente, ci, script | 🔴 disco | test | `memory/proibicoes.md` +20 | CUSTO ESTIMADO POR PR do agente (USD/tokens · advisory). |
-| `agent-pr-outcomes.mjs` | agente, ci, script | 🟢 só lê | test | `memory/requisitos/Brief/BRIEFING.md` +7 | EVALS DE OUTCOME dos PRs do agente (DORA-style). |
+| `agent-cost-per-pr.mjs` | agente, ci, script | 🔴 disco | test | `memory/proibicoes.md` +19 | CUSTO ESTIMADO POR PR do agente (USD/tokens · advisory). |
+| `agent-pr-outcomes.mjs` | agente, ci, script | 🟢 só lê | test | `memory/requisitos/Brief/BRIEFING.md` +8 | EVALS DE OUTCOME dos PRs do agente (DORA-style). |
 | `agents-md-staleness.mjs` | ci, script | 🟢 só lê | — | `memory/decisions/proposals/2026-07-23-sentinelas-staleness-prontidao-required.md` +3 | sentinela: o AGENTS.md ficou atrás do CLAUDE.md? |
 | `anchor-content-check.mjs` | agente, ci, script | 🟢 só lê | test | `memory/decisions/0327-anchor-content-required-emenda-0314.md` +32 | sentinela de CONTEÚDO da âncora de design. |
 | `anchor-lint.mjs` | agente, ci, script | 🟢 só lê | selftest | `memory/decisions/0303-anchor-lint-wired-testado-sa-a2-bis.md` +130 | parser da gramática anchor spec↔código (ADR 0273 · passo SA-A2 |

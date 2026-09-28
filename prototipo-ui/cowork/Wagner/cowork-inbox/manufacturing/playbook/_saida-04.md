@@ -52,7 +52,7 @@ módulo; nenhum deles foi tocado.
 | `npx tsc --noEmit` | 306 erros **pré-existentes** no repo, **0** em `Manufacturing/Index.tsx` ou no spec — o "exit 0" pedido não é atingível pelo repo hoje |
 | `casos-coverage-guard` | sem violação nova; nada de Manufacturing na lista |
 | `memory-health` | 0 fail (registry Check G ok) |
-| runtime em prod biz=1 | **pendente** — só depois do merge (LC-30). Checar no DOM: escolher De+Até recarrega sem clicar; ano pela metade não gera request; apagar os dois volta a lista; Local e "Só finalizadas" seguem funcionando |
+| runtime em prod biz=1 | **feito 2026-09-28**, deploy com `fd28cf64f` concluído, WR2 Sistemas, medido no DOM e em XHR, sem gravar nada. Cabeçalho canon renderiza (h1 22px/600, sem ícone, primário `oklch(0.55 0.15 295)`, sem lupa). Só o De, ou Até com `0002-`/`0020-`/`0202-09-30` → **0** requisições; Até `2026-09-30` → **1**, `X-Inertia-Partial-Data: productions,summary,filters`. Apagar só o De → 0; apagar os dois → 1, lista volta às 2 ordens. Intervalo 2020–2030 → 1, 2 linhas. Controle "Só finalizadas" → 1, `?is_final=1`, 1 linha |
 
 ## 4b · Header canon (exigido pelo gate required, ADR 0409)
 

@@ -38,8 +38,12 @@ class ConformidadeService
         'sem_pis'        => ['Colaborador ativo sem PIS', null, 'warn'],
     ];
 
+    public const ESTADO_SEM_COLABORADORES = 'sem_colaboradores';
+    public const ESTADO_SEM_APURACAO = 'sem_apuracao';
+    public const ESTADO_APURADO = 'apurado';
+
     /**
-     * @return array{mes:string, verificacoes:array<int,array<string,mixed>>, casos:array<string,array<int,array<string,mixed>>>}
+     * @return array{mes:string, verificacoes:array<int,array<string,mixed>>, casos:array<string,array<int,array<string,mixed>>>, cobertura:array{colaboradores:int, dias_apurados:int, estado:string}}
      */
     public function competencia(int $businessId, string $mes): array
     {
@@ -106,7 +110,41 @@ class ConformidadeService
             ];
         }
 
-        return ['mes' => $mes, 'verificacoes' => $verificacoes, 'casos' => $casos];
+        return [
+            'mes'          => $mes,
+            'verificacoes' => $verificacoes,
+            'casos'        => $casos,
+            'cobertura'    => $this->cobertura($colabs, $dias, $inicio),
+        ];
+    }
+
+    /**
+     * Quanto da competência foi de fato apurado — sem isto, "0 violações" não distingue
+     * "competência limpa" de "nada foi medido" (charter do protótipo: "sem dado, empty state
+     * que explica por quê"; UC-CONF-09).
+     *
+     * Não faz query nova: conta sobre as duas coleções já carregadas com `business_id`
+     * explícito acima (Tier 0, ADR 0093).
+     *
+     * @param  \Illuminate\Support\Collection<int,Colaborador>  $colabs
+     * @param  \Illuminate\Support\Collection<int,ApuracaoDia>  $dias
+     * @return array{colaboradores:int, dias_apurados:int, estado:string}
+     */
+    private function cobertura($colabs, $dias, Carbon $inicio): array
+    {
+        $colaboradores = $colabs->filter(fn (Colaborador $c) => $c->controla_ponto
+            && ($c->desligamento === null || Carbon::parse($c->desligamento)->gte($inicio)))->count();
+
+        $diasApurados = $dias->filter(fn (ApuracaoDia $d) => $colabs->has($d->colaborador_config_id))
+            ->map(fn (ApuracaoDia $d) => $d->data->toDateString())
+            ->unique()
+            ->count();
+
+        $estado = $colaboradores === 0
+            ? self::ESTADO_SEM_COLABORADORES
+            : ($diasApurados === 0 ? self::ESTADO_SEM_APURACAO : self::ESTADO_APURADO);
+
+        return ['colaboradores' => $colaboradores, 'dias_apurados' => $diasApurados, 'estado' => $estado];
     }
 
     private function caso(Colaborador $c, ?string $dia, string $apurado, string $limite, string $detalhe): array

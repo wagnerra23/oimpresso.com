@@ -73,6 +73,9 @@ jobs:
       - name: 'BRL scan · contrato de execucao (bite: base invalida MORDE, range limpo LIBERA, vazio declara nao-medicao; mutante sem pipefail volta a ficar mudo)'
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/brl-scan-workflow.test.mjs
+      - name: 'visual-regression · Lint L2 reprova no fim e a cadeia segue (bite: lint real morde · mutante sem continue-on-error volta a pular)'
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/visreg-l2-cadeia.test.mjs
 
       - name: Retorno Code -> Design §10.2 (3 canais · advisory + bite/release)
         if: always() && steps.setup.outcome == 'success'
@@ -331,19 +334,12 @@ jobs:
       - name: funcao-scorecard outcome-probe (estatística da correlação nota↔outcome · barra CodeScene)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/funcao-scorecard-outcome-probe.test.mjs
-      # Aritmetica de viabilidade do contrafactual de corpus (chip C1 da grade 2026-07-17 ·
-      # fraqueza F1 "corpus nunca medido" 3/10). O harness de 3 arms foi PODADO em
-      # 2026-07-17 (autorizado [W]: zero invocador + experimento nao autorizado, ADR
-      # 0105/0334) -- sobrou a aritmetica que responde "quantas rodadas pra ver delta?",
-      # que foi o que matou a versao cara do chip.
-      # O selftest SIMULA (Monte Carlo deterministico, semente fixa, ~170ms) em vez de
-      # conferir a formula contra si mesma: prova que nNeededFor CUMPRE os 80% de poder
-      # que promete, e que o decisor nao grita vencedor sob H0 nem em n=5. Formula que
-      # mentisse SUBESTIMARIA o custo do experimento -- o numero que [W] usa pra decidir.
-      # Deterministico de proposito: nao flaka. Advisory por desenho.
-      - name: Agent corpus counterfactual (aritmética de viabilidade · poder por Monte Carlo determinístico · chip C1 grade 2026-07-17)
+      # Guarda da poda de 2026-09-28 (US-GOV-056 · b1): o contrafactual de corpus segue
+      # aposentado. Falha se os arquivos removidos voltarem ou se código/config voltar a
+      # importá-los. Tem controle positivo do casador. Advisory por desenho.
+      - name: Contrafactual de corpus segue aposentado (US-GOV-056)
         if: always() && steps.setup.outcome == 'success'
-        run: node scripts/governance/agent-corpus-counterfactual.test.mjs
+        run: node scripts/governance/corpus-counterfactual-aposentado.test.mjs
       # Braço CROSS-MODEL da grade de réguas (fraqueza "verificação same-model" 5,0 · orquestracao-adversarial).
       # Testa SÓ a lógica pura (classificarDivergencia/resumoControleNegativo/seleção/prompt-blind) — a
       # direção da divergência é o que o arm existe pra pegar; fixtures boa/ruim mordem (DERRUBA) e liberam
@@ -1089,8 +1085,9 @@ jobs:
       #   PORTA npm, NÃO CI (CLI sob-demanda por design — invocador em CI seria ERRADO):
       #     adr-supersede (transacional do autor da ADR) · doc-id-stamp (stamper de um PR
       #     nomeado) · funcao-scorecard-humano (fecha rodada humana) · resolver-reclamacao
-      #     (recebe pergunta em NL) · agent-corpus-counterfactual (calculadora; o
-      #     experimento que ela ia servir foi podado em 07-17 por [W])
+      #     (recebe pergunta em NL). agent-corpus-counterfactual saiu desta lista:
+      #     aposentado em 2026-09-28 por [W] (US-GOV-056), junto com o scaffold
+      #     de experimento que o importava.
       #   PORTA npm, NÃO CI (corpus não existe no runner — ligar aqui seria gate MUDO):
       #     hook-replay — lê `~/.claude/projects` (transcript real). É a lição do
       #     `modulo-preflight-warning`: fixture irreal engana, e job que não pode falhar

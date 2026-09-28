@@ -28,9 +28,9 @@
         "by_state": {
           "sem_campo": 146,
           "placeholder": 1,
-          "pendente": 439,
+          "pendente": 438,
           "parcial": 120,
-          "anchored_ok": 343,
+          "anchored_ok": 344,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
@@ -43,7 +43,7 @@
         "req_sem_aceite_total": 239,
         "req_sem_covering_test_total": 342,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 37,
+        "req_sem_lane_total": 38,
         "behavior_known": false,
         "servido_total": 27,
         "nao_servido_total": 74,
@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 278,
+      "value": 284,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "4d7476edb054e4e6",
+        "floor_files_hash": "5dc822b113c04a49",
         "runs": [
-          {
-            "sha": "2e3f8adb",
-            "ts": "20260925-020001",
-            "failed": 483,
-            "errors": 360,
-            "skipped": 2288,
-            "all_shards_measured": true
-          },
           {
             "sha": "e426a909",
             "ts": "20260926-020001",
@@ -93,15 +85,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "ae08fd55",
             "ts": "20260927-020001",
             "failed": 478,
             "errors": 335,
             "skipped": 2300,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260928-020001",
+            "failed": 484,
+            "errors": 341,
+            "skipped": 2289,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260927-020001",
+        "computed_at": "20260928-020001",
         "intersection_of": 3
       },
       "stream": "FV"

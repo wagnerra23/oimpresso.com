@@ -118,5 +118,8 @@ if [ "$RUNTIME_CHANGED" = "false" ]; then
   echo "→ nada de runtime desde ${BASE}: SYNC LEVE (site NÃO sai do ar)"
 else
   echo "→ DEPLOY COMPLETO (maintenance + migrate). Arquivos que decidiram:"
-  printf '%s\n' "${SOBRA:-<sem base medida>}" | sort -u | head -20
+  # `awk` e não `head`: o head fecha o pipe na 20ª linha e, com a lista acima de ~64 KiB
+  # (base de deploy atrasada), o `sort` morre de SIGPIPE — com pipefail esse rc virava o
+  # exit do script e derrubava o deploy (2026-09-28, runs 36420588958/36420787478).
+  printf '%s\n' "${SOBRA:-<sem base medida>}" | sort -u | awk 'NR <= 20'
 fi

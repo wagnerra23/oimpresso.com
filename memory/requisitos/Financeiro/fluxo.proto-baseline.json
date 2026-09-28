@@ -6,7 +6,7 @@
  "ancora": "prototipo-ui/cowork/Wagner/financeiro-telas-extras.jsx",
  "prototipo_sha": "4f51a9ec781962b72744cc93c8a1e28d60d346ae",
  "shell": ".",
- "gerado_em": "2026-09-25T19:18:33.760Z",
+ "gerado_em": "2026-09-28T11:01:43.174Z",
  "celulas": {
   "1280|light": {
    "tema": "light",
@@ -11083,5 +11083,5 @@
    ]
   }
  },
- "render_sha256": "15560e302ea866d376e34486f05386d071028f381eca40b811268c1b024403e4"
+ "render_sha256": "21e2f77df68ced5c75275754ae1182bd38352d43d7d2d6da12a8aacfab02b43b"
 }

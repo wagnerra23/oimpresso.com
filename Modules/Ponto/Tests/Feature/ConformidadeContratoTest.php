@@ -192,4 +192,42 @@ it('UC-CONF-08 · A tela abre pela rota com o painel deferido', function () {
     $parcial->assertStatus(200);
     $ids = collect($parcial->json('props.painel.verificacoes'))->pluck('id')->all();
     $this->assertSame(['jornada_aberta', 'interjornada', 'intrajornada', 'he', 'nsr', 'sem_pis'], $ids);
+    $this->assertSame(
+        ['colaboradores', 'dias_apurados', 'estado'],
+        array_keys($parcial->json('props.painel.cobertura')),
+        'A Page decide a nota pela cobertura — ela tem de chegar no partial reload (UC-CONF-09).'
+    );
+});
+
+it('UC-CONF-09 · Sem dado, a nota explica por quê — sem colaborador, sem apuração, apurado', function () {
+    $biz = confPreparar();
+    $svc = app(ConformidadeService::class);
+
+    // 1) Tenant sem nenhum colaborador: id que não existe em tabela alguma — o service só
+    // agrega por business_id, e isso garante zero sem depender do seed do tenant 98.
+    $vazio = (int) DB::table('business')->max('id') + 1000;
+    $cob = $svc->competencia($vazio, CONF_MES)['cobertura'];
+    $this->assertSame(
+        ['colaboradores' => 0, 'dias_apurados' => 0, 'estado' => ConformidadeService::ESTADO_SEM_COLABORADORES],
+        $cob,
+        'Sem colaborador controlado a competência não é "limpa" — é "sem quem apurar".'
+    );
+
+    // 2) Só conta quem tem ponto controlado e não foi desligado antes da competência (delta,
+    // para não depender de quantos colaboradores o seed já deixou no tenant 98).
+    $antes = $svc->competencia($biz, CONF_MES)['cobertura']['colaboradores'];
+    $c = confColaborador($biz);
+    confColaborador($biz, ['controla_ponto' => false]);
+    confColaborador($biz, ['desligamento' => '2019-04-30']);
+    $cob = $svc->competencia($biz, CONF_MES)['cobertura'];
+    $this->assertSame($antes + 1, $cob['colaboradores'], 'Só o controlado e ativo na competência conta.');
+    $this->assertSame(0, $cob['dias_apurados'], 'Pré-condição: mês sintético sem apuração.');
+    $this->assertSame(ConformidadeService::ESTADO_SEM_APURACAO, $cob['estado']);
+
+    // 3) Um dia apurado, sem violação: agora sim "nenhuma violação" é afirmação medida.
+    confDia($c, '06', ['realizada_trabalhada_minutos' => 480, 'realizada_intrajornada_minutos' => 60]);
+    $p = $svc->competencia($biz, CONF_MES);
+    $this->assertSame(1, $p['cobertura']['dias_apurados']);
+    $this->assertSame(ConformidadeService::ESTADO_APURADO, $p['cobertura']['estado']);
+    $this->assertSame(0, confVerificacao($p, 'intrajornada')['total'], 'Controle: o dia apurado não gerou violação.');
 });

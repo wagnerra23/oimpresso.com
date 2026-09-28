@@ -45,6 +45,14 @@ git('mv', 'app/Models/X.php', 'docs/X.php');
 git('commit', '-q', '-m', 'rename runtime → docs');
 const aposRename = git('rev-parse', 'HEAD');
 
+// Muitos arquivos de runtime (base de deploy atrasada = o caso de 2026-09-28): a lista
+// "Arquivos que decidiram" passa do buffer do pipe (64 KiB) e o `head -20` fecha a
+// leitura antes do `sort` terminar de escrever — com pipefail isso virava o exit do script.
+const muitos = {};
+for (let i = 0; i < 1500; i++) muitos[`app/Gerado/${'Arquivo'.repeat(8)}${String(i).padStart(4, '0')}.php`] = `<?php // ${i}`;
+const baseMuitos = git('rev-parse', 'HEAD');
+const aposMuitos = commit('muitos arquivos de runtime', muitos);
+
 // gh falso. Cada linha do fixture: "<id> <sha> <conclusion>". Honra o filtro de
 // conclusion SÓ se o script pedir `select(.conclusion=="success")` no --jq — assim a
 // mutação que tira o filtro faz o run cancelado virar base (e o BITE morde).
@@ -96,6 +104,8 @@ const CASOS = [
   ['nenhum sucesso ancestral ⇒ fail-closed', 'true', { sha: soDocs2, runs: [['9', aposRename, 'success']] }],
   ['workflow_dispatch ⇒ completo', 'true', { sha: soDocs2, event: 'workflow_dispatch', runs: [['3', soDocs, 'success']] }],
   ['o próprio run não serve de base', 'true', { sha: soDocs2, runId: '7', runs: [['7', soDocs2, 'success'], ['1', base0, 'success']] }],
+  ['LISTA LONGA: >64 KiB de arquivos que decidiram ⇒ completo com rc=0 (SIGPIPE)', 'true',
+    { sha: aposMuitos, runs: [['6', baseMuitos, 'success']] }],
 ];
 
 let fails = 0;
@@ -122,10 +132,19 @@ try {
     ['BITE: sem --no-renames (rename esconde a remoção)', ORIGINAL.replace('git log --no-renames ', 'git log '), 'rename'],
     ['BITE: fallback vira sync leve', ORIGINAL.replace('RUNTIME_CHANGED=true\nSOBRA=""', 'RUNTIME_CHANGED=false\nSOBRA=""'), 'gh falhou'],
     ['BITE: o próprio run vira base', ORIGINAL.replace('[ -n "$RUN_ID" ] && [ "$ID" = "$RUN_ID" ] && continue', ':'), 'próprio run'],
+    ['BITE: head -20 volta a truncar o pipe (SIGPIPE derruba o deploy)',
+      ORIGINAL.replace("sort -u | awk 'NR <= 20'", 'sort -u | head -20'), 'LISTA LONGA'],
     ['BITE: filtra status no servidor (índice atrasado)', ORIGINAL.replace('--event push --limit 100', '--event push --status success --limit 100'), 'CONTROLE'],
   ];
   for (const [nome, texto, alvo] of mutantes) {
     if (texto === ORIGINAL) { check(nome, false, 'mutação não aplicou — âncora sumiu do script'); continue; }
+    // O SIGPIPE só se manifesta como no runner (ubuntu) em Linux: no Git Bash/MSYS o
+    // `sort` não morre quando o `head` fecha o pipe, então a mutação não tem como morder
+    // aqui. Declarado, não contado — a lane governance-script-tests roda em Linux.
+    if (alvo === 'LISTA LONGA' && process.platform === 'win32') {
+      console.log(`⊘ ${nome}  não mensurável no Windows (SIGPIPE do MSYS) — medido na lane Linux`);
+      continue;
+    }
     const mut = join(sandbox, 'mutante.sh');
     writeFileSync(mut, texto);
     const caiu = bateria(mut).filter((c) => !c.ok).map((c) => c.nome);
@@ -140,5 +159,5 @@ try {
   rmSync(sandbox, { recursive: true, force: true });
 }
 
-console.log(fails ? `\n${fails} falha(s)` : '\nOK — classificação por último deploy bem-sucedido: RELEASE + controles + 6 mutações que mordem.');
+console.log(fails ? `\n${fails} falha(s)` : '\nOK — classificação por último deploy bem-sucedido: RELEASE + controles + lista longa + 7 mutações que mordem.');
 process.exit(fails ? 1 : 0);
