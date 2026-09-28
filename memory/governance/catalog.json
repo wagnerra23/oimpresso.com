@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 727,
-    "edges": 1017,
+    "nodes": 729,
+    "edges": 1018,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 127,
+      "adr": 129,
       "component": 385,
       "api": 74
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 108,
       "migratesTo": 1,
       "supersedes": 24,
-      "supersedesPartially": 59,
+      "supersedesPartially": 60,
       "supersededBy": 28
     },
     "dangling": 0
@@ -664,6 +664,13 @@
       "exists": true
     },
     {
+      "id": "adr:0253",
+      "type": "adr",
+      "num": "0253",
+      "slug": "0253-primitivos-layout",
+      "exists": true
+    },
+    {
       "id": "adr:0256",
       "type": "adr",
       "num": "0256",
@@ -941,6 +948,13 @@
       "type": "adr",
       "num": "0416",
       "slug": "0416-pii-redactor-arquivado-emenda-0224",
+      "exists": true
+    },
+    {
+      "id": "adr:0417",
+      "type": "adr",
+      "num": "0417",
+      "slug": "0417-aposenta-tela-piloto-0253",
       "exists": true
     },
     {
@@ -6542,6 +6556,12 @@
     {
       "from": "adr:0416",
       "to": "adr:0224",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0417",
+      "to": "adr:0253",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },
