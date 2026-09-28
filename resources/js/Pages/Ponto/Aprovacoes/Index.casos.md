@@ -29,6 +29,7 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-PAPR-02 | Aprovação em lote não decide fora do meu empregador | must `[T0]` | `CU-PONTO-07` + ADR 0093 | `JornadaWorkflowContratoTest` | ✅ verde na lane |
 | UC-PAPR-03 | A fila abre no que está pendente | should | `CU-PONTO-06` + charter | `JornadaWorkflowContratoTest` | ✅ verde na lane |
 | UC-PAPR-04 | Urgente sobe na fila | should | `CU-PONTO-06` + F5 | `JornadaWorkflowContratoTest` | ✅ verde na lane |
+| UC-PAPR-05 | Aprovação em lote confirma no diálogo do DS antes de enviar | must | `CU-PONTO-07` + ata Ponto 2026-09-14 (R3) | `ponto-aprovacoes-lote-dialogo.test.tsx` | 🧪 teste cita o UC, sem veredito |
 
 **[BACKLOG]:**
 
@@ -104,3 +105,25 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   Qualquer refactor de portabilidade (ou troca por `orderBy('prioridade')`, que ordenaria **alfabeticamente**
   — `NORMAL` antes de `URGENTE`) inverte a fila silenciosamente.
 - **Status: 🧪 sem veredito.**
+
+---
+
+## UC-PAPR-05 · Aprovação em lote confirma no diálogo do DS antes de enviar · `must`
+
+- **Persona:** gestor de RH limpando a fila de pendentes. Aprovar em lote decide várias jornadas de
+  uma vez; a pergunta precisa dizer quantas, e o envio não pode sair duas vezes.
+- **Aceite:** Dadas duas intercorrências pendentes selecionadas · Quando clico em "Aprovar
+  selecionadas" · Então abre o diálogo do DS com a contagem ("2 intercorrências selecionadas") e o
+  botão **"Aprovar 2"**, e nada foi enviado ainda. Quando confirmo · Então sai **um**
+  `POST /ponto/aprovacoes/lote` com exatamente os ids selecionados, e enquanto a resposta não chega o
+  botão fica desabilitado ("Aprovando…") e o diálogo segue aberto. Quando cancelo · Então nada é
+  enviado. Em nenhum momento o `confirm` nativo é usado.
+- **Teste:** [`tests/js/ponto-aprovacoes-lote-dialogo.test.tsx`](../../../../../tests/js/ponto-aprovacoes-lote-dialogo.test.tsx) — `UC-PAPR-05`.
+- **Contrato:** `CU-PONTO-07` (aprovação em lote) + a
+  [ata 2026-09-14](../../../../../prototipo-ui/cowork/Wagner/cowork-inbox/ponto/playbook/ATA-DECISOES-2026-09-14.md)
+  (R3: resposta técnica é "faça" — o diálogo do DS no lugar do nativo, como já era no aprovar
+  individual desta tela).
+- **Regressão que defende:** com o `confirm` original de volta, os 4 casos reprovam. O isolamento do
+  lote no servidor segue sendo o `UC-PAPR-02`. Rejeição em lote **não** entra aqui: é decisão
+  pendente do [W], fora da ata.
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**

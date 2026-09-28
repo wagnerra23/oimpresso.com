@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 23 |
 | Telas com `casos.md` | 23 |
-| UC declarados | 91 |
-| UC com teste que os cita | 89 |
+| UC declarados | 93 |
+| UC com teste que os cita | 91 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -89,6 +89,7 @@ authority: generated
 | UC-ESCIDX-02 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESCIDX-03 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESCIDX-04 | Escalas/Index | 🧪 aguarda veredito da lane |
+| UC-ESCIDX-05 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-01 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-02 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-03 | Espelho/Index | 🧪 aguarda veredito da lane |
@@ -131,6 +132,7 @@ authority: generated
 | UC-PAPR-02 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PAPR-03 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PAPR-04 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-05 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-01 | Fechamento/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-02 | Fechamento/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-03 | Fechamento/Index | 🧪 aguarda veredito da lane |
