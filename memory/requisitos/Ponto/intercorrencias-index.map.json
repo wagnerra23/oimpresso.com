@@ -45,7 +45,7 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Index.tsx",
         "linhas": "143-238",
-        "ancora": false
+        "ancora": "intercorrencias-intercorrencias"
       },
       "status": "prototipo-corrige",
       "acao": "Protótipo corrige: ganha a coluna Criada e leva a prioridade para dentro de Estado, como o charter e o vivo. A thread 17 grava `data-contract=\"intercorrencias-intercorrencias\"` no card.",
