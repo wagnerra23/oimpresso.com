@@ -5,7 +5,7 @@ autor: "[CL]"
 criado: 2026-09-28
 base: ad23c9ff9
 thread: 17-data-contract-no-tsx.md
-veredito: "em andamento — 8 de 26 ids em PRs abertos (#8088, #8090, #8091); 5 fora por regra; PR-2 espera #8079/#8077, PR-4 espera #8078"
+veredito: "em andamento — 14 de 26 ids em PRs abertos (#8088, #8090, #8091, #8096); 6 fora por regra; faltam PR-2 (espera #8079/#8077) e os 2 ids feios"
 ---
 
 # _saída 17 · `data-contract` no `.tsx`
@@ -16,6 +16,7 @@ Recibo único da thread, atualizado a cada PR.
 
 - **Os 26 ids** saem do build: `grep -o 'contrato="[^"]*"' prototipo-ui/cowork/Wagner/ponto-telas.jsx | sort -u` → **26**, protótipo @ `2e3f8adb4e`. Bate com a tabela da thread e com o `_PATCH-INDICE` §2.
 - **Colisão antes de editar** (a thread manda parar se outro PR toca `Pages/Ponto`): em 2026-09-28 havia três abertos — #8079 (`Aprovacoes/Index.tsx`, `Escalas/Index.tsx`), #8077 (`BancoHoras/Show.tsx`) e #8078 (`Configuracoes/Index.tsx`) — e uma sessão acabara de editar `Intercorrencias/Create.tsx`. A gerente reagrupou os PRs por **arquivo livre**, não por módulo.
+- **PR-4 depois do #8078:** o gap de Configurações/Index foi medido antes dele; o PR-4 re-mediu as regiões no arquivo novo e registrou no gap (seção datada) e no map que as 4 partes "dado quebrado" passaram a paridade.
 - **PR-3 dividido em 3a/3b:** Colaboradores + Importações somam 10 arquivos, acima do teto de 8.
 - **Nenhum `.tsx` do Ponto** tinha `data-contract` nessas regiões, logo o "PARAR SE — o vivo já tem outro string" não se aplicou.
 - **Granularidade:** no protótipo o id fica no `<Card>` da região; no vivo também, no `<Card>` do DS (`Components/ui/card.tsx` repassa `...props` ao `<div>`, então o atributo chega ao DOM).
@@ -36,7 +37,9 @@ Recibo único da thread, atualizado a cada PR.
 | PR-3b #8091 | `importacoes-dados-do-arquivo` · `importacoes-resumo-do-processamento` | `Importacoes/Show.tsx:91` · `:109` | `importacoes-show.map.json` · `dados-do-arquivo` · `resumo-do-processamento` | aberto |
 | fora (a nascer) | `colaboradorform-dados-do-hrm` · `importacoes-diagnostico-do-processamento` · `importacoes-amostra-de-erros` · `relatorios-pedidos-desta-sessao` | — | gap: ausente no vivo | sem id até a região nascer |
 | fora (sai do protótipo) | `relatorios-gerar` | — | `D-REL-FLUXO`: filtros globais; o wizard sai do protótipo (R2) | sem id; o protótipo remove |
-| PR-4 | configurações ×7 | `Configuracoes/Index`, `Configuracoes/Reps` | — | espera #8078 |
+| PR-4 #8096 | `configuracoes-regras-clt-reforma-trabalhista` · `configuracoes-banco-de-horas` · `configuracoes-rep-e-imutabilidade-de-marcacoes` · `configuracoes-afd-importacao-esocial` | `Configuracoes/Index.tsx:111` · `:131` · `:148` · `:178` | `configuracoes-index.map.json` (4 partes; status re-medido pós-#8078) | aberto |
+| PR-4 #8096 | `configuracoes-cadastrar-novo-rep` · `configuracoes-reps-cadastrados` | `Configuracoes/Reps.tsx:85` · `:140` | `configuracoes-reps.map.json` | aberto |
+| fora (a nascer) | `configuracoes-ia-do-ponto` | — | gap: ausente no vivo (`D-CFG-IA` pendente) | sem id |
 | — | `intercorrencias-card` · `escalaform-card` (ids feios) | `Intercorrencias/Create`, `Escalas/Form` | — | a decidir com os gaps; `Create` espera a outra sessão terminar |
 
 ## Portões do PR-1
