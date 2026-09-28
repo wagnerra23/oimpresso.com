@@ -1,0 +1,145 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Ponto/Intercorrencias/Index (/ponto/intercorrencias)",
+  "gap_fonte": "memory/requisitos/Ponto/intercorrencias-index-gap.md",
+  "prototipo_sha": "sha256:e4d0b5a3707e",
+  "gerado_em": "2026-09-28",
+  "partes": [
+    {
+      "id": "barra-superior-e-acao-primaria",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "283-296"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Index.tsx",
+        "linhas": "102-111",
+        "ancora": false
+      },
+      "status": "prototipo-corrige",
+      "acao": "Protótipo corrige o destino (D-PONTO-DETALHE, R2): o botão vai para a rota `create`, não abre form embutido. A copy \"Nova\" × \"Nova intercorrência\" é da passada de FORMA.",
+      "_acionavel": true
+    },
+    {
+      "id": "filtros-por-estado-e-tipo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "283-292"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Index.tsx",
+        "linhas": "113-141",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada. A região que a thread declarava \"a nascer\" já existe nos dois lados.",
+      "_acionavel": false
+    },
+    {
+      "id": "lista-de-intercorrencias",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "303-328"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Index.tsx",
+        "linhas": "143-238",
+        "ancora": false
+      },
+      "status": "prototipo-corrige",
+      "acao": "Protótipo corrige: ganha a coluna Criada e leva a prioridade para dentro de Estado, como o charter e o vivo. A thread 17 grava `data-contract=\"intercorrencias-intercorrencias\"` no card.",
+      "_acionavel": true
+    },
+    {
+      "id": "acao-por-linha",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "318-322"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Index.tsx",
+        "linhas": "203-207",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada. Falta o Pest GUARD do Non-Goal ratificado (R1) — dono é a thread 27, não este gap.",
+      "_acionavel": false
+    },
+    {
+      "id": "linha-clicavel",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "311"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Index.tsx",
+        "linhas": "203-207",
+        "ancora": false
+      },
+      "status": "divergencia-declarada",
+      "acao": "Não medido se vale a pena: linha clicável e link na mesma linha criam dois alvos para o mesmo destino. Fica para a passada de FORMA.",
+      "_acionavel": false
+    },
+    {
+      "id": "detalhe-da-intercorrencia",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "230-279"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Show.tsx",
+        "linhas": "1-176",
+        "ancora": false
+      },
+      "status": "prototipo-corrige",
+      "acao": "Protótipo corrige (D-PONTO-DETALHE, R2): o drawer vira rota `Show`. O `window.confirm` do drawer (`ponto-telas.jsx:270`, `:273`) sai junto.",
+      "_acionavel": true
+    },
+    {
+      "id": "form-embutido-de-nova-e-edicao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "298-301"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
+        "linhas": "1-453",
+        "ancora": false
+      },
+      "status": "prototipo-corrige",
+      "acao": "Protótipo corrige (D-PONTO-DETALHE, R2). O conteúdo do form é medido em `intercorrencias-create-gap.md`.",
+      "_acionavel": true
+    },
+    {
+      "id": "paginacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "211"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Index.tsx",
+        "linhas": "215-233",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada.",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "305-307"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Index.tsx",
+        "linhas": "146-166",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada. A thread pedia os dois estados; os dois lados já têm.",
+      "_acionavel": false
+    }
+  ]
+}

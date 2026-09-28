@@ -1,0 +1,115 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Ponto/BancoHoras/Index (/ponto/banco-horas)",
+  "gap_fonte": "memory/requisitos/Ponto/banco-horas-index-gap.md",
+  "prototipo_sha": "sha256:e4d0b5a3707e",
+  "gerado_em": "2026-09-28",
+  "partes": [
+    {
+      "id": "faixa-de-kpi",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "411-416"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
+        "linhas": "90-117",
+        "ancora": false
+      },
+      "status": "gap",
+      "acao": "D-BH-KPI decidida: ficam os 4 do protótipo e o charter é emendado. A emenda é da thread 27; o `.tsx` muda depois dela, em PR próprio.",
+      "_acionavel": true
+    },
+    {
+      "id": "saldos-por-colaborador",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "417-435"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
+        "linhas": "119-189",
+        "ancora": false
+      },
+      "status": "divergencia-declarada",
+      "acao": "Protótipo à frente na coluna Escala e no cargo; exige o dado no payload (`BancoHorasController.php:45` transforma a linha — não medido se traz escala). Decisão de forma, sem id na ata: fica para a passada de FORMA. A thread 17 grava `data-contract=\"bancohoras-saldos-por-colaborador\"`.",
+      "_acionavel": true
+    },
+    {
+      "id": "acao-por-linha",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "423-429"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
+        "linhas": "154-155",
+        "ancora": false
+      },
+      "status": "prototipo-corrige",
+      "acao": "Protótipo corrige (D-PONTO-DETALHE, R2): rótulo `Movimentos` e navegação para a rota.",
+      "_acionavel": true
+    },
+    {
+      "id": "ordenacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "420"
+      },
+      "vivo": {
+        "arquivo": "Modules/Ponto/Http/Controllers/BancoHorasController.php",
+        "linhas": "41",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada.",
+      "_acionavel": false
+    },
+    {
+      "id": "paginacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "343"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
+        "linhas": "165-189",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada.",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "419"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
+        "linhas": "122-126",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Protótipo corrige: leva a explicação.",
+      "_acionavel": true
+    },
+    {
+      "id": "rodape-legal",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "436"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
+        "linhas": "69",
+        "ancora": false
+      },
+      "status": "divergencia-declarada",
+      "acao": "Protótipo à frente; entra com a passada de FORMA.",
+      "_acionavel": true
+    }
+  ]
+}
