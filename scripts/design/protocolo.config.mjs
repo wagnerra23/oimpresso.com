@@ -33,6 +33,7 @@ import { homedir } from 'node:os';
 // binding local + re-export (re-export puro não cria binding usável no selftest deste módulo)
 import { normalize, contentHash } from '../governance/cowork-mirror-freshness.mjs';
 import { resolveAncora } from './ancora.mjs';
+import { lerLock, donoDaTela, DONOS, LOCK_PATH } from './design-lock.mjs';
 export { normalize, contentHash, resolveAncora };
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -851,12 +852,20 @@ function procedencia() {
     process.exit(2);
   }
 
+  // DONO por usuário (§9.3 da proposta 2026-09-24): a conta diz de ONDE veio o arquivo; o dono
+  // diz QUEM responde pela tela. Vem do design-lock (o dono do tema) — nunca inferido da pasta.
+  const lockInfo = lerLock();
+  if (lockInfo.existe && !lockInfo.lock) {
+    console.error('PROCEDENCIA: ' + LOCK_PATH + ' ilegível — ' + lockInfo.erro);
+    process.exit(2);
+  }
   const porClasse = new Map();
   const linhas = [];
   for (const e of entradas) {
     const p = procedenciaDaTela(e);
     porClasse.set(p.classe, (porClasse.get(p.classe) || 0) + 1);
-    linhas.push({ page: e.page, charter: e.charter, ancora: e.caminho || null, ...p });
+    const tela = String(e.charter || '').replace(/\\/g, '/').replace(/^.*?Pages\//, '').replace(/\.charter\.md$/, '');
+    linhas.push({ page: e.page, charter: e.charter, ancora: e.caminho || null, ...p, dono: donoDaTela(lockInfo.lock, tela) });
   }
 
   if (process.argv.includes('--json')) { console.log(JSON.stringify({ contas: CONTAS, projetos: PROJETOS, telas: linhas }, null, 2)); return; }
@@ -876,6 +885,9 @@ function procedencia() {
   for (const [k, v] of [...porClasse.entries()].sort((a, b) => b[1] - a[1])) {
     console.log('  ' + String(v).padStart(4) + '  ' + k);
   }
+  console.log(''); console.log('DONO POR USUÁRIO (' + LOCK_PATH + ' · pegar/devolver tela = PR, merge do [W] autoriza):');
+  console.log('  ' + DONOS.map((d) => d + '=' + linhas.filter((l) => l.dono === d).length).join(' · ')
+    + ' · sem dono=' + linhas.filter((l) => !l.dono).length);
   console.log(''); console.log('TELAS QUE NÃO VÊM DE ESPELHO (as que merecem olho):');
   const suspeitas = linhas.filter((l) => l.classe === 'outra-conta' || l.classe === 'local-sem-dono' || l.classe === 'indefinida');
   if (!suspeitas.length) console.log('  (nenhuma)');
