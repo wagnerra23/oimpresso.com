@@ -1,0 +1,320 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR ROTA LIVRE · matriz · Agosto/2026 · 7 colaboradores no ponto Ponto Ponto eletrônico · Portaria MTP 671/2021 Atualizado 09:18 Nova intercorrência Painel Espelho de ponto Aprovações 2 Intercorrências 8 Banco de horas Fechamento Conformidade 22 Escalas Colaboradores 9 REP-P (celular) Importações Relatórios Configurações Pendente 2 Aprovada 1 Rejeitada 1 Aplicada 3 Rascunho 1 Cancelada 0 Estado Todos Rascunho Pendente Aprovada Rejeitada Aplicada Cancelada Tipo Todos Consulta médica Atestado médico Reunião externa Visita a cliente Hora extra autorizada Esquecimento de marcação Problema no equipamento Outro Prioridade Todas Urgente Normal Limpar 2 pendentes no filtro · selecione para decidir em lote Fila de aprovações (2 itens) Colaborador Tipo Data / intervalo Estado Prioridade Ação Larissa Bueno 0007 · Atendimento balcão Esquecimento de marcação impacta apuração 18/08/2026 13:00 – 14:00 Pendente Urgente Ver Aprovar Rejeitar Felipe Andrade 0014 · Acabamento Hora extra autorizada impacta apuração 17/08/2026 18:00 – 21:30 Pendente Normal Ver Aprovar Rejeitar Anterior 1 Próximo 1 – 2 de 2 itens por página 10 15 25 50 100 Registros protegidos pela Portaria MTP 671/2021 — marcações são imutáveis (append-only).",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "aprovacoes-kpis-estado"
+        },
+        {
+          "classes": {
+            "dataBr": 2,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {
+            "dataBr": [
+              "18/08/2026",
+              "17/08/2026"
+            ]
+          },
+          "nome": "aprovacoes-fila-de-aprovacoes"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 73,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5550/"
+  },
+  "nos_totais": 671,
+  "quieto_ms": 2000,
+  "rota": "pt-aprovacoes",
+  "secoes": {
+    "barra": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 73,
+        "w": 1176
+      },
+      "seletor": "[data-contract=\"aprovacoes-kpis-estado\"] + div",
+      "truncado": false
+    },
+    "fila": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pt-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "ponto-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "section"
+      ],
+      "rect": {
+        "h": 261,
+        "w": 1176
+      },
+      "seletor": "[data-contract=\"aprovacoes-fila-de-aprovacoes\"]",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": ".ponto-root > .cli-ph > header",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 6,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pt-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "ponto-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 62,
+        "w": 1176
+      },
+      "seletor": "[data-contract=\"aprovacoes-kpis-estado\"]",
+      "truncado": false
+    },
+    "tabs": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 13,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1224
+      },
+      "seletor": ".ponto-root > nav.ds-tabbar",
+      "truncado": true
+    }
+  },
+  "tela": "ponto--aprovacoes--index",
+  "url": "http://127.0.0.1:5550/"
+}

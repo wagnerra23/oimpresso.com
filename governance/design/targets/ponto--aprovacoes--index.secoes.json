@@ -1,0 +1,24 @@
+{
+  "_": "semente [CC] 2026-09-28 — data-contract de ponto-telas.jsx (Aprovacoes :60 e :82). dado lido em AprovacaoController.php@main 0c23a1349c08.",
+  "_mapa": "Conferida em 2026-09-28 por `alvo:mapa --rota <r> --raiz .ponto-root` (e `--raiz '.ponto-root .pt-body'` / `'.ponto-root > .cli-ph'`) contra o espelho servido por `servirEstatico` (o mesmo servidor do secao-check), mais querySelectorAll de cada seletor no DOM: todos resolvem 1 nó, nenhum seletor corrigido. Rota do espelho: `pt-aprovacoes`. Mapa: .pt-body = div.pt-kpis[aprovacoes-kpis-estado] (6 botões) · div (barra Estado/Tipo/Prioridade) · div[aprovacoes-fila-de-aprovacoes] · div.pt-legal. `aprovacoes-kpis-estado + div` resolve a barra de filtros, como a semente previa.",
+  "header": {
+    "seletor": ".ponto-root > .cli-ph > header",
+    "dado": "shell — PageHeader"
+  },
+  "tabs": {
+    "seletor": ".ponto-root > nav.ds-tabbar",
+    "dado": "shell — PontoSubNav (ADR 0182)"
+  },
+  "kpis": {
+    "seletor": "[data-contract=\"aprovacoes-kpis-estado\"]",
+    "dado": "AprovacaoController::buildContagensEstado — RASCUNHO · PENDENTE · APROVADA · REJEITADA · APLICADA · CANCELADA (defer)"
+  },
+  "barra": {
+    "seletor": "[data-contract=\"aprovacoes-kpis-estado\"] + div",
+    "dado": "filtros eager estado (default PENDENTE) · tipo (8 do enum 'tipos') · prioridade"
+  },
+  "fila": {
+    "seletor": "[data-contract=\"aprovacoes-fila-de-aprovacoes\"]",
+    "dado": "AprovacaoController::buildAprovacoesPagina — paginate(20), ordem URGENTE→NORMAL→created_at desc; impacta_apuracao · descontar_banco_horas · solicitante"
+  }
+}

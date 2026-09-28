@@ -242,7 +242,8 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
             <CardHeader>
               <CardTitle className="text-base">Dados da ocorrência</CardTitle>
               <CardDescription className="text-xs">
-                Confirme/ajuste os campos. Eles serão submetidos ao RH para aprovação.
+                Salvar cria um rascunho. Nada é aplicado na apuração até você submeter, no detalhe,
+                e um aprovador decidir. A marcação original nunca é alterada.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

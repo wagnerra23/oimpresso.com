@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 23 |
 | Telas com `casos.md` | 23 |
-| UC declarados | 93 |
-| UC com teste que os cita | 91 |
+| UC declarados | 94 |
+| UC com teste que os cita | 92 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -111,6 +111,7 @@ authority: generated
 | UC-IMPSH-05 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-INTCRE-01 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTCRE-02 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
+| UC-INTCRE-03 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTEDT-01 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
 | UC-INTEDT-02 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
 | UC-INTEDT-03 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
