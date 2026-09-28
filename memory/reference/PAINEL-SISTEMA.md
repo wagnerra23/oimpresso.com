@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-27**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-28**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -44,7 +44,7 @@ lente: [construir]
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-09-15 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-09-07 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-24 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-28 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-09-23 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **11/13** métricas medidas · floor full-suite = **275**.
+- Scorecard: **11/13** métricas medidas · floor full-suite = **284**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -146,13 +146,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **420** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 371 · superseded: 25 · deprecated: 11 · proposto: 11 · rascunho: 1 · recusado: 1.
+- **422** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 373 · superseded: 25 · deprecated: 11 · proposto: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 237 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 239 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -392,6 +392,8 @@ lente: [construir]
 - ~~2026-09-23 — EMENDA da lápide 2026-08-20 (sondar o git com a mudança não commitada): o eixo HOOK — um PreToolUse decidia pelo índice ANTES do `git add` do próprio comando, e os testes dele nunca usaram a forma real~~
 - ~~2026-09-24 — EMENDA da lápide 2026-08-05 (merge sem conflito ≠ artefato válido): editei à mão um arquivo do ESPELHO que o playbook manda editar, e o cruzamento com um import travou um required em todos os PRs~~
 - ~~2026-09-25 — Troquei um token pra passar um gate e não re-medi: `var(--primary)` não existe neste app (o nome é `--color-primary`)~~
+- ~~2026-09-27 — Uma trava de permissão nova CALOU testes de isolamento de outro arquivo — e dois deles seguiram VERDES por vácuo~~
+- ~~2026-09-28 — Ressuscitar o contrafactual de corpus (`agent-corpus-counterfactual.mjs` + o scaffold `.claude/governance-eval/corpus-counterfactual/`)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -402,7 +404,7 @@ lente: [construir]
 
 ## Rastro
 
-- **568** handoffs · **769** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **569** handoffs · **769** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-09-24-ds-atomos-decisoes-04-05`
   - `2026-09-23-serie-financeiro-layout-fin6b-balancete`
@@ -412,4 +414,4 @@ lente: [construir]
   - `2026-09-22-buracos-prototipo-producao`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-27 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-28 · deriva das fontes canônicas, não as substitui._
