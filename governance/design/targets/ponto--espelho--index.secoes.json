@@ -1,0 +1,21 @@
+{
+  "_": "semente [CC] 2026-09-28 — tela sem data-contract; seletores estruturais a confirmar pelo alvo:mapa. dado lido em EspelhoController.php@main 0c23a1349c08.",
+  "_mapa": "Conferida em 2026-09-28 por `alvo:mapa --rota <r> --raiz .ponto-root` (e `--raiz '.ponto-root .pt-body'` / `'.ponto-root > .cli-ph'`) contra o espelho servido por `servirEstatico` (o mesmo servidor do secao-check), mais querySelectorAll de cada seletor no DOM: todos resolvem 1 nó, nenhum seletor corrigido. Rota do espelho: `pt-espelho`. Mapa: .pt-body tem 2 filhos div — [1] envolve a barra (Mês de referência · Escala · Buscar · Só com divergência), [2] envolve a section Colaboradores. Nenhum Alert condicional antes da barra no estado medido.",
+  "header": {
+    "seletor": ".ponto-root > .cli-ph > header",
+    "dado": "shell — PageHeader"
+  },
+  "tabs": {
+    "seletor": ".ponto-root > nav.ds-tabbar",
+    "dado": "shell — PontoSubNav (ADR 0182)"
+  },
+  "barra": {
+    "seletor": ".ponto-root .pt-body > div:nth-child(1)",
+    "dado": "mes (eager, query ?mes=Y-m). Filtros Escala / Só com divergência: sem parâmetro no controller"
+  },
+  "lista": {
+    "seletor": ".ponto-root .pt-body > div:nth-child(2)",
+    "dado": "EspelhoController::buildColaboradoresPagina — Colaborador controla_ponto, sem desligamento, paginate(25): id · matricula · cpf · nome · email"
+  },
+  "_ausentes": {}
+}

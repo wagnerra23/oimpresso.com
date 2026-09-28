@@ -23,39 +23,23 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
 | UC-CFGIDX-01 | O painel não entrega ao browser a senha do certificado ICP | must `[T0]` | proibicoes (segredo) + charter §Mission (painel de leitura de *parâmetros*) | `ConfiguracaoContratoTest` | ✅ verde na lane |
+| UC-CFGIDX-02 | Todo parâmetro que o painel exibe chega da configuração real | must | `Modules/Ponto/Config/config.php` (o que a apuração usa) + charter §Goals + [US-PONTO-012](../../../../../memory/requisitos/Ponto/SPEC.md) (5ª instância) | `ConfiguracaoContratoTest` | 🧪 teste cita o UC, sem veredito |
 
-**[BACKLOG]** — o painel está quase todo fantasma: **13 das 15 chaves que ele lê não existem**
+**Resolvido em 2026-09-28 — o painel lia 13 chaves que não existem** (fato datado; o registro de 2026-09-08 está no histórico do git deste arquivo)
 
-- `[BACKLOG]` **Este painel de compliance quase não mostra dado real.** Contagem exaustiva (as 15
-  chaves distintas que o `Index.tsx` lê no formato `config.<bloco>?.<chave>`, cruzadas com
-  `Modules/Ponto/Config/config.php`): **2 existem, 13 não**. Medido em **runtime**, não por leitura —
-  `config('pontowr2.<chave>')` com sentinela de ausência devolveu `<<AUSENTE>>` para as 13.
-  - **Existem (2):** `clt.tolerancia_maxima_diaria_minutos` (10) · `clt.intrajornada_minima_minutos` (60).
-  - **Fantasma (13):** `clt.tolerancia_marcacao_minutos` · `clt.interjornada_minima_minutos` ·
-    `clt.he_maxima_diaria_minutos` · `clt.noturno_inicio` · `clt.noturno_fim` · `clt.dsr_percentual` ·
-    `banco_horas.limite_credito_minutos` · `banco_horas.prazo_expiracao_meses` ·
-    `rep.imutabilidade_mysql` · `rep.hash_algoritmo` · `rep.nsr_autoincrement` ·
-    `afd.versao_portaria` · `afd.validar_hash_encadeado`.
-  - **Boa parte é só nome trocado**, o que torna o conserto barato e o diagnóstico fácil de perder: a
-    configuração tem `tolerancia_minutos_por_marcacao`, `interjornada_minima_horas`,
-    `limite_he_diaria_horas` e `adicional_dsr_percentual` — a tela procura outros nomes (e, em dois
-    casos, outra **unidade**: horas × minutos).
-  - **O efeito não é cosmético.** Como o `.tsx` renderiza `?? '—'` e `? 'Sim' : 'Não'`, o painel exibe
-    **"Inativa"** para a imutabilidade dos REPs e **"Não"** para NSR sequencial e validação de hash
-    chain — quando o módulo tem triggers de imutabilidade. É afirmação falsa numa tela que sustenta
-    conversa com fiscalização (Portaria MTP 671/2021), e o erro é do lado que **subestima** a
-    conformidade.
-- **Por que não virou UC nem foi consertado aqui:** o tema **já tem dona** —
-  [US-PONTO-012](../../../../../memory/requisitos/Ponto/SPEC.md) ("Corrigir os atributos fantasma do
-  módulo"), que hoje lista 4 instâncias (`tem_divergencia` no espelho, `entrada/saida/almoco_*` na
-  escala, `linhas_criadas/linhas_ignoradas` e `erro_mensagem` na importação). Estas são a **5ª**, e o
-  caminho canônico é **estender o dono, não abrir paralelo** ([proibicoes §5](../../../../../memory/proibicoes.md)
-  2026-07-09). Consertar exige decidir, campo a campo, *qual* é a verdade — renomear a leitura?
-  converter unidade? criar a chave? ler do schema, no caso da imutabilidade? — e essa é decisão de
-  [W], não inferência minha. Um UC agora nasceria vermelho na lane, e em 2026-09-04 ela constava como required em
-  [governance/required-checks-baseline.json](../../../../../governance/required-checks-baseline.json) —
-  logo bloquearia todo PR
-  que toca o módulo, sem que ninguém tenha decidido o conserto.
+- Em 2026-09-08 a contagem **medida em runtime** era: das 15 chaves que o `Index.tsx` lia no formato
+  `config.<bloco>?.<chave>`, **2 existiam e 13 não**. Boa parte era nome trocado
+  (`tolerancia_marcacao_minutos` × `tolerancia_minutos_por_marcacao`) e duas tinham outra unidade
+  (horas × minutos). O efeito não era cosmético: o painel dizia **"desligada"** para a imutabilidade
+  dos REPs e **"Não"** para NSR sequencial e validação de hash, numa tela que sustenta conversa com
+  fiscalização (Portaria MTP 671/2021).
+- **O conserto (decisão [W] 2026-09-28, "conserta a leitura das chaves de config"):** a tela passou
+  a ler as chaves reais, com o conjunto de parâmetros do protótipo (que já usava os nomes do config).
+  O controller passou a enviar `marcacao` (imutabilidade e hash moram lá, não em `rep`) e `esocial`
+  (por allowlist), e do certificado ICP sai só o booleano `certificado_icp_configurado`. As chaves sem
+  nenhum equivalente no config (`noturno_inicio/fim`, `versao_portaria`) saíram da tela, em vez de
+  virarem chave inventada.
+- **Defesa:** `UC-CFGIDX-02`, abaixo. É a 5ª instância da [US-PONTO-012](../../../../../memory/requisitos/Ponto/SPEC.md).
 
 Outros `[BACKLOG]` desta tela:
 
@@ -94,3 +78,23 @@ Outros `[BACKLOG]` desta tela:
   do filtro. Existe mais de uma correção legítima (allowlist de blocos, `Arr::except`, um Resource) e
   um assert sobre a forma reprovaria as outras.
 - **Status: 🧪 verde no CT 100, sem veredito de lane.**
+
+---
+
+## UC-CFGIDX-02 · Todo parâmetro que o painel exibe chega da configuração real · `must`
+
+- **Persona:** o gestor de RH que consulta o painel para responder a uma fiscalização (tolerâncias do
+  Art. 58, interjornada do Art. 66, imutabilidade das marcações).
+- **Aceite:** Dado o config do módulo (`Modules/Ponto/Config/config.php`) · Quando abro
+  `/ponto/configuracoes` · Então **toda** leitura `config.<bloco>?.<chave>` que a tela faz encontra a
+  chave no payload do controller. Nenhum parâmetro exibido cai no "—"/"Não" por falta de chave.
+- **Teste:** `Modules/Ponto/Tests/Feature/ConfiguracaoContratoTest.php` — `UC-CFGIDX-02`.
+- **Contrato:** o config do módulo, que é o que a apuração usa; a tela é o lado que pode mentir.
+  Por isso o teste extrai as leituras do próprio `.tsx` e confere contra o payload, em vez de listar
+  chaves à mão (lista à mão envelhece junto com a tela).
+- **Anti-vácuo:** o teste exige ao menos 20 leituras extraídas. Se o `.tsx` mudar a forma de leitura,
+  a regex casaria zero e o caso passaria sem verificar nada (LC-13).
+- **Mordida medida (2026-09-28, por texto, dois lados):** contra o `.tsx` anterior ao conserto a
+  extração acha 15 leituras e **13 sem chave no config**, as mesmas 13 do registro de 2026-09-08;
+  contra o `.tsx` corrigido, 30 leituras e 0. O veredito da lane ainda não existe.
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**

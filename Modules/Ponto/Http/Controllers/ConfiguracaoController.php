@@ -25,12 +25,16 @@ class ConfiguracaoController extends Controller
      * `pontowr2.rep.certificado_icp_pass` definido, a string aparecia no corpo da resposta de
      * `/ponto/configuracoes` — status 200, para qualquer usuário com `ponto.access`.
      *
-     * Os 4 blocos abaixo são exatamente os que a tela renderiza (`Configuracoes/Index.tsx`:
-     * `config.clt`, `config.banco_horas`, `config.rep`, `config.afd`). O bloco `esocial`
-     * existe na interface TypeScript mas não é lido em lugar nenhum do render — por isso
-     * fica de fora. Comportamento visível da tela: inalterado.
+     * Os blocos abaixo são exatamente os que a tela renderiza (`Configuracoes/Index.tsx`).
      *
-     * Defendido por `UC-CFGIDX-01` (`Configuracoes/Index.casos.md`).
+     * 2026-09-28 — a tela lia 13 chaves que não existem neste config (ex.: pedia
+     * `tolerancia_marcacao_minutos`, o config tem `tolerancia_minutos_por_marcacao`) e
+     * exibia "—"/"Não" onde havia valor: afirmava imutabilidade desligada num painel de
+     * compliance. O `.tsx` passou a ler as chaves reais; `marcacao` (imutabilidade e hash) e
+     * `esocial` entram porque agora são lidos. Contrato: `UC-CFGIDX-02` exige que TODA
+     * chave lida pelo `.tsx` chegue aqui.
+     *
+     * Defendido por `UC-CFGIDX-01` e `UC-CFGIDX-02` (`Configuracoes/Index.casos.md`).
      */
     public function index(): Response
     {
@@ -43,9 +47,14 @@ class ConfiguracaoController extends Controller
                 // `Arr::except` e não uma lista de chaves permitidas: o bloco `rep` ganha
                 // parâmetro novo com alguma frequência, e uma allowlist aqui faria o
                 // parâmetro novo sumir da tela em silêncio. O que não pode passar é o
-                // segredo, e ele é nomeado.
-                'rep'         => Arr::except($cfg['rep'] ?? [], ['certificado_icp_path', 'certificado_icp_pass']),
+                // segredo, e ele é nomeado. Do certificado sai só SE está configurado.
+                'rep'         => Arr::except($cfg['rep'] ?? [], ['certificado_icp_path', 'certificado_icp_pass'])
+                    + ['certificado_icp_configurado' => filled($cfg['rep']['certificado_icp_path'] ?? null)],
                 'afd'         => $cfg['afd'] ?? [],
+                'marcacao'    => $cfg['marcacao'] ?? [],
+                // Allowlist aqui, ao contrário do `rep`: o bloco vai receber credencial do
+                // eSocial quando a integração sair do stub, e ela não pode nascer exposta.
+                'esocial'     => Arr::only($cfg['esocial'] ?? [], ['ambiente', 'eventos', 'tp_amb']),
             ],
         ]);
     }

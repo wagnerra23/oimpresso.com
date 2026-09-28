@@ -2,6 +2,7 @@
  * Ponto/Escalas/Index — "Remover" entra na UI, mas INDISPONÍVEL com vínculo.
  *
  * @covers-us UC-ESCIDX-03
+ * @covers-us UC-ESCIDX-05
  *
  * `D-ESC-DESTROY` ([W] 2026-09-14). O caso vive aqui porque é sobre o que o gestor VÊ e pode
  * clicar; a trava de verdade é servidor (`EscalaController@destroy` → `Escala::podeSerRemovida`)
@@ -14,12 +15,12 @@
  * E o motivo é TEXTO ao lado, não tooltip: botão desabilitado não recebe foco, então o Tooltip
  * do DS seria inalcançável por teclado — [W] pediu "com o motivo escrito".
  */
-import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 // `vi.mock` é HOISTADO acima das declarações do módulo, então o factory não pode fechar sobre um
 // `const` daqui — a 1ª versão fazia isso e morria em "Cannot access 'routerDelete' before
-// initialization". Como nenhum caso asserta sobre a chamada, o stub nasce dentro do factory.
+// initialization". O stub nasce dentro do factory; quem asserta a chamada usa `vi.mocked(router)`.
 vi.mock('@inertiajs/react', () => ({
   Head: () => null,
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
@@ -30,7 +31,14 @@ vi.mock('@/Layouts/AppShellV2', () => ({
 }))
 vi.mock('@/Pages/Ponto/_shared/PontoSubNav', () => ({ default: () => null }))
 
+import { router } from '@inertiajs/react'
 import EscalasIndex from '@/Pages/Ponto/Escalas/Index'
+
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
+  vi.mocked(router.delete).mockReset()
+})
 
 const escala = (id: number, nome: string, colaboradores_count: number) => ({
   id,
@@ -79,5 +87,52 @@ describe('UC-ESCIDX-03 · remover escala é indisponível com vínculo', () => {
     )
     expect(screen.getAllByRole('button', { name: 'Remover' })).toHaveLength(1)
     expect(screen.getByText('Em uso por 3 colaboradores')).toBeTruthy()
+  })
+})
+
+describe('UC-ESCIDX-05 · remover confirma no diálogo do DS e remove de fato', () => {
+  // A ata D-ESC-DESTROY registra que a 1ª versão do protótipo abriu um modal SEM botão de ação:
+  // o ramo sem vínculo nunca tinha rodado. Estes casos exercitam esse ramo até a chamada que remove.
+  const abrir = () => {
+    render(<EscalasIndex {...(props([escala(7, 'Comercial 44h', 0)]) as never)} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Remover' }))
+  }
+
+  it('"Remover" abre o diálogo com Cancelar e "Remover escala", sem window.confirm', () => {
+    const nativo = vi.spyOn(window, 'confirm')
+    abrir()
+
+    expect(screen.getByRole('alertdialog').textContent).toContain('Remover Comercial 44h?')
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Remover escala' })).toBeTruthy()
+    expect(nativo).not.toHaveBeenCalled()
+    // Abrir o diálogo não remove nada; só a confirmação remove.
+    expect(router.delete).not.toHaveBeenCalled()
+  })
+
+  it('confirmar dispara o DELETE da escala certa', () => {
+    abrir()
+    fireEvent.click(screen.getByRole('button', { name: 'Remover escala' }))
+
+    expect(router.delete).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(router.delete).mock.calls[0][0]).toBe('/ponto/escalas/7')
+  })
+
+  it('enquanto processa, o botão de confirmar fica desabilitado e o diálogo não fecha', () => {
+    abrir()
+    fireEvent.click(screen.getByRole('button', { name: 'Remover escala' }))
+
+    // O stub do router não chama onFinish: o estado fica "processando".
+    const botao = screen.getByRole('button', { name: 'Removendo…' }) as HTMLButtonElement
+    expect(botao.disabled).toBe(true)
+    expect(screen.getByRole('alertdialog')).toBeTruthy()
+  })
+
+  it('Cancelar fecha sem remover', () => {
+    abrir()
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(router.delete).not.toHaveBeenCalled()
   })
 })

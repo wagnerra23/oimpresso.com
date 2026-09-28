@@ -20,15 +20,14 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 23 |
 | Telas com `casos.md` | 23 |
-| UC declarados | 92 |
-| UC com teste que os cita | 90 |
+| UC declarados | 96 |
+| UC com teste que os cita | 94 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
 | `US-PONTO-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Relogio web pra registrar entrada/saida (REP-P) |
-| `US-PONTO-012` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Corrigir os atributos fantasma do modulo (4 instancias) |
 | `US-PONTO-015` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Fechamento de competência — as restrições existem, a tela e  |
 
 ### Backlog — NÃO é lacuna
@@ -64,6 +63,7 @@ authority: generated
 | UC-BHSHOW-03 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-04 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-CFGIDX-01 | Configuracoes/Index | 🧪 aguarda veredito da lane |
+| UC-CFGIDX-02 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CFGREP-01 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
 | UC-CFGREP-02 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
 | UC-CFGREP-03 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
@@ -90,6 +90,7 @@ authority: generated
 | UC-ESCIDX-02 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESCIDX-03 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESCIDX-04 | Escalas/Index | 🧪 aguarda veredito da lane |
+| UC-ESCIDX-05 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-01 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-02 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-03 | Espelho/Index | 🧪 aguarda veredito da lane |
@@ -111,6 +112,7 @@ authority: generated
 | UC-IMPSH-05 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-INTCRE-01 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTCRE-02 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
+| UC-INTCRE-03 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTEDT-01 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
 | UC-INTEDT-02 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
 | UC-INTEDT-03 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
@@ -132,6 +134,7 @@ authority: generated
 | UC-PAPR-02 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PAPR-03 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PAPR-04 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-05 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-01 | Fechamento/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-02 | Fechamento/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-03 | Fechamento/Index | 🧪 aguarda veredito da lane |
