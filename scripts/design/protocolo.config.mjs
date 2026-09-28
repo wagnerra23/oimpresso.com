@@ -97,6 +97,15 @@ export const CONTAS = {
     alcancavel: false,         // ⚠ invisível deste lado: outra conta, outro login
     espelhada: true,           // espelho em prototipo-ui/cowork/Felipe/ (ADR 0405) — ativado 2026-09-21
     projetos: ['telasFelipe'], // ID informado pelo [F] em 2026-09-21 (URL do projeto no Cowork)
+    // APOSENTADA em 2026-09-28 por [W] ("sim, faz os dois", sobre aposentar a conta do Felipe),
+    // cumprindo a D4 (c) de 2026-09-25 (proposta 2026-09-24-sincronia-entre-contas-cowork-por-dono
+    // §9): "todos devem ficar junto" = tudo no projeto Cowork do [W]. O [F] já tinha passado a
+    // trabalhar só no Code (§8) e a última leitura do `telasFelipe` foi o #7944 (2026-09-25).
+    // Efeito: o receber-handoff RECUSA importar para esta conta (um zip dela sobrescreveria o
+    // histórico), e `prototipo-ui/cowork/Felipe/` fica como HISTÓRICO — trabalho novo da equipe
+    // entra por `cowork/Wagner/` e sobe ao Cowork com o opt-in [W]. A pasta não é apagada: as telas
+    // que só existem nela (§9.1) seguem lá até cada uma ser migrada, tela a tela, com dono no lock.
+    aposentada: { em: '2026-09-28', por: '[W]', destino: 'projeto Cowork do [W] (cowork/Wagner/)' },
     // DESIGN SYSTEM DESTA CONTA — o MESMO DS do [W], não outro ([F] 2026-09-21, textual: "O Design
     // system que informei é o mesmo que do Wagner. Puxo as atualizações direto do main do git, então
     // eles estão sincronizados. O ID é diferente porque importei o DS na minha conta").
@@ -868,7 +877,8 @@ function procedencia() {
   for (const c of Object.values(CONTAS)) {
     console.log('  ' + c.id.padEnd(7) + c.dono.padEnd(34)
       + (c.alcancavel ? 'alcançável daqui' : '⚠ INVISÍVEL daqui (outra conta)')
-      + (c.espelhada ? ' · espelhada' : ' · sem espelho'));
+      + (c.espelhada ? ' · espelhada' : ' · sem espelho')
+      + (c.aposentada ? ' · APOSENTADA em ' + c.aposentada.em + ' (pasta = histórico; trabalho novo -> ' + c.aposentada.destino + ')' : ''));
     for (const k of c.projetos) console.log('          └─ ' + PROJETOS[k].espelho.padEnd(30) + PROJETOS[k].id + '  "' + PROJETOS[k].nome + '"');
     if (c.dsCopia) console.log('          └─ ' + ('DS = ' + c.dsCopia.mesmoDsQue + ' (cópia) ').padEnd(30) + c.dsCopia.id + '  "' + c.dsCopia.nome + '" · fonte: ' + c.dsCopia.fonte);
   }

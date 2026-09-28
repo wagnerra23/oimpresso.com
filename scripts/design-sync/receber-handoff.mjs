@@ -285,10 +285,21 @@ function checkIgnoreGit(paths) {
  *  @returns {{ok: boolean, conta: string|null, motivo: string, exigeDeclaracao: boolean}}
  */
 export function decidirDono(dono, contaDeclarada, contas = CONTAS, projetos = PROJETOS) {
+  // Conta APOSENTADA (CONTAS.<id>.aposentada) não recebe importação: a pasta dela virou histórico,
+  // e um zip exportado de lá sobrescreveria esse histórico com o projeto antigo. Vale para os dois
+  // caminhos que liberam (vinculada e declarada) — recusar só um deixaria a porta ao lado aberta.
+  const aposentada = (conta) => (conta && contas[conta]?.aposentada) || null;
+  const recusaAposentada = (conta) => ({
+    ok: false, conta: null, exigeDeclaracao: false,
+    motivo: `conta "${conta}" (${contas[conta].dono}) foi APOSENTADA em ${contas[conta].aposentada.em} `
+      + `por ${contas[conta].aposentada.por}: a pasta dela é histórico e trabalho novo entra por `
+      + `${contas[conta].aposentada.destino} — nao importar`,
+  });
   const contasComEspelho = Object.values(projetos).filter((p) => p.espelho).map((p) => p.conta);
-  const aceita = [...new Set(contasComEspelho)];
+  const aceita = [...new Set(contasComEspelho)].filter((c) => !aposentada(c));
 
   if (dono.veredito === 'vinculada') {
+    if (aposentada(dono.conta)) return recusaAposentada(dono.conta);
     return { ok: true, conta: dono.conta, motivo: dono.porque, exigeDeclaracao: false };
   }
 
@@ -311,6 +322,7 @@ export function decidirDono(dono, contaDeclarada, contas = CONTAS, projetos = PR
   if (!contas[contaDeclarada]) {
     return { ok: false, conta: null, exigeDeclaracao: true, motivo: `conta "${contaDeclarada}" nao esta em CONTAS` };
   }
+  if (aposentada(contaDeclarada)) return recusaAposentada(contaDeclarada);
   if (!aceita.includes(contaDeclarada)) {
     const c = contas[contaDeclarada];
     return {
