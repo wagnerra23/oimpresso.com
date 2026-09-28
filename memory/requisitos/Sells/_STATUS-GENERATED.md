@@ -16,17 +16,18 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 57 |
+| US no SPEC | 53 |
 | CU no SDD | 6 |
 | Telas (.tsx) | 9 |
-| Telas com `casos.md` | 6 |
-| UC declarados | 73 |
-| UC com teste que os cita | 72 |
+| Telas com `casos.md` | 5 |
+| UC declarados | 64 |
+| UC com teste que os cita | 63 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
+| Tela `Caixa/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Drafts` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Quotations` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Subscriptions` sem `casos.md` | o contrato da tela (trio incompleto) |
@@ -97,10 +98,6 @@ authority: generated
 | US-SELL-057 | `todo` | Skeleton de carregamento no Create + INP < 200ms |
 | US-SELL-058 | `desconhecido` | Redesenho do cadastro de venda em tela PARALELA (`/sells/create-v3`) — sem tocar |
 | US-SELL-059 | `desconhecido` | Editar venda existente (`/sells/{id}/edit`) — guards de prazo, devolução e tenan |
-| US-SELL-060 | `desconhecido` | Listar rascunhos de venda (`/sells/drafts`) |
-| US-SELL-061 | `desconhecido` | Listar cotações (`/sells/quotations`) |
-| US-SELL-062 | `desconhecido` | Listar vendas recorrentes e pausar/retomar (`/sells/subscriptions`) |
-| US-SELL-063 | `desconhecido` | Caixa do dia por forma de pagamento e por origem (`/vendas/caixa`) |
 
 ## UC por status
 
@@ -113,15 +110,6 @@ authority: generated
 | UC-S11 | Index | 🧪 aguarda veredito da lane |
 | UC-S12 | Index | 🧪 aguarda veredito da lane |
 | UC-S1X | Index | 📝 sem_teste |
-| UC-SCAIXA-01 | Caixa/Index | 🧪 aguarda veredito da lane |
-| UC-SCAIXA-02 | Caixa/Index | 🧪 aguarda veredito da lane |
-| UC-SCAIXA-03 | Caixa/Index | 🧪 aguarda veredito da lane |
-| UC-SCAIXA-04 | Caixa/Index | 🧪 aguarda veredito da lane |
-| UC-SCAIXA-05 | Caixa/Index | 🧪 aguarda veredito da lane |
-| UC-SCAIXA-06 | Caixa/Index | 🧪 aguarda veredito da lane |
-| UC-SCAIXA-07 | Caixa/Index | 🧪 aguarda veredito da lane |
-| UC-SCAIXA-08 | Caixa/Index | 🧪 aguarda veredito da lane |
-| UC-SCAIXA-09 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-SEDIT-01 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-02 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-03 | Edit | 🧪 aguarda veredito da lane |
