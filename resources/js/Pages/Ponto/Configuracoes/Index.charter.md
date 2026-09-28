@@ -27,7 +27,7 @@ O gestor consulta os parâmetros vigentes do módulo de ponto — tolerâncias e
 ---
 
 ## Goals — Features (faz)
-- Exibe (read-only) 4 blocos: CLT (tolerâncias/HE/noturno/DSR), Banco de Horas (limite/expiração), REPs & Imutabilidade (triggers MySQL, hash encadeado, NSR), AFD & eSocial (versão Portaria, hash chain, stubs).
+- Exibe (read-only) 4 blocos, lendo as chaves reais de `Modules/Ponto/Config/config.php`: CLT (tolerâncias, inter/intrajornada, hora noturna ficta, adicionais de noturno/HE/DSR), Banco de Horas (habilitado, prazo de compensação, saldos, multiplicadores), REPs e Imutabilidade (tipos permitidos, NSR, assinatura ICP e se o certificado está configurado, janela de correção, append-only, hash) e AFD & eSocial (encoding, limites, hash de registros, ambiente e eventos). Toda chave exibida tem de existir no payload — `UC-CFGIDX-02`. *(Até 2026-09-28 este Goal citava "triggers MySQL", "versão Portaria" e horário noturno início/fim, que não existem no config.)*
 - Cita o artigo legal aplicável em cada parâmetro CLT.
 - Atalho "Gerenciar REPs" (`/ponto/configuracoes/reps`).
 
