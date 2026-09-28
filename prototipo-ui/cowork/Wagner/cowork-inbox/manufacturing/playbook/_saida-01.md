@@ -51,7 +51,7 @@ decidida por esta thread.
 | `pageheader-migration-guard` | exit 0, nenhuma adoção nova nem dívida tocada |
 | `eslint Index.tsx` | exit 0 |
 | `tsc --noEmit` | 306 erros **pré-existentes** no repo (o mesmo número do `_saida-04`), **0** em `Manufacturing/Index.tsx` |
-| runtime em prod | **pendente até o merge** (LC-30): conferir no DOM que os 5 `[data-contract]` existem, na ordem, em `/manufacturing/production` biz=1 |
+| runtime em prod | **ok, medido em 2026-09-28** depois do merge do #8016, em `oimpresso.com/manufacturing/production`, biz=1, componente `Manufacturing/Index`, viewport 1280×900, DOM estável (797 elementos em 2 leituras). As 5 âncoras estão no DOM na ordem `cabecalho → abas → kpis → filtros → lista` (depois das 5 da sidebar), cada região abaixo da anterior, todas com 972 px de largura. A copy do contrato está completa em cada região pelo `textContent`. O `<header>` tem a mesma altura do wrapper do `cabecalho` (87 px), logo o `<div>` não acrescentou espaço. Console sem erros. Controle negativo: "Custo unitario" não está na lista. Dois vícios de sonda descartados antes do veredito: a 1ª leitura foi com o painel do navegador oculto (viewport 0×0, larguras de 0 a 40 px), e o `innerText` devolvia "LOCAL" por causa do `text-transform: uppercase` |
 
 ## 4 · Fora do escopo, declarado
 
