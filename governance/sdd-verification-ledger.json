@@ -1997,6 +1997,25 @@
       "evidencia": "memory/sessions/2026-09-15-refutacao-gt-g5-lote-7367-r1.md (rodada aprovada)",
       "trajetoria": "1 rodada: 0,00% (r1, 0/82)",
       "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
+    },
+    {
+      "pr": 8072,
+      "lote_id": "gt-g5-lote-8072",
+      "data": "2026-09-28",
+      "tipo": "anchors",
+      "gerador": "claude-opus-5-5 (Anthropic) — sessão que autorou o lote",
+      "refutador": "claude-fable-5-1 (Anthropic) — subagente do workflow .claude/workflows/refutador-gt-g5.js em contexto próprio, zero contexto do gerador e das rodadas anteriores (instruído a não abrir as evidências prévias); uma instância NOVA por rodada, r1–r1",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 299,
+      "erros_confirmados": 4,
+      "error_rate_pct": 1.34,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-09-28-refutacao-gt-g5-lote-8072-r1.md (rodada aprovada)",
+      "trajetoria": "1 rodada: 1,34% (r1, 4/299)",
+      "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
     }
   ]
 }

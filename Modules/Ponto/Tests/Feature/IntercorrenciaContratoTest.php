@@ -17,7 +17,7 @@ uses(PontoTestCase::class);
  *
  * Cada teste cita o UC no TÍTULO do `it()` (G-2 do casos-gate, ADR 0264):
  *   Intercorrencias/Index.casos.md  → UC-INTIDX-01..03
- *   Intercorrencias/Create.casos.md → UC-INTCRE-01..02
+ *   Intercorrencias/Create.casos.md → UC-INTCRE-01..03
  *
  * Os UC derivam do SDD §6.2 (CU-PONTO-05) e §6.5 (CU-PONTO-12) + US-PONTO-003 +
  * fluxo F4 (§5.3). NÃO do `.tsx`.
@@ -305,6 +305,20 @@ it('UC-INTCRE-01 · registrar uma intercorrência cria o rascunho', function () 
     );
     expect((int) DB::table('ponto_intercorrencias')->where('colaborador_config_id', $colab->id)->count())
         ->toBe($antes + 1, 'Exatamente uma intercorrência tem de ter sido criada.');
+});
+
+it('UC-INTCRE-03 · a tela não promete enviar ao RH ao salvar', function () {
+    // Âncora: Create.charter.md, Anti-hooks — "Salvar não dispara aprovação nem notifica o RH
+    // (submeter é ação separada no `Show`)". A copy vive no .tsx (não é prop Inertia), então o
+    // contrato é lido no fonte da página.
+    $src = file_get_contents(base_path('resources/js/Pages/Ponto/Intercorrencias/Create.tsx'));
+
+    expect($src)->not->toBeFalse();
+    // Normaliza quebras de linha do JSX para a frase não escapar por estar partida.
+    $texto = preg_replace('/\s+/u', ' ', (string) $src);
+
+    expect(preg_match('/submetid[oa]s?\s+ao\s+RH/iu', $texto))->toBe(0);
+    expect(preg_match('/Salvar cria um rascunho/u', $texto))->toBe(1);
 });
 
 it('UC-INTCRE-02 · a lista de colaboradores traz só os do meu empregador', function () {

@@ -111,6 +111,7 @@ authority: generated
 | UC-IMPSH-05 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-INTCRE-01 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTCRE-02 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
+| UC-INTCRE-03 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTEDT-01 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
 | UC-INTEDT-02 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
 | UC-INTEDT-03 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |

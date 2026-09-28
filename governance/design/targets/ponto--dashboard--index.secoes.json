@@ -1,0 +1,28 @@
+{
+  "_": "semente [CC] 2026-09-28 — âncoras do protótipo (ponto-page.jsx Painel) = ids do ponto-painel.contract.json e do Dashboard/Index.tsx vivo (:138 · :240 · :333 · :365). dado lido em DashboardController.php@main 0c23a1349c08.",
+  "_mapa": "Conferida em 2026-09-28 por `alvo:mapa --rota <r> --raiz .ponto-root` (e `--raiz '.ponto-root .pt-body'` / `'.ponto-root > .cli-ph'`) contra o espelho servido por `servirEstatico` (o mesmo servidor do secao-check), mais querySelectorAll de cada seletor no DOM: todos resolvem 1 nó, nenhum seletor corrigido. Rota do espelho: `ponto`. Mapa: .ponto-root = div.cli-ph (p + header) · nav.ds-tabbar.jm-tabs · div.pt-body (4 filhos: nota · .pt-kpis · .pt-cols-2 com fila e atividade · .pt-legal).",
+  "header": {
+    "seletor": ".ponto-root > .cli-ph > header",
+    "dado": "shell — PageHeader; server_time (eager) para o 'Atualizado às'"
+  },
+  "tabs": {
+    "seletor": ".ponto-root > nav.ds-tabbar",
+    "dado": "shell — PontoSubNav (shell.menu, ADR 0182); contagens vêm de kpis.aprovacoes_pendentes"
+  },
+  "nota": {
+    "seletor": "[data-contract=\"painel-nota-fechamento\"]",
+    "dado": "kpis.aprovacoes_pendentes + kpis.divergencias_mes (ApuracaoDia ESTADO_DIVERGENCIA, whereMonth)"
+  },
+  "kpis": {
+    "seletor": "[data-contract=\"painel-kpis\"]",
+    "dado": "DashboardController::buildKpis — colaboradores_ativos · presentes_agora · atrasos_hoje · faltas_hoje · he_mes_minutos · aprovacoes_pendentes · aprovacoes_urgentes · ultima_marcacao (defer)"
+  },
+  "fila": {
+    "seletor": "[data-contract=\"painel-fila-aprovacoes\"]",
+    "dado": "DashboardController::buildAprovacoes — top 5 Intercorrencia::pendentes(), com dia_todo/intervalo_inicio/intervalo_fim (data_fim sempre null)"
+  },
+  "atividade": {
+    "seletor": "[data-contract=\"painel-atividade\"]",
+    "dado": "DashboardController::buildAtividadeRecente — 20 Marcacao de hoje com nsr · tipo · momento · origem · rep"
+  }
+}
