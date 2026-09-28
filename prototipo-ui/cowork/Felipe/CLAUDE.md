@@ -26,15 +26,34 @@ feito aqui.
 - **Isto vale só para `prototipo-ui/cowork/Felipe/`.** O design system (projeto do Wagner, fonte
   viva em `resources/js/Components/{ui,shared}/`) continua regido pela seção "Como conferir
   protótipo contra o DS", mais abaixo.
-- **Fabricação:** o Wagner decidiu em 25/09/2026 (D-MFG-FONTE) que a fonte dela era a pasta dele.
-  **Revisto por [W] em 2026-09-28** (comentário no PR #7991): **a versão do Felipe é a principal da
-  Fabricação**, a pasta `manufacturing-*` daqui fica e a thread 03 (aposentar) **não será executada**.
-  O porte que o Wagner preparou do lado dele foi descartado. Na mesma revisão ele decidiu o título
-  (D-RET-01): "Produção" na aba Ordens e "Manufacturing" nas demais, com a frase do custo inteira
-  fora da aba Ordens.
-- Correção de defeito do protótipo acontece aqui, vai no PR e entra no próximo recibo de retorno.
-  Exemplo: em 25/09/2026 a moldura `.mfg-grid` colidia com a regra antiga de `mockup-pages.css` e
-  deixava uma coluna vazia à direita da tabela no shell — corrigido em `manufacturing-page.css`.
+- **Fabricação — exceção a tudo acima: os arquivos NÃO ficam mais nesta pasta.** Histórico, em
+  ordem: em 25/09/2026 o Wagner decidiu que a fonte era a pasta dele (D-MFG-FONTE); na manhã de
+  28/09 reviu no PR #7991 (a versão do Felipe como principal, esta pasta fica — D-RET-02); **na
+  tarde de 28/09 decidiu de vez, no chat: "sim, pode subir e apagar a pasta do Felipe"**. Resultado:
+  - **#8052:** a versão do Felipe foi para a pasta do Wagner. Os 7 `manufacturing-*` de
+    `prototipo-ui/cowork/Wagner/` são byte a byte a versão do #7991 — nada do Felipe se perdeu.
+  - **#8054:** os 7 `manufacturing-*` saíram daqui (thread 03). O `oimpresso.com.html` desta pasta
+    carrega `../Wagner/manufacturing-*`, então a Fabricação continua abrindo neste protótipo.
+  - Continua valendo o título decidido em D-RET-01: "Produção" na aba Ordens e "Manufacturing" nas
+    demais, com a frase do custo inteira fora da aba Ordens.
+- **Como o Felipe trabalha na Fabricação daqui para a frente** (combinado em 28/09/2026):
+  1. Edita os `manufacturing-*` **na pasta do Wagner** (`prototipo-ui/cowork/Wagner/`), aqui no git,
+     num PR. Para ver, usa este protótipo mesmo — ele já carrega os arquivos de lá.
+  2. **Depois do merge, uma sessão com o login do Wagner sobe os arquivos para o projeto dele no
+     Claude Design** (DesignSync) e registra a volta no ledger, como no #8052. Sem essa subida, a
+     próxima atualização do espelho desfaz a mudança. Todo PR da Fabricação avisa o Wagner disso.
+  3. O Felipe **não tem acesso** ao projeto do Wagner no Claude Design (conta pessoal; o
+     compartilhamento de lá só funciona entre membros da mesma organização, em plano Team ou
+     Enterprise). Por isso a subida é sempre do lado do Wagner — não tentar gravar de uma sessão
+     com o login do Felipe.
+  4. Editar a pasta do Wagner à mão **sem** a subida arma o gate do espelho ("mexeu depois de
+     verificar"). Antes de pedir merge, rodar
+     `node scripts/governance/cowork-mirror-freshness.mjs --unverified --check` contra o `main`
+     atualizado.
+- Correção de defeito do protótipo nas **outras** telas desta pasta acontece aqui, vai no PR e
+  entra no próximo recibo de retorno. Exemplo (25/09/2026, quando a Fabricação ainda morava aqui):
+  a moldura `.mfg-grid` colidia com a regra antiga de `mockup-pages.css` e deixava uma coluna vazia
+  à direita da tabela no shell — corrigido em `manufacturing-page.css`, hoje na pasta do Wagner.
 
 ## Pendências conhecidas em outras telas (anotado em 25/09/2026, não corrigido de propósito)
 
