@@ -1808,6 +1808,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** não recriar o script, o harness nem o grader com outro nome, e não reabrir "o corpus ajuda?" medindo **skill contra skill** com o `CLAUDE.md` constante de fundo, que mede zero por construção. A pergunta barata que o smoke deixou é outra, **estática e sem runs**: *quanto do corpus só restateia o `CLAUDE.md`?* Se um dia valer, ela se responde por comparação de conteúdo, não por experimento com agentes. O experimento caro só se justifica com um braço **sem `CLAUDE.md`** (strip do ambiente) e com um alvo cuja lição não esteja no fundo. Isso exige decisão [W] nova e explícita.
 
+### 2026-09-28 — EMENDA da lápide 2026-08-02 (fix na cópia que o consumidor não usa): a regra "não fatiar tabela markdown com `split('|')` cru" morava num parser só, e o irmão seguiu com o split cru
+
+- **O limite (variante também proibida):** ao consertar um defeito de **parsing de formato** (tabela markdown, CSV, frontmatter), a regra vai para um lugar importável (`scripts/lib/`) e o conserto procura os outros parsers do mesmo formato — `grep` por `split('|')` perto de `startsWith('|')` — e diz o número. Consertar dentro do script que doeu deixa os irmãos com a versão velha. E antes de escrever helper novo, procurar se o repo já tem um: aqui ele existia na **mesma pasta**. Não é gate: a forma sintática (acusar `split('|')`) reprovaria splits legítimos fora de tabela, e a família de guard sintático já tem várias lápides medidas neste §5.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

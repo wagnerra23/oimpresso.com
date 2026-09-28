@@ -506,13 +506,13 @@ lifecycle: ativo
 | `ds-lint-alvos.mjs` | ci, script | 🟢 só lê | — | `memory/reference/prototipo-ui/REGRAS_DS_LINT.md` | serve o `component-registry.json` EM TEMPO DE LINT. |
 | `ds-notas-gerar.mjs` | — | 🟢 só lê | — | — | Gera design-system/components/<Nome>/<Nome>.prompt.md a partir de governance/design/ds-notas-uso.json |
 | `fingerprint-harness.mjs` | ci, script | 🟢 só lê | — | `memory/proibicoes.md` +5 | Onda 3a do roadmap estado-da-arte (2026-07-08): DRIVER do |
-| `gerar-contrato.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Sells/vendas-index-gap.md` +26 | W1 do processo região-a-região: deriva o ESQUELETO do |
-| `gerar-map.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +43 | deriva o ESQUELETO do <tela>.map.json a partir do <tela>-gap.md. |
+| `gerar-contrato.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Sells/vendas-index-gap.md` +28 | W1 do processo região-a-região: deriva o ESQUELETO do |
+| `gerar-map.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +45 | deriva o ESQUELETO do <tela>.map.json a partir do <tela>-gap.md. |
 | `gerar-mapas-handoff.js` | — | 🟢 só lê | — | — | (sem descrição no cabeçalho) |
 | `handoff-changed.mjs` | script | 🟢 só lê | selftest | `memory/reference/prototipo-ui/CODE_NOTES.handoff-ds-2026-09-17-recusado-por-r4.md` | PORTÃO BARATO (zero LLM) da Fase −1 do protocolo aplicar-prototipo. |
 | `importar-bundle.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +8 | IMPORT atômico do ZIP Cowork (Fase −1 como máquina, não receita). |
 | `integrity-check.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/0293-governanca-decisao-design-responsavel-registro-veredito.md` +23 | Testes de Integridade · PROCESSO_MEMORIA_CC.md §15 |
-| `lote-resumo-ci.mjs` | ci | 🟢 só lê | — | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` | o CONSUMIDOR do `design-diff-lote`: transforma as medidas em um |
+| `lote-resumo-ci.mjs` | ci, script | 🟢 só lê | — | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` +2 | o CONSUMIDOR do `design-diff-lote`: transforma as medidas em um |
 | `protocolo.config.mjs` | agente, ci, script | 🟢 só lê | — | `memory/decisions/0387-github-md-diario-cowork-aceito-e-tratado.md` +52 | FONTE ÚNICA EXECUTÁVEL do protocolo de aplicação de protótipo (skill |
 | `recortar-regiao.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +1 | W2 do processo região-a-região: recorta o screenshot da tela pela |
 | `render-proto-baseline.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +15 | o DESIGN vira BASELINE versionado (roubo #7 da pesquisa de mercado, |
@@ -617,7 +617,7 @@ lifecycle: ativo
 | `fluxo-morde.mjs` | ci, script | 🔴 disco | — | `memory/licoes-rejeitadas.md` | EXERCÍCIO DE FOGO DO FLUXO: o método detém um defeito, ou só o comenta? |
 | `fluxo-sistema.mjs` | agente, ci | 🟢 só lê | test | `memory/requisitos/Infra/SPEC.md` +6 | MÉTRICAS DE FLUXO DO SISTEMA INTEIRO (DORA + Flow), medidas. |
 | `funcao-scorecard-calibracao.mjs` | script | 🟢 só lê | test | `memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md` +5 | calibração NÃO-CIRCULAR do juiz funcao-scorecard. |
-| `funcao-scorecard-humano.mjs` | npm | 🟢 só lê | test | `memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md` +4 | template                 imprime o JSON cego que [W] preenche |
+| `funcao-scorecard-humano.mjs` | npm | 🟢 só lê | test | `memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md` +6 | template                 imprime o JSON cego que [W] preenche |
 | `funcao-scorecard-outcome-probe.mjs` | ci, npm | 🟢 só lê | test | `memory/decisions/proposals/2026-07-21-funcao-scorecard-validacao-por-outcome.md` +3 | PROTÓTIPO de validação-por-OUTCOME do funcao-scorecard. |
 | `gate-selftest.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0302-fonte-unica-doneness-anchor-aposenta-status-spec.md` +77 | QUEM VIGIA OS VIGIAS (frente GT-G6, plano-mãe SDD 2026-06-12 §2 |
 | `ghost-fix.mjs` | agente, script | 🟢 só lê | test | `memory/requisitos/_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md` +8 | codemod de ghost-names em memory/requisitos/** (Semana 0, frente KL). |
@@ -690,12 +690,13 @@ lifecycle: ativo
 | `pt-signatures.mjs` | ci, script | 🟢 só lê | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +3 | FONTE ÚNICA das assinaturas estruturais dos 5 Padrões de Tela. |
 | `spec-encerrado.mjs` | script | 🟢 só lê | — | — | SPEC declarado encerrado não é dívida: sai do corpus dos gates. |
 
-### 5.13 `scripts/lib/` — 3
+### 5.13 `scripts/lib/` — 4
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
 | `charter-signal.mjs` | script | 🟢 só lê | — | — | FONTE ÚNICA da regra "o charter tem sinal de prod?". |
 | `delecao-legitima.mjs` | script | 🟢 só lê | — | — | "o item sumiu: foi REMOÇÃO legítima ou FUGA da catraca?" |
+| `markdown-tabela.mjs` | ci, script | 🟢 só lê | — | `memory/LICOES_CODE.md` +1 | dono ÚNICO de "fatiar uma linha de tabela markdown em células". |
 | `uc-regex.mjs` | agente, ci, script | 🟢 só lê | test | `memory/proibicoes.md` +10 | 7 · coletor do manifesto) que DEVIAM ser iguais e drifaram: em 2026-06-22 o guard foi |
 
 ### 5.14 `scripts/memory-schemas/` — 1
@@ -733,7 +734,7 @@ lifecycle: ativo
 | `screen-grades-ratchet.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0373-screen-grades-ratchet-required-emenda-0314.md` +19 | catraca anti-regressão da nota por tela. |
 | `secao-check.mjs` | ci, npm, script | 🔴 disco | — | `memory/requisitos/Jana/jana-index-gap.md` +1 | PR-A3 do protocolo de export: o ALVO versionado vira GATE. |
 | `uc-id-lint.mjs` | ci | 🔴 disco | test | `memory/proibicoes.md` +7 | o id de UC casa o regex canônico? (ADR 0264 · fonte única scripts/lib/uc-regex.mjs) |
-| `uc-lane-coverage.mjs` | ci, script | 🔴 disco | test | (só sessão/handoff · 3) | o teste que o `casos.md` cita EXISTE, e alguma lane de CI o RODA? |
+| `uc-lane-coverage.mjs` | ci, script | 🔴 disco | test | `memory/LICOES_CODE.md` +4 | o teste que o `casos.md` cita EXISTE, e alguma lane de CI o RODA? |
 | `vital-signs.mjs` | ci, script | 🔴 disco | test | `memory/requisitos/_Governanca/roadmap/MV1-espinha-dorsal-vital-signs.md` +8 | sinais vitais da frota por módulo (MV1 · espinha dorsal do Módulo Vivo). |
 
 ### 5.17 `scripts/screen-smoke/` — 2
