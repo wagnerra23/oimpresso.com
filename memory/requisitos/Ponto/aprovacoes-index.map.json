@@ -1,0 +1,160 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Ponto/Aprovacoes/Index (/ponto/aprovacoes)",
+  "gap_fonte": "memory/requisitos/Ponto/aprovacoes-index-gap.md",
+  "prototipo_sha": "sha256:e4d0b5a3707e",
+  "gerado_em": "2026-09-28",
+  "partes": [
+    {
+      "id": "kpis-por-estado",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "60-62"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
+        "linhas": "262-278",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada — paridade de comportamento. A forma (tamanho do tile, ícone) é assunto da thread 15/34, não deste gap.",
+      "_acionavel": false
+    },
+    {
+      "id": "barra-de-filtros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "63-80"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
+        "linhas": "281-320",
+        "ancora": false
+      },
+      "status": "divergencia-declarada",
+      "acao": "Protótipo à frente só no contador. O select de Estado duplicaria o KPI-filtro que o vivo já tem. Não medido: se o contador vale a linha; fica para a passada de FORMA (thread 15).",
+      "_acionavel": true
+    },
+    {
+      "id": "fila-de-aprovacoes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "82-117"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
+        "linhas": "323-493",
+        "ancora": false
+      },
+      "status": "divergencia-declarada",
+      "acao": "Vivo à frente na coluna Criada. O cargo na sub-linha é protótipo à frente e depende de o payload trazer o cargo (não medido no controller). A thread 17 grava `data-contract=\"aprovacoes-fila-de-aprovacoes\"` no card.",
+      "_acionavel": true
+    },
+    {
+      "id": "acao-por-linha",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "103-111"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
+        "linhas": "430-458",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada.",
+      "_acionavel": false
+    },
+    {
+      "id": "dialogo-de-aprovar",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "127-132"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
+        "linhas": "510-533",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada.",
+      "_acionavel": false
+    },
+    {
+      "id": "dialogo-de-rejeitar",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "133-139"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
+        "linhas": "536-579",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada. O `window.prompt` que a thread acusava já saiu do protótipo.",
+      "_acionavel": false
+    },
+    {
+      "id": "paginacao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "33"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
+        "linhas": "467-490",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada. A divergência 15 × 20 da thread foi corrigida no protótipo.",
+      "_acionavel": false
+    },
+    {
+      "id": "barra-de-lote",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "118-126"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
+        "linhas": "497-507",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir [W]. Rejeição em lote é comportamento novo (rota nova + regra de motivo único) e a ata de 14/09 não responde. Pendente, não inventado. O `confirm()` nativo do vivo é defeito independente da decisão: o DS tem diálogo, e a regra R3 da ata já tratou `window.confirm` como \"não era pergunta\" (D-ESC-DESTROY).",
+      "_acionavel": true
+    },
+    {
+      "id": "rodape-legal",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "140"
+      },
+      "vivo": {
+        "arquivo": "n/a",
+        "linhas": "n/a",
+        "ancora": false
+      },
+      "status": "divergencia-declarada",
+      "acao": "Portaria\"` em `Index.tsx` = 0. O Non-Goal de append-only está no charter (`Index.charter.md:43`).",
+      "_acionavel": true
+    },
+    {
+      "id": "estado-vazio",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+        "linhas": "86-88"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
+        "linhas": "326-343",
+        "ancora": false
+      },
+      "status": "paridade",
+      "acao": "Nada.",
+      "_acionavel": false
+    }
+  ]
+}
