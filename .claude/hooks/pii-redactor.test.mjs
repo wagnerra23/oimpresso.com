@@ -10,6 +10,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { findPii, isGitCommit, hasBypass, blockMessage } from './pii-redactor.mjs';
 
 // Fixtures 100% SINTÉTICAS (formato BR válido, números fake — jamais dados reais):
@@ -45,7 +46,7 @@ check('isGitCommit: com espaços à esquerda', isGitCommit('  git commit --amend
 check('isGitCommit: mysql com CPF NÃO é escopo (debug legítimo ERP)', isGitCommit(`mysql -e "SELECT * FROM contacts WHERE cpf='${CPF_FAKE}'"`) === false);
 check('isGitCommit: grep de log NÃO é escopo', isGitCommit(`grep ${CPF_FAKE} storage/logs/laravel.log`) === false);
 check('isGitCommit: git push não é commit', isGitCommit('git push origin main') === false);
-check('hasBypass: --allow-pii', hasBypass('git commit -m "x" --allow-pii') === true);
+check('hasBypass: --allow-pii DENTRO da mensagem', hasBypass('git commit -m "x --allow-pii dado mock"') === true);
 
 // ── mensagem: instrui remediação + bypass (contrato) ────────────────────────────
 const msg = blockMessage(findPii(CPF_FAKE));
@@ -61,7 +62,27 @@ const j = (cmd) => JSON.stringify({ tool_name: 'Bash', tool_input: { command: cm
 check('E2E: commit com CPF real na mensagem → exit 2 (BLOQUEIA)', runHook(j(`git commit -m "fix cliente ${CPF_FAKE}"`)) === 2);
 check('E2E: commit com fixture whitelisted → exit 0', runHook(j(`git commit -m "test com ${CPF_WL1}"`)) === 0);
 check('E2E: commit limpo → exit 0', runHook(j('git commit -m "feat(jana): recall flow"')) === 0);
-check('E2E: bypass --allow-pii → exit 0', runHook(j(`git commit -m "${CPF_FAKE}" --allow-pii`)) === 0);
+check('E2E: bypass --allow-pii na mensagem → exit 0', runHook(j(`git commit -m "${CPF_FAKE} --allow-pii dado mock"`)) === 0);
+
+// ── CONTRATO DA SAÍDA ANUNCIADA (LC-15, 2026-09-28) ─────────────────────────────
+// A mensagem antiga mandava "adicione --allow-pii ao comando". Seguida ao pé da letra
+// (`git commit ... --allow-pii`), o git recusa a opção desconhecida e sai rc=129 — a
+// saída anunciada não existia. Aqui a forma que a mensagem RECOMENDA roda num git de
+// verdade, e a forma antiga tem de continuar falhando (é o que prova que o teste mede).
+check('mensagem NÃO manda passar --allow-pii como opção do git',
+  !/adicione --allow-pii ao comando/i.test(msg) && /DENTRO da mensagem/.test(msg));
+{
+  const repo = mkdtempSync(join(tmpdir(), 'pii-bypass-'));
+  const g = (...a) => spawnSync('git', ['-C', repo, '-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', ...a], { encoding: 'utf8' });
+  g('init', '-q');
+  const forma = g('commit', '-q', '--allow-empty', '-m', 'x --allow-pii dado mock');
+  const antiga = g('commit', '-q', '--allow-empty', '-m', 'x', '--allow-pii');
+  check('forma recomendada (marca na mensagem) é um git commit VÁLIDO (rc 0)', forma.status === 0);
+  check('CONTROLE: a forma antiga (opção do git) FALHA (rc != 0)', antiga.status !== 0);
+  check('forma recomendada é reconhecida como commit E como bypass',
+    isGitCommit('git commit -m "x --allow-pii dado mock"') && hasBypass('git commit -m "x --allow-pii dado mock"'));
+  rmSync(repo, { recursive: true, force: true });
+}
 check('E2E: comando não-commit com CPF → exit 0 (opção B)', runHook(j(`grep ${CPF_FAKE} laravel.log`)) === 0);
 check('E2E: tool não-Bash → exit 0', runHook(JSON.stringify({ tool_name: 'Write', tool_input: { file_path: 'x' } })) === 0);
 check('E2E: stdin vazio → exit 0 (fail-open)', runHook('') === 0);

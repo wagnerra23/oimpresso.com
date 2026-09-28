@@ -1,5 +1,12 @@
 #!/usr/bin/env node
 // pii-redactor.mjs — PreToolUse:Bash (PORTE cross-plataforma do .ps1).
+//
+// ⚠️ ARQUIVADO em 2026-09-28 por decisão [W]: "pode arquivar ele por enquanto, ele vai ser
+// usado só na JANA". Saiu do `.claude/settings.json` — NÃO roda no agente. O arquivo e o
+// teste ficam para a volta. Religar = devolver o wiring no settings.json E a linha do
+// BACKSTOP em scripts/governance/settings-backstop-registration.test.mjs.
+// ⚠️ Furo conhecido, a tratar na volta: `isGitCommit` exige o comando COMEÇANDO por
+// `git commit`, então qualquer prefixo (`cd x && git commit …`) escapa da inspeção.
 // BLOQUEIA `git commit` que levaria PII real (CPF/CNPJ/cartão) pro repo.
 //
 // ── CONTRATO (a âncora — não a implementação) ────────────────────────────────
@@ -12,7 +19,10 @@
 // Comandos NÃO-commit (mysql/grep/ssh/cat...) passam SEM inspeção: num ERP
 // brasileiro, debug legítimo por CPF/CNPJ é operação normal.
 //
-// Bypass: adicione --allow-pii ao git commit (E confirme com Wagner).
+// Bypass: escreva `--allow-pii <motivo>` DENTRO da mensagem do commit (E confirme com Wagner).
+// NÃO como opção do git: `git commit --allow-pii` sai rc=129 ("unknown option") — a mensagem
+// antiga mandava exatamente isso (corrigido 2026-09-28). Na mensagem, o git aceita, o
+// `hasBypass` reconhece e o motivo fica no histórico, que é onde a auditoria precisa dele.
 // Whitelist: fixtures fake bem conhecidos (CPFs de placeholder + cartões de teste Visa/MC).
 //
 // ── POR QUE .mjs (triagem 2026-07-09, classe Tier-0-esquecido) ───────────────
@@ -81,7 +91,9 @@ LGPD Art. 7º — o commit contém ${found.length} PII real (${tipos}) na mensag
 Antes de commitar:
   1) remova a PII da mensagem do commit;
   2) git restore --staged <arquivo> + edite (use [REDACTED] ou fixtures fake) + re-stage.
-Bypass justificado: adicione --allow-pii ao comando E confirme com Wagner.`;
+Bypass justificado (confirme com Wagner antes): escreva uma linha "--allow-pii <motivo>"
+DENTRO da mensagem do commit (ex.: -m "... --allow-pii dado mock em linha removida").
+NÃO passe --allow-pii como opção do git: ele não existe lá e o commit falha (rc=129).`;
 }
 
 /** staged diff via git — fail-open (não é repo/sem git → escaneia só a mensagem). */
