@@ -51,7 +51,7 @@ decidida por esta thread.
 | `pageheader-migration-guard` | exit 0, nenhuma adoção nova nem dívida tocada |
 | `eslint Index.tsx` | exit 0 |
 | `tsc --noEmit` | 306 erros **pré-existentes** no repo (o mesmo número do `_saida-04`), **0** em `Manufacturing/Index.tsx` |
-| runtime em prod | **pendente até o merge** (LC-30): conferir no DOM que os 5 `[data-contract]` existem, na ordem, em `/manufacturing/production` biz=1 |
+| runtime em prod | **feito 2026-09-28**, último deploy com sucesso `200ff15eb` (contém `bacdd6677`), WR2 Sistemas (biz=1), medido no DOM com o contador de elementos estável. Os 5 `[data-contract]` existem na ordem do contrato (`cabecalho → abas → kpis → filtros → lista`, depois dos 5 da sidebar), e toda a copy de cada seção está dentro da própria região. Controle: "Paginação" em `lista` e "Kanban" em `abas` → ausentes, ou seja, a sonda discrimina. Com um filtro sem resultado, "Nenhuma produção no filtro" aparece dentro de `lista`; limpando, a lista volta às 2 ordens |
 
 ## 4 · Fora do escopo, declarado
 
