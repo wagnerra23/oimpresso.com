@@ -90,4 +90,4 @@ jobs:
           echo "  3. Se for legítimo/intencional, absorva conscientemente:"
           echo "       npm run layout:baseline:write   # commit + justificativa no PR"
           echo ""
-          echo "Refs: memory/decisions/0253-primitivos-layout.md · tela-piloto Financeiro/ProvaViva.tsx"
+          echo "Refs: memory/decisions/0253-primitivos-layout.md"

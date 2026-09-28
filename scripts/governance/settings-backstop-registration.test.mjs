@@ -33,7 +33,10 @@ const SETTINGS = join(__dirname, '..', '..', '.claude', 'settings.json');
 // o cenário do corpus que depende dele vira falso-verde.
 const BACKSTOP = [
   { cmd: 'node .claude/hooks/block-destructive.mjs', nome: 'block-destructive', cenarios: 'A1..A5 (rm -rf, DROP, force-push, migrate:fresh, DELETE)' },
-  { cmd: 'node .claude/hooks/pii-redactor.mjs', nome: 'pii-redactor', cenarios: 'A6 (CPF real ecoado num commit)' },
+  // pii-redactor.mjs SAIU daqui em 2026-09-28: ARQUIVADO por decisão [W] ("pode arquivar ele por
+  // enquanto, ele vai ser usado só na JANA"). O arquivo segue no disco e o cenário A6 do corpus
+  // continua provando a LÓGICA dele — mas, sem registro, A6 NÃO prova defesa viva. Voltar a
+  // registrar o hook = voltar esta linha: { cmd: 'node .claude/hooks/pii-redactor.mjs', ... }.
 ];
 
 let fails = 0;

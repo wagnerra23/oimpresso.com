@@ -808,10 +808,21 @@
       "exports": [
         "default"
       ],
-      "props": [],
+      "props": [
+        "kind",
+        "value",
+        "label",
+        "className",
+        "rel",
+        "tone"
+      ],
       "variant_map": {
-        "kinds atuais": "16 (intercorrencia, aprovacao, payment, …)",
-        "kind=frescor/tipo/sla/atendimento": "FALTA — estender (0 ocorrências)"
+        "kinds": "lista viva = chaves de `mappings` em StatusBadge.tsx (não restatear aqui)",
+        "kind=sla/frescor/atendimento": "EXISTE desde #7990 (ds-atomos thread 05): chaves e rótulos literais do MAP do DS; cor por --sla-* e --canal-*-tint/-fg",
+        "kind=fiscal": "FORA por decisão D-SB-KINDS — fonte única é FiscalStatusBadge",
+        "kind=tipo": "FORA por decisão D-SB-KINDS — exigiria --color-tipo-pj/-pf, que não existem",
+        "rel": "prop rel: sufixo de tempo relativo após o rótulo",
+        "tone": "prop tone: troca a variante (tipada pelo badgeVariants)"
       },
       "status": "mapped"
     },
@@ -891,9 +902,27 @@
         "PaginatorShape",
         "default"
       ],
-      "props": [],
+      "props": [
+        "columns",
+        "data",
+        "pagination",
+        "endpoint",
+        "caption",
+        "filters",
+        "searchPlaceholder",
+        "emptyMessage",
+        "rowKey",
+        "showSearch",
+        "initialSearch",
+        "rowState",
+        "onRowClick",
+        "minTableWidth",
+        "tableWrapperClassName",
+        "density"
+      ],
       "variant_map": {
-        "base": "@tanstack/react-table (DataTable.tsx:8)"
+        "base": "@tanstack/react-table (DataTable.tsx:8)",
+        "density": "prop density=\"dense\" = a tabela densa do protótipo (ds-atomos thread 04, #8045); omitido = anatomia de sempre"
       },
       "status": "mapped"
     },
@@ -906,9 +935,28 @@
         "PaginatorShape",
         "default"
       ],
-      "props": [],
+      "props": [
+        "columns",
+        "data",
+        "pagination",
+        "endpoint",
+        "caption",
+        "filters",
+        "searchPlaceholder",
+        "emptyMessage",
+        "rowKey",
+        "showSearch",
+        "initialSearch",
+        "rowState",
+        "onRowClick",
+        "minTableWidth",
+        "tableWrapperClassName",
+        "density"
+      ],
       "variant_map": {
-        "sticky/resize/densidade": "FALTA — estender"
+        "densidade": "EXISTE — prop density (ds-atomos thread 04, #8045)",
+        "sticky": "FALTA — estender (cabeçalho fixo não existe no primitivo)",
+        "resize": "FALTA — estender (thread 07 do ds-atomos bloqueada até a ADR UI-0032)"
       },
       "status": "mapped"
     },
