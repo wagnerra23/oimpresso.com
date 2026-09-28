@@ -3778,11 +3778,6 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-JPAIN-33": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 7
-    },
     "UC-FSPED-08": {
       "verdict": "pass",
       "ran_at": null,
