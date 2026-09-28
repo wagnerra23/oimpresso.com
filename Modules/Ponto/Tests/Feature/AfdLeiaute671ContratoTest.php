@@ -200,3 +200,58 @@ it('AFD-1510-01 · legado 1510 (DDMMAAAA HHMM + PIS) segue importado pelo PIS �
     expect($imp->linhas_erro)->toBe(0)
         ->and(afd671Marcacoes($this))->toBe(['2026-09-24 08:00:00']);
 });
+
+/**
+ * Cabeçalho 1510 pelo Anexo I da Portaria 1510/2009 (com as alterações da 2233/2009):
+ * tipo ident 011 · CNPJ 012-025 · CEI 026-037 · razão 038-187 · nº fabricação 188-204 ·
+ * data inicial 205-212 · data final 213-220 · data geração 221-228 · hora geração 229-232.
+ */
+function afd1510Cabecalho(string $fabricacao, string $geracao): string
+{
+    return afd671Linha([
+        '000000000', '1', '1', '11222333000181', str_repeat('0', 12),
+        str_pad('EMPRESA FICTICIA AFD1510', 150), $fabricacao,
+        '24092026', '24092026', $geracao, '0900',
+    ], 232);
+}
+
+/** Trailer 1510: "999999999" + contadores dos tipos 2..5 + tipo "9" na posição 46. */
+function afd1510Trailer(): string
+{
+    return afd671Linha(['999999999', str_repeat('0', 9), '000000001', str_repeat('0', 18), '9'], 46);
+}
+
+function afd1510Marcacao(string $nsr): string
+{
+    return afd671Linha([$nsr, '3', '24092026', '0800', AFD671_PIS], 34);
+}
+
+it('AFD-1510-02 · cabeçalho 1510 identifica o REP pelo nº de fabricação (188-204) e o CNPJ (012-025)', function () {
+    $fabricacao = '00004000010000123';
+
+    afd671Importar($this, [afd1510Cabecalho($fabricacao, '25092026'), afd1510Marcacao('000000001')]);
+
+    $rep = Rep::withoutGlobalScopes()->where('business_id', AFD671_BIZ)->where('identificador', $fabricacao)->first();
+    expect($rep)->not->toBeNull()
+        ->and($rep->cnpj)->toBe('11222333000181');
+});
+
+it('AFD-1510-03 · arquivo 1510 completo (cabeçalho, marcação, trailer) conclui sem erro', function () {
+    $imp = afd671Importar($this, [
+        afd1510Cabecalho('00004000010000123', '25092026'),
+        afd1510Marcacao('000000001'),
+        afd1510Trailer(),
+    ]);
+
+    expect($imp->linhas_erro)->toBe(0)
+        ->and($imp->estado)->toBe(Importacao::ESTADO_CONCLUIDA);
+});
+
+it('AFD-1510-04 · o mesmo relógio exportado duas vezes não duplica a marcação (idempotência de reimport)', function () {
+    $fabricacao = '00004000010000123';
+
+    afd671Importar($this, [afd1510Cabecalho($fabricacao, '25092026'), afd1510Marcacao('000000001')]);
+    afd671Importar($this, [afd1510Cabecalho($fabricacao, '26092026'), afd1510Marcacao('000000001')]);
+
+    expect(afd671Marcacoes($this))->toBe(['2026-09-24 08:00:00']);
+});

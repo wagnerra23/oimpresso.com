@@ -119,7 +119,7 @@ class AfdParserService
                     continue; // linha vazia/curta ou assinatura digital do REP-A/REP-P (671)
                 }
 
-                $tipoRegistro = $this->ehTrailer671($linha) ? '9' : substr($linha, 9, 1);
+                $tipoRegistro = $this->ehTrailer($linha) ? '9' : substr($linha, 9, 1);
                 $parser = isset($this->parsers[$tipoRegistro]) ? $this->parsers[$tipoRegistro] : null;
                 if (!$parser) {
                     $erros++;
@@ -268,10 +268,12 @@ class AfdParserService
     /**
      * Tipo 1 — Cabeçalho. Identifica REP e cria se não existir.
      *
-     * Layout (posições 1-based; convertido para 0-based no substr):
-     *   NSR(9) + tipo(1=1) + CNPJ(14) + CEI(12) + razão social(150)
-     *   + data inicial(DDMMAAAA 8) + data final(DDMMAAAA 8) + data geração(DDMMAAAA 8)
-     *   + hora geração(HHMMSS 6) + tipo ident REP(3) + identificador REP(17)
+     * Leiaute 1510/2009 (Anexo I, com a Portaria 2233/2009), 232 posições:
+     *   NSR 001-009 · tipo 010 · tipo ident empregador 011 · CNPJ/CPF 012-025 · CEI 026-037
+     *   · razão social 038-187 · nº fabricação do REP 188-204 · data inicial 205-212
+     *   · data final 213-220 · data geração 221-228 · hora geração 229-232.
+     * O 1510 só conhece o REP convencional, daí REP_C. O leiaute 671 (302 posições) é
+     * detectado antes, pelo campo de data e hora de geração.
      */
     protected function parseHeader($linha, Importacao $importacao)
     {
@@ -286,25 +288,15 @@ class AfdParserService
             return;
         }
 
-        if (strlen($linha) < 228) {
-            throw new \RuntimeException('Cabeçalho AFD muito curto (esperado >= 228 chars).');
+        if (strlen($linha) < 204) {
+            throw new \RuntimeException('Cabeçalho AFD muito curto (esperado 232 posições no leiaute 1510).');
         }
-
-        $cnpj          = trim(substr($linha, 10, 14));
-        // CEI = substr($linha, 24, 12)
-        // razao = substr($linha, 36, 150)
-        // data_inicial = substr($linha, 186, 8)  -- DDMMAAAA
-        // data_final   = substr($linha, 194, 8)  -- DDMMAAAA
-        // data_geracao = substr($linha, 202, 8)  -- DDMMAAAA
-        // hora_geracao = substr($linha, 210, 6)  -- HHMMSS
-        $tipoIdent     = trim(substr($linha, 216, 3));
-        $identificador = trim(substr($linha, 219, 17));
 
         $this->repAtual = $this->repDoCabecalho(
             $importacao,
-            $identificador,
-            $cnpj,
-            $this->inferirTipoRep($tipoIdent, $identificador)
+            trim(substr($linha, 187, 17)),
+            trim(substr($linha, 11, 14)),
+            Rep::TIPO_REP_C
         );
     }
 
@@ -336,10 +328,15 @@ class AfdParserService
         return (bool) preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4}$/', (string) $valor);
     }
 
-    /** Trailer 671: NSR "999999999", seis contadores de 9 e o tipo "9" na posição 64. */
-    protected function ehTrailer671($linha)
+    /**
+     * Trailer: NSR "999999999" e o tipo "9" na ÚLTIMA posição, não na 010 —
+     * 1510 = 46 posições (contadores dos tipos 2..5), 671 = 64 (tipos 2..7).
+     */
+    protected function ehTrailer($linha)
     {
-        return strlen($linha) === 64 && strpos($linha, '999999999') === 0 && $linha[63] === '9';
+        $n = strlen($linha);
+
+        return ($n === 46 || $n === 64) && strpos($linha, '999999999') === 0 && $linha[$n - 1] === '9';
     }
 
     protected function parseEmpresa($linha, Importacao $importacao)
@@ -491,21 +488,5 @@ class AfdParserService
         ];
 
         return isset($tabela[$qtd]) ? $tabela[$qtd] : Marcacao::TIPO_SAIDA;
-    }
-
-    /**
-     * Mapeia o "tipo ident REP" do cabeçalho para o enum do domínio.
-     */
-    protected function inferirTipoRep($tipoIdent, $identificador)
-    {
-        // Heurística: Portaria 671 usa "REP-P" em texto livre; identificador de 17 chars.
-        $upper = strtoupper($tipoIdent);
-        if (strpos($upper, 'REP-P') !== false || strpos($upper, 'REPP') !== false) {
-            return Rep::TIPO_REP_P;
-        }
-        if (strpos($upper, 'REP-A') !== false || strpos($upper, 'REPA') !== false) {
-            return Rep::TIPO_REP_A;
-        }
-        return Rep::TIPO_REP_C; // convencional é o default histórico (Portaria 1510/2009)
     }
 }
