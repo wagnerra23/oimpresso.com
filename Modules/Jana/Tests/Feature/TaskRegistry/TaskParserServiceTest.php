@@ -144,6 +144,7 @@ it('roteia a meta-line `> onda:` pra custom_fields ao lado do parent_plan (conve
     expect($cand->first()['custom_fields'])->toBe(['parent_plan' => 'programa-ondas', 'onda' => 'D0']);
 });
 
+// @covers-us US-INFRA-048
 it('a US-INFRA-048 do SPEC real declara parent_plan=programa-ondas e onda=D0', function () {
     // Trava a convenção NO DOC CANÔNICO, não só na fixture: reescrever a meta-line da US
     // apaga o vínculo task→onda que a tela /documentacao/programa vai ler.

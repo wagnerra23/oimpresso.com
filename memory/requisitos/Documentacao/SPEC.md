@@ -3,7 +3,7 @@ module: Documentacao
 version: "1.0"
 status: ativo
 owners: [W]
-last_updated: "2026-08-06"
+last_updated: "2026-09-28"
 us_count: 2
 us_list: [US-DOC-001, US-DOC-002]
 related_adrs:
@@ -30,7 +30,7 @@ anchor_format: v1
 | US | Título | Status | Onde está |
 |---|---|---|---|
 | `US-DOC-001` | Migrar a superfície `/documentacao` de Blade para Inertia/React | `doing` — F1 feita, F2/F3 não | [↓](#us-doc-001--migrar-a-superfície-documentacao-de-blade-para-inertiareact) |
-| `US-DOC-002` | Tela do Programa (Trilha D) cruzando plano em git e tasks MCP | `todo` | [↓](#us-doc-002--tela-do-programa-trilha-d-cruzando-plano-em-git-e-tasks-mcp) |
+| `US-DOC-002` | Tela do Programa (Trilha D) cruzando plano em git e tasks MCP | `doing` — tela e estado entregues (#8049); smoke, screenshot e rail não | [↓](#us-doc-002--tela-do-programa-trilha-d-cruzando-plano-em-git-e-tasks-mcp) |
 
 > A tabela é índice, não fonte: o corpo de cada US abaixo é que carrega `**Implementado em:**`,
 > owner, priority e DoD. Status aqui repete o do corpo — se divergirem, o corpo vence.
@@ -66,9 +66,9 @@ Blade↔React — a superfície migra inteira.
 
 ## US-DOC-002 · Tela do Programa (Trilha D) cruzando plano em git e tasks MCP
 
-**Implementado em:** _pendente_ — trio da tela carimbado em 2026-08-06; serviços e página ainda não
+**Implementado em:** _pendente_ — tela Inertia e estado vindo do MCP entregues no #8049 (2026-09-28); faltam o smoke em produção, o screenshot 1280/1440 aprovado por [W] e a entrada no rail
 
-> owner: wagner · priority: p1 · estimate: 8h · status: todo · type: story
+> owner: wagner · priority: p1 · estimate: 8h · status: doing · type: story
 > blocked_by: US-DOC-001
 > parent_plan: programa-ondas
 
@@ -78,16 +78,16 @@ markdown sozinho não cruza — a § Trilha D do plano em git e o estado de exec
 ([ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md)).
 
 **Escopo:**
-- [ ] `TrilhaDParser` lendo as seções reais da § Trilha D — **D.1** camadas · **D.2** onde o estado vive · **D.3** ondas D0–D10 · **D.4** ciclo de 11 estações · **D.5** caminho por tipo · **D.6** batimento · **D.7** DoD (não existe D.8)
-- [ ] `EstadoDasOndas` projetando as tasks MCP sobre as ondas, com estado **indisponível** quando o MCP não responde
-- [ ] `Documentacao/Programa.tsx` read-only, props-driven
+- [x] parser lendo as seções reais da § Trilha D — feito como métodos do `DocumentacaoController` (`secaoDoPlano` · `linhasDeTabela` · `estacoesDoCiclo` · `itensDeLista`), sem classe `TrilhaDParser` separada — **D.1** camadas · **D.2** onde o estado vive · **D.3** ondas D0–D10 · **D.4** ciclo de 11 estações · **D.5** caminho por tipo · **D.6** batimento · **D.7** DoD (não existe D.8)
+- [x] projeção das tasks MCP sobre as ondas (`tasksDoPrograma` + `estadoDoPrograma`, em `Inertia::defer`), com estado **indisponível** quando o MCP não responde
+- [x] `Documentacao/Programa.tsx` read-only, props-driven
 - [ ] entrada no rail, no grupo `governanca`, apontando para a rota nomeada
 
 **Acceptance criteria:**
-- [ ] os 4 UCs de `Programa.casos.md` com teste executando e passando
-- [ ] nenhum status de onda escrito no plano, no parser ou no `.tsx` — busca por `doing` nesses arquivos volta zero
-- [ ] plano alterado numa fixture muda o payload sem tocar PHP nem TSX
-- [ ] payload sem `business_id`, host ou token
+- [ ] os UCs de `Programa.casos.md` com teste executando e passando — os 6 (`UC-PROGRA-01..06`) têm caso Pest desde o #8049; falta o CI registrar a execução
+- [ ] nenhum status de onda escrito no plano, no parser ou no `.tsx` — no `.tsx` volta zero (testado); no controller `doing` aparece **uma vez**, no mapa de balde do vocabulário do MCP (`BALDE_STATUS`), que classifica status de task e não escreve status de onda; no plano aparece **uma vez**, na linha da § D.2 que diz justamente que `todo/doing/done` nunca é duplicado ali (medido 2026-09-28). Decidir se isso satisfaz o critério é de [W]
+- [x] plano alterado numa fixture muda o payload sem tocar PHP nem TSX (`UC-PROGRA-02`)
+- [x] payload sem `business_id`, host ou token (`UC-PROGRA-06`)
 
 **Refs:** [PLANO-MESTRE § Trilha D](../_Governanca/programa-ondas/PLANO-MESTRE.md) · [RUNBOOK-documentacao.md](RUNBOOK-documentacao.md) §8
 
@@ -97,6 +97,7 @@ markdown sozinho não cruza — a § Trilha D do plano em git e o estado de exec
 - 2026-08-23 · [CC] **Resgate.** Tudo acima existia só no working tree de um worktree parado desde 06/08 — nunca commitado. Trazido para `main` a camada de contrato (este SPEC + 5 RUNBOOKs + o contrato de paridade). ⚠️ **O trio das 4 telas NÃO está em `main`**: as Pages, charters, `casos.md` e specs e2e ficaram na branch `claude/documentacao-trio-pages-f1`, porque entram junto com a F3 (precisam de baseline de regressão visual gerada no runner canônico + aprovação visual de [W], gate F1.5). Enquanto isso, `/documentacao` segue Blade em produção.
 - 2026-08-23 · [CC] Contrato de paridade ganhou a seção 6 (`AR-DOC-060..069`) cobrindo `/documentacao/programa`, rota que entrou em `main` **depois** do sha de origem do contrato e por isso faltava.
 - 2026-08-23 · [CC] **Defeito achado na tela viva, medido, não consertado aqui** (`AR-DOC-068`): o KPI "em que onda a trilha está" vem de uma linha de tabela escrita à mão no plano — última escrita em 2026-08-05, 18 dias sem mudar — enquanto o rodapé da mesma página afirma ao leitor que aquilo é estado vivo das tasks MCP. Contradiz [ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md). E o literal do `UC-PROGRA-01` **não é implementável hoje** (`AR-DOC-069`): não existe chave que ligue task a onda — `parent_plan` é por plano, e a § D.3 não tem coluna de task. Recomendação medida: estado no nível do **plano**, via `jana:plan-drift --json` (oráculo que já existe, já lê `mcp_tasks` e já tem o `skipped`+`reason` honesto do `UC-PROGRA-03`); o por-onda vira backlog nomeando a chave que falta. A convenção de task é decisão de [W].
+- 2026-09-28 · [C] **US-DOC-002 em andamento.** A tela `/documentacao/programa` virou Inertia (#8049): o estado sai das tasks MCP, agrupado pela meta-line `onda:` que [W] aprovou no mesmo dia (#8018), e o defeito `AR-DOC-068` saiu junto com o `execucaoDaTrilha()`. O parser e a projeção ficaram como métodos do controller, não como classes separadas. Faltam smoke em produção, screenshot aprovado e a entrada no rail.
 
 ## Referências
 
