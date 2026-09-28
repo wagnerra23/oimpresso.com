@@ -38,3 +38,7 @@ Recibo único da thread, atualizado a cada PR.
 - `contrato-de-tela` (`--map --check`, `--contract`) → limpo.
 - typecheck e ESLint: este worktree não tem `node_modules`; o veredito é o do CI.
 - Diff dos `.tsx`: 1 linha cada, só o atributo.
+- `contrato-de-tela`: `contrato-de-tela.test.mjs`, `--preflight origin/main` (depois do rebase), `--anti-tautologia`, `--omission <merge-base>` e o laço de contratos sem `EXEMPLO` → todos limpos.
+- **Zero mudança visual (estático):** o único CSS de produção que usa `data-contract` como seletor é `.arq-page [data-contract=abas]` (`resources/css/cowork-arquivos-bundle.css:129-130`), escopado a Arquivos. Nenhum seletor casa os dois ids novos.
+- **O atributo chega ao DOM:** em prod (2026-09-28, `/ponto`), o precedente idêntico `<Card data-contract="painel-fila-aprovacoes">` renderiza `DIV[data-contract=painel-fila-aprovacoes]`. O `<Card>` do DS repassa o atributo.
+- **Antes, medido em prod** (biz do usuário logado, DOM estável em duas leituras): `/ponto/intercorrencias` → 0 `data-contract` fora do sidebar; card da lista 545×340 em (24,358). `/ponto/banco-horas` → 0; card da tabela 544×310 em (24,705). **Depois:** a medir pós-deploy — mesmo card, mesma geometria, com o atributo.
