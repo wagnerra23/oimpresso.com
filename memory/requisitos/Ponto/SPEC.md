@@ -217,7 +217,7 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 ### US-PONTO-012 · Corrigir os atributos fantasma do modulo (4 instancias)
 
-**Implementado em:** `Modules/Ponto/Http/Controllers/EspelhoController.php` · `Modules/Ponto/Http/Controllers/EscalaController.php` · `Modules/Ponto/Http/Controllers/ImportacaoController.php` · `Modules/Ponto/Tests/Feature/EspelhoContratoTest.php` · `Modules/Ponto/Tests/Feature/EscalaFormContratoTest.php` · `Modules/Ponto/Tests/Feature/ImportacaoIndexContratoTest.php` · `Modules/Ponto/Tests/Feature/BancoHorasImportacaoContratoTest.php` · `Modules/Ponto/Tests/Feature/ImportacaoShowContratoTest.php` · verificado@153a65b (2026-09-05) — GAP-PONTO-004: padrao nomeado pelo SDD §9 (D-1/D-8); a varredura de 2026-08-03 fechou a pendencia do §10 Onda 1 e achou 2 instancias novas.
+**Implementado em:** `Modules/Ponto/Http/Controllers/EspelhoController.php` · `Modules/Ponto/Http/Controllers/EscalaController.php` · `Modules/Ponto/Http/Controllers/ImportacaoController.php` · `Modules/Ponto/Tests/Feature/EspelhoContratoTest.php` · `Modules/Ponto/Tests/Feature/EscalaFormContratoTest.php` · `Modules/Ponto/Tests/Feature/ImportacaoIndexContratoTest.php` · `Modules/Ponto/Tests/Feature/BancoHorasImportacaoContratoTest.php` · `Modules/Ponto/Tests/Feature/ImportacaoShowContratoTest.php` · `Modules/Ponto/Http/Controllers/ConfiguracaoController.php` · `resources/js/Pages/Ponto/Configuracoes/Index.tsx` · `Modules/Ponto/Tests/Feature/ConfiguracaoContratoTest.php` · verificado@153a65b (2026-09-05) — GAP-PONTO-004: padrao nomeado pelo SDD §9 (D-1/D-8); a varredura de 2026-08-03 fechou a pendencia do §10 Onda 1 e achou 2 instancias novas.
 
 **Testado em:** `Modules/Ponto/Tests/Feature/ImportacaoShowContratoTest.php`
 
@@ -231,6 +231,7 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - `EscalaController@edit` le `entrada`/`saida`/`almoco_inicio`/`almoco_fim` — as colunas sao `hora_*`. A edicao de escala mostra TODOS os horarios vazios, sempre → `UC-ESCF-01`
 - `ImportacaoController` le `linhas_criadas`/`linhas_ignoradas` (reais: `linhas_sucesso`/`linhas_erro`) em `index` E `show` → `UC-IMPIDX-03` e `UC-IMPSH-04`
 - `ImportacaoController` le `erro_mensagem` (reais: `log`/`erros_amostra`); o `Show.tsx:82` faz `{i.erro_mensagem && <Alert>}`, logo o alerta de erro NUNCA renderiza → vira `UC-IMPSH-05`
+- **5a instancia (2026-09-28):** `Configuracoes/Index.tsx` lia 13 chaves que nao existem em `Modules/Ponto/Config/config.php` (nome trocado e, em 2 casos, outra unidade) e mostrava "desligada"/"Nao" para imutabilidade, NSR e hash. Corrigida a leitura; o controller passou a enviar `marcacao` e `esocial` → `UC-CFGIDX-02`. Registrada DEPOIS da DoD abaixo (que fechou as 4 primeiras); o veredito de lane dela ainda nao existe
 - Os testes assertam COMPORTAMENTO, nao a chave literal — ha mais de uma correcao legitima (renomear a leitura, accessor, ou `$appends`), e assert por chave reprovaria as outras
 
 **DoD:** os 4 UCs verdes na lane `ponto-pest`.
