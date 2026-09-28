@@ -157,7 +157,7 @@ class AfdParserService
                     $pisNaoCadastrados[$cpf] = ($pisNaoCadastrados[$cpf] ?? 0) + 1;
                 } catch (PisNaoCadastradoException $e) {
                     $erros++;
-                    $pis = 'PIS ' . $e->getPis();
+                    $pis = 'PIS ' . $e->getPisMascarado();
                     $pisNaoCadastrados[$pis] = ($pisNaoCadastrados[$pis] ?? 0) + 1;
                 } catch (\Throwable $e) {
                     $erros++;
