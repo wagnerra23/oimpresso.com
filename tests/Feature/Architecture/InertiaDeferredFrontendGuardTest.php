@@ -62,6 +62,7 @@ const DEFER_GUARD_ONLY_ALLOWLIST = [
     'Forja/MyWork/Index'      => 'default-destructure `{ my_work = [], inbox = [], kpis = EMPTY }`',
     'Forja/Roadmap/Index'     => 'default-destructure `{ quarters = [], kpis = EMPTY }`',
     'Forja/Triage/Index'      => 'default-destructure `{ tasks = [], cycles = [], owners = [] }`',
+    'Documentacao/Programa'         => 'gate `estado === undefined` (3º estado "medindo", distinto de MCP fora) + `estado?.` em todo acesso — 0 acesso cru medido 2026-09-28',
     'Sells/Index'                   => 'usePage + `props.coworkAggregates?.` em todo acesso',
     'team-mcp/CcSessions/Index'     => 'guarda `sessions?.data ?? []`, `kpis ?? {...}` + isLoading gate',
     'team-mcp/Scorecard/Index'      => 'isLoading `facts === undefined` gate + `checks ?? []`',
