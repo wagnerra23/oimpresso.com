@@ -21,7 +21,7 @@ authority: generated
 | Telas (.tsx) | 23 |
 | Telas com `casos.md` | 23 |
 | UC declarados | 94 |
-| UC com teste que os cita | 90 |
+| UC com teste que os cita | 91 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -118,7 +118,7 @@ authority: generated
 | UC-INTIDX-01 | Intercorrencias/Index | 🧪 aguarda veredito da lane |
 | UC-INTIDX-02 | Intercorrencias/Index | 🧪 aguarda veredito da lane |
 | UC-INTIDX-03 | Intercorrencias/Index | 🧪 aguarda veredito da lane |
-| UC-INTIDX-04 | Intercorrencias/Index | 📝 sem_teste |
+| UC-INTIDX-04 | Intercorrencias/Index | 🧪 aguarda veredito da lane |
 | UC-INTSH-01 | Intercorrencias/Show | 🧪 aguarda veredito da lane |
 | UC-INTSH-02 | Intercorrencias/Show | 🧪 aguarda veredito da lane |
 | UC-INTSH-03 | Intercorrencias/Show | 🧪 aguarda veredito da lane |
