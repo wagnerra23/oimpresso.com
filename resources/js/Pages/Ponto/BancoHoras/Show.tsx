@@ -23,6 +23,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import { Inline } from '@/Components/layout';
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { cn, formatMinutes } from '@/Lib/utils';
+import { fmtDataHoraBr } from '@/Lib/datetime-br';
 
 interface Saldo {
   colaborador_id: number;
@@ -226,8 +227,10 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
                         <td className="p-2 text-muted-foreground max-w-xs truncate" title={m.observacao ?? ''}>
                           {m.observacao ?? '—'}
                         </td>
-                        <td className="p-2 text-muted-foreground" title={m.created_at ?? ''}>
-                          {m.created_at_human ?? '—'}
+                        {/* Absoluta, não "há X": o extrato é prova (quando foi lançado), e a
+                            relativa muda a cada leitura. A relativa fica no hover. */}
+                        <td className="p-2 font-mono tabular-nums text-muted-foreground" title={m.created_at_human ?? ''}>
+                          {fmtDataHoraBr(m.created_at)}
                         </td>
                       </tr>
                     ))}

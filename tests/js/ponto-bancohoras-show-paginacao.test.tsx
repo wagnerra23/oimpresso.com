@@ -38,6 +38,7 @@ vi.mock('@/Layouts/AppShellV2', () => ({
 vi.mock('@/Pages/Ponto/_shared/PontoSubNav', () => ({ default: () => null }));
 
 import BancoHorasShow from '@/Pages/Ponto/BancoHoras/Show';
+import { fmtDataHoraBr } from '@/Lib/datetime-br';
 
 const saldo = { colaborador_id: 7, matricula: 'M-1', nome: 'Colaborador Teste', saldo_minutos: 51 };
 
@@ -115,5 +116,24 @@ describe('UC-BHSHOW-04 · com mais de 50 movimentos a 2ª página do extrato é 
     expect(linhas()).toHaveLength(50);
     expect(screen.queryByText(/Página \d+ de \d+/)).toBeNull();
     expect(screen.queryByRole('button', { name: '1' })).toBeNull();
+  });
+});
+
+describe('coluna "Registrado" mostra data-hora ABSOLUTA, não "há X"', () => {
+  it('a célula traz dd/mm/aaaa HH:mm e deixa a relativa no hover', () => {
+    render(<BancoHorasShow saldo={saldo} movimentos={pagina(2)} />);
+
+    const celula = screen.getByText('11/03/2019 08:00');
+    expect(celula.tagName).toBe('TD');
+    expect(celula.getAttribute('title')).toBe('há 1 dia');
+    expect(screen.queryByText('há 1 dia')).toBeNull();
+  });
+
+  it('fmtDataHoraBr: formato do servidor, separador T, vazio e fora do padrão', () => {
+    expect(fmtDataHoraBr('2026-08-19 21:30')).toBe('19/08/2026 21:30');
+    expect(fmtDataHoraBr('2026-08-19T21:30:59-03:00')).toBe('19/08/2026 21:30');
+    expect(fmtDataHoraBr(null)).toBe('—');
+    expect(fmtDataHoraBr('')).toBe('—');
+    expect(fmtDataHoraBr('ontem')).toBe('ontem');
   });
 });

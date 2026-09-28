@@ -22,6 +22,7 @@ on:
     paths:
       - 'resources/js/Pages/Ponto/BancoHoras/Show.tsx'
       - 'resources/js/Components/layout/**'
+      - 'resources/js/Lib/datetime-br.ts'
       - 'tests/js/ponto-bancohoras-show-paginacao.test.tsx'
       - '.github/workflows/ponto-bancohoras-paginacao-gate.yml'
   push:
@@ -29,6 +30,7 @@ on:
     paths:
       - 'resources/js/Pages/Ponto/BancoHoras/Show.tsx'
       - 'resources/js/Components/layout/**'
+      - 'resources/js/Lib/datetime-br.ts'
       - 'tests/js/ponto-bancohoras-show-paginacao.test.tsx'
 
 concurrency:
