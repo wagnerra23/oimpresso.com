@@ -31,6 +31,7 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-INTIDX-01 | A fila traz as intercorrências do meu empregador | must | `CU-PONTO-05` + US-PONTO-003 | `IntercorrenciaContratoTest` | ✅ verde na lane |
 | UC-INTIDX-02 | Intercorrência de outro empregador não aparece na fila | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `IntercorrenciaContratoTest` | ✅ verde na lane |
 | UC-INTIDX-03 | Filtrar por estado devolve só aquele estado | should | `CU-PONTO-05` (estados canon) | `IntercorrenciaContratoTest` | ✅ verde na lane |
+| UC-INTIDX-04 | A linha da fila só oferece "Ver": não submete nem edita | must | `D-INTERC-ACOES` ([W] 2026-09-14) + charter §Non-Goals | `IntercorrenciaContratoTest` | 🧪 teste cita o UC, sem veredito |
 
 **[BACKLOG]:**
 
@@ -96,6 +97,31 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 - **Nota de escrita:** o assert verifica os **dois lados** (o do estado pedido está, o do outro
   não). Só o lado positivo passaria com o filtro desligado.
 - **Status: 🧪 sem veredito.**
+
+---
+
+## UC-INTIDX-04 · A linha da fila só oferece "Ver": não submete nem edita · `must`
+
+- **Persona:** o RH que varre a fila no fim do mês. Submeter ou editar dali seria decidir sem ver a
+  justificativa, o anexo e o histórico que só o detalhe mostra.
+- **Aceite:** Dada a fila de intercorrências · Quando olho a ação de uma linha · Então a única ação
+  é "Ver", que leva ao detalhe (`/ponto/intercorrencias/{id}`) · E a lista não chama submeter,
+  cancelar, editar nem nenhuma escrita.
+- **Teste:** `Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php` — `UC-INTIDX-04`.
+- **Contrato:** `D-INTERC-ACOES` na
+  [ata 2026-09-14](../../../../../prototipo-ui/cowork/Wagner/cowork-inbox/ponto/playbook/ATA-DECISOES-2026-09-14.md)
+  (bloco 2, Non-Goal ratificado): *"Submeter sem abrir o detalhe é decisão cega, e o Show já existe
+  pra isso."* R1 da mesma ata: Non-Goal ratificado vira Pest GUARD. Charter §Non-Goals
+  (*"Não aprova/rejeita/submete a partir da lista"* · *"Não edita intercorrência inline"*).
+- **Regressão que defende:** o protótipo já teve `Editar` e `Submeter` na linha (coluna Ação de
+  170px, retirados em 2026-09-14). Uma sessão que copie a forma antiga do protótipo recoloca os
+  botões, e a tela continua abrindo sem erro. O guard lê o fonte da `Index.tsx` porque o
+  comportamento é da tela: o payload do `index()` não carrega ação nenhuma, então um teste HTTP
+  passaria com os botões de volta.
+- **Limite declarado:** é um guard de texto sobre o `.tsx`. Ele pega as formas que a lista usaria
+  (rota `/submeter`, `/cancelar`, `/edit`, e `router.post|put|patch|delete`); uma URL montada por
+  concatenação escaparia. As rotas de escrita têm as próprias defesas no servidor.
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**
 
 ## Trilha do tempo
 - 2026-08-08 · [CC] revalidado (bump `last_run`): migração do primary "Nova" do shim
