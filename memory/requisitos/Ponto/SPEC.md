@@ -63,7 +63,7 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 ### US-PONTO-002 · Marcacao via REP-A (importacao AFD)
 
-**Implementado em:** _parcial_ · `Modules/Ponto/Services/AfdParserService.php` · `Modules/Ponto/Entities/Importacao.php` · `Modules/Ponto/Http/Controllers/ImportacaoController.php` · `Modules/Ponto/Console/Commands/ImportAfdCommand.php` · `Modules/Ponto/Tests/Feature/ImportacaoTest.php` · `Modules/Ponto/Tests/Feature/AfdLeiaute671ContratoTest.php` · verificado@8af585a (2026-07-02) — em 2026-09-25 o `AfdLeiaute671ContratoTest` provou que o parser só lia o leiaute 1510 (o 671 caía 100% em erro; a nota de 07-02 dizia o inverso) e ele passou a ler os dois: 1510 por PIS e 671 leiaute "004" por CPF (tipos 1/3/7/9 + assinatura). CRC-16 e hash SHA-256 do tipo 7 seguem sem validação
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/AfdParserService.php` · `Modules/Ponto/Entities/Importacao.php` · `Modules/Ponto/Http/Controllers/ImportacaoController.php` · `Modules/Ponto/Console/Commands/ImportAfdCommand.php` · `Modules/Ponto/Tests/Feature/ImportacaoTest.php` · `Modules/Ponto/Tests/Feature/AfdLeiaute671ContratoTest.php` · verificado@8af585a (2026-07-02) — em 2026-09-25 o `AfdLeiaute671ContratoTest` provou que o parser só lia o leiaute 1510 (o 671 caía 100% em erro; a nota de 07-02 dizia o inverso) e ele passou a ler os dois: 1510 por PIS e 671 leiaute "004" por CPF (tipos 1/3/7/9 + assinatura). Em 2026-09-28 o cabeçalho 1510 passou a ser lido nas posições do Anexo I (nº de fabricação 188-204) e o CRC-16 (671, tipos 1-5) e o hash SHA-256 encadeado (tipo 7) passaram a ser conferidos: divergência vira aviso no log da importação e nunca rejeita o arquivo (decisão [W] 2026-09-28)
 
 **Como** RH,
 **quero** importar arquivo AFD/AFDT de REP-A homologado,
@@ -73,7 +73,7 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - Validacao de integridade: NSR sequencial, hash encadeado, faltas detectadas
 - `Modules/Ponto/Entities/Importacao` registra arquivo + checksum + linhas processadas + erros
 - Importacao idempotente (mesma AFD pode ser re-uploadada sem duplicar marcacoes)
-- **Status:** wip (leitura dos 2 leiautes pronta; validacao de CRC-16/hash encadeado pendente — ver `Importacao::ESTADO_*`)
+- **Status:** wip (leitura dos 2 leiautes pronta; CRC-16/hash conferidos com aviso, sem rejeicao — ver `Importacao::ESTADO_*`)
 
 ### US-PONTO-003 · Workflow de intercorrencia (atestado/abono/falta)
 
