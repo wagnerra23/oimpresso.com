@@ -354,7 +354,7 @@ _Criado em 2026-08-18. Retrato datado: os números do §1 envelhecem por constru
 | `fin-card`/`fin-ink`/`fin-sysbtn` não existem em `resources/css` | `grep -c fin-card resources/css/cowork-canon-financeiro-bundle.css` = 0; `prototipo-ui/cowork/Wagner/financeiro.css` = 2 | porte do CSS **inteiro** (§8, lição F3) em PR próprio antes de qualquer `.tsx` que use essas classes |
 | Paths-filter da lane `financeiro-pest.yml` só cobre `Impostos/Index.tsx` entre as Pages | L84-107 | PR que toque só `Dre/Index.tsx` ou `Fluxo/Index.tsx` sai verde **sem rodar teste** — consertar antes da onda |
 | Fluxo: o código do protótipo tem 4 KPIs, a medição de runtime de 2026-09-08 viu 1 | `financeiro-telas-extras.jsx` `TelaFluxo` × `fluxo-visual-comparison.md` §Onda 7 | **AMBÍGUO**, não se fecha por leitura — medir de novo antes de ondear o Fluxo |
-| `ProvaViva.charter.md` aponta âncora removida no #7445 | charter `related_prototype` | decisão [W]: `n/a (herda PT-0X)` ou nova âncora |
+| ~~`ProvaViva.charter.md` aponta âncora removida no #7445~~ | charter `related_prototype` | **decidido [W] 2026-09-28:** a tela inteira foi removida |
 | Charter do DRE contradiz o código (anti-hooks `os-page-h` e "proíbe `Card`") | `Dre/Index.charter.md:55-56` × `Dre/Index.tsx`, `BalancoView.tsx:54` | corrigir o perdedor no mesmo PR da onda; qual lado perde é [W] |
 
 ### 12.3 Etapas propostas (uma por execução, cada uma com aprovação [W])
@@ -378,7 +378,7 @@ apresentada ao [W] como tabela antes→depois.
 1. ~~**Ordem**~~ — **decidido [W] 2026-09-23:** DRE primeiro, Unificado por último; §6 reordenada.
 2. ~~**Fluxo:** 1 KPI × 4~~ — **caiu na FIN-0a**: com o DS carregado, o protótipo tem os 4.
 3. **Charter do DRE:** atualiza o charter para o código atual, ou o código volta ao charter?
-4. **ProvaViva:** `n/a (herda PT-0X)` ou nova âncora?
+4. ~~**ProvaViva:** `n/a (herda PT-0X)` ou nova âncora?~~ — **decidido [W] 2026-09-28:** a tela foi removida.
 5. ~~**FIN-0a**~~ — **autorizada [W] 2026-09-23.**
 
 ### 12.5 Resultado da FIN-0a — medido em 2026-09-23

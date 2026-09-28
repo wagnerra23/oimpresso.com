@@ -14,9 +14,9 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 354 arquivos em 22 papéis.
+**Total mapeado:** 348 arquivos em 22 papéis.
 
-## Controllers — 25
+## Controllers — 24
 
 - [AdvisorAuthController.php](../../../Modules/Financeiro/Http/Controllers/Advisor/AdvisorAuthController.php)
 - [AdvisorPortalController.php](../../../Modules/Financeiro/Http/Controllers/Advisor/AdvisorPortalController.php)
@@ -40,7 +40,6 @@ module: Financeiro
 - [ImpostosController.php](../../../Modules/Financeiro/Http/Controllers/ImpostosController.php)
 - [InstallController.php](../../../Modules/Financeiro/Http/Controllers/InstallController.php)
 - [PlanoContaController.php](../../../Modules/Financeiro/Http/Controllers/PlanoContaController.php)
-- [ProvaVivaController.php](../../../Modules/Financeiro/Http/Controllers/ProvaVivaController.php)
 - [RelatoriosController.php](../../../Modules/Financeiro/Http/Controllers/RelatoriosController.php)
 - [UnificadoController.php](../../../Modules/Financeiro/Http/Controllers/UnificadoController.php)
 
@@ -187,7 +186,7 @@ module: Financeiro
 - [master.blade.php](../../../Modules/Financeiro/Resources/views/layouts/master.blade.php)
 - [dre.blade.php](../../../Modules/Financeiro/Resources/views/pdf/dre.blade.php)
 
-## Telas (Inertia/React) — 21
+## Telas (Inertia/React) — 20
 
 - [Dashboard.tsx](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.tsx)
 - [Login.tsx](../../../resources/js/Pages/Financeiro/Advisor/Login.tsx)
@@ -206,7 +205,6 @@ module: Financeiro
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Fluxo/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Impostos/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/PlanoContas/Index.tsx)
-- [ProvaViva.tsx](../../../resources/js/Pages/Financeiro/ProvaViva.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Relatorios/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Unificado/Index.tsx)
 - [Novo.tsx](../../../resources/js/Pages/Financeiro/Unificado/Novo.tsx)
@@ -252,7 +250,7 @@ module: Financeiro
 - [FinStatStrip.tsx](../../../resources/js/Pages/Financeiro/_shared/FinStatStrip.tsx)
 - [FinanceiroSubNav.tsx](../../../resources/js/Pages/Financeiro/_shared/FinanceiroSubNav.tsx)
 
-## Charters (lei da tela) — 21
+## Charters (lei da tela) — 20
 
 - [Dashboard.charter.md](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.charter.md)
 - [Login.charter.md](../../../resources/js/Pages/Financeiro/Advisor/Login.charter.md)
@@ -271,12 +269,11 @@ module: Financeiro
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Fluxo/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Impostos/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/PlanoContas/Index.charter.md)
-- [ProvaViva.charter.md](../../../resources/js/Pages/Financeiro/ProvaViva.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Relatorios/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Index.charter.md)
 - [Novo.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.charter.md)
 
-## Casos (contrato UC) — 21
+## Casos (contrato UC) — 20
 
 - [Dashboard.casos.md](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.casos.md)
 - [Login.casos.md](../../../resources/js/Pages/Financeiro/Advisor/Login.casos.md)
@@ -295,14 +292,13 @@ module: Financeiro
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Fluxo/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Impostos/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/PlanoContas/Index.casos.md)
-- [ProvaViva.casos.md](../../../resources/js/Pages/Financeiro/ProvaViva.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Relatorios/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Index.casos.md)
 - [Novo.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.casos.md)
 
-## Testes (Pest) — 89
+## Testes (Pest) — 87
 
-- 84 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
+- 82 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
 - 1 em [Modules/Financeiro/Tests/Feature/Advisor/](../../../Modules/Financeiro/Tests/Feature/Advisor)
 - 4 em [Modules/Financeiro/Tests/Unit/](../../../Modules/Financeiro/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._

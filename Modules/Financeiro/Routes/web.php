@@ -19,7 +19,6 @@ use Modules\Financeiro\Http\Controllers\FluxoController;
 use Modules\Financeiro\Http\Controllers\ImpostosController;
 use Modules\Financeiro\Http\Controllers\InstallController;
 use Modules\Financeiro\Http\Controllers\PlanoContaController;
-use Modules\Financeiro\Http\Controllers\ProvaVivaController;
 use Modules\Financeiro\Http\Controllers\RelatoriosController;
 use Modules\Financeiro\Http\Controllers\UnificadoController;
 
@@ -151,11 +150,6 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // metadata.guia). Valor recalculado server-side (anti tampering).
         Route::get('/impostos', [ImpostosController::class, 'index'])->name('impostos.index');
         Route::post('/impostos/lancar', [ImpostosController::class, 'lancar'])->name('impostos.lancar');
-
-        // Prova viva dos primitivos de layout (ADR 0253 — critério de pronto).
-        // Read-only, dados MOCK no .tsx (prova de layout, não consulta DB).
-        // NÃO substitui /financeiro/unificado (landing de produção).
-        Route::get('/prova-viva', [ProvaVivaController::class, 'index'])->name('prova-viva.index');
 
         // DRE gerencial hierárquica — Cockpit V2 (US-FIN-014a, reaplicação canon).
         // Wagner aprovou 2026-05-20 (Q1-Q8b em memory/requisitos/Financeiro/

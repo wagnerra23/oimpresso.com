@@ -355,3 +355,16 @@ it('AFD-1510-05 · PIS cadastrado com 11 dígitos e máscara casa com o PIS de 1
     expect($imp->linhas_erro)->toBe(0)
         ->and(afd671Marcacoes($this))->toBe(['2026-09-24 08:00:00']);
 });
+
+it('AFD-1510-06 · PIS não cadastrado aparece MASCARADO no log da importação (LGPD — o log vai à tela)', function () {
+    $pisAlheio = '098765432109';
+    $linha = afd671Linha(['000000001', '3', '24092026', '0800', $pisAlheio], 34);
+
+    $imp = afd671Importar($this, [$linha]);
+
+    expect($imp->linhas_erro)->toBe(1)
+        ->and((string) $imp->log)->toContain('não cadastrados')
+        ->and((string) $imp->log)->toContain('PIS ***.*****.10-9')
+        ->and((string) $imp->log)->not->toContain('98765432109')
+        ->and(json_encode($imp->erros_amostra))->not->toContain('98765432109');
+});

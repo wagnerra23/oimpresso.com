@@ -9,9 +9,9 @@
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
 ## Resumo
-- **59** wirings em `settings.json` (5 eventos) · **53** arquivos de hook distintos wired
+- **58** wirings em `settings.json` (5 eventos) · **52** arquivos de hook distintos wired
 - **53** arquivos de hook no disco (+45 `*.test.*` — testes, fora da conta de órfãos)
-- Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
+- Órfãos (arquivo sem wiring): **1** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **46** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
@@ -50,7 +50,6 @@
 | PreToolUse | `Write/Edit/MultiEdit` | tema-owner-advisory.mjs | node | geração (pré-Write/Edit) | — |
 | PreToolUse | `Bash` | block-destructive.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PreToolUse | `Bash` | maquinas-inventario-no-commit.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | — |
-| PreToolUse | `Bash` | pii-redactor.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PreToolUse | `Bash` | commit-discipline-check.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | — |
 | PreToolUse | `Bash` | block-claim-without-evidence.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | — |
 | PreToolUse | `Bash` | post-merge-ui-smoke-required.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
@@ -81,7 +80,7 @@
 Nenhum.
 
 ## Órfãos (arquivo de hook sem wiring em settings.json)
-Nenhum.
+- ⚠️ `pii-redactor.mjs` — sem wiring em settings.json
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
 Contexts `classic_protection` (46):

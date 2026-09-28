@@ -3,9 +3,16 @@
 // recipe/add_ingredients.blade.php (editor de ingredientes, grupos, desperdício,
 // custo extra fixo/percentual, quantidade produzida, preço final).
 // Expõe window.MfgNovaReceita e window.MfgIngredientesEditor.
+//
+// ADERÊNCIA AO DS (onda A): Modal, Button, Input, Select, Textarea e Alert do bundle
+// compilado. Continuam locais e declarados no handoff: os campos numéricos com passo
+// (o Input do DS não tem min/max/step — B-04), a busca de insumo (depende de ref +
+// onKeyDown — B-02), a trilha do editor (Breadcrumb só navega por href — B-07), os
+// chips de grupo (B-08) e a grade de ingredientes (C-03).
 (() => {
 const { useState, useMemo, useRef, useEffect } = React;
 const I = window.I;
+const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 
 const G = () => window.MFG;
 
@@ -21,6 +28,7 @@ function Campo({ label, hint, children, w }) {
 
 // ── Modal "Nova receita" (recipe/create) ──
 function MfgNovaReceita({ recipes, onClose, onCreate }) {
+  const { Modal, Button, Input, Select, Alert } = ds();
   const { INSUMOS, num } = G();
   const [nome, setNome] = useState("");
   const [cat, setCat] = useState("Comunicação visual");
@@ -32,69 +40,58 @@ function MfgNovaReceita({ recipes, onClose, onCreate }) {
   const podeSalvar = nome.trim().length > 2 && !existe && Number(qtd) > 0;
 
   return (
-    <>
-      <div className="mfg-scrim" onClick={onClose} />
-      <div className="mfg-modal" role="dialog" aria-label="Nova receita">
-        <div className="mfg-modal-h"><b>Nova receita</b><button className="mfg-x" onClick={onClose} aria-label="Fechar">✕</button></div>
-        <div className="mfg-modal-b">
-          <Campo label="Produto / variação" hint="a receita pertence a uma variação do catálogo">
-            <input className="mfg-inp" value={nome} onChange={(e) => setNome(e.target.value)} placeholder="ex. Banner lona 440g — acabado" />
-          </Campo>
-          {existe && <p className="mfg-err">Já existe receita para essa variação — edite a receita atual em vez de criar outra.</p>}
-          <div className="mfg-row2">
-            <Campo label="Categoria">
-              <select className="mfg-inp" value={cat} onChange={(e) => setCat(e.target.value)}>
-                <option>Comunicação visual</option><option>Têxtil</option><option>Brindes</option>
-              </select>
-            </Campo>
-            <Campo label="Subcategoria">
-              <input className="mfg-inp" value={sub} onChange={(e) => setSub(e.target.value)} placeholder="ex. Banner" />
-            </Campo>
-          </div>
-          <div className="mfg-row2">
-            <Campo label="Quantidade produzida">
-              <input className="mfg-inp" type="number" min="0" step="0.01" value={qtd} onChange={(e) => setQtd(e.target.value)} />
-            </Campo>
-            <Campo label="Unidade">
-              <select className="mfg-inp" value={un} onChange={(e) => setUn(e.target.value)}>
-                <option>m²</option><option>un</option><option>m</option><option>kg</option><option>L</option>
-              </select>
-            </Campo>
-          </div>
-          <Campo label="Clonar ingredientes de" hint="opcional — copia grupos, quantidades e desperdício da receita escolhida">
-            <select className="mfg-inp" value={clone} onChange={(e) => setClone(e.target.value)}>
-              <option value="">Começar vazia</option>
-              {recipes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-            </select>
-          </Campo>
-          <p className="mfg-note">{INSUMOS.length} insumos disponíveis no catálogo · custo lido do preço de compra atual.</p>
+    <Modal open onClose={onClose} title="Nova receita" width={520}
+      footer={<>
+        <Button onClick={onClose}>Cancelar</Button>
+        <Button variant="primary" disabled={!podeSalvar}
+          onClick={() => onCreate({ nome: nome.trim(), cat, sub: sub.trim() || "—", un, qtd: Number(qtd), clone: clone ? Number(clone) : null })}>
+          Criar e adicionar ingredientes
+        </Button>
+      </>}>
+      <div className="mfg-form">
+        <Input label="Produto / variação" help="a receita pertence a uma variação do catálogo"
+          value={nome} onChange={(e) => setNome(e.target.value)} placeholder="ex. Banner lona 440g — acabado" />
+        {existe && <Alert tone="danger">Já existe receita para essa variação — edite a receita atual em vez de criar outra.</Alert>}
+        <div className="mfg-row2">
+          <Select label="Categoria" value={cat} onChange={(e) => setCat(e.target.value)}>
+            <option>Comunicação visual</option><option>Têxtil</option><option>Brindes</option>
+          </Select>
+          <Input label="Subcategoria" value={sub} onChange={(e) => setSub(e.target.value)} placeholder="ex. Banner" />
         </div>
-        <div className="mfg-modal-f">
-          <button className="os-btn ghost" onClick={onClose}>Cancelar</button>
-          <button className="os-btn primary" disabled={!podeSalvar}
-            onClick={() => onCreate({ nome: nome.trim(), cat, sub: sub.trim() || "—", un, qtd: Number(qtd), clone: clone ? Number(clone) : null })}>
-            Criar e adicionar ingredientes
-          </button>
+        <div className="mfg-row2">
+          {/* [B-04] Input do DS não aceita min/step — campo local até o DS responder */}
+          <Campo label="Quantidade produzida">
+            <input className="mfg-inp" type="number" min="0" step="0.01" value={qtd} onChange={(e) => setQtd(e.target.value)} />
+          </Campo>
+          <Select label="Unidade" value={un} onChange={(e) => setUn(e.target.value)}>
+            <option>m²</option><option>un</option><option>m</option><option>kg</option><option>L</option>
+          </Select>
         </div>
+        <Select label="Clonar ingredientes de" help="opcional — copia grupos, quantidades e desperdício da receita escolhida"
+          value={clone} onChange={(e) => setClone(e.target.value)}>
+          <option value="">Começar vazia</option>
+          {recipes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+        </Select>
+        <p className="mfg-note">{INSUMOS.length} insumos disponíveis no catálogo · custo lido do preço de compra atual.</p>
       </div>
-    </>
+    </Modal>
   );
 }
 
 // ── Busca de insumo (get-ingredient-row) ──
+// Onda B (2026-09-23): SearchInput do DS — ele expõe inputRef, autoFocus e onKeyDown
+// (Input.jsx L65, fonte viva). focusKey desligado: o "/" global é da lista de receitas.
 function BuscaInsumo({ onPick, onCancel }) {
   const { INSUMOS, fmt } = G();
   const [q, setQ] = useState("");
-  const ref = useRef(null);
-  useEffect(() => { ref.current && ref.current.focus(); }, []);
+  const { SearchInput, Button } = ds();
   const res = INSUMOS.filter((i) => (i.n + " " + i.sku).toLowerCase().includes(q.trim().toLowerCase())).slice(0, 7);
   return (
     <div className="mfg-pick">
-      <div className="mfg-s sm">
-        <I.search size={13} className="ic" />
-        <input ref={ref} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar insumo por nome ou SKU…"
+      <div className="mfg-pick-s">
+        <SearchInput autoFocus focusKey={null} kbd="esc" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar insumo por nome ou SKU…"
           onKeyDown={(e) => { if (e.key === "Escape") onCancel(); if (e.key === "Enter" && res[0]) onPick(res[0]); }} />
-        <button className="mfg-pick-x" onClick={onCancel}>esc</button>
+        <Button size="sm" onClick={onCancel}>Cancelar</Button>
       </div>
       <div className="mfg-pick-list">
         {res.map((i) => (
@@ -111,6 +108,7 @@ function BuscaInsumo({ onPick, onCancel }) {
 
 // ── Editor de ingredientes (add_ingredients) ──
 function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDelete }) {
+  const { Button, Input, Select, Alert } = ds();
   const { GRUPOS, bySku, subUnsDe, multDe, custos, fmt, num } = G();
   const [r, setR] = useState(() => JSON.parse(JSON.stringify(recipe)));
   const [addIn, setAddIn] = useState(null); // índice do grupo recebendo ingrediente
@@ -137,6 +135,7 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
 
   return (
     <div className="mfg-ed">
+      {/* [B-07] trilha local: o Breadcrumb do DS só navega por href; aqui a volta é por estado */}
       <div className="mfg-crumb">
         <button onClick={onCancel}>Receitas</button><span>/</span><b>{r.name || "Nova receita"}</b>
         <span className="sp" />
@@ -151,9 +150,10 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
               <div className="mfg-grp" key={g.g + gi}>
                 <div className="mfg-grp-h">
                   <b>{g.g}</b>
-                  <span className="mfg-tab-n">{g.itens.length}</span>
+                  <span className="mfg-grp-n">{g.itens.length}</span>
                   <span className="v">{fmt(sub)}</span>
-                  {podeEditar && <button className="mfg-mini danger" onClick={() => delGrupo(gi)} title="Remover grupo">✕</button>}
+                  {/* [TELA] .mfg-mini fica local: o Button do DS não repassa aria-label/title (Button.jsx L6) e o ✕ perderia o nome "Remover grupo …" */}
+                  {podeEditar && <button className="mfg-mini danger" onClick={() => delGrupo(gi)} title="Remover grupo" aria-label={"Remover grupo " + g.g}>✕</button>}
                 </div>
                 <div className="mfg-ing mfg-ing6 mfg-ing-h">
                   <span className="n">Ingrediente</span><span className="m">Quantidade</span><span className="m">Unidade</span><span className="m">Custo unit.</span><span className="m">Subtotal</span><span />
@@ -164,13 +164,14 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
                     <div className="mfg-ing mfg-ing6" key={it.sku + ii}>
                       <span className="n">{p.n}<small>{it.sku}{multDe(it) > 1 ? " · equivale a " + num(it.q * multDe(it), 2) + " " + p.u : ""}</small></span>
                       <span className="m">
+                        {/* [B-04] passo de milésimo: campo local */}
                         {podeEditar && !travado
-                          ? <input className="mfg-inp num" type="number" min="0" step="0.001" value={it.q} onChange={(e) => setItem(gi, ii, e.target.value)} />
+                          ? <input className="mfg-inp num" type="number" min="0" step="0.001" value={it.q} aria-label={"Quantidade de " + p.n} onChange={(e) => setItem(gi, ii, e.target.value)} />
                           : <span>{num(it.q, it.q < 1 ? 3 : 2)}</span>}
                       </span>
                       <span className="m">
                         {subUnsDe(it.sku).length > 0 && podeEditar
-                          ? <select className="mfg-inp sel" value={it.subUn || ""} onChange={(ev) => setSubUn(gi, ii, ev.target.value)}>
+                          ? <select className="mfg-inp sel" value={it.subUn || ""} aria-label={"Unidade de " + p.n} onChange={(ev) => setSubUn(gi, ii, ev.target.value)}>
                               <option value="">{p.u}</option>
                               {subUnsDe(it.sku).map((s) => <option key={s.u} value={s.u}>{s.u}</option>)}
                             </select>
@@ -178,14 +179,14 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
                       </span>
                       <span className="m">{fmt(p.c)}<em className="mfg-u">/ {p.u}</em></span>
                       <span className="m tot">{fmt(it.q * p.c * multDe(it))}</span>
-                      <span>{podeEditar && <button className="mfg-mini danger" onClick={() => delItem(gi, ii)} title="Remover">✕</button>}</span>
+                      <span>{podeEditar && <button className="mfg-mini danger" onClick={() => delItem(gi, ii)} title="Remover" aria-label={"Remover " + p.n}>✕</button>}</span>
                     </div>
                   );
                 })}
                 {g.itens.length === 0 && <p className="mfg-pick-empty">Grupo sem ingredientes.</p>}
                 {podeEditar && (addIn === gi
                   ? <BuscaInsumo onPick={(ins) => addItem(gi, ins)} onCancel={() => setAddIn(null)} />
-                  : <button className="mfg-add" onClick={() => setAddIn(gi)}><I.plus size={12} /> Ingrediente em {g.g}</button>)}
+                  : <div className="mfg-add-host"><Button size="sm" onClick={() => setAddIn(gi)}><I.plus size={12} /> Ingrediente em {g.g}</Button></div>)}
               </div>
             );
           })}
@@ -197,46 +198,43 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
                     <button key={n} className="mfg-chip" onClick={() => addGrupo(n)}>{n}</button>
                   ))}
                 </div>
-                <button className="mfg-add" onClick={() => setNovoGrupo(false)}>Cancelar</button>
+                <div className="mfg-add-host"><Button size="sm" onClick={() => setNovoGrupo(false)}>Cancelar</Button></div>
               </div>
-            : <button className="mfg-add mfg-block" onClick={() => setNovoGrupo(true)}><I.plus size={12} /> Novo grupo de ingredientes</button>)}
+            : <div className="mfg-add-block"><Button onClick={() => setNovoGrupo(true)} style={{ width: "100%" }}><I.plus size={12} /> Novo grupo de ingredientes</Button></div>)}
         </div>
 
         <aside className="mfg-ed-side">
           <div className="mfg-sec"><span>Receita</span><span className="ln" /></div>
-          <Campo label="Nome"><input className="mfg-inp" value={r.name} disabled={!podeEditar} onChange={(e) => set({ name: e.target.value })} /></Campo>
-          <div className="mfg-row2">
-            <Campo label="Qtd. produzida"><input className="mfg-inp" type="number" min="0" step="0.01" value={r.qtd} disabled={!podeEditar} onChange={(e) => set({ qtd: Number(e.target.value) })} /></Campo>
-            <Campo label="Unidade">
-              <select className="mfg-inp" value={r.un} disabled={!podeEditar} onChange={(e) => set({ un: e.target.value })}>
+          <div className="mfg-form">
+            <Input label="Nome" value={r.name} disabled={!podeEditar} onChange={(e) => set({ name: e.target.value })} />
+            <div className="mfg-row2">
+              <Campo label="Qtd. produzida"><input className="mfg-inp" type="number" min="0" step="0.01" value={r.qtd} disabled={!podeEditar} onChange={(e) => set({ qtd: Number(e.target.value) })} /></Campo>
+              <Select label="Unidade" value={r.un} disabled={!podeEditar} onChange={(e) => set({ un: e.target.value })}>
                 <option>m²</option><option>un</option><option>m</option><option>kg</option><option>L</option>
-              </select>
+              </Select>
+            </div>
+            <div className="mfg-row2">
+              <Input label="Sub-unidade de saída" help="opcional — como a quantidade aparece na lista"
+                value={r.subUn || ""} disabled={!podeEditar} placeholder="ex. m linear" onChange={(e) => set({ subUn: e.target.value || null })} />
+              <Campo label="Fator" hint={r.subUn ? "1 " + r.un + " = " + num(r.subFator || 1, 2) + " " + r.subUn : "—"}>
+                <input className="mfg-inp" type="number" min="0" step="0.01" value={r.subFator || 1} disabled={!podeEditar || !r.subUn} onChange={(e) => set({ subFator: Number(e.target.value) })} />
+              </Campo>
+            </div>
+            <Campo label="Desperdício (%)" hint={"rende " + num(c.qtdLiq, 2) + " " + r.un + " de " + num(r.qtd, 2)}>
+              <input className="mfg-inp" type="number" min="0" max="100" step="0.5" value={r.waste} disabled={!podeEditar} onChange={(e) => set({ waste: Number(e.target.value) })} />
             </Campo>
-          </div>
-          <div className="mfg-row2">
-            <Campo label="Sub-unidade de saída" hint="opcional — como a quantidade aparece na lista">
-              <input className="mfg-inp" value={r.subUn || ""} disabled={!podeEditar} placeholder="ex. m linear" onChange={(e) => set({ subUn: e.target.value || null })} />
-            </Campo>
-            <Campo label="Fator" hint={r.subUn ? "1 " + r.un + " = " + num(r.subFator || 1, 2) + " " + r.subUn : "—"}>
-              <input className="mfg-inp" type="number" min="0" step="0.01" value={r.subFator || 1} disabled={!podeEditar || !r.subUn} onChange={(e) => set({ subFator: Number(e.target.value) })} />
-            </Campo>
-          </div>
-          <Campo label="Desperdício (%)" hint={"rende " + num(c.qtdLiq, 2) + " " + r.un + " de " + num(r.qtd, 2)}>
-            <input className="mfg-inp" type="number" min="0" max="100" step="0.5" value={r.waste} disabled={!podeEditar} onChange={(e) => set({ waste: Number(e.target.value) })} />
-          </Campo>
-          <div className="mfg-row2">
-            <Campo label="Custo extra">
-              <select className="mfg-inp" value={r.custoTipo} disabled={!podeEditar} onChange={(e) => set({ custoTipo: e.target.value })}>
+            <div className="mfg-row2">
+              <Select label="Custo extra" value={r.custoTipo} disabled={!podeEditar} onChange={(e) => set({ custoTipo: e.target.value })}>
                 <option value="fixo">Valor fixo</option><option value="percentual">% dos ingredientes</option><option value="unidade">Por unidade produzida</option>
-              </select>
-            </Campo>
-            <Campo label={r.custoTipo === "percentual" ? "Percentual" : r.custoTipo === "unidade" ? "R$ / unidade" : "Valor (R$)"}>
-              <input className="mfg-inp" type="number" min="0" step="0.01" value={r.extra} disabled={!podeEditar} onChange={(e) => set({ extra: Number(e.target.value) })} />
+              </Select>
+              <Campo label={r.custoTipo === "percentual" ? "Percentual" : r.custoTipo === "unidade" ? "R$ / unidade" : "Valor (R$)"}>
+                <input className="mfg-inp" type="number" min="0" step="0.01" value={r.extra} disabled={!podeEditar} onChange={(e) => set({ extra: Number(e.target.value) })} />
+              </Campo>
+            </div>
+            <Campo label="Preço de venda (R$)" hint={"margem " + num(c.margem, 1) + "%"}>
+              <input className="mfg-inp" type="number" min="0" step="0.01" value={r.venda} disabled={!podeEditar} onChange={(e) => set({ venda: Number(e.target.value) })} />
             </Campo>
           </div>
-          <Campo label="Preço de venda (R$)" hint={"margem " + num(c.margem, 1) + "%"}>
-            <input className="mfg-inp" type="number" min="0" step="0.01" value={r.venda} disabled={!podeEditar} onChange={(e) => set({ venda: Number(e.target.value) })} />
-          </Campo>
 
           <div className="mfg-sec"><span>Custo ao vivo</span><span className="ln" /></div>
           <dl className="mfg-tot">
@@ -246,16 +244,16 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
             <dt style={{ fontWeight: 600, color: "var(--text)" }}>Custo por {r.un}</dt>
             <dd style={{ fontSize: 15, fontWeight: 600, color: "var(--accent)" }}>{fmt(c.unit)}</dd>
           </dl>
-          {travado && <p className="mfg-note">Edição de quantidade de ingrediente está bloqueada em Configurações.</p>}
-          {!podeEditar && <p className="mfg-note">Sua permissão é apenas de leitura (mfg.receita: ver).</p>}
+          {travado && <Alert tone="info">Edição de quantidade de ingrediente está bloqueada em Configurações.</Alert>}
+          {!podeEditar && <Alert tone="warn">Sua permissão é apenas de leitura (mfg.receita: ver).</Alert>}
         </aside>
       </div>
 
       <div className="mfg-ed-f">
-        {perms.editar && onDelete && <button className="os-btn ghost danger" onClick={onDelete}>Excluir receita</button>}
+        {perms.editar && onDelete && <Button variant="danger" onClick={onDelete}>Excluir receita</Button>}
         <span className="sp" />
-        <button className="os-btn ghost" onClick={onCancel}>Cancelar</button>
-        <button className="os-btn primary" disabled={!podeEditar || nIng === 0} onClick={() => onSave(r)}>Salvar receita</button>
+        <Button onClick={onCancel}>Cancelar</Button>
+        <Button variant="primary" disabled={!podeEditar || nIng === 0} onClick={() => onSave(r)}>Salvar receita</Button>
       </div>
     </div>
   );

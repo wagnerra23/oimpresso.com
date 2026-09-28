@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 726,
+    "nodes": 727,
     "edges": 1017,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 125,
-      "component": 386,
+      "adr": 127,
+      "component": 385,
       "api": 74
     },
     "by_edge_type": {
@@ -42,12 +42,12 @@
       "providesApi": 78,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 386,
+      "hasComponent": 385,
       "dependsOn": 116,
       "delegatesTo": 108,
       "migratesTo": 1,
       "supersedes": 24,
-      "supersedesPartially": 58,
+      "supersedesPartially": 59,
       "supersededBy": 28
     },
     "dangling": 0
@@ -629,6 +629,13 @@
       "exists": true
     },
     {
+      "id": "adr:0224",
+      "type": "adr",
+      "num": "0224",
+      "slug": "0224-hooks-block-vs-advisory-claude-4.8-aware",
+      "exists": true
+    },
+    {
       "id": "adr:0225",
       "type": "adr",
       "num": "0225",
@@ -927,6 +934,13 @@
       "type": "adr",
       "num": "0411",
       "slug": "0411-snapshot-de-pixel-fora-do-passo-3-da-0409",
+      "exists": true
+    },
+    {
+      "id": "adr:0416",
+      "type": "adr",
+      "num": "0416",
+      "slug": "0416-pii-redactor-arquivado-emenda-0224",
       "exists": true
     },
     {
@@ -2497,13 +2511,6 @@
       "module": "Financeiro",
       "name": "PlanoContaController",
       "desc": "Onda 18 tela /plano-contas dedicada + Fluxo fallback sem conta"
-    },
-    {
-      "id": "component:Financeiro/ProvaVivaController",
-      "type": "component",
-      "module": "Financeiro",
-      "name": "ProvaVivaController",
-      "desc": "tela-piloto /financeiro/prova-viva, read-only sem query de negócio (prova viva dos primitivos de layout ADR 0253; dados mock no .tsx, não substitui Unificado)"
     },
     {
       "id": "component:Financeiro/RelatoriosController",
@@ -6533,6 +6540,12 @@
       "source": "supersedes_partially"
     },
     {
+      "from": "adr:0416",
+      "to": "adr:0224",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
       "from": "module:Arquivos",
       "to": "adr:0123",
       "type": "charteredByAdr",
@@ -8081,12 +8094,6 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/PlanoContaController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Financeiro",
-      "to": "component:Financeiro/ProvaVivaController",
       "type": "hasComponent",
       "source": "contains"
     },

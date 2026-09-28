@@ -100,6 +100,36 @@ const CLASSE_ESTADO: Record<EstadoDaLinha, string> = {
   selected: 'bg-accent/50',
 };
 
+/**
+ * DENSIDADE — a "tabela densa" do protótipo (`table.pt-tbl` do Ponto), como prop ADITIVA.
+ *
+ * Playbook `ds-atomos` thread 04, decisão D-GRADE ([W] 2026-09-24): a tabela densa continua
+ * paginando no SERVIDOR — muda só a anatomia, nenhum controller. Por isso mora aqui, no
+ * primitivo, e não em cada tela.
+ *
+ * `default` é a string de HOJE, literal, em cada elemento: quem não passa `density` não muda
+ * um caractere de classe. Os números do `dense` vêm da §Alvo do índice do playbook (medidos no
+ * protótipo servido, dark, 1280px) — `th` 11px uppercase .07em 600 · pad 8×10 · `td` 12.5px ·
+ * pad 7×10 · divisória `--border` a 60% · hover accent 5%. "Accent" ali é o roxo da marca, que
+ * aqui é `primary`: o `accent` do shadcn é neutro.
+ */
+export type DensidadeDaTabela = 'default' | 'dense';
+
+const CLASSE_DENSIDADE: Record<DensidadeDaTabela, { th: string; td: string; tbody: string; tr: string }> = {
+  default: {
+    th: 'p-3 font-medium whitespace-nowrap',
+    td: 'p-3 align-top',
+    tbody: 'divide-y divide-border',
+    tr: 'hover:bg-accent/30',
+  },
+  dense: {
+    th: 'px-2.5 py-2 text-[11px] uppercase tracking-[.07em] font-semibold whitespace-nowrap',
+    td: 'px-2.5 py-[7px] text-[12.5px] align-top',
+    tbody: 'divide-y divide-border/60',
+    tr: 'hover:bg-primary/5',
+  },
+};
+
 export interface PaginatorShape<T> {
   data: T[];
   total: number;
@@ -184,6 +214,8 @@ interface Props<T> {
    * Omitido = default DS canon, que e o que as outras 3 telas usam.
    */
   tableWrapperClassName?: string;
+  /** Anatomia da tabela — ver `DensidadeDaTabela`. Omitido = `default` (markup de sempre). */
+  density?: DensidadeDaTabela;
 }
 
 export default function DataTable<T>({
@@ -202,8 +234,10 @@ export default function DataTable<T>({
   rowState,
   minTableWidth,
   tableWrapperClassName,
+  density = 'default',
 }: Props<T>) {
   const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const dens = CLASSE_DENSIDADE[density];
 
   // A geometria é lida das colunas UMA vez e vira `<colgroup>` — que é a forma canônica de
   // declarar largura em tabela HTML, e a única que o navegador respeita sob `table-layout:
@@ -327,7 +361,7 @@ export default function DataTable<T>({
                       // O alinhamento é da CÉLULA. Escrever `text-right` num <span> dentro
                       // dela move o texto e deixa o cabeçalho à esquerda — número à direita
                       // sob rótulo à esquerda foi exatamente o defeito reportado.
-                      className={`${CLASSE_ALINHAMENTO[align ?? 'left']} p-3 font-medium whitespace-nowrap`}
+                      className={`${CLASSE_ALINHAMENTO[align ?? 'left']} ${dens.th}`}
                     >
                       {canSort ? (
                         <button
@@ -347,7 +381,7 @@ export default function DataTable<T>({
               </tr>
             ))}
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className={dens.tbody}>
             {table.getRowModel().rows.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="p-12 text-center text-sm text-muted-foreground">
@@ -361,7 +395,7 @@ export default function DataTable<T>({
                 return (
                   <tr
                     key={rowKey ? rowKey(row.original) : row.id}
-                    className={`hover:bg-accent/30${estado ? ' ' + CLASSE_ESTADO[estado] : ''}${
+                    className={`${dens.tr}${estado ? ' ' + CLASSE_ESTADO[estado] : ''}${
                       clicavel ? ' cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring' : ''
                     }`}
                     data-estado={estado}
@@ -387,7 +421,7 @@ export default function DataTable<T>({
                       return (
                         <td
                           key={cell.id}
-                          className={`${CLASSE_ALINHAMENTO[align ?? 'left']} p-3 align-top${meta?.mono ? ' font-mono tabular-nums' : ''}`}
+                          className={`${CLASSE_ALINHAMENTO[align ?? 'left']} ${dens.td}${meta?.mono ? ' font-mono tabular-nums' : ''}`}
                         >
                           {flexRender(cell.column.columnDef.cell, cell.getContext()) as ReactNode}
                         </td>
