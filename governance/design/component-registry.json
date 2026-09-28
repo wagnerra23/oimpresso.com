@@ -433,7 +433,8 @@
       ],
       "variant_map": {
         "neutro / info": "variant=default",
-        "erro / perigo": "variant=destructive"
+        "erro / perigo": "variant=destructive",
+        "ícone (svg filho direto)": "decorativo automático: aria-hidden + focusable=false, salvo se já tiver nome (aria-label, aria-labelledby, role=img, <title>, aria-hidden explícito) — ds-atomos thread 06"
       },
       "status": "mapped"
     },
