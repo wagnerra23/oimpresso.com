@@ -20,8 +20,11 @@ import { test, expect } from '@playwright/test';
 test('lista do espelho abre autenticada com o seletor de mês', async ({ page }) => {
   await page.goto('/ponto/espelho');
 
-  // Título da página (h1 do PageHeader canon, ADR 0182) — fora do defer.
-  await expect(page.getByRole('heading', { level: 1, name: /Espelho/ })).toBeVisible({ timeout: 15_000 });
+  // Cabeçalho de MÓDULO (ADR 0418 / W9, PontoAreaHeader): h1 "Ponto" em toda tela da área;
+  // a aba ativa diz a tela. Até 2026-09-29 este spec esperava h1 "Espelho", removido pelo #8118.
+  // Medido em produção (biz=1): h1 "Ponto" + aba "Espelho de ponto" com aria-selected=true.
+  await expect(page.getByRole('heading', { level: 1, name: /^Ponto$/ })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole('tab', { name: /Espelho de ponto/, selected: true })).toBeVisible({ timeout: 15_000 });
 
   // Seletor de mês de referência: rótulo associado por htmlFor, sempre presente.
   await expect(page.getByLabel(/Mês de referência/)).toBeVisible({ timeout: 15_000 });
