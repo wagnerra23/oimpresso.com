@@ -20,8 +20,8 @@ uses(PontoTestCase::class);
  * id="create", e o `ImportacaoController::show(int $id)` estourava TypeError.
  *
  * Medição da população (`Modules/Ponto/Http/routes.php`): 12 rotas GET com parâmetro,
- * 0 de 12 com restrição. 11 são de id numérico — 5 delas com `int $id` no controller
- * (500 com id não numérico) e 1 sem o método (`escalas/{escala}` show). A 12ª,
+ * 0 de 12 com restrição. 11 são de id numérico — 4 delas com `int` tipado no controller
+ * (TypeError → 500 com id não numérico) e 1 sem o método (`escalas/{escala}` show). A 12ª,
  * `relatorios/{chave}`, é string por desenho e fica fora.
  *
  * Os casos provam em duas camadas: o ROUTER não casa a URL (oráculo do registry, não do
