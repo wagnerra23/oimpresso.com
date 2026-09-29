@@ -316,6 +316,8 @@ jobs:
             Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php \
             Modules/Ponto/Tests/Feature/LicencaAbonaDiaContratoTest.php \
             Modules/Ponto/Tests/Feature/ConformidadeContratoTest.php \
+            Modules/Ponto/Tests/Feature/AbasContadoresContratoTest.php \
+            Modules/Ponto/Tests/Feature/TraducaoModuleLabelContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaEditContratoTest.php \
             Modules/Ponto/Tests/Feature/PontoDashboardContratoTest.php \
             Modules/Ponto/Tests/Feature/ColaboradorContratoTest.php \
@@ -338,6 +340,9 @@ jobs:
             Modules/Ponto/Tests/Feature/Wave23MarcacaoServiceReuseContractTest.php \
             Modules/Ponto/Tests/Feature/Wave25SaturationTest.php \
             Modules/Ponto/Tests/Feature/Wave28MobileMarcacaoTest.php \
+            Modules/Ponto/Tests/Feature/RepPMobileContratoTest.php \
+            Modules/Ponto/Tests/Feature/AnulacaoMotivoTest.php \
+            Modules/Ponto/Tests/Feature/RepPNsrSequencialTest.php \
             Modules/Ponto/Tests/Feature/Wave28SaturationTest.php \
             Modules/Ponto/Tests/Feature/AprovacaoTest.php \
             Modules/Ponto/Tests/Feature/BancoHorasTest.php \
