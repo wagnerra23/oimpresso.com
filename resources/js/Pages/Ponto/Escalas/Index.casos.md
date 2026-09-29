@@ -27,6 +27,7 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-ESCIDX-03 | "Remover" só aparece sem vínculo; com vínculo, o motivo com a contagem | must | `D-ESC-DESTROY` ([W] 2026-09-14) + charter §Non-Goals | `ponto-escalas-remover-vinculo.test.tsx` | 🧪 teste cita o UC, sem veredito |
 | UC-ESCIDX-04 | O servidor recusa remover escala em uso — o botão é conveniência, a rota é pública | must | `D-ESC-DESTROY` + CLT Art. 58/59 (jornada esperada) | `EscalaRemocaoContratoTest` | 🧪 teste cita o UC, sem veredito |
 | UC-ESCIDX-05 | Remover confirma no diálogo do DS e, confirmado, remove de fato | must | `D-ESC-DESTROY` ([W] 2026-09-14, R3) | `ponto-escalas-remover-vinculo.test.tsx` | 🧪 teste cita o UC, sem veredito |
+| UC-ESCIDX-06 | A linha mostra o horário do 1º turno da própria escala, ou que ela não tem turno | should | protótipo `ponto-telas.jsx` (`Escalas`, sub-linha do Nome) + UI-0029 + charter §Goals | `EscalaIndexContratoTest` + `ponto-escalas-index-forma.test.tsx` | 🧪 teste cita o UC, sem veredito |
 
 **[BACKLOG]** (pergunta aberta ao [W], ou contrato numa fonte só — não vira UC sem teste):
 
@@ -161,4 +162,33 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   Mutação: com o `window.confirm` original de volta, os 4 casos reprovam; sem o `preventDefault` no
   botão de confirmar (o Radix fecharia o diálogo no clique), o caso "enquanto processa" reprova.
   O efeito no servidor da remoção sem vínculo é o `UC-ESCIDX-04` (ponta positiva).
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**
+
+---
+
+## UC-ESCIDX-06 · A linha mostra o horário do 1º turno da própria escala, ou que ela não tem turno · `should`
+
+- **Persona:** o mesmo gestor do UC-ESCIDX-02. A contagem diz *quantos* turnos a escala tem; o
+  horário diz *qual jornada* ela descreve — e é o que ele procura ao escolher a escala de um
+  colaborador novo ("a de 07:00 ou a de 08:00?") sem abrir cada uma.
+- **Aceite:** Dada uma escala com turnos · Quando abro a lista · Então sob o nome dela leio
+  **entrada–saída do turno de menor dia da semana** (ex.: `08:00–17:00`), mesmo que outro turno
+  tenha sido cadastrado antes. Dada uma escala **sem** turno · Então leio **"sem turno
+  configurado"**, e não o horário de outra escala.
+- **Teste:** `EscalaIndexContratoTest.php` — `UC-ESCIDX-06` (o payload `primeiro_turno`) ·
+  [`tests/js/ponto-escalas-index-forma.test.tsx`](../../../../../tests/js/ponto-escalas-index-forma.test.tsx)
+  — `UC-ESCIDX-06` (a tela mostra o que recebeu, por linha).
+- **Contrato:** sub-linha do Nome no protótipo
+  [`ponto-telas.jsx`](../../../../../prototipo-ui/cowork/Wagner/ponto-telas.jsx) (símbolo `Escalas`:
+  `turnos[0].entrada–saida`, senão "sem turno configurado"); [W] 2026-09-28 — *"o protótipo está
+  correto, mas a produção é muito inferior"*; eixo FORMA ⇒ protótipo soberano
+  ([ADR UI-0029](../../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
+  "1º turno" = menor `dia_semana` (0..6), desempate por id — o protótipo usa a ordem do array,
+  que no banco não existe; a ordem por dia é a leitura determinística dela.
+- **Regressão que defende:** três escalas, cada uma para uma mutação — turnos inseridos **fora**
+  de ordem (sem o `orderBy('dia_semana')` vem o primeiro inserido), horários **diferentes** entre
+  escalas (um "1º turno" global repetiria o mesmo texto) e uma **casca** sem turno (tem de vir
+  `null`). O turno herda o isolamento pela escala (`BelongsToBusinessViaParent`); se o escopo do
+  eager-load descartasse o turno do próprio empregador, o horário viria `null` e o caso cai. Na
+  UI, com a sub-linha trocada por texto fixo, o teste reprova (`1 failed`, medido 2026-09-28).
 - **Status: 🧪 teste cita o UC, sem veredito de lane.**
