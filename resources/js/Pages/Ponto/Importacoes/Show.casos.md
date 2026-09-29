@@ -36,6 +36,7 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-IMPSH-03 | Importação de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `BancoHorasImportacaoContratoTest` | ✅ verde na lane |
 | UC-IMPSH-04 | As contagens exibidas refletem o que foi processado | must | `CU-PONTO-11` + US-PONTO-002 | `BancoHorasImportacaoContratoTest` | ✅ verde na lane |
 | UC-IMPSH-05 | A importação que falhou mostra o motivo da falha | must | `CU-PONTO-11` + charter §Goals | `ImportacaoShowContratoTest` | ✅ verde na lane |
+| UC-IMPSH-06 | A importação com linhas rejeitadas mostra a amostra de erros (linha, NSR, tipo, mensagem) | must | `D-IMP-EXTRAS` ([W] 2026-09-14) + charter §Goals + US-PONTO-002 | `ImportacaoShowContratoTest` | 🧪 teste cita o UC, sem veredito |
 
 > ⛓ **SUPERADO em 2026-09-05 — o texto abaixo é fato datado, preservado porque a razão de os
 > quatro seguirem `🧪` MUDOU, e saber qual razão vale hoje importa.**
@@ -73,13 +74,10 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 - `[BACKLOG]` AFD legacy (1.510/2009) está **parcial** e AFDT está **deprecated** regulatoriamente
   (substituído por AEJ, Anexo VI — US-PONTO-009, `_pendente_`). US sem código **não** vira UC agora:
   UC órfão trava o merge de quem for implementar ([proibicoes §5](../../../../../memory/proibicoes.md) 2026-07-16).
-- `[BACKLOG]` **Saber POR QUE linhas falharam** (`D-IMP-EXTRAS`, [W] 2026-09-14, ata bloco 4 linha 40;
-  emenda E2 da thread 27, no charter pelo #8095). Aceite proposto: dado um AFD processado com N linhas
-  rejeitadas, quando o RH abre a importação, então vê a amostra de erros com linha, NSR, tipo e
-  mensagem, e não precisa abrir o `.txt` para descobrir a causa. **Não é UC ainda:** em 2026-09-28 o
-  `erros_amostra` é gravado pelo job mas não está no payload do `ImportacaoController@show`, e o
-  `log` só aparece no alerta de falha (é o que o `UC-IMPSH-05` cobre). Vira UC (próximo id
-  `UC-IMPSH-06`; a thread o chamou de `UC-PONT-IMP-04`) no PR que expuser a amostra, junto do teste.
+- ~~`[BACKLOG]` Saber POR QUE linhas falharam~~ — **RESOLVIDO 2026-09-29**, virou `UC-IMPSH-06`,
+  com teste: o `ImportacaoController@show` passou a entregar `erros_amostra` e a tela ganhou o card
+  "Amostra de erros". O card próprio de **diagnóstico** (o `log` fora do alerta de falha) segue a
+  construir — o `log` continua chegando só como `erro_mensagem` (`UC-IMPSH-05`).
   Nota PII: a amostra carrega linhas do AFD, que têm PIS — o teste e a tela exibem o que o job gravou,
   e nenhum fixture usa PIS real.
 
@@ -209,3 +207,29 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   manifesto `scripts/casos-test-results.json`, publicado por **cron** (`casos-results-publish.yml`,
   `on: schedule`) e não pelo PR — declarar `✅` antes de o manifesto ter a entrada seria
   `status:unverified`. Vira `✅` no primeiro publish após o merge.
+
+---
+
+## UC-IMPSH-06 · A importação com linhas rejeitadas mostra a amostra de erros (linha, NSR, tipo, mensagem) · `must`
+
+- **Persona:** RH que importou o AFD e vê "linhas ignoradas: 4". A pergunta seguinte é *"quais, e por
+  quê?"* — hoje a resposta exige abrir o `.txt` e caçar a linha. [W]: *"Sem isso a tela de importação
+  só sabe dizer que falhou."*
+- **Aceite:** Dado uma importação processada com linhas rejeitadas e a amostra gravada pelo job ·
+  Quando abro o detalhe · Então vejo cada ocorrência com **linha, NSR, tipo e mensagem** — e o item
+  agregado de PIS não cadastrado aparece sem linha, com o PIS mascarado. E o simétrico: importação
+  sem erro não mostra o card; e importação **concluída** com linhas ignoradas não abre o alerta de
+  falha (isso é do `UC-IMPSH-05`).
+- **Teste:** `Modules/Ponto/Tests/Feature/ImportacaoShowContratoTest.php` — `UC-IMPSH-06`.
+- **Contrato:** `D-IMP-EXTRAS` ([W] 2026-09-14, ATA bloco 4 linha 40) + charter §Goals (*"Card
+  'Amostra de erros': as primeiras linhas rejeitadas com linha, NSR, tipo e mensagem"*) + US-PONTO-002
+  (aceitação: *"registra … linhas processadas + **erros**"*).
+- **Regressão que defende:** três. (1) A amostra gravada não chega à tela — era o estado até
+  2026-09-28. (2) O payload vaza o que não é do contrato: a fixture carrega uma chave extra e o assert
+  exige **exatamente** as 4 chaves. (3) A amostra vira alerta de falha, ou chega como `null` e a tela
+  decide pela verdade do valor: o caso exige lista **vazia** (`[]`) quando não há erro, e a tela decide
+  pelo **tamanho** — `[]` é truthy em JS (a mesma armadilha que o `UC-IMPSH-05` registra).
+- **O que este caso NÃO cobre:** a redação da mensagem. Quem mascara é o produtor
+  (`AfdParserService` → `PiiRedactor`), e isso tem teste próprio (`AFD-1510-06` em
+  `AfdLeiaute671ContratoTest`). O controller entrega o que foi gravado, sem redigir de novo.
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**
