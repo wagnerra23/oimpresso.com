@@ -311,6 +311,7 @@ jobs:
             Modules/Ponto/Tests/Feature/ImportacaoIndexContratoTest.php \
             Modules/Ponto/Tests/Feature/ImportacaoCreateContratoTest.php \
             Modules/Ponto/Tests/Feature/ImportacaoShowContratoTest.php \
+            Modules/Ponto/Tests/Feature/RotaIdNaoNumericoContratoTest.php \
             Modules/Ponto/Tests/Feature/AfdLeiaute671ContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php \
             Modules/Ponto/Tests/Feature/LicencaAbonaDiaContratoTest.php \
