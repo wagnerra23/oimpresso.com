@@ -69,8 +69,8 @@ GPS e nome do local não são gravados — a seção mostra "—" e as coordenad
    segurança minha, a revisar.
 4. **Não feito:** comparação **medida** tela × protótipo (`comparar-design-prod`) — exige a tela
    renderizada em ambiente; nenhuma afirmação de "igual ao protótipo" foi feita.
-5. **Permissão das ações da fila** — seguem o padrão da tela (`ponto.access`). Recusar tem efeito
-   jurídico; exigir `ponto.aprovacoes.manage` (existe, nenhuma rota usa) é decisão [W].
+5. **Permissão de recusar** — ✓ decidido por [W] 2026-09-29: exige `ponto.aprovacoes.manage` na rota
+   (UC-PAPR-09, #8142). Validar segue com `ponto.access`.
 6. **Motivo da anulação** — o `anular()` canônico guarda só um md5 do motivo no `dispositivo_id`; o
    texto não fica em coluna nenhuma.
 7. `--preflight` do contrato-de-tela reprova os PRs empilhados por estarem atrás de `origin/main` —
