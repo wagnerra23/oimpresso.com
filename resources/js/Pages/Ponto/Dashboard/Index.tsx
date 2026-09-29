@@ -16,7 +16,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { cn, formatMinutes } from '@/Lib/utils';
 
 import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
-import { PageHeaderPrimary } from '@/Components/PageHeader';
 import { Grid, Inline } from '@/Components/layout';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -205,10 +204,9 @@ export default function DashboardIndex({
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+        {/* W9 (ADR 0418): header de módulo. Sem primary no corpo: o atalho levaria à própria
+            página ([W] 2026-09-29, #8116). */}
         <PontoAreaHeader active="dashboard" atualizadoAs={server_time} />
-        <Inline gap={2} justify="end">
-          <PageHeaderPrimary label="Bater ponto" onClick={() => router.visit('/ponto')} />
-        </Inline>
 
         {/* Nota "o que trava o fechamento" — 1ª seção do contrato `ponto-painel`,
             e por isso vem ANTES dos KPIs (o gate cobra a ordem das âncoras).
