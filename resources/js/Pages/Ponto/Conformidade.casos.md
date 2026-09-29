@@ -4,7 +4,7 @@ irmaos: Conformidade.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o escopo e as regras não mudam quando a tela ganhar coluna nova.
 owner: wagner
-last_run: "2026-09-28"
+last_run: "2026-09-29"
 ---
 
 # Casos de Uso & Aceite — Ponto/Conformidade
