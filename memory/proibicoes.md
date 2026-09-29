@@ -1816,6 +1816,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** varredura que sustente claim de **ausência** ou de **inventário** não para na receita `rg --hidden -g '!.git/**'` da lápide-mãe. Ou acrescenta **`--binary`** (busca o arquivo binário encontrado na recursão sem precisar do `-a`), ou usa **`git grep -l`** como número de referência, que a mãe já chamava de oráculo de desempate e que aqui foi o único certo. O teste barato da mãe continua valendo e foi o que pegou este caso: **se a contagem do `rg` difere da do `git grep`, a varredura estava cega** — refaça, não interprete. Vale para `fd` e para qualquer ferramenta com heurística de binário.
 
+### 2026-09-29 — Afirmar "este check é required" citando uma NOTA DATADA do baseline, com a lista de contexts e a nota da demoção no MESMO arquivo
+
+- **O limite (variante também proibida):** a pergunta *"este check é required?"* só se responde pelo **campo de estado**: as listas `classic_protection.contexts` + `rulesets.contexts` do baseline, ou o vivo (`gh api .../branches/main/protection/required_status_checks` **e** `.../rules/branches/main`, somados). **Nunca** por nota, comentário de workflow, ADR ou PR body que *mencione* o check, por mais oficial que seja o arquivo. Vale igual para "está em quarentena?", "está na allowlist?" e "está no manifesto?": num arquivo que mistura estado e história, o `grep` pelo nome devolve a história primeiro. E contagem por `grep` de texto só vale quando você sabe que o padrão casa **só** o campo de estado. Em JSON, pergunte ao parser.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
