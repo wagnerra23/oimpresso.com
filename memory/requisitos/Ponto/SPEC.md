@@ -53,7 +53,7 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 **Como** colaborador,
 **quero** marcar entrada/saida no celular ou desktop com 1 clique,
-**para que** meu registro de jornada seja capturado em tempo real, com geolocalizacao e foto opcional.
+**para que** meu registro de jornada seja capturado em tempo real, com geolocalizacao — sem foto nem biometria ([ADR 0383](../../decisions/0383-ponto-interno-nao-coleta-biometria.md), LGPD Art. 5º II + Art. 11).
 **Aceitacao:**
 - Marcacao gravada em `ponto_marcacoes` com `origem=REP_P`, `hash` SHA-256 encadeado, `created_at` automatico
 - Geolocalizacao (lat/lon) e IP capturados se permitidos pelo navegador
