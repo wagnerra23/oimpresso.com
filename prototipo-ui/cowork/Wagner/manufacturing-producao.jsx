@@ -75,7 +75,10 @@ function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
         <KpiCard variant="filter" label="Finalizadas" value={sum.final} sub="estoque já movimentado"
           icon={<I.check size={17} />} tone="emerald" selected={soFinal} onClick={() => setSoFinal(!soFinal)} />
         <KpiCard label="Pendentes" value={sum.pend} description="rascunhos, sem movimentar estoque" />
-        <KpiCard label="Valor total" value={fmt(sum.valor)} description="custo congelado nas finalizadas" />
+        {/* [TELA] QA 2026-09-29: a descrição dizia "custo congelado nas finalizadas", mas a soma inclui
+            o rascunho (sum.valor = todas as ordens do período) — igual à tela viva (summary.total_value).
+            O número fica; a descrição passa a dizer o que ele soma. */}
+        <KpiCard label="Valor total" value={fmt(sum.valor)} description="ordens do período · rascunho a preço de hoje" />
       </div>
       <div className="mfg-filters">
         <div style={{ width: 180 }}>
@@ -94,6 +97,7 @@ function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
         {linhas.length > 0 && (
           <div className="mfg-grid">
             <DataGrid caption="Ordens de produção" totalLabel="ordens" columns={COLS} pagination={false}
+              onRowClick={(row) => onOpen && onOpen(row.id)}
               rows={linhas.map(({ op, c }) => ({
                 id: op.id,
                 cells: {
@@ -134,6 +138,12 @@ function MfgProducaoForm({ recipes, producoes, settings, perms, editing, onSave,
   const c = useMemo(() => consumoOP(op, recipes), [op, recipes]);
   const falta = c.linhas.filter((l) => l.q > l.est);
   const travado = settings.travarQtd;
+  // [TELA] QA 2026-09-29: com quantidade −3 a ordem era finalizada ("estoque movimentado") com
+  // total R$ −44,62 — devolveria insumo ao estoque. Quantidade > 0 e consumo ≥ 0 são obrigatórios.
+  const erroQtd = !(op.qtd > 0) ? "Precisa ser maior que zero." : null;
+  const negativos = c.linhas.filter((l) => !(l.q >= 0));
+  const bloqueio = erroQtd ? "a quantidade a produzir precisa ser maior que zero"
+    : negativos.length ? "consumo negativo em " + negativos.map((l) => l.n).join(", ") : null;
 
   const override = (sku, q) => setOp((x) => ({ ...x, consumo: { ...(x.consumo || {}), [sku]: Number(q) } }));
 
@@ -157,11 +167,14 @@ function MfgProducaoForm({ recipes, producoes, settings, perms, editing, onSave,
                 <span className="m">
                   {/* [B-04] passo de milésimo: campo local */}
                   {!travado
-                    ? <input className="mfg-inp num" type="number" min="0" step="0.001" value={Number(l.q.toFixed(3))} aria-label={"Consumo de " + l.n} onChange={(e) => override(l.sku, e.target.value)} />
+                    ? <input className="mfg-inp num" type="number" min="0" step="0.001" value={Number(l.q.toFixed(3))} aria-label={"Consumo de " + l.n} aria-invalid={!(l.q >= 0) || undefined} style={!(l.q >= 0) ? { borderColor: "var(--color-destructive-fg)" } : undefined} onChange={(e) => override(l.sku, e.target.value)} />
                     : <span>{num(l.q, 3)}</span>}
                   <em className="mfg-u">{l.u}</em>
                 </span>
-                <span className="m">{fmt(l.c)}</span>
+                {/* [TELA] QA 2026-09-29: l.c é o preço por unidade BASE (INS-022 = R$ 108 / L), mas a
+                    coluna ao lado mostra a sub-unidade ("galão (5 L)") — lia-se R$ 108 por galão.
+                    Mesmo padrão do editor de receita: preço + "/ unidade base". */}
+                <span className="m">{fmt(l.c)}<em className="mfg-u">/ {l.base}</em></span>
                 <span className="m tot">{fmt(l.sub)}</span>
                 <span className={"m" + (l.q > l.est ? " bad" : "")}>{num(l.est, 0)} {l.u}</span>
               </div>
@@ -193,7 +206,7 @@ function MfgProducaoForm({ recipes, producoes, settings, perms, editing, onSave,
             <Select label="Receita" value={op.recipe || ""} onChange={(e) => set({ recipe: Number(e.target.value), consumo: null })}>
               {recipes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
             </Select>
-            <Campo label={"Quantidade a produzir" + (c.r ? " (" + c.r.un + ")" : "")} hint={c.r ? "receita rende " + num(c.r.qtd, 2) + " " + c.r.un + " por lote" : null}>
+            <Campo label={"Quantidade a produzir" + (c.r ? " (" + c.r.un + ")" : "")} erro={erroQtd} hint={c.r ? "receita rende " + num(c.r.qtd, 2) + " " + c.r.un + " por lote" : null}>
               <input className="mfg-inp" type="number" min="0" step="0.01" value={op.qtd} onChange={(e) => set({ qtd: Number(e.target.value), consumo: null })} />
             </Campo>
           </div>
@@ -217,8 +230,11 @@ function MfgProducaoForm({ recipes, producoes, settings, perms, editing, onSave,
 
       <div className="mfg-ed-f">
         <span className="sp" />
+        {bloqueio && (
+          <span role="status" style={{ font: "500 12px/1.4 var(--font-sans)", color: "var(--color-destructive-fg)" }}>⚠ Para salvar: {bloqueio}</span>
+        )}
         <Button onClick={onCancel}>Cancelar</Button>
-        <Button variant="primary" disabled={!perms.criar || c.linhas.length === 0} onClick={() => onSave(op)}>
+        <Button variant="primary" disabled={!perms.criar || c.linhas.length === 0 || !!bloqueio} onClick={() => onSave(op)}>
           {op.final ? "Salvar e finalizar" : "Salvar rascunho"}
         </Button>
       </div>
