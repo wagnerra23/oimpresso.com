@@ -117,6 +117,10 @@ function bensContratoGet(User $user, int $businessId, array $query = [])
 {
     $url = '/asset/assets'.($query ? '?'.http_build_query($query) : '');
 
+    // `withHeaders` do teste PERSISTE entre requests: sem o flush, a 2a chamada no mesmo
+    // `it()` sairia com os `X-Inertia*` do partial anterior e voltaria JSON, nao a root view.
+    test()->flushHeaders();
+
     return test()
         ->actingAs($user)
         ->withSession([
