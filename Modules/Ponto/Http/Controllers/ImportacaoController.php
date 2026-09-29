@@ -39,7 +39,7 @@ class ImportacaoController extends Controller
             'estado'           => $i->estado,
             'linhas_processadas' => (int) ($i->linhas_processadas ?? 0),
             // US-PONTO-012 (SDD §9 D-8) — mesma correção do `show()`: a coluna real é
-            // `linhas_sucesso`. O `Index.tsx:118` renderiza `{linhas_criadas}/{processadas}`,
+            // `linhas_sucesso`. O `Importacoes/Index.tsx:111` renderiza `{linhas_criadas}/{processadas}`,
             // então a lista mostrava `0/N` para toda importação.
             'linhas_criadas'   => (int) ($i->linhas_sucesso ?? 0),
             'created_at'       => optional($i->created_at)->format('Y-m-d H:i'),

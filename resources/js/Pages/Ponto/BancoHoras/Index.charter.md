@@ -32,7 +32,7 @@ O gestor vê o saldo de banco de horas consolidado por colaborador, com totais d
   total de colaboradores no banco e multiplicadores de crédito/débito vigentes.
   — `D-BH-KPI`, [W] 2026-09-14 (ATA-DECISOES-2026-09-14, bloco 4, linha 42): *"ficam os seus 4 …
   o charter é o que está atrasado."* ⚠️ **Estado em 2026-09-28:** o `.tsx` ainda renderiza os 4
-  KPIs antigos (crédito total · débito total · nº com crédito · nº com débito, `Index.tsx:90-117`);
+  KPIs antigos (crédito total · débito total · nº com crédito · nº com débito, `Index.tsx:90-117` em 2026-09-28; re-medido em 2026-09-29: `:82-109`, ainda os 4 antigos);
   a contagem vai para a sub-linha e entram "total no banco" + "multiplicadores". Região no map:
   `faixa-de-kpi` (`memory/requisitos/Ponto/banco-horas-index.map.json`).
 - Saldo formatado em horas:minutos, com cor por sinal (positivo/negativo).

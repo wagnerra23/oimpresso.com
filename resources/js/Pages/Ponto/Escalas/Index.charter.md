@@ -37,7 +37,7 @@ O gestor vê todas as escalas (padrões de jornada) cadastradas — nome, códig
   `UC-ESCIDX-06`), tipo (rótulo do enum), carga diária, carga semanal, turnos, banco de horas, ação.
   Supersede a ordem anterior deste item (nome primeiro), que era a do vivo antes da passada de FORMA.
 - Atalho "Nova escala" (`/ponto/escalas/create`) na barra e "Editar" por linha
-  (`/ponto/escalas/{id}/edit`) — rotas próprias (D-PONTO-DETALHE), não o form na mesma tela do protótipo.
+  (`/ponto/escalas/{id}/edit`) — rotas próprias (D-PONTO-DETALHE). Desde a thread 28 (onda 3, handoff 43) o protótipo também usa rota própria (`pt-escalas-create` · `pt-escalas-<id>-edit`, `ponto-telas.jsx:463`), então aqui não há mais divergência; até 2026-09-28 o protótipo abria o form na mesma tela.
 - Ação "Remover" por linha, **só sem vínculo**; com vínculo, o lugar dela diz "Em uso por N colaborador(es)".
 - Empty state com CTA de criar a primeira escala.
 
