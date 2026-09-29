@@ -160,6 +160,11 @@ class DashboardTest extends PontoTestCase
         $this->assertSame('Painel do ponto', $ponto['primary']['label'] ?? null,
             'O primary leva ao painel do Ponto — o rótulo tem de dizer isso, não "Bater ponto".'
         );
+        // [W] 2026-09-29: o botão só navega — o PageHeaderTabs tira o "+" de criação quando
+        // o primary declara `acao: navegar` (o adapter repassa o array inteiro).
+        $this->assertSame('navegar', $ponto['primary']['acao'] ?? null,
+            'O primary do Ponto tem de declarar acao=navegar, senão o botão aparece como "+ Painel do ponto".'
+        );
 
         // Ordem do protótipo: Ponto antes do HRM. Só mede quando o HRM também está no menu.
         foreach ($menu as $i => $item) {

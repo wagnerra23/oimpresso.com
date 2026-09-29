@@ -186,6 +186,8 @@ class DataController extends Controller
                             'label'    => 'Painel do ponto',
                             'href'     => '/ponto',
                             'shortcut' => 'N',
+                            // Só navega: sem o "+" de criação que o PageHeaderTabs põe por padrão.
+                            'acao'     => 'navegar',
                         ],
                         'ghosts'  => $ghosts,
                     ]
