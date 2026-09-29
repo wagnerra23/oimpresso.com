@@ -4,7 +4,7 @@ irmaos: Bens.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOOK-bens.
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-23"
+last_run: "2026-09-29"
 ---
 
 # Casos de Uso & Aceite — Patrimonio/Bens
@@ -139,6 +139,26 @@ last_run: "2026-09-23"
 
 ---
 
+## UC-BENS-06 · "Garantia crítica" recorta o conjunto no servidor, e a pílula conta o conjunto
+
+- **Persona:** quem administra o patrimônio e quer ver, de uma vez, o que está sem cobertura
+  ou prestes a ficar — antes de o conserto sair integral do caixa.
+- **Aceite:** Dado, no mesmo business, um bem com garantia **vencida**, um com garantia
+  **vencendo em 10 dias**, um com garantia **vigente por um ano** e um **sem registro** de
+  garantia · Quando o usuário abre `/asset/assets?recorte=garantia` · Então a lista traz os dois
+  primeiros, **não** traz o vigente e **não** traz o sem registro (ele é "sem garantia", não
+  "vencida"); e a contagem `recortes_contagem.garantia` vem do servidor, sobre o conjunto.
+  Recorte fora da whitelist (`?recorte=qualquer`) é tratado como "todos".
+- **Tier 0 (ADR 0093):** um bem de **outro** business com garantia vencida não entra na lista
+  nem na contagem — `asset_warranties` não tem `business_id`, o recorte filtra por join.
+- **Teste:** `BensContratoTest.php` — `it()` citando `UC-BENS-06` (recorte + controle negativo
+  + tenant cruzado + contagem).
+- **Regressão que defende:** criticidade derivada no cliente de `dias_restantes` (proibida pelo
+  charter) e contagem feita sobre as 25 linhas da página.
+- **Status: 🧪** — roda na lane `assetmanagement-pest` (MySQL) e no CT 100.
+
+---
+
 ## Dívida declarada — `Alocado` não é número auditado
 
 ⚠️ Não é UC porque **não é comportamento que esta onda defende** — é defeito herdado que ela
@@ -165,8 +185,8 @@ expressão (`AssetController::baseAssetsQuery`), lida pelos dois ramos.
 
 ## [BACKLOG] — vira UC na onda que trouxer o teste
 
-- [BACKLOG] Os sub-recortes "Todos / Alocáveis / Garantia crítica / Em manutenção" contam e
-  filtram sobre o **conjunto**, não sobre a página corrente.
+- [BACKLOG] O sub-recorte "Em manutenção" conta e filtra sobre o **conjunto**, não sobre a
+  página corrente. (Garantia crítica saiu daqui em 2026-09-29 — UC-BENS-06.)
 - [BACKLOG] O rodapé soma o valor total do recorte, com a prova dupla que a REGRA MESTRE exige.
 - [BACKLOG] Seleção em lote exporta a seleção e manda os selecionados pra manutenção.
 - [BACKLOG] O usuário escolhe as colunas visíveis e a densidade, e a escolha sobrevive ao reload.
