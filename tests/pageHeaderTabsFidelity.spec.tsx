@@ -188,3 +188,26 @@ describe('PageHeaderTabs — pill do contador segue o TabBar do DS', () => {
     expect(container.querySelector('[role="tab"] span.rounded-full')).toBeNull();
   });
 });
+
+// ─── Primary: o "+" só aparece em ação de criar ──────────────────────────────────────────
+// [W] 2026-09-29: o botão "Painel do ponto" só navega, e o "+" fixo sugeria criar algo.
+// `acao: 'navegar'` é opt-in; o default segue "+ rótulo" para todos os módulos que não declaram.
+describe('PageHeaderTabs — primary com e sem "+"', () => {
+  const ghosts = [{ key: 'dashboard', label: 'Dashboard', href: '/x' }];
+  const textoDoPrimary = (container: HTMLElement) =>
+    (container.querySelector('a[href="/destino"]')?.textContent ?? '').replace(/\s+/g, ' ').trim();
+
+  it('ação de navegar: rótulo sem "+"', () => {
+    const { container } = render(
+      <PageHeaderTabs primary={{ label: 'Painel do ponto', href: '/destino', acao: 'navegar' }} ghosts={ghosts} />
+    );
+    expect(textoDoPrimary(container)).toBe('Painel do ponto');
+  });
+
+  it('sem `acao` (default = criar): mantém "+ rótulo" — nenhum módulo muda sem declarar', () => {
+    const { container } = render(
+      <PageHeaderTabs primary={{ label: 'Novo colaborador', href: '/destino' }} ghosts={ghosts} />
+    );
+    expect(textoDoPrimary(container)).toBe('+ Novo colaborador');
+  });
+});
