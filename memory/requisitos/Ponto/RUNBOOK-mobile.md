@@ -35,6 +35,9 @@ de hoje com o NSR que o servidor devolveu.
 As ações são os métodos JSON de `/ponto/api` (Passport) servidos também sob sessão web: o app
 não tem `CreateFreshApiToken`, então uma tela Inertia não alcança `auth:api`.
 
+**Chegada:** item "Bater ponto" no menu lateral (grupo RH), para quem tem cadastro de ponto ativo — montado
+em `DataController::modifyAdminMenu` ANTES do gate de `ponto.access` ([W] 2026-09-29).
+
 O cabeçalho de abas do Ponto só aparece pra quem tem o módulo (`CheckPontoAccess::permite`) — para o
 colaborador sem `ponto.access`, cada aba seria 403.
 

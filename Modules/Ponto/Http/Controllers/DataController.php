@@ -5,6 +5,7 @@ namespace Modules\Ponto\Http\Controllers;
 use App\Utils\ModuleUtil;
 use Illuminate\Routing\Controller;
 use Menu;
+use Modules\Ponto\Entities\Colaborador;
 
 /**
  * DataController do módulo PontoWr2.
@@ -119,6 +120,26 @@ class DataController extends Controller
 
         if (! $is_ponto_enabled) {
             return;
+        }
+
+        // "Bater ponto" — atalho do COLABORADOR pra /ponto/mobile ([W] 2026-09-29). Vem ANTES do
+        // gate de ponto.access de propósito: o colaborador de chão não tem o módulo e mesmo assim
+        // bate o ponto (a rota fica fora do ponto.access). A condição é ter cadastro de ponto
+        // ativo no empregador da sessão — business_id explícito (ADR 0093). Quem gerencia o Ponto
+        // e também é colaborador vê os dois: "Ponto" (gestão) e "Bater ponto" (a própria batida).
+        $business_id_sessao = (int) (session('user.business_id') ?: auth()->user()->business_id);
+        $e_colaborador = Colaborador::query()
+            ->where('business_id', $business_id_sessao)
+            ->where('user_id', auth()->id())
+            ->where('controla_ponto', true)
+            ->exists();
+        if ($e_colaborador) {
+            Menu::modify('admin-sidebar-menu', function ($menu) {
+                $menu->url(url('/ponto/mobile'), 'Bater ponto', [
+                    'icon'   => 'fa fas fa-clock',
+                    'active' => request()->is('ponto/mobile*'),
+                ])->order(87);
+            });
         }
 
         // Superadmin sempre vê; usuário comum precisa de ponto.access (mínimo).

@@ -54,6 +54,12 @@ last_run: "2026-09-29"
   do módulo (`/ponto/espelho`) segue 403.
 - **Status: ⬜** — cita o UC; veredito vem da lane `ponto-pest`.
 
+## UC-REPP-09 · O colaborador acha "Bater ponto" no menu
+- **Contrato:** [W] 2026-09-29 — *"põe item de menu 'Bater ponto' para o colaborador"*.
+- **Aceite:** Dado usuário com cadastro de ponto ativo no empregador da sessão · Quando o menu é montado ·
+  Então há o item "Bater ponto" levando a `/ponto/mobile` (inclusive sem `ponto.access`); sem cadastro, o item não aparece.
+- **Status: ⬜** — cita o UC; veredito vem da lane `ponto-pest`.
+
 ## UC-REPP-05 · GUARD — a tela não coleta imagem (ADR 0383)
 - **Aceite:** o fonte da tela não usa câmera nem captura (`getUserMedia`, `capture=`, `selfie`),
   nem oferece "mesmo assim".
