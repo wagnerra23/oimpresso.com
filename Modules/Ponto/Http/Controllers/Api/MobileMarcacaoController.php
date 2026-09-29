@@ -186,6 +186,9 @@ class MobileMarcacaoController extends Controller
             'totais' => Inertia::defer(fn () => $colab ? $espelho->buildTotaisEspelho((int) $colab->business_id, (int) $colab->id, $ano, $mes) : null),
             'linhas' => Inertia::defer(fn () => $colab ? $espelho->buildLinhasEspelho((int) $colab->business_id, (int) $colab->id, $ano, $mes) : []),
             'tipos'  => IntercorrenciaController::tiposDisponiveis(),
+            // A rota fica fora do `ponto.access` ([W] 2026-09-29); o cabeçalho do módulo (abas de
+            // RH) só aparece pra quem pode abrir o módulo — senão cada aba seria um 403.
+            'pode_ver_modulo' => \Modules\Ponto\Http\Middleware\CheckPontoAccess::permite($request->user()),
             'limites' => [
                 'accuracy_max' => MobileMarcacaoService::GPS_ACCURACY_MAX_METROS,
                 'drift_max'    => MobileMarcacaoService::TIMESTAMP_DRIFT_MAX_SEG,
