@@ -53,7 +53,7 @@ function rpfMarcar(int $bizId, int $colab, array $onde): Marcacao
     ]);
 }
 
-function rpfGestor(): User
+function rpfGestor(bool $podeRecusar = false): User
 {
     $id = DB::table('users')->insertGetId([
         'first_name' => 'RPF gestor', 'username' => 'rpf_g_' . uniqid(), 'password' => 'x',
@@ -62,6 +62,10 @@ function rpfGestor(): User
     $u = User::findOrFail($id);
     Permission::firstOrCreate(['name' => 'ponto.access', 'guard_name' => 'web']);
     $u->givePermissionTo('ponto.access');
+    if ($podeRecusar) {
+        Permission::firstOrCreate(['name' => 'ponto.aprovacoes.manage', 'guard_name' => 'web']);
+        $u->givePermissionTo('ponto.aprovacoes.manage');
+    }
     app(PermissionRegistrar::class)->forgetCachedPermissions();
     session(['user.business_id' => RPF_BIZ, 'business.id' => RPF_BIZ]);
 
@@ -124,7 +128,7 @@ it('UC-PAPR-07: validar registra na trilha do meu empregador e não toca a marca
 it('UC-PAPR-08: recusar grava anulação NOVA apontando a original, a original fica igual, e não se decide duas vezes', function () {
     $m = rpfMarcar(RPF_BIZ, rpfColaborador(RPF_BIZ), RPF_FORA);
     $antes = rpfLinha((string) $m->id);
-    $this->actingAs(rpfGestor());
+    $this->actingAs(rpfGestor(true));
 
     $this->post("/ponto/aprovacoes/mobile/{$m->id}/recusar")->assertRedirect();
 
@@ -143,8 +147,22 @@ it('UC-PAPR-08: recusar grava anulação NOVA apontando a original, a original f
 
 it('UC-PAPR-06: marcação de OUTRO empregador não é decidível daqui — 404, nada gravado (Tier 0)', function () {
     $alheia = rpfMarcar($this->garantirBizAlheio(), rpfColaborador(99), RPF_FORA);
-    $this->actingAs(rpfGestor());
+    // Com a permissão: senão o 403 do middleware responde antes e esconde o isolamento.
+    $this->actingAs(rpfGestor(true));
 
     $this->post("/ponto/aprovacoes/mobile/{$alheia->id}/recusar")->assertNotFound();
     expect(DB::table('ponto_marcacoes')->where('marcacao_anulada_id', $alheia->id)->count())->toBe(0);
+});
+
+it('UC-PAPR-09: recusar exige ponto.aprovacoes.manage — sem ela, 403 e nada gravado; validar segue livre ([W] 2026-09-29)', function () {
+    $m = rpfMarcar(RPF_BIZ, rpfColaborador(RPF_BIZ), RPF_FORA);
+    $this->actingAs(rpfGestor());
+
+    $this->inertiaGet('/ponto/aprovacoes')->assertJsonPath('props.pode_recusar_mobile', false);
+    $this->post("/ponto/aprovacoes/mobile/{$m->id}/recusar")->assertForbidden();
+    expect(DB::table('ponto_marcacoes')->where('marcacao_anulada_id', $m->id)->count())->toBe(0);
+
+    $this->post("/ponto/aprovacoes/mobile/{$m->id}/validar")->assertRedirect();
+    $this->inertiaPartialGet('/ponto/aprovacoes', ['mobile'], 'Ponto/Aprovacoes/Index')
+        ->assertJsonPath('props.mobile.0.estado', 'VALIDADA');
 });

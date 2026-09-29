@@ -87,6 +87,7 @@ interface Props {
   filtros: { estado: string | null; tipo: string | null; prioridade: string | null };
   contagens?: Record<string, number>;
   mobile?: MarcacaoMobile[]; // Inertia::defer — fila do gestor do REP-P (thread 06)
+  pode_recusar_mobile: boolean; // `ponto.aprovacoes.manage` — a rota é quem barra
   tipos: Array<{ value: string; label: string }>;
 }
 
@@ -119,7 +120,7 @@ const estadoLabelMap: Record<string, string> = {
   CANCELADA: 'Cancelada',
 };
 
-export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos, mobile }: Props) {
+export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos, mobile, pode_recusar_mobile }: Props) {
   const [approveTarget, setApproveTarget] = useState<Aprovacao | null>(null);
   const [rejectTarget, setRejectTarget] = useState<Aprovacao | null>(null);
   const [rejectMotivo, setRejectMotivo] = useState('');
@@ -492,7 +493,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos,
         </Card>
         </Deferred>
 
-        <FilaMobile itens={mobile} />
+        <FilaMobile itens={mobile} podeRecusar={pode_recusar_mobile} />
       </div>
 
       {/* ==================== BulkActionBar ==================== */}

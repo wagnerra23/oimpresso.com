@@ -36,7 +36,8 @@ O RH/gestor decide aqui as intercorrências de ponto submetidas pelos colaborado
 - Link "Ver" pro detalhe da intercorrência (`/ponto/intercorrencias/{id}`).
 - Seção "Marcações mobile a validar" — fila do gestor do REP-P ([W] 2026-09-29, thread 06): marcações do
   celular que o geofence sinalizou nos últimos 7 dias. **Validar** registra na trilha (a marcação não
-  muda); **Recusar** grava anulação nova (`ORIGEM_ANULACAO`, D3), com diálogo de confirmação.
+  muda); **Recusar** grava anulação nova (`ORIGEM_ANULACAO`, D3), com diálogo de confirmação, e exige
+  `ponto.aprovacoes.manage` na rota ([W] 2026-09-29) — sem ela o botão não aparece.
 
 ---
 

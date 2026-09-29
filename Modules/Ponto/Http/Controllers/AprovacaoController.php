@@ -41,6 +41,8 @@ class AprovacaoController extends Controller
             'contagens'  => Inertia::defer(fn () => $this->buildContagensEstado($businessId)),
             // Fila do gestor do REP-P (thread 06 · [W] 2026-09-29: seção nova aqui).
             'mobile'     => Inertia::defer(fn () => $this->buildFilaMobile($businessId)),
+            // A rota de recusar exige a permissão; a tela só esconde o botão (quem decide é a rota).
+            'pode_recusar_mobile' => (bool) $request->user()->can('ponto.aprovacoes.manage'),
             'filtros' => [
                 'estado'     => $filtroEstado,
                 'tipo'       => $filtroTipo,

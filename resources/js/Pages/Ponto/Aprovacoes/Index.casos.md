@@ -33,6 +33,7 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-PAPR-06 | Fila do REP-P mostra só marcação do celular fora da área, do meu empregador | must `[T0]` | thread 06 §C + ADR 0383 (geofence sinaliza) | `RepPFilaGestorContratoTest` | 🧪 teste cita o UC, sem veredito |
 | UC-PAPR-07 | Validar registra na trilha e não toca a marcação | must | thread 30 PR 3 + [W] 2026-09-29 | `RepPFilaGestorContratoTest` | 🧪 teste cita o UC, sem veredito |
 | UC-PAPR-08 | Recusar grava anulação nova; a original fica, e não se decide duas vezes | must | D3 da ata 2026-09-14 + Portaria 671/2021 | `RepPFilaGestorContratoTest` | 🧪 teste cita o UC, sem veredito |
+| UC-PAPR-09 | Recusar exige `ponto.aprovacoes.manage`; validar não | must | [W] 2026-09-29 | `RepPFilaGestorContratoTest` | 🧪 teste cita o UC, sem veredito |
 
 **[BACKLOG]:**
 
@@ -154,4 +155,12 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 - **Aceite:** Quando recuso · Então nasce marcação `ORIGEM_ANULACAO` apontando a original (D3), a original
   segue idêntica, e ela aparece `RECUSADA`. Quando tento validar ou recusar de novo · Então 422 e nada é gravado.
 - **Teste:** `RepPFilaGestorContratoTest` — `UC-PAPR-08`.
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**
+
+## UC-PAPR-09 · Recusar exige `ponto.aprovacoes.manage`; validar não · `must`
+
+- **Contrato:** [W] 2026-09-29 — *"recusar exige ponto.aprovacoes.manage"* (recusar grava anulação, ato com efeito jurídico).
+- **Aceite:** Dado gestor só com `ponto.access` · Quando abro Aprovações · Então `pode_recusar_mobile` é falso
+  (a tela não mostra Recusar) e `POST …/recusar` → **403**, sem anulação gravada; validar segue funcionando.
+- **Teste:** `RepPFilaGestorContratoTest` — `UC-PAPR-09`.
 - **Status: 🧪 teste cita o UC, sem veredito de lane.**
