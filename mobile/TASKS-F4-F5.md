@@ -440,8 +440,8 @@ Status: `[ ]` pendente · `[~]` em andamento · `[x]` concluído · `[!]` bloque
 - Tabela `subscriptions` (companyId, plan, status, currentPeriodEnd, providerSubscriptionId)
 - 3 planos:
   - **Free**: 50 pedidos/mês, 1 usuário, sem NFe
-  - **Pro** (R$ 79/mês): ilimitado, 3 usuários, NFe ilimitada, IA com cota
-  - **Business** (R$ 199/mês): ilimitado, multiempresa, IA sem cota, BI avançado, prioridade no suporte
+  - **Pro** (R$ [redacted Tier 0]/mês): ilimitado, 3 usuários, NFe ilimitada, IA com cota
+  - **Business** (R$ [redacted Tier 0]/mês): ilimitado, multiempresa, IA sem cota, BI avançado, prioridade no suporte
 - Paywall em features por plano (decorator `requirePlan(plans[])`)
 - Trial de 14 dias automático ao criar conta
 - Cancelamento self-service com retenção de dados por 30 dias
@@ -486,7 +486,7 @@ Status: `[ ]` pendente · `[~]` em andamento · `[x]` concluído · `[!]` bloque
 - Filtro de empresa (se multi)
 
 **Critério de aceite:**
-- Tap em "Receita R$ 47k" abre `relatorios.tsx` filtrado no mesmo período
+- Tap em "Receita R$ [redacted Tier 0]" abre `relatorios.tsx` filtrado no mesmo período
 - Sparklines renderizam em <100ms
 - Cards reordenáveis pelo usuário
 
