@@ -155,7 +155,13 @@ last_run: "2026-09-29"
   + tenant cruzado + contagem).
 - **Regressão que defende:** criticidade derivada no cliente de `dias_restantes` (proibida pelo
   charter) e contagem feita sobre as 25 linhas da página.
-- **Status: 🧪** — roda na lane `assetmanagement-pest` (MySQL) e no CT 100.
+- **Status: 🧪** — passa no CT 100 (MySQL real, 2026-09-29, worktree isolado no commit do PR):
+  este `it()` **1 passed · 20 assertions**; suíte do módulo **114 passed · 409 assertions**.
+  **Bite-test por mutação** (mesmo dia, arquivo restaurado por hash): sem aplicar o recorte →
+  cai; sem o filtro de business no join **e** na consulta externa da contagem → cai com
+  `3 ≠ 2` (o bem do adversário somou). Tirar só o filtro do join **sobrevive** — é mutante
+  equivalente: a consulta externa já restringe ao business, e o do join fica como segunda
+  defesa. Lane `assetmanagement-pest` a confirmar no PR.
 
 ---
 
