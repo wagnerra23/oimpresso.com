@@ -2,7 +2,7 @@
 id: requisitos-comunicacao-visual-spec
 module: ComunicacaoVisual
 version: "1.0"
-last_updated: "2026-06-13"
+last_updated: "2026-09-29"
 status: rascunho
 piloto: Gold confirmado vertical comvis (perfil 04-gold-comvis) — Vargas REMOVIDO (autopeças confirmado 2026-05-10 → Modules/OficinaAuto)
 piloto_previsao: 2026-Q3
@@ -159,10 +159,10 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 - [ ] Campo: maquina_id, os_id, inicio, fim, m2_impresso, consumo_tinta_ml{c,m,y,k}, mídia_consumida_m2 (lona/vinil)
 - [ ] Cálculo automático: `tempo_minutos = fim - inicio`; `m2_por_hora = m2 / (tempo/60)`
 - [ ] Dashboard máquina: ocupação (%), m²/dia, custo tinta/m², custo mídia/m²
-- [ ] Integração futura (P2): leitura direto do plotter via SNMP/SDK (Mubisys e Zênite têm)
+- [ ] Integração futura (P2): leitura direto do plotter via SNMP/SDK (só a Zênite anuncia coleta automática da máquina; o Mubisys anuncia apontamento **manual** pelo celular — corrigido em 2026-09-29, ver [pesquisa de concorrentes](../../research/2026-05-prospeccao/02-concorrentes-zenite-mubisys.md))
 - [ ] Multi-tenant + scope por máquina cadastrada no business
 
-**Concorrência:** Zênite ✅ (coleta automática IoT — diferencial alto), Mubisys 🟡, Calcgraf 🟡. **oimpresso ❌**.
+**Concorrência:** Zênite ✅ (coleta automática IoT — diferencial alto), Mubisys 🟡 (terminal de apontamento manual: tempo por tarefa, pelo celular), Calcgraf 🟡. **oimpresso ❌**.
 
 ---
 

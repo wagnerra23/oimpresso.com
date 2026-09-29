@@ -74,7 +74,7 @@ capacidades_baseline:
 3. **NFe-de-boleto-pago automática** (US-RB-044, ADR 0089) — exclusividade
 4. **Jana IA conversacional** (ADR 0035) — "quanto produzi de adesivo essa semana?"
 5. **FSM canon multi-stage** (ADR 0143) — auditoria append-only de cada transição
-6. **Stack moderna** Laravel 13.6 + React 19 + Inertia v3 vs Mubisys Delphi/Zênite jQuery
+6. **Stack moderna** Laravel 13.6 + React 19 + Inertia v3 vs Mubisys (sistema web em PHP tradicional, URLs `index.php?app=`) e Zênite (ainda migrando do desktop para a web) — corrigido em 2026-09-29: a versão anterior dizia "Mubisys Delphi / Zênite jQuery", sem fonte; ver [pesquisa de concorrentes](../../research/2026-05-prospeccao/02-concorrentes-zenite-mubisys.md)
 
 ## Score Capterra W22 → W23 → W25
 
