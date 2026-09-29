@@ -31,6 +31,7 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-COLIDX-01 | Buscar por matrícula ou CPF não alcança colaborador de outro empregador | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `ColaboradorContratoTest` | ✅ verde na lane |
 | UC-COLIDX-02 | Busca que não casa ninguém devolve lista vazia, não a lista inteira | must | charter §Goals (busca + empty state de "busca sem resultado") | `ColaboradorContratoTest` | ✅ verde na lane |
 | UC-COLIDX-03 | Lista redige CPF e PIS (3 últimos dígitos) — documento inteiro só no form de edição | must | charter §Pendências resolvida por [W] 2026-09-14 + `D-COLAB-CPF` do protótipo | `ponto-colaboradores-redacao.test.tsx` | 🧪 teste cita o UC, sem veredito |
+| UC-COLIDX-04 | "Sem PIS cadastrado" traz só quem não tem PIS, e nunca de outro empregador | must `[T0]` | charter §Goals + `D-COLAB-COLUNAS` ([W] 2026-09-14) + ADR 0093 | `ColaboradorContratoTest` | 🧪 teste cita o UC, sem veredito |
 
 **[BACKLOG]** (medido nesta sessão, sem teste que o defenda — vira UC quando ganhar um):
 
@@ -66,15 +67,13 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 - `[BACKLOG]` A busca por nome usa só `first_name`; sobrenome (`last_name`) não entra. Quem procura
   "Silva" não acha ninguém. Não virou UC porque o charter diz "busca por matrícula, nome ou CPF" sem
   definir o que é "nome" — é ambiguidade de contrato, e inventar a resposta seria pior que registrar.
-- `[BACKLOG]` **Achar quem não pode bater ponto por falta de PIS** (`D-COLAB-COLUNAS`, [W] 2026-09-14,
-  ata bloco 4 linha 39; emenda E1 da thread 27, no charter pelo #8095). Aceite proposto: dado que
-  existem colaboradores sem PIS cadastrado, quando o gestor escolhe a situação "Sem PIS cadastrado",
-  então a lista mostra só esses, com o aviso "PIS não cadastrado" na célula de CPF/PIS, e o gestor
-  descobre isso **antes** de a importação do AFD rejeitar a marcação. [W]: *"o item de maior valor do
-  lote inteiro"*. **Não é UC ainda:** em 2026-09-28 o `Index.tsx` só tem o filtro de busca; não há
-  filtro de situação. Vira UC (próximo id `UC-COLIDX-04`; a thread o chamou de `UC-PONT-COL-06`) no
-  PR que construir o filtro, junto do teste que o cita. Pelo `[T0]`, esse teste precisa provar que
-  o filtro não traz colaborador sem PIS de outro empregador.
+- ~~`[BACKLOG]` Achar quem não pode bater ponto por falta de PIS~~ — **RESOLVIDO 2026-09-29**, virou
+  `UC-COLIDX-04`, com teste. A tela ganhou o select **Situação** com duas opções: *Todos* e *Sem PIS
+  cadastrado*. As outras situações do charter (Ativos · Só quem controla ponto · Desligados) e o
+  filtro de escala **seguem a construir** — não entraram sem UC e teste próprios.
+- `[BACKLOG]` O default da Situação: o protótipo abre em *Ativos*; a tela abre em *Todos*, que é o
+  comportamento que a lista já tinha. Trocar o default esconde desligados de quem abre a lista hoje —
+  entra junto com a opção *Ativos*, quando ela for construída.
 
 ---
 
@@ -138,6 +137,28 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 
 ---
 
+## UC-COLIDX-04 · "Sem PIS cadastrado" traz só quem não tem PIS, e nunca de outro empregador · `must` `[T0]`
+
+- **Persona:** gestor de RH antes de importar o AFD do mês. Sem PIS a marcação é rejeitada na
+  importação (o AFD da Portaria 671/2021 é chaveado por PIS), e hoje ele só descobre isso depois do
+  erro. [W]: *"o item de maior valor do lote inteiro"*.
+- **Aceite:** Dado que existem colaboradores sem PIS (nulo **ou** vazio) e com PIS no meu empregador,
+  e um colaborador sem PIS em **outro** empregador · Quando escolho a situação "Sem PIS cadastrado"
+  · Então a lista mostra os meus sem PIS, não mostra quem tem PIS, e **não** traz o do outro
+  empregador. Na célula de CPF/PIS de cada um aparece "PIS não cadastrado" (`UC-COLIDX-03`).
+- **Teste:** `ColaboradorContratoTest.php` — `UC-COLIDX-04`.
+- **Contrato:** charter §Goals (*"Filtros: … situação — … **Sem PIS cadastrado**"*) + `D-COLAB-COLUNAS`
+  ([W] 2026-09-14, ATA bloco 4 linha 39) + [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Regressão que defende:** três. (1) O filtro vira decoração — o caso compara a lista **com e sem**
+  filtro e exige que o colaborador com PIS apareça sem ele e suma com ele. (2) PIS gravado como
+  string vazia escapa de um `whereNull` sozinho — há um colaborador assim na fixture. (3) `[T0]` o
+  `orWhere('pis', '')` solto, fora de grupo, deixaria o `where('business_id')` do lado esquerdo de um
+  OR: o adversário também não tem PIS, então casaria o predicado se o isolamento caísse — mesmo
+  desenho da armadilha que o bloco de busca já registra (`UC-COLIDX-01`).
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**
+
+---
+
 ## UC-COLIDX-02 · Busca que não casa ninguém devolve lista vazia, não a lista inteira · `must`
 
 - **Persona:** gestor de RH conferindo se um colaborador já foi configurado. Se a busca sem resultado
@@ -161,3 +182,5 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   ficou em 09-08. Conferido contra o `Index.tsx` do `main`: 1 filtro (Busca) e as colunas
   Matrícula, Nome, CPF/PIS, Escala, Ponto e BH. Nesta data entra o `[BACKLOG]` do filtro "Sem PIS
   cadastrado". O bump afirma "trio reconciliado com a tela nesta data", não "testes rodados".
+- 2026-09-29 · [CL] o filtro "Sem PIS cadastrado" foi construído e virou `UC-COLIDX-04` (select
+  Situação com *Todos* e *Sem PIS cadastrado*). O veredito vem da lane, não desta linha.

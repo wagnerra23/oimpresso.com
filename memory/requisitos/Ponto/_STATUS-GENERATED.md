@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 23 |
 | Telas com `casos.md` | 23 |
-| UC declarados | 102 |
-| UC com teste que os cita | 97 |
+| UC declarados | 103 |
+| UC com teste que os cita | 99 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -75,7 +75,7 @@ authority: generated
 | UC-COLIDX-01 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-COLIDX-02 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-COLIDX-03 | Colaboradores/Index | 🧪 aguarda veredito da lane |
-| UC-COLIDX-04 | Colaboradores/Index | 📝 sem_teste |
+| UC-COLIDX-04 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-CONF-01 | Conformidade | 🧪 aguarda veredito da lane |
 | UC-CONF-02 | Conformidade | 🧪 aguarda veredito da lane |
 | UC-CONF-03 | Conformidade | 📝 sem_teste |
