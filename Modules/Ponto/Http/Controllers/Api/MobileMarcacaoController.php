@@ -7,10 +7,17 @@ namespace Modules\Ponto\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Ponto\Entities\BancoHorasSaldo;
 use Modules\Ponto\Entities\Colaborador;
+use Modules\Ponto\Entities\Escala;
+use Modules\Ponto\Entities\EscalaTurno;
+use Modules\Ponto\Entities\Intercorrencia;
 use Modules\Ponto\Entities\Marcacao;
+use Modules\Ponto\Http\Requests\StoreIntercorrenciaRequest;
+use Modules\Ponto\Services\IntercorrenciaService;
 use Modules\Ponto\Services\MobileMarcacaoService;
 use RuntimeException;
 use Throwable;
@@ -189,6 +196,119 @@ class MobileMarcacaoController extends Controller
         ]);
     }
 
+    /** GET /ponto/api/intercorrencias — `ponto.api.intercorrencias.index` (só as minhas) */
+    public function intercorrencias(Request $request): JsonResponse
+    {
+        $colab = $this->colaboradorDoUsuario($request);
+        if (! $colab) {
+            return $this->semColaborador();
+        }
+
+        $itens = Intercorrencia::query()
+            ->where('business_id', $colab->business_id)
+            ->where('colaborador_config_id', $colab->id)
+            ->orderByDesc('data')
+            ->limit(50)
+            ->get();
+
+        return response()->json([
+            'intercorrencias' => $itens->map(fn (Intercorrencia $i) => $this->intercorrenciaResumo($i))->values(),
+        ]);
+    }
+
+    /**
+     * POST /ponto/api/intercorrencias — `ponto.api.intercorrencias.store`
+     *
+     * Justificar: cria a intercorrência e SUBMETE (RASCUNHO → PENDENTE) no mesmo
+     * ato — o colaborador envia para o gestor, não guarda rascunho. Regras de
+     * campo = as do StoreIntercorrenciaRequest (fonte única), menos o
+     * `colaborador_config_id` (é o do user) e o anexo (o app não anexa).
+     */
+    public function criarIntercorrencia(Request $request, IntercorrenciaService $intercorrencias): JsonResponse
+    {
+        $colab = $this->colaboradorDoUsuario($request);
+        if (! $colab) {
+            return $this->semColaborador();
+        }
+
+        $regras = Arr::except((new StoreIntercorrenciaRequest())->rules(), ['colaborador_config_id', 'anexo']);
+        $dados = $request->validate($regras, (new StoreIntercorrenciaRequest())->messages());
+        $dados['business_id'] = (int) $colab->business_id;
+        $dados['colaborador_config_id'] = (int) $colab->id;
+
+        $i = DB::transaction(function () use ($intercorrencias, $dados, $request) {
+            $i = $intercorrencias->criar($dados, (int) $request->user()->id);
+            $intercorrencias->submeter($i);
+
+            return $i->refresh();
+        });
+
+        return response()->json([
+            'sucesso' => true,
+            'intercorrencia' => $this->intercorrenciaResumo($i),
+        ], 201);
+    }
+
+    /** GET /ponto/api/escala/hoje — `ponto.api.escala.hoje` */
+    public function escalaHoje(Request $request): JsonResponse
+    {
+        $colab = $this->colaboradorDoUsuario($request);
+        if (! $colab) {
+            return $this->semColaborador();
+        }
+
+        $escala = $colab->escala_atual_id
+            ? Escala::query()->where('business_id', $colab->business_id)->whereKey($colab->escala_atual_id)->first()
+            : null;
+
+        // `dia_semana` = Carbon::dayOfWeek (dom=0..sáb=6), mesma convenção do Dashboard.
+        $turno = $escala
+            ? EscalaTurno::query()->where('escala_id', $escala->id)->where('dia_semana', now()->dayOfWeek)->first()
+            : null;
+
+        return response()->json([
+            'data'   => now()->toDateString(),
+            'escala' => $escala ? ['id' => (int) $escala->id, 'nome' => (string) $escala->nome] : null,
+            'turno'  => $turno ? [
+                'hora_entrada'       => $turno->hora_entrada,
+                'hora_almoco_inicio' => $turno->hora_almoco_inicio,
+                'hora_almoco_fim'    => $turno->hora_almoco_fim,
+                'hora_saida'         => $turno->hora_saida,
+            ] : null,
+        ]);
+    }
+
+    /**
+     * GET /ponto/api/dashboard/kpis — `ponto.api.dashboard.kpis`
+     *
+     * KPIs DO COLABORADOR (não do empregador): a API é do app de bolso, e o
+     * painel do gestor já existe na web com permissão própria.
+     */
+    public function dashboardKpis(Request $request): JsonResponse
+    {
+        $colab = $this->colaboradorDoUsuario($request);
+        if (! $colab) {
+            return $this->semColaborador();
+        }
+
+        return response()->json([
+            'marcacoes_hoje' => Marcacao::query()
+                ->where('business_id', $colab->business_id)
+                ->where('colaborador_config_id', $colab->id)
+                ->whereDate('momento', now()->toDateString())
+                ->count(),
+            'intercorrencias_pendentes' => Intercorrencia::query()
+                ->where('business_id', $colab->business_id)
+                ->where('colaborador_config_id', $colab->id)
+                ->where('estado', Intercorrencia::ESTADO_PENDENTE)
+                ->count(),
+            'saldo_minutos' => (int) (BancoHorasSaldo::query()
+                ->where('business_id', $colab->business_id)
+                ->where('colaborador_config_id', $colab->id)
+                ->value('saldo_minutos') ?? 0),
+        ]);
+    }
+
     /**
      * Fila do gestor: marcacoes mobile dos ultimos 7 dias. Sem rota nesta PR —
      * a fila entra como filtro na tela viva de Aprovações (thread 06, passo 3).
@@ -252,5 +372,19 @@ class MobileMarcacaoController extends Controller
         }
 
         return ! $this->service->validarGeolocation((float) $m->latitude, (float) $m->longitude, $businessId);
+    }
+
+    protected function intercorrenciaResumo(Intercorrencia $i): array
+    {
+        return [
+            'id'               => (string) $i->id,
+            'codigo'           => $i->codigo,
+            'tipo'             => $i->tipo,
+            'estado'           => $i->estado,
+            'data'             => optional($i->data)->format('Y-m-d'),
+            'dia_todo'         => (bool) $i->dia_todo,
+            'intervalo_inicio' => $i->intervalo_inicio,
+            'intervalo_fim'    => $i->intervalo_fim,
+        ];
     }
 }

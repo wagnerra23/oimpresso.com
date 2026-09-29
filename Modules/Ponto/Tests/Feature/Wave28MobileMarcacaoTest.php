@@ -408,11 +408,11 @@ describe('API REP-P', function () {
         }
     });
 
-    it('o grupo Marcação saiu do abort(501) e tem nome ponto.api.*', function () {
+    it('as 7 rotas do bloco 2 saíram do abort(501) e têm nome ponto.api.*', function () {
         $fonte = file_get_contents(base_path('Modules/Ponto/Http/routes.php'));
-        expect($fonte)->not->toContain('Implementar em MarcacaoApiController');
+        expect(substr_count($fonte, 'abort(501'))->toBe(0);
 
-        foreach (['marcar', 'marcacoes.hoje', 'saldo'] as $n) {
+        foreach (['marcar', 'marcacoes.hoje', 'saldo', 'intercorrencias.index', 'intercorrencias.store', 'escala.hoje', 'dashboard.kpis'] as $n) {
             expect(Route::has("ponto.api.{$n}"))->toBeTrue("ponto.api.{$n} não registrada");
         }
     });
@@ -522,5 +522,68 @@ describe('API REP-P', function () {
         ]);
         $this->getJson(route('ponto.api.saldo'))->assertOk()
             ->assertJsonPath('saldo_minutos', 135)->assertJsonPath('ultima_movimentacao', '2099-01-10');
+    });
+    it('justificar cria intercorrência PENDENTE no meu colaborador, e ela aparece na minha lista e nos meus KPIs', function () {
+        [$user, $colab] = rppColaborador(RPP_BIZ);
+        Passport::actingAs($user);
+
+        $r = $this->postJson(route('ponto.api.intercorrencias.store'), [
+            'tipo' => 'ESQUECIMENTO_MARCACAO', 'data' => now()->toDateString(), 'dia_todo' => true,
+            'justificativa' => 'Texto neutro de teste com mais de dez caracteres.',
+            'colaborador_config_id' => 999999,
+        ])->assertStatus(201)->assertJsonPath('intercorrencia.estado', 'PENDENTE');
+
+        $i = DB::table('ponto_intercorrencias')->where('id', $r->json('intercorrencia.id'))->first();
+        expect((int) $i->business_id)->toBe(RPP_BIZ);
+        expect((int) $i->colaborador_config_id)->toBe($colab);
+
+        $this->getJson(route('ponto.api.intercorrencias.index'))->assertOk()
+            ->assertJsonCount(1, 'intercorrencias')->assertJsonPath('intercorrencias.0.id', $r->json('intercorrencia.id'));
+        $this->getJson(route('ponto.api.dashboard.kpis'))->assertOk()
+            ->assertJsonPath('intercorrencias_pendentes', 1)->assertJsonPath('marcacoes_hoje', 0);
+    });
+
+    it('justificar sem horário e sem dia todo → 422, nada gravado', function () {
+        [$user, $colab] = rppColaborador(RPP_BIZ);
+        Passport::actingAs($user);
+
+        $this->postJson(route('ponto.api.intercorrencias.store'), [
+            'tipo' => 'OUTRO', 'data' => now()->toDateString(), 'dia_todo' => false,
+            'justificativa' => 'Texto neutro de teste com mais de dez caracteres.',
+        ])->assertStatus(422)->assertJsonValidationErrors(['intervalo_inicio']);
+
+        expect(DB::table('ponto_intercorrencias')->where('colaborador_config_id', $colab)->count())->toBe(0);
+    });
+
+    it('escala de hoje: sem escala é nula; com escala, devolve o turno do dia da semana de hoje', function () {
+        [$user, $colab] = rppColaborador(RPP_BIZ);
+        Passport::actingAs($user);
+
+        $this->getJson(route('ponto.api.escala.hoje'))->assertOk()
+            ->assertJsonPath('escala', null)->assertJsonPath('turno', null);
+
+        $escala = DB::table('ponto_escalas')->insertGetId([
+            'business_id' => RPP_BIZ, 'nome' => 'RPP escala', 'tipo' => 'FIXA', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('ponto_escala_turnos')->insert([
+            ['escala_id' => $escala, 'dia_semana' => now()->dayOfWeek, 'hora_entrada' => '08:00:00', 'hora_saida' => '17:00:00'],
+            ['escala_id' => $escala, 'dia_semana' => (now()->dayOfWeek + 1) % 7, 'hora_entrada' => '13:00:00', 'hora_saida' => '22:00:00'],
+        ]);
+        DB::table('ponto_colaborador_config')->where('id', $colab)->update(['escala_atual_id' => $escala]);
+
+        $this->getJson(route('ponto.api.escala.hoje'))->assertOk()
+            ->assertJsonPath('escala.id', $escala)->assertJsonPath('turno.hora_entrada', '08:00:00');
+    });
+
+    it('Tier 0 · escala_atual_id apontando pra escala de OUTRO empregador não vaza', function () {
+        [$user, $colab] = rppColaborador(RPP_BIZ);
+        $alheia = DB::table('ponto_escalas')->insertGetId([
+            'business_id' => $this->garantirBizAlheio(), 'nome' => 'RPP escala alheia', 'tipo' => 'FIXA',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('ponto_colaborador_config')->where('id', $colab)->update(['escala_atual_id' => $alheia]);
+        Passport::actingAs($user);
+
+        $this->getJson(route('ponto.api.escala.hoje'))->assertOk()->assertJsonPath('escala', null);
     });
 });
