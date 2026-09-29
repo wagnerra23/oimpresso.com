@@ -64,8 +64,7 @@ class DashboardController extends Controller
     {
         return [
             'colaboradores_ativos' => Colaborador::where('business_id', $businessId)
-                ->where('controla_ponto', true)
-                ->whereNull('desligamento')
+                ->noPonto()
                 ->count(),
             'presentes_agora' => Marcacao::where('business_id', $businessId)
                 ->whereDate('momento', $hoje)

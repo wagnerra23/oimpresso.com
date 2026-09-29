@@ -66,6 +66,11 @@ const ghosts = ghostsDoServidor().map((g) => ({
   icon: g.icon ?? undefined,
 }))
 
+// Mutável por caso: o teste da linha de contexto troca `ponto_contexto` entre renders.
+const diferidas: { ponto_contexto?: { competencia: string; colaboradores_no_ponto: number } } = {
+  ponto_contexto: { competencia: 'Setembro/2026', colaboradores_no_ponto: 7 },
+}
+
 vi.mock('@inertiajs/react', () => ({
   Link: ({ children, ...p }: { children: React.ReactNode }) => <a {...p}>{children}</a>,
   router: { reload: vi.fn() },
@@ -79,6 +84,7 @@ vi.mock('@inertiajs/react', () => ({
       // `ponto_abas` (W9 · contagens): 0 em Aprovações de propósito — o DS mostra zero; null em
       // Conformidade — sem apuração a aba fica SEM número.
       ponto_abas: { aprovacoes: 0, intercorrencias: 8, conformidade: null, colaboradores: 9 },
+      ...diferidas,
     },
   }),
 }))
@@ -110,10 +116,24 @@ describe('W9 · PontoAreaHeader é o header do protótipo, igual em toda tela', 
     expect(screen.getByText('Ponto eletrônico · Portaria MTP 671/2021')).toBeTruthy()
   })
 
-  it('linha de contexto com a empresa do SHELL (não a da sessão)', () => {
+  it('linha de contexto completa: empresa do SHELL · competência · N colaboradores no ponto', () => {
+    diferidas.ponto_contexto = { competencia: 'Setembro/2026', colaboradores_no_ponto: 7 }
+    render(<PontoAreaHeader active="escalas" />)
+    expect(screen.getByText('ROTA LIVRE · Setembro/2026 · 7 colaboradores no ponto')).toBeTruthy()
+    expect(screen.queryByText(/nome-da-sessao/i)).toBeNull()
+  })
+
+  it('concorda em número: 1 colaborador no ponto', () => {
+    diferidas.ponto_contexto = { competencia: 'Setembro/2026', colaboradores_no_ponto: 1 }
+    render(<PontoAreaHeader active="escalas" />)
+    expect(screen.getByText('ROTA LIVRE · Setembro/2026 · 1 colaborador no ponto')).toBeTruthy()
+  })
+
+  it('antes da prop diferida chegar, só a empresa — sem pedaço inventado nem separador órfão', () => {
+    delete diferidas.ponto_contexto
     render(<PontoAreaHeader active="escalas" />)
     expect(screen.getByText('ROTA LIVRE')).toBeTruthy()
-    expect(screen.queryByText(/nome-da-sessao/i)).toBeNull()
+    diferidas.ponto_contexto = { competencia: 'Setembro/2026', colaboradores_no_ponto: 7 }
   })
 
   it('selo "Atualizado" e a ação "Nova intercorrência" → create', () => {

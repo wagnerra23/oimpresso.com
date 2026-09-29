@@ -46,6 +46,34 @@ class AbasContadoresService
         ];
     }
 
+    /**
+     * Linha de contexto do header de módulo (protótipo: `contexto` do `MP.Header`, em
+     * `ponto-page.jsx` §PontoPage): a COMPETÊNCIA por extenso ("Setembro/2026", formato de
+     * `ponto-data.jsx` `extenso`) e "N colaboradores no ponto" — o MESMO número do KPI
+     * "Colaboradores ativos" do Painel (`Colaborador::noPonto`).
+     *
+     * Sem LOCAL: o protótipo mostra "matriz", mas o Ponto não tem noção de local (nenhuma
+     * coluna nem filtro por local em nenhum controller/serviço do módulo, medido 2026-09-29).
+     * Escrever um local afirmaria um escopo que as contagens não aplicam — mesma recusa do
+     * Patrimônio (`Patrimonio/Index.tsx`, linha de contexto).
+     *
+     * @return array{competencia:string, colaboradores_no_ponto:int}
+     */
+    public function contexto(int $businessId, ?\Carbon\CarbonInterface $hoje = null): array
+    {
+        $hoje ??= now();
+
+        return [
+            'competencia'            => self::MESES[(int) $hoje->format('n') - 1] . '/' . $hoje->format('Y'),
+            'colaboradores_no_ponto' => Colaborador::where('business_id', $businessId)->noPonto()->count(),
+        ];
+    }
+
+    private const MESES = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+    ];
+
     /** Mesmo total do cabeçalho da tela de Conformidade; null sem apuração. */
     private function apontamentos(int $businessId, string $mes): ?int
     {
