@@ -175,6 +175,9 @@ class MobileMarcacaoController extends Controller
             ] : null,
             'marcacoes_hoje' => $colab ? $this->listaHoje($colab) : [],
             'hoje'   => now()->toDateString(),
+            // A rota fica fora do `ponto.access` ([W] 2026-09-29); o cabeçalho do módulo (abas de
+            // RH) só aparece pra quem pode abrir o módulo — senão cada aba seria um 403.
+            'pode_ver_modulo' => \Modules\Ponto\Http\Middleware\CheckPontoAccess::permite($request->user()),
             'limites' => [
                 'accuracy_max' => MobileMarcacaoService::GPS_ACCURACY_MAX_METROS,
                 'drift_max'    => MobileMarcacaoService::TIMESTAMP_DRIFT_MAX_SEG,

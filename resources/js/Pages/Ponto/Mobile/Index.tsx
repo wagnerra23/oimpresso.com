@@ -26,6 +26,8 @@ interface Props {
   colaborador: { nome: string; matricula: string | null } | null;
   marcacoes_hoje: MarcacaoHoje[];
   hoje: string;
+  /** `ponto.access` (ou papel admin/rh/gestor): mostra o cabeçalho do módulo. */
+  pode_ver_modulo: boolean;
   limites: { accuracy_max: number; drift_max: number };
 }
 
@@ -178,11 +180,11 @@ function BaterPonto({ marcacoesIniciais, limites }: { marcacoesIniciais: Marcaca
   );
 }
 
-export default function Mobile({ colaborador, marcacoes_hoje, limites }: Props) {
+export default function Mobile({ colaborador, marcacoes_hoje, limites, pode_ver_modulo }: Props) {
   return (
     <AppShellV2 title="REP-P (celular) · Ponto WR2" breadcrumbItems={[{ label: 'Ponto WR2' }, { label: 'REP-P (celular)' }]}>
       <Stack gap={4}>
-        <PontoAreaHeader active="mobile" />
+        {pode_ver_modulo && <PontoAreaHeader active="mobile" />}
 
         <Alert role="note" className="border-info/25 bg-info/5" data-contract="repp-nota-regras">
           <Info aria-hidden />

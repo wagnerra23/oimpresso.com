@@ -28,7 +28,7 @@ uses(PontoTestCase::class);
 
 const RPM_BIZ = 98;
 
-function rpmUsuario(bool $comColaborador = true): User
+function rpmUsuario(bool $comColaborador = true, bool $comAcessoModulo = true): User
 {
     $userId = DB::table('users')->insertGetId([
         'first_name' => 'RPM teste', 'username' => 'rpm_' . uniqid(), 'password' => 'x',
@@ -41,8 +41,10 @@ function rpmUsuario(bool $comColaborador = true): User
         ]);
     }
     $u = User::findOrFail($userId);
-    Permission::firstOrCreate(['name' => 'ponto.access', 'guard_name' => 'web']);
-    $u->givePermissionTo('ponto.access');
+    if ($comAcessoModulo) {
+        Permission::firstOrCreate(['name' => 'ponto.access', 'guard_name' => 'web']);
+        $u->givePermissionTo('ponto.access');
+    }
     app(PermissionRegistrar::class)->forgetCachedPermissions();
     session(['user.business_id' => RPM_BIZ, 'business.id' => RPM_BIZ]);
 
@@ -91,7 +93,9 @@ it('UC-REPP-00: a aba "REP-P (celular)" é a 10ª do header, aponta pra /ponto/m
     expect($fonte)->toContain("'href' => '/ponto/mobile'");
 
     $this->actingAs(rpmUsuario());
-    $this->assertInertiaComponent($this->inertiaGet('/ponto/mobile'), 'Ponto/Mobile/Index');
+    $r = $this->inertiaGet('/ponto/mobile');
+    $this->assertInertiaComponent($r, 'Ponto/Mobile/Index');
+    $r->assertJsonPath('props.pode_ver_modulo', true);
 });
 
 it('UC-REPP-01: bater ponto grava REP_P no meu cadastro com NSR do servidor, e aparece em Hoje ao recarregar', function () {
@@ -144,4 +148,21 @@ it('UC-REPP-05: GUARD ADR 0383 — o fonte da tela não usa câmera, não captur
     expect(strtolower($fonte))->not->toContain('mesmo assim');
     // Controle positivo: a leitura achou a tela certa (senão os `not` passam vazios).
     expect($fonte)->toContain('/ponto/mobile/marcar');
+});
+
+it('UC-REPP-08: colaborador SEM ponto.access abre a tela e bate o ponto, sem o cabeçalho do módulo ([W] 2026-09-29)', function () {
+    $u = rpmUsuario(true, false);
+    $this->actingAs($u);
+    expect($u->can('ponto.access'))->toBeFalse();
+
+    $r = $this->inertiaGet('/ponto/mobile');
+    $this->assertInertiaComponent($r, 'Ponto/Mobile/Index');
+    $r->assertJsonPath('props.pode_ver_modulo', false);
+    expect($r->json('props.colaborador'))->not->toBeNull();
+
+    $this->postJson('/ponto/mobile/marcar', rpmPayload())->assertStatus(201);
+    expect(rpmMarcacoesDo($u))->toBe(1);
+
+    // O resto do módulo segue fechado pra ele.
+    $this->get('/ponto/espelho')->assertForbidden();
 });
