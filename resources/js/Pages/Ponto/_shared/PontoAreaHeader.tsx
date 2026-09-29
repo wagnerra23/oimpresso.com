@@ -21,9 +21,11 @@
 // número; chegam quando o request diferido volta. Conformidade vem `null` sem apuração — sem
 // número, nunca 0.
 //
-// FORA, declarado: o contexto do protótipo tem 4 pedaços (empresa · local · mês · "N
-// colaboradores no ponto"); só a EMPRESA chega hoje. Pedaço ausente sai do join (o `filter`
-// do protótipo), não vira número inventado.
+// Linha de contexto: empresa · competência · "N colaboradores no ponto" — os dois últimos em
+// `ponto_contexto` (mesma prop diferida das contagens, `AbasContadoresService::contexto`).
+// Pedaço que ainda não chegou sai do join (o `filter` do protótipo), não vira número inventado.
+// SEM LOCAL, declarado: o protótipo escreve "matriz", mas o Ponto não tem noção de local —
+// nomear um afirmaria um escopo que os números não aplicam (a mesma recusa do Patrimônio).
 
 import { useState, type ReactNode } from 'react';
 import { Link, router } from '@inertiajs/react';
@@ -66,7 +68,15 @@ export default function PontoAreaHeader({ active, atualizadoAs }: PontoAreaHeade
   const nomeDoShell = shell?.cockpit?.businessNome ?? null;
   const nomeDaSessao = useBusiness()?.name ?? null;
   const negocio = nomeDoShell ?? nomeDaSessao;
-  const contagens = (usePageProps() as { ponto_abas?: Record<string, number | null> }).ponto_abas;
+  const diferidas = usePageProps() as {
+    ponto_abas?: Record<string, number | null>;
+    ponto_contexto?: { competencia: string; colaboradores_no_ponto: number };
+  };
+  const contagens = diferidas.ponto_abas;
+  const ctx = diferidas.ponto_contexto;
+  const noPonto = ctx
+    ? `${ctx.colaboradores_no_ponto} ${ctx.colaboradores_no_ponto === 1 ? 'colaborador' : 'colaboradores'} no ponto`
+    : null;
 
   const [hora, setHora] = useState(() => atualizadoAs ?? horaCurta());
   const [reapurando, setReapurando] = useState(false);
@@ -80,7 +90,7 @@ export default function PontoAreaHeader({ active, atualizadoAs }: PontoAreaHeade
 
   return (
     <div data-contract="ponto-area-header">
-      <LinhaDeContexto partes={[negocio]} />
+      <LinhaDeContexto partes={[negocio, ctx?.competencia, noPonto]} />
       <PageHeader
         titleWeight="semibold"
         leading={

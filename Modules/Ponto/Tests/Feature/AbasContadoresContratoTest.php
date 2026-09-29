@@ -172,3 +172,36 @@ it('Conformidade sem apuração não tem número (null, nunca 0); com apuração
     $somaDaTela = collect($painel['verificacoes'])->where('medido', true)->sum('total');
     $this->assertSame((int) $somaDaTela, $n, 'A aba tem de mostrar o MESMO total que a tela de Conformidade.');
 });
+
+it('contexto: "N colaboradores no ponto" conta só quem controla ponto e não foi desligado', function () {
+    $biz = abasPreparar();
+    $svc = app(AbasContadoresService::class);
+    $antes = $svc->contexto($biz)['colaboradores_no_ponto'];
+
+    abasColaborador($biz);                                        // conta
+    abasColaborador($biz)->forceFill(['controla_ponto' => false])->save();       // não conta
+    abasColaborador($biz)->forceFill(['desligamento' => '2018-12-31'])->save();  // não conta
+
+    $this->assertSame(1, $svc->contexto($biz)['colaboradores_no_ponto'] - $antes,
+        'Só colaborador com controle de ponto e sem desligamento entra na linha de contexto.');
+});
+
+it('[T0] contexto: colaborador do tenant 99 não entra no "no ponto" do tenant de teste', function () {
+    $biz = abasPreparar();
+    $alheio = $this->garantirBizAlheio();
+    $svc = app(AbasContadoresService::class);
+    $antes = $svc->contexto($biz)['colaboradores_no_ponto'];
+
+    abasColaborador($alheio);
+
+    $this->assertSame($antes, $svc->contexto($biz)['colaboradores_no_ponto'],
+        'Vazamento cross-tenant na linha de contexto (ADR 0093).');
+});
+
+it('contexto: competência por extenso, no formato do protótipo ("Setembro/2026")', function () {
+    $biz = abasPreparar();
+    $svc = app(AbasContadoresService::class);
+
+    $this->assertSame('Setembro/2026', $svc->contexto($biz, \Carbon\Carbon::parse('2026-09-15'))['competencia']);
+    $this->assertSame('Março/2027', $svc->contexto($biz, \Carbon\Carbon::parse('2027-03-01'))['competencia']);
+});

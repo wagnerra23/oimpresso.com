@@ -39,6 +39,11 @@ class CheckPontoAccess
         Inertia::share('ponto_abas', Inertia::defer(
             fn () => app(AbasContadoresService::class)->contar($bizId)
         ));
+        // Linha de contexto do header (competência + "N colaboradores no ponto"). Mesmo
+        // request diferido das contagens — os dois estão no grupo `default`.
+        Inertia::share('ponto_contexto', Inertia::defer(
+            fn () => app(AbasContadoresService::class)->contexto($bizId)
+        ));
 
         return $next($request);
     }
