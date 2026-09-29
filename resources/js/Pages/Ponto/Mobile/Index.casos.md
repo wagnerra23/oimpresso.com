@@ -47,6 +47,13 @@ last_run: "2026-09-29"
   abro `/ponto/mobile` · Então `colaborador` é nulo (estado vazio) e `POST /ponto/mobile/marcar` → 403.
 - **Status: ⬜** — cita o UC; veredito vem da lane `ponto-pest`.
 
+## UC-REPP-08 · Colaborador sem `ponto.access` também bate o ponto
+- **Contrato:** [W] 2026-09-29 — *"colaborador sem ponto.access também acessa /ponto/mobile"*.
+- **Aceite:** Dado colaborador com cadastro de ponto e **sem** `ponto.access` · Quando abro `/ponto/mobile` ·
+  Então a tela abre (sem o cabeçalho do módulo — as abas seriam 403 pra ele), a batida grava, e o resto
+  do módulo (`/ponto/espelho`) segue 403.
+- **Status: ⬜** — cita o UC; veredito vem da lane `ponto-pest`.
+
 ## UC-REPP-05 · GUARD — a tela não coleta imagem (ADR 0383)
 - **Aceite:** o fonte da tela não usa câmera nem captura (`getUserMedia`, `capture=`, `selfie`),
   nem oferece "mesmo assim".

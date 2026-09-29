@@ -21,12 +21,17 @@ class CheckPontoAccess
         abort_unless($businessId, 403, 'Nenhuma empresa ativa na sessão.');
 
         // 2) Permissão do módulo (spatie/laravel-permission)
-        abort_unless(
-            $user->can('ponto.access') || $user->hasRole(['admin', 'rh', 'gestor']),
-            403,
-            'Você não tem permissão para acessar o módulo Ponto.'
-        );
+        abort_unless(self::permite($user), 403, 'Você não tem permissão para acessar o módulo Ponto.');
 
         return $next($request);
+    }
+
+    /**
+     * A regra do módulo, num lugar só: o middleware barra com ela, e a tela do REP-P (que fica
+     * fora do middleware, [W] 2026-09-29) usa a mesma para decidir se mostra o cabeçalho do módulo.
+     */
+    public static function permite($user): bool
+    {
+        return $user->can('ponto.access') || $user->hasRole(['admin', 'rh', 'gestor']);
     }
 }
