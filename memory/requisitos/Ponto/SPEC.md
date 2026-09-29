@@ -49,7 +49,7 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 ### US-PONTO-001 · Relogio web pra registrar entrada/saida (REP-P)
 
-**Implementado em:** _parcial_ · `Modules/Ponto/Services/MarcacaoService.php` · `Modules/Ponto/Services/NsrService.php` · `Modules/Ponto/Entities/Marcacao.php` · `Modules/Ponto/Tests/Feature/MarcacaoServiceTest.php` · verificado@8af585a (2026-07-02) — backend (hash encadeado SHA-256 + NSR) pronto, mas o endpoint REP-P web/API `/ponto/api/marcar` ainda é stub `abort(501)` e nao ha tela-relogio nem comprovante PDF/QR
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/MarcacaoService.php` · `Modules/Ponto/Services/NsrService.php` · `Modules/Ponto/Services/MobileMarcacaoService.php` · `Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php` · `resources/js/Pages/Ponto/Mobile/Index.tsx` · `Modules/Ponto/Tests/Feature/Wave28MobileMarcacaoTest.php` · `Modules/Ponto/Tests/Feature/RepPMobileContratoTest.php` · verificado@2a5810759 (2026-09-29) — API `/ponto/api/*` (#8130) e tela `/ponto/mobile` (thread 06) no ar, sem biometria (ADR 0383); falta o comprovante PDF/QR
 
 **Como** colaborador,
 **quero** marcar entrada/saida no celular ou desktop com 1 clique,
