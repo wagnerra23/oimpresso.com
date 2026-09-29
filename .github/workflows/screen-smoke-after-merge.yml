@@ -48,7 +48,9 @@ name: Screen Smoke After Merge
 #   • #8 credencial/PII/BRL: SMOKE_PROD_USER/PASS TÊM que ser conta biz=99 FAKE
 #     read-only. Senão screenshots capturam dados reais + VALORES R$ (vazam no
 #     artifact 30d E vão pra OpenAI). Sem creds, o smoke só cobre /login (público).
-#   • #6 detecção multi-commit (squash cobre) · #7 race deploy-concluiu ≠ código-live.
+#   • #6 detecção multi-commit — RESOLVIDO 2026-09-29: base = último deploy BOM (ver o passo
+#     "Filtrar paths"); cai no HEAD^ com ::warning:: quando não consegue medir.
+#   • #7 race deploy-concluiu ≠ código-live.
 #   • tsx→rota não é 1:1 → smokamos um conjunto CURADO (routes.json), priorizando as
 #     rotas cujo `source` mudou. Expandir routes.json conforme telas críticas.
 #
@@ -80,6 +82,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read   # #6: ler as runs do deploy.yml pra achar o último deploy BOM (base do diff)
 
 jobs:
   # ── JOB 1: DETECT — o que mudou + o smoke está LIGADO? ───────────────────────
@@ -99,13 +102,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.ref }}
-          fetch-depth: 2
+          # #6: 50 commits pra achar o último deploy bom andando para trás (ver "Filtrar paths").
+          fetch-depth: 50
 
       - name: Filtrar paths (telas + navegação)
         id: filter
         env:
           # ALTO 3: input do dispatch vem por env (nunca interpolado no run:).
           ROTA_INPUT: ${{ github.event.inputs.rota }}
+          # #6 multi-commit: consulta runs do deploy.yml por commit (actions: read).
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
           set -uo pipefail
           if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
@@ -120,8 +127,28 @@ jobs:
             exit 0
           fi
 
-          # Arquivos alterados no deploy (squash-merge → HEAD^ = main antes do merge).
-          CHANGED="$(git diff --name-only HEAD^ HEAD 2>/dev/null || git show --name-only --format= HEAD)"
+          # Arquivos alterados em PRODUÇÃO desde o último deploy BOM — não só no último commit.
+          # #6 (2026-09-29): com `HEAD^..HEAD`, um merge cujo deploy foi CANCELADO (o deploy.yml
+          # cancela o anterior quando chega push novo) nunca era smokado — o deploy que o leva ao
+          # ar é de um commit posterior, e o diff dele só vê esse commit. Medido no #8148: o
+          # deploy do merge foi cancelado e quem publicou foi o de um commit intermediário.
+          # Base = o commit mais recente ANTES deste (first-parent) com um deploy.yml `success`,
+          # consultado por `actions/runs?head_sha=`. A LISTAGEM de runs (`workflows/deploy.yml/runs`)
+          # serviu retrato de 28/08 em 29/09, então não serve de fonte. Sem base em 50 commits (ou
+          # com a API muda), cai no HEAD^ e AVISA que não mediu. Sem continuação de linha de
+          # propósito: `\` + quebra já colapsou no transporte ao escrever este bloco (LC-26).
+          BASE=""
+          for SHA in $(git rev-list --first-parent --max-count=50 HEAD^ 2>/dev/null); do
+            OK="$(gh api "repos/$REPO/actions/runs?head_sha=$SHA&per_page=30" --jq '[.workflow_runs[] | select((.path|test("deploy.yml")) and .conclusion == "success")] | length' 2>/dev/null)" || OK=""
+            if [ -n "$OK" ] && [ "$OK" -gt 0 ] 2>/dev/null; then BASE="$SHA"; break; fi
+          done
+          CHANGED=""
+          if [ -n "$BASE" ] && CHANGED="$(git diff --name-only "$BASE" HEAD)"; then
+            echo "→ base do diff = último deploy bom ${BASE:0:9} (cobre todos os merges desde ele)"
+          else
+            echo "::warning::base multi-commit NÃO MEDIDA (nenhum deploy bom nos 50 commits anteriores, ou API sem resposta) — diff só do último commit (HEAD^..HEAD)."
+            CHANGED="$(git diff --name-only HEAD^ HEAD 2>/dev/null || git show --name-only --format= HEAD)"
+          fi
           echo "=== arquivos alterados ==="; printf '%s\n' "$CHANGED"
 
           # CRÍTICO 2: allowlist ESTRITO de charset (descarta nome com espaço/injeção).
