@@ -181,7 +181,9 @@ class DataController extends Controller
                         'style'   => 'background-color:' . $background_color,
                         'active'  => $segmento_ativo,
                         'primary' => [
-                            'label'    => 'Bater ponto',
+                            // Era "Bater ponto" até 2026-09-29: o destino é o painel (/ponto), e não
+                            // existe tela web de bater ponto — o rótulo prometia uma ação que não há.
+                            'label'    => 'Painel do ponto',
                             'href'     => '/ponto',
                             'shortcut' => 'N',
                         ],

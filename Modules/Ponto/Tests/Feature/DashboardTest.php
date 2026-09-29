@@ -136,6 +136,11 @@ class DashboardTest extends PontoTestCase
         // O PontoSubNav monta as abas das telas do Ponto a partir destes dois campos.
         $this->assertNotEmpty($ponto['ghosts'] ?? [], 'Os ghosts do Ponto alimentam as abas das telas — não podem sumir.');
         $this->assertArrayHasKey('primary', $ponto, 'O primary alimenta a ação do cabeçalho das telas do Ponto.');
+        // [W] 2026-09-29: o destino é o painel (/ponto) e não existe tela web de bater ponto,
+        // então o rótulo antigo "Bater ponto" prometia uma ação inexistente.
+        $this->assertSame('Painel do ponto', $ponto['primary']['label'] ?? null,
+            'O primary leva ao painel do Ponto — o rótulo tem de dizer isso, não "Bater ponto".'
+        );
 
         // Ordem do protótipo: Ponto antes do HRM. Só mede quando o HRM também está no menu.
         foreach ($menu as $i => $item) {

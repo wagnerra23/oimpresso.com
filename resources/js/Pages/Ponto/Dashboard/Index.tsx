@@ -221,7 +221,7 @@ export default function DashboardIndex({
           </div>
           <div className="os-page-h-r">
             <PontoSubNav active="dashboard" hidePrimary />
-            <PageHeaderPrimary label="Bater ponto" onClick={() => router.visit('/ponto')} />
+            <PageHeaderPrimary label="Painel do ponto" onClick={() => router.visit('/ponto')} />
           </div>
         </header>
 

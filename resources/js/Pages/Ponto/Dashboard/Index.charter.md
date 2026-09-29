@@ -35,7 +35,7 @@ charter_version: 1
 - Feed de atividade do dia (marcações recentes).
 - Inbox de alertas com ação/severidade.
 - Bloco de aprovações pendentes com link pra fila.
-- Atalho "Bater ponto".
+- Atalho "Painel do ponto" (era "Bater ponto" até 2026-09-29 — o destino é o painel, não há tela web de bater ponto).
 
 ---
 
