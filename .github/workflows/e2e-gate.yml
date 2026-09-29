@@ -164,6 +164,10 @@ jobs:
           php artisan migrate --force
           php artisan db:seed --force
           php artisan db:seed --class=Database\\Seeders\\VisregTenantSeeder --force
+          # Assinatura com ponto_module no biz=1 (só nesta lane): sem ela o shell.menu não traz o
+          # Ponto e o PontoSubNav não desenha as abas que e2e/ponto-*.spec.ts afirmam. Fora do
+          # VisregTenantSeeder de propósito: lá mudaria a sidebar das baselines de pixel (ADR 0411).
+          php artisan db:seed --class=Database\\Seeders\\VisregPontoSubscriptionSeeder --force
           # FSM da Oficina (oficina_mecanica_os) é per-business e o biz=1 nasce SÓ no
           # VisregTenantSeeder (acima) — sem este re-run, /fsm/start-pipeline responde 422
           # "Processo não cadastrado" e o UC-11 trava no gate (run 27275766546). Seeder
