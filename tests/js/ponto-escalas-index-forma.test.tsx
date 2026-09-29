@@ -69,3 +69,30 @@ describe('UC-ESCIDX-06 · a linha mostra o horário do 1º turno, ou que não h�
     expect(screen.getByRole('link', { name: /Nova escala/ }).getAttribute('href')).toBe('/ponto/escalas/create')
   })
 })
+
+// Pílulas SÓLIDAS, como o protótipo desenha (medido no espelho em 2026-09-29): fundo no tom,
+// texto branco, sem dot. A tela antes usava o tom `-soft` com dot do Badge padrão do DS.
+describe('pílulas do tipo e do banco de horas seguem a forma do protótipo', () => {
+  const pilula = (texto: string) => screen.getByText(texto).closest('[data-slot="badge"]') as HTMLElement
+
+  it('tipo e "Permite" são sólidos (bg-info / bg-success, texto branco), sem dot', () => {
+    render(<EscalasIndex {...(props([escala(1, '07:00–19:00')]) as never)} />)
+
+    for (const [texto, fundo] of [['12x36', 'bg-info'], ['Permite', 'bg-success']] as const) {
+      const el = pilula(texto)
+      expect(el.className).toContain(fundo)
+      expect(el.className).toContain('text-white')
+      expect(el.className).not.toContain('-soft')
+      expect(el.querySelector('[data-slot="badge-dot"]')).toBeNull()
+    }
+  })
+
+  it('"Não" fica neutro (bg-secondary), também sem dot', () => {
+    render(<EscalasIndex {...(props([{ ...escala(1, null), permite_banco_horas: false }]) as never)} />)
+
+    const el = pilula('Não')
+    expect(el.className).toContain('bg-secondary')
+    expect(el.className).not.toContain('text-white')
+    expect(el.querySelector('[data-slot="badge-dot"]')).toBeNull()
+  })
+})
