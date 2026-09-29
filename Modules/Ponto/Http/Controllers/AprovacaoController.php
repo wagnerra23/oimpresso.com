@@ -215,9 +215,11 @@ class AprovacaoController extends Controller
     {
         $svc = app(MobileMarcacaoService::class);
         // O service devolve Collection<Model> (sem genérico de Marcacao) — por isso as closures
-        // não tipam o parâmetro; o @var diz ao PHPStan o que de fato vem.
-        /** @var \Illuminate\Support\Collection<int, Marcacao> $marcacoes */
-        $marcacoes = $svc->listarMarcacoesMobilePendentesValidacao($businessId)
+        // não tipam o parâmetro. O @var vem ANTES do filter: posto depois, ele só tipava o
+        // resultado, e dentro do filter o $m seguia Model (PHPStan: undefined $latitude).
+        /** @var \Illuminate\Support\Collection<int, Marcacao> $candidatas */
+        $candidatas = $svc->listarMarcacoesMobilePendentesValidacao($businessId);
+        $marcacoes = $candidatas
             ->filter(fn ($m) => $m->latitude !== null && $m->longitude !== null
                 && ! $svc->validarGeolocation((float) $m->latitude, (float) $m->longitude, $businessId))
             ->values();
