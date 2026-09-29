@@ -16,12 +16,14 @@
 //   · linha de contexto e selo de frescor — `Patrimonio/Index.tsx` (`LinhaDeContexto`,
 //     `PilulaFrescor`), que já traduziu o `CliPageHead` do protótipo pro canon.
 //
-// FORA desta onda, declarado: o contexto do protótipo tem 4 pedaços (empresa · local · mês ·
-// "N colaboradores no ponto") e as abas têm contagens (Aprovações · Intercorrências ·
-// Conformidade · Colaboradores). Só a EMPRESA chega hoje às telas do Ponto (shared prop do
-// shell); os outros pedaços e as contagens precisam de prop compartilhada calculada por
-// business — onda própria, com teste multi-tenant. Pedaço ausente sai do join (o `filter` do
-// protótipo), não vira número inventado.
+// Contagens das abas: `ponto_abas`, prop DIFERIDA compartilhada por `CheckPontoAccess` em toda
+// rota /ponto (`AbasContadoresService`). No 1º paint ela é `undefined` e as abas saem sem
+// número; chegam quando o request diferido volta. Conformidade vem `null` sem apuração — sem
+// número, nunca 0.
+//
+// FORA, declarado: o contexto do protótipo tem 4 pedaços (empresa · local · mês · "N
+// colaboradores no ponto"); só a EMPRESA chega hoje. Pedaço ausente sai do join (o `filter`
+// do protótipo), não vira número inventado.
 
 import { useState, type ReactNode } from 'react';
 import { Link, router } from '@inertiajs/react';
@@ -64,6 +66,7 @@ export default function PontoAreaHeader({ active, atualizadoAs }: PontoAreaHeade
   const nomeDoShell = shell?.cockpit?.businessNome ?? null;
   const nomeDaSessao = useBusiness()?.name ?? null;
   const negocio = nomeDoShell ?? nomeDaSessao;
+  const contagens = (usePageProps() as { ponto_abas?: Record<string, number | null> }).ponto_abas;
 
   const [hora, setHora] = useState(() => atualizadoAs ?? horaCurta());
   const [reapurando, setReapurando] = useState(false);
@@ -113,7 +116,7 @@ export default function PontoAreaHeader({ active, atualizadoAs }: PontoAreaHeade
         // na âncora (15 até o fim do `.cli-ph` + 14 de respiro) contra 14px sem este padding.
         below={
           <div className="px-6 pt-[15px]">
-            <PontoSubNav active={active} hidePrimary />
+            <PontoSubNav active={active} hidePrimary badges={contagens} />
           </div>
         }
       />

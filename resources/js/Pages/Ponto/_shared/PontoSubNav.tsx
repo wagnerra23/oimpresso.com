@@ -30,9 +30,15 @@ export interface PontoSubNavProps {
   extraOverflowItems?: PageHeaderOverflowItem[];
   /** Quando true, omite primary (renderiza só ghosts + overflow). Caller renderiza primary separado à direita. */
   hidePrimary?: boolean;
+  /**
+   * Contagem por KEY de ghost (W9 · ADR 0418), vinda de `ponto_abas`. `null`/ausente = aba sem
+   * número; `0` APARECE — é o que o `TabBar` do DS faz (`t.count != null`). Mesmo idioma do
+   * `PatrimonioSubNav`.
+   */
+  badges?: Record<string, number | null | undefined>;
 }
 
-export default function PontoSubNav({ active, extraOverflowItems, hidePrimary }: PontoSubNavProps) {
+export default function PontoSubNav({ active, extraOverflowItems, hidePrimary, badges }: PontoSubNavProps) {
   const sharedShell = (usePage().props as any)?.shell as {
     menu?: Array<{ label: string; group?: string; primary?: PageHeaderPrimary; ghosts?: PageHeaderGhost[] }>;
   } | undefined;
@@ -45,14 +51,22 @@ export default function PontoSubNav({ active, extraOverflowItems, hidePrimary }:
 
   if (!pontoItem?.ghosts?.length) return null;
 
+  // Enriquece por CHAVE, preservando ordem e conteúdo do menu; sem `badges`, passa intacto.
+  const ghosts = badges
+    ? pontoItem.ghosts.map((g) => {
+        const n = badges[g.key];
+        return n != null ? { ...g, badge: n } : g;
+      })
+    : pontoItem.ghosts;
+
   return (
     <PageHeaderTabs
       primary={hidePrimary ? undefined : pontoItem.primary}
-      ghosts={pontoItem.ghosts}
+      ghosts={ghosts}
       activeGhostKey={active}
       group="pessoas"
       // W9 ([W] 2026-09-28, ADR 0418): todas as abas visíveis, como o protótipo — sem `⋯ Mais`.
-      maxVisible={pontoItem.ghosts.length}
+      maxVisible={ghosts.length}
       scrollable
       // `compact` = inativa 13px/500, o peso das abas do protótipo (medido 2026-09-28: `13px 500`
       // na âncora contra `13px 400` no `default`). Não é dial de gosto — é o que a âncora pede.

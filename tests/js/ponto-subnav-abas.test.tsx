@@ -75,6 +75,9 @@ vi.mock('@inertiajs/react', () => ({
         menu: [{ label: 'Ponto', primary: { label: 'Bater ponto', href: '/ponto' }, ghosts }],
       },
       business: { name: 'nome-da-sessao' },
+      // `ponto_abas` (W9 · contagens): 0 em Aprovações de propósito — o DS mostra zero; null em
+      // Conformidade — sem apuração a aba fica SEM número.
+      ponto_abas: { aprovacoes: 0, intercorrencias: 8, conformidade: null, colaboradores: 9 },
     },
   }),
 }))
@@ -125,5 +128,32 @@ describe('W9 · PontoAreaHeader é o header do protótipo, igual em toda tela', 
     // a faixa de abas não é descendente do bloco do título
     expect(h1.parentElement?.contains(lista)).toBe(false)
     expect(h1.compareDocumentPosition(lista) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+})
+
+// ── Contagens nas abas (`ponto_abas`) ────────────────────────────────────────────────────
+describe('W9 · contagens nas abas, como o protótipo', () => {
+  const aba = (rotulo: string) => screen.getAllByRole('tab').find((t) => t.textContent?.startsWith(rotulo))!
+
+  it('mostra o número que o servidor mandou, na aba certa', () => {
+    render(<PontoAreaHeader active="escalas" />)
+    expect(aba('Intercorrências').textContent).toBe('Intercorrências8')
+    expect(aba('Colaboradores').textContent).toBe('Colaboradores9')
+  })
+
+  it('zero APARECE (é número, como no TabBar do DS)', () => {
+    render(<PontoAreaHeader active="escalas" />)
+    expect(aba('Aprovações').textContent).toBe('Aprovações0')
+  })
+
+  it('Conformidade null = aba SEM número (nunca 0) · aba sem chave também sem número', () => {
+    render(<PontoAreaHeader active="escalas" />)
+    expect(aba('Conformidade').textContent).toBe('Conformidade')
+    expect(aba('Escalas').textContent).toBe('Escalas')
+  })
+
+  it('sem `ponto_abas` (1º paint, prop diferida) nenhuma aba tem número', () => {
+    render(<PontoSubNav active="escalas" hidePrimary />)
+    expect(aba('Intercorrências').textContent).toBe('Intercorrências')
   })
 })

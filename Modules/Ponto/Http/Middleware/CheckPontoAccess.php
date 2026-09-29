@@ -4,6 +4,8 @@ namespace Modules\Ponto\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Modules\Ponto\Services\AbasContadoresService;
 
 /**
  * Verifica se o usuário tem acesso ao módulo Ponto WR2 e ao business_id ativo.
@@ -26,6 +28,17 @@ class CheckPontoAccess
             403,
             'Você não tem permissão para acessar o módulo Ponto.'
         );
+
+        // 3) Contagens das abas do header de módulo (W9 · ADR 0418). Aqui, e não em cada um
+        //    dos ~12 controllers, porque TODA rota /ponto passa por este middleware — e só
+        //    DEPOIS das duas travas acima: quem não pode ver o Ponto não recebe os números.
+        //    `defer`: quatro contagens + a apuração da competência não entram no 1º paint de
+        //    tela nenhuma; chegam no request diferido que a página já faz. Partial reload
+        //    que não pede `ponto_abas` não recalcula nada (o closure nem roda).
+        $bizId = (int) $businessId;
+        Inertia::share('ponto_abas', Inertia::defer(
+            fn () => app(AbasContadoresService::class)->contar($bizId)
+        ));
 
         return $next($request);
     }
