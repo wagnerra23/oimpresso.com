@@ -223,7 +223,7 @@ export default function PageHeaderTabs({
     tabs[next].focus();
   };
 
-  return (
+  const barra = (
     <div
       className={cn('flex items-center gap-2 flex-wrap md:flex-nowrap', className)}
       style={hueStyle}
@@ -414,4 +414,12 @@ export default function PageHeaderTabs({
       )}
     </div>
   );
+
+  // `scrollable` num grid `minmax(0,1fr)`: sem ele o min-content da faixa (as 12 abas do Ponto,
+  // ~1492px) sobe até o wrapper `mx-auto` da página — que dentro do `main` flex-coluna não
+  // estica, vira fit-content — e a PÁGINA ganha rolagem horizontal. Medido em prod
+  // (2026-09-29, /ponto/colaboradores, 1280): `main` 1020 × scrollWidth 1280 antes; 1020 × 1020
+  // com o grid, a faixa rolando dentro dela (924 visíveis de 1492). O grid zera a contribuição
+  // min-content e preserva a max-content, então o wrapper segue ocupando a largura disponível.
+  return scrollable ? <div className="grid grid-cols-[minmax(0,1fr)]">{barra}</div> : barra;
 }
