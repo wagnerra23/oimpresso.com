@@ -73,11 +73,13 @@ Route::group(
         Route::post('/banco-horas/{colaborador}/ajuste', 'BancoHorasController@ajustarManual')->name('ponto.banco-horas.ajuste');
 
         // 6. Escalas
-        Route::resource('/escalas', 'EscalaController')->names([
+        // Sem `show`: o EscalaController nunca teve o método e não existe tela de detalhe
+        // (a lista leva a create/edit). Registrada, a rota dava 500 em todo GET /escalas/{id}
+        // (UC-ESCIDX-07). Não prometer no router o que o controller não entrega.
+        Route::resource('/escalas', 'EscalaController')->except('show')->names([
             'index'   => 'ponto.escalas.index',
             'create'  => 'ponto.escalas.create',
             'store'   => 'ponto.escalas.store',
-            'show'    => 'ponto.escalas.show',
             'edit'    => 'ponto.escalas.edit',
             'update'  => 'ponto.escalas.update',
             'destroy' => 'ponto.escalas.destroy',
