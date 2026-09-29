@@ -15,7 +15,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { cn, formatMinutes } from '@/Lib/utils';
 
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import { Grid, Inline } from '@/Components/layout';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -204,26 +204,9 @@ export default function DashboardIndex({
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>
-              Dashboard <span className="text-stone-400 font-normal">· Ponto eletrônico</span>
-            </h1>
-            <p>
-              {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
-              {' · atualizado '}
-              <span className="inline-flex items-center gap-1 text-success">
-                <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" aria-hidden />
-                {server_time}
-              </span>
-            </p>
-          </div>
-          <div className="os-page-h-r">
-            {/* Sem primary aqui: o atalho "Painel do ponto" levaria à própria página ([W] 2026-09-29).
-                As outras telas do Ponto mostram o atalho via PontoSubNav. */}
-            <PontoSubNav active="dashboard" hidePrimary />
-          </div>
-        </header>
+        {/* W9 (ADR 0418): header de módulo. Sem primary no corpo: o atalho levaria à própria
+            página ([W] 2026-09-29, #8116). */}
+        <PontoAreaHeader active="dashboard" atualizadoAs={server_time} />
 
         {/* Nota "o que trava o fechamento" — 1ª seção do contrato `ponto-painel`,
             e por isso vem ANTES dos KPIs (o gate cobra a ordem das âncoras).

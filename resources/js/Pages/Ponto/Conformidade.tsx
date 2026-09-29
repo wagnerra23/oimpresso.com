@@ -11,7 +11,8 @@ import { Input } from '@/Components/ui/input';
 import { Skeleton } from '@/Components/ui/skeleton';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
+import { Inline } from '@/Components/layout';
 
 interface Verificacao {
   id: string;
@@ -70,15 +71,13 @@ export default function Conformidade({ mes, painel }: Props) {
 
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-4">
-      <header className="os-page-h" data-contract="cabecalho">
-        <div className="os-page-h-l">
-          <h1>
-            Conformidade CLT <span className="text-muted-foreground font-normal">· competência {mes}</span>
-          </h1>
-          <p>Somente leitura — a correção acontece no Espelho ou em Intercorrências.</p>
+      <PontoAreaHeader active="conformidade" />
+      <Inline justify="between" align="center" gap={3} data-contract="cabecalho">
+        <div>
+          <h2 className="text-lg font-semibold">Conformidade CLT <span className="text-muted-foreground font-normal">· competência {mes}</span></h2>
+          <p className="text-sm text-muted-foreground">Somente leitura — a correção acontece no Espelho ou em Intercorrências.</p>
         </div>
-        <div className="os-page-h-r">
-          <PontoSubNav active="conformidade" />
+        <Inline gap={2} align="center">
           <Input
             type="month"
             aria-label="Competência"
@@ -86,8 +85,8 @@ export default function Conformidade({ mes, painel }: Props) {
             onChange={(e) => e.target.value && router.get('/ponto/conformidade', { mes: e.target.value })}
             className="w-40"
           />
-        </div>
-      </header>
+        </Inline>
+      </Inline>
 
       <Deferred data="painel" fallback={<Skeleton className="h-16 w-full" />}>
         <div

@@ -27,7 +27,7 @@ import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Textarea } from '@/Components/ui/textarea';
 import { Grid, Inline, Stack } from '@/Components/layout';
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import { cn, formatMinutes } from '@/Lib/utils';
 import { fmtDataBr, fmtDataHoraBr } from '@/Lib/datetime-br';
 
@@ -180,18 +180,8 @@ export default function BancoHorasShow({ saldo, acordo, movimentos }: Props) {
       {/* Largura cheia, como o protótipo (.pt-body 18/24/32) — sem o max-w-7xl centrado. */}
       {/* Altura de linha 1,45 herdada (a do corpo do protótipo; o app usa 1,5). */}
       <Stack gap={4} className="px-6 pt-[18px] pb-8 leading-[1.45]">
-        {/* ADR 0182 PageHeader canon — shell do módulo, igual às outras telas do Ponto.
-            O cabeçalho de MÓDULO do protótipo (faixa, "Ponto" 22px, abas) é das 22 telas e
-            vai em PR próprio — não se conserta tela a tela. */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>Banco de horas</h1>
-            <p>Extrato do colaborador — ledger append-only.</p>
-          </div>
-          <div className="os-page-h-r">
-            <PontoSubNav active="banco-horas" hidePrimary />
-          </div>
-        </header>
+        {/* W9 (ADR 0418): header de módulo + abas do protótipo, igual às outras telas do Ponto */}
+        <PontoAreaHeader active="banco-horas" />
 
         {/* Faixa do colaborador (protótipo `.pt-sub`, ponto-telas.jsx:368-371) */}
         <Inline gap={2} wrap data-contract="bancohoras-colaborador">

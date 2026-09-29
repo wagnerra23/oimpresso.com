@@ -27,7 +27,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { formatMinutes } from '@/Lib/utils';
 import { Inline } from '@/Components/layout/inline';
 
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import Toolbar from '@/Components/shared/Toolbar';
 
@@ -92,17 +92,8 @@ export default function EscalasIndex({ escalas }: Props) {
       {/* `ponto-root` e `pt-body` são ganchos de medição — os seletores do ALVO em
           governance/design/targets/ponto--escalas--index.secoes.json. Não têm CSS próprio. */}
       <div className="ponto-root mx-auto max-w-7xl p-6 space-y-4">
-        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22. Cabeçalho e abas mudam na W9
-            (ADR 0418), em PR próprio. "Nova escala" mora na barra, como no protótipo. */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>Escalas <span className="text-stone-400 font-normal">· Padrões de jornada</span></h1>
-            <p>Fixa, flexível, 12x36, etc. Cada escala tem turnos por dia da semana.</p>
-          </div>
-          <div className="os-page-h-r">
-            <PontoSubNav active="escalas" hidePrimary />
-          </div>
-        </header>
+        {/* W9 (ADR 0418): header de módulo + abas do protótipo. "Nova escala" mora na barra. */}
+        <PontoAreaHeader active="escalas" />
 
         <div className="pt-body space-y-4">
           {/* BARRA — `window.PtBarra` do protótipo: Toolbar do DS dentro da própria moldura. */}

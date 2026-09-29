@@ -21,7 +21,7 @@ authority: generated
 | Telas (.tsx) | 23 |
 | Telas com `casos.md` | 23 |
 | UC declarados | 103 |
-| UC com teste que os cita | 99 |
+| UC com teste que os cita | 101 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 

@@ -148,30 +148,29 @@ class DataController extends Controller
                 // abrir essas telas.
                 $pode = fn (string $perm) => auth()->user()->can('superadmin') || auth()->user()->can($perm);
 
-                $ghosts = [
-                    ['key' => 'dashboard',       'label' => 'Dashboard',        'href' => '/ponto'],
-                    ['key' => 'espelho',         'label' => 'Espelho',          'href' => '/ponto/espelho'],
-                ];
-                if ($pode('ponto.aprovacoes.manage')) {
-                    $ghosts[] = ['key' => 'aprovacoes', 'label' => 'Aprovações', 'href' => '/ponto/aprovacoes'];
-                }
-                array_push(
-                    $ghosts,
-                    ['key' => 'intercorrencias', 'label' => 'Intercorrências',  'href' => '/ponto/intercorrencias'],
-                    ['key' => 'banco-horas',     'label' => 'Banco de Horas',   'href' => '/ponto/banco-horas'],
-                    ['key' => 'escalas',         'label' => 'Escalas',          'href' => '/ponto/escalas'],
-                    ['key' => 'importacoes',     'label' => 'Importações',      'href' => '/ponto/importacoes'],
-                    ['key' => 'relatorios',      'label' => 'Relatórios',       'href' => '/ponto/relatorios'],
+                // W9 ([W] 2026-09-28, ADR 0418): abas na ORDEM, RÓTULO e ÍCONE do protótipo
+                // (ponto-page.jsx ABAS). `perm` = o gate de permissão que o #8116 pôs nas abas
+                // (antes filhos do dropdown) — aba que a pessoa não pode abrir não aparece. A 13ª
+                // do protótipo, "REP-P (celular)", entra junto com a tela (W10, ADR 0419).
+                $abas = [
+                    ['key' => 'dashboard',       'label' => 'Painel',           'href' => '/ponto',                 'icon' => 'chart-column'],
+                    ['key' => 'espelho',         'label' => 'Espelho de ponto', 'href' => '/ponto/espelho',         'icon' => 'calendar'],
+                    ['key' => 'aprovacoes',      'label' => 'Aprovações',       'href' => '/ponto/aprovacoes',      'perm' => 'ponto.aprovacoes.manage', 'icon' => 'check'],
+                    ['key' => 'intercorrencias', 'label' => 'Intercorrências',  'href' => '/ponto/intercorrencias', 'icon' => 'triangle-alert'],
+                    ['key' => 'banco-horas',     'label' => 'Banco de horas',   'href' => '/ponto/banco-horas',     'icon' => 'coins'],
                     // ADR 0413: ver o fechamento é `ponto.access`; fechar exige `ponto.fechar` (na rota POST).
-                    ['key' => 'fechamento',      'label' => 'Fechamento',       'href' => '/ponto/fechamento'],
-                    ['key' => 'conformidade',    'label' => 'Conformidade',     'href' => '/ponto/conformidade'],
-                );
-                if ($pode('ponto.colaboradores.manage')) {
-                    $ghosts[] = ['key' => 'colaboradores', 'label' => 'Colaboradores', 'href' => '/ponto/colaboradores'];
-                }
-                if ($pode('ponto.configuracoes.manage')) {
-                    $ghosts[] = ['key' => 'configuracoes', 'label' => 'Configurações', 'href' => '/ponto/configuracoes'];
-                }
+                    ['key' => 'fechamento',      'label' => 'Fechamento',       'href' => '/ponto/fechamento',      'icon' => 'lock'],
+                    ['key' => 'conformidade',    'label' => 'Conformidade',     'href' => '/ponto/conformidade',    'icon' => 'shield'],
+                    ['key' => 'escalas',         'label' => 'Escalas',          'href' => '/ponto/escalas',         'icon' => 'clock'],
+                    ['key' => 'colaboradores',   'label' => 'Colaboradores',    'href' => '/ponto/colaboradores',   'perm' => 'ponto.colaboradores.manage', 'icon' => 'database'],
+                    ['key' => 'importacoes',     'label' => 'Importações',      'href' => '/ponto/importacoes',     'icon' => 'download'],
+                    ['key' => 'relatorios',      'label' => 'Relatórios',       'href' => '/ponto/relatorios',      'icon' => 'receipt'],
+                    ['key' => 'configuracoes',   'label' => 'Configurações',    'href' => '/ponto/configuracoes',   'perm' => 'ponto.configuracoes.manage', 'icon' => 'settings'],
+                ];
+                $ghosts = array_values(array_map(
+                    fn (array $a) => array_diff_key($a, ['perm' => true]),
+                    array_filter($abas, fn (array $a) => ! isset($a['perm']) || $pode($a['perm']))
+                ));
 
                 $menu->url(
                     route('ponto.dashboard'),
