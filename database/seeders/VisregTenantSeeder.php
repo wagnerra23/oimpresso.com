@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Seeder MINIMAL de tenant pro gate de regressão visual autenticado (US-GOV-013 Fase B).
@@ -68,6 +69,7 @@ class VisregTenantSeeder extends Seeder
             $this->ensureAdminRole();
             $this->ensureManageModulesPermission();
             $this->ensureProduct();
+            $this->ensurePontoSubscription();
 
             return;
         }
@@ -144,6 +146,78 @@ class VisregTenantSeeder extends Seeder
         $this->ensureAdminRole();
         $this->ensureManageModulesPermission();
         $this->ensureProduct();
+        $this->ensurePontoSubscription();
+    }
+
+    /**
+     * Assinatura com o módulo Ponto (2026-09-29, decisão [W]) — fecha, SÓ para o Ponto, o
+     * "PONTO CEGO DECLARADO" do docblock do topo.
+     *
+     * Sem assinatura, `hasThePermissionInSubscription($biz, 'ponto_module')` é falso, o
+     * `Ponto/DataController::modifyAdminMenu` não injeta a entrada no `shell.menu` e as telas
+     * do Ponto são fotografadas SEM a faixa de abas e sem RH → Ponto na sidebar. Um PR que
+     * quebrasse as abas passava verde.
+     *
+     * Só `ponto_module` no `package_details`: os outros módulos seguem desligados, como antes.
+     * Contagens 0 = ilimitado (é a leitura do `ModuleUtil::isQuotaAvailable`). ⚠️ Ter
+     * assinatura ativa muda também o `isQuotaAvailable`, que sem ela devolvia false — por
+     * isso a regeneração das baselines foi conferida tela a tela, e o PR diz o que mudou fora
+     * do Ponto.
+     *
+     * Ids fixos (900001) e datas literais: a assinatura precisa valer no dia do run sem
+     * depender do relógio, e o id não pode colidir com dado real. IDEMPOTENTE por id.
+     */
+    private function ensurePontoSubscription(): void
+    {
+        if (! Schema::hasTable('packages') || ! Schema::hasTable('subscriptions')) {
+            return;
+        }
+
+        $quando = '2026-01-01 00:00:00';
+
+        if (! DB::table('packages')->where('id', 900001)->exists()) {
+            DB::table('packages')->insert([
+                'id' => 900001,
+                'name' => 'Visreg Ponto',
+                'description' => 'Fixture do gate visual: liga só o módulo Ponto.',
+                'location_count' => 0,
+                'user_count' => 0,
+                'product_count' => 0,
+                'invoice_count' => 0,
+                'interval' => 'years',
+                'interval_count' => 1,
+                'trial_days' => 0,
+                'price' => 0,
+                'created_by' => 1,
+                'is_active' => 1,
+                'custom_permissions' => json_encode(['ponto_module' => '1']),
+                'created_at' => $quando,
+                'updated_at' => $quando,
+            ]);
+        }
+
+        if (! DB::table('subscriptions')->where('id', 900001)->exists()) {
+            DB::table('subscriptions')->insert([
+                'id' => 900001,
+                'business_id' => 1,
+                'package_id' => 900001,
+                'start_date' => '2026-01-01',
+                'end_date' => '2099-12-31',
+                'package_price' => 0,
+                'package_details' => json_encode([
+                    'location_count' => 0,
+                    'user_count' => 0,
+                    'product_count' => 0,
+                    'invoice_count' => 0,
+                    'name' => 'Visreg Ponto',
+                    'ponto_module' => '1',
+                ]),
+                'created_id' => 1,
+                'status' => 'approved',
+                'created_at' => $quando,
+                'updated_at' => $quando,
+            ]);
+        }
     }
 
     /**
