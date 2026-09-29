@@ -98,7 +98,7 @@ class MarcacaoService
                 if ($ultima) {
                     $hashAnterior = $ultima->hash;
                 }
-            } elseif (($dados['origem'] ?? null) === Marcacao::ORIGEM_REP_P) {
+            } elseif ($dados['origem'] === Marcacao::ORIGEM_REP_P) {
                 $hashAnterior = $service->cadeiaRepP((int) $dados['business_id'], (int) $dados['colaborador_config_id'])
                     ->orderByDesc('nsr')
                     ->value('hash');
