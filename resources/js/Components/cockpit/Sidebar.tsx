@@ -108,7 +108,7 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   'gerenciamento de usuários': Users,
   hrm: UserCog,
   essenciais: Box,
-  ponto: Clock,
+  ponto: User, // protótipo data.jsx (grupo RH): `icon: "user"` — era Clock até 2026-09-28
   reparar: Wrench,
   'team mcp': Rocket,
   projeto: FolderKanban,

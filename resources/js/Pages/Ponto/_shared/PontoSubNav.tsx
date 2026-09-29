@@ -2,7 +2,7 @@
 //
 // Lê primary/ghosts da entry "Ponto" do shell.menu (Inertia shared prop
 // populado via LegacyMenuAdapter — DataController Ponto declara attrs
-// dropdown com primary 'Bater ponto' + ghosts[10] sub-views). Renderiza
+// item com primary 'Painel do ponto' + ghosts sub-views). Renderiza
 // ghost tabs ARIA tablist abaixo do header `os-page-h` custom da tela.
 //
 // Active prop = key do ghost atual (ex 'dashboard' em Dashboard/Index.tsx,
@@ -10,7 +10,7 @@
 // shell.menu não tem entry "Ponto" com ghosts (módulo desinstalado ou
 // usuário sem ponto.access).
 //
-// Pattern: ghost tabs (esquerda) + ⋯ Mais (overflow) + primary `+ Bater ponto`
+// Pattern: ghost tabs (esquerda) + ⋯ Mais (overflow) + primary `Painel do ponto`
 // (direita). Caller pode passar `hidePrimary` pra renderizar primary separado.
 //
 // Hue 295 (roxo claro pessoas — SIDEBAR_GROUP_HUE.pessoas).

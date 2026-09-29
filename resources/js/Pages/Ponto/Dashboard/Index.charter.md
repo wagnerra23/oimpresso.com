@@ -35,7 +35,7 @@ charter_version: 1
 - Feed de atividade do dia (marcações recentes).
 - Inbox de alertas com ação/severidade.
 - Bloco de aprovações pendentes com link pra fila.
-- Atalho "Bater ponto".
+- Sem atalho próprio no cabeçalho: o "Painel do ponto" das outras telas levaria a esta mesma página ([W] 2026-09-29). Até essa data havia um atalho "Bater ponto" apontando para cá.
 
 ---
 
