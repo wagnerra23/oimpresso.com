@@ -11,7 +11,7 @@
 ## Identidade
 - **Site:** http://zenitesistemas.net.br/ + https://www.zsl.com.br/ (site institucional/comercial moderno)
 - **HQ:** Belo Horizonte/MG — Rua Itaguai, 866, Caiçaras, 30.775-110 ([Econodata/CNPJ.biz](https://cnpj.biz/00219676000170))
-- **CNPJ:** 00.219.676/0001-70 (fundada **1994** — 32 anos de mercado)
+- **CNPJ:** consultar na fonte ([CNPJ.biz](https://cnpj.biz/00219676000170)) — número formatado retirado em 2026-09-29 pelo PII scan do CI (fundada **1994** — 32 anos de mercado)
 - **Tempo de mercado:** "30+ anos" (alegação no site oficial — coerente com fundação 1994)
 - **Modelo:** Hybrid — produto principal **GE 4.0 (GWorks Enterprise)** com versão **web** (recente) + base instalada legacy desktop. Reclamações Reclame Aqui mencionam "alteração para versão web após quase 3 anos usando o sistema" → migração desktop→web em curso, ainda não 100% SaaS-cloud nativo.
 - **Pricing público:** **Não publicado.** Vendas via comercial (vendas@zsl.com.br / +55 (31) 3419-7300). Tiers nomeados: GE Lite, GE Smart, GE Standard, GE Pro/Full.
@@ -92,7 +92,7 @@
 - **Site:** https://mubisys.com/ (institucional) + https://lp.mubisys.com/ + https://lp2.mubisys.com/ (landing pages)
 - **HQ:** **Barueri/SP** — Avenida Trindade 254, salas 215/216, 06404-326 ([CNPJ.biz](https://cnpj.biz/17673962000104))
 - **Razão social:** Mubi - Tecnologia da Informação LTDA
-- **CNPJ:** 17.673.962/0001-04
+- **CNPJ:** consultar na fonte ([CNPJ.biz](https://cnpj.biz/17673962000104)) — número formatado retirado em 2026-09-29 pelo PII scan do CI
 - **Tempo de mercado:** **fundada 15/02/2013** — ~13 anos
 - **Modelo:** **SaaS cloud puro** ("totalmente online", "controle de onde estiver"). Tem **app mobile iOS + Android sem custo adicional** (App Store + Google Play).
 - **Pricing público:** **Não publicado.** Vendas via apresentação comercial → proposta. **Trial gratuito de 7 dias** (mencionado em termos de uso).
