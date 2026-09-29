@@ -120,6 +120,7 @@ class DataController extends Controller
                             'label'    => 'Gerar etiquetas',
                             'href'     => '/vestuario/etiquetas',
                             'shortcut' => 'N',
+                            'acao'     => 'navegar', // só leva à tela: sem o "+" de criação ([W] 2026-09-29)
                         ],
                         'ghosts'   => [
                             ['key' => 'etiquetas', 'label' => 'Etiquetas', 'href' => '/vestuario/etiquetas'],
