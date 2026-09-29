@@ -45,7 +45,7 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/BancoHoras/Show.tsx",
         "linhas": "181-231",
-        "ancora": false
+        "ancora": "bancohoras-historico-de-movimentos"
       },
       "status": "divergencia-declarada",
       "acao": "Forma, sem id na ata: fica para a passada de FORMA. A thread 17 grava `data-contract=\"bancohoras-historico-de-movimentos\"`.",
@@ -75,7 +75,7 @@
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/BancoHoras/Show.tsx",
         "linhas": "128-169",
-        "ancora": false
+        "ancora": "bancohoras-ajuste-manual"
       },
       "status": "paridade",
       "acao": "Nada. A soma local de saldo do protótipo (`ponto-telas.jsx:362`) é artefato de mock: não portar — viola o Non-Goal \"não recalcula o saldo\" (`Show.charter.md:39`).",
