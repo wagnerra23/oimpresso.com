@@ -31,7 +31,18 @@ class CheckPontoAccess
         //    `defer`: quatro contagens + a apuração da competência não entram no 1º paint de
         //    tela nenhuma; chegam no request diferido que a página já faz. Partial reload
         //    que não pede `ponto_abas` não recalcula nada (o closure nem roda).
-        $bizId = (int) $businessId;
+        self::compartilharCabecalho((int) $businessId);
+
+        return $next($request);
+    }
+
+    /**
+     * Contagens das abas e linha de contexto do header de módulo, num lugar só. O middleware
+     * chama para toda rota /ponto; a tela do REP-P, que fica fora dele ([W] 2026-09-29), chama
+     * só quando `permite()` — o colaborador sem o módulo não recebe número nenhum da empresa.
+     */
+    public static function compartilharCabecalho(int $bizId): void
+    {
         Inertia::share('ponto_abas', Inertia::defer(
             fn () => app(AbasContadoresService::class)->contar($bizId)
         ));
@@ -40,8 +51,6 @@ class CheckPontoAccess
         Inertia::share('ponto_contexto', Inertia::defer(
             fn () => app(AbasContadoresService::class)->contexto($bizId)
         ));
-
-        return $next($request);
     }
 
     /**

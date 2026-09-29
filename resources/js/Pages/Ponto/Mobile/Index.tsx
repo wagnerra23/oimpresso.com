@@ -183,16 +183,22 @@ function BaterPonto({ marcacoesIniciais, limites }: { marcacoesIniciais: Marcaca
 export default function Mobile({ colaborador, marcacoes_hoje, limites, pode_ver_modulo }: Props) {
   return (
     <AppShellV2 title="REP-P (celular) · Ponto WR2" breadcrumbItems={[{ label: 'Ponto WR2' }, { label: 'REP-P (celular)' }]}>
-      <Stack gap={4}>
+      {/* Mesmo container das outras telas do Ponto (Escalas, Aprovações, Painel…): sem ele o
+          header e o conteúdo ocupavam a largura inteira da janela. */}
+      <Stack gap={4} className="ponto-root mx-auto w-full max-w-7xl p-6">
         {pode_ver_modulo && <PontoAreaHeader active="mobile" />}
 
         <Alert role="note" className="border-info/25 bg-info/5" data-contract="repp-nota-regras">
           <Info aria-hidden />
           <AlertTitle>REP-P — o aparelho do colaborador</AlertTitle>
+          {/* Texto dentro de <p>: o AlertDescription é GRID, e texto solto nele faz de cada filho
+              uma linha — em produção cada <b> (GPS, relógio, geofence) quebrava sozinho. */}
           <AlertDescription>
-            Mesma regra do balcão: a marcação nasce imutável, com NSR e hash. O que muda é o contexto — <b>GPS</b> com
-            precisão máxima de {limites.accuracy_max}m, <b>relógio</b> do aparelho conferido contra o servidor
-            ({limites.drift_max}s) e <b>geofence</b> que sinaliza em vez de recusar.
+            <p>
+              Mesma regra do balcão: a marcação nasce imutável, com NSR e hash. O que muda é o contexto — <b>GPS</b> com
+              precisão máxima de {limites.accuracy_max}m, <b>relógio</b> do aparelho conferido contra o servidor
+              ({limites.drift_max}s) e <b>geofence</b> que sinaliza em vez de recusar.
+            </p>
           </AlertDescription>
         </Alert>
 
