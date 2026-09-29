@@ -155,6 +155,8 @@ class MarcacaoService
                 'origem'                => Marcacao::ORIGEM_ANULACAO,
                 'tipo'                  => $original->tipo,
                 'marcacao_anulada_id'   => $original->id,
+                // Texto do motivo ([W] 2026-09-29). O md5 no dispositivo_id segue como era.
+                'motivo_anulacao'       => (string) $motivo,
                 'usuario_criador_id'    => $usuarioId,
                 'dispositivo_id'        => 'anulacao:' . substr(md5($motivo), 0, 16),
             ]);
