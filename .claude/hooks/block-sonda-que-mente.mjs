@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // @ts-check
 /**
- * block-sonda-que-mente.mjs — PreToolUse, BLOQUEIA (exit 2).
+ * block-sonda-que-mente.mjs — PreToolUse, BLOQUEIA (exit 2) os pares P*; o A1 só AVISA
+ * (additionalContext, exit 0 — ver o bloco "A1" abaixo).
  *
  * Em QUE tools ele roda é do `.claude/settings.json` (o matcher é dono dele, e
  * restateá-lo aqui apodrece na primeira mudança — LC-10). Ele lê o comando de
@@ -146,6 +147,8 @@
  */
 
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 /**
  * O binário `jq` roda nesta máquina?
@@ -689,6 +692,122 @@ export function mensagem(p) {
   ].join('\n');
 }
 
+// ── A1 · AVISO (não bloqueia) — "é required?" respondido pela HISTÓRIA do baseline ──
+//
+// Diferente dos P*: aqui não há comando errado para barrar. Ler as notas do baseline é
+// legítimo, e um bloqueio puniria esse uso (família do guard sintático). O defeito está
+// em CONCLUIR: `governance/required-checks-baseline.json` mistura ESTADO (as listas
+// `classic_protection.contexts` + `rulesets.contexts`) e HISTÓRIA (notas datadas que
+// citam os checks pelo nome). `grep`/`rg` pelo nome casa as notas, e `grep -c` > 0 vira
+// "é required" para um check que só aparece na história. Foi o erro da §5 2026-09-29:
+// uma nota de 2026-07-06 ("JÁ required") lida como estado, com a demoção de 2026-08-26
+// no mesmo arquivo.
+//
+// Então o A1 só INFORMA, e o que ele imprime é sempre verdadeiro: para cada nome citado
+// no comando, se ele está ou não nas listas AGORA (lidas pelo parser, não por texto).
+//
+// ── POPULAÇÃO MEDIDA ANTES DE ARMAR (2026-09-29) ──
+// Corpus: 2.029 transcripts, 177.419 comandos Bash/PowerShell/Monitor (tool_use, nunca
+// prosa). 3.025 citam o baseline; 449 o consultam por texto (grep/rg/Select-String/
+// findstr) = 0,25%. A amostra é dominada por `echo "=== X é required? ==="; grep -c "X"
+// governance/required-checks-baseline.json` — exatamente a pergunta que o texto responde
+// errado. Por isso a detecção usa `despirAspas`: com a perna larga do `ehMencao`, esse
+// `echo` antes do `grep` faria o aviso se calar justamente no caso-alvo.
+
+const A1_BASELINE = 'required-checks-baseline';
+const A1_RE = /\b(grep|rg|Select-String|findstr)\b[^\n|;&]*required-checks-baseline/;
+
+/**
+ * O comando CONSULTA o baseline por texto (e não só o menciona em prosa/heredoc)?
+ * Devolve o trecho da invocação (no texto ORIGINAL) ou null.
+ * @param {string} cmd
+ */
+export function consultaBaselinePorTexto(cmd) {
+  if (typeof cmd !== 'string' || !cmd.includes(A1_BASELINE)) return null;
+  const despido = despirAspas(cmd);                       // preserva o comprimento
+  const m = despido.match(A1_RE);
+  if (!m || m.index === undefined) return null;           // só existia dentro de aspas
+  const antes = cmd.slice(0, m.index);
+  if (dentroDeHeredocAberto(antes)) return null;
+  if (/\s(-m|--body|--body-file|--title)\s+["'][^"']*$/.test(antes)) return null;
+  return cmd.slice(m.index, m.index + m[0].length);
+}
+
+/**
+ * Os nomes de check que o comando procura: strings entre aspas dentro da invocação,
+ * mais os itens de um `for VAR in "…" "…"` quando o padrão é `$VAR`.
+ * @param {string} cmd @param {string} trecho
+ * @returns {string[]}
+ */
+export function nomesProcurados(cmd, trecho) {
+  const nomes = [];
+  const aspas = /"((?:[^"\\]|\\.)*)"|'([^']*)'/g;
+  let m;
+  while ((m = aspas.exec(trecho))) nomes.push(m[1] ?? m[2]);
+  const usaVar = trecho.match(/["']?\$\{?(\w+)\}?["']?/);
+  if (usaVar) {
+    const lista = cmd.match(new RegExp(`\\bfor\\s+${usaVar[1]}\\s+in\\s+([^;]*);`));
+    if (lista) {
+      let q;
+      while ((q = aspas.exec(lista[1]))) nomes.push(q[1] ?? q[2]);
+    }
+  }
+  return [...new Set(nomes
+    .map((n) => n.replace(/^"(.*)"$/, '$1').trim())       // `'"DS gate"'` → `DS gate`
+    .filter((n) => n && !n.startsWith('$') && !n.includes(A1_BASELINE)))];
+}
+
+/**
+ * Lê as listas de estado do baseline pelo parser. Null = não consegui ler (e o aviso
+ * então diz isso, em vez de afirmar ausência — §5 2026-07-29, LC-33).
+ * @param {string} [caminho]
+ * @returns {string[]|null}
+ */
+export function contextsDoBaseline(caminho) {
+  try {
+    const p = caminho
+      ?? fileURLToPath(new URL('../../governance/required-checks-baseline.json', import.meta.url));
+    const j = JSON.parse(readFileSync(p, 'utf8'));
+    const a = j?.classic_protection?.contexts, b = j?.rulesets?.contexts;
+    if (!Array.isArray(a) || !Array.isArray(b)) return null;
+    return [...a, ...b];
+  } catch { return null; }
+}
+
+/**
+ * Monta o aviso, ou null quando o comando não consulta o baseline por texto.
+ * @param {string} cmd @param {string[]|null} [contexts] injetável pelo selftest
+ */
+export function avisoRequired(cmd, contexts) {
+  const trecho = consultaBaselinePorTexto(cmd);
+  if (!trecho) return null;
+  const ctx = contexts === undefined ? contextsDoBaseline() : contexts;
+  const linhas = [
+    '[block-sonda-que-mente] AVISO A1 (não bloqueia) — "é required?" se responde pela LISTA, não pelo texto.',
+    'O `required-checks-baseline.json` tem as listas `classic_protection.contexts` + `rulesets.contexts` (estado)',
+    'e notas datadas que citam os checks pelo nome (história). `grep`/`rg` casa as duas: `grep -c` > 0 NÃO prova',
+    'required, e um nome ausente da lista pode aparecer numa nota antiga (§5 2026-09-29).',
+  ];
+  if (ctx === null) {
+    linhas.push('Não consegui ler as listas pelo parser agora — confira à mão antes de concluir.');
+  } else {
+    const nomes = nomesProcurados(cmd, trecho);
+    if (nomes.length) {
+      linhas.push(`Nas listas AGORA (${ctx.length} contexts, lidas pelo parser):`);
+      for (const n of nomes) {
+        if (ctx.includes(n)) { linhas.push(`  • "${n}": ESTÁ (required no baseline)`); continue; }
+        const parecidos = ctx.filter((c) => c.toLowerCase().includes(n.toLowerCase())).slice(0, 3);
+        linhas.push(parecidos.length
+          ? `  • "${n}": não é um context exato; contexts que o contêm: ${parecidos.map((c) => `"${c}"`).join(' · ')}`
+          : `  • "${n}": NÃO está (se aparece no arquivo, é numa nota)`);
+      }
+    }
+  }
+  linhas.push('Baseline ≠ vivo: o vivo é `gh api repos/{owner}/{repo}/branches/main/protection/required_status_checks`',
+    '+ `gh api repos/{owner}/{repo}/rules/branches/main`, somados.');
+  return linhas.join('\n');
+}
+
 // ── selftest ────────────────────────────────────────────────────────────────
 const FIXTURES = [
   // [comando, deve bloquear?]
@@ -882,6 +1001,53 @@ if (ehEntrypoint) {
     if (!sondaW) falhas++;
     console.log(`  [${sondaW ? 'PASS' : 'FAIL'}] ehWindows → boolean estável (aqui: ${w1})`);
 
+    // ── A1 · aviso "é required?" — contexts INJETADOS (a fixture não mede o arquivo vivo)
+    const CTX = ['Governance Gate', 'PHP / Pest (Ponto · MySQL)'];
+    const B = 'governance/required-checks-baseline.json';
+    /** @type {[string, string, (a: string|null) => boolean][]} */
+    const A1 = [
+      ['A1 MORDE: grep -c de check que só está em NOTA → diz NÃO está',
+        `grep -c "visual-regression" ${B}`, (a) => !!a && a.includes('"visual-regression": NÃO está')],
+      ['A1 MORDE com echo antes (o idioma da amostra do corpus) → diz ESTÁ',
+        `echo "=== é required? ==="; grep -c "Governance Gate" ${B}`, (a) => !!a && a.includes('"Governance Gate": ESTÁ')],
+      ['A1 MORDE: -qF com aspas aninhadas \'"X"\' → nome limpo',
+        `grep -qF '"Governance Gate"' ${B}`, (a) => !!a && a.includes('"Governance Gate": ESTÁ')],
+      ['A1 MORDE: for n in "…"; grep "$n" → avalia cada item da lista',
+        `for n in "Governance Gate" "DS gate"; do grep -qF "$n" ${B}; done`,
+        (a) => !!a && a.includes('"Governance Gate": ESTÁ') && a.includes('"DS gate": NÃO está')],
+      ['A1 MORDE: nome parcial → aponta os contexts que o contêm',
+        `rg -n "Ponto" ${B}`, (a) => !!a && a.includes('"PHP / Pest (Ponto · MySQL)"')],
+      ['A1 ignora: consulta pelo PARSER (a forma certa)',
+        `node -e "console.log(require('./${B}').rulesets.contexts)"`, (a) => a === null],
+      ['A1 ignora: só PROSA dentro de aspas do echo',
+        `echo "rode grep -c X ${B} para ver"`, (a) => a === null],
+      ['A1 ignora: mensagem de commit que cita o comando',
+        `git commit -m "grep -c X ${B} lia nota"`, (a) => a === null],
+      ['A1 ignora: dentro de heredoc aberto',
+        `cat <<'EOF'\ngrep -c X ${B}\nEOF`, (a) => a === null],
+      ['A1 ignora: comando que não toca o baseline',
+        'grep -c "visual-regression" .github/workflows/ci.yml', (a) => a === null],
+    ];
+    for (const [nome, cmd, ok] of A1) {
+      const passou = ok(avisoRequired(cmd, CTX));
+      if (!passou) falhas++;
+      console.log(`  [${passou ? 'PASS' : 'FAIL'}] ${nome}`);
+    }
+    // Sem as listas, o aviso NÃO afirma ausência — diz que não mediu (LC-33).
+    const semLeitura = avisoRequired(`grep -c "X" ${B}`, null);
+    const naoMediu = !!semLeitura && semLeitura.includes('Não consegui ler') && !semLeitura.includes('NÃO está');
+    if (!naoMediu) falhas++;
+    console.log(`  [${naoMediu ? 'PASS' : 'FAIL'}] A1 sem as listas diz "não consegui ler", nunca "NÃO está"`);
+    // O A1 é aviso: nenhum desses comandos pode virar BLOQUEIO.
+    const naoBloqueia = achaPadrao(`grep -c "visual-regression" ${B}`, { jqExiste: false, ehWindows: true }) === null;
+    if (!naoBloqueia) falhas++;
+    console.log(`  [${naoBloqueia ? 'PASS' : 'FAIL'}] A1 não bloqueia (achaPadrao = null)`);
+    // O leitor real devolve as listas do arquivo vivo — checado em FORMA, não em número.
+    const vivo = contextsDoBaseline();
+    const formaOk = Array.isArray(vivo) && vivo.length > 0 && vivo.every((c) => typeof c === 'string');
+    if (!formaOk) falhas++;
+    console.log(`  [${formaOk ? 'PASS' : 'FAIL'}] contextsDoBaseline lê as listas do arquivo (aqui: ${vivo ? vivo.length : 'null'})`);
+
     // O número dos padrões é DERIVADO — escrevê-lo à mão apodrece no próximo par (LC-10).
     console.log(falhas ? `\nSELFTEST FALHOU — ${falhas} caso(s).` : `\nSELFTEST OK — morde os ${PADROES.length} padrões, ignora os controles negativos, e o P5/P6 se desligam onde não fazem sentido.`);
     process.exit(falhas ? 1 : 0);
@@ -901,5 +1067,14 @@ if (ehEntrypoint) {
 
   const p = achaPadrao(cmd);
   if (p) { process.stderr.write(mensagem(p) + '\n'); process.exit(2); }
+
+  // A1 só informa. `stderr` + exit 0 NÃO chega ao agente (§5 2026-09-23), então o aviso
+  // vai em `additionalContext`, sem `permissionDecision` — não mexe na permissão do comando.
+  const aviso = avisoRequired(cmd);
+  if (aviso) {
+    process.stdout.write(JSON.stringify({
+      hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: aviso },
+    }) + '\n');
+  }
   process.exit(0);
 }

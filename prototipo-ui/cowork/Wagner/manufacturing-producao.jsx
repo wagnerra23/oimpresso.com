@@ -355,7 +355,7 @@ function MfgConfig({ settings, setSettings, perms, setPerms }) {
             sublabel="propaga o custo unitário calculado para a ficha do produto." />
         </div>
         <div className="mfg-ed-f mfg-inline">
-          <span className="mfg-crumb-meta">Manufacturing v{SETTINGS.versao}</span>
+          <span className="mfg-crumb-meta">Fabricação v{SETTINGS.versao}</span>
           <span className="sp" />
           <Button variant="primary" disabled={!dirty} onClick={() => setSettings(s)}>Atualizar</Button>
         </div>
