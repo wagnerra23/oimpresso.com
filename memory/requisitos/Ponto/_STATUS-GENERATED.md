@@ -21,7 +21,7 @@ authority: generated
 | Telas (.tsx) | 23 |
 | Telas com `casos.md` | 23 |
 | UC declarados | 103 |
-| UC com teste que os cita | 98 |
+| UC com teste que os cita | 100 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -75,7 +75,7 @@ authority: generated
 | UC-COLIDX-01 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-COLIDX-02 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-COLIDX-03 | Colaboradores/Index | 🧪 aguarda veredito da lane |
-| UC-COLIDX-04 | Colaboradores/Index | 📝 sem_teste |
+| UC-COLIDX-04 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-CONF-01 | Conformidade | 🧪 aguarda veredito da lane |
 | UC-CONF-02 | Conformidade | 🧪 aguarda veredito da lane |
 | UC-CONF-03 | Conformidade | 📝 sem_teste |
@@ -113,7 +113,7 @@ authority: generated
 | UC-IMPSH-03 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-IMPSH-04 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-IMPSH-05 | Importacoes/Show | 🧪 aguarda veredito da lane |
-| UC-IMPSH-06 | Importacoes/Show | 📝 sem_teste |
+| UC-IMPSH-06 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-INTCRE-01 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTCRE-02 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTCRE-03 | Intercorrencias/Create | 🧪 aguarda veredito da lane |

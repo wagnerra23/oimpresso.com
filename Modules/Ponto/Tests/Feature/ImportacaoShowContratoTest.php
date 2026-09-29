@@ -13,7 +13,7 @@ uses(PontoTestCase::class);
  * Contrato do detalhe da importação (`/ponto/importacoes/{id}`) — o caso do ERRO.
  *
  * Cada teste cita o UC no TÍTULO do `it()` (G-2 do casos-gate, ADR 0264):
- *   Importacoes/Show.casos.md → UC-IMPSH-05
+ *   Importacoes/Show.casos.md → UC-IMPSH-05, UC-IMPSH-06
  *
  * ── O UC deriva do CONTRATO, nunca do `.tsx` ─────────────────────────────────────
  * Teste derivado do código é tautológico (proibicoes §5 2026-06-05). As fontes:
@@ -203,4 +203,60 @@ it('UC-IMPSH-05 · a importação que falhou mostra o motivo da falha', function
         . '"Erro no processamento" numa importação que deu certo — o oposto do contrato '
         . '(charter §Goals: o alerta é "quando o processamento falha").'
     );
+});
+
+it('UC-IMPSH-06 · a importação com linhas rejeitadas mostra a amostra de erros (linha, NSR, tipo, mensagem)', function () {
+    $this->actAsAdmin();
+    impShPrecisaDe(['ponto_importacoes']);
+
+    // Forma EXATA que o produtor grava (`AfdParserService`: linha, nsr, tipo, erro — até 20).
+    // A 2ª entrada é o item agregado de PIS não cadastrado: linha e NSR nulos, PIS mascarado.
+    // A chave `interno` NÃO é do contrato: prova que o payload entrega só as 4 chaves.
+    $amostra = [
+        ['linha' => 7, 'nsr' => 6, 'tipo' => '3', 'erro' => 'Data/hora inválida no registro [' . IMPSH_MARCADOR . ']', 'interno' => 'nao-sai'],
+        ['linha' => null, 'nsr' => null, 'tipo' => '3', 'erro' => 'PIS ***.*****.10-9 não cadastrado como Colaborador (3 marcações ignoradas).'],
+    ];
+
+    $comErros = impShCriar($this->business->id, $this->admin->id, [
+        'estado'             => Importacao::ESTADO_CONCLUIDA,
+        'linhas_total'       => 10,
+        'linhas_processadas' => 10,
+        'linhas_sucesso'     => 6,
+        'linhas_erro'        => 4,
+        'erros_amostra'      => $amostra,
+    ]);
+
+    // Pré-condição anti-vácuo (LC-13): a amostra tem de estar GRAVADA.
+    $gravado = json_decode((string) DB::table('ponto_importacoes')->where('id', $comErros->id)->value('erros_amostra'), true);
+    $this->assertCount(2, (array) $gravado, 'A fixture precisa gravar a amostra — senão o caso não exerce nada.');
+
+    $resp = $this->inertiaGet("/ponto/importacoes/{$comErros->id}");
+    $this->assertInertiaComponent($resp, 'Ponto/Importacoes/Show');
+
+    $entregue = $resp->json('props.importacao.erros_amostra');
+    $this->assertIsArray($entregue, 'A amostra de erros tem de chegar à tela (D-IMP-EXTRAS · charter §Goals).');
+    $this->assertCount(2, $entregue, 'As duas ocorrências gravadas têm de chegar à tela.');
+
+    $this->assertSame(
+        ['linha' => 7, 'nsr' => 6, 'tipo' => '3', 'erro' => 'Data/hora inválida no registro [' . IMPSH_MARCADOR . ']'],
+        $entregue[0],
+        'Cada ocorrência chega com linha, NSR, tipo e mensagem — e SÓ isso (a chave extra não sai).'
+    );
+    $this->assertNull($entregue[1]['linha'], 'O item agregado de PIS não tem linha — chega nulo, não 0.');
+    $this->assertStringContainsString('não cadastrado', $entregue[1]['erro']);
+
+    // A amostra não pode virar o alerta de falha: importação CONCLUÍDA com linhas ignoradas
+    // não é importação que falhou (UC-IMPSH-05).
+    $erroMensagem = $resp->json('props.importacao.erro_mensagem');
+    $this->assertTrue($erroMensagem === null || $erroMensagem === '',
+        'Importação concluída com amostra de erros não pode abrir o alerta "Erro no processamento".');
+
+    // Controle: importação sem erro entrega lista VAZIA (array), nunca null — a tela decide pelo
+    // tamanho, e o card não aparece.
+    $limpa = impShCriar($this->business->id, $this->admin->id, [
+        'linhas_total' => 5, 'linhas_processadas' => 5, 'linhas_sucesso' => 5,
+    ]);
+    $respLimpa = $this->inertiaGet("/ponto/importacoes/{$limpa->id}");
+    $this->assertSame([], $respLimpa->json('props.importacao.erros_amostra'),
+        'Importação sem erro entrega amostra vazia — o card "Amostra de erros" não aparece.');
 });
