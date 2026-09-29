@@ -118,18 +118,31 @@ Route::group(
         Route::get('/colaboradores/{id}/editar', 'ColaboradorController@edit')->whereNumber('id')->name('ponto.colaboradores.edit');
         Route::put('/colaboradores/{id}', 'ColaboradorController@update')->name('ponto.colaboradores.update');
 
-        // 9b. REP-P (celular) — a tela do colaborador (thread 06). As ações são os MESMOS
-        // métodos JSON de /ponto/api, aqui sob sessão web: não há CreateFreshApiToken no
-        // app, então uma tela Inertia não alcança auth:api.
-        Route::get('/mobile', [MobileMarcacaoController::class, 'tela'])->name('ponto.mobile');
-        Route::post('/mobile/marcar', [MobileMarcacaoController::class, 'registrar'])->name('ponto.mobile.marcar');
-        Route::get('/mobile/marcacoes/hoje', [MobileMarcacaoController::class, 'marcacoesHoje'])->name('ponto.mobile.marcacoes.hoje');
-        Route::post('/mobile/intercorrencias', [MobileMarcacaoController::class, 'criarIntercorrencia'])->name('ponto.mobile.intercorrencias.store');
-
         // 10. Configurações
         Route::get('/configuracoes', 'ConfiguracaoController@index')->name('ponto.configuracoes.index');
         Route::get('/configuracoes/reps', 'ConfiguracaoController@reps')->name('ponto.configuracoes.reps');
         Route::post('/configuracoes/reps', 'ConfiguracaoController@storeRep')->name('ponto.configuracoes.reps.store');
+    }
+);
+
+// ===========================================================================
+// 1b) REP-P (celular) — a tela do COLABORADOR, fora do `ponto.access` ([W] 2026-09-29:
+//     "colaborador sem ponto.access também acessa /ponto/mobile"). Mesma pilha web do grupo 1,
+//     MENOS o `ponto.access`: quem decide é o controller — sem cadastro de ponto
+//     (business_id + user_id + controla_ponto) a tela fica vazia e as ações dão 403.
+//     As ações são os MESMOS métodos JSON de /ponto/api, sob sessão web: não há
+//     CreateFreshApiToken no app, então uma tela Inertia não alcança auth:api.
+// ===========================================================================
+Route::group(
+    [
+        'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
+        'prefix'     => 'ponto',
+    ],
+    function () {
+        Route::get('/mobile', [MobileMarcacaoController::class, 'tela'])->name('ponto.mobile');
+        Route::post('/mobile/marcar', [MobileMarcacaoController::class, 'registrar'])->name('ponto.mobile.marcar');
+        Route::get('/mobile/marcacoes/hoje', [MobileMarcacaoController::class, 'marcacoesHoje'])->name('ponto.mobile.marcacoes.hoje');
+        Route::post('/mobile/intercorrencias', [MobileMarcacaoController::class, 'criarIntercorrencia'])->name('ponto.mobile.intercorrencias.store');
     }
 );
 

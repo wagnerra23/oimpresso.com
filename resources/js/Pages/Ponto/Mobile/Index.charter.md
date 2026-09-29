@@ -10,7 +10,7 @@ runbook: memory/requisitos/Ponto/RUNBOOK-mobile.md
 alcance:
   rota: /ponto/mobile
   rota_nome: ponto.mobile        # name() da rota — é o que o guard procura
-  permission: ponto.access      # grupo web do Ponto (CheckPontoAccess)
+  permission: n/a (colaborador com cadastro de ponto, sem ponto.access — [W] 2026-09-29; o controller decide)
   menu_hook: Modules/Ponto/Http/Controllers/DataController.php::modifyAdminMenu  # ghost `mobile` = aba "REP-P (celular)"
   pacote: ponto_module              # superadmin_package
 tier: B
@@ -44,6 +44,7 @@ mesma imutabilidade do relógio do balcão (Portaria MTP 671/2021 reconhece o RE
 - ❌ **Selfie, foto ou qualquer biometria** — [W] 2026-08-27, ADR 0383 (LGPD Art. 5º II + Art. 11).
 - ❌ **"Bater mesmo assim" com GPS fraco** — [W] W5: sinal ruim é recusa, o botão fica desabilitado.
 - ❌ Gerar ou exibir NSR calculado no cliente — só o que o servidor devolveu.
+- ❌ Exigir `ponto.access` do colaborador — [W] 2026-09-29: a rota fica fora do grupo do módulo; o cabeçalho de abas só aparece pra quem tem o módulo.
 - ❌ Fila do gestor nesta tela — é filtro na tela viva de Aprovações (thread 06, passo 3).
 
 ## UX Targets

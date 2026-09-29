@@ -33,6 +33,8 @@ interface Props {
   totais?: TotaisEspelho | null; // Inertia::defer
   linhas?: LinhaEspelho[]; // Inertia::defer
   tipos: Array<{ value: string; label: string }>;
+  /** `ponto.access` (ou papel admin/rh/gestor): mostra o cabeçalho do módulo. */
+  pode_ver_modulo: boolean;
   limites: { accuracy_max: number; drift_max: number };
 }
 
@@ -191,14 +193,14 @@ function BaterPonto({ marcacoesIniciais, limites }: { marcacoesIniciais: Marcaca
   );
 }
 
-export default function Mobile({ colaborador, marcacoes_hoje, hoje, mes, totais, linhas, tipos, limites }: Props) {
+export default function Mobile({ colaborador, marcacoes_hoje, hoje, mes, totais, linhas, tipos, limites, pode_ver_modulo }: Props) {
   const [tela, setTela] = useState<string>('bater');
   const titulo = TELAS.find((t) => t.value === tela)?.titulo ?? 'Ponto';
 
   return (
     <AppShellV2 title="REP-P (celular) · Ponto WR2" breadcrumbItems={[{ label: 'Ponto WR2' }, { label: 'REP-P (celular)' }]}>
       <Stack gap={4}>
-        <PontoAreaHeader active="mobile" />
+        {pode_ver_modulo && <PontoAreaHeader active="mobile" />}
 
         <Alert role="note" className="border-info/25 bg-info/5" data-contract="repp-nota-regras">
           <Info aria-hidden />
