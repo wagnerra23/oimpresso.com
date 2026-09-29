@@ -5,7 +5,7 @@ autor: "[CL]"
 criado: 2026-09-29
 base: bfef050db
 thread: 06-rep-p.md
-veredito: "os 4 passos em PRs empilhados (#8130 → #8131 → #8156 → #8157 → #8158 → #8159); o passo 3 parou pelo PARAR SE (c) e foi destravado por [W] no mesmo dia (seção nova em Aprovações); lane ponto-pest vermelha no 1º run por ambiente (chave OAuth), conserto já empurrado — veredito final pendente."
+veredito: "os 4 passos em PRs empilhados (#8130 → #8131 → #8156 → #8157 → #8158 → #8159); o passo 3 parou pelo PARAR SE (c) e foi destravado por [W] no mesmo dia (seção nova em Aprovações); lane ponto-pest vermelha no 1º run por ambiente (chave OAuth), consertada; verde no #8156 (mergeado) e no #8157, sem run ainda no #8158 e no #8159."
 ---
 
 # _saída 06 · REP-P sem selfie
@@ -38,7 +38,7 @@ Ordem de merge: #8130 (1a+1b, **mergeado** em `main` 2026-09-29) → #8156 → #
 | `${PAGES}/Mobile/Index.tsx` | ✓ no #8156 |
 | `ponto-rep-p.contract.json` com `alvo` + `secoes` | ✓ — `contrato-de-tela --contract` limpo |
 | controller **sem** `selfie` | ✓ — só a palavra "biometria" no docblock que registra a decisão |
-| lane `ponto-pest.yml` verde (GUARD incluído) | ⏳ **pendente** — ver abaixo |
+| lane `ponto-pest.yml` verde (GUARD incluído) | ✓ no #8156 (mergeado em `main` 2026-09-29; run `36588180385`: 413 passed · 1 skipped · 1492 assertions) e no #8157 (run `36590316626`: 416 passed · 1 skipped · 1507 assertions) · ⏳ #8158 e #8159 sem run da lane no head atual (medido 2026-09-29) |
 
 ## Lane ponto-pest — o que foi medido
 
@@ -48,6 +48,9 @@ novo do `Wave28MobileMarcacaoTest`, **todas** por `LogicException: Invalid key s
 request e a lane não tinha chave OAuth. Ambiente, não comportamento. Conserto (`passport:keys` na
 pré-condição, idioma do `DesktopAuthTest`) empurrado no #8130 e propagado por merge. O veredito
 verde **ainda não existe** — os status dos UC-REPP estão ⬜ até lá.
+
+_Atualização 2026-09-29:_ o conserto pegou. A lane passou no #8156 (run `36588180385`, 413 passed) e no
+#8157 (run `36590316626`, 416 passed); o #8158 e o #8159 ainda não têm run da lane no head atual.
 
 ## Passo 3 — parou pelo PARAR SE (c), destravado por [W] no mesmo dia
 
@@ -66,8 +69,10 @@ GPS e nome do local não são gravados — a seção mostra "—" e as coordenad
    (#8160: `NsrService::proximoRepP`, lock na linha do colaborador, legado `microtime` fora do max).
    Hash: ✓ decidido por [W] 2026-09-29, **encadeado por colaborador** (PR empilhado no #8160,
    com `verificarIntegridadeRepP`). Anulação: ✓ decidido por [W] 2026-09-29, **entra na sequência e na cadeia** (#8165).
-2. **Alcance** — `/ponto/mobile` está no grupo web do Ponto (`ponto.access`). Colaborador de chão sem
-   essa permissão não chega na tela; liberar é dado de runtime em `/roles/{id}/edit`.
+2. **Alcance** — ✓ decidido por [W] 2026-09-29: colaborador **sem** `ponto.access` também acessa
+   `/ponto/mobile` — a rota saiu do grupo do `ponto.access` e a tela abre sem o cabeçalho do módulo
+   (UC-REPP-08, #8156). E o menu ganha o item "Bater ponto" para quem tem cadastro de ponto ativo no
+   empregador da sessão (UC-REPP-09, #8156).
 3. **KPIs da API** (`/ponto/api/dashboard/kpis`) são do colaborador, não do empregador — escolha de
    segurança minha, a revisar.
 4. **Não feito:** comparação **medida** tela × protótipo (`comparar-design-prod`) — exige a tela
