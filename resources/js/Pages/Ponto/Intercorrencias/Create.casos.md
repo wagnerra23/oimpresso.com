@@ -27,18 +27,13 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-INTCRE-01 | Registrar uma intercorrência cria o rascunho | must | `CU-PONTO-05` + US-PONTO-003 | `IntercorrenciaContratoTest` | ✅ verde na lane (predição de vermelho caducou) |
 | UC-INTCRE-02 | A lista de colaboradores traz só os do meu empregador | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `IntercorrenciaContratoTest` | ✅ verde na lane |
 | UC-INTCRE-03 | A tela não promete enviar ao RH ao salvar | should | charter Anti-hooks + US-PONTO-003 | `IntercorrenciaContratoTest` | 🧪 sem veredito |
+| UC-INTCRE-04 | O comprovante anexado vai para disco privado, só quem aprova baixa, e nada dele vai a log | must `[T0]` | `D-INTERC-ANEXO` ([W] 2026-09-14) + charter Non-Goals + LGPD Art. 11 + ADR 0093 | `IntercorrenciaContratoTest` | 🧪 sem veredito |
 
 **[BACKLOG]:**
 
-- `[BACKLOG]` **Anexar comprovante a uma intercorrência** (`D-INTERC-ANEXO`, [W] 2026-09-14, ata
-  bloco 4 linha 43; emenda E4 da thread 27). Aceite proposto: dado um atestado em PDF/JPG/PNG,
-  quando o solicitante anexa ao rascunho, então o arquivo vai para disco **privado** e fica
-  vinculado à intercorrência; só quem tem permissão de aprovação consegue baixá-lo; nenhum caminho
-  ou URL do arquivo aparece em log (atestado é dado de saúde, LGPD Art. 11). **Não é UC ainda:** em
-  2026-09-28 o `Create.tsx` não tem campo de arquivo (só a coluna `anexo_path` existe, desde a
-  migration de 2026-04-18). Um teste agora seria vermelho por construção. Vira UC (próximo id
-  `UC-INTCRE-04`; a thread o chamou de `UC-PONT-INT-07`) no PR que construir o anexo, junto do
-  teste que o cita.
+- ~~`[BACKLOG]` Anexar comprovante a uma intercorrência~~ — **RESOLVIDO 2026-09-29**, virou
+  `UC-INTCRE-04`, com teste. O campo de arquivo entrou no `Create.tsx` e o download, no detalhe.
+  Anexar a uma intercorrência **já criada** (no `Edit`) segue fora — o `update` ignora o arquivo.
 - `[BACKLOG]` A classificação por IA (`POST /ponto/intercorrencias-ai/classify`) **sugere, nunca
   decide** — o estado só muda por ação humana (SDD §5.3 F4). Vira UC quando houver um contrato
   escrito sobre o que a sugestão pode e não pode fazer; hoje afirmar isso em teste seria derivar
@@ -131,9 +126,50 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   acusa a versão antiga e aceita a nova.
 - **Status: 🧪 sem veredito.**
 
+---
+
+## UC-INTCRE-04 · O comprovante anexado vai para disco privado, só quem aprova baixa, e nada dele vai a log · `must` `[T0]`
+
+- **Persona:** RH lançando o atestado que o colaborador entregou; depois, o aprovador que precisa ver
+  a prova antes de abonar o dia. [W]: *"Atestado sem anexo é intercorrência sem prova."*
+- **Aceite:** Dado um atestado em PDF/JPG/PNG · Quando o anexo ao registrar a intercorrência · Então
+  o arquivo fica gravado em disco **fora do webroot**, sob o meu empregador, com nome aleatório, e
+  vinculado à intercorrência; **quem aprova** baixa o arquivo íntegro; quem só acessa o Ponto vê que
+  há comprovante mas recebe **403** ao tentar baixar; o comprovante de intercorrência de **outro**
+  empregador responde **404**; e nem o caminho nem o nome do arquivo aparecem em log.
+- **Teste:** `Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php` — os dois `UC-INTCRE-04`
+  (fluxo completo · outro empregador).
+- **Contrato:** `D-INTERC-ANEXO` ([W] 2026-09-14, ATA bloco 4 linha 43: *"Trata como PII desde o
+  primeiro commit"*) · charter Non-Goals (*"O anexo NÃO é público e NÃO entra em log"*) · LGPD Art. 11
+  (dado de saúde) · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) ·
+  `CU-PONTO-12` (404, não 403, para id alheio).
+- **Regressão que defende — e as armadilhas medidas:**
+  - **O disco `local` deste app é público:** `config/filesystems.php` aponta `local` para
+    `public_path('uploads')`, servido pelo webserver. `Storage::put` sem disco, ou com `local`,
+    publicaria o atestado por URL, sem login. O caso lê a raiz do disco configurado **antes** do
+    `Storage::fake` e exige que ela esteja fora do `public_path()`. Default: `arquivos`
+    (`storage/app/arquivos`), configurável em `pontowr2.intercorrencias.anexo_disk`.
+  - **403 que parece permissão mas é middleware** (§5 2026-09-27): o usuário sem aprovação **abre o
+    detalhe** (200) antes de tentar baixar — prova que o 403 vem da regra do comprovante.
+  - **404 que parece isolamento mas é arquivo ausente:** no caso de outro empregador o arquivo existe
+    e está vinculado; o admin tem a permissão de aprovação. Sobra só o isolamento.
+  - **"Nada em log" por vácuo:** o caso exige que o registro emita log antes de afirmar que o
+    caminho não aparece nele.
+- **Decisão de técnica, registrada:** o comprovante **não** usa o backbone `Modules/Arquivos`
+  (`HasArquivos`). Medido: o `ArquivosService::attach()` devolve o `Arquivo` **já existente** quando
+  o MD5 repete no mesmo empregador (`dedupe()`), sem vinculá-lo ao novo dono — e o mesmo atestado
+  cobrindo vários dias é caso comum. Usa a coluna `anexo_path`, que existe desde a migration de
+  2026-04-18 para isso.
+- **O que este caso NÃO cobre:** criptografia em repouso (o disco `arquivos` não cifra; o `vault` do
+  `Modules/Arquivos` cifra) e anexar pelo `Edit`.
+- **Status: 🧪 sem veredito.**
+
 ## Trilha do tempo
 - 2026-09-28 · [CL] revalidado (bump `last_run`, thread 27): o #8076 mudou a copy do `Create.tsx`
   (tira a promessa de envio ao RH) e ampliou estes casos sem subir o `last_run`. Conferido contra o
   `Create.tsx` do `main`: 0 ocorrências de "submetido ao RH" e 1 de "Salvar cria um rascunho", que é
   o que o `UC-INTCRE-03` lê. Nesta data entra o `[BACKLOG]` do anexo (`D-INTERC-ANEXO`). O bump
   afirma "trio reconciliado com a tela nesta data", não "testes rodados na lane".
+- 2026-09-29 · [CL] o anexo de comprovante foi construído e virou `UC-INTCRE-04` (campo no `Create`,
+  download no `Show` só para quem aprova, rota `GET /ponto/intercorrencias/{id}/anexo`). O veredito
+  vem da lane, não desta linha.
