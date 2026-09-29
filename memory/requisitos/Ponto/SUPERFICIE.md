@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 213 arquivos em 18 papéis.
+**Total mapeado:** 215 arquivos em 18 papéis.
 
 ## Controllers — 15
 
@@ -207,13 +207,13 @@ module: Ponto
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Relatorios/Index.casos.md)
 - [Welcome.casos.md](../../../resources/js/Pages/Ponto/Welcome.casos.md)
 
-## Testes (Pest) — 55
+## Testes (Pest) — 56
 
-- 53 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
+- 54 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
 - 2 em [Modules/Ponto/Tests/Unit/](../../../Modules/Ponto/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 15
+## Demais arquivos (manifestos, docs, assets e misc) — 16
 
 - [.gitignore](../../../Modules/Ponto/.gitignore)
 - [test_write.tmp](../../../Modules/Ponto/Database/Migrations/test_write.tmp)
@@ -223,6 +223,7 @@ module: Ponto
 - [IntercorrenciaFactory.php](../../../Modules/Ponto/Database/factories/IntercorrenciaFactory.php)
 - [MarcacaoFactory.php](../../../Modules/Ponto/Database/factories/MarcacaoFactory.php)
 - [routes.php](../../../Modules/Ponto/Http/routes.php)
+- [ponto.php](../../../Modules/Ponto/Resources/lang/en/ponto.php)
 - [ponto.php](../../../Modules/Ponto/Resources/lang/pt-BR/ponto.php)
 - [ponto.php](../../../Modules/Ponto/Resources/lang/pt/ponto.php)
 - [topnav.php](../../../Modules/Ponto/Resources/menus/topnav.php)
