@@ -189,7 +189,10 @@ class DataController extends Controller
                         ],
                         'ghosts'  => $ghosts,
                     ]
-                )->order(86); // 1º do grupo RH, antes do HRM (87) e do Essenciais (88) — protótipo
+                )->order(86);
+                // ⚠️ O `order` NÃO decide a posição na sidebar: o LegacyMenuAdapter lê `getItems()`
+                // (ordem de registro), medido em prod 2026-09-29. A posição (1º do grupo RH, como no
+                // protótipo) vem de `SIDEBAR_GROUPS[].ordem` no Sidebar.tsx.
             }
         );
     }
