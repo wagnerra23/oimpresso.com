@@ -55,7 +55,7 @@ contada dos métodos públicos de `EscalaController`: `index`, `create`, `store`
 ⚠️ **Não exercitei a rota** — não afirmo qual o código de resposta; afirmo que o par
 rota-declarada/método-ausente existe.
 > **Resolvido 2026-09-29:** medido, o `GET /ponto/escalas/{id}` dava **500**. O resource virou
-> `except('show')` e o GET passa a dar 404 — contrato `UC-ESCIDX-07` em `Escalas/Index.casos.md`.
+> `except('show')` e o GET passa a dar 405 (a URI segue viva para `PUT`/`DELETE`) — contrato `UC-ESCIDX-07` em `Escalas/Index.casos.md`.
 
 **(b) `store()` e `update()` validam DIFERENTE.** O `update` usa `StoreEscalaRequest`; o `store`
 mantém validação inline mais frouxa (`carga_semanal_minutos` aceita `0`, enquanto o FormRequest

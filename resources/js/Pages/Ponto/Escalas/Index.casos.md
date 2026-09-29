@@ -28,13 +28,14 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-ESCIDX-04 | O servidor recusa remover escala em uso — o botão é conveniência, a rota é pública | must | `D-ESC-DESTROY` + CLT Art. 58/59 (jornada esperada) | `EscalaRemocaoContratoTest` | 🧪 teste cita o UC, sem veredito |
 | UC-ESCIDX-05 | Remover confirma no diálogo do DS e, confirmado, remove de fato | must | `D-ESC-DESTROY` ([W] 2026-09-14, R3) | `ponto-escalas-remover-vinculo.test.tsx` | 🧪 teste cita o UC, sem veredito |
 | UC-ESCIDX-06 | A linha mostra o horário do 1º turno da própria escala, ou que ela não tem turno | should | protótipo `ponto-telas.jsx` (`Escalas`, sub-linha do Nome) + UI-0029 + charter §Goals | `EscalaIndexContratoTest` + `ponto-escalas-index-forma.test.tsx` | 🧪 teste cita o UC, sem veredito |
-| UC-ESCIDX-07 | `GET /ponto/escalas/{id}` não promete tela que não existe — 404, nunca 500 | must | `CU-PONTO-14` ("o catálogo não promete o que não entrega") + `RUNBOOK-escalas` §2(a) | `EscalaIndexContratoTest` | 🧪 teste cita o UC, sem veredito |
+| UC-ESCIDX-07 | `GET /ponto/escalas/{id}` não promete tela que não existe — 405, nunca 500 | must | `CU-PONTO-14` ("o catálogo não promete o que não entrega") + `RUNBOOK-escalas` §2(a) | `EscalaIndexContratoTest` | 🧪 teste cita o UC, sem veredito |
 
 **[BACKLOG]** (pergunta aberta ao [W], ou contrato numa fonte só — não vira UC sem teste):
 
 - ~~`[BACKLOG]` O `Route::resource` de escalas registra `show`, mas `EscalaController` não tem
   método `show`~~ — **RESOLVIDO 2026-09-29**, virou `UC-ESCIDX-07`: o resource passou a ser
-  `except('show')`. Medido antes do conserto: `GET /ponto/escalas/{id}` dava 500 com id numérico
+  `except('show')` e o GET passa a dar **405** (não 404: `PUT`/`DELETE` seguem na mesma URI).
+  Medido antes do conserto: `GET /ponto/escalas/{id}` dava 500 com id numérico
   (rota registrada sem handler). Das duas saídas deste bullet, `except` e não implementar o `show`:
   não há tela de detalhe no protótipo nem no charter, e a lista leva a `create`/`edit` — criar o
   `show` seria desenhar tela sem fonte. Nome de rota `ponto.escalas.show`: zero consumidores no
@@ -167,19 +168,20 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 
 ---
 
-## UC-ESCIDX-07 · `GET /ponto/escalas/{id}` não promete tela que não existe — 404, nunca 500 · `must`
+## UC-ESCIDX-07 · `GET /ponto/escalas/{id}` não promete tela que não existe — 405, nunca 500 · `must`
 
 - **Persona:** quem chega por URL — link colado, histórico do navegador, um `/escalas/12` digitado
   por analogia com as outras telas. Não existe tela de detalhe de escala; o que não pode acontecer
   é a página "Server Error", que parece defeito do sistema e não "esta página não existe".
 - **Aceite:** Dada uma escala **real** do meu empregador · Quando abro `GET /ponto/escalas/{id}` ·
-  Então recebo **404** — nunca 500. E a mesma escala segue editável em `/ponto/escalas/{id}/edit` (200).
+  Então recebo **405** (a URI segue viva para `PUT`/`DELETE`, então GET nela é *método não
+  permitido*) — nunca 500. E a mesma escala segue editável em `/ponto/escalas/{id}/edit` (200).
 - **Teste:** `EscalaIndexContratoTest.php` — `UC-ESCIDX-07`.
 - **Contrato:** `CU-PONTO-14` (*"o catálogo não promete o que não entrega"*) aplicado ao router +
   [`RUNBOOK-escalas.md`](../../../../../memory/requisitos/Ponto/RUNBOOK-escalas.md) §2(a), que já
   registrava o par rota-declarada/método-ausente.
-- **Regressão que defende:** a escala usada no caso **existe** — então o 404 não é "registro não
-  achado", é a rota que não existe. Se o `show` voltar ao resource sem método no controller, o GET
+- **Regressão que defende:** a escala usada no caso **existe** — então a recusa não é "registro
+  não achado", é a rota que não aceita GET. Se o `show` voltar ao resource sem método no controller, o GET
   cai em 500 e o caso reprova; o `/edit` = 200 prova que o `except` tirou só o show.
 - **Status: 🧪 teste cita o UC, sem veredito de lane.**
 
