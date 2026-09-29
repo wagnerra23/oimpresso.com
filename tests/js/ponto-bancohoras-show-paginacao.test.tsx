@@ -148,7 +148,9 @@ describe('coluna "Registrado" mostra data-hora ABSOLUTA, não "há X"', () => {
 });
 
 describe('badge de tipo é NEUTRO para todo tipo, como o protótipo (ponto-telas.jsx:387)', () => {
-  it('CREDITO, DEBITO, AJUSTE, EXPIRACAO e PAGAMENTO saem com o mesmo estilo neutro e mono', () => {
+  // Medido no RENDER do protótipo (2026-09-29): pílula preenchida, sem borda, 11,5px/500, fonte
+  // normal (não mono). A 1ª versão deste caso exigia outline + mono — leitura do CSS, não do render.
+  it('CREDITO, DEBITO, AJUSTE, EXPIRACAO e PAGAMENTO saem com a mesma pílula neutra preenchida', () => {
     const tipos = ['CREDITO', 'DEBITO', 'AJUSTE', 'EXPIRACAO', 'PAGAMENTO'];
     const movs = {
       ...pagina(1, 1),
@@ -158,8 +160,9 @@ describe('badge de tipo é NEUTRO para todo tipo, como o protótipo (ponto-telas
 
     const badges = tipos.map((t) => screen.getByText(t));
     for (const b of badges) {
-      expect(b.getAttribute('data-variant')).toBe('outline');
-      expect(b.className).toContain('font-mono');
+      expect(b.getAttribute('data-variant')).toBe('secondary');
+      expect(b.className).toContain('rounded-full');
+      expect(b.className).not.toContain('font-mono');
     }
   });
 });
