@@ -24,7 +24,9 @@ class AddMotivoAnulacaoToPontoMarcacoes extends Migration
         }
 
         Schema::table('ponto_marcacoes', function (Blueprint $table) {
-            $table->text('motivo_anulacao')->nullable()->after('marcacao_anulada_id')
+            // Sem ->after(): coluna no FIM permite ALGORITHM=INSTANT (MySQL 8 / MariaDB 10.3+) —
+            // a tabela cresce todo dia e a migration roda no deploy, sem janela de manutenção.
+            $table->text('motivo_anulacao')->nullable()
                 ->comment('Motivo em texto — só em origem=ANULACAO, gravado no INSERT');
         });
     }
