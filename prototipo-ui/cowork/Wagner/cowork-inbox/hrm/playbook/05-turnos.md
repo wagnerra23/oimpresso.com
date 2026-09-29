@@ -9,6 +9,9 @@ depende: thread 09 (ADR 0014 emendada — Shift = horário contratual, Ponto don
 ---
 # 05 · Turnos
 
+> ## ⛔ CANCELADA — D4 [W] 2026-09-29
+> O dono da escala é o Ponto (`escala_atual_id` → `ponto_escalas`; o Ponto não lê `Shift`). **Não executar.** A saída do `/shift` do HRM é a thread **12** (`12-dono-por-papel.md`). O texto abaixo fica só como histórico.
+
 ## Por que esta thread continua existindo depois de D1
 D1 tira a **presença** do HRM, não o **turno**: a ADR 0014 (`memory/decisions/0014-essentials-pontowr2-integracao.md`, arquivada) desenha Shift como fonte do horário contratual que o Ponto lê. Enquanto a 0014 não for emendada/supersedida (thread 09), esta Page nasce **sem** nenhum campo de marcação — só cadastro e atribuição.
 

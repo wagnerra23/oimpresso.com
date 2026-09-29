@@ -3,6 +3,24 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-09-29T16:58:04Z
+tree: 38921d4f1027
+branch: main
+
+### Updated in this project
+- **HRM × Ponto por dono ([W] ratificou D4/D5 2026-09-29):** aba/ghost Turnos sai do HRM; `hrm-turnos` vira aviso → `pt-escalas` (FK real `escala_atual_id` → `ponto_escalas`). View morta `hrm-presenca` removida · "Ponto WR2" → "Ponto" · copy de Feriados sem prometer integração inexistente (Ponto não lê `EssentialsHoliday`) (`hrm-page.jsx?v=hrm12dono`, `data.jsx?v=sb23`).
+- **Ponto `00-INDICE.md` rev. 29/09:** W10 aplicada (`_DECISOES-W-2026-09-29`) · placar medido `entregue 22 de 29 · próximo 07/12/14/27/28 · pendente 13/15` · **§2-ter novo: dimensionamento por tamanho de tela** (P/M/G pelo `.tsx` vivo; ALVO em lotes L1–L6; 20 telas = 31 PRs, antes 17 = 35; +Fechamento/Conformidade/Mobile que faltavam; 13→2 PRs, 15→3) · W11 **respondida: servidor** (`shared/DataTable.tsx`). **Thread 28 feita, 1:1 com `Modules/Ponto/Http/routes.php`** (regra `pt-` + caminho com `/`→`-`): intercorrencias `{uuid}` · `create` · `{uuid}-edit` · importacoes `{id}` · `novo` · escalas `create` · `{id}-edit` · banco-horas `{colaborador}` · colaboradores `{id}-editar` · configuracoes `reps`; drawer removido; id inexistente = "não encontrado" (`ponto-page.jsx?v=pt29rotareal`, `ponto-telas.jsx?v=pt32rotareal`). `_saida-06.md` está só aqui — desce no pacote.
+- **Decisões 29/09 (decide-for-me → recomendação [CC]):** W14 = D-KPI-LABEL (11px/600 caixa-alta, ADR 0110) · W15 (sem rejeitar em lote; 15 = 2 PRs) · W8 (remover /react) · D-GARANTIAS (filtro em Bens) · D-GHOST (remover) · D-FORN (Non-Goal) · D-GATE (restringir) · RESIDUO-5 (sem alerta no rail) · D-FIN-IA-CONTEUDO (vale produção) · D-RECEPCAO-FALHA (CI falha). **Já decididas antes, só registradas:** W9 = 13 abas (ADR 0418, 28/09) · W11 (ADR 0418) · D-FIN-DW-TEMA (25/09).
+- **Vendas — playbook novo** (`cowork-inbox/venda-menu/playbook/`: `00-INDICE.md` · `01-telas-legadas.md` · `_SESSAO-FRIA.md`), absorve o `PEDIDO-CL-venda-menu` de 22/08 (0 dos 7 PRs saiu, medido). 9 telas 🔵 vivas (thread 00 PUXAR [CC]) · ALVO em 2 lotes · 7 telas Blade → Page (01–07) com rota real conferida em `routes/web.php` · D1–D3 abertas.
+- **Financeiro · aba IA puxada do vivo** (D-FIN-IA-CONTEUDO): "Anomalia de valor" (≥25%, estado "Sem desvio detectado") + "Histórico com a contraparte" (média · total · no prazo · atrasados · categoria · 5 recentes) (`financeiro-ai.jsx?v=fai-vivo1`). **Patrimônio thread 12 reescrita:** Garantias = recorte "Garantia crítica" em Bens no servidor (o build já tinha o recorte).
+- **Governança G-NOTAS (pedido de 24/09) aplicado no build:** vista "Notas dos módulos" saiu (`governance-page.jsx?v=gov4sem-notas`, ghost fora do `data.jsx?v=sb24`, `gov-notas` → painel em `app.jsx?v=eb29-gn`); thread 07 da Governança emitida para contrato/charter/casos.
+- **Financeiro · DRE:** threads **09** (ALVO `financeiro--dre--index`) e **10** (coluna Conta em mono, 1 arquivo) emitidas no playbook do Financeiro (`09-dre-conta-mono.md`).
+- **Painel HRM puxado do vivo** (`Painel.tsx` lido inteiro): KPI "Presença de hoje — / a jornada é do Ponto" · fila "Marcações e jornada" sem contagem · "Minhas metas" só com as faixas gravadas (sem vendido/faixa atingida) · sem card "Presença de hoje" · sem KPI "Folha 08/2026" e sem "Custo de folha por setor" (R$ sem motor) (`hrm-page.jsx?v=hrm14painel`).
+- **Metas puxada do vivo** (`Metas.tsx` #6869, lido inteiro): sem apuração/comissão R$ — colunas Colaborador · Faixas · Meta inicial · Meta final · Comissão % · Situação; Nota "cadastra, não apura"; aviso de sobreposição corrigido (servidor recusa) (`hrm-extras.jsx?v=hrm13metas`). RESÍDUO-4/5 fechados no índice.
+- **Playbook HRM rev.3:** thread 05 cancelada · thread **12** nova (`12-dono-por-papel.md`: emenda 0014 + `/shift` 301 + 2 pedidos ao Ponto) · RESÍDUO-2/3 fechados · `_SESSAO-FRIA` atualizada.
+- **Build puxado do vivo (thread 09 de 24/09):** `hrm-extras.jsx?v=hrm12dono` sem `Presenca`/`Turnos` (−299 linhas mortas) · Configurações sem as 4 tolerâncias + `is_location_required` (aposentadas em `EssentialsSettingsController.php:25`) · Folha: "Horas apuradas — vêm do Ponto" no lugar de "presença web".
+
+## Sync anterior (2026-09-28 18:35)
 date: 2026-09-28T18:35:29Z
 tree: 9672c5c828c6
 branch: main

@@ -5,7 +5,7 @@
 ## Prompt de abertura — cole no chip novo, trocando só o NN
 
 ```
-/onda hrm --thread 02
+/onda hrm --thread 12
 ```
 > O diretório é **`hrm`** (literal). Não use o nome do módulo (`Hrm`): o `/onda` só passa o argumento pra minúsculo.
 
@@ -25,14 +25,15 @@ Leia só isto, nesta ordem:
 | **01** | Build: TABS do HRM (−Presença · +Departamentos/Cargos) | CC | `01-build-tabs-hrm.md` | — | tem _saida |
 | **02** | Licenças — Page | CL | `02-licencas.md` | — | — |
 | **03** | Tipos de licença — Page | CL | `03-tipos-licenca.md` | — | — |
-| **04** | Metas — PUXAR (produção à frente, #6869) | CC | `04-metas-venda.md` | decisão RESIDUO-5 | — |
-| **05** | Turnos — Page | CL | `05-turnos.md` | thread 09 · decisão RESIDUO-3 | — |
+| **04** | Metas — PUXAR (produção à frente, #6869) | CC | `04-metas-venda.md` | — | tem _saida |
+| **05** | ~~Turnos — Page~~ | — | `05-turnos.md` | — | CANCELADA (D4) |
 | **06** | Painel — Page | CL | `06-painel.md` | thread 09 | — |
 | **07** | Configurações — PUXAR (12 campos × 10 chaves) | CC->CL | `07-configuracoes-puxar.md` | — | — |
 | **08** | Feriados — PUXAR (ler Holidays/Index.tsx) | CC | `08-feriados-puxar.md` | — | — |
 | **09** | Presença SAI do HRM → Ponto dono da jornada | W+CL | `09-presenca-sai.md` | — | — |
 | **10** | Folha — BLOQUEADA (D2 → projeto com ADR própria) | W | `10-folha-bloqueada.md` | — | BLOQUEADA |
-| **11** | Fim do topnav Blade + limpeza O8 | CL | `11-topnav-legado.md` | thread 02 · thread 03 · thread 05 · thread 06 | — |
+| **11** | Fim do topnav Blade + limpeza O8 | CL | `11-topnav-legado.md` | thread 02 · thread 03 · thread 06 · thread 12 | — |
+| **12** | Dono por papel — emenda 0014 (D4 · D5) + 2 pedidos ao Ponto | CL | `12-dono-por-papel.md` | thread 09 · D4 · D5 | — |
 
 > "Estado escrito" é só o que dá pra ver em disco (`_saida` / `bloqueio`). O estado real é **derivado** pelo `placar`; na dúvida, ele vence.
 > Dono **W** = decisão/merge do Wagner, não abre chip de [CL]. Dono **CC** = volta pro Cowork.

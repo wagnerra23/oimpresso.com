@@ -209,18 +209,67 @@ Lançamento atual: ${_fmt(row.amount)} · vence ${row.due.toLocaleDateString("pt
   // ─────────────────────────────────────────────────────────────
   // 3) PANEL — usado no Drawer
   // ─────────────────────────────────────────────────────────────
+  // D-FIN-IA-CONTEUDO ([W] 2026-09-29): a aba IA segue PRODUÇÃO — Unificado/Index.tsx:2704-2724:
+  // "Anomalia de valor" (FinAnomalyDetector: ≥25% vs média, histórico ≥3, severidade 50/100%) +
+  // "Histórico com a contraparte" (FinPartyHistory: média · total · no prazo · atrasados · categoria · 5 recentes).
+  // Pure compute, sem LLM. O "Perguntar à IA" + 4 números do protótipo saiu daqui.
+  function finAiAnomaliaVivo(row) {
+    const h = window.finAiPartyHistory(row.party, row);
+    if (!h.isRecurrent || !h.avg) return null;
+    const diff = row.amount - h.avg, pct = diff / h.avg * 100, abs = Math.abs(pct);
+    if (abs < 25) return null;
+    return { kind: diff > 0 ? "high" : "low", avg: h.avg, severity: abs >= 100 ? "high" : abs >= 50 ? "medium" : "low",
+      desc: diff > 0 ? pct.toFixed(0) + "% acima da média histórica" : abs.toFixed(0) + "% abaixo da média histórica" };
+  }
   function FinAiPanel({ row }) {
+    const an = useMemo(() => finAiAnomaliaVivo(row), [row.id, row.amount]);
+    const h = useMemo(() => window.finAiPartyHistory(row.party, row), [row.party, row.id]);
+    const recent = useMemo(() => (window.FIN_ROWS || []).filter((r) => r.party === row.party && r.id !== row.id)
+      .sort((x, y) => ((y.paid_at || y.due) - (x.paid_at || x.due))).slice(0, 5), [row.party, row.id]);
     return (
       <section className="fin-ai-panel">
-        <div className="vd-ai-banner">
-          <span className="vd-ai-banner-ic">✦</span>
-          <div>
-            <b>IA copiloto</b>
-            <small>Anomalia · relacionamento com contraparte · resumo executivo. IA propõe, Eliana decide.</small>
-          </div>
-        </div>
-        <h3>Contraparte · {row.party}</h3>
-        <FinAiPartyContext row={row}/>
+        <h3>Anomalia de valor</h3>
+        {an
+          ? <div className={"fin-ai-anomalia fin-ai-anomalia-" + an.kind} data-severity={an.severity}>
+              <span className="fin-ai-anomalia-ic" aria-hidden="true">{an.kind === "high" ? "⚠" : "◇"}</span>
+              <div className="fin-ai-anomalia-body">
+                <b>Valor fora do padrão</b>
+                <small>{an.desc}</small>
+                <small>Média histórica · {_fmt(an.avg)} · vs atual {_fmt(row.amount)}</small>
+              </div>
+            </div>
+          : <div className="fin-ai-anomalia fin-ai-anomalia-ok">
+              <span className="fin-ai-anomalia-ic" aria-hidden="true">✓</span>
+              <div className="fin-ai-anomalia-body"><b>Sem desvio detectado</b><small>Valor dentro do padrão histórico da contraparte.</small></div>
+            </div>}
+
+        <h3>Histórico com a contraparte</h3>
+        {h.count === 0
+          ? <div className="vd-ai-block vd-ai-disabled"><header className="vd-ai-block-h"><span className="vd-ai-ic" aria-hidden="true">✦</span>
+              <div className="vd-ai-block-tx"><b>Contraparte nova</b><small>Primeira transação com {row.party}. Sem histórico pra comparar.</small></div></header></div>
+          : <div className="fin-ai-party">
+              <p className="vd-ai-block-tx"><b>{row.party}</b> <small>{h.count} lançamento{h.count > 1 ? "s" : ""} históricos</small></p>
+              <div className="vd-ai-stats">
+                <div className="vd-ai-stat"><small>Média</small><b>{_fmtShort(h.avg)}</b></div>
+                <div className="vd-ai-stat"><small>Total</small><b>{_fmtShort(h.total)}</b></div>
+                {h.onTimePct != null && <div className="vd-ai-stat"><small>No prazo</small><b style={{ color: h.onTimePct >= 80 ? "var(--pos)" : h.onTimePct >= 50 ? "var(--warn)" : "var(--neg)" }}>{h.onTimePct}%</b></div>}
+                {h.overdueCount > 0 && <div className="vd-ai-stat"><small>Atrasados</small><b style={{ color: "var(--neg)" }}>{h.overdueCount}</b></div>}
+              </div>
+              {h.topCat && <p><small>Categoria recorrente:</small> <b>{h.topCat}</b></p>}
+              {recent.length > 0 && <div>
+                <small>5 mais recentes</small>
+                <ul style={{ listStyle: "none", margin: "6px 0 0", padding: 0, display: "grid", gap: 4 }}>
+                  {recent.map((r) => (
+                    <li key={r.id} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      <span style={{ flex: 1 }}>{r.category || "—"}</span>
+                      <span style={{ fontFamily: "var(--font-mono)" }}>{_fmtShort(r.amount)}</span>
+                      <span aria-label={r.paid_at ? "liquidado" : r.status === "atrasado" ? "atrasado" : "em aberto"}
+                        style={{ color: r.paid_at ? "var(--pos)" : r.status === "atrasado" ? "var(--neg)" : "var(--text-dim)" }}>
+                        {r.paid_at ? "✓" : r.status === "atrasado" ? "✕" : "○"}</span>
+                    </li>))}
+                </ul>
+              </div>}
+            </div>}
       </section>
     );
   }

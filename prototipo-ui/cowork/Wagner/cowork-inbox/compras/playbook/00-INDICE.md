@@ -116,42 +116,158 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
   "modulo": "Compras",
   "sha": "9101f86af501",
   "gerado": "2026-09-08",
-  "absorve": ["prototipo-ui/cowork/Wagner/COLAR-NO-CODE-compras-ondas.md"],
-  "variaveis": { "LANE": null },
+  "absorve": [
+    "prototipo-ui/cowork/Wagner/COLAR-NO-CODE-compras-ondas.md"
+  ],
+  "variaveis": {
+    "LANE": null
+  },
   "decisoes": [
-    { "id": "D-GHOST", "pergunta": "Ghost /compras/create do sidebar v3: remover (1 arquivo) ou criar a rota (6 arquivos, contra o Non-Goal C1 do Purchase/Create)?", "respondida": false, "destrava": ["04"] },
-    { "id": "D-FORN", "pergunta": "Fornecedores (contacts type=supplier) e tela propria, view do cadastro de contatos, ou Non-Goal escrito no charter do cockpit?", "respondida": false, "destrava": ["03"] },
-    { "id": "D-GRADE", "pergunta": "Smoke/canary da grade tam x cor (US-COM-005, biz=4): [W] aprova por screenshot?", "respondida": false, "destrava": ["05"] },
-    { "id": "D-LANE", "pergunta": "Os specs de Compras entram em lane existente ou nasce workflow do modulo?", "respondida": false, "define": "LANE" }
+    {
+      "id": "D-GHOST",
+      "pergunta": "Ghost /compras/create do sidebar v3: remover (1 arquivo) ou criar a rota (6 arquivos, contra o Non-Goal C1 do Purchase/Create)?",
+      "respondida": true,
+      "destrava": [
+        "04"
+      ],
+      "resposta": "[W] 2026-09-29 decide-for-me → recomendação [CC]: remover o atalho /compras/create (Non-Goal C1)"
+    },
+    {
+      "id": "D-FORN",
+      "pergunta": "Fornecedores (contacts type=supplier) e tela propria, view do cadastro de contatos, ou Non-Goal escrito no charter do cockpit?",
+      "respondida": true,
+      "destrava": [
+        "03"
+      ],
+      "resposta": "[W] 2026-09-29 decide-for-me → recomendação [CC]: Non-Goal escrito no charter do cockpit, apontando para Contatos"
+    },
+    {
+      "id": "D-GRADE",
+      "pergunta": "Smoke/canary da grade tam x cor (US-COM-005, biz=4): [W] aprova por screenshot?",
+      "respondida": false,
+      "destrava": [
+        "05"
+      ]
+    },
+    {
+      "id": "D-LANE",
+      "pergunta": "Os specs de Compras entram em lane existente ou nasce workflow do modulo?",
+      "respondida": false,
+      "define": "LANE"
+    }
   ],
   "threads": [
-    { "id": "01", "titulo": "Rede: 2 specs E2E do modulo", "dono": "CL", "vaga": 1, "arquivo": "01-rede-e2e.md",
-      "prefixo": ["e2e/compras-cockpit.spec.ts", "e2e/purchase-create.spec.ts"],
-      "nao_toca": ["resources/js/Pages/Compras/", "resources/js/Pages/Purchase/", "Modules/Compras/", "governance/design/contracts/compras-cockpit.contract.json", "governance/design/contracts/purchase-create.contract.json"],
+    {
+      "id": "01",
+      "titulo": "Rede: 2 specs E2E do modulo",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "01-rede-e2e.md",
+      "prefixo": [
+        "e2e/compras-cockpit.spec.ts",
+        "e2e/purchase-create.spec.ts"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Compras/",
+        "resources/js/Pages/Purchase/",
+        "Modules/Compras/",
+        "governance/design/contracts/compras-cockpit.contract.json",
+        "governance/design/contracts/purchase-create.contract.json"
+      ],
       "provas": [
-        { "tipo": "arquivo", "path": "e2e/compras-cockpit.spec.ts" },
-        { "tipo": "arquivo", "path": "e2e/purchase-create.spec.ts" },
-        { "tipo": "arquivo", "path": "governance/design/contracts/compras-cockpit.contract.json", "guarda": true, "nota": "contrato JA existe (3.946 B) — a thread nao o recria nem o edita" },
-        { "tipo": "arquivo", "path": "governance/design/contracts/purchase-create.contract.json", "guarda": true, "nota": "contrato JA existe (4.272 B)" },
-        { "tipo": "contem", "path": "resources/js/Pages/Purchase/Create.tsx", "padrao": "GradeMatrixInput", "guarda": true, "nota": "a grade nao pode ser desplugada por um PR de rede" }
-      ] },
-    { "id": "02", "titulo": "Build daqui: coluna Margem sem fonte no drawer do prototipo", "dono": "CC", "vaga": 1, "arquivo": "02-margem-sem-fonte.md",
-      "prefixo": ["prototipo-ui/cowork/Wagner/compras-page.jsx", "prototipo-ui/cowork/Wagner/oimpresso.com.html"],
-      "nao_toca": ["resources/js/Pages/Compras/", "Modules/Compras/", "prototipo-ui/cowork/Wagner/compras-grade-matrix.jsx"],
+        {
+          "tipo": "arquivo",
+          "path": "e2e/compras-cockpit.spec.ts"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "e2e/purchase-create.spec.ts"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "governance/design/contracts/compras-cockpit.contract.json",
+          "guarda": true,
+          "nota": "contrato JA existe (3.946 B) — a thread nao o recria nem o edita"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "governance/design/contracts/purchase-create.contract.json",
+          "guarda": true,
+          "nota": "contrato JA existe (4.272 B)"
+        },
+        {
+          "tipo": "contem",
+          "path": "resources/js/Pages/Purchase/Create.tsx",
+          "padrao": "GradeMatrixInput",
+          "guarda": true,
+          "nota": "a grade nao pode ser desplugada por um PR de rede"
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "titulo": "Build daqui: coluna Margem sem fonte no drawer do prototipo",
+      "dono": "CC",
+      "vaga": 1,
+      "arquivo": "02-margem-sem-fonte.md",
+      "prefixo": [
+        "prototipo-ui/cowork/Wagner/compras-page.jsx",
+        "prototipo-ui/cowork/Wagner/oimpresso.com.html"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Compras/",
+        "Modules/Compras/",
+        "prototipo-ui/cowork/Wagner/compras-grade-matrix.jsx"
+      ],
       "provas": [],
-      "nota_provas": "build do Cowork: prova = _saida-02.md com a decisao (remover a coluna OU declarar a fonte real lida no ComprasService/Drawer.tsx) + render medido. Nao vira PR no main." },
-    { "id": "03", "titulo": "Fornecedores — aba sem receptor", "dono": "W", "arquivo": "03-fornecedores-bloqueada.md",
-      "prefixo": [], "nao_toca": ["resources/js/Pages/Compras/Index.tsx"],
+      "nota_provas": "build do Cowork: prova = _saida-02.md com a decisao (remover a coluna OU declarar a fonte real lida no ComprasService/Drawer.tsx) + render medido. Nao vira PR no main."
+    },
+    {
+      "id": "03",
+      "titulo": "Fornecedores — aba sem receptor",
+      "dono": "W",
+      "arquivo": "03-fornecedores-bloqueada.md",
+      "prefixo": [],
+      "nao_toca": [
+        "resources/js/Pages/Compras/Index.tsx"
+      ],
       "bloqueio": "D-FORN: fornecedor e contacts type=supplier e nao existe Pages/Fornecedor*. Sem rota declarada por [W], overlay sem receptor nao vira Page.",
-      "depende_decisoes": ["D-FORN"], "provas": [] },
-    { "id": "04", "titulo": "Ghost /compras/create — conflito de canon", "dono": "W", "arquivo": "04-ghost-create-bloqueada.md",
-      "prefixo": [], "nao_toca": ["resources/js/Pages/Purchase/Create.tsx", "resources/js/Pages/Purchase/Create.charter.md"],
+      "depende_decisoes": [
+        "D-FORN"
+      ],
+      "provas": []
+    },
+    {
+      "id": "04",
+      "titulo": "Ghost /compras/create — conflito de canon",
+      "dono": "W",
+      "arquivo": "04-ghost-create-bloqueada.md",
+      "prefixo": [],
+      "nao_toca": [
+        "resources/js/Pages/Purchase/Create.tsx",
+        "resources/js/Pages/Purchase/Create.charter.md"
+      ],
       "bloqueio": "D-GHOST: SCOPE Wave 3 (TODO /compras/create) x Non-Goal C1 do charter do Purchase/Create. Ghost apontando pra rota que o canon proibe = link morto ou tela proibida; nenhum PR antes da resposta.",
-      "depende_decisoes": ["D-GHOST"], "provas": [] },
-    { "id": "05", "titulo": "Smoke/canary da grade tam x cor (US-COM-005)", "dono": "W", "arquivo": "05-grade-smoke-bloqueada.md",
-      "prefixo": [], "nao_toca": ["resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx"],
+      "depende_decisoes": [
+        "D-GHOST"
+      ],
+      "provas": []
+    },
+    {
+      "id": "05",
+      "titulo": "Smoke/canary da grade tam x cor (US-COM-005)",
+      "dono": "W",
+      "arquivo": "05-grade-smoke-bloqueada.md",
+      "prefixo": [],
+      "nao_toca": [
+        "resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx"
+      ],
       "bloqueio": "D-GRADE: status_note do charter v2 diz 'aguarda smoke/canary Wagner'. Gate humano [W2] — nenhum arquivo destrava.",
-      "depende_decisoes": ["D-GRADE"], "provas": [] }
+      "depende_decisoes": [
+        "D-GRADE"
+      ],
+      "provas": []
+    }
   ]
 }
 ```

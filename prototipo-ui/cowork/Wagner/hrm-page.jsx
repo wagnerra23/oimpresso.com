@@ -14,7 +14,6 @@ const { Badge, Card, Row, Seg, Nota, Kpis, Busca, Drawer, Sec, KV, Tabela, Pagin
 const TABS = [
   { id:"hrm",           label:"Painel" },
   { id:"hrm-licencas",  label:"Licenças",   n:(s) => s.pend },
-  { id:"hrm-turnos",    label:"Turnos",     n:(s) => s.dados.tur.length },
   { id:"hrm-folha",     label:"Folha de pagamento" },
   { id:"hrm-feriados",  label:"Feriados",   n:(s) => s.dados.fer.length },
   { id:"hrm-metas",     label:"Metas de venda" },
@@ -32,17 +31,12 @@ function Painel({ lic }) {
   const verTodos = A.pode("ver_todos");
   const pend = (verTodos ? lic : lic.filter((l) => l.emp === eu)).filter((l) => l.status === "pending");
   const minhas = lic.filter((l) => l.emp === eu);
-  const hoje = H.PRE.filter((p) => p.data === "2026-08-21");
-  const abertos = H.PRE.filter((p) => !p.sai);
-  const folhaMes = H.FOLHA.filter((f) => f.mes === "08/2026").reduce((s, f) => s + H.totalFolha(f), 0);
-  const loteAberto = H.LOTES.find((l) => l.status === "draft");
   const porSetor = useMemo(() => {
     const m = {};
     H.EMP.forEach((e) => { m[e.setor] = (m[e.setor] || 0) + 1; });
     return Object.entries(m).sort((a, b) => b[1] - a[1]);
   }, []);
   const proximos = H.FER.filter((f) => f.ini >= "2026-08-21").sort((a, b) => a.ini.localeCompare(b.ini)).slice(0, 4);
-  const r = H.REALIZADO[eu];
 
   // O3 — fila: o que precisa de decisão humana, com o motivo e para onde ir
   const fila = [
@@ -52,17 +46,12 @@ function Painel({ lic }) {
       s:`${tipoNome(l.tipo)} · começa em ${H.dt(l.ini)} · ${H.plural(H.dias(l.ini, l.fim), "1 dia", "{n} dias")}`,
       go:"hrm-licencas", cta:"Analisar",
     })),
-    ...(abertos.length && verTodos ? [{
-      id:"pre", urg:abertos.length > 2,
-      t:`${abertos.length} marcações sem saída registrada`,
+    // Presença é do Ponto (D1): sem contagem aqui — igual ao vivo (Painel.tsx, "Marcações e jornada").
+    ...(verTodos ? [{
+      id:"pre", urg:false,
+      t:"Marcações e jornada",
       s:"a jornada é do Ponto — feche lá as marcações em aberto",
       go:"ponto", cta:"Abrir no Ponto",
-    }] : []),
-    ...(loteAberto && A.pode("gerir_folha") ? [{
-      id:"folha", urg:true,
-      t:`Folha ${loteAberto.mes} ainda em rascunho`,
-      s:`${loteAberto.itens} contracheques · ${H.brl(loteAberto.bruto)} sem pagamento lançado`,
-      go:"hrm-folha", cta:"Abrir folha",
     }] : []),
     ...(A.pode("gerir_meta") ? H.EMP.filter((e) => e.comissao > 0 && !(H.METAS[e.id] || []).length) : []).map((e) => ({
       id:"meta" + e.id, urg:false,
@@ -72,14 +61,8 @@ function Painel({ lic }) {
     })),
   ].sort((a, b) => (b.urg ? 1 : 0) - (a.urg ? 1 : 0));
 
-  const custoSetor = useMemo(() => {
-    const m = {};
-    H.FOLHA.filter((f) => f.mes === "08/2026").forEach((f) => {
-      const s = H.emp(f.emp).setor;
-      m[s] = (m[s] || 0) + H.totalFolha(f);
-    });
-    return Object.entries(m).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
-  }, []);
+  // Folha 08/2026 e Custo por setor saíram do Painel: valor em R$ sem motor (folha bloqueada, _saida-10) —
+  // o vivo (Painel.tsx) não os tem. A aba Folha segue como desenho do projeto Folha. [W] 2026-09-29.
 
   if (carregando) return <Skel n={8}/>;
 
@@ -88,12 +71,11 @@ function Painel({ lic }) {
       <Kpis items={[
         ...(verTodos ? [{ l:"Colaboradores", v:H.EMP.length, sub:`${porSetor.length} setores`, tone:"info" }] : []),
         { l:verTodos ? "Licenças pendentes" : "Minhas licenças pendentes", v:pend.length, sub:"esperando aprovação", tone:pend.length ? "warning" : "default" },
-        ...(verTodos ? [{ l:"Presentes hoje", v:new Set(hoje.map((p) => p.emp)).size, sub:`${hoje.filter((p) => !p.sai).length} sem saída registrada` }] : []),
-        ...(A.pode("gerir_folha") ? [{ l:"Folha 08/2026", v:A.din(folhaMes), sub:"lote em rascunho", tone:"info" }] : []),
+        ...(verTodos ? [{ l:"Presença de hoje", v:"—", sub:"a jornada é do Ponto" }] : []),
       ]}/>
 
       <div className="hrm-grid">
-        <Card title="O que fazer primeiro" aside={`${fila.length} pendências`} sub="Fila derivada do próprio dado — licença sem resposta, marcação aberta, folha não paga, meta faltando.">
+        <Card title="O que fazer primeiro" aside={`${fila.length} pendências`} sub="Fila derivada do próprio dado — licença sem resposta e meta faltando. Marcações ficam no Ponto.">
           <div className="hrm-list">
             {fila.map((f) => (
               <div className={`hrm-row ${f.urg ? "urg" : ""}`} key={f.id}>
@@ -102,13 +84,6 @@ function Painel({ lic }) {
               </div>))}
             {!fila.length && <Vazio variante="done" titulo="Nada esperando decisão" desc="Licenças respondidas, marcações fechadas e folha paga."/>}
           </div>
-        </Card>
-
-        <Card title="Custo de folha por setor" aside="08/2026" sub="Líquido dos contracheques da competência — ganhos menos deduções, sem encargos.">
-          {A.pode("gerir_folha")
-            ? <><Grafico tipo="bar" dados={custoSetor} altura={130} formata={(v) => A.din(v)}/>
-                <div className="hrm-list" style={{ marginTop:8 }}>{custoSetor.map((s) => <Row key={s.label} t={s.label} v={A.din(s.value)}/>)}</div></>
-            : <SemPermissao frase="O custo de folha exige acesso à folha de pagamento."/>}
         </Card>
 
         <Card title="Minhas licenças" sub="Larissa Andrade">
@@ -127,14 +102,8 @@ function Painel({ lic }) {
 
         <Card title="Minhas metas de venda">
           <div className="hrm-list">
-            <Row t="Vendido no mês anterior" v={H.brl(r.anterior)}/>
-            <Row t="Vendido neste mês" v={H.brl(r.mes)}/>
-          </div>
-          <div style={{ marginTop:10 }} className="hrm-list">
-            {(H.METAS[eu] || []).map((f) => {
-              const ativa = r.mes >= f.ini && r.mes <= f.fim;
-              return <Row key={f.id} t={`${H.brl(f.ini)} – ${H.brl(f.fim)}`} s={ativa ? "faixa atingida neste mês" : null} v={`${f.pct}%`}/>;
-            })}
+            {(H.METAS[eu] || []).map((f) => <Row key={f.id} t={`${H.brl(f.ini)} – ${H.brl(f.fim)}`} v={`${f.pct}%`}/>)}
+            {!(H.METAS[eu] || []).length && <p className="hrm-empty">Nenhuma faixa de meta cadastrada.</p>}
           </div>
         </Card>
 
@@ -145,12 +114,6 @@ function Painel({ lic }) {
                 v={f.ini === f.fim ? H.dt(f.ini) : `${H.dt(f.ini)} – ${H.dt(f.fim)}`}/>))}
           </div>
         </Card>
-
-        {verTodos && <Card title="Presença de hoje" aside={H.dt("2026-08-21")}>
-          <div className="hrm-list">
-            {hoje.map((p) => <Row key={p.id} t={H.emp(p.emp).nome} s={p.nEnt || p.turno} v={`${p.ent} → ${p.sai || "—"}`}/>)}
-          </div>
-        </Card>}
 
         {verTodos && <Card title="Colaboradores por setor">
           <div className="hrm-list">
@@ -414,7 +377,7 @@ function Feriados() {
     setAviso(`Feriado “${item.nome}” salvo.`);
   };
   const excluir = (f) => {
-    if (!window.confirm(`Excluir “${f.nome}”?\nO feriado sai da escala de todos os turnos — marcações já lançadas não mudam.`)) return;
+    if (!window.confirm(`Excluir “${f.nome}”?\nO Ponto deixa de considerar este feriado na apuração (integração em andamento) — marcações já lançadas não mudam.`)) return;
     setFer((fs) => fs.filter((x) => x.id !== f.id));
     setAviso(`Feriado “${f.nome}” excluído.`);
   };
@@ -465,7 +428,7 @@ function Feriados() {
           </tr>))}</tbody>
       </table></div>
       : A.primeira
-        ? <Vazio variante="first" titulo="Nenhum feriado cadastrado" desc="Feriado sem localidade vale para o negócio inteiro; com localidade, só a unidade escolhida para. A escala dos turnos usa esta lista." acao={podeGerir ? <button className="os-btn primary" onClick={() => setForm({})}>Cadastrar o primeiro</button> : null}/>
+        ? <Vazio variante="first" titulo="Nenhum feriado cadastrado" desc="Feriado sem localidade vale para o negócio inteiro; com localidade, só a unidade escolhida para. O cadastro é do RH; o Ponto passa a considerar esta lista na apuração (integração em andamento)." acao={podeGerir ? <button className="os-btn primary" onClick={() => setForm({})}>Cadastrar o primeiro</button> : null}/>
         : <Vazio variante="filtered" titulo="Nenhum feriado nesse filtro" desc="Feriado sem localidade vale para o negócio inteiro." acao={<button className="os-btn ghost" onClick={limpar}>Limpar filtros</button>}/>}
       <p className="hrm-card-sub" style={{ marginTop:10 }}>Criar, editar e excluir é <b>só do administrador</b> — os demais veem a lista filtrada pelas localidades a que têm acesso.</p>
       {form && <F.FormFeriado item={form.id ? form : null} onClose={() => setForm(null)} onSalvar={salvar}/>}
@@ -577,8 +540,9 @@ function HrmPage({ view = "hrm" }) {
 
   const body =
     view === "hrm-licencas" ? <Licencas lic={licAmb} setLic={setLic} /> :
-    view === "hrm-presenca" ? <Vazio variante="done" titulo="Presença agora é do Ponto" desc="Marcações, espelho e banco de horas vivem no módulo Ponto, dono único da jornada." acao={<button className="os-btn primary" onClick={() => go("ponto")}>Abrir Ponto</button>}/> :
-    view === "hrm-turnos" ? <X.Turnos /> :
+    // Dono por papel (proposta [CC] 2026-09-29, aguarda [W]): jornada/escala = Ponto (ponto_escalas é a FK real do
+    // escala_atual_id). Link antigo de Turnos cai aqui e aponta pras Escalas do Ponto, como o 301 da presença.
+    view === "hrm-turnos" ? <Vazio variante="done" titulo="Escalas agora ficam no Ponto" desc="O horário de trabalho de cada colaborador é definido nas escalas do Ponto, dono único da jornada." acao={<button className="os-btn primary" onClick={() => go("pt-escalas")}>Abrir escalas do Ponto</button>}/> :
     view === "hrm-folha" ? <X.Folha /> :
     view === "hrm-feriados" ? <Feriados /> :
     view === "hrm-metas" ? <X.Metas /> :
@@ -605,7 +569,7 @@ function HrmPage({ view = "hrm" }) {
             </select>
           </span>
           <span className="hrm-scope">Essentials · /hrm</span>
-          <button className="os-btn ghost" onClick={() => go("ponto")}>Ponto WR2</button>
+          <button className="os-btn ghost" onClick={() => go("ponto")}>Ponto</button>
         </div>
       </header>
 
