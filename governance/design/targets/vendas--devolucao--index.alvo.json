@@ -1,0 +1,208 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Devoluções e trocas Cancelamento de venda paga, geração de crédito e estorno + Nova devolução CRM Oficina Vendas Caixa do dia Devoluções Comissões Relatórios PDV balcão Pendentes 2 aguardando análise Devoluções no mês 3 total registrado Valor estornado R$ 3.540,00 crédito + estorno Devolução Data Venda orig. Cliente Motivo Tipo retorno Total Status # D-104 29 / 04 # V-7818 Café Aroma Doce Defeito de impressão PIX R$ 680,00 Concluída # D-105 30 / 04 # V-7820 Loja Mini Shopping Erro de arte / aprovação crédito R$ 1.240,00 Em análise # D-106 30 / 04 # V-7825 Farmácia Vida Plena Atraso na entrega estorno R$ 1.620,00 Em análise",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 72,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5551/"
+  },
+  "nos_totais": 508,
+  "quieto_ms": 2000,
+  "rota": "venda-devolucoes",
+  "secoes": {
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "16px",
+        "padding": "24px 24px 14px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "os-head-l",
+        "os-head-r"
+      ],
+      "rect": {
+        "h": 89,
+        "w": 1224
+      },
+      "seletor": ".vd-dev-page > header.os-head",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px 24px 14px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "os-kpi",
+        "os-kpi",
+        "os-kpi"
+      ],
+      "rect": {
+        "h": 103,
+        "w": 1224
+      },
+      "seletor": ".vd-dev-page > .os-kpis",
+      "truncado": false
+    },
+    "tabela": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "14px 24px 20px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "os-table"
+      ],
+      "rect": {
+        "h": 195,
+        "w": 1224
+      },
+      "seletor": ".vd-dev-page > .os-table-wrap",
+      "truncado": false
+    },
+    "tabs": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 9,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "vd-modnav-tab",
+        "vd-modnav-tab",
+        "vd-modnav-div",
+        "vd-modnav-tab",
+        "vd-modnav-tab",
+        "vd-modnav-tab",
+        "vd-modnav-tab",
+        "vd-modnav-tab",
+        "vd-modnav-tab"
+      ],
+      "rect": {
+        "h": 33,
+        "w": 1224
+      },
+      "seletor": ".vd-dev-page > nav.vd-modnav",
+      "truncado": false
+    }
+  },
+  "tela": "vendas--devolucao--index",
+  "url": "http://127.0.0.1:5551/"
+}
