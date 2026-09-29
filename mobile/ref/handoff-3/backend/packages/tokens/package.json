@@ -1,0 +1,9 @@
+{
+  "name": "@oimpresso/tokens",
+  "version": "0.0.0-fase0",
+  "private": true,
+  "description": "Design tokens (claro/escuro) — fonte única de cor/raio/sombra/densidade.",
+  "exports": {
+    "./tokens.css": "./tokens.css"
+  }
+}

@@ -82,8 +82,10 @@ class MarcacaoService
 
         return DB::transaction(function () use ($dados, $repId, $service) {
             // 1) NSR sequencial com lock pessimista — no REP; no REP-P (sem REP físico), por
-            //    colaborador ([W] 2026-09-29). Demais origens sem REP seguem o NSR virtual.
-            $nsr = ($repId === null && $dados['origem'] === Marcacao::ORIGEM_REP_P)
+            //    colaborador ([W] 2026-09-29), incluindo a anulação de uma REP-P. Demais origens
+            //    sem REP seguem o NSR virtual.
+            $cadeiaRepP = $repId === null && $service->pertenceCadeiaRepP($dados);
+            $nsr = $cadeiaRepP
                 ? $service->nsr->proximoRepP((int) $dados['business_id'], (int) $dados['colaborador_config_id'])
                 : $service->nsr->proximo($repId);
 
@@ -98,7 +100,7 @@ class MarcacaoService
                 if ($ultima) {
                     $hashAnterior = $ultima->hash;
                 }
-            } elseif ($dados['origem'] === Marcacao::ORIGEM_REP_P) {
+            } elseif ($cadeiaRepP) {
                 $hashAnterior = $service->cadeiaRepP((int) $dados['business_id'], (int) $dados['colaborador_config_id'])
                     ->orderByDesc('nsr')
                     ->value('hash');
@@ -161,6 +163,8 @@ class MarcacaoService
                 'origem'                => Marcacao::ORIGEM_ANULACAO,
                 'tipo'                  => $original->tipo,
                 'marcacao_anulada_id'   => $original->id,
+                // Texto do motivo ([W] 2026-09-29). O md5 no dispositivo_id segue como era.
+                'motivo_anulacao'       => (string) $motivo,
                 'usuario_criador_id'    => $usuarioId,
                 'dispositivo_id'        => 'anulacao:' . substr(md5($motivo), 0, 16),
             ]);
@@ -196,11 +200,21 @@ class MarcacaoService
      */
     public function cadeiaRepP(int $businessId, int $colaboradorId)
     {
-        return Marcacao::where('business_id', $businessId)
-            ->where('colaborador_config_id', $colaboradorId)
-            ->whereNull('rep_id')
-            ->where('origem', Marcacao::ORIGEM_REP_P)
-            ->where('nsr', '<', NsrService::NSR_LEGADO_MICROTIME);
+        return NsrService::filtroCadeiaRepP(Marcacao::query(), $businessId, $colaboradorId);
+    }
+
+    /** REP_P, ou a anulação de uma REP_P do mesmo empregador ([W] 2026-09-29). */
+    public function pertenceCadeiaRepP(array $dados): bool
+    {
+        if ($dados['origem'] === Marcacao::ORIGEM_REP_P) {
+            return true;
+        }
+
+        return $dados['origem'] === Marcacao::ORIGEM_ANULACAO
+            && ! empty($dados['marcacao_anulada_id'])
+            && Marcacao::where('business_id', (int) $dados['business_id'])
+                ->whereKey($dados['marcacao_anulada_id'])
+                ->value('origem') === Marcacao::ORIGEM_REP_P;
     }
 
     private function verificarCadeia($query): array
@@ -238,6 +252,11 @@ class MarcacaoService
     /**
      * Monta string canônica determinística para hash.
      * Ordem: business_id|colaborador_config_id|rep_id|nsr|momento|origem|tipo|hash_anterior|usuario_criador_id
+     *
+     * + `|motivo_anulacao` SÓ quando o motivo existe ([W] 2026-09-29): o texto do motivo de uma
+     * anulação entra no hash e passa a ser tamper-evident. Sem motivo (todas as marcações antigas
+     * e as que não são anulação) o payload fica IDÊNTICO ao de antes — é o que mantém o hash delas
+     * conferindo no verificarIntegridade. Não trocar por "sempre acrescentar um campo vazio".
      */
     public function payloadCanonico(array $d)
     {
@@ -264,6 +283,11 @@ class MarcacaoService
             isset($d['hash_anterior'])         ? $d['hash_anterior']         : '',
             isset($d['usuario_criador_id'])    ? $d['usuario_criador_id']    : '',
         ];
+
+        $motivo = isset($d['motivo_anulacao']) ? (string) $d['motivo_anulacao'] : '';
+        if ($motivo !== '') {
+            $partes[] = $motivo;
+        }
 
         return implode('|', $partes);
     }

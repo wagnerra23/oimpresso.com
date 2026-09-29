@@ -88,15 +88,25 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
     {
       "id": "D-GATE",
       "pergunta": "Gate::before devolve true para role Admin#{business_id} em qualquer ability — o can: por rota nao barra admin de business. Passo 1 da ADR 0392 (conflito AxB da CONCESSAO).",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "05"
-      ]
+      ],
+      "resposta": "[W] 2026-09-29 decide-for-me → recomendação [CC]: restringir: admin respeita can: por rota (passo 1 da ADR 0392)"
     },
     {
       "id": "D-CONTRATO-9",
       "pergunta": "Estender o contrato de 5 para 9 telas custa 96 KB de leitura (RECUSA por teto). Vira frente propria depois da 03?",
       "respondida": false
+    },
+    {
+      "id": "G-NOTAS",
+      "pergunta": "A vista \"Notas dos módulos\" continua no protótipo e no contrato?",
+      "respondida": true,
+      "resposta": "sai — [W] 2026-09-24 (_DECISOES-W-2026-09-24)",
+      "destrava": [
+        "07"
+      ]
     }
   ],
   "threads": [
@@ -224,6 +234,29 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
           "tipo": "contem",
           "path": "memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md",
           "padrao": "ciclo completo 2026-08-06"
+        }
+      ]
+    },
+    {
+      "id": "07",
+      "titulo": "G-NOTAS — contrato, charter e casos sem a vista \"Notas dos módulos\"",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "_DECISOES-W-2026-09-24.md",
+      "nota": "Item 1 do pedido (protótipo) feito pelo [CC] em 2026-09-29: governance-page.jsx?v=gov4sem-notas (VIEWS com 4 vistas; gov-notas cai no painel; ghost saiu do data.jsx). Itens 2–4 são do main. Depois, refazer o #7138 (rótulos PT-BR das 4 abas).",
+      "prefixo": [
+        "governance/design/contracts/governance.contract.json",
+        "resources/js/Pages/governance/Index.charter.md",
+        "resources/js/Pages/governance/Index.casos.md"
+      ],
+      "nao_toca": [
+        "Modules/Governance/Http/Controllers/DataController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "nao_contem",
+          "path": "governance/design/contracts/governance.contract.json",
+          "padrao": "notas-kpis"
         }
       ]
     }

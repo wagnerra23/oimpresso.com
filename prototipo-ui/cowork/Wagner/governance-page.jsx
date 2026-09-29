@@ -1,8 +1,9 @@
 // governance-page.jsx — módulo Governança no app único. Espelha as telas vivas de
 // resources/js/Pages/governance/ (Dashboard · Policies · Audit · DriftAlerts · ModuleGrades/Index),
 // lidas no main junto de routes.php, topnav.php e dos quatro controllers.
-// Cinco vistas nesta rota, nenhum .html novo: painel · politicas · auditoria · drift · notas.
-// Auditoria, drift e notas vivem em governance-telas.jsx. Dados em governance-data.jsx.
+// Quatro vistas nesta rota, nenhum .html novo: painel · politicas · auditoria · drift.
+// "Notas dos módulos" saiu (G-NOTAS, [W] 2026-09-24 — rubrica aposentada pela ADR 0399, aba removida no #7283).
+// Auditoria e drift vivem em governance-telas.jsx. Dados em governance-data.jsx.
 // DS vivo via acessos-ds.jsx (Kpi · Nota · Sw · Vazio) + StatusBadge/Chart/Skeleton do bundle;
 // tabela, abas e cabeçalho seguem do shell de propósito.
 // Expõe window.GovernancePage.
@@ -26,7 +27,6 @@ const VIEWS = [
   { id: "politicas", label: "Políticas" },
   { id: "auditoria", label: "Auditoria" },
   { id: "drift", label: "Drift" },
-  { id: "notas", label: "Notas dos módulos" },
 ];
 
 const TITULOS = {
@@ -34,10 +34,9 @@ const TITULOS = {
   politicas: "Governança — políticas",
   auditoria: "Governança — auditoria",
   drift: "Governança — drift de escopo",
-  notas: "Governança — notas dos módulos",
 };
 
-// Carrega depois — representa Inertia::defer nas props caras (SDD, MCP, notas dos módulos).
+// Carrega depois — representa Inertia::defer nas props caras (SDD, MCP).
 function useDefer(ms = 700, dep) {
   const [pronto, setPronto] = useState(false);
   useEffect(() => { setPronto(false); const t = setTimeout(() => setPronto(true), ms); return () => clearTimeout(t); }, [ms, dep]);
@@ -424,7 +423,6 @@ function GovernancePage({ view = "painel" }) {
         {aba === "politicas" && <PoliticasView toast={setToast} />}
         {aba === "auditoria" && t.AuditoriaView && <t.AuditoriaView />}
         {aba === "drift" && t.DriftView && <t.DriftView />}
-        {aba === "notas" && t.NotasView && <t.NotasView />}
         </>}
       </div>
 

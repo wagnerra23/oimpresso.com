@@ -3,7 +3,7 @@ sessao: "00"
 titulo: SINCRONIZAR Hrm — índice do playbook (fonte da máquina embutida em §7)
 autor: "[CC]"
 criado: 2026-09-05
-revisado: 2026-09-05 rev.2 — após medição do [CL] contra origin/main a88c66a (4 defeitos corrigidos, ver §5 R4)
+revisado: 2026-09-05 rev.2 — após medição do [CL] contra origin/main a88c66a (4 defeitos corrigidos, ver §5 R4) · 2026-09-29 rev.3 — dono por papel ([W] D4/D5): 05 cancelada, 12 nova, RESÍDUO-2/3 fechados (base 38921d4f1027)
 base: wagnerra23/oimpresso.com@main (tree 45e63465d2e4 · lida 2026-09-05 22:26 UTC)
 destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/hrm/playbook/
 regra: este índice é PEDIDO (lista de threads a executar, com sha), não inventário. Ninguém escreve estado — ele é derivado (§2-bis). Nunca em prototipo-ui/cowork/Wagner/ (guard R1).
@@ -14,7 +14,7 @@ regra: este índice é PEDIDO (lista de threads a executar, com sha), não inven
 > **Absorve, não duplica:** `cowork-inbox/hrm/PEDIDO-CL-hrm.md` (D1/D2/D3 respondidas por [W] em 2026-09-05) + `cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md`. Onde divergem, **a emenda [W] manda**: Presença sai do HRM; Folha vira projeto com ADR própria. **Metas já está em produção (#6869)** — a onda 9 do export está feita.
 
 ## 0 · Landing — como esta pasta desce (resposta ao [CL], 2026-09-05)
-- **A unidade é a PASTA inteira** (`00-INDICE.md` + 11 `NN-*.md`): índice sozinho aponta pra arquivos inexistentes — o mesmo defeito do item 3 do §5. Rota: DesignSync `get_file` de cada `.md` → `--export-from <dir>`; `.md` roteia pra `prototipo-ui/cowork/Wagner/cowork-inbox/hrm/playbook/`.
+- **A unidade é a PASTA inteira** (`00-INDICE.md` + 12 `NN-*.md`): índice sozinho aponta pra arquivos inexistentes — o mesmo defeito do item 3 do §5. Rota: DesignSync `get_file` de cada `.md` → `--export-from <dir>`; `.md` roteia pra `prototipo-ui/cowork/Wagner/cowork-inbox/hrm/playbook/`.
 - **Só `.md` roteia.** Por isso a fonte da máquina (`playbook.json`) **não é arquivo**: é o primeiro bloco ```json deste índice (§7). O schema e o script viajam como anexos de `COLAR-NO-CODE-AUTOMACAO-DO-PROTOCOLO.md` (PR-A8) e o [CL] os cria nos paths lá declarados. Nada `.json`/`.mjs` solto neste pacote.
 - **`.md` em `prototipo-ui/cowork/Wagner/` é proibido** (guard R1) — se o roteador mandar pra lá, é erro de rota, não exceção a pedir.
 
@@ -28,13 +28,13 @@ Denominadores: **D1** `Modules/Essentials/Routes/web.php` `prefix('hrm')` · **D
 | `/leave` · `/change-status` · `/leave/activity/{id}` · `/user-leave-summary` | — | — | `leave/*` (5) | #6797 mergeado (validação + `Tests/Feature/HrmLicencaTest.php`) · charter/casos em `dbfc75fbcf` (fora de branch — `refs/pull/6800/head`) | em implementação | 02 |
 | `/leave-type` (resource) | — | — | `leave_type/*` (3) | #6789 mergeado (`destroy` → 422 `blocked_by`; `HrmExclusaoGuardaTest.php`) | em implementação | 03 |
 | `/sales-target` · `/set-sales-target/{id}` · `/save-sales-target` | **`Essentials/Metas`** (`SalesTargetController.php:80`) | **`Essentials/Metas.tsx`** + `Metas.charter.md` + `Metas.casos.md` | `sales_targets/index` (ramo ajax mantido até O8) | **#6869 mergeado** — pacote completo: contrato `essentials-metas.contract.json` · `HrmMetasTest.php` · `e2e/essentials-metas.spec.ts` · RUNBOOK · lane `essentials-pest.yml` | **produção React 🔵** | 04 (puxar) |
-| `/shift` (resource) · `/shift/assign-users` | — | — | `attendance/{shift_modal,add_shift_users,avail_shifts}` | — | legado blade | 05 |
+| `/shift` (resource) · `/shift/assign-users` | — | — | `attendance/{shift_modal,add_shift_users,avail_shifts}` | **[W] D4 2026-09-29: escala é do Ponto** (`escala_atual_id` → `ponto_escalas`, migration `2026_04_18_000003:42`; o Ponto não lê `Shift`) | **cancelada** — sai do HRM | 05 → 12 |
 | `/settings` GET+POST | `Essentials/Settings/Index` | `Essentials/Settings/Index.tsx` | `settings/partials/*` | — | produção React 🔵 | 07 (puxar) |
 | `/holiday` (resource) | `Essentials/Holidays/Index` | `Essentials/Holidays/Index.tsx` + charter | `dashboard/holidays` | — | produção React 🔵 | 08 (puxar) |
 | `/attendance` (resource) + 10 rotas | — | — | `attendance/*` (14) | #6798 mergeado · **[W] D1: cede ao Ponto** · cron `pos:autoClockOutUser` em `EssentialsServiceProvider.php:108` · ponteiro `Modules/Ponto/Config/config.php:136` | **sai do HRM** | 09 |
 | `/payroll` (resource) + 9 rotas · `essentials/allowance-deduction` | — | — | `payroll/*` (14) | **[W] D2: folha completa → ADR-mãe ratificada 2026-09-24 (PR #7920)** | **bloqueada** (sem Page até motor) | 10 |
 | nav → `TaxonomyController?type=hrm_department` · `hrm_designation` | (core) | — | core | — | **sem aba no protótipo** | 01 |
-| — (protótipo tem aba **Turnos**; `nav_hrm` não a lista) | | | | | divergência declarada | 05 |
+| — (protótipo tinha aba **Turnos**) | | | | aba removida do build em 2026-09-29 (`hrm-page.jsx?v=hrm12dono`); `hrm-turnos` aponta para `pt-escalas` | resolvida | 12 |
 
 Também medido nesta sha: `.claude/commands/onda.md` **não existe** (PR-A7 não feito → abertura colada à mão) · os planos `memory/sessions/2026-09-05-{como-integrar-ponto-hrm,arte-folha-encargos-br}.md` citados pela emenda [W] **não existiam** em a88c66a — **aterrissaram no #6877 (2026-09-05)**; a ADR-mãe da folha veio no #6881 (corrigido em 2026-09-24, _saida-10) · `whats-active` **morto** (HTTP 000 medido pelo [CL] em 05/09) — substituto: `gh pr list --state open` cruzado com os arquivos a tocar.
 
@@ -46,16 +46,17 @@ Também medido nesta sha: `.claude/commands/onda.md` **não existe** (PR-A7 não
 | 02 | Licenças — Page | [CL] | `Pages/Essentials/Licencas{.tsx,/Index.tsx}` + charter/casos · `EssentialsLeaveController@index,@getUserLeaveSummary` · `contrato/essentials-licencas.contract.json` · `Tests/Feature/HrmLicencaTest.php` (estender) · `e2e/essentials-licencas.spec.ts` · lane `essentials-pest.yml` | — | 1 |
 | 03 | Tipos de licença — Page | [CL] | `Pages/Essentials/Tipos{.tsx,/Index.tsx}` + trio · `EssentialsLeaveTypeController@index` · `contrato/essentials-tipos.contract.json` · `e2e/essentials-tipos.spec.ts` | — | 1 |
 | 04 | Metas — **PUXAR** (produção à frente, #6869) | [CC] read-only → build | nada no `main`; se gap, `hrm-extras.jsx` (`Metas`) | — | 1 |
-| 05 | Turnos — Page | [CL] | `Pages/Essentials/Turnos{.tsx,/Index.tsx}` + trio · `ShiftController` · `contrato/essentials-turnos.contract.json` · `e2e/essentials-turnos.spec.ts` | 09 · RESÍDUO 3 | 2 |
+| 05 | ~~Turnos — Page~~ **CANCELADA** (D4 [W] 2026-09-29: escala é do Ponto) | — | nada | — | — |
 | 06 | Painel — Page | [CL] | `Pages/Essentials/Painel{.tsx,/Index.tsx}` + trio · `DashboardController@hrmDashboard` · `contrato/essentials-painel.contract.json` | 09 | 2 |
 | 07 | Configurações — PUXAR (12 campos × 10 chaves) | [CC] read-only → [CL] se gap | nada; se gap, `Pages/Essentials/Settings/Index.tsx` | — | 1 |
 | 08 | Feriados — PUXAR (ler `Holidays/Index.tsx`) | [CC] read-only | nada; se gap, build daqui | — | 1 |
 | 09 | Presença SAI do HRM → Ponto dono da jornada | [W] + [CL] | `memory/decisions/0014-*.md` (emenda) · `Routes/web.php` (11 rotas) · **`Providers/EssentialsServiceProvider.php` (:108 desagendar cron)** · **`Modules/Ponto/Config/config.php` (:136 ponteiro morto)** | D1 · D3 | 2 |
 | 10 | Folha — BLOQUEADA (ADR-mãe ratificada 2026-09-24; sem Page até o motor) | [W] | fora deste playbook | D2 | — |
-| 11 | Fim do topnav Blade + limpeza O8 | [CL] | `layouts/nav_hrm.blade.php` · `partials/sidebar_hrm.blade.php` · blades `leave/* leave_type/* sales_targets/* dashboard/hrm_dashboard` | 02 · 03 · 05 · 06 + screenshot [W2] | 3 |
+| 11 | Fim do topnav Blade + limpeza O8 | [CL] | `layouts/nav_hrm.blade.php` · `partials/sidebar_hrm.blade.php` · blades `leave/* leave_type/* sales_targets/* dashboard/hrm_dashboard` | 02 · 03 · 06 · 12 + screenshot [W2] | 3 |
+| 12 | Dono por papel — emenda 0014 (D4 escala→Ponto · D5 feriado HRM, lido pelo Ponto) + 2 pedidos ao dono do Ponto | [CL] | `memory/decisions/0014-*.md` (emenda) · `Modules/Essentials/Routes/web.php` (`/shift` → 301 `/ponto/escalas`) | 09 · D4 · D5 | 2 |
 
 **Âncora de implementação para toda Page nova = a irmã golden `resources/js/Pages/Essentials/Metas.tsx` (#6869)** — mesmo pacote de 8 peças (tsx · charter com frontmatter `component:`/`runbook:` · casos · `contrato/essentials-<tela>.contract.json` gerado pelo `criar-tela.mjs` · Pest `Hrm<Tela>Test.php` · `e2e/essentials-<tela>.spec.ts` · `RUNBOOK-<tela>.md` · lane em `essentials-pest.yml`). Alvo de layout continua o protótipo medido (`prototipo-ui/cowork/Wagner/hrm-*.jsx`, campo `related_prototype` do charter).
-**Vaga 1:** 01 ∥ 02 ∥ 03 ∥ 04 ∥ 07 ∥ 08 · **Vaga 2:** 05 ∥ 06 ∥ 09 · **Vaga 3:** 11. Entre vagas, S0 consolida.
+**Vaga 1:** 01 ∥ 02 ∥ 03 ∥ 04 ∥ 07 ∥ 08 · **Vaga 2:** 06 ∥ 09 ∥ 12 · **Vaga 3:** 11. (05 cancelada por D4.) Entre vagas, S0 consolida.
 
 ## 2-bis · ESTADO — derivado, nunca escrito (o Code lê ESTA)
 
@@ -103,10 +104,10 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
 
 ## 6 · RESÍDUO Hrm — fila de decisão [W]
 1. ~~`<PAGES>`~~ → **respondido pela árvore**, não é decisão.
-2. **Departamentos e Cargos** viram abas do HRM no protótipo (o nav de produção tem, com `crud_department`/`crud_designation`) — confirma?
-3. **`ShiftController::destroy`**: #6789 fechou `leave-type` (e `HrmExclusaoGuardaTest` existe) — turno com vínculo ainda responde 200? A 05 para se sim.
-4. **`DataTablePro` do DS** — 3º módulo com `th` sem `scope`/semântica: pedido de DS próprio?
-5. **Metas no protótipo mostra apuração (mês anterior/atual, faixa atingida, progresso, R$)** que a produção excluiu por caminho de VALOR. Tirar do protótipo ou manter com selo "fora desta onda"?
+2. ~~**Departamentos e Cargos** viram abas do HRM?~~ → **sim** ([W] 2026-09-22, `_saida-01`; reconfirmado 2026-09-29: cadastro = dono HRM).
+3. ~~**`ShiftController::destroy`**~~ → **sem objeto**: a 05 foi cancelada (D4). Se o `Shift` for aposentado, o `destroy` sai junto (thread 12).
+4. ~~**`DataTablePro` do DS**~~ → **sem pedido** ([W] 2026-09-29, adversário): nenhuma tela usa o `DataGrid` do DS (build nem `main`); a produção usa `Components/shared/DataTable.tsx`, que já tem `scope="col"` (:360) e ordenação por `<button>` (:309). Tabelas do HRM no build conferidas: todas com `scope="col"`. A dívida do `DataGrid` só vira pedido quando alguém o adotar.
+5. ~~**Metas no protótipo mostra apuração**~~ → **tirada** ([W] 2026-09-29, adversário): Metas **e** Painel excluem o realizado por VALOR (`Metas.charter.md:53` · `DashboardController::hrmDashboard` docblock). `getUserSalesTargets` (:140) segue vivo só como Ajax legado. Build puxou as colunas do vivo (`hrm-extras.jsx?v=hrm13metas`).
 
 ## 7 · Fonte da máquina (playbook.json embutido — primeiro bloco json deste arquivo; schema em `_schema/playbook.schema.json`)
 ```json
@@ -117,10 +118,12 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
   "absorve": ["prototipo-ui/cowork/Wagner/cowork-inbox/hrm/PEDIDO-CL-hrm.md", "prototipo-ui/cowork/Wagner/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md"],
   "variaveis": { "PAGES": "resources/js/Pages/Essentials" },
   "decisoes": [
-    { "id": "RESIDUO-2", "pergunta": "Departamentos e Cargos (nav_hrm → TaxonomyController) viram abas do HRM no protótipo?", "respondida": false, "destrava": ["01"] },
-    { "id": "RESIDUO-3", "pergunta": "ShiftController::destroy ainda responde 200 sem apagar turno com vínculo?", "respondida": false, "destrava": ["05"] },
-    { "id": "RESIDUO-4", "pergunta": "DataTablePro do DS (th sem scope/semântica em 3 módulos): pedido de DS próprio?", "respondida": false },
-    { "id": "RESIDUO-5", "pergunta": "Metas no protótipo mostra apuração excluída da produção por caminho de VALOR: tirar ou selar 'fora desta onda'?", "respondida": false, "destrava": ["04"] },
+    { "id": "RESIDUO-2", "pergunta": "Departamentos e Cargos (nav_hrm → TaxonomyController) viram abas do HRM no protótipo?", "respondida": true, "resposta": "sim — [W] 2026-09-22 (_saida-01); reconfirmado 2026-09-29: cadastro = dono HRM", "destrava": ["01"] },
+    { "id": "RESIDUO-3", "pergunta": "ShiftController::destroy ainda responde 200 sem apagar turno com vínculo?", "respondida": true, "resposta": "sem objeto — thread 05 cancelada por D4 (2026-09-29)" },
+    { "id": "D4", "pergunta": "Quem é dono do horário contratual: Shift (HRM) ou ponto_escalas (Ponto)?", "respondida": true, "resposta": "Ponto — [W] 2026-09-29. O código já faz isso: escala_atual_id → ponto_escalas (migration 2026_04_18_000003:42); o Ponto não lê Shift. A tabela da ADR 0014 (Shift = fonte) é que está errada", "destrava": ["12"] },
+    { "id": "D5", "pergunta": "Onde ficam os feriados que o Ponto usa?", "respondida": true, "resposta": "cadastro no HRM (Holidays/Index.tsx, produção React); o Ponto lê EssentialsHoliday — [W] 2026-09-29. Hoje o Ponto não lê: 0 ocorrências em Modules/Ponto @46f1d4b3976d", "destrava": ["12"] },
+    { "id": "RESIDUO-4", "pergunta": "DataTablePro do DS (th sem scope/semântica em 3 módulos): pedido de DS próprio?", "respondida": true, "resposta": "não — [W] 2026-09-29: nenhuma tela usa o DataGrid do DS; produção usa shared/DataTable.tsx (scope=col :360, sort por button :309)" },
+    { "id": "RESIDUO-5", "pergunta": "Metas no protótipo mostra apuração excluída da produção por caminho de VALOR: tirar ou selar 'fora desta onda'?", "respondida": true, "resposta": "tirar — [W] 2026-09-29; Painel também exclui (DashboardController::hrmDashboard). Build puxado do vivo: hrm-extras.jsx?v=hrm13metas", "destrava": ["04"] },
     { "id": "RESIDUO-6", "pergunta": "As 5 chaves de presença do Settings do HRM (grace_before/after_checkin/checkout + is_location_required): ficam em /hrm/settings ou migram para o Ponto (dono da jornada desde D1)?", "respondida": true, "resposta": "[W] 2026-09-23 disse migrar; na execução da 09 (2026-09-24, [W]) virou APOSENTAR sem migrar — no Ponto a lei fixa as duas (CLT Art. 58 §1º; REP-P Portaria 671). Executado: EssentialsSettingsController.php:25 + HrmPresencaCedeAoPontoTest UC-HRM-PRES-05", "origem": "_saida-07.md · _saida-07a.md · _saida-09.md item 6 · _saida-10.md" },
     { "id": "D1", "pergunta": "Presença web × Ponto", "respondida": true, "resposta": "cede ao Ponto — dono único da jornada (2026-09-05)", "destrava": ["09"] },
     { "id": "D2", "pergunta": "Folha gerencial × completa", "respondida": true, "resposta": "completa com encargos → projeto com ADR própria (2026-09-05). ADR-mãe memory/decisions/proposals/2026-09-05-folha-com-encargos-modelo-e-fronteira.md ratificada por [W] 2026-09-24 (flip no PR #7920; merge = ato)" },
@@ -156,7 +159,8 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
       "prefixo": ["prototipo-ui/cowork/Wagner/hrm-extras.jsx"], "nao_toca": ["${PAGES}/Metas.tsx", "Modules/Essentials/Http/Controllers/SalesTargetController.php"],
       "depende_decisoes": ["RESIDUO-5"],
       "provas": [], "nota_provas": "read-only + build: prova = _saida-04.md com o diff nos dois sentidos (Metas.tsx × hrm-extras.jsx Metas) e a divergência de VALOR declarada" },
-    { "id": "05", "titulo": "Turnos — Page", "dono": "CL", "vaga": 2, "arquivo": "05-turnos.md",
+    { "id": "05", "titulo": "Turnos — Page (CANCELADA por D4)", "dono": "CL", "vaga": 2, "arquivo": "05-turnos.md",
+      "bloqueio": "cancelada — D4 [W] 2026-09-29: escala é do Ponto. Não executar; a saída do /shift é da thread 12",
       "prefixo": ["${PAGES}/Turnos.tsx", "${PAGES}/Turnos/", "Modules/Essentials/Http/Controllers/ShiftController.php", "governance/design/contracts/essentials-turnos.contract.json", "e2e/essentials-turnos.spec.ts"],
       "nao_toca": ["Modules/Essentials/Http/Controllers/AttendanceController.php"],
       "depende_threads": ["09"], "depende_decisoes": ["RESIDUO-3"],
@@ -200,11 +204,19 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
     { "id": "11", "titulo": "Fim do topnav Blade + limpeza O8", "dono": "CL", "vaga": 3, "arquivo": "11-topnav-legado.md",
       "prefixo": ["Modules/Essentials/Resources/views/layouts/nav_hrm.blade.php", "Modules/Essentials/Resources/views/layouts/partials/sidebar_hrm.blade.php", "Modules/Essentials/Resources/views/leave/", "Modules/Essentials/Resources/views/leave_type/", "Modules/Essentials/Resources/views/sales_targets/", "Modules/Essentials/Resources/views/dashboard/hrm_dashboard.blade.php"],
       "nao_toca": ["Modules/Essentials/Resources/views/attendance/", "Modules/Essentials/Resources/views/payroll/", "Modules/Essentials/Routes/web.php"],
-      "depende_threads": ["02", "03", "05", "06"],
+      "depende_threads": ["02", "03", "06", "12"],
       "provas": [
         { "tipo": "ausente", "path": "Modules/Essentials/Resources/views/layouts/nav_hrm.blade.php" },
         { "tipo": "ausente", "path": "Modules/Essentials/Resources/views/layouts/partials/sidebar_hrm.blade.php" },
         { "tipo": "ausente", "path": "Modules/Essentials/Resources/views/dashboard/hrm_dashboard.blade.php" }
+      ] },
+    { "id": "12", "titulo": "Dono por papel — emenda 0014 (D4 escala→Ponto · D5 feriado HRM lido pelo Ponto)", "dono": "CL", "vaga": 2, "arquivo": "12-dono-por-papel.md",
+      "prefixo": ["memory/decisions/0014-essentials-pontowr2-integracao.md", "Modules/Essentials/Routes/web.php"],
+      "nao_toca": ["Modules/Ponto/", "Modules/Essentials/Http/Controllers/ShiftController.php", "Modules/Essentials/Entities/Shift.php"],
+      "depende_threads": ["09"], "depende_decisoes": ["D4", "D5"],
+      "provas": [
+        { "tipo": "contem", "path": "memory/decisions/0014-essentials-pontowr2-integracao.md", "padrao": "2026-09-29", "nota": "emenda datada D4+D5 — nunca ADR paralela (LC-19)" },
+        { "tipo": "contem", "path": "Modules/Essentials/Routes/web.php", "padrao": "'/ponto/escalas'", "nota": "/shift cede com 301, como a presença" }
       ] }
   ]
 }

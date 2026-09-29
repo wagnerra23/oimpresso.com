@@ -10,12 +10,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Modules\Ponto\Entities\BancoHorasSaldo;
 use Modules\Ponto\Entities\Colaborador;
 use Modules\Ponto\Entities\Escala;
 use Modules\Ponto\Entities\EscalaTurno;
 use Modules\Ponto\Entities\Intercorrencia;
 use Modules\Ponto\Entities\Marcacao;
+use Modules\Ponto\Http\Controllers\EspelhoController;
+use Modules\Ponto\Http\Controllers\IntercorrenciaController;
 use Modules\Ponto\Http\Requests\StoreIntercorrenciaRequest;
 use Modules\Ponto\Services\IntercorrenciaService;
 use Modules\Ponto\Services\MobileMarcacaoService;
@@ -152,26 +156,54 @@ class MobileMarcacaoController extends Controller
         if (! $colab) {
             return $this->semColaborador();
         }
-        $businessId = (int) $colab->business_id;
-
-        $marcacoes = Marcacao::query()
-            ->where('business_id', $businessId)
-            ->where('colaborador_config_id', $colab->id)
-            ->whereDate('momento', now()->toDateString())
-            ->orderBy('momento')
-            ->get();
-
         return response()->json([
             'data' => now()->toDateString(),
-            'marcacoes' => $marcacoes->map(fn (Marcacao $m) => [
-                'id'         => (string) $m->id,
-                'nsr'        => (int) $m->nsr,
-                'tipo'       => (string) $m->tipo,
-                'origem'     => (string) $m->origem,
-                'hora'       => $m->momento?->format('H:i'),
-                'hash_trunc' => substr((string) $m->hash, 0, 16),
-                'revisar'    => $this->foraDoGeofence($m, $businessId),
-            ])->values(),
+            'marcacoes' => $this->listaHoje($colab),
+        ]);
+    }
+
+    /**
+     * GET /ponto/mobile — `ponto.mobile` (web). A tela do colaborador: Bater ponto,
+     * Meu espelho e Justificar. Sem cadastro de ponto (ex.: o gestor abrindo a aba),
+     * a tela mostra o estado vazio — `colaborador: null`, nada inventado.
+     */
+    public function tela(Request $request): InertiaResponse
+    {
+        $colab = $this->colaboradorDoUsuario($request)?->loadMissing('user');
+        $podeVerModulo = \Modules\Ponto\Http\Middleware\CheckPontoAccess::permite($request->user());
+
+        // Contagens das abas e linha de contexto do header: as outras telas recebem isso do
+        // CheckPontoAccess, que esta rota não passa. Só pra quem vê o módulo — o colaborador
+        // sem `ponto.access` não recebe número nenhum da empresa (pendências, total de
+        // intercorrências, quantos colaboradores).
+        if ($podeVerModulo) {
+            $bizId = (int) (session('business.id') ?? $request->user()->business_id);
+            \Modules\Ponto\Http\Middleware\CheckPontoAccess::compartilharCabecalho($bizId);
+        }
+
+        $espelho = app(EspelhoController::class);
+        $ano = (int) now()->year;
+        $mes = (int) now()->month;
+
+        return Inertia::render('Ponto/Mobile/Index', [
+            'colaborador' => $colab ? [
+                'nome'      => trim(optional($colab->user)->first_name . ' ' . optional($colab->user)->last_name) ?: '—',
+                'matricula' => $colab->matricula,
+            ] : null,
+            'marcacoes_hoje' => $colab ? $this->listaHoje($colab) : [],
+            'hoje'   => now()->toDateString(),
+            'mes'    => now()->format('Y-m'),
+            // Mesmos builders do Espelho/Show (US-PONTO-012 já corrigida lá) — não recalcula.
+            'totais' => Inertia::defer(fn () => $colab ? $espelho->buildTotaisEspelho((int) $colab->business_id, (int) $colab->id, $ano, $mes) : null),
+            'linhas' => Inertia::defer(fn () => $colab ? $espelho->buildLinhasEspelho((int) $colab->business_id, (int) $colab->id, $ano, $mes) : []),
+            'tipos'  => IntercorrenciaController::tiposDisponiveis(),
+            // A rota fica fora do `ponto.access` ([W] 2026-09-29); o cabeçalho do módulo (abas de
+            // RH) só aparece pra quem pode abrir o módulo — senão cada aba seria um 403.
+            'pode_ver_modulo' => $podeVerModulo,
+            'limites' => [
+                'accuracy_max' => MobileMarcacaoService::GPS_ACCURACY_MAX_METROS,
+                'drift_max'    => MobileMarcacaoService::TIMESTAMP_DRIFT_MAX_SEG,
+            ],
         ]);
     }
 
@@ -362,6 +394,29 @@ class MobileMarcacaoController extends Controller
             'erro' => 'sem_colaborador',
             'mensagem' => 'Seu usuario nao tem cadastro de ponto neste empregador.',
         ], 403);
+    }
+
+    /** Marcações de hoje do colaborador (sem as anulações — o espelho também as omite). */
+    protected function listaHoje(Colaborador $colab): array
+    {
+        $businessId = (int) $colab->business_id;
+
+        return Marcacao::query()
+            ->where('business_id', $businessId)
+            ->where('colaborador_config_id', $colab->id)
+            ->whereDate('momento', now()->toDateString())
+            ->where('origem', '!=', Marcacao::ORIGEM_ANULACAO)
+            ->orderBy('momento')
+            ->get()
+            ->map(fn (Marcacao $m) => [
+                'id'         => (string) $m->id,
+                'nsr'        => (int) $m->nsr,
+                'tipo'       => (string) $m->tipo,
+                'origem'     => (string) $m->origem,
+                'hora'       => $m->momento?->format('H:i'),
+                'hash_trunc' => substr((string) $m->hash, 0, 16),
+                'revisar'    => $this->foraDoGeofence($m, $businessId),
+            ])->values()->all();
     }
 
     /** Geofence é opt-in por empregador: sem coordenada ou sem config, não sinaliza. */

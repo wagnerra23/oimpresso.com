@@ -46,6 +46,12 @@ Route::group(
         Route::post('/aprovacoes/{id}/aprovar', 'AprovacaoController@aprovar')->name('ponto.aprovacoes.aprovar');
         Route::post('/aprovacoes/{id}/rejeitar', 'AprovacaoController@rejeitar')->name('ponto.aprovacoes.rejeitar');
         Route::post('/aprovacoes/lote', 'AprovacaoController@aprovarEmLote')->name('ponto.aprovacoes.lote');
+        // Fila do gestor do REP-P (thread 06): validar = trilha · recusar = anulação (D3).
+        // Recusar tem efeito jurídico e exige `ponto.aprovacoes.manage` ([W] 2026-09-29).
+        Route::post('/aprovacoes/mobile/{id}/validar', [\Modules\Ponto\Http\Controllers\AprovacaoController::class, 'validarMobile'])->name('ponto.aprovacoes.mobile.validar');
+        Route::post('/aprovacoes/mobile/{id}/recusar', [\Modules\Ponto\Http\Controllers\AprovacaoController::class, 'recusarMobile'])
+            ->middleware('can:ponto.aprovacoes.manage')
+            ->name('ponto.aprovacoes.mobile.recusar');
 
         // 4. Intercorrências
         Route::resource('/intercorrencias', 'IntercorrenciaController')->names([
@@ -122,6 +128,27 @@ Route::group(
         Route::get('/configuracoes', 'ConfiguracaoController@index')->name('ponto.configuracoes.index');
         Route::get('/configuracoes/reps', 'ConfiguracaoController@reps')->name('ponto.configuracoes.reps');
         Route::post('/configuracoes/reps', 'ConfiguracaoController@storeRep')->name('ponto.configuracoes.reps.store');
+    }
+);
+
+// ===========================================================================
+// 1b) REP-P (celular) — a tela do COLABORADOR, fora do `ponto.access` ([W] 2026-09-29:
+//     "colaborador sem ponto.access também acessa /ponto/mobile"). Mesma pilha web do grupo 1,
+//     MENOS o `ponto.access`: quem decide é o controller — sem cadastro de ponto
+//     (business_id + user_id + controla_ponto) a tela fica vazia e as ações dão 403.
+//     As ações são os MESMOS métodos JSON de /ponto/api, sob sessão web: não há
+//     CreateFreshApiToken no app, então uma tela Inertia não alcança auth:api.
+// ===========================================================================
+Route::group(
+    [
+        'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
+        'prefix'     => 'ponto',
+    ],
+    function () {
+        Route::get('/mobile', [MobileMarcacaoController::class, 'tela'])->name('ponto.mobile');
+        Route::post('/mobile/marcar', [MobileMarcacaoController::class, 'registrar'])->name('ponto.mobile.marcar');
+        Route::get('/mobile/marcacoes/hoje', [MobileMarcacaoController::class, 'marcacoesHoje'])->name('ponto.mobile.marcacoes.hoje');
+        Route::post('/mobile/intercorrencias', [MobileMarcacaoController::class, 'criarIntercorrencia'])->name('ponto.mobile.intercorrencias.store');
     }
 );
 

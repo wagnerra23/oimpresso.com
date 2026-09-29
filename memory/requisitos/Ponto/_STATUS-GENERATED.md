@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 16 |
 | CU no SDD | 14 |
-| Telas (.tsx) | 23 |
-| Telas com `casos.md` | 23 |
-| UC declarados | 104 |
-| UC com teste que os cita | 102 |
+| Telas (.tsx) | 24 |
+| Telas com `casos.md` | 24 |
+| UC declarados | 119 |
+| UC com teste que os cita | 117 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -142,6 +142,10 @@ authority: generated
 | UC-PAPR-03 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PAPR-04 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PAPR-05 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-06 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-07 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-08 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-09 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-01 | Fechamento/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-02 | Fechamento/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-03 | Fechamento/Index | 🧪 aguarda veredito da lane |
@@ -155,6 +159,17 @@ authority: generated
 | UC-RELIDX-03 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-04 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-05 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-00 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-01 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-02 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-03 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-04 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-05 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-06 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-07 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-08 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-09 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-10 | Mobile/Index | 🧪 aguarda veredito da lane |
 
 ---
 

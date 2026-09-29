@@ -1,4 +1,4 @@
-// hrm-extras.jsx — HRM: visões Presença · Turnos · Folha · Metas · Configurações.
+// hrm-extras.jsx — HRM: visões Folha · Metas · Configurações (Presença e Turnos → Ponto).
 // Primitivos e pontes do DS vivem em hrm-ui.jsx; formulários em hrm-forms.jsx.
 // Ondas O1 (mecânica) · O2 (formulários) · O3 (espelho mensal, custo, cobertura) · O4 (DS vivo).
 // Expõe window.HrmExtras.
@@ -10,314 +10,8 @@ const F = window.HrmForms;
 const { Badge, Card, Row, Seg, Nota, Kpis, Busca, Drawer, Sec, KV, Campo, Escolha, Periodo, Grafico, Tabela, Paginacao, Bulk, Skel, Vazio, Aviso, useAmbiente, SemPermissao, usePagina, useAviso, useAtalhos, useCarga, usePersist } = U;
 const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 
-const HOJE = "2026-08-21";
-const durMin = (p) => {
-  if (!p.ent) return 0;
-  const [h1, m1] = p.ent.split(":").map(Number);
-  const [h2, m2] = (p.sai || "18:30").split(":").map(Number);
-  let min = (h2 * 60 + m2) - (h1 * 60 + m1);
-  if (min < 0) min += 1440;
-  return min;
-};
-const hm = (min) => `${Math.floor(min / 60)}h ${String(min % 60).padStart(2, "0")}m`;
 
-// ═══════════════════════ PRESENÇA ═══════════════════════
-function Presenca() {
-  const A = useAmbiente();
-  const [sub, setSub] = useState("lanc");
-  const [q, setQ] = useState("");
-  const [emp, setEmp] = useState("all");
-  const [periodo, setPeriodo] = useState({ from:"2026-08-15", to:"2026-08-21", preset:"semana" });
-  const [pontos, setPontos] = usePersist("pre", A.dados.pre);
-  const [marcadas, setMarcadas] = useState([]);
-  const [sel, setSel] = useState(null);
-  const [aviso, setAviso] = useAviso();
-  const buscaRef = useRef(null);
-  const carregando = useCarga();
-  useAtalhos({ busca:buscaRef, onEsc:() => { if (sel) setSel(null); else if (q) setQ(""); } });
-
-  const meu = pontos.find((p) => p.emp === "e-1" && p.data === HOJE && !p.sai);
-  const iso = (d) => typeof d === "string" ? d.slice(0, 10) : d ? new Date(d).toISOString().slice(0, 10) : null;
-  const de = iso(periodo.from), ate = iso(periodo.to);
-
-  const verTodos = A.pode("ver_todos");
-  const filtradas = pontos.filter((p) => {
-    if (!verTodos && p.emp !== A.eu) return false;
-    if (emp !== "all" && p.emp !== emp) return false;
-    if (de && p.data < de) return false;
-    if (ate && p.data > ate) return false;
-    if (!q) return true;
-    return [H.emp(p.emp).nome, p.turno, p.local, p.nEnt, p.nSai].join(" ").toLowerCase().includes(q.toLowerCase());
-  });
-  const pg = usePagina(filtradas, 8);
-  const abertos = pontos.filter((p) => !p.sai);
-  const horas = filtradas.reduce((s, p) => s + durMin(p), 0);
-
-  const bater = (tipo) => {
-    if (tipo === "saida") { setPontos((ps) => ps.map((p) => p === meu ? { ...p, sai:"18:04" } : p)); setAviso("Saída registrada às 18:04."); return; }
-    setPontos((ps) => [{ id:99, emp:"e-1", data:HOJE, ent:"08:00", sai:null, turno:"Turno A", ip:"189.4.22.10", local:"Matriz — portaria", nEnt:"", nSai:"" }, ...ps]);
-    setAviso(H.CFG.is_location_required ? "Entrada registrada com a localização do navegador (obrigatória na configuração)." : "Entrada registrada.");
-  };
-  const fechar = (ids) => {
-    setPontos((ps) => ps.map((p) => ids.includes(p.id) ? { ...p, sai:p.turno === "Turno A" ? "17:30" : "22:30", nSai:"Fechada em lote pelo RH" } : p));
-    setMarcadas([]);
-    setAviso(H.plural(ids.length, "Marcação fechada no horário do turno.", "{n} marcações fechadas no horário do turno."));
-  };
-
-  const cols = [
-    { key:"quem", label:"Colaborador", sortable:true },
-    { key:"data", label:"Data", sortable:true, sortValue:(r) => r.raw.data, width:"110px" },
-    { key:"ent", label:"Entrada", sortable:true, width:"120px" },
-    { key:"sai", label:"Saída", width:"130px" },
-    { key:"dur", label:"Duração", sortable:true, sortValue:(r) => durMin(r.raw), align:"right", width:"110px" },
-    { key:"turno", label:"Turno", sortable:true, width:"110px" },
-    { key:"origem", label:"Origem" },
-  ];
-  const rows = pg.fatia.map((p) => ({
-    id:String(p.id), raw:p, state:!p.sai ? "urgent" : undefined,
-    cells:{
-      quem:{ primary:H.emp(p.emp).nome, sub:H.emp(p.emp).cargo },
-      data:<span className="hrm-mono">{H.dt(p.data)}</span>,
-      ent:<><span className="hrm-mono">{p.ent}</span>{p.nEnt && <div className="hrm-meta">{p.nEnt}</div>}</>,
-      sai:p.sai ? <><span className="hrm-mono">{p.sai}</span>{p.nSai && <div className="hrm-meta hrm-clamp">{p.nSai}</div>}</> : <Badge tone="warn">em aberto</Badge>,
-      dur:<span className="hrm-mono">{hm(durMin(p))}{!p.sai && <div className="hrm-meta">em curso</div>}</span>,
-      turno:p.turno,
-      origem:<><span className="hrm-mono">{p.ip}</span><div className="hrm-meta">{p.local || "sem localização"}</div></>,
-    },
-  }));
-
-  // O3 — espelho do mês por colaborador (dia a dia: presença · licença · feriado · folga)
-  const espelho = useMemo(() => {
-    const dias = Array.from({ length:21 }, (_, i) => `2026-08-${String(i + 1).padStart(2, "0")}`);
-    return (verTodos ? H.EMP : H.EMP.filter((e) => e.id === A.eu)).map((e) => ({
-      emp:e,
-      dias:dias.map((d) => {
-        const wd = new Date(d + "T12:00:00").getDay();
-        const turno = H.TUR.find((t) => t.nome === e.turno);
-        const folga = turno && turno.folgas.some((f) => ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"][wd] === f);
-        const fer = H.FER.some((f) => f.ini <= d && f.fim >= d && (!f.local || f.local === e.local));
-        const licenca = H.LIC.some((l) => l.emp === e.id && l.status === "approved" && l.ini <= d && l.fim >= d);
-        const ponto = pontos.find((p) => p.emp === e.id && p.data === d);
-        return { d, tipo:fer ? "fer" : folga ? "folga" : licenca ? "lic" : ponto ? (ponto.sai ? "ok" : "aberto") : "falta", ponto };
-      }),
-    }));
-  }, [pontos, verTodos]);
-
-  const porTurno = H.TUR.map((t) => {
-    const doTurno = pontos.filter((p) => p.data === HOJE && p.turno === t.nome);
-    const nomes = [...new Set(doTurno.map((p) => H.emp(p.emp).nome))];
-    return { turno:t, presentes:nomes.length, total:t.pessoas, nomes };
-  });
-
-  return (
-    <>
-      <Nota tone="info" title="Presença web ≠ ponto legal">
-        Este é o clock-in/out do Essentials (IP + geolocalização opcional). O registro sob a Portaria MTP 671/2021 é o módulo <b>Ponto WR2</b> — hoje os dois não se conversam.
-      </Nota>
-      <Kpis items={[
-        ...(verTodos ? [{ l:"Presentes agora", v:new Set(pontos.filter((p) => p.data === HOJE && !p.sai).map((p) => p.emp)).size, sub:`de ${H.EMP.length} colaboradores`, tone:"success" }] : []),
-        ...(verTodos ? [{ l:"Sem saída registrada", v:abertos.length, sub:"turno fixo fecha automático", tone:abertos.length > 2 ? "warning" : "default" }] : []),
-        { l:verTodos ? "Horas no período" : "Minhas horas no período", v:hm(horas), sub:"soma das marcações filtradas" },
-        { l:"Tolerância", v:`${H.CFG.grace_before_checkin}/${H.CFG.grace_after_checkin} min`, sub:"antes/depois da entrada" },
-      ]}/>
-
-      <div className="hrm-grid">
-        <Card title="Meu ponto" sub="Larissa Andrade · Turno A (08:00–17:00)">
-          {meu
-            ? <><Row t="Entrada registrada" s={`${H.dt(meu.data)} · ${meu.local || "sem localização"}`} v={meu.ent}/><Row t="Tempo em curso" v={hm(durMin(meu))}/>
-                <div style={{ marginTop:10 }}><button className="os-btn primary" onClick={() => bater("saida")}>Registrar saída</button></div></>
-            : <><p className="hrm-empty">Sem entrada registrada hoje.</p><button className="os-btn primary" onClick={() => bater("entrada")}>Registrar entrada</button></>}
-        </Card>
-        <Card title="Importar presença" sub="Planilha do relógio de ponto (xls/csv)">
-          {!A.pode("importar") ? <SemPermissao frase="Importar presença exige a permissão de lançar presença de todos os colaboradores."/> : <>
-          <div className="hrm-list">
-            <Row t="Colunas esperadas" s="e-mail · entrada · saída · turno · nota entrada · nota saída · IP"/>
-            <Row t="Formato de data/hora" s="Y-m-d H:i:s — fora disso a linha quebra o lote inteiro"/>
-            <Row t="Colaborador casado por e-mail" s="e-mail não encontrado aborta com rollback"/>
-          </div>
-          <p className="hrm-card-sub" style={{ marginTop:10 }}>O importador não confere sobreposição de horário — a mesma marcação entra duas vezes se a planilha repetir (achado A7).</p>
-          <button className="os-btn ghost" disabled={A.demo} onClick={() => setAviso("Simulação: 6 linhas lidas · 4 importadas · 2 recusadas (e-mail não encontrado na linha 3, hora fora do formato na linha 5).")}>Escolher planilha…</button></>}
-        </Card>
-      </div>
-
-      <Seg value={sub} onChange={setSub} options={[{ id:"lanc", label:"Lançamentos" }, { id:"espelho", label:"Espelho do mês" }, { id:"turno", label:"Por turno" }, { id:"data", label:"Por data" }]}/>
-
-      {sub === "lanc" && <>
-        <div className="hrm-toolbar">
-          <Busca value={q} onChange={setQ} inputRef={buscaRef} placeholder="Buscar por colaborador, turno, local ou nota…"/>
-          <select className="hrm-sel" value={emp} onChange={(e) => setEmp(e.target.value)} disabled={!verTodos} aria-label="Filtrar por colaborador">
-            <option value="all">{verTodos ? "Todos os colaboradores" : "Somente as minhas"}</option>
-            {verTodos && H.EMP.map((e) => <option key={e.id} value={e.id}>{e.nome}</option>)}
-          </select>
-          <span className="usr-count">{filtradas.length} marcações</span>
-          <span className="hrm-spacer"></span>
-          <span className="hrm-kbd"><kbd>/</kbd> buscar</span>
-        </div>
-        <Periodo valor={periodo} onChange={setPeriodo} label="Período das marcações"/>
-        {carregando ? <Skel n={8}/> : filtradas.length ? <>
-          <Tabela cols={cols} rows={rows} selecionavel={A.pode("importar")} onSelecao={(ids) => setMarcadas((ids || []).map(Number))} onLinha={(r) => setSel(r.raw)} altura={420} ordem={{ key:"data", dir:"desc" }}/>
-          <Paginacao pagina={pg.pagina} paginas={pg.paginas} onMudar={pg.setPagina} total={pg.total} porPagina={pg.porPagina}/>
-        </> : A.primeira
-          ? <Vazio variante="first" titulo="Nenhuma marcação ainda" desc="A presença nasce quando alguém registra entrada pela web ou o RH importa a planilha do relógio. Turno fixo aplica tolerância; flexível não compara com escala."/>
-          : <Vazio variante="no-results" titulo="Nenhuma marcação no período" desc="Ajuste o período, o colaborador ou a busca." acao={<button className="os-btn ghost" onClick={() => { setQ(""); setEmp("all"); setPeriodo({ from:"2026-08-01", to:"2026-08-21", preset:"mes" }); }}>Ver o mês inteiro</button>}/>}
-      </>}
-
-      {sub === "espelho" && <>
-        <div className="hrm-esp-legenda">
-          <span><i className="ok"></i> presença fechada</span>
-          <span><i className="aberto"></i> em aberto</span>
-          <span><i className="lic"></i> licença</span>
-          <span><i className="fer"></i> feriado</span>
-          <span><i className="folga"></i> folga do turno</span>
-          <span><i className="falta"></i> sem marcação</span>
-        </div>
-        <div className="os-table-wrap">
-          <table className="os-table hrm-esp">
-            <thead><tr><th scope="col">Colaborador</th>{espelho[0].dias.map((d) => <th key={d.d} scope="col" className="hrm-esp-h">{d.d.slice(-2)}</th>)}<th scope="col" className="hrm-num">Horas</th></tr></thead>
-            <tbody>{espelho.map((l) => {
-              const min = l.dias.reduce((s, d) => s + (d.ponto ? durMin(d.ponto) : 0), 0);
-              return (
-                <tr key={l.emp.id}>
-                  <td><div className="hrm-name">{l.emp.nome}</div><div className="hrm-meta">{l.emp.turno}</div></td>
-                  {l.dias.map((d) => <td key={d.d} className="hrm-esp-c"><i className={`hrm-esp-i ${d.tipo}`} title={`${H.dt(d.d)} · ${{ ok:"presença", aberto:"em aberto", lic:"licença", fer:"feriado", folga:"folga", falta:"sem marcação" }[d.tipo]}`}></i></td>)}
-                  <td className="hrm-num hrm-mono">{hm(min)}</td>
-                </tr>);
-            })}</tbody>
-          </table>
-        </div>
-        <p className="hrm-card-sub" style={{ marginTop:10 }}>O espelho é <b>montado nesta tela</b> cruzando marcação, licença aprovada, feriado e folga do turno — o backend não tem esse relatório: hoje só existe "por turno" e "por data".</p>
-      </>}
-
-      {sub === "turno" && <div className="hrm-grid">{porTurno.map((t) => (
-        <Card key={t.turno.id} title={t.turno.nome} aside={`${t.presentes} de ${t.total}`}>
-          <div className="hrm-bar"><i className={t.presentes >= t.total ? "ok" : ""} style={{ width:`${t.total ? Math.min(100, t.presentes / t.total * 100) : 0}%` }}></i></div>
-          <div className="hrm-list" style={{ marginTop:10 }}>
-            {t.nomes.length ? t.nomes.map((n) => <Row key={n} t={n} v="presente"/>) : <p className="hrm-empty">Ninguém marcou ponto neste turno hoje.</p>}
-          </div>
-        </Card>))}</div>}
-
-      {sub === "data" && (() => {
-        const dias = ["2026-08-21", "2026-08-20", "2026-08-19"].map((d) => {
-          const n = new Set(pontos.filter((p) => p.data === d).map((p) => p.emp)).size;
-          return { data:d, presentes:n, ausentes:H.EMP.length - n };
-        });
-        return (
-          <>
-            <Card title="Presença por dia" sub="Presentes contra o total de colaboradores do negócio.">
-              <Grafico tipo="bar" dados={dias.slice().reverse().map((d) => ({ label:H.dt(d.data).slice(0, 5), value:d.presentes }))} altura={120} destacaUltimo/>
-            </Card>
-            <div className="os-table-wrap"><table className="os-table">
-              <thead><tr><th scope="col">Data</th><th scope="col" className="hrm-num">Presentes</th><th scope="col" className="hrm-num">Ausentes</th><th scope="col">Cobertura</th></tr></thead>
-              <tbody>{dias.map((d) => (
-                <tr key={d.data}><td className="hrm-mono">{H.dt(d.data)}</td><td className="hrm-num">{d.presentes}</td><td className="hrm-num hrm-neg">{d.ausentes}</td>
-                  <td><div className="hrm-bar" style={{ width:140 }}><i style={{ width:`${d.presentes / H.EMP.length * 100}%` }}></i></div></td></tr>))}</tbody>
-            </table></div>
-            <p className="hrm-card-sub" style={{ marginTop:10 }}>“Ausente” aqui é <b>todo colaborador menos quem marcou</b> — férias e licença aprovada contam como ausente (comportamento do <code>getAttendanceByDate</code>).</p>
-          </>);
-      })()}
-
-      <Bulk n={marcadas.length} rotulo="marcações selecionadas" onFechar={() => setMarcadas([])} acoes={[
-        { label:"Fechar no horário do turno", onClick:() => fechar(marcadas) },
-        { label:"Excluir marcações", tone:"danger", onClick:() => { if (window.confirm(H.plural(marcadas.length, "Excluir esta marcação?\nA jornada do dia deixa de existir para efeito de folha.", "Excluir {n} marcações?\nA jornada desses dias deixa de existir para efeito de folha."))) { setPontos((ps) => ps.filter((p) => !marcadas.includes(p.id))); setMarcadas([]); setAviso(H.plural(marcadas.length, "Marcação excluída.", "{n} marcações excluídas.")); } } },
-      ]}/>
-
-      {sel && (() => { const e = H.emp(sel.emp); return (
-        <Drawer title={`${e.nome} · ${H.dt(sel.data)}`} sub={`${sel.turno} · ${hm(durMin(sel))}`} onClose={() => setSel(null)}
-          footer={<><button className="os-btn ghost" onClick={() => setSel(null)}>Fechar</button>{!sel.sai && <button className="os-btn primary" onClick={() => { fechar([sel.id]); setSel(null); }}>Fechar no horário do turno</button>}</>}>
-          <Sec title="Marcação">
-            <KV pairs={[["Entrada", sel.ent], ["Saída", sel.sai || "em aberto"], ["Nota de entrada", sel.nEnt || "—"], ["Nota de saída", sel.nSai || "—"], ["IP", sel.ip], ["Localização", sel.local || "não informada"]]}/>
-          </Sec>
-          <Sec title="Contexto do dia">
-            {(() => {
-              const lic = H.LIC.find((l) => l.emp === sel.emp && l.status === "approved" && l.ini <= sel.data && l.fim >= sel.data);
-              const fer = H.FER.find((f) => f.ini <= sel.data && f.fim >= sel.data);
-              return <div className="hrm-list">
-                <Row t="Licença aprovada no dia" s={lic ? "marcação e licença convivem sem aviso" : "nenhuma"} v={lic ? "sim" : "não"}/>
-                <Row t="Feriado no dia" s={fer ? fer.nome : "nenhum"} v={fer ? "sim" : "não"}/>
-              </div>;
-            })()}
-          </Sec>
-        </Drawer>); })()}
-
-      <Aviso msg={aviso} tone="ok"/>
-    </>
-  );
-}
-
-// ═══════════════════════ TURNOS ═══════════════════════
-function Turnos() {
-  const A = useAmbiente();
-  const [turnos, setTurnos] = usePersist("tur", A.dados.tur);
-  const [sel, setSel] = useState(null);
-  const [form, setForm] = useState(null);
-  const [aviso, setAviso] = useAviso();
-  const TIPO = { fixed_shift:"Turno fixo", flexible_shift:"Turno flexível" };
-  const podeGerir = A.pode("gerir_turno") && !A.demo;
-  const salvar = (t) => {
-    setTurnos((ts) => ts.some((x) => x.id === t.id) ? ts.map((x) => x.id === t.id ? t : x) : [...ts, t]);
-    setForm(null);
-    setAviso(`Turno “${t.nome}” salvo.`);
-  };
-  return (
-    <>
-      {!A.pode("ver_todos") ? <SemPermissao frase="A escala de turnos exige acesso à presença de todos os colaboradores."/> : <>
-      <Nota tone="warn" title="Turno não tem exclusão">
-        <code>ShiftController::destroy</code> está vazio no main — dá para criar, editar e atribuir pessoas, nunca apagar. Turno errado fica no cadastro para sempre.
-      </Nota>
-      <Kpis items={[
-        { l:"Turnos", v:turnos.length, sub:`${turnos.filter((t) => t.tipo === "fixed_shift").length} fixos · ${turnos.filter((t) => t.tipo === "flexible_shift").length} flexível`, tone:"info" },
-        { l:"Vínculos vigentes", v:turnos.reduce((s, t) => s + t.pessoas, 0), sub:`de ${H.EMP.length} colaboradores` },
-        { l:"Com saída automática", v:turnos.filter((t) => t.autoOut).length, sub:"fecha marcação em aberto" },
-      ]}/>
-      <div className="hrm-toolbar">
-        <span className="usr-count">{turnos.length} turnos</span>
-        <span className="hrm-spacer"></span>
-        <button className="os-btn primary" disabled={!podeGerir} title={podeGerir ? null : "Só o administrador cria turno"} onClick={() => setForm({})}>Novo turno</button>
-      </div>
-      {turnos.length ? <><div className="os-table-wrap"><table className="os-table">
-        <thead><tr><th scope="col">Turno</th><th scope="col">Tipo</th><th scope="col">Horário</th><th scope="col">Folgas</th><th scope="col">Saída automática</th><th scope="col" className="hrm-num">Pessoas</th><th scope="col"></th></tr></thead>
-        <tbody>{turnos.map((t) => (
-          <tr key={t.id}>
-            <td className="hrm-name">{t.nome}</td>
-            <td>{TIPO[t.tipo]}</td>
-            <td className="hrm-mono">{t.tipo === "flexible_shift" ? "—" : `${t.ini}–${t.fim}`}</td>
-            <td>{t.folgas.map((d) => H.DIA[d]).join(", ")}</td>
-            <td>{t.autoOut ? <Badge tone="accent">às {t.autoOutAs}</Badge> : <Badge>desligada</Badge>}</td>
-            <td className="hrm-num">{t.pessoas}</td>
-            <td style={{ textAlign:"right" }}>
-              <span className="hrm-acoes">
-                <button className="os-btn ghost" disabled={!podeGerir} onClick={() => setForm(t)}>Editar</button>
-                <button className="os-btn ghost" disabled={!podeGerir} onClick={() => setSel(t)}>Colaboradores</button>
-              </span>
-            </td>
-          </tr>))}</tbody>
-      </table></div>
-      <p className="hrm-card-sub" style={{ marginTop:10 }}>Turno flexível não tem hora de entrada/saída: a marcação nunca é comparada com a escala, e a tolerância das configurações não se aplica.</p></>
-      : <Vazio variante="first" titulo="Nenhum turno cadastrado" desc="Turno define escala, folgas e tolerância — sem ele a presença fica solta e a saída automática não roda. Comece por um turno fixo do balcão." acao={<button className="os-btn primary" disabled={!podeGerir} onClick={() => setForm({})}>Criar o primeiro turno</button>}/>}
-
-      {form && <F.FormTurno item={form.id ? form : null} onClose={() => setForm(null)} onSalvar={salvar}/>}
-
-      {sel && <Drawer title={`Colaboradores · ${sel.nome}`} sub={`${TIPO[sel.tipo]}${sel.ini ? ` · ${sel.ini}–${sel.fim}` : ""}`} onClose={() => setSel(null)}
-        footer={<><button className="os-btn ghost" onClick={() => setSel(null)}>Cancelar</button><button className="os-btn primary" onClick={() => { setSel(null); setAviso("Vínculos salvos — quem saiu perde o histórico de escala."); }}>Salvar vínculos</button></>}>
-        <Sec title="Vigência por pessoa">
-          <div className="hrm-list">
-            {H.EMP.map((e) => (
-              <div className="hrm-row" key={e.id}>
-                <span className="hrm-row-l"><span className="hrm-row-t">{e.nome}</span><span className="hrm-row-s">{e.cargo} · {e.local}</span></span>
-                <span className="hrm-row-v">{e.turno === sel.nome ? <Badge tone="ok">no turno desde {e.admissao}</Badge> : <button className="os-btn ghost">Incluir</button>}</span>
-              </div>))}
-          </div>
-        </Sec>
-        <Sec title="Como o vínculo funciona">
-          <p className="hrm-achado-d">Cada vínculo guarda início e fim. Desmarcar alguém <b>apaga</b> o vínculo (não arquiva) — o histórico de qual turno a pessoa cumpria no mês passado se perde, e o relatório “por turno” muda retroativamente.</p>
-        </Sec>
-      </Drawer>}
-
-      <Aviso msg={aviso} tone="ok"/>
-      </>}
-    </>
-  );
-}
+// Presença e Turnos saíram do HRM: a jornada e a escala são do Ponto (D1 2026-09-05 · D4 2026-09-29).
 
 // ═══════════════════════ FOLHA DE PAGAMENTO ═══════════════════════
 function Folha() {
@@ -478,7 +172,7 @@ function Folha() {
             </div>
           </Sec>
           <Sec title="Apuração do mês">
-            <KV pairs={[["Horas registradas", `${sel.horas} h (presença web)`], ["Dias de licença", H.plural(sel.faltas, "1 dia", "{n} dias")], ["Local de trabalho", e.local], ["Situação do pagamento", H.ST_PAG[sel.pagamento].l]]}/>
+            <KV pairs={[["Horas apuradas", "— vêm do Ponto (integração da folha pendente)"], ["Dias de licença", H.plural(sel.faltas, "1 dia", "{n} dias")], ["Local de trabalho", e.local], ["Situação do pagamento", H.ST_PAG[sel.pagamento].l]]}/>
           </Sec>
           <Sec title="O que a folha NÃO faz aqui">
             <p className="hrm-achado-d">Sem INSS, IRRF, FGTS, 13º ou férias proporcionais: o módulo soma ganhos, subtrai deduções e grava uma despesa. Encargos e guias continuam fora do sistema.</p>
@@ -492,11 +186,13 @@ function Folha() {
 
 // ═══════════════════════ METAS DE VENDA ═══════════════════════
 function Metas() {
+  // Puxado do vivo (resources/js/Pages/Essentials/Metas.tsx, #6869): a tela CADASTRA a meta, não apura.
+  // Realizado do mês e comissão em R$ ficam fora por caminho de VALOR (Metas.charter.md:53) — o Painel
+  // exclui pela mesma razão (DashboardController::hrmDashboard). Quem apura é a folha. Decisão [W] 2026-09-29.
   const A = useAmbiente();
   const [metas, setMetas] = usePersist("metas", A.dados.metas);
   const [form, setForm] = useState(null);
   const [aviso, setAviso] = useAviso();
-  const faixaDe = (id, v) => (metas[id] || []).find((f) => v >= f.ini && v <= f.fim);
   const salvar = (id, faixas) => {
     setMetas((m) => ({ ...m, [id]:faixas }));
     setForm(null);
@@ -504,44 +200,39 @@ function Metas() {
       ? H.plural(faixas.length, "1 faixa salva — o conjunto anterior foi substituído.", "{n} faixas salvas — o conjunto anterior foi substituído.")
       : "Todas as faixas removidas: comissão de meta zerada.");
   };
-  const comTotal = H.EMP.reduce((s, e) => { const r = H.REALIZADO[e.id] || { mes:0 }; const f = faixaDe(e.id, r.mes); return s + (f ? r.mes * f.pct / 100 : 0); }, 0);
   const podeGerir = A.pode("gerir_meta") && !A.demo;
   const linhas = A.pode("ver_todos") ? H.EMP : H.EMP.filter((e) => e.id === A.eu);
+  const semImposto = H.CFG.calculate_sales_target_commission_without_tax;
+  const pctTxt = (fs) => { const p = fs.map((f) => f.pct); const mn = Math.min(...p), mx = Math.max(...p); return mn === mx ? `${mn}%` : `${mn}% – ${mx}%`; };
 
   return (
     <>
-      <Nota tone="warn" title="Faixa sobreposta = comissão indeterminada">
-        Salvar meta não compara as faixas entre si; a apuração pega a <b>primeira</b> faixa que contém o valor vendido. O formulário desta tela recusa sobreposição — o servidor aceita (achado A5).
+      <Nota tone="info" title="Esta tela cadastra a meta — não apura o resultado">
+        Quanto cada colaborador vendeu no mês, e quanto isso vira de comissão, não é calculado aqui: quem apura é a folha de pagamento. A base configurada no módulo é <b>{semImposto ? "sem imposto" : "com imposto"}</b> — o valor vendido entra {semImposto ? "sem" : "com"} tributo quando a folha faz essa conta.
       </Nota>
       <Kpis items={[
-        { l:A.pode("ver_todos") ? "Comissão de meta apurada" : "Minha comissão de meta", v:A.din(A.pode("ver_todos") ? comTotal : (() => { const r = H.REALIZADO[A.eu] || { mes:0 }; const f = faixaDe(A.eu, r.mes); return f ? r.mes * f.pct / 100 : 0; })()), sub:"mês atual, faixas vigentes", tone:"info" },
-        { l:"Com meta cadastrada", v:linhas.filter((e) => (metas[e.id] || []).length).length, sub:H.plural(linhas.length, "de 1 colaborador", "de {n} colaboradores") },
-        { l:"Base do cálculo", v:H.CFG.calculate_sales_target_commission_without_tax ? "Sem imposto" : "Com imposto", sub:"configuração do módulo" },
+        { l:"Com meta cadastrada", v:linhas.filter((e) => (metas[e.id] || []).length).length, sub:H.plural(linhas.length, "de 1 colaborador", "de {n} colaboradores"), tone:"info" },
+        { l:"Sem meta", v:linhas.filter((e) => !(metas[e.id] || []).length).length, sub:"sem faixa, a comissão de meta é zero" },
+        { l:"Base do cálculo", v:semImposto ? "Sem imposto" : "Com imposto", sub:"configuração do módulo" },
       ]}/>
       <div className="os-table-wrap"><table className="os-table">
-        <thead><tr><th scope="col">Colaborador</th><th scope="col" className="hrm-num">Mês anterior</th><th scope="col" className="hrm-num">Mês atual</th><th scope="col">Faixa atingida</th><th scope="col">Progresso na faixa</th><th scope="col" className="hrm-num">Comissão</th><th scope="col"></th></tr></thead>
+        <caption className="sr-only">Colaboradores e as faixas de meta de venda cadastradas</caption>
+        <thead><tr><th scope="col">Colaborador</th><th scope="col" className="hrm-num">Faixas</th><th scope="col" className="hrm-num">Meta inicial</th><th scope="col" className="hrm-num">Meta final</th><th scope="col" className="hrm-num">Comissão</th><th scope="col">Situação</th><th scope="col"><span className="sr-only">Ações</span></th></tr></thead>
         <tbody>{linhas.map((e) => {
-          const r = H.REALIZADO[e.id] || { mes:0, anterior:0 };
-          const faixas = metas[e.id] || [];
-          const f = faixaDe(e.id, r.mes);
-          const com = f ? r.mes * f.pct / 100 : 0;
-          const prox = faixas.find((x) => x.ini > r.mes);
+          const fs = metas[e.id] || [];
           return (
             <tr key={e.id}>
-              <td><div className="hrm-name">{e.nome}</div><div className="hrm-meta">{e.cargo} · comissão fixa {e.comissao}%</div></td>
-              <td className="hrm-num">{r.anterior ? A.din(r.anterior) : "—"}</td>
-              <td className="hrm-num">{r.mes ? A.din(r.mes) : "—"}</td>
-              <td>{!faixas.length ? <Badge>sem meta</Badge> : f ? <Badge tone="ok">{A.din(f.ini)} – {A.din(f.fim)} · {f.pct}%</Badge> : <Badge tone="warn">fora de toda faixa</Badge>}</td>
-              <td>{f
-                ? <><div className="hrm-bar" style={{ width:130 }}><i style={{ width:`${Math.min(100, (r.mes - f.ini) / Math.max(1, f.fim - f.ini) * 100)}%` }}></i></div>
-                    {prox && <div className="hrm-meta">faltam {A.din(prox.ini - r.mes)} para {prox.pct}%</div>}</>
-                : <span className="hrm-meta">—</span>}</td>
-              <td className="hrm-num">{com ? A.din(com) : "—"}</td>
-              <td style={{ textAlign:"right" }}><button className="os-btn ghost" disabled={!podeGerir} title={podeGerir ? null : "Só o administrador define meta"} onClick={() => setForm(e)}>{faixas.length ? "Editar faixas" : "Definir meta"}</button></td>
+              <td><div className="hrm-name">{e.nome}</div><div className="hrm-meta">{e.cargo}</div></td>
+              <td className="hrm-num">{fs.length || "—"}</td>
+              <td className="hrm-num">{fs.length ? A.din(Math.min(...fs.map((f) => f.ini))) : "—"}</td>
+              <td className="hrm-num">{fs.length ? A.din(Math.max(...fs.map((f) => f.fim))) : "—"}</td>
+              <td className="hrm-num">{fs.length ? pctTxt(fs) : "—"}</td>
+              <td>{fs.length ? <Badge tone="accent">com meta</Badge> : <Badge>sem meta</Badge>}</td>
+              <td style={{ textAlign:"right" }}><button className="os-btn ghost" disabled={!podeGerir} title={podeGerir ? null : "Só o administrador define meta"} onClick={() => setForm(e)} aria-label={`${fs.length ? "Editar faixas" : "Definir meta"} de ${e.nome}`}>{fs.length ? "Editar faixas" : "Definir meta"}</button></td>
             </tr>);
         })}</tbody>
       </table></div>
-      <p className="hrm-card-sub" style={{ marginTop:10 }}>A base do cálculo segue a configuração <b>“apurar comissão de meta sem imposto”</b> ({H.CFG.calculate_sales_target_commission_without_tax ? "ligada" : "desligada"}) — ligada, o valor vendido entra sem tributo.</p>
+      <p className="hrm-card-sub" style={{ marginTop:10 }}>As faixas não podem se sobrepor, nem encostar ponta com ponta — o servidor recusa e diz o motivo.</p>
 
       {form && <F.FormMeta emp={form} faixas={metas[form.id] || []} onClose={() => setForm(null)} onSalvar={salvar}/>}
       <Aviso msg={aviso} tone="ok"/>
@@ -580,20 +271,11 @@ function Config() {
             <Campo label="Prefixo das tarefas" valor={c.essentials_todos_prefix} onChange={(v) => set("essentials_todos_prefix", v)} help="usado ao criar tarefa do Essentials"/>
           </div>
         </Card>
-        <Card title="Tolerância de marcação" sub="Em minutos. Só vale para turno fixo — turno flexível ignora.">
-          <div className="hrm-campos">
-            <Campo label="Antes da entrada" valor={c.grace_before_checkin} onChange={(v) => set("grace_before_checkin", v)}/>
-            <Campo label="Depois da entrada" valor={c.grace_after_checkin} onChange={(v) => set("grace_after_checkin", v)}/>
-            <Campo label="Antes da saída" valor={c.grace_before_checkout} onChange={(v) => set("grace_before_checkout", v)}/>
-            <Campo label="Depois da saída" valor={c.grace_after_checkout} onChange={(v) => set("grace_after_checkout", v)}/>
-          </div>
-        </Card>
         <Card title="Regras">
           <div className="hrm-cfg-flags">
-            {flag("is_location_required", "Exigir localização na marcação", "Sem permissão de local no navegador, a marcação é recusada")}
             {flag("calculate_sales_target_commission_without_tax", "Apurar comissão de meta sem imposto", "O vendido entra sem tributo no cálculo da faixa")}
           </div>
-          <p className="hrm-card-sub" style={{ marginTop:12 }}>“Permitir que o colaborador registre a própria presença” <b>não está aqui</b>: virou permissão de função (<code>allow_users_for_attendance_from_web</code>).</p>
+          <p className="hrm-card-sub" style={{ marginTop:12 }}>Tolerância de marcação e localização obrigatória <b>saíram daqui</b>: a jornada é do Ponto, e lá a lei fixa as duas (CLT Art. 58 §1º · REP-P, Portaria 671).</p>
         </Card>
       </div>
       <div className="hrm-cfg-acoes">
@@ -607,5 +289,5 @@ function Config() {
   );
 }
 
-window.HrmExtras = { Presenca, Turnos, Folha, Metas, Config };
+window.HrmExtras = { Folha, Metas, Config };
 })();

@@ -91,8 +91,8 @@ class EspelhoController extends Controller
                 'carga_diaria_minutos' => (int) optional($colaborador->escalaAtual)->carga_diaria_minutos,
             ],
             'mes'    => $mes,
-            'totais' => Inertia::defer(fn () => $this->buildTotaisEspelho((int) $colaboradorId, (int) $ano, (int) $mesNum)),
-            'linhas' => Inertia::defer(fn () => $this->buildLinhasEspelho((int) $colaboradorId, (int) $ano, (int) $mesNum)),
+            'totais' => Inertia::defer(fn () => $this->buildTotaisEspelho((int) $businessId, (int) $colaboradorId, (int) $ano, (int) $mesNum)),
+            'linhas' => Inertia::defer(fn () => $this->buildLinhasEspelho((int) $businessId, (int) $colaboradorId, (int) $ano, (int) $mesNum)),
         ]);
     }
 
@@ -101,9 +101,12 @@ class EspelhoController extends Controller
      *
      * @return array<string,int>
      */
-    private function buildTotaisEspelho(int $colaboradorId, int $ano, int $mesNum): array
+    // Tier 0 (ADR 0093): `business_id` explícito. Público desde a thread 06 (REP-P reusa), e
+    // chamado também sem sessão web — o global scope não pode ser a única defesa.
+    public function buildTotaisEspelho(int $businessId, int $colaboradorId, int $ano, int $mesNum): array
     {
-        $apuracoes = ApuracaoDia::where('colaborador_config_id', $colaboradorId)
+        $apuracoes = ApuracaoDia::where('business_id', $businessId)
+            ->where('colaborador_config_id', $colaboradorId)
             ->whereYear('data', $ano)
             ->whereMonth('data', $mesNum)
             ->get();
@@ -132,15 +135,17 @@ class EspelhoController extends Controller
      *
      * @return array<int,array<string,mixed>>
      */
-    private function buildLinhasEspelho(int $colaboradorId, int $ano, int $mesNum): array
+    public function buildLinhasEspelho(int $businessId, int $colaboradorId, int $ano, int $mesNum): array
     {
-        $apuracoes = ApuracaoDia::where('colaborador_config_id', $colaboradorId)
+        $apuracoes = ApuracaoDia::where('business_id', $businessId)
+            ->where('colaborador_config_id', $colaboradorId)
             ->whereYear('data', $ano)
             ->whereMonth('data', $mesNum)
             ->orderBy('data')
             ->get();
 
-        $marcacoes = Marcacao::where('colaborador_config_id', $colaboradorId)
+        $marcacoes = Marcacao::where('business_id', $businessId)
+            ->where('colaborador_config_id', $colaboradorId)
             ->whereYear('momento', $ano)
             ->whereMonth('momento', $mesNum)
             ->whereNotIn('origem', [Marcacao::ORIGEM_ANULACAO])

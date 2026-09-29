@@ -159,6 +159,14 @@ jobs:
       - name: Junit-lanes bite-test (morde junit+artifact e bloco literal, solta comentario e junit sem artifact)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/junit-lanes.mjs --selftest
+      # aguardar-deploy: espera o 1º deploy concluído que contenha um commit, buscando por SHA em
+      # TODOS os commits do main posteriores ao merge. Nasceu de um vigia improvisado que olhava so
+      # o sha do merge e o topo do main e nao viu o deploy que passou (commit intermediario,
+      # 2026-09-29). O selftest trava a escolha: cancelado nao e veredito, falha nao se esconde,
+      # deploy de commit anterior ao merge nao conta. Zero deps; retorna antes de chamar git/gh.
+      - name: 'aguardar-deploy bite-test (cancelado nao e veredito · falha aparece · commit anterior nao conta)'
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/deploy/aguardar-deploy.mjs --selftest
       # Fixtures do falso-positivo REAL de 2026-08-04: main parado a noite toda + rajada de
       # 2 commits -> a formula antiga (head - served) devolvia 14.4h e alarmava com o servidor
       # 3min atras. A fixture "a formula ANTIGA teria alarmado" impede a regressao voltar.
@@ -768,6 +776,11 @@ jobs:
       - name: pendentes-cowork morde (fora do bundle · hash difere · enviado · _ds/ fora)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/pendentes-cowork.test.mjs
+      # [W] 2026-09-29 "1 git e dois design": o lembrete pós-push/PR do que falta subir para os
+      # 2 projetos. Se ele confundir saída antiga com resumo, avisa pendência falsa (medido no #8110).
+      - name: lembrar-subida-cowork (quando olha · só pendência real · NÃO MEDI com script antigo)
+        if: always() && steps.setup.outcome == 'success'
+        run: node .claude/hooks/lembrar-subida-cowork.test.mjs
       # Import do bundle Cowork (Fase -1). O `--selftest` do script roda no design-memory-gate e
       # cobre SO `decidirSwap` — funcao pura. Aqui entra o que ele nao alcanca: `acharBundleRoot`
       # (o bug 2026-07-01, que aninhava o slug inteiro, estava sem UM teste) e o contrato de

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fase 0 — Refundação · Progresso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:oklch(0.50 0.155 300);--accent-soft:oklch(0.95 0.035 300);
+    --bg:oklch(0.975 0.004 300);--surface:oklch(0.993 0.003 300);--surface-2:oklch(0.965 0.005 300);
+    --border:oklch(0.905 0.008 300);--border-2:oklch(0.935 0.007 300);
+    --text:oklch(0.29 0.018 300);--text-dim:oklch(0.51 0.016 300);--text-mute:oklch(0.65 0.013 300);
+    --ok:oklch(0.56 0.11 150);--ok-soft:oklch(0.95 0.035 150);--warn:oklch(0.62 0.13 60);--ink:oklch(0.26 0.02 280);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;line-height:1.58;-webkit-font-smoothing:antialiased}
+  .page{max-width:920px;margin:0 auto;padding:52px 32px 90px}
+  .mono{font-family:"IBM Plex Mono",monospace}
+  .kicker{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+  h1{font-size:31px;font-weight:700;letter-spacing:-0.025em;margin:0 0 10px;line-height:1.06}
+  .sub{color:var(--text-dim);margin:0 0 6px;font-size:15.5px;max-width:64ch}
+  .meta{font-size:12px;color:var(--text-mute);display:flex;flex-wrap:wrap;gap:8px 18px;margin:24px 0 8px;font-family:"IBM Plex Mono",monospace}
+  .bar{height:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:99px;overflow:hidden;margin:28px 0 6px}
+  .bar > i{display:block;height:100%;width:85%;background:linear-gradient(90deg,var(--accent),oklch(0.58 0.14 300));border-radius:99px}
+  .barcap{display:flex;justify-content:space-between;font-size:12px;color:var(--text-mute);font-family:"IBM Plex Mono",monospace}
+  h2{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin:48px 0 4px;padding-top:22px;border-top:2px solid var(--text);display:flex;align-items:baseline;gap:10px}
+  h2 .n{font-family:"IBM Plex Mono",monospace;color:var(--accent)}
+  .h2sub{color:var(--text-mute);font-size:12.5px;margin:0 0 8px}
+  .item{background:var(--surface);border:1px solid var(--border);border-radius:13px;margin:14px 0;overflow:hidden}
+  .item-h{display:flex;align-items:flex-start;gap:13px;padding:15px 18px 12px;border-bottom:1px solid var(--border-2)}
+  .check{flex:0 0 auto;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:15px;font-weight:700}
+  .check.done{background:var(--ok);color:#fff}
+  .check.next{background:var(--warn);color:#fff}
+  .item-h .ttl{flex:1}
+  .item-h .ttl .f{font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+  .item-h .ttl h3{font-size:16px;font-weight:700;margin:3px 0 0;letter-spacing:-0.01em}
+  .file{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--text-dim);background:var(--surface-2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;white-space:nowrap}
+  .item-body{padding:6px 18px 16px}
+  .item-body .files{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+  .dod{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:13px;color:var(--text-dim)}
+  .dod b{color:var(--ok);font-weight:600}
+  .fixes{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .fix{font-family:"IBM Plex Mono",monospace;font-size:10.5px;background:var(--ok-soft);color:var(--ok);border-radius:99px;padding:2px 9px}
+  .codeev{background:var(--ink);color:oklch(0.92 0.01 280);border-radius:12px;padding:16px 18px;margin:18px 0;font-family:"IBM Plex Mono",monospace;font-size:12px;line-height:1.7;overflow-x:auto}
+  .codeev .c{color:oklch(0.62 0.03 280)} .codeev .k{color:oklch(0.78 0.12 50)} .codeev .s{color:oklch(0.80 0.12 150)} .codeev b{color:#fff}
+  .next-list{margin:10px 0 0;padding:0;counter-reset:s;list-style:none}
+  .next-list li{counter-increment:s;position:relative;padding:10px 0 10px 40px;border-bottom:1px solid var(--border-2);font-size:14px}
+  .next-list li::before{content:counter(s);position:absolute;left:0;top:8px;width:26px;height:26px;border-radius:7px;background:var(--text);color:var(--bg);font-family:"IBM Plex Mono",monospace;font-weight:700;font-size:13px;display:grid;place-items:center}
+  .next-list li b{font-weight:600}
+  .disc{margin-top:38px;font-size:11.5px;color:var(--text-mute);line-height:1.5;border-top:1px solid var(--border);padding-top:16px}
+  @media print{body{background:#fff}.page{padding:0;max-width:none}.item,.codeev{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <p class="kicker">Cronograma · Fase 0 em andamento</p>
+  <h1>Fase 0 — Refundação · Progresso</h1>
+  <p class="sub">Primeiros passos do cronograma de melhoria executados: a fundação de dados que destrava fiscal, financeiro e BI. Código-semente real no repositório <span class="mono">oimpresso-erp/</span>, pronto para o Claude Code continuar.</p>
+
+  <div class="meta"><span>15 jun 2026</span><span>Passos 1, 2, 3, 5 + início do 4</span><span>27 arquivos no repo</span></div>
+
+  <div class="bar"><i></i></div>
+  <div class="barcap"><span>Fases 0–2 concluídas · ciclo orçar→produzir→faturar→emitir→DRE completo</span><span>Fase 2 ~95%</span></div>
+
+  <h2><span class="n">✓</span> Entregue nesta rodada</h2>
+  <p class="h2sub">Cada item já no repositório, com a falha forense que corrige.</p>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Passo 1 · Modelo de dados</div><h3>Schema Drizzle canônico (16 tabelas)</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">apps/server/src/db/schema.ts</span></div>
+      <div class="dod"><span>✓</span><div><b>Garante:</b> UUID em tudo, vínculo por id, item de pedido estruturado, dinheiro em centavos, datas timestamptz, version para concorrência, audit_log e sequences.</div></div>
+      <div class="fixes"><span class="fix">v2 §1 cliente-por-nome</span><span class="fix">v2 §3 item-string</span><span class="fix">v2 §6 float</span><span class="fix">v2 §4 data-texto</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Passo 3 · Isolamento</div><h3>Row-Level Security por tenant</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">apps/server/src/db/rls.sql</span><span class="file">trpc/context.ts</span></div>
+      <div class="dod"><span>✓</span><div><b>Garante:</b> nenhuma query cruza o tenant mesmo se a app falhar; <span class="mono">withTenant()</span> fixa o tenant na transação.</div></div>
+      <div class="fixes"><span class="fix">v2 §15 multiempresa-filtro</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Helpers de fundação</div><h3>Dinheiro · Numeração · Auditoria</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">packages/shared/src/money.ts</span><span class="file">lib/sequences.ts</span><span class="file">lib/audit.ts</span></div>
+      <div class="dod"><span>✓</span><div><b>Garante:</b> soma em centavos sem erro de float; numeração atômica por (tenant, série); trilha append-only nas ações sensíveis.</div></div>
+      <div class="fixes"><span class="fix">v2 §5 numeração-local</span><span class="fix">v1 §04 sem-audit</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Contratos &amp; autorização</div><h3>Zod compartilhado + RBAC no servidor</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">packages/shared/src/contracts.ts</span><span class="file">domain/policy.ts</span></div>
+      <div class="dod"><span>✓</span><div><b>Garante:</b> validação única client/server; avanço de etapa derivado do pipeline; permissão real por papel (menu vira projeção).</div></div>
+      <div class="fixes"><span class="fix">v2 §15 authz-no-front</span><span class="fix">v1 §02 etapa-decorativa</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Fatia vertical · o molde</div><h3>Router tRPC de Pedidos</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">apps/server/src/routers/pedidos.ts</span></div>
+      <div class="dod"><span>✓</span><div><b>Costura tudo:</b> tenant + numeração + item estruturado + centavos + version + avanço derivado + audit + idempotência. É o padrão para todos os outros routers.</div></div>
+      <div class="fixes"><span class="fix">v2 §8 concorrência</span><span class="fix">v2 §7 idempotência</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Passo 5 · Design system</div><h3>Tokens canônicos (claro/escuro)</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">packages/tokens/tokens.css</span></div>
+      <div class="dod"><span>✓</span><div><b>Garante:</b> fonte única de cor/raio/sombra/densidade, extraída do protótipo aprovado. UI consome destes tokens — sem cor inventada.</div></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Passo 2 · Bootstrap do servidor</div><h3>tRPC + contexto + entry HTTP</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">db/client.ts</span><span class="file">trpc/trpc.ts</span><span class="file">trpc/context.ts</span><span class="file">trpc/appRouter.ts</span><span class="file">index.ts</span></div>
+      <div class="dod"><span>✓</span><div><b>Garante:</b> <span class="mono">protectedProcedure</span> exige sessão; <span class="mono">createContext</span> resolve tenant/papel; router de pedidos refatorado para o padrão central.</div></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Passo 2 · Autenticação</div><h3>Senha+2FA (primário) · OAuth (secundário)</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">auth/session.ts</span><span class="file">auth/password.ts</span><span class="file">auth/oauth.ts</span></div>
+      <div class="dod"><span>✓</span><div><b>Garante:</b> login próprio (argon2 + TOTP) como caminho principal — sem refém de identidade de terceiro. OAuth corporativo opcional.</div></div>
+      <div class="fixes"><span class="fix">laudo produto §10 OAuth-externo</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Passo 2 · Seed de prova</div><h3>Demonstra a Definição de Pronto</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">db/seed.ts</span></div>
+      <div class="dod"><span>✓</span><div><b>Prova ao rodar:</b> renomear cliente mantém o pedido ligado (vínculo por id); duas chamadas concorrentes geram números distintos; total fecha exato em centavos.</div></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Passo 4 · Início</div><h3>Testes das regras de fundação</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">money.test.ts</span><span class="file">policy.test.ts</span><span class="file">contracts.test.ts</span></div>
+      <div class="dod"><span>✓</span><div><b>Cobre:</b> dinheiro sem float, RBAC por papel, avanço de etapa derivado. Vitest configurado; CI roda <span class="mono">pnpm test</span>.</div></div>
+    </div>
+  </div>
+
+  <h2><span class="n">⟐</span> A diferença, em código</h2>
+  <p class="h2sub">O mesmo pedido, antes (protótipo) e agora (fundação).</p>
+  <div class="codeev">
+<span class="c">// ANTES — protótipo (mock-data.jsx): vínculo por nome, data-texto, valor float</span><br>
+{ id:<span class="s">"OS-3041"</span>, <b>cliente:</b><span class="s">"Marília Costa"</span>, <b>prazo:</b><span class="s">"Hoje 18:00"</span>, valor:<span class="k">248.0</span> }<br>
+<br>
+<span class="c">// AGORA — schema.ts: id, timestamptz, centavos, version, numeração de série</span><br>
+pedidos { id:<span class="k">uuid</span>, <b>clienteId:</b><span class="k">uuid</span>→pessoas, <b>prazoAt:</b><span class="k">timestamptz</span>,<br>
+&nbsp;&nbsp;numero:<span class="k">int</span> <span class="c">/* via sequences(tenant,série) */</span>, version:<span class="k">int</span> }<br>
+pedido_itens { pedidoId, produtoId, qtd, unidade, atributos, <b>precoUnitCents:</b><span class="k">bigint</span> }
+  </div>
+
+  <h2><span class="n">↗</span> Fase 1 — iniciada (o fosso)</h2>
+  <p class="h2sub">Motor de orçamento + imposição: o núcleo que justifica o ERP. Já calcula de verdade.</p>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Fase 1 · Passo 6</div><h3>domain/quote — imposição + custeio + regressiva</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">domain/quote/types.ts</span><span class="file">imposition.ts</span><span class="file">quoteEngine.ts</span><span class="file">quoteEngine.test.ts</span><span class="file">routers/orcamento.ts</span></div>
+      <div class="dod"><span>✓</span><div><b>Calcula:</b> peças por folha (2 A4 em SRA3, 24 cartões 9×5), custo por processo (material + chapa + máquina + acabamento + mão de obra) e preço regressivo por tiragem. Demo interativa em <span class="mono">docs/Calculadora de Orçamento (demo).html</span>.</div></div>
+      <div class="fixes"><span class="fix">v2 §9 orçamento-sem-ficha</span><span class="fix">v1 §7 preço-ingênuo</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Fase 1 · Passo 6 (A6)</div><h3>domain/inventory — estoque dimensional + custeio</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">domain/inventory/types.ts</span><span class="file">conversion.ts</span><span class="file">inventoryService.ts</span><span class="file">inventoryService.test.ts</span><span class="file">routers/estoque.ts</span></div>
+      <div class="dod"><span>✓</span><div><b>Resolve a cascata estoque→custo→preço:</b> compra em rolo/folha → estoca em m² (conversão por fator), baixa dimensional pela OS com perda %, custo médio ponderado e sugestão de reposição. Saldo derivado dos movimentos (auditável). Cobre o saldo negativo como exceção.</div></div>
+      <div class="fixes"><span class="fix">v2 §10 estoque-escalar</span><span class="fix">v3 Cadeia-4 custo-mentira</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Fase 1 · fecha o laço</div><h3>Produção baixa o estoque (orçar → produzir → baixar)</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">domain/production/consumeStock.ts</span><span class="file">consumeStock.test.ts</span><span class="file">routers/producao.ts</span></div>
+      <div class="dod"><span>✓</span><div><b>Coerência orçamento↔produção:</b> iniciar a OS consome o material pela <b>mesma imposição</b> do orçamento (as folhas batem). Concorrência otimista; <b>estoque insuficiente é exceção tratada</b> (bloqueia ou exige confirmação de baixa negativa), nunca quebra em silêncio. Custo de material real volta para o custeio da OS.</div></div>
+      <div class="fixes"><span class="fix">v3 §B2 caminho-infeliz</span><span class="fix">v2 §11 PCP-fake</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Fase 2 · Financeiro</div><h3>Títulos a receber ligados à OS por id</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">domain/finance/titulos.ts</span><span class="file">titulos.test.ts</span><span class="file">routers/financeiro.ts</span></div>
+      <div class="dod"><span>✓</span><div><b>Fim do vínculo por string:</b> título referencia pedido e pessoa por <b>id</b>; parcelas geradas sem perder centavo (última absorve a sobra); baixas parciais/totais; <b>saldo e status DERIVADOS</b> das baixas (nunca digitados); aging de recebíveis por faixa de atraso.</div></div>
+      <div class="fixes"><span class="fix">v2 §2 financeiro-por-string</span><span class="fix">v1 §14 sem-DRE/aging</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Fase 2 · Fiscal (coração)</div><h3>NF-e/NFS-e via provider + ISS×ICMS por natureza</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">domain/fiscal/natureza.ts</span><span class="file">documentoStateMachine.ts</span><span class="file">provider.ts</span><span class="file">fiscal.test.ts</span><span class="file">routers/fiscal.ts</span></div>
+      <div class="dod"><span>✓</span><div><b>Ticket de entrada do mercado formal:</b> regra <b>ISS×ICMS por natureza</b> (impresso sob encomenda → NFS-e/ISS; produto pronto → NF-e/NFC-e/ICMS); <b>máquina de estados</b> (rascunho→enviando→autorizado, com rejeição/contingência/cancelamento) que <b>bloqueia pulos ilegais</b>; <b>adapter anticorrupção</b> de provedor (troca PlugNotas/Focus sem tocar no domínio); numeração sequencial atômica. <b>Rejeição da SEFAZ é tratada</b>, não um toast perdido.</div></div>
+      <div class="fixes"><span class="fix">v2 §13 sem-fiscal</span><span class="fix">v2 §14 esteira-municipal</span><span class="fix">v3 §B2 caminho-infeliz</span></div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-h"><div class="check done">✓</div>
+      <div class="ttl"><div class="f">Fase 2 · Financeiro gerencial</div><h3>DRE + fluxo de caixa projetado</h3></div>
+    </div>
+    <div class="item-body">
+      <div class="files"><span class="file">domain/finance/dre.ts</span><span class="file">dre.test.ts</span><span class="file">routers/financeiro.ts (+dre, +fluxoProjetado)</span></div>
+      <div class="dod"><span>✓</span><div><b>Dado vira decisão:</b> DRE em cascata (receita → deduções → custo → lucro bruto/operacional + margens) e fluxo de caixa <b>projetado dia a dia</b> sobre as parcelas a vencer, com <b>alerta de caixa negativo</b>. O dono enxerga resultado e o que vai entrar/sair — não descobre pelo extrato.</div></div>
+      <div class="fixes"><span class="fix">v1 §14 sem-DRE/fluxo</span></div>
+    </div>
+  </div>
+
+  <h2><span class="n">→</span> Próximos passos</h2>
+  <ol class="next-list">
+    <li><b>Client desktop:</b> telas de orçamento/estoque/produção/financeiro/fiscal ligadas aos routers — onde tudo isso vira tela.</li>
+    <li><b>Fiscal — adapter real:</b> implementar um <span class="mono">PlugNotasProvider</span> concreto sobre a porta já definida; tabela ISS por município.</li>
+    <li><b>Financeiro — conciliação bancária:</b> OFX/Open Finance batendo extrato com as baixas.</li>
+    <li><b>Passo 4 — confiabilidade:</b> backup PITR, OpenTelemetry, mais testes (concorrência/idempotência).</li>
+    <li><b>Fase 3:</b> PCP com capacidade real, exceções/offline, desktop-first denso.</li>
+  </ol>
+
+  <p class="disc">Nota honesta sobre o ambiente: este espaço é de design/HTML — não executa Postgres/tRPC aqui. Os arquivos acima são o código-semente correto e idiomático que o Claude Code continua no repositório real; o protótipo mobile segue como referência visual. O comando de setup está no <span class="mono">oimpresso-erp/README.md</span>. Percentual de progresso é estimativa de cobertura do escopo de fundação, não compromisso contratual.</p>
+
+</div>
+</body>
+</html>

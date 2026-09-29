@@ -143,7 +143,7 @@ lifecycle: ativo
 | `placar-de-tela.yml` | pr+manual | — | placar-de-tela (advisory) — PR-A6 do protocolo de export: computa o par entregue/alvo de cada tela com governance/design/targets/<tela>.alvo.json e comenta no PR (entregu… |
 | `plan-health-gate.yml` | pr+manual | `memory/requisitos/Brief/BRIEFING.md` +1 | Plan Health Gate (advisory · planos órfãos/podres · sentinela plan-health.mjs --check · ADR 0294 Onda 1) |
 | `ponto-bancohoras-paginacao-gate.yml` | pr+push+manual | — | Ponto banco de horas paginação gate — o extrato do colaborador (Ponto/BancoHoras/Show) navega entre as páginas do histórico (UC-BHSHOW-04). vitest determinístico (jsdom, … |
-| `ponto-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +16 | Ponto · Pest (MySQL) |
+| `ponto-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +17 | Ponto · Pest (MySQL) |
 | `pr-critic-precisao.yml` | cron+manual | — | pr-critic precisão (advisory · mede a PRÓPRIA precisão do pr-critic · taxa-de-ação dos achados: o humano mexeu no arquivo apontado depois do comentário? + first-pass + po… |
 | `pr-critic.yml` | pr+manual | `memory/decisions/proposals/2026-08-01-reverter-0364-trio-colocado-opcao-b.md` +10 | pr-critic contrato (advisory) — critic adversarial de PR ancorado em contrato: em PRs tocando resources/js/Pages/** ou Modules/**, roteia o diff pros contratos (charter/c… |
 | `prompt-injection-corpus.yml` | pr+cron+manual | `memory/decisions/proposals/2026-07-28-guardrails-superficie-jana-cliente.md` +4 | prompt-injection corpus (red-team do agente · OWASP LLM01) — invoca .claude/governance-eval/prompt-injection-corpus.mjs: alimenta aos hooks REAIS as ações induzidas por i… |
@@ -177,7 +177,7 @@ lifecycle: ativo
 | `whatsapp-pest.yml` | pr+push+manual | `memory/08-handoff.md` +1 | Whatsapp · Pest (MySQL) |
 | `xss-content-gate.yml` | pr+push | — | XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo) |
 
-## 2. Hooks (PreToolUse/PostToolUse/SessionStart) — 53 arquivos
+## 2. Hooks (PreToolUse/PostToolUse/SessionStart) — 54 arquivos
 
 > Fonte viva com evento×matcher×sinal-de-bloqueio: **`.claude/hooks/_HOOKS-INDEX.md`** (auto-gerado).
 >
@@ -220,6 +220,7 @@ lifecycle: ativo
 | `force-r12-closing-signal.mjs` | UserPromptSubmit(*) | — | `memory/decisions/0234-automation-registry-mcp.md` +8 | Hook UserPromptSubmit — FORÇA R12 PROTOCOLO ao detectar sinal de fechamento. |
 | `git-base-freshness-guard.mjs` | SessionStart(*) | test | `memory/reference/prototipo-ui/PROTOCOL.md` +15 | Hook SessionStart — GUARD de base fresca vs `origin/main`. |
 | `handoff-inline.mjs` | SessionStart(*) | test | `memory/08-handoff.md` +1 | SessionStart (PORTE cross-plataforma do comando PowerShell INLINE do settings.json). |
+| `lembrar-subida-cowork.mjs` | PostToolUse(Bash) | test | `memory/decisions/proposals/2026-09-24-sincronia-entre-contas-cowork-por-dono.md` | PostToolUse:Bash. Depois de `gh pr create` ou `git push`, se o |
 | `licoes-code-two-strikes.mjs` | SessionStart(*) | test | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +25 | SessionStart (PORTE cross-plataforma do .ps1, advisory). |
 | `loop-fechar-check.mjs` | SessionStart(*) | test | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +11 | SessionStart (PORTE cross-plataforma do .ps1, advisory). |
 | `maquinas-inventario-no-commit.mjs` | PreToolUse(Bash) | test | `memory/reference/FLUXO-MAQUINAS.md` +5 | o INVOCADOR do `--write` (PreToolUse · Bash · `git commit`) |
@@ -490,15 +491,21 @@ lifecycle: ativo
 | `db.mjs` | script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` | JSONL append-only DB helpers for Curador (zero-deps, Node 24 built-ins only). |
 | `rules.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` +4 | 18 heurísticas determinísticas pra classificar arquivos sem custar Claude. |
 
-### 5.7 `scripts/design/` — 24
+### 5.7 `scripts/deploy/` — 1
+
+| Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
+|---|---|---|---|---|---|
+| `aguardar-deploy.mjs` | ci | 🟢 só lê | — | — | espera o 1º deploy CONCLUÍDO (não cancelado) que contenha um commit. |
+
+### 5.8 `scripts/design/` — 24
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
 | `_lib-charter.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/proposals/documentacao-do-fonte-layout-canonico.md` +6 | helpers compartilhados de leitura de charter/bundle. |
 | `analise-regiao.mjs` | ci | 🟢 só lê | — | `memory/reference/prototipo-ui/RUNBOOK-fidelidade-fingerprint.md` | W3 do processo região-a-região: ROTEIA cada região ao crítico certo, |
 | `ancora-guard.mjs` | ci, script | 🟢 só lê | — | `memory/proibicoes.md` +8 | CATRACA: o protótipo tem 1 lugar fixo e nunca troca de lugar. |
-| `ancora.mjs` | agente, ci, script | 🟢 só lê | bite-log | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +159 | a ÂNCORA de uma tela é COMPUTADA do charter, nunca escolhida no olho. |
-| `consumir-map.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +17 | o CONSUMO do <tela>.map.json na FASE 4 (sessão limpa de aplicação). |
+| `ancora.mjs` | agente, ci, script | 🟢 só lê | bite-log | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +161 | a ÂNCORA de uma tela é COMPUTADA do charter, nunca escolhida no olho. |
+| `consumir-map.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +19 | o CONSUMO do <tela>.map.json na FASE 4 (sessão limpa de aplicação). |
 | `design-diff-lote.mjs` | ci, script | 🔴 disco | — | `memory/decisions/0401-resolucao-ds-bound-no-servidor-de-preview.md` +26 | DRIVER que transforma "ancorada" em "comparada por SONDA", em lote. |
 | `design-diff.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` +52 | comparador DETERMINÍSTICO design(Cowork vivo) × produção, por MEDIÇÃO. |
 | `design-lock.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md` +3 | a FONTE de uma comparação é DECLARADA e PROVADA, nunca resolvida por sorte. |
@@ -507,8 +514,8 @@ lifecycle: ativo
 | `ds-lint-alvos.mjs` | ci, script | 🟢 só lê | — | `memory/reference/prototipo-ui/REGRAS_DS_LINT.md` | serve o `component-registry.json` EM TEMPO DE LINT. |
 | `ds-notas-gerar.mjs` | — | 🟢 só lê | — | — | Gera design-system/components/<Nome>/<Nome>.prompt.md a partir de governance/design/ds-notas-uso.json |
 | `fingerprint-harness.mjs` | ci, script | 🟢 só lê | — | `memory/proibicoes.md` +5 | Onda 3a do roadmap estado-da-arte (2026-07-08): DRIVER do |
-| `gerar-contrato.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Sells/vendas-index-gap.md` +30 | W1 do processo região-a-região: deriva o ESQUELETO do |
-| `gerar-map.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +50 | deriva o ESQUELETO do <tela>.map.json a partir do <tela>-gap.md. |
+| `gerar-contrato.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Sells/vendas-index-gap.md` +31 | W1 do processo região-a-região: deriva o ESQUELETO do |
+| `gerar-map.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +52 | deriva o ESQUELETO do <tela>.map.json a partir do <tela>-gap.md. |
 | `gerar-mapas-handoff.js` | — | 🟢 só lê | — | — | (sem descrição no cabeçalho) |
 | `handoff-changed.mjs` | script | 🟢 só lê | selftest | `memory/reference/prototipo-ui/CODE_NOTES.handoff-ds-2026-09-17-recusado-por-r4.md` | PORTÃO BARATO (zero LLM) da Fase −1 do protocolo aplicar-prototipo. |
 | `importar-bundle.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +8 | IMPORT atômico do ZIP Cowork (Fase −1 como máquina, não receita). |
@@ -519,7 +526,7 @@ lifecycle: ativo
 | `render-proto-baseline.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +16 | o DESIGN vira BASELINE versionado (roubo #7 da pesquisa de mercado, |
 | `style-fingerprint.mjs` | agente, ci, script | 🟢 só lê | — | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +20 | comparador EXAUSTIVO de estilo protótipo × produção, como MECANISMO. |
 
-### 5.8 `scripts/design-sync/` — 19
+### 5.9 `scripts/design-sync/` — 19
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -543,7 +550,7 @@ lifecycle: ativo
 | `status.mjs` | agente, ci, npm, script | 🟢 só lê | test | `memory/decisions/0390-emenda-0384-smoke-em-ambiente-controlado.md` +18 | painel operacional do último bundle: o que mudou, onde aplicar, o que está bloqueado — e as 2 catracas do funil (`--check-mapping`, `--check-lifecycle`). |
 | `zip-reader.mjs` | script | 🔴 disco | — | — | leitor de ZIP mínimo, sem dependência, com CRC-32 CONFERIDO. |
 
-### 5.9 `scripts/design/audit/` — 5
+### 5.10 `scripts/design/audit/` — 5
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -553,14 +560,14 @@ lifecycle: ativo
 | `review-gen.mjs` | npm | 🔴 disco | — | `memory/requisitos/Jana/SPEC.md` +8 | `design:review <tela>` · gerador DETERMINÍSTICO do `<Tela>.review.md`. |
 | `score-mechanized.mjs` | agente, ci, script | 🔴 disco | — | `memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md` +16 | scorer DETERMINÍSTICO (zero LLM) da metade mecanizável da GOLDEN-REFERENCE. |
 
-### 5.10 `scripts/evals/` — 2
+### 5.11 `scripts/evals/` — 2
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
 | `ancora-adversario.eval.mjs` | ci | 🟢 só lê | — | — | o ADVERSÁRIO PERMANENTE do guarda de âncora. |
 | `design-source-of-truth.eval.mjs` | ci | 🟢 só lê | — | `memory/decisions/0299-figma-nao-e-fonte-de-design.md` | baseline ARMADO do enforcement "Figma não é fonte" (camada L5). |
 
-### 5.11 `scripts/governance/` — 118
+### 5.12 `scripts/governance/` — 118
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -592,14 +599,14 @@ lifecycle: ativo
 | `criar-tela.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0351-sdd-from-source.md` +32 | GERADOR de tela que NASCE do Padrão de Tela (Constituição UI v2 · UI-0013). |
 | `cron-watchdog.mjs` | agente, ci | 🔴 disco | — | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +26 | G6: heartbeat dos crons de governança (generaliza o auto-canário |
 | `deadlink-gate.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0347-deadlink-gate-required-emenda-0314.md` +55 | catraca de integridade referencial doc↔doc (links markdown mortos). |
-| `design-code-map-check.mjs` | agente, ci, script | 🔴 disco | bite-log + test | `memory/requisitos/_Governanca/GRADE-MAPAS-VINCULOS-trava-frescor.md` +55 | sentinela da ponte design↔código PERSISTENTE (<tela>.map.json). |
+| `design-code-map-check.mjs` | agente, ci, script | 🔴 disco | bite-log + test | `memory/requisitos/_Governanca/GRADE-MAPAS-VINCULOS-trava-frescor.md` +57 | sentinela da ponte design↔código PERSISTENTE (<tela>.map.json). |
 | `design-gate-bites.mjs` | agente, ci | 🔴 disco | — | `memory/decisions/0410-ratificacao-zero-baseline-no-funil-design.md` +13 | o BITE-LOG dos gates de design (DR-2a da ADR 0336). |
 | `design-return-check.mjs` | ci, script | 🔴 disco | selftest + test | (só sessão/handoff · 3) | Verifica o retorno Code -> Design definido em memory/reference/prototipo-ui/PROTOCOL.md §10.2. |
 | `detect-handoff.mjs` | ci, npm | 🟢 só lê | — | `memory/requisitos/_DesignSystem/INVENTARIO-ANCORAS-2026-09-09.md` +3 | DETECTOR-EM-LOTE do G4 ("paste zip → 1 tarefa por tela"). |
 | `detect-ui-drift.mjs` | ci, npm, script | 🟢 só lê | test | `memory/decisions/0348-briefing-coverage-required-emenda-0314.md` +6 | M1: detector de MUDANÇA DE UI NÃO-DECLARADA (eixo de AUTORIZAÇÃO). |
 | `doc-auto-relink.mjs` | ci, npm | 🔴 disco | — | `memory/requisitos/Infra/RUNBOOK-doc-auto-relink-orfaos.md` +9 | AUTO-RELIGADOR: dado um doc que MOVEU (A→B), religa os links. |
 | `doc-freshness-score.mjs` | ci, script | 🟢 só lê | — | `memory/requisitos/Governance/SPEC.md` +10 | RADAR de frescor POR DOC (score 0-100 · régua Dosu). |
-| `doc-id-index.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0380-errata-0292-distiller-freshness-health-check-advisory.md` +66 | GERADOR determinístico do índice `id → path atual` do corpus memory/. |
+| `doc-id-index.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0380-errata-0292-distiller-freshness-health-check-advisory.md` +68 | GERADOR determinístico do índice `id → path atual` do corpus memory/. |
 | `doc-id-stamp.mjs` | ci, npm | 🔴 disco | — | `memory/decisions/0380-errata-0292-distiller-freshness-health-check-advisory.md` +5 | STAMPER: adiciona `id:` no frontmatter dos docs SEM id. |
 | `document-authority.mjs` | agente, ci, script | 🟢 só lê | selftest | (só sessão/handoff · 1) | identidade documental compartilhada pelo hook e pelo CI. |
 | `document-relocation-adversary.mjs` | agente, ci, npm, script | 🟢 só lê | — | `memory/proibicoes.md` +4 | Validador read-only de planos de realocacao documental. |
@@ -634,7 +641,7 @@ lifecycle: ativo
 | `lapide-recheck.mjs` | agente, ci, script | 🟢 só lê | test | `memory/decisions/0376-sec5-derivado-limite-no-contexto-arqueologia-na-fonte.md` +13 | re-verificação de FRESCOR das lápides §5 (memory/proibicoes.md, |
 | `ledger-check.mjs` | agente, ci, script | 🟢 só lê | selftest | `memory/decisions/0291-distiller-modulo-verdade-contrato-emenda-0270-f3.md` +29 | enforcement do PROTOCOLO-REFUTADOR-BACKFILL (frente GT-G5, |
 | `ledger-hash-chain.mjs` | ci | 🔴 disco | test | (só sessão/handoff · 2) | transparency-log (Rekor/Sigstore-style) sobre o |
-| `maquinas-inventario.mjs` | agente, ci, script | 🔴 disco | test | `memory/proibicoes.md` +20 | DERIVA um índice único e legível de TODAS as "máquinas" |
+| `maquinas-inventario.mjs` | agente, ci, script | 🔴 disco | test | `memory/proibicoes.md` +21 | DERIVA um índice único e legível de TODAS as "máquinas" |
 | `mcp-drift-sentinel.mjs` | ci, script | 🔴 disco | — | `memory/decisions/proposals/2026-07-23-sentinelas-staleness-prontidao-required.md` +6 | sentinela EXTERNA de drift do MCP server (ADR 0256 + 0062). |
 | `memory-health.mjs` | ci, script | 🔴 disco | selftest | `memory/decisions/0317-maquina-revisao-adr-quando-rever-gatilhos.md` +120 | sentinela de saúde da base de conhecimento (ADR 0256, Onda 1). |
 | `module-surface.mjs` | agente, ci, npm, script | 🔴 disco | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +108 | GERADOR determinístico da "Superfície de código" de um módulo. |
@@ -648,7 +655,7 @@ lifecycle: ativo
 | `permissao-renomeada-lint.mjs` | ci | 🟢 só lê | — | — | barra o nome VELHO de permissão renomeada em linha NOVA. |
 | `permission-drift.mjs` | ci | 🟢 só lê | test | `memory/requisitos/Governance/SPEC.md` +9 | mede o drift entre permissão DECLARADA e permissão APLICADA. |
 | `plan-health.mjs` | ci, script | 🟢 só lê | — | `memory/decisions/0294-metodo-dual-track-shapeup-catraca.md` +19 | sentinela de PLANOS órfãos/podres (ADR 0294 Onda 1 · catraca da |
-| `plans-index.mjs` | agente, ci | 🔴 disco | test | `memory/decisions/0294-metodo-dual-track-shapeup-catraca.md` +45 | GERADOR determinístico do Índice de Planos Vivos (ADR 0294 + 0256). |
+| `plans-index.mjs` | agente, ci | 🔴 disco | test | `memory/decisions/0294-metodo-dual-track-shapeup-catraca.md` +47 | GERADOR determinístico do Índice de Planos Vivos (ADR 0294 + 0256). |
 | `protection-drift.mjs` | agente, ci, script | 🔴 disco | selftest | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +49 | drift de branch protection + watchdog de staleness (GT-G4, |
 | `pt-conformance.mjs` | ci, npm, script | 🟢 só lê | bite-log | `memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md` +25 | VERIFICA que uma tela que DECLARA "herda PT-0X" tem de fato a |
 | `rag-status-vocab-check.mjs` | ci | 🟢 só lê | — | `memory/licoes-rejeitadas.md` +1 | detecta documento que ENTRA no índice do RAG mas |
@@ -661,7 +668,7 @@ lifecycle: ativo
 | `reguas-ledger-check.mjs` | ci | 🔴 disco | — | `memory/proibicoes.md` +4 | o ledger de réguas contradiz a si mesmo? |
 | `replica-inconsistencias.mjs` | ci, script | 🔴 disco | — | `memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md` +8 | LISTA DE INCONSISTÊNCIAS pós-aplicação do protótipo (ADR 0388). |
 | `required-always-run.mjs` | ci | 🔴 disco | — | `memory/decisions/0395-pageheader-ratchet-required-emenda-0314.md` +16 | todo context REQUIRED nasce em TODO PR? |
-| `requisitos-status.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0364-trio-de-tela-mora-em-memory-emenda-0264.md` +104 | a CADEIA DE RASTREABILIDADE de um módulo, derivada e com STATUS. |
+| `requisitos-status.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0364-trio-de-tela-mora-em-memory-emenda-0264.md` +106 | a CADEIA DE RASTREABILIDADE de um módulo, derivada e com STATUS. |
 | `resolver-reclamacao.mjs` | ci, npm | 🟢 só lê | — | `memory/decisions/proposals/2026-07-21-resolvedor-reclamacao-cadeia.md` +4 | resolvedor reclamação → cadeia de responsabilidade. |
 | `revisar-fluxos.mjs` | ci | 🟢 só lê | test | `memory/reference/FLUXO-MAQUINAS.md` +2 | revisão derivada dos fluxos e das máquinas que eles citam. |
 | `sdd-flow.mjs` | npm | 🟢 só lê | test | (só sessão/handoff · 1) | recibo estrutural da cadeia: |
@@ -683,7 +690,7 @@ lifecycle: ativo
 | `visual-comparison-staleness.mjs` | ci, script | 🟢 só lê | — | `memory/decisions/0329-doutrina-documentacao-de-processo-executavel.md` +14 | sentinela: o `<tela>-visual-comparison.md` ficou atrás da TELA? |
 | `worktree-janitor.mjs` | ci, npm | 🟢 só lê | — | — | Faxineiro de worktrees — classifica worktree MORTO vs VIVO por ORÁCULO, nunca por heurística. |
 
-### 5.12 `scripts/governance/lib/` — 3
+### 5.13 `scripts/governance/lib/` — 3
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -691,7 +698,7 @@ lifecycle: ativo
 | `pt-signatures.mjs` | ci, script | 🟢 só lê | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +3 | FONTE ÚNICA das assinaturas estruturais dos 5 Padrões de Tela. |
 | `spec-encerrado.mjs` | script | 🟢 só lê | — | — | SPEC declarado encerrado não é dívida: sai do corpus dos gates. |
 
-### 5.13 `scripts/lib/` — 4
+### 5.14 `scripts/lib/` — 4
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -700,13 +707,13 @@ lifecycle: ativo
 | `markdown-tabela.mjs` | ci, script | 🟢 só lê | — | `memory/LICOES_CODE.md` +1 | dono ÚNICO de "fatiar uma linha de tabela markdown em células". |
 | `uc-regex.mjs` | agente, ci, script | 🟢 só lê | test | `memory/proibicoes.md` +10 | 7 · coletor do manifesto) que DEVIAM ser iguais e drifaram: em 2026-06-22 o guard foi |
 
-### 5.14 `scripts/memory-schemas/` — 1
+### 5.15 `scripts/memory-schemas/` — 1
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
 | `validate.mjs` | agente, ci, script | 🔴 disco | — | `memory/proibicoes.md` +33 | valida frontmatter de memory/** contra os schemas canônicos. |
 
-### 5.15 `scripts/pr-critic/` — 4
+### 5.16 `scripts/pr-critic/` — 4
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -715,7 +722,7 @@ lifecycle: ativo
 | `critica.mjs` | ci, script | 🔴 disco | test | (só sessão/handoff · 3) | passe crítico do pr-critic (a parte AGENTE; o roteamento é coleta.mjs). |
 | `precisao.mjs` | ci, script | 🔴 disco | test | — | MEDIDOR DE PRECISÃO DO PRÓPRIO pr-critic (fecha o loop). |
 
-### 5.16 `scripts/qa/` — 18
+### 5.17 `scripts/qa/` — 18
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -738,14 +745,15 @@ lifecycle: ativo
 | `uc-lane-coverage.mjs` | ci, script | 🔴 disco | test | `memory/LICOES_CODE.md` +4 | o teste que o `casos.md` cita EXISTE, e alguma lane de CI o RODA? |
 | `vital-signs.mjs` | ci, script | 🔴 disco | test | `memory/requisitos/_Governanca/roadmap/MV1-espinha-dorsal-vital-signs.md` +8 | sinais vitais da frota por módulo (MV1 · espinha dorsal do Módulo Vivo). |
 
-### 5.17 `scripts/screen-smoke/` — 2
+### 5.18 `scripts/screen-smoke/` — 3
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
+| `aguardar-bundle-live.mjs` | ci | 🟢 só lê | — | — | fecha o residual #7 do screen-smoke-after-merge: |
 | `select-routes.mjs` | script | 🟢 só lê | test | (só sessão/handoff · 1) | Seleciona as rotas do smoke pós-deploy e mantém explícito o que não foi medido. |
 | `smoke.mjs` | agente, ci, script | 🔴 disco | — | `memory/requisitos/Infra/RUNBOOK-screen-smoke-ativacao.md` +3 | ───────────────────────────────────────────────────────────────────────────── |
 
-### 5.18 `scripts/tests/` — 11
+### 5.19 `scripts/tests/` — 11
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|

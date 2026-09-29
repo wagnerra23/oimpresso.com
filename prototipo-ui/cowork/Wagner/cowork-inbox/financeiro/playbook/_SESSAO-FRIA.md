@@ -26,6 +26,8 @@ Leia só isto, nesta ordem:
 | **00** | ALVO `financeiro--unificado` (seção drawer) — **entregue, `_saida-00.md`** | CL | `07-Unificado.drawer.md` + `_PATCH-INDICE-2026-09-25.md` §00 | — | — |
 | **07** | Drawer do lançamento — acabamento + aba IA — **em execução** | CL | `07-Unificado.drawer.md` + `_PATCH-INDICE-2026-09-25.md` §07 | 00 | — |
 | **08** | Drawer segue o tema | CL | `_PATCH-INDICE-2026-09-25.md` §08 | 07 · D-FIN-DW-TEMA | — |
+| **09** | ALVO `financeiro--dre--index` (read-only) | CL | `09-dre-conta-mono.md` §09 | — | — |
+| **10** | DRE — coluna Conta em mono (1 arquivo) | CL | `09-dre-conta-mono.md` §10 | 09 | — |
 
 > "Estado escrito" é só o que dá pra ver em disco (`_saida` / `bloqueio`). O estado real é **derivado** pelo `placar`; na dúvida, ele vence.
 > Dono **W** = decisão/merge do Wagner, não abre chip de [CL]. Dono **CC** = volta pro Cowork.

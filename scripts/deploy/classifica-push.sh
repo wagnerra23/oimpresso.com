@@ -61,8 +61,38 @@ emit() {
 # workflow_dispatch fica FORA: pode ter rodado com skip_migrate=true, e aí o SHA
 # dele não tem o schema aplicado.
 BASE=""
+
+# ── 1a. Primeiro, COMMIT A COMMIT: `actions/runs?head_sha=` ──────────────────────
+# A listagem abaixo (`gh run list`) serve retratos VELHOS e diferentes a cada chamada,
+# mesmo sem `--status`. Medido 2026-09-29 em duas chamadas seguidas: o 1º sucesso
+# listado foi de 28/09 numa e de 28/08 na outra, com sucessos do próprio dia no ar. No
+# deploy do #8162 (run 36584445484) a base saiu 04/09 — 1348 commits atrás, com um
+# sucesso 37 min antes —; frontend_changed deu true por mudança que JÁ estava servida e
+# o gate de hash do smoke derrubou o deploy com o bundle certo no ar. A consulta por
+# head_sha respondeu fresco em todas as medições. Anda os ancestrais (1º pai) e para no
+# primeiro com deploy push OK. Falha de API aqui não é veredito: cai pra listagem.
+REPO="${GH_REPO:-${GITHUB_REPOSITORY:-}}"
+POR_SHA_MAX="${POR_SHA_MAX:-60}"
+if [ "$EVENT_NAME" = "push" ] && [ -n "$REPO" ]; then
+  if ANCESTRAIS=$(git rev-list --first-parent --max-count="$POR_SHA_MAX" "${SHA}^" 2>/dev/null); then
+    for C in $ANCESTRAIS; do
+      if IDS=$("$GH_BIN" api "repos/${REPO}/actions/runs?head_sha=${C}&event=push&per_page=30" \
+            --jq '.workflow_runs[] | select((.path|endswith("'"$DEPLOY_WORKFLOW"'")) and .conclusion=="success") | .id'); then
+        ID=$(printf '%s\n' "$IDS" | awk -v eu="$RUN_ID" 'NF && $1 != eu { print $1; exit }')
+        if [ -n "$ID" ]; then
+          BASE="$C"; echo "base = último deploy OK (por commit): ${C} (run ${ID})"; break
+        fi
+      else
+        echo "::warning::consulta por commit falhou em ${C} — caindo pra listagem"; break
+      fi
+    done
+  fi
+fi
+
 if [ "$EVENT_NAME" = "push" ]; then
-  if CANDIDATOS=$("$GH_BIN" run list --workflow "$DEPLOY_WORKFLOW" --branch "$BASE_BRANCH" \
+  if [ -n "$BASE" ]; then
+    :
+  elif CANDIDATOS=$("$GH_BIN" run list --workflow "$DEPLOY_WORKFLOW" --branch "$BASE_BRANCH" \
         --event push --limit 100 --json databaseId,headSha,conclusion \
         --jq '.[] | select(.conclusion=="success") | "\(.databaseId) \(.headSha)"'); then
     while read -r ID CAND; do
