@@ -75,7 +75,8 @@ GPS e nome do local não são gravados — a seção mostra "—" e as coordenad
 5. **Permissão de recusar** — ✓ decidido por [W] 2026-09-29: exige `ponto.aprovacoes.manage` na rota
    (UC-PAPR-09, #8159). Validar segue com `ponto.access`.
 6. **Motivo da anulação** — ✓ decidido por [W] 2026-09-29, **guardado em texto** (#8170: coluna
-   `motivo_anulacao`, gravada no INSERT da anulação; o texto não entra no hash).
+   `motivo_anulacao`, gravada no INSERT da anulação). **Motivo no hash:** ✓ decidido por [W] 2026-09-29 — entra só
+   quando existe, para o hash de todo o histórico sem motivo continuar conferindo.
 7. `--preflight` do contrato-de-tela reprova os PRs empilhados por estarem atrás de `origin/main` —
    efeito do empilhamento; some quando a pilha descer para `main`.
 
