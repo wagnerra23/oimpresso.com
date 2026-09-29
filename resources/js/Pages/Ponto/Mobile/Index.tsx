@@ -18,6 +18,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { FormGrid, FormSection } from '@/Components/ui/form-section';
 import { Segmented } from '@/Components/ui/segmented';
 import EmptyState from '@/Components/shared/EmptyState';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import MeuEspelho, { type LinhaEspelho, type TotaisEspelho } from './_components/MeuEspelho';
 import Justificar from './_components/Justificar';
@@ -136,21 +137,22 @@ function BaterPonto({ marcacoesIniciais, limites }: { marcacoesIniciais: Marcaca
   }
 
   return (
-    <form onSubmit={bater} className="mx-auto flex w-full max-w-md flex-col gap-4">
+    <Stack asChild gap={4} className="mx-auto w-full max-w-md">
+    <form onSubmit={bater}>
       <div className="text-center" data-contract="repp-relogio">
         <p className="text-xs text-muted-foreground">agora</p>
         <p className="font-mono text-4xl font-semibold tabular-nums">{agora.toLocaleTimeString('pt-BR')}</p>
         <p className="text-xs text-muted-foreground">{agora.toLocaleDateString('pt-BR', { dateStyle: 'full' })}</p>
       </div>
 
-      <div data-contract="repp-gps" className="flex items-center justify-between gap-3 rounded-md border p-3 text-sm">
+      <Inline data-contract="repp-gps" justify="between" gap={3} className="rounded-md border p-3 text-sm">
         <span>{gps.estado === 'ok' ? `GPS ±${gps.accuracy}m` : gps.estado === 'buscando' ? 'Buscando GPS…' : 'GPS indisponível'}</span>
         <Button type="button" variant="ghost" size="sm" className="min-h-11" onClick={localizar}>Atualizar local</Button>
-      </div>
+      </Inline>
 
       <FormSection title="Tipo de marcação">
         <FormGrid>
-          <div data-contract="repp-tipos" className="grid grid-cols-2 gap-2">
+          <Grid data-contract="repp-tipos" cols={2} gap={2}>
             {TIPOS.map((t) => (
               <Button key={t.id} type="button" variant={form.data.tipo === t.id ? 'default' : 'outline'}
                 className="h-auto min-h-11 flex-col items-start py-2" aria-pressed={form.data.tipo === t.id}
@@ -159,7 +161,7 @@ function BaterPonto({ marcacoesIniciais, limites }: { marcacoesIniciais: Marcaca
                 <small className="font-normal opacity-80">{t.hint}</small>
               </Button>
             ))}
-          </div>
+          </Grid>
         </FormGrid>
       </FormSection>
 
@@ -173,16 +175,19 @@ function BaterPonto({ marcacoesIniciais, limites }: { marcacoesIniciais: Marcaca
         {marcacoes.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma marcação registrada hoje.</p>}
         <ul className="divide-y">
           {marcacoes.map((m) => (
-            <li key={m.id} className="flex items-baseline gap-3 py-2 text-sm">
-              <b className="font-mono tabular-nums">{m.hora}</b>
-              <span>{rotulo(m.tipo)}</span>
-              <small className="ml-auto text-muted-foreground">NSR {m.nsr}{m.revisar ? ' · fora da área' : ''}</small>
-            </li>
+            <Inline asChild key={m.id} align="baseline" gap={3} className="py-2 text-sm">
+              <li>
+                <b className="font-mono tabular-nums">{m.hora}</b>
+                <span>{rotulo(m.tipo)}</span>
+                <small className="ml-auto text-muted-foreground">NSR {m.nsr}{m.revisar ? ' · fora da área' : ''}</small>
+              </li>
+            </Inline>
           ))}
         </ul>
       </section>
       <p className="text-xs text-muted-foreground">Marcação imutável (Portaria MTP 671/2021). Correção só por intercorrência.</p>
     </form>
+    </Stack>
   );
 }
 
@@ -192,7 +197,7 @@ export default function Mobile({ colaborador, marcacoes_hoje, hoje, mes, totais,
 
   return (
     <AppShellV2 title="REP-P (celular) · Ponto WR2" breadcrumbItems={[{ label: 'Ponto WR2' }, { label: 'REP-P (celular)' }]}>
-      <div className="flex flex-col gap-4">
+      <Stack gap={4}>
         <PontoAreaHeader active="mobile" />
 
         <Alert role="note" className="border-info/25 bg-info/5" data-contract="repp-nota-regras">
@@ -210,8 +215,9 @@ export default function Mobile({ colaborador, marcacoes_hoje, hoje, mes, totais,
             description="O REP-P é do colaborador que controla ponto. Peça ao RH o cadastro em Colaboradores." />
         ) : (
           <Card>
-            <CardContent className="flex flex-col gap-4 p-4">
-              <div className="flex items-start justify-between gap-3">
+            <CardContent className="p-4">
+              <Stack gap={4}>
+              <Inline align="start" justify="between" gap={3}>
                 <div>
                   <p className="font-semibold">{titulo}</p>
                   <p className="text-xs text-muted-foreground">
@@ -219,17 +225,18 @@ export default function Mobile({ colaborador, marcacoes_hoje, hoje, mes, totais,
                   </p>
                 </div>
                 <Badge variant="secondary">REP-P</Badge>
-              </div>
+              </Inline>
               <Segmented aria-label="Tela do app" value={tela} onValueChange={setTela}
                 options={TELAS.map((t) => ({ value: t.value, label: t.label }))} />
               {/* As 3 ficam montadas: trocar de tela não pode perder a batida recém-feita nem o GPS. */}
               <div className={tela === 'bater' ? undefined : 'hidden'}><BaterPonto marcacoesIniciais={marcacoes_hoje} limites={limites} /></div>
               <div className={tela === 'espelho' ? undefined : 'hidden'}><MeuEspelho totais={totais} linhas={linhas} mes={mes} hoje={hoje} /></div>
               <div className={tela === 'justificar' ? undefined : 'hidden'}><Justificar tipos={tipos} hoje={hoje} /></div>
+              </Stack>
             </CardContent>
           </Card>
         )}
-      </div>
+      </Stack>
     </AppShellV2>
   );
 }
