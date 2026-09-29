@@ -148,7 +148,9 @@ describe('coluna "Registrado" mostra data-hora ABSOLUTA, não "há X"', () => {
 });
 
 describe('badge de tipo é NEUTRO para todo tipo, como o protótipo (ponto-telas.jsx:387)', () => {
-  it('CREDITO, DEBITO, AJUSTE, EXPIRACAO e PAGAMENTO saem com o mesmo estilo neutro e mono', () => {
+  // Medido no RENDER do protótipo (2026-09-29): pílula preenchida, sem borda, 11,5px/500, fonte
+  // normal (não mono). A 1ª versão deste caso exigia outline + mono — leitura do CSS, não do render.
+  it('CREDITO, DEBITO, AJUSTE, EXPIRACAO e PAGAMENTO saem com a mesma pílula neutra preenchida', () => {
     const tipos = ['CREDITO', 'DEBITO', 'AJUSTE', 'EXPIRACAO', 'PAGAMENTO'];
     const movs = {
       ...pagina(1, 1),
@@ -158,8 +160,9 @@ describe('badge de tipo é NEUTRO para todo tipo, como o protótipo (ponto-telas
 
     const badges = tipos.map((t) => screen.getByText(t));
     for (const b of badges) {
-      expect(b.getAttribute('data-variant')).toBe('outline');
-      expect(b.className).toContain('font-mono');
+      expect(b.getAttribute('data-variant')).toBe('secondary');
+      expect(b.className).toContain('rounded-full');
+      expect(b.className).not.toContain('font-mono');
     }
   });
 });
@@ -201,6 +204,25 @@ describe('forma do extrato segue o detalhe do protótipo', () => {
     expect(cab).toEqual(['Data', 'Referência', 'Origem', 'Minutos', 'Observação']);
     expect(screen.getByText('11/03/2019')).toBeTruthy();
     expect(screen.getByText('+00:01')).toBeTruthy();
+  });
+
+  // Protótipo `Min` (ponto-ui.jsx:172): crédito em verde, débito em vermelho. A 1ª versão desta
+  // tela deixava na cor do texto — o inventário prop-a-prop (2026-09-29) mediu a cor no render.
+  it('minutos: crédito verde, débito vermelho (cor no span, alinhado à direita)', () => {
+    const movs = { ...pagina(1, 1), data: [{ ...mov(1), minutos: 90 }, { ...mov(2), minutos: -30 }] };
+    render(<BancoHorasShow saldo={saldo} acordo={acordo} movimentos={movs} />);
+
+    const credito = screen.getByText('+01:30');
+    const debito = screen.getByText(/^[−-]00:30$/);
+    expect(credito.className).toContain('text-success-fg');
+    expect(debito.className).toContain('text-destructive-fg');
+    expect(credito.closest('td')!.className).toContain('text-right');
+  });
+
+  it('subtítulo do card de ajuste sai SEM o travessão, como o Card do protótipo desenha', () => {
+    render(<BancoHorasShow saldo={saldo} acordo={acordo} movimentos={pagina(2)} />);
+    expect(screen.getByText('registra lançamento no ledger (imutável)')).toBeTruthy();
+    expect(screen.queryByText(/— registra lançamento/)).toBeNull();
   });
 
   it('ledger vazio: "Nenhuma movimentação registrada."', () => {
