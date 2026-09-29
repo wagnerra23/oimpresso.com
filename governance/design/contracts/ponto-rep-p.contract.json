@@ -1,0 +1,83 @@
+{
+  "_nota": "Contrato de Tela do REP-P no celular (thread 06 do playbook Ponto · ADR 0383 · ADR 0419). Schema: governance/design/contracts/contract.schema.json (ADR 0286). A copy é a do protótipo onde a tela a mantém; as diferenças conscientes estão em memory/requisitos/Ponto/RUNBOOK-mobile.md §4.",
+  "tela": "Ponto/Mobile/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/ponto-mobile.jsx",
+  "_nota_fonte": "Fonte = BaterPonto · MeuEspelho · Justificar em ponto-mobile.jsx. Fora por decisão registrada no RUNBOOK §4: a moldura AndroidDevice e o 'Simular condição de campo' (andaime da demo), o 'dentro/fora da área' antes de marcar (geofence é do servidor) e a ValidacaoMobile (fila do gestor, passo 3 da thread). 'O oficial, assinado' virou 'O oficial sai no fechamento' (D2 da ata).",
+  "alvo": [
+    "resources/js/Pages/Ponto/Mobile"
+  ],
+  "secoes": [
+    {
+      "id": "repp-nota-regras",
+      "_papel": "as três regras de anti-fraude que ficam depois da ADR 0383 — nenhuma é biometria",
+      "copy": [
+        "REP-P — o aparelho do colaborador",
+        "Mesma regra do balcão: a marcação nasce imutável, com NSR e hash."
+      ]
+    },
+    {
+      "id": "repp-relogio",
+      "copy": [
+        "agora"
+      ]
+    },
+    {
+      "id": "repp-gps",
+      "copy": [
+        "GPS ±"
+      ]
+    },
+    {
+      "id": "repp-tipos",
+      "copy": [
+        "Entrada",
+        "Saída almoço",
+        "Retorno almoço",
+        "Saída",
+        "início da jornada",
+        "fim da jornada"
+      ]
+    },
+    {
+      "id": "repp-hoje",
+      "_papel": "a nota legal: correção é por intercorrência, nunca edição (Portaria MTP 671/2021)",
+      "copy": [
+        "Hoje",
+        "Nenhuma marcação registrada hoje.",
+        "Marcação imutável (Portaria MTP 671/2021). Correção só por intercorrência."
+      ]
+    },
+    {
+      "id": "repp-espelho-totais",
+      "copy": [
+        "Trabalhado",
+        "Hora extra",
+        "Faltas",
+        "Atrasos"
+      ]
+    },
+    {
+      "id": "repp-espelho-dias",
+      "copy": [
+        "dia a dia",
+        "sem marcação",
+        "conferir"
+      ]
+    },
+    {
+      "id": "repp-motivos",
+      "copy": [
+        "O que aconteceu",
+        "Dia todo",
+        "Enviar para aprovação"
+      ]
+    }
+  ],
+  "ordem": [
+    "repp-relogio",
+    "repp-gps",
+    "repp-tipos",
+    "repp-hoje"
+  ],
+  "_nota_ordem": "A ordem é conferida no FONTE (arquivo, depois posição). Só a sequência de Bater ponto (relógio → GPS → tipos → hoje) é a mesma no fonte e na tela; a nota vem antes na tela mas depois no fonte (BaterPonto é definido acima do componente principal), e Meu espelho/Justificar moram em _components/ e são alternativas do seletor, não uma sequência. Fixar essas posições mediria arrumação de arquivo, não a tela."
+}
