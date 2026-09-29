@@ -102,13 +102,15 @@ const estadoIconMap: Record<string, string> = {
   CANCELADA: 'x-circle',
 };
 
-const estadoToneMap: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  PENDENTE:  'warning',
-  APROVADA:  'success',
-  REJEITADA: 'danger',
-  APLICADA:  'info',
-  RASCUNHO:  'default',
-  CANCELADA: 'default',
+// KPI-filtro do protótipo (`ponto-telas.jsx` Aprovacoes :25 `TOM` → `ponto-ui.jsx` :17
+// `TOM_KPI_FILTRO`): warn→amber · ok→emerald · neg→rose · acc→violet · sem tom→primary.
+const estadoFilterToneMap: Record<string, 'primary' | 'amber' | 'rose' | 'emerald' | 'violet'> = {
+  PENDENTE:  'amber',
+  APROVADA:  'emerald',
+  REJEITADA: 'rose',
+  APLICADA:  'violet',
+  RASCUNHO:  'primary',
+  CANCELADA: 'primary',
 };
 
 const estadoLabelMap: Record<string, string> = {
@@ -135,10 +137,13 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos,
 
   const filterChange = (key: string, value: string) => {
     const params: Record<string, string> = {};
-    if (filtros.estado && key !== 'estado') params.estado = filtros.estado;
+    // O controller cai em PENDENTE quando `estado` NÃO vem na query; "Todos" é `estado=` vazio,
+    // que chega como null e não filtra. Por isso o vazio é enviado explicitamente — senão
+    // escolher "Todos" (ou mexer em Tipo com "Todos" ativo) voltaria a mostrar só pendentes.
+    params.estado = key === 'estado' ? value : (filtros.estado ?? '');
     if (filtros.tipo && key !== 'tipo') params.tipo = filtros.tipo;
     if (filtros.prioridade && key !== 'prioridade') params.prioridade = filtros.prioridade;
-    if (value) params[key] = value;
+    if (value && key !== 'estado') params[key] = value;
     // D-14: partial reload — só re-busca o que muda com filtro. `contagens` (agregado
     // por business) e `tipos` (enum static) ficam fora → defer/props nem rodam no server.
     router.get('/ponto/aprovacoes', params, {
@@ -255,12 +260,17 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos,
 
   return (
     <>
-      <div className="mx-auto max-w-7xl p-6 space-y-4">
+      {/* `ponto-root` e `pt-body` são ganchos de medição — os seletores do ALVO em
+          governance/design/targets/ponto--aprovacoes--index.secoes.json. Não têm CSS próprio. */}
+      <div className="ponto-root mx-auto max-w-7xl p-6 space-y-4">
         {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
         <PontoAreaHeader active="aprovacoes" />
 
-        {/* KPIs por estado — cada card filtra quando clicado */}
-        <KpiGrid cols={6}>
+        <div className="pt-body space-y-4">
+        {/* KPIs por estado — KPI-filtro do protótipo (`.pt-kpis`): 6 numa linha, gap 10px.
+            `lg:grid-cols-6` porque os rótulos daqui são curtos (≤ "Cancelada") e cabem a 1280;
+            o `KpiGrid` só sobe pra 6 em 2xl por causa de rótulo longo de outra tela. */}
+        <KpiGrid cols={6} data-contract="aprovacoes-kpis-estado" className="gap-2.5 lg:grid-cols-6">
           {estadoOrder.map((estado) => {
             const active = filtros.estado === estado;
             return (
@@ -269,8 +279,8 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos,
                 label={estadoLabelMap[estado]}
                 value={cont[estado] ?? 0}
                 icon={estadoIconMap[estado]}
-                tone={estadoToneMap[estado]}
-                size="compact"
+                variant="filter"
+                filterTone={estadoFilterToneMap[estado]}
                 selected={active}
                 onClick={() => filterChange('estado', active ? '' : estado)}
               />
@@ -278,8 +288,29 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos,
           })}
         </KpiGrid>
 
-        {/* Filtros adicionais */}
-        <PageFilters activeChips={activeChips} onReset={activeChips.length > 0 ? resetFilters : undefined} cols={2}>
+        {/* Barra do protótipo: Estado · Tipo · Prioridade. O `Toolbar` do protótipo NÃO entra —
+            aqui o lugar dele é o `PageFilters`, que fica (thread 15, PARAR SE: as duas peças
+            disputariam a mesma faixa). */}
+        <PageFilters activeChips={activeChips} onReset={activeChips.length > 0 ? resetFilters : undefined} cols={3}>
+          <div>
+            <label htmlFor="filtro-estado" className="text-xs font-medium text-muted-foreground mb-1 block">Estado</label>
+            <Select
+              value={filtros.estado ?? 'ALL'}
+              onValueChange={(v) => filterChange('estado', v === 'ALL' ? '' : v)}
+            >
+              <SelectTrigger id="filtro-estado">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Todos</SelectItem>
+                {estadoOrder.map((e) => (
+                  <SelectItem key={e} value={e}>
+                    {estadoLabelMap[e]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div>
             {/* htmlFor/id: o SelectTrigger do Radix é um <button role="combobox"> cujo texto
                 interno o axe não conta como nome acessível — sem a associação explícita ele
@@ -293,7 +324,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos,
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Todos os tipos</SelectItem>
+                <SelectItem value="ALL">Todos</SelectItem>
                 {tipos.map((t) => (
                   <SelectItem key={t.value} value={t.value}>
                     {t.label}
@@ -494,6 +525,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos,
         </Deferred>
 
         <FilaMobile itens={mobile} podeRecusar={pode_recusar_mobile} />
+        </div>
       </div>
 
       {/* ==================== BulkActionBar ==================== */}
