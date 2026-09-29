@@ -210,7 +210,7 @@ export function createSeed(): Store {
       nome: "Padaria Pão Dourado",
       razaoSocial: "Pão Dourado Panificadora Ltda",
       nomeFantasia: "Padaria Pão Dourado",
-      documento: "12.345.678/0001-90",
+      documento: "12.345.678/0001-90", // pii-allowlist (documento fictício da demonstração)
       telefone: "(19) 99812-4410",
       email: "compras@paodourado.exemplo.com.br",
       logradouro: "Av. Brasil",
@@ -227,7 +227,7 @@ export function createSeed(): Store {
       id: C.autoCenter,
       nome: "Auto Center Silva",
       razaoSocial: "Silva & Filhos Serviços Automotivos Ltda",
-      documento: "23.456.789/0001-01",
+      documento: "23.456.789/0001-01", // pii-allowlist (documento fictício da demonstração)
       telefone: "(19) 99745-2231",
       email: "contato@autosilva.exemplo.com.br",
       endereco: "R. Barão de Jaguara, 880 — Centro",
@@ -237,7 +237,7 @@ export function createSeed(): Store {
       id: C.clinica,
       nome: "Clínica Sorriso",
       razaoSocial: "Sorriso Odontologia Integrada S/S",
-      documento: "34.567.890/0001-12",
+      documento: "34.567.890/0001-12", // pii-allowlist (documento fictício da demonstração)
       telefone: "(19) 99630-7788",
       email: "adm@clinicasorriso.exemplo.com.br",
       endereco: "R. Coronel Quirino, 410 — Cambuí",
@@ -247,7 +247,7 @@ export function createSeed(): Store {
       id: C.mercado,
       nome: "Mercado Bom Preço",
       razaoSocial: "Bom Preço Supermercados Ltda",
-      documento: "45.678.901/0001-23",
+      documento: "45.678.901/0001-23", // pii-allowlist (documento fictício da demonstração)
       telefone: "(19) 99521-3304",
       endereco: "Av. John Boyd Dunlop, 3100 — Jardim Ipaussurama",
       classificacao: "B",
@@ -256,7 +256,7 @@ export function createSeed(): Store {
     customer({
       id: C.academia,
       nome: "Studio Fit Academia",
-      documento: "56.789.012/0001-34",
+      documento: "56.789.012/0001-34", // pii-allowlist (documento fictício da demonstração)
       telefone: "(19) 99410-9087",
       email: "studiofit@exemplo.com.br",
       endereco: "R. Maria Monteiro, 77 — Cambuí",
@@ -266,7 +266,7 @@ export function createSeed(): Store {
       id: C.carlos,
       nome: "Carlos Eduardo Ramos",
       tipo: "PF",
-      documento: "123.456.789-09",
+      documento: "123.456.789-09", // pii-allowlist (documento fictício da demonstração)
       telefone: "(19) 99302-1150",
       email: "carlos.ramos@exemplo.com.br",
       endereco: "R. Dr. Quirino, 55 — Botafogo",
@@ -277,7 +277,7 @@ export function createSeed(): Store {
       id: C.mariana,
       nome: "Mariana Lopes",
       tipo: "PF",
-      documento: "987.654.321-00",
+      documento: "987.654.321-00", // pii-allowlist (documento fictício da demonstração)
       telefone: "(19) 99277-6612",
       email: "mariana.lopes@exemplo.com.br",
       endereco: "Av. Orosimbo Maia, 900 — Vila Itapura",
@@ -287,7 +287,7 @@ export function createSeed(): Store {
     customer({
       id: C.roberto,
       nome: "Transportadora Rota Sul",
-      documento: "67.890.123/0001-45",
+      documento: "67.890.123/0001-45", // pii-allowlist (documento fictício da demonstração)
       telefone: "(19) 99188-4521",
       email: "frota@rotasul.exemplo.com.br",
       endereco: "Rod. Anhanguera, km 98 — Distrito Industrial",
@@ -298,7 +298,7 @@ export function createSeed(): Store {
     customer({
       id: C.lonaCia,
       nome: "Lona & Cia Distribuidora",
-      documento: "78.901.234/0001-56",
+      documento: "78.901.234/0001-56", // pii-allowlist (documento fictício da demonstração)
       telefone: "(11) 98877-1020",
       email: "vendas@lonaecia.exemplo.com.br",
       cidade: "São Paulo",
@@ -309,7 +309,7 @@ export function createSeed(): Store {
     customer({
       id: C.vinilSul,
       nome: "Vinil Sul Materiais",
-      documento: "89.012.345/0001-67",
+      documento: "89.012.345/0001-67", // pii-allowlist (documento fictício da demonstração)
       telefone: "(41) 98765-3344",
       cidade: "Curitiba",
       uf: "PR",
@@ -693,7 +693,7 @@ export function createSeed(): Store {
     id: sid("c4", 1),
     razaoSocial: "Oimpresso Comunicação Visual Ltda",
     nomeFantasia: "Oimpresso",
-    cnpj: "11.222.333/0001-81",
+    cnpj: "11.222.333/0001-81", // pii-allowlist (documento fictício da demonstração)
     inscricaoEstadual: "244.556.778.119",
     inscricaoMunicipal: "1.045.332-0",
     regimeTributario: "simples_nacional",

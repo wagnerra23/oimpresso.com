@@ -38,12 +38,12 @@ export type Pessoa = {
 };
 
 export const PESSOAS_SEED: Pessoa[] = [
-  { id: "PE-1", nome: "Transportes Lima Ltda", doc: "12.345.678/0001-90", papeis: ["cliente", "transportadora"] },
-  { id: "PE-2", nome: "Distribuidora Sul SA", doc: "98.765.432/0001-12", papeis: ["cliente"] },
-  { id: "PE-3", nome: "Rotas BR Express", doc: "55.444.333/0001-21", papeis: ["cliente", "transportadora"] },
-  { id: "PE-4", nome: "Comercial Norte", doc: "11.222.333/0001-44", papeis: ["cliente"] },
-  { id: "PE-5", nome: "André Silva", doc: "111.222.333-44", papeis: ["funcionario"] },
-  { id: "PE-6", nome: "Bruno Cruz", doc: "222.333.444-55", papeis: ["funcionario"] },
+  { id: "PE-1", nome: "Transportes Lima Ltda", doc: "12.345.678/0001-90", papeis: ["cliente", "transportadora"] }, // pii-allowlist (documento fictício)
+  { id: "PE-2", nome: "Distribuidora Sul SA", doc: "98.765.432/0001-12", papeis: ["cliente"] }, // pii-allowlist (documento fictício)
+  { id: "PE-3", nome: "Rotas BR Express", doc: "55.444.333/0001-21", papeis: ["cliente", "transportadora"] }, // pii-allowlist (documento fictício)
+  { id: "PE-4", nome: "Comercial Norte", doc: "11.222.333/0001-44", papeis: ["cliente"] }, // pii-allowlist (documento fictício)
+  { id: "PE-5", nome: "André Silva", doc: "111.222.333-44", papeis: ["funcionario"] }, // pii-allowlist (documento fictício)
+  { id: "PE-6", nome: "Bruno Cruz", doc: "222.333.444-55", papeis: ["funcionario"] }, // pii-allowlist (documento fictício)
 ];
 
 export const EQUIPAMENTOS_SEED: Equipamento[] = [

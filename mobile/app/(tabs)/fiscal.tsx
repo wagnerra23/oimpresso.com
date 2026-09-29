@@ -222,7 +222,7 @@ export default function FiscalScreen() {
         cancelText="Cancelar"
       >
         <FormInput label="Razão Social" placeholder="Empresa Ltda" value={razao} onChangeText={setRazao} returnKeyType="next" />
-        <FormInput label="CNPJ" placeholder="00.000.000/0000-00" value={cnpj} onChangeText={setCnpj} keyboardType="numeric" returnKeyType="next" />
+        <FormInput label="CNPJ" placeholder="00.000.000/0000-00" /* pii-allowlist (máscara de formato) */ value={cnpj} onChangeText={setCnpj} keyboardType="numeric" returnKeyType="next" />
         <Select label="Regime Tributário" options={REGIME_OPTIONS} value={regime} onValueChange={setRegime} />
         <FormInput label="Cidade" placeholder="São Paulo" value={cidade} onChangeText={setCidade} returnKeyType="next" />
         <FormInput label="UF" placeholder="SP" value={uf} onChangeText={(v) => setUf(v.toUpperCase().slice(0, 2))} returnKeyType="next" />

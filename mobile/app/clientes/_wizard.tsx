@@ -469,7 +469,7 @@ export default function ClienteWizard({ customerId, initialStep = 0 }: ClienteWi
                       value={form.documento}
                       onChangeText={(v) => set("documento", v)}
                       placeholder={
-                        form.tipo === "PJ" ? "00.000.000/0001-00" : "000.000.000-00"
+                        form.tipo === "PJ" ? "00.000.000/0001-00" : "000.000.000-00" // pii-allowlist (máscara de formato)
                       }
                       keyboardType="numeric"
                       mono

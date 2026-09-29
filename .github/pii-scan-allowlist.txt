@@ -21,3 +21,111 @@ memory/decisions/0207-contract-test-obrigatorio-pr-tela-autosave.md|11.222.333/0
 # (deve dar exit 1) e com marker (deve dar exit 0). Marcar o primeiro inline tornaria
 # os dois idênticos e a doc mentiria sobre o que demonstra. CPF placeholder clássico.
 memory/requisitos/Infra/RUNBOOK-governance-gate-ci.md|123.456.789-00
+
+# Catalogado 2026-09-29 (PR #8193): mobile/ref/** são snapshots CONGELADOS dos handoffs de
+# design do app mobile (claude.ai/design e agentes de protótipo) — mock data de tela, não
+# código operacional. Todos os literais abaixo têm dígito verificador INVÁLIDO (conferido),
+# exceto 987.654.321-00 (CPF sequencial de teste clássico). O único válido que não era
+# sequencial (CNPJ real de fornecedor) foi redigido na fonte como [REDACTED-CNPJ].
+mobile/ref/design-v2/mock-data.jsx|12.881.220/0001-30
+mobile/ref/design-v2/mock-data.jsx|18.554.012/0001-08
+mobile/ref/design-v2/mock-data.jsx|182.441.998-02
+mobile/ref/design-v2/mock-data.jsx|21.998.310/0001-21
+mobile/ref/design-v2/mock-data.jsx|29.881.110/0001-44
+mobile/ref/design-v2/mock-data.jsx|33.110.005/0001-12
+mobile/ref/design-v2/mock-data.jsx|335.220.118-90
+mobile/ref/design-v2/mock-data.jsx|412.998.220-15
+mobile/ref/design-v2/mock-data.jsx|44.221.665/0001-77
+mobile/ref/design-v2/mock-data.jsx|55.881.299/0001-04
+mobile/ref/design-v2/mock-data.jsx|61.227.118/0001-50
+mobile/ref/design-v2/screens-novo-cliente.jsx|00.000.000/0001-00
+mobile/ref/design-v2/screens-novo-cliente.jsx|000.000.000-00
+mobile/ref/design-v2/task-viewers.jsx|98.412.001/0001-90
+mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/mock-data.jsx|12.881.220/0001-30
+mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/mock-data.jsx|18.554.012/0001-08
+mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/mock-data.jsx|182.441.998-02
+mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/mock-data.jsx|21.998.310/0001-21
+mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/mock-data.jsx|29.881.110/0001-44
+mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/mock-data.jsx|33.110.005/0001-12
+mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/mock-data.jsx|335.220.118-90
+mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/mock-data.jsx|412.998.220-15
+mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/mock-data.jsx|44.221.665/0001-77
+mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/mock-data.jsx|55.881.299/0001-04
+mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/mock-data.jsx|61.227.118/0001-50
+mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/screens-novo-cliente.jsx|00.000.000/0001-00
+mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/screens-novo-cliente.jsx|000.000.000-00
+mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/task-viewers.jsx|98.412.001/0001-90
+mobile/ref/design-v3/oimpresso-mobile/project/mock-data.jsx|12.881.220/0001-30
+mobile/ref/design-v3/oimpresso-mobile/project/mock-data.jsx|18.554.012/0001-08
+mobile/ref/design-v3/oimpresso-mobile/project/mock-data.jsx|182.441.998-02
+mobile/ref/design-v3/oimpresso-mobile/project/mock-data.jsx|21.998.310/0001-21
+mobile/ref/design-v3/oimpresso-mobile/project/mock-data.jsx|29.881.110/0001-44
+mobile/ref/design-v3/oimpresso-mobile/project/mock-data.jsx|33.110.005/0001-12
+mobile/ref/design-v3/oimpresso-mobile/project/mock-data.jsx|335.220.118-90
+mobile/ref/design-v3/oimpresso-mobile/project/mock-data.jsx|412.998.220-15
+mobile/ref/design-v3/oimpresso-mobile/project/mock-data.jsx|44.221.665/0001-77
+mobile/ref/design-v3/oimpresso-mobile/project/mock-data.jsx|55.881.299/0001-04
+mobile/ref/design-v3/oimpresso-mobile/project/mock-data.jsx|61.227.118/0001-50
+mobile/ref/design-v3/oimpresso-mobile/project/screens-novo-cliente.jsx|00.000.000/0001-00
+mobile/ref/design-v3/oimpresso-mobile/project/screens-novo-cliente.jsx|000.000.000-00
+mobile/ref/design-v3/oimpresso-mobile/project/task-viewers.jsx|98.412.001/0001-90
+mobile/ref/design-v3/oimpresso-mobile/project/uploads/Kimi_Agent_Melhorar o projeto/src/data/mockData.ts|11.222.333/0001-44
+mobile/ref/design-v3/oimpresso-mobile/project/uploads/Kimi_Agent_Melhorar o projeto/src/data/mockData.ts|12.345.678/0001-90
+mobile/ref/design-v3/oimpresso-mobile/project/uploads/Kimi_Agent_Melhorar o projeto/src/data/mockData.ts|123.456.789-00
+mobile/ref/design-v3/oimpresso-mobile/project/uploads/Kimi_Agent_Melhorar o projeto/src/data/mockData.ts|456.789.123-00
+mobile/ref/design-v3/oimpresso-mobile/project/uploads/Kimi_Agent_Melhorar o projeto/src/data/mockData.ts|55.444.333/0001-22
+mobile/ref/design-v3/oimpresso-mobile/project/uploads/Kimi_Agent_Melhorar o projeto/src/data/mockData.ts|789.123.456-00
+mobile/ref/design-v3/oimpresso-mobile/project/uploads/Kimi_Agent_Melhorar o projeto/src/data/mockData.ts|98.765.432/0001-10
+mobile/ref/design-v3/oimpresso-mobile/project/uploads/Kimi_Agent_Melhorar o projeto/src/data/mockData.ts|987.654.321-00
+mobile/ref/design-v3/oimpresso-mobile/project/uploads/Kimi_Agent_Melhorar o projeto/src/screens/NewClientScreen.tsx|00.000.000/0000-00
+mobile/ref/design-v3/oimpresso-mobile/project/uploads/Kimi_Agent_Melhorar o projeto/src/screens/NewClientScreen.tsx|000.000.000-00
+mobile/ref/design-v3/oimpresso-mobile/project/uploads/fsm_cliente_cadastro_mobile_html (1).html|00.000.000/0001-00
+mobile/ref/design-v3/oimpresso-mobile/project/uploads/fsm_cliente_cadastro_mobile_html (1).html|000.000.000-00
+mobile/ref/design/mock-data.jsx|12.881.220/0001-30
+mobile/ref/design/mock-data.jsx|18.554.012/0001-08
+mobile/ref/design/mock-data.jsx|182.441.998-02
+mobile/ref/design/mock-data.jsx|21.998.310/0001-21
+mobile/ref/design/mock-data.jsx|33.110.005/0001-12
+mobile/ref/design/mock-data.jsx|412.998.220-15
+mobile/ref/design/mock-data.jsx|44.221.665/0001-77
+mobile/ref/design/mock-data.jsx|55.881.299/0001-04
+mobile/ref/design/mock-data.jsx|61.227.118/0001-50
+mobile/ref/design/task-viewers.jsx|98.412.001/0001-90
+mobile/ref/handoff-3/app/mock-data.jsx|10.998.871/0001-20
+mobile/ref/handoff-3/app/mock-data.jsx|12.775.409/0001-18
+mobile/ref/handoff-3/app/mock-data.jsx|12.881.220/0001-30
+mobile/ref/handoff-3/app/mock-data.jsx|13.209.984/0001-10
+mobile/ref/handoff-3/app/mock-data.jsx|18.554.012/0001-08
+mobile/ref/handoff-3/app/mock-data.jsx|182.441.998-02
+mobile/ref/handoff-3/app/mock-data.jsx|21.998.310/0001-21
+mobile/ref/handoff-3/app/mock-data.jsx|27.554.120/0001-88
+mobile/ref/handoff-3/app/mock-data.jsx|29.881.110/0001-44
+mobile/ref/handoff-3/app/mock-data.jsx|33.110.005/0001-12
+mobile/ref/handoff-3/app/mock-data.jsx|335.220.118-90
+mobile/ref/handoff-3/app/mock-data.jsx|412.998.220-15
+mobile/ref/handoff-3/app/mock-data.jsx|44.221.665/0001-77
+mobile/ref/handoff-3/app/mock-data.jsx|55.881.299/0001-04
+mobile/ref/handoff-3/app/mock-data.jsx|61.227.118/0001-50
+mobile/ref/handoff-3/app/screens-novo-cliente.jsx|00.000.000/0001-00
+mobile/ref/handoff-3/app/screens-novo-cliente.jsx|000.000.000-00
+mobile/ref/handoff-3/app/task-viewers.jsx|98.412.001/0001-90
+mobile/ref/handoff-3/backend/apps/server/src/db/seed.ts|00.000.000/0001-00
+mobile/ref/handoff-5/app/mock-data.jsx|10.998.871/0001-20
+mobile/ref/handoff-5/app/mock-data.jsx|12.775.409/0001-18
+mobile/ref/handoff-5/app/mock-data.jsx|12.881.220/0001-30
+mobile/ref/handoff-5/app/mock-data.jsx|13.209.984/0001-10
+mobile/ref/handoff-5/app/mock-data.jsx|18.554.012/0001-08
+mobile/ref/handoff-5/app/mock-data.jsx|182.441.998-02
+mobile/ref/handoff-5/app/mock-data.jsx|21.998.310/0001-21
+mobile/ref/handoff-5/app/mock-data.jsx|27.554.120/0001-88
+mobile/ref/handoff-5/app/mock-data.jsx|29.881.110/0001-44
+mobile/ref/handoff-5/app/mock-data.jsx|33.110.005/0001-12
+mobile/ref/handoff-5/app/mock-data.jsx|335.220.118-90
+mobile/ref/handoff-5/app/mock-data.jsx|412.998.220-15
+mobile/ref/handoff-5/app/mock-data.jsx|44.221.665/0001-77
+mobile/ref/handoff-5/app/mock-data.jsx|55.881.299/0001-04
+mobile/ref/handoff-5/app/mock-data.jsx|61.227.118/0001-50
+mobile/ref/handoff-5/app/screens-novo-cliente.jsx|00.000.000/0001-00
+mobile/ref/handoff-5/app/screens-novo-cliente.jsx|000.000.000-00
+mobile/ref/handoff-5/app/task-viewers.jsx|98.412.001/0001-90
+mobile/ref/handoff-5/backend/apps/server/src/db/seed.ts|00.000.000/0001-00
