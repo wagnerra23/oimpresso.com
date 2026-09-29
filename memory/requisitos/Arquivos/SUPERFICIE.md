@@ -14,7 +14,7 @@ module: Arquivos
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Arquivos/**` + `resources/js/Pages/Arquivos/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 70 arquivos em 14 papéis.
+**Total mapeado:** 71 arquivos em 14 papéis.
 
 ## Controllers — 4
 
@@ -93,9 +93,9 @@ module: Arquivos
 
 - [Index.casos.md](../../../resources/js/Pages/Arquivos/Index.casos.md)
 
-## Testes (Pest) — 26
+## Testes (Pest) — 27
 
-- 26 em [Modules/Arquivos/Tests/Feature/](../../../Modules/Arquivos/Tests/Feature)
+- 27 em [Modules/Arquivos/Tests/Feature/](../../../Modules/Arquivos/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 3

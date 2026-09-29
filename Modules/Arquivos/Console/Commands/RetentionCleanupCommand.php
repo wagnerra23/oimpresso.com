@@ -142,8 +142,22 @@ class RetentionCleanupCommand extends Command
                     try {
                         // 1. Remove file físico do disk
                         $fileRemoved = false;
+                        // Blob compartilhado: a dedupe de storage (ArquivosService::attach)
+                        // faz N linhas de donos distintos apontarem pro mesmo storage_path.
+                        // Só a ÚLTIMA referência apaga o blob — senão purgar o dono A
+                        // apaga o arquivo que o dono B ainda usa. Conta linhas soft-deleted
+                        // também (serão purgadas depois; a última delas remove o blob).
+                        // Sem filtro de business: é checagem de existência (não expõe dado)
+                        // e o path já carrega biz-{id}; filtrar só tornaria a guarda mais fraca.
+                        $blobCompartilhado = DB::table('arquivos')
+                            ->where('disk', $row->disk)
+                            ->where('storage_path', $row->storage_path)
+                            ->where('id', '!=', $row->id)
+                            ->exists();
                         try {
-                            if (Storage::disk($row->disk)->exists($row->storage_path)) {
+                            if ($blobCompartilhado) {
+                                $fileRemoved = false;
+                            } elseif (Storage::disk($row->disk)->exists($row->storage_path)) {
                                 Storage::disk($row->disk)->delete($row->storage_path);
                                 $fileRemoved = true;
                             } else {
@@ -178,6 +192,7 @@ class RetentionCleanupCommand extends Command
                                 'business_id'         => $row->business_id,
                                 'user_action'         => 'retention_cleanup_command',
                                 'file_removed_from_disk' => $fileRemoved,
+                                'blob_compartilhado'     => $blobCompartilhado,
                             ]),
                             'created_at'  => now()->toDateTimeString(),
                         ]);
