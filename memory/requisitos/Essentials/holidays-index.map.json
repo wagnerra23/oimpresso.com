@@ -25,7 +25,7 @@
       "id": "criar-editar-excluir-feriado",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/hrm-page.jsx",
-        "linhas": "374-383, 404, 427-428, 434"
+        "linhas": "374-383, 404, 424-425, 434"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Essentials/Holidays/Index.tsx",

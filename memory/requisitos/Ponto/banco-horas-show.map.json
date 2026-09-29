@@ -33,7 +33,7 @@
         "ancora": "bancohoras-kpis-do-extrato"
       },
       "status": "paridade",
-      "acao": "Nada. A emenda de charter (D-BH-KPI) entrou (`Show.charter.md:34-42`) e foi construída. O Non-Goal \"não expira crédito na tela\" (`Index.charter.md:66`) continua valendo: mostrar o prazo não é expirar.",
+      "acao": "Nada. A emenda de charter (D-BH-KPI) entrou (`Show.charter.md:34-42`) e foi construída. O Anti-hook \"não expira crédito na tela\" (`Index.charter.md:66`) continua valendo: mostrar o prazo não é expirar.",
       "_acionavel": false
     },
     {
@@ -54,8 +54,8 @@
     {
       "id": "paginacao-do-historico",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "404"
+        "arquivo": "n/a",
+        "linhas": "n/a"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/BancoHoras/Show.tsx",
@@ -64,7 +64,8 @@
       },
       "status": "vivo-a-frente",
       "acao": "Protótipo corrige: ganha o `Pager` de 50/pág. O gap do vivo fechou.",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota": "2026-09-29: protótipo sem paginação — renderiza a lista inteira (`ponto-telas.jsx:404`, `lista.map`); faixa n/a porque o elemento nomeado não existe nesse lado."
     },
     {
       "id": "ajuste-manual",

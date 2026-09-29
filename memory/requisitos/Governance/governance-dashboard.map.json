@@ -154,8 +154,8 @@
         "linhas": "918-956",
         "ancora": false
       },
-      "status": "paridade",
-      "acao": "Nada — paridade (mesma lista de topo com teto 10 — charter §Non-Goals \"Histórico longo\"; ator/duração por chamada são colunas da vista Auditoria — charter §Non-Goals \"Drill-down por chamada individual do MCP (isso é governance/Audit)\")",
+      "status": "nao-adotar",
+      "acao": "Nada — não adotar ator e duração, decisão já registrada (mesma lista de topo com teto 10 — charter §Non-Goals \"Histórico longo\"; ator/duração por chamada são colunas da vista Auditoria — charter §Non-Goals \"Drill-down por chamada individual do MCP (isso é governance/Audit)\")",
       "_acionavel": false
     },
     {

@@ -48,7 +48,7 @@
         "ancora": "aprovacoes-fila-de-aprovacoes"
       },
       "status": "divergencia-declarada",
-      "acao": "Vivo à frente na coluna Criada. O cargo na sub-linha é protótipo à frente e depende de o payload trazer o cargo — medido em 2026-09-29: `grep -n cargo AprovacaoController.php` = 0, o payload do colaborador só leva nome e matrícula. O `data-contract=\"aprovacoes-fila-de-aprovacoes\"` no card, que a thread 17 prometia, já está gravado (#8114).",
+      "acao": "Vivo à frente na coluna Criada. O cargo na sub-linha é protótipo à frente e depende de o payload trazer o cargo — medido em 2026-09-29: `grep -n cargo AprovacaoController.php` = 0, o payload do colaborador leva só id, matrícula e nome (`AprovacaoController.php:96-102`). O `data-contract=\"aprovacoes-fila-de-aprovacoes\"` no card, que a thread 17 prometia, já está gravado (#8114).",
       "_acionavel": true
     },
     {

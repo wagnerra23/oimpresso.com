@@ -95,7 +95,7 @@
         "linhas": "n/a",
         "ancora": false
       },
-      "status": "prototipo-a-frente",
+      "status": "gap",
       "acao": "Incorporar — `D-IMP-FILTRO` = ENTRA (\"barato, e a lista cresce todo dia\"). Filtro de estado + tipo no controller e na tela, com partial reload.",
       "_acionavel": true,
       "_nota": "2026-09-29: grep -ci 'filtro' e 'filter' em resources/js/Pages/Ponto/Importacoes/Index.tsx = 0 e 0; ImportacaoController@index (:24-51) não lê filtro; ponto-telas.jsx Importacoes (:745-886) também não tem."

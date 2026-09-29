@@ -92,9 +92,9 @@
         "linhas": "1-190",
         "ancora": false
       },
-      "status": "paridade",
-      "acao": "Nada — o drawer virou rota em 2026-09-29 (thread 28, D-PONTO-DETALHE, R2). O `window.confirm` que esta linha mandava tirar junto ficou nos dois lados (`ponto-telas.jsx:269`, `:272`; `Show.tsx:54`, `:62`); trocá-lo não é decisão registrada no gap.",
-      "_acionavel": false
+      "status": "gap-parcial",
+      "acao": "Trocar o `confirm` nativo pelo diálogo do DS nos dois lados (`ponto-telas.jsx:269`, `:272` · `Show.tsx:54`, `:62`). A rota já é paridade (D-PONTO-DETALHE, R2); o `confirm` é a metade que esta linha mandava tirar junto com o drawer, e a regra é a mesma da ata de 2026-09-14 (D-ESC-DESTROY: *`window.confirm` não era pergunta — usa o dialog do DS*) e do lote de aprovações (#8079).",
+      "_acionavel": true
     },
     {
       "id": "form-embutido-de-nova-e-edicao",

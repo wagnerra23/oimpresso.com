@@ -92,9 +92,9 @@
         "linhas": "n/a",
         "ancora": false
       },
-      "status": "divergencia-declarada",
-      "acao": "Nada — o Non-Goal \"não cadastra colaborador\" está materializado nos dois. Forma é assunto das threads de FORMA, não deste gap.",
-      "_acionavel": false,
+      "status": "prototipo-a-frente",
+      "acao": "Protótipo à frente na forma: no vivo a nota persistente sumiu e o HRM só aparece no estado vazio (`Index.tsx:134`). Restaurar a nota no vivo, seguindo o protótipo (forma é do protótipo, UI-0029).",
+      "_acionavel": true,
       "_nota": "2026-09-29: grep -n 'HRM' em resources/js/Pages/Ponto/Colaboradores/Index.tsx = 1 (:134, descrição do EmptyState, só aparece com a lista vazia); o subtítulo do header que a faixa :79 apontava não existe mais. Sem região equivalente no vivo → n/a."
     }
   ]

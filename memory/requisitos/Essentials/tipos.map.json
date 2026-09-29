@@ -94,9 +94,9 @@
         "linhas": "188, 198",
         "ancora": false
       },
-      "status": "paridade",
-      "acao": "Nada — paridade de rótulo: protótipo (hrm-page.jsx:289), contrato e vivo (Tipos.tsx:188) grafam \"Pedidos no ano\". Registrado para não virar \"bug\" na próxima leitura.",
-      "_acionavel": false,
+      "status": "decidir-w",
+      "acao": "Decidir. O rótulo é paridade, o número não: o vivo faz query própria só do ano corrente, o que contraria o playbook (`03-tipos-licenca.md:18` — *\"reusar, não recontar\"* — e o PARAR SE de `:36`), e o protótipo (`hrm-page.jsx:295`) conta todas, como o `destroy`. Ou reusar o cálculo do `destroy` (e o rótulo deixa de ser \"no ano\"), ou registrar por escrito a exceção.",
+      "_acionavel": true,
       "_nota": "2026-09-29: em 2026-09-06 o protótipo grafava \"Em uso\"; hoje grafa \"Pedidos no ano\" (hrm-page.jsx:289). A fonte do número não é a do destroy: a coluna do vivo mostra t.leaves_count (Tipos.tsx:198), vindo de query agrupada só do ano corrente (Modules/Essentials/Http/Controllers/EssentialsLeaveTypeController.php:104-108), enquanto o destroy conta todas as licenças do tipo (:281-283). O protótipo conta todas as licenças do tipo, sem janela (hrm-page.jsx:295)."
     },
     {

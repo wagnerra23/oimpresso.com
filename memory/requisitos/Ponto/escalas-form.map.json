@@ -40,7 +40,7 @@
       "id": "cargas-e-banco-de-horas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "564-566"
+        "linhas": "548-549, 564-566"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Escalas/Form.tsx",
