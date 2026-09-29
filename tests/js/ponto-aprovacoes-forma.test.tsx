@@ -64,4 +64,28 @@ describe('Ponto/Aprovacoes · forma do protótipo (thread 15)', () => {
     const rotulos = [...container.querySelectorAll('[data-slot="page-filters"] label')].map((l) => l.textContent)
     expect(rotulos).toEqual(['Estado', 'Tipo', 'Prioridade'])
   })
+
+  it('a fila é o widget do protótipo: h2 "Fila de aprovações", contagem no badge, colunas na ordem', () => {
+    const linha = (id: number, estado: string) => ({
+      id, codigo: `INT-${id}`, tipo: 'ATESTADO_MEDICO', estado, prioridade: 'NORMAL', data: '18/08/2026',
+      dia_todo: false, intervalo_inicio: '13:00', intervalo_fim: '14:00', justificativa: 'x',
+      impacta_apuracao: true, descontar_banco_horas: false, created_at_human: 'há 1 dia', created_at: null,
+      colaborador: { id, matricula: '0007', nome: `Colaborador ${id}` }, solicitante: { nome: 'Gestor' },
+    })
+    const { container, getByRole, getByLabelText } = render(
+      <AprovacoesIndex
+        {...({ ...props, aprovacoes: { ...props.aprovacoes, data: [linha(1, 'PENDENTE'), linha(2, 'APROVADA')], total: 2 } } as never)}
+      />,
+    )
+    const fila = container.querySelector('[data-contract="aprovacoes-fila-de-aprovacoes"]')!
+    expect(getByRole('heading', { level: 2, name: /Fila de aprovações/ })).toBeTruthy()
+    expect(fila.querySelector('[data-slot="card-title-badge"]')?.textContent).toBe('(2 itens)')
+    const cabecalhos = [...fila.querySelectorAll('thead th')].map((th) => th.textContent)
+    expect(cabecalhos.slice(1)).toEqual(['Colaborador', 'Tipo', 'Data / intervalo', 'Estado', 'Prioridade', 'Criada', 'Ação'])
+    // Só pendente entra no lote: a linha aprovada mostra a caixa, desabilitada.
+    expect((getByLabelText('INT-2: só pendentes entram no lote') as HTMLButtonElement).disabled).toBe(true)
+    expect((getByLabelText('Selecionar INT-1') as HTMLButtonElement).disabled).toBe(false)
+    expect(fila.textContent).toContain('13:00 – 14:00')
+    expect(container.querySelector('.pt-legal')?.textContent).toContain('Portaria MTP 671/2021')
+  })
 })

@@ -11,7 +11,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router } from '@inertiajs/react';
 import { useState, type FormEvent, type MouseEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { Check, CheckCheck, X } from 'lucide-react';
+import { Check, CheckCheck, ShieldCheck, X } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +23,8 @@ import {
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Skeleton } from '@/Components/ui/skeleton';
 import {
   Dialog,
@@ -90,6 +91,12 @@ interface Props {
   pode_recusar_mobile: boolean; // `ponto.aprovacoes.manage` — a rota é quem barra
   tipos: Array<{ value: string; label: string }>;
 }
+
+// Célula da tabela densa — as MESMAS strings do `density="dense"` de shared/DataTable
+// (CLASSE_DENSIDADE, playbook ds-atomos 04). A fila é tabela própria porque pagina com
+// partial reload (D-14); copiar a string, e não inventar outra, mantém os números do alvo.
+const TH = 'px-2.5 py-2 text-left text-[11px] uppercase tracking-[.07em] font-semibold whitespace-nowrap';
+const TD = 'px-2.5 py-[7px] text-[12.5px] align-top';
 
 const estadoOrder = ['PENDENTE', 'APROVADA', 'REJEITADA', 'APLICADA', 'RASCUNHO', 'CANCELADA'] as const;
 
@@ -351,10 +358,24 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos,
           </div>
         </PageFilters>
 
-        {/* Tabela */}
+        {/* FILA — Card "Fila de aprovações" do protótipo: widget flush, contagem no badge,
+            tabela densa (as classes do `density="dense"` do shared/DataTable, playbook ds-atomos 04). */}
         <Deferred data="aprovacoes" fallback={<Skeleton className="h-64 w-full" />}>
-        <Card data-contract="aprovacoes-fila-de-aprovacoes">
-          <CardContent className="p-0">
+        <section data-contract="aprovacoes-fila-de-aprovacoes" aria-labelledby="aprovacoes-fila-titulo">
+        <Card flush className="gap-3 py-4">
+          <CardHeader>
+            <CardTitle
+              as="h2"
+              id="aprovacoes-fila-titulo"
+              badge={`(${aprovacoes?.total ?? 0} ${(aprovacoes?.total ?? 0) === 1 ? 'item' : 'itens'})`}
+            >
+              <Inline gap={2} align="center" className="min-w-0">
+                <Check size={15} aria-hidden />
+                <span>Fila de aprovações</span>
+              </Inline>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             {rows.length === 0 ? (
               <EmptyState
                 icon={activeChips.length > 0 || filtros.estado ? 'search-x' : 'inbox'}
@@ -375,118 +396,97 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos,
               />
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b border-border bg-muted/30 text-xs text-muted-foreground">
+                <table className="w-full">
+                  <thead className="border-y border-border bg-muted/30 text-muted-foreground">
                     <tr>
-                      {pendentes.length > 0 && (
-                        <th className="w-10 p-3">
-                          <input
-                            type="checkbox"
-                            checked={allPendentesSelected}
-                            onChange={toggleAllPendentes}
-                            aria-label="Selecionar todas as pendentes"
-                            className="h-4 w-4"
-                          />
-                        </th>
-                      )}
-                      <th className="text-left p-3 font-medium">Colaborador</th>
-                      <th className="text-left p-3 font-medium">Tipo</th>
-                      <th className="text-left p-3 font-medium">Data</th>
-                      <th className="text-left p-3 font-medium">Estado</th>
-                      <th className="text-left p-3 font-medium">Prioridade</th>
-                      <th className="text-left p-3 font-medium">Criada</th>
-                      <th className="text-right p-3 font-medium">Ações</th>
+                      {/* Coluna de seleção sempre presente (protótipo): só pendente entra no lote. */}
+                      <th scope="col" className="w-[34px] px-2.5 py-2">
+                        <Checkbox
+                          checked={allPendentesSelected}
+                          onCheckedChange={toggleAllPendentes}
+                          disabled={pendentes.length === 0}
+                          aria-label="Selecionar todas as pendentes"
+                        />
+                      </th>
+                      <th scope="col" className={TH}>Colaborador</th>
+                      <th scope="col" className={TH}>Tipo</th>
+                      <th scope="col" className={TH}>Data / intervalo</th>
+                      <th scope="col" className={TH}>Estado</th>
+                      <th scope="col" className={TH}>Prioridade</th>
+                      <th scope="col" className={TH}>Criada</th>
+                      <th scope="col" className={`w-[236px] text-right ${TH}`}>Ação</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
+                  <tbody className="divide-y divide-border/60">
                     {rows.map((a) => {
                       const canActOn = a.estado === 'PENDENTE';
                       const isSelected = selectedIds.includes(a.id);
                       return (
-                        <tr key={a.id} className="hover:bg-accent/30 transition-colors">
-                          {pendentes.length > 0 && (
-                            <td className="p-3">
-                              {canActOn ? (
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={(e) =>
-                                    setSelectedIds((prev) =>
-                                      e.target.checked
-                                        ? [...prev, a.id]
-                                        : prev.filter((id) => id !== a.id),
-                                    )
-                                  }
-                                  aria-label={`Selecionar ${a.codigo}`}
-                                  className="h-4 w-4"
-                                />
-                              ) : null}
-                            </td>
-                          )}
-                          <td className="p-3">
-                            <div className="font-medium">{a.colaborador.nome}</div>
+                        <tr
+                          key={a.id}
+                          data-state={isSelected ? 'selected' : undefined}
+                          className="hover:bg-primary/5 data-[state=selected]:bg-primary/5"
+                        >
+                          <td className={TD}>
+                            <Checkbox
+                              checked={isSelected}
+                              disabled={!canActOn}
+                              onCheckedChange={(v) =>
+                                setSelectedIds((prev) =>
+                                  v === true ? [...prev, a.id] : prev.filter((id) => id !== a.id),
+                                )
+                              }
+                              aria-label={canActOn ? `Selecionar ${a.codigo}` : `${a.codigo}: só pendentes entram no lote`}
+                              title={canActOn ? 'Selecionar' : 'Só pendentes entram no lote'}
+                            />
+                          </td>
+                          <td className={TD}>
+                            <span className="block font-semibold">{a.colaborador.nome}</span>
                             {a.colaborador.matricula && (
-                              <div className="text-xs text-muted-foreground">
-                                mat. {a.colaborador.matricula}
-                              </div>
+                              <small className="block text-xs text-muted-foreground">{a.colaborador.matricula}</small>
                             )}
                           </td>
-                          <td className="p-3 text-xs">
-                            <div>{tipoLabel(a.tipo, tipos)}</div>
+                          <td className={TD}>
+                            <span className="block">{tipoLabel(a.tipo, tipos)}</span>
                             {a.impacta_apuracao && (
-                              <div className="text-[10px] text-warning-fg mt-0.5">
-                                impacta apuração
-                              </div>
+                              <small className="block text-xs text-warning-fg">impacta apuração</small>
                             )}
                           </td>
-                          <td className="p-3 text-xs">
-                            {a.data ?? '—'}
-                            {!a.dia_todo && a.intervalo_inicio && (
-                              <div className="text-[10px] text-muted-foreground">
-                                {a.intervalo_inicio} – {a.intervalo_fim}
-                              </div>
-                            )}
-                            {a.dia_todo && (
-                              <div className="text-[10px] text-muted-foreground">dia todo</div>
-                            )}
+                          <td className={TD}>
+                            <span className="block font-mono tabular-nums">{a.data ?? '—'}</span>
+                            <small className="block text-xs text-muted-foreground">
+                              {a.dia_todo
+                                ? 'Dia todo'
+                                : a.intervalo_inicio
+                                  ? `${a.intervalo_inicio} – ${a.intervalo_fim}`
+                                  : '—'}
+                            </small>
                           </td>
-                          <td className="p-3">
+                          <td className={TD}>
                             <StatusBadge kind="intercorrencia" value={a.estado} />
                           </td>
-                          <td className="p-3">
+                          <td className={TD}>
                             <StatusBadge kind="prioridade" value={a.prioridade} />
                           </td>
-                          <td className="p-3 text-xs text-muted-foreground" title={a.created_at ?? ''}>
+                          <td className={`${TD} text-muted-foreground`} title={a.created_at ?? ''}>
                             {a.created_at_human ?? '—'}
                           </td>
-                          <td className="p-3 text-right">
-                            <div className="flex justify-end gap-1">
+                          <td className={`${TD} text-right`}>
+                            <Inline gap={1} justify="end">
                               <Button size="sm" variant="outline" asChild>
-                                <Link href={`/ponto/intercorrencias/${a.id}`} className="text-xs">
-                                  Ver
-                                </Link>
+                                <Link href={`/ponto/intercorrencias/${a.id}`}>Ver</Link>
                               </Button>
                               {canActOn && (
                                 <>
-                                  <Button
-                                    size="sm"
-                                    variant="default"
-                                    onClick={() => setApproveTarget(a)}
-                                    className="gap-1 text-xs"
-                                  >
-                                    <Check size={12} /> Aprovar
+                                  <Button size="sm" onClick={() => setApproveTarget(a)}>
+                                    Aprovar
                                   </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setRejectTarget(a)}
-                                    className="gap-1 text-xs text-destructive hover:text-destructive"
-                                  >
-                                    <X size={12} /> Rejeitar
+                                  <Button size="sm" variant="destructive" onClick={() => setRejectTarget(a)}>
+                                    Rejeitar
                                   </Button>
                                 </>
                               )}
-                            </div>
+                            </Inline>
                           </td>
                         </tr>
                       );
@@ -496,9 +496,9 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos,
               </div>
             )}
 
-            {/* Paginação */}
+            {/* Paginação — no servidor, 20/pág (charter Goals). */}
             {(aprovacoes?.last_page ?? 1) > 1 && (
-              <div className="flex items-center justify-between border-t border-border p-3 text-xs">
+              <div className="flex items-center justify-between border-t border-border px-2.5 pt-3 text-xs">
                 <span className="text-muted-foreground">
                   Página {aprovacoes?.current_page ?? 1} de {aprovacoes?.last_page ?? 1} · {aprovacoes?.total ?? 0}{' '}
                   item(s)
@@ -522,9 +522,18 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos,
             )}
           </CardContent>
         </Card>
+        </section>
         </Deferred>
 
         <FilaMobile itens={mobile} podeRecusar={pode_recusar_mobile} />
+
+        {/* Rodapé legal — `<Legal />` do protótipo (`ponto-ui.jsx`), mesma linha do Painel. */}
+        <Inline gap={2} asChild>
+          <p className="pt-legal text-xs text-muted-foreground pt-1">
+            <ShieldCheck size={13} aria-hidden />
+            Registros protegidos pela Portaria MTP 671/2021 — marcações são imutáveis (append-only).
+          </p>
+        </Inline>
         </div>
       </div>
 
