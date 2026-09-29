@@ -87,7 +87,9 @@ class MarcacaoService
                 ? $service->nsr->proximoRepP((int) $dados['business_id'], (int) $dados['colaborador_config_id'])
                 : $service->nsr->proximo($repId);
 
-            // 2) Hash anterior = hash da última marcação aceita no mesmo REP
+            // 2) Hash anterior = hash da última marcação aceita no mesmo REP; no REP-P, na
+            //    cadeia do colaborador ([W] 2026-09-29) — lida sob o lock que o proximoRepP
+            //    acabou de pegar, então não há outra marcação entrando no meio.
             $hashAnterior = null;
             if ($repId !== null) {
                 $ultima = Marcacao::where('rep_id', $repId)
@@ -96,6 +98,10 @@ class MarcacaoService
                 if ($ultima) {
                     $hashAnterior = $ultima->hash;
                 }
+            } elseif ($dados['origem'] === Marcacao::ORIGEM_REP_P) {
+                $hashAnterior = $service->cadeiaRepP((int) $dados['business_id'], (int) $dados['colaborador_config_id'])
+                    ->orderByDesc('nsr')
+                    ->value('hash');
             }
 
             // 3) Payload canônico para hash
@@ -170,10 +176,39 @@ class MarcacaoService
      */
     public function verificarIntegridade($repId)
     {
+        return $this->verificarCadeia(Marcacao::where('rep_id', $repId));
+    }
+
+    /**
+     * Verifica a cadeia de hash do REP-P de UM colaborador — a mesma conferência do
+     * verificarIntegridade, sobre a cadeia que o REP-P encadeia por colaborador.
+     *
+     * @return array ['ok' => bool, 'quebrados' => [ ['nsr' => ..., 'motivo' => ...] ]]
+     */
+    public function verificarIntegridadeRepP(int $businessId, int $colaboradorId): array
+    {
+        return $this->verificarCadeia($this->cadeiaRepP($businessId, $colaboradorId));
+    }
+
+    /**
+     * As marcações REP-P de um colaborador que formam a cadeia: sem REP, origem REP_P, e fora o
+     * legado com NSR de `microtime` (anterior à sequência — NsrService::NSR_LEGADO_MICROTIME).
+     */
+    public function cadeiaRepP(int $businessId, int $colaboradorId)
+    {
+        return Marcacao::where('business_id', $businessId)
+            ->where('colaborador_config_id', $colaboradorId)
+            ->whereNull('rep_id')
+            ->where('origem', Marcacao::ORIGEM_REP_P)
+            ->where('nsr', '<', NsrService::NSR_LEGADO_MICROTIME);
+    }
+
+    private function verificarCadeia($query): array
+    {
         $quebrados = [];
         $ultimoHash = null;
 
-        Marcacao::where('rep_id', $repId)
+        $query
             ->orderBy('nsr')
             ->chunk(500, function ($chunk) use (&$quebrados, &$ultimoHash) {
                 foreach ($chunk as $m) {
