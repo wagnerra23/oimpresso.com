@@ -5,6 +5,7 @@ import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import { FormGrid, FormSection } from '@/Components/ui/form-section';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -62,17 +63,18 @@ export default function Justificar({ tipos, hoje }: { tipos: Array<{ value: stri
   }
 
   return (
-    <form onSubmit={enviar} className="mx-auto flex w-full max-w-md flex-col gap-4">
+    <Stack asChild gap={4} className="mx-auto w-full max-w-md">
+    <form onSubmit={enviar}>
       <FormSection title="O que aconteceu">
         <FormGrid>
-          <div data-contract="repp-motivos" className="flex flex-wrap gap-2">
+          <Inline data-contract="repp-motivos" wrap gap={2}>
             {tipos.map((t) => (
               <Button key={t.value} type="button" size="sm" className="min-h-11" aria-pressed={f.tipo === t.value}
                 variant={f.tipo === t.value ? 'default' : 'outline'} onClick={() => setData('tipo', t.value)}>
                 {t.label}
               </Button>
             ))}
-          </div>
+          </Inline>
           {errors.tipo && <p role="alert" className="text-sm text-destructive">{errors.tipo}</p>}
         </FormGrid>
       </FormSection>
@@ -82,12 +84,14 @@ export default function Justificar({ tipos, hoje }: { tipos: Array<{ value: stri
           <Label htmlFor="repp-dia">Dia</Label>
           <Input id="repp-dia" type="date" max={hoje} value={f.data} onChange={(e) => setData('data', e.target.value)} />
           {errors.data && <p role="alert" className="text-sm text-destructive">{errors.data}</p>}
-          <Label className="flex min-h-11 items-center gap-2">
-            <Checkbox checked={f.dia_todo} onCheckedChange={(v) => setData('dia_todo', v === true)} />
-            Dia todo
-          </Label>
+          <Inline asChild gap={2} className="min-h-11">
+            <Label>
+              <Checkbox checked={f.dia_todo} onCheckedChange={(v) => setData('dia_todo', v === true)} />
+              Dia todo
+            </Label>
+          </Inline>
           {!f.dia_todo && (
-            <div className="grid grid-cols-2 gap-2">
+            <Grid cols={2} gap={2}>
               <span>
                 <Label htmlFor="repp-das">Das</Label>
                 <Input id="repp-das" type="time" value={f.intervalo_inicio} onChange={(e) => setData('intervalo_inicio', e.target.value)} />
@@ -96,7 +100,7 @@ export default function Justificar({ tipos, hoje }: { tipos: Array<{ value: stri
                 <Label htmlFor="repp-as">Às</Label>
                 <Input id="repp-as" type="time" value={f.intervalo_fim} onChange={(e) => setData('intervalo_fim', e.target.value)} />
               </span>
-            </div>
+            </Grid>
           )}
           {(errors.intervalo_inicio || errors.intervalo_fim) && (
             <p role="alert" className="text-sm text-destructive">{errors.intervalo_inicio ?? errors.intervalo_fim}</p>
@@ -116,5 +120,6 @@ export default function Justificar({ tipos, hoje }: { tipos: Array<{ value: stri
       {erro && <p role="status" className="text-sm text-warning">{erro}</p>}
       <p className="text-xs text-muted-foreground">Vai para a fila do gestor como pendente. A marcação original não muda.</p>
     </form>
+    </Stack>
   );
 }
