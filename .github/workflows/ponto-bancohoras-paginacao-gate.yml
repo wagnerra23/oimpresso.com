@@ -1,0 +1,52 @@
+name: Ponto banco de horas paginação gate — extrato navega entre páginas (UC-BHSHOW-04)
+
+# Trava a navegação de página do extrato de banco de horas (Ponto/BancoHoras/Show).
+# O servidor pagina o histórico em 50 (BancoHorasController@show); até 2026-09-28 a tela não
+# renderizava controle de página e escondia do 51º movimento em diante (Show.charter.md:32).
+#
+# O lado servidor é provado pelo Pest UC-BHSHOW-04 (lane PHP / Pest (Ponto · MySQL)). O lado
+# tela — "Página X de Y", botão que chama o partial reload only: ['movimentos'] — só se prova
+# renderizando. Nenhuma lane roda tests/js sem apontar o arquivo (cada gate jsdom tem workflow
+# próprio); sem este, o spec nasceria mudo. Comando local: npm run test:ponto-bh-paginacao
+#
+# `paths` inclui o ARQUIVO SOB TESTE de propósito: sem ele, mexer no Show.tsx não dispararia
+# o teste do Show.tsx — gate mudo com cara de cobertura (§5 2026-08-02).
+#
+# Refs: ADR 0264 (trio) · ADR 0298 (teto de governança: terminal + anchor + promote_by) ·
+#       ADR 0275 (nasce advisory, promoção é flip [W]).
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    paths:
+      - 'resources/js/Pages/Ponto/BancoHoras/Show.tsx'
+      - 'resources/js/Components/layout/**'
+      - 'resources/js/Lib/datetime-br.ts'
+      - 'tests/js/ponto-bancohoras-show-paginacao.test.tsx'
+      - '.github/workflows/ponto-bancohoras-paginacao-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/Ponto/BancoHoras/Show.tsx'
+      - 'resources/js/Components/layout/**'
+      - 'resources/js/Lib/datetime-br.ts'
+      - 'tests/js/ponto-bancohoras-show-paginacao.test.tsx'
+
+concurrency:
+  group: ponto-bancohoras-paginacao-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ponto-bh-paginacao:
+    name: Ponto · extrato de banco de horas navega entre páginas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+      - name: UC-BHSHOW-04 — paginação do histórico (vitest)
+        run: npm run test:ponto-bh-paginacao

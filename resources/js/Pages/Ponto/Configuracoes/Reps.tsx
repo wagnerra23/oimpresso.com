@@ -7,7 +7,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/ConfiguracoesRepsTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
+import { Inline } from '@/Components/layout';
 import { Link, useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -67,22 +68,22 @@ export default function ReposIndex({ reps }: Props) {
     <>
       <div className="mx-auto max-w-5xl p-6 space-y-4">
         {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>REPs <span className="text-stone-400 font-normal">· Registradores Eletrônicos</span></h1>
-            <p>Dispositivos REP-P/C/A conforme Portaria MTP 671/2021. Identificador de 17 caracteres.</p>
+        <PontoAreaHeader active="configuracoes" />
+        <Inline justify="between" align="center" gap={3}>
+          <div>
+            <h2 className="text-lg font-semibold">REPs <span className="text-stone-400 font-normal">· Registradores Eletrônicos</span></h2>
+            <p className="text-sm text-muted-foreground">Dispositivos REP-P/C/A conforme Portaria MTP 671/2021. Identificador de 17 caracteres.</p>
           </div>
-          <div className="os-page-h-r">
-            <PontoSubNav active="configuracoes" hidePrimary />
+          <Inline gap={2} align="center">
             <Button variant="outline" size="sm" asChild>
               <Link href="/ponto/configuracoes"><ArrowLeft size={14} className="mr-1.5" /> Configurações</Link>
             </Button>
-          </div>
-        </header>
+          </Inline>
+        </Inline>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* Form de cadastro — coluna 2 (menor) */}
-          <Card className="md:col-span-2">
+          <Card className="md:col-span-2" data-contract="configuracoes-cadastrar-novo-rep">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Plus size={16} /> Cadastrar REP
@@ -137,7 +138,7 @@ export default function ReposIndex({ reps }: Props) {
           </Card>
 
           {/* Lista — coluna 3 (maior) */}
-          <Card className="md:col-span-3">
+          <Card className="md:col-span-3" data-contract="configuracoes-reps-cadastrados">
             <CardHeader>
               <CardTitle className="text-base">REPs cadastrados</CardTitle>
               <CardDescription className="text-xs">

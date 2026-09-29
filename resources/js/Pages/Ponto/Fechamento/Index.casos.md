@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · ADR 0413 (contrato)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: fechar competência é irreversível por lei — o contrato defende o que NÃO pode acontecer.
 owner: wagner
-last_run: "2026-09-25"
+last_run: "2026-09-28"
 ---
 
 # Casos de Uso & Aceite — Fechamento da competência

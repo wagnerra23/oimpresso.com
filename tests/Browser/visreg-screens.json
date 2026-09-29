@@ -378,7 +378,7 @@
     "a11y": true,
     "component": "Ponto/Aprovacoes/Index",
     "route": "/ponto/aprovacoes",
-    "anchor": "Fila de intercorrências aguardando decisão",
+    "anchor": "Aplicada",
     "baseline": "it_Ponto_Aprovacoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
@@ -387,7 +387,7 @@
     "a11y": true,
     "component": "Ponto/Intercorrencias/Index",
     "route": "/ponto/intercorrencias",
-    "anchor": "Ausências, atestados, esquecimentos e outras ocorrências",
+    "anchor": "Todos os estados",
     "baseline": "it_Ponto_Intercorrencias_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
@@ -405,8 +405,16 @@
     "a11y": true,
     "component": "Ponto/BancoHoras/Index",
     "route": "/ponto/banco-horas",
-    "anchor": "Saldo consolidado por colaborador",
+    "anchor": "Crédito total",
     "baseline": "it_Ponto_BancoHoras_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Ponto/BancoHoras/Show",
+    "source": "Ponto/BancoHoras/Show",
+    "component": "Ponto/BancoHoras/Show",
+    "route": "/ponto/banco-horas/900001",
+    "anchor": "Hora extra — fechamento de pedido",
+    "baseline": "it_Ponto_BancoHoras_Show_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
     "screen": "Ponto/Importacoes",
@@ -414,7 +422,7 @@
     "a11y": true,
     "component": "Ponto/Importacoes/Index",
     "route": "/ponto/importacoes",
-    "anchor": "Arquivos AFD/AFDT lidos por REPs",
+    "anchor": "Nova importação",
     "baseline": "it_Ponto_Importacoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {

@@ -779,6 +779,14 @@
       "anchor": "sinal de custo: o UC-COB-03 afirmava \"trocar tab/chip/dropdown reflete na URL e a volta pela URL reproduz a visão\" — FALSO nas duas metades, numa tela de DINHEIRO. Metade 1 sem mecanismo (varredura contada 11/11 arquivos: zero router.get/history/URLSearchParams). Metade 2 invertida (lsGet vence a querystring), provado por execução + mutação. A tela tinha cobertura de execução ZERO quando isto nasceu: CobrancaControllerTest em .github/financeiro-pest-quarantine.list e CobrancaIndexTest (Browser) vermelho 6/6 no run 33762382505 sob continue-on-error. Contestação registrada no PR #6632; desfecho neste PR. ADR 0264 G-2.",
       "promote_by_razao": "nasce sem run nenhum — amostra zero. Promoção a required é flip [W] na branch protection (R10 / ADR 0275 §5), com o número de runs na mão."
     },
+    "ponto-bancohoras-paginacao-gate.yml": {
+      "nome": "Ponto banco de horas paginação gate — o extrato do colaborador (Ponto/BancoHoras/Show) navega entre as páginas do histórico (UC-BHSHOW-04). vitest determinístico (jsdom, sem browser, sem rede); a Page é REAL, mocks só na casca (Inertia, AppShellV2, PontoSubNav). Mordida provada por mutação: contra o Show.tsx do main, 4 failed · 1 passed (o que passa é o controle negativo).",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-10-12",
+      "anchor": "sinal de custo medido em 2026-09-28 (origin/main e4289e688): o servidor paginava o histórico em 50 (BancoHorasController@show, paginate(50) via Inertia::defer) e o Show.tsx não renderizava controle de página — do 51º movimento em diante nada aparecia, contra o charter (Show.charter.md:32, \"Histórico paginado (50/pág)\"). O Pest UC-BHSHOW-04 prova o lado servidor; o lado tela só é provado por render. Nenhuma lane roda tests/js sem apontar o arquivo, então o spec sem gate próprio nasceria mudo. ADR 0264 G-2.",
+      "promote_by_razao": "nasce sem run nenhum — amostra zero. Promoção a required é flip [W] na branch protection (R10 / ADR 0275 §5), com o número de runs na mão."
+    },
     "governance-filtros-gate.yml": {
       "nome": "Governance filtros gate — os 4 itens de front dos GAP-SPEC de 2026-09-06 (Audit \"Limpar filtros\"; Policies busca local + aviso \"Alternar não deixa rastro\"; ModuleGrades \"Limpar\" no vazio). vitest determinístico (jsdom, sem browser, sem rede); as 3 Pages são REAIS, mocks só na casca. Mordida provada por mutação (M1 4 failed · M2 3 failed · M3 1 failed), restauro conferido por sha256 e verde reconfirmado 16/16.",
       "classe": "gate",

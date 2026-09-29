@@ -4,7 +4,7 @@ irmaos: Sidebar.charter.md (lei) · ../../Layouts/AppShellV2.casos.md (largura/a
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: a sidebar aparece em TODA tela — regressão aqui atinge o ERP inteiro de uma vez.
 owner: wagner
-last_run: "2026-09-25"
+last_run: "2026-09-29"
 ---
 
 # Casos de Uso & Aceite — `Sidebar`
@@ -101,3 +101,17 @@ last_run: "2026-09-25"
   `users.ui_presence` por `POST /user/preferences/presence`. Valor fora do enum dá 422.
 - **Teste:** `tests/Feature/Sidebar/presenca.spec.tsx` (render, 4 casos ✅ medidos) +
   `tests/Feature/Sidebar/PresencaPreferenciaTest.php` (rota, lane sqlite, verde no CI do #7960).
+
+### UC-SB-14 · Ordem dos itens dentro do grupo segue o protótipo 🧪
+- **Aceite:** Dado um grupo que declara `ordem` em `SIDEBAR_GROUPS` · Então os itens dele aparecem
+  nessa sequência, e os que não estão na lista vêm depois, na ordem em que chegaram. Grupo sem
+  `ordem` fica exatamente como o menu entregou.
+- **Âncora:** `prototipo-ui/cowork/Wagner/data.jsx`, grupo RH: `ponto` → `hrm` → `essenciais`
+  (ADR UI-0029).
+- **Por que no frontend:** o `shell.menu` chega na ordem de registro dos módulos; o `->order(N)`
+  dos DataControllers não passa pelo `LegacyMenuAdapter` (`getItems()`). Medido em produção
+  (biz=1) em 2026-09-29: com `order(86)` no Ponto, ele seguia depois de HRM (23) e Essenciais (24)
+  na posição 37 do menu. Usar `items` como ordem mexeria em COMERCIAL e SISTEMA (simulado).
+- **Teste:** `tests/js/sidebar-ordem-grupo.test.tsx` (render, 2 casos, na lane
+  `cockpit-sidebar-jsdom-gate`). Mordida medida: sem a `ordem` do RH o caso do RH fica vermelho e o
+  controle (COMERCIAL) segue verde.

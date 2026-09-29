@@ -43,7 +43,7 @@ import {
 } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import PageFilters from '@/Components/shared/PageFilters';
@@ -254,15 +254,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>Aprovações <span className="text-stone-400 font-normal">· Intercorrências</span></h1>
-            <p>Fila de intercorrências aguardando decisão do RH / gestor.</p>
-          </div>
-          <div className="os-page-h-r">
-            <PontoSubNav active="aprovacoes" />
-          </div>
-        </header>
+        <PontoAreaHeader active="aprovacoes" />
 
         {/* KPIs por estado — cada card filtra quando clicado */}
         <KpiGrid cols={6}>
@@ -327,7 +319,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
 
         {/* Tabela */}
         <Deferred data="aprovacoes" fallback={<Skeleton className="h-64 w-full" />}>
-        <Card>
+        <Card data-contract="aprovacoes-fila-de-aprovacoes">
           <CardContent className="p-0">
             {rows.length === 0 ? (
               <EmptyState

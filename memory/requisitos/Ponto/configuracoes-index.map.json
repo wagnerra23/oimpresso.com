@@ -3,8 +3,8 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Ponto/Configuracoes/Index (/ponto/configuracoes)",
   "gap_fonte": "memory/requisitos/Ponto/configuracoes-index-gap.md",
-  "prototipo_sha": "sha256:e4d0b5a3707e",
-  "gerado_em": "2026-09-28",
+  "prototipo_sha": "sha256:e8b74d75e0d5",
+  "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "nota-somente-leitura-e-atalho-de-reps",
@@ -14,7 +14,7 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
-        "linhas": "60-71",
+        "linhas": "97-107",
         "ancora": false
       },
       "status": "paridade",
@@ -29,12 +29,12 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
-        "linhas": "74-90",
-        "ancora": false
+        "linhas": "111-129",
+        "ancora": "configuracoes-regras-clt-reforma-trabalhista"
       },
-      "status": "defeito-vivo",
-      "acao": "Corrigir o vivo para ler as chaves reais — é defeito, não decisão. Copy de lei literal, como o charter exige.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Corrigido no vivo pelo #8078 (2026-09-28): a tela lê as chaves reais do config e mostra o mesmo conjunto de parâmetros do protótipo. Nada a fazer; o que sobra é FORMA.",
+      "_acionavel": false
     },
     {
       "id": "banco-de-horas",
@@ -44,12 +44,12 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
-        "linhas": "92-102",
-        "ancora": false
+        "linhas": "131-146",
+        "ancora": "configuracoes-banco-de-horas"
       },
-      "status": "defeito-vivo",
-      "acao": "Corrigir o vivo para ler `banco_horas.*` real.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Corrigido no vivo pelo #8078 (2026-09-28): a tela lê as chaves reais do config e mostra o mesmo conjunto de parâmetros do protótipo. Nada a fazer; o que sobra é FORMA.",
+      "_acionavel": false
     },
     {
       "id": "rep-e-imutabilidade",
@@ -59,12 +59,12 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
-        "linhas": "104-122",
-        "ancora": false
+        "linhas": "148-176",
+        "ancora": "configuracoes-rep-e-imutabilidade-de-marcacoes"
       },
-      "status": "defeito-vivo",
-      "acao": "Corrigir o vivo. Enviar `marcacao` exige estender a allowlist do controller — manter o `Arr::except` do certificado.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Corrigido no vivo pelo #8078 (2026-09-28): a tela lê as chaves reais do config e mostra o mesmo conjunto de parâmetros do protótipo. Nada a fazer; o que sobra é FORMA.",
+      "_acionavel": false
     },
     {
       "id": "afd-e-esocial",
@@ -74,12 +74,12 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
-        "linhas": "124-135",
-        "ancora": false
+        "linhas": "178-193",
+        "ancora": "configuracoes-afd-importacao-esocial"
       },
-      "status": "defeito-vivo",
-      "acao": "Corrigir o vivo. Enviar `esocial` é decisão de allowlist: conferir se nada sensível entra.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Corrigido no vivo pelo #8078 (2026-09-28): a tela lê as chaves reais do config e mostra o mesmo conjunto de parâmetros do protótipo. Nada a fazer; o que sobra é FORMA.",
+      "_acionavel": false
     },
     {
       "id": "ia-do-ponto",

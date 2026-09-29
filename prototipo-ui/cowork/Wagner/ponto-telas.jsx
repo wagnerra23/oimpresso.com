@@ -296,7 +296,7 @@ function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
       </window.PtBarra>
 
       {(nova || editando) &&
-        <Card contrato="intercorrencias-card" icon="plus" titulo={editando ? "Editar rascunho " + (editando.codigo || editando.id.slice(0, 8)) : "Nova intercorrência"}>
+        <Card contrato="intercorrencias-dados-da-ocorrencia" icon="plus" titulo={editando ? "Editar rascunho " + (editando.codigo || editando.id.slice(0, 8)) : "Nova intercorrência"}>
           <FormIntercorrencia registro={editando} onSalvar={salvar} onCancelar={() => { setNova(false); setEditando(null); }} />
         </Card>}
 
@@ -526,7 +526,7 @@ function EscalaForm({ escala, onSalvar, onCancelar }) {
     <>
       <div className="pt-sub"><Voltar onClick={onCancelar}>Voltar às escalas</Voltar>
         <div><h2>{escala ? "Editar escala" : "Nova escala"}</h2><span className="pt-sub-sub">{escala ? escala.nome : "cadastro de jornada padrão do business"}</span></div></div>
-      <Card contrato="escalaform-card" icon="calendar" titulo={escala ? escala.nome : "Dados da escala"}>
+      <Card contrato="escalaform-dados-da-escala" icon="calendar" titulo={escala ? escala.nome : "Dados da escala"}>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div className="pt-cols">
             <window.PtCampo label={"Nome"} req wide maxLength={120} value={f.nome} onChange={set("nome")} />

@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 23 |
 | Telas com `casos.md` | 23 |
-| UC declarados | 97 |
-| UC com teste que os cita | 93 |
+| UC declarados | 104 |
+| UC com teste que os cita | 102 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -41,7 +41,6 @@ authority: generated
 |---|---|---|
 | US-PONTO-005 | `wip` | Apuracao automatica de jornada (Art. 66 + 71 CLT) |
 | US-PONTO-006 | `backlog` | Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO) |
-| US-PONTO-009 | `backlog` | Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO) |
 | US-PONTO-010 | `backlog` | Comprovante PDF QR Code (Anexo I §5.5 Portaria 671) |
 | US-PONTO-011 | `todo` | Fechar o append-only do ledger de banco de horas |
 | US-PONTO-013 | `todo` | Consertar as duas telas que nao persistem |
@@ -61,8 +60,11 @@ authority: generated
 | UC-BHSHOW-01 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-02 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-03 | BancoHoras/Show | 🧪 aguarda veredito da lane |
+| UC-BHSHOW-04 | BancoHoras/Show | 🧪 aguarda veredito da lane |
+| UC-BHSHOW-05 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-CFGIDX-01 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CFGIDX-02 | Configuracoes/Index | 🧪 aguarda veredito da lane |
+| UC-CFGIDX-03 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CFGREP-01 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
 | UC-CFGREP-02 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
 | UC-CFGREP-03 | Configuracoes/Reps | 🧪 aguarda veredito da lane |
@@ -73,7 +75,7 @@ authority: generated
 | UC-COLIDX-01 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-COLIDX-02 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-COLIDX-03 | Colaboradores/Index | 🧪 aguarda veredito da lane |
-| UC-COLIDX-04 | Colaboradores/Index | 📝 sem_teste |
+| UC-COLIDX-04 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-CONF-01 | Conformidade | 🧪 aguarda veredito da lane |
 | UC-CONF-02 | Conformidade | 🧪 aguarda veredito da lane |
 | UC-CONF-03 | Conformidade | 📝 sem_teste |
@@ -91,6 +93,8 @@ authority: generated
 | UC-ESCIDX-03 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESCIDX-04 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESCIDX-05 | Escalas/Index | 🧪 aguarda veredito da lane |
+| UC-ESCIDX-06 | Escalas/Index | 🧪 aguarda veredito da lane |
+| UC-ESCIDX-07 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-01 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-02 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-03 | Espelho/Index | 🧪 aguarda veredito da lane |
@@ -110,16 +114,18 @@ authority: generated
 | UC-IMPSH-03 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-IMPSH-04 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-IMPSH-05 | Importacoes/Show | 🧪 aguarda veredito da lane |
-| UC-IMPSH-06 | Importacoes/Show | 📝 sem_teste |
+| UC-IMPSH-06 | Importacoes/Show | 🧪 aguarda veredito da lane |
 | UC-INTCRE-01 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTCRE-02 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTCRE-03 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
+| UC-INTCRE-04 | Intercorrencias/Create | 🧪 aguarda veredito da lane |
 | UC-INTEDT-01 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
 | UC-INTEDT-02 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
 | UC-INTEDT-03 | Intercorrencias/Edit | 🧪 aguarda veredito da lane |
 | UC-INTIDX-01 | Intercorrencias/Index | 🧪 aguarda veredito da lane |
 | UC-INTIDX-02 | Intercorrencias/Index | 🧪 aguarda veredito da lane |
 | UC-INTIDX-03 | Intercorrencias/Index | 🧪 aguarda veredito da lane |
+| UC-INTIDX-04 | Intercorrencias/Index | 🧪 aguarda veredito da lane |
 | UC-INTSH-01 | Intercorrencias/Show | 🧪 aguarda veredito da lane |
 | UC-INTSH-02 | Intercorrencias/Show | 🧪 aguarda veredito da lane |
 | UC-INTSH-03 | Intercorrencias/Show | 🧪 aguarda veredito da lane |

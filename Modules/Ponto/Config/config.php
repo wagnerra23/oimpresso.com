@@ -55,9 +55,26 @@ return [
     'rep' => [
         'tipos_permitidos'        => ['REP_P', 'REP_C', 'REP_A'],
         'nsr_verificar_sequencia' => true,
-        'assinar_marcacoes'       => true,       // PKCS#7 A1
+        // PKCS#7 A1. ⚠️ A assinatura NÃO está implementada (US-PONTO-009 / GAP-PONTO-001):
+        // nenhum código lê esta flag nem o certificado, e `ponto_marcacoes.assinatura_digital`
+        // fica sempre NULL. Até 2026-09-28 o default era `true`, e a tela de Configurações
+        // afirmava "Assinar marcações: Sim" sobre uma função inexistente. `false` diz a verdade.
+        // Literal, e não env(): ligar a assinatura exige implementá-la, e quem implementar troca
+        // aqui no mesmo PR (e revisa o UC-CFGIDX-03). Defendido por UC-CFGIDX-03.
+        'assinar_marcacoes'       => false,
         'certificado_icp_path'    => env('PONTO_CERT_ICP_PATH'),
         'certificado_icp_pass'    => env('PONTO_CERT_ICP_PASS'),
+    ],
+
+    /*
+    | Comprovante de intercorrência (atestado — dado de saúde, LGPD Art. 11).
+    | O disco NUNCA pode ser o `local`: neste app ele aponta para public_path('uploads'),
+    | servido direto pelo webserver. O default `arquivos` fica em storage/app (fora do
+    | webroot). Download só pela rota autenticada — UC-INTCRE-04.
+    */
+    'intercorrencias' => [
+        // Literal, não env(): o baseline do Larastan conta os env() deste arquivo (ratchet).
+        'anexo_disk' => 'arquivos',
     ],
 
     'afd' => [

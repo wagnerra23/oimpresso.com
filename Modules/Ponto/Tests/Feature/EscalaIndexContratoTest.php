@@ -156,3 +156,105 @@ it('UC-ESCIDX-02 · cada escala informa quantos turnos tem', function () {
         . 'duas linhas, e o contrato aqui é "quantos turnos ESTA escala tem".'
     );
 });
+
+it('UC-ESCIDX-06 · a linha mostra o horário do 1º turno da PRÓPRIA escala, ou diz que não há turno', function () {
+    $this->actAsAdmin();
+    escIdxPrecisaDe(['ponto_escalas', 'ponto_escala_turnos']);
+
+    // TRÊS escalas, e cada uma separa uma mutação plausível:
+    //  · `ordenada` recebe o turno de quarta ANTES do de segunda — sem o orderBy(dia_semana) o
+    //    1º turno viria na ordem de inserção (10:00–19:00) e o assert cai;
+    //  · `outra` tem horário diferente — um "1º turno" global (sem vínculo com a linha) daria o
+    //    mesmo texto nas duas;
+    //  · `casca` não tem turno — o texto tem de ser null, não o turno de outra escala.
+    $idOrdenada = escIdxCriarEscala((int) $this->business->id, 'ordenada');
+    $idOutra    = escIdxCriarEscala((int) $this->business->id, 'outra');
+    $idCasca    = escIdxCriarEscala((int) $this->business->id, 'casca');
+
+    foreach ([
+        [$idOrdenada, 3, '10:00:00', '19:00:00'],
+        [$idOrdenada, 1, '08:00:00', '17:00:00'],
+        [$idOutra,    2, '13:00:00', '22:00:00'],
+    ] as [$escalaId, $dia, $entrada, $saida]) {
+        DB::table('ponto_escala_turnos')->insert([
+            'escala_id'    => $escalaId,
+            'dia_semana'   => $dia,
+            'hora_entrada' => $entrada,
+            'hora_saida'   => $saida,
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
+    }
+
+    $resp = $this->inertiaGet('/ponto/escalas');
+    $resp->assertStatus(200);
+
+    $linhas = collect($resp->json('props.escalas.data') ?? []);
+    $ordenada = $linhas->firstWhere('id', $idOrdenada);
+    $outra    = $linhas->firstWhere('id', $idOutra);
+    $casca    = $linhas->firstWhere('id', $idCasca);
+
+    // Pré-condição anti-vácuo (LC-13): sem as três linhas, afirmar o horário seria afirmar sobre null.
+    expect($ordenada)->not->toBeNull('A escala `ordenada` tem de aparecer na lista do meu empregador.');
+    expect($outra)->not->toBeNull('A escala `outra` idem.');
+    expect($casca)->not->toBeNull('A escala `casca` idem.');
+
+    // O turno é filho da escala e herda o isolamento pelo parent. Se o escopo do eager-load
+    // descartasse o turno do PRÓPRIO empregador, o horário viria null aqui.
+    expect($ordenada['primeiro_turno'] ?? null)->toBe('08:00–17:00',
+        'O 1º turno é o de MENOR dia da semana (segunda, 08:00–17:00), não o primeiro inserido '
+        . '(quarta, 10:00–19:00).'
+    );
+    expect($outra['primeiro_turno'] ?? null)->toBe('13:00–22:00',
+        'Cada linha mostra o turno da PRÓPRIA escala — um horário global repetiria o da `ordenada`.'
+    );
+    expect($casca)->toHaveKey('primeiro_turno');
+    expect($casca['primeiro_turno'])->toBeNull(
+        'Escala sem turno informa null — a tela escreve "sem turno configurado".'
+    );
+});
+
+it('UC-ESCIDX-07 · GET /ponto/escalas/{id} não promete tela que não existe — 405, nunca 500', function () {
+    // Transação revertida: `ensurePontoPermissions` atribui a role `Admin#{biz}` ao usuário do
+    // tenant 98, e no UltimatePOS essa role libera TODA permissão (AuthServiceProvider).
+    // Persistida, ela vaza para quem roda depois com o mesmo usuário — o FechamentoContratoTest
+    // reprovou UC-PTF-06/07 por isso na lane do PR #8143 (2026-09-29).
+    DB::beginTransaction();
+    try {
+        // Tenant fictício 98 (ADR 0358), não o `actAsAdmin()` dos irmãos: este caso grava escala,
+        // e no CT 100 o `Business::first()` é a WR2 real (clone de prod).
+        (function (): void {
+            $this->business = $this->seededTenant();
+            $this->admin = \App\User::where('business_id', $this->business->id)->first();
+            if (! $this->admin) {
+                $this->markTestSkipped("Tenant {$this->business->id} sem usuário.");
+            }
+            $this->ensurePontoPermissions((int) $this->business->id);
+            session([
+                'user.business_id' => $this->business->id,
+                'user.id'          => $this->admin->id,
+                'business.id'      => $this->business->id,
+                'business.name'    => $this->business->name,
+                'is_admin'         => true,
+            ]);
+            $this->actingAs($this->admin);
+        })->call($this);
+        escIdxPrecisaDe(['ponto_escalas']);
+
+        // Escala REAL do próprio empregador: o id existe, então a recusa não é "registro não
+        // achado". A URI segue viva para PUT/DELETE (update/destroy), logo GET nela é 405 —
+        // "método não permitido", a resposta HTTP correta. Antes o resource registrava `show`
+        // sem método no controller, e esse GET dava 500.
+        $id = escIdxCriarEscala((int) $this->business->id, 'sem-show');
+
+        $this->get("/ponto/escalas/{$id}")->assertStatus(405);
+
+        // Controle: a mesma escala segue editável — o `except` tirou só o show.
+        $this->get("/ponto/escalas/{$id}/edit")->assertStatus(200);
+    } finally {
+        if (DB::transactionLevel() > 0) {
+            DB::rollBack();
+        }
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+});
