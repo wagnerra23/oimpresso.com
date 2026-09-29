@@ -7,7 +7,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Ponto\Entities\Colaborador;
 use Modules\Ponto\Entities\Intercorrencia;
+use Modules\Ponto\Entities\Marcacao;
+use Modules\Ponto\Services\MobileMarcacaoService;
+use Spatie\Activitylog\Models\Activity;
 use Modules\Ponto\Services\IntercorrenciaService;
 
 class AprovacaoController extends Controller
@@ -35,6 +39,8 @@ class AprovacaoController extends Controller
                 $businessId, $filtroEstado, $filtroTipo, $filtroPrioridade
             )),
             'contagens'  => Inertia::defer(fn () => $this->buildContagensEstado($businessId)),
+            // Fila do gestor do REP-P (thread 06 · [W] 2026-09-29: seção nova aqui).
+            'mobile'     => Inertia::defer(fn () => $this->buildFilaMobile($businessId)),
             'filtros' => [
                 'estado'     => $filtroEstado,
                 'tipo'       => $filtroTipo,
@@ -162,5 +168,120 @@ class AprovacaoController extends Controller
         );
 
         return back()->with('success', "{$count} intercorrências aprovadas em lote.");
+    }
+
+    // =====================================================================
+    // Fila do gestor — marcações do REP-P fora do geofence (thread 06 · D3)
+    // =====================================================================
+    // O geofence SINALIZA (não recusa): a marcação já entrou e vale. Aqui o gestor
+    //  - VALIDA  → registro na trilha (activity_log `ponto.repp` / `validada`), sem tocar a marcação;
+    //  - RECUSA  → `Marcacao::anular()`: lançamento NOVO com ORIGEM_ANULACAO (D3, Portaria 671/2021).
+    // Nenhum dos dois faz UPDATE/DELETE em `ponto_marcacoes`.
+
+    public function validarMobile(Request $request, string $id): RedirectResponse
+    {
+        $businessId = (int) (session('business.id') ?: $request->user()->business_id);
+        $m = $this->marcacaoMobile($businessId, $id);
+        abort_unless($this->estadoMobile($businessId, [$m->id])[$m->id] === 'PENDENTE', 422, 'Esta marcação já foi decidida.');
+
+        $registro = activity('ponto.repp')
+            ->event('validada')
+            ->causedBy($request->user())
+            ->withProperties(['marcacao_id' => (string) $m->id, 'nsr' => (int) $m->nsr])
+            ->tap(fn (Activity $a) => $a->setAttribute('business_id', $businessId))
+            ->log('Marcação REP-P validada');
+        // Logger desligado (ACTIVITY_LOGGER_ENABLED=false) = validar não teria onde gravar:
+        // falha visível em vez de dizer "validada" sem registro.
+        abort_if($registro === null, 503, 'A trilha de auditoria está desligada — a validação não foi registrada.');
+
+        return back()->with('success', "Marcação NSR {$m->nsr} validada.");
+    }
+
+    public function recusarMobile(Request $request, string $id): RedirectResponse
+    {
+        $businessId = (int) (session('business.id') ?: $request->user()->business_id);
+        $m = $this->marcacaoMobile($businessId, $id);
+        abort_unless($this->estadoMobile($businessId, [$m->id])[$m->id] === 'PENDENTE', 422, 'Esta marcação já foi decidida.');
+
+        $m->anular((int) $request->user()->id, 'Recusada na validação REP-P');
+
+        return back()->with('success', "Marcação NSR {$m->nsr} recusada — gravada a anulação; a original não muda.");
+    }
+
+    /** Marcações REP-P dos últimos 7 dias que o geofence sinalizou, com o estado da decisão. */
+    private function buildFilaMobile(int $businessId): array
+    {
+        $svc = app(MobileMarcacaoService::class);
+        $marcacoes = $svc->listarMarcacoesMobilePendentesValidacao($businessId)
+            ->filter(fn (Marcacao $m) => $m->latitude !== null && $m->longitude !== null
+                && ! $svc->validarGeolocation((float) $m->latitude, (float) $m->longitude, $businessId))
+            ->values();
+
+        $estados = $this->estadoMobile($businessId, $marcacoes->pluck('id')->all());
+        $nomes = Colaborador::query()
+            ->where('business_id', $businessId)
+            ->whereIn('id', $marcacoes->pluck('colaborador_config_id')->unique())
+            ->with('user:id,first_name,last_name')
+            ->get()
+            ->mapWithKeys(fn (Colaborador $c) => [$c->id => trim(optional($c->user)->first_name . ' ' . optional($c->user)->last_name) ?: '—']);
+
+        return $marcacoes->map(fn (Marcacao $m) => [
+            'id'          => (string) $m->id,
+            'nsr'         => (int) $m->nsr,
+            'quando'      => $m->momento?->format('d/m H:i'),
+            'tipo'        => (string) $m->tipo,
+            'colaborador' => $nomes[$m->colaborador_config_id] ?? '—',
+            'dispositivo' => (string) $m->dispositivo_id,
+            'lat'         => (string) $m->latitude,
+            'lng'         => (string) $m->longitude,
+            'hash_trunc'  => substr((string) $m->hash, 0, 16),
+            'estado'      => $estados[$m->id] ?? 'PENDENTE',
+        ])->all();
+    }
+
+    private function marcacaoMobile(int $businessId, string $id): Marcacao
+    {
+        return Marcacao::query()
+            ->where('business_id', $businessId)
+            ->where('dispositivo_id', 'like', 'mobile:%')
+            ->where('origem', Marcacao::ORIGEM_REP_P)
+            ->whereKey($id)
+            ->firstOrFail();
+    }
+
+    /**
+     * RECUSADA se existe anulação apontando pra ela · VALIDADA se há registro na trilha (não
+     * revertido) · senão PENDENTE.
+     *
+     * @param  array<int,string>  $ids
+     * @return array<string,string>
+     */
+    private function estadoMobile(int $businessId, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+        $recusadas = Marcacao::query()
+            ->where('business_id', $businessId)
+            ->where('origem', Marcacao::ORIGEM_ANULACAO)
+            ->whereIn('marcacao_anulada_id', $ids)
+            ->pluck('marcacao_anulada_id')
+            ->flip();
+        $validadas = Activity::query()
+            ->where('log_name', 'ponto.repp')
+            ->where('event', 'validada')
+            ->where('business_id', $businessId)
+            ->whereNull('reverted_at')
+            ->where('created_at', '>=', now()->subDays(8)) // a fila é de 7 dias (+1 de folga no fuso)
+            ->get()
+            ->map(fn (Activity $a) => (string) $a->getExtraProperty('marcacao_id'))
+            ->flip();
+
+        $out = [];
+        foreach ($ids as $id) {
+            $out[$id] = isset($recusadas[$id]) ? 'RECUSADA' : (isset($validadas[$id]) ? 'VALIDADA' : 'PENDENTE');
+        }
+
+        return $out;
     }
 }

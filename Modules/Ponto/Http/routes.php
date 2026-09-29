@@ -46,6 +46,9 @@ Route::group(
         Route::post('/aprovacoes/{id}/aprovar', 'AprovacaoController@aprovar')->name('ponto.aprovacoes.aprovar');
         Route::post('/aprovacoes/{id}/rejeitar', 'AprovacaoController@rejeitar')->name('ponto.aprovacoes.rejeitar');
         Route::post('/aprovacoes/lote', 'AprovacaoController@aprovarEmLote')->name('ponto.aprovacoes.lote');
+        // Fila do gestor do REP-P (thread 06): validar = trilha · recusar = anulação (D3).
+        Route::post('/aprovacoes/mobile/{id}/validar', [\Modules\Ponto\Http\Controllers\AprovacaoController::class, 'validarMobile'])->name('ponto.aprovacoes.mobile.validar');
+        Route::post('/aprovacoes/mobile/{id}/recusar', [\Modules\Ponto\Http\Controllers\AprovacaoController::class, 'recusarMobile'])->name('ponto.aprovacoes.mobile.recusar');
 
         // 4. Intercorrências
         Route::resource('/intercorrencias', 'IntercorrenciaController')->names([

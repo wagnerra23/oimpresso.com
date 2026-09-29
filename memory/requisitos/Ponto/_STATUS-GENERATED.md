@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 24 |
 | Telas com `casos.md` | 24 |
-| UC declarados | 111 |
-| UC com teste que os cita | 106 |
+| UC declarados | 114 |
+| UC com teste que os cita | 109 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -141,6 +141,9 @@ authority: generated
 | UC-PAPR-03 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PAPR-04 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PAPR-05 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-06 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-07 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
+| UC-PAPR-08 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-01 | Fechamento/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-02 | Fechamento/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-03 | Fechamento/Index | 🧪 aguarda veredito da lane |
