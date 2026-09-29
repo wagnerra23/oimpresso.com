@@ -34,7 +34,7 @@ const ESTADO = {
   RECUSADA: { label: 'Recusada', variant: 'danger' },
 } as const;
 
-function Tabela({ itens }: { itens?: MarcacaoMobile[] }) {
+function Tabela({ itens, podeRecusar }: { itens?: MarcacaoMobile[]; podeRecusar: boolean }) {
   const [recusar, setRecusar] = useState<MarcacaoMobile | null>(null);
   const [enviando, setEnviando] = useState(false);
   const lista = itens ?? [];
@@ -96,7 +96,9 @@ function Tabela({ itens }: { itens?: MarcacaoMobile[] }) {
                       {m.estado === 'PENDENTE' ? (
                         <span className="inline-flex gap-2">
                           <Button size="sm" disabled={enviando} onClick={() => decidir(m, 'validar')}>Validar</Button>
-                          <Button size="sm" variant="destructive" disabled={enviando} onClick={() => setRecusar(m)}>Recusar</Button>
+                          {podeRecusar && (
+                            <Button size="sm" variant="destructive" disabled={enviando} onClick={() => setRecusar(m)}>Recusar</Button>
+                          )}
                         </span>
                       ) : <span className="text-muted-foreground">—</span>}
                     </td>
@@ -126,10 +128,10 @@ function Tabela({ itens }: { itens?: MarcacaoMobile[] }) {
   );
 }
 
-export default function FilaMobile({ itens }: { itens?: MarcacaoMobile[] }) {
+export default function FilaMobile({ itens, podeRecusar }: { itens?: MarcacaoMobile[]; podeRecusar: boolean }) {
   return (
     <Deferred data="mobile" fallback={<Skeleton className="h-40 w-full" />}>
-      <Tabela itens={itens} />
+      <Tabela itens={itens} podeRecusar={podeRecusar} />
     </Deferred>
   );
 }
