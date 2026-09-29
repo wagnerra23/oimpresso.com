@@ -467,12 +467,16 @@ it('UC-INTCRE-04 · o comprovante anexado vai para disco privado, só quem aprov
         'business_id' => $this->business->id,
         'user_type'   => 'user',
         'username'    => strtolower(INTC_MARCADOR) . '-leitor-' . uniqid(),
+        'allow_login' => 1,
     ]);
     $semAprovacao->givePermissionTo('ponto.access');
-    // Mesmo idioma dos irmãos (Fechamento, BancoHorasImportacao, EscalaRemocao): sem esquecer o
-    // cache da Spatie, a permissão recém-dada não vale nesta requisição e o middleware do módulo
-    // devolve 403 já no detalhe — medido na 1ª run da lane (a âncora positiva pegou).
     app(PermissionRegistrar::class)->forgetCachedPermissions();
+    // `fresh()`, não a instância do factory: `CheckUserLogin` recusa com 403 quando
+    // `allow_login != 1`, e o default 1 da coluna só existe no BANCO — o model devolvido pelo
+    // `create()` não o carrega. Medido em 2 runs da lane: 403 já no detalhe, mesmo com o cache
+    // da Spatie esquecido (a 1ª hipótese, cache, estava errada). Os irmãos escapam porque leem
+    // o usuário do banco (`fresh()`/`query()`).
+    $semAprovacao = $semAprovacao->fresh();
     $this->assertFalse($semAprovacao->can('ponto.aprovacoes.manage'), 'O leitor não pode ter a permissão de aprovação.');
 
     $this->actingAs($semAprovacao);

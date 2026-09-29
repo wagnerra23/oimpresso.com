@@ -153,7 +153,10 @@ class IntercorrenciaController extends Controller
      */
     public function anexo(Request $request, $id): StreamedResponse
     {
-        $i = Intercorrencia::findOrFail($id);
+        // Filtro explícito ALÉM do global scope do `HasBusinessScope` (defesa dupla, ADR 0093):
+        // se o trait sair do model, o comprovante de outro empregador segue inalcançável.
+        $businessId = session('business.id') ?: $request->user()->business_id;
+        $i = Intercorrencia::where('business_id', $businessId)->findOrFail($id);
 
         abort_unless(self::podeBaixarAnexo($request->user()), 403, 'Só quem aprova intercorrências pode baixar o comprovante.');
         abort_unless($i->anexo_path && Storage::disk(self::discoAnexo())->exists($i->anexo_path), 404);
