@@ -20,8 +20,16 @@ ondas A e B da Fabricação foram feitas desta forma.
 
 **O projeto do Felipe no Claude Design** (`2e7d3640…`, "PROTÓTIPO OFICIAL - PRODUTO UNIFICADO V2")
 tem uma importação mais antiga e **não é mais onde se trabalha** — por isso está atrás desta
-pasta. Não gravar nele e não reimportar o zip dele por cima desta pasta: isso apagaria o que foi
-feito aqui.
+pasta. Não reimportar o zip dele por cima desta pasta: isso apagaria o que foi feito aqui.
+
+**Exceção desde 2026-09-29, pedido da Maiara: a Fabricação também sobe para esse projeto.** Ele
+recebe uma **cópia** dos 7 `manufacturing-*` para a Maiara ver a tela lá; não é fonte (a fonte
+segue sendo `prototipo-ui/cowork/Wagner/` + o projeto do Wagner no Claude Design). O vínculo é por
+processo, não automático: a cada mudança da Fabricação, a sessão que fez a mudança sobe os 7
+arquivos de `prototipo-ui/cowork/Wagner/` para `2e7d3640…` pelo DesignSync (o login da Maiara/Felipe
+tem edição nesse projeto). Primeira subida: 2026-09-29, com o título "Fabricação" do PR #8110.
+Subir para esse projeto **não** satisfaz o check `espelho — mexeu depois de verificar`, que só
+aceita a subida para o projeto do Wagner.
 
 - **Isto vale só para `prototipo-ui/cowork/Felipe/`.** O design system (projeto do Wagner, fonte
   viva em `resources/js/Components/{ui,shared}/`) continua regido pela seção "Como conferir
