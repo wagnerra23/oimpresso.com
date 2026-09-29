@@ -5,7 +5,7 @@ autor: "[CL]"
 criado: 2026-09-28
 base: ad23c9ff9
 thread: 17-data-contract-no-tsx.md
-veredito: "em andamento — 16 de 26 ids em PRs (14 em #8088/#8090/#8091/#8096, 1 no PR-2 de Aprovações, 1 no PR da forma de Escalas); 6 fora por regra; faltam os 2 de BancoHoras/Show (espera #8113) e os 2 ids feios (pendentes, sem nome no gap e com o lado protótipo fora do canal)"
+veredito: "em andamento — 18 de 26 ids em PRs (14 em #8088/#8090/#8091/#8096, 1 no PR-2 #8114 de Aprovações, 1 no PR da forma de Escalas, 2 no #8113 + PR-2b #8119); 6 fora por regra; os 2 de BancoHoras/Show gravados pelo #8113 e declarados no map pelo PR-2b #8119; faltam só os 2 ids feios (pendentes, sem nome no gap e com o lado protótipo fora do canal)"
 ---
 
 # _saída 17 · `data-contract` no `.tsx`
@@ -30,9 +30,9 @@ Recibo único da thread, atualizado a cada PR.
 |---|---|---|---|---|
 | PR-1 #8088 | `intercorrencias-intercorrencias` | `Intercorrencias/Index.tsx` (`<Card>` da lista) | `intercorrencias-index.map.json` · `lista-de-intercorrencias` | aberto |
 | PR-1 #8088 | `bancohoras-saldos-por-colaborador` | `BancoHoras/Index.tsx` (`<Card>` da tabela) | `banco-horas-index.map.json` · `saldos-por-colaborador` | aberto |
-| PR-2 | `aprovacoes-fila-de-aprovacoes` | `Aprovacoes/Index.tsx:330` (`<Card>` da fila) | `aprovacoes-index.map.json` · `fila-de-aprovacoes` | aberto |
+| PR-2 #8114 | `aprovacoes-fila-de-aprovacoes` | `Aprovacoes/Index.tsx:330` (`<Card>` da fila) | `aprovacoes-index.map.json` · `fila-de-aprovacoes` | mergeado 2026-09-29 |
 | PR da forma de Escalas (`claude/ponto-escalas-forma`) | `escalas-escalas-cadastradas` | `Escalas/Index.tsx` (`<Card>` da lista) | `escalas-index.map.json` · parte da lista | no PR da sessão que aplica a forma do protótipo; combinado em 2026-09-28 para não haver dois PRs no mesmo arquivo |
-| PR-2b | `bancohoras-historico-de-movimentos` · `bancohoras-ajuste-manual` | `BancoHoras/Show.tsx` | `banco-horas-show.map.json` | espera #8113 (forma do detalhe, aberto); o #8077 já mergeou |
+| #8113 + PR-2b #8119 | `bancohoras-historico-de-movimentos` · `bancohoras-ajuste-manual` | `BancoHoras/Show.tsx:179` · `:270` (gravados pelo #8113, mergeado) | `banco-horas-show.map.json` · `historico-de-movimentos` · `ajuste-manual` (declarados no #8119) | aberto |
 | PR-3a #8090 | `colaboradores-colaboradores` | `Colaboradores/Index.tsx:101` | `colaboradores-index.map.json` · `lista-de-colaboradores` | aberto |
 | PR-3a #8090 | `colaboradorform-configuracao-de-ponto` | `Colaboradores/Edit.tsx:85` (card único "Identificação", paridade de campos) | `colaboradores-edit.map.json` · `configuracao-de-ponto-campos` | aberto |
 | PR-3b #8091 | `importacoes-historico-de-importacoes` | `Importacoes/Index.tsx:74` | `importacoes-index.map.json` · `historico-de-importacoes` | aberto |
@@ -61,3 +61,9 @@ Recibo único da thread, atualizado a cada PR.
 - **Colisão:** `whats-active` + `gh pr list --state open`. `Aprovacoes/Index.tsx`: a sessão do W9 (`claude/ponto-nav-13-abas`) só troca o header e os imports; o card da fila não é tocado. `Escalas/Index.tsx`: a sessão da forma do protótipo reescreve o corpo e já grava `escalas-escalas-cadastradas` no PR dela. `BancoHoras/Show.tsx`: #8113 aberto, logo fica para o PR-2b.
 - **Medição (Aprovações):** 5 UCs no `.casos.md` (UC-PAPR-01..05), citados por `JornadaWorkflowContratoTest.php` e `tests/js/ponto-aprovacoes-lote-dialogo.test.tsx`. `data-contract` aparece 0 vezes no casos e nos 2 testes; o teste JS não usa snapshot. O `last_run` já era `2026-09-28` no main, então o G-6 não pediu bump. Existe baseline de pixel (`PixelBaselineTest/it_Ponto_Aprovacoes…snap`); um atributo não muda pixel, e não se gera `.snap` (ADR 0411).
 - **Portões:** `design-code-map-check --check --strict` → rc=0, âncora estável **99**/668 no main de hoje. `contrato-de-tela`: `.test.mjs`, `--preflight origin/main`, `--anti-tautologia`, `--omission <merge-base>` → limpos.
+
+## PR-2b #8119 (2026-09-29)
+
+- O #8113 (forma do detalhe, mergeado em 2026-09-28) já gravou no `BancoHoras/Show.tsx` os dois ids, com a string idêntica à do `ponto-telas.jsx:380` e `:395`. O PR-2b só declara as duas âncoras no map; nenhum `.tsx` muda, e por isso o G-6 não é acionado.
+- `design-code-map-check --check --strict` → rc=0. Mordida: com `bancohoras-ajuste-manual` trocado no `.tsx`, rc=1 com `[DRIFT]`; arquivo restaurado, hash conferido.
+- **Fora do escopo, registrado:** o #8113 também gravou `bancohoras-colaborador`, `bancohoras-kpis-do-extrato` e `bancohoras-legal`, que não existem no protótipo (`grep -c 'contrato="<id>"' ponto-telas.jsx` = 0 para os três). No map ficam `ancora: false`; para virarem âncora, o par nasce no protótipo, pelo Cowork.
