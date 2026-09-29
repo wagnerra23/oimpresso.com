@@ -3,14 +3,14 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Ponto/Importacoes/Show (/ponto/importacoes/{id})",
   "gap_fonte": "memory/requisitos/Ponto/importacoes-show-gap.md",
-  "prototipo_sha": "sha256:e8b74d75e0d5",
+  "prototipo_sha": "sha256:62977f0aeb68",
   "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "cabecalho-e-baixar-original",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "731-736"
+        "linhas": "763-768"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
@@ -25,7 +25,7 @@
       "id": "dados-do-arquivo",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "739-759"
+        "linhas": "771-791"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
@@ -40,7 +40,7 @@
       "id": "resumo-do-processamento",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "770-785"
+        "linhas": "802-817"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
@@ -85,7 +85,7 @@
       "id": "diagnostico-do-processamento",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "760"
+        "linhas": "792"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -100,7 +100,7 @@
       "id": "amostra-de-erros",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "761-768"
+        "linhas": "793-800"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
@@ -109,7 +109,7 @@
       },
       "status": "paridade",
       "acao": "Feito 2026-09-29 — `UC-IMPSH-06`. O job já persistia a amostra (mascarada pelo PiiRedactor); o `show` passou a expô-la com as 4 chaves do contrato.",
-      "_acionavel": false
+      "_acionavel": true
     }
   ]
 }

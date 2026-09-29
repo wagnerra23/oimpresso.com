@@ -3,14 +3,14 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Essentials/Settings/Index (/hrm/settings)",
   "gap_fonte": "memory/requisitos/Essentials/settings-index-gap.md",
-  "prototipo_sha": "sha256:015a670b0563",
-  "gerado_em": "2026-09-14",
+  "prototipo_sha": "sha256:66a8bd4cdb9c",
+  "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "cobertura-das-chaves-de-configuracao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/hrm-extras.jsx",
-        "linhas": "573-594"
+        "linhas": "264-276"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Essentials/Settings/Index.tsx",
@@ -25,7 +25,7 @@
       "id": "agrupamento-em-cards",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/hrm-extras.jsx",
-        "linhas": "571-591"
+        "linhas": "262-274"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Essentials/Settings/Index.tsx",
@@ -54,8 +54,8 @@
     {
       "id": "permitir-marcacao-via-web",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/Wagner/hrm-extras.jsx",
-        "linhas": "596"
+        "arquivo": "n/a",
+        "linhas": "n/a"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -64,13 +64,14 @@
       },
       "status": "decidido-nao-reabrir",
       "acao": "Nada — decidido. Não reabrir: a ausência no vivo está certa.",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota": "Handoff (43), 2026-09-29: a nota sobre allow_users_for_attendance_from_web saiu do card Regras de hrm-extras.jsx (agora: tolerância e localização são do Ponto). A decisão de não reabrir segue."
     },
     {
       "id": "guarda-de-permissao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/hrm-extras.jsx",
-        "linhas": "566"
+        "linhas": "257"
       },
       "vivo": {
         "arquivo": "n/a",
