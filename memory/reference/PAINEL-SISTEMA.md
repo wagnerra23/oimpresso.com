@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-28**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-29**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **11/13** métricas medidas · floor full-suite = **284**.
+- Scorecard: **11/13** métricas medidas · floor full-suite = **276**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -131,13 +131,13 @@ lente: [construir]
 - espelho — mexeu depois de verificar
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 149 workflows por classe
+### Censo — 150 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 113 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 114 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 25 | agent-cost-per-pr, agent-pr-outcomes, baseline-folga, briefing-code-staleness, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -146,13 +146,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **422** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 373 · superseded: 25 · deprecated: 11 · proposto: 11 · rascunho: 1 · recusado: 1.
+- **424** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 375 · superseded: 25 · deprecated: 11 · proposto: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 239 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 242 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -394,6 +394,9 @@ lente: [construir]
 - ~~2026-09-25 — Troquei um token pra passar um gate e não re-medi: `var(--primary)` não existe neste app (o nome é `--color-primary`)~~
 - ~~2026-09-27 — Uma trava de permissão nova CALOU testes de isolamento de outro arquivo — e dois deles seguiram VERDES por vácuo~~
 - ~~2026-09-28 — Ressuscitar o contrafactual de corpus (`agent-corpus-counterfactual.mjs` + o scaffold `.claude/governance-eval/corpus-counterfactual/`)~~
+- ~~2026-09-28 — EMENDA da lápide 2026-08-02 (fix na cópia que o consumidor não usa): a regra "não fatiar tabela markdown com `split('|')` cru" morava num parser só, e o irmão seguiu com o split cru~~
+- ~~2026-09-28 — EMENDA da lápide 2026-07-30 (`rg` não lê dotfile): a LEI dela, `rg --hidden -g '!.git/**'`, ainda é cega a arquivo de TEXTO com byte NUL — e o único cego era o único consumidor~~
+- ~~2026-09-29 — Afirmar "este check é required" citando uma NOTA DATADA do baseline, com a lista de contexts e a nota da demoção no MESMO arquivo~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -404,14 +407,14 @@ lente: [construir]
 
 ## Rastro
 
-- **569** handoffs · **769** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **573** handoffs · **774** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-29-refutacao-gt-g5-lote-8120-r2`
+  - `2026-09-29-refutacao-gt-g5-lote-8120-r1`
+  - `2026-09-28-refutacao-gt-g5-lote-8073-r1`
+  - `2026-09-28-refutacao-gt-g5-lote-8072-r1`
+  - `2026-09-28-doc-id-index-dono-do-frescor`
   - `2026-09-24-ds-atomos-decisoes-04-05`
-  - `2026-09-23-serie-financeiro-layout-fin6b-balancete`
-  - `2026-09-22-revisao-fluxos-maquinas-sem-baseline`
-  - `2026-09-22-lacunas-revisao-fluxos-fechadas`
-  - `2026-09-22-cobertura-modular-funil-design`
-  - `2026-09-22-buracos-prototipo-producao`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-28 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-29 · deriva das fontes canônicas, não as substitui._

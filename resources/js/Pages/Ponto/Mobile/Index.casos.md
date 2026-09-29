@@ -60,6 +60,15 @@ last_run: "2026-09-29"
   Então há o item "Bater ponto" levando a `/ponto/mobile` (inclusive sem `ponto.access`); sem cadastro, o item não aparece.
 - **Status: ⬜** — cita o UC; veredito vem da lane `ponto-pest`.
 
+## UC-REPP-10 · O gestor vê o header do módulo completo; o colaborador não recebe número da empresa
+- **Contrato:** header de módulo do Ponto com contagens nas abas e linha de contexto (W9, ADR 0418) +
+  charter §Non-Goals (*"o cabeçalho de abas só aparece pra quem tem o módulo"*) + [W] 2026-09-29
+  (*"faz o PR dos 3 pontos do REP-P"*, após o smoke em produção mostrar o header da tela sem contagens).
+- **Aceite:** Dado usuário com `ponto.access` · Quando abro `/ponto/mobile` · Então a resposta traz
+  `ponto_abas` e `ponto_contexto` como props diferidas, como toda tela do Ponto. Dado colaborador **sem**
+  `ponto.access` · Quando abro a mesma tela · Então nenhuma das duas vem — nem diferida.
+- **Status: ⬜** — cita o UC; veredito vem da lane `ponto-pest`.
+
 ## UC-REPP-05 · GUARD — a tela não coleta imagem (ADR 0383)
 - **Aceite:** o fonte da tela não usa câmera nem captura (`getUserMedia`, `capture=`, `selfie`),
   nem oferece "mesmo assim".
