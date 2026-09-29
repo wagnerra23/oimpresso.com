@@ -20,6 +20,8 @@ uses(PontoTestCase::class);
  * A API por trás (`/ponto/api`, Passport) tem os seus casos no Wave28MobileMarcacaoTest;
  * aqui é a MESMA lógica servida sob sessão web, que é o caminho da tela.
  *
+ * @covers-us US-PONTO-001
+ *
  * Tier 0: tenant fictício 98 (ADR 0358). Transação revertida por caso — `ponto_marcacoes`
  * recusa DELETE por trigger (Portaria MTP 671/2021).
  */
