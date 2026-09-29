@@ -53,6 +53,12 @@ export interface PageHeaderPrimary {
   href: string;
   /** Atalho kbd canon (ex 'N'). Apenas display — listener global em Fase 8. */
   shortcut?: string;
+  /**
+   * O que o botão faz. `criar` (default) prefixa o rótulo com "+", o sinal de "novo registro".
+   * `navegar` tira o "+": o botão só leva a outra tela, e o "+" prometeria uma criação que não
+   * acontece (caso do "Painel do ponto", [W] 2026-09-29). Opt-in — quem não declara fica igual.
+   */
+  acao?: 'criar' | 'navegar';
 }
 
 export interface PageHeaderGhost {
@@ -133,6 +139,13 @@ interface Props {
    * o exija; `density` não é dial de gosto, é a forma que a fonte de design daquela área pede.
    */
   density?: 'default' | 'compact';
+  /**
+   * OPT-IN (Ponto W9, [W] 2026-09-28, ADR 0418): barra de abas com scroll horizontal TAMBÉM no
+   * desktop, rolando até a aba ativa — é o que o protótipo do Ponto faz com as suas abas de área.
+   * Sem a prop nada muda: o desktop segue `md:overflow-visible` (que existe pra não recortar o
+   * menu `⋯ Mais`). Use só quando todas as abas ficam inline (`maxVisible` ≥ nº de abas).
+   */
+  scrollable?: boolean;
   className?: string;
 }
 
@@ -157,6 +170,7 @@ export default function PageHeaderTabs({
   maxVisible = 5,
   extraOverflowItems = [],
   density = 'default',
+  scrollable = false,
   className,
 }: Props) {
   const hue = group ? SIDEBAR_GROUP_HUE[group] : undefined;
@@ -182,6 +196,18 @@ export default function PageHeaderTabs({
 
   // ── Keyboard nav (left/right/home/end) ──────────────────────────────
   const tablistRef = React.useRef<HTMLDivElement>(null);
+
+  // `scrollable`: traz a aba ativa pra dentro da faixa visível (protótipo do Ponto). Rola só o
+  // container da barra — `scrollIntoView` rolaria a página inteira.
+  React.useEffect(() => {
+    if (!scrollable) return;
+    const lista = tablistRef.current;
+    const ativa = lista?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+    if (!lista || !ativa) return;
+    const fora = ativa.offsetLeft < lista.scrollLeft
+      || ativa.offsetLeft + ativa.offsetWidth > lista.scrollLeft + lista.clientWidth;
+    if (fora) lista.scrollLeft = ativa.offsetLeft - (lista.clientWidth - ativa.offsetWidth) / 2;
+  }, [scrollable, activeGhostKey]);
   const onKeyDownTab = (e: React.KeyboardEvent<HTMLAnchorElement>, idx: number) => {
     const tabs = tablistRef.current?.querySelectorAll<HTMLAnchorElement>('[role="tab"]');
     if (!tabs?.length) return;
@@ -218,7 +244,7 @@ export default function PageHeaderTabs({
           className="font-medium shrink-0"
         >
           <Link href={primary.href}>
-            <span>+ {primary.label}</span>
+            <span>{primary.acao === 'navegar' ? '' : '+ '}{primary.label}</span>
             {primary.shortcut && (
               <kbd className="ml-2 px-1.5 py-0.5 text-[10px] font-mono rounded bg-black/20 border border-white/20">
                 {primary.shortcut}
@@ -242,7 +268,7 @@ export default function PageHeaderTabs({
           className={cn(
             'flex items-center gap-0.5 min-w-0',
             // Mobile: scroll-x snap quando ghosts não cabem (ADR 0180 mobile-aware)
-            'overflow-x-auto md:overflow-visible',
+            scrollable ? 'overflow-x-auto relative' : 'overflow-x-auto md:overflow-visible',
             'snap-x snap-mandatory md:snap-none',
             '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
           )}

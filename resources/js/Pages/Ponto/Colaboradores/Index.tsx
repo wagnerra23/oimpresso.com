@@ -17,7 +17,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import PageFilters from '@/Components/shared/PageFilters';
 import EmptyState from '@/Components/shared/EmptyState';
 import { redigirDigitos } from '@/Lib/format-br';
@@ -91,15 +91,7 @@ export default function ColaboradoresIndex({ colaboradores, search, situacao }: 
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>Colaboradores <span className="text-stone-400 font-normal">· Configuração de ponto</span></h1>
-            <p>Nome/email vêm do HRM (UltimatePOS core).</p>
-          </div>
-          <div className="os-page-h-r">
-            <PontoSubNav active="colaboradores" />
-          </div>
-        </header>
+        <PontoAreaHeader active="colaboradores" />
 
         <PageFilters activeChips={activeChips} onReset={hasFilters ? limparTudo : undefined} cols={2}>
           <div className="col-span-full md:col-span-1">

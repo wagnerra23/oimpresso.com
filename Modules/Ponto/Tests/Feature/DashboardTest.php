@@ -160,6 +160,11 @@ class DashboardTest extends PontoTestCase
         $this->assertSame('Painel do ponto', $ponto['primary']['label'] ?? null,
             'O primary leva ao painel do Ponto — o rótulo tem de dizer isso, não "Bater ponto".'
         );
+        // [W] 2026-09-29: o botão só navega — o PageHeaderTabs tira o "+" de criação quando
+        // o primary declara `acao: navegar` (o adapter repassa o array inteiro).
+        $this->assertSame('navegar', $ponto['primary']['acao'] ?? null,
+            'O primary do Ponto tem de declarar acao=navegar, senão o botão aparece como "+ Painel do ponto".'
+        );
 
         // A ORDEM dentro do grupo RH não se mede aqui: o shell.menu chega na ordem de registro dos
         // módulos (o `->order(N)` não passa pelo LegacyMenuAdapter), e quem ordena é o frontend
