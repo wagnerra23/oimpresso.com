@@ -3,8 +3,8 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Essentials/Tipos (/hrm/leave-type)",
   "gap_fonte": "memory/requisitos/Essentials/tipos-gap.md",
-  "prototipo_sha": "sha256:9177a4bb60d5",
-  "gerado_em": "2026-09-24",
+  "prototipo_sha": "sha256:834d329a6925",
+  "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "cabecalho",
@@ -14,22 +14,23 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Essentials/Tipos.tsx",
-        "linhas": "135-147",
+        "linhas": "135-146",
         "ancora": "cabecalho"
       },
       "status": "paridade",
       "acao": "Nada — paridade.",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota": "2026-09-29: protótipo n/a — a subview `tipos` (prototipo-ui/cowork/Wagner/hrm-page.jsx:283-300) não tem cabeçalho próprio; o rótulo \"Tipos de licença\" é só a opção do seletor de subview (hrm-page.jsx:231). Vivo: data-contract=\"cabecalho\" em resources/js/Pages/Essentials/Tipos.tsx:135."
     },
     {
       "id": "toolbar",
       "prototipo": {
-        "arquivo": "n/a",
-        "linhas": "n/a"
+        "arquivo": "prototipo-ui/cowork/Wagner/hrm-page.jsx",
+        "linhas": "287"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Essentials/Tipos.tsx",
-        "linhas": "149-167",
+        "linhas": "149-166",
         "ancora": "toolbar"
       },
       "status": "paridade",
@@ -39,12 +40,12 @@
     {
       "id": "lista-colunas",
       "prototipo": {
-        "arquivo": "n/a",
-        "linhas": "n/a"
+        "arquivo": "prototipo-ui/cowork/Wagner/hrm-page.jsx",
+        "linhas": "288-298"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Essentials/Tipos.tsx",
-        "linhas": "169-190",
+        "linhas": "169-191",
         "ancora": "lista"
       },
       "status": "paridade",
@@ -54,12 +55,12 @@
     {
       "id": "estado-vazio",
       "prototipo": {
-        "arquivo": "n/a",
-        "linhas": "n/a"
+        "arquivo": "prototipo-ui/cowork/Wagner/hrm-page.jsx",
+        "linhas": "299"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Essentials/Tipos.tsx",
-        "linhas": "174-177",
+        "linhas": "172-179",
         "ancora": false
       },
       "status": "paridade",
@@ -74,33 +75,35 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Essentials/Tipos.tsx",
-        "linhas": "104-118",
+        "linhas": "112-118, 239-247",
         "ancora": false
       },
       "status": "paridade",
       "acao": "Nada — paridade.",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota": "2026-09-29: protótipo n/a — a subview `tipos` não tem ação de excluir (só \"Editar\", prototipo-ui/cowork/Wagner/hrm-page.jsx:296) e ainda afirma que o tipo não pode ser excluído (hrm-page.jsx:284-286). A paridade desta parte é com o contrato (essentials-tipos.contract.json, copy \"Não dá para excluir este tipo\"), não com o protótipo."
     },
     {
       "id": "contagem-em-uso",
       "prototipo": {
-        "arquivo": "n/a",
-        "linhas": "n/a"
+        "arquivo": "prototipo-ui/cowork/Wagner/hrm-page.jsx",
+        "linhas": "289, 295"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Essentials/Tipos.tsx",
-        "linhas": "188",
+        "linhas": "188, 198",
         "ancora": false
       },
       "status": "paridade",
-      "acao": "Nada — paridade. Divergência protótipo × contrato é do contrato, e ele venceu por ser o dono declarado; registrado para não virar \"bug\" na próxima leitura.",
-      "_acionavel": false
+      "acao": "Nada — paridade de rótulo: protótipo (hrm-page.jsx:289), contrato e vivo (Tipos.tsx:188) grafam \"Pedidos no ano\". Registrado para não virar \"bug\" na próxima leitura.",
+      "_acionavel": false,
+      "_nota": "2026-09-29: em 2026-09-06 o protótipo grafava \"Em uso\"; hoje grafa \"Pedidos no ano\" (hrm-page.jsx:289). A fonte do número não é a do destroy: a coluna do vivo mostra t.leaves_count (Tipos.tsx:198), vindo de query agrupada só do ano corrente (Modules/Essentials/Http/Controllers/EssentialsLeaveTypeController.php:104-108), enquanto o destroy conta todas as licenças do tipo (:281-283). O protótipo conta todas as licenças do tipo, sem janela (hrm-page.jsx:295)."
     },
     {
       "id": "nota-destroy-esta-vazio-do-prototipo",
       "prototipo": {
-        "arquivo": "n/a",
-        "linhas": "n/a"
+        "arquivo": "prototipo-ui/cowork/Wagner/hrm-page.jsx",
+        "linhas": "284-286"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -109,7 +112,8 @@
       },
       "status": "vivo-a-frente",
       "acao": "Nada — vivo à frente. Não portar essa nota para o vivo: é fato datado do protótipo, já superado.",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota": "2026-09-29: a nota caducada segue no protótipo (hrm-page.jsx:284-286). Vivo n/a por desenho: a parte manda NÃO portá-la."
     }
   ],
   "mapping": {

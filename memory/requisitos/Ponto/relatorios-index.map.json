@@ -3,14 +3,14 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Ponto/Relatorios/Index (/ponto/relatorios)",
   "gap_fonte": "memory/requisitos/Ponto/relatorios-index-gap.md",
-  "prototipo_sha": "sha256:e8b74d75e0d5",
+  "prototipo_sha": "sha256:62977f0aeb68",
   "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "nota-de-topo-com-a-lei",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "870-872"
+        "linhas": "910-912"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -19,28 +19,30 @@
       },
       "status": "prototipo-a-frente",
       "acao": "Incorporar a nota, com o artigo literal. Copy de conformidade, sem decisão pendente.",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota": "2026-09-29: grep -c '671' e grep -c 'Anexo' em resources/js/Pages/Ponto/Relatorios/Index.tsx = 0 e 0 — vivo n/a (ausente)."
     },
     {
       "id": "filtros-de-periodo-e-colaborador",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "874-895"
+        "linhas": "914-935"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
-        "linhas": "146-178",
+        "linhas": "139-170",
         "ancora": false
       },
       "status": "vivo-a-frente",
-      "acao": "Nada no vivo. `D-REL-FLUXO` = filtros globais no topo, e por R2 o wizard sai do protótipo no mesmo pacote — o campo Formato do wizard, que mostra sempre \"TXT\" mesmo para PDF (`:885`), sai junto.",
-      "_acionavel": false
+      "acao": "Nada no vivo. `D-REL-FLUXO` = filtros globais no topo, e por R2 o wizard sai do protótipo no mesmo pacote — o campo Formato do wizard, que mostra sempre \"TXT\" mesmo para PDF (`ponto-telas.jsx:925`), sai junto.",
+      "_acionavel": false,
+      "_nota": "2026-09-29: o wizard 'Gerar: <relatório>' (Card contrato=\"relatorios-gerar\") ainda está no protótipo em ponto-telas.jsx:914-935 — a saída do wizard por R2 não aconteceu no handoff (43)."
     },
     {
       "id": "incluir-marcacoes-anuladas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "887"
+        "linhas": "927"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -49,22 +51,24 @@
       },
       "status": "decidir-w",
       "acao": "Decidir onde a flag mora depois que o wizard sai (`D-REL-FLUXO`): filtro global ou parâmetro só dos relatórios legais. Ela chega ao gerador de AFD, que ainda é 501 (thread 12).",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota": "2026-09-29: grep -c 'anulad' resources/js/Pages/Ponto/Relatorios/Index.tsx = 0 — vivo n/a (ausente)."
     },
     {
       "id": "grade-de-relatorios-por-categoria",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "897-911"
+        "linhas": "937-951"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
-        "linhas": "180-248",
+        "linhas": "172-240",
         "ancora": false
       },
       "status": "vivo-a-frente",
       "acao": "Nada — vivo à frente; o agrupamento é catch-up do protótipo (o \"PARAR SE\" da thread 25 se cumpriu).",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota": "2026-09-29: vivo agrupa por categoria em Relatorios/Index.tsx:111-120 (useMemo, default 'Geral' :97) e renderiza os grupos em :172-240; protótipo = grade plana .pt-relgrid em ponto-telas.jsx:937-951."
     },
     {
       "id": "relatorio-que-sai-por-colaborador",
@@ -74,33 +78,35 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
-        "linhas": "191-202",
+        "linhas": "183-194",
         "ancora": false
       },
       "status": "vivo-a-frente",
       "acao": "Nada — vivo à frente.",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota": "2026-09-29: trava em Relatorios/Index.tsx:183-194 (precisaEscolher/podeGerar/rotuloTravado) + razão escrita em :229-233; a regra vem do backend (campo requer_colaborador, RelatorioController.php:40-47). grep -n 'requer_colaborador' no protótipo ponto-telas.jsx = 0 — protótipo n/a."
     },
     {
       "id": "gerar-relatorio-em-breve",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "857-866"
+        "linhas": "897-906"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
-        "linhas": "224-236",
+        "linhas": "215-228",
         "ancora": false
       },
       "status": "prototipo-a-frente",
       "acao": "Incorporar — `D-REL-FILA` = mantém o clique e registra, com duas condições da ata: o registro carrega `business_id` (Tier 0) e a tela diz \"pedido registrado\", não um 501 mudo. Exige persistência no backend (hoje `RelatorioController.php:102` é `abort(501)`) e emenda do Non-Goal do charter (thread 27).",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota": "2026-09-29: protótipo registra o pedido na função gerar ponto-telas.jsx:897-906 (botão Gerar sempre clicável em :945, pill 'em implementação' :946); vivo desabilita o botão em Relatorios/Index.tsx:215-228 com rótulo 'Em desenvolvimento' (:190-191); RelatorioController.php:102 segue abort(501)."
     },
     {
       "id": "pedidos-desta-sessao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "913-926"
+        "linhas": "953-966"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -115,7 +121,7 @@
       "id": "rodape-legal",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "928"
+        "linhas": "968"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -123,7 +129,7 @@
         "ancora": false
       },
       "status": "prototipo-a-frente",
-      "acao": "Incorporar — a copy vem do protótipo (`:928`); o charter não traz essa frase.",
+      "acao": "Incorporar — a copy vem do protótipo (`ponto-telas.jsx:968`); o charter não traz essa frase.",
       "_acionavel": true
     }
   ]

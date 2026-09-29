@@ -3,14 +3,14 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "governance/Dashboard (/governance/dashboard)",
   "gap_fonte": "memory/requisitos/Governance/governance-dashboard-gap.md",
-  "prototipo_sha": "sha256:ef5e0ae45102",
-  "gerado_em": "2026-09-14",
+  "prototipo_sha": "sha256:53938d9e2417",
+  "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "header-pageheader",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "403-418"
+        "linhas": "404-415"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -25,7 +25,7 @@
       "id": "abas-do-shell",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "24-30"
+        "linhas": "25-30"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -34,28 +34,30 @@
       },
       "status": "paridade",
       "acao": "Nada — paridade",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota": "2026-09-29: o retrato tem 4 vistas (VIEWS governance-page.jsx:25-30, render CliTabs :417-418) — \"Notas dos módulos\" saiu (:5, ADR 0399/#7283); o vivo deriva a lista do DataController (GovernancaSubNav)."
     },
     {
       "id": "seletor-de-cenario",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "383-387"
+        "linhas": "384-388"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
-        "linhas": "n/a (ausente no vivo — a célula do gap.md cita o recibo de ausência)",
+        "arquivo": "n/a",
+        "linhas": "n/a",
         "ancora": false
       },
       "status": "artefato",
       "acao": "Nada — mock/harness do protótipo (troca de cenário só simula o que as props do vivo já carregam)",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota": "2026-09-29: CENARIOS governance-page.jsx:384-388, segmento no header :410-412; grep -nEi \"cenario|Cenário|Fontes ausentes\" Dashboard.tsx = 0."
     },
     {
       "id": "kpis-constituicao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "273-275"
+        "linhas": "273-276"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -70,22 +72,22 @@
       "id": "regua-conformidade-com-a-constituicao-por-artigo-selo-auto-declarado",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "74-102"
+        "linhas": "81-109"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
         "linhas": "797-803",
         "ancora": false
       },
-      "status": "gap-parcial",
-      "acao": "Decidir. Régua com breakdown por artigo (pleno/parcial/pendente) e selo de proveniência \"auto-declarado\" (mockup `governance-page.jsx:74-102`) ausente no vivo (`Dashboard.tsx:797-803` é um card só). Exige fonte por artigo — hoje o controller só tem os 3 somandos literais (`DashboardController.php:65`). Não é Non-Goal (edição/trigger de checks continuam fora). Construir ou rejeitar por escrito.",
-      "_acionavel": true
+      "status": "nao-adotar",
+      "acao": "Nada — REJEITADA por escrito em 2026-09-09 (#7089, bloco \"Decidido em 2026-09-09\" do gap.md): não existe fonte por artigo — o valor é literal em `DashboardController.php:65` e `:268`. O vivo mantém só o KpiCard \"Compliance Constitution\" (`Dashboard.tsx:797-803`). Reabre só com fonte real por artigo (escopo novo, com dono e ADR).",
+      "_acionavel": false
     },
     {
       "id": "card-scorecard-sdd",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "104-122"
+        "linhas": "111-129"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -100,11 +102,11 @@
       "id": "kpis-saude-do-ecossistema",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "129-134"
+        "linhas": "135-144"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
-        "linhas": "846-882",
+        "linhas": "846-880",
         "ancora": false
       },
       "status": "paridade",
@@ -115,11 +117,11 @@
       "id": "lista-narrativas-brain-a-24h",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "139-146"
+        "linhas": "146-153"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
-        "linhas": "959-996",
+        "linhas": "959-989",
         "ancora": false
       },
       "status": "vivo-a-frente",
@@ -130,11 +132,11 @@
       "id": "lista-adrs-aguardando-decisao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "157-167"
+        "linhas": "164-174"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
-        "linhas": "884-916",
+        "linhas": "884-915",
         "ancora": false
       },
       "status": "vivo-a-frente",
@@ -145,11 +147,11 @@
       "id": "lista-ocorrencias-em-24-h-audit-highlights",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "168-180"
+        "linhas": "175-187"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
-        "linhas": "918-957",
+        "linhas": "918-956",
         "ancora": false
       },
       "status": "paridade",
@@ -160,11 +162,11 @@
       "id": "secao-mcp-cabecalho-filtro-de-periodo",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "196-204"
+        "linhas": "203-207"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
-        "linhas": "626-696",
+        "linhas": "628-694",
         "ancora": false
       },
       "status": "vivo-a-frente",
@@ -175,11 +177,11 @@
       "id": "secao-mcp-kpis",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "210-215"
+        "linhas": "213-218"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
-        "linhas": "372-400",
+        "linhas": "372-401",
         "ancora": false
       },
       "status": "paridade",
@@ -190,11 +192,11 @@
       "id": "secao-mcp-abas-in-page",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "216-220"
+        "linhas": "219-221"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
-        "linhas": "403-419",
+        "linhas": "403-418",
         "ancora": false
       },
       "status": "paridade",
@@ -205,11 +207,11 @@
       "id": "secao-mcp-conteudo-das-abas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "221-259"
+        "linhas": "222-259"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
-        "linhas": "420-597",
+        "linhas": "420-594",
         "ancora": false
       },
       "status": "vivo-a-frente",
@@ -220,7 +222,7 @@
       "id": "secao-mcp-fonte-ausente",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "206-207"
+        "linhas": "208-210"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -235,7 +237,7 @@
       "id": "secao-mcp-sem-permissao-jana-mcp-usage-all",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "284-289"
+        "linhas": "285-290"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -249,22 +251,23 @@
     {
       "id": "atalhos-de-governanca-documentos-canonicos",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "389-442"
+        "arquivo": "n/a",
+        "linhas": "n/a"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
-        "linhas": "998-1027",
+        "linhas": "998-1045",
         "ancora": false
       },
       "status": "vivo-a-frente",
       "acao": "Nada — vivo à frente",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota": "2026-09-29: ausente no protótipo — grep -cEi \"Atalhos|Documentos canônicos|Trust Tiers\" governance-page.jsx = 0 (a faixa antiga 389-442 não continha o bloco). Vivo: atalhos Dashboard.tsx:998-1028 + documentos canônicos :1030-1045."
     }
   ],
   "mapping": {
     "source": "governance-page.jsx",
     "target": "resources/js/Pages/governance/Dashboard.tsx"
   },
-  "_nota_mapeamento": "Protótipo = porte REVERSO do vivo (governance-page.jsx:1-3). prototipo.linhas = range citado como 'Mockup:' na célula 'Estado no vivo' do gap.md; vivo.linhas = 1º range citado na mesma célula (grep -n real). vivo.ancora:false EXPLÍCITO = opt-out consciente: o .tsx não tem nenhum data-contract (grep -c data-contract → 0); ancorar exige mudança de UI com gate próprio."
+  "_nota_mapeamento": "Protótipo = porte REVERSO do vivo (governance-page.jsx:1-3). Faixas re-medidas em 2026-09-29 direto nos arquivos (grep -n + leitura), após o handoff (43): prototipo.linhas = bloco que a parte nomeia em governance-page.jsx; vivo.linhas = bloco correspondente no .tsx vivo. vivo.ancora:false EXPLÍCITO = opt-out consciente: o .tsx não tem nenhum data-contract (grep -c data-contract → 0); ancorar exige mudança de UI com gate próprio."
 }
