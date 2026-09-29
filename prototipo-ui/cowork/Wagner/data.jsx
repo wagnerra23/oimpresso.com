@@ -164,7 +164,6 @@ const MENU = [
     { id: "ponto",   icon: "user",    label: "Ponto" },
     { id: "hrm",     icon: "users",   label: "HRM", ghosts: [
       { id: "hrm-licencas", icon: "doc",     label: "Licenças" },
-      { id: "hrm-turnos",   icon: "refresh", label: "Turnos" },
       { id: "hrm-folha",    icon: "cash",    label: "Folha de pagamento" },
       { id: "hrm-feriados", icon: "clock",   label: "Feriados" },
       { id: "hrm-metas",    icon: "chart",   label: "Metas de venda" },
@@ -230,7 +229,6 @@ const MENU = [
       { id: "gov-politicas",  icon: "shield", label: "Políticas" },
       { id: "gov-auditoria",  icon: "audit",  label: "Auditoria" },
       { id: "gov-drift",      icon: "search", label: "Drift de escopo" },
-      { id: "gov-notas",      icon: "chart",  label: "Notas dos módulos" },
     ]},
   ]},
 
