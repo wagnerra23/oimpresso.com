@@ -239,6 +239,35 @@ class ArquivosService
     }
 
     /**
+     * Outra linha ainda referencia este blob (disk + storage_path)?
+     *
+     * A dedupe de storage (attach) faz linhas de donos distintos apontarem pro MESMO
+     * arquivo físico. Todo caminho de hard-delete consulta isto antes de apagar o
+     * blob — só a ÚLTIMA referência o remove. Fonte única pros dois caminhos
+     * (`arquivos:retention-cleanup` e `ArquivosRetentionService::purgeOne`).
+     *
+     * `DB::table` sem scope de propósito: é checagem de existência (não devolve dado de
+     * outro tenant) e conta linhas soft-deleted, que serão purgadas depois — a última
+     * delas apaga o blob. O path já carrega `biz-{id}`; filtrar por business só
+     * enfraqueceria a guarda.
+     *
+     * Mora aqui e não no model `Arquivo`: é consulta, não comportamento de entidade, e
+     * tocar o model acorda a dívida grandfathered do MultiTenantScopeArchitectureTest.
+     */
+    public static function blobCompartilhado(?string $disk, ?string $storagePath, int $exceptId): bool
+    {
+        if ($disk === null || $storagePath === null || trim($storagePath) === '') {
+            return false;
+        }
+
+        return DB::table('arquivos')
+            ->where('disk', $disk)
+            ->where('storage_path', $storagePath)
+            ->where('id', '!=', $exceptId)
+            ->exists();
+    }
+
+    /**
      * Linha do PRÓPRIO dono com esse MD5 no business (dedupe idempotente por dono).
      */
     private function dedupeDoDono(string $md5, int $businessId, Model $owner): ?Arquivo

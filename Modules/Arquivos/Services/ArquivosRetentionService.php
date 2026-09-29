@@ -112,7 +112,7 @@ class ArquivosRetentionService
             $path = $arquivo->storage_path;
 
             // Blob compartilhado pela dedupe de storage: só a ÚLTIMA referência apaga.
-            $compartilhado = Arquivo::blobCompartilhado($diskName, $path, (int) $arquivo->id);
+            $compartilhado = ArquivosService::blobCompartilhado($diskName, $path, (int) $arquivo->id);
 
             // Tenta remover storage (não falha se ausente — fail-open por design)
             try {

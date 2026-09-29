@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
-use Modules\Arquivos\Entities\Arquivo;
+use Modules\Arquivos\Services\ArquivosService;
 
 /**
  * arquivos:retention-cleanup — Sprint 7 ADR 0123 (LGPD hard-delete pós-retention).
@@ -145,7 +145,7 @@ class RetentionCleanupCommand extends Command
                         $fileRemoved = false;
                         // Blob compartilhado pela dedupe de storage: só a ÚLTIMA referência
                         // apaga o arquivo — senão purgar o dono A apaga o do dono B.
-                        $blobCompartilhado = Arquivo::blobCompartilhado($row->disk, $row->storage_path, (int) $row->id);
+                        $blobCompartilhado = ArquivosService::blobCompartilhado($row->disk, $row->storage_path, (int) $row->id);
                         try {
                             if ($blobCompartilhado) {
                                 $fileRemoved = false;

@@ -23,7 +23,7 @@ Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver]
   linha. Agora lê `disk` e respeita a mesma guarda de blob compartilhado.
 - `ArquivosRetentionService::scanExpired()` selecionava a mesma coluna inexistente — no
   MySQL o scan quebrava e o `run()` nunca chegava ao purge. Agora seleciona `disk`.
-- A guarda mora num lugar só, `Arquivo::blobCompartilhado()`, usada pelos dois caminhos de
+- A guarda mora num lugar só, `ArquivosService::blobCompartilhado()`, usada pelos dois caminhos de
   hard-delete. Entrada obsoleta `$storage_disk` removida do `phpstan-baseline.neon`.
 - Prova: `DedupeMultiOwnerTest` (UC-ARQ-DEDUP-01..08), na lane `arquivos-pest`.
 
