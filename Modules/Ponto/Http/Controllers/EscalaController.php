@@ -17,6 +17,9 @@ class EscalaController extends Controller
         $businessId = session('business.id') ?? $request->user()->business_id;
         $paginated = Escala::where('business_id', $businessId)
             ->withCount(['turnos', 'colaboradores'])
+            // Sub-linha do Nome (forma do protótipo): horário do 1º turno. `turnos` herda o
+            // isolamento pela escala (BelongsToBusinessViaParent) — nada de withoutGlobalScope.
+            ->with(['turnos' => fn ($q) => $q->orderBy('dia_semana')->orderBy('id')])
             ->paginate(20)
             ->withQueryString();
 
@@ -29,6 +32,9 @@ class EscalaController extends Controller
             'carga_semanal_minutos' => (int) $e->carga_semanal_minutos,
             'permite_banco_horas'   => (bool) $e->permite_banco_horas,
             'turnos_count'          => (int) $e->turnos_count,
+            'primeiro_turno'        => ($t = $e->turnos->first())
+                ? substr((string) $t->hora_entrada, 0, 5) . '–' . substr((string) $t->hora_saida, 0, 5)
+                : null,
             // D-ESC-DESTROY ([W] 2026-09-14): a UI mostra "Remover", mas INDISPONIVEL com
             // vinculo — e a tela so sabe disso se o contador vier junto.
             'colaboradores_count'   => (int) $e->colaboradores_count,

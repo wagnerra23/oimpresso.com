@@ -5,7 +5,7 @@ irmaos: Create.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F4 + §6.
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a porta pela qual o mundo real entra na apuração — atestado, esquecimento de marcação, HE autorizada.
 owner: wagner
-last_run: "2026-09-08"
+last_run: "2026-09-28"
 last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
@@ -30,6 +30,15 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 
 **[BACKLOG]:**
 
+- `[BACKLOG]` **Anexar comprovante a uma intercorrência** (`D-INTERC-ANEXO`, [W] 2026-09-14, ata
+  bloco 4 linha 43; emenda E4 da thread 27). Aceite proposto: dado um atestado em PDF/JPG/PNG,
+  quando o solicitante anexa ao rascunho, então o arquivo vai para disco **privado** e fica
+  vinculado à intercorrência; só quem tem permissão de aprovação consegue baixá-lo; nenhum caminho
+  ou URL do arquivo aparece em log (atestado é dado de saúde, LGPD Art. 11). **Não é UC ainda:** em
+  2026-09-28 o `Create.tsx` não tem campo de arquivo (só a coluna `anexo_path` existe, desde a
+  migration de 2026-04-18). Um teste agora seria vermelho por construção. Vira UC (próximo id
+  `UC-INTCRE-04`; a thread o chamou de `UC-PONT-INT-07`) no PR que construir o anexo, junto do
+  teste que o cita.
 - `[BACKLOG]` A classificação por IA (`POST /ponto/intercorrencias-ai/classify`) **sugere, nunca
   decide** — o estado só muda por ação humana (SDD §5.3 F4). Vira UC quando houver um contrato
   escrito sobre o que a sugestão pode e não pode fazer; hoje afirmar isso em teste seria derivar
@@ -121,3 +130,10 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   página com as quebras de linha normalizadas. Controle positivo feito antes: o mesmo regex
   acusa a versão antiga e aceita a nova.
 - **Status: 🧪 sem veredito.**
+
+## Trilha do tempo
+- 2026-09-28 · [CL] revalidado (bump `last_run`, thread 27): o #8076 mudou a copy do `Create.tsx`
+  (tira a promessa de envio ao RH) e ampliou estes casos sem subir o `last_run`. Conferido contra o
+  `Create.tsx` do `main`: 0 ocorrências de "submetido ao RH" e 1 de "Salvar cria um rascunho", que é
+  o que o `UC-INTCRE-03` lê. Nesta data entra o `[BACKLOG]` do anexo (`D-INTERC-ANEXO`). O bump
+  afirma "trio reconciliado com a tela nesta data", não "testes rodados na lane".

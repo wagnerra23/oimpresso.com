@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
+use App\User;
 use Illuminate\Support\Facades\Schema;
 use Modules\Ponto\Entities\Escala;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 use Modules\Ponto\Tests\Feature\PontoTestCase;
 
 uses(PontoTestCase::class);
@@ -33,10 +36,11 @@ uses(PontoTestCase::class);
  * (§5 2026-08-14). A 1ª versão deste arquivo errou o alinhamento de sessão e o caso FALHOU
  * apontando o erro; fica registrado porque foi o teste que pegou o teste.
  *
- * RESÍDUO DECLARADO: este arquivo não prova o caminho HTTP (o redirect com a mensagem de recusa).
- * Prova o predicado que o decide. Fechar o HTTP exigiria logar como admin do tenant fictício, o
- * que o `PontoTestCase` hoje não oferece — e inventar isso aqui seria mexer no TestCase de 20+
- * arquivos dentro de um PR de tela.
+ * RESÍDUO DECLARADO (2026-09-14): este arquivo não provava o caminho HTTP (o redirect com a
+ * mensagem de recusa), só o predicado que o decide. FECHADO em 2026-09-28 pelos 2 casos HTTP no
+ * fim do arquivo (thread 27, R1 da ata): eles logam como o usuário do tenant 98 que o seed do CI
+ * cria (o `FechamentoContratoTest` faz o mesmo), dentro de transação revertida, sem mexer no
+ * `PontoTestCase`.
  *
  * Tier 0: o vínculo vive no biz fictício 99 (`garantirBizAlheio`), NUNCA biz=4 (ADR 0358).
  * Sem `RefreshDatabase` — a lane ponto-pest proíbe.
@@ -179,4 +183,89 @@ it('UC-ESCIDX-04 · escala SEM vínculo pode ser removida — a ponta positiva',
     );
 
     $this->removerBizAlheio();
+});
+
+/*
+ * ── GUARD HTTP de D-ESC-DESTROY (thread 27, R1 da ata 2026-09-14) ─────────────────────────────
+ * Os 2 casos de cima provam o PREDICADO. Estes provam a ROTA: um `DELETE` direto, sem passar pelo
+ * botão desabilitado da tela, contra escala em uso é recusado e a escala continua no banco.
+ *
+ * A thread 27 pedia `assertForbidden()` (403). O controller devolve redirect para a lista com flash
+ * `error`, e é esse o comportamento que o UC-ESCIDX-04 defende. Pela regra de precedência
+ * (teste > casos > charter), o guard afirma o que existe; trocar por 403 seria decisão nova de [W].
+ * O redirect não é "302 silencioso": ele carrega o motivo, e o caso lê o motivo.
+ *
+ * O par positivo (sem vínculo → remove) é o que prova que a requisição CHEGOU ao controller. Sem
+ * ele, uma recusa vinda de outra camada (middleware, permissão) deixaria o caso negativo verde por
+ * vácuo (§5 2026-09-27).
+ *
+ * Tenant fictício 98 (ADR 0358), usuário semeado pelo pest-mysql-setup. Transação revertida por
+ * caso. Nunca biz=4.
+ */
+const ESCREM_BIZ = 98;
+
+function escRemHttpPreparar(): User
+{
+    escRemPrecisaDe(['ponto_escalas', 'ponto_colaborador_config', 'users', 'permissions']);
+    if (! DB::table('business')->where('id', ESCREM_BIZ)->exists()) {
+        test()->markTestSkipped('Tenant fictício 98 ausente — seed do pest-mysql-setup não rodou.');
+    }
+    $u = User::query()->where('business_id', ESCREM_BIZ)->first()
+        ?? test()->markTestSkipped('Nenhum user no biz 98.');
+
+    Permission::firstOrCreate(['name' => 'ponto.access', 'guard_name' => 'web']);
+    $u->givePermissionTo('ponto.access');
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    session(['user.business_id' => ESCREM_BIZ, 'business.id' => ESCREM_BIZ]);
+
+    return $u->fresh();
+}
+
+it('UC-ESCIDX-04 · DELETE direto na rota de escala em uso é recusado e a escala fica', function () {
+    DB::beginTransaction();
+    try {
+        $u = escRemHttpPreparar();
+        $idEscala = escRemCriarEscala(ESCREM_BIZ, 'http-em-uso');
+        DB::table('ponto_colaborador_config')->insert([
+            'business_id'     => ESCREM_BIZ,
+            'user_id'         => escRemCriarUser(ESCREM_BIZ),
+            'matricula'       => ESCREM_MARCA,
+            'escala_atual_id' => $idEscala,
+            'admissao'        => now()->toDateString(),
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ]);
+
+        $this->actingAs($u)
+            ->delete("/ponto/escalas/{$idEscala}")
+            ->assertRedirect(route('ponto.escalas.index'))
+            ->assertSessionHas('error', fn ($msg) => str_contains((string) $msg, 'vinculado'));
+
+        expect(DB::table('ponto_escalas')->where('id', $idEscala)->exists())->toBeTrue(
+            'Escala em uso não pode sumir pela rota: o botão desabilitado é conveniência, a trava é o '
+            . 'servidor (D-ESC-DESTROY, [W] 2026-09-14 — perder a escala é perder a jornada esperada).'
+        );
+    } finally {
+        DB::rollBack();
+    }
+});
+
+it('UC-ESCIDX-04 · DELETE na rota de escala SEM vínculo remove — prova que o caso chega ao controller', function () {
+    DB::beginTransaction();
+    try {
+        $u = escRemHttpPreparar();
+        $idEscala = escRemCriarEscala(ESCREM_BIZ, 'http-livre');
+
+        $this->actingAs($u)
+            ->delete("/ponto/escalas/{$idEscala}")
+            ->assertRedirect(route('ponto.escalas.index'))
+            ->assertSessionHas('success');
+
+        expect(DB::table('ponto_escalas')->where('id', $idEscala)->exists())->toBeFalse(
+            'Sem vínculo a rota tem de remover — senão a recusa do caso de cima pode ter vindo de '
+            . 'outra camada, e o guard estaria verde sem exercer a trava.'
+        );
+    } finally {
+        DB::rollBack();
+    }
 });
