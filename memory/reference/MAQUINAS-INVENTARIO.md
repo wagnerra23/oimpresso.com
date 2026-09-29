@@ -515,7 +515,7 @@ lifecycle: ativo
 | `ds-notas-gerar.mjs` | — | 🟢 só lê | — | — | Gera design-system/components/<Nome>/<Nome>.prompt.md a partir de governance/design/ds-notas-uso.json |
 | `fingerprint-harness.mjs` | ci, script | 🟢 só lê | — | `memory/proibicoes.md` +5 | Onda 3a do roadmap estado-da-arte (2026-07-08): DRIVER do |
 | `gerar-contrato.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Sells/vendas-index-gap.md` +31 | W1 do processo região-a-região: deriva o ESQUELETO do |
-| `gerar-map.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +53 | deriva o ESQUELETO do <tela>.map.json a partir do <tela>-gap.md. |
+| `gerar-map.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +54 | deriva o ESQUELETO do <tela>.map.json a partir do <tela>-gap.md. |
 | `gerar-mapas-handoff.js` | — | 🟢 só lê | — | — | (sem descrição no cabeçalho) |
 | `handoff-changed.mjs` | script | 🟢 só lê | selftest | `memory/reference/prototipo-ui/CODE_NOTES.handoff-ds-2026-09-17-recusado-por-r4.md` | PORTÃO BARATO (zero LLM) da Fase −1 do protocolo aplicar-prototipo. |
 | `importar-bundle.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +8 | IMPORT atômico do ZIP Cowork (Fase −1 como máquina, não receita). |
