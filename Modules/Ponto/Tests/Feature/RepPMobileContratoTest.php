@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Facades\Menu;
+use App\Services\LegacyMenuAdapter;
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -204,4 +206,33 @@ it('UC-REPP-08: colaborador SEM ponto.access abre a tela e bate o ponto, sem o c
 
     // O resto do módulo segue fechado pra ele.
     $this->get('/ponto/espelho')->assertForbidden();
+});
+
+/** Itens do menu que chegam ao browser — pelo consumidor real (LegacyMenuAdapter), como o MenuGhostsContratoTest. */
+function rpmRotulosDoMenu(User $u): array
+{
+    Menu::make('admin-sidebar-menu', function ($m) {});
+    test()->actingAs($u);
+    session(['user.business_id' => RPM_BIZ, 'business.id' => RPM_BIZ]);
+    (new Modules\Ponto\Http\Controllers\DataController())->modifyAdminMenu();
+
+    return collect((new LegacyMenuAdapter())->build())->pluck('label')->map(fn ($l) => (string) $l)->all();
+}
+
+it('UC-REPP-09: o menu mostra "Bater ponto" (→ /ponto/mobile) a quem tem cadastro de ponto — e não a quem não tem ([W] 2026-09-29)', function () {
+    // superadmin passa o gate de assinatura do módulo (ModuleUtil) sem depender do pacote do
+    // tenant 98 — o mesmo caminho do MenuGhostsContratoTest. O que se mede é a condição nova.
+    Permission::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
+    $colab = rpmUsuario(true, false);
+    $colab->givePermissionTo('superadmin');
+    $semCadastro = rpmUsuario(false, false);
+    $semCadastro->givePermissionTo('superadmin');
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $rotulos = rpmRotulosDoMenu($colab->fresh());
+    expect($rotulos)->toContain('Bater ponto');
+    $item = collect((new LegacyMenuAdapter())->build())->firstWhere('label', 'Bater ponto');
+    expect((string) ($item['href'] ?? $item['url'] ?? ''))->toContain('/ponto/mobile');
+
+    expect(rpmRotulosDoMenu($semCadastro->fresh()))->not->toContain('Bater ponto');
 });
