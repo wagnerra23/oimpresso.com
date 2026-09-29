@@ -40,6 +40,8 @@ Detalhe de uma importação AFD/AFDT: mostra os metadados do arquivo (nome, tipo
   não num card próprio de diagnóstico. O `erros_amostra` (coluna JSON gravada pelo job, lida pelo
   `AfdLeiaute671ContratoTest`) não está no payload. Regiões no map: `diagnostico-do-processamento` e
   `amostra-de-erros` (`memory/requisitos/Ponto/importacoes-show.map.json`).
+  Em **2026-09-29** o `erros_amostra` entrou no payload e o card "Amostra de erros" foi construído
+  (`UC-IMPSH-06`); o card de diagnóstico do `log` seguia a construir nessa data.
 
 ---
 
