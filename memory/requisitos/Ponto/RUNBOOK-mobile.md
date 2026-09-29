@@ -37,14 +37,10 @@ builders do Espelho/Show); em **Justificar** envia a intercorrência que nasce `
 As ações são os métodos JSON de `/ponto/api` (Passport) servidos também sob sessão web: o app
 não tem `CreateFreshApiToken`, então uma tela Inertia não alcança `auth:api`.
 
-<<<<<<< HEAD
-## 2. Domínio (PRs 1a/1b da thread — #8130/#8131)
-=======
 O cabeçalho de abas do Ponto só aparece pra quem tem o módulo (`CheckPontoAccess::permite`) — para o
 colaborador sem `ponto.access`, cada aba seria 403.
 
-## 2. Domínio (já em `main` pelos PRs 1a/1b da thread)
->>>>>>> claude/repp-tela
+## 2. Domínio (1a+1b da thread, em `main` pelo #8130)
 
 | Peça | Regra |
 |---|---|
