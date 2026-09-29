@@ -30,7 +30,17 @@ use RuntimeException;
  * deixa de devolver false (sem assinatura) e passa a devolver true (contagens ausentes =
  * ilimitado). Os demais módulos seguem sem pacote: só `ponto_module` está no package_details.
  *
- * IDEMPOTENTE pelo nome do pacote. Nunca roda em produção (mesma trava do VisregTenantSeeder).
+ * SEGUNDO PORTÃO (medido no run 36573561266, 2026-09-29): a assinatura sozinha NÃO basta.
+ * O `AdminSidebarMenu` chama `ModuleUtil::getModuleData('modifyAdminMenu')`, que só visita o
+ * DataController de módulo INSTALADO — `isModuleInstalled()` exige `system.ponto_version`, a
+ * chave que o `BaseModuleInstallController` grava no install. O seed do CI não grava nenhuma,
+ * então o `modifyAdminMenu` do Ponto nunca rodava e as abas seguiam ausentes com a assinatura
+ * já no banco. Por isso este seeder também registra a instalação, pelo mesmo par chave/valor
+ * que o install do módulo usa. Com o módulo instalado, os outros hooks do DataController do
+ * Ponto (permissões, pacote) também passam a rodar nesta lane.
+ *
+ * IDEMPOTENTE pelo nome do pacote e pela chave `ponto_version`. Nunca roda em produção (mesma
+ * trava do VisregTenantSeeder).
  */
 class VisregPontoSubscriptionSeeder extends Seeder
 {
@@ -44,6 +54,14 @@ class VisregPontoSubscriptionSeeder extends Seeder
 
         if (! DB::table('business')->where('id', 1)->exists()) {
             throw new RuntimeException(static::class . ': biz=1 ausente — rode o VisregTenantSeeder antes.');
+        }
+
+        // Instalação do módulo: mesmo registro que o BaseModuleInstallController grava.
+        if (! DB::table('system')->where('key', 'ponto_version')->exists()) {
+            DB::table('system')->insert([
+                'key' => 'ponto_version',
+                'value' => (string) config('pontowr2.module_version', '0.1'),
+            ]);
         }
 
         $packageId = DB::table('packages')->where('name', self::PACOTE)->value('id');
