@@ -34,7 +34,7 @@
       },
       "status": "paridade",
       "acao": "Corrigido no vivo pelo #8078 (2026-09-28): a tela lê as chaves reais do config e mostra o mesmo conjunto de parâmetros do protótipo. Nada a fazer; o que sobra é FORMA.",
-      "_acionavel": true
+      "_acionavel": false
     },
     {
       "id": "banco-de-horas",
@@ -49,7 +49,7 @@
       },
       "status": "paridade",
       "acao": "Corrigido no vivo pelo #8078 (2026-09-28): a tela lê as chaves reais do config e mostra o mesmo conjunto de parâmetros do protótipo. Nada a fazer; o que sobra é FORMA.",
-      "_acionavel": true
+      "_acionavel": false
     },
     {
       "id": "rep-e-imutabilidade",
@@ -64,7 +64,7 @@
       },
       "status": "paridade",
       "acao": "Corrigido no vivo pelo #8078 (2026-09-28): a tela lê as chaves reais do config e mostra o mesmo conjunto de parâmetros do protótipo. Nada a fazer; o que sobra é FORMA.",
-      "_acionavel": true
+      "_acionavel": false
     },
     {
       "id": "afd-e-esocial",
@@ -79,7 +79,7 @@
       },
       "status": "paridade",
       "acao": "Corrigido no vivo pelo #8078 (2026-09-28): a tela lê as chaves reais do config e mostra o mesmo conjunto de parâmetros do protótipo. Nada a fazer; o que sobra é FORMA.",
-      "_acionavel": true
+      "_acionavel": false
     },
     {
       "id": "ia-do-ponto",

@@ -63,7 +63,7 @@
         "ancora": false
       },
       "status": "decidir-w",
-      "acao": "Decidir. Fusão de colunas é layout → pela régua §3, não vira pedido sozinha. Mas a coluna `Dias` é o que a ordenação por duração usa (`:397`, `H.dias(a.ini,a.fim)`), então as duas decisões andam juntas.",
+      "acao": "Decidir. Fusão de colunas é layout → pela régua §3, não vira pedido sozinha. Mas a coluna `Dias` é o que a ordenação por duração usa (`:366`, `H.dias(a.ini,a.fim)`), então as duas decisões andam juntas.",
       "_acionavel": true
     },
     {

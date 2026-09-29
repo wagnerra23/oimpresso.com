@@ -109,7 +109,7 @@
       },
       "status": "paridade",
       "acao": "Feito 2026-09-29 — `UC-IMPSH-06`. O job já persistia a amostra (mascarada pelo PiiRedactor); o `show` passou a expô-la com as 4 chaves do contrato.",
-      "_acionavel": true
+      "_acionavel": false
     }
   ]
 }

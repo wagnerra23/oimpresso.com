@@ -78,7 +78,7 @@
         "ancora": false
       },
       "status": "gap-parcial",
-      "acao": "Decidir. Régua com breakdown por artigo (pleno/parcial/pendente) e selo de proveniência \"auto-declarado\" (mockup `governance-page.jsx:74-102`) ausente no vivo (`Dashboard.tsx:797-803` é um card só). Exige fonte por artigo — hoje o controller só tem os 3 somandos literais (`DashboardController.php:65`). Não é Non-Goal (edição/trigger de checks continuam fora). Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Régua com breakdown por artigo (pleno/parcial/pendente) e selo de proveniência \"auto-declarado\" (mockup `governance-page.jsx:73-101`) ausente no vivo (`Dashboard.tsx:797-803` é um card só). Exige fonte por artigo — hoje o controller só tem os 3 somandos literais (`DashboardController.php:65`). Não é Non-Goal (edição/trigger de checks continuam fora). Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {
@@ -249,8 +249,8 @@
     {
       "id": "atalhos-de-governanca-documentos-canonicos",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "388-440"
+        "arquivo": "n/a",
+        "linhas": "n/a"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -259,7 +259,8 @@
       },
       "status": "vivo-a-frente",
       "acao": "Nada — vivo à frente",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota": "handoff (43), 2026-09-29: a faixa gravada (388-440, antes 389-442) passava do fim de governance-page.jsx (436 linhas; já era inválida em origin/main, 438). A parte é \"vivo à frente\" — não há bloco correspondente no protótipo."
     }
   ],
   "mapping": {

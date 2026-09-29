@@ -63,7 +63,7 @@
         "ancora": false
       },
       "status": "gap-parcial",
-      "acao": "Decidir. O mockup (`governance-page.jsx:331-335`) desenha uma nota de aviso ao operador sobre a ausência de `mcp_governance_rule_history` (o charter registra o TODO em §UX Anti-patterns, `Policies.charter.md:62`, mas não decide sobre avisar na tela); o `Policies.tsx:68-119` não tem nota nenhuma entre KPIs e lista. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. O mockup (`governance-page.jsx:330-334`) desenha uma nota de aviso ao operador sobre a ausência de `mcp_governance_rule_history` (o charter registra o TODO em §UX Anti-patterns, `Policies.charter.md:62`, mas não decide sobre avisar na tela); o `Policies.tsx:68-119` não tem nota nenhuma entre KPIs e lista. Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {
@@ -78,7 +78,7 @@
         "ancora": false
       },
       "status": "gap-parcial",
-      "acao": "Decidir. Busca local por `rule_key`/`name`/`category` (mockup `governance-page.jsx:302-306` filtra e `:337-342` desenha) ausente no `Policies.tsx:84-118`; não é Non-Goal (o charter só proíbe ESCONDER desligadas — a busca mantém todas até ser digitada). Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Busca local por `rule_key`/`name`/`category` (mockup `governance-page.jsx:301-305` filtra e `:336-341` desenha) ausente no `Policies.tsx:84-118`; não é Non-Goal (o charter só proíbe ESCONDER desligadas — a busca mantém todas até ser digitada). Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {
@@ -144,8 +144,8 @@
     {
       "id": "estado-vazio-sem-regras",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "388-440"
+        "arquivo": "n/a",
+        "linhas": "n/a"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -154,7 +154,8 @@
       },
       "status": "vivo-a-frente",
       "acao": "Nada — vivo à frente (vazio de catálogo existe só no vivo)",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota": "handoff (43), 2026-09-29: a faixa gravada (388-440, antes 389-442) passava do fim de governance-page.jsx (436 linhas; já era inválida em origin/main, 438). A parte é \"vivo à frente\" — não há bloco correspondente no protótipo."
     }
   ],
   "mapping": {

@@ -78,7 +78,7 @@
         "ancora": "bancohoras-ajuste-manual"
       },
       "status": "paridade",
-      "acao": "Nada. A soma local de saldo do protótipo (`ponto-telas.jsx:362`) é artefato de mock: não portar — viola o Non-Goal \"não recalcula o saldo\" (`Show.charter.md:39`).",
+      "acao": "Nada. A soma local de saldo do protótipo (`ponto-telas.jsx:383`) é artefato de mock: não portar — viola o Non-Goal \"não recalcula o saldo\" (`Show.charter.md:39`).",
       "_acionavel": false
     },
     {

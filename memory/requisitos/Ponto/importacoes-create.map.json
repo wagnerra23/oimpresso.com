@@ -17,8 +17,8 @@
         "linhas": "47-133",
         "ancora": "importacoes-upload-do-arquivo"
       },
-      "status": "vivo-a-frente",
-      "acao": "Nada no vivo. `D-PONTO-DETALHE` = ROTA PRÓPRIA (\"in-page não é alternativa\") — quem muda é o protótipo (R2); é a thread 28.",
+      "status": "paridade",
+      "acao": "Nada — Feito no protótipo pela thread 28 (handoff (43), 2026-09-29): D-PONTO-DETALHE R2 aplicado. O Card inline virou página própria (`pt-importacoes-novo`, Voltar + \"Nova importação\"), como o vivo `Create.tsx`.",
       "_acionavel": false
     },
     {

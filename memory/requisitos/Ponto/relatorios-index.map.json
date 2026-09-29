@@ -33,7 +33,7 @@
         "ancora": false
       },
       "status": "vivo-a-frente",
-      "acao": "Nada no vivo. `D-REL-FLUXO` = filtros globais no topo, e por R2 o wizard sai do protótipo no mesmo pacote — o campo Formato do wizard, que mostra sempre \"TXT\" mesmo para PDF (`:885`), sai junto.",
+      "acao": "Nada no vivo. `D-REL-FLUXO` = filtros globais no topo, e por R2 o wizard sai do protótipo no mesmo pacote — o campo Formato do wizard, que mostra sempre \"TXT\" mesmo para PDF (`:925`), sai junto.",
       "_acionavel": false
     },
     {
@@ -123,7 +123,7 @@
         "ancora": false
       },
       "status": "prototipo-a-frente",
-      "acao": "Incorporar — a copy vem do protótipo (`:928`); o charter não traz essa frase.",
+      "acao": "Incorporar — a copy vem do protótipo (`:968`); o charter não traz essa frase.",
       "_acionavel": true
     }
   ]

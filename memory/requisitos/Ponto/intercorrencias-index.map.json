@@ -92,9 +92,9 @@
         "linhas": "1-176",
         "ancora": false
       },
-      "status": "prototipo-corrige",
-      "acao": "Protótipo corrige (D-PONTO-DETALHE, R2): o drawer vira rota `Show`. O `window.confirm` do drawer (`ponto-telas.jsx:270`, `:273`) sai junto.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Nada — Feito no protótipo pela thread 28 (handoff (43), 2026-09-29): D-PONTO-DETALHE R2 aplicado. O drawer virou rota Show (`pt-intercorrencias-<uuid>`, bloco `// ── Show ──`), como o vivo `Show.tsx`. Os `window.confirm` de Submeter/Cancelar seguem no Show do protótipo (`ponto-telas.jsx:269`, `:272`).",
+      "_acionavel": false
     },
     {
       "id": "form-embutido-de-nova-e-edicao",
@@ -107,9 +107,9 @@
         "linhas": "1-453",
         "ancora": false
       },
-      "status": "prototipo-corrige",
-      "acao": "Protótipo corrige (D-PONTO-DETALHE, R2). O conteúdo do form é medido em `intercorrencias-create-gap.md`.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Nada — Feito no protótipo pela thread 28 (handoff (43), 2026-09-29): D-PONTO-DETALHE R2 aplicado. Create/Edit viraram página própria (`pt-intercorrencias-create` · `pt-intercorrencias-<uuid>-edit`), como os vivos `Create.tsx`/`Edit.tsx`. O conteúdo do form é medido em `intercorrencias-create-gap.md`.",
+      "_acionavel": false
     },
     {
       "id": "paginacao",

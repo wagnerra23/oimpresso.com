@@ -17,9 +17,9 @@
         "linhas": "158-168",
         "ancora": false
       },
-      "status": "prototipo-corrige",
-      "acao": "Protótipo corrige (D-PONTO-DETALHE, R2): o form vira página com cabeçalho.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Nada — Feito no protótipo pela thread 28 (handoff (43), 2026-09-29): D-PONTO-DETALHE R2 aplicado. O protótipo ganhou cabeçalho de página (Voltar + \"Nova intercorrência\"), como o vivo `Create.tsx:158-168`.",
+      "_acionavel": false
     },
     {
       "id": "campo-ia-em-texto-livre",
@@ -109,7 +109,7 @@
       },
       "status": "paridade",
       "acao": "Feito 2026-09-29 — `UC-INTCRE-04`: campo com o rótulo e os formatos do protótipo; arquivo fora do webroot, fora de log, download só para quem aprova. Sem data-contract (o campo vive no wrapper Field).",
-      "_acionavel": true
+      "_acionavel": false
     },
     {
       "id": "nota-de-rascunho-e-append-only",
