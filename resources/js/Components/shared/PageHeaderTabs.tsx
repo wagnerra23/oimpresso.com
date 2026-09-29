@@ -53,6 +53,12 @@ export interface PageHeaderPrimary {
   href: string;
   /** Atalho kbd canon (ex 'N'). Apenas display — listener global em Fase 8. */
   shortcut?: string;
+  /**
+   * O que o botão faz. `criar` (default) prefixa o rótulo com "+", o sinal de "novo registro".
+   * `navegar` tira o "+": o botão só leva a outra tela, e o "+" prometeria uma criação que não
+   * acontece (caso do "Painel do ponto", [W] 2026-09-29). Opt-in — quem não declara fica igual.
+   */
+  acao?: 'criar' | 'navegar';
 }
 
 export interface PageHeaderGhost {
@@ -238,7 +244,7 @@ export default function PageHeaderTabs({
           className="font-medium shrink-0"
         >
           <Link href={primary.href}>
-            <span>+ {primary.label}</span>
+            <span>{primary.acao === 'navegar' ? '' : '+ '}{primary.label}</span>
             {primary.shortcut && (
               <kbd className="ml-2 px-1.5 py-0.5 text-[10px] font-mono rounded bg-black/20 border border-white/20">
                 {primary.shortcut}

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Ponto\Http\Controllers\Api\MobileMarcacaoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -127,18 +128,20 @@ Route::group(
         'namespace'  => 'Modules\Ponto\Http\Controllers\Api',
     ],
     function () {
-        // Marcação (REP-P mobile)
-        Route::post('/marcar', function () { abort(501, 'Implementar em MarcacaoApiController::marcar'); });
-        Route::get('/marcacoes/hoje', function () { abort(501); });
-        Route::get('/saldo', function () { abort(501, 'Saldo banco de horas do usuário autenticado'); });
+        // REP-P sem selfie (ADR 0383). Tudo é do colaborador do usuário autenticado —
+        // o controller resolve e filtra business_id explícito (sem sessão, o
+        // ScopeByBusiness não filtra). Anti-fraude no MobileMarcacaoService.
+        Route::post('/marcar', [MobileMarcacaoController::class, 'registrar'])->name('ponto.api.marcar');
+        Route::get('/marcacoes/hoje', [MobileMarcacaoController::class, 'marcacoesHoje'])->name('ponto.api.marcacoes.hoje');
+        Route::get('/saldo', [MobileMarcacaoController::class, 'saldo'])->name('ponto.api.saldo');
 
-        // Intercorrências
-        Route::get('/intercorrencias', function () { abort(501); });
-        Route::post('/intercorrencias', function () { abort(501); });
+        // Intercorrências (justificar = cria e submete)
+        Route::get('/intercorrencias', [MobileMarcacaoController::class, 'intercorrencias'])->name('ponto.api.intercorrencias.index');
+        Route::post('/intercorrencias', [MobileMarcacaoController::class, 'criarIntercorrencia'])->name('ponto.api.intercorrencias.store');
 
-        // Escala e dashboard
-        Route::get('/escala/hoje', function () { abort(501); });
-        Route::get('/dashboard/kpis', function () { abort(501); });
+        // Escala e KPIs do próprio colaborador
+        Route::get('/escala/hoje', [MobileMarcacaoController::class, 'escalaHoje'])->name('ponto.api.escala.hoje');
+        Route::get('/dashboard/kpis', [MobileMarcacaoController::class, 'dashboardKpis'])->name('ponto.api.dashboard.kpis');
     }
 );
 

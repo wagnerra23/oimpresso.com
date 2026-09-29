@@ -185,10 +185,15 @@ class DataController extends Controller
                             'label'    => 'Painel do ponto',
                             'href'     => '/ponto',
                             'shortcut' => 'N',
+                            // Só navega: sem o "+" de criação que o PageHeaderTabs põe por padrão.
+                            'acao'     => 'navegar',
                         ],
                         'ghosts'  => $ghosts,
                     ]
-                )->order(86); // 1º do grupo RH, antes do HRM (87) e do Essenciais (88) — protótipo
+                )->order(86);
+                // ⚠️ O `order` NÃO decide a posição na sidebar: o LegacyMenuAdapter lê `getItems()`
+                // (ordem de registro), medido em prod 2026-09-29. A posição (1º do grupo RH, como no
+                // protótipo) vem de `SIDEBAR_GROUPS[].ordem` no Sidebar.tsx.
             }
         );
     }
