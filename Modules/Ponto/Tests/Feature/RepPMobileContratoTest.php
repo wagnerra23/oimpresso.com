@@ -228,11 +228,20 @@ it('UC-REPP-09: o menu mostra "Bater ponto" (→ /ponto/mobile) a quem tem cadas
     $semCadastro = rpmUsuario(false, false);
     $semCadastro->givePermissionTo('superadmin');
     app(PermissionRegistrar::class)->forgetCachedPermissions();
+    // O superadmin passa pelo `isModuleInstalled('Ponto')`, que exige `system.ponto_version` —
+    // ausente no banco da CI (medido: o item não vinha, e o `modifyAdminMenu` saía antes dele).
+    // Mesmo caminho do DashboardTest; a transação do caso reverte a linha.
+    if (empty(App\System::getProperty('ponto_version'))) {
+        DB::table('system')->insert(['key' => 'ponto_version', 'value' => 'teste']);
+    }
 
     $rotulos = rpmRotulosDoMenu($colab->fresh());
+    expect($rotulos)->toContain(__('pontowr2::ponto.module_label')); // controle positivo: o gate do módulo passou
     expect($rotulos)->toContain('Bater ponto');
     $item = collect((new LegacyMenuAdapter())->build())->firstWhere('label', 'Bater ponto');
     expect((string) ($item['href'] ?? $item['url'] ?? ''))->toContain('/ponto/mobile');
 
-    expect(rpmRotulosDoMenu($semCadastro->fresh()))->not->toContain('Bater ponto');
+    $rotulosSem = rpmRotulosDoMenu($semCadastro->fresh());
+    expect($rotulosSem)->toContain(__('pontowr2::ponto.module_label')); // sem isto o `not` abaixo passaria no vazio
+    expect($rotulosSem)->not->toContain('Bater ponto');
 });
