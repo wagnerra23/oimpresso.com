@@ -31852,5 +31852,25 @@
       "ponto-telas.jsx": "3b4298a17df3a1a4a2f822a4f65a8a10ea375ad49f0d42ceb07ccf3940ba3963"
     },
     "origin": "medicao"
+  },
+  {
+    "date": "2026-09-29T13:35:56.819Z",
+    "files": 273,
+    "sync": 3,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 270,
+    "staleList": [],
+    "verified": [
+      "manufacturing-page.jsx",
+      "manufacturing-print.jsx",
+      "manufacturing-producao.jsx"
+    ],
+    "verifiedHash": {
+      "manufacturing-page.jsx": "c19cc8c64ecefc276a8aeb445c4224708870147e326990209c02697bd4b17ec5",
+      "manufacturing-print.jsx": "c02b64c890129ef3146add0ec560cbf64cfa6787e2ec6a1a905c87aa32358fac",
+      "manufacturing-producao.jsx": "a29d74c62cef096da91f0aba5eee2ff453dbde40c34acd014a623e0a94ee7426"
+    },
+    "origin": "medicao"
   }
 ]
