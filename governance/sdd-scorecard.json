@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 284,
+      "value": 276,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "5dc822b113c04a49",
+        "floor_files_hash": "e36864cdc8a80739",
         "runs": [
-          {
-            "sha": "e426a909",
-            "ts": "20260926-020001",
-            "failed": 487,
-            "errors": 337,
-            "skipped": 2289,
-            "all_shards_measured": true
-          },
           {
             "sha": "ae08fd55",
             "ts": "20260927-020001",
@@ -93,15 +85,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "8822fb6a",
             "ts": "20260928-020001",
             "failed": 484,
             "errors": 341,
             "skipped": 2289,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260929-020001",
+            "failed": 451,
+            "errors": 344,
+            "skipped": 2282,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260928-020001",
+        "computed_at": "20260929-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -254,10 +254,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 73,
+        "entries_aprovadas": 74,
         "max_error_rate_pct": 1.98,
-        "last_pr": 8073,
-        "last_lote": "gt-g5-lote-8073"
+        "last_pr": 8120,
+        "last_lote": "gt-g5-lote-8120"
       },
       "stream": "GT"
     }
