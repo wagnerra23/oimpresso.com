@@ -86,7 +86,7 @@ export default function EscalaForm({ escala }: Props) {
         </header>
 
         <form onSubmit={submit}>
-          <Card>
+          <Card data-contract="escalaform-dados-da-escala">
             <CardHeader>
               <CardTitle className="text-base">Dados da escala</CardTitle>
               <CardDescription className="text-xs">
