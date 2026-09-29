@@ -48,8 +48,9 @@ module: Ponto
 
 - [CheckPontoAccess.php](../../../Modules/Ponto/Http/Middleware/CheckPontoAccess.php)
 
-## Services — 13
+## Services — 14
 
+- [AbasContadoresService.php](../../../Modules/Ponto/Services/AbasContadoresService.php)
 - [AfdParserService.php](../../../Modules/Ponto/Services/AfdParserService.php)
 - [ApuracaoService.php](../../../Modules/Ponto/Services/ApuracaoService.php)
 - [BancoHorasService.php](../../../Modules/Ponto/Services/BancoHorasService.php)
@@ -211,9 +212,9 @@ module: Ponto
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Relatorios/Index.casos.md)
 - [Welcome.casos.md](../../../resources/js/Pages/Ponto/Welcome.casos.md)
 
-## Testes (Pest) — 55
+## Testes (Pest) — 56
 
-- 53 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
+- 54 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
 - 2 em [Modules/Ponto/Tests/Unit/](../../../Modules/Ponto/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 

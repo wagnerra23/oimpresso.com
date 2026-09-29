@@ -197,7 +197,10 @@ function ManufacturingPage({ initialView }) {
         // 3ª parte (lá o custo é o final_total GRAVADO, não recalculado). A frase aparece INTEIRA: o
         // corte de 56ch do PageHeader do DS é anulado em manufacturing-page.css (contorno na pauta).
         // Substitui a opção A do Felipe (25/09), que tirava a frase de todas as abas.
-        title={aba === "producao" ? "Produção" : "Manufacturing"}
+        // Título fora da aba Ordens: "Fabricação", pedido da Maiara (dona das 5 telas, design-lock) em
+        // 2026-09-28, para bater com o item do menu lateral. Vai ao [W] no PR — revê a parte do título
+        // na D-RET-01. As telas vivas (Recipes/Insumos/Report/Settings.tsx) seguem "Manufacturing".
+        title={aba === "producao" ? "Produção" : "Fabricação"}
         stats={[
           { value: recipes.length, label: recipes.length === 1 ? "receita" : "receitas" },
           { value: producoes.length, label: "ordens de produção" + (aba === "producao" ? "" : " · custo recalculado pelo preço atual dos ingredientes") },
