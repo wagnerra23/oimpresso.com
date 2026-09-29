@@ -2054,6 +2054,25 @@
       "evidencia": "memory/sessions/2026-09-29-refutacao-gt-g5-lote-8120-r2.md (rodada aprovada); anteriores: memory/sessions/2026-09-29-refutacao-gt-g5-lote-8120-r1.md",
       "trajetoria": "2 rodadas: 5,34% (r1, 15/281) → 1,69% (r2, 2/118)",
       "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
+    },
+    {
+      "pr": 8195,
+      "lote_id": "gt-g5-lote-8195",
+      "data": "2026-09-29",
+      "tipo": "anchors",
+      "gerador": "claude-opus-5-5 (Anthropic) — sessão jovial-bartik-f0e93d, 7 agentes de re-ancoragem + 3 verificadores read-only de pré-refutação",
+      "refutador": "claude-fable-5-1 (Anthropic) — subagente do workflow .claude/workflows/refutador-gt-g5.js em contexto próprio, zero contexto do gerador e das rodadas anteriores (instruído a não abrir as evidências prévias); uma instância NOVA por rodada, r1–r1",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 624,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-09-29-refutacao-gt-g5-lote-8195-r1.md (rodada aprovada)",
+      "trajetoria": "1 rodada: 0,00% (r1, 0/624)",
+      "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
     }
   ]
 }
