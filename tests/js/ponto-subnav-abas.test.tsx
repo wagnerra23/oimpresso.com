@@ -66,6 +66,11 @@ const ghosts = ghostsDoServidor().map((g) => ({
   icon: g.icon ?? undefined,
 }))
 
+// Mutável por caso: o teste da linha de contexto troca `ponto_contexto` entre renders.
+const diferidas: { ponto_contexto?: { competencia: string; colaboradores_no_ponto: number } } = {
+  ponto_contexto: { competencia: 'Setembro/2026', colaboradores_no_ponto: 7 },
+}
+
 vi.mock('@inertiajs/react', () => ({
   Link: ({ children, ...p }: { children: React.ReactNode }) => <a {...p}>{children}</a>,
   router: { reload: vi.fn() },
@@ -76,6 +81,10 @@ vi.mock('@inertiajs/react', () => ({
         menu: [{ label: 'Ponto', primary: { label: 'Bater ponto', href: '/ponto' }, ghosts }],
       },
       business: { name: 'nome-da-sessao' },
+      // `ponto_abas` (W9 · contagens): 0 em Aprovações de propósito — o DS mostra zero; null em
+      // Conformidade — sem apuração a aba fica SEM número.
+      ponto_abas: { aprovacoes: 0, intercorrencias: 8, conformidade: null, colaboradores: 9 },
+      ...diferidas,
     },
   }),
 }))
@@ -107,10 +116,24 @@ describe('W9 · PontoAreaHeader é o header do protótipo, igual em toda tela', 
     expect(screen.getByText('Ponto eletrônico · Portaria MTP 671/2021')).toBeTruthy()
   })
 
-  it('linha de contexto com a empresa do SHELL (não a da sessão)', () => {
+  it('linha de contexto completa: empresa do SHELL · competência · N colaboradores no ponto', () => {
+    diferidas.ponto_contexto = { competencia: 'Setembro/2026', colaboradores_no_ponto: 7 }
+    render(<PontoAreaHeader active="escalas" />)
+    expect(screen.getByText('ROTA LIVRE · Setembro/2026 · 7 colaboradores no ponto')).toBeTruthy()
+    expect(screen.queryByText(/nome-da-sessao/i)).toBeNull()
+  })
+
+  it('concorda em número: 1 colaborador no ponto', () => {
+    diferidas.ponto_contexto = { competencia: 'Setembro/2026', colaboradores_no_ponto: 1 }
+    render(<PontoAreaHeader active="escalas" />)
+    expect(screen.getByText('ROTA LIVRE · Setembro/2026 · 1 colaborador no ponto')).toBeTruthy()
+  })
+
+  it('antes da prop diferida chegar, só a empresa — sem pedaço inventado nem separador órfão', () => {
+    delete diferidas.ponto_contexto
     render(<PontoAreaHeader active="escalas" />)
     expect(screen.getByText('ROTA LIVRE')).toBeTruthy()
-    expect(screen.queryByText(/nome-da-sessao/i)).toBeNull()
+    diferidas.ponto_contexto = { competencia: 'Setembro/2026', colaboradores_no_ponto: 7 }
   })
 
   it('selo "Atualizado" e a ação "Nova intercorrência" → create', () => {
@@ -126,5 +149,32 @@ describe('W9 · PontoAreaHeader é o header do protótipo, igual em toda tela', 
     // a faixa de abas não é descendente do bloco do título
     expect(h1.parentElement?.contains(lista)).toBe(false)
     expect(h1.compareDocumentPosition(lista) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+})
+
+// ── Contagens nas abas (`ponto_abas`) ────────────────────────────────────────────────────
+describe('W9 · contagens nas abas, como o protótipo', () => {
+  const aba = (rotulo: string) => screen.getAllByRole('tab').find((t) => t.textContent?.startsWith(rotulo))!
+
+  it('mostra o número que o servidor mandou, na aba certa', () => {
+    render(<PontoAreaHeader active="escalas" />)
+    expect(aba('Intercorrências').textContent).toBe('Intercorrências8')
+    expect(aba('Colaboradores').textContent).toBe('Colaboradores9')
+  })
+
+  it('zero APARECE (é número, como no TabBar do DS)', () => {
+    render(<PontoAreaHeader active="escalas" />)
+    expect(aba('Aprovações').textContent).toBe('Aprovações0')
+  })
+
+  it('Conformidade null = aba SEM número (nunca 0) · aba sem chave também sem número', () => {
+    render(<PontoAreaHeader active="escalas" />)
+    expect(aba('Conformidade').textContent).toBe('Conformidade')
+    expect(aba('Escalas').textContent).toBe('Escalas')
+  })
+
+  it('sem `ponto_abas` (1º paint, prop diferida) nenhuma aba tem número', () => {
+    render(<PontoSubNav active="escalas" hidePrimary />)
+    expect(aba('Intercorrências').textContent).toBe('Intercorrências')
   })
 })
