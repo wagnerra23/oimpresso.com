@@ -65,7 +65,7 @@ GPS e nome do local não são gravados — a seção mostra "—" e as coordenad
 1. **NSR e hash do REP-P** — NSR: ✓ decidido por [W] 2026-09-29, **sequencial por colaborador**
    (#8160: `NsrService::proximoRepP`, lock na linha do colaborador, legado `microtime` fora do max).
    Hash: ✓ decidido por [W] 2026-09-29, **encadeado por colaborador** (PR empilhado no #8160,
-   com `verificarIntegridadeRepP`). Anulação fica fora da sequência e da cadeia — em aberto.
+   com `verificarIntegridadeRepP`). Anulação: ✓ decidido por [W] 2026-09-29, **entra na sequência e na cadeia** (#8165).
 2. **Alcance** — `/ponto/mobile` está no grupo web do Ponto (`ponto.access`). Colaborador de chão sem
    essa permissão não chega na tela; liberar é dado de runtime em `/roles/{id}/edit`.
 3. **KPIs da API** (`/ponto/api/dashboard/kpis`) são do colaborador, não do empregador — escolha de
