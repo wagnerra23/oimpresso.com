@@ -4,7 +4,7 @@
   "tela": "Ponto/Escalas/Form (/ponto/escalas/create · /ponto/escalas/{id}/edit)",
   "gap_fonte": "memory/requisitos/Ponto/escalas-form-gap.md",
   "prototipo_sha": "sha256:e8b74d75e0d5",
-  "gerado_em": "2026-09-28",
+  "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "cabecalho-com-titulo-dual",

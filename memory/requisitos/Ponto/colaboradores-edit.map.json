@@ -4,7 +4,7 @@
   "tela": "Ponto/Colaboradores/Edit (/ponto/colaboradores/{id}/editar)",
   "gap_fonte": "memory/requisitos/Ponto/colaboradores-edit-gap.md",
   "prototipo_sha": "sha256:e8b74d75e0d5",
-  "gerado_em": "2026-09-28",
+  "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "configuracao-de-ponto-campos",

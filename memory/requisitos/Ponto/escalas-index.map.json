@@ -4,7 +4,7 @@
   "tela": "Ponto/Escalas/Index (/ponto/escalas)",
   "gap_fonte": "memory/requisitos/Ponto/escalas-index-gap.md",
   "prototipo_sha": "sha256:e8b74d75e0d5",
-  "gerado_em": "2026-09-28",
+  "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "barra-e-acao-primaria",
