@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Modules\Arquivos\Entities\Arquivo;
+use Modules\Arquivos\Services\ArquivosRetentionService;
 use Modules\Repair\Entities\JobSheet;
 
 uses(Tests\TestCase::class);
@@ -149,4 +150,37 @@ it('UC-ARQ-DEDUP-05: purgar a linha de um dono NÃO apaga o blob que o outro don
 
     expect(DB::table('arquivos')->where('id', $arqA->id)->exists())->toBeFalse();
     expect(Storage::disk($arqB->disk)->exists($arqB->storage_path))->toBeTrue();
+});
+
+it('UC-ARQ-DEDUP-06: purgeOne() da linha de um dono NÃO apaga o blob que o outro dono ainda usa', function () {
+    $arqA = dedupMultiDono(DEDUP_MULTI_DONO_A)->attachArquivo(dedupMultiUpload());
+    $arqB = dedupMultiDono(DEDUP_MULTI_DONO_B)->attachArquivo(dedupMultiUpload());
+    expect($arqB->id)->not->toBe($arqA->id);
+
+    app(ArquivosRetentionService::class)->purgeOne($arqA);
+
+    expect(DB::table('arquivos')->where('id', $arqA->id)->exists())->toBeFalse();
+    expect(Storage::disk($arqB->disk)->exists($arqB->storage_path))->toBeTrue();
+});
+
+it('UC-ARQ-DEDUP-07: purgeOne() da ÚLTIMA referência apaga o blob (o purge deixa de ser só DB)', function () {
+    $arqA = dedupMultiDono(DEDUP_MULTI_DONO_A)->attachArquivo(dedupMultiUpload());
+    // Pré-condição: o blob existe — senão "sumiu" não prova nada.
+    expect(Storage::disk($arqA->disk)->exists($arqA->storage_path))->toBeTrue();
+
+    app(ArquivosRetentionService::class)->purgeOne($arqA);
+
+    expect(DB::table('arquivos')->where('id', $arqA->id)->exists())->toBeFalse();
+    expect(Storage::disk($arqA->disk)->exists($arqA->storage_path))->toBeFalse();
+});
+
+it('UC-ARQ-DEDUP-08: scanExpired() devolve o disk do arquivo (a coluna selecionada existe)', function () {
+    $arqA = dedupMultiDono(DEDUP_MULTI_DONO_A)->attachArquivo(dedupMultiUpload());
+    DB::table('arquivos')->where('id', $arqA->id)->update(['created_at' => now()->subDays(400)]);
+
+    $expirados = app(ArquivosRetentionService::class)->scanExpired(DEDUP_MULTI_BIZ, 30);
+    $meu = $expirados->firstWhere('id', $arqA->id);
+
+    expect($meu)->not->toBeNull();
+    expect($meu->disk)->toBe($arqA->disk);
 });

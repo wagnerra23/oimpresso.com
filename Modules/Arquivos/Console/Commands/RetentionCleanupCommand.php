@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Modules\Arquivos\Entities\Arquivo;
 
 /**
  * arquivos:retention-cleanup — Sprint 7 ADR 0123 (LGPD hard-delete pós-retention).
@@ -142,18 +143,9 @@ class RetentionCleanupCommand extends Command
                     try {
                         // 1. Remove file físico do disk
                         $fileRemoved = false;
-                        // Blob compartilhado: a dedupe de storage (ArquivosService::attach)
-                        // faz N linhas de donos distintos apontarem pro mesmo storage_path.
-                        // Só a ÚLTIMA referência apaga o blob — senão purgar o dono A
-                        // apaga o arquivo que o dono B ainda usa. Conta linhas soft-deleted
-                        // também (serão purgadas depois; a última delas remove o blob).
-                        // Sem filtro de business: é checagem de existência (não expõe dado)
-                        // e o path já carrega biz-{id}; filtrar só tornaria a guarda mais fraca.
-                        $blobCompartilhado = DB::table('arquivos')
-                            ->where('disk', $row->disk)
-                            ->where('storage_path', $row->storage_path)
-                            ->where('id', '!=', $row->id)
-                            ->exists();
+                        // Blob compartilhado pela dedupe de storage: só a ÚLTIMA referência
+                        // apaga o arquivo — senão purgar o dono A apaga o do dono B.
+                        $blobCompartilhado = Arquivo::blobCompartilhado($row->disk, $row->storage_path, (int) $row->id);
                         try {
                             if ($blobCompartilhado) {
                                 $fileRemoved = false;

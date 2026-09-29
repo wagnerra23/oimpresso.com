@@ -18,7 +18,14 @@ Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver]
 - `arquivos:retention-cleanup` — com blob compartilhado, purgar a linha de um dono apagaria o
   arquivo que outro ainda usa. O blob só é removido na **última** referência (audit
   `hard_delete` ganha `blob_compartilhado`).
-- Prova: `DedupeMultiOwnerTest` (UC-ARQ-DEDUP-01..05), na lane `arquivos-pest`.
+- `ArquivosRetentionService::purgeOne()` lia `$arquivo->storage_disk`, coluna que não
+  existe (é `disk`): o disco saía sempre `null` e o purge **nunca** apagava o blob, só a
+  linha. Agora lê `disk` e respeita a mesma guarda de blob compartilhado.
+- `ArquivosRetentionService::scanExpired()` selecionava a mesma coluna inexistente — no
+  MySQL o scan quebrava e o `run()` nunca chegava ao purge. Agora seleciona `disk`.
+- A guarda mora num lugar só, `Arquivo::blobCompartilhado()`, usada pelos dois caminhos de
+  hard-delete. Entrada obsoleta `$storage_disk` removida do `phpstan-baseline.neon`.
+- Prova: `DedupeMultiOwnerTest` (UC-ARQ-DEDUP-01..08), na lane `arquivos-pest`.
 
 ## [0.5.0] - 2026-08-25 — Onda 1 da tela · PR-2 (vista Trilha + barra de abas)
 

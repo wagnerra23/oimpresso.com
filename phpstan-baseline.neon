@@ -111,12 +111,6 @@ parameters:
 			path: Modules/Arquivos/Services/ArquivosRetentionService.php
 
 		-
-			message: '#^Access to an undefined property Modules\\Arquivos\\Entities\\Arquivo\:\:\$storage_disk\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/Arquivos/Services/ArquivosRetentionService.php
-
-		-
 			message: '#^Access to an undefined property Modules\\Arquivos\\Entities\\Arquivo\:\:\$total\.$#'
 			identifier: property.notFound
 			count: 2
