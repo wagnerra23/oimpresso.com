@@ -6,7 +6,6 @@ use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\Essentials\Entities\EssentialsAttendance;
 use Modules\Essentials\Entities\EssentialsLeave;
 use Modules\Essentials\Entities\EssentialsLeaveType;
 use Modules\Essentials\Entities\EssentialsUserShift;
@@ -145,23 +144,27 @@ it('UC-TIPOS-08: tipo de licença cross-tenant: tipo do biz adversário → 404 
     $resp->assertNotFound();
     expect(hrmExiste('essentials_leave_types', $alheio->id))->toBeTrue();
 });
-
 // ── Turno ───────────────────────────────────────────────────────────────────────
+//
+// Desde 2026-09-29 o cadastro de turno do HRM CEDE ao Ponto (D4 [W]; ADR 0014, emenda
+// 2026-09-29): toda rota `/hrm/shift…` é 301 para `/ponto/escalas`. A guarda de exclusão do
+// ShiftController continua no código, mas o HTTP não chega mais nela. O que estes casos provam
+// agora é o contrato da emenda: a rota responde 301 e o dado NÃO é apagado, com ou sem uso e
+// em qualquer tenant (a emenda manda migrar/apagar o dado só em PR próprio, com dupla prova).
 
-it('turno SEM uso: DELETE apaga de fato (antes respondia 200 sem apagar)', function () {
+it('turno SEM uso: DELETE vira 301 para /ponto/escalas e NÃO apaga (D4, emenda 2026-09-29)', function () {
     $turno = hrmTurno($this->tenant->id);
 
     $resp = $this->deleteJson('/hrm/shift/'.$turno->id);
 
-    $resp->assertOk();
-    expect($resp->json('success'))->toBeTrue();
-    expect(hrmExiste('essentials_shifts', $turno->id))->toBeFalse();
+    $resp->assertStatus(301)->assertRedirect('/ponto/escalas');
+    expect(hrmExiste('essentials_shifts', $turno->id))->toBeTrue();
 });
 
-it('turno com VÍNCULO de colaborador: 422 com a contagem, e NÃO apaga', function () {
+it('turno com VÍNCULO de colaborador: DELETE vira 301 e o turno e o vínculo continuam', function () {
     $turno = hrmTurno($this->tenant->id);
 
-    EssentialsUserShift::create([
+    $vinculo = EssentialsUserShift::create([
         'user_id' => $this->actor->id,
         'essentials_shift_id' => $turno->id,
         'start_date' => '2026-01-01',
@@ -169,36 +172,16 @@ it('turno com VÍNCULO de colaborador: 422 com a contagem, e NÃO apaga', functi
 
     $resp = $this->deleteJson('/hrm/shift/'.$turno->id);
 
-    $resp->assertStatus(422);
-    expect($resp->json('blocked_by.user_shifts'))->toBe(1);
+    $resp->assertStatus(301)->assertRedirect('/ponto/escalas');
     expect(hrmExiste('essentials_shifts', $turno->id))->toBeTrue();
+    expect(hrmExiste('essentials_user_shifts', $vinculo->id))->toBeTrue();
 });
 
-it('turno com MARCAÇÃO de presença: 422 com a contagem, e NÃO apaga (jornada CLT Art. 74)', function () {
-    $turno = hrmTurno($this->tenant->id);
-
-    foreach (['08:00:00', '08:05:00'] as $h) {
-        EssentialsAttendance::create([
-            'business_id' => $this->tenant->id,
-            'user_id' => $this->actor->id,
-            'essentials_shift_id' => $turno->id,
-            'clock_in_time' => '2026-01-02 '.$h,
-        ]);
-    }
-
-    $resp = $this->deleteJson('/hrm/shift/'.$turno->id);
-
-    $resp->assertStatus(422);
-    expect($resp->json('blocked_by.attendances'))->toBe(2);
-    expect($resp->json('msg'))->toContain('2');
-    expect(hrmExiste('essentials_shifts', $turno->id))->toBeTrue();
-});
-
-it('turno cross-tenant: turno do biz adversário → 404 e continua existindo', function () {
+it('turno cross-tenant: DELETE no turno do biz adversário vira 301 e ele continua existindo', function () {
     $alheio = hrmTurno($this->adversario->id);
 
     $resp = $this->deleteJson('/hrm/shift/'.$alheio->id);
 
-    $resp->assertNotFound();
+    $resp->assertStatus(301)->assertRedirect('/ponto/escalas');
     expect(hrmExiste('essentials_shifts', $alheio->id))->toBeTrue();
 });
