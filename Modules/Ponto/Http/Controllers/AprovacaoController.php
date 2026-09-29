@@ -214,8 +214,11 @@ class AprovacaoController extends Controller
     private function buildFilaMobile(int $businessId): array
     {
         $svc = app(MobileMarcacaoService::class);
+        // O service devolve Collection<Model> (sem genérico de Marcacao) — por isso as closures
+        // não tipam o parâmetro; o @var diz ao PHPStan o que de fato vem.
+        /** @var \Illuminate\Support\Collection<int, Marcacao> $marcacoes */
         $marcacoes = $svc->listarMarcacoesMobilePendentesValidacao($businessId)
-            ->filter(fn (Marcacao $m) => $m->latitude !== null && $m->longitude !== null
+            ->filter(fn ($m) => $m->latitude !== null && $m->longitude !== null
                 && ! $svc->validarGeolocation((float) $m->latitude, (float) $m->longitude, $businessId))
             ->values();
 
@@ -227,7 +230,7 @@ class AprovacaoController extends Controller
             ->get()
             ->mapWithKeys(fn (Colaborador $c) => [$c->id => trim(optional($c->user)->first_name . ' ' . optional($c->user)->last_name) ?: '—']);
 
-        return $marcacoes->map(fn (Marcacao $m) => [
+        return $marcacoes->map(fn ($m) => [
             'id'          => (string) $m->id,
             'nsr'         => (int) $m->nsr,
             'quando'      => $m->momento?->format('d/m H:i'),
