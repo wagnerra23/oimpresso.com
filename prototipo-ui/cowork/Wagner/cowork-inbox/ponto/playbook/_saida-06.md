@@ -62,9 +62,9 @@ GPS e nome do local não são gravados — a seção mostra "—" e as coordenad
 
 ## Achados para [W] — nenhum consertado de passagem
 
-1. **NSR e hash do REP-P** — para `rep_id = null` o `NsrService` devolve `microtime*1000` (não
-   sequencial) e o `MarcacaoService` só encadeia o hash quando há REP. A thread e a ADR 0383 prometem
-   "NSR + hash encadeado". Ambos os services estão no `nao_toca` desta thread e tocam Portaria 671/2021.
+1. **NSR e hash do REP-P** — NSR: ✓ decidido por [W] 2026-09-29, **sequencial por colaborador**
+   (#8160: `NsrService::proximoRepP`, lock na linha do colaborador, legado `microtime` fora do max).
+   Hash: segue **não encadeado** no REP-P (o `MarcacaoService` só encadeia quando há REP) — em aberto.
 2. **Alcance** — `/ponto/mobile` está no grupo web do Ponto (`ponto.access`). Colaborador de chão sem
    essa permissão não chega na tela; liberar é dado de runtime em `/roles/{id}/edit`.
 3. **KPIs da API** (`/ponto/api/dashboard/kpis`) são do colaborador, não do empregador — escolha de
