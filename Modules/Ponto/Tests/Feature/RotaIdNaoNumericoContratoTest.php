@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Modules\Ponto\Entities\Importacao;
 use Modules\Ponto\Tests\Feature\PontoTestCase;
+use Spatie\Permission\PermissionRegistrar;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 uses(PontoTestCase::class);
@@ -36,7 +37,7 @@ uses(PontoTestCase::class);
  * @see Modules/Ponto/Http/routes.php
  */
 
-const ROTAID_MARCADOR = 'ROTA-ID-NAO-NUMERICO';
+const ROTAID_MARCADOR = 'ROTA-ID-NAO-NUMERICO'; // nome da fixture — a limpeza é o rollback
 
 function rotaIdLogar98($t): int
 {
@@ -65,12 +66,19 @@ function rotaIdLogar98($t): int
     })->call($t);
 }
 
+// Transação revertida, nunca limpeza por `delete`: `ensurePontoPermissions` atribui a role
+// `Admin#{biz}` ao usuário do tenant 98, e no UltimatePOS essa role libera TODA permissão
+// (AuthServiceProvider). Persistida, ela vazou para o `FechamentoContratoTest`, que usa o mesmo
+// usuário esperando 403 sem `ponto.fechar` — medido na lane em 2026-09-29.
+beforeEach(function () {
+    DB::beginTransaction();
+});
+
 afterEach(function () {
-    try {
-        DB::table('ponto_importacoes')->where('nome_arquivo', 'like', ROTAID_MARCADOR . '%')->delete();
-    } catch (\Throwable $e) {
-        // schema ausente — limpeza best-effort
+    if (DB::transactionLevel() > 0) {
+        DB::rollBack();
     }
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
 it('id fora do formato em rota de id do Ponto → o router não casa e o HTTP dá 404', function (string $url) {
