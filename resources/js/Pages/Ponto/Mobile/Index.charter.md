@@ -4,6 +4,7 @@ component: resources/js/Pages/Ponto/Mobile/Index.tsx
 owner: wagner
 status: draft
 parent_module: Ponto
+related_us: [US-PONTO-001]
 related_prototype: prototipo-ui/cowork/Wagner/ponto-mobile.jsx
 runbook: memory/requisitos/Ponto/RUNBOOK-mobile.md
 alcance:
