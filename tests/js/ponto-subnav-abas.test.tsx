@@ -5,8 +5,8 @@
  * LÊ as duas pontas (protótipo e DataController) em vez de copiar a lista pra cá, senão a lista do
  * teste vira um terceiro dono e drifa em silêncio.
  *
- * Única exceção declarada: "REP-P (celular)" (key `mobile`) fica fora enquanto W10 estiver aberta
- * e a rota não existir — aba para rota inexistente seria link morto.
+ * Até a thread 06 o REP-P (key `mobile`) ficava fora — W10 aberta e sem rota. W10 ratificada
+ * ([W] 2026-09-29, ADR 0419) e `/ponto/mobile` existindo, a aba entrou junto com a tela: 13 de 13.
  */
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -48,8 +48,8 @@ describe('W9 · as abas do Ponto seguem o protótipo', () => {
     expect(keys.at(-1)).toBe('configuracoes')
   })
 
-  it('mesma ORDEM e mesmo RÓTULO do protótipo, menos o REP-P', () => {
-    const esperado = abasDoPrototipo().filter((a) => a.key !== 'mobile').map((a) => a.label)
+  it('mesma ORDEM e mesmo RÓTULO do protótipo — as 13, REP-P incluída', () => {
+    const esperado = abasDoPrototipo().map((a) => a.label)
     expect(ghostsDoServidor().map((g) => g.label)).toEqual(esperado)
   })
 
