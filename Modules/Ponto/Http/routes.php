@@ -126,6 +126,27 @@ Route::group(
 );
 
 // ===========================================================================
+// 1b) REP-P (celular) — a tela do COLABORADOR, fora do `ponto.access` ([W] 2026-09-29:
+//     "colaborador sem ponto.access também acessa /ponto/mobile"). Mesma pilha web do grupo 1,
+//     MENOS o `ponto.access`: quem decide é o controller — sem cadastro de ponto
+//     (business_id + user_id + controla_ponto) a tela fica vazia e as ações dão 403.
+//     As ações são os MESMOS métodos JSON de /ponto/api, sob sessão web: não há
+//     CreateFreshApiToken no app, então uma tela Inertia não alcança auth:api.
+// ===========================================================================
+Route::group(
+    [
+        'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
+        'prefix'     => 'ponto',
+    ],
+    function () {
+        Route::get('/mobile', [MobileMarcacaoController::class, 'tela'])->name('ponto.mobile');
+        Route::post('/mobile/marcar', [MobileMarcacaoController::class, 'registrar'])->name('ponto.mobile.marcar');
+        Route::get('/mobile/marcacoes/hoje', [MobileMarcacaoController::class, 'marcacoesHoje'])->name('ponto.mobile.marcacoes.hoje');
+        Route::post('/mobile/intercorrencias', [MobileMarcacaoController::class, 'criarIntercorrencia'])->name('ponto.mobile.intercorrencias.store');
+    }
+);
+
+// ===========================================================================
 // 2) Rotas API (REP-P mobile e integrações) — prefixo /ponto/api
 // ===========================================================================
 // Usa Passport (auth:api) para casar com o padrão UltimatePOS (ver Jana).
