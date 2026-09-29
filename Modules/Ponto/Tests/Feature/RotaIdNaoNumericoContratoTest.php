@@ -13,15 +13,17 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 uses(PontoTestCase::class);
 
 /**
- * Contrato de roteamento do Ponto: id que não é número dá 404, não 500.
+ * Contrato de roteamento do Ponto: id fora do formato da chave (não numérico; não UUID nas
+ * intercorrências) dá 404, não 500.
  *
  * Origem (medido em produção 2026-09-29, biz=1): GET `/ponto/importacoes/create` → 500.
  * A rota de criação é `/importacoes/novo`; o `/create` casava `/importacoes/{id}` com
  * id="create", e o `ImportacaoController::show(int $id)` estourava TypeError.
  *
  * Medição da população (`Modules/Ponto/Http/routes.php`): 12 rotas GET com parâmetro,
- * 0 de 12 com restrição. 11 são de id numérico — 4 delas com `int` tipado no controller
- * (TypeError → 500 com id não numérico) e 1 sem o método (`escalas/{escala}` show). A 12ª,
+ * 0 de 12 com restrição. 11 são de id: 8 de chave inteira (`whereNumber`) e 3 de
+ * intercorrência, cuja chave é UUID (`whereUuid`). 4 das inteiras têm `int` tipado no controller
+ * (TypeError → 500 com id não numérico) e 1 não tem o método (`escalas/{escala}` show). A 12ª,
  * `relatorios/{chave}`, é string por desenho e fica fora.
  *
  * Os casos provam em duas camadas: o ROUTER não casa a URL (oráculo do registry, não do
@@ -71,7 +73,7 @@ afterEach(function () {
     }
 });
 
-it('id não numérico em rota de id do Ponto → o router não casa e o HTTP dá 404', function (string $url) {
+it('id fora do formato em rota de id do Ponto → o router não casa e o HTTP dá 404', function (string $url) {
     rotaIdLogar98($this);
 
     // A URI da rota que casou (null = nenhuma). Comparar a URI deixa a falha dizer QUAL

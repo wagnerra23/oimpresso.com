@@ -55,11 +55,11 @@ Route::group(
             'edit'    => 'ponto.intercorrencias.edit',
             'update'  => 'ponto.intercorrencias.update',
             'destroy' => 'ponto.intercorrencias.destroy',
-        ])->whereNumber('intercorrencia');
+        ])->whereUuid('intercorrencia');
         Route::post('/intercorrencias/{id}/submeter', 'IntercorrenciaController@submeter')->name('ponto.intercorrencias.submeter');
         Route::post('/intercorrencias/{id}/cancelar', 'IntercorrenciaController@cancelar')->name('ponto.intercorrencias.cancelar');
         // Comprovante (atestado) — só quem aprova baixa; o controller decide (UC-INTCRE-04).
-        Route::get('/intercorrencias/{id}/anexo', 'IntercorrenciaController@anexo')->whereNumber('id')->name('ponto.intercorrencias.anexo');
+        Route::get('/intercorrencias/{id}/anexo', 'IntercorrenciaController@anexo')->whereUuid('id')->name('ponto.intercorrencias.anexo');
 
         // IA — classifica descrição livre em campos estruturados
         Route::post('/intercorrencias-ai/classify', 'IntercorrenciaController@aiClassify')
@@ -85,8 +85,9 @@ Route::group(
         // 7. Importações
         // `{id}` é numérico no router: sem isso `/importacoes/create` (a rota de criação é
         // `/novo`) casava o show com id="create", e o `int $id` estourava TypeError → 500.
-        // As 11 rotas GET de id numérico deste arquivo levam o mesmo `whereNumber` (os dois
-        // resources, em todas as ações); `relatorios/{chave}` é string e fica de fora.
+        // Toda rota GET de id deste arquivo tem o formato restrito no router: `whereNumber` nas
+        // 8 de chave inteira, `whereUuid` nas 3 de intercorrência (a chave é UUID —
+        // `Intercorrencia::$incrementing = false`). `relatorios/{chave}` é string e fica de fora.
         Route::get('/importacoes', 'ImportacaoController@index')->name('ponto.importacoes.index');
         Route::get('/importacoes/novo', 'ImportacaoController@create')->name('ponto.importacoes.create');
         Route::post('/importacoes', 'ImportacaoController@store')->name('ponto.importacoes.store');
