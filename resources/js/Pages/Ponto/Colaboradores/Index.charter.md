@@ -41,6 +41,8 @@ O gestor localiza colaboradores para configurar seus parâmetros de ponto. A tel
   2026-09-28:** a construir — o `Index.tsx` só tem a busca (`PageFilters` com 1 campo) e nenhuma das
   2 colunas. Regiões no map: `barra-de-busca-e-filtros` e `lista-de-colaboradores`
   (`memory/requisitos/Ponto/colaboradores-index.map.json`).
+  Em **2026-09-29** entrou o select Situação com *Todos* e *Sem PIS cadastrado* (`UC-COLIDX-04`);
+  as demais situações, o filtro de escala e as 2 colunas seguiam a construir nessa data.
 - Empty states distintos para "sem cadastro" e "busca sem resultado".
 
 ---

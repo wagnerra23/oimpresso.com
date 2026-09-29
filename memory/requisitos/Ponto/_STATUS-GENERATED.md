@@ -75,7 +75,7 @@ authority: generated
 | UC-COLIDX-01 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-COLIDX-02 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-COLIDX-03 | Colaboradores/Index | 🧪 aguarda veredito da lane |
-| UC-COLIDX-04 | Colaboradores/Index | 📝 sem_teste |
+| UC-COLIDX-04 | Colaboradores/Index | 🧪 aguarda veredito da lane |
 | UC-CONF-01 | Conformidade | 🧪 aguarda veredito da lane |
 | UC-CONF-02 | Conformidade | 🧪 aguarda veredito da lane |
 | UC-CONF-03 | Conformidade | 📝 sem_teste |

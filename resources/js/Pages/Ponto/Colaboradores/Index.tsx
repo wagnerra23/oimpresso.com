@@ -15,6 +15,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import PageFilters from '@/Components/shared/PageFilters';
@@ -44,30 +45,47 @@ interface Props {
     links: Array<{ url: string | null; label: string; active: boolean }>;
   };
   search: string | null;
+  situacao: 'sem-pis' | null;
 }
 
-export default function ColaboradoresIndex({ colaboradores, search }: Props) {
+// Situação da lista. Só "Sem PIS cadastrado" está construída (UC-COLIDX-04); as demais do
+// charter (Ativos · Só quem controla ponto · Desligados) entram com UC e teste próprios.
+const SITUACAO_TODOS = 'todos';
+
+export default function ColaboradoresIndex({ colaboradores, search, situacao }: Props) {
   const [q, setQ] = useState(search ?? '');
+  const semPis = situacao === 'sem-pis';
+
+  // D-14: partial reload — só re-busca o que muda com a busca/situação
+  const recarregar = (termo: string, sit: string | null) => {
+    const params: Record<string, string> = {};
+    if (termo) params.q = termo;
+    if (sit) params.situacao = sit;
+    router.get('/ponto/colaboradores', params, {
+      preserveState: true, preserveScroll: true, replace: true, only: ['colaboradores', 'search', 'situacao'],
+    });
+  };
 
   useEffect(() => {
     const h = setTimeout(() => {
-      if (q !== (search ?? '')) {
-        // D-14: partial reload — só re-busca o que muda com a busca
-        router.get(
-          '/ponto/colaboradores',
-          q ? { q } : {},
-          { preserveState: true, preserveScroll: true, replace: true, only: ['colaboradores', 'search'] },
-        );
-      }
+      if (q !== (search ?? '')) recarregar(q, situacao);
     }, 350);
     return () => clearTimeout(h);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, search]);
 
-  const activeChips = q
-    ? [{ label: `Busca: "${q}"`, onRemove: () => setQ('') }]
-    : [];
+  const trocarSituacao = (v: string) => recarregar(q, v === SITUACAO_TODOS ? null : v);
+
+  const activeChips = [
+    ...(q ? [{ label: `Busca: "${q}"`, onRemove: () => setQ('') }] : []),
+    ...(semPis ? [{ label: 'Situação: Sem PIS cadastrado', onRemove: () => trocarSituacao(SITUACAO_TODOS) }] : []),
+  ];
 
   const hasFilters = activeChips.length > 0;
+  const limparTudo = () => {
+    setQ('');
+    recarregar('', null);
+  };
 
   return (
     <>
@@ -83,7 +101,7 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
           </div>
         </header>
 
-        <PageFilters activeChips={activeChips} onReset={hasFilters ? () => setQ('') : undefined} cols={2}>
+        <PageFilters activeChips={activeChips} onReset={hasFilters ? limparTudo : undefined} cols={2}>
           <div className="col-span-full md:col-span-1">
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Busca</label>
             <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1.5">
@@ -96,6 +114,18 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
               />
             </div>
           </div>
+          <div>
+            {/* htmlFor/id: o SelectTrigger do Radix é um <button role="combobox"> sem nome
+                acessível próprio — mesma associação explícita de Intercorrencias/Index. */}
+            <label htmlFor="filtro-situacao" className="text-xs font-medium text-muted-foreground mb-1 block">Situação</label>
+            <Select value={situacao ?? SITUACAO_TODOS} onValueChange={trocarSituacao}>
+              <SelectTrigger id="filtro-situacao"><SelectValue placeholder="Situação" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={SITUACAO_TODOS}>Todos</SelectItem>
+                <SelectItem value="sem-pis">Sem PIS cadastrado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </PageFilters>
 
         <Card data-contract="colaboradores-colaboradores">
@@ -106,12 +136,14 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
                 title={hasFilters ? 'Nenhum colaborador encontrado' : 'Nenhum colaborador cadastrado'}
                 description={
                   hasFilters
-                    ? `Nenhum resultado pra "${q}". Tente outro termo ou limpe a busca.`
+                    ? q
+                      ? `Nenhum resultado pra "${q}". Tente outro termo ou limpe a busca.`
+                      : 'Nenhum colaborador com esse filtro — todos têm PIS cadastrado.'
                     : 'Cadastre colaboradores no HRM (UltimatePOS) — eles aparecerão aqui automaticamente pra configuração de ponto.'
                 }
                 variant={hasFilters ? 'search' : 'default'}
                 action={hasFilters ? (
-                  <Button variant="outline" size="sm" onClick={() => setQ('')}>Limpar busca</Button>
+                  <Button variant="outline" size="sm" onClick={limparTudo}>{q ? 'Limpar busca' : 'Limpar filtros'}</Button>
                 ) : undefined}
               />
             ) : (
@@ -191,7 +223,7 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
                       className="h-7 min-w-8 px-2 text-xs"
                       disabled={!link.url}
                       // D-14: partial reload — paginação só re-busca a página filtrada
-                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, only: ['colaboradores', 'search'] })}
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, only: ['colaboradores', 'search', 'situacao'] })}
                     >
                       <span dangerouslySetInnerHTML={{ __html: link.label }} />
                     </Button>

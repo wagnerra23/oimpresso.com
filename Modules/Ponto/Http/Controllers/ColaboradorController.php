@@ -16,6 +16,10 @@ class ColaboradorController extends Controller
     {
         $businessId = session('business.id') ?: $request->user()->business_id;
         $search = $request->input('q');
+        // Situação da lista. Só 'sem-pis' filtra; qualquer outro valor (ou ausente) é "todos".
+        // As outras situações do charter (Ativos · Só quem controla ponto · Desligados) seguem
+        // a construir — não entram aqui sem UC e teste. UC-COLIDX-04.
+        $situacao = $request->input('situacao') === 'sem-pis' ? 'sem-pis' : null;
 
         $paginated = Colaborador::where('business_id', $businessId)
             ->with(['user:id,first_name,last_name,email', 'escalaAtual:id,nome'])
@@ -35,6 +39,15 @@ class ColaboradorController extends Controller
                     $sub->whereHas('user', fn ($u) => $u->where('first_name', 'like', "%{$search}%"))
                         ->orWhere('matricula', 'like', "%{$search}%")
                         ->orWhere('cpf', 'like', "%{$search}%");
+                });
+            })
+            // Grupo PRÓPRIO pelo mesmo motivo do bloco de busca: o `orWhere` solto deixaria o
+            // `where('business_id')` do lado esquerdo de um OR, e a lista "Sem PIS" viraria um
+            // varredor de todos os empregadores. PIS vazio conta como ausente — o AFD da
+            // Portaria 671/2021 é chaveado por PIS e rejeita os dois do mesmo jeito.
+            ->when($situacao === 'sem-pis', function ($q) {
+                $q->where(function ($sub) {
+                    $sub->whereNull('pis')->orWhere('pis', '');
                 });
             })
             ->orderBy('matricula')
@@ -58,6 +71,7 @@ class ColaboradorController extends Controller
         return Inertia::render('Ponto/Colaboradores/Index', [
             'colaboradores' => $paginated,
             'search'        => $search,
+            'situacao'      => $situacao,
         ]);
     }
 
