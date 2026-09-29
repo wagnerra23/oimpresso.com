@@ -83,7 +83,7 @@ class MarcacaoService
         return DB::transaction(function () use ($dados, $repId, $service) {
             // 1) NSR sequencial com lock pessimista — no REP; no REP-P (sem REP físico), por
             //    colaborador ([W] 2026-09-29). Demais origens sem REP seguem o NSR virtual.
-            $nsr = ($repId === null && ($dados['origem'] ?? null) === Marcacao::ORIGEM_REP_P)
+            $nsr = ($repId === null && $dados['origem'] === Marcacao::ORIGEM_REP_P)
                 ? $service->nsr->proximoRepP((int) $dados['business_id'], (int) $dados['colaborador_config_id'])
                 : $service->nsr->proximo($repId);
 
