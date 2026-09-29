@@ -49,13 +49,19 @@
 //   · `copia` — PROJETOS.telasFelipe ("PRODUTO UNIFICADO V2"), onde a Maiara vê a tela. Não
 //               manda retorno, então não há bundle: pendente = sha do git ≠ sha do último
 //               envio registrado para ESTE projeto. Estado próprio, para as contas não se pisarem.
-// Cada conta sobe o seu: daqui (login do [W]) só o `w` é gravável; o `copia` sobe da sessão
-// da Maiara. O upload continua fora deste script (ADR 0315): ele SABE o que subir, não sobe.
+// Cada conta sobe o seu: do login do [W] só o `w` é gravável; o `copia` sobe da sessão
+// da Maiara — e qualquer um dos dois, conferido, satisfaz o check do espelho. O upload continua fora deste script (ADR 0315): ele SABE o que subir, não sobe.
 //
 // --conferir <dir>: depois de subir, o agente lê de volta (`get_file`) e salva cada arquivo em
 // <dir>/<rel>. O comando compara byte a byte com o git e, só se TODOS baterem, registra o envio
-// — e, no `w`, grava a rodada no ledger do `cowork-mirror-freshness` (é o que o check
-// "espelho — mexeu depois de verificar" lê), pelo próprio `--snapshot-from`/`--compare` dele.
+// — e grava a rodada no ledger do `cowork-mirror-freshness` (é o que o check "espelho — mexeu
+// depois de verificar" lê), pelo próprio `--snapshot-from`/`--compare` dele, marcando de qual
+// projeto veio a leitura. Vale para os DOIS projetos ([W] 2026-09-29: "a maiara deveria poder
+// fazer isso"): antes só o `w` gravava, e um PR da Maiara que tocasse o espelho só destravava
+// com uma sessão logada na conta do [W]. Com o git como fonte, ler de volta do `copia` prova o
+// mesmo fato — o arquivo commitado é o que está num projeto do Claude Design. O `w` não fica
+// esquecido: sem retorno que o traga, o arquivo segue pendente no `--projeto w`, e o
+// receber-handoff recusa retorno que o sobrescreveria.
 // ⚠️ NÃO elimina a cópia manual: `get_file` devolve arquivo pequeno INLINE, e salvar o inline é
 // escrita do agente (ADR 0389). O que ele elimina são os 4 passos à mão e o risco de registrar
 // envio sem conferir — a comparação é que prova a cópia, não a confiança nela.
@@ -222,7 +228,7 @@ function conferir(root, chave, dir, pend) {
     console.error(`\n✗ ${ruins.length} de ${res.length} não batem com o git — NADA foi registrado. Suba de novo ou confira a leitura.`);
     return 1;
   }
-  if (chave === 'w') {
+  {
     // O ledger é do cowork-mirror-freshness (dono do check do espelho): chamamos os modos dele,
     // nunca escrevemos o arquivo por fora.
     const tmp = mkdtempSync(join(tmpdir(), 'conferir-'));
@@ -236,11 +242,11 @@ function conferir(root, chave, dir, pend) {
       }
       const fr = join(root, 'scripts', 'governance', 'cowork-mirror-freshness.mjs');
       const snap = join(tmp, 'snap.json');
-      for (const args of [['--snapshot-from', jsons, '--emit-snapshot', snap], ['--compare', snap, '--check', '--ledger', '--origem', 'agente']]) {
+      for (const args of [['--snapshot-from', jsons, '--emit-snapshot', snap], ['--compare', snap, '--check', '--ledger', '--origem', 'agente', '--projeto-cowork', chave]]) {
         const r = spawnSync(process.execPath, [fr, ...args], { cwd: root, encoding: 'utf8' });
         if (r.status !== 0) { console.error(r.stdout + r.stderr); console.error(`✗ cowork-mirror-freshness ${args[0]} saiu ${r.status} — nada registrado`); return 1; }
       }
-      console.log(`\n✓ ledger do espelho atualizado (${lidos.length} verificado(s)) — commite scripts/governance/.cowork-freshness-ledger.json`);
+      console.log(`\n✓ ledger do espelho atualizado (${lidos.length} verificado(s), projeto ${chave}) — commite scripts/governance/.cowork-freshness-ledger.json`);
     } finally { rmSync(tmp, { recursive: true, force: true }); }
   }
   // Registra só o que ainda consta como pendente; conferir arquivo já em dia não é erro.

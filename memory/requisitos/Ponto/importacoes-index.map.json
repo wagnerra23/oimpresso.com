@@ -3,48 +3,50 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Ponto/Importacoes/Index (/ponto/importacoes)",
   "gap_fonte": "memory/requisitos/Ponto/importacoes-index-gap.md",
-  "prototipo_sha": "sha256:e8b74d75e0d5",
+  "prototipo_sha": "sha256:62977f0aeb68",
   "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "barra-e-acao-primaria",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "793-797"
+        "linhas": "858-862"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Importacoes/Index.tsx",
-        "linhas": "63-71",
+        "linhas": "65-67",
         "ancora": false
       },
-      "status": "paridade",
-      "acao": "Nada na lista. A diferença de destino (rota × inline) é `D-PONTO-DETALHE` = ROTA PRÓPRIA: o vivo está certo e quem muda é o protótipo (R2).",
-      "_acionavel": false
+      "status": "prototipo-a-frente",
+      "acao": "Incorporar a frase de dedup por SHA-256 na barra do corpo (copy do protótipo, `ponto-telas.jsx:859`). O destino do botão já é paridade: `D-PONTO-DETALHE` = ROTA PRÓPRIA, e o protótipo passou a cumpri-la na thread 28 (2026-09-29).",
+      "_acionavel": true,
+      "_nota": "2026-09-29: vivo = só o PageHeaderPrimary 'Nova importação' → /ponto/importacoes/novo (Importacoes/Index.tsx:65-67); grep -n 'SHA' Importacoes/Index.tsx = 0 (o subtítulo 'Dedup por SHA-256.' saiu no W9, #8118). Protótipo = PtBarra ponto-telas.jsx:858-862 (nota SHA-256 :859, botão :861 → página própria `sub === \"novo\"` :823-854)."
     },
     {
       "id": "historico-de-importacoes",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "825-843"
+        "linhas": "865-883"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Importacoes/Index.tsx",
-        "linhas": "90-133",
+        "linhas": "69-153",
         "ancora": "importacoes-historico-de-importacoes"
       },
       "status": "decidir-w",
       "acao": "Decidir se a coluna ID e a sub-linha de erro entram. Não há `D-*` para as colunas da lista (o `D-IMP-EXTRAS` é do Show). Exigiria `linhas_erro`/total no payload da lista.",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota": "2026-09-29: vivo = Card data-contract=\"importacoes-historico-de-importacoes\" Importacoes/Index.tsx:69-153 (colunas :89-96); protótipo = Card contrato de mesmo id ponto-telas.jsx:865-883 (colunas :866)."
     },
     {
       "id": "data-da-importacao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "837"
+        "linhas": "877"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Importacoes/Index.tsx",
-        "linhas": "119-121",
+        "linhas": "114-116",
         "ancora": false
       },
       "status": "vivo-a-frente",
@@ -55,26 +57,27 @@
       "id": "ordenacao-e-paginacao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "842"
+        "linhas": "882"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Importacoes/Index.tsx",
-        "linhas": "135-156",
+        "linhas": "130-151",
         "ancora": false
       },
       "status": "vivo-a-frente",
       "acao": "Nada — vivo à frente. O protótipo corrige a ordenação.",
-      "_acionavel": false
+      "_acionavel": false,
+      "_nota": "2026-09-29: protótipo = <Pager> ponto-telas.jsx:882, com usePagina(rows.length, 20) em :754 e sem sort; vivo = paginação Importacoes/Index.tsx:130-151 (only ['importacoes'] :144), orderByDesc('created_at') ImportacaoController.php:30 e paginate(20) :31."
     },
     {
       "id": "estado-vazio",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "827"
+        "linhas": "867"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Importacoes/Index.tsx",
-        "linhas": "76-88",
+        "linhas": "72-83",
         "ancora": false
       },
       "status": "vivo-a-frente",
@@ -92,9 +95,10 @@
         "linhas": "n/a",
         "ancora": false
       },
-      "status": "prototipo-a-frente",
+      "status": "gap",
       "acao": "Incorporar — `D-IMP-FILTRO` = ENTRA (\"barato, e a lista cresce todo dia\"). Filtro de estado + tipo no controller e na tela, com partial reload.",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota": "2026-09-29: grep -ci 'filtro' e 'filter' em resources/js/Pages/Ponto/Importacoes/Index.tsx = 0 e 0; ImportacaoController@index (:24-51) não lê filtro; ponto-telas.jsx Importacoes (:745-886) também não tem."
     }
   ]
 }
