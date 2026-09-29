@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F7 + §6.4 
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a ponte entre o relógio físico (REP-A homologado) e a jornada apurada — duplicar aqui infla a folha.
 owner: wagner
-last_run: "2026-09-28"
+last_run: "2026-09-29"
 last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
@@ -233,3 +233,8 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   (`AfdParserService` → `PiiRedactor`), e isso tem teste próprio (`AFD-1510-06` em
   `AfdLeiaute671ContratoTest`). O controller entrega o que foi gravado, sem redigir de novo.
 - **Status: 🧪 teste cita o UC, sem veredito de lane.**
+
+## Trilha do tempo
+- 2026-09-29 · [CL] revalidado (bump `last_run`): o `Show.tsx` ganhou o card "Amostra de erros"
+  (`UC-IMPSH-06`). Os UC-IMPSH-01..05 não mudam de contrato. O bump afirma "trio reconciliado com a
+  tela nesta data", não "testes rodados na lane".
