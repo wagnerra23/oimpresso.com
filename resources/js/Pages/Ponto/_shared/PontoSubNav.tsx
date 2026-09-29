@@ -2,7 +2,7 @@
 //
 // Lê primary/ghosts da entry "Ponto" do shell.menu (Inertia shared prop
 // populado via LegacyMenuAdapter — DataController Ponto declara attrs
-// dropdown com primary 'Bater ponto' + ghosts[10] sub-views). Renderiza
+// dropdown com primary 'Bater ponto' + ghosts das sub-views). Renderiza
 // ghost tabs ARIA tablist abaixo do header `os-page-h` custom da tela.
 //
 // Active prop = key do ghost atual (ex 'dashboard' em Dashboard/Index.tsx,
@@ -10,8 +10,10 @@
 // shell.menu não tem entry "Ponto" com ghosts (módulo desinstalado ou
 // usuário sem ponto.access).
 //
-// Pattern: ghost tabs (esquerda) + ⋯ Mais (overflow) + primary `+ Bater ponto`
-// (direita). Caller pode passar `hidePrimary` pra renderizar primary separado.
+// W9 ([W] 2026-09-28, ADR 0418): TODAS as abas visíveis, na ordem/rótulo/ícone do protótipo
+// (declarados no DataController), em faixa própria ABAIXO do header — como o Clientes — e com
+// scroll horizontal até a aba ativa (`scrollable`). Até então: 5 abas + `⋯ Mais`, dentro do
+// `os-page-h-r`. Caller pode passar `hidePrimary` pra não repetir o primary `+ Bater ponto`.
 //
 // Hue 295 (roxo claro pessoas — SIDEBAR_GROUP_HUE.pessoas).
 
@@ -28,9 +30,15 @@ export interface PontoSubNavProps {
   extraOverflowItems?: PageHeaderOverflowItem[];
   /** Quando true, omite primary (renderiza só ghosts + overflow). Caller renderiza primary separado à direita. */
   hidePrimary?: boolean;
+  /**
+   * Contagem por KEY de ghost (W9 · ADR 0418), vinda de `ponto_abas`. `null`/ausente = aba sem
+   * número; `0` APARECE — é o que o `TabBar` do DS faz (`t.count != null`). Mesmo idioma do
+   * `PatrimonioSubNav`.
+   */
+  badges?: Record<string, number | null | undefined>;
 }
 
-export default function PontoSubNav({ active, extraOverflowItems, hidePrimary }: PontoSubNavProps) {
+export default function PontoSubNav({ active, extraOverflowItems, hidePrimary, badges }: PontoSubNavProps) {
   const sharedShell = (usePage().props as any)?.shell as {
     menu?: Array<{ label: string; group?: string; primary?: PageHeaderPrimary; ghosts?: PageHeaderGhost[] }>;
   } | undefined;
@@ -43,13 +51,26 @@ export default function PontoSubNav({ active, extraOverflowItems, hidePrimary }:
 
   if (!pontoItem?.ghosts?.length) return null;
 
+  // Enriquece por CHAVE, preservando ordem e conteúdo do menu; sem `badges`, passa intacto.
+  const ghosts = badges
+    ? pontoItem.ghosts.map((g) => {
+        const n = badges[g.key];
+        return n != null ? { ...g, badge: n } : g;
+      })
+    : pontoItem.ghosts;
+
   return (
     <PageHeaderTabs
       primary={hidePrimary ? undefined : pontoItem.primary}
-      ghosts={pontoItem.ghosts}
+      ghosts={ghosts}
       activeGhostKey={active}
       group="pessoas"
-      maxVisible={5}
+      // W9 ([W] 2026-09-28, ADR 0418): todas as abas visíveis, como o protótipo — sem `⋯ Mais`.
+      maxVisible={ghosts.length}
+      scrollable
+      // `compact` = inativa 13px/500, o peso das abas do protótipo (medido 2026-09-28: `13px 500`
+      // na âncora contra `13px 400` no `default`). Não é dial de gosto — é o que a âncora pede.
+      density="compact"
       extraOverflowItems={extraOverflowItems}
     />
   );

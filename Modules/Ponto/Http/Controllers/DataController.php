@@ -266,19 +266,22 @@ class DataController extends Controller
                             'href'     => '/ponto',
                             'shortcut' => 'N',
                         ],
+                        // W9 ([W] 2026-09-28, ADR 0418): abas na ORDEM, RÓTULO e ÍCONE do protótipo
+                        // (ponto-page.jsx ABAS). A 13ª do protótipo, "REP-P (celular)", fica de fora até
+                        // W10 + rota existirem — aba para rota inexistente seria link morto.
                         'ghosts'  => [
-                            ['key' => 'dashboard',       'label' => 'Dashboard',        'href' => '/ponto'],
-                            ['key' => 'espelho',         'label' => 'Espelho',          'href' => '/ponto/espelho'],
-                            ['key' => 'aprovacoes',      'label' => 'Aprovações',       'href' => '/ponto/aprovacoes'],
-                            ['key' => 'intercorrencias', 'label' => 'Intercorrências',  'href' => '/ponto/intercorrencias'],
-                            ['key' => 'banco-horas',     'label' => 'Banco de Horas',   'href' => '/ponto/banco-horas'],
-                            ['key' => 'escalas',         'label' => 'Escalas',          'href' => '/ponto/escalas'],
-                            ['key' => 'importacoes',     'label' => 'Importações',      'href' => '/ponto/importacoes'],
-                            ['key' => 'relatorios',      'label' => 'Relatórios',       'href' => '/ponto/relatorios'],
-                            ['key' => 'fechamento',      'label' => 'Fechamento',       'href' => '/ponto/fechamento'],
-                            ['key' => 'conformidade',    'label' => 'Conformidade',     'href' => '/ponto/conformidade'],
-                            ['key' => 'colaboradores',   'label' => 'Colaboradores',    'href' => '/ponto/colaboradores'],
-                            ['key' => 'configuracoes',   'label' => 'Configurações',    'href' => '/ponto/configuracoes'],
+                            ['key' => 'dashboard',       'label' => 'Painel',           'href' => '/ponto',                 'icon' => 'chart-column'],
+                            ['key' => 'espelho',         'label' => 'Espelho de ponto', 'href' => '/ponto/espelho',         'icon' => 'calendar'],
+                            ['key' => 'aprovacoes',      'label' => 'Aprovações',       'href' => '/ponto/aprovacoes',      'icon' => 'check'],
+                            ['key' => 'intercorrencias', 'label' => 'Intercorrências',  'href' => '/ponto/intercorrencias', 'icon' => 'triangle-alert'],
+                            ['key' => 'banco-horas',     'label' => 'Banco de horas',   'href' => '/ponto/banco-horas',     'icon' => 'coins'],
+                            ['key' => 'fechamento',      'label' => 'Fechamento',       'href' => '/ponto/fechamento',      'icon' => 'lock'],
+                            ['key' => 'conformidade',    'label' => 'Conformidade',     'href' => '/ponto/conformidade',    'icon' => 'shield'],
+                            ['key' => 'escalas',         'label' => 'Escalas',          'href' => '/ponto/escalas',         'icon' => 'clock'],
+                            ['key' => 'colaboradores',   'label' => 'Colaboradores',    'href' => '/ponto/colaboradores',   'icon' => 'database'],
+                            ['key' => 'importacoes',     'label' => 'Importações',      'href' => '/ponto/importacoes',     'icon' => 'download'],
+                            ['key' => 'relatorios',      'label' => 'Relatórios',       'href' => '/ponto/relatorios',      'icon' => 'receipt'],
+                            ['key' => 'configuracoes',   'label' => 'Configurações',    'href' => '/ponto/configuracoes',   'icon' => 'settings'],
                         ],
                     ]
                 )->order(88); // logo abaixo do HRM/Essentials (order=87)

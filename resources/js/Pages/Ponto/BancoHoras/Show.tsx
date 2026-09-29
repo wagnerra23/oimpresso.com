@@ -25,7 +25,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Textarea } from '@/Components/ui/textarea';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import KpiCard from '@/Components/shared/KpiCard';
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import { cn, formatMinutes } from '@/Lib/utils';
 import { fmtDataBr, fmtDataHoraBr } from '@/Lib/datetime-br';
 
@@ -122,16 +122,8 @@ export default function BancoHorasShow({ saldo, acordo, movimentos }: Props) {
     <>
       <Head title={`BH · ${saldo.nome}`} />
       <Stack gap={4} className="mx-auto max-w-7xl p-6">
-        {/* ADR 0182 PageHeader canon — shell do módulo, igual às outras telas do Ponto */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>Banco de horas</h1>
-            <p>Extrato do colaborador — ledger append-only.</p>
-          </div>
-          <div className="os-page-h-r">
-            <PontoSubNav active="banco-horas" hidePrimary />
-          </div>
-        </header>
+        {/* W9 (ADR 0418): header de módulo + abas do protótipo, igual às outras telas do Ponto */}
+        <PontoAreaHeader active="banco-horas" />
 
         {/* Faixa do colaborador (protótipo `.pt-sub`, ponto-telas.jsx:368-371) */}
         <Inline gap={2} wrap data-contract="bancohoras-colaborador">

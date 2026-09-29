@@ -15,7 +15,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { cn, formatMinutes } from '@/Lib/utils';
 
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import { PageHeaderPrimary } from '@/Components/PageHeader';
 import { Grid, Inline } from '@/Components/layout';
 import KpiGrid from '@/Components/shared/KpiGrid';
@@ -205,25 +205,10 @@ export default function DashboardIndex({
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>
-              Dashboard <span className="text-stone-400 font-normal">· Ponto eletrônico</span>
-            </h1>
-            <p>
-              {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
-              {' · atualizado '}
-              <span className="inline-flex items-center gap-1 text-success">
-                <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" aria-hidden />
-                {server_time}
-              </span>
-            </p>
-          </div>
-          <div className="os-page-h-r">
-            <PontoSubNav active="dashboard" hidePrimary />
-            <PageHeaderPrimary label="Bater ponto" onClick={() => router.visit('/ponto')} />
-          </div>
-        </header>
+        <PontoAreaHeader active="dashboard" atualizadoAs={server_time} />
+        <Inline gap={2} justify="end">
+          <PageHeaderPrimary label="Bater ponto" onClick={() => router.visit('/ponto')} />
+        </Inline>
 
         {/* Nota "o que trava o fechamento" — 1ª seção do contrato `ponto-painel`,
             e por isso vem ANTES dos KPIs (o gate cobra a ordem das âncoras).

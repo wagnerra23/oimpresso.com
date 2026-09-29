@@ -36,6 +36,8 @@ vi.mock('@/Layouts/AppShellV2', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 vi.mock('@/Pages/Ponto/_shared/PontoSubNav', () => ({ default: () => null }));
+// Header de módulo (W9, ADR 0418): lê o shell via `usePage`; este teste é do CORPO da tela.
+vi.mock('@/Pages/Ponto/_shared/PontoAreaHeader', () => ({ default: () => null }));
 
 import BancoHorasShow from '@/Pages/Ponto/BancoHoras/Show';
 import { fmtDataHoraBr } from '@/Lib/datetime-br';
