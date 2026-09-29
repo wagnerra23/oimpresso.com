@@ -16,7 +16,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { cn, formatMinutes } from '@/Lib/utils';
 
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
-import { PageHeaderPrimary } from '@/Components/PageHeader';
 import { Grid, Inline } from '@/Components/layout';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -220,8 +219,9 @@ export default function DashboardIndex({
             </p>
           </div>
           <div className="os-page-h-r">
+            {/* Sem primary aqui: o atalho "Painel do ponto" levaria à própria página ([W] 2026-09-29).
+                As outras telas do Ponto mostram o atalho via PontoSubNav. */}
             <PontoSubNav active="dashboard" hidePrimary />
-            <PageHeaderPrimary label="Painel do ponto" onClick={() => router.visit('/ponto')} />
           </div>
         </header>
 
