@@ -82,6 +82,16 @@ class Colaborador extends Model
         'metadata'         => 'array',
     ];
 
+    /**
+     * Quem está "no ponto" hoje: controla ponto e não foi desligado. É o número do KPI
+     * "Colaboradores ativos" do Painel e o "N colaboradores no ponto" do header de módulo
+     * (W9 · ADR 0418) — UMA definição para os dois, senão divergem na mesma tela.
+     */
+    public function scopeNoPonto($query)
+    {
+        return $query->where('controla_ponto', true)->whereNull('desligamento');
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(config('pontowr2.ultimatepos.user_model'), 'user_id');
