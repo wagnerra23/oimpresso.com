@@ -16,12 +16,16 @@
 //   · linha de contexto e selo de frescor — `Patrimonio/Index.tsx` (`LinhaDeContexto`,
 //     `PilulaFrescor`), que já traduziu o `CliPageHead` do protótipo pro canon.
 //
-// FORA desta onda, declarado: o contexto do protótipo tem 4 pedaços (empresa · local · mês ·
-// "N colaboradores no ponto") e as abas têm contagens (Aprovações · Intercorrências ·
-// Conformidade · Colaboradores). Só a EMPRESA chega hoje às telas do Ponto (shared prop do
-// shell); os outros pedaços e as contagens precisam de prop compartilhada calculada por
-// business — onda própria, com teste multi-tenant. Pedaço ausente sai do join (o `filter` do
-// protótipo), não vira número inventado.
+// Contagens das abas: `ponto_abas`, prop DIFERIDA compartilhada por `CheckPontoAccess` em toda
+// rota /ponto (`AbasContadoresService`). No 1º paint ela é `undefined` e as abas saem sem
+// número; chegam quando o request diferido volta. Conformidade vem `null` sem apuração — sem
+// número, nunca 0.
+//
+// Linha de contexto: empresa · competência · "N colaboradores no ponto" — os dois últimos em
+// `ponto_contexto` (mesma prop diferida das contagens, `AbasContadoresService::contexto`).
+// Pedaço que ainda não chegou sai do join (o `filter` do protótipo), não vira número inventado.
+// SEM LOCAL, declarado: o protótipo escreve "matriz", mas o Ponto não tem noção de local —
+// nomear um afirmaria um escopo que os números não aplicam (a mesma recusa do Patrimônio).
 
 import { useState, type ReactNode } from 'react';
 import { Link, router } from '@inertiajs/react';
@@ -64,6 +68,15 @@ export default function PontoAreaHeader({ active, atualizadoAs }: PontoAreaHeade
   const nomeDoShell = shell?.cockpit?.businessNome ?? null;
   const nomeDaSessao = useBusiness()?.name ?? null;
   const negocio = nomeDoShell ?? nomeDaSessao;
+  const diferidas = usePageProps() as {
+    ponto_abas?: Record<string, number | null>;
+    ponto_contexto?: { competencia: string; colaboradores_no_ponto: number };
+  };
+  const contagens = diferidas.ponto_abas;
+  const ctx = diferidas.ponto_contexto;
+  const noPonto = ctx
+    ? `${ctx.colaboradores_no_ponto} ${ctx.colaboradores_no_ponto === 1 ? 'colaborador' : 'colaboradores'} no ponto`
+    : null;
 
   const [hora, setHora] = useState(() => atualizadoAs ?? horaCurta());
   const [reapurando, setReapurando] = useState(false);
@@ -77,7 +90,7 @@ export default function PontoAreaHeader({ active, atualizadoAs }: PontoAreaHeade
 
   return (
     <div data-contract="ponto-area-header">
-      <LinhaDeContexto partes={[negocio]} />
+      <LinhaDeContexto partes={[negocio, ctx?.competencia, noPonto]} />
       <PageHeader
         titleWeight="semibold"
         leading={
@@ -113,7 +126,7 @@ export default function PontoAreaHeader({ active, atualizadoAs }: PontoAreaHeade
         // na âncora (15 até o fim do `.cli-ph` + 14 de respiro) contra 14px sem este padding.
         below={
           <div className="px-6 pt-[15px]">
-            <PontoSubNav active={active} hidePrimary />
+            <PontoSubNav active={active} hidePrimary badges={contagens} />
           </div>
         }
       />
