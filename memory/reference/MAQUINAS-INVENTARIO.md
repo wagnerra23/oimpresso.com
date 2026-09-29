@@ -490,7 +490,13 @@ lifecycle: ativo
 | `db.mjs` | script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` | JSONL append-only DB helpers for Curador (zero-deps, Node 24 built-ins only). |
 | `rules.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` +4 | 18 heurísticas determinísticas pra classificar arquivos sem custar Claude. |
 
-### 5.7 `scripts/design/` — 24
+### 5.7 `scripts/deploy/` — 1
+
+| Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
+|---|---|---|---|---|---|
+| `aguardar-deploy.mjs` | ci | 🟢 só lê | — | — | espera o 1º deploy CONCLUÍDO (não cancelado) que contenha um commit. |
+
+### 5.8 `scripts/design/` — 24
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -519,7 +525,7 @@ lifecycle: ativo
 | `render-proto-baseline.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +16 | o DESIGN vira BASELINE versionado (roubo #7 da pesquisa de mercado, |
 | `style-fingerprint.mjs` | agente, ci, script | 🟢 só lê | — | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +20 | comparador EXAUSTIVO de estilo protótipo × produção, como MECANISMO. |
 
-### 5.8 `scripts/design-sync/` — 19
+### 5.9 `scripts/design-sync/` — 19
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -543,7 +549,7 @@ lifecycle: ativo
 | `status.mjs` | agente, ci, npm, script | 🟢 só lê | test | `memory/decisions/0390-emenda-0384-smoke-em-ambiente-controlado.md` +18 | painel operacional do último bundle: o que mudou, onde aplicar, o que está bloqueado — e as 2 catracas do funil (`--check-mapping`, `--check-lifecycle`). |
 | `zip-reader.mjs` | script | 🔴 disco | — | — | leitor de ZIP mínimo, sem dependência, com CRC-32 CONFERIDO. |
 
-### 5.9 `scripts/design/audit/` — 5
+### 5.10 `scripts/design/audit/` — 5
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -553,14 +559,14 @@ lifecycle: ativo
 | `review-gen.mjs` | npm | 🔴 disco | — | `memory/requisitos/Jana/SPEC.md` +8 | `design:review <tela>` · gerador DETERMINÍSTICO do `<Tela>.review.md`. |
 | `score-mechanized.mjs` | agente, ci, script | 🔴 disco | — | `memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md` +16 | scorer DETERMINÍSTICO (zero LLM) da metade mecanizável da GOLDEN-REFERENCE. |
 
-### 5.10 `scripts/evals/` — 2
+### 5.11 `scripts/evals/` — 2
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
 | `ancora-adversario.eval.mjs` | ci | 🟢 só lê | — | — | o ADVERSÁRIO PERMANENTE do guarda de âncora. |
 | `design-source-of-truth.eval.mjs` | ci | 🟢 só lê | — | `memory/decisions/0299-figma-nao-e-fonte-de-design.md` | baseline ARMADO do enforcement "Figma não é fonte" (camada L5). |
 
-### 5.11 `scripts/governance/` — 118
+### 5.12 `scripts/governance/` — 118
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -683,7 +689,7 @@ lifecycle: ativo
 | `visual-comparison-staleness.mjs` | ci, script | 🟢 só lê | — | `memory/decisions/0329-doutrina-documentacao-de-processo-executavel.md` +14 | sentinela: o `<tela>-visual-comparison.md` ficou atrás da TELA? |
 | `worktree-janitor.mjs` | ci, npm | 🟢 só lê | — | — | Faxineiro de worktrees — classifica worktree MORTO vs VIVO por ORÁCULO, nunca por heurística. |
 
-### 5.12 `scripts/governance/lib/` — 3
+### 5.13 `scripts/governance/lib/` — 3
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -691,7 +697,7 @@ lifecycle: ativo
 | `pt-signatures.mjs` | ci, script | 🟢 só lê | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +3 | FONTE ÚNICA das assinaturas estruturais dos 5 Padrões de Tela. |
 | `spec-encerrado.mjs` | script | 🟢 só lê | — | — | SPEC declarado encerrado não é dívida: sai do corpus dos gates. |
 
-### 5.13 `scripts/lib/` — 4
+### 5.14 `scripts/lib/` — 4
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -700,13 +706,13 @@ lifecycle: ativo
 | `markdown-tabela.mjs` | ci, script | 🟢 só lê | — | `memory/LICOES_CODE.md` +1 | dono ÚNICO de "fatiar uma linha de tabela markdown em células". |
 | `uc-regex.mjs` | agente, ci, script | 🟢 só lê | test | `memory/proibicoes.md` +10 | 7 · coletor do manifesto) que DEVIAM ser iguais e drifaram: em 2026-06-22 o guard foi |
 
-### 5.14 `scripts/memory-schemas/` — 1
+### 5.15 `scripts/memory-schemas/` — 1
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
 | `validate.mjs` | agente, ci, script | 🔴 disco | — | `memory/proibicoes.md` +33 | valida frontmatter de memory/** contra os schemas canônicos. |
 
-### 5.15 `scripts/pr-critic/` — 4
+### 5.16 `scripts/pr-critic/` — 4
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -715,7 +721,7 @@ lifecycle: ativo
 | `critica.mjs` | ci, script | 🔴 disco | test | (só sessão/handoff · 3) | passe crítico do pr-critic (a parte AGENTE; o roteamento é coleta.mjs). |
 | `precisao.mjs` | ci, script | 🔴 disco | test | — | MEDIDOR DE PRECISÃO DO PRÓPRIO pr-critic (fecha o loop). |
 
-### 5.16 `scripts/qa/` — 18
+### 5.17 `scripts/qa/` — 18
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -738,14 +744,14 @@ lifecycle: ativo
 | `uc-lane-coverage.mjs` | ci, script | 🔴 disco | test | `memory/LICOES_CODE.md` +4 | o teste que o `casos.md` cita EXISTE, e alguma lane de CI o RODA? |
 | `vital-signs.mjs` | ci, script | 🔴 disco | test | `memory/requisitos/_Governanca/roadmap/MV1-espinha-dorsal-vital-signs.md` +8 | sinais vitais da frota por módulo (MV1 · espinha dorsal do Módulo Vivo). |
 
-### 5.17 `scripts/screen-smoke/` — 2
+### 5.18 `scripts/screen-smoke/` — 2
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
 | `select-routes.mjs` | script | 🟢 só lê | test | (só sessão/handoff · 1) | Seleciona as rotas do smoke pós-deploy e mantém explícito o que não foi medido. |
 | `smoke.mjs` | agente, ci, script | 🔴 disco | — | `memory/requisitos/Infra/RUNBOOK-screen-smoke-ativacao.md` +3 | ───────────────────────────────────────────────────────────────────────────── |
 
-### 5.18 `scripts/tests/` — 11
+### 5.19 `scripts/tests/` — 11
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
