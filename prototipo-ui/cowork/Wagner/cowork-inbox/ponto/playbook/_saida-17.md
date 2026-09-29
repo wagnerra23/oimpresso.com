@@ -5,7 +5,7 @@ autor: "[CL]"
 criado: 2026-09-28
 base: ad23c9ff9
 thread: 17-data-contract-no-tsx.md
-veredito: "em andamento — 14 de 26 ids em PRs abertos (#8088, #8090, #8091, #8096); 6 fora por regra; faltam PR-2 (espera #8079/#8077) e os 2 ids feios"
+veredito: "em andamento — 16 de 26 ids em PRs (14 em #8088/#8090/#8091/#8096, 1 no PR-2 de Aprovações, 1 no PR da forma de Escalas); 6 fora por regra; faltam os 2 de BancoHoras/Show (espera #8113) e os 2 ids feios (pendentes, sem nome no gap e com o lado protótipo fora do canal)"
 ---
 
 # _saída 17 · `data-contract` no `.tsx`
@@ -30,7 +30,9 @@ Recibo único da thread, atualizado a cada PR.
 |---|---|---|---|---|
 | PR-1 #8088 | `intercorrencias-intercorrencias` | `Intercorrencias/Index.tsx` (`<Card>` da lista) | `intercorrencias-index.map.json` · `lista-de-intercorrencias` | aberto |
 | PR-1 #8088 | `bancohoras-saldos-por-colaborador` | `BancoHoras/Index.tsx` (`<Card>` da tabela) | `banco-horas-index.map.json` · `saldos-por-colaborador` | aberto |
-| PR-2 | `aprovacoes-fila-de-aprovacoes` · `escalas-escalas-cadastradas` · `bancohoras-historico-de-movimentos` · `bancohoras-ajuste-manual` | `Aprovacoes/Index`, `Escalas/Index`, `BancoHoras/Show` | — | espera #8079 e #8077 |
+| PR-2 | `aprovacoes-fila-de-aprovacoes` | `Aprovacoes/Index.tsx:330` (`<Card>` da fila) | `aprovacoes-index.map.json` · `fila-de-aprovacoes` | aberto |
+| PR da forma de Escalas (`claude/ponto-escalas-forma`) | `escalas-escalas-cadastradas` | `Escalas/Index.tsx` (`<Card>` da lista) | `escalas-index.map.json` · parte da lista | no PR da sessão que aplica a forma do protótipo; combinado em 2026-09-28 para não haver dois PRs no mesmo arquivo |
+| PR-2b | `bancohoras-historico-de-movimentos` · `bancohoras-ajuste-manual` | `BancoHoras/Show.tsx` | `banco-horas-show.map.json` | espera #8113 (forma do detalhe, aberto); o #8077 já mergeou |
 | PR-3a #8090 | `colaboradores-colaboradores` | `Colaboradores/Index.tsx:101` | `colaboradores-index.map.json` · `lista-de-colaboradores` | aberto |
 | PR-3a #8090 | `colaboradorform-configuracao-de-ponto` | `Colaboradores/Edit.tsx:85` (card único "Identificação", paridade de campos) | `colaboradores-edit.map.json` · `configuracao-de-ponto-campos` | aberto |
 | PR-3b #8091 | `importacoes-historico-de-importacoes` | `Importacoes/Index.tsx:74` | `importacoes-index.map.json` · `historico-de-importacoes` | aberto |
@@ -41,7 +43,7 @@ Recibo único da thread, atualizado a cada PR.
 | PR-4 #8096 | `configuracoes-regras-clt-reforma-trabalhista` · `configuracoes-banco-de-horas` · `configuracoes-rep-e-imutabilidade-de-marcacoes` · `configuracoes-afd-importacao-esocial` | `Configuracoes/Index.tsx:111` · `:131` · `:148` · `:178` | `configuracoes-index.map.json` (4 partes; status re-medido pós-#8078) | aberto |
 | PR-4 #8096 | `configuracoes-cadastrar-novo-rep` · `configuracoes-reps-cadastrados` | `Configuracoes/Reps.tsx:85` · `:140` | `configuracoes-reps.map.json` | aberto |
 | fora (a nascer) | `configuracoes-ia-do-ponto` | — | gap: ausente no vivo (`D-CFG-IA` pendente) | sem id |
-| — | `intercorrencias-card` · `escalaform-card` (ids feios) | `Intercorrencias/Create`, `Escalas/Form` | — | a decidir com os gaps; `Create` espera a outra sessão terminar |
+| pendente | `intercorrencias-card` · `escalaform-card` (ids feios) | `Intercorrencias/Create.tsx:241` (card "Dados da ocorrência") · `Escalas/Form.tsx:89` (card "Dados da escala") | — | sem id no vivo, de propósito. Os dois gaps (`intercorrencias-create-gap.md`, `escalas-form-gap.md`) não dão nome à região, que é a condição da thread para renomear. O lado protótipo é `ponto-telas.jsx`, espelho fora do canal `cowork-inbox/`; renomear lá exige escrita via DesignSync com opt-in do [W]. Gravar o id feio só no vivo fixaria um nome que a thread manda trocar, e o `Create` ainda vai mudar de forma (o gap registra que o form vira página com cabeçalho). |
 
 ## Portões do PR-1
 
@@ -53,3 +55,9 @@ Recibo único da thread, atualizado a cada PR.
 - **Zero mudança visual (estático):** o único CSS de produção que usa `data-contract` como seletor é `.arq-page [data-contract=abas]` (`resources/css/cowork-arquivos-bundle.css:129-130`), escopado a Arquivos. Nenhum seletor casa os dois ids novos.
 - **O atributo chega ao DOM:** em prod (2026-09-28, `/ponto`), o precedente idêntico `<Card data-contract="painel-fila-aprovacoes">` renderiza `DIV[data-contract=painel-fila-aprovacoes]`. O `<Card>` do DS repassa o atributo.
 - **Antes, medido em prod** (biz do usuário logado, DOM estável em duas leituras): `/ponto/intercorrencias` → 0 `data-contract` fora do sidebar; card da lista 545×340 em (24,358). `/ponto/banco-horas` → 0; card da tabela 544×310 em (24,705). **Depois:** a medir pós-deploy — mesmo card, mesma geometria, com o atributo.
+
+## PR-2 (2026-09-28)
+
+- **Colisão:** `whats-active` + `gh pr list --state open`. `Aprovacoes/Index.tsx`: a sessão do W9 (`claude/ponto-nav-13-abas`) só troca o header e os imports; o card da fila não é tocado. `Escalas/Index.tsx`: a sessão da forma do protótipo reescreve o corpo e já grava `escalas-escalas-cadastradas` no PR dela. `BancoHoras/Show.tsx`: #8113 aberto, logo fica para o PR-2b.
+- **Medição (Aprovações):** 5 UCs no `.casos.md` (UC-PAPR-01..05), citados por `JornadaWorkflowContratoTest.php` e `tests/js/ponto-aprovacoes-lote-dialogo.test.tsx`. `data-contract` aparece 0 vezes no casos e nos 2 testes; o teste JS não usa snapshot. O `last_run` já era `2026-09-28` no main, então o G-6 não pediu bump. Existe baseline de pixel (`PixelBaselineTest/it_Ponto_Aprovacoes…snap`); um atributo não muda pixel, e não se gera `.snap` (ADR 0411).
+- **Portões:** `design-code-map-check --check --strict` → rc=0, âncora estável **99**/668 no main de hoje. `contrato-de-tela`: `.test.mjs`, `--preflight origin/main`, `--anti-tautologia`, `--omission <merge-base>` → limpos.
