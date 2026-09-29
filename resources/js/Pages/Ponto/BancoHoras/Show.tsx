@@ -99,7 +99,7 @@ function KpiExtrato({ label, valor, linha, tom = 'default' }: {
     <Stack
       gap={1}
       className={cn(
-        'gap-1.5 rounded-lg border p-3.5',
+        'gap-1.5 rounded-lg border p-3.5 shadow-xs',
         tom === 'success' && 'border-success/20 bg-success/5',
         tom === 'danger' && 'border-destructive/20 bg-destructive/5',
         tom === 'default' && 'border-border bg-card',
@@ -113,17 +113,28 @@ function KpiExtrato({ label, valor, linha, tom = 'default' }: {
 }
 
 // Card do protótipo não tem o py-6/gap-6 do Card shadcn: cabeçalho 12/14, corpo colado.
-const cardSemRespiro = 'gap-0 py-0';
+// Sombra do render: 0 1px 2px a 4% (a `shadow-sm` do Card é 1px 3px a 10%).
+const cardSemRespiro = 'gap-0 py-0 shadow-xs';
 // gap-0: o CardHeader é grid de 2 linhas com gap-1.5, e sem descrição a 2ª linha vazia ainda
-// somava o gap. Linha de 21px = a do título do protótipo (cabeçalho medido: 46px).
-const cabecalhoCard = 'gap-0 px-3.5 py-3';
-const tituloCard = 'text-[13.5px] leading-[21px] font-semibold tracking-[-0.008em]';
-const th = 'px-2.5 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-muted-foreground bg-card';
-const td = 'px-2.5 py-[7px]';
+// somava o gap. Cabeçalho medido: 46px COM a linha de baixo de 1px (12 + 21 + 12 + 1).
+// `[.border-b]:pb-3`: o CardHeader põe pb-6 quando tem borda embaixo (dava 58px).
+const cabecalhoCard = 'gap-0 border-b border-border px-3.5 py-3 [.border-b]:pb-3';
+// Título: linha 1,25 (16,875px) com 4px em cima — somam os mesmos 21px, e o texto cai onde o
+// render o põe (medido 2px mais alto com a linha de 21px).
+const tituloCard = 'pt-1 text-[13.5px] leading-[1.25] font-semibold tracking-[-0.008em]';
+// Subtítulo do card: o `Card` do protótipo (ponto-ui.jsx:50) transforma o `sub` que começa com
+// "—" ou "(" em contagem — tira o travessão e desenha mono 11,5px/500, linha 1, sem quebrar.
+const contagemCard = 'ml-2 whitespace-nowrap font-mono text-[11.5px] leading-none font-medium tracking-normal text-muted-foreground';
+// th fixo no topo (sticky) e com a linha de baixo NELE, como o render; linha 1,5 explícita
+// porque a tela herda 1,45.
+const th = 'sticky top-0 whitespace-nowrap border-b border-border px-2.5 py-2 text-left text-[11px] leading-[1.5] font-semibold uppercase tracking-[0.07em] text-muted-foreground bg-card';
+// Linha entre movimentos no td, a 60% (inclusive a última — tabela medida: 225px).
+const td = 'border-b border-border/60 px-2.5 py-[7px]';
 // Campos em variante `shadcn` (utilitários) e não `cowork`: o `.cw-input`/`.cw-label` é CSS SEM
 // @layer, que vence qualquer utilitário no Tailwind v4 — as medidas do protótipo (34px, 13px,
 // raio 8, rótulo 10,5px/600 em --text-mute) seriam ignoradas.
-const rotuloCampo = 'text-[10.5px] leading-[1.5] font-semibold uppercase tracking-[0.04em] text-[var(--text-mute)]';
+// gap-[3px]: no protótipo o `*` vem depois de um espaço, não dos 8px do Label.
+const rotuloCampo = 'gap-[3px] text-[10.5px] leading-[1.5] font-semibold uppercase tracking-[0.04em] text-[var(--text-mute)]';
 const campo = 'mt-1 rounded-[8px] border-border bg-card px-2.5 py-[7px] text-[13px] shadow-none md:text-[13px] dark:bg-card';
 
 export default function BancoHorasShow({ saldo, acordo, movimentos }: Props) {
@@ -167,7 +178,8 @@ export default function BancoHorasShow({ saldo, acordo, movimentos }: Props) {
     <>
       <Head title={`BH · ${saldo.nome}`} />
       {/* Largura cheia, como o protótipo (.pt-body 18/24/32) — sem o max-w-7xl centrado. */}
-      <Stack gap={4} className="px-6 pt-[18px] pb-8">
+      {/* Altura de linha 1,45 herdada (a do corpo do protótipo; o app usa 1,5). */}
+      <Stack gap={4} className="px-6 pt-[18px] pb-8 leading-[1.45]">
         {/* ADR 0182 PageHeader canon — shell do módulo, igual às outras telas do Ponto.
             O cabeçalho de MÓDULO do protótipo (faixa, "Ponto" 22px, abas) é das 22 telas e
             vai em PR próprio — não se conserta tela a tela. */}
@@ -187,7 +199,7 @@ export default function BancoHorasShow({ saldo, acordo, movimentos }: Props) {
           <Button
             variant="outline"
             size="sm"
-            className="h-[26px] rounded-[8px] bg-card px-2.5 text-xs text-muted-foreground dark:bg-card"
+            className="h-[26px] rounded-[8px] bg-card px-2.5 text-xs text-muted-foreground shadow-none dark:bg-card"
             onClick={() => router.visit('/ponto/banco-horas')}
           >
             Voltar aos saldos
@@ -217,12 +229,8 @@ export default function BancoHorasShow({ saldo, acordo, movimentos }: Props) {
             <Card className={cardSemRespiro} data-contract="bancohoras-historico-de-movimentos">
               <CardHeader className={cabecalhoCard}>
                 <CardTitle className={tituloCard}>
-                  Histórico de movimentos{' '}
-                  {movimentos && (
-                    <span className="font-mono text-[11.5px] font-medium text-muted-foreground">
-                      ({movimentos.total} lançamentos)
-                    </span>
-                  )}
+                  Histórico de movimentos
+                  {movimentos && <span className={contagemCard}>({movimentos.total} lançamentos)</span>}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
@@ -231,17 +239,17 @@ export default function BancoHorasShow({ saldo, acordo, movimentos }: Props) {
                     <div className="p-8 text-center text-sm text-muted-foreground">Nenhuma movimentação registrada.</div>
                   ) : (
                     <div className="overflow-x-auto">
-                      <table className="w-full text-[12.5px]">
+                      <table className="w-full text-[12.5px] leading-[1.5]">
                         <thead>
                           <tr>
                             <th className={th}>Data</th>
                             <th className={th}>Referência</th>
                             <th className={th}>Origem</th>
-                            <th className={cn(th, 'text-right')}>Minutos</th>
+                            <th className={cn(th, 'text-right font-mono')}>Minutos</th>
                             <th className={th}>Observação</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-border">
+                        <tbody>
                           {rows.map((m) => (
                             <tr key={m.id} className="hover:bg-accent/30">
                               {/* Absoluta, não "há X": o extrato é prova (quando foi lançado), e a
@@ -257,9 +265,11 @@ export default function BancoHorasShow({ saldo, acordo, movimentos }: Props) {
                                   {m.tipo}
                                 </Badge>
                               </td>
-                              {/* Cor de texto normal, como o render do protótipo: o sinal (+/−) já diz. */}
+                              {/* Verde para crédito, vermelho para débito (protótipo `Min`, ponto-ui.jsx:172). */}
                               <td className={cn(td, 'text-right font-mono tabular-nums')}>
-                                {minutosComSinal(m.minutos)}
+                                <span className={m.minutos > 0 ? 'text-success-fg' : m.minutos < 0 ? 'text-destructive-fg' : 'text-muted-foreground'}>
+                                  {minutosComSinal(m.minutos)}
+                                </span>
                               </td>
                               {/* Protótipo: <small> 10,5px esmaecido, que QUEBRA linha (sem truncar). */}
                               <td className={cn(td, 'text-[10.5px] text-muted-foreground')}>
@@ -306,10 +316,8 @@ export default function BancoHorasShow({ saldo, acordo, movimentos }: Props) {
           <Card className={cardSemRespiro} data-contract="bancohoras-ajuste-manual">
             <CardHeader className={cabecalhoCard}>
               <CardTitle className={tituloCard}>
-                Ajuste manual{' '}
-                <span className="font-mono text-[11.5px] font-medium text-muted-foreground">
-                  — registra lançamento no ledger (imutável)
-                </span>
+                Ajuste manual
+                <span className={contagemCard}>registra lançamento no ledger (imutável)</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="px-3.5 pt-3.5 pb-3.5">
@@ -317,7 +325,7 @@ export default function BancoHorasShow({ saldo, acordo, movimentos }: Props) {
                 <Stack gap={3}>
                   <div>
                     <Label variant="shadcn" htmlFor="minutos" className={rotuloCampo}>
-                      Minutos <span className="text-destructive">*</span>
+                      Minutos <span className="text-destructive-fg">*</span>
                     </Label>
                     <Input
                       variant="shadcn"
@@ -327,16 +335,16 @@ export default function BancoHorasShow({ saldo, acordo, movimentos }: Props) {
                       onChange={(e) => form.setData('minutos', parseInt(e.target.value || '0', 10))}
                       placeholder="Use negativo para débito"
                       aria-describedby="minutos-ajuda"
-                      className={cn(campo, 'h-[34px] font-mono')}
+                      className={cn(campo, 'h-[34px]')}
                     />
-                    <p id="minutos-ajuda" className="mt-2 text-[11.5px] text-[var(--text-mute)]">
+                    <p id="minutos-ajuda" className="mt-2 text-[11.5px] leading-[1.4] text-[var(--text-mute)]">
                       Ex.: 60 (crédito 1h), −30 (débito 30 min).
                     </p>
                     {form.errors.minutos && <p className="text-xs text-destructive mt-1">{form.errors.minutos}</p>}
                   </div>
                   <div>
                     <Label variant="shadcn" htmlFor="obs" className={rotuloCampo}>
-                      Observação <span className="text-destructive">*</span>
+                      Observação <span className="text-destructive-fg">*</span>
                     </Label>
                     <Textarea
                       variant="shadcn"
@@ -353,8 +361,12 @@ export default function BancoHorasShow({ saldo, acordo, movimentos }: Props) {
                     <Check size={14} aria-hidden="true" />
                     {form.processing ? 'Salvando…' : 'Registrar ajuste'}
                   </Button>
-                  <Inline gap={2} align="start" className="gap-[11px] rounded-[8px] border border-warning/[0.22] bg-warning/[0.06] px-3.5 py-3 text-[13px] text-foreground">
-                    <AlertTriangle size={15} className="mt-px shrink-0 text-warning-fg" aria-hidden="true" />
+                  {/* Nota do DS (Alert tom warn): ícone de 14px num quadro de 22px (raio 6, fundo a
+                      14%), texto 12,5px esmaecido; respiro 12/14 (caixa medida: 81px). */}
+                  <Inline gap={2} align="start" className="gap-[11px] rounded-[8px] border border-warning-fg/[0.22] bg-warning-fg/[0.06] px-3.5 py-3 text-[12.5px] leading-[1.45] text-muted-foreground">
+                    <span className="grid size-[22px] shrink-0 place-items-center rounded-[6px] bg-warning-fg/[0.14] text-warning-fg" aria-hidden="true">
+                      <AlertTriangle size={14} />
+                    </span>
                     <span>
                       O ajuste não apaga nem edita movimento anterior: entra como lançamento novo com o seu nome.
                       É assim que a auditoria reconstrói o saldo.

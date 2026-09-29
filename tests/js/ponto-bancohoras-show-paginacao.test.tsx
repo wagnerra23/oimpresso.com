@@ -206,6 +206,25 @@ describe('forma do extrato segue o detalhe do protótipo', () => {
     expect(screen.getByText('+00:01')).toBeTruthy();
   });
 
+  // Protótipo `Min` (ponto-ui.jsx:172): crédito em verde, débito em vermelho. A 1ª versão desta
+  // tela deixava na cor do texto — o inventário prop-a-prop (2026-09-29) mediu a cor no render.
+  it('minutos: crédito verde, débito vermelho (cor no span, alinhado à direita)', () => {
+    const movs = { ...pagina(1, 1), data: [{ ...mov(1), minutos: 90 }, { ...mov(2), minutos: -30 }] };
+    render(<BancoHorasShow saldo={saldo} acordo={acordo} movimentos={movs} />);
+
+    const credito = screen.getByText('+01:30');
+    const debito = screen.getByText(/^[−-]00:30$/);
+    expect(credito.className).toContain('text-success-fg');
+    expect(debito.className).toContain('text-destructive-fg');
+    expect(credito.closest('td')!.className).toContain('text-right');
+  });
+
+  it('subtítulo do card de ajuste sai SEM o travessão, como o Card do protótipo desenha', () => {
+    render(<BancoHorasShow saldo={saldo} acordo={acordo} movimentos={pagina(2)} />);
+    expect(screen.getByText('registra lançamento no ledger (imutável)')).toBeTruthy();
+    expect(screen.queryByText(/— registra lançamento/)).toBeNull();
+  });
+
   it('ledger vazio: "Nenhuma movimentação registrada."', () => {
     render(<BancoHorasShow saldo={saldo} acordo={acordo} movimentos={{ ...pagina(1, 1), data: [], total: 0 }} />);
     expect(screen.getByText('Nenhuma movimentação registrada.')).toBeTruthy();
