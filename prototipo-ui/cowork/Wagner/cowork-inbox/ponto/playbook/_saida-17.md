@@ -28,22 +28,22 @@ Recibo único da thread, atualizado a cada PR.
 
 | PR | ids | arquivo `.tsx` | parte do map | estado |
 |---|---|---|---|---|
-| PR-1 #8088 | `intercorrencias-intercorrencias` | `Intercorrencias/Index.tsx` (`<Card>` da lista) | `intercorrencias-index.map.json` · `lista-de-intercorrencias` | aberto |
-| PR-1 #8088 | `bancohoras-saldos-por-colaborador` | `BancoHoras/Index.tsx` (`<Card>` da tabela) | `banco-horas-index.map.json` · `saldos-por-colaborador` | aberto |
+| PR-1 #8088 | `intercorrencias-intercorrencias` | `Intercorrencias/Index.tsx` (`<Card>` da lista) | `intercorrencias-index.map.json` · `lista-de-intercorrencias` | mergeado 2026-09-28 |
+| PR-1 #8088 | `bancohoras-saldos-por-colaborador` | `BancoHoras/Index.tsx` (`<Card>` da tabela) | `banco-horas-index.map.json` · `saldos-por-colaborador` | mergeado 2026-09-28 |
 | PR-2 #8114 | `aprovacoes-fila-de-aprovacoes` | `Aprovacoes/Index.tsx:330` (`<Card>` da fila) | `aprovacoes-index.map.json` · `fila-de-aprovacoes` | mergeado 2026-09-29 |
-| PR da forma de Escalas (`claude/ponto-escalas-forma`) | `escalas-escalas-cadastradas` | `Escalas/Index.tsx` (`<Card>` da lista) | `escalas-index.map.json` · parte da lista | no PR da sessão que aplica a forma do protótipo; combinado em 2026-09-28 para não haver dois PRs no mesmo arquivo |
-| #8113 + PR-2b #8119 | `bancohoras-historico-de-movimentos` · `bancohoras-ajuste-manual` | `BancoHoras/Show.tsx:179` · `:270` (gravados pelo #8113, mergeado) | `banco-horas-show.map.json` · `historico-de-movimentos` · `ajuste-manual` (declarados no #8119) | aberto |
-| PR-3a #8090 | `colaboradores-colaboradores` | `Colaboradores/Index.tsx:101` | `colaboradores-index.map.json` · `lista-de-colaboradores` | aberto |
-| PR-3a #8090 | `colaboradorform-configuracao-de-ponto` | `Colaboradores/Edit.tsx:85` (card único "Identificação", paridade de campos) | `colaboradores-edit.map.json` · `configuracao-de-ponto-campos` | aberto |
-| PR-3b #8091 | `importacoes-historico-de-importacoes` | `Importacoes/Index.tsx:74` | `importacoes-index.map.json` · `historico-de-importacoes` | aberto |
-| PR-3b #8091 | `importacoes-upload-do-arquivo` | `Importacoes/Create.tsx:74` (card da página própria) | `importacoes-create.map.json` · `tela-propria-ou-card-inline` | aberto |
-| PR-3b #8091 | `importacoes-dados-do-arquivo` · `importacoes-resumo-do-processamento` | `Importacoes/Show.tsx:91` · `:109` | `importacoes-show.map.json` · `dados-do-arquivo` · `resumo-do-processamento` | aberto |
+| #8115 (forma de Escalas, `claude/ponto-escalas-forma`) | `escalas-escalas-cadastradas` | `Escalas/Index.tsx` (`<Card>` da lista) | `escalas-index.map.json` · parte da lista | mergeado 2026-09-29 — o id foi gravado no PR da sessão que aplicou a forma do protótipo, como combinado em 2026-09-28, para não haver dois PRs no mesmo arquivo |
+| #8113 + PR-2b #8119 | `bancohoras-historico-de-movimentos` · `bancohoras-ajuste-manual` | `BancoHoras/Show.tsx:179` · `:270` (gravados pelo #8113, mergeado) | `banco-horas-show.map.json` · `historico-de-movimentos` · `ajuste-manual` (declarados no #8119) | mergeado 2026-09-29 (#8113 em 2026-09-28) |
+| PR-3a #8090 | `colaboradores-colaboradores` | `Colaboradores/Index.tsx:101` | `colaboradores-index.map.json` · `lista-de-colaboradores` | mergeado 2026-09-28 |
+| PR-3a #8090 | `colaboradorform-configuracao-de-ponto` | `Colaboradores/Edit.tsx:85` (card único "Identificação", paridade de campos) | `colaboradores-edit.map.json` · `configuracao-de-ponto-campos` | mergeado 2026-09-28 |
+| PR-3b #8091 | `importacoes-historico-de-importacoes` | `Importacoes/Index.tsx:74` | `importacoes-index.map.json` · `historico-de-importacoes` | mergeado 2026-09-28 |
+| PR-3b #8091 | `importacoes-upload-do-arquivo` | `Importacoes/Create.tsx:74` (card da página própria) | `importacoes-create.map.json` · `tela-propria-ou-card-inline` | mergeado 2026-09-28 |
+| PR-3b #8091 | `importacoes-dados-do-arquivo` · `importacoes-resumo-do-processamento` | `Importacoes/Show.tsx:91` · `:109` | `importacoes-show.map.json` · `dados-do-arquivo` · `resumo-do-processamento` | mergeado 2026-09-28 |
 | fora (a nascer) | `colaboradorform-dados-do-hrm` · `importacoes-diagnostico-do-processamento` · `importacoes-amostra-de-erros` · `relatorios-pedidos-desta-sessao` | — | gap: ausente no vivo | sem id até a região nascer |
 | fora (sai do protótipo) | `relatorios-gerar` | — | `D-REL-FLUXO`: filtros globais; o wizard sai do protótipo (R2) | sem id; o protótipo remove |
-| PR-4 #8096 | `configuracoes-regras-clt-reforma-trabalhista` · `configuracoes-banco-de-horas` · `configuracoes-rep-e-imutabilidade-de-marcacoes` · `configuracoes-afd-importacao-esocial` | `Configuracoes/Index.tsx:111` · `:131` · `:148` · `:178` | `configuracoes-index.map.json` (4 partes; status re-medido pós-#8078) | aberto |
-| PR-4 #8096 | `configuracoes-cadastrar-novo-rep` · `configuracoes-reps-cadastrados` | `Configuracoes/Reps.tsx:85` · `:140` | `configuracoes-reps.map.json` | aberto |
+| PR-4 #8096 | `configuracoes-regras-clt-reforma-trabalhista` · `configuracoes-banco-de-horas` · `configuracoes-rep-e-imutabilidade-de-marcacoes` · `configuracoes-afd-importacao-esocial` | `Configuracoes/Index.tsx:111` · `:131` · `:148` · `:178` | `configuracoes-index.map.json` (4 partes; status re-medido pós-#8078) | mergeado 2026-09-28 |
+| PR-4 #8096 | `configuracoes-cadastrar-novo-rep` · `configuracoes-reps-cadastrados` | `Configuracoes/Reps.tsx:85` · `:140` | `configuracoes-reps.map.json` | mergeado 2026-09-28 |
 | fora (a nascer) | `configuracoes-ia-do-ponto` | — | gap: ausente no vivo (`D-CFG-IA` pendente) | sem id |
-| PR-5 #8120 | `intercorrencias-card` → `intercorrencias-dados-da-ocorrencia` · `escalaform-card` → `escalaform-dados-da-escala` | `Intercorrencias/Create.tsx:241` (card "Dados da ocorrência") · `Escalas/Form.tsx:89` (card "Dados da escala") | sem âncora de map: as partes dos dois maps são por campo | aberto; renomeado nos dois lados, espelho subido ao Cowork e re-verificado no ledger |
+| PR-5 #8120 | `intercorrencias-card` → `intercorrencias-dados-da-ocorrencia` · `escalaform-card` → `escalaform-dados-da-escala` | `Intercorrencias/Create.tsx:241` (card "Dados da ocorrência") · `Escalas/Form.tsx:89` (card "Dados da escala") | sem âncora de map: as partes dos dois maps são por campo | mergeado 2026-09-29; renomeado nos dois lados, espelho subido ao Cowork e re-verificado no ledger |
 
 ## Portões do PR-1
 
