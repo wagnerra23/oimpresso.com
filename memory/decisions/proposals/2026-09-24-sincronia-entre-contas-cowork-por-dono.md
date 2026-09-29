@@ -235,3 +235,31 @@ Consequência para as outras peças:
   envio (opt-in).
 
 A promoção desta proposta a ADR aceita é ato do [W] (merge = ratificação).
+
+## 10 · D4 reaberta — um git, dois projetos no Claude Design ([W] 2026-09-29)
+
+**Decisão [W], textual:** *"quero 1 git e dois desing syncronizado com ultimo git"*. Dada depois
+de a Maiara pedir as opções (a) Team, (b) segundo projeto como cópia, (c) deixar como está;
+[W] reagiu a (c) com *"assim ficou muito chato"*.
+
+**O que muda em relação à D4 (c) de 2026-09-25:**
+
+- **A fonte é o git** (`prototipo-ui/cowork/Wagner/`), não um projeto do Claude Design.
+- **Dois projetos recebem cópia dele:** o de telas do [W] (`COWORK_PROJECT_ID`) e o
+  `PROJETOS.telasFelipe` (*"PROTÓTIPO OFICIAL - PRODUTO UNIFICADO V2"*), onde a Maiara vê a tela.
+- **Cada conta sobe o seu.** A conta da Maiara/Felipe não entra no projeto do [W] (conta pessoal;
+  compartilhamento só em organização Team/Enterprise — informação da Maiara, não verificada aqui),
+  e a sessão do [W] não grava no projeto dela.
+
+**O que NÃO muda:** o check `espelho — mexeu depois de verificar` continua cobrando só o projeto
+do [W]; escrita no Claude Design continua exigindo opt-in (ADR 0315); a D3 (a) segue valendo.
+
+**Máquina (sem máquina nova, extensão da §5):** `pendentes-cowork.mjs` ganha `--projeto copia`
+(estado próprio em `scripts/design-sync/state/enviados-cowork-copia.json`), `--resumo` e
+`--conferir <dir>` (compara o lido de volta com o git e só então registra); o hook advisory
+`lembrar-subida-cowork.mjs` avisa, depois de `gh pr create`/`git push`, o que o branch mudou no
+espelho e ainda não subiu para cada projeto.
+
+**Ponto em aberto (não decidido aqui):** a cópia nunca recebeu envio registrado, então no primeiro
+`--projeto copia` aparecem os ~890 arquivos do espelho. Subir tudo de uma vez ou só as telas que a
+Maiara usa é escolha de quem opera a conta dela.

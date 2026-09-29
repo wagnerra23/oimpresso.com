@@ -177,7 +177,7 @@ lifecycle: ativo
 | `whatsapp-pest.yml` | pr+push+manual | `memory/08-handoff.md` +1 | Whatsapp · Pest (MySQL) |
 | `xss-content-gate.yml` | pr+push | — | XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo) |
 
-## 2. Hooks (PreToolUse/PostToolUse/SessionStart) — 53 arquivos
+## 2. Hooks (PreToolUse/PostToolUse/SessionStart) — 54 arquivos
 
 > Fonte viva com evento×matcher×sinal-de-bloqueio: **`.claude/hooks/_HOOKS-INDEX.md`** (auto-gerado).
 >
@@ -220,6 +220,7 @@ lifecycle: ativo
 | `force-r12-closing-signal.mjs` | UserPromptSubmit(*) | — | `memory/decisions/0234-automation-registry-mcp.md` +8 | Hook UserPromptSubmit — FORÇA R12 PROTOCOLO ao detectar sinal de fechamento. |
 | `git-base-freshness-guard.mjs` | SessionStart(*) | test | `memory/reference/prototipo-ui/PROTOCOL.md` +15 | Hook SessionStart — GUARD de base fresca vs `origin/main`. |
 | `handoff-inline.mjs` | SessionStart(*) | test | `memory/08-handoff.md` +1 | SessionStart (PORTE cross-plataforma do comando PowerShell INLINE do settings.json). |
+| `lembrar-subida-cowork.mjs` | PostToolUse(Bash) | test | `memory/decisions/proposals/2026-09-24-sincronia-entre-contas-cowork-por-dono.md` | PostToolUse:Bash. Depois de `gh pr create` ou `git push`, se o |
 | `licoes-code-two-strikes.mjs` | SessionStart(*) | test | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +25 | SessionStart (PORTE cross-plataforma do .ps1, advisory). |
 | `loop-fechar-check.mjs` | SessionStart(*) | test | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +11 | SessionStart (PORTE cross-plataforma do .ps1, advisory). |
 | `maquinas-inventario-no-commit.mjs` | PreToolUse(Bash) | test | `memory/reference/FLUXO-MAQUINAS.md` +5 | o INVOCADOR do `--write` (PreToolUse · Bash · `git commit`) |
