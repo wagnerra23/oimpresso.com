@@ -33,6 +33,8 @@ mesma imutabilidade do relógio do balcão (Portaria MTP 671/2021 reconhece o RE
 - Bater ponto: escolhe o tipo (Entrada · Saída almoço · Retorno almoço · Saída) e envia com a
   localização real do aparelho; o NSR e o hash vêm do servidor.
 - Mostra as marcações de hoje com NSR, e "fora da área" quando o servidor sinalizou geofence.
+- Meu espelho: totais e dia a dia do mês corrente, com os builders do Espelho/Show.
+- Justificar: envia intercorrência que nasce `PENDENTE` na fila de Aprovações.
 - Aba "REP-P (celular)" no header de módulo, 10ª, igual ao protótipo (`ponto-page.jsx` ABAS).
 - PT-BR em todo label/placeholder/mensagem.
 
