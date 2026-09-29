@@ -18,6 +18,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Skeleton } from '@/Components/ui/skeleton';
 import EmptyState from '@/Components/shared/EmptyState';
+import { Inline, Stack } from '@/Components/layout';
 
 export interface MarcacaoMobile {
   id: string; nsr: number; quando: string | null; tipo: string; colaborador: string;
@@ -55,7 +56,8 @@ function Tabela({ itens, podeRecusar }: { itens?: MarcacaoMobile[]; podeRecusar:
 
   return (
     <Card data-contract="repp-fila-validacao">
-      <CardContent className="flex flex-col gap-3 p-4">
+      <CardContent className="p-4">
+      <Stack gap={3}>
         <div>
           <h2 className="font-semibold">Marcações mobile a validar</h2>
           <p className="text-xs text-muted-foreground">({pendentes} pendentes · últimos 7 dias)</p>
@@ -94,12 +96,14 @@ function Tabela({ itens, podeRecusar }: { itens?: MarcacaoMobile[]; podeRecusar:
                     <td className="p-3"><Badge variant={ESTADO[m.estado].variant}>{ESTADO[m.estado].label}</Badge></td>
                     <td className="p-3 text-right">
                       {m.estado === 'PENDENTE' ? (
-                        <span className="inline-flex gap-2">
+                        <Inline asChild gap={2} className="inline-flex">
+                        <span>
                           <Button size="sm" disabled={enviando} onClick={() => decidir(m, 'validar')}>Validar</Button>
                           {podeRecusar && (
                             <Button size="sm" variant="destructive" disabled={enviando} onClick={() => setRecusar(m)}>Recusar</Button>
                           )}
                         </span>
+                        </Inline>
                       ) : <span className="text-muted-foreground">—</span>}
                     </td>
                   </tr>
@@ -108,6 +112,7 @@ function Tabela({ itens, podeRecusar }: { itens?: MarcacaoMobile[]; podeRecusar:
             </table>
           </div>
         )}
+      </Stack>
       </CardContent>
 
       <AlertDialog open={recusar !== null} onOpenChange={(o) => { if (!o) setRecusar(null); }}>
