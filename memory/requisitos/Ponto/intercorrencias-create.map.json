@@ -119,12 +119,12 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
-        "linhas": "244-246",
+        "linhas": "244-247",
         "ancora": false
       },
-      "status": "gap",
-      "acao": "Gap real no vivo: a copy promete um efeito que o salvar não tem. Trocar pela frase do protótipo. É copy, mas é copy que descreve comportamento — por isso não espera a passada de FORMA.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Nada — corrigido no vivo pelo #8076 (copy + teste em `IntercorrenciaContratoTest.php`). A diferença que sobra é de FORMA (`Nota` × `CardDescription`), da passada de forma.",
+      "_acionavel": false
     },
     {
       "id": "rodape-de-acoes",
