@@ -142,3 +142,51 @@ Junto, no mesmo PR:
 
 O código do `AttendanceController` e o dado de `essentials_attendances` **não** são apagados aqui:
 migrar esse dado para o Ponto é outro PR, com dupla prova (regra de VALOR em `proibicoes.md`).
+
+---
+
+## Emenda 2026-09-29 — dono por papel: escala é do Ponto (D4), feriado é do HRM e lido pelo Ponto (D5) ([W])
+
+> Emenda datada, registrada pela thread 12 do playbook SINCRONIZAR Hrm
+> (`prototipo-ui/cowork/Wagner/cowork-inbox/hrm/playbook/12-dono-por-papel.md`). O texto de
+> 2026-04-21 e a emenda de 2026-09-05 / 2026-09-24 ficam como estão.
+
+**Regra ([W] 2026-09-29), extensão da D1:** o Ponto é dono da **jornada**; o HRM é dono do
+**cadastro de pessoas** e da **aprovação**.
+
+**D4 — escala / horário contratual é do Ponto.** A linha *"Shift do Essentials é a fonte de
+verdade para horário contratual"* (§Decisão 1, 2026-04-21) **não vale mais**, e a do fluxo
+(`Essentials.Shift → PontoWr2.Colaborador.escala_atual_id`) também não. A fonte é
+`ponto_escalas`. O código já era assim — a ADR é que estava errada:
+`escala_atual_id` referencia `ponto_escalas` (migration
+`Modules/Ponto/Database/Migrations/2026_04_18_000003_*.php:42`, `Colaborador.php:102`), e o Ponto
+não lê `Shift`.
+
+Consequência: o cadastro de turno do HRM (`/hrm/shift` resource e `/hrm/shift/assign-users`) vira
+**301 → `/ponto/escalas`**. O `ShiftController`, a entidade `Shift` e o dado de
+`essentials_shifts` / `essentials_user_shifts` **não** são apagados aqui; migrar ou apagar o dado é
+outro PR, com dupla prova (regra de VALOR em `proibicoes.md`).
+
+Medido em produção em 2026-09-29, antes do 301 (SELECT somente leitura): **1** business com turno
+cadastrado (3 turnos, 7 vínculos de colaborador, última alteração em **2023-02-01**), e **0**
+registros em `ponto_escalas` em qualquer business. Nenhum cálculo do Ponto depende desses turnos,
+porque o Ponto não os lê.
+
+**D5 — feriado é cadastro do HRM, lido pelo Ponto.** O cadastro fica no HRM
+(`EssentialsHoliday`, tela `Essentials/Holidays/Index`); a apuração do Ponto deve lê-lo para
+HE 100% em feriado (Art. 73 da CLT) e para não contar falta. **Hoje o Ponto não lê**: 0 ocorrências
+de `EssentialsHoliday` em `Modules/Ponto` (medido na base da thread). A frase de 2026-04-21
+*"PontoWR2 usa para cálculo de HE em feriado"* descrevia a intenção, não o código. Fica como
+pedido ao dono do Ponto; não é executado por esta emenda.
+
+### Tema → dono → quem consome
+
+| tema | dono | quem consome | estado em 2026-09-29 |
+|---|---|---|---|
+| Presença / marcação | Ponto | — | feito (emenda 2026-09-05 / 2026-09-24) |
+| Escala / horário contratual (D4) | Ponto (`ponto_escalas`) | — | `/hrm/shift` → 301 `/ponto/escalas` |
+| Feriados (D5) | HRM (`EssentialsHoliday`) | Ponto (apuração, Art. 73 CLT) | o Ponto ainda não lê — pedido aberto |
+| Licença (aprovação) | HRM | Ponto abona o dia | feito (`ApuracaoService`, `LicencaAbonaDiaContratoTest`) |
+| Licença bloqueia marcação (D3) | Ponto | — | pedido aberto |
+| Departamentos / Cargos | HRM | — | cadastro do core, abas no HRM |
+| Folha | projeto Folha (ADR própria) | lê horas do Ponto | bloqueada até o motor |
