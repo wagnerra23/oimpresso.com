@@ -29,9 +29,17 @@ interface Importacao {
   linhas_criadas: number;
   linhas_ignoradas: number;
   erro_mensagem: string | null;
+  erros_amostra: ErroAmostra[];
   created_at: string | null;
   updated_at: string | null;
   usuario: string | null;
+}
+
+interface ErroAmostra {
+  linha: number | null;
+  nsr: number | null;
+  tipo: string | null;
+  erro: string;
 }
 
 interface Props { importacao: Importacao; }
@@ -126,6 +134,44 @@ export default function ImportacoesShow({ importacao: i }: Props) {
             </CardContent>
           </Card>
         </div>
+
+        {/* D-IMP-EXTRAS ([W] 2026-09-14): por que as linhas falharam, sem abrir o .txt.
+            Decide pelo TAMANHO — [] é truthy em JS (UC-IMPSH-05). UC-IMPSH-06. */}
+        {(i.erros_amostra ?? []).length > 0 && (
+          <Card data-contract="importacoes-amostra-de-erros">
+            <CardHeader>
+              {/* Forma do protótipo (ponto-telas.jsx, card "Amostra de erros"): título + "(N primeiros)". */}
+              <CardTitle className="text-base">
+                Amostra de erros{' '}
+                <span className="text-xs font-normal text-muted-foreground">({i.erros_amostra.length} primeiros)</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead className="border-b border-border bg-muted/30 text-muted-foreground">
+                    <tr>
+                      <th className="text-left p-3 font-medium">Linha</th>
+                      <th className="text-left p-3 font-medium">NSR</th>
+                      <th className="text-left p-3 font-medium">Tipo</th>
+                      <th className="text-left p-3 font-medium">Mensagem</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {i.erros_amostra.map((e, k) => (
+                      <tr key={k}>
+                        <td className="p-3 font-mono">{e.linha ?? '—'}</td>
+                        <td className="p-3 font-mono">{e.nsr ?? '—'}</td>
+                        <td className="p-3 font-mono">{e.tipo ?? '—'}</td>
+                        <td className="p-3">{e.erro}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </>
   );
