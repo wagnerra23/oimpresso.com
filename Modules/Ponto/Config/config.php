@@ -73,7 +73,8 @@ return [
     | webroot). Download só pela rota autenticada — UC-INTCRE-04.
     */
     'intercorrencias' => [
-        'anexo_disk' => env('PONTO_ANEXO_DISK', 'arquivos'),
+        // Literal, não env(): o baseline do Larastan conta os env() deste arquivo (ratchet).
+        'anexo_disk' => 'arquivos',
     ],
 
     'afd' => [

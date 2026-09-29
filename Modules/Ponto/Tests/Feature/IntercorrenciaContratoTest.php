@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use Modules\Ponto\Entities\Colaborador;
 use Modules\Ponto\Entities\Intercorrencia;
 use Modules\Ponto\Tests\Feature\PontoTestCase;
+use Spatie\Permission\PermissionRegistrar;
 
 uses(PontoTestCase::class);
 
@@ -468,6 +469,10 @@ it('UC-INTCRE-04 · o comprovante anexado vai para disco privado, só quem aprov
         'username'    => strtolower(INTC_MARCADOR) . '-leitor-' . uniqid(),
     ]);
     $semAprovacao->givePermissionTo('ponto.access');
+    // Mesmo idioma dos irmãos (Fechamento, BancoHorasImportacao, EscalaRemocao): sem esquecer o
+    // cache da Spatie, a permissão recém-dada não vale nesta requisição e o middleware do módulo
+    // devolve 403 já no detalhe — medido na 1ª run da lane (a âncora positiva pegou).
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
     $this->assertFalse($semAprovacao->can('ponto.aprovacoes.manage'), 'O leitor não pode ter a permissão de aprovação.');
 
     $this->actingAs($semAprovacao);
