@@ -50,7 +50,7 @@ class AbasContadoresService
     private function apontamentos(int $businessId, string $mes): ?int
     {
         $painel = $this->conformidade->competencia($businessId, $mes);
-        if (($painel['cobertura']['estado'] ?? null) !== ConformidadeService::ESTADO_APURADO) {
+        if ($painel['cobertura']['estado'] !== ConformidadeService::ESTADO_APURADO) {
             return null;
         }
 
