@@ -5,7 +5,7 @@ autor: "[CL]"
 criado: 2026-09-29
 base: bfef050db
 thread: 06-rep-p.md
-veredito: "os 4 passos em PRs empilhados (#8130 → #8131 → #8136 → #8137 → #8139 → #8142); o passo 3 parou pelo PARAR SE (c) e foi destravado por [W] no mesmo dia (seção nova em Aprovações); lane ponto-pest vermelha no 1º run por ambiente (chave OAuth), conserto já empurrado — veredito final pendente."
+veredito: "os 4 passos em PRs empilhados (#8130 → #8131 → #8156 → #8157 → #8158 → #8159); o passo 3 parou pelo PARAR SE (c) e foi destravado por [W] no mesmo dia (seção nova em Aprovações); lane ponto-pest vermelha no 1º run por ambiente (chave OAuth), conserto já empurrado — veredito final pendente."
 ---
 
 # _saída 06 · REP-P sem selfie
@@ -21,19 +21,21 @@ Empilhamento sobre a cadeia W9 (#8118 → #8123 → #8125) por pedido explícito
 |---|---|---|
 | [#8130](https://github.com/wagnerra23/oimpresso.com/pull/8130) | `main` | 1a · `marcar` · `marcacoes/hoje` · `saldo` saem do 501 → `MobileMarcacaoController` (`ponto.api.*`) · Tier 0: colaborador sempre o do usuário · 10 casos Pest |
 | [#8131](https://github.com/wagnerra23/oimpresso.com/pull/8131) | #8130 | 1b · intercorrências GET/POST · escala de hoje · KPIs · bloco 2 sem nenhum 501 · +4 casos |
-| [#8136](https://github.com/wagnerra23/oimpresso.com/pull/8136) | #8131 **+ merge da W9** | 2a · tela `/ponto/mobile` (Bater ponto) via `criar-tela.mjs` · charter · casos UC-REPP-00..05 · `RUNBOOK-mobile.md` · aba "REP-P (celular)" 10ª · sai a exceção do `ponto-subnav-abas.test.tsx` · `RepPMobileContratoTest` na lane |
-| [#8137](https://github.com/wagnerra23/oimpresso.com/pull/8137) | #8136 | 2b · Meu espelho (builders do Espelho/Show) · Justificar (nasce `PENDENTE`) · UC-REPP-06/07 · GUARD lê a pasta toda |
-| [#8139](https://github.com/wagnerra23/oimpresso.com/pull/8139) | #8137 | 4 · `governance/design/contracts/ponto-rep-p.contract.json` (8 seções, copy dos dois lados) + esta saída |
-| [#8142](https://github.com/wagnerra23/oimpresso.com/pull/8142) | #8139 | 3 · seção "Marcações mobile a validar" em Aprovações · Validar = trilha · Recusar = `Marcacao::anular()` · UC-PAPR-06..08 |
+| [#8156](https://github.com/wagnerra23/oimpresso.com/pull/8156) | #8131 **+ merge da W9** | 2a · tela `/ponto/mobile` (Bater ponto) via `criar-tela.mjs` · charter · casos UC-REPP-00..05 · `RUNBOOK-mobile.md` · aba "REP-P (celular)" 10ª · sai a exceção do `ponto-subnav-abas.test.tsx` · `RepPMobileContratoTest` na lane |
+| [#8157](https://github.com/wagnerra23/oimpresso.com/pull/8157) | #8156 | 2b · Meu espelho (builders do Espelho/Show) · Justificar (nasce `PENDENTE`) · UC-REPP-06/07 · GUARD lê a pasta toda |
+| [#8158](https://github.com/wagnerra23/oimpresso.com/pull/8158) | #8157 | 4 · `governance/design/contracts/ponto-rep-p.contract.json` (8 seções, copy dos dois lados) + esta saída |
+| [#8159](https://github.com/wagnerra23/oimpresso.com/pull/8159) | #8158 | 3 · seção "Marcações mobile a validar" em Aprovações · Validar = trilha · Recusar = `Marcacao::anular()` · UC-PAPR-06..08 |
 
-Ordem de merge: #8130 → #8131 (já mergeado na base do #8130) → cadeia W9 → #8136 → #8137 → #8139 → #8142.
+_(#8136/#8137/#8139/#8142 foram substituídos por #8156–#8159 em 2026-09-29: depois do squash do #8130 e do #8118 no `main`, a pilha antiga conflitava em 12 arquivos, vários de outra sessão; a nova é o `main` + só os commits desta thread.)_
+
+Ordem de merge: #8130 (1a+1b, **mergeado** em `main` 2026-09-29) → #8156 → #8157 → #8158 → #8159. A W9 que a tela usa (#8118) já está no `main`.
 
 ## Placar da thread (a "Prova" do 06-rep-p.md)
 
 | prova | estado |
 |---|---|
 | `routes.php` sem `abort(501, 'Implementar em MarcacaoApiController::marcar')` e com `MobileMarcacaoController` | ✓ no #8130 (e zero `abort(501` no bloco 2 com o #8131) |
-| `${PAGES}/Mobile/Index.tsx` | ✓ no #8136 |
+| `${PAGES}/Mobile/Index.tsx` | ✓ no #8156 |
 | `ponto-rep-p.contract.json` com `alvo` + `secoes` | ✓ — `contrato-de-tela --contract` limpo |
 | controller **sem** `selfie` | ✓ — só a palavra "biometria" no docblock que registra a decisão |
 | lane `ponto-pest.yml` verde (GUARD incluído) | ⏳ **pendente** — ver abaixo |
@@ -54,7 +56,7 @@ de anulação, D3). A tela viva de Aprovações lista **intercorrências**, que 
 "Um filtro `origem=mobile` em Aprovações" não mostra essas marcações — exigiria seção nova, dado novo
 e a ação de anulação. É o caso *"fila do gestor exigir tela nova → parar"*.
 
-**[W] 2026-09-29: "seção nova em Aprovações"** → #8142. Validar não tinha lugar de registro definido
+**[W] 2026-09-29: "seção nova em Aprovações"** → #8159. Validar não tinha lugar de registro definido
 (a thread 30 só define Recusar): ficou na trilha de auditoria (`activity_log`, sem DDL). Precisão do
 GPS e nome do local não são gravados — a seção mostra "—" e as coordenadas.
 
@@ -70,7 +72,7 @@ GPS e nome do local não são gravados — a seção mostra "—" e as coordenad
 4. **Não feito:** comparação **medida** tela × protótipo (`comparar-design-prod`) — exige a tela
    renderizada em ambiente; nenhuma afirmação de "igual ao protótipo" foi feita.
 5. **Permissão de recusar** — ✓ decidido por [W] 2026-09-29: exige `ponto.aprovacoes.manage` na rota
-   (UC-PAPR-09, #8142). Validar segue com `ponto.access`.
+   (UC-PAPR-09, #8159). Validar segue com `ponto.access`.
 6. **Motivo da anulação** — o `anular()` canônico guarda só um md5 do motivo no `dispositivo_id`; o
    texto não fica em coluna nenhuma.
 7. `--preflight` do contrato-de-tela reprova os PRs empilhados por estarem atrás de `origin/main` —
