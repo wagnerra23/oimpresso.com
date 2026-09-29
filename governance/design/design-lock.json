@@ -13,8 +13,8 @@
       "id": "Manufacturing/Index",
       "owner": "M",
       "prototype_path": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
-      "git_revision": "278d060308",
-      "content_hash": "a29d74c62cef096da91f0aba5eee2ff453dbde40c34acd014a623e0a94ee7426",
+      "git_revision": "9f1ffcd12c",
+      "content_hash": "951d1e9f42a1cc259dd189e997f2a362cb82c346a269e37d9ff501713e743a63",
       "accepted_by": "Maiara",
       "accepted_at": "2026-09-28"
     },
@@ -31,8 +31,8 @@
       "id": "Manufacturing/Recipes",
       "owner": "M",
       "prototype_path": "prototipo-ui/cowork/Wagner/manufacturing-page.jsx",
-      "git_revision": "f01a380f94",
-      "content_hash": "c19cc8c64ecefc276a8aeb445c4224708870147e326990209c02697bd4b17ec5",
+      "git_revision": "9f1ffcd12c",
+      "content_hash": "49ce6a4d889b012a71403a3ed46fcc88f0d0e3c6a69428f496947ea21ea78eb0",
       "accepted_by": "Maiara",
       "accepted_at": "2026-09-28"
     },
@@ -40,8 +40,8 @@
       "id": "Manufacturing/Report",
       "owner": "M",
       "prototype_path": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
-      "git_revision": "278d060308",
-      "content_hash": "a29d74c62cef096da91f0aba5eee2ff453dbde40c34acd014a623e0a94ee7426",
+      "git_revision": "9f1ffcd12c",
+      "content_hash": "951d1e9f42a1cc259dd189e997f2a362cb82c346a269e37d9ff501713e743a63",
       "accepted_by": "Maiara",
       "accepted_at": "2026-09-28"
     },
@@ -49,8 +49,8 @@
       "id": "Manufacturing/Settings",
       "owner": "M",
       "prototype_path": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
-      "git_revision": "278d060308",
-      "content_hash": "a29d74c62cef096da91f0aba5eee2ff453dbde40c34acd014a623e0a94ee7426",
+      "git_revision": "9f1ffcd12c",
+      "content_hash": "951d1e9f42a1cc259dd189e997f2a362cb82c346a269e37d9ff501713e743a63",
       "accepted_by": "Maiara",
       "accepted_at": "2026-09-28"
     }

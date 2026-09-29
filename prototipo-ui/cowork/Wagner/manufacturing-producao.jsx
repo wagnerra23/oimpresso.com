@@ -33,10 +33,13 @@ const fromISO = (s) => { if (!s) return null; const [y, m, d] = s.split("-").map
 // ("Finalizadas" liga o MESMO filtro do checkbox), datas vazias = todas, ordem fixa por data desc sem
 // ordenação por coluna nem paginação, botão Limpar com filtro ativo, estado vazio do vivo, Situação à
 // esquerda e linha que não abre detalhe. Aqui escrito com os componentes do DS desta pasta (ondas A/B):
-// KpiCard nos cartões de leitura e KpiFilterCard no que filtra, como na aba Receitas — o KpiCard do DS
-// não tem slot de ícone, então só "Finalizadas" leva ícone (no do Wagner os 4 têm).
+// KpiCard nos cartões de leitura e KpiCard variant="filter" no que filtra, como na aba Receitas — o
+// KpiCard de leitura do DS não desenha ícone, então só "Finalizadas" leva ícone (no do Wagner os 4
+// têm). `KpiFilterCard` é alias @deprecated do variant="filter" (KpiFilterCard.d.ts) — saiu daqui em
+// 2026-09-29. Cada cartão leva a linha de apoio (description/sub), como os de Receitas: sem ela a
+// faixa media 75px aqui e 98px lá, e trocar de aba fazia a faixa pular (medido a 1280px).
 function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
-  const { Select, Checkbox, DatePicker, StatusBadge, DataGrid, EmptyState, Tooltip, Button, KpiCard, KpiFilterCard } = ds();
+  const { Select, Checkbox, DatePicker, StatusBadge, DataGrid, EmptyState, Tooltip, Button, KpiCard } = ds();
   const { LOCAIS, consumoOP, fmt, num, fmtDate } = G();
   const [local, setLocal] = useState("Todos");
   const [de, setDe] = useState("");
@@ -67,11 +70,12 @@ function MfgProducaoView({ producoes, recipes, perms, onNew, onOpen }) {
   return (
     <>
       <div className="mfg-kpis" data-contract="kpis">
-        <KpiCard label="Total" value={sum.total} />
-        <KpiFilterCard label="Finalizadas" value={sum.final} icon={<I.check size={17} />} tone="emerald"
-          selected={soFinal} onClick={() => setSoFinal(!soFinal)} />
-        <KpiCard label="Pendentes" value={sum.pend} />
-        <KpiCard label="Valor total" value={fmt(sum.valor)} />
+        <KpiCard label="Total" value={sum.total}
+          description={local !== "Todos" || de || ate ? "no filtro de local e data" : "ordens cadastradas"} />
+        <KpiCard variant="filter" label="Finalizadas" value={sum.final} sub="estoque já movimentado"
+          icon={<I.check size={17} />} tone="emerald" selected={soFinal} onClick={() => setSoFinal(!soFinal)} />
+        <KpiCard label="Pendentes" value={sum.pend} description="rascunhos, sem movimentar estoque" />
+        <KpiCard label="Valor total" value={fmt(sum.valor)} description="custo congelado nas finalizadas" />
       </div>
       <div className="mfg-filters">
         <div style={{ width: 180 }}>

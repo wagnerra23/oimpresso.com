@@ -50,7 +50,7 @@ const ABAS = [
 
 function ManufacturingPage({ initialView }) {
   useFilaDoLoader();
-  const { PageHeader, TabBar, Button, KpiCard, KpiFilterCard, BulkBar, EmptyState, StatusBadge, Modal, Toast, DataGrid, Toolbar, SearchInput, Segmented } = ds();
+  const { PageHeader, TabBar, Button, KpiCard, BulkBar, EmptyState, StatusBadge, Modal, Toast, DataGrid, Toolbar, SearchInput, Segmented } = ds();
   const MFG = window.MFG;
   const { fmt, num, custos } = MFG;
   const [aba, setAba] = useState(initialView || "receitas");
@@ -217,10 +217,10 @@ function ManufacturingPage({ initialView }) {
         <>
           <div className="mfg-kpis">
             <KpiCard label="Custo médio / unidade" value={fmt(custoMed)} description={"média das " + recipes.length + " receitas"} />
-            <KpiFilterCard label="Margem abaixo de 45%" value={magra} sub="preço de venda desatualizado"
+            <KpiCard variant="filter" label="Margem abaixo de 45%" value={magra} sub="preço de venda desatualizado"
               icon={<I.scale size={17} />} tone="amber" selected={kpi === "margem"}
               onClick={() => setKpi(kpi === "margem" ? null : "margem")} />
-            <KpiFilterCard label="Desperdício ≥ 8%" value={perda} sub="revisar plotagem / encaixe"
+            <KpiCard variant="filter" label="Desperdício ≥ 8%" value={perda} sub="revisar plotagem / encaixe"
               icon={<I.scissor size={17} />} tone="amber" selected={kpi === "custo"}
               onClick={() => setKpi(kpi === "custo" ? null : "custo")} />
             <KpiCard label="Produção do mês" value={producoes.filter((p) => p.final).length}
