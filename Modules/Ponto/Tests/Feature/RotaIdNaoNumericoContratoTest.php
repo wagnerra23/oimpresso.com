@@ -74,13 +74,15 @@ afterEach(function () {
 it('id não numérico em rota de id do Ponto → o router não casa e o HTTP dá 404', function (string $url) {
     rotaIdLogar98($this);
 
-    $casou = true;
+    // A URI da rota que casou (null = nenhuma). Comparar a URI deixa a falha dizer QUAL
+    // rota engoliu a URL, em vez de um "true is false".
+    $casou = null;
     try {
-        Route::getRoutes()->match(Request::create($url, 'GET'));
+        $casou = Route::getRoutes()->match(Request::create($url, 'GET'))->uri();
     } catch (NotFoundHttpException $e) {
-        $casou = false;
+        // nenhuma rota casou — é o esperado
     }
-    expect($casou)->toBeFalse();
+    expect($casou)->toBeNull();
 
     $this->get($url)->assertStatus(404);
 })->with([
