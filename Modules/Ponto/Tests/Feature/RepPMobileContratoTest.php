@@ -208,6 +208,34 @@ it('UC-REPP-08: colaborador SEM ponto.access abre a tela e bate o ponto, sem o c
     $this->get('/ponto/espelho')->assertForbidden();
 });
 
+it('UC-REPP-10: gestor recebe as contagens e o contexto do header, diferidos como nas outras telas do Ponto', function () {
+    // Gestor: igual a toda tela do Ponto — as duas props chegam diferidas.
+    $this->actingAs(rpmUsuario());
+    $r = $this->inertiaGet('/ponto/mobile');
+    $this->assertInertiaComponent($r, 'Ponto/Mobile/Index');
+    $diferidas = $r->json('deferredProps.default') ?? [];
+    expect($diferidas)->toContain('ponto_abas');
+    expect($diferidas)->toContain('ponto_contexto');
+
+    // E o request diferido devolve as contagens de verdade.
+    $p = $this->inertiaPartialGet('/ponto/mobile', ['ponto_abas', 'ponto_contexto'], 'Ponto/Mobile/Index');
+    $p->assertStatus(200);
+    $this->assertArrayHasKey('aprovacoes', $p->json('props.ponto_abas'), 'ponto_abas sem a contagem de aprovações');
+    $this->assertArrayHasKey('competencia', $p->json('props.ponto_contexto'), 'ponto_contexto sem a competência');
+});
+
+it('UC-REPP-10: colaborador sem o módulo não recebe as contagens nem o contexto — nem diferidos', function () {
+    // Caso separado de propósito: os shares do Inertia vivem num singleton, e um 2º request no
+    // MESMO caso herdaria o que o 1º compartilhou — o teste passaria a medir o harness.
+    $this->actingAs(rpmUsuario(true, false));
+    $r2 = $this->inertiaGet('/ponto/mobile');
+    $this->assertInertiaComponent($r2, 'Ponto/Mobile/Index');
+    $diferidas2 = $r2->json('deferredProps.default') ?? [];
+    expect(in_array('ponto_abas', $diferidas2, true))->toBeFalse();
+    expect(in_array('ponto_contexto', $diferidas2, true))->toBeFalse();
+    expect(array_key_exists('ponto_abas', $r2->json('props')))->toBeFalse();
+});
+
 /** Itens do menu que chegam ao browser — pelo consumidor real (LegacyMenuAdapter), como o MenuGhostsContratoTest. */
 function rpmRotulosDoMenu(User $u): array
 {

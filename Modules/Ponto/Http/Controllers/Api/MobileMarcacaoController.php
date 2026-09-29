@@ -170,6 +170,17 @@ class MobileMarcacaoController extends Controller
     public function tela(Request $request): InertiaResponse
     {
         $colab = $this->colaboradorDoUsuario($request)?->loadMissing('user');
+        $podeVerModulo = \Modules\Ponto\Http\Middleware\CheckPontoAccess::permite($request->user());
+
+        // Contagens das abas e linha de contexto do header: as outras telas recebem isso do
+        // CheckPontoAccess, que esta rota não passa. Só pra quem vê o módulo — o colaborador
+        // sem `ponto.access` não recebe número nenhum da empresa (pendências, total de
+        // intercorrências, quantos colaboradores).
+        if ($podeVerModulo) {
+            $bizId = (int) (session('business.id') ?? $request->user()->business_id);
+            \Modules\Ponto\Http\Middleware\CheckPontoAccess::compartilharCabecalho($bizId);
+        }
+
         $espelho = app(EspelhoController::class);
         $ano = (int) now()->year;
         $mes = (int) now()->month;
@@ -188,7 +199,7 @@ class MobileMarcacaoController extends Controller
             'tipos'  => IntercorrenciaController::tiposDisponiveis(),
             // A rota fica fora do `ponto.access` ([W] 2026-09-29); o cabeçalho do módulo (abas de
             // RH) só aparece pra quem pode abrir o módulo — senão cada aba seria um 403.
-            'pode_ver_modulo' => \Modules\Ponto\Http\Middleware\CheckPontoAccess::permite($request->user()),
+            'pode_ver_modulo' => $podeVerModulo,
             'limites' => [
                 'accuracy_max' => MobileMarcacaoService::GPS_ACCURACY_MAX_METROS,
                 'drift_max'    => MobileMarcacaoService::TIMESTAMP_DRIFT_MAX_SEG,
