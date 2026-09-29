@@ -122,6 +122,9 @@ function bensContratoGet(User $user, int $businessId, array $query = [])
         ->withSession([
             'user.business_id' => $businessId,
             'user' => ['business_id' => $businessId, 'id' => $user->id],
+            // Prod sempre tem isto na sessao; o `format_date` da janela de garantia le daqui
+            // e lanca TypeError sem ele (medido no CT 100 ao nascer o UC-BENS-06).
+            'business.date_format' => 'd/m/Y',
         ])
         ->get($url);
 }
@@ -177,6 +180,9 @@ function bensContratoPropDeferida(User $user, int $businessId, array $query = []
         ->withSession([
             'user.business_id' => $businessId,
             'user' => ['business_id' => $businessId, 'id' => $user->id],
+            // Prod sempre tem isto na sessao; o `format_date` da janela de garantia le daqui
+            // e lanca TypeError sem ele (medido no CT 100 ao nascer o UC-BENS-06).
+            'business.date_format' => 'd/m/Y',
         ])
         ->withHeaders([
             // `X-Requested-With` NAO e decoracao: o cliente Inertia o manda
@@ -511,7 +517,7 @@ it('UC-BENS-06: recorte=garantia traz vencida e vencendo, nunca vigente, sem reg
             $inicial = bensContratoGet($user, $bizId);
             $versao = data_get($inicial->viewData('page'), 'version');
             $r = test()->actingAs($user)
-                ->withSession(['user.business_id' => $bizId, 'user' => ['business_id' => $bizId, 'id' => $user->id]])
+                ->withSession(['user.business_id' => $bizId, 'user' => ['business_id' => $bizId, 'id' => $user->id], 'business.date_format' => 'd/m/Y'])
                 ->withHeaders([
                     'X-Requested-With' => 'XMLHttpRequest',
                     'X-Inertia' => 'true',
