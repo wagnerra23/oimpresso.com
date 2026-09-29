@@ -113,6 +113,13 @@ Route::group(
         Route::get('/colaboradores/{id}/editar', 'ColaboradorController@edit')->name('ponto.colaboradores.edit');
         Route::put('/colaboradores/{id}', 'ColaboradorController@update')->name('ponto.colaboradores.update');
 
+        // 9b. REP-P (celular) — a tela do colaborador (thread 06). As ações são os MESMOS
+        // métodos JSON de /ponto/api, aqui sob sessão web: não há CreateFreshApiToken no
+        // app, então uma tela Inertia não alcança auth:api.
+        Route::get('/mobile', [MobileMarcacaoController::class, 'tela'])->name('ponto.mobile');
+        Route::post('/mobile/marcar', [MobileMarcacaoController::class, 'registrar'])->name('ponto.mobile.marcar');
+        Route::get('/mobile/marcacoes/hoje', [MobileMarcacaoController::class, 'marcacoesHoje'])->name('ponto.mobile.marcacoes.hoje');
+
         // 10. Configurações
         Route::get('/configuracoes', 'ConfiguracaoController@index')->name('ponto.configuracoes.index');
         Route::get('/configuracoes/reps', 'ConfiguracaoController@reps')->name('ponto.configuracoes.reps');

@@ -151,7 +151,8 @@ class DataController extends Controller
                 // W9 ([W] 2026-09-28, ADR 0418): abas na ORDEM, RÓTULO e ÍCONE do protótipo
                 // (ponto-page.jsx ABAS). `perm` = o gate de permissão que o #8116 pôs nas abas
                 // (antes filhos do dropdown) — aba que a pessoa não pode abrir não aparece. A 13ª
-                // do protótipo, "REP-P (celular)", entra junto com a tela (W10, ADR 0419).
+                // do protótipo, "REP-P (celular)", entrou junto com a tela /ponto/mobile (thread 06,
+                // W10 · ADR 0419) — sem `perm`: a tela é do colaborador, `ponto.access` basta.
                 $abas = [
                     ['key' => 'dashboard',       'label' => 'Painel',           'href' => '/ponto',                 'icon' => 'chart-column'],
                     ['key' => 'espelho',         'label' => 'Espelho de ponto', 'href' => '/ponto/espelho',         'icon' => 'calendar'],
@@ -163,6 +164,7 @@ class DataController extends Controller
                     ['key' => 'conformidade',    'label' => 'Conformidade',     'href' => '/ponto/conformidade',    'icon' => 'shield'],
                     ['key' => 'escalas',         'label' => 'Escalas',          'href' => '/ponto/escalas',         'icon' => 'clock'],
                     ['key' => 'colaboradores',   'label' => 'Colaboradores',    'href' => '/ponto/colaboradores',   'perm' => 'ponto.colaboradores.manage', 'icon' => 'database'],
+                    ['key' => 'mobile',          'label' => 'REP-P (celular)',  'href' => '/ponto/mobile',          'icon' => 'send'],
                     ['key' => 'importacoes',     'label' => 'Importações',      'href' => '/ponto/importacoes',     'icon' => 'download'],
                     ['key' => 'relatorios',      'label' => 'Relatórios',       'href' => '/ponto/relatorios',      'icon' => 'receipt'],
                     ['key' => 'configuracoes',   'label' => 'Configurações',    'href' => '/ponto/configuracoes',   'perm' => 'ponto.configuracoes.manage', 'icon' => 'settings'],
