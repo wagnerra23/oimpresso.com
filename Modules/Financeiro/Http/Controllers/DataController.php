@@ -132,6 +132,7 @@ class DataController extends Controller
                             'label'    => 'Abrir caixa',
                             'href'     => '/financeiro/caixa',
                             'shortcut' => 'N',
+                            'acao'     => 'navegar', // só leva à tela: sem o "+" de criação ([W] 2026-09-29)
                         ],
                         'ghosts'   => [
                             ['key' => 'caixa',            'label' => 'Caixa',            'href' => '/financeiro/caixa'],

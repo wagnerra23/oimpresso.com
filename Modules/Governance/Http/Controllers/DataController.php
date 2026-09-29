@@ -120,6 +120,7 @@ class DataController extends Controller
                         'label'    => 'Gerenciar policies',
                         'href'     => '/governance/policies',
                         'shortcut' => 'P',
+                        'acao'     => 'navegar', // só leva à tela: sem o "+" de criação ([W] 2026-09-29)
                     ],
                     'ghosts'   => [
                         ['key' => 'dashboard',     'label' => 'Painel',          'href' => '/governance/dashboard'],

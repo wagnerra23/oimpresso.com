@@ -333,6 +333,7 @@ class DataController extends Controller
                             // "Conversar" cairia no Painel — loop silencioso.
                             'href'     => '/ia/conversa',
                             'shortcut' => 'N',
+                            'acao'     => 'navegar', // só leva à tela: sem o "+" de criação ([W] 2026-09-29)
                         ],
                         // ADR 0182 + GUIA-SIDEBAR-V3 Wagner 2026-05-21: hub IA com
                         // sub-views canon do guia (Copiloto/Brief/Memórias/KB/Regras)
