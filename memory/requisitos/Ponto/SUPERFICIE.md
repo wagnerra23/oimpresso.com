@@ -48,8 +48,9 @@ module: Ponto
 
 - [CheckPontoAccess.php](../../../Modules/Ponto/Http/Middleware/CheckPontoAccess.php)
 
-## Services — 13
+## Services — 14
 
+- [AbasContadoresService.php](../../../Modules/Ponto/Services/AbasContadoresService.php)
 - [AfdParserService.php](../../../Modules/Ponto/Services/AfdParserService.php)
 - [ApuracaoService.php](../../../Modules/Ponto/Services/ApuracaoService.php)
 - [BancoHorasService.php](../../../Modules/Ponto/Services/BancoHorasService.php)
