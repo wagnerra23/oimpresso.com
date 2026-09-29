@@ -181,7 +181,17 @@
       "falta": [
         "scorecard"
       ]
+    },
+    {
+      "tela": "Ponto/Mobile/Index",
+      "arquivo": "resources/js/Pages/Ponto/Mobile/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/ponto-mobile.jsx",
+      "falta": [
+        "scorecard"
+      ]
     }
   ],
-  "total": 99
+  "total": 100
 }

@@ -47,15 +47,36 @@ class NsrService
             ->lockForUpdate()
             ->first();
 
-        $ultimo = DB::table('ponto_marcacoes')
-            ->where('business_id', $businessId)
-            ->where('colaborador_config_id', $colaboradorId)
-            ->whereNull('rep_id')
-            ->where('origem', 'REP_P')
-            ->where('nsr', '<', self::NSR_LEGADO_MICROTIME)
+        $ultimo = self::filtroCadeiaRepP(DB::table('ponto_marcacoes'), $businessId, $colaboradorId)
             ->max('nsr');
 
         return (int) $ultimo + 1;
+    }
+
+    /**
+     * A cadeia REP-P de UM colaborador — fonte ÚNICA para numerar (NSR), encadear (hash) e
+     * auditar (MarcacaoService::verificarIntegridadeRepP). Membros: sem REP, NSR abaixo do legado
+     * `microtime`, e origem REP_P — ou ANULACAO de uma marcação REP_P ([W] 2026-09-29: a anulação
+     * entra na sequência e na cadeia). Serve a Query Builder e a Eloquent Builder.
+     */
+    public static function filtroCadeiaRepP($query, int $businessId, int $colaboradorId)
+    {
+        return $query
+            ->where('business_id', $businessId)
+            ->where('colaborador_config_id', $colaboradorId)
+            ->whereNull('rep_id')
+            ->where('nsr', '<', self::NSR_LEGADO_MICROTIME)
+            ->where(function ($q) use ($businessId) {
+                $q->where('origem', 'REP_P')
+                    ->orWhere(function ($anul) use ($businessId) {
+                        $anul->where('origem', 'ANULACAO')
+                            ->whereIn('marcacao_anulada_id', function ($orig) use ($businessId) {
+                                $orig->select('id')->from('ponto_marcacoes')
+                                    ->where('business_id', $businessId)
+                                    ->where('origem', 'REP_P');
+                            });
+                    });
+            });
     }
 
     /** Acima disto o NSR veio do `microtime` antigo, não de uma sequência. */

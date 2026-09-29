@@ -109,6 +109,7 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   hrm: UserCog,
   essenciais: Box,
   ponto: User, // protótipo data.jsx (grupo RH): `icon: "user"` — era Clock até 2026-09-28
+  'bater ponto': Clock, // atalho do colaborador pra /ponto/mobile (REP-P · [W] 2026-09-29)
   reparar: Wrench,
   'team mcp': Rocket,
   projeto: FolderKanban,
@@ -274,9 +275,10 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[]; ordem
     key: 'pessoas',
     // Wagner 2026-05-22: PESSOAS renomeado RH (popular com HRM + Ponto).
     label: 'RH',
-    items: ['RH', 'HRM', 'Essenciais', 'Ponto', 'Folha', 'Colaboradores'],
+    items: ['RH', 'HRM', 'Essenciais', 'Ponto', 'Bater ponto', 'Folha', 'Colaboradores'],
     // Protótipo `prototipo-ui/cowork/Wagner/data.jsx`, grupo RH: ponto → hrm → essenciais.
-    ordem: ['Ponto', 'HRM', 'Essenciais'],
+    // "Bater ponto" (atalho do colaborador pro REP-P, [W] 2026-09-29) logo depois de "Ponto".
+    ordem: ['Ponto', 'Bater ponto', 'HRM', 'Essenciais'],
   },
   {
     key: 'sistema',

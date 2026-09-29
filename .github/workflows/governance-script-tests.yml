@@ -776,6 +776,11 @@ jobs:
       - name: pendentes-cowork morde (fora do bundle · hash difere · enviado · _ds/ fora)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/pendentes-cowork.test.mjs
+      # [W] 2026-09-29 "1 git e dois design": o lembrete pós-push/PR do que falta subir para os
+      # 2 projetos. Se ele confundir saída antiga com resumo, avisa pendência falsa (medido no #8110).
+      - name: lembrar-subida-cowork (quando olha · só pendência real · NÃO MEDI com script antigo)
+        if: always() && steps.setup.outcome == 'success'
+        run: node .claude/hooks/lembrar-subida-cowork.test.mjs
       # Import do bundle Cowork (Fase -1). O `--selftest` do script roda no design-memory-gate e
       # cobre SO `decidirSwap` — funcao pura. Aqui entra o que ele nao alcanca: `acharBundleRoot`
       # (o bug 2026-07-01, que aninhava o slug inteiro, estava sem UM teste) e o contrato de

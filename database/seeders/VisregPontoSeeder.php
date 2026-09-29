@@ -74,6 +74,51 @@ class VisregPontoSeeder extends Seeder
         $this->garantirColaborador();
         $this->garantirSaldoBancoHoras();
         $this->garantirMovimentosBancoHoras();
+        $this->garantirEscalas();
+    }
+
+    /**
+     * ESCALAS (2026-09-29): sem elas a baseline de `Ponto/Escalas` fotografa o estado vazio
+     * ("Nenhuma escala cadastrada") e não cobre nenhuma pílula da tabela, que é o que a tela
+     * tem de próprio. Duas linhas cobrem os três estilos: tipo (`info`), "Permite"
+     * (`success`) e "Não" (neutro).
+     *
+     * Id fixo 900001/900002 (faixa 900k, como o colaborador acima): o EscalaController
+     * pagina sem `orderBy`, então a ordem da foto é a do id, e ela não pode depender de
+     * auto-increment. Timestamps literais pelo mesmo motivo. SEM TURNOS, de propósito: a
+     * sub-linha sai "sem turno configurado", determinística; turno é superfície que a foto
+     * não precisa. NÃO vinculadas ao colaborador 900001 (`escala_atual_id` segue nulo):
+     * vínculo mudaria a apuração e o espelho, que têm baseline própria.
+     */
+    private function garantirEscalas(): void
+    {
+        if (! Schema::hasTable('ponto_escalas')) {
+            return;
+        }
+
+        $quando = '2026-06-01 08:00:00';
+        $escalas = [
+            [
+                'id' => 900001, 'nome' => 'Comercial', 'codigo' => 'COM-01', 'tipo' => 'FIXA',
+                'carga_diaria_minutos' => 480, 'carga_semanal_minutos' => 2640, 'permite_banco_horas' => true,
+            ],
+            [
+                'id' => 900002, 'nome' => 'Portaria 12x36', 'codigo' => 'POR-12', 'tipo' => 'ESCALA_12X36',
+                'carga_diaria_minutos' => 720, 'carga_semanal_minutos' => 2160, 'permite_banco_horas' => false,
+            ],
+        ];
+
+        foreach ($escalas as $escala) {
+            if (DB::table('ponto_escalas')->where('id', $escala['id'])->exists()) {
+                continue;
+            }
+            DB::table('ponto_escalas')->insert($escala + [
+                'business_id' => 1,
+                'ativo' => true,
+                'created_at' => $quando,
+                'updated_at' => $quando,
+            ]);
+        }
     }
 
     /**
