@@ -50,7 +50,10 @@ name: Screen Smoke After Merge
 #     artifact 30d E vão pra OpenAI). Sem creds, o smoke só cobre /login (público).
 #   • #6 detecção multi-commit — RESOLVIDO 2026-09-29: base = último deploy BOM (ver o passo
 #     "Filtrar paths"); cai no HEAD^ com ::warning:: quando não consegue medir.
-#   • #7 race deploy-concluiu ≠ código-live.
+#   • #7 RESOLVIDO (2026-09-29) no eixo bundle: antes do smoke, o job espera produção
+#     servir o app-*.js que o build DESTE deploy gerou (manifest do artefato vite-build),
+#     via scripts/screen-smoke/aguardar-bundle-live.mjs. Não mede o PHP: bundle no ar
+#     não prova que o opcache recarregou (§5 2026-09-18). Isso segue residual.
 #   • tsx→rota não é 1:1 → smokamos um conjunto CURADO (routes.json), priorizando as
 #     rotas cujo `source` mudou. Expandir routes.json conforme telas críticas.
 #
@@ -199,6 +202,10 @@ jobs:
     if: needs.detect.outputs.should_smoke == 'true' && needs.detect.outputs.infra_ready == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # actions: read → baixar o artefato vite-build do run de deploy (residual #7).
+    permissions:
+      contents: read
+      actions: read
     steps:
       - name: Checkout do SHA deployado
         uses: actions/checkout@v4
@@ -218,6 +225,37 @@ jobs:
           done
           [ -z "$OK" ] && { echo "::error::prod não respondeu 200/302 em /login."; exit 1; }
           echo "→ prod alcançável. (curl NÃO é smoke — o render real vem a seguir.)"
+
+      - name: Self-test — sonda de bundle no ar
+        run: node scripts/screen-smoke/aguardar-bundle-live.mjs --selftest
+
+      # Residual #7: "deploy concluiu" ≠ "produção serve o código novo". O manifest do build
+      # que o deploy publicou diz qual app-*.js é o dele; o passo seguinte espera o /login de
+      # produção referenciar esse arquivo. Falha no download não some: vira NÃO MEDIDO abaixo.
+      - name: Baixar o build deste deploy (manifest)
+        if: github.event_name == 'workflow_run'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: vite-build
+          path: _deploy_build
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Aguardar produção servir o build deste deploy
+        run: |
+          set -uo pipefail
+          if [ "$GITHUB_EVENT_NAME" != "workflow_run" ]; then
+            echo "→ dispatch manual: não há deploy associado, sem espera de bundle."
+            exit 0
+          fi
+          node scripts/screen-smoke/aguardar-bundle-live.mjs --manifest-dir _deploy_build --tentativas 20 --intervalo 15
+          RC=$?
+          case "$RC" in
+            0) ;;
+            1) echo "::error title=Bundle antigo em produção::após ~5 min produção ainda serve outro app-*.js. O smoke fotografaria a tela anterior ao deploy, então não roda."; exit 1 ;;
+            *) echo "::error title=NÃO MEDIDO::não foi possível confirmar qual bundle produção serve (artefato vite-build ausente ou produção sem resposta). Isto não é verde nem regressão."; exit 1 ;;
+          esac
 
       - name: Setup Node
         uses: actions/setup-node@v4
