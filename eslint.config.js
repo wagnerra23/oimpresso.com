@@ -52,6 +52,8 @@ export default [
       // jQuery). Sem este ignore, qualquer `eslint Modules` arrasta esse legado pro
       // baseline e o ratchet passa a vigiar vendor em vez de tela.
       'Modules/*/Resources/assets/**',
+      // App Expo (React Native) — tem o próprio eslint.config.js dentro de mobile/.
+      'mobile/**',
     ],
   },
 

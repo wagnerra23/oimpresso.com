@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FSM Cliente Cadastro</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Inter, Arial, sans-serif;
+    }
+
+    body {
+      background: #0f1115;
+      color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .phone {
+      width: 390px;
+      min-height: 100vh;
+      background: #171a20;
+      border-radius: 32px;
+      overflow: hidden;
+      border: 1px solid #262b35;
+      box-shadow: 0 0 30px rgba(0,0,0,0.4);
+    }
+
+    .header {
+      padding: 22px;
+      border-bottom: 1px solid #262b35;
+      background: #1d2129;
+    }
+
+    .eyebrow {
+      color: #8ea2c7;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #9aa3b2;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .content {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab {
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: #252c39;
+      border: 1px solid #31394a;
+      color: #b9c4d8;
+      font-size: 13px;
+      font-weight: 600;
+      flex-shrink: 0;
+      transition: 0.2s ease;
+    }
+
+    .tab.active {
+      background: #2f6fed;
+      border-color: #2f6fed;
+      color: white;
+      box-shadow: 0 8px 20px rgba(47,111,237,0.25);
+    }
+
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    .card {
+      background: #1e232d;
+      border: 1px solid #2a3140;
+      border-radius: 22px;
+      padding: 18px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      color: #dbe6ff;
+    }
+
+    .toggle-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .toggle {
+      flex: 1;
+      padding: 14px;
+      border-radius: 16px;
+      text-align: center;
+      background: #252c39;
+      border: 1px solid #323b4b;
+      color: #cfd6e4;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .select {
+      width: 100%;
+      height: 54px;
+      border-radius: 16px;
+      border: 1px solid #31394a;
+      background: #13171e;
+      color: white;
+      padding: 0 16px;
+      font-size: 15px;
+      appearance: none;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: #202736;
+      border: 1px solid #31394a;
+      margin-top: 12px;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #2f6fed;
+    }
+
+    .checkbox-label {
+      font-size: 14px;
+      color: #d7dfef;
+      line-height: 1.4;
+    }
+
+    .toggle.active {
+      background: #2f6fed;
+      border-color: #2f6fed;
+      color: white;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: #9aa3b2;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      height: 54px;
+      border-radius: 16px;
+      border: 1px solid #31394a;
+      background: #13171e;
+      color: white;
+      padding: 0 16px;
+      font-size: 15px;
+    }
+
+    .quick-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .quick-btn {
+      flex: 1;
+      height: 52px;
+      border-radius: 16px;
+      background: #252c39;
+      border: 1px solid #31394a;
+      color: #d8e0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .cnpj-search {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .cnpj-search input {
+      flex: 1;
+    }
+
+    .search-btn {
+      min-width: 120px;
+      height: 54px;
+      border-radius: 16px;
+      border: none;
+      background: #2f6fed;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .voice-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #202736;
+      border: 1px dashed #3d4d68;
+      height: 64px;
+      border-radius: 18px;
+      margin-top: 12px;
+      color: #c8d8ff;
+      font-weight: 600;
+      text-align: center;
+      padding: 12px;
+    }
+
+    .fsm-tip {
+      background: rgba(47,111,237,0.12);
+      border: 1px solid rgba(47,111,237,0.4);
+      color: #cfe0ff;
+      padding: 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #29303d;
+      color: #aeb9cf;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+
+    .bottom-bar {
+      position: sticky;
+      bottom: 0;
+      padding: 18px;
+      background: linear-gradient(to top, #171a20 70%, transparent);
+    }
+
+    .save-btn {
+      width: 100%;
+      height: 60px;
+      border: none;
+      border-radius: 18px;
+      background: #2f6fed;
+      color: white;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(47,111,237,0.35);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="phone">
+
+    <div class="header">
+      <div class="eyebrow">Cadastro rápido · FSM</div>
+      <div class="title">Novo Cliente</div>
+      <div class="subtitle">
+        Fluxo pensado para operação rápida. Pouca digitação. Máxima velocidade.
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="tabs">
+        <button class="tab active" data-tab="0">Dados Principais</button>
+        <button class="tab" data-tab="1">Contato</button>
+        <button class="tab" data-tab="2">Endereço Fiscal</button>
+        <button class="tab" data-tab="3">Comercial</button>
+        <button class="tab" data-tab="4">LGPD</button>
+      </div>
+
+      <div class="tab-content active">
+
+        <div class="card">
+          <div class="section-title">Tipo de Cliente</div>
+
+          <div class="toggle-group">
+            <div class="toggle active" data-person="pf">Pessoa Física</div>
+            <div class="toggle" data-person="pj">Pessoa Jurídica</div>
+          </div>
+
+          <div class="badge">⚡ Campos inteligentes aparecem conforme o tipo de cliente</div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Dados Principais</div>
+
+          <div class="field">
+            <label>Nome Completo / Razão Social *</label>
+            <input type="text" placeholder="Ex: João Silva ou Gráfica Alfa LTDA" />
+          </div>
+
+          <div class="field">
+            <label>Nome Fantasia</label>
+            <input type="text" placeholder="Ex: Alfa Comunicação Visual" />
+          </div>
+
+          <div class="field">
+            <label>CPF / CNPJ *</label>
+
+            <div class="cnpj-search">
+              <input type="text" placeholder="000.000.000-00 ou 00.000.000/0001-00" />
+              <button class="search-btn">🔎 Buscar</button>
+            </div>
+
+            <div class="badge">⚡ Consulta automática via API da Receita Federal</div>
+          </div>
+
+          <div class="field">
+            <label>Tipo de Contribuinte *</label>
+
+            <select class="select">
+              <option>Contribuinte ICMS</option>
+              <option>Não contribuinte</option>
+              <option>Isento</option>
+            </select>
+          </div>
+
+          <div class="checkbox-row">
+            <input type="checkbox" id="produtor-rural" />
+            <label class="checkbox-label" for="produtor-rural">
+              Pessoa física é produtor rural e possui inscrição estadual
+            </label>
+          </div>
+
+          <div class="field" id="ie-field">
+            <label>Inscrição Estadual</label>
+            <input type="text" placeholder="Digite a inscrição estadual" />
+          </div>
+
+          <div class="quick-actions">
+            <div class="quick-btn">📷 Escanear Documento</div>
+            <div class="quick-btn">🎤 Voz → Texto</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tab-content">
+
+        <div class="card">
+          <div class="section-title">Contato</div>
+
+          <div class="field">
+            <label>WhatsApp *</label>
+            <input type="text" placeholder="(48) 99999-9999" />
+          </div>
+
+          <div class="field">
+            <label>Telefone Secundário</label>
+            <input type="text" placeholder="(48) 99999-9999" />
+          </div>
+
+          <div class="field">
+            <label>E-mail *</label>
+            <input type="email" placeholder="cliente@email.com" />
+          </div>
+
+          <div class="field">
+            <label>E-mail para NF-e</label>
+            <input type="email" placeholder="financeiro@empresa.com" />
+          </div>
+
+          <div class="voice-box">
+            🎙 Segure para adicionar observações rápidas
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tab-content">
+
+        <div class="card">
+          <div class="section-title">Endereço Fiscal</div>
+
+          <div class="field">
+            <label>CEP *</label>
+            <input type="text" placeholder="88700-000" />
+          </div>
+
+          <div class="field">
+            <label>Logradouro *</label>
+            <input type="text" placeholder="Rua Exemplo" />
+          </div>
+
+          <div class="field">
+            <label>Número *</label>
+            <input type="text" placeholder="123" />
+          </div>
+
+          <div class="field">
+            <label>Complemento</label>
+            <input type="text" placeholder="Sala, bloco, referência..." />
+          </div>
+
+          <div class="field">
+            <label>Bairro *</label>
+            <input type="text" placeholder="Centro" />
+          </div>
+
+          <div class="field">
+            <label>Cidade *</label>
+            <input type="text" placeholder="Tubarão" />
+          </div>
+
+          <div class="field">
+            <label>UF *</label>
+            <input type="text" placeholder="SC" />
+          </div>
+
+          <div class="fsm-tip">
+            O CEP deve preencher automaticamente cidade, UF e código IBGE.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tab-content">
+
+        <div class="card">
+          <div class="section-title">Configurações Comerciais</div>
+
+          <div class="field">
+            <label>Vendedor Responsável</label>
+            <input type="text" placeholder="Selecionar vendedor" />
+          </div>
+
+          <div class="field">
+            <label>Forma de Pagamento Padrão</label>
+            <input type="text" placeholder="Pix, boleto, cartão..." />
+          </div>
+
+          <div class="field">
+            <label>Limite de Crédito</label>
+            <input type="text" placeholder="R$ 0,00" />
+          </div>
+
+          <div class="field">
+            <label>Origem do Cliente</label>
+            <input type="text" placeholder="Instagram, indicação, Google..." />
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tab-content">
+
+        <div class="card">
+          <div class="section-title">LGPD e Consentimento</div>
+
+          <div class="fsm-tip">
+            ☑ Cliente autorizou contato via WhatsApp
+            <br><br>
+            ☑ Cliente autorizou envio de NF-e por e-mail
+            <br><br>
+            O sistema salva data, IP e consentimento automaticamente.
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="bottom-bar">
+      <button class="save-btn">Salvar Cliente</button>
+    </div>
+
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
+
+        tab.classList.add('active');
+
+        if (contents[index]) {
+          contents[index].classList.add('active');
+        }
+      });
+    });
+
+    console.assert(tabs.length === contents.length, 'Número de abas e conteúdos deve ser igual');
+    console.assert(document.querySelector('.tab.active'), 'Deve existir uma aba ativa');
+    console.assert(document.querySelector('.tab-content.active'), 'Deve existir um conteúdo ativo');
+
+    const personToggles = document.querySelectorAll('.toggle');
+
+    personToggles.forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        personToggles.forEach(t => t.classList.remove('active'));
+        toggle.classList.add('active');
+      });
+    });
+
+    console.assert(personToggles.length === 2, 'Devem existir dois seletores de tipo de pessoa');
+  </script>
+
+</body>
+</html>

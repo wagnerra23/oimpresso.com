@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oimpresso ERP — Desktop (Orçamento + Estoque)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== tokens (de packages/tokens/tokens.css) ===== */
+.oi{
+  --bg:oklch(0.975 0.004 300);--bg-2:oklch(0.955 0.006 300);--surface:oklch(0.993 0.003 300);--surface-2:oklch(0.965 0.005 300);
+  --border:oklch(0.905 0.008 300);--border-2:oklch(0.935 0.007 300);
+  --text:oklch(0.29 0.018 300);--text-dim:oklch(0.51 0.016 300);--text-mute:oklch(0.65 0.013 300);
+  --accent:oklch(0.46 0.150 300);--accent-2:oklch(0.53 0.150 300);--accent-soft:oklch(0.95 0.035 300);--accent-fg:#fff;
+  --action:oklch(0.56 0.125 152);--action-2:oklch(0.50 0.125 152);--action-soft:oklch(0.94 0.050 152);--action-fg:#fff;
+  --brand-magenta:oklch(0.55 0.205 350);--brand-purple:oklch(0.40 0.150 305);--brand-deep:oklch(0.28 0.115 308);
+  --danger:oklch(0.60 0.135 25);--warn:oklch(0.70 0.110 78);--ok:oklch(0.62 0.105 150);
+  --radius:10px;--radius-sm:7px;--radius-lg:14px;--radius-pill:999px;
+  --shadow-pop:0 8px 24px -12px rgba(40,45,60,.16),0 2px 5px -3px rgba(40,45,60,.08);--shadow-soft:0 1px 2px rgba(40,45,60,.04);
+  --font-sans:"Inter",system-ui,sans-serif;--font-mono:"JetBrains Mono",ui-monospace,monospace;
+  font-family:var(--font-sans);font-size:14.5px;color:var(--text);-webkit-font-smoothing:antialiased;
+}
+.oi[data-theme="dark"]{
+  --bg:#15131B;--bg-2:#1A1722;--surface:#1E1A27;--surface-2:#2A2633;--border:#2A2633;--border-2:#232030;
+  --text:#F2F2F2;--text-dim:#B9B7C4;--text-mute:#7E7B8C;
+  --accent:#9A2BCB;--accent-2:#C85BFF;--accent-soft:#2C1740;
+  --action:#22C55E;--action-2:#34D36A;--action-soft:#143324;--action-fg:#08110B;
+  --danger:#FF4D4F;--warn:#FFB300;--ok:#22C55E;
+  --shadow-pop:0 8px 28px -10px rgba(0,0,0,.42),0 2px 6px -2px rgba(0,0,0,.26);--shadow-soft:0 1px 2px rgba(0,0,0,.22);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);overflow:hidden}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+
+/* ===== app shell ===== */
+.app{display:grid;grid-template-columns:236px 1fr;grid-template-rows:58px 1fr;height:100vh;background:var(--bg)}
+.sidebar{grid-row:1/3;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
+.brand{display:flex;align-items:center;gap:11px;padding:0 18px;height:58px;border-bottom:1px solid var(--border);flex:0 0 auto}
+.brand .mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--brand-magenta),var(--brand-purple));display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;letter-spacing:-.04em;box-shadow:var(--shadow-soft)}
+.brand .nm{font-weight:700;font-size:15.5px;letter-spacing:-.01em}
+.brand .nm small{display:block;font-size:10.5px;color:var(--text-mute);font-weight:500;letter-spacing:.04em}
+.nav{padding:12px 12px;overflow-y:auto;flex:1 1 auto}
+.nav .grp{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-mute);padding:14px 10px 7px}
+.nav a{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:var(--radius-sm);color:var(--text-dim);text-decoration:none;font-size:13.5px;font-weight:500;cursor:pointer;margin-bottom:1px}
+.nav a:hover{background:var(--surface-2);color:var(--text)}
+.nav a.on{background:var(--accent-soft);color:var(--accent-text,var(--accent));font-weight:600}
+.oi[data-theme="dark"] .nav a.on{color:var(--accent-2)}
+.nav a svg{width:17px;height:17px;flex:0 0 auto;stroke-width:1.9}
+.nav a .badge{margin-left:auto;background:var(--accent);color:#fff;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:var(--radius-pill);font-family:var(--font-mono)}
+.oi[data-theme="dark"] .nav a .badge{background:var(--accent-2);color:#1a0b24}
+.side-foot{flex:0 0 auto;border-top:1px solid var(--border);padding:11px 12px;display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.side-foot .who{font-size:12.5px;font-weight:600;line-height:1.2}
+.side-foot .who small{display:block;color:var(--text-mute);font-weight:500;font-size:11px}
+
+/* topbar */
+.topbar{grid-column:2;display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--surface);border-bottom:1px solid var(--border)}
+.crumb{font-size:13px;color:var(--text-mute)}
+.crumb b{color:var(--text);font-weight:600}
+.search{margin-left:8px;flex:0 1 340px;display:flex;align-items:center;gap:9px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-pill);padding:8px 14px;color:var(--text-mute)}
+.search input{border:0;background:transparent;outline:0;color:var(--text);font-family:inherit;font-size:13px;width:100%}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.iconbtn{width:36px;height:36px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);display:grid;place-items:center;cursor:pointer;color:var(--text-dim)}
+.iconbtn:hover{color:var(--text);border-color:var(--border-2)}
+.iconbtn svg{width:17px;height:17px;stroke-width:1.9}
+.company{display:flex;align-items:center;gap:9px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-pill);padding:6px 8px 6px 12px;font-size:12.5px;font-weight:600;cursor:pointer}
+.company .dot{width:8px;height:8px;border-radius:50%;background:var(--action)}
+
+/* main */
+.main{grid-column:2;overflow-y:auto;padding:24px 28px 60px}
+.page-h{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+.page-h h1{font-size:23px;font-weight:800;letter-spacing:-.02em;margin:0 0 3px}
+.page-h p{margin:0;color:var(--text-dim);font-size:13.5px}
+.btn{appearance:none;border:0;border-radius:var(--radius);padding:10px 18px;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.btn.primary{background:var(--accent);color:var(--accent-fg)}
+.btn.primary:hover{background:var(--accent-2)}
+.btn.ghost{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}
+.btn svg{width:16px;height:16px;stroke-width:2}
+
+.layout{display:grid;grid-template-columns:1fr 1.15fr;gap:20px}
+@media(max-width:1180px){.layout{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-soft)}
+.card-h{display:flex;align-items:center;gap:10px;padding:15px 20px;border-bottom:1px solid var(--border)}
+.card-h h2{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-mute);margin:0}
+.card-h .tag{margin-left:auto;font-size:11px;font-weight:600;color:var(--accent-text,var(--accent));background:var(--accent-soft);padding:3px 10px;border-radius:var(--radius-pill)}
+.oi[data-theme="dark"] .card-h .tag{color:var(--accent-2)}
+.card-b{padding:20px}
+
+/* form */
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mute);margin-bottom:7px}
+.fg .vrow{display:flex;justify-content:space-between;align-items:baseline}
+.fg .vrow b{font-family:var(--font-mono);font-size:14px;font-weight:600}
+.dims{display:flex;gap:12px}.dims .fg{flex:1;margin-bottom:16px}
+.inp{width:100%;border:1px solid var(--border);background:var(--surface-2);border-radius:var(--radius-sm);padding:10px 12px;font-family:var(--font-mono);font-size:14px;color:var(--text);outline:0}
+.inp:focus{border-color:var(--accent)}
+select.inp{font-family:var(--font-sans);font-weight:500;cursor:pointer}
+input[type=range]{width:100%;accent-color:var(--accent);margin:3px 0 0}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{appearance:none;border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:var(--radius-sm);padding:8px 14px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500}
+.seg button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chk{display:flex;gap:8px;flex-wrap:wrap}
+.chk button{appearance:none;border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);border-radius:var(--radius-pill);padding:7px 13px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.chk button.on{background:var(--action-soft);color:var(--action);border-color:color-mix(in oklch,var(--action) 38%,transparent);font-weight:600}
+/* digitável + atalhos (mobile-friendly) */
+.inrow{display:flex;align-items:center;border:1px solid var(--border);background:var(--surface-2);border-radius:var(--radius-sm)}
+.inrow:focus-within{border-color:var(--accent)}
+.inrow .inp{border:0;background:transparent;flex:1}
+.inrow .suffix{padding:0 14px;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;font-weight:600;white-space:nowrap}
+.quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.quick button{appearance:none;border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);border-radius:var(--radius-pill);padding:7px 13px;font-size:12.5px;cursor:pointer;font-family:var(--font-mono);font-weight:500;min-height:34px}
+.quick button:hover{color:var(--text);border-color:var(--border-2)}
+.quick button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.hint{font-size:11.5px;color:var(--text-mute);margin:6px 0 0;line-height:1.45}
+.locked{display:flex;align-items:center;gap:9px;border:1px dashed var(--border-2);background:var(--surface-2);border-radius:var(--radius-sm);padding:11px 13px}
+.locked svg{width:15px;height:15px;color:var(--text-mute);flex:0 0 auto}
+.locked b{font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--text)}
+.locked span{font-size:12px;color:var(--text-mute)}
+
+/* price + breakdown */
+.price{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;margin-bottom:18px}
+.price .lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+.price .big{font-family:var(--font-mono);font-size:33px;font-weight:700;letter-spacing:-.01em;margin:4px 0 2px}
+.price .unit{font-size:12.5px;opacity:.92}
+.price .imp{position:absolute;right:18px;top:18px;text-align:right;font-family:var(--font-mono)}
+.price .imp b{font-size:24px;font-weight:700;display:block;line-height:1}
+.price .imp span{font-size:9.5px;opacity:.85;text-transform:uppercase;letter-spacing:.06em}
+.brow{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border-2);font-size:13px}
+.brow .k{color:var(--text-dim)}.brow .v{font-family:var(--font-mono);font-weight:500}
+.brow.fromstock .k::after{content:"do estoque";font-size:9.5px;background:var(--action-soft);color:var(--action);padding:1px 6px;border-radius:var(--radius-pill);margin-left:8px;font-weight:600;letter-spacing:.03em}
+.brow.total{border-top:2px solid var(--text);border-bottom:0;padding-top:12px;margin-top:3px;font-weight:700}
+.brow.total .v{font-size:15px}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.pill{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 11px;font-size:11.5px;color:var(--text-dim)}
+.pill b{color:var(--text);font-family:var(--font-mono)}
+
+/* stock strip */
+.stock{margin-top:20px}
+.stock table{width:100%;border-collapse:collapse}
+.stock th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-mute);padding:8px 20px;border-bottom:1px solid var(--border)}
+.stock th.r,.stock td.r{text-align:right}
+.stock td{padding:11px 20px;border-bottom:1px solid var(--border-2);font-size:13px}
+.stock tr:last-child td{border-bottom:0}
+.stock tr.sel td{background:var(--accent-soft)}
+.stock .pname{font-weight:600}.stock .pname small{display:block;color:var(--text-mute);font-weight:400;font-size:11px;font-family:var(--font-mono)}
+.stock .num{font-family:var(--font-mono)}
+.stock .low{color:var(--danger);font-weight:600}
+.stock .use{font-family:var(--font-mono);color:var(--action);font-weight:600}
+.consume-note{font-size:12px;color:var(--text-dim);padding:12px 20px 0;display:flex;align-items:center;gap:8px}
+.consume-note .d{width:7px;height:7px;border-radius:50%;background:var(--action);flex:0 0 auto}
+.regbars{display:flex;align-items:flex-end;gap:10px;height:90px;padding:4px 4px 0}
+.bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end}
+.bcol .bar{width:100%;background:var(--accent-soft);border:1px solid color-mix(in oklch,var(--accent) 28%,transparent);border-radius:5px 5px 0 0}
+.bcol.cur .bar{background:var(--accent)}
+.bcol .u{font-family:var(--font-mono);font-size:10px;color:var(--text-mute)}
+.bcol .t{font-family:var(--font-mono);font-size:10.5px;font-weight:600}.bcol.cur .t{color:var(--accent-text,var(--accent))}
+.oi[data-theme="dark"] .bcol.cur .t{color:var(--accent-2)}
+</style>
+</head>
+<body>
+<div class="oi" data-theme="light" id="root">
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">O</div>
+      <div class="nm">Oimpresso<small>ERP · Gráfica Modelo</small></div>
+    </div>
+    <nav class="nav">
+      <div class="grp">Operação</div>
+      <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+      <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>Pedidos<span class="badge">7</span></a>
+      <a class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 7h6M9 11h6M9 15h4"/><rect x="4" y="3" width="16" height="18" rx="2"/></svg>Orçamento</a>
+      <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-6 9 6v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 9h18"/></svg>Estoque</a>
+      <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>Produção</a>
+      <div class="grp">Financeiro</div>
+      <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>Financeiro</a>
+      <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/></svg>Fiscal</a>
+    </nav>
+    <div class="side-foot">
+      <div class="avatar">W</div>
+      <div class="who">Wagner<small>Administrador</small></div>
+    </div>
+  </aside>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="crumb">Operação · <b>Orçamento</b></div>
+    <div class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="Buscar pedido, cliente, produto…"></div>
+    <div class="top-actions">
+      <div class="company"><span class="dot"></span>Gráfica Modelo<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></div>
+      <button class="iconbtn" id="theme" title="Alternar tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <button class="iconbtn" title="Notificações"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-h">
+      <div><h1>Novo orçamento</h1><p>Ficha técnica → imposição automática → custo real (puxado do estoque) → preço.</p></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14M12 5v14"/></svg>Duplicar</button>
+        <button class="btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>Salvar orçamento</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <!-- FICHA -->
+      <section class="card">
+        <div class="card-h"><h2>Ficha técnica</h2><span class="tag">Couché · offset</span></div>
+        <div class="card-b">
+          <div class="fg"><label>Produto base</label>
+            <select class="inp" id="preset">
+              <option value="cartao">Cartão de visita 9×5</option>
+              <option value="folder" selected>Folder A4 (dobra)</option>
+              <option value="flyer">Flyer A5</option>
+              <option value="cardapio">Cardápio A4 laminado</option>
+            </select>
+          </div>
+          <div class="dims">
+            <div class="fg"><label>Largura (mm)</label><input class="inp" type="number" id="larg"></div>
+            <div class="fg"><label>Altura (mm)</label><input class="inp" type="number" id="alt"></div>
+          </div>
+          <div class="fg"><label>Material (estoque)</label>
+            <select class="inp" id="mat"></select>
+          </div>
+          <div class="fg"><label>Cores</label><div class="seg" id="cores"></div></div>
+          <div class="fg"><label>Acabamentos</label><div class="chk" id="acab"></div></div>
+          <div class="fg"><label>Tiragem (peças)</label>
+            <div class="inrow"><input class="inp" type="number" id="tir" min="1" step="50" inputmode="numeric"><span class="suffix">un</span></div>
+            <div class="quick" id="tirQuick"></div>
+            <p class="hint">Quantas peças serão impressas. Tiragem maior → unitário menor (o setup se dilui).</p>
+          </div>
+          <div class="fg" style="margin-bottom:0"><label>Margem</label>
+            <div class="locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><b id="margLock">45%</b><span>definida no cadastro do produto</span></div>
+            <p class="hint">A margem vem do cadastro do produto — não é editável aqui. Garante o lucro mínimo que a empresa exige. Para alterar: <b>Cadastro &rsaquo; Produto</b> (perfil admin).</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESULTADO -->
+      <section class="card">
+        <div class="card-h"><h2>Orçamento</h2><span class="tag" id="ppfTag">— pç/folha</span></div>
+        <div class="card-b">
+          <div class="price">
+            <div class="imp"><b id="ppf">—</b><span>peças/folha</span></div>
+            <div class="lbl">Preço de venda</div>
+            <div class="big mono" id="preco">—</div>
+            <div class="unit">unitário <b class="mono" id="unit">—</b> · margem real <b class="mono" id="margReal">—</b></div>
+          </div>
+          <div id="break"></div>
+          <div class="meta-row">
+            <div class="pill">Material: <b id="folhas">—</b></div>
+            <div class="pill">Consumo: <b id="consumo">—</b></div>
+            <div class="pill">Tempo máq.: <b id="tempo">—</b></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- STOCK + REGRESSIVA -->
+    <div class="layout" style="margin-top:20px">
+      <section class="card stock">
+        <div class="card-h"><h2>Estoque — impacto deste orçamento</h2></div>
+        <table>
+          <thead><tr><th>Material</th><th class="r">Saldo</th><th class="r">Custo médio</th><th class="r">Consumo</th><th class="r">Após OS</th></tr></thead>
+          <tbody id="stockBody"></tbody>
+        </table>
+        <div class="consume-note"><span class="d"></span>O custo de material vem do <b>custo médio ponderado</b> do estoque — não de um número digitado. Baixa dimensional com perda inclusa.</div>
+        <div style="height:16px"></div>
+      </section>
+      <section class="card">
+        <div class="card-h"><h2>Preço unitário por tiragem</h2><span class="tag">regressiva</span></div>
+        <div class="card-b"><div class="regbars" id="regbars"></div></div>
+      </section>
+    </div>
+  </main>
+
+</div>
+</div>
+
+<script>
+// ===== domain/quote (porta JS) =====
+const CHAPAS={ "4/4":8,"4/0":4,"1/1":2,"1/0":1 };
+function pecasPorFolha(FL,FA,pw,ph,gut=3,margem=10){
+  FL-=margem*2;FA-=margem*2;if(pw<=0||ph<=0||FL<=0||FA<=0)return 0;const g=gut;
+  const fit=(w,h)=>Math.max(0,Math.floor((FL+g)/(w+g)))*Math.max(0,Math.floor((FA+g)/(h+g)));
+  const a=fit(pw,ph),b=fit(ph,pw);
+  const cols=Math.floor((FL+g)/(pw+g)),s=FL-cols*(pw+g);
+  const m=cols*Math.floor((FA+g)/(ph+g))+(s>0?Math.floor((s+g)/(ph+g))*Math.floor((FA+g)/(pw+g)):0);
+  return Math.max(a,b,m);
+}
+// SRA3
+const SRA3={larguraMm:320,alturaMm:450,margemMm:10};
+const PARAMS={custoChapaCents:4500,maquinaCentsPorMin:250,setupMin:25,velocidadeFolhasPorH:8000,refugoPct:5,maoDeObraCentsPorMin:80,acabamentoCentsPorPeca:{laminacao:8,verniz:5,dobra:3}};
+
+// ===== estoque (domain/inventory, custo médio do cadastro) =====
+// custoCents = custo por FOLHA SRA3 (unidade de estoque). saldo em folhas.
+const ESTOQUE=[
+  {id:"cou150",nome:"Couché 150g",sub:"folha SRA3",saldo:8400,custoCents:38,perdaPct:5,min:2000},
+  {id:"cou300",nome:"Couché 300g",sub:"folha SRA3",saldo:5200,custoCents:61,perdaPct:5,min:1500},
+  {id:"cou250",nome:"Couché 250g fosco",sub:"folha SRA3",saldo:1100,custoCents:54,perdaPct:5,min:1500},
+];
+
+// margemPct vem do CADASTRO do produto (regra da empresa), não do vendedor.
+const PRESETS={
+  cartao:{larg:90,alt:50,cores:"4/4",acab:[],tir:1000,mat:"cou300",marg:55},
+  folder:{larg:210,alt:297,cores:"4/4",acab:["dobra"],tir:5000,mat:"cou150",marg:45},
+  flyer:{larg:148,alt:210,cores:"4/0",acab:[],tir:2500,mat:"cou150",marg:50},
+  cardapio:{larg:210,alt:297,cores:"4/4",acab:["laminacao"],tir:300,mat:"cou250",marg:60},
+};
+const ACABS=[["laminacao","Laminação"],["verniz","Verniz"],["dobra","Dobra"]];
+const CORES=["4/4","4/0","1/1","1/0"];
+const TIRS=[250,1000,5000,10000];
+const TIR_QUICK=[250,500,1000,2500,5000,10000];
+let st={...PRESETS.folder};
+
+const BRL=c=>(c/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const BRLu=c=>"R$ "+(c/100).toLocaleString("pt-BR",{minimumFractionDigits:3,maximumFractionDigits:3});
+const NUM=n=>n.toLocaleString("pt-BR");
+
+function calc(s){
+  const mat=ESTOQUE.find(m=>m.id===s.mat)||ESTOQUE[0];
+  const ppf=pecasPorFolha(SRA3.larguraMm,SRA3.alturaMm,+s.larg,+s.alt,3,SRA3.margemMm);
+  const folhasUteis=ppf>0?Math.ceil(s.tir/ppf):0;
+  const folhas=Math.round(folhasUteis*(1+PARAMS.refugoPct/100)); // consumo de estoque c/ perda
+  const matCents=folhas*mat.custoCents; // custo médio do estoque
+  const chapa=CHAPAS[s.cores]*PARAMS.custoChapaCents;
+  const tImp=(folhas/PARAMS.velocidadeFolhasPorH)*60;
+  const tempo=Math.round(PARAMS.setupMin+tImp);
+  const maq=Math.round(tempo*PARAMS.maquinaCentsPorMin);
+  const acab=Math.round(s.acab.reduce((x,a)=>x+(PARAMS.acabamentoCentsPorPeca[a]||0),0)*s.tir);
+  const mao=Math.round(tempo*PARAMS.maoDeObraCentsPorMin);
+  const custo=matCents+chapa+maq+acab+mao;
+  const fator=1-Math.min(95,s.marg!=null?s.marg:45)/100;
+  const preco=fator>0?Math.round(custo/fator):custo;
+  const unit=s.tir>0?Math.round(preco/s.tir):0;
+  return {mat,ppf,folhas,matCents,chapa,maq,acab,mao,custo,preco,unit,tempo,chapas:CHAPAS[s.cores]};
+}
+
+function render(){
+  if(st.marg==null)st.marg=45;
+  // controls
+  document.getElementById("preset").value=Object.keys(PRESETS).find(k=>JSON.stringify(PRESETS[k])===JSON.stringify({larg:st.larg,alt:st.alt,cores:st.cores,acab:st.acab,tir:st.tir,mat:st.mat,marg:st.marg}))||document.getElementById("preset").value;
+  document.getElementById("larg").value=st.larg;
+  document.getElementById("alt").value=st.alt;
+  document.getElementById("mat").innerHTML=ESTOQUE.map(m=>`<option value="${m.id}"${st.mat===m.id?' selected':''}>${m.nome} — ${m.sub}</option>`).join("");
+  document.getElementById("cores").innerHTML=CORES.map(c=>`<button class="${st.cores===c?'on':''}" data-c="${c}">${c}</button>`).join("");
+  document.getElementById("acab").innerHTML=ACABS.map(([id,l])=>`<button class="${st.acab.includes(id)?'on':''}" data-a="${id}">${l}</button>`).join("");
+  const tirEl=document.getElementById("tir");
+  if(document.activeElement!==tirEl)tirEl.value=st.tir;
+  document.getElementById("tirQuick").innerHTML=TIR_QUICK.map(t=>`<button class="${+st.tir===t?'on':''}" data-tir="${t}">${t>=1000?(t/1000)+'k':t}</button>`).join("");
+  const margEl2=document.getElementById("margLock");if(margEl2)margEl2.textContent=st.marg+"%";
+
+  const r=calc(st);
+  document.getElementById("ppf").textContent=r.ppf;
+  document.getElementById("ppfTag").textContent=r.ppf+" pç/folha";
+  document.getElementById("preco").textContent=BRL(r.preco);
+  document.getElementById("unit").textContent=BRLu(r.unit);
+  document.getElementById("margReal").textContent=Math.round((1-r.custo/r.preco)*100)+"%";
+  document.getElementById("break").innerHTML=[
+    ["Material ("+NUM(r.folhas)+" folhas)",r.matCents,true],
+    [r.chapas+" chapas ("+st.cores+")",r.chapa,false],
+    ["Máquina ("+r.tempo+" min)",r.maq,false],
+    ["Acabamento",r.acab,false],
+    ["Mão de obra",r.mao,false],
+  ].map(([k,v,fs])=>`<div class="brow${fs?' fromstock':''}"><span class="k">${k}</span><span class="v">${BRL(v)}</span></div>`).join("")
+   +`<div class="brow total"><span class="k">Custo total</span><span class="v">${BRL(r.custo)}</span></div>`;
+  document.getElementById("folhas").textContent=NUM(r.folhas)+" folhas";
+  document.getElementById("consumo").textContent=NUM(r.folhas)+" fl (+"+PARAMS.refugoPct+"%)";
+  document.getElementById("tempo").textContent=r.tempo+" min";
+
+  // estoque
+  document.getElementById("stockBody").innerHTML=ESTOQUE.map(m=>{
+    const usa=m.id===st.mat;
+    const consumo=usa?r.folhas:0;
+    const apos=m.saldo-consumo;
+    const low=apos<m.min;
+    return `<tr class="${usa?'sel':''}">
+      <td class="pname">${m.nome}<small>${m.sub} · custo méd. ponderado</small></td>
+      <td class="r num">${NUM(m.saldo)}</td>
+      <td class="r num">${BRL(m.custoCents)}</td>
+      <td class="r ${usa?'use':'num'}" style="${usa?'':'color:var(--text-mute)'}">${usa?'−'+NUM(consumo):'—'}</td>
+      <td class="r num ${low?'low':''}">${NUM(apos)}${low?' ⚠':''}</td>
+    </tr>`;
+  }).join("");
+
+  // regressiva
+  const pts=TIRS.map(t=>({t,u:calc({...st,tir:t}).unit}));
+  const max=Math.max(...pts.map(p=>p.u));
+  document.getElementById("regbars").innerHTML=pts.map(p=>{
+    const cur=p.t===+st.tir;
+    return `<div class="bcol${cur?' cur':''}"><div class="t">${BRLu(p.u)}</div><div class="bar" style="height:${Math.max(8,p.u/max*64)}px"></div><div class="u">${p.t>=1000?(p.t/1000)+'k':p.t}</div></div>`;
+  }).join("");
+}
+
+document.addEventListener("click",e=>{
+  const c=e.target.closest("[data-c]");if(c){st.cores=c.dataset.c;render();return;}
+  const a=e.target.closest("[data-a]");if(a){const id=a.dataset.a;st.acab=st.acab.includes(id)?st.acab.filter(x=>x!==id):[...st.acab,id];render();return;}
+  const tq=e.target.closest("[data-tir]");if(tq){st.tir=+tq.dataset.tir;render();return;}
+});
+document.getElementById("preset").addEventListener("change",e=>{st={...PRESETS[e.target.value]};render();});
+document.getElementById("mat").addEventListener("change",e=>{st.mat=e.target.value;render();});
+["larg","alt"].forEach(id=>document.getElementById(id).addEventListener("input",e=>{st[id]=+e.target.value||0;render();}));
+document.getElementById("tir").addEventListener("input",e=>{st.tir=Math.max(1,+e.target.value||0);render();});
+document.getElementById("theme").addEventListener("click",()=>{
+  const r=document.getElementById("root");r.dataset.theme=r.dataset.theme==="dark"?"light":"dark";
+});
+
+render();
+</script>
+</body>
+</html>

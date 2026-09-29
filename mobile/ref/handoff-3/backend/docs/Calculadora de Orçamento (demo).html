@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Orçamento — Oimpresso (Fase 1)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:oklch(0.975 0.004 300);--bg-2:oklch(0.955 0.006 300);--surface:oklch(0.993 0.003 300);--surface-2:oklch(0.965 0.005 300);
+    --border:oklch(0.905 0.008 300);--border-2:oklch(0.935 0.007 300);
+    --text:oklch(0.29 0.018 300);--text-dim:oklch(0.51 0.016 300);--text-mute:oklch(0.65 0.013 300);
+    --accent:oklch(0.46 0.150 300);--accent-2:oklch(0.53 0.150 300);--accent-soft:oklch(0.95 0.035 300);
+    --action:oklch(0.56 0.125 152);--ok:oklch(0.56 0.11 150);--warn:oklch(0.62 0.13 60);
+    --radius:10px;--radius-lg:14px;
+    --font-sans:"Inter",system-ui,sans-serif;--font-mono:"JetBrains Mono",monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px;margin:0 auto;padding:40px 28px 70px}
+  .mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+  .kick{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+  h1{font-size:27px;font-weight:800;letter-spacing:-0.02em;margin:0 0 6px}
+  .sub{color:var(--text-dim);margin:0 0 4px;max-width:60ch}
+  .badge-real{display:inline-flex;align-items:center;gap:7px;margin-top:14px;background:var(--accent-soft);color:var(--accent);border-radius:99px;padding:5px 12px;font-size:12px;font-weight:600}
+  .badge-real .d{width:7px;height:7px;border-radius:50%;background:var(--action)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+  .card h2{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-mute);margin:0 0 14px}
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .preset{appearance:none;border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:99px;padding:7px 13px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit}
+  .preset.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mute);margin-bottom:6px}
+  .field .vrow{display:flex;justify-content:space-between;align-items:baseline}
+  .field .vrow b{font-family:var(--font-mono);font-size:15px;font-weight:600}
+  input[type=range]{width:100%;accent-color:var(--accent);margin:2px 0 0}
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .seg button{appearance:none;border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:8px;padding:7px 12px;font-size:12.5px;cursor:pointer;font-family:inherit;font-weight:500}
+  .seg button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .dims{display:flex;gap:10px}
+  .dims .field{flex:1}
+  .num{width:100%;border:1px solid var(--border);background:var(--surface-2);border-radius:8px;padding:9px 11px;font-family:var(--font-mono);font-size:14px;color:var(--text)}
+  .chk{display:flex;gap:8px;flex-wrap:wrap}
+  .chk button{appearance:none;border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);border-radius:99px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit}
+  .chk button.on{background:color-mix(in oklch,var(--action) 16%,transparent);color:var(--action);border-color:color-mix(in oklch,var(--action) 40%,transparent);font-weight:600}
+  /* resultado */
+  .price{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;border-radius:var(--radius-lg);padding:20px;margin-bottom:16px;position:relative;overflow:hidden}
+  .price .lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+  .price .big{font-family:var(--font-mono);font-size:34px;font-weight:700;letter-spacing:-0.01em;margin:4px 0 2px}
+  .price .unit{font-size:13px;opacity:.9}
+  .price .imp{position:absolute;right:16px;top:16px;text-align:right;font-family:var(--font-mono)}
+  .price .imp b{font-size:22px;font-weight:700;display:block}
+  .price .imp span{font-size:10px;opacity:.85;text-transform:uppercase;letter-spacing:.06em}
+  .break{display:flex;flex-direction:column;gap:0}
+  .brow{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border-2);font-size:13px}
+  .brow:last-child{border-bottom:0}
+  .brow .k{color:var(--text-dim)}
+  .brow .v{font-family:var(--font-mono);font-weight:500}
+  .brow.total{margin-top:4px;border-top:2px solid var(--text);border-bottom:0;padding-top:12px;font-weight:700}
+  .brow.total .v{font-size:15px}
+  .meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .pill{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 11px;font-size:11.5px;color:var(--text-dim)}
+  .pill b{color:var(--text);font-family:var(--font-mono)}
+  /* regressiva */
+  .reg{margin-top:18px}
+  .reg h2{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-mute);margin:0 0 12px}
+  .bars{display:flex;align-items:flex-end;gap:10px;height:120px}
+  .bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+  .bcol .bar{width:100%;background:var(--accent-soft);border:1px solid color-mix(in oklch,var(--accent) 30%,transparent);border-radius:6px 6px 0 0;position:relative;transition:height .3s}
+  .bcol.cur .bar{background:var(--accent)}
+  .bcol .u{font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim)}
+  .bcol .t{font-family:var(--font-mono);font-size:11px;font-weight:600}
+  .bcol.cur .t{color:var(--accent)}
+  .foot{margin-top:30px;font-size:11.5px;color:var(--text-mute);line-height:1.5;border-top:1px solid var(--border);padding-top:14px}
+  .src{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:2px 7px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kick">Fase 1 · domain/quote · demonstração ao vivo</p>
+  <h1>Calculadora de Orçamento</h1>
+  <p class="sub">O <b>fosso</b> que o protótipo não tinha: orçamento de impressão sob medida com imposição automática (peças por folha), custeio por processo e preço regressivo por tiragem. Esta página roda o mesmo algoritmo do <span class="src">quoteEngine.ts</span>.</p>
+  <div class="badge-real"><span class="d"></span> Cálculo real rodando no navegador — mexa nos controles</div>
+
+  <div class="grid">
+    <!-- ENTRADA -->
+    <div class="card">
+      <h2>Ficha técnica</h2>
+      <div class="presets" id="presets"></div>
+
+      <div class="dims">
+        <div class="field"><label>Largura (mm)</label><input class="num" type="number" id="larg"></div>
+        <div class="field"><label>Altura (mm)</label><input class="num" type="number" id="alt"></div>
+      </div>
+
+      <div class="field">
+        <label>Cores</label>
+        <div class="seg" id="cores"></div>
+      </div>
+
+      <div class="field">
+        <label>Acabamentos</label>
+        <div class="chk" id="acab"></div>
+      </div>
+
+      <div class="field">
+        <div class="vrow"><label style="margin:0">Tiragem</label><b id="tirVal" class="mono"></b></div>
+        <input type="range" id="tir" min="50" max="20000" step="50">
+      </div>
+
+      <div class="field">
+        <div class="vrow"><label style="margin:0">Margem alvo</label><b id="margVal" class="mono"></b></div>
+        <input type="range" id="marg" min="20" max="70" step="1">
+      </div>
+    </div>
+
+    <!-- RESULTADO -->
+    <div class="card">
+      <h2>Orçamento</h2>
+      <div class="price">
+        <div class="imp"><b id="ppf">—</b><span id="ppfUn">peças/folha</span></div>
+        <div class="lbl">Preço de venda</div>
+        <div class="big mono" id="preco">—</div>
+        <div class="unit">unitário <b class="mono" id="unit">—</b> · custo <b class="mono" id="custo">—</b></div>
+      </div>
+
+      <div class="break" id="break"></div>
+
+      <div class="meta-row">
+        <div class="pill">Material: <b id="mat">—</b></div>
+        <div class="pill">Tempo máq.: <b id="tempo">—</b></div>
+        <div class="pill">Margem real: <b id="margReal">—</b></div>
+      </div>
+
+      <div class="reg">
+        <h2>Preço unitário por tiragem (regressiva)</h2>
+        <div class="bars" id="bars"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot">Demonstração da Fase 1. O motor (<span class="src">imposition.ts</span> + <span class="src">quoteEngine.ts</span>) é código de produção no repositório <span class="src">oimpresso-erp/</span>; aqui ele roda portado para JS puro para você ver os números mudando. Suporte: folha SRA3 320×450 (offset). Valores de máquina/chapa/papel são parâmetros de exemplo — no produto vêm do cadastro da gráfica.</p>
+</div>
+
+<script>
+// ── Porta JS do domain/quote (mesmos algoritmos do .ts) ──
+const CHAPAS = { "4/4":8, "4/0":4, "1/1":2, "1/0":1 };
+
+function pecasPorFolha(FL,FA,pw,ph,gut=3,margem=10){
+  FL-=margem*2; FA-=margem*2;
+  if(pw<=0||ph<=0||FL<=0||FA<=0) return 0;
+  const g=gut;
+  const fit=(w,h)=>Math.max(0,Math.floor((FL+g)/(w+g)))*Math.max(0,Math.floor((FA+g)/(h+g)));
+  const a=fit(pw,ph), b=fit(ph,pw);
+  const cols=Math.floor((FL+g)/(pw+g)), sobra=FL-cols*(pw+g);
+  const mista=cols*Math.floor((FA+g)/(ph+g))+(sobra>0?Math.floor((sobra+g)/(ph+g))*Math.floor((FA+g)/(pw+g)):0);
+  return Math.max(a,b,mista);
+}
+
+const PARAMS={ digital:false, custoChapaCents:4500, maquinaCentsPorMin:250, setupMin:25,
+  velocidadeFolhasPorH:8000, refugoPct:5, maoDeObraCentsPorMin:80,
+  acabamentoCentsPorPeca:{laminacao:8,verniz:5,dobra:3,"corte-vinco":6}, margemPct:45 };
+const SRA3={ larguraMm:320, alturaMm:450, margemMm:10, custoCents:38 };
+
+function calc(ficha){
+  const p=PARAMS, s=SRA3, chapas=CHAPAS[ficha.cores];
+  const ppf=pecasPorFolha(s.larguraMm,s.alturaMm,ficha.larguraMm,ficha.alturaMm,ficha.sangriaMm??3,s.margemMm);
+  const folhasUteis=ppf>0?Math.ceil(ficha.tiragem/ppf):0;
+  const folhas=Math.round(folhasUteis*(1+p.refugoPct/100));
+  const mat=folhas*s.custoCents;
+  const chapa=p.digital?0:chapas*p.custoChapaCents;
+  const tImp=p.velocidadeFolhasPorH>0?(folhas/p.velocidadeFolhasPorH)*60:0;
+  const tempo=Math.round(p.setupMin+tImp);
+  const maq=Math.round(tempo*p.maquinaCentsPorMin);
+  const acab=Math.round(ficha.acabamentos.reduce((x,a)=>x+(p.acabamentoCentsPorPeca[a]||0),0)*ficha.tiragem);
+  const mao=Math.round(tempo*p.maoDeObraCentsPorMin);
+  const custo=mat+chapa+maq+acab+mao;
+  const fator=1-Math.min(95,ficha.margemPct)/100;
+  const preco=fator>0?Math.round(custo/fator):custo;
+  const unit=ficha.tiragem>0?Math.round(preco/ficha.tiragem):0;
+  return {ppf,folhas,mat,chapa,maq,acab,mao,custo,preco,unit,tempo,chapas};
+}
+const BRL=c=>(c/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const BRLu=c=>"R$ "+(c/100).toLocaleString("pt-BR",{minimumFractionDigits:3,maximumFractionDigits:3});
+
+// ── Estado / presets ──
+const PRESETS=[
+  {id:"cartao",nome:"Cartão 9×5",larg:90,alt:50,cores:"4/4",acab:[],tir:1000},
+  {id:"folder",nome:"Folder A4",larg:210,alt:297,cores:"4/4",acab:["dobra"],tir:5000},
+  {id:"flyer",nome:"Flyer A5",larg:148,alt:210,cores:"4/0",acab:[],tir:2500},
+  {id:"cardapio",nome:"Cardápio A4",larg:210,alt:297,cores:"4/4",acab:["laminacao"],tir:300},
+];
+const ACABS=[["laminacao","Laminação"],["verniz","Verniz"],["dobra","Dobra"],["corte-vinco","Corte e vinco"]];
+const CORES=["4/4","4/0","1/1","1/0"];
+const TIRS=[250,1000,5000,10000];
+
+let st={larg:210,alt:297,cores:"4/4",acab:["dobra"],tir:5000,marg:45};
+
+function render(){
+  // presets
+  document.getElementById("presets").innerHTML=PRESETS.map(p=>
+    `<button class="preset${(st.larg==p.larg&&st.alt==p.alt&&JSON.stringify(st.acab)===JSON.stringify(p.acab)&&st.cores==p.cores)?' on':''}" data-p="${p.id}">${p.nome}</button>`).join("");
+  document.getElementById("cores").innerHTML=CORES.map(c=>`<button class="${st.cores==c?'on':''}" data-c="${c}">${c}</button>`).join("");
+  document.getElementById("acab").innerHTML=ACABS.map(([id,l])=>`<button class="${st.acab.includes(id)?'on':''}" data-a="${id}">${l}</button>`).join("");
+  document.getElementById("larg").value=st.larg;
+  document.getElementById("alt").value=st.alt;
+  document.getElementById("tir").value=st.tir;
+  document.getElementById("tirVal").textContent=st.tir.toLocaleString("pt-BR")+" un";
+  document.getElementById("marg").value=st.marg;
+  document.getElementById("margVal").textContent=st.marg+"%";
+
+  const ficha={larguraMm:+st.larg,alturaMm:+st.alt,cores:st.cores,acabamentos:st.acab,tiragem:+st.tir,margemPct:+st.marg,sangriaMm:3};
+  const r=calc(ficha);
+
+  document.getElementById("ppf").textContent=r.ppf;
+  document.getElementById("preco").textContent=BRL(r.preco);
+  document.getElementById("unit").textContent=BRLu(r.unit);
+  document.getElementById("custo").textContent=BRL(r.custo);
+  document.getElementById("break").innerHTML=[
+    ["Material ("+r.folhas+" folhas SRA3)",r.mat],
+    [r.chapas+" chapas (4/4 offset)",r.chapa],
+    ["Máquina ("+r.tempo+" min)",r.maq],
+    ["Acabamento",r.acab],
+    ["Mão de obra",r.mao],
+  ].map(([k,v])=>`<div class="brow"><span class="k">${k}</span><span class="v">${BRL(v)}</span></div>`).join("")
+   +`<div class="brow total"><span class="k">Custo total</span><span class="v">${BRL(r.custo)}</span></div>`;
+  document.getElementById("mat").textContent=r.folhas+" folhas";
+  document.getElementById("tempo").textContent=r.tempo+" min";
+  document.getElementById("margReal").textContent=Math.round((1-r.custo/r.preco)*100)+"%";
+
+  // regressiva
+  const pts=TIRS.map(t=>({t,u:calc({...ficha,tiragem:t}).unit}));
+  const max=Math.max(...pts.map(p=>p.u));
+  document.getElementById("bars").innerHTML=pts.map(p=>{
+    const cur=p.t==+st.tir;
+    return `<div class="bcol${cur?' cur':''}"><div class="t">${BRLu(p.u)}</div><div class="bar" style="height:${Math.max(8,p.u/max*88)}%"></div><div class="u">${p.t>=1000?(p.t/1000)+'k':p.t}</div></div>`;
+  }).join("");
+}
+
+document.addEventListener("click",e=>{
+  const p=e.target.closest("[data-p]"); if(p){const pr=PRESETS.find(x=>x.id===p.dataset.p);st={...st,larg:pr.larg,alt:pr.alt,cores:pr.cores,acab:[...pr.acab],tir:pr.tir};render();return;}
+  const c=e.target.closest("[data-c]"); if(c){st.cores=c.dataset.c;render();return;}
+  const a=e.target.closest("[data-a]"); if(a){const id=a.dataset.a;st.acab=st.acab.includes(id)?st.acab.filter(x=>x!==id):[...st.acab,id];render();return;}
+});
+["larg","alt"].forEach(id=>document.getElementById(id).addEventListener("input",e=>{st[id]=+e.target.value||0;render();}));
+document.getElementById("tir").addEventListener("input",e=>{st.tir=+e.target.value;render();});
+document.getElementById("marg").addEventListener("input",e=>{st.marg=+e.target.value;render();});
+
+render();
+</script>
+</body>
+</html>
