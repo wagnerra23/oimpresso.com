@@ -279,6 +279,7 @@ class DataController extends Controller
                             ['key' => 'conformidade',    'label' => 'Conformidade',     'href' => '/ponto/conformidade',    'icon' => 'shield'],
                             ['key' => 'escalas',         'label' => 'Escalas',          'href' => '/ponto/escalas',         'icon' => 'clock'],
                             ['key' => 'colaboradores',   'label' => 'Colaboradores',    'href' => '/ponto/colaboradores',   'icon' => 'database'],
+                            ['key' => 'mobile',          'label' => 'REP-P (celular)',  'href' => '/ponto/mobile',          'icon' => 'send'],
                             ['key' => 'importacoes',     'label' => 'Importações',      'href' => '/ponto/importacoes',     'icon' => 'download'],
                             ['key' => 'relatorios',      'label' => 'Relatórios',       'href' => '/ponto/relatorios',      'icon' => 'receipt'],
                             ['key' => 'configuracoes',   'label' => 'Configurações',    'href' => '/ponto/configuracoes',   'icon' => 'settings'],
