@@ -108,8 +108,27 @@ class DashboardTest extends PontoTestCase
     public function sidebar_item_ponto_e_link_direto_antes_do_hrm(): void
     {
         $this->actAsAdmin();
-        $response = $this->inertiaGet('/ponto');
 
+        // Pré-condição: o `modifyAdminMenu` só publica o Ponto se o business tiver o pacote
+        // `ponto_module` OU se o usuário for superadmin E existir `ponto_version` na tabela
+        // `system` (ModuleUtil::isModuleInstalled). No CI nenhuma das duas vale (medido: o item
+        // não vinha no menu). Montamos a 2ª SEM deixar rastro: superadmin só em memória
+        // (Gate::before, sem tocar papel) e a linha de `system` numa transação revertida no fim
+        // — a base do CT 100 persiste entre runs (§5 2026-09-18).
+        \Illuminate\Support\Facades\Gate::before(fn ($user, $ability) => $ability === 'superadmin' ? true : null);
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            if (empty(\App\System::getProperty('ponto_version'))) {
+                \Illuminate\Support\Facades\DB::table('system')->insert(['key' => 'ponto_version', 'value' => 'teste']);
+            }
+            $this->assertSidebarItemPonto($this->inertiaGet('/ponto'));
+        } finally {
+            \Illuminate\Support\Facades\DB::rollBack();
+        }
+    }
+
+    private function assertSidebarItemPonto($response): void
+    {
         $menu = (array) $response->json('props.shell.menu');
         $rotulo = __('pontowr2::ponto.module_label');
         $idx = null;
