@@ -214,7 +214,7 @@ module: Ponto
 - 2 em [Modules/Ponto/Tests/Unit/](../../../Modules/Ponto/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 15
+## Demais arquivos (manifestos, docs, assets e misc) — 16
 
 - [.gitignore](../../../Modules/Ponto/.gitignore)
 - [test_write.tmp](../../../Modules/Ponto/Database/Migrations/test_write.tmp)
@@ -224,6 +224,7 @@ module: Ponto
 - [IntercorrenciaFactory.php](../../../Modules/Ponto/Database/factories/IntercorrenciaFactory.php)
 - [MarcacaoFactory.php](../../../Modules/Ponto/Database/factories/MarcacaoFactory.php)
 - [routes.php](../../../Modules/Ponto/Http/routes.php)
+- [ponto.php](../../../Modules/Ponto/Resources/lang/en/ponto.php)
 - [ponto.php](../../../Modules/Ponto/Resources/lang/pt-BR/ponto.php)
 - [ponto.php](../../../Modules/Ponto/Resources/lang/pt/ponto.php)
 - [topnav.php](../../../Modules/Ponto/Resources/menus/topnav.php)

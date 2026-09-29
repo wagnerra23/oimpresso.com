@@ -317,6 +317,7 @@ jobs:
             Modules/Ponto/Tests/Feature/LicencaAbonaDiaContratoTest.php \
             Modules/Ponto/Tests/Feature/ConformidadeContratoTest.php \
             Modules/Ponto/Tests/Feature/AbasContadoresContratoTest.php \
+            Modules/Ponto/Tests/Feature/TraducaoModuleLabelContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaEditContratoTest.php \
             Modules/Ponto/Tests/Feature/PontoDashboardContratoTest.php \
             Modules/Ponto/Tests/Feature/ColaboradorContratoTest.php \
