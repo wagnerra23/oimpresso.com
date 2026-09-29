@@ -1,0 +1,120 @@
+/* ──────────────────────────────────────────────────────────────
+   Oimpresso ERP · Design Tokens (fonte única)
+   Gerado do protótipo aprovado. Claro + escuro + densidade.
+   Use com: <div class="oi" data-theme="light|dark" data-density="normal|compact|comfy">
+   ────────────────────────────────────────────────────────────── */
+
+.oi {
+  /* Light surface — neutro com leve tinta roxa (marca Oimpresso) */
+  --bg:           oklch(0.975 0.004 300);
+  --bg-2:         oklch(0.955 0.006 300);
+  --surface:      oklch(0.993 0.003 300);
+  --surface-2:    oklch(0.965 0.005 300);
+  --border:       oklch(0.905 0.008 300);
+  --border-2:     oklch(0.935 0.007 300);
+  --text:         oklch(0.29 0.018 300);
+  --text-dim:     oklch(0.51 0.016 300);
+  --text-mute:    oklch(0.65 0.013 300);
+
+  /* Accent = ROXO da marca */
+  --accent:       oklch(0.46 0.150 300);
+  --accent-2:     oklch(0.53 0.150 300);
+  --accent-soft:  oklch(0.95 0.035 300);
+  --accent-fg:    #ffffff;
+  /* Texto/realce em accent — escuro o bastante p/ contraste no tema claro */
+  --accent-text:  var(--accent);
+  --info:         #2EA7FF;
+
+  /* Ação / consulta = VERDE */
+  --action:       oklch(0.56 0.125 152);
+  --action-2:     oklch(0.50 0.125 152);
+  --action-soft:  oklch(0.94 0.050 152);
+  --action-fg:    #ffffff;
+
+  /* Cores institucionais (logo + fundo do sistema antigo) */
+  --brand-magenta: oklch(0.55 0.205 350);
+  --brand-purple:  oklch(0.40 0.150 305);
+  --brand-deep:    oklch(0.28 0.115 308);
+  --brand-cyan:    oklch(0.82 0.130 200);
+  --brand-yellow:  oklch(0.92 0.150 100);
+
+  --danger:       oklch(0.60 0.135 25);
+  --warn:         oklch(0.70 0.110 78);
+  --ok:           oklch(0.62 0.105 150);
+
+  /* Origens — dessaturadas para harmonia */
+  --origin-OS-bg:  oklch(0.94 0.040 75);   --origin-OS-fg:  oklch(0.46 0.075 65);
+  --origin-CRM-bg: oklch(0.94 0.035 235);  --origin-CRM-fg: oklch(0.46 0.070 235);
+  --origin-FIN-bg: oklch(0.94 0.040 150);  --origin-FIN-fg: oklch(0.44 0.075 150);
+  --origin-PNT-bg: oklch(0.94 0.038 300);  --origin-PNT-fg: oklch(0.46 0.075 300);
+  --origin-MFG-bg: oklch(0.94 0.030 40);   --origin-MFG-fg: oklch(0.46 0.075 40);
+  --origin-OFI-bg: oklch(0.94 0.034 230);  --origin-OFI-fg: oklch(0.44 0.080 245);
+
+  --radius:       10px;
+  --radius-sm:    7px;
+  --radius-lg:    14px;
+  --radius-pill:  999px;
+
+  --shadow-pop:   0 8px 24px -12px rgba(40,45,60,.16), 0 2px 5px -3px rgba(40,45,60,.08);
+  --shadow-soft:  0 1px 2px rgba(40,45,60,.04);
+
+  --row-h:        56px;
+  --row-h-compact: 46px;
+  --row-h-comfy:   62px;
+
+  --font-sans:    "Inter", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.oi[data-theme="dark"] {
+  --bg:        #15131B;
+  --bg-2:      #1A1722;
+  --surface:   #1E1A27;
+  --surface-2: #2A2633;
+  --border:    #2A2633;
+  --border-2:  #232030;
+  --text:      #F2F2F2;
+  --text-dim:  #B9B7C4;
+  --text-mute: #7E7B8C;
+
+  --accent:      #9A2BCB;
+  --accent-2:    #C85BFF;
+  --accent-soft: #2C1740;
+  /* No escuro, realce em accent usa o roxo claro (modelo: p-light) p/ contraste AA */
+  --accent-text: var(--accent-2);
+  --info:        #2EA7FF;
+
+  --action:      #22C55E;
+  --action-2:    #34D36A;
+  --action-soft: #143324;
+  --action-fg:   #08110B;
+
+  --brand-magenta: #C85BFF;
+  --brand-purple:  #9A2BCB;
+  --brand-deep:    #7A0B7E;
+  --brand-cyan:    oklch(0.82 0.130 200);
+  --brand-yellow:  oklch(0.90 0.150 100);
+
+  --danger:    #FF4D4F;
+  --warn:      #FFB300;
+  --ok:        #22C55E;
+
+  --origin-OS-bg:  oklch(0.345 0.048 65);   --origin-OS-fg:  oklch(0.84 0.060 70);
+  --origin-CRM-bg: oklch(0.345 0.048 235);  --origin-CRM-fg: oklch(0.84 0.055 235);
+  --origin-FIN-bg: oklch(0.345 0.048 150);  --origin-FIN-fg: oklch(0.84 0.060 150);
+  --origin-PNT-bg: oklch(0.345 0.050 300);  --origin-PNT-fg: oklch(0.84 0.060 300);
+  --origin-MFG-bg: oklch(0.345 0.042 40);   --origin-MFG-fg: oklch(0.84 0.060 40);
+  --origin-OFI-bg: oklch(0.345 0.048 240);  --origin-OFI-fg: oklch(0.84 0.070 240);
+
+  --shadow-pop:  0 8px 28px -10px rgba(0,0,0,.42), 0 2px 6px -2px rgba(0,0,0,.26);
+  --shadow-soft: 0 1px 2px rgba(0,0,0,.22);
+}
+
+.oi[data-density="compact"] { --row-h: var(--row-h-compact); }
+.oi[data-density="comfy"]   { --row-h: var(--row-h-comfy); }

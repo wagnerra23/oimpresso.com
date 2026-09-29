@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Oimpresso Mobile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="oimpresso-tokens.css" />
+  <style>
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
+      background:
+        radial-gradient(1200px 700px at 30% -10%, oklch(0.24 0.04 240), transparent 60%),
+        radial-gradient(1000px 600px at 90% 110%, oklch(0.22 0.04 200), transparent 60%),
+        #0e0f12;
+      color: #d8d8d8;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    #app { min-height: 100vh; display: flex; flex-direction: column; }
+
+    .stage {
+      flex: 1 1 auto;
+      display: flex;
+      gap: 56px;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 56px 32px 96px;
+      flex-wrap: wrap;
+    }
+    .stage-col { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .stage-label {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: oklch(0.68 0.02 240);
+    }
+    .stage-hero {
+      text-align: center;
+      padding: 56px 24px 0;
+    }
+    .stage-hero h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #f5f5f5;
+    }
+    .stage-hero p {
+      margin: 8px auto 0;
+      max-width: 540px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: oklch(0.72 0.01 240);
+    }
+    .stage-hero .pill {
+      display: inline-flex; gap: 8px; align-items: center;
+      margin-top: 14px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: oklch(0.22 0.01 240);
+      border: 1px solid oklch(0.30 0.01 240);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      color: oklch(0.78 0.02 240);
+    }
+    .stage-hero .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: oklch(0.72 0.16 145); }
+
+    @media (max-width: 980px) {
+      .stage { gap: 32px; padding: 32px 16px 80px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="ios-frame.jsx"></script>
+  <script type="text/babel" src="android-frame.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+
+  <script type="text/babel" src="icons.jsx"></script>
+  <script type="text/babel" src="oi-store.jsx"></script>
+  <script type="text/babel" src="oi-flow.jsx"></script>
+  <script type="text/babel" src="mock-data.jsx"></script>
+  <script type="text/babel" src="oficina-data.jsx"></script>
+  <script type="text/babel" src="finance-data.jsx"></script>
+  <script type="text/babel" src="menu-perfis.jsx"></script>
+  <script type="text/babel" src="task-viewers.jsx"></script>
+  <script type="text/babel" src="screens-home-tasks.jsx"></script>
+  <script type="text/babel" src="dashboard-widgets.jsx"></script>
+  <script type="text/babel" src="screens-modules.jsx"></script>
+  <script type="text/babel" src="screens-novo-pedido.jsx"></script>
+  <script type="text/babel" src="screens-clientes-producao.jsx"></script>
+  <script type="text/babel" src="screens-producao.jsx"></script>
+  <script type="text/babel" src="screens-novo-cliente.jsx"></script>
+  <script type="text/babel" src="screens-novo-produto.jsx"></script>
+  <script type="text/babel" src="screens-oficina.jsx"></script>
+  <script type="text/babel" src="screens-oficina-os.jsx"></script>
+  <script type="text/babel" src="screens-oficina-cadastro.jsx"></script>
+  <script type="text/babel" src="screens-relatorios-equipe.jsx"></script>
+  <script type="text/babel" src="screens-financeiro.jsx"></script>
+  <script type="text/babel" src="screens-relatorios.jsx"></script>
+  <script type="text/babel" src="screens-equipamentos.jsx"></script>
+  <script type="text/babel" src="screens-perfis.jsx"></script>
+  <script type="text/babel" src="mobile-app.jsx"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    const { DesignCanvas, DCSection, DCArtboard, IOSDevice, AndroidDevice,
+            MobileApp, TweaksPanel, useTweaks, TweakSection, TweakRadio, TweakSelect } = window;
+
+    const DEFAULTS = /*EDITMODE-BEGIN*/{
+      "tenant": "wr2",
+      "density": "comfy",
+      "theme": "dark",
+      "taskState": "urgente",
+      "perfil": "oficina"
+    }/*EDITMODE-END*/;
+
+    function Root() {
+      const [tweaks, setTweak] = useTweaks(DEFAULTS);
+
+      // Build a single instance of MobileApp per platform; both share tweaks state
+      const iosApp     = <MobileApp platform="ios"     tweaks={tweaks} setTweak={setTweak} />;
+      const androidApp = <MobileApp platform="android" tweaks={tweaks} setTweak={setTweak} />;
+
+      // Sub-pages can pop up Login screen as a separate artboard (static demo)
+      const { LoginScreen } = window.Screens;
+      const loginShell = (
+        <div className="oi oi-app" data-theme={tweaks.theme}>
+          <div className="oi-screen">
+            <LoginScreen />
+          </div>
+        </div>
+      );
+
+      return (
+        <>
+          <header className="stage-hero">
+            <h1>Oimpresso ERP — Mobile</h1>
+            <p>Cliente nativo iOS + Android sobre o mesmo backend tRPC do web. Os dois aparatos compartilham o mesmo estado — alternar empresa ou tema atualiza ambos. Toque nos tabs e itens para navegar.</p>
+            <span className="pill"><span className="dot" />Protótipo interativo · ambos lados sincronizados</span>
+          </header>
+
+          <div className="stage">
+            <div className="stage-col">
+              <span className="stage-label">iOS · iPhone 15</span>
+              <IOSDevice dark={tweaks.theme === "dark"}>{iosApp}</IOSDevice>
+            </div>
+            <div className="stage-col">
+              <span className="stage-label">Android · Pixel 8</span>
+              <AndroidDevice dark={tweaks.theme === "dark"}>{androidApp}</AndroidDevice>
+            </div>
+            <div className="stage-col">
+              <span className="stage-label">Login · marca Oimpresso</span>
+              <IOSDevice dark={tweaks.theme === "dark"}>{loginShell}</IOSDevice>
+            </div>
+          </div>
+
+          <TweaksPanel title="Tweaks">
+            <TweakSection label="Aparência" />
+            <TweakRadio label="Tema"
+                        value={tweaks.theme}
+                        onChange={v => setTweak("theme", v)}
+                        options={[{value: "light", label: "Claro"}, {value: "dark", label: "Escuro"}]} />
+            <TweakRadio label="Densidade"
+                        value={tweaks.density}
+                        onChange={v => setTweak("density", v)}
+                        options={[{value: "compact", label: "Compacto"}, {value: "normal", label: "Normal"}, {value: "comfy", label: "Confortável"}]} />
+
+            <TweakSection label="Contexto" />
+            <TweakSelect label="Empresa ativa"
+                        value={tweaks.tenant}
+                        onChange={v => setTweak("tenant", v)}
+                        options={window.MOCK.TENANTS.map(t => ({ value: t.id, label: t.name }))} />
+            <TweakRadio label="Tarefas"
+                        value={tweaks.taskState}
+                        onChange={v => setTweak("taskState", v)}
+                        options={[{value: "vazio", label: "Vazio"}, {value: "cheio", label: "Cheio"}, {value: "urgente", label: "Urgente"}]} />
+
+            <TweakSection label="Menu" />
+            <TweakSelect label="Perfil de menu"
+                        value={tweaks.perfil || "comvis"}
+                        onChange={v => setTweak("perfil", v)}
+                        options={window.MOCK.MENU_PERFIS.map(p => ({ value: p.id, label: p.nome }))} />
+
+            <TweakSection label="Produção" />
+            <TweakRadio label="Visão padrão"
+                        value={tweaks.prodView || "prazo"}
+                        onChange={v => setTweak("prodView", v)}
+                        options={[{value: "prazo", label: "Prazo"}, {value: "etapa", label: "Etapa"}, {value: "estacao", label: "Estação"}]} />
+
+            <TweakSection label="Permissão" />
+            <TweakRadio label="Seu papel"
+                        value={tweaks.papel || "gerente"}
+                        onChange={v => setTweak("papel", v)}
+                        options={[{value: "operador", label: "Operador"}, {value: "gerente", label: "Gerente"}, {value: "admin", label: "Admin"}]} />
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("app")).render(<Root />);
+  </script>
+</body>
+</html>

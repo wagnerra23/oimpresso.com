@@ -196,3 +196,33 @@ Pedido acima de R$
 # Substrings com contexto de proposito -- "R$ 1.234,56" solto seguiria pegando.
 ->toBe('R$ 1.234,56')
 `"R$ 1.234,56"` (ponto de milhar
+
+# ── app mobile · importação (PR #8193, 2026-09-29) ─────────────────────────────
+# Valores ILUSTRATIVOS, nenhum de cliente/faturamento/meta: exemplos de formato nos
+# docstrings de mobile/lib/format.ts e money.ts, wireframes ASCII e templates de exemplo
+# nos docs de estratégia do app, 1 notificação mock, e mock data dos snapshots de design
+# em mobile/ref/** (mesma natureza de prototipo-ui/, mas sem a isenção de pasta, que é
+# decisão [W] — por isso aqui é linha a linha). Preço de plano e receita que estavam em
+# mobile/TASKS-F4-F5.md NÃO entraram aqui: foram redigidos na fonte (Tier 0).
+- **Templates rápidos**: "Troca de óleo + filtro 10W40 — R$ 220" como botão único.
+/** "R$ 1,2k" / "R$ 1,3M" — compactado para KPIs e cards. */
+/** "R$ 1.234,56" */
+/** Formata centavos como moeda PT-BR ("R$ 1.234,56"). */
+/** Formata centavos compacto ("R$ 1,2k" / "R$ 1,3M"). */
+<OiKpi label="A faturar" value="R$ 8.4k" />
+<Step ic="dollar" label="Valor" v="R$ 248,00" last />
+<div className="oi-money" style={{ fontSize: 17, fontWeight: 600 }}>R$ 2.140,00</div>
+<div className="oi-money" style={{ fontSize: 17, fontWeight: 600 }}>R$ 8.412,00</div>
+body: "Distribuidora Sul · R$ 2.480,00",
+const cem = Array.from({ length: 100 }, () => 1); // 100 × R$0,01
+limite: c.saldo < 0 ? "R$ 1.000,00" : "R$ 2.500,00",
+title: "Boleto vencendo: Marília Costa — R$ 248,00",
+title: "Conciliar PIX recebido: R$ 1.420,00",
+{ id: "n2", origin: "FIN", title: "PIX recebido R$ 480,00 — Restaurante 88",     sub: "T-1042 · vinculado à OS-3035", when: "1h", unread: true },
+{ label: "Falta receber", value: "R$ 2.480,00", sub: "54% · 2 boletos", tone: "danger", data: [6,5,7,6,8,5,7,6,8,7,9,8] },
+{ label: "Faturamento",  value: "R$ 12.450,00", delta: "12%", data: [4,5,4,6,5,7,6,8,7,9,8,11] },
+{ label: "Receber hoje",        value: "R$ 4.580,00", money: true, sub: "R$ 2.480 em aberto", subTone: "mute", thumb: "box", tone: "ok" },
+{ label: "Recebido hoje", value: "R$ 2.100,00", sub: "46% do previsto", tone: "ok",     data: [3,4,3,5,4,6,5,7,6,8,7,9] },
+{ label: "Ticket médio", value: "R$ 445,00",   delta: "9%",  data: [5,4,6,5,7,6,5,7,6,8,7,8] },
+│ Subtotal           R$ 473,00    │
+│ Total           R$ 423,00       │  ← OiMoney destaque

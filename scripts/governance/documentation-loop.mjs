@@ -232,6 +232,9 @@ export function classifyRepositoryFile(file) {
   if (/^(?:scripts|bootstrap|storage|public|resources|lang|lib-custom|prototipo-ui)\//.test(normalized)) {
     return { file: normalized, class: 'shared-support', context: '_Geral' };
   }
+  // App Expo (React Native) — projeto independente com package.json/tsconfig próprios,
+  // fora de todos os gates do Laravel (PR #8193). Contexto próprio p/ não diluir _Geral.
+  if (/^mobile\//.test(normalized)) return { file: normalized, class: 'shared-support', context: 'Mobile' };
   if (!normalized.includes('/') || /^(?:composer|package|phpunit|vite|tsconfig|eslint|modules_statuses)\b/.test(normalized)) {
     return { file: normalized, class: 'repository-root', context: 'Governance' };
   }
