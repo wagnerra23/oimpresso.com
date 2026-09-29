@@ -26,7 +26,8 @@ function abasDoPrototipo(): Array<{ key: string; label: string }> {
 /** Rótulos dos ghosts do Ponto no DataController, na ordem. */
 function ghostsDoServidor(): Array<{ key: string; label: string; icon: string | null }> {
   const src = ler('Modules/Ponto/Http/Controllers/DataController.php')
-  const ini = src.indexOf("'ghosts'  => [")
+  // a lista vive em `$abas` (com `perm` por aba desde o #8116) e vira `$ghosts` filtrando permissão
+  const ini = src.indexOf('$abas = [')
   // fim = o `],` que FECHA o array de ghosts (linha própria), não o `],` de cada item
   const fim = src.slice(ini).search(/\r?\n\s*\],/)
   const bloco = src.slice(ini, ini + fim)

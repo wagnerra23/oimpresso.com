@@ -2,7 +2,7 @@
 //
 // Lê primary/ghosts da entry "Ponto" do shell.menu (Inertia shared prop
 // populado via LegacyMenuAdapter — DataController Ponto declara attrs
-// dropdown com primary 'Bater ponto' + ghosts das sub-views). Renderiza
+// item com primary 'Painel do ponto' + ghosts sub-views). Renderiza
 // ghost tabs ARIA tablist abaixo do header `os-page-h` custom da tela.
 //
 // Active prop = key do ghost atual (ex 'dashboard' em Dashboard/Index.tsx,
@@ -13,7 +13,7 @@
 // W9 ([W] 2026-09-28, ADR 0418): TODAS as abas visíveis, na ordem/rótulo/ícone do protótipo
 // (declarados no DataController), em faixa própria ABAIXO do header — como o Clientes — e com
 // scroll horizontal até a aba ativa (`scrollable`). Até então: 5 abas + `⋯ Mais`, dentro do
-// `os-page-h-r`. Caller pode passar `hidePrimary` pra não repetir o primary `+ Bater ponto`.
+// `os-page-h-r`. Caller pode passar `hidePrimary` pra não repetir o primary `Painel do ponto`.
 //
 // Hue 295 (roxo claro pessoas — SIDEBAR_GROUP_HUE.pessoas).
 

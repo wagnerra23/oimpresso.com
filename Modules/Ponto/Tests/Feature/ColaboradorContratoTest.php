@@ -10,7 +10,7 @@ uses(PontoTestCase::class);
 
 /**
  * Contrato das duas telas de colaborador do Ponto:
- *   - `/ponto/colaboradores`               → Colaboradores/Index.casos.md  (UC-COLIDX-01..02)
+ *   - `/ponto/colaboradores`               → Colaboradores/Index.casos.md  (UC-COLIDX-01..02, 04)
  *   - `/ponto/colaboradores/{id}/editar`   → Colaboradores/Edit.casos.md   (UC-COLEDT-01..02)
  *
  * Cada teste cita o UC no TÍTULO do `it()` — não em docblock. É o que o manifesto G-7 alcança
@@ -55,7 +55,7 @@ function colPrecisaDe(array $tabelas): void
  * CPF sintético é derivado por hash e tem 14 caracteres exatos. Estourar a coluna faria o
  * INSERT truncar (ou falhar) e o caso mediria uma string que não existe no banco.
  */
-function colCriarColaborador(int $businessId, string $sufixo): array
+function colCriarColaborador(int $businessId, string $sufixo, ?string $pis = null): array
 {
     $matricula = COL_MARCA . '-M-' . $sufixo;        // <= 30
     $cpf       = 'CT' . substr(md5($sufixo), 0, 12); // == 14
@@ -80,6 +80,7 @@ function colCriarColaborador(int $businessId, string $sufixo): array
         'user_id'         => $userId,
         'matricula'       => $matricula,
         'cpf'             => $cpf,
+        'pis'             => $pis,
         'controla_ponto'  => 1,
         'usa_banco_horas' => 0,
         'admissao'        => '2020-01-01',
@@ -196,6 +197,56 @@ it('UC-COLIDX-02 · busca que não casa ninguém devolve lista vazia, não a lis
         . 'cadastrado" olhando o primeiro nome que aparecer (charter §Goals: os dois empty '
         . 'states só existem porque a busca de fato filtra).'
     );
+});
+
+it('UC-COLIDX-04 · "Sem PIS cadastrado" traz só quem não tem PIS, e nunca de outro empregador', function () {
+    $this->actAsAdmin();
+    colPrecisaDe(['ponto_colaborador_config']);
+
+    $meuBiz = (int) $this->business->id;
+    $semPis    = colCriarColaborador($meuBiz, 'sempis');
+    $pisVazio  = colCriarColaborador($meuBiz, 'pisvazio', '');
+    $comPis    = colCriarColaborador($meuBiz, 'compis', '12345678901');
+
+    $alheio      = $this->garantirBizAlheio();
+    $alheioSemPis = colCriarColaborador($alheio, 'alheiosempis');
+
+    // Pré-condição anti-vácuo: os quatro têm de existir, e o do outro empregador também sem PIS —
+    // senão "não vazou" e "filtrou" seriam verdade por nada existir (LC-13).
+    foreach ([$semPis, $pisVazio, $comPis, $alheioSemPis] as $c) {
+        expect(DB::table('ponto_colaborador_config')->where('id', $c['config_id'])->exists())->toBeTrue();
+    }
+
+    // Caso discriminante (§5 2026-09-05): a busca pelo marcador restringe a lista aos
+    // colaboradores deste arquivo. SEM o filtro, o com-PIS aparece — prova que a lista o
+    // enxerga e que o sumiço dele, abaixo, é obra do filtro, não da fixture.
+    $semFiltro = $this->inertiaGet('/ponto/colaboradores', ['q' => COL_MARCA]);
+    $semFiltro->assertStatus(200);
+    $idsSemFiltro = collect($semFiltro->json('props.colaboradores.data'))->pluck('id')->all();
+    expect(in_array($comPis['config_id'], $idsSemFiltro, true))->toBeTrue();
+
+    $resp = $this->inertiaGet('/ponto/colaboradores', ['q' => COL_MARCA, 'situacao' => 'sem-pis']);
+    $resp->assertStatus(200);
+    expect($resp->json('props.situacao'))->toBe('sem-pis');
+    $ids = collect($resp->json('props.colaboradores.data'))->pluck('id')->all();
+
+    $this->assertContains($semPis['config_id'], $ids, 'Colaborador sem PIS tem de aparecer no filtro "Sem PIS".');
+    $this->assertContains($pisVazio['config_id'], $ids, 'PIS gravado como string vazia também é "sem PIS" — o AFD rejeita igual.');
+    $this->assertNotContains($comPis['config_id'], $ids, 'Colaborador COM PIS não pode aparecer no filtro "Sem PIS".');
+
+    // [T0] O adversário também não tem PIS: casaria o predicado do filtro se o isolamento caísse.
+    $this->assertNotContains(
+        $alheioSemPis['config_id'],
+        $ids,
+        'O filtro "Sem PIS" não pode trazer colaborador de OUTRO empregador (ADR 0093 · LGPD Art. 7º).'
+    );
+    $this->assertStringNotContainsString(
+        $alheioSemPis['matricula'],
+        $resp->getContent(),
+        'A matrícula do colaborador de outro empregador não pode aparecer na resposta.'
+    );
+
+    $this->removerBizAlheio();
 });
 
 // =====================================================================

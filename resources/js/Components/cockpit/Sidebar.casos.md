@@ -4,7 +4,7 @@ irmaos: Sidebar.charter.md (lei) · ../../Layouts/AppShellV2.casos.md (largura/a
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: a sidebar aparece em TODA tela — regressão aqui atinge o ERP inteiro de uma vez.
 owner: wagner
-last_run: "2026-09-25"
+last_run: "2026-09-28"
 ---
 
 # Casos de Uso & Aceite — `Sidebar`

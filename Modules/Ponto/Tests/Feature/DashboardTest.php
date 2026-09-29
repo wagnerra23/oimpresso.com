@@ -95,4 +95,77 @@ class DashboardTest extends PontoTestCase
         $this->assertIsArray($menu);
         $this->assertGreaterThan(0, count($menu), 'Menu do shell deve ter pelo menos 1 item');
     }
+
+    /**
+     * Forma do item "Ponto" na sidebar = protótipo (`prototipo-ui/cowork/Wagner/data.jsx`, grupo RH:
+     * `{ id: "ponto", label: "Ponto" }`, 1º do grupo), soberano no eixo FORMA (ADR UI-0029).
+     *
+     * Até 2026-09-28 o DataController declarava `$menu->dropdown(...)`: o shell recebia o item com
+     * `href: "/#"` e 12 `children`, e a sidebar o desenhava como botão sem link, depois de HRM e
+     * Essenciais (medido em produção, biz=1). Este teste lê o menu que o shell ENTREGA, não o fonte.
+     */
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function sidebar_item_ponto_e_link_direto_antes_do_hrm(): void
+    {
+        $this->actAsAdmin();
+
+        // Pré-condição: o `modifyAdminMenu` só publica o Ponto se o business tiver o pacote
+        // `ponto_module` OU se o usuário for superadmin E existir `ponto_version` na tabela
+        // `system` (ModuleUtil::isModuleInstalled). No CI nenhuma das duas vale (medido: o item
+        // não vinha no menu). Montamos a 2ª SEM deixar rastro: superadmin só em memória
+        // (Gate::before, sem tocar papel) e a linha de `system` numa transação revertida no fim
+        // — a base do CT 100 persiste entre runs (§5 2026-09-18).
+        \Illuminate\Support\Facades\Gate::before(fn ($user, $ability) => $ability === 'superadmin' ? true : null);
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            if (empty(\App\System::getProperty('ponto_version'))) {
+                \Illuminate\Support\Facades\DB::table('system')->insert(['key' => 'ponto_version', 'value' => 'teste']);
+            }
+            $this->assertSidebarItemPonto($this->inertiaGet('/ponto'));
+        } finally {
+            \Illuminate\Support\Facades\DB::rollBack();
+        }
+    }
+
+    private function assertSidebarItemPonto($response): void
+    {
+        $menu = (array) $response->json('props.shell.menu');
+        $rotulo = __('pontowr2::ponto.module_label');
+        $idx = null;
+        foreach ($menu as $i => $item) {
+            if (($item['label'] ?? null) === $rotulo) {
+                $idx = $i;
+                break;
+            }
+        }
+
+        // Anti-vácuo (LC-13): sem o item, os asserts abaixo não mediriam nada.
+        $this->assertNotNull($idx, "O shell não entregou o item \"{$rotulo}\" no menu — o caso não exerce a forma do item.");
+        $ponto = $menu[$idx];
+
+        $this->assertEmpty(
+            $ponto['children'] ?? [],
+            'O item Ponto não pode ter filhos: com filhos a sidebar o desenha como botão de dropdown sem link, '
+            . 'e o protótipo desenha um item simples.'
+        );
+        $this->assertStringEndsWith('/ponto', (string) ($ponto['href'] ?? ''),
+            'O item Ponto tem de levar ao painel do Ponto (link direto, ADR 0180), não a "/#".'
+        );
+
+        // O PontoSubNav monta as abas das telas do Ponto a partir destes dois campos.
+        $this->assertNotEmpty($ponto['ghosts'] ?? [], 'Os ghosts do Ponto alimentam as abas das telas — não podem sumir.');
+        $this->assertArrayHasKey('primary', $ponto, 'O primary alimenta a ação do cabeçalho das telas do Ponto.');
+        // [W] 2026-09-29: o destino é o painel (/ponto) e não existe tela web de bater ponto,
+        // então o rótulo antigo "Bater ponto" prometia uma ação inexistente.
+        $this->assertSame('Painel do ponto', $ponto['primary']['label'] ?? null,
+            'O primary leva ao painel do Ponto — o rótulo tem de dizer isso, não "Bater ponto".'
+        );
+
+        // Ordem do protótipo: Ponto antes do HRM. Só mede quando o HRM também está no menu.
+        foreach ($menu as $i => $item) {
+            if (($item['label'] ?? null) === 'HRM') {
+                $this->assertLessThan($i, $idx, 'No protótipo o Ponto é o 1º item do grupo RH, antes do HRM.');
+            }
+        }
+    }
 }

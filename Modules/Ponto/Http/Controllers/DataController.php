@@ -135,156 +135,60 @@ class DataController extends Controller
         Menu::modify(
             'admin-sidebar-menu',
             function ($menu) use ($background_color, $segmento_ativo) {
-                // ADR 0180 Fase 4 Wave D FINANÇAS+PESSOAS (2026-05-21): entry Ponto
-                // é ghost do módulo principal Essentials/HRM (G H) — sem shortcut
-                // próprio. Primary "Bater ponto" + ghosts 9 sub-views próprias
-                // espelham nav do dropdown atual, declarados pro frontend Sidebar.tsx.
-                $menu->dropdown(
+                // Forma do item = protótipo (`prototipo-ui/cowork/Wagner/data.jsx`, grupo RH:
+                // `{ id: "ponto", label: "Ponto" }`, 1º do grupo), soberano no eixo FORMA
+                // (ADR UI-0029). Até 2026-09-28 era `$menu->dropdown(...)`: o item virava um
+                // botão sem link (href "/#") que abria uma lista de 12 filhos, e ficava depois de
+                // HRM e Essenciais. Agora é link direto pro painel + ghosts (ADR 0180), igual ao
+                // HRM. `primary` e `ghosts` seguem aqui porque o `PontoSubNav` monta as abas das
+                // telas do Ponto a partir deles.
+                //
+                // Os ghosts herdam o gate de permissão que os filhos do dropdown tinham: sem ele,
+                // as abas mostravam Aprovações, Colaboradores e Configurações a quem não pode
+                // abrir essas telas.
+                $pode = fn (string $perm) => auth()->user()->can('superadmin') || auth()->user()->can($perm);
+
+                // W9 ([W] 2026-09-28, ADR 0418): abas na ORDEM, RÓTULO e ÍCONE do protótipo
+                // (ponto-page.jsx ABAS). `perm` = o gate de permissão que o #8116 pôs nas abas
+                // (antes filhos do dropdown) — aba que a pessoa não pode abrir não aparece. A 13ª
+                // do protótipo, "REP-P (celular)", entra junto com a tela (W10, ADR 0419).
+                $abas = [
+                    ['key' => 'dashboard',       'label' => 'Painel',           'href' => '/ponto',                 'icon' => 'chart-column'],
+                    ['key' => 'espelho',         'label' => 'Espelho de ponto', 'href' => '/ponto/espelho',         'icon' => 'calendar'],
+                    ['key' => 'aprovacoes',      'label' => 'Aprovações',       'href' => '/ponto/aprovacoes',      'perm' => 'ponto.aprovacoes.manage', 'icon' => 'check'],
+                    ['key' => 'intercorrencias', 'label' => 'Intercorrências',  'href' => '/ponto/intercorrencias', 'icon' => 'triangle-alert'],
+                    ['key' => 'banco-horas',     'label' => 'Banco de horas',   'href' => '/ponto/banco-horas',     'icon' => 'coins'],
+                    // ADR 0413: ver o fechamento é `ponto.access`; fechar exige `ponto.fechar` (na rota POST).
+                    ['key' => 'fechamento',      'label' => 'Fechamento',       'href' => '/ponto/fechamento',      'icon' => 'lock'],
+                    ['key' => 'conformidade',    'label' => 'Conformidade',     'href' => '/ponto/conformidade',    'icon' => 'shield'],
+                    ['key' => 'escalas',         'label' => 'Escalas',          'href' => '/ponto/escalas',         'icon' => 'clock'],
+                    ['key' => 'colaboradores',   'label' => 'Colaboradores',    'href' => '/ponto/colaboradores',   'perm' => 'ponto.colaboradores.manage', 'icon' => 'database'],
+                    ['key' => 'importacoes',     'label' => 'Importações',      'href' => '/ponto/importacoes',     'icon' => 'download'],
+                    ['key' => 'relatorios',      'label' => 'Relatórios',       'href' => '/ponto/relatorios',      'icon' => 'receipt'],
+                    ['key' => 'configuracoes',   'label' => 'Configurações',    'href' => '/ponto/configuracoes',   'perm' => 'ponto.configuracoes.manage', 'icon' => 'settings'],
+                ];
+                $ghosts = array_values(array_map(
+                    fn (array $a) => array_diff_key($a, ['perm' => true]),
+                    array_filter($abas, fn (array $a) => ! isset($a['perm']) || $pode($a['perm']))
+                ));
+
+                $menu->url(
+                    route('ponto.dashboard'),
                     __('pontowr2::ponto.module_label'),
-                    function ($sub) {
-                        $sub->url(
-                            route('ponto.dashboard'),
-                            __('pontowr2::ponto.menu.dashboard'),
-                            [
-                                'icon'   => 'fa fas fa-tachometer-alt',
-                                'active' => request()->segment(1) == 'ponto' && !request()->segment(2),
-                            ]
-                        );
-
-                        $sub->url(
-                            route('ponto.espelho.index'),
-                            __('pontowr2::ponto.menu.espelho'),
-                            [
-                                'icon'   => 'fa fas fa-clipboard-list',
-                                'active' => request()->segment(2) == 'espelho',
-                            ]
-                        );
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('ponto.aprovacoes.manage')) {
-                            $sub->url(
-                                route('ponto.aprovacoes.index'),
-                                __('pontowr2::ponto.menu.aprovacoes'),
-                                [
-                                    'icon'   => 'fa fas fa-check-double',
-                                    'active' => request()->segment(2) == 'aprovacoes',
-                                ]
-                            );
-                        }
-
-                        $sub->url(
-                            route('ponto.intercorrencias.index'),
-                            __('pontowr2::ponto.menu.intercorrencias'),
-                            [
-                                'icon'   => 'fa fas fa-exclamation-triangle',
-                                'active' => request()->segment(2) == 'intercorrencias',
-                            ]
-                        );
-
-                        $sub->url(
-                            route('ponto.banco-horas.index'),
-                            __('pontowr2::ponto.menu.banco_horas'),
-                            [
-                                'icon'   => 'fa fas fa-piggy-bank',
-                                'active' => request()->segment(2) == 'banco-horas',
-                            ]
-                        );
-
-                        $sub->url(
-                            route('ponto.escalas.index'),
-                            __('pontowr2::ponto.menu.escalas'),
-                            [
-                                'icon'   => 'fa fas fa-calendar-alt',
-                                'active' => request()->segment(2) == 'escalas',
-                            ]
-                        );
-
-                        $sub->url(
-                            route('ponto.importacoes.index'),
-                            __('pontowr2::ponto.menu.importacoes'),
-                            [
-                                'icon'   => 'fa fas fa-file-import',
-                                'active' => request()->segment(2) == 'importacoes',
-                            ]
-                        );
-
-                        // ADR 0413: ver o fechamento é `ponto.access`; fechar exige `ponto.fechar` (na rota POST).
-                        $sub->url(
-                            route('ponto.fechamento'),
-                            __('pontowr2::ponto.menu.fechamento'),
-                            [
-                                'icon'   => 'fa fas fa-lock',
-                                'active' => request()->segment(2) == 'fechamento',
-                            ]
-                        );
-
-                        $sub->url(
-                            route('ponto.relatorios.index'),
-                            __('pontowr2::ponto.menu.relatorios'),
-                            [
-                                'icon'   => 'fa fas fa-chart-bar',
-                                'active' => request()->segment(2) == 'relatorios',
-                            ]
-                        );
-
-                        $sub->url(
-                            route('ponto.conformidade.index'),
-                            __('pontowr2::ponto.menu.conformidade'),
-                            [
-                                'icon'   => 'fa fas fa-shield-alt',
-                                'active' => request()->segment(2) == 'conformidade',
-                            ]
-                        );
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('ponto.colaboradores.manage')) {
-                            $sub->url(
-                                route('ponto.colaboradores.index'),
-                                __('pontowr2::ponto.menu.colaboradores'),
-                                [
-                                    'icon'   => 'fa fas fa-users',
-                                    'active' => request()->segment(2) == 'colaboradores',
-                                ]
-                            );
-                        }
-
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('ponto.configuracoes.manage')) {
-                            $sub->url(
-                                route('ponto.configuracoes.index'),
-                                __('pontowr2::ponto.menu.configuracoes'),
-                                [
-                                    'icon'   => 'fa fas fa-cog',
-                                    'active' => request()->segment(2) == 'configuracoes',
-                                ]
-                            );
-                        }
-                    },
                     [
                         'icon'    => 'fa fas fa-business-time',
                         'style'   => 'background-color:' . $background_color,
                         'active'  => $segmento_ativo,
                         'primary' => [
-                            'label'    => 'Bater ponto',
+                            // Era "Bater ponto" até 2026-09-29: o destino é o painel (/ponto), e não
+                            // existe tela web de bater ponto — o rótulo prometia uma ação que não há.
+                            'label'    => 'Painel do ponto',
                             'href'     => '/ponto',
                             'shortcut' => 'N',
                         ],
-                        // W9 ([W] 2026-09-28, ADR 0418): abas na ORDEM, RÓTULO e ÍCONE do protótipo
-                        // (ponto-page.jsx ABAS). A 13ª do protótipo, "REP-P (celular)", fica de fora até
-                        // W10 + rota existirem — aba para rota inexistente seria link morto.
-                        'ghosts'  => [
-                            ['key' => 'dashboard',       'label' => 'Painel',           'href' => '/ponto',                 'icon' => 'chart-column'],
-                            ['key' => 'espelho',         'label' => 'Espelho de ponto', 'href' => '/ponto/espelho',         'icon' => 'calendar'],
-                            ['key' => 'aprovacoes',      'label' => 'Aprovações',       'href' => '/ponto/aprovacoes',      'icon' => 'check'],
-                            ['key' => 'intercorrencias', 'label' => 'Intercorrências',  'href' => '/ponto/intercorrencias', 'icon' => 'triangle-alert'],
-                            ['key' => 'banco-horas',     'label' => 'Banco de horas',   'href' => '/ponto/banco-horas',     'icon' => 'coins'],
-                            ['key' => 'fechamento',      'label' => 'Fechamento',       'href' => '/ponto/fechamento',      'icon' => 'lock'],
-                            ['key' => 'conformidade',    'label' => 'Conformidade',     'href' => '/ponto/conformidade',    'icon' => 'shield'],
-                            ['key' => 'escalas',         'label' => 'Escalas',          'href' => '/ponto/escalas',         'icon' => 'clock'],
-                            ['key' => 'colaboradores',   'label' => 'Colaboradores',    'href' => '/ponto/colaboradores',   'icon' => 'database'],
-                            ['key' => 'importacoes',     'label' => 'Importações',      'href' => '/ponto/importacoes',     'icon' => 'download'],
-                            ['key' => 'relatorios',      'label' => 'Relatórios',       'href' => '/ponto/relatorios',      'icon' => 'receipt'],
-                            ['key' => 'configuracoes',   'label' => 'Configurações',    'href' => '/ponto/configuracoes',   'icon' => 'settings'],
-                        ],
+                        'ghosts'  => $ghosts,
                     ]
-                )->order(88); // logo abaixo do HRM/Essentials (order=87)
+                )->order(86); // 1º do grupo RH, antes do HRM (87) e do Essenciais (88) — protótipo
             }
         );
     }

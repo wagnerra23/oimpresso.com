@@ -103,13 +103,13 @@
         "linhas": "761-768"
       },
       "vivo": {
-        "arquivo": "n/a",
-        "linhas": "n/a",
-        "ancora": false
+        "arquivo": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
+        "linhas": "141-185",
+        "ancora": "importacoes-amostra-de-erros"
       },
-      "status": "prototipo-a-frente",
-      "acao": "Incorporar — `D-IMP-EXTRAS`. Exige o job persistir a amostra e o `show` expô-la. Mensagens de erro de linha podem carregar PIS do AFD: tratar como PII na persistência e na tela.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Feito 2026-09-29 — `UC-IMPSH-06`. O job já persistia a amostra (mascarada pelo PiiRedactor); o `show` passou a expô-la com as 4 chaves do contrato.",
+      "_acionavel": false
     }
   ]
 }
