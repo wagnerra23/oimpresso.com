@@ -43,7 +43,7 @@ mesma imutabilidade do relógio do balcão (Portaria MTP 671/2021 reconhece o RE
 - ❌ **Selfie, foto ou qualquer biometria** — [W] 2026-08-27, ADR 0383 (LGPD Art. 5º II + Art. 11).
 - ❌ **"Bater mesmo assim" com GPS fraco** — [W] W5: sinal ruim é recusa, o botão fica desabilitado.
 - ❌ Gerar ou exibir NSR calculado no cliente — só o que o servidor devolveu.
-- ❌ Fila do gestor nesta tela — é filtro na tela viva de Aprovações (thread 06, passo 3).
+- ❌ Fila do gestor nesta tela — é a seção "Marcações mobile a validar" em Aprovações ([W] 2026-09-29).
 
 ## UX Targets
 

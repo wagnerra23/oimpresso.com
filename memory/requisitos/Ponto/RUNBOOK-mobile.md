@@ -51,7 +51,7 @@ não tem `CreateFreshApiToken`, então uma tela Inertia não alcança `auth:api`
 - **Não oferece "bater mesmo assim"** com GPS fraco (W5): o botão fica desabilitado com
   *"Sinal de GPS fraco — aproxime-se de área aberta"*.
 - **Não corrige marcação**: correção é intercorrência (sub-tela Justificar), que o gestor decide.
-- **Não mostra a fila do gestor**: é filtro na tela viva de Aprovações (passo 3 da thread).
+- **Não mostra a fila do gestor**: é a seção "Marcações mobile a validar" em Aprovações ([W] 2026-09-29).
 
 ## 4. Diferenças conscientes contra o protótipo (`ponto-mobile.jsx`)
 
@@ -59,7 +59,7 @@ não tem `CreateFreshApiToken`, então uma tela Inertia não alcança `auth:api`
 |---|---|---|
 | moldura `AndroidDevice` + "Simular condição de campo" | fora | andaime da demonstração no desktop — em produção o aparelho É o celular |
 | status "dentro/fora da área" antes de marcar | só a precisão do GPS antes; "fora da área" depois, na resposta | a config de geofence é do servidor — a tela não sabe e não inventa |
-| `ValidacaoMobile` ao lado | fora | fila do gestor = filtro em Aprovações (passo 3) |
+| `ValidacaoMobile` ao lado | seção em Aprovações | [W] 2026-09-29 · GPS "—" e local = coordenadas (precisão e nome do local não são gravados) |
 | "O oficial, assinado, sai no fechamento" | "O oficial sai no fechamento da competência" | D2 da ata: a palavra "assinada" sai (ADR 0413) |
 
 ## 5. Como validar

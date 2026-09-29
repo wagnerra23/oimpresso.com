@@ -51,6 +51,7 @@ import StatusBadge from '@/Components/shared/StatusBadge';
 import EmptyState from '@/Components/shared/EmptyState';
 import BulkActionBar from '@/Components/shared/BulkActionBar';
 import { Inline } from '@/Components/layout/inline';
+import FilaMobile, { type MarcacaoMobile } from './_components/FilaMobile';
 
 interface Aprovacao {
   id: number | string;
@@ -85,6 +86,7 @@ interface Props {
   aprovacoes?: PaginatedAprovacoes;
   filtros: { estado: string | null; tipo: string | null; prioridade: string | null };
   contagens?: Record<string, number>;
+  mobile?: MarcacaoMobile[]; // Inertia::defer — fila do gestor do REP-P (thread 06)
   tipos: Array<{ value: string; label: string }>;
 }
 
@@ -117,7 +119,7 @@ const estadoLabelMap: Record<string, string> = {
   CANCELADA: 'Cancelada',
 };
 
-export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos }: Props) {
+export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos, mobile }: Props) {
   const [approveTarget, setApproveTarget] = useState<Aprovacao | null>(null);
   const [rejectTarget, setRejectTarget] = useState<Aprovacao | null>(null);
   const [rejectMotivo, setRejectMotivo] = useState('');
@@ -489,6 +491,8 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
           </CardContent>
         </Card>
         </Deferred>
+
+        <FilaMobile itens={mobile} />
       </div>
 
       {/* ==================== BulkActionBar ==================== */}
