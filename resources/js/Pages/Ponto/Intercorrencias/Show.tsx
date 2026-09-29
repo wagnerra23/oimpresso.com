@@ -32,6 +32,8 @@ interface I {
   impacta_apuracao: boolean;
   descontar_banco_horas: boolean;
   motivo_rejeicao: string | null;
+  tem_anexo: boolean;
+  pode_baixar_anexo: boolean;
   created_at: string | null;
   updated_at: string | null;
   colaborador: { id: number | null; matricula: string | null; nome: string };
@@ -130,6 +132,17 @@ export default function IntercorrenciasShow({ intercorrencia: i }: Props) {
             </Row>
             <Row label="Impacta apuração">{i.impacta_apuracao ? 'Sim' : 'Não'}</Row>
             <Row label="Desconta BH">{i.descontar_banco_horas ? 'Sim' : 'Não'}</Row>
+            {/* UC-INTCRE-04: o payload traz só o FATO de haver comprovante, nunca o caminho.
+                O link aparece só a quem aprova — e a rota recusa (403) quem não aprova. */}
+            <Row label="Comprovante">
+              {!i.tem_anexo ? '—' : i.pode_baixar_anexo ? (
+                <a href={`/ponto/intercorrencias/${i.id}/anexo`} className="text-primary underline underline-offset-2">
+                  Baixar comprovante
+                </a>
+              ) : (
+                <span className="text-muted-foreground">Anexado — visível para quem aprova</span>
+              )}
+            </Row>
             <Row label="Solicitante">{i.solicitante.nome}</Row>
           </CardContent>
         </Card>

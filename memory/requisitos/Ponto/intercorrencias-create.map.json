@@ -103,13 +103,13 @@
         "linhas": "188-190"
       },
       "vivo": {
-        "arquivo": "n/a",
+        "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
         "linhas": "n/a",
         "ancora": false
       },
-      "status": "gap",
-      "acao": "Gap real (D-INTERC-ANEXO: INCORPORA). Implementar com a ressalva de [W]: arquivo não público, fora de log, acesso por permissão. A emenda do charter é da thread 27; o código é PR próprio.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Feito 2026-09-29 — `UC-INTCRE-04`: campo com o rótulo e os formatos do protótipo; arquivo fora do webroot, fora de log, download só para quem aprova. Sem data-contract (o campo vive no wrapper Field).",
+      "_acionavel": false
     },
     {
       "id": "nota-de-rascunho-e-append-only",
