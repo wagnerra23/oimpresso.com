@@ -183,8 +183,8 @@ class MobileMarcacaoController extends Controller
             'hoje'   => now()->toDateString(),
             'mes'    => now()->format('Y-m'),
             // Mesmos builders do Espelho/Show (US-PONTO-012 já corrigida lá) — não recalcula.
-            'totais' => Inertia::defer(fn () => $colab ? $espelho->buildTotaisEspelho((int) $colab->id, $ano, $mes) : null),
-            'linhas' => Inertia::defer(fn () => $colab ? $espelho->buildLinhasEspelho((int) $colab->id, $ano, $mes) : []),
+            'totais' => Inertia::defer(fn () => $colab ? $espelho->buildTotaisEspelho((int) $colab->business_id, (int) $colab->id, $ano, $mes) : null),
+            'linhas' => Inertia::defer(fn () => $colab ? $espelho->buildLinhasEspelho((int) $colab->business_id, (int) $colab->id, $ano, $mes) : []),
             'tipos'  => IntercorrenciaController::tiposDisponiveis(),
             'limites' => [
                 'accuracy_max' => MobileMarcacaoService::GPS_ACCURACY_MAX_METROS,
