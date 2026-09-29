@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Ponto\Entities\Colaborador;
@@ -115,14 +119,83 @@ class IntercorrenciaController extends Controller
         $dados = $request->validated();
         $dados['business_id'] = session('business.id') ?: $request->user()->business_id;
 
-        $intercorrencia = $this->service->criar(
-            $dados,
-            $request->user()->id
-        );
+        // D-INTERC-ANEXO (UC-INTCRE-04): o arquivo nunca entra em `$dados` — só o caminho.
+        unset($dados['anexo']);
+        $anexo = $request->file('anexo');
+        if ($anexo instanceof UploadedFile) {
+            $dados['anexo_path'] = $this->guardarAnexo($anexo, (int) $dados['business_id']);
+        }
+
+        try {
+            $intercorrencia = $this->service->criar(
+                $dados,
+                $request->user()->id
+            );
+        } catch (\Throwable $e) {
+            // Sem registro, o arquivo não pode ficar órfão no disco (dado de saúde sem dono).
+            if (! empty($dados['anexo_path'])) {
+                Storage::disk(self::discoAnexo())->delete($dados['anexo_path']);
+            }
+            throw $e;
+        }
 
         return redirect()
             ->route('ponto.intercorrencias.show', $intercorrencia->id)
             ->with('success', "Intercorrência {$intercorrencia->codigo} criada.");
+    }
+
+    /**
+     * Baixa o comprovante anexado — só quem aprova intercorrência (UC-INTCRE-04).
+     *
+     * `findOrFail` passa pelo global scope do `HasBusinessScope`: anexo de outro empregador
+     * responde 404, não 403 (403 confirmaria que o id existe — mesmo critério do CU-PONTO-12).
+     * Nada do caminho vai a log: atestado é dado de saúde (LGPD Art. 11).
+     */
+    public function anexo(Request $request, $id): StreamedResponse
+    {
+        $i = Intercorrencia::findOrFail($id);
+
+        abort_unless(self::podeBaixarAnexo($request->user()), 403, 'Só quem aprova intercorrências pode baixar o comprovante.');
+        abort_unless($i->anexo_path && Storage::disk(self::discoAnexo())->exists($i->anexo_path), 404);
+
+        $ext = pathinfo($i->anexo_path, PATHINFO_EXTENSION) ?: 'bin';
+
+        return Storage::disk(self::discoAnexo())->download(
+            $i->anexo_path,
+            'comprovante-' . ($i->codigo ?? $i->id) . '.' . $ext
+        );
+    }
+
+    /** Mesmo critério que a fila de aprovação usa no menu (`DataController`). */
+    private static function podeBaixarAnexo($user): bool
+    {
+        return $user !== null && ($user->can('superadmin') || $user->can('ponto.aprovacoes.manage'));
+    }
+
+    private static function discoAnexo(): string
+    {
+        return (string) config('pontowr2.intercorrencias.anexo_disk', 'arquivos');
+    }
+
+    /**
+     * Nome aleatório: o nome original do arquivo costuma carregar o nome do colaborador ou
+     * o CID, e não vai para o disco nem para o banco. Extensão pelo conteúdo (`extension()`
+     * usa o MIME detectado), não pelo que o cliente declarou.
+     */
+    private function guardarAnexo(UploadedFile $anexo, int $businessId): string
+    {
+        $ext = strtolower($anexo->extension() ?: 'bin');
+        $path = Storage::disk(self::discoAnexo())->putFileAs(
+            "ponto/intercorrencias/biz-{$businessId}",
+            $anexo,
+            Str::uuid()->toString() . '.' . $ext
+        );
+
+        if ($path === false) {
+            throw new \RuntimeException('Não foi possível gravar o comprovante da intercorrência.');
+        }
+
+        return $path;
     }
 
     public function show($id): Response
@@ -144,6 +217,9 @@ class IntercorrenciaController extends Controller
                 'impacta_apuracao' => (bool) $i->impacta_apuracao,
                 'descontar_banco_horas' => (bool) $i->descontar_banco_horas,
                 'motivo_rejeicao'=> $i->motivo_rejeicao,
+                // Só o FATO de haver comprovante — o caminho nunca vai ao front.
+                'tem_anexo'      => (bool) $i->anexo_path,
+                'pode_baixar_anexo' => self::podeBaixarAnexo(request()->user()),
                 'created_at'     => optional($i->created_at)->format('Y-m-d H:i'),
                 'updated_at'     => optional($i->updated_at)->format('Y-m-d H:i'),
                 'colaborador'    => [

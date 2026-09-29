@@ -58,6 +58,8 @@ Route::group(
         ]);
         Route::post('/intercorrencias/{id}/submeter', 'IntercorrenciaController@submeter')->name('ponto.intercorrencias.submeter');
         Route::post('/intercorrencias/{id}/cancelar', 'IntercorrenciaController@cancelar')->name('ponto.intercorrencias.cancelar');
+        // Comprovante (atestado) — só quem aprova baixa; o controller decide (UC-INTCRE-04).
+        Route::get('/intercorrencias/{id}/anexo', 'IntercorrenciaController@anexo')->name('ponto.intercorrencias.anexo');
 
         // IA — classifica descrição livre em campos estruturados
         Route::post('/intercorrencias-ai/classify', 'IntercorrenciaController@aiClassify')

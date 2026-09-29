@@ -3,7 +3,11 @@
 declare(strict_types=1);
 
 use App\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 use Modules\Ponto\Entities\Colaborador;
 use Modules\Ponto\Entities\Intercorrencia;
@@ -17,7 +21,7 @@ uses(PontoTestCase::class);
  *
  * Cada teste cita o UC no TÍTULO do `it()` (G-2 do casos-gate, ADR 0264):
  *   Intercorrencias/Index.casos.md  → UC-INTIDX-01..04 (o 04 é o GUARD de D-INTERC-ACOES)
- *   Intercorrencias/Create.casos.md → UC-INTCRE-01..03
+ *   Intercorrencias/Create.casos.md → UC-INTCRE-01..04
  *
  * Os UC derivam do SDD §6.2 (CU-PONTO-05) e §6.5 (CU-PONTO-12) + US-PONTO-003 +
  * fluxo F4 (§5.3). NÃO do `.tsx`.
@@ -381,4 +385,126 @@ it('UC-INTCRE-02 · a lista de colaboradores traz só os do meu empregador', fun
         'Colaborador de OUTRO empregador não pode ser selecionável — o seletor expõe nome e '
         . 'matrícula (ADR 0093 · CU-PONTO-12 · LGPD Art. 7º).'
     );
+});
+
+// =====================================================================
+// Intercorrencias/Create — o comprovante (D-INTERC-ANEXO)
+// =====================================================================
+
+/** Disco configurado do comprovante, e a prova de que ele NÃO é servido pelo webserver. */
+function intcDiscoAnexoPrivado(): string
+{
+    $disco = (string) config('pontowr2.intercorrencias.anexo_disk');
+    $raiz  = (string) config("filesystems.disks.{$disco}.root");
+
+    // Medido ANTES do Storage::fake (que troca a raiz). Neste app o disco `local` aponta para
+    // public_path('uploads'): um atestado lá seria baixável por URL, sem login.
+    test()->assertNotSame('', $raiz, "O disco `{$disco}` do comprovante tem de existir na config.");
+    test()->assertStringStartsNotWith(
+        public_path(),
+        $raiz,
+        "O comprovante é dado de saúde (LGPD Art. 11) e não pode ir para disco dentro do webroot — `{$disco}` aponta para {$raiz}."
+    );
+
+    return $disco;
+}
+
+it('UC-INTCRE-04 · o comprovante anexado vai para disco privado, só quem aprova baixa, e nada dele vai a log', function () {
+    $this->actAsAdmin();
+    intcPrecisaDe(['ponto_colaborador_config', 'ponto_intercorrencias']);
+
+    $disco = intcDiscoAnexoPrivado();
+    Storage::fake($disco);
+
+    // Coleta TODO log emitido durante o registro — o caminho e o nome do arquivo não podem
+    // aparecer em nenhum (atestado é dado de saúde; nome de arquivo costuma trazer nome/CID).
+    $logs = [];
+    Event::listen(MessageLogged::class, function (MessageLogged $m) use (&$logs) {
+        $logs[] = $m->message . ' ' . json_encode($m->context);
+    });
+
+    $colab = intcCriarColaborador($this->business->id, $this->business->id);
+    $nomeOriginal = 'atestado-fulano-cid-sdd.pdf';
+    $conteudo = "%PDF-1.4" . PHP_EOL . "SDD fixture neutra";
+
+    $this->post('/ponto/intercorrencias', [
+        'colaborador_config_id' => $colab->id,
+        'tipo'                  => 'ATESTADO_MEDICO',
+        'data'                  => '2019-03-11',
+        'dia_todo'              => true,
+        'justificativa'         => 'Fixture de contrato SDD — texto neutro, sem PII.',
+        'prioridade'            => 'NORMAL',
+        'anexo'                 => UploadedFile::fake()->createWithContent($nomeOriginal, $conteudo),
+    ]);
+
+    $criada = Intercorrencia::where('colaborador_config_id', $colab->id)->first();
+    $this->assertNotNull($criada, 'A intercorrência com comprovante tem de ser gravada (UC-INTCRE-01 é pré-condição).');
+
+    // 1) Vinculado e no disco privado, sob o empregador, sem o nome original.
+    $path = (string) $criada->anexo_path;
+    $this->assertNotSame('', $path, 'O comprovante tem de ficar vinculado à intercorrência (anexo_path).');
+    Storage::disk($disco)->assertExists($path);
+    $this->assertStringStartsWith("ponto/intercorrencias/biz-{$this->business->id}/", $path);
+    $this->assertStringNotContainsString('fulano', $path, 'O nome original do arquivo não pode ir para o caminho gravado.');
+
+    // 2) Nada do comprovante em log. Anti-vácuo: o registro EMITE log (ponto.intercorrencia.criada)
+    //    — sem isso, "não achei o caminho no log" seria verdade por não haver log nenhum.
+    $this->assertNotEmpty($logs, 'O registro tem de emitir log — senão o caso não exerce a ausência.');
+    $tudo = implode(PHP_EOL, $logs);
+    $this->assertStringNotContainsString($path, $tudo, 'O caminho do comprovante não pode aparecer em log (LGPD Art. 11).');
+    $this->assertStringNotContainsString('fulano', $tudo, 'O nome do arquivo não pode aparecer em log (LGPD Art. 11).');
+
+    // 3) Quem aprova (o admin tem ponto.aprovacoes.manage) baixa o arquivo, íntegro.
+    $download = $this->get("/ponto/intercorrencias/{$criada->id}/anexo");
+    $download->assertStatus(200);
+    $this->assertSame($conteudo, $download->streamedContent(), 'O comprovante baixado tem de ser o arquivo enviado.');
+
+    // 4) Quem NÃO aprova recebe 403. Âncora positiva (§5 2026-09-27): o mesmo usuário ABRE o
+    //    detalhe (200) — prova que ele passou do middleware do módulo e que o 403 vem da regra
+    //    do comprovante, não de "não entra no Ponto".
+    $semAprovacao = User::factory()->create([
+        'business_id' => $this->business->id,
+        'user_type'   => 'user',
+        'username'    => strtolower(INTC_MARCADOR) . '-leitor-' . uniqid(),
+    ]);
+    $semAprovacao->givePermissionTo('ponto.access');
+    $this->assertFalse($semAprovacao->can('ponto.aprovacoes.manage'), 'O leitor não pode ter a permissão de aprovação.');
+
+    $this->actingAs($semAprovacao);
+    $detalhe = intcInertiaGet("/ponto/intercorrencias/{$criada->id}");
+    $detalhe->assertStatus(200);
+    $this->assertTrue((bool) $detalhe->json('props.intercorrencia.tem_anexo'), 'O detalhe informa que há comprovante.');
+    $this->assertFalse((bool) $detalhe->json('props.intercorrencia.pode_baixar_anexo'), 'O detalhe não oferece o download a quem não aprova.');
+    $this->assertStringNotContainsString($path, $detalhe->getContent(), 'O caminho do comprovante não vai ao front.');
+
+    $this->get("/ponto/intercorrencias/{$criada->id}/anexo")->assertStatus(403);
+
+    $semAprovacao->delete();
+});
+
+it('UC-INTCRE-04 · o comprovante de intercorrência de outro empregador responde 404', function () {
+    $this->actAsAdmin();
+    intcPrecisaDe(['ponto_colaborador_config', 'ponto_intercorrencias']);
+
+    $disco = intcDiscoAnexoPrivado();
+    Storage::fake($disco);
+
+    intcGarantirBizAlheio();
+    $colabAlheio = intcCriarColaborador(INTC_BIZ_ALHEIO, INTC_BIZ_ALHEIO);
+    $alheia = intcCriarIntercorrencia(INTC_BIZ_ALHEIO, $colabAlheio->id, $this->admin->id, Intercorrencia::ESTADO_PENDENTE);
+
+    $path = 'ponto/intercorrencias/biz-' . INTC_BIZ_ALHEIO . '/sdd-alheio.pdf';
+    Storage::disk($disco)->put($path, "%PDF-1.4 SDD");
+    DB::table('ponto_intercorrencias')->where('id', $alheia->id)->update(['anexo_path' => $path]);
+
+    // Pré-condição anti-vácuo: o arquivo EXISTE e está vinculado — o 404 abaixo não pode vir
+    // de "não há arquivo", só do isolamento.
+    Storage::disk($disco)->assertExists($path);
+    $this->assertSame($path, DB::table('ponto_intercorrencias')->where('id', $alheia->id)->value('anexo_path'));
+
+    // O admin TEM a permissão de aprovação: o 404 não pode ser atribuído a falta dela.
+    $this->assertTrue($this->admin->can('ponto.aprovacoes.manage'));
+
+    // 404 e não 403: 403 confirmaria que o id existe (CU-PONTO-12).
+    $this->get("/ponto/intercorrencias/{$alheia->id}/anexo")->assertStatus(404);
 });
