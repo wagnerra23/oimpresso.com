@@ -16,7 +16,8 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { formatBytes } from '@/Lib/utils';
 
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
+import { Inline } from '@/Components/layout';
 import { PageHeaderPrimary } from '@/Components/PageHeader';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -60,16 +61,10 @@ export default function ImportacoesIndex({ importacoes }: Props) {
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>Importações AFD <span className="text-stone-400 font-normal">· Portaria MTP 671/2021</span></h1>
-            <p>Arquivos AFD/AFDT lidos por REPs. Dedup por SHA-256.</p>
-          </div>
-          <div className="os-page-h-r">
-            <PontoSubNav active="importacoes" hidePrimary />
-            <PageHeaderPrimary label="Nova importação" onClick={() => router.visit('/ponto/importacoes/novo')} />
-          </div>
-        </header>
+        <PontoAreaHeader active="importacoes" />
+        <Inline gap={2} justify="end">
+          <PageHeaderPrimary label="Nova importação" onClick={() => router.visit('/ponto/importacoes/novo')} />
+        </Inline>
 
         <Card data-contract="importacoes-historico-de-importacoes">
           <CardContent className="p-0">

@@ -7,7 +7,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/ConfiguracoesIndexTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
+import { Inline } from '@/Components/layout';
 import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { Clock, FileSpreadsheet, PiggyBank, ShieldCheck } from 'lucide-react';
@@ -94,18 +95,12 @@ export default function ConfiguracoesIndex({ config }: Props) {
     <>
       <div className="mx-auto max-w-6xl p-6 space-y-4">
         {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>Configurações <span className="text-stone-400 font-normal">· CLT + módulo</span></h1>
-            <p>Parâmetros (read-only por enquanto). Para alterar, edite <code>config/pontowr2.php</code>.</p>
-          </div>
-          <div className="os-page-h-r">
-            <PontoSubNav active="configuracoes" hidePrimary />
-            <Button asChild variant="outline">
-              <Link href="/ponto/configuracoes/reps">Gerenciar REPs</Link>
-            </Button>
-          </div>
-        </header>
+        <PontoAreaHeader active="configuracoes" />
+        <Inline gap={2} justify="end">
+          <Button asChild variant="outline">
+            <Link href="/ponto/configuracoes/reps">Gerenciar REPs</Link>
+          </Button>
+        </Inline>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="border-t-4 border-t-info" data-contract="configuracoes-regras-clt-reforma-trabalhista">

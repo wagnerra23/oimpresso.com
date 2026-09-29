@@ -3,7 +3,7 @@
 // Diferenças conscientes contra o protótipo: memory/requisitos/Ponto/RUNBOOK-fechamento.md §4.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import { Deferred, Link, router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import { Download, Lock } from 'lucide-react';
@@ -61,13 +61,7 @@ export default function FechamentoIndex({ competencia, fechada, pode_fechar, blo
 
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-4">
-      <header className="os-page-h">
-        <div className="os-page-h-l">
-          <h1>Fechamento <span className="text-muted-foreground font-normal">· Competência</span></h1>
-          <p>Confira a pré-checagem e feche o mês. Fechar não altera marcação nem apuração.</p>
-        </div>
-        <div className="os-page-h-r"><PontoSubNav active="fechamento" hidePrimary /></div>
-      </header>
+      <PontoAreaHeader active="fechamento" />
 
       <Card data-contract="fechamento-acoes">
         <CardContent>

@@ -145,12 +145,13 @@ module: Ponto
 - [Index.tsx](../../../resources/js/Pages/Ponto/Relatorios/Index.tsx)
 - [Welcome.tsx](../../../resources/js/Pages/Ponto/Welcome.tsx)
 
-## Componentes / apoio de tela — 5
+## Componentes / apoio de tela — 6
 
 - [ActivityFeed.tsx](../../../resources/js/Pages/Ponto/_components/ActivityFeed.tsx)
 - [AlertInbox.tsx](../../../resources/js/Pages/Ponto/_components/AlertInbox.tsx)
 - [MonthHeatmap.tsx](../../../resources/js/Pages/Ponto/_components/MonthHeatmap.tsx)
 - [PresenceStrip.tsx](../../../resources/js/Pages/Ponto/_components/PresenceStrip.tsx)
+- [PontoAreaHeader.tsx](../../../resources/js/Pages/Ponto/_shared/PontoAreaHeader.tsx)
 - [PontoSubNav.tsx](../../../resources/js/Pages/Ponto/_shared/PontoSubNav.tsx)
 
 ## Charters (lei da tela) — 23

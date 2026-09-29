@@ -160,12 +160,16 @@ class DashboardTest extends PontoTestCase
         $this->assertSame('Painel do ponto', $ponto['primary']['label'] ?? null,
             'O primary leva ao painel do Ponto — o rótulo tem de dizer isso, não "Bater ponto".'
         );
+        // [W] 2026-09-29: o botão só navega — o PageHeaderTabs tira o "+" de criação quando
+        // o primary declara `acao: navegar` (o adapter repassa o array inteiro).
+        $this->assertSame('navegar', $ponto['primary']['acao'] ?? null,
+            'O primary do Ponto tem de declarar acao=navegar, senão o botão aparece como "+ Painel do ponto".'
+        );
 
-        // Ordem do protótipo: Ponto antes do HRM. Só mede quando o HRM também está no menu.
-        foreach ($menu as $i => $item) {
-            if (($item['label'] ?? null) === 'HRM') {
-                $this->assertLessThan($i, $idx, 'No protótipo o Ponto é o 1º item do grupo RH, antes do HRM.');
-            }
-        }
+        // A ORDEM dentro do grupo RH não se mede aqui: o shell.menu chega na ordem de registro dos
+        // módulos (o `->order(N)` não passa pelo LegacyMenuAdapter), e quem ordena é o frontend
+        // (`SIDEBAR_GROUPS[].ordem` no Sidebar.tsx). O caso vive em tests/js/sidebar-ordem-grupo.test.tsx.
+        // Até 2026-09-29 havia aqui uma asserção "Ponto antes do HRM" — no CI o HRM não vem no menu,
+        // então ela nunca rodou, e em produção ela reprovaria.
     }
 }

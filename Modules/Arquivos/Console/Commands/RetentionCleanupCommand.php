@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Modules\Arquivos\Services\ArquivosService;
 
 /**
  * arquivos:retention-cleanup — Sprint 7 ADR 0123 (LGPD hard-delete pós-retention).
@@ -142,8 +143,13 @@ class RetentionCleanupCommand extends Command
                     try {
                         // 1. Remove file físico do disk
                         $fileRemoved = false;
+                        // Blob compartilhado pela dedupe de storage: só a ÚLTIMA referência
+                        // apaga o arquivo — senão purgar o dono A apaga o do dono B.
+                        $blobCompartilhado = ArquivosService::blobCompartilhado($row->disk, $row->storage_path, (int) $row->id);
                         try {
-                            if (Storage::disk($row->disk)->exists($row->storage_path)) {
+                            if ($blobCompartilhado) {
+                                $fileRemoved = false;
+                            } elseif (Storage::disk($row->disk)->exists($row->storage_path)) {
                                 Storage::disk($row->disk)->delete($row->storage_path);
                                 $fileRemoved = true;
                             } else {
@@ -178,6 +184,7 @@ class RetentionCleanupCommand extends Command
                                 'business_id'         => $row->business_id,
                                 'user_action'         => 'retention_cleanup_command',
                                 'file_removed_from_disk' => $fileRemoved,
+                                'blob_compartilhado'     => $blobCompartilhado,
                             ]),
                             'created_at'  => now()->toDateTimeString(),
                         ]);
