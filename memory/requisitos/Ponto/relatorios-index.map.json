@@ -3,14 +3,14 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Ponto/Relatorios/Index (/ponto/relatorios)",
   "gap_fonte": "memory/requisitos/Ponto/relatorios-index-gap.md",
-  "prototipo_sha": "sha256:62977f0aeb68",
+  "prototipo_sha": "sha256:e8b74d75e0d5",
   "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "nota-de-topo-com-a-lei",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "910-912"
+        "linhas": "870-872"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -25,7 +25,7 @@
       "id": "filtros-de-periodo-e-colaborador",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "914-935"
+        "linhas": "874-895"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
@@ -33,14 +33,14 @@
         "ancora": false
       },
       "status": "vivo-a-frente",
-      "acao": "Nada no vivo. `D-REL-FLUXO` = filtros globais no topo, e por R2 o wizard sai do protótipo no mesmo pacote — o campo Formato do wizard, que mostra sempre \"TXT\" mesmo para PDF (`:925`), sai junto.",
+      "acao": "Nada no vivo. `D-REL-FLUXO` = filtros globais no topo, e por R2 o wizard sai do protótipo no mesmo pacote — o campo Formato do wizard, que mostra sempre \"TXT\" mesmo para PDF (`:885`), sai junto.",
       "_acionavel": false
     },
     {
       "id": "incluir-marcacoes-anuladas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "927"
+        "linhas": "887"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -55,7 +55,7 @@
       "id": "grade-de-relatorios-por-categoria",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "937-951"
+        "linhas": "897-911"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
@@ -85,7 +85,7 @@
       "id": "gerar-relatorio-em-breve",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "897-906"
+        "linhas": "857-866"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
@@ -100,7 +100,7 @@
       "id": "pedidos-desta-sessao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "953-966"
+        "linhas": "913-926"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -115,7 +115,7 @@
       "id": "rodape-legal",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "968"
+        "linhas": "928"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -123,7 +123,7 @@
         "ancora": false
       },
       "status": "prototipo-a-frente",
-      "acao": "Incorporar — a copy vem do protótipo (`:968`); o charter não traz essa frase.",
+      "acao": "Incorporar — a copy vem do protótipo (`:928`); o charter não traz essa frase.",
       "_acionavel": true
     }
   ]

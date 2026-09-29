@@ -3,14 +3,14 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "governance/Policies (/governance/policies)",
   "gap_fonte": "memory/requisitos/Governance/governance-policies-gap.md",
-  "prototipo_sha": "sha256:53938d9e2417",
-  "gerado_em": "2026-09-29",
+  "prototipo_sha": "sha256:ef5e0ae45102",
+  "gerado_em": "2026-09-14",
   "partes": [
     {
       "id": "header-pageheader",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "402-417"
+        "linhas": "403-418"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -25,7 +25,7 @@
       "id": "abas-do-shell",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "25-30"
+        "linhas": "24-30"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -40,7 +40,7 @@
       "id": "kpis",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "323-328"
+        "linhas": "324-329"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -55,7 +55,7 @@
       "id": "aviso-alternar-nao-deixa-rastro",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "330-334"
+        "linhas": "331-335"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -63,14 +63,14 @@
         "ancora": false
       },
       "status": "gap-parcial",
-      "acao": "Decidir. O mockup (`governance-page.jsx:330-334`) desenha uma nota de aviso ao operador sobre a ausência de `mcp_governance_rule_history` (o charter registra o TODO em §UX Anti-patterns, `Policies.charter.md:62`, mas não decide sobre avisar na tela); o `Policies.tsx:68-119` não tem nota nenhuma entre KPIs e lista. Construir ou rejeitar por escrito.",
+      "acao": "Decidir. O mockup (`governance-page.jsx:331-335`) desenha uma nota de aviso ao operador sobre a ausência de `mcp_governance_rule_history` (o charter registra o TODO em §UX Anti-patterns, `Policies.charter.md:62`, mas não decide sobre avisar na tela); o `Policies.tsx:68-119` não tem nota nenhuma entre KPIs e lista. Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {
       "id": "busca-de-politicas-vazio-no-results",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "336-341"
+        "linhas": "337-342"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -78,14 +78,14 @@
         "ancora": false
       },
       "status": "gap-parcial",
-      "acao": "Decidir. Busca local por `rule_key`/`name`/`category` (mockup `governance-page.jsx:301-305` filtra e `:336-341` desenha) ausente no `Policies.tsx:84-118`; não é Non-Goal (o charter só proíbe ESCONDER desligadas — a busca mantém todas até ser digitada). Construir ou rejeitar por escrito.",
+      "acao": "Decidir. Busca local por `rule_key`/`name`/`category` (mockup `governance-page.jsx:302-306` filtra e `:337-342` desenha) ausente no `Policies.tsx:84-118`; não é Non-Goal (o charter só proíbe ESCONDER desligadas — a busca mantém todas até ser digitada). Construir ou rejeitar por escrito.",
       "_acionavel": true
     },
     {
       "id": "lista-agrupada-por-categoria",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "301-305"
+        "linhas": "302-306"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -100,7 +100,7 @@
       "id": "linha-da-regra",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "353-370"
+        "linhas": "354-371"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -115,7 +115,7 @@
       "id": "toggle-por-linha",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "316-319"
+        "linhas": "317-320"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -130,7 +130,7 @@
       "id": "feedback-do-toggle",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "318"
+        "linhas": "319"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -144,8 +144,8 @@
     {
       "id": "estado-vazio-sem-regras",
       "prototipo": {
-        "arquivo": "n/a",
-        "linhas": "n/a"
+        "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
+        "linhas": "389-442"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -154,8 +154,7 @@
       },
       "status": "vivo-a-frente",
       "acao": "Nada — vivo à frente (vazio de catálogo existe só no vivo)",
-      "_acionavel": false,
-      "_nota": "handoff (43), 2026-09-29: a faixa gravada (388-440, antes 389-442) passava do fim de governance-page.jsx (436 linhas; já era inválida em origin/main, 438). A parte é \"vivo à frente\" — não há bloco correspondente no protótipo."
+      "_acionavel": false
     }
   ],
   "mapping": {
