@@ -205,6 +205,11 @@ class MarcacaoService
     /**
      * Monta string canônica determinística para hash.
      * Ordem: business_id|colaborador_config_id|rep_id|nsr|momento|origem|tipo|hash_anterior|usuario_criador_id
+     *
+     * + `|motivo_anulacao` SÓ quando o motivo existe ([W] 2026-09-29): o texto do motivo de uma
+     * anulação entra no hash e passa a ser tamper-evident. Sem motivo (todas as marcações antigas
+     * e as que não são anulação) o payload fica IDÊNTICO ao de antes — é o que mantém o hash delas
+     * conferindo no verificarIntegridade. Não trocar por "sempre acrescentar um campo vazio".
      */
     public function payloadCanonico(array $d)
     {
@@ -231,6 +236,11 @@ class MarcacaoService
             isset($d['hash_anterior'])         ? $d['hash_anterior']         : '',
             isset($d['usuario_criador_id'])    ? $d['usuario_criador_id']    : '',
         ];
+
+        $motivo = isset($d['motivo_anulacao']) ? (string) $d['motivo_anulacao'] : '';
+        if ($motivo !== '') {
+            $partes[] = $motivo;
+        }
 
         return implode('|', $partes);
     }
