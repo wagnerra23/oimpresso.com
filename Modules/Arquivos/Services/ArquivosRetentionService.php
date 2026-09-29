@@ -57,7 +57,9 @@ class ArquivosRetentionService
                 ->whereNull('deleted_at')
                 ->where('created_at', '<', $cutoff)
                 ->limit(1000) // batch cap defensivo
-                ->get(['id', 'business_id', 'storage_disk', 'storage_path', 'created_at']);
+                // `disk` — a coluna é essa. Até 2026-09-29 selecionava `storage_disk`,
+                // que não existe: no MySQL o scan quebrava e o run() nunca chegava ao purge.
+                ->get(['id', 'business_id', 'disk', 'storage_path', 'created_at']);
         }, [
             'module'         => 'Arquivos',
             'business_id'    => $businessId,
@@ -104,12 +106,17 @@ class ArquivosRetentionService
     public function purgeOne(Arquivo $arquivo): bool
     {
         return OtelHelper::spanBiz('arquivos.retention.purge_one', function () use ($arquivo) {
-            $diskName = $arquivo->storage_disk;
+            // `disk` — até 2026-09-29 lia `storage_disk`, que não existe: $diskName era
+            // sempre null e o blob NUNCA era apagado (purge só removia a linha).
+            $diskName = $arquivo->disk;
             $path = $arquivo->storage_path;
+
+            // Blob compartilhado pela dedupe de storage: só a ÚLTIMA referência apaga.
+            $compartilhado = ArquivosService::blobCompartilhado($diskName, $path, (int) $arquivo->id);
 
             // Tenta remover storage (não falha se ausente — fail-open por design)
             try {
-                if ($diskName && $path && \Illuminate\Support\Facades\Storage::disk($diskName)->exists($path)) {
+                if (! $compartilhado && $diskName && $path && \Illuminate\Support\Facades\Storage::disk($diskName)->exists($path)) {
                     \Illuminate\Support\Facades\Storage::disk($diskName)->delete($path);
                 }
             } catch (\Throwable $e) {
@@ -127,6 +134,7 @@ class ArquivosRetentionService
                 'arquivo_id'  => $arquivo->id,
                 'business_id' => $arquivo->business_id,
                 'storage'     => "{$diskName}:{$path}",
+                'blob_compartilhado' => $compartilhado,
             ]);
 
             return true;

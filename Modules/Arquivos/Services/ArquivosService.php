@@ -69,12 +69,23 @@ class ArquivosService
     {
         $md5 = md5_file($file->getRealPath());
 
-        // Dedupe lookup por business — se já existe arquivo com mesmo MD5
-        // no mesmo business, retorna ele em vez de duplicar storage.
-        $dedupe = $this->dedupe($md5, (int) $businessId);
-        if ($dedupe !== null) {
+        // Dedupe em 2 níveis. A dedupe economiza STORAGE, nunca o VÍNCULO do dono:
+        // (1) o próprio dono já tem esse conteúdo → devolve a linha dele (idempotente,
+        //     ADR 0123:262 "2× upload mesmo MD5 → mesma row");
+        // (2) outro dono do mesmo business tem → cria linha nova pro dono atual
+        //     apontando pro MESMO blob (sem regravar storage).
+        // Antes, (2) devolvia a linha do outro dono e o atual ficava sem arquivo
+        // em $owner->arquivos() (DedupeMultiOwnerTest UC-ARQ-DEDUP-01).
+        $doDono = $this->dedupeDoDono($md5, $businessId, $owner);
+        if ($doDono !== null) {
             $this->incrementDedupeCounter($md5);
-            return $dedupe;
+            return $doDono;
+        }
+
+        $origem = $this->dedupe($md5, $businessId);
+        if ($origem !== null) {
+            $this->incrementDedupeCounter($md5);
+            return $this->vincularBlobExistente($owner, $file, $origem);
         }
 
         // Pré-classifica via CuradorEngine pra decidir disk (sensitive → vault)
@@ -225,6 +236,94 @@ class ArquivosService
             'business_id' => $businessId,
             // md5 NÃO incluído (não é PII mas é hash de conteúdo — defesa em profundidade)
         ]);
+    }
+
+    /**
+     * Outra linha ainda referencia este blob (disk + storage_path)?
+     *
+     * A dedupe de storage (attach) faz linhas de donos distintos apontarem pro MESMO
+     * arquivo físico. Todo caminho de hard-delete consulta isto antes de apagar o
+     * blob — só a ÚLTIMA referência o remove. Fonte única pros dois caminhos
+     * (`arquivos:retention-cleanup` e `ArquivosRetentionService::purgeOne`).
+     *
+     * `DB::table` sem scope de propósito: é checagem de existência (não devolve dado de
+     * outro tenant) e conta linhas soft-deleted, que serão purgadas depois — a última
+     * delas apaga o blob. O path já carrega `biz-{id}`; filtrar por business só
+     * enfraqueceria a guarda.
+     *
+     * Mora aqui e não no model `Arquivo`: é consulta, não comportamento de entidade, e
+     * tocar o model acorda a dívida grandfathered do MultiTenantScopeArchitectureTest.
+     */
+    public static function blobCompartilhado(?string $disk, ?string $storagePath, int $exceptId): bool
+    {
+        if ($disk === null || $storagePath === null || trim($storagePath) === '') {
+            return false;
+        }
+
+        return DB::table('arquivos')
+            ->where('disk', $disk)
+            ->where('storage_path', $storagePath)
+            ->where('id', '!=', $exceptId)
+            ->exists();
+    }
+
+    /**
+     * Linha do PRÓPRIO dono com esse MD5 no business (dedupe idempotente por dono).
+     */
+    private function dedupeDoDono(string $md5, int $businessId, Model $owner): ?Arquivo
+    {
+        return Arquivo::where('md5', $md5)
+            ->where('business_id', $businessId)
+            ->where('arquivable_type', $owner::class)
+            ->where('arquivable_id', $owner->getKey())
+            ->first();
+    }
+
+    /**
+     * Cria o registro do dono novo reaproveitando o blob de $origem (mesmo disk,
+     * storage_path, cifragem e classificação — o conteúdo é o mesmo). Nada é
+     * regravado no storage. Audit `upload` registra de qual linha veio o blob.
+     *
+     * O hard-delete (arquivos:retention-cleanup) só remove o blob quando nenhuma
+     * outra linha o referencia — ver RetentionCleanupCommand.
+     */
+    private function vincularBlobExistente(Model $owner, UploadedFile $file, Arquivo $origem): Arquivo
+    {
+        $arquivo = new Arquivo();
+        $arquivo->business_id         = (int) $origem->business_id;
+        $arquivo->arquivable_type     = $owner::class;
+        $arquivo->arquivable_id       = $owner->getKey();
+        $arquivo->disk                = $origem->disk;
+        $arquivo->storage_path        = $origem->storage_path;
+        $arquivo->original_name       = $file->getClientOriginalName();
+        $arquivo->mime_type           = $origem->mime_type;
+        $arquivo->size_bytes          = $origem->size_bytes;
+        $arquivo->md5                 = $origem->md5;
+        $arquivo->bucket              = $origem->bucket;
+        $arquivo->sub_destination     = $origem->sub_destination;
+        $arquivo->sensitive_flags     = $origem->sensitive_flags;
+        $arquivo->classified_by       = $origem->classified_by;
+        $arquivo->classified_at       = now();
+        $arquivo->uploaded_by_user_id = auth()->id();
+        $arquivo->encrypted           = (bool) $origem->encrypted;
+        $arquivo->save();
+
+        $this->audit($arquivo, 'upload', [
+            'size'      => $arquivo->size_bytes,
+            'dedupe_de' => $origem->id,
+        ]);
+
+        Log::info('arquivos.upload', [
+            'business_id'  => $arquivo->business_id,
+            'arquivo_id'   => $arquivo->id,
+            'mime_type'    => $arquivo->mime_type,
+            'size_bytes'   => $arquivo->size_bytes,
+            'bucket'       => $arquivo->bucket,
+            'encrypted'    => $arquivo->encrypted,
+            'dedupe_de'    => $origem->id,
+        ]);
+
+        return $arquivo;
     }
 
     private function insertDedupe(string $md5): void

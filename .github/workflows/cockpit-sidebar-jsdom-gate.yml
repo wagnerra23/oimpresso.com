@@ -100,6 +100,7 @@ jobs:
             tests/js/sidebar-item-ativo.test.tsx \
             tests/js/sidebar-plataforma-forja.test.tsx \
             tests/js/sidebar-rail.test.tsx \
+            tests/js/sidebar-ordem-grupo.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-cockpit-sidebar-jsdom-junit.xml
