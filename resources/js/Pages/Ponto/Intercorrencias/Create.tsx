@@ -238,7 +238,7 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
 
         {/* ================== Form estruturado ================== */}
         <form onSubmit={submit} className="space-y-4">
-          <Card>
+          <Card data-contract="intercorrencias-dados-da-ocorrencia">
             <CardHeader>
               <CardTitle className="text-base">Dados da ocorrência</CardTitle>
               <CardDescription className="text-xs">
