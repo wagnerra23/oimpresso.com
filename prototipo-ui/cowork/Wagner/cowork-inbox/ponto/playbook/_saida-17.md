@@ -5,7 +5,7 @@ autor: "[CL]"
 criado: 2026-09-28
 base: ad23c9ff9
 thread: 17-data-contract-no-tsx.md
-veredito: "em andamento — 18 de 26 ids em PRs (14 em #8088/#8090/#8091/#8096, 1 no PR-2 #8114 de Aprovações, 1 no PR da forma de Escalas, 2 no #8113 + PR-2b #8119); 6 fora por regra; os 2 de BancoHoras/Show gravados pelo #8113 e declarados no map pelo PR-2b #8119; faltam só os 2 ids feios (pendentes, sem nome no gap e com o lado protótipo fora do canal)"
+veredito: "em andamento — 20 de 26 ids em PRs (14 em #8088/#8090/#8091/#8096, 1 no PR-2 #8114 de Aprovações, 1 no PR da forma de Escalas, 2 no #8113 + PR-2b #8119, 2 renomeados no PR-5 #8120); 6 fora por regra; nada pendente na thread (pendentes, sem nome no gap e com o lado protótipo fora do canal)"
 ---
 
 # _saída 17 · `data-contract` no `.tsx`
@@ -43,7 +43,7 @@ Recibo único da thread, atualizado a cada PR.
 | PR-4 #8096 | `configuracoes-regras-clt-reforma-trabalhista` · `configuracoes-banco-de-horas` · `configuracoes-rep-e-imutabilidade-de-marcacoes` · `configuracoes-afd-importacao-esocial` | `Configuracoes/Index.tsx:111` · `:131` · `:148` · `:178` | `configuracoes-index.map.json` (4 partes; status re-medido pós-#8078) | aberto |
 | PR-4 #8096 | `configuracoes-cadastrar-novo-rep` · `configuracoes-reps-cadastrados` | `Configuracoes/Reps.tsx:85` · `:140` | `configuracoes-reps.map.json` | aberto |
 | fora (a nascer) | `configuracoes-ia-do-ponto` | — | gap: ausente no vivo (`D-CFG-IA` pendente) | sem id |
-| pendente | `intercorrencias-card` · `escalaform-card` (ids feios) | `Intercorrencias/Create.tsx:241` (card "Dados da ocorrência") · `Escalas/Form.tsx:89` (card "Dados da escala") | — | sem id no vivo, de propósito. Os dois gaps (`intercorrencias-create-gap.md`, `escalas-form-gap.md`) não dão nome à região, que é a condição da thread para renomear. O lado protótipo é `ponto-telas.jsx`, espelho fora do canal `cowork-inbox/`; renomear lá exige escrita via DesignSync com opt-in do [W]. Gravar o id feio só no vivo fixaria um nome que a thread manda trocar, e o `Create` ainda vai mudar de forma (o gap registra que o form vira página com cabeçalho). |
+| PR-5 #8120 | `intercorrencias-card` → `intercorrencias-dados-da-ocorrencia` · `escalaform-card` → `escalaform-dados-da-escala` | `Intercorrencias/Create.tsx:241` (card "Dados da ocorrência") · `Escalas/Form.tsx:89` (card "Dados da escala") | sem âncora de map: as partes dos dois maps são por campo | aberto; renomeado nos dois lados, espelho subido ao Cowork e re-verificado no ledger |
 
 ## Portões do PR-1
 
@@ -67,3 +67,11 @@ Recibo único da thread, atualizado a cada PR.
 - O #8113 (forma do detalhe, mergeado em 2026-09-28) já gravou no `BancoHoras/Show.tsx` os dois ids, com a string idêntica à do `ponto-telas.jsx:380` e `:395`. O PR-2b só declara as duas âncoras no map; nenhum `.tsx` muda, e por isso o G-6 não é acionado.
 - `design-code-map-check --check --strict` → rc=0. Mordida: com `bancohoras-ajuste-manual` trocado no `.tsx`, rc=1 com `[DRIFT]`; arquivo restaurado, hash conferido.
 - **Fora do escopo, registrado:** o #8113 também gravou `bancohoras-colaborador`, `bancohoras-kpis-do-extrato` e `bancohoras-legal`, que não existem no protótipo (`grep -c 'contrato="<id>"' ponto-telas.jsx` = 0 para os três). No map ficam `ancora: false`; para virarem âncora, o par nasce no protótipo, pelo Cowork.
+
+## PR-5 #8120 (2026-09-29)
+
+- **Nome da região:** os dois gaps (`intercorrencias-create-gap.md`, `escalas-form-gap.md`) ganharam uma seção que nomeia a região — a condição da thread para renomear. O nome segue o padrão `<tela>-<título do card>`, com o título fixo do vivo (no protótipo o título é dinâmico, e foi isso que gerou o id feio).
+- **Dois lados no mesmo PR:** `ponto-telas.jsx:299` e `:529` × `Create.tsx:241` e `Form.tsx:89`, string idêntica.
+- **Subida ao Cowork** (opt-in [W] 2026-09-29): antes de escrever, o `ponto-telas.jsx` vivo era idêntico ao espelho do main (71.747 bytes). `DesignSync.finalize_plan` + `write_files` com `localPath`; leitura de volta idêntica ao espelho editado (71.773 bytes). Ledger por `--snapshot-from` + `--compare --check --ledger` (1 sync, rodada parcial declarada); `pendentes-cowork --registrar-envio`. `cowork-mirror-freshness --unverified --check`: `mexido-depois` 1 → 0.
+- **Efeito nos maps:** o hash de conteúdo do protótipo mudou (`e4d0b5a3707e` → `e8b74d75e0d5`); os 15 maps do Ponto receberam só o `prototipo_sha` novo. `design-code-map-check --check --strict` rc=0.
+- **Histórico preservado:** `17-data-contract-no-tsx.md`, `20-gap-intercorrencias.md`, `_PATCH-INDICE-2026-09-14.md` e `github.md` seguem citando os ids feios — são registro datado de quando nasceram.
