@@ -37,8 +37,8 @@ Route::group(
 
         // 2. Espelho de Ponto
         Route::get('/espelho', 'EspelhoController@index')->name('ponto.espelho.index');
-        Route::get('/espelho/{colaborador}', 'EspelhoController@show')->name('ponto.espelho.show');
-        Route::get('/espelho/{colaborador}/imprimir', 'EspelhoController@imprimir')->name('ponto.espelho.imprimir');
+        Route::get('/espelho/{colaborador}', 'EspelhoController@show')->whereNumber('colaborador')->name('ponto.espelho.show');
+        Route::get('/espelho/{colaborador}/imprimir', 'EspelhoController@imprimir')->whereNumber('colaborador')->name('ponto.espelho.imprimir');
 
         // 3. Aprovações
         Route::get('/aprovacoes', 'AprovacaoController@index')->name('ponto.aprovacoes.index');
@@ -55,11 +55,11 @@ Route::group(
             'edit'    => 'ponto.intercorrencias.edit',
             'update'  => 'ponto.intercorrencias.update',
             'destroy' => 'ponto.intercorrencias.destroy',
-        ]);
+        ])->whereNumber('intercorrencia');
         Route::post('/intercorrencias/{id}/submeter', 'IntercorrenciaController@submeter')->name('ponto.intercorrencias.submeter');
         Route::post('/intercorrencias/{id}/cancelar', 'IntercorrenciaController@cancelar')->name('ponto.intercorrencias.cancelar');
         // Comprovante (atestado) — só quem aprova baixa; o controller decide (UC-INTCRE-04).
-        Route::get('/intercorrencias/{id}/anexo', 'IntercorrenciaController@anexo')->name('ponto.intercorrencias.anexo');
+        Route::get('/intercorrencias/{id}/anexo', 'IntercorrenciaController@anexo')->whereNumber('id')->name('ponto.intercorrencias.anexo');
 
         // IA — classifica descrição livre em campos estruturados
         Route::post('/intercorrencias-ai/classify', 'IntercorrenciaController@aiClassify')
@@ -68,7 +68,7 @@ Route::group(
 
         // 5. Banco de Horas
         Route::get('/banco-horas', 'BancoHorasController@index')->name('ponto.banco-horas.index');
-        Route::get('/banco-horas/{colaborador}', 'BancoHorasController@show')->name('ponto.banco-horas.show');
+        Route::get('/banco-horas/{colaborador}', 'BancoHorasController@show')->whereNumber('colaborador')->name('ponto.banco-horas.show');
         Route::post('/banco-horas/{colaborador}/ajuste', 'BancoHorasController@ajustarManual')->name('ponto.banco-horas.ajuste');
 
         // 6. Escalas
@@ -80,14 +80,18 @@ Route::group(
             'edit'    => 'ponto.escalas.edit',
             'update'  => 'ponto.escalas.update',
             'destroy' => 'ponto.escalas.destroy',
-        ]);
+        ])->whereNumber('escala');
 
         // 7. Importações
+        // `{id}` é numérico no router: sem isso `/importacoes/create` (a rota de criação é
+        // `/novo`) casava o show com id="create", e o `int $id` estourava TypeError → 500.
+        // As 11 rotas GET de id numérico deste arquivo levam o mesmo `whereNumber` (os dois
+        // resources, em todas as ações); `relatorios/{chave}` é string e fica de fora.
         Route::get('/importacoes', 'ImportacaoController@index')->name('ponto.importacoes.index');
         Route::get('/importacoes/novo', 'ImportacaoController@create')->name('ponto.importacoes.create');
         Route::post('/importacoes', 'ImportacaoController@store')->name('ponto.importacoes.store');
-        Route::get('/importacoes/{id}', 'ImportacaoController@show')->name('ponto.importacoes.show');
-        Route::get('/importacoes/{id}/original', 'ImportacaoController@baixarOriginal')->name('ponto.importacoes.original');
+        Route::get('/importacoes/{id}', 'ImportacaoController@show')->whereNumber('id')->name('ponto.importacoes.show');
+        Route::get('/importacoes/{id}/original', 'ImportacaoController@baixarOriginal')->whereNumber('id')->name('ponto.importacoes.original');
 
         // Fechamento da competência (ADR 0413): permissão própria `ponto.fechar` (D1).
         Route::get('/fechamento', [\Modules\Ponto\Http\Controllers\FechamentoController::class, 'index'])
@@ -106,7 +110,7 @@ Route::group(
 
         // 9. Colaboradores
         Route::get('/colaboradores', 'ColaboradorController@index')->name('ponto.colaboradores.index');
-        Route::get('/colaboradores/{id}/editar', 'ColaboradorController@edit')->name('ponto.colaboradores.edit');
+        Route::get('/colaboradores/{id}/editar', 'ColaboradorController@edit')->whereNumber('id')->name('ponto.colaboradores.edit');
         Route::put('/colaboradores/{id}', 'ColaboradorController@update')->name('ponto.colaboradores.update');
 
         // 10. Configurações
