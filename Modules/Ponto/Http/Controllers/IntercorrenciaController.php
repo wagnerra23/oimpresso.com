@@ -84,7 +84,7 @@ class IntercorrenciaController extends Controller
      *
      * @return array<int,array{value:string,label:string}>
      */
-    private static function tiposDisponiveis(): array
+    public static function tiposDisponiveis(): array
     {
         return [
             ['value' => 'CONSULTA_MEDICA',       'label' => 'Consulta médica'],

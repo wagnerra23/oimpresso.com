@@ -114,6 +114,7 @@ Route::group(
         Route::get('/mobile', [MobileMarcacaoController::class, 'tela'])->name('ponto.mobile');
         Route::post('/mobile/marcar', [MobileMarcacaoController::class, 'registrar'])->name('ponto.mobile.marcar');
         Route::get('/mobile/marcacoes/hoje', [MobileMarcacaoController::class, 'marcacoesHoje'])->name('ponto.mobile.marcacoes.hoje');
+        Route::post('/mobile/intercorrencias', [MobileMarcacaoController::class, 'criarIntercorrencia'])->name('ponto.mobile.intercorrencias.store');
 
         // 10. Configurações
         Route::get('/configuracoes', 'ConfiguracaoController@index')->name('ponto.configuracoes.index');

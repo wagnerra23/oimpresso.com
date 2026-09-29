@@ -101,7 +101,7 @@ class EspelhoController extends Controller
      *
      * @return array<string,int>
      */
-    private function buildTotaisEspelho(int $colaboradorId, int $ano, int $mesNum): array
+    public function buildTotaisEspelho(int $colaboradorId, int $ano, int $mesNum): array
     {
         $apuracoes = ApuracaoDia::where('colaborador_config_id', $colaboradorId)
             ->whereYear('data', $ano)
@@ -132,7 +132,7 @@ class EspelhoController extends Controller
      *
      * @return array<int,array<string,mixed>>
      */
-    private function buildLinhasEspelho(int $colaboradorId, int $ano, int $mesNum): array
+    public function buildLinhasEspelho(int $colaboradorId, int $ano, int $mesNum): array
     {
         $apuracoes = ApuracaoDia::where('colaborador_config_id', $colaboradorId)
             ->whereYear('data', $ano)
