@@ -3,48 +3,48 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Ponto/BancoHoras/Index (/ponto/banco-horas)",
   "gap_fonte": "memory/requisitos/Ponto/banco-horas-index-gap.md",
-  "prototipo_sha": "sha256:e8b74d75e0d5",
+  "prototipo_sha": "sha256:62977f0aeb68",
   "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "faixa-de-kpi",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "411-416"
+        "linhas": "432-437"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
-        "linhas": "90-117",
+        "linhas": "82-109",
         "ancora": false
       },
       "status": "gap",
-      "acao": "D-BH-KPI decidida: ficam os 4 do protótipo e o charter é emendado. A emenda é da thread 27; o `.tsx` muda depois dela, em PR próprio.",
+      "acao": "D-BH-KPI decidida: ficam os 4 do protótipo e o charter é emendado. A emenda da thread 27 já entrou (#8087, `Index.charter.md:31-37`, 2026-09-28); em 2026-09-29 o `.tsx` ainda renderiza os 4 KPIs antigos (`Index.tsx:82-109`) e muda em PR próprio.",
       "_acionavel": true
     },
     {
       "id": "saldos-por-colaborador",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "417-435"
+        "linhas": "438-456"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
-        "linhas": "119-189",
+        "linhas": "111-181",
         "ancora": "bancohoras-saldos-por-colaborador"
       },
       "status": "divergencia-declarada",
-      "acao": "Protótipo à frente na coluna Escala e no cargo; exige o dado no payload (`BancoHorasController.php:45` transforma a linha — não medido se traz escala). Decisão de forma, sem id na ata: fica para a passada de FORMA. A thread 17 grava `data-contract=\"bancohoras-saldos-por-colaborador\"`.",
+      "acao": "Protótipo à frente na coluna Escala e no cargo; exige o dado no payload — medido em 2026-09-29: o `transform` de `BancoHorasController.php:46-55` leva só id, matrícula, nome, saldo e `atualizado_em`, sem escala nem cargo. Decisão de forma, sem id na ata: fica para a passada de FORMA. O `data-contract=\"bancohoras-saldos-por-colaborador\"` que a thread 17 prometia já está no card (`Index.tsx:111`).",
       "_acionavel": true
     },
     {
       "id": "acao-por-linha",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "423-429"
+        "linhas": "444-450"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
-        "linhas": "154-155",
+        "linhas": "144-150",
         "ancora": false
       },
       "status": "prototipo-corrige",
@@ -55,11 +55,11 @@
       "id": "ordenacao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "420"
+        "linhas": "441"
       },
       "vivo": {
         "arquivo": "Modules/Ponto/Http/Controllers/BancoHorasController.php",
-        "linhas": "41",
+        "linhas": "42",
         "ancora": false
       },
       "status": "paridade",
@@ -70,11 +70,11 @@
       "id": "paginacao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "343"
+        "linhas": "363"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
-        "linhas": "165-189",
+        "linhas": "157-179",
         "ancora": false
       },
       "status": "paridade",
@@ -85,11 +85,11 @@
       "id": "estado-vazio",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "419"
+        "linhas": "440"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
-        "linhas": "122-126",
+        "linhas": "114-118",
         "ancora": false
       },
       "status": "vivo-a-frente",
@@ -100,16 +100,17 @@
       "id": "rodape-legal",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "436"
+        "linhas": "457"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
-        "linhas": "69",
+        "arquivo": "n/a",
+        "linhas": "n/a",
         "ancora": false
       },
       "status": "divergencia-declarada",
       "acao": "Protótipo à frente; entra com a passada de FORMA.",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota": "2026-09-29: grep -n Portaria e grep -n append em resources/js/Pages/Ponto/BancoHoras/Index.tsx = 0 cada; o subtítulo \"Ledger append-only\" que o gap cita não existe mais — o cabeçalho é <PontoAreaHeader> (Index.tsx:67). Rodapé ausente no vivo → n/a."
     }
   ]
 }

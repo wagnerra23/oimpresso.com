@@ -3,7 +3,7 @@ id: requisitos-ponto-banco-horas-index-gap
 tela: Ponto/BancoHoras/Index (/ponto/banco-horas)
 prototipo: prototipo-ui/cowork/Wagner/ponto-telas.jsx
 tela_viva: resources/js/Pages/Ponto/BancoHoras/Index.tsx
-gerado_em: 2026-09-28
+gerado_em: 2026-09-29
 ---
 
 # GAP-SPEC — Ponto/BancoHoras/Index
@@ -11,17 +11,18 @@ gerado_em: 2026-09-28
 > **Origem:** thread `21-gap-banco-horas.md` do playbook do Ponto. Decisões citadas só existem em
 > `ATA-DECISOES-2026-09-14.md`: **D-BH-KPI** (EMENDA O CHARTER, ficam os 4 tiles do protótipo) e
 > **D-PONTO-DETALHE** (o extrato é rota própria; absorve a D-BH-ROTA da thread).
-> **Protótipo medido nesta sha:** `ponto-telas.jsx` @ `2e3f8adb4e`, símbolo `BancoHoras` (`:335-439`).
-> O ramo da lista é `:409-438`; o `if (sel)` de `:352-407` é o extrato (ver `banco-horas-show-gap.md`).
+> **Protótipo medido nesta sha:** `ponto-telas.jsx` @ `2e3f8adb4e`, símbolo `BancoHoras` (então `:335-439`).
+> **Re-medido em 2026-09-29** (branch `claude/reancora-maps-8194`, sobre o #8194): símbolo `:354-460`; o ramo
+> da lista é `:430-459`; o `if (sel)` de `:373-428` é o extrato (ver `banco-horas-show-gap.md`).
 > **Vivo medido nesta sha:** `resources/js/Pages/Ponto/BancoHoras/Index.tsx` @ `e4289e688` (200 linhas)
-> e `BancoHorasController.php`. Toda linha abaixo saiu de `grep -n`.
+> e `BancoHorasController.php`; re-medido em 2026-09-29 (192 linhas). Toda linha abaixo saiu de `grep -n` nessa data.
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| Faixa de KPI | **Vivo atrás da decisão.** Vivo: 4 `KpiCard` — Crédito total, Débito total, Com crédito, Com débito (`Index.tsx:90-117`), o conjunto do charter (`Index.charter.md:31`). Protótipo: Crédito total e Débito total com as contagens na sub-linha, mais Colaboradores no banco e Multiplicadores (`ponto-telas.jsx:411-416`). | **D-BH-KPI decidida: ficam os 4 do protótipo e o charter é emendado.** A emenda é da thread 27; o `.tsx` muda depois dela, em PR próprio. |
-| Saldos por colaborador | **Diverge em colunas.** Vivo: Matrícula, Colaborador, Saldo atual, Atualizado, Ações (`Index.tsx:130-136`). Protótipo: Colaborador (+ cargo), Matrícula, **Escala**, Saldo, Última movimentação, Ação (`ponto-telas.jsx:418`, `:424-429`). | Protótipo à frente na coluna Escala e no cargo; exige o dado no payload (`BancoHorasController.php:45` transforma a linha — não medido se traz escala). Decisão de forma, sem id na ata: fica para a passada de FORMA. A thread 17 grava `data-contract="bancohoras-saldos-por-colaborador"`. |
-| Ação por linha | **Protótipo corrige a copy.** Vivo: link `Movimentos` para `/ponto/banco-horas/{colaborador}` (`Index.tsx:154-155`), como o charter (`Index.charter.md:33`). Protótipo: botão `Detalhes` que troca estado interno (`ponto-telas.jsx:429`) e linha clicável (`:423`). | Protótipo corrige (D-PONTO-DETALHE, R2): rótulo `Movimentos` e navegação para a rota. |
-| Ordenação | **Paridade.** Vivo: `orderByDesc('saldo_minutos')` no servidor (`BancoHorasController.php:41`). Protótipo: `sort` por saldo desc (`ponto-telas.jsx:420`). | Nada. |
-| Paginação | **Paridade.** Vivo: 30 por página (`BancoHorasController.php:42`), partial reload `only: ['saldos']` (`Index.tsx:165-189`). Protótipo: `usePagina(saldos.length, 30)` (`ponto-telas.jsx:343`). | Nada. |
-| Estado vazio | **Vivo à frente.** Vivo: `EmptyState` "Nenhum saldo registrado" com a explicação de que a apuração diária popula o banco (`Index.tsx:122-126`). Protótipo: `Vazio` "Nenhum saldo registrado ainda." sem explicação (`ponto-telas.jsx:419`). | Protótipo corrige: leva a explicação. |
-| Rodapé legal | **Ausente no vivo.** Protótipo: `Legal` com "append-only e imutáveis (Portaria MTP 671/2021)" (`ponto-telas.jsx:436`). Vivo: o subtítulo do `h1` diz "Ledger append-only" (`Index.tsx:69`), sem a Portaria (`grep -n "Portaria"` = 0). | Protótipo à frente; entra com a passada de FORMA. |
+| Faixa de KPI | **Vivo atrás da decisão.** Vivo: 4 `KpiCard` — Crédito total, Débito total, Com crédito, Com débito (`Index.tsx:82-109`), o conjunto que o charter tinha antes da emenda de 2026-09-28 (#8087 — hoje `Index.charter.md:31-32` já descreve os 4 do protótipo). Protótipo: Crédito total e Débito total com as contagens na sub-linha, mais Colaboradores no banco e Multiplicadores (`ponto-telas.jsx:433-436`). | **D-BH-KPI decidida: ficam os 4 do protótipo e o charter é emendado.** A emenda da thread 27 já entrou (#8087, `Index.charter.md:31-37`, 2026-09-28); em 2026-09-29 o `.tsx` ainda renderiza os 4 KPIs antigos (`Index.tsx:82-109`) e muda em PR próprio. |
+| Saldos por colaborador | **Diverge em colunas.** Vivo: Matrícula, Colaborador, Saldo atual, Atualizado, Ações (`Index.tsx:124-128`). Protótipo: Colaborador (+ cargo), Matrícula, **Escala**, Saldo, Última movimentação, Ação (`ponto-telas.jsx:439`, `:445-450`). | Protótipo à frente na coluna Escala e no cargo; exige o dado no payload — medido em 2026-09-29: o `transform` de `BancoHorasController.php:46-55` leva só id, matrícula, nome, saldo e `atualizado_em`, sem escala nem cargo. Decisão de forma, sem id na ata: fica para a passada de FORMA. O `data-contract="bancohoras-saldos-por-colaborador"` que a thread 17 prometia já está no card (`Index.tsx:111`). |
+| Ação por linha | **Protótipo corrige a copy.** Vivo: link `Movimentos` para `/ponto/banco-horas/{colaborador}` (`Index.tsx:146-148`), como o charter (`Index.charter.md:39`). Protótipo: botão `Detalhes` que troca estado interno (`ponto-telas.jsx:450`) e linha clicável (`:444`). | Protótipo corrige (D-PONTO-DETALHE, R2): rótulo `Movimentos` e navegação para a rota. |
+| Ordenação | **Paridade.** Vivo: `orderByDesc('saldo_minutos')` no servidor (`BancoHorasController.php:42`). Protótipo: `sort` por saldo desc (`ponto-telas.jsx:441`). | Nada. |
+| Paginação | **Paridade.** Vivo: 30 por página (`BancoHorasController.php:43`), partial reload `only: ['saldos']` (`Index.tsx:157-179`). Protótipo: `usePagina(saldos.length, 30)` (`ponto-telas.jsx:363`). | Nada. |
+| Estado vazio | **Vivo à frente.** Vivo: `EmptyState` "Nenhum saldo registrado" com a explicação de que a apuração diária popula o banco (`Index.tsx:114-118`). Protótipo: `Vazio` "Nenhum saldo registrado ainda." sem explicação (`ponto-telas.jsx:440`). | Protótipo corrige: leva a explicação. |
+| Rodapé legal | **Ausente no vivo.** Protótipo: `Legal` com "append-only e imutáveis (Portaria MTP 671/2021)" (`ponto-telas.jsx:457`). Vivo (2026-09-29): o subtítulo "Ledger append-only" do `h1` não existe mais — o cabeçalho é `<PontoAreaHeader>` (`Index.tsx:67`) —, e `grep -n "Portaria"` e `grep -n "append"` dão 0 cada. | Protótipo à frente; entra com a passada de FORMA. |
