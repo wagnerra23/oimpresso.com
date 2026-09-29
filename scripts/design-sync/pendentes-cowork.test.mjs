@@ -86,5 +86,31 @@ try {
   if (lerEstado() !== antes) { if (antes === null) rmSync(estado, { force: true }); else writeFileSync(estado, antes); }
 }
 
+// ── CONFERIR copia GRAVA o ledger do espelho ([W] 2026-09-29: "a maiara deveria poder fazer isso") ──
+// Leitura de volta idêntica ao git, vinda do projeto-cópia, tem de virar rodada no ledger que o
+// check "espelho — mexeu depois de verificar" lê, marcada com o projeto. Mutante que volte a
+// restringir o ledger ao `w` derruba este assert. Ledger e estado são restaurados no fim.
+{
+  const raiz = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const ledger = join(raiz, 'scripts', 'governance', '.cowork-freshness-ledger.json');
+  const ledgerAntes = (() => { try { return readFileSync(ledger, 'utf8'); } catch { return null; } })();
+  const estadoAntes = lerEstado();
+  const rel = 'manufacturing-page.css';
+  const tmp2 = mkdtempSync(join(tmpdir(), 'pc-ledger-'));
+  try {
+    writeFileSync(join(tmp2, rel), readFileSync(join(raiz, 'prototipo-ui', 'cowork', 'Wagner', rel)));
+    const r = spawnSync(process.execPath, [script, '--conferir', tmp2, '--projeto', 'copia'], { encoding: 'utf8' });
+    const entradas = JSON.parse(readFileSync(ledger, 'utf8'));
+    const ult = entradas[entradas.length - 1];
+    ok(r.status === 0, `CONFERIR copia: leitura igual ao git sai 0 (deu ${r.status}) ${r.stderr || ''}`);
+    ok(ult?.projetoCowork === 'copia' && (ult.verified || []).includes(rel),
+      'CONFERIR copia: grava rodada no ledger do espelho, com projetoCowork=copia e o arquivo verificado');
+  } finally {
+    rmSync(tmp2, { recursive: true, force: true });
+    if (ledgerAntes === null) rmSync(ledger, { force: true }); else writeFileSync(ledger, ledgerAntes);
+    if (lerEstado() !== estadoAntes) { if (estadoAntes === null) rmSync(estado, { force: true }); else writeFileSync(estado, estadoAntes); }
+  }
+}
+
 console.log(`\n${fails ? `${fails} FALHA(S)` : 'todos os casos passaram'}`);
 process.exit(fails ? 1 : 0);
