@@ -29,8 +29,8 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Escalas/Index.tsx",
-        "linhas": "69-171",
-        "ancora": false
+        "linhas": "128-252",
+        "ancora": "escalas-escalas-cadastradas"
       },
       "status": "prototipo-corrige",
       "acao": "Protótipo corrige a ordem (o charter manda). A sub-linha do turno é protótipo à frente — forma, sem id na ata. A thread 17 grava `data-contract=\"escalas-escalas-cadastradas\"`.",

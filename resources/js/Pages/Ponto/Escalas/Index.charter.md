@@ -5,7 +5,7 @@ component: resources/js/Pages/Ponto/Escalas/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/ponto-telas.jsx
 owner: wagner
 status: draft
-last_validated: "2026-07-11"
+last_validated: "2026-09-28"
 parent_module: Ponto
 related_us: [US-PONT-005]
 related_adrs: [114, 101, 93, 182]
@@ -27,9 +27,17 @@ O gestor vê todas as escalas (padrões de jornada) cadastradas — nome, códig
 ---
 
 ## Goals — Features (faz)
-- Lista paginada (20/pág) de escalas com contagem de turnos.
-- Colunas: nome, código, tipo (badge), carga/dia, carga/semana, BH, turnos.
-- Atalho "Nova escala" (`/ponto/escalas/create`) e "Editar" por linha (`/ponto/escalas/{id}/edit`).
+- Lista paginada (20/pág, no servidor — W11, ADR 0418) de escalas com contagem de turnos.
+- Forma do protótipo (`ponto-telas.jsx`, símbolo `Escalas`; eixo FORMA ⇒ protótipo soberano,
+  [ADR UI-0029](../../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)),
+  em três seções abaixo do cabeçalho: **barra** (nota de carga "480 = 8h, 2.640 = 44h" + "Nova
+  escala") · **lista** (Card "Escalas cadastradas", contagem no título) · **nota** (turnos são
+  leitura aqui). Seletores medidos em `governance/design/targets/ponto--escalas--index.secoes.json`.
+- Colunas, nesta ordem: código, nome (sub-linha: horário do 1º turno, ou "sem turno configurado" —
+  `UC-ESCIDX-06`), tipo (rótulo do enum), carga diária, carga semanal, turnos, banco de horas, ação.
+  Supersede a ordem anterior deste item (nome primeiro), que era a do vivo antes da passada de FORMA.
+- Atalho "Nova escala" (`/ponto/escalas/create`) na barra e "Editar" por linha
+  (`/ponto/escalas/{id}/edit`) — rotas próprias (D-PONTO-DETALHE), não o form na mesma tela do protótipo.
 - Ação "Remover" por linha, **só sem vínculo**; com vínculo, o lugar dela diz "Em uso por N colaborador(es)".
 - Empty state com CTA de criar a primeira escala.
 
