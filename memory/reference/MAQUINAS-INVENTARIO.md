@@ -738,10 +738,11 @@ lifecycle: ativo
 | `uc-lane-coverage.mjs` | ci, script | 🔴 disco | test | `memory/LICOES_CODE.md` +4 | o teste que o `casos.md` cita EXISTE, e alguma lane de CI o RODA? |
 | `vital-signs.mjs` | ci, script | 🔴 disco | test | `memory/requisitos/_Governanca/roadmap/MV1-espinha-dorsal-vital-signs.md` +8 | sinais vitais da frota por módulo (MV1 · espinha dorsal do Módulo Vivo). |
 
-### 5.17 `scripts/screen-smoke/` — 2
+### 5.17 `scripts/screen-smoke/` — 3
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
+| `aguardar-bundle-live.mjs` | ci | 🟢 só lê | — | — | fecha o residual #7 do screen-smoke-after-merge: |
 | `select-routes.mjs` | script | 🟢 só lê | test | (só sessão/handoff · 1) | Seleciona as rotas do smoke pós-deploy e mantém explícito o que não foi medido. |
 | `smoke.mjs` | agente, ci, script | 🔴 disco | — | `memory/requisitos/Infra/RUNBOOK-screen-smoke-ativacao.md` +3 | ───────────────────────────────────────────────────────────────────────────── |
 
