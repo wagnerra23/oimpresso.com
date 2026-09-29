@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\User;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
@@ -356,6 +357,12 @@ function rppPrecondicoes(): void
     }
     if (! DB::table('business')->where('id', RPP_BIZ)->exists()) {
         test()->markTestSkipped('Tenant fictício 98 ausente — seed do pest-mysql-setup não rodou.');
+    }
+    // O guard `api` (Passport) monta o ResourceServer com a chave pública a CADA request —
+    // até o "sem token → 401". Sem chave, tudo estoura em `CryptKey: Invalid key supplied`
+    // (medido na lane ponto-pest, run 36560526640). Mesmo idioma do DesktopAuthTest.
+    if (! file_exists(storage_path('oauth-private.key')) || ! file_exists(storage_path('oauth-public.key'))) {
+        Artisan::call('passport:keys', ['--force' => true]);
     }
 }
 
