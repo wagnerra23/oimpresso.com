@@ -173,6 +173,19 @@ class VisregTenantSeeder extends Seeder
             return;
         }
 
+        // A assinatura SOZINHA não basta — medido no run 36580216511: assinatura ativa na tela
+        // de Assinaturas e, ainda assim, nenhuma aba e nenhum RH → Ponto. O `ModuleUtil` só
+        // chama o `DataController` de módulo INSTALADO (`isModuleInstalled` lê a linha
+        // `ponto_version` da tabela `system`, que o InstallController grava e o banco de CI não
+        // tem). Sem ela o `modifyAdminMenu` do Ponto nem roda, e o `superadmin_package` não
+        // declara `ponto_module`, então a assinatura é ignorada. Mesmo valor do instalador.
+        if (Schema::hasTable('system') && ! DB::table('system')->where('key', 'ponto_version')->exists()) {
+            DB::table('system')->insert([
+                'key' => 'ponto_version',
+                'value' => (string) config('pontowr2.module_version', '0.1'),
+            ]);
+        }
+
         $quando = '2026-01-01 00:00:00';
 
         if (! DB::table('packages')->where('id', 900001)->exists()) {
