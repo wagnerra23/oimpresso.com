@@ -18,6 +18,8 @@ use Modules\Ponto\Entities\Escala;
 use Modules\Ponto\Entities\EscalaTurno;
 use Modules\Ponto\Entities\Intercorrencia;
 use Modules\Ponto\Entities\Marcacao;
+use Modules\Ponto\Http\Controllers\EspelhoController;
+use Modules\Ponto\Http\Controllers\IntercorrenciaController;
 use Modules\Ponto\Http\Requests\StoreIntercorrenciaRequest;
 use Modules\Ponto\Services\IntercorrenciaService;
 use Modules\Ponto\Services\MobileMarcacaoService;
@@ -179,6 +181,10 @@ class MobileMarcacaoController extends Controller
             \Modules\Ponto\Http\Middleware\CheckPontoAccess::compartilharCabecalho($bizId);
         }
 
+        $espelho = app(EspelhoController::class);
+        $ano = (int) now()->year;
+        $mes = (int) now()->month;
+
         return Inertia::render('Ponto/Mobile/Index', [
             'colaborador' => $colab ? [
                 'nome'      => trim(optional($colab->user)->first_name . ' ' . optional($colab->user)->last_name) ?: '—',
@@ -186,6 +192,11 @@ class MobileMarcacaoController extends Controller
             ] : null,
             'marcacoes_hoje' => $colab ? $this->listaHoje($colab) : [],
             'hoje'   => now()->toDateString(),
+            'mes'    => now()->format('Y-m'),
+            // Mesmos builders do Espelho/Show (US-PONTO-012 já corrigida lá) — não recalcula.
+            'totais' => Inertia::defer(fn () => $colab ? $espelho->buildTotaisEspelho((int) $colab->business_id, (int) $colab->id, $ano, $mes) : null),
+            'linhas' => Inertia::defer(fn () => $colab ? $espelho->buildLinhasEspelho((int) $colab->business_id, (int) $colab->id, $ano, $mes) : []),
+            'tipos'  => IntercorrenciaController::tiposDisponiveis(),
             // A rota fica fora do `ponto.access` ([W] 2026-09-29); o cabeçalho do módulo (abas de
             // RH) só aparece pra quem pode abrir o módulo — senão cada aba seria um 403.
             'pode_ver_modulo' => $podeVerModulo,

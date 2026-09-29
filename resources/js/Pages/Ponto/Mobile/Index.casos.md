@@ -74,12 +74,21 @@ last_run: "2026-09-29"
   nem oferece "mesmo assim".
 - **Status: ⬜** — cita o UC; veredito vem da lane `ponto-pest`.
 
+## UC-REPP-06 · Meu espelho mostra o MEU mês
+- **Aceite:** Dado apuração do dia para mim e para um colega · Quando abro "Meu espelho" · Então os
+  totais e o dia a dia são os meus (mesmos builders do Espelho/Show), nunca os do colega.
+- **Status: ⬜** — cita o UC; veredito vem da lane `ponto-pest`.
+
+## UC-REPP-07 · Justificar envia para a fila do gestor
+- **Aceite:** Dado o motivo, o dia e a justificativa · Quando envio · Então nasce intercorrência
+  `PENDENTE` no meu cadastro e no meu empregador — a marcação original não muda.
+- **Status: ⬜** — cita o UC; veredito vem da lane `ponto-pest`.
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG]** Meu espelho do mês corrente (PR 2b da thread).
-- **[BACKLOG]** Justificar: envia intercorrência PENDENTE (PR 2b — a API já tem teste no Wave28).
+- **[BACKLOG]** Fila do gestor com filtro de origem mobile em Aprovações (passo 3 da thread).
 
 ## Trilha do tempo
-- 2026-09-29 · [CL] carimbado por criar-tela.mjs e preenchido na thread 06 (PR 2a). Refs: UI-0013 · ADR 0264 G-1/G-2.
+- 2026-09-29 · [CL] carimbado por criar-tela.mjs e preenchido na thread 06 (PR 2a); UC-REPP-06/07 no PR 2b. Refs: UI-0013 · ADR 0264 G-1/G-2.

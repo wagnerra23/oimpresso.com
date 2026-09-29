@@ -16,9 +16,12 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { FormGrid, FormSection } from '@/Components/ui/form-section';
+import { Segmented } from '@/Components/ui/segmented';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
+import MeuEspelho, { type LinhaEspelho, type TotaisEspelho } from './_components/MeuEspelho';
+import Justificar from './_components/Justificar';
 
 interface MarcacaoHoje { id: string; nsr: number; tipo: string; hora: string | null; revisar: boolean }
 
@@ -26,10 +29,20 @@ interface Props {
   colaborador: { nome: string; matricula: string | null } | null;
   marcacoes_hoje: MarcacaoHoje[];
   hoje: string;
+  mes: string;
+  totais?: TotaisEspelho | null; // Inertia::defer
+  linhas?: LinhaEspelho[]; // Inertia::defer
+  tipos: Array<{ value: string; label: string }>;
   /** `ponto.access` (ou papel admin/rh/gestor): mostra o cabeçalho do módulo. */
   pode_ver_modulo: boolean;
   limites: { accuracy_max: number; drift_max: number };
 }
+
+const TELAS = [
+  { value: 'bater', label: 'Bater ponto', titulo: 'Ponto' },
+  { value: 'espelho', label: 'Meu espelho', titulo: 'Meu espelho' },
+  { value: 'justificar', label: 'Justificar', titulo: 'Justificar' },
+] as const;
 
 const TIPOS = [
   { id: 'ENTRADA', label: 'Entrada', hint: 'início da jornada' },
@@ -180,7 +193,10 @@ function BaterPonto({ marcacoesIniciais, limites }: { marcacoesIniciais: Marcaca
   );
 }
 
-export default function Mobile({ colaborador, marcacoes_hoje, limites, pode_ver_modulo }: Props) {
+export default function Mobile({ colaborador, marcacoes_hoje, hoje, mes, totais, linhas, tipos, limites, pode_ver_modulo }: Props) {
+  const [tela, setTela] = useState<string>('bater');
+  const titulo = TELAS.find((t) => t.value === tela)?.titulo ?? 'Ponto';
+
   return (
     <AppShellV2 title="REP-P (celular) · Ponto WR2" breadcrumbItems={[{ label: 'Ponto WR2' }, { label: 'REP-P (celular)' }]}>
       {/* Mesmo container das outras telas do Ponto (Escalas, Aprovações, Painel…): sem ele o
@@ -211,14 +227,19 @@ export default function Mobile({ colaborador, marcacoes_hoje, limites, pode_ver_
               <Stack gap={4}>
               <Inline align="start" justify="between" gap={3}>
                 <div>
-                  <p className="font-semibold">Ponto</p>
+                  <p className="font-semibold">{titulo}</p>
                   <p className="text-xs text-muted-foreground">
                     {colaborador.nome}{colaborador.matricula ? ` · matrícula ${colaborador.matricula}` : ''}
                   </p>
                 </div>
                 <Badge variant="secondary">REP-P</Badge>
               </Inline>
-              <BaterPonto marcacoesIniciais={marcacoes_hoje} limites={limites} />
+              <Segmented aria-label="Tela do app" value={tela} onValueChange={setTela}
+                options={TELAS.map((t) => ({ value: t.value, label: t.label }))} />
+              {/* As 3 ficam montadas: trocar de tela não pode perder a batida recém-feita nem o GPS. */}
+              <div className={tela === 'bater' ? undefined : 'hidden'}><BaterPonto marcacoesIniciais={marcacoes_hoje} limites={limites} /></div>
+              <div className={tela === 'espelho' ? undefined : 'hidden'}><MeuEspelho totais={totais} linhas={linhas} mes={mes} hoje={hoje} /></div>
+              <div className={tela === 'justificar' ? undefined : 'hidden'}><Justificar tipos={tipos} hoje={hoje} /></div>
               </Stack>
             </CardContent>
           </Card>

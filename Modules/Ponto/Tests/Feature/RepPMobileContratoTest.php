@@ -143,13 +143,52 @@ it('UC-REPP-04: sem cadastro de ponto a tela vem com colaborador nulo e marcar �
 });
 
 it('UC-REPP-05: GUARD ADR 0383 — o fonte da tela não usa câmera, não captura imagem e não oferece "mesmo assim"', function () {
-    $fonte = file_get_contents(base_path('resources/js/Pages/Ponto/Mobile/Index.tsx'));
+    // A tela INTEIRA: Index.tsx + _components/ (a câmera caberia em qualquer sub-tela).
+    $arquivos = array_merge(
+        glob(base_path('resources/js/Pages/Ponto/Mobile/*.tsx')),
+        glob(base_path('resources/js/Pages/Ponto/Mobile/_components/*.tsx')),
+    );
+    expect(count($arquivos))->toBeGreaterThanOrEqual(3);
+    $fonte = implode(PHP_EOL, array_map('file_get_contents', $arquivos));
     expect($fonte)->not->toContain('getUserMedia');
     expect($fonte)->not->toContain('capture=');
     expect(strtolower($fonte))->not->toContain('selfie');
     expect(strtolower($fonte))->not->toContain('mesmo assim');
     // Controle positivo: a leitura achou a tela certa (senão os `not` passam vazios).
     expect($fonte)->toContain('/ponto/mobile/marcar');
+});
+
+it('UC-REPP-06: Meu espelho traz os totais e os dias do MEU mês — não os de um colega', function () {
+    $u = rpmUsuario();
+    $colega = rpmUsuario();
+    $this->actingAs($u);
+    foreach ([[$u, 480, 30], [$colega, 300, 90]] as [$quem, $trab, $atraso]) {
+        DB::table('ponto_apuracao_dia')->insert([
+            'business_id' => RPM_BIZ, 'data' => now()->toDateString(), 'estado' => 'CALCULADO',
+            'colaborador_config_id' => DB::table('ponto_colaborador_config')->where('user_id', $quem->id)->value('id'),
+            'realizada_trabalhada_minutos' => $trab, 'atraso_minutos' => $atraso, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    $p = $this->inertiaPartialGet('/ponto/mobile', ['totais', 'linhas'], 'Ponto/Mobile/Index')->assertOk();
+    $p->assertJsonPath('props.totais.trabalhado', 480)->assertJsonPath('props.totais.atraso', 30);
+    $hoje = collect($p->json('props.linhas'))->firstWhere('data', now()->toDateString());
+    expect($hoje['trabalhado'])->toBe(480);
+});
+
+it('UC-REPP-07: Justificar pela tela cria intercorrência PENDENTE no meu cadastro', function () {
+    $u = rpmUsuario();
+    $this->actingAs($u);
+    $this->inertiaGet('/ponto/mobile')->assertJsonCount(8, 'props.tipos');
+
+    $r = $this->postJson('/ponto/mobile/intercorrencias', [
+        'tipo' => 'ESQUECIMENTO_MARCACAO', 'data' => now()->toDateString(), 'dia_todo' => true,
+        'justificativa' => 'Texto neutro de teste com mais de dez caracteres.',
+    ])->assertStatus(201)->assertJsonPath('intercorrencia.estado', 'PENDENTE');
+
+    $i = DB::table('ponto_intercorrencias')->where('id', $r->json('intercorrencia.id'))->first();
+    expect((int) $i->business_id)->toBe(RPM_BIZ);
+    expect((int) $i->colaborador_config_id)->toBe((int) DB::table('ponto_colaborador_config')->where('user_id', $u->id)->value('id'));
 });
 
 it('UC-REPP-08: colaborador SEM ponto.access abre a tela e bate o ponto, sem o cabeçalho do módulo ([W] 2026-09-29)', function () {

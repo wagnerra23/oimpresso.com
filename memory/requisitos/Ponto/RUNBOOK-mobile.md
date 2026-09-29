@@ -24,13 +24,15 @@ related_adrs:
 
 O colaborador abre `/ponto/mobile` no próprio celular e **bate o ponto**: escolhe o tipo
 (entrada, saída almoço, retorno, saída) e envia com a localização do aparelho. Vê as marcações
-de hoje com o NSR que o servidor devolveu.
+de hoje com o NSR que o servidor devolveu. Em **Meu espelho** vê o mês corrente (os mesmos
+builders do Espelho/Show); em **Justificar** envia a intercorrência que nasce `PENDENTE`.
 
 | Rota | Método | Quem |
 |---|---|---|
 | `GET /ponto/mobile` | `Api\MobileMarcacaoController@tela` | **qualquer usuário logado** — sem `ponto.access` ([W] 2026-09-29); sem cadastro de ponto a tela fica vazia e as ações dão 403 |
 | `POST /ponto/mobile/marcar` | `@registrar` (o MESMO da API) | idem |
 | `GET /ponto/mobile/marcacoes/hoje` | `@marcacoesHoje` (o MESMO da API) | idem |
+| `POST /ponto/mobile/intercorrencias` | `@criarIntercorrencia` (o MESMO da API) — cria e submete | idem |
 
 As ações são os métodos JSON de `/ponto/api` (Passport) servidos também sob sessão web: o app
 não tem `CreateFreshApiToken`, então uma tela Inertia não alcança `auth:api`.
@@ -41,7 +43,7 @@ em `DataController::modifyAdminMenu` ANTES do gate de `ponto.access` ([W] 2026-0
 O cabeçalho de abas do Ponto só aparece pra quem tem o módulo (`CheckPontoAccess::permite`) — para o
 colaborador sem `ponto.access`, cada aba seria 403.
 
-## 2. Domínio (já em `main` pelos PRs 1a/1b da thread)
+## 2. Domínio (1a+1b da thread, em `main` pelo #8130)
 
 | Peça | Regra |
 |---|---|
@@ -54,7 +56,7 @@ colaborador sem `ponto.access`, cada aba seria 403.
 - **Não coleta imagem nem biometria** (ADR 0383) — nenhuma câmera.
 - **Não oferece "bater mesmo assim"** com GPS fraco (W5): o botão fica desabilitado com
   *"Sinal de GPS fraco — aproxime-se de área aberta"*.
-- **Não corrige marcação**: correção é intercorrência (sub-tela Justificar, PR 2b).
+- **Não corrige marcação**: correção é intercorrência (sub-tela Justificar), que o gestor decide.
 - **Não mostra a fila do gestor**: é filtro na tela viva de Aprovações (passo 3 da thread).
 
 ## 4. Diferenças conscientes contra o protótipo (`ponto-mobile.jsx`)
@@ -64,7 +66,7 @@ colaborador sem `ponto.access`, cada aba seria 403.
 | moldura `AndroidDevice` + "Simular condição de campo" | fora | andaime da demonstração no desktop — em produção o aparelho É o celular |
 | status "dentro/fora da área" antes de marcar | só a precisão do GPS antes; "fora da área" depois, na resposta | a config de geofence é do servidor — a tela não sabe e não inventa |
 | `ValidacaoMobile` ao lado | fora | fila do gestor = filtro em Aprovações (passo 3) |
-| Meu espelho · Justificar | PR 2b | teto de 300 linhas por PR |
+| "O oficial, assinado, sai no fechamento" | "O oficial sai no fechamento da competência" | D2 da ata: a palavra "assinada" sai (ADR 0413) |
 
 ## 5. Como validar
 
