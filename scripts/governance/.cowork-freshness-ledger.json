@@ -33720,5 +33720,27 @@
       "voz-do-cliente-page.jsx": "cc69e438ed3dda67401383654ddf2225cdbebbd1f31f1fc5b9e6ba4b38d8e2a1"
     },
     "origin": "bundle:962dbfa3c10e67a0"
+  },
+  {
+    "date": "2026-09-29T21:04:41.753Z",
+    "files": 273,
+    "sync": 4,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 269,
+    "staleList": [],
+    "verified": [
+      "manufacturing-page.css",
+      "manufacturing-page.jsx",
+      "manufacturing-producao.jsx",
+      "manufacturing-recipe.jsx"
+    ],
+    "verifiedHash": {
+      "manufacturing-page.css": "7b0ed3dcdf59e82512546193ef1b47c10a35b1c06b5fbb986918a8ffb83bc2bd",
+      "manufacturing-page.jsx": "933dc7d683286590572f0ebbdf9e022dec4248f633bc92223e96c00bcdbe1eea",
+      "manufacturing-producao.jsx": "bef8593ef6d89b66f994e966432716477386667d59716ea93a3b9a8a07d3cc4a",
+      "manufacturing-recipe.jsx": "3badd595cd94cc9a6e3fb976115384281fab5d89c7c315bb5170016ecd5da9a2"
+    },
+    "origin": "medicao"
   }
 ]
