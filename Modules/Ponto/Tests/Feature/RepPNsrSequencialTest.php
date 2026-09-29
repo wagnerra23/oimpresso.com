@@ -94,16 +94,24 @@ it('REP-P: NSR legado de microtime (≥ 10⁹) não entra no max — a sequênci
     expect(NsrService::NSR_LEGADO_MICROTIME)->toBe(1_000_000_000);
 });
 
-it('fora do escopo: MANUAL sem REP segue o NSR virtual, e a anulação de uma REP-P não consome a sequência', function () {
+it('MANUAL sem REP segue o NSR virtual; a anulação de uma REP-P ENTRA na sequência do colaborador ([W] 2026-09-29)', function () {
     $a = rnsColaborador(RNS_BIZ);
 
     expect((int) rnsMarcar(RNS_BIZ, $a, Marcacao::ORIGEM_MANUAL)->nsr)->toBeGreaterThanOrEqual(NsrService::NSR_LEGADO_MICROTIME);
 
     $primeira = rnsMarcar(RNS_BIZ, $a);
     $anulacao = $primeira->anular($a[1], 'teste de sequência');
-    expect((int) $anulacao->nsr)->toBeGreaterThanOrEqual(NsrService::NSR_LEGADO_MICROTIME);
+    expect((int) $anulacao->nsr)->toBe(2);
 
-    expect((int) rnsMarcar(RNS_BIZ, $a)->nsr)->toBe(2);
+    expect((int) rnsMarcar(RNS_BIZ, $a)->nsr)->toBe(3);
+});
+
+it('a anulação de uma MANUAL não entra na sequência REP-P', function () {
+    $a = rnsColaborador(RNS_BIZ);
+    $manual = rnsMarcar(RNS_BIZ, $a, Marcacao::ORIGEM_MANUAL);
+
+    expect((int) $manual->anular($a[1], 'teste')->nsr)->toBeGreaterThanOrEqual(NsrService::NSR_LEGADO_MICROTIME);
+    expect((int) rnsMarcar(RNS_BIZ, $a)->nsr)->toBe(1);
 });
 
 // ============================================================================
@@ -132,7 +140,7 @@ it('REP-P: a cadeia é de cada colaborador — colega e outro empregador abrem a
     expect(rnsMarcar(99, $alheio)->hash_anterior)->toBeNull();
 });
 
-it('REP-P: legado (NSR microtime) e anulação ficam fora da cadeia', function () {
+it('REP-P: legado (NSR microtime) fica fora da cadeia; a anulação ENTRA nela ([W] 2026-09-29)', function () {
     $a = rnsColaborador(RNS_BIZ);
     DB::table('ponto_marcacoes')->insert([
         'id' => (string) Illuminate\Support\Str::uuid(), 'business_id' => RNS_BIZ, 'colaborador_config_id' => $a[0],
@@ -143,8 +151,10 @@ it('REP-P: legado (NSR microtime) e anulação ficam fora da cadeia', function (
     $m1 = rnsMarcar(RNS_BIZ, $a);
     expect($m1->hash_anterior)->toBeNull();
 
-    $m1->anular($a[1], 'teste de cadeia');
-    expect(rnsMarcar(RNS_BIZ, $a)->hash_anterior)->toBe($m1->hash);
+    $anulacao = $m1->anular($a[1], 'teste de cadeia');
+    expect($anulacao->hash_anterior)->toBe($m1->hash);
+    expect(rnsMarcar(RNS_BIZ, $a)->hash_anterior)->toBe($anulacao->hash);
+    expect(app(MarcacaoService::class)->verificarIntegridadeRepP(RNS_BIZ, $a[0]))->toBe(['ok' => true, 'quebrados' => []]);
 });
 
 it('REP-P: a verificação MORDE — uma marcação forjada com hash_anterior errado aparece como quebra', function () {

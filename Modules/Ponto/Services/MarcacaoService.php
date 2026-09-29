@@ -82,8 +82,10 @@ class MarcacaoService
 
         return DB::transaction(function () use ($dados, $repId, $service) {
             // 1) NSR sequencial com lock pessimista — no REP; no REP-P (sem REP físico), por
-            //    colaborador ([W] 2026-09-29). Demais origens sem REP seguem o NSR virtual.
-            $nsr = ($repId === null && $dados['origem'] === Marcacao::ORIGEM_REP_P)
+            //    colaborador ([W] 2026-09-29), incluindo a anulação de uma REP-P. Demais origens
+            //    sem REP seguem o NSR virtual.
+            $cadeiaRepP = $repId === null && $service->pertenceCadeiaRepP($dados);
+            $nsr = $cadeiaRepP
                 ? $service->nsr->proximoRepP((int) $dados['business_id'], (int) $dados['colaborador_config_id'])
                 : $service->nsr->proximo($repId);
 
@@ -98,7 +100,7 @@ class MarcacaoService
                 if ($ultima) {
                     $hashAnterior = $ultima->hash;
                 }
-            } elseif ($dados['origem'] === Marcacao::ORIGEM_REP_P) {
+            } elseif ($cadeiaRepP) {
                 $hashAnterior = $service->cadeiaRepP((int) $dados['business_id'], (int) $dados['colaborador_config_id'])
                     ->orderByDesc('nsr')
                     ->value('hash');
@@ -198,11 +200,21 @@ class MarcacaoService
      */
     public function cadeiaRepP(int $businessId, int $colaboradorId)
     {
-        return Marcacao::where('business_id', $businessId)
-            ->where('colaborador_config_id', $colaboradorId)
-            ->whereNull('rep_id')
-            ->where('origem', Marcacao::ORIGEM_REP_P)
-            ->where('nsr', '<', NsrService::NSR_LEGADO_MICROTIME);
+        return NsrService::filtroCadeiaRepP(Marcacao::query(), $businessId, $colaboradorId);
+    }
+
+    /** REP_P, ou a anulação de uma REP_P do mesmo empregador ([W] 2026-09-29). */
+    public function pertenceCadeiaRepP(array $dados): bool
+    {
+        if ($dados['origem'] === Marcacao::ORIGEM_REP_P) {
+            return true;
+        }
+
+        return $dados['origem'] === Marcacao::ORIGEM_ANULACAO
+            && ! empty($dados['marcacao_anulada_id'])
+            && Marcacao::where('business_id', (int) $dados['business_id'])
+                ->whereKey($dados['marcacao_anulada_id'])
+                ->value('origem') === Marcacao::ORIGEM_REP_P;
     }
 
     private function verificarCadeia($query): array
