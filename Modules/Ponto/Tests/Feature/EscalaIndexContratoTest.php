@@ -213,3 +213,36 @@ it('UC-ESCIDX-06 · a linha mostra o horário do 1º turno da PRÓPRIA escala, o
         'Escala sem turno informa null — a tela escreve "sem turno configurado".'
     );
 });
+
+it('UC-ESCIDX-07 · GET /ponto/escalas/{id} não promete tela que não existe — 405, nunca 500', function () {
+    // Tenant fictício 98 (ADR 0358), não o `actAsAdmin()` dos irmãos: este caso grava escala,
+    // e no CT 100 o `Business::first()` é a WR2 real (clone de prod).
+    (function (): void {
+        $this->business = $this->seededTenant();
+        $this->admin = \App\User::where('business_id', $this->business->id)->first();
+        if (! $this->admin) {
+            $this->markTestSkipped("Tenant {$this->business->id} sem usuário.");
+        }
+        $this->ensurePontoPermissions((int) $this->business->id);
+        session([
+            'user.business_id' => $this->business->id,
+            'user.id'          => $this->admin->id,
+            'business.id'      => $this->business->id,
+            'business.name'    => $this->business->name,
+            'is_admin'         => true,
+        ]);
+        $this->actingAs($this->admin);
+    })->call($this);
+    escIdxPrecisaDe(['ponto_escalas']);
+
+    // Escala REAL do próprio empregador: o id existe, então a recusa não é "registro não
+    // achado". A URI segue viva para PUT/DELETE (update/destroy), logo GET nela é 405 —
+    // "método não permitido", a resposta HTTP correta. Antes o resource registrava `show`
+    // sem método no controller, e esse GET dava 500.
+    $id = escIdxCriarEscala((int) $this->business->id, 'sem-show');
+
+    $this->get("/ponto/escalas/{$id}")->assertStatus(405);
+
+    // Controle: a mesma escala segue editável — o `except` tirou só o show.
+    $this->get("/ponto/escalas/{$id}/edit")->assertStatus(200);
+});
