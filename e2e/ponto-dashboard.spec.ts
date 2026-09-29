@@ -30,9 +30,12 @@ test('painel do ponto abre autenticado e monta as âncoras do contrato', async (
   // Cabeçalho de MÓDULO (ADR 0418 / W9, PontoAreaHeader): o h1 é "Ponto" em toda tela da
   // área, e quem diz em que tela se está é a aba ativa — no protótipo não existe título por
   // tela. Até 2026-09-29 este spec esperava h1 "Dashboard", que o #8118 removeu de propósito.
-  // Medido em produção (biz=1) no mesmo dia: h1 "Ponto" + aba "Painel" com aria-selected=true.
+  // Medido em produção (biz=1) no mesmo dia: h1 "Ponto".
   await expect(page.getByRole('heading', { level: 1, name: /^Ponto$/ })).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByRole('tab', { name: /Painel/, selected: true })).toBeVisible({ timeout: 15_000 });
+  // A aba ativa NÃO entra como âncora: as abas vêm do `PontoSubNav`, que só desenha quando o
+  // shell.menu traz o item Ponto — e no tenant da lane (Visual Regression) ele não vem (gate de
+  // pacote `ponto_module`). Screenshot do CI: header "Ponto" sem faixa de abas. Quem prova que é
+  // o Painel são as âncoras `data-contract` abaixo.
 
   // Seções do contrato `ponto-painel` na ordem declarada
   // (painel-nota-fechamento → painel-kpis → painel-fila-aprovacoes → painel-atividade).
