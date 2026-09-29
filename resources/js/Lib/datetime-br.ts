@@ -46,3 +46,15 @@ export function fmtDataHoraBr(ymdHi: string | null | undefined): string {
   const [, y, mo, d, h, mi] = m;
   return `${d}/${mo}/${y} ${h}:${mi}`;
 }
+
+/**
+ * Data BR: "2026-08-17" → "17/08/2026". Mesmo contrato do `fmtDataHoraBr` (parse por
+ * string, sem `Date`, sem fuso): `null`/vazio → "—"; fora do padrão → a string original.
+ */
+export function fmtDataBr(ymd: string | null | undefined): string {
+  if (!ymd) return '—';
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(ymd);
+  if (!m) return ymd;
+  const [, y, mo, d] = m;
+  return `${d}/${mo}/${y}`;
+}

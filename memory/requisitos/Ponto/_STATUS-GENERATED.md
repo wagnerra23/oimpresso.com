@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 23 |
 | Telas com `casos.md` | 23 |
-| UC declarados | 101 |
-| UC com teste que os cita | 96 |
+| UC declarados | 103 |
+| UC com teste que os cita | 98 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -61,6 +61,7 @@ authority: generated
 | UC-BHSHOW-02 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-03 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-BHSHOW-04 | BancoHoras/Show | 🧪 aguarda veredito da lane |
+| UC-BHSHOW-05 | BancoHoras/Show | 🧪 aguarda veredito da lane |
 | UC-CFGIDX-01 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CFGIDX-02 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CFGIDX-03 | Configuracoes/Index | 🧪 aguarda veredito da lane |
@@ -92,6 +93,7 @@ authority: generated
 | UC-ESCIDX-03 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESCIDX-04 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESCIDX-05 | Escalas/Index | 🧪 aguarda veredito da lane |
+| UC-ESCIDX-06 | Escalas/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-01 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-02 | Espelho/Index | 🧪 aguarda veredito da lane |
 | UC-ESPIDX-03 | Espelho/Index | 🧪 aguarda veredito da lane |

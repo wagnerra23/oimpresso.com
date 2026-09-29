@@ -319,7 +319,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
 
         {/* Tabela */}
         <Deferred data="aprovacoes" fallback={<Skeleton className="h-64 w-full" />}>
-        <Card>
+        <Card data-contract="aprovacoes-fila-de-aprovacoes">
           <CardContent className="p-0">
             {rows.length === 0 ? (
               <EmptyState

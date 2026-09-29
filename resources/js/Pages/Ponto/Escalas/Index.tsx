@@ -9,7 +9,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Link, router } from '@inertiajs/react';
 import { useState, type MouseEvent, type ReactNode } from 'react';
-import { Plus } from 'lucide-react';
+import { CalendarDays, Info, Plus } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,15 +20,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
+import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { formatMinutes } from '@/Lib/utils';
 import { Inline } from '@/Components/layout/inline';
 
 import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
-import { PageHeaderPrimary } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
+import Toolbar from '@/Components/shared/Toolbar';
+
+/** Rótulos do enum `ponto_escalas.tipo` — os mesmos do protótipo (`TIPOS_ESCALA`) e do Form. */
+const TIPOS_ESCALA: Record<string, string> = {
+  FIXA: 'Fixa',
+  FLEXIVEL: 'Flexível',
+  ESCALA_12X36: '12x36',
+  ESCALA_6X1: '6x1',
+  ESCALA_5X2: '5x2',
+};
 
 interface Escala {
   id: number;
@@ -39,6 +49,8 @@ interface Escala {
   carga_semanal_minutos: number;
   permite_banco_horas: boolean;
   turnos_count: number;
+  /** Entrada–saída do turno de menor dia da semana ("08:00–18:00"); null = escala sem turno. */
+  primeiro_turno: string | null;
   /** D-ESC-DESTROY: quantos colaboradores usam esta escala. 0 = remover liberado. */
   colaboradores_count: number;
 }
@@ -46,6 +58,8 @@ interface Escala {
 interface Paginated {
   data: Escala[];
   total: number;
+  from: number | null;
+  to: number | null;
   current_page: number;
   last_page: number;
   links: Array<{ url: string | null; label: string; active: boolean }>;
@@ -75,116 +89,170 @@ export default function EscalasIndex({ escalas }: Props) {
 
   return (
     <>
-      <div className="mx-auto max-w-7xl p-6 space-y-4">
-        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
+      {/* `ponto-root` e `pt-body` são ganchos de medição — os seletores do ALVO em
+          governance/design/targets/ponto--escalas--index.secoes.json. Não têm CSS próprio. */}
+      <div className="ponto-root mx-auto max-w-7xl p-6 space-y-4">
+        {/* W9 (ADR 0418): header de módulo + abas do protótipo. "Nova escala" mora na barra. */}
         <PontoAreaHeader active="escalas" />
-        <Inline gap={2} justify="end">
-          <PageHeaderPrimary label="Nova escala" onClick={() => router.visit('/ponto/escalas/create')} />
-        </Inline>
 
-        <Card>
-          <CardContent className="p-0">
-            {escalas.data.length === 0 ? (
-              <EmptyState
-                icon="calendar-days"
-                title="Nenhuma escala cadastrada"
-                description="Crie a primeira escala — turnos por dia da semana, carga horária e regra de banco de horas."
-                action={
-                  <Button asChild size="sm">
-                    <Link href="/ponto/escalas/create">
-                      <Plus size={14} className="mr-1.5" /> Criar escala
-                    </Link>
-                  </Button>
-                }
-              />
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b border-border bg-muted/30 text-xs text-muted-foreground">
-                    <tr>
-                      <th className="text-left p-3 font-medium">Nome</th>
-                      <th className="text-left p-3 font-medium">Código</th>
-                      <th className="text-left p-3 font-medium">Tipo</th>
-                      <th className="text-right p-3 font-medium">Carga/dia</th>
-                      <th className="text-right p-3 font-medium">Carga/semana</th>
-                      <th className="text-center p-3 font-medium">BH</th>
-                      <th className="text-center p-3 font-medium">Turnos</th>
-                      <th className="text-right p-3 font-medium"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {escalas.data.map((e) => (
-                      <tr key={e.id} className="hover:bg-accent/30">
-                        <td className="p-3 font-medium">{e.nome}</td>
-                        <td className="p-3 font-mono text-xs">{e.codigo ?? '—'}</td>
-                        <td className="p-3 text-xs">
-                          <Badge variant="outline" className="text-[10px]">{e.tipo.replace('_', ' ')}</Badge>
-                        </td>
-                        <td className="p-3 text-right font-mono text-xs tabular-nums">{formatMinutes(e.carga_diaria_minutos)}</td>
-                        <td className="p-3 text-right font-mono text-xs tabular-nums">{formatMinutes(e.carga_semanal_minutos)}</td>
-                        <td className="p-3 text-center">
-                          {e.permite_banco_horas ? (
-                            <Badge variant="default" className="text-[10px]">Sim</Badge>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">Não</span>
-                          )}
-                        </td>
-                        <td className="p-3 text-center text-xs tabular-nums">{e.turnos_count}</td>
-                        <td className="p-3 text-right">
-                          <Inline gap={1} justify="end">
-                            <Button size="sm" variant="outline" asChild>
-                              <Link href={`/ponto/escalas/${e.id}/edit`} className="text-xs">Editar</Link>
+        <div className="pt-body space-y-4">
+          {/* BARRA — `window.PtBarra` do protótipo: Toolbar do DS dentro da própria moldura. */}
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
+            <Toolbar
+              label="Ações das escalas"
+              bordered={false}
+              right={
+                <Button asChild size="sm">
+                  <Link href="/ponto/escalas/create">
+                    <Plus size={14} className="mr-1.5" aria-hidden /> Nova escala
+                  </Link>
+                </Button>
+              }
+            >
+              <span className="text-xs text-muted-foreground">
+                Carga diária e semanal em minutos — 480 = 8h, 2.640 = 44h (CLT padrão).
+              </span>
+            </Toolbar>
+          </div>
+
+          {/* LISTA — Card "Escalas cadastradas" do protótipo, paginado no SERVIDOR (W11, ADR 0418). */}
+          <div data-contract="escalas-escalas-cadastradas">
+            <section aria-labelledby="escalas-cadastradas-titulo">
+              <Card flush className="gap-3 py-4">
+                <CardHeader>
+                  <CardTitle as="h2" id="escalas-cadastradas-titulo" badge={`(${escalas.total} no business)`}>
+                    <Inline gap={2} align="center" className="min-w-0">
+                      <CalendarDays size={15} aria-hidden />
+                      <span>Escalas cadastradas</span>
+                    </Inline>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {escalas.data.length === 0 ? (
+                    <EmptyState
+                      icon="calendar-days"
+                      title="Nenhuma escala cadastrada"
+                      description="Crie a primeira escala — turnos por dia da semana, carga horária e regra de banco de horas."
+                      action={
+                        <Button asChild size="sm">
+                          <Link href="/ponto/escalas/create">
+                            <Plus size={14} className="mr-1.5" aria-hidden /> Criar escala
+                          </Link>
+                        </Button>
+                      }
+                    />
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-[13px]">
+                        <thead className="border-y border-border bg-muted/30 text-xs text-muted-foreground">
+                          <tr>
+                            <th scope="col" className="w-[110px] px-3 py-2 text-left font-medium">Código</th>
+                            <th scope="col" className="px-3 py-2 text-left font-medium">Nome</th>
+                            <th scope="col" className="px-3 py-2 text-left font-medium">Tipo</th>
+                            <th scope="col" className="px-3 py-2 text-right font-medium">Carga diária</th>
+                            <th scope="col" className="px-3 py-2 text-right font-medium">Carga semanal</th>
+                            <th scope="col" className="px-3 py-2 text-right font-medium">Turnos</th>
+                            <th scope="col" className="px-3 py-2 text-left font-medium">Banco de horas</th>
+                            <th scope="col" className="w-[150px] px-3 py-2 text-right font-medium">Ação</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {escalas.data.map((e) => (
+                            <tr key={e.id} className="hover:bg-accent/30">
+                              <td className="px-3 py-2 font-mono text-xs">{e.codigo ?? '—'}</td>
+                              <td className="px-3 py-2">
+                                <span className="block font-semibold">{e.nome}</span>
+                                <small className="block text-xs text-muted-foreground" data-testid={`escala-${e.id}-turno`}>
+                                  {e.primeiro_turno ?? 'sem turno configurado'}
+                                </small>
+                              </td>
+                              <td className="px-3 py-2">
+                                {/* `Pill tom="info"` do protótipo = StatusBadge sem domínio → Badge com dot. */}
+                                <Badge variant="info" dot className="font-medium">{TIPOS_ESCALA[e.tipo] ?? e.tipo}</Badge>
+                              </td>
+                              <td className="px-3 py-2 text-right font-mono tabular-nums">{formatMinutes(e.carga_diaria_minutos)}</td>
+                              <td className="px-3 py-2 text-right font-mono tabular-nums">{formatMinutes(e.carga_semanal_minutos)}</td>
+                              <td className="px-3 py-2 text-right font-mono tabular-nums">{e.turnos_count}</td>
+                              <td className="px-3 py-2">
+                                <Badge variant={e.permite_banco_horas ? 'success' : 'neutral'} dot className="font-medium">
+                                  {e.permite_banco_horas ? 'Permite' : 'Não'}
+                                </Badge>
+                              </td>
+                              <td className="px-3 py-2 text-right font-mono">
+                                <Inline gap={1} justify="end">
+                                  <Button size="sm" variant="ghost" asChild>
+                                    <Link href={`/ponto/escalas/${e.id}/edit`} className="text-[13px]">Editar</Link>
+                                  </Button>
+                                  {/* D-ESC-DESTROY ([W] 2026-09-14): entra na UI, mas INDISPONÍVEL com vínculo
+                                      — "com o motivo escrito", porque botão desabilitado não recebe foco e o
+                                      Tooltip do DS seria inalcançável por teclado. Por isso o motivo vira texto
+                                      ao lado, não tooltip. A trava de verdade é no servidor
+                                      (EscalaController@destroy): o botão é conveniência, a rota é pública. */}
+                                  {e.colaboradores_count > 0 ? (
+                                    <span className="px-2 text-muted-foreground" data-testid={`escala-${e.id}-remover-bloqueado`}>
+                                      Em uso por {e.colaboradores_count}{' '}
+                                      {e.colaboradores_count === 1 ? 'colaborador' : 'colaboradores'}
+                                    </span>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="text-[13px] text-destructive hover:text-destructive"
+                                      onClick={() => setRemover(e)}
+                                    >
+                                      Remover
+                                    </Button>
+                                  )}
+                                </Inline>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                  {/* Rodapé sempre visível, como o Pager do protótipo. Sem seletor de tamanho de
+                      página: o servidor pagina em 20 (charter §Goals). */}
+                  {escalas.total > 0 && (
+                    <div className="flex items-center justify-between gap-2 border-t border-border px-3 pt-3 text-xs">
+                      <span className="text-muted-foreground">
+                        Mostrando <b>{escalas.from ?? 0}</b>–<b>{escalas.to ?? 0}</b> de <b>{escalas.total}</b> escalas
+                      </span>
+                      {escalas.last_page > 1 && (
+                        <div className="flex gap-1">
+                          {escalas.links.map((link, i) => (
+                            <Button
+                              key={i}
+                              variant={link.active ? 'default' : 'outline'}
+                              size="sm"
+                              className="h-7 min-w-8 px-2 text-xs"
+                              disabled={!link.url}
+                              // D-14: partial reload — paginação só re-busca a página da lista
+                              onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, only: ['escalas'] })}
+                            >
+                              <span dangerouslySetInnerHTML={{ __html: link.label }} />
                             </Button>
-                            {/* D-ESC-DESTROY ([W] 2026-09-14): entra na UI, mas INDISPONÍVEL com vínculo
-                                — "com o motivo escrito", porque botão desabilitado não recebe foco e o
-                                Tooltip do DS seria inalcançável por teclado. Por isso o motivo vira texto
-                                ao lado, não tooltip. A trava de verdade é no servidor
-                                (EscalaController@destroy): o botão é conveniência, a rota é pública. */}
-                            {e.colaboradores_count > 0 ? (
-                              <span className="text-[10px] text-muted-foreground px-2" data-testid={`escala-${e.id}-remover-bloqueado`}>
-                                Em uso por {e.colaboradores_count}{' '}
-                                {e.colaboradores_count === 1 ? 'colaborador' : 'colaboradores'}
-                              </span>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="text-xs text-destructive hover:text-destructive"
-                                onClick={() => setRemover(e)}
-                              >
-                                Remover
-                              </Button>
-                            )}
-                          </Inline>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            {escalas.last_page > 1 && (
-              <div className="flex items-center justify-between border-t border-border p-3 text-xs">
-                <span className="text-muted-foreground">Página {escalas.current_page}/{escalas.last_page} · {escalas.total}</span>
-                <div className="flex gap-1">
-                  {escalas.links.map((link, i) => (
-                    <Button
-                      key={i}
-                      variant={link.active ? 'default' : 'outline'}
-                      size="sm"
-                      className="h-7 min-w-8 px-2 text-xs"
-                      disabled={!link.url}
-                      // D-14: partial reload — paginação só re-busca a página da lista
-                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, only: ['escalas'] })}
-                    >
-                      <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </section>
+          </div>
+
+          {/* NOTA — `Nota tom="info"` do protótipo. É aviso estático, não alerta: role="note". */}
+          <div>
+            <Alert role="note" className="border-info/25 bg-info/5">
+              <Info aria-hidden />
+              <AlertDescription>
+                A gestão detalhada de turnos por dia da semana (entrada, saída para almoço, retorno, saída) é
+                leitura aqui e edição em fase posterior — igual ao Blade de origem.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
       </div>
 
       {/* D-ESC-DESTROY — forma do protótipo (ponto-telas.jsx): "Remover <nome>?", Cancelar + Remover escala. */}
