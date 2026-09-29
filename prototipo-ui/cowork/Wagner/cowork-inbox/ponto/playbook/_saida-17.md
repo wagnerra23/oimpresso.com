@@ -5,7 +5,7 @@ autor: "[CL]"
 criado: 2026-09-28
 base: ad23c9ff9
 thread: 17-data-contract-no-tsx.md
-veredito: "em andamento — 20 de 26 ids em PRs (14 em #8088/#8090/#8091/#8096, 1 no PR-2 #8114 de Aprovações, 1 no PR da forma de Escalas, 2 no #8113 + PR-2b #8119, 2 renomeados no PR-5 #8120); 6 fora por regra; nada pendente na thread (pendentes, sem nome no gap e com o lado protótipo fora do canal)"
+veredito: "concluída — 20 de 26 ids no main (14 em #8088/#8090/#8091/#8096, 1 no #8114, 1 no #8115, 2 no #8113 + #8119, 2 renomeados no #8120); 6 fora por regra; smoke em prod 2026-09-29: 5 de 5 ids medidos no DOM, 2 de BancoHoras/Show só no bundle (sem colaborador no business)"
 ---
 
 # _saída 17 · `data-contract` no `.tsx`
@@ -75,3 +75,20 @@ Recibo único da thread, atualizado a cada PR.
 - **Subida ao Cowork** (opt-in [W] 2026-09-29): antes de escrever, o `ponto-telas.jsx` vivo era idêntico ao espelho do main (71.747 bytes). `DesignSync.finalize_plan` + `write_files` com `localPath`; leitura de volta idêntica ao espelho editado (71.773 bytes). Ledger por `--snapshot-from` + `--compare --check --ledger` (1 sync, rodada parcial declarada); `pendentes-cowork --registrar-envio`. `cowork-mirror-freshness --unverified --check`: `mexido-depois` 1 → 0.
 - **Efeito nos maps:** o hash de conteúdo do protótipo mudou (`e4d0b5a3707e` → `e8b74d75e0d5`); os 15 maps do Ponto receberam só o `prototipo_sha` novo. `design-code-map-check --check --strict` rc=0.
 - **Histórico preservado:** `17-data-contract-no-tsx.md`, `20-gap-intercorrencias.md`, `_PATCH-INDICE-2026-09-14.md` e `github.md` seguem citando os ids feios — são registro datado de quando nasceram.
+
+## Smoke em produção (2026-09-29)
+
+- **Deploy medido:** run do `deploy.yml` em `f37c125f35`, concluído com sucesso; contém #8114, #8115, #8119, #8120 e #8135 (conferido por `git merge-base --is-ancestor`). Os deploys de `e1b5dd63ad`, `06a4e21091` e `971c2fd789` foram cancelados por pushes mais novos.
+- **Como:** navegador interno, sessão do business logado (WR2 Sistemas). Em cada tela, sonda `[data-contract]` sem os ids `sb-*` do sidebar, lida duas vezes com 3 s de intervalo; as duas leituras bateram em todas.
+- **Sonda cega na 1ª tentativa, corrigida:** o 1º filtro descartava elementos dentro de um ancestral de sidebar e deu 0 em Aprovações; a contagem sem filtro mostrou o id presente. Os números abaixo são da sonda corrigida.
+
+| tela | id | resultado no DOM |
+|---|---|---|
+| `/ponto/aprovacoes` | `aprovacoes-fila-de-aprovacoes` | presente, `display:flex`, 544×340, card da fila (estado vazio: sem pendência no filtro padrão) |
+| `/ponto/intercorrencias/create` | `intercorrencias-dados-da-ocorrencia` | presente, `display:flex`, 842 px de altura, card "Dados da ocorrência" com 14 campos e a nota "Salvar cria um rascunho…" |
+| `/ponto/escalas/create` | `escalaform-dados-da-escala` | presente, `display:flex`, 553 px de altura, card "Dados da escala" com 7 campos |
+| `/ponto/escalas` | `escalas-escalas-cadastradas` | presente, `display:block`, 496×360, card "Escalas cadastradas (0 no business)" |
+| `/ponto/banco-horas` | `bancohoras-saldos-por-colaborador` | presente (lista vazia) |
+
+- **BancoHoras/Show não medido no DOM:** o business não tem colaborador no Ponto (`/ponto/colaboradores` e `/ponto/banco-horas` vazios), então não há detalhe para abrir, e criar dado em produção para o teste está fora de questão. Medido no bundle servido: `build-inertia/manifest.json` → `resources/js/Pages/Ponto/BancoHoras/Show.tsx` → `assets/Show-WkseeyWP.js`, que contém `bancohoras-historico-de-movimentos` (1) e `bancohoras-ajuste-manual` (1). Controles do mesmo método: positivo `aprovacoes-fila-de-aprovacoes` no chunk de Aprovações = 1; negativo (id inventado) = 0; ids feios antigos no chunk de `Escalas/Form` e `Intercorrencias/Create` = 0. Isso prova que o código em produção carrega os ids; não prova a renderização.
+- As larguras de 220 e 320 px refletem o painel estreito do navegador interno, não a tela real.
