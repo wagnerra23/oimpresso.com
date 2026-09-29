@@ -76,7 +76,7 @@ Medido na mesma largura (2560px):
 produção renderiza ~25–30% maior. É o que se percebe como *"nem se parece com o protótipo"* sem
 conseguir apontar o quê.
 
-### 4. Estrutura do header — ❌ DIVERGE
+### 4. Estrutura do header — ❌ DIVERGE (em 2026-08-28) → ✅ paridade desde 2026-09-29 (ver §Estado em 2026-09-29)
 
 | Aspecto | Âncora | Produção |
 |---|---|---|
@@ -87,7 +87,7 @@ conseguir apontar o quê.
 O subtítulo da âncora carrega **tenant + competência + contagem**; produção carrega **data + hora de
 refresh**. São contratos de informação diferentes, não formatação.
 
-### 5. Sub-navegação — ❌ DIVERGE (3 abas ausentes)
+### 5. Sub-navegação — ❌ DIVERGE (3 abas ausentes, em 2026-08-28) → ✅ paridade desde 2026-09-29 (ver §Estado em 2026-09-29)
 
 | Âncora (13) | Produção |
 |---|---|
@@ -133,9 +133,9 @@ Não é gap: é produção à frente da âncora.
 |---|---|
 | 1 · Cor / tokens | ✅ idêntico |
 | 2 · Família tipográfica | ✅ idêntico |
-| 3 · **Escala tipográfica** | ❌ **diverge ~28%, sistemático** |
-| 4 · Header (título/subtítulo/ações) | ❌ diverge |
-| 5 · Sub-nav | ❌ 3 abas ausentes + nomenclatura |
+| 3 · **Escala tipográfica** | ❌ **diverge ~28%, sistemático** em 2026-08-28 · resolvida em parte desde o #6431 |
+| 4 · Header (título/subtítulo/ações) | ❌ diverge em 2026-08-28 · ✅ paridade desde 2026-09-29 |
+| 5 · Sub-nav | ❌ 3 abas ausentes + nomenclatura em 2026-08-28 · ✅ paridade desde 2026-09-29 |
 | 6 · Blocos de conteúdo | ⚠️ 5 fiéis · 2 extras em prod |
 | 7 · Estados vazios | ✅ prod à frente |
 | 8 · Tolerância | ⚠️ dado |
@@ -148,11 +148,27 @@ Este doc **mede**; ele não decide. Três coisas dependem do [W]:
    densa demais para uso real de 8h/dia. Medir não é mandar mudar.
 2. **Os 2 painéis extras** (`Últimos 7 dias`, `O que precisa da sua atenção`): produção evoluiu
    além da âncora. Ou a âncora incorpora, ou eles saem. Não assumir que "extra = errado".
-3. **As 3 abas ausentes** são capacidade não-construída, não divergência visual — vivem no backlog
+3. **As 3 abas ausentes** (situação de 2026-08-28; construídas depois — ver §Estado em 2026-09-29) eram capacidade não-construída, não divergência visual — vivem no backlog
    do módulo, não neste doc.
 
 ⚠️ Sem decisão do [W] em (1) e (2), **não mexer na tela**: um anti-padrão inventado aqui vira lei
 para a próxima sessão.
+
+## Estado em 2026-09-29 (re-medido; as seções acima são o retrato de 2026-08-28)
+
+- **§3 Escala — resolvida em parte.** No mesmo dia do retrato, o #6431 ([W]: *"o correto sempre vai ser o
+  protótipo"*) passou os 2 títulos de seção para o token `--fs-3` (12,5px): `Dashboard/Index.tsx:300` e
+  `:319`. Seguem 12px (`text-xs`) os sub-rótulos (ex. `:301`, `:325`) contra 11px na âncora — 11px não
+  tem token, e token novo é decisão [W]. O item (1) de "O que NÃO decidir" vale só para esse resto.
+- **§4 Header — paridade.** O W9 ([W] 2026-09-28, ADR 0418, #8118) trocou o header pelo `PontoAreaHeader`
+  (`Dashboard/Index.tsx:209`), cópia do `MP.Header` do protótipo (`ponto-page.jsx:523-529`): título,
+  papel com a Portaria, linha de contexto, selo "Atualizado" e a ação "Nova intercorrência"
+  (`_shared/PontoAreaHeader.tsx:91-133`). O "local" da linha de contexto não entra — recusa declarada em
+  `PontoAreaHeader.tsx:27-28`.
+- **§5 Sub-nav — paridade.** As 13 abas seguem ordem e rótulo do protótipo (`ponto-page.jsx:10-24`),
+  listadas em `Modules/Ponto/Http/Controllers/DataController.php:177-192`, com Fechamento, Conformidade
+  e REP-P (celular), cujas telas existem. Aba com `perm` some para quem não pode abrir (`:193-196`).
+- Fonte dos números: [dashboard-index-gap.md](dashboard-index-gap.md), re-medido na mesma data.
 
 ## Cobertura
 
