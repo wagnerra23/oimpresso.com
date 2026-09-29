@@ -444,6 +444,15 @@
     "baseline": "it_Ponto_Relatorios_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Ponto/Escalas",
+    "source": "Ponto/Escalas",
+    "a11y": true,
+    "component": "Ponto/Escalas/Index",
+    "route": "/ponto/escalas",
+    "anchor": "Escalas cadastradas",
+    "baseline": "it_Ponto_Escalas_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Patrimonio/Manutencoes",
     "source": "Patrimonio/Manutencoes",
     "component": "Patrimonio/Manutencoes",
