@@ -29,7 +29,7 @@ builders do Espelho/Show); em **Justificar** envia a intercorrência que nasce `
 
 | Rota | Método | Quem |
 |---|---|---|
-| `GET /ponto/mobile` | `Api\MobileMarcacaoController@tela` | `ponto.access` (grupo web do Ponto) |
+| `GET /ponto/mobile` | `Api\MobileMarcacaoController@tela` | **qualquer usuário logado** — sem `ponto.access` ([W] 2026-09-29); sem cadastro de ponto a tela fica vazia e as ações dão 403 |
 | `POST /ponto/mobile/marcar` | `@registrar` (o MESMO da API) | idem |
 | `GET /ponto/mobile/marcacoes/hoje` | `@marcacoesHoje` (o MESMO da API) | idem |
 | `POST /ponto/mobile/intercorrencias` | `@criarIntercorrencia` (o MESMO da API) — cria e submete | idem |
@@ -37,7 +37,14 @@ builders do Espelho/Show); em **Justificar** envia a intercorrência que nasce `
 As ações são os métodos JSON de `/ponto/api` (Passport) servidos também sob sessão web: o app
 não tem `CreateFreshApiToken`, então uma tela Inertia não alcança `auth:api`.
 
+<<<<<<< HEAD
 ## 2. Domínio (PRs 1a/1b da thread — #8130/#8131)
+=======
+O cabeçalho de abas do Ponto só aparece pra quem tem o módulo (`CheckPontoAccess::permite`) — para o
+colaborador sem `ponto.access`, cada aba seria 403.
+
+## 2. Domínio (já em `main` pelos PRs 1a/1b da thread)
+>>>>>>> claude/repp-tela
 
 | Peça | Regra |
 |---|---|
