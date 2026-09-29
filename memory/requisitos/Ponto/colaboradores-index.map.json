@@ -3,33 +3,33 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Ponto/Colaboradores/Index (/ponto/colaboradores)",
   "gap_fonte": "memory/requisitos/Ponto/colaboradores-index-gap.md",
-  "prototipo_sha": "sha256:e8b74d75e0d5",
+  "prototipo_sha": "sha256:62977f0aeb68",
   "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "barra-de-busca-e-filtros",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "602-618"
+        "linhas": "630-646"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
-        "linhas": "86-99",
+        "linhas": "96-121",
         "ancora": false
       },
       "status": "prototipo-a-frente",
-      "acao": "Incorporar os 2 filtros — `D-COLAB-COLUNAS` = INCORPORA tudo; o \"Sem PIS cadastrado\" é, pela ata, o item de maior valor do lote. Exige filtro no `ColaboradorController@index` (`:15-60`), não só na tela. A busca em memória do protótipo é artefato de mock: não portar (o vivo já tem debounce + servidor).",
+      "acao": "Incorporar os 2 filtros — `D-COLAB-COLUNAS` = INCORPORA tudo; o \"Sem PIS cadastrado\" é, pela ata, o item de maior valor do lote e já entrou (2026-09-29: `ColaboradorController.php:48-52` + `Index.tsx:109-120`); faltam o select Escala e as outras 3 situações. Exige filtro no `ColaboradorController@index` (`:15-76`), não só na tela. A busca em memória do protótipo é artefato de mock: não portar (o vivo já tem debounce + servidor).",
       "_acionavel": true
     },
     {
       "id": "lista-de-colaboradores",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "619-651"
+        "linhas": "647-681"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
-        "linhas": "119-178",
+        "linhas": "123-227",
         "ancora": "colaboradores-colaboradores"
       },
       "status": "prototipo-a-frente",
@@ -40,11 +40,11 @@
       "id": "cpf-e-pis-redigidos",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "636"
+        "linhas": "664"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
-        "linhas": "144-153",
+        "linhas": "168-176",
         "ancora": false
       },
       "status": "paridade",
@@ -55,26 +55,26 @@
       "id": "estados-vazios",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "621-626"
+        "linhas": "649-654"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
-        "linhas": "103-116",
+        "linhas": "126-140",
         "ancora": false
       },
       "status": "paridade",
-      "acao": "Nada — a 3ª frase do protótipo só faz sentido quando os filtros da 1ª parte existirem; entra junto com eles.",
+      "acao": "Nada — a 3ª frase do protótipo só fazia sentido quando os filtros da 1ª parte existissem; em 2026-09-29 ela já entrou no vivo junto com o filtro \"Sem PIS\" (`Index.tsx:133`).",
       "_acionavel": false
     },
     {
       "id": "paginacao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "652"
+        "linhas": "680"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
-        "linhas": "180-201",
+        "linhas": "204-225",
         "ancora": false
       },
       "status": "paridade",
@@ -85,16 +85,17 @@
       "id": "nota-de-vinculacao-com-o-hrm",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "654-656"
+        "linhas": "682-684"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
-        "linhas": "79",
+        "arquivo": "n/a",
+        "linhas": "n/a",
         "ancora": false
       },
-      "status": "paridade",
-      "acao": "Nada — o Non-Goal \"não cadastra colaborador\" está materializado nos dois. Forma é assunto das threads de FORMA, não deste gap.",
-      "_acionavel": false
+      "status": "prototipo-a-frente",
+      "acao": "Protótipo à frente na forma: no vivo a nota persistente sumiu e o HRM só aparece no estado vazio (`Index.tsx:134`). Restaurar a nota no vivo, seguindo o protótipo (forma é do protótipo, UI-0029).",
+      "_acionavel": true,
+      "_nota": "2026-09-29: grep -n 'HRM' em resources/js/Pages/Ponto/Colaboradores/Index.tsx = 1 (:134, descrição do EmptyState, só aparece com a lista vazia); o subtítulo do header que a faixa :79 apontava não existe mais. Sem região equivalente no vivo → n/a."
     }
   ]
 }
