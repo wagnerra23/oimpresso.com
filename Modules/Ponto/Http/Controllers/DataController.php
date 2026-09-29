@@ -5,6 +5,7 @@ namespace Modules\Ponto\Http\Controllers;
 use App\Utils\ModuleUtil;
 use Illuminate\Routing\Controller;
 use Menu;
+use Modules\Ponto\Entities\Colaborador;
 
 /**
  * DataController do módulo PontoWr2.
@@ -121,6 +122,26 @@ class DataController extends Controller
             return;
         }
 
+        // "Bater ponto" — atalho do COLABORADOR pra /ponto/mobile ([W] 2026-09-29). Vem ANTES do
+        // gate de ponto.access de propósito: o colaborador de chão não tem o módulo e mesmo assim
+        // bate o ponto (a rota fica fora do ponto.access). A condição é ter cadastro de ponto
+        // ativo no empregador da sessão — business_id explícito (ADR 0093). Quem gerencia o Ponto
+        // e também é colaborador vê os dois: "Ponto" (gestão) e "Bater ponto" (a própria batida).
+        $business_id_sessao = (int) (session('user.business_id') ?: auth()->user()->business_id);
+        $e_colaborador = Colaborador::query()
+            ->where('business_id', $business_id_sessao)
+            ->where('user_id', auth()->id())
+            ->where('controla_ponto', true)
+            ->exists();
+        if ($e_colaborador) {
+            Menu::modify('admin-sidebar-menu', function ($menu) {
+                $menu->url(url('/ponto/mobile'), 'Bater ponto', [
+                    'icon'   => 'fa fas fa-clock',
+                    'active' => request()->is('ponto/mobile*'),
+                ])->order(87);
+            });
+        }
+
         // Superadmin sempre vê; usuário comum precisa de ponto.access (mínimo).
         $usuario_pode_ver = auth()->user()->can('superadmin')
             || auth()->user()->can('ponto.access');
@@ -151,7 +172,8 @@ class DataController extends Controller
                 // W9 ([W] 2026-09-28, ADR 0418): abas na ORDEM, RÓTULO e ÍCONE do protótipo
                 // (ponto-page.jsx ABAS). `perm` = o gate de permissão que o #8116 pôs nas abas
                 // (antes filhos do dropdown) — aba que a pessoa não pode abrir não aparece. A 13ª
-                // do protótipo, "REP-P (celular)", entra junto com a tela (W10, ADR 0419).
+                // do protótipo, "REP-P (celular)", entrou junto com a tela /ponto/mobile (thread 06,
+                // W10 · ADR 0419) — sem `perm`: a tela é do colaborador, `ponto.access` basta.
                 $abas = [
                     ['key' => 'dashboard',       'label' => 'Painel',           'href' => '/ponto',                 'icon' => 'chart-column'],
                     ['key' => 'espelho',         'label' => 'Espelho de ponto', 'href' => '/ponto/espelho',         'icon' => 'calendar'],
@@ -163,6 +185,7 @@ class DataController extends Controller
                     ['key' => 'conformidade',    'label' => 'Conformidade',     'href' => '/ponto/conformidade',    'icon' => 'shield'],
                     ['key' => 'escalas',         'label' => 'Escalas',          'href' => '/ponto/escalas',         'icon' => 'clock'],
                     ['key' => 'colaboradores',   'label' => 'Colaboradores',    'href' => '/ponto/colaboradores',   'perm' => 'ponto.colaboradores.manage', 'icon' => 'database'],
+                    ['key' => 'mobile',          'label' => 'REP-P (celular)',  'href' => '/ponto/mobile',          'icon' => 'send'],
                     ['key' => 'importacoes',     'label' => 'Importações',      'href' => '/ponto/importacoes',     'icon' => 'download'],
                     ['key' => 'relatorios',      'label' => 'Relatórios',       'href' => '/ponto/relatorios',      'icon' => 'receipt'],
                     ['key' => 'configuracoes',   'label' => 'Configurações',    'href' => '/ponto/configuracoes',   'perm' => 'ponto.configuracoes.manage', 'icon' => 'settings'],

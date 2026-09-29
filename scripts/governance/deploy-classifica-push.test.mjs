@@ -52,6 +52,10 @@ const muitos = {};
 for (let i = 0; i < 1500; i++) muitos[`app/Gerado/${'Arquivo'.repeat(8)}${String(i).padStart(4, '0')}.php`] = `<?php // ${i}`;
 const baseMuitos = git('rev-parse', 'HEAD');
 const aposMuitos = commit('muitos arquivos de runtime', muitos);
+// Frontend mudou e FOI deployado; depois só docs. A listagem velha só enxerga um
+// sucesso anterior ao feJs — o caso do deploy do #8162 (2026-09-29).
+const feJs = commit('muda frontend (deployado)', { 'resources/js/app.tsx': 'export {}\n' });
+const feDocs = commit('só docs depois', { 'memory/n2.md': 'n\n' });
 
 // gh falso. Cada linha do fixture: "<id> <sha> <conclusion>". Honra o filtro de
 // conclusion SÓ se o script pedir `select(.conclusion=="success")` no --jq — assim a
@@ -60,6 +64,20 @@ const GH = join(sandbox, 'gh-fake');
 writeFileSync(GH, [
   '#!/usr/bin/env bash',
   '[ -n "${GH_FAIL:-}" ] && { echo "gh: HTTP 502" >&2; exit 1; }',
+  // `gh api .../runs?head_sha=X`: devolve os ids das runs daquele commit (fixture
+  // separada). Honra o filtro de conclusion SÓ se o --jq pedir — senão o BITE não morde.
+  'if [ "$1" = api ]; then',
+  '  [ -n "${GH_API_FAIL:-}" ] && { echo "gh: HTTP 502" >&2; exit 1; }',
+  '  U="$2"; H="${U#*head_sha=}"; H="${H%%&*}"',
+  '  OKF=0; for a in "$@"; do case "$a" in *.conclusion==*success*) OKF=1;; esac; done',
+  '  [ -f "${GH_API_FIXTURE:-}" ] || exit 0',
+  '  while read -r ID S CONC; do',
+  '    [ -z "$ID" ] && continue; [ "$S" = "$H" ] || continue',
+  '    if [ "$OKF" = 1 ] && [ "$CONC" != success ]; then continue; fi',
+  '    echo "$ID"',
+  '  done < "$GH_API_FIXTURE"',
+  '  exit 0',
+  'fi',
   'for a in "$@"; do case "$a" in --status) echo "gh-fake: --status proibido (índice atrasado)" >&2; exit 9;; esac; done',
   'FILTRA=0; for a in "$@"; do case "$a" in *\'select(.conclusion=="success")\'*) FILTRA=1;; esac; done',
   'while read -r ID SHA CONC; do',
@@ -71,9 +89,14 @@ writeFileSync(GH, [
 ].join('\n'));
 chmodSync(GH, 0o755);
 
-function roda({ script = SCRIPT, sha, event = 'push', runId = '999', runs, ghFail = false }) {
+function roda({ script = SCRIPT, sha, event = 'push', runId = '999', runs, apiRuns = null, apiFail = false, ghFail = false }) {
   const fixture = join(sandbox, 'runs.txt');
   writeFileSync(fixture, runs.map((r) => r.join(' ')).join('\n') + '\n');
+  // Sem apiRuns a busca por commit não acha nada e o script cai na listagem — assim
+  // os cenários antigos seguem medindo o caminho da listagem.
+  const apiFixture = join(sandbox, 'api-runs.txt');
+  rmSync(apiFixture, { force: true });
+  if (apiRuns) writeFileSync(apiFixture, apiRuns.map((r) => r.join(' ')).join('\n') + '\n');
   const out = join(sandbox, 'gh_output');
   writeFileSync(out, '');
   const r = spawnSync('bash', [script.replaceAll('\\', '/')], {
@@ -82,7 +105,9 @@ function roda({ script = SCRIPT, sha, event = 'push', runId = '999', runs, ghFai
     env: {
       ...process.env, SHA: sha, EVENT_NAME: event, RUN_ID: runId,
       GH_BIN: './gh-fake', GH_FIXTURE: fixture.replaceAll('\\', '/'), GITHUB_OUTPUT: out.replaceAll('\\', '/'),
+      GH_REPO: 'o/r', GH_API_FIXTURE: apiFixture.replaceAll('\\', '/'),
       ...(ghFail ? { GH_FAIL: '1' } : {}),
+      ...(apiFail ? { GH_API_FAIL: '1' } : {}),
     },
   });
   const saida = readFileSync(out, 'utf8');
@@ -106,6 +131,12 @@ const CASOS = [
   ['o próprio run não serve de base', 'true', { sha: soDocs2, runId: '7', runs: [['7', soDocs2, 'success'], ['1', base0, 'success']] }],
   ['LISTA LONGA: >64 KiB de arquivos que decidiram ⇒ completo com rc=0 (SIGPIPE)', 'true',
     { sha: aposMuitos, runs: [['6', baseMuitos, 'success']] }],
+  ['LISTA VELHA: a listagem só vê sucesso antigo, por commit acha o recente ⇒ sync leve', 'false',
+    { sha: feDocs, runs: [['1', base0, 'success']], apiRuns: [['20', feJs, 'success']] }],
+  ['por commit: deploy cancelado não é base', 'true',
+    { sha: soDocs, runs: [], apiRuns: [['2', migra, 'cancelled'], ['1', base0, 'success']] }],
+  ['por commit: API falhou ⇒ cai pra listagem (não é veredito)', 'true',
+    { sha: feDocs, apiFail: true, runs: [['1', base0, 'success']], apiRuns: [['20', feJs, 'success']] }],
 ];
 
 let fails = 0;
@@ -124,6 +155,14 @@ try {
   }
   const fe = roda({ sha: soDocs, runs: [['1', base0, 'success']] });
   check('frontend_changed=false quando resources/js não mudou desde a base', fe.frontend === 'false', JSON.stringify(fe));
+  // O deploy do #8162: o frontend mudou no intervalo da listagem velha, mas já estava servido.
+  const fePorCommit = roda({ sha: feDocs, runs: [['1', base0, 'success']], apiRuns: [['20', feJs, 'success']] });
+  check('LISTA VELHA: frontend_changed=false pela base por commit', fePorCommit.frontend === 'false', JSON.stringify(fePorCommit));
+  const feListaVelha = roda({ sha: feDocs, runs: [['1', base0, 'success']] });
+  check('CONTROLE: só com a listagem velha, frontend_changed=true (o falso positivo que derrubou o deploy)',
+    feListaVelha.frontend === 'true', JSON.stringify(feListaVelha));
+  const caiu = roda({ sha: feDocs, apiFail: true, runs: [['1', base0, 'success']], apiRuns: [['20', feJs, 'success']] });
+  check('API por commit falhou ⇒ o log diz que caiu pra listagem', /caindo pra listagem/.test(caiu.log), caiu.log);
 
   const mutantes = [
     ['BITE: sem filtro de conclusion (cancelado vira base)', ORIGINAL.replace('select(.conclusion=="success") | ', ''), 'RELEASE'],
@@ -134,6 +173,10 @@ try {
     ['BITE: o próprio run vira base', ORIGINAL.replace('[ -n "$RUN_ID" ] && [ "$ID" = "$RUN_ID" ] && continue', ':'), 'próprio run'],
     ['BITE: head -20 volta a truncar o pipe (SIGPIPE derruba o deploy)',
       ORIGINAL.replace("sort -u | awk 'NR <= 20'", 'sort -u | head -20'), 'LISTA LONGA'],
+    ['BITE: sem a busca por commit (lista velha vira base)',
+      ORIGINAL.replace('POR_SHA_MAX="${POR_SHA_MAX:-60}"', 'POR_SHA_MAX=0'), 'LISTA VELHA'],
+    ['BITE: busca por commit sem filtro de conclusion (cancelado vira base)',
+      ORIGINAL.replace(' and .conclusion=="success")', ')'), 'cancelado não é base'],
     ['BITE: filtra status no servidor (índice atrasado)', ORIGINAL.replace('--event push --limit 100', '--event push --status success --limit 100'), 'CONTROLE'],
   ];
   for (const [nome, texto, alvo] of mutantes) {
@@ -159,5 +202,5 @@ try {
   rmSync(sandbox, { recursive: true, force: true });
 }
 
-console.log(fails ? `\n${fails} falha(s)` : '\nOK — classificação por último deploy bem-sucedido: RELEASE + controles + lista longa + 7 mutações que mordem.');
+console.log(fails ? `\n${fails} falha(s)` : '\nOK — classificação por último deploy bem-sucedido: RELEASE + controles + lista longa + base por commit + 9 mutações que mordem.');
 process.exit(fails ? 1 : 0);

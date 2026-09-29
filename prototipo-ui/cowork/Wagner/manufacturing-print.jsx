@@ -37,7 +37,7 @@ function Folha({ r, c, semCusto, hoje }) {
       <header className="mfg-sheet-h">
         <span className="mfg-reg-host"><RegistrationMark size={26} strokeWidth={0.7} /></span>
         <div className="id">
-          <span className="eyebrow">Office Impresso · Manufacturing{semCusto ? " · via de produção" : ""}</span>
+          <span className="eyebrow">Office Impresso · Fabricação{semCusto ? " · via de produção" : ""}</span>
           <h1>{r.name}</h1>
           <p>{r.cat} / {r.sub} · {nIng} ingredientes em {r.grupos.length} grupos</p>
         </div>

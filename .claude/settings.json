@@ -280,6 +280,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/post-merge-ui-smoke-required.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/lembrar-subida-cowork.mjs"
           }
         ]
       },

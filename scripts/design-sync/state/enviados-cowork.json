@@ -5,6 +5,10 @@
       "sha256": "5fd6a6691f5921a7f26275a3ec679e0102c96f6908c0f8de600af1a21c33bb21",
       "em": "2026-09-28T21:47:00.690Z"
     },
+    "cowork-inbox/ponto/playbook/_DECISOES-W-2026-09-29.md": {
+      "sha256": "168d364c61b659b3bc56aff1266076ec6109bb52a5dae3ab2621370b634dd8cb",
+      "em": "2026-09-29T13:37:34.240Z"
+    },
     "cowork-inbox/ponto/playbook/_saida-16.md": {
       "sha256": "a4acfe0565898b480e5e5d525a5b8b6ca7928f6c93268666c380f14596d119d3",
       "em": "2026-09-28T19:53:31.686Z"
@@ -52,6 +56,18 @@
     "cowork-inbox/ponto/playbook/_saida-34.md": {
       "sha256": "696db4ea58451fc533e092a6e642730b2b0d3f0e682fd6b16837c2558d81ba7c",
       "em": "2026-09-28T19:47:11.536Z"
+    },
+    "manufacturing-page.jsx": {
+      "sha256": "c19cc8c64ecefc276a8aeb445c4224708870147e326990209c02697bd4b17ec5",
+      "em": "2026-09-29T13:36:04.646Z"
+    },
+    "manufacturing-print.jsx": {
+      "sha256": "c02b64c890129ef3146add0ec560cbf64cfa6787e2ec6a1a905c87aa32358fac",
+      "em": "2026-09-29T13:36:04.646Z"
+    },
+    "manufacturing-producao.jsx": {
+      "sha256": "a29d74c62cef096da91f0aba5eee2ff453dbde40c34acd014a623e0a94ee7426",
+      "em": "2026-09-29T13:36:04.646Z"
     },
     "ponto-telas.jsx": {
       "sha256": "3b4298a17df3a1a4a2f822a4f65a8a10ea375ad49f0d42ceb07ccf3940ba3963",
