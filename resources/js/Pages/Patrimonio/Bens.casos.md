@@ -236,6 +236,22 @@ last_run: "2026-09-30"
 
 ---
 
+## UC-BENS-12 · "Enviar pra manutenção" pela linha do bem abre o drawer de manutenção
+
+- **Persona:** quem vê um bem com defeito na lista e quer registrar o envio sem procurar a
+  tela de Manutenções.
+- **Aceite:** Dado um bem na lista e um usuário com permissão de manutenção
+  (`asset.view_all_maintenance` ou `asset.view_own_maintenance` — a mesma que o `create()` de
+  manutenção exige) · Quando ele clica em "Enviar pra manutenção" na linha · Então a tela vai
+  para `/asset/asset-maintenance/create?asset_id={id do bem}`, que abre o drawer com o bem já
+  escolhido (thread 19, UC-MANU-06). Sem a permissão, o botão não aparece. É botão com
+  `router.get`, não `<a href>` (UC-BENS-04 segue valendo).
+- **Teste:** `tests/js/patrimonio-bens-manutencao.test.tsx` — dois `it()` citando `UC-BENS-12`,
+  com o "Editar" da mesma linha como controle de que a linha renderizou.
+- **Fora:** o botão no rodapé do drawer de detalhe do bem (protótipo `patrimonio-page.jsx:656`)
+  e o envio em lote (`:395`). Não escreve valor nem quantidade.
+- **Status: ⬜** — a lane de CI do PR é o primeiro run.
+
 ## UC-BENS-11 · Excluir o bem leva as garantias dele junto
 
 - **Persona:** quem exclui um bem cadastrado por engano e não espera deixar resto no banco.
@@ -282,9 +298,10 @@ expressão (`AssetController::baseAssetsQuery`), lida pelos dois ramos.
 - [BACKLOG] O rodapé soma o valor total do recorte, com a prova dupla que a REGRA MESTRE exige.
 - [BACKLOG] Seleção em lote exporta a seleção e manda os selecionados pra manutenção.
 - [BACKLOG] O usuário escolhe as colunas visíveis e a densidade, e a escolha sobrevive ao reload.
-- [BACKLOG] Alocar e mandar pra manutenção a partir da linha, em drawer — hoje não há caminho
-  pela UI (os formulários só existem como fragmento de modal servido sob `ajax()`). Escrita de
-  QUANTIDADE: REGRA MESTRE Tier 0.
+- [BACKLOG] Alocar a partir da linha, em drawer — escrita de QUANTIDADE: REGRA MESTRE Tier 0.
+  (Mandar pra manutenção a partir da linha saiu daqui em 2026-09-30: virou UC-BENS-12.)
+- [BACKLOG] "Enviar pra manutenção" no rodapé do drawer de detalhe do bem, como no protótipo
+  (`patrimonio-page.jsx:656`) — o destino já existe (UC-BENS-12).
 - [BACKLOG] `permitted_locations()` restringe a listagem, e nenhum parâmetro de query a afrouxa.
   (Hoje o código faz isso — aplica a restrição **antes** dos filtros do usuário —, mas nenhum
   teste defende; virou visível quando o fixture sem `access_all_locations` zerou a lista.)

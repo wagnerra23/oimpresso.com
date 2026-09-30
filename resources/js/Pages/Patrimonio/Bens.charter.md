@@ -9,7 +9,7 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
 tier: B
-charter_version: 7
+charter_version: 8
 last_validated: "2026-09-30"
 ---
 
@@ -40,8 +40,8 @@ last_validated: "2026-09-30"
 
 Mostrar o patrimônio da empresa como lista operável: o que a casa tem, onde está, com quem
 está alocado, quanto vale por unidade e se está em garantia ou em manutenção. É a tela de
-partida do módulo: dela se **cadastra**, se **edita** (drawer) e se **exclui** bem. Alocar e
-mandar pra manutenção ainda não — ver os Non-Goals.
+partida do módulo: dela se **cadastra**, se **edita** (drawer), se **manda pra manutenção**
+e se **exclui** bem. Alocar ainda não — ver os Non-Goals.
 
 ## Goals — Features (faz)
 
@@ -77,9 +77,11 @@ mandar pra manutenção ainda não — ver os Non-Goals.
   quantidade, data, autor e motivo), porque devolução parcial grava vários `revoke` por
   alocação. A devolução é escopada por `business_id` **nela mesma**. Bem de outra empresa ou
   fora dos locais permitidos = "não encontrado". Contrato: UC-BENS-10.
-- Ação por linha: **editar** e **excluir** (`router.delete` no `destroy`, com confirmação
-  nomeando o bem), conforme a permissão do usuário. (Até 2026-09-23 havia também alocar ·
-  manutenção — ver o Non-Goal abaixo, que diz por que saíram.)
+- Ação por linha: **editar**, **enviar pra manutenção** e **excluir** (`router.delete` no
+  `destroy`, com confirmação nomeando o bem), conforme a permissão do usuário. Enviar pra
+  manutenção voltou em 2026-09-30: navega para `/asset/asset-maintenance/create?asset_id={id}`,
+  o drawer da thread 19, com a mesma permissão que aquele `create()` exige. Contrato:
+  UC-BENS-12. (Alocar segue fora — ver o Non-Goal abaixo.)
 - Sub-navegação do módulo **derivada** de `shell.menu` (`DataController::modifyAdminMenu`),
   nunca declarada aqui.
 - Estados: cheia · filtrada-vazia · vazia · carregando (skeleton do `Inertia::defer`) ·
@@ -100,9 +102,9 @@ mandar pra manutenção ainda não — ver os Non-Goals.
 - ❌ NÃO faz seleção em lote nem BulkBar — as duas ações em lote do protótipo (exportar
   seleção, mandar pra manutenção) não têm endpoint hoje.
 - ❌ NÃO exporta CSV, não imprime, não configura colunas nem densidade.
-- ❌ NÃO aloca nem manda pra manutenção — e **não oferece botão** pra isso. (Criar voltou em
-  2026-09-23 e **editar em 2026-09-30**, os dois pelo drawer — ver Goals; o Non-Goal de edição
-  está **revogado** desde então, pela resposta da D-FORMS.) Até
+- ❌ NÃO aloca — e **não oferece botão** pra isso. (Criar voltou em 2026-09-23, **editar** e
+  **mandar pra manutenção em 2026-09-30**, pelos drawers — ver Goals; esses Non-Goals estão
+  **revogados** desde então, pela resposta da D-FORMS.) Até
   2026-09-23 a tela tinha "Novo ativo", o CTA do vazio e três ícones por linha apontando pra
   `create`/`edit` Blade. **Medido em prod (biz=1):** os quatro endpoints só respondem sob
   `request()->ajax()` e devolveram 200 com **0 bytes** numa navegação direta — as views são
