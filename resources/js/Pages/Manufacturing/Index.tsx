@@ -187,7 +187,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           não havia pra onde navegar. Depois do cutover de 2026-09-04 o menu lateral passou a
           trazer o usuário pra cá e a tela virou BECO SEM SAÍDA — [M] reportou clicando e
           vendo a barra sumir. A aba atual é <span>, não <Link>, igual às irmãs. */}
-      <nav className="mfg-tabs" aria-label="Manufacturing" data-contract="abas">
+      <nav className="mfg-tabs" aria-label="Fabricação" data-contract="abas">
         <Link className="mfg-tab" href="/manufacturing/recipe">
           Receitas
           {recipes_count !== undefined && <span className="mfg-tab-n">{recipes_count}</span>}
@@ -449,8 +449,8 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
 
 Index.layout = (page: ReactNode) => (
   <AppShellV2
-    title="Produção · Manufacturing"
-    breadcrumbItems={[{ label: 'Manufacturing' }, { label: 'Produção' }]}
+    title="Produção · Fabricação"
+    breadcrumbItems={[{ label: 'Fabricação' }, { label: 'Produção' }]}
   >
     {page}
   </AppShellV2>

@@ -79,16 +79,16 @@ export default function Report({
   const { linhas, total } = relatorio;
 
   return (
-    <div className="mfg-root" data-screen-label="Manufacturing · Relatório">
+    <div className="mfg-root" data-screen-label="Fabricação · Relatório">
       <div className="os-page-h" data-contract="cabecalho">
         <div className="os-page-h-l">
-          <h1>Manufacturing</h1>
+          <h1>Fabricação</h1>
           <p>Relatório de produção do período · custo agrupado por produto</p>
         </div>
       </div>
 
       {/* Mesma aba do módulo que Recipes.tsx — "Relatório" ativa aqui. */}
-      <nav className="mfg-tabs" aria-label="Manufacturing">
+      <nav className="mfg-tabs" aria-label="Fabricação">
         <Link className="mfg-tab" href="/manufacturing/recipe">
           Receitas
           <span className="mfg-tab-n">{recipes_count}</span>
@@ -208,8 +208,8 @@ function Campo({ label, w, children }: { label: string; w: number; children: Rea
 
 Report.layout = (page: ReactNode) => (
   <AppShellV2
-    title="Relatório · Manufacturing"
-    breadcrumbItems={[{ label: 'Manufacturing' }, { label: 'Relatório' }]}
+    title="Relatório · Fabricação"
+    breadcrumbItems={[{ label: 'Fabricação' }, { label: 'Relatório' }]}
   >
     {page}
   </AppShellV2>
