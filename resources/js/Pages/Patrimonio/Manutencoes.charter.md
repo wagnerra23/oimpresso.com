@@ -9,8 +9,8 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-manutencoes.md
 tier: B
-charter_version: 2
-last_validated: "2026-09-23"
+charter_version: 3
+last_validated: "2026-09-30"
 ---
 
 # Page Charter — Patrimonio/Manutencoes (DRAFT)
@@ -43,9 +43,18 @@ manutenção"), não aqui.
 - **Aviso de escopo restrito**: quem tem apenas `asset.view_own_maintenance` lê, acima da
   tabela, que a lista mostra só onde ele é responsável. **Ganho real sobre o Blade**, que
   filtrava calado — e o filtro já existia no servidor (`index()` `:73`).
-- **Ação de linha**: excluir (com confirmação nomeando a manutenção). O editar do Blade
-  **saiu em 2026-09-23**: `edit` só responde sob `ajax()` e devolveu 200 com 0 bytes numa
-  navegação direta (medido em prod, biz=1) — o link abria página em branco.
+- **Drawer de manutenção** (thread 19, D-FORMS [W] 2026-09-24 · ADR 0414; entregue
+  2026-09-30). `GET /asset/asset-maintenance/create` e `GET …/{id}/edit` devolvem ESTA Page com
+  o drawer aberto (props `cadastro` / `edicao`), e o drawer posta no `store()`/`update()`
+  existentes. Layout do `ManutencaoForm` do protótipo (`patrimonio-forms.jsx:224`); campos do
+  Blade: no envio, bem · situação · prioridade · nota · anexos; na edição, situação ·
+  prioridade · responsável · detalhes · anexos, com a nota de envio só-leitura. A lista de bens
+  vem **só da empresa** (Tier 0), e `?asset_id=` de outra empresa não pré-seleciona nada.
+  Alvo de toque ≥44px nos controles (o técnico usa tablet). Contrato: UC-MANU-06.
+- **CTA "+ Enviar bem pra manutenção"** no rodapé, como a âncora (`patrimonio-page.jsx:536`).
+- **Ação de linha**: editar (abre o drawer) e excluir (com confirmação nomeando a manutenção).
+  O editar do Blade tinha saído em 2026-09-23 (o `edit` só respondia sob `ajax()` e abria
+  página em branco) e **voltou em 2026-09-30** pelo drawer.
 - **Realce da linha em andamento** (`rowState: 'urgent'`), como o protótipo faz.
 - Sub-navegação do módulo via `_shared/PatrimonioSubNav`, com `hidePrimary`.
 
@@ -65,12 +74,14 @@ manutenção"), não aqui.
 - ❌ **Ação "Concluir"** (primária no protótipo): não há endpoint, e o efeito declarado é criar
   título a pagar no Financeiro — é dinheiro, pede a REGRA MESTRE de VALOR, não cabe em migração
   de tela.
-- ❌ **Criar manutenção a partir daqui.** O Blade não tem botão de criar nesta listagem e o
-  fluxo nascia em Bens (`/asset/asset-maintenance/create?asset_id=N`). Desde 2026-09-23 nem lá:
-  o destino é fragmento de modal servido só sob `ajax()`, e a ação saiu de Bens. Pôr um CTA
-  aqui inventaria fluxo.
-- ❌ **Edição inline / modal React.** O `edit` segue Blade nesta onda — e, sendo fragmento de
-  modal sem página própria, a tela **não linka** pra ele.
+- ❌ **Campos do protótipo sem coluna**: prestador, enviado/devolvido em, custo adicional. O
+  `ManutencaoForm` os desenha; `asset_maintenances` não os tem. O drawer herda o layout, não
+  esses campos.
+- ❌ **Envio em lote** ("Enviar N bens pra manutenção" do protótipo): o `store()` grava um bem
+  por vez.
+- ~~Criar manutenção a partir daqui~~ e ~~edição em modal React~~ — **revogados em 2026-09-30**
+  pela resposta da D-FORMS (ADR 0414): o destino deixou de ser fragmento sob `ajax()`. Até
+  então eram Non-Goal porque o CTA levaria a página em branco (medido em prod, 2026-09-23).
 
 ## Anti-hooks (NÃO faz automaticamente)
 
