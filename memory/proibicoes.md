@@ -1828,6 +1828,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** decidir o escopo de uma promoção protótipo → produção a partir de qualquer lista de mudanças (sessão, PR, commit, handoff, changelog). O inventário sai da **comparação medida** entre o protótipo atual e a tela viva; "só X se aplica" é conclusão da matriz, nunca ponto de partida. Vale igual para "igualar a tela ao design" e "subir a versão nova".
 
+### 2026-09-30 — O `--conferir` imprimia "1 verificado(s)" e gravava prova VAZIA para `.md`: editar um recibo já verificado travava o required do espelho sem saída
+
+- **O limite (variante também proibida):** instrumento que grava prova não imprime contagem derivada do insumo. Ele lê o que gravou e falha se algum item lido não virou prova. E a fixture de um mecanismo com N universos cobre **um caso por universo**.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
