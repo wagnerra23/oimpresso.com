@@ -124,6 +124,8 @@
 > Levantado em 2026-09-29 nas páginas públicas [`mubisys.com/producao`](https://mubisys.com/producao), [`lp.mubisys.com`](https://lp.mubisys.com/), [`lp2.mubisys.com`](https://lp2.mubisys.com/) e nas notas de versão do app na [App Store](https://apps.apple.com/br/app/mubisys/id1623941063). É o que o Mubisys **anuncia** — nada foi testado em demo.
 >
 > A última coluna aponta a US do oimpresso que trata do mesmo assunto. **Apontar a US não quer dizer que está entregue** — o estado de cada uma está no [SPEC do ComunicacaoVisual](../../requisitos/ComunicacaoVisual/SPEC.md) e no [SPEC do Pcp](../../requisitos/Pcp/SPEC.md).
+>
+> **Comparação com os outros 9 sistemas do ramo** (Zênite, Calcgraf, Visua, Alfa, Calcme, shopVOX, Corebridge, Cyrious, printIQ) e com o oimpresso, numa grade de 22 funções de produção: [33 — Grade de produção](33-grade-producao-concorrentes.md).
 
 | # | O que o Mubisys anuncia | Etapa | US do oimpresso sobre o mesmo assunto |
 |---|---|---|---|
