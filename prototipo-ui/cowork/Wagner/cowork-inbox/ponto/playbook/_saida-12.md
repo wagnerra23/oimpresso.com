@@ -5,10 +5,21 @@ autor: "[CL]"
 criado: 2026-09-30
 base: 5606344ca
 thread: 12-relatorios-legais-bloqueada.md
-veredito: "PARCIAL — 1 de 2 PRs. AFD do REP-P por colaborador + AFDT fora do catálogo no #8224. AEJ adiado por decisão [W] 2026-09-30 — a razão registrada (NSR original do REP-C) está ERRADA, ver §Errata. O placar vai ler esta thread como 'feito' porque a única prova do índice é a existência do RelatorioLegalContratoTest — isso é falso para o AEJ; ver §Para o Cowork."
+veredito: "2 de 2 PRs. AFD do REP-P por colaborador + AFDT fora do catálogo no #8224 (mergeado); AEJ do empregador no leiaute 002 no PR da 12b, lendo a apuração (ADR 0420). Os dois só saem com a config legal preenchida, e o AEJ recusa período com dado legal ausente."
 ---
 
 # _saída 12 · Relatórios legais
+
+## 12b · AEJ (2026-09-30, mesma sessão)
+
+Decisão [W] no chat: *"faz o AEJ lendo a apuração, config fechada como no AFD"* → **ADR 0420**, que emenda a 0413
+só para o AEJ (registros 04 e 07 da apuração; 05 de `ponto_marcacoes`). Gerador `AejService`, leiaute AEJ `002`
+do MTE, sem `.p7s`. Dado legal ausente = recusa com contagem: motivo de marcação manual/desconsiderada (o
+item 2 não foi respondido por [W], então o default é recusar), CPF/nome, horário do dia, nº do REP.
+Fora do arquivo, declarado na ADR: DSR e folga de feriado, BH que não é crédito/débito, redução noturna, registro 06.
+Prova: CT 100 **29 passed · 142 assertions**; mutações (sem filtro de empregador · sem recusa do manual ·
+sequência de pares errada) derrubam UC-RELIDX-12 · 11 · 10. Revisão da Eliana (pré-requisito do SPEC) **não feita** — [W] mandou seguir.
+O `nsr_origem` (#8232) foi mergeado por [W] como rastreabilidade, não como pré-requisito do AEJ.
 
 ## ⚠️ Errata (2026-09-30, mesma sessão) — medida contra os leiautes oficiais do MTE
 
@@ -55,8 +66,8 @@ A thread diz *"formato exigir campo que ponto_marcacoes não tem → parar"*. Me
 
 ## Placar
 
-**entregue 1 de 2** · ausente **AEJ** por decisão [W] — depende de gravar o NSR original do arquivo nas
-marcações importadas (só para frente; marcação é append-only).
+~~**entregue 1 de 2** · ausente **AEJ** por decisão [W] — depende de gravar o NSR original do arquivo nas
+marcações importadas (só para frente; marcação é append-only).~~ → **entregue 2 de 2** (12b acima).
 
 ## Prova
 
