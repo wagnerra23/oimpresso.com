@@ -140,10 +140,10 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
   );
 
   return (
-    <div className="mfg-root" data-screen-label="Manufacturing · Receitas">
+    <div className="mfg-root" data-screen-label="Fabricação · Receitas">
       <div className="os-page-h" data-contract="cabecalho">
         <div className="os-page-h-l">
-          <h1>Manufacturing</h1>
+          <h1>Fabricação</h1>
           <p>
             {recipes.length} receita{recipes.length === 1 ? '' : 's'} · {producao.total} ordem
             {producao.total === 1 ? '' : 's'} de produção · custo recalculado pelo preço atual dos
@@ -164,7 +164,7 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
       {/* §4.1 — abas do módulo. Cada uma navega pra uma tela que EXISTE hoje.
           "Insumos" passou a existir na US-MANU-005 (`usosDoInsumo` no RecipeBomService) — o
           §18.3 do handoff dizia "sem backend, a aba não sai", e o backend saiu. */}
-      <nav className="mfg-tabs" aria-label="Manufacturing">
+      <nav className="mfg-tabs" aria-label="Fabricação">
         <span className="mfg-tab act" aria-current="page">
           Receitas
           <span className="mfg-tab-n">{recipes.length}</span>
@@ -566,8 +566,8 @@ function RecipeDrawer({
 
 Recipes.layout = (page: ReactNode) => (
   <AppShellV2
-    title="Receitas · Manufacturing"
-    breadcrumbItems={[{ label: 'Manufacturing' }, { label: 'Receitas' }]}
+    title="Receitas · Fabricação"
+    breadcrumbItems={[{ label: 'Fabricação' }, { label: 'Receitas' }]}
   >
     {page}
   </AppShellV2>

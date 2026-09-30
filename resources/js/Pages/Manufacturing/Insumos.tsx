@@ -102,15 +102,15 @@ export default function Insumos({
   const sel = selecionado ? (insumos.find((i) => i.variation_id === selecionado) ?? null) : null;
 
   return (
-    <div className="mfg-root" data-screen-label="Manufacturing · Insumos">
+    <div className="mfg-root" data-screen-label="Fabricação · Insumos">
       <div className="os-page-h" data-contract="cabecalho">
         <div className="os-page-h-l">
-          <h1>Manufacturing</h1>
+          <h1>Fabricação</h1>
           <p>Insumos · quem sobe de custo quando o preço de compra muda</p>
         </div>
       </div>
 
-      <nav className="mfg-tabs" aria-label="Manufacturing">
+      <nav className="mfg-tabs" aria-label="Fabricação">
         <Link className="mfg-tab" href="/manufacturing/recipe">
           Receitas
           <span className="mfg-tab-n">{recipes_count}</span>
@@ -316,8 +316,8 @@ export default function Insumos({
 
 Insumos.layout = (page: ReactNode) => (
   <AppShellV2
-    title="Insumos · Manufacturing"
-    breadcrumbItems={[{ label: 'Manufacturing' }, { label: 'Insumos' }]}
+    title="Insumos · Fabricação"
+    breadcrumbItems={[{ label: 'Fabricação' }, { label: 'Insumos' }]}
   >
     {page}
   </AppShellV2>

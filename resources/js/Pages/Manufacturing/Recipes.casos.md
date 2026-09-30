@@ -28,7 +28,7 @@ last_run: "2026-09-11"
 ## UC-RECIPE-00 · Chego na tela pelo menu, sem digitar URL
 - **Persona:** Larissa — abre o sistema e encontra Fabricação no sidebar.
 - **Aceite:** Dado usuário com `manufacturing.access_recipe` e o pacote `manufacturing_module` ·
-  Quando abre o sistema · Então o item "Manufacturing" existe no sidebar e o ghost "Receitas"
+  Quando abre o sistema · Então o item "Fabricação" existe no sidebar e o ghost "Receitas"
   leva a `/manufacturing/recipe` com 200.
 - **Regressão que defende:** a tela responder 200 e ninguém alcançar. Aqui o alcance **já existia**
   — `DataController::modifyAdminMenu` (Modules/Manufacturing) aponta o ghost `recipe` para

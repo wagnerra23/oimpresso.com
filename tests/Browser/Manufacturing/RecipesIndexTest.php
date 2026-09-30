@@ -111,7 +111,7 @@ JS;
  *  então devolve ATUAL. Sentinela `NAV-AUSENTE` impede verde por ausência. */
 const MFG_JS_ABAS = <<<'JS'
 (() => {
-  const nav = document.querySelector('nav[aria-label="Manufacturing"]');
+  const nav = document.querySelector('nav[aria-label="Fabricação"]');
   if (!nav) return 'NAV-AUSENTE';
   const itens = [...nav.children].map((el) => {
     const bruto = (el.textContent || '').replace(/\s+/g, ' ').trim();
@@ -236,7 +236,7 @@ function mfgAbrirTela(int $largura = 1280, int $altura = 800)
 {
     $admin = mfgAdmin();
 
-    // Âncora do CORPO: o `<h1>` "Manufacturing" também aparece no shell/sidebar, então o
+    // Âncora do CORPO: o `<h1>` "Fabricação" também aparece no shell/sidebar, então o
     // assert usa a linha de subtítulo, que só existe nesta tela. Se cair em 403/login/erro,
     // é este assert que denuncia.
     $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode(MFG_ROTA))
