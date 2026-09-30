@@ -368,3 +368,53 @@ it('AFD-1510-06 · PIS não cadastrado aparece MASCARADO no log da importação 
         ->and((string) $imp->log)->not->toContain('98765432109')
         ->and(json_encode($imp->erros_amostra))->not->toContain('98765432109');
 });
+
+/**
+ * NSR ORIGINAL do arquivo (thread 12, [W] 2026-09-30). O `nsr` da marcação é o contador interno do
+ * REP, na ordem da importação; o AEJ cita a marcação pelo NSR que o relógio gravou. Só para frente.
+ */
+function afd671NsrOrigem($test): array
+{
+    return Marcacao::withoutGlobalScopes() // SUPERADMIN: teste lê o próprio tenant fictício explicitamente
+        ->where('business_id', AFD671_BIZ)
+        ->where('colaborador_config_id', $test->colabId)
+        ->orderBy('momento')
+        ->get(['nsr', 'nsr_origem'])
+        ->map(fn ($m) => [(int) $m->nsr, $m->nsr_origem === null ? null : (int) $m->nsr_origem])
+        ->all();
+}
+
+it('AFD-NSR-01 · a marcação importada guarda o NSR que o relógio gravou (671 e 1510), separado do contador interno', function () {
+    afd671Importar($this, [
+        afd671Tipo3('000004217', '2026-09-24T08:00:00-0300'),
+        afd671Linha(['000004218', '3', '24092026', '1700', AFD671_PIS], 34),
+    ]);
+
+    $pares = afd671NsrOrigem($this);
+    expect(array_column($pares, 1))->toBe([4217, 4218]);
+    // O interno segue a sequência do REP inferido (1, 2), não o número do arquivo.
+    expect(array_column($pares, 0))->toBe([1, 2]);
+});
+
+it('AFD-NSR-02 · o NSR original entra no hash — trocá-lo quebra a conferência; sem ele o payload é o antigo', function () {
+    afd671Importar($this, [afd671Tipo3('000000077', '2026-09-24T08:00:00-0300')]);
+
+    $m = Marcacao::withoutGlobalScopes() // SUPERADMIN: tenant fictício explícito
+        ->where('business_id', AFD671_BIZ)->where('colaborador_config_id', $this->colabId)->firstOrFail();
+    $svc = app(\Modules\Ponto\Services\MarcacaoService::class);
+    $attrs = $m->getAttributes();
+
+    expect(hash('sha256', $svc->payloadCanonico($attrs)))->toBe($attrs['hash'])
+        ->and(hash('sha256', $svc->payloadCanonico(['nsr_origem' => 78] + $attrs)))->not->toBe($attrs['hash'])
+        ->and($svc->payloadCanonico(['nsr_origem' => null] + $attrs))->not->toContain('nsr_origem');
+});
+
+it('AFD-NSR-03 · marcação que não veio de AFD fica com nsr_origem nulo', function () {
+    $m = app(\Modules\Ponto\Services\MarcacaoService::class)->registrar([
+        'business_id' => AFD671_BIZ, 'colaborador_config_id' => $this->colabId, 'rep_id' => null,
+        'momento' => now(), 'origem' => Marcacao::ORIGEM_MANUAL, 'tipo' => Marcacao::TIPO_ENTRADA,
+        'usuario_criador_id' => $this->userId,
+    ]);
+
+    expect(Marcacao::withoutGlobalScopes()->findOrFail($m->id)->nsr_origem)->toBeNull(); // SUPERADMIN: tenant fictício
+});
