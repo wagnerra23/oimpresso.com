@@ -48,7 +48,7 @@ import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Skeleton } from '@/Components/ui/skeleton';
-import { Stack, Inline } from '@/Components/layout';
+import { Stack, Inline, Grid } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
 import type { ColumnDef } from '@tanstack/react-table';
 
@@ -652,7 +652,8 @@ function ManutencaoDrawer({
               </CampoDrawer>
             ) : null}
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {/* `fit="sm"`: 2 colunas na largura do drawer, 1 no celular — primitivo, não grid solto. */}
+            <Grid fit="sm" gap={3}>
               <CampoDrawer id="mf-status" rotulo="Situação">
                 <OpcoesDrawer id="mf-status" valor={status} onChange={setStatus} opcoes={opcoes.status} vazio="Sem situação" />
               </CampoDrawer>
@@ -665,7 +666,7 @@ function ManutencaoDrawer({
                   vazio="Sem prioridade"
                 />
               </CampoDrawer>
-            </div>
+            </Grid>
 
             {editando ? (
               <>
