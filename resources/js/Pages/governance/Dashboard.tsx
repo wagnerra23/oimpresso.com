@@ -744,7 +744,11 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
       <GovernancaSubNav active="dashboard" />
 
       <PageHeader
-        leading={<Shield className="h-5 w-5 text-muted-foreground" aria-hidden />}
+        leading={
+          <span className="mr-2 inline-flex translate-y-[1px] align-middle text-muted-foreground">
+            <Shield className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
+          </span>
+        }
         title="Governança"
         subtitle="Painel consolidado de governança do oimpresso. Constituição v1.1.0 — Art. 8 (Policy Gating) + Art. 9 (Auditoria) operacional. Wagner opera 5min/dia."
         actions={
