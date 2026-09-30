@@ -557,3 +557,100 @@ it('UC-BENS-06: recorte=garantia traz vencida e vencendo pela garantia mais rece
         bensGarantiaLimpar();
     }
 });
+
+/*
+ * UC-BENS-07 — sub-recorte "Em manutenção" ([W] 2026-09-30).
+ *
+ * "Em aberto" = status `new` ou `in_progress`, a lista fechada de
+ * `AssetMaintenanceService::contarAbertas()`. Os fixtures cobrem os dois status que entram, os
+ * dois que ficam fora (concluída e NULL), o bem sem manutenção, e os dois vetores de tenant: o
+ * bem do adversário, e uma manutenção registrada no business do ADVERSÁRIO apontando pra bem
+ * do dono — `asset_maintenances` tem `business_id`, e o recorte tem de respeitá-lo.
+ */
+function bensManutencaoFixture(int $businessId, int $ownerId, string $codigo, ?string $status, ?int $bizDaManutencao = null): Asset
+{
+    $bem = bensContratoAsset($businessId, $ownerId, $codigo, 'Bem '.$codigo);
+    if ($status !== 'SEM') {
+        DB::table('asset_maintenances')->insert([
+            'business_id' => $bizDaManutencao ?? $businessId,
+            'asset_id' => $bem->id,
+            'status' => $status,
+            'created_by' => $ownerId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    return $bem;
+}
+
+function bensManutencaoLimpar(): void
+{
+    $ids = Asset::where('asset_code', 'like', 'BENS-CTR-%')->pluck('id');
+    if ($ids->isNotEmpty()) {
+        DB::table('asset_maintenances')->whereIn('asset_id', $ids)->delete();
+    }
+    bensContratoLimpar();
+}
+
+function bensContagemRecorte(User $user, int $bizId, string $recorte): int
+{
+    $inicial = bensContratoGet($user, $bizId);
+    $versao = data_get($inicial->viewData('page'), 'version');
+    $r = test()->actingAs($user)
+        ->withSession(['user.business_id' => $bizId, 'user' => ['business_id' => $bizId, 'id' => $user->id], 'business.date_format' => 'd/m/Y'])
+        ->withHeaders([
+            'X-Requested-With' => 'XMLHttpRequest',
+            'X-Inertia' => 'true',
+            'X-Inertia-Version' => (string) $versao,
+            'X-Inertia-Partial-Component' => 'Patrimonio/Bens',
+            'X-Inertia-Partial-Data' => 'recortes_contagem',
+        ])
+        ->get('/asset/assets');
+    expect($r->status())->toBe(200);
+
+    return (int) data_get($r->json(), 'props.recortes_contagem.'.$recorte, -1);
+}
+
+it('UC-BENS-07: recorte=manutencao traz manutenção em aberto (new/in_progress), nunca concluída, sem status, sem manutenção ou de outro business', function () {
+    $dono = $this->seededTenant();
+    $adversario = $this->seededSupportClientTenant();
+    $bizId = (int) $dono->id;
+    $owner = (int) $dono->owner_id;
+    $advId = (int) $adversario->id;
+    $user = bensContratoUsuario($bizId);
+
+    try {
+        bensContratoAssinaturaLiberada();
+        $antes = bensContagemRecorte($user, $bizId, 'manutencao');
+
+        bensManutencaoFixture($bizId, $owner, 'BENS-CTR-MAN-ABERTA', 'new');
+        bensManutencaoFixture($bizId, $owner, 'BENS-CTR-MAN-ANDAMENTO', 'in_progress');
+        bensManutencaoFixture($bizId, $owner, 'BENS-CTR-MAN-CONCLUIDA', 'completed');
+        bensManutencaoFixture($bizId, $owner, 'BENS-CTR-MAN-NULA', null);
+        bensManutencaoFixture($bizId, $owner, 'BENS-CTR-MAN-SEM', 'SEM');
+        // Manutenção aberta, mas registrada no business do ADVERSÁRIO, apontando pra bem do dono.
+        bensManutencaoFixture($bizId, $owner, 'BENS-CTR-MAN-CRUZADA', 'new', $advId);
+        bensManutencaoFixture($advId, (int) $adversario->owner_id, 'BENS-CTR-MAN-ADV', 'new');
+
+        $comRecorte = bensContratoPropDeferida($user, $bizId, ['q' => 'BENS-CTR-MAN', 'recorte' => 'manutencao']);
+        expect($comRecorte)->toContain('BENS-CTR-MAN-ABERTA');
+        expect($comRecorte)->toContain('BENS-CTR-MAN-ANDAMENTO');
+        expect($comRecorte)->not->toContain('BENS-CTR-MAN-CONCLUIDA');
+        expect($comRecorte)->not->toContain('BENS-CTR-MAN-NULA');
+        expect($comRecorte)->not->toContain('BENS-CTR-MAN-SEM');
+        expect($comRecorte)->not->toContain('BENS-CTR-MAN-CRUZADA');
+        expect($comRecorte)->not->toContain('BENS-CTR-MAN-ADV');
+
+        // Controle: sem o recorte, os que ficaram fora VOLTAM — a ausência veio do recorte.
+        $semRecorte = bensContratoPropDeferida($user, $bizId, ['q' => 'BENS-CTR-MAN']);
+        foreach (['CONCLUIDA', 'NULA', 'SEM', 'CRUZADA'] as $sufixo) {
+            expect($semRecorte)->toContain('BENS-CTR-MAN-'.$sufixo);
+        }
+
+        // Contagem por delta (base persistente no CT 100): só ABERTA e ANDAMENTO somam.
+        expect(bensContagemRecorte($user, $bizId, 'manutencao') - $antes)->toBe(2);
+    } finally {
+        bensManutencaoLimpar();
+    }
+});

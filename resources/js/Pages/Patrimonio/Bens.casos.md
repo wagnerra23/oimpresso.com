@@ -4,7 +4,7 @@ irmaos: Bens.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOOK-bens.
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-29"
+last_run: "2026-09-30"
 ---
 
 # Casos de Uso & Aceite — Patrimonio/Bens
@@ -167,6 +167,24 @@ last_run: "2026-09-29"
 
 ---
 
+## UC-BENS-07 · "Em manutenção" recorta o conjunto no servidor pela manutenção em aberto
+
+- **Persona:** quem administra o patrimônio e precisa ver o que está fora de operação agora.
+- **Aceite:** Dado, no mesmo business, um bem com manutenção `new`, um com `in_progress`, um só
+  com manutenção **concluída**, um com status **vazio** e um **sem** manutenção · Quando o usuário
+  abre `/asset/assets?recorte=manutencao` · Então a lista traz os dois primeiros e **não** traz os
+  outros três; e `recortes_contagem.manutencao` soma só os dois, sobre o conjunto.
+- **Regra:** "em aberto" é a lista fechada `new`/`in_progress` de
+  `AssetMaintenanceService::contarAbertas()` — a mesma da pílula da aba Manutenções e do selo
+  "N em manutenção" da linha. Status desconhecido fica de fora (erra pro lado visível).
+- **Tier 0 (ADR 0093):** nem o bem de outro business nem uma manutenção **registrada no business
+  de outro** entram — `asset_maintenances` tem `business_id` e o recorte o filtra.
+- **Teste:** `BensContratoTest.php` — `it()` citando `UC-BENS-07` (recorte + controle negativo +
+  dois vetores de tenant + contagem por delta).
+- **Status: 🧪** — ver o recibo do PR.
+
+---
+
 ## Dívida declarada — `Alocado` não é número auditado
 
 ⚠️ Não é UC porque **não é comportamento que esta onda defende** — é defeito herdado que ela
@@ -193,8 +211,6 @@ expressão (`AssetController::baseAssetsQuery`), lida pelos dois ramos.
 
 ## [BACKLOG] — vira UC na onda que trouxer o teste
 
-- [BACKLOG] O sub-recorte "Em manutenção" conta e filtra sobre o **conjunto**, não sobre a
-  página corrente. (Garantia crítica saiu daqui em 2026-09-29 — UC-BENS-06.)
 - [BACKLOG] O rodapé soma o valor total do recorte, com a prova dupla que a REGRA MESTRE exige.
 - [BACKLOG] Seleção em lote exporta a seleção e manda os selecionados pra manutenção.
 - [BACKLOG] O usuário escolhe as colunas visíveis e a densidade, e a escolha sobrevive ao reload.
