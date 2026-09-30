@@ -18,7 +18,7 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0414-patrimon
 O patrimônio de uso interno da empresa: cadastro de bens (código por empresa), alocação e devolução a
 colaboradores, manutenção e garantia. Transversal a todos os verticais. O código mora em
 `Modules/AssetManagement`; a UI, em `resources/js/Pages/Patrimonio/` (endereço decidido pela
-[ADR 0394](../../decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md) — não existe `Modules/Patrimonio`).
+[ADR 0394](../../decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md) — o Patrimônio não tem módulo PHP próprio; o nome é só o da pasta de telas).
 
 ## Estado atual
 
