@@ -213,6 +213,25 @@ last_run: "2026-09-30"
 
 ---
 
+## UC-PAT-11 · O painel concorda em número e nomeia o bem sem categoria
+
+- **Persona:** quem lê o Resumo e os cards — "1 bens cadastrados" e "100% EM NENHUM" fazem o
+  número parecer errado mesmo quando está certo.
+- **Aceite:** Dado um business com **um** bem, de uma unidade, sem categoria · Quando o Painel
+  apura · Então o texto diz "1 bem cadastrado", "1 unidade", "1 unidade em 1 bem" e "1 unidade
+  livre pra alocar" (com 11 bens e 21 unidades, segue no plural); e a análise "Patrimônio por
+  categoria" rotula o grupo como **"Sem categoria"**, não "nenhum".
+- **Teste (dois lados):**
+  - tela — `tests/js/patrimonio-painel-forma.test.tsx`, `describe('UC-PAT-11 …')`: singular com
+    1 e controle no plural com 21/11;
+  - servidor — `Modules/AssetManagement/Tests/Feature/PainelGarantiaContratoTest.php`, `it()`
+    citando `UC-PAT-11`: o rótulo é "Sem categoria" e não a tradução de `lang_v1.none`.
+- **Regressão que defende:** vista na evidência visual do tenant de visreg (2026-09-30), o
+  primeiro com um bem só.
+- **Status: 🧪** — ver o recibo do PR.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Chego na tela pelo menu, sem digitar URL: a camada de ALCANCE
@@ -245,3 +264,4 @@ last_run: "2026-09-30"
   (número sem fonte × 2, decimal × 1), cobertos por
   `tests/js/patrimonio-painel-sem-fonte.test.tsx` (6 casos, bite-test em 2 mutações).
 - 2026-09-30 · [CL] entra UC-PAT-10 (garantia mais recente, [W]); sai do BACKLOG o "sem registro ≠ vencida", que o UC-PAT-10 agora prova com teste de banco.
+- 2026-09-30 · [CL] entra UC-PAT-11 (plural + "Sem categoria"), visto na evidência visual do tenant de visreg com um bem.
