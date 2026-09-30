@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 225 arquivos em 18 papéis.
+**Total mapeado:** 226 arquivos em 18 papéis.
 
 ## Controllers — 15
 
@@ -94,7 +94,7 @@ module: Ponto
 
 - [PontoServiceProvider.php](../../../Modules/Ponto/Providers/PontoServiceProvider.php)
 
-## Migrations (schema) — 10
+## Migrations (schema) — 11
 
 - [2026_04_18_000001_create_ponto_colaborador_config_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000001_create_ponto_colaborador_config_table.php)
 - [2026_04_18_000002_create_ponto_reps_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000002_create_ponto_reps_table.php)
@@ -106,6 +106,7 @@ module: Ponto
 - [2026_04_18_000008_create_ponto_importacoes_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000008_create_ponto_importacoes_table.php)
 - [2026_09_25_000001_create_ponto_competencias_table.php](../../../Modules/Ponto/Database/Migrations/2026_09_25_000001_create_ponto_competencias_table.php)
 - [2026_09_29_000001_add_motivo_anulacao_to_ponto_marcacoes.php](../../../Modules/Ponto/Database/Migrations/2026_09_29_000001_add_motivo_anulacao_to_ponto_marcacoes.php)
+- [2026_09_30_000001_add_nsr_origem_to_ponto_marcacoes.php](../../../Modules/Ponto/Database/Migrations/2026_09_30_000001_add_nsr_origem_to_ponto_marcacoes.php)
 
 ## Seeders — 2
 

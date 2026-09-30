@@ -257,6 +257,8 @@ class MarcacaoService
      * anulação entra no hash e passa a ser tamper-evident. Sem motivo (todas as marcações antigas
      * e as que não são anulação) o payload fica IDÊNTICO ao de antes — é o que mantém o hash delas
      * conferindo no verificarIntegridade. Não trocar por "sempre acrescentar um campo vazio".
+     *
+     * + `|nsr_origem:<n>` SÓ na marcação importada de AFD que o carrega (mesma regra).
      */
     public function payloadCanonico(array $d)
     {
@@ -287,6 +289,12 @@ class MarcacaoService
         $motivo = isset($d['motivo_anulacao']) ? (string) $d['motivo_anulacao'] : '';
         if ($motivo !== '') {
             $partes[] = $motivo;
+        }
+
+        // NSR original do AFD importado (thread 12, [W] 2026-09-30): mesma regra do motivo — entra
+        // só quando existe, e com rótulo, para não colidir com um motivo que fosse só dígitos.
+        if (isset($d['nsr_origem']) && $d['nsr_origem'] !== '') {
+            $partes[] = 'nsr_origem:' . (int) $d['nsr_origem'];
         }
 
         return implode('|', $partes);
