@@ -424,9 +424,7 @@ class AssetMaitenanceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $maintenance = AssetMaintenance::where('business_id', $business_id)
-            ->with(['media', 'asset'])
-            ->findOrFail($id);
+        $maintenance = AssetMaintenance::where('business_id', $business_id)->findOrFail($id);
 
         return $this->renderManutencoes($request, $business_id, [
             'edicao' => $this->buildEdicaoPayload($maintenance),
@@ -440,9 +438,9 @@ class AssetMaitenanceController extends Controller
      */
     private function buildEdicaoPayload(AssetMaintenance $m): array
     {
-        // `getRelation`, nao o atributo magico: o Model nao declara `@property` das relacoes
-        // e o PHPStan (ratchet) reprova o acesso — mesma nota do `AssetController` (#8258).
-        $asset = $m->getRelation('asset');
+        // Pelo METODO da relacao, nem `with('asset')` nem atributo magico: os metodos do Model
+        // nao declaram tipo de retorno e o Larastan (ratchet) reprova `relationExistence`.
+        $asset = $m->asset()->first();
 
         return [
             'id' => (int) $m->id,
@@ -453,7 +451,7 @@ class AssetMaitenanceController extends Controller
             'atribuido_a' => $m->assigned_to ? (string) $m->assigned_to : '',
             'nota' => $m->maintenance_note,
             'detalhes' => (string) ($m->details ?? ''),
-            'anexos' => $m->getRelation('media')->map(fn ($media) => [
+            'anexos' => $m->media()->get()->map(fn ($media) => [
                 'id' => (int) $media->id,
                 'nome' => (string) $media->display_name,
                 'url' => (string) $media->display_url,
