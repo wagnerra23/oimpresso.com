@@ -96,3 +96,32 @@ O Code não edita o espelho (derruba o check required do espelho). Essas ediçõ
 `node scripts/qa/placar.mjs --indice …/governance/playbook/00-INDICE.md --thread 07` antes e depois deste PR:
 `07 [proximo] — governance/design/contracts/governance.contract.json (arquivo ausente)`. O `_saida` passa a existir e a
 prova continua falhando, pelos motivos de B1. **Entregue 1 de 4** (o #7138) · **ausentes** contrato (B1), charter e casos (B2).
+
+## E · Decisão [W] 2026-09-30 — acordos de estado do contrato
+
+[W], no chat desta sessão: **"aprova os 6 acordos de estado"**. Registrado aqui porque o contrato vive no espelho e
+o Code não o edita. O Cowork leva o `verdict: "aprovado"` ao `governance.contract.json` no próximo handoff.
+
+| acordo | verdict | observação |
+|---|---|---|
+| `resultado-de-auditoria` | **aprovado** | |
+| `conformidade-auto-declarada` | **aprovado** | |
+| `rastro-de-politica` | **aprovado** | |
+| `categoria-de-alerta-de-drift` | **aprovado** | |
+| `escopo-das-tabelas-mcp` | **aprovado** | era `ratificado_ADR_0094`, valor que o verificador não aceita |
+| `dimensao-nao-avaliada` | **sai do contrato** | aponta `ModuleGradeService.php` e `ModuleGrades/Index.tsx`, os dois apagados pela ADR 0399. Cai junto com a vista (G-NOTAS), não há o que aprovar |
+
+**O que a aprovação ainda não garante (medido em 2026-09-30).** A catraca semântica do `contrato-de-tela` (ADR 0286 §5)
+exige cada valor como literal no backend **e** no frontend. Hoje quase nenhum está:
+
+| acordo | valores presentes nos dois lados |
+|---|---|
+| `resultado-de-auditoria` | `ok`, `error` · faltam `denied` e `quota_exceeded` nos dois |
+| `conformidade-auto-declarada` | nenhum (`auto_declarado`, `apurado`) |
+| `rastro-de-politica` | nenhum (`sem_historico`, `com_historico`) |
+| `categoria-de-alerta-de-drift` | `module_drift` só no backend; `sem_categoria` em nenhum |
+| `escopo-das-tabelas-mcp` | nenhum (`cross_tenant`) |
+
+Então um acordo aprovado só entra no contrato vigente de uma tela quando o valor existir dos dois lados. Fazer existir é
+trabalho da thread de ancorar as telas. O caso de `resultado-de-auditoria` merece olhar próprio: se `denied` e
+`quota_exceeded` não aparecem na tela, é provável que a Auditoria mostre esses registros sem o rótulo acordado.
