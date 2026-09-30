@@ -57,6 +57,23 @@ export function ehComparacao(prompt) {
   return COMPARA.test(p) || DIVERGENCIA.test(p);
 }
 
+// PROMOÇÃO (2026-09-30) — "subir as modificações do módulo X para a produção" é pedido de
+// levar o protótipo à tela viva, e passava MUDO por este hook: "subir" não está no INTENT e a
+// frase real não tinha "tela"/"protótipo". O agente leu o pedido como "subir o que mudou na
+// sessão", promoveu só o título, e a tela foi à produção no desenho antigo (§5 2026-08-18,
+// emenda de 2026-09-30).
+// MEDIDO antes de armar, no corpus desta máquina (216 transcripts, 867 prompts de usuário
+// <=600 chars): verbo + "produção" a <=80 chars casa 11 prompts, os 11 pedidos de pôr tela ou
+// módulo em produção (8 citam tela/módulo/protótipo, 3 citam só a URL ou "coloca em produção").
+// 0 FP. Por isso NÃO se exige palavra de contexto: exigir perderia 3 de 11.
+const PROMO_VERBO = /\b(sub[aieo]\w*|subir|lev[ae]\w*|levar|promov\w+|promo[çc][ãa]o|public\w+|coloc\w+)\b/i;
+const PROMO_ALVO = /\b(produ[çc][ãa]o|prod)\b/i;
+const PROMO_PAR = new RegExp(PROMO_VERBO.source + '[^.?!\n]{0,80}' + PROMO_ALVO.source, 'i');
+
+export function ehPromocao(prompt) {
+  return PROMO_PAR.test(String(prompt || ''));
+}
+
 export function dispara(prompt) {
   const p = String(prompt || '');
   // O par segue obrigatório — o que mudou (2026-08-27) é o lado direito aceitar TAMBÉM o
@@ -104,14 +121,28 @@ if (process.argv.includes('--selftest')) {
     ['travou todas as filas eu levei banimento?', false],
     ['pode conferir no crome estalogado', false],
   ];
+  // PROMOÇÃO — frases REAIS do corpus medido (2026-09-30) + controles negativos.
+  const CORPUS_PROMO = [
+    ['Vamos subir as modificações realizadas no módulo de fabricação para a produção aqui: https://oimpresso.com/manufacturing/recipe', true],
+    ['O que ficou faltando das outras tela da família da fabricação? Configurações já foi colocada em produção também?', true],
+    ['O servidor parou. Abre novamente. Vamos subir o módulo para o ambiente de produção, então antes quero que você atue como um tester e QA', true],
+    ['Crie o PR para subir em produção em https://oimpresso.com/products/unificado', true],
+    ['Wagner aprovou. Coloca em produção', true],
+    ['merge aprovado', false],
+    ['sobe o fix do deploy', false],
+    ['a produção caiu ontem, subiu o erro 500', false],
+  ];
+  for (const [prompt, esperado] of CORPUS_PROMO) CORPUS.push([`(promo) ${prompt}`, esperado]);
   let ok = 0;
   let bad = 0;
-  for (const [prompt, esperado] of CORPUS) {
-    const recebido = dispara(prompt);
+  for (const [rotulo, esperado] of CORPUS) {
+    const promoCaso = rotulo.startsWith('(promo) ');
+    const prompt = promoCaso ? rotulo.slice(8) : rotulo;
+    const recebido = promoCaso ? ehPromocao(prompt) : dispara(prompt);
     if (recebido === esperado) ok++;
     else {
       bad++;
-      console.error(`  ✗ ${JSON.stringify(prompt)} — esperado ${esperado}, veio ${recebido}`);
+      console.error(`  ✗ ${JSON.stringify(rotulo)} — esperado ${esperado}, veio ${recebido}`);
     }
   }
   console.log(`[design-agente-ativa --selftest] ${ok}/${CORPUS.length} ok${bad ? ` · ${bad} FALHA(S)` : ''}`);
@@ -126,6 +157,17 @@ if (process.argv.includes('--selftest')) {
     let payload;
     try { payload = JSON.parse(raw); } catch { process.exit(0); }
     const prompt = String(payload?.prompt || '');
+    // Promoção vem ANTES do filtro geral: a frase real ("subir as modificações do módulo X
+    // para a produção") não casa dispara(), e era justamente ela que precisava do lembrete.
+    if (ehPromocao(prompt)) {
+      console.log(`[design-agente-ativa] 🚚 **PROMOÇÃO para produção — o escopo é o PROTÓTIPO ATUAL inteiro**
+
+- Nunca o que mudou nesta sessão ou no último PR. Meça o protótipo atual × a tela viva, com a
+  MESMA sonda nos dois lados (\`node scripts/design/design-diff.mjs --probe\`), mesmo tema e largura.
+- Abra antes o dono do inventário: \`memory/requisitos/<Mod>/<Tela>-visual-comparison.md\`.
+- Receita e matriz de aceite: PROTOCOLO-COMPARACAO-RUNTIME §Promoção de protótipo.
+- Diga ao usuário a lista de diferenças medidas ANTES de dizer "só X se aplica".`);
+    }
     if (!dispara(prompt)) process.exit(0);
 
     // COMPARAÇÃO tem dono PRÓPRIO, e não é este hook. Medido em 2026-08-18: o hook disparava

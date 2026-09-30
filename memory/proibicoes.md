@@ -1824,6 +1824,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** diante de alarme de máquina compartilhada (gate/watchdog vermelho em todo PR, drift, cron), não publicar o conserto sem as três perguntas — PR aberto no arquivo (a sonda acima), sessão viva (`whats-active`), já mergeado (`git log HEAD..origin/main`). E, achado PR aberto, ler **todos** os números que a sonda devolveu antes de escolher o canônico.
 
+### 2026-09-30 — EMENDA da lápide 2026-08-18 (gap protótipo × produção por grep): o vetor LISTA DE MUDANÇAS — promovi para produção só o delta da sessão
+
+- **O limite (variante também proibida):** decidir o escopo de uma promoção protótipo → produção a partir de qualquer lista de mudanças (sessão, PR, commit, handoff, changelog). O inventário sai da **comparação medida** entre o protótipo atual e a tela viva; "só X se aplica" é conclusão da matriz, nunca ponto de partida. Vale igual para "igualar a tela ao design" e "subir a versão nova".
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
