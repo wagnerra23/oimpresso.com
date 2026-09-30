@@ -68,8 +68,8 @@ com o deploy `a3ab9e0ac`.
 | Secao do corpo | x=13 · margem 10/12px · raio 12 · padding 14/18px · borda 1px | x=13 · margem 10/12px · raio 12 · padding 14/18px · borda 1px | IGUAL |
 | Titulo da secao | 10,5px · 600 · caixa-alta · 8px abaixo | 10,5px · 600 · caixa-alta · 8px abaixo | IGUAL |
 | Cartao da alocacao | x=32 · padding 10/13px · raio 8 | x=32 · padding 10/13px · raio 8 | IGUAL |
-| Nome no cartao | 12,5px · 700 · x=14 · 12px do topo · altura 16px | 12,5px · 700 · x=14 · 13px do topo · altura 19px | **DIVIDA A FECHAR** (altura de linha) |
-| Nome ate a linha seguinte | 5px | 4px | **DIVIDA A FECHAR** |
+| Linha do nome no cartao | linha de 19,5px · 2a linha a 32,5px do topo · 3a a 51px | linha de 19,5px · 2a linha a 32,5px · 3a a 51px ([#8308](https://github.com/wagnerra23/oimpresso.com/pull/8308), medido no deploy `cea586fb8`) | IGUAL |
+| Estrutura do cartao | flex · centralizado · gap 12 · texto a esquerda, botao a direita | flex · centralizado · gap 12 · texto a esquerda, selo a direita | IGUAL |
 | Linhas 2 e 3 do cartao | 11px e 10,5px · 2px entre elas | 11px e 10,5px · 2px entre elas | IGUAL |
 | Campos do Resumo | 3 col 208,3px · gap 10/16px · 10px entre linhas | 3 col 208,3px · gap 10/16px · 10px entre linhas | IGUAL |
 | Rotulo/valor do campo | 10px caixa-alta, 2px abaixo / 12,5px | 10px caixa-alta, 2px abaixo / 12,5px | IGUAL |
