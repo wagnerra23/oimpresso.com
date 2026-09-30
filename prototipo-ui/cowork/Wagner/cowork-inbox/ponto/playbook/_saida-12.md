@@ -5,10 +5,28 @@ autor: "[CL]"
 criado: 2026-09-30
 base: 5606344ca
 thread: 12-relatorios-legais-bloqueada.md
-veredito: "PARCIAL — 1 de 2 PRs. AFD do REP-P por colaborador + AFDT fora do catálogo no #8224. AEJ adiado por decisão [W] 2026-09-30 (falta o NSR original do REP-C). O placar vai ler esta thread como 'feito' porque a única prova do índice é a existência do RelatorioLegalContratoTest — isso é falso para o AEJ; ver §Para o Cowork."
+veredito: "PARCIAL — 1 de 2 PRs. AFD do REP-P por colaborador + AFDT fora do catálogo no #8224. AEJ adiado por decisão [W] 2026-09-30 — a razão registrada (NSR original do REP-C) está ERRADA, ver §Errata. O placar vai ler esta thread como 'feito' porque a única prova do índice é a existência do RelatorioLegalContratoTest — isso é falso para o AEJ; ver §Para o Cowork."
 ---
 
 # _saída 12 · Relatórios legais
+
+## ⚠️ Errata (2026-09-30, mesma sessão) — medida contra os leiautes oficiais do MTE
+
+Li os dois PDFs oficiais (gov.br, "Leiaute do Arquivo Fonte de Dados - AFD" e "Leiaute do Arquivo
+Eletrônico de Jornada - AEJ", baixados neste turno) **depois** de ter escrito esta saída. Dois erros meus:
+
+1. **A lacuna 5 abaixo é falsa.** O registro 05 (Marcações) do AEJ **não tem NSR**: identifica a marcação
+   por `idtVinculoAej` + `dataHoraMarc` + `idRepAej`. O NSR original do REP-C **não** é pré-requisito do
+   AEJ. O PR #8232 (grava `nsr_origem`) nasceu dessa premissa — auto-merge desarmado, decisão [W].
+2. **O AFD do #8224 tinha 3 desvios da norma**, corrigidos no mesmo PR: linha da assinatura com 100
+   posições (espaços à direita); nome `AFD` + INPI + CNPJ/CPF do empregador + `REP_P` (item 10.3);
+   CNPJ/CPF do empregador (campo A) alinhado à esquerda com espaços (item 7), não zeros à esquerda.
+
+**O que de fato trava o AEJ** (leiaute AEJ versão `002`): registro 04 (horário contratual) e 07
+(DSR · falta · banco de horas) são dado de **tratamento**, não de `ponto_marcacoes` — e a ADR 0413 lista
+como violação gerar AEJ lendo `ponto_apuracao_dia`; `fonteMarc "I"` (manual) e `tpMarc "D"`
+(desconsiderada) exigem `motivo`, que marcação manual não guarda e anulação antiga (antes de 29/09) não
+tem; registro 08 pede a identidade do PTRP (nome, versão, CNPJ, razão, e-mail). Decisões [W].
 
 ## Lei de referência
 

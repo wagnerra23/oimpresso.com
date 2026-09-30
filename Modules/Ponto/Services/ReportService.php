@@ -204,16 +204,24 @@ class ReportService
 
             // Trailer: "999999999" + contadores dos tipos 2..7 + "9" na posição 064.
             $linhas[] = '999999999' . str_repeat('0', 9 * 5) . sprintf('%09d', $tipo7) . '9';
-            $linhas[] = 'ASSINATURA_DIGITAL_EM_ARQUIVO_P7S';
+            // Leiaute AFD, registro de assinatura (001-100): o texto literal + espaços até 100.
+            $linhas[] = str_pad('ASSINATURA_DIGITAL_EM_ARQUIVO_P7S', 100);
 
             return implode("\r\n", $linhas) . "\r\n";
         });
     }
 
-    /** Nome do arquivo — só ids, nunca CPF (LGPD). */
-    public function afdNome(Colaborador $colaborador, string $mes): string
+    /**
+     * Nome pela regra do leiaute (item 10.3): "AFD" + nº INPI + CNPJ/CPF do empregador + "REP_P".
+     * Não leva o colaborador: o nome é fixado pela norma, então os AFDs de colaboradores
+     * diferentes saem com o mesmo nome (a pasta de destino é quem os separa).
+     */
+    public function afdNome(Colaborador $colaborador): string
     {
-        return "AFD_REP-P_colab-{$colaborador->id}_{$mes}.txt";
+        $inpi = (string) optional($this->afdIdentidade())['inpi'];
+        $doc = preg_replace('/\D/', '', (string) optional(\App\Business::query()->find($colaborador->business_id))->tax_number_1);
+
+        return 'AFD' . $inpi . $doc . 'REP_P.txt';
     }
 
     /** ['inpi' => string, 'cnpj' => string] ou null se a configuração estiver incompleta. */
@@ -235,7 +243,7 @@ class ReportService
         $razao = mb_convert_encoding(mb_substr(trim($razaoSocial), 0, 150), 'ISO-8859-1', 'UTF-8');
 
         $dados = '000000000' . '1'
-            . (strlen($doc) === 14 ? '1' : '2') . str_pad($doc, 14, '0', STR_PAD_LEFT)
+            . (strlen($doc) === 14 ? '1' : '2') . str_pad($doc, 14)        // A: alinhado à esquerda, espaços
             . str_repeat(' ', 14)                                   // CNO/CAEPF: não há
             . str_pad($razao, 150)
             . str_pad($identidade['inpi'], 17)

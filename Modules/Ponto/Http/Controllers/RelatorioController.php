@@ -181,7 +181,7 @@ class RelatorioController extends Controller
 
         return response($conteudo, 200, [
             'Content-Type'        => 'text/plain; charset=ISO-8859-1',
-            'Content-Disposition' => 'attachment; filename="' . $this->reports->afdNome($colaborador, $mes) . '"',
+            'Content-Disposition' => 'attachment; filename="' . $this->reports->afdNome($colaborador) . '"',
         ]);
     }
 }

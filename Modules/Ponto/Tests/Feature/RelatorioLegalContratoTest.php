@@ -186,7 +186,7 @@ it('UC-RELIDX-06 · AFD sai no leiaute 671: cabeçalho com INPI e CRC, um tipo 7
         ->and(substr($linhas[1], 10, 24))->toEndWith(':00' . Carbon::parse(RLEG_MES . '-10')->format('O'));
 
     expect($linhas[3])->toBe('999999999' . str_repeat('0', 45) . '000000002' . '9')
-        ->and($linhas[4])->toBe('ASSINATURA_DIGITAL_EM_ARQUIVO_P7S');
+        ->and($linhas[4])->toBe(str_pad('ASSINATURA_DIGITAL_EM_ARQUIVO_P7S', 100)); // leiaute: 100 posições
 });
 
 it('UC-RELIDX-07 · marcação fora do período não entra, mas o hash do 1º registro do mês encadeia com a anterior', function () {
@@ -226,7 +226,8 @@ it('UC-RELIDX-09 · GET do AFD: o próprio colaborador baixa o arquivo; o de out
     $resp->assertStatus(200);
     $disp = (string) $resp->headers->get('Content-Disposition');
     expect($disp)->toContain('attachment')
-        ->and(str_contains($disp, $cpf))->toBeFalse(); // LGPD: nome do arquivo sem CPF
+        ->and($disp)->toContain('AFD' . RLEG_INPI . RLEG_CNPJ_EMP . 'REP_P') // leiaute item 10.3
+        ->and(str_contains($disp, $cpf))->toBeFalse(); // LGPD: nome do arquivo sem CPF do empregado
     expect(substr_count((string) $resp->getContent(), "\r\n"))->toBe(4);
 
     $alheio = rlegColaborador($this->garantirBizAlheio(), rlegCpf());
