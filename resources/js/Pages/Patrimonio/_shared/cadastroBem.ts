@@ -127,3 +127,90 @@ export function montarPayloadCadastro(f: FormCadastroBem, formatoData: string): 
 
   return payload;
 }
+
+// ── Edição (thread 17 do Patrimônio, [W] 2026-09-30) ─────────────────────────────
+//
+// O `update()` passa pelo MESMO `normalizarCampos` do `store()`, então as strings de valor,
+// quantidade e data saem pelas mesmas funções acima — um caminho só pros dois envios.
+//
+// A armadilha que esta função existe pra desarmar: o `AssetService::atualizar` APAGA toda
+// garantia do bem que não vier em `edit_warranty[<id>]`. O drawer mostra UMA garantia (a mais
+// recente); as outras vão no envio SEM MUDANÇA, senão salvar o bem as apagaria em silêncio.
+
+/** Garantia já gravada, como o `edit()` a entrega (datas em ISO, custo em número). */
+export interface GarantiaExistente {
+  id: number;
+  inicio: string;
+  meses: number;
+  custo: number;
+  nota: string | null;
+}
+
+/** O bem como o `edit()` o entrega pra preencher o drawer. `garantias` vem da mais recente pra mais antiga. */
+export interface BemEdicao {
+  id: number;
+  asset_code: string;
+  form: Omit<FormCadastroBem, 'imagem' | 'garantiaMeses' | 'garantiaInicio' | 'garantiaNota'>;
+  garantias: GarantiaExistente[];
+}
+
+/** Form preenchido com o bem gravado. A garantia editável é a mais recente; sem garantia, o bloco nasce vazio. */
+export function formDaEdicao(bem: BemEdicao, hoje: string): FormCadastroBem {
+  const g = bem.garantias[0];
+  return {
+    ...bem.form,
+    garantiaMeses: g ? String(g.meses) : '',
+    garantiaInicio: g ? g.inicio : hoje,
+    garantiaNota: g?.nota ?? '',
+    imagem: null,
+  };
+}
+
+/**
+ * O payload exato do PUT (via POST + `_method`, por causa do FormData da imagem).
+ *
+ * - Sem `asset_code`: o código não se edita (o `update()` nem o lê).
+ * - `is_allocatable` só vai marcado — o serviço grava 0 quando a chave falta, e é assim que
+ *   desmarcar funciona.
+ * - Garantia do form com período → edita a mais recente (`edit_warranty[id]`), preservando o
+ *   custo adicional que o form não mostra. Sem garantia gravada → nasce nova (arrays paralelos,
+ *   como no cadastro). Período vazio com garantia gravada → a mais recente é REMOVIDA (é o que
+ *   o usuário pediu ao apagar o campo); as demais seguem intactas.
+ */
+export function montarPayloadEdicao(f: FormCadastroBem, formatoData: string, garantias: GarantiaExistente[]): Record<string, unknown> {
+  const base = montarPayloadCadastro({ ...f, garantiaMeses: '' }, formatoData);
+  delete base.asset_code;
+
+  const payload: Record<string, unknown> = { ...base, _method: 'put' };
+  const editWarranty: Record<string, Record<string, string>> = {};
+  const [principal, ...demais] = garantias;
+
+  for (const g of demais) {
+    editWarranty[String(g.id)] = {
+      start_date: paraFormatoDoNegocio(g.inicio, formatoData),
+      months: String(g.meses),
+      additional_cost: paraNumUf(g.custo, CASAS_VALOR),
+      additional_note: g.nota ?? '',
+    };
+  }
+
+  if (f.garantiaMeses.trim()) {
+    if (principal) {
+      editWarranty[String(principal.id)] = {
+        start_date: paraFormatoDoNegocio(f.garantiaInicio, formatoData),
+        months: String(Number(f.garantiaMeses)),
+        additional_cost: paraNumUf(principal.custo, CASAS_VALOR),
+        additional_note: f.garantiaNota.trim(),
+      };
+    } else {
+      payload.start_dates = [paraFormatoDoNegocio(f.garantiaInicio, formatoData)];
+      payload.months = [String(Number(f.garantiaMeses))];
+      payload.additional_cost = ['0'];
+      payload.additional_note = [f.garantiaNota.trim()];
+    }
+  }
+
+  if (Object.keys(editWarranty).length) payload.edit_warranty = editWarranty;
+
+  return payload;
+}
