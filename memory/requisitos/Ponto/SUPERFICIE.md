@@ -94,7 +94,7 @@ module: Ponto
 
 - [PontoServiceProvider.php](../../../Modules/Ponto/Providers/PontoServiceProvider.php)
 
-## Migrations (schema) — 10
+## Migrations (schema) — 11
 
 - [2026_04_18_000001_create_ponto_colaborador_config_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000001_create_ponto_colaborador_config_table.php)
 - [2026_04_18_000002_create_ponto_reps_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000002_create_ponto_reps_table.php)
@@ -106,6 +106,7 @@ module: Ponto
 - [2026_04_18_000008_create_ponto_importacoes_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000008_create_ponto_importacoes_table.php)
 - [2026_09_25_000001_create_ponto_competencias_table.php](../../../Modules/Ponto/Database/Migrations/2026_09_25_000001_create_ponto_competencias_table.php)
 - [2026_09_29_000001_add_motivo_anulacao_to_ponto_marcacoes.php](../../../Modules/Ponto/Database/Migrations/2026_09_29_000001_add_motivo_anulacao_to_ponto_marcacoes.php)
+- [2026_09_30_000001_add_nsr_origem_to_ponto_marcacoes.php](../../../Modules/Ponto/Database/Migrations/2026_09_30_000001_add_nsr_origem_to_ponto_marcacoes.php)
 
 ## Seeders — 2
 
