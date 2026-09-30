@@ -21,4 +21,11 @@
 return [
     'rep_p_inpi'         => env('PONTO_REP_P_INPI'),
     'desenvolvedor_cnpj' => env('PONTO_REP_P_DESENVOLVEDOR_CNPJ'),
+
+    // AEJ, registro 08 — identidade do PTRP (Programa de Tratamento de Registro de Ponto). O CNPJ do
+    // desenvolvedor é o mesmo acima. Mesma regra: sem default, vazio = AEJ recusado (ADR 0420).
+    'ptrp_nome'   => env('PONTO_PTRP_NOME'),
+    'ptrp_versao' => env('PONTO_PTRP_VERSAO'),
+    'ptrp_razao'  => env('PONTO_PTRP_RAZAO'),
+    'ptrp_email'  => env('PONTO_PTRP_EMAIL'),
 ];

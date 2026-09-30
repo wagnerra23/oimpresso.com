@@ -24,6 +24,9 @@ class RelatorioController extends Controller
     /** AFD do REP-P — gerado aqui, em `ReportService::afd()` (ADR 0413 W7). */
     private const CHAVE_AFD = 'afd';
 
+    /** AEJ do empregador — `ReportService::aej()` (ADR 0420). */
+    private const CHAVE_AEJ = 'aej';
+
     public function __construct(private readonly ReportService $reports)
     {
     }
@@ -50,7 +53,10 @@ class RelatorioController extends Controller
             // não pode prometer o que o gerador recusa (CU-PONTO-14). O AFDT saiu do catálogo:
             // é formato da Portaria 1510/2009, que a 671/2021 substituiu pelo AEJ.
             ['chave' => self::CHAVE_AFD, 'titulo' => 'AFD (Portaria 671/2021)', 'descricao' => 'Arquivo Fonte de Dados do REP-P, por colaborador · sem assinatura .p7s', 'icone' => 'FileText', 'cor' => 'blue', 'disponivel' => $this->reports->afdConfigurado(), 'requer_colaborador' => true],
-            ['chave' => 'aej',         'titulo' => 'AEJ',                      'descricao' => 'Apuração Eletrônica de Jornada',  'icone' => 'FileSpreadsheet','cor' => 'blue',    'disponivel' => false, 'requer_colaborador' => false],
+            // AEJ do empregador (ADR 0420): disponível só com a identidade do PTRP configurada.
+            // Título e descrição são os do protótipo (forma — UI-0029), mesmo com o nome legal errado
+            // ("Apuração"; o da Portaria é "Arquivo"): a correção vai ao Cowork pelo _saida-12.
+            ['chave' => self::CHAVE_AEJ, 'titulo' => 'AEJ', 'descricao' => 'Apuração Eletrônica de Jornada', 'icone' => 'FileSpreadsheet', 'cor' => 'blue', 'disponivel' => app(\Modules\Ponto\Services\AejService::class)->configurado(), 'requer_colaborador' => false],
             ['chave' => self::CHAVE_ESPELHO, 'titulo' => 'Espelho de Ponto',   'descricao' => 'PDF mensal por colaborador',      'icone' => 'ClipboardList', 'cor' => 'emerald', 'disponivel' => true,  'requer_colaborador' => true],
             ['chave' => 'he',          'titulo' => 'Horas Extras',             'descricao' => 'Relatório consolidado do mês',    'icone' => 'Clock',         'cor' => 'amber',   'disponivel' => false, 'requer_colaborador' => false],
             ['chave' => 'banco-horas', 'titulo' => 'Banco de Horas',           'descricao' => 'Saldos e movimentações',          'icone' => 'PiggyBank',     'cor' => 'emerald', 'disponivel' => false, 'requer_colaborador' => false],
@@ -111,6 +117,10 @@ class RelatorioController extends Controller
     {
         if ($chave === self::CHAVE_AFD) {
             return $this->gerarAfd($request);
+        }
+
+        if ($chave === self::CHAVE_AEJ) {
+            return $this->gerarAej($request);
         }
 
         if ($chave !== self::CHAVE_ESPELHO) {
@@ -182,6 +192,30 @@ class RelatorioController extends Controller
         return response($conteudo, 200, [
             'Content-Type'        => 'text/plain; charset=ISO-8859-1',
             'Content-Disposition' => 'attachment; filename="' . $this->reports->afdNome($colaborador) . '"',
+        ]);
+    }
+
+    /**
+     * AEJ do empregador da sessão no mês (ADR 0420). Não depende do fechamento da competência.
+     * Dado legal ausente é 422 com o motivo e a contagem — nunca um arquivo com campo inventado.
+     */
+    private function gerarAej(Request $request)
+    {
+        $dados = $request->validate(['periodo' => 'nullable|date_format:Y-m']);
+        $businessId = (int) (session('business.id') ?: $request->user()->business_id);
+
+        $mes    = $dados['periodo'] ?? now()->format('Y-m');
+        $inicio = \Carbon\Carbon::createFromFormat('Y-m-d', $mes . '-01')->startOfDay();
+
+        try {
+            $conteudo = $this->reports->aej($businessId, $inicio, $inicio->copy()->endOfMonth());
+        } catch (\DomainException $e) {
+            abort(422, $e->getMessage());
+        }
+
+        return response($conteudo, 200, [
+            'Content-Type'        => 'text/plain; charset=ISO-8859-1',
+            'Content-Disposition' => 'attachment; filename="AEJ_' . $mes . '.txt"',
         ]);
     }
 }

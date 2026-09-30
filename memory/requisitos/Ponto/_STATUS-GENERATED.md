@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 24 |
 | Telas com `casos.md` | 24 |
-| UC declarados | 123 |
-| UC com teste que os cita | 121 |
+| UC declarados | 126 |
+| UC com teste que os cita | 124 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -163,6 +163,9 @@ authority: generated
 | UC-RELIDX-07 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-08 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-09 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-RELIDX-10 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-RELIDX-11 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-RELIDX-12 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-REPP-00 | Mobile/Index | 🧪 aguarda veredito da lane |
 | UC-REPP-01 | Mobile/Index | 🧪 aguarda veredito da lane |
 | UC-REPP-02 | Mobile/Index | 🧪 aguarda veredito da lane |

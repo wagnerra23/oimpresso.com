@@ -40,6 +40,9 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-RELIDX-07 | Marcação fora do período não entra, e o hash do 1º registro encadeia com a anterior | must | Portaria MTP 671/2021 (hash SHA-256 do tipo 7) | `RelatorioLegalContratoTest` | 🧪 sem veredito |
 | UC-RELIDX-08 | Sem a identidade do REP-P configurada o AFD não sai e o catálogo o marca indisponível | must | `CU-PONTO-14` + [W] 2026-09-30 | `RelatorioLegalContratoTest` | 🧪 sem veredito |
 | UC-RELIDX-09 | GET do AFD: o próprio baixa, o de outro empregador é 404, o AFDT não está no catálogo | must `[T0]` | `CU-PONTO-12` + ADR 0093 + ADR 0413 W7 | `RelatorioLegalContratoTest` | 🧪 sem veredito |
+| UC-RELIDX-10 | AEJ sai no leiaute 002 (vínculo · REP · horário · pares E/S · desconsiderada · falta · BH) | must | Leiaute AEJ (MTE) + ADR 0420 | `RelatorioLegalContratoTest` | 🧪 sem veredito |
+| UC-RELIDX-11 | AEJ com dado legal ausente é recusado com a contagem, nunca preenchido | must | ADR 0420 §3 | `RelatorioLegalContratoTest` | 🧪 sem veredito |
+| UC-RELIDX-12 | GET do AEJ traz só o empregador da sessão | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `RelatorioLegalContratoTest` | 🧪 sem veredito |
 
 > 📋 **O que a lane disse até agora (run de 2026-08-28, commit anterior ao fix):**
 > `UC-RELIDX-01` ✓ · `UC-RELIDX-02` ✓ · `UC-RELIDX-05` ✓ · **`UC-RELIDX-03` ⨯ · `UC-RELIDX-04` ⨯**.
@@ -56,10 +59,13 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 
 **[BACKLOG]:**
 
-- `[BACKLOG]` **AEJ (Portaria MTP 671/2021 Anexo VI)** — US-PONTO-009, `_pendente_`. É a
+- ~~`[BACKLOG]` **AEJ (Portaria MTP 671/2021 Anexo VI)** — US-PONTO-009, `_pendente_`. É a
   prioridade regulatória #1 e exige **revisão da Eliana [E] + ADR formal antes de codar** (o
   SPEC marca como pré-requisito duro). Não vira UC agora: US sem código gera UC órfão e o
-  `casos-gate` G-2 pune ([proibicoes §5](../../../../memory/proibicoes.md) 2026-07-16).
+  `casos-gate` G-2 pune ([proibicoes §5](../../../../memory/proibicoes.md) 2026-07-16).~~
+  **Reescrito em 2026-09-30** (thread 12b): ADR formal = [0420](../../../../memory/decisions/0420-ponto-aej-le-apuracao-e-falha-fechada.md)
+  (decisão [W] no chat, leiaute AEJ `002` oficial do MTE). A revisão da Eliana **não foi feita** —
+  [W] mandou seguir. Sem `.p7s`, como o AFD. Virou `UC-RELIDX-10..12`.
 - ~~`[BACKLOG]` AFD legacy (Portaria MTE 1.510/2009) — US-PONTO-006, mesma situação.~~
   **Reescrito em 2026-09-30** (thread 12): a ADR 0413 W7 fixou a ordem **AFD → AEJ** e tirou o
   **AFDT** do catálogo (formato da 1510/2009). O AFD que sai é o do **REP-P, por colaborador,
@@ -223,4 +229,30 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   mais o AFDT (ADR 0413 W7).
 - **Teste:** `RelatorioLegalContratoTest.php` — `UC-RELIDX-09`.
 - **Contrato:** `CU-PONTO-12` · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) · LGPD Art. 7º.
+- **Status: 🧪 sem veredito.**
+
+## UC-RELIDX-10 · AEJ no leiaute 002 · `must`
+
+- **Aceite:** Dado um colaborador com escala, 4 marcações REP-P num dia, uma marcação anulada com
+  motivo, uma falta apurada e um crédito de banco de horas · Quando gero o AEJ do mês · Então saem
+  os registros 01 · 02 (REP-P com o INPI) · 03 · 04 (turno 08-12/13-17, 480 min) · 05 (pares E/S
+  numerados, horário só na 1ª entrada, `D` com o motivo gravado) · 07 (falta tipo 2, BH tipo 3) ·
+  08 · 99 e a linha da assinatura com 100 posições.
+- **Teste:** `RelatorioLegalContratoTest.php` — `UC-RELIDX-10`. Esperado montado campo a campo.
+- **Contrato:** leiaute AEJ `002` (MTE) · [ADR 0420](../../../../memory/decisions/0420-ponto-aej-le-apuracao-e-falha-fechada.md).
+- **Status: 🧪 sem veredito.**
+
+## UC-RELIDX-11 · Dado legal ausente é recusa · `must`
+
+- **Aceite:** marcação manual (sem motivo gravado), colaborador sem CPF ou PTRP sem identidade ·
+  Então o AEJ **não sai**, e a recusa diz quantos casos de cada tipo — nunca um motivo inventado.
+- **Teste:** `RelatorioLegalContratoTest.php` — `UC-RELIDX-11`.
+- **Status: 🧪 sem veredito.**
+
+## UC-RELIDX-12 · AEJ só do empregador da sessão · `must` `[T0]`
+
+- **Aceite:** Dado um colaborador do meu empregador e outro de outro empregador com marcação no
+  mesmo mês · Quando baixo o AEJ · Então o CPF do outro **não** aparece no arquivo.
+- **Teste:** `RelatorioLegalContratoTest.php` — `UC-RELIDX-12`.
+- **Contrato:** `CU-PONTO-12` · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Status: 🧪 sem veredito.**

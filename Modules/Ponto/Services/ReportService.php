@@ -16,9 +16,10 @@ use RuntimeException;
  * Hoje:
  *   - espelhoPdf(): espelho mensal por colaborador (PDF via barryvdh/laravel-dompdf)
  *   - afd(): AFD do REP-P por colaborador (Portaria MTP 671/2021) — ADR 0413 W7
+ *   - aej(): AEJ do empregador no período — ADR 0420 (AejService)
  *
  * Stub (retorna 501):
- *   - aej(), he(), bancoHoras(), atrasos(), esocial()
+ *   - he(), bancoHoras(), atrasos(), esocial()
  *   (o AFDT saiu: formato da Portaria 1510/2009 — ADR 0413 W7)
  *
  * Wave 12 — instrumentação OTel canônica (ADR 0155 D9.a + ADR 0156 errata).
@@ -263,9 +264,10 @@ class ReportService
 
     // ---- Stubs (501) ----
 
-    public function aej($businessId, Carbon $inicio, Carbon $fim)
+    /** AEJ do empregador no período — Portaria MTP 671/2021, ADR 0420. Ver AejService. */
+    public function aej(int $businessId, Carbon $inicio, Carbon $fim): string
     {
-        throw new RuntimeException('Gerador AEJ ainda não implementado.');
+        return app(AejService::class)->gerar($businessId, $inicio, $fim);
     }
 
     public function he($businessId, Carbon $inicio, Carbon $fim)

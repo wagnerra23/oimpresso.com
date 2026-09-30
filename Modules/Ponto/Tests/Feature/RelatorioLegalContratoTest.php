@@ -59,6 +59,10 @@ beforeEach(function () {
 
     config()->set('ponto_afd.rep_p_inpi', RLEG_INPI);
     config()->set('ponto_afd.desenvolvedor_cnpj', RLEG_CNPJ_DEV);
+    config()->set('ponto_afd.ptrp_nome', 'oimpresso ponto');
+    config()->set('ponto_afd.ptrp_versao', '1.0');
+    config()->set('ponto_afd.ptrp_razao', 'Desenvolvedor Ficticio');
+    config()->set('ponto_afd.ptrp_email', 'dev@example.test');
     DB::table('business')->where('id', RLEG_BIZ)->update(['tax_number_1' => RLEG_CNPJ_EMP]);
 });
 
@@ -102,12 +106,12 @@ function rlegColaborador(int $bizId, string $cpf): Colaborador
     return Colaborador::withoutGlobalScopes()->findOrFail($id); // SUPERADMIN: fixture de teste, tenant explícito
 }
 
-function rlegMarcar(Colaborador $c, string $momento, string $origem = Marcacao::ORIGEM_REP_P): Marcacao
+function rlegMarcar(Colaborador $c, string $momento, string $origem = Marcacao::ORIGEM_REP_P, string $tipo = Marcacao::TIPO_ENTRADA): Marcacao
 {
     return app(MarcacaoService::class)->registrar([
         'business_id' => (int) $c->business_id, 'colaborador_config_id' => (int) $c->id,
         'rep_id' => null, 'momento' => Carbon::parse($momento), 'origem' => $origem,
-        'tipo' => Marcacao::TIPO_ENTRADA, 'usuario_criador_id' => (int) $c->user_id,
+        'tipo' => $tipo, 'usuario_criador_id' => (int) $c->user_id,
         'dispositivo_id' => 'mobile:rleg',
     ]);
 }
@@ -237,4 +241,118 @@ it('UC-RELIDX-09 · GET do AFD: o próprio colaborador baixa o arquivo; o de out
     expect($catalogo)->not->toBeEmpty()
         ->and($catalogo->pluck('chave')->all())->not->toContain('afdt')
         ->and($catalogo->firstWhere('chave', 'afd')['disponivel'] ?? null)->toBeTrue();
+});
+
+// ─── AEJ (ADR 0420) — leiaute AEJ versão "002", MTE ───────────────────────────────────────────
+
+function rlegAej(): array
+{
+    $inicio = Carbon::parse(RLEG_MES . '-01');
+
+    return rlegLinhas(app(ReportService::class)->aej(RLEG_BIZ, $inicio, $inicio->copy()->endOfMonth()));
+}
+
+/** Escala com turno no dia da semana de $data: 08:00-12:00 / 13:00-17:00 (480 min). */
+function rlegEscala(Colaborador $c, string $data): int
+{
+    $escala = DB::table('ponto_escalas')->insertGetId([
+        'business_id' => RLEG_BIZ, 'nome' => 'RLEG escala', 'tipo' => 'FIXA',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('ponto_escala_turnos')->insert([
+        'escala_id' => $escala, 'dia_semana' => Carbon::parse($data)->dayOfWeek,
+        'hora_entrada' => '08:00:00', 'hora_almoco_inicio' => '12:00:00',
+        'hora_almoco_fim' => '13:00:00', 'hora_saida' => '17:00:00',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('ponto_colaborador_config')->where('id', $c->id)->update(['escala_atual_id' => $escala]);
+
+    return $escala;
+}
+
+it('UC-RELIDX-10 · AEJ sai no leiaute 002: vínculo, REP-P, horário contratual, pares E/S, desconsiderada com motivo, falta e banco de horas', function () {
+    $cpf = rlegCpf();
+    $c = rlegColaborador(RLEG_BIZ, $cpf);
+    $d13 = RLEG_MES . '-13';
+    $escala = rlegEscala($c, $d13);
+    foreach ([['08:00', 'ENTRADA'], ['12:00', 'ALMOCO_INICIO'], ['13:00', 'ALMOCO_FIM'], ['17:00', 'SAIDA']] as [$h, $t]) {
+        rlegMarcar($c, "{$d13} {$h}:00", Marcacao::ORIGEM_REP_P, $t);
+    }
+    rlegMarcar($c, RLEG_MES . '-14 08:00:00')->anular((int) $c->user_id, 'Batida em duplicidade');
+    DB::table('ponto_apuracao_dia')->insert([
+        'business_id' => RLEG_BIZ, 'colaborador_config_id' => $c->id, 'data' => RLEG_MES . '-15',
+        'falta_minutos' => 480, 'estado' => 'CALCULADO', 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('ponto_banco_horas_movimentos')->insert([
+        'id' => (string) \Illuminate\Support\Str::uuid(), 'business_id' => RLEG_BIZ, 'colaborador_config_id' => $c->id,
+        'data_referencia' => $d13, 'tipo' => 'CREDITO', 'minutos' => 60, 'saldo_posterior_minutos' => 60,
+        'usuario_id' => $c->user_id,
+    ]);
+
+    $l = rlegAej();
+    $dh = fn (string $m) => rlegDh(Carbon::parse($m));
+    $cod = 'E' . $escala . 'D' . Carbon::parse($d13)->dayOfWeek;
+    $r01 = explode('|', $l[0]);
+
+    expect(array_slice($r01, 0, 3))->toBe(['01', '1', RLEG_CNPJ_EMP])
+        ->and(array_slice($r01, 6, 2))->toBe([RLEG_MES . '-01', RLEG_MES . '-31'])
+        ->and($r01[9])->toBe('002')
+        ->and(array_slice($l, 1, 12))->toBe([
+            '02|1|3|' . RLEG_INPI,
+            '03|1|' . $cpf . '|RLEG teste',
+            '04|' . $cod . '|480|0800|1200|1300|1700',
+            '05|1|' . $dh("{$d13} 08:00") . '|1|E|1|O|' . $cod . '|',
+            '05|1|' . $dh("{$d13} 12:00") . '|1|S|1|O||',
+            '05|1|' . $dh("{$d13} 13:00") . '|1|E|2|O||',
+            '05|1|' . $dh("{$d13} 17:00") . '|1|S|2|O||',
+            '05|1|' . $dh(RLEG_MES . '-14 08:00') . '|1|D|1|O||Batida em duplicidade',
+            '07|1|2|' . RLEG_MES . '-15||',
+            '07|1|3|' . $d13 . '|60|1',
+            '08|oimpresso ponto|1.0|1|' . RLEG_CNPJ_DEV . '|Desenvolvedor Ficticio|dev@example.test',
+            '99|1|1|1|1|5|0|2|1',
+        ])
+        ->and($l[13])->toBe(str_pad('ASSINATURA_DIGITAL_EM_ARQUIVO_P7S', 100))
+        ->and($l)->toHaveCount(14);
+});
+
+it('UC-RELIDX-11 · AEJ com dado legal ausente é recusado com a contagem, nunca preenchido: manual sem motivo, CPF ausente, PTRP vazio', function () {
+    $c = rlegColaborador(RLEG_BIZ, rlegCpf());
+    rlegEscala($c, RLEG_MES . '-13');
+    rlegMarcar($c, RLEG_MES . '-13 08:00:00', Marcacao::ORIGEM_MANUAL);
+    expect(fn () => rlegAej())->toThrow(DomainException::class, '1 marcação manual sem motivo gravado');
+
+    $semCpf = rlegColaborador(RLEG_BIZ, rlegCpf());
+    DB::table('ponto_colaborador_config')->where('id', $semCpf->id)->update(['cpf' => null]);
+    rlegMarcar($semCpf, RLEG_MES . '-13 09:00:00');
+    expect(fn () => rlegAej())->toThrow(DomainException::class, '1 colaborador sem CPF');
+
+    config()->set('ponto_afd.ptrp_email', null);
+    expect(fn () => rlegAej())->toThrow(DomainException::class, 'PTRP');
+    expect(app(\Modules\Ponto\Services\AejService::class)->configurado())->toBeFalse();
+});
+
+it('UC-RELIDX-12 · GET do AEJ traz só o empregador da sessão; o do outro empregador não entra (Tier 0)', function () {
+    $u = User::query()->where('business_id', RLEG_BIZ)->first() ?? $this->markTestSkipped('Nenhum user no biz 98.');
+    Permission::firstOrCreate(['name' => 'ponto.access', 'guard_name' => 'web']);
+    $u->givePermissionTo('ponto.access');
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    session(['user.business_id' => RLEG_BIZ, 'business.id' => RLEG_BIZ]);
+    $this->actingAs($u);
+
+    $cpf = rlegCpf();
+    $meu = rlegColaborador(RLEG_BIZ, $cpf);
+    rlegEscala($meu, RLEG_MES . '-13');
+    rlegMarcar($meu, RLEG_MES . '-13 08:00:00');
+    $cpfAlheio = rlegCpf();
+    rlegMarcar(rlegColaborador($this->garantirBizAlheio(), $cpfAlheio), RLEG_MES . '-13 08:00:00');
+
+    $resp = $this->get('/ponto/relatorios/aej?periodo=' . RLEG_MES);
+    $resp->assertStatus(200);
+    $corpo = (string) $resp->getContent();
+    expect(str_contains($corpo, '03|1|' . $cpf))->toBeTrue()
+        ->and(str_contains($corpo, $cpfAlheio))->toBeFalse()
+        ->and(str_contains((string) $resp->headers->get('Content-Disposition'), 'attachment'))->toBeTrue();
+
+    $catalogo = collect($this->inertiaGet('/ponto/relatorios')->json('props.relatorios') ?? []);
+    expect($catalogo->firstWhere('chave', 'aej')['disponivel'] ?? null)->toBeTrue();
 });
