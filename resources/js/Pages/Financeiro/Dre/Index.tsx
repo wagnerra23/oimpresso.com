@@ -333,7 +333,7 @@ function FinanceiroDre({
                 if (l.type === 'h') {
                   return (
                     <tr key={i} className="border-b border-[var(--border-2)]">
-                      <td className="pl-6 pr-2 py-2 font-medium text-[var(--text)]">
+                      <td className="pl-6 pr-2 py-2 font-mono font-medium text-[var(--text)]">
                         {l.label}
                       </td>
                       <td className="px-2 py-2 text-right font-semibold">
@@ -366,7 +366,7 @@ function FinanceiroDre({
                   return (
                     <tr key={i} className="border-b border-[var(--border-2)] row-hover">
                       <td
-                        className="pl-6 pr-2 py-1.5 text-[var(--text-dim)]"
+                        className="pl-6 pr-2 py-1.5 font-mono text-[var(--text-dim)]"
                         style={{ paddingLeft: 24 + l.indent * 16 }}
                       >
                         {l.label}
@@ -419,7 +419,7 @@ function FinanceiroDre({
                     }`}
                   >
                     <td
-                      className={`pl-6 pr-2 py-2.5 font-semibold ${l.highlight ? 'text-white' : ''}`}
+                      className={`pl-6 pr-2 py-2.5 font-mono font-semibold ${l.highlight ? 'text-white' : ''}`}
                     >
                       {l.label}
                     </td>
