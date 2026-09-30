@@ -29,4 +29,13 @@ O `Modules/Auditoria` segue como dono único da trilha por registro (ADR 0127). 
 - [x] Sem tela, tabela ou serviço de auditoria novos no Patrimônio
 - [x] `_shared/` intocado
 - [x] Multi-tenant: o filtro por `business_id` fica no `AuditEntryService::baseQuery` do dono
-- [ ] Smoke em prod depois do merge (aba visível para um usuário com `auditoria.view`, e o clique abre a lista filtrada)
+- [x] Smoke em prod depois do merge (aba visível para um usuário com `auditoria.view`, e o clique abre a lista filtrada) — feito em 2026-09-30, ver adendo abaixo
+
+## Adendo 2026-09-30 — smoke em prod
+Feito em `oimpresso.com`, biz=1 (WR2 Sistemas), usuário superadmin, depois de todos os merges da frente do Patrimônio até `553aeb36f`.
+
+- **A aba não aparece na faixa, e isso é por desenho.** O `PatrimonioSubNav` chama o `PageHeaderTabs` com `maxVisible={6}`. Com o ghost da Auditoria, o backend manda **7**, então a Auditoria cai no overflow "⋯" (`Mais 1 opções`), à direita de Configurações. Quem medir só as abas visíveis conclui, errado, que ela sumiu. Essa conclusão chegou a ser tirada nesta sessão e foi desfeita pela medição abaixo.
+- **O backend manda o ghost certo.** Em `shell.menu`, a entry do módulo traz `{key: "auditoria", href: "/auditoria?subject_type=Modules%5CAssetManagement%5CEntities%5CAsset"}`. O item do overflow tem o mesmo `href`.
+- **O clique abre a lista filtrada.** A URL vira `/auditoria?subject_type=…Asset` e o campo "Filtrar por tipo de entidade" vem com `Modules\AssetManagement\Entities\Asset`.
+- **A lista vem vazia porque a empresa não tem bens.** A prop deferida `activities` foi pedida por partial reload. Sem filtro: 961 registros. `App\Contact`: 16. `App\Transaction`: 101. `Asset`: 0. E `bens` na mesma empresa: 0. O filtro funciona. A frase "o link mostra dados reais" (§Medições) continua **não verificada em prod**, porque lá não há bem cadastrado para gerar atividade.
+- **Não medido, em lugar nenhum:** um usuário **não-superadmin** com `auditoria.view`. O smoke só cobre o ramo superadmin do gate (`isModuleInstalled`). O `MenuGhostsContratoTest` **também** usa usuário `superadmin` (`:69`), então o ramo por pacote (`hasThePermissionInSubscription` + `auditoria.view`) não tem teste nem smoke hoje.
