@@ -322,3 +322,93 @@ it('UC-MANU-03: o payload NÃO traz campo de valor — a tela não inventa dinhe
         manutContratoLimpar();
     }
 });
+
+/*
+ * UC-MANU-05 — a ESCRITA de manutenção não alcança outra empresa.
+ *
+ * Até 2026-09-30 havia dois furos no destino do formulário (Tier 0, ADR 0093):
+ *   • `update()` → `AssetMaintenanceService::atualizar` fazia `AssetMaintenance::find($id)` sem
+ *     `business_id`: o usuário de 98 gravava na manutenção de 99 sabendo o id;
+ *   • `store()` gravava o `asset_id` do formulário sem conferir de quem é o bem.
+ * Cada caso tem o CONTROLE da própria empresa ao lado: sem ele, um 404 por outro motivo
+ * (rota, permissão, sessão) passaria pelo assert cross-tenant sem medir o escopo.
+ */
+function manutEscritaSessao(User $user, int $bizId): array
+{
+    return [
+        'user.business_id' => $bizId,
+        'user.id' => $user->id,
+        'user' => ['business_id' => $bizId, 'id' => $user->id],
+    ];
+}
+
+function manutEscritaLimpar(array $assetIds): void
+{
+    AssetMaintenance::whereIn('asset_id', $assetIds)->forceDelete();
+    manutContratoLimpar();
+}
+
+it('UC-MANU-05: o update() da manutenção de OUTRA empresa dá 404 e não grava; o da minha grava', function () {
+    $dono = $this->seededTenant();
+    $donoId = (int) $dono->id;
+    $advId = (int) $this->seededSupportClientTenant()->id;
+    $user = manutContratoUsuario($donoId, 'asset.view_all_maintenance');
+    $userAdv = manutContratoUsuario($advId, 'asset.view_all_maintenance');
+    $assetIds = [];
+
+    try {
+        manutContratoAssinaturaLiberada();
+        $meuBem = manutContratoAsset($donoId, (int) $user->id, 'MANU-CTR-W1', 'Bem do dono');
+        $bemAdv = manutContratoAsset($advId, (int) $userAdv->id, 'MANU-CTR-W2', 'Bem do adversário');
+        $assetIds = [$meuBem->id, $bemAdv->id];
+        $minha = manutContratoManutencao($donoId, (int) $meuBem->id, (int) $user->id, 'MANU-CTR-W1-01');
+        $alheia = manutContratoManutencao($advId, (int) $bemAdv->id, (int) $userAdv->id, 'MANU-CTR-W2-01');
+
+        $x = test()->actingAs($user)->withSession(manutEscritaSessao($user, $donoId))
+            ->put('/asset/asset-maintenance/'.$alheia->id, ['status' => 'completed', 'priority' => 'low', 'details' => 'invasao']);
+        expect($x->status())->toBe(404);
+        $alheia->refresh();
+        expect($alheia->status)->toBe('in_progress');
+        expect($alheia->details)->toBe('Fixture de contrato MANU-CTR');
+
+        $ok = test()->actingAs($user)->withSession(manutEscritaSessao($user, $donoId))
+            ->put('/asset/asset-maintenance/'.$minha->id, ['status' => 'completed', 'priority' => 'low', 'details' => 'Trocado o rolamento']);
+        $ok->assertRedirect();
+        $minha->refresh();
+        expect($minha->status)->toBe('completed');
+        expect($minha->details)->toBe('Trocado o rolamento');
+    } finally {
+        manutEscritaLimpar($assetIds);
+    }
+});
+
+it('UC-MANU-05: o store() com bem de OUTRA empresa dá 404 e não cria; com bem meu cria', function () {
+    $dono = $this->seededTenant();
+    $donoId = (int) $dono->id;
+    $advId = (int) $this->seededSupportClientTenant()->id;
+    $user = manutContratoUsuario($donoId, 'asset.view_all_maintenance');
+    $userAdv = manutContratoUsuario($advId, 'asset.view_all_maintenance');
+    $assetIds = [];
+
+    try {
+        manutContratoAssinaturaLiberada();
+        $meuBem = manutContratoAsset($donoId, (int) $user->id, 'MANU-CTR-S1', 'Bem do dono');
+        $bemAdv = manutContratoAsset($advId, (int) $userAdv->id, 'MANU-CTR-S2', 'Bem do adversário');
+        $assetIds = [$meuBem->id, $bemAdv->id];
+
+        $x = test()->actingAs($user)->withSession(manutEscritaSessao($user, $donoId))
+            ->post('/asset/asset-maintenance', ['asset_id' => $bemAdv->id, 'status' => 'new', 'priority' => 'high', 'maintenance_note' => 'invasao']);
+        expect($x->status())->toBe(404);
+        expect(AssetMaintenance::where('asset_id', $bemAdv->id)->count())->toBe(0);
+
+        $ok = test()->actingAs($user)->withSession(manutEscritaSessao($user, $donoId))
+            ->post('/asset/asset-maintenance', ['asset_id' => $meuBem->id, 'status' => 'new', 'priority' => 'high', 'maintenance_note' => 'Barulho no motor']);
+        $ok->assertRedirect();
+        $criada = AssetMaintenance::where('asset_id', $meuBem->id)->first();
+        expect($criada)->not->toBeNull();
+        expect((int) $criada->business_id)->toBe($donoId);
+        expect($criada->maintenance_note)->toBe('Barulho no motor');
+    } finally {
+        manutEscritaLimpar($assetIds);
+    }
+});
