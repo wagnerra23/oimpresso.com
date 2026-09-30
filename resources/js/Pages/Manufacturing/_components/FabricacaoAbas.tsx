@@ -22,8 +22,6 @@ interface Props {
   producao?: { total: number; rascunhos?: number };
   /** `permissions.prod` — sem ela a aba Ordens de produção não aparece. */
   podeProduzir?: boolean;
-  /** Âncora de contrato de tela, quando a tela declara uma (`data-contract="abas"`). */
-  contrato?: string;
 }
 
 export default function FabricacaoAbas({
@@ -31,7 +29,6 @@ export default function FabricacaoAbas({
   receitas,
   producao,
   podeProduzir = true,
-  contrato,
 }: Props) {
   const ghosts: PageHeaderGhost[] = [
     { key: 'receitas', label: 'Receitas', href: '/manufacturing/recipe', badge: receitas },
@@ -55,7 +52,7 @@ export default function FabricacaoAbas({
   );
 
   return (
-    <nav className="mfg-tabs" aria-label="Fabricação" data-contract={contrato}>
+    <nav className="mfg-tabs" aria-label="Fabricação">
       <PageHeaderTabs ghosts={ghosts} activeGhostKey={ativa} maxVisible={ghosts.length} />
     </nav>
   );

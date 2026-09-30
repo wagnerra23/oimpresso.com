@@ -187,12 +187,15 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           não havia pra onde navegar. Depois do cutover de 2026-09-04 o menu lateral passou a
           trazer o usuário pra cá e a tela virou BECO SEM SAÍDA — [M] reportou clicando e
           vendo a barra sumir. Desde 2026-09-30 a barra é o componente único `FabricacaoAbas`. */}
-      <FabricacaoAbas
-        ativa="producao"
-        contrato="abas"
-        receitas={recipes_count}
-        producao={{ total: summary?.total_count ?? 0, rascunhos: summary?.pending_count }}
-      />
+      {/* A âncora `data-contract="abas"` fica AQUI, no fonte da tela: o gate de contrato lê a ordem
+          das âncoras dentro do alvo, e a barra vem do componente (listado no alvo só pela copy). */}
+      <div data-contract="abas">
+        <FabricacaoAbas
+          ativa="producao"
+          receitas={recipes_count}
+          producao={{ total: summary?.total_count ?? 0, rascunhos: summary?.pending_count }}
+        />
+      </div>
 
       {/* KPI strip — "Finalizadas" e "Pendentes" filtram a lista */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" data-contract="kpis">
