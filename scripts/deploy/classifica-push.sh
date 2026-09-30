@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Classifica um run do deploy.yml: runtime_changed (deploy completo × sync leve) e
-# frontend_changed (liga o gate de hash de bundle no smoke).
+# frontend_changed (informativo desde 2026-09-30: o gate de bundle do smoke passou a
+# comparar o /login com o manifest do build, scripts/deploy/smoke-bundle.mjs).
 #
 # Chamado pelo job `build` de .github/workflows/deploy.yml. Grava as chaves em
 # $GITHUB_OUTPUT (se definido) e sempre em stdout.
@@ -113,7 +114,7 @@ else
   echo "evento '${EVENT_NAME}' não é push — deploy completo"
 fi
 
-# ── 2. frontend_changed (gate de hash do smoke) ────────────────────────────────
+# ── 2. frontend_changed (informativo; o gate de hash é o smoke-bundle.mjs) ─────
 # Exclui *.md (charter.md/casos.md ficam sob resources/js/ por convenção, ADR 0264).
 FRONTEND_CHANGED=unknown
 if [ -n "$BASE" ]; then

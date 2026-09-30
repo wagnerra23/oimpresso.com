@@ -257,6 +257,15 @@ jobs:
           name: vite-build
           path: artifact
 
+      # Só o `scripts/deploy/` — o smoke de bundle compara o /login com o manifest DESTE
+      # build (scripts/deploy/smoke-bundle.mjs). Checkout esparso num diretório à parte:
+      # o artefato continua em `artifact/`, que o resto do job usa.
+      - name: Checkout esparso de scripts/deploy (smoke de bundle)
+        uses: actions/checkout@v4
+        with:
+          path: _repo
+          sparse-checkout: scripts/deploy
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -823,14 +832,20 @@ jobs:
             echo "smoke_failed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # Gate de bundle: se o frontend mudou neste push mas o hash servido NÃO mudou,
-          # o build/rsync não publicou (regressão tipo hashes stale 20/05).
-          if [ "$FRONTEND_CHANGED" = "true" ] && [ -n "$AFTER" ] && [ "$BEFORE" = "$AFTER" ]; then
-            echo "::error::resources/js|css mudou neste push mas o hash dos bundles servidos é IDÊNTICO ($AFTER). Publicação não chegou ao prod. Deploy FALHA."
+          # Gate de bundle: o /login tem de servir os assets de entrada que o manifest DESTE
+          # build declara (regressão tipo hashes stale 20/05 = a publicação não chegou).
+          # Até 2026-09-30 o predicado era "resources/js|css mudou desde o último deploy OK e
+          # o hash servido não mudou". Mudança só de comentário (#8297) gera build idêntico, e
+          # como a base é o último deploy COM SUCESSO, o commit reprovava todo deploy seguinte.
+          # `frontend_changed` fica só como informação. Exit 2 do script = não mediu → falha.
+          echo "frontend_changed=$FRONTEND_CHANGED (informativo)"
+          if node _repo/scripts/deploy/smoke-bundle.mjs --manifest artifact/build-inertia/manifest.json --html /tmp/smoke.html; then
+            echo "✅ Smoke OK — o prod serve os assets deste build"
+          else
+            echo "::error::O /login não serve os assets de entrada do manifest deste build (ver ESPERADO × SERVIDO acima). Publicação não chegou ao prod. Deploy FALHA."
             echo "smoke_failed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          echo "✅ Smoke OK (frontend_changed=$FRONTEND_CHANGED)"
 
       - name: Failsafe — site no ar SÓ se bootar; senão mantém maintenance (503 gracioso)
         # Lição 2026-06-10: um step falhou entre `down` e `up`, deixando o site preso em 503
