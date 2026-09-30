@@ -28,7 +28,9 @@
 // `/asset/revocation/create?id=` — devolvem ESTA Page com a prop `formulario`, e o drawer
 // certo nasce aberto (`_alocacoes/Drawers.tsx`). O saldo continua decidido no servidor.
 //
-// O botão **Devoluções** fica: a lista Blade `/asset/revocation` segue viva até a thread 16.
+// `/asset/revocation` (thread 16, 2026-09-30) devolve ESTA Page no recorte Devolvidas — a lista
+// Blade de devoluções saiu de cena. O histórico por evento mora no drawer do bem, e excluir uma
+// devolução no drawer de devolução. O sub-nav marca "Devoluções" quando se entra por essa URL.
 //
 // Layout por PRIMITIVOS (ADR 0253) — `Stack`/`Inline`, nunca `<div className="flex gap-4">`
 // solto; o `layout-primitives-guard` é catraca e reprova adotante novo.
@@ -343,6 +345,11 @@ function EsqueletoTabela() {
   );
 }
 
+/** Entrou por `/asset/revocation` (a mesma tela, recorte Devolvidas) — o sub-nav marca a aba certa. */
+function entrouPorDevolucoes(): boolean {
+  return typeof window !== 'undefined' && window.location.pathname.startsWith('/asset/revocation');
+}
+
 export default function Alocacoes({ alocacoes, filtros, permissoes, formulario, formato_data, hora_12 }: Props) {
   // Fechar o drawer volta pra lista, com o recorte que estava na URL.
   const fecharDrawer = () => router.get('/asset/allocation', limpar(filtros), { preserveScroll: true });
@@ -366,7 +373,7 @@ export default function Alocacoes({ alocacoes, filtros, permissoes, formulario, 
             actions={
               <Inline gap={2}>
                 {permissoes.devolver ? (
-                  // Lista Blade de devoluções — segue viva até a thread 16 redirecioná-la.
+                  // `/asset/revocation` = esta tela no recorte Devolvidas (thread 16).
                   <Button size="sm" variant="outline" asChild>
                     <a href="/asset/revocation">Devoluções</a>
                   </Button>
@@ -384,7 +391,7 @@ export default function Alocacoes({ alocacoes, filtros, permissoes, formulario, 
         {/* `hidePrimary`: o primary do menu do módulo já aparece no header das telas irmãs —
             repeti-lo aqui daria dois botões concorrentes na mesma faixa. */}
         <div data-contract="subnav">
-          <PatrimonioSubNav active="allocation" hidePrimary />
+          <PatrimonioSubNav active={entrouPorDevolucoes() ? 'revocation' : 'allocation'} hidePrimary />
         </div>
 
         <div data-contract="filtros">

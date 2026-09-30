@@ -137,6 +137,17 @@ last_run: "2026-09-30"
 
 ---
 
+## UC-ALOC-09 · `/asset/revocation` abre esta tela no recorte Devolvidas
+
+- **Persona:** quem chega pelo ghost "Devoluções" do sub-nav ou por um link antigo de devoluções.
+- **Aceite:** Dado um usuário com o módulo · Quando abre `/asset/revocation` · Então recebe a Page
+  `Patrimonio/Alocacoes` com `filtros.situacao = devolvidas`; com `?situacao=` explícito, vale o explícito.
+- **Por quê (thread 16, [W] 2026-09-30):** a lista Blade de devoluções (uma linha por devolução) saiu
+  de cena — o histórico por evento está no drawer do bem (#8261) e o excluir, no drawer de devolução
+  (UC-ALOC-08). A URL continua existindo: funde a TELA, não a rota.
+- **Teste:** `AlocacoesFormContratoTest.php` — `it()` citando `UC-ALOC-09`.
+- **Status: 🧪** — ver o recibo do PR.
+
 ## Dívida declarada — "Devolvido" não é número auditado
 
 ⚠️ Não é UC porque **não é comportamento que esta onda defende** — é defeito herdado que ela

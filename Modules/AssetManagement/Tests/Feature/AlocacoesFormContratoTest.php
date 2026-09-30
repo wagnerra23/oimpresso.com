@@ -341,3 +341,34 @@ it('UC-ALOC-08: Excluir devolucao pelo drawer apaga so devolucao do business —
         alocFormLimpar();
     }
 });
+
+/*
+ * UC-ALOC-09 — `/asset/revocation` é a MESMA tela de Alocações, no recorte Devolvidas (thread 16).
+ *
+ * A rota não funde: a URL segue sendo a das devoluções, e o `index()` dela devolve a Page
+ * `Patrimonio/Alocacoes`. Até 2026-09-30 devolvia a lista Blade — e, com `X-Requested-With`
+ * (que o cliente Inertia manda sempre), o JSON do DataTables: este teste teria caído no
+ * `assertInertia`, que é a mordida.
+ */
+it('UC-ALOC-09: /asset/revocation devolve a Page de Alocações no recorte Devolvidas, e ?situacao= explícito vence', function () {
+    $dono = (int) $this->seededTenant()->id;
+    $u = alocFormUsuario($dono);
+
+    try {
+        alocFormAssinatura();
+
+        alocFormComo($u, $dono)->get('/asset/revocation')
+            ->assertStatus(200)
+            ->assertInertia(fn ($p) => $p
+                ->component('Patrimonio/Alocacoes')
+                ->where('filtros.situacao', 'devolvidas'));
+
+        alocFormComo($u, $dono)->get('/asset/revocation?situacao=todas')
+            ->assertStatus(200)
+            ->assertInertia(fn ($p) => $p
+                ->component('Patrimonio/Alocacoes')
+                ->where('filtros.situacao', 'todas'));
+    } finally {
+        alocFormLimpar();
+    }
+});

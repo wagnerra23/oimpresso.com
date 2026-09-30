@@ -14,8 +14,8 @@
 //   • "Razão" é opcional: o Blade e o servidor aceitam vazio. Obrigar no cliente seria regra
 //     de negócio que só existe de um lado;
 //   • o drawer de devolução LISTA as devoluções já feitas, com EXCLUIR — o protótipo modela
-//     1 : 1, o nosso modelo é 1 : N (`_saida-16`), e excluir é o que a 16 precisa antes de
-//     redirecionar `/asset/revocation` (decisão [W] em `_saida-16b`).
+//     1 : 1, o nosso modelo é 1 : N (`_saida-16`). Com o excluir aqui, a thread 16 pôde tirar a
+//     lista Blade de `/asset/revocation` (hoje: esta tela no recorte Devolvidas).
 
 import { useState } from 'react';
 import { router } from '@inertiajs/react';

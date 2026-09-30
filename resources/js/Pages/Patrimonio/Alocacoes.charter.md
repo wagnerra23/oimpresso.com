@@ -9,7 +9,7 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-alocacoes.md
 tier: B
-charter_version: 3
+charter_version: 4
 last_validated: "2026-09-30"
 ---
 
@@ -79,9 +79,12 @@ o módulo existe pra dar.
 - ❌ NÃO cruza tenants — `AssetTransaction` não tem global scope, o filtro por `business_id`
   é manual ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md), Tier 0).
 - ❌ NÃO exporta, não imprime, não configura colunas nem densidade.
-- ❌ NÃO renderiza aba que não navega. Devoluções é aba **própria** (`/asset/revocation`,
-  ghost `revocation`); o protótipo a trata como estado dentro desta tela, e **a rota manda**
-  (`_saida-06-bens.md §2`).
+- ❌ NÃO renderiza aba que não navega. O ghost **Devoluções** (`/asset/revocation`) segue
+  navegando, e desde 2026-09-30 (thread 16, [W] em `_saida-16b`) a URL devolve **esta** Page no
+  recorte Devolvidas — como o protótipo, que trata devolução como estado desta tela. A rota não
+  fundiu; a tela, sim. A lista Blade por devolução saiu: o histórico por evento está no drawer do
+  bem e o excluir no drawer de devolução. UC-ALOC-09. (Até 2026-09-30 esta linha dizia que
+  Devoluções era aba **própria** e que "a rota manda", `_saida-06-bens.md §2`.)
 
 ## Anti-hooks (NÃO faz automaticamente)
 
