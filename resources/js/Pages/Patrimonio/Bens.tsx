@@ -29,7 +29,7 @@
 // desenho do `BemForm` do protótipo). Abre pelo botão do header, pelo CTA do vazio e por
 // `?novo=1` na URL — é assim que o "Adicionar recurso" do Painel chega aqui.
 //
-// ─── Por que NÃO há alocar nem manutenção (editar voltou em 2026-09-30 — ver AcoesDaLinha) ──
+// ─── Por que NÃO há alocar (editar e manutenção voltaram em 2026-09-30 — ver AcoesDaLinha) ──
 //
 // MEDIDO em produção (biz=1, 2026-09-23), não presumido: `AssetController::{create,edit}`,
 // `AssetAllocationController::create` e `AssetMaitenanceController::create` só respondem
@@ -47,7 +47,7 @@
 
 import { Deferred, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { Eye, Pencil, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2, Wrench } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
 import DataTable, { type EstadoDaLinha } from '@/Components/shared/DataTable';
@@ -214,10 +214,18 @@ function BotaoAcao({
 }
 
 /**
- * Ação por linha — EDITAR e EXCLUIR. Alocar e mandar pra manutenção saíram em 2026-09-23:
- * apontavam pra endpoints que só respondem sob `ajax()` e abriam página em branco (ver o
- * docblock do topo). Editar VOLTOU em 2026-09-30 (thread 17): `GET /asset/assets/{id}/edit`
- * agora devolve esta mesma Page com o drawer aberto em modo editar.
+ * Ação por linha — EDITAR, ENVIAR PRA MANUTENÇÃO e EXCLUIR. Alocar e mandar pra manutenção
+ * saíram em 2026-09-23: apontavam pra endpoints que só respondem sob `ajax()` e abriam página
+ * em branco (ver o docblock do topo). Editar VOLTOU em 2026-09-30 (thread 17): `GET
+ * /asset/assets/{id}/edit` agora devolve esta mesma Page com o drawer aberto em modo editar.
+ *
+ * Enviar pra manutenção VOLTOU em 2026-09-30, depois da thread 19: `GET
+ * /asset/asset-maintenance/create?asset_id={id}` devolve a tela de Manutenções com o drawer
+ * aberto e o bem já escolhido (o servidor só pré-seleciona bem DA EMPRESA). É botão com
+ * `router.get`, não `<a href>` — o UC-BENS-04 segue valendo. Não escreve valor nem quantidade:
+ * a manutenção não tem coluna de valor. A permissão é a MESMA que o `create()` de manutenção
+ * exige (`permissoes.manutencao` = view_all || view_own), então o botão não promete o que o
+ * servidor recusaria. Alocar segue fora (é quantidade — outra onda).
  *
  * Excluir usa `router.delete` com confirmação: o `destroy` é uma rota `resource` (verbo
  * DELETE), então link `<a>` não a alcançaria.
@@ -236,11 +244,18 @@ function AcoesDaLinha({ bem, permissoes }: { bem: Bem; permissoes: Props['permis
 
   const editar = () => router.get(`/asset/assets/${bem.id}/edit`, {}, { preserveScroll: true });
 
+  const enviarManutencao = () => router.get('/asset/asset-maintenance/create', { asset_id: bem.id });
+
   return (
     <Inline gap={1}>
       {permissoes.editar ? (
         <BotaoAcao titulo={`Editar — ${bem.nome}`} onClick={editar}>
           <Pencil size={14} aria-hidden="true" />
+        </BotaoAcao>
+      ) : null}
+      {permissoes.manutencao ? (
+        <BotaoAcao titulo={`Enviar pra manutenção — ${bem.nome}`} onClick={enviarManutencao}>
+          <Wrench size={14} aria-hidden="true" />
         </BotaoAcao>
       ) : null}
       {permissoes.excluir ? (
