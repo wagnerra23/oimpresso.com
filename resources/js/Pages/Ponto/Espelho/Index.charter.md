@@ -28,7 +28,7 @@ Ponto de entrada do espelho de ponto: o RH escolhe um colaborador (dentre os que
 
 ## Goals — Features (faz)
 - Lista paginada (25/página) de colaboradores ativos do business, ordenada por matrícula.
-- Seletor de mês de referência (`<input type="month">`) que propaga para os links "Ver {mes}".
+- Seletor de mês de referência (`<input type="month">`) que propaga para o link "Ver espelho" de cada linha (`?mes=`). Rótulo "Ver {mes}" trocado pelo do protótipo em 2026-09-29 (thread 14; forma → protótipo, UI-0029).
 - Link por linha pra `/ponto/espelho/{id}?mes=...` (abre o espelho mensal).
 - Paginação via partial reload (`only: ['colaboradores','mes']`) — não recarrega a página inteira.
 - Empty state quando não há colaborador com ponto ativo; skeleton via `<Deferred>` enquanto a lista carrega.

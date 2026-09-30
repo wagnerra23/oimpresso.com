@@ -1,0 +1,10 @@
+{
+  "_": "A1 [CL] 2026-09-29 — protótipo venda-blade.jsx TelaRemessas (rota venda-remessas). Tela ainda Blade no main (SellController@shipments, web.php:1113). O modal de status (vira drawer PT-02 na thread 02) só existe após clique e fica fora deste alvo.",
+  "_mapa": "Conferida em 2026-09-29 por alvo:mapa --rota <r> --raiz .vb-root / .pb-body contra o espelho servido por servirEstatico (mesmo servidor do secao-check), mais querySelectorAll de cada seletor: todos resolvem 1 nó. Mapa: .pb-body = nav.ds-tabbar.vb-nav · section.pb-widget[venda-filtros] · section.pb-widget lista.",
+  "header": { "seletor": ".vb-root > .cli-ph > header" },
+  "tabs": { "seletor": ".vb-root > .pb-body > nav.ds-tabbar" },
+  "filtros": { "seletor": ".vb-root > .pb-body > [data-contract=\"venda-filtros\"]" },
+  "lista": { "seletor": ".vb-root > .pb-body > section.pb-widget:not([data-contract])" },
+  "toolbar": { "seletor": ".vb-root [data-contract=\"venda-toolbar\"]" },
+  "rodape": { "seletor": ".vb-root [data-contract=\"venda-rodape\"]" }
+}

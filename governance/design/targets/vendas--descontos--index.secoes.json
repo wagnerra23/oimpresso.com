@@ -1,0 +1,10 @@
+{
+  "_": "A1 [CL] 2026-09-29 — protótipo venda-blade.jsx TelaDescontos (rota venda-descontos, papel administrador = tem discount.access). Tela ainda Blade no main (DiscountController, web.php:1058). O modal Adicionar só existe após clique e fica fora deste alvo.",
+  "_mapa": "Conferida em 2026-09-29 por alvo:mapa --rota <r> --raiz .vb-root / .pb-body contra o espelho servido por servirEstatico (mesmo servidor do secao-check), mais querySelectorAll de cada seletor: todos resolvem 1 nó. Mapa: .pb-body = nav.ds-tabbar.vb-nav · div (Alert 'Uma permissão só') · section.pb-widget lista. Sem widget de filtros nesta tela.",
+  "header": { "seletor": ".vb-root > .cli-ph > header" },
+  "tabs": { "seletor": ".vb-root > .pb-body > nav.ds-tabbar" },
+  "aviso": { "seletor": ".vb-root > .pb-body > nav.ds-tabbar + div" },
+  "lista": { "seletor": ".vb-root > .pb-body > section.pb-widget" },
+  "toolbar": { "seletor": ".vb-root [data-contract=\"venda-toolbar\"]" },
+  "rodape": { "seletor": ".vb-root [data-contract=\"venda-rodape\"]" }
+}

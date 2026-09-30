@@ -1,0 +1,24 @@
+{
+  "_": "semente [CL] 2026-09-29 — thread A2 do playbook venda-menu. Protótipo: VendaCaixa visão \"dia\" (venda-blade-caixa.jsx:102/51), rota venda-caixa. Vivo: Sells/Caixa/Index.tsx (SellController@inertiaCaixa, web.php:794) — a aba Turnos (/cash-register) não é medida: exige clique e é escopo da thread 07.",
+  "_mapa": "Conferida em 2026-09-29 por `alvo:mapa --rota <r> --raiz 'main > .main-body > *'` (e `> .cli-ph` / `> .pb-body`) contra o espelho servido por `servirEstatico` (o mesmo servidor do secao-check), base origin/main 5606344ca. Mapa: .pb-body = nav.vb-nav · nav.vc-abas · div.vc-kpis (4) · div.vc-dia (2 widgets).",
+  "header": {
+    "seletor": ".pb-root.vb-root > .cli-ph > header",
+    "dado": "shell — PageHeader do módulo Vendas (M.Header)"
+  },
+  "tabs": {
+    "seletor": ".pb-root.vb-root > .pb-body > nav.vb-nav",
+    "dado": "shell — CliTabs das 9 telas do menu Vendas (venda-blade.jsx:675)"
+  },
+  "abas": {
+    "seletor": ".pb-root.vb-root > .pb-body > nav.vc-abas",
+    "dado": "Caixa do dia × Turnos"
+  },
+  "kpis": {
+    "seletor": ".pb-root.vb-root > .pb-body > .vc-kpis",
+    "dado": "faturado no dia · vendas em dinheiro · caixa aberto · origens hoje"
+  },
+  "dia": {
+    "seletor": ".pb-root.vb-root > .pb-body > .vc-dia",
+    "dado": "por forma de pagamento (com data) + por origem (balcão · oficina · online)"
+  }
+}

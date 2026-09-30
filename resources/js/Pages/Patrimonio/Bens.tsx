@@ -14,8 +14,9 @@
 // Non-Goals do charter, com o motivo de cada um. Os três que mais saltam ao comparar com o
 // protótipo lado a lado:
 //
-//   • sem os sub-recortes "Garantia crítica" / "Em manutenção" — pedem predicado SQL novo;
-//     filtrar só a página corrente faria a pílula dizer "3" olhando 25 de N linhas;
+//   • o sub-recorte "Garantia crítica" ENTROU em 2026-09-29 (D-GARANTIAS, thread 12): filtro e
+//     contagem nascem no SERVIDOR (`?recorte=garantia`), nunca da página que chegou. "Em
+//     manutenção" segue fora — não foi decidido;
 //   • sem o total somado do rodapé — é número de VALOR, e valor exige a REGRA MESTRE
 //     (prova por dois caminhos + antes→depois pro [W]). O valor POR LINHA entra, que é o
 //     que o Blade já mostrava;
@@ -58,6 +59,7 @@ import { Checkbox } from '@/Components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Stack, Inline } from '@/Components/layout';
+import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
 import CadastroBemDrawer from './_shared/CadastroBemDrawer';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -107,6 +109,8 @@ interface FiltrosAtivos {
   category_id?: string | number | null;
   purchase_type?: string | null;
   is_allocatable?: string | number | null;
+  /** Sub-recorte da lista — whitelist no servidor; `null` = todos. */
+  recorte?: 'garantia' | null;
   sort?: string | null;
   dir?: string | null;
 }
@@ -116,6 +120,8 @@ interface Props {
   abas_contadores?: Record<string, number> | null;
   /** Deferida — ausente no primeiro paint, por isso opcional. */
   bens?: Paginator<Bem>;
+  /** Deferida — contagem de cada sub-recorte sobre o CONJUNTO, calculada no servidor. */
+  recortes_contagem?: { garantia: number } | null;
   filtros: FiltrosAtivos;
   opcoes: {
     locais: Record<string, string>;
@@ -151,8 +157,9 @@ function SemValor() {
 
 /**
  * Selo de garantia — a mesma leitura do Blade (`in_warranty` / `not_in_warranty` + janela e
- * dias restantes). Sem faixa de criticidade: "garantia crítica" é recorte que ainda não
- * existe no servidor, e derivá-lo aqui seria inventar decisão de produto (§5 do RUNBOOK).
+ * dias restantes). Sem faixa de criticidade: "garantia crítica" é recorte do SERVIDOR
+ * (`?recorte=garantia`, D-GARANTIAS) — derivá-la aqui de `dias_restantes` seria uma segunda
+ * regra, que diverge da primeira (charter, Anti-hooks).
  */
 function SeloGarantia({ garantia }: { garantia: Garantia | null }) {
   if (!garantia) return <Badge variant="neutral" dot>Sem garantia vigente</Badge>;
@@ -473,6 +480,41 @@ function BarraDeFiltros({ filtros, opcoes }: { filtros: FiltrosAtivos; opcoes: P
   );
 }
 
+/**
+ * Sub-recortes da lista (`CliTabs` "Recorte do patrimônio" do protótipo, `:353`). Só os que o
+ * servidor sabe servir: Todos · Garantia crítica. "Alocáveis" já é o checkbox da barra de
+ * filtros; "Em manutenção" não foi decidido. A contagem vem de `recortes_contagem` — contar
+ * aqui olharia só as 25 linhas da página.
+ */
+function RecortesDaLista({ filtros, contagem }: { filtros: FiltrosAtivos; contagem?: { garantia: number } | null }) {
+  const ativo = filtros.recorte === 'garantia' ? 'garantia' : 'todos';
+  const href = (recorte: string) => {
+    const params = new URLSearchParams({ ...limpar(filtros), ...(recorte === 'todos' ? {} : { recorte }) });
+    if (recorte === 'todos') params.delete('recorte');
+    params.delete('page');
+    const qs = params.toString();
+    return '/asset/assets' + (qs ? '?' + qs : '');
+  };
+
+  return (
+    <PageHeaderTabs
+      activeGhostKey={ativo}
+      ghosts={[
+        { key: 'todos', label: 'Todos', href: href('todos') },
+        { key: 'garantia', label: 'Garantia crítica', href: href('garantia'), badge: contagem?.garantia },
+      ]}
+      onGhostChange={(chave) =>
+        router.get(
+          '/asset/assets',
+          // Volta pra página 1: o recorte novo pode nem ter a página em que o usuário estava.
+          { ...limpar(filtros), recorte: chave === 'todos' ? undefined : chave, page: undefined },
+          { preserveScroll: true, preserveState: true, replace: true },
+        )
+      }
+    />
+  );
+}
+
 /* ─── Tela ────────────────────────────────────────────────────────────────────── */
 
 function EsqueletoTabela() {
@@ -492,7 +534,7 @@ function pedidoDeCadastroNaUrl(): boolean {
   return new URLSearchParams(window.location.search).get('novo') === '1';
 }
 
-export default function Bens({ abas_contadores, bens, filtros, opcoes, formato_data, permissoes }: Props) {
+export default function Bens({ abas_contadores, bens, recortes_contagem, filtros, opcoes, formato_data, permissoes }: Props) {
   const [cadastroAberto, setCadastroAberto] = useState(() => permissoes.criar && pedidoDeCadastroNaUrl());
 
   const fecharCadastro = () => {
@@ -512,7 +554,8 @@ export default function Bens({ abas_contadores, bens, filtros, opcoes, formato_d
       filtros.location_id ||
       filtros.category_id ||
       filtros.purchase_type ||
-      filtros.is_allocatable,
+      filtros.is_allocatable ||
+      filtros.recorte,
   );
 
   return (
@@ -537,6 +580,12 @@ export default function Bens({ abas_contadores, bens, filtros, opcoes, formato_d
             fragmento de modal cru — `DataController`, 2026-09-23); fica por defesa. */}
         <div data-contract="subnav">
           <PatrimonioSubNav active="assets" hidePrimary badges={abas_contadores ?? undefined} />
+        </div>
+
+        <div data-contract="recortes">
+          <Deferred data="recortes_contagem" fallback={<RecortesDaLista filtros={filtros} />}>
+            <RecortesDaLista filtros={filtros} contagem={recortes_contagem} />
+          </Deferred>
         </div>
 
         <div data-contract="filtros">
