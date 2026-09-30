@@ -167,7 +167,7 @@ class RelatorioController extends Controller
         $colaborador = Colaborador::where('business_id', $businessId)
             ->whereKey($dados['colaborador'])
             ->first();
-        abort_unless($colaborador, 404);
+        abort_if($colaborador === null, 404);
 
         $mes    = $dados['periodo'] ?? now()->format('Y-m');
         $inicio = \Carbon\Carbon::createFromFormat('Y-m-d', $mes . '-01')->startOfDay();
