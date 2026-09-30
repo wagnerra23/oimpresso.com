@@ -107,17 +107,19 @@ const MFG_JS_PRONTO = <<<'JS'
 })()
 JS;
 
-/** Rótulos + destino de cada aba do §4.1. A aba ativa não é link (é `span[aria-current]`),
- *  então devolve ATUAL. Sentinela `NAV-AUSENTE` impede verde por ausência. */
+/** Rótulos + destino de cada aba do §4.1. A aba ativa devolve ATUAL. Desde 2026-09-30 a barra
+ *  é o `PageHeaderTabs` do DS (`_components/FabricacaoAbas.tsx`): cada aba é `[role="tab"]` e a
+ *  ativa é `aria-selected="true"` — antes era `span[aria-current]` filho direto da `<nav>`.
+ *  Sentinela `NAV-AUSENTE` impede verde por ausência. */
 const MFG_JS_ABAS = <<<'JS'
 (() => {
   const nav = document.querySelector('nav[aria-label="Fabricação"]');
   if (!nav) return 'NAV-AUSENTE';
-  const itens = [...nav.children].map((el) => {
+  const itens = [...nav.querySelectorAll('[role="tab"]')].map((el) => {
     const bruto = (el.textContent || '').replace(/\s+/g, ' ').trim();
     const rot = bruto.replace(/\s*\d+(\s*·\s*\d+\s*rasc\.)?$/, '').trim();
-    const atual = el.getAttribute('aria-current') === 'page';
-    const destino = el.getAttribute('href') || (atual ? 'ATUAL' : 'SEM-DESTINO');
+    const atual = el.getAttribute('aria-selected') === 'true';
+    const destino = atual ? 'ATUAL' : (el.getAttribute('href') || 'SEM-DESTINO');
     return rot + '=' + destino;
   });
   return itens.length ? itens.join('|') : 'NAV-VAZIA';
@@ -283,7 +285,7 @@ it('render — as abas do §4.1 apontam pra rotas que existem, Insumos inclusive
     expect($abas)->not->toContain('AUSENTE')
         ->and($abas)->not->toBe('NAV-VAZIA');
 
-    // A aba ativa é a própria tela (span com aria-current), não um link pra ela mesma.
+    // A aba ativa é a própria tela (`aria-selected="true"` no `PageHeaderTabs`).
     expect($abas)->toContain('Receitas=ATUAL');
 
     // Endereços CANÔNICOS — desde o cutover de 2026-09-04 eles servem a tela React (antes

@@ -19,10 +19,10 @@ import { Inline } from '@/Components/layout/inline';
 import { Stack } from '@/Components/layout/stack';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
-import { Link } from '@inertiajs/react';
 import '../../../css/cowork-manufacturing-bundle.css';
 import EmptyState from '@/Components/shared/EmptyState';
 import StatusBadge from '@/Components/shared/StatusBadge';
+import FabricacaoAbas from './_components/FabricacaoAbas';
 
 interface Production {
   id: number;
@@ -186,29 +186,16 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           Esta tela nasceu na Wave J sem ela: era a única do módulo em React na época, então
           não havia pra onde navegar. Depois do cutover de 2026-09-04 o menu lateral passou a
           trazer o usuário pra cá e a tela virou BECO SEM SAÍDA — [M] reportou clicando e
-          vendo a barra sumir. A aba atual é <span>, não <Link>, igual às irmãs. */}
-      <nav className="mfg-tabs" aria-label="Fabricação" data-contract="abas">
-        <Link className="mfg-tab" href="/manufacturing/recipe">
-          Receitas
-          {recipes_count !== undefined && <span className="mfg-tab-n">{recipes_count}</span>}
-        </Link>
-        <Link className="mfg-tab" href="/manufacturing/insumos">
-          Insumos
-        </Link>
-        <span className="mfg-tab act" aria-current="page">
-          Ordens de produção
-          <span className="mfg-tab-n">
-            {summary?.total_count ?? 0}
-            {summary?.pending_count ? ` · ${summary.pending_count} rasc.` : ''}
-          </span>
-        </span>
-        <Link className="mfg-tab" href="/manufacturing/report">
-          Relatório
-        </Link>
-        <Link className="mfg-tab" href="/manufacturing/settings">
-          Configurações
-        </Link>
-      </nav>
+          vendo a barra sumir. Desde 2026-09-30 a barra é o componente único `FabricacaoAbas`. */}
+      {/* A âncora `data-contract="abas"` fica AQUI, no fonte da tela: o gate de contrato lê a ordem
+          das âncoras dentro do alvo, e a barra vem do componente (listado no alvo só pela copy). */}
+      <div data-contract="abas">
+        <FabricacaoAbas
+          ativa="producao"
+          receitas={recipes_count}
+          producao={{ total: summary?.total_count ?? 0, rascunhos: summary?.pending_count }}
+        />
+      </div>
 
       {/* KPI strip — "Finalizadas" e "Pendentes" filtram a lista */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" data-contract="kpis">

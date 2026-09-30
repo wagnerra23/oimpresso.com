@@ -125,11 +125,15 @@ describe('UC-REPORT-00 — alcance pela aba Relatório (DB-less)', function () {
     // endereço canônico servia Blade — o assert exigia o `/v2/` e PROIBIA o canônico. Agora o
     // canônico É a tela React (o `/v2/` virou 301), então o contrato inverte junto. O que o UC
     // defende não mudou: a aba leva à tela React, nunca ao Blade.
-    it('UC-REPORT-00 a aba Relatorio de Recipes.tsx aponta pra /manufacturing/report', function () {
-        $fonte = file_get_contents(base_path('resources/js/Pages/Manufacturing/Recipes.tsx'));
+    // Desde 2026-09-30 a barra de abas é UMA só (`_components/FabricacaoAbas.tsx`, sobre o
+    // `PageHeaderTabs` do DS) e as telas a renderizam; o destino da aba mora no componente.
+    it('UC-REPORT-00 a aba Relatorio da barra da Fabricação aponta pra /manufacturing/report', function () {
+        $tela = file_get_contents(base_path('resources/js/Pages/Manufacturing/Recipes.tsx'));
+        expect(str_contains($tela, '<FabricacaoAbas'))->toBeTrue('Recipes.tsx não renderiza a barra <FabricacaoAbas>.');
 
-        expect($fonte)->toContain("href=\"/manufacturing/report\"");
-        expect($fonte)->not->toContain("href=\"/manufacturing/v2/report\""); // sem rota alternativa
+        $barra = file_get_contents(base_path('resources/js/Pages/Manufacturing/_components/FabricacaoAbas.tsx'));
+        expect(str_contains($barra, "href: '/manufacturing/report'"))->toBeTrue('A aba Relatório não aponta pra /manufacturing/report.');
+        expect(str_contains($barra, '/manufacturing/v2/report'))->toBeFalse('A aba Relatório aponta pra rota alternativa /v2/.'); // sem rota alternativa
     });
 });
 
