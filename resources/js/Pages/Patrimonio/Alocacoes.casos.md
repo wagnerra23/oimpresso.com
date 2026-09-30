@@ -121,6 +121,10 @@ last_run: "2026-09-30"
 - **Então** a minha abre o drawer em modo editar com os valores gravados; a de outra empresa
   **e a devolução** dão 404 (antes, `findOrFail` sem tipo aceitava qualquer transação).
 - **Teste:** `AlocacoesFormContratoTest.php` + vitest (PUT na rota certa, erro inline anunciado).
+- **Foco devolvido** (a11y, 2026-09-30): fechar qualquer drawer devolve o foco ao botão que o
+  abre — o da linha (Editar/Devolver) ou **Alocar recurso**, inclusive quando a página foi aberta
+  direto pela URL. Medido em produção antes do conserto: foco no `BODY`. Teste:
+  `tests/js/patrimonio-alocacoes-foco.test.tsx` (3 casos; sem o conserto, os 3 caem).
 - **Status:** 🧪 — idem.
 
 ## UC-ALOC-08 · Devolver e Excluir devolução pelo drawer, com as duas pontas escopadas

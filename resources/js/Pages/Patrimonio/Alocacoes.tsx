@@ -156,12 +156,14 @@ function AcoesDaLinha({ alocacao, permissoes }: { alocacao: Alocacao; permissoes
     <Inline gap={1}>
       {permissoes.editar ? (
         <Button size="sm" variant="ghost" aria-label={`Editar alocação ${alocacao.ref_no}`}
+          data-acao={`editar-${alocacao.id}`}
           onClick={() => ir(`/asset/allocation/${alocacao.id}/edit`)}>
           <Pencil size={14} aria-hidden="true" />
         </Button>
       ) : null}
       {permissoes.devolver ? (
         <Button size="sm" variant="ghost" aria-label={`Devolver alocação ${alocacao.ref_no}`}
+          data-acao={`devolver-${alocacao.id}`}
           onClick={() => ir(`/asset/revocation/create?id=${alocacao.id}`)}>
           <Undo2 size={14} aria-hidden="true" /> Devolver
         </Button>
@@ -343,9 +345,46 @@ function EsqueletoTabela() {
   );
 }
 
+/**
+ * Para onde o foco volta quando o drawer fecha.
+ *
+ * Fechar o drawer é uma NAVEGAÇÃO (de `/create` ou `/edit` de volta pra lista), não o `close` do
+ * `Sheet` — então a devolução de foco do Radix não tem a quem devolver quando a página foi aberta
+ * direto pela URL. Medido em produção em 2026-09-30: `/asset/allocation/create` carregado direto,
+ * Cancelar → foco no `BODY`. O alvo é o botão que abre aquele drawer: o da própria linha
+ * (editar/devolver), ou "Alocar recurso". A linha vem na prop DEFERIDA, então ela pode ainda não
+ * existir no primeiro quadro — por isso tenta por alguns quadros antes de cair no botão do header.
+ */
+export function alvoDoFoco(formulario: Formulario | undefined): string[] {
+  const header = '#patrimonio-alocar-recurso';
+  if (!formulario || formulario.modo === 'alocar') return [header];
+  const id = formulario.modo === 'devolver' ? formulario.alocacao.id : formulario.alocacao?.id;
+  if (!id) return [header];
+  return [`[data-acao="${formulario.modo === 'devolver' ? 'devolver' : 'editar'}-${id}"]`, header];
+}
+
+export function devolverFoco(seletores: string[], tentativas = 30): void {
+  const [preferido, ...resto] = seletores;
+  const el = preferido ? document.querySelector<HTMLElement>(preferido) : null;
+  if (el) { el.focus(); return; }
+  if (tentativas > 0 && resto.length) {
+    requestAnimationFrame(() => devolverFoco(seletores, tentativas - 1));
+    return;
+  }
+  if (resto.length) devolverFoco(resto, 0);
+}
+
 export default function Alocacoes({ alocacoes, filtros, permissoes, formulario, formato_data, hora_12 }: Props) {
-  // Fechar o drawer volta pra lista, com o recorte que estava na URL.
-  const fecharDrawer = () => router.get('/asset/allocation', limpar(filtros), { preserveScroll: true });
+  // Fechar o drawer volta pra lista, com o recorte que estava na URL, e devolve o foco a quem
+  // abriu o drawer (a11y: foco devolvido — item 5 do §D da thread 18).
+  const fecharDrawer = () => {
+    const alvo = alvoDoFoco(formulario);
+    router.get('/asset/allocation', limpar(filtros), {
+      preserveScroll: true,
+      // Depois do quadro em que o drawer desmonta — antes disso o Radix ainda segura o foco.
+      onSuccess: () => { requestAnimationFrame(() => devolverFoco(alvo)); },
+    });
+  };
 
   // Distingue "não há alocação nenhuma" de "não há alocação PARA ESTE RECORTE" — são dois
   // vazios diferentes. O recorte default é `ativas`, então uma casa que já devolveu tudo cai
@@ -372,7 +411,8 @@ export default function Alocacoes({ alocacoes, filtros, permissoes, formulario, 
                   </Button>
                 ) : null}
                 {permissoes.alocar ? (
-                  <Button size="sm" onClick={() => router.get('/asset/allocation/create', {}, { preserveScroll: true })}>
+                  <Button size="sm" id="patrimonio-alocar-recurso"
+                    onClick={() => router.get('/asset/allocation/create', {}, { preserveScroll: true })}>
                     Alocar recurso
                   </Button>
                 ) : null}
