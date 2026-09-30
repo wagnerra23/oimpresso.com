@@ -70,6 +70,7 @@ class VisregTenantSeeder extends Seeder
             $this->ensureManageModulesPermission();
             $this->ensureProduct();
             $this->ensurePontoSubscription();
+            $this->ensureAsset();
 
             return;
         }
@@ -147,6 +148,48 @@ class VisregTenantSeeder extends Seeder
         $this->ensureManageModulesPermission();
         $this->ensureProduct();
         $this->ensurePontoSubscription();
+        $this->ensureAsset();
+    }
+
+    /**
+     * Um bem do Patrimônio (2026-09-30, decisão [W] — "inclua um bem no seed do tenant e
+     * recapture"). Sem ele a evidência visual de `Patrimonio/Bens` só fotografava o estado
+     * VAZIO: a tabela com linha ficava fora do gate.
+     *
+     * Escolhas pra a captura ser DETERMINÍSTICA:
+     *   - SEM garantia: o selo mostra dias restantes contados de hoje, então qualquer garantia
+     *     mudaria a foto a cada dia. Sem registro o selo diz "Sem garantia vigente", fixo.
+     *   - SEM categoria: `categories` do tipo `asset` não existe neste tenant; a coluna mostra
+     *     "—". Criar categoria mudaria o dropdown de filtro de outras telas.
+     *   - `purchase_date`/`created_at` literais; id fixo 900001 (não colide com dado real),
+     *     IDEMPOTENTE por id.
+     *
+     * ⚠️ Muda também o PAINEL (`Patrimonio/Index`): KPIs, "Patrimônio por categoria" e
+     * "Situação da garantia" passam a contar este bem. A evidência dele foi recapturada no
+     * mesmo PR, com o diff olhado — ver o corpo do PR.
+     */
+    private function ensureAsset(): void
+    {
+        if (! Schema::hasTable('assets') || DB::table('assets')->where('id', 900001)->exists()) {
+            return;
+        }
+
+        DB::table('assets')->insert([
+            'id' => 900001,
+            'business_id' => 1,
+            'asset_code' => 'AST-VR-0001',
+            'name' => 'Plotter de recorte',
+            'model' => 'CE7000',
+            'quantity' => 1,
+            'unit_price' => 1500,
+            'location_id' => 1,
+            'purchase_date' => '2026-01-15',
+            'purchase_type' => 'owned',
+            'is_allocatable' => 1,
+            'created_by' => 1,
+            'created_at' => '2026-01-15 09:00:00',
+            'updated_at' => '2026-01-15 09:00:00',
+        ]);
     }
 
     /**
