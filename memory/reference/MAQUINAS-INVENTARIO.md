@@ -495,7 +495,7 @@ lifecycle: ativo
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
-| `aguardar-deploy.mjs` | ci | 🟢 só lê | — | — | espera o 1º deploy CONCLUÍDO (não cancelado) que contenha um commit. |
+| `aguardar-deploy.mjs` | ci | 🟢 só lê | — | `memory/governance/shipped/CYCLE-08.md` | espera o 1º deploy CONCLUÍDO (não cancelado) que contenha um commit. |
 
 ### 5.8 `scripts/design/` — 24
 
