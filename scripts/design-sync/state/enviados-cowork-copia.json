@@ -1,0 +1,21 @@
+{
+  "_nota": "Último envio de cada arquivo de prototipo-ui/cowork/Wagner/ ao projeto-cópia (PROJETOS.telasFelipe). Escrito por pendentes-cowork.mjs --projeto copia. Não é limpo por retorno: este projeto não gera retorno.",
+  "enviados": {
+    "manufacturing-page.css": {
+      "sha256": "7b0ed3dcdf59e82512546193ef1b47c10a35b1c06b5fbb986918a8ffb83bc2bd",
+      "em": "2026-09-30T14:57:03.620Z"
+    },
+    "manufacturing-page.jsx": {
+      "sha256": "933dc7d683286590572f0ebbdf9e022dec4248f633bc92223e96c00bcdbe1eea",
+      "em": "2026-09-30T14:57:03.620Z"
+    },
+    "manufacturing-producao.jsx": {
+      "sha256": "bef8593ef6d89b66f994e966432716477386667d59716ea93a3b9a8a07d3cc4a",
+      "em": "2026-09-30T14:57:03.620Z"
+    },
+    "manufacturing-recipe.jsx": {
+      "sha256": "3badd595cd94cc9a6e3fb976115384281fab5d89c7c315bb5170016ecd5da9a2",
+      "em": "2026-09-30T14:57:03.620Z"
+    }
+  }
+}
