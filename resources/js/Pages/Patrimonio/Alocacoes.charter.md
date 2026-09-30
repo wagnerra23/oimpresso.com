@@ -79,9 +79,12 @@ o módulo existe pra dar.
 - ❌ NÃO cruza tenants — `AssetTransaction` não tem global scope, o filtro por `business_id`
   é manual ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md), Tier 0).
 - ❌ NÃO exporta, não imprime, não configura colunas nem densidade.
-- ❌ NÃO renderiza aba que não navega. Devoluções é aba **própria** (`/asset/revocation`,
-  ghost `revocation`); o protótipo a trata como estado dentro desta tela, e **a rota manda**
-  (`_saida-06-bens.md §2`).
+- ❌ NÃO renderiza aba que não navega, nem lista de devoluções à parte. Desde 2026-09-30
+  (thread 16, decisão [W] em `_saida-16b` opção b) `/asset/revocation` **redireciona** para
+  esta tela, e o histórico 1 : N das devoluções mora no drawer Devolver de cada linha (com
+  Excluir) e no drawer do bem. ⚠️ Até 2026-09-30 este item dizia que Devoluções era aba
+  **própria** (`_saida-06-bens.md §2`); deixou de ser. O ghost `revocation` do menu segue
+  registrado e hoje cai aqui.
 
 ## Anti-hooks (NÃO faz automaticamente)
 
