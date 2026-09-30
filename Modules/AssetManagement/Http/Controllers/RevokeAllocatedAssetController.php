@@ -119,7 +119,7 @@ class RevokeAllocatedAssetController extends Controller
      * Tier 0: a alocacao e as devolucoes saem escopadas por `business_id` — as DUAS pontas.
      * `asset_transactions` nao tem global scope, entao o filtro e escrito em cada query.
      *
-     * @return __BS__Inertia__BS__Response
+     * @return \Inertia\Response
      */
     public function create(Request $request)
     {
@@ -139,8 +139,8 @@ class RevokeAllocatedAssetController extends Controller
             'alocacao' => [
                 'id' => (int) $alocacao->id,
                 'ref_no' => (string) $alocacao->ref_no,
-                'bem' => (string) ($alocacao->asset->name ?? ''),
-                'recebido_por' => trim((string) ($alocacao->receiver_name ?? '')),
+                'bem' => (string) $alocacao->getAttribute('bem_nome'),
+                'recebido_por' => trim((string) $alocacao->getAttribute('receiver_name')),
                 'quantidade' => (float) $alocacao->quantity,
                 'devolvido' => $devolvido,
                 'restante' => max(0.0, (float) $alocacao->quantity - $devolvido),
@@ -155,11 +155,13 @@ class RevokeAllocatedAssetController extends Controller
      */
     private function alocacaoDoBusiness(int $id, int $business_id): AssetTransaction
     {
-        return AssetTransaction::with('asset')
+        // Join, nao `with('asset')`: o nome do bem sai da MESMA linha escopada, e o Larastan
+        // enxerga a coluna (a relacao `asset` nao tem tipo de retorno no Model).
+        return AssetTransaction::leftJoin('assets as bem', 'asset_transactions.asset_id', '=', 'bem.id')
             ->leftJoin('users as receiver_u', 'asset_transactions.receiver', '=', 'receiver_u.id')
             ->where('asset_transactions.business_id', $business_id)
             ->where('asset_transactions.transaction_type', 'allocate')
-            ->select('asset_transactions.*', DB::raw("CONCAT(COALESCE(receiver_u.surname, ''),' ',COALESCE(receiver_u.first_name, ''),' ',COALESCE(receiver_u.last_name,'')) as receiver_name"))
+            ->select('asset_transactions.*', 'bem.name as bem_nome', DB::raw("CONCAT(COALESCE(receiver_u.surname, ''),' ',COALESCE(receiver_u.first_name, ''),' ',COALESCE(receiver_u.last_name,'')) as receiver_name"))
             ->findOrFail($id);
     }
 
@@ -189,7 +191,7 @@ class RevokeAllocatedAssetController extends Controller
                 'ref_no' => (string) $d->ref_no,
                 'quantidade' => (float) $d->quantity,
                 'data' => $d->transaction_datetime ? $this->commonUtil->format_date($d->transaction_datetime, true) : null,
-                'autor' => trim((string) $d->autor),
+                'autor' => trim((string) $d->getAttribute('autor')),
                 'motivo' => $d->reason,
             ]);
     }
@@ -198,7 +200,7 @@ class RevokeAllocatedAssetController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  Request  $request
-     * @return Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
     {
@@ -302,8 +304,10 @@ class RevokeAllocatedAssetController extends Controller
     /**
      * Remove the specified resource from storage.
      *
+     * Inertia (drawer) recebe redirect; o ajax legado da lista Blade segue recebendo o array.
+     *
      * @param  int  $id
-     * @return Response
+     * @return \Illuminate\Http\RedirectResponse|array<string, mixed>|null
      */
     public function destroy($id)
     {

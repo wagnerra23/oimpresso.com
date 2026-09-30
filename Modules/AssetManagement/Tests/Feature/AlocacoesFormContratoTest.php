@@ -220,7 +220,8 @@ it('UC-ALOC-07: editar abre o drawer so para alocacao do business — de outra e
             ->assertInertia(fn ($p) => $p
                 ->where('formulario.modo', 'editar')
                 ->where('formulario.alocacao.id', $aloc->id)
-                ->where('formulario.alocacao.quantidade', 3.0));
+                // Por VALOR: no payload JSON `3.0` chega como `3` (int) — `where` compara com ===.
+                ->where('formulario.alocacao.quantidade', fn ($v) => (float) $v === 3.0));
 
         alocFormComo($u, $dono)->get("/asset/allocation/{$alheia->id}/edit")->assertStatus(404);
         alocFormComo($u, $dono)->get("/asset/allocation/{$dev->id}/edit")->assertStatus(404);
@@ -248,8 +249,9 @@ it('UC-ALOC-08: o drawer de devolucao lista e soma so devolucoes do business (Ti
         $page->assertStatus(200)->assertInertia(fn ($p) => $p
             ->component('Patrimonio/Alocacoes')
             ->where('formulario.modo', 'devolver')
-            ->where('formulario.alocacao.devolvido', 1.0)
-            ->where('formulario.alocacao.restante', 3.0));
+            // Por VALOR, pelo mesmo motivo do UC-ALOC-07: o JSON devolve `1.0` como `1`.
+            ->where('formulario.alocacao.devolvido', fn ($v) => (float) $v === 1.0)
+            ->where('formulario.alocacao.restante', fn ($v) => (float) $v === 3.0));
 
         $ids = collect($page->viewData('page')['props']['formulario']['devolucoes'])->pluck('id')->all();
         expect($ids)->toBe([$minha->id]);
