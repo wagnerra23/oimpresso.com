@@ -354,6 +354,13 @@ class AssetController extends Controller
      */
     private const RECORTES = ['todos', 'garantia', 'manutencao'];
 
+    /**
+     * Rótulo do bem SEM categoria nas análises do Painel. Era `__('lang_v1.none')` ("nenhum"),
+     * que na barra lia só "nenhum" e no selo virava "100% EM NENHUM" (visto na evidência visual
+     * de 2026-09-30). "Sem categoria" diz o que é — e é o mesmo texto nas duas análises.
+     */
+    private const SEM_CATEGORIA = 'Sem categoria';
+
     private function recorteAtivo(Request $request): string
     {
         $recorte = (string) $request->input('recorte', 'todos');
@@ -977,7 +984,7 @@ class AssetController extends Controller
 
         return Asset::where('assets.business_id', $business_id)
             ->leftJoin('categories as cat', 'assets.category_id', '=', 'cat.id')
-            ->selectRaw('COALESCE(cat.name, ?) as categoria', [__('lang_v1.none')])
+            ->selectRaw('COALESCE(cat.name, ?) as categoria', [self::SEM_CATEGORIA])
             ->selectRaw('COALESCE(SUM(assets.quantity), 0) as unidades')
             ->selectRaw('COALESCE(SUM(assets.quantity * assets.unit_price), 0) as valor')
             ->groupBy('cat.id', 'cat.name')
@@ -1068,7 +1075,7 @@ class AssetController extends Controller
             ->where('asset_transactions.receiver', $user_id)
             ->leftJoin('assets as a', 'a.id', '=', 'asset_transactions.asset_id')
             ->leftJoin('categories as cat', 'a.category_id', '=', 'cat.id')
-            ->selectRaw('COALESCE(cat.name, ?) as categoria', [__('lang_v1.none')])
+            ->selectRaw('COALESCE(cat.name, ?) as categoria', [self::SEM_CATEGORIA])
             ->selectRaw("COALESCE(SUM(IF(asset_transactions.transaction_type='allocate', asset_transactions.quantity, -asset_transactions.quantity)), 0) as quantidade")
             ->groupBy('cat.id', 'cat.name')
             ->toBase()
