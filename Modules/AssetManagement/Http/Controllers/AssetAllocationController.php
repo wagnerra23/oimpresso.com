@@ -12,6 +12,7 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetTransaction;
+use Modules\AssetManagement\Exceptions\SaldoInsuficienteException;
 use Modules\AssetManagement\Services\AssetAllocationService;
 use Modules\AssetManagement\Utils\AssetUtil;
 use Yajra\DataTables\Facades\DataTables;
@@ -147,7 +148,28 @@ class AssetAllocationController extends Controller
                 ->make(true);
         }
 
-        return Inertia::render('Patrimonio/Alocacoes', [
+        return $this->renderAlocacoes($request, (int) $business_id);
+    }
+
+    /**
+     * A tela de Alocacoes (Inertia) — dona UNICA do render, usada por `index`, `create` e `edit`
+     * daqui e pelo `create` do `RevokeAllocatedAssetController` (thread 18, [W] 2026-09-30).
+     * Mesmo desenho da tela irma Bens (thread 17): `$extra` e o que muda entre elas — nada
+     * (index) ou a prop `formulario`, que diz qual drawer nasce aberto e com que dados.
+     *
+     * Publico porque o controller de devolucao renderiza ESTA Page: duas copias do render
+     * seriam duas listas de props pra divergir.
+     *
+     * @return \Inertia\Response
+     */
+    public function renderAlocacoes(Request $request, int $business_id, array $extra = [])
+    {
+        return Inertia::render('Patrimonio/Alocacoes', array_merge([
+            // Formato de data/hora da empresa: o drawer converte a data antes do POST, porque
+            // o `AssetAllocationService` (nao_toca) le com `Util::uf_date($x, true)`, que e
+            // `createFromFormat(business.date_format + hora)`. Mesma ponte da tela Bens.
+            'formato_data' => (string) session('business.date_format', 'd/m/Y'),
+            'hora_12' => (int) session('business.time_format') === 12,
             'filtros' => [
                 'q' => $request->input('q'),
                 'situacao' => $this->situacaoFiltro($request),
@@ -167,7 +189,7 @@ class AssetAllocationController extends Controller
             // Regra default do projeto pra prop com paginate/subquery:
             // RUNBOOK-inertia-defer-pattern.md
             'alocacoes' => Inertia::defer(fn () => $this->buildAlocacoesPayload($request, $business_id)),
-        ]);
+        ], $extra));
     }
 
     /**
@@ -300,26 +322,58 @@ class AssetAllocationController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Alocar: a tela de Alocacoes com o drawer "Alocar recurso" aberto (thread 18).
      *
-     * @return Response
+     * Ate 2026-09-30 devolvia o fragmento de modal `asset_allocation.create` so sob `ajax()`.
+     * Esse ramo nao convive com a tela React: o cliente Inertia manda `X-Requested-With`
+     * SEMPRE, entao toda visita cairia nele. `?asset_id=` pre-seleciona o bem, como antes.
+     *
+     * @return \Inertia\Response
      */
-    public function create()
+    public function create(Request $request)
     {
-        $business_id = request()->session()->get('user.business_id');
+        $business_id = (int) request()->session()->get('user.business_id');
 
         if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $users = User::forDropdown($business_id, false);
-            $assets = Asset::forDropdown($business_id, true, false);
-            $asset_id = request()->get('asset_id', null);
+        return $this->renderAlocacoes($request, $business_id, ['formulario' => [
+            'modo' => 'alocar',
+            'bens' => $this->bensParaAlocar($business_id),
+            'pessoas' => $this->pessoas($business_id),
+            'asset_id' => $request->filled('asset_id') ? (int) $request->input('asset_id') : null,
+        ]]);
+    }
 
-            return view('assetmanagement::asset_allocation.create')
-                ->with(compact('users', 'assets', 'asset_id'));
+    /**
+     * Bens atribuiveis do business, com o saldo livre que o `Asset::forDropdown` calcula —
+     * o MESMO numero que o Blade mostrava entre parenteses. Informativo: quem recusa e a
+     * trava do `AssetAllocationService` (thread 02), no servidor. O drawer nao recalcula.
+     */
+    private function bensParaAlocar(int $business_id): array
+    {
+        $dropdown = Asset::forDropdown($business_id, true, false);
+        $saida = [];
+        foreach ($dropdown['assets'] as $id => $rotulo) {
+            $saida[] = [
+                'id' => (int) $id,
+                // O rotulo vem como "Nome(3)" — o saldo vai em campo proprio.
+                'nome' => (string) preg_replace('/\(-?\d+\)$/', '', (string) $rotulo),
+                'saldo' => (float) ($dropdown['asset_quantity'][$id]['data-quantity'] ?? 0),
+            ];
         }
+
+        return $saida;
+    }
+
+    /** Quem pode receber o bem: usuarios do business (mesmo `User::forDropdown` do Blade). */
+    private function pessoas(int $business_id): array
+    {
+        return collect(User::forDropdown($business_id, false))
+            ->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => trim((string) $nome)])
+            ->values()
+            ->all();
     }
 
     /**
@@ -348,6 +402,12 @@ class AssetAllocationController extends Controller
                 ->action([\Modules\AssetManagement\Http\Controllers\AssetAllocationController::class, 'index'])
                 ->with('status', ['success' => true,
                     'msg' => __('lang_v1.success'), ]);
+        } catch (SaldoInsuficienteException $e) {
+            // A recusa da trava (thread 02) chega ao DRAWER como erro do campo quantidade — ate
+            // 2026-09-30 caia no `catch` generico e virava "algo deu errado", com a mensagem
+            // PT-BR so no log (limite declarado no docblock da propria excecao). O Service ja
+            // fez o rollback; aqui so se traduz. Nenhuma linha e gravada.
+            return redirect()->back()->withErrors(['quantity' => $e->getMessage()]);
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -361,33 +421,42 @@ class AssetAllocationController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Editar alocacao: a tela de Alocacoes com o drawer aberto em modo editar (thread 18).
+     *
+     * Mesmo motivo do `create()`. A alocacao entra ja escopada por business E por tipo —
+     * id de outra empresa, ou de uma DEVOLUCAO, da 404. O `update()` e o de sempre.
      *
      * @param  int  $id
-     * @return Response
+     * @return \Inertia\Response
      */
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
-        $business_id = request()->session()->get('user.business_id');
+        $business_id = (int) request()->session()->get('user.business_id');
 
         if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $asset_allocated = AssetTransaction::with('asset', 'revokeTransaction')
-                                ->where('business_id', $business_id)
-                                ->findOrfail($id);
+        $alocacao = AssetTransaction::where('business_id', $business_id)
+            ->where('transaction_type', 'allocate')
+            ->findOrFail($id);
 
-            $users = User::forDropdown($business_id, false);
-            $assets = Asset::forDropdown($business_id, true, false);
-            // Wave 16 D4 — calculo de disponivel via Service.
-            $total_available_asset = $this->allocationService->quantidadeDisponivel($asset_allocated);
-
-            return view('assetmanagement::asset_allocation.edit')
-                ->with(compact('users', 'assets', 'asset_allocated',
-                'total_available_asset'));
-        }
+        return $this->renderAlocacoes($request, $business_id, ['formulario' => [
+            'modo' => 'editar',
+            'bens' => $this->bensParaAlocar($business_id),
+            'pessoas' => $this->pessoas($business_id),
+            'asset_id' => (int) $alocacao->asset_id,
+            'alocacao' => [
+                'id' => (int) $alocacao->id,
+                'ref_no' => (string) $alocacao->ref_no,
+                'receiver' => (int) $alocacao->receiver,
+                // NUMERO, nao string formatada: quem formata pro envio e o `paraNumUf` do front.
+                'quantidade' => (float) $alocacao->quantity,
+                'alocado_em' => $alocacao->transaction_datetime ? \Carbon::parse($alocacao->transaction_datetime)->format('Y-m-d\\TH:i') : '',
+                'prazo' => $alocacao->allocated_upto ? \Carbon::parse($alocacao->allocated_upto)->format('Y-m-d') : '',
+                'motivo' => (string) ($alocacao->reason ?? ''),
+            ],
+        ]]);
     }
 
     /**

@@ -14,7 +14,7 @@ module: AssetManagement
 >
 > **O que isto é:** o inventário completo das raízes `Modules/AssetManagement/**` + `resources/js/Pages/AssetManagement/**` + `resources/js/Pages/Patrimonio/**` (namespaces Inertia `AssetManagement`, `Patrimonio`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `AssetManagement` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 126 arquivos em 17 papéis.
+**Total mapeado:** 129 arquivos em 17 papéis.
 
 ## Controllers — 7
 
@@ -109,8 +109,9 @@ module: AssetManagement
 - [Index.tsx](../../../resources/js/Pages/Patrimonio/Index.tsx)
 - [Manutencoes.tsx](../../../resources/js/Pages/Patrimonio/Manutencoes.tsx)
 
-## Componentes / apoio de tela — 2
+## Componentes / apoio de tela — 3
 
+- [Drawers.tsx](../../../resources/js/Pages/Patrimonio/_alocacoes/Drawers.tsx)
 - [CadastroBemDrawer.tsx](../../../resources/js/Pages/Patrimonio/_shared/CadastroBemDrawer.tsx)
 - [PatrimonioSubNav.tsx](../../../resources/js/Pages/Patrimonio/_shared/PatrimonioSubNav.tsx)
 
@@ -130,12 +131,12 @@ module: AssetManagement
 - [Index.casos.md](../../../resources/js/Pages/Patrimonio/Index.casos.md)
 - [Manutencoes.casos.md](../../../resources/js/Pages/Patrimonio/Manutencoes.casos.md)
 
-## Testes (Pest) — 17
+## Testes (Pest) — 18
 
-- 17 em [Modules/AssetManagement/Tests/Feature/](../../../Modules/AssetManagement/Tests/Feature)
+- 18 em [Modules/AssetManagement/Tests/Feature/](../../../Modules/AssetManagement/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 40
+## Demais arquivos (manifestos, docs, assets e misc) — 41
 
 - [.gitkeep](../../../Modules/AssetManagement/Config/.gitkeep)
 - [.gitkeep](../../../Modules/AssetManagement/Console/.gitkeep)
@@ -176,4 +177,5 @@ module: AssetManagement
 - [composer.json](../../../Modules/AssetManagement/composer.json)
 - [module.json](../../../Modules/AssetManagement/module.json)
 - [SCOPE.md](../../../memory/requisitos/AssetManagement/SCOPE.md)
+- [envio.ts](../../../resources/js/Pages/Patrimonio/_alocacoes/envio.ts)
 - [cadastroBem.ts](../../../resources/js/Pages/Patrimonio/_shared/cadastroBem.ts)

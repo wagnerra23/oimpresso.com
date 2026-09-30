@@ -109,28 +109,89 @@ class RevokeAllocatedAssetController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Devolver: a tela de Alocacoes com o drawer de devolucao aberto (thread 18, [W] 2026-09-30).
      *
-     * @return Response
+     * Ate 2026-09-30 devolvia o fragmento de modal `asset_revocation.create` so sob `ajax()` —
+     * que nao convive com a tela React (toda visita Inertia e ajax). O drawer mostra o que ja
+     * voltou desta alocacao, uma linha por devolucao (grao 1 : N, `_saida-16`), com EXCLUIR:
+     * ate aqui so a lista Blade `/asset/revocation` desfazia uma devolucao errada.
+     *
+     * Tier 0: a alocacao e as devolucoes saem escopadas por `business_id` — as DUAS pontas.
+     * `asset_transactions` nao tem global scope, entao o filtro e escrito em cada query.
+     *
+     * @return __BS__Inertia__BS__Response
      */
     public function create(Request $request)
     {
-        $business_id = request()->session()->get('user.business_id');
+        $business_id = (int) request()->session()->get('user.business_id');
 
         if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
             abort(403, 'Unauthorized action.');
         }
 
-        if ($request->ajax()) {
-            $allocated_id = $request->get('id');
-            $allocated_asset = AssetTransaction::where('business_id', $business_id)
-                                    ->findOrFail($allocated_id);
+        $alocacao = $this->alocacaoDoBusiness((int) $request->get('id'), $business_id);
 
-            $total_revoked_asset = $this->_getRevokedQtyOfAllocatedAsset($allocated_asset);
+        $devolucoes = $this->devolucoesDaAlocacao($alocacao, $business_id);
+        $devolvido = (float) $devolucoes->sum('quantidade');
 
-            return view('assetmanagement::asset_revocation.create')
-                ->with(compact('allocated_asset', 'total_revoked_asset'));
-        }
+        return app(AssetAllocationController::class)->renderAlocacoes($request, $business_id, ['formulario' => [
+            'modo' => 'devolver',
+            'alocacao' => [
+                'id' => (int) $alocacao->id,
+                'ref_no' => (string) $alocacao->ref_no,
+                'bem' => (string) ($alocacao->asset->name ?? ''),
+                'recebido_por' => trim((string) ($alocacao->receiver_name ?? '')),
+                'quantidade' => (float) $alocacao->quantity,
+                'devolvido' => $devolvido,
+                'restante' => max(0.0, (float) $alocacao->quantity - $devolvido),
+            ],
+            'devolucoes' => $devolucoes->values()->all(),
+        ]]);
+    }
+
+    /**
+     * A alocacao, escopada por business E por tipo. Id de outra empresa ou de uma devolucao
+     * da 404 — antes, `findOrFail` sem tipo aceitava QUALQUER transacao como "pai".
+     */
+    private function alocacaoDoBusiness(int $id, int $business_id): AssetTransaction
+    {
+        return AssetTransaction::with('asset')
+            ->leftJoin('users as receiver_u', 'asset_transactions.receiver', '=', 'receiver_u.id')
+            ->where('asset_transactions.business_id', $business_id)
+            ->where('asset_transactions.transaction_type', 'allocate')
+            ->select('asset_transactions.*', DB::raw("CONCAT(COALESCE(receiver_u.surname, ''),' ',COALESCE(receiver_u.first_name, ''),' ',COALESCE(receiver_u.last_name,'')) as receiver_name"))
+            ->findOrFail($id);
+    }
+
+    /**
+     * As devolucoes de UMA alocacao, da mais recente pra mais antiga. `business_id` filtrado
+     * na DEVOLUCAO, nao so na alocacao (Tier 0 — `_saida-16b`): linha filha de outro tenant
+     * apontando pro mesmo `parent_id` nao entra na lista nem na soma.
+     */
+    private function devolucoesDaAlocacao(AssetTransaction $alocacao, int $business_id)
+    {
+        return AssetTransaction::leftJoin('users as autor', 'asset_transactions.created_by', '=', 'autor.id')
+            ->where('asset_transactions.business_id', $business_id)
+            ->where('asset_transactions.transaction_type', 'revoke')
+            ->where('asset_transactions.parent_id', $alocacao->id)
+            ->orderByDesc('asset_transactions.transaction_datetime')
+            ->select(
+                'asset_transactions.id',
+                'asset_transactions.ref_no',
+                'asset_transactions.quantity',
+                'asset_transactions.transaction_datetime',
+                'asset_transactions.reason',
+                DB::raw("CONCAT(COALESCE(autor.surname, ''),' ',COALESCE(autor.first_name, ''),' ',COALESCE(autor.last_name,'')) as autor")
+            )
+            ->get()
+            ->map(fn ($d) => [
+                'id' => (int) $d->id,
+                'ref_no' => (string) $d->ref_no,
+                'quantidade' => (float) $d->quantity,
+                'data' => $d->transaction_datetime ? $this->commonUtil->format_date($d->transaction_datetime, true) : null,
+                'autor' => trim((string) $d->autor),
+                'motivo' => $d->reason,
+            ]);
     }
 
     /**
@@ -147,8 +208,30 @@ class RevokeAllocatedAssetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // O PAI vem do business e do tipo certo, e o `asset_id` vem DELE — nao do formulario.
+        // Antes os dois eram lidos crus do POST: uma devolucao podia nascer pendurada numa
+        // alocacao de outra empresa, ou apontando pra outro bem (thread 18, Tier 0).
+        $alocacao = $this->alocacaoDoBusiness((int) $request->input('parent_id'), (int) $business_id);
+
+        // A trava do lado da devolucao: nao se devolve mais do que falta voltar. Antes nao havia
+        // nenhuma — o `max` do Blade era so atributo HTML. Recusa ANTES de gravar, com a
+        // mensagem no campo, como a trava de alocacao (thread 02).
+        $pedido = (float) $this->commonUtil->num_uf((string) $request->input('quantity', ''));
+        $restante = (float) $alocacao->quantity - (float) $this->devolucoesDaAlocacao($alocacao, (int) $business_id)->sum('quantidade');
+        if ($pedido <= 0) {
+            return redirect()->back()->withErrors(['quantity' => 'Informe a quantidade devolvida.']);
+        }
+        if ($pedido > $restante) {
+            return redirect()->back()->withErrors(['quantity' => sprintf(
+                'So falta devolver %s unidade(s) desta alocacao.',
+                rtrim(rtrim(number_format(max(0, $restante), 4, ',', '.'), '0'), ',')
+            )]);
+        }
+
         try {
-            $input = $request->only('ref_no', 'parent_id', 'asset_id', 'quantity', 'transaction_datetime', 'reason');
+            $input = $request->only('ref_no', 'quantity', 'transaction_datetime', 'reason');
+            $input['parent_id'] = $alocacao->id;
+            $input['asset_id'] = $alocacao->asset_id;
             $input['transaction_type'] = 'revoke';
             $input['business_id'] = $business_id;
             $input['created_by'] = request()->session()->get('user.id');
@@ -175,11 +258,13 @@ class RevokeAllocatedAssetController extends Controller
 
             DB::commit();
 
+            // Volta pra tela de onde o drawer saiu. O `index` de devolucoes (Blade) nao tem mais
+            // formulario que poste aqui — o unico chamador vivo e o drawer (thread 18).
             return redirect()
-                ->action([\Modules\AssetManagement\Http\Controllers\RevokeAllocatedAssetController::class, 'index'])
+                ->action([\Modules\AssetManagement\Http\Controllers\AssetAllocationController::class, 'index'])
                 ->with('status', ['success' => true,
                     'msg' => __('lang_v1.success'), ]);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
 
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\App\Support\Privacy\PiiRedactor::class)->redact($e->getMessage()));
@@ -228,18 +313,29 @@ class RevokeAllocatedAssetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Tipo `revoke` no filtro: sem ele este endpoint apagava QUALQUER transacao do business
+        // pelo id — inclusive uma ALOCACAO, sem passar pelo `AssetAllocationService`.
+        $asset_revoked = AssetTransaction::where('business_id', $business_id)
+            ->where('transaction_type', 'revoke')
+            ->findOrFail($id);
+
+        // Drawer de devolucao (Inertia, thread 18): resposta Inertia, nao JSON. O cliente manda
+        // `X-Requested-With` sempre, entao o teste e `inertia()` — `ajax()` sozinho nao distingue.
+        if (request()->inertia()) {
+            $asset_revoked->delete();
+
+            return redirect()->back()->with('status', ['success' => true, 'msg' => __('lang_v1.success')]);
+        }
+
         if (request()->ajax()) {
             try {
-                $asset_revoked = AssetTransaction::where('business_id', $business_id)
-                                    ->findOrfail($id);
-
                 $asset_revoked->delete();
 
                 $output = [
                     'success' => true,
                     'msg' => __('lang_v1.success'),
                 ];
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\App\Support\Privacy\PiiRedactor::class)->redact($e->getMessage()));
 
                 $output = [
