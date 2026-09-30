@@ -975,7 +975,12 @@ it('UC-BENS-10: o drawer lista as N devoluções da alocação, nunca devoluçã
 
         // Bem de OUTRA empresa pelo `?bem=`: não vaza nada.
         $propsAlheio = bensContratoParcial($user, $donoId, ['bem' => $alheio->id], 'bem_detalhe,bem_selecionado');
-        expect($propsAlheio['bem_detalhe'] ?? 'ausente')->toBeNull();
+        // Controle positivo: o pedido chegou com o id do bem alheio — "não veio dado" não pode
+        // passar por a requisição nem ter pedido o bem. (Até 2026-09-30 este assert era
+        // `?? 'ausente'`, que troca `null` por string e por isso reprovava SEMPRE.)
+        expect($propsAlheio['bem_selecionado'] ?? null)->toBe((int) $alheio->id);
+        expect(array_key_exists('bem_detalhe', $propsAlheio))->toBeTrue();
+        expect($propsAlheio['bem_detalhe'])->toBeNull();
     } finally {
         DB::table('asset_transactions')->where('ref_no', 'like', 'BENS-CTR-D-%')->whereNotNull('parent_id')->delete();
         DB::table('asset_transactions')->where('ref_no', 'like', 'BENS-CTR-D-%')->delete();
