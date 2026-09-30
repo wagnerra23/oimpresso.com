@@ -461,6 +461,14 @@
     "baseline": "it_Patrimonio_Manutencoes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
+    "screen": "Patrimonio/Bens",
+    "source": "Patrimonio/Bens",
+    "component": "Patrimonio/Bens",
+    "route": "/asset/assets",
+    "anchor": "O patrimônio da empresa",
+    "baseline": "it_Patrimonio_Bens_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Patrimonio/Index",
     "source": "Patrimonio",
     "component": "Patrimonio/Index",
