@@ -104,6 +104,81 @@ tema, 2 PRs duplicados fechados).
 `;
 }
 
+// ─── 2º GATILHO: antes do `gh pr create` (2026-09-30) ──────────────────────────────────
+//
+// O aviso de alvo novo olha SESSÕES no momento do Edit. O ponto cego que custou 2 PRs
+// duplicados no mesmo dia (#8229×#8226, #8290×#8286 — §5 2026-09-30 e a 2ª) é outro: outra
+// sessão já tem PR ABERTO nos mesmos arquivos, e isso só se vê no instante de publicar. A
+// sonda existe (`dup-detector --path`, #8235) — faltava o gatilho, e lembrar falhou 2×.
+//
+// FP MEDIDO ANTES DE INSTALAR, 400 PRs de 24/09 a 30/09, contando todo PR aberto enquanto
+// outro já aberto tocava o mesmo arquivo: sem filtro, 165/400 (41%). Tirando os arquivos
+// GERADOS/de estado abaixo, 90/400 (22,5%), pegando 11 de 11 duplicatas reais — precisão
+// ~12%. Nenhum limiar de sobreposição separou melhor sem perder duplicata. Por isso é AVISO
+// que INFORMA (qual PR, quais arquivos), nunca veredito nem bloqueio: a informação é sempre
+// verdadeira, a decisão fica com quem publica (mesma forma do aviso de stash, §5 2026-07-27).
+//
+// Canal: `additionalContext` (JSON no stdout). `stderr` + exit 0 NÃO chega ao agente
+// (§5 2026-09-23) — o 1º gatilho acima ainda usa `stderr`, e isso é dívida dele, não daqui.
+
+/** Arquivos gerados/de estado: colidem por construção entre PRs, não sinalizam duplicação. */
+export const DERIVADOS = [
+  /\/SUPERFICIE\.md$/,
+  /\/_STATUS-GENERATED\.md$/,
+  /^scripts\/design-sync\/state\//,
+  /^memory\/reference\/MAQUINAS-INVENTARIO\.md$/,
+  /^memory\/proibicoes\.md$/,
+  /^scripts\/governance\/\.cowork-freshness-ledger\.json$/,
+  /\.snap$/,
+  /^memory\/08-handoff\.md$/,
+  /_HOOKS-INDEX\.md$/,
+  /_SKILLS-INDEX\.md$/,
+  /\.memory-health-baseline\.json$/,
+];
+
+/** @param {string} cmd */
+export function ehPrCreate(cmd) {
+  return /(^|[\s;&|(])gh\s+pr\s+create\b/.test(String(cmd || ''));
+}
+
+/** @param {string[]} files */
+export function semDerivados(files) {
+  return files.map(toFwd).filter((f) => f && !DERIVADOS.some((r) => r.test(f)));
+}
+
+/**
+ * Texto do aviso a partir da saída do `dup-detector --path`. `null` = nada a dizer.
+ * @param {number|null} rc  0 livre · 1 tocado · 2 não medi · null = nem rodou
+ * @param {string} saida
+ */
+export function avisoAntesDoPr(rc, saida) {
+  if (rc === 0) return null;
+  if (rc === 1) {
+    return `[whats-active-troca-de-alvo] ⚠️  Há PR ABERTO de outra sessão nos arquivos deste branch:\n\n${String(saida).trim()}\n\n` +
+      'Leia TODOS antes de publicar o seu. É o mesmo trabalho? Coordene ou feche o seu. Não é? ' +
+      'Diga por quê no corpo (`Dedup-ack:`). Medido: ~1 em cada 8 destes avisos é duplicação real — ' +
+      'o resto é trabalho paralelo legítimo no mesmo módulo. Aviso, não bloqueio (LC-19, §5 2026-09-30).';
+  }
+  return '[whats-active-troca-de-alvo] ⚠️  NÃO MEDI se há PR aberto nos arquivos deste branch ' +
+    `(dup-detector saiu ${rc === null ? 'sem rodar' : rc}). Isso NÃO quer dizer "livre" — rode à mão: ` +
+    'node scripts/governance/dup-detector.mjs --path=<arquivos> --self-branch=<branch>';
+}
+
+/** Impuro: arquivos do branch e o dup-detector. Nunca lança. @param {string} cwd */
+function checarAntesDoPr(cwd) {
+  const git = (a) => spawnSync('git', a, { cwd, encoding: 'utf8', timeout: 15000 });
+  const branch = git(['rev-parse', '--abbrev-ref', 'HEAD']);
+  const diff = git(['diff', '--name-only', 'origin/main...HEAD']);
+  if (branch.status !== 0 || diff.status !== 0) return avisoAntesDoPr(null, '');
+  const files = semDerivados(diff.stdout.split(/\r?\n/)).slice(0, 100);
+  if (!files.length) return null;
+  const script = fileURLToPath(new URL('../../scripts/governance/dup-detector.mjs', import.meta.url));
+  const r = spawnSync(process.execPath, [script, `--path=${files.join(',')}`, `--self-branch=${branch.stdout.trim()}`],
+    { cwd, encoding: 'utf8', timeout: 30000 });
+  const linhas = String(r.stdout || '').split(/\r?\n/).filter((l) => /⚠️|↔/.test(l)).join('\n');
+  return avisoAntesDoPr(typeof r.status === 'number' ? r.status : null, linhas);
+}
+
 const readStdin = () => new Promise((res, rej) => {
   let d = '';
   process.stdin.setEncoding('utf8');
@@ -117,13 +192,24 @@ async function main() {
     let raw = '';
     try { raw = await readStdin(); } catch { process.exit(0); }
     if (!raw) process.exit(0);
-    let tool, path, tp;
+    let tool, path, tp, cmd, cwd;
     try {
       const j = JSON.parse(raw);
       tool = j.tool_name ?? j.tool;
       path = j.tool_input?.file_path ?? j.tool_input?.path;
       tp = j.transcript_path;
+      cmd = j.tool_input?.command;
+      cwd = j.cwd || process.cwd();
     } catch { process.exit(0); }
+    if (typeof cmd === 'string' && ehPrCreate(cmd)) {
+      const aviso = checarAntesDoPr(cwd);
+      if (aviso) {
+        process.stdout.write(JSON.stringify({
+          hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: aviso },
+        }) + '\n');
+      }
+      process.exit(0);
+    }
     if (!WRITE_TOOLS.has(tool) || !path) process.exit(0);
     const alvo = alvoDe(path);
     if (!alvo) process.exit(0);

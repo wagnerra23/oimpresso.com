@@ -239,7 +239,7 @@ lifecycle: ativo
 | `tier-a-banner.mjs` | SessionStart(*) | test | `memory/requisitos/ADS/BRIEFING.md` +5 | SessionStart (PORTE cross-plataforma do tier-a-banner.ps1). |
 | `vista-publicada-padrao.mjs` | PreToolUse(Artifact) | test | `memory/reference/VISTAS-PUBLICADAS.md` +2 | PreToolUse:Artifact. ADVISORY (nunca bloqueia). |
 | `warn-red-first.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test | `memory/LICOES_CODE.md` +1 | PreToolUse:Write\|Edit\|MultiEdit (PORTE cross-plataforma do .ps1). |
-| `whats-active-troca-de-alvo.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test | `.claude/skills/session-start-check/SKILL.md` +2 | AVISA (não bloqueia) quando um Edit/Write adota um ALVO |
+| `whats-active-troca-de-alvo.mjs` | PreToolUse(Bash\|PowerShell\|Monitor) PreToolUse(Write\|Edit\|MultiEdit) | test | `.claude/skills/session-start-check/SKILL.md` +2 | AVISA (não bloqueia) quando um Edit/Write adota um ALVO |
 
 ## 3. Skills — 74
 
@@ -617,7 +617,7 @@ lifecycle: ativo
 | `ds-lint-selftest.mjs` | ci, script | 🟢 só lê | — | `memory/reference/prototipo-ui/REGRAS_DS_LINT.md` | LINT SELFTEST — controle-negativo das regras ds/* (as `no-restricted-syntax` |
 | `ds-mirror-drift.mjs` | agente, ci, script | 🟢 só lê | bite-log + test | `memory/decisions/0328-ds-transicao-congelado-para-vivo-git-ssot.md` +24 | SENTINELA de drift git ↔ espelho vivo (P3). |
 | `dtcg-equivalence.mjs` | ci, npm | 🟢 só lê | test | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +13 | onda DTCG (ancora: ADR 0239 DS git SSOT + ADR 0249 DS v6 + |
-| `dup-detector.mjs` | ci | 🟢 só lê | test | `memory/decisions/0331-anti-duplicacao-work-claim-gate.md` +34 | L3 (keystone) da trava anti-duplicação de trabalho entre sessões |
+| `dup-detector.mjs` | agente, ci | 🟢 só lê | test | `memory/decisions/0331-anti-duplicacao-work-claim-gate.md` +34 | L3 (keystone) da trava anti-duplicação de trabalho entre sessões |
 | `fact-anchor.mjs` | script | 🟢 só lê | test | `memory/decisions/0349-fact-anchor-fail-emenda-0314.md` +15 | lógica PURA do Check T de memory-health.mjs (fact-anchor). |
 | `feature-lint.mjs` | ci, npm, script | 🔴 disco | test | `memory/decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md` +24 | valida o TRIO de feature (requirements.md + plan.md + tasks.md) em |
 | `fiscal-debitos-derive.mjs` | ci | 🔴 disco | — | — | - |

@@ -242,6 +242,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/block-sonda-que-mente.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/whats-active-troca-de-alvo.mjs"
           }
         ]
       },
