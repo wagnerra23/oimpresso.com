@@ -3020,6 +3020,16 @@ Ocorrência da **LC-08**.
 
 Ocorrência da **LC-19**.
 
+### 2026-09-30 (2ª) — EMENDA da lápide acima (três sessões no mesmo baseline): a sonda por arquivo virou modo do `dup-detector` no mesmo dia, e na mesma sessão o 2º PR duplicado saiu sem rodá-la
+
+- **O que foi tentado:** a Patrimônio/16, executada e aberta como [#8290](https://github.com/wagnerra23/oimpresso.com/pull/8290). Pré-flight feito contra o **dono do tema** (placar, `_saida-16`/`16b`, charter), nenhum contra **PR aberto no arquivo**.
+- **Por que caiu:** o [#8286](https://github.com/wagnerra23/oimpresso.com/pull/8286), de outra sessão, abriu 11 minutos antes (17:15:57 × 17:26:58 UTC) para a mesma thread e escrevia o mesmo `_saida-16c.md`. `node scripts/governance/dup-detector.mjs --path=<controller> --self=<N>` acusava em uma linha — ferramenta armada nesta mesma sessão (#8235) depois da 1ª ocorrência do dia. Fechei o meu.
+- **O que isto acrescenta à lápide acima:** a falha não foi de ferramenta nem de regra, foi de **gatilho**. Armar a sonda não a coloca no caminho: ela só roda se alguém lembrar, e lembrar é exatamente o que falhou duas vezes no mesmo dia. Segundo achado, independente: **troquei a forma escolhida pelo [W]** (redirect) por uma leitura minha de uma nota do índice, sem voltar a ele — a sessão irmã seguiu a decisão literal.
+- **O limite (variante também proibida):** abrir PR de thread de playbook (ou de qualquer tarefa que outra sessão possa ter recebido pelo mesmo chip/pedido) sem rodar `dup-detector --path` nos arquivos do prefixo **imediatamente antes do `gh pr create`**. E trocar a forma que o [W] escolheu sem voltar a ele, mesmo com um texto do índice a favor: a decisão vem do dono, não da leitura mais conveniente do canon.
+- **Armado no mesmo dia como AVISO, a pedido do [W] ([#8295](https://github.com/wagnerra23/oimpresso.com/pull/8295)):** 2º gatilho do `whats-active-troca-de-alvo.mjs` (o dono do aviso de colisão entre sessões — não hook novo): antes de `gh pr create`, `dup-detector --path --self-branch` sobre os arquivos do branch, sem os gerados/de estado, por `additionalContext`, nunca bloqueia. FP medido antes em 400 PRs (24→30/09): 90 alarmariam (22,5%), pegando 11 de 11 duplicatas reais — precisão ~12%, por isso aviso que informa e não gate.
+
+Ocorrência da **LC-19**.
+
 ### 2026-09-30 — EMENDA da lápide 2026-08-18 (gap protótipo × produção por grep): o vetor LISTA DE MUDANÇAS — promovi para produção só o delta da sessão
 
 - **O que aconteceu:** pedido "subir as modificações realizadas no módulo de Fabricação para a produção", listei o que a sessão tinha mudado no protótipo (6 correções de QA e o título) e concluí *"na Receitas só o título se aplica"*. O [#8239](https://github.com/wagnerra23/oimpresso.com/pull/8239) levou a tela à produção no desenho antigo. Última mudança de desenho do `Recipes.tsx` no main: [#6782](https://github.com/wagnerra23/oimpresso.com/pull/6782), em 04/09. O protótipo já tinha migrado para os componentes do DS na versão do Felipe (21/09), que chegou ao espelho do Wagner pelo [#8052](https://github.com/wagnerra23/oimpresso.com/pull/8052) (28/09). [W] comparou os dois lados em print e achou as diferenças.
