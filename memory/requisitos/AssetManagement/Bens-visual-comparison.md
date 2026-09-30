@@ -40,8 +40,8 @@ last_validated: "2026-09-30"
 - **Dado de teste (2026-09-30, autorizado por [W]):** a empresa 1 nao tinha nenhum bem. Foram
   criados, pela propria UI: a categoria de ativo `TESTE — medição`, o bem `TESTE — medição drawer
   (apagar)` (codigo 2026/0002, id 2, 2 un., atribuivel), a alocacao 2026/0001 de 2 un. e **duas
-  devolucoes parciais** de 1 un. cada. **Ficam no banco** ate alguem apagar — nao se apaga dado de
-  producao por conta propria.
+  devolucoes parciais** de 1 un. cada. **Mantidos por decisao [W] (2026-09-30)** para as
+  proximas medicoes deste drawer — nao apagar sem nova decisao.
 - **Antes disso** so o cabecalho era medivel em producao (estado "Bem nao encontrado"); a tabela do
   cabecalho abaixo vem dessa fase.
 
@@ -103,4 +103,3 @@ nao escolha. Os motivos de ainda nao estarem na tela estao no charter (`Bens.cha
 ## Falta
 
 - Provar o frescor de `patrimonio-page.css` pela rota de bundle (sem transcrever).
-- Apagar o dado de teste da empresa 1 (categoria, bem, alocacao e as 2 devolucoes) — decisao [W].
