@@ -122,7 +122,7 @@ Layout: `AppShellV2` (`Audit.layout`), header `@/Components/shared/PageHeader` (
 ## 7. Atalhos
 
 - Herdados do shell: `G G` abre Governança (declarado em `DataController::modifyAdminMenu`),
-  `P` é o `shortcut` do primary "Gerenciar policies".
+  `P` é o `shortcut` do primary "Gerenciar políticas".
 - ⬜ **ABERTO**: a tela **não** registra atalho próprio (nenhum `useEffect` de `keydown` em `Audit.tsx`).
 
 ---
