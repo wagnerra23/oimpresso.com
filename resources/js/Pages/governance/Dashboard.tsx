@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select'
-import PageHeader from '@/Components/shared/PageHeader'
+import { PageHeader } from '@/Components/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
 import EmptyState from '@/Components/shared/EmptyState'
@@ -744,14 +744,15 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
       <GovernancaSubNav active="dashboard" />
 
       <PageHeader
-        icon="shield-check"
+        leading={<Shield className="h-5 w-5 text-muted-foreground" aria-hidden />}
         title="Governança"
-        description="Painel consolidado de governança do oimpresso. Constituição v1.1.0 — Art. 8 (Policy Gating) + Art. 9 (Auditoria) operacional. Wagner opera 5min/dia."
-      >
-        <Badge variant="outline" className={mode.color}>
-          ActionGate: {mode.label}
-        </Badge>
-      </PageHeader>
+        subtitle="Painel consolidado de governança do oimpresso. Constituição v1.1.0 — Art. 8 (Policy Gating) + Art. 9 (Auditoria) operacional. Wagner opera 5min/dia."
+        actions={
+          <Badge variant="outline" className={mode.color}>
+            ActionGate: {mode.label}
+          </Badge>
+        }
+      />
 
       <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mt-2">
         Constituição
