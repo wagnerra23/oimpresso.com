@@ -412,3 +412,83 @@ it('UC-MANU-05: o store() com bem de OUTRA empresa dá 404 e não cria; com bem 
         manutEscritaLimpar($assetIds);
     }
 });
+
+/*
+ * UC-MANU-06 — `create`/`edit` devolvem a tela de Manutenções com o drawer aberto (thread 19).
+ *
+ * Até 2026-09-30 os dois devolviam fragmento de modal Blade sob `ajax()` — e toda visita
+ * Inertia é ajax. Os `GET` abaixo mandam `X-Requested-With` DE PROPÓSITO: é o header que o
+ * cliente Inertia manda sempre, e sem ele o teste mediria uma requisição que o browser nunca
+ * faz (o ramo `ajax()` antigo passaria despercebido).
+ */
+function manutFormGet(User $user, int $bizId, string $url)
+{
+    test()->flushHeaders();
+
+    return test()->actingAs($user)->withSession(manutEscritaSessao($user, $bizId))
+        ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+        ->get($url);
+}
+
+it('UC-MANU-06: o create() abre o drawer com os bens SÓ da minha empresa, e ignora asset_id de outra', function () {
+    $donoId = (int) $this->seededTenant()->id;
+    $advId = (int) $this->seededSupportClientTenant()->id;
+    $user = manutContratoUsuario($donoId, 'asset.view_own_maintenance');
+    $userAdv = manutContratoUsuario($advId, 'asset.view_all_maintenance');
+    $assetIds = [];
+
+    try {
+        manutContratoAssinaturaLiberada();
+        $meuBem = manutContratoAsset($donoId, (int) $user->id, 'MANU-CTR-F1', 'Bem do dono');
+        $bemAdv = manutContratoAsset($advId, (int) $userAdv->id, 'MANU-CTR-F2', 'Bem do adversário');
+        $assetIds = [$meuBem->id, $bemAdv->id];
+
+        $r = manutFormGet($user, $donoId, '/asset/asset-maintenance/create?asset_id='.$meuBem->id);
+        expect($r->status())->toBe(200);
+        $page = $r->viewData('page');
+        expect(data_get($page, 'component'))->toBe('Patrimonio/Manutencoes');
+        $ids = collect(data_get($page, 'props.cadastro.bens'))->pluck('id')->map(fn ($i) => (int) $i)->all();
+        expect($ids)->toContain((int) $meuBem->id);
+        expect($ids)->not->toContain((int) $bemAdv->id);
+        expect((int) data_get($page, 'props.cadastro.bem_id'))->toBe((int) $meuBem->id);
+
+        // Id de OUTRA empresa na URL não pré-seleciona nada — e nem entra na lista.
+        $x = manutFormGet($user, $donoId, '/asset/asset-maintenance/create?asset_id='.$bemAdv->id);
+        expect($x->status())->toBe(200);
+        expect(data_get($x->viewData('page'), 'props.cadastro.bem_id'))->toBeNull();
+    } finally {
+        manutEscritaLimpar($assetIds);
+    }
+});
+
+it('UC-MANU-06: o edit() abre o drawer com a manutenção da minha empresa, e 404 para a de outra', function () {
+    $donoId = (int) $this->seededTenant()->id;
+    $advId = (int) $this->seededSupportClientTenant()->id;
+    $user = manutContratoUsuario($donoId, 'asset.view_all_maintenance');
+    $userAdv = manutContratoUsuario($advId, 'asset.view_all_maintenance');
+    $assetIds = [];
+
+    try {
+        manutContratoAssinaturaLiberada();
+        $meuBem = manutContratoAsset($donoId, (int) $user->id, 'MANU-CTR-F3', 'Bem do dono');
+        $bemAdv = manutContratoAsset($advId, (int) $userAdv->id, 'MANU-CTR-F4', 'Bem do adversário');
+        $assetIds = [$meuBem->id, $bemAdv->id];
+        $minha = manutContratoManutencao($donoId, (int) $meuBem->id, (int) $user->id, 'MANU-CTR-F3-01', (int) $user->id);
+        $alheia = manutContratoManutencao($advId, (int) $bemAdv->id, (int) $userAdv->id, 'MANU-CTR-F4-01');
+
+        $r = manutFormGet($user, $donoId, '/asset/asset-maintenance/'.$minha->id.'/edit');
+        expect($r->status())->toBe(200);
+        $page = $r->viewData('page');
+        expect(data_get($page, 'component'))->toBe('Patrimonio/Manutencoes');
+        expect((int) data_get($page, 'props.edicao.id'))->toBe((int) $minha->id);
+        expect(data_get($page, 'props.edicao.codigo'))->toBe('MANU-CTR-F3-01');
+        expect(data_get($page, 'props.edicao.status'))->toBe('in_progress');
+        expect(data_get($page, 'props.edicao.atribuido_a'))->toBe((string) $user->id);
+        expect(data_get($page, 'props.edicao.detalhes'))->toBe('Fixture de contrato MANU-CTR');
+
+        $x = manutFormGet($user, $donoId, '/asset/asset-maintenance/'.$alheia->id.'/edit');
+        expect($x->status())->toBe(404);
+    } finally {
+        manutEscritaLimpar($assetIds);
+    }
+});
