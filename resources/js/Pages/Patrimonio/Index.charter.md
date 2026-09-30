@@ -19,7 +19,7 @@ alcance:
   menu_hook: Modules/AssetManagement/Http/Controllers/DataController.php::modifyAdminMenu
   pacote: assetmanagement_module      # superadmin_package
 tier: B
-charter_version: 3
+charter_version: 4
 last_validated: "2026-09-30"
 ---
 
@@ -61,10 +61,13 @@ o que está parado ou sem cobertura de garantia.**
   decisão [W] — RESÍDUO 6 do playbook, dono `SPEC.md:96 US-ASSET-W01`. O KPI mostra `—`.
 - ❌ **Não mostra custo de manutenção.** `asset_maintenances` não tem coluna de valor. RESÍDUO 3
   do playbook. A lista e o total mostram `—`, não zero.
-- ❌ **Não cria rota para Garantias nem para Auditoria.** As duas abas existem no protótipo e não
-  no backend. A sub-navegação **deriva** do `shell.menu` e por isso simplesmente não as mostra —
-  decisão da tela de Bens, que a fundou (*"renderizar aba que não navega é afordância falsa"*).
-  Bloqueios `D-GARANTIAS` e `D-AUDITORIA`.
+- ❌ **Não cria rota nem tela para Garantias ou Auditoria.** As duas abas existem no protótipo;
+  a sub-navegação **deriva** do `shell.menu`, e nenhuma das duas virou rota própria. As duas
+  decisões saíram assim ([W]): **D-GARANTIAS** (2026-09-29) fez de Garantias um **recorte da
+  lista de Bens** — o chip "Garantia crítica" do Resumo navega para a rota existente de Bens com
+  `?recorte=garantia`, sem rota nova —; **D-AUDITORIA** (ADR 0414, 2026-09-24) fez de Auditoria
+  um deep-link para o `Modules/Auditoria`. (Até 2026-09-29 este item citava as duas como
+  bloqueios em aberto.)
 - ❌ **Não oferece o primary "+ Novo ativo" do menu, nem aponta cadastro pra `/asset/assets/create`.**
   Aquele endpoint só responde sob `ajax()`: numa navegação direta devolveu 200 com 0 bytes, e
   pelo `<Link>` do Inertia abriu o fragmento de modal jQuery cru (medido em prod, biz=1,
