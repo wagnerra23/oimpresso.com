@@ -1820,6 +1820,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** a pergunta *"este check é required?"* só se responde pelo **campo de estado**: as listas `classic_protection.contexts` + `rulesets.contexts` do baseline, ou o vivo (`gh api .../branches/main/protection/required_status_checks` **e** `.../rules/branches/main`, somados). **Nunca** por nota, comentário de workflow, ADR ou PR body que *mencione* o check, por mais oficial que seja o arquivo. Vale igual para "está em quarentena?", "está na allowlist?" e "está no manifesto?": num arquivo que mistura estado e história, o `grep` pelo nome devolve a história primeiro. E contagem por `grep` de texto só vale quando você sabe que o padrão casa **só** o campo de estado. Em JSON, pergunte ao parser.
 
+### 2026-09-30 — EMENDA do rec 09-16 da LC-19 e da lápide 2026-09-05 (dono-é-sessão-viva): TRÊS sessões re-mediram o mesmo baseline, e a sonda de "PR aberto no arquivo" precisa casar ARQUIVO, não texto
+
+- **O limite (variante também proibida):** diante de alarme de máquina compartilhada (gate/watchdog vermelho em todo PR, drift, cron), não publicar o conserto sem as três perguntas — PR aberto no arquivo (a sonda acima), sessão viva (`whats-active`), já mergeado (`git log HEAD..origin/main`). E, achado PR aberto, ler **todos** os números que a sonda devolveu antes de escolher o canônico.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

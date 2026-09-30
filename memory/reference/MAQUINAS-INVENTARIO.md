@@ -800,7 +800,7 @@ lifecycle: ativo
 | `governance/module-coupling-baseline.json` | ci, script | `memory/audits/2026-09-21-baselines-de-tolerancia.md` +1 | (baseline/estado) |
 | `governance/module-table-coupling-baseline.json` | script | `memory/audits/2026-09-21-baselines-de-tolerancia.md` | (baseline/estado) |
 | `governance/multi-tenant-global-model-contract.json` | php | (só sessão/handoff · 1) | (baseline/estado) |
-| `governance/multi-tenant-scope-baseline.json` | php | `memory/decisions/proposals/2026-09-02-mcp-para-forja-item-4-ondas.md` +4 | (baseline/estado) |
+| `governance/multi-tenant-scope-baseline.json` | php | `memory/decisions/proposals/2026-09-02-mcp-para-forja-item-4-ondas.md` +6 | (baseline/estado) |
 | `governance/prod-flags.json` | ci, script | `memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md` +15 | (baseline/estado) |
 | `governance/required-checks-baseline.json` | agente, ci, script | `memory/decisions/0361-errata-0354-teammcp-pest-required-nunca-executado.md` +171 | Required checks de main CONGELADOS — GT-G4 (plano 2026-06-12 §2 GARANTIDA) |
 | `governance/reseed-meilisearch-manifest.json` | — | `memory/requisitos/_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md` +5 | (baseline/estado) |
