@@ -4,8 +4,15 @@ irmaos: Manutencoes.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOO
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-09-30"
 ---
+
+> ℹ️ **`last_run` 2026-09-11 → 2026-09-30 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Manutencoes.tsx` foi a **geometria da tabela**: a coluna "Bem" ganhou os 250px
+> do protótipo e saiu o `minTableWidth={1280}` (sob `table-layout: fixed` ela ficava com 0px).
+> Revalidado: **UC-MANU-04** é da tela e passa no vitest (`tests/js/patrimonio*` 42/42, com o
+> `patrimonio-manutencoes-colunas.test.tsx` novo travando a geometria). **UC-MANU-01 a 03** são
+> contrato do controller, que este diff não toca — o status deles não muda por esta data.
 
 # Casos de Uso & Aceite — Patrimonio/Manutencoes
 
