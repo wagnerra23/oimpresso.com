@@ -284,6 +284,9 @@ class AssetController extends Controller
                 'category_id' => $request->input('category_id'),
                 'purchase_type' => $request->input('purchase_type'),
                 'is_allocatable' => $request->input('is_allocatable'),
+                // `null` quando e "todos": o front tira nulo da URL, e `?recorte=todos` so
+                // poluiria o link compartilhado. Valor fora da whitelist tambem cai aqui.
+                'recorte' => $this->recorteAtivo($request) === 'todos' ? null : $this->recorteAtivo($request),
                 'sort' => $request->input('sort'),
                 'dir' => $request->input('dir'),
             ],
@@ -311,7 +314,59 @@ class AssetController extends Controller
             // de media/warranties/maintenances). Regra default do projeto pra prop com
             // paginate/with/subquery: RUNBOOK-inertia-defer-pattern.md
             'bens' => Inertia::defer(fn () => $this->buildBensPayload($request, $business_id)),
+            // Contagem da pilula "Garantia critica" — vem do SERVIDOR sobre o conjunto, nao da
+            // pagina que chegou (charter: contar 25 de N linhas mente). Independe dos filtros
+            // escolhidos, como o `n` do prototipo (`patrimonio-page.jsx:357`, sobre `visiveis`),
+            // mas respeita `permitted_locations()`: restricao de permissao nunca e opcional.
+            'recortes_contagem' => Inertia::defer(fn () => [
+                'garantia' => $this->contarRecorteGarantia($business_id),
+            ]),
         ]);
+    }
+
+    /**
+     * Recortes da lista de Bens (D-GARANTIAS, [W] 2026-09-29: "Garantia critica" e filtro
+     * DENTRO de Bens, sem tela propria). Whitelist: valor fora dela vira `todos` e nunca
+     * chega ao SQL. "Em manutencao" nao entra — nao foi decidido (thread 12, PARAR SE).
+     */
+    private const RECORTES = ['todos', 'garantia'];
+
+    private function recorteAtivo(Request $request): string
+    {
+        $recorte = (string) $request->input('recorte', 'todos');
+
+        return in_array($recorte, self::RECORTES, true) ? $recorte : 'todos';
+    }
+
+    /**
+     * Garantia critica = garantia VENCIDA ou vencendo em ate 30 dias. Bem SEM registro de
+     * garantia NAO entra (vai para "sem garantia" no Painel — charter R3, `patrimonio-page.jsx:185`).
+     *
+     * E o MESMO predicado de `contaGarantiaCritica()` do Painel (`DATEDIFF(end_date,
+     * CURDATE()) <= 30`), para o KPI do Painel e a pilula daqui contarem a mesma coisa.
+     *
+     * Tier 0 (ADR 0093): `asset_warranties` NAO tem `business_id`, entao a subconsulta entra
+     * por join com `assets` filtrando o business EXPLICITAMENTE — nao confia so na correlacao
+     * com a consulta externa.
+     */
+    private function aplicarRecorteGarantia($assets, $business_id)
+    {
+        return $assets->whereIn('assets.id', AssetWarranty::join('assets as AWA', 'AWA.id', '=', 'asset_warranties.asset_id')
+            ->where('AWA.business_id', $business_id)
+            ->whereRaw('DATEDIFF(asset_warranties.end_date, CURDATE()) <= 30')
+            ->select('asset_warranties.asset_id'));
+    }
+
+    private function contarRecorteGarantia($business_id): int
+    {
+        $assets = Asset::where('assets.business_id', $business_id);
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $assets->whereIn('assets.location_id', $permitted_locations);
+        }
+
+        return $this->aplicarRecorteGarantia($assets, $business_id)->count();
     }
 
     /**
@@ -396,6 +451,10 @@ class AssetController extends Controller
         $assets = $this->baseAssetsQuery($business_id);
 
         $this->applyAssetFilters($assets);
+
+        if ($this->recorteAtivo($request) === 'garantia') {
+            $this->aplicarRecorteGarantia($assets, $business_id);
+        }
 
         // Busca — os 4 campos que identificam o bem, os mesmos que o prototipo procura
         // (`patrimonio-page.jsx:275`: id + nome + modelo + serie).

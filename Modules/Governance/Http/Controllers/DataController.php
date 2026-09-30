@@ -123,14 +123,17 @@ class DataController extends Controller
                         'acao'     => 'navegar', // só leva à tela: sem o "+" de criação ([W] 2026-09-29)
                     ],
                     'ghosts'   => [
+                        // Rótulos das 4 vistas desenhadas = protótipo (governance-page.jsx → VIEWS,
+                        // ADR UI-0029) e PT-BR; as 3 abaixo delas o protótipo não desenha.
                         ['key' => 'dashboard',     'label' => 'Painel',          'href' => '/governance/dashboard'],
-                        ['key' => 'policies',      'label' => 'Policies',        'href' => '/governance/policies'],
-                        ['key' => 'audit',         'label' => 'Audit log',       'href' => '/governance/audit'],
-                        ['key' => 'drift',         'label' => 'Drift alerts',    'href' => '/governance/drift'],
+                        ['key' => 'policies',      'label' => 'Políticas',       'href' => '/governance/policies'],
+                        ['key' => 'audit',         'label' => 'Auditoria',       'href' => '/governance/audit'],
+                        ['key' => 'drift',         'label' => 'Drift',           'href' => '/governance/drift'],
                         ['key' => 'ds-rollout',    'label' => 'DS Rollout',      'href' => '/governance/ds-rollout'],
                         // Recebidas do Modules/Jana em 2026-08-05 (ADR 0366 §D-B).
-                        // Com estas duas a lista vai a 8 e o GovernancaSubNav usa
-                        // maxVisible={5} — as 3 últimas caem no overflow `⋯ Mais`.
+                        // Com estas duas a lista foi a 8; desde que `module-grades` saiu (#7283,
+                        // ADR 0399) são 7, e o GovernancaSubNav usa maxVisible={5} — as 2 últimas
+                        // caem no overflow `⋯ Mais`.
                         // Ordem é deliberada: Painel/Policies/Audit são o uso diário
                         // do [W]-auditor; Custos e Qualidade são consulta periódica.
                         ['key' => 'custos',        'label' => 'Custos de IA',    'href' => '/governance/custos'],

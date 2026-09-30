@@ -1,0 +1,40 @@
+{
+  "_": "Financeiro/Dre/Index (DRE / Relatórios, aba Demonstrativo) — thread 09 do playbook `cowork-inbox/financeiro` ([CL] 2026-09-29). Rota do protótipo `fin-dre` (app.jsx:828 → `FinanceiroPage initialTela=\"dre\"` → `TelaDRE` em financeiro-telas-extras.jsx:436). Espelho servido por `servirEstatico` (render-proto-baseline.mjs), o mesmo servidor do secao-check. `dado` lido em `Modules/Financeiro/Http/Controllers/DreController.php@index` no main 831461d6a.",
+  "_mapa": "Colhido em 2026-09-29 por `alvo:mapa http://127.0.0.1:5550/ --rota fin-dre --raiz <sel>`: `.main-body` = div.os-page.fin-root · `.fin-root` = div.os-page-h.fin-hero · nav.ph-nav.ph-nav--fin · div.fin-body · `.fin-body` = nav.fin-bcrumb · div.px-6.pt-4 (abas) · div.px-6.pt-4 (fin-card com a tabela) · div.px-6.mt-4.mb-4.grid (2 cards). Seletores por classe e `:has(table)`, não `nth-child` do meio. `conta` e `conta_titulo` existem para a thread 10 (coluna Conta em mono): medem `fontFamily` da 1ª célula de corpo e do cabeçalho da coluna.",
+  "header": {
+    "seletor": ".fin-root > .fin-hero",
+    "campos": ["display", "padding", "gap", "fontFamily"],
+    "dado": "shell — PageHeader canon do Financeiro (Dre/Index.tsx importa o PageHeader)"
+  },
+  "nav": {
+    "seletor": ".fin-root > nav.ph-nav",
+    "dado": "shell — navegação de área do Financeiro"
+  },
+  "bcrumb": {
+    "seletor": ".fin-body > nav.fin-bcrumb",
+    "dado": "estático — trilha \"DRE / Relatórios\" com voltar ao Unificado"
+  },
+  "abas": {
+    "seletor": ".fin-body > .px-6.pt-4:not(:has(table))",
+    "dado": "`aba` — DreController@index resolveAba(): demonstrativo · balanco · balancete (partial reload só da aba)"
+  },
+  "tabela": {
+    "seletor": ".fin-body .fin-card:has(table)",
+    "campos": ["display", "color", "backgroundColor", "fontSize", "fontFamily", "borderRadius"],
+    "dado": "`meta` + `linhas` — DreController@index → DreService::montar(business_id da sessão, periodo_tipo, anchor_mes), closure memoizada (D-14)"
+  },
+  "conta_titulo": {
+    "seletor": ".fin-body .fin-card table thead th:first-child",
+    "campos": ["fontFamily", "fontSize", "fontWeight", "color", "padding", "textAlign"],
+    "dado": "estático — rótulo da coluna \"Conta\""
+  },
+  "conta": {
+    "seletor": ".fin-body .fin-card table tbody tr:first-child > td:first-child",
+    "campos": ["fontFamily", "fontSize", "fontWeight", "color", "padding"],
+    "dado": "`linhas[0].label` — DreService::montar"
+  },
+  "cards": {
+    "seletor": ".fin-body > .grid",
+    "dado": "`margem_operacional` + `top_categorias_receita` — DreService::montar"
+  }
+}

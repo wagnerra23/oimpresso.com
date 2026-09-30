@@ -1,9 +1,53 @@
 {
   "_nota": "Arquivos que o Code subiu ao Cowork (DesignSync) e que o bundle ativo ainda não trouxe de volta. Escrito por pendentes-cowork.mjs; o receber-handoff limpa o que o retorno confirmar.",
   "enviados": {
+    "cowork-inbox/financeiro/playbook/_saida-09.md": {
+      "sha256": "4af6f212f706c71ce4e9de286c7b7e3c3ad44c8694ba44739f35091d56c17b51",
+      "em": "2026-09-29T21:49:46.782Z"
+    },
+    "cowork-inbox/ponto/playbook/_saida-07.md": {
+      "sha256": "50da25801a33ab900696a92469be542d0fdfc721a63c3ff8f6984d3da881b0cd",
+      "em": "2026-09-29T21:49:04.674Z"
+    },
+    "cowork-inbox/ponto/playbook/_saida-13.md": {
+      "sha256": "683a7c1b627954b18942746a768dcf162429eeb32095b5daf41ba59cd562d8aa",
+      "em": "2026-09-29T22:30:37.154Z"
+    },
+    "cowork-inbox/ponto/playbook/_saida-14.md": {
+      "sha256": "affcf7c258c4e03a43dfd568b9d9ae23643f311d37f210a1d7d329d7f292a0bc",
+      "em": "2026-09-30T10:32:32.915Z"
+    },
+    "cowork-inbox/ponto/playbook/_saida-15.md": {
+      "sha256": "4f886a03646d0cb369874df920b049192bcb7483f2058e3022f2c505098aff21",
+      "em": "2026-09-29T22:45:28.481Z"
+    },
+    "cowork-inbox/venda-menu/playbook/_saida-A1.md": {
+      "sha256": "f694fded38c6e3f10ba3304366cb191cebc77dcfc38438c13f6b9e748a796365",
+      "em": "2026-09-29T22:21:54.268Z"
+    },
+    "cowork-inbox/venda-menu/playbook/_saida-A2.md": {
+      "sha256": "ac3e9d3ad9b8b421996d71c6a79259cfb99db85dc9bded5426897990b14bfaf0",
+      "em": "2026-09-29T22:08:04.098Z"
+    },
     "essenciais-extras.jsx": {
       "sha256": "628c16dfdc6321af73f714d5ee89d3cc39f4437bf64a079a5d5c08e3ea567cb1",
       "em": "2026-09-29T20:26:55.343Z"
+    },
+    "manufacturing-page.css": {
+      "sha256": "7b0ed3dcdf59e82512546193ef1b47c10a35b1c06b5fbb986918a8ffb83bc2bd",
+      "em": "2026-09-29T21:04:41.777Z"
+    },
+    "manufacturing-page.jsx": {
+      "sha256": "933dc7d683286590572f0ebbdf9e022dec4248f633bc92223e96c00bcdbe1eea",
+      "em": "2026-09-29T21:04:41.777Z"
+    },
+    "manufacturing-producao.jsx": {
+      "sha256": "bef8593ef6d89b66f994e966432716477386667d59716ea93a3b9a8a07d3cc4a",
+      "em": "2026-09-29T21:04:41.777Z"
+    },
+    "manufacturing-recipe.jsx": {
+      "sha256": "3badd595cd94cc9a6e3fb976115384281fab5d89c7c315bb5170016ecd5da9a2",
+      "em": "2026-09-29T21:04:41.777Z"
     }
   }
 }

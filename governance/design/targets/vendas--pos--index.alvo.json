@@ -1,0 +1,319 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · matriz · 8 vendas de POS · 4 rascunhos · 4 cotações · papel: Administrador Vendas Lista de POS Atualizado 18:26 Todas as vendas POS Adicionar venda Lista de POS Lista de rascunhos Lista de compromissos Remessas Descontos Assinaturas Pedido de venda Caixa registradora Importação de vendas Filtros Mesmos filtros do índice de POS: local, cliente, status de pagamento, vendedor e tipo de serviço. Recolher Local do negócio Todos Matriz Filial Centro Cliente Todos Rota Livre Transportes Martinho Oficina Prefeitura de Jaú Supermercado Bom Dia Agência Norte Cliente balcão Status do pagamento Todos Pago Devido Parcial Vencido Período Tudo Hoje Últimos 7 dias Últimos 30 dias Vendedor Todos Larissa Prado Wagner Ramos Eliana Souza Marcos Vinícius Tipo de serviço Todos Balcão Entrega Instalação Lista de POS 8 de 8 Confortável Compacto Abrir POS Ação Data ↕ Nº da fatura ↕ Cliente ↕ Contato Local Status do pagamento Forma de pagamento Valor total ↕ Total pago Saldo devedor ↕ Devolução devida Status de envio Itens Tipo de serviço Adicionado por Observação da venda Ações 29/09/2026 09:12 POS-2026-0481 Cliente balcão — Matriz Pago Pix R$ 486,90 R$ 486,90 R$ 0,00 — Entregue 3 Balcão Larissa Prado — Ações 29/09/2026 10:34 POS-2026-0482 Rota Livre Transportes (14) 99812-4410 Matriz Parcial Múltiplas R$ 3.120,00 R$ 1.500,00 R$ 1.620,00 — Embalado 8 Entrega Larissa Prado Retira sexta, 14h. Ações 28/09/2026 16:05 POS-2026-0479 Agência Norte (14) 3622-1180 Filial Centro Devido Boleto R$ 1.875,40 R$ 0,00 R$ 1.875,40 — Pedido 5 Balcão Marcos Vinícius — Ações 28/09/2026 11:48 POS-2026-0478 Martinho Oficina (14) 99640-2299 Matriz Pago Cartão de crédito R$ 742,00 R$ 742,00 R$ 0,00 R$ 120,00 Entregue 2 Balcão Larissa Prado Devolução parcial de 1 banner. Ações 27/09/2026 15:21 POS-2026-0475 Supermercado Bom Dia (14) 3624-7788 Matriz Vencido Boleto R$ 5.490,00 R$ 2.000,00 R$ 3.490,00 — Enviado 12 Instalação Wagner Ramos — Ações 26/09/2026 09:03 POS-2026-0470 Prefeitura de Jaú (14) 3602-9000 Filial Centro Devido Boleto R$ 12.480,00 R$ 0,00 R$ 12.480,00 — Pedido 24 Entrega Wagner Ramos Empenho 2026/114. Ações 25/09/2026 17:42 POS-2026-0466 Cliente balcão — Matriz Pago Dinheiro R$ 98,50 R$ 98,50 R$ 0,00 — Entregue 1 Balcão Larissa Prado — Ações 24/09/2026 13:27 POS-2026-0461 Agência Norte (14) 3622-1180 Filial Centro Pago Cartão de débito R$ 2.210,00 R$ 2.210,00 R$ 0,00 — Entregue 6 Entrega Marcos Vinícius — Total: R$ 26.502,80 · pago R$ 7.037,40 · em aberto R$ 19.465,40 Pago: 4 · Devido: 2 · Parcial: 1 · Vencido: 1 — Dinheiro: 1 · Pix: 1 · Cartão de débito: 1 · Cartão de crédito: 1 · Boleto: 3 · Múltiplas: 1",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "venda-filtros"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "venda-toolbar"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "venda-rodape"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 73,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5551/"
+  },
+  "nos_totais": 838,
+  "quieto_ms": 2000,
+  "rota": "venda-pos",
+  "secoes": {
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 219,
+        "w": 1176
+      },
+      "seletor": ".vb-root > .pb-body > [data-contract=\"venda-filtros\"]",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": ".vb-root > .cli-ph > header",
+      "truncado": false
+    },
+    "lista": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 517,
+        "w": 1176
+      },
+      "seletor": ".vb-root > .pb-body > section.pb-widget:not([data-contract])",
+      "truncado": false
+    },
+    "rodape": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 5.49,
+        "texto": "oklch(0.72 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.373341
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.72 0.005 90)",
+        "display": "flex",
+        "fontSize": "11.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "9px 12px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "span",
+        "sp",
+        "pb-help"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1174
+      },
+      "seletor": ".vb-root [data-contract=\"venda-rodape\"]",
+      "truncado": false
+    },
+    "tabs": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 9,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".vb-root > .pb-body > nav.ds-tabbar",
+      "truncado": false
+    },
+    "toolbar": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "8px 12px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pb-busca",
+        "sp",
+        "div",
+        "os-btn"
+      ],
+      "rect": {
+        "h": 53,
+        "w": 1174
+      },
+      "seletor": ".vb-root [data-contract=\"venda-toolbar\"]",
+      "truncado": false
+    }
+  },
+  "tela": "vendas--pos--index",
+  "url": "http://127.0.0.1:5551/"
+}
