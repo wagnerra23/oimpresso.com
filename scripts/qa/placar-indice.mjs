@@ -304,7 +304,11 @@ export function avaliarIndice(indice, ctx) {
   for (const l of linhas) resolverSemRecibo(l);
 
   const cont = Object.fromEntries(ESTADOS.map((e) => [e, linhas.filter((l) => l.estado === e).length]));
-  const motivo = (l) => `${l.saida ? '' : 'sem _saida; '}${l.decisPend.length ? 'decisão pendente ' + l.decisPend.join(',') + '; ' : ''}${l.ausentes.join('; ')}`.replace(/; $/, '');
+  // Dependência não `feito` entra no motivo: o `resolver` exige todas as `depende_threads`
+  // em `feito`, então sem ela uma thread com _saida e provas verdes aparecia como
+  // "em curso — sem pendência legível" (Patrimonio 18, PR #8262). Só o RELATO muda.
+  const depPend = (l) => l.depende_threads.filter((id) => byId[id].estado !== 'feito');
+  const motivo = (l) => `${l.saida ? '' : 'sem _saida; '}${l.decisPend.length ? 'decisão pendente ' + l.decisPend.join(',') + '; ' : ''}${depPend(l).map((id) => `depende de ${id} (não feita); `).join('')}${l.ausentes.join('; ')}`.replace(/; $/, '');
   return {
     modulo: indice.modulo || '(sem módulo)', sha: indice.sha || null,
     total: linhas.length, feito: cont.feito, cont, linhas, motivo,
