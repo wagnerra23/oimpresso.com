@@ -130,6 +130,33 @@ frescor nao cobriu o espelho do Felipe — nao e defeito da tela.
 O que o teste de navegador confere é que a tela **abre** e que não há erro grave de acessibilidade
 — **não** que ela se pareça com o protótipo.
 
+## Matriz de aceite da promoção (2026-09-30)
+
+Promoção do protótipo **atual inteiro** × a tela viva ([RUNBOOK-promocao-prototipo](RUNBOOK-promocao-prototipo.md) §Matriz;
+lição §5 2026-09-30). Fonte: `prototipo-ui/cowork/Wagner/manufacturing-page.jsx` (espelho após o #8052) e o
+`DataGrid` do DS em `prototipo-ui/design-system/components/DataGrid/`. Diferenças medidas com
+`design-diff.mjs --probe` nos dois lados (protótipo local × `/manufacturing/recipe` biz=1, dark, 1440 px);
+os JSON da medição não foram versionados — a re-medição pós-deploy entra aqui.
+
+| ID | Área | Item | Classe | Fonte/regra | Aceite observável | Evidência | Situação |
+|---|---|---|---|---|---|---|---|
+| R01 | Cabeçalho | título "Fabricação" | visual | protótipo (pedido 2026-09-28) | h1 = "Fabricação" | #8239 + smoke prod | ACEITO |
+| R02 | Cabeçalho | peso do título | visual | PageHeader do protótipo | h1 600 (era 700) | sonda pós-deploy | PRONTO PARA VALIDAR |
+| R03 | Cabeçalho | linha de contagens (stats do PageHeader) | visual | protótipo | mesma forma do PageHeader | — | NÃO INICIADO |
+| R04 | Abas | aba ativa (fundo, peso, selo sólido) | visual | `TabBar` do DS → `PageHeaderTabs` | fundo e selo como o protótipo | — | NÃO INICIADO (onda 2 — muda âncora `nav[aria-label]` do teste) |
+| R05 | Indicadores | custo médio / produção do mês | visual | `KpiCard` padrão | cartão do DS, valor na cor do texto | sonda pós-deploy | PRONTO PARA VALIDAR |
+| R06 | Indicadores | margem < 45% / desperdício ≥ 8% | visual + comportamento existente | `KpiCard variant="filter"`, ícone balança/tesoura, tom âmbar | placa de ícone 36 px, valor branco, filtro liga/desliga (R-05) | sonda + UC do casos | PRONTO PARA VALIDAR |
+| R07 | Filtros | busca | visual | `SearchInput` do DS | — | — | NÃO INICIADO (onda 2) |
+| R08 | Filtros | categorias | visual | `Segmented` do DS (hoje chips) | — | — | NÃO INICIADO (onda 2) |
+| R09 | Tabela | indicador de ordenação | visual | `DataGrid`: depois do rótulo, ↕ inativo opaco | ↕/↑/↓ após o rótulo em todas as colunas | sonda pós-deploy | PRONTO PARA VALIDAR |
+| R10 | Tabela | cor da coluna ordenada | visual | `DataGrid`: cor do texto | não mais o primário | sonda pós-deploy | PRONTO PARA VALIDAR |
+| R11 | Tabela | colunas de número à direita | visual | `DataGrid` `align:'right'` | células e cabeçalhos alinhados à direita | sonda pós-deploy | PRONTO PARA VALIDAR |
+| R12 | Tabela | margem como `StatusBadge` | visual | protótipo R-10 (≥55 · ≥45 · abaixo) | badge do DS no tom da faixa | sonda pós-deploy | PRONTO PARA VALIDAR |
+| R13 | Tabela | margem com fundo SÓLIDO | visual | `StatusBadge` do DS do Cowork | — | medido: o `StatusBadge` do React é suave com ponto (AP7) | BLOQUEADO — divergência do DS, pedido ao dono do DS |
+| R14 | Tabela | estrutura `<table>` + rodapé de paginação | visual | `DataGrid` (sem mapeamento React no registry) | — | — | BLOQUEADO — gap do DS (`DataGrid`/`Pagination` sem par React) |
+| R15 | Tabela | vazio (`EmptyState`) · seleção (`BulkBar`) | visual | protótipo | — | — | NÃO INICIADO |
+| R16 | Drawer | leitura da receita | visual | protótipo | — | — | NÃO INICIADO (não medido) |
+
 ## Pendências
 
 1. ~~Re-medir com a âncora nova e `sameTheme: true`~~ — **FEITO em 2026-09-22** (secao acima).
