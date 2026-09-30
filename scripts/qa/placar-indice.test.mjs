@@ -143,6 +143,16 @@ const respondida = JSON.parse(JSON.stringify(comDecisao)); respondida.decisoes[0
 r = cli(['--root', root({ indice: respondida, saidas: ['01'], arquivos: { 'a.txt': 'x' } }), '--todos', '--check']);
 ok(r.rc === 0 && /entregue 1 de 1/.test(r.out), 'CONTROLE+: respondida a decisão, a MESMA thread vira feito (o número acompanha)');
 
+// Dependência não feita é MOTIVO legível: a 02 tem _saida e prova verde, só a 01 a segura.
+// Antes o motivo saía vazio ("em curso — sem pendência legível"). Controle: com a 01 feita,
+// a 02 fecha e nenhum motivo cita dependência.
+r = cli(['--root', root({ indice: cadeia, saidas: ['02'], arquivos: { 'a.txt': 'x', 'b.txt': 'x' } }), '--todos']);
+ok(/02 \[em curso\s*\] B — depende de 01 \(não feita\)/.test(r.out) && !/sem pendência legível/.test(r.out),
+  'DEPS: thread segura só pela dependência NOMEIA a dependência no motivo');
+r = cli(['--root', root({ indice: cadeia, saidas: ['01', '02'], arquivos: { 'a.txt': 'x', 'b.txt': 'x' } }), '--todos', '--check']);
+ok(r.rc === 0 && /entregue 2 de 2/.test(r.out) && !/depende de/.test(r.out),
+  'CONTROLE: sem dependência pendente, o motivo NÃO cita dependência (e o --check não muda)');
+
 /* ── 8. `${VAR}` não decidida: não vira path chutado nem thread executável ───────────── */
 const varNula = { modulo: 'M', variaveis: { PAGES: null }, threads: [{ id: '01', titulo: 'A', dono: 'CL', provas: [{ tipo: 'arquivo', path: '${PAGES}/x.tsx' }] }] };
 r = cli(['--root', root({ indice: varNula }), '--todos', '--proximo']);
