@@ -738,3 +738,144 @@ it('UC-BENS-08: editar o próprio bem com o id da garantia de outra empresa não
         bensContratoLimpar();
     }
 });
+
+/*
+ * UC-BENS-09 — editar o bem pelo drawer grava VALOR e QUANTIDADE exatamente como digitados, e
+ * não apaga a garantia que o drawer não mostra.
+ *
+ * REGRA MESTRE Tier 0 (valor/estoque): dupla confirmação por dois caminhos independentes.
+ *   • Caminho 1: `tests/js/patrimonio-cadastro-bem.test.tsx` (UC-BENS-09) fixa as STRINGS que
+ *     `cadastroBem.ts::montarPayloadEdicao` monta.
+ *   • Caminho 2 (ESTE): posta essas MESMAS strings no `update()` real (`UpdateAssetRequest` +
+ *     `AssetService::atualizar` + `num_uf`/`uf_date`) e lê o que o BANCO gravou.
+ */
+function bensEdicaoUsuario(int $businessId): User
+{
+    $user = bensContratoUsuario($businessId);
+    $role = Role::where('name', 'bens-contrato#'.$businessId)->first();
+    $role?->givePermissionTo(Permission::firstOrCreate(['name' => 'asset.update', 'guard_name' => 'web']));
+    $role?->givePermissionTo(Permission::firstOrCreate(['name' => 'asset.create', 'guard_name' => 'web']));
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    return $user->fresh();
+}
+
+function bensEdicaoSessao(User $user, int $bizId): array
+{
+    return [
+        'user.business_id' => $bizId,
+        'user.id' => $user->id,
+        'user' => ['business_id' => $bizId, 'id' => $user->id],
+        'business.date_format' => 'd/m/Y',
+    ];
+}
+
+function bensEdicaoLimpar(): void
+{
+    $ids = Asset::where('asset_code', 'like', 'BENS-CTR-ED-%')->pluck('id');
+    if ($ids->isNotEmpty()) {
+        DB::table('asset_warranties')->whereIn('asset_id', $ids)->delete();
+    }
+    bensContratoLimpar();
+}
+
+it('UC-BENS-09: o update() grava o valor e a quantidade que o drawer de edição posta e preserva a garantia antiga', function (string $valorPostado, string $qtdPostada, string $valorGravado, string $qtdGravada) {
+    $biz = $this->seededTenant();
+    $bizId = (int) $biz->id;
+    $user = bensEdicaoUsuario($bizId);
+
+    try {
+        bensContratoAssinaturaLiberada();
+        $bem = bensContratoAsset($bizId, $user->id, 'BENS-CTR-ED-'.uniqid(), 'Plotter de corte');
+        $antiga = DB::table('asset_warranties')->insertGetId([
+            'asset_id' => $bem->id, 'start_date' => '2025-03-01', 'end_date' => '2026-03-01',
+            'additional_cost' => 350.5, 'additional_note' => 'Contrato antigo',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $nova = DB::table('asset_warranties')->insertGetId([
+            'asset_id' => $bem->id, 'start_date' => '2026-03-01', 'end_date' => '2027-03-01',
+            'additional_cost' => 0, 'additional_note' => 'Contrato novo',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        // As strings do caminho 1 (vitest UC-BENS-09) — `_method=put` como o drawer manda.
+        $resposta = test()->actingAs($user)->withSession(bensEdicaoSessao($user, $bizId))
+            ->post('/asset/assets/'.$bem->id, [
+                '_method' => 'put',
+                'name' => 'Plotter de corte',
+                'model' => 'D60',
+                'serial_no' => 'SN-1',
+                'purchase_date' => '10/09/2026',
+                'purchase_type' => 'owned',
+                'unit_price' => $valorPostado,
+                'quantity' => $qtdPostada,
+                'depreciation' => '',
+                'description' => '',
+                'is_allocatable' => '1',
+                'edit_warranty' => [
+                    $nova => ['start_date' => '01/03/2026', 'months' => '12', 'additional_cost' => '0', 'additional_note' => 'Contrato novo'],
+                    $antiga => ['start_date' => '01/03/2025', 'months' => '12', 'additional_cost' => '350,5', 'additional_note' => 'Contrato antigo'],
+                ],
+            ]);
+
+        $resposta->assertRedirect();
+        expect((bool) session('status.success'))->toBeTrue();
+
+        $gravado = Asset::find($bem->id);
+        expect((string) $gravado->unit_price)->toBe($valorGravado);
+        expect((string) $gravado->quantity)->toBe($qtdGravada);
+        expect((string) $gravado->purchase_date)->toStartWith('2026-09-10');
+        expect((string) $gravado->asset_code)->toBe((string) $bem->asset_code);
+        // Depreciação vazia no form sai `''`, e o `ConvertEmptyStringsToNull` global a devolve NULL:
+        // salvar sem mexer NÃO transforma "sem depreciação" em 0 (MySQL aqui não é strict).
+        expect($gravado->depreciation)->toBeNull();
+
+        // As duas garantias seguem, com os valores que tinham — nenhuma apagada, nenhuma deslocada.
+        $g = DB::table('asset_warranties')->where('asset_id', $bem->id)->orderBy('start_date')->get();
+        expect($g)->toHaveCount(2);
+        expect((string) $g[0]->end_date)->toStartWith('2026-03-01');
+        expect((string) $g[0]->additional_cost)->toBe('350.5000');
+        expect($g[0]->additional_note)->toBe('Contrato antigo');
+        expect((string) $g[1]->end_date)->toStartWith('2027-03-01');
+    } finally {
+        bensEdicaoLimpar();
+    }
+})->with([
+    'sem mexer: reposta o que estava gravado' => ['1500', '2', '1500.0000', '2.0000'],
+    'valor na casa do milhão, quantidade fracionada' => ['1234567,8', '1,5', '1234567.8000', '1.5000'],
+]);
+
+it('UC-BENS-09: o edit() devolve a tela de Bens com o bem da própria empresa, e 404 para bem de outra', function () {
+    $dono = $this->seededTenant();
+    $donoId = (int) $dono->id;
+    $advId = (int) $this->seededSupportClientTenant()->id;
+    $user = bensEdicaoUsuario($donoId);
+    $userAdv = bensContratoUsuario($advId, false);
+
+    try {
+        bensContratoAssinaturaLiberada();
+        $meu = bensContratoAsset($donoId, $user->id, 'BENS-CTR-ED-'.uniqid(), 'Bem do dono');
+        $alheio = bensContratoAsset($advId, $userAdv->id, 'BENS-CTR-ED-'.uniqid(), 'Bem do adversário');
+
+        test()->flushHeaders();
+        $r = test()->actingAs($user)->withSession(bensEdicaoSessao($user, $donoId))->get('/asset/assets/'.$meu->id.'/edit');
+        expect($r->status())->toBe(200);
+        $page = $r->viewData('page');
+        expect(data_get($page, 'component'))->toBe('Patrimonio/Bens');
+        expect((int) data_get($page, 'props.edicao.id'))->toBe((int) $meu->id);
+        expect((float) data_get($page, 'props.edicao.form.valorUnitario'))->toBe(1500.0);
+        expect((float) data_get($page, 'props.edicao.form.quantidade'))->toBe(2.0);
+
+        test()->flushHeaders();
+        $x = test()->actingAs($user)->withSession(bensEdicaoSessao($user, $donoId))->get('/asset/assets/'.$alheio->id.'/edit');
+        expect($x->status())->toBe(404);
+
+        test()->flushHeaders();
+        $c = test()->actingAs($user)->withSession(bensEdicaoSessao($user, $donoId))->get('/asset/assets/create');
+        expect($c->status())->toBe(200);
+        expect(data_get($c->viewData('page'), 'component'))->toBe('Patrimonio/Bens');
+        expect(data_get($c->viewData('page'), 'props.abrir_cadastro'))->toBeTrue();
+    } finally {
+        bensEdicaoLimpar();
+    }
+});

@@ -196,6 +196,21 @@ last_run: "2026-09-30"
   do próprio bem muda no mesmo request, prova de que o caminho de `edit_warranty` executou).
 - **Status: 🧪** — ver o recibo do PR.
 
+## UC-BENS-09 · Editar o bem pelo drawer grava valor e quantidade como digitados e não apaga garantia
+
+- **Persona:** quem administra o patrimônio e precisa corrigir um bem já cadastrado (valor,
+  quantidade, local, garantia).
+- **Aceite:** Dado um bem do próprio business com **duas** garantias · Quando o usuário abre
+  `/asset/assets/{id}/edit`, muda (ou não) valor e quantidade e salva · Então o banco grava o valor e a
+  quantidade digitados em pt-BR sem ler milhar como decimal, o código do bem não muda, "sem
+  depreciação" continua NULL, e **as duas garantias seguem gravadas** com os valores que tinham.
+- **Tier 0 (ADR 0093):** `/asset/assets/{id}/edit` de um bem de outro business devolve **404**.
+- **REGRA MESTRE (valor/estoque):** dois caminhos — `tests/js/patrimonio-cadastro-bem.test.tsx`
+  fixa as strings do envio; `BensContratoTest.php` posta as mesmas strings e lê o banco.
+- **Teste:** `BensContratoTest.php` — `it()` citando `UC-BENS-09` (update + edit/create/404) e o
+  vitest citando `UC-BENS-09`.
+- **Status: 🧪** — ver o recibo do PR.
+
 ---
 
 ## Dívida declarada — `Alocado` não é número auditado
@@ -227,7 +242,6 @@ expressão (`AssetController::baseAssetsQuery`), lida pelos dois ramos.
 - [BACKLOG] O rodapé soma o valor total do recorte, com a prova dupla que a REGRA MESTRE exige.
 - [BACKLOG] Seleção em lote exporta a seleção e manda os selecionados pra manutenção.
 - [BACKLOG] O usuário escolhe as colunas visíveis e a densidade, e a escolha sobrevive ao reload.
-- [BACKLOG] Editar bem acontece em drawer, sem sair da lista (criar já acontece — UC-BENS-05).
 - [BACKLOG] Alocar e mandar pra manutenção a partir da linha, em drawer — hoje não há caminho
   pela UI (os formulários só existem como fragmento de modal servido sob `ajax()`). Escrita de
   QUANTIDADE: REGRA MESTRE Tier 0.

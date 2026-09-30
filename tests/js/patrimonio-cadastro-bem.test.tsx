@@ -21,6 +21,9 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import {
+  formDaEdicao,
+  montarPayloadEdicao,
+  type BemEdicao,
   montarPayloadCadastro,
   paraNumUf,
   paraFormatoDoNegocio,
@@ -199,5 +202,82 @@ describe('UC-BENS-05 · o drawer envia o que o serializador monta', () => {
       unit_price: '1234,56',
       quantity: '2',
     });
+  });
+});
+
+// ── UC-BENS-09 · Edição (thread 17) ──────────────────────────────────────────────
+// Caminho 1 da dupla confirmação da EDIÇÃO: as strings que o drawer posta no `update()`.
+// O Pest `BensContratoTest` (UC-BENS-09) posta AS MESMAS strings e lê o banco.
+
+const GRAVADO: BemEdicao = {
+  id: 41,
+  asset_code: 'AS0041',
+  form: {
+    nome: 'Plotter de corte', categoriaId: '7', localId: '3', modelo: 'D60', serie: 'SN-1',
+    compraEm: '2026-09-10', tipoCompra: 'owned', valorUnitario: 1500, quantidade: 2,
+    depreciacao: null, alocavel: true, descricao: '',
+  },
+  garantias: [
+    { id: 902, inicio: '2026-03-01', meses: 12, custo: 0, nota: 'Contrato novo' },
+    { id: 901, inicio: '2025-03-01', meses: 12, custo: 350.5, nota: 'Contrato antigo' },
+  ],
+};
+
+describe('UC-BENS-09 · o payload da edição', () => {
+  it('UC-BENS-09: salvar sem mexer reposta o que estava gravado, com as MESMAS strings do cadastro', () => {
+    const corpo = montarPayloadEdicao(formDaEdicao(GRAVADO, '2026-09-30'), 'd/m/Y', GRAVADO.garantias);
+    expect(corpo._method).toBe('put');
+    expect(corpo).not.toHaveProperty('asset_code');
+    expect(corpo).toMatchObject({ unit_price: '1500', quantity: '2', purchase_date: '10/09/2026', is_allocatable: '1', depreciation: '' });
+    // A garantia antiga (que o form não mostra) vai INTACTA — sem isto o serviço a apagaria.
+    expect(corpo.edit_warranty).toEqual({
+      902: { start_date: '01/03/2026', months: '12', additional_cost: '0', additional_note: 'Contrato novo' },
+      901: { start_date: '01/03/2025', months: '12', additional_cost: '350,5', additional_note: 'Contrato antigo' },
+    });
+    expect(corpo).not.toHaveProperty('start_dates');
+  });
+
+  it('UC-BENS-09: valor e quantidade editados saem sem milhar e com vírgula decimal', () => {
+    const f = { ...formDaEdicao(GRAVADO, '2026-09-30'), valorUnitario: 1234567.8, quantidade: 1.5 };
+    const corpo = montarPayloadEdicao(f, 'd/m/Y', GRAVADO.garantias);
+    expect(corpo).toMatchObject({ unit_price: '1234567,8', quantity: '1,5' });
+  });
+
+  it('UC-BENS-09: desmarcar "atribuível" não manda a chave (o serviço grava 0)', () => {
+    const f = { ...formDaEdicao(GRAVADO, '2026-09-30'), alocavel: false };
+    expect(montarPayloadEdicao(f, 'd/m/Y', GRAVADO.garantias)).not.toHaveProperty('is_allocatable');
+  });
+
+  it('UC-BENS-09: esvaziar o período remove SÓ a garantia mais recente; a antiga segue no envio', () => {
+    const f = { ...formDaEdicao(GRAVADO, '2026-09-30'), garantiaMeses: '' };
+    const corpo = montarPayloadEdicao(f, 'd/m/Y', GRAVADO.garantias);
+    expect(Object.keys(corpo.edit_warranty as object)).toEqual(['901']);
+  });
+
+  it('UC-BENS-09: bem sem garantia gravada ganha garantia nova pelos arrays paralelos', () => {
+    const semGarantia = { ...GRAVADO, garantias: [] };
+    const f = { ...formDaEdicao(semGarantia, '2026-09-30'), garantiaMeses: '6', garantiaInicio: '2026-09-01' };
+    const corpo = montarPayloadEdicao(f, 'd/m/Y', []);
+    expect(corpo).not.toHaveProperty('edit_warranty');
+    expect(corpo).toMatchObject({ start_dates: ['01/09/2026'], months: ['6'], additional_cost: ['0'] });
+  });
+});
+
+describe('UC-BENS-09 · o drawer em modo editar', () => {
+  it('UC-BENS-09: nasce preenchido e posta no update() do bem, não no store()', () => {
+    render(
+      <CadastroBemDrawer aberto edicao={GRAVADO} onClose={() => {}} locais={{ 3: 'Matriz' }} categorias={{ 7: 'Máquinas' }}
+        tiposCompra={{ owned: 'Próprio' }} formatoData="d/m/Y" />,
+    );
+    expect(screen.getByText('Editar bem')).toBeTruthy();
+    expect((screen.getByLabelText('Nome do recurso') as HTMLInputElement).value).toBe('Plotter de corte');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+
+    expect(post).toHaveBeenCalledTimes(1);
+    const [url, corpo, opcoes] = post.mock.calls[0] as [string, Record<string, unknown>, Record<string, unknown>];
+    expect(url).toBe('/asset/assets/41');
+    expect(opcoes.forceFormData).toBe(true);
+    expect(corpo).toMatchObject({ _method: 'put', unit_price: '1500', quantity: '2' });
   });
 });
