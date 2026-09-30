@@ -660,8 +660,9 @@ class AssetController extends Controller
             'nome' => $bem->name,
             'modelo' => $bem->model,
             'serie' => $bem->serial_no,
-            'categoria' => $bem->categoria,
-            'local' => $bem->local,
+            // Alias do `select` (join CAT/BL), nao coluna do Model: `getAttribute` pro Larastan.
+            'categoria' => $bem->getAttribute('categoria'),
+            'local' => $bem->getAttribute('local'),
             'tipo_compra' => $bem->purchase_type,
             'compra_em' => $bem->purchase_date ? $this->commonUtil->format_date($bem->purchase_date) : null,
             'alocavel' => (bool) $bem->is_allocatable,
