@@ -47,6 +47,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Stack, Inline } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
 import { AlocarDrawer, DevolverDrawer, type Formulario } from './_alocacoes/Drawers';
+import { alvoDoFoco, devolverFoco } from './_alocacoes/foco';
 import { Pencil, Undo2 } from 'lucide-react';
 import type { ColumnDef } from '@tanstack/react-table';
 
@@ -158,12 +159,14 @@ function AcoesDaLinha({ alocacao, permissoes }: { alocacao: Alocacao; permissoes
     <Inline gap={1}>
       {permissoes.editar ? (
         <Button size="sm" variant="ghost" aria-label={`Editar alocação ${alocacao.ref_no}`}
+          data-acao={`editar-${alocacao.id}`}
           onClick={() => ir(`/asset/allocation/${alocacao.id}/edit`)}>
           <Pencil size={14} aria-hidden="true" />
         </Button>
       ) : null}
       {permissoes.devolver ? (
         <Button size="sm" variant="ghost" aria-label={`Devolver alocação ${alocacao.ref_no}`}
+          data-acao={`devolver-${alocacao.id}`}
           onClick={() => ir(`/asset/revocation/create?id=${alocacao.id}`)}>
           <Undo2 size={14} aria-hidden="true" /> Devolver
         </Button>
@@ -346,8 +349,16 @@ function EsqueletoTabela() {
 }
 
 export default function Alocacoes({ alocacoes, filtros, permissoes, formulario, formato_data, hora_12 }: Props) {
-  // Fechar o drawer volta pra lista, com o recorte que estava na URL.
-  const fecharDrawer = () => router.get('/asset/allocation', limpar(filtros), { preserveScroll: true });
+  // Fechar o drawer volta pra lista, com o recorte que estava na URL, e devolve o foco a quem
+  // abriu o drawer (a11y: foco devolvido — item 5 do §D da thread 18).
+  const fecharDrawer = () => {
+    const alvo = alvoDoFoco(formulario);
+    router.get('/asset/allocation', limpar(filtros), {
+      preserveScroll: true,
+      // Depois do quadro em que o drawer desmonta — antes disso o Radix ainda segura o foco.
+      onSuccess: () => { requestAnimationFrame(() => devolverFoco(alvo)); },
+    });
+  };
 
   // Distingue "não há alocação nenhuma" de "não há alocação PARA ESTE RECORTE" — são dois
   // vazios diferentes. O recorte default é `ativas`, então uma casa que já devolveu tudo cai
@@ -368,7 +379,8 @@ export default function Alocacoes({ alocacoes, filtros, permissoes, formulario, 
             actions={
               <Inline gap={2}>
                 {permissoes.alocar ? (
-                  <Button size="sm" onClick={() => router.get('/asset/allocation/create', {}, { preserveScroll: true })}>
+                  <Button size="sm" id="patrimonio-alocar-recurso"
+                    onClick={() => router.get('/asset/allocation/create', {}, { preserveScroll: true })}>
                     Alocar recurso
                   </Button>
                 ) : null}
