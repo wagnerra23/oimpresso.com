@@ -167,6 +167,13 @@ jobs:
       - name: 'aguardar-deploy bite-test (cancelado nao e veredito · falha aparece · commit anterior nao conta)'
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/deploy/aguardar-deploy.mjs --selftest
+      # smoke-bundle: o gate de bundle do deploy.yml compara o /login com o manifest DESTE build.
+      # Nasceu de 2026-09-30: o predicado antigo ("arquivo de front mudou e hash não mudou")
+      # reprovava build idêntico (#8297, só comentário) e travava todo deploy seguinte. O
+      # selftest trava: build idêntico passa, hash velho morde, sem medida nunca vira verde.
+      - name: 'smoke-bundle bite-test (build idêntico passa · hash velho morde · sem medida = exit 2)'
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/deploy/smoke-bundle.mjs --selftest
       # Fixtures do falso-positivo REAL de 2026-08-04: main parado a noite toda + rajada de
       # 2 commits -> a formula antiga (head - served) devolvia 14.4h e alarmava com o servidor
       # 3min atras. A fixture "a formula ANTIGA teria alarmado" impede a regressao voltar.
