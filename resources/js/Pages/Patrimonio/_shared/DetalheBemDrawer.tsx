@@ -20,6 +20,7 @@ import { useState } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Badge } from '@/Components/ui/badge';
 import { Skeleton } from '@/Components/ui/skeleton';
+import SubNav from '@/Components/shared/SubNav';
 import { Grid, Inline, Stack } from '@/Components/layout';
 
 export interface Devolucao {
@@ -155,24 +156,14 @@ export default function DetalheBemDrawer({
 
         {detalhe ? (
           <>
-            <Inline gap={1} role="tablist" aria-label="Abas do bem" className="border-b px-4">
-              {abas.map((t) => (
-                <button
-                  key={t.key}
-                  type="button"
-                  role="tab"
-                  aria-selected={aba === t.key}
-                  onClick={() => setAba(t.key)}
-                  className={
-                    'h-9 border-b-2 px-3 text-sm ' +
-                    (aba === t.key ? 'border-primary font-medium text-foreground' : 'border-transparent text-muted-foreground')
-                  }
-                >
-                  {t.label}
-                  {t.n != null ? <span className="ml-1 tabular-nums text-muted-foreground">{t.n}</span> : null}
-                </button>
-              ))}
-            </Inline>
+            {/* `<SubNav>` do DS (switch in-page controlado, sem URL) — `ds/no-inline-tablist`. */}
+            <SubNav
+              ariaLabel="Abas do bem"
+              className="px-4"
+              value={aba}
+              onChange={(v) => setAba(v as Aba)}
+              items={abas.map((t) => ({ value: t.key, label: t.label, badge: t.n }))}
+            />
 
             <div role="tabpanel" className="flex-1 overflow-y-auto p-4">
               {aba === 'resumo' ? (

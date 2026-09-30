@@ -13,6 +13,13 @@
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react';
+import { vi } from 'vitest';
+
+// O `<SubNav>` do DS chama `usePage()` pra marcar aba por URL; aqui as abas são controladas.
+vi.mock('@inertiajs/react', () => ({
+  usePage: () => ({ url: '/asset/assets?bem=7', props: {} }),
+  Link: ({ href, children, ...rest }: any) => <a href={href} {...rest}>{children}</a>,
+}));
 import DetalheBemDrawer, { type BemDetalhe } from '@/Pages/Patrimonio/_shared/DetalheBemDrawer';
 
 afterEach(() => cleanup());
