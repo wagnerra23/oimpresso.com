@@ -183,6 +183,19 @@ last_run: "2026-09-30"
   dois vetores de tenant + contagem por delta).
 - **Status: 🧪** — ver o recibo do PR.
 
+## UC-BENS-08 · Editar o próprio bem não alcança a garantia de outra empresa
+
+- **Persona:** quem edita um bem do próprio business (hoje pela rota `PUT /asset/assets/{id}`).
+- **Aceite:** Dado um bem do business 98 com uma garantia e um bem do business 99 com outra ·
+  Quando o usuário do 98 salva o próprio bem mandando em `edit_warranty` o id da sua garantia
+  **e** o id da garantia do 99 · Então a garantia dele muda, e a do 99 **não muda nem é apagada**.
+- **Tier 0 (ADR 0093):** `asset_warranties` não tem `business_id`, e o id vem do request. A
+  garantia é amarrada ao bem já escopado (`asset_id`) antes de qualquer escrita; id que não é
+  deste bem é ignorado.
+- **Teste:** `BensContratoTest.php` — `it()` citando `UC-BENS-08` (controle positivo: a garantia
+  do próprio bem muda no mesmo request, prova de que o caminho de `edit_warranty` executou).
+- **Status: 🧪** — ver o recibo do PR.
+
 ---
 
 ## Dívida declarada — `Alocado` não é número auditado

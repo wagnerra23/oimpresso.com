@@ -100,12 +100,23 @@ class AssetService
             $asset->update($input);
 
             // Garantias existentes (edicao)
+            //
+            // Tier 0 (ADR 0093): `asset_warranties` NAO tem `business_id`, e a chave de
+            // `edit_warranty[<id>]` vem do REQUEST. Ate 2026-09-30 o update era
+            // `where('id', $key)` puro: quem editasse o PROPRIO bem e mandasse o id de uma
+            // garantia de OUTRA empresa a sobrescrevia. O `$asset` acima ja esta escopado por
+            // business, entao amarrar a garantia a ele (`asset_id`) fecha o vetor. Id que nao e
+            // deste bem e ignorado, nao entra em `$edited_warranty_ids`.
             $edited_warranty_ids = [];
             if (! empty($request->input('edit_warranty'))) {
+                $garantiasDoBem = AssetWarranty::where('asset_id', $asset->id)->pluck('id')->map(fn ($id) => (int) $id)->all();
                 foreach ($request->input('edit_warranty') as $key => $value) {
+                    if (! in_array((int) $key, $garantiasDoBem, true)) {
+                        continue;
+                    }
                     $edited_warranty_ids[] = $key;
                     $start_date = $this->commonUtil->uf_date($value['start_date']);
-                    AssetWarranty::where('id', $key)->update([
+                    AssetWarranty::where('id', $key)->where('asset_id', $asset->id)->update([
                         'start_date' => $start_date,
                         // (int): o form posta o mes como TEXTO e o Carbon 3 e estrito -- `addMonths('12')`
                         // lanca TypeError, que escapa do `catch (\Exception)` do controller (500 +

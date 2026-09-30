@@ -654,3 +654,87 @@ it('UC-BENS-07: recorte=manutencao traz manutenção em aberto (new/in_progress)
         bensManutencaoLimpar();
     }
 });
+
+/*
+ * UC-BENS-08 — editar o PRÓPRIO bem não alcança garantia de outra empresa (Tier 0, ADR 0093).
+ *
+ * `asset_warranties` não tem `business_id` e a chave de `edit_warranty[<id>]` vem do request.
+ * O `AssetService::atualizar` fazia `AssetWarranty::where('id', $key)->update(...)` sem amarrar a
+ * garantia ao bem — quem editasse o próprio bem com o id de uma garantia do 99 a reescrevia.
+ * O controle positivo (a garantia do PRÓPRIO bem, no mesmo request, muda) prova que o caminho de
+ * `edit_warranty` executou: sem ele, "a do 99 ficou igual" seria indistinguível de "nada rodou".
+ */
+it('UC-BENS-08: editar o próprio bem com o id da garantia de outra empresa não a altera nem a apaga (Tier 0)', function () {
+    $dono = $this->seededTenant();
+    $donoId = (int) $dono->id;
+    $adv = $this->seededSupportClientTenant();
+    $advId = (int) $adv->id;
+
+    $user = bensContratoUsuario($donoId);
+    $role = Role::where('name', 'bens-contrato#'.$donoId)->first();
+    $role?->givePermissionTo(Permission::firstOrCreate(['name' => 'asset.update', 'guard_name' => 'web']));
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    $user = $user->fresh();
+    $userAdv = bensContratoUsuario($advId, false);
+
+    try {
+        bensContratoAssinaturaLiberada();
+
+        $meu = bensContratoAsset($donoId, $user->id, 'BENS-CTR-W-'.uniqid(), 'Bem do dono');
+        $alheio = bensContratoAsset($advId, $userAdv->id, 'BENS-CTR-W-'.uniqid(), 'Bem do adversário');
+
+        $minhaGarantia = DB::table('asset_warranties')->insertGetId([
+            'asset_id' => $meu->id, 'start_date' => '2026-01-01', 'end_date' => '2027-01-01',
+            'additional_cost' => 0, 'additional_note' => 'garantia do dono',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $garantiaAlheia = DB::table('asset_warranties')->insertGetId([
+            'asset_id' => $alheio->id, 'start_date' => '2026-01-01', 'end_date' => '2027-01-01',
+            'additional_cost' => 0, 'additional_note' => 'garantia do adversário',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $resposta = test()
+            ->actingAs($user)
+            ->withSession([
+                'user.business_id' => $donoId,
+                'user.id' => $user->id,
+                'user' => ['business_id' => $donoId, 'id' => $user->id],
+                'business.date_format' => 'd/m/Y',
+            ])
+            ->put('/asset/assets/'.$meu->id, [
+                'name' => 'Bem do dono',
+                'quantity' => '2',
+                'unit_price' => '1500',
+                'purchase_type' => 'owned',
+                'is_allocatable' => '1',
+                'edit_warranty' => [
+                    $minhaGarantia => ['start_date' => '01/03/2026', 'months' => '6', 'additional_cost' => '0', 'additional_note' => 'editada pelo dono'],
+                    $garantiaAlheia => ['start_date' => '01/03/2026', 'months' => '6', 'additional_cost' => '0', 'additional_note' => 'INVADIDA'],
+                ],
+            ]);
+
+        $resposta->assertRedirect();
+        // O `update()` redireciona até quando falha (flash `status.success = false`).
+        expect((bool) session('status.success'))->toBeTrue();
+
+        // Controle positivo: o caminho de edit_warranty RODOU.
+        $minha = DB::table('asset_warranties')->where('id', $minhaGarantia)->first();
+        expect($minha)->not->toBeNull();
+        expect($minha->additional_note)->toBe('editada pelo dono');
+        expect((string) $minha->end_date)->toStartWith('2026-09-01');
+
+        // A regra sob teste: a garantia do 99 fica intacta e continua existindo.
+        $alheia = DB::table('asset_warranties')->where('id', $garantiaAlheia)->first();
+        expect($alheia)->not->toBeNull();
+        expect($alheia->additional_note)->toBe('garantia do adversário');
+        expect((string) $alheia->end_date)->toStartWith('2027-01-01');
+        expect((int) $alheia->asset_id)->toBe((int) $alheio->id);
+    } finally {
+        $ids = Asset::where('asset_code', 'like', 'BENS-CTR-W-%')->pluck('id');
+        if ($ids->isNotEmpty()) {
+            DB::table('asset_warranties')->whereIn('asset_id', $ids)->delete();
+        }
+        bensContratoLimpar();
+    }
+});
