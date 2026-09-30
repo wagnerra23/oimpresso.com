@@ -17,6 +17,17 @@
  * Funções puras exportadas → testáveis sem rede (dup-detector.test.mjs).
  *
  * Uso CI: node scripts/governance/dup-detector.mjs --pr=<N> [--repo=owner/name]
+ *
+ * Modo --path (sob demanda, ANTES de abrir PR — §5 2026-09-30, LC-19):
+ *   node scripts/governance/dup-detector.mjs --path=<arquivo>[,<arquivo>...] [--self=<N>] [--repo=owner/name]
+ * Responde "algum PR ABERTO já toca este arquivo?" casando o ARQUIVO do diff (não texto de
+ * busca), sem precisar de PR próprio. Não filtra por hot-path: quem pergunta nomeou o arquivo.
+ * Exit: 0 livre · 1 tocado (lista os PRs) · 2 NÃO MEDI. O 2 é separado de propósito (§5
+ * 2026-07-29): gh falhando, lista possivelmente cortada (devolveu == limite) ou PR no teto de
+ * `files` (100, o GraphQL corta) sem o arquivo — nesses casos "ninguém toca" seria afirmação
+ * sem medição. PR que toca o arquivo é evidência positiva e vale mesmo com lista cortada.
+ * O que ele NÃO responde: sessão viva sem PR (`whats-active`) e trabalho já mergeado
+ * (`git log HEAD..origin/main -- <arquivo>`). Casa path, não tema.
  * Refs: proposta anti-duplicacao-work-claim-gate · ADR 0070/0256/0275 · ZELADOR.
  */
 import { execFileSync } from 'node:child_process';
@@ -63,6 +74,69 @@ export function evaluate(self, others, hot, exclude) {
   return { collisions, blocked };
 }
 
+/** Teto de `files` por PR no `gh pr list --json files` (GraphQL `files(first: 100)`). */
+export const FILES_CAP = 100;
+/** Quantos PRs abertos o --path pede ao gh. */
+export const LIST_LIMIT = 500;
+
+export function normPath(p) { return String(p || '').trim().split(String.fromCharCode(92)).join('/').replace(/^\.\//, ''); }
+
+/**
+ * Modo --path: quem, entre os PRs abertos, toca cada arquivo pedido?
+ * @param {string[]} paths
+ * @param {Array<{number:number,title:string,files:string[]}>} others
+ * @param {{self?: number, limit?: number, returned?: number, filesCap?: number}} [opts]
+ * @returns {{hits: Array<{path:string, prs:Array<{number:number,title:string}>}>, capped: number[], truncated: boolean, verdict: 'livre'|'tocado'|'nao-medi'}}
+ */
+export function pathProbe(paths, others, opts = {}) {
+  const { self, limit = LIST_LIMIT, returned = others.length, filesCap = FILES_CAP } = opts;
+  const alvo = paths.map(normPath).filter(Boolean);
+  const outros = others.filter((o) => o.number !== self);
+  const hits = alvo.map((path) => ({
+    path,
+    prs: outros.filter((o) => o.files.map(normPath).includes(path)).map((o) => ({ number: o.number, title: o.title })),
+  }));
+  const tocado = hits.some((h) => h.prs.length);
+  const capped = outros.filter((o) => o.files.length >= filesCap).map((o) => o.number);
+  const truncated = returned >= limit;
+  const verdict = tocado ? 'tocado' : (truncated || capped.length ? 'nao-medi' : 'livre');
+  return { hits, capped, truncated, verdict };
+}
+
+function mainPath(pathsArg, repoArgs) {
+  const paths = pathsArg.split(',').map(normPath).filter(Boolean);
+  if (!paths.length) { console.error('uso: --path=<arquivo>[,<arquivo>...] [--self=<N>]'); process.exit(2); }
+  const self = arg('self') ? Number(arg('self')) : undefined;
+  let openList;
+  try {
+    const fx = arg('fixture');
+    openList = fx
+      ? JSON.parse(readFileSync(fx, 'utf8'))
+      : JSON.parse(gh(['pr', 'list', '--state', 'open', '--json', 'number,title,files', '-L', String(LIST_LIMIT), ...repoArgs]));
+  } catch (e) { console.error(`✗ NÃO MEDI: falha ao listar PRs abertos (${e.message.split(/\r?\n/)[0]}). Não conclua "ninguém toca".`); process.exit(2); }
+  const others = openList.map((o) => ({ number: o.number, title: o.title, files: (o.files || []).map((f) => f.path) }));
+  const r = pathProbe(paths, others, { self, returned: openList.length });
+
+  console.log(`dup-detector --path: ${others.length} PR(s) aberto(s) consultado(s)${self ? ` (excluído o #${self})` : ''}.`);
+  for (const h of r.hits) {
+    if (h.prs.length) { console.log(`  ⚠️ ${h.path}`); for (const p of h.prs) console.log(`      ↔ #${p.number} ${p.title}`); }
+    else console.log(`  ✓ ${h.path} — nenhum PR aberto`);
+  }
+  if (r.verdict === 'tocado') {
+    console.log('');
+    console.log('TOCADO: há PR aberto no(s) arquivo(s) acima. Leia TODOS antes de abrir o seu (dono-é-sessão-viva, LC-19).');
+    process.exit(1);
+  }
+  if (r.verdict === 'nao-medi') {
+    if (r.truncated) console.error(`✗ NÃO MEDI: a lista veio com ${openList.length} PRs, o limite pedido — pode estar cortada.`);
+    if (r.capped.length) console.error(`✗ NÃO MEDI: PR(s) no teto de ${FILES_CAP} arquivos, onde o arquivo pode estar escondido: ${r.capped.map((n) => '#' + n).join(' ')}.`);
+    process.exit(2);
+  }
+  console.log('');
+  console.log('LIVRE: nenhum PR aberto toca o(s) arquivo(s). Isto não cobre sessão sem PR (whats-active) nem o já mergeado (git log HEAD..origin/main).');
+  process.exit(0);
+}
+
 // ── CLI (impuro — gh) ──
 function arg(n, d = '') { const h = process.argv.find((a) => a.startsWith(`--${n}=`)); return h ? h.slice(n.length + 3) : d; }
 function gh(a) { return execFileSync('gh', a, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }); }
@@ -71,7 +145,9 @@ function main() {
   const ROOT = process.cwd();
   const PR = arg('pr'); const repo = arg('repo');
   const repoArgs = repo ? ['--repo', repo] : [];
-  if (!PR) { console.error('uso: --pr=<N> [--repo=owner/name]'); process.exit(2); }
+  const pathsArg = arg('path');
+  if (pathsArg) return mainPath(pathsArg, repoArgs);
+  if (!PR) { console.error('uso: --pr=<N> [--repo=owner/name]  |  --path=<arquivo>[,...] [--self=<N>]'); process.exit(2); }
 
   const { hot, exclude } = loadHotPaths(ROOT);
   if (!hot.length) { console.log(`ℹ️  ${HOT_PATHS_FILE} ausente/vazio — nada a checar.`); process.exit(0); }
