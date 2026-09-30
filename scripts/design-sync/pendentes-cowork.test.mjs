@@ -112,5 +112,34 @@ try {
   }
 }
 
+// ── CONFERIR prova também `.md` de cowork-inbox/ (2026-09-30) ──
+// O bloco acima usa um `.css`, que está no universo de frescor do `--compare` — por isso ficou
+// verde enquanto o `.md` gravava rodada VAZIA (`verified: []`, medido no #8284 e no #8291). O
+// `--unverified` cobra todo arquivo versionado; sem esta prova, `.md` já verificado e editado
+// travava o required até o próximo retorno do Cowork. Mutante que tire o `--incluir-lidos` do
+// `--conferir` (ou o `extras` do manifesto) derruba este assert.
+{
+  const raiz = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const ledger = join(raiz, 'scripts', 'governance', '.cowork-freshness-ledger.json');
+  const ledgerAntes = (() => { try { return readFileSync(ledger, 'utf8'); } catch { return null; } })();
+  const estadoAntes = lerEstado();
+  const rel = 'cowork-inbox/patrimonio/playbook/_saida-13.md';
+  const tmp3 = mkdtempSync(join(tmpdir(), 'pc-ledger-md-'));
+  try {
+    mkdirSync(join(tmp3, dirname(rel)), { recursive: true });
+    writeFileSync(join(tmp3, rel), readFileSync(join(raiz, 'prototipo-ui', 'cowork', 'Wagner', rel)));
+    const r = spawnSync(process.execPath, [script, '--conferir', tmp3, '--projeto', 'copia'], { encoding: 'utf8' });
+    const entradas = JSON.parse(readFileSync(ledger, 'utf8'));
+    const ult = entradas[entradas.length - 1];
+    ok(r.status === 0, `CONFERIR .md: leitura igual ao git sai 0 (deu ${r.status}) ${r.stderr || ''}`);
+    ok((ult.verified || []).includes(rel) && Boolean((ult.verifiedHash || {})[rel]),
+      'CONFERIR .md: a rodada gravada tem o .md em verified E em verifiedHash (é o que o --unverified lê)');
+  } finally {
+    rmSync(tmp3, { recursive: true, force: true });
+    if (ledgerAntes === null) rmSync(ledger, { force: true }); else writeFileSync(ledger, ledgerAntes);
+    if (lerEstado() !== estadoAntes) { if (estadoAntes === null) rmSync(estado, { force: true }); else writeFileSync(estado, estadoAntes); }
+  }
+}
+
 console.log(`\n${fails ? `${fails} FALHA(S)` : 'todos os casos passaram'}`);
 process.exit(fails ? 1 : 0);
