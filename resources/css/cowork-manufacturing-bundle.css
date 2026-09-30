@@ -26,11 +26,6 @@
    navegador de quem tem outro hue salvo. Detalhe e medição: Recipes.charter.md. */
 .mfg-root{display:flex;flex-direction:column;min-height:0;flex:1}
 .mfg-tabs{display:flex;gap:2px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);background:var(--surface)}
-.mfg-tab{display:flex;align-items:center;gap:7px;padding:9px 12px 8px;background:none;border:0;border-bottom:2px solid transparent;color:var(--text-dim);font:500 12.5px/1 var(--font-sans,inherit);cursor:pointer}
-.mfg-tab:hover{color:var(--text)}
-.mfg-tab.act{color:var(--color-primary);border-bottom-color:var(--color-primary)}
-.mfg-tab-n{font-family:var(--font-mono,ui-monospace,monospace);font-size:10.5px;color:var(--text-mute);background:var(--bg-2);border-radius:3px;padding:1px 5px}
-.mfg-tab.act .mfg-tab-n{color:var(--color-primary)}
 
 .mfg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 20px 4px}
 
@@ -332,8 +327,7 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-root .mfg-fld>span,
 .mfg-root .mfg-sec span,
 .mfg-root .mfg-cat i,
-.mfg-root .mfg-ing .n small,
-.mfg-root .mfg-tab-n{ color: var(--text-dim); }
+.mfg-root .mfg-ing .n small{ color: var(--text-dim); }
 .mfg-root .mfg-th.sort.act{ color: var(--color-primary); } /* desempata o §11 acima (0,4,0 > 0,3,0) — razão no Recipes.charter.md */
 
 /* §11 consequência 2 (ADR 0411) — a regra que ficava AQUI virou redundante em 2026-09-04.
@@ -346,8 +340,7 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
    aba quebram em 2 linhas com rótulo de duas palavras e o texto sai da borda arredondada
    — nenhuma das 3 classes declara `white-space`. Correção prescrita pelo próprio handoff. */
 .mfg-root .mfg-pill,
-.mfg-root .mfg-chip,
-.mfg-root .mfg-tab-n{ white-space: nowrap; }
+.mfg-root .mfg-chip{ white-space: nowrap; }
 
 /* Adaptação 3 · o protótipo destaca a linha "Custo por <un>" com `style=` inline
    (manufacturing-page.jsx, RecipeDrawer). O bundle já traz os MESMOS valores em

@@ -10,11 +10,12 @@
 // backend recalcula com a MESMA fórmula de custo do resto do módulo. O cliente formata.
 // Isso é o §9 do handoff ("a autoridade é o servidor") e evita uma segunda conta na tela.
 
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useEffect, useState, type ReactNode } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Input } from '@/Components/ui/input';
 import { fmt, num } from './_lib/formato';
+import FabricacaoAbas from './_components/FabricacaoAbas';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface LinhaInsumo {
@@ -110,30 +111,7 @@ export default function Insumos({
         </div>
       </div>
 
-      <nav className="mfg-tabs" aria-label="Fabricação">
-        <Link className="mfg-tab" href="/manufacturing/recipe">
-          Receitas
-          <span className="mfg-tab-n">{recipes_count}</span>
-        </Link>
-        <span className="mfg-tab act" aria-current="page">
-          Insumos
-        </span>
-        {permissions.prod && (
-          <Link className="mfg-tab" href="/manufacturing/production">
-            Ordens de produção
-            <span className="mfg-tab-n">
-              {producao.total}
-              {producao.rascunhos ? ` · ${producao.rascunhos} rasc.` : ''}
-            </span>
-          </Link>
-        )}
-        <Link className="mfg-tab" href="/manufacturing/report">
-          Relatório
-        </Link>
-        <Link className="mfg-tab" href="/manufacturing/settings">
-          Configurações
-        </Link>
-      </nav>
+      <FabricacaoAbas ativa="insumos" receitas={recipes_count} producao={producao} podeProduzir={permissions.prod} />
 
       <div className="mfg-bar" data-contract="busca">
         <Input

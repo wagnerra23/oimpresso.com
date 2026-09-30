@@ -21,6 +21,7 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
+import FabricacaoAbas from './_components/FabricacaoAbas';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface SettingsShape {
@@ -75,30 +76,7 @@ export default function Settings({
         </div>
       </div>
 
-      <nav className="mfg-tabs" aria-label="Fabricação">
-        <Link className="mfg-tab" href="/manufacturing/recipe">
-          Receitas
-          <span className="mfg-tab-n">{recipes_count}</span>
-        </Link>
-        <Link className="mfg-tab" href="/manufacturing/insumos">
-          Insumos
-        </Link>
-        {permissions.prod && (
-          <Link className="mfg-tab" href="/manufacturing/production">
-            Ordens de produção
-            <span className="mfg-tab-n">
-              {producao.total}
-              {producao.rascunhos ? ` · ${producao.rascunhos} rasc.` : ''}
-            </span>
-          </Link>
-        )}
-        <Link className="mfg-tab" href="/manufacturing/report">
-          Relatório
-        </Link>
-        <span className="mfg-tab act" aria-current="page">
-          Configurações
-        </span>
-      </nav>
+      <FabricacaoAbas ativa="config" receitas={recipes_count} producao={producao} podeProduzir={permissions.prod} />
 
       <form className="mfg-cfg" data-contract="form" onSubmit={salvar}>
         <div className="mfg-card">

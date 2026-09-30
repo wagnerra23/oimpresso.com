@@ -18,7 +18,7 @@
 // CSS: `cowork-manufacturing-bundle.css` aplicado INTEIRO (proibicoes.md §"Design System /
 // Pacote Cowork novo" — 1ª aplicação nunca é cherry-pick). Escopo `.mfg-root`.
 
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Pencil, Plus, Printer, Search } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -29,6 +29,7 @@ import StatusBadge from '@/Components/shared/StatusBadge';
 import FichaPrint from './_components/FichaPrint';
 import { faixaMargem, fmt, num, rotuloCustoExtra } from './_lib/formato';
 import type { ContadoresProducao, Permissoes, Receita } from './_lib/tipos';
+import FabricacaoAbas from './_components/FabricacaoAbas';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface Props {
@@ -173,35 +174,7 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
       {/* §4.1 — abas do módulo. Cada uma navega pra uma tela que EXISTE hoje.
           "Insumos" passou a existir na US-MANU-005 (`usosDoInsumo` no RecipeBomService) — o
           §18.3 do handoff dizia "sem backend, a aba não sai", e o backend saiu. */}
-      <nav className="mfg-tabs" aria-label="Fabricação">
-        <span className="mfg-tab act" aria-current="page">
-          Receitas
-          <span className="mfg-tab-n">{recipes.length}</span>
-        </span>
-        <Link className="mfg-tab" href="/manufacturing/insumos">
-          Insumos
-        </Link>
-        {permissions.prod && (
-          <Link className="mfg-tab" href="/manufacturing/production">
-            Ordens de produção
-            <span className="mfg-tab-n">
-              {producao.total}
-              {producao.rascunhos ? ` · ${producao.rascunhos} rasc.` : ''}
-            </span>
-          </Link>
-        )}
-        <Link className="mfg-tab" href="/manufacturing/report">
-          Relatório
-        </Link>
-        {/* `Link` (Inertia) pra tela IRMÃ em React. Até 2026-09-04 esta aba era uma âncora
-            crua apontando pra rota Blade legada do módulo: saía do SPA e abria a tela
-            antiga — foi o que o [F] viu ao clicar em Configurações. O cutover da rota
-            legada segue PENDENTE e é decisão [W] (RUNBOOK-settings.md §"Rota nova, sem
-            cutover"); esta aba só deixa de contradizer as irmãs. */}
-        <Link className="mfg-tab" href="/manufacturing/settings">
-          Configurações
-        </Link>
-      </nav>
+      <FabricacaoAbas ativa="receitas" receitas={recipes.length} producao={producao} podeProduzir={permissions.prod} />
 
       {/* §4.2 — 4 KPIs; o 2º e o 3º FILTRAM (liga/desliga), o 1º e o 4º são leitura (R-05). */}
       {/* Os 4 cartões são o `KpiCard` do DS, como no protótipo (`manufacturing-page.jsx`): os

@@ -143,7 +143,7 @@ os JSON da medição não foram versionados — a re-medição pós-deploy entra
 | R01 | Cabeçalho | título "Fabricação" | visual | protótipo (pedido 2026-09-28) | h1 = "Fabricação" | #8239 + smoke prod | ACEITO |
 | R02 | Cabeçalho | peso do título | visual | PageHeader do protótipo | h1 600 (era 700) | prod 2026-09-30: h1 `600` | ACEITO |
 | R03 | Cabeçalho | linha de contagens (stats do PageHeader) | visual | protótipo | mesma forma do PageHeader | — | NÃO INICIADO |
-| R04 | Abas | aba ativa (fundo, peso, selo sólido) | visual | `TabBar` do DS → `PageHeaderTabs` | fundo e selo como o protótipo | — | NÃO INICIADO (onda 2 — muda âncora `nav[aria-label]` do teste) |
+| R04 | Abas | aba ativa (fundo, peso, selo sólido) | visual | `TabBar` do DS → `PageHeaderTabs` | fundo e selo como o protótipo | — | PRONTO PARA VALIDAR (onda 2a, 2026-09-30: `_components/FabricacaoAbas.tsx` sobre o `PageHeaderTabs`, usado pelas 5 telas da Fabricação; a `<nav aria-label>` ficou por fora) |
 | R05 | Indicadores | custo médio / produção do mês | visual | `KpiCard` padrão | cartão do DS, valor na cor do texto | prod: `KpiCard` default, valor `oklch(0.965 0.004 240)` 22px | ACEITO (ver R17) |
 | R06 | Indicadores | margem < 45% / desperdício ≥ 8% | visual + comportamento existente | `KpiCard variant="filter"`, ícone balança/tesoura, tom âmbar | placa de ícone 36 px, valor branco, filtro liga/desliga (R-05) | prod: placa 36px com ícone, fundo âmbar 15%, valor branco 18px/600; filtro de desperdício 1→0 linhas + vazio, desliga volta a 1 | ACEITO (ver R18) |
 | R07 | Filtros | busca | visual | `SearchInput` do DS | — | — | NÃO INICIADO (onda 2) |
