@@ -83,8 +83,8 @@ o módulo existe pra dar.
   (thread 16, decisão [W] em `_saida-16b` opção b) `/asset/revocation` **redireciona** para
   esta tela, e o histórico 1 : N das devoluções mora no drawer Devolver de cada linha (com
   Excluir) e no drawer do bem. ⚠️ Até 2026-09-30 este item dizia que Devoluções era aba
-  **própria** (`_saida-06-bens.md §2`); deixou de ser. O ghost `revocation` do menu segue
-  registrado e hoje cai aqui.
+  **própria** (`_saida-06-bens.md §2`); deixou de ser. O ghost `revocation` do menu também
+  saiu, no mesmo dia ([W]): ele levava para esta tela.
 
 ## Anti-hooks (NÃO faz automaticamente)
 

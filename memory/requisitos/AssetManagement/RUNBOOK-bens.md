@@ -140,7 +140,7 @@ Pest correspondente: `Modules/AssetManagement/Tests/Feature/SmokeRoutesTest.php`
   (`ghosts[]`), que chega ao React por `shell.menu`. Um array de abas escrito no
   `_shared/` criaria um segundo dono, que droga no primeiro rename. O `PatrimonioSubNav`
   **deriva**, não declara.
-- ❌ **Não inventar aba.** O protótipo tem 7; o menu vivo tem 6 ghosts, com **Devoluções**
+- ❌ **Não inventar aba.** O protótipo tem 7; o menu vivo tinha 6 ghosts (retrato de 2026-09-09; em 2026-09-30 a **Devoluções** saiu e a Auditoria já tinha entrado — a lista vale é a do `DataController`), com **Devoluções**
   (que o protótipo não tem) e sem **Garantias** / **Auditoria** — e essas duas são decisões
   de produto ABERTAS ([W], itens 4 e 5 do `00-INDICE.md §6`). Renderizar aba que não
   navega é afordância falsa.

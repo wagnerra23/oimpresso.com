@@ -20,13 +20,18 @@
 //   menu vivo  · Painel · Bens · Alocações · Devoluções · Manutenções · Configurações
 //   protótipo  · Painel · Bens · Alocações · Manutenções · Garantias · Auditoria · Configurações
 //
+// ⚠️ Retrato de 2026-09-09. Desde então: a Auditoria entrou como ghost (ADR 0414) e a
+// Devoluções saiu (2026-09-30, [W]: `/asset/revocation` redireciona para Alocações). A lista
+// vale é a do `DataController` — este comentário só explica por que as duas diferem.
+//
 // Os RÓTULOS convergiram em 2026-09-09 por decisão [W]: a aba dizia "Ativos"/"Manutenção"
 // enquanto o `PageHeader` da MESMA tela dizia "Bens"/"Manutenções". Trocado no dono ÚNICO
 // (`DataController`), não aqui — este arquivo continua sem saber o nome de aba nenhuma.
 //
 // O que RESTA divergindo não é descuido de um dos lados — é escopo em aberto:
-//   • **Devoluções** existe como rota real (`/asset/revocation`, `Route::resource`) e o
-//     protótipo a trata como estado dentro de Alocações. A rota manda.
+//   • **Devoluções** existia como rota real (`/asset/revocation`) e o protótipo a trata como
+//     estado dentro de Alocações. Em 2026-09-30 o protótipo venceu: a rota redireciona e o
+//     ghost saiu.
 //   • **Garantias** e **Auditoria** são decisões de produto ABERTAS do [W] — itens 4 e 5
 //     do `00-INDICE.md §6` do playbook ("Garantias é tela ou filtro de Bens?",
 //     "Auditoria é aba daqui ou do Modules/Auditoria?"). Nenhuma tem rota. Renderizar
@@ -57,7 +62,7 @@ interface ShellComMenu {
 }
 
 export interface PatrimonioSubNavProps {
-  /** `key` do ghost desta tela — os do DataController: `dashboard` · `assets` · `allocation` · `revocation` · `asset-maintenance` · `settings`. */
+  /** `key` do ghost desta tela — os do DataController: `dashboard` · `assets` · `allocation` · `asset-maintenance` · `settings` (+ `auditoria` quando o módulo abre). */
   active: string;
   /** Ações da tela que vão pro overflow `⋯ Mais`. */
   extraOverflowItems?: PageHeaderOverflowItem[];

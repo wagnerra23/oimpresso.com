@@ -151,7 +151,10 @@ class DataController extends Controller
                                     ['key' => 'dashboard',         'label' => 'Painel',         'href' => '/asset/dashboard'],
                                     ['key' => 'assets',            'label' => 'Bens',           'href' => '/asset/assets'],
                                     ['key' => 'allocation',        'label' => 'Alocações',      'href' => '/asset/allocation'],
-                                    ['key' => 'revocation',        'label' => 'Devoluções',     'href' => '/asset/revocation'],
+                                    // SEM ghost "Devoluções" desde 2026-09-30 ([W]): `/asset/revocation`
+                                    // redireciona para Alocações (thread 16) e o histórico de devoluções
+                                    // mora nos drawers. A aba levava para a própria tela de Alocações.
+                                    // Trava: MenuGhostsContratoTest ("Devoluções NÃO aparece").
                                     ['key' => 'asset-maintenance', 'label' => 'Manutenções',    'href' => '/asset/asset-maintenance'],
                                     ['key' => 'settings',          'label' => 'Configurações',  'href' => '/asset/settings'],
                                     ...($ghost_auditoria ? [$ghost_auditoria] : []),
