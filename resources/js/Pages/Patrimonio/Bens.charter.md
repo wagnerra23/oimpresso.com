@@ -9,7 +9,7 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
 tier: B
-charter_version: 6
+charter_version: 7
 last_validated: "2026-09-30"
 ---
 
@@ -40,8 +40,8 @@ last_validated: "2026-09-30"
 
 Mostrar o patrimônio da empresa como lista operável: o que a casa tem, onde está, com quem
 está alocado, quanto vale por unidade e se está em garantia ou em manutenção. É a tela de
-partida do módulo: dela se **cadastra** bem (drawer) e se **exclui**. Editar, alocar e mandar
-pra manutenção ainda não — ver os Non-Goals.
+partida do módulo: dela se **cadastra**, se **edita** (drawer) e se **exclui** bem. Alocar e
+mandar pra manutenção ainda não — ver os Non-Goals.
 
 ## Goals — Features (faz)
 
@@ -66,15 +66,20 @@ pra manutenção ainda não — ver os Non-Goals.
   vencendo em até 30 dias; bem sem registro de garantia não entra. A pílula traz a contagem do
   **conjunto**, vinda do servidor (`recortes_contagem`), e é o mesmo predicado do KPI do Painel.
   Contrato: UC-BENS-06.
+- **Edição em drawer** (thread 17, D-FORMS [W] 2026-09-24 · ADR 0414; entregue 2026-09-30): o
+  mesmo `CadastroBemDrawer` em modo editar, aberto por `GET /asset/assets/{id}/edit`, que devolve
+  esta Page com a prop `edicao` (bem escopado por business; id de outra empresa = 404). Posta no
+  `update()` existente. Mostra a garantia mais recente e reenvia as outras intactas — o serviço
+  apaga a que não vier. Dupla prova da REGRA MESTRE: UC-BENS-09.
 - **Drawer de detalhe do bem** (leitura — decisão [W] 2026-09-30, `_saida-16b.md`): clicar na
   linha abre `?bem=ID` por partial reload (só `bem_detalhe` vem da rede). Abas **Resumo** e
   **Alocações**; esta lista cada alocação com **todas** as suas devoluções (1 : N — código,
   quantidade, data, autor e motivo), porque devolução parcial grava vários `revoke` por
   alocação. A devolução é escopada por `business_id` **nela mesma**. Bem de outra empresa ou
   fora dos locais permitidos = "não encontrado". Contrato: UC-BENS-10.
-- Ação por linha: **excluir** (`router.delete` no `destroy`, com confirmação nomeando o bem),
-  conforme a permissão do usuário. (Até 2026-09-23 havia também alocar · manutenção · editar —
-  ver o Non-Goal abaixo, que diz por que saíram.)
+- Ação por linha: **editar** e **excluir** (`router.delete` no `destroy`, com confirmação
+  nomeando o bem), conforme a permissão do usuário. (Até 2026-09-23 havia também alocar ·
+  manutenção — ver o Non-Goal abaixo, que diz por que saíram.)
 - Sub-navegação do módulo **derivada** de `shell.menu` (`DataController::modifyAdminMenu`),
   nunca declarada aqui.
 - Estados: cheia · filtrada-vazia · vazia · carregando (skeleton do `Inertia::defer`) ·
@@ -95,8 +100,9 @@ pra manutenção ainda não — ver os Non-Goals.
 - ❌ NÃO faz seleção em lote nem BulkBar — as duas ações em lote do protótipo (exportar
   seleção, mandar pra manutenção) não têm endpoint hoje.
 - ❌ NÃO exporta CSV, não imprime, não configura colunas nem densidade.
-- ❌ NÃO edita, aloca nem manda pra manutenção — e **não oferece botão** pra isso. (Criar
-  voltou em 2026-09-23 pelo drawer — ver Goals.) Até
+- ❌ NÃO aloca nem manda pra manutenção — e **não oferece botão** pra isso. (Criar voltou em
+  2026-09-23 e **editar em 2026-09-30**, os dois pelo drawer — ver Goals; o Non-Goal de edição
+  está **revogado** desde então, pela resposta da D-FORMS.) Até
   2026-09-23 a tela tinha "Novo ativo", o CTA do vazio e três ícones por linha apontando pra
   `create`/`edit` Blade. **Medido em prod (biz=1):** os quatro endpoints só respondem sob
   `request()->ajax()` e devolveram 200 com **0 bytes** numa navegação direta — as views são

@@ -254,6 +254,21 @@ class AssetController extends Controller
                 ->make(true);
         }
 
+        return $this->renderBens($request, (int) $business_id);
+    }
+
+    /**
+     * A tela de Bens (Inertia) — dona unica do render, usada por `index`, `create` e `edit`.
+     *
+     * Thread 17 do Patrimonio ([W] 2026-09-30): `create`/`edit` deixaram de devolver o fragmento
+     * de modal Blade (que so respondia sob `ajax()` e a lista React nao abria) e passaram a devolver
+     * ESTA Page com o drawer aberto. `$extra` e o que muda entre as tres: nada (index),
+     * `abrir_cadastro` (create) ou `edicao` (edit).
+     */
+    private function renderBens(Request $request, int $business_id, array $extra = [])
+    {
+        $purchase_types = $this->purchaseTypes;
+
         $business_locations = BusinessLocation::forDropdown($business_id);
         $asset_category = Category::forDropdown($business_id, 'asset');
 
@@ -266,7 +281,7 @@ class AssetController extends Controller
         // INERTE para esta tela (o React recebe o paginator por prop). Remove-lo, junto
         // com `Resources/views/asset/index.blade.php`, e cutover (F5) — nao frontend.
         // Runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
-        return Inertia::render('Patrimonio/Bens', [
+        return Inertia::render('Patrimonio/Bens', array_merge([
             // Contador da aba "Manutencoes" (pill do PageHeaderTabs). DEFERIDO: o
             // CLAUDE.md manda `Inertia::defer` em toda prop que faz query, e o pill nao
             // participa do first paint. Cobre `asset-maintenance` e mais nada -- dos 5
@@ -329,7 +344,7 @@ class AssetController extends Controller
             'bem_detalhe' => Inertia::defer(fn () => $this->bemSelecionado($request)
                 ? $this->buildBemDetalhe($this->bemSelecionado($request), (int) $business_id)
                 : null),
-        ]);
+        ], $extra));
     }
 
     /**
@@ -680,13 +695,18 @@ class AssetController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Cadastro de bem: a tela de Bens com o drawer "Adicionar recurso" aberto.
      *
-     * @return Response
+     * Ate 2026-09-30 devolvia o fragmento de modal `asset.create` so sob `ajax()` — e o cliente
+     * Inertia manda `X-Requested-With` SEMPRE, entao o ramo nem pode conviver com a tela React:
+     * uma visita Inertia cairia nele. O drawer (`_shared/CadastroBemDrawer`) ja posta no `store()`.
+     *
+     * @return \Inertia\Response
      */
     public function create(Request $request)
     {
-        if (! auth()->user()->can('asset.create')) {
+        // `asset.view`: a Page carrega a lista de bens — quem nao ve a lista nao entra por aqui.
+        if (! auth()->user()->can('asset.create') || ! auth()->user()->can('asset.view')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -696,15 +716,7 @@ class AssetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if ($request->ajax()) {
-            $asset_category = Category::forDropdown($business_id, 'asset');
-            $business_locations = BusinessLocation::forDropdown($business_id);
-
-            $purchase_types = $this->purchaseTypes;
-
-            return view('assetmanagement::asset.create')
-                ->with(compact('asset_category', 'business_locations', 'purchase_types'));
-        }
+        return $this->renderBens($request, (int) $business_id, ['abrir_cadastro' => true]);
     }
 
     /**
@@ -736,36 +748,75 @@ class AssetController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Edicao de bem: a tela de Bens com o drawer aberto em modo editar (thread 17, [W] 2026-09-30).
+     *
+     * Mesmo motivo do `create()`: o fragmento `asset.edit` so respondia sob `ajax()`, e toda
+     * visita Inertia e ajax. O bem entra na prop `edicao` ja escopado por business (Tier 0) —
+     * id de outra empresa da 404, como antes. O `update()` e o mesmo de sempre.
      *
      * @param  int  $id
-     * @return Response
+     * @return \Inertia\Response
      */
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
-        if (! auth()->user()->can('asset.update')) {
+        if (! auth()->user()->can('asset.update') || ! auth()->user()->can('asset.view')) {
             abort(403, 'Unauthorized action.');
         }
 
-        $business_id = request()->session()->get('user.business_id');
+        $business_id = (int) request()->session()->get('user.business_id');
 
         if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $asset = Asset::with(['warranties'])
-                        ->where('business_id', $business_id)
-                        ->findOrfail($id);
+        $asset = Asset::where('business_id', $business_id)->findOrFail($id);
 
-            $asset_category = Category::forDropdown($business_id, 'asset');
-            $business_locations = BusinessLocation::forDropdown($business_id);
+        return $this->renderBens($request, $business_id, ['edicao' => $this->buildEdicaoPayload($asset)]);
+    }
 
-            $purchase_types = $this->purchaseTypes;
+    /**
+     * O bem gravado no formato que o drawer preenche (`cadastroBem.ts::BemEdicao`).
+     *
+     * Numeros saem como NUMERO (nao string formatada): quem os formata pro envio e o
+     * `paraNumUf` do front, o mesmo do cadastro — a REGRA MESTRE fica num caminho so.
+     * Garantias da mais recente pra mais antiga: o drawer edita a primeira e reenvia as outras
+     * intactas, porque o `AssetService::atualizar` apaga a que nao vier no envio.
+     */
+    private function buildEdicaoPayload(Asset $asset): array
+    {
+        // Pelo METODO da relacao, nao pelo atributo magico: o `Asset` nao declara `@property
+        // $warranties` e o PHPStan (ratchet) reprova o acesso. O serviço ja usa `warranties()`.
+        $garantias = $asset->warranties()
+            ->orderByDesc('start_date')
+            ->get()
+            ->map(fn ($w) => [
+                'id' => (int) $w->id,
+                'inicio' => \Carbon::parse($w->start_date)->format('Y-m-d'),
+                'meses' => (int) round(\Carbon::parse($w->start_date)->diffInMonths(\Carbon::parse($w->end_date))),
+                'custo' => (float) $w->additional_cost,
+                'nota' => $w->additional_note,
+            ])
+            ->all();
 
-            return view('assetmanagement::asset.edit')
-                ->with(compact('asset_category', 'business_locations', 'asset', 'purchase_types'));
-        }
+        return [
+            'id' => (int) $asset->id,
+            'asset_code' => (string) $asset->asset_code,
+            'form' => [
+                'nome' => (string) $asset->name,
+                'categoriaId' => $asset->category_id ? (string) $asset->category_id : '',
+                'localId' => $asset->location_id ? (string) $asset->location_id : '',
+                'modelo' => (string) ($asset->model ?? ''),
+                'serie' => (string) ($asset->serial_no ?? ''),
+                'compraEm' => $asset->purchase_date ? \Carbon::parse($asset->purchase_date)->format('Y-m-d') : '',
+                'tipoCompra' => (string) ($asset->purchase_type ?: 'owned'),
+                'valorUnitario' => (float) $asset->unit_price,
+                'quantidade' => (float) $asset->quantity,
+                'depreciacao' => $asset->depreciation === null ? null : (float) $asset->depreciation,
+                'alocavel' => (bool) $asset->is_allocatable,
+                'descricao' => (string) ($asset->description ?? ''),
+            ],
+            'garantias' => $garantias,
+        ];
     }
 
     /**

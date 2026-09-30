@@ -29,7 +29,7 @@
 // desenho do `BemForm` do protótipo). Abre pelo botão do header, pelo CTA do vazio e por
 // `?novo=1` na URL — é assim que o "Adicionar recurso" do Painel chega aqui.
 //
-// ─── Por que NÃO há alocar, manutenção nem editar ────────────────────────────────────
+// ─── Por que NÃO há alocar nem manutenção (editar voltou em 2026-09-30 — ver AcoesDaLinha) ──
 //
 // MEDIDO em produção (biz=1, 2026-09-23), não presumido: `AssetController::{create,edit}`,
 // `AssetAllocationController::create` e `AssetMaitenanceController::create` só respondem
@@ -47,7 +47,7 @@
 
 import { Deferred, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { Eye, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
 import DataTable, { type EstadoDaLinha } from '@/Components/shared/DataTable';
@@ -62,6 +62,7 @@ import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
 import CadastroBemDrawer from './_shared/CadastroBemDrawer';
 import DetalheBemDrawer, { type BemDetalhe } from './_shared/DetalheBemDrawer';
+import type { BemEdicao } from './_shared/cadastroBem';
 import type { ColumnDef } from '@tanstack/react-table';
 
 /* ─── Contrato com o backend ──────────────────────────────────────────────────── */
@@ -140,6 +141,10 @@ interface Props {
     excluir: boolean;
     manutencao: boolean;
   };
+  /** Só em `GET /asset/assets/{id}/edit`: o bem gravado, escopado por business. Abre o drawer em modo editar. */
+  edicao?: BemEdicao | null;
+  /** Só em `GET /asset/assets/create`: abre o drawer de cadastro. */
+  abrir_cadastro?: boolean;
 }
 
 /* ─── Formatação ──────────────────────────────────────────────────────────────── */
@@ -209,9 +214,10 @@ function BotaoAcao({
 }
 
 /**
- * Ação por linha — só EXCLUIR. Alocar, mandar pra manutenção e editar saíram em 2026-09-23:
- * os três apontavam pra endpoints que só respondem sob `ajax()` e abriam página em branco
- * (ver o docblock do topo do arquivo). Botão que parece agir e não age é afordância falsa.
+ * Ação por linha — EDITAR e EXCLUIR. Alocar e mandar pra manutenção saíram em 2026-09-23:
+ * apontavam pra endpoints que só respondem sob `ajax()` e abriam página em branco (ver o
+ * docblock do topo). Editar VOLTOU em 2026-09-30 (thread 17): `GET /asset/assets/{id}/edit`
+ * agora devolve esta mesma Page com o drawer aberto em modo editar.
  *
  * Excluir usa `router.delete` com confirmação: o `destroy` é uma rota `resource` (verbo
  * DELETE), então link `<a>` não a alcançaria.
@@ -228,8 +234,15 @@ function AcoesDaLinha({ bem, permissoes }: { bem: Bem; permissoes: Props['permis
     router.delete(`/asset/assets/${bem.id}`, { preserveScroll: true });
   };
 
+  const editar = () => router.get(`/asset/assets/${bem.id}/edit`, {}, { preserveScroll: true });
+
   return (
     <Inline gap={1}>
+      {permissoes.editar ? (
+        <BotaoAcao titulo={`Editar — ${bem.nome}`} onClick={editar}>
+          <Pencil size={14} aria-hidden="true" />
+        </BotaoAcao>
+      ) : null}
       {permissoes.excluir ? (
         <BotaoAcao titulo={`Excluir — ${bem.nome}`} perigo onClick={excluir}>
           <Trash2 size={14} aria-hidden="true" />
@@ -545,28 +558,8 @@ function pedidoDeCadastroNaUrl(): boolean {
   return new URLSearchParams(window.location.search).get('novo') === '1';
 }
 
-export default function Bens({
-  abas_contadores,
-  bens,
-  recortes_contagem,
-  bem_selecionado,
-  bem_detalhe,
-  filtros,
-  opcoes,
-  formato_data,
-  permissoes,
-}: Props) {
-  const [cadastroAberto, setCadastroAberto] = useState(() => permissoes.criar && pedidoDeCadastroNaUrl());
-
-  const fecharCadastro = () => {
-    setCadastroAberto(false);
-    // Tira o `novo=1` da URL: recarregar a página não deve reabrir o cadastro.
-    if (pedidoDeCadastroNaUrl()) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('novo');
-      window.history.replaceState(window.history.state, '', url.toString());
-    }
-  };
+export default function Bens({ abas_contadores, bens, recortes_contagem, bem_selecionado, bem_detalhe, filtros, opcoes, formato_data, permissoes, edicao = null, abrir_cadastro = false }: Props) {
+  const [cadastroAberto, setCadastroAberto] = useState(() => permissoes.criar && (abrir_cadastro || pedidoDeCadastroNaUrl()));
 
   // Drawer de DETALHE (leitura, `_saida-16b.md`): a linha abre `?bem=ID` por partial reload
   // — só `bem_detalhe` vem da rede, a tabela fica. Mesmo desenho de `Compras/Index`.
@@ -576,6 +569,24 @@ export default function Bens({
       { ...limpar(filtros), page: bens && bens.current_page > 1 ? bens.current_page : undefined, bem },
       { only: ['bem_detalhe', 'bem_selecionado'], preserveState: true, preserveScroll: true, replace: true },
     );
+
+  // O drawer de edição vive na URL `/asset/assets/{id}/edit` — fechar volta pra lista.
+  const fecharEdicao = () => router.get('/asset/assets', {}, { preserveScroll: true });
+
+  const fecharCadastro = () => {
+    setCadastroAberto(false);
+    // Veio por `/asset/assets/create`: fechar volta pra URL da lista.
+    if (abrir_cadastro) {
+      router.get('/asset/assets', {}, { preserveScroll: true });
+      return;
+    }
+    // Tira o `novo=1` da URL: recarregar a página não deve reabrir o cadastro.
+    if (pedidoDeCadastroNaUrl()) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('novo');
+      window.history.replaceState(window.history.state, '', url.toString());
+    }
+  };
 
   // Distingue "não há bem nenhum" de "não há bem PARA ESTE RECORTE" — são dois vazios
   // diferentes, e oferecer "cadastre o primeiro bem" a quem só filtrou demais é ruído.
@@ -661,7 +672,18 @@ export default function Bens({
         tiposCompra={opcoes.tipos_compra}
         onClose={() => detalhe(undefined)}
       />
-      {permissoes.criar ? (
+      {permissoes.editar && edicao ? (
+        <CadastroBemDrawer
+          aberto
+          edicao={edicao}
+          onClose={fecharEdicao}
+          locais={opcoes.locais}
+          categorias={opcoes.categorias}
+          tiposCompra={opcoes.tipos_compra}
+          formatoData={formato_data}
+        />
+      ) : null}
+      {permissoes.criar && !edicao ? (
         <CadastroBemDrawer
           aberto={cadastroAberto}
           onClose={fecharCadastro}
