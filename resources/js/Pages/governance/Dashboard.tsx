@@ -37,6 +37,7 @@ import {
   Shield,
   Ruler,
   BookOpen,
+  Settings,
 } from 'lucide-react'
 
 interface Adr {
@@ -923,7 +924,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
                 Audit Highlights 24h ({audit_highlights.length})
               </h3>
               <Link href="/governance/audit" className="text-sm text-primary hover:underline">
-                drill-down →
+                ver detalhes →
               </Link>
             </div>
 
@@ -1003,19 +1004,19 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
               href="/governance/policies"
               className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm font-medium transition-colors"
             >
-              ⚙️ Policies
+              <Settings className="h-3.5 w-3.5 mr-1 inline-block" /> Políticas
             </Link>
             <Link
               href="/governance/audit"
               className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm font-medium transition-colors"
             >
-              <BarChart3 className="h-3.5 w-3.5 mr-1 inline-block" /> Audit log
+              <BarChart3 className="h-3.5 w-3.5 mr-1 inline-block" /> Auditoria
             </Link>
             <Link
               href="/governance/drift"
               className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm font-medium transition-colors"
             >
-              <AlertTriangle className="h-3.5 w-3.5 mr-1 inline-block" /> Drift alerts
+              <AlertTriangle className="h-3.5 w-3.5 mr-1 inline-block" /> Drift
             </Link>
             <Link
               href="/copiloto/admin/memoria?type=adr&status=proposto"
