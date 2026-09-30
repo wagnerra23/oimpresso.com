@@ -10,7 +10,6 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\AssetManagement\Entities\AssetTransaction;
 use Modules\AssetManagement\Utils\AssetUtil;
-use Yajra\DataTables\Facades\DataTables;
 
 class RevokeAllocatedAssetController extends Controller
 {
@@ -34,9 +33,24 @@ class RevokeAllocatedAssetController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Devoluções: redireciona para a tela de Alocações (thread 16, decisão [W] 2026-09-30,
+     * `_saida-16b` opção b).
      *
-     * @return Response
+     * A lista de devoluções não tem mais tela própria. O grão dela é 1 alocação : N devoluções
+     * (`_saida-16`), e ele já aparece em dois lugares: o drawer do BEM, aba Alocações (cada
+     * alocação com todas as suas devoluções), e o drawer Devolver da tela de Alocações, que
+     * lista as devoluções da alocação com Excluir (thread 18). Excluir era a única capacidade
+     * que só a lista Blade tinha; por isso o redirecionamento esperou a 18.
+     *
+     * Até 2026-09-30 este método devolvia a lista Blade de devoluções e, sob
+     * `ajax()`, o JSON do DataTables que ela consumia. O ramo `ajax()` saiu junto: o cliente
+     * Inertia manda `X-Requested-With` em toda visita, então quem chegava aqui pelo menu
+     * recebia JSON cru. O arquivo `.blade.php` fica no disco; retirá-lo é outra onda.
+     *
+     * A rota `GET asset/revocation` segue registrada (menu e links antigos continuam
+     * resolvendo) e o gate de assinatura é o mesmo de antes.
+     *
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function index()
     {
@@ -46,66 +60,7 @@ class RevokeAllocatedAssetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $asset_allocated = AssetTransaction::join('asset_transactions as PT',
-                                'asset_transactions.parent_id', '=', 'PT.id')
-                                ->join('assets', 'PT.asset_id', '=', 'assets.id')
-                                ->join('users as receiver', 'PT.receiver', '=', 'receiver.id')
-                                ->join('users as revoked_by', 'asset_transactions.created_by', '=', 'revoked_by.id')
-                                ->leftJoin('categories as CAT', 'assets.category_id',
-                                    '=', 'CAT.id')
-                                ->where('asset_transactions.business_id', $business_id)
-                                ->where('asset_transactions.transaction_type', 'revoke')
-                                ->select('asset_transactions.ref_no as ref_no',
-                                'asset_transactions.quantity as quantity',
-                                'asset_transactions.transaction_datetime as revoked_at', 'asset_transactions.id as id',
-                                'assets.name as asset', 'assets.model as model',
-                                'CAT.name as category', DB::raw("CONCAT(COALESCE(receiver.surname, ''),' ',COALESCE(receiver.first_name, ''),' ',COALESCE(receiver.last_name,'')) as revoked_for"),
-                                DB::raw("CONCAT(COALESCE(revoked_by.surname, ''),' ',COALESCE(revoked_by.first_name, ''),' ',COALESCE(revoked_by.last_name,'')) as revoked_by_name"),
-                                'PT.ref_no as allocation_code', 'asset_transactions.reason as reason');
-
-            return Datatables::of($asset_allocated)
-                ->addColumn('action', function ($row) {
-                    $html = '<div class="btn-group">
-                                    <button class="btn btn-info dropdown-toggle btn-xs" type="button"  data-toggle="dropdown" aria-expanded="false">
-                                        '.__('messages.action').'
-                                        <span class="caret"></span>
-                                        <span class="sr-only">
-                                        '.__('messages.action').'
-                                        </span>
-                                    </button>
-                                    ';
-
-                    $html .= '<ul class="dropdown-menu dropdown-menu-left" role="menu">
-                                <li>
-                                    <a data-href="'.action([\Modules\AssetManagement\Http\Controllers\RevokeAllocatedAssetController::class, 'destroy'], [$row->id]).'"  id="delete_revoked_asset" class="cursor-pointer">
-                                        <i class="fas fa-trash"></i>
-                                        '.__('messages.delete').'
-                                    </a>
-                                </li>
-                            </ul>';
-
-                    $html .= '
-                            </div>';
-
-                    return $html;
-                })
-                ->editColumn('revoked_at', '
-                    @if(!empty($revoked_at))
-                        {{@format_datetime($revoked_at)}}
-                    @endif
-                ')
-                ->editColumn('quantity', '
-                    @if(!empty($quantity))
-                        {{@format_quantity($quantity)}}
-                    @endif
-                ')
-                ->removeColumn('id')
-                ->rawColumns(['action', 'revoked_at', 'quantity'])
-                ->make(true);
-        }
-
-        return view('assetmanagement::asset_revocation.index');
+        return redirect()->action([AssetAllocationController::class, 'index']);
     }
 
     /**
