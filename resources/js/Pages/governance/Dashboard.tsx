@@ -768,7 +768,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           tone="warning"
           label="ADRs pendentes"
           value={kpis.pending_adrs.toString()}
-          description="Status proposto aguardando você"
+          description="status proposto"
           href="/copiloto/admin/memoria?type=adr&status=proposto"
         />
         <KpiCard
@@ -776,14 +776,14 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           tone="success"
           label="Políticas ativas"
           value={kpis.active_policies.toString()}
-          description="mcp_governance_rules.enabled=1"
+          description="ligadas no catálogo"
         />
         <KpiCard
           icon="git-pull-request"
           tone="info"
           label="Aprovações de skill"
           value={kpis.skill_approvals.toString()}
-          description="Pendentes de aprovação"
+          description="versões em revisão"
           href="/ads/admin/skills-review"
         />
         <KpiCard
@@ -791,14 +791,14 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           tone="info"
           label="Atores registrados"
           value={kpis.actors_registered.toString()}
-          description="Identity Mesh — humanos + IAs"
+          description="sem revogação"
         />
         <KpiCard
           icon="alert-triangle"
           tone={kpis.audit_highlights > 0 ? 'warning' : 'success'}
           label="Ocorrências em 24 h"
           value={kpis.audit_highlights.toString()}
-          description="Erros + ações L0/L1"
+          description="resultado diferente de concluído"
         />
         <KpiCard
           icon="award"
@@ -832,7 +832,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
               tone="info"
               label="Métricas vivas"
               value={`${sdd.vivas}/${sdd.metrics_total}`}
-              description="fontes medindo de verdade (status measured)"
+              description="fontes medindo de verdade"
             />
             <KpiCard
               icon="alert-triangle"
@@ -859,18 +859,18 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           tone={failedJobsTone(health_kpis.failed_jobs_24h)}
           label="Jobs falhos em 24 h"
           value={health_kpis.failed_jobs_24h === null ? '—' : health_kpis.failed_jobs_24h.toString()}
-          description={health_kpis.failed_jobs_24h === null ? 'failed_jobs ausente' : 'queue Horizon'}
+          description={health_kpis.failed_jobs_24h === null ? 'failed_jobs ausente' : 'fila do Horizon'}
         />
         <KpiCard
           icon="dollar-sign"
           tone={custoIaTone(health_kpis.custo_ia_brl_24h)}
-          label="Custo IA 24h"
+          label="Custo de IA em 24 h"
           value={
             health_kpis.custo_ia_brl_24h === null
               ? '—'
               : `R$ ${health_kpis.custo_ia_brl_24h.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
           }
-          description={health_kpis.custo_ia_brl_24h === null ? 'jana_mensagens ausente' : 'tokens × pricing canônico'}
+          description={health_kpis.custo_ia_brl_24h === null ? 'jana_mensagens ausente' : 'tokens de entrada e saída'}
         />
         <KpiCard
           icon="message-circle-warning"
