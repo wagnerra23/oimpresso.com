@@ -6,7 +6,12 @@
  * excluído, ack presente/ausente, próprio PR. Roda no governance-script-tests.yml.
  */
 import assert from 'node:assert/strict';
-import { isHot, hasAck, hotOverlap, evaluate } from './dup-detector.mjs';
+import { isHot, hasAck, hotOverlap, evaluate, pathProbe, normPath, FILES_CAP, LIST_LIMIT } from './dup-detector.mjs';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const HOT = ['scripts/governance/', '.github/workflows/'];
 const EXC = ['scripts/governance/gates-registry.json'];
@@ -45,6 +50,54 @@ t('evaluate: sem overlap → NÃO blocked', () => {
 t('evaluate: ignora o PRÓPRIO PR (mesmo number)', () => {
   const r = evaluate({ number: 1, body: '', files: ['scripts/governance/a.mjs'] }, [{ number: 1, title: 'self', files: ['scripts/governance/a.mjs'] }], HOT, EXC);
   assert.equal(r.collisions.length, 0);
+});
+
+// ── modo --path (§5 2026-09-30, LC-19) ──
+const BASE = 'governance/multi-tenant-scope-baseline.json';
+const PRS = [
+  { number: 8225, title: 'de passagem', files: ['a.md', BASE] },
+  { number: 8226, title: 'dedicado', files: [BASE] },
+  { number: 9000, title: 'outro', files: ['b.md'] },
+];
+t('pathProbe: lista TODOS os PRs que tocam o arquivo (o de passagem inclusive)', () => {
+  const r = pathProbe([BASE], PRS);
+  assert.equal(r.verdict, 'tocado');
+  assert.deepEqual(r.hits[0].prs.map((p) => p.number), [8225, 8226]);
+});
+t('pathProbe: arquivo que ninguém toca → livre', () => assert.equal(pathProbe(['c.md'], PRS).verdict, 'livre'));
+t('pathProbe: mesma PASTA, arquivo diferente → livre (casa arquivo, não pasta)', () =>
+  assert.equal(pathProbe(['governance/outro.json'], PRS).verdict, 'livre'));
+t('pathProbe: --self exclui o próprio PR', () =>
+  assert.deepEqual(pathProbe(['b.md'], PRS, { self: 9000 }).verdict, 'livre'));
+t('pathProbe: normaliza ./ e barra invertida', () => {
+  assert.equal(normPath('./' + BASE), BASE);
+  assert.equal(normPath(BASE.split('/').join(String.fromCharCode(92))), BASE);
+  assert.equal(pathProbe(['./' + BASE], PRS).verdict, 'tocado');
+});
+t('pathProbe: lista no LIMITE e sem hit → nao-medi (pode estar cortada)', () =>
+  assert.equal(pathProbe(['c.md'], PRS, { returned: LIST_LIMIT }).verdict, 'nao-medi'));
+t('pathProbe: PR no teto de files e sem hit → nao-medi, nomeando o PR', () => {
+  const big = { number: 7777, title: 'grande', files: Array.from({ length: FILES_CAP }, (_, i) => `f${i}.md`) };
+  const r = pathProbe(['c.md'], [...PRS, big]);
+  assert.equal(r.verdict, 'nao-medi'); assert.deepEqual(r.capped, [7777]);
+});
+t('pathProbe: hit é evidência positiva mesmo com lista cortada', () =>
+  assert.equal(pathProbe([BASE], PRS, { returned: LIST_LIMIT }).verdict, 'tocado'));
+
+// CLI de fora (o chokepoint, não só as funções — §5 2026-07-30)
+const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), 'dup-detector.mjs');
+const dir = mkdtempSync(join(tmpdir(), 'dupdet-'));
+const fx = join(dir, 'open.json');
+writeFileSync(fx, JSON.stringify(PRS.map((p) => ({ number: p.number, title: p.title, files: p.files.map((path) => ({ path })) }))));
+const cli = (...a) => spawnSync(process.execPath, [SCRIPT, ...a], { encoding: 'utf8' });
+t('CLI --path: tocado → exit 1 e cita os dois PRs', () => {
+  const r = cli(`--path=${BASE}`, `--fixture=${fx}`);
+  assert.equal(r.status, 1); assert.match(r.stdout, /#8225/); assert.match(r.stdout, /#8226/);
+});
+t('CLI --path: livre → exit 0', () => assert.equal(cli('--path=c.md', `--fixture=${fx}`).status, 0));
+t('CLI --path: falha ao listar → exit 2 NÃO MEDI (nunca "livre")', () => {
+  const r = cli('--path=c.md', `--fixture=${join(dir, 'nao-existe.json')}`);
+  assert.equal(r.status, 2); assert.match(r.stderr, /NÃO MEDI/);
 });
 
 let pass = 0, fail = 0;
