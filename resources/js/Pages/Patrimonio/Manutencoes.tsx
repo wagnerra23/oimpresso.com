@@ -210,9 +210,13 @@ function AcoesDaLinha({ manutencao }: { manutencao: Manutencao }) {
 /* ─── Colunas ─────────────────────────────────────────────────────────────────── */
 
 // GEOMETRIA declarada (`meta.width`): largura declarada põe a tabela em `table-layout: fixed`,
-// e é assim que a rolagem horizontal do wrapper funciona em vez de espremer coluna. `bem` fica
-// SEM largura de propósito — é a fluida, que absorve a sobra. `minTableWidth` = 1280, o monitor
-// do piloto.
+// e é assim que a rolagem horizontal do wrapper funciona em vez de espremer coluna. TODAS as
+// colunas declaram largura, e o piso da tabela é a SOMA delas (default do `DataTable`).
+//
+// `bem` tem 250px, a largura que o protótipo declara para "Bem" (`patrimonio-page.jsx:489`).
+// Até 2026-09-30 ela ficava sem largura para ser a fluida, com `minTableWidth={1280}` — mas as
+// outras 9 já somavam 1332px: sob layout fixo sobrava ZERO pra ela, o mesmo defeito medido em
+// produção na tela irmã de Bens ("Bategoria"). Travado por `tests/js/patrimonio-manutencoes-colunas.test.tsx`.
 function colunas(): ColumnDef<Manutencao, unknown>[] {
   return [
     {
@@ -234,6 +238,7 @@ function colunas(): ColumnDef<Manutencao, unknown>[] {
       id: 'bem',
       header: 'Bem',
       accessorFn: (m) => m.bem,
+      meta: { width: 250 },
       cell: ({ row }) => (
         <Stack gap={0}>
           <span>{row.original.bem}</span>
@@ -497,7 +502,6 @@ export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes }
                 rowState={(m): EstadoDaLinha | undefined =>
                   m.status === 'in_progress' ? 'urgent' : undefined
                 }
-                minTableWidth={1280}
               />
             ) : null}
           </Deferred>
