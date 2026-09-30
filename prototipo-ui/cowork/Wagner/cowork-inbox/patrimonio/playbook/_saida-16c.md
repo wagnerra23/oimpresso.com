@@ -33,7 +33,7 @@ redirecionar deixou de apagar caminho de UI.
   existe no protótipo e não está declarado no contrato de tela (`patrimonio-alocacoes.contract.json`
   o lista como copy não declarada de propósito).
 - Charter de Alocações: o Non-Goal que dizia "Devoluções é aba própria" foi emendado com data.
-- `SmokeRoutesTest`: 2 casos novos. O de redirecionamento testa **com** e **sem** `X-Inertia`; o
+- `SmokeRoutesTest`: 2 casos novos. O de redirecionamento testa **com** e **sem** `X-Requested-With`; o
   controle prova que, sem a assinatura do módulo, a rota segue dando 403.
 
 ## Prova de que o teste morde
