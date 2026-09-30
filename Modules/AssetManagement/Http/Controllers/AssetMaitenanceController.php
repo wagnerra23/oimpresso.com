@@ -343,6 +343,10 @@ class AssetMaitenanceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Tier 0 (ADR 0093): bem de outra empresa da 404 ANTES do `try` — dentro dele o
+        // `catch (Exception)` engoliria o `ModelNotFoundException` num flash de erro generico.
+        Asset::where('business_id', $business_id)->findOrFail($request->input('asset_id'));
+
         try {
             // Wave 16 D4 — criacao + notificacao delegada a AssetMaintenanceService.
             $this->maintenanceService->criar($request, (int) $business_id, (int) auth()->user()->id);
@@ -422,6 +426,10 @@ class AssetMaitenanceController extends Controller
         if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
             abort(403, 'Unauthorized action.');
         }
+
+        // Tier 0 (ADR 0093): manutencao de outra empresa da 404 — ate 2026-09-30 o servico
+        // fazia `find($id)` sem `business_id` e gravava nela.
+        AssetMaintenance::where('business_id', $business_id)->findOrFail($id);
 
         try {
             // Wave 16 D4 — atualizacao + notificacao delegada a AssetMaintenanceService.

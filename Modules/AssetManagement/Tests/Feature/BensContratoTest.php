@@ -879,3 +879,106 @@ it('UC-BENS-09: o edit() devolve a tela de Bens com o bem da própria empresa, e
         bensEdicaoLimpar();
     }
 });
+
+/**
+ * Partial reload de props arbitrárias — mesma receita do `bensContratoPropDeferida` (versão
+ * vinda do render inicial + `X-Requested-With`, os dois medidos no CT 100), mas devolvendo o
+ * JSON inteiro, porque o drawer de detalhe lê DUAS props (`bem_detalhe` e `bem_selecionado`).
+ */
+function bensContratoParcial(User $user, int $businessId, array $query, string $props): array
+{
+    $inicial = bensContratoGet($user, $businessId, $query);
+    expect($inicial->status())->toBe(200);
+    $versao = data_get($inicial->viewData('page'), 'version');
+
+    $parcial = test()
+        ->actingAs($user)
+        ->withSession([
+            'user.business_id' => $businessId,
+            'user' => ['business_id' => $businessId, 'id' => $user->id],
+            'business.date_format' => 'd/m/Y',
+        ])
+        ->withHeaders([
+            'X-Requested-With' => 'XMLHttpRequest',
+            'X-Inertia' => 'true',
+            'X-Inertia-Version' => (string) $versao,
+            'X-Inertia-Partial-Component' => 'Patrimonio/Bens',
+            'X-Inertia-Partial-Data' => $props,
+        ])
+        ->get('/asset/assets?'.http_build_query($query));
+
+    expect($parcial->status())->toBe(200);
+
+    return (array) data_get($parcial->json(), 'props', []);
+}
+
+function bensDetalheTransacao(int $bizId, int $assetId, int $userId, string $tipo, string $ref, float $qtd, ?int $parent = null, ?string $motivo = null): int
+{
+    return (int) DB::table('asset_transactions')->insertGetId([
+        'business_id' => $bizId, 'asset_id' => $assetId, 'transaction_type' => $tipo,
+        'ref_no' => $ref, 'receiver' => $userId, 'quantity' => $qtd,
+        'transaction_datetime' => now(), 'parent_id' => $parent, 'reason' => $motivo,
+        'created_by' => $userId, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+/**
+ * UC-BENS-10 — drawer de detalhe do bem: a aba Alocações traz as N devoluções de cada
+ * alocação, escopadas por business NA DEVOLUÇÃO (Tier 0, ADR 0093).
+ *
+ * A soma de devoluções da tela Alocações (`leftJoin ... as PT`) não filtra `PT.business_id`
+ * — resíduo declarado. O vetor aqui é exatamente esse: uma `revoke` gravada no business 99
+ * com `parent_id` apontando pra alocação do 98. Ela NÃO pode aparecer na lista nem entrar
+ * no `devolvido`. Mesma coisa pra uma `allocate` do 99 com o `asset_id` do bem do 98.
+ * Controle positivo: as DUAS devoluções legítimas (1 : N) estão lá — "a alheia não veio"
+ * não pode passar por a lista ter vindo vazia.
+ */
+it('UC-BENS-10: o drawer lista as N devoluções da alocação, nunca devolução ou alocação de outro business (Tier 0)', function () {
+    $dono = $this->seededTenant();
+    $donoId = (int) $dono->id;
+    $adv = $this->seededSupportClientTenant();
+    $advId = (int) $adv->id;
+
+    $user = bensContratoUsuario($donoId);
+    $userAdv = bensContratoUsuario($advId, false);
+
+    try {
+        bensContratoAssinaturaLiberada();
+
+        $meu = bensContratoAsset($donoId, $user->id, 'BENS-CTR-D-'.uniqid(), 'Bem com devoluções');
+        $alheio = bensContratoAsset($advId, $userAdv->id, 'BENS-CTR-D-'.uniqid(), 'Bem do adversário');
+
+        $alocacao = bensDetalheTransacao($donoId, $meu->id, $user->id, 'allocate', 'BENS-CTR-D-ALO', 2);
+        bensDetalheTransacao($donoId, $meu->id, $user->id, 'revoke', 'BENS-CTR-D-REV1', 0.5, $alocacao, 'primeira parcial');
+        bensDetalheTransacao($donoId, $meu->id, $user->id, 'revoke', 'BENS-CTR-D-REV2', 0.5, $alocacao, 'segunda parcial');
+        // Os dois vetores cross-tenant:
+        bensDetalheTransacao($advId, $meu->id, $userAdv->id, 'revoke', 'BENS-CTR-D-REV-INVASORA', 1, $alocacao, 'INVASORA');
+        bensDetalheTransacao($advId, $meu->id, $userAdv->id, 'allocate', 'BENS-CTR-D-ALO-INVASORA', 1);
+
+        $props = bensContratoParcial($user, $donoId, ['bem' => $meu->id], 'bem_detalhe,bem_selecionado');
+
+        expect($props['bem_selecionado'] ?? null)->toBe((int) $meu->id);
+        $detalhe = $props['bem_detalhe'] ?? null;
+        expect($detalhe)->toBeArray();
+        expect($detalhe['asset_code'])->toBe($meu->asset_code);
+
+        $refsAlocacoes = collect($detalhe['alocacoes'])->pluck('ref_no')->all();
+        expect($refsAlocacoes)->toBe(['BENS-CTR-D-ALO']);
+
+        $aloc = $detalhe['alocacoes'][0];
+        $refsDevolucoes = collect($aloc['devolucoes'])->pluck('ref_no')->all();
+        // Controle positivo + 1 : N.
+        expect($refsDevolucoes)->toBe(['BENS-CTR-D-REV1', 'BENS-CTR-D-REV2']);
+        expect($refsDevolucoes)->not->toContain('BENS-CTR-D-REV-INVASORA');
+        expect((float) $aloc['devolvido'])->toBe(1.0);
+        expect($aloc['devolucoes'][0]['motivo'])->toBe('primeira parcial');
+
+        // Bem de OUTRA empresa pelo `?bem=`: não vaza nada.
+        $propsAlheio = bensContratoParcial($user, $donoId, ['bem' => $alheio->id], 'bem_detalhe,bem_selecionado');
+        expect($propsAlheio['bem_detalhe'] ?? 'ausente')->toBeNull();
+    } finally {
+        DB::table('asset_transactions')->where('ref_no', 'like', 'BENS-CTR-D-%')->whereNotNull('parent_id')->delete();
+        DB::table('asset_transactions')->where('ref_no', 'like', 'BENS-CTR-D-%')->delete();
+        bensContratoLimpar();
+    }
+});

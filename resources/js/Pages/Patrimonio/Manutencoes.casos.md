@@ -96,6 +96,22 @@ last_run: "2026-09-30"
   listando `/asset/asset-maintenance/12/edit`.
 - **Status: 🧪** — verde no vitest local pós-conserto; lane de CI a confirmar no PR.
 
+## UC-MANU-05 · Gravar manutenção não alcança outra empresa
+
+- **Persona:** qualquer empresa do sistema — a fila de manutenção dela não pode ser escrita por
+  usuário de outra.
+- **Aceite:** Dado uma manutenção e um bem do business 99 · Quando o usuário do business 98 posta
+  `PUT /asset/asset-maintenance/{id da de 99}` ou `POST /asset/asset-maintenance` com o
+  `asset_id` do bem de 99 · Então recebe **404** e **nada** é gravado; e o mesmo envio com a
+  manutenção/bem **da própria empresa** grava.
+- **Teste:** `ManutencoesContratoTest.php` — dois `it()` citando `UC-MANU-05` (update e store),
+  cada um com o controle da própria empresa ao lado.
+- **Regressão que defende:** dois furos Tier 0 medidos em 2026-09-30 no destino do formulário:
+  `AssetMaintenanceService::atualizar` fazia `AssetMaintenance::find($id)` sem `business_id`, e
+  `criar` gravava o `asset_id` do formulário sem conferir de quem é o bem. O `edit()` escopava;
+  o `update()`, que é quem grava, não.
+- **Status: ⬜** — a lane de CI do PR é o primeiro run.
+
 ---
 
 ## `[BACKLOG]` — o que o protótipo desenha e esta onda não entrega

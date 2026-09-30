@@ -9,7 +9,7 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
 tier: B
-charter_version: 6
+charter_version: 7
 last_validated: "2026-09-30"
 ---
 
@@ -71,6 +71,12 @@ mandar pra manutenção ainda não — ver os Non-Goals.
   esta Page com a prop `edicao` (bem escopado por business; id de outra empresa = 404). Posta no
   `update()` existente. Mostra a garantia mais recente e reenvia as outras intactas — o serviço
   apaga a que não vier. Dupla prova da REGRA MESTRE: UC-BENS-09.
+- **Drawer de detalhe do bem** (leitura — decisão [W] 2026-09-30, `_saida-16b.md`): clicar na
+  linha abre `?bem=ID` por partial reload (só `bem_detalhe` vem da rede). Abas **Resumo** e
+  **Alocações**; esta lista cada alocação com **todas** as suas devoluções (1 : N — código,
+  quantidade, data, autor e motivo), porque devolução parcial grava vários `revoke` por
+  alocação. A devolução é escopada por `business_id` **nela mesma**. Bem de outra empresa ou
+  fora dos locais permitidos = "não encontrado". Contrato: UC-BENS-10.
 - Ação por linha: **editar** e **excluir** (`router.delete` no `destroy`, com confirmação
   nomeando o bem), conforme a permissão do usuário. (Até 2026-09-23 havia também alocar ·
   manutenção — ver o Non-Goal abaixo, que diz por que saíram.)
@@ -112,6 +118,12 @@ mandar pra manutenção ainda não — ver os Non-Goals.
 - ❌ NÃO renderiza aba que não navega. O protótipo desenha 7 abas; o menu vivo tem 6 ghosts.
   **Garantias** não vira aba nem tela: a D-GARANTIAS ([W] 2026-09-29) a fez recorte desta lista.
   **Auditoria** é deep-link para o `Modules/Auditoria` (ADR 0414).
+
+- ❌ O drawer de detalhe NÃO escreve: sem excluir devolução (escrita de saldo, thread 18 —
+  REGRA MESTRE), sem revogar, alocar ou editar no rodapé. Sem as abas Garantia, Manutenção,
+  Depreciação e Histórico do protótipo (aba sem dado é afordância falsa), sem o placar
+  quantidade/alocada/livre (agregado sobre o `Alocado` não-auditado) e sem "Valor de aquisição"
+  (valor novo = REGRA MESTRE).
 
 ## Anti-hooks (NÃO faz automaticamente)
 

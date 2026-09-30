@@ -53,7 +53,7 @@ export default function FichaPrint({ itens, semCusto, onDone }: Props) {
             </svg>
             <div className="id">
               <span className="eyebrow">
-                Office Impresso · Manufacturing{semCusto ? ' · via de produção' : ''}
+                Office Impresso · Fabricação{semCusto ? ' · via de produção' : ''}
               </span>
               <h1>{r.name}</h1>
               <p>

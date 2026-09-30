@@ -61,6 +61,7 @@ import { Stack, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
 import CadastroBemDrawer from './_shared/CadastroBemDrawer';
+import DetalheBemDrawer, { type BemDetalhe } from './_shared/DetalheBemDrawer';
 import type { BemEdicao } from './_shared/cadastroBem';
 import type { ColumnDef } from '@tanstack/react-table';
 
@@ -128,6 +129,10 @@ interface Props {
     categorias: Record<string, string>;
     tipos_compra: Record<string, string>;
   };
+  /** Bem aberto no drawer de detalhe (`?bem=ID`); `null` = drawer fechado. */
+  bem_selecionado?: number | null;
+  /** Deferida — detalhe do bem aberto; `null` = não encontrado nesta empresa. */
+  bem_detalhe?: BemDetalhe | null;
   /** `business.date_format` — o drawer de cadastro converte a data pra ele antes do POST. */
   formato_data: string;
   permissoes: {
@@ -553,8 +558,17 @@ function pedidoDeCadastroNaUrl(): boolean {
   return new URLSearchParams(window.location.search).get('novo') === '1';
 }
 
-export default function Bens({ abas_contadores, bens, recortes_contagem, filtros, opcoes, formato_data, permissoes, edicao = null, abrir_cadastro = false }: Props) {
+export default function Bens({ abas_contadores, bens, recortes_contagem, bem_selecionado, bem_detalhe, filtros, opcoes, formato_data, permissoes, edicao = null, abrir_cadastro = false }: Props) {
   const [cadastroAberto, setCadastroAberto] = useState(() => permissoes.criar && (abrir_cadastro || pedidoDeCadastroNaUrl()));
+
+  // Drawer de DETALHE (leitura, `_saida-16b.md`): a linha abre `?bem=ID` por partial reload
+  // — só `bem_detalhe` vem da rede, a tabela fica. Mesmo desenho de `Compras/Index`.
+  const detalhe = (bem: number | undefined) =>
+    router.get(
+      '/asset/assets',
+      { ...limpar(filtros), page: bens && bens.current_page > 1 ? bens.current_page : undefined, bem },
+      { only: ['bem_detalhe', 'bem_selecionado'], preserveState: true, preserveScroll: true, replace: true },
+    );
 
   // O drawer de edição vive na URL `/asset/assets/{id}/edit` — fechar volta pra lista.
   const fecharEdicao = () => router.get('/asset/assets', {}, { preserveScroll: true });
@@ -645,11 +659,19 @@ export default function Bens({ abas_contadores, bens, recortes_contagem, filtros
                 emptyMessage="Nenhum bem para esses filtros — tente limpar a busca ou trocar o recorte."
                 rowKey={(b) => b.id}
                 rowState={(b): EstadoDaLinha | undefined => (b.em_manutencao > 0 ? 'urgent' : undefined)}
+                onRowClick={(b) => detalhe(b.id)}
               />
             ) : null}
           </Deferred>
         </div>
       </Stack>
+      <DetalheBemDrawer
+        aberto={bem_selecionado != null}
+        // Ao trocar de bem, o detalhe do anterior não pode aparecer sob o título do novo.
+        detalhe={bem_detalhe && bem_detalhe.id === bem_selecionado ? bem_detalhe : bem_detalhe === null ? null : undefined}
+        tiposCompra={opcoes.tipos_compra}
+        onClose={() => detalhe(undefined)}
+      />
       {permissoes.editar && edicao ? (
         <CadastroBemDrawer
           aberto
