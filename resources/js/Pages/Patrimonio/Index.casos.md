@@ -199,12 +199,14 @@ last_run: "2026-09-30"
   registro · Quando o Painel apura · Então os dois primeiros entram em "Na garantia" (um bem
   cada, valor contado uma vez), o terceiro em "Vencida", o quarto em "Sem garantia" — e o KPI
   "Garantia vencida ou vencendo" soma só o terceiro. Um bem de outro business com garantia
-  vencida não mexe em número nenhum.
+  vencida não mexe em número nenhum. E o chip "Garantia crítica" do Resumo abre Bens **já no
+  recorte** (`/asset/assets?recorte=garantia`), onde a pílula conta com a mesma regra do KPI.
 - **Regra:** vale a garantia mais recente, a que termina por último ([W] 2026-09-30). É o mesmo
   predicado do recorte "Garantia crítica" de Bens (UC-BENS-06), num dono só no controller.
 - **Teste:** `Modules/AssetManagement/Tests/Feature/PainelGarantiaContratoTest.php` — `it()`
   citando `UC-PAT-10`, por **delta** (base do CT 100 persiste), com o esperado de cada balde
-  escrito à mão (segundo caminho da REGRA MESTRE de valor).
+  escrito à mão (segundo caminho da REGRA MESTRE de valor). O destino do chip:
+  `tests/js/patrimonio-painel-forma.test.tsx` — `describe('UC-PAT-10 …')`.
 - **Regressão que defende:** bem renovado contado como vencido, e o `SUM` de valor somando o bem
   uma vez por garantia registrada (o `COUNT(DISTINCT)` de bens escondia isso).
 - **Status: 🧪** — ver o recibo no fim deste UC.

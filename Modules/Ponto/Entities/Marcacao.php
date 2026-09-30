@@ -54,6 +54,7 @@ class Marcacao extends Model
         'tipo',
         'marcacao_anulada_id',
         'motivo_anulacao',
+        'nsr_origem',
         'dispositivo_id',
         'latitude',
         'longitude',
