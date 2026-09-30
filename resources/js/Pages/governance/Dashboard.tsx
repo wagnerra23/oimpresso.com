@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select'
-import PageHeader from '@/Components/shared/PageHeader'
+import { PageHeader } from '@/Components/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
 import EmptyState from '@/Components/shared/EmptyState'
@@ -37,6 +37,7 @@ import {
   Shield,
   Ruler,
   BookOpen,
+  Settings,
 } from 'lucide-react'
 
 interface Adr {
@@ -743,14 +744,15 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
       <GovernancaSubNav active="dashboard" />
 
       <PageHeader
-        icon="shield-check"
+        leading={<Shield className="h-5 w-5 text-muted-foreground" aria-hidden />}
         title="Governança"
-        description="Painel consolidado de governança do oimpresso. Constituição v1.1.0 — Art. 8 (Policy Gating) + Art. 9 (Auditoria) operacional. Wagner opera 5min/dia."
-      >
-        <Badge variant="outline" className={mode.color}>
-          ActionGate: {mode.label}
-        </Badge>
-      </PageHeader>
+        subtitle="Painel consolidado de governança do oimpresso. Constituição v1.1.0 — Art. 8 (Policy Gating) + Art. 9 (Auditoria) operacional. Wagner opera 5min/dia."
+        actions={
+          <Badge variant="outline" className={mode.color}>
+            ActionGate: {mode.label}
+          </Badge>
+        }
+      />
 
       <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mt-2">
         Constituição
@@ -923,7 +925,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
                 Audit Highlights 24h ({audit_highlights.length})
               </h3>
               <Link href="/governance/audit" className="text-sm text-primary hover:underline">
-                drill-down →
+                ver detalhes →
               </Link>
             </div>
 
@@ -1003,19 +1005,19 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
               href="/governance/policies"
               className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm font-medium transition-colors"
             >
-              ⚙️ Policies
+              <Settings className="h-3.5 w-3.5 mr-1 inline-block" /> Políticas
             </Link>
             <Link
               href="/governance/audit"
               className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm font-medium transition-colors"
             >
-              <BarChart3 className="h-3.5 w-3.5 mr-1 inline-block" /> Audit log
+              <BarChart3 className="h-3.5 w-3.5 mr-1 inline-block" /> Auditoria
             </Link>
             <Link
               href="/governance/drift"
               className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm font-medium transition-colors"
             >
-              <AlertTriangle className="h-3.5 w-3.5 mr-1 inline-block" /> Drift alerts
+              <AlertTriangle className="h-3.5 w-3.5 mr-1 inline-block" /> Drift
             </Link>
             <Link
               href="/copiloto/admin/memoria?type=adr&status=proposto"
