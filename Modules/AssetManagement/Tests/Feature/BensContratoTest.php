@@ -481,7 +481,7 @@ function bensGarantiaLimpar(): void
     bensContratoLimpar();
 }
 
-it('UC-BENS-06: recorte=garantia traz vencida e vencendo, nunca vigente, sem registro ou de outro business', function () {
+it('UC-BENS-06: recorte=garantia traz vencida e vencendo pela garantia mais recente, nunca vigente, renovada, sem registro ou de outro business', function () {
     $dono = $this->seededTenant();
     $adversario = $this->seededSupportClientTenant();
     $bizId = (int) $dono->id;
@@ -494,6 +494,15 @@ it('UC-BENS-06: recorte=garantia traz vencida e vencendo, nunca vigente, sem reg
         bensGarantiaFixture($bizId, (int) $dono->owner_id, 'BENS-CTR-GAR-VENCENDO', now()->addDays(10)->toDateString());
         bensGarantiaFixture($bizId, (int) $dono->owner_id, 'BENS-CTR-GAR-VIGENTE', now()->addYear()->toDateString());
         bensGarantiaFixture($bizId, (int) $dono->owner_id, 'BENS-CTR-GAR-SEM', null);
+        // Renovada: a garantia velha venceu e a nova vale um ano. Conta a MAIS RECENTE
+        // ([W] 2026-09-30), então ela NÃO é crítica.
+        $renovada = bensGarantiaFixture($bizId, (int) $dono->owner_id, 'BENS-CTR-GAR-RENOVADA', now()->subDays(5)->toDateString());
+        DB::table('asset_warranties')->insert([
+            'asset_id' => $renovada->id,
+            'start_date' => now()->subDays(4)->toDateString(),
+            'end_date' => now()->addYear()->toDateString(),
+            'additional_cost' => 0,
+        ]);
         bensGarantiaFixture((int) $adversario->id, (int) $adversario->owner_id, 'BENS-CTR-GAR-ADV', now()->subDays(5)->toDateString());
 
         // Recorte ligado — a busca `BENS-CTR-GAR` casa os cinco, então só o recorte explica
@@ -503,6 +512,7 @@ it('UC-BENS-06: recorte=garantia traz vencida e vencendo, nunca vigente, sem reg
         expect($comRecorte)->toContain('BENS-CTR-GAR-VENCENDO');
         expect($comRecorte)->not->toContain('BENS-CTR-GAR-VIGENTE');
         expect($comRecorte)->not->toContain('BENS-CTR-GAR-SEM');
+        expect($comRecorte)->not->toContain('BENS-CTR-GAR-RENOVADA');
         expect($comRecorte)->not->toContain('BENS-CTR-GAR-ADV');
 
         // Controle: sem o recorte o vigente e o sem registro VOLTAM — a ausência acima veio
@@ -511,12 +521,13 @@ it('UC-BENS-06: recorte=garantia traz vencida e vencendo, nunca vigente, sem reg
             $semRecorte = bensContratoPropDeferida($user, $bizId, ['q' => 'BENS-CTR-GAR'] + $extra);
             expect($semRecorte)->toContain('BENS-CTR-GAR-VIGENTE');
             expect($semRecorte)->toContain('BENS-CTR-GAR-SEM');
+            expect($semRecorte)->toContain('BENS-CTR-GAR-RENOVADA');
             expect($semRecorte)->not->toContain('BENS-CTR-GAR-ADV');
         }
 
         // Contagem do servidor: independe da busca, então a base persistente do CT 100 pode
         // ter outros bens críticos no tenant 98. O que o teste prova é o DELTA dos fixtures:
-        // +2 do dono, e o do adversário não soma.
+        // +2 do dono (a renovada não soma), e o do adversário não soma.
         $contar = function () use (&$user, $bizId): int {
             $inicial = bensContratoGet($user, $bizId);
             $versao = data_get($inicial->viewData('page'), 'version');
