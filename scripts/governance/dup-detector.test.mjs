@@ -53,7 +53,10 @@ t('evaluate: ignora o PRÓPRIO PR (mesmo number)', () => {
 });
 
 // ── modo --path (§5 2026-09-30, LC-19) ──
-const BASE = 'governance/multi-tenant-scope-baseline.json';
+// Path FICTÍCIO de propósito: um literal de arquivo real aqui vira "leitor" dele no
+// MAQUINAS-INVENTARIO (o maquinas-inventario casa literal de string) e desloca o leitor
+// verdadeiro da coluna — quebrou o maquinas-inventario.test em 2026-09-30.
+const BASE = 'governance/exemplo-dup-detector-fixture.json';
 const PRS = [
   { number: 8225, title: 'de passagem', files: ['a.md', BASE] },
   { number: 8226, title: 'dedicado', files: [BASE] },
