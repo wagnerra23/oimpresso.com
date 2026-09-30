@@ -490,3 +490,38 @@ it('CONTROLE thread 16: sem a assinatura do módulo, GET asset/revocation segue 
         assetViewGateLimpar();
     }
 });
+
+/**
+ * `edit`/`update` de `revocation` saem do registro (2026-09-30, a pedido do [W] depois da
+ * `_saida-18`). `edit` devolvia `view('assetmanagement::edit')`, que não existe, e `update`
+ * tinha corpo vazio. Nenhum link, `action()` nem request da UI chegava neles.
+ *
+ * STATUS EXATO, e diferente nos dois: `GET /{id}/edit` não casa rota nenhuma → **404**. Já
+ * `PUT /{id}` casa a URI do `DELETE` (Excluir devolução, que fica) → **405**. Um
+ * `assertStatus(!500)` passaria com o 200 vazio que o `update` devolvia antes.
+ *
+ * CONTROLE: `destroy`, `create` e `store` seguem registrados — o drawer Devolver e o Excluir
+ * dependem deles.
+ */
+it('revocation sem edit/update: 404 no edit, 405 no PUT, e o que o drawer usa continua registrado', function () {
+    foreach (['revocation.edit', 'revocation.update'] as $nome) {
+        expect(\Route::has($nome))->toBeFalse();
+    }
+    foreach (['revocation.destroy', 'revocation.create', 'revocation.store', 'revocation.index'] as $nome) {
+        expect(\Route::has($nome))->toBeTrue();
+    }
+
+    [$biz, $user] = assetViewGateFixture(comPermissao: true);
+
+    try {
+        $sessao = [
+            'user.business_id' => $biz->id,
+            'user' => ['business_id' => $biz->id, 'id' => $user->id],
+        ];
+
+        $this->actingAs($user)->withSession($sessao)->get('/asset/revocation/1/edit')->assertStatus(404);
+        $this->actingAs($user)->withSession($sessao)->put('/asset/revocation/1', [])->assertStatus(405);
+    } finally {
+        assetViewGateLimpar();
+    }
+});
