@@ -120,7 +120,7 @@ lifecycle: ativo
 | `layout-primitives-guard.yml` | pr+push+manual | `memory/decisions/0417-aposenta-tela-piloto-0253.md` +13 | Layout primitives guard (flex/grid solto) |
 | `manufacturing-jsdom-gate.yml` | pr+push+manual | — | Manufacturing jsdom — filtro De/Até das Ordens de produção aplica ao escolher (UC-OP-06) |
 | `manufacturing-pest.yml` | pr+push+manual | — | Manufacturing · Pest (MySQL) |
-| `mcp-drift-sentinel.yml` | cron+manual | `memory/requisitos/Infra/AUDITORIA-OPS-DR-2026-07.md` +5 | MCP Drift Sentinel — servido vs main (ADR 0256 + 0062) |
+| `mcp-drift-sentinel.yml` | cron+manual | `memory/requisitos/Infra/AUDITORIA-OPS-DR-2026-07.md` +6 | MCP Drift Sentinel — servido vs main (ADR 0256 + 0062) |
 | `memory-health.yml` | pr+cron+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +87 | Memory Health — ADR 0256 |
 | `memory-schema-gate.yml` | pr+push | `memory/decisions/0343-promove-adr-gate-required-emenda-0341.md` +46 | Memory schema gate (ONDA 5 S1 · FUNDIDO ADR 0314 F2: matrix AJV/frontmatter + sub-checks do corpo via validate-memory-schema.sh, ex-memory-schema-gate-extended D6 #4) |
 | `module-surface.yml` | pr+manual | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +34 | Module surface — guarda o índice GERADO de arquivos por módulo (memory/requisitos/<Mod>/SUPERFICIE.md) contra a árvore: self-test HARD + `--all --check` (drift real; obri… |
@@ -173,7 +173,7 @@ lifecycle: ativo
 | `typecheck-gate.yml` | pr+push+manual | — | TypeScript (ratchet vs baseline) — catraca de erros do `tsc --noEmit` por par arquivo\|codigoTS vs config/typecheck-baseline.json. Congela o debito atual e reprova so REGR… |
 | `ui-architecture-gate.yml` | pr+push+manual | `memory/decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md` +12 | UI architecture gate |
 | `verticais-pest.yml` | pr+push+manual | `memory/requisitos/Repair/SPEC.md` +4 | Verticais · Pest (MySQL) — ComunicacaoVisual/Repair/Vestuario rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde |
-| `visual-regression.yml` | pr+manual | `memory/decisions/0411-snapshot-de-pixel-fora-do-passo-3-da-0409.md` +148 | Visual Regression (Pest 4 Browser) |
+| `visual-regression.yml` | pr+manual | `memory/decisions/0411-snapshot-de-pixel-fora-do-passo-3-da-0409.md` +149 | Visual Regression (Pest 4 Browser) |
 | `whatsapp-pest.yml` | pr+push+manual | `memory/08-handoff.md` +1 | Whatsapp · Pest (MySQL) |
 | `xss-content-gate.yml` | pr+push | — | XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo) |
 
@@ -642,7 +642,7 @@ lifecycle: ativo
 | `ledger-check.mjs` | agente, ci, script | 🟢 só lê | selftest | `memory/decisions/0291-distiller-modulo-verdade-contrato-emenda-0270-f3.md` +29 | enforcement do PROTOCOLO-REFUTADOR-BACKFILL (frente GT-G5, |
 | `ledger-hash-chain.mjs` | ci | 🔴 disco | test | (só sessão/handoff · 2) | transparency-log (Rekor/Sigstore-style) sobre o |
 | `maquinas-inventario.mjs` | agente, ci, script | 🔴 disco | test | `memory/proibicoes.md` +21 | DERIVA um índice único e legível de TODAS as "máquinas" |
-| `mcp-drift-sentinel.mjs` | ci, script | 🔴 disco | — | `memory/decisions/proposals/2026-07-23-sentinelas-staleness-prontidao-required.md` +6 | sentinela EXTERNA de drift do MCP server (ADR 0256 + 0062). |
+| `mcp-drift-sentinel.mjs` | ci, script | 🔴 disco | — | `memory/decisions/proposals/2026-07-23-sentinelas-staleness-prontidao-required.md` +7 | sentinela EXTERNA de drift do MCP server (ADR 0256 + 0062). |
 | `memory-health.mjs` | ci, script | 🔴 disco | selftest | `memory/decisions/0317-maquina-revisao-adr-quando-rever-gatilhos.md` +120 | sentinela de saúde da base de conhecimento (ADR 0256, Onda 1). |
 | `module-surface.mjs` | agente, ci, npm, script | 🔴 disco | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +108 | GERADOR determinístico da "Superfície de código" de um módulo. |
 | `negocio-vs-governanca-ratio.mjs` | agente, ci | 🟢 só lê | test | `memory/decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md` +11 | o alarme anti-atrofia da inteligência de negócio. |
