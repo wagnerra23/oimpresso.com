@@ -86,12 +86,14 @@ function SeloDaAlocacao({ a }: { a: AlocacaoDoBem }) {
 
 function Alocacao({ a }: { a: AlocacaoDoBem }) {
   return (
+    // Estrutura do `.ptr-aloc` do protótipo, MEDIDA em 2026-09-30: flex, `align-items: center`,
+    // gap 12 — texto à esquerda, o elemento da direita (lá o Revogar, aqui o selo) centralizado no
+    // cartão. Com o selo (22px) na linha do nome, a 2ª linha caía 2,5px abaixo do protótipo.
+    <Inline asChild gap={3} align="center" justify="between">
     <li className="rounded-lg border bg-background px-[13px] py-2.5" data-testid="alocacao-do-bem">
-      <Stack gap={0}>
-        <Inline gap={3} align="center" justify="between">
-          <b className="text-[12.5px]">{a.para ?? '—'}</b>
-          <SeloDaAlocacao a={a} />
-        </Inline>
+      <Stack gap={0} className="min-w-0">
+        {/* Linha do nome: 19,5px, a mesma do protótipo (13px × 1,5 do bloco que contém o <b>). */}
+        <b className="text-[12.5px] leading-[19.5px]">{a.para ?? '—'}</b>
         <small className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">
           {qtd(a.quantidade)} un. · {a.em ?? '—'}
           {a.ate ? ` → ${a.ate}` : ' · indeterminado'}
@@ -118,7 +120,9 @@ function Alocacao({ a }: { a: AlocacaoDoBem }) {
           <small className="mt-0.5 text-[11px] text-muted-foreground">Nenhuma devolução registrada.</small>
         )}
       </Stack>
+      <SeloDaAlocacao a={a} />
     </li>
+    </Inline>
   );
 }
 
