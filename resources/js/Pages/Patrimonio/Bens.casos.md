@@ -198,6 +198,29 @@ last_run: "2026-09-30"
 
 ---
 
+## UC-BENS-10 · O drawer do bem mostra cada devolução da alocação, e só as desta empresa
+
+- **Persona:** quem administra o patrimônio e precisa saber quem devolveu o quê, quando e por
+  quê — numa alocação que voltou em partes.
+- **Fonte:** decisão [W] 2026-09-30 (`prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/_saida-16b.md`):
+  o histórico de devoluções vai para o drawer do **bem**, aba Alocações, como no protótipo
+  (`patrimonio-page.jsx` `BemDrawer`, :714-735). O protótipo modela 1 revogação por alocação; o
+  nosso modelo é **1 : N** (`_saida-16.md`), e o drawer lista as N.
+- **Aceite:** Dado um bem do business 98 com uma alocação de 2 un. e **duas** devoluções parciais
+  de 0,5 · Quando o usuário do 98 clica na linha (`?bem=ID`) e abre a aba Alocações · Então vê a
+  alocação com as duas devoluções (código, quantidade, data, autor, motivo) e "1 de 2 un." devolvidas.
+  Uma devolução gravada no **business 99** apontando para essa alocação **não** aparece nem soma;
+  uma alocação do 99 sobre o mesmo `asset_id` **não** aparece; `?bem=` com id de bem do 99 devolve
+  "não encontrado".
+- **Somente leitura:** o drawer não tem excluir devolução, revogar, alocar nem editar.
+- **Teste (dois caminhos):**
+  - dado — `BensContratoTest.php`, `it()` citando `UC-BENS-10` (tenant 98 × 99, ADR 0358);
+  - tela — `tests/js/patrimonio-detalhe-bem.test.tsx`, 3 `it()` citando `UC-BENS-10` (lista N,
+    só leitura, não encontrado). Bite-test por mutação (render 1 : 1 com `slice(0, 1)`): 2 casos caem.
+- **Status: 🧪** — vitest verde local (3/3); Pest roda na lane `assetmanagement-pest` — ver o recibo do PR.
+
+---
+
 ## Dívida declarada — `Alocado` não é número auditado
 
 ⚠️ Não é UC porque **não é comportamento que esta onda defende** — é defeito herdado que ela

@@ -321,6 +321,14 @@ class AssetController extends Controller
                 'garantia' => $this->contarRecorteGarantia($business_id),
                 'manutencao' => $this->contarRecorte($business_id, fn ($q) => $this->aplicarRecorteManutencao($q, $business_id)),
             ]),
+            // Drawer de DETALHE do bem (leitura) — decisao [W] 2026-09-30, `_saida-16b.md`:
+            // o historico de devolucoes (1 alocacao : N devolucoes) mora aqui, na aba
+            // Alocacoes. Abre por `?bem=ID` com partial reload (`only: ['bem_detalhe',
+            // 'bem_selecionado']`), o mesmo desenho de `Compras/Index` — a tabela nao volta.
+            'bem_selecionado' => $this->bemSelecionado($request),
+            'bem_detalhe' => Inertia::defer(fn () => $this->bemSelecionado($request)
+                ? $this->buildBemDetalhe($this->bemSelecionado($request), (int) $business_id)
+                : null),
         ]);
     }
 
@@ -569,6 +577,106 @@ class AssetController extends Controller
                 'imagem_url' => $midia ? $midia->display_url : null,
             ];
         });
+    }
+
+    private function bemSelecionado(Request $request): ?int
+    {
+        $id = (int) $request->input('bem', 0);
+
+        return $id > 0 ? $id : null;
+    }
+
+    /**
+     * Detalhe de UM bem pro drawer de leitura: identificacao + alocacoes, cada uma com a
+     * lista das suas devolucoes (1 : N — devolucao parcial gera varias linhas `revoke`
+     * com o mesmo `parent_id`; o prototipo modela 1 : 1, ver `_saida-16.md`).
+     *
+     * Tier 0 (ADR 0093): o bem, as alocacoes E as devolucoes filtram `business_id` cada
+     * uma na PROPRIA linha. A soma de devolucoes da tela Alocacoes (`leftJoin ... as PT`)
+     * nao filtra `PT.business_id` — residuo declarado no charter dela. Aqui a devolucao
+     * e escopada nela mesma, entao revoke de outra empresa apontando pra alocacao desta
+     * nao aparece nem entra no total devolvido. Bem de outra empresa, ou fora de
+     * `permitted_locations()`, devolve `null` (o drawer mostra "nao encontrado").
+     *
+     * Leitura pura: nenhuma quantidade e recalculada fora do que a lista mostra —
+     * `devolvido` e a soma das devolucoes LISTADAS, nada mais.
+     */
+    private function buildBemDetalhe(int $id, int $business_id): ?array
+    {
+        $bem = Asset::leftJoin('categories as CAT', 'assets.category_id', '=', 'CAT.id')
+            ->leftJoin('business_locations as BL', 'assets.location_id', '=', 'BL.id')
+            ->where('assets.business_id', $business_id)
+            ->where('assets.id', $id)
+            ->select('assets.*', 'CAT.name as categoria', 'BL.name as local')
+            ->first();
+
+        $permitidos = auth()->user()->permitted_locations();
+        if (! $bem || ($permitidos != 'all' && ! in_array($bem->location_id, (array) $permitidos))) {
+            return null;
+        }
+
+        $nome = fn (string $t) => DB::raw("TRIM(CONCAT(COALESCE($t.surname, ''),' ',COALESCE($t.first_name, ''),' ',COALESCE($t.last_name,''))) as {$t}_nome");
+
+        $alocacoes = DB::table('asset_transactions as AL')
+            ->leftJoin('users as receiver', 'AL.receiver', '=', 'receiver.id')
+            ->leftJoin('users as provider', 'AL.created_by', '=', 'provider.id')
+            ->where('AL.business_id', $business_id)
+            ->where('AL.asset_id', $bem->id)
+            ->where('AL.transaction_type', 'allocate')
+            ->orderByDesc('AL.transaction_datetime')
+            ->select('AL.id', 'AL.ref_no', 'AL.quantity', 'AL.transaction_datetime', 'AL.allocated_upto',
+                'AL.reason', $nome('receiver'), $nome('provider'))
+            ->get();
+
+        $devolucoes = DB::table('asset_transactions as RV')
+            ->leftJoin('users as provider', 'RV.created_by', '=', 'provider.id')
+            ->where('RV.business_id', $business_id)
+            ->where('RV.transaction_type', 'revoke')
+            ->whereIn('RV.parent_id', $alocacoes->pluck('id')->all() ?: [0])
+            ->orderBy('RV.transaction_datetime')
+            ->select('RV.id', 'RV.parent_id', 'RV.ref_no', 'RV.quantity', 'RV.transaction_datetime',
+                'RV.reason', $nome('provider'))
+            ->get()
+            ->groupBy('parent_id');
+
+        return [
+            'id' => $bem->id,
+            'asset_code' => $bem->asset_code,
+            'nome' => $bem->name,
+            'modelo' => $bem->model,
+            'serie' => $bem->serial_no,
+            'categoria' => $bem->categoria,
+            'local' => $bem->local,
+            'tipo_compra' => $bem->purchase_type,
+            'compra_em' => $bem->purchase_date ? $this->commonUtil->format_date($bem->purchase_date) : null,
+            'alocavel' => (bool) $bem->is_allocatable,
+            'quantidade' => (float) $bem->quantity,
+            'valor_unitario' => (float) $bem->unit_price,
+            'descricao' => $bem->description,
+            'alocacoes' => $alocacoes->map(function ($a) use ($devolucoes) {
+                $filhas = $devolucoes->get($a->id, collect());
+
+                return [
+                    'id' => $a->id,
+                    'ref_no' => $a->ref_no,
+                    'para' => $a->receiver_nome,
+                    'por' => $a->provider_nome,
+                    'quantidade' => (float) $a->quantity,
+                    'em' => $this->commonUtil->format_date($a->transaction_datetime, true),
+                    'ate' => $a->allocated_upto ? $this->commonUtil->format_date($a->allocated_upto) : null,
+                    'motivo' => $a->reason,
+                    'devolvido' => (float) $filhas->sum('quantity'),
+                    'devolucoes' => $filhas->map(fn ($r) => [
+                        'id' => $r->id,
+                        'ref_no' => $r->ref_no,
+                        'quantidade' => (float) $r->quantity,
+                        'em' => $this->commonUtil->format_date($r->transaction_datetime, true),
+                        'por' => $r->provider_nome,
+                        'motivo' => $r->reason,
+                    ])->values()->all(),
+                ];
+            })->values()->all(),
+        ];
     }
 
     /**
