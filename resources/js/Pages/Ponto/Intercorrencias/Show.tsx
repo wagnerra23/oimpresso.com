@@ -8,7 +8,8 @@
 //   tests: Modules/PontoWr2/Tests/Feature/IntercorrenciasShowTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
+import { Inline } from '@/Components/layout';
 import { Head, Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { AlertTriangle, ArrowLeft, Check, Send, X, XCircle } from 'lucide-react';
@@ -32,6 +33,8 @@ interface I {
   impacta_apuracao: boolean;
   descontar_banco_horas: boolean;
   motivo_rejeicao: string | null;
+  tem_anexo: boolean;
+  pode_baixar_anexo: boolean;
   created_at: string | null;
   updated_at: string | null;
   colaborador: { id: number | null; matricula: string | null; nome: string };
@@ -72,22 +75,22 @@ export default function IntercorrenciasShow({ intercorrencia: i }: Props) {
       <Head title={`Intercorrência ${i.codigo}`} />
       <div className="mx-auto max-w-4xl p-6 space-y-4">
         {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>Intercorrência <span className="text-stone-400 font-normal">· {i.codigo}</span></h1>
-            <p className="flex items-center gap-2">
+        <PontoAreaHeader active="intercorrencias" />
+        <Inline justify="between" align="center" gap={3}>
+          <div>
+            <h2 className="text-lg font-semibold">Intercorrência <span className="text-stone-400 font-normal">· {i.codigo}</span></h2>
+            <p className="text-sm text-muted-foreground flex items-center gap-2">
               <Badge variant={estadoVariant[i.estado]} className="text-[10px]">{i.estado}</Badge>
               {i.prioridade === 'URGENTE' && <Badge variant="destructive" className="text-[10px]">Urgente</Badge>}
               <span>Criada em {i.created_at}</span>
             </p>
           </div>
-          <div className="os-page-h-r">
-            <PontoSubNav active="intercorrencias" hidePrimary />
+          <Inline gap={2} align="center">
             <Button variant="outline" size="sm" asChild>
               <Link href="/ponto/intercorrencias"><ArrowLeft size={14} className="mr-1.5" /> Voltar</Link>
             </Button>
-          </div>
-        </header>
+          </Inline>
+        </Inline>
 
         {/* Estado REJEITADA: mostra motivo */}
         {i.estado === 'REJEITADA' && i.motivo_rejeicao && (
@@ -130,6 +133,17 @@ export default function IntercorrenciasShow({ intercorrencia: i }: Props) {
             </Row>
             <Row label="Impacta apuração">{i.impacta_apuracao ? 'Sim' : 'Não'}</Row>
             <Row label="Desconta BH">{i.descontar_banco_horas ? 'Sim' : 'Não'}</Row>
+            {/* UC-INTCRE-04: o payload traz só o FATO de haver comprovante, nunca o caminho.
+                O link aparece só a quem aprova — e a rota recusa (403) quem não aprova. */}
+            <Row label="Comprovante">
+              {!i.tem_anexo ? '—' : i.pode_baixar_anexo ? (
+                <a href={`/ponto/intercorrencias/${i.id}/anexo`} className="text-primary underline underline-offset-2">
+                  Baixar comprovante
+                </a>
+              ) : (
+                <span className="text-muted-foreground">Anexado — visível para quem aprova</span>
+              )}
+            </Row>
             <Row label="Solicitante">{i.solicitante.nome}</Row>
           </CardContent>
         </Card>

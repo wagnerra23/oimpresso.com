@@ -109,6 +109,7 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   hrm: UserCog,
   essenciais: Box,
   ponto: User, // protótipo data.jsx (grupo RH): `icon: "user"` — era Clock até 2026-09-28
+  'bater ponto': Clock, // atalho do colaborador pra /ponto/mobile (REP-P · [W] 2026-09-29)
   reparar: Wrench,
   'team mcp': Rocket,
   projeto: FolderKanban,
@@ -195,7 +196,12 @@ import {
 // Wagner 2026-05-22 ordem canon: CADASTRO → COMERCIAL → FINANÇAS → PRODUÇÃO
 // → ESTOQUE → RH → SISTEMA. ("Financeiro abaixo do comercial" + "estoque
 // acima do RH").
-const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
+// `ordem` (opcional): sequência dos itens DENTRO do grupo, copiada do protótipo. Sem ela o grupo
+// segue a ordem em que os módulos registram o menu — o `->order(N)` dos DataControllers NÃO chega
+// aqui (o LegacyMenuAdapter lê `getItems()`, ordem de registro; medido 2026-09-29). `items` segue
+// sendo só a regra de PERTENCER ao grupo, não de ordem: usá-la como ordem mexeria em COMERCIAL e
+// SISTEMA, que ninguém pediu (simulado em prod, biz=1). Item fora de `ordem` vai depois, na ordem atual.
+const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[]; ordem?: string[] }> = [
   {
     key: 'cadastro',
     label: 'CADASTRO',
@@ -269,7 +275,10 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     key: 'pessoas',
     // Wagner 2026-05-22: PESSOAS renomeado RH (popular com HRM + Ponto).
     label: 'RH',
-    items: ['RH', 'HRM', 'Essenciais', 'Ponto', 'Folha', 'Colaboradores'],
+    items: ['RH', 'HRM', 'Essenciais', 'Ponto', 'Bater ponto', 'Folha', 'Colaboradores'],
+    // Protótipo `prototipo-ui/cowork/Wagner/data.jsx`, grupo RH: ponto → hrm → essenciais.
+    // "Bater ponto" (atalho do colaborador pro REP-P, [W] 2026-09-29) logo depois de "Ponto".
+    ordem: ['Ponto', 'Bater ponto', 'HRM', 'Essenciais'],
   },
   {
     key: 'sistema',
@@ -975,6 +984,20 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
     if (key === HIDDEN_GROUP) continue; // skip — shortcut topo cobre
     if (!groupedItems[key]) groupedItems[key] = [];
     groupedItems[key].push(item);
+  }
+  // Ordem explícita por grupo (ver `ordem` em SIDEBAR_GROUPS). Estável: itens fora da lista
+  // mantêm entre si a ordem em que chegaram, depois dos listados.
+  for (const g of SIDEBAR_GROUPS) {
+    const lista = groupedItems[g.key];
+    if (!g.ordem || !lista) continue;
+    const pos = (label: string) => {
+      const i = g.ordem!.findIndex((o) => o.toLowerCase() === label.trim().toLowerCase());
+      return i < 0 ? Number.MAX_SAFE_INTEGER : i;
+    };
+    groupedItems[g.key] = lista
+      .map((item, i) => ({ item, i }))
+      .sort((a, b) => pos(a.item.label) - pos(b.item.label) || a.i - b.i)
+      .map(({ item }) => item);
   }
 
   // 5 grupos canon (autorizados) + MAIS fallback no fim (collapse fechado)

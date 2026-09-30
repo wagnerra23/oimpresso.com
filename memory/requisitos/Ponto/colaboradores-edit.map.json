@@ -3,14 +3,14 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Ponto/Colaboradores/Edit (/ponto/colaboradores/{id}/editar)",
   "gap_fonte": "memory/requisitos/Ponto/colaboradores-edit-gap.md",
-  "prototipo_sha": "sha256:e4d0b5a3707e",
-  "gerado_em": "2026-09-28",
+  "prototipo_sha": "sha256:62977f0aeb68",
+  "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "configuracao-de-ponto-campos",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "675-686"
+        "linhas": "703-713"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Colaboradores/Edit.tsx",
@@ -18,14 +18,14 @@
         "ancora": "colaboradorform-configuracao-de-ponto"
       },
       "status": "paridade",
-      "acao": "Catch-up de copy: o help do PIS (`:677`) não existe no vivo e liga esta tela à de Importações. Barato, sem decisão.",
+      "acao": "Catch-up de copy: o help do PIS (`ponto-telas.jsx:705`) não existe no vivo e liga esta tela à de Importações. Barato, sem decisão.",
       "_acionavel": true
     },
     {
       "id": "datas-de-admissao-e-desligamento",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "684-685"
+        "linhas": "712-713"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Colaboradores/Edit.tsx",
@@ -40,7 +40,7 @@
       "id": "flags-controla-ponto-e-banco-de-horas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "687-690"
+        "linhas": "715-718"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Colaboradores/Edit.tsx",
@@ -55,7 +55,7 @@
       "id": "dados-do-hrm",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "697-709"
+        "linhas": "725-737"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -70,7 +70,7 @@
       "id": "acoes-cancelar-e-salvar",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "691-694"
+        "linhas": "719-722"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Colaboradores/Edit.tsx",

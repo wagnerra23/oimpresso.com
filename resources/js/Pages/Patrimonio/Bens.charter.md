@@ -9,8 +9,8 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
 tier: B
-charter_version: 3
-last_validated: "2026-09-23"
+charter_version: 4
+last_validated: "2026-09-29"
 ---
 
 # Page Charter — Patrimonio/Bens (DRAFT)
@@ -58,6 +58,11 @@ pra manutenção ainda não — ver os Non-Goals.
   `1234,56` (vírgula decimal, sem milhar) pro `num_uf`, e a data no `business.date_format`
   pro `uf_date`; a dupla prova da REGRA MESTRE é UC-BENS-05 (vitest do payload + Pest do que o
   banco gravou). Desvios do protótipo declarados no topo de `_shared/CadastroBemDrawer.tsx`.
+- Sub-recorte **"Garantia crítica"** (D-GARANTIAS, [W] 2026-09-29 — filtro dentro de Bens,
+  sem tela própria): `?recorte=garantia` filtra no **servidor** os bens com garantia vencida ou
+  vencendo em até 30 dias; bem sem registro de garantia não entra. A pílula traz a contagem do
+  **conjunto**, vinda do servidor (`recortes_contagem`), e é o mesmo predicado do KPI do Painel.
+  Contrato: UC-BENS-06.
 - Ação por linha: **excluir** (`router.delete` no `destroy`, com confirmação nomeando o bem),
   conforme a permissão do usuário. (Até 2026-09-23 havia também alocar · manutenção · editar —
   ver o Non-Goal abaixo, que diz por que saíram.)
@@ -72,9 +77,10 @@ pra manutenção ainda não — ver os Non-Goals.
 > Cada item vira Pest GUARD quando a onda correspondente entrar. Os quatro primeiros são
 > **adiamento com motivo** (§5 do RUNBOOK), não recusa permanente; os demais são limite real.
 
-- ❌ NÃO oferece os sub-recortes "Garantia crítica" e "Em manutenção" do protótipo
-  (`patrimonio-page.jsx:355`) — pedem predicado SQL novo. Recorte que filtra só a página
-  corrente mente na contagem da pílula.
+- ❌ NÃO oferece o sub-recorte "Em manutenção" do protótipo (`patrimonio-page.jsx:355`) — não
+  foi decidido. (Até 2026-09-29 este item também barrava "Garantia crítica", que entrou pela
+  D-GARANTIAS no servidor — ver Goals.) Recorte que filtra só a página corrente mente na
+  contagem da pílula.
 - ❌ NÃO soma total de valor no rodapé. Valor é **REGRA MESTRE Tier 0**: exige prova por dois
   caminhos independentes + antes→depois apresentado ao [W]. O valor **por linha** entra.
 - ❌ NÃO faz seleção em lote nem BulkBar — as duas ações em lote do protótipo (exportar
@@ -94,9 +100,9 @@ pra manutenção ainda não — ver os Non-Goals.
   ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md), Tier 0).
 - ❌ NÃO afrouxa `permitted_locations()` por parâmetro de query: é restrição de permissão,
   aplicada antes de qualquer filtro escolhido pelo usuário.
-- ❌ NÃO renderiza aba que não navega. O protótipo desenha 7 abas; o menu vivo tem 6 ghosts,
-  e **Garantias**/**Auditoria** são decisões de produto ABERTAS do [W] (itens 4 e 5 do
-  `00-INDICE.md §6`). Enquanto não houver rota, não há aba.
+- ❌ NÃO renderiza aba que não navega. O protótipo desenha 7 abas; o menu vivo tem 6 ghosts.
+  **Garantias** não vira aba nem tela: a D-GARANTIAS ([W] 2026-09-29) a fez recorte desta lista.
+  **Auditoria** é deep-link para o `Modules/Auditoria` (ADR 0414).
 
 ## Anti-hooks (NÃO faz automaticamente)
 

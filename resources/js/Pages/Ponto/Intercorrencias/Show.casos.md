@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F4 + §6.2 
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a prova documental de por que uma ausência foi (ou não) abonada.
 owner: wagner
-last_run: "2026-09-08"
+last_run: "2026-09-29"
 last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
@@ -89,3 +89,8 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   que não serve pra nada. Os dois UC juntos fecham o ciclo — separados, cada um passa sozinho enquanto o
   conjunto falha.
 - **Status: 🧪 sem veredito.**
+
+## Trilha do tempo
+- 2026-09-29 · [CL] revalidado (bump `last_run`): o `Show.tsx` ganhou a linha "Comprovante" (link
+  de download só para quem aprova), que é do `UC-INTCRE-04` em `Create.casos.md`. Os UC-INTSH-01..03
+  não mudam de contrato. O bump afirma "trio reconciliado com a tela nesta data", não "testes rodados".

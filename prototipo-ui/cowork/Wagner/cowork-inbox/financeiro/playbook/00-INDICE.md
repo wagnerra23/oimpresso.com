@@ -71,14 +71,16 @@ Produção à frente do protótipo: puxar o vivo, não refazer. **Exceção decl
     {
       "id": "D-FIN-IA-CONTEUDO",
       "pergunta": "Aba IA: prototipo (Perguntar a IA + 4 stats) ou vivo (detector de anomalia + historico 5 recentes) e o alvo de CONTEUDO? A thread 07 so troca cor.",
-      "respondida": false,
-      "dono": "[W]"
+      "respondida": true,
+      "dono": "[W]",
+      "resposta": "[W] 2026-09-29 decide-for-me → recomendação [CC]: vale produção (detector de anomalia + 5 recentes); o protótipo passa a seguir · build alinhado em 2026-09-29: financeiro-ai.jsx?v=fai-vivo1 (FinAiPanel = \"Anomalia de valor\" + \"Histórico com a contraparte\", espelho de Unificado/Index.tsx:2704-2724 · FinAnomalyDetector · FinPartyHistory). Nada a fazer no main."
     },
     {
       "id": "D-FIN-DW-TEMA",
       "pergunta": "Drawer de producao e forcado claro ([role=dialog].fin-cowork em fin-cowork.css). Passa a seguir o tema (recomendado) ou fica claro? Define se o alvo dark do §3 vale.",
-      "respondida": false,
-      "dono": "W"
+      "respondida": true,
+      "dono": "W",
+      "resposta": "segue o tema — [W] 2026-09-25 (\"segue o thema\", _saida-08); entregue pela 07 (#7970)"
     }
   ],
   "threads": [
@@ -205,6 +207,55 @@ Produção à frente do protótipo: puxar o vivo, não refazer. **Exceção decl
           "path": "resources/css/fin-cowork.css",
           "padrao": "[role=\"dialog\"].fin-cowork .fin-drawer-tabs",
           "guarda": true
+        }
+      ]
+    },
+    {
+      "id": "09",
+      "titulo": "ALVO financeiro--dre--index (mede o protótipo fin-dre)",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "09-dre-conta-mono.md",
+      "prefixo": [
+        "governance/design/targets/financeiro--dre--index.secoes.json",
+        "governance/design/targets/financeiro--dre--index.alvo.json",
+        "governance/design/targets/README.md (linha na tabela)"
+      ],
+      "nao_toca": [
+        "resources/js/",
+        "prototipo-ui/cowork/Wagner/"
+      ],
+      "provas": [
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/targets/financeiro--dre--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "titulo": "DRE — coluna Conta em mono (3 células, 1 arquivo)",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "09-dre-conta-mono.md",
+      "depende_threads": [
+        "09"
+      ],
+      "prefixo": [
+        "resources/js/Pages/Financeiro/Dre/Index.tsx"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Financeiro/Dre/BalanceteView.tsx",
+        "resources/css/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "resources/js/Pages/Financeiro/Dre/Index.tsx",
+          "padrao": "font-mono"
         }
       ]
     }

@@ -37,9 +37,10 @@ O `sync/` deste projeto está congelado em **2026-09-07** enquanto o build andou
     {
       "id": "D-RECEPCAO-FALHA",
       "pergunta": "Quando a recepcao detecta que o pacote divergiu do projeto, o CI FALHA (bloqueia o PR) ou apenas AVISA com recibo? Falhar para o trabalho de quem colou o ZIP; avisar mantem o apodrecimento possivel. Minha recomendacao: falhar, porque avisar e exatamente o estado de hoje.",
-      "respondida": false,
+      "respondida": true,
       "dono": "[W]",
-      "define": "SEVERIDADE_DA_RECEPCAO"
+      "define": "SEVERIDADE_DA_RECEPCAO",
+      "resposta": "[W] 2026-09-29 decide-for-me → recomendação [CC]: o CI falha e bloqueia o PR"
     },
     {
       "id": "D-QUEM-REGENERA",
@@ -55,15 +56,38 @@ O `sync/` deste projeto está congelado em **2026-09-07** enquanto o build andou
       "titulo": "Recepcao do ZIP: conferir projeto x manifesto e falhar quando divergir",
       "dono": "CL",
       "arquivo": "01-recepcao-regenera.md",
-      "prefixo": ["scripts/design-sync", ".github/workflows"],
-      "nao_toca": ["prototipo-ui/cowork/Wagner/**", "resources/js/**", "memory/**"],
+      "prefixo": [
+        "scripts/design-sync",
+        ".github/workflows"
+      ],
+      "nao_toca": [
+        "prototipo-ui/cowork/Wagner/**",
+        "resources/js/**",
+        "memory/**"
+      ],
       "depende_threads": [],
-      "depende_decisoes": ["D-RECEPCAO-FALHA", "D-QUEM-REGENERA"],
+      "depende_decisoes": [
+        "D-RECEPCAO-FALHA",
+        "D-QUEM-REGENERA"
+      ],
       "nota_provas": "prova e EXECUCAO com recibo antes/depois — nao 'o arquivo contem a string'",
       "provas": [
-        { "tipo": "execucao", "cmd": "node scripts/design-sync/<verificador> --root <dir> --manifest sync/bundle.manifest.json", "recibo": "_saida-01.md", "exige": "imprime iguais / divergentes / ausentes-no-manifesto / orfaos, somando ao total de arquivos do projeto" },
-        { "tipo": "execucao", "cmd": "caso de sanidade: tocar 1 byte em um arquivo do projeto e rodar de novo", "exige": "o contador de divergentes sobe em 1 — sonda que nao reage a mudanca conhecida nao e sonda" },
-        { "tipo": "execucao", "cmd": "caso de sanidade inverso: rodar com projeto e manifesto em paridade", "exige": "exit 0 e zero divergentes — senao o detector marca tudo" }
+        {
+          "tipo": "execucao",
+          "cmd": "node scripts/design-sync/<verificador> --root <dir> --manifest sync/bundle.manifest.json",
+          "recibo": "_saida-01.md",
+          "exige": "imprime iguais / divergentes / ausentes-no-manifesto / orfaos, somando ao total de arquivos do projeto"
+        },
+        {
+          "tipo": "execucao",
+          "cmd": "caso de sanidade: tocar 1 byte em um arquivo do projeto e rodar de novo",
+          "exige": "o contador de divergentes sobe em 1 — sonda que nao reage a mudanca conhecida nao e sonda"
+        },
+        {
+          "tipo": "execucao",
+          "cmd": "caso de sanidade inverso: rodar com projeto e manifesto em paridade",
+          "exige": "exit 0 e zero divergentes — senao o detector marca tudo"
+        }
       ]
     }
   ]

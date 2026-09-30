@@ -30,6 +30,10 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-PAPR-03 | A fila abre no que está pendente | should | `CU-PONTO-06` + charter | `JornadaWorkflowContratoTest` | ✅ verde na lane |
 | UC-PAPR-04 | Urgente sobe na fila | should | `CU-PONTO-06` + F5 | `JornadaWorkflowContratoTest` | ✅ verde na lane |
 | UC-PAPR-05 | Aprovação em lote confirma no diálogo do DS antes de enviar | must | `CU-PONTO-07` + ata Ponto 2026-09-14 (R3) | `ponto-aprovacoes-lote-dialogo.test.tsx` | 🧪 teste cita o UC, sem veredito |
+| UC-PAPR-06 | Fila do REP-P mostra só marcação do celular fora da área, do meu empregador | must `[T0]` | thread 06 §C + ADR 0383 (geofence sinaliza) | `RepPFilaGestorContratoTest` | 🧪 teste cita o UC, sem veredito |
+| UC-PAPR-07 | Validar registra na trilha e não toca a marcação | must | thread 30 PR 3 + [W] 2026-09-29 | `RepPFilaGestorContratoTest` | 🧪 teste cita o UC, sem veredito |
+| UC-PAPR-08 | Recusar grava anulação nova; a original fica, e não se decide duas vezes | must | D3 da ata 2026-09-14 + Portaria 671/2021 | `RepPFilaGestorContratoTest` | 🧪 teste cita o UC, sem veredito |
+| UC-PAPR-09 | Recusar exige `ponto.aprovacoes.manage`; validar não | must | [W] 2026-09-29 | `RepPFilaGestorContratoTest` | 🧪 teste cita o UC, sem veredito |
 
 **[BACKLOG]:**
 
@@ -126,4 +130,37 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 - **Regressão que defende:** com o `confirm` original de volta, os 4 casos reprovam. O isolamento do
   lote no servidor segue sendo o `UC-PAPR-02`. Rejeição em lote **não** entra aqui: é decisão
   pendente do [W], fora da ata.
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**
+
+---
+
+## UC-PAPR-06 · Fila do REP-P mostra só marcação do celular fora da área, do meu empregador · `must` `[T0]`
+
+- **Persona:** gestor de RH revisando o que o geofence sinalizou. ([W] 2026-09-29: *"seção nova em Aprovações"*.)
+- **Aceite:** Dado geofence configurado e marcações REP-P de hoje — uma fora da área e uma dentro, no
+  meu empregador, e uma fora da área no empregador 99 · Quando abro Aprovações · Então a seção
+  "Marcações mobile a validar" traz **só** a minha fora da área, como `PENDENTE`.
+- **Teste:** `Modules/Ponto/Tests/Feature/RepPFilaGestorContratoTest.php` — `UC-PAPR-06`.
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**
+
+## UC-PAPR-07 · Validar registra na trilha e não toca a marcação · `must`
+
+- **Aceite:** Quando valido · Então há registro `ponto.repp`/`validada` na trilha com o id da marcação e
+  o meu empregador, a linha de `ponto_marcacoes` é idêntica à de antes, e ela passa a `VALIDADA` na fila.
+- **Teste:** `RepPFilaGestorContratoTest` — `UC-PAPR-07`.
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**
+
+## UC-PAPR-08 · Recusar grava anulação nova; a original fica, e não se decide duas vezes · `must`
+
+- **Aceite:** Quando recuso · Então nasce marcação `ORIGEM_ANULACAO` apontando a original (D3), a original
+  segue idêntica, e ela aparece `RECUSADA`. Quando tento validar ou recusar de novo · Então 422 e nada é gravado.
+- **Teste:** `RepPFilaGestorContratoTest` — `UC-PAPR-08`.
+- **Status: 🧪 teste cita o UC, sem veredito de lane.**
+
+## UC-PAPR-09 · Recusar exige `ponto.aprovacoes.manage`; validar não · `must`
+
+- **Contrato:** [W] 2026-09-29 — *"recusar exige ponto.aprovacoes.manage"* (recusar grava anulação, ato com efeito jurídico).
+- **Aceite:** Dado gestor só com `ponto.access` · Quando abro Aprovações · Então `pode_recusar_mobile` é falso
+  (a tela não mostra Recusar) e `POST …/recusar` → **403**, sem anulação gravada; validar segue funcionando.
+- **Teste:** `RepPFilaGestorContratoTest` — `UC-PAPR-09`.
 - **Status: 🧪 teste cita o UC, sem veredito de lane.**

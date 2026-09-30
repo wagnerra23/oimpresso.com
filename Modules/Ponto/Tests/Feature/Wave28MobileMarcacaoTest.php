@@ -2,11 +2,18 @@
 
 declare(strict_types=1);
 
+use App\User;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+use Laravel\Passport\Passport;
 use Modules\Ponto\Entities\Marcacao;
 use Modules\Ponto\Http\Controllers\Api\MobileMarcacaoController;
 use Modules\Ponto\Services\MobileMarcacaoService;
+use Modules\Ponto\Tests\Feature\PontoTestCase;
 
-uses(Tests\TestCase::class);
+uses(PontoTestCase::class);
 
 /**
  * Wave 28-8 MOBILE MARCACAO — Tangerino-like Ponto mobile API.
@@ -328,4 +335,255 @@ it('multi-tenant biz=1 vs biz=99 geofence independente (sem cross-tenant leak)',
     expect($svc->validarGeolocation(-28.336, -48.926, 1))->toBeFalse();
     // Funcionario biz=99 marcando em SC: dentro
     expect($svc->validarGeolocation(-28.336, -48.926, 99))->toBeTrue();
+});
+
+// ============================================================================
+// API REP-P · rotas `ponto.api.*` (thread 06) — HTTP de verdade, MySQL, tenant 98
+// ============================================================================
+// Tenant fictício 98 × adversário 99 (ADR 0358). Transação revertida por caso:
+// `ponto_marcacoes` recusa DELETE por trigger (Portaria 671/2021 — append-only).
+
+const RPP_BIZ = 98;
+
+function rppPrecondicoes(): void
+{
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        test()->markTestSkipped('Schema UltimatePOS + FK + triggers exigem MySQL (ADR 0358).');
+    }
+    foreach (['ponto_marcacoes', 'ponto_colaborador_config', 'ponto_intercorrencias'] as $t) {
+        if (! Schema::hasTable($t)) {
+            test()->markTestSkipped("Tabela {$t} ausente nesta lane.");
+        }
+    }
+    if (! DB::table('business')->where('id', RPP_BIZ)->exists()) {
+        test()->markTestSkipped('Tenant fictício 98 ausente — seed do pest-mysql-setup não rodou.');
+    }
+    // O guard `api` (Passport) monta o ResourceServer com a chave pública a CADA request —
+    // até o "sem token → 401". Sem chave, tudo estoura em `CryptKey: Invalid key supplied`
+    // (medido na lane ponto-pest, run 36560526640). Mesmo idioma do DesktopAuthTest.
+    if (! file_exists(storage_path('oauth-private.key')) || ! file_exists(storage_path('oauth-public.key'))) {
+        Artisan::call('passport:keys', ['--force' => true]);
+    }
+}
+
+/** User próprio + colaborador (user_id é unique em ponto_colaborador_config). */
+function rppColaborador(int $bizId, bool $controlaPonto = true): array
+{
+    $userId = DB::table('users')->insertGetId([
+        'first_name' => 'RPP teste', 'username' => 'rpp_' . uniqid(), 'password' => 'x',
+        'business_id' => $bizId, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $colabId = (int) DB::table('ponto_colaborador_config')->insertGetId([
+        'business_id' => $bizId, 'user_id' => $userId, 'matricula' => 'RPP-' . uniqid(),
+        'controla_ponto' => $controlaPonto, 'admissao' => '2020-01-01',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    return [User::findOrFail($userId), $colabId];
+}
+
+function rppPayload(array $extra = []): array
+{
+    return array_merge([
+        'tipo' => Marcacao::TIPO_ENTRADA, 'lat' => -28.336, 'lng' => -48.926, 'accuracy' => 12.5,
+        'device_uuid' => 'rpp-device-uuid', 'timestamp_device' => now()->toIso8601String(),
+    ], $extra);
+}
+
+function rppMarcacoes(int $colabId): int
+{
+    return DB::table('ponto_marcacoes')->where('colaborador_config_id', $colabId)->count();
+}
+
+describe('API REP-P', function () {
+    beforeEach(function () {
+        rppPrecondicoes();
+        DB::beginTransaction();
+        config()->set('pontowr2.geofence.business_' . RPP_BIZ, null);
+    });
+
+    afterEach(function () {
+        if (DB::transactionLevel() > 0) {
+            DB::rollBack();
+        }
+    });
+
+    it('as 7 rotas do bloco 2 saíram do abort(501) e têm nome ponto.api.*', function () {
+        $fonte = file_get_contents(base_path('Modules/Ponto/Http/routes.php'));
+        expect(substr_count($fonte, 'abort(501'))->toBe(0);
+
+        foreach (['marcar', 'marcacoes.hoje', 'saldo', 'intercorrencias.index', 'intercorrencias.store', 'escala.hoje', 'dashboard.kpis'] as $n) {
+            expect(Route::has("ponto.api.{$n}"))->toBeTrue("ponto.api.{$n} não registrada");
+        }
+    });
+
+    it('sem token → 401', function () {
+        $this->postJson(route('ponto.api.marcar'), rppPayload())->assertStatus(401);
+    });
+
+    it('marcar grava REP_P no colaborador DO PRÓPRIO usuário, com NSR e hash, sem sinal de revisão', function () {
+        [$user, $colab] = rppColaborador(RPP_BIZ);
+        Passport::actingAs($user);
+
+        $r = $this->postJson(route('ponto.api.marcar'), rppPayload())->assertStatus(201);
+
+        $m = DB::table('ponto_marcacoes')->where('id', $r->json('marcacao.id'))->first();
+        expect((int) $m->business_id)->toBe(RPP_BIZ);
+        expect((int) $m->colaborador_config_id)->toBe($colab);
+        expect($m->origem)->toBe(Marcacao::ORIGEM_REP_P);
+        expect($m->dispositivo_id)->toBe('mobile:rpp-device-uuid');
+        expect((int) $m->nsr)->toBeGreaterThan(0);
+        expect(strlen((string) $m->hash))->toBe(64);
+        expect($r->json('marcacao.revisar'))->toBeFalse();
+    });
+
+    it('Tier 0 · funcionario_id no body é ignorado — não marca por colega nem por outro empregador', function () {
+        [$user, $colab] = rppColaborador(RPP_BIZ);
+        [, $colabMesmoBiz] = rppColaborador(RPP_BIZ);
+        [, $colabAlheio] = rppColaborador($this->garantirBizAlheio());
+        Passport::actingAs($user);
+
+        $this->postJson(route('ponto.api.marcar'), rppPayload(['funcionario_id' => $colabAlheio]))->assertStatus(201);
+        $this->postJson(route('ponto.api.marcar'), rppPayload(['funcionario_id' => $colabMesmoBiz, 'tipo' => Marcacao::TIPO_SAIDA]))->assertStatus(201);
+
+        expect(rppMarcacoes($colab))->toBe(2);
+        expect(rppMarcacoes($colabMesmoBiz))->toBe(0);
+        expect(rppMarcacoes($colabAlheio))->toBe(0);
+    });
+
+    it('GPS acima de 500 m é RECUSADO com 422 — não existe "bater mesmo assim"', function () {
+        [$user, $colab] = rppColaborador(RPP_BIZ);
+        Passport::actingAs($user);
+
+        $r = $this->postJson(route('ponto.api.marcar'), rppPayload(['accuracy' => 900]))->assertStatus(422);
+
+        expect($r->json('erro'))->toBe('validacao_falhou');
+        expect($r->json('mensagem'))->toContain('GPS accuracy');
+        expect(rppMarcacoes($colab))->toBe(0);
+    });
+
+    it('relógio do aparelho a mais de 30 s é RECUSADO com 422', function () {
+        [$user, $colab] = rppColaborador(RPP_BIZ);
+        Passport::actingAs($user);
+
+        $this->postJson(route('ponto.api.marcar'), rppPayload(['timestamp_device' => now()->subMinutes(5)->toIso8601String()]))
+            ->assertStatus(422)->assertJsonPath('erro', 'validacao_falhou');
+        expect(rppMarcacoes($colab))->toBe(0);
+    });
+
+    it('fora do geofence GRAVA e SINALIZA para revisão, no marcar e na lista de hoje', function () {
+        config()->set('pontowr2.geofence.business_' . RPP_BIZ, ['lat' => -27.595, 'lng' => -48.548, 'raio_metros' => 500.0]);
+        [$user, $colab] = rppColaborador(RPP_BIZ);
+        Passport::actingAs($user);
+
+        $this->postJson(route('ponto.api.marcar'), rppPayload())->assertStatus(201)->assertJsonPath('marcacao.revisar', true);
+
+        expect(rppMarcacoes($colab))->toBe(1);
+        $this->getJson(route('ponto.api.marcacoes.hoje'))->assertOk()->assertJsonPath('marcacoes.0.revisar', true);
+    });
+
+    it('usuário com controla_ponto=false → 403 sem_colaborador, nada gravado', function () {
+        [$user, $colab] = rppColaborador(RPP_BIZ, false);
+        Passport::actingAs($user);
+
+        $this->postJson(route('ponto.api.marcar'), rppPayload())->assertStatus(403)->assertJsonPath('erro', 'sem_colaborador');
+        $this->getJson(route('ponto.api.saldo'))->assertStatus(403);
+        expect(rppMarcacoes($colab))->toBe(0);
+    });
+
+    it('marcações de hoje trazem SÓ as minhas — nem colega do mesmo empregador, nem outro empregador', function () {
+        [$user] = rppColaborador(RPP_BIZ);
+        [$colega] = rppColaborador(RPP_BIZ);
+        [$alheio] = rppColaborador($this->garantirBizAlheio());
+
+        foreach ([$colega, $alheio] as $outro) {
+            Passport::actingAs($outro);
+            $this->postJson(route('ponto.api.marcar'), rppPayload())->assertStatus(201);
+        }
+
+        Passport::actingAs($user);
+        $this->getJson(route('ponto.api.marcacoes.hoje'))->assertOk()->assertJsonCount(0, 'marcacoes');
+
+        $this->postJson(route('ponto.api.marcar'), rppPayload())->assertStatus(201);
+        $this->getJson(route('ponto.api.marcacoes.hoje'))->assertOk()
+            ->assertJsonCount(1, 'marcacoes')->assertJsonPath('marcacoes.0.tipo', Marcacao::TIPO_ENTRADA);
+    });
+
+    it('saldo sem movimento é 0 com data nula; com movimento, devolve o saldo gravado do meu colaborador', function () {
+        [$user, $colab] = rppColaborador(RPP_BIZ);
+        Passport::actingAs($user);
+
+        $this->getJson(route('ponto.api.saldo'))->assertOk()
+            ->assertJsonPath('saldo_minutos', 0)->assertJsonPath('ultima_movimentacao', null);
+
+        DB::table('ponto_banco_horas_saldo')->insert([
+            'business_id' => RPP_BIZ, 'colaborador_config_id' => $colab, 'saldo_minutos' => 135,
+            'ultima_movimentacao' => '2099-01-10', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->getJson(route('ponto.api.saldo'))->assertOk()
+            ->assertJsonPath('saldo_minutos', 135)->assertJsonPath('ultima_movimentacao', '2099-01-10');
+    });
+    it('justificar cria intercorrência PENDENTE no meu colaborador, e ela aparece na minha lista e nos meus KPIs', function () {
+        [$user, $colab] = rppColaborador(RPP_BIZ);
+        Passport::actingAs($user);
+
+        $r = $this->postJson(route('ponto.api.intercorrencias.store'), [
+            'tipo' => 'ESQUECIMENTO_MARCACAO', 'data' => now()->toDateString(), 'dia_todo' => true,
+            'justificativa' => 'Texto neutro de teste com mais de dez caracteres.',
+            'colaborador_config_id' => 999999,
+        ])->assertStatus(201)->assertJsonPath('intercorrencia.estado', 'PENDENTE');
+
+        $i = DB::table('ponto_intercorrencias')->where('id', $r->json('intercorrencia.id'))->first();
+        expect((int) $i->business_id)->toBe(RPP_BIZ);
+        expect((int) $i->colaborador_config_id)->toBe($colab);
+
+        $this->getJson(route('ponto.api.intercorrencias.index'))->assertOk()
+            ->assertJsonCount(1, 'intercorrencias')->assertJsonPath('intercorrencias.0.id', $r->json('intercorrencia.id'));
+        $this->getJson(route('ponto.api.dashboard.kpis'))->assertOk()
+            ->assertJsonPath('intercorrencias_pendentes', 1)->assertJsonPath('marcacoes_hoje', 0);
+    });
+
+    it('justificar sem horário e sem dia todo → 422, nada gravado', function () {
+        [$user, $colab] = rppColaborador(RPP_BIZ);
+        Passport::actingAs($user);
+
+        $this->postJson(route('ponto.api.intercorrencias.store'), [
+            'tipo' => 'OUTRO', 'data' => now()->toDateString(), 'dia_todo' => false,
+            'justificativa' => 'Texto neutro de teste com mais de dez caracteres.',
+        ])->assertStatus(422)->assertJsonValidationErrors(['intervalo_inicio']);
+
+        expect(DB::table('ponto_intercorrencias')->where('colaborador_config_id', $colab)->count())->toBe(0);
+    });
+
+    it('escala de hoje: sem escala é nula; com escala, devolve o turno do dia da semana de hoje', function () {
+        [$user, $colab] = rppColaborador(RPP_BIZ);
+        Passport::actingAs($user);
+
+        $this->getJson(route('ponto.api.escala.hoje'))->assertOk()
+            ->assertJsonPath('escala', null)->assertJsonPath('turno', null);
+
+        $escala = DB::table('ponto_escalas')->insertGetId([
+            'business_id' => RPP_BIZ, 'nome' => 'RPP escala', 'tipo' => 'FIXA', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('ponto_escala_turnos')->insert([
+            ['escala_id' => $escala, 'dia_semana' => now()->dayOfWeek, 'hora_entrada' => '08:00:00', 'hora_saida' => '17:00:00'],
+            ['escala_id' => $escala, 'dia_semana' => (now()->dayOfWeek + 1) % 7, 'hora_entrada' => '13:00:00', 'hora_saida' => '22:00:00'],
+        ]);
+        DB::table('ponto_colaborador_config')->where('id', $colab)->update(['escala_atual_id' => $escala]);
+
+        $this->getJson(route('ponto.api.escala.hoje'))->assertOk()
+            ->assertJsonPath('escala.id', $escala)->assertJsonPath('turno.hora_entrada', '08:00:00');
+    });
+
+    it('Tier 0 · escala_atual_id apontando pra escala de OUTRO empregador não vaza', function () {
+        [$user, $colab] = rppColaborador(RPP_BIZ);
+        $alheia = DB::table('ponto_escalas')->insertGetId([
+            'business_id' => $this->garantirBizAlheio(), 'nome' => 'RPP escala alheia', 'tipo' => 'FIXA',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('ponto_colaborador_config')->where('id', $colab)->update(['escala_atual_id' => $alheia]);
+        Passport::actingAs($user);
+
+        $this->getJson(route('ponto.api.escala.hoje'))->assertOk()->assertJsonPath('escala', null);
+    });
 });

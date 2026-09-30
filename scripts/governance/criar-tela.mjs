@@ -615,7 +615,7 @@ test.fixme('${uc}: TODO caminho feliz de ${mod}/${tela}', async ({ page }) => {
 // O buraco que fecha: `governance/design/contracts/` tem contrato de tela e NENHUM do módulo
 // Arquivos — porque o gerador carimbava 4 artefatos e o contrato ficava pra "depois", que
 // nunca chega. Agora nasce junto, já consumido pelo `contrato:check` que existe (nenhum
-// gate novo — o job "Preflight + contratos ativos" roda `git ls-files '*.contract.json'`
+// gate novo — o job "Contratos de tela (fidelidade + intenção)" roda `git ls-files '*.contract.json'`
 // e exige que TODOS passem, só o EXEMPLO é isento).
 //
 // POR QUE A `copy` NASCE VAZIA (é decisão, não esquecimento):
@@ -959,7 +959,7 @@ last_validated: "2026-01-01"
   // ── CONTRATO DE TELA (5º artefato) — provado contra o GATE REAL, não contra a minha ideia ──
   // Asserir a forma do JSON aqui em cima prova que o gerador escreve o que eu quis escrever.
   // NÃO prova que o `contrato:check` aceita — e um .contract.json que o gate reprova é PIOR que
-  // nenhum: o job "Preflight + contratos ativos" varre TODOS os *.contract.json (só EXEMPLO é
+  // nenhum: o job "Contratos de tela (fidelidade + intenção)" varre TODOS os *.contract.json (só EXEMPLO é
   // isento), então um contrato vermelho quebra o CI de quem nem tocou naquela tela.
   // Por isso o bite roda o gate DE FORA, nos DOIS modos que o job roda (§5 2026-07-28 — validar
   // um gate rodando UM dos modos que o CI roda): `--contract` (step "Contratos ativos") e

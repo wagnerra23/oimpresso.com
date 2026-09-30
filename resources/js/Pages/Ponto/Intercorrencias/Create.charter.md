@@ -37,6 +37,8 @@ Formulário de registro de intercorrência (ausência, consulta médica, esqueci
   ⚠️ **Estado em 2026-09-28:** a construir — a coluna `ponto_intercorrencias.anexo_path` existe
   desde a migration de 2026-04-18, mas o `Create.tsx` não tem campo de arquivo. Região no map:
   `anexo-de-comprovante` (`memory/requisitos/Ponto/intercorrencias-create.map.json`).
+  Em **2026-09-29** o campo entrou, com gravação fora do webroot e download só para quem aprova
+  (`UC-INTCRE-04`); anexar pelo `Edit` seguia fora nessa data.
 
 ---
 

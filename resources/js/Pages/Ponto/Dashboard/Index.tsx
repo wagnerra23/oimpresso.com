@@ -12,10 +12,10 @@ import { Deferred, Link, router } from '@inertiajs/react';
 import { useEffect, type ReactNode } from 'react';
 import { ArrowRight, AlertTriangle, CheckCheck, ShieldCheck } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { cn, formatMinutes } from '@/Lib/utils';
 
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import { Grid, Inline } from '@/Components/layout';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -204,26 +204,9 @@ export default function DashboardIndex({
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
         {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22 */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>
-              Dashboard <span className="text-stone-400 font-normal">· Ponto eletrônico</span>
-            </h1>
-            <p>
-              {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
-              {' · atualizado '}
-              <span className="inline-flex items-center gap-1 text-success">
-                <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" aria-hidden />
-                {server_time}
-              </span>
-            </p>
-          </div>
-          <div className="os-page-h-r">
-            {/* Sem primary aqui: o atalho "Painel do ponto" levaria à própria página ([W] 2026-09-29).
-                As outras telas do Ponto mostram o atalho via PontoSubNav. */}
-            <PontoSubNav active="dashboard" hidePrimary />
-          </div>
-        </header>
+        {/* W9 (ADR 0418): header de módulo. Sem primary no corpo: o atalho levaria à própria
+            página ([W] 2026-09-29, #8116). */}
+        <PontoAreaHeader active="dashboard" atualizadoAs={server_time} />
 
         {/* Nota "o que trava o fechamento" — 1ª seção do contrato `ponto-painel`,
             e por isso vem ANTES dos KPIs (o gate cobra a ordem das âncoras).
@@ -237,17 +220,23 @@ export default function DashboardIndex({
 
         {/* KPIs — prop deferida: guarda `?.`/`?? 0` cobre o first render */}
         <Deferred data="kpis" fallback={<KpiSkeleton />}>
+          {/* Thread 13 (playbook Ponto): os 6 tiles viram `variant="filter"` — a forma do
+              `Kpi` do protótipo (`ponto-ui.jsx`), que delega ao `KpiFilterTile` do DS. O tom
+              mora na PLACA do ícone (`filterTone`), não no card: a âncora pinta fundo e borda
+              neutros e o valor em `foreground`, então `tone` fica de fora. Tons = mapa
+              `TOM_KPI_FILTRO` aplicado ao `tom` de cada `<Kpi>` do `ponto-page.jsx`. */}
           <KpiGrid cols={6} data-contract="painel-kpis">
             <KpiCard
+              variant="filter"
               label="Colaboradores ativos"
               value={kpis?.colaboradores_ativos ?? 0}
               description="com controle de ponto"
               icon="users"
-              tone="info"
-              size="compact"
+              filterTone="primary"
               onClick={() => router.visit('/ponto/colaboradores')}
             />
             <KpiCard
+              variant="filter"
               label="Presentes agora"
               value={kpis?.presentes_agora ?? 0}
               description={
@@ -256,38 +245,38 @@ export default function DashboardIndex({
                   : 'nenhuma marcação hoje'
               }
               icon="user-check"
-              tone="success"
-              size="compact"
+              filterTone="emerald"
               onClick={() => router.visit('/ponto/espelho')}
             />
             <KpiCard
+              variant="filter"
               label="Atrasos hoje"
               value={kpis?.atrasos_hoje ?? 0}
               description={`além da tolerância de ${config_clt.tolerancia_diaria_minutos} min`}
               icon="clock-alert"
-              tone={(kpis?.atrasos_hoje ?? 0) > 0 ? 'warning' : 'default'}
-              size="compact"
+              filterTone="amber"
               onClick={() => router.visit('/ponto/espelho')}
             />
             <KpiCard
+              variant="filter"
               label="Faltas hoje"
               value={kpis?.faltas_hoje ?? 0}
               description="sem marcação e sem intercorrência"
               icon="user-x"
-              tone={(kpis?.faltas_hoje ?? 0) > 0 ? 'danger' : 'default'}
-              size="compact"
+              filterTone="rose"
               onClick={() => router.visit('/ponto/espelho')}
             />
             <KpiCard
+              variant="filter"
               label="HE do mês"
               value={formatMinutes(kpis?.he_mes_minutos ?? 0)}
               description={`limite ${config_clt.limite_he_diaria_horas}h/dia (Art. 59)`}
               icon="trending-up"
-              tone="info"
-              size="compact"
+              filterTone="violet"
               onClick={() => router.visit('/ponto/banco-horas')}
             />
             <KpiCard
+              variant="filter"
               label="Aprovações pendentes"
               value={kpis?.aprovacoes_pendentes ?? 0}
               description={
@@ -296,8 +285,7 @@ export default function DashboardIndex({
                   : 'nada urgente'
               }
               icon="check-check"
-              tone={(kpis?.aprovacoes_pendentes ?? 0) > 0 ? 'danger' : 'default'}
-              size="compact"
+              filterTone={(kpis?.aprovacoes_pendentes ?? 0) > 0 ? 'amber' : 'emerald'}
               onClick={() => router.visit('/ponto/aprovacoes')}
             />
           </KpiGrid>
@@ -331,23 +319,29 @@ export default function DashboardIndex({
                 fila, depois atividade). A ordem das âncoras é ordem de LEITURA (DOM),
                 então não dá pra acertar com CSS `order` sem descolar leitura de visual. */}
             <Card data-contract="painel-fila-aprovacoes">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div>
-                  <CardTitle className="text-[length:var(--fs-3,12.5px)] flex items-center gap-1.5">
-                    <CheckCheck size={16} className="text-primary" /> Fila de aprovações
-                  </CardTitle>
-                  {/* Contagem vem de `kpis.aprovacoes_pendentes`, NAO de `aprovacoes.length`:
-                      a fila e limitada a 5 no controller, entao o length mentiria a partir
-                      da 6a pendencia. */}
-                  <CardDescription className="text-xs">
-                    ({kpis?.aprovacoes_pendentes ?? 0} pendentes)
-                  </CardDescription>
-                </div>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/ponto/aprovacoes" className="text-xs">
-                    Ver fila completa <ArrowRight size={12} className="ml-1" />
-                  </Link>
-                </Button>
+              <CardHeader className="pb-2">
+                {/* Contagem no BADGE do título (mono, ao lado), não embaixo: é a anatomia do
+                    `Card` do protótipo (`ponto-ui.jsx` — `sub` entre parênteses vira badge) e o
+                    slot `badge` da ds-atomos 01. Vem de `kpis.aprovacoes_pendentes`, NÃO de
+                    `aprovacoes.length`: a fila é limitada a 5 no controller, então o length
+                    mentiria a partir da 6ª pendência. */}
+                <CardTitle
+                  className="text-[length:var(--fs-3,12.5px)]"
+                  badge={`(${kpis?.aprovacoes_pendentes ?? 0} pendentes)`}
+                >
+                  <Inline gap={2} asChild>
+                    <span>
+                      <CheckCheck size={16} className="text-primary" aria-hidden /> Fila de aprovações
+                    </span>
+                  </Inline>
+                </CardTitle>
+                <CardAction>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/ponto/aprovacoes" className="text-xs">
+                      Ver fila completa <ArrowRight size={12} className="ml-1" />
+                    </Link>
+                  </Button>
+                </CardAction>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Deferred data="aprovacoes" fallback={<RowsSkeleton />}>

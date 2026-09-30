@@ -88,10 +88,11 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
     {
       "id": "D-KPI-LABEL",
       "pergunta": "KPI-filtro: label em accent 13.3px/400 (bundle, look CRM) OU 11px/600 uppercase muted (ADR 0110 + shared/KpiCard)? Aditivo nao resolve o canon.",
-      "respondida": false,
+      "respondida": true,
       "afeta": [
         "02"
-      ]
+      ],
+      "resposta": "[W] 2026-09-29 decide-for-me → recomendação [CC]: 11px/600 caixa-alta, cor discreta (ADR 0110) — mesma resposta da W14 do Ponto"
     },
     {
       "id": "D-GRADE",

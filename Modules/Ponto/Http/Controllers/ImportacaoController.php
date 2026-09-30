@@ -39,7 +39,7 @@ class ImportacaoController extends Controller
             'estado'           => $i->estado,
             'linhas_processadas' => (int) ($i->linhas_processadas ?? 0),
             // US-PONTO-012 (SDD §9 D-8) — mesma correção do `show()`: a coluna real é
-            // `linhas_sucesso`. O `Index.tsx:118` renderiza `{linhas_criadas}/{processadas}`,
+            // `linhas_sucesso`. O `Importacoes/Index.tsx:111` renderiza `{linhas_criadas}/{processadas}`,
             // então a lista mostrava `0/N` para toda importação.
             'linhas_criadas'   => (int) ($i->linhas_sucesso ?? 0),
             'created_at'       => optional($i->created_at)->format('Y-m-d H:i'),
@@ -118,6 +118,24 @@ class ImportacaoController extends Controller
                 // Idem: `erro_mensagem` sempre null fazia o `{i.erro_mensagem && <Alert>}`
                 // do Show.tsx NUNCA renderizar — importação que falhou não dizia por quê.
                 'erro_mensagem'      => $i->log,
+                // D-IMP-EXTRAS (UC-IMPSH-06): as linhas rejeitadas, com linha, NSR, tipo e
+                // mensagem. Chave PRÓPRIA, nunca dentro de `erro_mensagem`: aquela abre o
+                // alerta de falha, e esta lista existe também em importação CONCLUÍDA com
+                // linhas ignoradas. Sempre array (vazio quando não há erro) — a tela decide
+                // pelo tamanho, não pela verdade do valor ([] é truthy em JS, UC-IMPSH-05).
+                // Só as 4 chaves do contrato saem; a mensagem já vem mascarada do produtor
+                // (AfdParserService passa pelo PiiRedactor — AFD-1510-06).
+                'erros_amostra'      => collect(is_array($i->erros_amostra) ? $i->erros_amostra : [])
+                    ->filter(fn ($e) => is_array($e))
+                    ->take(20)
+                    ->map(fn (array $e) => [
+                        'linha' => isset($e['linha']) ? (int) $e['linha'] : null,
+                        'nsr'   => isset($e['nsr']) ? (int) $e['nsr'] : null,
+                        'tipo'  => isset($e['tipo']) ? (string) $e['tipo'] : null,
+                        'erro'  => (string) ($e['erro'] ?? ''),
+                    ])
+                    ->values()
+                    ->all(),
                 'created_at'         => optional($i->created_at)->format('Y-m-d H:i'),
                 'updated_at'         => optional($i->updated_at)->format('Y-m-d H:i'),
                 'usuario'            => optional($i->usuario)->first_name,

@@ -3,7 +3,7 @@ id: requisitos-ponto-escalas-index-gap
 tela: Ponto/Escalas/Index (/ponto/escalas)
 prototipo: prototipo-ui/cowork/Wagner/ponto-telas.jsx
 tela_viva: resources/js/Pages/Ponto/Escalas/Index.tsx
-gerado_em: 2026-09-28
+gerado_em: 2026-09-29
 ---
 
 # GAP-SPEC — Ponto/Escalas/Index
@@ -11,16 +11,16 @@ gerado_em: 2026-09-28
 > **Origem:** thread `22-gap-escalas.md` do playbook do Ponto. Decisões citadas só existem em
 > `ATA-DECISOES-2026-09-14.md`: **D-ESC-DESTROY** (remover ENTRA, indisponível com colaborador vinculado,
 > motivo escrito, diálogo do DS em vez de `window.confirm`) e **D-PONTO-DETALHE** (o form é rota própria).
-> **Protótipo medido nesta sha:** `ponto-telas.jsx` @ `2e3f8adb4e`, símbolo `Escalas` (`:442-515`).
-> **Vivo medido nesta sha:** `resources/js/Pages/Ponto/Escalas/Index.tsx` @ `e4289e688` (181 linhas) e
-> `EscalaController.php`. Toda linha abaixo saiu de `grep -n`.
+> **Protótipo medido nesta sha:** `ponto-telas.jsx` @ `2e3f8adb4e`; linhas e estado re-medidos em 2026-09-29 no working tree, símbolo `Escalas` (`:464-540`).
+> **Vivo medido nesta sha:** `resources/js/Pages/Ponto/Escalas/Index.tsx` @ `e4289e688` (181 linhas; 301 em 2026-09-29) e
+> `EscalaController.php` (re-medidos em 2026-09-29). Toda linha abaixo saiu de `grep -n`.
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| Barra e ação primária | **Diverge no destino.** Vivo: `PageHeaderPrimary label="Nova escala"` navegando para `/ponto/escalas/create` (`Index.tsx:65`). Protótipo: `Nova escala` abrindo o form na mesma tela, com a nota de carga "480 = 8h, 2.640 = 44h" (`ponto-telas.jsx:460-464`, form em `:456`). | Protótipo corrige (D-PONTO-DETALHE, R2): navega para a rota. A nota de carga é da passada de FORMA. |
-| Lista de escalas | **Diverge em ordem e sub-linha.** Vivo: Nome, Código, Tipo, Carga/dia, Carga/semana, BH, Turnos, ação (`Index.tsx:87-96`), a ordem do charter (`Index.charter.md:31`). Protótipo: Código primeiro e o 1º turno na sub-linha do Nome (`ponto-telas.jsx:466`, `:471`). | Protótipo corrige a ordem (o charter manda). A sub-linha do turno é protótipo à frente — forma, sem id na ata. A thread 17 grava `data-contract="escalas-escalas-cadastradas"`. |
-| Remover escala | **Paridade na trava, vivo atrás no diálogo.** Vivo: com vínculo, texto "Em uso por N colaborador(es)" no lugar do botão (`Index.tsx:127-141`); sem vínculo, `Remover` com `window.confirm` (`:50`). A trava real está no servidor (`EscalaController.php:130-145`). Protótipo: o mesmo texto no lugar do botão e `Modal` do DS com Cancelar + Remover escala (`ponto-telas.jsx:480-489`, `:498-512`). | **Gap real no vivo (D-ESC-DESTROY):** trocar o `window.confirm` pelo diálogo do DS. A regra de vínculo já está nos dois lados e no servidor. |
-| Editar | **Diverge no destino.** Vivo: link para `/ponto/escalas/{id}/edit` (`Index.tsx:119-121`). Protótipo: abre o form na mesma tela (`ponto-telas.jsx:479`). | Protótipo corrige (D-PONTO-DETALHE, R2). |
-| Paginação | **Paridade.** Vivo: 20 por página (`EscalaController.php:20`), partial reload `only: ['escalas']` (`Index.tsx:150-164`). Protótipo: `usePagina(rows.length, 20)` (`ponto-telas.jsx:448`). | Nada. |
-| Estado vazio | **Vivo à frente.** Vivo: `EmptyState` com CTA "Criar escala" (`Index.tsx:72-83`), Goal do charter (`Index.charter.md:34`). Protótipo: `Vazio` sem ação (`ponto-telas.jsx:467`). | Protótipo corrige: ganha o CTA. |
-| Nota de turnos read-only | **Protótipo à frente, com decisão que a derruba.** Protótipo: `Nota` "turnos são leitura aqui, edição em fase posterior" (`ponto-telas.jsx:497`). Vivo: não tem a nota. A D-ESC-TURNOS decidiu que turnos **viram editáveis**. | A nota sai do protótipo quando o CRUD de turnos existir; até lá ela descreve o vivo corretamente. Ver `escalas-form-gap.md`. |
+| Barra e ação primária | **Paridade desde 2026-09-29.** Vivo: barra com a nota de carga "480 = 8h, 2.640 = 44h" e `Nova escala` navegando para `/ponto/escalas/create` (`Index.tsx:115-131`, pelo #8115). Protótipo: a mesma barra (`ponto-telas.jsx:485-489`), e `Nova escala` agora vai para a rota própria `pt-escalas-create` (thread 28 onda 3, comentário em `:463`). Registro de 2026-09-28: o protótipo abria o form na mesma tela e o vivo não tinha a nota de carga. | Nada — paridade (D-PONTO-DETALHE feita nos dois lados). |
+| Lista de escalas | **Paridade desde o #8115 (2026-09-29).** Vivo: Código primeiro, depois Nome, Tipo, Carga diária, Carga semanal, Turnos, Banco de horas, Ação (`Index.tsx:164-171`), com o 1º turno na sub-linha do Nome (`:180-182`) e `data-contract="escalas-escalas-cadastradas"` (`:134`). Protótipo: a mesma ordem e sub-linha (`ponto-telas.jsx:491`, `:496`). O charter foi emendado para esta ordem (`Index.charter.md:36-38`). Registro de 2026-09-28: o vivo tinha Nome primeiro e sem sub-linha. | Nada — paridade. |
+| Remover escala | **Paridade.** Vivo: com vínculo, texto "Em uso por N colaborador(es)" no lugar do botão (`Index.tsx:208-212`); sem vínculo, `Remover` (`:214-221`) abre o `AlertDialog` do DS com Cancelar + Remover escala (`:276-292`), desde o #8079 (2026-09-28). A trava real está no servidor (`EscalaController.php:136-152`). Protótipo: o mesmo texto no lugar do botão e `Modal` do DS com Cancelar + Remover escala (`ponto-telas.jsx:511-513`, `:523-537`). Registro de 2026-09-28: o vivo usava `window.confirm`. | Nada — D-ESC-DESTROY construída nos dois lados. |
+| Editar | **Paridade.** Vivo: link para `/ponto/escalas/{id}/edit` (`Index.tsx:200-202`). Protótipo: `Editar` (`ponto-telas.jsx:504`) vai para a rota própria `pt-escalas-<id>-edit` (thread 28 onda 3, `:463`). Registro de 2026-09-28: o protótipo abria o form na mesma tela. | Nada — paridade (D-PONTO-DETALHE feita nos dois lados). |
+| Paginação | **Paridade.** Vivo: 20 por página (`EscalaController.php:23`), partial reload `only: ['escalas']` (`Index.tsx:248`, no rodapé `:233-256`). Protótipo: `usePagina(rows.length, 20)` (`ponto-telas.jsx:472`) e `Pager` (`:520`). | Nada. |
+| Estado vazio | **Vivo à frente.** Vivo: `EmptyState` com CTA "Criar escala" (`Index.tsx:146-158`), Goal do charter (`Index.charter.md:42`). Protótipo: `Vazio` sem ação (`ponto-telas.jsx:492`). | Protótipo corrige: ganha o CTA. |
+| Nota de turnos read-only | **Paridade desde o #8115 (2026-09-29).** Protótipo: `Nota` "turnos são leitura aqui, edição em fase posterior" (`ponto-telas.jsx:522`). Vivo: a mesma nota (`Index.tsx:263-271`). A D-ESC-TURNOS decidiu que turnos **viram editáveis**. Registro de 2026-09-28: o vivo não tinha a nota. | Nada agora — paridade. Quando o CRUD de turnos existir (D-ESC-TURNOS), a nota sai dos dois lados; ver `escalas-form-gap.md`. |

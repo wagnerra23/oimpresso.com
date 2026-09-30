@@ -6,6 +6,27 @@ id: requisitos-arquivos-changelog
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/).
 
+## [0.5.1] - 2026-09-29 — dedupe não rouba mais o vínculo do dono
+
+### Fixed
+
+- `ArquivosService::attach()` — anexar o mesmo conteúdo (mesmo MD5, mesmo business) a um
+  **segundo dono** devolvia a linha do primeiro: `arquivable_*` seguia no dono original e o
+  segundo ficava sem arquivo em `$owner->arquivos()` (ex.: a mesma foto em duas OS). Agora:
+  mesmo dono → mesma linha (idempotente, ADR 0123:262); outro dono → linha nova apontando pro
+  **mesmo blob**, sem regravar storage, com audit `upload` carregando `dedupe_de`.
+- `arquivos:retention-cleanup` — com blob compartilhado, purgar a linha de um dono apagaria o
+  arquivo que outro ainda usa. O blob só é removido na **última** referência (audit
+  `hard_delete` ganha `blob_compartilhado`).
+- `ArquivosRetentionService::purgeOne()` lia `$arquivo->storage_disk`, coluna que não
+  existe (é `disk`): o disco saía sempre `null` e o purge **nunca** apagava o blob, só a
+  linha. Agora lê `disk` e respeita a mesma guarda de blob compartilhado.
+- `ArquivosRetentionService::scanExpired()` selecionava a mesma coluna inexistente — no
+  MySQL o scan quebrava e o `run()` nunca chegava ao purge. Agora seleciona `disk`.
+- A guarda mora num lugar só, `ArquivosService::blobCompartilhado()`, usada pelos dois caminhos de
+  hard-delete. Entrada obsoleta `$storage_disk` removida do `phpstan-baseline.neon`.
+- Prova: `DedupeMultiOwnerTest` (UC-ARQ-DEDUP-01..08), na lane `arquivos-pest`.
+
 ## [0.5.0] - 2026-08-25 — Onda 1 da tela · PR-2 (vista Trilha + barra de abas)
 
 > Contexto datado: a tela `/arquivos` (US-ARQ-013) nasceu em **2026-08-24** com a vista

@@ -33,35 +33,65 @@ Fonte da máquina = 1º bloco ```json deste arquivo (§7). Rodar: `node scripts/
 | rota `/react` (Welcome) | `routes.php:34` — viva | W8 aberta |
 | DS átomos que as threads de forma pedem | `shared/Toolbar.tsx` · `shared/KpiCard.tsx` · `ui/card.tsx` existem; `ds-atomos` `_saida-01/02/03` no `main` | **destrava 13–15** |
 
-## 2 · Placar honesto — quantos PRs faltam
+## 2 · Placar honesto — quantos PRs faltam (rev. 2026-09-29, medido no `main` c5691131a977)
 
 | bloco | threads | PRs | trava |
 |---|---|---:|---|
-| **Entregue** | 01 · 02 · 03 · 04 (6 PRs) · 05 (3 PRs) · 08 · 09 · 10 · 11 | — | — |
-| **A · Funcional** | 06 REP-P (ValidacaoMobile → API → Page+contrato) · 07 contratos required · 12 AFD → AEJ | **6** | 06/07: **W10** · 12: nenhuma |
-| **B · Âncora e governança** | 16 · 20–26 (8 gap.md) · 17 (`data-contract` no vivo, 3 lotes ≤8 arquivos) · 27 (charters · casos · guards) | **14** | 17 e 27 depois dos gaps |
-| **C · Paridade de forma** | 32–34 ALVO (Painel · Espelho lista · Aprovações) + 13–15 forma · depois 17 ALVO + 18 forma das outras telas (não emitidas) | **6 + 35 = 41** | 13: W14 · 15: **W15** · 16+: **W11** · telas de detalhe: 28 |
-| **[CC] build (não é PR do Code)** | 28 rota própria — 5 ondas, 1 por símbolo | 5 ondas | — |
-| **Fora do placar** | 18 (absorvida por 06/07) · 29 (respondida) · 30 (absorvida: PR1→05, PR2→04, PR3–4→06, PR5→12) · 31 (recibo) — tiradas do §7, arquivos ficam | 0 | — |
-| **Total do Code** | | **61** (20 sem forma) | |
-
-**Leitura rápida:** se [W] responder **W10**, os blocos A+B (**20 PRs**) têm tudo o que precisam. O bloco C é o grosso (41) e só o começo (6) está emitido — o resto se emite quando entrar em vaga (playbook antecipado envelhece).
+| **Entregue (22)** | 01 · 02 · 03 · 04 · 05 · 06 · 08 · 09 · 10 · 11 · 16 · 17 · 20–26 · 32 · 33 · 34 | — | — |
+| **A · Funcional** | 07 contratos required · 12 AFD → AEJ | **3** | 07 ← contrato `ponto-rep-p` da 06 (PRs #8158/#8159 sem run de CI no recibo) |
+| **B · Governança** | 27 (charters · casos · guards, UMA onda) | **3** | nenhuma — a 17 fechou |
+| **C · Forma das 3 telas medidas** | 13 Painel (2 PRs) · 14 Espelho lista (1) · 15 Aprovações (3) | **6** | 13: **W14** · 15: **W15** |
+| **D · Forma das outras 20 telas** | fila §2-ter (ALVO em lote + forma por tamanho) | **31** | nenhuma — W11 respondida (servidor) |
+| **[CC] build** | 28 rota própria — 5 ondas + Reps | **feita** (29/09, 10 rotas) | — |
+| **Total do Code** | | **43** | |
 
 ## 2-bis · ESTADO — derivado, nunca escrito
 > `_saida-NN.md` presente **e** provas verdes = `feito`; sem `_saida` = não feito mesmo com PR mergeado.
 
-**Render simulado (28/09):** rodei a lógica do `placar-indice.mjs@main` portada, com o disco trocado por fatos lidos no `main` neste turno (não é o script real):
-`Ponto: entregue 9 de 29 · próximo 13 · em curso 0 · pendente 7 · bloqueada 0 · 0 sem recibo`
-- **feito (9):** 01 · 02 · 03 · 04 · 05 · 08 · 09 · 10 · 11
-- **próximo (13):** 12 · 16 · 20 · 21 · 22 · 23 · 24 · 25 · 26 · 28 [CC] · 32 · 33 · 34
-- **pendente (7):** 06 (W10) · 07 (←06) · 13 (W14 ←32) · 14 (←33) · 15 (W15 ←34) · 17 (←gaps) · 27 (←17)
-- **fora do §7 (4):** 18 · 29 · 30 · 31 — o placar ignora `sem_pr` e as poria em `próximo`.
+**Render 29/09 (lido no disco + `main` neste turno, não é o script real):** `Ponto: entregue 22 de 29 · próximo 5 · pendente 2`
+- **feito (22):** 01–06 · 08–11 · 16 · 17 · 20–26 · 32–34. ⚠️ `_saida-06.md` está no Cowork e **ainda não no `main`** — desce neste pacote; não apagar.
+- **próximo (4):** 07 · 12 · 14 · 27 — a 28 [CC] foi feita no build em 29/09 (ver §7, `progresso`); telas de detalhe da §2-ter deixam de depender dela.
+- **pendente (2):** 13 (W14) · 15 (W15)
+- **fora do §7 (4):** 18 · 29 · 30 · 31.
 
 ### Vagas (Lei 1 — prefixos não se cruzam dentro da vaga)
-- **Vaga 1 (agora):** 12 (AFD) ∥ 16 ∥ 20 ∥ 21 ∥ 22 ∥ 23 ∥ 24 ∥ 25 ∥ 26 (cada gap é um arquivo próprio em `memory/requisitos/Ponto/`) ∥ 32 ∥ 33 ∥ 34 (cada ALVO é um slug próprio) · [CC] 28.
-- **Vaga 2:** 17 (3 lotes) ∥ 13 ∥ 14 ∥ 15 ∥ 12 (AEJ) — 27 **depois** de 17 (as duas tocam o que o gap nomeou; a ata manda 27 como UMA onda).
-- **Vaga 3:** ALVO + forma das 17 telas restantes (W11) · 06 → 07 (W10).
-Ordem que [W] fixou em 14/09 continua valendo: **28 + ALVO primeiro**, depois 22 · 20 · 23, depois 27, depois 21 · 24 · 25 · 26.
+- **Vaga 1 (agora):** 07 ∥ 12 (AFD) ∥ 14 ∥ 27 · [CC] 28.
+- **Vaga 2:** 13a/13b (após W14) ∥ 15a/15b/15c (após W15) ∥ 12 (AEJ) ∥ ALVO-L1..L3 (§2-ter, read-only).
+- **Vaga 3+:** forma da §2-ter (após W11), grandes primeiro (são as que o técnico e a Eliana mais usam: espelho-show, banco-horas-show).
+
+## 2-ter · Dimensionamento por tamanho de tela (novo, 2026-09-29)
+Antes: toda tela = 1 ALVO + 1 forma (35 PRs para 17 telas, grandes e pequenas iguais). Agora o tamanho do `.tsx` vivo (medido em c5691131a977) decide:
+- **P ≤ 9,1 KB** → forma em **1 PR**; ALVO em **lote de 4** (1 PR mede 4 telas, como 32–34 fizeram com 3).
+- **M 9,1–15 KB** → forma em **1 PR** (se o diff passar de 300 linhas, parte por seção do alvo); ALVO em **lote de 3**.
+- **G > 15 KB** → forma **por seção do alvo** (2–3 PRs); ALVO em **lote de 3**.
+
+| classe | tela (`Pages/Ponto/…`) | KB | forma | lote ALVO |
+|---|---|---:|---:|---|
+| G | Espelho/Show | 24,9 | 3 | L3 |
+| G | BancoHoras/Show | 19,8 | 2 | L3 |
+| G | Intercorrencias/Create | 17,9 | 2 | L3 |
+| G | Escalas/Index | 15,3 | 2 | **já medido** (`ponto--escalas--index.alvo.json`) |
+| M | Intercorrencias/Edit | 13,3 | 1 | L2 |
+| M | Mobile/Index (+ Justificar · MeuEspelho) | 12,1 | 1 | L2 · **nova** (veio da 06) |
+| M | Colaboradores/Index | 11,0 | 1 | L2 |
+| M | Intercorrencias/Index | 10,7 | 1 | L1 |
+| M | Configuracoes/Index | 9,8 | 1 | L1 |
+| M | Fechamento/Index | 9,3 | 1 | L1 · **faltava na fila** (a 04 fez o funcional, não a forma) |
+| P | Escalas/Form | 9,1 | 1 | L1 |
+| P | Conformidade | 9,0 | 1 | L4 · **faltava na fila** (idem 05) |
+| P | Relatorios/Index | 8,8 | 1 | L4 |
+| P | Configuracoes/Reps | 8,3 | 1 | L4 |
+| P | Importacoes/Show | 8,0 | 1 | L4 |
+| P | Intercorrencias/Show | 7,6 | 1 | L5 |
+| P | BancoHoras/Index | 7,3 | 1 | L5 |
+| P | Colaboradores/Edit | 7,2 | 1 | L5 |
+| P | Importacoes/Index | 6,9 | 1 | L5 |
+| P | Importacoes/Create | 5,5 | 1 | L6 |
+
+**Total D:** 20 telas · **6 PRs de ALVO** (L1–L6) + **25 de forma** = **31** (antes 35 para 17 telas).
+Mesma régua nas já emitidas: **13** Painel 19,6 KB (G) → 13a nota+kpis · 13b fila+atividade · **14** Espelho/Index 6,6 KB (P) → 1 · **15** Aprovações 25,0 KB (G) → 15a filtros+kpis · 15b lista · 15c lote.
+Fora: `Welcome.tsx` (W8 — some ou fica, não se pinta) · `_components/` e `_shared/` (entram pela tela que os usa).
+**Viewport:** os alvos medem 1280×900 (Larissa). O técnico (tablet/celular) só cobra a tela Mobile — o ALVO do L2 mede Mobile/Index também em **390×844**.
 
 ### Fluxo (6 passos, iguais para toda thread)
 ```
@@ -95,9 +125,9 @@ Use o prompt de `_SESSAO-FRIA.md`. Leis do módulo que não se renegociam: marca
 ## 6 · RESÍDUO — fila de decisão [W]
 Respondidas e riscadas: W1–W7 (ADR 0413 / 0383). Abertas:
 1. **W8** `/ponto/react` (Welcome piloto): manter ou remover? — só a parte `/react` da 11.
-2. **W9** Navegação: 13 abas de área (protótipo) × `PontoSubNav` 5 + ⋯ (produção, ADR 0182). *Nota 28/09:* o protótipo agora rola até a aba ativa e sublinha só em roxo — a forma das abas convergiu; a **quantidade** ainda diverge.
-3. **W10** Ratificar o REP-P sem selfie: 3 telas do colaborador (bater · meu espelho · justificar) + fila do gestor, 7 rotas → `MobileMarcacaoController`. **Trava 6 PRs.**
-4. **W11** As listas viram `DataGrid` no cliente ou seguem `LengthAwarePaginator` no servidor? **Trava 35 PRs de forma.**
+2. ~~**W9**~~ → **13 abas do protótipo** ([W] 2026-09-28, ADR 0418) — já no `main` (`PontoSubNav.tsx`, `maxVisible={ghosts.length}`). *Nota 28/09:* o protótipo agora rola até a aba ativa e sublinha só em roxo — a forma das abas convergiu; a **quantidade** ainda diverge.
+3. ~~**W10** Ratificar o REP-P sem selfie~~ → **ratificado** ([W] 2026-09-29, ADR 0419 · `_DECISOES-W-2026-09-29.md`). A 06 entregou (`_saida-06`).
+4. ~~**W11**~~ → **servidor** ([W] 2026-09-29): `LengthAwarePaginator` + `Components/shared/DataTable.tsx`. **Destrava os 31 PRs da §2-ter.** Motivo: servidor — a produção inteira usa `Components/shared/DataTable.tsx` com paginação do servidor (`scope="col"` :360, sort por `<button>` :309); nenhuma tela do `main` nem do build usa o `DataGrid` do DS (medido no HRM, RESÍDUO-4).
 5. **W14** Label do KPI-filtro: accent 13.3px/400 (bundle) ou 11px/600 uppercase (ADR 0110)? Trava 13.
 6. **W15** Rejeitar em lote em Aprovações: criar endpoint (só existe `aprovarEmLote`) ou a 15 fica só com "Aprovar N"? Trava 15.
 
@@ -105,13 +135,14 @@ Respondidas e riscadas: W1–W7 (ADR 0413 / 0383). Abertas:
 ```json
 {
   "modulo": "Ponto",
-  "sha": "438b6992ed4b",
-  "gerado": "2026-09-28",
+  "sha": "c5691131a977",
+  "gerado": "2026-09-29",
   "absorve": [
     "_delta-indice-13a15.md (2026-09-09)",
     "_PATCH-INDICE-2026-09-14.md",
     "_DECISOES-W-2026-09-24.md",
-    "COLAR-NO-CODE-ponto-ondas.md (2026-09-04)"
+    "COLAR-NO-CODE-ponto-ondas.md (2026-09-04)",
+    "_DECISOES-W-2026-09-29.md"
   ],
   "variaveis": {
     "PAGES": "resources/js/Pages/Ponto",
@@ -168,44 +199,50 @@ Respondidas e riscadas: W1–W7 (ADR 0413 / 0383). Abertas:
     {
       "id": "W8",
       "pergunta": "/ponto/react (Welcome piloto): manter ou remover?",
-      "respondida": false
+      "respondida": true,
+      "resposta": "[W] 2026-09-29 decide-for-me → recomendação [CC]: remover /ponto/react (Welcome) — entra na parte /react da 11"
     },
     {
       "id": "W9",
       "pergunta": "Navegação: 13 abas de área × PontoSubNav 5+⋯ (ADR 0182)?",
-      "respondida": false
+      "respondida": true,
+      "resposta": "13 abas de área do protótipo, no lugar do PontoSubNav 5 + ⋯ — [W] 2026-09-28, ADR 0418 (_DECISOES-W-2026-09-28). Já aplicado no main: PontoSubNav.tsx maxVisible={ghosts.length} + scrollable. O decide-for-me de 29/09 NÃO a reabre."
     },
     {
       "id": "W10",
       "pergunta": "Ratificar REP-P sem selfie: 3 telas + fila, 7 rotas → MobileMarcacaoController",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "06"
-      ]
+      ],
+      "resposta": "escopo da thread 06 ratificado — ADR 0419 ([W] 2026-09-29)"
     },
     {
       "id": "W11",
       "pergunta": "Listas: DataGrid no cliente ou LengthAwarePaginator no servidor?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
-        "forma 16+"
-      ]
+        "forma §2-ter (31 PRs)"
+      ],
+      "resposta": "servidor (LengthAwarePaginator, 20/pág) + forma do protótipo — [W] 2026-09-28, ADR 0418"
     },
     {
       "id": "W14",
       "pergunta": "Label do KPI-filtro: accent 13.3px/400 ou 11px/600 uppercase (ADR 0110)?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "13"
-      ]
+      ],
+      "resposta": "[W] 2026-09-29 decide-for-me → recomendação [CC]: 11px/600 caixa-alta, cor discreta (ADR 0110 + shared/KpiCard) — destrava 13"
     },
     {
       "id": "W15",
       "pergunta": "Rejeitar em lote na fila de Aprovações: criar endpoint (hoje só existe aprovarEmLote) ou a 15 fica só com Aprovar N?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "15"
-      ]
+      ],
+      "resposta": "[W] 2026-09-29 decide-for-me → recomendação [CC]: não criar endpoint agora; a 15 fica só com \"Aprovar N\" (15c sai)"
     }
   ],
   "threads": [
@@ -341,9 +378,7 @@ Respondidas e riscadas: W1–W7 (ADR 0413 / 0383). Abertas:
         "Modules/Ponto/Services/NsrService.php",
         "Modules/Ponto/Database/"
       ],
-      "depende_decisoes": [
-        "W10"
-      ],
+      "depende_decisoes": [],
       "provas": [
         {
           "tipo": "contem",
@@ -525,6 +560,11 @@ Respondidas e riscadas: W1–W7 (ADR 0413 / 0383). Abertas:
           "tipo": "arquivo",
           "path": "${PAGES}/_components/PresenceStrip.tsx"
         }
+      ],
+      "prs": 2,
+      "partes": [
+        "13a nota+kpis",
+        "13b fila+atividade"
       ]
     },
     {
@@ -548,7 +588,8 @@ Respondidas e riscadas: W1–W7 (ADR 0413 / 0383). Abertas:
           "path": "${PAGES}/Espelho/Index.tsx",
           "padrao": "shared/Toolbar"
         }
-      ]
+      ],
+      "prs": 1
     },
     {
       "id": "15",
@@ -569,7 +610,12 @@ Respondidas e riscadas: W1–W7 (ADR 0413 / 0383). Abertas:
         "W15"
       ],
       "provas": [],
-      "nota_provas": "sem prova de arquivo honesta: BulkActionBar (:52), Textarea (:44) e PageFilters (:49) JÁ existem no main — qualquer um deles como prova faria a 15 aparecer 'sem recibo' assim que a 34 fechar. Prova = _saida-15 + AprovacaoTest. Guarda (não medida pelo placar): PageFilters continua importado. Se W15 = criar endpoint, a prova vira contem routes.php '/aprovacoes/rejeitar-lote'."
+      "nota_provas": "sem prova de arquivo honesta: BulkActionBar (:52), Textarea (:44) e PageFilters (:49) JÁ existem no main — qualquer um deles como prova faria a 15 aparecer 'sem recibo' assim que a 34 fechar. Prova = _saida-15 + AprovacaoTest. Guarda (não medida pelo placar): PageFilters continua importado. Se W15 = criar endpoint, a prova vira contem routes.php '/aprovacoes/rejeitar-lote'.",
+      "prs": 2,
+      "partes": [
+        "15a filtros+kpis",
+        "15b lista"
+      ]
     },
     {
       "id": "16",
@@ -803,7 +849,8 @@ Respondidas e riscadas: W1–W7 (ADR 0413 / 0383). Abertas:
         "${COWORK}/app.jsx"
       ],
       "provas": [],
-      "nota_provas": "prova = o render: __go('pt-intercorrencias-<id>') abre a página, não o drawer; hoje daRota só reconhece espelho-<id>"
+      "nota_provas": "prova = o render: __go('pt-intercorrencias-<id>') abre a página, não o drawer; hoje daRota só reconhece espelho-<id>",
+      "progresso": "FEITA 2026-09-29 [CC] no build (ponto-page.jsx?v=pt29rotareal · ponto-telas.jsx?v=pt32rotareal). Regra: rota do protótipo = \"pt-\" + caminho real de Modules/Ponto/Http/routes.php (lido em a71c2f2d052f) com \"/\" → \"-\". 10 rotas, 1:1 com o router: intercorrencias/{uuid} · intercorrencias/create · intercorrencias/{uuid}/edit (403 fora de RASCUNHO, IntercorrenciaController.php:261) · importacoes/{id} · importacoes/novo · escalas/create · escalas/{id}/edit (sem show) · banco-horas/{colaborador} · colaboradores/{id}/editar · configuracoes/reps. Correção no mesmo dia: 4 sufixos da tabela da thread (novo/nova/-editar/-config) não batiam com o router e foram trocados. Fora de propósito: espelho/{colaborador}/imprimir (o protótipo imprime com window.print) · /react (W8) · relatorios/{chave} (download, não página). Drawer de Intercorrências removido; id inexistente = \"não encontrado\". Sem mudança no main."
     },
     {
       "id": "32",
@@ -880,27 +927,66 @@ Respondidas e riscadas: W1–W7 (ADR 0413 / 0383). Abertas:
     }
   ],
   "fila_nao_emitida": {
-    "nota": "emitir quando entrar em vaga — ALVO + forma, 1 PR cada; todas dependem de W11 e as de detalhe da 28",
-    "telas": [
-      "espelho-show (forma em 2: 16a/16b)",
-      "intercorrencias-index",
-      "intercorrencias-create",
-      "intercorrencias-edit",
-      "intercorrencias-show",
-      "banco-horas-index",
-      "banco-horas-show",
-      "escalas-index",
-      "escalas-form",
-      "colaboradores-index",
-      "colaboradores-edit",
-      "importacoes-index",
-      "importacoes-create",
-      "importacoes-show",
-      "relatorios-index",
-      "configuracoes-index",
-      "configuracoes-reps"
+    "nota": "emitir quando entrar em vaga. Dimensionada por tamanho do .tsx vivo (§2-ter): P ≤9,1 KB · M 9,1–15 KB · G >15 KB. ALVO em lote (L1–L6), forma 1 PR (P/M) ou por seção (G). W11 respondida (servidor); a 28 está feita — as telas de detalhe têm endereço próprio para o ALVO medir sem clique.",
+    "lotes_alvo": {
+      "L1": [
+        "intercorrencias-index",
+        "configuracoes-index",
+        "fechamento-index",
+        "escalas-form"
+      ],
+      "L2": [
+        "intercorrencias-edit",
+        "mobile-index (1280 + 390×844)",
+        "colaboradores-index"
+      ],
+      "L3": [
+        "espelho-show",
+        "banco-horas-show",
+        "intercorrencias-create"
+      ],
+      "L4": [
+        "conformidade",
+        "relatorios-index",
+        "configuracoes-reps",
+        "importacoes-show"
+      ],
+      "L5": [
+        "intercorrencias-show",
+        "banco-horas-index",
+        "colaboradores-edit",
+        "importacoes-index"
+      ],
+      "L6": [
+        "importacoes-create"
+      ]
+    },
+    "alvo_ja_medido": [
+      "escalas-index"
     ],
-    "prs": 35
+    "forma_prs": {
+      "espelho-show": 3,
+      "banco-horas-show": 2,
+      "intercorrencias-create": 2,
+      "escalas-index": 2,
+      "intercorrencias-edit": 1,
+      "mobile-index": 1,
+      "colaboradores-index": 1,
+      "intercorrencias-index": 1,
+      "configuracoes-index": 1,
+      "fechamento-index": 1,
+      "escalas-form": 1,
+      "conformidade": 1,
+      "relatorios-index": 1,
+      "configuracoes-reps": 1,
+      "importacoes-show": 1,
+      "intercorrencias-show": 1,
+      "banco-horas-index": 1,
+      "colaboradores-edit": 1,
+      "importacoes-index": 1,
+      "importacoes-create": 1
+    },
+    "prs": 31
   },
   "fora_do_placar": {
     "nota": "threads-leitura/absorvidas: o placar ignora 'sem_pr' e as poria em 'proximo' (provas [] + sem _saida). Ficam na pasta como contexto, fora do §7.",

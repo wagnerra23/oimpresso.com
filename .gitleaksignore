@@ -87,3 +87,9 @@ d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/Qualidade
 # condicao que a licao de 2026-08-05 exige. Corrigi a resposta nas threads.
 48512677dd2720679b7c7d9ce97aeb06a99ed578:Modules/Forja/Tests/Feature/CcSecretSweepTest.php:aws-access-token:155
 48512677dd2720679b7c7d9ce97aeb06a99ed578:Modules/Forja/Tests/Feature/CcSecretSweepTest.php:aws-access-token:184
+
+# 2026-09-29 (PR #8193, import do app mobile): falso positivo de `generic-api-key`.
+# mobile/HANDOFF.md:257 é `FOCUS_NFE_TOKEN=` VAZIO num bloco de exemplo de .env; a regra
+# emendou a linha seguinte (`FOCUS_NFE_ENV=homologacao`) como se fosse o valor. Nenhum
+# token real. Fingerprint cega só esta ocorrência (commit+arquivo+regra+linha).
+28849710bd1d7b7a034bcd99de0846bc8cf69b64:mobile/HANDOFF.md:generic-api-key:257

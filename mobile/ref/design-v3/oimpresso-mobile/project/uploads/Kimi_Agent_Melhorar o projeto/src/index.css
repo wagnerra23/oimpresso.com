@@ -1,0 +1,198 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Canvas */
+    --canvas-bg: #0e0f12;
+    --canvas-gradient-1: oklch(0.24 0.04 240);
+    --canvas-gradient-2: oklch(0.22 0.04 200);
+
+    /* Device */
+    --device-border: #1a1a1c;
+    --device-shadow: 0 0 0 1px #2a2a2c, 0 25px 80px rgba(0,0,0,0.6), 0 10px 30px rgba(0,0,0,0.4);
+
+    /* Density: comfy (default) */
+    --content-padding: 20px;
+    --card-padding: 20px;
+    --card-gap: 16px;
+    --section-gap: 32px;
+    --list-item-height: 72px;
+    --list-item-gap: 12px;
+    --card-radius: 16px;
+    --button-height: 50px;
+    --font-size-base: 16px;
+    --touch-target: 48px;
+
+    /* Dark theme (default app) */
+    --bg-app: #0e0f12;
+    --bg-surface: #1c1c1e;
+    --bg-elevated: #2c2c2e;
+    --primary: #0A84FF;
+    --primary-subtle: rgba(10,132,255,0.15);
+    --text-primary: #f5f5f5;
+    --text-secondary: #8E8E93;
+    --text-tertiary: #636366;
+    --success: #30D158;
+    --warning: #FF9F0A;
+    --danger: #FF453A;
+    --info: #5E5CE6;
+    --border-color: #38383A;
+    --separator: #38383A;
+    --nav-active: #0A84FF;
+    --nav-inactive: #636366;
+    --pill-bg: #2c2c2e;
+    --pill-text: #f5f5f5;
+    --progress-track: #38383A;
+    --tenant-chip-bg: rgba(10,132,255,0.10);
+    --overlay: rgba(0,0,0,0.6);
+    --skeleton-base: #2c2c2e;
+    --skeleton-highlight: #3a3a3c;
+    --input-bg: #2c2c2e;
+    --status-bar-bg: #000000;
+  }
+
+  [data-theme="light"] {
+    --bg-app: #F2F2F7;
+    --bg-surface: #FFFFFF;
+    --bg-elevated: #FFFFFF;
+    --primary: #007AFF;
+    --primary-subtle: rgba(0,122,255,0.12);
+    --text-primary: #000000;
+    --text-secondary: #8E8E93;
+    --text-tertiary: #C7C7CC;
+    --success: #34C759;
+    --warning: #FF9500;
+    --danger: #FF3B30;
+    --info: #5856D6;
+    --border-color: #E5E5EA;
+    --separator: #E5E5EA;
+    --nav-active: #007AFF;
+    --nav-inactive: #8E8E93;
+    --pill-bg: #E5E5EA;
+    --pill-text: #000000;
+    --progress-track: #E5E5EA;
+    --tenant-chip-bg: rgba(0,122,255,0.08);
+    --overlay: rgba(0,0,0,0.4);
+    --skeleton-base: #E5E5EA;
+    --skeleton-highlight: #F2F2F7;
+    --input-bg: #F2F2F7;
+    --status-bar-bg: #F2F2F7;
+  }
+
+  [data-density="normal"] {
+    --content-padding: 16px;
+    --card-padding: 16px;
+    --card-gap: 12px;
+    --section-gap: 24px;
+    --list-item-height: 64px;
+    --list-item-gap: 8px;
+    --card-radius: 14px;
+    --button-height: 44px;
+    --font-size-base: 15px;
+    --touch-target: 44px;
+  }
+
+  [data-density="compact"] {
+    --content-padding: 12px;
+    --card-padding: 12px;
+    --card-gap: 8px;
+    --section-gap: 16px;
+    --list-item-height: 56px;
+    --list-item-gap: 4px;
+    --card-radius: 12px;
+    --button-height: 40px;
+    --font-size-base: 14px;
+    --touch-target: 40px;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    background: radial-gradient(1200px 700px at 30% -10%, var(--canvas-gradient-1), transparent 60%),
+                radial-gradient(1000px 600px at 90% 110%, var(--canvas-gradient-2), transparent 60%),
+                var(--canvas-bg);
+    color: #d8d8d8;
+    min-height: 100vh;
+    overflow-x: hidden;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .oi-app {
+    background: var(--bg-app);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .oi-screen {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .oi-screen::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { transform: translateX(-200%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.3; }
+}
+
+@keyframes spin-loader {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes slide-up-enter {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes slide-up-exit {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes progress-fill {
+  from { width: 0%; }
+}
+
+@keyframes float-up {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}

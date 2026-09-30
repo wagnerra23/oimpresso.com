@@ -1,0 +1,19 @@
+{
+  "name": "oimpresso-erp",
+  "private": true,
+  "version": "0.0.0-fase0",
+  "description": "ERP vertical para gráficas / comunicação visual (BR). Multi-tenant, PT-BR.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter server dev",
+    "lint": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "//": "Fase 0 — Refundação. Dependências reais (drizzle-orm, @trpc/server, zod, pg) entram no bootstrap do Passo 2."
+}

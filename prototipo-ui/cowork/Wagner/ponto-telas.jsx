@@ -200,40 +200,78 @@ function FormIntercorrencia({ registro, onSalvar, onCancelar }) {
   );
 }
 
-function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
+// D-PONTO-DETALHE onda 1 ([W] 2026-09-14 · thread 28): as 3 páginas vivas viram ROTA, não drawer/estado.
+// Regra: rota do protótipo = "pt-" + caminho real de Modules/Ponto/Http/routes.php com "/" → "-".
+//   pt-intercorrencias-<uuid>        → GET /ponto/intercorrencias/{uuid}        (show)
+//   pt-intercorrencias-create        → GET /ponto/intercorrencias/create        (create)
+//   pt-intercorrencias-<uuid>-edit   → GET /ponto/intercorrencias/{uuid}/edit   (edit — abort_unless RASCUNHO, IntercorrenciaController.php:261)
+// Quem decide a rota é o shell (ponto-page.jsx · daRota); aqui só se lê `foco`/`editar` e se pede navegação.
+function Intercorrencias({ avisar, foco, editar, onFoco, onNovo, onEditar, rows, setRows }) {
   const D = P();
-  const { Card, Tabela, Vazio, PillIntercorrencia, PillPrioridade, Nota, usePagina, Pager, Ic } = U();
-  const ds = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
+  const { Card, Tabela, Vazio, PillIntercorrencia, PillPrioridade, Nota, Voltar, usePagina, Pager, Ic } = U();
   const [fEst, setFEst] = useState("");
   const [fTipo, setFTipo] = useState("");
   const filtrando = !!(fEst || fTipo);
   const lista = rows.filter((r) => (!fEst || r.estado === fEst) && (!fTipo || r.tipo === fTipo));
   const pg = usePagina(lista.length, 25); // 25/pág = contrato do charter Intercorrencias/Index (Goals)
-  const [nova, setNova] = useState(false);
-  const [editando, setEditando] = useState(null);
-  const sel = rows.find((r) => r.id === foco) || null;
+  const nova = foco === "create";
+  const sel = !nova && foco ? rows.find((r) => r.id === foco) || null : null;
+  const editando = editar && sel && sel.estado === "RASCUNHO" ? sel : null;
+  const cod = (r) => r.codigo || r.id.slice(0, 8);
+  const VoltarBtn = Voltar || (({ onClick, children }) => <window.PtBtn onClick={onClick}>{children}</window.PtBtn>);
 
   const salvar = (f) => {
     if (editando) {
       setRows((rs) => rs.map((r) => r.id === editando.id ? { ...r, ...f } : r));
       avisar("Rascunho atualizado.", "ok");
-      setEditando(null);
+      onFoco(editando.id);
     } else {
       const id = "n" + Date.now().toString(16).slice(-7);
       setRows((rs) => [{ ...f, id, codigo: null, estado: "RASCUNHO", colaborador_config_id: Number(f.colaborador_config_id), data: f.data.split("-").reverse().join("/"), anexo_path: null, solicitante: "Wagner Ramos", created_at: "20/08/2026 09:20", aprovador: null, aprovado_em: null, motivo_rejeicao: null }, ...rs]);
       avisar("Rascunho salvo — submeta para entrar na fila de aprovação.", "ok");
-      setNova(false);
+      onFoco(id);
     }
   };
   const mudarEstado = (id, estado, msg, tom) => { setRows((rs) => rs.map((r) => r.id === id ? { ...r, estado } : r)); avisar(msg, tom); };
 
-  const Drawer = ds.Drawer, DrawerSection = ds.DrawerSection;
-  const detalhe = sel && (() => {
+  // ── Create / Edit ──
+  if (nova || editando) return (
+    <>
+      <div className="pt-sub">
+        <VoltarBtn onClick={() => editando ? onFoco(editando.id) : onFoco(null)}>{editando ? "Voltar à intercorrência" : "Voltar à lista"}</VoltarBtn>
+        <div><h2>{editando ? "Editar rascunho " + cod(editando) : "Nova intercorrência"}</h2><span className="pt-sub-sub">{editando ? D.TIPOS_INTERC[editando.tipo] + " · " + editando.data : "nasce como rascunho — nada entra na apuração até ser aprovada"}</span></div>
+      </div>
+      <Card contrato="intercorrencias-dados-da-ocorrencia" icon={editando ? "edit" : "plus"} titulo="Dados da ocorrência">
+        <FormIntercorrencia registro={editando} onSalvar={salvar} onCancelar={() => editando ? onFoco(editando.id) : onFoco(null)} />
+      </Card>
+    </>
+  );
+  if (editar && sel && !editando) return (
+    <Nota tom="warn" titulo="Apenas rascunhos podem ser editados.">Esta intercorrência está <b>{D.ESTADOS_INTERC[sel.estado] || sel.estado}</b>. Depois de submetida ela não volta a rascunho. <window.PtBtn onClick={() => onFoco(sel.id)}>Ver intercorrência</window.PtBtn></Nota>
+  );
+  if (foco && !sel) return (
+    <Card icon="alert" titulo="Intercorrência não encontrada">
+      <Tabela cols={[{ l: "" }]}><Vazio colSpan={1} variante="no-results" titulo="Nada com esse código" acao={<window.PtBtn onClick={() => onFoco(null)}>Voltar à lista</window.PtBtn>}>O link pode ser de outro negócio ou de um rascunho descartado.</Vazio></Tabela>
+    </Card>
+  );
+
+  // ── Show ──
+  if (sel) {
     const c = D.colab(sel.colaborador_config_id);
-    const Sec = DrawerSection || (({ title, children }) => <div style={{ padding: "12px 16px" }}>{title && <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--text-mute)", marginBottom: 6 }}>{title}</div>}{children}</div>);
-    const corpo = (
+    return (
       <>
-        <Sec title="Dados da intercorrência">
+        <div className="pt-sub">
+          <VoltarBtn onClick={() => onFoco(null)}>Voltar à lista</VoltarBtn>
+          <div><h2 className="mono">{cod(sel)}</h2><span className="pt-sub-sub">{D.TIPOS_INTERC[sel.tipo]} · {sel.data} · {c.nome}</span></div>
+          <span className="pt-sp" />
+          {sel.estado === "RASCUNHO" && <>
+            <window.PtBtn onClick={() => onEditar(sel.id)}>Editar</window.PtBtn>
+            <window.PtBtn primary onClick={() => { if (!window.confirm("Submeter esta intercorrência para aprovação?")) return; mudarEstado(sel.id, "PENDENTE", "Submetida — está na fila de aprovações.", "ok"); }}>Submeter para aprovação</window.PtBtn>
+          </>}
+          {(sel.estado === "RASCUNHO" || sel.estado === "PENDENTE") &&
+            <window.PtBtn danger onClick={() => { if (!window.confirm("Cancelar esta intercorrência? A ação não é reversível.")) return; mudarEstado(sel.id, "CANCELADA", "Intercorrência cancelada.", "warn"); }}>Cancelar</window.PtBtn>}
+        </div>
+        <Card contrato="intercorrencias-show-dados" icon="alert" titulo="Dados da intercorrência">
           <div className="pt-ficha">
             <div>
               <p><b>Colaborador:</b> {c.nome}</p>
@@ -250,34 +288,22 @@ function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
               <p><b>Anexo:</b> {sel.anexo_path ? sel.anexo_path.split("/").pop() : "—"}</p>
             </div>
           </div>
-        </Sec>
-        <Sec title="Justificativa">
+        </Card>
+        <Card contrato="intercorrencias-show-justificativa" icon="doc" titulo="Justificativa">
           <div className="pt-just">{sel.justificativa}</div>
-        </Sec>
-        <Sec title="Rastreio">
+        </Card>
+        <Card contrato="intercorrencias-show-rastreio" icon="clock" titulo="Rastreio">
           <div className="pt-ficha">
             <div><p><b>Solicitante:</b> {sel.solicitante}</p><p className="pt-dim">Criada em {sel.created_at}</p></div>
             {sel.aprovador && <div><p><b>Aprovador:</b> {sel.aprovador}</p><p className="pt-dim">Decisão em {sel.aprovado_em}</p></div>}
           </div>
           {sel.motivo_rejeicao && <div style={{ marginTop: 10 }}><Nota tom="danger" titulo="Motivo da rejeição">{sel.motivo_rejeicao}</Nota></div>}
-        </Sec>
+        </Card>
       </>
     );
-    const foot = (
-      <>
-        {sel.estado === "RASCUNHO" && <>
-          <window.PtBtn  onClick={() => { setEditando(sel); onFoco(null); }}>Editar</window.PtBtn>
-          <window.PtBtn primary onClick={() => { if (!window.confirm("Submeter esta intercorrência para aprovação?")) return; mudarEstado(sel.id, "PENDENTE", "Submetida — está na fila de aprovações.", "ok"); onFoco(null); }}>Submeter para aprovação</window.PtBtn>
-        </>}
-        {(sel.estado === "RASCUNHO" || sel.estado === "PENDENTE") &&
-          <window.PtBtn danger onClick={() => { if (!window.confirm("Cancelar esta intercorrência? A ação não é reversível.")) return; mudarEstado(sel.id, "CANCELADA", "Intercorrência cancelada.", "warn"); onFoco(null); }}>Cancelar</window.PtBtn>}
-      </>
-    );
-    if (!Drawer) return null;
-    return <Drawer open={!!sel} onClose={() => onFoco(null)} width={620}
-      title={sel.codigo || sel.id.slice(0, 8)} subtitle={D.TIPOS_INTERC[sel.tipo] + " · " + sel.data} footer={foot}>{corpo}</Drawer>;
-  })();
+  }
 
+  // ── Index ──
   return (
     <>
       <window.PtBarra>
@@ -291,34 +317,27 @@ function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
           </window.PtEscolha>
         {filtrando && <window.PtBtn onClick={() => { setFEst(""); setFTipo(""); }}>Limpar</window.PtBtn>}
         <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{lista.length} de {rows.length} registros · rascunho edita e submete; aprovada não volta atrás.</span>
-        
-        <window.PtBtn primary onClick={() => setNova(true)}><Ic name="plus" />Nova intercorrência</window.PtBtn>
+        <window.PtBtn primary onClick={onNovo}><Ic name="plus" />Nova intercorrência</window.PtBtn>
       </window.PtBarra>
-
-      {(nova || editando) &&
-        <Card contrato="intercorrencias-card" icon="plus" titulo={editando ? "Editar rascunho " + (editando.codigo || editando.id.slice(0, 8)) : "Nova intercorrência"}>
-          <FormIntercorrencia registro={editando} onSalvar={salvar} onCancelar={() => { setNova(false); setEditando(null); }} />
-        </Card>}
 
       <Card contrato="intercorrencias-intercorrencias" icon="alert" titulo="Intercorrências" sub={"(" + lista.length + (lista.length === 1 ? " item" : " itens") + ")"}>
         <Tabela cols={[{ l: "Código", w: "128px" }, { l: "Colaborador" }, { l: "Tipo" }, { l: "Data" }, { l: "Estado" }, { l: "Prioridade" }, { l: "Ação", num: true, w: "88px" }]}>
           {lista.length === 0 && (filtrando
             ? <Vazio colSpan={7} variante="filtered" titulo="Nenhum resultado" acao={<window.PtBtn onClick={() => { setFEst(""); setFTipo(""); }}>Limpar filtros</window.PtBtn>}>Nenhuma intercorrência com esses filtros.</Vazio>
-            : <Vazio colSpan={7} variante="first" titulo="Sem intercorrências" acao={<window.PtBtn primary onClick={() => setNova(true)}>Criar primeira</window.PtBtn>}>Colaboradores podem submeter pelo app, ou você cria manualmente.</Vazio>)}
+            : <Vazio colSpan={7} variante="first" titulo="Sem intercorrências" acao={<window.PtBtn primary onClick={onNovo}>Criar primeira</window.PtBtn>}>Colaboradores podem submeter pelo app, ou você cria manualmente.</Vazio>)}
           {pg.fatia(lista).map((i) => {
             const c = D.colab(i.colaborador_config_id);
             return (
               <tr key={i.id} className="hit" onClick={() => onFoco(i.id)}>
-                <td className="mono">{i.codigo || i.id.slice(0, 8)}</td>
+                <td className="mono">{cod(i)}</td>
                 <td><b>{c.nome}</b><small>{c.matricula}</small></td>
                 <td>{D.TIPOS_INTERC[i.tipo]}</td>
                 <td><span className="mono">{i.data}</span><small>{i.dia_todo ? "Dia todo" : (i.intervalo_inicio || "—") + "–" + (i.intervalo_fim || "—")}</small></td>
                 <td><PillIntercorrencia estado={i.estado} /></td>
                 <td><PillPrioridade p={i.prioridade} /></td>
                 <td className="num" onClick={(e) => e.stopPropagation()}>
-                  {/* D-INTERC-ACOES ([W] 2026-09-14): Non-Goal RATIFICADO — a lista não edita nem submete.
-                      Editar/Submeter vivem no detalhe (Show), que é a rota própria (D-PONTO-DETALHE). */}
-                  <window.PtBtn  onClick={() => onFoco(i.id)}>Ver</window.PtBtn>
+                  {/* D-INTERC-ACOES ([W] 2026-09-14): a lista não edita nem submete — isso vive no Show (rota própria). */}
+                  <window.PtBtn onClick={() => onFoco(i.id)} aria-label={"Ver " + cod(i)}>Ver</window.PtBtn>
                 </td>
               </tr>
             );
@@ -326,18 +345,19 @@ function Intercorrencias({ avisar, foco, onFoco, rows, setRows }) {
         </Tabela>
         <Pager p={pg} rotulo="itens" />
       </Card>
-      {detalhe}
     </>
   );
 }
 
 // ═══════════════════════════ 3. BANCO DE HORAS ═══════════════════════════
-function BancoHoras({ avisar }) {
+// Rota própria (thread 28 onda 5): pt-banco-horas-<colaborador> → GET /ponto/banco-horas/{colaborador}. `sub` vem do shell.
+function BancoHoras({ avisar, sub, onSub }) {
   const D = P();
   const { Card, Kpi, Tabela, Vazio, Nota, Legal, Pill, Voltar, Min, usePagina, Pager, Ic } = U();
   const [saldos, setSaldos] = useState(D.BH_SALDOS);
   const [movs, setMovs] = useState(D.BH_MOVIMENTOS);
-  const [sel, setSel] = useState(null);
+  const sel = sub && /^\d+$/.test(sub) ? Number(sub) : null;
+  const setSel = (v) => onSub(v == null ? null : String(v));
   const [minutos, setMinutos] = useState("");
   const [obs, setObs] = useState("");
   const pg = usePagina(saldos.length, 30); // 30/pág = contrato do charter BancoHoras/Index (Goals)
@@ -349,6 +369,7 @@ function BancoHoras({ avisar }) {
     comDebito: saldos.filter((s) => s.saldo_minutos < 0).length,
   }), [saldos]);
 
+  if (sel && !saldos.some((x) => x.colaborador_config_id === sel)) return <Card icon="alert" titulo="Saldo não encontrado"><Tabela cols={[{ l: "" }]}><Vazio colSpan={1} variante="no-results" titulo="Nada neste endereço" acao={<window.PtBtn onClick={() => setSel(null)}>Voltar à lista</window.PtBtn>}>O link pode ser de outro negócio ou de um registro removido.</Vazio></Tabela></Card>;
   if (sel) {
     const s = saldos.find((x) => x.colaborador_config_id === sel);
     const c = D.colab(sel);
@@ -439,11 +460,14 @@ function BancoHoras({ avisar }) {
 }
 
 // ═══════════════════════════ 4. ESCALAS ═══════════════════════════
-function Escalas({ avisar }) {
+// Rota própria (thread 28 onda 3): pt-escalas-create → GET /ponto/escalas/create · pt-escalas-<id>-edit → GET /ponto/escalas/{id}/edit (resource sem show).
+function Escalas({ avisar, sub, onSub }) {
   const D = P();
   const { Card, Tabela, Vazio, Pill, PillSimNao, Nota, usePagina, Pager, Ic } = U();
   const [rows, setRows] = useState(D.ESCALAS);
-  const [form, setForm] = useState(null); // {escala|null}
+  const idEd = sub && /^\d+-edit$/.test(sub) ? sub.split("-")[0] : null;
+  const form = sub === "create" ? { escala: null } : idEd ? { escala: rows.find((r) => String(r.id) === idEd) || null } : null;
+  const setForm = (v) => onSub(!v ? null : v.escala ? v.escala.id + "-edit" : "create");
   const [remover, setRemover] = useState(null); // escala pendente de confirmação (Modal do DS, não window.confirm)
   const pg = usePagina(rows.length, 20); // 20/pág = contrato do charter Escalas/Index (Goals)
 
@@ -453,6 +477,7 @@ function Escalas({ avisar }) {
     setForm(null);
   };
 
+  if (idEd && !form.escala) return <Card icon="alert" titulo="Escala não encontrada"><Tabela cols={[{ l: "" }]}><Vazio colSpan={1} variante="no-results" titulo="Nada neste endereço" acao={<window.PtBtn onClick={() => setForm(null)}>Voltar à lista</window.PtBtn>}>O link pode ser de outro negócio ou de um registro removido.</Vazio></Tabela></Card>;
   if (form) return <EscalaForm escala={form.escala} onSalvar={salvar} onCancelar={() => setForm(null)} />;
 
   return (
@@ -526,7 +551,7 @@ function EscalaForm({ escala, onSalvar, onCancelar }) {
     <>
       <div className="pt-sub"><Voltar onClick={onCancelar}>Voltar às escalas</Voltar>
         <div><h2>{escala ? "Editar escala" : "Nova escala"}</h2><span className="pt-sub-sub">{escala ? escala.nome : "cadastro de jornada padrão do business"}</span></div></div>
-      <Card contrato="escalaform-card" icon="calendar" titulo={escala ? escala.nome : "Dados da escala"}>
+      <Card contrato="escalaform-dados-da-escala" icon="calendar" titulo={escala ? escala.nome : "Dados da escala"}>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div className="pt-cols">
             <window.PtCampo label={"Nome"} req wide maxLength={120} value={f.nome} onChange={set("nome")} />
@@ -561,12 +586,14 @@ function EscalaForm({ escala, onSalvar, onCancelar }) {
 }
 
 // ═══════════════════════════ 5. COLABORADORES ═══════════════════════════
-function Colaboradores({ avisar, onVerEspelho }) {
+// Rota própria (thread 28 onda 4): pt-colaboradores-<id>-editar → GET /ponto/colaboradores/{id}/editar.
+function Colaboradores({ avisar, onVerEspelho, sub, onSub }) {
   const D = P();
   const { Card, Tabela, Vazio, Pill, PillSimNao, Nota, usePagina, Pager, Ic } = U();
   const [rows, setRows] = useState(D.COLABORADORES);
   const [q, setQ] = useState("");
-  const [edit, setEdit] = useState(null);
+  const edit = sub && /^\d+-editar$/.test(sub) ? Number(sub.split("-")[0]) : null;
+  const setEdit = (v) => onSub(v == null ? null : v + "-editar");
 
   const busca = q.trim().toLowerCase();
   // Mantém só os 3 últimos dígitos visíveis (LGPD — D-COLAB-CPF).
@@ -591,8 +618,9 @@ function Colaboradores({ avisar, onVerEspelho }) {
     return String(d.dia).padStart(2, "0") + "/08 " + m.hora;
   };
 
+  if (edit && !rows.some((x) => x.id === edit)) return <Card icon="alert" titulo="Colaborador não encontrado"><Tabela cols={[{ l: "" }]}><Vazio colSpan={1} variante="no-results" titulo="Nada neste endereço" acao={<window.PtBtn onClick={() => setEdit(null)}>Voltar à lista</window.PtBtn>}>O link pode ser de outro negócio ou de um registro removido.</Vazio></Tabela></Card>;
   if (edit) {
-    const c = rows.find((x) => x.id === edit) || rows[0];
+    const c = rows.find((x) => x.id === edit);
     return <ColaboradorForm colaborador={c} onCancelar={() => setEdit(null)}
       onSalvar={(f) => { setRows((rs) => rs.map((r) => r.id === c.id ? { ...r, ...f } : r)); setEdit(null); avisar("Configuração de ponto salva.", "ok"); }} />;
   }
@@ -713,16 +741,20 @@ function ColaboradorForm({ colaborador, onSalvar, onCancelar }) {
 }
 
 // ═══════════════════════════ 6. IMPORTAÇÕES ═══════════════════════════
-function Importacoes({ avisar }) {
+// Rota própria (thread 28 onda 2): pt-importacoes-<id> → GET /ponto/importacoes/{id} · pt-importacoes-novo → GET /ponto/importacoes/novo.
+function Importacoes({ avisar, sub, onSub }) {
   const D = P();
   const { Card, Kpi, Tabela, Vazio, Nota, PillImportacao, Pill, Voltar, usePagina, Pager, Ic } = U();
   const [rows, setRows] = useState(D.IMPORTACOES);
-  const [sel, setSel] = useState(null);
-  const [nova, setNova] = useState(false);
+  const sel = sub && /^\d+$/.test(sub) ? Number(sub) : null;
+  const setSel = (v) => onSub(v == null ? null : String(v));
+  const nova = sub === "novo";
+  const setNova = (v) => onSub(v ? "novo" : null);
   const [tipo, setTipo] = useState("AFD");
   const pg = usePagina(rows.length, 20); // 20/pág = contrato do charter Importacoes/Index (Goals)
   const fmtBytes = (b) => b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(1) + " KB" : (b / 1048576).toFixed(1) + " MB";
 
+  if (sel && !rows.some((r) => r.id === sel)) return <Card icon="alert" titulo="Importação não encontrada"><Tabela cols={[{ l: "" }]}><Vazio colSpan={1} variante="no-results" titulo="Nada neste endereço" acao={<window.PtBtn onClick={() => setSel(null)}>Voltar à lista</window.PtBtn>}>O link pode ser de outro negócio ou de um registro removido.</Vazio></Tabela></Card>;
   if (sel) {
     const imp = rows.find((r) => r.id === sel);
     const pct = imp.linhas_total ? Math.round(imp.linhas_processadas / imp.linhas_total * 100) : 0;
@@ -788,39 +820,47 @@ function Importacoes({ avisar }) {
     );
   }
 
+  if (nova) return (
+    <>
+      <div className="pt-sub">
+        <Voltar onClick={() => setNova(false)}>Voltar às importações</Voltar>
+        <div><h2>Nova importação</h2><span className="pt-sub-sub">duplicado (mesmo hash SHA-256) é rejeitado automaticamente</span></div>
+      </div>
+      <Card contrato="importacoes-upload-do-arquivo" icon="download" titulo="Upload do arquivo" sub="— Portaria MTP 671/2021">
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div className="pt-cols">
+            <window.PtEscolha label={"Tipo de arquivo"} req value={tipo} onChange={(e) => setTipo(e.target.value)}>
+                <option value="AFD">AFD — Arquivo Fonte de Dados</option>
+                <option value="AFDT">AFDT — Arquivo Fonte de Dados Tratados</option>
+              </window.PtEscolha>
+            <div className="pt-fld wide"><label htmlFor="im-arq">Arquivo <span className="pt-req">*</span></label>
+              <input id="im-arq" type="file" />
+              <small>Formato texto conforme layout Portaria 671/2021.</small></div>
+          </div>
+          <Nota tom="info" titulo="Processamento assíncrono">
+            O arquivo entra na fila em <b>ProcessarImportacaoAfdJob</b> e é processado em segundo plano — você acompanha o estado na tela de detalhes.
+          </Nota>
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+            <window.PtBtn  onClick={() => setNova(false)}>Cancelar</window.PtBtn>
+            <window.PtBtn primary onClick={() => {
+              const id = Math.max(...rows.map((r) => r.id)) + 1;
+              setRows((rs) => [{ id, nome_arquivo: "AFD_00000000000191_20260820.txt", tipo, tamanho_bytes: 1490233, estado: "PENDENTE", usuario: "Wagner Ramos", created_at: "20/08/2026 09:26", iniciado_em: null, concluido_em: null, hash_arquivo: "novo-hash-calculado-no-upload", linhas_total: 0, linhas_processadas: 0, linhas_sucesso: 0, linhas_erro: 0, log: "Enfileirado — aguardando worker.", erros_amostra: [] }, ...rs]);
+              setNova(false); avisar("Arquivo enfileirado para processamento.", "ok");
+            }}>Enviar para processamento</window.PtBtn>
+          </div>
+        </div>
+      </Card>
+    </>
+  );
+
   return (
     <>
       <window.PtBarra>
         <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Arquivos duplicados (mesmo hash SHA-256) são rejeitados automaticamente.</span>
         
-        <window.PtBtn primary onClick={() => setNova((v) => !v)}><Ic name="download" />Nova importação AFD</window.PtBtn>
+        <window.PtBtn primary onClick={() => setNova(true)}><Ic name="download" />Nova importação AFD</window.PtBtn>
       </window.PtBarra>
 
-      {nova &&
-        <Card contrato="importacoes-upload-do-arquivo" icon="download" titulo="Upload do arquivo" sub="— Portaria MTP 671/2021">
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div className="pt-cols">
-              <window.PtEscolha label={"Tipo de arquivo"} req value={tipo} onChange={(e) => setTipo(e.target.value)}>
-                  <option value="AFD">AFD — Arquivo Fonte de Dados</option>
-                  <option value="AFDT">AFDT — Arquivo Fonte de Dados Tratados</option>
-                </window.PtEscolha>
-              <div className="pt-fld wide"><label htmlFor="im-arq">Arquivo <span className="pt-req">*</span></label>
-                <input id="im-arq" type="file" />
-                <small>Formato texto conforme layout Portaria 671/2021.</small></div>
-            </div>
-            <Nota tom="info" titulo="Processamento assíncrono">
-              O arquivo entra na fila em <b>ProcessarImportacaoAfdJob</b> e é processado em segundo plano — você acompanha o estado na tela de detalhes.
-            </Nota>
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <window.PtBtn  onClick={() => setNova(false)}>Cancelar</window.PtBtn>
-              <window.PtBtn primary onClick={() => {
-                const id = Math.max(...rows.map((r) => r.id)) + 1;
-                setRows((rs) => [{ id, nome_arquivo: "AFD_00000000000191_20260820.txt", tipo, tamanho_bytes: 1490233, estado: "PENDENTE", usuario: "Wagner Ramos", created_at: "20/08/2026 09:26", iniciado_em: null, concluido_em: null, hash_arquivo: "novo-hash-calculado-no-upload", linhas_total: 0, linhas_processadas: 0, linhas_sucesso: 0, linhas_erro: 0, log: "Enfileirado — aguardando worker.", erros_amostra: [] }, ...rs]);
-                setNova(false); avisar("Arquivo enfileirado para processamento.", "ok");
-              }}>Enviar para processamento</window.PtBtn>
-            </div>
-          </div>
-        </Card>}
 
       <Card contrato="importacoes-historico-de-importacoes" icon="download" titulo="Histórico de importações" sub={"(" + rows.length + " arquivos)"}>
         <Tabela cols={[{ l: "ID", w: "62px" }, { l: "Arquivo" }, { l: "Tipo", w: "70px" }, { l: "Tamanho", num: true }, { l: "Estado" }, { l: "Linhas", num: true }, { l: "Usuário" }, { l: "Importado em" }, { l: "Ação", num: true, w: "94px" }]}>
@@ -934,11 +974,13 @@ function Relatorios({ avisar }) {
 function Dl({ children }) { return <dl className="pt-dl">{children}</dl>; }
 function Li({ t, children, lei }) { return <><dt>{t}</dt><dd>{children}{lei && <span className="lei">{lei}</span>}</dd></>; }
 
-function Configuracoes({ avisar }) {
+// Rota própria: pt-configuracoes-reps → GET /ponto/configuracoes/reps (página viva que o protótipo abria por estado).
+function Configuracoes({ avisar, sub, onSub }) {
   const D = P();
   const { Card, Nota, Tabela, Vazio, Pill, PillSimNao, Voltar, Ic } = U();
   const c = D.CONFIG;
-  const [tela, setTela] = useState("config");
+  const tela = sub === "reps" ? "reps" : "config";
+  const setTela = (v) => onSub(v === "reps" ? "reps" : null);
   const [reps, setReps] = useState(D.REPS);
   const [f, setF] = useState({ tipo: "REP_P", identificador: "", descricao: "", local: "", cnpj: "" });
   const set = (k) => (e) => setF((o) => ({ ...o, [k]: e.target.value }));

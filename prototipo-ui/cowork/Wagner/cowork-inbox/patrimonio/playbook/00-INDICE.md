@@ -135,10 +135,11 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
     {
       "id": "D-GARANTIAS",
       "pergunta": "Garantias e tela propria ou filtro da tela de Bens? (RESIDUO 4). A tabela asset_warranties existe e ja e lida pelo dashboard; o prototipo desenhou aba propria.",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "12"
-      ]
+      ],
+      "resposta": "[W] 2026-09-29 decide-for-me → recomendação [CC]: filtro dentro de Bens (asset_warranties já lida pelo Painel); sem tela própria"
     },
     {
       "id": "D-AUDITORIA",
@@ -417,16 +418,19 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
     },
     {
       "id": "12",
-      "titulo": "Garantias — tela nova sobre dado que ja existe",
+      "titulo": "Garantias — recorte \"Garantia crítica\" dentro de Bens (D-GARANTIAS), sem tela própria",
       "dono": "CL",
       "vaga": 3,
       "arquivo": "12-garantias.md",
       "prefixo": [
-        "resources/js/Pages/Patrimonio/Garantias/",
-        "Modules/AssetManagement/Routes/web.php"
+        "Modules/AssetManagement/Http/Controllers/AssetController.php (@index: filtro recorte=garantia no SERVIDOR)",
+        "resources/js/Pages/Patrimonio/Bens.tsx (sub-recorte, contagem vinda do servidor)",
+        "resources/js/Pages/Patrimonio/Bens.charter.md (tirar o Non-Goal :75)",
+        "resources/js/Pages/Patrimonio/Bens.casos.md (UC do recorte; :168 sai do BACKLOG)"
       ],
       "nao_toca": [
-        "Modules/AssetManagement/Http/Controllers/AssetController.php"
+        "resources/js/Pages/Patrimonio/Garantias/",
+        "Modules/AssetManagement/Routes/web.php"
       ],
       "depende_threads": [
         "07"
@@ -434,10 +438,15 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "depende_decisoes": [
         "D-GARANTIAS"
       ],
-      "nota_provas": "asset_warranties EXISTE (1 migration) e ja e lida no dashboard; falta rota e tela.",
+      "nota": "Reescrita 2026-09-29 pelo [CC] após D-GARANTIAS = filtro em Bens. Alvo de layout = protótipo patrimonio-page.jsx (CliTabs \"Recorte do patrimônio\": Todos · Alocáveis · Garantia crítica · Em manutenção, :353-360; predicado do protótipo = garantia vencida ou vencendo em 30 dias, :269). Medido no main a71c2f2d052f: Bens.tsx:17 e Bens.charter.md:75/108 declaram o recorte FORA porque pede predicado SQL novo e proíbem derivar no cliente — esta thread cria o predicado no servidor (whereHas warranties end_date <= hoje+30) e mantém a proibição de derivar no cliente. \"Em manutenção\" fica fora (não decidido).",
       "provas": [
         {
-          "tipo": "arquivo",
+          "tipo": "contem",
+          "path": "resources/js/Pages/Patrimonio/Bens.tsx",
+          "padrao": "Garantia crítica"
+        },
+        {
+          "tipo": "ausente",
           "path": "resources/js/Pages/Patrimonio/Garantias/Index.tsx"
         }
       ]

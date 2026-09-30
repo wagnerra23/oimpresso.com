@@ -3,7 +3,7 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Essentials/Knowledge/Index (/essentials/knowledge-base)",
   "gap_fonte": "memory/requisitos/Essentials/knowledge-index-gap.md",
-  "prototipo_sha": "sha256:ee8bde6b1c1e",
+  "prototipo_sha": "sha256:c36b9c0bdc30",
   "gerado_em": "2026-09-14",
   "partes": [
     {
@@ -86,5 +86,6 @@
     "source": "essenciais-page.jsx",
     "target": "resources/js/Pages/Essentials/Knowledge/Index.tsx",
     "_nota": "source = arquivo de ENTRADA do bundle (o bundle_source do charter); partes[].prototipo.arquivo aponta onde cada parte de fato vive. Os dois convivem por desenho — ver gerar-map.mjs::fundirComExistente."
-  }
+  },
+  "_nota_sha": "2026-09-29: prototipo_sha trocado sem re-medir as faixas. O #8196 mudou só a linha 221 de essenciais-extras.jsx (nota da tolerância de marcação, função Config), fora de todas as faixas deste map (144-176); nenhuma linha do arquivo deslocou. Por isso gerado_em fica em 2026-09-14: as afirmações de faixa são daquela data, não de hoje."
 }

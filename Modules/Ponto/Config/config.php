@@ -66,6 +66,17 @@ return [
         'certificado_icp_pass'    => env('PONTO_CERT_ICP_PASS'),
     ],
 
+    /*
+    | Comprovante de intercorrência (atestado — dado de saúde, LGPD Art. 11).
+    | O disco NUNCA pode ser o `local`: neste app ele aponta para public_path('uploads'),
+    | servido direto pelo webserver. O default `arquivos` fica em storage/app (fora do
+    | webroot). Download só pela rota autenticada — UC-INTCRE-04.
+    */
+    'intercorrencias' => [
+        // Literal, não env(): o baseline do Larastan conta os env() deste arquivo (ratchet).
+        'anexo_disk' => 'arquivos',
+    ],
+
     'afd' => [
         'encoding'               => 'ISO-8859-1',
         'max_filesize_mb'        => 50,

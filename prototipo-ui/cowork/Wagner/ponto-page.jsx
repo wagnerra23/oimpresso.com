@@ -452,6 +452,13 @@ function PontoPage({ view }) {
     const s = String(v).replace(/^pt-/, "");
     const m = s.match(/^(espelho)-(\d+)$/);
     if (m) return { aba: m[1], id: Number(m[2]) };
+    // Onda 1 da thread 28: Intercorrências Show / Create / Edit.
+    // Rota = "pt-" + caminho real de Modules/Ponto/Http/routes.php com "/" → "-" (conferido em a71c2f2d052f).
+    const ic = s.match(/^intercorrencias-(create|[a-z0-9-]+?)(-edit)?$/);
+    if (ic) return { aba: "intercorrencias", id: null, interc: ic[1], editar: !!ic[2] };
+    // Ondas 2–5 (+ Reps): o resto do endereço vira `sub` e a tela decide o que ele significa.
+    const sb = s.match(/^(importacoes|escalas|banco-horas|colaboradores|configuracoes)-(.+)$/);
+    if (sb) return { aba: sb[1], id: null, sub: sb[2] };
     return { aba: s, id: null };
   };
   const rota0 = daRota(view);
@@ -459,7 +466,9 @@ function PontoPage({ view }) {
   const [avisoNode, avisar] = (MP.useAviso || (() => [null, () => {}]))();
   const [mes, setMes] = useState(D.MES);
   const [espelhoDe, setEspelhoDe] = useState(rota0.id);
-  const [intercFoco, setIntercFoco] = useState(null);
+  const [intercFoco, setIntercFoco] = useState(rota0.interc || null);
+  const [intercEditar, setIntercEditar] = useState(!!rota0.editar);
+  const [sub, setSub] = useState(rota0.sub || null);
   // Estado das intercorrências vive no SHELL: aprovar em Aprovações tem que apagar o bloqueio
   // no Fechamento e o badge da aba — antes cada aba tinha a sua cópia local.
   const [intercs, setIntercs] = useState(D.INTERCORRENCIAS);
@@ -470,6 +479,9 @@ function PontoPage({ view }) {
     const r = daRota(view);
     setAba(r.aba);
     setEspelhoDe(r.id);
+    setIntercFoco(r.interc || null);
+    setIntercEditar(!!r.editar);
+    setSub(r.sub || null);
   }, [view]);
 
   const pendentes = intercs.filter((i) => i.estado === "PENDENTE").length;
@@ -480,25 +492,31 @@ function PontoPage({ view }) {
     : a.key === "colaboradores" ? { ...a, n: D.COLABORADORES.length } : a);
 
   const irRota = (r) => { if (window.__go) { window.__go(r); return true; } return false; };
-  const irPara = (k) => { setEspelhoDe(null); if (!irRota("pt-" + k)) setAba(k); };
+  const irPara = (k) => { setEspelhoDe(null); setSub(null); if (!irRota("pt-" + k)) setAba(k); };
+  const irSub = (a) => (s) => { if (!irRota("pt-" + a + (s ? "-" + s : ""))) { setSub(s || null); setAba(a); } };
   const abrirEspelho = (id) => { if (!irRota("pt-espelho-" + id)) { setEspelhoDe(id); setAba("espelho"); } };
+  const irInterc = (id, editar) => {
+    const r = "pt-intercorrencias" + (id ? "-" + id + (editar ? "-edit" : "") : "");
+    if (!irRota(r)) { setIntercFoco(id || null); setIntercEditar(!!editar); setAba("intercorrencias"); }
+  };
 
   let corpo = null;
   if (aba === "painel") corpo = <Painel onIr={irPara} intercorrencias={intercs} />;
   else if (aba === "espelho") corpo = espelhoDe
     ? <EspelhoShow colabId={espelhoDe} mes={mes} setMes={setMes} onVoltar={() => setEspelhoDe(null)} avisar={avisar} />
     : <EspelhoLista mes={mes} setMes={setMes} onAbrir={setEspelhoDe} />;
-  else if (aba === "aprovacoes" && T.Aprovacoes) corpo = <T.Aprovacoes avisar={avisar} rows={intercs} setRows={setIntercs} onVerIntercorrencia={(id) => { setIntercFoco(id); setAba("intercorrencias"); }} />;
-  else if (aba === "intercorrencias" && T.Intercorrencias) corpo = <T.Intercorrencias avisar={avisar} rows={intercs} setRows={setIntercs} foco={intercFoco} onFoco={setIntercFoco} />;
-  else if (aba === "banco-horas" && T.BancoHoras) corpo = <T.BancoHoras avisar={avisar} />;
+  else if (aba === "aprovacoes" && T.Aprovacoes) corpo = <T.Aprovacoes avisar={avisar} rows={intercs} setRows={setIntercs} onVerIntercorrencia={(id) => irInterc(id)} />;
+  else if (aba === "intercorrencias" && T.Intercorrencias) corpo = <T.Intercorrencias avisar={avisar} rows={intercs} setRows={setIntercs} foco={intercFoco} editar={intercEditar}
+    onFoco={(id) => irInterc(id)} onNovo={() => irInterc("create")} onEditar={(id) => irInterc(id, true)} />;
+  else if (aba === "banco-horas" && T.BancoHoras) corpo = <T.BancoHoras avisar={avisar} sub={sub} onSub={irSub("banco-horas")} />;
   else if (aba === "fechamento" && F.Fechamento) corpo = <F.Fechamento mes={mes} setMes={setMes} avisar={avisar} onIr={irPara} onVerColaborador={abrirEspelho} intercorrencias={intercs} />;
   else if (aba === "conformidade" && F.Conformidade) corpo = <F.Conformidade mes={mes} onVerColaborador={abrirEspelho} />;
-  else if (aba === "escalas" && T.Escalas) corpo = <T.Escalas avisar={avisar} />;
-  else if (aba === "colaboradores" && T.Colaboradores) corpo = <T.Colaboradores avisar={avisar} onVerEspelho={abrirEspelho} />;
+  else if (aba === "escalas" && T.Escalas) corpo = <T.Escalas avisar={avisar} sub={sub} onSub={irSub("escalas")} />;
+  else if (aba === "colaboradores" && T.Colaboradores) corpo = <T.Colaboradores avisar={avisar} onVerEspelho={abrirEspelho} sub={sub} onSub={irSub("colaboradores")} />;
   else if (aba === "mobile" && M.Mobile) corpo = <M.Mobile avisar={avisar} rows={intercs} setRows={setIntercs} />;
-  else if (aba === "importacoes" && T.Importacoes) corpo = <T.Importacoes avisar={avisar} />;
+  else if (aba === "importacoes" && T.Importacoes) corpo = <T.Importacoes avisar={avisar} sub={sub} onSub={irSub("importacoes")} />;
   else if (aba === "relatorios" && T.Relatorios) corpo = <T.Relatorios avisar={avisar} />;
-  else if (aba === "configuracoes" && T.Configuracoes) corpo = <T.Configuracoes avisar={avisar} />;
+  else if (aba === "configuracoes" && T.Configuracoes) corpo = <T.Configuracoes avisar={avisar} sub={sub} onSub={irSub("configuracoes")} />;
 
   return (
     <div className="ponto-root mp-page" data-screen-label="01 Ponto">
@@ -508,7 +526,7 @@ function PontoPage({ view }) {
           atualizadoAs={hora}
           onRefresh={() => { setHora(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })); avisar("Reapurado agora — marcações, apuração do dia e saldos.", "ok"); }}
           glyph={<window.JcIcon name="clock" />}
-          acoes={<window.PtBtn primary onClick={() => irPara("intercorrencias")}><window.JcIcon name="plus" className="ic" />Nova intercorrência</window.PtBtn>} />}
+          acoes={<window.PtBtn primary onClick={() => irInterc("create")}><window.JcIcon name="plus" className="ic" />Nova intercorrência</window.PtBtn>} />}
       {MP.Tabs && <MP.Tabs tab={aba} onTab={irPara} aria="Telas do Ponto" tabs={abas} />}
       <div className="pt-body">{corpo}</div>
       {avisoNode}

@@ -48,9 +48,25 @@ const ABAS = [
   { id: "config", l: "Configurações" },
 ];
 
-function ManufacturingPage({ initialView }) {
+// [TELA] Rede de proteção (§8.11): sem o bundle, ds() devolve {} e desestruturar os componentes
+// derrubava a árvore com "Element type is invalid". A guarda fica num componente de fora para a
+// ordem dos hooks do módulo não depender de o bundle ter carregado.
+const DS_NECESSARIOS = ["PageHeader", "TabBar", "Button", "KpiCard", "BulkBar", "EmptyState", "StatusBadge", "Modal", "Toast", "DataGrid", "Toolbar", "SearchInput", "Segmented", "Drawer", "DrawerSection", "Skeleton"];
+function ManufacturingPage(props) {
+  const m = ds();
+  const faltam = DS_NECESSARIOS.filter((n) => !m[n]);
+  if (faltam.length) return (
+    <div className="mfg-root" role="alert" style={{ padding: "24px 20px", display: "flex", flexDirection: "column", gap: 8, maxWidth: 640 }}>
+      <b style={{ fontSize: "var(--fs-5, 15px)", color: "var(--text)" }}>A Fabricação não abriu</b>
+      <span style={{ fontSize: "var(--fs-4, 13.5px)", color: "var(--text-dim)", lineHeight: 1.5 }}>Os componentes do design system não carregaram ({faltam.length === DS_NECESSARIOS.length ? "nenhum disponível" : "faltam " + faltam.join(", ")}). O restante do sistema continua disponível — recarregue a página para tentar de novo.</span>
+    </div>
+  );
+  return <ManufacturingModulo {...props} />;
+}
+
+function ManufacturingModulo({ initialView }) {
   useFilaDoLoader();
-  const { PageHeader, TabBar, Button, KpiCard, KpiFilterCard, BulkBar, EmptyState, StatusBadge, Modal, Toast, DataGrid, Toolbar, SearchInput, Segmented } = ds();
+  const { PageHeader, TabBar, Button, KpiCard, BulkBar, EmptyState, StatusBadge, Modal, Toast, DataGrid, Toolbar, SearchInput, Segmented } = ds();
   const MFG = window.MFG;
   const { fmt, num, custos } = MFG;
   const [aba, setAba] = useState(initialView || "receitas");
@@ -58,7 +74,19 @@ function ManufacturingPage({ initialView }) {
   const [producoes, setProducoes] = useState(MFG.PRODUCOES);
   const [settings, setSettings] = useState(MFG.SETTINGS);
   const [perms, setPerms] = useState({ ver: true, criar: true, editar: true, prod: true });
-  const [tela, setTela] = useState(null); // {tipo:'receita-edit'|'op-form', id}
+  const [tela, setTela0] = useState(null); // {tipo:'receita-edit'|'op-form', id}
+  // [TELA] Foco (§8.10): o editor e o formulário trocam o corpo do módulo, então o gatilho some do
+  // DOM. Ao entrar, o foco vai ao título da trilha; ao sair, volta pelo descritor "volta" —
+  // botão pelo rótulo, ou linha da grade pela legenda da tabela + texto da linha. Sem alvo: título da página.
+  const telaRef = useRef(null);
+  const voltaRef = useRef(null);
+  const setTela = (t, volta) => {
+    if (t) {
+      const a = document.activeElement;
+      voltaRef.current = volta || (a && a.tagName === "BUTTON" ? { botao: a.textContent.trim() } : null);
+    }
+    setTela0(t);
+  };
   const [novaOpen, setNovaOpen] = useState(false);
   const [opAberta, setOpAberta] = useState(null);
 
@@ -74,6 +102,35 @@ function ManufacturingPage({ initialView }) {
   const [imprimir, setImprimir] = useState(null);
   const [toast, setToast] = useState(null);
   const aviso = (t) => { setToast(t); setTimeout(() => setToast(null), 2600); };
+  const telaPronta = !!tela && !!(tela.tipo === "receita-edit" ? window.MfgIngredientesEditor : window.MfgProducaoForm);
+  const estavaEmTela = useRef(false);
+  useEffect(() => {
+    if (tela) {
+      estavaEmTela.current = true;
+      if (!telaPronta) return;
+      const id = requestAnimationFrame(() => {
+        const t = telaRef.current && telaRef.current.querySelector(".mfg-crumb b");
+        if (t) { t.setAttribute("tabindex", "-1"); t.focus(); }
+      });
+      return () => cancelAnimationFrame(id);
+    }
+    if (!estavaEmTela.current) return;
+    estavaEmTela.current = false;
+    const v = voltaRef.current; voltaRef.current = null;
+    const id = requestAnimationFrame(() => {
+      const root = document.querySelector(".mfg-root");
+      if (!root) return;
+      let alvo = null;
+      if (v && v.botao) alvo = Array.from(root.querySelectorAll("button")).find((b) => b.textContent.trim() === v.botao);
+      if (v && v.tabela) {
+        const tb = Array.from(root.querySelectorAll("table")).find((t) => t.caption && t.caption.textContent.trim() === v.tabela);
+        if (tb) alvo = Array.from(tb.querySelectorAll("tbody tr[tabindex]")).find((tr) => tr.textContent.includes(v.texto));
+      }
+      if (!alvo) { alvo = root.querySelector("h1"); if (alvo) alvo.setAttribute("tabindex", "-1"); }
+      if (alvo) alvo.focus();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [tela, telaPronta]);
 
   const linhas = useMemo(() => recipes.map((r) => ({ r, c: custos(r) })), [recipes, custos]);
   const CATS = useMemo(() => ["Todas", ...Array.from(new Set(recipes.map((r) => r.cat)))], [recipes]);
@@ -121,7 +178,7 @@ function ManufacturingPage({ initialView }) {
     };
     setRecipes((rs) => [...rs, nova]);
     setNovaOpen(false);
-    setTela({ tipo: "receita-edit", id });
+    setTela({ tipo: "receita-edit", id }, { botao: "Nova receita" });
   };
   const salvarReceita = (r) => {
     setRecipes((rs) => rs.map((x) => x.id === r.id ? { ...r, atualizado: "agora" } : x));
@@ -152,7 +209,7 @@ function ManufacturingPage({ initialView }) {
     const r = recipes.find((x) => x.id === tela.id);
     const Editor = irmao("MfgIngredientesEditor");
     if (r) return (
-      <div className="mfg-root">
+      <div className="mfg-root" ref={telaRef}>
         {Editor
           ? <Editor recipe={r} settings={settings} perms={perms}
               onSave={salvarReceita} onCancel={() => setTela(null)} onDelete={() => setConfirma(r)} />
@@ -163,7 +220,7 @@ function ManufacturingPage({ initialView }) {
   if (tela && tela.tipo === "op-form") {
     const Form = irmao("MfgProducaoForm");
     return (
-      <div className="mfg-root">
+      <div className="mfg-root" ref={telaRef}>
         {Form
           ? <Form recipes={recipes} producoes={producoes} settings={settings} perms={perms}
               editing={tela.id ? producoes.find((p) => p.id === tela.id) : null}
@@ -197,7 +254,10 @@ function ManufacturingPage({ initialView }) {
         // 3ª parte (lá o custo é o final_total GRAVADO, não recalculado). A frase aparece INTEIRA: o
         // corte de 56ch do PageHeader do DS é anulado em manufacturing-page.css (contorno na pauta).
         // Substitui a opção A do Felipe (25/09), que tirava a frase de todas as abas.
-        title={aba === "producao" ? "Produção" : "Manufacturing"}
+        // Título fora da aba Ordens: "Fabricação", pedido da Maiara (dona das 5 telas, design-lock) em
+        // 2026-09-28, para bater com o item do menu lateral. Vai ao [W] no PR — revê a parte do título
+        // na D-RET-01. As telas vivas (Recipes/Insumos/Report/Settings.tsx) seguem "Manufacturing".
+        title={aba === "producao" ? "Produção" : "Fabricação"}
         stats={[
           { value: recipes.length, label: recipes.length === 1 ? "receita" : "receitas" },
           { value: producoes.length, label: "ordens de produção" + (aba === "producao" ? "" : " · custo recalculado pelo preço atual dos ingredientes") },
@@ -214,10 +274,10 @@ function ManufacturingPage({ initialView }) {
         <>
           <div className="mfg-kpis">
             <KpiCard label="Custo médio / unidade" value={fmt(custoMed)} description={"média das " + recipes.length + " receitas"} />
-            <KpiFilterCard label="Margem abaixo de 45%" value={magra} sub="preço de venda desatualizado"
+            <KpiCard variant="filter" label="Margem abaixo de 45%" value={magra} sub="preço de venda desatualizado"
               icon={<I.scale size={17} />} tone="amber" selected={kpi === "margem"}
               onClick={() => setKpi(kpi === "margem" ? null : "margem")} />
-            <KpiFilterCard label="Desperdício ≥ 8%" value={perda} sub="revisar plotagem / encaixe"
+            <KpiCard variant="filter" label="Desperdício ≥ 8%" value={perda} sub="revisar plotagem / encaixe"
               icon={<I.scissor size={17} />} tone="amber" selected={kpi === "custo"}
               onClick={() => setKpi(kpi === "custo" ? null : "custo")} />
             <KpiCard label="Produção do mês" value={producoes.filter((p) => p.final).length}
@@ -294,9 +354,9 @@ function ManufacturingPage({ initialView }) {
 
       {aberta && <RecipeDrawer r={aberta.r} c={aberta.c} perms={perms} settings={settings}
         onClose={() => setOpenId(null)}
-        onEdit={() => { setOpenId(null); setTela({ tipo: "receita-edit", id: aberta.r.id }); }}
+        onEdit={() => { setOpenId(null); setTela({ tipo: "receita-edit", id: aberta.r.id }, { tabela: "Receitas", texto: aberta.r.name }); }}
         onImprimir={(semCusto) => { setOpenId(null); setImprimir({ itens: [aberta], semCusto }); }}
-        onProduzir={() => { setOpenId(null); setTela({ tipo: "op-form", id: null }); }} />}
+        onProduzir={() => { setOpenId(null); setTela({ tipo: "op-form", id: null }, { tabela: "Receitas", texto: aberta.r.name }); }} />}
 
       <Modal open={!!confirma} onClose={() => setConfirma(null)} title="Excluir receita" width={400}
         footer={<>
@@ -313,15 +373,16 @@ function ManufacturingPage({ initialView }) {
       {imprimir && FichaPrint && <FichaPrint itens={imprimir.itens} semCusto={imprimir.semCusto} onDone={() => setImprimir(null)} />}
 
       {opAberta && ProducaoDrawer && <ProducaoDrawer op={producoes.find((p) => p.id === opAberta)} recipes={recipes}
-        onClose={() => setOpAberta(null)} onEdit={() => { const id = opAberta; setOpAberta(null); setTela({ tipo: "op-form", id }); }} />}
+        onClose={() => setOpAberta(null)} onEdit={() => { const id = opAberta; const o = producoes.find((p) => p.id === id); setOpAberta(null); setTela({ tipo: "op-form", id }, o ? { tabela: "Ordens de produção", texto: o.ref } : null); }} />}
 
       {novaOpen && NovaReceita && <NovaReceita recipes={recipes} onClose={() => setNovaOpen(false)} onCreate={criarReceita} />}
 
-      {toast && (
-        <div style={{ position: "fixed", left: "50%", bottom: 24, transform: "translateX(-50%)", zIndex: 80 }}>
-          <Toast tone="ok" icon={<I.check size={14} />}>{toast}</Toast>
-        </div>
-      )}
+      {/* [TELA] C-02: o Toast do DS é <span> sem role (Toast.jsx L12, fonte viva). A região de anúncio
+          é o div de posicionamento da tela, montado sempre para o leitor já conhecê-la quando o texto entra.
+          Só atributo: o Toast segue intacto. Proposta de role="status" no Toast registrada na pauta. */}
+      <div role="status" aria-live="polite" style={{ position: "fixed", left: "50%", bottom: 24, transform: "translateX(-50%)", zIndex: 80 }}>
+        {toast && <Toast tone="ok" icon={<I.check size={14} />}>{toast}</Toast>}
+      </div>
     </div>
   );
 }
@@ -341,7 +402,9 @@ function RecipeDrawer({ r, c, perms, settings, onClose, onEdit, onProduzir, onIm
         <Button onClick={onClose}>Fechar</Button>
         <Button onClick={() => onImprimir(false)}><I.print size={13} /> Ficha com custo</Button>
         <Button onClick={() => onImprimir(true)}>Via de produção</Button>
-        {perms.prod && <Button onClick={onProduzir}>Produzir</Button>}
+        {/* [TELA] QA 2026-09-29: "Produzir" abre Nova produção, que exige mfg.prod E criar. Só com
+            mfg.prod o botão levava a um formulário com Salvar desativado — a regra da tela é esconder. */}
+        {perms.prod && perms.criar && <Button onClick={onProduzir}>Produzir</Button>}
         {perms.editar && <Button variant="primary" onClick={onEdit}><I.pencil size={13} /> Editar ingredientes</Button>}
       </>}>
       <div style={{ padding: "0 18px 8px" }}>

@@ -872,7 +872,8 @@ function App() {
   if (route === "gov-politicas") content = <window.GovernancePage view="politicas" />;else
   if (route === "gov-auditoria") content = <window.GovernancePage view="auditoria" />;else
   if (route === "gov-drift") content = <window.GovernancePage view="drift" />;else
-  if (route === "gov-notas") content = <window.GovernancePage view="notas" />;else
+  // gov-notas saiu (G-NOTAS [W] 2026-09-24): link antigo cai no painel, como o 301 de produção.
+  if (route === "gov-notas") content = <window.GovernancePage view="painel" />;else
   if (route === "connector") content = <window.ConnectorPage view="clients" />;else
   if (route === "conn-docs") content = <window.ConnectorPage view="docs" />;else
   if (route === "conn-saude") content = <window.ConnectorPage view="saude" />;else

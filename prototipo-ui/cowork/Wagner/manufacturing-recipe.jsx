@@ -4,11 +4,14 @@
 // custo extra fixo/percentual, quantidade produzida, preço final).
 // Expõe window.MfgNovaReceita e window.MfgIngredientesEditor.
 //
-// ADERÊNCIA AO DS (onda A): Modal, Button, Input, Select, Textarea e Alert do bundle
-// compilado. Continuam locais e declarados no handoff: os campos numéricos com passo
-// (o Input do DS não tem min/max/step — B-04), a busca de insumo (depende de ref +
-// onKeyDown — B-02), a trilha do editor (Breadcrumb só navega por href — B-07), os
-// chips de grupo (B-08) e a grade de ingredientes (C-03).
+// ADERÊNCIA AO DS (onda A; onda B 2026-09-23): Modal, Button, Input, Select, Textarea, Alert e
+// SearchInput (busca de insumo, com inputRef/autoFocus/onKeyDown) do bundle compilado.
+// Continuam locais e declarados no handoff (ids da auditoria-aderencia-fabricacao-v2.md,
+// remedidos na fonte viva em 29/09/2026):
+//   B-05 campos numéricos com passo/teto — Input.d.ts L14-33 não tem min/max/step;
+//   B-07 trilha do editor — Breadcrumb.d.ts L1-5 só aceita href; a volta aqui é por estado;
+//   .mfg-mini (✕ remover) — Button.jsx L6 não repassa aria-label;
+//   chips de "novo grupo" e a grade de ingredientes (C-04) — sem peça equivalente.
 (() => {
 const { useState, useMemo, useRef, useEffect } = React;
 const I = window.I;
@@ -16,12 +19,20 @@ const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 
 const G = () => window.MFG;
 
-function Campo({ label, hint, children, w }) {
+// [TELA] `erro` espelha o fieldShell do DS (Input.jsx): rótulo e borda em
+// --color-destructive-fg, "⚠ mensagem" no lugar da dica, aria-invalid no controle.
+function Campo({ label, hint, erro, children, w }) {
+  const INV = "var(--color-destructive-fg)";
+  const controle = erro && React.isValidElement(children)
+    ? React.cloneElement(children, { "aria-invalid": true, style: { ...(children.props.style || {}), borderColor: INV } })
+    : children;
   return (
     <label className="mfg-fld" style={w ? { width: w } : null}>
-      <span>{label}</span>
-      {children}
-      {hint && <small>{hint}</small>}
+      <span style={erro ? { color: INV } : null}>{label}</span>
+      {controle}
+      {erro
+        ? <small style={{ color: INV, fontWeight: 500 }}>⚠ {erro}</small>
+        : hint && <small>{hint}</small>}
     </label>
   );
 }
@@ -132,6 +143,19 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
   const delGrupo = (gi) => setR((x) => ({ ...x, grupos: x.grupos.filter((_, i) => i !== gi) }));
   const addGrupo = (nome) => { setR((x) => ({ ...x, grupos: [...x.grupos, { g: nome, itens: [] }] })); setNovoGrupo(false); };
   const nIng = r.grupos.reduce((s, g) => s + g.itens.length, 0);
+  // [TELA] QA 2026-09-29: o editor salvava receita sem nome, com rendimento 0, desperdício de
+  // 150% ("rende −10 de 20") e preço negativo. Salvar fica bloqueado até corrigir, com o motivo
+  // no campo e no rodapé — nunca botão desativado sem explicação.
+  const erros = {};
+  if (!String(r.name || "").trim()) erros.name = "Informe o nome da receita.";
+  if (!(r.qtd > 0)) erros.qtd = "Precisa ser maior que zero.";
+  if (!(r.waste >= 0 && r.waste < 100)) erros.waste = "Use de 0 a menos de 100%.";
+  if (!(r.extra >= 0)) erros.extra = "Não pode ser negativo.";
+  if (!(r.venda >= 0)) erros.venda = "Não pode ser negativo.";
+  if (r.subUn && !(r.subFator > 0)) erros.subFator = "Precisa ser maior que zero.";
+  const itemInvalido = (it) => !(Number(it.q) >= 0);
+  const nItensInvalidos = r.grupos.reduce((s, g) => s + g.itens.filter(itemInvalido).length, 0);
+  const nErros = Object.keys(erros).length + nItensInvalidos;
 
   return (
     <div className="mfg-ed">
@@ -166,7 +190,7 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
                       <span className="m">
                         {/* [B-04] passo de milésimo: campo local */}
                         {podeEditar && !travado
-                          ? <input className="mfg-inp num" type="number" min="0" step="0.001" value={it.q} aria-label={"Quantidade de " + p.n} onChange={(e) => setItem(gi, ii, e.target.value)} />
+                          ? <input className="mfg-inp num" type="number" min="0" step="0.001" value={it.q} aria-label={"Quantidade de " + p.n} aria-invalid={itemInvalido(it) || undefined} style={itemInvalido(it) ? { borderColor: "var(--color-destructive-fg)" } : undefined} onChange={(e) => setItem(gi, ii, e.target.value)} />
                           : <span>{num(it.q, it.q < 1 ? 3 : 2)}</span>}
                       </span>
                       <span className="m">
@@ -206,9 +230,9 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
         <aside className="mfg-ed-side">
           <div className="mfg-sec"><span>Receita</span><span className="ln" /></div>
           <div className="mfg-form">
-            <Input label="Nome" value={r.name} disabled={!podeEditar} onChange={(e) => set({ name: e.target.value })} />
+            <Input label="Nome" value={r.name} error={erros.name} disabled={!podeEditar} onChange={(e) => set({ name: e.target.value })} />
             <div className="mfg-row2">
-              <Campo label="Qtd. produzida"><input className="mfg-inp" type="number" min="0" step="0.01" value={r.qtd} disabled={!podeEditar} onChange={(e) => set({ qtd: Number(e.target.value) })} /></Campo>
+              <Campo label="Qtd. produzida" erro={erros.qtd}><input className="mfg-inp" type="number" min="0" step="0.01" value={r.qtd} disabled={!podeEditar} onChange={(e) => set({ qtd: Number(e.target.value) })} /></Campo>
               <Select label="Unidade" value={r.un} disabled={!podeEditar} onChange={(e) => set({ un: e.target.value })}>
                 <option>m²</option><option>un</option><option>m</option><option>kg</option><option>L</option>
               </Select>
@@ -216,22 +240,22 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
             <div className="mfg-row2">
               <Input label="Sub-unidade de saída" help="opcional — como a quantidade aparece na lista"
                 value={r.subUn || ""} disabled={!podeEditar} placeholder="ex. m linear" onChange={(e) => set({ subUn: e.target.value || null })} />
-              <Campo label="Fator" hint={r.subUn ? "1 " + r.un + " = " + num(r.subFator || 1, 2) + " " + r.subUn : "—"}>
+              <Campo label="Fator" erro={erros.subFator} hint={r.subUn ? "1 " + r.un + " = " + num(r.subFator || 1, 2) + " " + r.subUn : "—"}>
                 <input className="mfg-inp" type="number" min="0" step="0.01" value={r.subFator || 1} disabled={!podeEditar || !r.subUn} onChange={(e) => set({ subFator: Number(e.target.value) })} />
               </Campo>
             </div>
-            <Campo label="Desperdício (%)" hint={"rende " + num(c.qtdLiq, 2) + " " + r.un + " de " + num(r.qtd, 2)}>
+            <Campo label="Desperdício (%)" erro={erros.waste} hint={"rende " + num(c.qtdLiq, 2) + " " + r.un + " de " + num(r.qtd, 2)}>
               <input className="mfg-inp" type="number" min="0" max="100" step="0.5" value={r.waste} disabled={!podeEditar} onChange={(e) => set({ waste: Number(e.target.value) })} />
             </Campo>
             <div className="mfg-row2">
               <Select label="Custo extra" value={r.custoTipo} disabled={!podeEditar} onChange={(e) => set({ custoTipo: e.target.value })}>
                 <option value="fixo">Valor fixo</option><option value="percentual">% dos ingredientes</option><option value="unidade">Por unidade produzida</option>
               </Select>
-              <Campo label={r.custoTipo === "percentual" ? "Percentual" : r.custoTipo === "unidade" ? "R$ / unidade" : "Valor (R$)"}>
+              <Campo label={r.custoTipo === "percentual" ? "Percentual" : r.custoTipo === "unidade" ? "R$ / unidade" : "Valor (R$)"} erro={erros.extra}>
                 <input className="mfg-inp" type="number" min="0" step="0.01" value={r.extra} disabled={!podeEditar} onChange={(e) => set({ extra: Number(e.target.value) })} />
               </Campo>
             </div>
-            <Campo label="Preço de venda (R$)" hint={"margem " + num(c.margem, 1) + "%"}>
+            <Campo label="Preço de venda (R$)" erro={erros.venda} hint={"margem " + num(c.margem, 1) + "%"}>
               <input className="mfg-inp" type="number" min="0" step="0.01" value={r.venda} disabled={!podeEditar} onChange={(e) => set({ venda: Number(e.target.value) })} />
             </Campo>
           </div>
@@ -252,8 +276,13 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
       <div className="mfg-ed-f">
         {perms.editar && onDelete && <Button variant="danger" onClick={onDelete}>Excluir receita</Button>}
         <span className="sp" />
+        {podeEditar && nErros > 0 && (
+          <span role="status" style={{ font: "500 12px/1.4 var(--font-sans)", color: "var(--color-destructive-fg)" }}>
+            ⚠ {nItensInvalidos > 0 ? nItensInvalidos + " ingrediente" + (nItensInvalidos > 1 ? "s" : "") + " com quantidade negativa · " : ""}corrija os campos marcados para salvar
+          </span>
+        )}
         <Button onClick={onCancel}>Cancelar</Button>
-        <Button variant="primary" disabled={!podeEditar || nIng === 0} onClick={() => onSave(r)}>Salvar receita</Button>
+        <Button variant="primary" disabled={!podeEditar || nIng === 0 || nErros > 0} onClick={() => onSave(r)}>Salvar receita</Button>
       </div>
     </div>
   );

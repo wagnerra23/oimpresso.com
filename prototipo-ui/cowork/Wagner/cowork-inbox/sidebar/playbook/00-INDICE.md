@@ -158,135 +158,769 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
   "modulo": "Sidebar",
   "sha": "af09f7c3a0fd",
   "gerado": "2026-09-10",
-  "onda2": { "gerado": "2026-09-25", "sha": "610fff15c6ac", "threads": ["07","08","09","10","11","12","13","14","15","16"], "retorno": "07 e 08 feitas (_saida-07/08, main f3611e548698)" },
+  "onda2": {
+    "gerado": "2026-09-25",
+    "sha": "610fff15c6ac",
+    "threads": [
+      "07",
+      "08",
+      "09",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16"
+    ],
+    "retorno": "07 e 08 feitas (_saida-07/08, main f3611e548698)"
+  },
   "granularidade": "secao",
-  "absorve": ["prototipo-ui/design-docs/handoff-sidebar/PEDIDO-CODE.md"],
-  "variaveis": { "CKPT": "resources/js/Components/cockpit", "BUILD": "prototipo-ui/cowork/Wagner", "CT": "governance/design/contracts/cockpit-sidebar.contract.json", "REC": "prototipo-ui/cowork/Wagner/cowork-inbox/sidebar/playbook/recibos" },
+  "absorve": [
+    "prototipo-ui/design-docs/handoff-sidebar/PEDIDO-CODE.md"
+  ],
+  "variaveis": {
+    "CKPT": "resources/js/Components/cockpit",
+    "BUILD": "prototipo-ui/cowork/Wagner",
+    "CT": "governance/design/contracts/cockpit-sidebar.contract.json",
+    "REC": "prototipo-ui/cowork/Wagner/cowork-inbox/sidebar/playbook/recibos"
+  },
   "contratos_de_prova": "lidos em prototipo-ui/cowork/Wagner/cowork-inbox/_scripts/README-placar.md (main, 2026-09-10): contem/nao_contem NÃO fecham thread — estrutura não prova execução. execucao=recibo JSON+summary da máquina que rodou; revisao=parecer, só pra tarefa que escreve apenas .md/.contract.json; comparacao=design-diff --compare --contrato --check --check-shell --json, exige o .contract.json.",
   "decisoes": [
-    { "id": "RESIDUO-1", "pergunta": "Ghosts: emendar ADR 0180 (código venceu) ou reverter GHOST_TETO do vivo?", "respondida": true, "resposta": "não era decisão de [W]: UI-0029 (28/08) diz que ADR divergente do protótipo está errada, e o corolário 1 proíbe devolver a pergunta. Emenda datada na 0180.", "destrava": ["05"] },
-    { "id": "RESIDUO-2", "pergunta": "Aposentar SidebarTabs/SidebarChat/ConvRow do protótipo (UI-0011) ou selar como demo?", "respondida": true, "resposta": "remover — medido 2026-09-10: zero call sites; ChatPage/ConvTabsBar/Thread/LinkedAppsPanel também mortas; remoção dividida 01 (JSX+CSS) × 02 (estado em app.jsx)", "destrava": ["01", "02"] },
-    { "id": "RESIDUO-3", "pergunta": "Modo hidden vira canon do shell (SidebarMode) ou morre nos dois lados?", "respondida": true, "resposta": "não era decisão: modo e alça são forma e o protótipo tem os dois — pela UI-0029 o shell ganha o terceiro modo.", "destrava": ["04"] },
-    { "id": "RESIDUO-4", "pergunta": "Slot de alerta pós-CompanyPicker no protótipo: NfeCertBadge real ou placeholder?", "respondida": true, "resposta": "[W] 2026-09-10: importar o real (Saída A). Executado na thread 03 — 4 estados de MOCK.NFE_CERT, silencioso em ok/sem_cert.", "destrava": ["03"] },
-    { "id": "RESIDUO-6", "pergunta": "Presença (Disponível/Ocupado/Ausente/Invisível) clicável: o protótipo tem 4 estados locais; o vivo mostra 3 sem ação. Cria receptor no backend ou o protótipo volta a exibir só?", "respondida": true, "resposta": "[W] 2026-09-25: vira real — coluna users.ui_presence no padrão do ui_theme", "destrava": ["13"] },
-    { "id": "RESIDUO-7", "pergunta": "Ícone por sub-tela: o protótipo desenha, ShellMenuItem.ghosts não tem campo icon. Estende SidebarGhost.php ou o protótipo tira o ícone?", "respondida": true, "resposta": "[W] 2026-09-25: SidebarGhost ganha icon opcional", "destrava": ["14"] },
-    { "id": "RESIDUO-8", "pergunta": "Tipo: protótipo usa 13px (item) e 10px (cabeçalho), fora do RAMP; o vivo usa --fs-4 13,5 e --fs-1 10,5. Pela regra 'o alvo não é sagrado' o protótipo se corrige pro RAMP — confirmar.", "respondida": true, "resposta": "[W] 2026-09-25: corrigido no protótipo (styles.css ph26f). Sem pedido pro vivo.", "destrava": [] },
-    { "id": "RESIDUO-5", "pergunta": "O rail (56px) do alerta de certificado: o vivo não tem variante estreita e eu inventei um ícone-only. Se a 04 promover, o rail ganha o mesmo tratamento ou fica sem alerta?", "respondida": false, "destrava": ["04"] }
+    {
+      "id": "RESIDUO-1",
+      "pergunta": "Ghosts: emendar ADR 0180 (código venceu) ou reverter GHOST_TETO do vivo?",
+      "respondida": true,
+      "resposta": "não era decisão de [W]: UI-0029 (28/08) diz que ADR divergente do protótipo está errada, e o corolário 1 proíbe devolver a pergunta. Emenda datada na 0180.",
+      "destrava": [
+        "05"
+      ]
+    },
+    {
+      "id": "RESIDUO-2",
+      "pergunta": "Aposentar SidebarTabs/SidebarChat/ConvRow do protótipo (UI-0011) ou selar como demo?",
+      "respondida": true,
+      "resposta": "remover — medido 2026-09-10: zero call sites; ChatPage/ConvTabsBar/Thread/LinkedAppsPanel também mortas; remoção dividida 01 (JSX+CSS) × 02 (estado em app.jsx)",
+      "destrava": [
+        "01",
+        "02"
+      ]
+    },
+    {
+      "id": "RESIDUO-3",
+      "pergunta": "Modo hidden vira canon do shell (SidebarMode) ou morre nos dois lados?",
+      "respondida": true,
+      "resposta": "não era decisão: modo e alça são forma e o protótipo tem os dois — pela UI-0029 o shell ganha o terceiro modo.",
+      "destrava": [
+        "04"
+      ]
+    },
+    {
+      "id": "RESIDUO-4",
+      "pergunta": "Slot de alerta pós-CompanyPicker no protótipo: NfeCertBadge real ou placeholder?",
+      "respondida": true,
+      "resposta": "[W] 2026-09-10: importar o real (Saída A). Executado na thread 03 — 4 estados de MOCK.NFE_CERT, silencioso em ok/sem_cert.",
+      "destrava": [
+        "03"
+      ]
+    },
+    {
+      "id": "RESIDUO-6",
+      "pergunta": "Presença (Disponível/Ocupado/Ausente/Invisível) clicável: o protótipo tem 4 estados locais; o vivo mostra 3 sem ação. Cria receptor no backend ou o protótipo volta a exibir só?",
+      "respondida": true,
+      "resposta": "[W] 2026-09-25: vira real — coluna users.ui_presence no padrão do ui_theme",
+      "destrava": [
+        "13"
+      ]
+    },
+    {
+      "id": "RESIDUO-7",
+      "pergunta": "Ícone por sub-tela: o protótipo desenha, ShellMenuItem.ghosts não tem campo icon. Estende SidebarGhost.php ou o protótipo tira o ícone?",
+      "respondida": true,
+      "resposta": "[W] 2026-09-25: SidebarGhost ganha icon opcional",
+      "destrava": [
+        "14"
+      ]
+    },
+    {
+      "id": "RESIDUO-8",
+      "pergunta": "Tipo: protótipo usa 13px (item) e 10px (cabeçalho), fora do RAMP; o vivo usa --fs-4 13,5 e --fs-1 10,5. Pela regra 'o alvo não é sagrado' o protótipo se corrige pro RAMP — confirmar.",
+      "respondida": true,
+      "resposta": "[W] 2026-09-25: corrigido no protótipo (styles.css ph26f). Sem pedido pro vivo.",
+      "destrava": []
+    },
+    {
+      "id": "RESIDUO-5",
+      "pergunta": "O rail (56px) do alerta de certificado: o vivo não tem variante estreita e eu inventei um ícone-only. Se a 04 promover, o rail ganha o mesmo tratamento ou fica sem alerta?",
+      "respondida": true,
+      "destrava": [
+        "04"
+      ],
+      "resposta": "[W] 2026-09-29 decide-for-me → recomendação [CC]: sem alerta no rail recolhido até produção ter a variante"
+    }
   ],
   "threads": [
-    { "id": "01", "titulo": "Seção CORPO: nav + a11y A1–A12 + aposentar Tabs/Chat/ConvRow", "dono": "CC", "vaga": 1, "arquivo": "01-corpo-a11y.md",
-      "prefixo": ["${BUILD}/sidebar.jsx", "${BUILD}/styles.css"],
-      "nao_toca": ["${BUILD}/app.jsx", "${BUILD}/data.jsx", "${CKPT}/"],
-      "depende_decisoes": ["RESIDUO-2"],
-      "provas": [
-        { "tipo": "nao_contem", "path": "${BUILD}/sidebar.jsx", "padrao": "function SidebarChat", "nota": "pré-condição barata; UI-0011, RESIDUO-2 = remover" },
-        { "tipo": "nao_contem", "path": "${BUILD}/sidebar.jsx", "padrao": "role=\"link\"", "nota": "pré-condição: clicáveis viraram <button> reais" },
-        { "tipo": "comparacao", "path": "${REC}/01-comparacao.json", "contrato": "${CT}",
-          "fontes": ["${BUILD}/sidebar.jsx", "${BUILD}/styles.css"],
-          "dimensoes": ["D2", "D4", "D6", "D8", "D9", "SHELL"],
-          "nota": "quem fecha. Snapshots pelo design-diff existente, nunca medição à mão. DEPENDE do contrato da thread 06 — ver 2-bis: a 06 é pré-requisito, não último passo." }
+    {
+      "id": "01",
+      "titulo": "Seção CORPO: nav + a11y A1–A12 + aposentar Tabs/Chat/ConvRow",
+      "dono": "CC",
+      "vaga": 1,
+      "arquivo": "01-corpo-a11y.md",
+      "prefixo": [
+        "${BUILD}/sidebar.jsx",
+        "${BUILD}/styles.css"
       ],
-      "nota_estado": "aplicada e medida em 2026-09-10 (_saida-01.md): nav+a11y, 42 clicáveis viraram button, código morto e CSS órfão removidos, layout remedido por família de controle. Falta a comparação." },
-    { "id": "02", "titulo": "Seção MODOS: auto-rail UI-0030 + persistir só escolha manual", "dono": "CC", "vaga": 1, "arquivo": "02-modos-auto-rail.md",
-      "prefixo": ["${BUILD}/app.jsx"],
-      "nao_toca": ["${BUILD}/sidebar.jsx", "${BUILD}/styles.css"],
-      "provas": [
-        { "tipo": "contem", "path": "${BUILD}/app.jsx", "padrao": "matchMedia", "nota": "pré-condição: auto-rail por largura sem escolha persistida" },
-        { "tipo": "nao_contem", "path": "${BUILD}/app.jsx", "padrao": "oimpresso.sidebar.tab", "nota": "pré-condição: estado morto do Chat cortado" },
-        { "tipo": "comparacao", "path": "${REC}/02-comparacao.json", "contrato": "${CT}",
-          "fontes": ["${BUILD}/app.jsx"],
-          "dimensoes": ["D2", "D8", "SHELL"],
-          "nota": "quem fecha. SHELL cobre os 3 modos + drawer mobile; a matriz sem-chave × largura precisa de perfil limpo (ver _saida-02.md)." }
+      "nao_toca": [
+        "${BUILD}/app.jsx",
+        "${BUILD}/data.jsx",
+        "${CKPT}/"
       ],
-      "nota_estado": "aplicada e medida em 2026-09-10 (_saida-02.md): 1280 inclusive, persistência só manual, ciclo de atalhos verde nos dois sentidos após corrigir a regressão do closure. Falta a comparação." },
-    { "id": "03", "titulo": "Seção TOPO: paridade CompanyPicker + slot de alerta", "dono": "CC", "vaga": 2, "arquivo": "03-topo-picker.md",
-      "prefixo": ["${BUILD}/sidebar.jsx", "${BUILD}/data.jsx"],
-      "nao_toca": ["${BUILD}/app.jsx"],
-      "depende_threads": ["01"], "depende_decisoes": ["RESIDUO-4"],
-      "provas": [
-        { "tipo": "contem", "path": "${BUILD}/sidebar.jsx", "padrao": "NfeCertBadge", "nota": "pré-condição: slot presente entre .sb-top e .sb-body" },
-        { "tipo": "comparacao", "path": "${REC}/03-comparacao.json", "contrato": "${CT}",
-          "fontes": ["${BUILD}/sidebar.jsx", "${BUILD}/data.jsx"],
-          "dimensoes": ["D0", "D2", "D4", "D9"],
-          "nota": "quem fecha. D0 exige copy no contrato: os literais do NfeCertBadge vivo ('Cert vence em breve' / 'Certificado vencido' / 'N dias restantes' / 'há N dias')." }
+      "depende_decisoes": [
+        "RESIDUO-2"
       ],
-      "nota_estado": "slot aplicado e medido nos 4 estados, expandido e rail (_saida-03.md). PENDENTE da própria thread: o diff bidirecional do CompanyPicker, que o playbook pedia e não foi feito." },
-    { "id": "04", "titulo": "Modo hidden + SidebarReopenHandle → promover pro vivo", "dono": "CL", "vaga": 1, "arquivo": "04-hidden-reopen.md",
-      "prefixo": ["${CKPT}/Sidebar.tsx", "${CKPT}/shared.ts", "resources/js/Layouts/AppShellV2.tsx", "resources/css/cockpit.css"],
-      "nao_toca": ["resources/js/Pages/Financeiro/_cowork-bundle/", "${CKPT}/useSidebarShortcut.ts", "app/Sidebar/"],
-      "depende_threads": ["01"], "depende_decisoes": ["RESIDUO-3"],
       "provas": [
-        { "tipo": "contem", "path": "${CKPT}/shared.ts", "padrao": "hidden", "nota": "SidebarMode ganha o 3º modo" },
-        { "tipo": "contem", "path": "resources/js/Layouts/AppShellV2.tsx", "padrao": "SidebarReopenHandle" },
-        { "tipo": "contem", "path": "resources/css/cockpit.css", "padrao": ".sb-reopen-handle" },
-        { "tipo": "execucao", "path": "${REC}/04-execucao.json",
-          "testes": ["tests/Feature/Sidebar/SidebarConsolidacaoTest.php", "tests/Feature/Cockpit/CockpitPatternConformanceTest.php"],
-          "nota": "quem fecha. Recibo gerado pela máquina que rodou (junit-summary.mjs), com SHA-256 dos alvos, testes, resumo e do _saida-04.md. Sem skip/flaky." }
+        {
+          "tipo": "nao_contem",
+          "path": "${BUILD}/sidebar.jsx",
+          "padrao": "function SidebarChat",
+          "nota": "pré-condição barata; UI-0011, RESIDUO-2 = remover"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "${BUILD}/sidebar.jsx",
+          "padrao": "role=\"link\"",
+          "nota": "pré-condição: clicáveis viraram <button> reais"
+        },
+        {
+          "tipo": "comparacao",
+          "path": "${REC}/01-comparacao.json",
+          "contrato": "${CT}",
+          "fontes": [
+            "${BUILD}/sidebar.jsx",
+            "${BUILD}/styles.css"
+          ],
+          "dimensoes": [
+            "D2",
+            "D4",
+            "D6",
+            "D8",
+            "D9",
+            "SHELL"
+          ],
+          "nota": "quem fecha. Snapshots pelo design-diff existente, nunca medição à mão. DEPENDE do contrato da thread 06 — ver 2-bis: a 06 é pré-requisito, não último passo."
+        }
       ],
-      "nota_estado": "DESTRAVADA pela UI-0029 (modo e alça são forma; o protótipo tem os dois). O rail do alerta de certificado (thread 03) é invenção do protótipo, não paridade — se entrar no vivo, é decisão à parte." },
-    { "id": "05", "titulo": "Ghosts × ADR 0180 — emenda ou reversão", "dono": "W", "vaga": 2, "arquivo": "05-ghosts-adr-0180.md",
-      "prefixo": ["memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md"],
-      "nao_toca": ["${CKPT}/Sidebar.tsx"],
+      "nota_estado": "aplicada e medida em 2026-09-10 (_saida-01.md): nav+a11y, 42 clicáveis viraram button, código morto e CSS órfão removidos, layout remedido por família de controle. Falta a comparação."
+    },
+    {
+      "id": "02",
+      "titulo": "Seção MODOS: auto-rail UI-0030 + persistir só escolha manual",
+      "dono": "CC",
+      "vaga": 1,
+      "arquivo": "02-modos-auto-rail.md",
+      "prefixo": [
+        "${BUILD}/app.jsx"
+      ],
+      "nao_toca": [
+        "${BUILD}/sidebar.jsx",
+        "${BUILD}/styles.css"
+      ],
       "provas": [
-        { "tipo": "contem", "path": "memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md", "padrao": "2026-09", "nota": "pré-condição: emenda datada, nunca ADR paralela (LC-19)" },
-        { "tipo": "revisao", "path": "${REC}/05-revisao.json",
-          "fontes": ["memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md", "${CKPT}/Sidebar.tsx"],
-          "criterios": ["emenda-datada", "ghost-teto-conferido-no-codigo", "sem-adr-paralela"],
-          "nota": "quem fecha. Escreve só .md, então revisao é o contrato válido: parecer com revisor identificado e justificativa por critério." }
+        {
+          "tipo": "contem",
+          "path": "${BUILD}/app.jsx",
+          "padrao": "matchMedia",
+          "nota": "pré-condição: auto-rail por largura sem escolha persistida"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "${BUILD}/app.jsx",
+          "padrao": "oimpresso.sidebar.tab",
+          "nota": "pré-condição: estado morto do Chat cortado"
+        },
+        {
+          "tipo": "comparacao",
+          "path": "${REC}/02-comparacao.json",
+          "contrato": "${CT}",
+          "fontes": [
+            "${BUILD}/app.jsx"
+          ],
+          "dimensoes": [
+            "D2",
+            "D8",
+            "SHELL"
+          ],
+          "nota": "quem fecha. SHELL cobre os 3 modos + drawer mobile; a matriz sem-chave × largura precisa de perfil limpo (ver _saida-02.md)."
+        }
       ],
-      "nota_estado": "DESBLOQUEADA: pela UI-0029, ADR divergente do protótipo está errada — o código venceu e a emenda se aplica. Abri como 'bloqueada em [W]' contra o corolário 1, que proíbe devolver essa pergunta." },
-    { "id": "06", "titulo": "Contrato de tela do shell + gates", "dono": "CL", "vaga": 3, "arquivo": "06-contrato-e-gates.md",
-      "prefixo": ["governance/design/contracts/cockpit-sidebar.contract.json", "tests/Feature/Sidebar/"],
-      "nao_toca": ["${CKPT}/", "resources/js/Layouts/AppShellV2.tsx"],
+      "nota_estado": "aplicada e medida em 2026-09-10 (_saida-02.md): 1280 inclusive, persistência só manual, ciclo de atalhos verde nos dois sentidos após corrigir a regressão do closure. Falta a comparação."
+    },
+    {
+      "id": "03",
+      "titulo": "Seção TOPO: paridade CompanyPicker + slot de alerta",
+      "dono": "CC",
+      "vaga": 2,
+      "arquivo": "03-topo-picker.md",
+      "prefixo": [
+        "${BUILD}/sidebar.jsx",
+        "${BUILD}/data.jsx"
+      ],
+      "nao_toca": [
+        "${BUILD}/app.jsx"
+      ],
+      "depende_threads": [
+        "01"
+      ],
+      "depende_decisoes": [
+        "RESIDUO-4"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${BUILD}/sidebar.jsx",
+          "padrao": "NfeCertBadge",
+          "nota": "pré-condição: slot presente entre .sb-top e .sb-body"
+        },
+        {
+          "tipo": "comparacao",
+          "path": "${REC}/03-comparacao.json",
+          "contrato": "${CT}",
+          "fontes": [
+            "${BUILD}/sidebar.jsx",
+            "${BUILD}/data.jsx"
+          ],
+          "dimensoes": [
+            "D0",
+            "D2",
+            "D4",
+            "D9"
+          ],
+          "nota": "quem fecha. D0 exige copy no contrato: os literais do NfeCertBadge vivo ('Cert vence em breve' / 'Certificado vencido' / 'N dias restantes' / 'há N dias')."
+        }
+      ],
+      "nota_estado": "slot aplicado e medido nos 4 estados, expandido e rail (_saida-03.md). PENDENTE da própria thread: o diff bidirecional do CompanyPicker, que o playbook pedia e não foi feito."
+    },
+    {
+      "id": "04",
+      "titulo": "Modo hidden + SidebarReopenHandle → promover pro vivo",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "04-hidden-reopen.md",
+      "prefixo": [
+        "${CKPT}/Sidebar.tsx",
+        "${CKPT}/shared.ts",
+        "resources/js/Layouts/AppShellV2.tsx",
+        "resources/css/cockpit.css"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Financeiro/_cowork-bundle/",
+        "${CKPT}/useSidebarShortcut.ts",
+        "app/Sidebar/"
+      ],
+      "depende_threads": [
+        "01"
+      ],
+      "depende_decisoes": [
+        "RESIDUO-3"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${CKPT}/shared.ts",
+          "padrao": "hidden",
+          "nota": "SidebarMode ganha o 3º modo"
+        },
+        {
+          "tipo": "contem",
+          "path": "resources/js/Layouts/AppShellV2.tsx",
+          "padrao": "SidebarReopenHandle"
+        },
+        {
+          "tipo": "contem",
+          "path": "resources/css/cockpit.css",
+          "padrao": ".sb-reopen-handle"
+        },
+        {
+          "tipo": "execucao",
+          "path": "${REC}/04-execucao.json",
+          "testes": [
+            "tests/Feature/Sidebar/SidebarConsolidacaoTest.php",
+            "tests/Feature/Cockpit/CockpitPatternConformanceTest.php"
+          ],
+          "nota": "quem fecha. Recibo gerado pela máquina que rodou (junit-summary.mjs), com SHA-256 dos alvos, testes, resumo e do _saida-04.md. Sem skip/flaky."
+        }
+      ],
+      "nota_estado": "DESTRAVADA pela UI-0029 (modo e alça são forma; o protótipo tem os dois). O rail do alerta de certificado (thread 03) é invenção do protótipo, não paridade — se entrar no vivo, é decisão à parte."
+    },
+    {
+      "id": "05",
+      "titulo": "Ghosts × ADR 0180 — emenda ou reversão",
+      "dono": "W",
+      "vaga": 2,
+      "arquivo": "05-ghosts-adr-0180.md",
+      "prefixo": [
+        "memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md"
+      ],
+      "nao_toca": [
+        "${CKPT}/Sidebar.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md",
+          "padrao": "2026-09",
+          "nota": "pré-condição: emenda datada, nunca ADR paralela (LC-19)"
+        },
+        {
+          "tipo": "revisao",
+          "path": "${REC}/05-revisao.json",
+          "fontes": [
+            "memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md",
+            "${CKPT}/Sidebar.tsx"
+          ],
+          "criterios": [
+            "emenda-datada",
+            "ghost-teto-conferido-no-codigo",
+            "sem-adr-paralela"
+          ],
+          "nota": "quem fecha. Escreve só .md, então revisao é o contrato válido: parecer com revisor identificado e justificativa por critério."
+        }
+      ],
+      "nota_estado": "DESBLOQUEADA: pela UI-0029, ADR divergente do protótipo está errada — o código venceu e a emenda se aplica. Abri como 'bloqueada em [W]' contra o corolário 1, que proíbe devolver essa pergunta."
+    },
+    {
+      "id": "06",
+      "titulo": "Contrato de tela do shell + gates",
+      "dono": "CL",
+      "vaga": 3,
+      "arquivo": "06-contrato-e-gates.md",
+      "prefixo": [
+        "governance/design/contracts/cockpit-sidebar.contract.json",
+        "tests/Feature/Sidebar/"
+      ],
+      "nao_toca": [
+        "${CKPT}/",
+        "resources/js/Layouts/AppShellV2.tsx"
+      ],
       "depende_threads": [],
       "provas": [
-        { "tipo": "json_com_chaves", "path": "${CT}", "chaves": ["alvo", "secoes"], "nota": "pré-condição" },
-        { "tipo": "revisao", "path": "${REC}/06-revisao.json",
-          "fontes": ["${CT}", "${CKPT}/Sidebar.tsx", "resources/js/Layouts/AppShellV2.tsx"],
-          "criterios": ["secoes-conferidas-contra-o-vivo", "copy-literal-D0", "estados-declarados"],
-          "nota": "quem fecha. Escreve só .contract.json + testes: revisao é válida pro contrato. Os gates PHP entram como execucao no PR que criar os testes." }
+        {
+          "tipo": "json_com_chaves",
+          "path": "${CT}",
+          "chaves": [
+            "alvo",
+            "secoes"
+          ],
+          "nota": "pré-condição"
+        },
+        {
+          "tipo": "revisao",
+          "path": "${REC}/06-revisao.json",
+          "fontes": [
+            "${CT}",
+            "${CKPT}/Sidebar.tsx",
+            "resources/js/Layouts/AppShellV2.tsx"
+          ],
+          "criterios": [
+            "secoes-conferidas-contra-o-vivo",
+            "copy-literal-D0",
+            "estados-declarados"
+          ],
+          "nota": "quem fecha. Escreve só .contract.json + testes: revisao é válida pro contrato. Os gates PHP entram como execucao no PR que criar os testes."
+        }
       ],
-      "nota_estado": "ORDEM INVERTIDA (2026-09-10): deixou de depender de 01/03/04 e passou a ser PRÉ-REQUISITO delas — sem o .contract.json não existe prova de comparacao, e sem comparacao nenhuma thread de build fecha. Ver 2-bis." },
-    { "id": "07", "titulo": "ALVO — medir protótipo × vivo (read-only)", "dono": "CL", "vaga": 4, "arquivo": "07-alvo-medir.md",
-      "prefixo": ["governance/design/targets/"],
-      "nao_toca": ["${BUILD}/", "app/Sidebar/", "resources/js/Layouts/AppShellV2.tsx"],
-      "depende_threads": ["06"],
-      "provas": [{"tipo":"revisao","path":"${REC}/07-revisao.json","fontes":["${CT}"],"criterios":["sonda-com-caso-de-sanidade","duas-leituras-iguais","slug-conforme-targets-README"],"nota":"o arquivo de alvo em governance/design/targets/ é a entrega; slug decidido pelo README de targets"}],
-      "nota_estado": "onda 2 (2026-09-25) · seção todas" },
-    { "id": "08", "titulo": "Cabeçalho do grupo: seta à direita + cor/raio", "dono": "CL", "vaga": 5, "arquivo": "08-cabecalho-grupo.md",
-      "prefixo": ["${CKPT}/Sidebar.tsx","resources/css/cockpit.css"],
-      "nao_toca": ["${BUILD}/", "app/Sidebar/", "resources/js/Layouts/AppShellV2.tsx"],
-      "depende_threads": ["07"],
-      "provas": [{"tipo":"contem","path":"${CKPT}/Sidebar.tsx","padrao":"sb-group-n","nota":"pré-condição; ChevronDown depois do contador"},{"tipo":"comparacao","path":"${REC}/08-comparacao.json","contrato":"${CT}","fontes":["${BUILD}/sidebar.jsx","${BUILD}/styles.css"],"dimensoes":["D2","D4","D9"]}],
-      "nota_estado": "onda 2 (2026-09-25) · seção sb-corpo" },
-    { "id": "09", "titulo": "Item ativo: aria-current + grupo abre sozinho", "dono": "CL", "vaga": 6, "arquivo": "09-item-ativo.md",
-      "prefixo": ["${CKPT}/Sidebar.tsx","tests/js/"],
-      "nao_toca": ["${BUILD}/", "app/Sidebar/", "resources/js/Layouts/AppShellV2.tsx"],
-      "depende_threads": ["07","08"],
-      "provas": [{"tipo":"contem","path":"${CKPT}/Sidebar.tsx","padrao":"aria-current={ativo"},{"tipo":"execucao","path":"${REC}/09-execucao.json","testes":["tests/js/"],"nota":"grupo fechado no LS abre quando contém a rota; nada gravado no LS"}],
-      "nota_estado": "onda 2 (2026-09-25) · seção sb-corpo" },
-    { "id": "10", "titulo": "Sub-telas: promover a ativa + mostrar menos", "dono": "CL", "vaga": 7, "arquivo": "10-ghosts.md",
-      "prefixo": ["${CKPT}/Sidebar.tsx","tests/js/","${CT}"],
-      "nao_toca": ["${BUILD}/", "app/Sidebar/", "resources/js/Layouts/AppShellV2.tsx"],
-      "depende_threads": ["07","09"],
-      "provas": [{"tipo":"contem","path":"${CKPT}/Sidebar.tsx","padrao":"mostrar menos"},{"tipo":"execucao","path":"${REC}/10-execucao.json","testes":["tests/js/"]}],
-      "nota_estado": "onda 2 (2026-09-25) · seção sb-corpo" },
-    { "id": "11", "titulo": "Rail: ícone do grupo + grupo ativo + dica fixa", "dono": "CL", "vaga": 8, "arquivo": "11-rail.md",
-      "prefixo": ["${CKPT}/Sidebar.tsx","resources/css/cockpit.css"],
-      "nao_toca": ["${BUILD}/", "app/Sidebar/", "resources/js/Layouts/AppShellV2.tsx"],
-      "depende_threads": ["07","10"],
-      "provas": [{"tipo":"contem","path":"${CKPT}/Sidebar.tsx","padrao":"GROUP_ICON_MAP[g.key]"},{"tipo":"comparacao","path":"${REC}/11-comparacao.json","contrato":"${CT}","fontes":["${BUILD}/sidebar.jsx"],"dimensoes":["D2","D4","SHELL"]}],
-      "nota_estado": "onda 2 (2026-09-25) · seção sb-modos" },
-    { "id": "12", "titulo": "Rodapé: valor do modo + Buscar tela ⌘K + tirar ⌘/ morto", "dono": "CL", "vaga": 9, "arquivo": "12-rodape.md",
-      "prefixo": ["${CKPT}/Sidebar.tsx","tests/","${CT}"],
-      "nao_toca": ["${BUILD}/", "app/Sidebar/", "resources/js/Layouts/AppShellV2.tsx"],
-      "depende_threads": ["07","11"],
-      "provas": [{"tipo":"contem","path":"${CKPT}/Sidebar.tsx","padrao":"Buscar tela"},{"tipo":"nao_contem","path":"${CKPT}/Sidebar.tsx","padrao":"<span className=\"kbd\">⌘/</span>"},{"tipo":"execucao","path":"${REC}/12-execucao.json","testes":["tests/sidebarAparencia.spec.tsx"]}],
-      "nota_estado": "onda 2 (2026-09-25) · seção sb-rodape" },
-    {"id":"13", "titulo":"Presença clicável e persistida", "dono":"CL", "vaga":10,"arquivo":"13-presenca.md", "prefixo":["${CKPT}/Sidebar.tsx", "database/migrations/", "routes/web.php", "app/Http/", "tests/Feature/", "${CT}"],"nao_toca":["${BUILD}/", "app/Sidebar/"],"depende_threads":["07", "12"],"depende_decisoes":["RESIDUO-6"],"provas":[{"tipo":"contem", "path":"${CKPT}/Sidebar.tsx", "padrao":"Invisível"},{"tipo":"nao_contem", "path":"${CKPT}/Sidebar.tsx", "padrao":"Não perturbe"},{"tipo":"execucao", "path":"${REC}/13-execucao.json", "testes":["tests/Feature/"],"nota":"rota: 4 válidos, 1 inválido 422, grava users.ui_presence"}],"nota_estado":"onda 2 · decisão [W] 2026-09-25 · padrão = useTheme.ts:70 + routes/web.php:1162"},
-    {"id":"14", "titulo":"Ícone por sub-tela (SidebarGhost::$icon opcional)", "dono":"CL", "vaga":11,"arquivo":"14-ghost-icone.md", "prefixo":["app/Sidebar/SidebarGhost.php", "${CKPT}/shared.ts", "${CKPT}/Sidebar.tsx", "tests/Feature/Sidebar/"],"nao_toca":["${BUILD}/"],"depende_threads":["07", "10", "13"],"depende_decisoes":["RESIDUO-7"],"provas":[{"tipo":"contem", "path":"app/Sidebar/SidebarGhost.php", "padrao":"?string $icon"},{"tipo":"execucao", "path":"${REC}/14-execucao.json", "testes":["tests/Feature/Sidebar/SidebarMenuItemContractTest.php"]}],"nota_estado":"onda 2 · decisão [W] 2026-09-25 · 1 DataController preenchido como prova"},
-    {"id":"15", "titulo":"Máquina: alvo.mjs mede expanded/hidden", "dono":"CL", "vaga":6,"arquivo":"15-alvo-expanded.md", "prefixo":["scripts/design/", "governance/design/targets/"],"nao_toca":["${CKPT}/", "${BUILD}/"],"depende_threads":["07"],"provas":[{"tipo":"arquivo", "path":"governance/design/targets/cockpit--sidebar.alvo.json", "guarda":true},{"tipo":"revisao", "path":"${REC}/15-revisao.json", "fontes":["governance/design/targets/cockpit--sidebar.alvo.json"],"criterios":["jana--index-sem-regressao", "expanded-medido", "bite-test-sb-group-h"]}],"nota_estado":"nasce do _saida-07 §Não feito 1 · destrava a comparacao de 08/09/10"},
-    {"id":"16", "titulo":"Charter + casos do Sidebar", "dono":"CL", "vaga":6,"arquivo":"16-charter-sidebar.md", "prefixo":["resources/js/Components/cockpit/Sidebar.charter.md", "resources/js/Components/cockpit/Sidebar.casos.md"],"nao_toca":["${CKPT}/Sidebar.tsx", "${BUILD}/"],"depende_threads":["07"],"provas":[{"tipo":"arquivo", "path":"resources/js/Components/cockpit/Sidebar.charter.md"},{"tipo":"revisao", "path":"${REC}/16-revisao.json", "fontes":["resources/js/Components/cockpit/Sidebar.charter.md"],"criterios":["ancora-resolve", "pedido-secao-rc0"]}],"nota_estado":"nasce do _saida-07 §Não feito 2"}
+      "nota_estado": "ORDEM INVERTIDA (2026-09-10): deixou de depender de 01/03/04 e passou a ser PRÉ-REQUISITO delas — sem o .contract.json não existe prova de comparacao, e sem comparacao nenhuma thread de build fecha. Ver 2-bis."
+    },
+    {
+      "id": "07",
+      "titulo": "ALVO — medir protótipo × vivo (read-only)",
+      "dono": "CL",
+      "vaga": 4,
+      "arquivo": "07-alvo-medir.md",
+      "prefixo": [
+        "governance/design/targets/"
+      ],
+      "nao_toca": [
+        "${BUILD}/",
+        "app/Sidebar/",
+        "resources/js/Layouts/AppShellV2.tsx"
+      ],
+      "depende_threads": [
+        "06"
+      ],
+      "provas": [
+        {
+          "tipo": "revisao",
+          "path": "${REC}/07-revisao.json",
+          "fontes": [
+            "${CT}"
+          ],
+          "criterios": [
+            "sonda-com-caso-de-sanidade",
+            "duas-leituras-iguais",
+            "slug-conforme-targets-README"
+          ],
+          "nota": "o arquivo de alvo em governance/design/targets/ é a entrega; slug decidido pelo README de targets"
+        }
+      ],
+      "nota_estado": "onda 2 (2026-09-25) · seção todas"
+    },
+    {
+      "id": "08",
+      "titulo": "Cabeçalho do grupo: seta à direita + cor/raio",
+      "dono": "CL",
+      "vaga": 5,
+      "arquivo": "08-cabecalho-grupo.md",
+      "prefixo": [
+        "${CKPT}/Sidebar.tsx",
+        "resources/css/cockpit.css"
+      ],
+      "nao_toca": [
+        "${BUILD}/",
+        "app/Sidebar/",
+        "resources/js/Layouts/AppShellV2.tsx"
+      ],
+      "depende_threads": [
+        "07"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${CKPT}/Sidebar.tsx",
+          "padrao": "sb-group-n",
+          "nota": "pré-condição; ChevronDown depois do contador"
+        },
+        {
+          "tipo": "comparacao",
+          "path": "${REC}/08-comparacao.json",
+          "contrato": "${CT}",
+          "fontes": [
+            "${BUILD}/sidebar.jsx",
+            "${BUILD}/styles.css"
+          ],
+          "dimensoes": [
+            "D2",
+            "D4",
+            "D9"
+          ]
+        }
+      ],
+      "nota_estado": "onda 2 (2026-09-25) · seção sb-corpo"
+    },
+    {
+      "id": "09",
+      "titulo": "Item ativo: aria-current + grupo abre sozinho",
+      "dono": "CL",
+      "vaga": 6,
+      "arquivo": "09-item-ativo.md",
+      "prefixo": [
+        "${CKPT}/Sidebar.tsx",
+        "tests/js/"
+      ],
+      "nao_toca": [
+        "${BUILD}/",
+        "app/Sidebar/",
+        "resources/js/Layouts/AppShellV2.tsx"
+      ],
+      "depende_threads": [
+        "07",
+        "08"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${CKPT}/Sidebar.tsx",
+          "padrao": "aria-current={ativo"
+        },
+        {
+          "tipo": "execucao",
+          "path": "${REC}/09-execucao.json",
+          "testes": [
+            "tests/js/"
+          ],
+          "nota": "grupo fechado no LS abre quando contém a rota; nada gravado no LS"
+        }
+      ],
+      "nota_estado": "onda 2 (2026-09-25) · seção sb-corpo"
+    },
+    {
+      "id": "10",
+      "titulo": "Sub-telas: promover a ativa + mostrar menos",
+      "dono": "CL",
+      "vaga": 7,
+      "arquivo": "10-ghosts.md",
+      "prefixo": [
+        "${CKPT}/Sidebar.tsx",
+        "tests/js/",
+        "${CT}"
+      ],
+      "nao_toca": [
+        "${BUILD}/",
+        "app/Sidebar/",
+        "resources/js/Layouts/AppShellV2.tsx"
+      ],
+      "depende_threads": [
+        "07",
+        "09"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${CKPT}/Sidebar.tsx",
+          "padrao": "mostrar menos"
+        },
+        {
+          "tipo": "execucao",
+          "path": "${REC}/10-execucao.json",
+          "testes": [
+            "tests/js/"
+          ]
+        }
+      ],
+      "nota_estado": "onda 2 (2026-09-25) · seção sb-corpo"
+    },
+    {
+      "id": "11",
+      "titulo": "Rail: ícone do grupo + grupo ativo + dica fixa",
+      "dono": "CL",
+      "vaga": 8,
+      "arquivo": "11-rail.md",
+      "prefixo": [
+        "${CKPT}/Sidebar.tsx",
+        "resources/css/cockpit.css"
+      ],
+      "nao_toca": [
+        "${BUILD}/",
+        "app/Sidebar/",
+        "resources/js/Layouts/AppShellV2.tsx"
+      ],
+      "depende_threads": [
+        "07",
+        "10"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${CKPT}/Sidebar.tsx",
+          "padrao": "GROUP_ICON_MAP[g.key]"
+        },
+        {
+          "tipo": "comparacao",
+          "path": "${REC}/11-comparacao.json",
+          "contrato": "${CT}",
+          "fontes": [
+            "${BUILD}/sidebar.jsx"
+          ],
+          "dimensoes": [
+            "D2",
+            "D4",
+            "SHELL"
+          ]
+        }
+      ],
+      "nota_estado": "onda 2 (2026-09-25) · seção sb-modos"
+    },
+    {
+      "id": "12",
+      "titulo": "Rodapé: valor do modo + Buscar tela ⌘K + tirar ⌘/ morto",
+      "dono": "CL",
+      "vaga": 9,
+      "arquivo": "12-rodape.md",
+      "prefixo": [
+        "${CKPT}/Sidebar.tsx",
+        "tests/",
+        "${CT}"
+      ],
+      "nao_toca": [
+        "${BUILD}/",
+        "app/Sidebar/",
+        "resources/js/Layouts/AppShellV2.tsx"
+      ],
+      "depende_threads": [
+        "07",
+        "11"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${CKPT}/Sidebar.tsx",
+          "padrao": "Buscar tela"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "${CKPT}/Sidebar.tsx",
+          "padrao": "<span className=\"kbd\">⌘/</span>"
+        },
+        {
+          "tipo": "execucao",
+          "path": "${REC}/12-execucao.json",
+          "testes": [
+            "tests/sidebarAparencia.spec.tsx"
+          ]
+        }
+      ],
+      "nota_estado": "onda 2 (2026-09-25) · seção sb-rodape"
+    },
+    {
+      "id": "13",
+      "titulo": "Presença clicável e persistida",
+      "dono": "CL",
+      "vaga": 10,
+      "arquivo": "13-presenca.md",
+      "prefixo": [
+        "${CKPT}/Sidebar.tsx",
+        "database/migrations/",
+        "routes/web.php",
+        "app/Http/",
+        "tests/Feature/",
+        "${CT}"
+      ],
+      "nao_toca": [
+        "${BUILD}/",
+        "app/Sidebar/"
+      ],
+      "depende_threads": [
+        "07",
+        "12"
+      ],
+      "depende_decisoes": [
+        "RESIDUO-6"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${CKPT}/Sidebar.tsx",
+          "padrao": "Invisível"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "${CKPT}/Sidebar.tsx",
+          "padrao": "Não perturbe"
+        },
+        {
+          "tipo": "execucao",
+          "path": "${REC}/13-execucao.json",
+          "testes": [
+            "tests/Feature/"
+          ],
+          "nota": "rota: 4 válidos, 1 inválido 422, grava users.ui_presence"
+        }
+      ],
+      "nota_estado": "onda 2 · decisão [W] 2026-09-25 · padrão = useTheme.ts:70 + routes/web.php:1162"
+    },
+    {
+      "id": "14",
+      "titulo": "Ícone por sub-tela (SidebarGhost::$icon opcional)",
+      "dono": "CL",
+      "vaga": 11,
+      "arquivo": "14-ghost-icone.md",
+      "prefixo": [
+        "app/Sidebar/SidebarGhost.php",
+        "${CKPT}/shared.ts",
+        "${CKPT}/Sidebar.tsx",
+        "tests/Feature/Sidebar/"
+      ],
+      "nao_toca": [
+        "${BUILD}/"
+      ],
+      "depende_threads": [
+        "07",
+        "10",
+        "13"
+      ],
+      "depende_decisoes": [
+        "RESIDUO-7"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "app/Sidebar/SidebarGhost.php",
+          "padrao": "?string $icon"
+        },
+        {
+          "tipo": "execucao",
+          "path": "${REC}/14-execucao.json",
+          "testes": [
+            "tests/Feature/Sidebar/SidebarMenuItemContractTest.php"
+          ]
+        }
+      ],
+      "nota_estado": "onda 2 · decisão [W] 2026-09-25 · 1 DataController preenchido como prova"
+    },
+    {
+      "id": "15",
+      "titulo": "Máquina: alvo.mjs mede expanded/hidden",
+      "dono": "CL",
+      "vaga": 6,
+      "arquivo": "15-alvo-expanded.md",
+      "prefixo": [
+        "scripts/design/",
+        "governance/design/targets/"
+      ],
+      "nao_toca": [
+        "${CKPT}/",
+        "${BUILD}/"
+      ],
+      "depende_threads": [
+        "07"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "governance/design/targets/cockpit--sidebar.alvo.json",
+          "guarda": true
+        },
+        {
+          "tipo": "revisao",
+          "path": "${REC}/15-revisao.json",
+          "fontes": [
+            "governance/design/targets/cockpit--sidebar.alvo.json"
+          ],
+          "criterios": [
+            "jana--index-sem-regressao",
+            "expanded-medido",
+            "bite-test-sb-group-h"
+          ]
+        }
+      ],
+      "nota_estado": "nasce do _saida-07 §Não feito 1 · destrava a comparacao de 08/09/10"
+    },
+    {
+      "id": "16",
+      "titulo": "Charter + casos do Sidebar",
+      "dono": "CL",
+      "vaga": 6,
+      "arquivo": "16-charter-sidebar.md",
+      "prefixo": [
+        "resources/js/Components/cockpit/Sidebar.charter.md",
+        "resources/js/Components/cockpit/Sidebar.casos.md"
+      ],
+      "nao_toca": [
+        "${CKPT}/Sidebar.tsx",
+        "${BUILD}/"
+      ],
+      "depende_threads": [
+        "07"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Components/cockpit/Sidebar.charter.md"
+        },
+        {
+          "tipo": "revisao",
+          "path": "${REC}/16-revisao.json",
+          "fontes": [
+            "resources/js/Components/cockpit/Sidebar.charter.md"
+          ],
+          "criterios": [
+            "ancora-resolve",
+            "pedido-secao-rc0"
+          ]
+        }
+      ],
+      "nota_estado": "nasce do _saida-07 §Não feito 2"
+    }
   ]
 }
 ```

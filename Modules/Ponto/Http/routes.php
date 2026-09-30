@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Ponto\Http\Controllers\Api\MobileMarcacaoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,14 +38,20 @@ Route::group(
 
         // 2. Espelho de Ponto
         Route::get('/espelho', 'EspelhoController@index')->name('ponto.espelho.index');
-        Route::get('/espelho/{colaborador}', 'EspelhoController@show')->name('ponto.espelho.show');
-        Route::get('/espelho/{colaborador}/imprimir', 'EspelhoController@imprimir')->name('ponto.espelho.imprimir');
+        Route::get('/espelho/{colaborador}', 'EspelhoController@show')->whereNumber('colaborador')->name('ponto.espelho.show');
+        Route::get('/espelho/{colaborador}/imprimir', 'EspelhoController@imprimir')->whereNumber('colaborador')->name('ponto.espelho.imprimir');
 
         // 3. Aprovações
         Route::get('/aprovacoes', 'AprovacaoController@index')->name('ponto.aprovacoes.index');
         Route::post('/aprovacoes/{id}/aprovar', 'AprovacaoController@aprovar')->name('ponto.aprovacoes.aprovar');
         Route::post('/aprovacoes/{id}/rejeitar', 'AprovacaoController@rejeitar')->name('ponto.aprovacoes.rejeitar');
         Route::post('/aprovacoes/lote', 'AprovacaoController@aprovarEmLote')->name('ponto.aprovacoes.lote');
+        // Fila do gestor do REP-P (thread 06): validar = trilha · recusar = anulação (D3).
+        // Recusar tem efeito jurídico e exige `ponto.aprovacoes.manage` ([W] 2026-09-29).
+        Route::post('/aprovacoes/mobile/{id}/validar', [\Modules\Ponto\Http\Controllers\AprovacaoController::class, 'validarMobile'])->name('ponto.aprovacoes.mobile.validar');
+        Route::post('/aprovacoes/mobile/{id}/recusar', [\Modules\Ponto\Http\Controllers\AprovacaoController::class, 'recusarMobile'])
+            ->middleware('can:ponto.aprovacoes.manage')
+            ->name('ponto.aprovacoes.mobile.recusar');
 
         // 4. Intercorrências
         Route::resource('/intercorrencias', 'IntercorrenciaController')->names([
@@ -55,9 +62,11 @@ Route::group(
             'edit'    => 'ponto.intercorrencias.edit',
             'update'  => 'ponto.intercorrencias.update',
             'destroy' => 'ponto.intercorrencias.destroy',
-        ]);
+        ])->whereUuid('intercorrencia');
         Route::post('/intercorrencias/{id}/submeter', 'IntercorrenciaController@submeter')->name('ponto.intercorrencias.submeter');
         Route::post('/intercorrencias/{id}/cancelar', 'IntercorrenciaController@cancelar')->name('ponto.intercorrencias.cancelar');
+        // Comprovante (atestado) — só quem aprova baixa; o controller decide (UC-INTCRE-04).
+        Route::get('/intercorrencias/{id}/anexo', 'IntercorrenciaController@anexo')->whereUuid('id')->name('ponto.intercorrencias.anexo');
 
         // IA — classifica descrição livre em campos estruturados
         Route::post('/intercorrencias-ai/classify', 'IntercorrenciaController@aiClassify')
@@ -66,26 +75,34 @@ Route::group(
 
         // 5. Banco de Horas
         Route::get('/banco-horas', 'BancoHorasController@index')->name('ponto.banco-horas.index');
-        Route::get('/banco-horas/{colaborador}', 'BancoHorasController@show')->name('ponto.banco-horas.show');
+        Route::get('/banco-horas/{colaborador}', 'BancoHorasController@show')->whereNumber('colaborador')->name('ponto.banco-horas.show');
         Route::post('/banco-horas/{colaborador}/ajuste', 'BancoHorasController@ajustarManual')->name('ponto.banco-horas.ajuste');
 
         // 6. Escalas
-        Route::resource('/escalas', 'EscalaController')->names([
+        // Sem `show`: o EscalaController nunca teve o método e não existe tela de detalhe
+        // (a lista leva a create/edit). Registrada, a rota dava 500 em todo GET /escalas/{id}
+        // (UC-ESCIDX-07). Agora é 405: a URI segue viva para PUT/DELETE. Não prometer no
+        // router o que o controller não entrega.
+        Route::resource('/escalas', 'EscalaController')->except('show')->names([
             'index'   => 'ponto.escalas.index',
             'create'  => 'ponto.escalas.create',
             'store'   => 'ponto.escalas.store',
-            'show'    => 'ponto.escalas.show',
             'edit'    => 'ponto.escalas.edit',
             'update'  => 'ponto.escalas.update',
             'destroy' => 'ponto.escalas.destroy',
-        ]);
+        ])->whereNumber('escala');
 
         // 7. Importações
+        // `{id}` é numérico no router: sem isso `/importacoes/create` (a rota de criação é
+        // `/novo`) casava o show com id="create", e o `int $id` estourava TypeError → 500.
+        // Toda rota GET de id deste arquivo tem o formato restrito no router: `whereNumber` nas
+        // 8 de chave inteira, `whereUuid` nas 3 de intercorrência (a chave é UUID —
+        // `Intercorrencia::$incrementing = false`). `relatorios/{chave}` é string e fica de fora.
         Route::get('/importacoes', 'ImportacaoController@index')->name('ponto.importacoes.index');
         Route::get('/importacoes/novo', 'ImportacaoController@create')->name('ponto.importacoes.create');
         Route::post('/importacoes', 'ImportacaoController@store')->name('ponto.importacoes.store');
-        Route::get('/importacoes/{id}', 'ImportacaoController@show')->name('ponto.importacoes.show');
-        Route::get('/importacoes/{id}/original', 'ImportacaoController@baixarOriginal')->name('ponto.importacoes.original');
+        Route::get('/importacoes/{id}', 'ImportacaoController@show')->whereNumber('id')->name('ponto.importacoes.show');
+        Route::get('/importacoes/{id}/original', 'ImportacaoController@baixarOriginal')->whereNumber('id')->name('ponto.importacoes.original');
 
         // Fechamento da competência (ADR 0413): permissão própria `ponto.fechar` (D1).
         Route::get('/fechamento', [\Modules\Ponto\Http\Controllers\FechamentoController::class, 'index'])
@@ -104,13 +121,34 @@ Route::group(
 
         // 9. Colaboradores
         Route::get('/colaboradores', 'ColaboradorController@index')->name('ponto.colaboradores.index');
-        Route::get('/colaboradores/{id}/editar', 'ColaboradorController@edit')->name('ponto.colaboradores.edit');
+        Route::get('/colaboradores/{id}/editar', 'ColaboradorController@edit')->whereNumber('id')->name('ponto.colaboradores.edit');
         Route::put('/colaboradores/{id}', 'ColaboradorController@update')->name('ponto.colaboradores.update');
 
         // 10. Configurações
         Route::get('/configuracoes', 'ConfiguracaoController@index')->name('ponto.configuracoes.index');
         Route::get('/configuracoes/reps', 'ConfiguracaoController@reps')->name('ponto.configuracoes.reps');
         Route::post('/configuracoes/reps', 'ConfiguracaoController@storeRep')->name('ponto.configuracoes.reps.store');
+    }
+);
+
+// ===========================================================================
+// 1b) REP-P (celular) — a tela do COLABORADOR, fora do `ponto.access` ([W] 2026-09-29:
+//     "colaborador sem ponto.access também acessa /ponto/mobile"). Mesma pilha web do grupo 1,
+//     MENOS o `ponto.access`: quem decide é o controller — sem cadastro de ponto
+//     (business_id + user_id + controla_ponto) a tela fica vazia e as ações dão 403.
+//     As ações são os MESMOS métodos JSON de /ponto/api, sob sessão web: não há
+//     CreateFreshApiToken no app, então uma tela Inertia não alcança auth:api.
+// ===========================================================================
+Route::group(
+    [
+        'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
+        'prefix'     => 'ponto',
+    ],
+    function () {
+        Route::get('/mobile', [MobileMarcacaoController::class, 'tela'])->name('ponto.mobile');
+        Route::post('/mobile/marcar', [MobileMarcacaoController::class, 'registrar'])->name('ponto.mobile.marcar');
+        Route::get('/mobile/marcacoes/hoje', [MobileMarcacaoController::class, 'marcacoesHoje'])->name('ponto.mobile.marcacoes.hoje');
+        Route::post('/mobile/intercorrencias', [MobileMarcacaoController::class, 'criarIntercorrencia'])->name('ponto.mobile.intercorrencias.store');
     }
 );
 
@@ -125,18 +163,20 @@ Route::group(
         'namespace'  => 'Modules\Ponto\Http\Controllers\Api',
     ],
     function () {
-        // Marcação (REP-P mobile)
-        Route::post('/marcar', function () { abort(501, 'Implementar em MarcacaoApiController::marcar'); });
-        Route::get('/marcacoes/hoje', function () { abort(501); });
-        Route::get('/saldo', function () { abort(501, 'Saldo banco de horas do usuário autenticado'); });
+        // REP-P sem selfie (ADR 0383). Tudo é do colaborador do usuário autenticado —
+        // o controller resolve e filtra business_id explícito (sem sessão, o
+        // ScopeByBusiness não filtra). Anti-fraude no MobileMarcacaoService.
+        Route::post('/marcar', [MobileMarcacaoController::class, 'registrar'])->name('ponto.api.marcar');
+        Route::get('/marcacoes/hoje', [MobileMarcacaoController::class, 'marcacoesHoje'])->name('ponto.api.marcacoes.hoje');
+        Route::get('/saldo', [MobileMarcacaoController::class, 'saldo'])->name('ponto.api.saldo');
 
-        // Intercorrências
-        Route::get('/intercorrencias', function () { abort(501); });
-        Route::post('/intercorrencias', function () { abort(501); });
+        // Intercorrências (justificar = cria e submete)
+        Route::get('/intercorrencias', [MobileMarcacaoController::class, 'intercorrencias'])->name('ponto.api.intercorrencias.index');
+        Route::post('/intercorrencias', [MobileMarcacaoController::class, 'criarIntercorrencia'])->name('ponto.api.intercorrencias.store');
 
-        // Escala e dashboard
-        Route::get('/escala/hoje', function () { abort(501); });
-        Route::get('/dashboard/kpis', function () { abort(501); });
+        // Escala e KPIs do próprio colaborador
+        Route::get('/escala/hoje', [MobileMarcacaoController::class, 'escalaHoje'])->name('ponto.api.escala.hoje');
+        Route::get('/dashboard/kpis', [MobileMarcacaoController::class, 'dashboardKpis'])->name('ponto.api.dashboard.kpis');
     }
 );
 

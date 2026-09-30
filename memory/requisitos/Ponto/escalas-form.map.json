@@ -3,18 +3,18 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Ponto/Escalas/Form (/ponto/escalas/create · /ponto/escalas/{id}/edit)",
   "gap_fonte": "memory/requisitos/Ponto/escalas-form-gap.md",
-  "prototipo_sha": "sha256:e4d0b5a3707e",
-  "gerado_em": "2026-09-28",
+  "prototipo_sha": "sha256:62977f0aeb68",
+  "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "cabecalho-com-titulo-dual",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "527-528"
+        "linhas": "552-553"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Escalas/Form.tsx",
-        "linhas": "78-83",
+        "linhas": "76-86",
         "ancora": false
       },
       "status": "paridade",
@@ -25,11 +25,11 @@
       "id": "nome-codigo-e-tipo",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "531-537"
+        "linhas": "557-561"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Escalas/Form.tsx",
-        "linhas": "99-119",
+        "linhas": "98-119",
         "ancora": false
       },
       "status": "paridade",
@@ -40,11 +40,11 @@
       "id": "cargas-e-banco-de-horas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "538-542"
+        "linhas": "548-549, 564-566"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Escalas/Form.tsx",
-        "linhas": "121-146",
+        "linhas": "120-146",
         "ancora": false
       },
       "status": "paridade",
@@ -55,11 +55,11 @@
       "id": "turnos-configurados",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "543-551"
+        "linhas": "568-576"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Escalas/Form.tsx",
-        "linhas": "151-187",
+        "linhas": "151-188",
         "ancora": false
       },
       "status": "decidir-w",
@@ -70,22 +70,23 @@
       "id": "nota-de-interjornada-e-intrajornada",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "552"
+        "linhas": "577"
       },
       "vivo": {
         "arquivo": "n/a",
         "linhas": "n/a",
         "ancora": false
       },
-      "status": "divergencia-declarada",
+      "status": "prototipo-a-frente",
       "acao": "Protótipo à frente; entra com a passada de FORMA.",
-      "_acionavel": true
+      "_acionavel": true,
+      "_nota": "2026-09-29: grep -c \"Art\\.\" Form.tsx = 0 — a nota só existe no protótipo (ponto-telas.jsx:577). O status era divergencia-declarada, mas o gap.md registra \"Protótipo à frente\"."
     },
     {
       "id": "rodape-e-destino-pos-salvar",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "553-556"
+        "linhas": "578-581"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Escalas/Form.tsx",

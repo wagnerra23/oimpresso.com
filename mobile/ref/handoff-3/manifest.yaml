@@ -1,0 +1,167 @@
+# manifest.yaml — índice legível por máquina/agente
+# Um agente (Claude Code) lê este arquivo para montar o grafo de
+# dependências e o plano de adaptação SEM abrir todos os arquivos.
+# layer: design | backend | doc
+# treatment: reference (reproduzir UX) | port (portar 1:1) | reuse (usar quase direto) | replace (trocar por dado real) | read (documentação)
+
+package:
+  name: handoff_export_oimpresso
+  title: "App Oimpresso Mobile — Claude Design → Claude Code"
+  version: "2.0.0"
+  generated: "2026-06-19"
+  golden_rule: "Regra de negócio vem do backend/; aparência e fluxo vêm do app/. Nunca reimplementar regra no front."
+
+read_first:
+  - { path: "README.md", role: "porta de entrada" }
+  - { path: "SDD-app-oimpresso-mobile.md", role: "prioridade 1 — o quê/por quê" }
+  - { path: "GUIA-CONSTRUCAO-MOBILE.md", role: "prioridade 2 — como construir" }
+  - { path: "HANDOFF-PROTOCOL.md", role: "prioridade 3 — export e aplicação" }
+  - { path: "INDEX.md", role: "catálogo humano" }
+
+load_order_prototype:   # ordem obrigatória dos <script> em app/Oimpresso Mobile.html
+  - react@18.3.1
+  - react-dom@18.3.1
+  - babel-standalone@7.29.0
+  - ios-frame.jsx
+  - android-frame.jsx
+  - tweaks-panel.jsx
+  - icons.jsx
+  - oi-store.jsx
+  - oi-flow.jsx
+  - mock-data.jsx
+  - oficina-data.jsx
+  - finance-data.jsx
+  - menu-perfis.jsx
+  - task-viewers.jsx
+  - screens-home-tasks.jsx
+  - dashboard-widgets.jsx
+  - screens-modules.jsx
+  - screens-novo-pedido.jsx
+  - screens-clientes-producao.jsx
+  - screens-producao.jsx
+  - screens-novo-cliente.jsx
+  - screens-novo-produto.jsx
+  - screens-oficina.jsx
+  - screens-oficina-os.jsx
+  - screens-oficina-cadastro.jsx
+  - screens-relatorios-equipe.jsx
+  - screens-financeiro.jsx
+  - screens-relatorios.jsx
+  - screens-equipamentos.jsx
+  - screens-perfis.jsx
+  - mobile-app.jsx
+
+files:
+  # ---------- DOC ----------
+  - { path: "README.md", layer: doc, kind: md, treatment: read, role: "porta de entrada" }
+  - { path: "SDD-app-oimpresso-mobile.md", layer: doc, kind: md, treatment: read, role: "design document" }
+  - { path: "GUIA-CONSTRUCAO-MOBILE.md", layer: doc, kind: md, treatment: read, role: "guia de construção" }
+  - { path: "HANDOFF-PROTOCOL.md", layer: doc, kind: md, treatment: read, role: "protocolo de handoff" }
+  - { path: "INDEX.md", layer: doc, kind: md, treatment: read, role: "catálogo humano" }
+  - { path: "manifest.yaml", layer: doc, kind: yaml, treatment: read, role: "catálogo máquina" }
+
+  # ---------- DESIGN: shell + skin ----------
+  - { path: "app/Oimpresso Mobile.html", layer: design, kind: html, treatment: reference, role: "shell + ordem de carga + 3 stages", deps: ["all jsx", "oimpresso-tokens.css"] }
+  - { path: "app/oimpresso-tokens.css", layer: design, kind: css, treatment: port, role: "SKIN: tokens claro/escuro/densidade + classes oi-*", deps: [] }
+  - { path: "app/icons.jsx", layer: design, kind: jsx, treatment: reference, role: "window.Ic — ícones", deps: [] }
+  - { path: "app/oi-store.jsx", layer: design, kind: jsx, treatment: replace, role: "OIStore/useStore/OISheet/OIPedidos (estado)", deps: ["react"], note: "andaime — substituir por React Query/Zustand + servidor" }
+  - { path: "app/oi-flow.jsx", layer: design, kind: jsx, treatment: replace, role: "OIFlow faturamento (contrato)", deps: ["oi-store.jsx"], maps_to: "backend routers/financeiro + domain/finance/titulos.ts" }
+  - { path: "app/mobile-app.jsx", layer: design, kind: jsx, treatment: reference, role: "shell: tab bar + nav stack", deps: ["oi-store.jsx", "window.Screens"] }
+  - { path: "app/ios-frame.jsx", layer: design, kind: jsx, treatment: reference, role: "moldura iOS", deps: ["react"] }
+  - { path: "app/android-frame.jsx", layer: design, kind: jsx, treatment: reference, role: "moldura Android", deps: ["react"] }
+  - { path: "app/tweaks-panel.jsx", layer: design, kind: jsx, treatment: reference, role: "painel de tweaks", deps: ["react"] }
+
+  # ---------- DESIGN: dados simulados (replace) ----------
+  - { path: "app/mock-data.jsx", layer: design, kind: jsx, treatment: replace, role: "window.MOCK: tenants/pedidos/produtos/KPIs/dashboard/produção", maps_to: "tRPC pedidos/produtos + contracts.ts" }
+  - { path: "app/oficina-data.jsx", layer: design, kind: jsx, treatment: replace, role: "OS, MANUT_PIPE, mecânicos, catálogo", maps_to: "tRPC producao/oficina" }
+  - { path: "app/finance-data.jsx", layer: design, kind: jsx, treatment: replace, role: "ledger FIN_LANC, contas, finResumo, coerência Início", maps_to: "tRPC financeiro + domain/finance" }
+  - { path: "app/menu-perfis.jsx", layer: design, kind: jsx, treatment: replace, role: "MENU_PERFIS por papel", maps_to: "domain/policy" }
+
+  # ---------- DESIGN: telas (reference) ----------
+  - { path: "app/screens-home-tasks.jsx", layer: design, kind: jsx, treatment: reference, role: "Início (tarefas)" }
+  - { path: "app/dashboard-widgets.jsx", layer: design, kind: jsx, treatment: reference, role: "widgets KPI (derivados)" }
+  - { path: "app/task-viewers.jsx", layer: design, kind: jsx, treatment: reference, role: "visualizadores de tarefa" }
+  - { path: "app/screens-modules.jsx", layer: design, kind: jsx, treatment: reference, role: "Pedidos+detalhe+faturar, Produtos, Notifs, Perfil, Empresa, Login", deps: ["oi-store.jsx", "oi-flow.jsx"] }
+  - { path: "app/screens-novo-pedido.jsx", layer: design, kind: jsx, treatment: reference, role: "wizard novo pedido" }
+  - { path: "app/screens-novo-cliente.jsx", layer: design, kind: jsx, treatment: reference, role: "cadastro cliente inline" }
+  - { path: "app/screens-novo-produto.jsx", layer: design, kind: jsx, treatment: reference, role: "cadastro produto (margem)" }
+  - { path: "app/screens-clientes-producao.jsx", layer: design, kind: jsx, treatment: reference, role: "Clientes" }
+  - { path: "app/screens-producao.jsx", layer: design, kind: jsx, treatment: reference, role: "Produção (triagem/fila/estações)" }
+  - { path: "app/screens-oficina.jsx", layer: design, kind: jsx, treatment: reference, role: "Oficina (pátio)" }
+  - { path: "app/screens-oficina-os.jsx", layer: design, kind: jsx, treatment: reference, role: "Detalhe OS (itens/aprovação/faturar)", deps: ["oi-flow.jsx"] }
+  - { path: "app/screens-oficina-cadastro.jsx", layer: design, kind: jsx, treatment: reference, role: "Cadastro de oficina" }
+  - { path: "app/screens-equipamentos.jsx", layer: design, kind: jsx, treatment: reference, role: "Frota/veículos" }
+  - { path: "app/screens-financeiro.jsx", layer: design, kind: jsx, treatment: reference, role: "Financeiro (lê fin.extra)", deps: ["finance-data.jsx", "oi-store.jsx"] }
+  - { path: "app/screens-relatorios.jsx", layer: design, kind: jsx, treatment: reference, role: "Relatórios" }
+  - { path: "app/screens-relatorios-equipe.jsx", layer: design, kind: jsx, treatment: reference, role: "Equipe" }
+  - { path: "app/screens-perfis.jsx", layer: design, kind: jsx, treatment: reference, role: "Perfis/permissões" }
+
+  # ---------- BACKEND: domínio (reuse — fonte única de regra) ----------
+  - { path: "backend/apps/server/src/domain/quote/quoteEngine.ts", layer: backend, kind: ts, treatment: reuse, role: "orçamento: imposição+custeio+regressiva" }
+  - { path: "backend/apps/server/src/domain/quote/imposition.ts", layer: backend, kind: ts, treatment: reuse, role: "nesting folha/bobina" }
+  - { path: "backend/apps/server/src/domain/quote/types.ts", layer: backend, kind: ts, treatment: reuse, role: "tipos de orçamento" }
+  - { path: "backend/apps/server/src/domain/inventory/inventoryService.ts", layer: backend, kind: ts, treatment: reuse, role: "estoque dimensional + custo médio" }
+  - { path: "backend/apps/server/src/domain/inventory/conversion.ts", layer: backend, kind: ts, treatment: reuse, role: "conversão de unidade" }
+  - { path: "backend/apps/server/src/domain/inventory/types.ts", layer: backend, kind: ts, treatment: reuse, role: "tipos de estoque" }
+  - { path: "backend/apps/server/src/domain/production/consumeStock.ts", layer: backend, kind: ts, treatment: reuse, role: "consumo de material pela OS" }
+  - { path: "backend/apps/server/src/domain/finance/titulos.ts", layer: backend, kind: ts, treatment: reuse, role: "título/parcela sem perder centavo + aging" }
+  - { path: "backend/apps/server/src/domain/finance/dre.ts", layer: backend, kind: ts, treatment: reuse, role: "DRE + fluxo projetado" }
+  - { path: "backend/apps/server/src/domain/fiscal/natureza.ts", layer: backend, kind: ts, treatment: reuse, role: "ISS×ICMS por natureza" }
+  - { path: "backend/apps/server/src/domain/fiscal/documentoStateMachine.ts", layer: backend, kind: ts, treatment: reuse, role: "máquina de estados do documento fiscal" }
+  - { path: "backend/apps/server/src/domain/fiscal/provider.ts", layer: backend, kind: ts, treatment: reuse, role: "adapter de provedor (anticorrupção)" }
+  - { path: "backend/apps/server/src/domain/policy.ts", layer: backend, kind: ts, treatment: reuse, role: "RBAC papéis×recursos×ações" }
+
+  # ---------- BACKEND: API tRPC + dados ----------
+  - { path: "backend/apps/server/src/routers/pedidos.ts", layer: backend, kind: ts, treatment: reuse, role: "router pedidos (tenant+version+audit)" }
+  - { path: "backend/apps/server/src/routers/orcamento.ts", layer: backend, kind: ts, treatment: reuse, role: "router orçamento (margem do cadastro)" }
+  - { path: "backend/apps/server/src/routers/estoque.ts", layer: backend, kind: ts, treatment: reuse, role: "router estoque" }
+  - { path: "backend/apps/server/src/routers/producao.ts", layer: backend, kind: ts, treatment: reuse, role: "router produção (baixa estoque)" }
+  - { path: "backend/apps/server/src/routers/financeiro.ts", layer: backend, kind: ts, treatment: reuse, role: "router financeiro (título por id)" }
+  - { path: "backend/apps/server/src/routers/fiscal.ts", layer: backend, kind: ts, treatment: reuse, role: "router fiscal (emissão por clique)" }
+  - { path: "backend/apps/server/src/trpc/trpc.ts", layer: backend, kind: ts, treatment: reuse, role: "init tRPC + protectedProcedure" }
+  - { path: "backend/apps/server/src/trpc/context.ts", layer: backend, kind: ts, treatment: reuse, role: "contexto (tenant) + withTenant" }
+  - { path: "backend/apps/server/src/trpc/appRouter.ts", layer: backend, kind: ts, treatment: reuse, role: "router raiz" }
+  - { path: "backend/apps/server/src/db/schema.ts", layer: backend, kind: ts, treatment: reuse, role: "modelo de dados Drizzle (UUID/tenant/cents/timestamptz)" }
+  - { path: "backend/apps/server/src/db/rls.sql", layer: backend, kind: sql, treatment: reuse, role: "Row-Level Security por tenant" }
+  - { path: "backend/apps/server/src/db/client.ts", layer: backend, kind: ts, treatment: reuse, role: "pool + drizzle" }
+  - { path: "backend/apps/server/src/db/seed.ts", layer: backend, kind: ts, treatment: reuse, role: "seed que prova a DoD" }
+  - { path: "backend/apps/server/src/lib/sequences.ts", layer: backend, kind: ts, treatment: reuse, role: "numeração atômica server-side" }
+  - { path: "backend/apps/server/src/lib/audit.ts", layer: backend, kind: ts, treatment: reuse, role: "audit log append-only" }
+  - { path: "backend/apps/server/src/auth/session.ts", layer: backend, kind: ts, treatment: reuse, role: "sessão → AuthUser" }
+  - { path: "backend/apps/server/src/auth/password.ts", layer: backend, kind: ts, treatment: reuse, role: "senha + 2FA (primário)" }
+  - { path: "backend/apps/server/src/auth/oauth.ts", layer: backend, kind: ts, treatment: reuse, role: "OAuth (secundário)" }
+  - { path: "backend/apps/server/src/index.ts", layer: backend, kind: ts, treatment: reuse, role: "entry HTTP tRPC" }
+
+  # ---------- BACKEND: shared + tokens + configs ----------
+  - { path: "backend/packages/shared/src/contracts.ts", layer: backend, kind: ts, treatment: reuse, role: "CONTRATOS zod — forma dos dados que as telas esperam", critical: true }
+  - { path: "backend/packages/shared/src/money.ts", layer: backend, kind: ts, treatment: reuse, role: "dinheiro em centavos + format pt-BR" }
+  - { path: "backend/packages/shared/src/index.ts", layer: backend, kind: ts, treatment: reuse, role: "barrel" }
+  - { path: "backend/packages/tokens/tokens.css", layer: backend, kind: css, treatment: port, role: "tokens canônicos (espelho do skin)" }
+  - { path: "backend/package.json", layer: backend, kind: json, treatment: reuse, role: "workspaces raiz" }
+  - { path: "backend/apps/server/package.json", layer: backend, kind: json, treatment: reuse, role: "deps do server" }
+  - { path: "backend/apps/web/package.json", layer: backend, kind: json, treatment: reuse, role: "deps do web (referência)" }
+  - { path: "backend/packages/shared/package.json", layer: backend, kind: json, treatment: reuse, role: "deps shared" }
+  - { path: "backend/packages/tokens/package.json", layer: backend, kind: json, treatment: reuse, role: "deps tokens" }
+  - { path: "backend/tsconfig.base.json", layer: backend, kind: json, treatment: reuse, role: "tsconfig base" }
+  - { path: "backend/apps/server/tsconfig.json", layer: backend, kind: json, treatment: reuse, role: "tsconfig server" }
+  - { path: "backend/apps/server/drizzle.config.ts", layer: backend, kind: ts, treatment: reuse, role: "Drizzle Kit (migrations)" }
+  - { path: "backend/docker-compose.yml", layer: backend, kind: yaml, treatment: reuse, role: "Postgres 16 local" }
+  - { path: "backend/vitest.config.ts", layer: backend, kind: ts, treatment: reuse, role: "config de testes" }
+  - { path: "backend/.env.example", layer: backend, kind: env, treatment: reuse, role: "variáveis de ambiente" }
+  - { path: "backend/README.md", layer: backend, kind: md, treatment: read, role: "setup do backend" }
+
+# Pontes design→produção (o que o agente troca)
+bridges:
+  - { from: "app/mock-data.jsx + OIStore", to: "tRPC", contract: "backend/packages/shared/contracts.ts" }
+  - { from: "app/oi-flow.jsx (OIFlow.faturar)", to: "backend routers/financeiro.criarReceber", contract: "domain/finance/titulos.ts" }
+  - { from: "app/oi-store.jsx (OIPedidos.advance)", to: "backend routers/producao + FSM", contract: "pipeline canônico" }
+  - { from: "app preço digitado", to: "backend routers/orcamento.calcular", contract: "domain/quote (servidor autoritativo)" }
+
+apply_steps:   # resumo — detalhe em HANDOFF-PROTOCOL §5
+  - "Ler README → SDD → GUIA → HANDOFF-PROTOCOL → INDEX"
+  - "Subir backend: docker compose up → pnpm i → drizzle:migrate → rls.sql → seed → vitest"
+  - "Mapear contratos em packages/shared/contracts.ts"
+  - "Portar skin (oimpresso-tokens.css) para tokens do framework"
+  - "Reproduzir telas trocando window.MOCK/OIStore por dados tRPC"
+  - "Religar fluxos via routers (não reimplementar OIFlow)"
+  - "Gates (0 erro console, gate de papel, número derivado, E2E) → rollout flag+canary"

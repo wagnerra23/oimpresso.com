@@ -27,11 +27,26 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { formatMinutes } from '@/Lib/utils';
 import { Inline } from '@/Components/layout/inline';
 
-import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
+import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import Toolbar from '@/Components/shared/Toolbar';
 
 /** Rótulos do enum `ponto_escalas.tipo` — os mesmos do protótipo (`TIPOS_ESCALA`) e do Form. */
+// Pílulas da tabela na forma do protótipo (`ponto-page.jsx` → `Pill` → StatusBadge do DS),
+// medida no DOM do espelho em 2026-09-29 (tema escuro, 1280): fundo SÓLIDO no tom, texto
+// branco, sem dot, 11.5px/500, padding 2px 10px; "Não" em fundo neutro com texto de primeiro
+// plano. Os fundos são tokens que já existem (`--color-info`, `--color-success`,
+// `--color-secondary`), então light e dark seguem o tema sozinhos — nenhum token novo.
+// Produção usava o tom `-soft` com dot, o padrão do Badge do DS; aqui o protótipo manda
+// (ADR UI-0029, eixo forma). Réplica local de propósito (ADR 0388 §D-1): mudar o Badge
+// compartilhado mexeria nas outras telas que o importam.
+const pilulaBase = 'border-transparent px-2.5 text-[11.5px] font-medium';
+const pilulaSolida = {
+  info: `${pilulaBase} bg-info text-white`,
+  success: `${pilulaBase} bg-success text-white`,
+  neutra: `${pilulaBase} bg-secondary text-secondary-foreground`,
+} as const;
+
 const TIPOS_ESCALA: Record<string, string> = {
   FIXA: 'Fixa',
   FLEXIVEL: 'Flexível',
@@ -92,17 +107,8 @@ export default function EscalasIndex({ escalas }: Props) {
       {/* `ponto-root` e `pt-body` são ganchos de medição — os seletores do ALVO em
           governance/design/targets/ponto--escalas--index.secoes.json. Não têm CSS próprio. */}
       <div className="ponto-root mx-auto max-w-7xl p-6 space-y-4">
-        {/* ADR 0182 PageHeader canon — Wave Ponto 2026-05-22. Cabeçalho e abas mudam na W9
-            (ADR 0418), em PR próprio. "Nova escala" mora na barra, como no protótipo. */}
-        <header className="os-page-h">
-          <div className="os-page-h-l">
-            <h1>Escalas <span className="text-stone-400 font-normal">· Padrões de jornada</span></h1>
-            <p>Fixa, flexível, 12x36, etc. Cada escala tem turnos por dia da semana.</p>
-          </div>
-          <div className="os-page-h-r">
-            <PontoSubNav active="escalas" hidePrimary />
-          </div>
-        </header>
+        {/* W9 (ADR 0418): header de módulo + abas do protótipo. "Nova escala" mora na barra. */}
+        <PontoAreaHeader active="escalas" />
 
         <div className="pt-body space-y-4">
           {/* BARRA — `window.PtBarra` do protótipo: Toolbar do DS dentro da própria moldura. */}
@@ -168,7 +174,7 @@ export default function EscalasIndex({ escalas }: Props) {
                         <tbody className="divide-y divide-border">
                           {escalas.data.map((e) => (
                             <tr key={e.id} className="hover:bg-accent/30">
-                              <td className="px-3 py-2 font-mono text-xs">{e.codigo ?? '—'}</td>
+                              <td className="px-3 py-2 font-mono text-[11.5px]">{e.codigo ?? '—'}</td>
                               <td className="px-3 py-2">
                                 <span className="block font-semibold">{e.nome}</span>
                                 <small className="block text-xs text-muted-foreground" data-testid={`escala-${e.id}-turno`}>
@@ -176,14 +182,16 @@ export default function EscalasIndex({ escalas }: Props) {
                                 </small>
                               </td>
                               <td className="px-3 py-2">
-                                {/* `Pill tom="info"` do protótipo = StatusBadge sem domínio → Badge com dot. */}
-                                <Badge variant="info" dot className="font-medium">{TIPOS_ESCALA[e.tipo] ?? e.tipo}</Badge>
+                                <Badge variant="info" className={pilulaSolida.info}>{TIPOS_ESCALA[e.tipo] ?? e.tipo}</Badge>
                               </td>
                               <td className="px-3 py-2 text-right font-mono tabular-nums">{formatMinutes(e.carga_diaria_minutos)}</td>
                               <td className="px-3 py-2 text-right font-mono tabular-nums">{formatMinutes(e.carga_semanal_minutos)}</td>
                               <td className="px-3 py-2 text-right font-mono tabular-nums">{e.turnos_count}</td>
                               <td className="px-3 py-2">
-                                <Badge variant={e.permite_banco_horas ? 'success' : 'neutral'} dot className="font-medium">
+                                <Badge
+                                  variant={e.permite_banco_horas ? 'success' : 'secondary'}
+                                  className={e.permite_banco_horas ? pilulaSolida.success : pilulaSolida.neutra}
+                                >
                                   {e.permite_banco_horas ? 'Permite' : 'Não'}
                                 </Badge>
                               </td>

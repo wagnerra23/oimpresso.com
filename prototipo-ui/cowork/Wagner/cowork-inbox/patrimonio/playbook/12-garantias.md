@@ -1,45 +1,35 @@
 ---
 sessao: "12"
-titulo: Garantias — tela nova sobre dado que já existe
+titulo: Garantias — recorte "Garantia crítica" dentro de Bens (reescrita 2026-09-29, D-GARANTIAS)
 dono: "[CL]"
-base: main pos-ADR-0394
-constituicao: CONSTITUICAO-COWORK.md (C1-C12)
-prefixo: resources/js/Pages/Patrimonio/Garantias/ · rota nova em Routes/web.php · controller novo
-nao_toca: _shared/ · os 5 controllers existentes
-depende: **07** — e a decisão [W] 4 (tela própria ou filtro de Bens?)
+base: wagnerra23/oimpresso.com@main a71c2f2d052f (lida 2026-09-29) — reler no turno
+prefixo: Modules/AssetManagement/Http/Controllers/AssetController.php (@index) · resources/js/Pages/Patrimonio/Bens.tsx · Bens.charter.md · Bens.casos.md
+nao_toca: resources/js/Pages/Patrimonio/Garantias/ (não nasce) · Routes/web.php (nenhuma rota nova) · _shared/
+depende: thread 07 · D-GARANTIAS
 ---
-# 12 · Garantias — tela nova sobre dado que já existe
+# 12 · Garantias vira recorte de Bens
 
-## ÂNCORA (congelada — remedir se o sha mudou)
-```
-tabela    asset_warranties          migration EXISTE (1 no repo)
-rota      NAO EXISTE — esta thread cria
-proto     patrimonio-page.jsx  aba "Garantias"  (5 itens no mock)
-consumo   AssetController:482-:497 ja le asset_warranties no dashboard ($expiring_assets)
-```
+## Decisão
+**D-GARANTIAS = filtro dentro de Bens, sem tela própria** ([W] 2026-09-29, decide-for-me sobre a recomendação do [CC]). A versão anterior desta ficha (tela `Garantias/` + rota + controller novos) está **revogada**.
 
-## A · O alvo
-**Não é construção do zero.** A tabela `asset_warranties` existe e já é lida pelo `dashboard()`. O que
-falta é rota, controller e tela — a capacidade está no banco, sem porta.
+## O que o `main` diz hoje (medido)
+- `Bens.tsx:17` e `Bens.charter.md:75` — os sub-recortes "Garantia crítica" / "Em manutenção" ficaram **fora** porque pedem predicado SQL novo.
+- `Bens.charter.md:108` — **proíbe** derivar "garantia crítica" no cliente a partir de `dias_restantes`. Essa proibição **continua**: o recorte nasce no servidor.
+- `Bens.casos.md:168` — os sub-recortes estão em `[BACKLOG]`.
+- `AssetController.php:18` já usa `AssetWarranty`; `:213-223` lê a janela da garantia por linha.
 
-⚠️ **Decisão [W] 4 em aberto**: Garantias é **tela própria** ou **filtro da tela de Bens**? O protótipo
-mostra aba própria; o backend só tem a leitura embutida no dashboard. **Se [W] não tiver decidido
-quando esta thread abrir, PARE** — construir a tela errada custa refazer.
+## Alvo (protótipo)
+`patrimonio-page.jsx` — `CliTabs` "Recorte do patrimônio" (`:353-360`): Todos · Alocáveis · **Garantia crítica** · Em manutenção. Predicado do protótipo (`:269`): garantia **vencida ou vencendo em 30 dias**; bem **sem** registro de garantia **não** entra (vai para "sem garantia", `:185`).
 
-## B · Não inventar
-- Não crie coluna nova em `asset_warranties`. Se faltar campo para o desenho, declare.
-- O `dashboard()` já tem a query de garantia vencendo (`:482-:497`, corrigida no PR #7018) — **reuse**,
-  não escreva uma segunda contagem. Duas fontes para o mesmo número é como o bug renasce.
+## Execução (1 PR ≤ 300 linhas)
+1. `AssetController@index`: aceitar `recorte=garantia` (whitelist, valor fora vira `todos`) → `whereHas('warranties', end_date <= hoje + 30 dias)` com `business_id` explícito; devolver a **contagem** do recorte junto (o cliente não conta).
+2. `Bens.tsx`: sub-recorte "Garantia crítica" com a contagem do servidor; troca faz `router.get` com `recorte`.
+3. `Bens.charter.md`: tirar o Non-Goal `:75` **só para Garantia crítica**; `:108` fica.
+4. `Bens.casos.md`: UC do recorte (Dado · Quando · Então) + controle negativo (bem sem garantia não aparece); `:168` sai do BACKLOG só para este recorte.
 
-## Execução
-```
-PASSO  0) CONFIRMAR a decisao [W] 4. Sem ela, PARE.
-       1) confirmar 07 mergeada
-       2) RUNBOOK + charter + casos
-       3) rota + controller + Inertia
-       4) _saida-06f.md
-PARAR SE a decisao 4 nao existir, ou se o desenho exigir campo que a tabela nao tem
-```
+## PARAR SE
+- o predicado exigir mudar `asset_warranties` (migration) → outro PR;
+- alguém propor "Em manutenção" junto → não foi decidido; fica BACKLOG.
 
-## Checklist de saída
-1. decisão [W] 4 confirmada · 2. 07 mergeada · 3. charter + casos · 4. rota + controller · 5. query de garantia REUSADA do dashboard · 6. 9 Pest verdes · 7. placar
+## Prova
+`Bens.tsx` contém `Garantia crítica` · `Garantias/Index.tsx` **ausente** · Pest do recorte com tenant cruzado · `_saida-12.md`.

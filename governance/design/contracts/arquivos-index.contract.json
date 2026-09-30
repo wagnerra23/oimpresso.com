@@ -1,5 +1,5 @@
 {
-  "_nota": "Contrato de tela de Arquivos/Index (/arquivos). PRIMEIRO consumidor da regra que o gerador passou a carimbar sozinho — esta tela nasceu ANTES dela, então o contrato é escrito contra a tela REAL. Roda no job \"Preflight + contratos ativos\" junto com os outros. A copy abaixo foi DERIVADA do .tsx por script (headers de coluna, labels de aba, empty states, placeholder), nunca transcrita: cada string foi provada presente no alvo antes de o arquivo ser escrito.",
+  "_nota": "Contrato de tela de Arquivos/Index (/arquivos). PRIMEIRO consumidor da regra que o gerador passou a carimbar sozinho — esta tela nasceu ANTES dela, então o contrato é escrito contra a tela REAL. Roda no job \"Contratos de tela (fidelidade + intenção)\" junto com os outros. A copy abaixo foi DERIVADA do .tsx por script (headers de coluna, labels de aba, empty states, placeholder), nunca transcrita: cada string foi provada presente no alvo antes de o arquivo ser escrito.",
   "tela": "Arquivos/Index",
   "fonte": "prototipo-ui/cowork/Wagner/arquivos-page.jsx",
   "_nota_fonte": "Mesma âncora que o charter declara em `related_prototype` e que `node scripts/design/ancora.mjs Arquivos/Index` resolve. A tela do PR-1 foi derivada dela.",

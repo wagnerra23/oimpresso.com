@@ -79,6 +79,8 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
     prioridade: 'NORMAL' as 'NORMAL' | 'URGENTE',
     impacta_apuracao: false,
     descontar_banco_horas: false,
+    // D-INTERC-ANEXO (UC-INTCRE-04): vai no multipart (forceFormData no submit).
+    anexo: null as File | null,
   });
 
   const [descricaoLivre, setDescricaoLivre] = useState('');
@@ -238,7 +240,7 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
 
         {/* ================== Form estruturado ================== */}
         <form onSubmit={submit} className="space-y-4">
-          <Card>
+          <Card data-contract="intercorrencias-dados-da-ocorrencia">
             <CardHeader>
               <CardTitle className="text-base">Dados da ocorrência</CardTitle>
               <CardDescription className="text-xs">
@@ -359,6 +361,18 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
                 <p className="text-[10px] text-muted-foreground mt-1">
                   {form.data.justificativa.length}/2000 · mínimo 10
                 </p>
+              </Field>
+
+              {/* Rótulo e formatos do protótipo (ponto-telas.jsx, form de nova intercorrência).
+                  Atestado é dado de saúde (LGPD Art. 11): o arquivo vai para disco privado e só
+                  quem aprova baixa — UC-INTCRE-04. */}
+              <Field label="Anexo (PDF, JPG, PNG — máx 5 MB)" htmlFor="anexo" error={form.errors.anexo}>
+                <Input
+                  id="anexo"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => form.setData('anexo', e.target.files?.[0] ?? null)}
+                />
               </Field>
 
               <div className="flex flex-col gap-2 pt-2">

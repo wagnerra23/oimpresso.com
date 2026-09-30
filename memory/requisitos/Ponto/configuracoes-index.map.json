@@ -3,33 +3,34 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Ponto/Configuracoes/Index (/ponto/configuracoes)",
   "gap_fonte": "memory/requisitos/Ponto/configuracoes-index-gap.md",
-  "prototipo_sha": "sha256:e4d0b5a3707e",
-  "gerado_em": "2026-09-28",
+  "prototipo_sha": "sha256:62977f0aeb68",
+  "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "nota-somente-leitura-e-atalho-de-reps",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "993-995"
+        "linhas": "1035-1037"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
-        "linhas": "97-107",
+        "linhas": "99-103",
         "ancora": false
       },
-      "status": "paridade",
-      "acao": "Nada — paridade de conteúdo; a posição do botão é FORMA.",
-      "_acionavel": false
+      "status": "gap",
+      "acao": "Restaurar no vivo a nota somente leitura: é conteúdo que o vivo tinha até o #8118 (2026-09-29), não FORMA. A posição do botão \"Gerenciar REPs\" segue sendo FORMA.",
+      "_acionavel": true,
+      "_nota": "2026-09-29: a faixa viva cobre só o botão \"Gerenciar REPs\" — a nota \"read-only… edite config/pontowr2.php\" saiu com o header próprio no #8118; grep -n \"pontowr2\" Index.tsx = 1 (o comentário da Index.tsx:19). No protótipo a faixa é a Nota \"Somente leitura\" com o atalho inline para o cadastro de REPs; o botão \"Gerenciar REPs cadastrados\" fica no card REP (ponto-telas.jsx:1075)."
     },
     {
       "id": "regras-clt-e-reforma-trabalhista",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "997-1009"
+        "linhas": "1039-1051"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
-        "linhas": "111-129",
+        "linhas": "106-124",
         "ancora": "configuracoes-regras-clt-reforma-trabalhista"
       },
       "status": "paridade",
@@ -40,11 +41,11 @@
       "id": "banco-de-horas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "1010-1020"
+        "linhas": "1052-1062"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
-        "linhas": "131-146",
+        "linhas": "126-141",
         "ancora": "configuracoes-banco-de-horas"
       },
       "status": "paridade",
@@ -55,11 +56,11 @@
       "id": "rep-e-imutabilidade",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "1021-1035"
+        "linhas": "1063-1077"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
-        "linhas": "148-176",
+        "linhas": "143-171",
         "ancora": "configuracoes-rep-e-imutabilidade-de-marcacoes"
       },
       "status": "paridade",
@@ -70,11 +71,11 @@
       "id": "afd-e-esocial",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "1036-1046"
+        "linhas": "1078-1088"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
-        "linhas": "178-193",
+        "linhas": "173-188",
         "ancora": "configuracoes-afd-importacao-esocial"
       },
       "status": "paridade",
@@ -85,16 +86,17 @@
       "id": "ia-do-ponto",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "1047-1055"
+        "linhas": "1089-1097"
       },
       "vivo": {
         "arquivo": "n/a",
         "linhas": "n/a",
         "ancora": false
       },
-      "status": "decidir-w",
-      "acao": "Incorporar — `D-CFG-IA` = INCORPORA, com a condição da ata. Ver `D-CFG-IA-CAMINHO` abaixo: a condição não está satisfeita hoje.",
-      "_acionavel": true
+      "status": "gap",
+      "acao": "Incorporar o 5º bloco somente leitura — `D-CFG-IA` = INCORPORA. O charter (emenda da thread 27, #8095, 2026-09-28) registra que, sem caminho de pacote/permissão, o bloco \"IA do Ponto\" é só leitura e está \"a construir\". Exige enviar `ai` no payload do controller.",
+      "_acionavel": true,
+      "_nota": "2026-09-29: grep -c \"config.ai\" Configuracoes/Index.tsx = 0 e grep -c \"'ai'\" ConfiguracaoController.php = 0 — o vivo não lê nem recebe o bloco."
     }
   ]
 }

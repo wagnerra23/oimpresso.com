@@ -3,23 +3,23 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Ponto/Intercorrencias/Create (/ponto/intercorrencias/create)",
   "gap_fonte": "memory/requisitos/Ponto/intercorrencias-create-gap.md",
-  "prototipo_sha": "sha256:e4d0b5a3707e",
-  "gerado_em": "2026-09-28",
+  "prototipo_sha": "sha256:62977f0aeb68",
+  "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "cabecalho-da-pagina",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "298-301"
+        "linhas": "240-243"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
-        "linhas": "158-168",
+        "linhas": "160-170",
         "ancora": false
       },
-      "status": "prototipo-corrige",
-      "acao": "Protótipo corrige (D-PONTO-DETALHE, R2): o form vira página com cabeçalho.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Nada — paridade desde 2026-09-29: a thread 28 deu ao protótipo a página própria com cabeçalho (`ponto-telas.jsx:240-243`), cumprindo D-PONTO-DETALHE. A copy (\"Nova Intercorrência\" × \"Nova intercorrência\") é da passada de FORMA.",
+      "_acionavel": false
     },
     {
       "id": "campo-ia-em-texto-livre",
@@ -29,7 +29,7 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
-        "linhas": "170-237",
+        "linhas": "173-239",
         "ancora": false
       },
       "status": "vivo-a-frente",
@@ -44,7 +44,7 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
-        "linhas": "250-288",
+        "linhas": "253-291",
         "ancora": false
       },
       "status": "paridade",
@@ -59,7 +59,7 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
-        "linhas": "290-347",
+        "linhas": "293-351",
         "ancora": false
       },
       "status": "prototipo-corrige",
@@ -74,7 +74,7 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
-        "linhas": "350-361",
+        "linhas": "353-364",
         "ancora": false
       },
       "status": "paridade",
@@ -89,7 +89,7 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
-        "linhas": "300-382",
+        "linhas": "303-397",
         "ancora": false
       },
       "status": "paridade",
@@ -103,13 +103,13 @@
         "linhas": "188-190"
       },
       "vivo": {
-        "arquivo": "n/a",
-        "linhas": "n/a",
+        "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
+        "linhas": "369-376",
         "ancora": false
       },
-      "status": "gap",
-      "acao": "Gap real (D-INTERC-ANEXO: INCORPORA). Implementar com a ressalva de [W]: arquivo não público, fora de log, acesso por permissão. A emenda do charter é da thread 27; o código é PR próprio.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Nada — incorporado em 2026-09-29 pelo #8128 (`UC-INTCRE-04`, `D-INTERC-ANEXO`): campo com o rótulo e os formatos do protótipo; arquivo fora do webroot, fora de log, download só para quem aprova. Sem data-contract (o campo vive no wrapper Field).",
+      "_acionavel": false
     },
     {
       "id": "nota-de-rascunho-e-append-only",
@@ -119,12 +119,12 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
-        "linhas": "244-246",
+        "linhas": "246-249",
         "ancora": false
       },
-      "status": "gap",
-      "acao": "Gap real no vivo: a copy promete um efeito que o salvar não tem. Trocar pela frase do protótipo. É copy, mas é copy que descreve comportamento — por isso não espera a passada de FORMA.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Nada — corrigido no vivo pelo #8076 (copy + teste em `IntercorrenciaContratoTest.php`). A diferença que sobra é de FORMA (`Nota` × `CardDescription`), da passada de forma.",
+      "_acionavel": false
     },
     {
       "id": "rodape-de-acoes",
@@ -134,7 +134,7 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
-        "linhas": "385-403",
+        "linhas": "401-418",
         "ancora": false
       },
       "status": "prototipo-corrige",

@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 208 arquivos em 18 papéis.
+**Total mapeado:** 225 arquivos em 18 papéis.
 
 ## Controllers — 15
 
@@ -48,8 +48,9 @@ module: Ponto
 
 - [CheckPontoAccess.php](../../../Modules/Ponto/Http/Middleware/CheckPontoAccess.php)
 
-## Services — 13
+## Services — 14
 
+- [AbasContadoresService.php](../../../Modules/Ponto/Services/AbasContadoresService.php)
 - [AfdParserService.php](../../../Modules/Ponto/Services/AfdParserService.php)
 - [ApuracaoService.php](../../../Modules/Ponto/Services/ApuracaoService.php)
 - [BancoHorasService.php](../../../Modules/Ponto/Services/BancoHorasService.php)
@@ -93,7 +94,7 @@ module: Ponto
 
 - [PontoServiceProvider.php](../../../Modules/Ponto/Providers/PontoServiceProvider.php)
 
-## Migrations (schema) — 9
+## Migrations (schema) — 10
 
 - [2026_04_18_000001_create_ponto_colaborador_config_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000001_create_ponto_colaborador_config_table.php)
 - [2026_04_18_000002_create_ponto_reps_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000002_create_ponto_reps_table.php)
@@ -104,6 +105,7 @@ module: Ponto
 - [2026_04_18_000007_create_ponto_banco_horas_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000007_create_ponto_banco_horas_table.php)
 - [2026_04_18_000008_create_ponto_importacoes_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000008_create_ponto_importacoes_table.php)
 - [2026_09_25_000001_create_ponto_competencias_table.php](../../../Modules/Ponto/Database/Migrations/2026_09_25_000001_create_ponto_competencias_table.php)
+- [2026_09_29_000001_add_motivo_anulacao_to_ponto_marcacoes.php](../../../Modules/Ponto/Database/Migrations/2026_09_29_000001_add_motivo_anulacao_to_ponto_marcacoes.php)
 
 ## Seeders — 2
 
@@ -119,7 +121,7 @@ module: Ponto
 
 - [espelho-pdf.blade.php](../../../Modules/Ponto/Resources/views/reports/espelho-pdf.blade.php)
 
-## Telas (Inertia/React) — 23
+## Telas (Inertia/React) — 24
 
 - [Index.tsx](../../../resources/js/Pages/Ponto/Aprovacoes/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Ponto/BancoHoras/Index.tsx)
@@ -142,18 +144,23 @@ module: Ponto
 - [Edit.tsx](../../../resources/js/Pages/Ponto/Intercorrencias/Edit.tsx)
 - [Index.tsx](../../../resources/js/Pages/Ponto/Intercorrencias/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/Ponto/Intercorrencias/Show.tsx)
+- [Index.tsx](../../../resources/js/Pages/Ponto/Mobile/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Ponto/Relatorios/Index.tsx)
 - [Welcome.tsx](../../../resources/js/Pages/Ponto/Welcome.tsx)
 
-## Componentes / apoio de tela — 5
+## Componentes / apoio de tela — 9
 
+- [FilaMobile.tsx](../../../resources/js/Pages/Ponto/Aprovacoes/_components/FilaMobile.tsx)
+- [Justificar.tsx](../../../resources/js/Pages/Ponto/Mobile/_components/Justificar.tsx)
+- [MeuEspelho.tsx](../../../resources/js/Pages/Ponto/Mobile/_components/MeuEspelho.tsx)
 - [ActivityFeed.tsx](../../../resources/js/Pages/Ponto/_components/ActivityFeed.tsx)
 - [AlertInbox.tsx](../../../resources/js/Pages/Ponto/_components/AlertInbox.tsx)
 - [MonthHeatmap.tsx](../../../resources/js/Pages/Ponto/_components/MonthHeatmap.tsx)
 - [PresenceStrip.tsx](../../../resources/js/Pages/Ponto/_components/PresenceStrip.tsx)
+- [PontoAreaHeader.tsx](../../../resources/js/Pages/Ponto/_shared/PontoAreaHeader.tsx)
 - [PontoSubNav.tsx](../../../resources/js/Pages/Ponto/_shared/PontoSubNav.tsx)
 
-## Charters (lei da tela) — 23
+## Charters (lei da tela) — 24
 
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Aprovacoes/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Ponto/BancoHoras/Index.charter.md)
@@ -176,10 +183,11 @@ module: Ponto
 - [Edit.charter.md](../../../resources/js/Pages/Ponto/Intercorrencias/Edit.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Intercorrencias/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Ponto/Intercorrencias/Show.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Ponto/Mobile/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Relatorios/Index.charter.md)
 - [Welcome.charter.md](../../../resources/js/Pages/Ponto/Welcome.charter.md)
 
-## Casos (contrato UC) — 23
+## Casos (contrato UC) — 24
 
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Aprovacoes/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/BancoHoras/Index.casos.md)
@@ -202,16 +210,17 @@ module: Ponto
 - [Edit.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Edit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Show.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Ponto/Mobile/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Relatorios/Index.casos.md)
 - [Welcome.casos.md](../../../resources/js/Pages/Ponto/Welcome.casos.md)
 
-## Testes (Pest) — 52
+## Testes (Pest) — 59
 
-- 50 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
+- 57 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
 - 2 em [Modules/Ponto/Tests/Unit/](../../../Modules/Ponto/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 15
+## Demais arquivos (manifestos, docs, assets e misc) — 16
 
 - [.gitignore](../../../Modules/Ponto/.gitignore)
 - [test_write.tmp](../../../Modules/Ponto/Database/Migrations/test_write.tmp)
@@ -221,6 +230,7 @@ module: Ponto
 - [IntercorrenciaFactory.php](../../../Modules/Ponto/Database/factories/IntercorrenciaFactory.php)
 - [MarcacaoFactory.php](../../../Modules/Ponto/Database/factories/MarcacaoFactory.php)
 - [routes.php](../../../Modules/Ponto/Http/routes.php)
+- [ponto.php](../../../Modules/Ponto/Resources/lang/en/ponto.php)
 - [ponto.php](../../../Modules/Ponto/Resources/lang/pt-BR/ponto.php)
 - [ponto.php](../../../Modules/Ponto/Resources/lang/pt/ponto.php)
 - [topnav.php](../../../Modules/Ponto/Resources/menus/topnav.php)

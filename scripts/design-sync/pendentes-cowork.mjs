@@ -35,12 +35,44 @@
 //   node scripts/design-sync/pendentes-cowork.mjs --registrar-envio-todos
 //   node scripts/design-sync/pendentes-cowork.mjs --check              # exit 1 se há não-enviado
 //   node scripts/design-sync/pendentes-cowork.mjs --limpar-confirmados # o retorno já trouxe
+//   node scripts/design-sync/pendentes-cowork.mjs --projeto copia ...  # o 2º projeto (abaixo)
+//   node scripts/design-sync/pendentes-cowork.mjs --conferir <dir> [--projeto copia]
+//   node scripts/design-sync/pendentes-cowork.mjs --resumo [--so <rel>...]  # os 2 projetos, 1 linha cada
+//
+// ── UM GIT, DOIS PROJETOS NO CLAUDE DESIGN ([W] 2026-09-29) ─────────────────────
+// [W], textual: "quero 1 git e dois desing syncronizado com ultimo git". Reabre a D4 de
+// 2026-09-25 (proposta 2026-09-24-sincronia-entre-contas-cowork-por-dono §9) no ponto que ela
+// deixou aberto: a conta da Maiara/Felipe não entra no projeto do [W] (conta pessoal; o
+// compartilhamento do Claude Design só vale dentro de organização Team/Enterprise). A fonte é
+// o git (`prototipo-ui/cowork/Wagner/`); os dois projetos recebem cópia dele:
+//   · `w`     — o projeto de telas do [W]. Critério de sempre: sha do git × bundle ativo.
+//   · `copia` — PROJETOS.telasFelipe ("PRODUTO UNIFICADO V2"), onde a Maiara vê a tela. Não
+//               manda retorno, então não há bundle: pendente = sha do git ≠ sha do último
+//               envio registrado para ESTE projeto. Estado próprio, para as contas não se pisarem.
+// Cada conta sobe o seu: do login do [W] só o `w` é gravável; o `copia` sobe da sessão
+// da Maiara — e qualquer um dos dois, conferido, satisfaz o check do espelho. O upload continua fora deste script (ADR 0315): ele SABE o que subir, não sobe.
+//
+// --conferir <dir>: depois de subir, o agente lê de volta (`get_file`) e salva cada arquivo em
+// <dir>/<rel>. O comando compara byte a byte com o git e, só se TODOS baterem, registra o envio
+// — e grava a rodada no ledger do `cowork-mirror-freshness` (é o que o check "espelho — mexeu
+// depois de verificar" lê), pelo próprio `--snapshot-from`/`--compare` dele, marcando de qual
+// projeto veio a leitura. Vale para os DOIS projetos ([W] 2026-09-29: "a maiara deveria poder
+// fazer isso"): antes só o `w` gravava, e um PR da Maiara que tocasse o espelho só destravava
+// com uma sessão logada na conta do [W]. Com o git como fonte, ler de volta do `copia` prova o
+// mesmo fato — o arquivo commitado é o que está num projeto do Claude Design. O `w` não fica
+// esquecido: sem retorno que o traga, o arquivo segue pendente no `--projeto w`, e o
+// receber-handoff recusa retorno que o sobrescreveria.
+// ⚠️ NÃO elimina a cópia manual: `get_file` devolve arquivo pequeno INLINE, e salvar o inline é
+// escrita do agente (ADR 0389). O que ele elimina são os 4 passos à mão e o risco de registrar
+// envio sem conferir — a comparação é que prova a cópia, não a confiança nela.
 
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PROJETOS } from '../design/protocolo.config.mjs';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 export const REPO = resolve(AQUI, '..', '..');
@@ -48,6 +80,12 @@ export const ESPELHO_REL = 'prototipo-ui/cowork/Wagner';
 export const ATIVO_REL = 'scripts/design-sync/state/active-bundle.json';
 export const ENVIADOS_REL = 'scripts/design-sync/state/enviados-cowork.json';
 export const COWORK_PROJECT_ID = '019dcfd3-6ef2-7ee6-8512-b1b0e5544e58';
+
+/** Os dois destinos. O ID do 2º vem do painel (`PROJETOS.telasFelipe`), nunca repetido aqui. */
+export const DESTINOS = {
+  w: { projectId: COWORK_PROJECT_ID, enviados: ENVIADOS_REL, criterio: 'bundle' },
+  copia: { projectId: PROJETOS.telasFelipe.id, enviados: 'scripts/design-sync/state/enviados-cowork-copia.json', criterio: 'envio' },
+};
 
 /** Mesmo recibo que a poda poupa (bundle-transaction.mjs RECIBO_CODE_RE) + o sufixo `-<tela>`. */
 export const eRecibo = (rel) => /(^|\/)_saida-[^/]*\.md$/.test(rel);
@@ -106,20 +144,142 @@ export function pendentesDoRepo(root = REPO) {
   return calcularPendentes({ arquivos: arquivosDoEspelho(root), ativo, enviados });
 }
 
-function gravarEnviados(root, mapa) {
+/**
+ * Critério do projeto-cópia (função PURA). Sem bundle de retorno, a única base é o que já foi
+ * enviado PARA ELE: pendente = nunca enviado, ou o git mudou desde o último envio.
+ */
+export function calcularPendentesCopia({ arquivos, enviados = {} }) {
+  const out = [];
+  for (const { rel, sha } of arquivos) {
+    if (foraDoEscopo(rel)) continue;
+    const env = enviados[rel]?.sha256;
+    if (env === sha) continue;
+    out.push({ rel, sha, motivo: env === undefined ? 'nunca-enviado' : 'mudou-desde-o-envio', recibo: eRecibo(rel), enviado: false });
+  }
+  return out.sort((a, b) => a.rel.localeCompare(b.rel));
+}
+
+export function pendentesDoDestino(root, chave) {
+  const d = DESTINOS[chave];
+  if (!d) throw new Error(`projeto desconhecido: ${chave} (use ${Object.keys(DESTINOS).join(' | ')})`);
+  if (d.criterio === 'bundle') return pendentesDoRepo(root);
+  const enviados = lerJson(root, d.enviados, { enviados: {} }).enviados || {};
+  return calcularPendentesCopia({ arquivos: arquivosDoEspelho(root), enviados });
+}
+
+const NOTAS = {
+  w: 'Arquivos que o Code subiu ao Cowork (DesignSync) e que o bundle ativo ainda não trouxe de volta. Escrito por pendentes-cowork.mjs; o receber-handoff limpa o que o retorno confirmar.',
+  copia: 'Último envio de cada arquivo de prototipo-ui/cowork/Wagner/ ao projeto-cópia (PROJETOS.telasFelipe). Escrito por pendentes-cowork.mjs --projeto copia. Não é limpo por retorno: este projeto não gera retorno.',
+};
+
+function gravarEnviados(root, mapa, chave = 'w') {
   const ordenado = Object.fromEntries(Object.entries(mapa).sort(([a], [b]) => a.localeCompare(b)));
-  writeFileSync(join(root, ENVIADOS_REL), JSON.stringify({
-    _nota: 'Arquivos que o Code subiu ao Cowork (DesignSync) e que o bundle ativo ainda não trouxe de volta. Escrito por pendentes-cowork.mjs; o receber-handoff limpa o que o retorno confirmar.',
-    enviados: ordenado,
-  }, null, 2) + '\n');
+  writeFileSync(join(root, DESTINOS[chave].enviados), JSON.stringify({ _nota: NOTAS[chave], enviados: ordenado }, null, 2) + '\n');
+}
+
+function registrar(root, chave, pend, alvo) {
+  const porRel = new Map(pend.map((p) => [p.rel, p]));
+  const doc = lerJson(root, DESTINOS[chave].enviados, { enviados: {} });
+  const mapa = { ...(doc.enviados || {}) };
+  const em = new Date().toISOString();
+  let n = 0;
+  for (const rel of alvo) {
+    const p = porRel.get(rel);
+    if (!p) { console.error(`  ✗ ${rel} não é pendente — nada a registrar`); continue; }
+    mapa[rel] = { sha256: p.sha, em };
+    n++;
+  }
+  gravarEnviados(root, mapa, chave);
+  console.log(`registrados como enviados ao projeto ${chave}: ${n} — commite ${DESTINOS[chave].enviados}`);
+  return n === alvo.length ? 0 : 1;
+}
+
+/** Lista recursiva de arquivos sob `dir`, como paths relativos com `/`. */
+function listarLidos(dir, base = dir) {
+  const out = [];
+  for (const nome of readdirSync(dir)) {
+    const abs = join(dir, nome);
+    if (statSync(abs).isDirectory()) out.push(...listarLidos(abs, base));
+    else out.push(abs.slice(base.length + 1).split('\\').join('/'));
+  }
+  return out;
+}
+
+/**
+ * Compara o que foi LIDO DE VOLTA do projeto com o git (função pura sobre shas).
+ * `lidos` = [{ rel, sha }]; `doGit` = Map rel -> sha. Devolve o veredito por arquivo.
+ */
+export function compararLidos(lidos, doGit) {
+  return lidos.map(({ rel, sha }) => {
+    const g = doGit.get(rel);
+    return { rel, veredito: g === undefined ? 'FORA-DO-GIT' : g === sha ? 'IGUAL' : 'DIFERENTE' };
+  });
+}
+
+function conferir(root, chave, dir, pend) {
+  if (!existsSync(dir)) throw new Error(`NÃO MEDI: ${dir} não existe`);
+  const lidos = listarLidos(dir).map((rel) => ({ rel, sha: sha256(readFileSync(join(dir, rel))) }));
+  if (!lidos.length) throw new Error(`NÃO MEDI: ${dir} está vazio — nada foi lido de volta`);
+  const doGit = new Map(arquivosDoEspelho(root).map((a) => [a.rel, a.sha]));
+  const res = compararLidos(lidos, doGit);
+  for (const r of res) console.log(`  ${r.veredito === 'IGUAL' ? '✓' : '✗'} ${r.veredito.padEnd(11)} ${r.rel}`);
+  const ruins = res.filter((r) => r.veredito !== 'IGUAL');
+  if (ruins.length) {
+    console.error(`\n✗ ${ruins.length} de ${res.length} não batem com o git — NADA foi registrado. Suba de novo ou confira a leitura.`);
+    return 1;
+  }
+  {
+    // O ledger é do cowork-mirror-freshness (dono do check do espelho): chamamos os modos dele,
+    // nunca escrevemos o arquivo por fora.
+    const tmp = mkdtempSync(join(tmpdir(), 'conferir-'));
+    try {
+      const jsons = join(tmp, 'getfile');
+      mkdirSync(jsons);
+      for (const { rel } of lidos) {
+        writeFileSync(join(jsons, rel.split('/').join('__') + '.json'), JSON.stringify({
+          method: 'get_file', path: rel, content: readFileSync(join(dir, rel), 'utf8'), isBase64: false, truncated: false,
+        }));
+      }
+      const fr = join(root, 'scripts', 'governance', 'cowork-mirror-freshness.mjs');
+      const snap = join(tmp, 'snap.json');
+      for (const args of [['--snapshot-from', jsons, '--emit-snapshot', snap], ['--compare', snap, '--check', '--ledger', '--origem', 'agente', '--projeto-cowork', chave]]) {
+        const r = spawnSync(process.execPath, [fr, ...args], { cwd: root, encoding: 'utf8' });
+        if (r.status !== 0) { console.error(r.stdout + r.stderr); console.error(`✗ cowork-mirror-freshness ${args[0]} saiu ${r.status} — nada registrado`); return 1; }
+      }
+      console.log(`\n✓ ledger do espelho atualizado (${lidos.length} verificado(s), projeto ${chave}) — commite scripts/governance/.cowork-freshness-ledger.json`);
+    } finally { rmSync(tmp, { recursive: true, force: true }); }
+  }
+  // Registra só o que ainda consta como pendente; conferir arquivo já em dia não é erro.
+  const pendentes = new Set(pend.map((p) => p.rel));
+  const alvo = lidos.map((l) => l.rel).filter((rel) => pendentes.has(rel));
+  return alvo.length ? registrar(root, chave, pend, alvo) : 0;
 }
 
 function principal(argv) {
   const root = REPO;
   const tem = (f) => argv.includes(f);
-  const pend = pendentesDoRepo(root);
+  const valor = (f) => { const i = argv.indexOf(f); return i === -1 ? null : argv[i + 1]; };
+  const chave = valor('--projeto') || 'w';
+  if (!DESTINOS[chave]) throw new Error(`projeto desconhecido: ${chave} (use ${Object.keys(DESTINOS).join(' | ')})`);
+
+  if (tem('--resumo')) {
+    // --so <rel> [<rel>...]: restringe aos arquivos informados (o hook passa os do PR).
+    const iSo = argv.indexOf('--so');
+    const so = iSo === -1 ? null : new Set(argv.slice(iSo + 1).filter((a) => !a.startsWith('--')));
+    for (const k of Object.keys(DESTINOS)) {
+      const nao = pendentesDoDestino(root, k).filter((p) => !p.enviado && (!so || so.has(p.rel)));
+      console.log(`${k}: ${nao.length} a subir${nao.length ? ' — ' + nao.slice(0, 8).map((p) => p.rel).join(', ') + (nao.length > 8 ? ', …' : '') : ''}`);
+    }
+    return 0;
+  }
+
+  const pend = pendentesDoDestino(root, chave);
+
+  const iConf = argv.indexOf('--conferir');
+  if (iConf !== -1) return conferir(root, chave, resolve(argv[iConf + 1] || ''), pend);
 
   if (tem('--limpar-confirmados')) {
+    if (chave !== 'w') { console.error('--limpar-confirmados só vale para o projeto w (o único que gera retorno)'); return 1; }
     const doc = lerJson(root, ENVIADOS_REL, { enviados: {} });
     const aindaPendente = new Set(pend.map((p) => p.rel));
     const antes = Object.keys(doc.enviados || {}).length;
@@ -131,44 +291,33 @@ function principal(argv) {
 
   const iReg = argv.indexOf('--registrar-envio');
   if (iReg !== -1 || tem('--registrar-envio-todos')) {
-    const alvo = tem('--registrar-envio-todos') ? pend.map((p) => p.rel) : argv.slice(iReg + 1).filter((a) => !a.startsWith('--'));
-    const porRel = new Map(pend.map((p) => [p.rel, p]));
-    const doc = lerJson(root, ENVIADOS_REL, { enviados: {} });
-    const mapa = { ...(doc.enviados || {}) };
-    const em = new Date().toISOString();
-    let n = 0;
-    for (const rel of alvo) {
-      const p = porRel.get(rel);
-      if (!p) { console.error(`  ✗ ${rel} não é pendente — nada a registrar`); continue; }
-      mapa[rel] = { sha256: p.sha, em };
-      n++;
-    }
-    gravarEnviados(root, mapa);
-    console.log(`registrados como enviados ao Cowork: ${n} — commite ${ENVIADOS_REL}`);
-    return n === alvo.length ? 0 : 1;
+    const alvo = tem('--registrar-envio-todos') ? pend.map((p) => p.rel) : argv.slice(iReg + 1).filter((a) => !a.startsWith('--') && a !== chave);
+    return registrar(root, chave, pend, alvo);
   }
 
   const naoEnviados = pend.filter((p) => !p.enviado);
-  // O canal de RETORNO é `cowork-inbox/` (pedido, playbook, recibo) — é o único que o hook
-  // `block-design-sync-without-optin` libera sem opt-in. Tela/CSS mudados no espelho ficam FORA
-  // do plano automático: o espelho de tela é build-only, e subir isso é decisão [W].
-  const noCanal = (rel) => rel.startsWith('cowork-inbox/');
+  // No projeto `w`, o canal de RETORNO é `cowork-inbox/` (pedido, playbook, recibo) — é o único
+  // que o hook `block-design-sync-without-optin` libera sem opt-in; tela/CSS ficam em
+  // `fora_do_canal` (decisão [W]). No `copia` não há canal isento: tudo exige o opt-in da sessão.
+  const noCanal = (rel) => chave !== 'w' || rel.startsWith('cowork-inbox/');
   if (tem('--plano')) {
     console.log(JSON.stringify({
-      projectId: COWORK_PROJECT_ID,
+      projeto: chave,
+      projectId: DESTINOS[chave].projectId,
       localDir: join(root, ESPELHO_REL),
       writes: naoEnviados.filter((p) => noCanal(p.rel)).map((p) => p.rel),
       deletes: [],
       fora_do_canal: naoEnviados.filter((p) => !noCanal(p.rel)).map((p) => p.rel),
-      depois: 'DesignSync.write_files com localPath = o mesmo rel; em seguida --registrar-envio <os writes>. fora_do_canal: decisão [W], não sobe sozinho.',
+      depois: 'DesignSync.write_files com localPath = o mesmo rel (até 256 por chamada); get_file de cada um salvo em <dir>/<rel>; então --conferir <dir>' + (chave === 'w' ? '' : ' --projeto ' + chave) + '. fora_do_canal: decisão [W], não sobe sozinho.',
     }, null, 2));
     return 0;
   }
 
   const recibos = naoEnviados.filter((p) => p.recibo).length;
-  console.log(`pendentes para o Cowork: ${naoEnviados.length} não enviado(s) (${recibos} recibo(s)) · ${pend.length - naoEnviados.length} enviado(s) aguardando o retorno`);
-  for (const p of naoEnviados) console.log(`  ${p.motivo === 'fora-do-bundle' ? '+' : '~'} ${p.rel}${p.recibo ? '  (recibo)' : ''}`);
-  if (naoEnviados.length) console.log(`\n  Suba antes do próximo retorno: --plano -> DesignSync.finalize_plan/write_files -> --registrar-envio-todos`);
+  const aguardando = chave === 'w' ? ` · ${pend.length - naoEnviados.length} enviado(s) aguardando o retorno` : '';
+  console.log(`pendentes para o projeto ${chave}: ${naoEnviados.length} não enviado(s) (${recibos} recibo(s))${aguardando}`);
+  for (const p of naoEnviados) console.log(`  ${p.motivo === 'fora-do-bundle' || p.motivo === 'nunca-enviado' ? '+' : '~'} ${p.rel}${p.recibo ? '  (recibo)' : ''}`);
+  if (naoEnviados.length) console.log(`\n  Suba: --plano -> DesignSync.finalize_plan/write_files -> get_file de volta -> --conferir <dir>`);
   return tem('--check') && naoEnviados.length ? 1 : 0;
 }
 
