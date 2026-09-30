@@ -36,6 +36,10 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-RELIDX-03 | Relatório por colaborador não gera sem um escolhido | must | `CU-PONTO-14` + Portaria 671 Art. 85 | `RelatorioCatalogoContratoTest` | ✅ verde na lane |
 | UC-RELIDX-04 | Relatório disponível, COM os insumos que exige, leva ao gerador | must | `CU-PONTO-14` + F3/F8 | `RelatorioCatalogoContratoTest` | ✅ verde na lane |
 | UC-RELIDX-05 | Relatório de colaborador de outro empregador é recusado | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `RelatorioCatalogoContratoTest` | ✅ verde na lane |
+| UC-RELIDX-06 | AFD sai no leiaute 671 (cabeçalho · tipo 7 · trailer · assinatura) | must | Portaria MTP 671/2021 (leiaute AFD) + ADR 0413 W7 | `RelatorioLegalContratoTest` | 🧪 sem veredito |
+| UC-RELIDX-07 | Marcação fora do período não entra, e o hash do 1º registro encadeia com a anterior | must | Portaria MTP 671/2021 (hash SHA-256 do tipo 7) | `RelatorioLegalContratoTest` | 🧪 sem veredito |
+| UC-RELIDX-08 | Sem a identidade do REP-P configurada o AFD não sai e o catálogo o marca indisponível | must | `CU-PONTO-14` + [W] 2026-09-30 | `RelatorioLegalContratoTest` | 🧪 sem veredito |
+| UC-RELIDX-09 | GET do AFD: o próprio baixa, o de outro empregador é 404, o AFDT não está no catálogo | must `[T0]` | `CU-PONTO-12` + ADR 0093 + ADR 0413 W7 | `RelatorioLegalContratoTest` | 🧪 sem veredito |
 
 > 📋 **O que a lane disse até agora (run de 2026-08-28, commit anterior ao fix):**
 > `UC-RELIDX-01` ✓ · `UC-RELIDX-02` ✓ · `UC-RELIDX-05` ✓ · **`UC-RELIDX-03` ⨯ · `UC-RELIDX-04` ⨯**.
@@ -56,7 +60,10 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
   prioridade regulatória #1 e exige **revisão da Eliana [E] + ADR formal antes de codar** (o
   SPEC marca como pré-requisito duro). Não vira UC agora: US sem código gera UC órfão e o
   `casos-gate` G-2 pune ([proibicoes §5](../../../../memory/proibicoes.md) 2026-07-16).
-- `[BACKLOG]` AFD legacy (Portaria MTE 1.510/2009) — US-PONTO-006, mesma situação.
+- ~~`[BACKLOG]` AFD legacy (Portaria MTE 1.510/2009) — US-PONTO-006, mesma situação.~~
+  **Reescrito em 2026-09-30** (thread 12): a ADR 0413 W7 fixou a ordem **AFD → AEJ** e tirou o
+  **AFDT** do catálogo (formato da 1510/2009). O AFD que sai é o do **REP-P, por colaborador,
+  sem .p7s** e só com a identidade do REP-P configurada ([W] 2026-09-30) — virou `UC-RELIDX-06..09`.
 - ~~`[BACKLOG]` O `espelho`, único `disponivel: true`, também cai em 501 por esta rota.~~
   **RESOLVIDO em 2026-08-28** — e o registro fica porque a forma dele acertou: a corrida de
   02/08 declarou a suspeita **sem afirmar**, dizendo que não tinha medido o clique. Estava
@@ -173,4 +180,47 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 - **Nota de escrita:** aqui o assert **crava o 404** (diferente do 01/02, que evitam cravar
   status). É deliberado: em vazamento cross-tenant o código importa — 404 é "não existe pra
   você", e 403 já confirmaria a existência do recurso alheio.
+- **Status: 🧪 sem veredito.**
+
+---
+
+## UC-RELIDX-06 · AFD sai no leiaute 671 · `must`
+
+- **Persona:** RH/DP entregando à fiscalização o arquivo fonte das marcações de um colaborador.
+- **Aceite:** Dado um colaborador com marcações REP-P no mês, a identidade do REP-P configurada e
+  o CNPJ do empregador cadastrado · Quando gero o AFD do mês · Então o arquivo tem o cabeçalho
+  tipo 1 (302 posições, INPI 190-206, versão "004", CRC-16/KERMIT), **um tipo 7 por marcação
+  REP-P** daquele colaborador (137 posições, CPF, segundos zerados, SHA-256 encadeado), o trailer
+  com a contagem e a linha reservada à assinatura. Marcação MANUAL e marcação de outro
+  colaborador **não** entram.
+- **Teste:** `Modules/Ponto/Tests/Feature/RelatorioLegalContratoTest.php` — `UC-RELIDX-06`.
+- **Contrato:** Portaria MTP 671/2021 + leiaute AFD (gov.br) · ADR 0413 W7 (gerado de
+  `ponto_marcacoes`, nunca da apuração) · [W] 2026-09-30 (REP-P, por colaborador).
+- **Nota de escrita:** o esperado é montado no teste campo a campo, com CRC e hash **próprios do
+  teste** — não chama o serviço para conferir o serviço.
+- **Status: 🧪 sem veredito.**
+
+## UC-RELIDX-07 · Período recorta o arquivo, não a cadeia · `must`
+
+- **Aceite:** Dada uma marcação REP-P no mês anterior e outra no mês pedido · Quando gero o AFD do
+  mês · Então só a do mês entra, e o hash dela encadeia com o hash da anterior (a cadeia é do
+  colaborador, não do arquivo).
+- **Teste:** `RelatorioLegalContratoTest.php` — `UC-RELIDX-07`.
+- **Status: 🧪 sem veredito.**
+
+## UC-RELIDX-08 · Sem identidade do REP-P, o AFD não sai · `must`
+
+- **Aceite:** Dado que o nº INPI do REP-P ou o CNPJ do desenvolvedor não estão configurados ·
+  Então o gerador recusa com o motivo e o catálogo marca o AFD como indisponível. Número de
+  registro legal não se inventa ([W] 2026-09-30).
+- **Teste:** `RelatorioLegalContratoTest.php` — `UC-RELIDX-08`.
+- **Status: 🧪 sem veredito.**
+
+## UC-RELIDX-09 · AFD pela rota do catálogo · `must` `[T0]`
+
+- **Aceite:** Dado o meu colaborador · Quando peço o AFD · Então baixo o arquivo, e o nome dele
+  não carrega CPF. Dado um colaborador de outro empregador · Então **404**. E o catálogo não lista
+  mais o AFDT (ADR 0413 W7).
+- **Teste:** `RelatorioLegalContratoTest.php` — `UC-RELIDX-09`.
+- **Contrato:** `CU-PONTO-12` · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) · LGPD Art. 7º.
 - **Status: 🧪 sem veredito.**
