@@ -238,8 +238,14 @@ function AcoesDaLinha({ bem, permissoes }: { bem: Bem; permissoes: Props['permis
 
 // GEOMETRIA declarada (`meta.width`): uma largura declarada põe a tabela em
 // `table-layout: fixed`, e é assim que a rolagem horizontal do wrapper passa a funcionar em
-// vez de espremer coluna. `nome` fica SEM largura de propósito — é a fluida, que absorve a
-// sobra. `minTableWidth` = 1280, o monitor do piloto.
+// vez de espremer coluna. TODAS as colunas declaram largura, e o piso da tabela é a SOMA delas
+// (default do `DataTable`) — a rolagem horizontal do wrapper faz o resto.
+//
+// `nome` tem 250px, a largura que o protótipo declara para "Bem" (`patrimonio-page.jsx:288`).
+// Até 2026-09-30 ela ficava sem largura para ser a coluna fluida, com `minTableWidth={1280}`;
+// só que as outras 11 já somavam 1376px, então sob layout fixo sobrava ZERO pra ela — medido em
+// produção: `th` de "Bem" com 0px e o texto transbordando sobre "Categoria" ("Bategoria").
+// Travado por `tests/js/patrimonio-bens-colunas.test.tsx`.
 function colunas(permissoes: Props['permissoes']): ColumnDef<Bem, unknown>[] {
   return [
     {
@@ -282,6 +288,7 @@ function colunas(permissoes: Props['permissoes']): ColumnDef<Bem, unknown>[] {
       id: 'nome',
       header: 'Bem',
       accessorFn: (b) => b.nome,
+      meta: { width: 250 },
       cell: ({ row }) => {
         const b = row.original;
         return (
@@ -617,7 +624,6 @@ export default function Bens({ abas_contadores, bens, recortes_contagem, filtros
                 emptyMessage="Nenhum bem para esses filtros — tente limpar a busca ou trocar o recorte."
                 rowKey={(b) => b.id}
                 rowState={(b): EstadoDaLinha | undefined => (b.em_manutencao > 0 ? 'urgent' : undefined)}
-                minTableWidth={1280}
               />
             ) : null}
           </Deferred>
