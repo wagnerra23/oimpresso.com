@@ -661,9 +661,7 @@ class AssetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $asset = Asset::with(['warranties'])
-            ->where('business_id', $business_id)
-            ->findOrFail($id);
+        $asset = Asset::where('business_id', $business_id)->findOrFail($id);
 
         return $this->renderBens($request, $business_id, ['edicao' => $this->buildEdicaoPayload($asset)]);
     }
@@ -678,9 +676,11 @@ class AssetController extends Controller
      */
     private function buildEdicaoPayload(Asset $asset): array
     {
-        $garantias = $asset->warranties
-            ->sortByDesc('start_date')
-            ->values()
+        // Pelo METODO da relacao, nao pelo atributo magico: o `Asset` nao declara `@property
+        // $warranties` e o PHPStan (ratchet) reprova o acesso. O serviço ja usa `warranties()`.
+        $garantias = $asset->warranties()
+            ->orderByDesc('start_date')
+            ->get()
             ->map(fn ($w) => [
                 'id' => (int) $w->id,
                 'inicio' => \Carbon::parse($w->start_date)->format('Y-m-d'),
