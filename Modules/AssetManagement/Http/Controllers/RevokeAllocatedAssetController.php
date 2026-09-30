@@ -350,6 +350,10 @@ class RevokeAllocatedAssetController extends Controller
 
             return $output;
         }
+
+        // Nem Inertia nem ajax: o mesmo corpo vazio de sempre, agora escrito (antes era o
+        // "return statement is missing" que o baseline do PHPStan tolerava).
+        return null;
     }
 
     /**
