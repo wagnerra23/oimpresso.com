@@ -24,3 +24,8 @@ Feito em `oimpresso.com`, biz=1 (WR2 Sistemas), usuário superadmin, com o `main
 
 ## Checklist da `_saida-13`, item em aberto
 - [x] Smoke em prod depois do merge (aba visível para um usuário com `auditoria.view`, e o clique abre a lista filtrada) — feito aqui, com as ressalvas acima
+
+## Atualização 2026-09-30, 18:50Z — a Auditoria saiu do overflow
+O primeiro item do §Resultado vale para o estado **de ~17h UTC**, antes do #8297, e fica como está. Depois dele, o [#8297](https://github.com/wagnerra23/oimpresso.com/pull/8297) tirou o ghost "Devoluções" do menu do Patrimônio, e o backend passou a mandar **6** ghosts, que é o `maxVisible` do `PatrimonioSubNav`. Medido em prod (biz=1, `/asset/allocation`): a aba **Auditoria aparece direto na faixa**, com o mesmo `href` filtrado em `Asset`, e não há mais botão "Mais N opções". Se entrar um 7º ghost, ela volta para o overflow.
+
+O §"Por que é um arquivo novo" também envelheceu no mesmo dia: o [#8299](https://github.com/wagnerra23/oimpresso.com/pull/8299) (18:38Z) fez o `--conferir` gravar prova de `.md`, então editar um recibo já verificado deixou de travar o required, desde que ele seja subido e conferido. Esta própria atualização foi feita assim.
