@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-29**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-30**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -31,7 +31,7 @@ lente: [construir]
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-08-03 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-08-12 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-09-07 |
-| Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-24 |
+| Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-29 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-09-07 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-09-24 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-09-15 |
@@ -44,7 +44,7 @@ lente: [construir]
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-09-15 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-09-07 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-28 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-30 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-09-23 |
@@ -80,7 +80,7 @@ lente: [construir]
 
 > Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
 
-### Bloqueiam merge — 47 required (enforcement: everyone)
+### Bloqueiam merge — 48 required (enforcement: everyone)
 > Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
 
 - ADR (memory/decisions/*.md)
@@ -129,6 +129,7 @@ lente: [construir]
 - Tier-0 guards (WithoutGlobalScopes + BusinessId)
 - Tópico (memory/requisitos/*/topicos/*.md)
 - espelho — mexeu depois de verificar
+- Contratos de tela (fidelidade + intenção)
 - Governance Gate (índice + memory-health + meta-teste)
 
 ### Censo — 150 workflows por classe
@@ -146,13 +147,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **424** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 375 · superseded: 25 · deprecated: 11 · proposto: 11 · rascunho: 1 · recusado: 1.
+- **425** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 376 · superseded: 25 · deprecated: 11 · proposto: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 242 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 243 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -397,6 +398,7 @@ lente: [construir]
 - ~~2026-09-28 — EMENDA da lápide 2026-08-02 (fix na cópia que o consumidor não usa): a regra "não fatiar tabela markdown com `split('|')` cru" morava num parser só, e o irmão seguiu com o split cru~~
 - ~~2026-09-28 — EMENDA da lápide 2026-07-30 (`rg` não lê dotfile): a LEI dela, `rg --hidden -g '!.git/**'`, ainda é cega a arquivo de TEXTO com byte NUL — e o único cego era o único consumidor~~
 - ~~2026-09-29 — Afirmar "este check é required" citando uma NOTA DATADA do baseline, com a lista de contexts e a nota da demoção no MESMO arquivo~~
+- ~~2026-09-30 — EMENDA do rec 09-16 da LC-19 e da lápide 2026-09-05 (dono-é-sessão-viva): TRÊS sessões re-mediram o mesmo baseline, e a sonda de "PR aberto no arquivo" precisa casar ARQUIVO, não texto~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -407,14 +409,14 @@ lente: [construir]
 
 ## Rastro
 
-- **573** handoffs · **774** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **574** handoffs · **777** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-29-refutacao-gt-g5-lote-8195-r1`
+  - `2026-09-29-refutacao-gt-g5-lote-8194-r2`
+  - `2026-09-29-refutacao-gt-g5-lote-8194-r1`
   - `2026-09-29-refutacao-gt-g5-lote-8120-r2`
   - `2026-09-29-refutacao-gt-g5-lote-8120-r1`
   - `2026-09-28-refutacao-gt-g5-lote-8073-r1`
-  - `2026-09-28-refutacao-gt-g5-lote-8072-r1`
-  - `2026-09-28-doc-id-index-dono-do-frescor`
-  - `2026-09-24-ds-atomos-decisoes-04-05`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-29 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-09-30 · deriva das fontes canônicas, não as substitui._

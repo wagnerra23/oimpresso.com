@@ -426,6 +426,7 @@
     "0417-aposenta-tela-piloto-0253": "memory/decisions/0417-aposenta-tela-piloto-0253.md",
     "0418-ponto-listas-servidor-forma-prototipo-e-13-abas": "memory/decisions/0418-ponto-listas-servidor-forma-prototipo-e-13-abas.md",
     "0419-ponto-rep-p-escopo-ratificado-w10": "memory/decisions/0419-ponto-rep-p-escopo-ratificado-w10.md",
+    "0420-ponto-aej-le-apuracao-e-falha-fechada": "memory/decisions/0420-ponto-aej-le-apuracao-e-falha-fechada.md",
     "2026-04-18-session-01": "memory/sessions/2026-04-18-session-01.md",
     "2026-04-18-session-02": "memory/sessions/2026-04-18-session-02.md",
     "2026-04-19-session-03": "memory/sessions/2026-04-19-session-03.md",
@@ -1744,6 +1745,10 @@
     "2026-09-29-1105-ponto-header-rolagem-horizontal": "memory/handoffs/2026-09-29-1105-ponto-header-rolagem-horizontal.md",
     "2026-09-29-refutacao-gt-g5-lote-8120-r1": "memory/sessions/2026-09-29-refutacao-gt-g5-lote-8120-r1.md",
     "2026-09-29-refutacao-gt-g5-lote-8120-r2": "memory/sessions/2026-09-29-refutacao-gt-g5-lote-8120-r2.md",
+    "2026-09-29-refutacao-gt-g5-lote-8194-r1": "memory/sessions/2026-09-29-refutacao-gt-g5-lote-8194-r1.md",
+    "2026-09-29-refutacao-gt-g5-lote-8194-r2": "memory/sessions/2026-09-29-refutacao-gt-g5-lote-8194-r2.md",
+    "2026-09-29-refutacao-gt-g5-lote-8195-r1": "memory/sessions/2026-09-29-refutacao-gt-g5-lote-8195-r1.md",
+    "2026-09-30-1045-governance-thread-07-painel-ptbr": "memory/handoffs/2026-09-30-1045-governance-thread-07-painel-ptbr.md",
     "calculo-total-fatura": "memory/requisitos/Produto/topicos/calculo-total-fatura.md",
     "componentes-compartilhados": "memory/requisitos/_Geral/topicos/componentes-compartilhados.md",
     "governance-architecture": "memory/governance/ARCHITECTURE.md",
@@ -4203,16 +4208,16 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4197,
-    "resolved": 2868,
+    "total": 4202,
+    "resolved": 2873,
     "unstamped": 1329,
     "collisions": 0,
     "by_source": {
       "unstamped": 1329,
-      "derived-adr": 424,
+      "derived-adr": 425,
       "stamped": 1125,
-      "derived-handoffs": 568,
-      "derived-sessions": 751
+      "derived-handoffs": 569,
+      "derived-sessions": 754
     }
   }
 }
