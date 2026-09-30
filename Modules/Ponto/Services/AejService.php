@@ -106,7 +106,7 @@ class AejService
                 return '';
             }
             $chave = $m->rep_id ?? 'REP_P';
-            if (! isset($idRep[$chave])) {
+            if (! array_key_exists($chave, $idRep)) { // memoização do nº do REP no AEJ, não fallback
                 $rep = $m->rep_id ? $reps->get($m->rep_id) : null;
                 $tp = $rep ? (self::MAP_TP_REP[$rep->tipo] ?? null) : '3';
                 $nr = $rep ? trim((string) $rep->identificador) : $ptrp['inpi'];
@@ -226,7 +226,7 @@ class AejService
             return null;
         }
 
-        if (! isset($horarios[$cod])) {
+        if (! array_key_exists($cod, $horarios)) { // memoização do registro 04, não fallback
             $dur = $turno ? array_sum(array_map(fn ($p) => $this->minutos($p[0], $p[1]), $pares)) : (int) $ap->prevista_carga_minutos;
             $horarios[$cod] = array_merge(['04', $cod, $dur], ...array_map(fn ($p) => [$this->hhmm($p[0]), $this->hhmm($p[1])], $pares));
         }
