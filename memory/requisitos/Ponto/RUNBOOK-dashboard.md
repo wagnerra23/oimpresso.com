@@ -94,7 +94,7 @@ O contrato desceu por decisão [W] (opção B, 2026-08-21): entram só os contra
 *"Os 2 que ficam SEGUEM VERMELHOS — as âncoras `data-contract` ainda não estão nos .tsx. A diferença é
 que agora o vermelho tem conserto: é o F3 dessas duas telas."*
 
-Consequência operacional a saber: o job `Preflight + contratos ativos` varre **todos** os
+Consequência operacional a saber: o job `Contratos de tela (fidelidade + intenção)` varre **todos** os
 `*.contract.json` sempre que qualquer `.tsx` muda — então este vermelho aparece em **todo PR de UI**
 até o F3 fechar. Ele **não** está entre os required (medido 2026-08-21 na união
 `classic_protection.contexts ∪ rulesets.contexts`), logo não bloqueia merge.

@@ -283,7 +283,7 @@
   },
   {
     "screen": "Ponto/Espelho/Index",
-    "source": "Ponto/Espelho/Index",
+    "source": "Ponto/Espelho",
     "a11y": true,
     "component": "Ponto/Espelho/Index",
     "route": "/ponto/espelho?mes=2026-06",

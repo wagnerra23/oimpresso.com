@@ -1,0 +1,24 @@
+{
+  "_": "semente [CL] 2026-09-29 — thread A2 do playbook venda-menu. Protótipo: TelaImportar (venda-blade.jsx:547), rota venda-importar. Vivo: Blade import_sales/index.blade.php (ImportSalesController, web.php:867) — ainda sem Page React.",
+  "_mapa": "Conferida em 2026-09-29 por `alvo:mapa --rota <r> --raiz 'main > .main-body > *'` (e `> .cli-ph` / `> .pb-body`) contra o espelho servido por `servirEstatico` (o mesmo servidor do secao-check), base origin/main 5606344ca. Mapa: .pb-body = nav.vb-nav · 3 section.pb-widget (Enviar planilha · Instruções · Importações).",
+  "header": {
+    "seletor": ".pb-root.vb-root > .cli-ph > header",
+    "dado": "shell — PageHeader do módulo Vendas (M.Header)"
+  },
+  "tabs": {
+    "seletor": ".pb-root.vb-root > .pb-body > nav.vb-nav",
+    "dado": "shell — CliTabs das 9 telas do menu Vendas (venda-blade.jsx:675)"
+  },
+  "enviar": {
+    "seletor": ".pb-root.vb-root > .pb-body > section.pb-widget:nth-of-type(1)",
+    "dado": "form: arquivo .xlsx + local do negócio + baixar modelo + enviar e revisar"
+  },
+  "instrucoes": {
+    "seletor": ".pb-root.vb-root > .pb-body > section.pb-widget:nth-of-type(2)",
+    "dado": "4 passos + tabela de campos importáveis (CAMPOS_IMPORT)"
+  },
+  "importacoes": {
+    "seletor": ".pb-root.vb-root > .pb-body > section.pb-widget:nth-of-type(3)",
+    "dado": "lotes importados: lote · hora · criado por · faturas · excluir lote (D3)"
+  }
+}

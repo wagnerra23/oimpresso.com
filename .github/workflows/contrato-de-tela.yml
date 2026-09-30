@@ -22,7 +22,8 @@ name: Contrato de Tela (fidelidade visual · always-run — ADR 0261)
 # Enforcement da INTENÇÃO do Financeiro (rota legada `/financeiro/unificado/novo`): o step
 # "Intenção de fluxo" roda auditar + adversário `--strict` com exit-code real → job VERMELHO se a
 # rota legada reaparecer. Bloqueio de merge = quando [W] adicionar este check aos required
-# status checks (`Preflight + contratos ativos`) sob enforce_admins (já ligado). Ver PR + RUNBOOK §5.
+# status checks (`Contratos de tela (fidelidade + intenção)` — o step mora nesse job desde
+# 2026-09-30) sob enforce_admins (já ligado). Ver PR + RUNBOOK §5.
 
 on:
   push:
@@ -52,67 +53,34 @@ jobs:
         run: node scripts/contrato-de-tela.test.mjs
 
   # Preflight de base + contratos de tela ativos + intenção de fluxo. Exit code real (sem mascarar).
-  contratos:
-    name: Preflight + contratos ativos
+  # Os CONTRATOS de tela: copy + ordem + âncoras de cada *.contract.json, mapa protótipo→prod,
+  # anti-tautologia e intenção de fluxo. Separado em 2026-09-30 do Preflight/Omissão (caminho B
+  # da _saida-07 do Ponto, [W]) para que promover os contratos NÃO arraste a Omissão, que é
+  # advisory por decisão registrada no step dela. O dono de "qual check é required" é
+  # governance/required-checks-baseline.json, não este comentário (LC-10).
+  contratos-de-tela:
+    name: Contratos de tela (fidelidade + intenção)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0   # preflight/omissão precisam de origin/main + o diff de detecção
-
+      # Filtro + base do diff vivem em UM arquivo, chamado pelos dois jobs deste workflow.
       - name: Detecta arquivos relevantes (skip-as-pass · ADR 0261)
         id: detect
         shell: bash
-        run: |
-          set -euo pipefail
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            # Base VIVA: num merge ref (o que o checkout de `pull_request` materializa), o que o
-            # PR muda é HEAD^1..HEAD — o 1º pai É o tip de main que o merge usou, imune a main
-            # andar. `pull_request.base.sha` é o tip de QUANDO O EVENTO NASCEU e arrasta junto o
-            # que entrou em main no meio. Idioma do visual-regression (#6009); §5 2026-09-15.
-            if [ "$(git rev-list --count --no-walk --merges HEAD)" = "1" ]; then
-              base="$(git rev-parse HEAD^1)"
-            else
-              base="${{ github.event.pull_request.base.sha }}"
-            fi
-          else
-            base="${{ github.event.before }}"
-          fi
-          # Fallback se base vazio/inválido (primeiro push, force-push, etc.)
-          if [ -z "${base}" ] || [ "${base}" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "${base}" 2>/dev/null; then
-            base="$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)"
-          fi
-          echo "Base do diff: ${base}"
-          changed="$(git diff --name-only "${base}" HEAD || true)"
-          echo "Arquivos mudados:"; echo "${changed:-<nenhum>}"
-          # Filtro IDÊNTICO ao antigo workflow-level `paths:` (+ os scripts de intenção, que
-          # antes não disparavam o gate — blind-spot corrigido nesta conversão).
-          if echo "${changed}" | grep -Eq '(^scripts/contrato-de-tela\.mjs$|^scripts/contrato-de-tela\.test\.mjs$|^scripts/auditar-intencao-fluxo\.mjs$|^scripts/adversario-intencao-fluxo\.mjs$|^governance/design/contracts/|^resources/js/Pages/.+\.tsx?$|\.contract\.json$|^Modules/Whatsapp/Http/Controllers/Admin/ChannelsController\.php$|^\.github/workflows/contrato-de-tela\.yml$)'; then
-            echo "relevant=true" >> "${GITHUB_OUTPUT}"
-            echo "→ arquivo de contrato/tela mudou: RODA os verificadores."
-          else
-            echo "relevant=false" >> "${GITHUB_OUTPUT}"
-            echo "→ nada relevante mudou: SKIP-AS-PASS (gate verde sem rodar; mesma cobertura de antes)."
-          fi
-          # Exportada pro step de omissão consumir a MESMA base (não recalcular: duas bases
-          # divergem em silêncio, e a lógica de base viva acima já é a certa · §5 2026-09-15).
-          echo "base=${base}" >> "${GITHUB_OUTPUT}"
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: bash .github/scripts/contrato-de-tela-detect.sh
 
       - name: Setup Node
         if: steps.detect.outputs.relevant == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-
-      # Em `pull_request` o checkout@v4 usa o MERGE REF (o HEAD ja contem a base), enquanto o
-      # fetch do mesmo step traz o `origin/main` de AGORA — comparar os dois mede a FILA DO CI,
-      # nao a base. Por isso `--merge-ref` aqui: pula SO a perna de ancestralidade e diz que
-      # pulou. Em push/schedule o HEAD e o commit real e a perna roda inteira.
-      - name: Preflight de base (higiene de base)
-        if: steps.detect.outputs.relevant == 'true'
-        run: |
-          node scripts/contrato-de-tela.mjs --preflight origin/main             ${{ github.event_name == 'pull_request' && '--merge-ref' || '' }}
 
       - name: Contratos de tela ativos (ignora EXEMPLO/template)
         if: steps.detect.outputs.relevant == 'true'
@@ -146,6 +114,73 @@ jobs:
       - name: Anti-tautologia (contrato deriva da âncora, não da tela)
         if: steps.detect.outputs.relevant == 'true'
         run: node scripts/contrato-de-tela.mjs --anti-tautologia
+
+      - name: Intenção de fluxo (bloqueante — rota legada = vermelho)
+        if: steps.detect.outputs.relevant == 'true'
+        run: |
+          set -euo pipefail
+          mapfile -t contratos < <(git ls-files 'governance/design/contracts/*.intent.json' || true)
+          if [ "${#contratos[@]}" -eq 0 ]; then
+            echo "Nenhum contrato de intenção ativo ainda."
+            exit 0
+          fi
+          for c in "${contratos[@]}"; do
+            echo "== $c =="
+            node scripts/auditar-intencao-fluxo.mjs --contract "$c"
+            node scripts/adversario-intencao-fluxo.mjs --contract "$c" --strict
+          done
+          # O mapa de intenção é derivado pelo mesmo contrato-de-tela.mjs; não há mapa paralelo.
+          node scripts/contrato-de-tela.mjs --map --check
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Contrato de Tela divergente."
+          echo "   - 'caminho proibido' → uma ação voltou pra rota legada (ex: /financeiro/unificado/novo). Use o fluxo atual."
+          echo "   - 'sem âncora' → instrumente a tela com <... data-contract=\"<id>\">."
+          echo "   - 'copy ausente' → a string literal do contrato sumiu/mudou no .tsx."
+          echo "   - 'ordem divergente' → a sequência das seções no fonte != contrato."
+          echo "   - 'frontend NÃO menciona' → backend e frontend usam vocabulários de 'state' diferentes (ex: paired≠connected). Ver ADR 0286 §5."
+          echo "   - 'backend não emite' → 'valores' do acordo declara um state morto (drift de contrato)."
+          echo "   Desvio INTENCIONAL do protótipo? declare no corpo do PR:"
+          echo "     <!-- design-deviation: <o quê> → <por quê> (ADR/charter) -->"
+          echo "   Doc: memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md"
+
+  # Higiene de base + Omissão. NÃO é o gate de contrato de tela: a Omissão é advisory por
+  # decisão registrada no step, e o Preflight falha por base, não por tela.
+  preflight-omissao:
+    name: Preflight de base + omissão (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # preflight/omissão precisam de origin/main + o diff de detecção
+      # Filtro + base do diff vivem em UM arquivo, chamado pelos dois jobs deste workflow.
+      - name: Detecta arquivos relevantes (skip-as-pass · ADR 0261)
+        id: detect
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: bash .github/scripts/contrato-de-tela-detect.sh
+
+      - name: Setup Node
+        if: steps.detect.outputs.relevant == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # Em `pull_request` o checkout@v4 usa o MERGE REF (o HEAD ja contem a base), enquanto o
+      # fetch do mesmo step traz o `origin/main` de AGORA — comparar os dois mede a FILA DO CI,
+      # nao a base. Por isso `--merge-ref` aqui: pula SO a perna de ancestralidade e diz que
+      # pulou. Em push/schedule o HEAD e o commit real e a perna roda inteira.
+      - name: Preflight de base (higiene de base)
+        if: steps.detect.outputs.relevant == 'true'
+        run: |
+          node scripts/contrato-de-tela.mjs --preflight origin/main             ${{ github.event_name == 'pull_request' && '--merge-ref' || '' }}
 
       # Catraca 3 INVERTIDA — pega o que o handoff OMITIU, sem depender de alguém declarar
       # item a item. Ligada em 2026-09-22 (onda P do PARIDADE-area-jana). Estava órfã desde
@@ -181,36 +216,11 @@ jobs:
           set -euo pipefail
           node scripts/contrato-de-tela.mjs --omission "${{ steps.detect.outputs.base }}" \
             --alvo "resources/js/Pages,Modules"
-
-      - name: Intenção de fluxo (bloqueante — rota legada = vermelho)
-        if: steps.detect.outputs.relevant == 'true'
-        run: |
-          set -euo pipefail
-          mapfile -t contratos < <(git ls-files 'governance/design/contracts/*.intent.json' || true)
-          if [ "${#contratos[@]}" -eq 0 ]; then
-            echo "Nenhum contrato de intenção ativo ainda."
-            exit 0
-          fi
-          for c in "${contratos[@]}"; do
-            echo "== $c =="
-            node scripts/auditar-intencao-fluxo.mjs --contract "$c"
-            node scripts/adversario-intencao-fluxo.mjs --contract "$c" --strict
-          done
-          # O mapa de intenção é derivado pelo mesmo contrato-de-tela.mjs; não há mapa paralelo.
-          node scripts/contrato-de-tela.mjs --map --check
-
       - name: Diagnóstico em caso de falha
         if: failure()
         run: |
           echo ""
-          echo "❌ Contrato de Tela divergente OU base atrás de origin/main."
-          echo "   - 'caminho proibido' → uma ação voltou pra rota legada (ex: /financeiro/unificado/novo). Use o fluxo atual."
-          echo "   - 'sem âncora' → instrumente a tela com <... data-contract=\"<id>\">."
-          echo "   - 'copy ausente' → a string literal do contrato sumiu/mudou no .tsx."
-          echo "   - 'ordem divergente' → a sequência das seções no fonte != contrato."
-          echo "   - 'frontend NÃO menciona' → backend e frontend usam vocabulários de 'state' diferentes (ex: paired≠connected). Ver ADR 0286 §5."
-          echo "   - 'backend não emite' → 'valores' do acordo declara um state morto (drift de contrato)."
+          echo "❌ Preflight de base ou Omissão (este job NÃO é o gate de contrato de tela)."
           echo "   - 'branch atrás' → git rebase origin/main."
-          echo "   Desvio INTENCIONAL do protótipo? declare no corpo do PR:"
-          echo "     <!-- design-deviation: <o quê> → <por quê> (ADR/charter) -->"
+          echo "   - Omissão: símbolo/rota removido sem justificativa → justifique no corpo do PR ou restaure."
           echo "   Doc: memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md"

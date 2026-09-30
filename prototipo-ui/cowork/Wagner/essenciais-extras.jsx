@@ -218,7 +218,7 @@ function Config() {
         {salvo && <span className="hrm-meta">Salvo. No main isso grava em businesses.essentials_settings.</span>}
       </div>
       <Nota tone="info" title="Uma configuração, dois lugares">
-        Esta aba mexe no que é do escritório (tarefas, documentos, lembretes, mural). Tolerância de marcação, prefixo da folha e meta de venda continuam em <code>HRM · Configurações</code> — o controller é o mesmo.
+        Esta aba mexe no que é do escritório (tarefas, documentos, lembretes, mural). Prefixo da folha e meta de venda continuam em <code>HRM · Configurações</code> — o controller é o mesmo. A tolerância de marcação saiu das configurações: no Ponto, a lei já a fixa.
       </Nota>
     </>
   );

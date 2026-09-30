@@ -117,11 +117,18 @@ function bensContratoGet(User $user, int $businessId, array $query = [])
 {
     $url = '/asset/assets'.($query ? '?'.http_build_query($query) : '');
 
+    // `withHeaders` do teste PERSISTE entre requests: sem o flush, a 2a chamada no mesmo
+    // `it()` sairia com os `X-Inertia*` do partial anterior e voltaria JSON, nao a root view.
+    test()->flushHeaders();
+
     return test()
         ->actingAs($user)
         ->withSession([
             'user.business_id' => $businessId,
             'user' => ['business_id' => $businessId, 'id' => $user->id],
+            // Prod sempre tem isto na sessao; o `format_date` da janela de garantia le daqui
+            // e lanca TypeError sem ele (medido no CT 100 ao nascer o UC-BENS-06).
+            'business.date_format' => 'd/m/Y',
         ])
         ->get($url);
 }
@@ -177,6 +184,9 @@ function bensContratoPropDeferida(User $user, int $businessId, array $query = []
         ->withSession([
             'user.business_id' => $businessId,
             'user' => ['business_id' => $businessId, 'id' => $user->id],
+            // Prod sempre tem isto na sessao; o `format_date` da janela de garantia le daqui
+            // e lanca TypeError sem ele (medido no CT 100 ao nascer o UC-BENS-06).
+            'business.date_format' => 'd/m/Y',
         ])
         ->withHeaders([
             // `X-Requested-With` NAO e decoracao: o cliente Inertia o manda
@@ -436,5 +446,103 @@ it('UC-BENS-05: a tela recebe o formato de data do negócio que o drawer usa pra
             );
     } finally {
         bensContratoLimpar();
+    }
+});
+
+/*
+ * UC-BENS-06 — sub-recorte "Garantia crítica" (D-GARANTIAS, [W] 2026-09-29).
+ *
+ * Quatro bens no dono cobrem os quatro baldes da garantia (vencida · vencendo · vigente · sem
+ * registro) e um quinto, no ADVERSÁRIO, tem garantia vencida: é o único que o recorte e a
+ * contagem podiam trazer se o join com `assets.business_id` falhasse, porque
+ * `asset_warranties` não tem `business_id`.
+ */
+function bensGarantiaFixture(int $businessId, int $ownerId, string $codigo, ?string $fim): Asset
+{
+    $bem = bensContratoAsset($businessId, $ownerId, $codigo, 'Bem '.$codigo);
+    if ($fim !== null) {
+        DB::table('asset_warranties')->insert([
+            'asset_id' => $bem->id,
+            'start_date' => now()->subYears(2)->toDateString(),
+            'end_date' => $fim,
+            'additional_cost' => 0,
+        ]);
+    }
+
+    return $bem;
+}
+
+function bensGarantiaLimpar(): void
+{
+    $ids = Asset::where('asset_code', 'like', 'BENS-CTR-%')->pluck('id');
+    if ($ids->isNotEmpty()) {
+        DB::table('asset_warranties')->whereIn('asset_id', $ids)->delete();
+    }
+    bensContratoLimpar();
+}
+
+it('UC-BENS-06: recorte=garantia traz vencida e vencendo, nunca vigente, sem registro ou de outro business', function () {
+    $dono = $this->seededTenant();
+    $adversario = $this->seededSupportClientTenant();
+    $bizId = (int) $dono->id;
+    $user = bensContratoUsuario($bizId);
+
+    try {
+        bensContratoAssinaturaLiberada();
+
+        bensGarantiaFixture($bizId, (int) $dono->owner_id, 'BENS-CTR-GAR-VENCIDA', now()->subDays(5)->toDateString());
+        bensGarantiaFixture($bizId, (int) $dono->owner_id, 'BENS-CTR-GAR-VENCENDO', now()->addDays(10)->toDateString());
+        bensGarantiaFixture($bizId, (int) $dono->owner_id, 'BENS-CTR-GAR-VIGENTE', now()->addYear()->toDateString());
+        bensGarantiaFixture($bizId, (int) $dono->owner_id, 'BENS-CTR-GAR-SEM', null);
+        bensGarantiaFixture((int) $adversario->id, (int) $adversario->owner_id, 'BENS-CTR-GAR-ADV', now()->subDays(5)->toDateString());
+
+        // Recorte ligado — a busca `BENS-CTR-GAR` casa os cinco, então só o recorte explica
+        // quem fica fora (mesma técnica do UC-BENS-01).
+        $comRecorte = bensContratoPropDeferida($user, $bizId, ['q' => 'BENS-CTR-GAR', 'recorte' => 'garantia']);
+        expect($comRecorte)->toContain('BENS-CTR-GAR-VENCIDA');
+        expect($comRecorte)->toContain('BENS-CTR-GAR-VENCENDO');
+        expect($comRecorte)->not->toContain('BENS-CTR-GAR-VIGENTE');
+        expect($comRecorte)->not->toContain('BENS-CTR-GAR-SEM');
+        expect($comRecorte)->not->toContain('BENS-CTR-GAR-ADV');
+
+        // Controle: sem o recorte o vigente e o sem registro VOLTAM — a ausência acima veio
+        // do recorte, não de fixture invisível. Valor fora da whitelist também é "todos".
+        foreach ([[], ['recorte' => 'qualquer']] as $extra) {
+            $semRecorte = bensContratoPropDeferida($user, $bizId, ['q' => 'BENS-CTR-GAR'] + $extra);
+            expect($semRecorte)->toContain('BENS-CTR-GAR-VIGENTE');
+            expect($semRecorte)->toContain('BENS-CTR-GAR-SEM');
+            expect($semRecorte)->not->toContain('BENS-CTR-GAR-ADV');
+        }
+
+        // Contagem do servidor: independe da busca, então a base persistente do CT 100 pode
+        // ter outros bens críticos no tenant 98. O que o teste prova é o DELTA dos fixtures:
+        // +2 do dono, e o do adversário não soma.
+        $contar = function () use (&$user, $bizId): int {
+            $inicial = bensContratoGet($user, $bizId);
+            $versao = data_get($inicial->viewData('page'), 'version');
+            $r = test()->actingAs($user)
+                ->withSession(['user.business_id' => $bizId, 'user' => ['business_id' => $bizId, 'id' => $user->id], 'business.date_format' => 'd/m/Y'])
+                ->withHeaders([
+                    'X-Requested-With' => 'XMLHttpRequest',
+                    'X-Inertia' => 'true',
+                    'X-Inertia-Version' => (string) $versao,
+                    'X-Inertia-Partial-Component' => 'Patrimonio/Bens',
+                    'X-Inertia-Partial-Data' => 'recortes_contagem',
+                ])
+                ->get('/asset/assets');
+            expect($r->status())->toBe(200);
+
+            return (int) data_get($r->json(), 'props.recortes_contagem.garantia', -1);
+        };
+
+        $comFixtures = $contar();
+        bensGarantiaLimpar();
+        $user = bensContratoUsuario($bizId);
+        bensContratoAssinaturaLiberada();
+        $semFixtures = $contar();
+
+        expect($comFixtures - $semFixtures)->toBe(2);
+    } finally {
+        bensGarantiaLimpar();
     }
 });

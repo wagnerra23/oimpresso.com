@@ -1,0 +1,316 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · matriz · 8 vendas de POS · 4 rascunhos · 4 cotações · papel: Administrador Vendas Remessas Atualizado 18:25 Todas as vendas POS Adicionar venda Lista de POS Lista de rascunhos Lista de compromissos Remessas Descontos Assinaturas Pedido de venda Caixa registradora Importação de vendas Filtros Filtros do blade de remessas: local, cliente, período, usuário, status de pagamento, status de envio e entregador. Recolher Local do negócio Todos Matriz Filial Centro Cliente Todos Rota Livre Transportes Martinho Oficina Prefeitura de Jaú Supermercado Bom Dia Agência Norte Cliente balcão Período Tudo Hoje Últimos 7 dias Últimos 30 dias Usuário Todos Larissa Prado Wagner Ramos Eliana Souza Marcos Vinícius Status do pagamento Todos Pago Devido Parcial Vencido Status de envio Todos Pedido Embalado Enviado Entregue Cancelado Entregador Todos Motoboy Douglas Transportadora Rota Livre Retirada no balcão Equipe de instalação Remessas 5 de 5 Confortável Compacto Ação Data Nº da fatura ↕ Cliente ↕ Contato Local Entregador Status de envio Documentos da remessa Rastreio Status do pagamento Atendente Ações 29/09/2026 10:34 POS-2026-0482 Rota Livre Transportes (14) 99812-4410 Matriz Motoboy Douglas Embalado Romaneio + NF-e — Parcial Larissa Prado Ações 28/09/2026 16:05 POS-2026-0479 Agência Norte (14) 3622-1180 Filial Centro Transportadora Rota Livre Pedido NF-e BR881204417OI Devido Marcos Vinícius Ações 27/09/2026 15:21 POS-2026-0475 Supermercado Bom Dia (14) 3624-7788 Matriz Retirada no balcão Enviado NF-e — Vencido Wagner Ramos Ações 26/09/2026 09:03 POS-2026-0470 Prefeitura de Jaú (14) 3602-9000 Filial Centro Equipe de instalação Pedido Romaneio + NF-e BR881204431OI Devido Wagner Ramos Ações 24/09/2026 13:27 POS-2026-0461 Agência Norte (14) 3622-1180 Filial Centro Motoboy Douglas Entregue NF-e — Pago Marcos Vinícius Status de envio e entregador vêm da própria venda — editar aqui atualiza a transação, não cria documento novo.",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "venda-filtros"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "venda-toolbar"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "venda-rodape"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 73,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5551/"
+  },
+  "nos_totais": 682,
+  "quieto_ms": 2000,
+  "rota": "venda-remessas",
+  "secoes": {
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 219,
+        "w": 1176
+      },
+      "seletor": ".vb-root > .pb-body > [data-contract=\"venda-filtros\"]",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": ".vb-root > .cli-ph > header",
+      "truncado": false
+    },
+    "lista": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 381,
+        "w": 1176
+      },
+      "seletor": ".vb-root > .pb-body > section.pb-widget:not([data-contract])",
+      "truncado": false
+    },
+    "rodape": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 5.49,
+        "texto": "oklch(0.72 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.373341
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.72 0.005 90)",
+        "display": "flex",
+        "fontSize": "11.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "9px 12px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pb-help"
+      ],
+      "rect": {
+        "h": 34,
+        "w": 1174
+      },
+      "seletor": ".vb-root [data-contract=\"venda-rodape\"]",
+      "truncado": false
+    },
+    "tabs": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 9,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".vb-root > .pb-body > nav.ds-tabbar",
+      "truncado": false
+    },
+    "toolbar": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "8px 12px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pb-busca",
+        "sp",
+        "div"
+      ],
+      "rect": {
+        "h": 53,
+        "w": 1174
+      },
+      "seletor": ".vb-root [data-contract=\"venda-toolbar\"]",
+      "truncado": false
+    }
+  },
+  "tela": "vendas--remessas--index",
+  "url": "http://127.0.0.1:5551/"
+}

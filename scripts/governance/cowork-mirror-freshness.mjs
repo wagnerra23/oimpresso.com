@@ -921,6 +921,11 @@ export function ledgerEntry(rows, dateIso, meta = {}) {
   // ADR 0389: escrita inline DECLARADA (--origem agente). Viaja pro ledger pra que a rodada
   // não se passe por export de saída persistida — a mentira, se houver, fica datada aqui.
   if (meta.origemDeclarada) e.origemDeclarada = meta.origemDeclarada;
+  // Qual projeto do Claude Design foi lido de volta (`pendentes-cowork --conferir --projeto`).
+  // Desde 2026-09-29 o git é a fonte e há 2 projetos sincronizados a partir dele ([W]: "a
+  // maiara deveria poder fazer isso"): a prova pode vir do `w` OU do `copia`, e o ledger
+  // guarda de qual — sem campo = rodada anterior a isto, sempre do `w`.
+  if (meta.projetoCowork) e.projetoCowork = meta.projetoCowork;
   if (typeof meta.stalePreExport === 'number') e.stalePreExport = meta.stalePreExport;
   return e;
 }
@@ -2767,6 +2772,7 @@ function main() {
     entries.push(ledgerEntry(rows, new Date().toISOString(), {
       origin: snapshot._origin, stalePreExport: snapshot._stalePreExport,
       origemDeclarada: snapshot._origemDeclarada,
+      projetoCowork: argv.includes('--projeto-cowork') ? argv[argv.indexOf('--projeto-cowork') + 1] : undefined,
     }));
     writeFileSync(lp, JSON.stringify(entries, null, 2) + '\n');
     console.log(`  ledger: rodada registrada em ${LEDGER_REL} (${entries.length} entrada(s)). Commite o ledger.`);

@@ -3,98 +3,100 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "Ponto/BancoHoras/Show (/ponto/banco-horas/{colaborador})",
   "gap_fonte": "memory/requisitos/Ponto/banco-horas-show-gap.md",
-  "prototipo_sha": "sha256:e8b74d75e0d5",
+  "prototipo_sha": "sha256:62977f0aeb68",
   "gerado_em": "2026-09-29",
   "partes": [
     {
       "id": "cabecalho-do-colaborador",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "368-371"
+        "linhas": "389-392"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/BancoHoras/Show.tsx",
-        "linhas": "98-112",
-        "ancora": false
+        "linhas": "187-201",
+        "ancora": "bancohoras-colaborador"
       },
-      "status": "divergencia-declarada",
-      "acao": "Protótipo à frente em cargo e escala; exige o dado no payload (não medido). Forma, sem id na ata.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Nada — o cargo e a escala que o protótipo tinha à frente já estão no vivo e no payload.",
+      "_acionavel": false
     },
     {
       "id": "kpis-do-extrato",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "374-379"
+        "linhas": "395-400"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/BancoHoras/Show.tsx",
-        "linhas": "114-125",
-        "ancora": false
+        "linhas": "207-217",
+        "ancora": "bancohoras-kpis-do-extrato"
       },
-      "status": "divergencia-declarada",
-      "acao": "Emenda de charter proposta (dona: thread 27). Não é pedido de código antes da emenda. O Non-Goal \"não expira crédito na tela\" (`Index.charter.md:60`) continua valendo: mostrar o prazo não é expirar.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Nada. A emenda de charter (D-BH-KPI) entrou (`Show.charter.md:34-42`) e foi construída. O Anti-hook \"não expira crédito na tela\" (`Index.charter.md:66`) continua valendo: mostrar o prazo não é expirar.",
+      "_acionavel": false
     },
     {
       "id": "historico-de-movimentos",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "380-393"
+        "linhas": "401-414"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/BancoHoras/Show.tsx",
-        "linhas": "181-231",
+        "linhas": "219-302",
         "ancora": "bancohoras-historico-de-movimentos"
       },
-      "status": "divergencia-declarada",
-      "acao": "Forma, sem id na ata: fica para a passada de FORMA. A thread 17 grava `data-contract=\"bancohoras-historico-de-movimentos\"`.",
-      "_acionavel": true
+      "status": "paridade",
+      "acao": "Nada. O `data-contract=\"bancohoras-historico-de-movimentos\"` já está no card (`Show.tsx:219`).",
+      "_acionavel": false
     },
     {
       "id": "paginacao-do-historico",
       "prototipo": {
-        "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "383"
+        "arquivo": "n/a",
+        "linhas": "n/a"
       },
       "vivo": {
-        "arquivo": "n/a",
-        "linhas": "n/a",
+        "arquivo": "resources/js/Pages/Ponto/BancoHoras/Show.tsx",
+        "linhas": "277-299",
         "ancora": false
       },
-      "status": "gap",
-      "acao": "Gap real no vivo: navegação de página com partial reload `only: ['movimentos']`. O protótipo também corrige (ganha o `Pager`).",
-      "_acionavel": true
+      "status": "vivo-a-frente",
+      "acao": "Protótipo corrige: ganha o `Pager` de 50/pág. O gap do vivo fechou.",
+      "_acionavel": true,
+      "_nota": "2026-09-29: protótipo sem paginação — renderiza a lista inteira (`ponto-telas.jsx:404`, `lista.map`); faixa n/a porque o elemento nomeado não existe nesse lado."
     },
     {
       "id": "ajuste-manual",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "395-402"
+        "linhas": "416-423"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/BancoHoras/Show.tsx",
-        "linhas": "128-169",
+        "linhas": "306-368",
         "ancora": "bancohoras-ajuste-manual"
       },
       "status": "paridade",
-      "acao": "Nada. A soma local de saldo do protótipo (`ponto-telas.jsx:362`) é artefato de mock: não portar — viola o Non-Goal \"não recalcula o saldo\" (`Show.charter.md:39`).",
+      "acao": "Nada. A soma local de saldo do protótipo (`ponto-telas.jsx:383`) é artefato de mock: não portar — viola o Non-Goal \"não recalcula o saldo\" (`Show.charter.md:48`).",
       "_acionavel": false
     },
     {
       "id": "aviso-append-only",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
-        "linhas": "400-404"
+        "linhas": "421-425"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Ponto/BancoHoras/Show.tsx",
-        "linhas": "171-178",
+        "linhas": "356-375",
         "ancora": false
       },
       "status": "paridade",
-      "acao": "Nada. A citação da Portaria MTP 671/2021 falta no vivo (`grep -n \"Portaria\"` = 0) — passada de FORMA.",
-      "_acionavel": false
+      "acao": "Nada. A citação da Portaria, que faltava no vivo, já está lá (`Show.tsx:374`).",
+      "_acionavel": false,
+      "_nota": "2026-09-29: faixa viva cobre a nota do ajuste (Show.tsx:356-364) e o rodapé legal com a Portaria (:372-375); protótipo: Nota (ponto-telas.jsx:421) e Legal (:425)."
     }
   ]
 }

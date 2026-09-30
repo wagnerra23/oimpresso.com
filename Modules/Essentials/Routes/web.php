@@ -92,9 +92,12 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
         Route::resource('/payroll', 'Modules\Essentials\Http\Controllers\PayrollController');
         Route::resource('/holiday', 'EssentialsHolidayController');
 
-        Route::get('/shift/assign-users/{shift_id}', [Modules\Essentials\Http\Controllers\ShiftController::class, 'getAssignUsers']);
-        Route::post('/shift/assign-users', [Modules\Essentials\Http\Controllers\ShiftController::class, 'postAssignUsers']);
-        Route::resource('/shift', 'Modules\Essentials\Http\Controllers\ShiftController');
+        // Escala / horário contratual é do Ponto (D4 [W] 2026-09-29; ADR 0014, emenda 2026-09-29).
+        // O cadastro de turno do HRM (resource + assign-users) vira 301 para '/ponto/escalas',
+        // como as rotas de presença acima. O ShiftController e o dado de essentials_shifts NÃO são
+        // apagados aqui: migrar ou apagar o dado é outro PR, com dupla prova.
+        Route::permanentRedirect('/shift', '/ponto/escalas');
+        Route::permanentRedirect('/shift/{qualquer}', '/ponto/escalas')->where('qualquer', '.*');
         Route::get('/sales-target', [Modules\Essentials\Http\Controllers\SalesTargetController::class, 'index']);
         Route::get('/set-sales-target/{id}', [Modules\Essentials\Http\Controllers\SalesTargetController::class, 'setSalesTarget']);
         Route::post('/save-sales-target', [Modules\Essentials\Http\Controllers\SalesTargetController::class, 'saveSalesTarget']);
