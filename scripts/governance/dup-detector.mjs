@@ -19,7 +19,9 @@
  * Uso CI: node scripts/governance/dup-detector.mjs --pr=<N> [--repo=owner/name]
  *
  * Modo --path (sob demanda, ANTES de abrir PR — §5 2026-09-30, LC-19):
- *   node scripts/governance/dup-detector.mjs --path=<arquivo>[,<arquivo>...] [--self=<N>] [--repo=owner/name]
+ *   node scripts/governance/dup-detector.mjs --path=<arquivo>[,<arquivo>...] [--self=<N>] [--self-branch=<branch>] [--repo=owner/name]
+ *   `--self-branch` exclui o PR aberto DESTE branch — é o que o hook de `gh pr create` passa, porque
+ *   ali o número do PR ainda não existe (ou o PR já existe e seria acusado contra si mesmo).
  * Responde "algum PR ABERTO já toca este arquivo?" casando o ARQUIVO do diff (não texto de
  * busca), sem precisar de PR próprio. Não filtra por hot-path: quem pergunta nomeou o arquivo.
  * Exit: 0 livre · 1 tocado (lista os PRs) · 2 NÃO MEDI. O 2 é separado de propósito (§5
@@ -107,14 +109,17 @@ function mainPath(pathsArg, repoArgs) {
   const paths = pathsArg.split(',').map(normPath).filter(Boolean);
   if (!paths.length) { console.error('uso: --path=<arquivo>[,<arquivo>...] [--self=<N>]'); process.exit(2); }
   const self = arg('self') ? Number(arg('self')) : undefined;
+  const selfBranch = arg('self-branch');
   let openList;
   try {
     const fx = arg('fixture');
     openList = fx
       ? JSON.parse(readFileSync(fx, 'utf8'))
-      : JSON.parse(gh(['pr', 'list', '--state', 'open', '--json', 'number,title,files', '-L', String(LIST_LIMIT), ...repoArgs]));
+      : JSON.parse(gh(['pr', 'list', '--state', 'open', '--json', 'number,title,files,headRefName', '-L', String(LIST_LIMIT), ...repoArgs]));
   } catch (e) { console.error(`✗ NÃO MEDI: falha ao listar PRs abertos (${e.message.split(/\r?\n/)[0]}). Não conclua "ninguém toca".`); process.exit(2); }
-  const others = openList.map((o) => ({ number: o.number, title: o.title, files: (o.files || []).map((f) => f.path) }));
+  const others = openList
+    .filter((o) => !selfBranch || o.headRefName !== selfBranch)
+    .map((o) => ({ number: o.number, title: o.title, files: (o.files || []).map((f) => f.path) }));
   const r = pathProbe(paths, others, { self, returned: openList.length });
 
   console.log(`dup-detector --path: ${others.length} PR(s) aberto(s) consultado(s)${self ? ` (excluído o #${self})` : ''}.`);

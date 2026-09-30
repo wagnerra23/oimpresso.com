@@ -103,6 +103,17 @@ t('CLI --path: falha ao listar → exit 2 NÃO MEDI (nunca "livre")', () => {
   assert.equal(r.status, 2); assert.match(r.stderr, /NÃO MEDI/);
 });
 
+t('CLI --path --self-branch: o PR do próprio branch não é acusado; o de outro branch é', () => {
+  const fx2 = join(dir, 'open-branch.json');
+  writeFileSync(fx2, JSON.stringify([
+    { number: 1, title: 'meu', headRefName: 'claude/eu', files: [{ path: BASE }] },
+    { number: 2, title: 'outro', headRefName: 'claude/outro', files: [{ path: 'c.md' }] },
+  ]));
+  assert.equal(cli(`--path=${BASE}`, `--self-branch=claude/eu`, `--fixture=${fx2}`).status, 0);
+  const r = cli('--path=c.md', `--self-branch=claude/eu`, `--fixture=${fx2}`);
+  assert.equal(r.status, 1); assert.match(r.stdout, /#2/);
+});
+
 let pass = 0, fail = 0;
 for (const [n, f] of tests) { try { f(); pass++; } catch (e) { fail++; console.error(`✗ ${n}\n  ${e.message}`); } }
 console.log(`${fail ? '✗' : '✓'} dup-detector.test.mjs — ${pass}/${tests.length}${fail ? `, ${fail} FALHARAM` : ''}`);
