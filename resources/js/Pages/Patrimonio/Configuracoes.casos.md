@@ -129,8 +129,9 @@ last_run: "2026-09-11"
   chaves gravadas por igualdade, não por presença.
 - **Regressão que defende:** voltar a registrar as 5 ações (o 500 volta) e perder ou acrescentar
   campo no `store()` junto com a limpeza.
-- **Status: ⬜** — escrito nesta thread; o veredito vem da lane `assetmanagement-pest` do PR
-  (ler *assertions*, não `success`).
+- **Status: 🧪** — os 2 `it()` passam na lane `assetmanagement-pest`, MySQL real (run
+  36745625995, 2026-09-30): **135 passed · 635 assertions**, com os dois casos do UC-CFG-05
+  nomeados no log.
 
 ---
 
