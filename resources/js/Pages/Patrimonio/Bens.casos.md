@@ -236,6 +236,23 @@ last_run: "2026-09-30"
 
 ---
 
+## UC-BENS-11 · Excluir o bem leva as garantias dele junto
+
+- **Persona:** quem exclui um bem cadastrado por engano e não espera deixar resto no banco.
+- **Aceite:** Dado um bem com duas garantias e um bem de outro business com uma garantia ·
+  Quando o usuário exclui o primeiro pela lista · Então o bem **e as duas garantias** saem, e a
+  garantia do outro business fica intacta. Para o que já ficou para trás, o comando
+  `assetmanagement:garantias-orfas` lista as garantias sem bem e só apaga com `--apply`; nunca
+  toca garantia de bem que existe.
+- **Por quê:** `asset_warranties` pertence inteira ao bem e não tem `business_id`. Até 2026-09-30
+  o `AssetService::remover()` apagava o bem e a mídia e deixava a garantia órfã — medido em
+  produção: 1 garantia de 2026-09-23 cujo bem foi excluído 22s depois de criado.
+- **Teste:** `Modules/AssetManagement/Tests/Feature/GarantiasOrfasContratoTest.php` — dois `it()`
+  citando `UC-BENS-11` (a exclusão pela rota, e o comando em dry-run e com `--apply`).
+- **Status: 🧪** — ver o recibo do PR.
+
+---
+
 ## Dívida declarada — `Alocado` não é número auditado
 
 ⚠️ Não é UC porque **não é comportamento que esta onda defende** — é defeito herdado que ela
