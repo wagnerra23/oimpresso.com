@@ -1,0 +1,8 @@
+{
+  "_": "A1 [CL] 2026-09-29 — protótipo vendas-extras.jsx VendasDevolucoesPage (rota venda-devolucoes → VendasModule initialSub=devolucoes, app.jsx:814). NÃO é o padrão venda-blade (.vb-root): é .vd-dev-page com os-head/os-kpis. Tela ainda Blade no main (SellReturnController, web.php:1021). O form de devolver (rota venda-devolver) fica fora deste alvo.",
+  "_mapa": "Conferida em 2026-09-29 por alvo:mapa --rota venda-devolucoes --raiz .vd-dev-page contra o espelho servido por servirEstatico, mais querySelectorAll de cada seletor: todos resolvem 1 nó. Mapa: .vd-dev-page = header.os-head · nav.vd-modnav · div.os-kpis (3) · div.os-table-wrap.",
+  "header": { "seletor": ".vd-dev-page > header.os-head" },
+  "tabs": { "seletor": ".vd-dev-page > nav.vd-modnav" },
+  "kpis": { "seletor": ".vd-dev-page > .os-kpis" },
+  "tabela": { "seletor": ".vd-dev-page > .os-table-wrap" }
+}

@@ -1,0 +1,215 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · matriz · 8 vendas de POS · 4 rascunhos · 4 cotações · papel: Administrador Vendas Pedido de venda Atualizado 18:23 Todas as vendas POS Adicionar venda Lista de POS Lista de rascunhos Lista de compromissos Remessas Descontos Assinaturas Pedido de venda Caixa registradora Importação de vendas Filtros Filtros do blade de pedidos: local, cliente, período, status, status de envio e usuário. Recolher Local do negócio Todos Matriz Filial Centro Cliente Todos Rota Livre Transportes Martinho Oficina Prefeitura de Jaú Supermercado Bom Dia Agência Norte Cliente balcão Status Todos Pedido Parcial Concluído Status de envio Todos Pedido Embalado Enviado Entregue Cancelado Pedidos de venda 3 de 3 Confortável Compacto Adicionar pedido Ação Data Nº do pedido ↕ Cliente ↕ Contato Local Status Status de envio Quantidade restante Valor Adicionado por Ações 14/08/2026 09:22 PV-2026-0071 Prefeitura de Jaú (14) 3602-9000 Filial Centro Pedido Pedido 24 R$ 23.890,00 Wagner Ramos Ações 12/08/2026 15:10 PV-2026-0070 Supermercado Bom Dia (14) 3624-7788 Matriz Parcial Embalado 6 R$ 11.450,00 Larissa Prado Ações 08/08/2026 10:47 PV-2026-0068 Rota Livre Transportes (14) 99812-4410 Matriz Concluído Entregue 0 R$ 4.380,00 Marcos Vinícius Item condicional do menu: só aparece com enable_sales_order ligado nas configurações do POS.",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "venda-filtros"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "venda-toolbar"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 73,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5552/"
+  },
+  "nos_totais": 608,
+  "quieto_ms": 2000,
+  "rota": "venda-pedidos",
+  "secoes": {
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 156,
+        "w": 1176
+      },
+      "seletor": ".pb-root.vb-root > .pb-body > section.pb-widget:nth-of-type(1)",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": ".pb-root.vb-root > .cli-ph > header",
+      "truncado": false
+    },
+    "lista": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 291,
+        "w": 1176
+      },
+      "seletor": ".pb-root.vb-root > .pb-body > section.pb-widget:nth-of-type(2)",
+      "truncado": false
+    },
+    "tabs": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 9,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".pb-root.vb-root > .pb-body > nav.vb-nav",
+      "truncado": false
+    }
+  },
+  "tela": "vendas--pedidos--index",
+  "url": "http://127.0.0.1:5552/"
+}

@@ -147,7 +147,12 @@ it('SalesTarget positivo: save-sales-target no próprio user biz=1 → NÃO é 4
     $resp->assertRedirect();
 });
 
-it('Shift cross-tenant (shift): assign-users em shift de outro biz → 404', function () {
+// Desde 2026-09-29 o cadastro de turno do HRM CEDE ao Ponto (D4 [W]; ADR 0014, emenda
+// 2026-09-29): `/hrm/shift/assign-users` é 301 para `/ponto/escalas`. O gate de tenant do
+// ShiftController::postAssignUsers continua no código, mas o HTTP não chega mais nele. O
+// contrato que sobra é mais forte: NENHUMA atribuição nasce por esse caminho, de tenant nenhum.
+
+it('Shift cross-tenant (shift): assign-users em shift de outro biz → 301 e NÃO atribui', function () {
     $shiftFicticio = stsMakeShift(STS_BIZ_FICTICIO);
 
     $resp = $this->post('/hrm/shift/assign-users', [
@@ -155,28 +160,24 @@ it('Shift cross-tenant (shift): assign-users em shift de outro biz → 404', fun
         'user_shift' => [],
     ]);
 
-    $resp->assertNotFound();
-    // Nenhuma atribuição criada pro shift cross-tenant.
+    $resp->assertStatus(301)->assertRedirect('/ponto/escalas');
     expect(EssentialsUserShift::withoutGlobalScopes()->where('essentials_shift_id', $shiftFicticio->id)->count())->toBe(0);
 });
 
-it('Shift cross-tenant (user): assign-users com user_id de outro biz num shift próprio → 403', function () {
-    $foreign = stsForeignUser();
-    if (! $foreign) {
-        $this->markTestSkipped('Sem user em business != 1 (seed só tem biz=1).');
-    }
+it('Shift (user): assign-users num shift PRÓPRIO com user do próprio biz → 301 e NÃO atribui', function () {
     $shiftProprio = stsMakeShift(STS_BIZ_WAGNER);
 
     $resp = $this->post('/hrm/shift/assign-users', [
         'shift_id' => $shiftProprio->id,
         'user_shift' => [
-            (string) $foreign->id => ['is_added' => 1, 'start_date' => null, 'end_date' => null],
+            (string) $this->wUser->id => ['is_added' => 1, 'start_date' => null, 'end_date' => null],
         ],
     ]);
 
-    $resp->assertForbidden();
+    // Controle positivo: antes da D4 este POST ATRIBUÍA (gate passava). Agora nem o caso
+    // legítimo grava — a prova de que a rota não chega mais ao controller.
+    $resp->assertStatus(301)->assertRedirect('/ponto/escalas');
     expect(EssentialsUserShift::withoutGlobalScopes()
         ->where('essentials_shift_id', $shiftProprio->id)
-        ->where('user_id', $foreign->id)
         ->count())->toBe(0);
 });

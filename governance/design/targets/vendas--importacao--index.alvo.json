@@ -1,0 +1,234 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · matriz · 8 vendas de POS · 4 rascunhos · 4 cotações · papel: Administrador Vendas Importação de vendas Atualizado 18:21 Todas as vendas POS Adicionar venda Lista de POS Lista de rascunhos Lista de compromissos Remessas Descontos Assinaturas Pedido de venda Caixa registradora Importação de vendas Enviar planilha Arquivo para importar * Local do negócio * Selecione Matriz Filial Centro Nenhum arquivo escolhido. Baixar arquivo modelo Enviar e revisar Instruções Envie os dados em formato Excel (.xlsx). Escolha o local do negócio e por qual campo agrupar as linhas em vendas. Mapeie as colunas da planilha com os campos de venda correspondentes — a prévia já chega pré-mapeada por semelhança de nome. Revise a prévia antes de confirmar — a venda importada nasce finalizada e baixa estoque. Campos importáveis Instruções Nº da fatura Agrupa as linhas numa mesma venda (campo escolhido em “Agrupar por”). Nome do cliente Cliente novo é criado se não existir pelo telefone/e-mail. Telefone do cliente Obrigatório o telefone OU o e-mail do cliente. E-mail do cliente Obrigatório o telefone OU o e-mail do cliente. Data da venda Data em formato reconhecível; linha com data inválida para a importação. Nome do produto Obrigatório o nome do produto OU o SKU. SKU do produto Obrigatório o nome do produto OU o SKU. Quantidade Obrigatório. Unidade do produto Nome ou sigla da unidade; subunidade multiplica a quantidade. Preço unitário Obrigatório. Imposto do item Nome exato da taxa cadastrada. Desconto do item Valor fixo abatido do preço unitário. Descrição do item Vira a observação da linha da venda. Total do pedido Em branco, o total é somado das linhas. Importações 2 lote(s) Lote de importação Hora da importação Criado por Faturas Ação 2026-0007 23/09/2026 18:12 Wagner Ramos POS-2026-0410, POS-2026-0411, POS-2026-0412 e mais 27 fatura(s) Excluir lote 2026-0006 26/08/2026 09:46 Eliana Souza VD-2026-0288, VD-2026-0289 e mais 11 fatura(s) Excluir lote",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 73,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5552/"
+  },
+  "nos_totais": 568,
+  "quieto_ms": 2000,
+  "rota": "venda-importar",
+  "secoes": {
+    "enviar": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 156,
+        "w": 1176
+      },
+      "seletor": ".pb-root.vb-root > .pb-body > section.pb-widget:nth-of-type(1)",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": ".pb-root.vb-root > .cli-ph > header",
+      "truncado": false
+    },
+    "importacoes": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 197,
+        "w": 1176
+      },
+      "seletor": ".pb-root.vb-root > .pb-body > section.pb-widget:nth-of-type(3)",
+      "truncado": false
+    },
+    "instrucoes": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 668,
+        "w": 1176
+      },
+      "seletor": ".pb-root.vb-root > .pb-body > section.pb-widget:nth-of-type(2)",
+      "truncado": false
+    },
+    "tabs": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 9,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".pb-root.vb-root > .pb-body > nav.vb-nav",
+      "truncado": false
+    }
+  },
+  "tela": "vendas--importacao--index",
+  "url": "http://127.0.0.1:5552/"
+}
