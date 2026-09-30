@@ -5,9 +5,21 @@
       "sha256": "4af6f212f706c71ce4e9de286c7b7e3c3ad44c8694ba44739f35091d56c17b51",
       "em": "2026-09-29T21:49:46.782Z"
     },
+    "cowork-inbox/governance/playbook/_saida-07.md": {
+      "sha256": "ec53bc67f5c4333724f708d976e6c2c2f80c3d4f32a641e782b050950a2a5eb0",
+      "em": "2026-09-30T10:58:46.079Z"
+    },
+    "cowork-inbox/hrm/playbook/_saida-12.md": {
+      "sha256": "b68469dde94779f83e449dbfc2bdb673c1e6fce56da10431b5b8441a461e5e7d",
+      "em": "2026-09-30T10:58:46.079Z"
+    },
+    "cowork-inbox/patrimonio/playbook/_saida-12.md": {
+      "sha256": "5951d09f1505243d6739fd90808d664c2548d64c831f502796c7797a6c21e0cf",
+      "em": "2026-09-30T10:58:46.079Z"
+    },
     "cowork-inbox/ponto/playbook/_saida-07.md": {
-      "sha256": "50da25801a33ab900696a92469be542d0fdfc721a63c3ff8f6984d3da881b0cd",
-      "em": "2026-09-29T21:49:04.674Z"
+      "sha256": "4080820023828a441191fcd54c8d547a515f45c84143ffcb36f0e9b7e15f4c1b",
+      "em": "2026-09-30T10:58:46.079Z"
     },
     "cowork-inbox/ponto/playbook/_saida-13.md": {
       "sha256": "683a7c1b627954b18942746a768dcf162429eeb32095b5daf41ba59cd562d8aa",
@@ -20,6 +32,10 @@
     "cowork-inbox/ponto/playbook/_saida-15.md": {
       "sha256": "4f886a03646d0cb369874df920b049192bcb7483f2058e3022f2c505098aff21",
       "em": "2026-09-29T22:45:28.481Z"
+    },
+    "cowork-inbox/ponto/playbook/_saida-27.md": {
+      "sha256": "081d31dd0e84b020be13093aaa81307b65779a6cc7d7419264115ee891e79365",
+      "em": "2026-09-30T10:58:46.079Z"
     },
     "cowork-inbox/venda-menu/playbook/_saida-A1.md": {
       "sha256": "f694fded38c6e3f10ba3304366cb191cebc77dcfc38438c13f6b9e748a796365",
