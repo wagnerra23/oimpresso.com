@@ -14,9 +14,8 @@
 // Non-Goals do charter, com o motivo de cada um. Os três que mais saltam ao comparar com o
 // protótipo lado a lado:
 //
-//   • o sub-recorte "Garantia crítica" ENTROU em 2026-09-29 (D-GARANTIAS, thread 12): filtro e
-//     contagem nascem no SERVIDOR (`?recorte=garantia`), nunca da página que chegou. "Em
-//     manutenção" segue fora — não foi decidido;
+//   • os sub-recortes "Garantia crítica" (2026-09-29, D-GARANTIAS) e "Em manutenção"
+//     (2026-09-30, [W]) filtram e contam no SERVIDOR (`?recorte=`), nunca na página que chegou;
 //   • sem o total somado do rodapé — é número de VALOR, e valor exige a REGRA MESTRE
 //     (prova por dois caminhos + antes→depois pro [W]). O valor POR LINHA entra, que é o
 //     que o Blade já mostrava;
@@ -110,7 +109,7 @@ interface FiltrosAtivos {
   purchase_type?: string | null;
   is_allocatable?: string | number | null;
   /** Sub-recorte da lista — whitelist no servidor; `null` = todos. */
-  recorte?: 'garantia' | null;
+  recorte?: 'garantia' | 'manutencao' | null;
   sort?: string | null;
   dir?: string | null;
 }
@@ -121,7 +120,7 @@ interface Props {
   /** Deferida — ausente no primeiro paint, por isso opcional. */
   bens?: Paginator<Bem>;
   /** Deferida — contagem de cada sub-recorte sobre o CONJUNTO, calculada no servidor. */
-  recortes_contagem?: { garantia: number } | null;
+  recortes_contagem?: { garantia: number; manutencao: number } | null;
   filtros: FiltrosAtivos;
   opcoes: {
     locais: Record<string, string>;
@@ -481,13 +480,12 @@ function BarraDeFiltros({ filtros, opcoes }: { filtros: FiltrosAtivos; opcoes: P
 }
 
 /**
- * Sub-recortes da lista (`CliTabs` "Recorte do patrimônio" do protótipo, `:353`). Só os que o
- * servidor sabe servir: Todos · Garantia crítica. "Alocáveis" já é o checkbox da barra de
- * filtros; "Em manutenção" não foi decidido. A contagem vem de `recortes_contagem` — contar
- * aqui olharia só as 25 linhas da página.
+ * Sub-recortes da lista (`CliTabs` "Recorte do patrimônio" do protótipo, `:353`): Todos ·
+ * Garantia crítica · Em manutenção. "Alocáveis" já é o checkbox da barra de filtros. A
+ * contagem vem de `recortes_contagem` — contar aqui olharia só as 25 linhas da página.
  */
-function RecortesDaLista({ filtros, contagem }: { filtros: FiltrosAtivos; contagem?: { garantia: number } | null }) {
-  const ativo = filtros.recorte === 'garantia' ? 'garantia' : 'todos';
+function RecortesDaLista({ filtros, contagem }: { filtros: FiltrosAtivos; contagem?: Props['recortes_contagem'] }) {
+  const ativo = filtros.recorte ?? 'todos';
   const href = (recorte: string) => {
     const params = new URLSearchParams({ ...limpar(filtros), ...(recorte === 'todos' ? {} : { recorte }) });
     if (recorte === 'todos') params.delete('recorte');
@@ -502,6 +500,7 @@ function RecortesDaLista({ filtros, contagem }: { filtros: FiltrosAtivos; contag
       ghosts={[
         { key: 'todos', label: 'Todos', href: href('todos') },
         { key: 'garantia', label: 'Garantia crítica', href: href('garantia'), badge: contagem?.garantia },
+        { key: 'manutencao', label: 'Em manutenção', href: href('manutencao'), badge: contagem?.manutencao },
       ]}
       onGhostChange={(chave) =>
         router.get(

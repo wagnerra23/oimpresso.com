@@ -319,6 +319,7 @@ class AssetController extends Controller
             // mas respeita `permitted_locations()`: restricao de permissao nunca e opcional.
             'recortes_contagem' => Inertia::defer(fn () => [
                 'garantia' => $this->contarRecorteGarantia($business_id),
+                'manutencao' => $this->contarRecorte($business_id, fn ($q) => $this->aplicarRecorteManutencao($q, $business_id)),
             ]),
         ]);
     }
@@ -326,9 +327,9 @@ class AssetController extends Controller
     /**
      * Recortes da lista de Bens (D-GARANTIAS, [W] 2026-09-29: "Garantia critica" e filtro
      * DENTRO de Bens, sem tela propria). Whitelist: valor fora dela vira `todos` e nunca
-     * chega ao SQL. "Em manutencao" nao entra — nao foi decidido (thread 12, PARAR SE).
+     * chega ao SQL. "Em manutencao" entrou em 2026-09-30 ([W]), com a mesma forma.
      */
-    private const RECORTES = ['todos', 'garantia'];
+    private const RECORTES = ['todos', 'garantia', 'manutencao'];
 
     private function recorteAtivo(Request $request): string
     {
@@ -370,7 +371,32 @@ class AssetController extends Controller
             ->select('UG.asset_id'));
     }
 
+    /**
+     * Em manutencao = o bem tem manutencao EM ABERTO: status `new` ou `in_progress`, a mesma
+     * lista fechada de `AssetMaintenanceService::contarAbertas()` (pill da aba Manutencoes) e
+     * do selo "N em manutencao" por linha. Status NULL ou desconhecido nao conta.
+     *
+     * Tier 0 (ADR 0093): `asset_maintenances` TEM `business_id` — filtrado explicitamente,
+     * alem do filtro de `assets` de cada consumidor.
+     */
+    private function aplicarRecorteManutencao($assets, $business_id)
+    {
+        return $assets->whereIn('assets.id', DB::table('asset_maintenances')
+            ->where('business_id', $business_id)
+            ->whereIn('status', ['new', 'in_progress'])
+            ->select('asset_id'));
+    }
+
     private function contarRecorteGarantia($business_id): int
+    {
+        return $this->contarRecorte($business_id, fn ($q) => $this->aplicarRecorteGarantia($q, $business_id));
+    }
+
+    /**
+     * Contagem de um recorte sobre o CONJUNTO do business — independe dos filtros escolhidos
+     * (como o `n` do prototipo), mas respeita `permitted_locations()`.
+     */
+    private function contarRecorte($business_id, callable $aplicar): int
     {
         $assets = Asset::where('assets.business_id', $business_id);
 
@@ -379,7 +405,7 @@ class AssetController extends Controller
             $assets->whereIn('assets.location_id', $permitted_locations);
         }
 
-        return $this->aplicarRecorteGarantia($assets, $business_id)->count();
+        return $aplicar($assets)->count();
     }
 
     /**
@@ -465,8 +491,11 @@ class AssetController extends Controller
 
         $this->applyAssetFilters($assets);
 
-        if ($this->recorteAtivo($request) === 'garantia') {
+        $recorte = $this->recorteAtivo($request);
+        if ($recorte === 'garantia') {
             $this->aplicarRecorteGarantia($assets, $business_id);
+        } elseif ($recorte === 'manutencao') {
+            $this->aplicarRecorteManutencao($assets, $business_id);
         }
 
         // Busca — os 4 campos que identificam o bem, os mesmos que o prototipo procura
