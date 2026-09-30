@@ -1824,6 +1824,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** diante de alarme de máquina compartilhada (gate/watchdog vermelho em todo PR, drift, cron), não publicar o conserto sem as três perguntas — PR aberto no arquivo (a sonda acima), sessão viva (`whats-active`), já mergeado (`git log HEAD..origin/main`). E, achado PR aberto, ler **todos** os números que a sonda devolveu antes de escolher o canônico.
 
+### 2026-09-30 (2ª) — EMENDA da lápide acima (três sessões no mesmo baseline): a sonda por arquivo virou modo do `dup-detector` no mesmo dia, e na mesma sessão o 2º PR duplicado saiu sem rodá-la
+
+- **O limite (variante também proibida):** abrir PR de thread de playbook (ou de qualquer tarefa que outra sessão possa ter recebido pelo mesmo chip/pedido) sem rodar `dup-detector --path` nos arquivos do prefixo **imediatamente antes do `gh pr create`**. E trocar a forma que o [W] escolheu sem voltar a ele, mesmo com um texto do índice a favor: a decisão vem do dono, não da leitura mais conveniente do canon.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
