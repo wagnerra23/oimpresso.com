@@ -20,7 +20,7 @@ alcance:
   pacote: assetmanagement_module      # superadmin_package
 tier: B
 charter_version: 3
-last_validated: "2026-09-23"
+last_validated: "2026-09-30"
 ---
 
 # Page Charter — Patrimonio/Index (Painel do Patrimônio)
@@ -82,6 +82,9 @@ o que está parado ou sem cobertura de garantia.**
 
 - **R3 (garantia é janela).** `asset_warranties.start_date/end_date` vs hoje → na garantia /
   vence em ≤30 dias / vencida. **Sem registro ≠ vencida** — é um quarto balde, "sem garantia".
+  **Vale a garantia mais recente** de cada bem, a que termina por último ([W] 2026-09-30): bem com
+  garantia velha vencida e renovação vigente é "na garantia", e cada bem entra em um balde só,
+  com o valor contado uma vez. É a mesma regra do recorte "Garantia crítica" de Bens.
 - **Tier 0 multi-tenant (ADR 0093).** `asset_warranties` não tem `business_id`: toda leitura de
   garantia entra por `join` com `assets` filtrando `assets.business_id`.
 - **Quantidade é decimal.** `assets.quantity` é `decimal(22,4)` e os cards somam **quantidade**,

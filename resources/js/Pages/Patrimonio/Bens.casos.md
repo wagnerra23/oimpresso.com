@@ -148,6 +148,8 @@ last_run: "2026-09-29"
   garantia · Quando o usuário abre `/asset/assets?recorte=garantia` · Então a lista traz os dois
   primeiros, **não** traz o vigente e **não** traz o sem registro (ele é "sem garantia", não
   "vencida"); e a contagem `recortes_contagem.garantia` vem do servidor, sobre o conjunto.
+  **Vale a garantia MAIS RECENTE** do bem, a que termina por último ([W] 2026-09-30): um bem com
+  a garantia velha vencida e a renovação vigente **não** entra.
   Recorte fora da whitelist (`?recorte=qualquer`) é tratado como "todos".
 - **Tier 0 (ADR 0093):** um bem de **outro** business com garantia vencida não entra na lista
   nem na contagem — `asset_warranties` não tem `business_id`, o recorte filtra por join.
