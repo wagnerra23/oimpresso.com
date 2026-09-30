@@ -126,3 +126,13 @@ describe('UC-PAT-08 · ícone do "Resumo de hoje" resolve no lucide, não no fal
     expect(resumo!.querySelector('svg.lucide-circle'), 'fallback Circle no resumo').toBeNull();
   });
 });
+
+// O chip e o KPI "Garantia vencida ou vencendo" leem a MESMA regra no servidor (a garantia mais
+// recente de cada bem). Se o chip abrisse a lista inteira, o número do card não teria onde bater.
+describe('UC-PAT-10 · o chip "Garantia crítica" abre Bens já no recorte', () => {
+  it('o chip aponta para /asset/assets?recorte=garantia, não para a lista inteira', () => {
+    render(<PainelPatrimonio {...BASE} kpis={KPIS} porCategoria={[]} />);
+    const chip = screen.getByRole('link', { name: 'Garantia crítica' });
+    expect(chip.getAttribute('href')).toBe('/asset/assets?recorte=garantia');
+  });
+});

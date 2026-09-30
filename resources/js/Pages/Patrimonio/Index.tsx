@@ -426,17 +426,17 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
                   NÃO existe (`D-AUDITORIA`) — renderizá-lo seria a afordância falsa que a tela
                   de Bens já recusou ao derivar as abas do menu. Os três aqui navegam de fato;
                   as rotas estão em `Routes/web.php:13-22`.
-                  `Garantia crítica` leva à lista de Bens sem pré-filtro: o filtro por garantia
-                  do protótipo não existe no índice (`AssetController` lê `q`, `location_id`,
-                  `category_id`, `purchase_type`, `is_allocatable` — não garantia). Levar ao
-                  lugar certo sem filtrar é honesto; inventar `?garantia=` seria um parâmetro
-                  que o backend ignora em silêncio. */}
+                  `Garantia crítica` abre Bens JÁ no recorte (`?recorte=garantia`), que existe
+                  no servidor desde 2026-09-29 (D-GARANTIAS, thread 12) e usa a mesma regra do
+                  KPI acima — o número do card e o da pílula batem. Até então o chip levava à
+                  lista sem pré-filtro, porque o índice não tinha filtro por garantia e inventar
+                  um parâmetro que o backend ignora seria pior. */}
               {is_admin ? (
                 <>
                   <div className="mt-3 border-t border-border" />
                   <Inline gap={2} align="center" className="flex-wrap pt-3">
                     <Button variant="outline" size="sm" asChild>
-                      <a href="/asset/assets">Garantia crítica</a>
+                      <a href="/asset/assets?recorte=garantia">Garantia crítica</a>
                     </Button>
                     <Button variant="outline" size="sm" asChild>
                       <a href="/asset/asset-maintenance">Em manutenção</a>
