@@ -774,36 +774,36 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
         <KpiCard
           icon="check-circle"
           tone="success"
-          label="Policies ativas"
+          label="Políticas ativas"
           value={kpis.active_policies.toString()}
           description="mcp_governance_rules.enabled=1"
         />
         <KpiCard
           icon="git-pull-request"
           tone="info"
-          label="Skill approvals"
+          label="Aprovações de skill"
           value={kpis.skill_approvals.toString()}
-          description="Pending de aprovação"
+          description="Pendentes de aprovação"
           href="/ads/admin/skills-review"
         />
         <KpiCard
           icon="users"
           tone="info"
-          label="Actors registrados"
+          label="Atores registrados"
           value={kpis.actors_registered.toString()}
           description="Identity Mesh — humanos + IAs"
         />
         <KpiCard
           icon="alert-triangle"
           tone={kpis.audit_highlights > 0 ? 'warning' : 'success'}
-          label="Audit highlights 24h"
+          label="Ocorrências em 24 h"
           value={kpis.audit_highlights.toString()}
           description="Erros + ações L0/L1"
         />
         <KpiCard
           icon="award"
           tone={complianceColor(kpis.compliance_pct) as any}
-          label="Compliance Constitution"
+          label="Conformidade"
           value={`${kpis.compliance_pct}%`}
           description={`v1.1.0 — próx revisão ${next_review_at}`}
         />
@@ -857,7 +857,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
         <KpiCard
           icon="activity"
           tone={failedJobsTone(health_kpis.failed_jobs_24h)}
-          label="Failed jobs 24h"
+          label="Jobs falhos em 24 h"
           value={health_kpis.failed_jobs_24h === null ? '—' : health_kpis.failed_jobs_24h.toString()}
           description={health_kpis.failed_jobs_24h === null ? 'failed_jobs ausente' : 'queue Horizon'}
         />
@@ -926,7 +926,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-zinc-700 dark:text-zinc-300" />
-                Audit Highlights 24h ({audit_highlights.length})
+                Ocorrências em 24 h ({audit_highlights.length})
               </h3>
               <Link href="/governance/audit" className="text-sm text-primary hover:underline">
                 ver detalhes →
