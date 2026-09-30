@@ -1828,6 +1828,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** abrir PR de thread de playbook (ou de qualquer tarefa que outra sessão possa ter recebido pelo mesmo chip/pedido) sem rodar `dup-detector --path` nos arquivos do prefixo **imediatamente antes do `gh pr create`**. E trocar a forma que o [W] escolheu sem voltar a ele, mesmo com um texto do índice a favor: a decisão vem do dono, não da leitura mais conveniente do canon.
 
+### 2026-09-30 — EMENDA da lápide 2026-08-18 (gap protótipo × produção por grep): o vetor LISTA DE MUDANÇAS — promovi para produção só o delta da sessão
+
+- **O limite (variante também proibida):** decidir o escopo de uma promoção protótipo → produção a partir de qualquer lista de mudanças (sessão, PR, commit, handoff, changelog). O inventário sai da **comparação medida** entre o protótipo atual e a tela viva; "só X se aplica" é conclusão da matriz, nunca ponto de partida. Vale igual para "igualar a tela ao design" e "subir a versão nova".
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
