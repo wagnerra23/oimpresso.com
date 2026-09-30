@@ -26,7 +26,7 @@ Medido com `node scripts/contrato-de-tela.mjs --contract <c>`:
 | `ponto-painel` | `Ponto/Dashboard/Index.tsx` | ❌ 12 (4 âncoras + 8 copies) | **renomear copy** — as seções existiam e as props já chegavam; só `painel-nota-fechamento` custou backend (`divergencias_mes`) |
 | `ponto-espelho` | `Espelho/Show.tsx` + `Index.tsx` | ❌ 26 (5 âncoras + 21 de 29 copies) | **construir** — as 21 copies estavam ausentes nos dois arquivos |
 
-⚠️ **Consequência operacional que vale saber:** o job `Preflight + contratos ativos` varre **todos**
+⚠️ **Consequência operacional que vale saber:** o job `Contratos de tela (fidelidade + intenção)` varre **todos**
 os `*.contract.json` do repo sempre que qualquer `.tsx` muda. Enquanto um contrato do Ponto estiver
 vermelho, ele aparece em **todo PR de UI do projeto**, não só nos do Ponto. Ele **não** está entre os
 required (medido em 2026-08-21 na união `classic_protection.contexts ∪ rulesets.contexts`), logo não
