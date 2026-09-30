@@ -13,7 +13,7 @@ last_run: "2026-09-11"
 > Regra G-2 (ADR 0264): UC declarado sem teste citando o id = órfão.
 > Teste que os defende: [`Modules/AssetManagement/Tests/Feature/ConfiguracoesContratoTest.php`](../../../../Modules/AssetManagement/Tests/Feature/ConfiguracoesContratoTest.php).
 
-> **Por que quatro UC.** Cada um tem teste que roda. Os cenários do protótipo que não têm
+> **Por que cinco UC.** Cada um tem teste que roda (o UC-CFG-05 entrou na thread 20, em 2026-09-30). Os cenários do protótipo que não têm
 > backend (os três interruptores, a linha de retenção) ficam no `[BACKLOG]` — prosa honesta,
 > sem id — porque declarar UC sem teste cria órfão e quebra o G-2.
 
@@ -111,6 +111,26 @@ last_run: "2026-09-11"
   `finally` — o CT 100 é base persistente que não se limpa entre execuções, e esta é a única
   suíte da frente que **escreve** em `business`.
 - **Status: 🧪** — passa no CT 100 (run 2026-09-08, seed 1788892480).
+
+---
+
+## UC-CFG-05 · As sub-rotas mortas somem, e salvar continua gravando o mesmo
+
+- **Persona:** qualquer usuário logado que abrisse `/asset/settings/create` (ou `/{id}`,
+  `/{id}/edit`) por URL — antes tomava erro 500 (`View [x] not found`, [`_saida-15.md`](../../../../prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/_saida-15.md));
+  e o admin que salva a tela, que não pode perder campo nenhum com a limpeza.
+- **Aceite:** Dado o resource `settings` restrito a `index` e `store` (thread 20, 2026-09-30) ·
+  Quando alguém pede `GET create|{id}|{id}/edit`, `PUT {id}` ou `DELETE {id}` · Então recebe
+  **404** e `Route::has('asset.settings.<acao>')` é falso para as 5; e quando o admin salva
+  prefixos e notificações, o JSON de `business.asset_settings` tem **exatamente** as 7 chaves de
+  antes e os 2 `NotificationTemplate` gravam assunto e corpo.
+- **Teste:** `ConfiguracoesContratoTest.php` — **dois** `it()` citando `UC-CFG-05`: um prova o
+  404 exato das 5 URLs, com espelho de 200 em `/asset/settings`; o outro compara a lista de
+  chaves gravadas por igualdade, não por presença.
+- **Regressão que defende:** voltar a registrar as 5 ações (o 500 volta) e perder ou acrescentar
+  campo no `store()` junto com a limpeza.
+- **Status: ⬜** — escrito nesta thread; o veredito vem da lane `assetmanagement-pest` do PR
+  (ler *assertions*, não `success`).
 
 ---
 

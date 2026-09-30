@@ -81,6 +81,9 @@ permissão: quem chega na tela é admin por construção (a guarda barra antes),
 - ❌ NÃO valida formato de prefixo (tamanho, caracteres, unicidade). O Blade não valida, e
   inventar regra aqui mudaria o contrato de uma coluna que já tem dado gravado.
 - ❌ NÃO cria rota. `Route::resource('settings', …)` já serve `GET`/`POST` `/asset/settings`.
+  Desde 2026-09-30 (thread 20), o resource declara só `->only(['index', 'store'])`:
+  `create`/`show`/`edit` apontavam views inexistentes e `update`/`destroy` tinham corpo vazio
+  (UC-CFG-05). A edição que a ADR 0414 manda para a Page do índice é esta própria tela.
 - ❌ NÃO afrouxa a guarda `is_admin`. Ver Anti-hooks.
 
 ## Anti-hooks (NÃO faz automaticamente)
