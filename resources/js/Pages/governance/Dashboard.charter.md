@@ -43,7 +43,7 @@ Painel único onde [W] opera governança em ~5min/dia: checks da Constituição,
   - 4 KPIs: chamadas, taxa de sucesso, latência p95 (com p50/p99/máx), custo
   - filtro de período por query string `mcp_preset` / `mcp_de` / `mcp_ate` (whitelist server-side)
   - 3 abas in-page via `<SubNav variant="segmented">`: **Consumo** (série diária calls⇄custo em SVG),
-    **Acesso / RBAC** (distribuição por resultado + negadas por código), **Usuários e tools** (top 10 cada)
+    **Acesso e permissões** (distribuição por resultado + negadas por código), **Usuários e ferramentas** (top 10 cada) — rótulos do protótipo desde 2026-09-30 (antes "Acesso / RBAC" e "Usuários e tools")
   - partial reload `only: ['mcp','mcp_filters']` — trocar período não re-roda Constituição nem SDD
 - Multi-tenant: as `mcp_*` são **cross-tenant por design** (exceção formal ao Tier 0, Constituição Art. 6+8, coberta por `CrossTenantPolicyTest`)
 - Degradação graciosa: `failed_jobs` / `jana_mensagens` / `jana_health_narratives` / `mcp_sdd_scorecard_history` / `mcp_audit_log` ausentes → KPI "—" ou `<EmptyState>`, nunca erro

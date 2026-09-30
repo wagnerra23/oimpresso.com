@@ -410,11 +410,11 @@ function McpPainel({ mcp }: { mcp: McpPayload }) {
           { value: 'consumo', label: 'Consumo', icon: 'bar-chart-2' },
           {
             value: 'acesso',
-            label: 'Acesso / RBAC',
+            label: 'Acesso e permissões',
             icon: 'shield-check',
             badge: mcp.denied_por_codigo.length || undefined,
           },
-          { value: 'usuarios', label: 'Usuários e tools', icon: 'users' },
+          { value: 'usuarios', label: 'Usuários e ferramentas', icon: 'users' },
         ]}
       />
 
@@ -521,7 +521,7 @@ function McpPainel({ mcp }: { mcp: McpPayload }) {
         <Grid cols={1} gap={4} className="md:grid-cols-2">
           <Card>
             <CardContent className="p-4">
-              <h3 className="text-lg font-semibold mb-1">Tools e recursos mais usados</h3>
+              <h3 className="text-lg font-semibold mb-1">Ferramentas e recursos mais usados</h3>
               <p className="text-xs text-muted-foreground mb-3">Top 10 do período</p>
               {mcp.top_tools.length === 0 ? (
                 <EmptyState
