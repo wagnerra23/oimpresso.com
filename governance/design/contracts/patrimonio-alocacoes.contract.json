@@ -9,7 +9,8 @@
     {
       "id": "cabecalho",
       "copy": [
-        "Alocações"
+        "Alocações",
+        "Alocar recurso"
       ]
     },
     {
@@ -45,8 +46,7 @@
   ],
   "_gap_vs_ancora": [
     "As entradas abaixo existem NA ANCORA e NAO na tela (ou divergem em copy). Ficam AQUI, declaradas com a razao de cada uma, em vez de dentro de `secoes` — pinar tudo hoje deixaria o gate VERMELHO PERMANENTE, e a decisao [W] de 2026-08-21 (proposal `2026-08-21-ponto-contratos-retidos-decisao-w.md` §7) diz que contrato vermelho permanente treina o time a ignorar gate. Cada uma migra pra `secoes` quando a tela passar a atende-la — e ai o gate DEFENDE, em vez de so reclamar.",
-    "COLUNA DE ACAO `Ação` + `Revogar` — o prototipo (:422, :445-447) poe a acao na PRIMEIRA coluna, com um botao `Revogar` por linha. A tela nao tem coluna de acao. Non-Goal DECLARADO no charter (`NÃO aloca, edita nem devolve dentro da tela`), e a razao e MEDIDA, nao presumida: `AssetAllocationController::{create,edit}` so respondem sob `request()->ajax()` (:170, :243) e as views sao fragmentos de modal jQuery — um link direto levaria a pagina em branco, que e afordancia falsa. Trazer o formulario pra ca e ESCRITA DE QUANTIDADE: REGRA MESTRE Tier 0.",
-    "ACAO `Alocar recurso` — o prototipo a oferece na barra de sub-abas (:459) e no header do modulo (:830). A tela nao tem: mesmo Non-Goal de escrita de quantidade acima. ⚠️ Observar que a string EXISTE em `Bens.tsx` (contrato da irma, secao `tabela`) — aqui ela e gap, la e copy atendida; sao telas diferentes e o veredito e por tela.",
+    "COLUNA DE ACAO `Ação` + `Revogar` — ⚠️ ATUALIZADO 2026-09-30 (thread 18): a tela passou a ter a coluna de acao na PRIMEIRA posicao, como o prototipo, com `Editar` e `Devolver` por linha. Ficam fora do contrato por COPY, nao por ausencia: o cabecalho da coluna na tela e `Ações` (plural, igual a irma Bens) e o verbo e `Devolver`, nao `Revogar` — o mesmo vocabulario `devolver`/`revogar` que o item `Revogadas` abaixo deixa como decisao [W].",
     "COLUNA `Alocado até` — o prototipo (:426) usa o rotulo completo; a tela (:192) diz so `Até`. Divergencia de copy pura, sem impedimento tecnico. Escolher entre as duas formas e decisao de copy = [W].",
     "SUB-RECORTE `Revogadas` — o prototipo (:456) diz `Revogadas`; a tela (:257) diz `Devolvidas`. NAO e so palavra: e VOCABULARIO DE BACKEND, medido — o `AssetAllocationController` aceita `['ativas','devolvidas','todas']` como query param (:218) e emite `situacao: 'devolvida'` por linha (:272). Mudar o rotulo pra `Revogadas` sem mudar o contrato do parametro deixaria rotulo e URL discordando. Decisao de vocabulario = [W].",
     "RODAPE `N unidades alocadas` · `N alocações ativas` · `Revogar devolve a unidade ao saldo e registra o código REV- na auditoria.` — o prototipo (:462-466) soma quantidades no rodape. Non-Goal DECLARADO: e AGREGACAO DE QUANTIDADE, sob a REGRA MESTRE Tier 0 (prova por dois caminhos + antes→depois pro [W]); o numero POR LINHA entra. ⚠️ ARMADILHA VERIFICADA: `unidades alocadas` CASA no `.tsx`, mas so na linha :16 — que e justamente o comentario declarando que a tela NAO tem o rodape. Declara-la deixaria o gate verde por casar prosa, e pior: verde apontando pro texto que diz o contrario.",

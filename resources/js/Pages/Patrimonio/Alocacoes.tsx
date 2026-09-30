@@ -20,19 +20,15 @@
 //   • sem avatar/papel de quem recebeu — `users` não tem "papel na alocação"; o protótipo
 //     desenha um campo que o modelo não tem.
 //
-// ─── Por que NÃO há botão de editar/alocar/excluir por linha ─────────────────────────
+// ─── Escrita: drawers (thread 18, [W] 2026-09-30 · ADR 0414) ────────────────────────
 //
-// MEDIDO, não presumido: `AssetAllocationController::{create,edit}` só respondem sob
-// `request()->ajax()` (`:170`, `:243`) — fora dele o método cai no fim e devolve corpo VAZIO.
-// E as views (`asset_allocation/{create,edit}.blade.php`) são FRAGMENTOS de modal jQuery
-// (`<div class="modal-dialog">`, zero `@extends`): não sobrevivem a uma navegação direta.
-// Um `<a href="/asset/allocation/5/edit">` levaria a uma página em branco — afordância falsa,
-// que é o que o charter proíbe. Trazer esses formulários pra cá significa convertê-los em
-// drawer React, e isso é ESCRITA DE QUANTIDADE: REGRA MESTRE Tier 0, outra onda.
+// Até 2026-09-30 a tela era só leitura: `create`/`edit` dos dois controllers só respondiam sob
+// `ajax()` com fragmento de modal jQuery, e link pra eles abria página em branco. Agora os
+// quatro caminhos — `/asset/allocation/create`, `/asset/allocation/{id}/edit`,
+// `/asset/revocation/create?id=` — devolvem ESTA Page com a prop `formulario`, e o drawer
+// certo nasce aberto (`_alocacoes/Drawers.tsx`). O saldo continua decidido no servidor.
 //
-// O que a tela oferece no lugar é o caminho que de fato funciona: **Devoluções**, que é aba
-// PRÓPRIA (`/asset/revocation`, ghost `revocation`) e cujo `index()` devolve view de verdade
-// (`RevokeAllocatedAssetController:108`, sem gate de ajax) — medido.
+// O botão **Devoluções** fica: a lista Blade `/asset/revocation` segue viva até a thread 16.
 //
 // Layout por PRIMITIVOS (ADR 0253) — `Stack`/`Inline`, nunca `<div className="flex gap-4">`
 // solto; o `layout-primitives-guard` é catraca e reprova adotante novo.
@@ -48,6 +44,8 @@ import { Segmented } from '@/Components/ui/segmented';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Stack, Inline } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
+import { AlocarDrawer, DevolverDrawer, type Formulario } from './_alocacoes/Drawers';
+import { Pencil, Undo2 } from 'lucide-react';
 import type { ColumnDef } from '@tanstack/react-table';
 
 /* ─── Contrato com o backend ──────────────────────────────────────────────────── */
@@ -102,6 +100,11 @@ interface Props {
     excluir: boolean;
     devolver: boolean;
   };
+  /** Presente só nas rotas `create`/`edit` — diz qual drawer nasce aberto (thread 18). */
+  formulario?: Formulario;
+  /** `business.date_format` + relógio 12h: o drawer converte a data antes do POST. */
+  formato_data: string;
+  hora_12: boolean;
 }
 
 /* ─── Formatação ──────────────────────────────────────────────────────────────── */
@@ -141,10 +144,42 @@ function SeloSituacao({ alocacao }: { alocacao: Alocacao }) {
 
 /* ─── Colunas ─────────────────────────────────────────────────────────────────── */
 
+/**
+ * Ações por linha: editar e devolver. Os dois navegam pra rota que abre o drawer — a URL diz
+ * qual formulário está aberto, então recarregar ou voltar é honesto. Alocação toda devolvida
+ * não tem ação: mesmo critério do Blade (`revoked_quantity != quantity`).
+ */
+function AcoesDaLinha({ alocacao, permissoes }: { alocacao: Alocacao; permissoes: Props['permissoes'] }) {
+  if (alocacao.situacao === 'devolvida') return <span className="text-muted-foreground">—</span>;
+  const ir = (url: string) => router.get(url, {}, { preserveScroll: true });
+  return (
+    <Inline gap={1}>
+      {permissoes.editar ? (
+        <Button size="sm" variant="ghost" aria-label={`Editar alocação ${alocacao.ref_no}`}
+          onClick={() => ir(`/asset/allocation/${alocacao.id}/edit`)}>
+          <Pencil size={14} aria-hidden="true" />
+        </Button>
+      ) : null}
+      {permissoes.devolver ? (
+        <Button size="sm" variant="ghost" aria-label={`Devolver alocação ${alocacao.ref_no}`}
+          onClick={() => ir(`/asset/revocation/create?id=${alocacao.id}`)}>
+          <Undo2 size={14} aria-hidden="true" /> Devolver
+        </Button>
+      ) : null}
+    </Inline>
+  );
+}
+
 // A ordem espelha o protótipo (`:422`): a tabela é mais larga que a janela, e informação de
-// identificação precisa nascer à esquerda, dentro do viewport.
-function colunas(): ColumnDef<Alocacao>[] {
+// identificação precisa nascer à esquerda, dentro do viewport. Ações primeiro, como na Bens.
+function colunas(permissoes: Props['permissoes']): ColumnDef<Alocacao>[] {
   return [
+    {
+      id: 'acoes',
+      header: 'Ações',
+      cell: ({ row }) => <AcoesDaLinha alocacao={row.original} permissoes={permissoes} />,
+      meta: { width: 150 },
+    },
     {
       id: 'ref_no',
       header: 'Código',
@@ -308,7 +343,10 @@ function EsqueletoTabela() {
   );
 }
 
-export default function Alocacoes({ alocacoes, filtros, permissoes }: Props) {
+export default function Alocacoes({ alocacoes, filtros, permissoes, formulario, formato_data, hora_12 }: Props) {
+  // Fechar o drawer volta pra lista, com o recorte que estava na URL.
+  const fecharDrawer = () => router.get('/asset/allocation', limpar(filtros), { preserveScroll: true });
+
   // Distingue "não há alocação nenhuma" de "não há alocação PARA ESTE RECORTE" — são dois
   // vazios diferentes. O recorte default é `ativas`, então uma casa que já devolveu tudo cai
   // no vazio filtrado, e não no absoluto: oferecer "registre a primeira" ali seria mentira.
@@ -326,14 +364,19 @@ export default function Alocacoes({ alocacoes, filtros, permissoes }: Props) {
             title="Alocações"
             subtitle="O que está na mão de quem — desde quando, até quando, e o que já voltou"
             actions={
-              permissoes.devolver ? (
-                // Navegação para a aba PRÓPRIA de Devoluções. É o único caminho de escrita que
-                // sobrevive fora do modal jQuery — medido (`RevokeAllocatedAssetController:108`
-                // devolve view sem gate de ajax, ao contrário de `create`/`edit` daqui).
-                <Button size="sm" variant="outline" asChild>
-                  <a href="/asset/revocation">Devoluções</a>
-                </Button>
-              ) : undefined
+              <Inline gap={2}>
+                {permissoes.devolver ? (
+                  // Lista Blade de devoluções — segue viva até a thread 16 redirecioná-la.
+                  <Button size="sm" variant="outline" asChild>
+                    <a href="/asset/revocation">Devoluções</a>
+                  </Button>
+                ) : null}
+                {permissoes.alocar ? (
+                  <Button size="sm" onClick={() => router.get('/asset/allocation/create', {}, { preserveScroll: true })}>
+                    Alocar recurso
+                  </Button>
+                ) : null}
+              </Inline>
             }
           />
         </div>
@@ -358,7 +401,7 @@ export default function Alocacoes({ alocacoes, filtros, permissoes }: Props) {
               />
             ) : alocacoes ? (
               <DataTable<Alocacao>
-                columns={colunas()}
+                columns={colunas(permissoes)}
                 data={alocacoes.data}
                 pagination={alocacoes}
                 endpoint="/asset/allocation"
@@ -371,12 +414,19 @@ export default function Alocacoes({ alocacoes, filtros, permissoes }: Props) {
                 rowState={(a): EstadoDaLinha | undefined =>
                   a.situacao === 'devolvida' ? 'archived' : a.vencido ? 'urgent' : undefined
                 }
-                minTableWidth={1500}
+                minTableWidth={1650}
               />
             ) : null}
           </Deferred>
         </div>
       </Stack>
+
+      {formulario?.modo === 'devolver' ? (
+        // `key`: trocar de alocação, ou a lista mudar depois de um Excluir, recomeça o form.
+        <DevolverDrawer key={`dv-${formulario.alocacao.id}-${formulario.devolucoes.length}`} formulario={formulario} formatoData={formato_data} hora12={hora_12} onClose={fecharDrawer} />
+      ) : formulario ? (
+        <AlocarDrawer key={`al-${formulario.alocacao?.id ?? 'novo'}`} formulario={formulario} formatoData={formato_data} hora12={hora_12} onClose={fecharDrawer} />
+      ) : null}
     </AppShellV2>
   );
 }
