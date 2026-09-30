@@ -31,6 +31,7 @@ on:
       - 'resources/js/Pages/Ponto/**'
       - 'app/Concerns/HasBusinessScope.php'
       - 'app/Scopes/ScopeByBusiness.php'
+      - 'config/ponto_afd.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/ponto-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -71,6 +72,7 @@ jobs:
               - 'resources/js/Pages/Ponto/**'
               - 'app/Concerns/HasBusinessScope.php'
               - 'app/Scopes/ScopeByBusiness.php'
+              - 'config/ponto_afd.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/ponto-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -313,6 +315,7 @@ jobs:
             Modules/Ponto/Tests/Feature/ImportacaoShowContratoTest.php \
             Modules/Ponto/Tests/Feature/RotaIdNaoNumericoContratoTest.php \
             Modules/Ponto/Tests/Feature/AfdLeiaute671ContratoTest.php \
+            Modules/Ponto/Tests/Feature/RelatorioLegalContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php \
             Modules/Ponto/Tests/Feature/LicencaAbonaDiaContratoTest.php \
             Modules/Ponto/Tests/Feature/ConformidadeContratoTest.php \

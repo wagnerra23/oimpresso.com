@@ -93,7 +93,7 @@ class DataController extends Controller
         Menu::modify('admin-sidebar-menu', function ($menu) {
             // ADR 0180 Fase 4 Wave E — entry principal Governance declara:
             //  - `shortcut` G G → atalho kbd canônico (overlay visual em Fase 8)
-            //  - `primary`     → botão "Gerenciar policies" (PageHeaderTabs Fase 5)
+            //  - `primary`     → botão "Gerenciar políticas" (PageHeaderTabs Fase 5)
             //  - `ghosts`      → sub-views consolidadas (a strip do PageHeaderTabs)
             //
             // Os ghosts são a fonte ÚNICA da sub-navegação da Governança: o
@@ -117,7 +117,7 @@ class DataController extends Controller
                     'group'    => 'sistema',
                     'shortcut' => 'G G',
                     'primary'  => [
-                        'label'    => 'Gerenciar policies',
+                        'label'    => 'Gerenciar políticas',
                         'href'     => '/governance/policies',
                         'shortcut' => 'P',
                         'acao'     => 'navegar', // só leva à tela: sem o "+" de criação ([W] 2026-09-29)

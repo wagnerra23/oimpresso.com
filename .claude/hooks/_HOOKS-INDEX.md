@@ -12,7 +12,7 @@
 - **59** wirings em `settings.json` (5 eventos) · **53** arquivos de hook distintos wired
 - **54** arquivos de hook no disco (+46 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **1** · Fantasmas (wiring sem arquivo): **0**
-- Gates CI no baseline: **46** classic + **1** ruleset → ponto-de-corte merge
+- Gates CI no baseline: **47** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
 | Evento | Matcher | Hook | Runtime | Ponto-de-corte | Sinal de bloqueio (heurística) |
@@ -84,7 +84,7 @@ Nenhum.
 - ⚠️ `pii-redactor.mjs` — sem wiring em settings.json
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
-Contexts `classic_protection` (46):
+Contexts `classic_protection` (47):
 - ADR (memory/decisions/*.md)
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
@@ -131,6 +131,7 @@ Contexts `classic_protection` (46):
 - Tier-0 guards (WithoutGlobalScopes + BusinessId)
 - Tópico (memory/requisitos/*/topicos/*.md)
 - espelho — mexeu depois de verificar
+- Contratos de tela (fidelidade + intenção)
 
 Contexts `rulesets` (1):
 - Governance Gate (índice + memory-health + meta-teste)

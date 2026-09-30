@@ -115,3 +115,10 @@ Promover o check do job como está **transforma a Omissão em bloqueante** sem q
 | required declarado no mesmo lugar dos 2 antigos | ✗ **não se aplica como escrito** (§3): não há declaração por contrato, e o required é branch protection, flip [W] (§7) |
 
 **Entregue:** 2 de 3 provas. **Ausente:** o required, por soberania [W]. O pacote está pronto em §7.
+
+## Desfecho — 2026-09-30
+
+- **Caminho B, feito:** o #8223 separou o job. Agora `Contratos de tela (fidelidade + intenção)` roda os contratos, e `Preflight de base + omissão (advisory)` segue advisory.
+- **3 de 3 para o `ponto-rep-p`:** push `a71c2f2d0` → PR #8223 (run 36703296537) → push `1159f1136` (run 36704447590), o step de contratos executado e verde nas três.
+- **Flip aplicado pelo [W] ("faz o flip do required"):** `Contratos de tela (fidelidade + intenção)` entrou na branch protection de `main` (46 → 47 classic, 48 com o ruleset). Payload via `--input`, UTF-8 sem BOM. `protection-drift` 🟢 no bloco de proteção. Os 3 PRs abertos (#8224, #8197, #8134) receberam `update-branch`. O baseline foi reconciliado no PR deste desfecho.
+- A prova "required declarado no mesmo lugar" fica atendida no único lugar onde o required existe: a branch protection mais o `governance/required-checks-baseline.json`.
