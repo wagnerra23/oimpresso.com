@@ -141,21 +141,26 @@ os JSON da medição não foram versionados — a re-medição pós-deploy entra
 | ID | Área | Item | Classe | Fonte/regra | Aceite observável | Evidência | Situação |
 |---|---|---|---|---|---|---|---|
 | R01 | Cabeçalho | título "Fabricação" | visual | protótipo (pedido 2026-09-28) | h1 = "Fabricação" | #8239 + smoke prod | ACEITO |
-| R02 | Cabeçalho | peso do título | visual | PageHeader do protótipo | h1 600 (era 700) | sonda pós-deploy | PRONTO PARA VALIDAR |
+| R02 | Cabeçalho | peso do título | visual | PageHeader do protótipo | h1 600 (era 700) | prod 2026-09-30: h1 `600` | ACEITO |
 | R03 | Cabeçalho | linha de contagens (stats do PageHeader) | visual | protótipo | mesma forma do PageHeader | — | NÃO INICIADO |
 | R04 | Abas | aba ativa (fundo, peso, selo sólido) | visual | `TabBar` do DS → `PageHeaderTabs` | fundo e selo como o protótipo | — | NÃO INICIADO (onda 2 — muda âncora `nav[aria-label]` do teste) |
-| R05 | Indicadores | custo médio / produção do mês | visual | `KpiCard` padrão | cartão do DS, valor na cor do texto | sonda pós-deploy | PRONTO PARA VALIDAR |
-| R06 | Indicadores | margem < 45% / desperdício ≥ 8% | visual + comportamento existente | `KpiCard variant="filter"`, ícone balança/tesoura, tom âmbar | placa de ícone 36 px, valor branco, filtro liga/desliga (R-05) | sonda + UC do casos | PRONTO PARA VALIDAR |
+| R05 | Indicadores | custo médio / produção do mês | visual | `KpiCard` padrão | cartão do DS, valor na cor do texto | prod: `KpiCard` default, valor `oklch(0.965 0.004 240)` 22px | ACEITO (ver R17) |
+| R06 | Indicadores | margem < 45% / desperdício ≥ 8% | visual + comportamento existente | `KpiCard variant="filter"`, ícone balança/tesoura, tom âmbar | placa de ícone 36 px, valor branco, filtro liga/desliga (R-05) | prod: placa 36px com ícone, fundo âmbar 15%, valor branco 18px/600; filtro de desperdício 1→0 linhas + vazio, desliga volta a 1 | ACEITO (ver R18) |
 | R07 | Filtros | busca | visual | `SearchInput` do DS | — | — | NÃO INICIADO (onda 2) |
 | R08 | Filtros | categorias | visual | `Segmented` do DS (hoje chips) | — | — | NÃO INICIADO (onda 2) |
-| R09 | Tabela | indicador de ordenação | visual | `DataGrid`: depois do rótulo, ↕ inativo opaco | ↕/↑/↓ após o rótulo em todas as colunas | sonda pós-deploy | PRONTO PARA VALIDAR |
-| R10 | Tabela | cor da coluna ordenada | visual | `DataGrid`: cor do texto | não mais o primário | sonda pós-deploy | PRONTO PARA VALIDAR |
-| R11 | Tabela | colunas de número à direita | visual | `DataGrid` `align:'right'` | células e cabeçalhos alinhados à direita | sonda pós-deploy | PRONTO PARA VALIDAR |
-| R12 | Tabela | margem como `StatusBadge` | visual | protótipo R-10 (≥55 · ≥45 · abaixo) | badge do DS no tom da faixa | sonda pós-deploy | PRONTO PARA VALIDAR |
+| R09 | Tabela | indicador de ordenação | visual | `DataGrid`: depois do rótulo, ↕ inativo opaco | ↕/↑/↓ após o rótulo em todas as colunas | prod: 7/7 colunas com o indicador por último; ↕ opacidade 0,4, ativo 1 | ACEITO |
+| R10 | Tabela | cor da coluna ordenada | visual | `DataGrid`: cor do texto | não mais o primário | prod: ativa `oklch(0.94 0.005 90)` | ACEITO (ver R19) |
+| R11 | Tabela | colunas de número à direita | visual | `DataGrid` `align:'right'` | células e cabeçalhos alinhados à direita | prod: 5 cabeçalhos e 5 células com `justify-self: end` | ACEITO |
+| R12 | Tabela | margem como `StatusBadge` | visual | protótipo R-10 (≥55 · ≥45 · abaixo) | badge do DS no tom da faixa | prod: margem 0% → tom `danger` (`oklch(0.26 0.07 18)` fundo), 12px | ACEITO |
 | R13 | Tabela | margem com fundo SÓLIDO | visual | `StatusBadge` do DS do Cowork | — | medido: o `StatusBadge` do React é suave com ponto (AP7) | BLOQUEADO — divergência do DS, pedido ao dono do DS |
 | R14 | Tabela | estrutura `<table>` + rodapé de paginação | visual | `DataGrid` (sem mapeamento React no registry) | — | — | BLOQUEADO — gap do DS (`DataGrid`/`Pagination` sem par React) |
 | R15 | Tabela | vazio (`EmptyState`) · seleção (`BulkBar`) | visual | protótipo | — | — | NÃO INICIADO |
 | R16 | Drawer | leitura da receita | visual | protótipo | — | — | NÃO INICIADO (não medido) |
+| R17 | Indicadores | peso do valor nos cartões de leitura | visual | protótipo: 700 | — | prod: 600 (padrão do `KpiCard`) | NÃO INICIADO — é o componente do DS, não da tela |
+| R18 | Indicadores | canto dos cartões de filtro | visual | protótipo: 8px | — | prod: 12px (`KpiCard variant="filter"`) | NÃO INICIADO — é o componente do DS, não da tela |
+| R19 | Tabela | cor das colunas não ordenadas | visual | protótipo: `--text-mute` (0,58) | — | prod: `--text-dim` (0,72), pela regra de contraste AA do bundle (ADR 0410) | FORA DE ESCOPO — a troca foi decisão de acessibilidade; reverter é decisão [W] |
+
+**Medição pós-deploy (2026-09-30, deploy `36756853084`, commit `9b211de508`):** `/manufacturing/recipe`, biz=1, tema escuro, 1440 px, sonda JS no DOM (`getComputedStyle`). A lista tem 1 receita, por isso o filtro de margem (1 de 1) não discrimina; o de desperdício (0 de 1) sim, e foi ele o testado.
 
 ## Pendências
 
