@@ -432,28 +432,32 @@ it('CONTROLE: destroy na mesma URI e asset.settings.show continuam registrados',
  * Devolver (com Excluir, thread 18) e no drawer do bem. A rota continua registrada para o
  * menu e links antigos, mas não pode voltar a servir tela própria.
  *
- * POR QUE AS DUAS REQUISIÇÕES: antes deste PR, a visita COM `X-Requested-With` (a que o
+ * POR QUE AS DUAS REQUISIÇÕES: antes deste PR, a visita COM `X-Requested-With` (que o
  * cliente Inertia manda sempre) caía no ramo `ajax()` e recebia o JSON cru do DataTables
  * com 200; a visita sem o header recebia a view Blade, também 200. As duas mordem aqui.
  *
  * CONTROLE: sem a assinatura do módulo o gate segue dando 403 — o redirecionamento não pode
  * virar atalho que pula a permissão que protegia a lista.
  */
-function revocationIndexChamar(Business $biz, User $user, bool $inertia)
+function revocationIndexChamar(Business $biz, User $user, bool $ajax)
 {
     test()->flushHeaders();
     $req = test()->actingAs($user)->withSession([
         'user.business_id' => $biz->id,
         'user' => ['business_id' => $biz->id, 'id' => $user->id],
     ]);
-    if ($inertia) {
-        $req = $req->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'X-Inertia' => 'true']);
+    // Só `X-Requested-With`: é ele que escolhia o ramo `ajax()` antigo, e o cliente Inertia o
+    // manda em toda visita. `X-Inertia` num GET sem `X-Inertia-Version` o middleware devolve
+    // 409 antes do controller — medido no 1º run deste teste, que reprovou por isso e não
+    // pelo que queria provar (mesma escolha do `alocFormComo` do AlocacoesFormContratoTest).
+    if ($ajax) {
+        $req = $req->withHeaders(['X-Requested-With' => 'XMLHttpRequest']);
     }
 
     return $req->get('/asset/revocation');
 }
 
-it('thread 16: GET asset/revocation redireciona para asset/allocation (com e sem Inertia)', function () {
+it('thread 16: GET asset/revocation redireciona para asset/allocation (com e sem X-Requested-With)', function () {
     [$biz, $user] = assetViewGateFixture(comPermissao: false);
 
     try {
@@ -461,8 +465,8 @@ it('thread 16: GET asset/revocation redireciona para asset/allocation (com e sem
         $moduleUtil->shouldReceive('hasThePermissionInSubscription')->andReturn(true);
         app()->instance(ModuleUtil::class, $moduleUtil);
 
-        revocationIndexChamar($biz, $user, inertia: true)->assertRedirect('/asset/allocation');
-        revocationIndexChamar($biz, $user, inertia: false)->assertRedirect('/asset/allocation');
+        revocationIndexChamar($biz, $user, ajax: true)->assertRedirect('/asset/allocation');
+        revocationIndexChamar($biz, $user, ajax: false)->assertRedirect('/asset/allocation');
     } finally {
         assetViewGateLimpar();
     }
@@ -477,7 +481,7 @@ it('CONTROLE thread 16: sem a assinatura do módulo, GET asset/revocation segue 
         app()->instance(ModuleUtil::class, $moduleUtil);
 
         expect($user->can('superadmin'))->toBeFalse();
-        revocationIndexChamar($biz, $user, inertia: true)->assertStatus(403);
+        revocationIndexChamar($biz, $user, ajax: true)->assertStatus(403);
     } finally {
         assetViewGateLimpar();
     }
