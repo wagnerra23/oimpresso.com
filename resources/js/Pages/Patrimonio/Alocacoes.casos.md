@@ -4,14 +4,15 @@ irmaos: Alocacoes.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOOK-
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-09-30"
 ---
 
 # Casos de Uso & Aceite — Patrimonio/Alocacoes
 
 > **Status:** ✅ passa · 🧪 teste cita o UC e passa · ⬜ não verificado · ❌ quebrou.
 > Regra G-2 (ADR 0264): UC declarado sem teste citando o id = órfão.
-> Teste que os defende: [`Modules/AssetManagement/Tests/Feature/AlocacoesContratoTest.php`](../../../../Modules/AssetManagement/Tests/Feature/AlocacoesContratoTest.php).
+> Testes que os defendem: [`Modules/AssetManagement/Tests/Feature/AlocacoesContratoTest.php`](../../../../Modules/AssetManagement/Tests/Feature/AlocacoesContratoTest.php) (leitura, UC-ALOC-01..04) ·
+> [`Modules/AssetManagement/Tests/Feature/AlocacoesFormContratoTest.php`](../../../../Modules/AssetManagement/Tests/Feature/AlocacoesFormContratoTest.php) + [`tests/js/patrimonio-alocacoes-envio.test.tsx`](../../../../tests/js/patrimonio-alocacoes-envio.test.tsx) (escrita, UC-ALOC-06..08 — thread 18).
 
 > **Por que quatro UC com id.** A onda 1 entrega a listagem migrada — e cada UC aqui tem teste
 > que roda. Declarar de uma vez os cenários do protótipo (`patrimonio-page.jsx:409`) criaria
@@ -100,6 +101,42 @@ last_run: "2026-09-11"
 
 ---
 
+## UC-ALOC-06 · Alocar pelo drawer grava exatamente a quantidade e a data digitadas
+
+- **Dado** um bem atribuível da minha empresa com saldo livre
+- **Quando** abro `/asset/allocation/create` (botão **Alocar recurso**) e salvo o drawer
+- **Então** o drawer manda a quantidade como `"2,5"` (vírgula decimal, **sem** milhar) e a data
+  no formato da empresa (`30/09/2026 14:05`), e o banco grava `2.5000` e `2026-09-30 14:05`;
+  pedido acima do saldo volta como **erro do campo quantidade**, vindo do servidor (trava da
+  thread 02), e **nenhuma linha** nasce. O cliente não calcula saldo.
+- **Teste:** dupla prova (REGRA MESTRE) — `patrimonio-alocacoes-envio.test.tsx` fixa as
+  strings; `AlocacoesFormContratoTest.php` posta **as mesmas** e lê o banco. Três `it()` Pest
+  citam `UC-ALOC-06` (drawer abre só com bens e pessoas do business · grava · saldo recusado).
+- **Status:** 🧪 — vitest verde local; Pest aguarda a lane `assetmanagement-pest` (MySQL real).
+
+## UC-ALOC-07 · Editar alocação abre o drawer só para alocação da minha empresa
+
+- **Dado** uma alocação da minha empresa, uma de outra empresa e uma devolução minha
+- **Quando** abro `/asset/allocation/{id}/edit` para cada uma
+- **Então** a minha abre o drawer em modo editar com os valores gravados; a de outra empresa
+  **e a devolução** dão 404 (antes, `findOrFail` sem tipo aceitava qualquer transação).
+- **Teste:** `AlocacoesFormContratoTest.php` + vitest (PUT na rota certa, erro inline anunciado).
+- **Status:** 🧪 — idem.
+
+## UC-ALOC-08 · Devolver e Excluir devolução pelo drawer, com as duas pontas escopadas
+
+- **Dado** uma alocação de 4 un. com 1 devolução minha **e** 1 devolução de outra empresa
+  pendurada no mesmo `parent_id` (pré-condição do resíduo Tier 0 de `_saida-16b`)
+- **Quando** abro `/asset/revocation/create?id=` (botão **Devolver** da linha)
+- **Então** o drawer lista **só** a minha devolução (grão 1 : N), mostra 3 a devolver e aceita
+  devolver até 3; devolver mais volta como erro do campo; o `asset_id` gravado é o **da
+  alocação**, mesmo se o POST mandar outro; pai de outra empresa dá 404; **Excluir** apaga só
+  devolução da minha empresa — id de alocação ou de outra empresa dá 404 e a linha fica.
+- **Teste:** `AlocacoesFormContratoTest.php` (três `it()`) + vitest (confirmação antes do DELETE).
+- **Status:** 🧪 — idem.
+
+---
+
 ## Dívida declarada — "Devolvido" não é número auditado
 
 ⚠️ Não é UC porque **não é comportamento que esta onda defende** — é defeito herdado que ela
@@ -114,9 +151,10 @@ expressão (`AssetAllocationController::baseAllocationsQuery`), lida pelos **doi
 `index()` — antes ela existia inline no ramo do DataTables, e a próxima correção pousaria em
 só um caminho. Teste de identidade: as 21 linhas da query, `diff` vazio.
 
-⚠️ **Não há trava de saldo** — `AssetAllocationService::criar()` grava sem consultar
-`quantidadeDisponivel()` (thread 02). Esta tela **não finge que a trava existe**: não oferece
-o caminho de criar nem desenha aviso de saldo que sugira proteção inexistente.
+⚠️ **Fato de 2026-09-11, superado:** este parágrafo dizia que não havia trava de saldo. A
+thread 02 a pôs em `AssetAllocationService::criar()`, e em 2026-09-30 (thread 18) a recusa passou
+a chegar ao drawer como erro do campo (UC-ALOC-06). **O que segue sem trava:** o
+`atualizar()` (editar) — ele está no Service, `nao_toca` desta thread; declarado no `_saida-18`.
 
 ---
 
@@ -125,9 +163,6 @@ o caminho de criar nem desenha aviso de saldo que sugira proteção inexistente.
 - [BACKLOG] O rodapé soma as unidades alocadas do recorte, com a prova dupla que a REGRA
   MESTRE exige para quantidade.
 - [BACKLOG] As pílulas de situação trazem a contagem do **conjunto** (não da página corrente).
-- [BACKLOG] Alocar, editar e devolver acontecem em drawer, sem sair da lista — hoje esses
-  formulários são fragmentos de modal jQuery servidos só sob `ajax()`, e navegar até eles
-  devolve corpo vazio (medido).
 - [BACKLOG] A tela exige uma permissão `asset.*` própria, como a irmã Bens passou a exigir
   `asset.view` na thread 03. Hoje este controller tem só o gate de assinatura do módulo —
   a assimetria está declarada no §9 do RUNBOOK e é decisão [W].
