@@ -24,6 +24,8 @@ import { Pencil, Plus, Printer, Search } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
+import KpiCard from '@/Components/shared/KpiCard';
+import StatusBadge from '@/Components/shared/StatusBadge';
 import FichaPrint from './_components/FichaPrint';
 import { faixaMargem, fmt, num, rotuloCustoExtra } from './_lib/formato';
 import type { ContadoresProducao, Permissoes, Receita } from './_lib/tipos';
@@ -37,6 +39,9 @@ interface Props {
 }
 
 const POR_PAG = 10;
+
+/** R-10 — faixa da margem → tom do `StatusBadge` (≥55 sucesso · ≥45 atenção · abaixo perigo). */
+const TOM_MARGEM = { ok: 'success', warn: 'warning', bad: 'danger' } as const;
 
 /** Rotas legadas que continuam donas do CRUD — a tela nova aponta, não reimplementa. */
 const ROTA_NOVA = '/manufacturing/recipe/create';
@@ -127,15 +132,19 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
   const aberta = recipes.find((r) => r.id === openId) ?? null;
   const selecionadas = recipes.filter((r) => sel.includes(r.id));
 
+  // Cabeçalho como o `DataGrid` do DS (`prototipo-ui/design-system/components/DataGrid`): o
+  // indicador vem SEMPRE depois do rótulo — ↕ quando a coluna não ordena, ↑/↓ quando ordena.
+  // Até 2026-09-30 as colunas de número punham ⇵ ANTES do rótulo.
   const Th = ({ k, children, r: right }: { k: ChaveOrd; children: ReactNode; r?: boolean }) => (
     <button
       type="button"
       className={`mfg-th sort${right ? ' r' : ''}${ord.k === k ? ' act' : ''}`}
       onClick={() => ordenar(k)}
     >
-      {right && <span className="ind">{ord.k === k ? (ord.dir === 'asc' ? '↑' : '↓') : '⇵'}</span>}
       {children}
-      {!right && <span className="ind">{ord.k === k ? (ord.dir === 'asc' ? '↑' : '↓') : '⇵'}</span>}
+      <span className="ind" aria-hidden>
+        {ord.k === k ? (ord.dir === 'asc' ? '↑' : '↓') : '↕'}
+      </span>
     </button>
   );
 
@@ -195,47 +204,47 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
       </nav>
 
       {/* §4.2 — 4 KPIs; o 2º e o 3º FILTRAM (liga/desliga), o 1º e o 4º são leitura (R-05). */}
+      {/* Os 4 cartões são o `KpiCard` do DS, como no protótipo (`manufacturing-page.jsx`): os
+          de leitura na variante padrão; os 2 que filtram na `variant="filter"`, com a placa de
+          ícone e o tom âmbar. Até 2026-09-30 eram divs locais `.mfg-kpi` com o valor pintado de
+          âmbar — o protótipo pinta o ÍCONE, não o número (medido com a sonda nos dois lados). */}
       <div className="mfg-kpis" data-contract="kpis">
-        <div className="mfg-kpi">
-          <span className="mfg-kpi-l">Custo médio / unidade</span>
-          <span className="mfg-kpi-v">{fmt(custoMed)}</span>
-          <span className="mfg-kpi-s">
-            média das {recipes.length} receita{recipes.length === 1 ? '' : 's'}
-          </span>
-        </div>
-        <button
-          type="button"
-          className={`mfg-kpi${kpi === 'margem' ? ' act' : ''}`}
-          aria-pressed={kpi === 'margem'}
+        <KpiCard
+          label="Custo médio / unidade"
+          value={fmt(custoMed)}
+          description={`média das ${recipes.length} receita${recipes.length === 1 ? '' : 's'}`}
+        />
+        <KpiCard
+          variant="filter"
+          label="Margem abaixo de 45%"
+          value={magra}
+          description="preço de venda desatualizado"
+          icon="Scale"
+          filterTone="amber"
+          selected={kpi === 'margem'}
           onClick={() => {
             setKpi(kpi === 'margem' ? null : 'margem');
             setPag(1);
           }}
-        >
-          <span className="mfg-kpi-l">Margem abaixo de 45%</span>
-          <span className="mfg-kpi-v warn">{magra}</span>
-          <span className="mfg-kpi-s">preço de venda desatualizado</span>
-        </button>
-        <button
-          type="button"
-          className={`mfg-kpi${kpi === 'custo' ? ' act' : ''}`}
-          aria-pressed={kpi === 'custo'}
+        />
+        <KpiCard
+          variant="filter"
+          label="Desperdício ≥ 8%"
+          value={perda}
+          description="revisar plotagem / encaixe"
+          icon="Scissors"
+          filterTone="amber"
+          selected={kpi === 'custo'}
           onClick={() => {
             setKpi(kpi === 'custo' ? null : 'custo');
             setPag(1);
           }}
-        >
-          <span className="mfg-kpi-l">Desperdício ≥ 8%</span>
-          <span className="mfg-kpi-v warn">{perda}</span>
-          <span className="mfg-kpi-s">revisar plotagem / encaixe</span>
-        </button>
-        <div className="mfg-kpi">
-          <span className="mfg-kpi-l">Produção do mês</span>
-          <span className="mfg-kpi-v">{producao.mes_final}</span>
-          <span className="mfg-kpi-s">
-            {producao.mes_rascunho} rascunho{producao.mes_rascunho === 1 ? '' : 's'} em aberto
-          </span>
-        </div>
+        />
+        <KpiCard
+          label="Produção do mês"
+          value={producao.mes_final}
+          description={`${producao.mes_rascunho} rascunho${producao.mes_rascunho === 1 ? '' : 's'} em aberto`}
+        />
       </div>
 
       <div className="mfg-bar" data-contract="filtros">
@@ -271,7 +280,7 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
       </div>
 
       <div className="mfg-tablewrap" data-contract="lista">
-        <div className="mfg-table">
+        <div className="mfg-table rec">
           <div className="mfg-tr mfg-thead">
             <Checkbox
               checked={allSel}
@@ -331,20 +340,23 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
               </span>
               {/* R-09 — a coluna DECLARA a unidade que está exibindo. Com sub-unidade de
                   saída, mostra a quantidade convertida COM o rótulo da sub-unidade. */}
-              <span className="mfg-num r">
+              <span className="mfg-td mfg-num r">
                 {r.sub_un && r.sub_fator
                   ? num(r.custos.qtd_liq * r.sub_fator, 2)
                   : num(r.custos.qtd_liq, 2)}
                 <span className="mfg-u">{r.sub_un ?? r.un}</span>
               </span>
-              <span className="mfg-num r">{fmt(r.custos.total)}</span>
-              <span className="mfg-num r">{fmt(r.custos.unit)}</span>
-              <span className="mfg-num dim r">{fmt(r.venda)}</span>
-              <span className="r">
-                {/* R-10 — 3 faixas de cor. */}
-                <span className={`mfg-pill ${faixaMargem(r.custos.margem)}`}>
-                  {num(r.custos.margem, 0)}%
-                </span>
+              <span className="mfg-td mfg-num r">{fmt(r.custos.total)}</span>
+              <span className="mfg-td mfg-num r">{fmt(r.custos.unit)}</span>
+              <span className="mfg-td mfg-num dim r">{fmt(r.venda)}</span>
+              <span className="mfg-td r">
+                {/* R-10 — 3 faixas, agora no `StatusBadge` do DS como no protótipo. */}
+                <StatusBadge
+                  kind="margem"
+                  value={faixaMargem(r.custos.margem)}
+                  label={`${num(r.custos.margem, 0)}%`}
+                  tone={TOM_MARGEM[faixaMargem(r.custos.margem)]}
+                />
               </span>
             </div>
           ))}
