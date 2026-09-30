@@ -240,6 +240,19 @@ class AssetMaitenanceController extends Controller
                 ->make(true);
         }
 
+        return $this->renderManutencoes($request, (int) $business_id);
+    }
+
+    /**
+     * A tela de Manutencoes (Inertia) — dona unica do render, usada por `index`, `create` e `edit`.
+     *
+     * Thread 19 do Patrimonio ([W] 2026-09-30, mesmo desenho da 17 em Bens): `create`/`edit`
+     * deixaram de devolver o fragmento de modal Blade (que so respondia sob `ajax()`, e toda
+     * visita Inertia e ajax) e passaram a devolver ESTA Page com o drawer aberto. `$extra` e o
+     * que muda entre as tres: nada (index), `cadastro` (create) ou `edicao` (edit).
+     */
+    private function renderManutencoes(Request $request, int $business_id, array $extra = [])
+    {
         $statuses = [];
         foreach ($this->maintenanceStatuses as $key => $value) {
             $statuses[$key] = $value['label'];
@@ -259,7 +272,7 @@ class AssetMaitenanceController extends Controller
         // PARIDADE e o contrato desta onda: as colunas e os 3 filtros sao os do Blade. NAO
         // entra custo - a tabela `asset_maintenances` nao tem coluna de valor e o Blade nao
         // mostra nenhuma (decisao [W] 2026-09-08). O `UC-MANU-03` guarda esse contrato.
-        return Inertia::render('Patrimonio/Manutencoes', [
+        return Inertia::render('Patrimonio/Manutencoes', array_merge([
             'filtros' => [
                 'q' => $request->input('q'),
                 'status' => $request->input('status'),
@@ -281,17 +294,22 @@ class AssetMaitenanceController extends Controller
             // Deferida: e a prop cara (paginate + joins + garantias). Primeiro paint sai com
             // cabecalho, sub-nav e filtros; a lista chega depois (RUNBOOK-inertia-defer).
             'manutencoes' => Inertia::defer(fn () => $this->buildManutencoesPayload($request, $business_id)),
-        ]);
+        ], $extra));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Enviar pra manutencao: a tela de Manutencoes com o drawer de cadastro aberto.
      *
-     * @return Response
+     * Ate 2026-09-30 devolvia o fragmento de modal `asset_maintenance.create` so sob `ajax()` —
+     * e o cliente Inertia manda `X-Requested-With` SEMPRE, entao o ramo nem convivia com a tela
+     * React. `?asset_id=` pre-seleciona o bem (era o que o Blade exigia); sem ele, o drawer
+     * oferece a lista de bens DA EMPRESA. O destino segue sendo o `store()`.
+     *
+     * @return \Inertia\Response
      */
-    public function create()
+    public function create(Request $request)
     {
-        $business_id = request()->session()->get('user.business_id');
+        $business_id = (int) request()->session()->get('user.business_id');
         // Permissao de TELA antes do gate de assinatura (ver docblock da classe).
         // As duas permissoes sao `is_radio` do mesmo `view_maintenance`, logo `||`.
         if (! (auth()->user()->can('asset.view_all_maintenance') || auth()->user()->can('asset.view_own_maintenance'))) {
@@ -302,26 +320,44 @@ class AssetMaitenanceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $asset_id = request()->input('asset_id');
+        return $this->renderManutencoes($request, $business_id, [
+            'cadastro' => $this->buildCadastroPayload($business_id, $request->input('asset_id')),
+        ]);
+    }
 
-            $asset = Asset::with(['warranties'])
-                        ->where('business_id', $business_id)
-                        ->findOrfail($asset_id);
+    /**
+     * Os bens que o drawer oferece — SO os da empresa (Tier 0, ADR 0093), com a leitura de
+     * garantia que o Blade mostrava ao lado do bem. `bem_id` so vale se estiver nessa lista:
+     * id de outra empresa na URL vira "nenhum pre-selecionado", nunca o bem alheio.
+     */
+    private function buildCadastroPayload(int $business_id, $assetId): array
+    {
+        $agora = \Carbon::now();
 
-            $statuses = [];
-            foreach ($this->maintenanceStatuses as $key => $value) {
-                $statuses[$key] = $value['label'];
-            }
+        $bens = Asset::with('warranties')
+            ->where('business_id', $business_id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'asset_code'])
+            ->map(function ($a) use ($agora) {
+                $vigente = $a->getRelation('warranties')->first(
+                    fn ($w) => $agora->between(\Carbon::parse($w->start_date), \Carbon::parse($w->end_date))
+                );
 
-            $priorities = [];
-            foreach ($this->maintenancePriorities as $key => $value) {
-                $priorities[$key] = $value['label'];
-            }
+                return [
+                    'id' => (int) $a->id,
+                    'nome' => (string) $a->name,
+                    'codigo' => (string) $a->asset_code,
+                    'garantia_ate' => $vigente ? \Carbon::parse($vigente->end_date)->format('Y-m-d') : null,
+                ];
+            })
+            ->values();
 
-            return view('assetmanagement::asset_maintenance.create')
-                    ->with(compact('asset', 'statuses', 'priorities'));
-        }
+        $pedido = (int) $assetId;
+
+        return [
+            'bens' => $bens->all(),
+            'bem_id' => $bens->contains('id', $pedido) ? $pedido : null,
+        ];
     }
 
     /**
@@ -367,14 +403,17 @@ class AssetMaitenanceController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Edicao de manutencao: a tela de Manutencoes com o drawer aberto em modo editar.
+     *
+     * Mesmo motivo do `create()`. A manutencao entra na prop `edicao` ja escopada por business
+     * (Tier 0) — id de outra empresa da 404, como antes. O destino segue sendo o `update()`.
      *
      * @param  int  $id
-     * @return Response
+     * @return \Inertia\Response
      */
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
-        $business_id = request()->session()->get('user.business_id');
+        $business_id = (int) request()->session()->get('user.business_id');
         // Permissao de TELA antes do gate de assinatura (ver docblock da classe).
         // As duas permissoes sao `is_radio` do mesmo `view_maintenance`, logo `||`.
         if (! (auth()->user()->can('asset.view_all_maintenance') || auth()->user()->can('asset.view_own_maintenance'))) {
@@ -385,26 +424,39 @@ class AssetMaitenanceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $maintenance = AssetMaintenance::where('business_id', $business_id)
-                        ->with(['media'])
-                        ->findOrfail($id);
+        $maintenance = AssetMaintenance::where('business_id', $business_id)->findOrFail($id);
 
-            $statuses = [];
-            foreach ($this->maintenanceStatuses as $key => $value) {
-                $statuses[$key] = $value['label'];
-            }
+        return $this->renderManutencoes($request, $business_id, [
+            'edicao' => $this->buildEdicaoPayload($maintenance),
+        ]);
+    }
 
-            $priorities = [];
-            foreach ($this->maintenancePriorities as $key => $value) {
-                $priorities[$key] = $value['label'];
-            }
+    /**
+     * A manutencao gravada no formato que o drawer preenche. Os campos sao os do Blade de
+     * edicao: situacao, prioridade, responsavel e detalhes editaveis; a nota de envio vai
+     * so-leitura (o `atualizar` do servico nao a grava). Sem custo: a tabela nao tem a coluna.
+     */
+    private function buildEdicaoPayload(AssetMaintenance $m): array
+    {
+        // Pelo METODO da relacao, nem `with('asset')` nem atributo magico: os metodos do Model
+        // nao declaram tipo de retorno e o Larastan (ratchet) reprova `relationExistence`.
+        $asset = $m->asset()->first();
 
-            $users = User::forDropdown($business_id, false);
-
-            return view('assetmanagement::asset_maintenance.edit')
-                    ->with(compact('maintenance', 'statuses', 'priorities', 'users'));
-        }
+        return [
+            'id' => (int) $m->id,
+            'codigo' => $m->maitenance_id,
+            'bem' => $asset ? $asset->name.' ('.$asset->asset_code.')' : null,
+            'status' => (string) ($m->status ?? ''),
+            'prioridade' => (string) ($m->priority ?? ''),
+            'atribuido_a' => $m->assigned_to ? (string) $m->assigned_to : '',
+            'nota' => $m->maintenance_note,
+            'detalhes' => (string) ($m->details ?? ''),
+            'anexos' => $m->media()->get()->map(fn ($media) => [
+                'id' => (int) $media->id,
+                'nome' => (string) $media->display_name,
+                'url' => (string) $media->display_url,
+            ])->values()->all(),
+        ];
     }
 
     /**
