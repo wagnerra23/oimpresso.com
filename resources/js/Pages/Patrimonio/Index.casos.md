@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOOK-patr
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-23"
+last_run: "2026-09-30"
 ---
 
 > ℹ️ **`last_run` 2026-09-09 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -191,14 +191,32 @@ last_run: "2026-09-23"
 
 ---
 
+## UC-PAT-10 · A situação da garantia conta cada bem uma vez, pela garantia mais recente
+
+- **Persona:** quem olha o Painel pra saber quanto do patrimônio está sem cobertura.
+- **Aceite:** Dado, no mesmo business, um bem com a garantia velha vencida e a renovação
+  vigente, um bem com duas garantias vigentes, um bem só com garantia vencida e um bem sem
+  registro · Quando o Painel apura · Então os dois primeiros entram em "Na garantia" (um bem
+  cada, valor contado uma vez), o terceiro em "Vencida", o quarto em "Sem garantia" — e o KPI
+  "Garantia vencida ou vencendo" soma só o terceiro. Um bem de outro business com garantia
+  vencida não mexe em número nenhum.
+- **Regra:** vale a garantia mais recente, a que termina por último ([W] 2026-09-30). É o mesmo
+  predicado do recorte "Garantia crítica" de Bens (UC-BENS-06), num dono só no controller.
+- **Teste:** `Modules/AssetManagement/Tests/Feature/PainelGarantiaContratoTest.php` — `it()`
+  citando `UC-PAT-10`, por **delta** (base do CT 100 persiste), com o esperado de cada balde
+  escrito à mão (segundo caminho da REGRA MESTRE de valor).
+- **Regressão que defende:** bem renovado contado como vencido, e o `SUM` de valor somando o bem
+  uma vez por garantia registrada (o `COUNT(DISTINCT)` de bens escondia isso).
+- **Status: 🧪** — ver o recibo no fim deste UC.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Chego na tela pelo menu, sem digitar URL: a camada de ALCANCE
   (rota → permission → menu → pacote) é a única do ciclo que não é código React, e nenhum gate a
   cobre. A entry existe no `DataController:109` desde antes desta tela; verificar é smoke em
   runtime. Sem id até ter teste — id sem teste é órfão (G-2).
-- **[BACKLOG]** Bem sem registro de garantia entra em "Sem garantia", nunca em "Vencida"
-  (charter R3) — o `CASE` de `painelGarantia()` já separa os 4 baldes; falta teste de banco.
 - **[BACKLOG]** Bem de outro business não entra no patrimônio bruto (ADR 0093) — as 6 consultas
   filtram `business_id`, e a de garantia entra por `join` com `assets` porque `asset_warranties`
   não tem a coluna; falta o teste cross-tenant (biz 98 × 99).
@@ -224,3 +242,4 @@ last_run: "2026-09-23"
   manter caso aqui criaria um segundo dono do mesmo contrato. Entraram os 3 que são desta tela
   (número sem fonte × 2, decimal × 1), cobertos por
   `tests/js/patrimonio-painel-sem-fonte.test.tsx` (6 casos, bite-test em 2 mutações).
+- 2026-09-30 · [CL] entra UC-PAT-10 (garantia mais recente, [W]); sai do BACKLOG o "sem registro ≠ vencida", que o UC-PAT-10 agora prova com teste de banco.

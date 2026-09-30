@@ -15,7 +15,6 @@ use Inertia\Inertia;
 use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetMaintenance;
 use Modules\AssetManagement\Entities\AssetTransaction;
-use Modules\AssetManagement\Entities\AssetWarranty;
 use Modules\AssetManagement\Http\Requests\StoreAssetRequest;
 use Modules\AssetManagement\Http\Requests\UpdateAssetRequest;
 use Modules\AssetManagement\Services\AssetMaintenanceService;
@@ -339,22 +338,36 @@ class AssetController extends Controller
     }
 
     /**
-     * Garantia critica = garantia VENCIDA ou vencendo em ate 30 dias. Bem SEM registro de
-     * garantia NAO entra (vai para "sem garantia" no Painel — charter R3, `patrimonio-page.jsx:185`).
+     * A garantia que vale para cada bem: a MAIS RECENTE, isto e, a que termina por ultimo
+     * (`MAX(end_date)`) — [W] 2026-09-30. Uma linha por bem.
      *
-     * E o MESMO predicado de `contaGarantiaCritica()` do Painel (`DATEDIFF(end_date,
-     * CURDATE()) <= 30`), para o KPI do Painel e a pilula daqui contarem a mesma coisa.
+     * Dono UNICO da regra: o recorte "Garantia critica" de Bens, o KPI e os 4 baldes do Painel
+     * leem daqui. Antes cada um lia TODAS as garantias do bem, e dois defeitos saiam juntos:
+     * bem com garantia velha vencida + renovacao vigente contava como critico, e o `SUM` de
+     * valor dos baldes somava o bem uma vez por garantia (o `COUNT(DISTINCT)` de bens nao).
      *
-     * Tier 0 (ADR 0093): `asset_warranties` NAO tem `business_id`, entao a subconsulta entra
-     * por join com `assets` filtrando o business EXPLICITAMENTE — nao confia so na correlacao
-     * com a consulta externa.
+     * Tier 0 (ADR 0093): `asset_warranties` NAO tem `business_id` — entra por join com `assets`
+     * filtrando o business EXPLICITAMENTE, alem do filtro de cada consumidor.
+     */
+    private function ultimaGarantiaPorBem($business_id)
+    {
+        return DB::table('asset_warranties as UGW')
+            ->join('assets as UGA', 'UGA.id', '=', 'UGW.asset_id')
+            ->where('UGA.business_id', $business_id)
+            ->groupBy('UGW.asset_id')
+            ->select('UGW.asset_id', DB::raw('MAX(UGW.end_date) as fim'));
+    }
+
+    /**
+     * Garantia critica = a garantia MAIS RECENTE do bem esta vencida ou vence em ate 30 dias.
+     * Bem SEM registro de garantia NAO entra (vai para "sem garantia" no Painel — charter R3).
      */
     private function aplicarRecorteGarantia($assets, $business_id)
     {
-        return $assets->whereIn('assets.id', AssetWarranty::join('assets as AWA', 'AWA.id', '=', 'asset_warranties.asset_id')
-            ->where('AWA.business_id', $business_id)
-            ->whereRaw('DATEDIFF(asset_warranties.end_date, CURDATE()) <= 30')
-            ->select('asset_warranties.asset_id'));
+        return $assets->whereIn('assets.id', DB::query()
+            ->fromSub($this->ultimaGarantiaPorBem($business_id), 'UG')
+            ->whereRaw('DATEDIFF(UG.fim, CURDATE()) <= 30')
+            ->select('UG.asset_id'));
     }
 
     private function contarRecorteGarantia($business_id): int
@@ -759,14 +772,11 @@ class AssetController extends Controller
         ];
     }
 
-    /** Bens com garantia vencida OU vencendo em ate 30 dias. Sem registro NAO conta (charter R3). */
+    /** Bens cuja garantia MAIS RECENTE esta vencida ou vence em ate 30 dias — o mesmo recorte de Bens. */
     private function contaGarantiaCritica($business_id)
     {
-        return AssetWarranty::join('assets', 'assets.id', '=', 'asset_warranties.asset_id')
-            ->where('assets.business_id', $business_id)
-            ->whereRaw('DATEDIFF(asset_warranties.end_date, CURDATE()) <= 30')
-            ->distinct()
-            ->count('assets.id');
+        return $this->aplicarRecorteGarantia(Asset::where('assets.business_id', $business_id), $business_id)
+            ->count();
     }
 
     /** Patrimonio por categoria — SUM(quantity * unit_price) agrupado. */
@@ -803,12 +813,14 @@ class AssetController extends Controller
             return null;
         }
 
+        // Uma linha por bem (a garantia mais recente): sem isso o SUM de valor contava o bem
+        // uma vez por garantia registrada.
         $baldes = Asset::where('assets.business_id', $business_id)
-            ->leftJoin('asset_warranties as aw', 'aw.asset_id', '=', 'assets.id')
+            ->leftJoinSub($this->ultimaGarantiaPorBem($business_id), 'aw', 'aw.asset_id', '=', 'assets.id')
             ->selectRaw("CASE
-                WHEN aw.end_date IS NULL THEN 'sem'
-                WHEN DATEDIFF(aw.end_date, CURDATE()) < 0 THEN 'vencida'
-                WHEN DATEDIFF(aw.end_date, CURDATE()) <= 30 THEN 'vencendo'
+                WHEN aw.fim IS NULL THEN 'sem'
+                WHEN DATEDIFF(aw.fim, CURDATE()) < 0 THEN 'vencida'
+                WHEN DATEDIFF(aw.fim, CURDATE()) <= 30 THEN 'vencendo'
                 ELSE 'vigente' END as balde")
             ->selectRaw('COUNT(DISTINCT assets.id) as bens')
             ->selectRaw('COALESCE(SUM(assets.quantity * assets.unit_price), 0) as valor')
