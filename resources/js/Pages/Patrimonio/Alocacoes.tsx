@@ -28,7 +28,9 @@
 // `/asset/revocation/create?id=` — devolvem ESTA Page com a prop `formulario`, e o drawer
 // certo nasce aberto (`_alocacoes/Drawers.tsx`). O saldo continua decidido no servidor.
 //
-// O botão **Devoluções** fica: a lista Blade `/asset/revocation` segue viva até a thread 16.
+// O botão **Devoluções** do cabeçalho saiu na thread 16 (2026-09-30): `/asset/revocation`
+// passou a redirecionar para esta tela (decisão [W], `_saida-16b` opção b). O histórico de
+// devoluções mora no drawer Devolver de cada linha e no drawer do bem, aba Alocações.
 //
 // Layout por PRIMITIVOS (ADR 0253) — `Stack`/`Inline`, nunca `<div className="flex gap-4">`
 // solto; o `layout-primitives-guard` é catraca e reprova adotante novo.
@@ -376,12 +378,6 @@ export default function Alocacoes({ alocacoes, filtros, permissoes, formulario, 
             subtitle="O que está na mão de quem — desde quando, até quando, e o que já voltou"
             actions={
               <Inline gap={2}>
-                {permissoes.devolver ? (
-                  // Lista Blade de devoluções — segue viva até a thread 16 redirecioná-la.
-                  <Button size="sm" variant="outline" asChild>
-                    <a href="/asset/revocation">Devoluções</a>
-                  </Button>
-                ) : null}
                 {permissoes.alocar ? (
                   <Button size="sm" id="patrimonio-alocar-recurso"
                     onClick={() => router.get('/asset/allocation/create', {}, { preserveScroll: true })}>

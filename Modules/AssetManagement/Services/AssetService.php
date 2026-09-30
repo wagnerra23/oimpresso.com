@@ -150,16 +150,25 @@ class AssetService
     }
 
     /**
-     * Remove asset + media (scopado a business_id).
+     * Remove asset + media + GARANTIAS (scopado a business_id).
      *
      * Wave 25 D9.a: span `asset_management.remover`.
+     *
+     * As garantias entraram em 2026-09-30: `asset_warranties` pertence inteira ao bem e nao tem
+     * `business_id`, entao apagar so o bem deixava a garantia orfa — medido em producao (uma
+     * garantia de 2026-09-23 cujo bem foi excluido 22s depois de criado). Apagadas pelo MODEL,
+     * uma a uma, pra o `LogsActivity` registrar cada exclusao, e na mesma transacao do bem:
+     * ou saem juntos, ou nada sai. Tier 0: a consulta parte do `$asset` ja escopado por business.
      */
     public function remover(int $id, int $businessId): void
     {
         OtelHelper::spanBiz('assetmanagement.asset.remover', function () use ($id, $businessId): void {
-            $asset = Asset::where('business_id', $businessId)->findOrFail($id);
-            $asset->delete();
-            $asset->media()->delete();
+            DB::transaction(function () use ($id, $businessId): void {
+                $asset = Asset::where('business_id', $businessId)->findOrFail($id);
+                AssetWarranty::where('asset_id', $asset->id)->get()->each->delete();
+                $asset->delete();
+                $asset->media()->delete();
+            });
         }, [
             'business_id' => $businessId,
             'asset_id'    => $id,

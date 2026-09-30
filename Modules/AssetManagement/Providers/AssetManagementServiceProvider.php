@@ -24,6 +24,8 @@ class AssetManagementServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Modules\AssetManagement\Console\Commands\AssetManagementHealthCommand::class,
+                // 2026-09-30 — limpeza das garantias que o `remover()` antigo deixava órfãs.
+                \Modules\AssetManagement\Console\Commands\GarantiasOrfasCommand::class,
             ]);
         }
     }
