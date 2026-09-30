@@ -284,9 +284,14 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
   //
   // Sem `kpis` (prop deferida, chega depois) não há selo: `0%` afirmaria concentração nenhuma,
   // que não é o que se sabe — é o mesmo critério do `—` dos números sem fonte.
+  //
+  // O "em" é do protótipo ("60% em impressão"). O grupo de bem sem categoria já vem com rótulo
+  // que começa por "sem" ("Sem categoria"), e "100% em sem categoria" não se lê — ali o selo diz
+  // só "100% sem categoria".
+  const rotuloCategoria = catDominante?.categoria.toLowerCase() ?? '';
   const seloCategoria =
     catDominante && kpis?.bruto
-      ? `${Math.round((catDominante.valor / kpis.bruto) * 100)}% em ${catDominante.categoria.toLowerCase()}`
+      ? `${Math.round((catDominante.valor / kpis.bruto) * 100)}% ${rotuloCategoria.startsWith('sem ') ? '' : 'em '}${rotuloCategoria}`
       : null;
 
   return (

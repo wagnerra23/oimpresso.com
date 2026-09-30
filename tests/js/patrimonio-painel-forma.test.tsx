@@ -154,6 +154,14 @@ describe('UC-PAT-11 · o painel concorda em número', () => {
     expect(texto).not.toMatch(/\b1 (bens|unidades)\b/);
   });
 
+  it('o selo do grupo sem categoria diz "100% sem categoria", não "em sem categoria"', () => {
+    const { container } = render(
+      <PainelPatrimonio {...BASE} kpis={UM} porCategoria={[{ categoria: 'Sem categoria', unidades: 1, valor: 1500 }]} />,
+    );
+    expect(container.textContent).toContain('100% sem categoria');
+    expect(container.textContent).not.toContain('em sem categoria');
+  });
+
   it('controle: com 21 unidades em 11 bens, segue no plural', () => {
     const { container } = render(<PainelPatrimonio {...BASE} kpis={KPIS} porCategoria={[]} />);
     const texto = container.textContent ?? '';
