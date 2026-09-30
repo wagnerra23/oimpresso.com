@@ -146,7 +146,7 @@ export default function Settings({
 
           <div className="mfg-ed-f mfg-inline">
             <span className="mfg-crumb-meta">
-              Manufacturing{version ? ` v${version}` : ''}
+              Fabricação{version ? ` v${version}` : ''}
             </span>
             <span className="sp" />
             <Button type="submit" size="sm" disabled={!dirty || salvando}>
