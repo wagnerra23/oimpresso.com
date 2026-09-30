@@ -38,7 +38,7 @@ Painel único onde [W] opera governança em ~5min/dia: checks da Constituição,
 - `<PageHeader>` shared canônico (h1 + subtitle + ações)
 - KpiGrid `Constituição` (cols=6) + `SDD` (cols=3, deferred) + `Saúde do ecossistema` (cols=3)
 - `<KpiCard>` shared (NÃO inline custom) com tones semânticos (default/success/warning/danger/info)
-- Audit highlights list + ADRs pendentes + narrativas Brain A 24h
+- Lista de ocorrências em 24 h (rótulo do protótipo desde 2026-09-30; antes "Audit highlights") + ADRs pendentes + narrativas Brain A 24h
 - **Seção Governança MCP** (v3), visível só com `jana.mcp.usage.all`:
   - 4 KPIs: chamadas, taxa de sucesso, latência p95 (com p50/p99/máx), custo
   - filtro de período por query string `mcp_preset` / `mcp_de` / `mcp_ate` (whitelist server-side)
