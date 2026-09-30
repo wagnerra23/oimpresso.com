@@ -1,3 +1,5 @@
+> **ABSORVIDO** em 2026-09-30 por `cowork-inbox/connector/playbook/00-INDICE.md` — não executar daqui.
+
 # PEDIDO PARA O CODE — Conector (API): trio, tradução Blade → Inertia, consertos e limpeza
 
 > **De:** [CC] (F1, protótipo) · **Para:** [CL] (F3, Inertia/React real) · **Data:** 2026-08-19 · **rev. 2** (decisões [W] aplicadas)
