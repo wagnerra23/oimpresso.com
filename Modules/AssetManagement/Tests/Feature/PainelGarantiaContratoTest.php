@@ -178,3 +178,49 @@ it('UC-PAT-10: cada bem conta uma vez, pela garantia mais recente — nos baldes
         painelGarantiaLimpar();
     }
 });
+
+/*
+ * UC-PAT-11 (lado do servidor) — o bem SEM categoria vem rotulado "Sem categoria" nas análises
+ * do Painel. Até 2026-09-30 vinha `__('lang_v1.none')` ("nenhum"), que o selo transformava em
+ * "100% EM NENHUM". O teste afirma o rótulo novo E a ausência do antigo, pra não passar só
+ * porque a tradução mudou.
+ */
+it('UC-PAT-11: bem sem categoria aparece como "Sem categoria" em Patrimônio por categoria', function () {
+    $dono = $this->seededTenant();
+    $bizId = (int) $dono->id;
+
+    try {
+        $user = painelGarantiaAdmin($bizId);
+        painelGarantiaBem($bizId, (int) $dono->owner_id, 'PAINEL-GAR-SEMCAT', []);
+
+        $sessao = [
+            'user.business_id' => $bizId,
+            'user' => ['business_id' => $bizId, 'id' => $user->id],
+            'business.date_format' => 'd/m/Y',
+        ];
+        test()->flushHeaders();
+        $inicial = test()->actingAs($user)->withSession($sessao)->get('/asset/dashboard');
+        expect($inicial->status())->toBe(200);
+        $versao = data_get($inicial->viewData('page'), 'version');
+
+        $r = test()->actingAs($user)->withSession($sessao)
+            ->withHeaders([
+                'X-Requested-With' => 'XMLHttpRequest',
+                'X-Inertia' => 'true',
+                'X-Inertia-Version' => (string) $versao,
+                'X-Inertia-Partial-Component' => 'Patrimonio/Index',
+                'X-Inertia-Partial-Data' => 'porCategoria',
+            ])
+            ->get('/asset/dashboard');
+        expect($r->status())->toBe(200);
+
+        $rotulos = collect(data_get($r->json(), 'props.porCategoria', []))->pluck('categoria')->all();
+        // Controle: o fixture sem categoria tem de estar em ALGUM grupo — sem isso uma lista
+        // vazia satisfaria o `not->toContain` abaixo.
+        expect($rotulos)->not->toBeEmpty();
+        expect($rotulos)->toContain('Sem categoria');
+        expect($rotulos)->not->toContain(__('lang_v1.none'));
+    } finally {
+        painelGarantiaLimpar();
+    }
+});

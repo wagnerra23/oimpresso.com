@@ -136,3 +136,36 @@ describe('UC-PAT-10 · o chip "Garantia crítica" abre Bens já no recorte', () 
     expect(chip.getAttribute('href')).toBe('/asset/assets?recorte=garantia');
   });
 });
+
+// Visto na evidência visual do tenant de visreg (2026-09-30), que tem UM bem: o painel escrevia
+// "1 bens cadastrados", "1 unidades" e "1 unidades em 1 bens". O controle (21/11) prova que o
+// plural não virou singular pra todo mundo.
+describe('UC-PAT-11 · o painel concorda em número', () => {
+  const UM = { ...KPIS, bruto: 1500, unidades: 1, totalBens: 1, alocados: 0, alocaveis: 1, garantiaCritica: 1 };
+
+  it('com um bem e uma unidade, tudo no singular', () => {
+    const { container } = render(<PainelPatrimonio {...BASE} kpis={UM} porCategoria={[]} />);
+    const texto = container.textContent ?? '';
+    expect(texto).toContain('1 bem cadastrado,');
+    expect(texto).toContain('1 unidade e');
+    expect(texto).toContain('1 unidade em 1 bem');
+    expect(texto).toContain('1 unidade livre pra alocar');
+    expect(texto).toContain('1 bem com garantia vencida');
+    expect(texto).not.toMatch(/\b1 (bens|unidades)\b/);
+  });
+
+  it('o selo do grupo sem categoria diz "100% sem categoria", não "em sem categoria"', () => {
+    const { container } = render(
+      <PainelPatrimonio {...BASE} kpis={UM} porCategoria={[{ categoria: 'Sem categoria', unidades: 1, valor: 1500 }]} />,
+    );
+    expect(container.textContent).toContain('100% sem categoria');
+    expect(container.textContent).not.toContain('em sem categoria');
+  });
+
+  it('controle: com 21 unidades em 11 bens, segue no plural', () => {
+    const { container } = render(<PainelPatrimonio {...BASE} kpis={KPIS} porCategoria={[]} />);
+    const texto = container.textContent ?? '';
+    expect(texto).toContain('11 bens cadastrados,');
+    expect(texto).toContain('21 unidades em 11 bens');
+  });
+});
