@@ -423,3 +423,62 @@ it('CONTROLE: destroy na mesma URI e asset.settings.show continuam registrados',
         expect(\Route::has($nome))->toBeTrue("Rota {$nome} deveria continuar registrada");
     }
 });
+
+/**
+ * `GET asset/revocation` redireciona para a tela de Alocações — thread 16 do playbook
+ * Patrimônio (decisão [W] 2026-09-30, `_saida-16b` opção b).
+ *
+ * O QUE DEFENDE: a lista Blade de devoluções saiu de cena. O histórico 1 : N mora no drawer
+ * Devolver (com Excluir, thread 18) e no drawer do bem. A rota continua registrada para o
+ * menu e links antigos, mas não pode voltar a servir tela própria.
+ *
+ * POR QUE AS DUAS REQUISIÇÕES: antes deste PR, a visita COM `X-Requested-With` (a que o
+ * cliente Inertia manda sempre) caía no ramo `ajax()` e recebia o JSON cru do DataTables
+ * com 200; a visita sem o header recebia a view Blade, também 200. As duas mordem aqui.
+ *
+ * CONTROLE: sem a assinatura do módulo o gate segue dando 403 — o redirecionamento não pode
+ * virar atalho que pula a permissão que protegia a lista.
+ */
+function revocationIndexChamar(Business $biz, User $user, bool $inertia)
+{
+    test()->flushHeaders();
+    $req = test()->actingAs($user)->withSession([
+        'user.business_id' => $biz->id,
+        'user' => ['business_id' => $biz->id, 'id' => $user->id],
+    ]);
+    if ($inertia) {
+        $req = $req->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'X-Inertia' => 'true']);
+    }
+
+    return $req->get('/asset/revocation');
+}
+
+it('thread 16: GET asset/revocation redireciona para asset/allocation (com e sem Inertia)', function () {
+    [$biz, $user] = assetViewGateFixture(comPermissao: false);
+
+    try {
+        $moduleUtil = Mockery::mock(ModuleUtil::class)->makePartial();
+        $moduleUtil->shouldReceive('hasThePermissionInSubscription')->andReturn(true);
+        app()->instance(ModuleUtil::class, $moduleUtil);
+
+        revocationIndexChamar($biz, $user, inertia: true)->assertRedirect('/asset/allocation');
+        revocationIndexChamar($biz, $user, inertia: false)->assertRedirect('/asset/allocation');
+    } finally {
+        assetViewGateLimpar();
+    }
+});
+
+it('CONTROLE thread 16: sem a assinatura do módulo, GET asset/revocation segue 403', function () {
+    [$biz, $user] = assetViewGateFixture(comPermissao: false);
+
+    try {
+        $moduleUtil = Mockery::mock(ModuleUtil::class)->makePartial();
+        $moduleUtil->shouldReceive('hasThePermissionInSubscription')->andReturn(false);
+        app()->instance(ModuleUtil::class, $moduleUtil);
+
+        expect($user->can('superadmin'))->toBeFalse();
+        revocationIndexChamar($biz, $user, inertia: true)->assertStatus(403);
+    } finally {
+        assetViewGateLimpar();
+    }
+});
