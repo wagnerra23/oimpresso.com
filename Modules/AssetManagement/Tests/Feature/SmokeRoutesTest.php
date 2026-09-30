@@ -408,9 +408,13 @@ it('UC-PAT-01: bem SEM garantia de outra empresa não entra nos baldes de garant
  *
  * ORÁCULO: o registro vivo (`Route::has`), não a leitura do arquivo de rotas.
  * CONTROLE: `destroy` na MESMA URI segue registrado — `Bens.tsx` e `Manutencoes.tsx`
- * excluem por `router.delete` nela, e `except(['show'])` não pode levá-lo junto. E
- * `asset.settings.show` segue registrado de propósito: as sub-telas de settings dependem
- * da decisão D-FORMS, então este teste também falha se alguém tirar essa rota sem ela.
+ * excluem por `router.delete` nela, e `except(['show'])` não pode levá-lo junto.
+ *
+ * `settings` (2026-09-30, thread 20): até aqui este CONTROLE fixava `asset.settings.show` como
+ * registrado, porque as sub-telas de settings esperavam a D-FORMS. A D-FORMS foi respondida
+ * (ADR 0414) e, para configurações, o formulário já é a própria Page do índice — o resource
+ * passou a `->only(['index', 'store'])`. O controle agora fixa as duas rotas que a tela usa;
+ * a ausência das 5 removidas é provada em `ConfiguracoesContratoTest` (UC-CFG-05).
  */
 it('rotas show mortas de assets/allocation/revocation/asset-maintenance não estão registradas', function () {
     foreach (['assets.show', 'allocation.show', 'revocation.show', 'asset-maintenance.show'] as $nome) {
@@ -418,8 +422,8 @@ it('rotas show mortas de assets/allocation/revocation/asset-maintenance não est
     }
 });
 
-it('CONTROLE: destroy na mesma URI e asset.settings.show continuam registrados', function () {
-    foreach (['assets.destroy', 'allocation.destroy', 'revocation.destroy', 'asset-maintenance.destroy', 'asset.settings.show'] as $nome) {
+it('CONTROLE: destroy na mesma URI e asset.settings.index/store continuam registrados', function () {
+    foreach (['assets.destroy', 'allocation.destroy', 'revocation.destroy', 'asset-maintenance.destroy', 'asset.settings.index', 'asset.settings.store'] as $nome) {
         expect(\Route::has($nome))->toBeTrue("Rota {$nome} deveria continuar registrada");
     }
 });

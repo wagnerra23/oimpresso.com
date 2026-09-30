@@ -141,16 +141,6 @@ class AssetSettingsController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return Response
-     */
-    public function create()
-    {
-        return view('assetmanagement::create');
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  Request  $request
@@ -217,48 +207,7 @@ class AssetSettingsController extends Controller
         return redirect()->back()->with(['status' => $output]);
     }
 
-    /**
-     * Show the specified resource.
-     *
-     * @param  int  $id
-     * @return Response
-     */
-    public function show($id)
-    {
-        return view('assetmanagement::show');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return Response
-     */
-    public function edit($id)
-    {
-        return view('assetmanagement::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  Request  $request
-     * @param  int  $id
-     * @return Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
+    // Sem create/show/edit/update/destroy (2026-09-30, thread 20 do playbook do Patrimonio):
+    // os 3 primeiros devolviam views inexistentes e os 2 ultimos tinham corpo vazio. A rota
+    // declara `->only(['index', 'store'])` — ver Routes/web.php.
 }
